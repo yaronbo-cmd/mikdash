@@ -1,0 +1,308 @@
+[
+  {
+    "id": "king_tyre",
+    "title_he": "סוחרי צור וצידון",
+    "text_he": "בימי שיבת ציון נתנו לצידונים ולצורים מאכל, משקה ושמן, והם הביאו עצי ארזים מן הלבנון בים עד יפו.",
+    "source": "עזרא ג, ז",
+    "quote_nikud": "וּמַאֲכָל וּמִשְׁתֶּה וָשֶׁמֶן לַצִּדֹנִים וְלַצֹּרִים לְהָבִיא עֲצֵי אֲרָזִים מִן־הַלְּבָנוֹן אֶל־יָם יָפוֹא",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "tyre",
+    "goods": [
+      "cedar"
+    ],
+    "sourced": true,
+    "line_he": "ארזי הלבנון ישטו על הים עד יפו. שלחו לנו חיטה, יין ושמן.",
+    "do_not_show_en": "no Baal/Melqart temples, idols or symbols in the court",
+    "note": "Paid in produce, not silver (the silver went to the quarriers and craftsmen). Return-era: for Herod’s time an analogy (⚑).",
+    "quote": "ומאכל ומשתה ושמן לצדנים ולצרים להביא עצי ארזים מן הלבנון אל ים יפוא"
+  },
+  {
+    "id": "king_rome",
+    "title_he": "אוגוסטוס קיסר",
+    "text_he": "הורדוס נתן לקיסר שלוש מאות ככר כסף. אוגוסטוס נתן לו מחצית מהכנסות מכרות הנחושת של קפריסין, ואת ההשגחה על המחצית השנייה.",
+    "source": "יוספוס, קדמוניות טז, ד, ה (128)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "rome",
+    "goods": [
+      "bronze"
+    ],
+    "sourced": true,
+    "line_he": "מחצית מהכנסות הנחושת של קפריסין — שלך, וגם ההשגחה על המחצית האחרת.",
+    "do_not_show_en": "no emperor cult, no eagle standards or images of gods, no temple of Roma"
+  },
+  {
+    "id": "king_agrippa",
+    "title_he": "מרקוס אגריפס בירושלים",
+    "text_he": "מרקוס אגריפס, ידידו של הורדוס מרומא, ביקר בירושלים, הקריב מאה שוורים וערך משתה לכל העם.",
+    "source": "יוספוס, קדמוניות טז, ב, א (14)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "agrippa",
+    "goods": [],
+    "sourced": true,
+    "line_he": "ראיתי את עירכם ואת ביתכם הגדול, ולא אשכח.",
+    "do_not_show_en": "he is a guest; no sacrifice scene with him at the altar",
+    "note": "An event, not a trade (KINGS)."
+  },
+  {
+    "id": "king_helena",
+    "title_he": "הילני המלכה",
+    "text_he": "הילני, מלכת חדייב, עשתה נברשת של זהב על פתח ההיכל, וגם טבלת זהב שפרשה מן התורה כתובה עליה.",
+    "source": "יומא ג, י",
+    "quote_nikud": "הִילְנִי אִמּוֹ עָשְׂתָה נִבְרֶשֶׁת שֶׁל זָהָב עַל פִּתְחוֹ שֶׁל הֵיכָל",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "adiabene",
+    "goods": [
+      "gold"
+    ],
+    "sourced": true,
+    "line_he": "נברשת של זהב לפתח ההיכל — מתנה מבית חדייב.",
+    "do_not_show_en": "a gift, never priced or bought",
+    "note": "Her conversion (Josephus Ant. 20.2) was not re-checked this wave: not in the text. The tablet holds the Sotah passage — for kids \"a Torah passage\".",
+    "quote": "הילני אמו עשתה נברשת של זהב על פתחו של היכל"
+  },
+  {
+    "id": "king_monbaz",
+    "title_he": "מונבז המלך",
+    "text_he": "מונבז המלך עשה ידות של זהב לכל כלי יום הכיפורים. בשנות בצורת בזבז את אוצרותיו ואמר: ״אבותי גנזו למטה, ואני גנזתי למעלה״.",
+    "source": "יומא ג, י; בבא בתרא יא, א",
+    "quote_nikud": "מֻנְבַּז הַמֶּלֶךְ הָיָה עוֹשֶׂה כָל יְדוֹת הַכֵּלִים שֶׁל יוֹם הַכִּפּוּרִים שֶׁל זָהָב ... אֲבוֹתַי גָּנְזוּ לְמַטָּה, וַאֲנִי גָּנַזְתִּי לְמַעְלָה",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "adiabene",
+    "goods": [
+      "gold"
+    ],
+    "sourced": true,
+    "line_he": "אבותי גנזו למטה, ואני גנזתי למעלה.",
+    "do_not_show_en": "a gift, never priced or bought",
+    "note": "His line is a real quote (Bava Batra 11a), not a dramatization: show it with its source, without \"המחשה\".",
+    "quote": "מנבז המלך היה עושה כל ידות הכלים של יום הכפורים של זהב ... אבותי גנזו למטה, ואני גנזתי למעלה"
+  },
+  {
+    "id": "king_nikanor",
+    "title_he": "ניקנור מאלכסנדריה",
+    "text_he": "ניקנור הביא דלתות נחושת מאלכסנדריה. בסערה אמר: ״הטילוני עמה״ — והים נח. בנמל עכו צפה הדלת שהוטלה לים.",
+    "source": "יומא לח, א; מדות ב, ג",
+    "quote_nikud": null,
+    "quote": "כשהלך ניקנור להביא דלתות מאלכסנדריא של מצרים",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "nikanor",
+    "goods": [
+      "doors",
+      "bronze"
+    ],
+    "sourced": true,
+    "line_he": "הטילוני עמה.",
+    "do_not_show_en": "no sea monster; the storm is told, calmly, in advance",
+    "note": "His line is a real quote (Yoma 38a). Port: Akko (Bavli). Akko is the Bavli (Yoma 38a); the Tosefta (Yoma 2:4, two passes) has Jaffa «עד שהגיע לנמל של יפו» — ⚑80."
+  },
+  {
+    "id": "king_petra",
+    "title_he": "סוחרי הנבטים",
+    "text_he": "פטרה הייתה בירת הנבטים. שיירות גמלים הביאו בשמים מלויקה קומה לפטרה, ומשם אל רינוקולורה שעל חוף הים.",
+    "source": "סטרבון, גאוגרפיה טז, ד, כא–כד",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "kind": "partner",
+    "partner": "petra",
+    "goods": [
+      "aromatics"
+    ],
+    "sourced": true,
+    "line_he": "בשמי ערב עוברים דרכנו אל הים. מה תיתנו תמורתם?",
+    "do_not_show_en": "no Nabataean gods (Dushara) or idols; no named king; no invented deal with a real person",
+    "note": "Strabo names aromatics, not gold: gold from Petra = sourced:false (⚑)."
+  },
+  {
+    "id": "fact_cypros",
+    "title_he": "אמו של הורדוס",
+    "text_he": "אנטיפטרוס, אביו של הורדוס, נשא לאישה את קיפרוס — בת משפחה מכובדת מן הערבים (הנבטים).",
+    "source": "יוספוס, מלחמות א, ח, ט (181)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "kind": "fact",
+    "partner": "petra",
+    "goods": [],
+    "sourced": true
+  },
+  {
+    "id": "fact_cedar_temple",
+    "title_he": "ארזים בבית",
+    "text_he": "גם בבית שבנה הורדוס היו ארזים: קורות ארז חיברו את קיר ההיכל אל קיר האולם, כדי שלא ייטה.",
+    "source": "מדות ג, ח",
+    "quote_nikud": "וּכְלוֹנָסוֹת שֶׁל אֶרֶז הָיוּ קְבוּעִין מִכָּתְלוֹ שֶׁל הֵיכָל לְכָתְלוֹ שֶׁל אוּלָם",
+    "status": "draft",
+    "kind": "fact",
+    "partner": "tyre",
+    "goods": [
+      "cedar"
+    ],
+    "sourced": true,
+    "quote": "וכלונסות של ארז היו קבועין מכתלו של היכל לכתלו של אולם"
+  },
+  {
+    "id": "fact_helena_famine",
+    "title_he": "תבואה ודבלים",
+    "text_he": "בשנת רעב שלחה הילני עבדים לאלכסנדריה לקנות הרבה תבואה, ואחרים לקפריסין להביא מטען של דבלים, וחילקה מזון לנזקקים.",
+    "source": "יוספוס, קדמוניות כ, ב, ה (49–51)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "kind": "fact",
+    "partner": "adiabene",
+    "goods": [
+      "grain"
+    ],
+    "sourced": true
+  },
+  {
+    "id": "fact_kings_gold",
+    "title_he": "מלך נותן זהב",
+    "text_he": "בימי עזרא הרימו מלך פרס, יועציו ושריו וכל ישראל כסף, זהב וכלים לבית — ובהם מאה ככר זהב.",
+    "source": "עזרא ח, כה–כו",
+    "quote_nikud": "הַהֵרִימוּ הַמֶּלֶךְ וְיֹעֲצָיו וְשָׂרָיו וְכׇל־יִשְׂרָאֵל הַנִּמְצָאִים ... זָהָב מֵאָה כִכָּר",
+    "status": "draft",
+    "kind": "fact",
+    "partner": null,
+    "goods": [
+      "gold",
+      "silver"
+    ],
+    "sourced": true,
+    "note": "The sourced frame for \"a king of the nations gives gold\": a dedication, not a sale.",
+    "quote": "ההרימו המלך ויעציו ושריו וכל ישראל הנמצאים ... זהב מאה ככר"
+  },
+  {
+    "id": "fact_gold_sources",
+    "title_he": "מאין בא הזהב",
+    "text_he": "הזהב של המקדש בא בעיקר מנדבות: מי שהתנדב עלה, גרגר או אשכול של זהב — תלה אותו בגפן. יהודים מכל העולם שלחו תרומות למקדש.",
+    "source": "מדות ג, ח; יוספוס, קדמוניות יד, ז, ב (110)",
+    "quote_nikud": "כָּל מִי שֶׁהוּא מִתְנַדֵּב עָלֶה, אוֹ גַרְגִּיר, אוֹ אֶשְׁכּוֹל, מֵבִיא וְתוֹלֶה בָהּ",
+    "status": "draft",
+    "kind": "fact",
+    "partner": null,
+    "goods": [
+      "gold"
+    ],
+    "sourced": true,
+    "quote": "כל מי שהוא מתנדב עלה, או גרגיר, או אשכול, מביא ותולה בה"
+  },
+  {
+    "id": "fact_gold_mines",
+    "title_he": "מכרה הזהב",
+    "text_he": "לא ידוע על מכרות זהב בארץ ישראל. בימים ההם כרו זהב הרחק מכאן, בקצה מצרים ובגבולות ערב וכוש. מכרה הזהב במשחק — המחשה.",
+    "source": "דיודורוס, הספרייה ג, יב (על פי אגתרכידס)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "illus": true,
+    "status": "draft",
+    "kind": "fact",
+    "partner": null,
+    "goods": [
+      "gold"
+    ],
+    "sourced": false,
+    "note": "For MATCH3’s gold field (⚑ label). Never show forced labour (Diodorus: captives and prisoners worked the mines)."
+  },
+  {
+    "id": "offer_tyre_cedar",
+    "title_he": "ארזים תמורת מזון",
+    "text_he": "הצורים מביאים ארזים ברפסודות עד יפו, ומקבלים מאכל, משקה ושמן — כמו בימי שיבת ציון.",
+    "source": "עזרא ג, ז",
+    "quote_nikud": null,
+    "quote": null,
+    "illus": true,
+    "status": "draft",
+    "kind": "offer",
+    "partner": "tyre",
+    "goods": [
+      "cedar"
+    ],
+    "sourced": true,
+    "note": "The frame is sourced; the deal in Herod’s time is our illustration."
+  },
+  {
+    "id": "offer_rome_copper",
+    "title_he": "מתנה ונחושת",
+    "text_he": "מתנה גדולה של כסף לקיסר — ובתמורה הכנסה קבועה מנחושת קפריסין.",
+    "source": "יוספוס, קדמוניות טז, ד, ה (128)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "kind": "offer",
+    "partner": "rome",
+    "goods": [
+      "bronze"
+    ],
+    "sourced": true
+  },
+  {
+    "id": "offer_adiabene_gift",
+    "title_he": "נדבת זהב",
+    "text_he": "מלכי חדייב אינם מוכרים — הם מתנדבים. שלחו להם מכתב על התקדמות הבנייה, והם שולחים זהב לכלים.",
+    "source": "יומא ג, י",
+    "quote_nikud": null,
+    "quote": null,
+    "illus": true,
+    "status": "draft",
+    "kind": "offer",
+    "partner": "adiabene",
+    "goods": [
+      "gold"
+    ],
+    "sourced": true,
+    "note": "That they gave is sourced; the letter that prompts the gift is our mechanic."
+  },
+  {
+    "id": "offer_nikanor_doors",
+    "title_he": "דלתות ניקנור",
+    "text_he": "דלתות הנחושת של ניקנור יוצאות מאלכסנדריה. הדרך בים סוערת — אבל ידוע איך היא נגמרת.",
+    "source": "יומא לח, א",
+    "quote_nikud": null,
+    "quote": null,
+    "status": "draft",
+    "kind": "offer",
+    "partner": "nikanor",
+    "goods": [
+      "doors",
+      "bronze"
+    ],
+    "sourced": true
+  },
+  {
+    "id": "offer_petra_aromatics",
+    "title_he": "בשמים מערב",
+    "text_he": "שיירת הנבטים מביאה בשמים מערב. אפשר לשלם בכסף, ולקבל מעט זהב — המחשה.",
+    "source": "סטרבון, גאוגרפיה טז, ד, כד",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "illus": true,
+    "status": "draft",
+    "kind": "offer",
+    "partner": "petra",
+    "goods": [
+      "aromatics",
+      "gold"
+    ],
+    "sourced": false
+  }
+]

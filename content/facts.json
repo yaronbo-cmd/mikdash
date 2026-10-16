@@ -1,0 +1,2734 @@
+{
+ "version": 1,
+ "stages": [
+  "har",
+  "wall",
+  "sorag",
+  "gates",
+  "nashim",
+  "nikanor",
+  "lishka",
+  "yesod",
+  "sovev",
+  "guf",
+  "karnot",
+  "kiyor",
+  "ulam",
+  "heichal",
+  "kodesh"
+ ],
+ "topics": {
+  "jerusalem": "ירושלים",
+  "herod": "בניין הורדוס",
+  "kohanim": "הכהנים",
+  "stone": "המחצבה והאבן",
+  "water": "המים",
+  "trade": "סחר המלכים"
+ },
+ "stage_topics": {
+  "har": [
+   "herod",
+   "stone"
+  ],
+  "wall": [
+   "herod",
+   "stone"
+  ],
+  "sorag": [
+   "jerusalem",
+   "herod"
+  ],
+  "gates": [
+   "jerusalem",
+   "herod"
+  ],
+  "nashim": [
+   "jerusalem",
+   "kohanim"
+  ],
+  "nikanor": [
+   "trade",
+   "kohanim"
+  ],
+  "lishka": [
+   "kohanim",
+   "water"
+  ],
+  "yesod": [
+   "stone",
+   "water"
+  ],
+  "sovev": [
+   "kohanim",
+   "stone"
+  ],
+  "guf": [
+   "kohanim",
+   "stone"
+  ],
+  "karnot": [
+   "kohanim",
+   "trade"
+  ],
+  "kiyor": [
+   "water",
+   "kohanim"
+  ],
+  "ulam": [
+   "trade",
+   "herod"
+  ],
+  "heichal": [
+   "kohanim",
+   "herod"
+  ],
+  "kodesh": [
+   "kohanim",
+   "herod"
+  ]
+ },
+ "facts": [
+  {
+   "id": "f_har_500",
+   "stages": [
+    "har"
+   ],
+   "topics": [],
+   "he": "״הר הבית היה חמש מאות אמה על חמש מאות אמה״. רוב השטח הפנוי היה בדרום, אחריו במזרח, אחריו בצפון, והמעט — במערב.",
+   "ref": "משנה מדות ב, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "הר הבית היה חמש מאות אמה על חמש מאות אמה",
+   "note": "Torat Emet; corpus Mishnah_Middot.middotjs v1+v3"
+  },
+  {
+   "id": "f_har_use",
+   "stages": [
+    "har"
+   ],
+   "topics": [],
+   "he": "למה לא חולק השטח שווה בשווה? ״מקום שהיה רב מדתו, שם היה רב תשמישו״ — במקום הגדול ביותר נעשה השימוש הרב ביותר.",
+   "ref": "משנה מדות ב, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "מקום שהיה רב מדתו, שם היה רב תשמישו"
+  },
+  {
+   "id": "f_har_gates5",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "להר הבית היו חמישה שערים: שני שערי חולדה בדרום, קיפונוס במערב, טדי בצפון, ושער המזרח — ועליו צורת שושן הבירה.",
+   "ref": "משנה מדות א, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_har_bava",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "הורדוס חשש מרומא. החכם בבא בן בוטא יעץ לו: שלח שליח — שנה ילך, שנה יתעכב ושנה יחזור, ובינתיים כבר תהרוס ותבנה.",
+   "ref": "בבלי בבא בתרא ד, א",
+   "status": "draft",
+   "illus": false,
+   "note": "reused: content/build_process.json bp_plan (wave 6). Never the context (3b–4a)."
+  },
+  {
+   "id": "f_har_prepare",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "יוספוס מספר שהורדוס לא התחיל לבנות לפני שהכין את כל הדרוש, ובכלל זה אלף עגלות להובלת האבנים.",
+   "ref": "יוספוס, קדמוניות היהודים טו, 389–390 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston Ant. 15.11.2; two sites (SOURCES-S6 §3.2)"
+  },
+  {
+   "id": "f_har_rain",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "בימי בניין הורדוס ירדו הגשמים רק בלילה. בבוקר נשבה הרוח, העננים התפזרו, השמש זרחה — והעם יצא למלאכתו.",
+   "ref": "בבלי תענית כג, א; וכן יוספוס, קדמוניות היהודים טו, 425",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.5 (two independent sources)"
+  },
+  {
+   "id": "f_har_barefoot",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "לא נכנסים להר הבית עם מקל, בנעליים או עם חגורת כסף, וגם לא באבק שעל הרגליים; ואין עושים אותו קיצור דרך.",
+   "ref": "משנה ברכות ט, ה",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §7 no_staff_no_shortcut"
+  },
+  {
+   "id": "f_har_right",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "כל הנכנסים להר הבית נכנסים מימין, מקיפים ויוצאים משמאל. אבל מקיף לשמאל, והפוגשים בו מברכים: ״השוכן בבית הזה ינחמך״.",
+   "ref": "משנה מדות ב, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "השוכן בבית הזה ינחמך"
+  },
+  {
+   "id": "f_har_great",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "בנדבך הגדול שבמנהרות הכותל יש אבן שאורכה כ־13.6 מטר וגובהה כ־3.3 מטר; משקלה — מאות טונות.",
+   "ref": "הקרן למורשת הכותל המערבי; ד׳ בהט, מנהרת הכותל המערבי (2013)",
+   "status": "draft",
+   "illus": false,
+   "note": "Western Wall Heritage Foundation (thekotel.org/en/150788, 2026-09-28): ≈13.60 m long, ≈3.3 m high, 2–4.6 m deep, 285–570 t → 'מאות טונות' (REVIEW ⚑70). index.js:30 on master says 13.5 m"
+  },
+  {
+   "id": "f_har_trumpet",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "על אבן מראש הפינה הדרומית־מערבית של הר הבית חקוק ״לבית התקיעה לה...״. יוספוס מספר שכהן עמד שם ותקע בחצוצרה בכניסת השבת וביציאתה.",
+   "ref": "חפירות ב׳ מזר, 1968 (מוזיאון ישראל); יוספוס, מלחמת היהודים ד, 582 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "inscription: the ״״ hold the inscription's own letters, not a Sefaria quote. SOURCES-S6 §3.10 trumpeting"
+  },
+  {
+   "id": "f_wall_size",
+   "stages": [
+    "wall"
+   ],
+   "topics": [],
+   "he": "העזרה כולה הייתה מאה שמונים ושבע אמה אורך, ממזרח למערב, ומאה שלושים וחמש אמה רוחב, מצפון לדרום.",
+   "ref": "משנה מדות ה, א–ב",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_wall_rows",
+   "stages": [
+    "wall"
+   ],
+   "topics": [],
+   "he": "לאורך העזרה, ממזרח למערב: אחת עשרה אמה לישראל, אחת עשרה לכהנים, המזבח שלושים ושתיים, עשרים ושתיים עד האולם, ההיכל מאה, ועוד אחת עשרה מאחוריו.",
+   "ref": "משנה מדות ה, א",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_wall_east",
+   "stages": [
+    "wall"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "כל החומות היו גבוהות, חוץ מן הכותל המזרחי — כדי שהכהן ששרף את הפרה האדומה, בראש הר המשחה, יוכל לראות משם את פתח ההיכל.",
+   "ref": "משנה מדות ב, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_wall_guards",
+   "stages": [
+    "wall"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בכל לילה שמרו על המקדש: הכהנים בשלושה מקומות, והלוויים בעשרים ואחד — רובם על שערי הר הבית והעזרה ועל פינותיהם.",
+   "ref": "משנה מדות א, א",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_wall_officer",
+   "stages": [
+    "wall"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "איש הר הבית סבב בלילה על כל משמר ומשמר, ואבוקות דולקות לפניו. לשומר שלא עמד לקראתו אמר ״שלום עליך״.",
+   "ref": "משנה מדות א, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "שלום עליך",
+   "note": "REVIEW ⚑87: torches and the greeting, without the staff. Literal reading of «וכל משמר שאינו עומד, אומר לו איש הר הבית, שלום עליך» (as SOURCES-S6 §7)"
+  },
+  {
+   "id": "f_wall_crowded",
+   "stages": [
+    "wall"
+   ],
+   "topics": [],
+   "he": "אחד מעשרת הנסים במקדש: ״עומדים צפופים ומשתחוים רוחים״ — בעזרה עמדו צפופים, וכשהשתחוו היה מקום לכולם.",
+   "ref": "משנה אבות ה, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "עומדים צפופים ומשתחוים רוחים"
+  },
+  {
+   "id": "f_wall_shabbat",
+   "stages": [
+    "wall"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "אפילו בניין בית המקדש אינו דוחה את השבת — ״כולכם חייבין בכבודי״. לכן בשבת נח אתר הבנייה.",
+   "ref": "בבלי יבמות ו, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "כולכם חייבין בכבודי",
+   "note": "SOURCES-S6 §3.6"
+  },
+  {
+   "id": "f_wall_margins",
+   "stages": [
+    "wall"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "לאבני הגזית של הורדוס שוליים מסותתים ושקועים סביב בליטה שטוחה — כך מזהים אותן עד היום בכותל.",
+   "ref": "משרד החוץ, מנהרות הכותל (חפירות מ׳ בן־דב וד׳ בהט, רשות העתיקות)",
+   "status": "draft",
+   "illus": false,
+   "note": "Israel MFA text via Jewish Virtual Library («large ashlar stones with beautifully dressed margins»), 2026-09-28. The width (~8 cm, ~2 cm deep) is only in an uncited Wikipedia summary — left out; dress.js says 8 cm"
+  },
+  {
+   "id": "f_wall_setback",
+   "stages": [
+    "wall"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "כל נדבך הורדוסי הונח כ־2–3 ס״מ פנימה מזה שמתחתיו, ולכן החומה נוטה פנימה מעט — בכוונה.",
+   "ref": "משרד החוץ, מנהרות הכותל (חפירות מ׳ בן־דב וד׳ בהט, רשות העתיקות)",
+   "status": "draft",
+   "illus": false,
+   "note": "Israel MFA via Jewish Virtual Library: «Each course was set back about 2 - 3 cm. from the course below it», 2026-09-28. Wikipedia (uncited) says 3–5 cm, as plumb.js — the institutional figure wins"
+  },
+  {
+   "id": "f_wall_levels",
+   "stages": [
+    "wall"
+   ],
+   "topics": [],
+   "he": "לדברי רבי אליעזר בן יעקב, עזרת הכהנים הייתה גבוהה מעזרת ישראל שתי אמות ומחצה, ועל מעלה שביניהן עמד הדוכן.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sorag_10",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [],
+   "he": "סביב המקדש עבר ״סורג, גבוה עשרה טפחים״ — מחיצה נמוכה. לפנים ממנה, בחיל, לא נכנסו נכרים וטמאי מת.",
+   "ref": "משנה מדות ב, ג; כלים א, ח",
+   "status": "draft",
+   "illus": false,
+   "quote": "סורג, גבוה עשרה טפחים"
+  },
+  {
+   "id": "f_sorag_13",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [],
+   "he": "מלכי יוון פרצו בסורג שלוש עשרה פרצות. כשחזרו וגדרו אותן, תיקנו כנגדן שלוש עשרה השתחוויות.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sorag_chel",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [],
+   "he": "בין הסורג לחומת העזרה היה החיל, רצועה ברוחב עשר אמות, ובה שתים עשרה מעלות — כל מעלה גבוהה חצי אמה.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sorag_stone",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "יוספוס מתאר את הסורג כמחיצת אבן, ועליה, במרחקים שווים, עמודים ובהם אזהרות ביוונית ובלטינית.",
+   "ref": "יוספוס, מלחמת היהודים ה, 193–194 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.2; two sites (CONTENT-S6 §5). Josephus' height (three cubits) left out: the Mishnah has ten tefachim (REVIEW ⚑90)"
+  },
+  {
+   "id": "f_sorag_inscr",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "ב־1871 נמצא לוח אבן שלם מן הסורג, ועליו אזהרה ביוונית שנכרי לא ייכנס אל תוך המחיצה שסביב המקדש. הוא שמור היום באיסטנבול.",
+   "ref": "ש׳ קלרמון־גנו, 1871; מוזיאוני הארכאולוגיה של איסטנבול",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.10 soreg_inscription; the death clause left out (10+)"
+  },
+  {
+   "id": "f_sorag_red",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [],
+   "he": "שבר נוסף של כתובת האזהרה, שפורסם ב־1936, שמר עקבות של צבע אדום בחריצי האותיות. הוא מוצג במוזיאון ישראל.",
+   "ref": "ג׳ איליף, 1936; מוזיאון ישראל",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.10"
+  },
+  {
+   "id": "f_sorag_court",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [],
+   "he": "בית דין של עשרים ושלושה ישב בפתח הר הבית, ועוד אחד בפתח העזרה; בשבתות ובימים טובים ישבו בחיל.",
+   "ref": "בבלי סנהדרין פח, ב",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §7 courts"
+  },
+  {
+   "id": "f_gates_7",
+   "stages": [
+    "gates"
+   ],
+   "topics": [],
+   "he": "״שבעה שערים היו בעזרה״: שלושה בצפון, שלושה בדרום ואחד במזרח — שער ניקנור.",
+   "ref": "משנה מדות א, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "שבעה שערים היו בעזרה"
+  },
+  {
+   "id": "f_gates_names",
+   "stages": [
+    "gates"
+   ],
+   "topics": [],
+   "he": "בדרום העזרה עמדו שער הדלק, שער הבכורות ושער המים; בצפון — שער הניצוץ, שער הקרבן ובית המוקד.",
+   "ref": "משנה מדות א, ד–ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_gates_water",
+   "stages": [
+    "gates"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "שער המים נקרא כך, כי דרכו הכניסו בחג הסוכות את צלוחית המים לניסוך על המזבח.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_gates_size",
+   "stages": [
+    "gates"
+   ],
+   "topics": [],
+   "he": "כל הפתחים והשערים במקדש היו גבוהים עשרים אמה ורחבים עשר אמות, ולכולם היו דלתות — חוץ מפתח האולם.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_gates_tadi",
+   "stages": [
+    "gates"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "לכל השערים היו משקופים, חוץ משער טדי: מעליו נשענו שתי אבנים זו על גב זו.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false,
+   "note": "שקופות = lintels; «שתי אבנים מוטות זו על גב זו»"
+  },
+  {
+   "id": "f_gates_yechonya",
+   "stages": [
+    "gates"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "לדברי אבא יוסי בן חנן היו שלושה עשר שערים. אחד מהם, שער יכניה, נקרא כך כי בו יצא המלך יכניה לגלות.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false,
+   "note": "the other view of the gates' count (PROJECT.md §6)"
+  },
+  {
+   "id": "f_gates_gold",
+   "stages": [
+    "gates"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "״כל השערים שהיו שם, נשתנו להיות של זהב״ — כל שערי המקדש הוחלפו לבסוף בשערי זהב, חוץ משער ניקנור.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false,
+   "quote": "כל השערים שהיו שם, נשתנו להיות של זהב"
+  },
+  {
+   "id": "f_gates_keys",
+   "stages": [
+    "gates"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "מפתחות העזרה נתלו בשלשלת מתחת לטבלת שיש בבית המוקד. בלילה נעל הכהן מבפנים, ובן לוי ישן מבחוץ.",
+   "ref": "משנה מדות א, ט",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_135",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [],
+   "he": "עזרת הנשים הייתה מרובעת — מאה שלושים וחמש אמה על מאה שלושים וחמש — ובארבע פינותיה ארבע לשכות בלי גג, כל אחת ארבעים על ארבעים אמה.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_wood",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בלשכת העצים בדקו כהנים בעלי מום את עצי המערכה. עץ שנמצאה בו תולעת — נפסל למזבח.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_forgot",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [],
+   "he": "על הלשכה הרביעית אמר רבי אליעזר בן יעקב: ״שכחתי מה היתה משמשת״. אבא שאול אומר: שם נתנו יין ושמן.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "שכחתי מה היתה משמשת"
+  },
+  {
+   "id": "f_nashim_gallery",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [],
+   "he": "בתחילה הייתה עזרת הנשים חלקה. אחר כך הקיפו אותה במרפסת, כדי שהנשים יראו מלמעלה והאנשים מלמטה, ולא יתערבו.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_lamps",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בשמחת בית השואבה עמדו בעזרת הנשים מנורות זהב, ובראש כל אחת ארבעה ספלים. ילדים מפרחי הכהונה עלו בסולמות ומילאו אותם שמן.",
+   "ref": "משנה סוכה ה, ב",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_light",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "את הפתילות עשו מבגדי כהונה בלויים, ובליל השמחה ״ולא היתה חצר בירושלים שאינה מאירה מאור בית השואבה״.",
+   "ref": "משנה סוכה ה, ג",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא היתה חצר בירושלים שאינה מאירה מאור בית השואבה"
+  },
+  {
+   "id": "f_nik_15",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "מעזרת הנשים עלו לעזרת ישראל חמש עשרה מעלות, כנגד חמשה עשר שירי המעלות שבתהלים; עליהן שרו הלוויים.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nik_round",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "חמש עשרה המעלות לא היו ישרות, אלא מעוגלות ״כחצי גרן עגלה״.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "כחצי גרן עגלה"
+  },
+  {
+   "id": "f_nik_music",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "מתחת לעזרת ישראל היו לשכות שנפתחו לעזרת הנשים; שם הניחו הלוויים כינורות, נבלים, מצלתיים וכל כלי השיר.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nik_storm",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "ניקנור הביא דלתות נחושת מאלכסנדריה. בסערה הטילו דלת אחת לים; כשבאו להטיל את השנייה, אחז בה ואמר ״הטילוני עמה״ — ומיד נח הים מזעפו.",
+   "ref": "בבלי יומא לח, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "הטילוני עמה",
+   "note": "SOURCES-S6 §3.9"
+  },
+  {
+   "id": "f_nik_akko",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "כשהגיעה הספינה לנמל עכו, צפה הדלת הראשונה ויצאה מתחת לדופני הספינה. בתוספתא: בנמל יפו.",
+   "ref": "בבלי יומא לח, א; תוספתא יומא ב, ד",
+   "status": "draft",
+   "illus": false,
+   "note": "Akko (Bavli) vs Jaffa (Tosefta), REVIEW ⚑80"
+  },
+  {
+   "id": "f_nik_bronze",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "שער ניקנור לבדו לא הוחלף בזהב — ״מפני שנעשה בהן נס״, ויש אומרים ״מפני שנחשתן מצהיב״: הנחושת שלו הבהיקה כזהב.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false,
+   "quote": "מפני שנעשה בהן נס ... מפני שנחשתן מצהיב"
+  },
+  {
+   "id": "f_nik_chambers",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "לשער ניקנור היו שתי לשכות: מימינו לשכת פנחס המלביש, ומשמאלו לשכת עושי החביתין.",
+   "ref": "משנה מדות א, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nik_ossuary",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "ב־1902 נמצאה במערה בהר הצופים תיבת אבן, ועליה כתובת ביוונית המזכירה את ניקנור האלכסנדרוני, שעשה את השערים. היא שמורה במוזיאון הבריטי.",
+   "ref": "המוזיאון הבריטי (מערת ניקנור, הר הצופים)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.10 nikanor_ossuary (secondary for the reading); REVIEW ⚑83 'תיבת אבן'"
+  },
+  {
+   "id": "f_lishka_6",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [],
+   "he": "בעזרה היו שש לשכות: בצפון — לשכת המלח, לשכת הפרווה ולשכת המדיחים; בדרום — לשכת העץ, לשכת הגולה ולשכת הגזית.",
+   "ref": "משנה מדות ה, ג–ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_lishka_gazit",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בלשכת הגזית ישבה הסנהדרין הגדולה ובדקה את הכהנים. כהן שנמצא פסול לבש שחורים ויצא; כהן כשר לבש לבנים ונכנס לשרת עם אחיו.",
+   "ref": "משנה מדות ה, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_lishka_gola",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "בלשכת הגולה היה בור קבוע ועליו גלגל, ומשם סיפקו מים לכל העזרה.",
+   "ref": "משנה מדות ה, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_lishka_moked",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בית המוקד היה אולם גדול בעל כיפה, מוקף ספסלי אבן. זקני בית האב ישנו שם ומפתחות העזרה בידם, והכהנים הצעירים — על הרצפה.",
+   "ref": "משנה מדות א, ח",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_lishka_hasmon",
+   "stages": [
+    "lishka",
+    "yesod"
+   ],
+   "topics": [],
+   "he": "באחת מלשכות בית המוקד גנזו בני חשמונאי את אבני המזבח שחיללו מלכי יוון.",
+   "ref": "משנה מדות א, ו",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_lishka_fly",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [],
+   "he": "אחד מעשרת הנסים שנעשו במקדש: ״ולא נראה זבוב בבית המטבחים״.",
+   "ref": "משנה אבות ה, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא נראה זבוב בבית המטבחים"
+  },
+  {
+   "id": "f_yesod_base",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [],
+   "he": "המזבח היה שלושים ושתיים על שלושים ושתיים אמה. הנדבך התחתון: ״עלה אמה וכנס אמה, זה היסוד״.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "עלה אמה וכנס אמה, זה היסוד"
+  },
+  {
+   "id": "f_yesod_sides",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [],
+   "he": "היסוד לא הקיף את כל המזבח: הוא עבר לכל אורך הצפון והמערב, ובדרום ובמזרח תפס רק אמה אחת.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_yesod_beitkerem",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "אבני המזבח והכבש הובאו מבקעת בית כרם. חפרו שם עמוק, מתחת לאדמה שלא נחרשה, והביאו אבנים שלמות ״שלא הונף עליהן ברזל״.",
+   "ref": "משנה מדות ג, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "שלא הונף עליהן ברזל"
+  },
+  {
+   "id": "f_yesod_iron",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "למה לא נגע ברזל במזבח? ״שהברזל נברא לקצר ימיו של אדם, והמזבח נברא להאריך ימיו של אדם״.",
+   "ref": "משנה מדות ג, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "שהברזל נברא לקצר ימיו של אדם, והמזבח נברא להאריך ימיו של אדם"
+  },
+  {
+   "id": "f_yesod_chip",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "נפגמה אחת מאבני המזבח? ״היא פסולה וכלן כשרות״ — רק היא יוצאת, וכל השאר נשארות במקומן.",
+   "ref": "משנה מדות ג, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "היא פסולה וכלן כשרות"
+  },
+  {
+   "id": "f_yesod_shitin",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "רבי יוחנן אמר: השיתין — החללים שמתחת למזבח, שאליהם ירדו היין והמים של הניסוך — נבראו מששת ימי בראשית.",
+   "ref": "בבלי סוכה מט, א; מעילה ג, ג",
+   "status": "draft",
+   "illus": false,
+   "note": "aggadah: 'אמר רבי יוחנן', never geology (SOURCES-S6 §2.7)"
+  },
+  {
+   "id": "f_sovev_5",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "מעל היסוד ״עלה חמש וכנס אמה״ — זה הסובב. כך נשאר המזבח עשרים ושמונה על עשרים ושמונה אמה.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "עלה חמש וכנס אמה"
+  },
+  {
+   "id": "f_sovev_red",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "״וחוט של סקרא חוגרו באמצע״: קו אדום הקיף את המזבח באמצע גובהו, להבדיל בין מה שניתן מעליו לבין מה שניתן מתחתיו.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "וחוט של סקרא חוגרו באמצע"
+  },
+  {
+   "id": "f_sovev_walk",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בקרבן חטאת עלה הכהן בכבש, ״ופנה לסובב״, והלך סביב המזבח אל ארבע הקרנות, מן הדרומית־מזרחית ועד הדרומית־מערבית.",
+   "ref": "משנה זבחים ה, ג",
+   "status": "draft",
+   "illus": false,
+   "quote": "ופנה לסובב"
+  },
+  {
+   "id": "f_sovev_aravot",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "בסוכות זקפו ערבות מצידי המזבח, וראשיהן כפופים עליו. בכל יום הקיפו את המזבח פעם אחת, וביום השביעי — שבע פעמים.",
+   "ref": "משנה סוכה ד, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sovev_white",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "את אבני המזבח סיידו בלבן פעמיים בשנה — בפסח ובחג הסוכות.",
+   "ref": "משנה מדות ג, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_guf_ramp",
+   "stages": [
+    "guf"
+   ],
+   "topics": [],
+   "he": "לדרום המזבח עלה הכבש — מעין רמפה של אבן — שלושים ושתיים אמה אורכו ושש עשרה אמה רוחבו.",
+   "ref": "משנה מדות ג, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_guf_top",
+   "stages": [
+    "guf",
+    "karnot"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בראש המזבח, לפנים מן הקרנות, נשארה אמה מכל צד — ״מקום הלוך רגלי הכהנים״ — ובאמצע מקום המערכה, עשרים וארבע על עשרים וארבע אמה.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "מקום הלוך רגלי הכהנים"
+  },
+  {
+   "id": "f_guf_tapuach",
+   "stages": [
+    "guf"
+   ],
+   "topics": [],
+   "he": "באמצע המזבח נערמה ערמת אפר גדולה שנקראה תפוח. ברגלים לא פינו אותה, ״מפני שהוא נוי למזבח״.",
+   "ref": "משנה תמיד ב, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "מפני שהוא נוי למזבח"
+  },
+  {
+   "id": "f_guf_wood",
+   "stages": [
+    "guf"
+   ],
+   "topics": [],
+   "he": "כל העצים כשרים למערכה חוץ מזית וגפן; ורגילים היו להשתמש בענפי תאנה, אגוז ועץ שמן.",
+   "ref": "משנה תמיד ב, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_guf_race",
+   "stages": [
+    "guf"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בתחילה, מי שרצה לתרום את הדשן מן המזבח רץ במעלה הכבש, והקודם זכה. כשראו שזה מביא לידי סכנה, קבעו פיס — הגרלה.",
+   "ref": "משנה יומא ב, א–ב",
+   "status": "draft",
+   "illus": false,
+   "note": "the fall and the broken leg (2:2) left out"
+  },
+  {
+   "id": "f_guf_bowls",
+   "stages": [
+    "guf"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "על המזבח עמדו שני ספלי כסף מנוקבים: המערבי למים והמזרחי ליין. נקב אחד רחב ואחד צר, כדי ששניהם יתרוקנו בבת אחת.",
+   "ref": "משנה סוכה ד, ט",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §2.5"
+  },
+  {
+   "id": "f_karnot_amah",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [],
+   "he": "בארבע פינות ראש המזבח עמדו ארבע קרנות: ״מקום הקרנות אמה מזה ואמה מזה״.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "מקום הקרנות אמה מזה ואמה מזה"
+  },
+  {
+   "id": "f_karnot_fire",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [],
+   "he": "״אש תמיד תוקד על המזבח לא תכבה״ — האש על המזבח בערה יום ולילה.",
+   "ref": "ויקרא ו, ו",
+   "status": "draft",
+   "illus": false,
+   "quote": "אש תמיד תוקד על המזבח לא תכבה"
+  },
+  {
+   "id": "f_karnot_rain",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [],
+   "he": "אחד מעשרת הנסים במקדש: ״ולא כבו גשמים אש של עצי המערכה״ — הגשם לא כיבה מעולם את האש שעל המזבח.",
+   "ref": "משנה אבות ה, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא כבו גשמים אש של עצי המערכה"
+  },
+  {
+   "id": "f_karnot_smoke",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [],
+   "he": "ועוד נס: ״ולא נצחה הרוח את עמוד העשן״ — העשן עלה מן המזבח כעמוד, והרוח לא פיזרה אותו.",
+   "ref": "משנה אבות ה, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא נצחה הרוח את עמוד העשן"
+  },
+  {
+   "id": "f_karnot_dawn",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "עם שחר, כשנשמע קול המוכני, קידש הכהן הראשון ידיו ורגליו מן הכיור, ״נטל מחתת הכסף ועלה לראש המזבח״.",
+   "ref": "משנה תמיד א, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "נטל מחתת הכסף ועלה לראש המזבח",
+   "note": "SOURCES-S6 §1.7 and §5 machta"
+  },
+  {
+   "id": "f_kiyor_place",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "״הכיור היה בין האולם ולמזבח, ומשוך כלפי הדרום״: כיור נחושת על כן נחושת, וממנו רחצו הכהנים ידיים ורגליים.",
+   "ref": "משנה מדות ג, ו; שמות ל, יח–יט",
+   "status": "draft",
+   "illus": false,
+   "quote": "הכיור היה בין האולם ולמזבח, ומשוך כלפי הדרום"
+  },
+  {
+   "id": "f_kiyor_12",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "לכיור היו בתחילה רק שני דדים — ברזים. בן קטין עשה לו שנים עשר.",
+   "ref": "משנה יומא ג, י",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_kiyor_why",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "למה שנים עשר דדים? כדי ששנים עשר הכהנים העוסקים בתמיד יקדשו את ידיהם ורגליהם בבת אחת.",
+   "ref": "בבלי יומא לז, א",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §1.4"
+  },
+  {
+   "id": "f_kiyor_mukhni",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "בן קטין עשה גם מוכני לכיור — גלגל שבו שיקעו אותו בלילה בתוך בור, כדי שמימיו לא ייפסלו בלינה.",
+   "ref": "משנה יומא ג, י; בבלי יומא לז, א ורש״י שם",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §1.3–1.5"
+  },
+  {
+   "id": "f_kiyor_jericho",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "כך שנינו: ״מיריחו היו שומעין קול העץ שעשה בן קטין מוכני לכיור״.",
+   "ref": "משנה תמיד ג, ח",
+   "status": "draft",
+   "illus": false,
+   "quote": "מיריחו היו שומעין קול העץ שעשה בן קטין מוכני לכיור",
+   "note": "say 'כך שנינו', never 'scientifically' (SOURCES-S6 §1.8)"
+  },
+  {
+   "id": "f_ulam_opening",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [],
+   "he": "פתח האולם היה גבוה ארבעים אמה ורחב עשרים, ולא היו לו דלתות. מעליו חמש קורות עץ — מלתראות — וכל אחת עודפת אמה מכל צד על שמתחתיה.",
+   "ref": "משנה מדות ב, ג; ג, ז",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_ulam_cedar",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "״וכלונסות של ארז היו קבועין מכתלו של היכל לכתלו של אולם, כדי שלא יבעט״ — קורות ארז החזיקו את הקיר שלא יבלוט.",
+   "ref": "משנה מדות ג, ח",
+   "status": "draft",
+   "illus": false,
+   "quote": "וכלונסות של ארז היו קבועין מכתלו של היכל לכתלו של אולם, כדי שלא יבעט"
+  },
+  {
+   "id": "f_ulam_chains",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בתקרת האולם היו קבועות שרשרות זהב, ובהן טיפסו פרחי הכהונה כדי לראות את העטרות שנעשו לזיכרון.",
+   "ref": "משנה מדות ג, ח; זכריה ו, יד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_ulam_vine",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "גפן של זהב עמדה על פתח ההיכל. כל מי שנדב עלה, גרגר או אשכול — הביא ותלה בה.",
+   "ref": "משנה מדות ג, ח",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_ulam_lion",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [],
+   "he": "האולם בלט חמש עשרה אמה לכל צד, ולכן ״ההיכל צר מאחריו, ורחב מלפניו, ודומה לארי״.",
+   "ref": "משנה מדות ד, ז",
+   "status": "draft",
+   "illus": false,
+   "quote": "ההיכל צר מאחריו, ורחב מלפניו, ודומה לארי"
+  },
+  {
+   "id": "f_heichal_100",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [],
+   "he": "״וההיכל מאה על מאה, על רום מאה״ — מאה אמה אורכו, מאה רוחבו ומאה גובהו.",
+   "ref": "משנה מדות ד, ו",
+   "status": "draft",
+   "illus": false,
+   "quote": "וההיכל מאה על מאה, על רום מאה"
+  },
+  {
+   "id": "f_heichal_gold",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "פתח ההיכל היה גבוה עשרים אמה ורחב עשר, ולו ארבע דלתות. ובפנים — ״כל הבית טוח בזהב, חוץ מאחר הדלתות״.",
+   "ref": "משנה מדות ד, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "כל הבית טוח בזהב, חוץ מאחר הדלתות"
+  },
+  {
+   "id": "f_heichal_38",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [],
+   "he": "סביב ההיכל היו שלושים ושמונה תאים בשלוש קומות: חמישה עשר בצפון, חמישה עשר בדרום ושמונה במערב.",
+   "ref": "משנה מדות ד, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_heichal_menorah",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "את המנורה עשו החשמונאים תחילה משיפודי ברזל מצופים בבעץ. כשהעשירו עשו אותה מכסף, ואחר כך — מזהב.",
+   "ref": "בבלי מנחות כח, ב",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §5 menorah"
+  },
+  {
+   "id": "f_heichal_waves",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "״מי שלא ראה בנין הורדוס, לא ראה בנין נאה״. הורדוס רצה לצפות את השיש בזהב, והחכמים אמרו: השאר אותו, הוא נראה כגלי הים.",
+   "ref": "בבלי בבא בתרא ד, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "מי שלא ראה בנין הורדוס, לא ראה בנין נאה",
+   "note": "the bracketed [מימיו] left out (SOURCES-S6 §3.4)"
+  },
+  {
+   "id": "f_kodesh_20",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "קודש הקודשים היה עשרים אמה על עשרים אמה, ובינו לבין ההיכל הפרידה ״אמה טרקסין״.",
+   "ref": "משנה מדות ד, ז",
+   "status": "draft",
+   "illus": false,
+   "quote": "אמה טרקסין"
+  },
+  {
+   "id": "f_kodesh_stone",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "״משנטל הארון, אבן היתה שם מימות נביאים ראשונים, ושתיה היתה נקראת, גבוהה מן הארץ שלש אצבעות״.",
+   "ref": "משנה יומא ה, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "משנטל הארון, אבן היתה שם מימות נביאים ראשונים, ושתיה היתה נקראת, גבוהה מן הארץ שלש אצבעות",
+   "note": "no Ark in the Second Temple (PROJECT.md §2.8)"
+  },
+  {
+   "id": "f_kodesh_boxes",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "בעלייה שמעל קודש הקודשים היו פתחים, ודרכם שלשלו את האומנים בתיבות, ״כדי שלא יזונו עיניהן מבית קדשי הקדשים״.",
+   "ref": "משנה מדות ד, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "כדי שלא יזונו עיניהן מבית קדשי הקדשים"
+  },
+  {
+   "id": "f_kodesh_kg",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "לקודש הקודשים ״אין נכנס לשם אלא כהן גדול ביום הכפורים בשעת העבודה״.",
+   "ref": "משנה כלים א, ט",
+   "status": "draft",
+   "illus": false,
+   "quote": "אין נכנס לשם אלא כהן גדול ביום הכפורים בשעת העבודה"
+  },
+  {
+   "id": "f_kodesh_prayer",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "כשיצא הכהן הגדול מקודש הקודשים, התפלל תפילה קצרה, ״ולא היה מאריך בתפלתו, שלא להבעית את ישראל״.",
+   "ref": "משנה יומא ה, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא היה מאריך בתפלתו, שלא להבעית את ישראל"
+  },
+  {
+   "id": "f_jer_hills",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "ירושלים נבנתה על שתי גבעות זו מול זו, ועמק מפריד ביניהן: על האחת העיר העליונה, ועל השנייה העיר התחתונה.",
+   "ref": "יוספוס, מלחמת היהודים ה, 136–137 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "reused: content/city.json city_two_hills"
+  },
+  {
+   "id": "f_jer_snake",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "אחד מעשרת הנסים שנמנו במשנה: ״ולא הזיק נחש ועקרב בירושלים מעולם״.",
+   "ref": "משנה אבות ה, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא הזיק נחש ועקרב בירושלים מעולם"
+  },
+  {
+   "id": "f_jer_lodge",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "ועוד נס: ״ולא אמר אדם לחברו צר לי המקום שאלין בירושלים״.",
+   "ref": "משנה אבות ה, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא אמר אדם לחברו צר לי המקום שאלין בירושלים"
+  },
+  {
+   "id": "f_jer_siloam",
+   "stages": [],
+   "topics": [
+    "jerusalem",
+    "water"
+   ],
+   "he": "בריכת השילוח מימי הבית השני נחשפה בסתיו 2004, בעבודות ביוב, ובה מדרגות אבן בשלושה צדדים לפחות.",
+   "ref": "א׳ שוקרון ור׳ רייך, רשות העתיקות ואוניברסיטת חיפה (2004–2005)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.10 siloam_pool"
+  },
+  {
+   "id": "f_jer_street",
+   "stages": [],
+   "topics": [
+    "jerusalem",
+    "stone"
+   ],
+   "he": "הרחוב המדורג עלה מבריכת השילוח אל הר הבית: כשש מאות מטר אורכו וכשמונה רוחבו. מטבעות מתחת לריצוף מלמדים שנבנה בימי פונטיוס פילטוס.",
+   "ref": "נ׳ שנטון ואחרים (2019), Tel Aviv 46:2; רשות העתיקות ואוניברסיטת תל אביב",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.10 stepped_street"
+  },
+  {
+   "id": "f_jer_bikkurim",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "במסע הביכורים הלך לפני העולים שור שקרניו מצופות זהב ועטרת של זית בראשו, והחליל מכה לפניהם.",
+   "ref": "משנה ביכורים ג, ג",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §7 bikkurim"
+  },
+  {
+   "id": "f_jer_agrippa",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "גם אגריפס המלך נטל את סל הביכורים על כתפו ונכנס בו עד העזרה.",
+   "ref": "משנה ביכורים ג, ד",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §7 bikkurim"
+  },
+  {
+   "id": "f_jer_ryz",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "רבן יוחנן בן זכאי ישב בצילו של ההיכל ודרש כל היום כולו.",
+   "ref": "בבלי פסחים כו, א",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §7 teaching_shade"
+  },
+  {
+   "id": "f_herod_workers",
+   "stages": [],
+   "topics": [
+    "herod"
+   ],
+   "he": "יוספוס מספר שהורדוס בחר לבניין עשרת אלפים בעלי מלאכה מן המיומנים ביותר.",
+   "ref": "יוספוס, קדמוניות היהודים טו, 390 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.2; numbers as 'יוספוס מספר' (REVIEW ⚑69)"
+  },
+  {
+   "id": "f_herod_priests",
+   "stages": [],
+   "topics": [
+    "herod",
+    "kohanim"
+   ],
+   "he": "יוספוס מספר שהורדוס קנה אלף בגדי כהונה לאלף כהנים, ולימד חלק מהם סיתות אבן וחלק נגרות.",
+   "ref": "יוספוס, קדמוניות היהודים טו, 390 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.2"
+  },
+  {
+   "id": "f_herod_years",
+   "stages": [
+    "heichal",
+    "kodesh"
+   ],
+   "topics": [
+    "herod",
+    "kohanim"
+   ],
+   "he": "יוספוס מספר שהאכסדראות והחצרות החיצוניות נבנו בשמונה שנים, והבית עצמו — בידי הכהנים, בשנה וחצי.",
+   "ref": "יוספוס, קדמוניות היהודים טו, 420–421 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.3"
+  },
+  {
+   "id": "f_herod_oxen",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "בחנוכת הבית, מספר יוספוס, הקריב הורדוס שלוש מאות שוורים.",
+   "ref": "יוספוס, קדמוניות היהודים טו, 422 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.3"
+  },
+  {
+   "id": "f_herod_white",
+   "stages": [],
+   "topics": [
+    "herod",
+    "stone"
+   ],
+   "he": "יוספוס מספר שאבני הבית היו לבנות וחזקות, וכל אחת כעשרים וחמש אמה אורכה, שמונה גובהה ושתים עשרה רוחבה.",
+   "ref": "יוספוס, קדמוניות היהודים טו, 391–392 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "as src/game/minigames/crane.js"
+  },
+  {
+   "id": "f_herod_snow",
+   "stages": [],
+   "topics": [
+    "herod",
+    "jerusalem"
+   ],
+   "he": "מרחוק, מספר יוספוס, נראה הבית כהר מכוסה שלג, כי מה שלא צופה זהב היה לבן מאוד.",
+   "ref": "יוספוס, מלחמת היהודים ה, 223 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.4; never inside ״״"
+  },
+  {
+   "id": "f_herod_marble",
+   "stages": [],
+   "topics": [
+    "herod",
+    "stone"
+   ],
+   "he": "במה בנה הורדוס? ״באבני שישא ומרמרא״ — באבני שיש. נדבך אחד בלט ונדבך אחד שקע, כדי שיקבלו את הסיד.",
+   "ref": "בבלי בבא בתרא ד, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "באבני שישא ומרמרא",
+   "note": "SOURCES-S6 §3.4"
+  },
+  {
+   "id": "f_koh_garments",
+   "stages": [],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "הכהן הגדול שימש בשמונה בגדים, והכהן ההדיוט — ״בארבעה, בכתנת ומכנסים ומצנפת ואבנט״.",
+   "ref": "משנה יומא ז, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "בארבעה, בכתנת ומכנסים ומצנפת ואבנט"
+  },
+  {
+   "id": "f_koh_officers",
+   "stages": [],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בין הממונים במקדש: בן אחיה על חולי מעיים, בן גבר על נעילת השערים, בן ארזה על הצלצל, והגרס בן לוי על השיר.",
+   "ref": "משנה שקלים ה, א",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_koh_petachia",
+   "stages": [],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "פתחיה, הממונה על הקינים, נקרא כך כי ״היה פותח בדברים ודורשן, ויודע שבעים לשון״.",
+   "ref": "משנה שקלים ה, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "שהיה פותח בדברים ודורשן, ויודע שבעים לשון"
+  },
+  {
+   "id": "f_koh_goats",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "רבי אליעזר בן דגלאי סיפר: לבית אבא היו עזים בהר מכור, ״והיו מתעטשות מריח פטום הקטרת״.",
+   "ref": "משנה תמיד ג, ח",
+   "status": "draft",
+   "illus": false,
+   "quote": "והיו מתעטשות מריח פטום הקטרת"
+  },
+  {
+   "id": "f_koh_ashes",
+   "stages": [
+    "guf"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "״מימיו לא נתעצל הכהן מלהוציא את הדשן״ — מעולם לא התעצלו הכהנים לפנות את האפר מן המזבח.",
+   "ref": "משנה תמיד ב, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "מימיו לא נתעצל הכהן מלהוציא את הדשן"
+  },
+  {
+   "id": "f_stone_quarry",
+   "stages": [],
+   "topics": [
+    "stone"
+   ],
+   "he": "ברמת שלמה, כ־3 ק״מ צפונית להר הבית, נחשפה מחצבה מימי הבית השני, ובה נחצבו גושים באורך של עד כ־8 מטרים — כמו האבנים הגדולות של הר הבית.",
+   "ref": "רשות העתיקות (2007); רוזנפלד, אילני ואחרים, GSA 2014",
+   "status": "draft",
+   "illus": false,
+   "note": "as src/game/minigames/quarry.js; SOURCES-S6 §3.10"
+  },
+  {
+   "id": "f_stone_tools",
+   "stages": [],
+   "topics": [
+    "stone"
+   ],
+   "he": "במחצבה אחרת ברמת שלמה, שנחפרה ב־2013, נמצאו מכושים, יתדות ומפתח ברזל שהשאירו החוצבים.",
+   "ref": "רשות העתיקות, 2013 (בניהול אירינה זילברבוד)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.10 quarry_tools (IAA via BAS 8.5.2013)"
+  },
+  {
+   "id": "f_stone_45",
+   "stages": [],
+   "topics": [
+    "stone",
+    "herod"
+   ],
+   "he": "יוספוס מספר שאחדות מאבני הבית היו באורך ארבעים וחמש אמה, בגובה חמש וברוחב שש.",
+   "ref": "יוספוס, מלחמת היהודים ה, 224 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §3.4"
+  },
+  {
+   "id": "f_stone_crane",
+   "stages": [],
+   "topics": [
+    "stone"
+   ],
+   "he": "ויטרוביוס, אדריכל רומי בן התקופה, מתאר עגורן בגלגלות, ותוף גדול שאנשים הולכים בתוכו כדי להרים אבנים כבדות.",
+   "ref": "ויטרוביוס, על האדריכלות י, ב",
+   "status": "draft",
+   "illus": false,
+   "note": "one pass (LacusCurtius, Gwilt); Roman practice — its use on the Temple Mount is illus (REVIEW ⚑72), so the line names Vitruvius only"
+  },
+  {
+   "id": "f_water_etam",
+   "stages": [],
+   "topics": [
+    "water"
+   ],
+   "he": "אביי אמר: ״עין עיטם גבוה מקרקע עזרה עשרים ושלש אמות״ — המעיין גבוה מרצפת העזרה.",
+   "ref": "בבלי יומא לא, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "עין עיטם גבוה מקרקע עזרה עשרים ושלש אמות",
+   "note": "SOURCES-S6 §1.9; the aqueduct's route is illus"
+  },
+  {
+   "id": "f_water_libation",
+   "stages": [],
+   "topics": [
+    "water",
+    "jerusalem"
+   ],
+   "he": "בחג הסוכות מילאו צלוחית זהב של שלושה לוגים מן השילוח, העלו אותה למקדש, וניסכו את המים על המזבח.",
+   "ref": "משנה סוכה ד, ט",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §2.5"
+  },
+  {
+   "id": "f_water_immerse",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "על גג לשכת הפרווה היה בית הטבילה של הכהן הגדול ביום הכיפורים. בלשכה עצמה מלחו עורות קודשים.",
+   "ref": "משנה מדות ה, ג",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_trade_tyre",
+   "stages": [],
+   "topics": [
+    "trade"
+   ],
+   "he": "בימי שיבת ציון נתנו לצידונים ולצורים מאכל, משקה ושמן, והם הביאו ארזים מן הלבנון בים עד יפו.",
+   "ref": "עזרא ג, ז",
+   "status": "draft",
+   "illus": false,
+   "note": "reused: content/kings.json king_tyre; Return-era — for Herod's time an analogy (REVIEW ⚑74)"
+  },
+  {
+   "id": "f_trade_cyprus",
+   "stages": [],
+   "topics": [
+    "trade",
+    "herod"
+   ],
+   "he": "הקיסר אוגוסטוס נתן להורדוס מחצית מהכנסות מכרות הנחושת בקפריסין, ואת ההשגחה על המחצית השנייה.",
+   "ref": "יוספוס, קדמוניות היהודים טז, 128 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §4.2 (REVIEW ⚑75)"
+  },
+  {
+   "id": "f_trade_monbaz",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "המלך מונבז עשה ידיות זהב לכל כלי יום הכיפורים, והילני אמו עשתה נברשת זהב על פתח ההיכל.",
+   "ref": "משנה יומא ג, י",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §4.4"
+  },
+  {
+   "id": "f_trade_above",
+   "stages": [],
+   "topics": [
+    "trade"
+   ],
+   "he": "בשנות בצורת הוציא המלך מונבז את אוצרותיו ואת אוצרות אבותיו, ואמר: ״אבותי גנזו למטה, ואני גנזתי למעלה״.",
+   "ref": "בבלי בבא בתרא יא, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "אבותי גנזו למטה, ואני גנזתי למעלה",
+   "note": "SOURCES-S6 §4.4 (REVIEW ⚑77: a quote, no המחשה)"
+  },
+  {
+   "id": "f_trade_helena",
+   "stages": [],
+   "topics": [
+    "trade",
+    "jerusalem"
+   ],
+   "he": "בשנת רעב שלחה המלכה הילני משרתים לאלכסנדריה לקנות תבואה, ואחרים לקפריסין להביא גרוגרות, וחילקה אוכל לנזקקים.",
+   "ref": "יוספוס, קדמוניות היהודים כ, 51 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §4.4 (Ant. 20.49–53, two sites)"
+  },
+  {
+   "id": "f_trade_persia",
+   "stages": [],
+   "topics": [
+    "trade"
+   ],
+   "he": "מלך פרס, יועציו ושריו וכל ישראל הרימו כסף, זהב וכלים לבית — ובהם מאה ככרי זהב.",
+   "ref": "עזרא ח, כה–כו",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §4.7 (REVIEW ⚑79)"
+  },
+  {
+   "id": "f_trade_doves",
+   "stages": [],
+   "topics": [
+    "trade",
+    "jerusalem"
+   ],
+   "he": "פעם עלה מחיר זוג יונים בירושלים לדינר זהב. רבן שמעון בן גמליאל לימד הלכה מקילה, ועוד באותו יום ירד המחיר מאוד.",
+   "ref": "משנה כריתות א, ז",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §7 doves"
+  },
+  {
+   "id": "f_trade_world",
+   "stages": [],
+   "topics": [
+    "trade"
+   ],
+   "he": "יוספוס מספר שהמקדש היה עשיר, כי יהודים מכל העולם — מאסיה ומאירופה — שלחו אליו תרומות.",
+   "ref": "יוספוס, קדמוניות היהודים יד, 110 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §4 (the gold question)"
+  },
+  {
+   "id": "f_trade_agrippa",
+   "stages": [],
+   "topics": [
+    "trade",
+    "herod"
+   ],
+   "he": "יוספוס מספר שמרקוס אגריפס, ידידו של הורדוס, ביקר בירושלים, הקריב מאה שוורים וערך משתה לעם.",
+   "ref": "יוספוס, קדמוניות היהודים טז, 14 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §4.3"
+  },
+  {
+   "id": "f_har_double",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "יוספוס מספר שהורדוס הקיף את המקדש בחומה, והשטח שבתוכה היה גדול פי שניים מזה שהיה מוקף קודם.",
+   "ref": "יוספוס, מלחמת היהודים א, 401 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 1.21.1; two sites (lexundria 1.401, biblestudytools 1.21), 2026-09-28. The year (15th; Ant. 15.380 has the 18th) left out"
+  },
+  {
+   "id": "f_wall_40",
+   "stages": [
+    "wall",
+    "sorag"
+   ],
+   "topics": [],
+   "he": "יוספוס מספר שחומת החצר הפנימית הייתה גבוהה מבחוץ ארבעים אמה, אך המדרגות הסתירו את גובהה; מבפנים היא הייתה רק עשרים וחמש אמה.",
+   "ref": "יוספוס, מלחמת היהודים ה, 196 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.2; two sites (sacred-texts, penelope.uchicago), 2026-09-28. The Mishnah gives no wall height (PROJECT.md §2.4)"
+  },
+  {
+   "id": "f_sorag_pesach",
+   "stages": [
+    "sorag"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "בערב פסח הקריבו את הפסח בשלוש כיתות. בסוף, הכת הראשונה יצאה וישבה בהר הבית, השנייה — בחיל, והשלישית עמדה במקומה.",
+   "ref": "משנה פסחים ה, ה; ה, י",
+   "status": "draft",
+   "illus": false,
+   "note": "5:5 (three groups) from the corpus; 5:10 Sefaria v1 + v3 (2026-09-28, FACTS8B), saved to the corpus"
+  },
+  {
+   "id": "f_sorag_tunnel",
+   "stages": [
+    "lishka",
+    "sorag"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "כהן שנזקק לטבול בלילה יצא מבית המוקד במעבר תת־קרקעי, ונרות דולקים משני צדיו, עד בית הטבילה. לדברי רבי אליעזר בן יעקב, הלך במעבר שמתחת לחיל ויצא בשער טדי.",
+   "ref": "משנה מדות א, ט",
+   "status": "draft",
+   "illus": false,
+   "note": "the reason for the immersion (קרי) left out"
+  },
+  {
+   "id": "f_gates_corinth",
+   "stages": [
+    "gates"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "יוספוס מספר ששערי העזרה היו מצופים כסף וזהב, ושער אחד, של נחושת קורינתית, עלה ביופיו על כולם.",
+   "ref": "יוספוס, מלחמת היהודים ה, 201 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.3; two sites (sacred-texts, penelope.uchicago), 2026-09-28. Its identification with Nikanor's gate is the scholars', not Josephus' — not stated"
+  },
+  {
+   "id": "f_gates_20men",
+   "stages": [
+    "nikanor",
+    "gates"
+   ],
+   "topics": [],
+   "he": "יוספוס מספר ששער הנחושת שבמזרח העזרה הפנימית היה כבד כל כך, שעשרים איש נדרשו כדי לסגור אותו.",
+   "ref": "יוספוס, מלחמת היהודים ו, 293 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 6.5.3; two sites (sacred-texts, penelope.uchicago), 2026-09-28. East + bronze = Nikanor's gate by Middot 1:4 and 2:3"
+  },
+  {
+   "id": "f_gates_moked2",
+   "stages": [
+    "lishka",
+    "gates"
+   ],
+   "topics": [],
+   "he": "לבית המוקד היו שני שערים: אחד פתוח לחיל ואחד פתוח לעזרה. לדברי רבי יהודה, לזה שלעזרה היה פשפש קטן, ודרכו נכנסו לבדוק את העזרה.",
+   "ref": "משנה מדות א, ז",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nik_wickets",
+   "stages": [
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "לשער ניקנור היו שני פשפשים — פתחים קטנים — אחד מימינו ואחד משמאלו.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_nazir",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [],
+   "he": "בלשכת הנזירים, בפינה הדרומית־מזרחית, בישלו הנזירים את קרבנותיהם, גילחו את שערם והשליכו אותו אל האש שמתחת לדוד.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_torches",
+   "stages": [
+    "nashim",
+    "nikanor"
+   ],
+   "topics": [],
+   "he": "בשמחת בית השואבה רקדו חסידים ואנשי מעשה ואבוקות בידיהם, והלוויים ניגנו בכינורות, בנבלים, במצלתיים ובחצוצרות על חמש עשרה המעלות.",
+   "ref": "משנה סוכה ה, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_nashim_simcha",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "אמרו חכמים: ״כל מי שלא ראה שמחת בית השואבה, לא ראה שמחה מימיו״.",
+   "ref": "משנה סוכה ה, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "כל מי שלא ראה שמחת בית השואבה, לא ראה שמחה מימיו"
+  },
+  {
+   "id": "f_lishka_yomtov",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "כשלא נמצא כהן פסול, שמחו בלשכת הגזית: ״ויום טוב היו עושים, שלא נמצא פסול בזרעו של אהרן הכהן״.",
+   "ref": "משנה מדות ה, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "ויום טוב היו עושים, שלא נמצא פסול בזרעו של אהרן הכהן"
+  },
+  {
+   "id": "f_lishka_payis",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "לשכת הגזית הייתה אולם גדול, כמין בסילקי. שם נערך הפיס: הכהנים עמדו סביב, והממונה נטל את המצנפת מראשו של אחד מהם — וממנו התחילו למנות.",
+   "ref": "בבלי יומא כה, א",
+   "status": "draft",
+   "illus": false,
+   "note": "v1/v3 differ on one word after מוקפין (ועומדים/ועומדין) — paraphrase only"
+  },
+  {
+   "id": "f_yesod_holes",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "בקרן הדרומית־מערבית של המזבח היו שני נקבים ״כמין שני חטמין דקין״; מה שנשפך על היסוד ירד בהם אל האמה ויצא לנחל קדרון.",
+   "ref": "משנה מדות ג, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "כמין שני חטמין דקין",
+   "note": "SOURCES-S6 §2.1 (dignity: no blood word on the card)"
+  },
+  {
+   "id": "f_yesod_slab",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "ברצפה שליד אותה קרן הייתה טבלת שיש, אמה על אמה, ובה טבעת קבועה: דרכה ירדו אל השית כדי לנקות אותו.",
+   "ref": "משנה מדות ג, ג",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §2.2"
+  },
+  {
+   "id": "f_yesod_trowel",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "גם את הסיד לא טחו על אבני המזבח בכפיס של ברזל, ״שמא יגע ויפסל״.",
+   "ref": "משנה מדות ג, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "שמא יגע ויפסל"
+  },
+  {
+   "id": "f_sovev_gamma",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "לדברי רבי יוסי, בתחילה היה המזבח קטן יותר; עולי הגולה הוסיפו לו ארבע אמות בדרום וארבע במערב, כמין גמא.",
+   "ref": "משנה מדות ג, א",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sovev_josephus",
+   "stages": [
+    "sovev",
+    "karnot"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "יוספוס מתאר את המזבח כמרובע שפינותיו כמו קרניים, והעלייה אליו בשיפוע מתון; לדבריו, שום כלי ברזל לא נגע בו מעולם.",
+   "ref": "יוספוס, מלחמת היהודים ה, 225 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.6; two sites (sacred-texts, penelope.uchicago), 2026-09-28. His size (50 × 50, 15 high) left out — the Mishnah's 32 × 32 is the game's"
+  },
+  {
+   "id": "f_sovev_libation",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "בסוכות עלה הכהן בכבש עם צלוחית המים, ופנה לשמאלו — אל שני ספלי הכסף שבקרן הדרומית־מערבית, ושם ניסך.",
+   "ref": "משנה סוכה ד, ט; זבחים ו, ב",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §2.5 («עלה בכבש ופנה לשמאלו, שני ספלים של כסף היו שם»); the SW corner: Zevachim 6:2 «מלמעלן, נסוך המים והיין» (corpus)"
+  },
+  {
+   "id": "f_guf_nosteps",
+   "stages": [
+    "guf"
+   ],
+   "topics": [],
+   "he": "התורה אסרה לעלות אל המזבח במדרגות — ״ולא תעלה במעלת על מזבחי״ — ולכן עלו אליו בכבש משופע.",
+   "ref": "שמות כ, כג",
+   "status": "draft",
+   "illus": false,
+   "quote": "ולא תעלה במעלת על מזבחי",
+   "note": "Sefaria v1 + v3 (2026-09-28, FACTS8B); the verse's second half left out"
+  },
+  {
+   "id": "f_guf_ashplace",
+   "stages": [
+    "guf"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "את הגחלים שחתה מראש המזבח הוריד הכהן הראשון, פנה צפונה, הלך כעשר אמות ממזרח לכבש, וצבר אותן על הרצפה.",
+   "ref": "משנה תמיד א, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_guf_second",
+   "stages": [
+    "guf",
+    "karnot"
+   ],
+   "topics": [],
+   "he": "מן העצים בררו עצי תאנה יפים למערכה שנייה, שממנה לקחו גחלים לקטורת.",
+   "ref": "משנה תמיד ב, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_karnot_machta",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בכל יום חתו גחלים במחתה של כסף, וביום הכיפורים במחתה של זהב. רבי מנחם אומר: בכל יום היה זהבה ירוק, וביום הכיפורים — אדום.",
+   "ref": "משנה יומא ד, ד",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §5 machta"
+  },
+  {
+   "id": "f_karnot_rake",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "הכהן הראשון עלה לראש המזבח, פינה את הגחלים לכאן ולכאן, וחתה מן הגחלים הפנימיות שכבר בערו עד תום.",
+   "ref": "משנה תמיד א, ד",
+   "status": "draft",
+   "illus": false,
+   "note": "«פנה את הגחלים הילך והילך, חתה מן המאכלות הפנימיות»"
+  },
+  {
+   "id": "f_kiyor_posture",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "איך רחצו? הכהן עמד והתכופף, הניח יד ימין על גב רגל ימין ויד שמאל על גב רגל שמאל, ורחץ — ״ושירות מעומד הוא״.",
+   "ref": "בבלי זבחים יט, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "ושירות מעומד הוא",
+   "note": "SOURCES-S6 §1.6; Tanna Kamma"
+  },
+  {
+   "id": "f_kiyor_four",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "כיור שאין בו מים כדי שירחצו ממנו ארבעה כהנים — אין רוחצים בו.",
+   "ref": "בבלי זבחים יט, ב",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §1.6"
+  },
+  {
+   "id": "f_kiyor_dawn",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "עם שחר, כששמעו את קול העץ של המוכני, אמרו ״הגיע עת״, והכהן הראשון קידש את ידיו ורגליו מן הכיור.",
+   "ref": "משנה תמיד א, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "הגיע עת",
+   "note": "SOURCES-S6 §1.7"
+  },
+  {
+   "id": "f_kiyor_exodus",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [],
+   "he": "התורה ציוותה לעשות כיור נחושת וכן נחושת, ״לרחצה״ — שממנו ירחצו אהרן ובניו את ידיהם ואת רגליהם.",
+   "ref": "שמות ל, יח–יט",
+   "status": "draft",
+   "illus": false,
+   "quote": "לרחצה",
+   "note": "SOURCES-S6 §1.1 (never quote v. 20)"
+  },
+  {
+   "id": "f_ulam_knives",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [],
+   "he": "הבליטות של האולם, לצפון ולדרום, נקראו ״בית החליפות, ששם גונזים את הסכינים״.",
+   "ref": "משנה מדות ד, ז",
+   "status": "draft",
+   "illus": false,
+   "quote": "בית החליפות, ששם גונזים את הסכינים"
+  },
+  {
+   "id": "f_ulam_tables",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [],
+   "he": "באולם, בפתח הבית, עמדו שני שולחנות, של שיש ושל זהב: על של שיש הניחו את לחם הפנים בכניסתו, ועל של זהב ביציאתו — ״שמעלין בקדש ולא מורידין״.",
+   "ref": "משנה מנחות יא, ז",
+   "status": "draft",
+   "illus": false,
+   "quote": "שמעלין בקדש ולא מורידין"
+  },
+  {
+   "id": "f_ulam_12steps",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [],
+   "he": "בין האולם למזבח היו עשרים ושתיים אמה, ובהן שתים עשרה מעלות — כל אחת גבוהה חצי אמה ועמוקה אמה.",
+   "ref": "משנה מדות ג, ו",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_ulam_nodoors",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [],
+   "he": "יוספוס מספר שלשער האולם לא היו דלתות, וכל חזיתו הייתה מצופה זהב.",
+   "ref": "יוספוס, מלחמת היהודים ה, 208 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.4; two sites (CONTENT-S6 §5, fourth session). Agrees with Middot 2:3"
+  },
+  {
+   "id": "f_ulam_sun",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "יוספוס מספר שחזית הבית הייתה מצופה לוחות זהב כבדים; בזריחה היא החזירה ברק כאש, והמביטים הסבו את עיניהם כמו מן השמש.",
+   "ref": "יוספוס, מלחמת היהודים ה, 222 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.6; verified by CONTENT8 on three sites (bus/CONTENT8.md 09:15, the gilding table)"
+  },
+  {
+   "id": "f_ulam_grapes",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [
+    "trade"
+   ],
+   "he": "מעל השער, מספר יוספוס, היו גפני זהב, ומהן השתלשלו אשכולות ענבים בגובה אדם.",
+   "ref": "יוספוס, מלחמת היהודים ה, 210 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.4; verified by CONTENT8 (bus/CONTENT8.md 09:15)"
+  },
+  {
+   "id": "f_heichal_wicket",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [],
+   "he": "לשער ההיכל היו שני פשפשים. בדרומי לא נכנס אדם מעולם; את הצפוני פתח הכהן במפתח, ונכנס דרך תא אל ההיכל.",
+   "ref": "משנה מדות ד, ב",
+   "status": "draft",
+   "illus": false,
+   "note": "the verse in 4:2 holds the Name — never quoted"
+  },
+  {
+   "id": "f_heichal_mesiba",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [],
+   "he": "מסיבה — מעבר עולה — הובילה מן הקרן הצפונית־מזרחית אל הצפונית־מערבית, ובה עלו לגגות התאים שסביב ההיכל.",
+   "ref": "משנה מדות ד, ה",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_heichal_jericho",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "כך שנינו: ״מיריחו היו שומעין קול שער הגדול שנפתח״.",
+   "ref": "משנה תמיד ג, ח",
+   "status": "draft",
+   "illus": false,
+   "quote": "מיריחו היו שומעין קול שער הגדול שנפתח"
+  },
+  {
+   "id": "f_heichal_bread",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [],
+   "he": "על השולחן בהיכל עמדו שתים עשרה חלות של לחם הפנים, בשני סדרים של שש; כל חלה אורכה עשרה טפחים ורוחבה חמישה.",
+   "ref": "ויקרא כד, ו; משנה מנחות יא, ד",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §5 showbread"
+  },
+  {
+   "id": "f_heichal_menorah2",
+   "stages": [
+    "heichal"
+   ],
+   "topics": [],
+   "he": "המנורה נעשתה ״מקשה״ — מגוש זהב אחד — ובה שבעה נרות.",
+   "ref": "שמות כה, לא; לז",
+   "status": "draft",
+   "illus": false,
+   "quote": "מקשה",
+   "note": "SOURCES-S6 §5 menorah"
+  },
+  {
+   "id": "f_kodesh_curtains",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "הכהן הגדול הלך בהיכל עד בין שתי הפרוכות, וביניהן אמה: החיצונה פרופה מן הדרום והפנימית מן הצפון. רבי יוסי אומר: פרוכת אחת בלבד.",
+   "ref": "משנה יומא ה, א",
+   "status": "draft",
+   "illus": false,
+   "note": "Tanna Kamma first, the other view named (PROJECT.md §2.4)"
+  },
+  {
+   "id": "f_kodesh_nothing",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "יוספוס כותב שבחלק הפנימי ביותר של הבית לא היה דבר כלל.",
+   "ref": "יוספוס, מלחמת היהודים ה, 219 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.5 «In this there was nothing at all»; two sites, 2026-09-28. Agrees with Yoma 5:2 (no Ark)"
+  },
+  {
+   "id": "f_kodesh_ark",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "מסורת הייתה בידם שהארון נגנז כנגד דיר העצים. פעם ראה כהן אחד שם אבן ברצפה שונה מחברותיה, ״וידעו ביחוד ששם הארון נגנז״.",
+   "ref": "משנה שקלים ו, א–ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "וידעו ביחוד ששם הארון נגנז",
+   "note": "the kohen's death left out; PROJECT.md §2.8 (a sourced mystery)"
+  },
+  {
+   "id": "f_kodesh_upper",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "גם בעלייה שמעל הבית סימנו ״ראשי פספסין״ — קו בריצוף — את הגבול בין הקודש לבין קודש הקודשים.",
+   "ref": "משנה מדות ד, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ראשי פספסין"
+  },
+  {
+   "id": "f_kodesh_placed",
+   "stages": [
+    "kodesh"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "ביום הכיפורים הניח הכהן הגדול את מחתת הגחלים על אבן השתייה — ״ועליה היה נותן״.",
+   "ref": "משנה יומא ה, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "ועליה היה נותן"
+  },
+  {
+   "id": "f_sovev_updown",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "החוט האדום קבע מעלה ומטה: ״חטאת העוף נעשית למטה, וחטאת בהמה למעלה. עולת העוף נעשית למעלה, ועולת הבהמה למטה״.",
+   "ref": "משנה קנים א, א; מדות ג, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "חטאת העוף נעשית למטה, וחטאת בהמה למעלה. עולת העוף נעשית למעלה, ועולת הבהמה למטה",
+   "note": "above/below = the red line (Middot 3:1: «להבדיל בין הדמים העליונים לדמים התחתונים»)"
+  },
+  {
+   "id": "f_nashim_future",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [],
+   "he": "ארבע הלשכות שבפינות עזרת הנשים לא היו מקורות — ״וכך הם עתידים להיות״, כמו בתיאור יחזקאל.",
+   "ref": "משנה מדות ב, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "וכך הם עתידים להיות",
+   "note": "the verse (Ezekiel 46:21–22) named, not quoted"
+  },
+  {
+   "id": "f_nashim_tikun",
+   "stages": [
+    "nashim"
+   ],
+   "topics": [],
+   "he": "במוצאי יום טוב הראשון של סוכות ירדו לעזרת הנשים, ״ומתקנין שם תקון גדול״ לקראת שמחת בית השואבה.",
+   "ref": "משנה סוכה ה, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "ומתקנין שם תקון גדול"
+  },
+  {
+   "id": "f_nashim_trumpets",
+   "stages": [
+    "nashim",
+    "nikanor"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בשמחת בית השואבה, כשקרא הגבר, עמדו שני כהנים בשער העליון ותקעו בחצוצרות — וכך ירדו במעלות, תוקעים והולכים, עד השער היוצא למזרח.",
+   "ref": "משנה סוכה ה, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sovev_yofi",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "ביום השביעי של סוכות, כשנפרדו מן המזבח, אמרו: ״יפי לך מזבח, יפי לך מזבח״.",
+   "ref": "משנה סוכה ד, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "יפי לך מזבח, יפי לך מזבח",
+   "note": "R. Eliezer's other wording holds a Name — never quoted"
+  },
+  {
+   "id": "f_sovev_hagbah",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "בניסוך המים של סוכות אמרו לכהן המנסך: ״הגבה ידך״ — והוא ניסך לעיני כל העם.",
+   "ref": "משנה סוכה ד, ט",
+   "status": "draft",
+   "illus": false,
+   "quote": "הגבה ידך",
+   "note": "the story behind it (the etrogim) left out"
+  },
+  {
+   "id": "f_kiyor_yk",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "ביום הכיפורים ״חמש טבילות ועשרה קדושין טובל כהן גדול ומקדש בו ביום״ — חמש טבילות, ועשר פעמים רחיצת ידיים ורגליים.",
+   "ref": "משנה יומא ג, ג",
+   "status": "draft",
+   "illus": false,
+   "quote": "חמש טבילות ועשרה קדושין טובל כהן גדול ומקדש בו ביום"
+  },
+  {
+   "id": "f_kiyor_upper",
+   "stages": [
+    "kiyor"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "בגמרא: בבוקר, כשהכיור מלא, רחצו ידיים ורגליים ״מן העליון״, ובערב, כשמימיו ירדו — ״מן התחתון״.",
+   "ref": "בבלי יומא לז, א",
+   "status": "draft",
+   "illus": false,
+   "quote": "שחרית במילואו מקדש ידיו ורגליו מן העליון ... ערבית בירידתו מקדש ידיו ורגליו מן התחתון",
+   "note": "the Gemara's words only; what 'upper/lower' are is illus (REVIEW ⚑61)"
+  },
+  {
+   "id": "f_yesod_touch",
+   "stages": [
+    "yesod"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "אבן המזבח נפסלת בשני דברים: ״שהברזל פוסל בנגיעה״, ״ובפגימה לכל דבר״.",
+   "ref": "משנה מדות ג, ד",
+   "status": "draft",
+   "illus": false,
+   "quote": "שהברזל פוסל בנגיעה ... ובפגימה לכל דבר"
+  },
+  {
+   "id": "f_guf_brothers",
+   "stages": [
+    "guf"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "כשראו הכהנים שחברם ירד מן המזבח, רצו, קידשו ידיהם ורגליהם מן הכיור, נטלו מגרפות וצינורות ועלו לראש המזבח.",
+   "ref": "משנה תמיד ב, א",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_har_causeway",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "לשריפת הפרה האדומה בנו כבש מהר הבית אל הר המשחה, ״כפין על גבי כפין״ — קשתות על גבי קשתות.",
+   "ref": "משנה פרה ג, ו",
+   "status": "draft",
+   "illus": false,
+   "quote": "כפין על גבי כפין",
+   "note": "SOURCES-S6 §6 mount_of_olives"
+  },
+  {
+   "id": "f_jer_antonia",
+   "stages": [],
+   "topics": [
+    "jerusalem",
+    "herod"
+   ],
+   "he": "מצודת אנטוניה עמדה בפינת אכסדראות הר הבית, ובארבע פינותיה ארבעה מגדלים; ישב בה חיל מצב רומי.",
+   "ref": "יוספוס, מלחמת היהודים ה, 238–246 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §6 antonia"
+  },
+  {
+   "id": "f_jer_phasael",
+   "stages": [],
+   "topics": [
+    "jerusalem"
+   ],
+   "he": "יוספוס מספר שמגדל פצאל בירושלים היה ארבעים אמה רוחבו וארבעים גובהו, ומעליו עוד קומות — כתשעים אמה בסך הכול.",
+   "ref": "יוספוס, מלחמת היהודים ה, 166 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "SOURCES-S6 §6 tower_phasael (the total: two passes since wave 6)"
+  },
+  {
+   "id": "f_har_paved",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "herod"
+   ],
+   "he": "יוספוס מספר שכל החצרות הפתוחות של הר הבית היו מרוצפות באבנים מכל המינים.",
+   "ref": "יוספוס, מלחמת היהודים ה, 192 (בתרגום חופשי)",
+   "status": "draft",
+   "illus": false,
+   "note": "Whiston War 5.5.2 §192 «those entire courts that were exposed to the air were laid with stones of all sorts»: sacred-texts + penelope.uchicago + lexundria, 2026-09-28"
+  },
+  {
+   "id": "f_har_tiles",
+   "stages": [
+    "har"
+   ],
+   "topics": [
+    "stone"
+   ],
+   "he": "בעפר שהוצא מהר הבית ונופה בסינון נמצאו יותר ממאה אריחי אבן צבעוניים מימי הורדוס: אבן מקומית, ואבנים שהובאו מיוון, מאסיה הקטנה, מתוניסיה וממצרים.",
+   "ref": "פרויקט סינון עפר הר הבית (ג׳ ברקאי, צ׳ דבירה); פ׳ סניידר, ברקאי ודבירה, BAR 2016",
+   "status": "draft",
+   "illus": false,
+   "note": "tmsifting.org 6.9.2016 (~600 segments, >100 definitively Herodian) + Biblical Archaeology Society (Snyder, Barkay, Dvira, BAR Nov/Dec 2016), 2026-09-28"
+  },
+  {
+   "id": "f_har_tiles2",
+   "stages": [
+    "har"
+   ],
+   "topics": [],
+   "he": "מן האריחים שנמצאו בסינון שחזרה פרנקי סניידר דגמי ריצוף בשיטת אופוס סקטילה — מעוינים, כוכבים בני שמונה קצוות ומשולשים, מאבן מלוטשת בצבעים רבים.",
+   "ref": "פ׳ סניידר, ג׳ ברקאי וצ׳ דבירה, BAR 2016; פרויקט סינון עפר הר הבית",
+   "status": "draft",
+   "illus": false,
+   "note": "the two sources above; the count of designs (seven) is in one only — left out"
+  },
+  {
+   "id": "f_sorag_ladder",
+   "stages": [
+    "sorag",
+    "kodesh"
+   ],
+   "topics": [],
+   "he": "המשנה מונה מעלות של קדושה, זו לפנים מזו: הר הבית, החיל, עזרת הנשים, עזרת ישראל, עזרת הכהנים, בין האולם למזבח, ההיכל — וקודש הקודשים, המקודש מכולם.",
+   "ref": "משנה כלים א, ח–ט",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_sorag_steps",
+   "stages": [
+    "sorag",
+    "ulam"
+   ],
+   "topics": [],
+   "he": "כל המעלות במקדש היו גבוהות חצי אמה ועמוקות חצי אמה — חוץ ממעלות האולם.",
+   "ref": "משנה מדות ב, ג",
+   "status": "draft",
+   "illus": false,
+   "note": "the Ulam's steps: «ושלחה אמה» (Middot 3:6)"
+  },
+  {
+   "id": "f_karnot_morning",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [],
+   "he": "״ובער עליה הכהן עצים בבקר בבקר״ — בכל בוקר הוסיף הכהן עצים על האש שעל המזבח.",
+   "ref": "ויקרא ו, ה",
+   "status": "draft",
+   "illus": false,
+   "quote": "ובער עליה הכהן עצים בבקר בבקר"
+  },
+  {
+   "id": "f_wall_line",
+   "stages": [
+    "wall"
+   ],
+   "topics": [],
+   "he": "קו בריצוף — ״ראשי פספסין״ — הבדיל בין עזרת ישראל לעזרת הכהנים.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false,
+   "quote": "וראשי פספסין מבדילין בין עזרת ישראל לעזרת הכהנים"
+  },
+  {
+   "id": "f_gates_noname",
+   "stages": [
+    "gates"
+   ],
+   "topics": [],
+   "he": "לדברי אבא יוסי בן חנן היו גם שני שערים במערב, ו״לא היה להם שם״.",
+   "ref": "משנה מדות ב, ו",
+   "status": "draft",
+   "illus": false,
+   "quote": "לא היה להם שם"
+  },
+  {
+   "id": "f_lishka_wood",
+   "stages": [
+    "lishka"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "על לשכת העץ אמר רבי אליעזר בן יעקב ששכח מה הייתה משמשת. אבא שאול אומר: זו לשכת הכהן הגדול, מאחורי שתי האחרות, וגג שלושתן שווה.",
+   "ref": "משנה מדות ה, ד",
+   "status": "draft",
+   "illus": false
+  },
+  {
+   "id": "f_kiyor_heichal",
+   "stages": [
+    "heichal",
+    "kiyor"
+   ],
+   "topics": [],
+   "he": "ההיכל מקודש עוד יותר — ״שאין נכנס לשם שלא רחוץ ידים ורגלים״.",
+   "ref": "משנה כלים א, ט",
+   "status": "draft",
+   "illus": false,
+   "quote": "שאין נכנס לשם שלא רחוץ ידים ורגלים"
+  },
+  {
+   "id": "f_ulam_blemish",
+   "stages": [
+    "ulam"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בין האולם למזבח לא נכנסו ״בעלי מומין ופרועי ראש״ — המקום קדוש מן העזרה.",
+   "ref": "משנה כלים א, ט",
+   "status": "draft",
+   "illus": false,
+   "quote": "בעלי מומין ופרועי ראש"
+  },
+  {
+   "id": "f_yesod_lul",
+   "stages": [
+    "yesod",
+    "guf"
+   ],
+   "topics": [
+    "kohanim"
+   ],
+   "he": "בין הכבש למזבח היה לול קטן. אחת לשבעים שנה ירדו לשם פרחי כהונה ולקטו יין קרוש, דומה לעיגולי דבלה.",
+   "ref": "בבלי סוכה מט, א",
+   "status": "draft",
+   "illus": false,
+   "note": "R. Elazar b. Tzadok (SOURCES-S6 §2.7); what they did with it (burned it in holiness) left out"
+  },
+  {
+   "id": "f_sovev_right",
+   "stages": [
+    "sovev"
+   ],
+   "topics": [],
+   "he": "״כל העולים למזבח, עולין דרך ימין, ומקיפין ויורדין דרך שמאל״ — כמו הנכנסים להר הבית.",
+   "ref": "משנה זבחים ו, ג; מדות ב, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "כל העולים למזבח, עולין דרך ימין, ומקיפין ויורדין דרך שמאל"
+  },
+  {
+   "id": "f_karnot_sw",
+   "stages": [
+    "karnot"
+   ],
+   "topics": [
+    "water"
+   ],
+   "he": "הקרן הדרומית־מערבית שימשה לשלושה דברים למטה ולשלושה למעלה; למעלה — ״נסוך המים והיין״.",
+   "ref": "משנה זבחים ו, ב",
+   "status": "draft",
+   "illus": false,
+   "quote": "נסוך המים והיין"
+  }
+ ]
+}

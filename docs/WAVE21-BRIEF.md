@@ -1,0 +1,52 @@
+# Wave 21: the later stages feel like the first; the tools; the board that is never empty
+
+2026-10-08, launched ~09:45 Jerusalem (06:45 UTC). **Three Sonnet agents in parallel, narrow scopes. Hard stop 10:45 UTC (13:45 Jerusalem).** The supervisor (Fable) only merges, plays and publishes. Decide instead of asking; mark ⚑.
+
+**v33 is kept** (tag `v33`, archive /home/claude/archive/v33); v29–v32 too. Never touch tags, archives or the main artifacts.
+
+## The owner's notes (8.10 09:25), verbatim
+1. "שחקן שנכנס ואין לו קבוצה או חברים יהיו לו מהמחשב סוג של דמואים להשוות עצמו אליהם."
+2. "עבור ביסודיות על כל השלבים המתקדמים יותר. אני לא רואה שם הבהובים ופידבקים חוזרים כמו בראשון."
+3. "בשלב העזרת נשים השחקן בתוך הקיר. גם העבודה שם לא ברורה בכלל."
+4. "יש הרבה שלבים שאין בהם סמן או שהגיבור הולך עצמאית. או שהמוסיקה בביפי אם נחלשת."
+5. "בלוח החדש … אין פה את כל ההבהובים והסיבובים במקום שיש בברול סטאר, שווה להשקיע בזה קצת."
+6. "כל פעם הדמות הולכת עם הפטיש סיתות ביד. הפטיש הוא לא חלק מהדמות אלא כל פעם כלי אחר צריך שיהיה לו, לא בנוסף, אולי תלוי לו מאחורה."
+7. "כל פעם שהסתת עובר לשלב … או שהוא בוחר לקנות כלי מלאכה יותר טוב אז שהכלי יהיה קצת יותר יפה ונראה יותר איכותי וגם הנקודות של אותו שלב יהיו יותר. צריך לבנות את זה כמנגנון לכל הכלים."
+8. (8.10 08:17) "בחלק מהמשחק הזווית לא מראה מה השחקן עושה, זה קצת מחוץ לפריים."
+
+## Rules (binding, unchanged)
+Drafts marked טיוטה with exact sources, or המחשה · **never a Divine Name anywhere, code and comments included** (ה׳ / אלקים / א-ל) · no gore, no Ark, never inside the Kodesh HaKodashim · no gambling, loot, random rewards, real money, guilt, pressuring timers, FOMO · Shabbat and Yom Tov cost nothing · RTL, 44-px targets · no paid services · children: no network, no chat, no strangers · real touch on dist/test.html at 844×390 · bundle < 5 MiB (now 3.42) · docs/FUN19.md binding for crafts · docs/PRINCIPLES.md §4–5 · docs/WAVE20-BRIEF.md "What the owner saw" for the flashes' yardstick.
+
+## Agents
+| agent | worktree · branch | owns |
+|---|---|---|
+| **STAGES21** | wt/stages21 · s21-stages | the later stages, one by one (notes 2, 3, 4, 8): index.js/stages.js/twin.js/music.js in `// ── stages21 ──` fences; test/stages21-kid.cjs |
+| **TOOLS21** | wt/tools21 · s21-tools | the tool mechanism (notes 6, 7): stages.js (the kohen's held/hung tool, `// ── tools21 ──`), a new src/game/tools.js (tiers, prices, multipliers), shop.js hook, hands/acts points multiplier; test/tools21.test.mjs + test/tools21-touch.cjs |
+| **BOARD21** | wt/board21 · s21-board | the board that is never empty and its juice (notes 1, 5): hooks/around*.js, hooks/endchain.js, ui.css.js `// ── board21 ──`; test/board21-touch.cjs |
+
+Each agent: build its worktree (`node build.mjs`, `export NODE_PATH=/home/claude/.npm-global/lib/node_modules`), node tests `node --test test/*.test.mjs` all green, browser runs ONLY via `/home/claude/wt/bus/brun node test/<x>.cjs --no-build` (one at a time machine-wide; 10-min cut — split with `--part=`/`--stages=`). Bus /home/claude/wt/bus/<AGENT>21.md: UTC entries, last line `NEXT:`. Do not list or kill processes. Commit often; at the stop `git merge-tree --write-tree master s21-<you>` clean (rebase if master moved).
+
+## STAGES21 — the kid plays every stage
+Method first: extend test/kid17.cjs's kid (follows only the screen: a card's gold button, markers, the edge arrow, the awake work button, the coach) into **test/stages21-kid.cjs** that places a fixture at each stage (twin-stages.cjs has the fixture: all stages before it done, this one in its courses) and plays 60 s there as the kid, logging per stage: time to first work, markers seen within 10 s (or the arrow / "↩ לעבודה"), **autonomous walks** (the hero's position changing while no stick, no compass tap, no card button and no job start happened in the last 1.5 s — count and where), acts per minute and the four answers per act (dust, float, buzz, sound — the `craftAct`/`juice` events), the music's BPM and bed level (music.beat().period, music state) every 10 s, the hero's screen box (is he and his work point inside the middle 70 % of the frame?), console errors. Run it over wall, gates, nashim, sorag, nikanor, lishka, yesod, sovev, guf, karnot, kiyor, ulam, heichal (kodesh only to check he never enters). Post the table to the bus after the first run — that table is the finding.
+Then fix, worst first, inside fences:
+1. **nashim (note 3):** the kohen inside the wall — the court's walls need what SITE20 gave the עזרה's wall: either the laid-top band for the stage being built there (`s20Band` is for `wall`; generalize to the building stage's footprint ring when its courses are ≥ 3 high) or, at least, the walk never inside the wall's body (`twinFree` against the stage's footprint) and the camera outside (camSide). The work there must read: which job is the lead, is its piece/marker visible, does the kohen face it, does the "+N" land on it.
+2. **No marker / he walks by himself (note 4):** at every stage the deal must leave ≥ 1 marker within 10 s of arrival, or the arrow; a game-asked walk (`navGo`, `hero.walk` by the job) under two thumbs is allowed ONLY after the player's touch (a button tap, a compass tap, a card) — find the callers that walk him without one and gate them (`TWD.twin` → wait for the touch or walk ≤ 1.5 s to a spot in reach). The compass stays.
+3. **Music (note 4):** the work tempo and the bed level must be the same at every stage (124 BPM work, −24 dB bed, the menu +6): measure per stage in the kid run; fix the state transitions that drop it (music-stages.cjs exists — extend it).
+4. **Framing (note 8):** where the kid run finds him or his work point outside the middle 70 %: the craft camera (`cbCam`) or `camSide` for that place; keep SITE20's key-stone framing.
+5. **Juice parity (note 2):** every act at every stage answers four ways within 50 ms (the Mount's rock does; see juice.js). Where the kid run shows acts without float/dust/sound, route them through `juice.hit` as the general work craft does (stages.js `gwLand`).
+- test: stages21-kid green per stage on the fixed items (first work ≤ 20 s, 0 autonomous walks, music within spec, ≥ 90 % of acts with all four answers, he and his work inside the middle 70 % ≥ 80 % of the samples). Keep twin-stages, work-touch, site20-touch, twin-touch green.
+
+## TOOLS21 — the tool is the job's, not the kohen's
+1. **One tool at a time, hung when idle (note 6).** The kohen never walks with the hammer in hand: when no stroke/arm is pending (walking, idle, talking) the held tool moves to his back/belt (a hook point on the model; the hammer across the back, the chisel and mallet at the belt, the rope coiled on the shoulder, the plumb at the belt); on `heroArm`/`heroAct` it comes to the hand in ≤ 100 ms (no pop: a short arc). Each job names its tool (jobs.js has `hand`/`family`; add `tool`): hammer/chisel for dressing, sledge for splitting, pick for the dig, mallet for the altar's stones (wood: no iron — keep stages.js's IRON_TOOLS/altar rule), the cord for the survey, the rope for pulls, the saw at the bench, the plumb. Never two tools at once.
+2. **Tiers (note 7).** `src/game/tools.js`: for each tool 3 tiers (e.g. hammer: ברזל פשוט → פלדה מחוזקת → פטיש האומן): a look (color, head size, a band of bronze/gold at the top tier — in stages.js's tool meshes), a points multiplier for acts made with it (×1.0 / ×1.15 / ×1.3 — in acts.js `act()` via `globalThis.__TOOL_MULT` or the model's `o.power`, like TWIN20 did), and a price in silver in the shop (shop.js: a "כלי העבודה" section; never real money; ⚑ default prices 300 / 900 silver). A tier is also **earned**: reaching a new stage with a tool at tier 1 upgrades it to tier 2 for free with a card ("הכלי שלך השתבח") — ⚑ default: earned at stages 3 and 7, bought any time. Saved in `G.tools`. Shown in the profile (HOOK20's profileHTML: "הכלים שלי").
+3. The float says the multiplier once per job when > 1 ("×1.3 פטיש האומן") — not on every act.
+- tests: node tools21.test.mjs (tiers, prices, multiplier math, the earned upgrades); tools21-touch.cjs at 844×390: walking → the hammer is on his back (a model probe: `__T.stages.hero.toolState()` → { held, hung }), the first stroke brings it to hand within 100 ms, two tools never both in hand; buying a tier changes the look (a probe of the material color) and the next job's acts pay ×1.15; the altar still shows wood. Keep craft-feel --part=rock,dress,key and twin-touch green.
+
+## BOARD21 — never an empty board; the board's juice
+1. **Demo kohanim (note 1).** A player with no family rows sees 3 computer kohanim on "המשמר שלי" — plainly marked "דמות לדוגמה" (never pretending to be real children): named for the משמרות (יהויריב, ידעיה, חרים…), paced to the player: one slightly ahead (×1.2 of his dinars/stones, +1 day streak), one level with him, one behind; they advance a little each day the player plays (deterministic from the date, no randomness). When a real family row is added, the demos drop to the bottom and can be hidden (a toggle, ⚑ default shown until 2 real rows). The player's own row is highlighted and the board **scrolls to it** on open — the kid looks for himself.
+2. **The board's juice (note 5)** — docs/WAVE20-BRIEF.md "Flashes" is the yardstick: on open, rows slide in staggered (40 ms apart); numbers count up (0.6 s) ; the player's row glows gold; a rank change since last open plays an arrow + "עלית למקום 2!" stamp (ui.stamp) with rays; badges on the row's medals rotate once (a 3D flip, CSS); the profile card's level ring fills on open; the dinar coin spins when it lands. All CSS/JS, no images; `prefers-reduced-motion` respected.
+3. The end chain (hooks/endchain.js): the "+★" counts up instead of appearing; the dinar bar's fill eases with a shine sweep; the "מחר" card shows tomorrow's riddle title with a locked silhouette.
+- tests: board21-touch.cjs at 844×390: a fresh save shows exactly 3 demo rows marked לדוגמה plus the player's; adding a family code pushes demos down; the board scrolls so the player's row is visible on open; the count-up ends at the true number; rank-up stamp shows once on the first open after a change; reduced-motion skips the animations (a page emulation). Keep hook20-touch green.
+
+## At the hard stop (10:45 UTC)
+Everything committed; builds; tests green or explained; merge-tree clean; the final bus report ends with `NEXT:` and has: what you built (file:line), real-touch results and the shots you looked at (open ≥ 3 PNGs yourself), bundle delta, ⚑ lines in Hebrew with defaults.

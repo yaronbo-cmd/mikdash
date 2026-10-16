@@ -1,0 +1,4 @@
+*.js merge=union
+*.mjs merge=union
+*.cjs merge=union
+*.md merge=union

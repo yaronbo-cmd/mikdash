@@ -1,0 +1,206 @@
+<title>בית המקדש השני</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #2A2016;
+    --ink-soft: #6B5A45;
+    --panel: rgba(251, 246, 236, 0.86);
+    --panel-solid: #FBF6EC;
+    --line: rgba(120, 92, 52, 0.22);
+    --gold: #A97A1E;
+    --gold-bright: #E8B94A;
+    --techelet: #1F4F7A;
+    --chip: rgba(255, 252, 245, 0.8);
+    --chip-on: #2A2016;
+    --chip-on-ink: #F6E7C4;
+    --shadow: 0 8px 28px rgba(40, 28, 12, 0.18);
+    --ground: #E9D7BB;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #F3E9D6;
+      --ink-soft: #C2B195;
+      --panel: rgba(27, 22, 17, 0.84);
+      --panel-solid: #1D1813;
+      --line: rgba(232, 200, 150, 0.18);
+      --gold: #E4B656;
+      --gold-bright: #F2CF77;
+      --techelet: #93BCEA;
+      --chip: rgba(33, 27, 21, 0.8);
+      --chip-on: #F3E4BF;
+      --chip-on-ink: #1D1813;
+      --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+      --ground: #141A28;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #F3E9D6;
+    --ink-soft: #C2B195;
+    --panel: rgba(27, 22, 17, 0.84);
+    --panel-solid: #1D1813;
+    --line: rgba(232, 200, 150, 0.18);
+    --gold: #E4B656;
+    --gold-bright: #F2CF77;
+    --techelet: #93BCEA;
+    --chip: rgba(33, 27, 21, 0.8);
+    --chip-on: #F3E4BF;
+    --chip-on-ink: #1D1813;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    --ground: #141A28;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden; background: var(--ground); color: var(--ink);
+    font-family: "Heebo", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
+  }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+
+  .top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 3;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 0;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+    direction: rtl; pointer-events: none;
+  }
+  .brand {
+    pointer-events: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 10px 14px 9px; box-shadow: var(--shadow); max-width: min(76vw, 440px);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .brand h1 { font-family: "Frank Ruhl Libre", "Times New Roman", serif; font-weight: 900; font-size: clamp(19px, 4.8vw, 25px); line-height: 1.1; margin: 0; letter-spacing: 0.2px; }
+  .brand p { margin: 4px 0 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.35; }
+  .pill { display: inline-block; margin-inline-start: 6px; font: 700 10.5px/1.5 "Heebo", system-ui, sans-serif; color: var(--techelet); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; vertical-align: 3px; letter-spacing: 0.4px; }
+  .round {
+    pointer-events: auto; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel);
+    color: var(--ink); font: 700 17px/1 "Frank Ruhl Libre", serif; box-shadow: var(--shadow); cursor: pointer;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); flex: 0 0 auto;
+  }
+
+  .dock {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 3;
+    padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+    display: flex; flex-direction: column; gap: 8px; direction: rtl; pointer-events: none;
+  }
+  .row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; pointer-events: auto; padding: 4px; }
+  .row::-webkit-scrollbar { display: none; }
+  .label { flex: 0 0 auto; align-self: center; font: 700 11px/1 "Heebo", system-ui, sans-serif; letter-spacing: 0.6px; color: var(--ink-soft); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 8px 9px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .chip {
+    flex: 0 0 auto; border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+    font: 500 13.5px/1 "Heebo", system-ui, sans-serif; padding: 10px 13px; border-radius: 999px; cursor: pointer; position: relative; min-height: 38px;
+    box-shadow: 0 2px 12px rgba(40, 28, 12, 0.12); white-space: nowrap;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .chip[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); border-color: transparent; }
+  .chip.ghost { color: var(--ink-soft); }
+  .chip:focus-visible, .round:focus-visible, .x:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+
+  .card {
+    position: fixed; z-index: 4; left: 12px; right: 12px;
+    /* ── ui ── (QA P2-1) --ui-dock is the height of a panel docked at the bottom under the card (main.js measures it):
+       the card sits above that panel, and fits between it and the top bar */
+    bottom: max(calc(env(safe-area-inset-bottom, 0px) + 112px), calc(var(--ui-dock, 0px) + 10px));
+    max-width: 540px; margin: 0 auto; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: var(--shadow); padding: 14px 16px 13px; direction: rtl;
+    transform: translateY(14px); opacity: 0; pointer-events: none; transition: opacity 0.22s ease, transform 0.22s ease;
+    max-height: min(46vh, max(120px, calc(100vh - var(--ui-dock, 0px) - 132px - env(safe-area-inset-top, 0px)))); overflow-y: auto;
+  }
+  /* Phase B and the tour: over their panels (.av 30, the tour 40), under nothing */
+  body.av-on .card, body.sc-on .card { z-index: 45; }
+  .card.on { opacity: 1; transform: none; pointer-events: auto; }
+  .card h2 { font-family: "Frank Ruhl Libre", "Times New Roman", serif; font-weight: 700; font-size: 22px; line-height: 1.2; margin: 0 0 6px; padding-inline-end: 34px; text-wrap: balance; }
+  .card .d { font-size: 15px; line-height: 1.62; margin: 0; max-width: 62ch; }
+  .card .s { margin: 9px 0 0; font-size: 12.5px; color: var(--techelet); font-weight: 700; letter-spacing: 0.2px; }
+  .card .s::before { content: "מקור · "; font-weight: 500; opacity: 0.8; }
+  .x { position: absolute; top: 9px; left: 9px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink-soft); font: 400 18px/1 system-ui, sans-serif; cursor: pointer; }
+  /* ── ui ── touch targets ≥ 44 px (QA P1-5): invisible hit areas around the small round close and the chips */
+  .x::after, .chip::after { content: ""; position: absolute; inset: -8px; }   /* (from the padding box: + the 1 px border) */
+  .chip::after { inset: -4px -2px; }
+
+  .marker { position: fixed; left: 0; top: 0; z-index: 2; width: 22px; height: 22px; margin: -30px 0 0 -11px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+  .marker::before { content: ""; position: absolute; inset: 0; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--gold-bright); border: 2px solid #7A5510; box-shadow: 0 3px 10px rgba(0,0,0,.3); }
+  .marker::after { content: ""; position: absolute; left: 7px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #7A5510; }
+
+  .hint {
+    position: fixed; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px; direction: rtl;
+    font: 500 13.5px/1.2 "Heebo", system-ui, sans-serif; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity 0.6s;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); white-space: nowrap;
+  }
+  .hint.on { opacity: 1; }
+
+  .load {
+    position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; direction: rtl; text-align: center;
+    background: radial-gradient(120% 90% at 50% 20%, #FFF6E6 0%, #F1DDBC 55%, #D9BE92 100%); color: #2A2016;
+    transition: opacity 0.8s ease;
+  }
+  .load.gone { opacity: 0; pointer-events: none; }
+  .load .inner { padding: 0 24px; }
+  .load .k { font: 700 12px/1 "Heebo", system-ui, sans-serif; letter-spacing: 2.4px; color: #8A6420; }
+  .load .t { font-family: "Frank Ruhl Libre", "Times New Roman", serif; font-weight: 900; font-size: clamp(34px, 9vw, 54px); line-height: 1.05; margin: 10px 0 4px; }
+  .load .m { font-size: 14px; color: #6B5A45; }
+  .load .bar { width: min(260px, 70vw); height: 3px; background: rgba(120, 92, 52, 0.2); border-radius: 3px; overflow: hidden; margin: 18px auto 10px; }
+  .load .bar i { display: block; height: 100%; width: 0; background: #A97A1E; transition: width 0.35s ease; }
+  .load .lt { font-size: 13.5px; color: #6B5A45; min-height: 1.4em; }
+
+  @media (min-width: 760px) {
+    .card { left: auto; right: 16px; margin: 0; width: min(540px, calc(100vw - var(--ui-side, 0px) - 28px)); box-sizing: border-box; bottom: max(calc(env(safe-area-inset-bottom, 0px) + 116px), calc(var(--ui-dock, 0px) + 10px)); }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<canvas id="c" aria-label="הדמיה תלת-ממדית של הר הבית בימי בית שני"></canvas>
+
+<div class="top">
+  <div class="brand">
+    <h1>בית המקדש השני <span class="pill">טיוטה</span></h1>
+    <p>הדמיה תלת־ממדית לפי מסכת מידות · אמה אחת ליחידה</p>
+  </div>
+  <button class="round" id="about" aria-label="על ההדמיה והמקורות">א</button>
+</div>
+
+<div class="mk marker" id="mk" aria-hidden="true"></div>
+<div class="hint" id="hint">גרור לסיבוב · צבוט לזום · הקש על מבנה</div>
+
+<div class="card" id="card" role="dialog" aria-live="polite" aria-hidden="true">
+  <button class="x" id="cx" aria-label="סגור">×</button>
+  <h2 id="ct"></h2>
+  <p class="d" id="cd"></p>
+  <p class="s" id="cs"></p>
+</div>
+
+<div class="dock">
+  <div class="row" role="group" aria-label="מבטים">
+    <span class="label">מבט</span>
+    <button class="chip" data-view="olives" aria-pressed="true">מהר הזיתים</button>
+    <button class="chip" data-view="facade" aria-pressed="false">חזית ההיכל</button>
+    <button class="chip" data-view="altar" aria-pressed="false">המזבח</button>
+    <button class="chip" data-view="kotel" aria-pressed="false">הכותל המערבי</button>
+    <button class="chip" data-view="royal" aria-pressed="false">הסטיו המלכותי</button>
+    <button class="chip" data-view="top" aria-pressed="false">מבט על</button>
+  </div>
+  <div class="row" role="group" aria-label="שעה ביום">
+    <span class="label">שעה</span>
+    <button class="chip" data-time="dawn" aria-pressed="true">שחר</button>
+    <button class="chip" data-time="noon" aria-pressed="false">צהריים</button>
+    <button class="chip" data-time="dusk" aria-pressed="false">בין הערביים</button>
+    <button class="chip" data-time="night" aria-pressed="false">ליל שמחת בית השואבה</button>
+    <button class="chip ghost" id="q">איכות</button>
+  </div>
+</div>
+
+<div class="load" id="load">
+  <div class="inner">
+    <div class="k">ירושלים · ימי הבית השני</div>
+    <div class="t">בית המקדש השני</div>
+    <div class="m">לפי מסכת מידות</div>
+    <div class="bar"><i id="lb"></i></div>
+    <div class="lt" id="lt">טוען…</div>
+  </div>
+</div>
+
+<script>/*__APP__*/</script>

@@ -34,6 +34,12 @@ export const R19 = Object.freeze({ bag: Object.freeze([480, 340]), rate: 33, fly
 // ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and
 // turn at the laver (act), the spigot's two places (spig), its camera (cam)
 export const K20 = Object.freeze({ hold: 3.5, hold2: 2.5, back: 0.3, up: 1.2, upMax: 7, down: 6, rise: 0.35, act: Object.freeze({ x: -60.2, z: 20, yaw: -1.12 }), spig: Object.freeze([11, 0]), cam: Object.freeze({ az: 0.45, el: 0.16, d: 7, t: Object.freeze({ x: -61, y: 19.75, z: 20.3 }) }) });
+// ── recovered (build 21) ── תרומת הדשן (deshen21.js): the swipe (px) and how straight, the coal's layers; the pan's bed and his stand at it,
+// the way up the ramp and down (up, head, foot, go), the walk, the pour at the heap, the wind and the spill, the score, its cameras
+export const D21 = Object.freeze({ swipe: 120, straight: 0.5, layers: 4, bed: { x: -28.5, z: 5.5 }, stand: { x: -30.7, z: 5.5, yaw: Math.PI / 2 }, up: [[-34, 44.6], [-34, 11.6]], head: { x: -42, z: 11.8 }, foot: { x: -42, z: 44 },
+  walk: 7, full: 0.7, desc: 3.5, turn: 0.35, wind: 20, wind1: 0.5, fix: 50, max: 45, spillA: 35, spillT: [1.5, 0.8], loss: 20, heap: { x: -28, z: 33 }, go: [[-42, 44], [-28, 44.3], [-28, 34.7]], goV: 8, pour: 1.3, end: 2, score: 150, pts: 50,
+  coins: [3, 1, 0], dawn: 2.6, sw: 0.3, ms: 200, nr: 2.6, bal: Object.freeze({ wind: Object.freeze([0.12, 0.35]), shake: Object.freeze([0.5, 1.4]), fix: 2.4, spill: 0.8, gap: 1, v: 7 }),
+  cam: { az: 1.25, el: 0.785, d: 9, t: { x: -29.6, y: 25.6, z: 5.6 } }, fol: { el: 0.26, d: 10, ty: 2.2 }, camC: { az: 0.75, el: 0.4, d: 20, t: { x: -34, y: 17.5, z: 38.5 } }, camP: { az: 0.2, el: 0.5, d: 11, t: { x: -28.4, y: 17, z: 33.8 } } });
 // ── recovered (build 19) ── on the ramp (its rectangle: x −46…−30, z 10.5…42.5) and the ramp's height at z (16 at the foot → 25 at the top)
 export const onRamp19 = (x, z) => x > -46 && x < -30 && z > 10.5 && z < 42.5;
 export const rampY19 = (z) => 16 + 9 * Math.min(1, Math.max(0, (42.5 - z) / 32));

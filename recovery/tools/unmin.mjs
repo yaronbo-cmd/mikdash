@@ -8,7 +8,7 @@
 //  2. forms: esbuild's statement forms undone — `a, b;` → `a; b;` · `a && b();` → `if (a) b();` · `a || b();` → `if (!a) b();`
 //     (only where esbuild folds it back) · `a ? b() : c();` → if/else · `return (a, b)` / `if ((a, b))` / `throw (a, b)` → `a;` first ·
 //     `=> (a, b)` → a block · `!0`/`!1`/`void 0` → true/false/undefined · `typeof x == 's'` → `===` · `let` never reassigned →
-//     `const` · `catch {}` → `catch (e)` (the tree's style; --no-catch keeps it).
+//     `const` · `catch {}` → `catch (e)` (the tree's style; --no-catch keeps it). Then names.patches (text edits, checked).
 // usage: node recovery/tools/unmin.mjs <draft.js> [--names names.json] [--out file.js] [--head header.txt] [--scopes] [--no-catch]
 //   --scopes: list each function path with its minified locals (declaration in context, uses) — the sheet to write names from.
 import { createRequire } from 'module';
@@ -180,5 +180,8 @@ if (!args.includes('--no-catch')) (function c(n) {
 // ── out ──
 let code = generate(ast).replace(/^\/\/ DRAFT[^\n]*\n(\/\/[^\n]*\n)?/, '');
 code = await prettier.format(code, { parser: 'babel', printWidth: 150, singleQuote: true, trailingComma: 'all', objectWrap: 'collapse' });
+// names.patches: [find, replace] pairs applied to the final text — e.g. a single-use const the original had (esbuild folds it into its
+// one use but keeps its renaming slot: slotmap.mjs shows the shift); each find must occur exactly once
+for (const [f, r] of NAMES.patches || []) { const n = code.split(f).length - 1; if (n !== 1) throw new Error(`patch "${f.slice(0, 60)}" occurs ${n} times`); code = code.replace(f, () => r); }
 const head = opt('--head') ? fs.readFileSync(opt('--head'), 'utf8').replace(/\s*$/, '\n') : '';
 if (opt('--out')) { fs.writeFileSync(opt('--out'), head + code); console.log(opt('--out'), (head + code).split('\n').length, 'lines'); } else process.stdout.write(head + code);

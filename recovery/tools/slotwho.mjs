@@ -1,10 +1,11 @@
 // recovery R6 — slotwho: for the split names slotmap printed, the binding behind each occurrence — its declaration in context and the
 // 26c name it got — so the scope that holds the invisible symbol can be seen (its nested slots all land one name later in 26c).
-// usage: node recovery/tools/slotwho.mjs <module> <unit index> <fresh name…>
+// usage: node recovery/tools/slotwho.mjs [--root DIR] <module> <unit index> <fresh name…>
 import { bothSides, unitTokens, findLabel } from './plib.mjs';
 import { unitBindings } from './srcnames.mjs';
+const ri = process.argv.indexOf('--root'), ROOTARG = ri > 1 ? process.argv.splice(ri, 2)[1] : undefined;   // (--root DIR: another tree, as parity.mjs --root)
 const [q, ku, ...want] = process.argv.slice(2);
-const { S, C } = await bothSides();
+const { S, C } = await bothSides(ROOTARG);
 const lab = findLabel([...C.mods.keys()], q);
 if (!lab) { console.error('no such module in 26c:', q); process.exit(2); }
 const fu = S.units[S.mods.get(lab)[+ku]], cu = C.units[C.mods.get(lab)[+ku]];

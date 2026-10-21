@@ -1,11 +1,12 @@
 // recovery R6 — slotmap: esbuild names locals by SLOT (shared by sibling scopes, ranked by use), so an invisible symbol — a single-use
 // const folded into the next statement, an unused function-expression name — shifts every nested slot after it. For each unit (or the
 // one given) prints the fresh minified names whose bindings fall on more than one 26c name (marked <<<): the shifted slots.
-// usage: node recovery/tools/slotmap.mjs <module> [unit index] [--all]   (--all: every name, not only the split ones)
+// usage: node recovery/tools/slotmap.mjs [--root DIR] <module> [unit index] [--all]   (--all: every name, not only the split ones)
 import { bothSides, unitTokens, findLabel } from './plib.mjs';
 import { unitBindings } from './srcnames.mjs';
+const ri = process.argv.indexOf('--root'), ROOTARG = ri > 1 ? process.argv.splice(ri, 2)[1] : undefined;   // (--root DIR: another tree, as parity.mjs --root)
 const args = process.argv.slice(2), all = args.includes('--all'), pos = args.filter((a) => a !== '--all');
-const { S, C } = await bothSides();
+const { S, C } = await bothSides(ROOTARG);
 const lab = findLabel([...C.mods.keys()], pos[0]);
 if (!lab) { console.error('no such module in 26c:', pos[0]); process.exit(2); }
 const fi = S.mods.get(lab) || [], ci = C.mods.get(lab) || [];

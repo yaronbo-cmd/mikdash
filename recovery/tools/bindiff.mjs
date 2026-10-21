@@ -1,10 +1,11 @@
 // recovery R6 — bindiff: for a module whose units have the same shapes on both sides but whose names differ, align each unit's tokens
 // and resolve every identifier to its binding (eslint-scope); prints the bindings whose fresh ↔ 26c pairing is not one-to-one (a
 // variable reused where the original had two, or two where it had one). Silent = the binding structure is identical (then see slotmap).
-// usage: node recovery/tools/bindiff.mjs <module>
+// usage: node recovery/tools/bindiff.mjs [--root DIR] <module>
 import { bothSides, unitTokens, findLabel } from './plib.mjs';
 import { unitBindings } from './srcnames.mjs';
-const { S, C } = await bothSides();
+const ri = process.argv.indexOf('--root'), ROOTARG = ri > 1 ? process.argv.splice(ri, 2)[1] : undefined;   // (--root DIR: another tree, as parity.mjs --root)
+const { S, C } = await bothSides(ROOTARG);
 const lab = findLabel([...C.mods.keys()], process.argv[2]);
 if (!lab) { console.error('no such module in 26c:', process.argv[2]); process.exit(2); }
 const fi = S.mods.get(lab) || [], ci = C.mods.get(lab) || [];

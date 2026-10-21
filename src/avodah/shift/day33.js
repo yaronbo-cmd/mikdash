@@ -25,6 +25,9 @@ export const DAY33 = Object.freeze({ idleOffer: 12, dayS: 180, nightS: 60, fuel0
 // where they have one (B17, C18, POOL23, rolesBook23, P25, BLEM25, at25, hash25, P26, POOL26), else the recovery's in their style.
 // ── recovered (build 19) ── the ramp run (ramp19.js): the bag's two sizes, the climb's rate, the logs' flight, the goal, the sway, the salt
 export const R19 = Object.freeze({ bag: Object.freeze([480, 340]), rate: 33, fly: 0.25, goal: 0.8, after: 5, v0: 3, v1: 7.5, swayMax: 0.5, saltK: 0.4, slipV: 5.5, par: 6, head: 12, hold: 0.35 });
+// ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and
+// turn at the laver (act), the spigot's two places (spig), its camera (cam)
+export const K20 = Object.freeze({ hold: 3.5, hold2: 2.5, back: 0.3, up: 1.2, upMax: 7, down: 6, rise: 0.35, act: Object.freeze({ x: -60.2, z: 20, yaw: -1.12 }), spig: Object.freeze([11, 0]), cam: Object.freeze({ az: 0.45, el: 0.16, d: 7, t: Object.freeze({ x: -61, y: 19.75, z: 20.3 }) }) });
 // ── recovered (build 19) ── on the ramp (its rectangle: x −46…−30, z 10.5…42.5) and the ramp's height at z (16 at the foot → 25 at the top)
 export const onRamp19 = (x, z) => x > -46 && x < -30 && z > 10.5 && z < 42.5;
 export const rampY19 = (z) => 16 + 9 * Math.min(1, Math.max(0, (42.5 - z) / 32));

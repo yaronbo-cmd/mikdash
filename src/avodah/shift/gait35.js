@@ -1,4 +1,4 @@
-/* ── recovered (16–26c) ── gait35.js — the kohen's gait by his pace (amot/s), taken out of hero35.js (its HERO35 spreads GAIT35):
+/* ── fable32 (16–26c) ── ── recovered (16–26c) ── gait35.js — the kohen's gait by his pace (amot/s), taken out of hero35.js (its HERO35 spreads GAIT35):
  * Idle under walkAt; Walking_A at a rate of his pace over the clip's own (walkV), held within walkRates; Running_A from runAt — and
  * back to the walk only under runAt − runHys, so it does not flicker at the edge; slip: how far the feet slide (1 = none).
  * The file's and its exports' names (gait35.js, GAIT35, gaitFor) are the recovery's: the bundle kept none. Never a Divine Name. */

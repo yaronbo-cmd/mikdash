@@ -1,4 +1,4 @@
-/* ── recovered (build 16) ── evlog16.js — the day's event log: each event { t: seconds since the log was first read (to 0.1 s),
+/* ── fable32 (build 16) ── ── recovered (build 16) ── evlog16.js — the day's event log: each event { t: seconds since the log was first read (to 0.1 s),
  * name, data, at: Date.now() } is kept in localStorage 'mk.evlog' (the last 400; written 2 s after the first new one), and the
  * pause card's "העתק לוג" (hud.js) copies it as JSON { v: 16, n, ev } — what a played day looked like, sent back by the owner.
  * The file's name and its exports' (evlog, copyEvlog) are the recovery's: the bundle kept none. Never a Divine Name. */

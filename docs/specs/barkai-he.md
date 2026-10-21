@@ -1,0 +1,60 @@
+# ברקאי — צופה השחר (ROLE_DAWN_WATCHMAN) — אפיון הבעלים, 22.10.2026 00:29
+
+> הקובץ המצורף, מילה במילה, ואחריו הערות המקורות של Claude.
+
+## האפיון (מילה במילה)
+
+זהו אחד השוטים הקולנועיים והפוטו-ריאליסטיים ביותר במשחק!כדי שהנוף של ירושלים והרי חברון ירגיש אותנטי לחלוטין (100% Authentic Topography), אנחנו לא מציירים גבעות אקראיות:הטכנולוגיה (לקלוד): שימוש ב-Real-World Heightmap Data (נתוני טופוגרפיה לווייניים אמיתיים) של קו הרכס שבין הר הבית, רמת רחל והרי חברון מדרום-מזרח.הארכיטקטורה באופק: הנוף החשוף והפראי של ארץ יהודה במאה הראשונה – ללא מבנים מודרניים, רק טרסות אבן עתיקות, עצי זית, והאופק המשתרע עד הרי חברון.הנה האפיון הכללי, הבמאי והטקטילי המלא והמוכן להעתקה לקלוד עבור מודול ברקאי:🌅 אפיון מודול: "ברקאי!" – צופה השחר (ROLE_DAWN_WATCHMAN)🎬 1. התפיסה הקולנועית וזווית הצילום (Director's Cut & Staging)┌─────────────────────────────────────────────────────────────────────────┐
+│               BARKAI - CINEMATIC horizon SCANNING                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│ CAMERA (FIRST-PERSON / OVER-THE-SHOULDER):                              │
+│   • Positioned on the eastern battlements/roof of the Temple Mount.     │
+│   • Horizon: Authentic heightmap of Hebron ridge in deep night blue.    │
+│   • Motion: Smooth 360/Gyro pan following thumb velocity.              │
+└─────────────────────────────────────────────────────────────────────────┘
+מיקום המצלמה: גובה העיניים של הכהן הצופה העומד בשיא הגובה של החומה המזרחית.מה רואים בפריים?בקדמת הפריים (Foreground): אבני הניחוח הענקיות של חומת המקדש.ברקע (Background): המרחב הפתוח של הרי יהודה לכיוון דרום-מזרח (חברון). השמיים בצבע כחול-אינדיגו עמוק, זרועי כוכבים אחרונים של לילה.האווירה: שקט מתוח. רוח שחר קלה מנשבת ומניעה מעט את גלימת הכהן.🎮 2. תחושת האצבעות והמגע (Tactile Controls & Haptics)🔍 שלב 1: סריקת האופק בחשיכה (The Precision Horizon Scan)מה האצבע עושה?השחקן מזיז את המכשיר (ג'יירוסקופ) או מושך באגודל ימין ($\Delta X$) כדי לסרוק את קו הרכס המזרחי.תחושת הנייד (Input Resistance): התנועה של הצידוד מרגישה "כבדה" וחלקה מאוד (Smooth Cinematic Friction), המונעת קפיצות פתאומיות של המצלמה ומעניקה תחושת יציבות של תצפית מקצועית.✨ שלב 2: זיהוי קרן השחר ותחושת הנייד (Ray Detection & Haptic Lock)מה רואים? בנקודה מסוימת מעל הרי חברון, נפצעה החשיכה בנקודת אור זהובה זעירה שתפשטה באופק ("האיר פני כל המזרח").החוויה באצבע (Haptic Alignment):ככל שהכוונת של השחקן מתקרבת לקרן האור, מנוע הרטט בטלפון מתחיל לפעום ברטט קצבי עדין (Pulse Vibrations).כשהכוונת ננעלת 100% על האור: הרטט הופך לרטט רציף עמוק ומתמשך (Solid Gold Resonance), ואלומת האור מתרחבת בלייב על המסך עם אפקט Lens Flare זהוב מרהיב!📣 שלב 3: הקריאה "ברקאי!" (The Double-Tap Call)מה האצבע עושה? נקישה כפולה חדה (Double Tap) במרכז הכוונת הנקייה.השיא הסאונדי והוויזואלי:קול עמוק ומרומם של הכהן קורא: "בַּרְקָאִי!"קול מהחצר למטה עונה הד: "עַד שֶׁהוּא בְחֶבְרוֹן?"הכהן מאשר בקול אדיר: "הֵן!"תקיעת שופר קצרה מהחומה מהדהדת, והשמש מתחילה לעלות במהירות מעל ההרים – הלילה נגמר, והבוקר במקדש נפתח!📋 נוסח להעתקה לקלוד (Paste & Go)תעתיק לקלוד את המפרט המלא והמושלם הזה:PlaintextClaude, here is the official full specification for the Dawn Watchman Module ("BARKAI" - ROLE_DAWN_WATCHMAN):
+
+====================================================================
+DAWN WATCHMAN / BARKAI (ROLE_DAWN_WATCHMAN) - PRE-LOTTERY MORNING
+====================================================================
+
+1. Authentic Topography & Cinematic Staging:
+   - Environment: 100% authentic 1st-century terrain heightmap of the Eastern Jerusalem and Hebron mountain ridge.
+   - Camera: First-Person/Over-the-Shoulder perspective from the eastern Temple battlements looking South-East toward Hebron.
+   - Sky & Atmosphere: Deep indigo night sky transitioning into dawn gold. Quiet morning wind SFX.
+
+2. Controls & Haptic Mechanics:
+
+   - Step 1: Horizon Scan (Input Friction)
+     * Control: Gyroscope pan or Right Thumb Drag to scan the Hebron ridge line.
+     * Feel: Smooth cinematic resistance/friction applied to input camera speed.
+
+   - Step 2: Ray Detection & Haptic Lock-On
+     * Visuals: Locate the first golden ray breaking over Hebron ("האיר פני כל המזרח").
+     * Dynamic Haptics: Haptic pulse frequency increases as crosshair aligns with the dawn point.
+     * Lock-On State: 100% alignment triggers a continuous deep resonant vibration and volumetric golden Lens Flare.
+
+   - Step 3: The Announcement Call
+     * Action: Double Tap on target reticle when locked on.
+     * Audio Dialogue Sequence:
+       1. Watchman Call: "BARKAI!" (ברקאי!)
+       2. Courtyard Question: "Is it as far as Hebron?" (עד שהוא בחברון?)
+       3. Watchman Response: "YES!" (הן!)
+       4. Short Shofar blast echoes as dawn officially opens the morning sequence.
+
+Please integrate ROLE_DAWN_WATCHMAN into the pre-lottery morning system!
+
+## הערות מקורות (Claude, 22.10 00:35 — נבדק מול ספריא)
+
+**נכון:**
+- "צאו וראו אם הגיע זמן השחיטה. אם הגיע, הרואה אומר: ברקאי" (תמיד ג, ב).
+- "מתיא בן שמואל אומר: האיר פני כל המזרח. עד שהוא בחברון? והוא אומר: הין" (שם).
+
+**לתקן:**
+1. **זה לא הזריחה.** ברקאי הוא אור השחר שמתפשט במזרח, לפני שהשמש עצמה עולה. השמש עולה מאוחר יותר — זה רגע נברשת הילני (`heleni-shema-he.md`). לכן בסוף הסצנה השמיים מתבהרים, אבל כדור השמש לא עולה.
+2. **חברון בדרום, מעט מערבה מירושלים — לא בדרום-מזרח.** הצופה מביט מזרחה, אל האור שמתפשט, ובודק שהוא מגיע עד חברון שבדרום. הסריקה עוברת אפוא ממזרח לדרום.
+3. **בלי שופר.** התקיעות היומיות היו בחצוצרות: "אין פוחתין מעשרים ואחת תקיעות במקדש: שלש לפתיחת שערים, ותשע לתמיד של שחר, ותשע לתמיד של בין הערבים" (סוכה ה, ה). שלוש התקיעות שייכות לפתיחת השערים, לא לברקאי. וגם הבעלים ביקש (20.10) צלילי תגמול מודרניים, לא שופר.
+4. **הדיאלוג משלב שתי דעות.** לפי תנא קמא קוראים מילה אחת: "ברקאי". לפי מתיא בן שמואל יש שלוש שורות: "האיר פני כל המזרח!" — "עד שהוא בחברון?" — "הין!". הצעה: הגרסה של מתיא, שהיא דרמטית יותר, או "ברקאי" לבדו. וגם: "הין", לא "הן".
+5. **המקום בסדר.** במשנה הפיס השני (תמיד ג, א) בא לפני ברקאי (ג, ב), ואחרי ברקאי מביאים את הטלה (ג, ג). לא "לפני הפיס".
+6. **מפת גבהים לוויינית — לא זמינה מכאן.** למחשב בענן יש גישה רק למאגרי חבילות. הצעה: פרופיל אופק שנבנה מגבהים מתועדים של פסגות — הר הזיתים קרוב ממזרח וחוסם, ומעבר לו מדבר יהודה והרי מואב. יסומן "המחשה".
+7. **רטט:** "פעימה שמתגברת" אפשרית רק כסדרה של פעימות on/off (כמו בהערות על הדרגות).

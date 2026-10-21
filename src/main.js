@@ -156,6 +156,8 @@ const TIMES = {
   // ── polish23 ── the Temple day's night (Phase B under two thumbs): dark — the moon only a pale edge, the altar fire, the menorot and the אמרכל's torch the only lights (skyFor → 'nightd'; the Phase A / portrait night above is unchanged)
   nightd: { el: 38, az: 40, sun: '#8FA6D8', sunI: 0.1, hs: '#22345C', hg: '#1B1A24', hI: 0.1, envI: 0.08, top: '#050B1E', hor: '#16213F', bot: '#0E1118', fog: '#121B33', exp: 1.05, smoke: '#4A4846', fire: 230, menK: 0.12, bloom: 0.7, bloomT: 0.9, night: true },
   // ── /polish23 ──
+  // ── recovered (16–26c) ── before dawn (reached by mixTime from the dark night): the sun's grey-blue first light low in the east, the fire small
+  predawn: { el: 9, az: 8, sun: '#93A6D6', sunI: 0.75, hs: '#40527E', hg: '#2C2832', hI: 0.42, envI: 0.2, exp: 1.1, smoke: '#5A5652', fire: 70, menK: 0.12, bloom: 0.6, bloomT: 0.95, night: true },
 };
 // ── world6 ── per preset: the aerial perspective (fog near/far, amot; its colour is the sky's haze) and the colour grade folded
 // into the OutputPass (after ACES, linear): sat = saturation, gain = highlights' tint, lift = shadows' tint, vig = vignette
@@ -166,6 +168,7 @@ const GRADE = {
   golden: { fogN: 700, fogF: 9500, sat: 1.15, gain: [1.07, 1.0, 0.91], lift: [0.004, 0.006, 0.02], vig: 0.25 },   // ── world7 ──
   night: { fogN: 420, fogF: 6800, sat: 0.95, gain: [0.95, 0.99, 1.07], lift: [0.006, 0.01, 0.022], vig: 0.26 },   // ── world7 ── (was fogN 300, fogF 5200, lift 0/.003/.01, vig .3: the far city and hills melted into black)
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
+  predawn: { fogN: 420, fogF: 6600, sat: 0.95, gain: [1.0, 0.98, 1.05], lift: [0.008, 0.008, 0.02], vig: 0.3 },   // ── recovered (16–26c) ──
 };
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
 // ── end world6 ──
@@ -257,6 +260,31 @@ function setTime(k) {
   if (bloom) { bloom.strength = t.bloom; bloom.threshold = t.bloomT; }
   renderer.shadowMap.needsUpdate = true;
   document.querySelectorAll('[data-time]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.time === k ? 'true' : 'false'));
+}
+
+// ── recovered (16–26c) ── a time between two presets, a → b by k (0…1; k ≥ 1 is setTime(b)): the sun, the hemisphere, the
+// exposure, the sky (sky.mix), the fog and the grade, the bloom; the environment map is re-rendered at each fifth of the way
+const mixCol = new THREE.Color();
+let mixEnvK = -1;
+function mixTime(a, b, k) {
+  const A = TIMES[a], B = TIMES[b], GA = GRADE[a], GB = GRADE[b];
+  if (!A || !B || !GA || !GB) return false;
+  if (!(k < 1)) { mixEnvK = -1; setTime(b); return true; }
+  if (curTime !== a) setTime(a);
+  const at = (x, y) => x + (y - x) * k, col = (c, x, y) => c.set(x).lerp(mixCol.set(y), k), arr = (f) => GA[f].map((v, i) => at(v, GB[f][i]));
+  const el = THREE.MathUtils.degToRad(at(A.el, B.el)), az = THREE.MathUtils.degToRad(at(A.az, B.az));
+  const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
+  sun.position.copy(sun.target.position).addScaledVector(dir, 1600);
+  col(sun.color, A.sun, B.sun); sun.intensity = at(A.sunI, B.sunI);
+  col(hemi.color, A.hs, B.hs); col(hemi.groundColor, A.hg, B.hg); hemi.intensity = at(A.hI, B.hI);
+  renderer.toneMappingExposure = at(A.exp, B.exp);
+  scene.environmentIntensity = at(A.envI, B.envI);
+  sky.mix(b, k, dir);
+  scene.fog.near = at(GA.fogN, GB.fogN); scene.fog.far = at(GA.fogF, GB.fogF); scene.fog.color.copy(sky.fogColor);
+  if (grade) { grade.uSat.value = at(GA.sat, GB.sat); grade.uGain.value.set(...arr('gain')); grade.uLift.value.set(...arr('lift')); grade.uVig.value = at(GA.vig, GB.vig); }
+  if (bloom) { bloom.strength = at(A.bloom, B.bloom); bloom.threshold = at(A.bloomT, B.bloomT); }
+  if (((k * 5) | 0) !== mixEnvK) { mixEnvK = (k * 5) | 0; envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; renderer.shadowMap.needsUpdate = true; }
+  return true;
 }
 
 /* ───────── camera flights ───────── */
@@ -894,7 +922,7 @@ function openingSkip() { if (opening7) opening7.skip(); }
 import { createMusic } from './game/music.js';
 const musicEls = { modal: document.getElementsByClassName('gm-modal'), avModal: document.getElementsByClassName('av-modal'), coach: document.getElementsByClassName('coach-on'), mg: document.getElementsByClassName('fx-mg'), tw: document.getElementsByClassName('tw-on') /* ── land17 ── */ };
 const music = createMusic({
-  context: () => { try { return (game && game.sfx && game.sfx.context) || null; } catch (e) { return null; } },   // share the sound kit's context when it offers it
+  context: () => { try { return (game && game.sfx && game.sfx.context) || (avodah && avodah.sfx && avodah.sfx.context) || null; } catch (e) { return null; } },   // ── recovered (16–26c) ── (|| the avodah's)   // share the sound kit's context when it offers it
   watch: () => {
     const kit = avodah && avodah.sfx ? avodah.sfx : game && game.sfx ? game.sfx : null;
     return { muted: !!(kit && kit.muted), hidden: document.hidden, duck: musicEls.modal.length || musicEls.avModal.length ? 0.15 : musicEls.coach.length ? 0.6 : 1, precision: musicEls.mg.length > 0, scenes: document.body.classList.contains('sc-on'), whole: wholeView, twin: musicEls.tw.length > 0 /* ── land17 ── the walking-and-working mode: the work state's tempo (120–126) */ };
@@ -1070,7 +1098,7 @@ $('q').textContent = Q.level === 'high' ? 'איכות: גבוהה' : 'איכות
 }
 // ── /places24 ──
 window.__T = {
-  flyTo, flyToPos, setTime, camera, controls, VIEWS, renderer, scene,
+  flyTo, flyToPos, setTime, mixTime /* ── recovered (16–26c) ── */, camera, controls, VIEWS, renderer, scene,
   Raycaster: THREE.Raycaster, Vector3: THREE.Vector3,   // (not the whole namespace: that would defeat tree-shaking)
   get life() { return life; },
   jump: (k) => { const v = VIEWS[k]; fly = null; camera.position.set(...v.p); controls.target.set(...v.t); controls.update(); if (squareG) squareG.visible = k === 'top'; },

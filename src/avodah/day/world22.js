@@ -12,11 +12,6 @@ const ALTAR22 = Object.freeze([{ x0: ALTAR.body.x0, x1: ALTAR.body.x1, z0: ALTAR
 const FOOT22 = KEVESH.zFoot - 2.5;   // (past this, at the ramp's foot, he steps on and off)
 export const onAltar = (x, z) => (x > ALTAR22[0].x0 && x < ALTAR22[0].x1 && z > ALTAR22[0].z0 && z <= ALTAR22[0].z1) || (x > ALTAR22[1].x0 && x < ALTAR22[1].x1 && z > ALTAR22[1].z0 && z <= ALTAR22[1].z1);
 const RAMP_X = (KEVESH.x0 + KEVESH.x1) / 2;
-const KEVESH_WALL = WALLS22.findIndex((r) => r.x0 < -46 && r.x0 > -48 && r.z1 > 42 && r.z1 < 44);
-/** the House: on = the Ulam open to him; gate = the Heichal too (set by the shift) */
-export const HOUSE22 = { on: false, gate: false };
-/** the Heichal's three vessels (x0, x1, z0, z1): the golden altar in the middle, the table north, the menorah south */
-const HEICHAL_VESSELS = [[-122.1, -119.9, -1.1, 1.1], [-126.7, -123.3, -8.6, -6.4], [-126.9, -121.6, 6.2, 8.8]];
 // ── recovered (16–26c) ── (the names below — rampWay, houseFloor, onAltar, HOUSE22, ALTAR22, FOOT22, RAMP_X, KEVESH_WALL,
 // HEICHAL_VESSELS — are the recovery's; the bundle kept none)
 /** on the altar or the kevesh: the way down — the ramp's top (when above it), then past its foot (flow31's gold path) */
@@ -70,3 +65,9 @@ export function free(x, z) {
   for (let i = 0; i < WALLS22.length; i++) if (inR(WALLS22[i], x, z)) return false;
   return true;
 }
+// ── recovered (16–26c) ── (these three after the functions: the bundle keeps them a statement apart)
+const KEVESH_WALL = WALLS22.findIndex((r) => r.x0 < -46 && r.x0 > -48 && r.z1 > 42 && r.z1 < 44);
+/** the House: on = the Ulam open to him; gate = the Heichal too (set by the shift) */
+export const HOUSE22 = { on: false, gate: false };
+/** the Heichal's three vessels (x0, x1, z0, z1): the golden altar in the middle, the table north, the menorah south */
+const HEICHAL_VESSELS = [[-122.1, -119.9, -1.1, 1.1], [-126.7, -123.3, -8.6, -6.4], [-126.9, -121.6, 6.2, 8.8]];

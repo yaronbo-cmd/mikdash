@@ -188,6 +188,7 @@ export async function freshSide(root = ROOT) {
   S.top = new Map();   // minified top-level name → { module, src }
   for (const u of S.units) if (u.decl && !S.top.has(u.decl)) S.top.set(u.decl, { module: u.label, src: u.srcDecl });
   S.rawMin = b.min; S.esbuild = b.esbuild; S.ms = { build: t1 - t0, analyze: Date.now() - t1 };
+  S.N = N;   // (the names build: its units line up with S.units one for one — rename.mjs --src reads the source's local names there)
   return S;
 }
 
@@ -372,7 +373,9 @@ export function compareModule(S, C, label, { windows = 3, ctx = 10, hunks = fals
   if (!fi.length) return { ...res, verdict: 'MISSING-IN-FRESH' };
   if (!ci.length) return { ...res, verdict: 'MISSING-IN-26c' };
   const F = fi.map((i) => S.units[i]), R = ci.map((i) => C.units[i]);
-  const fs_ = F.map((u) => shape(unitTokens(S, u))), rs = R.map((u) => shape(unitTokens(C, u)));
+  // (a unit that starts a statement is marked ¶ — `a = 1, b = 2` and `a = 1; b = 2` minify from different sources; not the module's
+  // first unit, whose statement may have merged with the previous module's)
+  const fs_ = F.map((u, k) => (k && u.first ? '¶\u0001' : '') + shape(unitTokens(S, u))), rs = R.map((u, k) => (k && u.first ? '¶\u0001' : '') + shape(unitTokens(C, u)));
   const diffs = [];
   let ntok = 0;
   if (fs_.length !== rs.length || fs_.some((s, k) => s !== rs[k])) {

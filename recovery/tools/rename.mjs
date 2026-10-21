@@ -4,20 +4,23 @@
 // `const a = …` (`let` when the bundle assigns it again). Locals stay minified, or with --canon become _0, _1 … numbered per
 // top-level unit in order of first use, so the same code prints the same on both sides and `diff` shows only real changes.
 // An aid for R3–R7, not a final product.
-//   node recovery/tools/rename.mjs <module> [--side 26c|fresh] [--canon] [--out FILE] [--no-pretty]
+//   node recovery/tools/rename.mjs <module> [--side 26c|fresh] [--canon | --src] [--out FILE] [--no-pretty]
+//   --src: locals by the build-15 source's names (srcnames.mjs: scope-resolved, aligned through the names build); a 26c local
+//          with no counterpart prints as _$<minified> — the fresh and 26c drafts then diff to the real changes, readably
 //   e.g. node recovery/tools/rename.mjs temple.js --canon --out /tmp/t26.js
 //        node recovery/tools/rename.mjs temple.js --side fresh --canon --out /tmp/t15.js && diff /tmp/t15.js /tmp/t26.js
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
 import { ROOT, bothSides, findLabel, unitTokens } from './plib.mjs';
+import { sourceLocals } from './srcnames.mjs';
 import { walk } from './r1lib.mjs';
 const require = createRequire('/home/claude/tools-npm/');
 
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(k); if (i < 0) return d; const v = argv[i + 1]; argv.splice(i, 2); return v; };
 const flag = (k) => { const i = argv.indexOf(k); if (i < 0) return false; argv.splice(i, 1); return true; };
-const sideName = opt('--side', '26c'), out = opt('--out', null), canon = flag('--canon'), noPretty = flag('--no-pretty'), root = opt('--root', ROOT);
+const sideName = opt('--side', '26c'), out = opt('--out', null), canon = flag('--canon'), srcMode = flag('--src'), noPretty = flag('--no-pretty'), root = opt('--root', ROOT);
 if (!argv.length) { console.error('usage: node recovery/tools/rename.mjs <module> [--side 26c|fresh] [--canon] [--out FILE]'); process.exit(2); }
 
 const { S, C } = await bothSides(root);
@@ -26,6 +29,8 @@ const labels = [...new Set([...S.mods.keys(), ...C.mods.keys()])];
 const label = findLabel(labels, argv[0]);
 if (!label || !X.mods.get(label)) { console.error(`${argv[0]}: not in the ${sideName} bundle`); process.exit(2); }
 const idx = X.mods.get(label), U = idx.map((i) => X.units[i]);
+// --src: the locals by the build-15 source's names (srcnames.mjs); a 26c local with no counterpart there prints as _$<minified>
+const SL = srcMode ? sourceLocals(S, C, label, root) : null, LOC = SL ? SL[X === S ? 'fresh' : 'ref'] : null;
 
 // ── the bundle-wide facts: who references which top-level name, how often each name is assigned ──
 const refs = new Map(), assigned = new Map();
@@ -49,7 +54,8 @@ function realName(mod, name) {
 }
 const own = new Set(U.map((u) => u.decl).filter(Boolean));
 // (26c: symmap's name is exact only in an unchanged module — elsewhere it may be shifted, so it is shown as name__q)
-const topName = (n) => { const d = X.top.get(n); if (!d) return n; if (d.src) return realName(d.module, d.src) || n; return X === C && C.symmap[n] ? C.symmap[n].name + '__q' : n; };
+// (--src: a 26c name aligned with a fresh one takes the fresh one's — exact — source name first)
+const topName = (n) => { const d = X.top.get(n); if (!d) return n; if (X === C && SL && SL.top.has(n)) return realName(d.module, SL.top.get(n)) || n; if (d.src) return realName(d.module, d.src) || n; return X === C && C.symmap[n] ? C.symmap[n].name + '__q' : n; };
 const relTo = (mod) => {
   if (mod.startsWith('node_modules/three/build/')) return 'three';
   if (mod.startsWith('node_modules/')) return mod.replace(/^node_modules\//, '');
@@ -73,8 +79,8 @@ function nameFor(n) {
 }
 const hoisted = new Map();   // a wrapped module's bare `var a` → its unit
 const lines = [];
-for (const u of U) {
-  if (u.kind === 'wrap') continue;
+U.forEach((u, ui) => {
+  if (u.kind === 'wrap') return;
   const toks = unitTokens(X, u);
   const loc = new Map(); let nloc = 0;
   let text = u.text, shift = 0;
@@ -91,7 +97,8 @@ for (const u of U) {
         if (!imports.has(d.module)) imports.set(d.module, new Map());
         imports.get(d.module).set(to, topName(n));
       }
-    } else if (canon) { if (!loc.has(n)) loc.set(n, '_' + nloc++); to = loc.get(n); }
+    } else if (LOC) { const nm = (LOC.get(idx[ui]) || new Map()).get(t.pos); to = nm || (X === S ? n : '_$' + n); if (to === n) continue; }
+    else if (canon) { if (!loc.has(n)) loc.set(n, '_' + nloc++); to = loc.get(n); }
     else continue;
     reps.push([t.pos, t.end, to]);
   }
@@ -109,7 +116,7 @@ for (const u of U) {
   const exp = (n) => (n && refs.has(n) ? 'export ' : '');
   if (u.kind.endsWith('decl')) {
     const n = nd.id.type === 'Identifier' ? nd.id.name : null;
-    if (!nd.init && n && u.sub !== true && X.top.has(n)) { hoisted.set(n, lines.length); lines.push(null); continue; }
+    if (!nd.init && n && u.sub !== true && X.top.has(n)) { hoisted.set(n, lines.length); lines.push(null); return; }
     const kw = n && (assigned.get(n) || 0) > 0 ? 'let' : u.kind === 'vardecl' || u.kind === 'constdecl' ? 'const' : 'let';
     lines.push(`${exp(n)}${kw} ${text};`);
   } else if ((u.kind === 'seq' || u.kind === 'expr') && nd.type === 'AssignmentExpression' && nd.operator === '=' && nd.left.type === 'Identifier' && hoisted.has(nd.left.name)) {
@@ -119,7 +126,7 @@ for (const u of U) {
     sideEffects.add(initOf.get(nd.callee.name));
   } else if (u.kind === 'seq' || u.kind === 'expr') lines.push((/^\s*[{]/.test(text) || nd.type === 'ObjectExpression' ? `(${text})` : text) + ';');
   else lines.push((nd.type === 'FunctionDeclaration' || nd.type === 'ClassDeclaration') ? exp(nd.id && nd.id.name) + text : text);
-}
+});
 for (const [n, at] of hoisted) lines[at] = `${refs.has(n) ? 'export ' : ''}let ${nameFor(n)};`;
 const head = [`// DRAFT of ${label} from the ${sideName === 'fresh' ? 'working tree' : '26c'} bundle (recovery/tools/rename.mjs${canon ? ' --canon' : ''}) — not a source file.`,
   `// Top-level names: ${sideName === 'fresh' ? "the names build's" : 'symmap26c.json (unknown ones stay minified)'}; locals ${canon ? 'canonical (_0, _1 … per unit)' : 'minified'}.`];

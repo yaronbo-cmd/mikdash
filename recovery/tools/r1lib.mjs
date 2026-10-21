@@ -37,11 +37,12 @@ export function iifeBody(ast) {
   return fn.body.body;
 }
 export function splitStatements(list, push) {
+  // (push's third argument, R2: the unit's place in its statement — 0 starts a statement; parity compares the grouping too)
   for (const st of list) {
-    if (st.type === 'VariableDeclaration') for (const d of st.declarations) push(d, st.kind + 'decl');
-    else if (st.type === 'ExpressionStatement' && st.expression.type === 'SequenceExpression') for (const e of st.expression.expressions) push(e, 'seq');
-    else if (st.type === 'ExpressionStatement') push(st.expression, 'expr');
-    else push(st, st.type);
+    if (st.type === 'VariableDeclaration') st.declarations.forEach((d, i) => push(d, st.kind + 'decl', i));
+    else if (st.type === 'ExpressionStatement' && st.expression.type === 'SequenceExpression') st.expression.expressions.forEach((e, i) => push(e, 'seq', i));
+    else if (st.type === 'ExpressionStatement') push(st.expression, 'expr', 0);
+    else push(st, st.type, 0);
   }
 }
 // the body of an esbuild module wrapper `X = helper(() => { … })` / `X = helper((e, t) => { … })`, or null
@@ -58,12 +59,12 @@ export function wrapperBody(node, helpers) {
 // cut to `X=helper(()=>{`) followed by its body's statements as units (sub:true)
 export function units(ast, js, helpers = null) {
   const out = [];
-  splitStatements(iifeBody(ast), (node, kind) => {
+  splitStatements(iifeBody(ast), (node, kind, i) => {
     const body = helpers && wrapperBody(node, helpers);
-    if (!body) { out.push({ start: node.start, end: node.end, kind, node }); return; }
+    if (!body) { out.push({ start: node.start, end: node.end, kind, node, first: i === 0 }); return; }
     const a0 = node.init.arguments[0], fb = a0.type === 'ObjectExpression' ? a0.properties[0].value.body : a0.body;
-    out.push({ start: node.start, end: node.end, kind: 'wrap', headEnd: fb.start + 1, node });
-    splitStatements(body, (n, k) => out.push({ start: n.start, end: n.end, kind: k, sub: true, node: n }));
+    out.push({ start: node.start, end: node.end, kind: 'wrap', headEnd: fb.start + 1, node, first: i === 0 });
+    splitStatements(body, (n, k, j) => out.push({ start: n.start, end: n.end, kind: k, sub: true, node: n, first: j === 0 }));
   });
   for (const u of out) u.text = u.kind === 'wrap' ? js.slice(u.start, u.headEnd) : js.slice(u.start, u.end);
   return out;

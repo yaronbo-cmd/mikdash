@@ -1,0 +1,9 @@
+{
+ "note": "recovery R1 dev tools — install OUTSIDE the repo: mkdir -p /home/claude/tools-npm && cd /home/claude/tools-npm && npm init -y && npm install prettier@3.9.10 acorn@8.19.0 acorn-walk@8.3.5 js-beautify@1.15.4",
+ "dependencies": {
+  "acorn": "^8.19.0",
+  "acorn-walk": "^8.3.5",
+  "js-beautify": "^1.15.4",
+  "prettier": "^3.9.10"
+ }
+}

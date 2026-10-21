@@ -1,0 +1,12 @@
+/* ── fable32 (build 23) ── ── recovered (build 23) ── pis23.js — the lot (הפיס, יומא ב, א–ד): before dawn the kohanim stand in a circle
+ * round the ממונה (P23.c, P23.seats); "החליקו למעלה — הוציאו אצבע" — a swipe up on the right half raises his finger (E.p23raise); the
+ * ממונה calls a number and counts round the fingers (the drum23 beat, the count over each hand); where it stops — "☝ זכיתם!" — and the
+ * cards: one role, or two to choose from ("היום הוגרלת ל: … או … — במה תבחר?"), the record over each ("השיא שלך: N%", "תפקיד חדש!");
+ * at the role's end its score — "שיא חדש!". The second lot of build 26 (k26: thirteen kohanim, POOL26) uses the same circle where he
+ * stands. Meanwhile the other kohanim do the roles the lot did not give him (E.npc23(): the pyre's wood, the ashes' pan, the bowl, the
+ * logs). rolesBook23 — the book of the roles ("ספר התפקידים": each role, its best, its last; the second lot's thirteen; shift/index.js
+ * opens it from the lobby), its rows from day33's bookOf23.
+ *   createPis23({ E, sfx, doc, view }) → { destroy(), state() }      (focus17.js makes it when E.p23on; globalThis.__P23)
+ *   rolesBook23({ doc, save, onClose }) → { close(), el }
+ * The bundle kept no comment and no local name: the names are the recovery's (rolesBook23: the build reports' "rolesBook23 in pis23.js").
+ * Never a Divine Name. */

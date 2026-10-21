@@ -40,6 +40,28 @@ export const D21 = Object.freeze({ swipe: 120, straight: 0.5, layers: 4, bed: { 
   walk: 7, full: 0.7, desc: 3.5, turn: 0.35, wind: 20, wind1: 0.5, fix: 50, max: 45, spillA: 35, spillT: [1.5, 0.8], loss: 20, heap: { x: -28, z: 33 }, go: [[-42, 44], [-28, 44.3], [-28, 34.7]], goV: 8, pour: 1.3, end: 2, score: 150, pts: 50,
   coins: [3, 1, 0], dawn: 2.6, sw: 0.3, ms: 200, nr: 2.6, bal: Object.freeze({ wind: Object.freeze([0.12, 0.35]), shake: Object.freeze([0.5, 1.4]), fix: 2.4, spill: 0.8, gap: 1, v: 7 }),
   cam: { az: 1.25, el: 0.785, d: 9, t: { x: -29.6, y: 25.6, z: 5.6 } }, fol: { el: 0.26, d: 10, ty: 2.2 }, camC: { az: 0.75, el: 0.4, d: 20, t: { x: -34, y: 17.5, z: 38.5 } }, camP: { az: 0.2, el: 0.5, d: 11, t: { x: -28.4, y: 17, z: 33.8 } } });
+// ── recovered (build 22) ── סידור המערכה (maaracha22.js): six logs to lay (need, their sizes: two large, two medium, two small), the swipe,
+// the score; the bands and the gaps of a good pyre, the logs' radius and length, the fire's catch; the pyre, his stand, the sorting
+// place in the wood chamber (sortAt) and the cameras
+export const M22 = Object.freeze({ need: 6, sizes: 'LLMMSS', budget: [9, 5], next: [[0.3, 0.7], [0.1, 0.5]], swipe: 60, pts: 15, mis: 20, score: 100, fast: 25, airB: 25, good: 85, thr: [60, 70], sw: 0.3,
+  band: Object.freeze([Object.freeze([0.25, 0.45]), Object.freeze([0.3, 0.4])]), gv: 1.2, l0: -0.6, r: { L: 0.3, M: 0.21, S: 0.11 }, len: { L: 4, M: 3, S: 1.7 }, span: 1.2, gap: [0.06, 0.36, 0.9], ember: 8, fire: [64, 0.22], ign: 1.8, end: 2.6,
+  sorted: 0.9, pyre: { x: -30, z: -3.5 }, stand: { x: -28.6, z: 1.6, yaw: -2.85 }, sortAt: { x: -42.2, z: 57.8, yaw: Math.PI / 2 }, camS: { t: [-38.6, 17.2, 58], p: [-36.6, 18.3, 53.2] },
+  camB: { az: -0.3, el: 1.05, d: 8.6, t: { x: -30, y: 25.9, z: -3.3 } }, camP: { az: 0.55, el: 0.3, d: 14, t: { x: -30, y: 30, z: -3.5 } } });
+// ── recovered (build 23) ── the lot (pis23.js; יומא ב, א–ד): the roles open by the day (open), the second lot from day 4 (two), the pick; the
+// circle of kohanim (c, r, seats) and the ממונה's call, the counting (n1, n2), the show; and the short forms of the morning's tasks
+// when the lot gives them (need/sizes/layn/budget for the pyre, d21 for the ashes); its cameras
+export const P23 = Object.freeze({ open: Object.freeze(['deshen', 'm22', 'lamb']), two: 4, pick: 3, yest: 0.25, bal: 0.5, in: 0.6, call: 0.4, step: 0.2, n1: 8, n2: 6, show: 1.2, show2: 0.6,
+  fin: Object.freeze({ dy: 0.3, ms: 200, x: 0.51, auto: 6 }), c: Object.freeze({ x: -51, z: 23.4 }), r: 3.2, seats: 8, run: 10.5, fire: 86, need: 4, sizes: 'LLMS', layn: Object.freeze([2, 1, 1]),
+  budget: Object.freeze([7, 4.5]), bad: Object.freeze([3, 2]), sorted: 0.6, d21: Object.freeze({ full: 0.5, walk: 10, goV: 11, pour: 1 }), up: 0.6, upMax: 9, dT: Object.freeze([2, 8]),
+  cam: Object.freeze({ az: 1.45, el: 0.88, d: 12, t: Object.freeze({ x: -51, y: 17.6, z: 23.4 }) }), fol: Object.freeze({ el: 0.36, d: 12, ty: 2.4 }) });
+// ── recovered (build 23) ── POOL23 (the report's: "the POOL23 registry"): the morning's roles in the first lot — built: played by him
+export const POOL23 = Object.freeze([['deshen', 'תרומת הדשן', '🔥', 1], ['m22', 'סידור המערכה', '🪵', 1], ['lamb', 'בדיקת הטלה', '🐑', 1], ['chavitin', 'החביתין', '🍞'], ['ketoret', 'הקטורת', '💨'], ['shir', 'השיר', '🎶']].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built })));
+// ── recovered (build 23) ── the roles book's rows (pis23.js's rolesBook23): each role of a pool with his record in save.roles23 — open
+// once he has played it, how often, his best and last (the name is the recovery's)
+export const bookOf23 = (save, pool = POOL23) => { const rec = (save && save.roles23) || {}; return pool.map((r) => { const m = rec[r.id] || {}; return { id: r.id, he: r.he, icon: r.icon, built: r.built, open: (m.n | 0) > 0, n: m.n | 0, best: m.best | 0, last: m.last | 0 }; }); };
+// ── recovered (build 26) ── POOL26 (the report's): the second lot's thirteen roles (יומא ב, ג) — built: the inner altar's and the
+// menorah's ashes; the rest "כהנים אחרים — בקרוב"
+export const POOL26 = Object.freeze([['shochet', 'השחיטה', '🔪'], ['zorek', 'זריקת הדם', '🏺'], ['inner', 'דישון מזבח הפנימי', '🥣', 1], ['menorah', 'דישון המנורה', '🪔', 1], ['rosh', 'הראש והרגל', '🧺'], ['yadaim', 'שתי הידיים', '🧺'], ['oketz', 'העוקץ והרגל', '🧺'], ['chaze', 'החזה והגרה', '🧺'], ['dfanot', 'שתי הדפנות', '🧺'], ['kerev', 'הקרביים', '🧺'], ['solet', 'הסולת', '🌾'], ['chavt', 'החביתין', '🍞'], ['yayin', 'היין', '🍇']].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built, lot: 2 })));
 // ── recovered (build 19) ── on the ramp (its rectangle: x −46…−30, z 10.5…42.5) and the ramp's height at z (16 at the foot → 25 at the top)
 export const onRamp19 = (x, z) => x > -46 && x < -30 && z > 10.5 && z < 42.5;
 export const rampY19 = (z) => 16 + 9 * Math.min(1, Math.max(0, (42.5 - z) / 32));

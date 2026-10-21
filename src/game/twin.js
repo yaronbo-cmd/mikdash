@@ -113,6 +113,35 @@ const CSS_CA = `
 `;
 // ── /crafta19 ──
 const R = 60, DEAD = 8, SPEED = 11, PIPS = 3, PIP_MS = 330, PIP_WAIT = 300;   // ── crafta19 ── (PIP_WAIT 700 → 300: at the rhythm's ≈ 1 act a second the pips never run dry — a touch that does nothing is the bug; a mash still dries them) ── /crafta19 ──   // ── twin18 ── (PIP_WAIT 380 → 700: the pips really run dry under a quick thumb) ── /twin18 ──
+// ── recovered (16–26c) ── the grade windows (seconds from the gold moment: מושלם · טוב · the rest soft), shared with stations.js's timing acts
+export const GRADE = Object.freeze({ PERF: 0.085, GOOD: 0.2 });
+// ── recovered (16–26c) ── the soft stick (T.pace.soft = walk.js STICK): the thumb's reach → 0…1 past the dead zone, eased (ease) or with
+// a low end (low); stickMove: the speed rises by acc and falls by dec (seconds to the top speed), the heading turns over `turn` s;
+// stickVel: the protocol stick's velocity eases to the thumb's over tau
+function stickCurve(L, c) {
+  if (!(L > c.dead)) return 0;
+  const m = Math.min(1, L / c.R);
+  return c.ease > 0 ? 1 - Math.pow(1 - m, c.ease) : m < 0.5 ? m - c.low * m * (1 - 2 * m) : m;
+}
+// ── recovered (build 24) ── the protocol stick (T.pace.p24): its radius in px, its dead zone (of the radius) and the velocity's time constant (s)
+export const STICK24 = Object.freeze({ R: 56, dead: 0.15, tau: 0.05 });
+const stick24 = (L, r) => { const m = Math.min(1, L / r); return m < STICK24.dead ? 0 : m; };
+function stickMove(m, want, hd, dt, c, top) {
+  const sp0 = m.sp;
+  if (want > 0) m.rel = 0; else if (!(m.rel > 0)) m.rel = Math.max(top, sp0);
+  const up = top / c.acc, down = (want > 0 ? top : m.rel) / c.dec;
+  m.sp = want > m.sp ? Math.min(want, m.sp + up * dt) : Math.max(want, m.sp - down * dt);
+  if (Number.isFinite(hd)) {
+    if (!Number.isFinite(m.hd) || sp0 <= 0.06 * top) m.hd = hd;
+    else { const d = Math.atan2(Math.sin(hd - m.hd), Math.cos(hd - m.hd)); m.hd += d * (1 - Math.exp(-dt * 3 / c.turn)); }
+  }
+  return m;
+}
+function stickVel(v, x, z, k, dt, tau = STICK24.tau) {
+  const a = dt > 0 ? 1 - Math.exp(-dt / tau) : 0;
+  v.vx = v.vx * (1 - a) + x * k * a; v.vz = v.vz * (1 - a) + z * k * a;
+  return v;
+}
 const CA19 = true;   // ── crafta19 ── FUN19 §2's rule under two thumbs (one switch for a bisect) ── /crafta19 ──
 const CAM = { az: 0.42, el: 0.995, d: 30, lead: 0.32 };   // (az from +x toward +z, el 57°, 30 amot: him ≈ 80 px at 390 tall)
 const isLand = () => typeof innerWidth === 'number' && innerWidth > innerHeight && innerWidth >= 640;
@@ -138,7 +167,7 @@ export function createTwin(o = {}) {
   const handBtn = pad.querySelector('.tw-hand'), handFill = handBtn.querySelector('.tw-fill');
   // ── twin18 ── the timing ring on the work button (contract 4): a ring closes on the gold one; a touch on the gold = מושלם
   const rg = pad.querySelector('.tw-rg'), RG = { on: false, t0: 0, cyc: 1.0, s: 0, src: '' };
-  const PERF = 0.085, GOOD = 0.2, RGO = { u: 0, d: 0, win: 0 };   // (seconds from the gold moment: מושלם · טוב · the rest soft)
+  const PERF = GRADE.PERF, GOOD = GRADE.GOOD, RGO = { u: 0, d: 0, win: 0 };   // ── recovered (16–26c) ── (GRADE)   // (seconds from the gold moment: מושלם · טוב · the rest soft)
   /** where the ring is now: { u: 0…1 to the gold, d: seconds from the gold moment } | null (no ring) */
   function ringNow(ms) {
     if (call('rhythm') === false) return null;
@@ -236,7 +265,15 @@ export function createTwin(o = {}) {
   function drive(vx, vz) { try { const h = o.stages && o.stages.hero; if (h && typeof h.drive === 'function') h.drive(vx, vz); } catch (e) { /* the world's */ } }
   function stickEnd(why = '') {
     if (!stick.on) return;
-    stick.on = false; stick.id = null; stick.dx = stick.dy = 0; base.classList.remove('on'); zone.classList.remove('act'); drive(0, 0); stick.parked = false;   // ── fable32 ── ── /fable32 ──
+    // ── recovered (16–26c) ── the soft stick let go: where the shift parks him (__SH_STOP) he stops facing it; else he coasts to a stop
+    // (update()); T.stickUse hears the release
+    let soft = T.pace && T.pace.soft, lift = /^(pointerup|pointercancel|lostpointercapture)$/.test(why), park = null;
+    if (soft && lift) { try { const h = hero(); if (h && typeof globalThis.__SH_STOP === 'function') park = globalThis.__SH_STOP(h); if (park && o.stages && o.stages.hero && o.stages.hero.setPos) o.stages.hero.setPos(h.x, h.z, Math.atan2(park.x - h.x, park.z - h.z)); } catch (e) { park = null; } }
+    stick.coast = !!(soft && lift && !park && stick.m && stick.m.sp > 0);
+    if (!stick.coast && stick.m) { stick.m.sp = 0; if (stick.v) stick.v.vx = stick.v.vz = 0; }
+    stick.parkedAt = park ? performance.now() : 0; stick.M = 0;
+    if (typeof T.stickUse === 'function') { try { T.stickUse(0, 0, 0); } catch (e) { /* the shift's */ } }
+    stick.on = false; stick.id = null; stick.dx = stick.dy = 0; stick.rimT = 0; stick.sprint = false; base.classList.remove('on'); zone.classList.remove('act'); if (!stick.coast) drive(0, 0); stick.parked = false;   // ── fable32 ── ── /fable32 ──   // ── recovered (16–26c) ── (rimT, sprint; a coast keeps driving)
     call('emit', 'twinWalk', { d: Math.round(stick.walked * 10) / 10, why });
     // ── nav19 ── (the supervisor, B2) "גררו כאן כדי ללכת" is retired once the stick has walked him three times (2 amot or more each),
     // saved on this device so it stays gone
@@ -247,7 +284,7 @@ export function createTwin(o = {}) {
     if (!st.on || stick.on || zone.classList.contains('tw-nostick')) return;   // ── fable32 (build 4) ── (the shift: no stick — the genre's tap-to-go) ── /fable32 ──
     if (zoom.pin) return;   // ── fix26 ── (a pinch's finger) ── /fix26 ──
     e.preventDefault(); e.stopPropagation();
-    stick.id = e.pointerId; stick.on = true; stick.dx = stick.dy = 0; stick.walked = 0; stick.t0 = performance.now(); stick.az0 = Number.isFinite(globalThis.__SH_STICK_AZ) ? globalThis.__SH_STICK_AZ : NaN;   // ── fable32 (build 12) ── ── /fable32 ──
+    stick.id = e.pointerId; stick.on = true; stick.coast = false; if (!stick.m) stick.m = { sp: 0, hd: NaN }; stick.dx = stick.dy = 0; stick.walked = 0; stick.t0 = performance.now(); stick.az0 = Number.isFinite(globalThis.__SH_STICK_AZ) ? globalThis.__SH_STICK_AZ : NaN;   // ── fable32 (build 12) ── ── /fable32 ──   // ── recovered (16–26c) ── (coast, m)
     const r = zone.getBoundingClientRect();
     stick.bx = e.clientX; stick.by = e.clientY;
     base.style.transform = `translate(${Math.round(e.clientX - r.left)}px,${Math.round(e.clientY - r.top)}px)`; knob.style.transform = '';
@@ -261,8 +298,8 @@ export function createTwin(o = {}) {
   zone.addEventListener('pointermove', (e) => {
     if (!stick.on || e.pointerId !== stick.id) return;
     e.preventDefault();
-    let dx = e.clientX - stick.bx, dy = e.clientY - stick.by; const L = Math.hypot(dx, dy);
-    if (L > R) { dx *= R / L; dy *= R / L; }
+    let dx = e.clientX - stick.bx, dy = e.clientY - stick.by; const L = Math.hypot(dx, dy), RR = T.pace && T.pace.p24 ? T.pace.p24.R : T.pace && T.pace.soft ? T.pace.soft.R : R;   // ── recovered (16–26c) ── (the pace's own reach)
+    if (L > RR) { dx *= RR / L; dy *= RR / L; }
     stick.dx = dx; stick.dy = dy;
     knob.style.transform = `translate(${Math.round(dx)}px,${Math.round(dy)}px)`;
   });
@@ -291,6 +328,7 @@ export function createTwin(o = {}) {
   }
   const bPos = () => { const r = btn.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
   btn.addEventListener('pointerdown', (e) => {
+    if (T.swallowUp && performance.now() - T.swallowUp > 40) T.swallowUp = 0;   // ── recovered (16–26c) ── (an old swallow lapses)
     if (!st.on || bt.id != null) return;
     e.preventDefault(); e.stopPropagation();
     const c = bPos(); bt.id = e.pointerId; bt.x = c.x; bt.y = c.y; bt.dx = bt.dy = 0; bt.drag = false; bt.t0 = performance.now(); bt.spec = spec && !spec.craft ? spec : null;   // ── crafta19 ── ── /crafta19 ──
@@ -318,11 +356,12 @@ export function createTwin(o = {}) {
     e.preventDefault();
     bt.dx = e.clientX - bt.x; bt.dy = e.clientY - bt.y;
     if (!bt.drag && Math.hypot(bt.dx, bt.dy) > 18) { bt.drag = true; fire({ t: 'down', dx: 0, dy: 0 }); }
-    if (bt.drag) { fire({ t: 'move', dx: bt.dx, dy: bt.dy }); t20Step(bt.dx, bt.dy); }   // ── twin20 ── (aimAt → the world's aim + the target + the power) ── /twin20 ──
+    if (bt.drag) { fire({ t: 'move', dx: bt.dx, dy: bt.dy }); if (!T.noPinch) t20Step(bt.dx, bt.dy); }   // ── recovered (16–26c) ── (T.noPinch)   // ── twin20 ── (aimAt → the world's aim + the target + the power) ── /twin20 ──
   });
   const bUp = (e) => {
     if (e.pointerId !== bt.id) return;
     const drag = bt.drag; bt.id = null; btn.classList.remove('down'); aim.classList.remove('on'); if (e.type === 'pointercancel' || e.type === 'lostpointercapture') t20Off(true);   // ── twin20 ── ── /twin20 ──
+    if (T.swallowUp) { T.swallowUp = 0; return; }   // ── recovered (16–26c) ── (T.swallowUp: this release belongs to what the touch-down already did)
     if (spec && spec.craft) fire({ t: 'press', down: false });   // ── craftb19 ── (the release, before its tap or its drag's end) ── /craftb19 ──
     if (e.type === 'pointercancel' || e.type === 'lostpointercapture') { if (drag) fire({ t: 'cancel', dx: bt.dx, dy: bt.dy }); return; }
     if (bt.fired && !drag) return;   // ── twin18 ── (the strike already fired on the touch) ── /twin18 ──
@@ -428,7 +467,7 @@ export function createTwin(o = {}) {
     // ── places24 ── a work on a real place may ask for its own camera (Wk.view = { p, t }: the place's view — inside the Heichal's door for the
     // menorah / the golden altar; the אמרכל stays outside): eased in over ~0.9 s, held while it is asked, eased back when it is not
     { const V = Wk && Wk.view && Wk.view.p && Wk.view.t && !OV.on && !zoom.free ? Wk.view : null;
-      if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * 2.4); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)
+      if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * (V.e > 0 ? V.e : 2.4)); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)   // ── recovered (16–26c) ── (V.e: the view's own ease)
       CBC.vk += ((V ? 1 : 0) - CBC.vk) * (1 - Math.exp(-dt * 2.6)); if (!V && CBC.vk < 0.002) { CBC.vk = 0; CBC.vl = null; }
       // (the place's view stands nearer than the orbit's 35-amah minimum: hold the near limits while it is on — main.js view.closeCam, keyed)
       const hold = !!(V || CBC.vk > 0); if (hold !== !!CBC.vh && o.view && typeof o.view.closeCam === 'function') { o.view.closeCam(hold, 'p24'); CBC.vh = hold; } }
@@ -511,6 +550,7 @@ export function createTwin(o = {}) {
   const onPtr = (e) => {
     if (!st.on) return;
     if (e.type === 'pointerdown') {
+      if (T.noPinch) return;   // ── recovered (16–26c) ── (T.noPinch: no pinch, no drag-turn)
       const c = e.target === canvas(), zn = zoneOf(e.target); if (!c && !zn) return;
       const now = performance.now(); zoom.ids.set(e.pointerId, [e.clientX, e.clientY, now, zn]);
       if (c) liftDown(e);   // ── cam28 ── ── /cam28 ──
@@ -641,15 +681,60 @@ export function createTwin(o = {}) {
     // ── /nav19 ──
     // (debug: the stick held, he does not move — what holds him: the game's state each such frame)
     if (stick.on && h && Math.hypot(stick.dx, stick.dy) > DEAD) { if (Math.hypot(h.x - dbg.x, h.z - dbg.z) < 0.01 && dt > 0) dbgPush(ms, 'still'); dbg.x = h.x; dbg.z = h.z; }
+    // ── recovered (16–26c) ── the soft stick's coast after the thumb lifts: it ends at a moment, a walk or a busy station; the
+    // protocol stick (build 24) eases its velocity to rest over tau, the soft one decelerates along its heading
+    const soft = T.pace && T.pace.soft;
+    if (soft && !stick.on && stick.coast && h && stick.m) {
+      if (moment || (globalThis.__S29W && globalThis.__S29W.on) || (globalThis.__S29S && globalThis.__S29S.busy)) { stick.coast = false; stick.m.sp = 0; }
+      else if (T.pace.p24 && stick.v) {
+        const v = stickVel(stick.v, 0, 0, 0, dt, T.pace.p24.tau);
+        stick.m.sp = Math.hypot(v.vx, v.vz); if (stick.m.sp < 0.05) { v.vx = v.vz = 0; stick.coast = false; }
+        drive(v.vx, v.vz); stick.vx = v.vx; stick.vz = v.vz;
+      } else {
+        stickMove(stick.m, 0, NaN, dt, soft, 11);
+        const sp = stick.m.sp;
+        drive(Math.sin(stick.m.hd) * sp, Math.cos(stick.m.hd) * sp); stick.vx = Math.sin(stick.m.hd) * sp; stick.vz = Math.cos(stick.m.hd) * sp;
+        if (sp <= 0) { stick.coast = false; drive(0, 0); stick.vx = stick.vz = 0; }
+      }
+    }
     // the stick → his walk, relative to the camera's bearing (screen up = away from the camera)
-    if (stick.on && h && !moment) {
+    if (soft && stick.on && h && !moment && T.pace.p24) {
+      // ── recovered (build 24) ── the protocol stick: the thumb's reach (stick24) is the velocity's share of the top speed (11 × pace.k);
+      // held at the rim (pace.rim) for pace.after s it sprints (× pace.mul); with T.stickUse the stick is the shift's (an act's input), not a walk
+      const P = T.pace.p24, pc = T.pace, L = Math.hypot(stick.dx, stick.dy), M = stick24(L, P.R), ux = L > 0 ? stick.dx / L : 0, uy = L > 0 ? -stick.dy / L : 0;
+      if (!stick.m) stick.m = { sp: 0, hd: NaN }; if (!stick.v) stick.v = { vx: 0, vz: 0 };
+      let top = 11 * (pc.k || 1);
+      if (pc.mul > 0 && !pc.k) { stick.rimT = M >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) top *= pc.mul; } else stick.sprint = false;
+      stick.M = M;
+      if (typeof T.stickUse === 'function') {
+        try { T.stickUse(ux * M, uy * M, M); } catch (e) { /* the shift's */ }
+        stick.v.vx = stick.v.vz = 0; stick.m.sp = 0; drive(0, 0); stick.vx = stick.vz = 0;
+      } else {
+        const fx = -Math.cos(st.az), fz = -Math.sin(st.az), v = stickVel(stick.v, (fx * uy - fz * ux) * M, (fz * uy + fx * ux) * M, top, dt, P.tau);
+        stick.m.sp = Math.hypot(v.vx, v.vz); drive(v.vx, v.vz); stick.vx = v.vx; stick.vz = v.vz;
+      }
+      stick.parked = false; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z);
+    } else if (soft && stick.on && h && !moment) {
+      // ── recovered (16–26c) ── the soft stick: the speed eases toward the thumb's (stickCurve × 11 × pace.k), the heading turns toward it
+      const L = Math.hypot(stick.dx, stick.dy), pc = T.pace;
+      if (!stick.m) stick.m = { sp: 0, hd: NaN };
+      const M = stickCurve(L, soft);
+      let want = 11 * M * (pc.k || 1);
+      if (pc.mul > 0 && !pc.k) { stick.rimT = L / soft.R >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) want *= pc.mul; }
+      let hd = NaN;
+      if (L > soft.dead) { const fx = -Math.cos(st.az), fz = -Math.sin(st.az), rx = -fz, rz = fx, ux = stick.dx / L, uy = -stick.dy / L, vx = fx * uy + rx * ux, vz = fz * uy + rz * ux; hd = Math.atan2(vx, vz); }
+      stickMove(stick.m, want, hd, dt, soft, 11);
+      const sp = stick.m.sp, vx = Number.isFinite(stick.m.hd) ? Math.sin(stick.m.hd) * sp : 0, vz = Number.isFinite(stick.m.hd) ? Math.cos(stick.m.hd) * sp : 0;
+      drive(vx, vz); stick.vx = vx; stick.vz = vz; stick.parked = false; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z);
+    } else if (stick.on && h && !moment) {
       const L = Math.hypot(stick.dx, stick.dy);
       // ── fable32 ── the arrival stop (the owner 13.10: "הדמות אמורה להיעצר כשמגיעה לנקודת משימה"): the shift says when he is at the next place —
       // he stops there and faces it; the thumb must be lifted and pushed again to walk on
       if (typeof globalThis.__SH_STOP === 'function' && !stick.parked) { try { const q = globalThis.__SH_STOP(h); if (q) { stick.parked = true; drive(0, 0); stick.vx = stick.vz = 0; try { if (o.stages && o.stages.hero && o.stages.hero.setPos) o.stages.hero.setPos(h.x, h.z, Math.atan2(q.x - h.x, q.z - h.z)); } catch (e) { /* */ } } } catch (e) { /* */ } }
       if (stick.parked) { drive(0, 0); stick.vx = stick.vz = 0; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z); }
       else if (L > DEAD) {
-        const m = Math.min(1, (L - DEAD) / (R - DEAD)), sp = SPEED * (0.35 + 0.65 * m);
+        const m = Math.min(1, (L - DEAD) / (R - DEAD)); let sp = SPEED * (0.35 + 0.65 * m);
+        { const pc = T.pace; if (pc && pc.mul > 0) { stick.rimT = m >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) sp *= pc.mul; } else { stick.rimT = 0; stick.sprint = false; } }   // ── recovered (16–26c) ── (a sprint at the rim)
         const fx = -Math.cos(st.az), fz = -Math.sin(st.az), rx = -fz, rz = fx;   // forward on the ground, and its right (── nav19 ── st.az: the camera's bearing AS IT IS)
         const ux = stick.dx / L, uy = -stick.dy / L;
         const vx = (fx * uy + rx * ux) * sp, vz = (fz * uy + rz * ux) * sp;
@@ -836,9 +921,10 @@ export function createTwin(o = {}) {
   function dbgPush(ms, kind) { const w = call('why'); dbg.list.push(`${Math.round(ms)}:${kind}:${w || ''}`); if (dbg.list.length > 40) dbg.list.shift(); }
   T.pips = () => pip.n;
   T.spec = () => spec;
+  T.held19 = () => bt.id != null;   // ── recovered (build 19) ── (the work button held)
   T.pinch = () => !!zoom.pin;   // ── fable32 (build 5) ── ── /fable32 ──
   T.noStick = (on) => { zone.classList.toggle('tw-nostick', !!on); if (on && stick.on) stickEnd(); return !!on; };   // ── fable32 (build 4) ── ── /fable32 ──
-  T.stick = () => ({ on: stick.on, dx: Math.round(stick.dx), dy: Math.round(stick.dy), walked: stick.walked });
+  T.stick = () => ({ on: stick.on, dx: Math.round(stick.dx), dy: Math.round(stick.dy), walked: stick.walked, sprint: !!stick.sprint, sp: stick.m ? Math.round(stick.m.sp * 100) / 100 : 0, coast: !!stick.coast, soft: !!(T.pace && T.pace.soft), R: T.pace && T.pace.p24 ? T.pace.p24.R : T.pace && T.pace.soft ? T.pace.soft.R : R, parkedAt: stick.parkedAt || 0, M: (stick.on && stick.M) || 0 });   // ── recovered (16–26c) ── (+ the paced stick's state)
   T.destroy = () => { setOn(false); try { window.removeEventListener('resize', onTurn); window.removeEventListener('orientationchange', onTurn); } catch (e) { /* */ } for (const t of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) window.removeEventListener(t, onPtr, true); for (const e of [zone, pad, aim, flash, goal, me, ...MK.map((m) => m.el)]) { try { e.remove(); } catch (err) { /* */ } } };
   // tests and bots read what a player sees
   globalThis.__TWIN = { graded: (q) => T.graded(q) /* ── crafta19 ── (CRAFTB19's acts: the button answers the impact) ── /crafta19 ── */, on: () => st.on, force: (v) => { st.force = v; st.chk = 0; }, pips: () => pip.n, spec: () => (spec ? { icon: spec.icon, label: spec.label, job: spec.job || null, strike: !!spec.strike } : null), stick: T.stick, t20: () => T.t20() /* ── twin20 ── */, fb: () => ({ ...fb }), cam: () => ({ on: st.camOn, mode: camMode(), zoom: zoom.k, goal: zoom.goal, free: zoom.free, pin: zoom.pin, ids: zoom.ids.size /* ── fix26 ── */ }), hand: () => hand.k, marks: () => MK.filter((m) => m.on).map((m) => m.job), goal: () => goalOn, over: (v) => { if (v !== undefined) overview(v, 'test'); return { on: OV.on, k: Math.round(OV.k * 100) / 100, n: OV.n }; }, az: () => st.az, goTo: () => call('goTo'), dbg: () => dbg.list.slice(), ring: () => { const r = ringNow(performance.now()); return r ? { on: true, u: r.u, d: r.d, cyc: spec && spec.strike ? null : RG.cyc } : { on: false }; }, probe: () => { const h = hero(); let w = null, err = null; try { w = h ? o.work(h) : 'no hero'; } catch (e) { err = e && e.message; } return { specT, prev: st.prevMs, h: h && [Math.round(h.x), Math.round(h.z)], w: w && typeof w === 'object' ? w.job : w, err, moment: !!call('moment') }; }, charge: () => { hand.k = 1; } };

@@ -111,284 +111,284 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 
 Δ tokens = the normalized token diff (local names ignored): + inserted / − deleted. Lines = prettified (recovery/work/p26c.pretty.js, p15.pretty.js).
 
-| module | min bytes 15 → 26c | Δ tokens | 15 lines | 26c lines | 26c line range | confidence | what changed (literals only 26c has) |
-|---|---|---|---|---|---|---|---|
-| `src/avodah/shift/day33.js` | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
-| `src/avodah/shift/stations.js` | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
-| `src/game/audio.js` | 25,040 → 32,678 | +3995 / −0 | 1284 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) | "trumpet17", .disconnect, "scrape21", "scrape26", "unlock20", trumpet17:, "alarm17" |
-| `src/avodah/shift/hero35.js` | 3,698 → 9,524 | +2526 / −67 | 199 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) | `$& vD=0.;for(int i=0;i<4;i++){float j, `$& uniform float uD,uG,uT;varying flo, `$& totalEmissiveRadiance+=vec3(.62,.9, `$& diffuseColor.rgb=mix(diffuseColor., `$& uniform vec4 uJ,uK;varying float v, "#include <emissivemap_fragment>", "#include <skinning_pars_vertex>" |
-| `src/game/twin.js` | 45,461 → 49,642 | +2330 / −9 | 1709 | 1895 | 51128–53022 | high (sim 0.75) | .swallowUp, .parkedAt, .stickUse, parkedAt:, .noPinch, .__S29S, .__S29W |
-| `src/avodah/shift/camera.js` | 11,510 → 12,870 | +1057 / −265 | 647 | 725 | 93598–94322 | high (sim 0.76) | .updateProjectionMatrix, .isPerspectiveCamera, .noPinch, .camera, .freeze, .near31, .cam17 |
-| `src/avodah/shift/flow31.js` | 18,615 → 20,476 | +1095 / −7 | 717 | 811 | 97876–98686 | high (sim 0.78) | `.f31-zoom{position:fixed;top:calc(env, "rgba(28,20,10,.7)", "!#FFB84A", "#4A3220", "#8A6440", "#B48A55", "#FFD66E" |
-| `src/avodah/sound.js` | 4,295 → 5,979 | +812 / −12 | 248 | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) | "createBufferSource", "createOscillator", "visibilitychange", .addEventListener, .defineProperty, trumpet17:, "context" |
-| `src/main.js` | 38,685 → 40,076 | +721 / −0 | 1968 | 2038 | 193948–195985 | high (sim 0.89) | "#2C2832", "#40527E", "#5A5652", "#93A6D6", predawn:, "gain", "lift" |
-| `src/avodah/day/world22.js` | 627 → 1,650 | +627 / −0 | 47 | 101 | 74105–74205 | high (sim 0.74) | .findIndex, .freeze, .zFoot, .body, .gate, .push, .some |
-| `src/avodah/shift/index.js` | 8,621 → 10,246 | +553 / −0 | 557 | 639 | 115608–116246 | high (sim 0.73) | "כל תפקיד בוקר: השיא, הפעמים, ומה עוד , "תפקידים — ספר התפקידים", "[shift] focus17", .__SH18_NOCOINS, .__SH_HARDSTICK, .__SH_LOBBYFULL, .__SH_B17OFF |
-| `src/life.js` | 16,016 → 16,993 | +513 / −0 | 724 | 767 | 125889–126655 | high (sim 0.85) | .__FIRELOW33, .__FLARE33, "#8A8279", "off", .lerp, .zero, zero: |
-| `src/avodah/shift/walk.js` | 2,843 → 3,648 | +470 / −37 | 212 | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) | rimAfter:, .limitMs, limitMs:, .concat, .freeze, .slowIn, slowIn: |
-| `src/avodah/shift/hud.js` | 27,167 → 30,150 | +396 / −14 | 657 | 712 | 97010–97721 | high (sim 0.84) | ` .sh-root{position:fixed;inset:0;z-in, "<svg viewBox=\"0 0 44 44\" aria-hidde, `         <button class="sh-tour sm sh, "[data-sh=evlog]", "הלוג הועתק ✓", "card_close", "card_open" |
-| `src/sky.js` | 13,187 → 13,744 | +289 / −16 | 533 | 574 | 123898–124471 | high (sim 0.86) | "#0A1430", "#141A30", "#2A2440", "#2A3150", "#2C3458", "#5A5470", "#6A6888" |
-| `src/avodah/shift/lobby35.js` | 13,752 → 15,439 | +222 / −10 | 414 | 442 | 109519–109960 | high (sim 0.81) | ` .lb{position:fixed;inset:0;z-index:3, `</div>       <button class="lb-home" , `</button>         <button class="lb-d, `         <button class="lb-door pick", `<button class="lb-door pick" type="bu, `       </div>       <div class="lb-bo, `<button class="lb-door" type="button" |
-| `src/water.js` | 33,550 → 33,812 | +160 / −0 | 1362 | 1371 | 147360–148730 | high (sim 0.90) | .p20 |
-| `src/stages.js` | 348,306 → 349,332 | +81 / −0 | 17414 | 17429 | 129931–147359 | high (sim 0.90) | twinPass:, .pass |
-| `src/avodah/day/cam28.js` | 6,719 → 6,785 | +36 / −0 | 382 | 385 | 78218–78602 | high (sim 0.90) |  |
-| `src/avodah3d.js` | 41,559 → 41,623 | +32 / −1 | 2154 | 2164 | 41062–43225 | high (sim 0.90) | .__K20LAVER |
-| `src/avodah/day/index.js` | 26,148 → 26,247 | +33 / −0 | 1322 | 1325 | 94453–95777 | high (sim 0.89) | .__SH17UP, .camWork |
-| `src/avodah/shift/route31.js` | 3,816 → 3,861 | +23 / −1 | 184 | 188 | 90379–90566 | high (sim 0.98) | tailDay:, top: |
-| `src/animals.js` | 20,103 → 20,134 | +16 / −0 | 1035 | 1037 | 35466–36502 | high (sim 1.00) |  |
-| `src/temple.js` | 24,987 → 25,010 | +12 / −1 | 1170 | 1171 | 122727–123897 | high (sim 0.90) | "pyre22", .pyre22, .cedar |
-| `src/avodah/ui.js` | 22,053 → 22,178 | +1 / −1 | 508 | 508 | 65453–65960 | high (sim 0.90) | `ברוך הבא לעבודה</h2>       <!-- ── fa |
+| module | recovery (parity · status) | min bytes 15 → 26c | Δ tokens | 15 lines | 26c lines | 26c line range | confidence | what changed (literals only 26c has) |
+|---|---|---|---|---|---|---|---|---|
+| `src/avodah/shift/day33.js` | FAIL — R7 (must export resumeDay33 for lobby35's patch) | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
+| `src/avodah/shift/stations.js` | FAIL — R5 (reads CLIMB31.top/tailDay and PACE.laver — in) | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
+| `src/game/audio.js` | FAIL — R4 (in the lazy graph now, as in 26c — sound.js imports it; 2 units differ: createAudio's trim/declick and the sounds of b17–26) | 25,040 → 32,678 | +3995 / −0 | 1284 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) | "trumpet17", .disconnect, "scrape21", "scrape26", "unlock20", trumpet17:, "alarm17" |
+| `src/avodah/shift/hero35.js` | FAIL — R4 (with gait.js) | 3,698 → 9,524 | +2526 / −67 | 199 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) | `$& vD=0.;for(int i=0;i<4;i++){float j, `$& uniform float uD,uG,uT;varying flo, `$& totalEmissiveRadiance+=vec3(.62,.9, `$& diffuseColor.rgb=mix(diffuseColor., `$& uniform vec4 uJ,uK;varying float v, "#include <emissivemap_fragment>", "#include <skinning_pars_vertex>" |
+| `src/game/twin.js` | FAIL — R4 | 45,461 → 49,642 | +2330 / −9 | 1709 | 1895 | 51128–53022 | high (sim 0.75) | .swallowUp, .parkedAt, .stickUse, parkedAt:, .noPinch, .__S29S, .__S29W |
+| `src/avodah/shift/camera.js` | FAIL — R4 | 11,510 → 12,870 | +1057 / −265 | 647 | 725 | 93598–94322 | high (sim 0.76) | .updateProjectionMatrix, .isPerspectiveCamera, .noPinch, .camera, .freeze, .near31, .cam17 |
+| `src/avodah/shift/flow31.js` | FAIL — R4 (calls world22's rampWay and life's rampLane — both in) | 18,615 → 20,476 | +1095 / −7 | 717 | 811 | 97876–98686 | high (sim 0.78) | `.f31-zoom{position:fixed;top:calc(env, "rgba(28,20,10,.7)", "!#FFB84A", "#4A3220", "#8A6440", "#B48A55", "#FFD66E" |
+| `src/avodah/sound.js` | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 4,295 → 5,979 | +812 / −12 | 248 | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) | "createBufferSource", "createOscillator", "visibilitychange", .addEventListener, .defineProperty, trumpet17:, "context" |
+| `src/main.js` | PASS — R3 ported (3418486, 4d85973): predawn, mixTime, the shared sound context (26c) | 38,685 → 40,076 | +721 / −0 | 1968 | 2038 | 193948–195985 | high (sim 0.89) | "#2C2832", "#40527E", "#5A5652", "#93A6D6", predawn:, "gain", "lift" |
+| `src/avodah/day/world22.js` | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay | 627 → 1,650 | +627 / −0 | 47 | 101 | 74105–74205 | high (sim 0.74) | .findIndex, .freeze, .zFoot, .body, .gate, .push, .some |
+| `src/avodah/shift/index.js` | FAIL — later (after R4–R7): imports the evlog module, focus17, pis23, new day33 symbols, stations' new export, twin's CSS_NAV; uses walk's PACE/STICK (in) | 8,621 → 10,246 | +553 / −0 | 557 | 639 | 115608–116246 | high (sim 0.73) | "כל תפקיד בוקר: השיא, הפעמים, ומה עוד , "תפקידים — ספר התפקידים", "[shift] focus17", .__SH18_NOCOINS, .__SH_HARDSTICK, .__SH_LOBBYFULL, .__SH_B17OFF |
+| `src/life.js` | PASS — R3 ported (9345571): the fire's levels, rampLane | 16,016 → 16,993 | +513 / −0 | 724 | 767 | 125889–126655 | high (sim 0.85) | .__FIRELOW33, .__FLARE33, "#8A8279", "off", .lerp, .zero, zero: |
+| `src/avodah/shift/walk.js` | PASS — R3 ported (8c5120b): planWay, the paced walk, PACE/STICK | 2,843 → 3,648 | +470 / −37 | 212 | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) | rimAfter:, .limitMs, limitMs:, .concat, .freeze, .slowIn, slowIn: |
+| `src/avodah/shift/hud.js` | FAIL — R3 pending: recovery/pending/hud.js.patch (fire gauge b17a, sh-b17, the event log b16; imports evlog, copyEvlog from ./evlog16.js; PASS with a stand-in module) → git apply with R4's evlog module | 27,167 → 30,150 | +396 / −14 | 657 | 712 | 97010–97721 | high (sim 0.84) | ` .sh-root{position:fixed;inset:0;z-in, "<svg viewBox=\"0 0 44 44\" aria-hidde, `         <button class="sh-tour sm sh, "[data-sh=evlog]", "הלוג הועתק ✓", "card_close", "card_open" |
+| `src/sky.js` | PASS — R3 ported (8731c2b): predawn, mix() | 13,187 → 13,744 | +289 / −16 | 533 | 574 | 123898–124471 | high (sim 0.86) | "#0A1430", "#141A30", "#2A2440", "#2A3150", "#2C3458", "#5A5470", "#6A6888" |
+| `src/avodah/shift/lobby35.js` | FAIL — R3 pending: recovery/pending/lobby35.js.patch (the start screen b16, minimal, the new spot; imports resumeDay33 from ./day33.js, reads DAY33.minimal; PASS with a stand-in export) → git apply with R7's day33 | 13,752 → 15,439 | +222 / −10 | 414 | 442 | 109519–109960 | high (sim 0.81) | ` .lb{position:fixed;inset:0;z-index:3, `</div>       <button class="lb-home" , `</button>         <button class="lb-d, `         <button class="lb-door pick", `<button class="lb-door pick" type="bu, `       </div>       <div class="lb-bo, `<button class="lb-door" type="button" |
+| `src/water.js` | PASS — R3 ported (4dcf689): pour20 (build 20) | 33,550 → 33,812 | +160 / −0 | 1362 | 1371 | 147360–148730 | high (sim 0.90) | .p20 |
+| `src/stages.js` | PASS — R3 ported (e4f7e09): the Heichal's floor, twinPass (build 26) | 348,306 → 349,332 | +81 / −0 | 17414 | 17429 | 129931–147359 | high (sim 0.90) | twinPass:, .pass |
+| `src/avodah/day/cam28.js` | PASS — R3 ported (72e32a3): the pull-only lift cap | 6,719 → 6,785 | +36 / −0 | 382 | 385 | 78218–78602 | high (sim 0.90) |  |
+| `src/avodah3d.js` | PASS — R3 ported (c76d589): __K20LAVER (build 20) | 41,559 → 41,623 | +32 / −1 | 2154 | 2164 | 41062–43225 | high (sim 0.90) | .__K20LAVER |
+| `src/avodah/day/index.js` | PASS — R3 ported (0536394): camWork (b20), __SH17UP (b17) | 26,148 → 26,247 | +33 / −0 | 1322 | 1325 | 94453–95777 | high (sim 0.89) | .__SH17UP, .camWork |
+| `src/avodah/shift/route31.js` | PASS — R3 ported (cbef914): CLIMB31 | 3,816 → 3,861 | +23 / −1 | 184 | 188 | 90379–90566 | high (sim 0.98) | tailDay:, top: |
+| `src/animals.js` | FAIL — R3 pending: recovery/pending/animals.js.patch (export sheepRig — only pen25 imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R6's pen25 | 20,103 → 20,134 | +16 / −0 | 1035 | 1037 | 35466–36502 | high (sim 1.00) |  |
+| `src/temple.js` | PASS — R3 ported (61de874): 'pyre22' (build 22) | 24,987 → 25,010 | +12 / −1 | 1170 | 1171 | 122727–123897 | high (sim 0.90) | "pyre22", .pyre22, .cedar |
+| `src/avodah/ui.js` | PASS — R3 ported (826b3b6): the welcome line (build 16) | 22,053 → 22,178 | +1 / −1 | 508 | 508 | 65453–65960 | high (sim 0.90) | `ברוך הבא לעבודה</h2>       <!-- ── fa |
 
 ### B. In 26c with no build-15 source (the code of builds 16–26c)
 
-| module (name from the build reports) | min bytes | 26c lines | 26c line range | confidence | fingerprint |
-|---|---|---|---|---|---|
-| `src/avodah/shift/evlog16.js ?` | 1,068 | 75 | 96935–97009 | content high, name LOW (proposed) | "mk.evlog" localStorage key, `{v:16,…}`, hud.js's "העתק לוג" |
-| `src/avodah/shift/fx18.js` | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
-| `src/avodah/shift/ramp19.js` | 3,654 | 189 | 104463–104651 | high | "הכבש מומלח!", salt19, r19/gh19 |
-| `src/avodah/shift/kiyor20.js` | 10,124 | 308 | 104652–104959 | high | `.k20-*` CSS, rush20 |
-| `src/avodah/shift/deshen21.js` | 13,529 | 544 | 104960–105503 | high | `.d21-*` CSS, scrape21 |
-| `src/avodah/shift/maaracha22.js` | 19,183 | 834 | 105504–106337 | high | `.m22-*` CSS, pyre22/band22 |
-| `src/avodah/shift/pen25.js` | 20,261 | 920 | 106338–107257 | high | `.p25-*` CSS, torch25/hoof25 |
-| `src/avodah/shift/heichal26.js` | 24,725 | 1009 | 107258–108266 | high | `.hk26-*` CSS, gate26/pour26 |
-| `src/avodah/shift/pis23.js` | 15,247 | 473 | 108267–108739 | high | `.p23-*` CSS, lot23/npc23 |
-| `src/avodah/shift/focus17.js` | 26,861 | 779 | 108740–109518 | high | `.f17-*` CSS, "focus17" log tag |
-| `src/avodah/shift/gait.js ?` | 566 | 26 | 115112–115137 | content high, name LOW (proposed) | `walkAt/runAt/runHys`, Walking_A/Running_A (taken out of hero35.js) |
-| `(esbuild glue: one init_x() call)` | 4 | 1 | 157768–157768 | n/a | — |
+| module (name from the build reports) | recovery (parity · status) | min bytes | 26c lines | 26c line range | confidence | fingerprint |
+|---|---|---|---|---|---|---|
+| `src/avodah/shift/evlog16.js ?` | MISSING-IN-FRESH — R4 (exports evlog, copyEvlog — the names hud.js's patch imports) | 1,068 | 75 | 96935–97009 | content high, name LOW (proposed) | "mk.evlog" localStorage key, `{v:16,…}`, hud.js's "העתק לוג" |
+| `src/avodah/shift/fx18.js` | MISSING-IN-FRESH — R6 | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
+| `src/avodah/shift/ramp19.js` | MISSING-IN-FRESH — R6 | 3,654 | 189 | 104463–104651 | high | "הכבש מומלח!", salt19, r19/gh19 |
+| `src/avodah/shift/kiyor20.js` | MISSING-IN-FRESH — R6 (uses water.pour20, __K20LAVER — in) | 10,124 | 308 | 104652–104959 | high | `.k20-*` CSS, rush20 |
+| `src/avodah/shift/deshen21.js` | MISSING-IN-FRESH — R6 | 13,529 | 544 | 104960–105503 | high | `.d21-*` CSS, scrape21 |
+| `src/avodah/shift/maaracha22.js` | MISSING-IN-FRESH — R6 (temple.js's 'pyre22' — in) | 19,183 | 834 | 105504–106337 | high | `.m22-*` CSS, pyre22/band22 |
+| `src/avodah/shift/pen25.js` | MISSING-IN-FRESH — R6 (imports animals.js's sheepRig — pending patch) | 20,261 | 920 | 106338–107257 | high | `.p25-*` CSS, torch25/hoof25 |
+| `src/avodah/shift/heichal26.js` | MISSING-IN-FRESH — R6 (world22's HOUSE22, stages' twinPass — in) | 24,725 | 1009 | 107258–108266 | high | `.hk26-*` CSS, gate26/pour26 |
+| `src/avodah/shift/pis23.js` | MISSING-IN-FRESH — R6 (reads PACE — in) | 15,247 | 473 | 108267–108739 | high | `.p23-*` CSS, lot23/npc23 |
+| `src/avodah/shift/focus17.js` | MISSING-IN-FRESH — R6 | 26,861 | 779 | 108740–109518 | high | `.f17-*` CSS, "focus17" log tag |
+| `src/avodah/shift/gait.js ?` | MISSING-IN-FRESH — R4 (with hero35.js) | 566 | 26 | 115112–115137 | content high, name LOW (proposed) | `walkAt/runAt/runHys`, Walking_A/Running_A (taken out of hero35.js) |
+| `(esbuild glue: one init_x() call)` | — | 4 | 1 | 157768–157768 | n/a | — |
 
 ### C. Every file of build 15's src/ (227) — its fate in 26c
 
 unchanged = the 26c bundle holds code that normalizes identically (same units, same order) → keep the build-15 file as is. Line ranges are in recovery/work/p26c.pretty.js.
 
-| src file | status | 26c lines | 26c line range | confidence |
-|---|---|---|---|---|
-| `src/actors.js` | unchanged | 2242 | 36845–39086 | high |
-| `src/animals.js` | changed +16/−0 tok | 1037 | 35466–36502 | high (sim 1.00) |
-| `src/avodah/data.js` | unchanged | 716 | 63323–64038 | high |
-| `src/avodah/day/bridge.js` | unchanged | 72 | 74256–74327 | high |
-| `src/avodah/day/cam28.js` | changed +36/−0 tok | 385 | 78218–78602 | high (sim 0.90) |
-| `src/avodah/day/clock.js` | unchanged | 184 | 73233–73416 | high |
-| `src/avodah/day/css.js` | unchanged | 50 | 74206–74255 | high |
-| `src/avodah/day/guide27.js` | unchanged | 881 | 77337–78217 | high |
-| `src/avodah/day/index.js` | changed +33/−0 tok | 1325 | 94453–95777 | high (sim 0.89) |
-| `src/avodah/day/places.js` | unchanged | 29 | 74076–74104 | high |
-| `src/avodah/day/stock.js` | unchanged | 62 | 73417–73478 | high |
-| `src/avodah/day/tasks.js` | unchanged | 592 | 73479–74070 | high |
-| `src/avodah/day/works.js` | unchanged | 5 | 74071–74075 | high |
-| `src/avodah/day/world22.js` | changed +627/−0 tok | 101 | 74105–74205 | high (sim 0.74) |
-| `src/avodah/hooks/index.js` | unchanged | 345 | 72888–73232 | high |
-| `src/avodah/hooks/tour.js` | unchanged | 209 | 50919–51127 | high |
-| `src/avodah/index.js` | unchanged | 759 | 116247–117005 | high |
-| `src/avodah/interact3d.js` | unchanged | 252 | 65961–66212 | high |
-| `src/avodah/minigames/aravot.js` | unchanged | 150 | 70545–70694 | high |
-| `src/avodah/minigames/art.js` | unchanged | 244 | 66213–66456 | high |
-| `src/avodah/minigames/barkai.js` | unchanged | 103 | 67701–67803 | high |
-| `src/avodah/minigames/birkat.js` | unchanged | 91 | 69391–69481 | high |
-| `src/avodah/minigames/common.js` | unchanged | 335 | 66457–66791 | high |
-| `src/avodah/minigames/day.js` | unchanged | 789 | 70962–71750 | high |
-| `src/avodah/minigames/deshen.js` | unchanged | 233 | 67226–67458 | high |
-| `src/avodah/minigames/dir.js` | unchanged | 494 | 72339–72832 | high |
-| `src/avodah/minigames/erev.js` | unchanged | 88 | 70337–70424 | high |
-| `src/avodah/minigames/evarim.js` | unchanged | 195 | 68856–69050 | high |
-| `src/avodah/minigames/heichal.js` | unchanged | 366 | 68165–68530 | high |
-| `src/avodah/minigames/index.js` | unchanged | 55 | 72833–72887 | high |
-| `src/avodah/minigames/ketoret.js` | unchanged | 330 | 69051–69380 | high |
-| `src/avodah/minigames/kiddush.js` | unchanged | 197 | 67029–67225 | high |
-| `src/avodah/minigames/korbanot.js` | unchanged | 183 | 69989–70171 | high |
-| `src/avodah/minigames/lechem.js` | unchanged | 109 | 70853–70961 | high |
-| `src/avodah/minigames/maaracha.js` | unchanged | 242 | 67459–67700 | high |
-| `src/avodah/minigames/musaf.js` | unchanged | 165 | 70172–70336 | high |
-| `src/avodah/minigames/neirot.js` | unchanged | 120 | 70425–70544 | high |
-| `src/avodah/minigames/payis.js` | unchanged | 237 | 66792–67028 | high |
-| `src/avodah/minigames/pitum.js` | unchanged | 588 | 71751–72338 | high |
-| `src/avodah/minigames/shir.js` | unchanged | 507 | 69482–69988 | high |
-| `src/avodah/minigames/shoevah.js` | unchanged | 158 | 70695–70852 | high |
-| `src/avodah/minigames/taleh.js` | unchanged | 361 | 67804–68164 | high |
-| `src/avodah/minigames/zerika.js` | unchanged | 325 | 68531–68855 | high |
-| `src/avodah/scenes/index.js` | unchanged | 739 | 118615–119353 | high |
-| `src/avodah/schedule.js` | unchanged | 273 | 64039–64311 | high |
-| `src/avodah/shift/camera.js` | changed +1057/−265 tok | 725 | 93598–94322 | high (sim 0.76) |
-| `src/avodah/shift/day33.js` | changed +40557/−695 tok | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) |
-| `src/avodah/shift/draw.js` | unchanged | 346 | 89964–90309 | high |
-| `src/avodah/shift/engine.js` | unchanged | 1047 | 95888–96934 | high |
-| `src/avodah/shift/flow31.js` | changed +1095/−7 tok | 811 | 97876–98686 | high (sim 0.78) |
-| `src/avodah/shift/hero35.js` | changed +2526/−67 tok | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) |
-| `src/avodah/shift/hud.js` | changed +396/−14 tok | 712 | 97010–97721 | high (sim 0.84) |
-| `src/avodah/shift/index.js` | changed +553/−0 tok | 639 | 115608–116246 | high (sim 0.73) |
-| `src/avodah/shift/lab.js` | unchanged | 119 | 94323–94441 | high |
-| `src/avodah/shift/layout31.js` | unchanged | 69 | 90310–90378 | high |
-| `src/avodah/shift/levels.js` | unchanged | 78 | 95778–95855 | high |
-| `src/avodah/shift/lobby35.js` | changed +222/−10 tok | 442 | 109519–109960 | high (sim 0.81) |
-| `src/avodah/shift/pilgrims.js` | unchanged | 482 | 90567–91048 | high |
-| `src/avodah/shift/rival.js` | unchanged | 32 | 95856–95887 | high |
-| `src/avodah/shift/route31.js` | changed +23/−1 tok | 188 | 90379–90566 | high (sim 0.98) |
-| `src/avodah/shift/score35.js` | unchanged | 55 | 98687–98741 | high |
-| `src/avodah/shift/stations.js` | changed +5413/−225 tok | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) |
-| `src/avodah/shift/stub29.js` | unchanged | 154 | 97722–97875 | high |
-| `src/avodah/shift/walk.js` | changed (moved) +470/−37 tok | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) |
-| `src/avodah/sound.js` | changed +812/−12 tok | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) |
-| `src/avodah/state.js` | unchanged | 330 | 59636–59965 | high |
-| `src/avodah/ui.css.js` | unchanged | 386 | 65067–65452 | high |
-| `src/avodah/ui.js` | changed +1/−1 tok | 508 | 65453–65960 | high (sim 0.90) |
-| `src/avodah/works/all.js` | unchanged | 11 | 94442–94452 | high |
-| `src/avodah/works/anchors.js` | unchanged | 298 | 74328–74625 | high |
-| `src/avodah/works/birkat28.js` | unchanged | 10 | 69381–69390 | high |
-| `src/avodah/works/blood.js` | unchanged | 218 | 34724–34941 | high |
-| `src/avodah/works/bloodteach.js` | unchanged | 170 | 80767–80936 | high |
-| `src/avodah/works/close.js` | unchanged | 422 | 85768–86189 | high |
-| `src/avodah/works/closeup.js` | unchanged | 207 | 76885–77091 | high |
-| `src/avodah/works/common.js` | unchanged | 673 | 84061–84733 | high |
-| `src/avodah/works/craft.js` | unchanged | 350 | 76535–76884 | high |
-| `src/avodah/works/dawn.js` | unchanged | 1104 | 78603–79706 | high |
-| `src/avodah/works/dawn2.js` | unchanged | 679 | 83144–83822 | high |
-| `src/avodah/works/dawnreg.js` | unchanged | 203 | 83823–84025 | high |
-| `src/avodah/works/figures.js` | unchanged | 916 | 75619–76534 | high |
-| `src/avodah/works/fix26.js` | unchanged | 57 | 80710–80766 | high |
-| `src/avodah/works/ganan.js` | unchanged | 179 | 88913–89091 | high |
-| `src/avodah/works/gate.js` | unchanged | 317 | 84734–85050 | high |
-| `src/avodah/works/hero26.js` | unchanged | 472 | 75147–75618 | high |
-| `src/avodah/works/index.js` | not in build 15's bundle (no importer) — nothing in 26c either | — | — | high |
-| `src/avodah/works/indexb.js` | not in build 15's bundle (no importer) — nothing in 26c either | — | — | high |
-| `src/avodah/works/kit.js` | unchanged | 521 | 74626–75146 | high |
-| `src/avodah/works/kiyor.js` | unchanged | 437 | 85331–85767 | high |
-| `src/avodah/works/more.js` | unchanged | 872 | 89092–89963 | high |
-| `src/avodah/works/night.js` | unchanged | 535 | 79707–80241 | high |
-| `src/avodah/works/offerq.js` | unchanged | 35 | 84026–84060 | high |
-| `src/avodah/works/payis.js` | unchanged | 468 | 87610–88077 | high |
-| `src/avodah/works/pen.js` | unchanged | 281 | 80242–80522 | high |
-| `src/avodah/works/places24.js` | unchanged | 2127 | 80937–83063 | high |
-| `src/avodah/works/register.js` | unchanged | 80 | 83064–83143 | high |
-| `src/avodah/works/registerb.js` | unchanged | 171 | 86190–86360 | high |
-| `src/avodah/works/seals.js` | unchanged | 280 | 85051–85330 | high |
-| `src/avodah/works/slice27.js` | unchanged | 245 | 77092–77336 | high |
-| `src/avodah/works/song.js` | unchanged | 264 | 87299–87562 | high |
-| `src/avodah/works/tamid.js` | unchanged | 938 | 86361–87298 | high |
-| `src/avodah/works/tamidreg.js` | unchanged | 47 | 87563–87609 | high |
-| `src/avodah/works/wood.js` | unchanged | 187 | 80523–80709 | high |
-| `src/avodah/works/yachid.js` | unchanged | 835 | 88078–88912 | high |
-| `src/avodah/world.js` | unchanged | 374 | 64312–64685 | high |
-| `src/avodah3d.js` | changed +32/−1 tok | 2164 | 41062–43225 | high (sim 0.90) |
-| `src/batch.js` | unchanged | 591 | 33847–34437 | high |
-| `src/calendar.js` | unchanged | 447 | 47274–47720 | high |
-| `src/city.js` | unchanged | 1417 | 124472–125888 | high |
-| `src/crews.js` | unchanged | 3275 | 126656–129930 | high |
-| `src/crowd.js` | unchanged | 774 | 187384–188157 | high |
-| `src/finale.js` | unchanged | 174 | 193774–193947 | high |
-| `src/game/audio.js` | changed (moved) +3995/−0 tok | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) |
-| `src/game/content.js` | unchanged | 1182 | 39406–40587 | high |
-| `src/game/craftxp.js` | unchanged | 80 | 150863–150942 | high |
-| `src/game/facts.js` | unchanged | 239 | 168482–168720 | high |
-| `src/game/hands.js` | unchanged | 689 | 49953–50641 | high |
-| `src/game/hooks/around-ui.js` | unchanged | 446 | 150943–151388 | high |
-| `src/game/hooks/around.js` | unchanged | 400 | 47865–48264 | high |
-| `src/game/hooks/avodah.js` | unchanged | 42 | 167735–167776 | high |
-| `src/game/hooks/demo.js` | unchanged | 52 | 167639–167690 | high |
-| `src/game/hooks/dig.js` | unchanged | 522 | 157909–158430 | high |
-| `src/game/hooks/endchain.js` | unchanged | 184 | 169433–169616 | high |
-| `src/game/hooks/index.js` | unchanged | 705 | 167777–168481 | high |
-| `src/game/hooks/loop.js` | unchanged | 820 | 158431–159250 | high |
-| `src/game/hooks/next.js` | unchanged | 277 | 167327–167603 | high |
-| `src/game/hooks/rhythm.js` | unchanged | 35 | 167604–167638 | high |
-| `src/game/hooks/riddle-ui.js` | unchanged | 196 | 151389–151584 | high |
-| `src/game/hooks/riddle.js` | unchanged | 94 | 150769–150862 | high |
-| `src/game/hooks/week.js` | unchanged | 44 | 167691–167734 | high |
-| `src/game/index.js` | unchanged | 6879 | 170189–177067 | high |
-| `src/game/jobs.js` | unchanged | 543 | 168827–169369 | high |
-| `src/game/juice.js` | unchanged | 572 | 169617–170188 | high |
-| `src/game/learn.js` | unchanged | 52 | 47222–47273 | high |
-| `src/game/legacy.js` | unchanged | 26 | 45711–45736 | high |
-| `src/game/middot-quiz.js` | unchanged | 254 | 45324–45577 | high |
-| `src/game/middot-ui.css.js` | unchanged | 84 | 148731–148814 | high |
-| `src/game/middot-ui.js` | unchanged | 855 | 148815–149669 | high |
-| `src/game/middot.js` | unchanged | 1042 | 43587–44628 | high |
-| `src/game/minigames/acts.js` | unchanged | 93 | 50642–50734 | high |
-| `src/game/minigames/cover.js` | unchanged | 676 | 162643–163318 | high |
-| `src/game/minigames/crane.js` | unchanged | 506 | 159940–160445 | high |
-| `src/game/minigames/draw.js` | unchanged | 463 | 166003–166465 | high |
-| `src/game/minigames/dress.js` | unchanged | 425 | 160446–160870 | high |
-| `src/game/minigames/frame.js` | unchanged | 689 | 159251–159939 | high |
-| `src/game/minigames/index.js` | unchanged | 348 | 166979–167326 | high |
-| `src/game/minigames/pipes.js` | unchanged | 248 | 166466–166713 | high |
-| `src/game/minigames/place.js` | unchanged | 493 | 165295–165787 | high |
-| `src/game/minigames/plumb.js` | unchanged | 489 | 160871–161359 | high |
-| `src/game/minigames/pull.js` | unchanged | 434 | 163319–163752 | high |
-| `src/game/minigames/quarry.js` | unchanged | 308 | 161554–161861 | high |
-| `src/game/minigames/rafts.js` | unchanged | 329 | 164342–164670 | high |
-| `src/game/minigames/saw.js` | unchanged | 781 | 161862–162642 | high |
-| `src/game/minigames/snap.js` | unchanged | 361 | 164934–165294 | high |
-| `src/game/minigames/survey.js` | unchanged | 139 | 166714–166852 | high |
-| `src/game/minigames/tread.js` | unchanged | 589 | 163753–164341 | high |
-| `src/game/minigames/waves.js` | unchanged | 263 | 164671–164933 | high |
-| `src/game/minigames/wheel.js` | unchanged | 215 | 165788–166002 | high |
-| `src/game/minigames/whole.js` | unchanged | 194 | 161360–161553 | high |
-| `src/game/minigames/work.js` | unchanged | 126 | 166853–166978 | high |
-| `src/game/moments.js` | unchanged | 3504 | 154264–157767 | high |
-| `src/game/music.js` | unchanged | 2024 | 190041–192064 | high |
-| `src/game/nudge.js` | unchanged | 63 | 169370–169432 | high |
-| `src/game/score.js` | unchanged | 144 | 47721–47864 | high |
-| `src/game/shop.js` | unchanged | 253 | 149670–149922 | high |
-| `src/game/state.js` | unchanged | 1485 | 45737–47221 | high |
-| `src/game/tools.js` | unchanged | 133 | 45578–45710 | high |
-| `src/game/twin.js` | changed +2330/−9 tok | 1895 | 51128–53022 | high (sim 0.75) |
-| `src/game/ui.css.js` | unchanged | 687 | 149923–150609 | high |
-| `src/game/ui.js` | unchanged | 2679 | 151585–154263 | high |
-| `src/games/cycle.js` | unchanged | 384 | 184021–184404 | high |
-| `src/games/four.js` | unchanged | 365 | 179308–179672 | high |
-| `src/games/index.js` | unchanged | 730 | 184405–185134 | high |
-| `src/games/knuckle.js` | unchanged | 580 | 182153–182732 | high |
-| `src/games/levites.js` | unchanged | 244 | 180699–180942 | high |
-| `src/games/memory.js` | unchanged | 215 | 179673–179887 | high |
-| `src/games/nuts.js` | unchanged | 682 | 183339–184020 | high |
-| `src/games/race.js` | unchanged | 540 | 179888–180427 | high |
-| `src/games/shell.js` | unchanged | 373 | 178935–179307 | high |
-| `src/games/sling.js` | unchanged | 1210 | 180943–182152 | high |
-| `src/games/stack.js` | unchanged | 271 | 180428–180698 | high |
-| `src/games/torches.js` | unchanged | 606 | 182733–183338 | high |
-| `src/games/vendor/matter.min.js` | unchanged | 2154 | 57482–59635 | high |
-| `src/info.js` | unchanged | 361 | 43226–43586 | high |
-| `src/kings/art.js` | unchanged | 127 | 178054–178180 | high |
-| `src/kings/css.js` | unchanged | 86 | 177866–177951 | high |
-| `src/kings/data.js` | unchanged | 423 | 177068–177490 | high |
-| `src/kings/geo.js` | unchanged | 102 | 177952–178053 | high |
-| `src/kings/index.js` | unchanged | 3 | 178932–178934 | high |
-| `src/kings/logic.js` | unchanged | 375 | 177491–177865 | high |
-| `src/kings/map.js` | unchanged | 167 | 178181–178347 | high |
-| `src/kings/ui.js` | unchanged | 584 | 178348–178931 | high |
-| `src/life.js` | changed +513/−0 tok | 767 | 125889–126655 | high (sim 0.85) |
-| `src/light28.js` | unchanged | 186 | 36503–36688 | high |
-| `src/main.js` | changed +721/−0 tok | 2038 | 193948–195985 | high (sim 0.89) |
-| `src/match3/art.js` | unchanged | 969 | 54477–55445 | high |
-| `src/match3/engine.js` | unchanged | 944 | 53023–53966 | high |
-| `src/match3/index.js` | unchanged | 607 | 56875–57481 | high |
-| `src/match3/levels.js` | unchanged | 510 | 53967–54476 | high |
-| `src/match3/ui.js` | unchanged | 662 | 55446–56107 | high |
-| `src/match3/view.js` | unchanged | 767 | 56108–56874 | high |
-| `src/mount.js` | unchanged | 290 | 34942–35231 | high |
-| `src/net/index.js` | unchanged | 686 | 193088–193773 | high |
-| `src/net/partner.js` | unchanged | 166 | 192922–193087 | high |
-| `src/net/session.js` | unchanged | 115 | 192382–192496 | high |
-| `src/net/transport.js` | unchanged | 317 | 192065–192381 | high |
-| `src/net/ui.js` | unchanged | 425 | 192497–192921 | high |
-| `src/pen/art.js` | unchanged | 187 | 111825–112011 | high |
-| `src/pen/engine.js` | unchanged | 569 | 111256–111824 | high |
-| `src/pen/index.js` | unchanged | 260 | 112578–112837 | high |
-| `src/pen/ui.js` | unchanged | 566 | 112012–112577 | high |
-| `src/pens.js` | unchanged | 474 | 40588–41061 | high |
-| `src/places.js` | unchanged | 234 | 34490–34723 | high |
-| `src/prof30.js` | unchanged | 156 | 36689–36844 | high |
-| `src/sanctuary.js` | unchanged | 2249 | 185135–187383 | high |
-| `src/sky.js` | changed +289/−16 tok | 574 | 123898–124471 | high (sim 0.86) |
-| `src/stages.js` | changed +81/−0 tok | 17429 | 129931–147359 | high (sim 0.90) |
-| `src/temple.js` | changed +12/−1 tok | 1171 | 122727–123897 | high (sim 0.90) |
-| `src/tex.js` | unchanged | 763 | 121964–122726 | high |
-| `src/tiles/art.js` | unchanged | 227 | 110183–110409 | high |
-| `src/tiles/engine.js` | unchanged | 222 | 109961–110182 | high |
-| `src/tiles/index.js` | unchanged | 318 | 110938–111255 | high |
-| `src/tiles/ui.js` | unchanged | 528 | 110410–110937 | high |
-| `src/util.js` | unchanged | 52 | 34438–34489 | high |
-| `src/water.js` | changed +160/−0 tok | 1371 | 147360–148730 | high (sim 0.90) |
-| `src/weather.js` | unchanged | 106 | 168721–168826 | high |
-| `src/world.js` | unchanged | 234 | 35232–35465 | high |
+| src file | status | recovery (parity · status) | 26c lines | 26c line range | confidence |
+|---|---|---|---|---|---|
+| `src/actors.js` | unchanged | PASS | 2242 | 36845–39086 | high |
+| `src/animals.js` | changed +16/−0 tok | FAIL — R3 pending: recovery/pending/animals.js.patch (export sheepRig — only pen25 imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R6's pen25 | 1037 | 35466–36502 | high (sim 1.00) |
+| `src/avodah/data.js` | unchanged | PASS | 716 | 63323–64038 | high |
+| `src/avodah/day/bridge.js` | unchanged | PASS | 72 | 74256–74327 | high |
+| `src/avodah/day/cam28.js` | changed +36/−0 tok | PASS — R3 ported (72e32a3): the pull-only lift cap | 385 | 78218–78602 | high (sim 0.90) |
+| `src/avodah/day/clock.js` | unchanged | PASS | 184 | 73233–73416 | high |
+| `src/avodah/day/css.js` | unchanged | PASS | 50 | 74206–74255 | high |
+| `src/avodah/day/guide27.js` | unchanged | PASS | 881 | 77337–78217 | high |
+| `src/avodah/day/index.js` | changed +33/−0 tok | PASS — R3 ported (0536394): camWork (b20), __SH17UP (b17) | 1325 | 94453–95777 | high (sim 0.89) |
+| `src/avodah/day/places.js` | unchanged | PASS | 29 | 74076–74104 | high |
+| `src/avodah/day/stock.js` | unchanged | PASS | 62 | 73417–73478 | high |
+| `src/avodah/day/tasks.js` | unchanged | PASS | 592 | 73479–74070 | high |
+| `src/avodah/day/works.js` | unchanged | PASS | 5 | 74071–74075 | high |
+| `src/avodah/day/world22.js` | changed +627/−0 tok | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay | 101 | 74105–74205 | high (sim 0.74) |
+| `src/avodah/hooks/index.js` | unchanged | PASS | 345 | 72888–73232 | high |
+| `src/avodah/hooks/tour.js` | unchanged | PASS | 209 | 50919–51127 | high |
+| `src/avodah/index.js` | unchanged | PASS | 759 | 116247–117005 | high |
+| `src/avodah/interact3d.js` | unchanged | PASS | 252 | 65961–66212 | high |
+| `src/avodah/minigames/aravot.js` | unchanged | PASS | 150 | 70545–70694 | high |
+| `src/avodah/minigames/art.js` | unchanged | PASS | 244 | 66213–66456 | high |
+| `src/avodah/minigames/barkai.js` | unchanged | PASS | 103 | 67701–67803 | high |
+| `src/avodah/minigames/birkat.js` | unchanged | PASS | 91 | 69391–69481 | high |
+| `src/avodah/minigames/common.js` | unchanged | PASS | 335 | 66457–66791 | high |
+| `src/avodah/minigames/day.js` | unchanged | PASS | 789 | 70962–71750 | high |
+| `src/avodah/minigames/deshen.js` | unchanged | PASS | 233 | 67226–67458 | high |
+| `src/avodah/minigames/dir.js` | unchanged | PASS | 494 | 72339–72832 | high |
+| `src/avodah/minigames/erev.js` | unchanged | PASS | 88 | 70337–70424 | high |
+| `src/avodah/minigames/evarim.js` | unchanged | PASS | 195 | 68856–69050 | high |
+| `src/avodah/minigames/heichal.js` | unchanged | PASS | 366 | 68165–68530 | high |
+| `src/avodah/minigames/index.js` | unchanged | PASS | 55 | 72833–72887 | high |
+| `src/avodah/minigames/ketoret.js` | unchanged | PASS | 330 | 69051–69380 | high |
+| `src/avodah/minigames/kiddush.js` | unchanged | PASS | 197 | 67029–67225 | high |
+| `src/avodah/minigames/korbanot.js` | unchanged | PASS | 183 | 69989–70171 | high |
+| `src/avodah/minigames/lechem.js` | unchanged | PASS | 109 | 70853–70961 | high |
+| `src/avodah/minigames/maaracha.js` | unchanged | PASS | 242 | 67459–67700 | high |
+| `src/avodah/minigames/musaf.js` | unchanged | PASS | 165 | 70172–70336 | high |
+| `src/avodah/minigames/neirot.js` | unchanged | PASS | 120 | 70425–70544 | high |
+| `src/avodah/minigames/payis.js` | unchanged | PASS | 237 | 66792–67028 | high |
+| `src/avodah/minigames/pitum.js` | unchanged | PASS | 588 | 71751–72338 | high |
+| `src/avodah/minigames/shir.js` | unchanged | PASS | 507 | 69482–69988 | high |
+| `src/avodah/minigames/shoevah.js` | unchanged | PASS | 158 | 70695–70852 | high |
+| `src/avodah/minigames/taleh.js` | unchanged | PASS | 361 | 67804–68164 | high |
+| `src/avodah/minigames/zerika.js` | unchanged | PASS | 325 | 68531–68855 | high |
+| `src/avodah/scenes/index.js` | unchanged | PASS | 739 | 118615–119353 | high |
+| `src/avodah/schedule.js` | unchanged | PASS | 273 | 64039–64311 | high |
+| `src/avodah/shift/camera.js` | changed +1057/−265 tok | FAIL — R4 | 725 | 93598–94322 | high (sim 0.76) |
+| `src/avodah/shift/day33.js` | changed +40557/−695 tok | FAIL — R7 (must export resumeDay33 for lobby35's patch) | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) |
+| `src/avodah/shift/draw.js` | unchanged | PASS | 346 | 89964–90309 | high |
+| `src/avodah/shift/engine.js` | unchanged | PASS | 1047 | 95888–96934 | high |
+| `src/avodah/shift/flow31.js` | changed +1095/−7 tok | FAIL — R4 (calls world22's rampWay and life's rampLane — both in) | 811 | 97876–98686 | high (sim 0.78) |
+| `src/avodah/shift/hero35.js` | changed +2526/−67 tok | FAIL — R4 (with gait.js) | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) |
+| `src/avodah/shift/hud.js` | changed +396/−14 tok | FAIL — R3 pending: recovery/pending/hud.js.patch (fire gauge b17a, sh-b17, the event log b16; imports evlog, copyEvlog from ./evlog16.js; PASS with a stand-in module) → git apply with R4's evlog module | 712 | 97010–97721 | high (sim 0.84) |
+| `src/avodah/shift/index.js` | changed +553/−0 tok | FAIL — later (after R4–R7): imports the evlog module, focus17, pis23, new day33 symbols, stations' new export, twin's CSS_NAV; uses walk's PACE/STICK (in) | 639 | 115608–116246 | high (sim 0.73) |
+| `src/avodah/shift/lab.js` | unchanged | PASS | 119 | 94323–94441 | high |
+| `src/avodah/shift/layout31.js` | unchanged | PASS | 69 | 90310–90378 | high |
+| `src/avodah/shift/levels.js` | unchanged | PASS | 78 | 95778–95855 | high |
+| `src/avodah/shift/lobby35.js` | changed +222/−10 tok | FAIL — R3 pending: recovery/pending/lobby35.js.patch (the start screen b16, minimal, the new spot; imports resumeDay33 from ./day33.js, reads DAY33.minimal; PASS with a stand-in export) → git apply with R7's day33 | 442 | 109519–109960 | high (sim 0.81) |
+| `src/avodah/shift/pilgrims.js` | unchanged | PASS | 482 | 90567–91048 | high |
+| `src/avodah/shift/rival.js` | unchanged | PASS | 32 | 95856–95887 | high |
+| `src/avodah/shift/route31.js` | changed +23/−1 tok | PASS — R3 ported (cbef914): CLIMB31 | 188 | 90379–90566 | high (sim 0.98) |
+| `src/avodah/shift/score35.js` | unchanged | PASS | 55 | 98687–98741 | high |
+| `src/avodah/shift/stations.js` | changed +5413/−225 tok | FAIL — R5 (reads CLIMB31.top/tailDay and PACE.laver — in) | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) |
+| `src/avodah/shift/stub29.js` | unchanged | PASS | 154 | 97722–97875 | high |
+| `src/avodah/shift/walk.js` | changed (moved) +470/−37 tok | PASS — R3 ported (8c5120b): planWay, the paced walk, PACE/STICK | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) |
+| `src/avodah/sound.js` | changed +812/−12 tok | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) |
+| `src/avodah/state.js` | unchanged | PASS | 330 | 59636–59965 | high |
+| `src/avodah/ui.css.js` | unchanged | PASS | 386 | 65067–65452 | high |
+| `src/avodah/ui.js` | changed +1/−1 tok | PASS — R3 ported (826b3b6): the welcome line (build 16) | 508 | 65453–65960 | high (sim 0.90) |
+| `src/avodah/works/all.js` | unchanged | PASS | 11 | 94442–94452 | high |
+| `src/avodah/works/anchors.js` | unchanged | PASS | 298 | 74328–74625 | high |
+| `src/avodah/works/birkat28.js` | unchanged | PASS | 10 | 69381–69390 | high |
+| `src/avodah/works/blood.js` | unchanged | PASS | 218 | 34724–34941 | high |
+| `src/avodah/works/bloodteach.js` | unchanged | PASS | 170 | 80767–80936 | high |
+| `src/avodah/works/close.js` | unchanged | PASS | 422 | 85768–86189 | high |
+| `src/avodah/works/closeup.js` | unchanged | PASS | 207 | 76885–77091 | high |
+| `src/avodah/works/common.js` | unchanged | PASS | 673 | 84061–84733 | high |
+| `src/avodah/works/craft.js` | unchanged | PASS | 350 | 76535–76884 | high |
+| `src/avodah/works/dawn.js` | unchanged | PASS | 1104 | 78603–79706 | high |
+| `src/avodah/works/dawn2.js` | unchanged | PASS | 679 | 83144–83822 | high |
+| `src/avodah/works/dawnreg.js` | unchanged | PASS | 203 | 83823–84025 | high |
+| `src/avodah/works/figures.js` | unchanged | PASS | 916 | 75619–76534 | high |
+| `src/avodah/works/fix26.js` | unchanged | PASS | 57 | 80710–80766 | high |
+| `src/avodah/works/ganan.js` | unchanged | PASS | 179 | 88913–89091 | high |
+| `src/avodah/works/gate.js` | unchanged | PASS | 317 | 84734–85050 | high |
+| `src/avodah/works/hero26.js` | unchanged | PASS | 472 | 75147–75618 | high |
+| `src/avodah/works/index.js` | not in build 15's bundle (no importer) — nothing in 26c either | — | — | — | high |
+| `src/avodah/works/indexb.js` | not in build 15's bundle (no importer) — nothing in 26c either | — | — | — | high |
+| `src/avodah/works/kit.js` | unchanged | PASS | 521 | 74626–75146 | high |
+| `src/avodah/works/kiyor.js` | unchanged | PASS | 437 | 85331–85767 | high |
+| `src/avodah/works/more.js` | unchanged | PASS | 872 | 89092–89963 | high |
+| `src/avodah/works/night.js` | unchanged | PASS | 535 | 79707–80241 | high |
+| `src/avodah/works/offerq.js` | unchanged | PASS | 35 | 84026–84060 | high |
+| `src/avodah/works/payis.js` | unchanged | PASS | 468 | 87610–88077 | high |
+| `src/avodah/works/pen.js` | unchanged | PASS | 281 | 80242–80522 | high |
+| `src/avodah/works/places24.js` | unchanged | PASS | 2127 | 80937–83063 | high |
+| `src/avodah/works/register.js` | unchanged | PASS | 80 | 83064–83143 | high |
+| `src/avodah/works/registerb.js` | unchanged | PASS | 171 | 86190–86360 | high |
+| `src/avodah/works/seals.js` | unchanged | PASS | 280 | 85051–85330 | high |
+| `src/avodah/works/slice27.js` | unchanged | PASS | 245 | 77092–77336 | high |
+| `src/avodah/works/song.js` | unchanged | PASS | 264 | 87299–87562 | high |
+| `src/avodah/works/tamid.js` | unchanged | PASS | 938 | 86361–87298 | high |
+| `src/avodah/works/tamidreg.js` | unchanged | PASS | 47 | 87563–87609 | high |
+| `src/avodah/works/wood.js` | unchanged | PASS | 187 | 80523–80709 | high |
+| `src/avodah/works/yachid.js` | unchanged | PASS | 835 | 88078–88912 | high |
+| `src/avodah/world.js` | unchanged | PASS | 374 | 64312–64685 | high |
+| `src/avodah3d.js` | changed +32/−1 tok | PASS — R3 ported (c76d589): __K20LAVER (build 20) | 2164 | 41062–43225 | high (sim 0.90) |
+| `src/batch.js` | unchanged | PASS | 591 | 33847–34437 | high |
+| `src/calendar.js` | unchanged | PASS | 447 | 47274–47720 | high |
+| `src/city.js` | unchanged | PASS | 1417 | 124472–125888 | high |
+| `src/crews.js` | unchanged | PASS | 3275 | 126656–129930 | high |
+| `src/crowd.js` | unchanged | PASS | 774 | 187384–188157 | high |
+| `src/finale.js` | unchanged | PASS | 174 | 193774–193947 | high |
+| `src/game/audio.js` | changed (moved) +3995/−0 tok | FAIL — R4 (in the lazy graph now, as in 26c — sound.js imports it; 2 units differ: createAudio's trim/declick and the sounds of b17–26) | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) |
+| `src/game/content.js` | unchanged | PASS | 1182 | 39406–40587 | high |
+| `src/game/craftxp.js` | unchanged | PASS | 80 | 150863–150942 | high |
+| `src/game/facts.js` | unchanged | PASS | 239 | 168482–168720 | high |
+| `src/game/hands.js` | unchanged | PASS | 689 | 49953–50641 | high |
+| `src/game/hooks/around-ui.js` | unchanged | PASS | 446 | 150943–151388 | high |
+| `src/game/hooks/around.js` | unchanged | PASS | 400 | 47865–48264 | high |
+| `src/game/hooks/avodah.js` | unchanged | PASS | 42 | 167735–167776 | high |
+| `src/game/hooks/demo.js` | unchanged | PASS | 52 | 167639–167690 | high |
+| `src/game/hooks/dig.js` | unchanged | PASS | 522 | 157909–158430 | high |
+| `src/game/hooks/endchain.js` | unchanged | PASS | 184 | 169433–169616 | high |
+| `src/game/hooks/index.js` | unchanged | PASS | 705 | 167777–168481 | high |
+| `src/game/hooks/loop.js` | unchanged | PASS | 820 | 158431–159250 | high |
+| `src/game/hooks/next.js` | unchanged | PASS | 277 | 167327–167603 | high |
+| `src/game/hooks/rhythm.js` | unchanged | PASS | 35 | 167604–167638 | high |
+| `src/game/hooks/riddle-ui.js` | unchanged | PASS | 196 | 151389–151584 | high |
+| `src/game/hooks/riddle.js` | unchanged | PASS | 94 | 150769–150862 | high |
+| `src/game/hooks/week.js` | unchanged | PASS | 44 | 167691–167734 | high |
+| `src/game/index.js` | unchanged | PASS | 6879 | 170189–177067 | high |
+| `src/game/jobs.js` | unchanged | PASS | 543 | 168827–169369 | high |
+| `src/game/juice.js` | unchanged | PASS | 572 | 169617–170188 | high |
+| `src/game/learn.js` | unchanged | PASS | 52 | 47222–47273 | high |
+| `src/game/legacy.js` | unchanged | PASS | 26 | 45711–45736 | high |
+| `src/game/middot-quiz.js` | unchanged | PASS | 254 | 45324–45577 | high |
+| `src/game/middot-ui.css.js` | unchanged | PASS | 84 | 148731–148814 | high |
+| `src/game/middot-ui.js` | unchanged | PASS | 855 | 148815–149669 | high |
+| `src/game/middot.js` | unchanged | PASS | 1042 | 43587–44628 | high |
+| `src/game/minigames/acts.js` | unchanged | PASS | 93 | 50642–50734 | high |
+| `src/game/minigames/cover.js` | unchanged | PASS | 676 | 162643–163318 | high |
+| `src/game/minigames/crane.js` | unchanged | PASS | 506 | 159940–160445 | high |
+| `src/game/minigames/draw.js` | unchanged | PASS | 463 | 166003–166465 | high |
+| `src/game/minigames/dress.js` | unchanged | PASS | 425 | 160446–160870 | high |
+| `src/game/minigames/frame.js` | unchanged | PASS | 689 | 159251–159939 | high |
+| `src/game/minigames/index.js` | unchanged | PASS | 348 | 166979–167326 | high |
+| `src/game/minigames/pipes.js` | unchanged | PASS | 248 | 166466–166713 | high |
+| `src/game/minigames/place.js` | unchanged | PASS | 493 | 165295–165787 | high |
+| `src/game/minigames/plumb.js` | unchanged | PASS | 489 | 160871–161359 | high |
+| `src/game/minigames/pull.js` | unchanged | PASS | 434 | 163319–163752 | high |
+| `src/game/minigames/quarry.js` | unchanged | PASS | 308 | 161554–161861 | high |
+| `src/game/minigames/rafts.js` | unchanged | PASS | 329 | 164342–164670 | high |
+| `src/game/minigames/saw.js` | unchanged | PASS | 781 | 161862–162642 | high |
+| `src/game/minigames/snap.js` | unchanged | PASS | 361 | 164934–165294 | high |
+| `src/game/minigames/survey.js` | unchanged | PASS | 139 | 166714–166852 | high |
+| `src/game/minigames/tread.js` | unchanged | PASS | 589 | 163753–164341 | high |
+| `src/game/minigames/waves.js` | unchanged | PASS | 263 | 164671–164933 | high |
+| `src/game/minigames/wheel.js` | unchanged | PASS | 215 | 165788–166002 | high |
+| `src/game/minigames/whole.js` | unchanged | PASS | 194 | 161360–161553 | high |
+| `src/game/minigames/work.js` | unchanged | PASS | 126 | 166853–166978 | high |
+| `src/game/moments.js` | unchanged | PASS | 3504 | 154264–157767 | high |
+| `src/game/music.js` | unchanged | PASS | 2024 | 190041–192064 | high |
+| `src/game/nudge.js` | unchanged | PASS | 63 | 169370–169432 | high |
+| `src/game/score.js` | unchanged | PASS | 144 | 47721–47864 | high |
+| `src/game/shop.js` | unchanged | PASS | 253 | 149670–149922 | high |
+| `src/game/state.js` | unchanged | PASS | 1485 | 45737–47221 | high |
+| `src/game/tools.js` | unchanged | PASS | 133 | 45578–45710 | high |
+| `src/game/twin.js` | changed +2330/−9 tok | FAIL — R4 | 1895 | 51128–53022 | high (sim 0.75) |
+| `src/game/ui.css.js` | unchanged | PASS | 687 | 149923–150609 | high |
+| `src/game/ui.js` | unchanged | PASS | 2679 | 151585–154263 | high |
+| `src/games/cycle.js` | unchanged | PASS | 384 | 184021–184404 | high |
+| `src/games/four.js` | unchanged | PASS | 365 | 179308–179672 | high |
+| `src/games/index.js` | unchanged | PASS | 730 | 184405–185134 | high |
+| `src/games/knuckle.js` | unchanged | PASS | 580 | 182153–182732 | high |
+| `src/games/levites.js` | unchanged | PASS | 244 | 180699–180942 | high |
+| `src/games/memory.js` | unchanged | PASS | 215 | 179673–179887 | high |
+| `src/games/nuts.js` | unchanged | PASS | 682 | 183339–184020 | high |
+| `src/games/race.js` | unchanged | PASS | 540 | 179888–180427 | high |
+| `src/games/shell.js` | unchanged | PASS | 373 | 178935–179307 | high |
+| `src/games/sling.js` | unchanged | PASS | 1210 | 180943–182152 | high |
+| `src/games/stack.js` | unchanged | PASS | 271 | 180428–180698 | high |
+| `src/games/torches.js` | unchanged | PASS | 606 | 182733–183338 | high |
+| `src/games/vendor/matter.min.js` | unchanged | PASS | 2154 | 57482–59635 | high |
+| `src/info.js` | unchanged | PASS | 361 | 43226–43586 | high |
+| `src/kings/art.js` | unchanged | PASS | 127 | 178054–178180 | high |
+| `src/kings/css.js` | unchanged | PASS | 86 | 177866–177951 | high |
+| `src/kings/data.js` | unchanged | PASS | 423 | 177068–177490 | high |
+| `src/kings/geo.js` | unchanged | PASS | 102 | 177952–178053 | high |
+| `src/kings/index.js` | unchanged | PASS | 3 | 178932–178934 | high |
+| `src/kings/logic.js` | unchanged | PASS | 375 | 177491–177865 | high |
+| `src/kings/map.js` | unchanged | PASS | 167 | 178181–178347 | high |
+| `src/kings/ui.js` | unchanged | PASS | 584 | 178348–178931 | high |
+| `src/life.js` | changed +513/−0 tok | PASS — R3 ported (9345571): the fire's levels, rampLane | 767 | 125889–126655 | high (sim 0.85) |
+| `src/light28.js` | unchanged | PASS | 186 | 36503–36688 | high |
+| `src/main.js` | changed +721/−0 tok | PASS — R3 ported (3418486, 4d85973): predawn, mixTime, the shared sound context (26c) | 2038 | 193948–195985 | high (sim 0.89) |
+| `src/match3/art.js` | unchanged | PASS | 969 | 54477–55445 | high |
+| `src/match3/engine.js` | unchanged | PASS | 944 | 53023–53966 | high |
+| `src/match3/index.js` | unchanged | PASS | 607 | 56875–57481 | high |
+| `src/match3/levels.js` | unchanged | PASS | 510 | 53967–54476 | high |
+| `src/match3/ui.js` | unchanged | PASS | 662 | 55446–56107 | high |
+| `src/match3/view.js` | unchanged | PASS | 767 | 56108–56874 | high |
+| `src/mount.js` | unchanged | PASS | 290 | 34942–35231 | high |
+| `src/net/index.js` | unchanged | PASS | 686 | 193088–193773 | high |
+| `src/net/partner.js` | unchanged | PASS | 166 | 192922–193087 | high |
+| `src/net/session.js` | unchanged | PASS | 115 | 192382–192496 | high |
+| `src/net/transport.js` | unchanged | PASS | 317 | 192065–192381 | high |
+| `src/net/ui.js` | unchanged | PASS | 425 | 192497–192921 | high |
+| `src/pen/art.js` | unchanged | PASS | 187 | 111825–112011 | high |
+| `src/pen/engine.js` | unchanged | PASS | 569 | 111256–111824 | high |
+| `src/pen/index.js` | unchanged | PASS | 260 | 112578–112837 | high |
+| `src/pen/ui.js` | unchanged | PASS | 566 | 112012–112577 | high |
+| `src/pens.js` | unchanged | PASS | 474 | 40588–41061 | high |
+| `src/places.js` | unchanged | PASS | 234 | 34490–34723 | high |
+| `src/prof30.js` | unchanged | PASS | 156 | 36689–36844 | high |
+| `src/sanctuary.js` | unchanged | PASS | 2249 | 185135–187383 | high |
+| `src/sky.js` | changed +289/−16 tok | PASS — R3 ported (8731c2b): predawn, mix() | 574 | 123898–124471 | high (sim 0.86) |
+| `src/stages.js` | changed +81/−0 tok | PASS — R3 ported (e4f7e09): the Heichal's floor, twinPass (build 26) | 17429 | 129931–147359 | high (sim 0.90) |
+| `src/temple.js` | changed +12/−1 tok | PASS — R3 ported (61de874): 'pyre22' (build 22) | 1171 | 122727–123897 | high (sim 0.90) |
+| `src/tex.js` | unchanged | PASS | 763 | 121964–122726 | high |
+| `src/tiles/art.js` | unchanged | PASS | 227 | 110183–110409 | high |
+| `src/tiles/engine.js` | unchanged | PASS | 222 | 109961–110182 | high |
+| `src/tiles/index.js` | unchanged | PASS | 318 | 110938–111255 | high |
+| `src/tiles/ui.js` | unchanged | PASS | 528 | 110410–110937 | high |
+| `src/util.js` | unchanged | PASS | 52 | 34438–34489 | high |
+| `src/water.js` | changed +160/−0 tok | PASS — R3 ported (4dcf689): pour20 (build 20) | 1371 | 147360–148730 | high (sim 0.90) |
+| `src/weather.js` | unchanged | PASS | 106 | 168721–168826 | high |
+| `src/world.js` | unchanged | PASS | 234 | 35232–35465 | high |
 
 ### D. The rest of the bundle (not src/)
 
@@ -469,3 +469,57 @@ R1_PRESET=1 /home/claude/wt/bus/brun node recovery/tools/shot-r1.cjs recovery/bu
 ```
 Tools (`recovery/tools/`): `brun.sh`, `shot-r1.cjs`, `mkout15.py`, `build-marked.mjs`, `extract.mjs`, `cssdiff.mjs`, `r1lib.mjs`,
 `units.mjs`, `modmap.py`, `moddiff.mjs`/`moddiff.py`, `symmap.py`, `annotate.mjs`, `report.py`, `r1-all.sh`, `tools-npm.json`.
+
+## 9. R2 + R3 (21–22.10): the parity tool, the small ports
+
+### 9.1 Tools (`recovery/tools/`, node only, ≈ 5–7 s a run)
+- **`plib.mjs`** (shared): bundles the working tree in memory with build.mjs's settings (a sha guard warns when build.mjs changes)
+  plus a twin build with names and whitespace kept — esbuild writes a `// path` comment before each module's code and its units
+  line up one for one with the min build's (count, kind, identifier sequence — checked every run), so every unit of the fresh
+  bundle has its exact module. 26c: R1's wrapper segments + modmap labels; its tail (main.js and its static imports) labelled by
+  a patience diff against the fresh tail. Tokens are canonicalized from the AST (keys, shorthand, destructuring keys, labels,
+  contextual keywords and unbound globals literal).
+- **`parity.mjs <module…> | --all | --page | --selfcheck`** — PASS when the module's units have the same shapes on both sides AND
+  the bound names map as ONE consistent bijection over the whole module (fresh ↔ 26c) AND every top-level name it uses from another
+  module comes from the same module (and the same source name where symmap is exact — in R1's unchanged modules only). Else the
+  first differing token windows (`--hunks`: every hunk inside a changed unit), with the p26c.pretty.js line. `--page` builds
+  play.html + 26c's head script and title and compares bytes. `--selfcheck` checks the in-memory build equals dist/play.html.
+- **`rename.mjs <module> [--side 26c|fresh] [--canon]`** — a draft ES module (top-level names restored, imports/exports rebuilt,
+  hoisted vars folded); `--canon` numbers locals per unit, so the fresh and 26c drafts `diff` to the changes (noisy only in the
+  big single-function modules — use `parity.mjs --hunks` there). Doubtful symmap names print as `name__q`.
+- **`parity-selftest.mjs`** — on a copy of the tree: R1's 243 unchanged modules PASS; three mutations R1's `_` metric cannot see
+  FAIL: two locals swapped (util.js lerp), a consistently wrong import (world.js lerp ↔ smooth: the bijection holds, the origin
+  check fails), a parameter order swapped (util.js clamp). Last run: all as expected.
+- Validation on the build-15 tree: `--all` = src/ 200 PASS, the 25 changed FAIL, 11 new MISSING-IN-FRESH (R1's numbers).
+  `--selfcheck` passes. The bijection is fine-grained: it caught a function expression whose parameters sat one slot later
+  than the arrow beside it — the original was a NAMED function expression (esbuild drops the unused name, keeps its slot).
+
+### 9.2 R3 results
+- **Ported, parity PASS, committed (14):** temple.js, avodah/ui.js, route31.js, day/index.js, avodah3d.js, cam28.js, stages.js,
+  water.js, sky.js, main.js, life.js, world22.js + walk.js (together: walk's planWay is world22.rampWay's only user), avodah/sound.js.
+  `--all` now: src/ 214 PASS, 11 FAIL, 11 MISSING-IN-FRESH; no unassigned 26c unit left (the 4-byte "glue" was `init_audio()`:
+  audio.js joined the lazy graph when sound.js began to import it).
+- **Pending, verified (recovery/pending/*.patch — `git apply` them when their partner lands):** animals.js (export `sheepRig`:
+  only pen25 imports it, and esbuild drops an unused pure export, so it cannot PASS alone), hud.js (imports `evlog`, `copyEvlog`
+  from `./evlog16.js`), lobby35.js (imports `resumeDay33` from day33.js, reads `DAY33.minimal`). Each PASSes on a scratch tree
+  with a stand-in importer/export.
+- **Later:** shift/index.js (imports the evlog module, focus17, pis23, new day33/stations/twin exports).
+- **Names the recovery chose** (the bundle kept none; later stages must import these or rename both sides): animals `sheepRig`;
+  world22 `rampWay`, `houseFloor`, `onAltar`, `HOUSE22`; walk `PACE`, `STICK`, `planWay`; cam28 `PULL_LIFT`, `PULL_EL`; sky `mix`;
+  main `mixTime`; water `pour20`; life `rampLane` (the API key is the bundle's), `fireLv`; the evlog module `evlog`, `copyEvlog`;
+  day33 `resumeDay33`. From the build-26c report (transcript): sound.js `TRIM26C`, `ensure`, `play`/`playOne`.
+- **Comments:** every hunk carries `// ── recovered (build N) ──` (N from the literal suffixes, the hooks' modules and the 26c
+  report) or `(16–26c)`; comments inside template/CSS literals came back verbatim (ui.js, hud.js, lobby35.js — builds 16, 17a, 17b).
+- **Tests:** `node --test test/*.test.mjs` = 568: 558 pass, 10 skipped, 0 fail (unchanged from build 15). `node build.mjs`:
+  dist/temple3d.html 5,148,450 B. Page vs 26c: 5,149,164 B vs 5,417,820 B (−268,656 B: R4–R7 and the 11 new modules).
+- **Lessons for R4–R7:** (1) a new export used only by an unported module is tree-shaken — PASS comes with its first importer
+  (`Object.freeze(…)` tables survive, being calls); (2) symmap names inside changed modules can be shifted (bare `var x`
+  declarators pair by position) — trust only hash-exact ones; (3) the main transcript holds ~30 original day33.js comment lines of
+  builds 16–26 in pasted grep output (21.10 16:01) — R7 can take them; (4) the 26c report in the transcript names sound.js's parts.
+
+```bash
+node recovery/tools/parity.mjs src/water.js --hunks --windows 20     # one module, every hunk
+node recovery/tools/parity.mjs --all --json recovery/work/parity-all.json && python3 -I recovery/tools/report.py
+node recovery/tools/parity-selftest.mjs                               # the tool checks itself (≈ 20 s)
+node recovery/tools/rename.mjs avodah/sound.js --canon --out /tmp/s26.js; node recovery/tools/rename.mjs avodah/sound.js --side fresh --canon --out /tmp/s15.js; diff /tmp/s15.js /tmp/s26.js
+```

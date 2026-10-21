@@ -28,5 +28,6 @@ python3 -I "$T/modmap.py" > modmap.txt
 node --max-old-space-size=6000 "$T/moddiff.mjs" && python3 -I "$T/moddiff.py" > moddiff.txt
 python3 -I "$T/symmap.py" > symmap.txt
 node --max-old-space-size=7000 "$T/annotate.mjs"
+cd "$R" && node --max-old-space-size=8000 "$T/parity.mjs" --all --json "$W/parity-all.json" > "$W/parity-all.txt" || true   # (R2: the recovery column)
 python3 -I "$T/report.py" "$R/recovery/R1-map.md" || true
 sha256sum "$W/p26c.pretty.js" "$W/p15.pretty.js" "$W/x26c/app.min.js" "$W/x15/app.min.js"

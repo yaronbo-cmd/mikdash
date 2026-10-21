@@ -19,6 +19,8 @@ const R = 0.45;   // (the sphere's radius: the boxes grow by it)
 const VMAX = 50;   // amot a second (2.5 per 50 ms)
 const RISE = [0.09, 0.18, 0.27, 0.36, 0.5, 0.65, 0.8, 0.95, 1.1];
 const TURN = [0.6, -0.6, 1.2, -1.2, 1.9, -1.9];
+// ── recovered (16–26c) ── the pull-only lift over his shoulder: at most PULL_LIFT, and the camera's elevation at most PULL_EL (the names are the recovery's)
+const PULL_LIFT = 0.35, PULL_EL = 0.7;
 
 function segBox(px, py, pz, qx, qy, qz, B) {
   let t0 = 0, t1 = 1;
@@ -134,7 +136,7 @@ export function createCamGuard(o = {}) {
           let t = firstHit(ax, ay, az, qx, qy, qz);
           let kMax = 1;
           if (pullOnly && t * L < 9) {   // (pulled nearer than 9 amot — his back would fill the frame: the camera also rises a little, to look over his shoulder — and stays near, at most 3 amot farther than the pull)
-            const d0 = t * L; r = (9 - d0) / 9 * 0.8; q = pose(ax, ay, az, vx, vy, vz, r, 1); qx = q.x; qy = q.y; qz = q.z; L = Math.hypot(qx - ax, qy - ay, qz - az) || 1; t = firstHit(ax, ay, az, qx, qy, qz); kMax = (d0 + 4) / L;
+            const d0 = t * L; r = Math.min(PULL_LIFT, (9 - d0) / 9 * 0.8); if (e0 + r > PULL_EL) r = Math.max(0, PULL_EL - e0); q = pose(ax, ay, az, vx, vy, vz, r, 1); qx = q.x; qy = q.y; qz = q.z; L = Math.hypot(qx - ax, qy - ay, qz - az) || 1; t = firstHit(ax, ay, az, qx, qy, qz); kMax = (d0 + 4) / L;   // ── recovered (16–26c) ── (capped)
           }
           tA = 0; tE = r; tK = Math.min(kMax, Math.max(Math.min(1, (pullOnly ? 5 : 6) / L), t - 0.8 / L));   // (pull-only: as near as 5 amot)
         }

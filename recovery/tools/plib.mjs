@@ -141,7 +141,8 @@ function declOf(nd) {
 }
 export function analyze(js, helpers, { comments = false } = {}) {
   const cm = [];
-  const ast = acorn.parse(js, { ecmaVersion: 'latest', onComment: comments ? (block, text, start) => { if (!block && /^ (src|content|node_modules|assets)\/\S+$/.test(text)) cm.push([start, text.trim()]); } : undefined });
+  // (a tree whose node_modules is a symlink — another checkout — names those files by the resolved path: cut it to node_modules/…)
+  const ast = acorn.parse(js, { ecmaVersion: 'latest', onComment: comments ? (block, text, start) => { if (!block && /^ (\.\.\/)*(\S*\/)?(src|content|node_modules|assets)\/\S+$/.test(text)) cm.push([start, text.trim().replace(/^.*?(?=node_modules\/)/, '')]); } : undefined });
   const us = cutUnits(ast, js, helpers);
   for (const u of us) u.decl = u.kind === 'wrap' ? declOf(u.node) : declOf(u.node);
   return { js, ast, units: us, helpers, comments: cm, _bound: null, get bound() { return this._bound || (this._bound = boundNames(this.ast)); } };
@@ -213,6 +214,9 @@ export function refSide() {
     for (const i of s.idx) C.units[i].label = s.label;
   }
   C.symmap = JSON.parse(fs.readFileSync(W + 'symmap26c.json', 'utf8'));
+  // symmap's names are exact only in the modules R1 found unchanged: in a changed one the bare hoisted `var x` declarators (all
+  // alike once normalized) are paired by position, and an insertion shifts the names — there only the declaring module counts
+  C.unchanged = new Set(map.rows.filter((r) => r.status === 'unchanged').map((r) => fix(r.label)));
   C.ms = { analyze: Date.now() - t0 };
   return C;
 }
@@ -246,7 +250,7 @@ export function labelRef(C, S) {
   }
   tailC.forEach((u, k) => { if (lab[k]) u.label = lab[k]; });
   C.top = new Map();
-  for (const u of C.units) if (u.decl && !C.top.has(u.decl)) C.top.set(u.decl, { module: u.label, src: C.symmap[u.decl] ? C.symmap[u.decl].name : null });
+  for (const u of C.units) if (u.decl && !C.top.has(u.decl)) C.top.set(u.decl, { module: u.label, src: C.symmap[u.decl] && C.unchanged.has(u.label) ? C.symmap[u.decl].name : null });
 }
 function isTail(S, u) {
   if (!S._tailFrom) { const segs = segments(S.units); const t = segs[segs.length - 1]; S._tailFrom = t.wrap ? Infinity : S.units[t.idx[0]].start; }
@@ -324,9 +328,14 @@ export function unitTokens(side, u) {
       if (n.type === 'Identifier') { if (!kinds.has(n.start)) kinds.set(n.start, 'ref'); }
       else if ((n.type === 'Property' || n.type === 'MethodDefinition' || n.type === 'PropertyDefinition') && !n.computed && n.key && n.key.type === 'Identifier') kinds.set(n.key.start, n.shorthand ? 'short' : 'key');
       else if ((n.type === 'LabeledStatement' || n.type === 'BreakStatement' || n.type === 'ContinueStatement') && n.label) kinds.set(n.label.start, 'ref');
+      // (acorn-walk never hands a pattern's Property nodes to the callback: `{x, z: o} = …` is classified here)
+      else if (n.type === 'ObjectPattern') for (const p of n.properties) if (p.type === 'Property' && !p.computed && p.key.type === 'Identifier' && !p.shorthand) kinds.set(p.key.start, 'key');
     });
     // a shorthand's value is visited as a ref at the same position: the key wins
-    walk.full(u.node, (n) => { if (n.type === 'Property' && n.shorthand && !n.computed && n.key.type === 'Identifier') kinds.set(n.key.start, 'short'); });
+    walk.full(u.node, (n) => {
+      if (n.type === 'Property' && n.shorthand && !n.computed && n.key.type === 'Identifier') kinds.set(n.key.start, 'short');
+      else if (n.type === 'ObjectPattern') for (const p of n.properties) if (p.type === 'Property' && p.shorthand && !p.computed && p.key.type === 'Identifier') kinds.set(p.key.start, 'short');
+    });
   }
   const B = side.bound, out = [];
   let prev = null, colon = false;
@@ -356,7 +365,7 @@ export function unitTokens(side, u) {
 const shape = (toks) => toks.map((t) => t.v).join('\u0001');
 
 // ── compare one module ──
-export function compareModule(S, C, label, { windows = 3, ctx = 10 } = {}) {
+export function compareModule(S, C, label, { windows = 3, ctx = 10, hunks = false } = {}) {
   const fi = S.mods.get(label) || [], ci = C.mods.get(label) || [];
   const res = { label, fresh: fi.length, ref: ci.length };
   if (!fi.length && !ci.length) return { ...res, verdict: 'ABSENT' };
@@ -383,7 +392,8 @@ export function compareModule(S, C, label, { windows = 3, ctx = 10 } = {}) {
       const n = Math.max(g.fb - g.fa, g.rb - g.ra);
       for (let k = 0; k < n && diffs.length < windows; k++) {
         const fu = g.fa + k < g.fb ? F[g.fa + k] : null, ru = g.ra + k < g.rb ? R[g.ra + k] : null;
-        diffs.push(tokenWindow(S, C, fu, ru, ctx, g.fa + k, g.ra + k));
+        if (hunks && fu && ru) for (const h of tokenHunks(S, C, fu, ru, ctx, g.fa + k, g.ra + k)) { if (diffs.length >= windows) break; diffs.push(h); }
+        else diffs.push(tokenWindow(S, C, fu, ru, ctx, g.fa + k, g.ra + k));
       }
     }
     return { ...res, verdict: 'FAIL', why: 'structure', diffs };
@@ -415,6 +425,24 @@ export function compareModule(S, C, label, { windows = 3, ctx = 10 } = {}) {
     }
   }
   return { ...res, verdict: 'PASS', tokens: ntok };
+}
+// every hunk of two units' token shapes (patience diff; locals all alike), each with ctx tokens around it, in original text
+function tokenHunks(S, C, fu, ru, ctx, kf, kr) {
+  const ta = unitTokens(S, fu), tb = unitTokens(C, ru);
+  const pairs = patience(ta.map((t) => t.v), tb.map((t) => t.v));
+  const out = [];
+  let a = 0, b = 0;
+  const span = (side, toks, i0, i1) => {
+    const lo = toks[Math.max(0, i0 - ctx)], hi = toks[Math.min(toks.length, i1 + ctx) - 1];
+    if (!lo || !hi) return '';
+    const s = side.js, m0 = i0 < toks.length ? toks[i0].pos : hi.end, m1 = i1 > i0 ? toks[i1 - 1].end : m0;
+    return (i0 - ctx > 0 ? '…' : '') + s.slice(lo.pos, m0) + '⟦' + s.slice(m0, m1) + '⟧' + s.slice(m1, Math.max(m1, hi.end)) + (i1 + ctx < toks.length ? '…' : '');
+  };
+  for (const [i, j] of [...pairs, [ta.length, tb.length]]) {
+    if (i > a || j > b) out.push({ unitFresh: kf, unitRef: kr, token: a, fresh: span(S, ta, a, i), ref: span(C, tb, b, j), refAt: ru.start, freshHead: fu.text.slice(0, 80), refHead: ru.text.slice(0, 80), hunk: true });
+    a = i + 1; b = j + 1;
+  }
+  return out;
 }
 // a window of tokens around the first difference of two units (q = a known index), with the original names
 function tokenWindow(S, C, fu, ru, ctx, kf, kr, q = null) {

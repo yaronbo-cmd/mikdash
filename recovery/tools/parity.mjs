@@ -4,6 +4,7 @@
 //   node recovery/tools/parity.mjs --page                  the whole page (build.mjs's play.html + 26c's head script and
 //                                                          title) byte for byte against recovery/build26c.min.html
 // options: --windows N (differences shown, default 3) · --ctx N (tokens around each, default 10) · --root DIR (another tree)
+//          --hunks (inside a changed unit: every token hunk — a patience diff of the shapes — not just the first difference)
 // Verdicts: PASS · FAIL (structure: the units differ; names: the same shapes but the names do not map one-to-one, or a
 // top-level name comes from another module) · MISSING-IN-FRESH (a 26c module the tree does not have yet) · MISSING-IN-26c.
 // Exit code 0 when every requested module passes (--page: the bytes are identical).
@@ -15,7 +16,7 @@ const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(k); if (i < 0) return d; const v = argv[i + 1]; argv.splice(i, 2); return v; };
 const flag = (k) => { const i = argv.indexOf(k); if (i < 0) return false; argv.splice(i, 1); return true; };
 const windows = +opt('--windows', 3), ctx = +opt('--ctx', 10), root = opt('--root', ROOT), jsonOut = opt('--json', null);
-const all = flag('--all'), page = flag('--page'), selfcheck = flag('--selfcheck');
+const all = flag('--all'), page = flag('--page'), selfcheck = flag('--selfcheck'), hunks = flag('--hunks');
 const t0 = Date.now();
 const note = checkBuildMjs(root);
 if (note) console.log(note);
@@ -51,7 +52,7 @@ if (selfcheck) {
 const { S, C } = await bothSides(root);
 const labels = [...new Set([...S.mods.keys(), ...C.mods.keys()])];
 const want = all ? labels : argv.map((q) => { const l = findLabel(labels, q); if (!l) { console.log(`${q}: no module of that name in either bundle`); process.exitCode = 2; } return l; }).filter(Boolean);
-const results = want.map((l) => compareModule(S, C, l, { windows, ctx }));
+const results = want.map((l) => compareModule(S, C, l, { windows, ctx, hunks }));
 const fmt = (r) => {
   const head = `${r.verdict.padEnd(16)} ${r.label}`;
   if (r.verdict === 'PASS') return `${head}  (${r.fresh} units, ${r.tokens.toLocaleString('en-US')} tokens)`;

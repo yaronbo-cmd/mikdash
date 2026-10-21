@@ -48,7 +48,8 @@ function realName(mod, name) {
   return !has(name) && has(m[1]) ? m[1] : name;
 }
 const own = new Set(U.map((u) => u.decl).filter(Boolean));
-const topName = (n) => { const d = X.top.get(n); return d ? realName(d.module, d.src) || n : n; };
+// (26c: symmap's name is exact only in an unchanged module — elsewhere it may be shifted, so it is shown as name__q)
+const topName = (n) => { const d = X.top.get(n); if (!d) return n; if (d.src) return realName(d.module, d.src) || n; return X === C && C.symmap[n] ? C.symmap[n].name + '__q' : n; };
 const relTo = (mod) => {
   if (mod.startsWith('node_modules/three/build/')) return 'three';
   if (mod.startsWith('node_modules/')) return mod.replace(/^node_modules\//, '');
@@ -60,12 +61,14 @@ const relTo = (mod) => {
 const initOf = new Map();   // init_x name → module
 for (const u of X.units) if (u.kind === 'wrap') initOf.set(u.decl, u.label);
 const imports = new Map(), sideEffects = new Set();
-const used = new Map();   // the local name chosen for an imported/own top-level name → minified name (collisions)
+const used = new Map(), chosen = new Map();   // the local name chosen for an imported/own top-level name ↔ minified name (collisions)
 function nameFor(n) {
   if (!X.top.has(n)) return null;
-  let s = topName(n);
-  if (used.has(s) && used.get(s) !== n) s = s + '_' + n;
-  used.set(s, n);
+  if (chosen.has(n)) return chosen.get(n);
+  const base = topName(n);
+  let s = base, k = 1;
+  while (used.has(s) && used.get(s) !== n) s = `${base}$${k++}`;   // (a deterministic suffix, so both sides print alike)
+  used.set(s, n); chosen.set(n, s);
   return s;
 }
 const hoisted = new Map();   // a wrapped module's bare `var a` → its unit
@@ -114,7 +117,7 @@ for (const u of U) {
     lines.push(`${exp(n)}${(assigned.get(n) || 0) > 1 ? 'let' : 'const'} ${text};`);
   } else if ((u.kind === 'seq' || u.kind === 'expr') && nd.type === 'CallExpression' && nd.callee.type === 'Identifier' && initOf.has(nd.callee.name) && !nd.arguments.length) {
     sideEffects.add(initOf.get(nd.callee.name));
-  } else if (u.kind === 'seq' || u.kind === 'expr') lines.push(text + ';');
+  } else if (u.kind === 'seq' || u.kind === 'expr') lines.push((/^\s*[{]/.test(text) || nd.type === 'ObjectExpression' ? `(${text})` : text) + ';');
   else lines.push((nd.type === 'FunctionDeclaration' || nd.type === 'ClassDeclaration') ? exp(nd.id && nd.id.name) + text : text);
 }
 for (const [n, at] of hoisted) lines[at] = `${refs.has(n) ? 'export ' : ''}let ${nameFor(n)};`;

@@ -1,0 +1,14 @@
+diff --git a/src/animals.js b/src/animals.js
+index 31e6bf1..39322d7 100644
+--- a/src/animals.js
++++ b/src/animals.js
+@@ -336,6 +336,9 @@ function bird({ turtle = false } = {}) {
+ 
+ /** a lamb as one static piece (all bones 0): the lamb a kohen carries in his arms (actors.js items) */
+ export function lambStatic() { const g = sheep().geo; g.attributes.aBone.array.fill(0); return g; }
++// ── recovered (build 25) ── the sheep's rig (geo, pivots, pose) for a skinned mesh of its own: pen25's lamb at the pen door
++// (the export's name did not survive the bundle; `sheepRig` is the recovery's)
++export const sheepRig = () => ({ ...sheep(), pose: QUAD_POSE });
+ 
+ const BUILD = { lamb: () => sheep(), ram: () => sheep({ ram: true }), goat, bull: () => bovine(), calf: () => bovine({ calf: true }), dove: () => bird(), turtledove: () => bird({ turtle: true }) };
+ export const ANIMAL_KINDS = Object.keys(BUILD);

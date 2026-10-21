@@ -1567,6 +1567,7 @@ export function createStages(ctx) {
     if (x > 6 && x < 141 && Math.abs(z) < 67.5) y = Math.max(y, shownTop('nashim', x, z, 5.9, 0));   // (the court's floor on its footing)
     if (x > -76.2 && x < -54.5 && Math.abs(z) < 50) { let n = 0; for (const xr of XR12) if (x <= xr) n++; if (n) y = Math.max(y, shownTop('ulam', x, z, 16 + 0.5 * n, 15.9)); }
     if (x > -92 && x < -76 && Math.abs(z) < 30 && (x < -81 || Math.abs(z) < 10)) y = Math.max(y, shownTop('ulam', x, z, 22, 16));   // (the Ulam's hall and its opening's sill)
+    if (x > -139 && x <= -92 && Math.abs(z) < 10) y = Math.max(y, shownTop('heichal', x, z, 22, 16));   // ── recovered (build 26) ── (the Heichal's floor: he may go in)
     // (── site13 ── N76 b) the altar as it stands — the yesod's ledge, the sovev, the top — and the kevesh (temple.js 120–137)
     if (x > -54 && x < -22 && z > -19.5 && z < 42.5) {
       if (z <= 12.5) {
@@ -3093,6 +3094,7 @@ export function createStages(ctx) {
   const TW_SOLID = ['ulam', 'heichal', 'kodesh', 'lishka', 'kiyor', 'gates'], TW_KODESH = [-176, -35, -139, 35];
   const inR = (f, x, z) => x > f[0] && x < f[2] && z > f[1] && z < f[3];
   function twinSolid(x, z, x0, z0) {
+    if (TWD.pass && TWD.pass(x, z)) return false;   // ── recovered (build 26) ── (where day33 lets him through — world22's Ulam and Heichal)
     if (inR(TW_KODESH, x, z) && !inR(TW_KODESH, x0, z0)) return true;
     for (let i = 0; i < TW_SOLID.length; i++) {
       const st = ST[TW_SOLID[i]]; if (!st || (st.status !== 'building' && st.status !== 'done') || !st.def || !st.def.foot) continue;
@@ -4073,6 +4075,7 @@ export function createStages(ctx) {
     dash: heroDash, get dashing() { return hero.dash || 0; }, navLog: () => NAV_LOG.slice(),   // ── nav19 ── ── /nav19 ──
     // ── engine22 ── Phase B's two thumbs: the Temple's own solids (xtra(x, z, x0, z0) → true = blocked) and a place by coordinates (the builder's feet)
     twinExtra: (f) => { TWD.xtra = typeof f === 'function' ? f : null; },
+    twinPass: (f) => { TWD.pass = typeof f === 'function' ? f : null; },   // ── recovered (build 26) ── (pass(x, z) → true = never solid here)
     setPos: (x, z, yaw) => { if (hero.resolve) { const r = hero.resolve; hero.resolve = null; r(false); } heroCancel(); hero.path = null; hero.door = null; hero.fade = 1; hero.x = x; hero.z = z; hero.y = groundAt(x, z); if (Number.isFinite(yaw)) hero.yaw = yaw; hero.face = null; hero.vis = true; hero.mesh.visible = hero.ring.visible = true; },
     // ── /engine22 ──
     get speedMul() { return hero.speedMul || 1; }, set speedMul(v) { hero.speedMul = v > 0 && v < 4 ? +v : 1; },   // ── shift29 ── ── /shift29 ──

@@ -1,0 +1,410 @@
+<title>סיעור המוחות של הבונים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Suez+One&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: one column of idea cards on a phone (two on a wide screen), a sticky voter bar, the strike lab between the ideas and the shop. */
+:root {
+  --bg: #EDF0F3;          /* the morning haze over the Mount */
+  --card: #FFFDF8;        /* dressed limestone */
+  --ink: #1C2330;
+  --muted: #5A6475;
+  --line: #D9D3C4;
+  --techelet: #1D4F91;    /* the accent */
+  --gold: #B8860B;
+  --gold-soft: #F3E3B5;
+  --good: #2E7D4F;
+  --warn: #A1501C;
+  --chip: #E4E8EE;
+  --stone-a: #D9CBAE; --stone-b: #E9DFCA; --stone-edge: #A8936B; --zone: #F3D27A;
+  --font-display: "Suez One", "Assistant", "Arial Hebrew", system-ui, sans-serif;
+  --font-body: "Assistant", "Arial Hebrew", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1420; --card: #172033; --ink: #E8ECF2; --muted: #A3ADBD; --line: #2A3650;
+    --techelet: #8FB4EE; --gold: #E2B84A; --gold-soft: #3A3018; --good: #6CC593; --warn: #F0A06A; --chip: #223049;
+    --stone-a: #B9AA8C; --stone-b: #CBBE9F; --stone-edge: #8C7A57; --zone: #C9A43C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1420; --card: #172033; --ink: #E8ECF2; --muted: #A3ADBD; --line: #2A3650;
+  --techelet: #8FB4EE; --gold: #E2B84A; --gold-soft: #3A3018; --good: #6CC593; --warn: #F0A06A; --chip: #223049;
+  --stone-a: #B9AA8C; --stone-b: #CBBE9F; --stone-edge: #8C7A57; --zone: #C9A43C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.55; direction: rtl; }
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 60px; display: flex; flex-direction: column; gap: 22px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 7vw, 40px); line-height: 1.15; color: var(--techelet); }
+h2 { font-size: 24px; line-height: 1.2; }
+h3 { font-size: 21px; line-height: 1.25; }
+p { margin: 0; }
+.lead { font-size: 18px; max-width: 62ch; }
+.small { font-size: 14px; color: var(--muted); }
+.kicker { font-size: 13px; letter-spacing: .04em; color: var(--gold); font-weight: 700; }
+header { display: flex; flex-direction: column; gap: 10px; }
+.quote { border-inline-start: 4px solid var(--gold); padding-inline-start: 12px; color: var(--muted); font-size: 16px; }
+
+/* who votes */
+.voter { background: var(--bg); padding-block: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border-bottom: 1px solid var(--line); }
+.voter span { font-weight: 700; }
+.pill { min-height: 44px; padding: 0 16px; border-radius: 22px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.pill[aria-pressed="true"] { border-color: var(--techelet); background: var(--techelet); color: var(--card); }
+.pill:focus-visible, .vote:focus-visible, .tap:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#otherName { min-height: 44px; border-radius: 22px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; padding: 0 14px; width: 150px; }
+.status { font-size: 13px; color: var(--muted); width: 100%; }
+
+/* idea cards */
+.grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 680px) { .grid { grid-template-columns: 1fr 1fr; } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card.loved { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-soft); }
+a { color: var(--techelet); font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 13px; background: var(--chip); border-radius: 10px; padding: 2px 8px; color: var(--ink); }
+.tag.g { font-weight: 700; }
+.src { font-size: 13px; color: var(--muted); }
+.votes { display: flex; gap: 8px; margin-top: 2px; }
+.vote { flex: 1; min-height: 44px; border-radius: 12px; border: 2px solid var(--line); background: transparent; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.vote[aria-pressed="true"].v3 { background: var(--gold-soft); border-color: var(--gold); }
+.vote[aria-pressed="true"].v2 { background: var(--chip); border-color: var(--techelet); }
+.vote[aria-pressed="true"].v1 { background: var(--chip); border-color: var(--muted); }
+.tally { font-size: 13px; color: var(--muted); min-height: 1.2em; }
+
+/* the strike lab */
+.lab { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.demos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 680px) { .demos { grid-template-columns: 1fr 1fr; } }
+.demo { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.tap { width: 100%; border: 2px solid var(--line); border-radius: 12px; background: var(--bg); padding: 0; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.tap svg { display: block; width: 100%; height: auto; }
+.fb { min-height: 1.6em; font-weight: 700; }
+.fb.ok { color: var(--good); } .fb.early, .fb.late { color: var(--warn); }
+.speed { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.s-stone { fill: var(--stone-a); stroke: var(--stone-edge); }
+.s-face, .s-track { fill: var(--stone-b); stroke: var(--stone-edge); }
+.s-face { stroke: none; }
+.s-target { fill: none; stroke: var(--gold); }
+.s-target.near { fill: var(--zone); }
+.s-ring { fill: none; stroke: var(--techelet); }
+.s-now { fill: var(--gold); }
+.s-zone { fill: var(--zone); }
+.s-mark { fill: var(--techelet); }
+.s-label { fill: var(--muted); }
+textarea { width: 100%; min-height: 96px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; padding: 10px; resize: vertical; }
+.send { min-height: 44px; padding: 0 22px; border-radius: 12px; border: 0; background: var(--techelet); color: var(--card); font: inherit; font-weight: 700; cursor: pointer; align-self: flex-start; }
+.notes { display: flex; flex-direction: column; gap: 8px; }
+.note { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+section { display: flex; flex-direction: column; gap: 12px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">בית המקדש השני · סיעור מוחות לגל 14</div>
+    <h1>איזו עבודה תרצי לעשות בבנייה?</h1>
+    <p class="lead">ביקשת עוד עבודות חוץ מלסתת אבנים. הנה רעיונות שהסוכנים יכולים לבנות. סמני ❤️ על מה שהכי בא לך לעשות בעצמך, 👍 על מה שנחמד, ו־👎 על מה שלא. את מה שתאהבי, נבנה קודם. <a href="#new">הבוקר הוסיפו הסוכנים עוד 15 רעיונות ↓</a></p>
+    <p class="quote">"חוץ מלחצוב אבנים שיהיו עוד פעולות שהשחקן עושה" — ההערה שלך מאתמול בלילה</p>
+    <p class="small">כל הרעיונות הם טיוטה. המקורות ייבדקו לפני שהם נכנסים למשחק.</p>
+  </header>
+
+  <div class="voter" role="group" aria-label="מי מצביע/ה">
+    <span>מי מצביע/ה?</span>
+    <button class="pill" data-voter="kid" data-name="הילדה" aria-pressed="false">אני הילדה</button>
+    <button class="pill" data-voter="dad" data-name="אבא" aria-pressed="false">אני אבא</button>
+    <button class="pill" data-voter="other" data-name="" aria-pressed="false">מישהו אחר</button>
+    <input id="otherName" type="text" maxlength="20" placeholder="איך קוראים לך?" aria-label="השם שלך" hidden>
+    <div class="status" id="status">מתחבר לשמירה…</div>
+  </div>
+
+  <section aria-labelledby="h-jobs">
+    <h2 id="h-jobs">עבודות בנייה חדשות</h2>
+    <div class="grid" id="jobs"></div>
+  </section>
+
+  <section aria-labelledby="h-new" id="new">
+    <div class="kicker">חדש הבוקר</div>
+    <h2 id="h-new">15 רעיונות מסיעור המוחות של הסוכנים</h2>
+    <p>חמשת הסוכנים חשבו הבוקר על עוד עבודות. גם עליהן אפשר להצביע.</p>
+    <div class="grid" id="jobs2"></div>
+  </section>
+
+  <section aria-labelledby="h-lab">
+    <h2 id="h-lab">המכה המדויקת: מה ברור לך יותר?</h2>
+    <div class="lab">
+      <p>במשחק, הקשה בדיוק בזמן הנכון שווה שתי מכות. שני סימנים אפשריים לזמן הנכון. נסי את שניהם: הקישי על התמונה כשהגיע הרגע.</p>
+      <div class="speed" role="group" aria-label="מהירות">
+        <button class="pill" id="slow" aria-pressed="true">לאט, ללמוד</button>
+        <button class="pill" id="fast" aria-pressed="false">מהירות המשחק</button>
+      </div>
+      <div class="demos">
+        <div class="demo">
+          <h3>א. הטבעת נסגרת</h3>
+          <p class="small">הקישי כשהטבעת הכחולה נוגעת בעיגול הזהב.</p>
+          <button class="tap" id="tapRing" aria-label="הקש בזמן הטבעת">
+            <svg viewBox="0 0 300 170" aria-hidden="true">
+              <rect x="40" y="28" width="220" height="118" rx="10" class="s-stone" stroke-width="2"/>
+              <rect x="56" y="42" width="188" height="90" rx="6" class="s-face"/>
+              <circle id="rTarget" cx="150" cy="87" r="22" class="s-target" stroke-width="5"/>
+              <circle id="rRing" cx="150" cy="87" r="66" class="s-ring" stroke-width="5" opacity=".4"/>
+              <text id="rNow" x="150" y="22" text-anchor="middle" font-size="18" font-weight="700" class="s-now" opacity="0">עכשיו!</text>
+            </svg>
+          </button>
+          <div class="fb" id="fbRing" aria-live="polite"></div>
+        </div>
+        <div class="demo">
+          <h3>ב. הפס של הפטיש</h3>
+          <p class="small">הקישי כשהסמן נמצא בתוך הפס הזהוב.</p>
+          <button class="tap" id="tapBar" aria-label="הקש בזמן הפס">
+            <svg viewBox="0 0 300 170" aria-hidden="true">
+              <rect x="40" y="70" width="220" height="30" rx="15" class="s-track" stroke-width="2"/>
+              <rect id="bZone" x="40" y="70" width="60" height="30" rx="15" class="s-zone"/>
+              <rect id="bMark" x="252" y="58" width="8" height="54" rx="4" class="s-mark"/>
+              <text id="bNow" x="150" y="44" text-anchor="middle" font-size="18" font-weight="700" class="s-now" opacity="0">עכשיו!</text>
+              <text x="250" y="132" text-anchor="middle" font-size="13" class="s-label">הפטיש עולה</text>
+              <text x="70" y="132" text-anchor="middle" font-size="13" class="s-label">מכה</text>
+            </svg>
+          </button>
+          <div class="fb" id="fbBar" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="votes" role="group" aria-label="איזה סימן ברור יותר">
+        <button class="vote v3" data-idea="strike" data-v="ring" aria-pressed="false">א. הטבעת ברורה לי</button>
+        <button class="vote v3" data-idea="strike" data-v="bar" aria-pressed="false">ב. הפס ברור לי</button>
+      </div>
+      <div class="tally" id="tally-strike"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-shop">
+    <h2 id="h-shop">מה לקנות במטבעות?</h2>
+    <p>כל משימה שמצליחים בה תיתן מטבעות לפי הקושי. מה הכי שווה לחסוך בשבילו? (בלי כסף אמיתי, ובלי הגרלות.)</p>
+    <div class="grid" id="shop"></div>
+  </section>
+
+  <section aria-labelledby="h-own">
+    <h2 id="h-own">רעיון משלך</h2>
+    <p>יש לך רעיון לעבודה, למשחק או לדבר שאפשר לקנות? כתבי כאן, והסוכנים יקראו את זה הלילה.</p>
+    <label for="noteText" class="small">הרעיון שלי</label>
+    <textarea id="noteText" maxlength="600"></textarea>
+    <button class="send" id="sendNote">לשלוח את הרעיון</button>
+    <div class="small" id="noteStatus" aria-live="polite"></div>
+    <div class="notes" id="notes"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  /* ── the ideas (the supervisor's seed, docs/BRAINSTORM14.md) ── */
+  var JOBS = [
+    { id: 'saw', n: 'ניסור קורות ארז', d: 'מנסרים קורה ביחד עם עוד כהן, הלוך וחזור בקצב, בלי לסטות מהקו. אפשר גם בשניים על טלפון אחד.', g: 'הלוך־חזור', at: 'תקרות, דלתות, הגזוזטרא', s: 'עזרא ג, ז: הארזים מהלבנון (הניסור: המחשה)' },
+    { id: 'bellows', n: 'המפוח והכור', d: 'לוחצים בשני אגודלים לסירוגין על המפוח עד שהאש לבנה, ואז יוצקים נחושת לתבנית עד הקו.', g: 'לסירוגין, ואז החזק', at: 'שער ניקנור, הכיור', s: 'מדות ב, ג (דלתות הנחושת); המפוח והיציקה: המחשה' },
+    { id: 'plaster', n: 'סיד על המזבח', d: 'צובעים באצבע, במפה, את אבני המזבח בלבן עד שלא נשאר כתם. בלי שום כלי ברזל.', g: 'צביעה באצבע', at: 'המזבח', s: 'מדות ג, ד' },
+    { id: 'gold', n: 'שפשוף הזהב', d: 'משפשפים את לוחות הזהב עד שהם מבריקים כמו השמש.', g: 'שפשוף', at: 'השערים, האולם, ההיכל', s: 'מדות ד, א; ב, ג; יוספוס, מלחמת היהודים ה, ה, ו' },
+    { id: 'rollers', n: 'אבן על גלילים', d: 'דוחפים אבן ענקית על גלילי עץ, ומעבירים כל פעם את הגליל מאחור לפנים לפני שהאבן נופלת ממנו.', g: 'החלקה וגרירה', at: 'האבנים הגדולות בהר ובחומה', s: 'המחשה' },
+    { id: 'lever', n: 'כוונון במוט', d: 'מזיזים את האבן בעדינות עם מוט, עד שהיא נכנסת למקום בדיוק, בלי שום רווח. בלי טיט!', g: 'דחיפות קטנות', at: 'אבני הפינה', s: 'המחשה: בנייה בלי טיט' },
+    { id: 'line', n: 'החוט הצבוע', d: 'מותחים חוט צבוע, מרימים ומשחררים, וטראח! קו ישר מסומן לנדבך.', g: 'משיכה ושחרור', at: 'תחילת כל נדבך', s: 'זכריה א, טז: "וקו ינטה על ירושלים" (החוט הצבוע: המחשה)' },
+    { id: 'reed', n: 'קנה המידה', d: 'מודדים את החצר בקנה של שש אמות, וסופרים עד המספר שכתוב במשנה.', g: 'הקשות וספירה', at: 'המדידה בתחילת כל שלב', s: 'יחזקאל מ, ה; מסכת מדות' },
+    { id: 'arch', n: 'בניית קשת', d: 'מניחים את אבני הקשת על פיגום עץ, ואת אבן הראש אחרונה. אחר כך מוציאים את הפיגום, והקשת הגדולה עומדת לבד!', g: 'גרירה לפי הסדר', at: 'הקשת הגדולה בפינת הר הבית', s: 'קשת רובינסון (ארכאולוגיה); יוספוס, קדמוניות טו, יא, ה' },
+    { id: 'vine', n: 'גפן הזהב', d: 'תולים על הגפן שבפתח ההיכל עלה, גרגיר או אשכול מזהב, איפה שרוצים. אפשר גם לקנות במטבעות.', g: 'גרירה למקום', at: 'האולם', s: 'מדות ג, ח' },
+    { id: 'weave', n: 'אריגת הפרוכת', d: 'אורגים את הפרוכת, חוט מעל וחוט מתחת, בארבעה צבעים לפי הדוגמה.', g: 'הקשות לפי דוגמה', at: 'בית האריגה', s: 'כתובות קו ע"א; שקלים ה, א; יומא ה, א' },
+    { id: 'rafts', n: 'רפסודות הארזים', d: 'משיטים רפסודת ארזים מהלבנון ליפו, ומתחמקים מסלעים ומגלים.', g: 'היגוי', at: 'הבאת הארזים', s: 'עזרא ג, ז; דברי הימים ב ב, טו' },
+    { id: 'treadwheel', n: 'גלגל הדריכה', d: 'צועדים בתוך הגלגל הענק של המנוף (אגודל ימין, אגודל שמאל), והאבן עולה. עוצרים בדיוק בגובה הנכון.', g: 'לסירוגין ועצירה', at: 'הנדבכים הגבוהים של הבית', s: 'המחשה: מנוף רומי (ויטרוביוס)' },
+    { id: 'letters', n: 'חריטת אותיות', d: 'חורטים באצבע את הכתובת "לבית התקיעה" על אבן הפינה, וגם את הסימן שלך על אבן אחת בכל שלב.', g: 'ציור באצבע', at: 'החומה, וכל שלב', s: 'הכתובת שנמצאה למרגלות הר הבית (1968); יוספוס, מלחמת היהודים ד, ט, יב' },
+    { id: 'wheel', n: 'הגלגל בלשכת הגולה', d: 'מסובבים באצבע את הגלגל שמעל הבור ומעלים מים לכל העזרה. בכיור מסובבים את המוכני.', g: 'סיבוב במעגל', at: 'העזרה, הכיור', s: 'מדות ה, ד; יומא ג, י' },
+    { id: 'tiles', n: 'ריצוף בצבעים', d: 'מסדרים אריחי אבן צבעוניים בדוגמה של כוכבים ומעוינים, כמו הריצוף שנמצא בסינון העפר מהר הבית.', g: 'פאזל גרירה', at: 'רחבת ההר', s: 'פרויקט סינון עפר הר הבית (ריצוף אופוס סקטילה)' },
+    { id: 'ravens', n: 'כלה עורב', d: 'מתקינים קוצים על גג הבית כדי שהעורבים לא ינחתו עליו. והם מנסים שוב ושוב!', g: 'הקשה במקום', at: 'גג ההיכל', s: 'מדות ד, ו' },
+    { id: 'scaffold', n: 'בניית פיגום', d: 'גוררים מוטות עץ למקום וקושרים אותם, כדי לבנות את הנדבכים הגבוהים.', g: 'גרירה וקשירה', at: 'האולם וההיכל', s: 'המחשה' },
+    { id: 'worms', n: 'מצא את התולעת', d: 'בודקים את עצי המערכה של המזבח ומוציאים כל עץ שיש בו תולעת.', g: 'חיפוש', at: 'לשכת העצים בעזרת הנשים', s: 'מדות ב, ה' },
+    { id: 'joints', n: 'חיבור על חיבור', d: 'בוחרים את האבן הנכונה, כך שאף חיבור לא ייפול מעל חיבור.', g: 'בחירה', at: 'כל נדבך של חומה', s: 'הבנייה שנחשפה סביב הר הבית (ארכאולוגיה)' },
+    { id: 'steps', n: 'ט״ו המעלות', d: 'בונים את חמש עשרה המעלות, כל מעלה בגובה חצי אמה בדיוק, והלויים שרים עליהן.', g: 'עצירה על הסימן', at: 'שער ניקנור', s: 'מדות ב, ה; גובה המעלה: מדות ב, ג' }
+  ];
+  var NEW_JOBS = [
+    { id: 'fit-the-course', n: 'השלם את הנדבך', d: 'גוררים אבנים באורכים שונים אל הרווח בנדבך, עד שהוא מתמלא בדיוק, ואף חיבור לא עומד מעל חיבור.', g: 'גרירה למקום', at: 'כל החומות והנדבכים', s: 'הבנייה ההורדוסית שנראית בכותל המערבי (ארכאולוגיה)' },
+    { id: 'sea-waves', n: 'גלי הים', d: 'בונים את קיר הבית: שורת אבנים בולטת, שורה שקועה, עד שהקיר נראה כמו גלי הים.', g: 'החלקה פנימה והחוצה', at: 'ההיכל והאולם', s: 'סוכה נא ע״ב; בבא בתרא ד ע״א' },
+    { id: 'raise-column', n: 'מקימים עמוד', d: 'מושכים בחבל יד אחרי יד, ועמוד שיש ענק קם ונעמד. שלושה אנשים צריכים להחזיק ידיים כדי לחבק אותו!', g: 'משיכת חבל', at: 'הסטיו בהר הבית', s: 'יוספוס, מלחמת היהודים ה, ה, ב' },
+    { id: 'aqueduct', n: 'אמת המים', d: 'מסובבים את חלקי התעלה עד שהמים יכולים לרדת מהמעיין עד המקדש. ואז פותחים, והמים זורמים!', g: 'סיבוב חלקים', at: 'מעין עיטם לעזרה', s: 'יומא לא ע״א; שקלים ד, ב' },
+    { id: 'toss-the-fill', n: 'ממלאים את הסוללה', d: 'זורקים סלים של עפר מאחורי החומה עד שהרחבה של הר הבית מתיישרת, ובעפר מחכה מטבע עתיק.', g: 'זריקה באצבע', at: 'הר הבית', s: 'המחשה (ומטבעות שנמצאו בעפר שמתחת לכותל המערבי, 2011)' },
+    { id: 'cedar-poles', n: 'כלונסות הארז', d: 'את ושותף מחליקים קורת ארז ארוכה מקיר לקיר ותוקעים טריז, כדי שהקיר לא יבעט.', g: 'החלקה והקשה', at: 'האולם והלשכות', s: 'מדות ג, ח' },
+    { id: 'gold-chains', n: 'שלשלאות הזהב', d: 'תולים שלשלאות זהב בתקרת האולם, וכהנים צעירים מטפסים בהן למעלה לראות את העטרות.', g: 'גרירה וטיפוס', at: 'האולם', s: 'מדות ג, ח' },
+    { id: 'scaffold-down', n: 'מורידים את הפיגום', d: 'בסוף הבנייה מתירים את הקשרים, הקורות והקרשים יורדים בזה אחר זה, ופתאום רואים את הבניין כולו.', g: 'הקשה על הקשרים', at: 'כל הבניינים עם פיגום', s: 'המחשה' },
+    { id: 'slake-lime', n: 'מכינים סיד לבן', d: 'שופכים מים על אבני הסיד והן רותחות ומעלות אדים, ובוחשים עד שיוצא סיד לבן למזבח.', g: 'מזיגה ובחישה', at: 'המזבח', s: 'המחשה (ליבון המזבח: מדות ג, ד)' },
+    { id: 'gold-beating', n: 'מרקעים את הזהב', d: 'מקישים על המקומות העבים בגוש הזהב עד שהוא נעשה דף דק ומבריק לציפוי.', g: 'הקשות מכוונות', at: 'השערים, האולם וההיכל', s: 'המחשה (ריקוע זהב: שמות לט, ג)' },
+    { id: 'gold-scales', n: 'מאזני הזהב', d: 'שוקלים את הזהב לציפוי הדלתות: גוררים משקולות לכף המאזניים עד שהמחוג עומד ישר.', g: 'גרירת משקולות', at: 'השערים, האולם וההיכל', s: 'עזרא ח, לד' },
+    { id: 'my-oxen', n: 'השוורים שלי', d: 'נותנים שמות לזוג שוורים ומובילים איתם עגלת אבנים מהמחצבה: בירידה בולמים, בעלייה משחררים.', g: 'לחיצה ושחרור', at: 'בכל שלב אחרי ההר', s: 'יוספוס, קדמוניות טו, יא, ב' },
+    { id: 'kohen-path', n: 'שביל לכהן', d: 'מציירים באצבע דרך באתר, והכהן ושותפו הולכים בה עם קורת ארז בלי להיתקל באף אחד.', g: 'ציור דרך', at: 'כל עבודות הארז', s: 'המחשה' },
+    { id: 'rosette', n: 'שושנה לשער', d: 'מציירים באצבע עלה אחד, והוא חוזר סביב ויוצר שושנה שלמה. השושנה שלך נחרטת על השער.', g: 'ציור במראה', at: 'שערי העזרה', s: 'המחשה' },
+    { id: 'head-stone', n: 'חן חן לה', d: 'בסוף כל שלב הקהל מריע, ואת מחזיקה את האבן האחרונה ומניחה אותה בשיא התרועה.', g: 'החזקה ושחרור', at: 'סוף כל שלב', s: 'זכריה ד, ז' }
+  ];
+  var SHOP = [
+    { id: 'shop-machines', n: 'מכונות לאתר', d: 'מנוף עם גלגל, מנוף משולש, מזחלת ועגלת שוורים. קונים, והן מופיעות באתר ועובדות.' },
+    { id: 'shop-oxen', n: 'צמד שוורים עם שם', d: 'שוורים חדשים לעגלות, ואת נותנת להם שמות.' },
+    { id: 'shop-vine', n: 'עלה, גרגיר או אשכול לגפן הזהב', d: 'התרומה שלך תלויה על הגפן, והשם שלך נכתב בספר התורמים.' },
+    { id: 'shop-lamps', n: 'מנורות לאתר', d: 'האתר שלך מואר בלילה.' },
+    { id: 'shop-instruments', n: 'כלי הלויים', d: 'נבל, כינור, חצוצרות ומצלתיים, ושומעים אותם במוזיקה של המשחק.' },
+    { id: 'shop-tools', n: 'כלים טובים לכהן', d: 'פטיש ואזמל טובים יותר, וכל מכה שווה יותר.' },
+    { id: 'shop-mark', n: 'אבן עם הסימן שלי', d: 'אבן בבניין שהסימן שלך חרוט עליה, ואפשר למצוא אותה אחר כך.' }
+  ];
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  function voteRow(id) {
+    return '<div class="votes" role="group" aria-label="ההצבעה שלי">' +
+      '<button class="vote v3" data-idea="' + id + '" data-v="3" aria-pressed="false">❤️ הכי!</button>' +
+      '<button class="vote v2" data-idea="' + id + '" data-v="2" aria-pressed="false">👍 נחמד</button>' +
+      '<button class="vote v1" data-idea="' + id + '" data-v="1" aria-pressed="false">👎 לא</button></div>' +
+      '<div class="tally" id="tally-' + id + '"></div>';
+  }
+  document.getElementById('jobs').innerHTML = JOBS.map(function (j) {
+    return '<article class="card" id="card-' + j.id + '"><h3>' + esc(j.n) + '</h3><p>' + esc(j.d) + '</p>' +
+      '<div class="meta"><span class="tag g">תנועה: ' + esc(j.g) + '</span><span class="tag">איפה: ' + esc(j.at) + '</span></div>' +
+      '<div class="src">מקור: ' + esc(j.s) + '</div>' + voteRow(j.id) + '</article>';
+  }).join('');
+  document.getElementById('jobs2').innerHTML = NEW_JOBS.map(function (j) {
+    return '<article class="card" id="card-' + j.id + '"><h3>' + esc(j.n) + '</h3><p>' + esc(j.d) + '</p>' +
+      '<div class="meta"><span class="tag g">תנועה: ' + esc(j.g) + '</span><span class="tag">איפה: ' + esc(j.at) + '</span></div>' +
+      '<div class="src">מקור: ' + esc(j.s) + '</div>' + voteRow(j.id) + '</article>';
+  }).join('');
+  document.getElementById('shop').innerHTML = SHOP.map(function (j) {
+    return '<article class="card" id="card-' + j.id + '"><h3>' + esc(j.n) + '</h3><p>' + esc(j.d) + '</p>' + voteRow(j.id) + '</article>';
+  }).join('');
+
+  /* ── who votes (remembered on this device only) ── */
+  var voter = null;
+  try { voter = JSON.parse(localStorage.getItem('bh14_voter') || 'null'); } catch (e) { voter = null; }
+  var otherName = document.getElementById('otherName');
+  function paintVoter() {
+    document.querySelectorAll('.pill[data-voter]').forEach(function (b) {
+      var on = !!voter && (voter.key === b.dataset.voter || (b.dataset.voter === 'other' && voter.key.indexOf('o-') === 0));
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    otherName.hidden = !(voter && voter.key.indexOf('o-') === 0);
+    if (voter && voter.key.indexOf('o-') === 0 && document.activeElement !== otherName) otherName.value = voter.name || '';
+    paintMine();
+  }
+  function saveVoter() { try { localStorage.setItem('bh14_voter', JSON.stringify(voter)); } catch (e) { /* this device only */ } }
+  document.querySelectorAll('.pill[data-voter]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var k = b.dataset.voter;
+      if (k === 'other') voter = { key: (voter && voter.key.indexOf('o-') === 0) ? voter.key : 'o-' + Math.random().toString(36).slice(2, 8), name: (voter && voter.key.indexOf('o-') === 0 && voter.name) || '' };
+      else voter = { key: k, name: b.dataset.name };
+      saveVoter(); paintVoter();
+      if (k === 'other') otherName.focus();
+    });
+  });
+  otherName.addEventListener('input', function () { if (voter && voter.key.indexOf('o-') === 0) { voter.name = otherName.value.trim().slice(0, 20); saveVoter(); } });
+
+  /* ── the store ── */
+  var db = null, all = {}, busy = {};
+  var statusEl = document.getElementById('status');
+  function setStatus(t) { statusEl.textContent = t; }
+  var C = window.claude;
+  if (C && typeof C.use === 'function') {
+    C.use('db').then(function (d) {
+      if (!d) { setStatus('השמירה לא זמינה כאן. פתחו את הדף מתוך Claude כדי שההצבעות יישמרו.'); return; }
+      db = d; setStatus('ההצבעות נשמרות, והסוכנים יקראו אותן הלילה.');
+      db.collection('votes').onSnapshot(function (s) {
+        all = {}; s.docs.forEach(function (doc) { all[doc.id] = doc.data(); });
+        paintTallies(); paintMine();
+      }, function () { setStatus('החיבור לשמירה נקטע. רעננו את הדף.'); });
+      db.collection('notes').orderBy('t', 'desc').limit(50).onSnapshot(function (s) {
+        document.getElementById('notes').innerHTML = s.docs.map(function (doc) { var n = doc.data(); return '<div class="note"><b>' + esc(n.name || 'מישהו') + ':</b> ' + esc(n.text) + '</div>'; }).join('');
+      }, function () { /* the votes' status line covers it */ });
+    }, function () { setStatus('השמירה לא זמינה כאן.'); });
+  } else setStatus('השמירה לא זמינה כאן. פתחו את הדף מתוך Claude כדי שההצבעות יישמרו.');
+
+  var local = {};   // without a store: this visit only
+  function mineFor(idea) {
+    if (!voter) return null;
+    var id = voter.key + '--' + idea;
+    var d = db ? all[id] : local[id];
+    return d ? String(d.v) : null;
+  }
+  function paintMine() {
+    document.querySelectorAll('.vote[data-idea]').forEach(function (b) {
+      b.setAttribute('aria-pressed', mineFor(b.dataset.idea) === String(b.dataset.v) ? 'true' : 'false');
+    });
+    JOBS.concat(NEW_JOBS, SHOP).forEach(function (j) { var c = document.getElementById('card-' + j.id); if (c) c.classList.toggle('loved', mineFor(j.id) === '3'); });
+  }
+  function paintTallies() {
+    var by = {};
+    Object.keys(all).forEach(function (k) { var d = all[k]; if (!d || !d.idea) return; (by[d.idea] = by[d.idea] || []).push(d); });
+    JOBS.concat(NEW_JOBS, SHOP).forEach(function (j) {
+      var el = document.getElementById('tally-' + j.id); if (!el) return;
+      var L = by[j.id] || [];
+      var love = L.filter(function (d) { return String(d.v) === '3'; }).map(function (d) { return d.name || 'מישהו'; });
+      var like = L.filter(function (d) { return String(d.v) === '2'; }).length;
+      var no = L.filter(function (d) { return String(d.v) === '1'; }).length;
+      el.textContent = L.length ? ((love.length ? '❤️ ' + love.join(', ') + '  ' : '') + (like ? '👍 ' + like + '  ' : '') + (no ? '👎 ' + no : '')) : '';
+    });
+    var S = by.strike || [];
+    var ring = S.filter(function (d) { return d.v === 'ring'; }).map(function (d) { return d.name || 'מישהו'; });
+    var bar = S.filter(function (d) { return d.v === 'bar'; }).map(function (d) { return d.name || 'מישהו'; });
+    document.getElementById('tally-strike').textContent = (ring.length ? 'א: ' + ring.join(', ') + '  ' : '') + (bar.length ? 'ב: ' + bar.join(', ') : '');
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.vote[data-idea]'); if (!b) return;
+    if (!voter || (voter.key.indexOf('o-') === 0 && !voter.name)) { setStatus('קודם בחרו למעלה מי מצביע/ה.'); document.querySelector('.voter').scrollIntoView({ block: 'start' }); return; }
+    var idea = b.dataset.idea, v = b.dataset.v, id = voter.key + '--' + idea;
+    var same = mineFor(idea) === String(v);
+    if (!db) { if (same) delete local[id]; else local[id] = { v: v }; paintMine(); return; }
+    if (busy[id]) return; busy[id] = true;
+    var ref = db.collection('votes').doc(id);
+    var p = same ? ref.delete() : ref.set({ voter: voter.key, name: voter.name, idea: idea, v: v, t: Date.now() });
+    p.then(function () { busy[id] = false; }, function (err) {
+      busy[id] = false;
+      setStatus(err && err.code === 'invalid_argument' ? 'אין לכם הרשאה לשמור כאן. בקשו מירון לשתף אתכם כעורכים.' : 'לא נשמר. נסו שוב.');
+    });
+  });
+  document.getElementById('sendNote').addEventListener('click', function () {
+    var t = document.getElementById('noteText').value.trim(), st = document.getElementById('noteStatus');
+    if (!t) { st.textContent = 'כתבו קודם את הרעיון.'; return; }
+    if (!db) { st.textContent = 'השמירה לא זמינה כאן, אז הרעיון לא נשלח.'; return; }
+    st.textContent = 'שולח…';
+    db.collection('notes').add({ name: (voter && voter.name) || 'מישהו', voter: voter ? voter.key : '', text: t.slice(0, 600), t: Date.now() }).then(function () {
+      st.textContent = 'נשלח. תודה!'; document.getElementById('noteText').value = '';
+    }, function () { st.textContent = 'לא נשלח. נסו שוב.'; });
+  });
+  paintVoter();
+
+  /* ── the strike lab: one clock, two signs ── */
+  var P = 1.6, WIN = 0.3, t0 = performance.now() / 1000;
+  var slowB = document.getElementById('slow'), fastB = document.getElementById('fast');
+  function setSpeed(slow) { P = slow ? 1.6 : 0.86; WIN = slow ? 0.3 : 0.22; t0 = performance.now() / 1000; slowB.setAttribute('aria-pressed', slow ? 'true' : 'false'); fastB.setAttribute('aria-pressed', slow ? 'false' : 'true'); }
+  slowB.addEventListener('click', function () { setSpeed(true); });
+  fastB.addEventListener('click', function () { setSpeed(false); });
+  var rRing = document.getElementById('rRing'), rTarget = document.getElementById('rTarget'), rNow = document.getElementById('rNow');
+  var bMark = document.getElementById('bMark'), bZone = document.getElementById('bZone'), bNow = document.getElementById('bNow');
+  var BX0 = 252, BX1 = 64;   // the marker rides from the right (the hammer up) to the strike at the left
+  function phase(now) { var u = ((now - t0) / P) % 1; return u < 0 ? u + 1 : u; }
+  function frame() {
+    var now = performance.now() / 1000, u = phase(now), toBeat = (1 - u) * P, fromBeat = u * P;
+    var near = Math.min(toBeat, fromBeat) <= WIN;
+    rRing.setAttribute('r', (66 - 44 * u).toFixed(1));
+    rRing.setAttribute('opacity', (0.35 + 0.65 * u).toFixed(2));
+    rTarget.classList.toggle('near', near);
+    rNow.setAttribute('opacity', toBeat < 0.12 || fromBeat < 0.08 ? '1' : '0');
+    bMark.setAttribute('x', (BX0 + (BX1 - BX0) * u).toFixed(1));
+    var zw = Math.min(150, (WIN / P) * (BX0 - BX1));
+    bZone.setAttribute('x', (BX1 + 4 - zw / 2).toFixed(1)); bZone.setAttribute('width', zw.toFixed(1));
+    bNow.setAttribute('opacity', toBeat < 0.12 || fromBeat < 0.08 ? '1' : '0');
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  var streak = { ring: 0, bar: 0 };
+  function judge(which, fbId) {
+    var now = performance.now() / 1000, u = phase(now), toBeat = (1 - u) * P, fromBeat = u * P;
+    var dt = toBeat < fromBeat ? -toBeat : fromBeat;   // negative: before the beat
+    var fb = document.getElementById(fbId);
+    if (Math.abs(dt) <= WIN) { streak[which]++; fb.className = 'fb ok'; fb.textContent = 'מדויק! מכה כפולה' + (streak[which] > 1 ? ' · ' + streak[which] + ' ברצף' : ''); }
+    else if (dt < 0) { streak[which] = 0; fb.className = 'fb early'; fb.textContent = 'מוקדם מדי. חכי עוד רגע'; }
+    else { streak[which] = 0; fb.className = 'fb late'; fb.textContent = 'מאוחר מדי. הקישי קצת קודם'; }
+  }
+  document.getElementById('tapRing').addEventListener('pointerdown', function (e) { e.preventDefault(); judge('ring', 'fbRing'); });
+  document.getElementById('tapBar').addEventListener('pointerdown', function (e) { e.preventDefault(); judge('bar', 'fbBar'); });
+  [['tapRing', 'ring', 'fbRing'], ['tapBar', 'bar', 'fbBar']].forEach(function (a) { document.getElementById(a[0]).addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); judge(a[1], a[2]); } }); });
+})();
+</script>

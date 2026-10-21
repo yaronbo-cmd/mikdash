@@ -1,0 +1,478 @@
+[
+  {
+    "id": "bp_plan",
+    "title_he": "העצה של בבא בן בוטא",
+    "text_he": "הורדוס חשש מרומא. החכם בבא בן בוטא יעץ לו: שלח שליח — שנה ילך, שנה יתעכב ושנה יחזור, ובינתיים כבר תהרוס ותבנה.",
+    "source": "בבא בתרא ד, א",
+    "quote_nikud": "שַׁדַּר שְׁלִיחָא; וְלֵיזִיל שַׁתָּא, וְלִיעַכַּב שַׁתָּא, וְלֶהְדַּר שַׁתָּא",
+    "status": "draft",
+    "phase": "survey",
+    "kind": "intro",
+    "stage": [
+      "har"
+    ],
+    "note": "Leave out the context (3b–4a: Herod killed the sages and blinded Bava ben Buta).",
+    "quote": "שדר שליחא; וליזיל שתא, וליעכב שתא, ולהדר שתא"
+  },
+  {
+    "id": "bp_prepare",
+    "title_he": "קודם מכינים",
+    "text_he": "יוספוס מספר שהורדוס לא התחיל לבנות לפני שהכין את הכול: אלף עגלות להובלת האבנים ועשרת אלפים בעלי מלאכה מן המיומנים ביותר.",
+    "source": "יוספוס, קדמוניות טו, יא (390)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "survey",
+    "kind": "intro",
+    "stage": [
+      "har"
+    ],
+    "note": "Whiston §390, two sites."
+  },
+  {
+    "id": "bp_priests",
+    "title_he": "כהנים בונים",
+    "text_he": "הורדוס קנה אלף בגדי כהונה ולימד כהנים סיתות ונגרות, כי את הבית עצמו בנו כהנים. הם השלימו אותו בשנה וחצי.",
+    "source": "יוספוס, קדמוניות טו, יא (390, 421)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "dress",
+    "kind": "fact",
+    "stage": [
+      "ulam",
+      "heichal",
+      "kodesh"
+    ]
+  },
+  {
+    "id": "bp_eight_years",
+    "title_he": "שמונה שנים",
+    "text_he": "את הסטווים ואת החצרות החיצונות בנה הורדוס בשמונה שנים. בחנוכת הבית הקריב שלוש מאות שוורים.",
+    "source": "יוספוס, קדמוניות טו, יא (420, 422)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "milestone",
+    "stage": [
+      "har",
+      "wall"
+    ]
+  },
+  {
+    "id": "bp_white_stones",
+    "title_he": "אבנים לבנות",
+    "text_he": "יוספוס מתאר אבנים לבנות וחזקות, ארוכות עשרים וחמש אמה. מרחוק נראה הבית כהר מכוסה שלג, כי מה שלא היה מצופה זהב — היה לבן מאוד.",
+    "source": "יוספוס, קדמוניות טו, יא (392); מלחמות ה, ה, ו",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "quarry",
+    "kind": "fact",
+    "stage": [
+      "ulam",
+      "heichal"
+    ]
+  },
+  {
+    "id": "bp_courses",
+    "title_he": "נדבך יוצא ונדבך נכנס",
+    "text_he": "״מי שלא ראה בנין הורדוס, לא ראה בנין נאה״. הוא בנה באבני שיש, נדבך בולט ונדבך שקוע. רצה לצפות אותו בזהב, וחכמים אמרו: השאר — כך הוא דומה לגלי הים.",
+    "source": "בבא בתרא ד, א",
+    "quote_nikud": "אַפֵּיק שָׂפָה וְעַיֵּיל שָׂפָה, כִּי הֵיכִי דִּנְקַבֵּיל סִידָא",
+    "status": "draft",
+    "phase": "set",
+    "kind": "fact",
+    "stage": [
+      "ulam",
+      "heichal"
+    ],
+    "note": "Quote inside the text verified without the bracketed [מִיָּמָיו] of the v3 edition.",
+    "quote": "אפיק שפה ועייל שפה, כי היכי דנקביל סידא"
+  },
+  {
+    "id": "bp_rain",
+    "title_he": "גשם רק בלילה",
+    "text_he": "בימי הבנייה ירדו גשמים רק בלילה. בבוקר נשבה הרוח, העננים התפזרו, השמש זרחה והעם יצא למלאכתו.",
+    "source": "תענית כג, א; יוספוס, קדמוניות טו, יא (425)",
+    "quote_nikud": null,
+    "quote": "והיו יורדין גשמים בלילה למחר נשבה הרוח ונתפזרו העבים וזרחה החמה ויצאו העם למלאכתן",
+    "status": "draft",
+    "phase": "set",
+    "kind": "fact"
+  },
+  {
+    "id": "bp_shabbat",
+    "title_he": "גם הבנייה שובתת",
+    "text_he": "גם בניין המקדש אינו דוחה שבת. בשבת וביום טוב האתר נח — ושום דבר אינו הולך לאיבוד.",
+    "source": "יבמות ו, א",
+    "quote_nikud": "יָכוֹל יְהֵא בִּנְיַן בֵּית הַמִּקְדָּשׁ דּוֹחֶה שַׁבָּת",
+    "status": "draft",
+    "phase": "survey",
+    "kind": "tip",
+    "note": "The baraita continues «תלמוד לומר: ״את שבתותי תשמורו ומקדשי תיראו״ — כולכם חייבין בכבודי» (verified). Yom Tov: by the same prohibition of melacha.",
+    "quote": "יכול יהא בנין בית המקדש דוחה שבת"
+  },
+  {
+    "id": "bp_whole",
+    "title_he": "אבנים שלמות",
+    "text_he": "את אבני המזבח והכבש הביאו מבקעת בית כרם: חפרו מתחת לאדמה הבתולה והוציאו אבנים שלמות, שברזל לא נגע בהן. אבן שנפגמה — פסולה.",
+    "source": "מדות ג, ד",
+    "quote_nikud": "וְחוֹפְרִין לְמַטָּה מֵהַבְּתוּלָה, וּמְבִיאִים מִשָּׁם אֲבָנִים שְׁלֵמוֹת, שֶׁלֹּא הוּנַף עֲלֵיהֶן בַּרְזֶל",
+    "status": "draft",
+    "phase": "quarry",
+    "kind": "fact",
+    "stage": [
+      "yesod",
+      "sovev",
+      "guf",
+      "karnot"
+    ],
+    "minigame": "whole",
+    "quote": "וחופרין למטה מהבתולה, ומביאים משם אבנים שלמות, שלא הונף עליהן ברזל"
+  },
+  {
+    "id": "bp_no_iron",
+    "title_he": "בלי ברזל",
+    "text_he": "את המזבח לא טייחו בכף של ברזל: הברזל נברא לקצר את ימיו של אדם, והמזבח נברא להאריך אותם.",
+    "source": "מדות ג, ד",
+    "quote_nikud": "לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "tip",
+    "stage": [
+      "guf"
+    ],
+    "minigame": "whole",
+    "quote": "לא היו סדין אותן בכפיס של ברזל"
+  },
+  {
+    "id": "bp_whitewash",
+    "title_he": "לבן פעמיים בשנה",
+    "text_he": "פעמיים בשנה, בפסח ובסוכות, סיידו את אבני המזבח בלבן.",
+    "source": "מדות ג, ד",
+    "quote_nikud": "וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה, אַחַת בַּפֶּסַח וְאַחַת בֶּחָג",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "fact",
+    "stage": [
+      "guf"
+    ],
+    "quote": "ומלבנים אותן פעמים בשנה, אחת בפסח ואחת בחג"
+  },
+  {
+    "id": "bp_altar_measure",
+    "title_he": "מידות המזבח",
+    "text_he": "המזבח: שלושים ושתיים על שלושים ושתיים אמה. עלה אמה ונכנס אמה — זה היסוד; עלה חמש ונכנס אמה — זה הסובב.",
+    "source": "מדות ג, א",
+    "quote_nikud": "הַמִּזְבֵּחַ הָיָה שְׁלֹשִׁים וּשְׁתַּיִם עַל שְׁלֹשִׁים וּשְׁתַּיִם. עָלָה אַמָּה וְכָנַס אַמָּה, זֶה הַיְסוֹד",
+    "status": "draft",
+    "phase": "inspect",
+    "kind": "fact",
+    "stage": [
+      "yesod",
+      "sovev"
+    ],
+    "minigame": "plumb",
+    "quote": "המזבח היה שלשים ושתים על שלשים ושתים. עלה אמה וכנס אמה, זה היסוד"
+  },
+  {
+    "id": "bp_red_line",
+    "title_he": "חוט הסקרא",
+    "text_he": "חוט של סקרא — קו אדום — חגר את המזבח באמצע גובהו, להבדיל בין המתנות העליונות לתחתונות.",
+    "source": "מדות ג, א",
+    "quote_nikud": "וְחוּט שֶׁל סִקְרָא חוֹגְרוֹ בָאֶמְצַע",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "fact",
+    "stage": [
+      "sovev"
+    ],
+    "quote": "וחוט של סקרא חוגרו באמצע"
+  },
+  {
+    "id": "bp_mount_measure",
+    "title_he": "חמש מאות על חמש מאות",
+    "text_he": "הר הבית היה חמש מאות אמה על חמש מאות אמה. רובו מן הדרום, ומיעוטו מן המערב.",
+    "source": "מדות ב, א",
+    "quote_nikud": "הַר הַבַּיִת הָיָה חֲמֵשׁ מֵאוֹת אַמָּה עַל חֲמֵשׁ מֵאוֹת אַמָּה",
+    "status": "draft",
+    "phase": "survey",
+    "kind": "fact",
+    "stage": [
+      "har"
+    ],
+    "minigame": "plumb",
+    "quote": "הר הבית היה חמש מאות אמה על חמש מאות אמה"
+  },
+  {
+    "id": "bp_boxes",
+    "title_he": "האומנים בתיבות",
+    "text_he": "בקודש הקדשים עבדו האומנים בתוך תיבות שהורדו מן העלייה, כדי שלא יזונו עיניהם מבית קודש הקדשים.",
+    "source": "מדות ד, ה",
+    "quote_nikud": "שֶׁבָּהֶן הָיוּ מְשַׁלְשְׁלִין אֶת הָאֻמָּנִים בְּתֵבוֹת, כְּדֵי שֶׁלֹּא יָזוּנוּ עֵינֵיהֶן מִבֵּית קָדְשֵׁי הַקֳּדָשִׁים",
+    "status": "draft",
+    "phase": "set",
+    "kind": "fact",
+    "stage": [
+      "kodesh"
+    ],
+    "quote": "שבהן היו משלשלין את האמנים בתבות, כדי שלא יזונו עיניהן מבית קדשי הקדשים"
+  },
+  {
+    "id": "bp_cedar_beams",
+    "title_he": "קורות ארז",
+    "text_he": "קורות ארז נקבעו מקיר ההיכל אל קיר האולם, כדי שהקיר לא ״יבעט״ — לא ייטה החוצה.",
+    "source": "מדות ג, ח",
+    "quote_nikud": "וּכְלוֹנָסוֹת שֶׁל אֶרֶז הָיוּ קְבוּעִין מִכָּתְלוֹ שֶׁל הֵיכָל לְכָתְלוֹ שֶׁל אוּלָם, כְּדֵי שֶׁלֹּא יִבְעָט",
+    "status": "draft",
+    "phase": "set",
+    "kind": "fact",
+    "stage": [
+      "ulam"
+    ],
+    "minigame": "saw",
+    "quote": "וכלונסות של ארז היו קבועין מכתלו של היכל לכתלו של אולם, כדי שלא יבעט"
+  },
+  {
+    "id": "bp_vine",
+    "title_he": "גפן הזהב",
+    "text_he": "על פתח ההיכל עמדה גפן של זהב, מודלית על כלונסות. מי שהתנדב עלה, גרגר או אשכול — הביא ותלה בה.",
+    "source": "מדות ג, ח",
+    "quote_nikud": "גֶּפֶן שֶׁל זָהָב הָיְתָה עוֹמֶדֶת עַל פִּתְחוֹ שֶׁל הֵיכָל, וּמֻדְלָה עַל גַּבֵּי כְלוֹנָסוֹת",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "milestone",
+    "stage": [
+      "ulam"
+    ],
+    "minigame": "gold",
+    "quote": "גפן של זהב היתה עומדת על פתחו של היכל, ומדלה על גבי כלונסות"
+  },
+  {
+    "id": "bp_nikanor_storm",
+    "title_he": "הדלתות והסערה",
+    "text_he": "ניקנור הביא דלתות נחושת מאלכסנדריה. בסערה הטילו דלת אחת לים; כשבאו להטיל את השנייה, חיבק אותה ואמר: ״הטילוני עמה״ — והים נח. בנמל עכו צפה הדלת הראשונה.",
+    "source": "יומא לח, א",
+    "quote_nikud": null,
+    "quote": "עמד הוא וכרכה אמר להם הטילוני עמה מיד נח הים מזעפו",
+    "status": "draft",
+    "phase": "transport",
+    "kind": "fact",
+    "stage": [
+      "nikanor"
+    ]
+  },
+  {
+    "id": "bp_nikanor_bronze",
+    "title_he": "נחושת שמבהיקה",
+    "text_he": "כל שערי המקדש הוחלפו בזהב, חוץ משער ניקנור — בגלל הנס. ויש אומרים: כי הנחושת שלו הבהיקה כזהב.",
+    "source": "מדות ב, ג; יומא לח, א",
+    "quote_nikud": "כָּל הַשְּׁעָרִים שֶׁהָיוּ שָׁם, נִשְׁתַּנּוּ לִהְיוֹת שֶׁל זָהָב, חוּץ מִשַּׁעַר נִקָּנוֹר",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "fact",
+    "stage": [
+      "nikanor"
+    ],
+    "quote": "כל השערים שהיו שם, נשתנו להיות של זהב, חוץ משער נקנור"
+  },
+  {
+    "id": "bp_quarry",
+    "title_he": "המחצבה ברמת שלמה",
+    "text_he": "ברמת שלמה, כשלושה קילומטרים צפונית להר הבית, נחשפה מחצבה מימי הבית השני. נמצאו בה גושי אבן ארוכים עד כשמונה מטרים — כמו האבנים הגדולות של הר הבית.",
+    "source": "רשות העתיקות, 2007; רוזנפלד, אילני ואחרים, המכון הגאולוגי, 2014",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "quarry",
+    "kind": "fact",
+    "stage": [
+      "har"
+    ],
+    "minigame": "quarry"
+  },
+  {
+    "id": "bp_quarry_tools",
+    "title_he": "מכושים וטריזים",
+    "text_he": "במחצבה נוספת ברמת שלמה מצאו הארכאולוגים מכושים וטריזים שהשאירו החוצבים. החוצב חוצב תעלה צרה סביב הגוש, ובעזרת טריזים מפריד אותו מן הסלע.",
+    "source": "רשות העתיקות, 2013 (מנהלת החפירה אירינה זילברבוד)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "illus": true,
+    "status": "draft",
+    "phase": "quarry",
+    "kind": "tip",
+    "minigame": "quarry",
+    "note": "The tools are sourced; the method sentence is illustration (a standard ancient technique, not described in this find’s report)."
+  },
+  {
+    "id": "bp_margins",
+    "title_he": "שוליים וזיז",
+    "text_he": "אבני הורדוס מסותתות בשוליים שקועים, ברוחב של כשמונה סנטימטרים, סביב פני אבן חלקים ובולטים מעט. כך נראים הנדבכים בכותל עד היום.",
+    "source": "הנדבכים ההרודיאניים בכותל המערבי ובכותל הדרומי",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "dress",
+    "kind": "fact",
+    "stage": [
+      "har",
+      "wall"
+    ],
+    "minigame": "dress",
+    "note": "Numbers from a secondary summary (Wikipedia, \"Herodian architecture\"); the look is visible at the Western Wall."
+  },
+  {
+    "id": "bp_dry_courses",
+    "title_he": "נדבך על נדבך",
+    "text_he": "הנדבכים הונחו בלי טיט, כל אחד בגובה של כמטר, וכל נדבך נסוג כמה סנטימטרים מזה שמתחתיו.",
+    "source": "הנדבכים ההרודיאניים בכותל המערבי",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "set",
+    "kind": "fact",
+    "stage": [
+      "har",
+      "wall"
+    ],
+    "minigame": "crane"
+  },
+  {
+    "id": "bp_master_course",
+    "title_he": "הנדבך הגדול",
+    "text_he": "במנהרות הכותל יש אבן ארוכה כשלושה עשר וחצי מטרים וגבוהה יותר משלושה מטרים. משקלה שנוי במחלוקת — מאות טונות.",
+    "source": "דן בהט, מנהרת הכותל (2013); מדידת מכ״ם, 2006",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "lift",
+    "kind": "milestone",
+    "stage": [
+      "har"
+    ],
+    "minigame": "crane"
+  },
+  {
+    "id": "bp_lifting",
+    "title_he": "עגורן ותוף",
+    "text_he": "הרומאים הרימו אבנים בעגורנים עם גלגלות, ובתוף גדול שאנשים הלכו בתוכו. מלקחי ברזל נאחזו בחורים שנחצבו באבן.",
+    "source": "ויטרוביוס, על האדריכלות י, ב",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "illus": true,
+    "status": "draft",
+    "phase": "lift",
+    "kind": "fact",
+    "minigame": "wheel",
+    "note": "Roman practice (Vitruvius 10.2.2–9); its use on the Temple Mount is illustration."
+  },
+  {
+    "id": "bp_hammered",
+    "title_he": "מקשה אחת",
+    "text_he": "את המנורה עשו ״מקשה״ — מגוש זהב אחד שהוכה בפטיש עד שקיבל צורה, בלי חלקים מחוברים.",
+    "source": "שמות כה, לא",
+    "quote_nikud": "וְעָשִׂיתָ מְנֹרַת זָהָב טָהוֹר מִקְשָׁה תֵּעָשֶׂה הַמְּנוֹרָה",
+    "status": "draft",
+    "phase": "dress",
+    "kind": "fact",
+    "stage": [
+      "heichal"
+    ],
+    "minigame": "gold",
+    "quote": "ועשית מנרת זהב טהור מקשה תעשה המנורה"
+  },
+  {
+    "id": "bp_cedar_rafts",
+    "title_he": "ארזים בים עד יפו",
+    "text_he": "עצי הארזים ירדו מן הלבנון אל הים, והגיעו בים עד יפו — ומשם עלו לירושלים.",
+    "source": "עזרא ג, ז",
+    "quote_nikud": "לְהָבִיא עֲצֵי אֲרָזִים מִן־הַלְּבָנוֹן אֶל־יָם יָפוֹא",
+    "status": "draft",
+    "phase": "transport",
+    "kind": "fact",
+    "stage": [
+      "ulam",
+      "heichal"
+    ],
+    "minigame": "saw",
+    "note": "The way up from Jaffa to Jerusalem (carts, oxen) is illustration; the verse ends at Jaffa.",
+    "quote": "להביא עצי ארזים מן הלבנון אל ים יפוא"
+  },
+  {
+    "id": "bp_heichal_measure",
+    "title_he": "מאה על מאה",
+    "text_he": "ההיכל היה מאה אמה על מאה אמה, וגובהו מאה אמה. המהנדס בודק כל נדבך לפי המידות.",
+    "source": "מדות ד, ו",
+    "quote_nikud": "וְהַהֵיכָל מֵאָה עַל מֵאָה, עַל רוּם מֵאָה",
+    "status": "draft",
+    "phase": "inspect",
+    "kind": "fact",
+    "stage": [
+      "ulam",
+      "heichal",
+      "kodesh"
+    ],
+    "minigame": "plumb",
+    "quote": "וההיכל מאה על מאה, על רום מאה"
+  },
+  {
+    "id": "bp_azara_measure",
+    "title_he": "מידות העזרה",
+    "text_he": "כל העזרה הייתה מאה שמונים ושבע אמה אורך על מאה שלושים וחמש אמה רוחב.",
+    "source": "מדות ה, א",
+    "quote_nikud": "כָּל הָעֲזָרָה הָיְתָה אֹרֶךְ מֵאָה וּשְׁמוֹנִים וָשֶׁבַע עַל רֹחַב מֵאָה וּשְׁלשִׁים וְחָמֵשׁ",
+    "status": "draft",
+    "phase": "survey",
+    "kind": "fact",
+    "stage": [
+      "wall"
+    ],
+    "minigame": "plumb",
+    "quote": "כל העזרה היתה ארך מאה ושמונים ושבע על רחב מאה ושלשים וחמש"
+  },
+  {
+    "id": "bp_ulam_open",
+    "title_he": "שער בלי דלתות",
+    "text_he": "יוספוס מספר שלשער האולם לא היו דלתות, כי ייצג את השמיים, הנראים בכל מקום ואין להסתירם; וחזיתו הייתה מצופה כולה זהב.",
+    "source": "יוספוס, מלחמות היהודים ה, ה, ד (208)",
+    "quote_nikud": null,
+    "quote": null,
+    "translation": "free",
+    "status": "draft",
+    "phase": "finish",
+    "kind": "fact",
+    "stage": [
+      "ulam"
+    ],
+    "note": "Whiston §208, two sites (penelope.uchicago + sacred-texts, 20:55 UTC): \"this gate had no doors; for it represented the universal visibility of heaven, and that it cannot be excluded from any place. Its front was covered with gold all over\". Josephus gives the opening 70×25 cubits, Middot 3:7 40×20 amot — the numbers are left out on purpose (the game builds by Middot). For BUILD: the Ulam gets no door step."
+  },
+  {
+    "id": "bp_soreg",
+    "title_he": "הסורג",
+    "text_he": "לפנים מן הר הבית עמד הסורג, גבוה עשרה טפחים. יוספוס מתאר אותו כמחיצת אבן מסביב, ועליה לוחות ביוונית ובלטינית: זר לא ייכנס פנימה.",
+    "source": "מדות ב, ג; יוספוס, מלחמות היהודים ה, ה, ב (193–194)",
+    "quote_nikud": "לִפְנִים מִמֶּנּוּ, סוֹרֵג, גָּבוֹהַּ עֲשָׂרָה טְפָחִים",
+    "quote": "לפנים ממנו, סורג, גבוה עשרה טפחים",
+    "translation": "free",
+    "status": "draft",
+    "phase": "set",
+    "kind": "fact",
+    "stage": [
+      "sorag"
+    ],
+    "note": "Middot 2:3 two passes (Torat Emet v1 + v3). Whiston §193-194, two sites (20:55 UTC): \"a partition made of stone all round, whose height was three cubits ... pillars ... declaring the law of purity, some in Greek, and some in Roman letters, that no foreigner should go within that sanctuary\". Josephus says three cubits; the text gives Middot's ten handbreadths only. The soreg is STONE — BUILD content.js sorag finish should cost stone, not cedar. See find_soreg."
+  }
+]

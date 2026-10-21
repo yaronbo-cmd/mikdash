@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="938" height="726" font-family="sans-serif" font-size="12">
+<rect width="100%" height="100%" fill="#fbf8f1"/>
+<text x="14" y="22" font-size="15" font-weight="bold">The wall's yard from above: north up, +x east, +z south, amot (DESIGN9, wave 9)</text>
+<text x="14" y="40" fill="#555">grey: v17 today (probe at 390×844) · gold: the builder's stretch at the NE corner (STAGING §6 ⚑W, a proposal)</text>
+<rect x="14.0" y="56.0" width="594.0" height="630.0" fill="#efe6d2" stroke="#b9a98a"/>
+<line x1="104.0" y1="56.0" x2="104.0" y2="686.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="106.0" y="683.0" fill="#9c8a66" font-size="10">x 50</text>
+<line x1="254.0" y1="56.0" x2="254.0" y2="686.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="256.0" y="683.0" fill="#9c8a66" font-size="10">x 100</text>
+<line x1="404.0" y1="56.0" x2="404.0" y2="686.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="406.0" y="683.0" fill="#9c8a66" font-size="10">x 150</text>
+<line x1="554.0" y1="56.0" x2="554.0" y2="686.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="556.0" y="683.0" fill="#9c8a66" font-size="10">x 200</text>
+<line x1="14.0" y1="71.0" x2="608.0" y2="71.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="16.0" y="69.0" fill="#9c8a66" font-size="10">z -200</text>
+<line x1="14.0" y1="221.0" x2="608.0" y2="221.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="16.0" y="219.0" fill="#9c8a66" font-size="10">z -150</text>
+<line x1="14.0" y1="371.0" x2="608.0" y2="371.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="16.0" y="369.0" fill="#9c8a66" font-size="10">z -100</text>
+<line x1="14.0" y1="521.0" x2="608.0" y2="521.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="16.0" y="519.0" fill="#9c8a66" font-size="10">z -50</text>
+<line x1="14.0" y1="671.0" x2="608.0" y2="671.0" stroke="#ddd0b6" stroke-width="0.6"/><text x="16.0" y="669.0" fill="#9c8a66" font-size="10">z 0</text>
+<rect x="14.0" y="450.5" width="381.0" height="235.5" fill="#e2d6bb" opacity="0.6"/>
+<line x1="14.0" y1="450.5" x2="395.0" y2="450.5" stroke="#7a5c2e" stroke-width="3"/>
+<line x1="395.0" y1="450.5" x2="395.0" y2="632.0" stroke="#7a5c2e" stroke-width="3"/>
+<text x="74.0" y="635.0" fill="#7a5c2e">the court (Ezrat Nashim's north-east part)</text>
+<text x="404.0" y="647.0" fill="#7a5c2e" font-size="10">east gate gap z −13…13</text>
+<text x="134.0" y="443.0" fill="#7a5c2e" font-size="10">north face z −73.5</text>
+<line x1="14.0" y1="335.0" x2="494.0" y2="335.0" stroke="#a89878" stroke-width="5" opacity="0.5"/>
+<text x="26.0" y="326.0" fill="#6b5d40" font-size="10">the inner lane z −112 (carts in from the west)</text>
+<rect x="110.0" y="386.0" width="258.0" height="33.0" fill="#8f9aa6" opacity="0.25"/>
+<text x="254.0" y="380.0" fill="#56606b" font-size="10">masons x 52…138</text>
+<circle cx="86.0" cy="383.0" r="6" fill="#8f9aa6" stroke="#333" stroke-width="0.6"/>
+<text x="94.0" y="375.0" fill="#333" font-size="11" text-anchor="start">crane (44, −96)</text>
+<circle cx="86.0" cy="404.6" r="4" fill="#8f9aa6" stroke="#333" stroke-width="0.6"/>
+<text x="66.0" y="420.6" fill="#333" font-size="10" text-anchor="start">stock (44, −88.8)</text>
+<circle cx="107.0" cy="404.6" r="4" fill="#8f9aa6" stroke="#333" stroke-width="0.6"/>
+<text x="115.0" y="409.6" fill="#333" font-size="10" text-anchor="start">banker (51, −88.8)</text>
+<circle cx="248.0" cy="441.5" r="3" fill="#8f9aa6" stroke="#333" stroke-width="0.6"/>
+<text x="254.0" y="435.5" fill="#333" font-size="10" text-anchor="start">survey spot</text>
+<circle cx="164.0" cy="335.0" r="4" fill="#8f9aa6" stroke="#333" stroke-width="0.6"/>
+<text x="170.0" y="349.0" fill="#333" font-size="10" text-anchor="start">carts unload (70, −112)</text>
+<circle cx="107.0" cy="404.6" r="138.0" fill="none" stroke="#56606b" stroke-dasharray="5 4"/>
+<text x="26.0" y="581.0" fill="#56606b" font-size="10">dashed ring: 46 amot from the banker; past it, CAM.WALL drops the builder</text>
+<rect x="163.0" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="183.39999999999998" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="203.5" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="219.10000000000002" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="235.0" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="255.39999999999998" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="275.5" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="291.1" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="307.0" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="327.4" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="347.5" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="363.09999999999997" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="379.0" y="451.0" width="5" height="5" fill="#56606b"/>
+<rect x="389.5" y="448.0" width="5" height="5" fill="#56606b"/>
+<rect x="389.5" y="468.40000000000003" width="5" height="5" fill="#56606b"/>
+<rect x="389.5" y="488.5" width="5" height="5" fill="#56606b"/>
+<rect x="389.5" y="504.09999999999997" width="5" height="5" fill="#56606b"/>
+<rect x="389.5" y="520.0" width="5" height="5" fill="#56606b"/>
+<text x="165.5" y="467.5" fill="#56606b" font-size="10" text-anchor="middle">stone 1</text>
+<text x="237.5" y="467.5" fill="#56606b" font-size="10" text-anchor="middle">stone 3</text>
+<text x="392.0" y="467.5" fill="#56606b" font-size="10" text-anchor="middle">stone 8</text>
+<text x="26.0" y="515.0" fill="#56606b" font-size="10">squares: front 0's slots, ≈ 11 amot east per stone the builder sets;</text>
+<text x="26.0" y="530.0" fill="#56606b" font-size="10">from ≈ stone 11 the next slot tours the other 8 fronts round the court</text>
+<line x1="249.79999999999998" y1="279.79999999999995" x2="146.29999999999998" y2="427.4" stroke="#56606b" stroke-width="1.2" stroke-dasharray="3 3"/>
+<circle cx="249.79999999999998" cy="279.79999999999995" r="4" fill="#ffffff" stroke="#333" stroke-width="0.6"/>
+<text x="255.79999999999998" y="283.79999999999995" fill="#333" font-size="10" text-anchor="start">CAM.WALL-W today (64, az −55)</text>
+<polyline points="314.0,450.5 395.0,450.5 395.0,521.0" fill="none" stroke="#c9a227" stroke-width="7" opacity="0.9"/>
+<text x="26.0" y="551.0" fill="#8a6d10" font-weight="bold" font-size="11">gold L: the builder's stretch, ≈ 8 stones a course, the corner in the middle</text>
+<circle cx="395.0" cy="450.5" r="7" fill="none" stroke="#8a6d10" stroke-width="2"/>
+<circle cx="446.0" cy="395.0" r="6" fill="#c9a227" stroke="#333" stroke-width="0.6"/>
+<text x="454.0" y="389.0" fill="#333" font-size="11" text-anchor="start">crane ≈ (164, −92)</text>
+<line x1="446.0" y1="395.0" x2="398.59999999999997" y2="454.70000000000005" stroke="#8a6d10" stroke-width="2"/>
+<circle cx="431.0" cy="413.0" r="4" fill="#c9a227" stroke="#333" stroke-width="0.6"/>
+<text x="441.0" y="411.0" fill="#333" font-size="10" text-anchor="start">stock ≈ (159, −86)</text>
+<circle cx="449.0" cy="425.0" r="4" fill="#c9a227" stroke="#333" stroke-width="0.6"/>
+<text x="457.0" y="439.0" fill="#333" font-size="10" text-anchor="start">banker</text>
+<rect x="505.0" y="98.0" width="8" height="6" fill="#d8c9a6" stroke="#8a7a5a"/>
+<rect x="559.0" y="110.0" width="8" height="6" fill="#d8c9a6" stroke="#8a7a5a"/>
+<rect x="505.0" y="131.0" width="8" height="6" fill="#d8c9a6" stroke="#8a7a5a"/>
+<rect x="559.0" y="143.0" width="8" height="6" fill="#d8c9a6" stroke="#8a7a5a"/>
+<rect x="505.0" y="164.0" width="8" height="6" fill="#d8c9a6" stroke="#8a7a5a"/>
+<rect x="559.0" y="176.0" width="8" height="6" fill="#d8c9a6" stroke="#8a7a5a"/>
+<text x="512.0" y="83.0" fill="#6b5d40" font-size="10">the quarry's piles</text>
+<polyline points="536.0,191.0 509.0,281.0 470.0,359.0 437.0,401.0" fill="none" stroke="#c9a227" stroke-width="3" stroke-dasharray="8 5"/>
+<text x="512.0" y="221.0" fill="#8a6d10" font-size="10" text-anchor="end">carts down to the stock (≈ 90 amot)</text>
+<line x1="548.0" y1="310.1" x2="420.16009990816866" y2="476.70420146115936" stroke="#8a6d10" stroke-width="1"/>
+<line x1="548.0" y1="310.1" x2="381.3957985388406" y2="437.9399000918314" stroke="#8a6d10" stroke-width="1"/>
+<circle cx="548.0" cy="310.1" r="4" fill="#ffffff" stroke="#333" stroke-width="0.6"/>
+<text x="540.0" y="302.1" fill="#333" font-size="10" text-anchor="end">CAM.WALL-W on the stretch (64, az −45)</text>
+<text x="622.0" y="66" fill="#333" font-size="11" font-weight="bold">The problems on a phone (v17):</text>
+<text x="622.0" y="83" fill="#333" font-size="11">• plain focus('wall') ≈ 220 amot away:</text>
+<text x="622.0" y="100" fill="#333" font-size="11">  the builder ≈ 24 px</text>
+<text x="622.0" y="117" fill="#333" font-size="11">• he dresses every stone at the banker (51, −88.8);</text>
+<text x="622.0" y="134" fill="#333" font-size="11">  the slot runs east ≈ 11 amot a stone</text>
+<text x="622.0" y="151" fill="#333" font-size="11">• past stone 3 it is > 46 amot away:</text>
+<text x="622.0" y="168" fill="#333" font-size="11">  wallView frames the slot alone</text>
+<text x="622.0" y="185" fill="#333" font-size="11">• stone 8: at the NE corner, 95 amot away</text>
+<text x="622.0" y="202" fill="#333" font-size="11">• ≈ stone 11 on: the slot tours the court</text>
+<text x="622.0" y="219" fill="#333" font-size="11"></text>
+<text x="622.0" y="236" fill="#333" font-size="11" font-weight="bold">The call (⚑W):</text>
+<text x="622.0" y="253" fill="#333" font-size="11">• his stones rise on ONE stretch round</text>
+<text x="622.0" y="270" fill="#333" font-size="11">  the NE corner, one stone at the marked slot</text>
+<text x="622.0" y="287" fill="#333" font-size="11">• the crane, the stock and the banker at the</text>
+<text x="622.0" y="304" fill="#333" font-size="11">  corner; carts down from the quarry</text>
+<text x="622.0" y="321" fill="#333" font-size="11">• both keys of a course ON the corner, so</text>
+<text x="622.0" y="338" fill="#333" font-size="11">  "אבן פינה" is true</text>
+<text x="622.0" y="355" fill="#333" font-size="11">• CAM.WALL-W at az −45: no 90° flip</text>
+<text x="622.0" y="372" fill="#333" font-size="11">• the gangs raise the rest behind him</text>
+<text x="622.0" y="389" fill="#333" font-size="11"></text>
+<text x="622.0" y="406" fill="#333" font-size="11">Fallback: today's yard; his stones on</text>
+<text x="622.0" y="423" fill="#333" font-size="11">front 0's first five slots (x 70.5…94.5)</text>
+</svg>

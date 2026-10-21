@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מוזיקה · בדיקה</title>
+<!-- MUSIC8B: the score's test page. `node test/music.cjs` builds out/music.bundle.js and runs the offline checks here;
+     opened by hand (after that build), the buttons play each state live. -->
+<style>
+  :root { --bg: #f6f0e4; --fg: #2b2116; --btn: #7a5a2a; --btnfg: #fff8ea; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1d1812; --fg: #efe4d0; --btn: #c79a4a; --btnfg: #1d1812; } }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  button { min-height: 44px; min-width: 44px; margin: 4px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--btn); color: var(--btnfg); font: inherit; }
+  #out { white-space: pre-wrap; font: 13px/1.4 ui-monospace, monospace; direction: ltr; text-align: left; }
+</style>
+</head>
+<body>
+<h1>מוזיקה מקורית · בדיקה</h1>
+<p>הקש על מצב כדי לשמוע אותו חי. "בדיקה" מרנדרת כל מצב בלי רמקול ובודקת שאין קטיעה ושאין שקט.</p>
+<div id="btns"></div>
+<p><label>עוצמה <input id="vol" type="range" min="0" max="1" step="0.05" value="0.6"></label>
+  <button id="duck">הנמכה</button> <button id="fl">קישוט</button> <button id="check">בדיקה</button></p>
+<div id="out"></div>
+<script src="out/music.bundle.js"></script>
+<script>
+/* the offline analysis: a render of a script → peak, RMS, the 1-s windows, clipped samples, the render time */
+window.analyse = async (script, secs, opts = {}) => {
+  const t0 = performance.now();
+  const buf = await (opts.lib && window[opts.lib] ? window[opts.lib] : MUSIC).renderOffline(script, secs, opts);   // (world12: opts.lib 'MUSIC0' = master's score, for the comparison)
+  const ms = performance.now() - t0, sr = buf.sampleRate, L = buf.getChannelData(0), R = buf.getChannelData(1);
+  let peak = 0, sum = 0, clip = 0, dc = 0;
+  const win = [], W = sr;
+  for (let w = 0; w + W <= L.length; w += W) {
+    let s = 0;
+    for (let i = w; i < w + W; i++) {
+      const a = L[i], b = R[i], m = Math.max(Math.abs(a), Math.abs(b));
+      if (m > peak) peak = m; if (m >= 0.99) clip++;
+      s += (a * a + b * b) / 2; dc += (a + b) / 2;
+    }
+    sum += s; win.push(Math.sqrt(s / W));
+  }
+  const n = win.length * W;
+  const out = { secs, ms: Math.round(ms), speed: +(secs * 1000 / ms).toFixed(1), peak: +peak.toFixed(3), rms: +Math.sqrt(sum / n).toFixed(4), clip, dc: +(dc / n).toFixed(5), win: win.map((x) => +x.toFixed(4)) };
+  if (opts.wav) out.wav = wav(L, R, sr);
+  if (opts.tempo) Object.assign(out, tempoOf(L, R, sr, opts.tempo === true ? {} : opts.tempo));
+  return out;
+};
+/* ── world12 ── the pulse, measured: an onset-strength envelope (the positive change of the log-energy of the high-passed
+ * mix, 128-sample hops), its onsets (local peaks over the mean + 1 sd, ≥ 60 ms apart) per second, and the tempo = the
+ * strongest autocorrelation lag between 60 and 180 BPM (parabolic interpolation). Skips the first `from` seconds (the fade-in). */
+function tempoOf(L, R, sr, { from = 3, lo = 60, hi = 180 } = {}) {
+  const hop = 128, win = 256, fps = sr / hop, x = new Float32Array(L.length);
+  let lx = 0; for (let i = 0; i < L.length; i++) { const m = (L[i] + R[i]) / 2; x[i] = m - lx; lx = m; }
+  const n = Math.floor((L.length - win) / hop), env = new Float32Array(n);
+  let prev = 0;
+  for (let f = 0; f < n; f++) { let e = 0; for (let i = f * hop; i < f * hop + win; i++) e += x[i] * x[i]; const le = Math.log(1e-10 + e); env[f] = f ? Math.max(0, le - prev) : 0; prev = le; }
+  const f0 = Math.floor(from * fps), E = env.subarray(f0), N = E.length;
+  let mu = 0; for (let i = 0; i < N; i++) mu += E[i]; mu /= N;
+  let sd = 0; for (let i = 0; i < N; i++) sd += (E[i] - mu) ** 2; sd = Math.sqrt(sd / N);
+  let on = 0, lastOn = -1e9;
+  for (let i = 1; i < N - 1; i++) if (E[i] > mu + sd && E[i] >= E[i - 1] && E[i] > E[i + 1] && i - lastOn >= 0.06 * fps) { on++; lastOn = i; }
+  const ac = (lag) => { let s = 0; for (let i = 0; i + lag < N; i++) s += (E[i] - mu) * (E[i + lag] - mu); return s / (N - lag); };
+  const l0 = Math.floor(60 * fps / hi), l1 = Math.ceil(60 * fps / lo);
+  // the lag the ear takes for the beat: the autocorrelation weighted by the listener's preferred period (a log-Gaussian
+  // around 0.5 s, σ 1.4 octaves: D. Ellis, "Beat tracking by dynamic programming", 2007) — a groove's bar, half-bar and
+  // swing all repeat; the ear counts the beat. `raw` is the unweighted peak, reported too.
+  const W = (l) => Math.exp(-0.5 * Math.pow(Math.log2((l / fps) / 0.5) / 1.4, 2));
+  let best = l0, bv = -Infinity, raw = l0, rv = -Infinity; const A = [];
+  for (let l = l0 - 1; l <= l1 + 1; l++) A[l] = ac(l);
+  for (let l = l0; l <= l1; l++) { if (A[l] * W(l) > bv) { bv = A[l] * W(l); best = l; } if (A[l] > rv) { rv = A[l]; raw = l; } }
+  const fine = (b) => { const y0 = A[b - 1], y1 = A[b], y2 = A[b + 1], den = y0 - 2 * y1 + y2; return b + (den ? 0.5 * (y0 - y2) / den : 0); };
+  return { bpm: +(60 * fps / fine(best)).toFixed(1), raw: +(60 * fps / fine(raw)).toFixed(1), onsets: +(on / (N / fps)).toFixed(2) };
+}
+function wav(L, R, sr) {   // 16-bit mono (L+R)/2, base64
+  const n = L.length, b = new DataView(new ArrayBuffer(44 + n * 2)), ws = (o, s) => { for (let i = 0; i < s.length; i++) b.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); b.setUint32(4, 36 + n * 2, true); ws(8, 'WAVE'); ws(12, 'fmt '); b.setUint32(16, 16, true); b.setUint16(20, 1, true); b.setUint16(22, 1, true);
+  b.setUint32(24, sr, true); b.setUint32(28, sr * 2, true); b.setUint16(32, 2, true); b.setUint16(34, 16, true); ws(36, 'data'); b.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) b.setInt16(44 + i * 2, Math.max(-1, Math.min(1, (L[i] + R[i]) / 2)) * 32767, true);
+  let s = ''; const u = new Uint8Array(b.buffer);
+  for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+/* live, by hand */
+const out = document.getElementById('out');
+let live = null;
+const NAMES = { build: 'בנייה', board: 'לוח', precision: 'דיוק', moment: 'רגע', night: 'לילה', phaseB: 'שלב ב', chag: 'חג', quarry: 'משחקי המחצבה', shir: 'שיר הלויים', work: 'עבודה (תאומים)', null: 'שקט' };
+for (const s of [...MUSIC.MUSIC_STATES, null]) {
+  const b = document.createElement('button'); b.textContent = NAMES[s]; b.dataset.s = String(s);
+  b.onclick = () => { if (!live) live = MUSIC.createMusic().start(); setTimeout(() => { live.state(s); out.textContent = JSON.stringify(live.get()); }, 30); };
+  document.getElementById('btns').appendChild(b);
+}
+document.getElementById('vol').oninput = (e) => { if (live) live.set({ volume: +e.target.value }); };
+let ducked = false;
+document.getElementById('duck').onclick = () => { ducked = !ducked; if (live) live.duck(ducked); };
+document.getElementById('fl').onclick = () => { if (live) live.flourish(); };
+/* world12: the work's pace by hand (strikes every 0.86 s for 25 s), and the trumpets */
+{ const add = (label, f) => { const b = document.createElement('button'); b.textContent = label; b.onclick = f; document.getElementById('btns').appendChild(b); };
+  add('עבודה (מכות)', () => { if (!live) return; let k = 0; const i = setInterval(() => { live.event('strike', { combo: k }); if (++k > 29) clearInterval(i); out.textContent = JSON.stringify(live.get()); }, 860); });
+  add('חצוצרות', () => { if (live) live.cue('blast', 3); });
+  add('מילוי (נדבך)', () => { if (live) live.cue('fill'); }); }
+document.getElementById('check').onclick = async () => {
+  for (const s of MUSIC.MUSIC_STATES) { const r = await analyse(s, 12); out.textContent += `${s}: peak ${r.peak} rms ${r.rms} clip ${r.clip} ×${r.speed}\n`; }
+};
+</script>
+</body>
+</html>

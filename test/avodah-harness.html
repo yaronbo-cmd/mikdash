@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>העבודה בבית · harness</title>
+<!-- Phase B harness: src/avodah over a stand-in canvas, driven by a MOCK world (no WebGL).
+     Build the bundle first:  node test/avodah-harness.cjs --build   (the full run also builds it)
+     Params: ?fast=1 · ?theme=dark · ?world=none · ?now=2026-09-25T20:00:00%2B03:00 · ?broken=1 · ?mode=practice&segment=shachar -->
+<style>
+  :root { --ground: #E9D7BB; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground: #141A28; color-scheme: dark; } }
+  :root[data-theme="dark"] { --ground: #141A28; color-scheme: dark; }
+  html, body { height: 100%; }
+  body { margin: 0; overflow: hidden; background: var(--ground); font-family: "Heebo", system-ui, sans-serif; }
+  #c { position: fixed; inset: 0; background-image: radial-gradient(60% 40% at 50% 62%, #EFE3C8 0%, rgba(239,227,200,0) 70%), linear-gradient(180deg, #8DB6DE 0%, #D5E3EC 34%, #E9D7BB 58%, #CBB28A 100%); }
+  :root[data-tod="night"] #c { filter: brightness(0.45) saturate(0.8); }
+  :root[data-tod="dawn"] #c { filter: brightness(0.8) sepia(0.2); }
+  .top, .dock { position: fixed; inset-inline: 0; padding: 8px; background: #fff; }
+  .top { top: 0; } .dock { bottom: 0; display: flex; }
+</style>
+</head>
+<body>
+<div id="c" role="img" aria-label="מקום הקנבס התלת־ממדי"></div>
+<div class="top">page chrome (hidden in Phase B)</div>
+<div class="dock">view chips</div>
+<script src="out/avodah-harness.bundle.js"></script>
+<script>
+  if (!window.__AV) document.body.insertAdjacentHTML('beforeend', '<p dir="ltr" style="position:fixed;inset:auto 0 45% 0;text-align:center;font:16px system-ui">Bundle missing: run <code>node test/avodah-harness.cjs --build</code></p>');
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>מערכות המשחק · harness</title>
+<!-- Game-systems harness (v2): the HUD from src/game over a stand-in canvas, driven by a fake 3D world.
+     Build the bundle first:  node test/game-harness.cjs --build   (the full run also builds it)
+     Params: ?fast=1 · ?theme=dark · ?bg=out/game-bg-400.png · ?api12=1 · ?broken=1 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ground: #E9D7BB; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground: #141A28; color-scheme: dark; } }
+  :root[data-theme="dark"] { --ground: #141A28; color-scheme: dark; }
+  html, body { height: 100%; }
+  body { margin: 0; overflow: hidden; background: var(--ground); font-family: "Heebo", system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
+  /* stands in for the three.js canvas (#c in src/page.html) and the page chrome the game hides */
+  #c { position: fixed; inset: 0; touch-action: none; background-color: #CDB894; background-size: cover; background-position: center;
+    background-image: radial-gradient(60% 40% at 50% 62%, #EFE3C8 0%, rgba(239, 227, 200, 0) 70%), linear-gradient(180deg, #8DB6DE 0%, #D5E3EC 34%, #E9D7BB 58%, #CBB28A 100%); }
+  :root[data-tod="night"] #c { filter: brightness(0.55) saturate(0.8); }
+  .top, .dock { position: fixed; inset-inline: 0; padding: 8px; background: #fff; }
+  .top { top: 0; } .dock { bottom: 0; display: flex; }
+</style>
+</head>
+<body>
+<div id="c" role="img" aria-label="מקום הקנבס התלת־ממדי"></div>
+<div class="top">page chrome (hidden in game mode)</div>
+<div class="dock">view chips (shown only in the whole-Temple view)</div>
+<div class="card" id="card"></div>
+<script src="out/game-harness.bundle.js"></script>
+<script>
+  if (!window.__H) document.body.insertAdjacentHTML('beforeend',
+    '<p dir="ltr" style="position:fixed;inset:auto 0 45% 0;text-align:center;font:16px system-ui">Bundle missing: run <code>node test/game-harness.cjs --build</code></p>');
+</script>
+</body>
+</html>

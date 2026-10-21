@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>הוצאת הטלה מהדיר · harness</title>
+<!-- The pen-puzzle harness: the real overlay (src/pen) over a stand-in for the 3D world. No WebGL.
+     Build + run: /home/claude/wt/bus/brun node test/pen.cjs   (shots in test/out/pen-*.png) -->
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { overflow: hidden; font-family: "Heebo", system-ui, sans-serif;
+    background: linear-gradient(180deg, #8DB6DE 0%, #D5E3EC 34%, #E9D7BB 58%, #CBB28A 100%); }
+</style>
+</head>
+<body>
+<script src="out/pen.bundle.js"></script>
+</body>
+</html>

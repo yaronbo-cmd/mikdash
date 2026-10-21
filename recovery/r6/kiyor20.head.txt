@@ -1,0 +1,9 @@
+/* ── fable32 (build 20) ── ── recovered (build 20) ── kiyor20.js — the laver (קידוש ידיים ורגליים, תמיד א, ד; זבחים יט ע״ב): the
+ * kohen kneels at the laver and holds BOTH rings — the left thumb's "שמאל — יד ורגל", the right's "ימין — יד ורגל" — while the water
+ * pours from its two spigots onto his hands (water.js pour20, rush20's sound); the ring fills as he washes (E.k20(): up → pose → done),
+ * the dust on his robe (hero35's dust20) goes, and at the end "ידיים ורגליים מקודשות" with three ripples, the bells (wbell20, unlock20)
+ * and the day's slots lit one by one. The first time the ממונה says "ימין על ימין, שמאל על שמאל". A station tapped before its turn
+ * gets a note over its slot ("קודם לכיור 💧", "קודם תרומת הדשן 🔥", … — the morning's order) and the slot it should be pulses.
+ * The stick is off while the rings are up (twin.noStick).
+ *   createKiyor20({ E, sfx, doc, slot, twin }) → { destroy(), state() }      (focus17.js makes it when E.g20; globalThis.__K20)
+ * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */

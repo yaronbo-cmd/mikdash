@@ -23,6 +23,12 @@ export const DAY33 = Object.freeze({ idleOffer: 12, dayS: 180, nightS: 60, fuel0
 // ── recovered (R6) ── the tables of builds 17–26 that the day's own modules import (ramp19, kiyor20, deshen21, maaracha22, pis23, pen25,
 // heichal26, fx18, focus17), placed in the bundle's order; R7 fills the rest of day33 in around them. The names are the build reports'
 // where they have one (B17, C18, POOL23, rolesBook23, P25, BLEM25, at25, hash25, P26, POOL26), else the recovery's in their style.
+// ── recovered (build 18) ── C18 (the report's name: "C18.kiyorK"): the coins — a gold act pays 2, a good 1 (pay); a streak of 3 (streak); the
+// tamid's 5; the gift (nedava: 10 coins, at 140 s, p 0.3); the chests by the gate (chests); the three pads to buy at (pads: the good axe,
+// the big basket, the laver's second spigot — kiyorK: its walk ×0.6); the errand's 75
+export const C18 = Object.freeze({ pay: Object.freeze({ gold: 2, good: 1, ok: 0 }), streak: 3, tamid: 5, nedava: 10, nedavaP: 0.3, nedavaAt: 140, chests: Object.freeze({ n: 13, max: 10, x: -12.7, z0: 6, dz: 1.2, hi: 60, lo: 40, hiS: 12, loS: 25, walkS: 4, reach: 3.6 }),
+  pads: Object.freeze([Object.freeze({ id: 'axe', icon: '🪓', he: 'גרזן טוב', price: 80, x: -31, z: 51 }), Object.freeze({ id: 'basket10', icon: '🧺', he: 'טנא גדול', price: 120, x: -45, z: 51 }), Object.freeze({ id: 'kiyor2', icon: '🚰', he: 'דד שני לכיור', price: 40, x: -50.5, z: 16.5 })]),
+  errand: 75, padR: 3, padS: 1.5, kiyorK: 0.6 });
 // ── recovered (build 19) ── the ramp run (ramp19.js): the bag's two sizes, the climb's rate, the logs' flight, the goal, the sway, the salt
 export const R19 = Object.freeze({ bag: Object.freeze([480, 340]), rate: 33, fly: 0.25, goal: 0.8, after: 5, v0: 3, v1: 7.5, swayMax: 0.5, saltK: 0.4, slipV: 5.5, par: 6, head: 12, hold: 0.35 });
 // ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and

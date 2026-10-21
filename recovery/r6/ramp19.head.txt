@@ -1,0 +1,11 @@
+/* ── fable32 (build 19) ── ── recovered (build 19) ── ramp19.js — the ramp run (ריצת הכבש; docs/specs/rizat-hakevesh-he.md, the spec
+ * of 19.10): the kohen runs the logs up the ramp and salts it as he goes (the ramp's salt, so the feet do not slip — the bag on his hip,
+ * the grains flying to the stone). Drawn here, played by day33.js (E.st33.r19, its events through E.on17, the best run E.gh19()):
+ *   the salt on the ramp — a canvas of 8 × 32 cells over its stone (salted: pale, bare: dark), painted as the engine salts them;
+ *   the grains in flight, the logs that fell (a gold ring to pick them up), the bag and its share salted ("🧂 N%");
+ *   the wind of a fast run with logs; the wave of light up the ramp when it is all salted ("הכבש מומלח!");
+ *   the ghost of the best run (a pale figure along its path) and the best time at the ramp's foot;
+ *   the words over him (a slip "!", the lane — "עולים בימין" / "יורדים בשמאל", the sway, a new best).
+ *   createRamp19({ E, sfx }) → destroy()      (focus17.js makes it when E.b19)
+ * The bundle kept no comment and no local name: the names are the recovery's (createRamp19 and its arguments: focus17.js's lines in
+ * the session transcript). Never a Divine Name. */

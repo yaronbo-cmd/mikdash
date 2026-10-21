@@ -1,0 +1,10 @@
+/* ── fable32 (build 18) ── ── recovered (build 18) ── fx18.js — the day's answer to the hand (focus17's l18: one place for the acts'
+ * sound and buzz — stations.js leaves them to it under opts.fb18): every hit, lay and miss gets its sound (SND: SWING17's own, the lay's
+ * whoosh, the laver's water), a buzz, a burst of sparks on the thing and a flash of its slot; the coins of build 18 — the temple's till
+ * at the top ("קופת המקדש"), each coin flying from the thing into it (C18.pay; a streak rings higher), the chests by the gate where
+ * pilgrims drop their gifts and he collects (C18.chests), the three pads to buy at (C18.pads: the price drains as he stands on it),
+ * the treasurer's stamp and the family's נדבה; and the court's mood by the fire — a crowd of pilgrims as it burns high, the light and a
+ * vignette as it sinks (__FIRELOW33), the Levites' choir after it has burned well a while, the bow at the dawn tamid (life's setBow).
+ *   createFx18({ E, view, sfx, doc, top, slot, sparks, stamp, note, pop }) → { fb(id, at, g, ev), destroy(), state() }   (globalThis.__FX18)
+ * The bundle kept no comment and no local name: the names are the recovery's (SND: the report's "fx18's SND"; createFx18 and its
+ * arguments: focus17.js's line in the session transcript). Never a Divine Name. */

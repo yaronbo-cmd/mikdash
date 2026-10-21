@@ -74,11 +74,11 @@ export function createKiyor20(o = {}) {
         try {
           btn.setPointerCapture(ev.pointerId);
         } catch (e) {}
-        d(side, true);
+        press(side, true);
       }
     });
     const up = (ev) => {
-      ptr[side] == null || (ev && ev.pointerId !== ptr[side]) || ((ptr[side] = null), d(side, false));
+      ptr[side] == null || (ev && ev.pointerId !== ptr[side]) || ((ptr[side] = null), press(side, false));
     };
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) btn.addEventListener(ev, up);
     btn.addEventListener('contextmenu', (ev) => ev.preventDefault());
@@ -87,14 +87,14 @@ export function createKiyor20(o = {}) {
       ev.stopPropagation();
     });
   }
-  function d(P, I) {
-    const G = E.k20in(P, I);
-    rings[P].classList.toggle('on', !!I && G);
-    if (I) {
+  function press(side, down) {
+    const ok = E.k20in(side, down);
+    rings[side].classList.toggle('on', !!down && ok);
+    if (down) {
       stat.downs++;
       buzz(15);
       snd('tap');
-      for (const N of ['L', 'R']) rings[N].classList.remove('pl');
+      for (const s2 of ['L', 'R']) rings[s2].classList.remove('pl');
     } else stat.ups++;
   }
   const word = mk('k20-w', '<b>ידיים ורגליים מקודשות</b><small>"עד שתקדש ידיך ורגליך מן הכיור" — תמיד א, ד · טיוטה</small>');
@@ -122,18 +122,18 @@ export function createKiyor20(o = {}) {
         p = H && H.at(bone);
       return p ? { x: p.x, y: p.y + 0.05, z: p.z } : null;
     };
-  function C(P, I) {
-    const G = water();
-    if (flowing === P || ((flowing = P), rush(P ? 1 : 0), P && stat.flows++, !G)) return;
-    const N = K20.spig;
-    if (P) {
+  function flow(on, k) {
+    const w = water();
+    if (flowing === on || ((flowing = on), rush(on ? 1 : 0), on && stat.flows++, !w)) return;
+    const spig = K20.spig;
+    if (on) {
       stat.pours++;
-      const X = I && I.two ? 1 : 0.8;
-      G.pour20(N[0], handAt('handr'), true, X);
-      G.pour20(N[1], handAt('handl'), true, X);
+      const rate = k && k.two ? 1 : 0.8;
+      w.pour20(spig[0], handAt('handr'), true, rate);
+      w.pour20(spig[1], handAt('handl'), true, rate);
     } else {
-      G.pour20(N[0], null, false);
-      G.pour20(N[1], null, false);
+      w.pour20(spig[0], null, false);
+      w.pour20(spig[1], null, false);
     }
   }
   const offTick = onTick((tt, dt) => {
@@ -152,7 +152,7 @@ export function createKiyor20(o = {}) {
         }
       }
       if (!on && wasOn) {
-        C(false);
+        flow(false);
         for (const side of ['L', 'R']) rings[side].classList.remove('on', 'pl');
       }
       wasOn = on;
@@ -164,7 +164,7 @@ export function createKiyor20(o = {}) {
       }
       stat.lastP = Math.round(p * 100) / 100;
       const pour = !!(k && k.ph === 'pose' && k.flow);
-      C(pour, k);
+      flow(pour, k);
       if (pour && (buzzT -= dt) <= 0) {
         buzzT = 0.1;
         buzz(20);
@@ -187,13 +187,13 @@ export function createKiyor20(o = {}) {
           const mm = mk('k20-mm', 'הממונה: ״ימין על ימין, שמאל על שמאל״<small>זבחים יט ע״ב · טיוטה</small>');
           setTimeout(() => mm.remove(), 4300);
         }
-      } else if (type === 'unlock') D(ev);
-      else if (type === 'gate') k(ev);
+      } else if (type === 'unlock') unlock(ev);
+      else if (type === 'gate') gate(ev);
     });
-  function D() {
+  function unlock() {
     stat.unlocks++;
     washedAt = now();
-    C(false);
+    flow(false);
     snd('wbell20');
     setTimeout(() => snd('unlock20'), 260);
     buzz([30, 40, 30, 40, 60]);
@@ -224,57 +224,57 @@ export function createKiyor20(o = {}) {
       );
     }, 320);
   }
-  function k(P) {
+  function gate(ev) {
     stat.gates++;
     snd('drip');
     buzz(10);
-    const I = (o.slot && P.id && o.slot(P.id)) || null,
-      G = I ? I.getBoundingClientRect() : null,
-      N = G ? G.left + G.width / 2 : (innerWidth || 844) / 2,
-      X = G ? G.top - 12 : (innerHeight || 390) * 0.7,
-      V = mk(
+    const slot = (o.slot && ev.id && o.slot(ev.id)) || null,
+      r = slot ? slot.getBoundingClientRect() : null,
+      x = r ? r.left + r.width / 2 : (innerWidth || 844) / 2,
+      y = r ? r.top - 12 : (innerHeight || 390) * 0.7,
+      note = mk(
         'k20-no',
-        P.p26
+        ev.p26
           ? E.gate26L && E.gate26L()
             ? 'קודם הפיס השני ☝'
             : 'קודם ההיכל 🪔'
-          : P.p25
+          : ev.p25
             ? 'קודם בדיקת הטלה 🐑'
-            : P.p23
+            : ev.p23
               ? 'קודם הפיס ☝'
-              : P.m22
+              : ev.m22
                 ? 'קודם המערכה 🪵'
-                : P.d21
+                : ev.d21
                   ? 'קודם תרומת הדשן 🔥'
                   : 'קודם לכיור 💧',
       ),
-      K = V.getBoundingClientRect().width || 120,
-      B = Math.max(8, Math.min((innerWidth || 844) - K - 8, N - K / 2));
+      w = note.getBoundingClientRect().width || 120,
+      left = Math.max(8, Math.min((innerWidth || 844) - w - 8, x - w / 2));
     try {
-      const nt = V.animate(
+      const an = note.animate(
         [
-          { transform: `translate(${B}px,${X}px)`, opacity: 0 },
-          { transform: `translate(${B}px,${X - 30}px)`, opacity: 1, offset: 0.18 },
-          { transform: `translate(${B}px,${X - 42}px)`, opacity: 1, offset: 0.75 },
-          { transform: `translate(${B}px,${X - 54}px)`, opacity: 0 },
+          { transform: `translate(${left}px,${y}px)`, opacity: 0 },
+          { transform: `translate(${left}px,${y - 30}px)`, opacity: 1, offset: 0.18 },
+          { transform: `translate(${left}px,${y - 42}px)`, opacity: 1, offset: 0.75 },
+          { transform: `translate(${left}px,${y - 54}px)`, opacity: 0 },
         ],
         { duration: 1300, easing: 'ease-out' },
       );
-      nt.onfinish = () => V.remove();
+      an.onfinish = () => note.remove();
     } catch (e) {
-      V.remove();
+      note.remove();
     }
-    const U = !P.p26 && o.slot && o.slot(P.p25 ? 'pen' : P.m22 ? (E.m22 && E.m22() ? 'kevesh' : 'wood') : P.d21 ? 'kevesh' : 'kiyor');
-    if (U) {
-      U.classList.add('k20-call');
-      setTimeout(() => U.classList.remove('k20-call'), 1600);
+    const call = !ev.p26 && o.slot && o.slot(ev.p25 ? 'pen' : ev.m22 ? (E.m22 && E.m22() ? 'kevesh' : 'wood') : ev.d21 ? 'kevesh' : 'kiyor');
+    if (call) {
+      call.classList.add('k20-call');
+      setTimeout(() => call.classList.remove('k20-call'), 1600);
     }
   }
   const api = {
     destroy() {
       offTick();
       offEv();
-      C(false);
+      flow(false);
       rush(0);
       setOn(false);
       for (const el of [rings.L, rings.R, word, ...waves])

@@ -43,7 +43,9 @@ function fnName(f) {
 }
 function pathOf(node) {   // the function path of the scope block (a function, or the module)
   const parts = [];
-  for (let n = node; n; n = parentOf.get(n)) if (isFn(n)) parts.unshift(fnName(n));
+  let n0 = node; const p0 = parentOf.get(node);
+  if (p0 && isFn(p0) && p0.id === node) n0 = parentOf.get(p0);   // (a function's own name belongs to the scope around it)
+  for (let n = n0; n; n = parentOf.get(n)) if (isFn(n)) parts.unshift(fnName(n));
   return parts.join('>');
 }
 
@@ -145,6 +147,16 @@ function lists(n) {
   if (!n || typeof n.type !== 'string') return;
   for (const k in n) { if (k === 'loc' || k === 'range') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(lists); else if (v && typeof v.type === 'string') lists(v); }
   if (n.type === 'Program' || n.type === 'BlockStatement' || n.type === 'StaticBlock') n.body = n.body.flatMap(stmt);
+  // `if (!x) return; rest` at a function body's end is folded by esbuild into `if (!!x) { rest }` (and `if (a || b) return; rest` into
+  // `if (!(a || b)) { rest }`) — the negation marks it: undo it
+  if (n.type === 'BlockStatement' && isFn(parentOf.get(n)) && n.body.length) {
+    const last = n.body[n.body.length - 1];
+    const t = last.type === 'IfStatement' && !last.alternate && last.test.type === 'UnaryExpression' && last.test.operator === '!' ? last.test.argument : null;
+    if (t && ((t.type === 'UnaryExpression' && t.operator === '!') || t.type === 'LogicalExpression')) {   // (`!!x`, or `!(a || b)` / `!(a && b)`)
+      const rest = last.consequent.type === 'BlockStatement' ? last.consequent.body : [last.consequent];
+      n.body = [...n.body.slice(0, -1), { type: 'IfStatement', test: last.test.argument, consequent: { type: 'ReturnStatement', argument: null }, alternate: null }, ...rest];
+    }
+  }
   if (n.type === 'SwitchCase') n.consequent = n.consequent.flatMap(stmt);
   if (n.type === 'ArrowFunctionExpression' && n.expression && n.body.type === 'SequenceExpression') { const ex = n.body.expressions; n.body = { type: 'BlockStatement', body: [...ex.slice(0, -1).flatMap((x) => stmt(ES(x))), { type: 'ReturnStatement', argument: ex[ex.length - 1] }] }; n.expression = false; }
   for (const k of ['consequent', 'alternate', 'body']) if ((n.type === 'IfStatement' || /^(For|While|DoWhile|Labeled)/.test(n.type)) && n[k] && n[k].type === 'ExpressionStatement') n[k] = inner(n[k]);

@@ -1,0 +1,13 @@
+diff --git a/src/game/twin.js b/src/game/twin.js
+index 3707ac2..e0734fa 100644
+--- a/src/game/twin.js
++++ b/src/game/twin.js
+@@ -115,6 +115,8 @@ const CSS_CA = `
+ const R = 60, DEAD = 8, SPEED = 11, PIPS = 3, PIP_MS = 330, PIP_WAIT = 300;   // ── crafta19 ── (PIP_WAIT 700 → 300: at the rhythm's ≈ 1 act a second the pips never run dry — a touch that does nothing is the bug; a mash still dries them) ── /crafta19 ──   // ── twin18 ── (PIP_WAIT 380 → 700: the pips really run dry under a quick thumb) ── /twin18 ──
+ // ── recovered (16–26c) ── the grade windows (seconds from the gold moment: מושלם · טוב · the rest soft), shared with stations.js's timing acts
+ export const GRADE = Object.freeze({ PERF: 0.085, GOOD: 0.2 });
++// ── recovered (16–26c) ── a grade from the offset to the gold moment (k widens the windows) — stations.js's timing acts
++export const gradeOf = (d, k = 1) => (Math.abs(d) <= GRADE.PERF * k ? 'perfect' : Math.abs(d) <= GRADE.GOOD * k ? 'good' : 'soft');
+ // ── recovered (16–26c) ── the soft stick (T.pace.soft = walk.js STICK): the thumb's reach → 0…1 past the dead zone, eased (ease) or with
+ // a low end (low); stickMove: the speed rises by acc and falls by dec (seconds to the top speed), the heading turns over `turn` s;
+ // stickVel: the protocol stick's velocity eases to the thumb's over tau

@@ -30,6 +30,14 @@ export function fitD(tgt, pts, el, az, W, H, c = CAM29) {
   for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (ok(mid)) hi = mid; else lo = mid; }
   return hi;
 }
+// ── recovered (build 24) ── SmoothDamp (the critically damped spring of the games' cameras): cur → target over about `time` s, its
+// velocity kept in store[key]; dt 0 leaves it where it is
+function smoothDamp(cur, target, store, key, time, dt) {
+  if (!(dt > 0)) return cur;
+  const w = 2 / time, x = w * dt, k = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x), d = cur - target, t = ((store[key] || 0) + w * d) * dt;
+  store[key] = ((store[key] || 0) - w * t) * k;
+  return target + (d + t) * k;
+}
 
 // ── shift30 ── the camera INSIDE the world (WAVE30 SHIFT30 (1); the owner 12.10: "נראה מלמעלה מדי … אני בתוך העולם מלווה את הולך
 // הרגל"): a follow camera behind the kohen — 30° down, ~20 amot to the look point (⚑ the brief's 13–15: the kohen is 6.5 amot tall, at
@@ -58,6 +66,12 @@ export const CAM32 = { fixed: true, az: 1.05, el: 0.85, dMin: 24, dMax: 110, oy:
   // instant; a FOLLOW like Roblox's "Follow" camera — while he walks and no thumb is on the camera, the bearing eases round behind his way (0.9 rad/s, after 0.4 s);
   // the stick's bearing is frozen at touch-down (twin.js), so the follow never turns the thumb's "up" under the thumb; the act's camera nearer and lower (he fills the frame)
   follow: true, followK: 0.9, followAfter: 0.4, dragEase: 12, dAct: 15, elAct: 0.6 };
+// ── recovered (build 24) ── the day's view (dayView: its lift, field of view, distances — "stopped 17.0/0.28") and the automatic
+// context camera CAM24: SmoothDamp times (s) for the stick's push (mT), the bearing (azT; cT under a drag view), the lift (elT), the
+// distance (dT), the look (lT); at the stick's full push the camera backs off ×(1 + back) and lifts by pitch ("→ 19.4/0.377"); near a
+// station (spec.near31) the context view (ctx: 13 amot, 0.4). The names VIEW24 and CAM24 are the recovery's (CAM24: the report's).
+export const VIEW24 = Object.freeze({ el0: 0.28, fov: 50, d: 17, dAct: 11 });
+const CAM24 = Object.freeze({ back: 0.15, pitch: 0.1, mT: 0.35, azT: 0.6, cT: 0.45, elT: 0.45, dT: 0.5, lT: 0.35, ctx: Object.freeze({ d: 13, el: 0.4 }) });
 // (build 5.1, the owner 23:45: "המצלמה עלתה לי הרבה פעמים גבוה כך שראיתי רק את ראש הכהן" — Dror's thumb (the video's touch dots, docs/owner-1013/rh_400.jpg) strokes mostly
 //  SIDEWAYS in short drags; so: the turn quicker (0.009 rad/px: a half-screen drag ≈ a full turn), the lift slower (0.0028) and only when the stroke is mostly
 //  vertical, the top capped at 57° (never the head alone), the start at 45°)
@@ -109,19 +123,32 @@ export function createShiftCam(view, twin, o = {}) {
     const e = (k) => (dt > 0 ? 1 - Math.exp(-dt * k) : 1);
     if (c.orbit) {   // ── fable32 (build 5) ── the orbit camera: the bearing and the lift are the thumb's (st.oaz / st.oel), the distance plain
       if (tgt) { const dx = tgt.x - h.x, dz = tgt.z - h.z, dd = Math.hypot(dx, dz); const m = dd > 0.1 ? Math.min(dd * c.towardO, c.towardMaxO) : 0; ox = dd > 0.1 ? dx / dd * m : 0; oz = dd > 0.1 ? dz / dd * m : 0; }
-      if (!Number.isFinite(st.oaz)) { st.oaz = c.az; st.oel = 0.78; st.taz = c.az; st.tel = 0.78; }
+      if (!Number.isFinite(st.oaz)) { const el0 = Number.isFinite(st.el0) ? st.el0 : 0.78; st.oaz = c.az; st.oel = el0; st.taz = c.az; st.tel = el0; }   // ── recovered (16–26c) ── (st.el0: the day view's)
       // (the thumb's target bearing/lift eased; the follow: behind his way while he walks and the thumb is off the world)
       if (dt > 0 && Number.isFinite(st.px)) { const kk = Math.min(1, dt * 7), jump = Math.hypot(h.x - st.px, h.z - st.pz) > 6; if (jump) { st.vx = st.vz = 0; } else { st.vx += ((h.x - st.px) / dt - st.vx) * kk; st.vz += ((h.z - st.pz) / dt - st.vz) * kk; } } st.px = h.x; st.pz = h.z;   // (his pace, smoothed ~0.15 s; a teleport is not a pace)
-      { const dragging = st.dragOn; const sp = Math.hypot(st.vx, st.vz);
-        if (c.follow && !dragging && !act && sp > 3 && sp < 40) { st.walkT = (st.walkT || 0) + (dt || 0); if (st.walkT > c.followAfter) { const want = Math.atan2(-st.vz, -st.vx); let da = want - st.taz; da = Math.atan2(Math.sin(da), Math.cos(da)); const stp = Math.sign(da) * Math.min(Math.abs(da), c.followK * (dt || 0)); st.taz = Math.atan2(Math.sin(st.taz + stp), Math.cos(st.taz + stp)); } } else st.walkT = 0;
-        let da2 = st.taz - st.oaz; da2 = Math.atan2(Math.sin(da2), Math.cos(da2)); st.oaz = Math.atan2(Math.sin(st.oaz + da2 * e(c.dragEase)), Math.cos(st.oaz + da2 * e(c.dragEase)));
-        const elT = act ? Math.min(st.tel, c.elAct) : st.tel; st.oel += (elT - st.oel) * e(c.dragEase); }
-      const dw = Number.isFinite(st.dOver) ? st.dOver : act ? c.dAct : c.d;   // ── fable32 (build 13) ── (st.dOver: the lobby's) ── /fable32 ──
+      // ── recovered (build 17) ── a station's own drag view (SHARED.cam17 = { id, az, el, d, look }) takes the bearing, the lift, the
+      // distance and the look; ── recovered (build 24) ── else the follow sets the bearing behind his way, and SmoothDamp eases it all
+      const dragging = SHARED.cam17 || null, C24 = CAM24, sp = Math.hypot(st.vx, st.vz), stk = twin && twin.stick ? twin.stick() : null, spec = twin && twin.spec ? twin.spec() : null;
+      st.m24 = smoothDamp(st.m24 || 0, stk && stk.M ? stk.M : 0, st, 'mv', C24.mT, dt);   // (the stick's push, 0…1, smoothed)
+      if (dragging) {
+        st.taz = dragging.az; st.walkT = 0;
+        if (dragging.look) { const dx = dragging.look.x - h.x, dz = dragging.look.z - h.z, dd = Math.hypot(dx, dz), k = dd > 10 ? 10 / dd : 1; ox = dx * k; oz = dz * k; }
+        st.c17 = dragging.id;
+      } else {
+        if (st.c17 && Number.isFinite(st.el0)) st.tel = st.el0;
+        st.c17 = '';
+        if (c.follow && !st.dragOn && !act && sp > 2.5 && sp < 40) { st.walkT = (st.walkT || 0) + (dt || 0); if (st.walkT > c.followAfter) st.taz = Math.atan2(-st.vz, -st.vx); } else st.walkT = 0;
+      }
+      { let da2 = st.taz - st.oaz; da2 = Math.atan2(Math.sin(da2), Math.cos(da2)); const a = smoothDamp(st.oaz, st.oaz + da2, st, 'av', st.dragOn ? 0.08 : dragging ? C24.cT : C24.azT, dt); st.oaz = Math.atan2(Math.sin(a), Math.cos(a)); }
+      const near = !act && !dragging && !!(spec && spec.near31), push = act ? 0 : st.m24,
+        elT = dragging ? dragging.el : act ? Math.min(st.tel, c.elAct) : near ? C24.ctx.el : st.tel,
+        dw = Number.isFinite(st.dOver) ? st.dOver : dragging && dragging.d > 0 ? dragging.d : act ? (st.day17 ? st.day17.dAct : c.dAct) : near ? C24.ctx.d : st.day17 ? st.day17.d : c.d;   // ── fable32 (build 13) ── (st.dOver: the lobby's) ── /fable32 ──
       if (!Number.isFinite(st.fd)) { st.fd = dw; st.fox = ox; st.foz = oz; }
-      st.fox += (ox - st.fox) * e(c.kLook); st.foz += (oz - st.foz) * e(c.kLook);
-      st.fd += (dw - st.fd) * e(dw < st.fd ? c.kIn : c.kOut);
-      st.az = st.want = st.oaz; st.mode = act ? 'act' : 'orbit'; st.d = st.fd; st.k = 1; st.boff = 0; SHARED.swing = false;
-      try { globalThis.__SH_STICK_AZ = st.oaz; } catch (err) { /* */ }
+      st.oel = smoothDamp(st.oel, elT + C24.pitch * push, st, 'ev', C24.elT, dt);
+      st.fd = smoothDamp(st.fd, dw * (1 + C24.back * push), st, 'dv', C24.dT, dt);
+      st.fox = smoothDamp(st.fox, ox, st, 'xv', C24.lT, dt); st.foz = smoothDamp(st.foz, oz, st, 'zv', C24.lT, dt);
+      st.az = st.want = st.oaz; st.mode = act ? 'act' : dragging ? 'c17' : near ? 'ctx' : 'orbit'; st.d = st.fd; st.k = 1; st.boff = 0; SHARED.swing = false;
+      try { globalThis.__SH_STICK_AZ = twin && twin.viewK && twin.viewK() > 0.5 ? NaN : st.oaz; } catch (err) { /* */ }   // ── recovered (16–26c) ── (a view held by the twin: no frozen bearing)
       if (twin) twin.camOver = { el: st.oel, d: st.fd, az: st.oaz, ox: st.fox, oz: st.foz, oy: c.oy, shift29: true, shift30: true, fixed32: true, orbit32: true };
       if (PROF.on) PROF.tag(`c:${st.mode}`);
       return;
@@ -195,20 +222,30 @@ export function createShiftCam(view, twin, o = {}) {
     st.d = d;
     if (PROF.on) PROF.tag(`c:${mode}${Math.abs(da) > 1.2 ? '!' : ''}`);   // (the frame-time log: what this camera did)
   }
+  // ── recovered (build 17) ── the day view's field of view on the scene's camera while this camera is on; the old one back after
+  function dayFov(on) {
+    try {
+      const cam = globalThis.__T && __T.camera; if (!cam || !cam.isPerspectiveCamera) return;
+      if (on && st.day17) { if (st.fov0 == null) st.fov0 = cam.fov; if (cam.fov !== st.day17.fov) { cam.fov = st.day17.fov; cam.updateProjectionMatrix(); } }
+      else if (st.fov0 != null) { cam.fov = st.fov0; st.fov0 = null; cam.updateProjectionMatrix(); }
+    } catch (e) { /* */ }
+  }
   const api = {
     on() {
       if (st.on) return true; st.on = true;
+      dayFov(true);   // ── recovered (build 17) ──
       st.side = globalThis.__CAM28_SIDE; globalThis.__CAM28_SIDE = 0;   // (the day's wall-bearing search off: the bearing is this camera's; CAM28's guard stays on)
       globalThis.__CAM28_HALF = true;   // (the guard's cast every 2nd frame while the line stays clear: the frame budget)
       if (c.orbit) globalThis.__CAM28_PULL = true;   // ── fable32 (build 12) ── (the guard never turns or lifts the thumb's camera: blocked, it comes in to the wall) ── /fable32 ──
+      if (twin && !o.drag) twin.noPinch = true;   // ── recovered (16–26c) ── (no thumb turns it: no pinch, no drag — unless o.drag)
       const h = hero();
       // (the first bearing: behind him as he faces — the twin's start frame (T.intro) shows his back the same way)
-      st.az = c.fixed ? c.az : Number.isFinite(h.yaw) ? Math.atan2(-Math.cos(h.yaw), -Math.sin(h.yaw)) : 0; st.want = st.az; st.fd = NaN;   // ── fable32 (build 4) ── (the fixed bearing from the first frame) ── /fable32 ── st.push = 0; st.px = NaN; st.vx = st.vz = 0; st.k = st.bk = 1; st.boff = 0;
+      st.az = c.fixed ? c.az : Number.isFinite(h.yaw) ? Math.atan2(-Math.cos(h.yaw), -Math.sin(h.yaw)) : 0; st.want = st.az; st.fd = NaN; st.push = 0; st.px = NaN; st.vx = st.vz = 0; st.k = st.bk = 1; st.boff = 0;   // ── fable32 (build 4) ── (the fixed bearing from the first frame) ── /fable32 ──   // ── recovered (16–26c) ── (the resets after `st.fd = NaN` had been inside this line's comment until then: live again)
       try { if (view && view.closeCam) view.closeCam(true, 'shift30'); } catch (e) { /* */ }   // (OrbitControls' 35-amot floor off while the shift's camera is near)
       if (twin) twin.camOver = c.fixed ? { el: c.el, d: c.dMin, az: c.az, ox: 0, oz: 0, oy: c.oy, shift29: true, shift30: true, fixed32: true } : { el: c.el, d: c.d, az: st.az, ox: -Math.cos(st.az) * c.ahead, oz: -Math.sin(st.az) * c.ahead, oy: c.oy, shift29: true, shift30: true };   // ── fable32 (build 4) ── ── /fable32 ──
       frame.__prof = 'cam'; st.off = onTick(frame);   // (the frame-time log's camera share)
       // ── fable32 (build 5) ── the right thumb's drag on the empty world turns and lifts the camera (one finger; a second finger = the twin's pinch, the drag lets go)
-      if (c.orbit && typeof document !== 'undefined') {
+      if (c.orbit && o.drag && typeof document !== 'undefined') {   // ── recovered (build 24) ── (the thumb's drag only where o.drag asks: "no thumb turns it")
         const doc = document, D = { id: null, x: 0, y: 0, moved: 0 };
         const onCanvas = (t) => !!(t && (t.tagName === 'CANVAS' || (t.id === 'c') || (t.classList && t.classList.contains('tw-ghost'))));
         const down = (ev) => { if (!st.on || D.id != null || ev.pointerType === 'mouse' && ev.button !== 0) return; if (!onCanvas(ev.target)) return; const W = innerWidth || 844; if (ev.clientX < W * 0.45 && ev.clientY > (innerHeight || 390) * 0.35) return; /* (the stick's zone) */ D.id = ev.pointerId; D.x = ev.clientX; D.y = ev.clientY; D.moved = 0; st.dragOn = true; };
@@ -221,9 +258,10 @@ export function createShiftCam(view, twin, o = {}) {
       return true;
     },
     off() {
-      if (!st.on) return false; st.on = false; try { delete globalThis.__SH_STICK_AZ; } catch (e) { /* */ }   // ── fable32 ── ── /fable32 ──
+      if (!st.on) return false; st.on = false; dayFov(false); try { delete globalThis.__SH_STICK_AZ; } catch (e) { /* */ }   // ── fable32 ── ── /fable32 ──   // ── recovered (build 17) ── (dayFov)
       if (st.off) { st.off(); st.off = null; }
       if (st.offDrag) { st.offDrag(); st.offDrag = null; }   // ── fable32 (build 5) ── ── /fable32 ──
+      if (twin) twin.noPinch = false;   // ── recovered (16–26c) ──
       SHARED.board = null;
       if (twin && twin.camOver && twin.camOver.shift29) twin.camOver = null; SHARED.swing = false;
       try { if (view && view.closeCam) view.closeCam(false, 'shift30'); } catch (e) { /* */ }
@@ -231,8 +269,11 @@ export function createShiftCam(view, twin, o = {}) {
       return true;
     },
     focus() { /* (the overview's: none in the follow camera) */ },
+    // ── recovered (build 17) ── the day's view (VIEW24 since build 24): { el0, fov, d, dAct } — the lift it starts from and comes back to
+    // after a drag view, its field of view, its distances; null: the camera's own
+    dayView(v) { st.day17 = v && v.fov > 0 ? { ...v } : null; st.el0 = v && Number.isFinite(v.el0) ? Math.max(c.elMin, Math.min(c.elMax, v.el0)) : NaN; if (Number.isFinite(st.oel) && Number.isFinite(st.el0)) st.oel = st.tel = st.el0; if (st.on) dayFov(true); return st.day17; },
     orbit(az, el, d) { if (Number.isFinite(az)) st.oaz = st.taz = az; if (Number.isFinite(el)) st.oel = st.tel = Math.max(c.elMin, Math.min(c.elMax, el)); if (d !== undefined) st.dOver = Number.isFinite(d) && d > 0 ? d : NaN; return [st.oaz, st.oel]; },   // ── fable32 (build 13) ── (+ d: the lobby's own distance) ── /fable32 ──   // ── fable32 (build 5) ── (tests) ── /fable32 ──
-    state: () => { let el = c.el; try { if (view && view.camNow) { view.camNow(cq); el = Math.atan2(cq.py - cq.ty, Math.hypot(cq.px - cq.tx, cq.pz - cq.tz)); } } catch (e) { /* */ } return { on: st.on, act: !!SHARED.act, mode: st.mode, fixed: !!c.fixed, orbit: !!c.orbit, oaz: Number.isFinite(st.oaz) ? +st.oaz.toFixed(2) : null, oel: Number.isFinite(st.oel) ? +st.oel.toFixed(2) : null, drags: st.drags | 0, off: +(st.boff || 0).toFixed(2), k: +(st.k || 1).toFixed(2), arc: st.arc || 0, arcN: st.arcN || null, el: c.el, elNow: +el.toFixed(2), az: +st.az.toFixed(2), want: +st.want.toFixed(2), d: +(st.d || c.d).toFixed(1), push: +st.push.toFixed(2), n: st.n }; },
+    state: () => { let el = c.el; try { if (view && view.camNow) { view.camNow(cq); el = Math.atan2(cq.py - cq.ty, Math.hypot(cq.px - cq.tx, cq.pz - cq.tz)); } } catch (e) { /* */ } return { on: st.on, act: !!SHARED.act, mode: st.mode, c17: st.c17 || '' /* ── recovered (build 17) ── */, fixed: !!c.fixed, orbit: !!c.orbit, oaz: Number.isFinite(st.oaz) ? +st.oaz.toFixed(2) : null, oel: Number.isFinite(st.oel) ? +st.oel.toFixed(2) : null, drags: st.drags | 0, off: +(st.boff || 0).toFixed(2), k: +(st.k || 1).toFixed(2), arc: st.arc || 0, arcN: st.arcN || null, el: c.el, elNow: +el.toFixed(2), az: +st.az.toFixed(2), want: +st.want.toFixed(2), d: +(st.d || c.d).toFixed(1), push: +st.push.toFixed(2), n: st.n }; },
     points: () => framePoints(),
   };
   try { globalThis.__S29C = api; } catch (e) { /* tests */ }

@@ -922,7 +922,7 @@ function openingSkip() { if (opening7) opening7.skip(); }
 import { createMusic } from './game/music.js';
 const musicEls = { modal: document.getElementsByClassName('gm-modal'), avModal: document.getElementsByClassName('av-modal'), coach: document.getElementsByClassName('coach-on'), mg: document.getElementsByClassName('fx-mg'), tw: document.getElementsByClassName('tw-on') /* ── land17 ── */ };
 const music = createMusic({
-  context: () => { try { return (game && game.sfx && game.sfx.context) || (avodah && avodah.sfx && avodah.sfx.context) || null; } catch (e) { return null; } },   // ── recovered (16–26c) ── (|| the avodah's)   // share the sound kit's context when it offers it
+  context: () => { try { return (game && game.sfx && game.sfx.context) || (avodah && avodah.sfx && avodah.sfx.context) || null; } catch (e) { return null; } },   // ── recovered (build 26c) ── (|| Phase B's: the music shares its one context)   // share the sound kit's context when it offers it
   watch: () => {
     const kit = avodah && avodah.sfx ? avodah.sfx : game && game.sfx ? game.sfx : null;
     return { muted: !!(kit && kit.muted), hidden: document.hidden, duck: musicEls.modal.length || musicEls.avModal.length ? 0.15 : musicEls.coach.length ? 0.6 : 1, precision: musicEls.mg.length > 0, scenes: document.body.classList.contains('sc-on'), whole: wholeView, twin: musicEls.tw.length > 0 /* ── land17 ── the walking-and-working mode: the work state's tempo (120–126) */ };

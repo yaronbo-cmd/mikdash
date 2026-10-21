@@ -41,7 +41,7 @@ const f26El = (r) => (r && r.W && /^payis/.test(r.W.id || '') ? 1.05 : 0);
 // ── /fix26 ──
 const ZOOM_K = 0.62;   // ── polish23 ── (the follow camera's distance share during a work: the same as Phase A's craft zoom)
 const START_SPOT = { x: -15, z: 0, yaw: Math.PI / 2 };
-const isLand = () => typeof innerWidth === 'number' && innerWidth > innerHeight && innerWidth >= 640;
+const isLand = () => typeof innerWidth === 'number' && ((innerWidth > innerHeight && innerWidth >= 640) || globalThis.__SH17UP === true);   // ── recovered (build 17) ── (|| __SH17UP: focus17's)
 const noTwin = () => { try { return /[?&]twin=0\b/.test(location.search || ''); } catch (e) { return false; } };
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const BLOCK_HE = { night: 'הלילה — שמירה, מדורה וטלאים', dawn: 'השחר — ההשכמה והפיס', day: 'היום — הקרבנות והמחסנים', evening: 'בין הערביים', close: 'סוף היום — ספירה ונעילה' };
@@ -292,7 +292,7 @@ export function createDay(o = {}) {
       camCut: () => { if (C28) C28.snap(); },   // ── cam28 ── ── /cam28 ──
       clear: (p, q) => !(C28 && C28.seg(q[0], q[1], q[2], p[0], p[1], p[2])),   // ── cam28 ── (the start frame's bearing) ── /cam28 ──
       occl: (x, y, z) => !!(C28 && C28.occluded(x, y, z, `${Math.round(x)},${Math.round(z)}`)),   // ── cam28 ── (a marker chip behind a wall) ── /cam28 ──
-      camWork: () => (running && running.zoom && !running.game ? { x: (running.at || {}).x, z: (running.at || {}).z, k: f26El(running) ? 0.9 : ZOOM_K, share: f26El(running) ? 0.9 : undefined /* ── fix26 ── (the whole circle in the frame, the gaze on it) ── /fix26 ── */, view: camView() } : null),   // ── polish23 ── (── places24 ── view: the real place's camera)
+      camWork: () => (D.shift && D.shift.camWork ? D.shift.camWork() : null) || (running && running.zoom && !running.game ? { x: (running.at || {}).x, z: (running.at || {}).z, k: f26El(running) ? 0.9 : ZOOM_K, share: f26El(running) ? 0.9 : undefined /* ── fix26 ── (the whole circle in the frame, the gaze on it) ── /fix26 ── */, view: camView() } : null),   // ── polish23 ── (── places24 ── view: the real place's camera)   // ── recovered (build 20) ── (the shift's own work camera first)
       camEl: () => (Number.isFinite(cs.el) && globalThis.__CAM28_SIDE !== 0 ? cs.el : (running && running.zoom && !running.game ? (Number.isFinite(globalThis.__P23_EL) ? globalThis.__P23_EL : f26El(running) || WORK_EL) : null)),   // ── fix26 ── (f26El) ── /fix26 ──   // ── polish23 ── (a flatter camera during a work: the stage's depth takes less of the frame, so its width can fill it)
  camSide: (d, el, az) => globalThis.__CAM28_SIDE === 0 ? null : camClear(d, running && running.zoom && !running.game ? (Number.isFinite(globalThis.__P23_EL) ? globalThis.__P23_EL : WORK_EL) : el, az),   // ── polish23 ── (the wall search at the work's own elevation) why: () => '',   // (the follow camera never looks through a built wall at him)
     });

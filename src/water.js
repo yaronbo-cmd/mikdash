@@ -452,6 +452,16 @@ export function createWater(ctx = {}) {
     await h.face([KX, KZ]);
     return true;
   });
+  // ── recovered (build 20) ── kiyor20's laver: spigot i pours on target() (a point that follows his hands) while on; off, or no
+  // target → it closes; lowered for the night → the wheel raises it (a second) and nothing pours this time
+  const pour20 = safeSync((i, target, on = true, flow = 0.9) => {
+    const sp = spig[((i | 0) % 12 + 12) % 12];
+    if (!on || typeof target !== 'function') { if (sp.p20) { sp.p20 = false; closeSpigot(sp); } return false; }
+    if (kiyorSt.down || kiyorSt.moving) { if (kiyorSt.down && !kiyorSt.moving) mukhni(false, { sec: 1 }); return false; }
+    sp.target = target; sp.p20 = true; openSpigot(sp, flow);
+    if (sp.s) { sp.s.w = 0.15; sp.s.a = 1; }
+    return true;
+  }, false);
   const hold = safe(async (who, i, on = true) => {
     const k = ((i | 0) % 12 + 12) % 12, h = kohenOf(who);
     if (!on) { if (held[k]) held[k].on = false; return true; }
@@ -846,7 +856,7 @@ export function createWater(ctx = {}) {
      firstFlow, washTogether, onEvent, update,
     setEnabled: safeSync((v) => { enabled = !!v; if (!enabled) { sMesh.visible = fMesh.visible = false; } return enabled; }, false),
     // for avodah3d's wash (the kohen walks, bends, then the water): where to stand at spigot i, and the water part
-    washSpot, _washAt: washAt, shirayim, shirayimSpot, hold, approach,
+    washSpot, _washAt: washAt, shirayim, shirayimSpot, hold, approach, pour20,   // ── recovered (build 20) ── pour20
     // cheap per-frame reads (no allocation): the kiyor is lowered / the twelve are washing / how many spigots run
     get down() { return kiyorSt.down; }, get twelve() { return !!kiyorSt.twelve; },
     get holding() { for (let i = 0; i < held.length; i++) if (held[i] && held[i].on) return true; return false; },

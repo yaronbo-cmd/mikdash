@@ -20,6 +20,14 @@ export const DAY33 = Object.freeze({ idleOffer: 12, dayS: 180, nightS: 60, fuel0
   taskReward: 5, merchantDay: 2, merchantP: 0.35, merchantS: 75, merchantAt: { x: -13, y: 16, z: 3 },
   // ── build 10 ── the night in בית המוקד (מידות א, ו–ח: the kohanim slept there; the hall −178…−142 × −83…−58) — a fade and he is there; the Levites' song after the dawn tamid; the fire's look by its meter
   moked: { x: -160, y: 16, z: -68, back: { x: -34, z: 50 } }, songS: 60, songFuel: 10, songReward: 5 });
+// ── recovered (R6) ── the tables of builds 17–26 that the day's own modules import (ramp19, kiyor20, deshen21, maaracha22, pis23, pen25,
+// heichal26, fx18, focus17), placed in the bundle's order; R7 fills the rest of day33 in around them. The names are the build reports'
+// where they have one (B17, C18, POOL23, rolesBook23, P25, BLEM25, at25, hash25, P26, POOL26), else the recovery's in their style.
+// ── recovered (build 19) ── the ramp run (ramp19.js): the bag's two sizes, the climb's rate, the logs' flight, the goal, the sway, the salt
+export const R19 = Object.freeze({ bag: Object.freeze([480, 340]), rate: 33, fly: 0.25, goal: 0.8, after: 5, v0: 3, v1: 7.5, swayMax: 0.5, saltK: 0.4, slipV: 5.5, par: 6, head: 12, hold: 0.35 });
+// ── recovered (build 19) ── on the ramp (its rectangle: x −46…−30, z 10.5…42.5) and the ramp's height at z (16 at the foot → 25 at the top)
+export const onRamp19 = (x, z) => x > -46 && x < -30 && z > 10.5 && z < 42.5;
+export const rampY19 = (z) => 16 + 9 * Math.min(1, Math.max(0, (42.5 - z) / 32));
 /** the ממונה's tasks — three a day, by the day's number; each pays 5 פרוטות (שקלים ה, א: the fifteen officers) */
 export const TASKS33 = Object.freeze([
   { id: 'chop6', text: '🪵 בקעו 6 גזרים', key: 'chops', goal: 6 }, { id: 'carry10', text: '🔥 העלו 10 גזרים', key: 'carried', goal: 10 }, { id: 'chop12', text: '🪵 בקעו 12 גזרים', key: 'chops', goal: 12 },

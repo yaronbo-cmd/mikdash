@@ -113,20 +113,20 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 
 | module | recovery (parity · status) | min bytes 15 → 26c | Δ tokens | 15 lines | 26c lines | 26c line range | confidence | what changed (literals only 26c has) |
 |---|---|---|---|---|---|---|---|---|
-| `src/avodah/shift/day33.js` | FAIL — R7 (must export resumeDay33 for lobby35's patch) | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
-| `src/avodah/shift/stations.js` | FAIL — R5 (reads CLIMB31.top/tailDay and PACE.laver — in) | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
-| `src/game/audio.js` | FAIL — R4 (in the lazy graph now, as in 26c — sound.js imports it; 2 units differ: createAudio's trim/declick and the sounds of b17–26) | 25,040 → 32,678 | +3995 / −0 | 1284 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) | "trumpet17", .disconnect, "scrape21", "scrape26", "unlock20", trumpet17:, "alarm17" |
-| `src/avodah/shift/hero35.js` | FAIL — R4 (with gait.js) | 3,698 → 9,524 | +2526 / −67 | 199 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) | `$& vD=0.;for(int i=0;i<4;i++){float j, `$& uniform float uD,uG,uT;varying flo, `$& totalEmissiveRadiance+=vec3(.62,.9, `$& diffuseColor.rgb=mix(diffuseColor., `$& uniform vec4 uJ,uK;varying float v, "#include <emissivemap_fragment>", "#include <skinning_pars_vertex>" |
-| `src/game/twin.js` | FAIL — R4 | 45,461 → 49,642 | +2330 / −9 | 1709 | 1895 | 51128–53022 | high (sim 0.75) | .swallowUp, .parkedAt, .stickUse, parkedAt:, .noPinch, .__S29S, .__S29W |
-| `src/avodah/shift/camera.js` | FAIL — R4 | 11,510 → 12,870 | +1057 / −265 | 647 | 725 | 93598–94322 | high (sim 0.76) | .updateProjectionMatrix, .isPerspectiveCamera, .noPinch, .camera, .freeze, .near31, .cam17 |
-| `src/avodah/shift/flow31.js` | FAIL — R4 (calls world22's rampWay and life's rampLane — both in) | 18,615 → 20,476 | +1095 / −7 | 717 | 811 | 97876–98686 | high (sim 0.78) | `.f31-zoom{position:fixed;top:calc(env, "rgba(28,20,10,.7)", "!#FFB84A", "#4A3220", "#8A6440", "#B48A55", "#FFD66E" |
+| `src/avodah/shift/day33.js` | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in) | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
+| `src/avodah/shift/stations.js` | FAIL — R5 (imports GRADE — in — and gradeOf: git apply recovery/pending/twin.js-gradeOf.patch with it; reads CLIMB31.top/tailDay and PACE.laver — in) | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
+| `src/game/audio.js` | PASS — R4 ported (6dd67db): createAudio's trim/declick, the beds bus, duck, rush20, choir, ~32 sounds of b17–26 | 25,040 → 32,678 | +3995 / −0 | 1284 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) | "trumpet17", .disconnect, "scrape21", "scrape26", "unlock20", trumpet17:, "alarm17" |
+| `src/avodah/shift/hero35.js` | PASS — R4 ported (9076b09): gait from gait35.js, pose20, dust20, hold21, lift, hitStop, __ARM19 | 3,698 → 9,524 | +2526 / −67 | 199 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) | `$& vD=0.;for(int i=0;i<4;i++){float j, `$& uniform float uD,uG,uT;varying flo, `$& totalEmissiveRadiance+=vec3(.62,.9, `$& diffuseColor.rgb=mix(diffuseColor., `$& uniform vec4 uJ,uK;varying float v, "#include <emissivemap_fragment>", "#include <skinning_pars_vertex>" |
+| `src/game/twin.js` | FAIL — R4 ported (956ce7b) but gradeOf: recovery/pending/twin.js-gradeOf.patch (only stations.js imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R5's stations.js. New: GRADE (stations.js imports it), STICK24 (shift/index.js imports it), the soft/protocol stick | 45,461 → 49,642 | +2330 / −9 | 1709 | 1895 | 51128–53022 | high (sim 0.75) | .swallowUp, .parkedAt, .stickUse, parkedAt:, .noPinch, .__S29S, .__S29W |
+| `src/avodah/shift/camera.js` | PASS — R4 ported (8c24403): smoothDamp, CAM24, VIEW24, dayView/dayFov (b17), the cam17 drag view, noPinch | 11,510 → 12,870 | +1057 / −265 | 647 | 725 | 93598–94322 | high (sim 0.76) | .updateProjectionMatrix, .isPerspectiveCamera, .noPinch, .camera, .freeze, .near31, .cam17 |
+| `src/avodah/shift/flow31.js` | PASS — R4 ported (42945c2): LISHKA26 (the report's), freeFor, rampWay from the altar, strong24, hot17/b17, lay1/pyre33, prompt31, dayField, rampLane | 18,615 → 20,476 | +1095 / −7 | 717 | 811 | 97876–98686 | high (sim 0.78) | `.f31-zoom{position:fixed;top:calc(env, "rgba(28,20,10,.7)", "!#FFB84A", "#4A3220", "#8A6440", "#B48A55", "#FFD66E" |
 | `src/avodah/sound.js` | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 4,295 → 5,979 | +812 / −12 | 248 | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) | "createBufferSource", "createOscillator", "visibilitychange", .addEventListener, .defineProperty, trumpet17:, "context" |
 | `src/main.js` | PASS — R3 ported (3418486, 4d85973): predawn, mixTime, the shared sound context (26c) | 38,685 → 40,076 | +721 / −0 | 1968 | 2038 | 193948–195985 | high (sim 0.89) | "#2C2832", "#40527E", "#5A5652", "#93A6D6", predawn:, "gain", "lift" |
-| `src/avodah/day/world22.js` | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay | 627 → 1,650 | +627 / −0 | 47 | 101 | 74105–74205 | high (sim 0.74) | .findIndex, .freeze, .zFoot, .body, .gate, .push, .some |
-| `src/avodah/shift/index.js` | FAIL — later (after R4–R7): imports the evlog module, focus17, pis23, new day33 symbols, stations' new export, twin's CSS_NAV; uses walk's PACE/STICK (in) | 8,621 → 10,246 | +553 / −0 | 557 | 639 | 115608–116246 | high (sim 0.73) | "כל תפקיד בוקר: השיא, הפעמים, ומה עוד , "תפקידים — ספר התפקידים", "[shift] focus17", .__SH18_NOCOINS, .__SH_HARDSTICK, .__SH_LOBBYFULL, .__SH_B17OFF |
+| `src/avodah/day/world22.js` | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay; R4 (ca5a71f): KEVESH_WALL, HOUSE22, HEICHAL_VESSELS after the functions (the bundle's statement grouping) | 627 → 1,650 | +627 / −0 | 47 | 101 | 74105–74205 | high (sim 0.74) | .findIndex, .freeze, .zFoot, .body, .gate, .push, .some |
+| `src/avodah/shift/index.js` | FAIL — later (after R5–R7): imports evlog (evlog16.js — in), STICK24 (twin.js — in; R1's 'CSS_NAV' was a shifted symmap name), focus17, pis23, new day33 symbols, stations' new export; uses walk's PACE/STICK (in) | 8,621 → 10,246 | +553 / −0 | 557 | 639 | 115608–116246 | high (sim 0.73) | "כל תפקיד בוקר: השיא, הפעמים, ומה עוד , "תפקידים — ספר התפקידים", "[shift] focus17", .__SH18_NOCOINS, .__SH_HARDSTICK, .__SH_LOBBYFULL, .__SH_B17OFF |
 | `src/life.js` | PASS — R3 ported (9345571): the fire's levels, rampLane | 16,016 → 16,993 | +513 / −0 | 724 | 767 | 125889–126655 | high (sim 0.85) | .__FIRELOW33, .__FLARE33, "#8A8279", "off", .lerp, .zero, zero: |
 | `src/avodah/shift/walk.js` | PASS — R3 ported (8c5120b): planWay, the paced walk, PACE/STICK | 2,843 → 3,648 | +470 / −37 | 212 | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) | rimAfter:, .limitMs, limitMs:, .concat, .freeze, .slowIn, slowIn: |
-| `src/avodah/shift/hud.js` | FAIL — R3 pending: recovery/pending/hud.js.patch (fire gauge b17a, sh-b17, the event log b16; imports evlog, copyEvlog from ./evlog16.js; PASS with a stand-in module) → git apply with R4's evlog module | 27,167 → 30,150 | +396 / −14 | 657 | 712 | 97010–97721 | high (sim 0.84) | ` .sh-root{position:fixed;inset:0;z-in, "<svg viewBox=\"0 0 44 44\" aria-hidde, `         <button class="sh-tour sm sh, "[data-sh=evlog]", "הלוג הועתק ✓", "card_close", "card_open" |
+| `src/avodah/shift/hud.js` | PASS — R4 ported (6ae7ec1): R3's hud.js.patch applied — the fire gauge (b17a), sh-b17 (b17b), the event log on the cards (b16) | 27,167 → 30,150 | +396 / −14 | 657 | 712 | 97010–97721 | high (sim 0.84) | ` .sh-root{position:fixed;inset:0;z-in, "<svg viewBox=\"0 0 44 44\" aria-hidde, `         <button class="sh-tour sm sh, "[data-sh=evlog]", "הלוג הועתק ✓", "card_close", "card_open" |
 | `src/sky.js` | PASS — R3 ported (8731c2b): predawn, mix() | 13,187 → 13,744 | +289 / −16 | 533 | 574 | 123898–124471 | high (sim 0.86) | "#0A1430", "#141A30", "#2A2440", "#2A3150", "#2C3458", "#5A5470", "#6A6888" |
 | `src/avodah/shift/lobby35.js` | FAIL — R3 pending: recovery/pending/lobby35.js.patch (the start screen b16, minimal, the new spot; imports resumeDay33 from ./day33.js, reads DAY33.minimal; PASS with a stand-in export) → git apply with R7's day33 | 13,752 → 15,439 | +222 / −10 | 414 | 442 | 109519–109960 | high (sim 0.81) | ` .lb{position:fixed;inset:0;z-index:3, `</div>       <button class="lb-home" , `</button>         <button class="lb-d, `         <button class="lb-door pick", `<button class="lb-door pick" type="bu, `       </div>       <div class="lb-bo, `<button class="lb-door" type="button" |
 | `src/water.js` | PASS — R3 ported (4dcf689): pour20 (build 20) | 33,550 → 33,812 | +160 / −0 | 1362 | 1371 | 147360–148730 | high (sim 0.90) | .p20 |
@@ -143,7 +143,7 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 
 | module (name from the build reports) | recovery (parity · status) | min bytes | 26c lines | 26c line range | confidence | fingerprint |
 |---|---|---|---|---|---|---|
-| `src/avodah/shift/evlog16.js ?` | MISSING-IN-FRESH — R4 (exports evlog, copyEvlog — the names hud.js's patch imports) | 1,068 | 75 | 96935–97009 | content high, name LOW (proposed) | "mk.evlog" localStorage key, `{v:16,…}`, hud.js's "העתק לוג" |
+| `src/avodah/shift/evlog16.js ?` | PASS — R4 new (6ae7ec1): evlog (hud.js, day33.js, shift/index.js import it), copyEvlog (hud.js) | 1,068 | 75 | 96935–97009 | content high, name LOW (proposed) | "mk.evlog" localStorage key, `{v:16,…}`, hud.js's "העתק לוג" |
 | `src/avodah/shift/fx18.js` | MISSING-IN-FRESH — R6 | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
 | `src/avodah/shift/ramp19.js` | MISSING-IN-FRESH — R6 | 3,654 | 189 | 104463–104651 | high | "הכבש מומלח!", salt19, r19/gh19 |
 | `src/avodah/shift/kiyor20.js` | MISSING-IN-FRESH — R6 (uses water.pour20, __K20LAVER — in) | 10,124 | 308 | 104652–104959 | high | `.k20-*` CSS, rush20 |
@@ -153,7 +153,7 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 | `src/avodah/shift/heichal26.js` | MISSING-IN-FRESH — R6 (world22's HOUSE22, stages' twinPass — in) | 24,725 | 1009 | 107258–108266 | high | `.hk26-*` CSS, gate26/pour26 |
 | `src/avodah/shift/pis23.js` | MISSING-IN-FRESH — R6 (reads PACE — in) | 15,247 | 473 | 108267–108739 | high | `.p23-*` CSS, lot23/npc23 |
 | `src/avodah/shift/focus17.js` | MISSING-IN-FRESH — R6 | 26,861 | 779 | 108740–109518 | high | `.f17-*` CSS, "focus17" log tag |
-| `src/avodah/shift/gait.js ?` | MISSING-IN-FRESH — R4 (with hero35.js) | 566 | 26 | 115112–115137 | content high, name LOW (proposed) | `walkAt/runAt/runHys`, Walking_A/Running_A (taken out of hero35.js) |
+| `src/avodah/shift/gait.js ?` → `src/avodah/shift/gait35.js` | PASS — R4 new (9076b09): GAIT35, gaitFor — hero35.js imports both (R1's 'gait.js ?'; names26c.json maps it) | 566 | 26 | 115112–115137 | content high, name LOW (proposed) | `walkAt/runAt/runHys`, Walking_A/Running_A (taken out of hero35.js) |
 | `(esbuild glue: one init_x() call)` | — | 4 | 1 | 157768–157768 | n/a | — |
 
 ### C. Every file of build 15's src/ (227) — its fate in 26c
@@ -175,7 +175,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/avodah/day/stock.js` | unchanged | PASS | 62 | 73417–73478 | high |
 | `src/avodah/day/tasks.js` | unchanged | PASS | 592 | 73479–74070 | high |
 | `src/avodah/day/works.js` | unchanged | PASS | 5 | 74071–74075 | high |
-| `src/avodah/day/world22.js` | changed +627/−0 tok | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay | 101 | 74105–74205 | high (sim 0.74) |
+| `src/avodah/day/world22.js` | changed +627/−0 tok | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay; R4 (ca5a71f): KEVESH_WALL, HOUSE22, HEICHAL_VESSELS after the functions (the bundle's statement grouping) | 101 | 74105–74205 | high (sim 0.74) |
 | `src/avodah/hooks/index.js` | unchanged | PASS | 345 | 72888–73232 | high |
 | `src/avodah/hooks/tour.js` | unchanged | PASS | 209 | 50919–51127 | high |
 | `src/avodah/index.js` | unchanged | PASS | 759 | 116247–117005 | high |
@@ -207,14 +207,16 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/avodah/minigames/zerika.js` | unchanged | PASS | 325 | 68531–68855 | high |
 | `src/avodah/scenes/index.js` | unchanged | PASS | 739 | 118615–119353 | high |
 | `src/avodah/schedule.js` | unchanged | PASS | 273 | 64039–64311 | high |
-| `src/avodah/shift/camera.js` | changed +1057/−265 tok | FAIL — R4 | 725 | 93598–94322 | high (sim 0.76) |
-| `src/avodah/shift/day33.js` | changed +40557/−695 tok | FAIL — R7 (must export resumeDay33 for lobby35's patch) | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) |
+| `src/avodah/shift/camera.js` | changed +1057/−265 tok | PASS — R4 ported (8c24403): smoothDamp, CAM24, VIEW24, dayView/dayFov (b17), the cam17 drag view, noPinch | 725 | 93598–94322 | high (sim 0.76) |
+| `src/avodah/shift/day33.js` | changed +40557/−695 tok | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in) | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) |
 | `src/avodah/shift/draw.js` | unchanged | PASS | 346 | 89964–90309 | high |
 | `src/avodah/shift/engine.js` | unchanged | PASS | 1047 | 95888–96934 | high |
-| `src/avodah/shift/flow31.js` | changed +1095/−7 tok | FAIL — R4 (calls world22's rampWay and life's rampLane — both in) | 811 | 97876–98686 | high (sim 0.78) |
-| `src/avodah/shift/hero35.js` | changed +2526/−67 tok | FAIL — R4 (with gait.js) | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) |
-| `src/avodah/shift/hud.js` | changed +396/−14 tok | FAIL — R3 pending: recovery/pending/hud.js.patch (fire gauge b17a, sh-b17, the event log b16; imports evlog, copyEvlog from ./evlog16.js; PASS with a stand-in module) → git apply with R4's evlog module | 712 | 97010–97721 | high (sim 0.84) |
-| `src/avodah/shift/index.js` | changed +553/−0 tok | FAIL — later (after R4–R7): imports the evlog module, focus17, pis23, new day33 symbols, stations' new export, twin's CSS_NAV; uses walk's PACE/STICK (in) | 639 | 115608–116246 | high (sim 0.73) |
+| `src/avodah/shift/evlog16.js` | new in 26c — recovered (not a build-15 file; see table B) | PASS — R4 new (6ae7ec1): evlog (hud.js, day33.js, shift/index.js import it), copyEvlog (hud.js) | — | — | high |
+| `src/avodah/shift/flow31.js` | changed +1095/−7 tok | PASS — R4 ported (42945c2): LISHKA26 (the report's), freeFor, rampWay from the altar, strong24, hot17/b17, lay1/pyre33, prompt31, dayField, rampLane | 811 | 97876–98686 | high (sim 0.78) |
+| `src/avodah/shift/gait35.js` | new in 26c — recovered (not a build-15 file; see table B) | PASS — R4 new (9076b09): GAIT35, gaitFor — hero35.js imports both (R1's 'gait.js ?'; names26c.json maps it) | — | — | high |
+| `src/avodah/shift/hero35.js` | changed +2526/−67 tok | PASS — R4 ported (9076b09): gait from gait35.js, pose20, dust20, hold21, lift, hitStop, __ARM19 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) |
+| `src/avodah/shift/hud.js` | changed +396/−14 tok | PASS — R4 ported (6ae7ec1): R3's hud.js.patch applied — the fire gauge (b17a), sh-b17 (b17b), the event log on the cards (b16) | 712 | 97010–97721 | high (sim 0.84) |
+| `src/avodah/shift/index.js` | changed +553/−0 tok | FAIL — later (after R5–R7): imports evlog (evlog16.js — in), STICK24 (twin.js — in; R1's 'CSS_NAV' was a shifted symmap name), focus17, pis23, new day33 symbols, stations' new export; uses walk's PACE/STICK (in) | 639 | 115608–116246 | high (sim 0.73) |
 | `src/avodah/shift/lab.js` | unchanged | PASS | 119 | 94323–94441 | high |
 | `src/avodah/shift/layout31.js` | unchanged | PASS | 69 | 90310–90378 | high |
 | `src/avodah/shift/levels.js` | unchanged | PASS | 78 | 95778–95855 | high |
@@ -223,7 +225,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/avodah/shift/rival.js` | unchanged | PASS | 32 | 95856–95887 | high |
 | `src/avodah/shift/route31.js` | changed +23/−1 tok | PASS — R3 ported (cbef914): CLIMB31 | 188 | 90379–90566 | high (sim 0.98) |
 | `src/avodah/shift/score35.js` | unchanged | PASS | 55 | 98687–98741 | high |
-| `src/avodah/shift/stations.js` | changed +5413/−225 tok | FAIL — R5 (reads CLIMB31.top/tailDay and PACE.laver — in) | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) |
+| `src/avodah/shift/stations.js` | changed +5413/−225 tok | FAIL — R5 (imports GRADE — in — and gradeOf: git apply recovery/pending/twin.js-gradeOf.patch with it; reads CLIMB31.top/tailDay and PACE.laver — in) | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) |
 | `src/avodah/shift/stub29.js` | unchanged | PASS | 154 | 97722–97875 | high |
 | `src/avodah/shift/walk.js` | changed (moved) +470/−37 tok | PASS — R3 ported (8c5120b): planWay, the paced walk, PACE/STICK | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) |
 | `src/avodah/sound.js` | changed +812/−12 tok | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) |
@@ -274,7 +276,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/crews.js` | unchanged | PASS | 3275 | 126656–129930 | high |
 | `src/crowd.js` | unchanged | PASS | 774 | 187384–188157 | high |
 | `src/finale.js` | unchanged | PASS | 174 | 193774–193947 | high |
-| `src/game/audio.js` | changed (moved) +3995/−0 tok | FAIL — R4 (in the lazy graph now, as in 26c — sound.js imports it; 2 units differ: createAudio's trim/declick and the sounds of b17–26) | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) |
+| `src/game/audio.js` | changed (moved) +3995/−0 tok | PASS — R4 ported (6dd67db): createAudio's trim/declick, the beds bus, duck, rush20, choir, ~32 sounds of b17–26 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) |
 | `src/game/content.js` | unchanged | PASS | 1182 | 39406–40587 | high |
 | `src/game/craftxp.js` | unchanged | PASS | 80 | 150863–150942 | high |
 | `src/game/facts.js` | unchanged | PASS | 239 | 168482–168720 | high |
@@ -329,7 +331,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/game/shop.js` | unchanged | PASS | 253 | 149670–149922 | high |
 | `src/game/state.js` | unchanged | PASS | 1485 | 45737–47221 | high |
 | `src/game/tools.js` | unchanged | PASS | 133 | 45578–45710 | high |
-| `src/game/twin.js` | changed +2330/−9 tok | FAIL — R4 | 1895 | 51128–53022 | high (sim 0.75) |
+| `src/game/twin.js` | changed +2330/−9 tok | FAIL — R4 ported (956ce7b) but gradeOf: recovery/pending/twin.js-gradeOf.patch (only stations.js imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R5's stations.js. New: GRADE (stations.js imports it), STICK24 (shift/index.js imports it), the soft/protocol stick | 1895 | 51128–53022 | high (sim 0.75) |
 | `src/game/ui.css.js` | unchanged | PASS | 687 | 149923–150609 | high |
 | `src/game/ui.js` | unchanged | PASS | 2679 | 151585–154263 | high |
 | `src/games/cycle.js` | unchanged | PASS | 384 | 184021–184404 | high |
@@ -425,7 +427,7 @@ files. Estimates are agent-hours (one Opus agent), honest ranges.
 | R0 (owner, 5 min) | is there a GitHub branch with build 22 (the app's push)? Stage the owner's Desktop docs (`dapei-tachanot-19-10-2026.docx`, `chavat-daat-*`) — they may describe builds 16–24 | — | — (a build-22 branch would cut R5–R7 by ~40 %) |
 | R2 tooling | `parity.mjs`: build the working tree → units → per-module verdict vs 26c (alpha-renamed per unit, so swapped locals are caught, not just "all names are `_`") + the first differing unit's line in p26c.pretty.js; whole-page check: rebuild → play.html + 26c's head/title → `cmp` with build26c.min.html. A scope-aware renamer (babel parser/traverse in tools-npm) that turns a 26c module slice into an ESM file: top-level names from symmap26c.json, `import`s from the wrapper's `init_*()` order and the free variables, `export`s from cross-module uses | R1's numbers reproduced on build 15 (200/25/12) | 2–3 h |
 | R3 small ports | 18 files, each ≤ 900 tokens Δ: ui.js (1 line), temple.js, animals.js, route31.js, day/index.js, avodah3d.js, cam28.js, stages.js, water.js, lobby35.js, sky.js, hud.js, walk.js, life.js, world22.js, avodah/sound.js; `shift/index.js` and `main.js` last (they import the new modules) | parity per file | 3–5 h |
-| R4 medium ports | game/audio.js (+4.0k: ~40 synth sounds of b17–26 + trim/declick), twin.js (+2.3k: the b19/b24 protocol stick), hero35.js (+2.5k: the bone map for hands/feet/chest, the sash's three colours, a skinned-shader `dust20` effect on the robe; its gait table moved to the small new module), camera.js (+1.1k/−0.3k: CAM17/CAM24), flow31.js (+1.1k), the evlog module | parity | 4–7 h |
+| R4 medium ports (done, §10) | game/audio.js (+4.0k: ~40 synth sounds of b17–26 + trim/declick), twin.js (+2.3k: the b19/b24 protocol stick), hero35.js (+2.5k: the bone map for hands/feet/chest, the sash's three colours, a skinned-shader `dust20` effect on the robe; its gait table moved to the small new module), camera.js (+1.1k/−0.3k: CAM17/CAM24), flow31.js (+1.1k), the evlog module | parity | 4–7 h |
 | R5 stations.js | +5.4k/−0.2k: the timing acts of b17 ("בקעו — בזמן", stuck/grace, the `.s17-*` ring) | parity | 2–4 h |
 | R6 new day modules | leaves first: fx18, ramp19, kiyor20, deshen21, maaracha22, pis23, pen25, heichal26, then focus17 (the hub that calls them) — 5.7k prettified lines | parity per module | 10–16 h |
 | R7 day33.js | the engine of b17–26c: +40.6k tokens, 5,197 prettified lines (×3.9 of build 15; 5 % of its build-15 code kept verbatim) | parity | 8–14 h |
@@ -523,3 +525,40 @@ node recovery/tools/parity.mjs --all --json recovery/work/parity-all.json && pyt
 node recovery/tools/parity-selftest.mjs                               # the tool checks itself (≈ 20 s)
 node recovery/tools/rename.mjs avodah/sound.js --canon --out /tmp/s26.js; node recovery/tools/rename.mjs avodah/sound.js --side fresh --canon --out /tmp/s15.js; diff /tmp/s15.js /tmp/s26.js
 ```
+
+## 10. R4 (21.10, ≈ 22:46–23:25 UTC): the mid-size ports
+
+- **Ported, parity PASS, committed (8 files):** `shift/evlog16.js` (new; then R3's hud.js patch applied — hud.js PASS),
+  `game/audio.js`, `game/twin.js` (all but `gradeOf`, below), `shift/hero35.js` + `shift/gait35.js` (new: the gait table),
+  `shift/camera.js`, `shift/flow31.js`. Plus `day/world22.js` re-grouped: the new statement-grouping check (below) showed that
+  KEVESH_WALL, HOUSE22 and HEICHAL_VESSELS stand after the functions in 26c.
+- **Sizes (min bytes, the module's units, fresh → 26c):** evlog16 1,069 → 1,068 · hud 30,151 → 30,150 · audio 32,719 → 32,678 ·
+  twin 49,510 → 49,642 (the pending gradeOf) · hero35 9,523 → 9,524 · gait35 563 → 566 · camera 12,870 → 12,870 · flow31
+  20,476 → 20,476. The few-byte differences are the lengths of minified names (the bundles assign them differently); the units are
+  the same.
+- **Pending, verified:** `recovery/pending/twin.js-gradeOf.patch` (export `gradeOf`, after GRADE: only stations.js imports it →
+  `git apply` with R5). R3's animals.js (R6, pen25) and lobby35.js (R7, day33) patches remain. All three `git apply --check` clean
+  on the R4 tree. Nothing else in R4 needed an unrecovered module: flow31 only reads `SHARED.hot17`/`b17` (focus17 writes them) and
+  `E.pyre33`/`fx33`/`shown33` at run time, and camera only reads `SHARED.cam17` and the twin's `viewK`/`stick`/`spec`.
+- **Names the recovery chose** (top-level bindings; object keys such as `dayView`, `c17`, `pose20`, `rush20` are the bundle's own):
+  evlog16.js `evlog` (hud.js, day33.js and shift/index.js import it), `copyEvlog` (hud.js); twin.js `GRADE` (stations.js),
+  `gradeOf` (stations.js; pending), `STICK24` (shift/index.js — R1's "twin's CSS_NAV" was a shifted symmap name), internal
+  `stickCurve`, `stickMove`, `stickVel`; gait35.js `GAIT35`, `gaitFor` (hero35.js only); camera.js `smoothDamp`, `CAM24` (the
+  report's), `VIEW24` (exported, unused in 26c — the freeze keeps it); flow31.js `LISHKA26` (the report's, flow31.js:18 as it
+  reported), `FREE26`, `FREE_HOUSE`, `FREE_GATE`, `freeFor`, `MARK24`. `names26c.json` maps R1's `gait.js ?` to gait35.js
+  (plib.refSide and report.py read it).
+- **Tools added in R4:** parity compares statement grouping (¶: a unit that starts a statement), so a constant moved across a
+  function, which leaves every unit's shape the same, is now caught. rename.mjs `--src` (srcnames.mjs, eslint-scope 8.4.0 in
+  tools-npm) names 26c's locals by the build-15 source; its gap units pair by shared literals, not by order.
+- **esbuild facts learned (for R5–R7):** (1) top-level `const` inlining stops after the first top-level statement with a side
+  effect (an `Object.freeze(…)` call): a constant after it stays a variable, so position matters (twin's GRADE goes after the
+  `const R …` line, and CA19 stays a non-exported const); (2) a single-use local `const` is folded into its use but keeps its
+  renaming slot; (3) an unused name of a named function expression keeps its slot; (4) a mid-line `//` comment silently drops the
+  rest of a dense line — parity caught all four cases.
+- **Tests:** `node --test test/*.test.mjs` = 568: 558 pass, 10 skipped, 0 fail. No build-15 test fails because of recovered
+  behaviour. The one failure seen during R4 was shift29's "every shift file carries a fence"; the two new files now carry
+  `── fable32 (…) ──` in their headers, as the shift files do.
+  `node build.mjs`: dist/temple3d.html 5,173,953 B.
+- **Parity now:** `--all` = 280 modules: 265 PASS, 6 FAIL, 9 MISSING-IN-FRESH; src/ only: 221 PASS. FAIL: animals (pending),
+  lobby35 (pending), twin (pending gradeOf), stations (R5), shift/index.js (later), day33 (R7). MISSING: the 9 new day modules
+  (R6). `--page`: 5,174,667 B vs 5,417,820 B (−243,153 B; after R3: −268,656 B). Selftest: all as expected.

@@ -16,8 +16,10 @@ PAR = {}
 if os.path.exists(W + 'parity-all.json'):
     PAR = {x['label']: x['verdict'] for x in json.load(open(W + 'parity-all.json'))['results']}
 NOTE = json.load(open(ROOT + 'recovery/status.json', encoding='utf-8')) if os.path.exists(ROOT + 'recovery/status.json') else {}
+# ── R4 ── R1's labels of the new modules → the names the recovery gave them (recovery/tools/names26c.json, as plib.refSide reads it)
+ALIAS = json.load(open(ROOT + 'recovery/tools/names26c.json', encoding='utf-8')) if os.path.exists(ROOT + 'recovery/tools/names26c.json') else {}
 def rec(label):
-    lab = (label or '').replace(' ?', '')
+    lab = ALIAS.get(label or '', label or '').replace(' ?', '')
     v, n = PAR.get(lab), NOTE.get(lab)
     if not v and not n: return '—'
     return ' — '.join(x for x in [v, n] if x).replace('|', '¦')
@@ -50,6 +52,7 @@ for m in d['mods26']:
     if m['status'] != 'new': continue
     a = R26['26c#%d' % m['j']]
     lab = m['label'] or '(esbuild glue: one init_x() call)'
+    if ALIAS.get(lab, lab).replace(' ?', '') != lab.replace(' ?', ''): lab += '` → `' + ALIAS[lab]   # (R4: the recovery's file name)
     key = next((k for k in FP if k in (m['label'] or '')), None)
     conf = 'high' if m.get('conf') == 'high' else ('content high, name LOW (proposed)' if m.get('conf') else 'n/a')
     out.append('| `%s` | %s | %s | %d | %d–%d | %s | %s |' % (lab, rec(m['label']), f"{m['bytes']:,}", a['lines'], a['from'], a['to'], conf, FP.get(key, '—')))
@@ -62,7 +65,9 @@ files = sorted(os.path.join(dp, f)[len(ROOT):] for dp, dn, fn in os.walk(ROOT + 
 cnt = {}
 for f in files:
     r = rows.get(f)
-    if not r:
+    if not r and f in PAR:   # ── R4 ── a file the recovery added (one of table B's new modules)
+        st, ln, rg, cf = 'new in 26c — recovered (not a build-15 file; see table B)', '—', '—', 'high'
+    elif not r:
         st, ln, rg, cf = 'not in build 15\'s bundle (no importer) — nothing in 26c either', '—', '—', 'high'
     else:
         a = R26['26c#%d' % r['j26']] if 'j26' in r else None
@@ -72,7 +77,7 @@ for f in files:
         ln, rg = (str(a['lines']), '%d–%d' % (a['from'], a['to'])) if a else ('—', '—')
         cf = 'high' if r['status'] == 'unchanged' else conf_changed(r)
     cnt[st.split(' ')[0]] = cnt.get(st.split(' ')[0], 0) + 1
-    out.append('| `%s` | %s | %s | %s | %s | %s |' % (f, st, rec(f) if r else '—', ln, rg, cf))
+    out.append('| `%s` | %s | %s | %s | %s | %s |' % (f, st, rec(f) if r or f in PAR else '—', ln, rg, cf))
 # ── D. the rest of the bundle ──
 out.append('\n### D. The rest of the bundle (not src/)\n')
 oth = {}

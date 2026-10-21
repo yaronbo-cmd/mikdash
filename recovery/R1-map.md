@@ -114,10 +114,10 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 | module | recovery (parity · status) | min bytes 15 → 26c | Δ tokens | 15 lines | 26c lines | 26c line range | confidence | what changed (literals only 26c has) |
 |---|---|---|---|---|---|---|---|---|
 | `src/avodah/shift/day33.js` | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in) | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
-| `src/avodah/shift/stations.js` | FAIL — R5 (imports GRADE — in — and gradeOf: git apply recovery/pending/twin.js-gradeOf.patch with it; reads CLIMB31.top/tailDay and PACE.laver — in) | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
+| `src/avodah/shift/stations.js` | PASS — R5 ported (c09983d): the timing act of b17 (SWING17 — fx18 imports it, CAM17, swingHit/Land/End), the day's climb path (climbPath/climbAt/climbRate), the laver's walk, b17's mini chips, the pyre station, cancel, __SW17; imports twin's GRADE/gradeOf, walk's PACE, draw's placeChip | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
 | `src/game/audio.js` | PASS — R4 ported (6dd67db): createAudio's trim/declick, the beds bus, duck, rush20, choir, ~32 sounds of b17–26 | 25,040 → 32,678 | +3995 / −0 | 1284 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) | "trumpet17", .disconnect, "scrape21", "scrape26", "unlock20", trumpet17:, "alarm17" |
 | `src/avodah/shift/hero35.js` | PASS — R4 ported (9076b09): gait from gait35.js, pose20, dust20, hold21, lift, hitStop, __ARM19 | 3,698 → 9,524 | +2526 / −67 | 199 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) | `$& vD=0.;for(int i=0;i<4;i++){float j, `$& uniform float uD,uG,uT;varying flo, `$& totalEmissiveRadiance+=vec3(.62,.9, `$& diffuseColor.rgb=mix(diffuseColor., `$& uniform vec4 uJ,uK;varying float v, "#include <emissivemap_fragment>", "#include <skinning_pars_vertex>" |
-| `src/game/twin.js` | FAIL — R4 ported (956ce7b) but gradeOf: recovery/pending/twin.js-gradeOf.patch (only stations.js imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R5's stations.js. New: GRADE (stations.js imports it), STICK24 (shift/index.js imports it), the soft/protocol stick | 45,461 → 49,642 | +2330 / −9 | 1709 | 1895 | 51128–53022 | high (sim 0.75) | .swallowUp, .parkedAt, .stickUse, parkedAt:, .noPinch, .__S29S, .__S29W |
+| `src/game/twin.js` | PASS — R4 ported (956ce7b); R5 (c09983d): gradeOf applied with stations.js. GRADE, gradeOf (stations.js), STICK24 (shift/index.js), the soft/protocol stick | 45,461 → 49,642 | +2330 / −9 | 1709 | 1895 | 51128–53022 | high (sim 0.75) | .swallowUp, .parkedAt, .stickUse, parkedAt:, .noPinch, .__S29S, .__S29W |
 | `src/avodah/shift/camera.js` | PASS — R4 ported (8c24403): smoothDamp, CAM24, VIEW24, dayView/dayFov (b17), the cam17 drag view, noPinch | 11,510 → 12,870 | +1057 / −265 | 647 | 725 | 93598–94322 | high (sim 0.76) | .updateProjectionMatrix, .isPerspectiveCamera, .noPinch, .camera, .freeze, .near31, .cam17 |
 | `src/avodah/shift/flow31.js` | PASS — R4 ported (42945c2): LISHKA26 (the report's), freeFor, rampWay from the altar, strong24, hot17/b17, lay1/pyre33, prompt31, dayField, rampLane | 18,615 → 20,476 | +1095 / −7 | 717 | 811 | 97876–98686 | high (sim 0.78) | `.f31-zoom{position:fixed;top:calc(env, "rgba(28,20,10,.7)", "!#FFB84A", "#4A3220", "#8A6440", "#B48A55", "#FFD66E" |
 | `src/avodah/sound.js` | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 4,295 → 5,979 | +812 / −12 | 248 | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) | "createBufferSource", "createOscillator", "visibilitychange", .addEventListener, .defineProperty, trumpet17:, "context" |
@@ -144,12 +144,12 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 | module (name from the build reports) | recovery (parity · status) | min bytes | 26c lines | 26c line range | confidence | fingerprint |
 |---|---|---|---|---|---|---|
 | `src/avodah/shift/evlog16.js ?` | PASS — R4 new (6ae7ec1): evlog (hud.js, day33.js, shift/index.js import it), copyEvlog (hud.js) | 1,068 | 75 | 96935–97009 | content high, name LOW (proposed) | "mk.evlog" localStorage key, `{v:16,…}`, hud.js's "העתק לוג" |
-| `src/avodah/shift/fx18.js` | MISSING-IN-FRESH — R6 | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
+| `src/avodah/shift/fx18.js` | MISSING-IN-FRESH — R6 (imports SWING17 from stations.js — in; day33's table 'dl' {pay, streak, tamid…} — R7's) | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
 | `src/avodah/shift/ramp19.js` | MISSING-IN-FRESH — R6 | 3,654 | 189 | 104463–104651 | high | "הכבש מומלח!", salt19, r19/gh19 |
 | `src/avodah/shift/kiyor20.js` | MISSING-IN-FRESH — R6 (uses water.pour20, __K20LAVER — in) | 10,124 | 308 | 104652–104959 | high | `.k20-*` CSS, rush20 |
 | `src/avodah/shift/deshen21.js` | MISSING-IN-FRESH — R6 | 13,529 | 544 | 104960–105503 | high | `.d21-*` CSS, scrape21 |
 | `src/avodah/shift/maaracha22.js` | MISSING-IN-FRESH — R6 (temple.js's 'pyre22' — in) | 19,183 | 834 | 105504–106337 | high | `.m22-*` CSS, pyre22/band22 |
-| `src/avodah/shift/pen25.js` | MISSING-IN-FRESH — R6 (imports animals.js's sheepRig — pending patch) | 20,261 | 920 | 106338–107257 | high | `.p25-*` CSS, torch25/hoof25 |
+| `src/avodah/shift/pen25.js` | MISSING-IN-FRESH — R6 (imports animals.js's sheepRig — git apply recovery/pending/animals.js.patch with it; figures' man/ROBE/SKIN2; day33's x5, Ys, vR — R7's) | 20,261 | 920 | 106338–107257 | high | `.p25-*` CSS, torch25/hoof25 |
 | `src/avodah/shift/heichal26.js` | MISSING-IN-FRESH — R6 (world22's HOUSE22, stages' twinPass — in) | 24,725 | 1009 | 107258–108266 | high | `.hk26-*` CSS, gate26/pour26 |
 | `src/avodah/shift/pis23.js` | MISSING-IN-FRESH — R6 (reads PACE — in) | 15,247 | 473 | 108267–108739 | high | `.p23-*` CSS, lot23/npc23 |
 | `src/avodah/shift/focus17.js` | MISSING-IN-FRESH — R6 | 26,861 | 779 | 108740–109518 | high | `.f17-*` CSS, "focus17" log tag |
@@ -225,7 +225,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/avodah/shift/rival.js` | unchanged | PASS | 32 | 95856–95887 | high |
 | `src/avodah/shift/route31.js` | changed +23/−1 tok | PASS — R3 ported (cbef914): CLIMB31 | 188 | 90379–90566 | high (sim 0.98) |
 | `src/avodah/shift/score35.js` | unchanged | PASS | 55 | 98687–98741 | high |
-| `src/avodah/shift/stations.js` | changed +5413/−225 tok | FAIL — R5 (imports GRADE — in — and gradeOf: git apply recovery/pending/twin.js-gradeOf.patch with it; reads CLIMB31.top/tailDay and PACE.laver — in) | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) |
+| `src/avodah/shift/stations.js` | changed +5413/−225 tok | PASS — R5 ported (c09983d): the timing act of b17 (SWING17 — fx18 imports it, CAM17, swingHit/Land/End), the day's climb path (climbPath/climbAt/climbRate), the laver's walk, b17's mini chips, the pyre station, cancel, __SW17; imports twin's GRADE/gradeOf, walk's PACE, draw's placeChip | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) |
 | `src/avodah/shift/stub29.js` | unchanged | PASS | 154 | 97722–97875 | high |
 | `src/avodah/shift/walk.js` | changed (moved) +470/−37 tok | PASS — R3 ported (8c5120b): planWay, the paced walk, PACE/STICK | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) |
 | `src/avodah/sound.js` | changed +812/−12 tok | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) |
@@ -331,7 +331,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/game/shop.js` | unchanged | PASS | 253 | 149670–149922 | high |
 | `src/game/state.js` | unchanged | PASS | 1485 | 45737–47221 | high |
 | `src/game/tools.js` | unchanged | PASS | 133 | 45578–45710 | high |
-| `src/game/twin.js` | changed +2330/−9 tok | FAIL — R4 ported (956ce7b) but gradeOf: recovery/pending/twin.js-gradeOf.patch (only stations.js imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R5's stations.js. New: GRADE (stations.js imports it), STICK24 (shift/index.js imports it), the soft/protocol stick | 1895 | 51128–53022 | high (sim 0.75) |
+| `src/game/twin.js` | changed +2330/−9 tok | PASS — R4 ported (956ce7b); R5 (c09983d): gradeOf applied with stations.js. GRADE, gradeOf (stations.js), STICK24 (shift/index.js), the soft/protocol stick | 1895 | 51128–53022 | high (sim 0.75) |
 | `src/game/ui.css.js` | unchanged | PASS | 687 | 149923–150609 | high |
 | `src/game/ui.js` | unchanged | PASS | 2679 | 151585–154263 | high |
 | `src/games/cycle.js` | unchanged | PASS | 384 | 184021–184404 | high |
@@ -562,3 +562,33 @@ node recovery/tools/rename.mjs avodah/sound.js --canon --out /tmp/s26.js; node r
 - **Parity now:** `--all` = 280 modules: 265 PASS, 6 FAIL, 9 MISSING-IN-FRESH; src/ only: 221 PASS. FAIL: animals (pending),
   lobby35 (pending), twin (pending gradeOf), stations (R5), shift/index.js (later), day33 (R7). MISSING: the 9 new day modules
   (R6). `--page`: 5,174,667 B vs 5,417,820 B (−243,153 B; after R3: −268,656 B). Selftest: all as expected.
+
+## 11. R5 (21.10, ≈ 23:23–23:40 UTC): stations.js
+
+- **Ported, parity PASS, committed (c09983d):** `shift/stations.js` (+5.4k tokens: the timing act of build 17, the day's climb,
+  the laver's walk, b17's mini chips, the pyre station, `cancel`, the act's opts from day33), and with it `game/twin.js`, now
+  PASS, because the pending `gradeOf` patch was applied once stations.js imported it (that patch file is gone). Min bytes, fresh → 26c:
+  stations 52,029 → 51,890, twin 49,638 → 49,642 (minified name lengths; the units are the same). Nothing in stations.js needed
+  an unrecovered module: it reads `SHARED.b17`/`prompt31`, writes `SHARED.cam17`, and takes day33's opts at run time.
+- **Names the recovery chose:** `SWING17` (exported; the report's name, "SWING17.sfx"; **fx18.js imports it**), `CAM17`,
+  `climbPath`, `climbAt(u, a)` (the old local climbAt is now this module-level one), `climbRate`, and inside createStations
+  `walkOf`, `swingHit`, `swingLand`, `swingEnd`, `swingWord`, `beatTap`. New API: `act(id, P, opts)` with opts `{ C, k, grace,
+  onHit, onMiss, fb18, kK }` (the keys are the bundle's), `cancel(why)`, `state().sw`; new global hook `__SW17` (the touch → frame
+  latencies).
+- **Two invisible symbols** (esbuild folds a single-use `const` into the next statement but keeps its renaming slot): the wood's
+  `splitting` and the mini chip's `inside`. Each shifted every nested slot by one; they were found by comparing, per minified
+  name, the bindings it covers on both sides (the binding structure itself was one-to-one).
+- **For R6:** fx18 imports `SWING17` from stations.js (in); pen25 imports `sheepRig` from animals.js (pending patch); heichal26
+  uses places.js `TAMID_RING`, `ALTAR_CORNERS`, `LIMBS_PLACE`, `DESHEN_PLACE`, pis23/pen25/heichal26 figures.js `man`, `ROBE`,
+  `SKIN2` (all in). Every one of the nine also imports from **day33.js** tables of builds 17–26 that build 15's day33 lacks
+  (26c names: focus17 `li` {fuel0: 70, drain…}; fx18 `dl` {pay, streak, tamid}; ramp19 `b5` {bag, rate, fly}, `xR` (on the ramp),
+  `vk` (the ramp's height); kiyor20 `sg` {hold, hold2, back}; deshen21/pis23 `hs` {swipe, straight, layers}; maaracha22/pis23 `ma`
+  {need, sizes 'LLMMSS', budget}, `Ns` {open, two, pick}; pis23/heichal26 `ov` (the roles' list), pis23 `wR` (the jobs' list), `HJ`;
+  pen25 `x5` {cats…}, `Ys` {door, stand, side}, `vR(…)`; heichal26 `$s` {tT, open, gate, lotIn}). So R6 and R7 must agree on
+  these names: either R6 adds them to day33.js (Object.freeze tables survive tree-shaking) or R6's modules stay pending until R7.
+- **Tests:** 568: 557 pass, 10 skipped, **1 fails because of recovered behaviour** — shift30.test.mjs:22 "every station's stand is
+  off the altar": the recovered `pyre` station stands on the altar's top ({ x: −34, z: 5 }), as in 26c. Not edited (R9). `node
+  build.mjs`: 5,185,541 B.
+- **Parity now:** `--all` = 280 modules: 267 PASS, 4 FAIL (animals and lobby35: pending; shift/index.js: later; day33: R7), 9
+  MISSING-IN-FRESH (R6); src/ only: 223 PASS. `--page`: 5,186,255 B vs 5,417,820 B (−231,565 B; after R4: −243,153 B).
+  Selftest: all as expected.

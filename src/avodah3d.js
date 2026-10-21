@@ -1210,6 +1210,7 @@ export function createAvodah3D(ctx = {}) {
   let twelveT = 25;   // ── water ── (the twelve: soon after ambient life begins, then every three minutes)
   function ambientWash(dt) {
     if (!ambientOn) return;
+    if (globalThis.__K20LAVER) { for (const h of washers.splice(0)) h.remove(); return; }   // ── recovered (build 20) ── (kiyor20 holds the laver: the two ambient washers go)
     if (life && life.phase === 'build') return;   // ── water ── (on the building site the actors are hidden: no washing, no streams)
     if (washers.length < 2) { const h = kohen('kiyor-' + (washers.length + 1), { at: [-52 - washers.length * 3, 30 + washers.length * 4] }); h._a.ambient = true; washers.push(h); }
     // ── water ── (WATER, wave 6) now and then the twelve kohanim busy with the Tamid sanctify hands and feet at once, one at

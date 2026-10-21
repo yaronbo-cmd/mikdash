@@ -327,7 +327,7 @@ export function createUI({ root, ctx }) {
     const h = `<div class="av-kick">העבודה בבית <span class="av-draft">טיוטה</span></div><h2 class="av-greet">${esc(name ? `שלום, הכהן ${name} — ` : '')}ברוך הבא לעבודה</h2>
       <!-- ── fable27 ── the kid's intro: three lines (FRESH27: "קיר טקסט"; the old lines spoke of a fair lottery — the lots are counting) ── /fable27 ── -->
       <ul style="margin:6px 0 0;padding-inline-start:18px;font:500 16px/1.7 Heebo,sans-serif">
-        <li>אתה כהן במקדש. למעלה כתוב <b>לאן ללכת</b> — החץ מראה את הדרך.</li>
+        <li>אתה כהן במקדש. <b>הבועה הדולקת</b> מראה לאן ללכת — ושביל הנקודות על הרצפה.</li>   <!-- ── fable32 (build 16) ── (review #8: the stale line — the 'now' row went in build 14) ── /fable32 ── -->
         <li>אגודל שמאל — <b>הולכים</b>. אגודל ימין — <b>עובדים</b>.</li>
         <li>טעות לא מענישה. ממשיכים.</li>
       </ul>

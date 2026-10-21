@@ -6,18 +6,27 @@
  * along it toward the place; only while there is a next place. Nothing here presses: no clock, no penalty. Never a Divine Name. ── /flow31 ── */
 import { planPath } from '../day/guide27.js';
 import { man, lamb } from '../works/figures.js';   // ── fable32 (build 8) ── (the merchant at the gate) ── /fable32 ──
-import { free } from '../day/world22.js';
+import { free, houseFloor, onAltar, rampWay, HOUSE22 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onAltar, rampWay, HOUSE22)
 import { placeGround } from '../works/anchors.js';
 import { addDrawer, layerOf, L, SHARED } from './draw.js';
 
-export const F31 = { gap: 1.4, maxDiscs: 40, replanS: 0.25, replanMove: 1.2, zoomUp: 0.35, zoomDown: 0.6, zoomEl: 1.18, zoomD: 78, reach: 3, field: { x0: -30, x1: -9, z0: -26, z1: 50, y0: 14 } };   // (field: the court east of the altar and of the ramp, north of the altar's NE corner to past the ramp's foot)
+export const F31 = { gap: 1.4, maxDiscs: 40, replanS: 0.25, replanMove: 1.2, zoomUp: 0.35, zoomDown: 0.6, zoomEl: 1.18, zoomD: 78, reach: 3, field: { x0: -30, x1: -9, z0: -26, z1: 50, y0: 14 }, dayField: { x0: -46.5, x1: -9, z0: -26, z1: 50, y0: 14 } };   // (field: the court east of the altar and of the ramp, north of the altar's NE corner to past the ramp's foot) ── recovered (16–26c) ── (dayField: the day's, from the ramp's west side)
 const FREE = (x, z) => free(x, z) && !(x < -54.95 && x > -76.5 && Math.abs(z) < 50.5);   // (walk.js's: the Ulam's steps are a wall to the feet)
+// ── recovered (build 26) ── the chambers' block north of the altar (stages.js 'lishka', x −54 to −22): the strong path goes round it
+// ("the human autoplayer stood ~100 s against its west face"), unless the place is in it; in the house (HOUSE22.on) its own floor too,
+// the gate shut or open (houseFloor reads HOUSE22.gate). The names but LISHKA26 (the report's) are the recovery's.
+const LISHKA26 = (x, z) => x > -54.3 && x < -21.7 && z > -62.3 && z < -26.7;
+const FREE26 = (x, z) => FREE(x, z) && !LISHKA26(x, z);
+const FREE_HOUSE = (x, z) => houseFloor(x, z) || FREE26(x, z);
+const FREE_GATE = (x, z) => houseFloor(x, z) || FREE26(x, z);
+const freeFor = (p) => (HOUSE22.on ? (HOUSE22.gate ? FREE_GATE : FREE_HOUSE) : p && LISHKA26(p.x, p.z) ? FREE : FREE26);
 const CSS = `.f31-zoom{position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);right:12px;z-index:31;min-width:96px;height:44px;padding:0 12px;border-radius:22px;border:2px solid rgba(255,236,190,.75);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;direction:rtl;display:flex;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .f31-zoom i{font-style:normal;font-size:20px}.f31-zoom.on{background:#C8923A;color:#2A1804;border-color:#FFF1C8}
 .f31-me{position:fixed;left:0;top:0;z-index:23;pointer-events:none;padding:3px 9px;border-radius:10px;background:#FFD66E;color:#2A1804;font:900 15px/1.1 "Heebo",system-ui,sans-serif;direction:rtl;box-shadow:0 0 0 2px #2A1804;transform:translate(-999px,-999px)}
 .f31-me::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-6px;border:6px solid transparent;border-top-color:#FFD66E}
 body.sh-on .tw-ov,body.sh-on .tw-lift,body.sh-on .tw-tip{display:none!important}
 body.sh-on .tw-btn{width:112px;height:112px}
+body.sh-on .gm.tw-on .tw-zone{width:50vw;top:0}
 body.sh-on .tw-btn .tw-lb{font:900 13px/1.1 "Heebo",system-ui,sans-serif;max-width:96px;white-space:normal;text-align:center}
 body.sh-on .tw-btn.f31-go{background:radial-gradient(circle at 40% 30%,#E9C46A,#8A5A14);border-color:#FFF1C8}
 .s29-pc.taken{z-index:12!important}
@@ -48,6 +57,7 @@ body.sh-on .sh-hint{bottom:calc(env(safe-area-inset-bottom,0px) + 64px)}
 .f31-hot{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);transform:translateX(-50%);z-index:24;display:flex;gap:8px;direction:rtl;pointer-events:none}
 .f31-hot i{width:46px;height:46px;border-radius:10px;border:2px solid rgba(255,236,190,.55);background:rgba(28,20,10,.72);display:flex;align-items:center;justify-content:center;font:26px/1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal;opacity:.55}
 .f31-hot i.on{opacity:1;border-color:#FFD66E;background:rgba(200,146,58,.85);box-shadow:0 0 0 2px rgba(255,214,110,.5)}`;
+const MARK24 = { bg: 'rgba(28,20,10,.7)', fg: '#FFD66E' };   // ── recovered (build 24) ── (the strong path's ▼ over the place: its label's colours; the name is the recovery's)
 function css(doc) { if (!doc || doc.getElementById('f31-css')) return; const s = doc.createElement('style'); s.id = 'f31-css'; s.textContent = CSS; doc.head.appendChild(s); }
 
 export function createFlow31(o = {}) {
@@ -97,7 +107,12 @@ export function createFlow31(o = {}) {
 
   /* the next place and its path */
   function plan(h, p) {
-    const pts = planPath(h.x, h.z, p.x, p.z, FREE, placeGround, null) || [{ x: p.x, z: p.z }];
+    // ── recovered (16–26c) ── on the altar: down the ramp first (rampWay), then the court's floors; to the altar: straight to it;
+    // the floors by the place (freeFor: round the chambers' block, the house's floor)
+    const ramp = rampWay(h.x, h.z), ok = freeFor(p),
+      pts = ramp.length && !onAltar(p.x, p.z) ? ramp.concat(planPath(ramp[ramp.length - 1].x, ramp[ramp.length - 1].z, p.x, p.z, ok, placeGround, null) || [{ x: p.x, z: p.z }])
+        : onAltar(p.x, p.z) ? [{ x: p.x, z: p.z }]
+        : planPath(h.x, h.z, p.x, p.z, ok, placeGround, null) || [{ x: p.x, z: p.z }];
     const out = [{ x: h.x, z: h.z }]; for (const q of pts) out.push({ x: q.x, z: q.z });
     if (Math.hypot(out[out.length - 1].x - p.x, out[out.length - 1].z - p.z) > 0.3) out.push({ x: p.x, z: p.z });
     let Lw = 0; for (let i = 1; i < out.length; i++) Lw += Math.hypot(out[i].x - out[i - 1].x, out[i].z - out[i - 1].z);
@@ -135,12 +150,14 @@ export function createFlow31(o = {}) {
       else if (run && sp && sp.job === 'sh:take' && globalThis.__S29P && __S29P.list) { const w = __S29P.list().filter((P) => P.state === 'wait').sort((p, q) => p.patience - q.patience)[0]; if (w && w.pos) { at = { x: w.pos.x, y: (w.pos.y || 16) + 4.5, z: w.pos.z }; name = 'עולה הרגל'; } }
       const q = at && view ? view.project(at.x, at.y, at.z) : null;
       if (q && q.on) {
-        const W = innerWidth || 844, H = innerHeight || 390, px = Math.max(60, Math.min(W - 60, q.x + 62)), py = Math.max(70, Math.min(H - 60, q.y));
+        const W = innerWidth || 844, H = innerHeight || 390, px = Math.max(W * 0.51 + 40, Math.min(W - 60, q.x + 62)), py = Math.max(70, Math.min(H - (SHARED.b17 ? 104 : 60), q.y));   // ── recovered (16–26c) ── (off the stick's half; above the chips' bar in b17)
         if (!b.__f31p) { b.__f31p = true; b.classList.add('f31-prompt'); } b.classList.remove('f31-far'); b.style.transform = `translate(${Math.round(px)}px,${Math.round(py)}px)${b.classList.contains('down') ? ' scale(.92)' : ''}`;
         if (tag) { tag.textContent = name; tag.style.transform = `translate(${Math.round(px - 30)}px,${Math.round(py - 60)}px)`; }
         SHARED.rects.push([px, py, 80, 80]);
+        SHARED.prompt31 = (sp && sp.id31) || null;   // ── recovered (16–26c) ── (whose prompt stands now)
       } else {
         if (b.__f31p) { b.__f31p = false; b.classList.remove('f31-prompt'); b.style.transform = ''; if (tag) tag.style.transform = 'translate(-999px,-999px)'; }
+        SHARED.prompt31 = null;   // ── recovered (16–26c) ──
         const far = !!(run && sp && (sp.go31 || sp.job === 'sh:wait')); if (b.__f31far !== far) { b.__f31far = far; b.classList.toggle('f31-far', far); }
       }
       if (hot) { const tl = run && sp && sp.id31 ? TOOL32[sp.id31] || '' : ''; if (hot.__t !== tl) { hot.__t = tl; for (const i of hot.children) i.classList.toggle('on', i.dataset.t === tl); } const dsp = run ? '' : 'none'; if (hot.style.display !== dsp) hot.style.display = dsp; }
@@ -162,12 +179,12 @@ export function createFlow31(o = {}) {
     if (zb) { const r = zb.__r || (zb.__r = (() => { const q = zb.getBoundingClientRect(); return q.width ? [q.left + q.width / 2, q.top + q.height / 2, q.width + 6, q.height + 6] : null; })()); if (r) SHARED.rects.push(r); }
     if (zl) { const r = zl.__r || (zl.__r = (() => { const q = zl.getBoundingClientRect(); return q.width ? [q.left + q.width / 2, q.top + q.height / 2, q.width + 6, q.height + 6] : null; })()); if (r) SHARED.rects.push(r); }   // ── fable32 ── ── /fable32 ──
     // ── fable32 (build 8) ── the merchant at the gate: a man in a dark cloak by a basket, a slow turn, a ring on the floor
-    { const M = SHARED.merchant33; if (M) { const my = gy(M.x, M.z); try { man(k, L(M.x), L(M.z), L(my), { pose: 'stand', u: 0.5, yaw: Math.PI + 0.3 * Math.sin(tt * 0.7), t: tt, robe: '#5A3A22', head: '#3A2A18' }); } catch (e) { /* */ } k.c(L(M.x) + 0.8, L(M.z) + 0.3, L(my) + 0.2, 0.32, 0.4, '#B08A4A'); k.ring(L(M.x), L(M.z), L(my) + 0.02, 1.2 + 0.1 * Math.sin(tt * 4), '!#FFD24A', 18); } }
+    { const M = SHARED.merchant33; if (M) { const my = gy(M.x, M.z); try { man(k, L(M.x), L(M.z), L(my), { pose: 'stand', u: 0.5, yaw: Math.PI + 0.3 * Math.sin(tt * 0.7), t: tt, robe: '#5A3A22', head: '#3A2A18' }); } catch (e) { /* */ } k.c(L(M.x) + 0.8, L(M.z) + 0.3, L(my) + 0.2, 0.32, 0.4, '#B08A4A'); if (!SHARED.b17) k.ring(L(M.x), L(M.z), L(my) + 0.02, 1.2 + 0.1 * Math.sin(tt * 4), '!#FFD24A', 18); } }   // ── recovered (build 17) ── (no ring in b17)
     // ── fable32 (build 9) ── the pen: a low fence, six lambs (a gold ear-ring = מבוקר), the lost one wandering or following
     { const LB = SHARED.lambs33; if (LB && o.stations && o.stations.STATIONS && o.stations.STATIONS.pen) { const P = o.stations.STATIONS.pen.at, py = gy(P.x, P.z);
         if (!st.penOn) { st.penOn = true; } for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2, fx = P.x + Math.cos(a) * 5.2, fz = P.z + Math.sin(a) * 3.4; k.c(L(fx), L(fz), L(py) + 0.45, 0.06, 0.9, '#8A6A45'); } k.ring(L(P.x), L(P.z), L(py) + 0.01, L(4.4), '#8A6A45', 14);
         for (const q of LB) { const a = (q.i / 6) * Math.PI * 2 + 0.4, lx = P.x + Math.cos(a) * 3.0, lz = P.z + Math.sin(a) * 1.8; try { lamb(k, L(lx), L(lz), L(py), { yaw: a + Math.PI / 2 + 0.3 * Math.sin(tt * 0.5 + q.i), scale: 0.85, mark: q.ok, glow: q.ok ? 0.3 : 0, head: 0.3 + 0.3 * Math.sin(tt * 0.8 + q.i) }); } catch (e) { /* */ } } }
-      const Lo = SHARED.lost33; if (Lo) { const ly = gy(Lo.x, Lo.z); try { lamb(k, L(Lo.x), L(Lo.z), L(ly), { yaw: Lo.yaw, scale: 0.85, step: Lo.walk ? tt * 9 : 0, glow: 0.6, head: 0.6 }); } catch (e) { /* */ } k.ring(L(Lo.x), L(Lo.z), L(ly) + 0.02, 1.0 + 0.15 * Math.sin(tt * 5), '!#FFD24A', 16); } }
+      const Lo = SHARED.lost33; if (Lo) { const ly = gy(Lo.x, Lo.z); try { lamb(k, L(Lo.x), L(Lo.z), L(ly), { yaw: Lo.yaw, scale: 0.85, step: Lo.walk ? tt * 9 : 0, glow: 0.6, head: 0.6 }); } catch (e) { /* */ } if (!SHARED.b17 || (st.next && st.next.id === 'lamb')) k.ring(L(Lo.x), L(Lo.z), L(ly) + 0.02, 1.0 + 0.15 * Math.sin(tt * 5), '!#FFD24A', 16); } }   // ── recovered (build 17) ── (in b17 only when the lamb is next)
     // ── fable32 (build 5.1) ── the dust at his heels while he runs: a trail of pale puffs that shrink and vanish in 0.7 s
     { const now = performance.now(); if (!st.tr) { st.tr = []; st.tx = h.x; st.tz = h.z; st.tt = now; }
       const dtp = (now - st.tt) / 1000; if (dtp > 0.04) { const sp = Math.hypot(h.x - st.tx, h.z - st.tz) / dtp; st.tx = h.x; st.tz = h.z; st.tt = now; if (sp > 5 && sp < 60) { const yaw = h.yaw || 0; st.tr.push({ x: h.x - Math.sin(yaw) * 0.6 + (Math.random() - 0.5) * 0.5, z: h.z - Math.cos(yaw) * 0.6 + (Math.random() - 0.5) * 0.5, t: now }); if (st.tr.length > 14) st.tr.shift(); } }
@@ -178,15 +195,25 @@ export function createFlow31(o = {}) {
     // a split log arcs from the block into the basket, the logs arc from the ramp's top onto the pyre
     { const G = E && typeof E.gear === 'function' ? E.gear() : null;
       const H35 = globalThis.__HERO35 && globalThis.__HERO35.loaded ? globalThis.__HERO35 : null;   // ── fable32 (build 15) ── (the real kohen: the props on his bones) ── /fable32 ──
-      if (G && !G.acting && (G.axe || G.carrying)) { const yaw = h.yaw || 0, fx0 = Math.sin(yaw), fz0 = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw); let a = L(h.x), s2 = L(h.z), y = L(h.y || 16);
+      if (G && (!G.acting || (G.acting === 'kevesh' && H35)) && (G.axe || G.carrying)) { const yaw = h.yaw || 0, fx0 = Math.sin(yaw), fz0 = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw); let a = L(h.x), s2 = L(h.z), y = L(h.y || 16);   // ── recovered (16–26c) ── (in the ramp's act too, on the real kohen)
         if (H35) { const hr = H35.handR(), ch = H35.bone('chest'); if (G.axe && hr) { const hx = L(hr.x), hz = L(hr.z), hy = L(hr.y); k.c(hx, hz, hy + 0.3, 0.04, 1.05, '#7A5A3A', { pitch: 0.18, yaw: -yaw }); k.b(hx + fx0 * 0.14, hz + fz0 * 0.14, hy + 0.78, 0.34, 0.09, 0.2, '#9AA3AA', { yaw: -yaw }); k.b(hx + fx0 * 0.28, hz + fz0 * 0.28, hy + 0.78, 0.06, 0.1, 0.22, '#C9CED2', { yaw: -yaw }); }
-          if (G.carrying && ch) { const v = H35.at('chest'); const bx = L(h.x) - fx0 * 0.38, bz = L(h.z) - fz0 * 0.38, by = v ? L(v.y) + 0.05 : y + 0.95; k.c(bx, bz, by, 0.26, 0.52, '#B08A58'); k.c(bx, bz, by - 0.25, 0.27, 0.03, '#8A6A45'); k.c(bx, bz, by + 0.25, 0.27, 0.03, '#8A6A45'); const n = Math.min(10, G.logs | 0); for (let i = 0; i < n; i++) { const ox = ((i % 3) - 1) * 0.1, oz = (Math.floor(i / 3) - 1) * 0.08; k.c(bx + rx * ox + fx0 * oz, bz + rz * ox + fz0 * oz, by + 0.3 + 0.1 * (i % 2), 0.045, 0.55, i % 2 ? '#A07A4A' : '#8A6A45', { pitch: 0.25 * ((i % 3) - 1), roll: 0.15 * (i % 2) }); } }
+          if (G.carrying && ch) { const v = H35.at('chest'), hs = H35.state(), sw = (hs.sp > 0.5 ? Math.sin(tt * (5 + 2.5 * Math.min(2, hs.rate || 1))) * 0.09 : 0) + (G.sw || 0);   // ── recovered (16–26c) ── (the basket sways with his gait, and with G.sw)
+            const bx = L(h.x) - fx0 * 0.38 + rx * sw * 0.35, bz = L(h.z) - fz0 * 0.38 + rz * sw * 0.35, by = v ? L(v.y) + 0.05 : y + 0.95, tilt = { roll: sw, yaw: -yaw }; k.c(bx, bz, by, 0.26, 0.52, '#B08A58', tilt); k.c(bx, bz, by - 0.25, 0.27, 0.03, '#8A6A45', tilt); k.c(bx, bz, by + 0.25, 0.27, 0.03, '#8A6A45', tilt); const n = Math.min(10, G.logs | 0); for (let i = 0; i < n; i++) { const ox = ((i % 3) - 1) * 0.1 + sw * 0.6, oz = (Math.floor(i / 3) - 1) * 0.08; k.c(bx + rx * ox + fx0 * oz, bz + rz * ox + fz0 * oz, by + 0.3 + 0.1 * (i % 2), 0.045, 0.55, i % 2 ? '#A07A4A' : '#8A6A45', { pitch: 0.25 * ((i % 3) - 1), roll: 0.15 * (i % 2) + sw }); } }
         } else {
         if (G.axe) { const hx = a + rx * 0.42 + fx0 * 0.16, hz = s2 + rz * 0.42 + fz0 * 0.16; k.c(hx, hz, y + 1.0, 0.04, 1.05, '#7A5A3A', { pitch: 0.18, yaw: -yaw }); k.b(hx + fx0 * 0.14, hz + fz0 * 0.14, y + 1.48, 0.34, 0.09, 0.2, '#9AA3AA', { yaw: -yaw }); k.b(hx + fx0 * 0.28, hz + fz0 * 0.28, y + 1.48, 0.06, 0.1, 0.22, '#C9CED2', { yaw: -yaw }); }   // (the axe: the handle in the hand, the head up)
         if (G.carrying) { const bx = a - fx0 * 0.32, bz = s2 - fz0 * 0.32; k.c(bx, bz, y + 0.95, 0.26, 0.52, '#B08A58'); k.c(bx, bz, y + 0.7, 0.27, 0.03, '#8A6A45'); k.c(bx, bz, y + 1.2, 0.27, 0.03, '#8A6A45'); k.b(a - fx0 * 0.12, s2 - fz0 * 0.12, y + 1.25, 0.05, 0.4, 0.05, '#C9B48E', { pitch: 1.2, yaw: -yaw });   // (the basket on his back, its straps)
           const n = Math.min(10, G.logs | 0); for (let i = 0; i < n; i++) { const ox = ((i % 3) - 1) * 0.1, oz = (Math.floor(i / 3) - 1) * 0.08; k.c(bx + rx * ox + fx0 * oz, bz + rz * ox + fz0 * oz, y + 1.25 + 0.1 * (i % 2), 0.045, 0.55, i % 2 ? '#A07A4A' : '#8A6A45', { pitch: 0.25 * ((i % 3) - 1), roll: 0.15 * (i % 2) }); } } } }   // (the logs sticking out, one a chop)
       const FX = E && typeof E.fx33 === 'function' ? E.fx33() : null;
-      if (FX && FX.length) for (const f of FX) { const u = Math.max(0, Math.min(1, f.t / f.dur)), n = Math.min(10, f.n | 0 || 1); for (let i = 0; i < n; i++) { const ui = Math.max(0, Math.min(1, (u * f.dur - i * 0.05) / (f.dur - 0.05 * (n - 1)))); if (ui <= 0 || ui >= 1) continue; const to = f.to || f.from, x = f.from.x + (to.x - f.from.x) * ui, z = f.from.z + (to.z - f.from.z) * ui, y0 = f.from.y + (to.y - f.from.y) * ui + 2.2 * Math.sin(ui * Math.PI); k.c(L(x), L(z), L(y0), 0.06, 0.45, '#A07A4A', { pitch: Math.PI / 2, yaw: ui * 6 + i }); } } }
+      if (FX && FX.length) for (const f of FX) { const u = Math.max(0, Math.min(1, f.t / f.dur)), n = Math.min(10, f.n | 0 || 1), arc = f.arc != null ? f.arc : 2.2; for (let i = 0; i < n; i++) { const ui = Math.max(0, Math.min(1, (u * f.dur - i * 0.05) / (f.dur - 0.05 * (n - 1 || 0) || f.dur))); if (ui <= 0 || ui >= 1) continue; const to = f.to || f.from, x = f.from.x + (to.x - f.from.x) * ui, z = f.from.z + (to.z - f.from.z) * ui, y0 = f.from.y + (to.y - f.from.y) * ui + arc * Math.sin(ui * Math.PI);
+          // ── recovered (16–26c) ── (f.arc: the flight's height; 'lay1': a whole log laid on the pyre, turning to its place across or along)
+          if (f.kind === 'lay1') k.c(L(x), L(z), L(y0), L(0.22), L(3) * (0.75 + 0.25 * ui), '#A07A4A', { pitch: Math.PI / 2, yaw: (to.cross ? Math.PI / 2 : 0) * ui + (1 - ui) * 0.6 });
+          else k.c(L(x), L(z), L(y0), 0.06, 0.45, '#A07A4A', { pitch: Math.PI / 2, yaw: ui * 6 + i }); } } }
+    // ── recovered (16–26c) ── the pyre: E.pyre33() = { n, slots: [{ x, y, z, cross }] }, the logs laid so far (the newest lightest, the old ones
+    // charred), each but the one still in flight
+    { const P = E && typeof E.pyre33 === 'function' ? E.pyre33() : null;
+      if (P && P.n) { const fly = E.fx33 ? E.fx33().filter((f) => f.kind === 'lay1') : [];
+        for (let i = 0; i < P.n; i++) { const s = P.slots[i]; if (fly.some((f) => f.to && Math.abs(f.to.y - s.y) < 0.01 && Math.abs(f.to.x - s.x) < 0.01 && Math.abs(f.to.z - s.z) < 0.01 && f.t < f.dur)) continue;
+          const age = P.n - 1 - i; k.c(L(s.x), L(s.z), L(s.y), L(0.22), L(3), age === 0 ? '#B48A55' : age < 3 ? '#8A6440' : '#4A3220', { pitch: Math.PI / 2, yaw: s.cross ? Math.PI / 2 : 0 }); } } }
     // ── /fable32 ──
     // ── fable32 (build 11) ── the night corner in בית המוקד: the hall's fire (a low brazier) and what פרוטות bought — a rug, an oil lamp
     { const Mk = SHARED.moked33; if (Mk) { const my = gy(Mk.x, Mk.z); k.c(L(Mk.x + 6), L(Mk.z), L(my) + 0.25, 0.55, 0.5, '#5A4630'); k.c(L(Mk.x + 6), L(Mk.z), L(my) + 0.6, 0.3, 0.25, '!#FF9A3A'); if (Mk.rug) k.b(L(Mk.x - 3), L(Mk.z + 2), L(my) + 0.03, 1.6, 1.0, 0.04, '#8A3A3A'); if (Mk.lamp) { k.c(L(Mk.x - 3), L(Mk.z - 2), L(my) + 0.35, 0.12, 0.5, '#B98A48'); k.c(L(Mk.x - 3), L(Mk.z - 2), L(my) + 0.72, 0.07, 0.1, '!#FFD66E'); } } }
@@ -202,13 +229,17 @@ export function createFlow31(o = {}) {
           const u = acc / seg, x = a.x + (b.x - a.x) * u, z = a.z + (b.z - a.z) * u, y = gy(x, z), d = along + acc;
           const pulse = Math.max(0, 1 - Math.abs(((d - wave * F31.gap * 2) % 12 + 12) % 12 - 6) / 2.2);
           const flash = SHARED.pulse31 ? Math.max(0, 1 - (performance.now() - SHARED.pulse31) / 1200) : 0;   // ── fable32 ── (the away button: the whole path flares) ── /fable32 ──
-          k.c(L(x), L(z), L(y) + 0.045, (0.21 + 0.07 * pulse + 0.18 * flash), 0.03, pulse > 0.5 || flash > 0.4 ? '!#FFF6C8' : '!#FFC21F');
+          k.c(L(x), L(z), L(y) + 0.045, (0.21 + 0.07 * pulse + 0.18 * flash) * (SHARED.strong24 ? 1.45 : 1), 0.03, pulse > 0.5 || flash > 0.4 || SHARED.strong24 ? '!#FFF6C8' : '!#FFC21F');   // ── recovered (build 24) ── (the strong path: bigger, light)
           nd++; acc += F31.gap;
         }
         acc -= seg; along += seg;
       }
       // the place itself: a wider gold ring
-      const e = pts[pts.length - 1]; k.ring(L(e.x), L(e.z), L(gy(e.x, e.z)) + 0.01, 0.62 + 0.06 * Math.sin(tt * 5), '!#FFD24A', 18);
+      const e = pts[pts.length - 1];
+      // ── recovered (build 17) ── in b17 the ring warms with SHARED.hot17 (focus17's: 0…1), wider, quicker, orange, an inner flash
+      if (SHARED.b17) { const hot = Math.max(0, Math.min(1, SHARED.hot17 || 0)); k.ring(L(e.x), L(e.z), L(gy(e.x, e.z)) + 0.01, 0.62 + 0.45 * hot + 0.06 * Math.sin(tt * (5 + 5 * hot)), hot > 0.66 ? '!#FF9A3A' : hot > 0.33 ? '!#FFB84A' : '!#FFD24A', 20); if (hot > 0.4) k.ring(L(e.x), L(e.z), L(gy(e.x, e.z)) + 0.015, 0.3 + 0.25 * hot * (0.5 + 0.5 * Math.sin(tt * 8)), '!#FFF1B8', 16); }
+      else k.ring(L(e.x), L(e.z), L(gy(e.x, e.z)) + 0.01, 0.62 + 0.06 * Math.sin(tt * 5), '!#FFD24A', 18);
+      if (SHARED.strong24) k.label('▼', L(e.x), L(e.z), L(gy(e.x, e.z) + 3.4 + 0.6 * Math.abs(Math.sin(tt * 4))), 0.7, MARK24);   // ── recovered (build 24) ── (a bobbing ▼ over the place)
     }
     // ── fable32 (build 3) ── "הגעת": the landing ring opens on the floor at the stand for 1 s; the big button lights gold for 1 s
     if (SHARED.arrive32) { const ag = (performance.now() - SHARED.arrive32.t) / 1000; if (ag < 1) { const A = SHARED.arrive32, u = ag; k.ring(L(A.x), L(A.z), L(gy(A.x, A.z)) + 0.02, 0.5 + 1.8 * u, '!#FFF1B8', 24); k.ring(L(A.x), L(A.z), L(gy(A.x, A.z)) + 0.015, 0.3 + 1.2 * u * u, '!#FFD24A', 20); if (!A.lit && doc) { A.lit = 1; const b = doc.querySelector('.tw-btn'); if (b) { b.classList.add('f31-arr'); setTimeout(() => b.classList.remove('f31-arr'), 1000); } } } }
@@ -219,10 +250,11 @@ export function createFlow31(o = {}) {
   }
   const off = addDrawer(o.kit, draw, -2);
   // the open field: the day's crowd out of the court east and south-east of the altar while the shift runs
-  const life = () => { try { return globalThis.__T && typeof __T.life === 'function' ? __T.life() : null; } catch (e) { return null; } };
-  try { const lf = life(); if (lf && lf.clearField) st.cleared = lf.clearField(F31.field); } catch (e) { /* */ }
+  const life = () => { try { const f = globalThis.__T && __T.life; return typeof f === 'function' ? f() : f || null; } catch (e) { return null; } };   // ── recovered (16–26c) ── (__T.life: a function or the life itself)
+  // ── recovered (16–26c) ── in the day (E.shown33): the day's field, and the ramp's lane off while the shift runs
+  try { const day = !!(E && E.shown33), lf = life(); if (lf && lf.clearField) st.cleared = lf.clearField(day ? F31.dayField : F31.field); if (lf && lf.rampLane && day) lf.rampLane('off'); } catch (e) { /* */ }
   const api = {
-    destroy() { off(); try { if (hot) hot.remove(); if (tag) tag.remove(); const b0 = btn(); if (b0) { b0.classList.remove('f31-prompt', 'f31-far'); b0.style.transform = ''; b0.__f31p = false; b0.__f31far = false; } } catch (e) { /* */ }   /* ── fable32 (build 5) ── ── /fable32 ── */ try { const lf = life(); if (lf && lf.clearField) lf.clearField(null); } catch (e) { /* */ } try { zb && zb.remove(); me && me.remove(); zl && zl.remove(); } catch (e) { /* */ } SHARED.zoomLvl = null; SHARED.f31 = null; SHARED.zoom31 = null; SHARED.path31 = null; const b = btn(); if (b) b.classList.remove('f31-go'); if (st.cue && o.stations && o.stations.cue) { try { o.stations.cue(st.cue, false); } catch (e) { /* */ } } },
+    destroy() { off(); try { if (hot) hot.remove(); if (tag) tag.remove(); const b0 = btn(); if (b0) { b0.classList.remove('f31-prompt', 'f31-far'); b0.style.transform = ''; b0.__f31p = false; b0.__f31far = false; } } catch (e) { /* */ }   /* ── fable32 (build 5) ── ── /fable32 ── */ try { const lf = life(); if (lf && lf.clearField) lf.clearField(null); if (lf && lf.rampLane) lf.rampLane(0); /* ── recovered (16–26c) ── */ } catch (e) { /* */ } try { zb && zb.remove(); me && me.remove(); zl && zl.remove(); } catch (e) { /* */ } SHARED.zoomLvl = null; SHARED.f31 = null; SHARED.zoom31 = null; SHARED.path31 = null; const b = btn(); if (b) b.classList.remove('f31-go'); if (st.cue && o.stations && o.stations.cue) { try { o.stations.cue(st.cue, false); } catch (e) { /* */ } } },
     /** tests: the path, the next place, the zoom */
     state: () => ({ next: st.next ? { id: st.next.id, kind: st.next.kind } : null, discs: st.discs, pts: st.pts ? st.pts.map((q) => [Math.round(q.x * 10) / 10, Math.round(q.z * 10) / 10]) : null, L: Math.round(st.L * 10) / 10, zoom: Math.round(st.zoom * 100) / 100, hold: st.hold, holds: st.holds, cue: st.cue, n: st.n, cleared: st.cleared | 0, zl: st.zl }),
     setZoom(i) { if (st.setZ) st.setZ(i); return st.zl; },   // ── fable32 ── ── /fable32 ──

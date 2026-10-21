@@ -72,6 +72,8 @@ export const SKY = {
   // ── polish23 ── the Temple day's dark night (Phase B): the same moon and stars, a deeper dome, the far hills as black cut-outs
   nightd: { zen: '#050B1E', horA: '#16213F', horS: '#1B2646', fog: '#121B33', belt: '#000000', sun: '#B7C6F0', glow: 0.14, disc: 0, skyI: 0.95, cov: 0.22, cLit: '#4A5878', cShd: '#0C1224', cA: 0.6, cum: 0.03, cumLit: '#34405E', cumShd: '#0C1224', mtn: '#0E1528', moab: '#151D36', moon: 1, star: 1.15, moonAz: 45, moonEl: 30 },
   // ── /polish23 ──
+  // ── recovered (16–26c) ── before dawn: a deep dome, a faint rose low in the east, the moon low (main.js's predawn light; reached by mix())
+  predawn: { zen: '#0A1430', horA: '#2C3458', horS: '#8E5E66', fog: '#2A3150', belt: '#000000', sun: '#FFB89A', glow: 0.4, disc: 0, skyI: 1, cov: 0.3, cLit: '#6A6888', cShd: '#141A30', cA: 0.7, cum: 0.04, cumLit: '#5A5470', cumShd: '#141A30', mtn: '#121A30', moab: '#2A2440', moon: 0.7, star: 0.7, moonAz: 200, moonEl: 22 },
 };
 // the overcast of the building's night rain (and a grey day, should a preset ever ask for one)
 const RAIN = { zen: '#565D68', horA: '#8C939B', horS: '#979EA6', fog: '#8A9098', belt: '#000000', glow: 0.1, disc: 0, cov: 0.98, cLit: '#8F969F', cShd: '#474C55', cA: 1, cum: 0.0, cumLit: '#8A9098', cumShd: '#4A4F57', mtn: '#6E747C', moab: '#6E747C', moon: 0, star: 0 };
@@ -216,17 +218,20 @@ export function createSky() {
 
   const cur = {}, fog = new THREE.Color(), tmp = new THREE.Color(), tmp2 = new THREE.Color(), moonDir = new THREE.Vector3();
   let key = 'dawn', over = 0;
+  let mixKey = null, mixK = 0;   // ── recovered (16–26c) ── mix(): a second preset blended over key's
   let clearK = 0, moonLit = 1;   // ── world12 ── the night's clear sky and the moon's lit fraction (setMoon)
   const COLS = ['zen', 'horA', 'horS', 'fog', 'belt', 'cLit', 'cShd', 'cumLit', 'cumShd', 'mtn', 'moab'], NUMS = ['glow', 'disc', 'skyI', 'cov', 'cA', 'cum', 'moon', 'star'];
   function apply() {
     const P = SKY[key] || SKY.dawn, night = !!P.moon;
+    const Q = mixKey && SKY[mixKey], at = (k) => (Q ? P[k] + ((Q[k] || 0) - P[k]) * mixK : P[k]);   // ── recovered (16–26c) ── (the mix)
     for (const k of COLS) {
       tmp.set(P[k]);
+      if (Q) tmp.lerp(tmp2.set(Q[k]), mixK);   // ── recovered (16–26c) ──
       if (over > 0) { tmp2.set(RAIN[k]); if (night) tmp2.multiplyScalar(0.1); tmp.lerp(tmp2, over); }
       (cur[k] || (cur[k] = new THREE.Color())).copy(tmp);
     }
-    for (const k of NUMS) cur[k] = P[k] + ((RAIN[k] !== undefined ? RAIN[k] : P[k]) - P[k]) * over;
-    if (night) { cur.moon = P.moon * (1 - over); cur.star = P.star * (1 - over); cur.glow = P.glow * (1 - over); }
+    for (const k of NUMS) { const v = at(k); cur[k] = v + ((RAIN[k] !== undefined ? RAIN[k] : v) - v) * over; }   // ── recovered (16–26c) ── (at(k): the mix)
+    if (night) { cur.moon = at('moon') * (1 - over); cur.star = at('star') * (1 - over); cur.glow = at('glow') * (1 - over); }
     // ── world12 ── a dry night by the calendar is clear: thinner clouds, and more stars when the moon is thin
     if (night && clearK > 0) { cur.cov *= 1 - 0.45 * clearK; cur.cA *= 1 - 0.2 * clearK; cur.star *= 1 + 0.3 * clearK * (1 - moonLit); cur.glow *= 0.3 + 0.7 * moonLit; }
     if (P.moonAz !== undefined) {
@@ -236,7 +241,7 @@ export function createSky() {
     for (const [u, env] of [[uniforms, false], [envU, true]]) {
       u.uZen.value.copy(cur.zen); u.uHorA.value.copy(cur.horA); u.uHorS.value.copy(cur.horS); u.uFog.value.copy(cur.fog); u.uBelt.value.copy(cur.belt);
       u.uCLit.value.copy(cur.cLit); u.uCShd.value.copy(cur.cShd); u.uCumLit.value.copy(cur.cumLit); u.uCumShd.value.copy(cur.cumShd);
-      u.uMtn.value.copy(cur.mtn); u.uMoab.value.copy(cur.moab); u.uSunCol.value.set(P.sun); u.uMoonDir.value.copy(moonDir);
+      u.uMtn.value.copy(cur.mtn); u.uMoab.value.copy(cur.moab); u.uSunCol.value.set(P.sun); if (Q) u.uSunCol.value.lerp(tmp2.set(Q.sun), mixK); u.uMoonDir.value.copy(moonDir);   // ── recovered (16–26c) ── (Q)
       u.uGlow.value = cur.glow * (env ? 0.5 : 1); u.uDisc.value = env ? 0 : cur.disc; u.uSkyI.value = cur.skyI; u.uCov.value = cur.cov;
       u.uCA.value = cur.cA * (env ? 0.7 : 1); u.uCum.value = cur.cum; u.uMoon.value = cur.moon; u.uStar.value = cur.star;
     }
@@ -250,7 +255,9 @@ export function createSky() {
     /** cloud meshes drawn without depth test (sanctuary.js hides them inside the rooms): none now — the clouds are in the dome */
     clouds: [],
     /** the preset (dawn|noon|dusk|night|golden) and the sun's (at night: the moonlight's) direction */
-    set(k, dir) { key = SKY[k] ? k : 'dawn'; if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
+    set(k, dir) { key = SKY[k] ? k : 'dawn'; mixKey = null; if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
+    // ── recovered (16–26c) ── the current preset blended toward preset k by t (0…1), and the sun's direction (main.js mixTime); set() ends the mix
+    mix(k, t, dir) { mixKey = k && SKY[k] ? k : null; mixK = Math.max(0, Math.min(1, +t || 0)); if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
     /** 0 clear … 1 overcast (the building's night rain); true when it changed */
     setOvercast(k) { const v = Math.max(0, Math.min(1, +k || 0)); if (Math.abs(v - over) < 1e-3 && !(v === 0 && over !== 0)) return false; over = v; apply(); return true; },
     get overcast() { return over; },

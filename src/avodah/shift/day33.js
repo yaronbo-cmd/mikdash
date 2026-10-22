@@ -31,7 +31,7 @@ import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27 } from '../day/w
 import { evlog } from './evlog16.js';
 import './route31.js';
 export const DAY33 = Object.freeze({
-  idleOffer: 12,
+  // ── fable32 (build 28) ── (idleOffer: 12 — build 14's "משחק קצר?" after 12 s idle in the day — is gone with the offer) ── /fable32 ──
   dayS: 180,
   nightS: 60,
   fuel0: 22,
@@ -47,7 +47,7 @@ export const DAY33 = Object.freeze({
   torchAfter: 12,
   // ── recovered (11–26c) ── the bundle's keys of the later builds: the logs by the act's grade, the lay on the pyre (its reach, time and
   // stack), the good axe, the tired swing, the pen's misses, the stores, the lost lamb's reach, the merchant's warning, the start's minimal
-  // screen (build 16), the saved day (every 10 s, kept 24 h)
+  // screen (build 16), the saved day (every 10 s; kept 24 h until build 28, kept for good since)
   perLogGrade: { gold: 15, good: 10, ok: 7 },
   layReach: 6.5,
   layS: 0.35,
@@ -60,8 +60,7 @@ export const DAY33 = Object.freeze({
   lostNear: 15,
   merchantWarn: 20,
   minimal: true,
-  saveEvery: 10,
-  saveMaxH: 24,
+  saveEvery: 10,   // ── fable32 (build 28) ── (the saved day has no expiry any more: saveMaxH, 24 h, is gone — "לא מאבדים כלום", rohvi-he.md §3) ── /fable32 ──
   // ── build 7 ── the court opens by the fire's level (99 Nights' fog): what each level unlocks; the washing's bonus; the strength meter
   unlock: { wood: 1, kevesh: 1, kiyor: 2, pen: 2, oil: 3, salt: 3, bake: 3, song: 3 },
   lambs: 6,
@@ -118,14 +117,14 @@ export const B17 = Object.freeze({
   power: false,
 });
 // ── recovered (build 18) ── C18 (the report's name: "C18.kiyorK"): the coins — a gold act pays 2, a good 1 (pay); a streak of 3 (streak); the
-// tamid's 5; the gift (nedava: 10 coins, at 140 s, p 0.3); the chests by the gate (chests); the three pads to buy at (pads: the good axe,
+// tamid's 5; the gift (nedava: 10 coins; ── fable32 (build 28) ── at a fixed moment, 140 s of the day — no chance, the old p 0.3 is gone:
+// a prize by luck is a bet, PLAY-PRINCIPLES §6 ── /fable32 ──); the chests by the gate (chests); the three pads to buy at (pads: the good axe,
 // the big basket, the laver's second spigot — kiyorK: its walk ×0.6); the errand's 75
 export const C18 = Object.freeze({
   pay: Object.freeze({ gold: 2, good: 1, ok: 0 }),
   streak: 3,
   tamid: 5,
   nedava: 10,
-  nedavaP: 0.3,
   nedavaAt: 140,
   chests: Object.freeze({ n: 13, max: 10, x: -12.7, z0: 6, dz: 1.2, hi: 60, lo: 40, hiS: 12, loS: 25, walkS: 4, reach: 3.6 }),
   pads: Object.freeze([
@@ -264,8 +263,8 @@ const KINDS22 = Object.freeze({ L: ['fig', 'pine'], M: ['fig', 'walnut', 'pine']
 // when the lot gives them (need/sizes/layn/budget for the pyre, d21 for the ashes); its cameras
 export const P23 = Object.freeze({
   open: Object.freeze(['deshen', 'm22', 'lamb']),
-  two: 4,
-  pick: 3,
+  draw: 4,   // ── fable32 (build 28) ── (from the fourth morning the lot DRAWS one role, never yesterday's — was `two: 4`, two cards and "במה תבחר?"; the owner, 22.10 09:19: "פיס נקי, קלף אחד") ── /fable32 ──
+  pick: 3,   // (the engine's choice phase, auto-pick after 3 s: kept for a lot of two cards, which no draw gives since build 28)
   yest: 0.25,
   bal: 0.5,
   in: 0.6,
@@ -307,6 +306,8 @@ export const POOL23 = Object.freeze(
 );
 // ── recovered (build 23) ── how often he has played a role (save.roles23's count); draw23 (the report's): the morning's lot — the role of
 // the day by P23.open, then never yesterday's and the least played first; two roles from the fourth morning
+// ── fable32 (build 28) ── from the fourth morning (P23.draw) ONE role, never yesterday's — as the second lot (draw26) draws: "הִתְקִינוּ
+// שֶׁלֹּא יְהוּ תוֹרְמִין אֶת הַמִּזְבֵּחַ אֶלָּא בְפַיִס" (יומא ב, ב); mornings 1–3 as before ── /fable32 ──
 const timesOf = (rec, id) => (rec && rec[id] && rec[id].n) | 0;
 function draw23(n, rec, ids, rnd = Math.random) {
   const h = (rec && rec.h) || [],
@@ -324,11 +325,9 @@ function draw23(n, rec, ids, rnd = Math.random) {
     },
     lastPair = h.length ? h[h.length - 1].slice(1) : [],
     fresh = ids.find((x) => !timesOf(rec, x) && !lastPair.includes(x));
-  if (n < P23.two) return [fresh || pick(ids)];
-  const rest = ids.filter((x) => x !== yest),
-    first = fresh || pick(rest.length ? rest : ids),
-    others = ids.filter((x) => x !== first && (ids.length < 3 || x !== yest));
-  return others.length ? [first, pick(others)] : [first];
+  if (n < P23.draw) return [fresh || pick(ids)];
+  const rest = ids.filter((x) => x !== yest);
+  return [fresh || pick(rest.length ? rest : ids)];   // ── fable32 (build 28) ── (one card; was: [first, pick(others)] — two to choose from) ── /fable32 ──
 }
 // ── recovered (build 23) ── mastery23 (the report's: "mastery23('inner'|'menorah'|'lamb')"): a role's mastery 0…100 from its own record —
 // the time of his own part, the spills, the cracks, the false approvals, the pour
@@ -716,6 +715,17 @@ export const tasksForDay = (day, level = 1, skip = null) => {
   }
   return out;
 };
+/** ── fable32 (build 28) ── the ממונה's tasks of the day the player goes on with, for the lobby's full screen ("משימות הממונה — יום N";
+ *  it always said "יום 1"): the saved day's own three with their marks, or — a day saved at night, or none — the next day's three, as the
+ *  engine will set them (tasksForDay by the fire's level, the laver's task skipped as in the shipped day: build 20) → { day, tasks: [{ id, text,
+ *  done }] } ── /fable32 ── */
+export function tasksNow33(save) {
+  const s = savedDay33(save),
+    day = s ? resumeDay33(save) : 1,
+    level = s ? levelIn(+s.fed || 0, B17.levels) : 1,
+    marks = s && !s.night && Array.isArray(s.tasks) ? new Map(s.tasks.filter((x) => Array.isArray(x)).map(([id, done]) => [id, !!done])) : null;
+  return { day, tasks: tasksForDay(day, level, ['kiyor']).map((q) => ({ id: q.id, text: q.text, goal: q.goal, done: !!(marks && marks.get(q.id)) })) };
+}
 const GAME_HE = { tiles: 'זיכרון המקדש', pen: 'הוצאת הטלה מהדיר', m3: 'משחק האוצר' };   // ── fable32 (build 14) ── ── /fable32 ──
 const GAME_ICON = { tiles: '🃏', pen: '🐑', m3: '💎' };
 const GAME_SUB = { tiles: 'קלפים מתהפכים', pen: 'פאזל הזזה', m3: 'שלושה בשורה' };
@@ -728,11 +738,13 @@ const say = (fn, ...a) => {
   }
 };
 const pos3 = (p) => (p && Number.isFinite(p.x) ? { x: p.x, y: Number.isFinite(p.y) ? p.y : 16, z: p.z } : null);
-// ── recovered (build 16) ── the saved day (save.day33state, at most DAY33.saveMaxH hours old) and resumeDay33: the day to go on with,
-// 0 = none (lobby35's start: "המשך יום N"; the name is the recovery's); levelIn: the fire's level by the logs fed and a level table
+// ── recovered (build 16) ── the saved day (save.day33state) and resumeDay33: the day to go on with, 0 = none (lobby35's start: "המשך יום
+// N"; the name is the recovery's); levelIn: the fire's level by the logs fed and a level table
+// ── fable32 (build 28) ── no expiry: a day saved 48 h or 30 days ago goes on as it was (until build 28 a day older than 24 h was gone — day 1,
+// the fire at level 1, the stations locked). Only its shape is checked: an object with a day ≥ 1 ── /fable32 ──
 const savedDay33 = (save) => {
   const s = save && save.day33state;
-  return !s || typeof s !== 'object' || !(s.day >= 1) || !(Date.now() - (+s.at || 0) < DAY33.saveMaxH * 36e5) ? null : s;
+  return !s || typeof s !== 'object' || Array.isArray(s) || !(s.day >= 1) ? null : s;
 };
 export const resumeDay33 = (save) => {
   const s = savedDay33(save);
@@ -1197,8 +1209,10 @@ export function createDay33(o = {}) {
         if (n > 0) pay(n, why, at);
       }
     };
+  // ── fable32 (build 28) ── the gift at a fixed moment: once a day, when the day's clock reaches C18.nedavaAt (dayStep calls it every
+  // tick) — no rng (it was rng() < 0.3 at a gold streak or a tamid on time, from 20 s) ── /fable32 ──
   function nedavaStep() {
-    if (!c18 || st.ndDay === st.day || st.dayT < 20 || !(rng() < C18.nedavaP || st.dayT >= C18.nedavaAt)) return;
+    if (!c18 || st.ndDay === st.day || st.night || st.summary || st.dayT < C18.nedavaAt) return;
     st.ndDay = st.day;
     const C = C18.chests;
     emit17('nedava');
@@ -1206,7 +1220,8 @@ export function createDay33(o = {}) {
     L0('nedava');
   }
   // ── fable32 (build 14) ── the one score (score35.js: Phase A's master score — the capsule reads the same in both phases); the gear he carries (flow31 draws it);
-  // the flights (a log into the basket, the logs onto the pyre); the idle offer (nothing to do 12 s → "משחק קצר?")
+  // the flights (a log into the basket, the logs onto the pyre); the idle offer (nothing to do 12 s → "משחק קצר?") — ── fable32 (build 28) ── gone from the
+  // day: the interludes open from the lobby's start screen only (the owner, 22.10 09:19: "משחק קצר? — רק ממסך הפתיחה") ── /fable32 ──
   const SC = o.score || null,
     score = (n, why) => {
       if (!SC || !(n > 0)) return;
@@ -1655,10 +1670,7 @@ export function createDay33(o = {}) {
     emit17('tamid', { when, onTime, k });
     L0('tamid', when, onTime);
     evlog('tamid', { when, onTime, fuel: Math.round(st.fuel) });
-    if (c18 && onTime) {
-      pay(C18.tamid, 'tamid', { x: PYRE.x, y: PYRE.y + 4, z: PYRE.z });
-      nedavaStep();
-    }
+    if (c18 && onTime) pay(C18.tamid, 'tamid', { x: PYRE.x, y: PYRE.y + 4, z: PYRE.z });   // ── fable32 (build 28) ── (the gift no longer rides on it) ── /fable32 ──
     if (k === 'tamD' && open33('song') && !st.song) {
       st.song = { until: st.t + DAY33.songS };
       setTimeout(() => stamp('הלויים על הדוכן — לכו לשיר (60 שניות)', 'combo'), 1500);
@@ -1818,6 +1830,7 @@ export function createDay33(o = {}) {
     if (b17) {
       st.dayT = DAY33.dayS - st.left;
       if (!st.night) tamidStep();
+      if (!st.night) nedavaStep();   // ── fable32 (build 28) ── (the gift's fixed moment) ── /fable32 ──
     }
     if (b17 && !night17 && !st.night && st.left <= 0) {
       if (!st.summary) endDay17();
@@ -3949,10 +3962,7 @@ export function createDay33(o = {}) {
       if (l18) emit17('act', { id, g, at });
     } else emit17('hit', { id, g, streak: st.streak, text: pop[0], to: pop[1], at });
     payAct(g, 'hit:' + id, at);
-    if (c18 && g === 'gold' && st.streak > 0 && st.streak % C18.streak === 0) {
-      pay(1, 'streak', at);
-      nedavaStep();
-    }
+    if (c18 && g === 'gold' && st.streak > 0 && st.streak % C18.streak === 0) pay(1, 'streak', at);   // ── fable32 (build 28) ── (the gift no longer rides on it) ── /fable32 ──
     if (id === 'wood' && st.logs >= basketCap() && !r.more) emit17('done', { text: 'הסל מלא!', sub: 'לכבש' });
     if (id === 'pen' && !r.more) emit17('done', { text: 'הטלאים מבוקרים!' });
     return { ...r, word: word17(g), streak: st.streak };
@@ -4518,6 +4528,7 @@ export function createDay33(o = {}) {
       p = standOf(n.id);
     if (!s || !p) return null;
     const d = Math.hypot(p.x - h.x, p.z - h.z);
+    // ── fable32 (build 28) ── (the idle offer of build 14 — 12 s with nothing near → "משחק קצר?" — is out of the day: the way, as for any station) ── /fable32 ──
     return d <= DAY33.reach + 0.2
         ? {
             icon: s.icon || '✋',
@@ -4529,9 +4540,7 @@ export function createDay33(o = {}) {
             at: { ...p, y: (p.y || 16) + 1 },
             go: () => runAt(n.id),
           }
-        : !st.night && (st.idleT || 0) >= DAY33.idleOffer && o.games && !acting && !crit   // ── fable32 (build 14) ── (idle 12 s, nothing near: the owner — 'אם רדום ואין מה לעשות אפשר להקפיץ משחק') ── /fable32 ──
-          ? { icon: '🃏', label: 'משחק קצר?', job: 'sh:play', noRing: true, go: () => offerPlay() }
-          : { icon: s.icon || '➜', label: goLabel31(s.he), job: 'sh:go:' + n.id, noRing: true, go31: true, id31: n.id, go: () => tapStation(n.id) };
+        : { icon: s.icon || '➜', label: goLabel31(s.he), job: 'sh:go:' + n.id, noRing: true, go31: true, id31: n.id, go: () => tapStation(n.id) };
   }
   // ── fable32 (build 14) ── the interludes from the court: a choice card (never a must), the day's clock held while one plays; its פרוטות and score are the player's
   async function playGame(key) {
@@ -4633,7 +4642,7 @@ export function createDay33(o = {}) {
     }));
     say(() =>
       hud.choice({
-        title: 'משחק קצר?',
+        title: 'משחק לילה',   // ── fable32 (build 28) ── (the night's offer only, in the Moked — B17.night, off in the shipped day; was "משחק קצר?", which is the lobby's door now) ── /fable32 ──
         text: 'הממונה: "יש רגע? שחקו — הפרוטות והנקודות שלכם" (טיוטה)',
         items,
         closeLabel: 'אחר כך',
@@ -4737,7 +4746,7 @@ export function createDay33(o = {}) {
         id: 'p23',
         icon: '☝',
         text:
-          p23 && p23.ph === 'choose' ? 'במה תבחרו? הקישו על כרטיס' : p23 && !p23.raised ? 'הוציאו אצבע — החליקו למעלה' : 'הפיס — הממונה סופר אצבעות',
+          p23 && !p23.raised ? 'הוציאו אצבע — החליקו למעלה' : 'הפיס — הממונה סופר אצבעות',   // ── fable32 (build 28) ── (no choice line: one card) ── /fable32 ──
         n: 0,
         goal: 0,
         st: null,

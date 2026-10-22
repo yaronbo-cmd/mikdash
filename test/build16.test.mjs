@@ -1,5 +1,7 @@
 // ── recovered (R9) ── build 16 (node): the saved day (save.day33state every DAY33.saveEvery s, kept DAY33.saveMaxH hours; resumeDay33 for
 // the start screen's "המשך יום N"), the start screen's minimal mode, the event log (evlog16.js), the pyre's way from the altar's top.
+// ── fable32 (build 28) ── the 24 h expiry is gone (DAY33.saveMaxH removed; rohvi-he.md §3): the tests that held a stale save to day 1 now
+// hold that an old save goes on — test/build28.test.mjs has the 48 h and 30 days cases with the gates and the fire ── /fable32 ──
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DAY33, resumeDay33, createDay33 } from '../src/avodah/shift/day33.js';
@@ -7,17 +9,17 @@ import { evlog, copyEvlog } from '../src/avodah/shift/evlog16.js';
 import { rig, upTo } from './rig33.mjs';
 
 const fresh = (o) => ({ day33state: { day: 3, at: Date.now(), ...o } });
-test('build 16: the saved day — DAY33.minimal (the start screen\'s minimal mode), saved every 10 s, kept 24 h', () => {
-  assert.equal(DAY33.minimal, true); assert.equal(DAY33.saveEvery, 10); assert.equal(DAY33.saveMaxH, 24);
+test('build 16: the saved day — DAY33.minimal (the start screen\'s minimal mode), saved every 10 s (build 28: no expiry — no saveMaxH)', () => {
+  assert.equal(DAY33.minimal, true); assert.equal(DAY33.saveEvery, 10); assert.equal(DAY33.saveMaxH, undefined);
 });
 test('build 16: resumeDay33 — no save → 0; a day saved now → its day; saved at night → the next day', () => {
   assert.equal(resumeDay33({}), 0); assert.equal(resumeDay33(null), 0);
   assert.equal(resumeDay33(fresh()), 3);
   assert.equal(resumeDay33(fresh({ night: true })), 4);
 });
-test('build 16: resumeDay33 — older than DAY33.saveMaxH hours, or no day, or not an object → 0 (a new day)', () => {
-  assert.equal(resumeDay33(fresh({ at: Date.now() - (DAY33.saveMaxH + 1) * 3600e3 })), 0);
-  assert.equal(resumeDay33(fresh({ at: Date.now() - (DAY33.saveMaxH - 1) * 3600e3 })), 3);
+test('build 16: resumeDay33 — no day, or not an object → 0 (a new day); build 28: an old save (25 h, 23 h) still → its day', () => {
+  assert.equal(resumeDay33(fresh({ at: Date.now() - 25 * 3600e3 })), 3);   // (build 28; was 0 — the 24 h expiry)
+  assert.equal(resumeDay33(fresh({ at: Date.now() - 23 * 3600e3 })), 3);
   assert.equal(resumeDay33(fresh({ day: 0 })), 0);
   assert.equal(resumeDay33({ day33state: 'x' }), 0);
 });
@@ -37,9 +39,9 @@ test('build 16: a day saved at night resumes as the next morning (the day +1, th
   const R = rig(upTo('b17'), { save }); R.E.start(); await R.step(0.2);
   const s = R.E.state(); assert.equal(s.day, 3); assert.equal(s.logs, 0); assert.equal(s.resumed, 3);
 });
-test('build 16: a stale save (over 24 h) starts day 1', async () => {
+test('build 16 (build 28): a save over 24 h old goes on — its day, resumed (until build 28 it started day 1)', async () => {
   const save = { day33state: { day: 5, at: Date.now() - 25 * 3600e3, fuel: 40 } };
-  const R = rig(upTo('b17'), { save }); R.E.start(); await R.step(0.2); assert.equal(R.E.state().day, 1); assert.ok(!R.E.state().resumed);
+  const R = rig(upTo('b17'), { save }); R.E.start(); await R.step(0.2); assert.equal(R.E.state().day, 5); assert.equal(R.E.state().resumed, 5);
 });
 test('build 16: the event log — evlog returns the log\'s length; copyEvlog\'s JSON is { v: 16, n, ev: [{ t, name, data, at }] }', async () => {
   const n0 = evlog('test16', { a: 1 }), n1 = evlog('test16b');

@@ -117,7 +117,9 @@ test('build 11: badges are earned by play and claimed at night in the Moked (the
 });
 
 // ── fable32 (build 14) ── the gear on him, the flights, the one score, the idle offer ── /fable32 ──
-test('build 14: the axe within reach of the wood, the basket with his logs after a chop (a flight into it); the score counts the act; idle 12 s with nothing near → "משחק קצר?"', async () => {
+// ── fable32 (build 28) ── the idle offer is gone from the day ("משחק קצר?" — only from the lobby's start screen, the owner 22.10 09:19): idle
+// 13 s far from everything is the way to the next station now; the interlude's פרוטות and score are held by the night's offer (offerPlay) ── /fable32 ──
+test('build 14: the axe within reach of the wood, the basket with his logs after a chop (a flight into it); the score counts the act; idle 12 s with nothing near → the way, no "משחק קצר?" (build 28)', async () => {
   const H = { x: -34, y: 16, z: 50, vx: 0, vz: 0 }, pending = [], scored = [];
   const stations = { STATIONS, act: () => new Promise((res) => { pending.push(() => res({ quality: 1, gold: true })); }), cue() {}, place() {}, clear() {}, state: () => null };
   const hud = { set(s) { this.s = s; }, stamp(t) { (this.st ||= []).push(t); }, hint(t) { this.h = t; }, pin: () => ({ at() {}, text() {}, close() {} }), choice: (h) => { hud.ch = h; return { close() {} }; } };
@@ -135,10 +137,10 @@ test('build 14: the axe within reach of the wood, the basket with his logs after
   assert.ok(scored.some((q) => q[0] === 40 && /^act:wood/.test(q[1])), `the gold chop scores 40: ${JSON.stringify(scored)}`);
   assert.ok(hud.s.day33.score35 && hud.s.day33.score35.total >= 40, 'the HUD carries the score');
   assert.ok(!(hud.h && /לכו/.test(hud.h)), `no walk hints any more: ${hud.h}`);
-  // idle: he stands far from everything 13 s → the corner offers a short game; the game pays פרוטות and score
+  // idle: he stands far from everything 13 s → (build 28) no offer: the way to the next station; the game (offered at night) pays פרוטות and score
   H.x = -60; H.z = 0; await step(13);
-  const w = E.work(H); assert.equal(w.job, 'sh:play', JSON.stringify(w));
-  w.go(); assert.ok(hud.ch && hud.ch.items.length === 1 && hud.ch.items[0].label === 'זיכרון המקדש');
+  const w = E.work(H); assert.notEqual(w.job, 'sh:play', JSON.stringify(w)); assert.ok(/^sh:go:/.test(w.job), JSON.stringify(w));
+  E.offerPlay(); assert.ok(hud.ch && hud.ch.items.length === 1 && hud.ch.items[0].label === 'זיכרון המקדש');
   const p0 = E.state().perutot | 0; hud.ch.items[0].go(); await null; await null; await null;
   assert.equal(played, 1); assert.equal(E.state().perutot, p0 + 9); assert.ok(scored.some((q) => q[1] === 'tiles' && q[0] === 350), `tiles won with 3 stars = 200 + 150: ${JSON.stringify(scored)}`);
   assert.equal(E.state().paused, false);

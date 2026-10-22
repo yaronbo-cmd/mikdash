@@ -12,9 +12,9 @@ test('build 18: the pads\' prices — the laver\'s second spigot 40, the good ax
   assert.equal(price('kiyor2'), 40); assert.equal(price('axe'), 80); assert.equal(price('basket10'), 120);
   assert.deepEqual(C18.pads.map((p) => p.id).sort(), ['axe', 'basket10', 'kiyor2']);
 });
-test('build 18: the coins — gold 2, good 1, ok 0; a streak of 3; the tamid 5; the gift 10 (p 0.3, or at 140 s); ENABLE_TEMPLE_COINS on', () => {
+test('build 18: the coins — gold 2, good 1, ok 0; a streak of 3; the tamid 5; the gift 10 at 140 s (build 28: no chance — no nedavaP); ENABLE_TEMPLE_COINS on', () => {
   assert.deepEqual({ ...C18.pay }, { gold: 2, good: 1, ok: 0 }); assert.equal(C18.streak, 3); assert.equal(C18.tamid, 5);
-  assert.equal(C18.nedava, 10); assert.equal(C18.nedavaP, 0.3); assert.equal(C18.nedavaAt, 140); assert.equal(ENABLE_TEMPLE_COINS, true);
+  assert.equal(C18.nedava, 10); assert.equal(C18.nedavaP, undefined); assert.equal(C18.nedavaAt, 140); assert.equal(ENABLE_TEMPLE_COINS, true);   // (build 28: was nedavaP 0.3)
   assert.equal(C18.chests.max, 10); assert.equal(C18.chests.n, 13); assert.equal(C18.padS, 1.5); assert.equal(C18.kiyorK, 0.6);
 });
 test('build 18: each hit pays by its grade (E.on17 "coins": gold 2, good 1, ok nothing)', async () => {

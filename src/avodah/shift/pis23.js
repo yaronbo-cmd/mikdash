@@ -2,6 +2,9 @@
  * round the ממונה (P23.c, P23.seats); "החליקו למעלה — הוציאו אצבע" — a swipe up on the right half raises his finger (E.p23raise); the
  * ממונה calls a number and counts round the fingers (the drum23 beat, the count over each hand); where it stops — "☝ זכיתם!" — and the
  * cards: one role, or two to choose from ("היום הוגרלת ל: … או … — במה תבחר?"), the record over each ("השיא שלך: N%", "תפקיד חדש!");
+ * ── fable32 (build 28) ── one card, always: the lot draws one role (day33's draw23, from the fourth morning never yesterday's) — the
+ * choice of two is gone (the owner, 22.10 09:19: "פיס נקי, קלף אחד"); the first lot's card carries its source, "הִתְקִינוּ שֶׁלֹּא יְהוּ
+ * תוֹרְמִין אֶת הַמִּזְבֵּחַ אֶלָּא בְפַיִס" (יומא ב, ב; טיוטה) ── /fable32 ──
  * at the role's end its score — "שיא חדש!". The second lot of build 26 (k26: thirteen kohanim, POOL26) uses the same circle where he
  * stands. Meanwhile the other kohanim do the roles the lot did not give him (E.npc23(): the pyre's wood, the ashes' pan, the bowl, the
  * logs). rolesBook23 — the book of the roles ("ספר התפקידים": each role, its best, its last; the second lot's thirteen; shift/index.js
@@ -125,34 +128,13 @@ export function createPis23(o = {}) {
       flashEl.classList.add('on');
     };
   function showCards(p) {
-    const two = p.cards.length > 1,
-      nameOf = (i) => esc((ROLE[p.cards[i]] || {}).he || '');
-    cards.innerHTML = two
-      ? `<h3>היום הוגרלת ל: ${nameOf(0)} או ${nameOf(1)} — במה תבחר?</h3><div>${cardHtml(p.cards[0], 0)}${cardHtml(p.cards[1], 1)}</div><div class="p23-t"></div><div class="p23-s">${SRC_LOT}</div>`
-      : `<div>${cardHtml(p.cards[0], 0, 1, p.k26)}</div><div class="p23-s">${p.k26 ? SRC_LOT2 : SRC_LOT}</div>`;
+    // ── fable32 (build 28) ── one card (the engine's pick, 0 — a lot of two, which no draw gives now, shows its first: never a choice) ── /fable32 ──
+    cards.innerHTML = `<div>${cardHtml(p.cards[0], 0, 1, p.k26)}</div><div class="p23-s">${p.k26 ? SRC_LOT2 : SRC_LOT1}</div>`;
     cards.classList.add('on');
     stat.cards++;
     flash();
     snd('chord17', { up: 1 });
     buzz([30, 40, 60]);
-    if (two) {
-      const timeBar = cards.querySelector('.p23-t');
-      timeBar.style.transform = 'scaleX(1)';
-      requestAnimationFrame(() => {
-        timeBar.style.transition = `transform ${P23.pick}s linear`;
-        timeBar.style.transform = 'scaleX(0)';
-      });
-      cards.querySelectorAll('button').forEach((btn) =>
-        btn.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          if (E.p23pick(+btn.dataset.i)) {
-            stat.picks++;
-            snd('tab', { i: 3 });
-            buzz(25);
-          }
-        }),
-      );
-    }
   }
   function showPick(ev) {
     const keys = cards.querySelectorAll('.p23-k');
@@ -447,6 +429,7 @@ export function createPis23(o = {}) {
   return api;
 }
 const SRC_LOT = 'הפיס — יומא ב, א–ד · טיוטה';
+const SRC_LOT1 = '"הִתְקִינוּ שֶׁלֹּא יְהוּ תוֹרְמִין אֶת הַמִּזְבֵּחַ אֶלָּא בְפַיִס" — יומא ב, ב · טיוטה';   // ── fable32 (build 28) ── (the first lot's card; checked on Sefaria) ── /fable32 ──
 const ROLE = Object.fromEntries([...POOL23, ...POOL26].map((r) => [r.id, r]));
 const SRC_LOT2 = 'הפיס השני: שלושה עשר כהנים — יומא ב, ג · טיוטה';
 const CSS = `.p23-c{position:fixed;left:75.5%;top:30%;transform:translateX(-50%);width:47vw;z-index:36;display:none;direction:rtl;text-align:center;color:#FFF6DA;font:900 16px/1.2 Heebo,system-ui,sans-serif}.p23-c.on{display:block}

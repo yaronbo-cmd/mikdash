@@ -2,6 +2,8 @@
 // circle, the raised finger, the ממונה's count, the card), draw23's schedule by the lot's own morning count (P23.open: the ashes, the pyre,
 // the lamb), from the fourth morning two cards and never yesterday's role, the other kohanim at the role he did not draw (npc23), the
 // record (save.roles23: rec23, mastery23 0…100, the best), the roles' book's rows (bookOf23).
+// ── fable32 (build 28) ── from the fourth morning ONE card, drawn, never yesterday's (P23.two → P23.draw; the owner, 22.10 09:19: "פיס נקי,
+// קלף אחד"): the two tests of the two-card lot now hold the one card ── /fable32 ──
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { POOL23, P23, D21, bookOf23 } from '../src/avodah/shift/day33.js';
@@ -18,8 +20,8 @@ test('build 23: POOL23 — six roles of the morning, three built (the ashes, the
   assert.equal(POOL23.length, 6); assert.deepEqual(POOL23.filter((r) => r.built).map((r) => r.id), ['deshen', 'm22', 'lamb']);
   assert.ok(POOL23.every((r) => r.he && r.icon)); assert.ok(Object.isFrozen(POOL23) && Object.isFrozen(POOL23[0]));
 });
-test('build 23: P23 — the schedule (ashes, pyre, lamb), two cards from the fourth morning, the circle of 8 at r 3.2 by the laver', () => {
-  assert.deepEqual([...P23.open], ['deshen', 'm22', 'lamb']); assert.equal(P23.two, 4); assert.equal(P23.seats, 8); assert.equal(P23.r, 3.2);
+test('build 23: P23 — the schedule (ashes, pyre, lamb), the draw from the fourth morning (build 28: one card; was two), the circle of 8 at r 3.2 by the laver', () => {
+  assert.deepEqual([...P23.open], ['deshen', 'm22', 'lamb']); assert.equal(P23.draw, 4); assert.equal(P23.two, undefined); assert.equal(P23.seats, 8); assert.equal(P23.r, 3.2);
   assert.deepEqual({ x: P23.c.x, z: P23.c.z }, { x: -51, z: 23.4 });
 });
 test('build 23: after the laver the lot begins by itself — in, the raised finger, the ממונה\'s count, the card shown', async () => {
@@ -35,9 +37,9 @@ test('build 23: the second morning draws the pyre — the ashes are the others\'
 test('build 23: the third morning draws the lamb (with the lamb\'s pen built, build 25)', async () => {
   const { R } = await lot(mornings(['deshen', 'm22'])); assert.equal(R.E.lot23(), 'lamb');
 });
-test('build 23: from the fourth morning — two cards, never yesterday\'s role; he picks one', async () => {
-  const { R, ph } = await lot(mornings(['deshen', 'm22', 'lamb'])); assert.ok(ph.includes('choose'));
-  const cards = R.ev('p23').find((e) => e.cards && e.cards.length === 2).cards; assert.equal(cards.length, 2); assert.ok(!cards.includes('lamb'), String(cards));
+test('build 23 (build 28): from the fourth morning — one card, never yesterday\'s role; no choice', async () => {
+  const { R, ph } = await lot(mornings(['deshen', 'm22', 'lamb'])); assert.ok(!ph.includes('choose'), ph.join());   // (was: two cards and a pick)
+  const cards = R.ev('p23').find((e) => e.cards).cards; assert.equal(cards.length, 1); assert.ok(!cards.includes('lamb'), String(cards));
   assert.equal(R.E.lot23(), cards[0]);
 });
 test('build 23: the lot is recorded — save.roles23: the morning count and its history', async () => {

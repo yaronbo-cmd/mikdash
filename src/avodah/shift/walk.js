@@ -4,7 +4,7 @@
  *   createWalk({ world, twin, mul }) → { run(on), to(x, z, r) → Promise<bool arrived>, stop(), on, state() }
  * Never a Divine Name. ── /shift29 ── */
 import { planPath } from '../day/guide27.js';
-import { free, onAltar, rampWay } from '../day/world22.js';   // ── recovered (16–26c) ── onAltar, rampWay
+import { free, onHigh, rampWay } from '../day/world22.js';   // ── recovered (16–26c) ── onHigh, rampWay
 import { onTick, SHARED } from './draw.js';
 import { placeGround } from '../works/anchors.js';
 
@@ -23,11 +23,11 @@ const FREE2 = (x, z) => free(x, z) && !(x < -54.95 && x > -76.5 && Math.abs(z) <
  *  to a point on them, straight (feet: the hero's own rule, or null for the floors alone) */
 function planWay(x, z, tx, tz, feet) {
   const down = rampWay(x, z);
-  if (down.length && !onAltar(tx, tz)) {
+  if (down.length && !onHigh(tx, tz)) {
     const p = down[down.length - 1], rest = (feet && planPath(p.x, p.z, tx, tz, FREE2, placeGround, feet)) || planPath(p.x, p.z, tx, tz, FREE2, GY2, null) || [{ x: tx, z: tz }];
     return down.concat(rest);
   }
-  return onAltar(tx, tz) ? [{ x: tx, z: tz }] : (feet && planPath(x, z, tx, tz, FREE2, placeGround, feet)) || planPath(x, z, tx, tz, FREE2, GY2, null) || [{ x: tx, z: tz }];
+  return onHigh(tx, tz) ? [{ x: tx, z: tz }] : (feet && planPath(x, z, tx, tz, FREE2, placeGround, feet)) || planPath(x, z, tx, tz, FREE2, GY2, null) || [{ x: tx, z: tz }];
 }
 
 export function createWalk(o = {}) {

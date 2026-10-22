@@ -1,0 +1,1526 @@
+{
+ "importOrder": [
+  "./layout31.js",
+  "./draw.js",
+  "./score35.js",
+  "../day/world22.js",
+  "./evlog16.js",
+  "./route31.js"
+ ],
+ "top": {
+  "free__q": "free",
+  "j6": "houseFloor",
+  "jc": "onHigh",
+  "nm": "HOUSE22",
+  "Mi": "evlog",
+  "dBt": "draw23",
+  "pBt": "mastery23",
+  "vR": "at25",
+  "mBt": "lamb25",
+  "gBt": "draw26",
+  "DAY33$1": "DAY33",
+  "B17$1": "B17",
+  "C18$1": "C18",
+  "BJ": "ENABLE_TEMPLE_COINS",
+  "R19$1": "R19",
+  "K20$1": "K20",
+  "D21": "D21",
+  "M22": "M22",
+  "BB": "KINDS22",
+  "P23": "P23",
+  "POOL23": "POOL23",
+  "nv": "timesOf",
+  "wk": "clamp01",
+  "HJ": "bookOf23",
+  "P25": "P25",
+  "list25$1": "list25",
+  "DAY33": "BLEM25",
+  "B17": "REGION25",
+  "C18": "HEAD25",
+  "R19": "hash25",
+  "K20": "P26",
+  "D21$1": "POOL26",
+  "M22$1": "ev26",
+  "P23$1": "fill26",
+  "POOL23$1": "onRamp19",
+  "P25$1": "cell19",
+  "list25": "rampY19",
+  "TASKS33": "TASKS33",
+  "P26": "SHOP33",
+  "BADGES33": "BADGES33",
+  "tasksForDay": "tasksForDay",
+  "GAME_HE": "GAME_HE",
+  "GAME_ICON": "GAME_ICON",
+  "GAME_SUB$1": "GAME_SUB",
+  "say": "say",
+  "pos32$1": "pos3",
+  "GAME_SUB": "savedDay33",
+  "say$1": "resumeDay33",
+  "pos32": "levelIn",
+  "levelOf33": "levelOf33"
+ },
+ "scopes": {
+  "createDay33": {
+   "_$u": "b17",
+   "_$h": "night17",
+   "_$d": "powerOn",
+   "_$g": "levelFor",
+   "_$p": "l18",
+   "_$b": "c18",
+   "_$m": "b19",
+   "_$v": "g20",
+   "_$_": "g21",
+   "_$x": "g22",
+   "_$E": "p23",
+   "_$A": "p25",
+   "_$M": "p26",
+   "_$C": "act20",
+   "_$R": "cam20",
+   "_$S": "subs17",
+   "_$D": "emit17",
+   "_$$": "kept33",
+   "_$Lt": "gate20",
+   "_$te": "gate20no",
+   "_$Bt": "gate21",
+   "_$xe": "gate22",
+   "_$jt": "lambDay25",
+   "_$Vt": "gate25",
+   "_$lt": "carry22",
+   "_$Pt": "gate23",
+   "_$Tt": "roles23",
+   "_$St": "first21",
+   "_$yt": "first22",
+   "_$Kt": "need22",
+   "_$Yt": "d21k",
+   "_$mt": "lotOn",
+   "_$dt": "pre26",
+   "_$qt": "gate26L",
+   "_$O": "gate26",
+   "_$pt": "open26",
+   "_$st": "gateAny",
+   "_$tt": "gate26no",
+   "_$vt": "gate25no",
+   "_$ft": "gate21no",
+   "_$J": "gate22no",
+   "_$Ut": "gate23no",
+   "_$Ft": "over",
+   "_$Oe": "payAct",
+   "_$Ge": "nedavaStep",
+   "_$tn": "saveState",
+   "_$Ht": "lostFree",
+   "_$kt": "lostTick",
+   "_$Pe": "catchK",
+   "_$sn": "drainNow",
+   "_$io": "lambReady",
+   "_$Qn": "grace17",
+   "_$qn": "offer17",
+   "_$ye": "tamid17",
+   "_$At": "summary17",
+   "_$Ot": "endDay17",
+   "_$pe": "nextDay",
+   "_$de": "dayStep",
+   "dayStep": "tamidStep",
+   "r": "nearLost",
+   "_$nn": "statN",
+   "_$An": "basketCap",
+   "_$Mn": "penN",
+   "_$In": "woodRush",
+   "_$to": "chests",
+   "_$Eo": "own18",
+   "_$ro": "padOpen",
+   "_$Ao": "chestStep",
+   "_$ge": "padStep",
+   "atTop": "near19",
+   "_$dn": "nearK24",
+   "_$Nn": "saltDue",
+   "_$Cn": "ramp19Step",
+   "_$fe": "top19",
+   "_$Fe": "k20start",
+   "_$ln": "k20Step",
+   "_$Ue": "camWork20",
+   "_$He": "clamp",
+   "_$cn": "r1",
+   "_$Fn": "swipeWhy",
+   "_$Sn": "d21start",
+   "_$Jn": "d21swipe",
+   "_$po": "d21stick",
+   "_$mo": "d21bal",
+   "_$Ro": "d21tap",
+   "_$Gs": "move21",
+   "_$oa": "d21Step",
+   "_$Xs": "d21done",
+   "_$js": "camView",
+   "_$Ui": "camWork21",
+   "_$Sa": "band22",
+   "_$la": "gap24",
+   "_$is": "pickOne",
+   "_$Sl": "budget22",
+   "_$Il": "ph22",
+   "_$Rc": "deal22",
+   "_$Xe": "m22start",
+   "_$rn": "m22swipe",
+   "_$vn": "air22",
+   "_$Kn": "m22place",
+   "_$Gn": "layN22",
+   "_$lo": "hold22",
+   "_$To": "m22stick",
+   "_$Qo": "m22put",
+   "_$Oo": "m22tap",
+   "_$Go": "m22Step",
+   "_$Cs": "m22done",
+   "_$Ai": "CIRC23",
+   "_$Qs": "circ23",
+   "_$Qa": "seat23",
+   "_$Xt": "free26",
+   "_$Se": "circle26",
+   "_$je": "camAz23",
+   "_$Ye": "p23start",
+   "_$pn": "p23Step",
+   "_$j": "p23raise",
+   "_$wt": "p23pick",
+   "_$Dt": "p23done",
+   "_$$t": "rec23",
+   "_$et": "wake23",
+   "_$De": "camWork23",
+   "_$qe": "lambIn",
+   "_$an": "first25",
+   "_$_n": "door25",
+   "_$xn": "newLamb25",
+   "_$Bn": "p25start",
+   "_$Yn": "ph25",
+   "_$So": "p25Step",
+   "_$zo": "p25focus",
+   "_$Po": "p25tap",
+   "_$ns": "p25swipe",
+   "_$Os": "p25stamp",
+   "_$ya": "p25done",
+   "_$Ca": "view25",
+   "_$Vi": "spotView25",
+   "_$Dc": "camWork25",
+   "_$wa": "roles26",
+   "_$gi": "first26",
+   "_$$r": "HANDS26",
+   "_$Nl": "YAW26",
+   "_$Cr": "r26start",
+   "_$ci": "ph26",
+   "_$od": "glide26",
+   "_$Rf": "at26",
+   "_$Yf": "r26Step",
+   "_$d0": "r26swipe",
+   "_$Qf": "r26hold",
+   "_$ws": "let26",
+   "_$Fu": "pour26",
+   "_$Df": "r26pull",
+   "_$Lu": "r26tap",
+   "_$sd": "lit26",
+   "_$Pk": "r26light",
+   "_$cg": "done26",
+   "_$Jf": "camWork26",
+   "_$$1": "card22",
+   "_$xb": "camWork22",
+   "_$uv": "next17",
+   "_$fg": "word17",
+   "_$wb": "POP17",
+   "_$vb": "hitOf",
+   "_$tl": "hit33",
+   "_$Lo": "missOf",
+   "walkTo": "peek24",
+   "_$kb": "actLabel",
+   "_$B1": "FOOT19",
+   "_$$l": "atTop",
+   "_$ug": "atPyre",
+   "_$Ti": "stackN",
+   "_$Ln": "stackSlot",
+   "_$Bl": "CARD17",
+   "_$pp": "TO17",
+   "_$dc": "step17",
+   "_$hg": "bar17",
+   "_$Pu": "tap17",
+   "_$gm": "fire17",
+   "_$mp": "go17",
+   "_$dg": "hotStep",
+   "_$hv": "camPyre",
+   "_$Y@318": "was",
+   "_$Q@320": "k",
+   "_$Q@332": "k",
+   "_$Y@360": "was",
+   "_$Y@367": "ch"
+  },
+  "sfx": {
+   "_$Q": "a"
+  },
+  "pay": {
+   "_$Q": "why",
+   "why": "at"
+  },
+  "over": {
+   "_$Y": "id",
+   "_$Q": "up",
+   "_$ee": "s"
+  },
+  "payAct": {
+   "_$Y": "g",
+   "_$Q": "why",
+   "_$ee": "at",
+   "_$Re": "n"
+  },
+  "nedavaStep": {
+   "_$Y": "C"
+  },
+  "saveState": {
+   "_$Y": "why",
+   "_$Q": "out",
+   "_$ee": "k"
+  },
+  "lostStep": {
+   "_$Y": "ok"
+  },
+  "lostTick": {
+   "_$Re": "stand"
+  },
+  "catchK": {
+   "_$Y": "fuel",
+   "_$Q": "c"
+  },
+  "tamidStep": {
+   "dt": "tm"
+  },
+  "offer17": {
+   "_$Y": "k",
+   "_$Q": "when",
+   "_$ee": "onTime",
+   "_$Re": "lamb"
+  },
+  "tamid17": {
+   "_$Y": "tm"
+  },
+  "summary17": {
+   "_$Y": "ok",
+   "_$Q": "stars",
+   "_$ee": "tasks",
+   "_$Re": "praise",
+   "_$on": "pad"
+  },
+  "endDay17": {
+   "_$Y": "sum"
+  },
+  "dayStep": {
+   "_$Y": "dt"
+  },
+  "feed": {
+   "_$Q": "grades",
+   "_$ee": "lay",
+   "before": "perG",
+   "_$On": "before",
+   "_$ho": "add"
+  },
+  "claimBook": {
+   "_$Y": "quiet",
+   "_$ee": "close"
+  },
+  "woodRush": {
+   "_$Y": "tm"
+  },
+  "chestStep": {
+   "_$Y": "dt",
+   "_$Q": "ch",
+   "_$ee": "h"
+  },
+  "padStep": {
+   "_$Y": "dt",
+   "_$Q": "h",
+   "_$ee": "pad"
+  },
+  "near19": {
+   "_$Y": "h"
+  },
+  "nearK24": {
+   "_$Y": "h",
+   "_$Q": "s"
+  },
+  "ramp19Step": {
+   "_$Y": "dt",
+   "_$Q": "R",
+   "_$ee": "h",
+   "_$Re": "tw",
+   "_$on": "pace",
+   "_$On": "onR",
+   "_$ho": "yaw",
+   "_$Hn": "cl",
+   "_$No": "C",
+   "_$wo": "now",
+   "_$ks": "moved",
+   "_$Ce": "vz",
+   "_$Pi": "held",
+   "_$Lf": "stickOn",
+   "_$of": "loaded",
+   "_$Ik": "salting",
+   "_$ys": "up",
+   "_$tu": "climbing",
+   "_$pg": "strong",
+   "_$H1": "sy",
+   "_$ym": "cy",
+   "_$bm": "easy",
+   "_$U1": "bare",
+   "_$xm": "want",
+   "_$Pf": "run"
+  },
+  "top19": {
+   "_$Y": "t",
+   "_$Q": "run",
+   "_$ee": "best",
+   "_$Re": "g",
+   "_$on": "h",
+   "_$On": "at"
+  },
+  "k20start": {
+   "_$Y": "h",
+   "_$Q": "d"
+  },
+  "k20Step": {
+   "_$Y": "dt",
+   "_$Q": "K"
+  },
+  "camWork20": {
+   "_$Y": "K",
+   "_$Q": "C",
+   "_$ee": "t",
+   "_$Re": "c"
+  },
+  "clamp": {
+   "_$Y": "v",
+   "_$Q": "lo",
+   "_$ee": "hi"
+  },
+  "r1": {
+   "_$Y": "v"
+  },
+  "swipeWhy": {
+   "_$Y": "dx",
+   "_$Q": "dy",
+   "_$ee": "ms",
+   "_$Re": "min"
+  },
+  "d21start": {
+   "_$Y": "h"
+  },
+  "d21swipe": {
+   "_$Y": "dx",
+   "_$Q": "dy",
+   "_$ee": "ms",
+   "_$Re": "K",
+   "_$on": "why"
+  },
+  "d21stick": {
+   "_$Y": "v",
+   "_$Q": "K"
+  },
+  "d21bal": {
+   "_$Y": "v",
+   "_$Q": "K"
+  },
+  "d21tap": {
+   "_$Y": "K",
+   "_$Q": "h"
+  },
+  "move21": {
+   "_$Y": "K",
+   "_$Q": "x",
+   "_$ee": "z",
+   "_$Re": "yaw",
+   "_$on": "dt"
+  },
+  "d21Step": {
+   "_$Y": "dt",
+   "_$Q": "K",
+   "_$ee": "stand",
+   "_$Re": "head",
+   "_$on": "foot"
+  },
+  "d21done": {
+   "_$Y": "K",
+   "_$Q": "spills",
+   "_$ee": "coins",
+   "_$Re": "pts",
+   "_$on": "at",
+   "_$On": "rec"
+  },
+  "camView": {
+   "_$Y": "c",
+   "_$Q": "t",
+   "_$ee": "ce"
+  },
+  "camWork21": {
+   "_$Y": "K",
+   "_$Q": "ph",
+   "_$ee": "h",
+   "_$Re": "view"
+  },
+  "gap24": {
+   "_$Y": "gap",
+   "_$Q": "r"
+  },
+  "pickOne": {
+   "_$Y": "arr"
+  },
+  "ph22": {
+   "_$Y": "K",
+   "_$Q": "ph",
+   "_$ee": "extra"
+  },
+  "ph25": {
+   "_$Y": "K",
+   "_$Q": "ph",
+   "_$ee": "extra"
+  },
+  "ph26": {
+   "_$Y": "K",
+   "_$Q": "ph",
+   "_$ee": "extra"
+  },
+  "deal22": {
+   "_$Y": "logs",
+   "_$Q": "first"
+  },
+  "m22start": {
+   "_$Y": "h"
+  },
+  "m22swipe": {
+   "_$Y": "dx",
+   "_$Q": "dy",
+   "_$ee": "ms"
+  },
+  "air22": {
+   "_$Y": "K",
+   "_$Q": "band",
+   "_$ee": "gaps"
+  },
+  "m22place": {
+   "_$Y": "x",
+   "_$Q": "dy"
+  },
+  "layN22": {
+   "_$Y": "layer"
+  },
+  "hold22": {
+   "_$Y": "K",
+   "_$Q": "size",
+   "_$ee": "laid"
+  },
+  "m22stick": {
+   "_$Y": "v",
+   "_$Q": "K"
+  },
+  "m22Step": {
+   "_$Y": "dt",
+   "_$Q": "K"
+  },
+  "m22done": {
+   "_$Y": "K",
+   "_$Q": "air",
+   "_$ee": "bad",
+   "_$Re": "budget",
+   "_$on": "fast",
+   "_$On": "at",
+   "_$ho": "good"
+  },
+  "seat23": {
+   "_$Y": "i",
+   "_$Q": "C"
+  },
+  "free26": {
+   "_$Y": "x",
+   "_$Q": "z"
+  },
+  "circle26": {
+   "_$Y": "h",
+   "_$Q": "best"
+  },
+  "camAz23": {
+   "_$Y": "C"
+  },
+  "p23start": {
+   "_$Y": "k26",
+   "_$Q": "h",
+   "_$ee": "rec",
+   "_$Re": "n",
+   "_$on": "ids"
+  },
+  "p23Step": {
+   "_$Y": "dt",
+   "_$Q": "K"
+  },
+  "p23raise": {
+   "_$Y": "how",
+   "_$Q": "K"
+  },
+  "p23pick": {
+   "_$Y": "i",
+   "_$Q": "auto",
+   "_$ee": "K"
+  },
+  "p23done": {
+   "_$Y": "K",
+   "_$Q": "role",
+   "_$ee": "rec"
+  },
+  "rec23": {
+   "_$Y": "id",
+   "_$Q": "r",
+   "_$ee": "budget",
+   "_$Re": "book",
+   "_$on": "m",
+   "_$On": "mastery",
+   "_$ho": "best",
+   "_$Hn": "first"
+  },
+  "wake23": {
+   "_$Y": "s"
+  },
+  "camWork23": {
+   "_$Y": "K",
+   "_$Q": "C"
+  },
+  "lambIn": {
+   "_$Y": "l"
+  },
+  "newLamb25": {
+   "_$Y": "K",
+   "_$Q": "L",
+   "_$ee": "spots"
+  },
+  "p25start": {
+   "_$Y": "h",
+   "_$Q": "K"
+  },
+  "p25Step": {
+   "_$Y": "dt",
+   "_$Q": "K"
+  },
+  "p25done": {
+   "_$Y": "K",
+   "_$Q": "own",
+   "_$ee": "fast",
+   "_$Re": "clean",
+   "_$on": "coins"
+  },
+  "view25": {
+   "_$Y": "c",
+   "_$Q": "L",
+   "_$ee": "asp"
+  },
+  "spotView25": {
+   "_$Y": "K",
+   "_$Q": "spot",
+   "_$ee": "at",
+   "_$Re": "v",
+   "_$on": "d"
+  },
+  "camWork25": {
+   "_$Y": "K",
+   "_$Q": "ph",
+   "_$ee": "L"
+  },
+  "first26": {
+   "_$Y": "role"
+  },
+  "r26start": {
+   "_$Y": "how",
+   "_$Q": "h",
+   "_$ee": "role",
+   "_$Re": "first",
+   "_$on": "ev"
+  },
+  "glide26": {
+   "_$Y": "K",
+   "_$Q": "x",
+   "_$ee": "z",
+   "_$Re": "dur",
+   "_$on": "k"
+  },
+  "at26": {
+   "_$Y": "role"
+  },
+  "r26Step": {
+   "_$Y": "dt",
+   "_$Q": "K",
+   "_$ee": "h",
+   "_$on@2549": "S0"
+  },
+  "let26": {
+   "_$Y": "K"
+  },
+  "pour26": {
+   "_$Y": "K",
+   "_$Q": "P",
+   "_$ee": "fill",
+   "_$Re": "li",
+   "_$on": "q"
+  },
+  "lit26": {
+   "_$Y": "K",
+   "_$Q": "lamp",
+   "_$ee": "from",
+   "_$Re": "drag"
+  },
+  "r26light": {
+   "_$Y": "K"
+  },
+  "done26": {
+   "_$Y": "K",
+   "_$Q": "own",
+   "_$ee": "inner",
+   "_$Re": "qs",
+   "_$on": "pourQ"
+  },
+  "card22": {
+   "_$Y": "h",
+   "_$Q": "K",
+   "_$ee": "ph"
+  },
+  "camWork22": {
+   "_$Y": "K",
+   "_$Q": "h",
+   "_$ee": "ph"
+  },
+  "next17": {
+   "_$Y": "tm",
+   "_$Q": "lost",
+   "_$ee": "goals",
+   "_$Re": "go"
+  },
+  "word17": {
+   "_$Y": "g"
+  },
+  "hitOf": {
+   "_$Y": "id",
+   "_$Q": "g",
+   "_$ee": "r",
+   "_$Re": "pop",
+   "_$on": "s",
+   "_$On": "at"
+  },
+  "hit33": {
+   "_$Y": "id",
+   "_$Q": "g"
+  },
+  "missOf": {
+   "_$Y": "id",
+   "_$Q": "n"
+  },
+  "peek24": {
+   "_$Y": "id",
+   "_$Q": "at",
+   "_$ee": "slot",
+   "_$Re": "s",
+   "_$on": "text"
+  },
+  "actLabel": {
+   "_$Y": "id",
+   "_$Q": "s"
+  },
+  "runAt": {
+   "_$Re": "swing",
+   "_$on": "hits",
+   "_$On": "opts",
+   "_$ho": "t0",
+   "_$No": "g"
+  },
+  "stackSlot": {
+   "_$Y": "i",
+   "_$Q": "row",
+   "_$ee": "col",
+   "_$Re": "odd",
+   "_$on": "off"
+  },
+  "step17": {
+   "_$Y": "h"
+  },
+  "bar17": {
+   "_$Y": "step",
+   "_$Q": "cur",
+   "_$ee": "goals"
+  },
+  "tap17": {
+   "_$Y": "id",
+   "_$Q": "h"
+  },
+  "fire17": {
+   "_$Y": "h"
+  },
+  "go17": {
+   "_$Y": "step"
+  },
+  "hotStep": {
+   "_$Y": "n"
+  },
+  "camPyre": {
+   "_$Y": "h",
+   "_$ee": "dx",
+   "_$Re": "dz",
+   "_$on": "a",
+   "_$On": "a1",
+   "_$ho": "a2"
+  },
+  "tick": {
+   "_$Q@3861": "h",
+   "_$ee@3862": "moved"
+  },
+  "draw23": {
+   "_$e": "n",
+   "_$t": "rec",
+   "_$n": "ids",
+   "_$o": "rnd",
+   "_$s": "h",
+   "_$a": "yest",
+   "_$i": "fixed",
+   "_$r": "most",
+   "_$l": "weight",
+   "_$c": "pick",
+   "_$f": "lastPair",
+   "_$u": "fresh",
+   "_$h": "rest",
+   "_$d": "first",
+   "_$g": "others"
+  },
+  "pick": {
+   "_$p": "ids",
+   "_$b": "sum",
+   "_$m": "cum",
+   "_$v": "r"
+  },
+  "mastery23": {
+   "_$e": "id",
+   "_$t": "r",
+   "_$n": "budget",
+   "_$o": "T",
+   "_$s": "v",
+   "_$a": "refused"
+  },
+  "at25": {
+   "_$e": "reg",
+   "_$t": "L",
+   "_$n": "yaw",
+   "_$o": "pitch",
+   "_$s": "row",
+   "_$a": "x",
+   "_$i": "y",
+   "_$r": "z",
+   "_$l": "nx",
+   "_$c": "ny",
+   "_$f": "nz",
+   "_$g": "c",
+   "_$p": "s",
+   "_$b": "dy",
+   "_$m": "dz",
+   "_$v": "ny0",
+   "_$_": "cy",
+   "_$x": "sy",
+   "_$E": "dx",
+   "_$A": "dz2",
+   "_$M": "nx0",
+   "_$u": "u",
+   "_$h": "h",
+   "_$d": "k"
+  },
+  "lamb25": {
+   "_$e": "day",
+   "_$t": "k",
+   "_$n": "first",
+   "_$o": "blems",
+   "_$s": "rej",
+   "_$a": "rnd",
+   "_$i": "canBlem",
+   "_$r": "nR",
+   "_$l": "nC",
+   "_$c": "blem",
+   "_$f": "nDirt",
+   "_$u": "dirt",
+   "_$h": "i",
+   "_$d": "r"
+  },
+  "draw26": {
+   "_$e": "n",
+   "_$t": "rec",
+   "_$n": "ids",
+   "_$o": "rnd",
+   "_$s": "done",
+   "_$a": "h",
+   "_$i": "yest",
+   "_$r": "fixed",
+   "_$l": "rest",
+   "_$c": "pool",
+   "_$f": "most",
+   "_$u": "w",
+   "_$h": "r"
+  },
+  "timesOf": {
+   "_$e": "rec",
+   "_$t": "id"
+  },
+  "clamp01": {
+   "_$e": "v"
+  },
+  "bookOf23": {
+   "_$e": "save",
+   "_$t": "pool",
+   "_$n": "rec",
+   "_$o": "r",
+   "_$s": "m"
+  },
+  "hash25": {
+   "_$e": "a",
+   "_$t": "b",
+   "_$n": "c",
+   "_$o": "h"
+  },
+  "ev26": {
+   "_$e": "day",
+   "_$t": "seen"
+  },
+  "fill26": {
+   "_$e": "f",
+   "_$t": "dt",
+   "_$n": "P",
+   "_$o": "t",
+   "_$s": "k"
+  },
+  "onRamp19": {
+   "_$e": "x",
+   "_$t": "z"
+  },
+  "cell19": {
+   "_$e": "x",
+   "_$t": "z"
+  },
+  "rampY19": {
+   "_$e": "z"
+  },
+  "tasksForDay": {
+   "_$t": "level",
+   "_$n": "skip",
+   "_$o": "ok",
+   "_$a": "base",
+   "_$i": "i",
+   "_$r": "r"
+  },
+  "savedDay33": {
+   "_$e": "save",
+   "_$t": "s"
+  },
+  "resumeDay33": {
+   "_$e": "save",
+   "_$t": "s"
+  },
+  "levelIn": {
+   "_$t": "levels"
+  },
+  "levelOf33": {
+   "_$e": "fed"
+  },
+  "r26swipe": {
+   "_$Y": "dx",
+   "_$Q": "dy",
+   "_$ee": "ms",
+   "_$Re": "K",
+   "_$on": "ph",
+   "_$On": "why",
+   "_$ho": "both"
+  },
+  "r26hold": {
+   "_$Y": "on",
+   "_$Q": "K",
+   "_$ee": "was"
+  },
+  "r26pull": {
+   "_$Y": "v",
+   "_$Q": "K",
+   "_$ee": "last",
+   "_$Re": "fast"
+  },
+  "r26tap": {
+   "_$Y": "K",
+   "_$Q": "lamp"
+  },
+  "p25focus": {
+   "_$Y": "i",
+   "_$Q": "K",
+   "_$ee": "spot",
+   "_$Re": "fo"
+  },
+  "p25swipe": {
+   "_$Y": "dx",
+   "_$Q": "dy",
+   "_$ee": "ms",
+   "_$Re": "K",
+   "_$on": "why",
+   "_$On": "spot"
+  },
+  "p25stamp": {
+   "_$Y": "how",
+   "_$Q": "K",
+   "_$ee": "blem",
+   "_$Re": "dirty",
+   "_$on": "truth"
+  },
+  "p25tap": {
+   "_$Y": "K",
+   "_$Q": "spot"
+  },
+  "gate20no": {
+   "_$Y": "id"
+  },
+  "gate21no": {
+   "_$Y": "id"
+  },
+  "gate22no": {
+   "_$Y": "id"
+  },
+  "gate23no": {
+   "_$Y": "id"
+  },
+  "gate25no": {
+   "_$Y": "id"
+  },
+  "gate26no": {
+   "_$Y": "id"
+  },
+  "work": {
+   "_$ee": "down",
+   "_$Re": "crit",
+   "_$wo@3122": "hold",
+   "_$wo@3144": "s",
+   "_$ks": "kiyor"
+  },
+  "flowNext": {
+   "_$Q@3372": "h",
+   "_$Q@3376": "S0"
+  },
+  "pyre33": {
+   "_$Y": "n",
+   "_$Q": "slots"
+  }
+ },
+ "auto": "^_\\$",
+ "moveAfter": [
+  [
+   "draw23",
+   "timesOf"
+  ],
+  [
+   "mastery23",
+   "clamp01"
+  ],
+  [
+   "at25",
+   "HEAD25"
+  ],
+  [
+   "lamb25",
+   "hash25"
+  ],
+  [
+   "draw26",
+   "POOL26"
+  ],
+  [
+   "createDay33",
+   "levelOf33"
+  ]
+ ],
+ "notes": [
+  [
+   "export const C18 = ",
+   "// ── recovered (build 18) ── C18 (the report's name: \"C18.kiyorK\"): the coins — a gold act pays 2, a good 1 (pay); a streak of 3 (streak); the\n// tamid's 5; the gift (nedava: 10 coins, at 140 s, p 0.3); the chests by the gate (chests); the three pads to buy at (pads: the good axe,\n// the big basket, the laver's second spigot — kiyorK: its walk ×0.6); the errand's 75",
+   "before"
+  ],
+  [
+   "export const R19 = ",
+   "// ── recovered (build 19) ── the ramp run (ramp19.js): the bag's two sizes, the climb's rate, the logs' flight, the goal, the sway, the salt",
+   "before"
+  ],
+  [
+   "export const K20 = ",
+   "// ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and\n// turn at the laver (act), the spigot's two places (spig), its camera (cam)",
+   "before"
+  ],
+  [
+   "export const D21 = ",
+   "// ── recovered (build 21) ── תרומת הדשן (deshen21.js): the swipe (px) and how straight, the coal's layers; the pan's bed and his stand at it,\n// the way up the ramp and down (up, head, foot, go), the walk, the pour at the heap, the wind and the spill, the score, its cameras",
+   "before"
+  ],
+  [
+   "export const M22 = ",
+   "// ── recovered (build 22) ── סידור המערכה (maaracha22.js): six logs to lay (need, their sizes: two large, two medium, two small), the swipe,\n// the score; the bands and the gaps of a good pyre, the logs' radius and length, the fire's catch; the pyre, his stand, the sorting\n// place in the wood chamber (sortAt) and the cameras",
+   "before"
+  ],
+  [
+   "export const P23 = ",
+   "// ── recovered (build 23) ── the lot (pis23.js; יומא ב, א–ד): the roles open by the day (open), the second lot from day 4 (two), the pick; the\n// circle of kohanim (c, r, seats) and the ממונה's call, the counting (n1, n2), the show; and the short forms of the morning's tasks\n// when the lot gives them (need/sizes/layn/budget for the pyre, d21 for the ashes); its cameras",
+   "before"
+  ],
+  [
+   "export const POOL23 = ",
+   "// ── recovered (build 23) ── POOL23 (the report's: \"the POOL23 registry\"): the morning's roles in the first lot — built: played by him",
+   "before"
+  ],
+  [
+   "export const bookOf23 = ",
+   "// ── recovered (build 23) ── the roles book's rows (pis23.js's rolesBook23): each role of a pool with his record in save.roles23 — open\n// once he has played it, how often, his best and last (the name is the recovery's)",
+   "before"
+  ],
+  [
+   "export const P25 = ",
+   "// ── recovered (build 25) ── P25 (the report's: \"P25.stand\"): the lamb pen (pen25.js) — the pen's door and his stand at it, the side, the\n// rings; the act's times (in, bring, aside, zoom, blem, clean, ok, lead, end), a false approval's delay (fals) and rejections (rej), the\n// dawn, the score; the cameras (cam, zd, camP)",
+   "before"
+  ],
+  [
+   "export const BLEM25 = ",
+   "// ── recovered (build 25) ── BLEM25 (the report's: \"6 kinds × 8 places — המחשה\"): the blemishes' kinds, the places on the lamb, the dirt",
+   "before"
+  ],
+  [
+   "const REGION25 = ",
+   "// (the eight places on the lamb's rig: x, y, z and the normal; the last 1 = on the head, which turns about HEAD25)",
+   "before"
+  ],
+  [
+   "export function at25(",
+   "/** ── recovered (build 25) ── at25 (the report's name): a place on the lamb (BLEM25.regs index) in the world — the lamb at L {x, y, z, yaw, s},\n *  its head turned by yaw and pitch → { x, y, z, nx, ny, nz } */",
+   "before"
+  ],
+  [
+   "export const P26 = ",
+   "// ── recovered (build 26) ── P26 (the report's: \"P26.open (the schedule)\", \"P26.reach (3.2)\", P26.gate, P26.foot): the second lot's inner\n// roles in the Heichal (heichal26.js) — the schedule of his role by the day (open), the Heichal's gate and its reach, the inner altar and\n// the menorah, the act's steps and pulls, the pour, the lamps (lx, ly, lz), the lot's walk-in (lotIn), the ramp's foot (foot), the times",
+   "before"
+  ],
+  [
+   "export const POOL26 = ",
+   "// ── recovered (build 26) ── POOL26 (the report's): the second lot's thirteen roles (יומא ב, ג) — built: the inner altar's and the\n// menorah's ashes; the rest \"כהנים אחרים — בקרוב\"",
+   "before"
+  ],
+  [
+   "export const onRamp19 = ",
+   "// ── recovered (build 19) ── on the ramp (its rectangle: x −46…−30, z 10.5…42.5) and the ramp's height at z (16 at the foot → 25 at the top)",
+   "before"
+  ],
+  [
+   "export const TASKS33 = ",
+   "/** the ממונה's tasks — three a day, by the day's number; each pays 5 פרוטות (שקלים ה, א: the fifteen officers) */",
+   "before"
+  ],
+  [
+   "export const B17 = ",
+   "// ── recovered (R6–R7) ── the tables of builds 17–26 (the day's own modules import them: ramp19, kiyor20, deshen21, maaracha22, pis23,\n// pen25, heichal26, fx18, focus17) and their helpers, in the bundle's order. The names are the build reports' where they have one (B17,\n// C18, POOL23, draw23, mastery23, P25, BLEM25, at25, lamb25, hash25, P26, POOL26, draw26, ev26, fill26), else the recovery's in their style.\n// ── recovered (build 17) ── B17 (the report's: \"B17.graceK\"): the focused day of build 17 (focus17.js, E.b17) — the fire's start and its\n// drain by day/night (drain, drainK), the logs' grades, the tamid's dawn and dusk, the first two minutes' grace (grace s, ×graceK on\n// the timing act's window), the catch-up, the warning and the critical fuel, the slots of the bar (slots, maxSlots), the pen's and\n// the wood's times, the levels by the logs and the day's goals",
+   "before"
+  ],
+  [
+   "  unlock: { wood: 1,",
+   "// ── build 7 ── the court opens by the fire's level (99 Nights' fog): what each level unlocks; the washing's bonus; the strength meter",
+   "before"
+  ],
+  [
+   "  taskReward: 5,",
+   "// ── build 8 ── the economy (99 Nights: diamonds come from quests and badges, never from days; the Pelt Trader on day 2 with 3 wares): פרוטות",
+   "before"
+  ],
+  [
+   "  moked: { x: -160,",
+   "// ── build 10 ── the night in בית המוקד (מידות א, ו–ח: the kohanim slept there; the hall −178…−142 × −83…−58) — a fade and he is there; the Levites' song after the dawn tamid; the fire's look by its meter",
+   "before"
+  ],
+  [
+   "  perLogGrade: { gold: 15,",
+   "// ── recovered (11–26c) ── the bundle's keys of the later builds: the logs by the act's grade, the lay on the pyre (its reach, time and\n// stack), the good axe, the tired swing, the pen's misses, the stores, the lost lamb's reach, the merchant's warning, the start's minimal\n// screen (build 16), the saved day (every 10 s, kept 24 h)",
+   "before"
+  ],
+  [
+   "export const ENABLE_TEMPLE_COINS = ",
+   "// ── recovered (build 18) ── ENABLE_TEMPLE_COINS (the report's): the temple's coins on — shift/index.js turns build 18's coins on by it\n// (with ?coins=0 off)",
+   "before"
+  ],
+  [
+   "const KINDS22 = ",
+   "// ── recovered (build 22) ── the woods by the log's size (L, M, S) and the unfit (olive, vine, the wormy)",
+   "before"
+  ],
+  [
+   "const timesOf = ",
+   "// ── recovered (build 23) ── how often he has played a role (save.roles23's count); draw23 (the report's): the morning's lot — the role of\n// the day by P23.open, then never yesterday's and the least played first; two roles from the fourth morning",
+   "before"
+  ],
+  [
+   "const clamp01 = ",
+   "// ── recovered (build 23) ── mastery23 (the report's: \"mastery23('inner'|'menorah'|'lamb')\"): a role's mastery 0…100 from its own record —\n// the time of his own part, the spills, the cracks, the false approvals, the pour",
+   "before"
+  ],
+  [
+   "const hash25 = ",
+   "// ── recovered (build 25) ── hash25 (the report's: \"murmur3's finalizer\"): the day's seed; lamb25 (the report's): the morning's lamb —\n// seeded by the day, at most two blemished or rejected a morning, his first lamb easier to read",
+   "before"
+  ],
+  [
+   "function draw26(",
+   "// ── recovered (build 26) ── draw26 (the report's): the second lot — the role by P26.open, from the fourth morning never yesterday's;\n// ev26: the morning's event (a lamp gone out); fill26: the pour's fill curve (fast to the knee, slow after)",
+   "before"
+  ],
+  [
+   "const cell19 = ",
+   "// (the salt's cell on the ramp: 2-amah columns × 1-amah rows)",
+   "before"
+  ],
+  [
+   "export const SHOP33 = ",
+   "/** the shop (MIKDASH99 §5) — what פרוטות buy, kept in save.day33 */",
+   "before"
+  ],
+  [
+   "  { id: 'bowl', icon: '🥣',",
+   "/* (build 11: the אבנט's colours are fixed by the halacha — no dye; the cosmetics are the night corner's) */",
+   "end"
+  ],
+  [
+   "export const BADGES33 = ",
+   "/** ── build 11 ── ספר הזכרונות (99 Nights' badge board, claimed at the board): earned by play, claimed at night in בית המוקד for פרוטות */",
+   "before"
+  ],
+  [
+   "export const tasksForDay = ",
+   "// (day 1: the wood alone; day 2: the laver and the stores — what the fire's level opens by then; build 20: the laver's own act skipped)",
+   "before"
+  ],
+  [
+   "const GAME_HE = ",
+   "// ── fable32 (build 14) ── ── /fable32 ──",
+   "end"
+  ],
+  [
+   "const savedDay33 = ",
+   "// ── recovered (build 16) ── the saved day (save.day33state, at most DAY33.saveMaxH hours old) and resumeDay33: the day to go on with,\n// 0 = none (lobby35's start: \"המשך יום N\"; the name is the recovery's); levelIn: the fire's level by the logs fed and a level table",
+   "before"
+  ],
+  [
+   "  const S = o.world || null,",
+   "// ── recovered (17–26c) ── the builds' flags (o.b17 … o.p26, each needs the one before it), the focused day's events (on17 → emit17)",
+   "before"
+  ],
+  [
+   "  const kept33 = [",
+   "// ── recovered (build 16) ── the day saved and resumed (save.day33state: these keys, the lambs, the badges, the tasks)",
+   "before"
+  ],
+  [
+   "  function fade(then, text) {",
+   "/* ───────── build 10: the fade and the move (the night in בית המוקד) ───────── */",
+   "before"
+  ],
+  [
+   "    open33 = (id) =>",
+   "/* ───────── the court opens by level (build 7) ───────── */",
+   "before"
+  ],
+  [
+   "    gate20 = () =>",
+   "// ── recovered (20–26) ── the morning's gates: while one is open the clock, the fire and the other stations wait (gate20: the laver;\n// gate21: תרומת הדשן; gate22: סידור המערכה; gate23: the lot; gate25: the lamb; gate26L/gate26: the second lot and his inner role)",
+   "before"
+  ],
+  [
+   "    pre26 = () =>",
+   "// ── fable32 (build 26) ── the second lot (gate26L) and his inner role (gate26): after the pre-dawn task, still the morning — the clock, the fire, the stations wait ── /fable32 ──",
+   "before"
+  ],
+  [
+   "    gateAny = () =>",
+   "// ── fable32 (build 25) ── ── /fable32 ── ── fable32 (build 26) ── ── /fable32 ──",
+   "end"
+  ],
+  [
+   "  function gate26no(id) {",
+   "// ── fable32 (build 26) ── ── /fable32 ──",
+   "end"
+  ],
+  [
+   "    usable = (id) =>",
+   "/** can he use the station now? (a full basket at the wood, an empty one at the ramp, a washed morning, a bowl without its three — the prompt does not show) */",
+   "before"
+  ],
+  [
+   "    stat = (k, n = 1) =>",
+   "/* ───────── the economy (build 8) ───────── */",
+   "before"
+  ],
+  [
+   "  const SC = o.score || null,",
+   "// ── fable32 (build 14) ── the one score (score35.js: Phase A's master score — the capsule reads the same in both phases); the gear he carries (flow31 draws it);\n// the flights (a log into the basket, the logs onto the pyre); the idle offer (nothing to do 12 s → \"משחק קצר?\")",
+   "before"
+  ],
+  [
+   "  function newTasks() {",
+   "// ── /fable32 ──",
+   "before"
+  ],
+  [
+   "  const okLambs = () =>",
+   "/* ───────── the lambs (build 9): six in the pen, inspected on the beat (ערכין ב, ה); a tamid at dawn and dusk takes one; a lost lamb from level 2 ───────── */",
+   "before"
+  ],
+  [
+   "  function badgeStep() {",
+   "/* ───────── build 11: the badges (earned by play; claimed at night in the Moked) and the 33rd day ───────── */",
+   "before"
+  ],
+  [
+   "  function feed(n, grades, lay) {",
+   "/* ───────── the fire ───────── */",
+   "before"
+  ],
+  [
+   "  function setSky(night) {",
+   "/* ───────── the day and the night ───────── */",
+   "before"
+  ],
+  [
+   "  function tamidStep() {",
+   "// ── recovered (build 17) ── the focused day's two tamids (B17.tamid: dawn 45 s, dusk 170 s, the fire at 60): on time, late, offered late;\n// the day's summary at sunset and the next day (E.nextDay)",
+   "before"
+  ],
+  [
+   "  function nx33() {",
+   "/* ───────── the acts ───────── */",
+   "before"
+  ],
+  [
+   "    if (st.logs > 0 && st.fuel <= DAY33.floor + 0.01) return { id: 'kevesh', kind: 'station' };",
+   "// (embers: whatever he carries, up now)",
+   "end"
+  ],
+  [
+   "      ? { id: 'song', kind: 'station' }",
+   "// (build 10: the dawn's song window)",
+   "end"
+  ],
+  [
+   "      : open33('kiyor') && !st.washed && !st.night",
+   "// (the morning: hands and feet first — the day's +25%)",
+   "end"
+  ],
+  [
+   "&& st.left < 70",
+   "// (the tamid is near and no lamb is ready)",
+   "end"
+  ],
+  [
+   "  const chests = C18.chests,",
+   "// ── recovered (build 18) ── the coins in the world: the chests by the gate (the pilgrims' coins), the pads to buy at (own18)",
+   "before"
+  ],
+  [
+   "  const near19 = (h) =>",
+   "// ── recovered (build 19) ── the ramp run: the salt (a bag at the salt station, held — the grains fly onto the ramp's cells), the basket's\n// sway and the slip, the fallen logs, the ghost of the best run (save.gh19), the climb's camera",
+   "before"
+  ],
+  [
+   "  function k20start() {",
+   "// ── recovered (build 20) ── the laver: up to the spigots, both hands held under (L, R) till the ring fills, the rise, the walk down",
+   "before"
+  ],
+  [
+   "  function d21start() {",
+   "// ── recovered (build 21) ── תרומת הדשן: the sweep of the coals (four layers), the walk down the ramp with the pan (the balance, the wind,\n// the spills), the turn at the foot, the pour onto the heap",
+   "before"
+  ],
+  [
+   "  function deal22() {",
+   "// ── recovered (build 22) ── סידור המערכה: the logs dealt (sizes, woods, the unfit), sorted by swipes, stacked in three layers with the air\n// between them (the gaps' band), lit",
+   "before"
+  ],
+  [
+   "  const CIRC23 = ",
+   "// ── recovered (build 23) ── the lot (pis23.js): the circle (seat23), the raised fingers, the ממונה's count, the cards; the record\n// (save.roles23: rec23, mastery23); build 26b: free26/circle26 — the second lot's circle forms where he stands",
+   "before"
+  ],
+  [
+   "    if (!(k26 ? gate26L() : gate23()) || st.p23 || st.summary) return false;",
+   "// ── fable32 (build 26) ── (k26: the second lot — the same circle, its own registry and count) ── /fable32 ──",
+   "end"
+  ],
+  [
+   "  function newLamb25(K) {",
+   "// ── recovered (build 25) ── the lamb pen: the door, the scan by torchlight, the zoom on a spot, the dirt wiped, the stamps תמים / פסול,\n// the dawn clock (a false approval's delay), the other kohanim's lamb (npc25)",
+   "before"
+  ],
+  [
+   "    roles26 = () =>",
+   "// ── recovered (build 26) ── inside the Heichal: the gate's bolt and key, the inner altar's ashes into the teni (pulls), the menorah's\n// wicks, oil (the pour's band) and fire; the morning's event (a lamp gone out: the drag from the next); save.roles26, save.jer26",
+   "before"
+  ],
+  [
+   "  function next17() {",
+   "// ── recovered (build 17) ── the focused day's next step (after the gates: the lost lamb at home, the pen before a tamid, the fire low, the\n// day's goals), the act's answers (hitOf / missOf: the slot's +1, the streak, the coins)",
+   "before"
+  ],
+  [
+   "      const pr = ST.act(id, null, opts);",
+   "/* (build 11: the tap that opened the act is its first hit — \"5 הקשות\" means five) */",
+   "end"
+  ],
+  [
+   "    else if (id === 'pen') {",
+   "// (build 12: the owner — 'פתח את הדיר: הצלחת / לא הצלחת')",
+   "end"
+  ],
+  [
+   "            k: (id === 'wood' ? st.axeK : 1) * (grace17() ? B17.graceK : 1),",
+   "/* ── fable32 (build 17b) ── (day 1's first two minutes: ×1.5) ── */",
+   "end"
+  ],
+  [
+   "        : { fb18: l18, kK: id === 'kiyor' && own18('kiyor2') ? C18.kiyorK : 1 },",
+   "// ── fable32 (build 18) ── (fb18: the act's sounds and buzz are focus17/fx18's — one place) ── /fable32 ──",
+   "end"
+  ],
+  [
+   "  function peek24(id) {",
+   "// ── recovered (build 24) ── peek24 (the report's): no auto-walk — a tap shows the way (st.pk24: the tapped slot's way, 3 s) and pulses the\n// chip; he walks by the stick",
+   "before"
+  ],
+  [
+   "  const actLabel = ",
+   "/* ───────── the button's word (flow31 places it beside the thing) ───────── */",
+   "before"
+  ],
+  [
+   "unclaimed().length && st.bookNight !== st.day)",
+   "// (build 11)",
+   "end"
+  ],
+  [
+   "!(st.torchOn && !st.watched) && !st.tilesNight && o.games)",
+   "// ── fable32 (build 13) ── (the interlude at night in the Moked: once a night, the clock held; פרוטות) ── /fable32 ──",
+   "end"
+  ],
+  [
+   "label: gate26L() ? (onHigh(h.x, h.z) ? goLabel31('רגל הכבש') : 'הפיס השני') : goLabel31(",
+   "/* ── fable32 (build 26b) ── (the lot where he stands) ── */",
+   "end"
+  ],
+  [
+   "    let crit = b17 && st.fuel < B17.crit,",
+   "// (build 7: any OPEN station within reach is his to use — the Roblox way; the next one is only the path's suggestion)",
+   "before"
+  ],
+  [
+   "        : !st.night && (st.idleT || 0) >= DAY33.idleOffer && o.games && !acting && !crit",
+   "// ── fable32 (build 14) ── (idle 12 s, nothing near: the owner — 'אם רדום ואין מה לעשות אפשר להקפיץ משחק') ── /fable32 ──",
+   "end"
+  ],
+  [
+   "  async function playGame(key) {",
+   "// ── fable32 (build 14) ── the interludes from the court: a choice card (never a must), the day's clock held while one plays; its פרוטות and score are the player's",
+   "before"
+  ],
+  [
+   "  const PYRE = { x: -29.5,",
+   "// ── fable32 (build 14.1) ── at the ramp's top: HIS tap lays the logs on the pyre (they arc from the basket onto the fire); nothing goes up by itself",
+   "before"
+  ],
+  [
+   "    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no('pyre');",
+   "// ── fable32 (build 26) ── ── /fable32 ──",
+   "end"
+  ],
+  [
+   "  function offerPlay() {",
+   "// ── /fable32 ──",
+   "before"
+  ],
+  [
+   "  function flowNext() {",
+   "// ── /fable32 ──",
+   "before"
+  ],
+  [
+   "    if (gate26()) {",
+   "/* ── fable32 (build 26b) ── (no walk back to a circle: the lot where he stands — from the altar's top, down the ramp first) ── */",
+   "end"
+  ],
+  [
+   "    if (gate21()) return { id: 'deshen', kind: 'station', pid: null, at: standOf('deshen') };",
+   "/* ── fable32 (build 26) ── (the way back to the circle; up the steps to the great gate; in, to his vessel) ── */ /* ── fable32 (build 21) ── (no path while he sweeps and goes down; at the foot — to the ring) ── */ /* ── fable32 (build 22) ── (nor while he sorts or stacks) ── */",
+   "before"
+  ],
+  [
+   "    if (gate25()) return { id: 'pen', kind: 'station', pid: null, at: { x: P25.stand.x, y: 16, z: P25.stand.z } };",
+   "/* ── fable32 (build 25) ── (the way to the pen's door) ── */",
+   "end"
+  ],
+  [
+   "    if (st.pk24 && st.t < st.pk24.until) return { id: st.pk24.id, kind: 'station', pid: null, at: st.pk24.at };",
+   "/* ── fable32 (build 24) ── (a tapped slot's way, 3 s) ── */ /* ── build 16 ── (no path at night) ── */ /* ── fable32 (build 20) ── (nor in the kiddush) ── */",
+   "end"
+  ],
+  [
+   "(near19(heroP()) || nearK24(heroP())) && nx33().id === 'kevesh'))",
+   "/* ── fable32 (build 19) ── (running up: the way is up) ── */ /* ── fable32 (build 24) ── (at the ramp's foot, the ramp his next: the way goes on up — the stick climbs) ── */",
+   "end"
+  ],
+  [
+   "      return { id: 'pyre', kind: 'station', pid: null, at: { ...PYRE } };",
+   "/* ── build 16 ── (review #2: the bubble pointed at the ramp's foot while he stood at the top with logs) ── */",
+   "end"
+  ],
+  [
+   "  const CARD17 = {",
+   "// ── recovered (build 17) ── the focused day's card and bar (focus17.js draws them): the step now (step17), the slots (bar17), a tap on a\n// slot (tap17), on the fire or the tamid (fire17), on the card (go17); hot17: how near the next place",
+   "before"
+  ],
+  [
+   "  function hintStep() {",
+   "// (build 14: no walk hints — the owner: 'יותר פשוט להאיר את הבועה הרלוונטית'; the next place's chip pulses, the path lies on the floor)",
+   "before"
+  ],
+  [
+   "  function push() {",
+   "/* ───────── the HUD ───────── */",
+   "before"
+  ],
+  [
+   "  function tick(dt) {",
+   "/* ───────── the loop ───────── */",
+   "before"
+  ],
+  [
+   "      globalThis.__LOGS33 = st.logs;",
+   "// (build 14: the ramp act draws the basket with his logs)   // (the pyre's flames by the meter and the level — life.js)",
+   "end"
+  ],
+  [
+   "    gear: () => {",
+   "// ── fable32 (build 14) ── what he carries and holds (flow31 draws it on him): the axe within reach of the wood (or chopping), the back-basket with his logs; the flights",
+   "before"
+  ],
+  [
+   "    playGame,",
+   "// ── /fable32 ──",
+   "before"
+  ]
+ ],
+ "patches": [
+  [
+   "const TASKS33 = ",
+   "export const TASKS33 = "
+  ],
+  [
+   "const levelOf33 = ",
+   "export const levelOf33 = "
+  ],
+  [
+   "  async function runAt(id) {\n    if (acting || st.phase !== 'run' || !ST || !ST.act || st.k20 || st.d21 || st.p25) return false;\n    if (gate20() && id !== 'kiyor') return gate20no(id);\n    if (gate23() || st.p23) return gate23no(id);\n    if (gate21()) return gate21no(id);\n    if (gate25()) return id === 'pen' ? peek24() : gate25no(id);\n    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);\n",
+   "  async function runAt(id) {\n    if (acting || st.phase !== 'run' || !ST || !ST.act) return false;\n    if (st.k20 || st.d21 || st.p25) return false;\n    if (gate20() && id !== 'kiyor') return gate20no(id);   // ── fable32 (build 20) ── (the kiddush runs; before it, no other station) ── /fable32 ── ── fable32 (build 21) ── (terumat hadeshen likewise) ── /fable32 ──\n    if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── (the lot) ── /fable32 ──\n    if (gate21()) return gate21no(id);\n    if (gate25()) return id === 'pen' ? peek24() : gate25no(id);   /* ── fable32 (build 25) ── */\n    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);   /* ── fable32 (build 26) ── */\n"
+  ],
+  [
+   "  function tapStation(id) {\n    if (st.phase !== 'run' || acting || !STN[id] || st.k20 || st.d21 || st.p25) return false;\n    if (gate20() && id !== 'kiyor') return gate20no(id);\n    if (gate23() || st.p23) return gate23no(id);\n    if (gate21()) return gate21no(id);\n    if (gate25()) return id === 'pen' ? peek24() : gate25no(id);\n    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);\n",
+   "  function tapStation(id) {\n    if (st.phase !== 'run' || acting || !STN[id]) return false;\n    if (st.k20 || st.d21 || st.p25) return false;\n    if (gate20() && id !== 'kiyor') return gate20no(id);   // ── fable32 (build 20) ── ── /fable32 ── ── fable32 (build 21) ── ── /fable32 ──\n    if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── ── /fable32 ──\n    if (gate21()) return gate21no(id);\n    if (gate25()) return id === 'pen' ? peek24() : gate25no(id);   /* ── fable32 (build 25) ── */\n    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);   /* ── fable32 (build 26) ── */\n"
+  ]
+ ]
+}

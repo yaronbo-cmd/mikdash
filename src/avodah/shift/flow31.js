@@ -6,7 +6,7 @@
  * along it toward the place; only while there is a next place. Nothing here presses: no clock, no penalty. Never a Divine Name. ── /flow31 ── */
 import { planPath } from '../day/guide27.js';
 import { man, lamb } from '../works/figures.js';   // ── fable32 (build 8) ── (the merchant at the gate) ── /fable32 ──
-import { free, houseFloor, onAltar, rampWay, HOUSE22 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onAltar, rampWay, HOUSE22)
+import { free, houseFloor, onHigh, rampWay, HOUSE22 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onHigh, rampWay, HOUSE22)
 import { placeGround } from '../works/anchors.js';
 import { addDrawer, layerOf, L, SHARED } from './draw.js';
 
@@ -110,8 +110,8 @@ export function createFlow31(o = {}) {
     // ── recovered (16–26c) ── on the altar: down the ramp first (rampWay), then the court's floors; to the altar: straight to it;
     // the floors by the place (freeFor: round the chambers' block, the house's floor)
     const ramp = rampWay(h.x, h.z), ok = freeFor(p),
-      pts = ramp.length && !onAltar(p.x, p.z) ? ramp.concat(planPath(ramp[ramp.length - 1].x, ramp[ramp.length - 1].z, p.x, p.z, ok, placeGround, null) || [{ x: p.x, z: p.z }])
-        : onAltar(p.x, p.z) ? [{ x: p.x, z: p.z }]
+      pts = ramp.length && !onHigh(p.x, p.z) ? ramp.concat(planPath(ramp[ramp.length - 1].x, ramp[ramp.length - 1].z, p.x, p.z, ok, placeGround, null) || [{ x: p.x, z: p.z }])
+        : onHigh(p.x, p.z) ? [{ x: p.x, z: p.z }]
         : planPath(h.x, h.z, p.x, p.z, ok, placeGround, null) || [{ x: p.x, z: p.z }];
     const out = [{ x: h.x, z: h.z }]; for (const q of pts) out.push({ x: q.x, z: q.z });
     if (Math.hypot(out[out.length - 1].x - p.x, out[out.length - 1].z - p.z) > 0.3) out.push({ x: p.x, z: p.z });

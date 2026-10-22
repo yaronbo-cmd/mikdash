@@ -83,6 +83,84 @@ for (const [sc, v] of varsOf) {
   for (const id of v.identifiers) id.name = to;
   for (const r of v.references) r.identifier.name = to;
 }
+// names.auto (a regex): every local binding whose name matches it and has no explicit name gets a short one, guessed from its
+// declaration (heroP() → h, st.r19 → r19, Math.hypot → d, a loop counter → i, a callback's item → x …, else a, b, c …) and never
+// one that would shadow or capture a name (the scope's own names, the names declared between it and its uses, the names that pass
+// through it to an outer or global binding); the check below still verifies every binding
+if (NAMES.auto) {
+  const RX = new RegExp(NAMES.auto), RESERVED = new Set('do if in for let new try var case else enum eval null this true void with await break catch class const false super throw while yield delete export import public return static switch typeof default extends finally package private continue debugger function arguments interface protected implements instanceof undefined NaN Infinity'.split(' '));
+  const nameOf = (v) => (v.identifiers[0] || {}).name || v.name;
+  const scopeOfVar = new Map();
+  for (const sc of sm.scopes) for (const v of sc.variables) scopeOfVar.set(v, sc);
+  const above = (sc, top) => { const out = []; for (let s = sc; s && s !== top; s = s.upper) out.push(s); return out; };
+  const LETTERS = 'abcdfgkmnpruvwxyz'.split('');
+  const ARR = new Set(['filter', 'find', 'some', 'every', 'forEach', 'map', 'findIndex', 'flatMap', 'findLast']);
+  function guess(v) {
+    const d = v.defs[0]; if (!d) return [];
+    const n = d.node, p = parentOf.get(n);
+    if (d.type === 'CatchClause') return ['e', 'err'];
+    if (d.type === 'Variable' && n.init) {
+      const e = n.init.type === 'ChainExpression' ? n.init.expression : n.init;
+      const fx = d.parent && parentOf.get(d.parent);
+      if (fx && fx.type === 'ForStatement' && fx.init === d.parent && e.type === 'Literal' && typeof e.value === 'number') return ['i', 'j', 'k', 'm'];
+      if (e.type === 'CallExpression' && e.callee.type === 'Identifier') {
+        const c = e.callee.name;
+        if (c === 'heroP') return ['h', 'hp'];
+        if (c === 'standOf') return ['s', 'at'];
+        if (c === 'project') return ['q', 'sp'];
+      }
+      if (e.type === 'CallExpression' && e.callee.type === 'MemberExpression' && e.callee.object.name === 'Math') {
+        const m = e.callee.property.name;
+        if (m === 'hypot') return ['d', 'dist', 'd2'];
+        if (m === 'cos') return ['c', 'cs'];
+        if (m === 'sin') return ['s', 'sn'];
+        if (m === 'atan2') return ['a', 'ang'];
+        if (m === 'min' || m === 'max') return ['k', 'u'];
+        if (m === 'floor' || m === 'round') return ['n', 'k'];
+      }
+      if (e.type === 'MemberExpression' && !e.computed && e.property.type === 'Identifier') {
+        const pn = e.property.name;
+        if (pn === 'length') return ['n', 'len'];
+        if (/^[a-zA-Z_$][\w$]{0,11}$/.test(pn) && !RESERVED.has(pn)) return [pn, pn + '0', pn + '1'];
+      }
+      if (e.type === 'ArrowFunctionExpression' || e.type === 'FunctionExpression') return ['f', 'fn', 'g'];
+    }
+    if (d.type === 'Variable' && p && (p.type === 'ForOfStatement' || p.type === 'ForInStatement')) return p.type === 'ForInStatement' ? ['k', 'key'] : ['x', 'q', 'it'];
+    if (d.type === 'Variable' && d.parent && parentOf.get(d.parent) && /^For(Of|In)Statement$/.test(parentOf.get(d.parent).type)) return parentOf.get(d.parent).type === 'ForInStatement' ? ['k', 'key'] : ['x', 'q', 'it'];
+    if (d.type === 'Parameter') {
+      const f = d.node, i = f.params.findIndex((q) => q === d.name || (q.type === 'AssignmentPattern' && q.left === d.name) || q === v.identifiers[0] || (q.type === 'AssignmentPattern' && q.left === v.identifiers[0]));
+      const call = parentOf.get(f);
+      if (call && call.type === 'CallExpression' && call.arguments[0] === f && call.callee.type === 'MemberExpression') {
+        const m = call.callee.property.name;
+        if (ARR.has(m)) return i === 0 ? ['x', 'q', 'it'] : i === 1 ? ['i', 'j'] : ['arr'];
+        if (m === 'reduce') return i === 0 ? ['s', 'acc'] : ['x', 'q'];
+        if (m === 'sort') return i === 0 ? ['a', 'p'] : ['b', 'q'];
+      }
+      return [['a', 'b', 'c', 'd'][i] || (i >= 0 ? 'p' + i : 'p')];
+    }
+    return [];
+  }
+  let autoN = 0;
+  for (const sc of sm.scopes) {
+    if (sc.type === 'module' || sc.type === 'global') continue;
+    for (const v of sc.variables) {
+      if (!v.identifiers.length || !RX.test(nameOf(v))) continue;
+      const bad = new Set();
+      for (const w of sc.variables) if (w !== v) bad.add(nameOf(w));
+      for (const r of sc.through) bad.add(r.identifier.name);
+      for (const r of v.references) for (const s of above(r.from, sc)) { for (const w of s.variables) bad.add(nameOf(w)); }
+      // a name that a deeper scope declares and a reference inside it to an OUTER name passes through — covered by sc.through; a deeper scope's
+      // own binding of the same new name would shadow v only where v is used — covered above
+      const cands = [...guess(v), ...LETTERS];
+      let to = cands.find((c) => !bad.has(c) && !RESERVED.has(c));
+      if (!to) { const b0 = cands[0] || 'v'; for (let k = 2; ; k++) if (!bad.has(b0 + k)) { to = b0 + k; break; } }
+      for (const id of v.identifiers) id.name = to;
+      for (const r of v.references) r.identifier.name = to;
+      autoN++;
+    }
+  }
+  if (args.includes('--verbose')) console.error('auto-named', autoN);
+}
 // import/export specifiers: the imported name follows the local one (the exporter is renamed to the same name)
 (function fix(n) {
   if (!n || typeof n.type !== 'string') return;
@@ -176,11 +254,11 @@ function lists(n) {
   for (const k in n) { if (k === 'loc' || k === 'range') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(lists); else if (v && typeof v.type === 'string') lists(v); }
   if (n.type === 'Program' || n.type === 'BlockStatement' || n.type === 'StaticBlock') n.body = n.body.flatMap(stmt);
   // `if (!x) return; rest` at a function body's end is folded by esbuild into `if (!!x) { rest }` (and `if (a || b) return; rest` into
-  // `if (!(a || b)) { rest }`) — the negation marks it: undo it
+  // `if (!(a || b)) { rest }`, `if (a < b) return; rest` into `if (!(a < b)) { rest }`) — the negation marks it: undo it
   if (n.type === 'BlockStatement' && isFn(parentOf.get(n)) && n.body.length) {
     const last = n.body[n.body.length - 1];
     const t = last.type === 'IfStatement' && !last.alternate && last.test.type === 'UnaryExpression' && last.test.operator === '!' ? last.test.argument : null;
-    if (t && ((t.type === 'UnaryExpression' && t.operator === '!') || t.type === 'LogicalExpression')) {   // (`!!x`, or `!(a || b)` / `!(a && b)`)
+    if (t && ((t.type === 'UnaryExpression' && t.operator === '!') || t.type === 'LogicalExpression' || (t.type === 'BinaryExpression' && /^(<|>|<=|>=|in|instanceof)$/.test(t.operator)))) {   // (`!!x`, `!(a || b)` / `!(a && b)`, or `!(a < b)`: esbuild cannot flip a comparison — an `if (!(a < b)) x` of the source prints as `a < b || x`)
       const rest = last.consequent.type === 'BlockStatement' ? last.consequent.body : [last.consequent];
       n.body = [...n.body.slice(0, -1), { type: 'IfStatement', test: last.test.argument, consequent: { type: 'ReturnStatement', argument: null }, alternate: null }, ...rest];
     }
@@ -217,11 +295,32 @@ if (!args.includes('--no-catch')) (function c(n) {
   for (const k in n) { if (k === 'loc' || k === 'range') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(c); else if (v && typeof v.type === 'string') c(v); }
 })(ast);
 
+// names.moveAfter: [[name, after], …] — a top-level statement (by a name it declares) moved right after another: the source's place of a
+// hoisted function (esbuild prints the module's function declarations first; where they stood splits its wrapper's statement groups)
+for (const [nm, after] of NAMES.moveAfter || []) {
+  const decl = (s) => { const d = s.type.startsWith('Export') && s.declaration ? s.declaration : s; return d.type === 'FunctionDeclaration' ? [d.id.name] : d.type === 'VariableDeclaration' ? d.declarations.map((x) => x.id.name) : []; };
+  const i = ast.body.findIndex((s) => decl(s).includes(nm)); if (i < 0) throw new Error('moveAfter: no ' + nm);
+  const [st] = ast.body.splice(i, 1);
+  const j = ast.body.findIndex((s) => decl(s).includes(after)); if (j < 0) throw new Error('moveAfter: no ' + after);
+  ast.body.splice(j + 1, 0, st);
+}
 // ── out ──
 let code = generate(ast).replace(/^\/\/ DRAFT[^\n]*\n(\/\/[^\n]*\n)?/, '');
 code = await prettier.format(code, { parser: 'babel', printWidth: 150, singleQuote: true, trailingComma: 'all', objectWrap: 'collapse' });
 // names.patches: [find, replace] pairs applied to the final text — e.g. a single-use const the original had (esbuild folds it into its
 // one use but keeps its renaming slot: slotmap.mjs shows the shift); each find must occur exactly once
 for (const [f, r] of NAMES.patches || []) { const n = code.split(f).length - 1; if (n !== 1) throw new Error(`patch "${f.slice(0, 60)}" occurs ${n} times`); code = code.replace(f, () => r); }
+// names.notes: [[anchor, text, where], …] — the source's comments put back by an anchor that occurs exactly once in the final text:
+// 'before' (own lines above the anchor's line, at its indent; the default), 'after' (own lines below it), 'end' (at its line's end)
+const badNotes = [];
+for (const [a, t, w = 'before'] of NAMES.notes || []) {
+  const n = code.split(a).length - 1; if (n !== 1) { badNotes.push(`note anchor "${a.slice(0, 70)}" occurs ${n} times`); continue; }
+  const i = code.indexOf(a), ls = code.lastIndexOf('\n', i) + 1, le0 = code.indexOf('\n', i), le = le0 < 0 ? code.length : le0;
+  const ind = code.slice(ls, le).match(/^\s*/)[0], block = t.split('\n').map((x) => ind + x).join('\n') + '\n';
+  if (w === 'end') code = code.slice(0, le) + '   ' + t + code.slice(le);
+  else if (w === 'after') code = code.slice(0, le + 1) + block + code.slice(le + 1);
+  else code = code.slice(0, ls) + block + code.slice(ls);
+}
+if (badNotes.length) throw new Error(badNotes.join('\n'));
 const head = opt('--head') ? fs.readFileSync(opt('--head'), 'utf8').replace(/\s*$/, '\n') : '';
 if (opt('--out')) { fs.writeFileSync(opt('--out'), head + code); console.log(opt('--out'), (head + code).split('\n').length, 'lines'); } else process.stdout.write(head + code);

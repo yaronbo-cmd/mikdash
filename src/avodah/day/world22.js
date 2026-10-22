@@ -10,13 +10,13 @@ const inR = (r, x, z) => x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1;
 // ── recovered (16–26c) ── the altar's body up to the ramp's top, and the ramp
 const ALTAR22 = Object.freeze([{ x0: ALTAR.body.x0, x1: ALTAR.body.x1, z0: ALTAR.body.z0, z1: KEVESH.zTop }, { x0: KEVESH.x0, x1: KEVESH.x1, z0: KEVESH.zTop, z1: KEVESH.zFoot }]);
 const FOOT22 = KEVESH.zFoot - 2.5;   // (past this, at the ramp's foot, he steps on and off)
-export const onAltar = (x, z) => (x > ALTAR22[0].x0 && x < ALTAR22[0].x1 && z > ALTAR22[0].z0 && z <= ALTAR22[0].z1) || (x > ALTAR22[1].x0 && x < ALTAR22[1].x1 && z > ALTAR22[1].z0 && z <= ALTAR22[1].z1);
+export const onHigh = (x, z) => (x > ALTAR22[0].x0 && x < ALTAR22[0].x1 && z > ALTAR22[0].z0 && z <= ALTAR22[0].z1) || (x > ALTAR22[1].x0 && x < ALTAR22[1].x1 && z > ALTAR22[1].z0 && z <= ALTAR22[1].z1);
 const RAMP_X = (KEVESH.x0 + KEVESH.x1) / 2;
-// ── recovered (16–26c) ── (the names below — rampWay, houseFloor, onAltar, HOUSE22, ALTAR22, FOOT22, RAMP_X, KEVESH_WALL,
-// HEICHAL_VESSELS — are the recovery's; the bundle kept none)
+// ── recovered (16–26c) ── (the names below — rampWay, houseFloor, HOUSE22, ALTAR22, FOOT22, RAMP_X, KEVESH_WALL, HEICHAL_VESSELS —
+// are the recovery's; the bundle kept none; but onHigh is the original's: day33.js:936, :1304, :1385 call it so)
 /** on the altar or the kevesh: the way down — the ramp's top (when above it), then past its foot (flow31's gold path) */
 export function rampWay(x, z) {
-  if (!onAltar(x, z)) return [];
+  if (!onHigh(x, z)) return [];
   const pts = [], wx = RAMP_X - 4;
   if (z <= KEVESH.zTop + 0.5) pts.push({ x: wx, z: KEVESH.zTop + 1.5 });
   pts.push({ x: wx, z: KEVESH.zFoot + 1.5 });
@@ -43,7 +43,7 @@ export function blocked(x, z, x0, z0) {
   }
   if (!inF(x, z) && inF(x0, z0)) return true;
   // ── recovered (16–26c) ── the altar and the kevesh are one walk: on and off them only at the ramp's foot
-  const was = onAltar(x0, z0), on = onAltar(x, z);
+  const was = onHigh(x0, z0), on = onHigh(x, z);
   if (was && on) return false;
   if (was && !on) return !(z0 > FOOT22 && z > FOOT22);
   if (!was && on) return !(z0 > FOOT22 && z > FOOT22 && x > KEVESH.x0 && x < KEVESH.x1);

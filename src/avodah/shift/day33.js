@@ -9,463 +9,5182 @@
  *                the torch (מידות א, ב); the first night cannot be failed. Days count up; the best day is kept.
  * The engine's surface is the shift engine's (index.js, flow31.js and the twin read: start/stop/tick/work/state/flowNext/pause/onEnd/
  * tapStation/debug). Every text a draft (טיוטה); never a Divine Name. ── /fable32 ── */
-import { verb31, goLabel31 } from './layout31.js';
+/* ── recovered (builds 16–26c) ── the day grew from build 15's loop into the shift's engine of builds 16–26c (the bundle kept no comment and
+ * no local name; the comments above each block and the names are the recovery's, but where the build reports or the original lines
+ * quoted in the session transcript give them — day33.js:369–373, :924, :936, :1074, :1214, :1234, :1267, :1304, :1356, :1385 —
+ * and those lines' own comments):
+ *   build 16 the saved day (save.day33state; resumeDay33 for the start screen) · 17 the focused day (o.b17: B17, the two tamids, the
+ *   card and the bar — focus17.js; emit17 → E.on17) · 18 the coins in the world (C18, ENABLE_TEMPLE_COINS, the chests, the pads,
+ *   own18) · 19 the ramp run (R19, the salt, the sway, the ghost) · 20 the laver's act (K20, gate20) · 21 תרומת הדשן (D21, gate21)
+ *   · 22 סידור המערכה (M22, gate22) · 23 the lot (P23, POOL23, draw23, mastery23, rec23, gate23) · 24 no auto-walk (peek24, pk24)
+ *   · 25 the lamb pen (P25, BLEM25, lamb25, hash25, at25, gate25) · 26 the second lot and the Heichal (P26, POOL26, draw26, gate26L,
+ *   gate26, open26, at26, fill26, ev26, lit26, done26; 26b: the lot where he stands, free26/circle26).
+ * Every module of builds 17–26 reads the engine through E (E.b17, E.on17, E.focus17() … E.r26(), E.st33). Never a Divine Name. */
+import { goLabel31, verb31 } from './layout31.js';
 import { SHARED } from './draw.js';
-import { DAYSCORE, interludeScore } from './score35.js';   // ── fable32 (build 14) ── ── /fable32 ──
-
-export const DAY33 = Object.freeze({ idleOffer: 12, dayS: 180, nightS: 60, fuel0: 22, drainS: 240, nightDrain: 0.5, floor: 5, perLog: 10, basket: 5, worm: 0.25, taps: 5, levels: [0, 6, 17, 67, 137, 300], reach: 3.2, torchAfter: 12,
+import { DAYSCORE, interludeScore } from './score35.js';
+import { free, houseFloor, onHigh, HOUSE22 } from '../day/world22.js';
+import { evlog } from './evlog16.js';
+import './route31.js';
+export const DAY33 = Object.freeze({
+  idleOffer: 12,
+  dayS: 180,
+  nightS: 60,
+  fuel0: 22,
+  drainS: 240,
+  nightDrain: 0.5,
+  floor: 5,
+  perLog: 10,
+  basket: 5,
+  worm: 0.25,
+  taps: 3,
+  levels: [0, 6, 17, 67, 137, 300],
+  reach: 3.2,
+  torchAfter: 12,
+  // ── recovered (11–26c) ── the bundle's keys of the later builds: the logs by the act's grade, the lay on the pyre (its reach, time and
+  // stack), the good axe, the tired swing, the pen's misses, the stores, the lost lamb's reach, the merchant's warning, the start's minimal
+  // screen (build 16), the saved day (every 10 s, kept 24 h)
+  perLogGrade: { gold: 15, good: 10, ok: 7 },
+  layReach: 6.5,
+  layS: 0.35,
+  stackMax: 12,
+  fuelPin: false,
+  axeK: 1.35,
+  swingTiredC: 1.25,
+  penMisses: 3,
+  storeMax: 3,
+  lostNear: 15,
+  merchantWarn: 20,
+  minimal: true,
+  saveEvery: 10,
+  saveMaxH: 24,
   // ── build 7 ── the court opens by the fire's level (99 Nights' fog): what each level unlocks; the washing's bonus; the strength meter
-  unlock: { wood: 1, kevesh: 1, kiyor: 2, pen: 2, oil: 3, salt: 3, bake: 3, song: 3 }, lambs: 6, tamidFuel: 15, tamidMiss: 10, lostFrom: 2, lostReward: 15, washBonus: 0.25, power0: 100, powerChop: 4, powerRun: 0.8, powerLow: 30, bread: 60,
+  unlock: { wood: 1, kevesh: 1, kiyor: 2, pen: 2, oil: 3, salt: 3, bake: 3, song: 3 },
+  lambs: 6,
+  tamidFuel: 15,
+  tamidMiss: 10,
+  lostFrom: 2,
+  lostReward: 15,
+  washBonus: 0.25,
+  power0: 100,
+  powerChop: 4,
+  powerRun: 0.8,
+  powerLow: 30,
+  bread: 60,
   // ── build 8 ── the economy (99 Nights: diamonds come from quests and badges, never from days; the Pelt Trader on day 2 with 3 wares): פרוטות
-  taskReward: 5, merchantDay: 2, merchantP: 0.35, merchantS: 75, merchantAt: { x: -13, y: 16, z: 3 },
+  taskReward: 5,
+  merchantDay: 2,
+  merchantP: 0.35,
+  merchantS: 120,
+  merchantAt: { x: -13, y: 16, z: 3 },
   // ── build 10 ── the night in בית המוקד (מידות א, ו–ח: the kohanim slept there; the hall −178…−142 × −83…−58) — a fade and he is there; the Levites' song after the dawn tamid; the fire's look by its meter
-  moked: { x: -160, y: 16, z: -68, back: { x: -34, z: 50 } }, songS: 60, songFuel: 10, songReward: 5 });
-// ── recovered (R6) ── the tables of builds 17–26 that the day's own modules import (ramp19, kiyor20, deshen21, maaracha22, pis23, pen25,
-// heichal26, fx18, focus17), placed in the bundle's order; R7 fills the rest of day33 in around them. The names are the build reports'
-// where they have one (B17, C18, POOL23, P25, BLEM25, at25, P26, POOL26), else the recovery's in their style.
+  moked: { x: -160, y: 16, z: -68, back: { x: -34, z: 50 } },
+  songS: 60,
+  songFuel: 10,
+  songReward: 5,
+});
+// ── recovered (R6–R7) ── the tables of builds 17–26 (the day's own modules import them: ramp19, kiyor20, deshen21, maaracha22, pis23,
+// pen25, heichal26, fx18, focus17) and their helpers, in the bundle's order. The names are the build reports' where they have one (B17,
+// C18, POOL23, draw23, mastery23, P25, BLEM25, at25, lamb25, hash25, P26, POOL26, draw26, ev26, fill26), else the recovery's in their style.
 // ── recovered (build 17) ── B17 (the report's: "B17.graceK"): the focused day of build 17 (focus17.js, E.b17) — the fire's start and its
 // drain by day/night (drain, drainK), the logs' grades, the tamid's dawn and dusk, the first two minutes' grace (grace s, ×graceK on
 // the timing act's window), the catch-up, the warning and the critical fuel, the slots of the bar (slots, maxSlots), the pen's and
 // the wood's times, the levels by the logs and the day's goals
-export const B17 = Object.freeze({ fuel0: 70, drain: Object.freeze([0.25, 0.4]), drainK: Object.freeze([0.7, 0.6]), perLogGrade: Object.freeze({ gold: 10, good: 8, ok: 6 }), tamid: Object.freeze({ dawn: 45, dusk: 170, fire: 60 }),
-  grace: 120, graceK: 1.5, catchK: Object.freeze({ below: 60, at: 20, max: 2 }), warn: 40, crit: 25, powerShow: 50, night: false, slots: Object.freeze(['kiyor', 'wood', 'kevesh', 'song', 'pen', 'bake']), maxSlots: 5,
-  penBefore: 60, rushTamid: 25, woodAt: 60, tamidLead: 50, levels: Object.freeze([0, 5, 10, 40, 90, 200]), goals: Object.freeze({ wood: 10, kevesh: 2, kiyor: 1, song: 1, bake: 1 }), power: false });
+export const B17 = Object.freeze({
+  fuel0: 70,
+  drain: Object.freeze([0.25, 0.4]),
+  drainK: Object.freeze([0.7, 0.6]),
+  perLogGrade: Object.freeze({ gold: 10, good: 8, ok: 6 }),
+  tamid: Object.freeze({ dawn: 45, dusk: 170, fire: 60 }),
+  grace: 120,
+  graceK: 1.5,
+  catchK: Object.freeze({ below: 60, at: 20, max: 2 }),
+  warn: 40,
+  crit: 25,
+  powerShow: 50,
+  night: false,
+  slots: Object.freeze(['kiyor', 'wood', 'kevesh', 'song', 'pen', 'bake']),
+  maxSlots: 5,
+  penBefore: 60,
+  rushTamid: 25,
+  woodAt: 60,
+  tamidLead: 50,
+  levels: Object.freeze([0, 5, 10, 40, 90, 200]),
+  goals: Object.freeze({ wood: 10, kevesh: 2, kiyor: 1, song: 1, bake: 1 }),
+  power: false,
+});
 // ── recovered (build 18) ── C18 (the report's name: "C18.kiyorK"): the coins — a gold act pays 2, a good 1 (pay); a streak of 3 (streak); the
 // tamid's 5; the gift (nedava: 10 coins, at 140 s, p 0.3); the chests by the gate (chests); the three pads to buy at (pads: the good axe,
 // the big basket, the laver's second spigot — kiyorK: its walk ×0.6); the errand's 75
-export const C18 = Object.freeze({ pay: Object.freeze({ gold: 2, good: 1, ok: 0 }), streak: 3, tamid: 5, nedava: 10, nedavaP: 0.3, nedavaAt: 140, chests: Object.freeze({ n: 13, max: 10, x: -12.7, z0: 6, dz: 1.2, hi: 60, lo: 40, hiS: 12, loS: 25, walkS: 4, reach: 3.6 }),
-  pads: Object.freeze([Object.freeze({ id: 'axe', icon: '🪓', he: 'גרזן טוב', price: 80, x: -31, z: 51 }), Object.freeze({ id: 'basket10', icon: '🧺', he: 'טנא גדול', price: 120, x: -45, z: 51 }), Object.freeze({ id: 'kiyor2', icon: '🚰', he: 'דד שני לכיור', price: 40, x: -50.5, z: 16.5 })]),
-  errand: 75, padR: 3, padS: 1.5, kiyorK: 0.6 });
+export const C18 = Object.freeze({
+  pay: Object.freeze({ gold: 2, good: 1, ok: 0 }),
+  streak: 3,
+  tamid: 5,
+  nedava: 10,
+  nedavaP: 0.3,
+  nedavaAt: 140,
+  chests: Object.freeze({ n: 13, max: 10, x: -12.7, z0: 6, dz: 1.2, hi: 60, lo: 40, hiS: 12, loS: 25, walkS: 4, reach: 3.6 }),
+  pads: Object.freeze([
+    Object.freeze({ id: 'axe', icon: '🪓', he: 'גרזן טוב', price: 80, x: -31, z: 51 }),
+    Object.freeze({ id: 'basket10', icon: '🧺', he: 'טנא גדול', price: 120, x: -45, z: 51 }),
+    Object.freeze({ id: 'kiyor2', icon: '🚰', he: 'דד שני לכיור', price: 40, x: -50.5, z: 16.5 }),
+  ]),
+  errand: 75,
+  padR: 3,
+  padS: 1.5,
+  kiyorK: 0.6,
+});
+// ── recovered (build 18) ── ENABLE_TEMPLE_COINS (the report's): the temple's coins on — shift/index.js turns build 18's coins on by it
+// (with ?coins=0 off)
+export const ENABLE_TEMPLE_COINS = true;
 // ── recovered (build 19) ── the ramp run (ramp19.js): the bag's two sizes, the climb's rate, the logs' flight, the goal, the sway, the salt
-export const R19 = Object.freeze({ bag: Object.freeze([480, 340]), rate: 33, fly: 0.25, goal: 0.8, after: 5, v0: 3, v1: 7.5, swayMax: 0.5, saltK: 0.4, slipV: 5.5, par: 6, head: 12, hold: 0.35 });
+export const R19 = Object.freeze({
+  bag: Object.freeze([480, 340]),
+  rate: 33,
+  fly: 0.25,
+  goal: 0.8,
+  after: 5,
+  v0: 3,
+  v1: 7.5,
+  swayMax: 0.5,
+  saltK: 0.4,
+  slipV: 5.5,
+  par: 6,
+  head: 12,
+  hold: 0.35,
+});
 // ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and
 // turn at the laver (act), the spigot's two places (spig), its camera (cam)
-export const K20 = Object.freeze({ hold: 3.5, hold2: 2.5, back: 0.3, up: 1.2, upMax: 7, down: 6, rise: 0.35, act: Object.freeze({ x: -60.2, z: 20, yaw: -1.12 }), spig: Object.freeze([11, 0]), cam: Object.freeze({ az: 0.45, el: 0.16, d: 7, t: Object.freeze({ x: -61, y: 19.75, z: 20.3 }) }) });
+export const K20 = Object.freeze({
+  hold: 3.5,
+  hold2: 2.5,
+  back: 0.3,
+  up: 1.2,
+  upMax: 7,
+  down: 6,
+  rise: 0.35,
+  act: Object.freeze({ x: -60.2, z: 20, yaw: -1.12 }),
+  spig: Object.freeze([11, 0]),
+  cam: Object.freeze({ az: 0.45, el: 0.16, d: 7, t: Object.freeze({ x: -61, y: 19.75, z: 20.3 }) }),
+});
 // ── recovered (build 21) ── תרומת הדשן (deshen21.js): the swipe (px) and how straight, the coal's layers; the pan's bed and his stand at it,
 // the way up the ramp and down (up, head, foot, go), the walk, the pour at the heap, the wind and the spill, the score, its cameras
-export const D21 = Object.freeze({ swipe: 120, straight: 0.5, layers: 4, bed: { x: -28.5, z: 5.5 }, stand: { x: -30.7, z: 5.5, yaw: Math.PI / 2 }, up: [[-34, 44.6], [-34, 11.6]], head: { x: -42, z: 11.8 }, foot: { x: -42, z: 44 },
-  walk: 7, full: 0.7, desc: 3.5, turn: 0.35, wind: 20, wind1: 0.5, fix: 50, max: 45, spillA: 35, spillT: [1.5, 0.8], loss: 20, heap: { x: -28, z: 33 }, go: [[-42, 44], [-28, 44.3], [-28, 34.7]], goV: 8, pour: 1.3, end: 2, score: 150, pts: 50,
-  coins: [3, 1, 0], dawn: 2.6, sw: 0.3, ms: 200, nr: 2.6, bal: Object.freeze({ wind: Object.freeze([0.12, 0.35]), shake: Object.freeze([0.5, 1.4]), fix: 2.4, spill: 0.8, gap: 1, v: 7 }),
-  cam: { az: 1.25, el: 0.785, d: 9, t: { x: -29.6, y: 25.6, z: 5.6 } }, fol: { el: 0.26, d: 10, ty: 2.2 }, camC: { az: 0.75, el: 0.4, d: 20, t: { x: -34, y: 17.5, z: 38.5 } }, camP: { az: 0.2, el: 0.5, d: 11, t: { x: -28.4, y: 17, z: 33.8 } } });
+export const D21 = Object.freeze({
+  swipe: 120,
+  straight: 0.5,
+  layers: 4,
+  bed: { x: -28.5, z: 5.5 },
+  stand: { x: -30.7, z: 5.5, yaw: Math.PI / 2 },
+  up: [
+    [-34, 44.6],
+    [-34, 11.6],
+  ],
+  head: { x: -42, z: 11.8 },
+  foot: { x: -42, z: 44 },
+  walk: 7,
+  full: 0.7,
+  desc: 3.5,
+  turn: 0.35,
+  wind: 20,
+  wind1: 0.5,
+  fix: 50,
+  max: 45,
+  spillA: 35,
+  spillT: [1.5, 0.8],
+  loss: 20,
+  heap: { x: -28, z: 33 },
+  go: [
+    [-42, 44],
+    [-28, 44.3],
+    [-28, 34.7],
+  ],
+  goV: 8,
+  pour: 1.3,
+  end: 2,
+  score: 150,
+  pts: 50,
+  coins: [3, 1, 0],
+  dawn: 2.6,
+  sw: 0.3,
+  ms: 200,
+  nr: 2.6,
+  bal: Object.freeze({ wind: Object.freeze([0.12, 0.35]), shake: Object.freeze([0.5, 1.4]), fix: 2.4, spill: 0.8, gap: 1, v: 7 }),
+  cam: { az: 1.25, el: 0.785, d: 9, t: { x: -29.6, y: 25.6, z: 5.6 } },
+  fol: { el: 0.26, d: 10, ty: 2.2 },
+  camC: { az: 0.75, el: 0.4, d: 20, t: { x: -34, y: 17.5, z: 38.5 } },
+  camP: { az: 0.2, el: 0.5, d: 11, t: { x: -28.4, y: 17, z: 33.8 } },
+});
 // ── recovered (build 22) ── סידור המערכה (maaracha22.js): six logs to lay (need, their sizes: two large, two medium, two small), the swipe,
 // the score; the bands and the gaps of a good pyre, the logs' radius and length, the fire's catch; the pyre, his stand, the sorting
 // place in the wood chamber (sortAt) and the cameras
-export const M22 = Object.freeze({ need: 6, sizes: 'LLMMSS', budget: [9, 5], next: [[0.3, 0.7], [0.1, 0.5]], swipe: 60, pts: 15, mis: 20, score: 100, fast: 25, airB: 25, good: 85, thr: [60, 70], sw: 0.3,
-  band: Object.freeze([Object.freeze([0.25, 0.45]), Object.freeze([0.3, 0.4])]), gv: 1.2, l0: -0.6, r: { L: 0.3, M: 0.21, S: 0.11 }, len: { L: 4, M: 3, S: 1.7 }, span: 1.2, gap: [0.06, 0.36, 0.9], ember: 8, fire: [64, 0.22], ign: 1.8, end: 2.6,
-  sorted: 0.9, pyre: { x: -30, z: -3.5 }, stand: { x: -28.6, z: 1.6, yaw: -2.85 }, sortAt: { x: -42.2, z: 57.8, yaw: Math.PI / 2 }, camS: { t: [-38.6, 17.2, 58], p: [-36.6, 18.3, 53.2] },
-  camB: { az: -0.3, el: 1.05, d: 8.6, t: { x: -30, y: 25.9, z: -3.3 } }, camP: { az: 0.55, el: 0.3, d: 14, t: { x: -30, y: 30, z: -3.5 } } });
+export const M22 = Object.freeze({
+  need: 6,
+  sizes: 'LLMMSS',
+  budget: [9, 5],
+  next: [
+    [0.3, 0.7],
+    [0.1, 0.5],
+  ],
+  swipe: 60,
+  pts: 15,
+  mis: 20,
+  score: 100,
+  fast: 25,
+  airB: 25,
+  good: 85,
+  thr: [60, 70],
+  sw: 0.3,
+  band: Object.freeze([Object.freeze([0.25, 0.45]), Object.freeze([0.3, 0.4])]),
+  gv: 1.2,
+  l0: -0.6,
+  r: { L: 0.3, M: 0.21, S: 0.11 },
+  len: { L: 4, M: 3, S: 1.7 },
+  span: 1.2,
+  gap: [0.06, 0.36, 0.9],
+  ember: 8,
+  fire: [64, 0.22],
+  ign: 1.8,
+  end: 2.6,
+  sorted: 0.9,
+  pyre: { x: -30, z: -3.5 },
+  stand: { x: -28.6, z: 1.6, yaw: -2.85 },
+  sortAt: { x: -42.2, z: 57.8, yaw: Math.PI / 2 },
+  camS: { t: [-38.6, 17.2, 58], p: [-36.6, 18.3, 53.2] },
+  camB: { az: -0.3, el: 1.05, d: 8.6, t: { x: -30, y: 25.9, z: -3.3 } },
+  camP: { az: 0.55, el: 0.3, d: 14, t: { x: -30, y: 30, z: -3.5 } },
+});
+// ── recovered (build 22) ── the woods by the log's size (L, M, S) and the unfit (olive, vine, the wormy)
+const KINDS22 = Object.freeze({ L: ['fig', 'pine'], M: ['fig', 'walnut', 'pine'], S: ['walnut', 'pine'], bad: ['olive', 'vine', 'worm'] });
 // ── recovered (build 23) ── the lot (pis23.js; יומא ב, א–ד): the roles open by the day (open), the second lot from day 4 (two), the pick; the
 // circle of kohanim (c, r, seats) and the ממונה's call, the counting (n1, n2), the show; and the short forms of the morning's tasks
 // when the lot gives them (need/sizes/layn/budget for the pyre, d21 for the ashes); its cameras
-export const P23 = Object.freeze({ open: Object.freeze(['deshen', 'm22', 'lamb']), two: 4, pick: 3, yest: 0.25, bal: 0.5, in: 0.6, call: 0.4, step: 0.2, n1: 8, n2: 6, show: 1.2, show2: 0.6,
-  fin: Object.freeze({ dy: 0.3, ms: 200, x: 0.51, auto: 6 }), c: Object.freeze({ x: -51, z: 23.4 }), r: 3.2, seats: 8, run: 10.5, fire: 86, need: 4, sizes: 'LLMS', layn: Object.freeze([2, 1, 1]),
-  budget: Object.freeze([7, 4.5]), bad: Object.freeze([3, 2]), sorted: 0.6, d21: Object.freeze({ full: 0.5, walk: 10, goV: 11, pour: 1 }), up: 0.6, upMax: 9, dT: Object.freeze([2, 8]),
-  cam: Object.freeze({ az: 1.45, el: 0.88, d: 12, t: Object.freeze({ x: -51, y: 17.6, z: 23.4 }) }), fol: Object.freeze({ el: 0.36, d: 12, ty: 2.4 }) });
+export const P23 = Object.freeze({
+  open: Object.freeze(['deshen', 'm22', 'lamb']),
+  two: 4,
+  pick: 3,
+  yest: 0.25,
+  bal: 0.5,
+  in: 0.6,
+  call: 0.4,
+  step: 0.2,
+  n1: 8,
+  n2: 6,
+  show: 1.2,
+  show2: 0.6,
+  fin: Object.freeze({ dy: 0.3, ms: 200, x: 0.51, auto: 6 }),
+  c: Object.freeze({ x: -51, z: 23.4 }),
+  r: 3.2,
+  seats: 8,
+  run: 10.5,
+  fire: 86,
+  need: 4,
+  sizes: 'LLMS',
+  layn: Object.freeze([2, 1, 1]),
+  budget: Object.freeze([7, 4.5]),
+  bad: Object.freeze([3, 2]),
+  sorted: 0.6,
+  d21: Object.freeze({ full: 0.5, walk: 10, goV: 11, pour: 1 }),
+  up: 0.6,
+  upMax: 9,
+  dT: Object.freeze([2, 8]),
+  cam: Object.freeze({ az: 1.45, el: 0.88, d: 12, t: Object.freeze({ x: -51, y: 17.6, z: 23.4 }) }),
+  fol: Object.freeze({ el: 0.36, d: 12, ty: 2.4 }),
+});
 // ── recovered (build 23) ── POOL23 (the report's: "the POOL23 registry"): the morning's roles in the first lot — built: played by him
-export const POOL23 = Object.freeze([['deshen', 'תרומת הדשן', '🔥', 1], ['m22', 'סידור המערכה', '🪵', 1], ['lamb', 'בדיקת הטלה', '🐑', 1], ['chavitin', 'החביתין', '🍞'], ['ketoret', 'הקטורת', '💨'], ['shir', 'השיר', '🎶']].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built })));
+export const POOL23 = Object.freeze(
+  [
+    ['deshen', 'תרומת הדשן', '🔥', 1],
+    ['m22', 'סידור המערכה', '🪵', 1],
+    ['lamb', 'בדיקת הטלה', '🐑', 1],
+    ['chavitin', 'החביתין', '🍞'],
+    ['ketoret', 'הקטורת', '💨'],
+    ['shir', 'השיר', '🎶'],
+  ].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built })),
+);
+// ── recovered (build 23) ── how often he has played a role (save.roles23's count); draw23 (the report's): the morning's lot — the role of
+// the day by P23.open, then never yesterday's and the least played first; two roles from the fourth morning
+const timesOf = (rec, id) => (rec && rec[id] && rec[id].n) | 0;
+function draw23(n, rec, ids, rnd = Math.random) {
+  const h = (rec && rec.h) || [],
+    yest = h.length ? h[h.length - 1][1] : null,
+    fixed = P23.open[n - 1];
+  if (fixed && ids.includes(fixed)) return [fixed];
+  const most = Math.max(0, ...ids.map((x) => timesOf(rec, x))),
+    weight = (a) => (a === yest ? P23.yest : 1) * (1 + P23.bal * (most - timesOf(rec, a))),
+    pick = (ids) => {
+      let sum = 0,
+        cum = ids.map((x) => (sum += weight(x))),
+        r = rnd() * sum;
+      for (let i = 0; i < ids.length; i++) if (r < cum[i]) return ids[i];
+      return ids[ids.length - 1];
+    },
+    lastPair = h.length ? h[h.length - 1].slice(1) : [],
+    fresh = ids.find((x) => !timesOf(rec, x) && !lastPair.includes(x));
+  if (n < P23.two) return [fresh || pick(ids)];
+  const rest = ids.filter((x) => x !== yest),
+    first = fresh || pick(rest.length ? rest : ids),
+    others = ids.filter((x) => x !== first && (ids.length < 3 || x !== yest));
+  return others.length ? [first, pick(others)] : [first];
+}
+// ── recovered (build 23) ── mastery23 (the report's: "mastery23('inner'|'menorah'|'lamb')"): a role's mastery 0…100 from its own record —
+// the time of his own part, the spills, the cracks, the false approvals, the pour
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+function mastery23(id, r, budget = P23.budget[1]) {
+  if (!r) return 0;
+  if (id === 'deshen') {
+    const T = P23.dT,
+      v = +r.ownS || 0;
+    return Math.round(100 * (0.5 * clamp01((T[1] - v) / (T[1] - T[0])) + 0.5 * [1, 0.4, 0][Math.min(2, r.embersSpilledCount | 0)]));
+  }
+  if (id === 'm22')
+    return Math.round(
+      100 *
+        (0.3 * clamp01(2 - (+r.sortingTimeSeconds || 0) / budget) +
+          0.25 * [1, 0.5, 0][Math.min(2, r.invalidWoodSelectedCount | 0)] +
+          0.3 * clamp01((+r.airflowQualityScore || 0) / 100) +
+          0.15 * [1, 0.5, 0][Math.min(2, r.cracks | 0)]),
+    );
+  if (id === 'inner' || id === 'menorah') {
+    const T = P26.tT[id],
+      v = clamp01((T[1] - (+r.ownS || 0)) / (T[1] - T[0])),
+      refused = r.refused | 0;
+    return Math.round(
+      100 *
+        (id === 'inner'
+          ? 0.45 * v + 0.55 * clamp01((+r.accuracy || 0) / 100)
+          : 0.3 * v + 0.5 * clamp01(+r.pourQ || 0) + 0.2 * (refused ? (refused <= 2 ? 0.6 : 0.3) : 1)),
+    );
+  }
+  if (id === 'lamb') {
+    const T = P25.tT;
+    return Math.round(
+      100 *
+        (0.35 * clamp01((T[1] - (+r.ownS || 0)) / (T[1] - T[0])) +
+          0.3 * [1, 0.3, 0][Math.min(2, r.falseApprovals | 0)] +
+          0.2 * [1, 0.4, 0][Math.min(2, r.wrongRejections | 0)] +
+          0.15 * [1, 0.4, 0][Math.min(2, r.dirtMistaken | 0)]),
+    );
+  }
+  return 0;
+}
 // ── recovered (build 23) ── the roles book's rows (pis23.js's rolesBook23): each role of a pool with his record in save.roles23 — open
 // once he has played it, how often, his best and last (the name is the recovery's)
-export const bookOf23 = (save, pool = POOL23) => { const rec = (save && save.roles23) || {}; return pool.map((r) => { const m = rec[r.id] || {}; return { id: r.id, he: r.he, icon: r.icon, built: r.built, open: (m.n | 0) > 0, n: m.n | 0, best: m.best | 0, last: m.last | 0 }; }); };
+export const bookOf23 = (save, pool = POOL23) => {
+  const rec = (save && save.roles23) || {};
+  return pool.map((x) => {
+    const a = rec[x.id] || {};
+    return { id: x.id, he: x.he, icon: x.icon, built: x.built, open: (a.n | 0) > 0, n: a.n | 0, best: a.best | 0, last: a.last | 0 };
+  });
+};
 // ── recovered (build 25) ── P25 (the report's: "P25.stand"): the lamb pen (pen25.js) — the pen's door and his stand at it, the side, the
 // rings; the act's times (in, bring, aside, zoom, blem, clean, ok, lead, end), a false approval's delay (fals) and rejections (rej), the
 // dawn, the score; the cameras (cam, zd, camP)
-export const P25 = Object.freeze({ door: { x: -17.6, z: -47.4, yaw: -Math.PI / 2, s: 0.8 }, stand: { x: -18.6, z: -44.2 }, side: { x: -13.2, z: -47.6 }, rings: { x: -36, z: -41 }, in: 0.5, bring: 0.9, aside: 0.9,
-  zoom: 0.4, blem: 1.6, clean: 0.45, ok: 0.9, lead: 2.2, end: 0.6, fals: 3.2, rej: 2, pB: 0.5, dirt: 2, dawn: 26, tT: [8, 24], sw: 0.25, score: 120, fa: 40, wr: 20, fast: 20, hy: 0.9,
-  cam: { az: 1.876, el: 0.36, d: 2.9, ty: 1 }, zd: 2.2, camP: { az: 0.2, el: 0.3, d: 6.5, ty: 1.2 } });
+export const P25 = Object.freeze({
+  door: { x: -17.6, z: -47.4, yaw: -Math.PI / 2, s: 0.8 },
+  stand: { x: -18.6, z: -44.2 },
+  side: { x: -13.2, z: -47.6 },
+  rings: { x: -36, z: -41 },
+  in: 0.5,
+  bring: 0.9,
+  aside: 0.9,
+  zoom: 0.4,
+  blem: 1.6,
+  clean: 0.45,
+  ok: 0.9,
+  lead: 2.2,
+  end: 0.6,
+  fals: 3.2,
+  rej: 2,
+  pB: 0.5,
+  dirt: 2,
+  dawn: 26,
+  tT: [8, 24],
+  sw: 0.25,
+  score: 120,
+  fa: 40,
+  wr: 20,
+  fast: 20,
+  hy: 0.9,
+  cam: { az: 1.876, el: 0.36, d: 2.9, ty: 1 },
+  zd: 2.2,
+  camP: { az: 0.2, el: 0.3, d: 6.5, ty: 1.2 },
+});
 const list25 = (ids, he) => Object.freeze(ids.split(' ').map((id, i) => Object.freeze({ id, he: he.split('|')[i] })));
 // ── recovered (build 25) ── BLEM25 (the report's: "6 kinds × 8 places — המחשה"): the blemishes' kinds, the places on the lamb, the dirt
-export const BLEM25 = Object.freeze({ cats: list25('wart crack cloud wound tear swell', 'יבלת / בליטה|סדק / חריץ|כתם / עכירות אישון|פצע / חתך|קרע / חסר בבשר|נפיחות / עיוות'),
-  regs: list25('earR earL eyeR eyeL hoofF hoofB back belly', 'אוזן ימין|אוזן שמאל|עין ימין|עין שמאל|טלף קדמית|טלף אחורית|גב|בטן'), dirt: Object.freeze(['straw', 'mud']) });
+export const BLEM25 = Object.freeze({
+  cats: list25('wart crack cloud wound tear swell', 'יבלת / בליטה|סדק / חריץ|כתם / עכירות אישון|פצע / חתך|קרע / חסר בבשר|נפיחות / עיוות'),
+  regs: list25('earR earL eyeR eyeL hoofF hoofB back belly', 'אוזן ימין|אוזן שמאל|עין ימין|עין שמאל|טלף קדמית|טלף אחורית|גב|בטן'),
+  dirt: Object.freeze(['straw', 'mud']),
+});
 // (the eight places on the lamb's rig: x, y, z and the normal; the last 1 = on the head, which turns about HEAD25)
-const REGION25 = [[-0.34, 1.67, 1, -0.52, 0.85, 0, 1], [0.34, 1.67, 1, 0.52, 0.85, 0, 1], [-0.185, 1.665, 1.23, -0.6, 0.1, 0.8, 1], [0.185, 1.665, 1.23, 0.6, 0.1, 0.8, 1],
-  [0.27, 0.12, 0.42, 1, 0, 0, 0], [0.27, 0.12, -0.52, 1, 0, 0, 0], [0.14, 1.8, -0.2, 0.24, 0.97, 0, 0], [0.36, 0.78, 0, 0.7, -0.7, 0, 0]];
+const REGION25 = [
+  [-0.34, 1.67, 1, -0.52, 0.85, 0, 1],
+  [0.34, 1.67, 1, 0.52, 0.85, 0, 1],
+  [-0.185, 1.665, 1.23, -0.6, 0.1, 0.8, 1],
+  [0.185, 1.665, 1.23, 0.6, 0.1, 0.8, 1],
+  [0.27, 0.12, 0.42, 1, 0, 0, 0],
+  [0.27, 0.12, -0.52, 1, 0, 0, 0],
+  [0.14, 1.8, -0.2, 0.24, 0.97, 0, 0],
+  [0.36, 0.78, 0, 0.7, -0.7, 0, 0],
+];
 const HEAD25 = [0, 1.36, 0.62];
 /** ── recovered (build 25) ── at25 (the report's name): a place on the lamb (BLEM25.regs index) in the world — the lamb at L {x, y, z, yaw, s},
  *  its head turned by yaw and pitch → { x, y, z, nx, ny, nz } */
 export function at25(reg, L, yaw = 0, pitch = 0) {
-  const row = REGION25[reg] || REGION25[6];
-  let [x, y, z, nx, ny, nz] = row;
+  let row = REGION25[reg] || REGION25[6],
+    [x, y, z, nx, ny, nz] = row;
   if (row[6]) {
-    const c = Math.cos(pitch), s = Math.sin(pitch), dy = y - HEAD25[1], dz = z - HEAD25[2];
-    y = HEAD25[1] + c * dy - s * dz; z = HEAD25[2] + s * dy + c * dz;
-    const ny0 = ny; ny = c * ny0 - s * nz; nz = s * ny0 + c * nz;
-    const cy = Math.cos(yaw), sy = Math.sin(yaw), dx = x - HEAD25[0], dz2 = z - HEAD25[2];
-    x = HEAD25[0] + cy * dx + sy * dz2; z = HEAD25[2] - sy * dx + cy * dz2;
-    const nx0 = nx; nx = cy * nx0 + sy * nz; nz = -sy * nx0 + cy * nz;
+    const c = Math.cos(pitch),
+      s = Math.sin(pitch),
+      dy = y - HEAD25[1],
+      dz = z - HEAD25[2];
+    y = HEAD25[1] + c * dy - s * dz;
+    z = HEAD25[2] + s * dy + c * dz;
+    const ny0 = ny;
+    ny = c * ny0 - s * nz;
+    nz = s * ny0 + c * nz;
+    const cy = Math.cos(yaw),
+      sy = Math.sin(yaw),
+      dx = x - HEAD25[0],
+      dz2 = z - HEAD25[2];
+    x = HEAD25[0] + cy * dx + sy * dz2;
+    z = HEAD25[2] - sy * dx + cy * dz2;
+    const nx0 = nx;
+    nx = cy * nx0 + sy * nz;
+    nz = -sy * nx0 + cy * nz;
   }
-  const u = Math.cos(L.yaw), h = Math.sin(L.yaw), k = L.s || 1;
+  const u = Math.cos(L.yaw),
+    h = Math.sin(L.yaw),
+    k = L.s || 1;
   return { x: L.x + k * (u * x + h * z), y: (L.y || 16) + k * y, z: L.z + k * (-h * x + u * z), nx: u * nx + h * nz, ny, nz: -h * nx + u * nz };
+}
+// ── recovered (build 25) ── hash25 (the report's: "murmur3's finalizer"): the day's seed; lamb25 (the report's): the morning's lamb —
+// seeded by the day, at most two blemished or rejected a morning, his first lamb easier to read
+const hash25 = (a, b, c = 0) => {
+  let h = Math.imul(a | 0, 2654435761) ^ Math.imul((b | 0) + 1663821227, 2246822519) ^ Math.imul((c | 0) + 625341585, 3266489917);
+  h ^= h >>> 16;
+  h = Math.imul(h, 2246822507);
+  h ^= h >>> 13;
+  h = Math.imul(h, 3266489909);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+};
+function lamb25(day, k, first = false, blems = 0, rej = 0) {
+  const rnd = (a) => hash25(day | 0, k | 0, a),
+    canBlem = blems < 2 && rej < P25.rej,
+    nR = BLEM25.regs.length,
+    nC = BLEM25.cats.length;
+  if (first)
+    return k > 0
+      ? { blem: null, dirt: [], big: true }
+      : rnd(1) < 0.5
+        ? { blem: { c: Math.floor(rnd(2) * nC) % nC, r: [6, 1, 3, 4][Math.floor(rnd(3) * 4) % 4] }, dirt: [], big: true }
+        : { blem: null, dirt: [{ r: [6, 7, 1][Math.floor(rnd(4) * 3) % 3], kind: 'straw' }], big: true };
+  const blem = canBlem && rnd(1) < P25.pB ? { c: Math.floor(rnd(2) * nC) % nC, r: Math.floor(rnd(3) * nR) % nR } : null,
+    nDirt = Math.floor(rnd(4) * (P25.dirt + 1)) % (P25.dirt + 1),
+    dirt = [];
+  for (let i = 0; i < 8 && dirt.length < nDirt; i++) {
+    const r = Math.floor(rnd(10 + i) * nR) % nR;
+    if ((!blem || r !== blem.r) && !dirt.some((x) => x.r === r)) dirt.push({ r, kind: BLEM25.dirt[Math.floor(rnd(20 + i) * 2) % 2] });
+  }
+  return { blem, dirt, big: false };
 }
 // ── recovered (build 26) ── P26 (the report's: "P26.open (the schedule)", "P26.reach (3.2)", P26.gate, P26.foot): the second lot's inner
 // roles in the Heichal (heichal26.js) — the schedule of his role by the day (open), the Heichal's gate and its reach, the inner altar and
 // the menorah, the act's steps and pulls, the pour, the lamps (lx, ly, lz), the lot's walk-in (lotIn), the ramp's foot (foot), the times
-export const P26 = Object.freeze({ open: Object.freeze(['menorah', 'inner', 'menorah']), gate: Object.freeze({ x: -89.3, z: 0 }), reach: 3.2, alt: Object.freeze({ x: -119.7, z: 0.4 }), walkM: Object.freeze({ x: -121.1, z: 5.9 }),
-  men: Object.freeze({ x: -122.8, z: 7.2, y: 0.6 }), in: 0.4, step: 0.45, set: 0.5, sw: 0.25, ms: 200, key: 0.8, back: 0.5, opn: 1.1, pulls: 7, hand: 0.15, dy: 0.2, vmax: 2.4, scr: 5, wick: 0.25,
-  pour: Object.freeze({ r0: 1.5, r1: 0.34, knee: 0.7, lo: 0.9, hi: 1, max: 1.16 }), spill: 0.5, lit: 0.3, leave: 0.7, kuz: 0.5, ev: 0.2, lotIn: 0.35, foot: Object.freeze({ x: -42, z: 45 }),
-  lx: Object.freeze([-126.01, -125.61, -125.21, -125.19, -124.79, -124.39, -123.99]), ly: 25, lz: 7.5, tT: Object.freeze({ inner: Object.freeze([4, 12]), menorah: Object.freeze([13, 39]) }), score: 120, fast: 20 });
+export const P26 = Object.freeze({
+  open: Object.freeze(['menorah', 'inner', 'menorah']),
+  gate: Object.freeze({ x: -89.3, z: 0 }),
+  reach: 3.2,
+  alt: Object.freeze({ x: -119.7, z: 0.4 }),
+  walkM: Object.freeze({ x: -121.1, z: 5.9 }),
+  men: Object.freeze({ x: -122.8, z: 7.2, y: 0.6 }),
+  in: 0.4,
+  step: 0.45,
+  set: 0.5,
+  sw: 0.25,
+  ms: 200,
+  key: 0.8,
+  back: 0.5,
+  opn: 1.1,
+  pulls: 7,
+  hand: 0.15,
+  dy: 0.2,
+  vmax: 2.4,
+  scr: 5,
+  wick: 0.25,
+  pour: Object.freeze({ r0: 1.5, r1: 0.34, knee: 0.7, lo: 0.9, hi: 1, max: 1.16 }),
+  spill: 0.5,
+  lit: 0.3,
+  leave: 0.7,
+  kuz: 0.5,
+  ev: 0.2,
+  lotIn: 0.35,
+  foot: Object.freeze({ x: -42, z: 45 }),
+  lx: Object.freeze([-126.01, -125.61, -125.21, -125.19, -124.79, -124.39, -123.99]),
+  ly: 25,
+  lz: 7.5,
+  tT: Object.freeze({ inner: Object.freeze([4, 12]), menorah: Object.freeze([13, 39]) }),
+  score: 120,
+  fast: 20,
+});
 // ── recovered (build 26) ── POOL26 (the report's): the second lot's thirteen roles (יומא ב, ג) — built: the inner altar's and the
 // menorah's ashes; the rest "כהנים אחרים — בקרוב"
-export const POOL26 = Object.freeze([['shochet', 'השחיטה', '🔪'], ['zorek', 'זריקת הדם', '🏺'], ['inner', 'דישון מזבח הפנימי', '🥣', 1], ['menorah', 'דישון המנורה', '🪔', 1], ['rosh', 'הראש והרגל', '🧺'], ['yadaim', 'שתי הידיים', '🧺'], ['oketz', 'העוקץ והרגל', '🧺'], ['chaze', 'החזה והגרה', '🧺'], ['dfanot', 'שתי הדפנות', '🧺'], ['kerev', 'הקרביים', '🧺'], ['solet', 'הסולת', '🌾'], ['chavt', 'החביתין', '🍞'], ['yayin', 'היין', '🍇']].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built, lot: 2 })));
+export const POOL26 = Object.freeze(
+  [
+    ['shochet', 'השחיטה', '🔪'],
+    ['zorek', 'זריקת הדם', '🏺'],
+    ['inner', 'דישון מזבח הפנימי', '🥣', 1],
+    ['menorah', 'דישון המנורה', '🪔', 1],
+    ['rosh', 'הראש והרגל', '🧺'],
+    ['yadaim', 'שתי הידיים', '🧺'],
+    ['oketz', 'העוקץ והרגל', '🧺'],
+    ['chaze', 'החזה והגרה', '🧺'],
+    ['dfanot', 'שתי הדפנות', '🧺'],
+    ['kerev', 'הקרביים', '🧺'],
+    ['solet', 'הסולת', '🌾'],
+    ['chavt', 'החביתין', '🍞'],
+    ['yayin', 'היין', '🍇'],
+  ].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built, lot: 2 })),
+);
+// ── recovered (build 26) ── draw26 (the report's): the second lot — the role by P26.open, from the fourth morning never yesterday's;
+// ev26: the morning's event (a lamp gone out); fill26: the pour's fill curve (fast to the knee, slow after)
+function draw26(n, rec, ids, rnd = Math.random, done = {}) {
+  const h = (rec && rec.h) || [],
+    yest = h.length ? h[h.length - 1][1] : null,
+    fixed = P26.open[n - 1];
+  if (fixed && ids.includes(fixed) && fixed !== yest) return [fixed];
+  let rest = ids.filter((x) => x !== yest),
+    pool = rest.length ? rest : ids,
+    most = Math.max(0, ...pool.map((x) => done[x] | 0)),
+    w = pool.map((x) => 1 + 0.5 * (most - (done[x] | 0))),
+    r = rnd() * w.reduce((s, x) => s + x, 0);
+  for (let i = 0; i < pool.length; i++) if ((r -= w[i]) < 0) return [pool[i]];
+  return [pool[pool.length - 1]];
+}
+const ev26 = (day, seen) => !seen && hash25(day | 0, 26, 7) < P26.ev;
+const fill26 = (f, dt) => {
+  let P = P26.pour,
+    t = dt;
+  if (f < P.knee) {
+    const k = Math.min(t, (P.knee - f) / P.r0);
+    f += k * P.r0;
+    t -= k;
+  }
+  return Math.min(P.max, f + t * P.r1);
+};
 // ── recovered (build 19) ── on the ramp (its rectangle: x −46…−30, z 10.5…42.5) and the ramp's height at z (16 at the foot → 25 at the top)
 export const onRamp19 = (x, z) => x > -46 && x < -30 && z > 10.5 && z < 42.5;
+// (the salt's cell on the ramp: 2-amah columns × 1-amah rows)
+const cell19 = (x, z) => (Math.floor(z - 10.5) << 3) + Math.floor((x + 46) / 2);
 export const rampY19 = (z) => 16 + 9 * Math.min(1, Math.max(0, (42.5 - z) / 32));
 /** the ממונה's tasks — three a day, by the day's number; each pays 5 פרוטות (שקלים ה, א: the fifteen officers) */
 export const TASKS33 = Object.freeze([
-  { id: 'chop6', text: '🪵 בקעו 6 גזרים', key: 'chops', goal: 6 }, { id: 'carry10', text: '🔥 העלו 10 גזרים', key: 'carried', goal: 10 }, { id: 'chop12', text: '🪵 בקעו 12 גזרים', key: 'chops', goal: 12 },
-  { id: 'wash', text: '💧 קדשו ידיים ורגליים', key: 'washes', goal: 1 }, { id: 'jars2', text: '🏺 פתחו 2 כדים', key: 'jars', goal: 2 }, { id: 'bake1', text: '🍞 אפו לחם', key: 'baked', goal: 1 }, { id: 'carry20', text: '🔥 העלו 20 גזרים', key: 'carried', goal: 20 },
-]);   // (day 1: the wood alone; day 2: the laver and the stores — what the fire's level opens by then)
+  { id: 'chop6', text: '🪵 בקעו 3 גזרים', key: 'chops', goal: 3, st: 'wood' },
+  { id: 'carry10', text: '🔥 העלו 5 גזרים', key: 'carried', goal: 5, st: 'kevesh' },
+  { id: 'chop12', text: '🪵 בקעו 5 גזרים', key: 'chops', goal: 5, st: 'wood' },
+  { id: 'wash', text: '💧 קדשו ידיים ורגליים', key: 'washes', goal: 1, st: 'kiyor' },
+  { id: 'jars2', text: '🏺 פתחו 2 כדים', key: 'jars', goal: 2, st: 'oil' },
+  { id: 'bake1', text: '🍞 אפו לחם', key: 'baked', goal: 1, st: 'bake' },
+  { id: 'carry20', text: '🔥 העלו 10 גזרים', key: 'carried', goal: 10, st: 'kevesh' },
+]);
 /** the shop (MIKDASH99 §5) — what פרוטות buy, kept in save.day33 */
 export const SHOP33 = Object.freeze([
-  { id: 'axe', icon: '🪓', label: 'גרזן טוב', sub: 'גזר ב־3 הקשות במקום 5', price: 25 }, { id: 'basket10', icon: '🧺', label: 'טנא גדול', sub: '10 גזרים בסל', price: 30 }, { id: 'basket20', icon: '🧺', label: 'טנא ענק', sub: '20 גזרים בסל', price: 90, needs: 'basket10' },
-  { id: 'bowl', icon: '🥣', label: 'קערת לישה', sub: 'לחם שמשיב 90 כוח', price: 35 }, { id: 'rug', icon: '🧶', label: 'שטיח לפינה', sub: 'בבית המוקד, ללילה', price: 20 }, { id: 'lamp', icon: '🪔', label: 'מנורת שמן לפינה', sub: 'בבית המוקד, ללילה', price: 20 },   /* (build 11: the אבנט's colours are fixed by the halacha — no dye; the cosmetics are the night corner's) */
+  { id: 'axe', icon: '🪓', label: 'גרזן טוב', sub: 'חלון רחב יותר לבקיעה בזמן', price: 25 },
+  { id: 'basket10', icon: '🧺', label: 'טנא גדול', sub: '10 גזרים בסל', price: 30 },
+  { id: 'basket20', icon: '🧺', label: 'טנא ענק', sub: '20 גזרים בסל', price: 90, needs: 'basket10' },
+  { id: 'bowl', icon: '🥣', label: 'קערת לישה', sub: 'לחם שמשיב 90 כוח', price: 35 },   /* (build 11: the אבנט's colours are fixed by the halacha — no dye; the cosmetics are the night corner's) */
+  { id: 'rug', icon: '🧶', label: 'שטיח לפינה', sub: 'בבית המוקד, ללילה', price: 20 },
+  { id: 'lamp', icon: '🪔', label: 'מנורת שמן לפינה', sub: 'בבית המוקד, ללילה', price: 20 },
 ]);
 /** ── build 11 ── ספר הזכרונות (99 Nights' badge board, claimed at the board): earned by play, claimed at night in בית המוקד for פרוטות */
 export const BADGES33 = Object.freeze([
-  { id: 'log1', text: '🪵 הגזר הראשון', pay: 2, test: (s) => s.chops - s.worms >= 1 }, { id: 'log25', text: '🪵 25 גזרים כשרים', pay: 5, test: (s) => s.chops - s.worms >= 25 }, { id: 'log100', text: '🪵 100 גזרים', pay: 15, test: (s) => s.chops - s.worms >= 100 },
-  { id: 'lvl2', text: '🔥 המערכה ברמה 2', pay: 3, test: (s) => s.level >= 2 }, { id: 'lvl4', text: '🔥 המערכה ברמה 4', pay: 10, test: (s) => s.level >= 4 }, { id: 'lvl6', text: '🔥 המערכה שלמה — רמה 6', pay: 15, test: (s) => s.level >= 6 },
-  { id: 'bread1', text: '🍞 הלחם הראשון', pay: 3, test: (s) => s.baked >= 1 }, { id: 'lambs6', text: '🐑 שישה טלאים מבוקרים', pay: 8, test: (s) => s.lambs.every((q) => q.ok) }, { id: 'lost1', text: '🐑 טלה אבוד הושב', pay: 5, test: (s) => s.lostBack >= 1 },
-  { id: 'song3', text: '🎶 שלושה שירים בקצב', pay: 8, test: (s) => s.songs >= 3 }, { id: 'day3', text: '🌙 שלושה ימים בעזרה', pay: 5, test: (s) => s.day >= 3 }, { id: 'day7', text: '🌙 שבוע בעזרה', pay: 10, test: (s) => s.day >= 7 }, { id: 'day33', text: '🌅 33 ימי שירות', pay: 15, test: (s) => s.day >= 33 },
-  { id: 'watch5', text: '🔥 חמישה משמרות ערים', pay: 5, test: (s) => s.watches >= 5 }, { id: 'trade1', text: '🧺 סחר עם הסוחר', pay: 3, test: (s) => s.trades >= 1 },
+  { id: 'log1', text: '🪵 הגזר הראשון', pay: 2, test: (s) => s.chops - s.worms >= 1 },
+  { id: 'log25', text: '🪵 25 גזרים כשרים', pay: 5, test: (s) => s.chops - s.worms >= 25 },
+  { id: 'log100', text: '🪵 100 גזרים', pay: 15, test: (s) => s.chops - s.worms >= 100 },
+  { id: 'lvl2', text: '🔥 המערכה ברמה 2', pay: 3, test: (s) => s.level >= 2 },
+  { id: 'lvl4', text: '🔥 המערכה ברמה 4', pay: 10, test: (s) => s.level >= 4 },
+  { id: 'lvl6', text: '🔥 המערכה שלמה — רמה 6', pay: 15, test: (s) => s.level >= 6 },
+  { id: 'bread1', text: '🍞 הלחם הראשון', pay: 3, test: (s) => s.baked >= 1 },
+  { id: 'lambs6', text: '🐑 שישה טלאים מבוקרים', pay: 8, test: (s) => s.lambs.every((q) => q.ok) },
+  { id: 'lost1', text: '🐑 טלה אבוד הושב', pay: 5, test: (s) => s.lostBack >= 1 },
+  { id: 'song3', text: '🎶 שלושה שירים בקצב', pay: 8, test: (s) => s.songs >= 3 },
+  { id: 'day3', text: '🌙 שלושה ימים בעזרה', pay: 5, test: (s) => s.day >= 3 },
+  { id: 'day7', text: '🌙 שבוע בעזרה', pay: 10, test: (s) => s.day >= 7 },
+  { id: 'day33', text: '🌅 33 ימי שירות', pay: 15, test: (s) => s.day >= 33 },
+  { id: 'watch5', text: '🔥 חמישה משמרות ערים', pay: 5, test: (s) => s.watches >= 5 },
+  { id: 'trade1', text: '🧺 סחר עם הסוחר', pay: 3, test: (s) => s.trades >= 1 },
 ]);
-export const tasksForDay = (day) => { const out = []; for (let i = 0; i < 3; i++) out.push(TASKS33[((Math.max(1, day) - 1) * 3 + i) % TASKS33.length]); return out; };
-const GAME_HE = { tiles: 'זיכרון המקדש', pen: 'הוצאת הטלה מהדיר', m3: 'משחק האוצר' }, GAME_ICON = { tiles: '🃏', pen: '🐑', m3: '💎' }, GAME_SUB = { tiles: 'קלפים מתהפכים', pen: 'פאזל הזזה', m3: 'שלושה בשורה' };   // ── fable32 (build 14) ── ── /fable32 ──
-const say = (fn, ...a) => { try { return fn && fn(...a); } catch (e) { console.warn('[day33]', e && e.message); return undefined; } };
-const pos3 = (p) => (p && Number.isFinite(p.x) ? { x: p.x, y: Number.isFinite(p.y) ? p.y : 16, z: p.z } : null);
-export const levelOf33 = (fed) => { let l = 1; for (let i = 1; i < DAY33.levels.length; i++) if (fed >= DAY33.levels[i]) l = i + 1; return Math.min(6, l); };
-
-export function createDay33(o = {}) {
-  const S = o.world || null, T = o.twin || null, hud = o.hud || null, ST = o.stations || null, CAM = o.camera || null, view = o.view || null;
-  const STN = (ST && ST.STATIONS) || o.STATIONS || {};
-  const save = o.save || {}; const rng = o.rng || Math.random;
-  const sfx = (n) => { try { o.sfx && o.sfx.play && o.sfx.play(n); } catch (e) { /* */ } };
-  const st = { phase: 'opening', t: 0, day: 1, night: false, left: DAY33.dayS, fuel: DAY33.fuel0, fed: 0, level: 1, logs: 0, watched: true, torchAt: 0, torchOn: false, paused: false, best: +save.bestDay || 0, chops: 0, worms: 0, carried: 0, lastMsg: '', washed: false, power: DAY33.power0, oil: 0, flour: 0, salt: 0, bread: 0, baked: 0, opened: {}, px: NaN, pz: NaN, perutot: +save.perutot || 0, dayStats: {}, tasks: [], merchant: null, merchantSeen: 0, basketMax: DAY33.basket, axeTaps: DAY33.taps, breadPower: DAY33.bread, lambs: Array.from({ length: 6 }, (_, i) => ({ i, ok: false })), lost: null, lostDay: 0, tamids: 0, song: null, songs: 0, inMoked: false, lostBack: 0, watches: 0, trades: 0, badges: {}, claimed: {}, ended33: false };
-  { const cl = save.badges33 && typeof save.badges33 === 'object' ? save.badges33 : {}; for (const k in cl) st.claimed[k] = 1; }
-  { const own = save.day33 && typeof save.day33 === 'object' ? save.day33 : {}; if (own.axe) st.axeTaps = 3; if (own.basket20) st.basketMax = 20; else if (own.basket10) st.basketMax = 10; if (own.bowl) st.breadPower = 90; }
-  let acting = null, ended = false, raf = 0, lastMs = 0, goal = null, hintNow = null, fuelPin = null, L0 = null;
-  const log = []; L0 = (...a) => { log.push([Math.round(st.t * 10) / 10, ...a]); if (log.length > 120) log.shift(); };
-  const ends = []; const hp = { x: 0, y: 16, z: 0 };
-  const heroP = () => { try { if (o.heroPos) return o.heroPos(); if (S && S.heroXYZ) S.heroXYZ(hp); } catch (e) { /* */ } return hp; };
-  const drive = (vx, vz) => { try { S && S.hero && S.hero.drive(vx, vz); } catch (e) { /* */ } };
-  const standOf = (id) => { const s = STN[id]; return s ? { x: s.stand.x, y: (s.at && s.at.y) || 16, z: s.stand.z } : null; };
-  const project = (p) => { if (!p || !view || !view.project) return null; try { const q = view.project(p.x, p.y, p.z); return q && q.on !== false ? { x: q.x, y: q.y } : null; } catch (e) { return null; } };
-  const stamp = (t, kind = 'info') => { if (t === st.lastMsg) return; st.lastMsg = t; say(() => hud && hud.stamp(t, { kind })); };
-
-  /* ───────── build 10: the fade and the move (the night in בית המוקד) ───────── */
-  let fadeEl = null;
-  function fade(then, text) {
-    const doc = typeof document !== 'undefined' ? document : null;
-    if (!doc) { then && then(); return; }
-    if (!fadeEl) { fadeEl = doc.createElement('div'); fadeEl.className = 'd33-fade'; fadeEl.style.cssText = 'position:fixed;inset:0;z-index:40;background:#07050A;opacity:0;transition:opacity .55s;pointer-events:none;display:flex;align-items:center;justify-content:center;color:#FFF4DC;font:900 22px/1.3 "Heebo",system-ui,sans-serif;direction:rtl;text-align:center;padding:0 24px'; doc.body.appendChild(fadeEl); }
-    fadeEl.textContent = text || ''; fadeEl.style.pointerEvents = 'auto'; fadeEl.style.opacity = '1';
-    setTimeout(() => { try { then && then(); } catch (e) { /* */ } setTimeout(() => { if (fadeEl) { fadeEl.style.opacity = '0'; fadeEl.style.pointerEvents = 'none'; } }, 900); }, 600);
+// (day 1: the wood alone; day 2: the laver and the stores — what the fire's level opens by then; build 20: the laver's own act skipped)
+export const tasksForDay = (day, level = 1, skip = null) => {
+  const ok = (a) => !(skip && skip.includes(a.st)) && (DAY33.unlock[a.st] || 99) <= Math.max(1, level | 0),
+    out = [];
+  for (let i = 0; i < 3; i++) out.push(TASKS33[((Math.max(1, day) - 1) * 3 + i) % TASKS33.length]);
+  const base = TASKS33.filter((x) => x.st === 'wood' || x.st === 'kevesh');
+  for (let i = 0; i < out.length; i++) {
+    if (ok(out[i])) continue;
+    const r = base.find((x) => !out.includes(x)) || base[(day + i) % base.length];
+    out[i] = r;
   }
-  const moveHero = (x, z, yaw) => { try { S && S.hero && S.hero.setPos && S.hero.setPos(x, z, yaw); } catch (e) { /* */ } st.px = x; st.pz = z; };
-  /* ───────── the court opens by level (build 7) ───────── */
-  const open33 = (id) => (DAY33.unlock[id] || 99) <= st.level;
+  return out;
+};
+const GAME_HE = { tiles: 'זיכרון המקדש', pen: 'הוצאת הטלה מהדיר', m3: 'משחק האוצר' };   // ── fable32 (build 14) ── ── /fable32 ──
+const GAME_ICON = { tiles: '🃏', pen: '🐑', m3: '💎' };
+const GAME_SUB = { tiles: 'קלפים מתהפכים', pen: 'פאזל הזזה', m3: 'שלושה בשורה' };
+const say = (fn, ...a) => {
+  try {
+    return fn && fn(...a);
+  } catch (e) {
+    console.warn('[day33]', e && e.message);
+    return;
+  }
+};
+const pos3 = (p) => (p && Number.isFinite(p.x) ? { x: p.x, y: Number.isFinite(p.y) ? p.y : 16, z: p.z } : null);
+// ── recovered (build 16) ── the saved day (save.day33state, at most DAY33.saveMaxH hours old) and resumeDay33: the day to go on with,
+// 0 = none (lobby35's start: "המשך יום N"; the name is the recovery's); levelIn: the fire's level by the logs fed and a level table
+const savedDay33 = (save) => {
+  const s = save && save.day33state;
+  return !s || typeof s !== 'object' || !(s.day >= 1) || !(Date.now() - (+s.at || 0) < DAY33.saveMaxH * 36e5) ? null : s;
+};
+export const resumeDay33 = (save) => {
+  const s = savedDay33(save);
+  return s ? (s.night ? (s.day | 0) + 1 : s.day | 0) : 0;
+};
+const levelIn = (fed, levels) => {
+  let l = 1;
+  for (let i = 1; i < levels.length; i++) if (fed >= levels[i]) l = i + 1;
+  return Math.min(6, l);
+};
+export const levelOf33 = (fed) => levelIn(fed, DAY33.levels);
+export function createDay33(o = {}) {
+  // ── recovered (17–26c) ── the builds' flags (o.b17 … o.p26, each needs the one before it), the focused day's events (on17 → emit17)
+  const S = o.world || null,
+    T = o.twin || null,
+    hud = o.hud || null,
+    ST = o.stations || null,
+    CAM = o.camera || null,
+    view = o.view || null,
+    STN = (ST && ST.STATIONS) || o.STATIONS || {},
+    save = o.save || {},
+    rng = o.rng || Math.random,
+    sfx = (n, a) => {
+      try {
+        if (o.sfx && o.sfx.play) o.sfx.play(n, a);
+      } catch (e) {}
+    },
+    b17 = !!o.b17,
+    night17 = !b17 || (o.night != null ? !!o.night : globalThis.__SH_NIGHT === true ? true : B17.night),
+    powerOn = !b17 || B17.power,
+    levelFor = (a) => (b17 ? levelIn(a, B17.levels) : levelOf33(a)),
+    l18 = b17 && !!(o.court18 || o.coins),
+    c18 = l18 && !!o.coins,
+    b19 = b17 && !!o.b19,
+    g20 = b19 && !!o.g20,
+    g21 = g20 && !!o.d21,
+    g22 = g21 && !!o.m22,
+    p23 = g22 && !!o.p23,
+    p25 = p23 && !!o.p25,
+    p26 = p23 && !!o.p26,
+    act20 = K20.act,
+    cam20 = K20.cam,
+    subs17 = [],
+    emit17 = (a, b = {}) => {
+      if (!b17) return;
+      const c = { type: a, t: Math.round(st.t * 100) / 100, ...b };
+      for (const x of subs17)
+        try {
+          x(c);
+        } catch (e) {
+          console.warn('[day33] on17', e && e.message);
+        }
+    },
+    st = {
+      phase: 'opening',
+      t: 0,
+      day: 1,
+      night: false,
+      left: DAY33.dayS,
+      fuel: DAY33.fuel0,
+      fed: 0,
+      level: 1,
+      logs: 0,
+      watched: true,
+      torchAt: 0,
+      torchOn: false,
+      paused: false,
+      best: +save.bestDay || 0,
+      chops: 0,
+      worms: 0,
+      carried: 0,
+      lastMsg: '',
+      washed: false,
+      power: DAY33.power0,
+      oil: 0,
+      flour: 0,
+      salt: 0,
+      bread: 0,
+      baked: 0,
+      opened: {},
+      px: NaN,
+      pz: NaN,
+      perutot: +save.perutot || 0,
+      dayStats: {},
+      tasks: [],
+      merchant: null,
+      merchantSeen: 0,
+      basketMax: DAY33.basket,
+      axeTaps: DAY33.taps,
+      axeK: 1,
+      breadPower: DAY33.bread,
+      lambs: Array.from({ length: 6 }, (_, i) => ({ i, ok: false })),
+      lost: null,
+      lostDay: 0,
+      tamids: 0,
+      song: null,
+      songs: 0,
+      inMoked: false,
+      lostBack: 0,
+      watches: 0,
+      trades: 0,
+      badges: {},
+      claimed: {},
+      ended33: false,
+      basketQ: [],
+      bookNight: 0,
+      stuckT: 0,
+      saveT: 0,
+    };
+  {
+    const cl = save.badges33 && typeof save.badges33 === 'object' ? save.badges33 : {};
+    for (const k in cl) st.claimed[k] = 1;
+  }
+  {
+    const own = save.day33 && typeof save.day33 === 'object' ? save.day33 : {};
+    if (own.axe) {
+      st.axeTaps = 2;
+      st.axeK = DAY33.axeK;
+    }
+    if (own.basket20) st.basketMax = 20;
+    else if (own.basket10) st.basketMax = 10;
+    if (own.bowl) st.breadPower = 90;
+  }
+  // ── recovered (build 16) ── the day saved and resumed (save.day33state: these keys, the lambs, the badges, the tasks)
+  const kept33 = [
+    'day',
+    'fed',
+    'level',
+    'logs',
+    'fuel',
+    'perutot',
+    'chops',
+    'worms',
+    'carried',
+    'baked',
+    'songs',
+    'lostBack',
+    'watches',
+    'trades',
+    'tamids',
+    'oil',
+    'flour',
+    'salt',
+    'bread',
+    'power',
+    'washed',
+    'left',
+    'basketQ',
+    'dayStats',
+    'merchantSeen',
+    'tamD',
+    'tamE',
+    'rampBest',
+    'laidDay',
+    'pDay0',
+    'sDay0',
+    'lowDay',
+    'lateDay',
+    'earnD',
+    'ndDay',
+    'ch18',
+    'r19',
+    'd21day',
+    'd21r',
+    'm22day',
+    'm22r',
+    'm22c',
+    'p23day',
+    'lot',
+    'npc23',
+    'p25day',
+    'p25r',
+    'p26day',
+    'role26',
+    'g26day',
+    'g26t',
+    'r26day',
+    'r26r',
+    'men5t',
+  ];
+  Object.assign(st, {
+    tamD: 'wait',
+    tamE: 'wait',
+    rampBest: 0,
+    laidDay: 0,
+    pDay0: st.perutot,
+    sDay0: 0,
+    lowDay: 100,
+    lateDay: 0,
+    streak: 0,
+    trip: null,
+    summary: null,
+    dayT: 0,
+  });
+  Object.assign(st, { earnD: 0, ndDay: 0, ch18: { n: 0, t: 0, c: [], k: 0, walk: null }, pad18: null, buys18: [] });
+  if (b19) st.r19 = { g: [], gd: 0, n: 0, cov: 0, sd: 0, bag: 0, bm: 0, bags: 0, fl: [], rn: 0, slips: 0, picks: 0 };
+  if (b17) st.fuel = B17.fuel0;
+  st.resumed = 0;
+  {
+    const was = savedDay33(save);
+    if (was) {
+      for (const k of kept33)
+        if (was[k] !== undefined && was[k] !== null)
+          st[k] = Array.isArray(was[k]) ? was[k].slice() : typeof was[k] === 'object' ? { ...was[k] } : was[k];
+      st.level = levelFor(st.fed);
+      if (Array.isArray(was.lambs))
+        st.lambs.forEach((x, i) => {
+          x.ok = !!was.lambs[i];
+        });
+      if (was.badges) for (const k in was.badges) st.badges[k] = 1;
+      if (was.night) {
+        st.day = (was.day | 0) + 1;
+        st.left = DAY33.dayS;
+        st.washed = false;
+        st.logs = 0;
+        st.basketQ = [];
+        st.dayStats = {};
+      }
+      st.left = Math.min(DAY33.dayS, Math.max(20, +st.left || DAY33.dayS));
+      st.resumed = st.day;
+      st.resumeTasks = Array.isArray(was.tasks) ? was.tasks : null;
+      if (was.night) st.resumeTasks = null;
+    }
+  }
+  if (!powerOn) st.power = DAY33.power0;
+  if (b19)
+    Object.assign(st.r19, { acc: 0, sc: 0, gr: [], A: 0, ph: 0, sw: 0, sp: 0, slip: -9, run: null, arm: 0, gt: -1, gp: null, lane: 0, lt: -9 });
+  {
+    const was = savedDay33(save);
+    if (b17 && was && was.night)
+      Object.assign(st, { tamD: 'wait', tamE: 'wait', rampBest: 0, laidDay: 0, lowDay: 100, lateDay: 0, pDay0: st.perutot, earnD: 0 });
+  }
+  {
+    const ch = st.ch18;
+    st.ch18 = { n: Math.min(C18.chests.max, ch.n | 0), t: 0, c: Array.isArray(ch.c) ? ch.c.slice(0, C18.chests.max) : [], k: ch.k | 0, walk: null };
+  }
+  let acting = null,
+    ended = false,
+    raf = 0,
+    lastMs = 0,
+    goal = null,
+    hintNow = null,
+    L0 = null,
+    log = [];
+  L0 = (...a) => {
+    log.push([Math.round(st.t * 10) / 10, ...a]);
+    if (log.length > 120) log.shift();
+  };
+  let ends = [],
+    hp = { x: 0, y: 16, z: 0 },
+    heroP = () => {
+      try {
+        if (o.heroPos) return o.heroPos();
+        if (S && S.heroXYZ) S.heroXYZ(hp);
+      } catch (e) {}
+      return hp;
+    },
+    drive = (vx, vz) => {
+      try {
+        if (S && S.hero) S.hero.drive(vx, vz);
+      } catch (e) {}
+    },
+    standOf = (id) => {
+      if (id === 'chests') return { x: chests.x - 2, y: 16, z: chests.z0 + ((chests.n - 1) * chests.dz) / 2 };
+      if (id === 'pad') {
+        const a = padOpen();
+        return a ? { x: a.x, y: 16, z: a.z } : null;
+      }
+      if (id === 'deshen') {
+        const h = heroP(),
+          d21 = st.d21;
+        return d21 && (d21.ph === 'foot' || d21.ph === 'go')
+          ? { x: D21.go[2][0], y: 16, z: D21.go[2][1] }
+          : onHigh(h.x, h.z)
+            ? { x: D21.stand.x, y: 25, z: D21.stand.z }
+            : Math.hypot(D21.up[0][0] - h.x, D21.up[0][1] - h.z) < 3.5
+              ? { x: D21.up[1][0], y: 25, z: D21.up[1][1] }
+              : { x: D21.up[0][0], y: 16, z: D21.up[0][1] };
+      }
+      if (id === 'm22') {
+        const h = heroP();
+        return st.m22
+          ? onHigh(h.x, h.z)
+            ? { x: M22.stand.x, y: 25, z: M22.stand.z }
+            : Math.hypot(-34 - h.x, 44.6 - h.z) < 3.5
+              ? { x: -34, y: 25, z: 11.6 }
+              : { x: -34, y: 16, z: 44.6 }
+          : { x: STN.wood.stand.x, y: 16, z: STN.wood.stand.z };
+      }
+      if (id === 'saltR' || id === 'log19') {
+        const a = near19(heroP()),
+          b = st.r19.fl[0];
+        return a && id === 'log19' && b ? { x: b.x, y: rampY19(b.z), z: b.z } : { x: -34, y: a ? 25 : 16, z: a ? 11.5 : 44 };
+      }
+      const s = STN[id];
+      return s ? { x: s.stand.x, y: (s.at && s.at.y) || 16, z: s.stand.z } : null;
+    },
+    project = (p) => {
+      if (!p || !view || !view.project) return null;
+      try {
+        const q = view.project(p.x, p.y, p.z);
+        return q && q.on !== false ? { x: q.x, y: q.y } : null;
+      } catch (e) {
+        return null;
+      }
+    },
+    stamp = (t, kind = 'info') => {
+      if (t !== st.lastMsg) {
+        st.lastMsg = t;
+        say(() => hud && hud.stamp(t, { kind }));
+      }
+    },
+    fadeEl = null;
+  /* ───────── build 10: the fade and the move (the night in בית המוקד) ───────── */
+  function fade(then, text) {
+    const doc = typeof document < 'u' ? document : null;
+    if (!doc) {
+      if (then) then();
+      return;
+    }
+    if (!fadeEl) {
+      fadeEl = doc.createElement('div');
+      fadeEl.className = 'd33-fade';
+      fadeEl.style.cssText =
+        'position:fixed;inset:0;z-index:40;background:#07050A;opacity:0;transition:opacity .55s;pointer-events:none;display:flex;align-items:center;justify-content:center;color:#FFF4DC;font:900 22px/1.3 "Heebo",system-ui,sans-serif;direction:rtl;text-align:center;padding:0 24px';
+      doc.body.appendChild(fadeEl);
+    }
+    fadeEl.textContent = text || '';
+    fadeEl.style.pointerEvents = 'auto';
+    fadeEl.style.opacity = '1';
+    setTimeout(() => {
+      try {
+        if (then) then();
+      } catch (e) {}
+      setTimeout(() => {
+        if (fadeEl) {
+          fadeEl.style.opacity = '0';
+          fadeEl.style.pointerEvents = 'none';
+        }
+      }, 900);
+    }, 600);
+  }
+  const moveHero = (x, z, yaw) => {
+      try {
+        if (S && S.hero && S.hero.setPos) S.hero.setPos(x, z, yaw);
+      } catch (e) {}
+      st.px = x;
+      st.pz = z;
+    },
+    /* ───────── the court opens by level (build 7) ───────── */
+    open33 = (id) => (b19 && id === 'salt') || (g20 && id === 'kiyor') || (DAY33.unlock[id] || 99) <= st.level,
+    // ── recovered (20–26) ── the morning's gates: while one is open the clock, the fire and the other stations wait (gate20: the laver;
+    // gate21: תרומת הדשן; gate22: סידור המערכה; gate23: the lot; gate25: the lamb; gate26L/gate26: the second lot and his inner role)
+    gate20 = () => g20 && !st.washed && !st.night && st.phase === 'run';
+  function gate20no(id) {
+    L0('gate', id);
+    emit17('gate', { id });
+    return false;
+  }
+  const gate21 = () => g21 && st.washed && (!p23 || st.p23day === st.day) && st.d21day !== st.day && !st.night && st.phase === 'run',
+    gate22 = () => g22 && st.washed && st.d21day === st.day && st.m22day !== st.day && !st.night && st.phase === 'run' && !lambDay25(),
+    lambDay25 = () => p25 && st.p23day === st.day && st.lot === 'lamb',
+    gate25 = () => p25 && st.washed && lambDay25() && st.p25day !== st.day && !st.night && st.phase === 'run',
+    carry22 = () => !!(st.m22 && st.m22.ph === 'carry'),
+    gate23 = () => p23 && st.washed && st.p23day !== st.day && !st.night && st.phase === 'run',
+    roles23 = () => (save.roles23 && typeof save.roles23 === 'object' ? save.roles23 : (save.roles23 = { m: 0, h: [] })),
+    first21 = () => (p23 ? !timesOf(roles23(), 'deshen') : st.day === 1),
+    first22 = () => (p23 ? !timesOf(roles23(), 'm22') : st.day === 1),
+    need22 = () => (p23 ? P23.need : M22.need),
+    d21k = (a) => (p23 ? P23.d21[a] : D21[a]),
+    lotOn = () => !!st.p23,
+    // ── fable32 (build 26) ── the second lot (gate26L) and his inner role (gate26): after the pre-dawn task, still the morning — the clock, the fire, the stations wait ── /fable32 ──
+    pre26 = () => p26 && st.washed && st.p23day === st.day && !gate21() && !gate22() && !gate25() && !st.night && st.phase === 'run',
+    gate26L = () => pre26() && st.p26day !== st.day,
+    gate26 = () => pre26() && st.p26day === st.day && st.r26day !== st.day,
+    open26 = () => p26 && st.g26day === st.day,
+    gateAny = () => gate20() || gate23() || gate21() || gate22() || gate25() || gate26L() || gate26();   // ── fable32 (build 25) ── ── /fable32 ── ── fable32 (build 26) ── ── /fable32 ──
+  function gate26no(id) {   // ── fable32 (build 26) ── ── /fable32 ──
+    L0('gate26', id);
+    emit17('gate', { id, p26: true });
+    return false;
+  }
+  function gate25no(id) {
+    L0('gate25', id);
+    emit17('gate', { id, p25: true });
+    return false;
+  }
+  function gate21no(id) {
+    L0('gate21', id);
+    emit17('gate', { id, d21: true });
+    return false;
+  }
+  function gate22no(id) {
+    L0('gate22', id);
+    emit17('gate', { id, m22: true });
+    return false;
+  }
+  function gate23no(id) {
+    L0('gate23', id);
+    emit17('gate', { id, p23: true });
+    return false;
+  }
   const shown33 = () => Object.keys(DAY33.unlock).filter(open33);
   function unlockStep() {
-    for (const id of shown33()) if (!st.opened[id]) { st.opened[id] = 1; if (st.level > 1 && STN[id]) { setTimeout(() => stamp(`נפתח: ${STN[id].he}`, 'combo'), 1500); L0('open', id); } }
+    for (const id of shown33())
+      if (!st.opened[id]) {
+        st.opened[id] = 1;
+        if (st.level > 1 && STN[id]) {
+          setTimeout(() => stamp(`נפתח: ${STN[id].he}`, 'combo'), 1500);
+          L0('open', id);
+        }
+      }
   }
-  const tired = () => st.power < DAY33.powerLow;
-  /** can he use the station now? (a full basket at the wood, an empty one at the ramp, a washed morning, a bowl without its three — the prompt does not show) */
-  const usable = (id) => (id === 'song' ? !!st.song : id === 'pen' ? st.lambs.some((q) => !q.ok) : id === 'wood' ? st.logs < st.basketMax : id === 'kevesh' ? st.logs > 0 && !atTop(heroP()) : id === 'kiyor' ? !st.washed : id === 'bake' ? st.oil > 0 && st.flour > 0 && st.salt > 0 : true);
-  /* ───────── the economy (build 8) ───────── */
-  const stat = (k, n = 1) => { st.dayStats[k] = (st.dayStats[k] | 0) + n; taskStep(); };
-  function pay(n, why) { st.perutot += n; save.perutot = st.perutot; say(() => o.persist && o.persist()); L0('pay', n, why); }
+  const tired = () => powerOn && st.power < DAY33.powerLow,
+    /** can he use the station now? (a full basket at the wood, an empty one at the ramp, a washed morning, a bowl without its three — the prompt does not show) */
+    usable = (id) =>
+      id === 'song'
+        ? !!st.song
+        : id === 'pen'
+          ? st.lambs.some((q) => !q.ok)
+          : id === 'wood'
+            ? st.logs < st.basketMax
+            : id === 'oil'
+              ? st.oil < DAY33.storeMax
+              : id === 'salt'
+                ? b19
+                  ? st.r19.bag < 110 || st.salt <= 0
+                  : st.salt < DAY33.storeMax
+                : id === 'kevesh'
+                  ? st.logs > 0 && !atTop(heroP())
+                  : id === 'kiyor'
+                    ? !st.washed
+                    : id === 'bake'
+                      ? st.oil > 0 && st.flour > 0 && st.salt > 0
+                      : true,
+    /* ───────── the economy (build 8) ───────── */
+    stat = (k, n = 1) => {
+      st.dayStats[k] = (st.dayStats[k] | 0) + n;
+      taskStep();
+    };
+  function pay(n, why, at) {
+    st.perutot += n;
+    save.perutot = st.perutot;
+    say(() => o.persist && o.persist());
+    L0('pay', n, why);
+    if (n > 0) {
+      st.earnD += n;
+      if (c18) emit17('coins', { n, why, at: at || null });
+    }
+  }
+  const over = (id, up = 2.6) => {
+      const s = STN[id];
+      return s && s.at ? { x: s.at.x, y: (s.at.y || 16) + up, z: s.at.z } : null;
+    },
+    payAct = (g, why, at) => {
+      if (c18) {
+        const n = C18.pay[g] | 0;
+        if (n > 0) pay(n, why, at);
+      }
+    };
+  function nedavaStep() {
+    if (!c18 || st.ndDay === st.day || st.dayT < 20 || !(rng() < C18.nedavaP || st.dayT >= C18.nedavaAt)) return;
+    st.ndDay = st.day;
+    const C = C18.chests;
+    emit17('nedava');
+    pay(C18.nedava, 'nedava', { x: C.x - 1.5, y: 19, z: C.z0 - 3 });
+    L0('nedava');
+  }
   // ── fable32 (build 14) ── the one score (score35.js: Phase A's master score — the capsule reads the same in both phases); the gear he carries (flow31 draws it);
   // the flights (a log into the basket, the logs onto the pyre); the idle offer (nothing to do 12 s → "משחק קצר?")
-  const SC = o.score || null;
-  const score = (n, why) => { if (!SC || !(n > 0)) return; try { SC.add(n, why); } catch (e) { /* */ } L0('score', n, why); };
-  const scoreAct = (id, r) => { if (!SC) return; try { const g = r && r.gold ? 'gold' : r && r.quality >= 0.8 ? 'good' : 'ok'; const n = SC.grade(g); SC.add(n, 'act:' + id); L0('score', n, g); } catch (e) { /* */ } };
-  st.fx = []; const fx = (kind, from, to, n = 1) => { st.fx.push({ kind, from: { ...from }, to: to ? { ...to } : null, n, t: 0, dur: kind === 'unload' ? 0.9 : 0.6 }); if (st.fx.length > 8) st.fx.shift(); };
-  const fxStep = (dt) => { for (const f of st.fx) f.t += dt; st.fx = st.fx.filter((f) => f.t < f.dur); };
+  const SC = o.score || null,
+    score = (n, why) => {
+      if (!SC || !(n > 0)) return;
+      try {
+        SC.add(n, why);
+      } catch (e) {}
+      L0('score', n, why);
+    },
+    scoreAct = (id, r) => {
+      if (SC)
+        try {
+          const g = r && r.gold ? 'gold' : r && r.quality >= 0.8 ? 'good' : 'ok',
+            n = SC.grade(g);
+          SC.add(n, 'act:' + id);
+          L0('score', n, g);
+        } catch (e) {}
+    };
+  st.fx = [];
+  const fx = (kind, from, to, n = 1) => {
+      st.fx.push({
+        kind,
+        from: { ...from },
+        to: to ? { ...to } : null,
+        n,
+        t: 0,
+        dur: kind === 'unload' ? 0.9 : kind === 'lay1' ? DAY33.layS : 0.6,
+        arc: kind === 'lay1' ? 0.9 : 2.2,
+      });
+      if (st.fx.length > 8) st.fx.shift();
+    },
+    fxStep = (dt) => {
+      for (const f of st.fx) f.t += dt;
+      st.fx = st.fx.filter((f) => f.t < f.dur);
+    };
   // ── /fable32 ──
-  function newTasks() { st.dayStats = {}; st.tasks = tasksForDay(st.day).map((q) => ({ ...q, done: false })); }
-  function taskStep() { for (const q of st.tasks) if (!q.done && (st.dayStats[q.key] | 0) >= q.goal) { q.done = true; pay(DAY33.taskReward, q.id); score(DAYSCORE.task, 'task'); stamp(`משימת הממונה: ${q.text.replace(/^\S+\s/, '')} ✓ +${DAY33.taskReward} פרוטות`, 'combo'); sfx('coin'); L0('task', q.id); } }
+  function newTasks() {
+    st.dayStats = {};
+    st.tasks = tasksForDay(st.day, st.level, g20 ? ['kiyor'] : null).map((q) => ({ ...q, done: false }));
+  }
+  function saveState(why) {
+    const out = {};
+    for (const k of kept33) out[k] = Array.isArray(st[k]) ? st[k].slice() : st[k] && typeof st[k] === 'object' ? { ...st[k] } : st[k];
+    out.lambs = st.lambs.map((x) => !!x.ok);
+    out.badges = { ...st.badges };
+    out.night = !!st.night || !!st.summary;
+    out.tasks = st.tasks.map((x) => [x.id, !!x.done]);
+    out.at = Date.now();
+    out.why = why;
+    save.day33state = out;
+    say(() => o.persist && o.persist());
+  }
+  function taskStep() {
+    for (const q of st.tasks)
+      if (!q.done && (st.dayStats[q.key] | 0) >= q.goal) {
+        q.done = true;
+        pay(DAY33.taskReward, q.id);
+        score(DAYSCORE.task, 'task');
+        if (b17) emit17('task', { text: q.text, pay: DAY33.taskReward });
+        else stamp(`משימת הממונה: ${q.text.replace(/^\S+\s/, '')} ✓ +${DAY33.taskReward} פרוטות`, 'combo');
+        sfx('coin');
+        L0('task', q.id);
+      }
+  }
   let merchantPin = null;
   function merchantStep() {
-    if (st.night) { if (st.merchant) { st.merchant = null; stamp('הסוחר הלך לישון', 'info'); } }
-    if (st.merchant && !merchantPin && hud && hud.pin) merchantPin = say(() => hud.pin('merchant33', { icon: '🧺', label: 'הסוחר' })) || null;
-    if (!st.merchant && merchantPin) { say(() => merchantPin.close()); merchantPin = null; }
-    if (merchantPin) { const m = DAY33.merchantAt; say(() => merchantPin.at(project({ x: m.x, y: m.y + 5, z: m.z }), st.bread > 0)); }
-    if (st.night) return;
-    if (!st.merchant && st.merchantSeen < st.day && (st.day === DAY33.merchantDay || (st.day > DAY33.merchantDay && st.merchantRoll))) {
-      st.merchantSeen = st.day; st.merchant = { until: st.t + DAY33.merchantS, want: 'bread' };
-      stamp('סוחר בשער! מבקש כיכר לחם — ונותן לבחור אחת משלוש', 'combo'); sfx('chime'); L0('merchant');
+    if (st.night && st.merchant) {
+      st.merchant = null;
+      stamp('הסוחר הלך לישון', 'info');
     }
-    if (st.merchant && st.t >= st.merchant.until) { st.merchant = null; stamp('הסוחר המשיך בדרכו', 'info'); L0('merchant-gone'); }
-    SHARED.merchant33 = st.merchant ? { ...DAY33.merchantAt, want: st.merchant.want } : null;
+    if (st.merchant && !merchantPin && hud && hud.pin) merchantPin = say(() => hud.pin('merchant33', { icon: '🧺', label: 'הסוחר' })) || null;
+    if (!st.merchant && merchantPin) {
+      say(() => merchantPin.close());
+      merchantPin = null;
+    }
+    if (merchantPin) {
+      const m = DAY33.merchantAt;
+      say(() => merchantPin.at(project({ x: m.x, y: m.y + 5, z: m.z }), st.bread > 0));
+    }
+    if (!st.night) {
+      if (
+        !st.merchant &&
+        !gateAny() &&
+        st.merchantSeen < st.day &&
+        (st.day === DAY33.merchantDay || (st.day > DAY33.merchantDay && st.merchantRoll))
+      ) {
+        st.merchantSeen = st.day;
+        st.merchant = { until: st.t + DAY33.merchantS, want: 'bread' };
+        stamp('סוחר בשער! מבקש כיכר לחם — ונותן לבחור אחת משלוש', 'combo');
+        sfx('chime');
+        L0('merchant');
+      }
+      if (st.merchant && !st.merchant.warned && st.merchant.until - st.t <= DAY33.merchantWarn) {
+        st.merchant.warned = true;
+        stamp(`הסוחר עוזב בעוד ${DAY33.merchantWarn} שניות`, 'no');
+        sfx('tick');
+        L0('merchant-warn');
+      }
+      if (st.merchant && st.t >= st.merchant.until) {
+        st.merchant = null;
+        stamp('הסוחר המשיך בדרכו', 'info');
+        L0('merchant-gone');
+      }
+      SHARED.merchant33 = st.merchant ? { ...DAY33.merchantAt, want: st.merchant.want } : null;
+    }
   }
   function trade() {
     if (!st.merchant || !hud || !hud.choice) return false;
-    if (st.bread <= 0) { stamp('הסוחר מבקש כיכר לחם — אין לכם', 'no'); sfx('miss'); return false; }
+    if (st.bread <= 0) {
+      stamp('הסוחר מבקש כיכר לחם — אין לכם', 'no');
+      sfx('miss');
+      return false;
+    }
     const wares = [
-      { icon: '🧺', label: 'טנא גדול', sub: '10 גזרים בסל', go: () => { st.bread--; st.basketMax = Math.max(st.basketMax, 10); stamp('טנא גדול — 10 בסל', 'combo'); } },
-      { icon: '🪓', label: 'גרזן טוב', sub: 'גזר ב־3 הקשות', go: () => { st.bread--; st.axeTaps = Math.min(st.axeTaps, 3); stamp('גרזן טוב — 3 הקשות לגזר', 'combo'); } },
-      { icon: '🪙', label: '12 פרוטות', sub: 'לחנות', go: () => { st.bread--; pay(12, 'merchant'); stamp('+12 פרוטות', 'combo'); } },
+      {
+        icon: '🧺',
+        label: 'טנא גדול',
+        sub: '10 גזרים בסל',
+        go: () => {
+          st.bread--;
+          st.basketMax = Math.max(st.basketMax, 10);
+          stamp('טנא גדול — 10 בסל', 'combo');
+        },
+      },
+      {
+        icon: '🪓',
+        label: 'גרזן טוב',
+        sub: 'חלון רחב לבקיעה',
+        go: () => {
+          st.bread--;
+          st.axeTaps = Math.min(st.axeTaps, 2);
+          st.axeK = DAY33.axeK;
+          stamp('גרזן טוב — הטבעת סלחנית יותר', 'combo');
+        },
+      },
+      {
+        icon: '🪙',
+        label: '12 פרוטות',
+        sub: 'לחנות',
+        go: () => {
+          st.bread--;
+          pay(12, 'merchant');
+          stamp('+12 פרוטות', 'combo');
+        },
+      },
     ];
-    st.paused = true; sfx('ui');
-    say(() => hud.choice({ title: 'הסוחר בשער', text: 'הוא לוקח כיכר אחת ונותן אחת משלוש (כמו סוחר הפרוות — ⚑ המחשה)', items: wares.map((w) => ({ ...w, go: () => { w.go(); st.merchant = null; st.trades++; sfx('coin'); L0('trade', w.label); return true; } })), closeLabel: 'לא עכשיו', onClose: () => { st.paused = false; } }));
+    st.paused = true;
+    sfx('ui');
+    say(() =>
+      hud.choice({
+        title: 'הסוחר בשער',
+        text: 'הוא לוקח כיכר אחת ונותן אחת משלוש (כמו סוחר הפרוות — ⚑ המחשה)',
+        items: wares.map((w) => ({
+          ...w,
+          go: () => {
+            w.go();
+            st.merchant = null;
+            st.trades++;
+            sfx('coin');
+            L0('trade', w.label);
+            return true;
+          },
+        })),
+        closeLabel: 'לא עכשיו',
+        onClose: () => {
+          st.paused = false;
+        },
+      }),
+    );
     return true;
   }
   /* ───────── the lambs (build 9): six in the pen, inspected on the beat (ערכין ב, ה); a tamid at dawn and dusk takes one; a lost lamb from level 2 ───────── */
   const okLambs = () => st.lambs.filter((l) => l.ok).length;
   function tamid(when) {
     const l = st.lambs.find((q) => q.ok);
-    if (l) { l.ok = false; st.tamids++; st.fuel = Math.min(100, st.fuel + DAY33.tamidFuel); stamp(`תמיד של ${when} — טלה מבוקר למזבח (+${DAY33.tamidFuel} אש)`, 'combo'); sfx('fanfare'); L0('tamid', when); }
-    else if (open33('pen')) { st.fuel = Math.max(DAY33.floor, st.fuel - DAY33.tamidMiss); stamp(`תמיד של ${when} — אין טלה מבוקר! (−${DAY33.tamidMiss} אש)`, 'no'); sfx('miss'); L0('tamid-miss', when); }
+    if (l) {
+      l.ok = false;
+      st.tamids++;
+      st.fuel = Math.min(100, st.fuel + DAY33.tamidFuel);
+      stamp(`תמיד של ${when} — טלה מבוקר למזבח (+${DAY33.tamidFuel} אש)`, 'combo');
+      sfx('fanfare');
+      L0('tamid', when);
+    } else if (open33('pen')) {
+      st.fuel = Math.max(DAY33.floor, st.fuel - DAY33.tamidMiss);
+      stamp(`תמיד של ${when} — אין טלה מבוקר! (−${DAY33.tamidMiss} אש)`, 'no');
+      sfx('miss');
+      L0('tamid-miss', when);
+    }
   }
-  function lostStep(dt) {
-    if (!st.lost) { if (open33('pen') && st.lostDay < st.day && !st.night && st.left < DAY33.dayS - 25 && rng() < 0.02 * dt * 10) { st.lostDay = st.day; const a = rng() * Math.PI * 2, r = 22 + rng() * 10; st.lost = { x: -38 + Math.cos(a) * r, z: 20 + Math.sin(a) * r, yaw: rng() * 6.28, t: 0, follow: false }; stamp('🐑 טלה ברח מהדיר! הביאו אותו חזרה', 'no'); sfx('tick'); L0('lost'); } return; }
-    const Lm = st.lost; Lm.t += dt;
-    if (Lm.follow) { const h = heroP(), dx = h.x - Lm.x, dz = h.z - Lm.z, d = Math.hypot(dx, dz); if (d > 2.2) { const sp = Math.min(14, d * 2.5); Lm.x += dx / d * sp * dt; Lm.z += dz / d * sp * dt; Lm.yaw = Math.atan2(dx, dz); Lm.walk = true; } else Lm.walk = false;
-      const P = STN.pen.at; if (Math.hypot(P.x - Lm.x, P.z - Lm.z) < 5) { st.lost = null; const free = st.lambs.find((q) => !q.ok); if (free) free.ok = true; st.lostBack++; score(DAYSCORE.lostLamb, 'lamb'); pay(DAY33.lostReward, 'lamb'); stamp(`הטלה הושב לדיר — מבוקר! +${DAY33.lostReward} פרוטות`, 'combo'); sfx('fanfare'); L0('lost-back'); } }
-    else { Lm.yaw += (rng() - 0.5) * dt * 2; const sp = 1.6; Lm.x += Math.sin(Lm.yaw) * sp * dt; Lm.z += Math.cos(Lm.yaw) * sp * dt; Lm.walk = true; if (Lm.x < -52 || Lm.x > -14) Lm.yaw += Math.PI; if (Lm.z < -18 || Lm.z > 48) Lm.yaw += Math.PI; }
+  function lostStep() {
+    const ok =
+      o.walkable ||
+      ((a, b) => {
+        if (!free(a, b) || onHigh(a, b) || a < -54 || a > -12 || b < -60 || b > 62) return false;
+        try {
+          if (S && S.hero && typeof S.hero.reach === 'function') {
+            const c = S.hero.reach(-20, 20, a, b, 600);
+            return c && c.d < 2.5;
+          }
+        } catch (e) {}
+        return true;
+      });
+    for (let i = 0; i < 20; i++) {
+      const a = rng() * Math.PI * 2,
+        b = 22 + rng() * 10,
+        c = -38 + Math.cos(a) * b,
+        d = 20 + Math.sin(a) * b;
+      if (ok(c, d)) return { x: c, z: d };
+    }
+    return null;
+  }
+  const lostFree = (a, b) => {
+    try {
+      return free(a, b) && !onHigh(a, b);
+    } catch (e) {
+      return true;
+    }
+  };
+  function lostTick(dt) {
+    if (!st.lost) {
+      if (open33('pen') && st.lostDay < st.day && !st.night && st.left < DAY33.dayS - 25 && rng() < 0.02 * dt * 10) {
+        st.lostDay = st.day;
+        const a = lostStep();
+        if (a) {
+          st.lost = { x: a.x, z: a.z, yaw: rng() * 6.28, t: 0, follow: false };
+          stamp('🐑 טלה ברח מהדיר! הביאו אותו חזרה', 'no');
+          sfx('tick');
+          L0('lost', Math.round(a.x), Math.round(a.z));
+        } else L0('lost-nospot');
+      }
+      return;
+    }
+    const Lm = st.lost;
+    Lm.t += dt;
+    const h = STN.pen.at,
+      stand = STN.pen.stand;
+    if (Lm.home) {
+      const dx = h.x - Lm.x,
+        dz = h.z - Lm.z,
+        d = Math.hypot(dx, dz);
+      if (d > 1.2) {
+        Lm.x += (dx / d) * Math.min(d, 12 * dt);
+        Lm.z += (dz / d) * Math.min(d, 12 * dt);
+        Lm.yaw = Math.atan2(dx, dz);
+        Lm.walk = true;
+      } else {
+        st.lost = null;
+        const free = st.lambs.find((q) => !q.ok);
+        if (free) free.ok = true;
+        st.lostBack++;
+        score(DAYSCORE.lostLamb, 'lamb');
+        pay(DAY33.lostReward, 'lamb', over('pen'));
+        stamp(`הטלה הושב לדיר — מבוקר! +${DAY33.lostReward} פרוטות`, 'combo');
+        sfx('fanfare');
+        L0('lost-back');
+        evlog('lamb_back');
+        if (b17) stat('v_lamb');
+        emit17('done', { text: 'הטלה בדיר!', sub: `+${DAY33.lostReward} פרוטות` });
+      }
+    } else if (Lm.follow) {
+      const hp = heroP(),
+        a = hp.x - Lm.x,
+        b = hp.z - Lm.z,
+        d = Math.hypot(a, b);
+      if (d > 2.2) {
+        const k = Math.min(14, d * 2.5);
+        Lm.x += (a / d) * k * dt;
+        Lm.z += (b / d) * k * dt;
+        Lm.yaw = Math.atan2(a, b);
+        Lm.walk = true;
+      } else Lm.walk = false;
+      if (d <= 9 && (Math.hypot(stand.x - hp.x, stand.z - hp.z) <= DAY33.reach + 2 || Math.hypot(h.x - hp.x, h.z - hp.z) <= 5)) {
+        Lm.home = true;
+        Lm.follow = false;
+        stamp('הטלה נכנס לדיר…', 'info');
+        L0('lost-home');
+      }
+    } else {
+      Lm.yaw += (rng() - 0.5) * dt * 2;
+      const sp = 1.6,
+        a = Lm.x + Math.sin(Lm.yaw) * sp * dt,
+        b = Lm.z + Math.cos(Lm.yaw) * sp * dt;
+      if (lostFree(a, b)) {
+        Lm.x = a;
+        Lm.z = b;
+        Lm.walk = true;
+      } else {
+        Lm.yaw += Math.PI * (0.75 + rng() * 0.5);
+        Lm.walk = false;
+      }
+      if (Lm.x < -52 || Lm.x > -14) Lm.yaw += Math.PI;
+      if (Lm.z < -18 || Lm.z > 48) Lm.yaw += Math.PI;
+    }
     SHARED.lost33 = Lm;
   }
   /* ───────── build 11: the badges (earned by play; claimed at night in the Moked) and the 33rd day ───────── */
-  function badgeStep() { for (const b of BADGES33) if (!st.badges[b.id] && b.test(st)) { st.badges[b.id] = 1; score(DAYSCORE.badge, 'badge'); stamp(`ספר הזכרונות: ${b.text} — לקבל בלילה בבית המוקד`, 'combo'); sfx('chime'); L0('badge', b.id); } }
+  function badgeStep() {
+    for (const b of BADGES33)
+      if (!st.badges[b.id] && b.test(st)) {
+        st.badges[b.id] = 1;
+        score(DAYSCORE.badge, 'badge');
+        if (b17 && !night17) emit17('pop', { text: `📜 ${b.text}` });
+        else stamp(`ספר הזכרונות: ${b.text} — לקבל בלילה בבית המוקד`, 'combo');
+        sfx('chime');
+        L0('badge', b.id);
+      }
+  }
   const unclaimed = () => BADGES33.filter((b) => st.badges[b.id] && !st.claimed[b.id]);
-  function claimBook() {
-    const list = unclaimed(); if (!hud || !hud.choice) return false;
-    if (!list.length) { stamp('ספר הזכרונות — אין מה לקבל עכשיו', 'info'); return false; }
-    st.paused = true; sfx('ui');
-    say(() => hud.choice({ title: 'ספר הזכרונות', text: 'מה שעשיתם בעזרה נרשם; קבלו את הפרוטות (המחשה: לוח המתגים)', items: list.map((b) => ({ icon: '📜', label: b.text, sub: `+${b.pay} פרוטות`, go: () => { st.claimed[b.id] = 1; save.badges33 = { ...(save.badges33 || {}), [b.id]: 1 }; pay(b.pay, 'badge:' + b.id); stamp(`${b.text} — +${b.pay} פרוטות`, 'combo'); sfx('coin'); L0('claim', b.id); return unclaimed().length === 0; } })), closeLabel: 'די', onClose: () => { st.paused = false; } }));
+  function claimBook(quiet) {
+    const list = unclaimed();
+    if (!hud || !hud.choice) return false;
+    if (!list.length) {
+      stamp('ספר הזכרונות — אין מה לקבל עכשיו', 'info');
+      st.bookNight = st.day;
+      return false;
+    }
+    st.paused = true;
+    if (!quiet) sfx('ui');
+    const close = () => {
+      st.paused = false;
+      st.bookNight = st.day;
+    };
+    say(() =>
+      hud.choice({
+        title: 'ספר הזכרונות',
+        text: 'מה שעשיתם בעזרה נרשם; קבלו את הפרוטות (המחשה: לוח המתגים)',
+        items: list.map((b) => ({
+          icon: '📜',
+          label: b.text,
+          sub: `+${b.pay} פרוטות`,
+          go: () => {
+            if (!st.claimed[b.id]) {
+              st.claimed[b.id] = 1;
+              save.badges33 = { ...(save.badges33 || {}), [b.id]: 1 };
+              pay(b.pay, 'badge:' + b.id);
+              stamp(`${b.text} — +${b.pay} פרוטות`, 'combo');
+              sfx('coin');
+              L0('claim', b.id);
+            }
+            return unclaimed().length === 0;
+          },
+        })),
+        closeLabel: 'די',
+        quiet: !!quiet,
+        refresh: () => claimBook(true),
+        onClose: close,
+      }),
+    );
     return true;
   }
   /* ───────── the fire ───────── */
-  function feed(n) {
+  function feed(n, grades, lay) {
     if (n <= 0) return;
-    const before = st.level, per = DAY33.perLog * (st.washed ? 1 + DAY33.washBonus : 1); st.fuel = Math.min(100, st.fuel + per * n); st.fed += n; st.level = levelOf33(st.fed);
-    SHARED.flare33 = performance.now(); sfx('chime'); L0('feed', n, Math.round(st.fuel));
-    stamp(`+${Math.round(n * per)} אש — ${n} גזרים על המערכה${st.washed ? ' (ידיים מקודשות: +25%)' : ''}`, 'combo');
-    if (st.level > before) { sfx('fanfare'); setTimeout(() => stamp(`המערכה ברמה ${st.level} — העזרה נפתחת`, 'combo'), 900); L0('level', st.level); }
+    let perG = (b17 ? B17.perLogGrade : DAY33.perLogGrade) || {},
+      per = 0;
+    for (let i = 0; i < n; i++) {
+      const a = grades && grades[i];
+      per += (a && perG[a]) || (b17 ? B17.perLogGrade.good : DAY33.perLog);
+    }
+    const before = st.level,
+      add = per * (st.washed ? 1 + DAY33.washBonus : 1) * (b17 ? catchK(st.fuel) : 1);
+    st.fuel = Math.min(100, st.fuel + add);
+    st.fed += n;
+    st.level = levelFor(st.fed);
+    SHARED.flare33 = performance.now();
+    L0('feed', n, Math.round(st.fuel));
+    try {
+      globalThis.__FLARE33 = performance.now() + (lay ? 300 : 0);
+    } catch (e) {}
+    if (lay && b17) {
+      if (!l18) sfx('whoosh');
+      emit17('lay', { n: Math.round(add * 10) / 10, at: { x: PYRE.x, y: PYRE.y + 3, z: PYRE.z }, fuel: st.fuel, g: grades && grades[0] });
+    } else if (lay) {
+      sfx('whoosh');
+      say(() => hud && hud.float && hud.float(`+${Math.round(add)} 🔥`, project({ x: PYRE.x, y: PYRE.y + 4, z: PYRE.z })));
+    } else {
+      sfx('chime');
+      stamp(`+${Math.round(add)} אש — ${n} גזרים על המערכה${st.washed ? ' (ידיים מקודשות: +25%)' : ''}`, 'combo');
+    }
+    if (st.level > before) {
+      sfx('fanfare');
+      setTimeout(() => stamp(`המערכה ברמה ${st.level} — העזרה נפתחת`, 'combo'), 900);
+      L0('level', st.level);
+      emit17('level', { level: st.level });
+    }
   }
+  const catchK = (fuel) => {
+      const c = B17.catchK;
+      return 1 + (c.max - 1) * Math.max(0, Math.min(1, (c.below - fuel) / (c.below - c.at)));
+    },
+    drainNow = () => (b17 ? B17.drain[st.day > 1 ? 1 : 0] * (B17.drainK[0] + (B17.drainK[1] * st.fuel) / 100) : 100 / DAY33.drainS);
   function drainStep(dt) {
-    const k = st.night ? DAY33.nightDrain : 1; st.fuel = Math.max(DAY33.floor, st.fuel - dt * 100 / DAY33.drainS * k);
-    if (st.fuel <= DAY33.floor + 0.01 && !st.embers) { st.embers = true; stamp('נשארה גחלת — הביאו עצים!', 'no'); sfx('miss'); L0('embers'); }
+    if (gateAny()) return;
+    const k = st.night ? DAY33.nightDrain : 1;
+    st.fuel = Math.max(DAY33.floor, st.fuel - dt * drainNow() * k);
+    if (b17 && st.fuel < st.lowDay) st.lowDay = st.fuel;
+    if (st.fuel <= DAY33.floor + 0.01 && !st.embers) {
+      st.embers = true;
+      if (!b17) stamp('נשארה גחלת — הביאו עצים!', 'no');
+      sfx('miss');
+      L0('embers');
+    }
     if (st.fuel > 20 && st.embers) st.embers = false;
   }
-
   /* ───────── the day and the night ───────── */
   function setSky(night) {
-    try { const W = globalThis.__T; if (W && typeof W.setTime === 'function') W.setTime(night ? 'dusk' : 'noon');   /* (build 12: the owner — 'בלילה לא רואים כלום'; dusk, not the dark night) */ } catch (e) { /* */ }
+    try {
+      const W = globalThis.__T;
+      if (W && typeof W.setTime === 'function')
+        W.setTime(night ? 'dusk' : g21 && !ended && (g22 ? st.m22day : st.d21day) !== st.day ? 'predawn' : 'noon');
+    } catch (e) {}
+  }
+  const lambReady = () => !open33('pen') || okLambs() > 0,
+    grace17 = () => b17 && st.day === 1 && (g22 ? st.dayT : st.t) < B17.grace;
+  // ── recovered (build 17) ── the focused day's two tamids (B17.tamid: dawn 45 s, dusk 170 s, the fire at 60): on time, late, offered late;
+  // the day's summary at sunset and the next day (E.nextDay)
+  function tamidStep() {
+    const tm = B17.tamid;
+    for (const [x, q, it] of [
+      ['tamD', 'שחר', tm.dawn],
+      ['tamE', 'בין הערביים', tm.dusk],
+    ]) {
+      const a = st[x];
+      if (a === 'wait' && st.dayT >= it)
+        if ((st.fuel >= tm.fire && lambReady()) || grace17()) offer17(x, q, true);
+        else {
+          st[x] = 'late';
+          st.lateDay++;
+          const a = st.fuel < tm.fire ? `האש צריכה ${tm.fire}` : 'צריך טלה מבוקר';
+          stamp(`הממונה: "התמיד איחר" — ${a}`, 'no');
+          sfx('late17');
+          emit17('late', { when: q, why: a, need: tm.fire, k: x });
+          L0('tamid-late', q);
+          evlog('tamid', { when: q, late: true, fuel: Math.round(st.fuel) });
+        }
+      else if (a === 'late' && st.fuel >= tm.fire && lambReady()) offer17(x, q, false);
+    }
+  }
+  function offer17(k, when, onTime) {
+    const lamb = open33('pen') ? st.lambs.find((x) => x.ok) : null;
+    if (lamb) lamb.ok = false;
+    st.tamids++;
+    st[k] = onTime ? 'ok' : 'lateDone';
+    st.fuel = Math.min(100, st.fuel + DAY33.tamidFuel);
+    stamp(onTime ? `תמיד של ${when} — בזמן ★` : `תמיד של ${when} — הוקרב באיחור`, onTime ? 'combo' : 'info');
+    sfx(onTime ? 'trumpet17' : 'chime');
+    emit17('tamid', { when, onTime, k });
+    L0('tamid', when, onTime);
+    evlog('tamid', { when, onTime, fuel: Math.round(st.fuel) });
+    if (c18 && onTime) {
+      pay(C18.tamid, 'tamid', { x: PYRE.x, y: PYRE.y + 4, z: PYRE.z });
+      nedavaStep();
+    }
+    if (k === 'tamD' && open33('song') && !st.song) {
+      st.song = { until: st.t + DAY33.songS };
+      setTimeout(() => stamp('הלויים על הדוכן — לכו לשיר (60 שניות)', 'combo'), 1500);
+      L0('song-open');
+    }
+  }
+  function tamid17() {
+    if (!b17) return null;
+    const tm = B17.tamid;
+    return st.tamD === 'wait'
+      ? { k: 'tamD', when: 'שחר', inS: Math.max(0, tm.dawn - st.dayT), late: false }
+      : st.tamD === 'late'
+        ? { k: 'tamD', when: 'שחר', inS: 0, late: true }
+        : st.tamE === 'wait'
+          ? { k: 'tamE', when: 'בין הערביים', inS: Math.max(0, tm.dusk - st.dayT), late: false }
+          : st.tamE === 'late'
+            ? { k: 'tamE', when: 'בין הערביים', inS: 0, late: true }
+            : { k: 'sun', when: 'שקיעה', inS: Math.max(0, st.left), late: false, done: true };
+  }
+  function summary17() {
+    const ok = (a) => st[a] === 'ok',
+      stars = 1 + (ok('tamD') ? 1 : 0) + (ok('tamE') ? 1 : 0),
+      tasks = st.tasks.filter((x) => x.done).length,
+      praise =
+        stars === 3
+          ? 'כהן זריז! שני התמידים בזמן — האש לא דעכה'
+          : stars === 2
+            ? 'יפה מאוד! מחר — שני התמידים בזמן'
+            : 'עבודה טובה! מחר נקדים להביא עצים למערכה',
+      pad = c18 ? C18.pads.find((x) => !own18(x.id)) : null;
+    return {
+      day: st.day,
+      stars,
+      tamids: [
+        { when: 'שחר', ok: ok('tamD') },
+        { when: 'בין הערביים', ok: ok('tamE') },
+      ],
+      rampBest: st.rampBest ? Math.round(st.rampBest * 10) / 10 : 0,
+      logs: st.laidDay,
+      low: Math.round(st.lowDay),
+      perutot: st.perutot - st.pDay0,
+      tasks: [tasks, st.tasks.length],
+      score: SC ? Math.max(0, Math.round((say(() => SC.get().total) || 0) - st.sDay0)) : 0,
+      badges: [],
+      praise,
+      c18: c18 ? { earn: st.earnD, total: st.perutot, next: pad ? { ...pad, have: Math.min(st.perutot, pad.price) } : null } : null,
+      d21: g21 && st.d21r && st.d21r.day === st.day ? { ...st.d21r } : null,
+      m22: g22 && st.m22r && st.m22r.day === st.day ? { ...st.m22r } : null,
+      p23:
+        p23 && st.p23day === st.day && st.lot
+          ? (() => {
+              const a = POOL23.find((x) => x.id === st.lot),
+                b = st.lot === 'deshen' ? st.d21r : st.lot === 'lamb' ? st.p25r : st.m22r,
+                c = roles23()[st.lot] || {};
+              return {
+                id: st.lot,
+                he: a ? a.he : st.lot,
+                m: b && b.day === st.day ? b.mastery : null,
+                best: c.best | 0,
+                rec: !!(b && b.day === st.day && b.rec),
+              };
+            })()
+          : null,
+      p26:
+        p26 && st.r26r && st.r26r.day === st.day
+          ? (() => {
+              const r26r = st.r26r,
+                a = POOL26.find((x) => x.id === r26r.role);
+              return { he: a ? a.he : r26r.role, m: r26r.mastery, rec: !!r26r.rec };
+            })()
+          : null,
+    };
+  }
+  function endDay17() {
+    for (const [x, q] of [
+      ['tamD', 'שחר'],
+      ['tamE', 'בין הערביים'],
+    ])
+      if (st[x] === 'wait' || st[x] === 'late') {
+        if (st[x] === 'wait') st.lateDay++;
+        st[x] = 'lateDone';
+        st.tamids++;
+        L0('tamid-dusk', q);
+      }
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    if (acting && ST && ST.cancel) say(() => ST.cancel('dusk'));
+    if (st.lost) {
+      st.lost = null;
+      SHARED.lost33 = null;
+    }
+    st.song = null;
+    if (b19) {
+      L0('fl-lost', st.r19.fl.length);
+      st.r19.fl = [];
+    }
+    const sum = summary17();
+    for (const x of unclaimed()) {
+      st.claimed[x.id] = 1;
+      save.badges33 = { ...(save.badges33 || {}), [x.id]: 1 };
+      pay(x.pay, 'badge:' + x.id);
+      sum.badges.push({ text: x.text, pay: x.pay });
+    }
+    sum.perutot = st.perutot - st.pDay0;
+    sum.c18 = summary17().c18;
+    st.summary = sum;
+    st.paused = true;
+    setSky(true);
+    sfx('fanfare');
+    evlog('day_summary', { day: st.day, stars: sum.stars, logs: sum.logs, low: sum.low });
+    saveState('night');
+    L0('summary', st.day, sum.stars);
+    emit17('summary', sum);
+  }
+  function nextDay() {
+    return st.summary
+      ? ((st.summary = null),
+        (st.paused = false),
+        st.day++,
+        (st.left = DAY33.dayS),
+        (st.dayT = 0),
+        setSky(false),
+        score(DAYSCORE.day, 'day'),
+        (st.washed = false),
+        (st.power = Math.min(DAY33.power0, st.power + 30)),
+        newTasks(),
+        (st.merchantRoll = rng() < DAY33.merchantP),
+        (st.r26 = null),
+        Object.assign(st, {
+          tamD: 'wait',
+          tamE: 'wait',
+          rampBest: 0,
+          laidDay: 0,
+          lowDay: st.fuel,
+          lateDay: 0,
+          pDay0: st.perutot,
+          sDay0: (SC && say(() => SC.get().total)) || 0,
+          streak: 0,
+          trip: null,
+          earnD: 0,
+        }),
+        st.day > st.best && ((st.best = st.day), (save.bestDay = st.best), say(() => o.persist && o.persist())),
+        p23 && (acting ? (ST && ST.cancel && say(() => ST.cancel('dawn')), (st.wake24 = 1)) : wake23()),
+        stamp(`יום ${st.day} בעזרה`, 'combo'),
+        sfx('chime'),
+        L0('day', st.day),
+        emit17('day', { day: st.day }),
+        evlog('day_end', { day: st.day - 1 }),
+        saveState('day'),
+        true)
+      : false;
   }
   function dayStep(dt) {
-    st.left = Math.max(0, st.left - dt);
-    if (!st.night && st.left <= 0) { tamid('בין הערביים'); st.night = true; st.left = DAY33.nightS; st.watched = false; st.torchOn = false; st.torchAt = st.t + DAY33.torchAfter + rng() * 20; setSky(true); st.song = null; sfx('tick'); L0('night', st.day);
-      if (o.walk && o.walk.stop) say(() => o.walk.stop()); goal = null;
-      fade(() => { moveHero(DAY33.moked.x, DAY33.moked.z, Math.PI / 2); st.inMoked = true; stamp('לילה בבית המוקד — האש של העזרה דועכת לאט; כשאיש הר הבית עובר, הקישו על הלפיד', 'info'); }, 'השמש שקעה — לבית המוקד (מידות א, ו–ח)'); }
-    else if (st.night && st.left <= 0) {
-      st.night = false; st.day++; st.left = DAY33.dayS; setSky(false); score(DAYSCORE.day, 'day');
-      fade(() => { moveHero(DAY33.moked.back.x, DAY33.moked.back.z, Math.PI); st.inMoked = false; const had = okLambs() > 0; tamid('שחר'); if (had && open33('song')) { st.song = { until: st.t + DAY33.songS }; stamp('תמיד של שחר — הלויים על הדוכן: לכו לשיר (60 שניות)', 'combo'); L0('song-open'); } }, `יום ${st.day} — "ראו טלה מלשכת הטלאים" (תמיד ג, ג)`);
-      st.washed = false; st.power = Math.min(DAY33.power0, st.power + 30); newTasks(); st.merchantRoll = rng() < DAY33.merchantP;
-      if (st.day > st.best) { st.best = st.day; save.bestDay = st.best; say(() => o.persist && o.persist()); }
-      stamp(`יום ${st.day} בעזרה`, 'combo'); sfx('chime'); L0('day', st.day);
+    if (!gateAny()) st.left = Math.max(0, st.left - dt);
+    if (b17) {
+      st.dayT = DAY33.dayS - st.left;
+      if (!st.night) tamidStep();
     }
-    if (st.night && !st.torchOn && !st.watched && st.t >= st.torchAt) { st.torchOn = true; stamp('איש הר הבית עובר — הקישו על הלפיד!', 'info'); sfx('tick'); L0('torch'); }
-    if (st.night && st.torchOn && !st.watched && st.t >= st.torchAt + 10) { st.torchOn = false; st.watched = true; if (st.day > 1) { st.fuel = Math.max(DAY33.floor, st.fuel - 10); stamp('נרדמתם במשמר — "חובטו במקלו" (−10 אש)', 'no'); sfx('miss'); } else stamp('לילה ראשון — הפעם בלי עונש', 'info'); L0('torch-miss'); }
+    if (b17 && !night17 && !st.night && st.left <= 0) {
+      if (!st.summary) endDay17();
+      return;
+    }
+    if (!st.night && st.left <= 0) {
+      if (!b17) tamid('בין הערביים');
+      st.night = true;
+      st.left = DAY33.nightS;
+      st.watched = false;
+      st.torchOn = false;
+      st.torchAt = st.t + DAY33.torchAfter + rng() * 20;
+      setSky(true);
+      st.song = null;
+      sfx('tick');
+      L0('night', st.day);
+      if (st.lost) {
+        st.lost = null;
+        SHARED.lost33 = null;
+        L0('lost-night');
+      }
+      evlog('night', { day: st.day, fuel: Math.round(st.fuel) });
+      saveState('night');
+      if (o.walk && o.walk.stop) say(() => o.walk.stop());
+      goal = null;
+      if (acting && ST && ST.cancel) say(() => ST.cancel('night'));
+      fade(() => {
+        moveHero(DAY33.moked.x, DAY33.moked.z, Math.PI / 2);
+        st.inMoked = true;
+        stamp('לילה בבית המוקד — האש של העזרה דועכת לאט; כשאיש הר הבית עובר, הקישו על הלפיד', 'info');
+      }, 'השמש שקעה — לבית המוקד (מידות א, ו–ח)');
+    } else if (st.night && st.left <= 0) {
+      st.night = false;
+      st.day++;
+      st.left = DAY33.dayS;
+      setSky(false);
+      score(DAYSCORE.day, 'day');
+      if (b17) Object.assign(st, { tamD: 'wait', tamE: 'wait', rampBest: 0, laidDay: 0, lowDay: st.fuel, lateDay: 0, pDay0: st.perutot, dayT: 0 });
+      fade(() => {
+        moveHero(DAY33.moked.back.x, DAY33.moked.back.z, Math.PI);
+        st.inMoked = false;
+        const had = okLambs() > 0;
+        if (!b17) {
+          tamid('שחר');
+          if (had && open33('song')) {
+            st.song = { until: st.t + DAY33.songS };
+            stamp('תמיד של שחר — הלויים על הדוכן: לכו לשיר (60 שניות)', 'combo');
+            L0('song-open');
+          }
+        }
+      }, `יום ${st.day} — "ראו טלה מלשכת הטלאים" (תמיד ג, ג)`);
+      st.washed = false;
+      st.power = Math.min(DAY33.power0, st.power + 30);
+      newTasks();
+      st.merchantRoll = rng() < DAY33.merchantP;
+      st.r26 = null;
+      if (st.day > st.best) {
+        st.best = st.day;
+        save.bestDay = st.best;
+        say(() => o.persist && o.persist());
+      }
+      stamp(`יום ${st.day} בעזרה`, 'combo');
+      sfx('chime');
+      L0('day', st.day);
+      evlog('day_end', { day: st.day - 1 });
+      saveState('day');
+    }
+    if (st.night && !st.torchOn && !st.watched && st.t >= st.torchAt) {
+      st.torchOn = true;
+      stamp('איש הר הבית עובר — הקישו על הלפיד!', 'info');
+      sfx('tick');
+      L0('torch');
+    }
+    if (st.night && st.torchOn && !st.watched && st.t >= st.torchAt + 10) {
+      st.torchOn = false;
+      st.watched = true;
+      if (st.day > 1) {
+        st.fuel = Math.max(DAY33.floor, st.fuel - 10);
+        stamp('נרדמתם במשמר — "חובטו במקלו" (−10 אש)', 'no');
+        sfx('miss');
+      } else stamp('לילה ראשון — הפעם בלי עונש', 'info');
+      L0('torch-miss');
+    }
   }
-
-  /* ───────── the walks (the shift's walk module) ───────── */
-  function walkTo(p, then, r = 1.8, face) {
-    if (!p) return false;
-    if (o.walk && o.walk.to) { goal = { p, r, then, ext: true }; say(() => o.walk.to(p.x, p.z, r, face).then((ok) => { if (goal && goal.p === p) { goal = null; if (ok && then) then(); } })); return true; }
-    goal = { p, r, then }; return true;
-  }
-  function walkStep(dt) {
-    if (!goal || goal.ext) return;
-    const h = heroP(), d = Math.hypot(goal.p.x - h.x, goal.p.z - h.z);
-    if (d <= goal.r) { drive(0, 0); const f = goal.then; goal = null; if (f) f(); return; }
-    const v = Math.min(o.speed || 16, Math.max(5, d * 3)); drive((goal.p.x - h.x) / d * v, (goal.p.z - h.z) / d * v);
-  }
-
+  const nearLost = () => {
+    if (!st.lost) return false;
+    const h = heroP();
+    return Math.hypot(st.lost.x - h.x, st.lost.z - h.z) <= DAY33.lostNear;
+  };
   /* ───────── the acts ───────── */
   function nx33() {
     if (st.night && st.torchOn && !st.watched) return { id: 'torch', kind: 'torch' };
-    if (st.logs >= st.basketMax) return { id: 'kevesh', kind: 'station' };
+    if (gate20()) return { id: 'kiyor', kind: 'station' };
+    if (gate23()) return { id: 'p23', kind: 'lot' };
+    if (gate21()) return { id: 'deshen', kind: 'station' };
+    if (gate22()) return { id: 'm22', kind: 'station' };
+    if (st.logs >= basketCap()) return { id: 'kevesh', kind: 'station' };
     if (st.logs > 0 && st.fuel <= DAY33.floor + 0.01) return { id: 'kevesh', kind: 'station' };   // (embers: whatever he carries, up now)
-    if (st.lost) return { id: 'lamb', kind: 'lamb' };
-    if (st.song && open33('song')) return { id: 'song', kind: 'station' };   // (build 10: the dawn's song window)
-    if (open33('kiyor') && !st.washed && !st.night) return { id: 'kiyor', kind: 'station' };   // (the morning: hands and feet first — the day's +25%)
-    if (open33('pen') && okLambs() === 0 && st.lambs.some((q) => !q.ok) && st.left < 70) return { id: 'pen', kind: 'station' };   // (the tamid is near and no lamb is ready)
-    if (tired() && st.bread <= 0 && open33('bake')) { if (st.oil > 0 && st.flour > 0 && st.salt > 0) return { id: 'bake', kind: 'station' }; if (st.oil <= 0 || st.flour <= 0) return { id: 'oil', kind: 'station' }; return { id: 'salt', kind: 'station' }; }
-    return { id: 'wood', kind: 'station' };
+    if (b17) return next17();
+    if (st.lost && !st.night && (st.lost.follow || st.lost.home || (nearLost() && !(b17 && st.fuel < B17.warn)))) return { id: 'lamb', kind: 'lamb' };
+    if (b17) {
+      const a = tamid17(),
+        b = !!(a && !a.done && (a.late || a.inS < B17.penBefore)) && !(grace17() && st.t + a.inS < B17.grace);
+      if (open33('pen') && okLambs() === 0 && st.lambs.some((x) => !x.ok) && b && st.fuel >= B17.warn) return { id: 'pen', kind: 'station' };
+      if (st.fuel < B17.warn || (a && !a.done && (a.late || a.inS < B17.rushTamid) && st.fuel < B17.tamid.fire))
+        return { id: 'wood', kind: 'station' };
+    }
+    return st.song && open33('song')
+      ? { id: 'song', kind: 'station' }   // (build 10: the dawn's song window)
+      : open33('kiyor') && !st.washed && !st.night   // (the morning: hands and feet first — the day's +25%)
+        ? { id: 'kiyor', kind: 'station' }
+        : !b17 && open33('pen') && okLambs() === 0 && st.lambs.some((q) => !q.ok) && st.left < 70   // (the tamid is near and no lamb is ready)
+          ? { id: 'pen', kind: 'station' }
+          : tired() && st.bread <= 0 && open33('bake')
+            ? st.oil > 0 && st.flour > 0 && st.salt > 0
+              ? { id: 'bake', kind: 'station' }
+              : st.oil <= 0 || st.flour <= 0
+                ? { id: 'oil', kind: 'station' }
+                : { id: 'salt', kind: 'station' }
+            : { id: 'wood', kind: 'station' };
+  }
+  const statN = (a) => st.dayStats[a] | 0,
+    basketCap = () => (b17 && st.basketMax > DAY33.basket && woodRush(tamid17()) ? DAY33.basket : st.basketMax),
+    penN = () => {
+      const a = statN('inspected');
+      return [a, a + st.lambs.filter((x) => !x.ok).length];
+    };
+  function woodRush(tm) {
+    return (
+      st.fuel < B17.woodAt ||
+      !!(
+        tm &&
+        !tm.done &&
+        !(grace17() && st.t + tm.inS < B17.grace) &&
+        (tm.late || (tm.inS < B17.tamidLead && st.fuel - drainNow() * tm.inS < B17.tamid.fire + 3)) &&
+        st.fuel < 97
+      )
+    );
+  }
+  // ── recovered (build 18) ── the coins in the world: the chests by the gate (the pilgrims' coins), the pads to buy at (own18)
+  const chests = C18.chests,
+    own18 = (a) => !!(save.day33 && typeof save.day33 === 'object' && save.day33[a]),
+    padOpen = () => (c18 && C18.pads.find((x) => !own18(x.id) && st.perutot >= x.price)) || null;
+  function chestStep(dt) {
+    const ch = st.ch18,
+      h = heroP();
+    if (ch.walk) {
+      if (st.t >= ch.walk.at) {
+        ch.n = Math.min(chests.max, ch.n + 1);
+        ch.c.push(ch.walk.i);
+        emit17('drop', { i: ch.walk.i });
+        ch.walk = null;
+      }
+    } else if (ch.n < chests.max && st.fuel >= chests.lo && (ch.t += dt) >= (st.fuel >= chests.hi ? chests.hiS : chests.loS)) {
+      ch.t = 0;
+      const a = (ch.k++ * 5) % chests.n;
+      ch.walk = { i: a, at: st.t + chests.walkS };
+      emit17('pilgrim', { i: a, s: chests.walkS });
+    }
+    if (
+      ch.n > 0 &&
+      Math.abs(h.x - chests.x) < chests.reach &&
+      h.z > chests.z0 - 1.5 &&
+      h.z < chests.z0 + (chests.n - 1) * chests.dz + 1.5 &&
+      (h.y || 16) < 20
+    ) {
+      const n = ch.n;
+      ch.n = 0;
+      ch.c = [];
+      ch.t = 0;
+      stat('v_chests');
+      emit17('collect', { n });
+      pay(n, 'chests', { x: chests.x, y: 17.5, z: h.z });
+      L0('chests', n);
+    }
+  }
+  function padStep(dt) {
+    if (gateAny()) {
+      if (st.pad18) {
+        st.pad18 = null;
+        emit17('pad', { id: null });
+      }
+      return;
+    }
+    let h = heroP(),
+      pad = null;
+    for (const x of C18.pads) if (!own18(x.id) && Math.hypot(h.x - x.x, h.z - x.z) <= C18.padR && (h.y || 16) < 20) pad = x;
+    if (!pad || st.perutot < pad.price) {
+      if (st.pad18) {
+        st.pad18 = null;
+        emit17('pad', { id: null });
+      }
+      return;
+    }
+    if (!st.pad18 || st.pad18.id !== pad.id) {
+      st.pad18 = { id: pad.id, t: 0, price: pad.price };
+      emit17('pad', { id: pad.id, at: { x: pad.x, y: 16.4, z: pad.z } });
+    }
+    if ((st.pad18.t += dt) < C18.padS) return;
+    st.pad18 = null;
+    st.perutot -= pad.price;
+    save.perutot = st.perutot;
+    (save.day33 && typeof save.day33 === 'object' ? save.day33 : (save.day33 = {}))[pad.id] = 1;
+    if (pad.id === 'axe') {
+      st.axeTaps = Math.min(st.axeTaps, 2);
+      st.axeK = DAY33.axeK;
+    } else if (pad.id === 'basket10') st.basketMax = Math.max(st.basketMax, 10);
+    st.buys18.push([pad.id, st.day, Math.round(st.dayT)]);
+    say(() => o.persist && o.persist());
+    sfx('fanfare');
+    emit17('buy', { id: pad.id, he: pad.he, at: { x: pad.x, y: 17, z: pad.z } });
+    L0('buy', pad.id);
+  }
+  // ── recovered (build 19) ── the ramp run: the salt (a bag at the salt station, held — the grains fly onto the ramp's cells), the basket's
+  // sway and the slip, the fallen logs, the ghost of the best run (save.gh19), the climb's camera
+  const near19 = (h) => onHigh(h.x, h.z) || (Math.abs(h.x + 38) < 8 && h.z > 42 && h.z < 47.5),
+    nearK24 = (h) => {
+      const s = standOf('kevesh');
+      return !!s && Math.hypot(s.x - h.x, s.z - h.z) <= DAY33.reach + 0.2;
+    },
+    saltDue = () => b19 && st.r19.cov < R19.goal && st.r19.bags < 3 && st.logs <= 0 && (st.day > 1 || statN('carried') >= R19.after);
+  function ramp19Step(dt) {
+    const R = st.r19,
+      h = heroP(),
+      tw = o.twin,
+      pace = tw && tw.pace,
+      onR = onRamp19(h.x, h.z),
+      yaw = Number.isFinite(h.yaw) ? h.yaw : Math.PI,
+      cl = (a, b, c) => (a < b ? b : a > c ? c : a),
+      C = R19,
+      now = st.t;
+    if (R.gd !== st.day) Object.assign(R, { gd: st.day, g: Array(256).fill(0), n: 0, cov: 0, bags: 0, rn: 0 });
+    const moved = Number.isFinite(R.x) ? Math.hypot(h.x - R.x, h.z - R.z) : 0,
+      vz = Number.isFinite(R.z) ? (h.z - R.z) / dt : 0;
+    R.x = h.x;
+    R.z = h.z;
+    R.sp += (Math.min(12, moved / dt) - R.sp) * Math.min(1, dt * 8);
+    const held = !!(tw && tw.held19 && tw.held19()) && (!gateAny() || carry22()),
+      stickOn = !!(tw && tw.stick && tw.stick().on),
+      loaded = st.logs > 0,
+      salting = !loaded && R.bag > 0,
+      up = near19(h) && h.z > C.head,
+      climbing = loaded && up,
+      strong = !!(p23 && st.p23day === st.day && gateAny());
+    if (pace) pace.k = strong ? P23.run / 7 : climbing ? (now - R.slip < 0.6 ? 1 : C.v1) / 7 : 0;
+    R.sc = salting && up && held ? 1 : 0;
+    const sy = Math.sin(yaw),
+      cy = Math.cos(yaw);
+    if (R.sc) {
+      R.acc += C.rate * dt;
+      for (; R.acc >= 1 && R.bag > 0; R.acc--) {
+        R.bag--;
+        const a = Math.random() * 2 - 1,
+          b = 1.5 + Math.random() * 1.6 + 1.2 * (1 - a * a);
+        R.gr.push([h.x + sy * b - cy * a * 4.2, h.z + cy * b + sy * a * 4.2, 0, h.x + sy * 0.5, h.z + cy * 0.5, (h.y || 16) + 2.2]);
+      }
+    }
+    R.gr = R.gr.filter((x) => {
+      if ((x[2] += dt) < C.fly) return 1;
+      const a = cell19(x[0], x[1]);
+      if (onRamp19(x[0], x[1]) && !R.g[a]) {
+        R.g[a] = 1;
+        if ((a & 7) > 3) R.cov = ++R.n / 128;
+      }
+      return 0;
+    });
+    if (R.cov >= C.goal && R.sd !== st.day) {
+      R.sd = st.day;
+      const a = { x: -34, y: 22, z: 26 };
+      emit17('salted', { at: a });
+      payAct('gold', 'salt', a);
+      L0('salted');
+    }
+    const easy = st.day === 1 && R.rn < 2,
+      bare = onR && !R.g[cell19(h.x, h.z)],
+      want = climbing && !easy ? C.swayMax * cl((R.sp - 3.2) / (C.v1 - 3.2), 0, 1) * (bare ? 1 : C.saltK) * (held ? C.hold : 1) : 0;
+    R.A = want > R.A ? Math.min(want, R.A + 0.5 * dt) : Math.max(want, R.A - (now - R.slip < 1.2 ? 0.6 : 1.5) * dt);
+    R.ph += dt * (4 + R.sp);
+    R.sw = R.A * Math.sin(R.ph);
+    if (climbing && onR && !easy && bare && !carry22() && R.sp > C.slipV && R.A > 0.3 && now - R.slip > 2 && rng() < dt * 3.5 * (R.A - 0.3)) {
+      R.slip = now;
+      R.slips++;
+      R.A = 0.9;
+      if (R.run) R.run.c = 0;
+      st.logs--;
+      R.fl.push({ x: h.x, z: h.z + 0.7, v: 6, g: st.basketQ.pop() || 'good' });
+      emit17('slip', { at: { x: h.x, y: (h.y || 16) + 4.6, z: h.z } });
+      L0('slip', Math.round(h.z));
+    }
+    R.fl = R.fl.filter((x) => {
+      if (x.v > 0) {
+        x.z = Math.min(42.2, x.z + x.v * dt);
+        x.v = Math.max(0, x.v - 3 * dt);
+      }
+      return x.v > 3 || st.logs >= st.basketMax || Math.hypot(x.x - h.x, x.z - h.z) > 1.3
+        ? 1
+        : (st.logs++, st.basketQ.push(x.g), R.picks++, emit17('pop', { text: '+1 🪵' }), emit17('pick'), 0);
+    });
+    if (strong) {
+      R.arm = 0;
+      if (R.run) R.run = null;
+    } else if (climbing && h.z > 40) R.arm = 1;
+    if (R.arm && climbing && onR && h.z < 40) {
+      R.arm = 0;
+      R.rn++;
+      const gh19 = save.gh19;
+      R.run = { t0: now, p: [], c: 1 };
+      R.gp = gh19 && gh19.p;
+      R.gt = gh19 ? now : -1;
+      if (st.day === 1 && R.rn === 2) emit17('sway');
+    }
+    const run = R.run;
+    if (run) {
+      while (run.p.length * 0.05 <= now - run.t0) run.p.push(Math.round(h.x * 10) / 10, Math.round(h.z * 10) / 10);
+      if (h.z <= C.head) {
+        R.run = null;
+        top19(now - run.t0, run);
+      } else if (!onR) R.run = null;
+    }
+    if (onR && h.z > C.head && stickOn && !R.sc) {
+      R.lane = (vz < -1.5 ? h.x < -38.5 : vz > 1.5 && h.x > -37.5) ? R.lane + dt : 0;
+      if (R.lane > 0.8 && now - R.lt > 5) {
+        R.lt = now;
+        emit17('lane', { up: vz < 0 });
+      }
+    }
+    if (onR && h.z > C.head + 0.5) SHARED.cam17 = { id: 'ramp', az: 0.2, el: 0.33, d: 14, look: { x: h.x + 5 * sy, z: h.z + 5 * cy } };
+    else if (SHARED.cam17 && SHARED.cam17.id === 'ramp') SHARED.cam17 = null;
+    globalThis.__ARM19 = R.sc;
+  }
+  function top19(t, run) {
+    const best = save.gh19,
+      g = run.c ? (t <= R19.par ? 'gold' : 'good') : 'ok',
+      h = heroP(),
+      at = { x: h.x, y: 28, z: h.z };
+    if (run.c && !(best && best.t <= t)) {
+      save.gh19 = { t: Math.round(t * 10) / 10, p: run.p };
+      say(() => o.persist && o.persist());
+      if (best) emit17('rec', { t });
+    }
+    stat('climbs');
+    stat('v_kevesh');
+    if (!st.rampBest || t < st.rampBest) st.rampBest = t;
+    st.trip = { n: st.logs, laid: 0 };
+    emit17('top', { dur: Math.round(t * 10) / 10, g });
+    emit17('act', { id: 'kevesh', g, at });
+    payAct(g, 'act:kevesh', at);
+    L0('top', t, g);
+  }
+  // ── recovered (build 20) ── the laver: up to the spigots, both hands held under (L, R) till the ring fills, the rise, the walk down
+  function k20start() {
+    if (!gate20() || st.k20 || st.summary) return false;
+    const h = heroP(),
+      d = Math.hypot(act20.x - h.x, act20.z - h.z);
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    st.k20 = {
+      ph: 'up',
+      t: 0,
+      t0: st.t,
+      p: 0,
+      L: false,
+      R: false,
+      flow: false,
+      held: 0,
+      lifts: 0,
+      sx: h.x,
+      sz: h.z,
+      dur: p23 ? Math.max(P23.up, d / P23.upMax) : Math.max(K20.up, d / K20.upMax),
+      T: own18('kiyor2') ? K20.hold2 : K20.hold,
+      two: own18('kiyor2'),
+      first: !save.k20seen,
+    };
+    L0('k20', Math.round(h.x), Math.round(h.z));
+    evlog('act_start', 'kiyor');
+    emit17('k20', { ph: 'up', first: st.k20.first, T: st.k20.T });
+    return true;
+  }
+  function k20Step(dt) {
+    const K = st.k20;
+    if (!K) {
+      if (gate20() && !acting && !st.summary && !st.paused) {
+        const h = heroP(),
+          s = standOf('kiyor');
+        if (s && Math.hypot(s.x - h.x, s.z - h.z) <= DAY33.reach && (h.y || 16) < 20) k20start();
+      }
+      return;
+    }
+    K.t += dt;
+    if (K.ph === 'up') {
+      const k = Math.min(1, K.t / K.dur);
+      moveHero(K.sx + (act20.x - K.sx) * k, K.sz + (act20.z - K.sz) * k, act20.yaw);
+      if (k >= 1) {
+        K.ph = 'pose';
+        K.t = 0;
+        emit17('k20', { ph: 'pose' });
+      }
+    } else if (K.ph === 'pose') {
+      const a = K.L && K.R;
+      if (K.flow && !a) K.lifts++;
+      K.flow = a;
+      if (a) {
+        K.p = Math.min(1, K.p + dt / K.T);
+        K.held += dt;
+      } else K.p = Math.max(0, K.p - K20.back * dt);
+      if (K.p >= 1) {
+        K.ph = 'rise';
+        K.t = 0;
+        K.flow = false;
+        st.washed = true;
+        st.d21g0 = st.t;
+        st.k20T = Math.round((st.t - K.t0) * 10) / 10;
+        save.k20seen = 1;
+        say(() => o.persist && o.persist());
+        stat('washes');
+        stat('v_kiyor');
+        L0('wash', st.k20T, K.lifts);
+        evlog('act_done', { id: 'kiyor', grade: 'gate', s: st.k20T, lifts: K.lifts });
+        emit17('unlock', { first: K.first, s: st.k20T, held: Math.round(K.held * 10) / 10, lifts: K.lifts, at: { x: act20.x, y: 20.5, z: act20.z } });
+      }
+    } else if (K.ph === 'rise') {
+      if (K.t >= K20.rise) {
+        if (p23) {
+          st.k20 = null;
+          emit17('k20', { ph: 'end' });
+          p23start();
+          return;
+        }
+        K.ph = 'down';
+        K.t = 0;
+        const s = standOf('kiyor');
+        K.ex = s.x;
+        K.ez = s.z;
+        K.dur = Math.hypot(s.x - act20.x, s.z - act20.z) / K20.down;
+      }
+    } else if (K.ph === 'down') {
+      const k = Math.min(1, K.t / K.dur);
+      moveHero(act20.x + (K.ex - act20.x) * k, act20.z + (K.ez - act20.z) * k, Math.atan2(K.ex - act20.x, K.ez - act20.z));
+      if (k >= 1) {
+        st.k20 = null;
+        emit17('k20', { ph: 'end' });
+      }
+    }
+  }
+  const camWork20 = () => {
+      const K = st.k20;
+      if (!K || K.ph === 'down') return null;
+      const C = cam20,
+        t = C.t,
+        c = Math.cos(C.el);
+      return {
+        x: act20.x,
+        z: act20.z,
+        k: 0.62,
+        share: 0,
+        view: { t: [t.x, t.y, t.z], p: [t.x + c * Math.cos(C.az) * C.d, t.y + Math.sin(C.el) * C.d, t.z + c * Math.sin(C.az) * C.d] },
+      };
+    },
+    clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v),
+    r1 = (v) => Math.round(v * 10) / 10,
+    swipeWhy = (dx, dy, ms, min) => (Math.abs(dx) > min ? (Math.abs(dy) > 0.5 * Math.abs(dx) ? 'crooked' : ms > D21.ms ? 'slow' : '') : 'short');
+  // ── recovered (build 21) ── תרומת הדשן: the sweep of the coals (four layers), the walk down the ramp with the pan (the balance, the wind,
+  // the spills), the turn at the foot, the pour onto the heap
+  function d21start() {
+    if (!gate21() || st.d21 || st.summary) return false;
+    const h = heroP();
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    st.d21 = {
+      ph: 'in',
+      t: 0,
+      T: 0,
+      sx: h.x,
+      sz: h.z,
+      px: h.x,
+      pz: h.z,
+      vx: 0,
+      vz: 0,
+      yw: D21.stand.yaw,
+      n: 0,
+      cov: 100,
+      fill: 0,
+      a: 0,
+      b: 0,
+      v: 0,
+      sy: 0,
+      sT: -9,
+      wd: 1,
+      wt: 0,
+      kd: 0,
+      kt: 0,
+      spills: 0,
+      in: null,
+    };
+    if (!Number.isFinite(st.d21g0)) st.d21g0 = st.t;
+    L0('d21', Math.round(h.x), Math.round(h.z));
+    evlog('act_start', 'deshen');
+    emit17('d21', { ph: 'in' });
+    return true;
+  }
+  function d21swipe(dx, dy = 0, ms = 0) {
+    const K = st.d21;
+    if (!K || K.ph !== 'sweep') return false;
+    const why = swipeWhy(dx, dy, ms, D21.sw);
+    return why
+      ? (emit17('d21swipe', { ok: false, why }), false)
+      : (K.n++,
+        (K.cov = 100 - (100 / D21.layers) * K.n),
+        (K.fill = (100 / D21.layers) * K.n),
+        emit17('d21swipe', { ok: true, n: K.n, cov: K.cov, fill: K.fill, dir: Math.sign(dx), at: { x: D21.bed.x, y: 25.4, z: D21.bed.z } }),
+        K.n >= D21.layers && ((K.ph = 'full'), (K.t = 0), (K.swS = r1(K.T - (K.sw0 || 0))), emit17('d21', { ph: 'full' })),
+        true);
+  }
+  function d21stick(v) {
+    const K = st.d21;
+    return K ? ((K.sy = Number.isFinite(+v) ? Math.max(0, Math.min(1, +v)) : 0), true) : false;
+  }
+  function d21bal(v) {
+    const K = st.d21;
+    return K ? ((K.in = v == null || !Number.isFinite(+v) ? null : clamp(+v, -1, 1)), true) : false;
+  }
+  function d21tap() {
+    const K = st.d21;
+    if (!K || K.ph !== 'foot' || !K.near) return false;
+    const h = heroP();
+    K.ph = 'go';
+    K.t = 0;
+    K.sx = h.x;
+    K.sz = h.z;
+    K.fS = r1(K.T - (K.f0 != null ? K.f0 : K.T));
+    emit17('d21', { ph: 'go' });
+    return true;
+  }
+  const move21 = (K, x, z, yaw, dt) => {
+    if (dt > 0) {
+      K.vx = (x - K.px) / dt;
+      K.vz = (z - K.pz) / dt;
+    }
+    K.px = x;
+    K.pz = z;
+    K.yw = yaw;
+    moveHero(x, z, yaw);
+  };
+  function d21Step(dt) {
+    const K = st.d21;
+    if (!K) {
+      if (gate21() && !acting && !st.summary && !st.paused) {
+        const h = heroP();
+        if (atTop(h) && Math.hypot(D21.stand.x - h.x, D21.stand.z - h.z) <= DAY33.reach) d21start();
+      }
+      return;
+    }
+    K.t += dt;
+    K.T += dt;
+    const stand = D21.stand,
+      head = D21.head,
+      foot = D21.foot;
+    if (K.ph === 'in') {
+      const k = Math.min(1, K.t / 0.4);
+      move21(K, K.sx + (stand.x - K.sx) * k, K.sz + (stand.z - K.sz) * k, stand.yaw, dt);
+      if (k >= 1) {
+        K.ph = 'sweep';
+        K.t = 0;
+        K.vx = K.vz = 0;
+        K.sw0 = K.T;
+        emit17('d21', { ph: 'sweep' });
+      }
+    } else if (K.ph === 'full') {
+      if (K.t >= d21k('full')) {
+        K.ph = 'walk';
+        K.t = 0;
+        K.sx = K.px;
+        K.sz = K.pz;
+        K.s = 0;
+        K.v = 0;
+        K.b = 0;
+        K.L1 = Math.hypot(head.x - K.sx, head.z - K.sz);
+        K.y0 = Math.atan2(head.x - K.sx, head.z - K.sz);
+        emit17('d21', { ph: 'walk' });
+      }
+    } else if (K.ph === 'walk' || K.ph === 'desc') {
+      const bal = D21.bal,
+        a = first21() ? 0 : 1,
+        b = 1 - Math.exp(-dt / 0.05),
+        c = foot.z - head.z;
+      K.v = K.v * (1 - b) + (K.sy || 0) * bal.v * b;
+      K.s = Math.min(K.L1 + c, K.s + K.v * dt);
+      if (K.s < K.L1) {
+        const a = K.s / K.L1;
+        move21(K, K.sx + (head.x - K.sx) * a, K.sz + (head.z - K.sz) * a, K.y0, dt);
+      } else {
+        if (K.ph === 'walk') {
+          K.ph = 'desc';
+          K.t = 0;
+          K.a0 = K.T;
+          emit17('d21', { ph: 'desc' });
+        }
+        move21(K, head.x, head.z + K.s - K.L1, K.y0 * (1 - Math.min(1, K.t / 0.3)), dt);
+      }
+      if ((K.wt -= dt) <= 0) {
+        K.wd = rng() < 0.5 ? -1 : 1;
+        K.wt = 0.6 + rng() * 0.9;
+      }
+      (K.kt -= dt) > 0 || ((K.kd = rng() * 2 - 1), (K.kt = 0.15 + rng() * 0.15));
+      K.b = clamp(
+        K.b +
+          (K.wd * bal.wind[a] * (0.8 + 0.4 * Math.sin(K.T * 2.3)) + (K.v / bal.v) * bal.shake[a] * K.kd + (K.in == null ? 0 : K.in) * bal.fix) * dt,
+        -1,
+        1,
+      );
+      K.a = K.b * D21.max;
+      if (Math.abs(K.b) > bal.spill && !(K.T - K.sT < bal.gap)) {
+        const h = heroP();
+        K.sT = K.T;
+        K.spills++;
+        K.b *= 0.4;
+        K.a = K.b * D21.max;
+        K.fill = Math.max(20, K.fill - D21.loss);
+        emit17('d21spill', { n: K.spills, pts: D21.pts, a: Math.sign(K.b), at: { x: h.x, y: (h.y || 16) + 1.4, z: h.z } });
+        L0('d21spill');
+      }
+      if (K.s >= K.L1 + c) {
+        K.ph = 'turn';
+        K.t = 0;
+        K.vx = K.vz = 0;
+        K.in = null;
+        K.sy = 0;
+        emit17('d21', { ph: 'turn' });
+      }
+    } else if (K.ph === 'turn') {
+      const k = Math.min(1, K.t / D21.turn);
+      move21(K, foot.x, foot.z, Math.PI * k, dt);
+      if (k >= 1) {
+        K.ph = 'foot';
+        K.t = 0;
+        emit17('d21', { ph: 'foot' });
+      }
+    } else if (K.ph === 'foot') {
+      const a = D21.go[2],
+        h = heroP();
+      K.near = Math.hypot(a[0] - h.x, a[1] - h.z) <= D21.nr;
+      if (K.near && K.f0 == null) K.f0 = K.T;
+    } else if (K.ph === 'go') {
+      const a = D21.go[2],
+        k = Math.min(1, K.t / 0.3);
+      move21(K, K.sx + (a[0] - K.sx) * k, K.sz + (a[1] - K.sz) * k, Math.PI, dt);
+      if (k >= 1) {
+        K.ph = 'pour';
+        K.t = 0;
+        K.vx = K.vz = 0;
+        emit17('d21', { ph: 'pour', at: { x: D21.heap.x, y: 16.2, z: D21.heap.z } });
+      }
+    } else if (K.ph === 'pour' && K.t >= d21k('pour')) d21done();
+    else if (K.ph === 'end' && K.t >= D21.end) st.d21 = null;
+  }
+  function d21done() {
+    const K = st.d21,
+      spills = K.spills,
+      coins = D21.coins[Math.min(2, spills)],
+      pts = Math.max(0, D21.score - D21.pts * spills),
+      at = { x: D21.heap.x, y: 17.5, z: D21.heap.z },
+      rec = {
+        day: st.day,
+        completionTimeSeconds: r1(st.t - (Number.isFinite(st.d21g0) ? st.d21g0 : st.t - K.T)),
+        ashCollectedPercent: K.fill,
+        embersSpilledCount: spills,
+        scoreEarned: pts,
+        coins,
+        actS: r1(K.T),
+        ownS: r1((K.swS || 0) + (K.fS || 0)),
+      };
+    st.d21day = st.day;
+    K.ph = 'end';
+    K.t = 0;
+    st.d21r = rec;
+    if (g22) st.fuel = Math.min(st.fuel, M22.ember);
+    if (p23 && st.lot === 'deshen') {
+      st.m22day = st.day;
+      st.m22c = 0;
+      st.npc23 = null;
+      st.fuel = Math.max(st.fuel, P23.fire);
+      st.lowDay = st.fuel;
+      try {
+        globalThis.__FLARE33 = performance.now();
+      } catch (e) {}
+      rec23('deshen', rec);
+      emit17('p23lit', { at: { x: M22.pyre.x, y: 28, z: M22.pyre.z } });
+    }
+    score(pts, 'deshen');
+    if (coins) pay(coins, 'deshen', at);
+    if (b17) stat('v_deshen');
+    L0('d21done', rec.completionTimeSeconds, spills);
+    evlog('deshen', rec);
+    emit17('d21done', { ...rec, at });
+    saveState('d21');
+  }
+  const camView = (c) => {
+      const t = c.t,
+        ce = Math.cos(c.el);
+      return { t: [t.x, t.y, t.z], p: [t.x + ce * Math.cos(c.az) * c.d, t.y + Math.sin(c.el) * c.d, t.z + ce * Math.sin(c.az) * c.d] };
+    },
+    camWork21 = () => {
+      const K = st.d21;
+      if (!K) return null;
+      const ph = K.ph,
+        h = heroP();
+      if (ph === 'foot') return null;
+      let view;
+      if (ph === 'walk' || ph === 'desc') {
+        const fol = D21.fol,
+          a = h.x + K.vx / 2.4,
+          b = h.z + K.vz / 2.4,
+          s = Math.sin(K.yw),
+          c = Math.cos(K.yw),
+          d = (onRamp19(a, b) ? rampY19(b) : h.y || 16) + fol.ty,
+          f = fol.d * (1 + (0.15 * (K.v || 0)) / D21.bal.v),
+          g = Math.cos(fol.el) * f;
+        view = { t: [a, d, b], p: [a - s * g, d + Math.sin(fol.el) * f, b - c * g] };
+      } else view = camView(ph === 'go' || ph === 'pour' || ph === 'end' ? D21.camP : ph === 'turn' ? D21.camC : D21.cam);
+      return { x: h.x, z: h.z, view };
+    },
+    band22 = () => M22.band[first22() ? 0 : 1],
+    gap24 = (gap, r) => Math.max(0, (gap - 2 * r) / (gap + 2 * r)),
+    pickOne = (arr) => arr[Math.floor(rng() * arr.length) % arr.length],
+    budget22 = () => (p23 ? P23.budget : M22.budget)[first22() ? 0 : 1],
+    ph22 = (K, ph, extra) => {
+      K.ph = ph;
+      K.t = 0;
+      emit17('m22', { ph, ...extra });
+    };
+  // ── recovered (build 22) ── סידור המערכה: the logs dealt (sizes, woods, the unfit), sorted by swipes, stacked in three layers with the air
+  // between them (the gaps' band), lit
+  function deal22() {
+    const logs = [...(p23 ? P23.sizes : M22.sizes)].map((x) => ({ sp: pickOne(KINDS22[x]), size: x, ok: 1 }));
+    for (let a = logs.length - 1; a > 0; a--) {
+      const b = Math.floor(rng() * (a + 1)) % (a + 1);
+      [logs[a], logs[b]] = [logs[b], logs[a]];
+    }
+    const first = first22();
+    (first ? KINDS22.bad : Array.from({ length: p23 ? P23.bad[1] : rng() < 0.5 ? 4 : 3 }, () => pickOne(KINDS22.bad))).forEach((x, i) => {
+      const a =
+        x === 'worm'
+          ? { sp: pickOne(KINDS22.M), worm: 1, size: pickOne([...'LMS']) }
+          : { sp: x, size: pickOne(x === 'olive' ? ['L', 'M'] : ['M', 'S']) };
+      logs.splice(first ? 1 + (p23 ? 2 : 3) * i : 1 + Math.floor(rng() * (logs.length - 1)), 0, { ...a, ok: 0 });
+    });
+    return logs;
+  }
+  function m22start() {
+    if (!gate22() || st.m22 || st.summary) return false;
+    const h = heroP();
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    st.m22 = {
+      ph: 'in',
+      t: 0,
+      T: 0,
+      sx: h.x,
+      sz: h.z,
+      q: deal22(),
+      i: -1,
+      ls: 'gap',
+      lt: 0,
+      cur: null,
+      got: [],
+      bad: 0,
+      pts: 0,
+      warned: 0,
+      s0: NaN,
+      sortT: 0,
+      layer: 1,
+      air: 50,
+      gaps: [null, null],
+      mis: 0,
+    };
+    evlog('act_start', 'maaracha');
+    emit17('m22', { ph: 'in' });
+    return true;
+  }
+  function m22swipe(dx, dy = 0, ms = 0) {
+    const m22 = st.m22;
+    if (!m22 || m22.ph !== 'sort' || m22.ls !== 'on') return null;
+    const a = swipeWhy(dx, dy, ms, M22.sw);
+    if (a) {
+      emit17('m22sw', { ok: false, why: a });
+      return null;
+    }
+    const cur = m22.cur,
+      b = dx > 0,
+      c = { take: b, fit: !!cur.ok, sp: cur.sp, worm: !!cur.worm };
+    if (b && cur.ok) m22.got.push({ sp: cur.sp, size: cur.size, at: null });
+    else if (b) {
+      m22.bad++;
+      c.warn = first22() && !m22.warned;
+      if (c.warn) m22.warned = 1;
+      else m22.pts += M22.pts;
+      c.pts = c.warn ? 0 : M22.pts;
+    } else if (cur.ok) m22.q.push({ ...cur });
+    m22.ls = 'out';
+    m22.lt = 0;
+    c.n = m22.got.length;
+    emit17('m22sw', { ok: true, ...c });
+    if (m22.got.length >= need22()) {
+      m22.sortT = r1(st.t - m22.s0);
+      ph22(m22, 'sorted', { s: m22.sortT });
+    }
+    return c;
+  }
+  function air22() {
+    const K = st.m22,
+      band = band22(),
+      gaps = [];
+    for (const x of [1, 2]) {
+      const a = K.got.filter((q) => q.at && q.at.ly === x),
+        b = M22.r['LM'[x - 1]],
+        c = a.length === 2 ? Math.abs(a[0].at.x - a[1].at.x) - 2 * b : null;
+      K.gaps[x - 1] = c == null ? null : Math.round(c * 100) / 100;
+      if (c != null) gaps.push(gap24(c + 2 * b, b));
+    }
+    K.gap = gaps.length ? gaps.reduce((s, x) => s + x, 0) / gaps.length : null;
+    K.air = K.gap == null ? 50 : Math.max(0, Math.round(100 - (15 * Math.abs(K.gap - (band[0] + band[1]) / 2)) / ((band[1] - band[0]) / 2)));
+    if (K.ph === 'stack' && K.layer > 3) ph22(K, 'ready');
+  }
+  function m22place(x, dy = 0) {
+    const m22 = st.m22;
+    if (!m22 || m22.ph !== 'stack') return null;
+    const a = m22.got[x];
+    if (!a || a.at) return null;
+    const layer = m22.layer,
+      b = 'LMS'[layer - 1],
+      span = M22.span;
+    if (a.size !== b) {
+      m22.mis++;
+      emit17('m22no', { k: x, ly: layer, lat: clamp(+dy || 0, -span, span) });
+      return { ok: false, why: b };
+    }
+    let c = m22.got.filter((x) => x.at && x.at.ly === layer),
+      d = 2 * M22.r[b],
+      f = p23 ? P23.layn[layer - 1] : 2,
+      g = f < 2 ? 0 : layer === 3 ? (c.length ? 0.16 : -0.16) : clamp(+dy || 0, -span, span);
+    if (layer < 3 && f > 1 && c.length) {
+      const x0 = c[0].at.x;
+      if (Math.abs(g - x0) < d) {
+        g = x0 + (g >= x0 ? d : -d);
+        if (Math.abs(g) > span) g = x0 - Math.sign(g) * d;
+      }
+      const a = gap24(Math.abs(g - x0), M22.r[b]),
+        f = band22();
+      if (a < f[0] || a > f[1]) {
+        const b = a < f[0] ? 'tight' : 'wide';
+        emit17('m22air', { k: x, ly: layer, why: b, gap: Math.round(a * 100) });
+        return { ok: false, why: b, gap: a };
+      }
+    }
+    a.at = { ly: layer, x: g };
+    st.logs = Math.max(0, st.logs - 1);
+    st.m22c = Math.max(0, (st.m22c | 0) - 1);
+    if (c.length + 1 >= f) m22.layer++;
+    air22();
+    emit17('m22put', { k: x, ly: layer, air: m22.air });
+    return { ok: true, ly: layer, x: g, air: m22.air };
+  }
+  const layN22 = (layer) => (p23 ? P23.layn[layer - 1] : 2);
+  function hold22(K) {
+    const size = 'LMS'[K.layer - 1],
+      laid = K.got.filter((x) => x.at && x.at.ly === K.layer);
+    K.hold = K.got.findIndex((x) => !x.at && x.size === size);
+    K.gl = K.layer < 3 && layN22(K.layer) > 1 && !laid.length ? M22.l0 * (K.layer === 2 ? 0.75 : 1) : 0;
+  }
+  function m22stick(v) {
+    const K = st.m22;
+    return K ? ((K.sv = Number.isFinite(+v) ? clamp(+v, -1, 1) : 0), true) : false;
+  }
+  function m22put() {
+    const m22 = st.m22;
+    if (!m22) return false;
+    if (m22.ph === 'ready') return m22tap();
+    if (m22.ph !== 'stack' || !(m22.hold >= 0)) return false;
+    const a = m22place(m22.hold, m22.gl);
+    if (a && a.ok && m22.ph === 'stack') hold22(m22);
+    return !!(a && a.ok);
+  }
+  function m22tap() {
+    const m22 = st.m22;
+    return !m22 || m22.ph !== 'ready' ? false : (ph22(m22, 'ignite'), true);
+  }
+  function m22Step(dt) {
+    const K = st.m22;
+    if (!K) {
+      if (gate22() && !acting && !st.summary && !st.paused && !st.d21) {
+        const h = heroP(),
+          stand = STN.wood.stand;
+        if (!onHigh(h.x, h.z) && Math.hypot(stand.x - h.x, stand.z - h.z) <= DAY33.reach) m22start();
+      }
+      return;
+    }
+    K.t += dt;
+    K.T += dt;
+    const sortAt = M22.sortAt,
+      stand = M22.stand;
+    if (K.ph === 'in' || K.ph === 'stackIn') {
+      const a = K.ph === 'in' ? sortAt : stand,
+        k = Math.min(1, K.t / 0.5);
+      moveHero(K.sx + (a.x - K.sx) * k, K.sz + (a.z - K.sz) * k, a.yaw);
+      if (k >= 1) {
+        ph22(K, K.ph === 'in' ? 'sort' : 'stack');
+        if (K.ph === 'stack') hold22(K);
+      }
+    } else if (K.ph === 'sort') {
+      K.lt += dt;
+      const a = first22(),
+        b = Number.isFinite(K.s0) && st.t - K.s0 > budget22();
+      if (K.ls === 'out' && K.lt >= 0.12) {
+        K.ls = 'gap';
+        K.lt = 0;
+      }
+      if (K.ls === 'gap' && K.lt >= M22.next[a ? 0 : 1][b ? 1 : 0] && K.i + 1 < K.q.length) {
+        K.cur = K.q[++K.i];
+        K.ls = 'on';
+        K.lt = 0;
+        if (!Number.isFinite(K.s0)) K.s0 = st.t;
+      }
+    } else if (K.ph === 'sorted') {
+      if (K.t >= (p23 ? P23.sorted : M22.sorted)) {
+        const a = need22();
+        st.logs += a;
+        st.m22c = a;
+        ph22(K, 'carry');
+        emit17('done', { text: p23 ? 'ארבעה גזרים כשרים!' : 'שישה גזרים כשרים!', sub: 'למזבח' });
+      }
+    } else if (K.ph === 'carry') {
+      const h = heroP();
+      if (
+        atTop(h) &&
+        !acting &&
+        (Math.hypot(stand.x - h.x, stand.z - h.z) <= DAY33.reach || Math.hypot(M22.pyre.x - h.x, M22.pyre.z - h.z) <= DAY33.layReach)
+      ) {
+        if (o.walk && o.walk.stop) say(() => o.walk.stop());
+        goal = null;
+        drive(0, 0);
+        K.ph = 'stackIn';
+        K.t = 0;
+        K.sx = h.x;
+        K.sz = h.z;
+      }
+    } else if (K.ph === 'stack') {
+      const layer = K.layer,
+        a = layer < 3 && layN22(layer) > 1,
+        b = K.got.filter((x) => x.at && x.at.ly === layer),
+        c = M22.r['LMS'[layer - 1]];
+      if (a) K.gl = clamp(K.gl + (K.sv || 0) * M22.gv * dt, -M22.span, M22.span);
+      K.pv = a && b.length === 1 ? gap24(Math.max(2 * c, Math.abs(K.gl - b[0].at.x)), c) : null;
+    } else if (K.ph === 'ignite' && K.t >= M22.ign) m22done();
+    else if (K.ph === 'end' && K.t >= M22.end) st.m22 = null;
+  }
+  function m22done() {
+    const K = st.m22,
+      air = K.air,
+      bad = K.bad,
+      budget = budget22(),
+      fast = K.sortT <= budget,
+      at = { x: M22.pyre.x, y: 28, z: M22.pyre.z },
+      good = air >= M22.good,
+      a = !bad && good ? 3 : !bad || good ? 2 : 1,
+      k = Math.max(0, M22.score + (fast ? M22.fast : 0) + (good ? M22.airB : 0) - K.pts - 10 * K.mis),
+      n = Math.round(M22.fire[0] + M22.fire[1] * air),
+      b = {
+        day: st.day,
+        sortingTimeSeconds: K.sortT,
+        structuralIntegrityScore: Math.max(0, 100 - M22.mis * K.mis),
+        airflowQualityScore: air,
+        airGap: K.gap == null ? null : Math.round(K.gap * 100),
+        invalidWoodSelectedCount: bad,
+        finalScoreEarned: k,
+        coins: a,
+        fire: n,
+        actS: r1(K.T),
+        cracks: K.mis,
+      };
+    st.m22day = st.day;
+    st.m22r = b;
+    st.m22c = 0;
+    K.ph = 'end';
+    K.t = 0;
+    if (p23) {
+      st.npc23 = null;
+      rec23('m22', b, budget);
+    }
+    st.fuel = Math.max(st.fuel, n);
+    st.lowDay = st.fuel;
+    try {
+      globalThis.__FLARE33 = performance.now();
+    } catch (e) {}
+    score(k, 'm22');
+    pay(a, 'm22', at);
+    L0('m22done', b.sortingTimeSeconds, bad, air);
+    evlog('maaracha', b);
+    emit17('m22done', { ...b, at });
+    saveState('m22');
+  }
+  // ── recovered (build 23) ── the lot (pis23.js): the circle (seat23), the raised fingers, the ממונה's count, the cards; the record
+  // (save.roles23: rec23, mastery23); build 26b: free26/circle26 — the second lot's circle forms where he stands
+  const CIRC23 = Object.freeze({ x: P23.c.x, z: P23.c.z, a0: Math.PI }),
+    circ23 = () => (st.p23 && st.p23.C) || CIRC23,
+    seat23 = (i, C = circ23()) => {
+      const a = C.a0 + (i * 2 * Math.PI) / P23.seats;
+      return { x: C.x + Math.cos(a) * P23.r, z: C.z + Math.sin(a) * P23.r };
+    },
+    free26 = (x, z) =>
+      !onHigh(x, z) &&
+      !(x < -54.95 && x > -76.5 && Math.abs(z) < 50.5) &&
+      !(x > -54.6 && x < -21.4 && z > -62.6 && z < -26.4) &&
+      [
+        [0, 0],
+        [0.5, 0],
+        [-0.5, 0],
+        [0, 0.5],
+        [0, -0.5],
+      ].every(([arr, a]) => free(x + arr, z + a));
+  function circle26(h) {
+    let best = null;
+    for (const [x, q] of [[0, 0], ...[0.8, 1.6].flatMap((x) => [0, 1, 2, 3, 4, 5, 6, 7].map((q) => [x, (q * Math.PI) / 4]))]) {
+      const a = h.x + Math.cos(q) * x,
+        b = h.z + Math.sin(q) * x;
+      if (x && !free26(a, b)) continue;
+      const ang = Math.atan2(P26.gate.z - b, P26.gate.x - a);
+      for (let i = 0; i < 16; i++) {
+        let c = ang + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (Math.PI / 8),
+          d = { x: a + Math.cos(c) * P23.r, z: b + Math.sin(c) * P23.r, a0: c + Math.PI },
+          f = free26(d.x, d.z) ? 1 : 0;
+        for (let i = 1; i < P23.seats; i++) {
+          const a = seat23(i, d);
+          if (free26(a.x, a.z)) f++;
+        }
+        if (f === P23.seats) return d;
+        if (!best || f > best.n) best = { C: d, n: f };
+      }
+    }
+    return best.C;
+  }
+  function camAz23(C) {
+    for (let i = 0; i < 9; i++) {
+      const a = P23.cam.az + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.45,
+        b = Math.cos(P23.cam.el) * P23.cam.d,
+        c = C.x + Math.cos(a) * b,
+        d = C.z + Math.sin(a) * b;
+      if (free(c, d) && free((c + C.x) / 2, (d + C.z) / 2) && !onHigh(c, d)) return a;
+    }
+    return P23.cam.az;
+  }
+  function p23start(k26) {
+    if (!(k26 ? gate26L() : gate23()) || st.p23 || st.summary) return false;   // ── fable32 (build 26) ── (k26: the second lot — the same circle, its own registry and count) ── /fable32 ──
+    const h = heroP(),
+      rec = k26 ? roles26() : roles23(),
+      n = (rec.m | 0) + 1,
+      ids = k26
+        ? draw26(
+            n,
+            rec,
+            POOL26.filter((x) => x.built).map((x) => x.id),
+            rng,
+            Object.fromEntries(POOL26.map((x) => [x.id, timesOf(roles23(), x.id)])),
+          )
+        : draw23(
+            n,
+            rec,
+            POOL23.filter((x) => x.built && (p25 || x.id !== 'lamb')).map((x) => x.id),
+            rng,
+          ),
+      a = ids.length > 1,
+      b = [1];
+    for (let i = 1; i < P23.seats; i++) b.push(rng() < 0.5 ? 1 : 2);
+    let c = P23.seats - (a || k26 ? P23.n2 : P23.n1) + 1,
+      d = 1;
+    for (let a = c; a < P23.seats; a++) d += b[a];
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    const f = k26 ? circle26(h) : CIRC23,
+      g = seat23(0, f);
+    st.p23 = {
+      ph: 'in',
+      t: 0,
+      T: 0,
+      t0: st.t,
+      n,
+      cards: ids,
+      F: b,
+      s0: c,
+      N: d,
+      k: -1,
+      pick: -1,
+      auto: false,
+      raised: false,
+      rS: null,
+      sx: h.x,
+      sz: h.z,
+      dur: Math.max(k26 ? P26.lotIn : P23.in, Math.hypot(g.x - h.x, g.z - h.z) / 9),
+      k26: !!k26,
+      C: f,
+      caz: k26 ? camAz23(f) : P23.cam.az,
+    };
+    L0('p23', n, ids.join('/'));
+    evlog('act_start', k26 ? 'p26' : 'p23');
+    emit17('p23', { ph: 'in', n, cards: ids, F: b, s0: c, N: d, k26: !!k26, C: f });
+    return true;
+  }
+  function p23Step(dt) {
+    const K = st.p23;
+    if (!K) {
+      if (gate23() && !st.k20 && !acting && !st.summary && !st.paused) p23start();
+      else if (gate26L() && !acting && !st.summary && !st.paused && !st.d21 && !st.m22 && !st.p25) {
+        const h = heroP();
+        if ((h.y || 16) < 20 && !onHigh(h.x, h.z)) p23start(true);
+      }
+      return;
+    }
+    K.t += dt;
+    K.T += dt;
+    const a = K.C || CIRC23,
+      b = seat23(0, a),
+      ang = Math.atan2(a.x - b.x, a.z - b.z),
+      c = K.cards.length > 1;
+    if (K.ph === 'in') {
+      const k = Math.min(1, K.t / K.dur);
+      moveHero(K.sx + (b.x - K.sx) * k, K.sz + (b.z - K.sz) * k, k < 1 ? Math.atan2(b.x - K.sx, b.z - K.sz) : ang);
+      if (k >= 1) {
+        K.ph = 'raise';
+        K.t = 0;
+      }
+    } else if (K.ph === 'raise') {
+      if (!K.raised && K.T >= P23.fin.auto) p23raise('auto');
+      if (K.raised) {
+        K.ph = 'call';
+        K.t = 0;
+        emit17('p23', { ph: 'call', N: K.N });
+      }
+    } else if (K.ph === 'call') {
+      if (K.t >= P23.call) {
+        K.ph = 'count';
+        K.t = P23.step;
+      }
+    } else if (K.ph === 'count') {
+      if (K.t >= P23.step) {
+        K.t = 0;
+        const a = P23.seats - K.s0 + 1;
+        if (K.k + 1 < a) {
+          K.k++;
+          let b = (K.s0 + K.k) % P23.seats,
+            c = 1;
+          for (let s0 = K.s0; s0 < K.s0 + K.k; s0++) c += K.F[s0 % P23.seats];
+          emit17('p23tick', { k: K.k, i: b, from: c, to: Math.min(K.N, c + K.F[b] - 1), last: K.k === a - 1 });
+        } else {
+          K.ph = c ? 'choose' : 'show';
+          K.pick = c ? -1 : 0;
+          emit17('p23', { ph: K.ph, cards: K.cards });
+        }
+      }
+    } else if (K.ph === 'choose') {
+      if (K.t >= P23.pick) p23pick(0, true);
+    } else if (K.ph === 'show' && K.t >= (c ? P23.show2 : K.k26 ? 0.9 : P23.show)) p23done();
+  }
+  function p23raise(how) {
+    const K = st.p23;
+    return !K || K.raised || (K.ph !== 'in' && K.ph !== 'raise')
+      ? false
+      : ((K.raised = how === 'auto' ? 'auto' : true),
+        (K.rS = r1(K.T)),
+        emit17('p23raise', { auto: K.raised === 'auto', s: K.rS }),
+        L0('p23raise', K.rS),
+        true);
+  }
+  function p23pick(i, auto) {
+    const K = st.p23;
+    return !K || K.ph !== 'choose' || !(i >= 0 && i < K.cards.length)
+      ? false
+      : ((K.pick = i | 0),
+        (K.auto = !!auto),
+        (K.ph = 'show'),
+        (K.t = 0),
+        emit17('p23', { ph: 'show', pick: K.pick, auto: K.auto, cards: K.cards }),
+        true);
+  }
+  function p23done() {
+    const K = st.p23,
+      role = K.cards[Math.max(0, K.pick)],
+      rec = K.k26 ? roles26() : roles23();
+    st.p23 = null;
+    if (K.k26) {
+      st.p26day = st.day;
+      st.role26 = role;
+      rec.m = K.n;
+      rec.h = [...(rec.h || []), [K.n, role]].slice(-8);
+      say(() => o.persist && o.persist());
+      const a = { id: role, cards: K.cards, n: K.n, s: r1(K.T), up: K.rS, upAuto: K.raised === 'auto', k26: true };
+      L0('p26done', role, a.s);
+      evlog('lot26', a);
+      emit17('p23done', a);
+      saveState('p26');
+      return;
+    }
+    st.p23day = st.day;
+    st.lot = role;
+    rec.m = K.n;
+    rec.h = [...(rec.h || []), [K.n, role, ...K.cards]].slice(-8);
+    say(() => o.persist && o.persist());
+    st.fuel = Math.min(st.fuel, M22.ember);
+    if (role === 'm22') {
+      st.d21day = st.day;
+      st.npc23 = 'deshen';
+    } else st.npc23 = 'm22';
+    if (p25)
+      if (role === 'lamb') st.d21day = st.day;
+      else {
+        st.npc25 = st.day;
+        lambIn();
+      }
+    const a = { id: role, cards: K.cards, pick: K.pick, auto: K.auto, n: K.n, s: r1(K.T), up: K.rS, upAuto: K.raised === 'auto' };
+    L0('p23done', role, a.s);
+    evlog('lot', a);
+    emit17('p23done', a);
+    saveState('p23');
+  }
+  function rec23(id, r, budget) {
+    const book = roles23(),
+      m = book[id] || (book[id] = { n: 0, best: 0, last: 0 }),
+      mastery = mastery23(id, r, budget),
+      best = m.best | 0,
+      first = !m.n;
+    m.n = (m.n | 0) + 1;
+    m.last = mastery;
+    m.best = Math.max(best, mastery);
+    r.mastery = mastery;
+    r.rec = !first && mastery > best;
+    say(() => o.persist && o.persist());
+    emit17('p23rec', { id, m: mastery, prev: best, best: m.best, rec: !first && mastery > best, first, n: m.n });
+    L0('p23rec', id, mastery, best);
+  }
+  const wake23 = () => {
+      const s = standOf('kiyor');
+      if (s) moveHero(s.x, s.z, -Math.PI / 2);
+      st.p23 = null;
+    },
+    camWork23 = () => {
+      const K = st.p23;
+      if (!K) return null;
+      const C = K.C || CIRC23;
+      return { x: C.x, z: C.z, view: K.k26 ? camView({ ...P23.cam, az: K.caz, t: { x: C.x, y: P23.cam.t.y, z: C.z } }) : camView(P23.cam) };
+    },
+    lambIn = () => {
+      const l = open33('pen') && st.lambs.find((x) => !x.ok);
+      if (l) l.ok = true;
+    },
+    first25 = () => !timesOf(roles23(), 'lamb'),
+    door25 = () => ({ x: P25.door.x, y: 16, z: P25.door.z, yaw: P25.door.yaw, s: P25.door.s });
+  // ── recovered (build 25) ── the lamb pen: the door, the scan by torchlight, the zoom on a spot, the dirt wiped, the stamps תמים / פסול,
+  // the dawn clock (a false approval's delay), the other kohanim's lamb (npc25)
+  function newLamb25(K) {
+    const L = lamb25(st.day, K.k, K.first, K.blems, K.rej);
+    if (L.blem) K.blems++;
+    const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r }))]
+      .sort((a, b) => a.r - b.r)
+      .map((x, i) => ({ ...x, i, seen: false, gone: false }));
+    K.L = { blem: L.blem, big: L.big, spots };
+    K.fo = -1;
+    K.zi = -1;
+  }
+  function p25start() {
+    if (!gate25() || st.p25 || st.summary) return false;
+    const h = heroP();
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    const K = (st.p25 = {
+      ph: 'in',
+      t: 0,
+      T: 0,
+      own: 0,
+      sx: h.x,
+      sz: h.z,
+      k: 0,
+      blems: 0,
+      rej: 0,
+      fa: 0,
+      wr: 0,
+      dm: 0,
+      insp: 0,
+      br: 0,
+      fo: -1,
+      zi: -1,
+      first: first25(),
+      L: null,
+    });
+    newLamb25(K);
+    evlog('act_start', 'lamb');
+    emit17('p25', { ph: 'in', first: K.first, k: 0 });
+    return true;
+  }
+  const ph25 = (K, ph, extra) => {
+    K.ph = ph;
+    K.t = 0;
+    emit17('p25', { ph, k: K.k, ...extra });
+  };
+  function p25Step(dt) {
+    const K = st.p25;
+    if (!K) {
+      if (gate25() && !acting && !st.summary && !st.paused) {
+        const h = heroP(),
+          stand = P25.stand;
+        if ((h.y || 16) < 20 && Math.hypot(stand.x - h.x, stand.z - h.z) <= DAY33.reach) p25start();
+      }
+      return;
+    }
+    K.t += dt;
+    K.T += dt;
+    const ph = K.ph;
+    if (ph === 'scan' || ph === 'zoom' || ph === 'dirt' || ph === 'clean' || ph === 'blem' || ph === 'false') K.own += dt;
+    if (ph === 'in') {
+      const stand = P25.stand,
+        door = P25.door,
+        k = Math.min(1, K.t / P25.in);
+      moveHero(K.sx + (stand.x - K.sx) * k, K.sz + (stand.z - K.sz) * k, Math.atan2(door.x - stand.x, door.z - stand.z));
+      if (k >= 1) ph25(K, 'scan');
+    } else if (ph === 'zoom' && K.t >= P25.zoom) {
+      const a = K.L.spots[K.zi];
+      ph25(K, a.kind === 'dirt' ? 'dirt' : 'blem', { c: a.c, r: a.r });
+    } else if ((ph === 'clean' && K.t >= P25.clean) || (ph === 'blem' && K.t >= P25.blem)) {
+      K.zi = -1;
+      ph25(K, 'scan');
+    } else if (ph === 'aside' && K.t >= P25.aside) ph25(K, 'wait');
+    else if (ph === 'bring' && K.t >= P25.bring) ph25(K, 'scan');
+    else if (ph === 'false' && K.t >= P25.fals) ph25(K, 'wait', { fals: true });
+    else if (ph === 'ok' && K.t >= P25.ok) p25done();
+    else if (ph === 'lead' && K.t >= P25.lead) ph25(K, 'end');
+    else if (ph === 'end' && K.t >= P25.end) st.p25 = null;
+  }
+  function p25focus(i) {
+    const K = st.p25;
+    if (!K || K.ph !== 'scan') return false;
+    const spot = K.L.spots[i],
+      fo = spot && !spot.gone ? i | 0 : -1;
+    K.fo = fo;
+    return fo >= 0;
+  }
+  function p25tap() {
+    const K = st.p25;
+    if (!K) return false;
+    if (K.ph === 'scan') {
+      const spot = K.L.spots[K.fo];
+      return !spot || spot.gone ? false : ((K.zi = K.fo), (spot.seen = true), K.insp++, ph25(K, 'zoom'), true);
+    }
+    return K.ph === 'blem' ? ((K.zi = -1), ph25(K, 'scan'), true) : K.ph === 'wait' ? (K.k++, newLamb25(K), ph25(K, 'bring'), true) : false;
+  }
+  function p25swipe(dx, dy = 0, ms = 0) {
+    const K = st.p25;
+    if (!K || K.ph !== 'dirt') return false;
+    const why = swipeWhy(dx, dy, ms, P25.sw);
+    if (why) {
+      emit17('p25swipe', { ok: false, why });
+      return false;
+    }
+    const spot = K.L.spots[K.zi];
+    spot.gone = true;
+    K.br++;
+    emit17('p25swipe', { ok: true });
+    ph25(K, 'clean');
+    return true;
+  }
+  function p25stamp(how) {
+    const K = st.p25;
+    if (!K || !/^(scan|zoom|dirt|clean|blem)$/.test(K.ph) || (how !== 'tamim' && how !== 'pasul')) return false;
+    const blem = K.L.blem;
+    if (how === 'pasul') {
+      if (K.rej >= P25.rej) {
+        emit17('p25no', { why: 'max' });
+        return false;
+      }
+      K.rej++;
+      const dirty = K.L.spots.some((x) => x.kind === 'dirt' && !x.gone),
+        truth = blem ? '' : dirty ? 'dirt' : 'whole';
+      if (truth === 'dirt') K.dm++;
+      else if (truth === 'whole') K.wr++;
+      K.zi = -1;
+      ph25(K, 'aside', { v: how, ok: !!blem, why: truth, blem: blem ? { ...blem } : null });
+      emit17('p25stamp', { v: how, ok: !!blem, why: truth });
+      return true;
+    }
+    K.zi = -1;
+    return blem
+      ? (K.fa++, ph25(K, 'false', { v: how, blem: { ...blem } }), emit17('p25stamp', { v: how, ok: false, why: 'blem', blem: { ...blem } }), true)
+      : (ph25(K, 'ok', { v: how }), emit17('p25stamp', { v: how, ok: true }), true);
+  }
+  function p25done() {
+    const K = st.p25,
+      own = r1(K.own),
+      fast = own <= P25.tT[0] * 1.5,
+      clean = !K.fa && !K.wr && !K.dm,
+      coins = clean ? (own <= 14 ? 3 : 2) : K.fa ? 1 : 2,
+      k = Math.max(0, P25.score + (fast ? P25.fast : 0) - P25.fa * K.fa - P25.wr * (K.wr + K.dm)),
+      a = { x: P25.door.x, y: 18.2, z: P25.door.z },
+      b = {
+        day: st.day,
+        ownS: own,
+        lambs: K.k + 1,
+        rejections: K.rej,
+        falseApprovals: K.fa,
+        wrongRejections: K.wr,
+        dirtMistaken: K.dm,
+        inspected: K.insp,
+        brushed: K.br,
+        scoreEarned: k,
+        coins,
+      };
+    st.p25day = st.day;
+    st.p25r = b;
+    ph25(K, 'lead');
+    st.m22day = st.day;
+    st.m22c = 0;
+    st.npc23 = null;
+    st.fuel = Math.max(st.fuel, P23.fire);
+    st.lowDay = st.fuel;
+    try {
+      globalThis.__FLARE33 = performance.now();
+    } catch (e) {}
+    lambIn();
+    stat('inspected');
+    stat('v_pen');
+    rec23('lamb', b);
+    emit17('p23lit', { at: { x: M22.pyre.x, y: 28, z: M22.pyre.z } });
+    score(k, 'lamb');
+    if (coins) pay(coins, 'lamb', a);
+    evlog('lamb25', b);
+    emit17('p25done', { ...b, at: a });
+    saveState('p25');
+  }
+  const view25 = () => {
+      const c = P25.cam,
+        L = door25(),
+        asp = Math.max(0.4, (globalThis.innerWidth || 844) / (globalThis.innerHeight || 390));
+      return camView({ az: c.az, el: c.el, d: Math.max(c.d, 3.5 / asp), t: { x: L.x, y: 16 + c.ty, z: L.z } });
+    },
+    spotView25 = (K) => {
+      const spot = K.L.spots[K.zi],
+        at = at25(spot.r, door25(), spot.r < 4 ? P25.hy : 0),
+        v = view25(),
+        d = Math.hypot(v.p[0] - at.x, v.p[1] - at.y, v.p[2] - at.z) || 1,
+        a = [0, 1, 2].map((x) => ((v.p[x] - [at.x, at.y, at.z][x]) / d) * 0.55 + [at.nx, at.ny, at.nz][x] * 0.45),
+        b = Math.hypot(...a) || 1;
+      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * P25.zd), t: [at.x, at.y, at.z] };
+    },
+    camWork25 = () => {
+      const K = st.p25;
+      if (!K) return null;
+      const ph = K.ph,
+        L = door25(),
+        camP = P25.camP,
+        a =
+          (ph === 'zoom' || ph === 'dirt' || ph === 'clean' || ph === 'blem') && K.zi >= 0
+            ? { ...spotView25(K), e: 10 }
+            : /^(ok|lead|end|false)$/.test(ph)
+              ? { ...camView({ ...camP, t: { x: (L.x + P25.stand.x) / 2 - 1, y: 16 + camP.ty, z: (L.z + P25.stand.z) / 2 } }), e: 3 }
+              : { ...view25(), e: ph === 'in' ? 2.4 : 6 };
+      return { x: L.x, z: L.z, view: a };
+    },
+    // ── recovered (build 26) ── inside the Heichal: the gate's bolt and key, the inner altar's ashes into the teni (pulls), the menorah's
+    // wicks, oil (the pour's band) and fire; the morning's event (a lamp gone out: the drag from the next); save.roles26, save.jer26
+    roles26 = () => (save.roles26 && typeof save.roles26 === 'object' ? save.roles26 : (save.roles26 = { m: 0, h: [] })),
+    first26 = (role) => !timesOf(roles23(), role),
+    HANDS26 = /^(pull|wick|wipe|pour|spill|new|drag)$/,
+    YAW26 = -Math.PI / 2;
+  function r26start(how) {
+    const h = heroP(),
+      role = st.role26 === 'inner' ? 'inner' : 'menorah',
+      first = first26(role),
+      ev = role === 'menorah' && ev26(st.day, first);
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    st.r26 = {
+      ph: how,
+      t: 0,
+      T: 0,
+      role,
+      own: 0,
+      sx: h.x,
+      sz: h.z,
+      kp: 0,
+      held: false,
+      n: 0,
+      ash: 1,
+      acc: 100,
+      scr: 0,
+      ord: ev ? [6, 4, 3, 2, 1, 0] : [4, 3, 2, 1, 0],
+      li: 0,
+      fill: 0,
+      q: [],
+      under: 0,
+      over: 0,
+      refused: 0,
+      ev,
+      lit: [0, 0, 0, 0, 0, 1, ev ? 0 : 1],
+      first,
+    };
+    evlog('act_start', 'r26');
+    emit17('r26', { ph: how, role, ev, first, lamp: st.r26.ord[0] });
+    return true;
+  }
+  const ph26 = (K, ph, extra) => {
+      K.ph = ph;
+      K.t = 0;
+      emit17('r26', { ph, role: K.role, li: K.li, lamp: K.ord[K.li], n: K.n, ...extra });
+    },
+    glide26 = (K, x, z, dur) => {
+      const k = Math.min(1, K.t / dur);
+      moveHero(K.sx + (x - K.sx) * k, K.sz + (z - K.sz) * k, YAW26);
+      return k >= 1;
+    },
+    at26 = (role) => (role === 'inner' ? P26.alt : P26.walkM);
+  function r26Step(dt) {
+    const K = st.r26,
+      h = heroP();
+    if (!K) {
+      if (gate26() && !acting && !st.summary && !st.paused && !st.p23) {
+        const S0 = open26() ? at26(st.role26) : P26.gate;
+        if (Math.hypot(S0.x - h.x, S0.z - h.z) <= P26.reach) r26start(open26() ? 'step' : 'in');
+      }
+      return;
+    }
+    K.t += dt;
+    K.T += dt;
+    const ph = K.ph;
+    if (HANDS26.test(ph)) K.own += dt;
+    if (ph === 'in') {
+      if (glide26(K, P26.gate.x, P26.gate.z, P26.in)) ph26(K, 'bolt');
+    } else if (ph === 'key') {
+      K.kp = Math.max(0, Math.min(1, K.kp + (K.held ? dt / P26.key : -dt * P26.back)));
+      if (K.kp >= 1) {
+        st.g26day = st.day;
+        st.g26t = st.t;
+        st.men5t = K.role === 'inner' ? st.t + 14 : null;
+        HOUSE22.gate = true;
+        K.held = false;
+        const a = !save.jer26;
+        save.jer26 = 1;
+        say(() => o.persist && o.persist());
+        ph26(K, 'open', { jer: a });
+        emit17('r26gate', { jer: a, at: { x: -95, y: 30, z: 0 } });
+        L0('r26gate');
+      }
+    } else if (ph === 'open' && K.t >= P26.opn) ph26(K, 'walk');
+    else if (ph === 'walk') {
+      const a = at26(K.role);
+      if (!acting && Math.hypot(a.x - h.x, a.z - h.z) <= P26.reach) {
+        K.sx = h.x;
+        K.sz = h.z;
+        ph26(K, 'step');
+      }
+    } else if (ph === 'step') {
+      const a = K.role === 'inner' ? P26.alt : P26.men;
+      if (glide26(K, a.x, a.z, P26.step)) ph26(K, K.role === 'inner' ? 'set' : 'wick');
+    } else if (ph === 'set' && K.t >= P26.set) ph26(K, 'pull');
+    else if (ph === 'leave' && K.t >= P26.leave) done26();
+    else if (ph === 'pour' && K.held) {
+      K.fill = fill26(K.fill, dt);
+      if (K.fill >= P26.pour.max) pour26(K);
+    } else if (ph === 'spill' && K.t >= P26.spill) {
+      K.fill = 0;
+      ph26(K, 'pour');
+    } else if (ph === 'lit' && K.t >= P26.lit) {
+      K.fill = 0;
+      if (++K.li < K.ord.length) ph26(K, 'wick');
+      else ph26(K, 'kuz');
+    } else if (ph === 'kuzd') {
+      if (glide26(K, P26.walkM.x, P26.walkM.z, P26.kuz)) done26();
+    } else if (ph === 'out' && (h.x > -54.5 || K.t > 60)) st.r26 = null;
+  }
+  function r26swipe(dx, dy = 0, ms = 0) {
+    const K = st.r26,
+      ph = K ? K.ph : '';
+    if (ph !== 'bolt' && ph !== 'wick' && ph !== 'wipe') return false;
+    const why =
+      ph === 'wick'
+        ? dy < -P26.wick
+          ? Math.abs(dx) > 0.5 * Math.abs(dy)
+            ? 'crooked'
+            : ms > P26.ms
+              ? 'slow'
+              : ''
+          : 'short'
+        : swipeWhy(dx, dy, ms, P26.sw);
+    if (why) {
+      if (ph !== 'bolt') K.refused++;
+      emit17('r26swipe', { ok: false, why, ph });
+      return false;
+    }
+    const both = ph === 'wick' && K.li > 0;
+    emit17('r26swipe', { ok: true, ph, both });
+    ph26(K, ph === 'bolt' ? 'key' : ph === 'wick' && !both ? 'wipe' : 'pour', both ? { both } : undefined);
+    return true;
+  }
+  function r26hold(on) {
+    const K = st.r26;
+    if (!K || (K.ph !== 'key' && K.ph !== 'pour') || (on && st.paused)) return false;
+    const was = K.held;
+    K.held = !!on;
+    if (K.ph === 'pour' && was && !on) pour26(K);
+    return true;
+  }
+  function let26() {
+    const K = st.r26;
+    !K || !K.held || ((K.held = false), emit17('r26hold', { off: true, why: 'pause', ph: K.ph, fill: K.fill }), L0('r26let', K.ph));
+  }
+  function pour26(K) {
+    const P = P26.pour,
+      fill = K.fill,
+      li = K.li,
+      q = K.q[li] == null ? 1 : K.q[li];
+    K.held = false;
+    if (fill > P.hi) {
+      K.over++;
+      K.q[li] = Math.min(q, 0.45);
+      emit17('r26pour', { ok: false, why: 'over', fill });
+      ph26(K, 'spill', { fill });
+      return;
+    }
+    if (fill < P.lo) {
+      if (fill > 0.02) {
+        K.under++;
+        K.q[li] = Math.min(q, 0.8);
+        emit17('r26pour', { ok: false, why: 'under', fill });
+      }
+      return;
+    }
+    K.q[li] = q;
+    emit17('r26pour', { ok: true, fill });
+    ph26(K, 'new');
+  }
+  function r26pull(v) {
+    const K = st.r26;
+    if (!K || K.ph !== 'pull') return false;
+    K.n++;
+    const last = K.n >= P26.pulls,
+      fast = v > P26.vmax;
+    K.ash = last ? 0 : Math.max(0, 1 - P26.hand * K.n);
+    if (fast) {
+      K.scr++;
+      K.acc = Math.max(0, K.acc - P26.scr);
+    }
+    emit17('r26pull', { n: K.n, sweep: last, scratch: fast, ash: K.ash, acc: K.acc });
+    if (last) ph26(K, 'leave');
+    return true;
+  }
+  function r26tap() {
+    const K = st.r26;
+    if (!K) return false;
+    if (K.ph === 'new') {
+      const lamp = K.ord[K.li];
+      emit17('r26wick', { lamp });
+      if (K.ev && lamp === 6) ph26(K, 'drag');
+      else lit26(K, lamp, lamp + 1);
+      return true;
+    }
+    return K.ph === 'kuz' ? ((K.sx = P26.men.x), (K.sz = P26.men.z), ph26(K, 'kuzd'), true) : false;
+  }
+  function lit26(K, lamp, from, drag) {
+    K.lit[lamp] = 1;
+    if (K.li === K.ord.length - 1) st.men5t = st.t;
+    ph26(K, 'lit', { lamp, from, drag: !!drag });
+  }
+  function r26light() {
+    const K = st.r26;
+    return !K || K.ph !== 'drag' ? false : (lit26(K, 6, 5, true), true);
+  }
+  function done26() {
+    const K = st.r26,
+      own = r1(K.own),
+      inner = K.role === 'inner',
+      qs = K.q.filter((x) => x != null),
+      pourQ = qs.length ? qs.reduce((s, x) => s + x, 0) / qs.length : 0,
+      a = P26.tT[K.role],
+      b = own <= a[0] * 1.3,
+      c = inner ? K.acc >= 95 : pourQ >= 0.95,
+      d = inner ? K.acc >= 85 : pourQ >= 0.75,
+      f = c ? (b ? 3 : 2) : d ? 2 : 1,
+      n = Math.round(P26.score * (inner ? K.acc / 100 : pourQ) + (b ? P26.fast : 0)),
+      g = inner
+        ? { day: st.day, role: 'inner', ownS: own, pulls: K.n, scratches: K.scr, accuracy: K.acc }
+        : {
+            day: st.day,
+            role: 'menorah',
+            ownS: own,
+            lamps: K.ord.length,
+            pourQ: Math.round(pourQ * 100) / 100,
+            under: K.under,
+            over: K.over,
+            refused: K.refused,
+            relit: !!K.ev,
+          };
+    Object.assign(g, { scoreEarned: n, coins: f, actS: r1(K.T) });
+    st.r26day = st.day;
+    st.r26r = g;
+    ph26(K, 'out');
+    const k = inner ? { x: -121, y: 24.5, z: 0 } : { x: -124.8, y: 25.5, z: 7.5 };
+    rec23(K.role, g);
+    score(n, 'r26');
+    pay(f, 'r26', k);
+    L0('r26done', K.role, own);
+    evlog('heichal26', g);
+    emit17('r26done', { ...g, at: k });
+    saveState('r26');
+  }
+  function camWork26() {
+    const r26 = st.r26;
+    if (!r26) return null;
+    let ph = r26.ph,
+      h = heroP(),
+      a = null;
+    if (ph === 'in' || ph === 'bolt' || ph === 'key') a = { p: [-82.3, 26.4, 7.6], t: [-92.6, 24.4, -1.4], e: ph === 'in' ? 2.4 : 4 };
+    else if (ph === 'open') a = { p: [-83.8, 25.6, 5.8], t: [-104, 24.2, -1.4], e: 1.5 };
+    else if (ph === 'walk')
+      a =
+        h.x > -97.5
+          ? h.x > -84.5
+            ? null
+            : { p: [h.x + 7.5, 27.6, h.z * 0.6 + 1.5], t: [h.x - 9, 23.6, h.z * 0.4], e: 3 }
+          : { p: [-102.4, 28.8, -6.8], t: [-123.4, 23.6, 2.6], e: 2 };
+    else if (ph === 'out') a = h.x > -97.5 ? null : { p: [Math.max(-135, h.x - 8), 27.4, h.z * 0.5 - 1.5], t: [h.x + 9, 23.4, 0], e: 2.4 };
+    else if (r26.role === 'inner') a = { p: [-123.9, 26.2, -3.6], t: [-120.5, 23.1, 0.2], e: 2.6 };
+    else if (ph === 'step') a = { p: [-119.6, 27, 3.2], t: [-124.4, 24, 7.4], e: 2.2 };
+    else if (ph === 'kuz' || ph === 'kuzd') a = { p: [-120.9, 25.1, 4.5], t: [-122.8, 22.8, 7.4], e: 2.6 };
+    else {
+      const b = P26.lx[r26.ord[Math.min(r26.li, r26.ord.length - 1)]];
+      a = { p: [Math.min(b + 0.55, -124.5), 26.1, 4.5], t: [b - 0.15, 24.9, 7.5], e: 3 };
+    }
+    return a ? { x: a.t[0], z: a.t[2], view: a } : null;
+  }
+  function card22(h) {
+    const K = st.m22,
+      ph = K ? K.ph : '';
+    return !K || ph === 'carry'
+      ? {
+          icon: K ? '⛰️' : '🪵',
+          label: K ? (atTop(h) ? 'למערכה' : goLabel31('הכבש')) : goLabel31(STN.wood.he),
+          job: 'sh:go:m22',
+          noRing: true,
+          go31: true,
+          go: () => peek24(),
+        }
+      : { icon: '🔥', label: 'המערכה', job: 'sh:m22', noRing: true, go: () => {} };
+  }
+  const camWork22 = () => {
+    const K = st.m22;
+    if (!K || K.ph === 'carry') return null;
+    const h = heroP(),
+      ph = K.ph;
+    return {
+      x: h.x,
+      z: h.z,
+      view: ph === 'in' || ph === 'sort' || ph === 'sorted' ? M22.camS : camView(ph === 'ignite' || ph === 'end' ? M22.camP : M22.camB),
+    };
+  };
+  // ── recovered (build 17) ── the focused day's next step (after the gates: the lost lamb at home, the pen before a tamid, the fire low, the
+  // day's goals), the act's answers (hitOf / missOf: the slot's +1, the streak, the coins)
+  function next17() {
+    const tm = tamid17(),
+      lost = st.lost,
+      goals = B17.goals,
+      go = (a) => ({ id: a, kind: 'station' });
+    if (lost && (lost.home || (lost.follow && st.fuel >= B17.crit))) return { id: 'lamb', kind: 'lamb' };
+    const a = !!(tm && !tm.done && (tm.late || tm.inS < B17.penBefore)) && !(grace17() && st.t + tm.inS < B17.grace);
+    if (open33('pen') && okLambs() === 0 && st.lambs.some((x) => !x.ok) && a && st.fuel >= B17.warn) return go('pen');
+    if (b19 && st.r19.fl.length && !st.logs && (near19(heroP()) || !woodRush(tm))) return go('log19');
+    if (woodRush(tm)) return go('wood');
+    if (st.song && open33('song')) return go('song');
+    if (open33('kiyor') && !st.washed) return go('kiyor');
+    if (saltDue()) return go(st.r19.bag >= 110 || (st.r19.bag > 0 && near19(heroP())) ? 'saltR' : 'salt');
+    if (c18 && st.logs <= 0 && st.fuel >= C18.errand) {
+      if (padOpen()) return go('pad');
+      if (st.ch18.n >= chests.max) return go('chests');
+    }
+    return lost
+      ? { id: 'lamb', kind: 'lamb' }
+      : open33('pen') && st.lambs.some((x) => !x.ok)
+        ? go('pen')
+        : open33('bake') && statN('baked') < goals.bake
+          ? go(st.oil > 0 && st.flour > 0 ? (st.salt > 0 ? 'bake' : 'salt') : 'oil')
+          : go('wood');
+  }
+  const word17 = (g) =>
+      g !== 'gold' ? 'טוב' : st.streak >= 5 ? `כהן זריז! ×${st.streak}` : st.streak >= 3 ? 'כהן זריז!' : st.streak === 2 ? 'מצוין!' : 'מושלם!',
+    POP17 = { wood: ['+1 🪵', 'card'], oil: ['+1 🏺', 'bake'], salt: ['+1 🧂', 'bake'], bake: ['+1 🍞', 'bake'], pen: ['+1 🐑', 'card'] };
+  function hitOf(id, g) {
+    const r = hit33(id, g);
+    if (!b17) return r;
+    const pop = POP17[id] || ['+1', 'card'],
+      s = STN[id],
+      at = s ? { x: s.at.x, y: (s.at.y || 16) + 2.6, z: s.at.z } : null;
+    if (id === 'wood' && st.lastWorm) {
+      if (l18) emit17('act', { id, g, at });
+    } else emit17('hit', { id, g, streak: st.streak, text: pop[0], to: pop[1], at });
+    payAct(g, 'hit:' + id, at);
+    if (c18 && g === 'gold' && st.streak > 0 && st.streak % C18.streak === 0) {
+      pay(1, 'streak', at);
+      nedavaStep();
+    }
+    if (id === 'wood' && st.logs >= basketCap() && !r.more) emit17('done', { text: 'הסל מלא!', sub: 'לכבש' });
+    if (id === 'pen' && !r.more) emit17('done', { text: 'הטלאים מבוקרים!' });
+    return { ...r, word: word17(g), streak: st.streak };
+  }
+  function hit33(id, g) {
+    scoreAct(id, { quality: g === 'gold' ? 1 : g === 'good' ? 0.85 : 0.6, gold: g === 'gold' });
+    st.idleT = 0;
+    if (b17) st.streak = g === 'gold' ? st.streak + 1 : 0;
+    st.lastWorm = false;
+    if (id === 'wood') {
+      if (!grace17() && powerOn) st.power = Math.max(0, st.power - DAY33.powerChop);
+      st.chops++;
+      if (!grace17() && rng() < DAY33.worm) {
+        st.lastWorm = true;
+        st.worms++;
+        if (st.wormSaid) say(() => hud && hud.float && hud.float('מתולע — פסול', project({ x: STN.wood.at.x, y: 20, z: STN.wood.at.z })));
+        else {
+          st.wormSaid = true;
+          stamp('גזר מתולע — פסול למזבח (מידות ב, ה)', 'no');
+        }
+        sfx('miss');
+        L0('worm');
+      } else {
+        st.logs++;
+        st.basketQ.push(g);
+        L0('log', st.logs, g);
+        stat('chops');
+        {
+          const h = heroP();
+          fx('load', { x: STN.wood.at.x, y: 17, z: STN.wood.at.z - 1 }, { x: h.x, y: 18, z: h.z }, 1);
+        }
+      }
+      return { more: st.logs < basketCap() };
+    }
+    if (id === 'oil') {
+      st.oil++;
+      st.flour++;
+      L0('oil');
+      stat('jars');
+      return { more: st.oil < DAY33.storeMax };
+    }
+    if (id === 'salt') {
+      st.salt++;
+      L0('salt');
+      return { more: st.salt < DAY33.storeMax };
+    }
+    if (id === 'bake') {
+      if (st.oil > 0 && st.flour > 0 && st.salt > 0) {
+        st.oil--;
+        st.flour--;
+        st.salt--;
+        st.bread++;
+        st.baked++;
+        L0('bake');
+        stat('baked');
+      }
+      return { more: st.oil > 0 && st.flour > 0 && st.salt > 0 };
+    }
+    if (id === 'pen') {
+      const a = st.lambs.find((x) => !x.ok);
+      if (a) {
+        a.ok = true;
+        stamp(`הצלחתם! הדיר נפתח — הטלה נכנס ומבוקר: ${okLambs()}/${DAY33.lambs} (ערכין ב, ה)`, 'combo');
+        sfx('coin');
+        L0('inspect');
+        stat('inspected');
+      }
+      return { more: st.lambs.some((x) => !x.ok) };
+    }
+    return { more: false };
+  }
+  function missOf(id, n) {
+    if (b17) {
+      st.streak = 0;
+      emit17('miss', { id, grace: grace17(), at: over(id) });
+      if (grace17()) return null;
+    }
+    if (id === 'pen' && n >= DAY33.penMisses) {
+      stamp('לא הצלחתם — הדיר לא נפתח בזמן, הטלה ברח! תפסו אותו', 'no');
+      sfx('miss');
+      L0('pen-bolt');
+      if (!st.lost) {
+        const at = STN.pen.at,
+          a = rng() * Math.PI * 2;
+        st.lost = { x: at.x + Math.cos(a) * 14, z: at.z + 10 + Math.abs(Math.sin(a)) * 8, yaw: a, t: 0, follow: false };
+      }
+      return { end: true };
+    }
+    return null;
   }
   async function runAt(id) {
     if (acting || st.phase !== 'run' || !ST || !ST.act) return false;
-    const h = heroP(), p = standOf(id); if (!p) return false;
+    if (st.k20 || st.d21 || st.p25) return false;
+    if (gate20() && id !== 'kiyor') return gate20no(id);   // ── fable32 (build 20) ── (the kiddush runs; before it, no other station) ── /fable32 ── ── fable32 (build 21) ── (terumat hadeshen likewise) ── /fable32 ──
+    if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── (the lot) ── /fable32 ──
+    if (gate21()) return gate21no(id);
+    if (gate25()) return id === 'pen' ? peek24() : gate25no(id);   /* ── fable32 (build 25) ── */
+    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);   /* ── fable32 (build 26) ── */
+    if (gate22() && !(id === 'kevesh' && carry22())) return id === 'wood' && !st.m22 ? peek24('wood') : gate22no(id);
+    const h = heroP(),
+      p = standOf(id);
+    if (!p) return false;
+    if (id === 'pyre') return !!(atTop(h) && st.logs > 0 && layLogs());
     if (Math.hypot(p.x - h.x, p.z - h.z) > DAY33.reach + 0.3) return tapStation(id);
-    if (!open33(id)) { stamp(`${STN[id].he} — נפתח ברמה ${DAY33.unlock[id] || '?'} של האש`, 'no'); sfx('miss'); return false; }
-    if (id === 'wood' && st.logs >= st.basketMax) { stamp('הסל מלא — לכבש!', 'no'); sfx('miss'); return false; }
-    if (id === 'kevesh' && st.logs <= 0) { stamp('אין עצים בסל — ללשכת העץ', 'no'); sfx('miss'); return false; }
-    if (id === 'kiyor' && st.washed) { stamp('כבר קידשתם היום — פעם אחת ביום', 'no'); sfx('miss'); return false; }
-    if (id === 'song' && !st.song) { stamp('הלויים שרים אחרי תמיד של שחר', 'no'); sfx('miss'); return false; }
-    if (id === 'bake' && !(st.oil > 0 && st.flour > 0 && st.salt > 0)) { stamp(`ללחם צריך סולת, שמן ומלח — יש ${st.flour}/${st.oil}/${st.salt}`, 'no'); sfx('miss'); return false; }
-    if (id === 'wood') { try { STN.wood.n = st.axeTaps + (tired() ? 3 : 0); } catch (e) { /* */ } }
-    acting = { id }; drive(0, 0); L0('act', id);
-    let r = null; try { const pr = ST.act(id, null); if (STN[id].verb === 'tapN' && ST.poke) say(() => ST.poke('start'));   /* (build 11: the tap that opened the act is its first hit — "5 הקשות" means five) */ r = await pr; } catch (e) { r = { quality: 0.6, gold: false }; }
+    if (!open33(id)) {
+      stamp(`${STN[id].he} — נפתח ברמה ${DAY33.unlock[id] || '?'} של האש`, 'no');
+      sfx('miss');
+      return false;
+    }
+    if (id === 'wood' && st.logs >= st.basketMax) {
+      stamp('הסל מלא — לכבש!', 'no');
+      sfx('miss');
+      return false;
+    }
+    if (id === 'kevesh' && st.logs <= 0) {
+      stamp('אין עצים בסל — ללשכת העץ', 'no');
+      sfx('miss');
+      return false;
+    }
+    if (id === 'kiyor' && st.washed) {
+      stamp('כבר קידשתם היום — פעם אחת ביום', 'no');
+      sfx('miss');
+      return false;
+    }
+    if (g20 && id === 'kiyor') return k20start();
+    if (id === 'song' && !st.song) {
+      stamp('הלויים שרים אחרי תמיד של שחר', 'no');
+      sfx('miss');
+      return false;
+    }
+    if (id === 'bake' && !(st.oil > 0 && st.flour > 0 && st.salt > 0)) {
+      stamp(`ללחם צריך סולת, שמן ומלח — יש ${st.flour}/${st.oil}/${st.salt}`, 'no');
+      sfx('miss');
+      return false;
+    }
+    if (id === 'wood')
+      try {
+        STN.wood.n = st.axeTaps + (tired() ? 3 : 0);
+      } catch (e) {}
+    if (b19 && id === 'kevesh') return peek24('pyre');
+    if (b19 && id === 'salt') {
+      const r19 = st.r19;
+      if (!usable(id)) return false;
+      r19.bm = r19.bag = R19.bag[st.day > 1 ? 1 : 0];
+      r19.bags++;
+      st.salt = Math.max(st.salt, DAY33.storeMax);
+      stat('v_salt');
+      emit17('act', { id, g: 'gold', at: over(id) });
+      emit17('done', { text: 'שק מלח על החגורה', sub: 'שלא יחליקו (עירובין י, יד)' });
+      try {
+        globalThis.__HERO35.play('PickUp', { once: true, speed: 1.6, restart: true });
+      } catch (e) {}
+      L0('bag');
+      return true;
+    }
+    acting = { id };
+    drive(0, 0);
+    L0('act', id);
+    evlog('act_start', id);
+    let swing = STN[id].verb === 'swing',
+      hits = 0,
+      opts = swing
+        ? {
+            C: id === 'wood' && tired() ? DAY33.swingTiredC : 0,
+            k: (id === 'wood' ? st.axeK : 1) * (grace17() ? B17.graceK : 1),   /* ── fable32 (build 17b) ── (day 1's first two minutes: ×1.5) ── */
+            grace: grace17(),
+            onHit: (a) => {
+              hits++;
+              return hitOf(id, a);
+            },
+            onMiss: (a) => missOf(id, a),
+            fb18: l18,
+          }
+        : { fb18: l18, kK: id === 'kiyor' && own18('kiyor2') ? C18.kiyorK : 1 },   // ── fable32 (build 18) ── (fb18: the act's sounds and buzz are focus17/fx18's — one place) ── /fable32 ──
+      t0 = st.t,
+      r = null;
+    try {
+      const pr = ST.act(id, null, opts);   /* (build 11: the tap that opened the act is its first hit — "5 הקשות" means five) */
+      if (STN[id].verb === 'tapN' && ST.poke) say(() => ST.poke('start'));
+      r = await pr;
+    } catch (e) {
+      r = { quality: 0.6, gold: false };
+    }
     acting = null;
     if (ended) return false;
-    if (!r || !(r.quality > 0)) { stamp('הפסקתם באמצע — הקישו שוב כשתרצו', 'info'); L0('idle', id); return false; }
-    scoreAct(id, r); st.idleT = 0;
-    if (id === 'song') { if (r && r.gold) { st.songs++; st.song = null; st.fuel = Math.min(100, st.fuel + DAY33.songFuel); pay(DAY33.songReward, 'song'); stamp(`שיר של יום — בקצב! +${DAY33.songFuel} אש, +${DAY33.songReward} פרוטות`, 'combo'); sfx('fanfare'); L0('song'); stat('songs'); } else { stamp('לא בקצב — שירו שוב', 'no'); sfx('miss'); } }
-    else if (id === 'pen') { const l = st.lambs.find((q) => !q.ok); if (r && r.gold && l) { l.ok = true; stamp(`הצלחתם! הדיר נפתח — הטלה נכנס ומבוקר: ${okLambs()}/${DAY33.lambs} (ערכין ב, ה)`, 'combo'); sfx('coin'); L0('inspect'); stat('inspected'); } else if (l) { stamp('לא הצלחתם — הדיר לא נפתח בזמן, הטלה ברח! תפסו אותו', 'no'); sfx('miss'); L0('pen-bolt'); if (!st.lost) { const P = STN.pen.at, a = rng() * Math.PI * 2; st.lost = { x: P.x + Math.cos(a) * 14, z: P.z + 10 + Math.abs(Math.sin(a)) * 8, yaw: a, t: 0, follow: false }; } } }   // (build 12: the owner — 'פתח את הדיר: הצלחת / לא הצלחת')
-    else if (id === 'kiyor') { st.washed = true; stamp('ידיים ורגליים מקודשות — היום כל גזר +25%', 'combo'); sfx('coin'); L0('wash'); stat('washes'); }
-    else if (id === 'oil') { st.oil++; st.flour++; stamp(`שמן וסולת — ${st.oil}/${st.flour}`, 'info'); sfx('coin'); L0('oil'); stat('jars'); }
-    else if (id === 'salt') { st.salt++; stamp(`מלח — ${st.salt}`, 'info'); sfx('coin'); L0('salt'); }
-    else if (id === 'bake') { st.oil--; st.flour--; st.salt--; st.bread++; st.baked++; stamp(`לחם — ${st.bread} בסל (בית גרמו)`, 'combo'); sfx('chime'); L0('bake'); stat('baked'); }
-    else if (id === 'wood') {
-      st.power = Math.max(0, st.power - DAY33.powerChop); st.chops++;
-      if (rng() < DAY33.worm) { st.worms++; stamp('גזר מתולע — פסול למזבח (מידות ב, ה)', 'no'); sfx('miss'); L0('worm'); }
-      else { st.logs++; stamp(`גזר כשר — ${st.logs}/${st.basketMax} בסל`, r && r.gold ? 'combo' : 'info'); sfx('coin'); L0('log', st.logs); stat('chops'); { const h = heroP(); fx('load', { x: STN.wood.at.x, y: 17, z: STN.wood.at.z }, { x: h.x, y: 18, z: h.z }, 1); } }
-    } else if (id === 'kevesh') { st.atTop = true; stamp('עליתם — הניחו את העצים על המערכה (הקישו)', 'info'); L0('top'); }
+    if (swing) {
+      if (!hits && r && r.quality > 0 && !(r.hits > 0)) {
+        hits = 1;
+        hitOf(id, r.gold ? 'gold' : r.quality >= 0.8 ? 'good' : 'ok');
+      }
+      st.idleT = 0;
+      return hits
+        ? (evlog('act_done', { id, grade: r && r.gold ? 'gold' : 'good', hits, golds: r && r.golds, misses: r && r.misses }),
+          L0('session', id, hits, r && r.why),
+          b17 && stat('v_' + id),
+          id === 'wood' && st.logs >= st.basketMax && !b17 && stamp('הסל מלא — לכבש!', 'combo'),
+          true)
+        : ((!r || r.why !== 'stick') && stamp('הפסקתם באמצע — הקישו שוב כשתרצו', 'info'),
+          L0('idle', id),
+          evlog('act_done', { id, grade: 'none' }),
+          false);
+    }
+    if (!r || !(r.quality > 0)) {
+      stamp('הפסקתם באמצע — הקישו שוב כשתרצו', 'info');
+      L0('idle', id);
+      evlog('act_done', { id, grade: 'none' });
+      return false;
+    }
+    const g = r && r.gold ? 'gold' : r && r.quality >= 0.8 ? 'good' : 'ok';
+    evlog('act_done', { id, grade: g });
+    scoreAct(id, r);
+    st.idleT = 0;
+    if (b17 && (id !== 'song' || r.gold)) stat('v_' + id);
+    if (l18 && (id !== 'song' || r.gold)) {
+      const h = heroP(),
+        a = id === 'kevesh' ? { x: h.x, y: (h.y || 25) + 3, z: h.z } : over(id);
+      emit17('act', { id, g, at: a });
+      if (id !== 'song') payAct(g, 'act:' + id, a);
+    }
+    if (id === 'song')
+      if (r && r.gold) {
+        emit17('done', { text: 'שיר של יום!', sub: `+${DAY33.songFuel} אש` });
+        st.songs++;
+        st.song = null;
+        st.fuel = Math.min(100, st.fuel + DAY33.songFuel);
+        pay(DAY33.songReward, 'song', over('song'));
+        stamp(`שיר של יום — בקצב! +${DAY33.songFuel} אש, +${DAY33.songReward} פרוטות`, 'combo');
+        sfx('fanfare');
+        L0('song');
+        stat('songs');
+      } else {
+        stamp('לא בקצב — שירו שוב', 'no');
+        sfx('miss');
+      }
+    else if (id === 'pen') {   // (build 12: the owner — 'פתח את הדיר: הצלחת / לא הצלחת')
+      const l = st.lambs.find((q) => !q.ok);
+      if (r && r.gold && l) {
+        l.ok = true;
+        stamp(`הצלחתם! הדיר נפתח — הטלה נכנס ומבוקר: ${okLambs()}/${DAY33.lambs} (ערכין ב, ה)`, 'combo');
+        sfx('coin');
+        L0('inspect');
+        stat('inspected');
+      } else if (l) {
+        stamp('לא הצלחתם — הדיר לא נפתח בזמן, הטלה ברח! תפסו אותו', 'no');
+        sfx('miss');
+        L0('pen-bolt');
+        if (!st.lost) {
+          const P = STN.pen.at,
+            a = rng() * Math.PI * 2;
+          st.lost = { x: P.x + Math.cos(a) * 14, z: P.z + 10 + Math.abs(Math.sin(a)) * 8, yaw: a, t: 0, follow: false };
+        }
+      }
+    } else if (id === 'kiyor') {
+      st.washed = true;
+      if (b17) emit17('done', { text: 'ידיים ורגליים מקודשות!', sub: 'כל גזר +25%' });
+      else stamp('ידיים ורגליים מקודשות — היום כל גזר +25%', 'combo');
+      sfx('coin');
+      L0('wash');
+      stat('washes');
+    } else if (id === 'oil') {
+      st.oil++;
+      st.flour++;
+      stamp(`שמן וסולת — ${st.oil}/${st.flour}`, 'info');
+      sfx('coin');
+      L0('oil');
+      stat('jars');
+    } else if (id === 'salt') {
+      st.salt++;
+      stamp(`מלח — ${st.salt}`, 'info');
+      sfx('coin');
+      L0('salt');
+    } else if (id === 'bake') {
+      st.oil--;
+      st.flour--;
+      st.salt--;
+      st.bread++;
+      st.baked++;
+      stamp(`לחם — ${st.bread} בסל (בית גרמו)`, 'combo');
+      sfx('chime');
+      L0('bake');
+      stat('baked');
+    } else if (id === 'wood') {
+      st.power = Math.max(0, st.power - DAY33.powerChop);
+      st.chops++;
+      if (rng() < DAY33.worm) {
+        st.worms++;
+        stamp('גזר מתולע — פסול למזבח (מידות ב, ה)', 'no');
+        sfx('miss');
+        L0('worm');
+      } else {
+        st.logs++;
+        st.basketQ.push(g);
+        stamp(`גזר כשר — ${st.logs}/${st.basketMax} בסל`, r && r.gold ? 'combo' : 'info');
+        sfx('coin');
+        L0('log', st.logs);
+        stat('chops');
+        {
+          const h = heroP();
+          fx('load', { x: STN.wood.at.x, y: 17, z: STN.wood.at.z }, { x: h.x, y: 18, z: h.z }, 1);
+        }
+      }
+    } else if (id === 'kevesh') {
+      st.atTop = true;
+      if (b17) {
+        stat('climbs');
+        const a = st.t - t0;
+        if (a > 0.5 && (!st.rampBest || a < st.rampBest)) st.rampBest = a;
+        st.trip = { n: st.logs, laid: 0 };
+        emit17('top', { dur: Math.round(a * 10) / 10 });
+      } else stamp('עליתם — הניחו את העצים על המערכה (הקישו)', 'info');
+      L0('top');
+    }
     return true;
   }
   function tapStation(id) {
     if (st.phase !== 'run' || acting || !STN[id]) return false;
-    const p = standOf(id), h = heroP(); if (!p) return false;
-    if (Math.hypot(p.x - h.x, p.z - h.z) <= DAY33.reach) return runAt(id);
-    walkTo(p, () => { SHARED.arrive32 = { t: performance.now(), x: p.x, z: p.z, id }; sfx('ok'); L0('arrive', id); }, o.walk ? 1.8 : 3, pos3(STN[id].at));
+    if (st.k20 || st.d21 || st.p25) return false;
+    if (gate20() && id !== 'kiyor') return gate20no(id);   // ── fable32 (build 20) ── ── /fable32 ── ── fable32 (build 21) ── ── /fable32 ──
+    if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── ── /fable32 ──
+    if (gate21()) return gate21no(id);
+    if (gate25()) return id === 'pen' ? peek24() : gate25no(id);   /* ── fable32 (build 25) ── */
+    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);   /* ── fable32 (build 26) ── */
+    if (gate22() && !(id === 'kevesh' && carry22())) return id === 'wood' && !st.m22 ? peek24('wood') : gate22no(id);
+    if (id === 'pyre') return runAt('pyre');
+    const p = standOf(id),
+      h = heroP();
+    return p ? (Math.hypot(p.x - h.x, p.z - h.z) <= DAY33.reach ? runAt(id) : peek24(id)) : false;
+  }
+  // ── recovered (build 24) ── peek24 (the report's): no auto-walk — a tap shows the way (st.pk24: the tapped slot's way, 3 s) and pulses the
+  // chip; he walks by the stick
+  function peek24(id) {
+    const at = id === 'pyre' ? { ...PYRE } : id ? standOf(id) : null,
+      slot = id ? bar17().find((x) => x.id === id) : null,
+      s = id && STN[id];
+    st.pk24 = at && id !== nx33().id ? { id, at, until: st.t + 3 } : null;
+    SHARED.pulse31 = performance.now();
+    const text = slot ? `${slot.icon} ${slot.he} · ${slot.badge}` : s ? `${s.icon || ''} ${s.he}` : '';
+    if (text) emit17('pop', { text });
+    emit17('pulse', { id: id || null });
+    L0('peek', id);
     return true;
   }
   function stopAt33(h) {
     if (st.phase !== 'run' || acting) return null;
-    const n = nx33(); if (n.kind !== 'station') return null;
-    const p = standOf(n.id); if (!p || Math.hypot(p.x - h.x, p.z - h.z) > 2.4) return null;
-    if (st.arr !== n.id) { st.arr = n.id; sfx('ok'); try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* */ } SHARED.arrive32 = { t: performance.now(), x: p.x, z: p.z, id: n.id }; L0('arrive', n.id); }
-    return pos3(STN[n.id].at) || p;
+    const n = nx33();
+    if (n.kind !== 'station') return null;
+    const p = standOf(n.id);
+    if (!p || Math.hypot(p.x - h.x, p.z - h.z) > 2.4) return null;
+    if (st.arr !== n.id && !b17) {
+      st.arr = n.id;
+      sfx('ok');
+      try {
+        if (navigator.vibrate) navigator.vibrate([18, 40, 18]);
+      } catch (e) {}
+      SHARED.arrive32 = { t: performance.now(), x: p.x, z: p.z, id: n.id };
+      L0('arrive', n.id);
+    }
+    return pos3((STN[n.id] || {}).at) || p;
   }
-
   /* ───────── the button's word (flow31 places it beside the thing) ───────── */
+  const actLabel = (id, s) =>
+    id === 'kevesh' ? (b19 ? 'עלו בכבש — בסטיק' : 'העלו עצים — החזיקו') : b19 && id === 'salt' ? 'מלאו שק מלח — הקישו' : verb31(id, s);
   function work(h) {
     if (st.phase !== 'run') return null;
-    if (acting) { const sa = ST && ST.state ? say(() => ST.state()) : null, s = STN[acting.id] || {}; if (sa && sa.phase === 'tail') return { icon: '✓', label: 'יפה!', job: 'sh:done', noRing: true, go: () => {}, act31: true }; return { icon: s.icon || '✋', label: acting.id === 'kevesh' ? 'העלו עצים — החזיקו' : verb31(acting.id, s), job: 'sh:act', noRing: true, go: () => {}, act31: true }; }
+    if (acting) {
+      const sa = ST && ST.state ? say(() => ST.state()) : null,
+        s2 = STN[acting.id] || {};
+      return sa && sa.phase === 'tail' && !(STN[acting.id] && STN[acting.id].verb === 'swing') && acting.id !== 'kevesh'
+        ? { icon: '✓', label: 'יפה!', job: 'sh:done', noRing: true, go: () => {}, act31: true }
+        : { icon: s2.icon || '✋', label: actLabel(acting.id, s2), job: 'sh:act', noRing: true, go: () => {}, act31: true };
+    }
     const n = nx33();
-    if (st.night && st.inMoked && !(st.torchOn && !st.watched) && unclaimed().length) return { icon: '📜', label: `ספר הזכרונות (${unclaimed().length})`, job: 'sh:book', noRing: true, go: () => claimBook() };   // (build 11)
-    if (st.night && st.inMoked && !(st.torchOn && !st.watched) && !st.tilesNight && o.games) return { icon: '🃏', label: 'משחק לילה — זיכרון, הדיר, האוצר', job: 'sh:tiles', noRing: true, go: () => { st.tilesNight = true; offerPlay(); } };   // ── fable32 (build 13) ── (the interlude at night in the Moked: once a night, the clock held; פרוטות) ── /fable32 ──
-    if (!st.night && st.logs > 0 && atTop(h)) return { icon: '🔥', label: 'הניחו על המערכה — הקישו', job: 'sh:lay', noRing: true, near31: true, id31: 'pyre', at: { ...PYRE, y: PYRE.y + 1 }, go: () => layLogs() };   // ── fable32 (build 14.1) ── ── /fable32 ──
-    if (n.kind === 'torch') return { icon: '🔥', label: 'הלפיד — הקישו', job: 'sh:torch', noRing: true, go: () => { st.watched = true; st.torchOn = false; st.watches++; stamp('המשמר ער — יפה!', 'combo'); sfx('coin'); L0('torch-ok'); } };
-    if (n.kind === 'lamb' && st.lost) { const Lm = st.lost, d = Math.hypot(Lm.x - h.x, Lm.z - h.z); if (!Lm.follow) { if (d <= DAY33.reach + 0.5) return { icon: '🐑', label: 'קחו את הטלה', job: 'sh:lamb', noRing: true, near31: true, id31: 'lamb', go: () => { Lm.follow = true; stamp('הטלה הולך אחריכם — לדיר!', 'combo'); sfx('coin'); L0('lamb-take'); } }; return { icon: '🐑', label: 'לך לטלה', job: 'sh:go:lamb', noRing: true, go31: true, id31: 'lamb', go: () => walkTo({ x: Lm.x, y: 16, z: Lm.z }, null, 2.5) }; } }
+    if (st.night && st.inMoked && !(st.torchOn && !st.watched) && unclaimed().length && st.bookNight !== st.day)   // (build 11)
+      return { icon: '📜', label: `ספר הזכרונות (${unclaimed().length})`, job: 'sh:book', noRing: true, go: () => claimBook() };
+    if (st.night && st.inMoked && !(st.torchOn && !st.watched) && !st.tilesNight && o.games)   // ── fable32 (build 13) ── (the interlude at night in the Moked: once a night, the clock held; פרוטות) ── /fable32 ──
+      return {
+        icon: '🃏',
+        label: 'משחק לילה — זיכרון, הדיר, האוצר',
+        job: 'sh:tiles',
+        noRing: true,
+        go: () => {
+          st.tilesNight = true;
+          offerPlay();
+        },
+      };
+    if (st.k20) return { icon: '💧', label: 'שתי הטבעות — החזיקו', job: 'sh:k20', noRing: true, go: () => {} };
+    if (lotOn() || gate23()) return { icon: '☝', label: 'הפיס', job: 'sh:p23', noRing: true, go: () => {} };
+    if (st.p25) return { icon: '🐑', label: 'בדיקת הטלה', job: 'sh:p25', noRing: true, go: () => {} };
+    if (gate25()) return { icon: '🐑', label: goLabel31('דיר הטלאים'), job: 'sh:go:p25', noRing: true, go31: true, go: () => peek24() };
+    if (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out')
+      return { icon: st.role26 === 'inner' ? '🥣' : '🪔', label: 'ההיכל', job: 'sh:r26', noRing: true, go: () => {} };
+    if (gate26L() || gate26())
+      return {
+        icon: gate26L() ? '☝' : '🗝️',
+        label: gate26L() ? (onHigh(h.x, h.z) ? goLabel31('רגל הכבש') : 'הפיס השני') : goLabel31(open26() ? 'ההיכל' : 'שער ההיכל'),   /* ── fable32 (build 26b) ── (the lot where he stands) ── */
+        job: 'sh:go:r26',
+        noRing: true,
+        go31: true,
+        go: () => peek24(),
+      };
+    if (st.d21)
+      return st.d21.ph === 'foot'
+        ? st.d21.near
+          ? { icon: '🔥', label: 'צברו את הגחלים — הקישו', job: 'sh:d21pour', noRing: true, go: d21tap }
+          : { icon: '🔥', label: 'לטבעת הזהב', job: 'sh:go:d21', noRing: true, go31: true, go: () => peek24() }
+        : { icon: '🔥', label: 'תרומת הדשן', job: 'sh:d21', noRing: true, go: () => {} };
+    if (gate21())
+      return { icon: '🔥', label: goLabel31(onHigh(h.x, h.z) ? 'הגחלים' : 'הכבש'), job: 'sh:go:d21', noRing: true, go31: true, go: () => peek24() };
+    if (
+      b19 &&
+      !st.night &&
+      (!gateAny() || (carry22() && st.logs > 0)) &&
+      (near19(h) || nearK24(h)) &&
+      h.z > R19.head &&
+      (st.logs > 0 || st.r19.bag > 0)
+    ) {
+      const hold = () => {};
+      return st.logs > 0
+        ? { icon: '🧺', label: 'ייצבו את הסל — החזיקו', job: 'sh:run19', noRing: true, go: hold }
+        : { icon: '🧂', label: 'זרו מלח — החזיקו', job: 'sh:salt19', noRing: true, go: hold };
+    }
+    if (gate22()) return card22(h);
+    if (!st.night && st.logs > 0 && atTop(h) && !gateAny())
+      return atPyre(h)
+        ? {
+            icon: '🔥',
+            label: 'הניחו גזר — הקישו',
+            job: 'sh:lay',
+            noRing: true,
+            near31: true,
+            id31: 'pyre',
+            at: { ...PYRE, y: PYRE.y + 1 },
+            go: () => layLogs(),
+          }
+        : { icon: '🔥', label: 'למערכה', job: 'sh:go:pyre', noRing: true, go31: true, id31: 'pyre', go: () => layLogs() };
+    const down = { icon: '⬇️', label: 'ירדו מהמזבח', job: 'sh:go:down', noRing: true, go31: true, go: () => peek24() };
+    if (!st.night && st.logs <= 0 && atTop(h)) return down;
+    if (gate20()) {
+      const s = standOf('kiyor'),
+        kiyor = STN.kiyor;
+      return !s || !kiyor
+        ? null
+        : atTop(h)
+          ? down
+          : Math.hypot(s.x - h.x, s.z - h.z) <= DAY33.reach + 0.2
+            ? {
+                icon: '💧',
+                label: 'קדשו ידיים ורגליים',
+                job: 'sh:kiyor',
+                noRing: true,
+                near31: true,
+                id31: 'kiyor',
+                at: { ...s, y: (s.y || 16) + 1 },
+                go: () => runAt('kiyor'),
+              }
+            : { icon: '💧', label: goLabel31(kiyor.he), job: 'sh:go:kiyor', noRing: true, go31: true, id31: 'kiyor', go: () => peek24() };
+    }
+    if (n.kind === 'torch')
+      return {
+        icon: '🔥',
+        label: 'הלפיד — הקישו',
+        job: 'sh:torch',
+        noRing: true,
+        go: () => {
+          st.watched = true;
+          st.torchOn = false;
+          st.watches++;
+          stamp('המשמר ער — יפה!', 'combo');
+          sfx('coin');
+          L0('torch-ok');
+        },
+      };
+    if (st.night) return { icon: '🌙', label: 'לילה — נחים עד השחר', job: 'sh:wait', noRing: true, go: () => {} };
+    if (n.kind === 'lamb' && st.lost) {
+      const Lm = st.lost,
+        d2 = Math.hypot(Lm.x - h.x, Lm.z - h.z);
+      if (!Lm.follow)
+        return d2 <= DAY33.reach + 0.5
+          ? {
+              icon: '🐑',
+              label: 'קחו את הטלה',
+              job: 'sh:lamb',
+              noRing: true,
+              near31: true,
+              id31: 'lamb',
+              go: () => {
+                Lm.follow = true;
+                stamp('הטלה הולך אחריכם — לדיר!', 'combo');
+                sfx('coin');
+                L0('lamb-take');
+              },
+            }
+          : { icon: '🐑', label: 'לך לטלה', job: 'sh:go:lamb', noRing: true, go31: true, id31: 'lamb', go: () => peek24() };
+    }
     // (build 7: any OPEN station within reach is his to use — the Roblox way; the next one is only the path's suggestion)
-    let nearId = null, nd = 1e9; for (const id of shown33()) { if (!usable(id)) continue; const q = standOf(id); if (!q) continue; const d2 = Math.hypot(q.x - h.x, q.z - h.z); if (d2 <= DAY33.reach + 0.2 && d2 < nd) { nd = d2; nearId = id; } }
-    if (nearId && nearId !== n.id) { const s2 = STN[nearId], p2 = standOf(nearId); return { icon: s2.icon || '✋', label: nearId === 'kevesh' ? 'העלו עצים — החזיקו' : verb31(nearId, s2), job: 'sh:' + nearId, noRing: true, near31: true, id31: nearId, at: { ...p2, y: (p2.y || 16) + 1 }, go: () => runAt(nearId) }; }
-    if (st.merchant && !nearId) { const m = DAY33.merchantAt, dm = Math.hypot(m.x - h.x, m.z - h.z); if (dm <= DAY33.reach + 1) return { icon: '🧺', label: st.bread > 0 ? 'הסוחר — תנו לחם' : 'הסוחר מבקש לחם', job: 'sh:merchant', noRing: true, near31: true, id31: 'merchant', go: () => trade() }; }
-    if (st.bread > 0 && st.power < 70 && !nearId) return { icon: '🍞', label: 'אכלו לחם', job: 'sh:eat', noRing: true, go: () => { st.bread--; st.power = Math.min(DAY33.power0, st.power + st.breadPower); stamp(`אכלתם — כוח ${Math.round(st.power)}`, 'combo'); sfx('coin'); L0('eat'); } };
-    const s = STN[n.id], p = standOf(n.id); if (!s || !p) return null;
-    const d = Math.hypot(p.x - h.x, p.z - h.z);
-    if (d <= DAY33.reach + 0.2) return { icon: s.icon || '✋', label: n.id === 'kevesh' ? 'העלו עצים — החזיקו' : verb31(n.id, s), job: 'sh:' + n.id, noRing: true, near31: true, id31: n.id, at: { ...p, y: (p.y || 16) + 1 }, go: () => runAt(n.id) };
-    if (!st.night && (st.idleT || 0) >= DAY33.idleOffer && o.games && !acting) return { icon: '🃏', label: 'משחק קצר?', job: 'sh:play', noRing: true, go: () => offerPlay() };   // ── fable32 (build 14) ── (idle 12 s, nothing near: the owner — 'אם רדום ואין מה לעשות אפשר להקפיץ משחק') ── /fable32 ──
-    return { icon: s.icon || '➜', label: goLabel31(s.he), job: 'sh:go:' + n.id, noRing: true, go31: true, id31: n.id, go: () => tapStation(n.id) };
+    let crit = b17 && st.fuel < B17.crit,
+      nearId = null,
+      nd = 1e9;
+    for (const id of shown33()) {
+      if (!usable(id) || (crit && id !== 'wood' && id !== 'kevesh') || (b19 && id === 'kevesh')) continue;
+      const q = standOf(id);
+      if (!q) continue;
+      const d2 = Math.hypot(q.x - h.x, q.z - h.z);
+      if (d2 <= DAY33.reach + 0.2 && d2 < nd) {
+        nd = d2;
+        nearId = id;
+      }
+    }
+    if (nearId && nearId !== n.id) {
+      const s2 = STN[nearId],
+        p2 = standOf(nearId);
+      return {
+        icon: s2.icon || '✋',
+        label: actLabel(nearId, s2),
+        job: 'sh:' + nearId,
+        noRing: true,
+        near31: true,
+        id31: nearId,
+        at: { ...p2, y: (p2.y || 16) + 1 },
+        go: () => runAt(nearId),
+      };
+    }
+    if (st.merchant && !nearId && !crit) {
+      const m = DAY33.merchantAt;
+      if (Math.hypot(m.x - h.x, m.z - h.z) <= DAY33.reach + 1)
+        return {
+          icon: '🧺',
+          label: st.bread > 0 ? 'הסוחר — תנו לחם' : 'הסוחר מבקש לחם',
+          job: 'sh:merchant',
+          noRing: true,
+          near31: true,
+          id31: 'merchant',
+          go: () => trade(),
+        };
+    }
+    if (st.bread > 0 && st.power < 70 && !nearId && !crit)
+      return {
+        icon: '🍞',
+        label: 'אכלו לחם',
+        job: 'sh:eat',
+        noRing: true,
+        go: () => {
+          st.bread--;
+          st.power = Math.min(DAY33.power0, st.power + st.breadPower);
+          stamp(`אכלתם — כוח ${Math.round(st.power)}`, 'combo');
+          sfx('coin');
+          L0('eat');
+        },
+      };
+    const s = STN[n.id],
+      p = standOf(n.id);
+    return !s || !p
+      ? null
+      : Math.hypot(p.x - h.x, p.z - h.z) <= DAY33.reach + 0.2
+        ? {
+            icon: s.icon || '✋',
+            label: actLabel(n.id, s),
+            job: 'sh:' + n.id,
+            noRing: true,
+            near31: true,
+            id31: n.id,
+            at: { ...p, y: (p.y || 16) + 1 },
+            go: () => runAt(n.id),
+          }
+        : !st.night && (st.idleT || 0) >= DAY33.idleOffer && o.games && !acting && !crit   // ── fable32 (build 14) ── (idle 12 s, nothing near: the owner — 'אם רדום ואין מה לעשות אפשר להקפיץ משחק') ── /fable32 ──
+          ? { icon: '🃏', label: 'משחק קצר?', job: 'sh:play', noRing: true, go: () => offerPlay() }
+          : { icon: s.icon || '➜', label: goLabel31(s.he), job: 'sh:go:' + n.id, noRing: true, go31: true, id31: n.id, go: () => tapStation(n.id) };
   }
   // ── fable32 (build 14) ── the interludes from the court: a choice card (never a must), the day's clock held while one plays; its פרוטות and score are the player's
   async function playGame(key) {
-    const g = o.games && o.games[key]; if (!g || st.playing) return false;
-    st.playing = key; st.paused = true; drive(0, 0); st.idleT = 0;
-    let r = null; try { r = await g(); } catch (e) { r = null; }
-    st.paused = false; st.playing = null;
-    if (r && r.perutot > 0) { save.perutot = (+save.perutot || 0) + (r.perutot | 0); st.perutot = save.perutot; say(() => o.persist && o.persist()); }
-    const pts = interludeScore(key, r); if (pts > 0) score(pts, key);
-    if (r && r.won) { stamp(`${GAME_HE[key] || key}: +${r.perutot | 0} פרוטות${pts ? ` · +${pts} ★` : ''}`, 'combo'); sfx('coin'); stat('games'); }
+    const g = o.games && o.games[key];
+    if (!g || st.playing) return false;
+    st.playing = key;
+    st.paused = true;
+    drive(0, 0);
+    st.idleT = 0;
+    evlog('play_game', key);
+    let r = null;
+    try {
+      r = await g();
+    } catch (e) {
+      r = null;
+    }
+    st.paused = false;
+    st.playing = null;
+    if (r && r.perutot > 0) {
+      save.perutot = (+save.perutot || 0) + (r.perutot | 0);
+      st.perutot = save.perutot;
+      say(() => o.persist && o.persist());
+    }
+    const pts = interludeScore(key, r);
+    if (pts > 0) score(pts, key);
+    if (r && r.won) {
+      stamp(`${GAME_HE[key] || key}: +${r.perutot | 0} פרוטות${pts ? ` · +${pts} ★` : ''}`, 'combo');
+      sfx('coin');
+      stat('games');
+    }
     L0('game', key, r ? r.won : null);
     return !!(r && r.won);
   }
   // ── fable32 (build 14.1) ── at the ramp's top: HIS tap lays the logs on the pyre (they arc from the basket onto the fire); nothing goes up by itself
-  const PYRE = { x: -29.5, y: 25.5, z: -3.5 }, TOP = { x: -34, y: 25, z: 12 };
-  const atTop = (h) => h.z < 16 && h.z > 2 && Math.abs(h.x - TOP.x) < 6 && (h.y || 16) > 22;
+  const PYRE = { x: -29.5, y: 25.5, z: -3.5 },
+    TOP = { x: -34, y: 25, z: 12 },
+    FOOT19 = { x: -38, y: 16, z: 44.5 },
+    atTop = (h) => (h.y || 16) > 22 && h.x > -53 && h.x < -23 && h.z > -18.5 && h.z < 16.5,
+    atPyre = (a) => Math.hypot(PYRE.x - a.x, PYRE.z - a.z) <= DAY33.layReach;
   function layLogs() {
     if (st.logs <= 0) return false;
-    const h = heroP(), n = st.logs; st.logs = 0; st.carried += n; st.atTop = false;
-    fx('unload', { x: h.x, y: (h.y || 25) + 2, z: h.z }, PYRE, n);
-    feed(n); stat('carried', n); st.idleT = 0; score(DAYSCORE.act.good, 'lay'); L0('lay', n);
+    if (gate20()) return gate20no('pyre');
+    if (lotOn() || gate23()) return gate23no('pyre');
+    if (st.p25 || gate25()) return gate25no('pyre');
+    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no('pyre');   // ── fable32 (build 26) ── ── /fable32 ──
+    if (gate21()) return gate21no('pyre');
+    if (gate22()) return carry22() ? false : gate22no('pyre');
+    const h = heroP();
+    if (!atPyre(h)) return peek24('pyre');
+    const n = st.basketQ.length ? st.basketQ.shift() : null;
+    st.logs--;
+    st.carried++;
+    st.atTop = false;
+    st.laidT = st.t;
+    st.laid = (st.laid | 0) + 1;
+    const k = Math.min(DAY33.stackMax - 1, stackN());
+    fx('lay1', { x: h.x, y: (h.y || 25) + 2.2, z: h.z }, stackSlot(k), 1);
+    feed(1, [n], true);
+    stat('carried', 1);
+    st.idleT = 0;
+    L0('lay', 1, n);
+    if (c18) pay(C18.pay[n] || 1, 'lay', { x: PYRE.x, y: PYRE.y + 3, z: PYRE.z });
+    if (b17) {
+      st.laidDay++;
+      if (st.trip) st.trip.laid++;
+      if (st.logs <= 0) emit17('done', { text: 'המערכה בוערת!', sub: `+${(st.trip && st.trip.laid) || 1} גזרים` });
+    }
+    try {
+      const __HERO35 = globalThis.__HERO35;
+      if (__HERO35 && __HERO35.loaded) __HERO35.play('PickUp', { once: true, at: 0.15, speed: 2.4, restart: true, fade: 0.08 });
+    } catch (e) {}
+    if (st.logs <= 0) {
+      score(DAYSCORE.act.good, 'lay');
+      evlog('lay', { n: st.laid, fuel: Math.round(st.fuel) });
+      st.laid = 0;
+    }
     return true;
+  }
+  const stackN = () => Math.max(1, Math.min(DAY33.stackMax, Math.round(st.fuel / (100 / DAY33.stackMax))));
+  function stackSlot(i) {
+    const row = Math.floor(i / 4),
+      col = i % 4,
+      odd = row % 2 === 1,
+      off = (col - 1.5) * 0.9;
+    return { x: PYRE.x + (odd ? off : 0), y: PYRE.y + 1.9 + row * 0.5, z: PYRE.z + (odd ? 0 : off), cross: odd };
   }
   // ── /fable32 ──
   function offerPlay() {
     if (!hud || !hud.choice || !o.games) return false;
     st.idleT = 0;
-    const items = Object.keys(o.games).map((k) => ({ icon: GAME_ICON[k] || '🎲', label: GAME_HE[k] || k, sub: GAME_SUB[k] || '', go: () => { playGame(k); return true; } }));
-    say(() => hud.choice({ title: 'משחק קצר?', text: 'הממונה: "יש רגע? שחקו — הפרוטות והנקודות שלכם" (טיוטה)', items, closeLabel: 'אחר כך', onClose: () => {} }));
+    const items = Object.keys(o.games).map((k) => ({
+      icon: GAME_ICON[k] || '🎲',
+      label: GAME_HE[k] || k,
+      sub: GAME_SUB[k] || '',
+      go: () => {
+        playGame(k);
+        return true;
+      },
+    }));
+    say(() =>
+      hud.choice({
+        title: 'משחק קצר?',
+        text: 'הממונה: "יש רגע? שחקו — הפרוטות והנקודות שלכם" (טיוטה)',
+        items,
+        closeLabel: 'אחר כך',
+        onClose: () => {},
+      }),
+    );
     return true;
   }
   // ── /fable32 ──
-  function flowNext() { const n = nx33(); if (n.kind === 'lamb' && st.lost && !st.lost.follow) return { id: 'lamb', kind: 'station', pid: null, at: { x: st.lost.x, y: 16, z: st.lost.z } }; if (n.kind === 'lamb' && st.lost) return { id: 'pen', kind: 'station', pid: null, at: standOf('pen') }; if (n.kind !== 'station') return null; return { id: n.id, kind: 'station', pid: null, at: standOf(n.id) }; }
+  function flowNext() {
+    if (
+      st.night ||
+      st.k20 ||
+      lotOn() ||
+      gate23() ||
+      st.p25 ||
+      (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') ||
+      (st.d21 && st.d21.ph !== 'foot') ||
+      (st.m22 && !carry22())
+    )
+      return null;
+    if (gate26L()) {
+      const h = heroP();
+      return onHigh(h.x, h.z) ? { id: 'lot26', kind: 'station', pid: null, at: { x: P26.foot.x, y: 16, z: P26.foot.z } } : null;
+    }
+    if (gate26()) {   /* ── fable32 (build 26b) ── (no walk back to a circle: the lot where he stands — from the altar's top, down the ramp first) ── */
+      const S0 = open26() ? at26(st.role26) : P26.gate;
+      return { id: 'r26', kind: 'station', pid: null, at: { x: S0.x, y: 22, z: S0.z } };
+    }
+    /* ── fable32 (build 26) ── (the way back to the circle; up the steps to the great gate; in, to his vessel) ── */ /* ── fable32 (build 21) ── (no path while he sweeps and goes down; at the foot — to the ring) ── */ /* ── fable32 (build 22) ── (nor while he sorts or stacks) ── */
+    if (gate21()) return { id: 'deshen', kind: 'station', pid: null, at: standOf('deshen') };
+    if (gate22()) return { id: 'm22', kind: 'station', pid: null, at: standOf('m22') };
+    if (gate25()) return { id: 'pen', kind: 'station', pid: null, at: { x: P25.stand.x, y: 16, z: P25.stand.z } };   /* ── fable32 (build 25) ── (the way to the pen's door) ── */
+    if (st.pk24 && st.t < st.pk24.until) return { id: st.pk24.id, kind: 'station', pid: null, at: st.pk24.at };   /* ── fable32 (build 24) ── (a tapped slot's way, 3 s) ── */ /* ── build 16 ── (no path at night) ── */ /* ── fable32 (build 20) ── (nor in the kiddush) ── */
+    if (
+      !st.night &&
+      st.logs > 0 &&
+      !acting &&
+      (atTop(heroP()) || (b19 && st.r19.run) || (b19 && !gateAny() && (near19(heroP()) || nearK24(heroP())) && nx33().id === 'kevesh'))   /* ── fable32 (build 19) ── (running up: the way is up) ── */ /* ── fable32 (build 24) ── (at the ramp's foot, the ramp his next: the way goes on up — the stick climbs) ── */
+    )
+      return { id: 'pyre', kind: 'station', pid: null, at: { ...PYRE } };   /* ── build 16 ── (review #2: the bubble pointed at the ramp's foot while he stood at the top with logs) ── */
+    const n = nx33();
+    return n.kind === 'lamb' && st.lost && !st.lost.follow
+      ? { id: 'lamb', kind: 'station', pid: null, at: { x: st.lost.x, y: 16, z: st.lost.z } }
+      : n.kind === 'lamb' && st.lost
+        ? { id: 'pen', kind: 'station', pid: null, at: standOf('pen') }
+        : n.kind !== 'station'
+          ? null
+          : { id: n.id, kind: 'station', pid: null, at: standOf(n.id) };
+  }
+  // ── recovered (build 17) ── the focused day's card and bar (focus17.js draws them): the step now (step17), the slots (bar17), a tap on a
+  // slot (tap17), on the fire or the tamid (fire17), on the card (go17); hot17: how near the next place
+  const CARD17 = {
+      wood: ['🪵', () => `בקעו ${basketCap()} גזרים`, () => [st.logs, basketCap()]],
+      kevesh: ['⛰️', () => 'העלו את הגזרים בכבש', () => [st.logs, 0]],
+      kiyor: ['💧', () => 'קדשו ידיים ורגליים', () => (g20 ? [0, 0] : [0, 1])],
+      pen: ['🐑', () => 'בקרו טלאים לתמיד', () => (b17 ? penN() : [okLambs(), DAY33.lambs])],
+      song: ['🎶', () => 'שירו עם הלויים', () => [0, 1]],
+      oil: ['🏺', () => 'הביאו שמן וסולת ללחם', () => [st.oil, 1]],
+      salt: ['🧂', () => (b19 ? 'מלאו שק מלח' : 'הביאו מלח ללחם'), () => (b19 ? [0, 0] : [st.salt, 1])],
+      saltR: ['🧂', () => 'מלחו את הכבש', () => [0, 0]],
+      log19: ['🪵', () => 'הרימו את הגזר שנפל', () => [0, 0]],
+      bake: ['🍞', () => (powerOn ? 'אפו לחם — כוח לכהן' : 'אפו לחם'), () => (b17 ? [statN('baked'), B17.goals.bake] : [st.bread, 1])],
+      lamb: ['🐑', () => (st.lost && st.lost.follow ? 'הובילו את הטלה לדיר' : 'החזירו את הטלה לדיר'), () => [0, 1]],
+      chests: ['🪙', () => 'השופרות מלאים — עברו לידם', () => [st.ch18.n, chests.max]],
+      pad: [
+        '🪙',
+        () => {
+          const a = padOpen();
+          return a ? `${a.icon} ${a.he} — עמדו על המשטח` : '';
+        },
+        () => [0, 0],
+      ],
+    },
+    TO17 = {
+      wood: 'לעצים',
+      kiyor: 'לכיור',
+      pen: 'לדיר',
+      song: 'לדוכן',
+      oil: 'לשמנים',
+      salt: 'למלח',
+      bake: 'לאופים',
+      lamb: 'לטלה',
+      kevesh: 'לכבש',
+      chests: 'לשופרות',
+      pad: 'לגזבר',
+      saltR: 'לכבש',
+      log19: 'לגזר',
+    };
+  function step17() {
+    if (!b17 || st.phase !== 'run' || st.summary || st.night) return null;
+    const h = heroP();
+    if (gate23() || lotOn()) {
+      const p23 = st.p23;
+      return {
+        id: 'p23',
+        icon: '☝',
+        text:
+          p23 && p23.ph === 'choose' ? 'במה תבחרו? הקישו על כרטיס' : p23 && !p23.raised ? 'הוציאו אצבע — החליקו למעלה' : 'הפיס — הממונה סופר אצבעות',
+        n: 0,
+        goal: 0,
+        st: null,
+      };
+    }
+    if (gate25() || st.p25) {
+      const p25 = st.p25,
+        a = p25 ? p25.ph : '';
+      return {
+        id: 'p25',
+        icon: '🐑',
+        text: p25
+          ? /^(ok|lead|end)$/.test(a)
+            ? 'תמים לקרבן!'
+            : a === 'false'
+              ? 'עיכוב — בדקו טלה חלופי'
+              : 'בדיקת הטלה — תמים או פסול?'
+          : 'בדיקת הטלה — לכו לדיר הטלאים',
+        n: 0,
+        goal: 0,
+        st: 'pen',
+      };
+    }
+    if (gate26L())
+      return {
+        id: 'p26',
+        icon: '☝',
+        text: onHigh(h.x, h.z) ? 'הפיס השני — רדו מן המזבח' : 'הפיס השני — הכהנים מתכנסים סביבכם',
+        n: 0,
+        goal: 0,
+        st: null,
+      };
+    if (gate26() || (st.r26 && st.r26.ph !== 'out')) {
+      const r26 = st.r26,
+        a = r26 ? r26.ph : '',
+        b = st.role26 !== 'inner',
+        c = b ? 'דישון המנורה' : 'דישון מזבח הפנימי',
+        d = r26
+          ? a === 'in' || a === 'bolt'
+            ? 'העבירו את הנגר — החליקו ↔'
+            : a === 'key'
+              ? 'סובבו את המפתח — החזיקו'
+              : a === 'open'
+                ? 'השער הגדול נפתח!'
+                : a === 'walk'
+                  ? b
+                    ? 'היכנסו להיכל — אל המנורה שבדרום'
+                    : 'היכנסו להיכל — אל מזבח הזהב'
+                  : b
+                    ? a === 'kuz' || a === 'kuzd'
+                      ? 'הניחו את הכוז על המעלה השנייה — הקישו'
+                      : 'הטיבו את הנרות'
+                    : 'חפנו את הדשן לטני — משכו ⬇'
+          : open26()
+            ? b
+              ? 'היכנסו להיכל — אל המנורה שבדרום'
+              : 'היכנסו להיכל — אל מזבח הזהב'
+            : `${c} — עלו לשער ההיכל`,
+        f = r26 && !/^(in|bolt|key|open|walk)$/.test(a);
+      return { id: 'r26', icon: b ? '🪔' : '🥣', text: d, n: f ? (b ? r26.li : r26.n) : 0, goal: f ? (b ? r26.ord.length : P26.pulls) : 0, st: null };
+    }
+    if (gate21()) {
+      const d21 = st.d21,
+        a = d21 ? d21.ph : '';
+      return {
+        id: 'deshen',
+        icon: '🔥',
+        text: d21
+          ? a === 'in' || a === 'sweep'
+            ? 'גרפו את הדשן — החליקו הילך והילך'
+            : a === 'full' || a === 'walk' || a === 'desc'
+              ? 'רדו בכבש — אזנו את המחתה'
+              : 'לכו לטבעת — צברו את הגחלים'
+          : 'תרומת הדשן — עלו למזבח',
+        n: d21 ? d21.n : 0,
+        goal: a === 'in' || a === 'sweep' ? D21.layers : 0,
+        st: 'kevesh',
+      };
+    }
+    if (gate22()) {
+      const m22 = st.m22,
+        a = m22 ? m22.ph : '',
+        b = a === 'in' || a === 'sort' || a === 'sorted',
+        c = a === 'stack' || a === 'stackIn';
+      return {
+        id: 'm22',
+        icon: a === 'carry' ? '⛰️' : a === 'ready' || a === 'ignite' || a === 'end' ? '🔥' : '🪵',
+        text: m22
+          ? b
+            ? 'מיינו את העצים'
+            : a === 'carry'
+              ? 'העלו את הגזרים למזבח'
+              : c
+                ? 'סדרו את הגזרים על המזבח'
+                : a === 'ready'
+                  ? 'הציתו — הקישו במרכז המערכה'
+                  : 'המערכה בוערת'
+          : 'סדרו את המערכה הגדולה',
+        n: b ? m22.got.length : c ? m22.got.filter((x) => x.at).length : 0,
+        goal: b || c ? need22() : 0,
+        st: m22 ? 'kevesh' : 'wood',
+      };
+    }
+    if (st.logs > 0 && atTop(h)) {
+      const a = st.trip || { n: st.logs, laid: 0 };
+      return { id: 'pyre', icon: '🔥', text: 'הניחו על המערכה — הקישו', n: a.laid, goal: Math.max(a.n, a.laid + st.logs), st: 'kevesh' };
+    }
+    if (st.logs <= 0 && atTop(h)) {
+      const id = nx33().id;
+      return {
+        id: 'down',
+        icon: '⬇️',
+        text: `רדו מהמזבח — ${TO17[id] || 'לעצים'}`,
+        n: 0,
+        goal: 0,
+        st: id === 'oil' || id === 'salt' ? 'bake' : id === 'lamb' ? 'pen' : id,
+      };
+    }
+    const a = b19 && st.r19.run ? { id: 'kevesh' } : nx33(),
+      b = CARD17[a.id];
+    if (!b) return null;
+    const [c, d] = b[2](),
+      f = a.id === 'oil' || a.id === 'salt' ? 'bake' : a.id === 'lamb' ? 'pen' : a.id,
+      g = { id: a.id, icon: b[0], text: b[1](), n: c, goal: d, st: f };
+    if (a.id === 'wood' || a.id === 'kevesh') {
+      const a = tamid17();
+      if (st.fuel < B17.crit) Object.assign(g, { icon: '🔥', text: 'האש דועכת — הביאו עצים', fire: 'crit' });
+      else if (a && a.late && st.fuel < B17.tamid.fire) Object.assign(g, { icon: '🔥', text: 'הביאו עצים — התמיד מחכה לאש', fire: 'tamid' });
+    }
+    return g;
+  }
+  function bar17() {
+    if (!b17 || st.phase !== 'run' || st.night) return [];
+    let step = step17(),
+      cur = step ? step.st : null,
+      goals = B17.goals,
+      a = {
+        kiyor: [st.washed ? 1 : 0, goals.kiyor],
+        wood: [statN('carried'), goals.wood],
+        kevesh: [statN('climbs'), goals.kevesh],
+        song: [statN('songs'), goals.song],
+        pen: penN(),
+        bake: [statN('baked'), goals.bake],
+      },
+      b = B17.slots.filter((x) => (x === 'song' ? open33('song') && (!!st.song || statN('songs') > 0) : open33(x))),
+      c = gateAny(),
+      d = gate20() ? 'kiyor' : gate23() || gate26L() || gate26() ? '' : gate25() ? 'pen' : gate22() && !st.m22 ? 'wood' : 'kevesh';
+    if (st.fuel < B17.crit && !c) b = b.filter((x) => x === 'wood' || x === 'kevesh');
+    while (b.length > B17.maxSlots) {
+      const c = b.findIndex((x) => x !== cur && a[x][0] >= a[x][1]);
+      b.splice(c >= 0 ? c : b.length - 1, 1);
+    }
+    return b.map((x) => {
+      const b = STN[x] || {},
+        [f, g] = a[x],
+        k = f >= g;
+      return {
+        id: x,
+        icon: b.icon || '•',
+        he: b.he || x,
+        n: f,
+        goal: g,
+        done: k,
+        badge: k ? '✓' : `${f}/${g}`,
+        need: x === cur,
+        lock: c && x !== d,
+        empty: !k && ((x === 'kevesh' && !st.logs) || (x === 'bake' && !(st.oil > 0 && st.flour > 0 && st.salt > 0))),
+      };
+    });
+  }
+  function tap17(id) {
+    if (!b17 || st.phase !== 'run' || acting || st.summary || st.k20) return false;
+    const h = heroP();
+    L0('bar', id);
+    evlog('bar', id);
+    return gate20() && id !== 'kiyor'
+      ? gate20no(id)
+      : gate23() || st.p23
+        ? gate23no(id)
+        : st.p25
+          ? false
+          : gate25()
+            ? id === 'pen'
+              ? peek24()
+              : gate25no(id)
+            : st.r26 && st.r26.ph !== 'out'
+              ? false
+              : gate26L() || gate26()
+                ? gate26no(id)
+                : st.d21
+                  ? false
+                  : gate21()
+                    ? id === 'kevesh'
+                      ? peek24()
+                      : gate21no(id)
+                    : gate22()
+                      ? id === (st.m22 ? 'kevesh' : 'wood')
+                        ? peek24()
+                        : gate22no(id)
+                      : peek24(
+                          id === 'kevesh' && atTop(h) && st.logs > 0
+                            ? 'pyre'
+                            : id === 'bake'
+                              ? st.oil > 0 && st.flour > 0
+                                ? st.salt > 0
+                                  ? 'bake'
+                                  : 'salt'
+                                : 'oil'
+                              : id,
+                        );
+  }
+  function fire17() {
+    if (!b17 || st.phase !== 'run' || acting || st.summary || st.k20) return false;
+    const h = heroP();
+    L0('fire17');
+    evlog('fire17');
+    return gate20()
+      ? gate20no('fire')
+      : lotOn() || gate23()
+        ? gate23no('fire')
+        : st.d21 || st.p25 || (st.r26 && st.r26.ph !== 'out' && st.r26.ph !== 'walk')
+          ? false
+          : gate21() || gate22() || gate25() || gate26L() || gate26()
+            ? peek24()
+            : peek24(st.logs > 0 ? (atTop(h) ? 'pyre' : 'kevesh') : 'wood');
+  }
+  function go17() {
+    if (!b17 || st.phase !== 'run' || acting || st.summary || st.k20) return false;
+    const step = step17();
+    return !step || lotOn() || step.id === 'p23' || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out')
+      ? false
+      : (L0('card17', step.id), evlog('card17', step.id), peek24());
+  }
+  function hotStep() {
+    if (!b17) return;
+    const n = acting ? null : flowNext();
+    if (!n || !n.at) {
+      st.hot17 = null;
+      return;
+    }
+    const h = heroP(),
+      d = Math.hypot(n.at.x - h.x, n.at.z - h.z),
+      a = n.id === 'pyre' ? DAY33.layReach : DAY33.reach + 0.2;
+    st.hot17 = { id: n.id, d: Math.round(d * 10) / 10, r: a };
+    if (d <= a) {
+      if (st.arr17 !== n.id) {
+        st.arr17 = n.id;
+        emit17('arrive', { id: n.id });
+        SHARED.arrive32 = { t: performance.now(), x: n.at.x, z: n.at.z, id: n.id };
+        L0('arrive', n.id);
+      }
+    } else if (d > a + 3 || st.arr17 !== n.id) st.arr17 = null;
+  }
+  // (build 14: no walk hints — the owner: 'יותר פשוט להאיר את הבועה הרלוונטית'; the next place's chip pulses, the path lies on the floor)
   function hintStep() {
     if (!hud || !hud.hint) return;
     let h = null;
     if (st.phase === 'run' && st.day === 1) {
       const w = work(heroP());
       if (st.night) h = st.torchOn && !st.watched ? 'הקישו על הלפיד!' : 'לילה בבית המוקד — נחים עד השחר';
-      else if (w && w.near31) h = w.id31 === 'wood' ? 'הקישו 5 פעמים על הכפתור שליד העצים' : w.id31 === 'kevesh' ? 'החזיקו — הכהן עולה בכבש עם העצים' : w.id31 === 'pen' ? '3 הקשות מהירות — השער נפתח והטלה נכנס' : `הקישו על הכפתור שליד ${STN[w.id31] ? STN[w.id31].he : ''}`;
-      // (build 14: no walk hints — the owner: 'יותר פשוט להאיר את הבועה הרלוונטית'; the next place's chip pulses, the path lies on the floor)
+      else if (w && w.job === 'sh:run19') h = 'החזיקו — הסל יציב · עולים בימין';
+      else if (w && w.job === 'sh:salt19') h = 'החזיקו והלכו — זורים מלח';
+      else if (w && w.near31)
+        h =
+          w.id31 === 'wood'
+            ? 'הקישו כשהטבעת נסגרת על הגזר — מכה אחת לגזר'
+            : w.id31 === 'kevesh'
+              ? 'החזיקו — הכהן עולה בכבש עם העצים'
+              : w.id31 === 'pen'
+                ? 'הקישו כשהטבעת נסגרת — השער נפתח והטלה נכנס'
+                : `הקישו על הכפתור שליד ${STN[w.id31] ? STN[w.id31].he : ''}`;
     }
-    if (h !== hintNow) { hintNow = h; say(() => hud.hint(h)); }
+    if (h !== hintNow) {
+      hintNow = h;
+      say(() => hud.hint(h));
+    }
   }
-
   /* ───────── the HUD ───────── */
   function push() {
-    if (!hud) return;
-    say(() => hud.set({ score: Math.round(st.fuel), combo: 1, rival: 0, rivalName: '', sec: Math.ceil(st.left), left: st.left, t: st.t, phase: st.phase, day33: { score35: SC ? say(() => SC.get()) : null, day: st.day, night: st.night, logs: st.logs, basket: st.basketMax, level: st.level, fuel: st.fuel, power: st.power, bread: st.bread, washed: st.washed, perutot: st.perutot, lambs: open33('pen') ? `${okLambs()}/${DAY33.lambs}` : '' } }));
-    if (hud.tasks) say(() => hud.tasks(st.tasks.map((q) => ({ text: q.text, n: Math.min(q.goal, st.dayStats[q.key] | 0), goal: q.goal, done: !!q.done }))));
-    if (fuelPin) { const m = STN.kevesh && STN.kevesh.at ? { x: -29.5, y: 25 + 3.5, z: -3.5 } : null; say(() => fuelPin.text(`${Math.round(st.fuel)}/100 · רמה ${st.level}`)); say(() => fuelPin.at(project(m), st.fuel <= DAY33.floor + 0.01)); }
+    if (hud) {
+      say(() =>
+        hud.set({
+          score: Math.round(st.fuel),
+          combo: 1,
+          rival: 0,
+          rivalName: '',
+          sec: Math.ceil(st.left),
+          left: st.left,
+          t: st.t,
+          phase: st.phase,
+          day33: {
+            b17,
+            score35: SC ? say(() => SC.get()) : null,
+            day: st.day,
+            night: st.night,
+            logs: st.logs,
+            basket: st.basketMax,
+            level: st.level,
+            fuel: st.fuel,
+            power: st.power,
+            bread: st.bread,
+            washed: st.washed,
+            perutot: st.perutot,
+            lambs: open33('pen') ? `${okLambs()}/${DAY33.lambs}` : '',
+          },
+        }),
+      );
+      if (hud.tasks && !b17)
+        say(() => hud.tasks(st.tasks.map((q) => ({ text: q.text, n: Math.min(q.goal, st.dayStats[q.key] | 0), goal: q.goal, done: !!q.done }))));
+    }
   }
-
   /* ───────── the loop ───────── */
   function tick(dt) {
     if (!(dt > 0) || ended) return st;
-    if (st.paused) { drive(0, 0); return st; }
+    if (st.paused) {
+      drive(0, 0);
+      let26();
+      return st;
+    }
     dt = Math.min(dt, 0.25);
     if (st.phase !== 'run') return st;
-    st.t += dt; drainStep(dt); dayStep(dt); walkStep(dt); unlockStep(); merchantStep(); lostStep(dt);
-    { const h = heroP(); if (Number.isFinite(st.px)) { const sp = Math.hypot(h.x - st.px, h.z - st.pz) / dt; if (sp > 8 && sp < 60) st.power = Math.max(0, st.power - DAY33.powerRun * dt); } st.px = h.x; st.pz = h.z; }
-    if (tired() && !st.tiredSaid) { st.tiredSaid = true; stamp('עייפים — הבקיעה איטית. אכלו לחם', 'no'); } if (!tired()) st.tiredSaid = false;
-    SHARED.lambs33 = st.lambs; if (!st.lost) SHARED.lost33 = null;
-    { const own = save.day33 && typeof save.day33 === 'object' ? save.day33 : {}; SHARED.moked33 = st.inMoked ? { x: DAY33.moked.x, z: DAY33.moked.z, rug: !!own.rug, lamp: !!own.lamp } : null; }
+    st.t += dt;
+    drainStep(dt);
+    dayStep(dt);
+    unlockStep();
+    merchantStep();
+    lostTick(dt);
+    if (c18 && !st.summary && !st.night) {
+      chestStep(dt);
+      padStep(dt);
+    }
+    if (g20) k20Step(dt);
+    if (p23 && st.wake24 && !acting) {
+      st.wake24 = 0;
+      wake23();
+    }
+    if (p23) p23Step(dt);
+    if (p25) p25Step(dt);
+    if (p26) {
+      r26Step(dt);
+      HOUSE22.on = gate26() || !!st.r26;
+      HOUSE22.gate = HOUSE22.on && open26();
+    }
+    SHARED.strong24 = !!(p23 && st.p23day === st.day && gateAny() && flowNext());
+    if (g21) d21Step(dt);
+    if (g22) m22Step(dt);
+    if (b19 && !st.summary) ramp19Step(dt);
+    {
+      const h = heroP();
+      if (Number.isFinite(st.px)) {
+        const sp = Math.hypot(h.x - st.px, h.z - st.pz) / dt;
+        if (sp > 8 && sp < 60 && powerOn) st.power = Math.max(0, st.power - DAY33.powerRun * dt);
+      }
+      st.px = h.x;
+      st.pz = h.z;
+    }
+    if (tired() && !st.tiredSaid) {
+      st.tiredSaid = true;
+      if (!b17) stamp('עייפים — הבקיעה איטית. אכלו לחם', 'no');
+    }
+    if (!tired()) st.tiredSaid = false;
+    SHARED.lambs33 = st.lambs;
+    if (!st.lost) SHARED.lost33 = null;
+    {
+      const own = save.day33 && typeof save.day33 === 'object' ? save.day33 : {};
+      SHARED.moked33 = st.inMoked ? { x: DAY33.moked.x, z: DAY33.moked.z, rug: !!own.rug, lamp: !!own.lamp } : null;
+    }
     badgeStep();
-    if (st.day >= 33 && !st.ended33) { st.ended33 = true; fade(() => { stamp('33 ימי שירות — המשמר נגמר. השערים נפתחים עם שיר הלויים (המחשה)', 'combo'); sfx('fanfare'); L0('end33'); }, '33 ימי שירות'); }
-    if (st.song && st.t >= st.song.until) { st.song = null; stamp('השיר נגמר — מחר שוב', 'info'); L0('song-close'); }
-    try { globalThis.__FIRE33 = 0.25 + 0.75 * (st.fuel / 100) + 0.12 * (st.level - 1); } catch (e) { /* */ }
-    try { globalThis.__LOGS33 = st.logs; } catch (e) { /* */ }   // (build 14: the ramp act draws the basket with his logs)   // (the pyre's flames by the meter and the level — life.js)
+    if (st.day >= 33 && !st.ended33) {
+      st.ended33 = true;
+      fade(() => {
+        stamp('33 ימי שירות — המשמר נגמר. השערים נפתחים עם שיר הלויים (המחשה)', 'combo');
+        sfx('fanfare');
+        L0('end33');
+      }, '33 ימי שירות');
+    }
+    if (st.song && st.t >= st.song.until) {
+      st.song = null;
+      stamp('השיר נגמר — מחר שוב', 'info');
+      L0('song-close');
+    }
+    try {
+      globalThis.__FIRE33 = 0.25 + 0.75 * (st.fuel / 100) + 0.12 * (st.level - 1);
+      if (b17) globalThis.__FIRELOW33 = Math.max(0, Math.min(1, (B17.warn - st.fuel) / 30));
+    } catch (e) {}
+    try {
+      globalThis.__LOGS33 = st.logs;   // (build 14: the ramp act draws the basket with his logs)   // (the pyre's flames by the meter and the level — life.js)
+    } catch (e) {}
     fxStep(dt);
-    { const h = heroP(); const moved = Number.isFinite(st.ix) && Math.hypot(h.x - st.ix, h.z - st.iz) > 0.3; st.ix = h.x; st.iz = h.z; st.idleT = moved || acting || st.night || st.lost ? 0 : (st.idleT || 0) + dt; }
-    hintStep(); push();
+    {
+      const h = heroP(),
+        moved = Number.isFinite(st.ix) && Math.hypot(h.x - st.ix, h.z - st.iz) > 0.3;
+      st.ix = h.x;
+      st.iz = h.z;
+      st.idleT =
+        moved || acting || st.night || st.lost || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') ? 0 : (st.idleT || 0) + dt;
+    }
+    {
+      const h = heroP(),
+        a = Number.isFinite(st.sx) && Math.hypot(h.x - st.sx, h.z - st.sz) > 0.3;
+      st.sx = h.x;
+      st.sz = h.z;
+      st.stuckT = a || acting || st.night || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') ? 0 : st.stuckT + dt;
+      if (st.stuckT >= 10) {
+        st.stuckT = 0;
+        evlog('stuck', { x: Math.round(h.x), z: Math.round(h.z), y: Math.round((h.y || 16) * 10) / 10, next: nx33().id, logs: st.logs });
+      }
+    }
+    st.saveT += dt;
+    if (st.saveT >= DAY33.saveEvery) {
+      st.saveT = 0;
+      saveState('tick');
+    }
+    camPyre();
+    hotStep();
+    hintStep();
+    push();
     return st;
   }
-  function loop(ms) { if (!raf) return; const dt = lastMs ? (ms - lastMs) / 1000 : 0; lastMs = ms; tick(dt); raf = requestAnimationFrame(loop); }
-  function state() { return { t: Math.round(st.t * 100) / 100, phase: st.phase, day: st.day, night: st.night, left: Math.round(st.left), fuel: Math.round(st.fuel * 10) / 10, fed: st.fed, level: st.level, logs: st.logs, basket: st.basketMax, watched: st.watched, perutot: st.perutot, tasks: st.tasks.map((q) => [q.id, !!q.done]), merchant: !!st.merchant, lambsOk: okLambs(), lostLamb: st.lost ? { x: Math.round(st.lost.x), z: Math.round(st.lost.z), follow: !!st.lost.follow } : null, tamids: st.tamids, badges: Object.keys(st.badges), claimed: Object.keys(st.claimed), songs: st.songs, song: !!st.song, inMoked: st.inMoked, torchOn: st.torchOn, paused: !!st.paused, best: st.best, chops: st.chops, worms: st.worms, washed33: st.washed, power: Math.round(st.power), oil: st.oil, flour: st.flour, salt: st.salt, bread: st.bread, open: shown33(), acting: !!acting, next: nx33().id, flowNext: nx33().id, carried: null, score: Math.round(st.fuel), rival: 0, rivalName: '', combo: 1, served: 0, lost: 0, count: 0, stars: 0, spawned: 0, lav31: true, washed: true, mode: 'day33' }; }
-
+  function camPyre() {
+    const h = heroP();
+    if (
+      st.phase === 'run' &&
+      !st.night &&
+      !acting &&
+      !(st.m22 && !carry22()) &&
+      atTop(h) &&
+      (st.logs > 0 || st.t - (st.laidT == null ? -99 : st.laidT) < 2.5)
+    ) {
+      if (!Number.isFinite(st.pyreAz)) {
+        const dx = PYRE.x - h.x,
+          dz = PYRE.z - h.z,
+          a = Math.atan2(-dz, -dx),
+          a1 = a + 1,
+          a2 = a - 1;
+        st.pyreAz = Math.sin(a1) > Math.sin(a2) ? a1 : a2;
+      }
+      SHARED.cam17 = { id: 'pyre', az: st.pyreAz, el: 0.42, d: 13, look: { x: (h.x + PYRE.x) / 2, z: (h.z + PYRE.z) / 2 } };
+    } else {
+      st.pyreAz = NaN;
+      if (SHARED.cam17 && SHARED.cam17.id === 'pyre') SHARED.cam17 = null;
+    }
+  }
+  function loop(ms) {
+    if (!raf) return;
+    const dt = lastMs ? (ms - lastMs) / 1e3 : 0;
+    lastMs = ms;
+    tick(dt);
+    raf = requestAnimationFrame(loop);
+  }
+  function state() {
+    return {
+      t: Math.round(st.t * 100) / 100,
+      phase: st.phase,
+      day: st.day,
+      night: st.night,
+      left: Math.round(st.left),
+      fuel: Math.round(st.fuel * 10) / 10,
+      fed: st.fed,
+      level: st.level,
+      logs: st.logs,
+      basket: st.basketMax,
+      watched: st.watched,
+      perutot: st.perutot,
+      tasks: st.tasks.map((q) => [q.id, !!q.done]),
+      merchant: !!st.merchant,
+      lambsOk: okLambs(),
+      lostLamb: st.lost ? { x: Math.round(st.lost.x), z: Math.round(st.lost.z), follow: !!st.lost.follow } : null,
+      tamids: st.tamids,
+      badges: Object.keys(st.badges),
+      claimed: Object.keys(st.claimed),
+      songs: st.songs,
+      song: !!st.song,
+      inMoked: st.inMoked,
+      torchOn: st.torchOn,
+      paused: !!st.paused,
+      best: st.best,
+      chops: st.chops,
+      worms: st.worms,
+      washed33: st.washed,
+      power: Math.round(st.power),
+      oil: st.oil,
+      flour: st.flour,
+      salt: st.salt,
+      bread: st.bread,
+      open: shown33(),
+      acting: !!acting,
+      next: nx33().id,
+      resumed: st.resumed,
+      bookNight: st.bookNight,
+      atTop: atTop(heroP()),
+      flowNext: nx33().id,
+      carried: null,
+      score: Math.round(st.fuel),
+      rival: 0,
+      rivalName: '',
+      combo: 1,
+      served: 0,
+      lost: 0,
+      count: 0,
+      stars: 0,
+      spawned: 0,
+      lav31: true,
+      washed: true,
+      mode: 'day33',
+      b17,
+      tamD: st.tamD,
+      tamE: st.tamE,
+      summary: !!st.summary,
+      step: (b17 && (step17() || {}).id) || null,
+      streak: st.streak,
+      rampBest: Math.round((st.rampBest || 0) * 10) / 10,
+      laidDay: st.laidDay,
+      low: Math.round(st.lowDay),
+      v17: b17 ? Object.fromEntries(Object.entries(st.dayStats).filter(([arr]) => arr[0] === 'v')) : null,
+      climbs: st.dayStats.climbs | 0,
+      woodNow: b17 ? woodRush(tamid17()) : null,
+      gate: gate20(),
+      k20: st.k20 ? { ph: st.k20.ph, p: Math.round(st.k20.p * 100) / 100, L: st.k20.L, R: st.k20.R } : null,
+      k20T: st.k20T || null,
+      gate21: gate21(),
+      d21: st.d21 ? st.d21.ph : null,
+      d21r: st.d21r || null,
+      gate22: gate22(),
+      m22: st.m22 ? st.m22.ph : null,
+      m22r: st.m22r || null,
+      gate23: gate23(),
+      p23: st.p23 ? st.p23.ph : null,
+      lot: p23 && st.p23day === st.day ? st.lot : null,
+      gate25: gate25(),
+      p25: st.p25 ? st.p25.ph : null,
+      p25r: st.p25r || null,
+      gate26L: gate26L(),
+      gate26: gate26(),
+      role26: p26 && st.p26day === st.day ? st.role26 : null,
+      r26: st.r26 ? st.r26.ph : null,
+      r26r: st.r26r || null,
+      open26: open26(),
+    };
+  }
   const E = {
     start() {
-      ended = false; st.phase = 'run'; st.t = 0;
+      ended = false;
+      st.phase = 'run';
+      st.t = 0;
       if (CAM && CAM.on) say(() => CAM.on());
       if (ST && ST.place) say(() => ST.place());
-      if (hud && hud.pin) fuelPin = say(() => hud.pin('fire33', { icon: '🔥', label: 'אש המערכה' })) || null;
-      try { globalThis.__SH_STOP = stopAt33; } catch (e) { /* */ }
-      newTasks(); setSky(false); push(); L0('start');
-      if (o.raf && typeof requestAnimationFrame === 'function') { lastMs = 0; raf = requestAnimationFrame(loop); }
+      try {
+        globalThis.__SH_STOP = stopAt33;
+      } catch (e) {}
+      if (g22 && st.m22day !== st.day && st.m22c) {
+        st.logs = Math.max(0, st.logs - st.m22c);
+        st.m22c = 0;
+      }
+      if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b)));
+      if (p23 && !st.washed) wake23();
+      if (st.resumeTasks) {
+        newTasks();
+        for (const [x, q] of st.resumeTasks) {
+          const a = st.tasks.find((q) => q.id === x);
+          if (a && q) a.done = true;
+        }
+        st.resumeTasks = null;
+      } else newTasks();
+      if (b17) {
+        st.sDay0 = (SC && say(() => SC.get().total)) || 0;
+        if (!st.resumed) st.pDay0 = st.perutot;
+      }
+      setSky(false);
+      push();
+      L0('start');
+      evlog('day_start', { day: st.day, resumed: st.resumed });
+      if (st.resumed) setTimeout(() => stamp(`המשך יום ${st.day} — המערכה ברמה ${st.level}`, 'combo'), 1200);
+      if (o.raf && typeof requestAnimationFrame === 'function') {
+        lastMs = 0;
+        raf = requestAnimationFrame(loop);
+      }
       return E;
     },
     stop() {
-      if (raf) { try { cancelAnimationFrame(raf); } catch (e) { /* */ } raf = 0; }
-      ended = true; try { if (globalThis.__SH_STOP === stopAt33) delete globalThis.__SH_STOP; } catch (e) { /* */ } drive(0, 0); goal = null;
+      if (raf) {
+        try {
+          cancelAnimationFrame(raf);
+        } catch (e) {}
+        raf = 0;
+      }
+      if (st.phase === 'run' && st.t > 5) saveState('stop');
+      ended = true;
+      try {
+        if (globalThis.__SH_STOP === stopAt33) delete globalThis.__SH_STOP;
+      } catch (e) {}
+      drive(0, 0);
+      goal = null;
       if (o.walk && o.walk.stop) say(() => o.walk.stop());
-      if (fuelPin) { say(() => fuelPin.close()); fuelPin = null; } if (merchantPin) { say(() => merchantPin.close()); merchantPin = null; } SHARED.merchant33 = null; SHARED.lambs33 = null; SHARED.lost33 = null; SHARED.moked33 = null;
+      if (merchantPin) {
+        say(() => merchantPin.close());
+        merchantPin = null;
+      }
+      SHARED.merchant33 = null;
+      SHARED.lambs33 = null;
+      SHARED.lost33 = null;
+      SHARED.moked33 = null;
       if (ST && ST.clear) say(() => ST.clear());
       if (CAM && CAM.off) say(() => CAM.off());
-      setSky(false); try { delete globalThis.__FIRE33; if (fadeEl) { fadeEl.remove(); fadeEl = null; } } catch (e) { /* */ }
+      setSky(false);
+      try {
+        delete globalThis.__FIRE33;
+        delete globalThis.__FIRELOW33;
+        if (fadeEl) {
+          fadeEl.remove();
+          fadeEl = null;
+        }
+      } catch (e) {}
+      if (SHARED.cam17 && /^(pyre|ramp)$/.test(SHARED.cam17.id)) SHARED.cam17 = null;
+      globalThis.__ARM19 = 0;
+      st.k20 = null;
+      st.d21 = null;
+      st.m22 = null;
+      st.p23 = null;
+      st.p25 = null;
+      SHARED.strong24 = false;
+      st.r26 = null;
+      HOUSE22.on = HOUSE22.gate = false;
+      if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass(null));
     },
-    state, tick, work, marks: () => [], flowNext, next31: () => nx33(),
+    state,
+    tick,
+    work,
+    marks: () => [],
+    flowNext,
+    next31: () => nx33(),
+    b17,
+    night17,
+    on17(a) {
+      if (typeof a === 'function') subs17.push(a);
+      return () => {
+        const b = subs17.indexOf(a);
+        if (b >= 0) subs17.splice(b, 1);
+      };
+    },
+    step17,
+    bar17,
+    tap17,
+    tamid17,
+    nextDay,
+    grace17,
+    fire17,
+    go17,
+    focus17: () => ({
+      fuel: st.fuel,
+      drain: drainNow(),
+      tamid: tamid17(),
+      power: st.power,
+      bread: st.bread,
+      bake: open33('bake'),
+      step: step17(),
+      bar: bar17(),
+      grace: grace17(),
+      streak: st.streak,
+      hot: st.hot17 || null,
+      summary: st.summary,
+      day: st.day,
+      phase: st.phase,
+      night: st.night,
+      acting: acting ? acting.id : null,
+      level: st.level,
+      lambs: okLambs(),
+      logs: st.logs,
+      basket: st.basketMax,
+      score: SC ? say(() => SC.get()) : null,
+      perutot: st.perutot,
+      c18: l18
+        ? { coins: c18, ch: st.ch18, pad: st.pad18, own: C18.pads.map((x) => own18(x.id)), tams: (st.tamD === 'ok') + (st.tamE === 'ok') }
+        : null,
+      gate: gateAny(),
+    }),
+    c18,
+    l18,
+    b19,
+    gh19: () => save.gh19,
+    g20,
+    gate20,
+    camWork20,
+    k20: () => st.k20,
+    k20in(a, b) {
+      const k20 = st.k20;
+      return !k20 || (a !== 'L' && a !== 'R') ? false : ((k20[a] = !!b), true);
+    },
+    g21,
+    gate21,
+    d21: () => st.d21,
+    d21swipe,
+    d21bal,
+    d21stick,
+    d21tap,
+    camWork21,
+    d21r: () => st.d21r || null,
+    g22,
+    gate22,
+    m22: () => st.m22,
+    m22swipe,
+    m22place,
+    m22stick,
+    m22put,
+    m22tap,
+    band22,
+    gap24,
+    camWork22,
+    m22r: () => st.m22r || null,
+    p26on: p26,
+    gate26L,
+    gate26,
+    open26,
+    role26: () => (p26 && st.p26day === st.day ? st.role26 : null),
+    r26: () => st.r26,
+    r26swipe,
+    r26hold,
+    r26pull,
+    r26tap,
+    r26light,
+    camWork26,
+    r26r: () => st.r26r || null,
+    g26t: () => (open26() ? st.g26t : null),
+    men5t: () => (open26() && Number.isFinite(st.men5t) ? st.men5t : null),
+    roles26: () => roles26(),
+    p25on: p25,
+    gate25,
+    p25: () => st.p25,
+    p25focus,
+    p25tap,
+    p25swipe,
+    p25stamp,
+    camWork25,
+    p25r: () => st.p25r || null,
+    npc25: () => p25 && st.npc25 === st.day,
+    p23on: p23,
+    gate23,
+    p23: () => st.p23,
+    p23pick,
+    p23raise: () => p23raise(),
+    lot23: () => (p23 && st.p23day === st.day ? st.lot : null),
+    npc23: () => (p23 && st.p23day === st.day && st.npc23) || null,
+    roles23: () => roles23(),
+    first21,
+    first22,
+    camWork23,
+    seat23,
+    circ23,
     // ── fable32 (build 14) ── what he carries and holds (flow31 draws it on him): the axe within reach of the wood (or chopping), the back-basket with his logs; the flights
-    gear: () => { const h = heroP(); const w = st.phase === 'run' && !st.night ? say(() => work(h)) : null; const nearWood = !!((w && w.near31 && w.id31 === 'wood') || (acting && acting.id === 'wood')); return { axe: nearWood, logs: st.logs, basketMax: st.basketMax, acting: acting ? acting.id : null, carrying: st.logs > 0 }; },
+    gear: () => {
+      const h = heroP(),
+        w = st.phase === 'run' && !st.night ? say(() => work(h)) : null;
+      return {
+        axe: !!((w && w.near31 && w.id31 === 'wood') || (acting && acting.id === 'wood')),
+        logs: st.logs,
+        basketMax: st.basketMax,
+        acting: acting ? acting.id : null,
+        carrying: st.logs > 0,
+        sw: b19 && st.r19.sw,
+      };
+    },
     fx33: () => st.fx,
-    playGame, offerPlay,
+    pyre33: () => {
+      const n =
+          st.phase === 'run' && !(st.m22 && /^(stack|ready|ignite|end)/.test(st.m22.ph)) && !(p23 && st.p23day === st.day && st.npc23 === 'm22')
+            ? stackN()
+            : 0,
+        slots = [];
+      for (let i = 0; i < n; i++) slots.push(stackSlot(i));
+      return { n, fuel: st.fuel, slots };
+    },
     // ── /fable32 ──
-    pause(on) { st.paused = !!on; if (st.paused) drive(0, 0); return st.paused; },
-    tapStation, tapPilgrim: () => false, tapGate: () => false, take: () => false, leave: () => {}, runAt, st33: st, shown33,
-    onEnd(cb) { if (typeof cb === 'function') ends.push(cb); return E; },
-    get level() { return { n: 1, count: 0 }; },
-    debug: { log: () => log.slice(), feed, skip: (s) => { for (let i = 0; i < Math.round(s * 10); i++) tick(0.1); return state(); }, setFuel: (v) => { st.fuel = v; }, logs: (n) => { st.logs = n; }, night: () => { st.left = 0; }, fed: (n) => { st.fed = n; st.level = levelOf33(n); }, power: (v) => { st.power = v; }, bread: (n) => { st.bread = n; }, lose: () => { st.lostDay = 0; st.lost = { x: -30, z: 30, yaw: 0, t: 0, follow: false }; }, lambOk: (n) => { st.lambs.forEach((q, i) => { q.ok = i < n; }); }, merchant: () => { st.merchantSeen = 0; st.day = Math.max(st.day, DAY33.merchantDay); merchantStep(); }, trade, perutot: () => st.perutot, song: () => { st.song = { until: st.t + DAY33.songS }; }, claim: claimBook, day: (n) => { st.day = n; } },
+    playGame,
+    offerPlay,
+    pause(on) {
+      st.paused = !!on;
+      if (st.paused) {
+        drive(0, 0);
+        let26();
+      }
+      return st.paused;
+    },
+    tapStation,
+    tapPilgrim: () => false,
+    tapGate: () => false,
+    take: () => false,
+    leave: () => {},
+    runAt,
+    st33: st,
+    shown33,
+    onEnd(cb) {
+      if (typeof cb === 'function') ends.push(cb);
+      return E;
+    },
+    get level() {
+      return { n: 1, count: 0 };
+    },
+    debug: {
+      log: () => log.slice(),
+      feed,
+      skip: (s) => {
+        for (let i = 0; i < Math.round(s * 10); i++) tick(0.1);
+        return state();
+      },
+      setFuel: (v) => {
+        st.fuel = v;
+      },
+      logs: (n) => {
+        st.logs = n;
+      },
+      night: () => {
+        st.left = 0;
+      },
+      fed: (n) => {
+        st.fed = n;
+        st.level = levelFor(n);
+      },
+      power: (v) => {
+        st.power = v;
+      },
+      bread: (n) => {
+        st.bread = n;
+      },
+      lose: () => {
+        st.lostDay = 0;
+        st.lost = { x: -30, z: 30, yaw: 0, t: 0, follow: false };
+      },
+      lambOk: (n) => {
+        st.lambs.forEach((q, i) => {
+          q.ok = i < n;
+        });
+      },
+      merchant: () => {
+        st.merchantSeen = 0;
+        st.day = Math.max(st.day, DAY33.merchantDay);
+        merchantStep();
+      },
+      trade,
+      perutot: () => st.perutot,
+      song: () => {
+        st.song = { until: st.t + DAY33.songS };
+      },
+      claim: claimBook,
+      day: (n) => {
+        st.day = n;
+      },
+      lostSpot: lostStep,
+      saveState,
+      atTop: () => atTop(heroP()),
+      wash20: () => {
+        st.washed = true;
+        st.k20 = null;
+      },
+      skip21: () => {
+        st.d21 = null;
+        st.d21day = st.day;
+      },
+      skip22: () => {
+        st.m22 = null;
+        st.m22day = st.day;
+      },
+      skip23: (a = 'deshen') => {
+        st.p23 = null;
+        st.p23day = st.day;
+        st.lot = a;
+        st.npc23 = a === 'm22' ? 'deshen' : 'm22';
+        if (a === 'm22' || a === 'lamb') st.d21day = st.day;
+      },
+      skip25: () => {
+        st.p25 = null;
+        st.p25day = st.day;
+        st.m22day = st.day;
+      },
+      skip26: (a = 'menorah') => {
+        st.p23 = null;
+        st.p26day = st.day;
+        st.role26 = a;
+      },
+      done26: () => {
+        st.r26 = null;
+        st.p26day = st.day;
+        st.r26day = st.day;
+        st.g26day = st.day;
+      },
+    },
   };
   return E;
 }
-// ── /fable32 ──

@@ -12,8 +12,11 @@ import { jr32, allPages32 } from '../src/avodah/shift/journal32.js';
 import { bookHTML23 } from '../src/avodah/shift/pis23.js';
 import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
 import { turnCard } from '../src/avodah/shift/prefs28.js';
+import { LOCK29_CSS, locButton29 } from '../src/avodah/shift/lock29.js';
 import { install } from './avodah-dom-shim.mjs';
-import { CH33, day33n, stock33, canInspect33 } from '../src/avodah/shift/lamb33.js';
+import { CH33, day33n, stock33, canInspect33, inspect33, weekdayHe33, hisDayHe33, whenHe33 } from '../src/avodah/shift/lamb33.js';
+import { stockHTML33, lambsTab33 } from '../src/avodah/shift/chamber33.js';
+import { status29 } from '../src/avodah/shift/time29.js';
 import { practiceSave31 } from '../src/avodah/shift/practice31.js';
 import { rig } from './rig33.mjs';
 import { createFocus17 } from '../src/avodah/shift/focus17.js';   // (every act's module: their sources register — the journal's pages)
@@ -147,12 +150,43 @@ test('build 34 (12): the chamber\'s walk in has its own view (CH33.walk, from th
   const R2 = rig(); R2.E.start(); await R2.step(0.3); assert.equal(R2.E.camWork25(), null);
 });
 
+test('build 34 (13): on a phone ≤ 700 px wide the opening screen\'s "מיקום מדויק" is its 📍 alone (its words reached the kohen\'s feet and ring at 640×296); a message while it asks still shows', () => {
+  assert.match(LOCK29_CSS, /@media \(max-width:700px\)\{\.lb \.p28\.lb-loc:not\(\.msg\) span\{display:none\}\}/);
+  const off = locButton29(false, ''), on = locButton29(true, ''), asking = locButton29(false, 'מאתר…');
+  assert.match(off, /class="p28 lb-loc off"/); assert.match(on, /class="p28 lb-loc"/); assert.match(asking, /class="p28 lb-loc off msg"/);
+  for (const h of [off, on, asking]) { assert.match(h, /aria-label="מיקום מדויק"/); assert.match(h, /<i>📍<\/i>/); }
+  assert.match(asking, /<span>מאתר…<\/span>/);
+  assert.match(read('src/avodah/shift/prefs28.js'), /\.p28\{min-height:44px;min-width:44px;/, 'the icon alone is still 44 × 44');
+});
+
+test('build 34 (14): what HE did on a Saturday is "מוצאי שבת" — the screen is locked until Shabbat goes out (the morning\'s card said "הטלה שבדקת בשבת"); the court\'s offering on Shabbat stays "שבת"', () => {
+  const W = { lat: 31.7781, lon: 35.2354, tz: 'Asia/Jerusalem' }, SAT = Date.parse('2026-10-31T19:30:00+02:00'), dS = day33n(SAT, W);   // (Saturday 31.10, after Shabbat went out at 17:2x)
+  assert.equal(status29(SAT, W).locked, false, 'Saturday evening: open');
+  assert.equal(status29(Date.parse('2026-10-31T12:00:00+02:00'), W).locked, true, 'Saturday noon: locked');
+  assert.equal(weekdayHe33(dS), 'שבת'); assert.equal(hisDayHe33(dS), 'מוצאי שבת'); assert.equal(hisDayHe33(dS - 5), 'יום שני');
+  assert.equal(whenHe33(dS, dS + 4), 'במוצאי שבת'); assert.equal(whenHe33(dS, dS + 8), 'במוצאי שבת, 31.10'); assert.equal(whenHe33(dS - 5, dS - 1), 'ביום שני');
+  // inspected on Saturday evening: the stock's chip, the journal's "נבדק", the morning's card
+  const save = {}; assert.ok(inspect33(save, { dn: dS, t: SAT, h: 'x', out: 'tamim', r: 'mehudar', q: 1 }));
+  assert.match(stockHTML33(save, dS + 1), /מוצאי שבת<b>/); assert.ok(!/>שבת<b>/.test(stockHTML33(save, dS + 1)));
+  const tab = lambsTab33(save, dS + 1); assert.match(tab, /נבדק: מוצאי שבת, 31\.10\.2026/);
+  // the court's kohanim offer it on d + 7 — a Saturday: "שבת" (the Tamid is offered on Shabbat)
+  const s2 = {}; assert.ok(inspect33(s2, { dn: dS - 7, t: SAT - 7 * 864e5, h: 'x', out: 'tamim', r: 'mehudar', q: 1 }));
+  assert.match(lambsTab33(s2, dS + 2), /עלה לתמיד: שבת, 31\.10\.2026[^<]*— בידי כהני הלשכה/);
+});
+
+test('build 34 (15): the pen\'s start card fits a 296-px-high phone (it ran 20 px over and cut its title): the small lamb picture goes there and the card scrolls if it must', () => {
+  const p = read('src/pen/ui.js');
+  assert.match(p, /export const LAND = '\(orientation:landscape\) and \(max-height:560px\) and \(min-width:560px\)';/);
+  assert.match(p, /@media \$\{LAND\} and \(max-height:330px\)\{\.pn-card \.pn-lambpic\{display:none\}\.pn-card\{max-height:100%;overflow-y:auto\}\}/);
+  assert.match(p, /\.pn-wrap\{position:absolute;inset:0;[^}]*padding:14px;box-sizing:border-box/, 'the card inside its padded wrap');
+});
+
 // ───────── the Divine Name ─────────
 test('build 34: no Divine Name in the changed files (by code points; spaced, hyphenated or pointed forms too)', () => {
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];
   const sep = '[\\u0591-\\u05C7\\s\\-\\u05BE\\u05F3\\u05F4\'".]*';
   const res = N.map((c) => new RegExp(c.map((x) => String.fromCharCode(x)).join(sep)));
-  const files = ['src/avodah/shift/book32.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/index.js', 'src/avodah/shift/hud.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/lobby35.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/focus17.js', 'src/avodah/ui.js', 'src/avodah/ui.css.js', 'src/avodah/shift/lamb33.js', 'src/avodah/shift/day33.js', 'test/build34.test.mjs', 'test/build32.test.mjs', 'test/build33.test.mjs', 'test/build28.test.mjs'];
+  const files = ['src/avodah/shift/book32.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/index.js', 'src/avodah/shift/hud.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/lobby35.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/focus17.js', 'src/avodah/ui.js', 'src/avodah/ui.css.js', 'src/avodah/shift/lamb33.js', 'src/avodah/shift/day33.js', 'src/avodah/shift/lock29.js', 'src/avodah/shift/chamber33.js', 'src/pen/ui.js', 'test/build34.test.mjs', 'test/build32.test.mjs', 'test/build33.test.mjs', 'test/build28.test.mjs'];
   const hits = [];
   for (const f of files) { const s = read(f); res.forEach((r, i) => { const m = s.match(r); if (m) hits.push(`${f}: name ${i} at ${m.index}`); }); }
   assert.deepEqual(hits, []);

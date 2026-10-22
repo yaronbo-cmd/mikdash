@@ -698,7 +698,9 @@ export function createMaaracha22(o = {}) {
       if (type === 'm22sw') {
         if (!ev.ok) {
           snd('soft');
-          flash('החליקו ימינה או שמאלה ↔', 'ok');
+          // ── fable32 (build 34) ── the reason, as the ashes', the lamb's and the Heichal's swipes say it — a child who swiped right but too
+          // short or too slow read "החליקו ימינה או שמאלה ↔" again and again, swiped the same, and sorted nothing (0/4 for minutes) ── /fable32 ──
+          flash(ev.why === 'short' ? 'ארוך יותר ↔' : ev.why === 'slow' ? 'מהר יותר ↔' : 'לרוחב ↔', 'ok');
           return;
         }
         const L0 = cur.__L;

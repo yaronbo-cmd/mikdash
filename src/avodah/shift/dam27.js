@@ -292,12 +292,12 @@ export function createDam27(o = {}) {
       cutd: ['', SRC.recv],
       recv: ['קבלו את הדם — גררו ↔ והחזיקו את המזרק תחת הזרם', SRC.recv],
       full: ['', SRC.recv],
-      carry: ['אל הקרן המזרחית הצפונית — הסטיק ללכת, והאגודל הימני מסובב', SRC.mares + ' · ' + SRC.ne],
+      carry: ['אל הקרן המזרחית הצפונית — הסטיק ללכת, האגודל הימני מסובב', SRC.mares],
       hold: ['חמש נרות קודם לדם התמיד — מרסו עד שיסיימו', SRC.five],
-      aim: ['זרקו מתחת לחוט, אל חוד הקרן — משכו לאחור, כוונו ↔ ושחררו', SRC.line + ' · ' + SRC.diag],
+      aim: ['זרקו מתחת לחוט, אל חוד הקרן — משכו לאחור, כוונו ↔ ושחררו', SRC.line],
       splash: ['', SRC.gamma],
       carry2: ['אל הקרן המערבית הדרומית — סביב הצפון והמערב', SRC.sw],
-      aim2: ['זרקו מתחת לחוט, אל חוד הקרן — משכו לאחור, כוונו ↔ ושחררו', SRC.line + ' · ' + SRC.diag],
+      aim2: ['זרקו מתחת לחוט, אל חוד הקרן — משכו לאחור, כוונו ↔ ושחררו', SRC.line],
       splash2: ['', SRC.gamma],
       base: ['את שירי הדם — על היסוד הדרומי: החליקו ⬇', SRC.base],
       poured: ['', SRC.base],
@@ -710,7 +710,8 @@ export function createDam27(o = {}) {
         flash('המזרק מלא ✓');
       } else if (ph === 'carry') say(`ממרס בדם כל הדרך — שלא יקרש<small>${SRC.mares} · המחשה</small>`, 6);
       else if (ph === 'hold') say(`הטבת חמש נרות קודם לדם התמיד<small>${SRC.five}</small>`, 6);
-      else if (ph === 'splash' || ph === 'splash2') addSplash(ph === 'splash' ? 'NE' : 'SW', (S.lastThrow && S.lastThrow.y) || 19.5, ev.face == null ? 0 : ev.face); else if (ph === 'carry2') say(`${SRC.sw}`, 5);
+      else if (ph === 'aim' || ph === 'aim2') say(`${ph === 'aim' ? 'קרן מזרחית צפונית' : 'קרן מערבית דרומית'} — למטה מן החוט<small>${ph === 'aim' ? SRC.ne : SRC.sw} · ${SRC.diag}</small>`, 5);
+      else if (ph === 'splash' || ph === 'splash2') addSplash(ph === 'splash' ? 'NE' : 'SW', (S.lastThrow && S.lastThrow.y) || 19.5, ev.face == null ? 0 : ev.face); else if (ph === 'carry2') say(`סביב הצפון והמערב — אל הקרן המערבית הדרומית<small>${SRC.sw}</small>`, 5);
       else if (ph === 'base') say(`נשאר דם במזרק — אל היסוד הדרומי<small>${SRC.base}</small>`, 5);
       else if (ph === 'poured') {
         snd('pour27');

@@ -306,7 +306,7 @@ export function createShiftHud(root) {
     onPause(cb) { onPause = cb; return H; },
     pauseCard(h = {}) {
       if (pauseEl) return pauseEl;
-      pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>
+      pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>${h.note ? `<p class="sh-note29">${String(h.note).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</p>` : '' /* ── fable32 (build 29) ── the calm line before the Shabbat / Yom Tov lock ── /fable32 ── */}
         <div class="sh-btns"><button class="sh-btn resume" type="button" data-sh="resume">המשך</button><button class="sh-btn restart" type="button" data-sh="restart">מהתחלה</button></div>
         ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28') : ''}
         ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}

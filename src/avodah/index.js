@@ -216,6 +216,9 @@ export function createAvodah({ world, root, onEvent, options = {} } = {}) {
       emit('start', { isNew, mode: o.mode || 'home', fromA: !!a0, adopted });
       if (adopted) persist();
     }
+    // ── fable32 (build 29) ── the Shabbat and Yom Tov lock (rule 16): a page opened during it shows its screen alone — before the first
+    // run's name and mishmar screens too; at its end this start goes on from here ── /fable32 ──
+    if (SH && o.shift != null && SH.gate29 && SH.gate29(() => start(o))) { try { ui.showHome(false); } catch (e) { /* */ } emit('lock29', {}); return null; }
     if (!S.hasPlayer(A)) {
       busy = true;
       const r = await ui.namePick({ name: A.name });   // ── avoda12 ── (N69) a known name is never asked again

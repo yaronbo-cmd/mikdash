@@ -11,6 +11,13 @@
  * The start screen: "משחק קצר" — one door to a small picker of the three interludes (זיכרון המקדש, הוצאת הטלה מהדיר, משחק האוצר; the
  * day no longer offers them) — and the two switches, צליל and רטט (prefs28.js; also on the pause card); the full screen's ממונה's
  * tasks are the day's own ("יום N", it always said "יום 1"). ── /fable32 ──
+ * ── fable32 (build 29) ── (the owner, 22.10 08:59: "מסך פתיחה בשעה האמיתית - כן. וממנו השחקן יחליט אם להמשיך מפה או לחזור לנקודת המוצא
+ * שלו (שהיא תהיה יותר מתגמלת)"; rule 16) the court is lit by the real sun where the phone is (time29.js's sky29: dawn · noon · dusk · the
+ * readable night — no longer always dawn); the start screen says what the Temple does now ("עכשיו במקדש: …", calendar.js, drafts; at
+ * night the guards, Middot 1:1) and has two doors: the gold one stays the player's own track — "נקודת המוצא שלי · המשך יום N" (the
+ * rewarding one) — and a smaller "מכאן — המקדש עכשיו" (a card: now and next by the local sun; the chambers to come, locked; no rewards);
+ * the "מיקום מדויק" switch beside צליל / רטט. o.lock (a time29 status): the lock screen — the court at rest (no kohen, no lamb, no
+ * motes), the greeting and the hour it opens (lock29.js), the switches; no door to play. ── /fable32 ──
  *   const Lb = createLobby({ D, world, view, twin, save, persist, sfx, root, camera(view, twin, o), kit, games, score, start, on: { day, shop, book, merchant } })   (build 28: on.shift / on.tour never called)
  *   Lb.close() · Lb.refresh() · Lb.el · tests: globalThis.__LOBBY (state(), pick(name))
  * ── /fable32 ── */
@@ -19,8 +26,13 @@ import { addDrawer, L, SHARED } from './draw.js';
 import { BADGES33, SHOP33, DAY33, tasksNow33, resumeDay33 } from './day33.js';   // ── recovered (build 16) ── resumeDay33: the saved day to go on with, 0 = none (day33's; the name is the recovery's) ── fable32 (build 28) ── (tasksNow33: the day's own tasks; was tasksForDay) ── /fable32 ──
 import { prefsHTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches ── /fable32 ──
 import { interludeScore, fmt as fmtScore } from './score35.js';   // ── fable32 (build 14) ── the one score ── /fable32 ──
+import { clock29, where29, sky29, templeNow29, readLoc29, saveLoc29 } from './time29.js';   // ── fable32 (build 29) ── ── /fable32 ──
+import { css29, lockHTML29, nowLineHTML29, hereDoor29, hereHTML29, locButton29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 
 export const LOBBY35 = Object.freeze({ x: -25, z: 34, y: 16, az0: Math.PI / 2, swing: 0.45, swingS: 0.22, el: 0.24, d: 16, motes: 14, cycleS: 7 });   // ── recovered (16–26c) ── (x −34 → −25, z 50 → 34, el 0.2 → 0.24, d 15 → 16)
+// ── fable32 (build 29) ── the sky's preset for each part of the real day (main.js TIMES; the night is the readable moonlit one — HANDOFF §3
+// "לילה = דמדומים (לא חושך)" — not the day's dark 'nightd'); the lock's view: the court at rest, farther and higher than his ── /fable32 ──
+export const LOBBY29 = Object.freeze({ sky: { dawn: 'dawn', noon: 'noon', dusk: 'dusk', night: 'night' }, lockEl: 0.3, lockD: 30 });
 
 const CSS = `
 .lb{position:fixed;inset:0;z-index:31;direction:rtl;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;pointer-events:none;overflow:hidden}
@@ -82,7 +94,15 @@ export function createLobby(o = {}) {
   const on = o.on || {};
   const persist = () => { try { o.persist && o.persist(); } catch (e) { /* */ } };
   const sfx = (n) => { try { o.sfx && o.sfx.play && o.sfx.play(n); } catch (e) { /* */ } };
-  const st = { t: 0, mode: 'day' /* ── fable32 (build 28) ── (always the day: a save's 'shift' / 'tour' too) ── /fable32 ── */, games: false, start: !!o.start /* ── recovered (build 16) ── the start screen */, open: true, busy: false, cam: null, offDraw: null, drags: 0, dragT: -9, az: LOBBY35.az0, pose: 'stand', u: 1, hx: LOBBY35.x, hz: LOBBY35.z, hy: LOBBY35.y, n: 0 };
+  const st = { t: 0, mode: 'day' /* ── fable32 (build 28) ── (always the day: a save's 'shift' / 'tour' too) ── /fable32 ── */, games: false, start: !!o.start /* ── recovered (build 16) ── the start screen */, open: true, busy: false, cam: null, offDraw: null, drags: 0, dragT: -9, az: LOBBY35.az0, pose: 'stand', u: 1, hx: LOBBY35.x, hz: LOBBY35.z, hy: LOBBY35.y, n: 0,
+    lock: o.lock && o.lock.locked ? o.lock : null, soft: '', here: false, locMsg: '', sky: '', inWorld: false, key29: '' };   // ── fable32 (build 29) ── the lock, the calm line, the second door's card ── /fable32 ──
+  // ── fable32 (build 29) ── the real clock and where the phone is (tests: o.now, o.where) ── /fable32 ──
+  const now29 = () => { try { return o.now ? +o.now() : clock29(); } catch (e) { return Date.now(); } };
+  const where = () => { try { return o.where ? o.where() : where29(); } catch (e) { return where29({ query: null }); } };
+  const skyNow = () => { try { return LOBBY29.sky[sky29(now29(), where())] || 'dawn'; } catch (e) { return 'dawn'; } };
+  const tnNow = () => { try { return templeNow29(now29(), where()); } catch (e) { return null; } };
+  function setSky29() { const k = skyNow(); st.sky = k; try { const W = globalThis.__T; if (W && typeof W.setTime === 'function') W.setTime(k); } catch (e) { /* */ } }
+  // ── /fable32 ──
   const hp = { x: 0, y: 16, z: 0 };
   const H35 = () => { const H = globalThis.__HERO35; return H && H.loaded ? H : null; };   // ── fable32 (build 15) ── the real kohen (hero35.js), when loaded ── /fable32 ──
   const camNow = () => { try { if (view && view.camNow) return view.camNow(hp); } catch (e) { /* */ } return null; };
@@ -90,13 +110,15 @@ export function createLobby(o = {}) {
   function enterWorld() {
     try { if (D && !D.active && D.canEnter && D.canEnter()) D.enter(); } catch (e) { /* */ }
     try { if (D && D.shiftMode) D.shiftMode({ work: () => null, marks: () => [], tick: () => {} }); } catch (e) { /* */ }
-    try { const W = globalThis.__T; if (W && typeof W.setTime === 'function') W.setTime('dawn'); } catch (e) { /* */ }
-    try { if (S && S.hero) { S.hero.setPos(LOBBY35.x, LOBBY35.z, 0); S.hero.drive(0, 0); S.hero.show(!!H35()); } } catch (e) { /* */ }   // (build 15: the real kohen stands himself; without him the kit draws the figure)
+    setSky29();   // ── fable32 (build 29) ── the real hour's sky where the phone is (was always 'dawn') ── /fable32 ──
+    try { if (S && S.hero) { S.hero.setPos(LOBBY35.x, LOBBY35.z, 0); S.hero.drive(0, 0); S.hero.show(!!H35() && !st.lock); } } catch (e) { /* */ }   // (build 15: the real kohen stands himself; without him the kit draws the figure) ── fable32 (build 29) ── (the lock: no kohen at work) ── /fable32 ──
     try { if (S && S.heroXYZ) { S.heroXYZ(hp); st.hy = Number.isFinite(hp.y) ? hp.y : 16; } } catch (e) { /* */ }
     try { if (T && T.noStick) T.noStick(true); } catch (e) { /* */ }
-    try { if (o.camera && view) { st.cam = o.camera(view, T, { world: S, drag: 1 }); st.cam.on(); st.cam.orbit(LOBBY35.az0, LOBBY35.el, LOBBY35.d); } } catch (e) { st.cam = null; }
+    try { if (o.camera && view) { if (st.cam) st.cam.off(); st.cam = o.camera(view, T, { world: S, drag: 1 }); st.cam.on(); st.cam.orbit(LOBBY35.az0, st.lock ? LOBBY29.lockEl : LOBBY35.el, camD()); } } catch (e) { st.cam = null; }
     SHARED.act = null;
+    st.inWorld = !!(D && D.active);   // ── fable32 (build 29) ── (a lock opened in portrait enters the world when the phone turns: tick29) ── /fable32 ──
   }
+  const camD = () => (st.lock ? LOBBY29.lockD : LOBBY35.d);
   function leaveWorld() {
     if (st.offDraw) { try { st.offDraw(); } catch (e) { /* */ } st.offDraw = null; }
     try { if (st.cam) st.cam.off(); } catch (e) { /* */ } st.cam = null;
@@ -107,7 +129,8 @@ export function createLobby(o = {}) {
   function draw(k, t, dt) {
     st.t += dt; st.n++;
     // the camera's slow swing round him (paused 3 s after the thumb turned it)
-    if (st.cam) { const s = st.cam.state(); if (s.drags !== st.drags) { st.drags = s.drags; st.dragT = st.t; } if (st.t - st.dragT > 3) { st.az = LOBBY35.az0 + LOBBY35.swing * Math.sin(st.t * LOBBY35.swingS); st.cam.orbit(st.az, null, LOBBY35.d); } }
+    if (st.cam) { const s = st.cam.state(); if (s.drags !== st.drags) { st.drags = s.drags; st.dragT = st.t; } if (st.t - st.dragT > 3) { st.az = LOBBY35.az0 + LOBBY35.swing * Math.sin(st.t * LOBBY35.swingS); st.cam.orbit(st.az, null, camD()); } }
+    if (st.lock) return;   // ── fable32 (build 29) ── the Temple at rest: no kohen at work, no lamb, no motes — the court, the altar's fire, the sky ── /fable32 ──
     // the idle cycle: stand (breathing) · a wave · stand · the axe over the shoulder, swung once
     const c = st.t % LOBBY35.cycleS, breath = 0.5 + 0.5 * Math.sin(st.t * 1.7);
     let pose = 'stand', u = 1, axe = false;
@@ -147,7 +170,7 @@ export function createLobby(o = {}) {
   // ── fable32 (build 28) ── "משחק קצר": the three interludes in one small picker (their own runners, פרוטות and score: play(key) below) ── /fable32 ──
   const GAMES28 = [['tiles', '🃏', 'זיכרון המקדש', 'קלפים מתהפכים'], ['pen', '🐑', 'הוצאת הטלה מהדיר', 'פאזל הזזה'], ['m3', '💎', 'משחק האוצר', 'שלושה בשורה']];
   const lvl28 = (k) => { const g = save[k] && typeof save[k] === 'object' ? save[k] : null; if (!g) return 0; return k === 'm3' ? (g.level && g.level.quarry) | 0 : g.level | 0; };
-  const side28 = (door) => `<div class="lb-side">${door ? `<button class="lb-door" type="button" data-lb="games"><i>🃏</i><span><b>משחק קצר</b><small>זיכרון · הדיר · האוצר — פרוטות</small></span></button>` : ''}${prefsHTML(o.sfx)}</div>`;
+  const side28 = (door) => `<div class="lb-side">${door ? `<button class="lb-door" type="button" data-lb="games"><i>🃏</i><span><b>משחק קצר</b><small>זיכרון · הדיר · האוצר — פרוטות</small></span></button>` : ''}${prefsHTML(o.sfx, '', door ? locButton29(!!readLoc29(), st.locMsg) : '') /* ── fable32 (build 29) ── (+ מיקום מדויק on the start screen) ── /fable32 ── */}</div>`;
   const picker28 = () => `<div class="lb-pk" role="dialog" aria-label="משחק קצר"><div class="lb-pkc"><h2>משחק קצר</h2><p>משחקי ביניים — הפרוטות והנקודות שלכם · המחשה</p><div class="lb-pkg">${GAMES28.map(([k, ic, he, sub]) => `<button class="lb-door pick" type="button" data-lb="${k}"><i>${ic}</i><span><b>${he}</b><small>${lvl28(k) > 1 ? `${k === 'm3' ? 'מחצבה' : 'שלב'} ${lvl28(k)}` : sub}</small></span></button>`).join('')}</div><button class="lb-pkx" type="button" data-lb="games:close">סגור</button></div></div>`;
   function html() {
     const bd = claimed(), tl = save.tiles && typeof save.tiles === 'object' ? save.tiles : {}, pn = save.pen && typeof save.pen === 'object' ? save.pen : {}, m3 = save.m3 && typeof save.m3 === 'object' ? save.m3 : null;
@@ -156,13 +179,17 @@ export function createLobby(o = {}) {
     // ── recovered (build 16) ── the start (st.start): the world at dawn, one big button — "המשך יום N" when a day is saved — "מסך הבית"
     // and the full screen; minimal (DAY33.minimal): the doors the owner has not asked for are hidden
     const cont = resumeDay33(save), minimal = !!DAY33.minimal, playLabel = cont ? `המשך יום ${cont}` : 'משחק';
+    // ── fable32 (build 29) ── the lock: its screen only (lock29.js) — the court at rest behind it, the switches; no door to play ── /fable32 ──
+    if (st.lock) return `${lockHTML29(st.lock, where(), o.sfx)}<div class="lb-draft">טיוטה — המחשה · בנייה 29</div>`;
+    const tn29 = st.start ? tnNow() : null;   // ── fable32 (build 29) ── the Temple now, by the sun where the phone is ── /fable32 ──
     return st.start ? `
       <div class="lb-top">🏛️ בית המקדש השני ${sc ? `<span style="opacity:.6">·</span> <span class="lb-star">★ ${fmtScore(sc.total)}</span>` : ''}</div>
+      ${nowLineHTML29(tn29, st.soft)}
       <button class="lb-home" type="button" data-lb="home">☰ מסך הבית</button>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
-      <div class="lb-bottom"><button class="lb-play" type="button" data-lb="play">${esc(playLabel)}<small>${cont ? `המערכה מחכה — ${MODE.day[1]}` : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
-      ${side28(true)}${st.games ? picker28() : ''}
-      <div class="lb-draft">טיוטה — להמחשה · בנייה 16</div>` : `
+      <div class="lb-bottom">${hereDoor29()}<button class="lb-play" type="button" data-lb="play"><small class="lb-k">נקודת המוצא שלי</small>${esc(playLabel)}<small>${cont ? `המערכה מחכה — ${MODE.day[1]}` : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
+      ${side28(true)}${st.games ? picker28() : ''}${st.here ? hereHTML29(tn29, where(), now29()) : ''}
+      <div class="lb-draft">טיוטה — להמחשה · בנייה 29</div>` : `
       <div class="lb-top">🏛️ בית המקדש השני <span style="opacity:.6">·</span> ${sc ? `<span class="lb-star">★ ${fmtScore(sc.total)}${sc.coins ? ` · ◉ ${sc.coins}` : ''}${sc.title ? ` · ${esc(sc.title)}` : ''}</span> <span style="opacity:.6">·</span> ` : ''}🪙 <span data-lb="perutot">${perutot()}</span> פרוטות <span style="opacity:.6">·</span> 📜 ${bd}/${BADGES33.length}</div>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
       <div class="lb-col lb-r">
@@ -178,14 +205,16 @@ export function createLobby(o = {}) {
         <button class="lb-door pick" type="button" data-lb="m3"><i>💎</i><span><b>משחק האוצר</b><small>${m3 && m3.level ? `מחצבה ${m3.level.quarry || 1}` : 'שלושה בשורה — פרוטות'}</small></span></button>`}
       </div>
       <div class="lb-bottom">
-        <button class="lb-play" type="button" data-lb="play">${esc(playLabel)}<small>${MODE.day[0]} — ${MODE.day[1]}</small></button>
+        <button class="lb-play" type="button" data-lb="play"><small class="lb-k">נקודת המוצא שלי</small>${esc(playLabel)}<small>${MODE.day[0]} — ${MODE.day[1]}</small></button>
       </div>
-      ${side28(false)}${st.games ? picker28() : ''}
+      ${side28(false)}${st.games ? picker28() : ''}${nowLineHTML29(null, st.soft) /* ── fable32 (build 29) ── (the calm line here too) ── /fable32 ── */}
       <div class="lb-draft">טיוטה — להמחשה · מסך הבית (בנייה 13)</div>`;   // ── fable32 (build 28) ── (no mode pill; the switches) ── /fable32 ──
   }
   function render() {
     if (!root) return;
-    root.classList.toggle('lb-start', !!st.start); root.classList.toggle('lb-min', !!DAY33.minimal);   // ── recovered (build 16) ──
+    root.classList.toggle('lb-start', !!st.start && !st.lock); root.classList.toggle('lb-min', !!DAY33.minimal);   // ── recovered (build 16) ──
+    root.classList.toggle('lb-lock', !!st.lock);   // ── fable32 (build 29) ── ── /fable32 ──
+    st.key29 = key29();
     root.innerHTML = html();
     root.querySelectorAll('[data-lb]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); pick(b.dataset.lb); }));
     bindPrefs(root, { sfx: o.sfx });   // ── fable32 (build 28) ── (the two switches redraw themselves) ── /fable32 ──
@@ -194,6 +223,10 @@ export function createLobby(o = {}) {
     if (!st.open || st.busy) return false;
     sfx('ui');
     if (name.startsWith('mode:')) return false;   // ── fable32 (build 28) ── (no modes but the day) ── /fable32 ──
+    if (st.lock) return false;   // ── fable32 (build 29) ── (the lock: no door; its switches are prefs28's own) ── /fable32 ──
+    if (name === 'here') { st.here = true; render(); return true; }   // ── fable32 (build 29) ── the second door: its card (no reward) ── /fable32 ──
+    if (name === 'here:close') { st.here = false; render(); return true; }
+    if (name === 'loc') return loc29();
     if (name === 'play') { close(); on.day && on.day(); return true; }   // ── recovered (build 16) ── (st.start: the start's button is the day) ── fable32 (build 28) ── (and the full screen's: the day, always) ── /fable32 ──
     if (name === 'games') { st.games = true; render(); return true; }   // ── fable32 (build 28) ── "משחק קצר": the picker ── /fable32 ──
     if (name === 'games:close') { st.games = false; render(); return true; }
@@ -216,6 +249,31 @@ export function createLobby(o = {}) {
     persist(); st.busy = false; if (root) { root.style.display = ''; render(); }
   }
   // ── /fable32 ──
+  // ── fable32 (build 29) ── "מיקום מדויק": asked once, kept rounded (time29's saveLoc29: bh_loc29, never sent); a tap again forgets it
+  function loc29() {
+    if (readLoc29()) { saveLoc29(null); st.locMsg = ''; afterWhere(); return true; }
+    const geo = typeof navigator !== 'undefined' && navigator.geolocation;
+    if (!geo || !geo.getCurrentPosition) { st.locMsg = 'אין מיקום — לפי אזור הזמן'; render(); return false; }
+    st.locMsg = 'מאתר…'; render();
+    try {
+      geo.getCurrentPosition((p) => { saveLoc29(p.coords.latitude, p.coords.longitude); st.locMsg = ''; afterWhere(); },
+        () => { st.locMsg = 'לא התקבל — לפי אזור הזמן'; if (st.open) render(); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 6 * 3600e3 });
+    } catch (e) { st.locMsg = 'לא התקבל — לפי אזור הזמן'; render(); }
+    return true;
+  }
+  function afterWhere() { if (!st.open) return; setSky29(); render(); try { o.onWhere && o.onWhere(); } catch (e) { /* */ } }
+  // what the start screen shows that time changes: the sky, the Temple's line, the calm line (tick29 redraws only when it moved)
+  function key29() { if (st.lock) return `lock|${st.lock.opensAt}|${st.lock.jerusalem && st.lock.jerusalem.entered}`; const tn = st.start ? tnNow() : null; return `${tn ? tn.line + (tn.night ? '|n' : '') : ''}|${st.soft}`; }
+  function tick29() {
+    if (!st.open) return false;
+    if (!st.inWorld && D && D.active) enterWorld();   // (the phone turned: the court, at last)
+    const k = skyNow(); if (k !== st.sky) setSky29();
+    if (!st.busy && key29() !== st.key29) { render(); return true; }
+    return false;
+  }
+  function lock29(s) { const was = !!st.lock; st.lock = s && s.locked ? s : null; st.here = false; st.games = false; if (was !== !!st.lock) { try { if (S && S.hero) S.hero.show(!!H35() && !st.lock); } catch (e) { /* */ } if (st.cam) st.cam.orbit(st.az, st.lock ? LOBBY29.lockEl : LOBBY35.el, camD()); } render(); }
+  function soft29(line) { line = line || ''; if (line === st.soft) return; st.soft = line; if (!st.busy) render(); }
+  // ── /fable32 ──
   function close() {
     if (!st.open) return; st.open = false;
     leaveWorld();
@@ -226,13 +284,16 @@ export function createLobby(o = {}) {
   /* ── open ── */
   if (doc) {
     if (!doc.getElementById('lb-css')) { const s = doc.createElement('style'); s.id = 'lb-css'; s.textContent = CSS; doc.head.appendChild(s); }
+    css29(doc);   // ── fable32 (build 29) ── ── /fable32 ──
     doc.body.classList.add('lb-on');
     root = doc.createElement('div'); root.className = 'lb'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', 'מסך הבית'); (o.root || doc.body).appendChild(root);
     render();
     try { st.offDraw = addDrawer(o.kit || null, draw, 5); } catch (e) { st.offDraw = null; }
   }
   enterWorld();
-  const me = { close, refresh: render, pick, html /* ── fable32 (build 28) ── (tests: the screen's markup) ── /fable32 ── */, get el() { return root; }, state: () => ({ open: st.open, mode: st.mode, start: st.start, games: st.games, busy: st.busy, pose: st.pose, u: +st.u.toFixed(2), az: +st.az.toFixed(2), frames: st.n, cam: st.cam ? st.cam.state() : null, perutot: perutot(), badges: claimed() }) };
+  const me = { close, refresh: render, pick, html /* ── fable32 (build 28) ── (tests: the screen's markup) ── /fable32 ── */, get el() { return root; }, state: () => ({ open: st.open, mode: st.mode, start: st.start, games: st.games, busy: st.busy, pose: st.pose, u: +st.u.toFixed(2), az: +st.az.toFixed(2), frames: st.n, cam: st.cam ? st.cam.state() : null, perutot: perutot(), badges: claimed(),
+    lock: !!st.lock, soft: st.soft, here: st.here, sky: st.sky /* ── fable32 (build 29) ── */ }),
+    lock29, soft29, tick29 /* ── fable32 (build 29) ── */ };
   try { globalThis.__LOBBY = Object.assign({ __me: me }, me, { state: me.state, pick }); } catch (e) { /* */ }
   return me;
 }

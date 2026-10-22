@@ -87,8 +87,8 @@ const one = (kind, sfx) => {
   if (kind === 'mute') { const m = mutedNow(sfx); return `<button class="p28${m ? ' off' : ''}" type="button" data-p28="mute" aria-pressed="${m ? 'false' : 'true'}" aria-label="צליל"><i>${m ? '🔇' : '🔊'}</i><span>${m ? 'צליל כבוי' : 'צליל'}</span></button>`; }
   const h = hapticsOn(); return `<button class="p28${h ? '' : ' off'}" type="button" data-p28="haptics" aria-pressed="${h ? 'true' : 'false'}" aria-label="רטט"><i>${h ? '📳' : '📴'}</i><span>${h ? 'רטט' : 'רטט כבוי'}</span></button>`;
 };
-/** the two toggles, as HTML (the row) */
-export function prefsHTML(sfx, cls = '') { return `<div class="p28-row${cls ? ' ' + cls : ''}" data-p28="row">${one('mute', sfx)}${one('haptics', sfx)}</div>`; }
+/** the two toggles, as HTML (the row) ── fable32 (build 29) ── extra: more buttons in the same row (the lobby's "מיקום מדויק") ── /fable32 ── */
+export function prefsHTML(sfx, cls = '', extra = '') { return `<div class="p28-row${cls ? ' ' + cls : ''}" data-p28="row">${one('mute', sfx)}${one('haptics', sfx)}${extra || ''}</div>`; }
 /** wire the toggles inside root: a tap flips the switch and redraws the button in place; onChange(kind, value) */
 export function bindPrefs(root, o = {}) {
   if (!root || !root.querySelectorAll) return 0;

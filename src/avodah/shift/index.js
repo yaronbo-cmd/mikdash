@@ -5,6 +5,10 @@
 // "לסיור" are gone (run — the 90 s "משמרת" — and tour — the old day, the player as the אמרכל — stay in the code, reached by no door);
 // once the lobby or the day is up (SH.live) the old Phase B top bar is off (prefs28's cover28) and a turn to portrait shows the "turn the
 // phone" card over the paused day (avodah/index.js's tick → SH.turn28); the buzz's guard over navigator.vibrate, once (prefs28). ── /fable32 ──
+// ── fable32 (build 29) ── the Shabbat and Yom Tov lock (HANDOFF rule 16; time29.js, lock29.js): a watch every 2 s once the shift is up —
+// 15 minutes before the lock a calm line (the lobby, over the day, the pause card); at the lock the day is saved as it is (day33's own
+// saveState), stopped, the interludes leave, and the lobby's court at rest shows the lock screen; the lobby and the day open only through
+// the gate (gate29), so a page opened during the lock shows that screen alone; at צאת הכוכבים the lobby again ("המשך יום N"). ── /fable32 ──
 //   const SH = mountShift({ D, A, persist, sfx, emit })
 //   SH.card() · SH.run(lvl) · SH.stop() · SH.active · SH.destroy()      tests: globalThis.__SHIFT
 import { createShift } from './engine.js';
@@ -31,6 +35,8 @@ import { onTick } from './draw.js';
 import { STICK24 } from '../../game/twin.js';   // ── recovered (build 24) ── the stick of build 24 (twin's)
 import { VIEW24 } from './camera.js';   // ── recovered (build 24) ── the day's view
 import { installHaptics28, cover28, createTurn28 } from './prefs28.js';   // ── fable32 (build 28) ── ── /fable32 ──
+import { clock29, where29, status29 } from './time29.js';   // ── fable32 (build 29) ── ── /fable32 ──
+import { createWatch29, softDay29, dropGames29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 const WORLD = { pilgrims: createPilgrims, stations: createStations, STATIONS, camera: createShiftCam, walk: createWalk, gate: GATE_SPOT, kit: null /* (draw.js: the day's shared kit) */ };
 if (typeof location !== 'undefined' && /[?&]shiftstub=1\b/.test(location.search || '')) { WORLD.pilgrims = WORLD.stations = WORLD.camera = WORLD.walk = WORLD.gate = null; }   // (tests: the engine alone on the stubs)
 // ── /shift29-world ──
@@ -143,6 +149,7 @@ export function mountShift(o = {}) {
   function runDay() {
     if (!D) return false;
     hero35(); goLive();   // ── fable32 (build 28) ── ── /fable32 ──
+    if (gate29()) return false;   // ── fable32 (build 29) ── (the lock: its screen, not the day) ── /fable32 ──
     if (cardCtl) { cardCtl.close(); cardCtl = null; }
     if (!D.active && !(D.canEnter() && D.enter())) return false;
     teardown();
@@ -170,7 +177,7 @@ export function mountShift(o = {}) {
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
     if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }   // ── recovered (build 17) ──
     // ── fable32 (build 28) ── the pause card: "המשך" / "מהתחלה" and the two switches (צליל, רטט) — no "לסיור" ── /fable32 ──
-    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, restart: () => runDay(), prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
+    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine /* ── fable32 (build 29) ── (the calm line) ── /fable32 ── */, restart: () => runDay(), prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
     hud.intro('יום במקדש', 'בקעו עצים, העלו אותם בכבש — שהאש לא תרד לגחלת', 1100);
@@ -229,27 +236,56 @@ export function mountShift(o = {}) {
   function card() {
     if (cardCtl || !doc) return;
     hero35(); goLive();   // ── fable32 (build 28) ── ── /fable32 ──
+    if (gate29()) return;   // ── fable32 (build 29) ── (the lock: only its screen) ── /fable32 ──
     if (globalThis.__SH_OLDCARD) { cardCtl = entryCard(doc.body, { lvl: save.lvl, best: save.best[save.lvl] | 0, bestDay: +save.bestDay || 0, perutot: +save.perutot || 0, shop: () => openShop(), shift: (n) => { cardCtl = null; run(n); }, day: () => { cardCtl = null; runDay(); }, tour: () => { cardCtl = null; tour(); } }); return; }   // ── fable32 (build 6) ── (+ day) ── /fable32 ──   // (build 13: the old card for a test)
     // ── fable32 (build 13) ── the 3D home screen (lobby35.js): the kohen live in the court, the doors round him
     const st = o.rig && o.rig.stages, view = o.rig && o.rig.view;
     cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: scoreOf(), start: save.lobbyOff !== false && !globalThis.__SH_LOBBYFULL /* ── recovered (build 16) ── the start screen (save.lobbyOff; __SH_LOBBYFULL the full one) */, on: {
       day: () => { cardCtl = null; runDay(); },   // ── fable32 (build 28) ── (no shift, no tour: the day only) ── /fable32 ──
       shop: () => openShop(), book: () => openBook(), merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
+    try { if (cardCtl && cardCtl.soft29) cardCtl.soft29(W29.softLine); } catch (e) { /* */ }   // ── fable32 (build 29) ── (the calm line, if it is that time) ── /fable32 ──
     // ── /fable32 ──
   }
   // ── fable32 (build 28) ── the phone turned to portrait while the shift is up: the "turn the phone" card over the paused day (prefs28's
   // createTurn28); avodah/index.js's tick calls SH.turn28(port) every second with port = !D.canEnter() — the old way (D.exit + the old home)
   // never runs once the shift is up ── /fable32 ──
   const turn28 = (port) => T28.set(port);
+  // ── fable32 (build 29) ── the lock: the watch, the gate, its screen (the lobby's court at rest), the calm line over the day ── /fable32 ──
+  let after29 = null, timer29 = 0;
+  const W29 = createWatch29({ now: () => clock29(), where: () => where29(), active: () => live, E: () => E, persist,
+    stop: () => { teardown(); dropGames29(doc); if (cardCtl) { try { cardCtl.close(); } catch (e) { /* */ } cardCtl = null; } T28.set(false); },
+    show: (s) => openLock29(s), refresh: (s) => { if (cardCtl && cardCtl.lock29) cardCtl.lock29(s); },
+    hide: () => { if (cardCtl) { try { cardCtl.close(); } catch (e) { /* */ } cardCtl = null; } },
+    reopen: () => { const f = after29; after29 = null; try { (f || card)(); } catch (e) { console.warn('[shift] reopen29', e && e.message); } },
+    soft: (line) => { if (cardCtl && cardCtl.soft29) cardCtl.soft29(line); softDay29(doc, E ? line : ''); },
+    log: (t, d) => evlog(t, d) });
+  /** true when locked: the lock screen is (now) up; after() runs at its end (default: the lobby) */
+  function gate29(after) { W29.check(true); if (!W29.locked) return false; if (after) after29 = after; return true; }
+  function openLock29(s) {
+    if (!doc) return;
+    hero35(); goLive();
+    const L = createLobby({ D, world: o.rig && o.rig.stages, view: o.rig && o.rig.view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, lock: s, on: {} });
+    cardCtl = L;
+  }
+  function tick29() {
+    W29.check();
+    try { if (cardCtl && cardCtl.soft29 && !W29.locked) cardCtl.soft29(W29.softLine); if (cardCtl && cardCtl.tick29) cardCtl.tick29(); } catch (e) { /* */ }
+    if (E && W29.softLine) softDay29(doc, W29.softLine);   // (its place under the day's top bar, which changes)
+    else if (!E) softDay29(doc, '');
+  }
+  if (typeof setInterval === 'function' && doc) timer29 = setInterval(() => { try { tick29(); } catch (e) { /* */ } }, 2000);
+  // ── /fable32 ──
   const SH = {
     run, runDay, card, tour, get active() { return !!E; }, get save() { return save; },   // ── fable32 (build 6) ── (+ runDay) ── /fable32 ──
-    get live() { return live; }, turn28, get turned() { return T28.on; },   // ── fable32 (build 28) ── ── /fable32 ──
-    destroy() { teardown(); if (cardCtl) { cardCtl.close(); cardCtl = null; } T28.set(false); if (live) { live = false; cover28(doc, false); } try { D && D.shiftMode && D.shiftMode(null); } catch (e) { /* */ } },
+    get live() { return live; }, turn28: (port) => turn28(port && !W29.locked) /* ── fable32 (build 29) ── (the lock's screen also in portrait: no "turn the phone" over it) ── /fable32 ── */, get turned() { return T28.on; },   // ── fable32 (build 28) ── ── /fable32 ──
+    gate29, get locked() { return W29.locked; }, check29: () => W29.check(true),   // ── fable32 (build 29) ── ── /fable32 ──
+    destroy() { teardown(); if (cardCtl) { cardCtl.close(); cardCtl = null; } T28.set(false); if (live) { live = false; cover28(doc, false); } try { D && D.shiftMode && D.shiftMode(null); } catch (e) { /* */ } if (timer29) { clearInterval(timer29); timer29 = 0; } softDay29(doc, ''); },
   };
   globalThis.__SHIFT = {
     SH, run, runDay, card, tour, get E() { return E; }, set E(v) { /* */ }, mods: null, save,
     state: () => (E ? E.state() : null), startT: () => startT,
     book: () => openBook(), roles: () => rolesBook23({ doc, save }),   // ── recovered (build 23) ──
+    w29: W29, tick29: () => tick29(), status29: () => status29(clock29(), where29()), where29: () => where29(),   // ── fable32 (build 29) ── (the browser checks: the watch now, not in 2 s) ── /fable32 ──
     debug: { stars: (n) => (E ? E.debug.stars(n) : null), end: () => (E ? E.debug.end() : null), log: () => (E ? E.debug.log() : []), goal: () => (E ? E.debug.goal() : null), spawnNow: () => E && E.debug.spawnNow(), patience: (v) => { if (!E || !mods) return 0; let k = 0; for (const P of mods.pilgrims.list()) if (P.state === 'wait') { P.patience = v; k++; } return k; } },
   };
   return SH;

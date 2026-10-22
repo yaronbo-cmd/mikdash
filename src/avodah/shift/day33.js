@@ -3866,13 +3866,14 @@ export function createDay33(o = {}) {
     saveState('r27');
   }
   /** ── fable32 (build 27) ── the authored views (CAM24's way: the context per step): the ring from the north, medium-long, never
-   *  close on the lamb's neck; over his shoulder at each corner; the southern yesod from the south-west; none while he walks */
+   *  close on the lamb's neck; beside him at each corner (his head in the lower left third, the corner's edge in the middle); the
+   *  southern yesod from the south-west; none while he walks */
   function camWork27() {
     const K = st.r27;
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 8.7 amot off)
+    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
     // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's

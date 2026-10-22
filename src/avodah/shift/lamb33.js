@@ -60,6 +60,7 @@ export const CH33 = Object.freeze({
   start: Object.freeze({ x: -160, z: -53.5, yaw: Math.PI }),
   stalls: Object.freeze([[-170, -62.7], [-173, -62.7], [-169.8, -65.4], [-169.8, -60.2], [-172.8, -65.4], [-172.8, -60.2], [-175.6, -65.4], [-175.6, -60.2]].map((p) => Object.freeze({ x: p[0], z: p[1] }))),
   view: Object.freeze({ p: Object.freeze([-177.5, 22.4, -52.6]), t: Object.freeze([-177.5, 16.5, -62.6]) }),   // (the chamber in the screen's right half: the card stands on its left)
+  walk: Object.freeze({ p: Object.freeze([-160, 26, -38]), t: Object.freeze([-161, 16.5, -57]) }),   // ── fable32 (build 34) ── (the walk in: from the azara's south, high — him, the hall's door ahead, the stalls through the cut-away wall; the follow camera stood 4 m behind him in the narrow strip, his head filling the screen) ── /fable32 ──
 });
 const obj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 /** the day number of the moment t where the phone is (its civil day: local midnight to midnight) */

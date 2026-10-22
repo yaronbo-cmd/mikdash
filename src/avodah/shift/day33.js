@@ -3564,6 +3564,7 @@ export function createDay33(o = {}) {
       // ── fable32 (build 33) ── the chamber's run: after its inspection (or when today's is done) the stock's view — the stalls from the
       // south, the hall's south wall cut away; the lamb led in to its stall seen the same way ── /fable32 ──
       if (C && (!K || /^(lead|end|out)$/.test(K.ph)) && (C.done || C.out)) { const V = globalThis.__CH33VIEW || CH33.view; return { x: CH33.door.x, z: CH33.door.z, view: { p: V.p.slice(), t: V.t.slice(), e: 2 } }; }   // (__CH33VIEW: the browser checks may look closer)
+      if (C && !K && !C.done && !C.out) return { x: CH33.door.x, z: CH33.door.z, view: { p: CH33.walk.p.slice(), t: CH33.walk.t.slice(), e: 2.4 } };   // ── fable32 (build 34) ── (the chamber's walk in, before the inspection: CH33.walk — the follow camera, 4 m behind him in the strip before the hall, showed his head over the whole screen) ── /fable32 ──
       if (!K) return null;
       const ph = K.ph,
         L = door25(),

@@ -10,7 +10,7 @@
  *   createPen25({ E, sfx, doc, view }) → { destroy(), state() }      (focus17.js makes it when E.p25on; globalThis.__P25)
  * The bundle kept no comment and no local name: the names are the recovery's, but for crackT, K, dt and snd — the report's line
  * pen25.js:134. Never a Divine Name. */
-import { CanvasTexture, Color, Mesh, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3 } from 'three';
+import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { man, ROBE, SKIN } from '../works/figures.js';
 import { sheepRig, rigEnd, rigMaterial, rigMesh, rigWrite, V3 } from '../../animals.js';
@@ -68,8 +68,8 @@ export function createPen25(o = {}) {
       const cv = doc.createElement('canvas');
       cv.width = cv.height = size;
       paint(cv.getContext('2d'));
-      const tex = new CanvasTexture(cv);
-      tex.colorSpace = SRGBColorSpace;
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
       return tex;
     },
     disc = (g, x, y, r, c0, c1) => {
@@ -236,7 +236,7 @@ export function createPen25(o = {}) {
       g.fillText('לקרבן', 64, 92);
     }),
     decalMat = (tex, opt) =>
-      new MeshStandardMaterial({
+      new THREE.MeshStandardMaterial({
         map: tex,
         emissiveMap: tex,
         emissive: '#FFFFFF',
@@ -250,12 +250,12 @@ export function createPen25(o = {}) {
       }),
     rig = sheepRig(),
     lambs = rigMesh(rig.geo, rigMaterial('quad', rig.pose, { uPiv: { value: rig.piv.map(V3) } }, `uniform vec3 uPiv[${rig.piv.length}];`), 3),
-    quad = new PlaneGeometry(1, 1),
-    white = new Color(1, 1, 1),
+    quad = new THREE.PlaneGeometry(1, 1),
+    white = new THREE.Color(1, 1, 1),
     pose4 = [0, 0, 0, 0],
     anim4 = [0, 0, 0, 0],
     vis4 = [0, 0, 1, 0],
-    stamp = new Mesh(quad, decalMat(stampTex, { emissive: '#7A5A20', emissiveIntensity: 1, metalness: 0.3, roughness: 0.4 }));
+    stamp = new THREE.Mesh(quad, decalMat(stampTex, { emissive: '#7A5A20', emissiveIntensity: 1, metalness: 0.3, roughness: 0.4 }));
   stamp.visible = false;
   lambs.name = 'lamb25';
   if (scene) scene.add(lambs, stamp);
@@ -270,7 +270,7 @@ export function createPen25(o = {}) {
       shownL = L;
       if (!L || !scene) return;
       for (const sp2 of L.spots) {
-        const m = new Mesh(quad, decalMat(texOf(sp2.kind === 'blem' ? BLEM25.cats[sp2.c].id : sp2.d)));
+        const m = new THREE.Mesh(quad, decalMat(texOf(sp2.kind === 'blem' ? BLEM25.cats[sp2.c].id : sp2.d)));
         m.visible = false;
         scene.add(m);
         spots.push({ m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) });
@@ -326,10 +326,10 @@ export function createPen25(o = {}) {
     beam = { x: NaN, y: NaN, box: null, regs: [] },
     tsOf = (ev) => (ev.timeStamp > 0 ? ev.timeStamp : performance.now()),
     clampBeam = () => {
-      const box = beam.box;
-      if (box) {
-        beam.x = Math.max(box[0], Math.min(box[2], beam.x));
-        beam.y = Math.max(box[1], Math.min(box[3], beam.y));
+      const beamBox = beam.box;
+      if (beamBox) {
+        beam.x = Math.max(beamBox[0], Math.min(beamBox[2], beam.x));
+        beam.y = Math.max(beamBox[1], Math.min(beamBox[3], beam.y));
       }
     };
   pad.addEventListener('pointerdown', (ev) => {
@@ -449,9 +449,9 @@ export function createPen25(o = {}) {
       return false;
     },
     lambAt = (a) => ({ x: a.x, y: 16, z: a.z, yaw: a.yaw, s: a.s }),
-    v1 = new Vector3(),
-    v2 = new Vector3(),
-    v3 = new Vector3(),
+    v1 = new THREE.Vector3(),
+    v2 = new THREE.Vector3(),
+    v3 = new THREE.Vector3(),
     tip = { x: 0, y: 0, z: 0, on: false },
     hp = { x: 0, y: 16, z: 0, yaw: 0 },
     bar = { v: 0, goal: 0 },

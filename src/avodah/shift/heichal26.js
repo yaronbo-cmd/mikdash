@@ -14,7 +14,7 @@
  *   createHeichal26({ E, sfx, doc, view }) → { destroy(), state() }      (focus17.js makes it when E.p26on; globalThis.__H26)
  * The bundle kept no comment and no local name: the names are the recovery's, but for snd, buzz, WD, HT (heichal26.js:46), mute26
  * (:56), S, ev, y, pop, big and SRC (:207) — the build reports' lines. Never a Divine Name. */
-import { AdditiveBlending, CanvasTexture, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace } from 'three';
+import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb, man, ROBE, SKIN } from '../works/figures.js';
 import { P26, POOL26 } from './day33.js';
@@ -150,8 +150,8 @@ export function createHeichal26(o = {}) {
       cv.width = w;
       cv.height = h;
       paint(cv.getContext('2d'), w, h);
-      const tex = new CanvasTexture(cv);
-      tex.colorSpace = SRGBColorSpace;
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
       return tex;
     },
     fadeTex = paintTex(4, 64, (g) => {
@@ -171,44 +171,44 @@ export function createHeichal26(o = {}) {
       g.fillRect(0, 0, 64, 64);
     }),
     glowMat = (map, color) =>
-      new MeshBasicMaterial({
+      new THREE.MeshBasicMaterial({
         map,
         color,
         transparent: true,
         opacity: 0,
-        blending: AdditiveBlending,
+        blending: THREE.AdditiveBlending,
         depthWrite: false,
-        side: DoubleSide,
+        side: THREE.DoubleSide,
         fog: false,
         toneMapped: false,
       }),
-    light = new Group();
+    light = new THREE.Group();
   light.name = 'heichal26-light';
   light.visible = false;
   if (T && T.scene) T.scene.add(light);
-  const coneGeo = new ConeGeometry(0.85, 2.7, 18, 1, true).translate(0, -1.35, 0),
-    quadGeo = new PlaneGeometry(1, 1),
+  const coneGeo = new THREE.ConeGeometry(0.85, 2.7, 18, 1, true).translate(0, -1.35, 0),
+    quadGeo = new THREE.PlaneGeometry(1, 1),
     cones = lamps.map((p) => {
-      const m = new Mesh(coneGeo, glowMat(fadeTex, '#FFB25E'));
+      const m = new THREE.Mesh(coneGeo, glowMat(fadeTex, '#FFB25E'));
       m.position.set(p.x, p.y + 0.05, p.z);
       m.renderOrder = 6;
       light.add(m);
       return m;
     }),
     halos = lamps.map((p) => {
-      const m = new Mesh(quadGeo, glowMat(glowTex, '#FFC27A'));
+      const m = new THREE.Mesh(quadGeo, glowMat(glowTex, '#FFC27A'));
       m.position.set(p.x, p.y + 0.1, p.z);
       m.scale.setScalar(1.1);
       m.renderOrder = 7;
       light.add(m);
       return m;
     }),
-    parochet = new Mesh(quadGeo, glowMat(glowTex, '#FFB86A'));
+    parochet = new THREE.Mesh(quadGeo, glowMat(glowTex, '#FFB86A'));
   parochet.position.set(-137.6, 27.5, 0);
   parochet.rotation.y = Math.PI / 2;
   parochet.scale.set(22, 13, 1);
   light.add(parochet);
-  const shaft = new Mesh(new ConeGeometry(6.5, 26, 20, 1, true).translate(0, -13, 0), glowMat(fadeTex, '#FFF0D0'));
+  const shaft = new THREE.Mesh(new THREE.ConeGeometry(6.5, 26, 20, 1, true).translate(0, -13, 0), glowMat(fadeTex, '#FFF0D0'));
   shaft.position.set(-96.5, 33, 0);
   shaft.rotation.z = -1.18;
   light.add(shaft);
@@ -478,13 +478,13 @@ export function createHeichal26(o = {}) {
           pourT = 0.08;
           snd('pour26', { f: 300 + 500 * Math.min(1, K.fill) });
         }
-        const band = K.fill >= P26.pour.lo && K.fill <= P26.pour.hi;
-        if (band && !inBand) {
+        const nowBand = K.fill >= P26.pour.lo && K.fill <= P26.pour.hi;
+        if (nowBand && !inBand) {
           snd('bell26');
           buzz(25);
           S.band++;
         }
-        inBand = band;
+        inBand = nowBand;
       } else inBand = false;
       const hintRow = HINT[ph === 'wick' && K.li > 0 ? 'wick2' : ph];
       put(

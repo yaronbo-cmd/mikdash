@@ -9,17 +9,7 @@
  *   createRamp19({ E, sfx }) → destroy()      (focus17.js makes it when E.b19)
  * The bundle kept no comment and no local name: the names are the recovery's (createRamp19 and its arguments: focus17.js's lines in
  * the session transcript). Never a Divine Name. */
-import {
-  CanvasTexture,
-  CylinderGeometry,
-  Group,
-  Mesh,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  PlaneGeometry,
-  SphereGeometry,
-  SRGBColorSpace,
-} from 'three';
+import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { R19, rampY19, onRamp19 } from './day33.js';
 export function createRamp19(o) {
@@ -39,23 +29,23 @@ export function createRamp19(o) {
   cv.width = 64;
   cv.height = 128;
   const g2 = cv.getContext('2d'),
-    rough = new CanvasTexture(cv),
+    rough = new THREE.CanvasTexture(cv),
     tex = rough.clone();
-  tex.colorSpace = SRGBColorSpace;
-  const layer = new Mesh(
-    new PlaneGeometry(16, 33.24),
-    new MeshStandardMaterial({ map: tex, roughnessMap: rough, polygonOffset: true, polygonOffsetFactor: -2 }),
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const layer = new THREE.Mesh(
+    new THREE.PlaneGeometry(16, 33.24),
+    new THREE.MeshStandardMaterial({ map: tex, roughnessMap: rough, polygonOffset: true, polygonOffsetFactor: -2 }),
   );
   layer.rotation.x = 0.2726 - Math.PI / 2;
   layer.position.set(-38, 20.58, 26.5);
-  const ghostMat = new MeshBasicMaterial({ color: '#CFE8FF', transparent: true, opacity: 0.38, depthWrite: false }),
-    ghost = new Group();
+  const ghostMat = new THREE.MeshBasicMaterial({ color: '#CFE8FF', transparent: true, opacity: 0.38, depthWrite: false }),
+    ghost = new THREE.Group();
   for (const [geo, y, z] of [
-    [new CylinderGeometry(0.45, 0.8, 2.2, 10), 1.1, 0],
-    [new SphereGeometry(0.62, 12, 8), 2.8, 0],
-    [new CylinderGeometry(0.42, 0.36, 0.9, 10), 1.9, -0.6],
+    [new THREE.CylinderGeometry(0.45, 0.8, 2.2, 10), 1.1, 0],
+    [new THREE.SphereGeometry(0.62, 12, 8), 2.8, 0],
+    [new THREE.CylinderGeometry(0.42, 0.36, 0.9, 10), 1.9, -0.6],
   ]) {
-    const part = new Mesh(geo, ghostMat);
+    const part = new THREE.Mesh(geo, ghostMat);
     part.position.set(0, y, z);
     ghost.add(part);
   }
@@ -194,8 +184,8 @@ export function createRamp19(o) {
           ghost.position.set(gx, rampY19(gz) + Math.abs(Math.sin(gt * 1.3)) * 0.15, gz);
           ghost.rotation.y = Math.atan2(gp[j + 2] - gp[j], gp[j + 3] - gp[j + 1] || -0.001);
         }
-        const best = E.gh19();
-        if (best && Math.hypot(hp.x + 34, hp.z - 44) < 30) k.label(`שיא: ${best.t} ש׳`, L(-34), L(45.5), L(18.6), 0.36, TAG);
+        const myBest = E.gh19();
+        if (myBest && Math.hypot(hp.x + 34, hp.z - 44) < 30) k.label(`שיא: ${myBest.t} ש׳`, L(-34), L(45.5), L(18.6), 0.36, TAG);
         for (let i = words.length - 1; i >= 0; i--) {
           const w = words[i];
           if (now > w[1]) {

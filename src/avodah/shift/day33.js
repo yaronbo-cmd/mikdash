@@ -329,7 +329,7 @@ function draw23(n, rec, ids, rnd = Math.random) {
 // ── recovered (build 23) ── mastery23 (the report's: "mastery23('inner'|'menorah'|'lamb')"): a role's mastery 0…100 from its own record —
 // the time of his own part, the spills, the cracks, the false approvals, the pour
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-function mastery23(id, r, budget = P23.budget[1]) {
+function mastery23(id, r, timeBudget = P23.budget[1]) {
   if (!r) return 0;
   if (id === 'deshen') {
     const T = P23.dT,
@@ -339,7 +339,7 @@ function mastery23(id, r, budget = P23.budget[1]) {
   if (id === 'm22')
     return Math.round(
       100 *
-        (0.3 * clamp01(2 - (+r.sortingTimeSeconds || 0) / budget) +
+        (0.3 * clamp01(2 - (+r.sortingTimeSeconds || 0) / timeBudget) +
           0.25 * [1, 0.5, 0][Math.min(2, r.invalidWoodSelectedCount | 0)] +
           0.3 * clamp01((+r.airflowQualityScore || 0) / 100) +
           0.15 * [1, 0.5, 0][Math.min(2, r.cracks | 0)]),
@@ -479,14 +479,14 @@ function lamb25(day, k, first = false, blems = 0, rej = 0) {
       : rnd(1) < 0.5
         ? { blem: { c: Math.floor(rnd(2) * nC) % nC, r: [6, 1, 3, 4][Math.floor(rnd(3) * 4) % 4] }, dirt: [], big: true }
         : { blem: null, dirt: [{ r: [6, 7, 1][Math.floor(rnd(4) * 3) % 3], kind: 'straw' }], big: true };
-  const blem = canBlem && rnd(1) < P25.pB ? { c: Math.floor(rnd(2) * nC) % nC, r: Math.floor(rnd(3) * nR) % nR } : null,
+  const newBlem = canBlem && rnd(1) < P25.pB ? { c: Math.floor(rnd(2) * nC) % nC, r: Math.floor(rnd(3) * nR) % nR } : null,
     nDirt = Math.floor(rnd(4) * (P25.dirt + 1)) % (P25.dirt + 1),
     dirt = [];
   for (let i = 0; i < 8 && dirt.length < nDirt; i++) {
     const r = Math.floor(rnd(10 + i) * nR) % nR;
-    if ((!blem || r !== blem.r) && !dirt.some((x) => x.r === r)) dirt.push({ r, kind: BLEM25.dirt[Math.floor(rnd(20 + i) * 2) % 2] });
+    if ((!newBlem || r !== newBlem.r) && !dirt.some((x) => x.r === r)) dirt.push({ r, kind: BLEM25.dirt[Math.floor(rnd(20 + i) * 2) % 2] });
   }
-  return { blem, dirt, big: false };
+  return { blem: newBlem, dirt, big: false };
 }
 // ── recovered (build 26) ── P26 (the report's: "P26.open (the schedule)", "P26.reach (3.2)", P26.gate, P26.foot): the second lot's inner
 // roles in the Heichal (heichal26.js) — the schedule of his role by the day (open), the Heichal's gate and its reach, the inner altar and
@@ -2464,8 +2464,9 @@ export function createDay33(o = {}) {
       const b = Math.floor(rng() * (a + 1)) % (a + 1);
       [logs[a], logs[b]] = [logs[b], logs[a]];
     }
-    const first = first22();
-    (first ? KINDS22.bad : Array.from({ length: p23 ? P23.bad[1] : rng() < 0.5 ? 4 : 3 }, () => pickOne(KINDS22.bad))).forEach((x, i) => {
+    const first = first22(),
+      bad = first ? KINDS22.bad : Array.from({ length: p23 ? P23.bad[1] : rng() < 0.5 ? 4 : 3 }, () => pickOne(KINDS22.bad));   // (day 1: the three unfit in order)
+    bad.forEach((x, i) => {
       const a =
         x === 'worm'
           ? { sp: pickOne(KINDS22.M), worm: 1, size: pickOne([...'LMS']) }
@@ -2686,8 +2687,8 @@ export function createDay33(o = {}) {
     const K = st.m22,
       air = K.air,
       bad = K.bad,
-      budget = budget22(),
-      fast = K.sortT <= budget,
+      timeBudget = budget22(),
+      fast = K.sortT <= timeBudget,
       at = { x: M22.pyre.x, y: 28, z: M22.pyre.z },
       good = air >= M22.good,
       a = !bad && good ? 3 : !bad || good ? 2 : 1,
@@ -2713,7 +2714,7 @@ export function createDay33(o = {}) {
     K.t = 0;
     if (p23) {
       st.npc23 = null;
-      rec23('m22', b, budget);
+      rec23('m22', b, timeBudget);
     }
     st.fuel = Math.max(st.fuel, n);
     st.lowDay = st.fuel;
@@ -2950,20 +2951,20 @@ export function createDay33(o = {}) {
     emit17('p23done', a);
     saveState('p23');
   }
-  function rec23(id, r, budget) {
-    const book = roles23(),
-      m = book[id] || (book[id] = { n: 0, best: 0, last: 0 }),
-      mastery = mastery23(id, r, budget),
-      best = m.best | 0,
+  function rec23(id, r, timeBudget) {
+    const rolesBook = roles23(),
+      m = rolesBook[id] || (rolesBook[id] = { n: 0, best: 0, last: 0 }),
+      mastery = mastery23(id, r, timeBudget),
+      oldBest = m.best | 0,
       first = !m.n;
     m.n = (m.n | 0) + 1;
     m.last = mastery;
-    m.best = Math.max(best, mastery);
+    m.best = Math.max(oldBest, mastery);
     r.mastery = mastery;
-    r.rec = !first && mastery > best;
+    r.rec = !first && mastery > oldBest;
     say(() => o.persist && o.persist());
-    emit17('p23rec', { id, m: mastery, prev: best, best: m.best, rec: !first && mastery > best, first, n: m.n });
-    L0('p23rec', id, mastery, best);
+    emit17('p23rec', { id, m: mastery, prev: oldBest, best: m.best, rec: !first && mastery > oldBest, first, n: m.n });
+    L0('p23rec', id, mastery, oldBest);
   }
   const wake23 = () => {
       const s = standOf('kiyor');
@@ -3098,7 +3099,7 @@ export function createDay33(o = {}) {
   function p25stamp(how) {
     const K = st.p25;
     if (!K || !/^(scan|zoom|dirt|clean|blem)$/.test(K.ph) || (how !== 'tamim' && how !== 'pasul')) return false;
-    const blem = K.L.blem;
+    const lambBlem = K.L.blem;
     if (how === 'pasul') {
       if (K.rej >= P25.rej) {
         emit17('p25no', { why: 'max' });
@@ -3106,17 +3107,20 @@ export function createDay33(o = {}) {
       }
       K.rej++;
       const dirty = K.L.spots.some((x) => x.kind === 'dirt' && !x.gone),
-        truth = blem ? '' : dirty ? 'dirt' : 'whole';
+        truth = lambBlem ? '' : dirty ? 'dirt' : 'whole';
       if (truth === 'dirt') K.dm++;
       else if (truth === 'whole') K.wr++;
       K.zi = -1;
-      ph25(K, 'aside', { v: how, ok: !!blem, why: truth, blem: blem ? { ...blem } : null });
-      emit17('p25stamp', { v: how, ok: !!blem, why: truth });
+      ph25(K, 'aside', { v: how, ok: !!lambBlem, why: truth, blem: lambBlem ? { ...lambBlem } : null });
+      emit17('p25stamp', { v: how, ok: !!lambBlem, why: truth });
       return true;
     }
     K.zi = -1;
-    return blem
-      ? (K.fa++, ph25(K, 'false', { v: how, blem: { ...blem } }), emit17('p25stamp', { v: how, ok: false, why: 'blem', blem: { ...blem } }), true)
+    return lambBlem
+      ? (K.fa++,
+        ph25(K, 'false', { v: how, blem: { ...lambBlem } }),
+        emit17('p25stamp', { v: how, ok: false, why: 'blem', blem: { ...lambBlem } }),
+        true)
       : (ph25(K, 'ok', { v: how }), emit17('p25stamp', { v: how, ok: true }), true);
   }
   function p25done() {
@@ -3537,7 +3541,8 @@ export function createDay33(o = {}) {
     return { ...r, word: word17(g), streak: st.streak };
   }
   function hit33(id, g) {
-    scoreAct(id, { quality: g === 'gold' ? 1 : g === 'good' ? 0.85 : 0.6, gold: g === 'gold' });
+    const q = g === 'gold' ? 1 : g === 'good' ? 0.85 : 0.6;
+    scoreAct(id, { quality: q, gold: g === 'gold' });
     st.idleT = 0;
     if (b17) st.streak = g === 'gold' ? st.streak + 1 : 0;
     st.lastWorm = false;
@@ -4083,9 +4088,9 @@ export function createDay33(o = {}) {
       };
     const s = STN[n.id],
       p = standOf(n.id);
-    return !s || !p
-      ? null
-      : Math.hypot(p.x - h.x, p.z - h.z) <= DAY33.reach + 0.2
+    if (!s || !p) return null;
+    const d = Math.hypot(p.x - h.x, p.z - h.z);
+    return d <= DAY33.reach + 0.2
         ? {
             icon: s.icon || '✋',
             label: actLabel(n.id, s),
@@ -4721,14 +4726,8 @@ export function createDay33(o = {}) {
   }
   function camPyre() {
     const h = heroP();
-    if (
-      st.phase === 'run' &&
-      !st.night &&
-      !acting &&
-      !(st.m22 && !carry22()) &&
-      atTop(h) &&
-      (st.logs > 0 || st.t - (st.laidT == null ? -99 : st.laidT) < 2.5)
-    ) {
+    const on = st.phase === 'run' && !st.night && !acting && !(st.m22 && !carry22()) && atTop(h) && (st.logs > 0 || st.t - (st.laidT == null ? -99 : st.laidT) < 2.5);
+    if (on) {
       if (!Number.isFinite(st.pyreAz)) {
         const dx = PYRE.x - h.x,
           dz = PYRE.z - h.z,

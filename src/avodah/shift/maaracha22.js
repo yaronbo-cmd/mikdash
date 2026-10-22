@@ -9,7 +9,7 @@
  * The engine is day33.js (E.m22(): in → sort → sorted → carry → stack → ready → ignite → end; m22swipe, m22put, m22stick; band22).
  *   createMaaracha22({ E, sfx, doc, view, twin }) → { destroy(), state(), at(i), row(ly, x), rowS }      (focus17.js makes it when E.g22; __M22)
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
-import { CanvasTexture, CylinderGeometry, Mesh, MeshBasicMaterial, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
+import * as THREE from 'three';
 import { addDrawer, onTick } from './draw.js';
 import { M22, P23 } from './day33.js';
 export function createMaaracha22(o = {}) {
@@ -71,9 +71,9 @@ export function createMaaracha22(o = {}) {
       cv.height = h;
       const g = cv.getContext('2d');
       paint(g);
-      const tex = new CanvasTexture(cv);
-      tex.colorSpace = SRGBColorSpace;
-      tex.wrapS = RepeatWrapping;
+      const tex = new THREE.CanvasTexture(cv);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.RepeatWrapping;
       return tex;
     },
     base = (g, color) => {
@@ -192,13 +192,13 @@ export function createMaaracha22(o = {}) {
           if (L.worm) wormPaint(g);
         }),
         end = END_COLOR[L.sp],
-        mat = (o2) => new MeshStandardMaterial({ emissiveIntensity: glowK.v, roughness: 0.9, ...o2 }),
+        mat = (o2) => new THREE.MeshStandardMaterial({ emissiveIntensity: glowK.v, roughness: 0.9, ...o2 }),
         sideMat = mat({ map: side, emissiveMap: side, emissive: '#FFFFFF' }),
         endMat = mat({ map: endTex, color: end, emissiveMap: endTex, emissive: end });
       return (mats[key] = [sideMat, endMat, endMat]);
     },
     logGeo = (gnarl) => {
-      const geo = new CylinderGeometry(1, 1, 1, 14, 10),
+      const geo = new THREE.CylinderGeometry(1, 1, 1, 14, 10),
         pos = geo.attributes.position;
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i),
@@ -214,7 +214,7 @@ export function createMaaracha22(o = {}) {
     geoRound = logGeo(0),
     geoGnarl = logGeo(1),
     logMesh = () => {
-      const m = new Mesh(geoRound, matsOf({ sp: 'fig' }));
+      const m = new THREE.Mesh(geoRound, matsOf({ sp: 'fig' }));
       m.visible = false;
       m.rotation.order = 'YXZ';
       if (scene) scene.add(m);
@@ -224,7 +224,7 @@ export function createMaaracha22(o = {}) {
     thrown = logMesh(),
     ghost = logMesh(),
     laid = Array.from({ length: M22.need }, logMesh),
-    ghostMat = new MeshBasicMaterial({ color: '#FFF1C8', transparent: true, opacity: 0.55, depthWrite: false });
+    ghostMat = new THREE.MeshBasicMaterial({ color: '#FFF1C8', transparent: true, opacity: 0.55, depthWrite: false });
   ghost.material = ghostMat;
   const dress = (m, L) => {
       m.geometry = L.sp === 'olive' || L.sp === 'vine' ? geoGnarl : geoRound;
@@ -235,7 +235,7 @@ export function createMaaracha22(o = {}) {
       m.scale.set(RAD[L.size] * k, LEN[L.size] * k, RAD[L.size] * k);
       m.rotation.set(spin, yaw, HALF_PI);
     },
-    torch = new Mesh(new CylinderGeometry(0.045, 0.06, 0.95, 6), new MeshStandardMaterial({ color: '#6A4A2A', roughness: 0.9 }));
+    torch = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.95, 6), new THREE.MeshStandardMaterial({ color: '#6A4A2A', roughness: 0.9 }));
   torch.visible = false;
   if (scene) scene.add(torch);
   const pad = mk('m22-in', null),
@@ -463,16 +463,16 @@ export function createMaaracha22(o = {}) {
       air.classList.toggle('on', stacking);
       if (stacking) {
         const gap = k.pv != null ? k.pv : k.gap,
-          band = E.band22(),
-          zone = gap == null ? '' : gap < band[0] ? 'red' : gap > band[1] ? 'amb' : 'grn',
+          gapBand = E.band22(),
+          zone = gap == null ? '' : gap < gapBand[0] ? 'red' : gap > gapBand[1] ? 'amb' : 'grn',
           pct = gap == null ? -1 : Math.round(gap * 100);
         if (pct !== lastAir || air.__z !== zone) {
           lastAir = pct;
           air.__z = zone;
           airB.textContent = pct < 0 ? '—' : `${pct}%`;
           airS.style.height = `${Math.min(100, Math.max(0, pct) / 0.6)}%`;
-          airEm.style.bottom = `${band[0] / 0.006}%`;
-          airEm.style.height = `${(band[1] - band[0]) / 0.006}%`;
+          airEm.style.bottom = `${gapBand[0] / 0.006}%`;
+          airEm.style.height = `${(gapBand[1] - gapBand[0]) / 0.006}%`;
           air.className = `m22-a on ${zone}`;
           airQ.textContent = zone === 'red' ? 'צפוף — סכנת חנק אש' : zone === 'amb' ? 'רווח גדול מדי' : zone === 'grn' ? 'רווח בין הגזרין' : '';
         }
@@ -513,8 +513,8 @@ export function createMaaracha22(o = {}) {
           }
           const sp = spot({ at: { ly: k.layer, x: k.gl } }),
             pv = k.pv,
-            band = E.band22();
-          ghostMat.color.set(pv == null ? '#FFF1C8' : pv < band[0] ? '#FF6A4A' : pv > band[1] ? '#FFD66E' : '#8FE07A');
+            gapBand = E.band22();
+          ghostMat.color.set(pv == null ? '#FFF1C8' : pv < gapBand[0] ? '#FF6A4A' : pv > gapBand[1] ? '#FFD66E' : '#8FE07A');
           place(ghost, L2, sp.x, sp.y + 0.25 + 0.06 * Math.sin(t * 6), sp.z, 1, sp.w);
         }
       }

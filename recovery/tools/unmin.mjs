@@ -174,6 +174,19 @@ if (NAMES.auto) {
 })(ast);
 // the check: same bindings as before (identifiers in source order → binding index)
 { const after = bindingMap(ast, analyze(ast)); if (after.length !== before.length) throw new Error('rename: identifier count changed'); const m = new Map(); for (let i = 0; i < before.length; i++) { const k = before[i] + '|' + after[i]; if (before[i] !== -1 || after[i] !== -1) { const a = m.get('b' + before[i]), b = m.get('a' + after[i]); if ((a != null && a !== after[i]) || (b != null && b !== before[i])) throw new Error(`rename changed a binding at identifier #${i}: ${idList(ast)[i].name} (line ${idList(ast)[i].loc.start.line})`); m.set('b' + before[i], after[i]); m.set('a' + after[i], before[i]); } void k; } }
+// names.namespaces: { "three": "THREE" } — a module's named imports from that source back to `import * as THREE` and each use to
+// THREE.<name> (esbuild prints both the same, but the namespace's use count and the letters it leaves ranks the page's names: R7)
+for (const [srcName, ns] of Object.entries(NAMES.namespaces || {})) {
+  const imp = ast.body.find((s) => s.type === 'ImportDeclaration' && s.source.value === srcName && s.specifiers.every((x) => x.type === 'ImportSpecifier'));
+  if (!imp) continue;
+  const locals = new Set(imp.specifiers.map((x) => x.local));
+  for (const sc of sm.scopes) for (const v of sc.variables) if (v.identifiers.some((id) => locals.has(id))) {
+    const imported = imp.specifiers.find((x) => v.identifiers.includes(x.local)).imported.name;
+    for (const r of v.references) { const id = r.identifier; id.name = ns + '.' + imported; id.__ns = true; }   // (printed as a member expression: astring prints the name as it is)
+  }
+  imp.specifiers = [{ type: 'ImportNamespaceSpecifier', local: { type: 'Identifier', name: ns } }];
+  (function sh(n) { if (!n || typeof n.type !== 'string') return; if (n.type === 'Property' && n.shorthand && n.value && n.value.__ns) n.shorthand = false; for (const k in n) { if (k === 'loc' || k === 'range') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(sh); else if (v && typeof v.type === 'string') sh(v); } })(ast);
+}
 function idList(t) { const out = []; (function w(n) { if (!n || typeof n.type !== 'string') return; if (n.type === 'Identifier') out.push(n); for (const k in n) { if (k === 'loc' || k === 'range') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(w); else if (v && typeof v.type === 'string') w(v); } })(t); return out; }
 function bindingMap(t, s) {
   const of = new Map(); let k = 0;

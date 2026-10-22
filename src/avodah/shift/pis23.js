@@ -136,11 +136,11 @@ export function createPis23(o = {}) {
     snd('chord17', { up: 1 });
     buzz([30, 40, 60]);
     if (two) {
-      const bar = cards.querySelector('.p23-t');
-      bar.style.transform = 'scaleX(1)';
+      const timeBar = cards.querySelector('.p23-t');
+      timeBar.style.transform = 'scaleX(1)';
       requestAnimationFrame(() => {
-        bar.style.transition = `transform ${P23.pick}s linear`;
-        bar.style.transform = 'scaleX(0)';
+        timeBar.style.transition = `transform ${P23.pick}s linear`;
+        timeBar.style.transform = 'scaleX(0)';
       });
       cards.querySelectorAll('button').forEach((btn) =>
         btn.addEventListener('click', (ev) => {
@@ -160,8 +160,8 @@ export function createPis23(o = {}) {
       k.classList.toggle('pk', i === ev.pick);
       k.classList.toggle('no', i !== ev.pick);
     });
-    const bar = cards.querySelector('.p23-t');
-    if (bar) bar.style.visibility = 'hidden';
+    const timeBar = cards.querySelector('.p23-t');
+    if (timeBar) timeBar.style.visibility = 'hidden';
     flash();
     snd('good');
   }

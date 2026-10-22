@@ -9,22 +9,7 @@
  * d21stick; its events through E.on17).
  *   createDeshen21({ E, sfx, doc, view, twin }) → { destroy(), state() }      (focus17.js makes it when E.g21; globalThis.__D21)
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
-import {
-  AmbientLight,
-  BoxGeometry,
-  CanvasTexture,
-  CircleGeometry,
-  DoubleSide,
-  Group,
-  IcosahedronGeometry,
-  LatheGeometry,
-  Mesh,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  SRGBColorSpace,
-  Vector2,
-  Vector3,
-} from 'three';
+import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { D21 } from './day33.js';
 export function createDeshen21(o = {}) {
@@ -86,8 +71,8 @@ export function createDeshen21(o = {}) {
       const cv = doc.createElement('canvas');
       cv.width = cv.height = 128;
       paint(cv.getContext('2d'));
-      const tex = new CanvasTexture(cv);
-      if (srgb) tex.colorSpace = SRGBColorSpace;
+      const tex = new THREE.CanvasTexture(cv);
+      if (srgb) tex.colorSpace = THREE.SRGBColorSpace;
       return tex;
     },
     blobs = Array.from({ length: 95 }, () => [rnd() * 128, rnd() * 128, 3 + rnd() * 7, rnd()]),
@@ -118,7 +103,7 @@ export function createDeshen21(o = {}) {
         g.fillRect(64 + Math.cos(a) * r, 64 + Math.sin(a) * r, 2, 2);
       }
     }),
-    coalMat = new MeshStandardMaterial({
+    coalMat = new THREE.MeshStandardMaterial({
       map: coalTex,
       emissiveMap: coalTex,
       emissive: '#FFFFFF',
@@ -127,7 +112,7 @@ export function createDeshen21(o = {}) {
       polygonOffset: true,
       polygonOffsetFactor: -2,
     }),
-    ashMat = new MeshStandardMaterial({
+    ashMat = new THREE.MeshStandardMaterial({
       map: ashTex,
       color: '#CFC9BE',
       emissive: '#6A665F',
@@ -139,36 +124,36 @@ export function createDeshen21(o = {}) {
       polygonOffset: true,
       polygonOffsetFactor: -4,
     }),
-    bed = new Group(),
-    coals = new Mesh(new CircleGeometry(1.55, 36), coalMat),
-    ash = new Mesh(new CircleGeometry(1.75, 36), ashMat);
+    bed = new THREE.Group(),
+    coals = new THREE.Mesh(new THREE.CircleGeometry(1.55, 36), coalMat),
+    ash = new THREE.Mesh(new THREE.CircleGeometry(1.75, 36), ashMat);
   coals.rotation.x = ash.rotation.x = -Math.PI / 2;
   ash.position.y = 0.04;
   bed.add(coals, ash);
   bed.position.set(D21.bed.x, gy(D21.bed.x, D21.bed.z, 25) + 0.03, D21.bed.z);
   bed.visible = false;
-  const panMat = new MeshStandardMaterial({ color: '#E4E8EF', metalness: 0.6, roughness: 0.32, emissive: '#7C828E', side: DoubleSide }),
-    pan = new Group(),
-    bowl = new Mesh(
-      new LatheGeometry(
+  const panMat = new THREE.MeshStandardMaterial({ color: '#E4E8EF', metalness: 0.6, roughness: 0.32, emissive: '#7C828E', side: THREE.DoubleSide }),
+    pan = new THREE.Group(),
+    bowl = new THREE.Mesh(
+      new THREE.LatheGeometry(
         [0, -0.04, PAN.r * 0.75, -0.04, PAN.r * 0.95, 0.04, PAN.r, 0.055].reduce(
-          (pts, v, i, arr) => (i % 2 ? pts : [...pts, new Vector2(v, arr[i + 1])]),
+          (pts, v, i, arr) => (i % 2 ? pts : [...pts, new THREE.Vector2(v, arr[i + 1])]),
           [],
         ),
         20,
       ),
       panMat,
     ),
-    handle = new Mesh(new BoxGeometry(0.06, 0.04, PAN.l), panMat);
+    handle = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, PAN.l), panMat);
   bowl.position.z = PAN.l + PAN.r * 0.9;
   handle.position.z = PAN.l / 2;
   pan.add(bowl, handle);
   pan.rotation.order = 'YXZ';
   pan.visible = false;
-  const emberMat = new MeshBasicMaterial({ color: '#FFAA44' }),
-    emberGeo = new IcosahedronGeometry(0.1, 0),
+  const emberMat = new THREE.MeshBasicMaterial({ color: '#FFAA44' }),
+    emberGeo = new THREE.IcosahedronGeometry(0.1, 0),
     embers = Array.from({ length: 5 }, (_, i) => {
-      const m = new Mesh(emberGeo, emberMat),
+      const m = new THREE.Mesh(emberGeo, emberMat),
         a = i * 2.4,
         r = i ? 0.17 : 0;
       m.position.set(Math.cos(a) * r, 0.01, bowl.position.z + Math.sin(a) * r);
@@ -176,7 +161,7 @@ export function createDeshen21(o = {}) {
       pan.add(m);
       return m;
     }),
-    glow = new AmbientLight(PREDAWN[0], 0);
+    glow = new THREE.AmbientLight(PREDAWN[0], 0);
   if (scene) scene.add(bed, pan, glow);
   const pad = mk('d21-in', null),
     hint = mk('d21-h', ''),
@@ -509,7 +494,7 @@ export function createDeshen21(o = {}) {
         stat.spills++;
         snd('spill21');
         buzz([60, 40, 90]);
-        const p = bowl.getWorldPosition(new Vector3()),
+        const p = bowl.getWorldPosition(new THREE.Vector3()),
           x = p.x - Math.cos(hp.yaw) * (ev.a || 1) * 0.3,
           z = p.z + Math.sin(hp.yaw) * (ev.a || 1) * 0.3;
         puff(x, p.y, z, 20, '!#FFB347', 0.8, 7, 0.9, 0.08);

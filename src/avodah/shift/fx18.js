@@ -212,12 +212,12 @@ export function createFx18(o = {}) {
     hp = { x: 0, y: 0, z: 0 },
     between = (a, b) => a + rand() * (b - a);
   function walker(x, z, out) {
-    const box = CROWD_BOX;
+    const crowdBox = CROWD_BOX;
     return {
       x,
       z,
-      tx: between(box[0], box[1]),
-      tz: between(box[2], box[3]),
+      tx: between(crowdBox[0], crowdBox[1]),
+      tz: between(crowdBox[2], crowdBox[3]),
       sp: 1.3 + rand() * 0.6,
       ph: rand() * 6,
       robe: ROBES[(rand() * 6) | 0],
@@ -347,9 +347,9 @@ export function createFx18(o = {}) {
       if (Math.hypot(w.tx - w.x, w.tz - w.z) < 0.4)
         if (w.out) crowd.splice(i, 1);
         else {
-          const box = CROWD_BOX;
-          w.tx = between(box[0], box[1]);
-          w.tz = between(box[2], box[3]);
+          const crowdBox = CROWD_BOX;
+          w.tx = between(crowdBox[0], crowdBox[1]);
+          w.tz = between(crowdBox[2], crowdBox[3]);
         }
     }
     for (let i = givers.length - 1; i >= 0; i--) {

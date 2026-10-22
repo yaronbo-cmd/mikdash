@@ -1,0 +1,323 @@
+// build 34 — the naive kid's sessions (kid.cjs loads this). Each mode gets the kid's hands and eyes (K).
+const path = require('path');
+
+const scrKey = (s) => (s.screens.join(' ') || '-') + (s.eng ? ` [${s.eng.phase}${s.eng.paused ? ' paused' : ''}${s.eng.summary ? ' sum' : ''}]` : '');
+async function lookRec(K, where, every = 1) {
+  const s = await K.look(); if (!s || s.err) { K.note('look failed ' + (s && s.err)); return null; }
+  await K.record(s, where); K.watch(s);
+  const k = scrKey(s); if (!K.R.screens[k]) { K.R.screens[k] = K.el(); K.ev('screen', k); if (K.R.shots.length < 3 || /lb-pk|j32|p31-end|f17-sum|ch33|tl33|sh-pause|sh-turn28|f17-rot|lock|\.tl|\.pn|\.m3|r30-c|j32u|lb-home/.test(k)) await K.shot('scr-' + k.replace(/[^a-z0-9]+/gi, '_').slice(0, 40)); }
+  return s;
+}
+// the helper (a parent's hand): when the child has made no progress for long, the scripted bot does the act until something changes
+async function helper(K, why) {
+  K.note('helper: ' + why);
+  const has = await K.pg.evaluate(() => !!globalThis.__AUTO35).catch(() => false);
+  if (!has) await K.pg.addScriptTag({ path: '/home/claude/temple3d/tools/autoplay35.js' }).catch((e) => K.note('inject ' + e.message));
+  const sig0 = await K.pg.evaluate(() => globalThis.__KID.sig()).catch(() => '');
+  await K.pg.evaluate((seed) => { try { globalThis.__AUTO35.stop(); globalThis.__AUTO35.start({ human: true, seed }).catch(() => {}); } catch (e) { /* */ } }, Math.floor(K.rnd() * 1000) + 1).catch(() => {});
+  const t1 = Date.now(); let changed = false;
+  while (Date.now() - t1 < 50000 && K.left() > 20000) { await K.sleep(1500); const s = await K.pg.evaluate(() => globalThis.__KID.sig()).catch(() => ''); if (s && s !== sig0) { changed = true; break; } }
+  await K.sleep(1200);
+  await K.pg.evaluate(() => { try { globalThis.__AUTO35.stop(); const S = globalThis.__T.stages; S.hero.drive(0, 0); } catch (e) { /* */ } }).catch(() => {});
+  K.R.helps = (K.R.helps || 0) + 1; K.ev('helper', `${why} → ${changed ? 'moved on' : 'NO CHANGE'}`);
+  if (!changed) K.R.stuck.push({ at: K.el(), hard: true, why, sig: sig0.slice(0, 300) });
+  return changed;
+}
+async function waitEngine(K, ms = 60000) { const t1 = Date.now(); while (Date.now() - t1 < ms) { const e = await K.pg.evaluate(() => globalThis.__KID.eng()).catch(() => null); if (e && e.phase === 'run') return e; await K.sleep(400); } return null; }
+async function tapSel(K, sel) { const r = await K.pg.evaluate((s) => { const e = [...document.querySelectorAll(s)].find((x) => x.getBoundingClientRect().width > 0); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, sel).catch(() => null); if (!r) return false; await K.tap(r.x, r.y); K.ev('tap', sel); return true; }
+
+// ── the day, a child's way ──
+async function playDay(K, o = {}) {
+  const until = o.until || (() => false);
+  let it = 0, nextPause = K.el() + K.between(25, 90), nextRot = K.flag('--rotate') ? K.el() + K.between(40, 150) : 1e9, idled = !K.flag('--idle'), idleAt = K.el() + K.between(60, 160), reloaded = !K.flag('--reload'), reloadAt = K.el() + K.between(50, 140), mood = 'try', moodUntil = 0;
+  while (K.left() > 30000) {
+    it++;
+    const s = await lookRec(K, 'day');
+    if (!s) { await K.sleep(500); continue; }
+    if (until(s)) return s;
+    const e = s.eng;
+    // the chaos: the pause card mid-act, the phone turned, the page reloaded, the phone left alone
+    if (e && e.phase === 'run' && !e.paused && K.el() > nextPause && !K.isCard(s)) {
+      nextPause = K.el() + K.between(90, 200);
+      if (await tapSel(K, '.sh-pbtn')) { await K.sleep(K.between(600, 2500)); const s2 = await lookRec(K, 'pause'); K.ev('pause-mid', `${e.k20}${e.d21}${e.m22}${e.p25}${e.r26}${e.r27} line "${s.line}"`); if (s2) { const r = K.rnd(); if (r < 0.25) await K.pokeButton(s2, (q) => /צליל|רטט/.test(q.lb), 'pause-switch'); await K.sleep(400); const s3 = await K.look(); if (s3) await K.pokeButton(s3, (q) => K.rnd() < 0.85 ? /המשך/.test(q.lb) : true, 'pause-btn'); } }
+      continue;
+    }
+    if (K.el() > nextRot && e && e.phase === 'run') {
+      nextRot = 1e9; const [w, h] = K.size(); K.ev('rotate', 'portrait'); await K.setSize(h, w); await K.sleep(K.between(2500, 6000)); await lookRec(K, 'portrait'); await K.shot('portrait');
+      if (K.rnd() < 0.4) { const s2 = await K.look(); if (s2) await K.pokeButton(s2, null, 'portrait-poke'); }
+      await K.setSize(w, h); K.ev('rotate', 'landscape'); await K.sleep(2500); await lookRec(K, 'landscape-back'); continue;
+    }
+    if (!idled && K.el() > idleAt && e && e.phase === 'run') {
+      idled = true; K.ev('idle', `2 min, line "${s.line}"`); const sig0 = s.sig; const p0 = s.coins;
+      await K.sleep(120000); const s2 = await lookRec(K, 'after-idle'); await K.shot('after-idle');
+      K.ev('idle-end', `${s2 && s2.sig === sig0 ? 'same' : 'changed'} coins ${p0}→${s2 && s2.coins} line "${s2 && s2.line}"`); continue;
+    }
+    if (!reloaded && K.el() > reloadAt && e && e.phase === 'run' && (e.k20 || e.d21 || e.m22 || e.p25 || e.r26 || e.r27)) {
+      reloaded = true; K.ev('reload', `mid-act ${e.k20}${e.d21}${e.m22}${e.p25}${e.r26}${e.r27} day ${e.day}`);
+      await K.liftAll(); await K.pg.reload({ waitUntil: 'load', timeout: 180000 }); await K.pg.waitForFunction(() => window.__T && window.__T.booted, null, { timeout: 240000, polling: 500 });
+      await K.pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); }); await K.sleep(2000);
+      const s2 = await lookRec(K, 'after-reload'); await K.shot('after-reload');
+      K.ev('after-reload', s2 ? s2.tp.filter((q) => /המשך יום|משחק/.test(q.lb)).map((q) => q.lb).join(' | ') : '');
+      if (!(await tapSel(K, '.lb-play'))) K.note('after reload: no play button'); await waitEngine(K, 30000); continue;
+    }
+    // the opening screen in the middle of a day run (after a reload, or "חזרה"): the gold button
+    if (!e && s.tp.some((q) => /lb-play/.test(q.cls))) { if (K.rnd() < 0.3) await K.pokeButton(s, (q) => !/lb-play|lb-full/.test(q.cls), 'lobby-poke'); else await tapSel(K, '.lb-play'); await K.sleep(800); continue; }
+    if (K.isCard(s) || (e && e.paused)) {
+      await K.sleep(K.between(500, 2200));   // reading
+      const s2 = await K.look(); if (!s2) continue;
+      // the summary: sometimes its two books, then "the next day"
+      await K.pokeButton(s2, (q) => !/העתק לוג|מסך מלא/.test(q.lb), 'card');
+      continue;
+    }
+    if (K.stuckFor() > 75) { await helper(K, `no change ${Math.round(K.stuckFor())} s, line "${s.line}" ${JSON.stringify(e)}`); continue; }
+    if (K.el() > moodUntil) { mood = K.rnd() < 0.72 ? 'try' : 'mess'; moodUntil = K.el() + K.between(6, 18); K.ev('mood', mood); }
+    const r = K.rnd();
+    if (mood === 'try') {
+      if (r < 0.12) await K.pokeButton(s, (q) => /tw-btn|tw-goal|glow|cue|lit/.test(q.cls) || q.glow, 'glow');
+      else await K.tryLine(s);
+    } else {
+      if (r < 0.35) { const a = K.rnd() * Math.PI * 2; await K.stick(Math.cos(a), Math.sin(a), K.between(400, 3500)); K.ev('stick-wander'); }
+      else if (r < 0.7) await K.randomRight(s);
+      else if (r < 0.85) await K.pokeButton(s, (q) => !/sh-pbtn/.test(q.cls), 'poke-any');
+      else { // both thumbs at once: the stick and a right tap/hold
+        const a = K.rnd() * Math.PI * 2; await Promise.all([K.stick(Math.cos(a), Math.sin(a), K.between(500, 1500), 1), (async () => { await K.sleep(150); await K.hold(K.size()[0] * K.between(0.6, 0.9), K.size()[1] * K.between(0.3, 0.8), K.between(80, 900), 8); })()]);
+        K.ev('two-thumbs');
+      }
+    }
+    await K.sleep(K.between(80, 400));
+  }
+}
+
+module.exports = {
+  // the opening screen, every door: start + full lobby, "מכאן" and its card, the chamber door, "משחק קצר" and each interlude's first
+  // screen and back, the journal's tabs and pages, the switches; back/close at odd moments; the phone turned once
+  async lobby(K) {
+    const seen = new Map(); let rot = false, inRunSince = 0, inGameSince = 0;
+    while (K.left() > 25000) {
+      const s = await lookRec(K, 'lobby'); if (!s) { await K.sleep(500); continue; }
+      const e = s.eng;
+      if (e && e.phase === 'run') {   // the day / a practice run / the chamber began: a while there, then back
+        if (!inRunSince) inRunSince = Date.now();
+        if (Date.now() - inRunSince > K.between(25000, 45000)) {
+          K.ev('leave-run', JSON.stringify(e).slice(0, 120));
+          // the pause card's way back if there is one, else the page again
+          if (await tapSel(K, '.sh-pbtn')) { await K.sleep(900); const s2 = await K.look(); const back = s2 && s2.tp.find((q) => /חזרה|למסך/.test(q.lb)); if (back) { await K.tap(back.x, back.y); K.ev('back', back.lb); await K.sleep(1500); inRunSince = 0; continue; } K.note('no way back to the opening screen from the pause card: ' + (s2 ? s2.tp.map((q) => q.lb.slice(0, 14)).join(' | ') : '')); }
+          await K.pg.reload({ waitUntil: 'load', timeout: 180000 }); await K.pg.waitForFunction(() => window.__T && window.__T.booted, null, { timeout: 240000, polling: 500 }); await K.pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); }); await K.sleep(1500); inRunSince = 0; continue;
+        }
+        if (K.isCard(s) || e.paused) { await K.sleep(K.between(400, 1500)); await K.pokeButton(s, null, 'run-card'); continue; }
+        if (K.rnd() < 0.6) await K.tryLine(s); else await K.randomRight(s);
+        continue;
+      }
+      inRunSince = 0;
+      const game = s.screens.find((x) => /^\.(tl|pn|m3)$/.test(x));
+      if (game) {   // an interlude: poke its board a while, then its own way out
+        if (!inGameSince) inGameSince = Date.now();
+        if (Date.now() - inGameSince > K.between(15000, 30000)) { const out = s.tp.find((q) => /חזרה|יציאה|סגור|✕|×|למקדש|לבנייה|הביתה/.test(q.lb)); if (out) { await K.tap(out.x, out.y); K.ev('game-out', out.lb); await K.sleep(1500); inGameSince = 0; continue; } }
+        if (K.rnd() < 0.7) await K.pokeButton(s, null, 'game'); else { const [w, h] = K.size(); await K.tap(K.between(10, w - 10), K.between(10, h - 10)); K.ev('game-tap'); }
+        await K.sleep(K.between(150, 600)); continue;
+      }
+      inGameSince = 0;
+      if (!rot && K.el() > 120) { rot = true; const [w, h] = K.size(); await K.setSize(h, w); await K.sleep(3000); await lookRec(K, 'lobby-portrait'); await K.shot('lobby-portrait'); await K.setSize(w, h); await K.sleep(2000); continue; }
+      // a door not tried yet first (the least tried), the gold play rarely
+      const c = s.tp.filter((q) => q.reach && !(/lb-play/.test(q.cls) && K.rnd() < 0.9) && !/lb-full/.test(q.cls));
+      if (!c.length) { const [w, h] = K.size(); await K.tap(K.between(10, w - 10), K.between(10, h - 10)); K.ev('empty-tap'); await K.sleep(500); continue; }
+      c.sort((a, b2) => (seen.get(a.lb) || 0) - (seen.get(b2.lb) || 0));
+      const q = K.rnd() < 0.75 ? c[0] : K.pick(c);
+      seen.set(q.lb, (seen.get(q.lb) || 0) + 1);
+      const r = K.rnd();
+      if (r < 0.75) await K.tap(q.x, q.y); else if (r < 0.9) await K.taps(q.x, q.y, 2); else await K.taps(q.x, q.y, 3);
+      K.ev('door', `${q.lb.slice(0, 40)} ${Math.round(q.w)}×${Math.round(q.h)} ${r < 0.75 ? 1 : r < 0.9 ? 2 : 3}`);
+      await K.sleep(K.between(500, 1400));
+      // an empty-spot tap / a scroll now and then (a child's thumb on the card's body)
+      if (K.rnd() < 0.15) { const [w, h] = K.size(); await K.swipe(w * K.between(0.3, 0.7), h * 0.7, 0, -K.between(40, 140), 250); K.ev('scroll'); }
+    }
+    K.R.doors = Object.fromEntries(seen);
+  },
+  async day(K) {
+    // a first run (no save): the name and mishmar screens — a child pokes until the opening screen comes (types a name sometimes)
+    for (let i = 0; i < 60; i++) {
+      const s0 = await lookRec(K, 'first-run'); if (!s0) { await K.sleep(500); continue; }
+      if (s0.tp.some((q) => /lb-play/.test(q.cls))) break;
+      if (i === 0) await K.shot('first-run');
+      const inp = await K.pg.$('.av-input'); if (inp && K.rnd() < 0.5 && !K.R.typed) { K.R.typed = 1; await inp.tap().catch(() => {}); await K.pg.keyboard.type(K.pick(['דרור', 'יהלי', 'ab', '   ', 'אבא'])).catch(() => {}); K.ev('type-name'); }
+      await K.pokeButton(s0, null, 'first-run'); await K.sleep(K.between(400, 1200));
+    }
+    // (a first-run card he could not leave: a parent's hand — its own button by a click — and a hard stuck recorded)
+    for (let i = 0; i < 4; i++) { const on = await K.pg.evaluate(() => { const m = document.querySelector('.av-modal.on'); if (!m) return null; const b = m.querySelector('.av-go, [data-v=ok], .av-btn.gold'); if (b) { b.click(); return b.textContent.trim(); } return 'no button'; }).catch(() => null); if (!on) break; K.R.stuck.push({ at: K.el(), hard: true, why: 'first-run card: the child found no way on — a parent clicked ' + on }); K.note('first-run: parent clicked ' + on); await K.sleep(2500); }
+    // the opening screen a moment, then the gold button
+    let s = await lookRec(K, 'start');
+    for (let i = 0; i < 2 && s; i++) { await K.pokeButton(s, (q) => /lb-home|data-lb=here|here|games|journal/.test(q.p + q.cls) && !/lb-play/.test(q.cls), 'start-poke'); await K.sleep(900); s = await lookRec(K, 'start'); if (s && K.isCard(s)) { const x = s.tp.find((q) => /סגור|✕/.test(q.lb)); if (x) await K.tap(x.x, x.y); await K.sleep(600); } }
+    // back to the start screen if the full one is up
+    for (let i = 0; i < 4; i++) { if (await tapSel(K, '.lb-play')) break; await K.pg.evaluate(() => { try { globalThis.__SHIFT.card(); } catch (e) { /* */ } }); await K.sleep(1000); }
+    const e = await waitEngine(K, 60000); K.ev('day-start', JSON.stringify(e));
+    await playDay(K);
+  },
+  // the lamb chamber: the "מכאן" door, the walk in, wrong choices (approve a blemished one, reject a whole one), back, again
+  async chamber(K) {
+    let n = 0;
+    while (K.left() > 40000 && n < 4) {
+      n++;
+      let s = await lookRec(K, 'chamber-start');
+      if (!s) continue;
+      if (!s.tp.some((q) => /data-lb=ch33/.test(q.p))) { await tapSel(K, '[data-lb=here]'); await K.sleep(900); s = await lookRec(K, 'here'); }
+      if (!(await tapSel(K, '[data-lb=ch33]'))) { K.note('no chamber door'); await K.pg.evaluate(() => { try { globalThis.__SHIFT.card(); } catch (e) { /* */ } }); await K.sleep(1500); continue; }
+      const e = await waitEngine(K, 40000); K.ev('chamber-run', JSON.stringify(e));
+      await playDay(K, { until: (s2) => !s2.eng || s2.tp.some((q) => /ch33/.test(q.p) && /חזרה|מסך/.test(q.lb)) || s2.screens.some((x) => /ch33/.test(x)) && !s2.eng });
+      // the end card: poke it (double taps), then back
+      for (let i = 0; i < 6; i++) { const s3 = await lookRec(K, 'chamber-end'); if (!s3) break; if (!s3.eng && s3.tp.some((q) => /lb-play/.test(q.cls))) break; await K.pokeButton(s3, (q) => !/העתק לוג/.test(q.lb), 'ch33-card'); await K.sleep(K.between(600, 1500)); }
+    }
+  },
+  // the Shabbat lock with a faked clock: the calm line (lobby + day + pause), the lock mid-day, every button on the lock screen, the
+  // phone turned, the page reopened during the lock, and after it the day goes on
+  async lock(K) {
+    const at = (iso) => K.pg.evaluate((iso) => { window.__NOW29 = Date.parse(iso); try { globalThis.__SHIFT.tick29(); } catch (e) { /* */ } }, iso);
+    let s = await lookRec(K, 'soft-lobby'); await K.shot('soft-lobby');
+    await tapSel(K, '.lb-play'); await waitEngine(K, 40000);
+    for (let i = 0; i < 12 && K.left() > 60000; i++) { s = await lookRec(K, 'soft-day'); if (s) await K.tryLine(s); }
+    await tapSel(K, '.sh-pbtn'); await K.sleep(1000); await lookRec(K, 'soft-pause'); await K.shot('soft-pause'); s = await K.look(); if (s) await K.pokeButton(s, (q) => /המשך/.test(q.lb), 'pause');
+    await at('2026-10-23T13:19:30Z'); await K.sleep(4000); s = await lookRec(K, 'locked'); await K.shot('locked-midday');
+    for (let i = 0; i < 14 && K.left() > 120000; i++) { s = await lookRec(K, 'locked'); if (!s) continue; if (K.rnd() < 0.6) await K.pokeButton(s, null, 'lock-poke'); else { const [w, h] = K.size(); await K.tap(K.between(5, w - 5), K.between(5, h - 5)); } await K.sleep(500); }
+    const [w, h] = K.size(); await K.setSize(h, w); await K.sleep(2500); await lookRec(K, 'lock-portrait'); await K.shot('lock-portrait'); await K.setSize(w, h); await K.sleep(1500);
+    await K.pg.goto(K.url.replace(/now=[^&]+/, 'now=' + encodeURIComponent('2026-10-23T15:30:00Z')), { waitUntil: 'load', timeout: 180000 }); await K.pg.waitForFunction(() => window.__T && window.__T.booted, null, { timeout: 240000, polling: 500 }); await K.pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); }); await K.sleep(3000);
+    s = await lookRec(K, 'lock-reopened'); await K.shot('lock-reopened');
+    for (let i = 0; i < 6; i++) { s = await lookRec(K, 'lock-reopened'); if (s) await K.pokeButton(s, null, 'lock-poke2'); await K.sleep(500); }
+    await at('2026-10-24T15:45:00Z'); await K.sleep(4500); s = await lookRec(K, 'after-shabbat'); await K.shot('after-shabbat');
+    K.ev('after-shabbat', s ? s.tp.map((q) => q.lb.slice(0, 20)).join(' | ') : '');
+    if (await tapSel(K, '.lb-play')) { await waitEngine(K, 40000); await playDay(K, { until: () => K.left() < 40000 }); }
+  },
+};
+// ── diagnosis runs ──
+module.exports.diag = async function (K) {
+  const what = K.opt('--diag', 'walk');
+  const dump = () => K.pg.evaluate(() => { const E = globalThis.__SHIFT && globalThis.__SHIFT.E; const a = globalThis.__KID.pathAim(); const h = globalThis.__KID.hero(); const F = globalThis.__F31 && globalThis.__F31.state && globalThis.__F31.state(); const c = globalThis.__T.camera.position; let fn = null; try { const f = E.flowNext(); fn = f && f.at ? [+f.at.x.toFixed(1), +f.at.z.toFixed(1), f.id || f.st || ''] : null; } catch (e) { /* */ } return { t: E && E.st33 ? +E.st33.t.toFixed(1) : null, h: h ? [+h.x.toFixed(2), +h.z.toFixed(2), Math.round(h.sx), Math.round(h.sy), h.on] : null, aim: a ? [Math.round(a.sx), Math.round(a.sy), +a.d.toFixed(1), a.n] : null, pts: F && F.pts ? F.pts.slice(0, 4).map((p) => [+p[0].toFixed(1), +p[1].toFixed(1)]) : null, cam: [+c.x.toFixed(1), +c.y.toFixed(1), +c.z.toFixed(1)], fn, r26: E && E.r26() ? E.r26().ph : null, line: globalThis.__KID.line() }; }).catch((e) => ({ err: e.message }));
+  if (what === 'walk') {
+    await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(3000);
+    K.R.diag = [];
+    let s = await K.look(); await K.shot('walk0');
+    for (let i = 0; i < 26 && K.left() > 200000; i++) { s = await K.look(); const d0 = await dump(); await K.towardPath(s, 1500); const d1 = await dump(); K.R.diag.push(['kid', d0, d1]); K.log(JSON.stringify(d1)); if (d1.r26 && d1.r26 !== 'walk') break; }
+    await K.shot('walk1');
+    await helper(K, 'diag: the bot walks');
+    const d2 = await dump(); K.R.diag.push(['bot', d2]); K.log('after bot', JSON.stringify(d2));
+    await K.shot('walk2');
+  }
+  if (what === 'games') {   // the interludes' sheets and the journal after them
+    const open = async (k) => { await tapSel(K, '[data-lb=games]'); await K.sleep(800); await tapSel(K, `[data-lb=${k}]`); await K.sleep(2500); await lookRec(K, 'game-' + k); await K.shot('game-' + k); };
+    const out = async () => { for (let i = 0; i < 10; i++) { const s = await K.look(); if (!s || !s.screens.some((x) => /^\.(tl|pn|m3)$/.test(x))) return; const c = s.tp.filter((x) => x.reach); const q = c.find((x) => /^(לצאת|חזרה)/.test(x.lb)) || c.find((x) => /יציאה|✕|סגור|חזרה/.test(x.lb)) || (i < 2 && c.find((x) => /התחל/.test(x.lb))); if (q) { await K.tap(q.x, q.y); K.ev('out', q.lb); } else K.ev('out-none', c.map((x) => x.lb.slice(0, 12)).join('|')); await K.sleep(1500); } };
+    const playSome = async () => { const s = await K.look(); const st = s && s.tp.find((x) => x.reach && /^התחל|^שחק/.test(x.lb)); if (st) { await K.tap(st.x, st.y); await K.sleep(1500); } for (let i = 0; i < 6; i++) { const s2 = await K.look(); if (!s2) break; const c = s2.tp.filter((x) => x.reach && !/יציאה|✕|רמז|ערבוב|ביטול|חזרה|לצאת/.test(x.lb)); if (c.length) { const q = K.pick(c); await K.tap(q.x, q.y); K.ev('game', q.lb.slice(0, 20)); } await K.sleep(700); } };
+    await open('tiles'); await playSome(); await K.shot('tiles-play'); await out(); await lookRec(K, 'after-tiles');
+    await tapSel(K, '[data-lb=journal]'); await K.sleep(1500); const s1 = await lookRec(K, 'journal-after-tiles'); await K.shot('journal-after-tiles');
+    K.R.diag = { journalAfterTiles: s1 && s1.screens, tl: await K.pg.evaluate(() => [...document.querySelectorAll('.j32 .tl, .j32 .tl23')].map((e) => { const r = e.getBoundingClientRect(); return [e.tagName, e.className, Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), getComputedStyle(e).position]; })) };
+    await tapSel(K, '.j32 [data-j32=close]'); await K.sleep(1000); K.R.diag.closed1 = await K.pg.evaluate(() => !document.querySelector('.j32'));
+    await K.pg.evaluate(() => { const e = document.querySelector('.j32'); if (e) { try { globalThis.__J32.close(); } catch (er) { e.remove(); } } });
+    await open('pen'); await playSome(); await out(); await lookRec(K, 'after-pen');
+    await tapSel(K, '[data-lb=journal]'); await K.sleep(1200); await tapSel(K, '.j32 [data-j32t=mishna]'); await K.sleep(800);
+    await tapSel(K, '.j32 [data-j32p]'); await K.sleep(1000); const s2 = await lookRec(K, 'page-after-pen'); await K.shot('page-after-pen');
+    K.R.diag.pn = await K.pg.evaluate(() => [...document.querySelectorAll('.j32 .pn, .j32 .pn32')].map((e) => { const r = e.getBoundingClientRect(); return [e.className, Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height), getComputedStyle(e).position]; }));
+    await tapSel(K, '.j32 [data-j32=close]'); await K.sleep(1000); K.R.diag.closed2 = await K.pg.evaluate(() => !document.querySelector('.j32'));
+    await K.pg.evaluate(() => { const e = document.querySelector('.j32'); if (e) { try { globalThis.__J32.close(); } catch (er) { e.remove(); } } });
+    await open('m3'); await K.sleep(2000); await lookRec(K, 'm3'); await out(); await lookRec(K, 'after-m3'); await K.shot('after-m3');
+    K.log('diag', JSON.stringify(K.R.diag));
+  }
+  if (what === 'pyre') {   // the practice runs' first views, no input (the pyre, the lamb, the menorah)
+    for (const role of (K.opt('--roles', 'm22,lamb,menorah')).split(',')) {
+      await K.pg.evaluate((r) => globalThis.__SHIFT.practice(r, 'start'), role).catch((e) => K.note('practice ' + e.message));
+      await waitEngine(K, 40000); await K.sleep(6000); await lookRec(K, 'prac-' + role); await K.shot('prac-' + role);
+      K.log(role, JSON.stringify(await dump()));
+      await K.pg.evaluate(() => { try { globalThis.__SHIFT.back31('start'); } catch (e) { /* */ } }); await K.sleep(2000);
+      await K.pg.evaluate(() => { const e = document.querySelector('.j32'); if (e) { try { globalThis.__J32.close(); } catch (er) { e.remove(); } } });
+    }
+  }
+};
+// ── the screens a child meets, each looked at: the pause card and its way back, the summary, the interludes' first screens ──
+module.exports.screens = async function (K) {
+  const sz = `${K.size()[0]}`;
+  await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(4000);
+  await tapSel(K, '.sh-pbtn'); await K.sleep(1200); let s = await lookRec(K, 'pause'); await K.shot('pause-' + sz);
+  K.R.pause = s ? s.tp.map((q) => `${q.lb.slice(0, 24)} ${Math.round(q.w)}x${Math.round(q.h)} @${Math.round(q.t)}-${Math.round(q.b)}${q.reach ? '' : ' (unreachable)'}`) : null; K.log('pause', JSON.stringify(K.R.pause));
+  const back = s && s.tp.find((q) => /למסך הפתיחה/.test(q.lb));
+  if (back) { await K.tap(back.x, back.y); await K.sleep(2500); s = await lookRec(K, 'back-lobby'); await K.shot('back-lobby-' + sz); K.R.backLobby = s ? s.tp.filter((q) => /lb-play/.test(q.cls)).map((q) => q.lb) : null; K.log('back', JSON.stringify(K.R.backLobby)); await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(3000); }
+  // the summary: the day to its sunset (a debug jump), the card, its buttons
+  await K.pg.evaluate(() => { try { globalThis.__SHIFT.E.debug.night(); } catch (e) { /* */ } }); await K.sleep(6000);
+  for (let i = 0; i < 20; i++) { s = await K.look(); if (s && s.screens.some((x) => /f17-sum/.test(x))) break; if (s && (s.screens.some((x) => /j32u|tl33|r30-c/.test(x)))) await K.pokeButton(s, (q) => /המשך|סגור/.test(q.lb), 'card'); await K.sleep(1500); }
+  s = await lookRec(K, 'summary'); await K.shot('summary-' + sz);
+  K.R.summary = s ? s.tp.map((q) => `${q.lb.slice(0, 30)} ${Math.round(q.w)}x${Math.round(q.h)} @${Math.round(q.t)}-${Math.round(q.b)}`) : null; K.log('summary', JSON.stringify(K.R.summary));
+  // its next day: double-tapped
+  const nx = s && s.tp.find((q) => /f17/.test(q.p) && /המשך|ליום/.test(q.lb));
+  if (nx) { const d0 = (await K.pg.evaluate(() => globalThis.__SHIFT.E.st33.day)); await K.taps(nx.x, nx.y, 2); await K.sleep(2500); const d1 = await K.pg.evaluate(() => globalThis.__SHIFT.E.st33.day); K.R.nextDay = [d0, d1]; K.log('next day', d0, '→', d1); await lookRec(K, 'next-day'); }
+  // the interludes from the opening screen: back to it through the pause card
+  await tapSel(K, '.sh-pbtn'); await K.sleep(1000); s = await K.look(); const b2 = s && s.tp.find((q) => /למסך הפתיחה/.test(q.lb)); if (b2) await K.tap(b2.x, b2.y); else await K.pg.evaluate(() => globalThis.__SHIFT.card()); await K.sleep(2500);
+  for (const g of ['m3', 'pen']) {
+    await tapSel(K, '[data-lb=games]'); await K.sleep(900); await tapSel(K, `[data-lb=${g}]`); await K.sleep(3500);
+    s = await lookRec(K, 'game-' + g); await K.shot(`game-${g}-${sz}`);
+    K.R['g_' + g] = s ? s.tp.map((q) => `${q.lb.slice(0, 26)} ${Math.round(q.w)}x${Math.round(q.h)} @${Math.round(q.t)}-${Math.round(q.b)}${q.reach ? '' : ' (unreachable)'}`) : null; K.log(g, JSON.stringify(K.R['g_' + g]));
+    for (let i = 0; i < 8; i++) { s = await K.look(); if (!s || !s.screens.some((x) => /^\.(tl|pn|m3)$/.test(x))) break; const c = s.tp.filter((q) => q.reach); const q = c.find((x) => /^(לצאת|חזרה)/.test(x.lb)) || c.find((x) => /יציאה|✕|סגור|חזרה/.test(x.lb)); if (q) { await K.tap(q.x, q.y); K.ev('out', q.lb); } else { K.ev('out-none', c.map((x) => x.lb.slice(0, 14)).join('|')); break; } await K.sleep(1500); }
+    s = await K.look(); K.R['out_' + g] = s ? s.screens : null; K.log('after', g, JSON.stringify(s && s.screens));
+    if (s && s.screens.some((x) => /^\.(tl|pn|m3)$/.test(x))) { await K.shot(`game-${g}-stuck-${sz}`); await K.pg.evaluate(() => document.querySelectorAll('.m3,.pn,.tl').forEach((e) => e.remove())); }
+  }
+};
+// ── the chamber's walk-in camera: candidate starts, each settled, its shot ──
+module.exports.ch33cam = async function (K) {
+  await tapSel(K, '[data-lb=here]'); await K.sleep(900); await tapSel(K, '[data-lb=ch33]'); await waitEngine(K, 40000); await K.sleep(3500);
+  const cands = JSON.parse(K.opt('--cands', '[[-160,-53.5,3.1416],[-150,-55,-1.5708],[-150,-55,1.5708],[-146,-55.5,-1.5708]]'));
+  const dump = () => K.pg.evaluate(() => { const S = globalThis.__T.stages, hp = { x: 0, y: 0, z: 0 }; S.heroXYZ(hp); const c = globalThis.__T.camera.position, h = globalThis.__KID.hero(); return { hero: [+hp.x.toFixed(1), +hp.y.toFixed(1), +hp.z.toFixed(1)], cam: [+c.x.toFixed(1), +c.y.toFixed(1), +c.z.toFixed(1)], d: +Math.hypot(c.x - hp.x, c.z - hp.z).toFixed(1), scr: h ? [Math.round(h.sx), Math.round(h.sy)] : null, line: globalThis.__KID.line(), aim: globalThis.__KID.pathAim() }; });
+  K.R.cam = [];
+  { const d = await dump(); K.R.cam.push(['as-started', d]); K.log('as-started', JSON.stringify(d)); await K.shot('cam-start'); }
+  for (const [x, z, yaw] of cands) {
+    await K.pg.evaluate(([x, z, yaw]) => { globalThis.__T.stages.hero.setPos(x, z, yaw); }, [x, z, yaw]); await K.sleep(3500);
+    const d = await dump(); K.R.cam.push([[x, z, yaw], d]); K.log(JSON.stringify([x, z, yaw]), JSON.stringify(d)); await K.shot(`cam_${x}_${z}_${yaw.toFixed(1)}`);
+  }
+  // and the walk from the start by the stick toward the path: a shot each few seconds
+  await K.pg.evaluate(() => { globalThis.__T.stages.hero.setPos(-160, -53.5, Math.PI); }); await K.sleep(2500);
+  for (let i = 0; i < 4; i++) { const s = await K.look(); await K.towardPath(s, 1800); const d = await dump(); K.R.cam.push(['walk' + i, d]); K.log('walk', i, JSON.stringify(d)); if (i % 2 === 1) await K.shot('cam-walk' + i); }
+};
+// ── a measurement: the first-run card on this screen ──
+module.exports.firstrun = async function (K) {
+  await K.sleep(4000);
+  const m = () => K.pg.evaluate(() => { const c = document.querySelector('.av-modal.on .av-card') || document.querySelector('.av-card'); if (!c) return null; const r = c.getBoundingClientRect(), cs = getComputedStyle(c), go = c.querySelector('.av-go'), gr = go && go.getBoundingClientRect(), md = c.parentElement, mr = md.getBoundingClientRect(); const mv = document.querySelector('meta[name=viewport]'); return { inner: [innerWidth, innerHeight], vv: window.visualViewport ? [visualViewport.width, visualViewport.height] : null, card: [Math.round(r.top), Math.round(r.bottom), c.clientHeight, c.scrollHeight, c.scrollTop], maxH: cs.maxHeight, modal: [Math.round(mr.top), Math.round(mr.bottom), getComputedStyle(md).display, getComputedStyle(md).alignItems], go: gr ? [Math.round(gr.top), Math.round(gr.bottom)] : null, meta: mv ? mv.content : null, docH: document.documentElement.clientHeight, vhTest: (() => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;height:100vh;width:1px;top:0'; document.body.appendChild(d); const h = d.getBoundingClientRect().height; d.remove(); return h; })() }; });
+  const a = await m(); K.log('firstrun', JSON.stringify(a)); K.R.firstrun = a; await K.shot('firstrun-' + K.size().join('x'));
+  // the child scrolls the card with a thumb: does the go button come up?
+  const r = await K.pg.evaluate(() => { const c = document.querySelector('.av-card'); const b = c && c.getBoundingClientRect(); return b ? { x: b.left + b.width / 2, y: b.top + b.height * 0.6 } : null; });
+  if (r) { await K.swipe(r.x, Math.min(r.y, K.size()[1] - 30), 0, -150, 300); await K.sleep(800); const b = await m(); K.log('after scroll', JSON.stringify(b)); K.R.firstrun2 = b; await K.shot('firstrun-scrolled-' + K.size().join('x')); }
+};
+// ── the summary: its CTA on this screen, the pause button over it, the way back, "מהתחלה" ──
+module.exports.sumdiag = async function (K) {
+  const sz = K.size().join('x');
+  const toSum = async () => { await K.pg.evaluate(() => { try { globalThis.__SHIFT.E.debug.night(); } catch (e) { /* */ } }); for (let i = 0; i < 30; i++) { await K.sleep(1500); const s = await K.look(); if (s && s.screens.some((x) => /f17-sum/.test(x))) return s; if (s && s.screens.some((x) => /j32u|tl33|r30-c/.test(x))) await K.pokeButton(s, (q) => /המשך|סגור/.test(q.lb), 'card'); } return null; };
+  const meas = () => K.pg.evaluate(() => { const n = document.querySelector('.f17-sum [data-f17=next]'), p = document.querySelector('.sh-pbtn'); const r = n && n.getBoundingClientRect(), pr = p && p.getBoundingClientRect(); const top = (b) => { if (!b) return null; const e = document.elementFromPoint(b.left + b.width / 2, Math.min(innerHeight - 2, b.top + b.height / 2)); return e ? (e.className || e.tagName) + '' : null; }; return { H: innerHeight, next: r ? [Math.round(r.top), Math.round(r.bottom)] : null, nextTop: top(r), pbtn: pr ? [Math.round(pr.top), Math.round(pr.bottom)] : null, pbtnTop: top(pr), sum: !!document.querySelector('.f17-sum'), lobby: !!document.querySelector('.lb-play'), pause: !!document.querySelector('.sh-pause'), day: globalThis.__SHIFT.E ? globalThis.__SHIFT.E.st33.day : null }; });
+  await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(3000);
+  let s = await toSum(); let m = await meas(); K.log('summary', JSON.stringify(m)); K.R.sum1 = m; await K.shot('sum-' + sz);
+  // the pause button over the summary
+  if (m.pbtn) { await tapSel(K, '.sh-pbtn'); await K.sleep(1200); m = await meas(); K.log('after pbtn', JSON.stringify(m)); K.R.sum2 = m; if (m.pause) { await K.shot('sum-pause-' + sz); s = await K.look(); const b = s && s.tp.find((q) => /למסך הפתיחה/.test(q.lb)); if (b) { await K.tap(b.x, b.y); await K.sleep(2500); m = await meas(); K.log('after back', JSON.stringify(m)); K.R.sum3 = m; await K.shot('sum-back-' + sz); } } }
+  // the next day's button, by a real tap (where a child sees it)
+  if (!m.lobby || m.sum) { /* */ } else { await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(2500); s = await toSum(); }
+  m = await meas(); if (m.sum && m.next) { const d0 = m.day; const y = Math.min(m.H - 4, (m.next[0] + m.next[1]) / 2); await K.tap(K.size()[0] / 2, y); await K.sleep(2500); const m2 = await meas(); K.log('next tapped at y', Math.round(y), 'day', d0, '→', m2.day, 'sum', m2.sum); K.R.next = [d0, m2.day, m2.sum]; }
+};
+// ── candidate views for the chamber's walk-in (a raw render from each: the world as it stands) ──
+module.exports.views = async function (K) {
+  await tapSel(K, '[data-lb=here]'); await K.sleep(900); await tapSel(K, '[data-lb=ch33]'); await waitEngine(K, 40000); await K.sleep(3000);
+  const V = JSON.parse(K.opt('--views', '[]'));
+  await K.pg.evaluate(() => { window.__T.simulate(false); window.__HUD_HOLD = true; });
+  for (let i = 0; i < V.length; i++) {
+    const [p, t] = V[i];
+    await K.pg.evaluate(([p, t]) => { const T = window.__T, c = T.camera; c.position.set(...p); c.lookAt(new T.Vector3(...t)); c.updateMatrixWorld(); T.renderer.render(T.scene, c); }, [p, t]);
+    await K.pg.screenshot({ path: require('path').join(K.OUT, `view-${i}.png`), timeout: 240000 }); K.log('view', i, JSON.stringify(V[i]));
+  }
+};
+// ── the scripted bot plays the morning (tools/autoplay35.js, a child's pace); a shot each time the one line changes — the HUD's lines at
+// this size, as the morning goes (and the bot's own marks: a scripted morning still fine) ──
+module.exports.botlook = async function (K) {
+  await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(1500);
+  await K.pg.addScriptTag({ path: '/home/claude/temple3d/tools/autoplay35.js' });
+  await K.pg.evaluate((seed) => { globalThis.__AUTO35.start({ human: true, seed }).catch(() => {}); }, K.R.seed);
+  let last = '', n = 0;
+  while (K.left() > 25000) {
+    const s = await lookRec(K, 'bot'); if (!s) { await K.sleep(800); continue; }
+    const L = (s.line || '').replace(/\d+/g, '#');
+    if (L && L !== last) { last = L; K.ev('line', s.line); if (n++ % 2 === 0 && K.R.shots.length < 12) await K.shot('line-' + n); }
+    const st = await K.pg.evaluate(() => { const A = globalThis.__AUTO35.state(); return { on: A.on, phase: A.phase, marks: A.marks, err: A.err, stuck: A.stuck, rate: A.rate }; }).catch(() => null);
+    if (st && !st.on) { K.R.bot = st; K.log('bot done', JSON.stringify(st).slice(0, 600)); break; }
+    await K.sleep(1500);
+  }
+  K.R.bot = K.R.bot || await K.pg.evaluate(() => { const A = globalThis.__AUTO35.state(); return { on: A.on, phase: A.phase, marks: A.marks, err: A.err, stuck: A.stuck, rate: A.rate }; }).catch(() => null);
+  K.log('bot', JSON.stringify(K.R.bot).slice(0, 800));
+};

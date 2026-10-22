@@ -218,7 +218,7 @@ test('build 34: no Divine Name in the changed files (by code points; spaced, hyp
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];
   const sep = '[\\u0591-\\u05C7\\s\\-\\u05BE\\u05F3\\u05F4\'".]*';
   const res = N.map((c) => new RegExp(c.map((x) => String.fromCharCode(x)).join(sep)));
-  const files = ['src/avodah/shift/book32.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/index.js', 'src/avodah/shift/hud.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/lobby35.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/focus17.js', 'src/avodah/ui.js', 'src/avodah/ui.css.js', 'src/avodah/shift/lamb33.js', 'src/avodah/shift/day33.js', 'src/avodah/shift/lock29.js', 'src/avodah/shift/chamber33.js', 'src/pen/ui.js', 'test/build34.test.mjs', 'test/build32.test.mjs', 'test/build33.test.mjs', 'test/build28.test.mjs'];
+  const files = ['src/avodah/shift/book32.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/index.js', 'src/avodah/shift/hud.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/lobby35.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/focus17.js', 'src/avodah/ui.js', 'src/avodah/ui.css.js', 'src/avodah/shift/lamb33.js', 'src/avodah/shift/day33.js', 'src/avodah/shift/lock29.js', 'src/avodah/shift/chamber33.js', 'src/pen/ui.js', 'tools/kid34/kid.cjs', 'tools/kid34/kidmodes.cjs', 'tools/kid34/kidpage.js', 'test/build34.test.mjs', 'test/build32.test.mjs', 'test/build33.test.mjs', 'test/build28.test.mjs'];
   const hits = [];
   for (const f of files) { const s = read(f); res.forEach((r, i) => { const m = s.match(r); if (m) hits.push(`${f}: name ${i} at ${m.index}`); }); }
   assert.deepEqual(hits, []);

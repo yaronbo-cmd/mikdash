@@ -59,6 +59,36 @@ export const POOL23 = Object.freeze([['deshen', 'תרומת הדשן', '🔥', 1
 // ── recovered (build 23) ── the roles book's rows (pis23.js's rolesBook23): each role of a pool with his record in save.roles23 — open
 // once he has played it, how often, his best and last (the name is the recovery's)
 export const bookOf23 = (save, pool = POOL23) => { const rec = (save && save.roles23) || {}; return pool.map((r) => { const m = rec[r.id] || {}; return { id: r.id, he: r.he, icon: r.icon, built: r.built, open: (m.n | 0) > 0, n: m.n | 0, best: m.best | 0, last: m.last | 0 }; }); };
+// ── recovered (build 25) ── P25 (the report's: "P25.stand"): the lamb pen (pen25.js) — the pen's door and his stand at it, the side, the
+// rings; the act's times (in, bring, aside, zoom, blem, clean, ok, lead, end), a false approval's delay (fals) and rejections (rej), the
+// dawn, the score; the cameras (cam, zd, camP)
+export const P25 = Object.freeze({ door: { x: -17.6, z: -47.4, yaw: -Math.PI / 2, s: 0.8 }, stand: { x: -18.6, z: -44.2 }, side: { x: -13.2, z: -47.6 }, rings: { x: -36, z: -41 }, in: 0.5, bring: 0.9, aside: 0.9,
+  zoom: 0.4, blem: 1.6, clean: 0.45, ok: 0.9, lead: 2.2, end: 0.6, fals: 3.2, rej: 2, pB: 0.5, dirt: 2, dawn: 26, tT: [8, 24], sw: 0.25, score: 120, fa: 40, wr: 20, fast: 20, hy: 0.9,
+  cam: { az: 1.876, el: 0.36, d: 2.9, ty: 1 }, zd: 2.2, camP: { az: 0.2, el: 0.3, d: 6.5, ty: 1.2 } });
+const list25 = (ids, he) => Object.freeze(ids.split(' ').map((id, i) => Object.freeze({ id, he: he.split('|')[i] })));
+// ── recovered (build 25) ── BLEM25 (the report's: "6 kinds × 8 places — המחשה"): the blemishes' kinds, the places on the lamb, the dirt
+export const BLEM25 = Object.freeze({ cats: list25('wart crack cloud wound tear swell', 'יבלת / בליטה|סדק / חריץ|כתם / עכירות אישון|פצע / חתך|קרע / חסר בבשר|נפיחות / עיוות'),
+  regs: list25('earR earL eyeR eyeL hoofF hoofB back belly', 'אוזן ימין|אוזן שמאל|עין ימין|עין שמאל|טלף קדמית|טלף אחורית|גב|בטן'), dirt: Object.freeze(['straw', 'mud']) });
+// (the eight places on the lamb's rig: x, y, z and the normal; the last 1 = on the head, which turns about HEAD25)
+const REGION25 = [[-0.34, 1.67, 1, -0.52, 0.85, 0, 1], [0.34, 1.67, 1, 0.52, 0.85, 0, 1], [-0.185, 1.665, 1.23, -0.6, 0.1, 0.8, 1], [0.185, 1.665, 1.23, 0.6, 0.1, 0.8, 1],
+  [0.27, 0.12, 0.42, 1, 0, 0, 0], [0.27, 0.12, -0.52, 1, 0, 0, 0], [0.14, 1.8, -0.2, 0.24, 0.97, 0, 0], [0.36, 0.78, 0, 0.7, -0.7, 0, 0]];
+const HEAD25 = [0, 1.36, 0.62];
+/** ── recovered (build 25) ── at25 (the report's name): a place on the lamb (BLEM25.regs index) in the world — the lamb at L {x, y, z, yaw, s},
+ *  its head turned by yaw and pitch → { x, y, z, nx, ny, nz } */
+export function at25(reg, L, yaw = 0, pitch = 0) {
+  const row = REGION25[reg] || REGION25[6];
+  let [x, y, z, nx, ny, nz] = row;
+  if (row[6]) {
+    const c = Math.cos(pitch), s = Math.sin(pitch), dy = y - HEAD25[1], dz = z - HEAD25[2];
+    y = HEAD25[1] + c * dy - s * dz; z = HEAD25[2] + s * dy + c * dz;
+    const ny0 = ny; ny = c * ny0 - s * nz; nz = s * ny0 + c * nz;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), dx = x - HEAD25[0], dz2 = z - HEAD25[2];
+    x = HEAD25[0] + cy * dx + sy * dz2; z = HEAD25[2] - sy * dx + cy * dz2;
+    const nx0 = nx; nx = cy * nx0 + sy * nz; nz = -sy * nx0 + cy * nz;
+  }
+  const u = Math.cos(L.yaw), h = Math.sin(L.yaw), k = L.s || 1;
+  return { x: L.x + k * (u * x + h * z), y: (L.y || 16) + k * y, z: L.z + k * (-h * x + u * z), nx: u * nx + h * nz, ny, nz: -h * nx + u * nz };
+}
 // ── recovered (build 26) ── POOL26 (the report's): the second lot's thirteen roles (יומא ב, ג) — built: the inner altar's and the
 // menorah's ashes; the rest "כהנים אחרים — בקרוב"
 export const POOL26 = Object.freeze([['shochet', 'השחיטה', '🔪'], ['zorek', 'זריקת הדם', '🏺'], ['inner', 'דישון מזבח הפנימי', '🥣', 1], ['menorah', 'דישון המנורה', '🪔', 1], ['rosh', 'הראש והרגל', '🧺'], ['yadaim', 'שתי הידיים', '🧺'], ['oketz', 'העוקץ והרגל', '🧺'], ['chaze', 'החזה והגרה', '🧺'], ['dfanot', 'שתי הדפנות', '🧺'], ['kerev', 'הקרביים', '🧺'], ['solet', 'הסולת', '🌾'], ['chavt', 'החביתין', '🍞'], ['yayin', 'היין', '🍇']].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built, lot: 2 })));

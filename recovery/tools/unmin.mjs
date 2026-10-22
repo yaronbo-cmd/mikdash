@@ -138,12 +138,21 @@ function stmt(s) {   // one statement → a list of statements
     case 'IfStatement': {
       let pre = [], test = s.test;
       if (test.type === 'SequenceExpression') { pre = test.expressions.slice(0, -1).flatMap((x) => stmt(ES(x))); test = test.expressions[test.expressions.length - 1]; }
-      return [...pre, { ...s, test, consequent: inner(s.consequent), alternate: s.alternate ? inner(s.alternate) : null }];
+      let cons = inner(s.consequent);
+      if (s.alternate && openIf(cons)) cons = { type: 'BlockStatement', body: [cons] };   // (a dangling else: the outer else must not bind to an inner if)
+      return [...pre, { ...s, test, consequent: cons, alternate: s.alternate ? inner(s.alternate) : null }];
     }
     case 'ForStatement': case 'ForInStatement': case 'ForOfStatement': case 'WhileStatement': case 'DoWhileStatement': case 'LabeledStatement':
       return [{ ...s, body: inner(s.body) }];
     default: return [s];
   }
+}
+// does a statement end in an `if` without an else (directly, or as a loop's or label's body)? — then an else after it would bind to it
+function openIf(n) {
+  if (!n) return false;
+  if (n.type === 'IfStatement') return !n.alternate || openIf(n.alternate);
+  if (/^(For|ForIn|ForOf|While|Labeled)Statement$/.test(n.type)) return openIf(n.body);
+  return false;
 }
 function inner(s) { const l = stmt(s); return l.length === 1 && l[0].type !== 'VariableDeclaration' ? l[0] : { type: 'BlockStatement', body: l }; }
 function lists(n) {

@@ -1,0 +1,12 @@
+/* ── fable32 (build 25) ── ── recovered (build 25) ── pen25.js — the lamb pen, a morning task of the lot (בדיקת הטלה; מידות א, ו;
+ * ערכין ב, ה): at the pen's door in the dark, the lamb brought in — alive on its rig (animals.js's sheepRig: walking, breathing, ears
+ * and tail, its head turning toward the light); the right thumb aims the torch (the kit's one light, ONE warm hole in the dark); a
+ * blemish (BLEM25: 6 kinds × 8 places, "המחשה") lights its ring and buzz when the beam finds it, the view narrows to it (ZOOM_FOV);
+ * dirt (straw, mud) is not a blemish — a swipe brushes it off; then the stamp: "תמים" (the gold stamp on its back) or "פסול" (בעל מום).
+ * A false approval costs a delay and a replacement lamb; his first lamb is easier to read; the dawn clock runs (P25.dawn). The other
+ * kohanim's lamb when the lot gave it to another (E.npc25()), led away to the rings; the hoofs, the torch's crackle, the bleats.
+ * The engine is day33.js (E.p25(): in → scan → zoom/dirt/clean/blem → ok/false → aside/bring → lead → end; p25tap, p25swipe, p25stamp,
+ * p25focus); the lamb's places in the world: day33's at25.
+ *   createPen25({ E, sfx, doc, view }) → { destroy(), state() }      (focus17.js makes it when E.p25on; globalThis.__P25)
+ * The bundle kept no comment and no local name: the names are the recovery's, but for crackT, K, dt and snd — the report's line
+ * pen25.js:134. Never a Divine Name. */

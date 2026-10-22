@@ -1,0 +1,9 @@
+# שאלה למומחה למשחקים — איך לנהל את בוקר הפיס (20.10.2026, נוסחה בידי Claude)
+
+> **קובץ משוחזר (22.10.2026) אחרי אובדן הסביבה של 21.10.** הקובץ המקורי (5,547 בתים) אבד עם הסביבה. **עותק שלו נמצא אצל הבעלים:** `C:\Users\97250\Desktop\mikdash\she-ela-mumche-pis-he.txt` — אפשר להעתיק אותו לכאן במקום קובץ זה.
+
+מה שהתמלול מספר על השאלה (OWNER-NOTES, 20.10.2026 17:56–17:59, כפי שנרשם):
+
+Claude raised: the pre-dawn morning (laver + deshen + pyre, + the pen) grows to ~2 min before each 3-min day. Proposal A (sources: Yoma 2:1–4): the laver every morning, then a lot gives the player ONE morning task (deshen / pyre / lamb …), other kohanim do the rest in view; no repeat two days running; a new task guaranteed within 2 days; a roles album. The owner: "לדעתי א'. אבל אני רוצה לחשוב על זה קצת עם מומחה למשחק" — the question for the expert: docs/specs/she-ela-mumche-pis-he.txt. No build until he answers.
+
+הבעלים ביקש: "נסח לי שאלה…" — והשאלה נוסחה בקובץ הזה. תשובת המומחה: `pis-boker-he.md`.

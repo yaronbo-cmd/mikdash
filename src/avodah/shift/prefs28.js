@@ -62,10 +62,12 @@ function toggleMute(sfx) {
 export const PREFS28_CSS = `
 body.sh28 .av-top{display:none!important}
 /* the day's top bar (focus17's fire, step card and tamid) kept between the corners: on a 640-px-wide phone it ran over the pause button at
-   the top left (z 31 over the HUD's 30) — and the pause card is where the switches are mid-play; the card's text ellipsizes */
-body.sh28 .f17-top{max-width:calc(100vw - 2 * (env(safe-area-inset-left,0px) + 72px))}
+   the top left (z 31 over the HUD's 30) — and the pause card is where the switches are mid-play; under the HUD's layer now (the pause and
+   choice cards dim it), a little smaller on a narrow screen, the card's text ellipsizing only if it must */
+body.sh28 .f17-top{max-width:calc(100vw - 2 * (env(safe-area-inset-left,0px) + 64px));z-index:29}
 body.sh28 .f17-card,body.sh28 .f17-card span{min-width:0}
 body.sh28 .f17-fire,body.sh28 .f17-tam{flex:none}
+@media (max-width:700px){body.sh28 .f17-top{gap:5px}body.sh28 .f17-tam{padding:3px 8px;font-size:12px}body.sh28 .f17-card{padding:4px 8px 4px 6px;gap:6px}body.sh28 .f17-card span{font-size:14px}body.sh28 .f17-card i{font-size:22px}}
 .p28-row{display:flex;gap:6px;direction:rtl;pointer-events:auto}
 .p28{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 10px;border-radius:12px;border:2px solid rgba(255,230,180,.45);background:linear-gradient(180deg,rgba(60,42,16,.82),rgba(28,18,8,.86));color:#FFF6DA;font:800 12px/1 "Heebo",system-ui,sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:0 3px 10px rgba(0,0,0,.35)}
 .p28 i{font-style:normal;font-size:18px;line-height:1}

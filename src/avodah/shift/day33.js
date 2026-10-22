@@ -22,7 +22,7 @@ export const DAY33 = Object.freeze({ idleOffer: 12, dayS: 180, nightS: 60, fuel0
   moked: { x: -160, y: 16, z: -68, back: { x: -34, z: 50 } }, songS: 60, songFuel: 10, songReward: 5 });
 // ── recovered (R6) ── the tables of builds 17–26 that the day's own modules import (ramp19, kiyor20, deshen21, maaracha22, pis23, pen25,
 // heichal26, fx18, focus17), placed in the bundle's order; R7 fills the rest of day33 in around them. The names are the build reports'
-// where they have one (B17, C18, POOL23, rolesBook23, P25, BLEM25, at25, hash25, P26, POOL26), else the recovery's in their style.
+// where they have one (B17, C18, POOL23, P25, BLEM25, at25, P26, POOL26), else the recovery's in their style.
 // ── recovered (build 17) ── B17 (the report's: "B17.graceK"): the focused day of build 17 (focus17.js, E.b17) — the fire's start and its
 // drain by day/night (drain, drainK), the logs' grades, the tamid's dawn and dusk, the first two minutes' grace (grace s, ×graceK on
 // the timing act's window), the catch-up, the warning and the critical fuel, the slots of the bar (slots, maxSlots), the pen's and

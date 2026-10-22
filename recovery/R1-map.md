@@ -113,7 +113,7 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 
 | module | recovery (parity · status) | min bytes 15 → 26c | Δ tokens | 15 lines | 26c lines | 26c line range | confidence | what changed (literals only 26c has) |
 |---|---|---|---|---|---|---|---|---|
-| `src/avodah/shift/day33.js` | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in) | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
+| `src/avodah/shift/day33.js` | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in). R6 added the frozen tables the day's modules import — R7 keeps these names: B17, C18, R19, K20, D21, M22, P23, POOL23, bookOf23, P25, BLEM25, at25 (internal list25, REGION25, HEAD25), P26, POOL26, onRamp19, rampY19 (R1-map §12) | 26,250 → 101,462 | +40557 / −695 | 1359 | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) | "יבלת / בליטה¦סדק / חריץ¦כתם / עכירות , "אוזן ימין¦אוזן שמאל¦עין ימין¦עין שמאל, "earR earL eyeR eyeL hoofF hoofB back , "הקישו כשהטבעת נסגרת על הגזר — מכה אחת, "הקישו כשהטבעת נסגרת — השער נפתח והטלה, "כהן זריז! שני התמידים בזמן — האש לא ד, "עבודה טובה! מחר נקדים להביא עצים למער |
 | `src/avodah/shift/stations.js` | PASS — R5 ported (c09983d): the timing act of b17 (SWING17 — fx18 imports it, CAM17, swingHit/Land/End), the day's climb path (climbPath/climbAt/climbRate), the laver's walk, b17's mini chips, the pyre station, cancel, __SW17; imports twin's GRADE/gradeOf, walk's PACE, draw's placeChip | 40,363 → 51,890 | +5413 / −225 | 1726 | 2283 | 91315–93597 | high — in place, rewritten (sim 0.67, ×1.3 size) | `.s29-st{position:absolute;left:0;top:, "הקישו כשהטבעת נסגרת על הגזר", "translate(-999px,-999px)", "הניחו על המערכה — הקישו", "פתחו את הדיר — בזמן", "החטאה — הגרזן נתקע", "קחו מלח — בזמן" |
 | `src/game/audio.js` | PASS — R4 ported (6dd67db): createAudio's trim/declick, the beds bus, duck, rush20, choir, ~32 sounds of b17–26 | 25,040 → 32,678 | +3995 / −0 | 1284 | 1688 | 48265–49952 | high — moved in the order, matched by content (sim 0.76) | "trumpet17", .disconnect, "scrape21", "scrape26", "unlock20", trumpet17:, "alarm17" |
 | `src/avodah/shift/hero35.js` | PASS — R4 ported (9076b09): gait from gait35.js, pose20, dust20, hold21, lift, hitStop, __ARM19 | 3,698 → 9,524 | +2526 / −67 | 199 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) | `$& vD=0.;for(int i=0;i<4;i++){float j, `$& uniform float uD,uG,uT;varying flo, `$& totalEmissiveRadiance+=vec3(.62,.9, `$& diffuseColor.rgb=mix(diffuseColor., `$& uniform vec4 uJ,uK;varying float v, "#include <emissivemap_fragment>", "#include <skinning_pars_vertex>" |
@@ -123,7 +123,7 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 | `src/avodah/sound.js` | PASS — R3 ported (7e22f57): one kit with audio.js's (build 26c) | 4,295 → 5,979 | +812 / −12 | 248 | 381 | 64686–65066 | high — in place, rewritten (sim 0.58, ×1.4 size) | "createBufferSource", "createOscillator", "visibilitychange", .addEventListener, .defineProperty, trumpet17:, "context" |
 | `src/main.js` | PASS — R3 ported (3418486, 4d85973): predawn, mixTime, the shared sound context (26c) | 38,685 → 40,076 | +721 / −0 | 1968 | 2038 | 193948–195985 | high (sim 0.89) | "#2C2832", "#40527E", "#5A5652", "#93A6D6", predawn:, "gain", "lift" |
 | `src/avodah/day/world22.js` | PASS — R3 ported (8c5120b): the altar/kevesh walk, the House's floor, rampWay; R4 (ca5a71f): KEVESH_WALL, HOUSE22, HEICHAL_VESSELS after the functions (the bundle's statement grouping) | 627 → 1,650 | +627 / −0 | 47 | 101 | 74105–74205 | high (sim 0.74) | .findIndex, .freeze, .zFoot, .body, .gate, .push, .some |
-| `src/avodah/shift/index.js` | FAIL — later (after R5–R7): imports evlog (evlog16.js — in), STICK24 (twin.js — in; R1's 'CSS_NAV' was a shifted symmap name), focus17, pis23, new day33 symbols, stations' new export; uses walk's PACE/STICK (in) | 8,621 → 10,246 | +553 / −0 | 557 | 639 | 115608–116246 | high (sim 0.73) | "כל תפקיד בוקר: השיא, הפעמים, ומה עוד , "תפקידים — ספר התפקידים", "[shift] focus17", .__SH18_NOCOINS, .__SH_HARDSTICK, .__SH_LOBBYFULL, .__SH_B17OFF |
+| `src/avodah/shift/index.js` | FAIL — later (after R5–R7): imports evlog (evlog16.js — in), STICK24 (twin.js — in; R1's 'CSS_NAV' was a shifted symmap name), createFocus17 (focus17.js — in, R6), rolesBook23 (pis23.js — in, R6), new day33 symbols, stations' new export; uses walk's PACE/STICK (in) | 8,621 → 10,246 | +553 / −0 | 557 | 639 | 115608–116246 | high (sim 0.73) | "כל תפקיד בוקר: השיא, הפעמים, ומה עוד , "תפקידים — ספר התפקידים", "[shift] focus17", .__SH18_NOCOINS, .__SH_HARDSTICK, .__SH_LOBBYFULL, .__SH_B17OFF |
 | `src/life.js` | PASS — R3 ported (9345571): the fire's levels, rampLane | 16,016 → 16,993 | +513 / −0 | 724 | 767 | 125889–126655 | high (sim 0.85) | .__FIRELOW33, .__FLARE33, "#8A8279", "off", .lerp, .zero, zero: |
 | `src/avodah/shift/walk.js` | PASS — R3 ported (8c5120b): planWay, the paced walk, PACE/STICK | 2,843 → 3,648 | +470 / −37 | 212 | 266 | 91049–91314 | high — moved in the order, matched by content (sim 0.68) | rimAfter:, .limitMs, limitMs:, .concat, .freeze, .slowIn, slowIn: |
 | `src/avodah/shift/hud.js` | PASS — R4 ported (6ae7ec1): R3's hud.js.patch applied — the fire gauge (b17a), sh-b17 (b17b), the event log on the cards (b16) | 27,167 → 30,150 | +396 / −14 | 657 | 712 | 97010–97721 | high (sim 0.84) | ` .sh-root{position:fixed;inset:0;z-in, "<svg viewBox=\"0 0 44 44\" aria-hidde, `         <button class="sh-tour sm sh, "[data-sh=evlog]", "הלוג הועתק ✓", "card_close", "card_open" |
@@ -135,7 +135,7 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 | `src/avodah3d.js` | PASS — R3 ported (c76d589): __K20LAVER (build 20) | 41,559 → 41,623 | +32 / −1 | 2154 | 2164 | 41062–43225 | high (sim 0.90) | .__K20LAVER |
 | `src/avodah/day/index.js` | PASS — R3 ported (0536394): camWork (b20), __SH17UP (b17) | 26,148 → 26,247 | +33 / −0 | 1322 | 1325 | 94453–95777 | high (sim 0.89) | .__SH17UP, .camWork |
 | `src/avodah/shift/route31.js` | PASS — R3 ported (cbef914): CLIMB31 | 3,816 → 3,861 | +23 / −1 | 184 | 188 | 90379–90566 | high (sim 0.98) | tailDay:, top: |
-| `src/animals.js` | FAIL — R3 pending: recovery/pending/animals.js.patch (export sheepRig — only pen25 imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R6's pen25 | 20,103 → 20,134 | +16 / −0 | 1035 | 1037 | 35466–36502 | high (sim 1.00) |  |
+| `src/animals.js` | FAIL — R3 pending → R6 applied (6cfdc38): export sheepRig (pen25 imports it). FAIL in the real tree only because esbuild drops sheepRig until shift/index.js → focus17 → pen25 is bundled; PASS in R6's stand-in tree | 20,103 → 20,134 | +16 / −0 | 1035 | 1037 | 35466–36502 | high (sim 1.00) |  |
 | `src/temple.js` | PASS — R3 ported (61de874): 'pyre22' (build 22) | 24,987 → 25,010 | +12 / −1 | 1170 | 1171 | 122727–123897 | high (sim 0.90) | "pyre22", .pyre22, .cedar |
 | `src/avodah/ui.js` | PASS — R3 ported (826b3b6): the welcome line (build 16) | 22,053 → 22,178 | +1 / −1 | 508 | 508 | 65453–65960 | high (sim 0.90) | `ברוך הבא לעבודה</h2>       <!-- ── fa |
 
@@ -144,15 +144,15 @@ Which builds touched what (from build-number suffixes in the new literals): `day
 | module (name from the build reports) | recovery (parity · status) | min bytes | 26c lines | 26c line range | confidence | fingerprint |
 |---|---|---|---|---|---|---|
 | `src/avodah/shift/evlog16.js ?` | PASS — R4 new (6ae7ec1): evlog (hud.js, day33.js, shift/index.js import it), copyEvlog (hud.js) | 1,068 | 75 | 96935–97009 | content high, name LOW (proposed) | "mk.evlog" localStorage key, `{v:16,…}`, hud.js's "העתק לוג" |
-| `src/avodah/shift/fx18.js` | MISSING-IN-FRESH — R6 (imports SWING17 from stations.js — in; day33's table 'dl' {pay, streak, tamid…} — R7's) | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
-| `src/avodah/shift/ramp19.js` | MISSING-IN-FRESH — R6 | 3,654 | 189 | 104463–104651 | high | "הכבש מומלח!", salt19, r19/gh19 |
-| `src/avodah/shift/kiyor20.js` | MISSING-IN-FRESH — R6 (uses water.pour20, __K20LAVER — in) | 10,124 | 308 | 104652–104959 | high | `.k20-*` CSS, rush20 |
-| `src/avodah/shift/deshen21.js` | MISSING-IN-FRESH — R6 | 13,529 | 544 | 104960–105503 | high | `.d21-*` CSS, scrape21 |
-| `src/avodah/shift/maaracha22.js` | MISSING-IN-FRESH — R6 (temple.js's 'pyre22' — in) | 19,183 | 834 | 105504–106337 | high | `.m22-*` CSS, pyre22/band22 |
-| `src/avodah/shift/pen25.js` | MISSING-IN-FRESH — R6 (imports animals.js's sheepRig — git apply recovery/pending/animals.js.patch with it; figures' man/ROBE/SKIN2; day33's x5, Ys, vR — R7's) | 20,261 | 920 | 106338–107257 | high | `.p25-*` CSS, torch25/hoof25 |
-| `src/avodah/shift/heichal26.js` | MISSING-IN-FRESH — R6 (world22's HOUSE22, stages' twinPass — in) | 24,725 | 1009 | 107258–108266 | high | `.hk26-*` CSS, gate26/pour26 |
-| `src/avodah/shift/pis23.js` | MISSING-IN-FRESH — R6 (reads PACE — in) | 15,247 | 473 | 108267–108739 | high | `.p23-*` CSS, lot23/npc23 |
-| `src/avodah/shift/focus17.js` | MISSING-IN-FRESH — R6 | 26,861 | 779 | 108740–109518 | high | `.f17-*` CSS, "focus17" log tag |
+| `src/avodah/shift/fx18.js` | MISSING-IN-FRESH — R6 new (d12f931): createFx18 (the acts' answers of b18; SND; __FX18); imports SWING17 (stations.js — in), day33 C18. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 9,752 | 524 | 103939–104462 | high | `.c18-*` CSS, coin18 |
+| `src/avodah/shift/ramp19.js` | MISSING-IN-FRESH — R6 new (e1046bb): createRamp19 (the ramp run of b19); day33 R19, onRamp19, rampY19; __ARM19 (read). parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 3,654 | 189 | 104463–104651 | high | "הכבש מומלח!", salt19, r19/gh19 |
+| `src/avodah/shift/kiyor20.js` | MISSING-IN-FRESH — R6 new (aa1e37e): createKiyor20 (the laver of b20: water.pour20, __K20LAVER, __K20); day33 K20. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 10,124 | 308 | 104652–104959 | high | `.k20-*` CSS, rush20 |
+| `src/avodah/shift/deshen21.js` | MISSING-IN-FRESH — R6 new (45661a4): createDeshen21 (תרומת הדשן of b21; __D21); day33 D21. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 13,529 | 544 | 104960–105503 | high | `.d21-*` CSS, scrape21 |
+| `src/avodah/shift/maaracha22.js` | MISSING-IN-FRESH — R6 new (41dff12): createMaaracha22 (סידור המערכה of b22; temple.js's 'pyre22'; __M22); day33 M22, P23. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 19,183 | 834 | 105504–106337 | high | `.m22-*` CSS, pyre22/band22 |
+| `src/avodah/shift/pen25.js` | MISSING-IN-FRESH — R6 new (6cfdc38): createPen25 (the lamb pen of b25; __P25); animals.js sheepRig (applied with it), figures man/ROBE/SKIN; day33 at25, BLEM25, P25. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 20,261 | 920 | 106338–107257 | high | `.p25-*` CSS, torch25/hoof25 |
+| `src/avodah/shift/heichal26.js` | MISSING-IN-FRESH — R6 new (589ed04): createHeichal26 (inside the Heichal, b26; __H26); figures lamb/man/ROBE/SKIN, places TAMID_RING/ALTAR_CORNERS/LIMBS_PLACE/DESHEN_PLACE; day33 P26, POOL26. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 24,725 | 1009 | 107258–108266 | high | `.hk26-*` CSS, gate26/pour26 |
+| `src/avodah/shift/pis23.js` | MISSING-IN-FRESH — R6 new (93cbf92): createPis23 (the lot of b23 and b26's second lot; __P23), rolesBook23 (shift/index.js imports it); figures man/ROBE/SKIN, dawn CAP_MEMUNE; day33 bookOf23, D21, M22, P23, POOL23, POOL26. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 15,247 | 473 | 108267–108739 | high | `.p23-*` CSS, lot23/npc23 |
+| `src/avodah/shift/focus17.js` | MISSING-IN-FRESH — R6 new (7cd38b4): createFocus17 (the focused day of b17: the top, the bar, stamps, the summary, the portrait guard; __F17, SHARED.hot17/b17); it makes ramp19 … heichal26 and fx18; day33 B17. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | 26,861 | 779 | 108740–109518 | high | `.f17-*` CSS, "focus17" log tag |
 | `src/avodah/shift/gait.js ?` → `src/avodah/shift/gait35.js` | PASS — R4 new (9076b09): GAIT35, gaitFor — hero35.js imports both (R1's 'gait.js ?'; names26c.json maps it) | 566 | 26 | 115112–115137 | content high, name LOW (proposed) | `walkAt/runAt/runHys`, Walking_A/Running_A (taken out of hero35.js) |
 | `(esbuild glue: one init_x() call)` | — | 4 | 1 | 157768–157768 | n/a | — |
 
@@ -163,7 +163,7 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | src file | status | recovery (parity · status) | 26c lines | 26c line range | confidence |
 |---|---|---|---|---|---|
 | `src/actors.js` | unchanged | PASS | 2242 | 36845–39086 | high |
-| `src/animals.js` | changed +16/−0 tok | FAIL — R3 pending: recovery/pending/animals.js.patch (export sheepRig — only pen25 imports it, so esbuild drops it until then; PASS with a stand-in importer) → git apply with R6's pen25 | 1037 | 35466–36502 | high (sim 1.00) |
+| `src/animals.js` | changed +16/−0 tok | FAIL — R3 pending → R6 applied (6cfdc38): export sheepRig (pen25 imports it). FAIL in the real tree only because esbuild drops sheepRig until shift/index.js → focus17 → pen25 is bundled; PASS in R6's stand-in tree | 1037 | 35466–36502 | high (sim 1.00) |
 | `src/avodah/data.js` | unchanged | PASS | 716 | 63323–64038 | high |
 | `src/avodah/day/bridge.js` | unchanged | PASS | 72 | 74256–74327 | high |
 | `src/avodah/day/cam28.js` | changed +36/−0 tok | PASS — R3 ported (72e32a3): the pull-only lift cap | 385 | 78218–78602 | high (sim 0.90) |
@@ -208,20 +208,29 @@ unchanged = the 26c bundle holds code that normalizes identically (same units, s
 | `src/avodah/scenes/index.js` | unchanged | PASS | 739 | 118615–119353 | high |
 | `src/avodah/schedule.js` | unchanged | PASS | 273 | 64039–64311 | high |
 | `src/avodah/shift/camera.js` | changed +1057/−265 tok | PASS — R4 ported (8c24403): smoothDamp, CAM24, VIEW24, dayView/dayFov (b17), the cam17 drag view, noPinch | 725 | 93598–94322 | high (sim 0.76) |
-| `src/avodah/shift/day33.js` | changed +40557/−695 tok | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in) | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) |
+| `src/avodah/shift/day33.js` | changed +40557/−695 tok | FAIL — R7 (must export resumeDay33 for lobby35's patch; imports evlog from evlog16.js — in). R6 added the frozen tables the day's modules import — R7 keeps these names: B17, C18, R19, K20, D21, M22, P23, POOL23, bookOf23, P25, BLEM25, at25 (internal list25, REGION25, HEAD25), P26, POOL26, onRamp19, rampY19 (R1-map §12) | 5197 | 98742–103938 | high — in place, rewritten (sim 0.30, ×3.9 size) |
+| `src/avodah/shift/deshen21.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (45661a4): createDeshen21 (תרומת הדשן of b21; __D21); day33 D21. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
 | `src/avodah/shift/draw.js` | unchanged | PASS | 346 | 89964–90309 | high |
 | `src/avodah/shift/engine.js` | unchanged | PASS | 1047 | 95888–96934 | high |
 | `src/avodah/shift/evlog16.js` | new in 26c — recovered (not a build-15 file; see table B) | PASS — R4 new (6ae7ec1): evlog (hud.js, day33.js, shift/index.js import it), copyEvlog (hud.js) | — | — | high |
 | `src/avodah/shift/flow31.js` | changed +1095/−7 tok | PASS — R4 ported (42945c2): LISHKA26 (the report's), freeFor, rampWay from the altar, strong24, hot17/b17, lay1/pyre33, prompt31, dayField, rampLane | 811 | 97876–98686 | high (sim 0.78) |
+| `src/avodah/shift/focus17.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (7cd38b4): createFocus17 (the focused day of b17: the top, the bar, stamps, the summary, the portrait guard; __F17, SHARED.hot17/b17); it makes ramp19 … heichal26 and fx18; day33 B17. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
+| `src/avodah/shift/fx18.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (d12f931): createFx18 (the acts' answers of b18; SND; __FX18); imports SWING17 (stations.js — in), day33 C18. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
 | `src/avodah/shift/gait35.js` | new in 26c — recovered (not a build-15 file; see table B) | PASS — R4 new (9076b09): GAIT35, gaitFor — hero35.js imports both (R1's 'gait.js ?'; names26c.json maps it) | — | — | high |
+| `src/avodah/shift/heichal26.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (589ed04): createHeichal26 (inside the Heichal, b26; __H26); figures lamb/man/ROBE/SKIN, places TAMID_RING/ALTAR_CORNERS/LIMBS_PLACE/DESHEN_PLACE; day33 P26, POOL26. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
 | `src/avodah/shift/hero35.js` | changed +2526/−67 tok | PASS — R4 ported (9076b09): gait from gait35.js, pose20, dust20, hold21, lift, hitStop, __ARM19 | 470 | 115138–115607 | high — in place, rewritten (sim 0.43, ×2.6 size) |
 | `src/avodah/shift/hud.js` | changed +396/−14 tok | PASS — R4 ported (6ae7ec1): R3's hud.js.patch applied — the fire gauge (b17a), sh-b17 (b17b), the event log on the cards (b16) | 712 | 97010–97721 | high (sim 0.84) |
-| `src/avodah/shift/index.js` | changed +553/−0 tok | FAIL — later (after R5–R7): imports evlog (evlog16.js — in), STICK24 (twin.js — in; R1's 'CSS_NAV' was a shifted symmap name), focus17, pis23, new day33 symbols, stations' new export; uses walk's PACE/STICK (in) | 639 | 115608–116246 | high (sim 0.73) |
+| `src/avodah/shift/index.js` | changed +553/−0 tok | FAIL — later (after R5–R7): imports evlog (evlog16.js — in), STICK24 (twin.js — in; R1's 'CSS_NAV' was a shifted symmap name), createFocus17 (focus17.js — in, R6), rolesBook23 (pis23.js — in, R6), new day33 symbols, stations' new export; uses walk's PACE/STICK (in) | 639 | 115608–116246 | high (sim 0.73) |
+| `src/avodah/shift/kiyor20.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (aa1e37e): createKiyor20 (the laver of b20: water.pour20, __K20LAVER, __K20); day33 K20. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
 | `src/avodah/shift/lab.js` | unchanged | PASS | 119 | 94323–94441 | high |
 | `src/avodah/shift/layout31.js` | unchanged | PASS | 69 | 90310–90378 | high |
 | `src/avodah/shift/levels.js` | unchanged | PASS | 78 | 95778–95855 | high |
 | `src/avodah/shift/lobby35.js` | changed +222/−10 tok | FAIL — R3 pending: recovery/pending/lobby35.js.patch (the start screen b16, minimal, the new spot; imports resumeDay33 from ./day33.js, reads DAY33.minimal; PASS with a stand-in export) → git apply with R7's day33 | 442 | 109519–109960 | high (sim 0.81) |
+| `src/avodah/shift/maaracha22.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (41dff12): createMaaracha22 (סידור המערכה of b22; temple.js's 'pyre22'; __M22); day33 M22, P23. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
+| `src/avodah/shift/pen25.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (6cfdc38): createPen25 (the lamb pen of b25; __P25); animals.js sheepRig (applied with it), figures man/ROBE/SKIN; day33 at25, BLEM25, P25. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
 | `src/avodah/shift/pilgrims.js` | unchanged | PASS | 482 | 90567–91048 | high |
+| `src/avodah/shift/pis23.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (93cbf92): createPis23 (the lot of b23 and b26's second lot; __P23), rolesBook23 (shift/index.js imports it); figures man/ROBE/SKIN, dawn CAP_MEMUNE; day33 bookOf23, D21, M22, P23, POOL23, POOL26. parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
+| `src/avodah/shift/ramp19.js` | new in 26c — recovered (not a build-15 file; see table B) | MISSING-IN-FRESH — R6 new (e1046bb): createRamp19 (the ramp run of b19); day33 R19, onRamp19, rampY19; __ARM19 (read). parity PASS with a stand-in importer; MISSING-IN-FRESH in the real tree until shift/index.js imports focus17 (the later stage) | — | — | high |
 | `src/avodah/shift/rival.js` | unchanged | PASS | 32 | 95856–95887 | high |
 | `src/avodah/shift/route31.js` | changed +23/−1 tok | PASS — R3 ported (cbef914): CLIMB31 | 188 | 90379–90566 | high (sim 0.98) |
 | `src/avodah/shift/score35.js` | unchanged | PASS | 55 | 98687–98741 | high |
@@ -592,3 +601,65 @@ node recovery/tools/rename.mjs avodah/sound.js --canon --out /tmp/s26.js; node r
 - **Parity now:** `--all` = 280 modules: 267 PASS, 4 FAIL (animals and lobby35: pending; shift/index.js: later; day33: R7), 9
   MISSING-IN-FRESH (R6); src/ only: 223 PASS. `--page`: 5,186,255 B vs 5,417,820 B (−231,565 B; after R4: −243,153 B).
   Selftest: all as expected.
+
+## 12. R6 (21–22.10, ≈ 23:37–00:25 UTC): the nine new day modules
+
+- **Tools first (718346f):** `bindiff.mjs` (bindings that are not one-to-one between fresh and 26c), `slotmap.mjs` (where a
+  module's minified slots split: an invisible symbol), `slotwho.mjs` (the bindings behind a split slot); all three take `--root`.
+  Then **`unmin.mjs`** (e1046bb …): a `rename.mjs` 26c draft + a names file → a readable module. Every rename is scope-checked
+  (each identifier must still resolve to the same binding). esbuild's statement forms are undone: sequences, `&&`/`||`/`?:`
+  statements, the function-end `if (!!x) {…}` / `if (!(a || b)) {…}`, `if (A && (s, B))`, `for (s; c;)`, `!0`/`void 0`, `{ E: E }`.
+  `let` becomes `const` when nothing reassigns it. Dangling else is guarded. **`recovery/r6/<m>.names.json` + `<m>.head.txt`**
+  regenerate each module:
+  `node recovery/tools/rename.mjs shift/<m>.js --out d.js && node recovery/tools/unmin.mjs d.js --names recovery/r6/<m>.names.json
+  --head recovery/r6/<m>.head.txt --out src/avodah/shift/<m>.js`. In the names file: `importOrder` (= the wrapper's init order),
+  `top`, `scopes` (`min` or `min@line` keys), and `patches`/`draftPatches` (the source forms esbuild folds but keeps a slot for).
+- **New, parity PASS, committed** (min bytes fresh → 26c, measured in the stand-in tree; the differences are minified name
+  lengths):
+
+  | module | commit | export(s) | units · tokens | min B fresh → 26c | src B |
+  |---|---|---|---|---|---|
+  | ramp19.js | e1046bb | createRamp19 | 5 · 2,170 | 3,653 → 3,654 | 8,661 |
+  | kiyor20.js | aa1e37e | createKiyor20 | 16 · 2,750 | 10,123 → 10,124 | 15,770 |
+  | fx18.js | d12f931 | createFx18 | 46 · 4,722 | 9,741 → 9,752 | 18,162 |
+  | deshen21.js | 45661a4 | createDeshen21 | 19 · 5,595 | 13,525 → 13,529 | 24,066 |
+  | pis23.js | 93cbf92 | createPis23, rolesBook23 | 19 · 4,983 | 15,243 → 15,247 | 24,285 |
+  | maaracha22.js | 41dff12 | createMaaracha22 | 34 · 8,593 | 19,184 → 19,183 | 34,715 |
+  | pen25.js | 6cfdc38 | createPen25 | 17 · 8,997 | 20,248 → 20,261 | 36,272 |
+  | heichal26.js | 589ed04 | createHeichal26 | 25 · 9,965 | 24,731 → 24,725 | 44,477 |
+  | focus17.js | 7cd38b4 | createFocus17 | 24 · 6,288 | 26,685 → 26,861 | 39,238 |
+
+  The bundle reaches them only through focus17, and focus17 only through shift/index.js (a later stage). So they are verified in a
+  scratch copy of the tree where index.js gets stand-in imports (each `create*`, plus pis23's `rolesBook23`, which index.js
+  imports in 26c). In the real tree they stay MISSING-IN-FRESH until index.js imports focus17. pen25 needed the pending
+  `animals.js` patch (export `sheepRig`): **applied** (6cfdc38). It is PASS in the stand-in tree and FAIL in the real one for the same reason.
+- **day33.js gains the frozen tables** (Object.freeze tables survive tree-shaking). 26c name → recovery name: `li` → **B17**, `dl` →
+  **C18**, `b5` → **R19**, `xR` → **onRamp19**, `vk` → **rampY19**, `sg` → **K20**, `hs` → **D21**, `ma` → **M22**, `Ns` → **P23**, `wR` →
+  **POOL23**, `HJ` → **bookOf23**, `ov` → **POOL26**, `Ys` → **P25**, `x5` → **BLEM25**, `vR` → **at25**, `$s` → **P26**. The tables'
+  internal helpers are list25, REGION25 and HEAD25. Report names: B17, C18, POOL23, P25, BLEM25, at25, P26, POOL26 (and SWING17,
+  SND, LISHKA26 elsewhere). The recovery's own names: R19, K20, D21, M22, P23, bookOf23, onRamp19, rampY19. (R21/R23 come from the
+  coordinator's identifier scan, not from a report, so they were not used.) **R7 must keep all of these names.** R7 must also add
+  the day engine's API that the modules call at run time:
+  - focus17: `b17 focus17() on17 fire17 go17 tap17 nextDay() pause() state() b19 g20 g21 g22 l18 p23on p25on p26on`
+  - fx18: `focus17() on17`
+  - ramp19: `b19 gh19() st33`
+  - kiyor20: `g20 k20() k20in() m22 gate26L()`
+  - deshen21: `d21() d21bal() d21stick() d21swipe() g21 g22 gate20…25() lot23()`
+  - maaracha22: `band22() first22() m22() m22put() m22stick() m22swipe() npc23()`
+  - pis23: `p23() p23pick() p23raise() roles23() npc23()`
+  - pen25: `npc25() p25() p25focus() p25stamp() p25swipe() p25tap()`
+  - heichal26: `g26t() gate26() men5t() open26() r26() r26hold() r26light() r26pull() r26r() r26swipe() r26tap() role26()`
+  
+  The modules set these global hooks: `__F17 __FX18 __K20 __D21 __M22 __P23 __P25 __H26`.
+- **Invisible symbols again** (a folded single-use `const` that keeps its slot): kiyor20's `slots` and pis23's `keys` (each restored
+  with `const x = …; x.forEach(`). In heichal26, `gateOn` had to be the last declarator of draw's first `let`, and `panOn` a `let` in an
+  `if (io === 'inner') {…}` block. A separate folded `const` *statement* keeps no slot. Only a declarator in a list, or a block,
+  does. maaracha22's `const { r: RAD, len: LEN } = M22` (rename.mjs printed it as an assignment).
+- **Report lines reproduced:** pen25 `if (K && (crackT -= dt) <= 0)`, heichal26's line 207, and focus17's `createFocus17`, `sfx` and the
+  modules' lines. The CSS keeps its build-17c comments.
+- **Possible later renames (unsure):** the build reports call world22's walkable area `IN26`/`in26` and flow31's planner `freeNow`.
+  R3/R4 named them `houseFloor`/`HOUSE22` and `freeFor`. Which entity each report name means is not settled, so they are unchanged.
+- **Tests:** 568: 557 pass, 10 skipped, 1 fails (the known shift30 pyre stand, R9). `node build.mjs`: 5,191,310 B.
+- **Parity now:** `--all` = 280 modules: 267 PASS, 4 FAIL (animals.js: sheepRig unbundled until index.js; lobby35: pending R7;
+  shift/index.js: later; day33: R7), 9 MISSING-IN-FRESH (the R6 modules, PASS with stand-ins); src/ only: 223 PASS. `--page`:
+  5,192,024 B vs 5,417,820 B (−225,796 B). Selftest: all as expected.

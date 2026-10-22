@@ -25,6 +25,7 @@ export const LOCK29_CSS = `
 .lb .lb-here{min-height:44px}
 .lb .lb-play .lb-k{display:block;font:900 11px/1.1 "Heebo",system-ui,sans-serif;opacity:.78;margin:0 0 3px}
 .lb .p28.lb-loc span{white-space:nowrap}
+@media (max-width:700px){.lb .p28.lb-loc:not(.msg) span{display:none}}
 .lb .lk-here{text-align:right;padding:6px 12px 8px}
 .lb .lk-here h2{text-align:center;font-size:18px}.lb .lk-here>p{text-align:center;margin:1px 0 4px;font-size:10px}
 .lb .lk-row{display:flex;gap:8px;align-items:baseline;font:800 13px/1.25 "Heebo",system-ui,sans-serif;padding:2px 0;border-top:1px solid rgba(255,230,180,.15)}
@@ -90,8 +91,10 @@ export function hereHTML29(tn, w, now = clock29(), o = {}) {
     </div></div>`;
 }
 /** the "מיקום מדויק" switch (off by default; ≥ 44 px) */
+// ── fable32 (build 34) ── (on a phone ≤ 700 px wide the button is its 📍 alone — its words reached the kohen's feet and his ring on the
+// opening screen at 640×296; a message while it asks — "מאתר…" — still shows: .msg) ── /fable32 ──
 export function locButton29(on, msg) {
-  return `<button class="p28 lb-loc${on ? '' : ' off'}" type="button" data-lb="loc" aria-pressed="${on ? 'true' : 'false'}" aria-label="מיקום מדויק"><i>📍</i><span>${esc(msg || (on ? 'מיקום מדויק ✓' : 'מיקום מדויק'))}</span></button>`;
+  return `<button class="p28 lb-loc${on ? '' : ' off'}${msg ? ' msg' : ''}" type="button" data-lb="loc" aria-pressed="${on ? 'true' : 'false'}" aria-label="מיקום מדויק"><i>📍</i><span>${esc(msg || (on ? 'מיקום מדויק ✓' : 'מיקום מדויק'))}</span></button>`;
 }
 
 /** the calm line over the day, under its top bar (focus17's); '' takes it off */

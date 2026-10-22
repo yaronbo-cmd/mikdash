@@ -721,3 +721,76 @@ node recovery/tools/rename.mjs avodah/sound.js --canon --out /tmp/s26.js; node r
   - Engine state at each step, [t, fuel, k20 phase, step, washed]: [0.5, 70, "up", "kiyor", false] in both; then [1.9 | 1.8, 70,
     "pose", "kiyor", false].
   - The HUD text is the same in both, and neither page logged an error. (The first run, without the save, stayed on the name card.)
+
+## 14. R9 (22.10, ≈ 01:15–03:40 UTC): the safety net — the cap, the tests, the autoplayer, mkout
+
+- **The 6 MiB cap (1e17001).** The owner, 20.10: "בוא נעלה את התקרה כרגע". `build.mjs` now warns over 6 MiB (it was 5), and
+  `test/qa-content-scan.cjs` checks `bundle < 6 MiB`. The build is 5,417,106 B (5.17 MiB), so there is no warning.
+- **The five build-15 tests that 26c's day no longer met (aa43a4c).** Each carries a comment naming the build that changed it:
+  - shift30.test.mjs:22: the pyre stand is on the altar's top (builds 16–26c).
+  - day33.test.mjs :37 and :44: the laying happens at the pyre, one log per tap (lay1).
+  - day33.test.mjs :79: the next place is the laver, unless the lost lamb is within DAY33.lostNear.
+  - day33.test.mjs :142: "למערכה" (sh:go:pyre), then four single lays.
+- **Tests for builds 16–26c (3ae792e, 2ff8a9b).**
+  - The files: `test/rig33.mjs` (createDay33 in node with the builds' flags) and `test/build16 … build26c.test.mjs`, 13 files with
+    147 tests.
+  - The suite: **715 tests, 705 pass, 10 skipped, 0 fail** (26c had 712: 702 pass, 10 skipped).
+  - build26c's guard follows the report: it finds the 63 literal sound names the day plays, and each one starts a voice on a fake
+    WebAudio context. Without audio.js's kit, 43 of them make no voice, which reproduces the report's "43 of 63" exactly.
+- **mkout (1e17001).** `tools/mkout.cjs [title] [--out out/index.html] [--check FILE]` writes dist/play.html with 26c's head script
+  and the title. Checked against recovery/build26c.min.html:
+  - the head is byte-identical and the page is the same length (5,417,820 B);
+  - the first difference is at byte 40,804 (the 10 name pairs);
+  - out/index.html is byte-identical to R8's recovery/work/restored-r8.html.
+  - `out/` is git-ignored.
+- **The autoplayer (c8648c6, 29d5ab3).** It is new, written from the reports. The original was lost, and its numbers are history.
+  - `tools/autoplay35.js` runs in the page as `__AUTO35.start({ human, seed, days })`.
+  - `tools/autoplay35-run.cjs` takes `--run X --minutes N --shots K --human --continue --sound --seed S --days D --day N --morning
+    --page FILE --q --size --frames`. Logs and PNGs go to the scratchpad's `auto/<run>/`.
+  - **What it plays:** the laver (two thumbs), the first lot and its task (the ashes: swipes, the walk's balance, the heap; the pyre:
+    sorting, the carry, the stacking band; the lamb: the beam, the zoom, the brush, the stamps), the second lot, the Heichal (the
+    bolt, the key, the lamps' wick/wipe/pour/light and the kuz; the inner altar's pulls and the teni), then the day to its summary
+    (the work cards, the logs one per tap, the timing acts on their gold moment).
+  - **How it walks:** by the stick along flow31's gold path. The normal hand walks at 7 amot/s, then sprints at the rim (×1.5) after
+    0.6 s; the human hand stays at 7. A walk that gains less than an amah in 2 s of game time is stuck: the bot steps aside, then
+    takes the planned walk.
+  - **Inputs by a finger on the pads:** the ashes' balance and the lamb's beam go through the page's own pads. deshen21's frame writes
+    `E.d21bal` from its touch (null without one), and pen25's frame focuses the spot nearest its beam, so a direct engine call was
+    undone every frame.
+  - **The game's clock:** the pour is released when the next look would pass the mark. The balance's gain is held to the time
+    between two looks.
+  - **`--human`:** it reacts in 0.35–0.85 s, makes 12 % bad swipes, sets a rougher pour mark, and makes slow, partial corrections on
+    the balance.
+  - **`--day N`:** it saves the state of N−1 mornings under A.shift (day33state, roles23/roles26). Day 2 gives the pyre and the inner
+    altar; day 3 gives the lamb and the menorah.
+  - **`--continue` and `--sound`:** a full day 1 (the summary at 243.7 s, 34 acts, 0 errors) continued into day 2 (pyre + inner,
+    26.5 s from the dawn). `--sound`: 173 play calls of 21 names in the morning, every name voiced.
+- **The two pages, the same seeds (brun, 02:50–03:33 UTC, the final bot).** The restored out/index.html against recovery/build26c.min.html, seconds
+  of the game's clock. Each cell is restored / 26c, as a mean (with the range when n > 1):
+
+  | morning | n | pre-dawn | to the lot | lot | to the gate | gate | walk in | act | role from dawn | morning | report (26b/26c) |
+  |---|---|---|---|---|---|---|---|---|---|---|---|
+  | normal day 1, deshen + menorah | 5 / 5 | 29.6 / 29.7 | 2.1 / 2.1 | 3.2 / 3.2 | 8.6 / 8.6 | 1.8 / 1.8 | 4.1 / 4.2 | 14.5 / 14.5 | 34.4 (34.2–34.5) / 34.3 (34.1–34.9) | 64.0 / 64.0 | 29.3–30.3 · 2.1 · 3.9 · 8.7 · 2.3 · 4.1 · 17.8 · 38.9 (26c 40.1) · 69.2 (26c 70.0) |
+  | normal day 2, pyre + inner | 1 / 1 | 28.6 / 28.5 | 7.6 / 7.6 | 3.3 / 3.0 | 6.6 / 6.7 | 1.8 / 1.8 | 4.0 / 4.0 | 3.2 / 3.1 | 26.5 / 26.2 | 55.1 / 54.8 | 29.8 · 60.0 |
+  | normal day 3, lamb + menorah | 1 / 1 | 26.4 / 26.6 | 2.9 / 2.9 | 3.2 / 3.1 | 8.7 / 8.7 | 1.8 / 1.7 | 4.1 / 4.1 | 14.6 / 14.2 | 35.4 / 34.7 | 61.8 / 61.3 | 38.8 · 68.1 |
+  | human day 1, deshen + menorah | 2 / 2 | 38.5 / 37.3 | 2.1 / 2.0 | 3.6 / 3.2 | 13.1 / 13.1 | 2.5 / 2.6 | 5.5 / 5.7 | 27.4 / 27.3 | 54.3 (52.4–56.1) / 53.8 (50.3–57.3) | 92.8 / 91.1 | 50–54 (50–58) · 93.6 |
+  | human day 2, pyre + inner | 1 / 1 | 40.1 / 39.9 | 10.0 / 9.9 | 3.3 / 3.3 | 10.3 / 10.2 | 3.0 / 2.9 | 5.3 / 5.4 | 6.3 / 6.4 | 38.2 / 38.1 | 78.3 / 78.0 | 38.4 · 85.2 |
+  | human day 3, lamb + menorah | 1 / 1 | 35.8 / 35.0 | 2.9 / 2.9 | 3.3 / 3.2 | 13.3 / 13.3 | 2.5 / 2.3 | 5.5 / 5.5 | 28.4 / 31.6 | 55.9 / 58.7 | 91.7 / 93.7 | 50.3 · 86.9 |
+
+  - **No behaviour difference between the pages.** Normal pairs agree within 0.4 s in every phase. Human pairs differ by up to 3 s
+    in the act: the hand's random misjudgements fall differently when the page's timers come at different moments. Masteries are the
+    same in normal play (task 99–100, role 100).
+  - **Against the original tool's numbers:** the walks, the gate, the walk in and the pre-dawn all match within 0.5 s. The re-created
+    quick hand finishes the five lamps about 3 s faster (14.5 s against 17.8 s), so its menorah from the dawn is 34.4 s against 38.9–40.1 s.
+  - The human numbers fall inside the reports' ranges.
+- **What the first runs showed (before 29d5ab3), all traced to the bot:**
+  - One pair's pre-dawn differed by 3.9 s (29.6 against 33.5): the descent with the ashes took 4.6 s on one page and 8.25 s on the
+    other. The cause was deshen21's frame clearing the bot's direct balance input.
+  - One restored-page run stalled on the way to the gate (seed 2, with the first stuck test). The same seed passed when re-run, and the
+    29 runs since the progress-window test had 0 stalls and 0 page errors on both pages.
+- **Checks:**
+  - `node build.mjs` gives 5,417,106 B with no warning.
+  - parity --all: 280 modules, 280 PASS. The page: the same length, common prefix 40,804 B and suffix 36,884 B (as in R8).
+  - The node suite: 715 tests, 705 pass, 10 skipped, 0 fail.
+  - qa-content-scan: 11/12. It fails only on docs/specs/birkat-kohanim-he.md:9 and heleni-shema-he.md:19, :44 (R10's restored
+    specs, not R9's).

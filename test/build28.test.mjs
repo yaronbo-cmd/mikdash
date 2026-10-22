@@ -83,7 +83,8 @@ test('build 28 (2): the shift\'s doors — the lobby gets no shift / tour; the d
   const lobbyOn = ix.slice(ix.indexOf('cardCtl = createLobby('), ix.indexOf('// ── /fable32 ──', ix.indexOf('cardCtl = createLobby(')));
   assert.ok(/day: \(\) => \{ cardCtl = null; runDay\(\); \}/.test(lobbyOn)); assert.ok(!/shift: \(\)|tour: \(\)/.test(lobbyOn), lobbyOn);
   const dayPause = ix.slice(ix.indexOf('function runDay()'), ix.indexOf('function tour()'));
-  assert.ok(dayPause.includes('restart: () => runDay(), prefs: { sfx: o.sfx } });'), 'the switches on the day\'s pause card'); assert.ok(!/tour: \(\) => tour\(\)/.test(dayPause), 'no לסיור');
+  // (build 34: the day's pause card has a way back to the opening screen between the restart and the switches)
+  assert.ok(/restart: \(\) => runDay\(\), back: \{ label: 'חזרה למסך הפתיחה'[^\n]*prefs: \{ sfx: o\.sfx \} \}\);/.test(dayPause), 'the switches on the day\'s pause card'); assert.ok(!/tour: \(\) => tour\(\)/.test(dayPause), 'no לסיור');
   const main = read('src/main.js'), sg = main.slice(main.indexOf('function startGame()'), main.indexOf('// the world the game drives'));
   const iF = sg.indexOf('if (globalThis.__FORCE_SHIFT) { const f'), iA = sg.indexOf("if (/^#avodah/.test(location.hash))"), iS = sg.indexOf('if (/^#shift\\b/.test(location.hash))');
   assert.ok(iF >= 0 && iF < iA && iF < iS, 'the shipped flag first, before #avodah and #shift=N');

@@ -193,7 +193,7 @@ export function mountShift(o = {}) {
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
     if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }   // ── recovered (build 17) ──
     // ── fable32 (build 28) ── the pause card: "המשך" / "מהתחלה" and the two switches (צליל, רטט) — no "לסיור" ── /fable32 ──
-    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine /* ── fable32 (build 29) ── (the calm line) ── /fable32 ── */, sub: servedHe30(served30(save)) /* ── fable32 (build 30) ── */, restart: () => runDay(), prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
+    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine /* ── fable32 (build 29) ── (the calm line) ── /fable32 ── */, sub: servedHe30(served30(save)) /* ── fable32 (build 30) ── */, restart: () => runDay(), back: { label: 'חזרה למסך הפתיחה', fn: () => { teardown(); card(); } } /* ── fable32 (build 34) ── (the day had no way back to the opening screen — the journal, the chamber, משחק קצר — but a reload; E.stop() saves the day as it is: "המשך יום N") ── /fable32 ── */, prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
     hud.intro('יום במקדש', 'בקעו עצים, העלו אותם בכבש — שהאש לא תרד לגחלת', 1100);

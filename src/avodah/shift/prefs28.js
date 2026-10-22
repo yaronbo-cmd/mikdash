@@ -111,10 +111,11 @@ export function bindPrefs(root, o = {}) {
 }
 
 // ── the "turn the phone" card: fable29's look and words (a portrait window at the start), and mid-play with a line that the day waits ──
+// ── fable32 (build 34) ── ("משחקים לרוחב" — was "המשמרת משחקים לרוחב": the 90-s "משמרת" mode is gone since build 28) ── /fable32 ──
 export function turnCard(doc, id = 'sh-turn', line = '') {
   const el = doc.createElement('div'); el.id = id; el.dir = 'rtl';
   el.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(28,20,10,.92);color:#FFF4DC;font:600 22px/1.5 Heebo,sans-serif;text-align:center;padding:24px';
-  el.innerHTML = `<div><div style="font-size:64px;line-height:1">📱↻</div><div style="margin-top:12px">המשמרת משחקים לרוחב</div><div style="font:500 16px/1.6 Heebo,sans-serif;opacity:.85;margin-top:8px">סובבו את הטלפון — או הרחיבו את החלון במחשב (במסך מלא: F11)</div>${line ? `<div style="font:700 15px/1.5 Heebo,sans-serif;color:#FFD66E;margin-top:10px">${line}</div>` : ''}</div>`;
+  el.innerHTML = `<div><div style="font-size:64px;line-height:1">📱↻</div><div style="margin-top:12px">משחקים לרוחב</div><div style="font:500 16px/1.6 Heebo,sans-serif;opacity:.85;margin-top:8px">סובבו את הטלפון — או הרחיבו את החלון במחשב (במסך מלא: F11)</div>${line ? `<div style="font:700 15px/1.5 Heebo,sans-serif;color:#FFD66E;margin-top:10px">${line}</div>` : ''}</div>`;
   el.addEventListener('pointerdown', (e) => e.stopPropagation());
   doc.body.appendChild(el);
   return el;

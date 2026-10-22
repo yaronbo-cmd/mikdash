@@ -317,7 +317,7 @@ export function createShiftHud(root) {
         ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28') : ''}
         ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}
         ${h.back ? `<button class="sh-tour" type="button" data-sh="backP">${esc(h.back.label || 'חזרה')}</button>` : '' /* ── fable32 (build 31) ── (a practice run: back to the roles book) ── /fable32 ── */}
-        <button class="sh-tour sm sh-evlog" type="button" data-sh="evlog" style="opacity:.45;font-size:11px;min-height:32px">העתק לוג</button></div>`);
+        <button class="sh-tour sm sh-evlog" type="button" data-sh="evlog" style="opacity:.45;font-size:11px;min-height:44px">העתק לוג</button></div>`);   // ── fable32 (build 34) ── ("העתק לוג" 32 → 44 px high: every target ≥ 44) ── /fable32 ──
       R.appendChild(pauseEl);
       evlog('card_open', 'pause');   // ── recovered (build 16) ── (the event log, and "העתק לוג" copies it)
       { const b = pauseEl.querySelector('[data-sh=evlog]'); if (b) b.addEventListener('click', (e) => { e.stopPropagation(); copyEvlog().then((ok) => { b.textContent = ok ? 'הלוג הועתק ✓' : 'לא הועתק'; }); }); }

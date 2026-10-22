@@ -32,6 +32,9 @@ export const RATE30 = Object.freeze({
   ]),
 });
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : Number.isFinite(v) ? v : 0);
+// ── fable32 (build 31) ── the inner altar's act (day33's P26.pulls and P26.scr — rate30 stays pure, so its two numbers are here too; a
+// test holds them equal) ── /fable32 ──
+export const INNER31 = Object.freeze({ pulls: 7, scr: 5 });
 const pick = (arr, n) => arr[Math.max(0, Math.min(arr.length - 1, n | 0))];
 /** the rating of a quality 0…1 */
 export function rate30(q) {
@@ -56,8 +59,14 @@ export function quality30(id, r) {
     }
     case 'lamb':   // a blemished lamb approved −0.55 (טעון תיקון); a whole lamb rejected −0.2; dirt taken for a blemish −0.2
       return clamp01(1 - 0.55 * (r.falseApprovals | 0) - 0.2 * (r.wrongRejections | 0) - 0.2 * (r.dirtMistaken | 0));
-    case 'inner':   // the pulls into the teni, each one too fast scratches the gold (build 26's accuracy, 100 − 5 a scratch)
-      return clamp01((+r.accuracy || 0) / 100);
+    case 'inner': {   // the pulls into the teni, each one too fast scratches the gold (build 26's accuracy, 100 − 5 a scratch)
+      // ── fable32 (build 31) ── the share of the pulls that did not scratch: 0 scratches 1, every pull too fast 0 (build 30's accuracy / 100
+      // could not go under 0.65 — seven pulls, 5 each — so a poor run never rated טעון תיקון). Scratches and pulls from the record; an
+      // older record with its accuracy only: (100 − accuracy) / 5 scratches of INNER31.pulls ── /fable32 ──
+      const n = (r.pulls | 0) > 0 ? r.pulls | 0 : INNER31.pulls,
+        s = r.scratches != null ? +r.scratches || 0 : (100 - (Number.isFinite(+r.accuracy) ? +r.accuracy : 0)) / INNER31.scr;
+      return clamp01(1 - s / n);
+    }
     case 'menorah': {   // the half-log poured into each lamp (under 0.8, over 0.45) and the wick's swipes refused
       const ref = r.refused | 0;
       return clamp01((0.5 * clamp01(+r.pourQ || 0) + 0.2 * (ref ? (ref <= 2 ? 0.6 : 0.3) : 1)) / 0.7);

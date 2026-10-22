@@ -307,7 +307,9 @@ export const POOL23 = Object.freeze(
 // the day by P23.open, then never yesterday's and the least played first; two roles from the fourth morning
 // ── fable32 (build 28) ── from the fourth morning (P23.draw) ONE role, never yesterday's — as the second lot (draw26) draws: "הִתְקִינוּ
 // שֶׁלֹּא יְהוּ תוֹרְמִין אֶת הַמִּזְבֵּחַ אֶלָּא בְפַיִס" (יומא ב, ב); mornings 1–3 as before ── /fable32 ──
-const timesOf = (rec, id) => (rec && rec[id] && rec[id].n) | 0;
+// ── fable32 (build 31) ── the mornings he had the role: a practice run (the roles book's "לתרגל") adds to the record's n and its own pr,
+// and the lot counts n − pr — practice never moves the lot's weights, its "never yesterday's" or a first time ── /fable32 ──
+const timesOf = (rec, id) => (rec && rec[id] ? Math.max(0, (rec[id].n | 0) - (rec[id].pr | 0)) : 0);
 function draw23(n, rec, ids, rnd = Math.random) {
   const h = (rec && rec.h) || [],
     yest = h.length ? h[h.length - 1][1] : null,
@@ -339,14 +341,28 @@ function mastery23(id, r) {
 // ── recovered (build 23) ── the roles book's rows (pis23.js's rolesBook23): each role of a pool with his record in save.roles23 — open
 // once he has played it, how often, his best and last (the name is the recovery's)
 // ── fable32 (build 30) ── each row also has its rating: the best (rate), the times מהודר (h) and the skill title (title) — rate30's role30 ── /fable32 ──
+// ── fable32 (build 31) ── had: the mornings he had it (timesOf — the lot is the key; a practice run never opens a role); pr: its practice runs ── /fable32 ──
 export const bookOf23 = (save, pool = POOL23) => {
   const rec = (save && save.roles23) || {};
   return pool.map((x) => {
     const a = rec[x.id] || {},
       r = role30(a);
-    return { id: x.id, he: x.he, icon: x.icon, built: x.built, open: (a.n | 0) > 0, n: a.n | 0, best: a.best | 0, last: a.last | 0, rate: r.best, h: r.h, title: r.title ? r.title.he : null };
+    return { id: x.id, he: x.he, icon: x.icon, built: x.built, open: (a.n | 0) > 0, n: a.n | 0, best: a.best | 0, last: a.last | 0, rate: r.best, h: r.h, title: r.title ? r.title.he : null, had: timesOf(rec, x.id), pr: a.pr | 0 };
   });
 };
+/** ── fable32 (build 31) ── the roles book's practice (hachraot-he.md "עולם ומבנה", 21.10 23:46: "ספר התפקידים — אימון בכל תפקיד בנוי,
+ *  לשיא"): any role he has had in a real morning — the laver too — opens its act directly (createDay33's o.practice): the same place, the
+ *  same court round it, the same controls and rating; no tamid clock, no day timer. It changes the role's record (rec23: n, best, r30 —
+ *  the rating, the מהודר count, the title — and pr, its own count); never the coins, the day, the lot, the mornings served, the tasks or
+ *  the badges. endS: the end card this long after the act's end — as its rating's word (RATE30.wordS, 2.4 s) ends, so no other line shows
+ *  between them; gate27: the court opens the great gate this long after he stands at the ring (the day: 9 s after the second lot, his walk
+ *  to the ring in it — המחשה) ── /fable32 ── */
+export const PRAC31 = Object.freeze({
+  roles: Object.freeze(['kiyor', 'deshen', 'm22', 'lamb', 'inner', 'menorah', 'shochet', 'zorek']),
+  first: Object.freeze(['deshen', 'm22', 'lamb']),
+  endS: 2.35,
+  gate27: 5,
+});
 // ── recovered (build 25) ── P25 (the report's: "P25.stand"): the lamb pen (pen25.js) — the pen's door and his stand at it, the side, the
 // rings; the act's times (in, bring, aside, zoom, blem, clean, ok, lead, end), a false approval's delay (fals) and rejections (rej), the
 // dawn, the score; the cameras (cam, zd, camP)
@@ -739,6 +755,14 @@ export function createDay33(o = {}) {
     p25 = p23 && !!o.p25,
     p26 = p23 && !!o.p26,
     p27 = p26 && !!o.p27,   // ── fable32 (build 27) ── ── /fable32 ──
+    // ── fable32 (build 31) ── a practice run (PRAC31): its role, its seed (the lamb's spots, the menorah's lamp gone out), the day and the
+    // fire's level he goes on with (the court as he left it); only when the role's own build is on ── /fable32 ──
+    prac = (() => {
+      const P = o.practice,
+        r = P && P.role,
+        on = { kiyor: g20 && p23, deshen: g21 && p23, m22: g22 && p23, lamb: p25, inner: p26, menorah: p26, shochet: p27, zorek: p27 };
+      return r && PRAC31.roles.includes(r) && on[r] ? { role: r, seed: (P.seed | 0) || 101, day: Math.max(2, P.day | 0), fed: Math.max(0, +P.fed || 0), end: null, done: null } : null;
+    })(),
     act20 = K20.act,
     cam20 = K20.cam,
     subs17 = [],
@@ -900,7 +924,7 @@ export function createDay33(o = {}) {
   if (b17) st.fuel = B17.fuel0;
   st.resumed = 0;
   {
-    const was = savedDay33(save);
+    const was = prac ? null : savedDay33(save);   // ── fable32 (build 31) ── (a practice run never reads — or writes — the saved day) ── /fable32 ──
     if (was) {
       for (const k of kept33)
         if (was[k] !== undefined && was[k] !== null)
@@ -929,12 +953,31 @@ export function createDay33(o = {}) {
   }
   // ── fable32 (build 30) ── "שימשת N בקרים": a save from before build 30 gets its count once, at the day's start — the second lots it held
   // (served30's fallback), less today's if the lot was held and its role not yet done (then that morning counts when it is: morning30) ── /fable32 ──
-  if (save.served30 == null) save.served30 = Math.max(0, served30(save) - (p26 && st.p26day === st.day && st.r26day !== st.day && (save.roles26 && save.roles26.m) > 0 ? 1 : 0));
+  if (save.served30 == null && !prac) save.served30 = Math.max(0, served30(save) - (p26 && st.p26day === st.day && st.r26day !== st.day && (save.roles26 && save.roles26.m) > 0 ? 1 : 0));
+  // ── fable32 (build 31) ── a practice run's morning: everything of the morning done but his role (the gates as after the lot — p23done's
+  // and the second lot's — for that role), the court's kohanim at the other parts as on a day with that lot (npc23: the pyre's wood or the
+  // ashes' pan; npc25: the court's lamb), the fire as the day has it then (the laver: the day's start; the pre-dawn roles: the embers; the
+  // second lot's: rekindled), no tasks, no "33 days" end; the court's level as he left it (prac.fed) ── /fable32 ──
+  if (prac) {
+    const d = (st.day = prac.day),
+      r = prac.role,
+      second = !PRAC31.first.includes(r) && r !== 'kiyor';
+    st.fed = prac.fed;
+    st.level = levelFor(st.fed);
+    st.washed = r !== 'kiyor';
+    Object.assign(st, { p23day: d, d21day: d, m22day: d, p25day: d, p26day: d, r26day: d, g26day: 0, lot: 'deshen', npc23: null, npc25: d, ended33: true, tasks: [] });
+    if (r === 'deshen') Object.assign(st, { d21day: 0, m22day: 0, npc23: 'm22' });
+    else if (r === 'm22') Object.assign(st, { lot: 'm22', m22day: 0, npc23: 'deshen' });
+    else if (r === 'lamb') Object.assign(st, { lot: 'lamb', p25day: 0, m22day: 0, npc23: 'm22', npc25: 0 });
+    else if (second) Object.assign(st, { role26: r, r26day: 0, l26t: PRAC31.gate27 - P27.gateNpc });
+    st.fuel = r === 'kiyor' ? (b17 ? B17.fuel0 : DAY33.fuel0) : second ? P23.fire : M22.ember;
+    if (r !== 'lamb' && r !== 'kiyor' && p25 && st.lambs[0]) st.lambs[0].ok = true;   // (the court's lamb, checked: lambIn)
+  }
   if (!powerOn) st.power = DAY33.power0;
   if (b19)
     Object.assign(st.r19, { acc: 0, sc: 0, gr: [], A: 0, ph: 0, sw: 0, sp: 0, slip: -9, run: null, arm: 0, gt: -1, gp: null, lane: 0, lt: -9 });
   {
-    const was = savedDay33(save);
+    const was = prac ? null : savedDay33(save);
     if (b17 && was && was.night)
       Object.assign(st, { tamD: 'wait', tamE: 'wait', rampBest: 0, laidDay: 0, lowDay: 100, lateDay: 0, pDay0: st.perutot, earnD: 0 });
   }
@@ -1150,6 +1193,7 @@ export function createDay33(o = {}) {
       taskStep();
     };
   function pay(n, why, at) {
+    if (prac) return L0('pay31', 0, why);   // ── fable32 (build 31) ── (a practice run pays no coins — קופת המקדש is the day's) ── /fable32 ──
     st.perutot += n;
     save.perutot = st.perutot;
     say(() => o.persist && o.persist());
@@ -1222,6 +1266,7 @@ export function createDay33(o = {}) {
     st.tasks = tasksForDay(st.day, st.level, g20 ? ['kiyor'] : null).map((q) => ({ ...q, done: false }));
   }
   function saveState(why) {
+    if (prac) return;   // ── fable32 (build 31) ── (a practice run: the saved day is the real day's, untouched — "המשך יום N" stays where it was) ── /fable32 ──
     const out = {};
     for (const k of kept33) out[k] = Array.isArray(st[k]) ? st[k].slice() : st[k] && typeof st[k] === 'object' ? { ...st[k] } : st[k];
     out.lambs = st.lambs.map((x) => !!x.ok);
@@ -1590,7 +1635,7 @@ export function createDay33(o = {}) {
     try {
       const W = globalThis.__T;
       if (W && typeof W.setTime === 'function')
-        W.setTime(night ? 'dusk' : g21 && !ended && (g22 ? st.m22day : st.d21day) !== st.day ? 'predawn' : 'noon');
+        W.setTime(prac && !ended ? (PRAC31.first.includes(prac.role) || prac.role === 'kiyor' ? 'predawn' : 'noon') /* ── fable32 (build 31) ── (the hour of his role's morning) ── /fable32 ── */ : night ? 'dusk' : g21 && !ended && (g22 ? st.m22day : st.d21day) !== st.day ? 'predawn' : 'noon');
     } catch (e) {}
   }
   const lambReady = () => !open33('pen') || okLambs() > 0,
@@ -3040,6 +3085,7 @@ export function createDay33(o = {}) {
       was = role30(m).best,
       c = m.r30 && typeof m.r30 === 'object' ? m.r30 : (m.r30 = { h: 0, k: 0, t: 0, best: null });
     m.n = (m.n | 0) + 1;
+    if (prac) m.pr = (m.pr | 0) + 1;   // ── fable32 (build 31) ── (a practice run: its own count — the lot reads n − pr) ── /fable32 ──
     m.last = mastery;
     m.best = Math.max(oldBest, mastery);
     c[RATE30.key[rating]] = (c[RATE30.key[rating]] | 0) + 1;
@@ -3048,7 +3094,10 @@ export function createDay33(o = {}) {
     r.q = Math.round(q * 1000) / 1000;
     r.rating = rating;
     r.rec = !first && mastery > oldBest;
+    if (prac) r.practice = true;
     say(() => o.persist && o.persist());
+    // ── fable32 (build 31) ── a practice run's record goes to the player's own save (shift/index.js: merge31 — this role's entry only) ── /fable32 ──
+    if (prac) emit17('p31rec', { id, rec: JSON.parse(JSON.stringify(m)), rating, q: r.q });
     emit17('p23rec', { id, m: mastery, prev: oldBest, best: m.best, rec: !first && mastery > oldBest, first, n: m.n, rating, was: was || null });
     L0('p23rec', id, mastery, oldBest);
   }
@@ -3058,17 +3107,44 @@ export function createDay33(o = {}) {
   function end30(id, rec, at, morning) {
     const q = rec.q != null ? rec.q : Math.round(quality30(id, rec) * 1000) / 1000,
       rating = rec.rating || rate30(q),
-      coins = pay30(rating);
+      coins = prac ? 0 : pay30(rating);   // ── fable32 (build 31) ── (a practice run: no coins) ── /fable32 ──
     Object.assign(rec, { q, rating, coins });
     st.r30day = [...(Array.isArray(st.r30day) ? st.r30day : []), [id, rating]].slice(-12);
     st.end30 = { id, rating, until: st.t + RATE30.wordS };
     st.say30 = null;
     pay(coins, id, at);
-    if (morning) morning30();
+    if (morning && !prac) morning30();   // ── fable32 (build 31) ── (a practice run is not a morning served) ── /fable32 ──
+    // ── fable32 (build 31) ── the practice's end: its card as the rating's word ends (tick: "p31end") — only his own role's act ends it ── /fable32 ──
+    if (prac && id === prac.role && !prac.end) prac.end = { id, rating, q, at: st.t + PRAC31.endS, shown: false };
     emit17('rate30', { id, rating, q, he: ACT30[id] ? ACT30[id].he : id, coins, at: at || null, served: served30(save) });
     evlog('rate30', { id, rating, q });
     L0('rate30', id, rating, q);
     return rating;
+  }
+  /** ── fable32 (build 31) ── a practice run: he stands where his act begins (each act's own start test then takes him in at once — the
+   *  laver by wake23, the ashes on the altar's top at their place, the pyre at the wood chamber's sorting place, the lamb at the pen's door,
+   *  the Heichal's two at its gate, the shochet east of the lamb, the zorek at the vessel by its neck) ── /fable32 ── */
+  function place31() {
+    const r = prac && prac.role;
+    if (!r || r === 'kiyor') return;
+    const w = STN.wood && STN.wood.stand,
+      at =
+        r === 'deshen'
+          ? { x: D21.stand.x, z: D21.stand.z, yaw: D21.stand.yaw }
+          : r === 'm22'
+            ? w
+              ? { x: w.x, z: w.z, yaw: Math.PI / 2 }
+              : null
+            : r === 'lamb'
+              ? { x: P25.stand.x, z: P25.stand.z, yaw: Math.atan2(P25.door.x - P25.stand.x, P25.door.z - P25.stand.z) }
+              : r === 'inner' || r === 'menorah'
+                ? { x: P26.gate.x + 1.2, z: P26.gate.z, yaw: -Math.PI / 2 }
+                : r === 'shochet'
+                  ? { x: P27.stand.x, z: P27.stand.z, yaw: -Math.PI / 2 }
+                  : { x: P27.recv.x, z: P27.recv.z, yaw: Math.atan2(P27.lamb.x - P27.recv.x, P27.lamb.z - P27.recv.z) };
+    if (at) moveHero(at.x, at.z, at.yaw);
+    L0('p31', r, prac.seed);
+    evlog('practice31', { id: r, seed: prac.seed });
   }
   /** the morning served (once a day): save.served30 — from an older save's second lots (served30) on */
   function morning30() {
@@ -3097,7 +3173,7 @@ export function createDay33(o = {}) {
   // ── recovered (build 25) ── the lamb pen: the door, the scan by torchlight, the zoom on a spot, the dirt wiped, the stamps תמים / פסול,
   // the dawn clock (a false approval's delay), the other kohanim's lamb (npc25)
   function newLamb25(K) {
-    const L = lamb25(st.day, K.k, K.first, K.blems, K.rej);
+    const L = lamb25(prac ? prac.seed : st.day, K.k, K.first, K.blems, K.rej);   // ── fable32 (build 31) ── (a practice run: its own seed — another lamb each time) ── /fable32 ──
     if (L.blem) K.blems++;
     const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r }))]
       .sort((a, b) => a.r - b.r)
@@ -3312,7 +3388,7 @@ export function createDay33(o = {}) {
     const h = heroP(),
       role = st.role26 === 'inner' ? 'inner' : 'menorah',
       first = first26(role),
-      ev = role === 'menorah' && ev26(st.day, first);
+      ev = role === 'menorah' && ev26(prac ? prac.seed : st.day, first);   // ── fable32 (build 31) ── ── /fable32 ──
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
@@ -4645,6 +4721,7 @@ export function createDay33(o = {}) {
   // ── /fable32 ──
   function flowNext() {
     if (
+      (prac && prac.end) ||   // ── fable32 (build 31) ── (a practice run: after his act, no next place — the card comes) ── /fable32 ──
       st.night ||
       st.k20 ||
       lotOn() ||
@@ -5077,12 +5154,29 @@ export function createDay33(o = {}) {
     dt = Math.min(dt, 0.25);
     if (st.phase !== 'run') return st;
     st.t += dt;
-    drainStep(dt);
-    dayStep(dt);
-    unlockStep();
-    merchantStep();
-    lostTick(dt);
-    if (c18 && !st.summary && !st.night) {
+    // ── fable32 (build 31) ── a practice run: no day — no clock, no tamid, no drain, no gift, no merchant, no lost lamb, no chests; the
+    // act's end card as its word ends (the day waits there: paused, as under any card) ── /fable32 ──
+    if (prac) {
+      const P = prac.end;
+      if (P && !P.shown && st.t >= P.at) {
+        P.shown = true;
+        prac.done = { id: P.id, rating: P.rating, q: P.q };
+        st.paused = true;
+        drive(0, 0);
+        let26();
+        evlog('practice31_end', { id: P.id, rating: P.rating, q: P.q });
+        L0('p31end', P.id, P.rating);
+        emit17('p31end', { id: P.id, rating: P.rating, q: P.q });
+        return st;
+      }
+    } else {
+      drainStep(dt);
+      dayStep(dt);
+      unlockStep();
+      merchantStep();
+      lostTick(dt);
+    }
+    if (c18 && !st.summary && !st.night && !prac) {
       chestStep(dt);
       padStep(dt);
     }
@@ -5126,7 +5220,7 @@ export function createDay33(o = {}) {
       const own = save.day33 && typeof save.day33 === 'object' ? save.day33 : {};
       SHARED.moked33 = st.inMoked ? { x: DAY33.moked.x, z: DAY33.moked.z, rug: !!own.rug, lamp: !!own.lamp } : null;
     }
-    badgeStep();
+    if (!prac) badgeStep();   // ── fable32 (build 31) ── (no badges in a practice run) ── /fable32 ──
     if (st.day >= 33 && !st.ended33) {
       st.ended33 = true;
       fade(() => {
@@ -5293,6 +5387,7 @@ export function createDay33(o = {}) {
       open26: open26(),
       gate27: gate27(),   // ── fable32 (build 27) ── ── /fable32 ──
       r27: st.r27 ? st.r27.ph : null,
+      prac31: prac ? prac.role : null,   // ── fable32 (build 31) ── ── /fable32 ──
     };
   }
   const E = {
@@ -5311,7 +5406,9 @@ export function createDay33(o = {}) {
       }
       if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b) || (p27 && (rings27(a, b) || westStrip27(a, b)))));   // ── fable32 (build 27) ── (the place of slaughter's floor: stages' 'lishka' footprint keeps it solid) ── /fable32 ──
       if (p23 && !st.washed) wake23();
-      if (st.resumeTasks) {
+      if (prac) place31();   // ── fable32 (build 31) ── (at his act's place: it begins at once) ── /fable32 ──
+      if (prac) st.tasks = [];
+      else if (st.resumeTasks) {
         newTasks();
         for (const [x, q] of st.resumeTasks) {
           const a = st.tasks.find((q) => q.id === x);
@@ -5409,6 +5506,11 @@ export function createDay33(o = {}) {
     },
     r30day: () => (Array.isArray(st.r30day) ? st.r30day.slice() : []),
     k20r: () => st.k20r || null,
+    // ── fable32 (build 31) ── a practice run: its role (null in the day), its state (the end: its rating, once the card is up — done) ── /fable32 ──
+    prac31: prac ? prac.role : null,
+    p31: () => (prac ? { role: prac.role, seed: prac.seed, day: st.day, end: prac.end ? { ...prac.end } : null, done: prac.done ? { ...prac.done } : null } : null),
+    // ── fable32 (build 31) ── the player's save, for the day summary's roles book (read-only there: no practice mid-day) ── /fable32 ──
+    book31: () => save,
     tamid17,
     nextDay,
     grace17,

@@ -25,7 +25,7 @@ import { createMaaracha22 } from './maaracha22.js';
 import { createPen25 } from './pen25.js';
 import { createHeichal26 } from './heichal26.js';
 import { createDam27 } from './dam27.js';   // ── fable32 (build 27) ── ── /fable32 ──
-import { createPis23 } from './pis23.js';
+import { createPis23, rolesBook23 } from './pis23.js';   // ── fable32 (build 31) ── (+ the roles book, from the day's summary) ── /fable32 ──
 import { createEnd30 } from './end30.js';   // ── fable32 (build 30) ── an act's end: its source line, tappable ── /fable32 ──
 import { RATE30, servedHe30 } from './rate30.js';
 const F17 = Object.freeze({
@@ -125,6 +125,7 @@ body.f17-on .s29-st.cue{animation:s29cue 1.4s ease-in-out infinite alternate;box
 .f17-sum .rt{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 2px}.f17-sum .rt i{font-style:normal;display:inline-block;transform:scale(0);font:900 17px/1 Heebo,system-ui,sans-serif;padding:5px 12px;border-radius:12px}
 .f17-sum .rt i.mehudar{background:#FFD66E;color:#2A1804;box-shadow:0 0 14px rgba(255,214,110,.7)}.f17-sum .rt i.kasher{background:#F2E6C8;color:#2A1804}.f17-sum .rt i.tikkun{background:#D8CDB8;color:#3A3328}.f17-sum .rt i.in{animation:f17-star .45s cubic-bezier(.3,1.6,.5,1) forwards}
 .f17-sum button.src30{min-height:44px;font:800 16px/1 Heebo,system-ui,sans-serif;margin:0 0 8px;background:#FFECBE1F;color:#FFF6DA;border:2px solid #E2B65A;box-shadow:none;animation:none}
+.f17-sum .r31{display:flex;gap:8px}.f17-sum .r31 button.src30{flex:1;min-width:0;padding:0 6px;font-size:15px}   /* ── fable32 (build 31) ── (the sources and the roles book side by side) ── */
 .f17-sum li b.mehudar{color:#FFD66E}.f17-sum li b.kasher{color:#FFF6DA}.f17-sum li b.tikkun{color:#E6D9BE}.f17-sum .sv{font:800 13px/1.2 Heebo,system-ui,sans-serif;opacity:.85;margin:0 0 2px}
 `;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -494,15 +495,30 @@ export function createFocus17(o = {}) {
         .map(([r, n]) => `<i class="${r}">${RATE30.icon[r]} ${RATE30.he[r]}${n > 1 ? ` ×${n}` : ''}</i>`)
         .join(''),
       acts = (sum.ratings || []).map((x) => `<li>${esc(x.he)}: <b class="${esc(x.rating)}">${esc(RATE30.he[x.rating] || '')}</b></li>`).join(''),
-      tamids = (sum.tamids || []).map((tm) => `<li>תמיד של ${esc(tm.when)}: <b>${tm.ok ? 'בזמן ✓' : 'באיחור'}</b></li>`).join(''),
+      // ── fable32 (build 31) ── (no guilt word after the round — HANDOFF rule 4: a tamid not on time is "הוקרב", as it was; it said "late" here) ── /fable32 ──
+      tamids = (sum.tamids || []).map((tm) => `<li>תמיד של ${esc(tm.when)}: <b>${tm.ok ? 'בזמן ✓' : 'הוקרב'}</b></li>`).join(''),
       badges = (sum.badges || []).map((b) => `<li>📜 ${esc(b.text)}: <b>+${b.pay | 0}</b></li>`).join(''),
       sv = servedHe30(sum.served | 0);
     summary = mk(
       'f17-sum',
       `<div class="c" role="dialog" aria-label="סוף היום"><h2>יום ${sum.day | 0} הסתיים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<div class="rt" aria-label="הדירוגים של היום">${chips}</div>
       <ul>${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>${(extra = sum.c18) ? `<li>לקופת המקדש היום: <b>+${extra.earn} 🪙</b></li><li>בקופת המקדש: <b>${extra.total} 🪙</b></li>${extra.next ? `<li>${extra.next.icon} ${extra.next.he}: <b>${extra.next.have}/${extra.next.price} 🪙</b></li>` : ''}` : `<li>פרוטות היום: <b>+${sum.perutot | 0}</b></li>`}${badges}</ul>
-      <div class="pr">${esc(sum.praise || '')}</div>${(sum.ratings || []).length && r30 ? '<button type="button" class="src30" data-f17="src">📜 המקורות של היום</button>' : ''}<button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
+      <div class="pr">${esc(sum.praise || '')}</div><div class="r31">${(sum.ratings || []).length && r30 ? '<button type="button" class="src30" data-f17="src">📜 המקורות של היום</button>' : ''}${E.book31 ? '<button type="button" class="src30" data-f17="book">🎭 ספר התפקידים</button>' : '' /* ── fable32 (build 31) ── (the roles book, read-only mid-day) ── /fable32 ── */}</div><button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
     );
+    // ── fable32 (build 31) ── the roles book from the day's summary: read-only (no practice mid-day — its doors are the lobby's) ── /fable32 ──
+    {
+      const bb = summary.querySelector('[data-f17=book]');
+      if (bb) {
+        bb.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+        bb.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          sfx('ui');
+          try {
+            rolesBook23({ doc, save: E.book31(), note31: true });
+          } catch (e) {}
+        });
+      }
+    }
     // ── fable32 (build 30) ── (every act's sources, again, without a clock: the day's card — end30's openDay) ── /fable32 ──
     {
       const sb = summary.querySelector('[data-f17=src]');

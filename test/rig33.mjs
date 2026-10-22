@@ -30,7 +30,7 @@ export function rig(flags = FLAGS, o = {}) {
   const hud = { set(s) { this.s = s; }, stamp(t, k) { (this.st ||= []).push(t); }, hint(t) { this.h = t; }, float(t) { (this.fl ||= []).push(t); }, pin: () => ({ at() {}, text() {}, close() {} }), choice(c) { this.choice1 = c; } };
   const save = o.save || {};
   const world = { hero: { drive(vx, vz) { H.vx = vx; H.vz = vz; }, setPos(x, z, yaw) { H.x = x; H.z = z; if (Number.isFinite(yaw)) H.yaw = yaw; } } };
-  const E = createDay33({ world, heroPos: () => H, hud, stations, save, persist: () => {}, rng: o.rng || seeded(o.seed || 7), twin: o.twin || null, ...flags });
+  const E = createDay33({ world, heroPos: () => H, hud, stations, save, persist: o.persist || (() => {}), rng: o.rng || seeded(o.seed || 7), twin: o.twin || null, ...flags, ...(o.practice ? { practice: o.practice } : {}) });   // (build 31: a practice run, o.practice)
   const events = [];
   E.on17((ev) => events.push(ev));
   const step = async (s, dt = 0.1) => { for (let t = 0; t < s - 1e-9; t += dt) { E.tick(dt); while (pending.length) { pending.shift()(); await null; await null; } } };

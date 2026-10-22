@@ -115,7 +115,7 @@
   }
   async function pyre(e) {
     const K = e.m22(); if (!K) return;
-    if (K.ph === 'sort' && K.ls === 'on') { await react(); const wrong = H() && rnd() < 0.08; const take = wrong ? !K.cur.ok : K.cur.ok; swipe(e.m22swipe, take ? 0.5 : -0.5, 0.02); await sleep(60); return; }
+    if (K.ph === 'sort' && K.ls === 'on') { if (!A.shotDone.m22) await shot30('m22', null, 300); await react(); const wrong = H() && rnd() < 0.08; const take = wrong ? !K.cur.ok : K.cur.ok; swipe(e.m22swipe, take ? 0.5 : -0.5, 0.02); await sleep(60); return; }   // ── fable32 (build 31) ── (+ the sorting's shot) ── /fable32 ──
     if (K.ph === 'carry') { await walkTo({ x: -28.6, z: 1.6 } /* M22.stand, on the altar's top */, 2.4); await sleep(100); return; }
     if (K.ph === 'stack') {
       if (!(K.hold >= 0)) { await sleep(80); return; }
@@ -152,6 +152,7 @@
   async function lamb(e) {
     const K = e.p25(); if (!K) return;
     if (K.ph === 'scan') {
+      if (!A.shotDone.lamb) await shot30('lamb', null, 600);   // ── fable32 (build 31) ── (the lamb by torchlight: an act in progress) ── /fable32 ──
       const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(H() && rnd() < 0.06));
       if (next) { await react(); await aim25(e, next.i); await sleep(100); return; }
       const blem = spots.some((s) => s.kind === 'blem' && s.seen), dirt = spots.some((s) => s.kind === 'dirt' && !s.gone);
@@ -333,6 +334,7 @@
   }
   // ── the day: the next place, its act (a timing act tapped on the gold moment), the logs laid one a tap ──
   async function day(e) {
+    if (A.opts.practice && e.p31 && e.p31() && e.p31().end) { await sleep(150); return; }   // ── fable32 (build 31) ── (a practice run: after his act, nothing else — its card comes) ── /fable32 ──
     const h = hero(), w = e.work(h);
     if (w && w.near31 && typeof w.go === 'function' && !e.st33.acting) { await react(); try { w.go(); } catch (err) { /* */ } A.acts++; await sleep(150); return; }
     if (w && w.job === 'sh:lay') { await react(); w.go(); await sleep(150); return; }
@@ -353,6 +355,8 @@
       await sleep(5);   // (every turn yields to the page: its frames, the engine's tick)
       const e = E(); if (!e || !e.st33) { await sleep(200); continue; }
       try {
+        // ── fable32 (build 31) ── a practice run (opts.practice): its end card is up — the run is over (the runner takes the card, "עוד פעם" / "חזרה") ── /fable32 ──
+        if (A.opts.practice && e.p31 && e.p31() && e.p31().done) { mark('p31end'); A.phase = 'done'; A.on = false; return; }
         if (e.st33.paused && !(e.focus17 && e.focus17().summary)) { await sleep(200); continue; }
         if (A.end30q && A.end30q.length) { await end30(A.end30q.shift()); continue; }   // ── fable32 (build 30) ── ── /fable32 ──
         if (e.focus17 && e.focus17().summary) { await shot30('sum', null, 2200); A.days++; mark('summary' + A.days); if (A.days >= (A.opts.days || 1)) { A.phase = 'done'; A.on = false; return; } await sleep(1500); e.nextDay(); continue; }
@@ -384,6 +388,8 @@
       if (k === 'r27' && (ev.ph === 'recv' || ev.ph === 'cutd')) mark('cut');
       if (k === 'r27' && ev.ph === 'splash') mark('giftNE'); if (k === 'r27' && ev.ph === 'splash2') mark('giftSW');
       if (k === 'rate30') { A.rate.push([t, ev.id, ev.rating, ev.q, ev.coins]); if (S30().includes('end-' + ev.id)) (A.end30q || (A.end30q = [])).push(ev.id); }   // ── fable32 (build 30) ── (each act's rating) ── /fable32 ──
+      if (k === 'p31end') mark('p31end');   // ── fable32 (build 31) ── ── /fable32 ──
+      if (k === 'k20' && ev.ph === 'pose') mark('k20pose'); if (k === 'd21' && ev.ph === 'sweep') mark('actIn'); if (k === 'm22' && ev.ph === 'sort') mark('actIn'); if (k === 'p25' && ev.ph === 'scan') mark('actIn'); if ((k === 'r26' || k === 'r27') && ev.ph === 'in') mark('actIn');
     });
   }
   /** the morning per phase, seconds (the build-26b report's columns): from the dawn (the pre-dawn task done) to the second lot, the lot, the

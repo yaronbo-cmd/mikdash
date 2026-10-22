@@ -163,7 +163,10 @@ export function createEnd30(o = {}) {
   }
   const openDay = (list) => open(list || []);
   const offEv = E.on17((ev) => {
-      if (ev.type === 'rate30') show(ev.id, ev.rating);
+      // ── fable32 (build 31) ── (a practice run: its end card carries the source line — practice31's, a tap → openAct) ── /fable32 ──
+      if (ev.type === 'rate30') {
+        if (!E.prac31) show(ev.id, ev.rating);
+      }
       else if (ev.type === 'p23done') {
         stat.lots++;
         show(ev.k26 ? 'lot2' : 'lot', null);
@@ -192,6 +195,12 @@ export function createEnd30(o = {}) {
       state: () => ({ ...stat, on: !!cur, cur: cur ? { ...cur } : null, text: cur ? el.textContent : '', card: !!card, cardText: card ? card.textContent : '' }),
       busy: () => !!cur,
       open: () => open(),
+      // ── fable32 (build 31) ── one act's card by its id (the practice's end card: its source line's tap) ── /fable32 ──
+      openAct: (id, rating) => {
+        if (card || !SRC30[id]) return false;
+        cur = { id, rating: rating || null };
+        return open();
+      },
       openDay,
       close,
     };

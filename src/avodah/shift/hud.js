@@ -99,6 +99,7 @@ const CSS = `
 .f31-full{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 14px/1 "Heebo",system-ui,sans-serif;cursor:pointer;pointer-events:auto;padding:0 12px}
 .sh-sub30{margin:-4px 0 8px;font:800 14px/1.3 "Heebo",system-ui,sans-serif;color:#FFE6A0}
 .sh-p28{justify-content:center;margin:2px 0 6px}   /* ── fable32 (build 28) ── (the pause card's switches) ── /fable32 ── */
+.sh-root.sh-up{z-index:58}   /* ── fable32 (build 31) ── (the pause card over the acts' touch pads) ── /fable32 ── */
 .sh-tour{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;cursor:pointer}
 body.sh-on .dy-hud,body.sh-on .dy-coin,body.sh-on .dy-say,body.sh-on .dy-line,body.sh-on .dy-banner,body.sh-on .tw-goal,body.sh-on .g27-skip,body.sh-on .l28-tap,body.sh-on .s27-stamp,body.sh-on .tw-hand{display:none!important}
 @keyframes sh-pop{50%{transform:scale(1.35)}}
@@ -307,19 +308,25 @@ export function createShiftHud(root) {
     onPause(cb) { onPause = cb; return H; },
     pauseCard(h = {}) {
       if (pauseEl) return pauseEl;
+      // ── fable32 (build 31) ── the card over everything in the day: every act's touch pad (deshen21's, maaracha22's, pen25's, heichal26's,
+      // dam27's, the lot's — the right half, z-index 30 like this root and later in the page) lay over its right half — its "המשך" (RTL:
+      // the right) and the right switches took no tap during an act (found by build 31's pause probe); while it is up the root stands at 58 ── /fable32 ──
+      R.classList.add('sh-up');
       pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>${h.sub ? `<p class="sh-sub30">${esc(h.sub)}</p>` : '' /* ── fable32 (build 30) ── "שימשת N בקרים" (the Phase A ★ capsule is not the Temple's) ── /fable32 ── */}${h.note ? `<p class="sh-note29">${String(h.note).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</p>` : '' /* ── fable32 (build 29) ── the calm line before the Shabbat / Yom Tov lock ── /fable32 ── */}
         <div class="sh-btns"><button class="sh-btn resume" type="button" data-sh="resume">המשך</button><button class="sh-btn restart" type="button" data-sh="restart">מהתחלה</button></div>
         ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28') : ''}
         ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}
+        ${h.back ? `<button class="sh-tour" type="button" data-sh="backP">${esc(h.back.label || 'חזרה')}</button>` : '' /* ── fable32 (build 31) ── (a practice run: back to the roles book) ── /fable32 ── */}
         <button class="sh-tour sm sh-evlog" type="button" data-sh="evlog" style="opacity:.45;font-size:11px;min-height:32px">העתק לוג</button></div>`);
       R.appendChild(pauseEl);
       evlog('card_open', 'pause');   // ── recovered (build 16) ── (the event log, and "העתק לוג" copies it)
       { const b = pauseEl.querySelector('[data-sh=evlog]'); if (b) b.addEventListener('click', (e) => { e.stopPropagation(); copyEvlog().then((ok) => { b.textContent = ok ? 'הלוג הועתק ✓' : 'לא הועתק'; }); }); }
       if (h.prefs) bindPrefs(pauseEl, h.prefs);   // ── fable32 (build 28) ── (צליל, רטט: the same switches as the lobby's) ── /fable32 ──
-      const once = (fn) => { let used = false; return (e) => { if (e) e.stopPropagation(); if (used) return; used = true; if (pauseEl) { pauseEl.remove(); pauseEl = null; } evlog('card_close', 'pause'); fn && fn(); }; };
+      const once = (fn) => { let used = false; return (e) => { if (e) e.stopPropagation(); if (used) return; used = true; if (pauseEl) { pauseEl.remove(); pauseEl = null; } R.classList.remove('sh-up'); evlog('card_close', 'pause'); fn && fn(); }; };
       pauseEl.querySelector('[data-sh=resume]').addEventListener('click', once(h.resume));
       pauseEl.querySelector('[data-sh=restart]').addEventListener('click', once(h.restart));
       const tb = pauseEl.querySelector('[data-sh=tourP]'); if (tb) tb.addEventListener('click', once(h.tour));
+      const bb = pauseEl.querySelector('[data-sh=backP]'); if (bb) bb.addEventListener('click', once(h.back.fn));   // ── fable32 (build 31) ── ── /fable32 ──
       return pauseEl;
     },
     // ── /fable32 ──

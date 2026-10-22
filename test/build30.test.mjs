@@ -34,7 +34,9 @@ test('build 30 (1): each act\'s quality from its own accuracy — a clean act מ
   assert.equal(rate30(quality30('m22', { invalidWoodSelectedCount: 1, airflowQualityScore: 100, cracks: 0 })), 'kasher');
   assert.equal(rate30(quality30('m22', { invalidWoodSelectedCount: 1, warned: 1, airflowQualityScore: 100, cracks: 0 })), 'mehudar', 'the first morning\'s warned wood not counted');
   assert.equal(rate30(quality30('lamb', { wrongRejections: 1 })), 'kasher'); assert.equal(rate30(quality30('shochet', { misses: 1 })), 'kasher');
-  assert.equal(rate30(quality30('menorah', { pourQ: 0.78, refused: 0 })), 'kasher'); assert.equal(rate30(quality30('inner', { accuracy: 80 })), 'kasher');
+  // (build 31: the inner altar's map spans the full range — 1 − scratches / pulls — so accuracy 80, four scratches of seven, is טעון תיקון
+  // now; two scratches, accuracy 90, are כשר)
+  assert.equal(rate30(quality30('menorah', { pourQ: 0.78, refused: 0 })), 'kasher'); assert.equal(rate30(quality30('inner', { accuracy: 90 })), 'kasher');
   assert.equal(rate30(quality30('zorek', { fillAcc: 70, gifts: [1, 0.6], retries: 1, clotMax: 40 })), 'kasher');
   // טעון תיקון
   assert.equal(rate30(quality30('lamb', { falseApprovals: 1 })), 'tikkun', 'a blemished lamb approved');
@@ -181,8 +183,9 @@ test('build 30 (2): the roles book — each role\'s best rating, its מהודר 
   const save = { served30: 6, roles23: { kiyor: { n: 6, best: 100, last: 100, r30: { h: 5, k: 1, t: 0, best: 'mehudar' } }, deshen: { n: 3, best: 100, last: 75, r30: { h: 3, k: 0, t: 0, best: 'mehudar' } }, m22: { n: 2, best: 64, last: 64 } }, roles26: { m: 6 } };
   const rows = bookOf23(save); const d = rows.find((a) => a.id === 'deshen'), m = rows.find((a) => a.id === 'm22');
   assert.deepEqual([d.rate, d.h, d.title], ['mehudar', 3, 'מיומן']); assert.deepEqual([m.rate, m.h, m.title], ['kasher', 0, 'רגיל']);
-  const p = read('src/avodah/shift/pis23.js'), book = p.slice(p.indexOf('export function rolesBook23'), p.indexOf('export function createPis23'));
-  assert.match(book, /RATE30\.he\[r\]/); assert.match(book, /מהודר ×\$\{a\.h\}/); assert.match(book, /a\.title/); assert.match(book, /servedHe30\(served30\(o\.save\)\)/); assert.match(book, /קידוש ידיים ורגליים — כל בוקר/);
+  // (build 31: the book's markup moved to bookHTML23(save, o) — the practice doors — and rolesBook23 wraps it; the same text, `save` for `o.save`)
+  const p = read('src/avodah/shift/pis23.js'), book = p.slice(p.indexOf('export function bookHTML23'), p.indexOf('export function createPis23'));
+  assert.match(book, /RATE30\.he\[r\]/); assert.match(book, /מהודר ×\$\{a\.h\}/); assert.match(book, /a\.title/); assert.match(book, /servedHe30\(served30\(save\)\)/); assert.match(book, /קידוש ידיים ורגליים — כל בוקר/);
   assert.ok(!/\$\{a\.best\}%|\$\{a\.last\}%/.test(book), 'no percentages');
 });
 

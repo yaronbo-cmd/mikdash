@@ -18,39 +18,70 @@ import { man, ROBE, SKIN } from '../works/figures.js';
 import { CAP_MEMUNE } from '../works/dawn.js';
 import { bookOf23, D21, M22, P23, POOL26, POOL23 } from './day33.js';
 import { RATE30, role30, reg30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { canPractice31 } from './practice31.js';   // ── fable32 (build 31) ── the book's practice doors ── /fable32 ──
 // ── fable32 (build 30) ── the roles book by the ratings: each role's best rating (מהודר gold, כשר cream, טעון תיקון soft), how many
 // times מהודר, its skill title (rate30's title30: מתחיל → רגיל → מיומן → מומחה) and how often; the laver's row (every morning); "שימשת N
 // בקרים". The percentages are gone (the save keeps them; they had time in them) ── /fable32 ──
+// ── fable32 (build 31) ── the practice doors (the owner, 21.10 23:46: "ספר התפקידים — אימון בכל תפקיד בנוי, לשיא"): from the lobby
+// (o.practice: (id) => the run) every role he has had in a real morning — the laver's row too — has "לתרגל" (≥ 44 px); a built role the
+// lot never gave him stays locked, "עוד לא יצא לך בפיס" (the lot is the key: practice never opens one); a role not built yet, "בקרוב";
+// mid-day (the day's summary) the book is read-only (no door; o.note31: where the doors are). bookHTML23 is the markup (tests) ── /fable32 ──
+export function bookHTML23(save, o = {}) {
+  const can = (id) => !!o.practice && (o.can ? !!o.can(id) : canPractice31(save, id)),
+    door = (id, he) => (can(id) ? `<button type="button" class="p31" data-p31="${id}" aria-label="לתרגל — ${esc(he)}">▶ לתרגל</button>` : ''),
+    rate = (r) => (r ? `<b class="${r}">${RATE30.he[r]}</b>` : '<b>—</b>'),
+    card = (a) =>
+      a.open && a.had > 0
+        ? `<div class="q"><i>${a.icon}</i>${esc(a.he)}${rate(a.rate)}<small>${a.title ? `${esc(a.title)} · ` : ''}${a.h ? `מהודר ×${a.h} · ` : ''}${a.n} ${a.n === 1 ? 'פעם' : 'פעמים'}</small>${door(a.id, a.he)}</div>`
+        : a.built
+          ? `<div class="q lk"><i>${a.icon}</i>${esc(a.he)}<b>🔒</b><small>עוד לא יצא לך בפיס</small></div>`
+          : `<div class="q lk sn"><i>${a.icon}</i>${esc(a.he)}<b>🔒</b><small>${a.lot === 2 ? 'כהנים אחרים — בקרוב' : 'בקרוב'}</small></div>`,
+    rec = (save && save.roles23) || {},
+    k = role30(rec.kiyor),
+    sv = servedHe30(served30(save));
+  return `<div class="c" role="dialog" aria-label="ספר התפקידים"><h2>🎭 ספר התפקידים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<small>כל בוקר הממונה מפיס — כל תפקיד, הדירוג הטוב שלכם בו והתואר${o.practice ? ' · "לתרגל": אימון בתפקיד שכבר יצא לכם (המחשה)' : ''} · ${SRC_LOT}</small>${
+    o.note31 && !o.practice ? '<div class="n31">לתרגל תפקיד — מספר התפקידים שבמסך הבית (המחשה)</div>' : ''
+  }${k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}${door('kiyor', 'קידוש ידיים ורגליים')}</div>` : ''}<div class="g">${bookOf23(save).map(card).join('')}</div>
+    <h4>הפיס השני — שלושה עשר תפקידים</h4><small>${SRC_LOT2}</small><div class="g g4">${bookOf23(save, POOL26)
+      .map((a) => card({ ...a, lot: 2 }))
+      .join('')}</div><small class="tl">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small><button type="button" data-p23="close">סגור</button></div>`;
+}
 export function rolesBook23(o = {}) {
   const doc = o.doc || (typeof document < 'u' ? document : null);
   if (!doc) return { close() {} };
   css(doc);
   const el = doc.createElement('div');
   el.className = 'p23-bk';
-  const rate = (r) => (r ? `<b class="${r}">${RATE30.he[r]}</b>` : '<b>—</b>'),
-    card = (a) =>
-      a.open
-        ? `<div class="q"><i>${a.icon}</i>${esc(a.he)}${rate(a.rate)}<small>${a.title ? `${esc(a.title)} · ` : ''}${a.h ? `מהודר ×${a.h} · ` : ''}${a.n} ${a.n === 1 ? 'פעם' : 'פעמים'}</small></div>`
-        : `<div class="q lk"><i>${a.icon}</i>${a.built || a.lot === 2 ? esc(a.he) : '?'}<b>🔒</b><small>${a.built ? 'עוד לא יצא לך' : a.lot === 2 ? 'כהנים אחרים — בקרוב' : 'עוד לא יצא לך'}</small></div>`,
-    rec = (o.save && o.save.roles23) || {},
-    k = role30(rec.kiyor),
-    sv = servedHe30(served30(o.save));
-  el.innerHTML = `<div class="c" role="dialog" aria-label="ספר התפקידים"><h2>🎭 ספר התפקידים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<small>כל בוקר הממונה מפיס — כל תפקיד, הדירוג הטוב שלכם בו והתואר · ${SRC_LOT}</small>${
-    k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}</div>` : ''
-  }<div class="g">${bookOf23(o.save).map(card).join('')}</div>
-    <h4>הפיס השני — שלושה עשר תפקידים</h4><small>${SRC_LOT2}</small><div class="g g4">${bookOf23(o.save, POOL26)
-      .map((a) => card({ ...a, lot: 2 }))
-      .join('')}</div><small class="tl">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small><button type="button">סגור</button></div>`;
-  const close = () => {
+  el.innerHTML = bookHTML23(o.save, o);
+  let shut = false;
+  const close = (quiet) => {
+    if (shut) return;
+    shut = true;
     el.remove();
-    if (o.onClose) o.onClose();
+    if (o.onClose && !quiet) o.onClose();
   };
-  el.querySelector('button').addEventListener('click', (a) => {
+  el.querySelector('[data-p23="close"]').addEventListener('click', (a) => {
     a.stopPropagation();
     close();
   });
+  // ── fable32 (build 31) ── "לתרגל": the book closes and the run begins (o.practice — shift/index.js's runPractice) ── /fable32 ──
+  el.querySelectorAll('[data-p31]').forEach((b) =>
+    b.addEventListener('click', (a) => {
+      a.stopPropagation();
+      if (shut) return;
+      close(true);
+      try {
+        o.practice(b.dataset.p31);
+      } catch (e) {
+        console.warn('[p23] practice', e && e.message);
+      }
+    }),
+  );
   el.addEventListener('pointerdown', (a) => a.stopPropagation());
   doc.body.appendChild(el);
+  try {
+    globalThis.__BOOK31 = { el, close: () => close(), practice: (id) => { const b = el.querySelector(`[data-p31="${id}"]`); if (b) b.click(); return !!b; } };   // (tests, the autoplayer)
+  } catch (e) {}
   return { close, el };
 }
 export function createPis23(o = {}) {
@@ -466,7 +497,9 @@ body.p23-on .gm .tw-pad,body.p23-on .f17-bar{opacity:0!important;pointer-events:
 .p23-bk .q{padding:6px 4px;border-radius:14px;background:#1C140A;border:1.5px solid #E2B65A;font:800 13px/1.25 Heebo,system-ui,sans-serif}.p23-bk .q i{display:block;font:34px/1.1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
 .p23-bk .q b{display:block;font:900 24px/1.1 Heebo,system-ui,sans-serif;color:#FFD66E}.p23-bk .q.lk{border-style:dashed;border-color:#8A6A3A;color:#B8A88A}.p23-bk .q.lk i{filter:brightness(0) opacity(.55)}
 .p23-bk .q b.mehudar{color:#FFD66E;text-shadow:0 0 10px rgba(255,214,110,.6)}.p23-bk .q b.kasher{color:#FFF6DA;font-size:20px}.p23-bk .q b.tikkun{color:#E6D9BE;font-size:16px}.p23-bk .sv{font:800 14px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk .kr{margin:6px auto 0;padding:4px 10px;border-radius:12px;background:#1C140A;border:1.5px solid #8A6A3A;font:800 13px/1.3 Heebo,system-ui,sans-serif;display:inline-block}.p23-bk .kr b{color:#FFD66E}.p23-bk .kr b.kasher{color:#FFF6DA}.p23-bk .kr b.tikkun{color:#E6D9BE}.p23-bk .tl{display:block;margin:4px 0 2px}
-.p23-bk button{min-height:52px;min-width:180px;border-radius:16px;border:2px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:900 18px/1 Heebo,system-ui,sans-serif;cursor:pointer}.p23-bk small{font-size:11px;opacity:.7}`;
+.p23-bk button{min-height:52px;min-width:180px;border-radius:16px;border:2px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:900 18px/1 Heebo,system-ui,sans-serif;cursor:pointer}.p23-bk small{font-size:11px;opacity:.7}
+.p23-bk button.p31{display:block;width:100%;min-width:0;min-height:44px;margin-top:5px;padding:0 6px;border-radius:12px;border:2px solid #E2B65A;background:linear-gradient(180deg,#6A4C1C,#3A2A10);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;touch-action:manipulation}.p23-bk button.p31:active{transform:scale(.95)}
+.p23-bk .kr button.p31{display:inline-block;width:auto;min-width:96px;margin:0 8px 0 0;vertical-align:middle}.p23-bk .q.sn b{opacity:.6}.p23-bk .n31{margin:4px 0 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;color:#FFE6A0;opacity:.85}`;   /* ── fable32 (build 31) ── (the practice doors) ── /fable32 ── */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const css = (doc) => {
   if (!doc.getElementById('p23-css')) {

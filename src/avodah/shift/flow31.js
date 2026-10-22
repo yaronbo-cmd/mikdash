@@ -6,7 +6,7 @@
  * along it toward the place; only while there is a next place. Nothing here presses: no clock, no penalty. Never a Divine Name. ── /flow31 ── */
 import { planPath } from '../day/guide27.js';
 import { man, lamb } from '../works/figures.js';   // ── fable32 (build 8) ── (the merchant at the gate) ── /fable32 ──
-import { free, houseFloor, onHigh, rampWay, HOUSE22 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onHigh, rampWay, HOUSE22)
+import { free, houseFloor, onHigh, rampWay, HOUSE22, WEST27, westStrip27 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onHigh, rampWay, HOUSE22) ── fable32 (build 27) ── (westStrip27) ── /fable32 ──
 import { placeGround } from '../works/anchors.js';
 import { addDrawer, layerOf, L, SHARED } from './draw.js';
 
@@ -19,7 +19,11 @@ const LISHKA26 = (x, z) => x > -54.3 && x < -21.7 && z > -62.3 && z < -26.7;
 const FREE26 = (x, z) => FREE(x, z) && !LISHKA26(x, z);
 const FREE_HOUSE = (x, z) => houseFloor(x, z) || FREE26(x, z);
 const FREE_GATE = (x, z) => houseFloor(x, z) || FREE26(x, z);
-const freeFor = (p) => (HOUSE22.on ? (HOUSE22.gate ? FREE_GATE : FREE_HOUSE) : p && LISHKA26(p.x, p.z) ? FREE : FREE26);
+// ── fable32 (build 27) ── while his blood role is on, the lowest steps by the altar's west face too (world22 westStrip27): functions of
+// their own, so guide27's grid (cached by its function) is planned again ── /fable32 ──
+const FREE_W = (x, z) => FREE(x, z) || westStrip27(x, z);
+const FREE26_W = (x, z) => FREE_W(x, z) && !LISHKA26(x, z);
+const freeFor = (p) => (HOUSE22.on ? (HOUSE22.gate ? FREE_GATE : FREE_HOUSE) : WEST27.on ? (p && LISHKA26(p.x, p.z) ? FREE_W : FREE26_W) : p && LISHKA26(p.x, p.z) ? FREE : FREE26);
 const CSS = `.f31-zoom{position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);right:12px;z-index:31;min-width:96px;height:44px;padding:0 12px;border-radius:22px;border:2px solid rgba(255,236,190,.75);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;direction:rtl;display:flex;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .f31-zoom i{font-style:normal;font-size:20px}.f31-zoom.on{background:#C8923A;color:#2A1804;border-color:#FFF1C8}
 .f31-me{position:fixed;left:0;top:0;z-index:23;pointer-events:none;padding:3px 9px;border-radius:10px;background:#FFD66E;color:#2A1804;font:900 15px/1.1 "Heebo",system-ui,sans-serif;direction:rtl;box-shadow:0 0 0 2px #2A1804;transform:translate(-999px,-999px)}

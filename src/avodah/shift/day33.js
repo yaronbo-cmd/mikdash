@@ -27,7 +27,7 @@
 import { goLabel31, verb31 } from './layout31.js';
 import { SHARED } from './draw.js';
 import { DAYSCORE, interludeScore } from './score35.js';
-import { free, houseFloor, onHigh, HOUSE22 } from '../day/world22.js';
+import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27 } from '../day/world22.js';
 import { evlog } from './evlog16.js';
 import './route31.js';
 export const DAY33 = Object.freeze({
@@ -5100,7 +5100,10 @@ export function createDay33(o = {}) {
       HOUSE22.on = gate26() || !!st.r26;
       HOUSE22.gate = HOUSE22.on && open26();
     }
-    if (p27) r27Step(dt);   // ── fable32 (build 27) ── ── /fable32 ──
+    if (p27) {   // ── fable32 (build 27) ── ── /fable32 ──
+      r27Step(dt);
+      WEST27.on = gate27() || on27();
+    }
     SHARED.strong24 = !!(p23 && st.p23day === st.day && gateAny() && flowNext());
     if (g21) d21Step(dt);
     if (g22) m22Step(dt);
@@ -5308,7 +5311,7 @@ export function createDay33(o = {}) {
         st.logs = Math.max(0, st.logs - st.m22c);
         st.m22c = 0;
       }
-      if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b) || (p27 && rings27(a, b))));   // ── fable32 (build 27) ── (the place of slaughter's floor: stages' 'lishka' footprint keeps it solid) ── /fable32 ──
+      if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b) || (p27 && (rings27(a, b) || westStrip27(a, b)))));   // ── fable32 (build 27) ── (the place of slaughter's floor: stages' 'lishka' footprint keeps it solid) ── /fable32 ──
       if (p23 && !st.washed) wake23();
       if (st.resumeTasks) {
         newTasks();
@@ -5378,6 +5381,7 @@ export function createDay33(o = {}) {
       st.r26 = null;
       st.r27 = null;
       HOUSE22.on = HOUSE22.gate = false;
+      WEST27.on = false;
       if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass(null));
     },
     state,

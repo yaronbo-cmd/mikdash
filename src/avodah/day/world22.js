@@ -69,5 +69,11 @@ export function free(x, z) {
 const KEVESH_WALL = WALLS22.findIndex((r) => r.x0 < -46 && r.x0 > -48 && r.z1 > 42 && r.z1 < 44);
 /** the House: on = the Ulam open to him; gate = the Heichal too (set by the shift) */
 export const HOUSE22 = { on: false, gate: false };
+/** ── fable32 (build 27) ── the blood roles' way west of the altar: the Ulam's lowest steps by the altar's west face ("בין האולם ולמזבח",
+ *  מדות ג, ו — twelve steps in those 22 amot), walked while his blood role is on (WEST27.on, set by the shift) — the receiver from the
+ *  north-east corner round the north and the west to the south-west, as the court's kohanim walk with the limbs; else the steps stay
+ *  a wall to the feet (stages.js 'ulam' footprint, flow31's FREE) */
+export const WEST27 = { on: false };
+export const westStrip27 = (x, z) => WEST27.on && x > -58.6 && x < -55 && z > -25.5 && z < 44;
 /** the Heichal's three vessels (x0, x1, z0, z1): the golden altar in the middle, the table north, the menorah south */
 const HEICHAL_VESSELS = [[-122.1, -119.9, -1.1, 1.1], [-126.7, -123.3, -8.6, -6.4], [-126.9, -121.6, 6.2, 8.8]];

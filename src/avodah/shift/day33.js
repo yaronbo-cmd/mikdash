@@ -629,8 +629,10 @@ export const P27 = Object.freeze({
 });
 const blood27 = (r) => r === 'shochet' || r === 'zorek';
 /** ── fable32 (build 27) ── the place of slaughter's floor north of the altar (the rings' rows, south of the hook pillars and the tables,
- *  מדות ג, ה): the stick walks it (stages.js's 'lishka' footprint is solid to him there) */
-export const rings27 = (x, z) => x > -53.6 && x < -22.4 && z > -46 && z < -27;
+ *  מדות ג, ה): the stick walks it (stages.js's 'lishka' footprint, x −54 … −22, z −62 … −27, is solid to him there); its east side runs
+ *  past the footprint's edge (−21.9), so he comes in from the east too — from the lamb pen's door on a lamb morning (an east edge at
+ *  −22.4 had left an unseen wall 0.4 amah wide: the autoplayer stood at x −22.0 for 100 s) */
+export const rings27 = (x, z) => x > -53.6 && x < -21.9 && z > -46 && z < -27;
 /** ── fable32 (build 27) ── the cut's needle at t s into the cut: 0 → 1 → 0 … (one way in `sweep` s) */
 export const needle27 = (t, sweep = P27.sweep) => {
   const x = (Math.max(0, t) / sweep) % 2;

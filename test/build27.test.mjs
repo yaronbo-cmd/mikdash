@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { POOL26, P26, P27, BLOOD27, needle27, stream27, throw27, rings27, bookOf23 } from '../src/avodah/shift/day33.js';
+import { POOL26, P25, P26, P27, BLOOD27, needle27, stream27, throw27, rings27, bookOf23 } from '../src/avodah/shift/day33.js';
 import { createSound } from '../src/avodah/sound.js';
 import { SOUNDS } from '../src/game/audio.js';
 import { rig, FLAGS } from './rig33.mjs';
@@ -85,6 +85,15 @@ test('build 27: his blood role holds the morning (gate27): the clock and the sta
 test('build 27: the rings\' floor is walkable (the place of slaughter, north of the altar), the hook pillars\' row is not', () => {
   for (const p of [P27.ring, P27.stand, P27.recv, P27.lamb]) assert.equal(rings27(p.x, p.z), true, JSON.stringify(p));
   assert.equal(rings27(-40, -58), false); assert.equal(rings27(-40, -20), false);
+  // in from the east (a lamb morning: the second lot at the pen's door): the straight way from his stand there to the ring is never
+  // inside stages.js's solid 'lishka' footprint outside the rings' floor (the old east edge −22.4 left a wall 0.4 amah wide)
+  const F = [-54, -62, -22, -27], inF = (x, z) => x > F[0] && x < F[2] && z > F[1] && z < F[3];
+  assert.match(read('src/stages.js'), /\[-54, -62, -22, -27\]/, 'the footprint as stages.js has it');
+  for (const b of [P27.stand, P27.recv])
+    for (let i = 0; i <= 200; i++) {
+      const u = i / 200, x = P25.stand.x + (b.x - P25.stand.x) * u, z = P25.stand.z + (b.z - P25.stand.z) * u;
+      assert.ok(!inF(x, z) || rings27(x, z), `a wall at ${x.toFixed(2)}, ${z.toFixed(2)}`);
+    }
 });
 test('build 27: the shochet — within reach of his place it begins; the binding by hand: a short drag is a free retry, then bound', async () => {
   const R = await morning('shochet'); R.at(P27.stand.x + P27.reach + 1, P27.stand.z); await R.step(0.3); assert.ok(!R.E.r27(), 'out of reach');

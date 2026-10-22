@@ -124,7 +124,7 @@ test('build 28 (3b): a turn to portrait while the shift is up — the "turn the 
   // paused (the pause card) while the card was up → his
   T.set(true); T.release(); T.set(false); assert.equal(R.E.state().paused, true); R.E.pause(false);
   // the lobby (no day): the card alone
-  const T2 = createTurn28({ doc, E: () => null }); assert.equal(T2.set(true), true); assert.ok(doc.getElementById('sh-turn28')); T2.set(false); assert.equal(doc.getElementById('sh-turn28'), null);
+  const T2 = createTurn28({ doc, E: () => null }); assert.equal(T2.set(true), true); assert.ok(doc.getElementById('sh-turn28')); assert.ok(!/השעון עצר/.test(doc.getElementById('sh-turn28').innerHTML), 'no clock line over the lobby'); T2.set(false); assert.equal(doc.getElementById('sh-turn28'), null);
   const ix = read('src/avodah/shift/index.js');
   assert.match(ix, /const T28 = createTurn28\(\{ doc, E: \(\) => E, log: \(t, d\) => evlog\(t, d\) \}\);/); assert.match(ix, /const turn28 = \(port\) => T28\.set\(port\);/); assert.match(ix, /E\.pause\(true\); T28\.release\(\); hud\.pauseCard\(/);
   // avodah/index.js's tick: with the shift up, the portrait branch is the card's — never D.exit or the old home

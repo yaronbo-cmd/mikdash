@@ -11,16 +11,21 @@ import { stubPilgrims, stubStations, stubCam } from './stub29.js';
 import { createPilgrims, GATE_SPOT } from './pilgrims.js';
 import { createStations, STATIONS } from './stations.js';
 import { createShiftCam } from './camera.js';
-import { createWalk } from './walk.js';
+import { createWalk, PACE, STICK } from './walk.js';   // ── recovered (17–24) ── (the day's paced walk and soft stick: PACE, STICK)
 import { createFlow31 } from './flow31.js';   // ── flow31 ── ── /flow31 ──
-import { createDay33, SHOP33, BADGES33 } from './day33.js';   // ── fable32 (build 6) ── "יום במקדש" ── /fable32 ──
+import { createDay33, SHOP33, BADGES33, ENABLE_TEMPLE_COINS } from './day33.js';   // ── fable32 (build 6) ── "יום במקדש" ── /fable32 ── ── recovered (build 18) ── (the coins) ──
+import { createFocus17 } from './focus17.js';   // ── recovered (build 17) ── the focused day: the top, the bar, the stamps (and the day's own modules)
+import { rolesBook23 } from './pis23.js';   // ── recovered (build 23) ── the roles' book
 import { createLobby } from './lobby35.js';   // ── fable32 (build 13) ── the 3D home screen ── /fable32 ──
 import { runTiles } from '../../tiles/index.js';   // ── fable32 (build 13) ── the night's interlude ── /fable32 ──
 import { runPen } from '../../pen/index.js';   // ── fable32 (build 14) ── the sliding pen ── /fable32 ──
 import * as M3 from '../../match3/index.js';
 import { openScore } from './score35.js';   // ── fable32 (build 14) ── the one score ── /fable32 ──
 import { createHero35 } from './hero35.js';   // ── fable32 (build 15) ── the real kohen ── /fable32 ──
+import { evlog } from './evlog16.js';   // ── recovered (build 16) ── the event log
 import { onTick } from './draw.js';
+import { STICK24 } from '../../game/twin.js';   // ── recovered (build 24) ── the stick of build 24 (twin's)
+import { VIEW24 } from './camera.js';   // ── recovered (build 24) ── the day's view
 const WORLD = { pilgrims: createPilgrims, stations: createStations, STATIONS, camera: createShiftCam, walk: createWalk, gate: GATE_SPOT, kit: null /* (draw.js: the day's shared kit) */ };
 if (typeof location !== 'undefined' && /[?&]shiftstub=1\b/.test(location.search || '')) { WORLD.pilgrims = WORLD.stations = WORLD.camera = WORLD.walk = WORLD.gate = null; }   // (tests: the engine alone on the stubs)
 // ── /shift29-world ──
@@ -40,6 +45,7 @@ export function mountShift(o = {}) {
   const doc = typeof document !== 'undefined' ? document : null;
   const save = shiftSave(A);
   let E = null, hud = null, mods = null, cardCtl = null, lvlNow = 1, runs = 0, startT = 0;
+  evlog('app_open', { day: (save.day33state && save.day33state.day) || 0 });   // ── recovered (build 16) ──
   const emit = (t, d) => { try { o.emit && o.emit(t, d); } catch (e) { /* the host's */ } };
   const persist = () => { try { o.persist && o.persist(); } catch (e) { /* */ } };
   const rig = () => (globalThis.__DAY ? globalThis.__DAY : {});
@@ -77,11 +83,13 @@ export function mountShift(o = {}) {
       try { mods.camera && mods.camera.off && mods.camera.off(); } catch (e) { /* */ }
       try { mods.walk && mods.walk.stop && mods.walk.stop(); mods.walk && mods.walk.run && mods.walk.run(false); } catch (e) { /* */ }
       try { mods.flow31 && mods.flow31.destroy(); } catch (e) { /* */ }   // ── flow31 ── ── /flow31 ──
+      try { mods.focus17 && mods.focus17.destroy(); } catch (e) { /* */ }   // ── recovered (build 17) ──
       try { mods.stations && mods.stations.destroy && mods.stations.destroy(); mods.pilgrims && mods.pilgrims.destroy && mods.pilgrims.destroy(); } catch (e) { /* */ }
       mods = null;
     }
     if (hud) { hud.destroy(); hud = null; }
     try { const T = rig().twin; if (T && T.noStick) T.noStick(false); } catch (e) { /* */ }   // ── fable32 (build 4) ── (the day's stick back) ── /fable32 ──
+    try { const T = rig().twin; if (T) T.pace = null; } catch (e) { /* */ }   // ── recovered (build 17) ── (the day's pace off)
   }
   /** a round of level n: ≤ 2 s from the tap to the clock */
   function run(n) {
@@ -132,15 +140,25 @@ export function mountShift(o = {}) {
     runs++;
     hud = createShiftHud(doc.body);
     mods = makeWorld();
-    const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); } };
+    // ── recovered (17–24) ── the day's pace (walk.js PACE; on the twin: the rim, the sprint, the soft stick — __SH_HARDSTICK keeps the hard
+    // one — and build 24's stick, __SH24_OFF without it), the day's view (VIEW24), the authored views of the morning's acts (camWork)
+    try { mods.walk && mods.walk.pace && mods.walk.pace(PACE); const T = mods.twin; if (T) T.pace = { rim: PACE.rim, after: PACE.rimAfter, mul: PACE.sprint, soft: globalThis.__SH_HARDSTICK ? null : STICK, p24: globalThis.__SH_HARDSTICK || globalThis.__SH24_OFF ? null : STICK24 }; } catch (e) { /* */ }
+    try { mods.camera && mods.camera.dayView && mods.camera.dayView(VIEW24); } catch (e) { /* */ }
+    const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); },
+      camWork: () => (E && E.camWork20 ? E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
     D.shiftMode(hook);
     try { S() && S().hero && S().hero.setPos(-34, 50, Math.PI); } catch (e) { /* */ }   // (he starts between the ramp's foot and the wood store, facing the altar)
     try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
     try { if (globalThis.__SH_AUTOWALK === undefined) globalThis.__SH_AUTOWALK = true; } catch (e) { /* */ }
     E = createDay33({ world: o.rig && o.rig.stages, twin: mods.twin, view: mods.view, hud, stations: mods.stations, camera: mods.camera, walk: mods.walk, sfx: o.sfx, save, persist, raf: false,
-      score: scoreOf(), games: games() });   // ── fable32 (build 13–14) ── (the interludes, the one score) ── /fable32 ──
+      score: scoreOf(), games: games(),   // ── fable32 (build 13–14) ── (the interludes, the one score) ── /fable32 ──
+      // ── recovered (17–26) ── the builds' flags: each on unless its __SH*_OFF (b17: __SH_B17OFF); the coins by ENABLE_TEMPLE_COINS
+      b17: !globalThis.__SH_B17OFF, court18: !globalThis.__SH18_OFF, coins: coins18(), b19: !globalThis.__SH18_OFF && !globalThis.__SH19_OFF, g20: !globalThis.__SH20_OFF,
+      d21: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF, m22: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF && !globalThis.__SH22_OFF,
+      p23: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF && !globalThis.__SH22_OFF && !globalThis.__SH23_OFF, p25: !globalThis.__SH25_OFF, p26: !globalThis.__SH26_OFF });
     const me = E;
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
+    if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }   // ── recovered (build 17) ──
     try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, restart: () => runDay(), tour: () => tour() }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
@@ -156,12 +174,17 @@ export function mountShift(o = {}) {
     try { D.shiftMode(null); } catch (e) { /* */ }
     emit('shiftTour', {});
   }
+  // ── recovered (build 18) ── the temple's coins on: ENABLE_TEMPLE_COINS, unless __SH18_OFF, __SH18_NOCOINS or ?coins=0 (then the shop
+  // keeps the good axe and the big basket, which the coins' pads sell in the court)
+  function coins18() {
+    try { return ENABLE_TEMPLE_COINS && !globalThis.__SH18_OFF && !globalThis.__SH18_NOCOINS && !/[?&]coins=0\b/.test(location.search || ''); } catch (e) { return ENABLE_TEMPLE_COINS; }
+  }
   // ── fable32 (build 8) ── the shop over the entry card: פרוטות for tools and the sash (MIKDASH99 §5); kept in save.day33
   function openShop() {
     if (!doc) return;
     const own = save.day33 && typeof save.day33 === 'object' ? save.day33 : (save.day33 = {});
     const h = createShiftHud(doc.body);
-    const items = SHOP33.map((it) => ({ icon: it.icon, label: it.label, sub: own[it.id] ? `${it.sub} — יש לכם` : it.sub, price: own[it.id] ? null : it.price, disabled: !!own[it.id] || (it.needs && !own[it.needs]) || (+save.perutot || 0) < it.price,
+    const items = SHOP33.filter((it) => !(coins18() && (it.id === 'axe' || it.id === 'basket10'))).map((it) => ({ icon: it.icon, label: it.label, sub: own[it.id] ? `${it.sub} — יש לכם` : it.sub, price: own[it.id] ? null : it.price, disabled: !!own[it.id] || (it.needs && !own[it.needs]) || (+save.perutot || 0) < it.price,
       go: () => { if ((+save.perutot || 0) < it.price || own[it.id]) return false; save.perutot = (+save.perutot || 0) - it.price; own[it.id] = 1; persist(); try { o.sfx && o.sfx.play && o.sfx.play('coin'); } catch (e) { /* */ } return false; } }));
     h.choice({ title: `חנות · ${+save.perutot || 0} פרוטות`, text: 'פרוטות באות ממשימות הממונה, מהסוחר וממשחקי הביניים — לא מימים. (טיוטה)', items, closeLabel: 'סגור', refresh: () => { h.destroy(); openShop(); }, onClose: () => { h.destroy(); if (cardCtl && cardCtl.refresh) cardCtl.refresh(); else if (cardCtl) { cardCtl.close(); cardCtl = null; card(); } } });   // ── fable32 (build 13) ── (the lobby refreshes in place) ── /fable32 ──
   }
@@ -171,7 +194,8 @@ export function mountShift(o = {}) {
     if (!doc) return;
     const cl = save.badges33 && typeof save.badges33 === 'object' ? save.badges33 : {};
     const h = createShiftHud(doc.body);
-    const items = BADGES33.map((b) => ({ icon: cl[b.id] ? '✅' : '📜', label: b.text, sub: cl[b.id] ? 'שלכם' : `+${b.pay} פרוטות — נרשם בעזרה, נגבה בלילה בבית המוקד`, disabled: !cl[b.id] }));
+    const items = [{ icon: '🎭', label: 'תפקידים — ספר התפקידים', sub: 'כל תפקיד בוקר: השיא, הפעמים, ומה עוד לא יצא לכם', go: () => { rolesBook23({ doc, save, onClose: () => openBook() }); return true; } },   // ── recovered (build 23) ── (the roles' book first)
+      ...BADGES33.map((b) => ({ icon: cl[b.id] ? '✅' : '📜', label: b.text, sub: cl[b.id] ? 'שלכם' : `+${b.pay} פרוטות — נרשם בעזרה, נגבה בלילה בבית המוקד`, disabled: !cl[b.id] }))];
     h.choice({ title: 'ספר הזכרונות', text: 'מה שעשיתם בעזרה נרשם; את הפרוטות גובים בלילה, בבית המוקד (המחשה: לוח המתגים)', items, closeLabel: 'סגור', onClose: () => { h.destroy(); if (cardCtl && cardCtl.refresh) cardCtl.refresh(); } });
   }
   function openMerchant() {
@@ -197,7 +221,7 @@ export function mountShift(o = {}) {
     if (globalThis.__SH_OLDCARD) { cardCtl = entryCard(doc.body, { lvl: save.lvl, best: save.best[save.lvl] | 0, bestDay: +save.bestDay || 0, perutot: +save.perutot || 0, shop: () => openShop(), shift: (n) => { cardCtl = null; run(n); }, day: () => { cardCtl = null; runDay(); }, tour: () => { cardCtl = null; tour(); } }); return; }   // ── fable32 (build 6) ── (+ day) ── /fable32 ──   // (build 13: the old card for a test)
     // ── fable32 (build 13) ── the 3D home screen (lobby35.js): the kohen live in the court, the doors round him
     const st = o.rig && o.rig.stages, view = o.rig && o.rig.view;
-    cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: scoreOf(), on: {
+    cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: scoreOf(), start: save.lobbyOff !== false && !globalThis.__SH_LOBBYFULL /* ── recovered (build 16) ── the start screen (save.lobbyOff; __SH_LOBBYFULL the full one) */, on: {
       day: () => { cardCtl = null; runDay(); }, shift: () => { cardCtl = null; run(save.lvl); }, tour: () => { cardCtl = null; tour(); },
       shop: () => openShop(), book: () => openBook(), merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
     // ── /fable32 ──
@@ -209,6 +233,7 @@ export function mountShift(o = {}) {
   globalThis.__SHIFT = {
     SH, run, runDay, card, tour, get E() { return E; }, set E(v) { /* */ }, mods: null, save,
     state: () => (E ? E.state() : null), startT: () => startT,
+    book: () => openBook(), roles: () => rolesBook23({ doc, save }),   // ── recovered (build 23) ──
     debug: { stars: (n) => (E ? E.debug.stars(n) : null), end: () => (E ? E.debug.end() : null), log: () => (E ? E.debug.log() : []), goal: () => (E ? E.debug.goal() : null), spawnNow: () => E && E.debug.spawnNow(), patience: (v) => { if (!E || !mods) return 0; let k = 0; for (const P of mods.pilgrims.list()) if (P.state === 'wait') { P.patience = v; k++; } return k; } },
   };
   return SH;

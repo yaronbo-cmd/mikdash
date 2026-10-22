@@ -1,7 +1,8 @@
 /* ── recovered (R9) ── autoplay35.js — the shift's autoplayer, in the page (tools/autoplay35-run.cjs injects it; or paste it in the console).
  * It plays the day of builds 16–26c through the engine's own surface (globalThis.__SHIFT.E: E.k20in, E.p23raise, E.d21swipe … E.r26pull),
  * walks by the stick along flow31's gold path (__F31.state().pts — the strong path he sees; when stuck, the shift's planned walk __S29W.to)
- * and taps the stations' timing acts on their gold moment (globalThis.__S29S.poke). The morning: the laver, the first lot and its task
+ * and taps the stations' timing acts on their gold moment (globalThis.__S29S.poke); the ashes' balance and the lamb's beam go by a finger
+ * on the page's own pads (deshen21's and pen25's frames read the touch and would undo a direct E.d21bal / E.p25focus). The morning: the laver, the first lot and its task
  * (תרומת הדשן, סידור המערכה or the lamb), the second lot and his role in the Heichal (the gate, the menorah or the inner altar); then the day.
  *   __AUTO35.start({ human, seed, days }) → Promise<the morning's marks>   __AUTO35.state() · __AUTO35.stop()
  * human: a child's hand — slower to react, a swipe now and then too short or crooked, the pour released by eye (it misjudges sometimes), a
@@ -23,6 +24,9 @@
   const note = (s) => { A.notes.push([T(), s]); if (A.notes.length > 300) A.notes.shift(); };
   const mark = (k) => { if (A.marks[k] == null) A.marks[k] = T(); };
   async function until(f, ms = 20000, step = 50) { const t0 = performance.now(); for (;;) { if (!A.on) throw new Error('stopped'); let v = null; try { v = f(); } catch (e) { v = null; } if (v) return v; if (performance.now() - t0 > ms) return null; await sleep(step); } }
+  // a finger on the page's own pads (the input path a player's touch takes: the pads' pointer handlers read it every frame)
+  const ptr = (el, type, x, y, id) => { try { el.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true, button: 0, buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1 })); return true; } catch (e) { return false; } };
+  const padEl = (cls) => (typeof document !== 'undefined' ? document.querySelector('.' + cls) : null);
   const swipe = (fn, dx, dy) => { const bad = H() && rnd() < 0.12; return bad ? fn(rnd() < 0.5 ? 0.15 : dx, rnd() < 0.5 ? dx * 0.7 : dy, 120) : fn(dx, dy, 90 + rnd() * 60); };
 
   // ── the walk: as a player walks — by the stick along flow31's gold path (the strong path he sees, the House's floor in it), at the stick's
@@ -74,8 +78,19 @@
     else if (K.ph === 'choose') { await react(); e.p23pick(K.cards.length > 1 ? Math.floor(rnd() * K.cards.length) : 0); }
     await sleep(80);
   }
+  // the balance by the finger on deshen21's pad (its frame writes E.d21bal from the touch, (x − x0) / 70 — and null without one, so a
+  // direct E.d21bal would be undone every frame); without the pad, E.d21bal
+  function d21touch(u) {
+    const pad = padEl('d21-in');
+    if (!pad) { E().d21bal(u); return; }
+    if (!A.d21t) { A.d21t = { x0: (innerWidth || 640) * 0.5, y0: (innerHeight || 296) * 0.62, id: 920 }; ptr(pad, 'pointerdown', A.d21t.x0, A.d21t.y0, A.d21t.id); }
+    ptr(pad, 'pointermove', A.d21t.x0 + 70 * u, A.d21t.y0, A.d21t.id);
+  }
+  function d21lift() { if (!A.d21t) return; const pad = padEl('d21-in'); if (pad) ptr(pad, 'pointercancel', A.d21t.x0, A.d21t.y0, A.d21t.id); A.d21t = null; }
   async function ashes(e) {
-    const K = e.d21(); if (!K) return;
+    const K = e.d21(); if (!K) { d21lift(); return; }
+    if (K.ph !== 'full' && K.ph !== 'walk' && K.ph !== 'desc') d21lift();
+    if (K.ph === 'full') { d21touch(0); await sleep(50); return; }
     if (K.ph === 'sweep') { await react(); swipe(e.d21swipe, 0.55 + rnd() * 0.2, 0.04); await sleep(H() ? 250 : 120); return; }
     if (K.ph === 'walk' || K.ph === 'desc') {
       // the balance (D21.bal): the shovel tips by the wind and the walk's shake; he counters by the tilt he sees and by how fast it goes
@@ -87,7 +102,7 @@
       const k0 = H() ? 2.2 + rnd() * 2 : 3.2, k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05))), ff = dT > 0.12 ? 0 : H() ? 0.4 : 0.9;   // (a child corrects late and less)
       const u = Math.max(-1, Math.min(1, -b * k - (ff * push) / fix));
       if (dT) { A.lag.n++; A.lag.s += dT; A.lag.max = Math.max(A.lag.max, dT); }
-      e.d21bal(u); A.d21p = { T: K.T, b: K.b, u };
+      d21touch(u); A.d21p = { T: K.T, b: K.b, u };
       const sy = H() ? (Math.abs(K.b) > 0.55 ? 0.5 : 0.75 + rnd() * 0.25) : Math.abs(K.b) > 0.4 ? 0.55 : 1; e.d21stick(sy);
       if (!(A.trT > K.T - 0.25)) { A.trT = K.T; A.trace.push([T(), K.ph[0], +K.b.toFixed(2), +(K.v || 0).toFixed(1), +u.toFixed(2), sy]); if (A.trace.length > 400) A.trace.shift(); }   // (the run's log: the walk's balance)
       await sleep(H() ? 90 : 50); return;
@@ -109,11 +124,33 @@
     if (K.ph === 'ready') { await react(); e.m22tap(); await sleep(200); return; }
     await sleep(80);
   }
+  // the beam by the finger on pen25's pad (its frame focuses the spot nearest the beam, E.p25focus — a direct focus would be undone):
+  // drag the beam onto the spot (the beam moves AIM_K 1.6 px a finger's px; a child's drag falls short and is corrected), lift, then a
+  // short touch (< 14 px, < 380 ms) — pen25's tap; without the pad (or no focus in 0.8 s), E.p25focus + E.p25tap in one turn
+  async function aim25(e, i) {
+    const P = globalThis.__P25, pad = padEl('p25-in');
+    const where = () => { try { const s = P.state(), sp = s.spots.find((q) => q.i === i); return s.beam && sp && sp.at ? { b: s.beam, at: sp.at } : null; } catch (err) { return null; } };
+    if (P && pad && where()) {
+      const id = 930 + (A.aimN = (A.aimN | 0) + 1) % 20; let fx = (innerWidth || 640) * 0.5, fy = (innerHeight || 296) * 0.75;
+      ptr(pad, 'pointerdown', fx, fy, id);
+      for (let k = 0; k < 14; k++) {
+        const w = where(); if (!w) break; const ex = w.at[0] - w.b[0], ey = w.at[1] - w.b[1]; if (Math.hypot(ex, ey) < 5) break;
+        const g = H() ? 0.55 + rnd() * 0.3 : 0.9; fx += (ex / 1.6) * g; fy += (ey / 1.6) * g; ptr(pad, 'pointermove', fx, fy, id); await sleep(H() ? 80 : 40);
+      }
+      ptr(pad, 'pointercancel', fx, fy, id);
+      if (await until(() => { const K = e.p25(); return K && K.ph === 'scan' && K.fo === i; }, 800, 30)) {
+        await sleep(H() ? 150 : 40); ptr(pad, 'pointerdown', fx, fy, id + 40); await sleep(H() ? 110 : 60); ptr(pad, 'pointerup', fx, fy, id + 40);
+        if (await until(() => !e.p25() || e.p25().ph !== 'scan', 400, 30)) return true;
+      }
+      note('the beam: no focus — a direct tap');
+    }
+    e.p25focus(i); return e.p25tap();
+  }
   async function lamb(e) {
     const K = e.p25(); if (!K) return;
     if (K.ph === 'scan') {
       const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(H() && rnd() < 0.06));
-      if (next) { await react(); e.p25focus(next.i); await sleep(H() ? 200 : 60); e.p25tap(); await sleep(100); return; }
+      if (next) { await react(); await aim25(e, next.i); await sleep(100); return; }
       const blem = spots.some((s) => s.kind === 'blem' && s.seen), dirt = spots.some((s) => s.kind === 'dirt' && !s.gone);
       await react(); const say = blem || (dirt && H() && rnd() < 0.3) ? 'pasul' : 'tamim';
       if (!e.p25stamp(say)) e.p25stamp('tamim'); await sleep(200); return;

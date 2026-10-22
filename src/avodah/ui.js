@@ -298,6 +298,7 @@ export function createUI({ root, ctx }) {
   /** The 10-second name + mishmar pick (skipped when the Phase A save has them).
    *  ── avoda12 ── (N69) a name he already chose (in Phase A) is never asked again: the card greets him by it and asks
    *  only the mishmar. */
+  // ── fable32 (build 34) ── (the go row is .av-gorow: it sticks to the card's bottom — ui.css.js) ── /fable32 ──
   function namePick({ name: known = '' } = {}) {
     let pick = 0;
     const nm = String(known || '').trim();
@@ -309,7 +310,7 @@ export function createUI({ root, ctx }) {
       <p style="margin-top:12px"><b>לאיזה משמר אתה שייך?</b></p>
       <div class="av-mishmarot" role="group" aria-label="המשמרות">${MISHMAROT.map((m, i) => `<button type="button" data-m="${i + 1}" aria-pressed="false">${esc(m)}</button>`).join('')}</div>
       <p style="margin-top:8px;font-size:12.5px;color:var(--av-soft)">24 משמרות הכהונה (דברי הימים א כד). כל משמר עובד שבוע אחד בתורו.</p>
-      <div style="display:flex;gap:8px;margin-top:12px"><button type="button" class="av-btn gold av-go" style="flex:1" data-v="ok">יאללה לעבודה</button><button type="button" class="av-btn" data-v="rand">בחר בשבילי</button></div>`;
+      <div class="av-gorow" style="display:flex;gap:8px;margin-top:12px"><button type="button" class="av-btn gold av-go" style="flex:1" data-v="ok">יאללה לעבודה</button><button type="button" class="av-btn" data-v="rand">בחר בשבילי</button></div>`;
     let input = null;
     return modal(h, {
       onOpen(w) {

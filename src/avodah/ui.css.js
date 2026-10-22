@@ -107,8 +107,12 @@ body.av-on .top, body.av-on .dock, body.av-on #hint, body.av-on #mk{display:none
 /* ── modal cards ── */
 .av-modal{position:absolute;inset:0;display:grid;place-items:center;padding:14px;background:var(--av-scrim);pointer-events:auto;opacity:0;transition:opacity .22s}
 .av-modal.on{opacity:1}
-.av-card{width:min(100%,460px);max-height:calc(100vh - 28px);overflow-y:auto;background:var(--av-solid);border:1px solid var(--av-line);border-radius:20px;box-shadow:var(--av-shadow);padding:16px 16px 14px;transform:translateY(12px);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+.av-card{width:min(100%,460px);max-height:calc(100vh - 60px);max-height:calc(100dvh - 60px);overflow-y:auto;background:var(--av-solid);border:1px solid var(--av-line);border-radius:20px;box-shadow:var(--av-shadow);padding:16px 16px 14px;transform:translateY(12px);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
 .av-modal.on .av-card{transform:none}
+/* ── fable32 (build 34) ── the card, padding and border in, inside the screen (100vh − 60: it was 100vh − 28 plus 34 of padding, 300 px on a
+   296-px phone) and its go button stuck to the card's bottom — on a 296-px phone the first-run card's "יאללה לעבודה" lay below the
+   screen, and a thumb on the card scrolled the mishmar list, not the card: a first-time child could not start ── /fable32 ── */
+.av-card>.av-gorow,.av-card>.av-go{position:sticky;bottom:0;z-index:2}.av-card>.av-gorow{background:var(--av-solid);padding-top:8px;margin-top:6px!important}
 .av-kick{font:700 11.5px/1 "Heebo",sans-serif;letter-spacing:.5px;color:var(--av-gold-text)}
 .av-card h2{font:900 24px/1.15 "Frank Ruhl Libre","Times New Roman",serif;margin:6px 0 8px;text-wrap:balance}
 .av-card p{font:500 15px/1.6 "Heebo",sans-serif}

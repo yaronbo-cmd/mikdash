@@ -8,7 +8,8 @@
 //  2. forms: esbuild's statement forms undone — `a, b;` → `a; b;` · `a && b();` → `if (a) b();` · `a || b();` → `if (!a) b();`
 //     (only where esbuild folds it back) · `a ? b() : c();` → if/else · `return (a, b)` / `if ((a, b))` / `throw (a, b)` → `a;` first ·
 //     `=> (a, b)` → a block · `!0`/`!1`/`void 0` → true/false/undefined · `typeof x == 's'` → `===` · `let` never reassigned →
-//     `const` · `catch {}` → `catch (e)` (the tree's style; --no-catch keeps it). Then names.patches (text edits, checked).
+//     `const` · `catch {}` → `catch (e)` (the tree's style; --no-catch keeps it) · `if (A && (s1, B)) X` → `if (A) { s1; if (B) X }` ·
+//     `for (s1, s2; c; ) x` → `s1; s2; while (c) x`. Then names.patches (text edits, checked).
 // usage: node recovery/tools/unmin.mjs <draft.js> [--names names.json] [--out file.js] [--head header.txt] [--scopes] [--no-catch]
 //   --scopes: list each function path with its minified locals (declaration in context, uses) — the sheet to write names from.
 import { createRequire } from 'module';
@@ -129,20 +130,32 @@ function stmt(s) {   // one statement → a list of statements
       if (e.type === 'SequenceExpression') return e.expressions.flatMap((x) => stmt(ES(x)));
       if (e.type === 'LogicalExpression' && e.operator === '&&') return [{ type: 'IfStatement', test: e.left, consequent: block(stmt(ES(e.right))), alternate: null }];
       if (e.type === 'LogicalExpression' && e.operator === '||' && NEG_OK.has(e.left.type)) return [{ type: 'IfStatement', test: neg(e.left), consequent: block(stmt(ES(e.right))), alternate: null }];
-      if (e.type === 'ConditionalExpression') return [{ type: 'IfStatement', test: e.test, consequent: block(stmt(ES(e.consequent))), alternate: block(stmt(ES(e.alternate))) }];
+      if (e.type === 'ConditionalExpression') { let cons = block(stmt(ES(e.consequent))); if (openIf(cons)) cons = { type: 'BlockStatement', body: [cons] }; return [{ type: 'IfStatement', test: e.test, consequent: cons, alternate: block(stmt(ES(e.alternate))) }]; }
       return [s];
     }
     case 'ReturnStatement': case 'ThrowStatement':
       if (s.argument && s.argument.type === 'SequenceExpression') { const ex = s.argument.expressions; return [...ex.slice(0, -1).flatMap((x) => stmt(ES(x))), { ...s, argument: ex[ex.length - 1] }]; }
       return [s];
     case 'IfStatement': {
+      // `if (A && (s1, s2, B)) X` (no else) ← `if (A) { s1; s2; if (B) X }`
+      if (!s.alternate && s.test.type === 'LogicalExpression' && s.test.operator === '&&' && s.test.right.type === 'SequenceExpression') {
+        const ex = s.test.right.expressions;
+        return [{ type: 'IfStatement', test: s.test.left, consequent: { type: 'BlockStatement', body: [...ex.slice(0, -1).flatMap((x) => stmt(ES(x))), ...stmt({ type: 'IfStatement', test: ex[ex.length - 1], consequent: s.consequent, alternate: null })] }, alternate: null }];
+      }
       let pre = [], test = s.test;
       if (test.type === 'SequenceExpression') { pre = test.expressions.slice(0, -1).flatMap((x) => stmt(ES(x))); test = test.expressions[test.expressions.length - 1]; }
       let cons = inner(s.consequent);
       if (s.alternate && openIf(cons)) cons = { type: 'BlockStatement', body: [cons] };   // (a dangling else: the outer else must not bind to an inner if)
       return [...pre, { ...s, test, consequent: cons, alternate: s.alternate ? inner(s.alternate) : null }];
     }
-    case 'ForStatement': case 'ForInStatement': case 'ForOfStatement': case 'WhileStatement': case 'DoWhileStatement': case 'LabeledStatement':
+    case 'ForStatement': {
+      // `for (s1, s2; c; ) x` ← `s1; s2; while (c) x` (esbuild moves the statements before a loop into its init, and writes while as for)
+      const pre = s.init && s.init.type !== 'VariableDeclaration' ? stmt(ES(s.init)) : [];
+      const init = s.init && s.init.type === 'VariableDeclaration' ? s.init : null;
+      if (!init && !s.update && s.test) return [...pre, { type: 'WhileStatement', test: s.test, body: inner(s.body) }];
+      return [...pre, { ...s, init, body: inner(s.body) }];
+    }
+    case 'ForInStatement': case 'ForOfStatement': case 'WhileStatement': case 'DoWhileStatement': case 'LabeledStatement':
       return [{ ...s, body: inner(s.body) }];
     default: return [s];
   }

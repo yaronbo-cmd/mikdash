@@ -93,7 +93,8 @@ export function createPis23(o = {}) {
     const trail = drags.get(ev.pointerId);
     if (!trail) return;
     const t = now();
-    for (trail.push([t, ev.clientY]); trail.length > 1 && t - trail[0][0] > P23.fin.ms / 1e3;) trail.shift();
+    trail.push([t, ev.clientY]);
+    while (trail.length > 1 && t - trail[0][0] > P23.fin.ms / 1e3) trail.shift();
     if (trail[0][1] - ev.clientY > P23.fin.dy * (innerHeight || 390) && E.p23raise()) {
       drags.clear();
       stat.ups++;

@@ -89,6 +89,13 @@ export function at25(reg, L, yaw = 0, pitch = 0) {
   const u = Math.cos(L.yaw), h = Math.sin(L.yaw), k = L.s || 1;
   return { x: L.x + k * (u * x + h * z), y: (L.y || 16) + k * y, z: L.z + k * (-h * x + u * z), nx: u * nx + h * nz, ny, nz: -h * nx + u * nz };
 }
+// ── recovered (build 26) ── P26 (the report's: "P26.open (the schedule)", "P26.reach (3.2)", P26.gate, P26.foot): the second lot's inner
+// roles in the Heichal (heichal26.js) — the schedule of his role by the day (open), the Heichal's gate and its reach, the inner altar and
+// the menorah, the act's steps and pulls, the pour, the lamps (lx, ly, lz), the lot's walk-in (lotIn), the ramp's foot (foot), the times
+export const P26 = Object.freeze({ open: Object.freeze(['menorah', 'inner', 'menorah']), gate: Object.freeze({ x: -89.3, z: 0 }), reach: 3.2, alt: Object.freeze({ x: -119.7, z: 0.4 }), walkM: Object.freeze({ x: -121.1, z: 5.9 }),
+  men: Object.freeze({ x: -122.8, z: 7.2, y: 0.6 }), in: 0.4, step: 0.45, set: 0.5, sw: 0.25, ms: 200, key: 0.8, back: 0.5, opn: 1.1, pulls: 7, hand: 0.15, dy: 0.2, vmax: 2.4, scr: 5, wick: 0.25,
+  pour: Object.freeze({ r0: 1.5, r1: 0.34, knee: 0.7, lo: 0.9, hi: 1, max: 1.16 }), spill: 0.5, lit: 0.3, leave: 0.7, kuz: 0.5, ev: 0.2, lotIn: 0.35, foot: Object.freeze({ x: -42, z: 45 }),
+  lx: Object.freeze([-126.01, -125.61, -125.21, -125.19, -124.79, -124.39, -123.99]), ly: 25, lz: 7.5, tT: Object.freeze({ inner: Object.freeze([4, 12]), menorah: Object.freeze([13, 39]) }), score: 120, fast: 20 });
 // ── recovered (build 26) ── POOL26 (the report's): the second lot's thirteen roles (יומא ב, ג) — built: the inner altar's and the
 // menorah's ashes; the rest "כהנים אחרים — בקרוב"
 export const POOL26 = Object.freeze([['shochet', 'השחיטה', '🔪'], ['zorek', 'זריקת הדם', '🏺'], ['inner', 'דישון מזבח הפנימי', '🥣', 1], ['menorah', 'דישון המנורה', '🪔', 1], ['rosh', 'הראש והרגל', '🧺'], ['yadaim', 'שתי הידיים', '🧺'], ['oketz', 'העוקץ והרגל', '🧺'], ['chaze', 'החזה והגרה', '🧺'], ['dfanot', 'שתי הדפנות', '🧺'], ['kerev', 'הקרביים', '🧺'], ['solet', 'הסולת', '🌾'], ['chavt', 'החביתין', '🍞'], ['yayin', 'היין', '🍇']].map(([id, he, icon, built]) => Object.freeze({ id, he, icon, built: !!built, lot: 2 })));

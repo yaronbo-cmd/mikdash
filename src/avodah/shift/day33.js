@@ -3874,8 +3874,11 @@ export function createDay33(o = {}) {
     let a;
     if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 8.7 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
-    else if (/^(hold|aim|splash)$/.test(ph)) a = { p: [-14.9, 24, -24.4], t: [-23.3, 18.6, -18.3], e: 2.2 };   // (behind him, over his shoulder and above his head: the corner's two faces in the middle)
-    else if (/^(aim2|splash2)$/.test(ph)) a = { p: [-58.7, 24, 19.6], t: [-52.7, 18.6, 11.2], e: 2.2 };
+    // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
+    // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's
+    // middle (the thread ≈ 85 px from the top on a 296-px frame), his head beside it in the lower left third, both faces seen)
+    else if (/^(hold|aim|splash)$/.test(ph)) a = { p: [-18.4, 22, -27.4], t: [-22.56, 19.75, -18.27], e: 2.2 };
+    else if (/^(aim2|splash2)$/.test(ph)) a = { p: [-57.2, 22, 20.6], t: [-53.45, 19.75, 11.29], e: 2.2 };
     else a = { p: [-55.9, 20.7, 18.9], t: [-52.6, 17.1, 12.4], e: 2.2 };
     return { x: a.t[0], z: a.t[2], view: a };
   }
@@ -4771,7 +4774,7 @@ export function createDay33(o = {}) {
         sh = st.role26 === 'shochet',
         ph = K ? K.ph : '',
         T27 = sh
-          ? { in: 'אל הטלה', bind: 'עקדו את הטלה — יד ורגל: גררו ↔', bound: 'עקוד', wait: 'המתינו לקול השער הגדול', cut: 'שחטו — הקישו בפס הזהב', cutd: 'שחט השוחט — וקבל המקבל' }
+          ? { in: 'אל הטלה', bind: 'עקדו את הטלה — גררו יד אל רגל', bound: 'עקוד', wait: 'המתינו לקול השער הגדול', cut: 'שחטו — הקישו בפס הזהב', cutd: 'שחט השוחט — וקבל המקבל' }
           : {
               in: 'אל המזרק',
               wait: open26() ? 'השוחט עומד לשחוט' : 'המתינו לקול השער הגדול',

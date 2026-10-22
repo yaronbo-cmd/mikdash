@@ -73,7 +73,7 @@ const store = path.join(OUT, 'storage.json');
   if (dayN) console.log('day', await pg.evaluate(() => globalThis.__SHIFT.E.st33.day));
   if (!frames) await pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); });
   await pg.addScriptTag({ path: path.join(__dirname, 'autoplay35.js') });
-  await pg.evaluate(({ human, seed, days, shots27, high27 }) => { globalThis.__AUTO35_P = globalThis.__AUTO35.start({ human, seed, days, shots27, high27 }).then((t) => { globalThis.__AUTO35_T = t; }); }, { human, seed, days, shots27, high27 });
+  await pg.evaluate(({ human, seed, days, shots27, high27 }) => { globalThis.__AUTO35_P = globalThis.__AUTO35.start({ human, seed, days, shots27, high27 }).then((t) => { globalThis.__AUTO35_T = t; }).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }   /* (build 27: the bot's own "stopped" at the run's end — an --book run lived long enough to report it — is not the page's error) */, { human, seed, days, shots27, high27 });
   const end = t0 + minutes * 60000, shotAt = Array.from({ length: shots }, (_, i) => t0 + ((i + 1) / (shots + 1)) * (end - t0));
   let shot = 0, last = '';
   let lastPoll = 0;
@@ -99,7 +99,12 @@ const store = path.join(OUT, 'storage.json');
   const res = await pg.evaluate(() => ({ state: globalThis.__AUTO35.state(), events: globalThis.__AUTO35.events(), trace: globalThis.__AUTO35.trace(), sfx: globalThis.__SFX26C || null, ls: Object.fromEntries(Object.keys(localStorage).map((k) => [k, localStorage.getItem(k)])) }));
   await pg.evaluate(() => globalThis.__AUTO35.stop()).catch(() => {});
   while (shot < shots) { if (!frames) await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, `shot-${shot}.png`), timeout: 240000 }).catch(() => {}); shot++; }
-  if (book) { await pg.evaluate(() => { try { window.__T.simulate(false); globalThis.__SHIFT.roles(); } catch (e) { /* */ } }).catch(() => {}); await pg.waitForTimeout(600); await pg.screenshot({ path: path.join(OUT, 'shot-book.png'), timeout: 240000 }).catch(() => {}); console.log('shot book', el()); }
+  if (book) {
+    await pg.evaluate(() => { try { window.__T.simulate(false); globalThis.__SHIFT.roles(); } catch (e) { /* */ } }).catch(() => {}); await pg.waitForTimeout(600);
+    await pg.screenshot({ path: path.join(OUT, 'shot-book.png'), timeout: 240000 }).catch(() => {});
+    await pg.evaluate(() => { try { document.querySelector('.p23-bk h4').scrollIntoView(); } catch (e) { /* */ } }).catch(() => {}); await pg.waitForTimeout(300);
+    await pg.screenshot({ path: path.join(OUT, 'shot-book2.png'), timeout: 240000 }).catch(() => {}); console.log('shot book', el());
+  }
   fs.writeFileSync(store, JSON.stringify(res.ls));
   const log = { run, page, human, seed, days, day: dayN || null, cont, sound, q: Q, size: [VW, VH], frames, wallS: Math.round((Date.now() - t0) / 1000), table: res.state.table, marks: res.state.marks, acts: res.state.acts, walks: res.state.walks, stuck: res.state.stuck, lag: res.state.lag, err: res.state.err, notes: res.state.notes, sfx: res.sfx, errors: errors.slice(0, 40), events: res.events, trace: res.trace };
   fs.writeFileSync(path.join(OUT, 'log.json'), JSON.stringify(log, null, 1));

@@ -80,7 +80,7 @@ export function createDam27(o = {}) {
     verb = mk('dm27-u'),
     gauge = mk('dm27-g'),
     ring = mk('dm27-r', `<svg viewBox="-60 -60 120 120"><circle r="46" class="bg"/><path class="gz"/><line class="nd" x1="0" y1="0" x2="0" y2="-50"/><circle r="7" class="hub"/></svg><b>שחטו בזהב</b>`),
-    over = mk('dm27-o', `<svg><polyline class="tr"/><circle class="fa" r="22"/><circle class="hi" r="22"/><line class="bl"/></svg>`),
+    over = mk('dm27-o', `<svg><polyline class="tr"/><circle class="fa" r="16"/><circle class="hi" r="18"/><line class="bl"/></svg>`),
     svg = over.querySelector('svg'),
     trEl = svg.querySelector('.tr'),
     faEl = svg.querySelector('.fa'),
@@ -131,14 +131,25 @@ export function createDam27(o = {}) {
   // the leg points of the lamb on its side (head south, face west, legs toward the east where the shochet stands)
   const LAMB = P27.lamb,
     LY = 16.18,
-    FORE = { x: LAMB.x + 0.67, y: LY + 0.1, z: LAMB.z + 0.3 },
-    HIND = { x: LAMB.x + 0.67, y: LY + 0.07, z: LAMB.z - 0.18 },
-    NECK = { x: LAMB.x + 0.12, y: LY + 0.22, z: LAMB.z + 0.72 };
-  const legsOnScreen = () => {
-    const f = proj(FORE.x, FORE.y, FORE.z),
-      h = proj(HIND.x, HIND.y, HIND.z);
-    return f && h ? { f, h } : null;
-  };
+    LS = 1.35,   // (the lamb's size, as the other works draw a lamb: about an amah and a third long — a yearling beside a man)
+    FORE = { x: LAMB.x + 0.67 * LS, y: LY + 0.1 * LS, z: LAMB.z + 0.3 * LS },
+    HIND = { x: LAMB.x + 0.67 * LS, y: LY + 0.07 * LS, z: LAMB.z - 0.18 * LS },
+    NECK = { x: LAMB.x + 0.12 * LS, y: LY + 0.22 * LS, z: LAMB.z + 0.72 * LS };
+  // the guide on the screen: the moving ring on the foreleg, the target ring BIND_PX along the legs' own screen direction — the legs
+  // are half an amah apart and, from the ring's north view, lie along the view's depth (≈ 10 px apart, the target straight below)
+  const BIND_PX = 76,
+    legsOnScreen = () => {
+      const f = proj(FORE.x, FORE.y, FORE.z),
+        h = proj(HIND.x, HIND.y, HIND.z);
+      if (!f || !h) return null;
+      let vx = h.x - f.x,
+        vy = h.y - f.y,
+        vl = Math.hypot(vx, vy);
+      if (vl < 3) (vx = 0), (vy = 1), (vl = 1);
+      const L = Math.max(BIND_PX, vl);
+      return { f, h: { x: f.x + (vx / vl) * L, y: f.y + (vy / vl) * L } };
+    },
+    bindDir = (g) => (!g ? '' : Math.abs(g.h.y - g.f.y) >= Math.abs(g.h.x - g.f.x) ? (g.h.y > g.f.y ? 'd' : 'u') : 's');
   // the corners' two faces: NE — the north face (x west of the corner) and the east face (z south of it); SW — the south face
   // (x east of it) and the west face (z north of it)
   const face = (c, side, u, y) => {
@@ -240,6 +251,7 @@ export function createDam27(o = {}) {
       ms = tsOf(ev) - p.t0;
     if (K.ph === 'bind' && !p.bound) {
       if (bindG.prog > 0.12 && ev.type === 'pointerup') E.r27bind(false);
+      else if (ev.type === 'pointerup' && d > 30) flash(`גררו ${bindDir(legsOnScreen()) === 'd' ? '⬇' : bindDir(legsOnScreen()) === 'u' ? '⬆' : '↔'} — מהרגל הקדמית אל האחורית`);   // (the other way: a word, not a try)
       bindG.prog = 0;
     } else if (K.ph === 'cut') {
       if (ev.type === 'pointerup' && d < 18 && ms < 450) E.r27tap();
@@ -335,9 +347,11 @@ export function createDam27(o = {}) {
       }
       // the hint and its source
       const row = active ? HINT[ph] : null;
+      hint.classList.toggle('sd', !!row && /^(hold|aim|aim2|splash|splash2)$/.test(ph));   // (at the corners the card stands at the top left: the corner's edge is in the middle)
       put(hint, row ? `${row[0] || ''}${row[1] ? `<small>${row[1]}${/^(recv|carry|carry2|hold|aim|aim2)$/.test(ph) ? ' · המספרים: המחשה' : ''}</small>` : ''}` : '');
-      const vr = active ? VERB[ph] : null,
-        vk = vr ? ph : '';
+      const bd = active && ph === 'bind' ? bindDir(legsOnScreen()) : '',
+        vr = active ? (bd ? (bd === 's' ? VERB.bind : [bd === 'd' ? '⬇' : '⬆', bd === 'd' ? 'dn' : '', VERB.bind[2]]) : VERB[ph]) : null,   // (the binding's arrow: the guide's own direction on the screen)
+        vk = vr ? ph + bd : '';
       if (verb.__k !== vk) {
         verb.__k = vk;
         verb.className = `dm27 dm27-u${vr ? ' on ' + vr[1] : ''}`;
@@ -503,7 +517,7 @@ export function createDam27(o = {}) {
         // foreleg brought to the hindleg — its head south and its face west
         if (!gone) {
           if (K && K.role === 'shochet' && ph === 'bind') lambBound(k, tt, 0, bindG.prog);
-          else if (!bound) lambFig(k, L(LAMB.x - 0.3), L(LAMB.z), L(gy(LAMB.x, LAMB.z)), { yaw: Math.PI / 2, head: 0.5 + 0.2 * Math.sin(tt * 1.3) });
+          else if (!bound) lambFig(k, L(LAMB.x - 0.3), L(LAMB.z), L(gy(LAMB.x, LAMB.z)), { yaw: Math.PI / 2, scale: LS, head: 0.5 + 0.2 * Math.sin(tt * 1.3) });
           else lambBound(k, tt, since >= 0 ? clamp01(since / 1.2) : 0, 1);
         }
         // those who won the limbs hold it ("מי שזכו באברים, אוחזים בו") — from the west, at the back
@@ -579,16 +593,17 @@ export function createDam27(o = {}) {
     const x = LAMB.x,
       z = LAMB.z,
       y = LY,
+      s = LS,
       br = 1 + 0.02 * Math.sin(tt * 3) * (1 - still);
-    k.ws(x, y + 0.27, z, 0.3 * br, 0.27, 0.48, WOOL);
-    k.ws(x - 0.04, y + 0.3, z + 0.62, 0.17, 0.17, 0.2, FACE);
-    k.ws(x - 0.2, y + 0.33, z + 0.66, 0.05, 0.13, 0.07, FACE);
-    k.ws(x - 0.12, y + 0.36, z + 0.78, 0.022, 0.022, 0.022, '#3A2E22');
-    k.ws(x, y + 0.2, z - 0.52, 0.08, 0.08, 0.1, WOOL);
+    k.ws(x, y + 0.27 * s, z, 0.3 * br * s, 0.27 * s, 0.48 * s, WOOL);
+    k.ws(x - 0.04 * s, y + 0.3 * s, z + 0.62 * s, 0.17 * s, 0.17 * s, 0.2 * s, FACE);
+    k.ws(x - 0.2 * s, y + 0.33 * s, z + 0.66 * s, 0.05 * s, 0.13 * s, 0.07 * s, FACE);
+    k.ws(x - 0.12 * s, y + 0.36 * s, z + 0.78 * s, 0.022 * s, 0.022 * s, 0.022 * s, '#3A2E22');
+    k.ws(x, y + 0.2 * s, z - 0.52 * s, 0.08 * s, 0.08 * s, 0.1 * s, WOOL);
     // the legs: toward the east; the fore and the hind brought together and held by hand
-    k.wc(x + 0.42, y + 0.1, z + 0.3 * (1 - bp) - 0.08 * bp, 0.045, 0.5, HOOF, { roll: Math.PI / 2, yaw: -0.3 * bp });   // (the foreleg — brought back)
-    k.wc(x + 0.42, y + 0.07, z - 0.21 + 0.05 * bp, 0.045, 0.5, HOOF, { roll: Math.PI / 2, yaw: 0.25 * bp });   // (the hindleg)
-    if (bp >= 1) k.ws(x + 0.62, y + 0.1, z - 0.13, 0.07, 0.07, 0.07, SKIN[0]);   // (held by hand where they meet — no rope)
+    k.wc(x + 0.42 * s, y + 0.1 * s, z + (0.3 * (1 - bp) - 0.08 * bp) * s, 0.045 * s, 0.5 * s, HOOF, { roll: Math.PI / 2, yaw: -0.3 * bp });   // (the foreleg — brought back)
+    k.wc(x + 0.42 * s, y + 0.07 * s, z + (-0.21 + 0.05 * bp) * s, 0.045 * s, 0.5 * s, HOOF, { roll: Math.PI / 2, yaw: 0.25 * bp });   // (the hindleg)
+    if (bp >= 1) k.ws(x + 0.62 * s, y + 0.1 * s, z - 0.13 * s, 0.07 * s, 0.07 * s, 0.07 * s, SKIN[0]);   // (held by hand where they meet — no rope)
   }
   function blade(k, at, u) {
     // the knife's gold flash at the cut (no close-up, no wound)
@@ -846,7 +861,7 @@ const FACE = '#E8DCCB';
 const HOOF = '#5A4A3A';
 const CSS = `.dm27{position:fixed;z-index:32;direction:rtl;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:none;display:none}.dm27.on{display:block}.dm27 small{display:block;font-size:11px;font-weight:700;opacity:.88}
 .dm27-in{top:0;bottom:0;left:51%;right:0;z-index:30;touch-action:none;pointer-events:auto}
-.dm27-h,.dm27-x,.dm27-f,.dm27-m{left:50%;transform:translateX(-50%)}.dm27-h{top:58px;padding:4px 12px;border-radius:12px;background:#1C140ACC;font-size:13px;max-width:74vw}.dm27-m{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:31;padding:3px 12px;border-radius:12px;background:#1C140AD8;border:1.5px solid #E2B65A;color:#FFE6A0;font:800 12px/1.25 Heebo,system-ui,sans-serif;max-width:78vw}
+.dm27-h,.dm27-x,.dm27-f,.dm27-m{left:50%;transform:translateX(-50%)}.dm27-h{top:58px;padding:4px 12px;border-radius:12px;background:#1C140ACC;font-size:13px;max-width:74vw}.dm27-h.sd{left:8px;transform:none;max-width:36vw}.dm27-m{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:31;padding:3px 12px;border-radius:12px;background:#1C140AD8;border:1.5px solid #E2B65A;color:#FFE6A0;font:800 12px/1.25 Heebo,system-ui,sans-serif;max-width:78vw}
 .dm27-x{top:30%;z-index:37;white-space:nowrap;text-shadow:0 2px 3px #000}.dm27-x b{display:block;font-size:34px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608}.dm27-f{top:64%;z-index:34;font-size:18px;color:#FFD08A;white-space:nowrap;text-shadow:0 2px 3px #000}.dm27-f.bad{color:#FF8E7A}
 .dm27-x.on,.dm27-f.on{animation:dm27w 2.2s forwards}@keyframes dm27w{0%{opacity:0}10%,82%{opacity:1}to{opacity:0}}
 .dm27-u{left:75.5%;top:50%;transform:translate(-50%,-50%);z-index:31;color:#FFE6A0;font-size:17px;text-shadow:0 2px 4px #000}.dm27-u i{display:block;font-style:normal;font-size:44px;line-height:1.1}
@@ -860,5 +875,5 @@ const CSS = `.dm27{position:fixed;z-index:32;direction:rtl;text-align:center;fon
 .dm27-r{left:75.5%;top:46%;transform:translate(-50%,-50%);z-index:31;width:150px}.dm27-r svg{width:150px;height:150px;overflow:visible}.dm27-r .bg{fill:#1C140AC0;stroke:#8A6A3A;stroke-width:8}.dm27-r .gz{fill:none;stroke:#FFD66E;stroke-width:12;stroke-linecap:round}.dm27-r .nd{stroke:#FFF6DA;stroke-width:5;stroke-linecap:round}.dm27-r .hub{fill:#FFF6DA}
 .dm27-r.hot .gz{stroke:#FFF1B8;filter:drop-shadow(0 0 6px #FFD66E)}.dm27-r.ok .bg{stroke:#FFE6A0;filter:drop-shadow(0 0 12px #FFD66E)}.dm27-r b{display:block;margin-top:-6px;font-size:14px;color:#FFE6A0;text-shadow:0 2px 3px #000}
 .dm27-o{inset:0;z-index:29}.dm27-o svg{width:100%;height:100%;overflow:visible}.dm27-o .tr{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:6 6;opacity:.9}.dm27-o .tr.bad{stroke:#FF8E7A}.dm27-o .tr.gold{stroke:#FFF1B8;stroke-width:4}
-.dm27-o .fa{fill:#FFD66E55;stroke:#FFE6A0;stroke-width:3}.dm27-o .hi{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:5 4}.dm27-o .bl{stroke:#FFE6A088;stroke-width:3;stroke-dasharray:3 6}
+.dm27-o .fa{fill:#FFD66E33;stroke:#FFE6A0;stroke-width:3}.dm27-o .hi{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:5 4}.dm27-o .bl{stroke:#FFE6A088;stroke-width:3;stroke-dasharray:3 6}
 body.dm27-on .gm .tw-pad,body.dm27-on .f17-bar{opacity:.0!important;pointer-events:none!important}`;

@@ -190,7 +190,7 @@ test('build 27: the two gifts and the rest — a throw over the thread is a free
 test('build 27: the views — the ring from the north, a medium-long shot (≥ 8 amot; the neck at the far, south end: never close on it; he and the lamb side by side), over his shoulder at each corner, none while he walks', async () => {
   const R = await atRing('shochet'); const a = R.E.camWork27().view, d = Math.hypot(a.p[0] - a.t[0], a.p[1] - a.t[1], a.p[2] - a.t[2]);
   assert.ok(d >= 8, String(d)); assert.ok(a.p[2] < a.t[2] - 6 && Math.abs(a.p[0] - a.t[0]) < 2, 'from the north');
-  const neck = Math.hypot(a.p[0] - P27.lamb.x, a.p[2] - (P27.lamb.z + 0.7)); assert.ok(neck >= 8, 'the neck ≥ 8 amot off: ' + neck);
+  const neck = Math.hypot(a.p[0] - P27.lamb.x, a.p[2] - (P27.lamb.z + 0.72 * 1.35));   /* (dam27's NECK: the lamb drawn ×1.35) */ assert.ok(neck >= 8, 'the neck ≥ 8 amot off: ' + neck);
   assert.ok(a.p[0] > P27.lamb.x && a.p[0] < P27.stand.x, 'the camera\'s line between him and the lamb: neither hides the other');
   const Z = await zorekAt('carry'); assert.equal(Z.E.camWork27(), null, 'walking: the follow camera');
   const N = await zorekAt('aim'); const v = N.E.camWork27().view; assert.ok(v.p[0] > -23 && v.p[2] < -18.5, 'from beyond the north-east corner');

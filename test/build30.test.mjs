@@ -220,3 +220,15 @@ test('build 30: no Divine Name in the changed files (by code points; spaced, hyp
   const words = [...Object.values(LINE30).flatMap((r) => Object.values(r)), ...Object.values(SRC30).flatMap((s) => s.all), RATE30.invite, ...RATE30.titles.map((t) => t.he)].join(' ');
   for (const r of res) assert.ok(!r.test(words));
 });
+test('build 30 (3): "שימשת N בקרים" counts each morning once — a fresh player\'s first morning is 1; an older save\'s count is its second lots before today', async () => {
+  const run = async (save) => {
+    const R = rig(FLAGS, { save }); R.E.start(); await R.step(0.2); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); await R.step(0.1);
+    const pre = R.save.served30; R.at(-60, 30); await R.step(0.3);
+    for (let i = 0; i < 200 && R.E.p23(); i++) { if (R.E.p23().ph === 'raise') R.E.p23raise(); await R.step(0.1); }
+    R.E.debug.done26(); return { R, pre };
+  };
+  const a = await run({}); assert.equal(a.pre, 0); assert.equal(a.R.save.roles26.m, 1, 'today\'s lot held');
+  const b = await run({ roles26: { m: 3, h: [[1, 'menorah'], [2, 'inner'], [3, 'menorah']] } }); assert.equal(b.pre, 3, 'three mornings before build 30');
+  // and the engine's own: the menorah's end counts the morning once
+  const R = rig(FLAGS, { save: { served30: 2 } }); R.E.start(); await R.step(0.1); assert.equal(R.save.served30, 2);
+});

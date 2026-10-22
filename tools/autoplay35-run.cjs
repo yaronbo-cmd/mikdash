@@ -97,7 +97,7 @@ const store = path.join(OUT, 'storage.json');
     const s = await pg.evaluate(() => globalThis.__AUTO35.state()).catch(() => null);
     if (s) { const line = `${el()} t ${s.t} ${s.phase} marks ${Object.keys(s.marks).join(',')}${s.err ? ' ERR ' + s.err.slice(0, 80) : ''}`; if (line.slice(line.indexOf(' t ')) !== last) { console.log(line); last = line.slice(line.indexOf(' t ')); } }
     while (shot < shots && Date.now() >= shotAt[shot]) { if (!frames) await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, `shot-${shot}.png`), timeout: 240000 }).catch(() => {}); console.log('shot', shot, el()); shot++; }
-    const done = (morningOnly && s && s.marks.roleDone != null) || await pg.evaluate(() => !globalThis.__AUTO35.on).catch(() => false);
+    const done = (morningOnly && s && s.marks.roleDone != null && !(s.pend30 > 0)) || await pg.evaluate(() => !globalThis.__AUTO35.on).catch(() => false);   // ── fable32 (build 30) ── (an end's shot still to take: wait for it) ── /fable32 ──
     if (done || Date.now() > end) break;
   }
   const res = await pg.evaluate(() => ({ state: globalThis.__AUTO35.state(), events: globalThis.__AUTO35.events(), trace: globalThis.__AUTO35.trace(), sfx: globalThis.__SFX26C || null, ls: Object.fromEntries(Object.keys(localStorage).map((k) => [k, localStorage.getItem(k)])) }));

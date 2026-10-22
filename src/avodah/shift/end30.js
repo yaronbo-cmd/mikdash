@@ -8,11 +8,13 @@
  * Never a Divine Name. ── /fable32 ── */
 import { onTick } from './draw.js';
 import { RATE30, SRC30, ACT30, draft30 } from './rate30.js';
-const CSS = `.r30{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 60px);transform:translateX(-50%);z-index:32;display:none;flex-direction:column;align-items:center;gap:3px;direction:rtl;pointer-events:none;font-family:Heebo,system-ui,sans-serif;max-width:min(76vw,560px)}
+const CSS = `.r30{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 56px);transform:translateX(-50%);z-index:32;display:none;flex-direction:column;align-items:center;gap:3px;direction:rtl;pointer-events:none;font-family:Heebo,system-ui,sans-serif;max-width:min(76vw,560px)}
 .r30.on{display:flex;animation:r30in .35s ease-out}
+.r30.sl,.r30.sr{transform:none;max-width:min(46vw,360px);animation:none}.r30.sl{left:max(8px,env(safe-area-inset-left,0px));align-items:flex-start}.r30.sr{left:auto;right:max(8px,env(safe-area-inset-right,0px));align-items:flex-end}
 .r30 .iv{font:800 13px/1.2 Heebo,system-ui,sans-serif;color:#E6D9BE;background:#1C140ACC;border-radius:10px;padding:2px 10px;white-space:nowrap}
-.r30 .ch{pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:44px;max-width:100%;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:14px;border:1.5px solid #E2B65A;background:#1C140AD9;color:#FFF6DA;font:700 13px/1.25 Heebo,system-ui,sans-serif;box-shadow:0 3px 10px #0007}
-.r30 .ch span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.r30 .ch i{font-style:normal;flex:none;opacity:.9}.r30 .ch b{flex:none;color:#FFD66E;font-size:15px}
+.r30 .ch{pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:44px;max-width:100%;box-sizing:border-box;display:flex;align-items:center;padding:0;border:0;background:transparent;color:#FFF6DA;font:700 13px/1.25 Heebo,system-ui,sans-serif}
+.r30 .ch u{text-decoration:none;display:flex;align-items:center;gap:6px;max-width:100%;box-sizing:border-box;padding:5px 12px;border-radius:14px;border:1.5px solid #E2B65A;background:#1C140AD9;box-shadow:0 3px 10px #0007}
+.r30 .ch .q{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto}.r30 .ch .r{flex:none;white-space:nowrap;color:#FFE6A0}.r30 .ch i{font-style:normal;flex:none;opacity:.9}.r30 .ch b{flex:none;color:#FFD66E;font-size:15px}
 .r30 .ch:active{transform:scale(.96)}
 .r30-c{position:fixed;inset:0;z-index:62;display:flex;align-items:center;justify-content:center;background:#0E0A05B0;direction:rtl;font-family:Heebo,system-ui,sans-serif;color:#FFF6DA}
 .r30-c .c{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 16px);overflow:auto;box-sizing:border-box;padding:10px 16px 12px;border-radius:20px;background:linear-gradient(#3A2A16,#21170B);border:2px solid #C8923A;text-align:center;box-shadow:0 10px 40px #0009}
@@ -25,6 +27,7 @@ const CSS = `.r30{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 export function createEnd30(o = {}) {
   const E = o.E,
+    view = o.view || null,   // (the hero's head on the screen: the line steps aside from it)
     doc = o.doc || (typeof document < 'u' ? document : null),
     stat = { shows: 0, opens: 0, last: null, lots: 0 };
   if (!doc || !E || !E.on17) return { destroy() {}, state: () => stat, busy: () => false };
@@ -56,7 +59,12 @@ export function createEnd30(o = {}) {
     cur = { id, rating: rating || null };
     stat.shows++;
     stat.last = { id, rating: cur.rating, chip: S.chip };
-    el.innerHTML = `${rating === 'tikkun' ? `<div class="iv">${esc(RATE30.invite)}</div>` : ''}<button type="button" class="ch" aria-label="המקור — הקישו לפתוח"><i aria-hidden="true">📜</i><span>${esc(draft30(S.chip))}</span><b aria-hidden="true">›</b></button>`;
+    // (the quote may be cut with "…" on a narrow phone — never its source: the reference and "טיוטה" keep their place)
+    const line = draft30(S.chip),
+      cut = line.lastIndexOf(' — '),
+      q = cut > 0 ? line.slice(0, cut) : '',
+      r = cut > 0 ? line.slice(cut) : line;
+    el.innerHTML = `${rating === 'tikkun' ? `<div class="iv">${esc(RATE30.invite)}</div>` : ''}<button type="button" class="ch" aria-label="המקור — הקישו לפתוח"><u><i aria-hidden="true">📜</i>${q ? `<span class="q">${esc(q)}</span>` : ''}<span class="r">${esc(r)}</span><b aria-hidden="true">›</b></u></button>`;
     el.querySelector('.ch').addEventListener('click', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
@@ -67,6 +75,41 @@ export function createEnd30(o = {}) {
     el.classList.add('on');
     shownAt = now();
     left = RATE30.chipS;
+  }
+  // ── never over the kohen's head: when his head is under the line (an end's view frames him large — the lamb's, the laver's), the line
+  // stands at the screen's other side, narrower (its quote cut sooner, its source whole) ──
+  const hp = { x: 0, y: 16, z: 0 };
+  function side() {
+    let want = '';
+    try {
+      const T = globalThis.__T,
+        H = globalThis.__HERO35,
+        hd = H && H.loaded && H.head ? H.head() : null;   // (the real kohen's head bone; else the figure's height — flow31 claims 6.6 above the feet)
+      if (view && view.project && ((hd && Number.isFinite(hd.x)) || (T && T.stages && T.stages.heroXYZ))) {
+        if (hd && Number.isFinite(hd.x)) Object.assign(hp, { x: hd.x, y: hd.y - 0.4, z: hd.z });   // (the bone at the neck: the cap's top ≈ 1.8 above it)
+        else {
+          T.stages.heroXYZ(hp);
+          hp.y = (hp.y || 16) + 4.2;
+        }
+        const W = innerWidth || 844,
+          a = view.project(hp.x, hp.y + 2.2, hp.z),
+          b = view.project(hp.x, hp.y + 0.6, hp.z);
+        if (a && b && a.on !== false) {
+          const r = el.getBoundingClientRect(),
+            top = Math.min(a.y, b.y) - 16,
+            bot = Math.max(a.y, b.y) + 10,
+            rad = Math.max(28, Math.abs(b.y - a.y));
+          if (r.width && top < r.bottom + 6 && bot > r.top - 6 && a.x + rad > W / 2 - r.width / 2 - 8 && a.x - rad < W / 2 + r.width / 2 + 8) want = a.x < W / 2 ? 'sr' : 'sl';
+          if (el.__side && !want && top < r.bottom + 30 && a.x + rad > W * 0.15 && a.x - rad < W * 0.85) want = el.__side;   // (no flicker at the edge)
+        }
+      }
+    } catch (e) {}
+    if (el.__side !== want) {
+      if (el.__side) el.classList.remove(el.__side);
+      if (want) el.classList.add(want);
+      el.__side = want;
+      stat.side = want;
+    }
   }
   function hide() {
     if (!cur) return;
@@ -133,7 +176,8 @@ export function createEnd30(o = {}) {
       if (!st.paused) left -= dt;
       // (the next act begins — the lot after the laver, the second lot after the pre-dawn task: the line goes, the act's own line is the card's)
       const busy = E.act30 && E.act30();
-      if (left <= 0 || (busy && now() - shownAt > 0.4)) hide();
+      if (left <= 0 || (busy && now() - shownAt > 0.4)) return hide();
+      side();
     }),
     api = {
       destroy() {

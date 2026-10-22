@@ -192,6 +192,10 @@
     return true;
   }
   async function end30(id) {
+    A.in30 = 1;
+    try { await end30a(id); } finally { A.in30 = 0; }
+  }
+  async function end30a(id) {
     await shot30('end-' + id, () => document.querySelector('.r30.on .ch'), 500);
     if (S30().includes('src-' + id) && !A.shotDone['src-' + id]) {
       const ch = document.querySelector('.r30.on .ch'); if (ch) { ch.click(); await sleep(400); await shot30('src-' + id, () => document.querySelector('.r30-c')); const b = document.querySelector('.r30-c button'); if (b) b.click(); await sleep(200); }
@@ -407,7 +411,7 @@
       return until(() => !A.on || A.marks.roleDone != null, (opts.morningS || 600) * 1000, 250).then(() => table());
     },
     stop() { A.on = false; try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
-    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
+    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
     events: () => A.ev.slice(),
     get shotReq() { return A.shotReq; },
     shotTaken() { A.shotReq = null; },

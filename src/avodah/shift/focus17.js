@@ -117,6 +117,7 @@ body.f17-on .s29-st.cue{animation:s29cue 1.4s ease-in-out infinite alternate;box
 @keyframes f17-star{from{transform:scale(0) rotate(-40deg)}to{transform:scale(1) rotate(0)}}
 /* ── fable32 (build 30) ── the step card is the act's one line; a word of feedback (sy-ok gold, sy-no amber — never red); at the act's end
    its rating: מהודר gold and glowing, כשר cream, טעון תיקון soft sand. The day's summary: the day's ratings in place of the stars ── */
+.f17-top.f17-a30 .f17-tam:not(.c18-till){display:none}.f17-top.f17-a30 .f17-card span{-webkit-line-clamp:1!important;white-space:nowrap}
 .f17-card.sy-ok span{color:#FFE6A0}.f17-card.sy-no span{color:#FFC690}.f17-card.sy-ok,.f17-card.sy-no{animation:f17-pop .3s ease-out}
 .f17-card.r30-mehudar{border-color:#FFF1C8;box-shadow:0 0 0 2px rgba(255,214,110,.45),0 0 18px rgba(255,214,110,.7)}.f17-card.r30-mehudar span{color:#FFD66E;font-size:20px;text-shadow:0 0 10px rgba(255,214,110,.75)}.f17-card.r30-mehudar i{color:#FFD66E;font:900 22px/1 Heebo,system-ui,sans-serif}
 .f17-card.r30-kasher span{color:#FFF6DA;font-size:19px}.f17-card.r30-kasher i{font:900 20px/1 Heebo,system-ui,sans-serif;color:#F2E6C8}
@@ -402,7 +403,7 @@ export function createFocus17(o = {}) {
   let r30 = null;
   if (E.act30)
     try {
-      r30 = createEnd30({ E, sfx: o.sfx, doc });
+      r30 = createEnd30({ E, sfx: o.sfx, doc, view });
     } catch (e) {
       console.warn('[focus17] r30', e && e.message);
     }
@@ -416,12 +417,13 @@ export function createFocus17(o = {}) {
       }
     },
     held30 = [],
-    later30 = (fn) => {
-      if (quiet30()) held30.push(fn);
+    // (a pop stands at the top, where the end's source line is: it waits for that line too — chip)
+    later30 = (fn, chip) => {
+      if (quiet30() || (chip && r30 && r30.busy())) held30.push(chip ? Object.assign(fn, { chip30: 1 }) : fn);
       else fn();
     },
     stampQ = (...a) => later30(() => stamp(...a)),
-    popQ = (text) => later30(() => pop(text));
+    popQ = (text) => later30(() => pop(text), true);
   let fx = null;
   if (E.l18)
     try {
@@ -686,6 +688,16 @@ export function createFocus17(o = {}) {
       card.style.visibility = '';
       card.classList.toggle('fc', !!step.fire);
       // ── fable32 (build 30) ── (a word of feedback; the act's rating) ── /fable32 ──
+      {   // (in an act and at its end the tamid's line steps aside — the morning holds its clock, and the act's one line keeps one line)
+        let a30 = false;
+        try {
+          a30 = !!((E.act30 && E.act30()) || (E.word30 && E.word30()));
+        } catch (e) {}
+        if (top.__a30 !== a30) {
+          top.__a30 = a30;
+          top.classList.toggle('f17-a30', a30);
+        }
+      }
       const sy = step.say ? (/^r30-/.test(step.say) ? step.say : 'sy-' + step.say) : '';
       if (card.__sy !== sy) {
         if (card.__sy) card.classList.remove(card.__sy);
@@ -713,7 +725,7 @@ export function createFocus17(o = {}) {
     }
     setBar(F.bar || []);
     setHot(F);
-    if (held30.length && !quiet30() && now() - (held30.t || 0) > 1.3) {   // ── fable32 (build 30) ── (the words that waited: one at a time) ── /fable32 ──
+    if (held30.length && !quiet30() && now() - (held30.t || 0) > 1.3 && !(held30[0].chip30 && r30 && r30.busy())) {   // ── fable32 (build 30) ── (the words that waited: one at a time) ── /fable32 ──
       held30.t = now();
       const fn = held30.shift();
       try {

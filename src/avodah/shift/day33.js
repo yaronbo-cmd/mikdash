@@ -927,6 +927,9 @@ export function createDay33(o = {}) {
       if (was.night) st.resumeTasks = null;
     }
   }
+  // ── fable32 (build 30) ── "שימשת N בקרים": a save from before build 30 gets its count once, at the day's start — the second lots it held
+  // (served30's fallback), less today's if the lot was held and its role not yet done (then that morning counts when it is: morning30) ── /fable32 ──
+  if (save.served30 == null) save.served30 = Math.max(0, served30(save) - (p26 && st.p26day === st.day && st.r26day !== st.day && (save.roles26 && save.roles26.m) > 0 ? 1 : 0));
   if (!powerOn) st.power = DAY33.power0;
   if (b19)
     Object.assign(st.r19, { acc: 0, sc: 0, gr: [], A: 0, ph: 0, sw: 0, sp: 0, slip: -9, run: null, arm: 0, gt: -1, gp: null, lane: 0, lt: -9 });

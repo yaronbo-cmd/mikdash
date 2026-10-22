@@ -237,7 +237,7 @@ test('build 33 (13): the end cards — תמים (its tag, "נכנס ללשכה �
   const u = upHTML33({ line: upLine33(L, D0 + 4), c: 0, role: 'lamb' });
   assert.match(u, /הטלה שבדקת ביום שני עולה היום לתמיד/); assert.match(u, /בודקין אותו לאור האבוקות[^]*תמיד ג, ד · טיוטה/); assert.match(u, /data-tl33="go"/);
   assert.match(upHTML33({ line: 'x', c: 0, role: 'deshen' }), /צאו והביאו טלה מלשכת הטלאים[^]*תמיד ג, ג · טיוטה/);
-  assert.equal(whenHe33(D0, D0 + 4), 'ביום שני'); assert.equal(whenHe33(D0, D0 + 7), 'ביום שני, 26.10'); assert.equal(whenHe33(D0 + 5, D0 + 9), 'בשבת');
+  assert.equal(whenHe33(D0, D0 + 4), 'ביום שני'); assert.equal(whenHe33(D0, D0 + 7), 'ביום שני, 26.10'); assert.equal(whenHe33(D0 + 5, D0 + 9), 'במוצאי שבת');   // (build 34: his Saturday is its evening — the screen is locked until Shabbat goes out)
 });
 test('build 33 (14): the journal\'s tab "הטלאים שבדקתי" — each lamb: inspected (real + Hebrew), ready, offered (by him / by the chamber\'s kohanim) or "בלשכה"; the sources page', () => {
   assert.ok(tabsOn32().some((t) => t.id === 'taleh' && t.he === 'הטלאים שבדקתי'));

@@ -11,7 +11,7 @@
  *   lambsTab33(save, dn)    — the journal's tab "הטלאים שבדקתי": each lamb — inspected (the real and the Hebrew date), ready, offered (by
  *                             him on his morning, or by the chamber's kohanim on its day) or "בלשכה"; the sources' page
  * Every word a draft (טיוטה + source) or המחשה; never a Divine Name; RTL; every button ≥ 44 px; no red; no countdown, no clock. ── /fable32 ── */
-import { L33, SRC33, ILL33, SHABBAT33, lb33, stock33, canInspect33, readyDay33, readyHe33, weekdayHe33, dateHe33, hebDay33, whenHe33, shabbat33 } from './lamb33.js';
+import { L33, SRC33, ILL33, SHABBAT33, lb33, stock33, canInspect33, readyDay33, readyHe33, weekdayHe33, hisDayHe33, dateHe33, hebDay33, whenHe33, shabbat33 } from './lamb33.js';
 import { RATE30 } from './rate30.js';
 import { BLEM25 } from './day33.js';
 
@@ -81,7 +81,7 @@ export function hereDoor33(save, dn) {
 export function stockHTML33(save, dn, o = {}) {
   const S = stock33(save, dn),
     mine = S.mine
-      .map((L) => `<span class="ch${L.readyIn ? '' : ' rd'}" data-l33="${L.i | 0}">${dot(L.c)}${esc(weekdayHe33(L.d))}<b>${esc(readyHe33(L.readyIn))}</b></span>`)
+      .map((L) => `<span class="ch${L.readyIn ? '' : ' rd'}" data-l33="${L.i | 0}">${dot(L.c)}${esc(hisDayHe33(L.d)) /* ── fable32 (build 34) ── (his inspection's day: a Saturday is מוצאי שבת) ── /fable32 ── */}<b>${esc(readyHe33(L.readyIn))}</b></span>`)
       .join(''),
     court = S.court ? `<span class="ch ct" data-l33="court">🐑 ${S.court === 1 ? 'טלה אחד' : `${S.court} טלאים`} של הלשכה</span>` : '';
   return `${shabbat33(dn) && !o.noShabbat ? `<div class="sh" data-ch33="shabbat">${esc(SHABBAT33)} <small>— "${esc(SRC33.shabbat.quote)}" — ${esc(SRC33.shabbat.ref)} · טיוטה</small></div>` : ''}
@@ -300,6 +300,7 @@ export function createTl33(o = {}) {
 
 // ── the journal's tab ──
 const when2 = (dn) => `${weekdayHe33(dn)}, ${dateHe33(dn)}`;
+const his2 = (dn) => `${hisDayHe33(dn)}, ${dateHe33(dn)}`;   // ── fable32 (build 34) ── (what he did — his inspection, his morning: a Saturday is מוצאי שבת; the chamber's kohanim's offering on Shabbat stays שבת) ── /fable32 ──
 /** "הטלאים שבדקתי": each lamb (newest first) — inspected, ready, offered (or in the chamber); the blemished ones counted; the sources */
 export function lambsTab33(save, dn) {
   const b = lb33(save) || { list: [], blem: [] };
@@ -309,8 +310,8 @@ export function lambsTab33(save, dn) {
     nB = b.blem.length,
     row = (L) => {
       const rd = readyDay33(L),
-        offered = L.at ? (L.by === 'me' ? `עלה לתמיד: ${when2(L.at)}${L.oh ? ` · ${L.oh}` : ''}${L.gd ? ` — בבוקר שלך (יום ${L.gd | 0})` : ''}` : `עלה לתמיד: ${when2(L.at)} · ${hebDay33(L.at)} — בידי כהני הלשכה`) : `בלשכה · ${readyHe33(rd - (dn | 0))}`;
-      return `<div class="mo l33" data-l33="${L.i | 0}"><div class="mh">${dot(L.c)}<b>הטלה ה${esc(tagHe(L.c))}</b><span>נבדק: ${esc(when2(L.d))}${L.h ? ` · <span class="hb">${esc(L.h)}</span>` : ''}</span></div>
+        offered = L.at ? (L.by === 'me' ? `עלה לתמיד: ${his2(L.at)}${L.oh ? ` · ${L.oh}` : ''}${L.gd ? ` — בבוקר שלך (יום ${L.gd | 0})` : ''}` : `עלה לתמיד: ${when2(L.at)} · ${hebDay33(L.at)} — בידי כהני הלשכה`) : `בלשכה · ${readyHe33(rd - (dn | 0))}`;
+      return `<div class="mo l33" data-l33="${L.i | 0}"><div class="mh">${dot(L.c)}<b>הטלה ה${esc(tagHe(L.c))}</b><span>נבדק: ${esc(his2(L.d))}${L.h ? ` · <span class="hb">${esc(L.h)}</span>` : ''}</span></div>
         <div class="mr"><i>מוכן: ${esc(when2(rd))}</i><i class="${L.at ? 'up' : ''}">${esc(offered)}</i></div></div>`;
     };
   return `<div class="ct"><b>🐑 הטלאים שבדקתי</b><small>${list.length ? `${list.length === 1 ? 'טלה אחד נכנס ללשכה' : `${list.length} טלאים נכנסו ללשכה`} · ${up} עלו לתמיד` : 'לשכת הטלאים — במסך הפתיחה, "🕍 מכאן — המקדש עכשיו": טלה אחד ביום'}</small></div>

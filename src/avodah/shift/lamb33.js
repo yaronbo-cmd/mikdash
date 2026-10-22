@@ -158,6 +158,10 @@ export const readyHe33 = (n) => ((n | 0) <= 0 ? 'מוכן' : (n | 0) === 1 ? 'מ
 const WD = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 /** "יום שני" / "שבת" of a day number */
 export const weekdayHe33 = (dn) => { const w = weekdayOnDay(dn | 0); return w === 6 ? 'שבת' : `יום ${WD[w]}`; };
+/** ── fable32 (build 34) ── the day HE did something (an inspection, his own morning): a Saturday is "מוצאי שבת" — the screen is locked
+ *  until Shabbat goes out, so his Saturday is its evening; the morning's card said "הטלה שבדקת בשבת" (the court's own offering on Shabbat
+ *  stays "שבת") ── /fable32 ── */
+export const hisDayHe33 = (dn) => (weekdayOnDay(dn | 0) === 6 ? 'מוצאי שבת' : weekdayHe33(dn));
 /** "26.10.2026" — the civil date of a day number */
 export function dateHe33(dn) {
   const d = new Date((dn | 0) * DAY + 12 * 3600e3);
@@ -172,10 +176,9 @@ export function hebDay33(dn) {
     return '';
   }
 }
-/** when he inspected it, as the morning's card says it: "ביום שני" (within the week), else "ביום שני, 26.10" */
+/** when he inspected it, as the morning's card says it: "ביום שני" (within the week), else "ביום שני, 26.10"; a Saturday "במוצאי שבת" */
 export function whenHe33(d, dn) {
-  const w = weekdayHe33(d),
-    b = w === 'שבת' ? 'בשבת' : `ב${w}`;
+  const b = `ב${hisDayHe33(d)}`;   // ── fable32 (build 34) ── ("במוצאי שבת", not "בשבת") ── /fable32 ──
   if ((dn | 0) - (d | 0) <= 6) return b;
   const x = new Date((d | 0) * DAY + 12 * 3600e3);
   return `${b}, ${x.getUTCDate()}.${x.getUTCMonth() + 1}`;

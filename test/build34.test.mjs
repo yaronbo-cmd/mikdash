@@ -18,7 +18,8 @@ import { CH33, day33n, stock33, canInspect33, inspect33, weekdayHe33, hisDayHe33
 import { stockHTML33, lambsTab33 } from '../src/avodah/shift/chamber33.js';
 import { status29 } from '../src/avodah/shift/time29.js';
 import { practiceSave31 } from '../src/avodah/shift/practice31.js';
-import { rig } from './rig33.mjs';
+import { rig, FLAGS } from './rig33.mjs';
+import { P27 } from '../src/avodah/shift/day33.js';
 import { createFocus17 } from '../src/avodah/shift/focus17.js';   // (every act's module: their sources register — the journal's pages)
 
 void createFocus17;
@@ -179,6 +180,30 @@ test('build 34 (15): the pen\'s start card fits a 296-px-high phone (it ran 20 p
   assert.match(p, /export const LAND = '\(orientation:landscape\) and \(max-height:560px\) and \(min-width:560px\)';/);
   assert.match(p, /@media \$\{LAND\} and \(max-height:330px\)\{\.pn-card \.pn-lambpic\{display:none\}\.pn-card\{max-height:100%;overflow-y:auto\}\}/);
   assert.match(p, /\.pn-wrap\{position:absolute;inset:0;[^}]*padding:14px;box-sizing:border-box/, 'the card inside its padded wrap');
+});
+
+test('build 34 (16): a day resumed after the gate opened (a reload, "מהתחלה", the next visit) does not hold the zorek at "מרסו — חמש נרות קודם" for minutes — the saved gate and five-lamps times were the old clock\'s, and the new one starts at 0', async () => {
+  const R = rig(FLAGS, {});
+  R.E.start(); await R.step(0.2); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); R.E.debug.skip26('zorek'); await R.step(0.1);
+  R.at(P27.recv.x + 1, P27.recv.z); await R.step(0.6);
+  for (let i = 0; i < 300 && R.E.r27().ph !== 'recv'; i++) await R.step(0.1);
+  assert.ok(Number.isFinite(R.E.men5t()) && Number.isFinite(R.E.g26t()), 'the court\'s gate opened: the five lamps\' time set');
+  R.E.stop();
+  const d = R.save.day33state; assert.ok(d && Number.isFinite(d.men5t) && d.g26day === d.day, 'saved with the gate open');
+  d.men5t = 418; d.g26t = 410;   // (a gate opened late in a long session — the naive kid's run: 418 s on the old clock)
+  const R2 = rig(FLAGS, { save: R.save });
+  assert.ok(R2.E.st33.men5t <= 0, 'the five lamps: past'); assert.ok(R2.E.st33.g26t <= -60, 'the gate\'s time: past');
+  R2.E.start(); await R2.step(0.3);
+  R2.at(P27.recv.x + 1, P27.recv.z); await R2.step(0.6);
+  for (let i = 0; i < 300 && R2.E.r27() && R2.E.r27().ph !== 'recv'; i++) await R2.step(0.1);
+  const K = R2.E.r27(); assert.equal(K.ph, 'recv');
+  for (let i = 0; i < 300 && K.ph === 'recv'; i++) { R2.E.r27move(K.sp - K.pos); await R2.step(0.05, 0.05); }
+  await R2.step(P27.full + 0.1);
+  assert.ok(R2.E.st33.t < 30, 'the new clock is young');
+  R2.at(P27.at.NE.x, P27.at.NE.z); await R2.step(1.5);
+  assert.equal(R2.E.r27().ph, 'aim', 'at the north-east corner: the gift at once (it held until the new clock reached 418)');
+  // a day never saved: untouched
+  const R3 = rig(FLAGS, {}); assert.equal(R3.E.st33.men5t == null || R3.E.st33.men5t === undefined, true);
 });
 
 // ───────── the Divine Name ─────────

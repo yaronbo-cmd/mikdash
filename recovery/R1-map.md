@@ -713,3 +713,11 @@ node recovery/tools/rename.mjs avodah/sound.js --canon --out /tmp/s26.js; node r
     :44, "washed: 2 logs = +25" (the logs' grades); :79, the next station is the laver before the lamb; :142, the card at the top
     says "למערכה" (sh:go:pyre) instead of "sh:lay".
 - **Build:** `node build.mjs` → 5,417,106 B (5.17 MiB). It warns "over the 5 MiB budget (PROJECT.md §3)"; 26c itself is 5,417,820 B.
+- **Browser side by side (brun, 01:06–01:12 UTC).** Two pages: the restored one (`playPage`: build.mjs's play page with 26c's head
+  script and title, recovery/work/restored-r8.html) and recovery/build26c.min.html. Both use a returning player's save (R1_PRESET=1)
+  and the same steps: start screen → `.lb-play` → 30 s → 12 s.
+  - Shots (recovery/work/r8-{restored,26c}-{0,1,2}.png): the start screen, the same in both; day 1's laver as the hero walks up to the
+    spigots (the camera a few frames apart); the hold pose with both rings (the same).
+  - Engine state at each step, [t, fuel, k20 phase, step, washed]: [0.5, 70, "up", "kiyor", false] in both; then [1.9 | 1.8, 70,
+    "pose", "kiyor", false].
+  - The HUD text is the same in both, and neither page logged an error. (The first run, without the save, stayed on the name card.)

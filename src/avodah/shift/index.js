@@ -37,6 +37,11 @@ import { VIEW24 } from './camera.js';   // ── recovered (build 24) ── th
 import { installHaptics28, cover28, createTurn28 } from './prefs28.js';   // ── fable32 (build 28) ── ── /fable32 ──
 import { clock29, where29, status29 } from './time29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { createWatch29, softDay29, dropGames29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
+import { served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+// ── fable32 (build 30) ── one rating for every act (rate30.js): the day and its lobby no longer add to Phase A's score (★, the gold dinars, the
+// builder's titles — Phase A keeps its own; the shift shows "שימשת N בקרים" and the roles' titles instead). SCORE30 = true: the shift's
+// score object is not passed (the code stays — score35.js, day33's score() — reached by no door); the coins stay (קופת המקדש). ── /fable32 ──
+const SCORE30 = true;
 const WORLD = { pilgrims: createPilgrims, stations: createStations, STATIONS, camera: createShiftCam, walk: createWalk, gate: GATE_SPOT, kit: null /* (draw.js: the day's shared kit) */ };
 if (typeof location !== 'undefined' && /[?&]shiftstub=1\b/.test(location.search || '')) { WORLD.pilgrims = WORLD.stations = WORLD.camera = WORLD.walk = WORLD.gate = null; }   // (tests: the engine alone on the stubs)
 // ── /shift29-world ──
@@ -168,7 +173,7 @@ export function mountShift(o = {}) {
     try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
     try { if (globalThis.__SH_AUTOWALK === undefined) globalThis.__SH_AUTOWALK = true; } catch (e) { /* */ }
     E = createDay33({ world: o.rig && o.rig.stages, twin: mods.twin, view: mods.view, hud, stations: mods.stations, camera: mods.camera, walk: mods.walk, sfx: o.sfx, save, persist, raf: false,
-      score: scoreOf(), games: games(),   // ── fable32 (build 13–14) ── (the interludes, the one score) ── /fable32 ──
+      score: SCORE30 ? null : scoreOf(), games: games(),   // ── fable32 (build 13–14) ── (the interludes, the one score) ── /fable32 ── ── fable32 (build 30) ── (no Phase A score from the day) ── /fable32 ──
       // ── recovered (17–26) ── the builds' flags: each on unless its __SH*_OFF (b17: __SH_B17OFF); the coins by ENABLE_TEMPLE_COINS
       b17: !globalThis.__SH_B17OFF, court18: !globalThis.__SH18_OFF, coins: coins18(), b19: !globalThis.__SH18_OFF && !globalThis.__SH19_OFF, g20: !globalThis.__SH20_OFF,
       d21: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF, m22: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF && !globalThis.__SH22_OFF,
@@ -177,7 +182,7 @@ export function mountShift(o = {}) {
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
     if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }   // ── recovered (build 17) ──
     // ── fable32 (build 28) ── the pause card: "המשך" / "מהתחלה" and the two switches (צליל, רטט) — no "לסיור" ── /fable32 ──
-    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine /* ── fable32 (build 29) ── (the calm line) ── /fable32 ── */, restart: () => runDay(), prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
+    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine /* ── fable32 (build 29) ── (the calm line) ── /fable32 ── */, sub: servedHe30(served30(save)) /* ── fable32 (build 30) ── */, restart: () => runDay(), prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
     hud.intro('יום במקדש', 'בקעו עצים, העלו אותם בכבש — שהאש לא תרד לגחלת', 1100);
@@ -212,7 +217,7 @@ export function mountShift(o = {}) {
     if (!doc) return;
     const cl = save.badges33 && typeof save.badges33 === 'object' ? save.badges33 : {};
     const h = createShiftHud(doc.body);
-    const items = [{ icon: '🎭', label: 'תפקידים — ספר התפקידים', sub: 'כל תפקיד בוקר: השיא, הפעמים, ומה עוד לא יצא לכם', go: () => { rolesBook23({ doc, save, onClose: () => openBook() }); return true; } },   // ── recovered (build 23) ── (the roles' book first)
+    const items = [{ icon: '🎭', label: 'תפקידים — ספר התפקידים', sub: 'כל תפקיד בוקר: הדירוג, התואר, הפעמים, ומה עוד לא יצא לכם' /* ── fable32 (build 30) ── */, go: () => { rolesBook23({ doc, save, onClose: () => openBook() }); return true; } },   // ── recovered (build 23) ── (the roles' book first)
       ...BADGES33.map((b) => ({ icon: cl[b.id] ? '✅' : '📜', label: b.text, sub: cl[b.id] ? 'שלכם' : `+${b.pay} פרוטות — נרשם בעזרה, נגבה בלילה בבית המוקד`, disabled: !cl[b.id] }))];
     h.choice({ title: 'ספר הזכרונות', text: 'מה שעשיתם בעזרה נרשם; את הפרוטות גובים בלילה, בבית המוקד (המחשה: לוח המתגים)', items, closeLabel: 'סגור', onClose: () => { h.destroy(); if (cardCtl && cardCtl.refresh) cardCtl.refresh(); } });
   }
@@ -240,9 +245,9 @@ export function mountShift(o = {}) {
     if (globalThis.__SH_OLDCARD) { cardCtl = entryCard(doc.body, { lvl: save.lvl, best: save.best[save.lvl] | 0, bestDay: +save.bestDay || 0, perutot: +save.perutot || 0, shop: () => openShop(), shift: (n) => { cardCtl = null; run(n); }, day: () => { cardCtl = null; runDay(); }, tour: () => { cardCtl = null; tour(); } }); return; }   // ── fable32 (build 6) ── (+ day) ── /fable32 ──   // (build 13: the old card for a test)
     // ── fable32 (build 13) ── the 3D home screen (lobby35.js): the kohen live in the court, the doors round him
     const st = o.rig && o.rig.stages, view = o.rig && o.rig.view;
-    cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: scoreOf(), start: save.lobbyOff !== false && !globalThis.__SH_LOBBYFULL /* ── recovered (build 16) ── the start screen (save.lobbyOff; __SH_LOBBYFULL the full one) */, on: {
+    cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: SCORE30 ? null : scoreOf() /* ── fable32 (build 30) ── */, start: save.lobbyOff !== false && !globalThis.__SH_LOBBYFULL /* ── recovered (build 16) ── the start screen (save.lobbyOff; __SH_LOBBYFULL the full one) */, on: {
       day: () => { cardCtl = null; runDay(); },   // ── fable32 (build 28) ── (no shift, no tour: the day only) ── /fable32 ──
-      shop: () => openShop(), book: () => openBook(), merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
+      shop: () => openShop(), book: () => openBook(), roles: () => rolesBook23({ doc, save, onClose: () => { if (cardCtl && cardCtl.refresh) cardCtl.refresh(); } }) /* ── fable32 (build 30) ── (the titles' card) ── /fable32 ── */, merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
     try { if (cardCtl && cardCtl.soft29) cardCtl.soft29(W29.softLine); } catch (e) { /* */ }   // ── fable32 (build 29) ── (the calm line, if it is that time) ── /fable32 ──
     // ── /fable32 ──
   }

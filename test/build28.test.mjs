@@ -156,11 +156,12 @@ test('build 28 (4): from the fourth morning — one card, drawn, never yesterday
     assert.equal(R.E.lot23(), cards[0]); assert.deepEqual(R.save.roles23.h.at(-1), [h.length + 1, cards[0], cards[0]]);
   }
 });
-test('build 28 (4): the card — one, its record line ("השיא שלך: N%" / "תפקיד חדש!"), the first lot\'s source (יומא ב, ב), no "במה תבחר?"', () => {
+// ── fable32 (build 30) ── the card's record is the best rating ("השיא שלך: מהודר · רגיל"); its source line follows the lot (end30, tappable) ── /fable32 ──
+test('build 28 (4): the card — one, its record line ("השיא שלך: מהודר" / "תפקיד חדש!" — build 30), the first lot\'s source (יומא ב, ב — at the lot\'s end, build 30), no "במה תבחר?"', () => {
   const p = read('src/avodah/shift/pis23.js');
   assert.ok(!/<h3>[^<]*במה תבחר/.test(p), 'no choice heading'); assert.ok(!/p23-t"/.test(p.slice(p.indexOf('function showCards'))), 'no time bar');
-  assert.match(p, /cards\.innerHTML = `<div>\$\{cardHtml\(p\.cards\[0\], 0, 1, p\.k26\)\}<\/div><div class="p23-s">\$\{p\.k26 \? SRC_LOT2 : SRC_LOT1\}<\/div>`/);
-  assert.match(p, /השיא שלך: \$\{b\}%/); assert.match(p, /תפקיד חדש!/);
+  assert.match(p, /cards\.innerHTML = `<div>\$\{cardHtml\(p\.cards\[0\], 0, 1, p\.k26\)\}<\/div>`/);
+  assert.match(p, /reg30\('lot', \{ chip: SRC_LOT1/); assert.match(p, /השיא שלך: \$\{RATE30\.he\[r\.best\]\}/); assert.match(p, /תפקיד חדש!/);
   const quote = 'הִתְקִינוּ שֶׁלֹּא יְהוּ תוֹרְמִין אֶת הַמִּזְבֵּחַ אֶלָּא בְפַיִס';
   assert.ok(p.includes(`const SRC_LOT1 = '"${quote}" — יומא ב, ב · טיוטה'`));
   assert.ok(!read('src/avodah/shift/day33.js').includes("'במה תבחרו? הקישו על כרטיס'"), 'no choice line on the step card');

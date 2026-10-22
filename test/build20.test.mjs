@@ -51,8 +51,9 @@ test('build 20: after the rise he walks down to the laver\'s foot and the act en
   assert.equal(R.E.k20().ph, 'down'); await R.step(3); assert.equal(R.E.k20(), null);
   const k = R.STATIONS.kiyor.stand; assert.ok(Math.hypot(R.H.x - k.x, R.H.z - k.z) < 0.5);
 });
-test('build 20 + 23: with the lot on, the rise goes straight to the lot\'s circle', async () => {
-  const R = await atLaver(upTo('p23')); await untilPose(R); R.E.k20in('L', true); R.E.k20in('R', true); await R.step(K20.hold + 0.6);
+// ── fable32 (build 30) ── with the lot on the rise holds K20.rise30 (2.4 s: the laver's rating in the step card and its source line before the lot's circle) ── /fable32 ──
+test('build 20 + 23: with the lot on, the rise goes straight to the lot\'s circle (after K20.rise30 — build 30)', async () => {
+  const R = await atLaver(upTo('p23')); await untilPose(R); R.E.k20in('L', true); R.E.k20in('R', true); await R.step(K20.hold + 0.3); assert.ok(R.E.k20() && R.E.k20().ph === 'rise', 'the rise holds'); await R.step(K20.rise30 + 0.1);
   assert.equal(R.E.k20(), null); assert.ok(R.E.p23(), 'the lot began');
 });
 test('build 20: the authored view while he washes (camWork20: the laver\'s centre and a view), none after', async () => {

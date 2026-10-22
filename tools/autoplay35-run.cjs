@@ -12,6 +12,9 @@
 //   --shots27 a,b   phase shots of the blood roles (bind, wait, cut, recv, carry, hold, aimNE, high, highCue, gammaNE, carry2, aimSW,
 //                   gammaSW, pour, npcRecv, npcNE): the world frozen, a frame drawn, shot-<name>.png      --high27   the first throw over the
 //                   thread      --book   at the end, the roles book opened and taken (shot-book.png)
+//   --shots30 a,b   build 30's shots: k20, d21, men, inner, shochet, zorek (an act in progress, its one line), end-<id> (an act's end: the
+//                   rating and the source line), src-<id> (the source's card, opened by a tap), sum (the day's summary)   --bad30 kiyor   three
+//                   lifts at the laver (a טעון תיקון end)
 //   --q LEVEL       the page's quality (window.__FORCE_Q; default low — SwiftShader draws 'high' at a frame in seconds; the game's logic
 //                   is the same at every level)          --size WxH    the viewport (default 640x296)
 //   --frames        play on the page's own render loop (default: the world simulated without drawing — main.js __T.simulate, 0.05 s steps
@@ -28,6 +31,7 @@ const flag = (k) => args.includes(k);
 const run = opt('--run', 'run'), page = path.resolve(opt('--page', 'out/index.html')), minutes = +opt('--minutes', 4), shots = +opt('--shots', 3);
 const Q = opt('--q', 'low'), [VW, VH] = opt('--size', '640x296').split('x').map(Number);
 const frames = flag('--frames');
+const shots30 = (opt('--shots30', '') || '').split(',').filter(Boolean), bad30 = opt('--bad30', '');   // ── fable32 (build 30) ── (the build's shots; a poor act for a טעון תיקון end) ── /fable32 ──
 const human = flag('--human'), cont = flag('--continue'), sound = flag('--sound'), seed = +opt('--seed', 1) || 1, days = +opt('--days', 1) || 1, morningOnly = flag('--morning'), dayN = +opt('--day', 0) || 0, shots27 = (opt('--shots27', '') || '').split(',').filter(Boolean), high27 = flag('--high27'), book = flag('--book');
 const OUT = path.join('/tmp/claude-0/-home-claude/92bf52df-7cb5-51be-8ceb-ea3690eaf336/auto', run);
 fs.mkdirSync(OUT, { recursive: true });
@@ -73,7 +77,7 @@ const store = path.join(OUT, 'storage.json');
   if (dayN) console.log('day', await pg.evaluate(() => globalThis.__SHIFT.E.st33.day));
   if (!frames) await pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); });
   await pg.addScriptTag({ path: path.join(__dirname, 'autoplay35.js') });
-  await pg.evaluate(({ human, seed, days, shots27, high27 }) => { globalThis.__AUTO35_P = globalThis.__AUTO35.start({ human, seed, days, shots27, high27 }).then((t) => { globalThis.__AUTO35_T = t; }).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }   /* (build 27: the bot's own "stopped" at the run's end — an --book run lived long enough to report it — is not the page's error) */, { human, seed, days, shots27, high27 });
+  await pg.evaluate(({ human, seed, days, shots27, high27, shots30, bad30 }) => { globalThis.__AUTO35_P = globalThis.__AUTO35.start({ human, seed, days, shots27, high27, shots30, bad30 }).then((t) => { globalThis.__AUTO35_T = t; }).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }   /* (build 27: the bot's own "stopped" at the run's end — an --book run lived long enough to report it — is not the page's error) */, { human, seed, days, shots27, high27, shots30, bad30 });
   const end = t0 + minutes * 60000, shotAt = Array.from({ length: shots }, (_, i) => t0 + ((i + 1) / (shots + 1)) * (end - t0));
   let shot = 0, last = '';
   let lastPoll = 0;
@@ -106,11 +110,12 @@ const store = path.join(OUT, 'storage.json');
     await pg.screenshot({ path: path.join(OUT, 'shot-book2.png'), timeout: 240000 }).catch(() => {}); console.log('shot book', el());
   }
   fs.writeFileSync(store, JSON.stringify(res.ls));
-  const log = { run, page, human, seed, days, day: dayN || null, cont, sound, q: Q, size: [VW, VH], frames, wallS: Math.round((Date.now() - t0) / 1000), table: res.state.table, marks: res.state.marks, acts: res.state.acts, walks: res.state.walks, stuck: res.state.stuck, lag: res.state.lag, err: res.state.err, notes: res.state.notes, sfx: res.sfx, errors: errors.slice(0, 40), events: res.events, trace: res.trace };
+  const log = { run, page, human, seed, days, day: dayN || null, cont, sound, q: Q, size: [VW, VH], frames, wallS: Math.round((Date.now() - t0) / 1000), table: res.state.table, marks: res.state.marks, ratings: res.state.rate || [], acts: res.state.acts, walks: res.state.walks, stuck: res.state.stuck, lag: res.state.lag, err: res.state.err, notes: res.state.notes, sfx: res.sfx, errors: errors.slice(0, 40), events: res.events, trace: res.trace };
   fs.writeFileSync(path.join(OUT, 'log.json'), JSON.stringify(log, null, 1));
   const tb = res.state.table;
   console.log('table', JSON.stringify({ role: tb.role, lot: tb.lot, preDawn: tb.preDawn, toLot: tb.toLot, lotS: tb.lot === undefined ? null : tb.lot, toGate: tb.toGate, gate: tb.gate, walkIn: tb.walkIn, toRing: tb.toRing, ringToCut: tb.ringToCut, cutToNE: tb.cutToNE, neToSW: tb.neToSW, swToEnd: tb.swToEnd, act: tb.act, roleTotal: tb.roleTotal, morning: tb.morning, mastery: tb.r26r && tb.r26r.mastery, coins: tb.coins }));
   console.log('marks', JSON.stringify(res.state.marks));
+  console.log('ratings', JSON.stringify(res.state.rate || []));   // ── fable32 (build 30) ── (each act's rating: [t, id, rating, q, coins]) ── /fable32 ──
   console.log(errors.length ? 'errors:\n' + errors.slice(0, 10).join('\n') : 'no page errors', '·', el());
   await b.close();
 })().catch((e) => { console.error('FAIL', e && e.stack || e); process.exit(1); });

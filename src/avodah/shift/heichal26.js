@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb, man, ROBE, SKIN } from '../works/figures.js';
 import { P26, POOL26 } from './day33.js';
+import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { ALTAR_CORNERS, DESHEN_PLACE, LIMBS_PLACE, TAMID_RING } from '../../places.js';
 export function createHeichal26(o = {}) {
   const E = o.E,
@@ -96,7 +97,9 @@ export function createHeichal26(o = {}) {
       el.offsetWidth;
       el.classList.add('on');
     },
-    flash = (html) => pop(flashEl, html),
+    // ── fable32 (build 30) ── (in his act a word of feedback is the step card's line for a moment; the court's lines wait outside his act) ── /fable32 ──
+    inAct30 = () => !!(E.act30 && E.act30()),
+    flash = (html) => (E.say30 && E.say30(html, /✓/.test(html) ? 'ok' : 'no', 1.6) ? null : pop(flashEl, html)),
     S = { hush: 1, gate: 0, pulls: 0, scr: 0, pours: 0, band: 0, wicks: 0, lit: 0, drag: 0, steps: 0, lines: [], jer: 0 },
     HUSH = 0.2,
     hushK = 1,
@@ -112,6 +115,7 @@ export function createHeichal26(o = {}) {
     },
     lineUntil = -1,
     say = (html, s = 5) => {
+      if (inAct30()) return;   // ── fable32 (build 30) ── ── /fable32 ──
       put(line, html);
       S.lines.push(html.replace(/<[^>]+>/g, '').slice(0, 40));
       lineUntil = E.st33.t + s;
@@ -486,21 +490,16 @@ export function createHeichal26(o = {}) {
         }
         inBand = nowBand;
       } else inBand = false;
-      const hintRow = HINT[ph === 'wick' && K.li > 0 ? 'wick2' : ph];
-      put(
-        hint,
-        !live || !hintRow
-          ? K && ph === 'walk' && hp.x < -98
-            ? `<small>${SRC.place}</small>`
-            : ''
-          : `${hintRow[0]}${hintRow[1] ? `<small>${hintRow[1]}${ph === 'pour' || ph === 'pull' ? ' · המספרים: המחשה' : ''}</small>` : ''}`,
-      );
+      // ── fable32 (build 30) ── (the hint card — HINT's lines and their sources — is gone while he works in the Heichal: the step card's
+      // one line (rate30 LINE30.menorah / .inner); HINT's sources at the end, SRC30. The gesture's cue by the right thumb keeps its icon,
+      // its words (VERB[2]) are the line's) ── /fable32 ──
+      put(hint, '');
       const verbRow = live && K ? VERB[ph] : null,
         verbKey = verbRow ? ph : '';
       if (verb.__k !== verbKey) {
         verb.__k = verbKey;
         verb.className = `hk26 hk26-u${verbRow ? ' on ' + verbRow[1] : ''}`;
-        verb.innerHTML = verbRow ? `<i>${verbRow[0]}</i>${verbRow[2]}` : '';
+        verb.innerHTML = verbRow ? `<i>${verbRow[0]}</i>` : '';
       }
       let g = '';
       if (live && K)
@@ -861,10 +860,13 @@ export function createHeichal26(o = {}) {
         S.gate++;
         snd('gate26');
         buzz([60, 40, 140]);
-        pop(big, `<b>השער הגדול נפתח!</b><small>${SRC.shochet}</small>`);
+        // ── fable32 (build 30) ── (in his act the gate's word is the step card's line; its sources — SRC.shochet, SRC.jer — at the end) ── /fable32 ──
+        if (!(E.say30 && E.say30('השער הגדול נפתח!', 'ok', 2))) pop(big, `<b>השער הגדול נפתח!</b><small>${SRC.shochet}</small>`);
         if (ev.jer) {
           S.jer++;
-          setTimeout(() => pop(big, `<b>נשמע עד יריחו!</b><small>${SRC.jer}</small>`), 2300);
+          setTimeout(() => {
+            if (!(E.say30 && E.say30('נשמע עד יריחו!', 'ok', 2))) pop(big, `<b>נשמע עד יריחו!</b><small>${SRC.jer}</small>`);
+          }, 2300);
         }
       } else if (y === 'r26pull') {
         S.pulls++;
@@ -893,9 +895,7 @@ export function createHeichal26(o = {}) {
         snd('wick26', { hi: 1 });
         buzz(18);
       } else if (y === 'r26done') {
-        snd('chord17', { up: 1 });
-        pop(big, `<b>${ev.role === 'inner' ? 'הטני בפנים — ויצא' : 'חמש נרות הוטבו'}</b><small>+${ev.scoreEarned} ★ · ${ev.coins} 🪙</small>`);
-        if (ev.role === 'menorah') say(`חמש נרות — לפני דם התמיד<small>${SRC.five}</small>`, 5);
+        snd('chord17', { up: 1 });   // ── fable32 (build 30) ── (the end's banner — "חמש נרות הוטבו +N ★ · coins" — is the step card's rating; "חמש נרות — לפני דם התמיד" and its source at the end) ── /fable32 ──
       }
     }),
     api = {
@@ -967,6 +967,13 @@ const SRC = {
   teni2: cite('נכנס ונטל את הטני והשתחוה ויצא', 'תמיד ו, א'),
   heap: cite('רחוק מן הכבש שלשה טפחים, מקום שנותנין… ודשון מזבח הפנימי והמנורה', 'תמיד א, ד'),
 };
+// ── fable32 (build 30) ── the Heichal's lines at the end of his role (were HINT's, the gate's banners and the bottom line, while he worked) ── /fable32 ──
+{
+  const NUM = 'המספרים (חצי הלוג, הפס, הדיוק): המחשה',
+    GATE = [SRC.go, SRC.gate, SRC.shochet, SRC.jer];
+  reg30('menorah', { chip: SRC.east, all: [...GATE, SRC.place, SRC.stone, SRC.east, SRC.wick, SRC.oil, SRC.lit, SRC.relit, SRC.kuz, SRC.kuz2, SRC.five, NUM] });
+  reg30('inner', { chip: SRC.inner, all: [...GATE, SRC.place, SRC.teni, SRC.inner, SRC.five, NUM] });
+}
 const GOLD = '#E2B84A';
 const GOLD_K = '!#C99A3C';
 const ASH = '#8E8A82';

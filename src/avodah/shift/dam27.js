@@ -17,6 +17,7 @@
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb as lambFig, man, ROBE, SKIN } from '../works/figures.js';
 import { P27, needle27, throw27 } from './day33.js';
+import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { BLOOD, tagBlood } from '../works/blood.js';
 
 export function createDam27(o = {}) {
@@ -79,7 +80,7 @@ export function createDam27(o = {}) {
     flashEl = mk('dm27-f'),
     verb = mk('dm27-u'),
     gauge = mk('dm27-g'),
-    ring = mk('dm27-r', `<svg viewBox="-60 -60 120 120"><circle r="46" class="bg"/><path class="gz"/><line class="nd" x1="0" y1="0" x2="0" y2="-50"/><circle r="7" class="hub"/></svg><b>שחטו בזהב</b>`),
+    ring = mk('dm27-r', `<svg viewBox="-60 -60 120 120"><circle r="46" class="bg"/><path class="gz"/><line class="nd" x1="0" y1="0" x2="0" y2="-50"/><circle r="7" class="hub"/></svg>`),   // ── fable32 (build 30) ── (the dial's word "שחטו בזהב" is the step card's line) ── /fable32 ──
     over = mk('dm27-o', `<svg><polyline class="tr"/><circle class="fa" r="16"/><circle class="hi" r="18"/><line class="bl"/></svg>`),
     svg = over.querySelector('svg'),
     trEl = svg.querySelector('.tr'),
@@ -100,13 +101,16 @@ export function createDam27(o = {}) {
       el.offsetWidth;
       el.classList.add('on');
     },
+    // ── fable32 (build 30) ── (in his act a word of feedback is the step card's line for a moment; the court's lines wait outside his act) ── /fable32 ──
     flash = (html, bad) => {
+      if (E.say30 && E.say30(html, bad ? 'no' : /✓|✦/.test(html) ? 'ok' : 'info', bad ? 1.8 : 1.4)) return;
       pop(flashEl, html);
       flashEl.classList.toggle('bad', !!bad);
     },
     S = { binds: 0, cuts: 0, miss: 0, clinks: 0, throws: 0, gamma: 0, face1: 0, high: 0, wide: 0, pours: 0, lines: [], npc: '', buzz: 0 },
     lineUntil = { t: -1 },
     say = (html, s = 5) => {
+      if (E.act30 && E.act30()) return;   // ── fable32 (build 30) ── ── /fable32 ──
       put(line, html);
       S.lines.push(html.replace(/<[^>]+>/g, '').slice(0, 48));
       lineUntil.t = E.st33.t + s;
@@ -346,16 +350,16 @@ export function createDam27(o = {}) {
         aim.on = false;
       }
       // the hint and its source
-      const row = active ? HINT[ph] : null;
-      hint.classList.toggle('sd', !!row && /^(hold|aim|aim2|splash|splash2)$/.test(ph));   // (at the corners the card stands at the top left: the corner's edge is in the middle)
-      put(hint, row ? `${row[0] || ''}${row[1] ? `<small>${row[1]}${/^(recv|carry|carry2|hold|aim|aim2)$/.test(ph) ? ' · המספרים: המחשה' : ''}</small>` : ''}` : '');
+      // ── fable32 (build 30) ── (the hint card — HINT's lines with their sources — is gone while he works: the step card's one line, "גררו: יד
+      // ורגל", "זרקו מתחת לחוט" …; HINT's sources at the end, SRC30.shochet / .zorek. The cue by the right thumb keeps its icon only) ── /fable32 ──
+      put(hint, '');
       const bd = active && ph === 'bind' ? bindDir(legsOnScreen()) : '',
         vr = active ? (bd ? (bd === 's' ? VERB.bind : [bd === 'd' ? '⬇' : '⬆', bd === 'd' ? 'dn' : '', VERB.bind[2]]) : VERB[ph]) : null,   // (the binding's arrow: the guide's own direction on the screen)
         vk = vr ? ph + bd : '';
       if (verb.__k !== vk) {
         verb.__k = vk;
         verb.className = `dm27 dm27-u${vr ? ' on ' + vr[1] : ''}`;
-        verb.innerHTML = vr ? `<i>${vr[0]}</i>${vr[2]}` : '';
+        verb.innerHTML = vr ? `<i>${vr[0]}</i>` : '';   // ── fable32 (build 30) ── (its words — vr[2] — are the line's) ── /fable32 ──
       }
       // the cut's ring
       const cutOn = active && ph === 'cut' && K.role === 'shochet';
@@ -699,9 +703,8 @@ export function createDam27(o = {}) {
       ph = ev.ph,
       st = E.st33;
     if (npcMark.day !== st.day) Object.assign(npcMark, { day: st.day, NE: 0, SW: 0 });
-    if (y === 'p23done' && ev.k26 && (ev.id === 'shochet' || ev.id === 'zorek'))
-      say(`${ev.id === 'shochet' ? 'השחיטה — "מי שוחט"' : 'זריקת הדם — "מי זורק"'}<small>${SRC.lot}</small>`, 5);
-    else if (y === 'r26gate' && ev.npc) {
+    // ── fable32 (build 30) ── (the second lot's role line — "השחיטה — 'מי שוחט'" + SRC.lot — is gone: the lot's card says the role, end30 its source) ── /fable32 ──
+    if (y === 'r26gate' && ev.npc) {
       const role = E.role26();
       if (role === 'shochet' || role === 'zorek') {
         npcGate = st.t;
@@ -773,7 +776,7 @@ export function createDam27(o = {}) {
         snd('splash27', { big: 1 });
         snd('chord17', { up: 1 });
         haptic([30, 20, 40]);
-        pop(big, `<b>שתי מתנות שהן ארבע</b><small>כמין גמא — Γ</small>`);
+        if (!(E.say30 && E.say30('שתי מתנות שהן ארבע ✦', 'ok', 1.8))) pop(big, `<b>שתי מתנות שהן ארבע</b><small>כמין גמא — Γ</small>`);   // ── fable32 (build 30) ── ── /fable32 ──
       } else if (ev.res === 'good') {
         S.face1++;
         snd('splash27');
@@ -783,8 +786,7 @@ export function createDam27(o = {}) {
         S.high++;
         snd('soft');
         haptic([20, 40, 20]);
-        flash('מעל החוט — לא כאן', true);
-        say(`${SRC.line}`, 5);
+        flash('מעל החוט — לא כאן', true);   // ── fable32 (build 30) ── (its source, SRC.line, at the end) ── /fable32 ──
       } else if (ev.res === 'miss') {
         S.wide++;
         snd('soft');
@@ -795,8 +797,7 @@ export function createDam27(o = {}) {
       snd('soft');
       flash(ev.why === 'short' ? 'ארוך יותר ⬇' : ev.why === 'slow' ? 'מהר יותר ⬇' : 'ישר למטה ⬇');
     } else if (y === 'r27done') {
-      snd('chord17', { up: 1 });
-      pop(big, `<b>${ev.role === 'shochet' ? 'השוחט שחט' : 'הדם על המזבח'}</b><small>+${ev.scoreEarned} ★ · ${ev.coins} 🪙 · ${ev.mastery}%</small>`);
+      snd('chord17', { up: 1 });   // ── fable32 (build 30) ── (the end's banner — "+N ★ · coins · N%" — is the step card's rating; end30 its source) ── /fable32 ──
     }
   });
   const api = {
@@ -855,6 +856,13 @@ const SRC = {
   gamma: cite('ודמה טעון שתי מתנות שהן ארבע', 'זבחים ה, ד') + ' · ' + cite('מתנה אחת כמין גמא נותן', 'זבחים נג, ב'),
   base: cite('שירי הדם היה שופך על יסוד דרומית', 'תמיד ד, א'),
 };
+// ── fable32 (build 30) ── the blood roles' lines at their end (were the hint card's, the bottom line's and the banners', while he worked) ── /fable32 ──
+reg30('shochet', { chip: SRC.bind, all: [SRC.lot, SRC.ring, SRC.bind, SRC.yad, SRC.head, SRC.hold, SRC.stand, SRC.gate, SRC.recv] });
+{
+  const G1 = cite('ודמה טעון שתי מתנות שהן ארבע', 'זבחים ה, ד'),
+    G2 = cite('מתנה אחת כמין גמא נותן', 'זבחים נג, ב');   // (SRC.gamma's two lines, each its own)
+  reg30('zorek', { chip: G1, all: [SRC.lot, SRC.gate, SRC.recv, `${SRC.mares} · המחשה`, SRC.five, SRC.ne, SRC.sw, SRC.line, SRC.diag, G1, G2, SRC.base, 'המספרים (הזרם, הקרישה, הזווית): המחשה'] });
+}
 const SILVER = '#C9CED6';
 const WOOL = '#F2EEE4';
 const FACE = '#E8DCCB';

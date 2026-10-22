@@ -15,6 +15,7 @@ import { addDrawer, L, onTick } from './draw.js';
 import { man, ROBE, SKIN } from '../works/figures.js';
 import { sheepRig, rigEnd, rigMaterial, rigMesh, rigWrite, V3 } from '../../animals.js';
 import { at25, BLEM25, P25 } from './day33.js';
+import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 export function createPen25(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -301,7 +302,7 @@ export function createPen25(o = {}) {
       el.offsetWidth;
       el.classList.add('on');
     },
-    flash = (html) => pop(flashEl, html),
+    flash = (html) => (E.say30 && E.say30(html, /^(פסול — יפה|הוברש)/.test(html) ? 'ok' : 'no', 1.6) ? null : pop(flashEl, html)),   // ── fable32 (build 30) ── (the act's one line for a moment) ── /fable32 ──
     tapOn = (el, fn) => {
       el.addEventListener('pointerdown', (ev) => ev.stopPropagation());
       el.addEventListener('click', (ev) => {
@@ -757,28 +758,11 @@ export function createPen25(o = {}) {
         stamp.scale.setScalar(0.6 * a0.s * (1.8 - 0.8 * u));
       }
       const spot = focus >= 0 ? K.L.spots[focus] : null;
-      setText(
-        hint,
-        hud
-          ? ph === 'in'
-            ? `${SAY.bring}<small>${SAY.pen}</small>`
-            : ph === 'bring' || ph === 'wait'
-              ? SAY.bring
-              : ph === 'blem'
-                ? `${SAY.blem}<small>${SAY.ill}</small>`
-                : `אגודל ימין מזיז את האבוקה${K.first ? ' · טבעת? הקישו' : ''}<small>${SAY.scan}</small>`
-          : '',
-      );
-      setText(
-        blemLine,
-        !spot || ph === 'zoom'
-          ? ''
-          : spot.kind === 'dirt'
-            ? ph === 'clean'
-              ? 'הוברש — נקי ✓'
-              : `${spot.d === 'mud' ? 'בוץ' : 'קש'} — לכלוך, לא מום · החליקו ↔ להבריש`
-            : `מום: ${BLEM25.cats[spot.c].he} · ${BLEM25.regs[spot.r].he}<small>המחשה</small>`,
-      );
+      // ── fable32 (build 30) ── (the hint card — "אגודל ימין מזיז את האבוקה", the bring, the blemish's rule — and the spot's line under it
+      // are the step card's one line now: "האירו ומצאו כתם", "בוץ — החליקו להבריש", "יבלת · אוזן ימין"; their sources — SAY — at the end) ── /fable32 ──
+      setText(hint, '');
+      setText(blemLine, '');
+      void spot;
       const Hr = hero();
       if (Hr) {
         const fx = Math.sin(hp.yaw),
@@ -910,19 +894,14 @@ export function createPen25(o = {}) {
           snd('late17');
           buzz([60, 40, 90]);
           const blem = ev.blem;
-          setTimeout(
-            () =>
-              pop(
-                bigNote,
-                `<b>עיכוב!</b><small>אישור שגוי — בטלה יש מום: ${BLEM25.cats[blem.c].he} · ${BLEM25.regs[blem.r].he}. בדקו טלה חלופי · המחשה</small>`,
-              ),
-            900,
-          );
+          // ── fable32 (build 30) ── (the "עיכוב!" banner is the step card's line for the delay: "עיכוב — יש בו מום"; which blemish, a word) ── /fable32 ──
+          if (!(E.say30 && E.say30(`עיכוב — ${BLEM25.cats[blem.c].he.split(' / ')[0]} · ${BLEM25.regs[blem.r].he}`, 'no', P25.fals - 0.4)))
+            setTimeout(() => pop(bigNote, `<b>עיכוב!</b><small>אישור שגוי — בטלה יש מום: ${BLEM25.cats[blem.c].he} · ${BLEM25.regs[blem.r].he}. בדקו טלה חלופי · המחשה</small>`), 900);
         }
       } else if (type === 'p25no') {
         snd('soft');
         flash('שני טלאים נפסלו — בדקו ואשרו');
-      } else if (type === 'p25done') pop(bigNote, `<b>תמים לקרבן</b><small>+${ev.scoreEarned} ★ · ${ev.coins} 🪙</small>`);
+      }   // ── fable32 (build 30) ── (p25done: "תמים לקרבן +N ★ · coins" is the step card's rating now, end30 its source) ── /fable32 ──
     }),
     api = {
       destroy() {
@@ -960,6 +939,7 @@ const SAY = {
   blem: '"כל מום משלשה ושבעים מום המנויין בבהמה פוסלין אותה מן הקרבן" — רמב״ם, איסורי מזבח ב, י · טיוטה',
   ill: '6 סוגים × 8 מקומות — המחשה של המשחק, לא רשימה הלכתית',
 };
+reg30('lamb', { chip: SAY.scan, all: [SAY.bring, SAY.pen, SAY.scan, SAY.blem, SAY.ill] });   // ── fable32 (build 30) ── (the pen's lines at its end) ── /fable32 ──
 const AIM_K = 1.6;
 const TORCH_COLOR = '#FFB066';
 const ZOOM_FOV = 20;

@@ -18,9 +18,10 @@ async function stackAll(R, air = 0.35) {
   }
 }
 
-test('build 22: M22 — six logs (L L M M S S), the air band 25–45 % then 30–40 %, the radii, 100 points (+25 fast, +25 the air ≥ 85)', () => {
+// ── fable32 (build 30) ── M22.fast (+25 for a quick sort) is gone — the rating is accuracy, not speed ── /fable32 ──
+test('build 22: M22 — six logs (L L M M S S), the air band 25–45 % then 30–40 %, the radii, 100 points (+25 the air ≥ 85; no "fast" — build 30)', () => {
   assert.equal(M22.need, 6); assert.equal(M22.sizes, 'LLMMSS'); assert.deepEqual(M22.band.map((b) => [...b]), [[0.25, 0.45], [0.3, 0.4]]);
-  assert.deepEqual({ ...M22.r }, { L: 0.3, M: 0.21, S: 0.11 }); assert.equal(M22.score, 100); assert.equal(M22.fast, 25); assert.equal(M22.airB, 25); assert.equal(M22.good, 85);
+  assert.deepEqual({ ...M22.r }, { L: 0.3, M: 0.21, S: 0.11 }); assert.equal(M22.score, 100); assert.equal(M22.fast, undefined); assert.equal(M22.airB, 25); assert.equal(M22.good, 85);
 });
 test('build 22: AirGap — gap24(gap, r) = (gap − 2r)/(gap + 2r), never below 0', async () => {
   const R = rig(upTo('m22')); R.E.start();

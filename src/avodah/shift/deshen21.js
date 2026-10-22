@@ -12,6 +12,7 @@
 import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { D21 } from './day33.js';
+import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 export function createDeshen21(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -167,10 +168,9 @@ export function createDeshen21(o = {}) {
     hint = mk('d21-h', ''),
     gauge = mk('d21-g', GAUGE),
     tapRing = mk('d21-r', '✋'),
-    doneEl = mk('d21-w', '<b>תרומת הדשן הושלמה!</b><small></small>');
+    doneEl = mk('d21-w', '');   // ── fable32 (build 30) ── (was "תרומת הדשן הושלמה!" — the step card's rating now) ── /fable32 ──
   tapRing.setAttribute('aria-hidden', 'true');
   const needle = gauge.querySelector('.nd'),
-    doneSmall = doneEl.querySelector('small'),
     touches = new Map(),
     W = () => innerWidth || 844,
     tsOf = (ev) => (ev.timeStamp > 0 ? ev.timeStamp : performance.now());
@@ -201,6 +201,8 @@ export function createDeshen21(o = {}) {
     }
   };
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(type, up);
+  // ── fable32 (build 30) ── while he sweeps, walks down and pours, the step card is the one line ("החליקו הילך והילך", "אזנו את המחתה",
+  // "צברו את הגחלים"); the hint card's lines and their sources wait for the end (SRC30.deshen); a word of feedback is the line's (E.say30) ── /fable32 ──
   let setHint = (html) => {
       if (hint.__h !== html) {
         hint.__h = html;
@@ -210,6 +212,7 @@ export function createDeshen21(o = {}) {
     },
     flashEl = mk('d21-f', ''),
     flash = (text) => {
+      if (E.say30 && E.say30(text, 'no', 1.4)) return;
       flashEl.textContent = text;
       flashEl.classList.remove('on');
       flashEl.offsetWidth;
@@ -359,15 +362,7 @@ export function createDeshen21(o = {}) {
         const p = proj(D21.heap.x, gy(D21.heap.x, D21.heap.z, 16) + 0.3, D21.heap.z);
         if (p) tapRing.style.transform = `translate(${p.x | 0}px,${p.y | 0}px)`;
       }
-      setHint(
-        ph === 'in' || ph === 'sweep'
-          ? `החליקו הילך והילך ↔ ×${D21.layers - (k.n | 0)}<small>${SRC_SWEEP}</small>`
-          : walking
-            ? 'סטיק קדימה ⬆ · אגודל ימין נגד ההטיה ↔<small>"ויורדין דרך שמאל" — זבחים ו, ג · טיוטה</small>'
-            : ph === 'foot'
-              ? `${k.near ? 'הקישו ✋ — צברו את הגחלים' : 'לכו לטבעת הזהב'}<small>"צבר את הגחלים על גבי הרצפה" — תמיד א, ד · טיוטה</small>`
-              : '',
-      );
+      setHint('');   // ── fable32 (build 30) ── (were: the swipe, the walk, the pour — each with its source: SRC_SWEEP, SRC_DOWN, SRC_POUR, at the end) ── /fable32 ──
       if (dawnAt != null) {
         const u = Math.min(1, (t - dawnAt) / D21.dawn),
           e = u * u * (3 - 2 * u);
@@ -499,7 +494,7 @@ export function createDeshen21(o = {}) {
           z = p.z + Math.sin(hp.yaw) * (ev.a || 1) * 0.3;
         puff(x, p.y, z, 20, '!#FFB347', 0.8, 7, 0.9, 0.08);
         puff(x, p.y, z, 8, '!#FF8A2E', 0.5, 7, 0.8, 0.1);
-        flash(`−${ev.pts} סדר וזריזות`);
+        flash('נשפכו גחלים — אזנו');   // ── fable32 (build 30) ── (no points: was "−50 סדר וזריזות") ── /fable32 ──
       } else if (type === 'd21' && ev.ph === 'foot') snd('ui');
       else if (type === 'm22done' || type === 'p25done') dawnAt = now();
       else if (type === 'd21' && ev.ph === 'pour') {
@@ -515,11 +510,7 @@ export function createDeshen21(o = {}) {
         stat.done++;
         doneAt = now();
         if (!E.g22 || (E.lot23 && E.lot23() === 'deshen')) dawnAt = doneAt;
-        doneSmall.textContent = `+${ev.scoreEarned} ★ סדר וזריזות · ${ev.coins} 🪙 · תמיד א, ד · טיוטה`;
-        doneEl.classList.remove('on');
-        doneEl.offsetWidth;
-        doneEl.classList.add('on');
-        setTimeout(() => doneEl.classList.remove('on'), 2e3);
+        // ── fable32 (build 30) ── (the end's banner "תרומת הדשן הושלמה! +150 ★ · 3 🪙" is gone: the step card says the rating, end30 the source) ── /fable32 ──
         snd('blast21');
         buzz([90, 70, 90]);
         const at = ev.at;
@@ -559,6 +550,9 @@ export function createDeshen21(o = {}) {
   return api;
 }
 const SRC_SWEEP = '"פנה את הגחלים הילך והילך, חתה מן המאוכלות הפנימיות" — תמיד א, ד · טיוטה';
+const SRC_DOWN = '"ויורדין דרך שמאל" — זבחים ו, ג · טיוטה';   // ── fable32 (build 30) ── (the walk's and the pour's lines, named: they show at the end now) ── /fable32 ──
+const SRC_POUR = '"צבר את הגחלים על גבי הרצפה" — תמיד א, ד · טיוטה';
+reg30('deshen', { chip: SRC_SWEEP, all: [SRC_SWEEP, SRC_DOWN, SRC_POUR] });
 const PREDAWN = ['#5A6684', 1.15];
 const FIRE_LIGHT = { c: '#FF5500', x: -38, y: 29, z: -3.5, d: 40, dec: 1, i0: 3, i1: 45 };
 const POSE_PAN = { carry: [0.72, 0.18, 1.15], low: [0.36, 0.5, 0.78], dip: [0.2, 0.62, 0.32], pour: [0.18, 0.62, 0.62] };

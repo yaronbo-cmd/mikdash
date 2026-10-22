@@ -70,7 +70,9 @@
   async function laver(e) {
     const K = e.k20(); if (!K || K.ph !== 'pose') return;
     await react(); e.k20in('L', true); await sleep(H() ? 120 + rnd() * 200 : 30); e.k20in('R', true);
-    if (H() && rnd() < 0.3) { await sleep(900); e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); }
+    await shot30('k20', () => { const k = e.k20(); return k && k.ph === 'pose' && k.p > 0.25; });   // ── fable32 (build 30) ── (the act's one line) ── /fable32 ──
+    if (A.opts.bad30 === 'kiyor') { for (let i = 0; i < 3; i++) { await sleep(450); e.k20in('R', false); await sleep(250); e.k20in('R', true); } note('build 30: three lifts at the laver (a טעון תיקון end)'); }   // ── fable32 (build 30) ── ── /fable32 ──
+    else if (H() && rnd() < 0.3) { await sleep(900); e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); }
     await until(() => !e.k20() || e.k20().ph !== 'pose', 15000); e.k20in('L', false); e.k20in('R', false);
   }
   async function lot(e) {
@@ -92,7 +94,7 @@
     const K = e.d21(); if (!K) { d21lift(); return; }
     if (K.ph !== 'full' && K.ph !== 'walk' && K.ph !== 'desc') d21lift();
     if (K.ph === 'full') { d21touch(0); await sleep(50); return; }
-    if (K.ph === 'sweep') { await react(); swipe(e.d21swipe, 0.55 + rnd() * 0.2, 0.04); await sleep(H() ? 250 : 120); return; }
+    if (K.ph === 'sweep') { if ((K.n | 0) === 1) await shot30('d21', null, 100); await react(); swipe(e.d21swipe, 0.55 + rnd() * 0.2, 0.04); await sleep(H() ? 250 : 120); return; }
     if (K.ph === 'walk' || K.ph === 'desc') {
       // the balance (D21.bal): the shovel tips by the wind and the walk's shake; he counters by the tilt he sees and by how fast it goes
       // (the push he feels: the tilt's rate less his own counter), and slows down when it tips far (the shake grows with the pace)
@@ -174,6 +176,26 @@
     try { globalThis.__T.simulate(false); } catch (e) { /* */ }
     await until(() => !A.shotReq, 120000, 100);
     try { globalThis.__T.simulate(true, 0.05); } catch (e) { /* */ }
+  }
+  // ── fable32 (build 30) ── the build's shots (opts.shots30: names): an act in progress with its one line (k20, d21, men, inner, shochet,
+  // zorek — the carry), its end (end-<id>: the step card's rating and the source line under the top bar), the source's card opened by a
+  // tap on that line (src-<id>), the day's summary (sum) ── /fable32 ──
+  const S30 = () => A.opts.shots30 || [];
+  async function shot30(name, cond, settle = 250) {
+    if (!S30().includes(name) || A.shotDone[name]) return false;
+    if (cond && !(await until(cond, 6000, 30))) return false;
+    if (settle) await sleep(settle);
+    A.shotDone[name] = 1; A.shotReq = name;
+    try { globalThis.__T.simulate(false); } catch (e) { /* */ }
+    await until(() => !A.shotReq, 120000, 100);
+    try { globalThis.__T.simulate(true, 0.05); } catch (e) { /* */ }
+    return true;
+  }
+  async function end30(id) {
+    await shot30('end-' + id, () => document.querySelector('.r30.on .ch'), 500);
+    if (S30().includes('src-' + id) && !A.shotDone['src-' + id]) {
+      const ch = document.querySelector('.r30.on .ch'); if (ch) { ch.click(); await sleep(400); await shot30('src-' + id, () => document.querySelector('.r30-c')); const b = document.querySelector('.r30-c button'); if (b) b.click(); await sleep(200); }
+    }
   }
   const pad27 = () => padEl('dm27-in');
   const W27 = () => innerWidth || 640, H27 = () => innerHeight || 296;
@@ -265,13 +287,13 @@
     const K = e.r27(); if (!K) return;
     const ph = K.ph;
     if (!/^(carry|carry2|hold|full)$/.test(ph)) swirlLift();
-    if (ph === 'bind') { await react(); await bind27(e); await sleep(150); return; }
+    if (ph === 'bind') { await shot30('shochet', null, 600); await react(); await bind27(e); await sleep(150); return; }
     if (ph === 'cut' && K.role === 'shochet') { await react(); await cut27(e); return; }
     if (ph === 'recv') { await react(); await recv27(e); return; }
     if (ph === 'full' || ph === 'hold') { swirlStep(0.05); if (ph === 'hold' && K.t > 0.9) await shot('hold'); await sleep(50); return; }
     if (ph === 'carry' || ph === 'carry2') {
       const f = e.flowNext(), half = { t: performance.now() };
-      if (f && f.at) await walkTo(f.at, 1.4, 40000, async () => { swirlStep(H() ? 0.06 : 0.04); if (performance.now() - half.t > 1500) await shot(ph === 'carry' ? 'carry' : 'carry2'); const k = e.r27(); return !!k && k.ph === ph; });
+      if (f && f.at) await walkTo(f.at, 1.4, 40000, async () => { swirlStep(H() ? 0.06 : 0.04); if (performance.now() - half.t > 1500) { await shot(ph === 'carry' ? 'carry' : 'carry2'); if (ph === 'carry') await shot30('zorek', null, 0); } const k = e.r27(); return !!k && k.ph === ph; });
       return;
     }
     if (ph === 'aim' || ph === 'aim2') { await react(); await throw27(e, ph); return; }
@@ -287,6 +309,7 @@
     if (ph === 'key') { if (!K.held) { await react(); e.r26hold(true); } await sleep(60); return; }
     if (ph === 'open' || ph === 'walk') { if (K.held) e.r26hold(false); if (ph === 'walk') { const f = e.flowNext(); if (f && f.at) await walkTo(f.at, 2.4); } await sleep(80); return; }
     if (ph === 'wick') { if (A.lamp !== K.li) { A.lamp = K.li; if (K.li > 0) await sleep(H() ? 600 : 300); }   // (the eye goes to the next lamp with the camera)
+      if (K.li === 1) await shot30('men', null, 400);   // ── fable32 (build 30) ── ── /fable32 ──
       await react(); swipe(e.r26swipe, 0.02, -0.5); await sleep(120); return; }
     if (ph === 'wipe') { await react(); swipe(e.r26swipe, 0.5, 0.02); await sleep(120); return; }
     if (ph === 'pour') {
@@ -300,7 +323,7 @@
     }
     if (ph === 'new' || ph === 'kuz') { await react(); e.r26tap(); await sleep(150); return; }
     if (ph === 'drag') { await react(); e.r26light(); await sleep(150); return; }
-    if (ph === 'pull') { await sleep(H() ? 450 + rnd() * 400 : 200); e.r26pull(H() && rnd() < 0.15 ? 2.8 : 1.4 + rnd() * 0.5); return; }
+    if (ph === 'pull') { if ((K.n | 0) === 2) await shot30('inner', null, 200); await sleep(H() ? 450 + rnd() * 400 : 200); e.r26pull(H() && rnd() < 0.15 ? 2.8 : 1.4 + rnd() * 0.5); return; }
     if (ph === 'out') { await walkTo({ x: -50, z: 0 }, 3); return; }
     await sleep(80);
   }
@@ -327,7 +350,8 @@
       const e = E(); if (!e || !e.st33) { await sleep(200); continue; }
       try {
         if (e.st33.paused && !(e.focus17 && e.focus17().summary)) { await sleep(200); continue; }
-        if (e.focus17 && e.focus17().summary) { A.days++; mark('summary' + A.days); if (A.days >= (A.opts.days || 1)) { A.phase = 'done'; A.on = false; return; } await sleep(1500); e.nextDay(); continue; }
+        if (A.end30q && A.end30q.length) { await end30(A.end30q.shift()); continue; }   // ── fable32 (build 30) ── ── /fable32 ──
+        if (e.focus17 && e.focus17().summary) { await shot30('sum', null, 2200); A.days++; mark('summary' + A.days); if (A.days >= (A.opts.days || 1)) { A.phase = 'done'; A.on = false; return; } await sleep(1500); e.nextDay(); continue; }
         if (await timing()) { A.phase = 'act'; continue; }
         if (e.k20()) { A.phase = 'laver'; await laver(e); continue; }
         if (e.p23()) { A.phase = e.p23().k26 ? 'lot2' : 'lot'; await lot(e); continue; }
@@ -355,6 +379,7 @@
       if (k === 'r27' && ev.ph === 'in') mark('ringAt');   // ── build 27 ── (at the ring: the blood role begins)
       if (k === 'r27' && (ev.ph === 'recv' || ev.ph === 'cutd')) mark('cut');
       if (k === 'r27' && ev.ph === 'splash') mark('giftNE'); if (k === 'r27' && ev.ph === 'splash2') mark('giftSW');
+      if (k === 'rate30') { A.rate.push([t, ev.id, ev.rating, ev.q, ev.coins]); if (S30().includes('end-' + ev.id)) (A.end30q || (A.end30q = [])).push(ev.id); }   // ── fable32 (build 30) ── (each act's rating) ── /fable32 ──
     });
   }
   /** the morning per phase, seconds (the build-26b report's columns): from the dawn (the pre-dawn task done) to the second lot, the lot, the
@@ -376,13 +401,13 @@
   globalThis.__AUTO35 = {
     get on() { return A.on; },
     start(opts = {}) {
-      A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0;
+      A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = [];
       const e = E(); if (e) hook(e);
       A.run = loop();
       return until(() => !A.on || A.marks.roleDone != null, (opts.morningS || 600) * 1000, 250).then(() => table());
     },
     stop() { A.on = false; try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
-    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
+    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
     events: () => A.ev.slice(),
     get shotReq() { return A.shotReq; },
     shotTaken() { A.shotReq = null; },

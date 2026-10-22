@@ -67,11 +67,12 @@ test('build 17: each hit is a log in the basket (E.on17 "hit" with its slot), go
   assert.equal(R.E.focus17().streak, 2); assert.ok(R.ev('hit').length >= 5 && R.ev('hit').every((e) => e.id === 'wood')); void s0;
   o.onMiss(1); assert.equal(R.E.focus17().streak, 0); assert.equal(R.ev('miss').length, 1);
 });
-test('build 17: sunset is the day\'s summary (stars 1–3, the tamids, the logs) and E.nextDay() is the next morning', async () => {
+// ── fable32 (build 30) ── the summary's stars (1 + each tamid on time) are gone: the day's ratings (sum.ratings, sum.r30) in their place ── /fable32 ──
+test('build 17: sunset is the day\'s summary (the day\'s ratings — build 30, were stars 1–3 —, the tamids, the logs) and E.nextDay() is the next morning', async () => {
   const R = rig(upTo('b17')); R.E.start(); R.E.debug.lambOk(2); await R.step(46);
   assert.equal(R.E.nextDay(), false, 'no summary yet');
   R.E.debug.night(); await R.step(0.3);
-  const sum = R.E.focus17().summary; assert.ok(sum && sum.day === 1); assert.ok(sum.stars >= 1 && sum.stars <= 3); assert.equal(sum.tamids.length, 2);
+  const sum = R.E.focus17().summary; assert.ok(sum && sum.day === 1); assert.equal(sum.stars, undefined); assert.ok(Array.isArray(sum.ratings) && sum.r30 && 'h' in sum.r30); assert.equal(sum.tamids.length, 2);
   assert.ok(R.ev('summary').length === 1); assert.equal(R.E.state().paused, true);
   assert.equal(R.E.nextDay(), true); assert.equal(R.E.state().day, 2); assert.equal(R.E.focus17().summary, null); assert.equal(R.E.state().tamD, 'wait');
 });

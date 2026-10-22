@@ -32,7 +32,7 @@ test('build 26: POOL26 — thirteen roles of the second lot (יומא ב, ג), t
 });
 test('build 26: P26 — the schedule (menorah, inner, menorah), the gate at x −89.3 and its reach 3.2, the pour\'s band 0.9–1.0, seven pulls', () => {
   assert.deepEqual([...P26.open].slice(0, 3), ['menorah', 'inner', 'menorah']); assert.equal(P26.reach, 3.2);   // (build 27: + morning 4 the shochet, 5 the zorek) assert.deepEqual({ ...P26.gate }, { x: -89.3, z: 0 });
-  assert.equal(P26.pour.lo, 0.9); assert.equal(P26.pour.hi, 1); assert.equal(P26.pulls, 7); assert.equal(P26.ev, 0.2); assert.deepEqual({ ...P26.tT.menorah }, { 0: 13, 1: 39 });
+  assert.equal(P26.pour.lo, 0.9); assert.equal(P26.pour.hi, 1); assert.equal(P26.pulls, 7); assert.equal(P26.ev, 0.2); assert.equal(P26.tT, undefined);   // ── fable32 (build 30) ── (the mastery's time scale is gone) ── /fable32 ──
 });
 test('build 26: after the pre-dawn task the morning holds — the second lot (gate26L), the clock and the stations wait', async () => {
   const R = await morning(); assert.equal(R.E.gate26L(), true); assert.equal(R.E.gate26(), false); assert.equal(R.E.p26on, true);

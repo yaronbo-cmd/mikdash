@@ -17,20 +17,30 @@ import { addDrawer, L, onTick } from './draw.js';
 import { man, ROBE, SKIN } from '../works/figures.js';
 import { CAP_MEMUNE } from '../works/dawn.js';
 import { bookOf23, D21, M22, P23, POOL26, POOL23 } from './day33.js';
+import { RATE30, role30, reg30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+// ── fable32 (build 30) ── the roles book by the ratings: each role's best rating (מהודר gold, כשר cream, טעון תיקון soft), how many
+// times מהודר, its skill title (rate30's title30: מתחיל → רגיל → מיומן → מומחה) and how often; the laver's row (every morning); "שימשת N
+// בקרים". The percentages are gone (the save keeps them; they had time in them) ── /fable32 ──
 export function rolesBook23(o = {}) {
   const doc = o.doc || (typeof document < 'u' ? document : null);
   if (!doc) return { close() {} };
   css(doc);
   const el = doc.createElement('div');
   el.className = 'p23-bk';
-  const card = (a) =>
-    a.open
-      ? `<div class="q"><i>${a.icon}</i>${esc(a.he)}<b>${a.best}%</b><small>שיא · אחרון ${a.last}% · ${a.n} ${a.n === 1 ? 'פעם' : 'פעמים'}</small></div>`
-      : `<div class="q lk"><i>${a.icon}</i>${a.built || a.lot === 2 ? esc(a.he) : '?'}<b>🔒</b><small>${a.built ? 'עוד לא יצא לך' : a.lot === 2 ? 'כהנים אחרים — בקרוב' : 'עוד לא יצא לך'}</small></div>`;
-  el.innerHTML = `<div class="c" role="dialog" aria-label="ספר התפקידים"><h2>🎭 ספר התפקידים</h2><small>כל בוקר הממונה מפיס — כל תפקיד והשיא שלכם בו · ${SRC_LOT}</small><div class="g">${bookOf23(o.save).map(card).join('')}</div>
+  const rate = (r) => (r ? `<b class="${r}">${RATE30.he[r]}</b>` : '<b>—</b>'),
+    card = (a) =>
+      a.open
+        ? `<div class="q"><i>${a.icon}</i>${esc(a.he)}${rate(a.rate)}<small>${a.title ? `${esc(a.title)} · ` : ''}${a.h ? `מהודר ×${a.h} · ` : ''}${a.n} ${a.n === 1 ? 'פעם' : 'פעמים'}</small></div>`
+        : `<div class="q lk"><i>${a.icon}</i>${a.built || a.lot === 2 ? esc(a.he) : '?'}<b>🔒</b><small>${a.built ? 'עוד לא יצא לך' : a.lot === 2 ? 'כהנים אחרים — בקרוב' : 'עוד לא יצא לך'}</small></div>`,
+    rec = (o.save && o.save.roles23) || {},
+    k = role30(rec.kiyor),
+    sv = servedHe30(served30(o.save));
+  el.innerHTML = `<div class="c" role="dialog" aria-label="ספר התפקידים"><h2>🎭 ספר התפקידים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<small>כל בוקר הממונה מפיס — כל תפקיד, הדירוג הטוב שלכם בו והתואר · ${SRC_LOT}</small>${
+    k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}</div>` : ''
+  }<div class="g">${bookOf23(o.save).map(card).join('')}</div>
     <h4>הפיס השני — שלושה עשר תפקידים</h4><small>${SRC_LOT2}</small><div class="g g4">${bookOf23(o.save, POOL26)
       .map((a) => card({ ...a, lot: 2 }))
-      .join('')}</div><button type="button">סגור</button></div>`;
+      .join('')}</div><small class="tl">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small><button type="button">סגור</button></div>`;
   const close = () => {
     el.remove();
     if (o.onClose) o.onClose();
@@ -82,7 +92,7 @@ export function createPis23(o = {}) {
     line = mk('p23-m', ''),
     recEl = mk('p23-r', ''),
     pad = mk('p23-in', null),
-    upHint = mk('p23-u', '<i>☝</i>החליקו למעלה — הוציאו אצבע<small>הממונה סופר אצבעות · יומא ב, א · טיוטה</small>'),
+    upHint = mk('p23-u', '<i>☝</i>'),   // ── fable32 (build 30) ── (the cue by the right thumb keeps its icon; its words are the step card's line — "החליקו למעלה ☝" — and its source, SRC_UP, the lot's end) ── /fable32 ──
     drags = new Map();
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
@@ -116,10 +126,19 @@ export function createPis23(o = {}) {
         return null;
       }
     },
+    // ── fable32 (build 30) ── the card's record: the role's best rating and title ("השיא שלך: מהודר · מיומן"), or "תפקיד חדש!" (was the best %) ── /fable32 ──
+    best30 = (id) => {
+      try {
+        const r = role30(E.roles23()[id]);
+        return r.best ? `השיא שלך: ${RATE30.he[r.best]}${r.title ? ` · ${r.title.he}` : ''}` : null;
+      } catch (e) {
+        return null;
+      }
+    },
     cardHtml = (id, i, one, k26) => {
       const role = ROLE[id] || { he: id, icon: '•' },
-        b = best(id);
-      return `<${one ? 'div' : 'button type="button"'} class="p23-k${one ? ' one' : ''}" data-i="${i}"><i>${role.icon}</i>${one ? (k26 ? 'הפיס השני: ' : 'הפיס: ') : ''}${esc(role.he)}<small>${b != null ? `השיא שלך: ${b}%` : 'תפקיד חדש!'}</small></${one ? 'div' : 'button'}>`;
+        b = best30(id);
+      return `<${one ? 'div' : 'button type="button"'} class="p23-k${one ? ' one' : ''}" data-i="${i}"><i>${role.icon}</i>${one ? (k26 ? 'הפיס השני: ' : 'הפיס: ') : ''}${esc(role.he)}<small>${b || 'תפקיד חדש!'}</small></${one ? 'div' : 'button'}>`;
     },
     flash = () => {
       stat.flash++;
@@ -129,7 +148,7 @@ export function createPis23(o = {}) {
     };
   function showCards(p) {
     // ── fable32 (build 28) ── one card (the engine's pick, 0 — a lot of two, which no draw gives now, shows its first: never a choice) ── /fable32 ──
-    cards.innerHTML = `<div>${cardHtml(p.cards[0], 0, 1, p.k26)}</div><div class="p23-s">${p.k26 ? SRC_LOT2 : SRC_LOT1}</div>`;
+    cards.innerHTML = `<div>${cardHtml(p.cards[0], 0, 1, p.k26)}</div>`;   // ── fable32 (build 30) ── (its source line — SRC_LOT1 / SRC_LOT2 — follows the lot: end30's line, tappable) ── /fable32 ──
     cards.classList.add('on');
     stat.cards++;
     flash();
@@ -197,18 +216,7 @@ export function createPis23(o = {}) {
       else if (type === 'p23done') {
         cards.classList.remove('on');
         doneAt = now();
-      } else if ((type === 'd21' || type === 'm22' || type === 'p25') && ev.ph === 'in' && E.lot23()) {
-        const role = type === 'd21' ? 'deshen' : type === 'p25' ? 'lamb' : 'm22',
-          b = best(role);
-        if (b != null) say(`השיא שלך: ${b}%`);
-      } else if (type === 'r26' && ev.ph === 'step') {
-        const b = best(ev.role);
-        say(b != null ? `השיא שלך: ${b}%` : 'תפקיד חדש!');
-      } else if (type === 'p23rec') {
-        stat.recs++;
-        rec = ev;
-        recAt = E.st33.t + 2.3;
-      }
+      } else if (type === 'p23rec') stat.recs++;   // ── fable32 (build 30) ── (the record's lines in the act — "השיא שלך: N%" at its start, "שיא חדש!" after it — are gone: the step card says the act's rating) ── /fable32 ──
     });
   function showRec(r) {
     const role = ROLE[r.id] || { he: '' };
@@ -432,6 +440,11 @@ const SRC_LOT = 'הפיס — יומא ב, א–ד · טיוטה';
 const SRC_LOT1 = '"הִתְקִינוּ שֶׁלֹּא יְהוּ תוֹרְמִין אֶת הַמִּזְבֵּחַ אֶלָּא בְפַיִס" — יומא ב, ב · טיוטה';   // ── fable32 (build 28) ── (the first lot's card; checked on Sefaria) ── /fable32 ──
 const ROLE = Object.fromEntries([...POOL23, ...POOL26].map((r) => [r.id, r]));
 const SRC_LOT2 = 'הפיס השני: שלושה עשר כהנים — יומא ב, ג · טיוטה';
+// ── fable32 (build 30) ── the lot's lines at its end (end30): the count of the fingers (the raise's line was "הממונה סופר אצבעות · יומא ב, א"),
+// the lot's own; the second lot's thirteen roles (heichal26's "מי שוחט, מי זורק…", יומא ב, ג) ── /fable32 ──
+const SRC_UP = 'הממונה סופר אצבעות · יומא ב, א · טיוטה';
+reg30('lot', { chip: SRC_LOT1, all: [SRC_UP, SRC_LOT1] });
+reg30('lot2', { chip: SRC_LOT2, all: [SRC_UP, SRC_LOT2, '"מי שוחט, מי זורק, ומי מדשן מזבח הפנימי, ומי מדשן את המנורה…" — יומא ב, ג · טיוטה'] });
 const CSS = `.p23-c{position:fixed;left:75.5%;top:30%;transform:translateX(-50%);width:47vw;z-index:36;display:none;direction:rtl;text-align:center;color:#FFF6DA;font:900 16px/1.2 Heebo,system-ui,sans-serif}.p23-c.on{display:block}
 .p23-c h3{margin:0 0 8px;font-size:16px;padding:5px 14px;border-radius:14px;background:#1C140AE0;border:1.5px solid #E2B65A;display:inline-block}
 .p23-k{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:min(150px,20vw);min-height:104px;margin:0 5px;padding:6px 12px;border-radius:18px;border:3px solid #E2B65A;background:radial-gradient(#4A3618,#1C140A);color:#FFE6A0;font:900 21px/1.15 Heebo,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:0 6px 18px #0009;animation:p23in .35s cubic-bezier(.2,1.5,.4,1)}
@@ -452,6 +465,7 @@ body.p23-on .gm .tw-pad,body.p23-on .f17-bar{opacity:0!important;pointer-events:
 .p23-bk h2{margin:2px 0;font:900 22px/1.2 Heebo,system-ui,sans-serif}.p23-bk .g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.p23-bk .g4{grid-template-columns:repeat(4,1fr);gap:6px}.p23-bk .g4 .q i{font-size:24px}.p23-bk .g4 .q b{font-size:18px}.p23-bk h4{margin:6px 0 0;font:900 15px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}
 .p23-bk .q{padding:6px 4px;border-radius:14px;background:#1C140A;border:1.5px solid #E2B65A;font:800 13px/1.25 Heebo,system-ui,sans-serif}.p23-bk .q i{display:block;font:34px/1.1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
 .p23-bk .q b{display:block;font:900 24px/1.1 Heebo,system-ui,sans-serif;color:#FFD66E}.p23-bk .q.lk{border-style:dashed;border-color:#8A6A3A;color:#B8A88A}.p23-bk .q.lk i{filter:brightness(0) opacity(.55)}
+.p23-bk .q b.mehudar{color:#FFD66E;text-shadow:0 0 10px rgba(255,214,110,.6)}.p23-bk .q b.kasher{color:#FFF6DA;font-size:20px}.p23-bk .q b.tikkun{color:#E6D9BE;font-size:16px}.p23-bk .sv{font:800 14px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk .kr{margin:6px auto 0;padding:4px 10px;border-radius:12px;background:#1C140A;border:1.5px solid #8A6A3A;font:800 13px/1.3 Heebo,system-ui,sans-serif;display:inline-block}.p23-bk .kr b{color:#FFD66E}.p23-bk .kr b.kasher{color:#FFF6DA}.p23-bk .kr b.tikkun{color:#E6D9BE}.p23-bk .tl{display:block;margin:4px 0 2px}
 .p23-bk button{min-height:52px;min-width:180px;border-radius:16px;border:2px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:900 18px/1 Heebo,system-ui,sans-serif;cursor:pointer}.p23-bk small{font-size:11px;opacity:.7}`;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const css = (doc) => {

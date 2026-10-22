@@ -97,6 +97,7 @@ const CSS = `
 .sh-go.sh-day{background:radial-gradient(circle at 40% 30%,#FFC48A,#C86A2A 70%,#7A3A10);margin-top:8px}
 .sh-tour.sm{min-height:44px;font-size:12px;border:0;opacity:.75;text-decoration:underline;padding:0 10px}
 .f31-full{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 14px/1 "Heebo",system-ui,sans-serif;cursor:pointer;pointer-events:auto;padding:0 12px}
+.sh-sub30{margin:-4px 0 8px;font:800 14px/1.3 "Heebo",system-ui,sans-serif;color:#FFE6A0}
 .sh-p28{justify-content:center;margin:2px 0 6px}   /* ── fable32 (build 28) ── (the pause card's switches) ── /fable32 ── */
 .sh-tour{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;cursor:pointer}
 body.sh-on .dy-hud,body.sh-on .dy-coin,body.sh-on .dy-say,body.sh-on .dy-line,body.sh-on .dy-banner,body.sh-on .tw-goal,body.sh-on .g27-skip,body.sh-on .l28-tap,body.sh-on .s27-stamp,body.sh-on .tw-hand{display:none!important}
@@ -178,7 +179,7 @@ export function createShiftHud(root) {
           E.fg = el(doc, 'sh-fg', '<svg viewBox="0 0 44 44" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="18.5"/><circle class="fl" cx="22" cy="22" r="18.5" pathLength="100" stroke-dasharray="0 100"/></svg><i>🔥</i>'); E.fg.setAttribute('role', 'img'); E.score.parentNode.insertBefore(E.fg, E.score.parentNode.firstChild); E.fgC = E.fg.querySelector('.fl'); }
         // ── recovered (build 17a) ── the fuel (0…100) fills the ring; amber under 40, red under 25; a rise of more than 2 pops it
         if (E.fg) { const f = Math.max(0, Math.min(100, +D.fuel || 0)), r = Math.round(f); if (r !== E.fgV) { const up = E.fgV != null && r > E.fgV + 2; E.fgV = r; E.fgC.setAttribute('stroke-dasharray', `${f.toFixed(1)} 100`); E.fg.classList.toggle('low', f < 40 && f >= 25); E.fg.classList.toggle('crit', f < 25); E.score.parentNode.classList.toggle('crit', f < 25); E.fg.setAttribute('aria-label', `אש המערכה ${r} מתוך 100`); if (up) { E.fg.classList.remove('up'); E.fg.offsetWidth; E.fg.classList.add('up'); } } }
-        let de = R.querySelector('.sh-dayc'); if (!de) { de = el(doc, 'sh-dayc'); top.appendChild(de); } const dt2 = `${D.score35 ? `★ ${String(Math.floor(D.score35.total || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${D.score35.coins ? ` ◉${D.score35.coins}` : ''} · ` : ''}${D.night ? '🌙 לילה' : '☀️ יום'} ${D.day} · 🪵 ${D.logs}/${D.basket} · רמה ${D.level}${D.power != null ? ` · 💪 ${Math.round(D.power)}` : ''}${D.bread ? ` · 🍞 ${D.bread}` : ''}${D.lambs ? ` · 🐑 ${D.lambs}` : ''}`; if (de.textContent !== dt2) de.textContent = dt2; R.classList.toggle('sh-night', !!D.night); }
+        let de = R.querySelector('.sh-dayc'); if (!de) { de = el(doc, 'sh-dayc'); top.appendChild(de); } const dt2 = `${D.night ? '🌙 לילה' : '☀️ יום'} ${D.day} · 🪵 ${D.logs}/${D.basket} · רמה ${D.level}${D.power != null ? ` · 💪 ${Math.round(D.power)}` : ''}${D.bread ? ` · 🍞 ${D.bread}` : ''}${D.lambs ? ` · 🐑 ${D.lambs}` : ''}`; if (de.textContent !== dt2) de.textContent = dt2; R.classList.toggle('sh-night', !!D.night); }
       if (s.score !== last.score) { last.score = s.score; E.score.textContent = String(s.score); E.meB.textContent = String(s.score); }
       if (s.combo !== last.combo) { const up = s.combo > last.combo && last.combo > 0; last.combo = s.combo; E.combo.textContent = `×${s.combo}`; E.combo.classList.toggle('on', s.combo > 1); if (up) { E.combo.classList.remove('pop'); void E.combo.offsetWidth; E.combo.classList.add('pop'); } }
       if (s.rivalName && s.rivalName !== last.name) { last.name = s.rivalName; E.thN.textContent = `משמר ${s.rivalName}`; }
@@ -306,7 +307,7 @@ export function createShiftHud(root) {
     onPause(cb) { onPause = cb; return H; },
     pauseCard(h = {}) {
       if (pauseEl) return pauseEl;
-      pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>${h.note ? `<p class="sh-note29">${String(h.note).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</p>` : '' /* ── fable32 (build 29) ── the calm line before the Shabbat / Yom Tov lock ── /fable32 ── */}
+      pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>${h.sub ? `<p class="sh-sub30">${esc(h.sub)}</p>` : '' /* ── fable32 (build 30) ── "שימשת N בקרים" (the Phase A ★ capsule is not the Temple's) ── /fable32 ── */}${h.note ? `<p class="sh-note29">${String(h.note).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</p>` : '' /* ── fable32 (build 29) ── the calm line before the Shabbat / Yom Tov lock ── /fable32 ── */}
         <div class="sh-btns"><button class="sh-btn resume" type="button" data-sh="resume">המשך</button><button class="sh-btn restart" type="button" data-sh="restart">מהתחלה</button></div>
         ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28') : ''}
         ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}

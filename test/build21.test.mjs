@@ -13,7 +13,7 @@ async function pour(R) { const g = D21.go[2]; R.at(g[0], g[1]); await R.step(0.2
 
 test('build 21: D21 — four layers, a swipe ≥ 0.3 of the screen within 200 ms; the balance spills past 0.8 (one a second), −20 % of the ash each', () => {
   assert.equal(D21.layers, 4); assert.equal(D21.sw, 0.3); assert.equal(D21.ms, 200);
-  assert.equal(D21.bal.spill, 0.8); assert.equal(D21.bal.gap, 1); assert.equal(D21.loss, 20); assert.deepEqual([...D21.coins], [3, 1, 0]);
+  assert.equal(D21.bal.spill, 0.8); assert.equal(D21.bal.gap, 1); assert.equal(D21.loss, 20); assert.equal(D21.coins, undefined);   // ── fable32 (build 30) ── (D21.coins [3, 1, 0] gone: the coins by the rating) ── /fable32 ──
   assert.deepEqual([...D21.bal.wind], [0.12, 0.35]); assert.deepEqual([...D21.bal.shake], [0.5, 1.4]); assert.equal(D21.bal.fix, 2.4);
 });
 test('build 21: gate21 opens when he has washed (the laver first) and holds the other stations', async () => {
@@ -54,13 +54,15 @@ test('build 21: held steady (B corrected) the walk down spills nothing and ends 
 });
 test('build 21: at the foot — the gold ring within 2.6 amot, a tap: the pour; the record (no spill: 3 coins, 150 points) and E.d21r', async () => {
   const R = await washed(); await swept(R); await walkDown(R, true); await pour(R);
-  const r = R.E.d21r(); assert.ok(r); assert.equal(r.embersSpilledCount, 0); assert.equal(r.coins, D21.coins[0]); assert.equal(r.scoreEarned, D21.score); assert.equal(r.ashCollectedPercent, 100);
+  const r = R.E.d21r(); assert.ok(r); assert.equal(r.embersSpilledCount, 0); assert.equal(r.coins, 3);   // ── fable32 (build 30) ── (מהודר: 3) ── /fable32 ──
+  assert.equal(r.rating, 'mehudar'); assert.equal(r.scoreEarned, D21.score); assert.equal(r.ashCollectedPercent, 100);
   assert.equal(R.E.d21(), null); assert.equal(R.ev('d21done').length, 1); assert.equal(R.E.gate21(), false);
 });
-test('build 21: two spills — one coin, 150 − 2×50 points', async () => {
+// ── fable32 (build 30) ── the coins by the rating (rate30: two spills → q 0.35 → טעון תיקון → 1 coin; were D21.coins [3, 1, 0] by the spills) ── /fable32 ──
+test('build 21: two spills — טעון תיקון, one coin (build 30), 150 − 2×50 points', async () => {
   const R = await washed(); await swept(R); R.E.d21stick(1); R.E.d21bal(1); for (let i = 0; i < 60 && R.E.d21().spills < 2; i++) await R.step(0.05);
   assert.equal(R.E.d21().spills, 2); R.E.d21bal(null); await walkDown(R, true); await pour(R);
-  const r = R.E.d21r(); assert.equal(r.embersSpilledCount, 2); assert.equal(r.coins, D21.coins[2]); assert.equal(r.scoreEarned, D21.score - 2 * D21.pts);
+  const r = R.E.d21r(); assert.equal(r.embersSpilledCount, 2); assert.equal(r.rating, 'tikkun'); assert.equal(r.coins, 1); assert.equal(r.scoreEarned, D21.score - 2 * D21.pts);
 });
 test('build 21: the tap at the foot needs the ring (d21tap refused away from it)', async () => {
   const R = await washed(); await swept(R); await walkDown(R, true); R.at(-20, 30); await R.step(0.2);

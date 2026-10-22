@@ -23,9 +23,10 @@
  * ── /fable32 ── */
 import { man, lamb, flame } from '../works/figures.js';
 import { addDrawer, L, SHARED } from './draw.js';
-import { BADGES33, SHOP33, DAY33, tasksNow33, resumeDay33 } from './day33.js';   // ── recovered (build 16) ── resumeDay33: the saved day to go on with, 0 = none (day33's; the name is the recovery's) ── fable32 (build 28) ── (tasksNow33: the day's own tasks; was tasksForDay) ── /fable32 ──
+import { BADGES33, SHOP33, DAY33, tasksNow33, resumeDay33, bookOf23, POOL26 } from './day33.js';   // ── recovered (build 16) ── resumeDay33: the saved day to go on with, 0 = none (day33's; the name is the recovery's) ── fable32 (build 28) ── (tasksNow33: the day's own tasks; was tasksForDay) ── /fable32 ──
 import { prefsHTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches ── /fable32 ──
-import { interludeScore, fmt as fmtScore } from './score35.js';   // ── fable32 (build 14) ── the one score ── /fable32 ──
+import { interludeScore } from './score35.js';   // ── fable32 (build 14) ── the one score ── /fable32 ── ── fable32 (build 30) ── (its ★ capsule is not shown here any more) ── /fable32 ──
+import { RATE30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── the mornings served, the roles' titles ── /fable32 ──
 import { clock29, where29, sky29, templeNow29, readLoc29, saveLoc29 } from './time29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { css29, lockHTML29, nowLineHTML29, hereDoor29, hereHTML29, locButton29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 
@@ -50,7 +51,7 @@ const CSS = `
 .lb .lb-door.pick{border-color:#FFD66E;background:linear-gradient(180deg,rgba(120,84,20,.9),rgba(70,46,10,.92))}
 .lb .lb-dot{position:absolute;top:-6px;left:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E24B3A;color:#fff;font:900 11px/18px "Heebo",system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px rgba(20,14,6,.8);animation:lb-pulse 1.4s ease-in-out infinite}
 .lb .lb-card{pointer-events:auto;padding:8px 10px;border-radius:14px;border:2px solid rgba(255,230,180,.45);background:linear-gradient(180deg,rgba(60,42,16,.82),rgba(28,18,8,.86));font:800 12px/1.3 "Heebo",system-ui,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.35)}
-.lb .lb-card b{font-size:14px;font-weight:900}.lb .lb-card .lb-row{display:flex;justify-content:space-between;gap:6px;opacity:.95}
+.lb .lb-card b{font-size:14px;font-weight:900}.lb .lb-cardb{display:block;width:100%;text-align:right;color:#FFF6DA;cursor:pointer;min-height:44px}   /* ── fable32 (build 30) ── (the titles' card, a door to the roles book) ── */.lb .lb-card .lb-row{display:flex;justify-content:space-between;gap:6px;opacity:.95}
 .lb .lb-bar{height:7px;border-radius:4px;background:rgba(0,0,0,.45);margin-top:5px;overflow:hidden}.lb .lb-bar i{display:block;height:100%;background:linear-gradient(90deg,#FFD66E,#D9A43A);border-radius:4px;transition:width .4s}
 .lb .lb-task{display:flex;justify-content:space-between;gap:6px;font:700 11px/1.35 "Heebo",system-ui,sans-serif}.lb .lb-task.done{opacity:.6;text-decoration:line-through}
 .lb .lb-bottom{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
@@ -173,12 +174,26 @@ export function createLobby(o = {}) {
   const MODE = { day: ['יום במקדש', 'האש, העצים, הטלאים, הלילה'] };
   // ── fable32 (build 28) ── "משחק קצר": the three interludes in one small picker (their own runners, פרוטות and score: play(key) below) ── /fable32 ──
   const GAMES28 = [['tiles', '🃏', 'זיכרון המקדש', 'קלפים מתהפכים'], ['pen', '🐑', 'הוצאת הטלה מהדיר', 'פאזל הזזה'], ['m3', '💎', 'משחק האוצר', 'שלושה בשורה']];
+  // ── fable32 (build 30) ── the player's titles (the owner, 22.10 09:19: "תארים לפי מיומנות בתפקיד ומניין בקרים"; Phase A's builder titles
+  // — פועל … בונה הבית — and its ★ / gold dinars are not the Temple's): the mornings served, and the roles' skill titles, the highest first ── /fable32 ──
+  const RANK30 = { start: 0, regular: 1, skilled: 2, expert: 3 },
+    titles30 = () => {
+      try {
+        return [...bookOf23(save), ...bookOf23(save, POOL26)]
+          .filter((a) => a.open && a.title)
+          .map((a) => ({ ...a, rk: RANK30[(RATE30.titles.find((t) => t.he === a.title) || {}).id] | 0 }))
+          .sort((a, b) => b.rk - a.rk || b.h - a.h || b.n - a.n);
+      } catch (e) {
+        return [];
+      }
+    },
+    served = () => servedHe30(served30(save));
   const lvl28 = (k) => { const g = save[k] && typeof save[k] === 'object' ? save[k] : null; if (!g) return 0; return k === 'm3' ? (g.level && g.level.quarry) | 0 : g.level | 0; };
   const side28 = (door) => `<div class="lb-side">${door ? `<button class="lb-door" type="button" data-lb="games"><i>🃏</i><span><b>משחק קצר</b><small>זיכרון · הדיר · האוצר — פרוטות</small></span></button>` : ''}${prefsHTML(o.sfx, '', door ? locButton29(!!readLoc29(), st.locMsg) : '') /* ── fable32 (build 29) ── (+ מיקום מדויק on the start screen) ── /fable32 ── */}</div>`;
-  const picker28 = () => `<div class="lb-pk" role="dialog" aria-label="משחק קצר"><div class="lb-pkc"><h2>משחק קצר</h2><p>משחקי ביניים — הפרוטות והנקודות שלכם · המחשה</p><div class="lb-pkg">${GAMES28.map(([k, ic, he, sub]) => `<button class="lb-door pick" type="button" data-lb="${k}"><i>${ic}</i><span><b>${he}</b><small>${lvl28(k) > 1 ? `${k === 'm3' ? 'מחצבה' : 'שלב'} ${lvl28(k)}` : sub}</small></span></button>`).join('')}</div><button class="lb-pkx" type="button" data-lb="games:close">סגור</button></div></div>`;
+  const picker28 = () => `<div class="lb-pk" role="dialog" aria-label="משחק קצר"><div class="lb-pkc"><h2>משחק קצר</h2><p>משחקי ביניים — הפרוטות שלכם · המחשה</p><div class="lb-pkg">${GAMES28.map(([k, ic, he, sub]) => `<button class="lb-door pick" type="button" data-lb="${k}"><i>${ic}</i><span><b>${he}</b><small>${lvl28(k) > 1 ? `${k === 'm3' ? 'מחצבה' : 'שלב'} ${lvl28(k)}` : sub}</small></span></button>`).join('')}</div><button class="lb-pkx" type="button" data-lb="games:close">סגור</button></div></div>`;
   function html() {
     const bd = claimed(), tl = save.tiles && typeof save.tiles === 'object' ? save.tiles : {}, pn = save.pen && typeof save.pen === 'object' ? save.pen : {}, m3 = save.m3 && typeof save.m3 === 'object' ? save.m3 : null;
-    const sc = o.score ? (() => { try { return o.score.get(); } catch (e) { return null; } })() : null;
+    const sv = served(), tt = titles30();   // ── fable32 (build 30) ── (was: Phase A's score — ★, ◉ dinars, the builder's title) ── /fable32 ──
     const tn = tasksNow33(save), tasks = tn.tasks;   // ── fable32 (build 28) ── (the day's own; was tasksForDay(1)) ── /fable32 ──
     // ── recovered (build 16) ── the start (st.start): the world at dawn, one big button — "המשך יום N" when a day is saved — "מסך הבית"
     // and the full screen; minimal (DAY33.minimal): the doors the owner has not asked for are hidden
@@ -187,17 +202,17 @@ export function createLobby(o = {}) {
     if (st.lock) return `${lockHTML29(st.lock, where(), o.sfx)}<div class="lb-draft">טיוטה — המחשה · בנייה 29</div>`;
     const tn29 = st.start ? tnNow() : null;   // ── fable32 (build 29) ── the Temple now, by the sun where the phone is ── /fable32 ──
     return st.start ? `
-      <div class="lb-top">🏛️ בית המקדש השני ${sc ? `<span style="opacity:.6">·</span> <span class="lb-star">★ ${fmtScore(sc.total)}</span>` : ''}</div>
+      <div class="lb-top">🏛️ בית המקדש השני ${sv ? `<span style="opacity:.6">·</span> <span class="lb-star">${esc(sv)}</span>` : ''}${tt[0] ? ` <span style="opacity:.6">·</span> ${tt[0].icon} ${esc(tt[0].title)}` : ''}</div>
       ${nowLineHTML29(tn29, st.soft)}
       <button class="lb-home" type="button" data-lb="home">☰ מסך הבית</button>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
       <div class="lb-bottom">${hereDoor29()}<button class="lb-play" type="button" data-lb="play"><small class="lb-k">נקודת המוצא שלי</small>${esc(playLabel)}<small>${cont ? `המערכה מחכה — ${MODE.day[1]}` : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
       ${side28(true)}${st.games ? picker28() : ''}${st.here ? hereHTML29(tn29, where(), now29()) : ''}
       <div class="lb-draft">טיוטה — להמחשה · בנייה 29</div>` : `
-      <div class="lb-top">🏛️ בית המקדש השני <span style="opacity:.6">·</span> ${sc ? `<span class="lb-star">★ ${fmtScore(sc.total)}${sc.coins ? ` · ◉ ${sc.coins}` : ''}${sc.title ? ` · ${esc(sc.title)}` : ''}</span> <span style="opacity:.6">·</span> ` : ''}🪙 <span data-lb="perutot">${perutot()}</span> פרוטות <span style="opacity:.6">·</span> 📜 ${bd}/${BADGES33.length}</div>
+      <div class="lb-top">🏛️ בית המקדש השני <span style="opacity:.6">·</span> ${sv ? `<span class="lb-star">${esc(sv)}</span> <span style="opacity:.6">·</span> ` : ''}🪙 <span data-lb="perutot">${perutot()}</span> פרוטות <span style="opacity:.6">·</span> 📜 ${bd}/${BADGES33.length}</div>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
       <div class="lb-col lb-r">
-        <div class="lb-card"><b>המשמר שלך בעזרה</b><div class="lb-row"><span>היום הטוב ביותר</span><span>${save.bestDay ? `יום ${+save.bestDay}` : '—'}</span></div><div class="lb-bar"><i style="width:${Math.round(100 * bd / BADGES33.length)}%"></i></div><div class="lb-row"><span>ספר הזכרונות</span><span>${bd}/${BADGES33.length}</span></div></div>
+        <button class="lb-card lb-cardb" type="button" data-lb="roles"><b>המשמר שלך בעזרה</b><div class="lb-row"><span>שימשת</span><span>${sv ? esc(sv.replace(/^שימשת /, '')) : '—'}</span></div>${tt.slice(0, 2).map((a) => `<div class="lb-row"><span>${a.icon} ${esc(a.he)}</span><span>${esc(a.title)}</span></div>`).join('') || '<div class="lb-row"><span>🎭 ספר התפקידים</span><span>›</span></div>'}</button>
         <button class="lb-door" type="button" data-lb="book"><i>📜</i><span><b>ספר הזכרונות</b><small>${bd ? `${bd} עיטורים שלכם` : 'מה מחכה לכם בעזרה'}</small></span></button>
         <div class="lb-card"><b>משימות הממונה — יום ${tn.day}</b>${tasks.map((q) => `<div class="lb-task${q.done ? ' done' : ''}"><span>${esc(q.text)}</span><span>${q.done ? '✓' : `+${DAY33.taskReward || 5}🪙`}</span></div>`).join('')}</div>
       </div>
@@ -238,6 +253,7 @@ export function createLobby(o = {}) {
     if (name === 'full') { try { const d = doc.documentElement; if (doc.fullscreenElement) doc.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen(); } catch (e) { /* */ } return true; }
     if (name === 'shop') { on.shop && on.shop(); return true; }
     if (name === 'book') { on.book && on.book(); return true; }
+    if (name === 'roles') { if (on.roles) on.roles(); else if (on.book) on.book(); return true; }   // ── fable32 (build 30) ── (the card of the titles opens the roles book) ── /fable32 ──
     if (name === 'merchant') { on.merchant && on.merchant(); return true; }
     if (name === 'tiles' || name === 'pen' || name === 'm3') { st.games = false; play(name); return true; }   // ── fable32 (build 28) ── (the picker closes) ── /fable32 ──
     return false;

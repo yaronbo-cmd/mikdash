@@ -20,8 +20,9 @@ test('build 25: BLEM25 — six kinds × eight places = 48 blemishes (המחשה)
   assert.deepEqual(BLEM25.cats.map((c) => c.id), ['wart', 'crack', 'cloud', 'wound', 'tear', 'swell']); assert.deepEqual([...BLEM25.dirt], ['straw', 'mud']);
   assert.ok(BLEM25.cats.every((c) => c.he) && BLEM25.regs.every((r) => r.he)); assert.equal(BLEM25.regs[6].id, 'back');
 });
-test('build 25: P25 — at most two rejections, a false approval costs 3.2 s, the dawn in 26 s, the times 8–24 s, 120 points', () => {
-  assert.equal(P25.rej, 2); assert.equal(P25.fals, 3.2); assert.equal(P25.dawn, 26); assert.deepEqual([...P25.tT], [8, 24]); assert.equal(P25.score, 120);
+// ── fable32 (build 30) ── P25.tT (the own time's 8–24 s in the mastery) and P25.fast are gone — the rating is accuracy ── /fable32 ──
+test('build 25: P25 — at most two rejections, a false approval costs 3.2 s, the dawn in 26 s, 120 points (no time scale — build 30)', () => {
+  assert.equal(P25.rej, 2); assert.equal(P25.fals, 3.2); assert.equal(P25.dawn, 26); assert.equal(P25.tT, undefined); assert.equal(P25.fast, undefined); assert.equal(P25.score, 120);
 });
 test('build 25: the third morning\'s lot is the lamb; at the pen\'s stand the inspection begins (gate25, the scan)', async () => {
   const R = await pen(); assert.equal(R.E.lot23(), 'lamb'); assert.ok(R.E.p25on); assert.equal(ph(R), 'scan'); assert.equal(R.E.p25().k, 0);

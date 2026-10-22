@@ -26,6 +26,8 @@ import { createPen25 } from './pen25.js';
 import { createHeichal26 } from './heichal26.js';
 import { createDam27 } from './dam27.js';   // ── fable32 (build 27) ── ── /fable32 ──
 import { createPis23 } from './pis23.js';
+import { createEnd30 } from './end30.js';   // ── fable32 (build 30) ── an act's end: its source line, tappable ── /fable32 ──
+import { RATE30, servedHe30 } from './rate30.js';
 const F17 = Object.freeze({
   slot: 56,
   flyS: 0.55,
@@ -113,6 +115,16 @@ body.f17-on .s29-st.cue{animation:s29cue 1.4s ease-in-out infinite alternate;box
 @keyframes f17-stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-4deg) scale(1.9)}22%{opacity:1;transform:translate(-50%,-50%) rotate(-4deg) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-56%) rotate(-4deg) scale(1.05)}}
 @keyframes f17-popup{0%{opacity:0;margin-top:8px}15%{opacity:1;margin-top:0}75%{opacity:1}100%{opacity:0;margin-top:-14px}}
 @keyframes f17-star{from{transform:scale(0) rotate(-40deg)}to{transform:scale(1) rotate(0)}}
+/* ── fable32 (build 30) ── the step card is the act's one line; a word of feedback (sy-ok gold, sy-no amber — never red); at the act's end
+   its rating: מהודר gold and glowing, כשר cream, טעון תיקון soft sand. The day's summary: the day's ratings in place of the stars ── */
+.f17-card.sy-ok span{color:#FFE6A0}.f17-card.sy-no span{color:#FFC690}.f17-card.sy-ok,.f17-card.sy-no{animation:f17-pop .3s ease-out}
+.f17-card.r30-mehudar{border-color:#FFF1C8;box-shadow:0 0 0 2px rgba(255,214,110,.45),0 0 18px rgba(255,214,110,.7)}.f17-card.r30-mehudar span{color:#FFD66E;font-size:20px;text-shadow:0 0 10px rgba(255,214,110,.75)}.f17-card.r30-mehudar i{color:#FFD66E;font:900 22px/1 Heebo,system-ui,sans-serif}
+.f17-card.r30-kasher span{color:#FFF6DA;font-size:19px}.f17-card.r30-kasher i{font:900 20px/1 Heebo,system-ui,sans-serif;color:#F2E6C8}
+.f17-card.r30-tikkun{border-color:#B8A88A}.f17-card.r30-tikkun span{color:#E6D9BE;font-size:17px}.f17-card.r30-tikkun i{font:900 18px/1 Heebo,system-ui,sans-serif;color:#D8CDB8}
+.f17-sum .rt{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 2px}.f17-sum .rt i{font-style:normal;display:inline-block;transform:scale(0);font:900 17px/1 Heebo,system-ui,sans-serif;padding:5px 12px;border-radius:12px}
+.f17-sum .rt i.mehudar{background:#FFD66E;color:#2A1804;box-shadow:0 0 14px rgba(255,214,110,.7)}.f17-sum .rt i.kasher{background:#F2E6C8;color:#2A1804}.f17-sum .rt i.tikkun{background:#D8CDB8;color:#3A3328}.f17-sum .rt i.in{animation:f17-star .45s cubic-bezier(.3,1.6,.5,1) forwards}
+.f17-sum button.src30{min-height:44px;font:800 16px/1 Heebo,system-ui,sans-serif;margin:0 0 8px;background:#FFECBE1F;color:#FFF6DA;border:2px solid #E2B65A;box-shadow:none;animation:none}
+.f17-sum li b.mehudar{color:#FFD66E}.f17-sum li b.kasher{color:#FFF6DA}.f17-sum li b.tikkun{color:#E6D9BE}.f17-sum .sv{font:800 13px/1.2 Heebo,system-ui,sans-serif;opacity:.85;margin:0 0 2px}
 `;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const mmss = (s) => {
@@ -386,10 +398,34 @@ export function createFocus17(o = {}) {
     } catch (e) {
       console.warn('[focus17] d27', e && e.message);
     }
+  // ── fable32 (build 30) ── an act's end: the source line under the top bar, its card on a tap ── /fable32 ──
+  let r30 = null;
+  if (E.act30)
+    try {
+      r30 = createEnd30({ E, sfx: o.sfx, doc });
+    } catch (e) {
+      console.warn('[focus17] r30', e && e.message);
+    }
+  // ── fable32 (build 30) ── while an act is in progress (its one line) or its rating shows, the day's other words wait (a task done, a
+  // level, a badge, the coins' first note): later30 holds them till the act and its word are over ── /fable32 ──
+  const quiet30 = () => {
+      try {
+        return !!((E.act30 && E.act30()) || (E.word30 && E.word30()));
+      } catch (e) {
+        return false;
+      }
+    },
+    held30 = [],
+    later30 = (fn) => {
+      if (quiet30()) held30.push(fn);
+      else fn();
+    },
+    stampQ = (...a) => later30(() => stamp(...a)),
+    popQ = (text) => later30(() => pop(text));
   let fx = null;
   if (E.l18)
     try {
-      fx = createFx18({ E, view, sfx: o.sfx, doc, top, slot: slotOf, sparks, stamp, note: pop, pop: o.sfx && o.sfx.pop });
+      fx = createFx18({ E, view, sfx: o.sfx, doc, top, slot: slotOf, sparks, stamp: stampQ, note: popQ, pop: o.sfx && o.sfx.pop });   // ── fable32 (build 30) ── (its words wait for an act's end) ── /fable32 ──
     } catch (e) {
       console.warn('[focus17] fx18', e && e.message);
     }
@@ -411,15 +447,17 @@ export function createFocus17(o = {}) {
         if (at && !fx) sparks(at, 12, '#FFB066');
         fly(`+${ev.n} 🔥`, at, fire);
       } else if (ev.type === 'done') {
-        stamp(ev.text, ev.sub || '');
+        // ── fable32 (build 30) ── (in an act — the pyre's logs sorted — its one line says it for a moment; else the stamp, after the act's word) ── /fable32 ──
+        if (E.act30 && E.act30() && E.say30) E.say30(String(ev.text || '').replace(/!$/, ' ✓'), 'ok', 1.8);
+        else stampQ(ev.text, ev.sub || '');
         sfx('chord17');
         buzz([25, 40, 25]);
       } else if (ev.type === 'task')
-        setTimeout(() => {
+        setTimeout(() => later30(() => {
           stamp('משימה ✓', `${String(ev.text || '').replace(/^\S+\s/, '')} · +${ev.pay | 0} פרוטות`);
           sfx('chord17', { up: 1 });
           buzz([20, 30, 20, 30, 40]);
-        }, 700);
+        }), 700);
       else if (ev.type === 'tamid')
         if (ev.onTime) {
           stamp(`תמיד של ${ev.when} — בזמן ★`, 'החצוצרות תוקעות');
@@ -428,8 +466,8 @@ export function createFocus17(o = {}) {
       else if (ev.type === 'late') {
         stamp('"התמיד איחר"', `הממונה: ${ev.why || ''} — העלו עצים`, 'late');
         buzz([60, 80, 60]);
-      } else if (ev.type === 'level') setTimeout(() => pop(`🔥 המערכה ברמה ${ev.level}`), 1200);
-      else if (ev.type === 'pop') pop(ev.text);
+      } else if (ev.type === 'level') setTimeout(() => popQ(`🔥 המערכה ברמה ${ev.level}`), 1200);
+      else if (ev.type === 'pop') (/^📜/.test(String(ev.text || '')) ? popQ : pop)(ev.text);   // ── fable32 (build 30) ── (a badge's word waits for an act's end) ── /fable32 ──
       else if (ev.type === 'arrive') {
         stat.dings++;
         sfx('ding17');
@@ -444,21 +482,43 @@ export function createFocus17(o = {}) {
   function showSummary(sum) {
     closeSummary();
     stat.summaries++;
-    let stars = [0, 1, 2].map((i) => `<i class="${i < sum.stars ? 'on' : ''}">★</i>`).join(''),
+    // ── fable32 (build 30) ── the day's ratings in place of the stars (they were the tamids on time): a chip for each count (מהודר · כשר ·
+    // טעון תיקון), each act's word, "שימשת N בקרים"; no points (the score of Phase A is not the day's) ── /fable32 ──
+    let extra = null;
+    const R = sum.r30 || { h: 0, k: 0, t: 0 },
+      chips = ['mehudar', 'kasher', 'tikkun']
+        .map((r) => [r, R[RATE30.key[r]] | 0])
+        .filter(([, n]) => n > 0)
+        .map(([r, n]) => `<i class="${r}">${RATE30.icon[r]} ${RATE30.he[r]}${n > 1 ? ` ×${n}` : ''}</i>`)
+        .join(''),
+      acts = (sum.ratings || []).map((x) => `<li>${esc(x.he)}: <b class="${esc(x.rating)}">${esc(RATE30.he[x.rating] || '')}</b></li>`).join(''),
       tamids = (sum.tamids || []).map((tm) => `<li>תמיד של ${esc(tm.when)}: <b>${tm.ok ? 'בזמן ✓' : 'באיחור'}</b></li>`).join(''),
-      extra = null,
-      badges = (sum.badges || []).map((b) => `<li>📜 ${esc(b.text)}: <b>+${b.pay | 0}</b></li>`).join('');
+      badges = (sum.badges || []).map((b) => `<li>📜 ${esc(b.text)}: <b>+${b.pay | 0}</b></li>`).join(''),
+      sv = servedHe30(sum.served | 0);
     summary = mk(
       'f17-sum',
-      `<div class="c" role="dialog" aria-label="סוף היום"><h2>יום ${sum.day | 0} הסתיים</h2><div class="st" aria-label="${sum.stars} כוכבים">${stars}</div>
-      <ul>${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li>${sum.d21 ? `<li>תרומת הדשן: <b>${sum.d21.completionTimeSeconds} ש׳ · ${sum.d21.embersSpilledCount ? `שפיכה ${sum.d21.embersSpilledCount}` : 'בלי שפיכה ✓'}</b></li>` : ''}${(extra = sum.m22) ? `<li>המערכה: <b>מיון ${extra.sortingTimeSeconds} ש׳ · ${extra.invalidWoodSelectedCount ? `טעויות ${extra.invalidWoodSelectedCount}` : 'בלי טעויות'} · אוויר ${extra.airflowQualityScore}</b></li>` : ''}${(extra = sum.p23) ? `<li>תפקיד הבוקר: <b>${esc(extra.he)}${extra.m != null ? ` · ${extra.m}%${extra.rec ? ' · שיא חדש!' : ''}` : ''}</b></li>` : ''}${(extra = sum.p26) ? `<li>תפקיד השחר: <b>${esc(extra.he)}${extra.m != null ? ` · ${extra.m}%${extra.rec ? ' · שיא חדש!' : ''}` : ''}</b></li>` : ''}<li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>${(extra = sum.c18) ? `<li>לקופת המקדש היום: <b>+${extra.earn} 🪙</b></li><li>בקופת המקדש: <b>${extra.total} 🪙</b></li>${extra.next ? `<li>${extra.next.icon} ${extra.next.he}: <b>${extra.next.have}/${extra.next.price} 🪙</b></li>` : ''}` : `<li>פרוטות היום: <b>+${sum.perutot | 0}</b></li>`}<li>ניקוד היום: <b>+${(sum.score | 0).toLocaleString('he-IL')} ★</b></li>${badges}</ul>
-      <div class="pr">${esc(sum.praise || '')}</div><button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
+      `<div class="c" role="dialog" aria-label="סוף היום"><h2>יום ${sum.day | 0} הסתיים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<div class="rt" aria-label="הדירוגים של היום">${chips}</div>
+      <ul>${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>${(extra = sum.c18) ? `<li>לקופת המקדש היום: <b>+${extra.earn} 🪙</b></li><li>בקופת המקדש: <b>${extra.total} 🪙</b></li>${extra.next ? `<li>${extra.next.icon} ${extra.next.he}: <b>${extra.next.have}/${extra.next.price} 🪙</b></li>` : ''}` : `<li>פרוטות היום: <b>+${sum.perutot | 0}</b></li>`}${badges}</ul>
+      <div class="pr">${esc(sum.praise || '')}</div>${(sum.ratings || []).length && r30 ? '<button type="button" class="src30" data-f17="src">📜 המקורות של היום</button>' : ''}<button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
     );
-    summary.querySelectorAll('.st i').forEach((st, i) =>
+    // ── fable32 (build 30) ── (every act's sources, again, without a clock: the day's card — end30's openDay) ── /fable32 ──
+    {
+      const sb = summary.querySelector('[data-f17=src]');
+      if (sb) {
+        sb.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+        sb.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          try {
+            r30.openDay(sum.ratings);
+          } catch (e) {}
+        });
+      }
+    }
+    summary.querySelectorAll('.rt i').forEach((st, i) =>
       setTimeout(
         () => {
           st.classList.add('in');
-          if (i < sum.stars) sfx('starPop', { n: i + 1 });
+          sfx('starPop', { n: i + 1 });
         },
         300 + i * 330,
       ),
@@ -625,6 +685,13 @@ export function createFocus17(o = {}) {
       if (cardProg.textContent !== prog) cardProg.textContent = prog;
       card.style.visibility = '';
       card.classList.toggle('fc', !!step.fire);
+      // ── fable32 (build 30) ── (a word of feedback; the act's rating) ── /fable32 ──
+      const sy = step.say ? (/^r30-/.test(step.say) ? step.say : 'sy-' + step.say) : '';
+      if (card.__sy !== sy) {
+        if (card.__sy) card.classList.remove(card.__sy);
+        if (sy) card.classList.add(sy);
+        card.__sy = sy;
+      }
     } else card.style.visibility = 'hidden';
     const tl = tamidLine(F.tamid, fuel);
     if (tam.__h !== tl.text) {
@@ -646,6 +713,13 @@ export function createFocus17(o = {}) {
     }
     setBar(F.bar || []);
     setHot(F);
+    if (held30.length && !quiet30() && now() - (held30.t || 0) > 1.3) {   // ── fable32 (build 30) ── (the words that waited: one at a time) ── /fable32 ──
+      held30.t = now();
+      const fn = held30.shift();
+      try {
+        fn();
+      } catch (e) {}
+    }
   }
   let rotEl = null,
     pausedByRot = false,
@@ -781,6 +855,7 @@ export function createFocus17(o = {}) {
         if (p25) p25.destroy();
         if (h26) h26.destroy();
         if (d27) d27.destroy();   // ── fable32 (build 27) ── ── /fable32 ──
+        if (r30) r30.destroy();   // ── fable32 (build 30) ── ── /fable32 ──
         try {
           if (offEv) offEv();
         } catch (e) {}

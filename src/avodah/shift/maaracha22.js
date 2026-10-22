@@ -12,6 +12,7 @@
 import * as THREE from 'three';
 import { addDrawer, onTick } from './draw.js';
 import { M22, P23 } from './day33.js';
+import { reg30, draft30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 export function createMaaracha22(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -242,12 +243,11 @@ export function createMaaracha22(o = {}) {
     hint = mk('d21-h m22-h', ''),
     nameTag = mk('m22-l', ''),
     flashEl = mk('m22-f', ''),
-    doneEl = mk('d21-w', '<b>המערכה הגדולה נבנתה כהלכה!</b><small></small>'),
+    doneEl = mk('d21-w', ''),   // ── fable32 (build 30) ── (was "המערכה הגדולה נבנתה כהלכה! +N ★ …" — the step card's rating and end30's source line now) ── /fable32 ──
     air = mk('m22-a', 'אוויר<b>—</b><u><s></s><em></em></u><q></q>'),
     goRing = mk('d21-r m22-go', '🔥');
   goRing.setAttribute('aria-hidden', 'true');
   let [airB, airS, airEm, airQ] = ['b', 's', 'em', 'q'].map((s) => air.querySelector(s)),
-    doneSmall = doneEl.querySelector('small'),
     setHint = (html) => {
       if (hint.__h !== html) {
         hint.__h = html;
@@ -256,7 +256,9 @@ export function createMaaracha22(o = {}) {
       }
       hint.classList.toggle('on', !!html);
     },
+    // ── fable32 (build 30) ── (a word of feedback is the step card's line for a moment; its source, where it had one, at the end) ── /fable32 ──
     flash = (html, cls) => {
+      if (E.say30 && E.say30(String(html).replace(/<small>.*$/, '').replace(/<[^>]+>/g, ''), cls === 'bad' ? 'no' : 'info', cls === 'bad' ? 1.8 : 1.3)) return;
       flashEl.innerHTML = html;
       flashEl.className = 'm22-f ' + cls;
       flashEl.offsetWidth;
@@ -438,7 +440,7 @@ export function createMaaracha22(o = {}) {
           );
         }
       }
-      const first = !veteran;
+      const first = !veteran && false;   // ── fable32 (build 30) ── (the wood's name under the log is gone: the first morning's line says "זית, גפן, מתולע — שמאלה"; the woods' sources at the end) ── /fable32 ──
       nameTag.classList.toggle('on', !!L && first);
       if (L && first) {
         const p = proj(SHOW[0], SHOW[1] - RAD[L.size] * SHOW_K[L.size] - 0.22, SHOW[2]),
@@ -446,20 +448,10 @@ export function createMaaracha22(o = {}) {
         if (nameTag.textContent !== txt) nameTag.textContent = txt;
         if (p) nameTag.style.transform = `translate(${(p.x - nameTag.offsetWidth / 2) | 0}px,${(p.y + 4) | 0}px)`;
       }
-      if (sorting) {
-        const budget = (E.p23on ? P23 : M22).budget[veteran],
-          used = Number.isFinite(k.s0) ? st.t - k.s0 : 0;
-        setHint(`<u>ימינה → כשר: תאנה, אגוז, עץ שמן</u> · <s>פסול: זית, גפן, מתולע ← שמאלה</s><small>${SRC_KASHER}</small><i></i>`);
-        if (hint.__i) {
-          hint.__i.style.transform = `scaleX(${Math.max(0, 1 - used / budget).toFixed(3)})`;
-          hint.__i.classList.toggle('ov', used > budget);
-        }
-      } else
-        setHint(
-          stacking
-            ? `${ph === 'ready' ? 'הקישו — הציתו דרך הרווח 🔥' : `${(E.p23on ? LAYERS23 : LAYERS)[Math.min(2, k.layer - 1)]} · סטיק ↔ מזיז · הקשה מניחה`}<small>${SRC_RUACH}</small>`
-            : '',
-        );
+      // ── fable32 (build 30) ── (the hint card is gone while he sorts and lays: the step card's one line; its words — "ימינה → כשר: תאנה,
+      // אגוז, עץ שמן · פסול: זית, גפן, מתולע ← שמאלה", the layers (LAYERS, LAYERS23) and their sources — at the end, SRC30.m22; the sort's
+      // time bar went with it: the rating has no clock) ── /fable32 ──
+      setHint('');
       air.classList.toggle('on', stacking);
       if (stacking) {
         const gap = k.pv != null ? k.pv : k.gap,
@@ -722,7 +714,7 @@ export function createMaaracha22(o = {}) {
           const why = BAD_WOOD[ev.worm ? 'worm' : ev.sp] || BAD_WOOD.olive;
           snd('err22');
           buzz([70, 60, 70]);
-          flash(`${why[0]}<small>${why[1]} · ${ev.warn ? 'הפעם רק אזהרה' : `−${ev.pts} סדר וזריזות`}</small>`, 'bad');
+          flash(`${why[0]}${ev.warn ? ' · הפעם רק אזהרה' : ''}<small>${why[1]}</small>`, 'bad');   // ── fable32 (build 30) ── (no points; the source at the end) ── /fable32 ──
         } else {
           snd('whoosh');
           if (ev.fit) flash(`${WOOD_HE[ev.sp]} — כשר ↺`, 'ok');
@@ -749,24 +741,14 @@ export function createMaaracha22(o = {}) {
       } else if (type === 'm22no') {
         snd('crack22');
         buzz([40, 30, 40]);
-        flash(`${ev.ly === 1 ? 'בסיס המערכה דורש גזרים עבים!' : LAYERS[ev.ly - 1]}`, 'bad');
+        flash(ev.ly === 1 ? 'לבסיס — גזרים עבים' : ev.ly === 2 ? 'כאן — הבינוני' : 'כאן — הדק', 'bad');   // ── fable32 (build 30) ── (were: "בסיס המערכה דורש גזרים עבים!" / the layer's line) ── /fable32 ──
       } else if (type === 'm22air') {
         snd('err22');
         buzz([40, 30, 40]);
-        flash(
-          `${ev.why === 'tight' ? 'צפוף מדי! הרחיקו את הגזר ↔' : 'רווח גדול מדי — קרבו את הגזר ↔'}<small>אוויר ${ev.gap}% · ${E.band22()
-            .map((v) => Math.round(v * 100))
-            .join('–')}% · ורוח היה בין הגזרין</small>`,
-          'bad',
-        );
+        flash(`${ev.why === 'tight' ? 'צפוף מדי — הרחיקו ↔' : 'רחוק מדי — קרבו ↔'}<small>אוויר ${ev.gap}%</small>`, 'bad');   // ── fable32 (build 30) ── (the air's % on its gauge; "ורוח היה בין הגזרין" at the end) ── /fable32 ──
       } else if (type === 'm22done') {
         flashEl.classList.remove('on');
-        doneSmall.textContent = `+${ev.finalScoreEarned} ★ סדר וזריזות · ${ev.coins} 🪙 · אוויר ${ev.airGap != null ? ev.airGap + '%' : ev.airflowQualityScore} · תמיד ב, ד · טיוטה`;
-        doneEl.classList.remove('on');
-        doneEl.offsetWidth;
-        doneEl.classList.add('on');
-        setTimeout(() => doneEl.classList.remove('on'), 2e3);
-        snd('blast21');
+        snd('blast21');   // ── fable32 (build 30) ── (the end's banner is the step card's rating; its line "תמיד ב, ד" end30's) ── /fable32 ──
       }
     }),
     api = {
@@ -810,6 +792,18 @@ const SRC_KASHER = '"כל העצים כשרים למערכה חוץ משל זי�
 const SRC_RUACH = '"ורוח היה בין הגזרין, שהיו מציתין את האליתא משם" — תמיד ב, ד · טיוטה';
 const LAYERS = ['שכבה 1 — עבים לבסיס, ראשיהם אל התפוח', 'שכבה 2 — בינוניים, שתי וערב', 'שכבה 3 — דקים: האליתא, במרכז'];
 const LAYERS23 = ['שכבה 1 — שני עבים לבסיס, ראשיהם אל התפוח', 'שכבה 2 — בינוני אחד, לרוחבם', 'שכבה 3 — דק: האליתא, במרכז'];
+// ── fable32 (build 30) ── the pyre's lines at its end: the woods, the air, the unfit (BAD_WOOD's sources, each now with its "טיוטה"),
+// the layers (a game's order of the logs — המחשה) ── /fable32 ──
+reg30('m22', {
+  chip: SRC_KASHER,
+  all: [
+    SRC_KASHER,
+    'ימינה → כשר: תאנה, אגוז, עץ שמן · פסול: זית, גפן, מתולע ← שמאלה — המחשה',
+    ...Object.values(BAD_WOOD).map(([a, b]) => draft30(`${a}: ${b}`)),
+    SRC_RUACH,
+    `${LAYERS23.join(' · ')} — המחשה`,
+  ],
+});
 const END_COLOR = { fig: '#E6D6B4', walnut: '#B98F66', pine: '#EAB27A', olive: '#CDBF94', vine: '#A47A52' };
 const SHOW_K = { L: 0.55, M: 0.62, S: 0.85 };
 const { r: RAD, len: LEN } = M22;

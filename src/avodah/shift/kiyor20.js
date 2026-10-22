@@ -9,6 +9,12 @@
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
 import { onTick } from './draw.js';
 import { K20 } from './day33.js';
+import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+// ── fable32 (build 30) ── the laver's lines: no longer over the world while he washes (the step card's one line: "שני אגודלים — החזיקו");
+// at its end the rating and ONE source line, a tap opens both (end30.js) ── /fable32 ──
+const SRC_K20 = '"עד שתקדש ידיך ורגליך מן הכיור" — תמיד א, ד · טיוטה';
+const SRC_MM = 'הממונה: ״ימין על ימין, שמאל על שמאל״ — זבחים יט ע״ב · טיוטה';
+reg30('kiyor', { chip: SRC_K20, all: [SRC_K20, SRC_MM] });
 export function createKiyor20(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -97,8 +103,10 @@ export function createKiyor20(o = {}) {
       for (const s2 of ['L', 'R']) rings[s2].classList.remove('pl');
     } else stat.ups++;
   }
-  const word = mk('k20-w', '<b>ידיים ורגליים מקודשות</b><small>"עד שתקדש ידיך ורגליך מן הכיור" — תמיד א, ד · טיוטה</small>');
-  word.setAttribute('role', 'status');
+  // ── fable32 (build 30) ── (the end's word "ידיים ורגליים מקודשות" and its source over the world are gone: the step card says its rating,
+  // end30 its source line — SRC_K20) ── /fable32 ──
+  const word = mk('k20-w', '');
+  word.setAttribute('aria-hidden', 'true');
   let waves = [0, 1, 2].map(() => mk('k20-v', null)),
     wasOn = false,
     flowing = false,
@@ -183,9 +191,7 @@ export function createKiyor20(o = {}) {
         snd('ui');
         if (ev.first) {
           stat.first++;
-          for (const side of ['L', 'R']) rings[side].classList.add('pl');
-          const mm = mk('k20-mm', 'הממונה: ״ימין על ימין, שמאל על שמאל״<small>זבחים יט ע״ב · טיוטה</small>');
-          setTimeout(() => mm.remove(), 4300);
+          for (const side of ['L', 'R']) rings[side].classList.add('pl');   // ── fable32 (build 30) ── (the ממונה's card over the world is gone: SRC_MM, at the end) ── /fable32 ──
         }
       } else if (type === 'unlock') unlock(ev);
       else if (type === 'gate') gate(ev);
@@ -197,10 +203,6 @@ export function createKiyor20(o = {}) {
     snd('wbell20');
     setTimeout(() => snd('unlock20'), 260);
     buzz([30, 40, 30, 40, 60]);
-    word.classList.remove('on');
-    word.offsetWidth;
-    word.classList.add('on');
-    setTimeout(() => word.classList.remove('on'), 1400);
     waves.forEach((v, i) => {
       try {
         v.animate(
@@ -228,6 +230,8 @@ export function createKiyor20(o = {}) {
     stat.gates++;
     snd('drip');
     buzz(10);
+    // ── fable32 (build 30) ── (in an act the note is its one line for a moment, not a second word over the world) ── /fable32 ──
+    const inAct = !!(E.act30 && E.act30());
     const slot = (o.slot && ev.id && o.slot(ev.id)) || null,
       r = slot ? slot.getBoundingClientRect() : null,
       x = r ? r.left + r.width / 2 : (innerWidth || 844) / 2,
@@ -248,9 +252,12 @@ export function createKiyor20(o = {}) {
                   ? 'קודם תרומת הדשן 🔥'
                   : 'קודם לכיור 💧',
       ),
-      w = note.getBoundingClientRect().width || 120,
+      w = inAct ? 0 : note.getBoundingClientRect().width || 120,
       left = Math.max(8, Math.min((innerWidth || 844) - w - 8, x - w / 2));
-    try {
+    if (inAct) {
+      note.remove();
+      if (E.say30) E.say30(note.textContent, 'no', 1.3);
+    } else try {
       const an = note.animate(
         [
           { transform: `translate(${left}px,${y}px)`, opacity: 0 },

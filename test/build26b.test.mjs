@@ -41,8 +41,9 @@ test('build 26b: the faster pour — 1.5 a second to the knee (0.7), so the band
   const tLo = P.knee / P.r0 + (P.lo - P.knee) / P.r1, tHi = P.knee / P.r0 + (P.hi - P.knee) / P.r1;
   assert.ok(Math.abs(tLo - 1.055) < 0.01 && Math.abs(tHi - 1.349) < 0.01, `${tLo} ${tHi}`); assert.ok(Math.abs(tHi - tLo - 0.29) < 0.01, 'the band 0.29 s wide');
 });
-test('build 26b: the menorah\'s time scale 13 → 39 s (P26.tT) — the mastery\'s time part', () => {
-  assert.deepEqual([...P26.tT.menorah], [13, 39]); assert.deepEqual([...P26.tT.inner], [4, 12]);
+// ── fable32 (build 30) ── the mastery's time part is gone (the owner, 22.10 09:19: "לפי דיוק; מהירות רק כקצב בתוך הפעולה") ── /fable32 ──
+test('build 26b: the menorah\'s time scale (P26.tT) is gone — the mastery has no time part (build 30)', () => {
+  assert.equal(P26.tT, undefined); assert.equal(P26.fast, undefined);
 });
 test('build 26b: a pause releases the held pour — nothing judged ("r26hold" off, why pause), and no new hold while paused', async () => {
   const R = await toMenorah(); R.E.r26swipe(0, -0.5, 100); R.E.r26swipe(0.5, 0, 100);

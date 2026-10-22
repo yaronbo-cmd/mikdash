@@ -55,7 +55,7 @@ const optionalParts = {
   },
 };
 // the build.mjs these settings were copied from (warn when it changes: re-copy, or the parity build is not the real one)
-const BUILD_SHA = '793c85e18377f550';
+const BUILD_SHA = '0dd9b12546f8c45f';   // (R9: only the budget warning changed, 5 → 6 MiB; the esbuild options are the same)
 export function checkBuildMjs(root = ROOT) {
   const s = fs.readFileSync(path.join(root, 'build.mjs'), 'utf8');
   const h = sha(s);

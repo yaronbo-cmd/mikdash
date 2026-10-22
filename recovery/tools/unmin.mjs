@@ -22,8 +22,11 @@ const prettier = require('prettier');
 const args = process.argv.slice(2);
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
 const file = args.find((a, i) => !a.startsWith('--') && !['--names', '--out', '--head'].includes(args[i - 1]));
-const src = fs.readFileSync(file, 'utf8');
 const NAMES = opt('--names') ? JSON.parse(fs.readFileSync(opt('--names'), 'utf8')) : { top: {}, scopes: {} };
+// names.draftPatches: [find, replace] on the draft before anything (e.g. rename.mjs's `let a; … ({ r: a } = T);` back to the source's
+// `const { r: a } = T;`); each find must occur exactly once
+let src = fs.readFileSync(file, 'utf8');
+for (const [f, r] of NAMES.draftPatches || []) { const n = src.split(f).length - 1; if (n !== 1) throw new Error(`draft patch "${f.slice(0, 60)}" occurs ${n} times`); src = src.replace(f, () => r); }
 const parse = (s) => acorn.parse(s, { ecmaVersion: 'latest', sourceType: 'module', ranges: true, locations: true });
 const analyze = (ast) => escope.analyze(ast, { ecmaVersion: 2022, sourceType: 'module' });
 const ast = parse(src);

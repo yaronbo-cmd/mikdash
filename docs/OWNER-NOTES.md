@@ -69,3 +69,81 @@ Compiled 2.10 (03:30 Jerusalem) at the owner's word: "תן בריף על כל ה
 - The owner: "שים לב ללחיצות של הילד עם שתי האצבעות בצידי המסך… באחד זז ובשני מכה… זה גם חשוב לגבינו". Seen: a floating move joystick under the left thumb (it appears where the thumb lands); the right thumb: a tap = an auto-aimed attack, a drag = manual aim with the aim drawn IN THE WORLD (a white cone from the brawler), release = fire; an ammo bar of 3 under the brawler; a super button that charges from hits and glows when ready; a gadget with a cooldown ring; both thumbs at once.
 - **Decision (07:57): "לרוחב."** The game moves to LANDSCAPE for the two-thumb control (replacing "phone portrait first" in PROJECT.md §2 for the building site; whether the whole game — Phase B, the book, the menus — goes landscape too is ⚑ asked). The proposal it answers: the kohen driven by the player — a floating joystick (left thumb) walks him anywhere on the site; one context "work" button (right thumb: strike at the banker, tread at the wheel, saw at the bench, pull at the cord; a tap = the basic act, a drag = an aimed act with the aim drawn in the world); a small "יד של אומן" button charged by good strokes; "מה נעשה עכשיו?" becomes markers in the world; the camera follows him (replacing the fixed frames — K80 to be re-defined for a following camera). First as an experiment on the Mount only, played by the owner and his family before it spreads.
 - **11:12 — the recording with sound** (2:53; the game until 2:10; four ~0.6 s dropouts in the recording, refilled by the packet timestamps so picture and sound line up — checked at the release to the hunt, 1:49.5, to a tenth of a second). Findings and targets: docs/PRINCIPLES.md §5; new visual notes (one-line imperative banners at every phase change, the "BRAWL!" stamp, the dark wait with 10…1, sight cones drawn on the ground) in §1.
+
+## 18.10–22.10.2026 — restored after the environment loss (22.10.2026)
+> **Restoration note.** The container was replaced on 21.10.2026 and this file's entries from 18.10 on were lost. Rebuilt on 22.10 from the transcript: (1) the tail of the file as it stood on 21.10 (19.10 22:00 – 21.10 08:25) is **verbatim**, copied from the transcript's own output; (2) the owner's earlier messages (18.10 – 19.10) are only what the summary kept — its quotes, with its own ellipses; (3) the owner's messages of 21.10 07:55 – 22.10 00:57 are quoted from the transcript (short ones in full; the long spec-bearing ones are referred to their spec files in docs/specs/). Entries before 19.10 22:00 are lost except where named below. Not included: an off-topic personal question the owner asked at 22.10 00:15 (not a project note).
+
+### 18.10 – 19.10 (from the summary's list; times lost except the first)
+- 18.10 17:07: feedback on build 16 + the admin/kohen ladder idea: "בנה מסמך חוות דעת בהתאם ביחד עם איפכא מסתברא לפני שנמשיך ל17. או שלדעתך אפשר כבר להמשיך ל17 במקביל? שים לב שאתה אופוס לא פייבל."
+- On the manager/CEO: "המנהל דואג להכול, חוץ מעבודות הקודש… הלילה הוא מקומו הטבעי של המנהל רק בזמן שהמשחק עצמו מספיק מעניין… תחשוב בענק. יש לך מפעל שחיטה קפדני ואתה המנכ"ל שלו. זה המשחק שאני מכוון אליו. תכניס את זה לקובץ הראשי שלנו." (→ PROJECT.md §1 and HANDOFF §5ב.)
+- "שלח לפה קישור לנייד מסך מלא גרסה אחרונה"
+- A video + "טוב שיחקנו קצת. הערה שקיבלתי מהילדה: מרוב בועות לא רואים מה קורה… מד האש… לא מהבהב… מתחת למסך יש ארבע איורים… אין בכלל ג'וי סטיק… לפני שאתה ממשיך בתכנות בוא נעשה שיחה. בעברית… הלילה… מיותר כרגע… המלח… הלחם… הנטילת ידיים… הקטורת… צריך לעצור ולעשות חושבים איך לפתח כל תחנה. מה תכננו שיהיה בגרסה הבאה?"
+- "1. חוץ ממד האש… עוד מדדים? 2. השורה התחתונה… 3. כנל לגבי הגויסטיק… אני משאיר לרוחב… איפכא מסתברא. 4. יותר רעידות ויותר חיזוקים… 5. ההליכה בסדר למרות שהגו'יסטיק עדיין קשיח מדי. 6. לגבי המנכ"ל - לא חושב כמו בסרטון."
+- A list of management games from Gemini + "1. אנדרואיד… 2. האם במקביל ל17ב… דף לכל תחנה… 3…"
+- "17ב. רוץ"
+- A screenshot + "הכפתורים למטה לא במרכז. הם גם לא סופרים משימות שבוצעו. הדמות… הולכת באיטיות רבה. האש נגמרת מאוד מהר… האייקונים החומים… לא אומרים לי כלום… לא נלחצים…"
+- "לפני שאני ממשיך אני רוצה לבדוק את הדפי תחנות… הילדה… משחק בית מלון… נעמדת על משימה… מקבלת כסף כתגמול מיידי… גם איפכא מסתברא וגם… פרומפט לגימיני"
+- The Gemini thread + "קרא בעיון השרשור עם ג'ימיני. והטמע. נראה שהכיוון שלו נכון." Then the detailed 3-component spec (the temple coins "תרומת הלשכה/קופת המקדש", the living court, Hard Fun + Juice) and "בהצלחה ב18!"
+- "תמשיך בשלך ב18…" + the Levites' song (Guitar Hero) spec.
+- "עברת לאחרונה לאנגלית תחזור בבקשה לעברית…"; "את זה: בעברית בבקשה:" (he pasted Claude's English text asking for Hebrew). — all replies in Hebrew.
+- "אפשרות ב'. ברור." and then: "אנחנו נשארים עם דמות הכהן הקבועה… כולל במיני-משחק השיר… אין החלפת דמויות, אין לוי צעיר…"
+- The ramp-run spec (station 2): "אני ממשיך פה באיפיונים. תמשיך לרוץ על 18." The salting spec (station 7). The oil + chavitin spec: "אני ממשיך פה באיפיונים, אוקיי?" The laver spec ("כיור", a hard gate, the two-thumb hold). The lamb pen: "דיר טלאים. תחנה 2". And, on the cap: "א. בוא נעלה את התקרה כרגע" (20.10; the bundle cap 5 → 6 MiB).
+
+### The file's tail as it stood on 21.10 (verbatim; the first bullet belongs to an 18.10 entry whose heading is lost)
+- The Gemini prompt: docs/review-18-10/prompt-gemini-tmura-he.txt. Two devil's advocates running (for: an idle-arcade economy designer; against: motivation science + the sacred context).
+
+## 19.10.2026, 22:00 — the next stage's task (not now): the Levites' song mini-game (Guitar Hero style)
+Full spec: docs/specs/shirat-halevi-im-he.md. "תמשיך בשלך ב18. אני רק מעלה לפה משימה לשלב הבא, שלא אשכח."
+
+## 19.10.2026, 22:55 — spec for station 2, the ramp run (next build): docs/specs/rizat-hakevesh-he.md
+
+## 20.10.2026, 09:43 — "אני ממשיך להכניס לפה עוד איפיונים. עבוד כפי הבנתך אבל כל פעם בצע משימה אחת בלבד. התקדמות הדרגתית."
+Specs so far (docs/specs/): the Levites' song, the ramp run, salting, oil + chavitin, the laver, the lamb pen, terumat hadeshen. Order (Claude, by the morning's real order): 21 terumat hadeshen → 22 the pen → 23 oil + chavitin → the song → (the incense later). One build at a time.
+
+## 20.10.2026, 17:56–17:59 — the morning's lot (פיס)
+Claude raised: the pre-dawn morning (laver + deshen + pyre, + the pen) grows to ~2 min before each 3-min day. Proposal A (sources: Yoma 2:1–4): the laver every morning, then a lot gives the player ONE morning task (deshen / pyre / lamb …), other kohanim do the rest in view; no repeat two days running; a new task guaranteed within 2 days; a roles album. The owner: "לדעתי א'. אבל אני רוצה לחשוב על זה קצת עם מומחה למשחק" — the question for the expert: docs/specs/she-ela-mumche-pis-he.txt. **No build until he answers.**
+
+## 21.10.2026, 00:17 — GitHub
+"שכח פה מהדחיפה לגיט האב. תתעלם פה מההוראה הזו. הסתדרתי כבר מהאפליקציה היא דחפה את 22 זה בסדר." — this session never pushes; the owner pushes the builds from the app. The stop hook's "commit and push" is answered by local commits only.
+
+## 21.10.2026, 08:15–08:25 — the Heichal opens; the morning inner tasks; the incense
+- "כן. להתיר כניסה להיכל." — HANDOFF rule 3 updated: the Heichal yes, the Holy of Holies no.
+- Specs: docs/specs/heichal-boker-he.md (the inner altar's ashes, the menorah 5+2, the western lamp lit/out, live-flame care) and docs/specs/ketoret-he.md (the coal pan, the incense and the friend), each verbatim with Claude's source notes.
+
+
+### 21.10.2026 — the owner's messages (times as Asia/Jerusalem; short ones verbatim, long ones referred to their specs)
+- 07:55 — "אם הנר כבה מנין הדליקו מהמזבח החיצון או מזה הפנימי?" (answered in docs/specs/heichal-he.md and heichal-boker-he.md: Tamid 3:9, 6:1).
+- 08:15 — "המשך איפיונים:" — the inner altar's ashes and the menorah's tending (two lots) → docs/specs/heichal-boker-he.md.
+- 08:25 — the incense spec (attachment) + "כן. להתיר כניסה להיכל." + "ממשיך איפיון:" → docs/specs/ketoret-he.md (the entry above).
+- 08:40 — attachment: the blood-throwing spec and the incense updates → docs/specs/zerikat-dam-he.md.
+- 08:50 — attachment + "שרשור עם איפיון נוסף, לעיונך:" (a thread on the High Priest's chavitin; for review, not approved) → docs/specs/minchat-kohen-gadol-he.md.
+- 08:54 — "האם הסדר פה מדויק?" + a description of the individual's flour offering from A to Z → docs/specs/minchat-solet-he.md.
+- 08:57 — "סדר תכלס את זה בצורה מפורטת כדי שנכין איפיון למשחק"
+- 09:40 — attachment + an English text: two flour-offering modules (the tamid's nesachim; the private kemitza) → docs/specs/minchot-shtayim-he.md.
+- 22:53 — "איזה עוד איפיונים חסרים לנו?"
+- 23:04 — attachment (no text): raising the limbs and burning them, the fourth lot → docs/specs/haalaat-evarim-he.md.
+- 23:22 — attachment + "יין:" → docs/specs/nisuch-hayayin-he.md.
+- 23:35 — attachment + "מאשר חריג שני לסוכות." — the second input exception (the water and wine libation at Sukkot) → docs/specs/input-protocol-he.md (decision 6), docs/specs/dargot-meyumanut-he.md.
+- 23:37 — attachment + "המשך או הקדמה לקודם כרקע לקידוד:" → docs/specs/dargot-meyumanut-he.md (the background).
+- 23:46 — the owner pasted: "🔄 החלטה 3: מבנה הבוקר – משימה אחת ביום או יום רציף?" — "ההכרעה: מבנה היברידי: "רצף יומי מתקדם" (Linear Day Progression with Quick Select)" — a full temple day as one continuous run (from the dawn watcher "ברקאי", the lamb's watering, the lot, the task(s) won, up to the Levites' song at the morning's end) plus "ספר התפקידים" — a role-practice mode straight from the main menu to one module ("מנחת הנסכים", "ניסוך היין") to improve the precision high score. "התוצאה: השחקן מקבל גם חוויית סיפור עמוקה של יום רציף במקדש, וגם נגישות מהירה למשחקונים קצרים!" (→ docs/specs/hachraot-he.md.)
+- 23:52 — "אגב חוץ מהברקאי יש את זה שכשהשמש מגיע לכלי הזהב שתלוי על הפתח זה זמן שמע ישראל שהכנים מתפללים, לא?" (→ docs/specs/heleni-shema-he.md.)
+- 23:54 — "פה אני מהאפליקציה איך אני יכול לעזור בשחזור של מה שאבד לך?"
+- 23:55 — "מאשר" — to restoring the game's code from the index.html in the owner's Desktop\mikdash folder (Claude's three points: the approval; a check of the GitHub branches; later, connecting the repo so Claude can back up by itself). Claude's promise: from the next build, every delivery also saves a full copy of the code in the owner's mikdash folder, so that this does not happen again.
+
+### 22.10.2026 — the owner's messages
+- 00:08 — attachment + "מיד מתפנה אליך בעניין הטכני." (the attachment: docs/specs/heleni-shema-he.md.)
+- 00:12 — "טכני. לא מבין מה אתה רוצה. הנה צילום מסך של פרויקט בית המקדש אצלך: אם אתה צריך משהו אחר בוא תנחה באותי בדיוק מה לעשות להיכנס לגיט האב?"
+- 00:14 — "לא הבנתי מה זה אומר? זה אצלכם בקלוד החליפו מחשב עם המידע?" (quoting Claude's line: "המחשב בענן שעליו עבדתי הוחלף, ותיקיית הקוד של המשחק נמחקה").
+- 00:17 — "יש לנו את זה, זה לא עוזר לך זה לא אינדקס זה ארטיפקט"
+- 00:22 — attachment (no text) → docs/specs/heleni-shema-he.md.
+- 00:29 — **decisions:** "חשבתי להגיד "אדומיי" זה נשמע דומה וזה לא שם השם. דעתך? לא צריך לסמן "המחשה" בכיסוי העיניים. מיותר." (Claude recommended "אדושם"; the flaying scene: 6 seconds, no blood — docs/specs/hafshet-nituach-he.md.)
+- 00:35 — attachment + "שים לב שה שני איפיונים ואחד מתייחס לקודם.." → docs/specs/barkai-he.md, tipul-taleh-he.md.
+- 00:38 — attachment + "הנה ה"חוליה" ה3. ברכת כהנים." → docs/specs/birkat-kohanim-he.md.
+- 00:43 — attachment (the public sin offering) → docs/specs/chatat-tzibur-he.md.
+- 00:53 — Gemini's "ABSOLUTE MASTERPIECE SPECIFICATION for Avodat HaTamid" (principles + a chain of modules) → docs/specs/seder-haboker-he.md (Claude's skeleton).
+- 00:55 — **decisions:** "חריג שלישי ברכת כהנים - כן. "אדומיי" כרגע (אולי נשנה בהמשך..)" — the third input exception (the priestly blessing, two thumbs above the head); the whisper in the Shema "אדומיי" for now.
+- 00:57 — "יש עוד משהו שאפשר להיעזר בגימיני לאיפיון שאתה רוצה? לפני שאני הולך לישון?"
+
+### Standing instructions in force (from the summary)
+- "שכח פה מהדחיפה לגיט האב. תתעלם פה מההוראה הזו. הסתדרתי כבר מהאפליקציה היא דחפה את 22 זה בסדר." (21.10 00:17) — this session never pushes; the stop hook's "commit and push" is answered by local commits only.
+- The backup rule (22.10): with every build a source zip goes to the owner's Desktop\mikdash; see docs/HANDOFF-he.md.

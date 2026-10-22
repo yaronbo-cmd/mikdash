@@ -287,8 +287,8 @@ export function createDam27(o = {}) {
     HINT = {
       bind: ['עקדו את הטלה — גררו את הרגל הקדמית אל האחורית', SRC.yad],
       bound: ['עקוד — ראשו לדרום ופניו למערב', SRC.head],
-      wait: ['', SRC.gate],
-      cut: ['שחטו — הקישו כשהמחוג בזהב', SRC.stand],
+      wait: ['ממתינים לקול השער הגדול', SRC.gate],
+      cut: ['שחטו — הקישו כשהמחוג בזהב', SRC.stand + ' · ' + SRC.hold],
       cutd: ['', SRC.recv],
       recv: ['קבלו את הדם — גררו ↔ והחזיקו את המזרק תחת הזרם', SRC.recv],
       full: ['', SRC.recv],
@@ -695,12 +695,12 @@ export function createDam27(o = {}) {
       }
     } else if (y === 'r27') {
       if (ph === 'in') snd('ui');
-      else if (ph === 'bind') say(`הטלה בטבעת השנייה, בקרן הצפונית המערבית<small>${SRC.ring}</small>`, 6);
+      else if (ph === 'bind') say(`הטלה בטבעת השנייה, בקרן הצפונית המערבית<small>${SRC.ring}</small>`, 3);
       else if (ph === 'bound') {
         snd('bind27');
         haptic(18);
-        say(`ראשו לדרום ופניו למערב — ומי שזכו באברים אוחזים בו<small>${SRC.head} · ${SRC.hold}</small>`, 5);
-      } else if (ph === 'wait' && ev.role === 'shochet') say(`ממתינים לקול השער הגדול<small>${SRC.gate}</small>`, 6);
+        flash('עקוד ✓ — ומי שזכו באברים אוחזים בו');
+      }
       else if (ph === 'cut' && ev.npc) {
         snd('blade27', { soft: 1 });
         say(`שחט השוחט — וקבל המקבל<small>${SRC.recv}</small>`, 4);

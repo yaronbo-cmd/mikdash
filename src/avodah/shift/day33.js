@@ -3870,8 +3870,8 @@ export function createDay33(o = {}) {
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = { p: [-46.2, 21.2, -41.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 8.7 amot off)
-    else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 21.2, -41.2], t: [-47.5, 16.5, -33], e: 2.4 };
+    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 8.7 amot off)
+    else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     else if (/^(hold|aim|splash)$/.test(ph)) a = { p: [-17.3, 20.3, -24.3], t: [-23.6, 18.9, -18], e: 2.2 };
     else if (/^(aim2|splash2)$/.test(ph)) a = { p: [-58.6, 20.3, 17.3], t: [-52.6, 18.9, 11.2], e: 2.2 };
     else a = { p: [-55.9, 20.7, 18.9], t: [-52.6, 17.1, 12.4], e: 2.2 };

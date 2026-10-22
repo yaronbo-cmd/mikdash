@@ -170,6 +170,7 @@
     if (!SHOTS().includes(name) || A.shotDone[name]) return;
     if (settle > 0) { const e = E(), K0 = e && e.r27 && e.r27(), t0 = K0 ? K0.t : 0; await until(() => { const k = e.r27(); return !k || k.t >= settle || k.t < t0 - 0.01; }, 8000, 30); }   // (the authored view eased in)
     A.shotDone[name] = 1; A.shotReq = name;
+    try { const tw = globalThis.__SHIFT.mods.twin, c = globalThis.__T.camera, e = E(), w = e && e.camWork27 && e.camWork27(); note(`shot ${name}: viewK ${tw && tw.viewK ? tw.viewK().toFixed(2) : '?'} cam ${[c.position.x, c.position.y, c.position.z].map((v) => v.toFixed(1)).join(',')} want ${w ? w.view.p.join(',') : '-'} phT ${e.r27() ? e.r27().t.toFixed(2) : '-'}`); } catch (err) { note('shot diag ' + err.message); }
     try { globalThis.__T.simulate(false); } catch (e) { /* */ }
     await until(() => !A.shotReq, 120000, 100);
     try { globalThis.__T.simulate(true, 0.05); } catch (e) { /* */ }

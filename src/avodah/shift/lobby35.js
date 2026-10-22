@@ -46,7 +46,7 @@ const CSS = `
 .lb .lb-play{pointer-events:auto;min-height:58px;min-width:220px;border-radius:18px;border:3px solid #FFE8A8;background:linear-gradient(180deg,#FFD66E,#E0A83A);color:#3A2300;font:900 24px/1 "Heebo",system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 0 0 rgba(255,214,110,.6);cursor:pointer;animation:lb-glow 1.8s ease-in-out infinite}
 .lb .lb-play small{display:block;font:800 12px/1.2 "Heebo",system-ui,sans-serif;opacity:.85;margin-top:3px}
 .lb .lb-play:active{transform:scale(.97)}
-.lb .lb-full{pointer-events:auto;position:absolute;top:max(6px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));min-height:36px;border-radius:10px;border:1px solid rgba(255,220,150,.4);background:rgba(20,14,6,.55);color:#FFF6DA;font:800 11px/1 "Heebo",system-ui,sans-serif;padding:0 10px}
+.lb .lb-full{pointer-events:auto;position:absolute;top:max(6px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));min-height:44px /* (build 28: was 36 — every target ≥ 44) */;border-radius:10px;border:1px solid rgba(255,220,150,.4);background:rgba(20,14,6,.55);color:#FFF6DA;font:800 11px/1 "Heebo",system-ui,sans-serif;padding:0 10px}
 .lb-on .tw-btn,.lb-on .tw-zone,.lb-on .f31-hot,.lb-on .sh-hint,.lb-on .dy-hud,.lb-on .dy-coin,.lb-on .dy-say,.lb-on .dy-line,.lb-on .dy-banner,.lb-on .dy-tm,.lb-on .tw-goal,.lb-on .g27-skip,.lb-on .l28-tap,.lb-on .s27-stamp,.lb-on .tw-hand,.lb-on .tw-pad,.lb-on .av-top .av-rb[data-a=mute]{display:none!important}
 .lb .lb-draft{position:absolute;bottom:4px;right:8px;font:700 10px/1 "Heebo",system-ui,sans-serif;opacity:.55}
 @keyframes lb-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
@@ -56,7 +56,7 @@ const CSS = `
    side — "משחק קצר" and the two switches — at the bottom right (the full screen: the switches alone, icons, at the top left); the picker */
 body.sh28 .lb .lb-full{right:max(8px,env(safe-area-inset-right))}
 .lb .lb-side{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 14px);display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none}
-.lb .lb-side .lb-door{min-width:170px}
+.lb .lb-side .lb-door{min-width:170px;min-height:44px}
 .lb:not(.lb-start) .lb-side{top:max(6px,env(safe-area-inset-top));bottom:auto;right:auto;left:max(8px,env(safe-area-inset-left))}
 .lb:not(.lb-start) .lb-side .p28 span{display:none}
 .lb .lb-pk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(14,10,5,.55);pointer-events:auto;z-index:2}
@@ -70,8 +70,8 @@ body.sh28 .lb .lb-full{right:max(8px,env(safe-area-inset-right))}
 /* ── fable32 (build 16) ── the start (save.lobbyOff, default on): the world at dawn, one big button at the bottom-left (never over him — review #13), "מסך הבית" small at the top-left; minimal: the doors the owner has not asked for are hidden (DAY33.minimal) */
 .lb.lb-min .lb-bottom,.lb.lb-start .lb-bottom{left:max(12px,env(safe-area-inset-left));transform:none;align-items:flex-start}
 .lb.lb-start .lb-col,.lb.lb-start .lb-mode{display:none}
-.lb .lb-home{pointer-events:auto;position:absolute;top:max(6px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));min-height:36px;border-radius:10px;border:1px solid rgba(255,220,150,.4);background:rgba(20,14,6,.55);color:#FFF6DA;font:800 11px/1 "Heebo",system-ui,sans-serif;padding:0 10px}
-@media (max-height:420px){.lb .lb-col{gap:5px}.lb .lb-door{min-height:42px;padding:4px 8px}.lb .lb-play{min-height:52px;font-size:22px}}
+.lb .lb-home{pointer-events:auto;position:absolute;top:max(6px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));min-height:44px /* (build 28: was 36) */;border-radius:10px;border:1px solid rgba(255,220,150,.4);background:rgba(20,14,6,.55);color:#FFF6DA;font:800 11px/1 "Heebo",system-ui,sans-serif;padding:0 10px}
+@media (max-height:420px){.lb .lb-col{gap:5px}.lb .lb-door{min-height:44px;padding:4px 8px}.lb .lb-play{min-height:52px;font-size:22px}}   /* (build 28: the doors 44 px here, were 42) */
 @media (prefers-reduced-motion:reduce){.lb .lb-dot,.lb .lb-play{animation:none}}
 `;
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

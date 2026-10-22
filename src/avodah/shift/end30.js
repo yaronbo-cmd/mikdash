@@ -3,7 +3,7 @@
  * for כשר, soft for טעון תיקון, never red); under the day's top bar this line: the act's own source (SRC30[id].chip, each module's text)
  * — "…" — מסכת פרק משנה · טיוטה ›; for טעון תיקון first a soft "אפשר לנסות שוב בספר התפקידים". A tap opens the card of every line the act
  * showed (SRC30[id].all — the quotes, their sources, the המחשה notes; the day waits while it is open). The line goes when the next act
- * begins (the lot after the laver) or after RATE30.chipS; the kohen's journal (a later build) will keep the full Mishnah.
+ * begins (the lot after the laver) or after RATE30.chipS; the kohen's journal (build 32, book32.js) keeps every source met, a page each.
  *   createEnd30({ E, doc, sfx }) → { destroy(), state(), busy() }      (focus17.js makes it with the other modules; globalThis.__R30)
  * Never a Divine Name. ── /fable32 ── */
 import { onTick } from './draw.js';
@@ -138,7 +138,7 @@ export function createEnd30(o = {}) {
     card = doc.createElement('div');
     card.className = 'r30-c';
     const body = day ? `<h2>📜 המקורות של היום</h2>${day.map((x) => `${head(x.id, x.rating, 'h3')}${lines(SRC30[x.id])}`).join('')}` : `${head(cur.id, cur.rating)}${lines(SRC30[cur.id])}`;
-    card.innerHTML = `<div class="c" role="dialog" aria-label="המקורות">${body}<small>המשנה המלאה — ביומן הכהן (בקרוב) · טיוטה</small><button type="button">סגור</button></div>`;
+    card.innerHTML = `<div class="c" role="dialog" aria-label="המקורות">${body}<small>${/* ── fable32 (build 32) ── (the journal is here: its משניות keep every source he has met) ── /fable32 ── */ 'המשניות — ביומן הכהן, במסך הבית · טיוטה'}</small><button type="button">סגור</button></div>`;
     card.addEventListener('pointerdown', (ev) => ev.stopPropagation());
     card.querySelector('button').addEventListener('click', (ev) => {
       ev.stopPropagation();

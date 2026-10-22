@@ -39,12 +39,14 @@ export function bookHTML23(save, o = {}) {
     rec = (save && save.roles23) || {},
     k = role30(rec.kiyor),
     sv = servedHe30(served30(save));
-  return `<div class="c" role="dialog" aria-label="ספר התפקידים"><h2>🎭 ספר התפקידים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<small>כל בוקר הממונה מפיס — כל תפקיד, הדירוג הטוב שלכם בו והתואר${o.practice ? ' · "לתרגל": אימון בתפקיד שכבר יצא לכם (המחשה)' : ''} · ${SRC_LOT}</small>${
+  // ── fable32 (build 32) ── o.bare: the book inside the journal's "תפקידים" tab (book32.js) — the same rows and doors, without its own
+  // dialog, title and "סגור" (the journal has its tabs and its ✕) ── /fable32 ──
+  return `<div class="c"${o.bare ? '' : ' role="dialog" aria-label="ספר התפקידים"'}>${o.bare ? '' : '<h2>🎭 ספר התפקידים</h2>'}${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<small>כל בוקר הממונה מפיס — כל תפקיד, הדירוג הטוב שלכם בו והתואר${o.practice ? ' · "לתרגל": אימון בתפקיד שכבר יצא לכם (המחשה)' : ''} · ${SRC_LOT}</small>${
     o.note31 && !o.practice ? '<div class="n31">לתרגל תפקיד — מספר התפקידים שבמסך הבית (המחשה)</div>' : ''
   }${k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}${door('kiyor', 'קידוש ידיים ורגליים')}</div>` : ''}<div class="g">${bookOf23(save).map(card).join('')}</div>
     <h4>הפיס השני — שלושה עשר תפקידים</h4><small>${SRC_LOT2}</small><div class="g g4">${bookOf23(save, POOL26)
       .map((a) => card({ ...a, lot: 2 }))
-      .join('')}</div><small class="tl">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small><button type="button" data-p23="close">סגור</button></div>`;
+      .join('')}</div><small class="tl">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small>${o.bare ? '' : '<button type="button" data-p23="close">סגור</button>'}</div>`;
 }
 export function rolesBook23(o = {}) {
   const doc = o.doc || (typeof document < 'u' ? document : null);
@@ -501,6 +503,7 @@ body.p23-on .gm .tw-pad,body.p23-on .f17-bar{opacity:0!important;pointer-events:
 .p23-bk button.p31{display:block;width:100%;min-width:0;min-height:44px;margin-top:5px;padding:0 6px;border-radius:12px;border:2px solid #E2B65A;background:linear-gradient(180deg,#6A4C1C,#3A2A10);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;touch-action:manipulation}.p23-bk button.p31:active{transform:scale(.95)}
 .p23-bk .kr button.p31{display:inline-block;width:auto;min-width:96px;margin:0 8px 0 0;vertical-align:middle}.p23-bk .q.sn b{opacity:.6}.p23-bk .n31{margin:4px 0 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;color:#FFE6A0;opacity:.85}`;   /* ── fable32 (build 31) ── (the practice doors) ── /fable32 ── */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+export const css23 = (doc) => css(doc);   // ── fable32 (build 32) ── (the journal's "תפקידים" tab draws the book with these styles) ── /fable32 ──
 const css = (doc) => {
   if (!doc.getElementById('p23-css')) {
     const el = doc.createElement('style');

@@ -31,6 +31,8 @@ import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27 } from '../day/w
 import { evlog } from './evlog16.js';
 import './route31.js';
 import { RATE30, LINE30, ACT30, quality30, mastery30, rate30, best30, pay30, served30, role30 } from './rate30.js';   // ── fable32 (build 30) ── one rating for every act ── /fable32 ──
+import { J32, jr32, meet32, log32, served32, hebDate32 } from './journal32.js';   // ── fable32 (build 32) ── the kohen's journal ── /fable32 ──
+import { clock29, where29 } from './time29.js';   // ── fable32 (build 32) ── (the journal's real date where the phone is) ── /fable32 ──
 export const DAY33 = Object.freeze({
   // ── fable32 (build 28) ── (idleOffer: 12 — build 14's "משחק קצר?" after 12 s idle in the day — is gone with the offer) ── /fable32 ──
   dayS: 180,
@@ -954,6 +956,9 @@ export function createDay33(o = {}) {
   // ── fable32 (build 30) ── "שימשת N בקרים": a save from before build 30 gets its count once, at the day's start — the second lots it held
   // (served30's fallback), less today's if the lot was held and its role not yet done (then that morning counts when it is: morning30) ── /fable32 ──
   if (save.served30 == null && !prac) save.served30 = Math.max(0, served30(save) - (p26 && st.p26day === st.day && st.r26day !== st.day && (save.roles26 && save.roles26.m) > 0 ? 1 : 0));
+  // ── fable32 (build 32) ── the kohen's journal, made once at the day's start (journal32's jr32): an older save's roles had, the laver had,
+  // the lots held count as met — before any act of today adds to a record (so a role's first time is still its first) ── /fable32 ──
+  if (!prac) jr32(save);
   // ── fable32 (build 31) ── a practice run's morning: everything of the morning done but his role (the gates as after the lot — p23done's
   // and the second lot's — for that role), the court's kohanim at the other parts as on a day with that lot (npc23: the pyre's wood or the
   // ashes' pan; npc25: the court's lamb), the fire as the day has it then (the laver: the day's start; the pre-dawn roles: the embers; the
@@ -3046,6 +3051,7 @@ export function createDay33(o = {}) {
       rec.h = [...(rec.h || []), [K.n, role]].slice(-8);
       say(() => o.persist && o.persist());
       const a = { id: role, cards: K.cards, n: K.n, s: r1(K.T), up: K.rS, upAuto: K.raised === 'auto', k26: true };
+      j32lot(true);   // ── fable32 (build 32) ── ── /fable32 ──
       L0('p26done', role, a.s);
       evlog('lot26', a);
       emit17('p23done', a);
@@ -3069,6 +3075,7 @@ export function createDay33(o = {}) {
         lambIn();
       }
     const a = { id: role, cards: K.cards, pick: K.pick, auto: K.auto, n: K.n, s: r1(K.T), up: K.rS, upAuto: K.raised === 'auto' };
+    j32lot(false);   // ── fable32 (build 32) ── ── /fable32 ──
     L0('p23done', role, a.s);
     evlog('lot', a);
     emit17('p23done', a);
@@ -3113,6 +3120,7 @@ export function createDay33(o = {}) {
     st.end30 = { id, rating, until: st.t + RATE30.wordS };
     st.say30 = null;
     pay(coins, id, at);
+    if (!prac) j32end(id, rating);   // ── fable32 (build 32) ── (the journal: its pages, the morning's entry, the unlock card) ── /fable32 ──
     if (morning && !prac) morning30();   // ── fable32 (build 31) ── (a practice run is not a morning served) ── /fable32 ──
     // ── fable32 (build 31) ── the practice's end: its card as the rating's word ends (tick: "p31end") — only his own role's act ends it ── /fable32 ──
     if (prac && id === prac.role && !prac.end) prac.end = { id, rating, q, at: st.t + PRAC31.endS, shown: false };
@@ -3151,7 +3159,67 @@ export function createDay33(o = {}) {
     if (st.srv30 === st.day) return;
     st.srv30 = st.day;
     save.served30 = served30(save) + 1;
+    served32(save, st.day);   // ── fable32 (build 32) ── (the journal's entry of this morning: served whole) ── /fable32 ──
     say(() => o.persist && o.persist());
+  }
+  // ── fable32 (build 32) ── the kohen's journal (journal32.js; book32.js shows it). An act's end in a real morning: its pages are his
+  // (meet32), the morning's entry gets its rating (log32: the real time — time29's clock — and the Hebrew date where the phone is); the
+  // first time the lot's role ends ("עמוד חדש ביומן") — or the first page ever ("היומן שלך נפתח") — its card comes as the act's rating
+  // word ends (J32.cardS = RATE30.wordS): the day waits under it (paused, "j32new") until "המשך" or the journal closes (E.j32done) ── /fable32 ──
+  const now32 = () => {
+      try {
+        return o.now ? +o.now() : clock29();
+      } catch (e) {
+        return Date.now();
+      }
+    },
+    where32 = () => {
+      try {
+        return o.where ? o.where() : where29();
+      } catch (e) {
+        return null;
+      }
+    };
+  function j32end(id, rating) {
+    const t = now32(),
+      m = meet32(save, id, { d: st.day, t });
+    log32(save, { d: st.day, t, h: hebDate32(t, where32()) }, id, rating);
+    if (m && m.fresh) emit17('j32page', { id, hello: m.hello });
+    if (m && b17 && (m.card || m.hello) && !st.j32q && !st.j32card) {
+      st.j32q = { id, hello: !!m.hello, at: st.t + J32.cardS };
+      L0('j32q', id, m.hello ? 1 : 0);
+    }
+    say(() => o.persist && o.persist());
+  }
+  /** the lot's end: its page (the lot's own source) is his — no card (the lot is not a role) */
+  function j32lot(k26) {
+    if (prac) return;
+    meet32(save, k26 ? 'lot2' : 'lot', { d: st.day, t: now32() });
+  }
+  /** the tick: the card as the word ends (not over the day's summary or the night: then the page waits, "חדש", without a card) */
+  function j32Step() {
+    const Q = st.j32q;
+    if (!Q || st.t < Q.at) return false;
+    st.j32q = null;
+    if (st.summary || st.night || st.phase !== 'run') return false;
+    const j = jr32(save);
+    if (Q.hello && j) j.hello = true;
+    st.j32card = { id: Q.id, hello: Q.hello };
+    st.paused = true;
+    drive(0, 0);
+    let26();
+    evlog('journal32_card', { id: Q.id, hello: Q.hello });
+    L0('j32new', Q.id, Q.hello ? 1 : 0);
+    emit17('j32new', { id: Q.id, hello: Q.hello });
+    say(() => o.persist && o.persist());
+    return true;
+  }
+  /** the card closed ("המשך", or the journal it opened): the day goes on */
+  function j32done() {
+    if (!st.j32card) return false;
+    st.j32card = null;
+    st.paused = false;
+    return true;
   }
   const wake23 = () => {
       const s = standOf('kiyor');
@@ -5170,6 +5238,7 @@ export function createDay33(o = {}) {
         return st;
       }
     } else {
+      if (j32Step()) return st;   // ── fable32 (build 32) ── (the unlock card: the day waits under it) ── /fable32 ──
       drainStep(dt);
       dayStep(dt);
       unlockStep();
@@ -5511,6 +5580,12 @@ export function createDay33(o = {}) {
     p31: () => (prac ? { role: prac.role, seed: prac.seed, day: st.day, end: prac.end ? { ...prac.end } : null, done: prac.done ? { ...prac.done } : null } : null),
     // ── fable32 (build 31) ── the player's save, for the day summary's roles book (read-only there: no practice mid-day) ── /fable32 ──
     book31: () => save,
+    // ── fable32 (build 32) ── the journal's unlock card (book32.js's createUnlock32): the card up now, its end; the save's persist (a page
+    // opened mid-day is no longer "חדש") ── /fable32 ──
+    j32card: () => (st.j32card ? { ...st.j32card } : null),
+    j32q: () => (st.j32q ? { ...st.j32q } : null),
+    j32done,
+    persist32: () => say(() => o.persist && o.persist()),
     tamid17,
     nextDay,
     grace17,

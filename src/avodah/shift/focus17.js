@@ -27,6 +27,7 @@ import { createHeichal26 } from './heichal26.js';
 import { createDam27 } from './dam27.js';   // ── fable32 (build 27) ── ── /fable32 ──
 import { createPis23, rolesBook23 } from './pis23.js';   // ── fable32 (build 31) ── (+ the roles book, from the day's summary) ── /fable32 ──
 import { createEnd30 } from './end30.js';   // ── fable32 (build 30) ── an act's end: its source line, tappable ── /fable32 ──
+import { openJournal32, createUnlock32 } from './book32.js';   // ── fable32 (build 32) ── the kohen's journal: the unlock card, the summary's doors ── /fable32 ──
 import { RATE30, servedHe30 } from './rate30.js';
 const F17 = Object.freeze({
   slot: 56,
@@ -408,6 +409,14 @@ export function createFocus17(o = {}) {
     } catch (e) {
       console.warn('[focus17] r30', e && e.message);
     }
+  // ── fable32 (build 32) ── the journal's unlock card ("j32new": a role the lot never gave him, its first end — or the first page ever) ── /fable32 ──
+  let u32 = null;
+  if (E.j32card)
+    try {
+      u32 = createUnlock32({ E, sfx: o.sfx, doc });
+    } catch (e) {
+      console.warn('[focus17] u32', e && e.message);
+    }
   // ── fable32 (build 30) ── while an act is in progress (its one line) or its rating shows, the day's other words wait (a task done, a
   // level, a badge, the coins' first note): later30 holds them till the act and its word are over ── /fable32 ──
   const quiet30 = () => {
@@ -503,9 +512,10 @@ export function createFocus17(o = {}) {
       'f17-sum',
       `<div class="c" role="dialog" aria-label="סוף היום"><h2>יום ${sum.day | 0} הסתיים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<div class="rt" aria-label="הדירוגים של היום">${chips}</div>
       <ul>${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>${(extra = sum.c18) ? `<li>לקופת המקדש היום: <b>+${extra.earn} 🪙</b></li><li>בקופת המקדש: <b>${extra.total} 🪙</b></li>${extra.next ? `<li>${extra.next.icon} ${extra.next.he}: <b>${extra.next.have}/${extra.next.price} 🪙</b></li>` : ''}` : `<li>פרוטות היום: <b>+${sum.perutot | 0}</b></li>`}${badges}</ul>
-      <div class="pr">${esc(sum.praise || '')}</div><div class="r31">${(sum.ratings || []).length && r30 ? '<button type="button" class="src30" data-f17="src">📜 המקורות של היום</button>' : ''}${E.book31 ? '<button type="button" class="src30" data-f17="book">🎭 ספר התפקידים</button>' : '' /* ── fable32 (build 31) ── (the roles book, read-only mid-day) ── /fable32 ── */}</div><button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
+      <div class="pr">${esc(sum.praise || '')}</div><div class="r31">${(sum.ratings || []).length && (E.book31 || r30) /* ── fable32 (build 32) ── (the journal's משניות, today's) ── /fable32 ── */ ? '<button type="button" class="src30" data-f17="src">📜 המקורות של היום</button>' : ''}${E.book31 ? '<button type="button" class="src30" data-f17="book">🎭 ספר התפקידים</button>' : '' /* ── fable32 (build 31) ── (the roles book, read-only mid-day) ── /fable32 ── */}</div><button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
     );
     // ── fable32 (build 31) ── the roles book from the day's summary: read-only (no practice mid-day — its doors are the lobby's) ── /fable32 ──
+    // ── fable32 (build 32) ── now the journal, on its "תפקידים" tab (the same book, read-only here: o.note31) ── /fable32 ──
     {
       const bb = summary.querySelector('[data-f17=book]');
       if (bb) {
@@ -514,12 +524,15 @@ export function createFocus17(o = {}) {
           ev.stopPropagation();
           sfx('ui');
           try {
-            rolesBook23({ doc, save: E.book31(), note31: true });
+            if (E.book31) openJournal32({ doc, save: E.book31(), tab: 'roles', note31: true, sfx: o.sfx, persist: () => E.persist32 && E.persist32() });
+            else rolesBook23({ doc, save: {}, note31: true });
           } catch (e) {}
         });
       }
     }
     // ── fable32 (build 30) ── (every act's sources, again, without a clock: the day's card — end30's openDay) ── /fable32 ──
+    // ── fable32 (build 32) ── "📜 המקורות של היום" opens the journal's משניות, today's only (the day's acts and the lots that gave them);
+    // "כל המשניות" there shows them all ── /fable32 ──
     {
       const sb = summary.querySelector('[data-f17=src]');
       if (sb) {
@@ -527,7 +540,8 @@ export function createFocus17(o = {}) {
         sb.addEventListener('click', (ev) => {
           ev.stopPropagation();
           try {
-            r30.openDay(sum.ratings);
+            if (E.book31) openJournal32({ doc, save: E.book31(), tab: 'mishna', today: (sum.ratings || []).map((x) => x.id), dayN: sum.day | 0, note31: true, sfx: o.sfx, persist: () => E.persist32 && E.persist32() });
+            else r30.openDay(sum.ratings);
           } catch (e) {}
         });
       }
@@ -884,6 +898,7 @@ export function createFocus17(o = {}) {
         if (h26) h26.destroy();
         if (d27) d27.destroy();   // ── fable32 (build 27) ── ── /fable32 ──
         if (r30) r30.destroy();   // ── fable32 (build 30) ── ── /fable32 ──
+        if (u32) u32.destroy();   // ── fable32 (build 32) ── ── /fable32 ──
         try {
           if (offEv) offEv();
         } catch (e) {}

@@ -40,6 +40,8 @@ import { createWatch29, softDay29, dropGames29 } from './lock29.js';   // ──
 import { served30, servedHe30, ACT30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ── ── fable32 (build 31) ── (ACT30: the practice's act name) ── /fable32 ──
 import { canPractice31, practiceSave31, merge31, createPractice31 } from './practice31.js';   // ── fable32 (build 31) ── the roles book's practice ── /fable32 ──
 import { resumeDay33 } from './day33.js';   // ── fable32 (build 31) ── (the practice's court: the day he goes on with) ── /fable32 ──
+import { openJournal32 } from './book32.js';   // ── fable32 (build 32) ── "יומן הכהן": one journal (the roles book, the Mishnah pages, the mornings, the badges) ── /fable32 ──
+import { jr32 } from './journal32.js';
 // ── fable32 (build 30) ── one rating for every act (rate30.js): the day and its lobby no longer add to Phase A's score (★, the gold dinars, the
 // builder's titles — Phase A keeps its own; the shift shows "שימשת N בקרים" and the roles' titles instead). SCORE30 = true: the shift's
 // score object is not passed (the code stays — score35.js, day33's score() — reached by no door); the coins stay (קופת המקדש). ── /fable32 ──
@@ -62,6 +64,7 @@ export function mountShift(o = {}) {
   const D = o.D, A = o.A;
   const doc = typeof document !== 'undefined' ? document : null;
   const save = shiftSave(A);
+  try { jr32(save); } catch (e) { /* */ }   // ── fable32 (build 32) ── (the journal made once: an older save's roles count as met — the lobby's door shows them) ── /fable32 ──
   let E = null, hud = null, mods = null, cardCtl = null, lvlNow = 1, runs = 0, startT = 0;
   evlog('app_open', { day: (save.day33state && save.day33state.day) || 0 });   // ── recovered (build 16) ──
   // ── fable32 (build 28) ── the shift is up (the lobby or the day): the old top bar off; the buzz's switch guards every vibrate ── /fable32 ──
@@ -99,6 +102,7 @@ export function mountShift(o = {}) {
     return m;
   }
   function teardown() {
+    try { if (doc) doc.querySelectorAll('.j32').forEach((x) => (x.__j32 ? x.__j32.close(true) : x.remove())); } catch (e) { /* */ }   // ── fable32 (build 32) ── (a journal left open over the day — the summary's — goes with it; the lock's stop too) ── /fable32 ──
     if (E) { try { E.stop(); } catch (e) { console.warn('[shift] stop', e && e.message); } E = null; }
     if (mods) {
       try { mods.stations && mods.stations.clear && mods.stations.clear(); } catch (e) { /* */ }
@@ -217,8 +221,14 @@ export function mountShift(o = {}) {
     return { kiyor: base, deshen: base, m22: base, lamb: base && f.p25, inner: base && f.p26, menorah: base && f.p26, shochet: base && f.p26 && f.p27, zorek: base && f.p26 && f.p27 };
   };
   let back31 = null;   // (the lobby to come back to after a practice run: { full, roles })
+  // ── fable32 (build 32) ── the journal (book32.js) from the lobby: its tabs; the roles tab with the practice doors (from either lobby
+  // screen — "חזרה" brings him back to the same one, the journal open there); the lobby's door redrawn as it closes (the new pages) ── /fable32 ──
+  function openJournal(tab = 'roles', from = 'full', x = {}) {
+    if (!doc) return null;
+    return openJournal32({ doc, save, tab, sfx: o.sfx, persist, practice: (id) => runPractice(id, from), can: (id) => canPractice31(save, id, on31()), onClose: () => { if (cardCtl && cardCtl.refresh) cardCtl.refresh(); }, ...x });
+  }
   function openRoles31(from = 'full') {
-    return rolesBook23({ doc, save, practice: (id) => runPractice(id, from), can: (id) => canPractice31(save, id, on31()), onClose: () => { if (cardCtl && cardCtl.refresh) cardCtl.refresh(); } });
+    return openJournal('roles', from);   // ── fable32 (build 32) ── (was its own sheet, rolesBook23: now the journal's first tab) ── /fable32 ──
   }
   function backFrom31(from) {
     teardown();
@@ -230,7 +240,7 @@ export function mountShift(o = {}) {
     hero35(); goLive();
     if (gate29()) return false;   // (the lock: its screen, not a practice run)
     if (cardCtl) { cardCtl.close(); cardCtl = null; }
-    try { doc.querySelectorAll('.p23-bk').forEach((b) => b.remove()); } catch (e) { /* */ }
+    try { doc.querySelectorAll('.p23-bk, .j32').forEach((b) => b.remove()); } catch (e) { /* */ }   // ── fable32 (build 32) ── (+ the journal) ── /fable32 ──
     if (!D.active && !(D.canEnter() && D.enter())) return false;
     teardown();
     try { const c = doc.getElementById('card'); if (c && c.classList.contains('on')) { c.classList.remove('on'); c.setAttribute('aria-hidden', 'true'); } } catch (e) { /* */ }
@@ -279,8 +289,10 @@ export function mountShift(o = {}) {
   }
   // ── /fable32 ──
   // ── fable32 (build 13) ── ספר הזכרונות from the home screen: what was claimed, what waits (read-only; the claim itself is at night in בית המוקד)
+  // ── fable32 (build 32) ── now the journal's "אותות" tab (the same list); the old sheet stays below for __SH_OLDBOOK ── /fable32 ──
   function openBook() {
     if (!doc) return;
+    if (!globalThis.__SH_OLDBOOK) { openJournal('badges', 'full'); return; }
     const cl = save.badges33 && typeof save.badges33 === 'object' ? save.badges33 : {};
     const h = createShiftHud(doc.body);
     const items = [{ icon: '🎭', label: 'תפקידים — ספר התפקידים', sub: 'כל תפקיד בוקר: הדירוג, התואר, הפעמים, ולתרגל מה שכבר יצא לכם' /* ── fable32 (build 30) ── ── fable32 (build 31) ── (+ the practice doors) ── /fable32 ── */, go: () => { rolesBook23({ doc, save, practice: (id) => runPractice(id, 'full'), can: (id) => canPractice31(save, id, on31()), onClose: () => openBook() }); return true; } },   // ── recovered (build 23) ── (the roles' book first)
@@ -314,7 +326,7 @@ export function mountShift(o = {}) {
     const b31 = back31; back31 = null;   // ── fable32 (build 31) ── (back from a practice run: the lobby it came from, its roles book open) ── /fable32 ──
     cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: SCORE30 ? null : scoreOf() /* ── fable32 (build 30) ── */, start: !(b31 && b31.full) && save.lobbyOff !== false && !globalThis.__SH_LOBBYFULL /* ── recovered (build 16) ── the start screen (save.lobbyOff; __SH_LOBBYFULL the full one) */, on: {
       day: () => { cardCtl = null; runDay(); },   // ── fable32 (build 28) ── (no shift, no tour: the day only) ── /fable32 ──
-      shop: () => openShop(), book: () => openBook(), roles: () => openRoles31('full') /* ── fable32 (build 30) ── (the titles' card) ── /fable32 ── ── fable32 (build 31) ── (with the practice doors) ── /fable32 ── */, merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
+      shop: () => openShop(), book: () => openBook(), roles: () => openRoles31('full') /* ── fable32 (build 30) ── (the titles' card) ── /fable32 ── ── fable32 (build 31) ── (with the practice doors) ── /fable32 ── */, journal: (from) => openJournal('roles', from === 'start' ? 'start' : 'full') /* ── fable32 (build 32) ── the journal's one door ── /fable32 ── */, merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
     try { if (cardCtl && cardCtl.soft29) cardCtl.soft29(W29.softLine); } catch (e) { /* */ }   // ── fable32 (build 29) ── (the calm line, if it is that time) ── /fable32 ──
     if (b31 && b31.roles) try { openRoles31(b31.full ? 'full' : 'start'); } catch (e) { /* */ }   // ── fable32 (build 31) ── ── /fable32 ──
     // ── /fable32 ──
@@ -357,7 +369,8 @@ export function mountShift(o = {}) {
   globalThis.__SHIFT = {
     SH, run, runDay, card, tour, get E() { return E; }, set E(v) { /* */ }, mods: null, save,
     state: () => (E ? E.state() : null), startT: () => startT,
-    book: () => openBook(), roles: () => rolesBook23({ doc, save }),   // ── recovered (build 23) ──
+    book: () => openBook(), roles: () => openJournal('roles', 'full', { practice: null, note31: false }),   // ── recovered (build 23) ── ── fable32 (build 32) ── (the journal's roles tab, no doors) ── /fable32 ──
+    journal: (tab, from, x) => openJournal(tab || 'roles', from || 'full', x || {}),   // ── fable32 (build 32) ── (the autoplayer and the probes) ── /fable32 ──
     book31: (from) => openRoles31(from || 'full'), practice: (id, from) => runPractice(id, from || 'full'), back31: (from) => backFrom31(from || 'full'),   // ── fable32 (build 31) ── (the book with its doors, a run, back: the autoplayer and the probes) ── /fable32 ──
     w29: W29, tick29: () => tick29(), status29: () => status29(clock29(), where29()), where29: () => where29(),   // ── fable32 (build 29) ── (the browser checks: the watch now, not in 2 s) ── /fable32 ──
     debug: { stars: (n) => (E ? E.debug.stars(n) : null), end: () => (E ? E.debug.end() : null), log: () => (E ? E.debug.log() : []), goal: () => (E ? E.debug.goal() : null), spawnNow: () => E && E.debug.spawnNow(), patience: (v) => { if (!E || !mods) return 0; let k = 0; for (const P of mods.pilgrims.list()) if (P.state === 'wait') { P.patience = v; k++; } return k; } },

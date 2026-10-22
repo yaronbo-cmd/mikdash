@@ -349,6 +349,37 @@
     await sleep(60); return true;
   }
 
+  // ── fable32 (build 32) ── the journal's unlock card ("עמוד חדש ביומן" — the day waits under it): the child reads it (a moment), its shot
+  // (opts.shots30: j32 — the first card, j32-<id> — a role's), then "המשך"; opts.open32 (true, or a role's id): once, "לפתוח ביומן" — the role's page
+  // (shot j32page) — and the journal's ✕ (the day goes on as it closes). Each card is logged: [t, day, id, hello] ── /fable32 ──
+  async function card32(e, U) {
+    const s = U.state(), id = (e.j32card && e.j32card() && e.j32card().id) || (s.last && s.last.id) || '?', k = `${e.st33.day}:${id}`;
+    if (A.j32k !== k) { A.j32k = k; A.j32.push([T(), e.st33.day, id, s.last && s.last.hello ? 1 : 0]); note(`journal card: ${id}${s.last && s.last.hello ? ' (the journal opens)' : ''}`); }
+    await sleep(H() ? 1600 + rnd() * 900 : 500);   // (reading it)
+    if (!(await shot30('j32-' + id, null, 300))) await shot30('j32', null, 300);
+    if (A.opts.open32 && !A.j32open && (A.opts.open32 === true || A.opts.open32 === id)) {
+      A.j32open = 1; U.open(); await sleep(700);
+      await shot30('j32page', () => document.querySelector('.j32 .pg'), 300);
+      A.j32page = ((document.querySelector('.j32 .pg') || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 200);
+      await sleep(H() ? 1200 : 300);
+      try { globalThis.__J32.close(); } catch (err) { /* */ }
+      return;
+    }
+    U.cont();
+    await sleep(120);
+  }
+  // ── fable32 (build 32) ── opts.src32: at each summary, its "📜 המקורות של היום" — the journal on today's pages (logged: its head and its
+  // groups; shot sum32 once), then its ✕ ── /fable32 ──
+  async function src32(e) {
+    A.src32 = e.st33.day;
+    const b = document.querySelector('.f17-sum [data-f17=src]'); if (!b) { note('summary: no sources button'); return; }
+    await sleep(H() ? 900 : 300); b.click(); await sleep(500);
+    const j = document.querySelector('.j32');
+    A.src32s.push([e.st33.day, j ? ((j.querySelector('.td') || {}).textContent || '').trim() : null, j ? [...j.querySelectorAll('h3')].map((h) => h.textContent.trim()) : null]);
+    await shot30('sum32', () => document.querySelector('.j32'), 300);
+    try { globalThis.__J32.close(); } catch (err) { /* */ }
+    await sleep(300);
+  }
   async function loop() {
     for (;;) {
       if (!A.on) return;
@@ -357,9 +388,15 @@
       try {
         // ── fable32 (build 31) ── a practice run (opts.practice): its end card is up — the run is over (the runner takes the card, "עוד פעם" / "חזרה") ── /fable32 ──
         if (A.opts.practice && e.p31 && e.p31() && e.p31().done) { mark('p31end'); A.phase = 'done'; A.on = false; return; }
+        { const U = globalThis.__J32U; if (U && U.state().card) { A.phase = 'j32'; await card32(e, U); continue; } }   // ── fable32 (build 32) ── ── /fable32 ──
         if (e.st33.paused && !(e.focus17 && e.focus17().summary)) { await sleep(200); continue; }
+        // ── fable32 (build 32) ── opts.skipDay: the morning done (his second lot's role, its word and any card past) — the day's rest skipped
+        // to its sunset (E.debug.night), so a run plays mornings one after another; the summary as ever ── /fable32 ──
+        if (A.opts.skipDay && e.st33.r26day === e.st33.day && A.skip32 !== e.st33.day && !e.st33.night && !(e.j32q && e.j32q()) && !(e.word30 && e.word30()) && !(A.end30q && A.end30q.length) && !(e.r26() && e.r26().ph !== 'out') && !(e.r27 && e.r27() && e.r27().ph !== 'out')) {
+          A.skip32 = e.st33.day; mark('skip' + e.st33.day); note(`day ${e.st33.day}: the morning done — to the sunset`); e.debug.night(); await sleep(300); continue;
+        }
         if (A.end30q && A.end30q.length) { await end30(A.end30q.shift()); continue; }   // ── fable32 (build 30) ── ── /fable32 ──
-        if (e.focus17 && e.focus17().summary) { await shot30('sum', null, 2200); A.days++; mark('summary' + A.days); if (A.days >= (A.opts.days || 1)) { A.phase = 'done'; A.on = false; return; } await sleep(1500); e.nextDay(); continue; }
+        if (e.focus17 && e.focus17().summary) { await shot30('sum', null, 2200); if (A.opts.src32 && A.src32 !== e.st33.day) await src32(e); A.days++; mark('summary' + A.days); if (A.days >= (A.opts.days || 1)) { A.phase = 'done'; A.on = false; return; } await sleep(1500); e.nextDay(); continue; }
         if (await timing()) { A.phase = 'act'; continue; }
         if (e.k20()) { A.phase = 'laver'; await laver(e); continue; }
         if (e.p23()) { A.phase = e.p23().k26 ? 'lot2' : 'lot'; await lot(e); continue; }
@@ -387,7 +424,7 @@
       if (k === 'r27' && ev.ph === 'in') mark('ringAt');   // ── build 27 ── (at the ring: the blood role begins)
       if (k === 'r27' && (ev.ph === 'recv' || ev.ph === 'cutd')) mark('cut');
       if (k === 'r27' && ev.ph === 'splash') mark('giftNE'); if (k === 'r27' && ev.ph === 'splash2') mark('giftSW');
-      if (k === 'rate30') { A.rate.push([t, ev.id, ev.rating, ev.q, ev.coins]); if (S30().includes('end-' + ev.id)) (A.end30q || (A.end30q = [])).push(ev.id); }   // ── fable32 (build 30) ── (each act's rating) ── /fable32 ──
+      if (k === 'rate30') { A.rate.push([t, ev.id, ev.rating, ev.q, ev.coins, E() && E().st33 ? E().st33.day : 0 /* ── fable32 (build 32) ── (the day) ── */]); if (S30().includes('end-' + ev.id)) (A.end30q || (A.end30q = [])).push(ev.id); }   // ── fable32 (build 30) ── (each act's rating) ── /fable32 ──
       if (k === 'p31end') mark('p31end');   // ── fable32 (build 31) ── ── /fable32 ──
       if (k === 'k20' && ev.ph === 'pose') mark('k20pose'); if (k === 'd21' && ev.ph === 'sweep') mark('actIn'); if (k === 'm22' && ev.ph === 'sort') mark('actIn'); if (k === 'p25' && ev.ph === 'scan') mark('actIn'); if ((k === 'r26' || k === 'r27') && ev.ph === 'in') mark('actIn');
     });
@@ -411,13 +448,13 @@
   globalThis.__AUTO35 = {
     get on() { return A.on; },
     start(opts = {}) {
-      A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = [];
+      A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = []; A.j32 = []; A.j32k = ''; A.j32open = 0; A.skip32 = 0; A.src32 = 0; A.src32s = [];   // ── fable32 (build 32) ── (the journal's cards) ── /fable32 ──
       const e = E(); if (e) hook(e);
       A.run = loop();
       return until(() => !A.on || A.marks.roleDone != null, (opts.morningS || 600) * 1000, 250).then(() => table());
     },
     stop() { A.on = false; try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
-    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
+    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
     events: () => A.ev.slice(),
     get shotReq() { return A.shotReq; },
     shotTaken() { A.shotReq = null; },

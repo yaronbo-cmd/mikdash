@@ -195,7 +195,8 @@ test('build 30 (3): the lobby — "שימשת N בקרים" and the roles\' titl
   const score = { get: () => ({ total: 12345, coins: 2, title: 'אומן' }), add() {} };
   const st = createLobby({ save, start: true, score }).html(), full = createLobby({ save, start: false, score }).html();
   for (const h of [st, full]) { assert.ok(!/★|◉|אומן|פועל|בונה הבית|12,345/.test(h), h.slice(0, 200)); assert.match(h, /שימשת 4 בקרים/); }
-  assert.match(st, /🔥 מיומן/); assert.match(full, /data-lb="roles"[^]*תרומת הדשן[^]*מיומן/);
+  // (build 32: the titles' card is the journal's one door now — data-lb="journal", the same titles in it)
+  assert.match(st, /🔥 מיומן/); assert.match(full, /data-lb="journal"[^]*תרומת הדשן[^]*מיומן/);
   assert.ok(!/והנקודות/.test(read('src/avodah/shift/lobby35.js')), 'the picker: the פרוטות only');
   const ix = read('src/avodah/shift/index.js'); assert.match(ix, /const SCORE30 = true;/); assert.match(ix, /score: SCORE30 \? null : scoreOf\(\), games/); assert.match(ix, /score: SCORE30 \? null : scoreOf\(\) \/\*/);
   assert.match(ix, /sub: servedHe30\(served30\(save\)\)/);

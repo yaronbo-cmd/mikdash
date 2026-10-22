@@ -30,6 +30,13 @@
 //                   day's end at once (E.debug.setFuel(10), E.debug.night(): the tamids not on time): the summary (shot-sum31.png) and its
 //                   read-only roles book (shot-sumbook31.png)
 //   --src31         at each end card, its source line tapped: end30's card (shot-src31-<role>.png), closed back to the end card
+//   ── build 32 ── the kohen's journal:
+//   --skip32        each morning done (his second lot's role, its word, any card) — the day's rest skipped to its sunset (E.debug.night):
+//                   with --days N a run plays N mornings one after another (the summary, "המשך ליום הבא" by the bot as ever)
+//   --open32 [id]   at the first unlock card (or that role's), "לפתוח ביומן" (shot j32page with --shots30 j32page) and the journal's ✕; every other card "המשך"
+//                   (the cards are logged — [t, day, id, hello] — and printed; --shots30 j32 / j32-<id>: a card's shot)
+//   --src32         at each summary, its "📜 המקורות של היום": the journal on today's pages (logged; shot sum32 with --shots30 sum32), ✕
+//   (the practice runs' roles book is the journal's "תפקידים" tab now: the full lobby's door "יומן הכהן")
 //   --pause31       in each run, the pause card (shot-pause31.png: "המשך", "מהתחלה", "חזרה לספר התפקידים"), then "המשך"
 //   --book31 a,b    only the book: give the save these roles' records (a fresh save: a returning player who had them), open the book,
 //                   shot-book31.png (its top), shot-book31b.png (the second lot's), shot-book31c.png (the first lot's doors), and stop.
@@ -54,6 +61,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const store = path.join(OUT, 'storage.json');
 // ── fable32 (build 31) ── the practice runs ── /fable32 ──
 const src31 = flag('--src31'), pause31 = flag('--pause31');   // ── fable32 (build 31) ── (the end card's source line tapped; the pause card in a run) ── /fable32 ──
+const skip32 = flag('--skip32'), open32 = flag('--open32') ? opt('--open32', '') || true : false, src32 = flag('--src32');   // ── fable32 (build 32) ── (the mornings one after another; the unlock card's "לפתוח ביומן") ── /fable32 ──
 const fromRun = opt('--from', ''), practice = (opt('--practice', '') || '').split(',').filter(Boolean), again31 = opt('--again31', ''), resume31 = flag('--resume31'), sum31 = flag('--sum31'), book31 = (opt('--book31', '') || '').split(',').filter(Boolean);
 const fromStore = fromRun ? path.join(path.dirname(OUT), fromRun, 'storage.json') : null;
 if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no storage at', fromStore); process.exit(2); }
@@ -112,7 +120,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
     await pg.addScriptTag({ path: path.join(__dirname, 'autoplay35.js') });
     P31.before = await save31(); console.log('before', P31.before.label, P31.before.day.slice(0, 200));
     if (await pg.$('[data-lb=home]')) { await pg.click('[data-lb=home]', { force: true }); await pg.waitForTimeout(600); }
-    await pg.click('[data-lb=roles]', { force: true }); await pg.waitForSelector('.p23-bk', { timeout: 30000 }); await pg.waitForTimeout(500);
+    await pg.click('[data-lb=journal]', { force: true }); await pg.waitForSelector('.j32 .p23-bk', { timeout: 30000 }); await pg.waitForTimeout(500);   // ── fable32 (build 32) ── (the journal's roles tab) ── /fable32 ──
     P31.doors = await pg.evaluate(() => [...document.querySelectorAll('.p23-bk [data-p31]')].map((b) => `${b.dataset.p31}:${Math.round(b.getBoundingClientRect().height)}px`));
     P31.locked = await pg.evaluate(() => [...document.querySelectorAll('.p23-bk .q.lk')].map((q) => q.textContent.trim().replace(/\s+/g, ' ')));
     console.log('doors', P31.doors.join(' '), '| locked', P31.locked.join(' · '));
@@ -153,10 +161,10 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
         await pg.evaluate(() => globalThis.__AUTO35.stop()).catch(() => {});
         if (again31 === role && rep === 0) { await pg.click('.p31-end [data-p31=again]', { force: true }); await pg.waitForTimeout(400); continue; }
         await pg.click('.p31-end [data-p31=back]', { force: true });
-        await pg.waitForSelector('.p23-bk', { timeout: 60000 }); await pg.waitForTimeout(400);
+        await pg.waitForSelector('.j32 .p23-bk', { timeout: 60000 }); await pg.waitForTimeout(400);
       }
     }
-    await pg.click('.p23-bk [data-p23=close]', { force: true }).catch(() => {}); await pg.waitForTimeout(800);
+    await pg.click('.j32 [data-j32=close]', { force: true }).catch(() => {}); await pg.waitForTimeout(800);   // ── fable32 (build 32) ── ── /fable32 ──
     P31.after = await save31();
     P31.same = { day: P31.after.day === P31.before.day, label: P31.after.label === P31.before.label, lot: P31.after.lot === P31.before.lot, served30: P31.after.served30 === P31.before.served30, perutot: P31.after.perutot === P31.before.perutot, badges: P31.after.badges33 === P31.before.badges33, shop: P31.after.shop === P31.before.shop };
     console.log('the saved day after the practice', JSON.stringify(P31.same), '|', P31.after.label);
@@ -182,7 +190,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
       console.log('summary', P31.sum);
       await snap31('sum31');
       await pg.click('.f17-sum [data-f17=book]', { force: true }).catch(() => {}); await pg.waitForTimeout(600);
-      P31.sumBook = await pg.evaluate(() => ({ doors: document.querySelectorAll('.p23-bk [data-p31]').length, note: ((document.querySelector('.p23-bk .n31') || {}).textContent || '') }));
+      P31.sumBook = await pg.evaluate(() => ({ doors: document.querySelectorAll('.p23-bk [data-p31]').length, note: ((document.querySelector('.p23-bk .n31') || {}).textContent || ''), journal: !!document.querySelector('.j32') }));
       console.log('summary book', JSON.stringify(P31.sumBook));
       await snap31('sumbook31');
       await writeLog31(); console.log(errors.length ? 'errors:\n' + errors.slice(0, 10).join('\n') : 'no page errors', '·', el()); await b.close(); return;
@@ -191,7 +199,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
   // ── /fable32 ──
   if (!frames) await pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); });
   await pg.addScriptTag({ path: path.join(__dirname, 'autoplay35.js') });
-  await pg.evaluate(({ human, seed, days, shots27, high27, shots30, bad30 }) => { globalThis.__AUTO35_P = globalThis.__AUTO35.start({ human, seed, days, shots27, high27, shots30, bad30 }).then((t) => { globalThis.__AUTO35_T = t; }).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }   /* (build 27: the bot's own "stopped" at the run's end — an --book run lived long enough to report it — is not the page's error) */, { human, seed, days, shots27, high27, shots30, bad30 });
+  await pg.evaluate(({ human, seed, days, shots27, high27, shots30, bad30, skip32, open32, src32 }) => { globalThis.__AUTO35_P = globalThis.__AUTO35.start({ human, seed, days, shots27, high27, shots30, bad30, skipDay: skip32, open32, src32 }).then((t) => { globalThis.__AUTO35_T = t; }).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }   /* (build 27: the bot's own "stopped" at the run's end — an --book run lived long enough to report it — is not the page's error) */, { human, seed, days, shots27, high27, shots30, bad30, skip32, open32, src32 });
   const end = t0 + minutes * 60000, shotAt = Array.from({ length: shots }, (_, i) => t0 + ((i + 1) / (shots + 1)) * (end - t0));
   let shot = 0, last = '';
   let lastPoll = 0;
@@ -224,12 +232,15 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
     await pg.screenshot({ path: path.join(OUT, 'shot-book2.png'), timeout: 240000 }).catch(() => {}); console.log('shot book', el());
   }
   fs.writeFileSync(store, JSON.stringify(res.ls));
-  const log = { run, page, human, seed, days, day: dayN || null, cont, sound, q: Q, size: [VW, VH], frames, wallS: Math.round((Date.now() - t0) / 1000), table: res.state.table, marks: res.state.marks, ratings: res.state.rate || [], acts: res.state.acts, walks: res.state.walks, stuck: res.state.stuck, lag: res.state.lag, err: res.state.err, notes: res.state.notes, sfx: res.sfx, errors: errors.slice(0, 40), events: res.events, trace: res.trace, p31: P31 /* ── fable32 (build 31) ── */ };
+  const log = { run, page, human, seed, days, day: dayN || null, cont, sound, q: Q, size: [VW, VH], frames, wallS: Math.round((Date.now() - t0) / 1000), table: res.state.table, marks: res.state.marks, ratings: res.state.rate || [], j32: res.state.j32 || [], j32page: res.state.j32page || null, src32: res.state.src32 || [], journal32: (() => { try { const A = JSON.parse(res.ls.bh_avodah || '{}'); const j = (A.shift || {}).journal32 || null; return j ? { acts: Object.keys(j.acts || {}), seen: Object.keys(j.seen || {}).length, log: (j.log || []).map((e) => [e.d, e.h, (e.r || []).map((x) => x.join(':')).join(' '), e.s ? 1 : 0]), hello: j.hello } : null; } catch (e) { return String(e); } })() /* ── fable32 (build 32) ── */, acts: res.state.acts, walks: res.state.walks, stuck: res.state.stuck, lag: res.state.lag, err: res.state.err, notes: res.state.notes, sfx: res.sfx, errors: errors.slice(0, 40), events: res.events, trace: res.trace, p31: P31 /* ── fable32 (build 31) ── */ };
   fs.writeFileSync(path.join(OUT, 'log.json'), JSON.stringify(log, null, 1));
   const tb = res.state.table;
   console.log('table', JSON.stringify({ role: tb.role, lot: tb.lot, preDawn: tb.preDawn, toLot: tb.toLot, lotS: tb.lot === undefined ? null : tb.lot, toGate: tb.toGate, gate: tb.gate, walkIn: tb.walkIn, toRing: tb.toRing, ringToCut: tb.ringToCut, cutToNE: tb.cutToNE, neToSW: tb.neToSW, swToEnd: tb.swToEnd, act: tb.act, roleTotal: tb.roleTotal, morning: tb.morning, mastery: tb.r26r && tb.r26r.mastery, coins: tb.coins }));
   console.log('marks', JSON.stringify(res.state.marks));
   console.log('ratings', JSON.stringify(res.state.rate || []));   // ── fable32 (build 30) ── (each act's rating: [t, id, rating, q, coins]) ── /fable32 ──
+  console.log('journal cards', JSON.stringify(res.state.j32 || []), '| page', res.state.j32page || '-');   // ── fable32 (build 32) ── ([t, day, id, hello]) ── /fable32 ──
+  console.log('journal', JSON.stringify(log.journal32));
+  if (src32) console.log('summary sources', JSON.stringify(res.state.src32 || []));
   console.log(errors.length ? 'errors:\n' + errors.slice(0, 10).join('\n') : 'no page errors', '·', el());
   await b.close();
 })().catch((e) => { console.error('FAIL', e && e.stack || e); process.exit(1); });

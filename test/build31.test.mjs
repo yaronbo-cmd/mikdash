@@ -143,7 +143,8 @@ test('build 31 (1): the doors are reachable from the lobby (the titles\' card, �
   assert.match(ix, /roles: \(\) => openRoles31\('full'\)/); assert.match(ix, /rolesBook23\(\{ doc, save, practice: \(id\) => runPractice\(id, 'full'\), can:/);
   assert.match(ix, /function runPractice\(role, from = 'full'\) \{\n\s*if \(!D \|\| !doc \|\| !canPractice31\(save, role, on31\(\)\)\) return false;/);
   assert.match(ix, /if \(gate29\(\)\) return false;   \/\/ \(the lock/);
-  const f = read('src/avodah/shift/focus17.js'); assert.match(f, /rolesBook23\(\{ doc, save: E\.book31\(\), note31: true \}\)/); assert.ok(!/rolesBook23\([^)]*practice/.test(f), 'no practice mid-day');
+  // (build 32: the summary's book is the journal's "תפקידים" tab — read-only, note31, no practice; the lobby's doors open the journal)
+  const f = read('src/avodah/shift/focus17.js'); assert.match(f, /openJournal32\(\{ doc, save: E\.book31\(\), tab: 'roles', note31: true,/); assert.ok(!/(rolesBook23|openJournal32)\([^)]*practice/.test(f), 'no practice mid-day');
 });
 
 // ───────── (2) the run ─────────

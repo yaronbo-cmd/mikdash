@@ -256,6 +256,9 @@ test('build 29 (C): "עכשיו במקדש: …" — calendar.js\'s service now 
   const night = templeNow29(Date.parse('2026-10-22T21:30:00+03:00'), JLM);
   assert.equal(night.sky, 'night'); assert.equal(night.current.id, 'haktarat-halaila'); assert.equal(night.night, NIGHT29); assert.equal(NIGHT29.src, 'מידות א, א');
   assert.equal(NIGHT29.quote, 'בִּשְׁלֹשָׁה מְקוֹמוֹת הַכֹּהֲנִים שׁוֹמְרִים בְּבֵית הַמִּקְדָּשׁ');
+  const gap = templeNow29(Date.parse('2026-10-22T17:30:00+03:00'), JLM);   // (after the lamps, before sunset: nothing in calendar.js)
+  assert.equal(gap.current, null); assert.equal(gap.line, `עכשיו במקדש: בין העבודות · הבא ב-${gap.next[0].hm}`); assert.equal(gap.next[0].id, 'haktarat-halaila');
+  assert.match(nowLineHTML29(gap, ''), /בין העבודות · הבא ב-\d\d:\d\d <small>· המחשה<\/small>/, 'no source of its own: המחשה');
   const h = nowLineHTML29(night, ''); assert.match(h, /עכשיו במקדש: הקטר חלבים ואיברים <small>· ברכות א, א · טיוטה<\/small>/); assert.match(h, /שומרים בשלשה מקומות <small>· מידות א, א · טיוטה<\/small>/);
   // New York: the afternoon Tamid at New York's 8.5 seasonal hours (Pesachim 5:1), not Jerusalem's
   const nyEv = templeSchedule(new Date('2026-10-22T12:00:00-04:00'), NY, NY.tz).find((e) => e.id === 'tamid-bein-haarbayim');

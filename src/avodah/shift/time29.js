@@ -278,5 +278,5 @@ export function templeNow29(now = clock29(), w = where29(), n = 3) {
   } catch (e) { cur = null; next = []; }
   const sky = (() => { try { return sky29(t, w); } catch (e) { return 'noon'; } })();
   const night = sky === 'night' ? NIGHT29 : null;
-  return { sky, current: cur, next, night, line: cur ? `עכשיו במקדש: ${cur.name}` : next[0] ? `עכשיו במקדש: בין העבודות · ${next[0].name} ב-${next[0].hm}` : 'עכשיו במקדש', src: cur ? cur.src : next[0] ? next[0].src : '' };
+  return { sky, current: cur, next, night, line: cur ? `עכשיו במקדש: ${cur.name}` : next[0] ? `עכשיו במקדש: בין העבודות · הבא ב-${next[0].hm}` : 'עכשיו במקדש: בין העבודות', src: cur ? cur.src : '' };
 }

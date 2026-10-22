@@ -24,11 +24,13 @@ export const LOCK29_CSS = `
 .lb .lb-here{min-height:44px}
 .lb .lb-play .lb-k{display:block;font:900 11px/1.1 "Heebo",system-ui,sans-serif;opacity:.78;margin:0 0 3px}
 .lb .p28.lb-loc span{white-space:nowrap}
-.lb .lk-here{text-align:right}
-.lb .lk-here h2{text-align:center}.lb .lk-here>p{text-align:center}
-.lb .lk-row{display:flex;gap:8px;align-items:baseline;font:800 13px/1.35 "Heebo",system-ui,sans-serif;padding:3px 0;border-top:1px solid rgba(255,230,180,.15)}
-.lb .lk-row b{flex:none;min-width:58px;color:#FFD66E;font-weight:900}.lb .lk-row span{flex:1}.lb .lk-row small{display:block;font:700 10px/1.25 "Heebo",system-ui,sans-serif;opacity:.7}
-.lb .lk-soon{margin-top:6px;padding:6px 10px;border-radius:12px;border:2px dashed rgba(255,230,180,.4);font:800 12px/1.3 "Heebo",system-ui,sans-serif;opacity:.85;text-align:center}
+.lb .lk-here{text-align:right;padding:6px 12px 8px}
+.lb .lk-here h2{text-align:center;font-size:18px}.lb .lk-here>p{text-align:center;margin:1px 0 4px;font-size:10px}
+.lb .lk-row{display:flex;gap:8px;align-items:baseline;font:800 13px/1.25 "Heebo",system-ui,sans-serif;padding:2px 0;border-top:1px solid rgba(255,230,180,.15)}
+.lb .lk-row b{flex:none;min-width:58px;color:#FFD66E;font-weight:900}.lb .lk-row span{flex:1}.lb .lk-row small{display:block;font:700 10px/1.2 "Heebo",system-ui,sans-serif;opacity:.7}
+.lb .lk-end{display:flex;gap:8px;align-items:stretch;margin-top:5px}
+.lb .lk-soon{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:12px;border:2px dashed rgba(255,230,180,.4);font:800 12px/1.3 "Heebo",system-ui,sans-serif;opacity:.85;text-align:center}
+.lb .lk-end .lb-pkx{margin-top:0;min-width:96px}
 .lb.lb-lock{z-index:9100}
 .lb.lb-lock .lk-card{position:absolute;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(500px,calc(100vw - 24px));box-sizing:border-box;padding:10px 16px;border-radius:18px;border:2px solid rgba(255,222,150,.55);background:linear-gradient(180deg,rgba(40,28,12,.8),rgba(20,13,5,.84));text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto}
 .lb.lb-lock .lk-card h2{margin:0;font:900 30px/1.12 "Heebo",system-ui,sans-serif;color:#FFE7A6;text-shadow:0 2px 10px rgba(0,0,0,.5)}
@@ -65,7 +67,7 @@ export function lockHTML29(s, w, sfx) {
 export function nowLineHTML29(tn, soft) {
   if (!tn && !soft) return '';
   const src = tn && tn.src ? tn.src.split('; ')[0] : '';
-  return `<div class="lb-now" data-lb29="now">${tn ? `<div>${esc(tn.line)}${src ? ` <small>· ${esc(src)} · טיוטה</small>` : ''}</div>` : ''}${tn && tn.night ? `<div>${esc(tn.night.text.split(' — ')[0])} <small>· ${esc(tn.night.src)} · טיוטה</small></div>` : ''}${soft ? `<div class="lb-soft" data-lb29="soft">${esc(soft)}</div>` : ''}</div>`;
+  return `<div class="lb-now" data-lb29="now">${tn ? `<div>${esc(tn.line)} <small>· ${src ? `${esc(src)} · טיוטה` : 'המחשה'}</small></div>` : ''}${tn && tn.night ? `<div>${esc(tn.night.text.split(' — ')[0])} <small>· ${esc(tn.night.src)} · טיוטה</small></div>` : ''}${soft ? `<div class="lb-soft" data-lb29="soft">${esc(soft)}</div>` : ''}</div>`;
 }
 /** the second door: "מכאן — המקדש עכשיו" */
 export const hereDoor29 = () => `<button class="lb-door lb-here" type="button" data-lb="here"><i>🕍</i><span><b>מכאן — המקדש עכשיו</b><small>מה קורה עכשיו במקדש, ומה אחר כך</small></span></button>`;
@@ -80,13 +82,12 @@ export function hereHTML29(tn, w, now = clock29()) {
       <h2>המקדש עכשיו · ${esc(hm29(now, (w && w.tz) || 'Asia/Jerusalem'))}</h2>
       <p>${esc(whereHe(w))} · ≈ שעה משוערת: המשנה קובעת את הסדר, לא את הדקה · טיוטה</p>
       ${nowRow}${night}${next}
-      <div class="lk-soon">🔒 בקרוב מכאן: ${SOON29.map(esc).join(' · ')}</div>
-      <button class="lb-pkx" type="button" data-lb="here:close">סגור</button>
+      <div class="lk-end"><div class="lk-soon">🔒 בקרוב מכאן: ${SOON29.map(esc).join(' · ')}</div><button class="lb-pkx" type="button" data-lb="here:close">סגור</button></div>
     </div></div>`;
 }
 /** the "מיקום מדויק" switch (off by default; ≥ 44 px) */
 export function locButton29(on, msg) {
-  return `<button class="p28 lb-loc${on ? '' : ' off'}" type="button" data-lb="loc" aria-pressed="${on ? 'true' : 'false'}" aria-label="מיקום מדויק"><i>📍</i><span>${esc(msg || (on ? 'מיקום מדויק' : 'מיקום מדויק כבוי'))}</span></button>`;
+  return `<button class="p28 lb-loc${on ? '' : ' off'}" type="button" data-lb="loc" aria-pressed="${on ? 'true' : 'false'}" aria-label="מיקום מדויק"><i>📍</i><span>${esc(msg || (on ? 'מיקום מדויק ✓' : 'מיקום מדויק'))}</span></button>`;
 }
 
 /** the calm line over the day, under its top bar (focus17's); '' takes it off */

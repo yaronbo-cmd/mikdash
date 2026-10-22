@@ -3872,8 +3872,8 @@ export function createDay33(o = {}) {
     let a;
     if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 8.7 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
-    else if (/^(hold|aim|splash)$/.test(ph)) a = { p: [-15.8, 22.5, -21.9], t: [-23.4, 18.8, -18.4], e: 2.2 };   // (over his right shoulder, above his head: the corner's two faces in the middle)
-    else if (/^(aim2|splash2)$/.test(ph)) a = { p: [-60.1, 22.5, 14.9], t: [-52.6, 18.8, 11.4], e: 2.2 };
+    else if (/^(hold|aim|splash)$/.test(ph)) a = { p: [-14.9, 24, -24.4], t: [-23.3, 18.6, -18.3], e: 2.2 };   // (behind him, over his shoulder and above his head: the corner's two faces in the middle)
+    else if (/^(aim2|splash2)$/.test(ph)) a = { p: [-58.7, 24, 19.6], t: [-52.7, 18.6, 11.2], e: 2.2 };
     else a = { p: [-55.9, 20.7, 18.9], t: [-52.6, 17.1, 12.4], e: 2.2 };
     return { x: a.t[0], z: a.t[2], view: a };
   }

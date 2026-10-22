@@ -758,7 +758,7 @@ export function createDam27(o = {}) {
         snd('splash27', { big: 1 });
         snd('chord17', { up: 1 });
         haptic([30, 20, 40]);
-        pop(big, `<b>שתי מתנות שהן ארבע</b><small>${SRC.gamma}</small>`);
+        pop(big, `<b>שתי מתנות שהן ארבע</b><small>כמין גמא — Γ</small>`);
       } else if (ev.res === 'good') {
         S.face1++;
         snd('splash27');
@@ -847,7 +847,7 @@ const HOOF = '#5A4A3A';
 const CSS = `.dm27{position:fixed;z-index:32;direction:rtl;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:none;display:none}.dm27.on{display:block}.dm27 small{display:block;font-size:11px;font-weight:700;opacity:.88}
 .dm27-in{top:0;bottom:0;left:51%;right:0;z-index:30;touch-action:none;pointer-events:auto}
 .dm27-h,.dm27-x,.dm27-f,.dm27-m{left:50%;transform:translateX(-50%)}.dm27-h{top:58px;padding:4px 12px;border-radius:12px;background:#1C140ACC;font-size:13px;max-width:74vw}.dm27-m{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:31;padding:3px 12px;border-radius:12px;background:#1C140AD8;border:1.5px solid #E2B65A;color:#FFE6A0;font:800 12px/1.25 Heebo,system-ui,sans-serif;max-width:78vw}
-.dm27-x{top:42%;z-index:37;white-space:nowrap;text-shadow:0 2px 3px #000}.dm27-x b{display:block;font-size:34px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608}.dm27-f{top:64%;z-index:34;font-size:18px;color:#FFD08A;white-space:nowrap;text-shadow:0 2px 3px #000}.dm27-f.bad{color:#FF8E7A}
+.dm27-x{top:30%;z-index:37;white-space:nowrap;text-shadow:0 2px 3px #000}.dm27-x b{display:block;font-size:34px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608}.dm27-f{top:64%;z-index:34;font-size:18px;color:#FFD08A;white-space:nowrap;text-shadow:0 2px 3px #000}.dm27-f.bad{color:#FF8E7A}
 .dm27-x.on,.dm27-f.on{animation:dm27w 2.2s forwards}@keyframes dm27w{0%{opacity:0}10%,82%{opacity:1}to{opacity:0}}
 .dm27-u{left:75.5%;top:50%;transform:translate(-50%,-50%);z-index:31;color:#FFE6A0;font-size:17px;text-shadow:0 2px 4px #000}.dm27-u i{display:block;font-style:normal;font-size:44px;line-height:1.1}
 .dm27-u.sw i{animation:dm27s .9s ease-in-out infinite}.dm27-u.dn i{animation:dm27d 1s ease-in-out infinite}.dm27-u.hd i{animation:dm27h 1s ease-in-out infinite}.dm27-u.rot i{animation:dm27r 1.1s linear infinite}

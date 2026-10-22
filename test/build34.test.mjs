@@ -206,6 +206,13 @@ test('build 34 (16): a day resumed after the gate opened (a reload, "מהתחל�
   const R3 = rig(FLAGS, {}); assert.equal(R3.E.st33.men5t == null || R3.E.st33.men5t === undefined, true);
 });
 
+test('build 34 (17): up to 800 px wide the step card\'s words take two lines (at 740×360 "בדיקת הטלה — לכו לדיר הטלאים" beside the tamid timer was cut to "…לכו לדי…"); in an act still one line', () => {
+  const p = read('src/avodah/shift/prefs28.js');
+  assert.match(p, /@media \(max-width:800px\)\{body\.sh28 \.f17-top\{gap:5px\}[^\n]*body\.sh28 \.f17-card\{[^}]*white-space:normal\}body\.sh28 \.f17-card span\{[^}]*-webkit-line-clamp:2/);
+  assert.ok(!/max-width:700px\)\{body\.sh28/.test(p));
+  assert.match(read('src/avodah/shift/focus17.js'), /\.f17-top\.f17-a30 \.f17-card span\{-webkit-line-clamp:1!important;white-space:nowrap\}/, 'an act\'s one line');
+});
+
 // ───────── the Divine Name ─────────
 test('build 34: no Divine Name in the changed files (by code points; spaced, hyphenated or pointed forms too)', () => {
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];

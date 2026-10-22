@@ -958,6 +958,12 @@ export function createDay33(o = {}) {
         st.r30day = [];   // ── fable32 (build 30) ── ── /fable32 ──
       }
       if (!Array.isArray(st.r30day)) st.r30day = [];
+      // ── fable32 (build 34) ── the saved moments are the old clock's — st.t starts again at 0 — so the gate's time and the five lamps'
+      // (the zorek's first gift waits for them: "הטבת חמש נרות קודם לדם התמיד") are past: a day resumed (a reload, "מהתחלה", the next
+      // visit) after the gate opened held the zorek at "מרסו — חמש נרות קודם" until the new clock reached the old one — minutes (the naive kid's
+      // run: 129 s and more, the scripted bot too) ── /fable32 ──
+      if (Number.isFinite(st.men5t)) st.men5t = Math.min(st.men5t, 0);
+      if (Number.isFinite(st.g26t)) st.g26t = Math.min(st.g26t, -60);
       st.left = Math.min(DAY33.dayS, Math.max(20, +st.left || DAY33.dayS));
       st.resumed = st.day;
       st.resumeTasks = Array.isArray(was.tasks) ? was.tasks : null;

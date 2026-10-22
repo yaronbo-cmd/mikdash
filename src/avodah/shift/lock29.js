@@ -32,17 +32,18 @@ export const LOCK29_CSS = `
 .lb .lk-soon{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:12px;border:2px dashed rgba(255,230,180,.4);font:800 12px/1.3 "Heebo",system-ui,sans-serif;opacity:.85;text-align:center}
 .lb .lk-end .lb-pkx{margin-top:0;min-width:96px}
 .lb.lb-lock{z-index:9100}
-.lb.lb-lock .lk-card{position:absolute;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(500px,calc(100vw - 24px));box-sizing:border-box;padding:10px 16px;border-radius:18px;border:2px solid rgba(255,222,150,.55);background:linear-gradient(180deg,rgba(40,28,12,.8),rgba(20,13,5,.84));text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto}
+.lb-on .tw-lift{display:none!important}
+.lb.lb-lock .lk-card{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));width:min(440px,calc(100vw - 210px));box-sizing:border-box;padding:10px 16px;border-radius:18px;border:2px solid rgba(255,222,150,.55);background:linear-gradient(180deg,rgba(40,28,12,.8),rgba(20,13,5,.84));text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto}
 .lb.lb-lock .lk-card h2{margin:0;font:900 30px/1.12 "Heebo",system-ui,sans-serif;color:#FFE7A6;text-shadow:0 2px 10px rgba(0,0,0,.5)}
 .lb.lb-lock .lk-name{font:800 12px/1.2 "Heebo",system-ui,sans-serif;opacity:.75;margin-top:2px}
 .lb.lb-lock .lk-open{font:800 16px/1.35 "Heebo",system-ui,sans-serif;margin-top:6px}
 .lb.lb-lock .lk-jer{font:800 13px/1.3 "Heebo",system-ui,sans-serif;color:#FFD66E;margin-top:3px}
 .lb.lb-lock .lk-v{font:700 14px/1.45 "Frank Ruhl Libre","David Libre","Heebo",serif;margin-top:6px;opacity:.92}
-.lb.lb-lock .lk-v small{font:700 10px/1 "Heebo",system-ui,sans-serif;opacity:.75}
+.lb.lb-lock .lk-v small{font:700 10px/1 "Heebo",system-ui,sans-serif;opacity:.75;white-space:nowrap}
 .lb.lb-lock .lk-f{font:700 10px/1.25 "Heebo",system-ui,sans-serif;opacity:.6;margin-top:4px}
 .lb.lb-lock .lb-side{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 14px);top:auto;left:auto}
 .lb.lb-lock .lb-side .p28 span{display:inline}
-@media (orientation:portrait){.lb.lb-lock{background:linear-gradient(180deg,#34260F,#120C05)}.lb.lb-lock .lk-card{top:22%}}
+@media (orientation:portrait){.lb.lb-lock{background:linear-gradient(180deg,#34260F,#120C05)}.lb.lb-lock .lk-card{bottom:auto;top:22%;left:50%;transform:translateX(-50%);width:calc(100vw - 24px)}}
 @media (max-height:340px){.lb.lb-lock .lk-card{padding:7px 12px}.lb.lb-lock .lk-card h2{font-size:26px}.lb.lb-lock .lk-open{font-size:15px;margin-top:3px}.lb.lb-lock .lk-v{margin-top:3px}}
 #s29-soft{position:fixed;left:50%;transform:translateX(-50%);z-index:29;pointer-events:none;padding:4px 12px;border-radius:999px;background:rgba(40,28,10,.8);border:1px solid rgba(255,214,110,.55);color:#FFE7A6;font:800 13px/1.25 "Heebo",system-ui,sans-serif;direction:rtl;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.3)}
 .sh-pause .sh-note29{margin:4px 0 0;font:800 13px/1.3 "Heebo",system-ui,sans-serif;color:#FFE7A6}

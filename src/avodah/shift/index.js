@@ -264,7 +264,7 @@ export function mountShift(o = {}) {
   function openLock29(s) {
     if (!doc) return;
     hero35(); goLive();
-    const L = createLobby({ D, world: o.rig && o.rig.stages, view: o.rig && o.rig.view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, lock: s, on: {} });
+    const L = createLobby({ D, world: o.rig && o.rig.stages, view: o.rig && o.rig.view, twin: rig().twin || null, twinOf: () => rig().twin || null /* (a page opened in the lock: the world is entered by the lobby itself) */, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, lock: s, on: {} });
     cardCtl = L;
   }
   function tick29() {

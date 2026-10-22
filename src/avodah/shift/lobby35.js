@@ -31,8 +31,10 @@ import { css29, lockHTML29, nowLineHTML29, hereDoor29, hereHTML29, locButton29 }
 
 export const LOBBY35 = Object.freeze({ x: -25, z: 34, y: 16, az0: Math.PI / 2, swing: 0.45, swingS: 0.22, el: 0.24, d: 16, motes: 14, cycleS: 7 });   // ── recovered (16–26c) ── (x −34 → −25, z 50 → 34, el 0.2 → 0.24, d 15 → 16)
 // ── fable32 (build 29) ── the sky's preset for each part of the real day (main.js TIMES; the night is the readable moonlit one — HANDOFF §3
-// "לילה = דמדומים (לא חושך)" — not the day's dark 'nightd'); the lock's view: the court at rest, farther and higher than his ── /fable32 ──
-export const LOBBY29 = Object.freeze({ sky: { dawn: 'dawn', noon: 'noon', dusk: 'dusk', night: 'night' }, lockEl: 0.3, lockD: 30 });
+// "לילה = דמדומים (לא חושך)" — not the day's dark 'nightd'); the lock's view: the court at rest, no one at work (the hidden kohen's spot is
+// only the camera's target) ── /fable32 ──
+export const LOBBY29 = Object.freeze({ sky: Object.freeze({ dawn: 'dawn', noon: 'noon', dusk: 'dusk', night: 'night' }), lock: Object.freeze({ x: -12, z: 12, az: 0.75, el: 0.24, d: 45, swing: 0.15 }) });   // (the lock's view, chosen from eight framings in the browser checks: the laver, kohanim standing, the altar's side with its red line)
+const lockView = () => Object.assign({}, LOBBY29.lock, globalThis.__LOCK29VIEW || {});   // (the browser checks may try another framing)
 
 const CSS = `
 .lb{position:fixed;inset:0;z-index:31;direction:rtl;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;pointer-events:none;overflow:hidden}
@@ -90,7 +92,8 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 
 export function createLobby(o = {}) {
   const doc = typeof document !== 'undefined' ? document : null;
-  const save = o.save || {}, S = o.world || null, view = o.view || null, T = o.twin || null, D = o.D || null;
+  const save = o.save || {}, S = o.world || null, view = o.view || null, D = o.D || null;
+  let T = o.twin || null;   // ── fable32 (build 29) ── (o.twinOf: a lock opened before the world was ever entered gets the twin once it is) ── /fable32 ──
   const on = o.on || {};
   const persist = () => { try { o.persist && o.persist(); } catch (e) { /* */ } };
   const sfx = (n) => { try { o.sfx && o.sfx.play && o.sfx.play(n); } catch (e) { /* */ } };
@@ -109,16 +112,17 @@ export function createLobby(o = {}) {
   /* ── the world: entered, the day's HUD held, the sky at dawn, the hero at the lobby's spot (hidden: the lobby draws him), the stick off ── */
   function enterWorld() {
     try { if (D && !D.active && D.canEnter && D.canEnter()) D.enter(); } catch (e) { /* */ }
+    try { if (!T && o.twinOf) T = o.twinOf() || null; } catch (e) { /* */ }
     try { if (D && D.shiftMode) D.shiftMode({ work: () => null, marks: () => [], tick: () => {} }); } catch (e) { /* */ }
     setSky29();   // ── fable32 (build 29) ── the real hour's sky where the phone is (was always 'dawn') ── /fable32 ──
-    try { if (S && S.hero) { S.hero.setPos(LOBBY35.x, LOBBY35.z, 0); S.hero.drive(0, 0); S.hero.show(!!H35() && !st.lock); } } catch (e) { /* */ }   // (build 15: the real kohen stands himself; without him the kit draws the figure) ── fable32 (build 29) ── (the lock: no kohen at work) ── /fable32 ──
+    try { if (S && S.hero) { const lv = lockView(); S.hero.setPos(st.lock ? lv.x : LOBBY35.x, st.lock ? lv.z : LOBBY35.z, 0); S.hero.drive(0, 0); S.hero.show(!!H35() && !st.lock); } } catch (e) { /* */ }   // (build 15: the real kohen stands himself; without him the kit draws the figure) ── fable32 (build 29) ── (the lock: no kohen at work) ── /fable32 ──
     try { if (S && S.heroXYZ) { S.heroXYZ(hp); st.hy = Number.isFinite(hp.y) ? hp.y : 16; } } catch (e) { /* */ }
     try { if (T && T.noStick) T.noStick(true); } catch (e) { /* */ }
-    try { if (o.camera && view) { if (st.cam) st.cam.off(); st.cam = o.camera(view, T, { world: S, drag: 1 }); st.cam.on(); st.cam.orbit(LOBBY35.az0, st.lock ? LOBBY29.lockEl : LOBBY35.el, camD()); } } catch (e) { st.cam = null; }
+    try { if (o.camera && view) { if (st.cam) st.cam.off(); st.cam = o.camera(view, T, { world: S, drag: 1 }); st.cam.on(); st.cam.orbit(st.lock ? lockView().az : LOBBY35.az0, st.lock ? lockView().el : LOBBY35.el, camD()); } } catch (e) { st.cam = null; }
     SHARED.act = null;
     st.inWorld = !!(D && D.active);   // ── fable32 (build 29) ── (a lock opened in portrait enters the world when the phone turns: tick29) ── /fable32 ──
   }
-  const camD = () => (st.lock ? LOBBY29.lockD : LOBBY35.d);
+  const camD = () => (st.lock ? lockView().d : LOBBY35.d);
   function leaveWorld() {
     if (st.offDraw) { try { st.offDraw(); } catch (e) { /* */ } st.offDraw = null; }
     try { if (st.cam) st.cam.off(); } catch (e) { /* */ } st.cam = null;
@@ -129,7 +133,7 @@ export function createLobby(o = {}) {
   function draw(k, t, dt) {
     st.t += dt; st.n++;
     // the camera's slow swing round him (paused 3 s after the thumb turned it)
-    if (st.cam) { const s = st.cam.state(); if (s.drags !== st.drags) { st.drags = s.drags; st.dragT = st.t; } if (st.t - st.dragT > 3) { st.az = LOBBY35.az0 + LOBBY35.swing * Math.sin(st.t * LOBBY35.swingS); st.cam.orbit(st.az, null, camD()); } }
+    if (st.cam) { const s = st.cam.state(); if (s.drags !== st.drags) { st.drags = s.drags; st.dragT = st.t; } if (st.t - st.dragT > 3) { st.az = st.lock ? lockView().az + lockView().swing * Math.sin(st.t * LOBBY35.swingS) : LOBBY35.az0 + LOBBY35.swing * Math.sin(st.t * LOBBY35.swingS); st.cam.orbit(st.az, null, camD()); } }   // ── fable32 (build 29) ── (the lock: its own view, a slower sway) ── /fable32 ──
     if (st.lock) return;   // ── fable32 (build 29) ── the Temple at rest: no kohen at work, no lamb, no motes — the court, the altar's fire, the sky ── /fable32 ──
     // the idle cycle: stand (breathing) · a wave · stand · the axe over the shoulder, swung once
     const c = st.t % LOBBY35.cycleS, breath = 0.5 + 0.5 * Math.sin(st.t * 1.7);
@@ -271,7 +275,7 @@ export function createLobby(o = {}) {
     if (!st.busy && key29() !== st.key29) { render(); return true; }
     return false;
   }
-  function lock29(s) { const was = !!st.lock; st.lock = s && s.locked ? s : null; st.here = false; st.games = false; if (was !== !!st.lock) { try { if (S && S.hero) S.hero.show(!!H35() && !st.lock); } catch (e) { /* */ } if (st.cam) st.cam.orbit(st.az, st.lock ? LOBBY29.lockEl : LOBBY35.el, camD()); } render(); }
+  function lock29(s) { const was = !!st.lock; st.lock = s && s.locked ? s : null; st.here = false; st.games = false; if (was !== !!st.lock) { try { if (S && S.hero) S.hero.show(!!H35() && !st.lock); } catch (e) { /* */ } enterWorld(); } render(); }
   function soft29(line) { line = line || ''; if (line === st.soft) return; st.soft = line; if (!st.busy) render(); }
   // ── /fable32 ──
   function close() {
@@ -293,7 +297,7 @@ export function createLobby(o = {}) {
   enterWorld();
   const me = { close, refresh: render, pick, html /* ── fable32 (build 28) ── (tests: the screen's markup) ── /fable32 ── */, get el() { return root; }, state: () => ({ open: st.open, mode: st.mode, start: st.start, games: st.games, busy: st.busy, pose: st.pose, u: +st.u.toFixed(2), az: +st.az.toFixed(2), frames: st.n, cam: st.cam ? st.cam.state() : null, perutot: perutot(), badges: claimed(),
     lock: !!st.lock, soft: st.soft, here: st.here, sky: st.sky /* ── fable32 (build 29) ── */ }),
-    lock29, soft29, tick29 /* ── fable32 (build 29) ── */ };
+    lock29, soft29, tick29, view29: () => { if (st.open) enterWorld(); } /* ── fable32 (build 29) ── */ };
   try { globalThis.__LOBBY = Object.assign({ __me: me }, me, { state: me.state, pick }); } catch (e) { /* */ }
   return me;
 }

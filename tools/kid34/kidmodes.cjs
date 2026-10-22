@@ -10,6 +10,7 @@ async function lookRec(K, where, every = 1) {
 }
 // the helper (a parent's hand): when the child has made no progress for long, the scripted bot does the act until something changes
 async function helper(K, why) {
+  if (K.left() < 60000) { K.note('helper skipped (the run ends): ' + why); K.R.unresolved = (K.R.unresolved || []).concat([[K.el(), why.slice(0, 160)]]); await K.sleep(5000); return false; }   // (no time left for the bot to try: not a hard stuck — unresolved at the run's end)
   K.note('helper: ' + why);
   const has = await K.pg.evaluate(() => !!globalThis.__AUTO35).catch(() => false);
   if (!has) await K.pg.addScriptTag({ path: '/home/claude/temple3d/tools/autoplay35.js' }).catch((e) => K.note('inject ' + e.message));
@@ -320,4 +321,23 @@ module.exports.botlook = async function (K) {
   }
   K.R.bot = K.R.bot || await K.pg.evaluate(() => { const A = globalThis.__AUTO35.state(); return { on: A.on, phase: A.phase, marks: A.marks, err: A.err, stuck: A.stuck, rate: A.rate }; }).catch(() => null);
   K.log('bot', JSON.stringify(K.R.bot).slice(0, 800));
+};
+// ── the walk to the pen: the bot to the lot's end, then the child's steering (toward the gold path he sees) with the hero's place logged ──
+module.exports.penwalk = async function (K) {
+  await tapSel(K, '.lb-play'); await waitEngine(K, 60000); await K.sleep(1500);
+  await K.pg.addScriptTag({ path: '/home/claude/temple3d/tools/autoplay35.js' });
+  await K.pg.evaluate((seed) => { globalThis.__AUTO35.start({ seed }).catch(() => {}); }, K.R.seed);
+  const want = new RegExp(K.opt('--line', 'לכו לדיר'));
+  for (let i = 0; i < 200; i++) { const l = await K.pg.evaluate(() => globalThis.__KID.line()).catch(() => ''); if (want.test(l)) break; await K.sleep(500); }
+  await K.pg.evaluate(() => { globalThis.__AUTO35.stop(); globalThis.__T.stages.hero.drive(0, 0); });
+  K.log('line', await K.pg.evaluate(() => globalThis.__KID.line()));
+  const dump = () => K.pg.evaluate(() => { const E = globalThis.__SHIFT.E, a = globalThis.__KID.pathAim(), h = globalThis.__KID.hero(), F = globalThis.__F31 && globalThis.__F31.state(); let fn = null; try { const f = E.flowNext(); fn = f && f.at ? [+f.at.x.toFixed(1), +f.at.z.toFixed(1)] : null; } catch (e) { /* */ } return { t: +E.st33.t.toFixed(1), h: h ? [+h.x.toFixed(1), +h.z.toFixed(1), Math.round(h.sx), Math.round(h.sy)] : null, aim: a ? [Math.round(a.sx), Math.round(a.sy), +a.d.toFixed(1)] : null, pts: F && F.pts ? F.pts.slice(0, 5).map((p) => [+p[0].toFixed(1), +p[1].toFixed(1)]) : null, fn, p25: E.p25() ? E.p25().ph : null, line: globalThis.__KID.line() }; });
+  K.R.walk = []; let flat = 0, prev = null, shots = 0;
+  for (let i = 0; i < 60 && K.left() > 30000; i++) {
+    const s = await K.look(); await K.towardPath(s, 1500); const d = await dump(); K.R.walk.push(d); K.log(JSON.stringify(d));
+    if (d.p25) break;
+    if (prev && d.h && prev.h && Math.hypot(d.h[0] - prev.h[0], d.h[1] - prev.h[1]) < 0.5) flat++; else flat = 0;
+    if (flat === 3 && shots < 4) { shots++; await K.shot('stuck-' + i); }
+    prev = d;
+  }
 };

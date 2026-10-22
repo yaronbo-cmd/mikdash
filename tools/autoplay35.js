@@ -166,8 +166,9 @@
   // the way, the pull and the release at the corners (a child's aim rougher: now and then over the line or beside the corner), the
   // swipe down at the yesod. A phase shot (opts.shots27) freezes the world while the runner draws a frame and takes it.
   const SHOTS = () => A.opts.shots27 || [];
-  async function shot(name) {
+  async function shot(name, settle = 0) {
     if (!SHOTS().includes(name) || A.shotDone[name]) return;
+    if (settle > 0) { const e = E(), K0 = e && e.r27 && e.r27(), t0 = K0 ? K0.t : 0; await until(() => { const k = e.r27(); return !k || k.t >= settle || k.t < t0 - 0.01; }, 8000, 30); }   // (the authored view eased in)
     A.shotDone[name] = 1; A.shotReq = name;
     try { globalThis.__T.simulate(false); } catch (e) { /* */ }
     await until(() => !A.shotReq, 120000, 100);
@@ -182,14 +183,14 @@
     const x0 = W27() * 0.72, y0 = H27() * 0.55, id = 970, short = H() && rnd() < 0.18;
     ptr(pad, 'pointerdown', x0, y0, id);
     const n = 10, end = short ? 0.55 : 1;
-    for (let i = 1; i <= n; i++) { const u = (i / n) * end; ptr(pad, 'pointermove', x0 + ux * need * u, y0 + uy * need * u, id); if (i === 6) await shot('bind'); await sleep(H() ? 45 : 25); }
+    for (let i = 1; i <= n; i++) { const u = (i / n) * end; ptr(pad, 'pointermove', x0 + ux * need * u, y0 + uy * need * u, id); if (i === 6) await shot('bind', 1.4); await sleep(H() ? 45 : 25); }
     ptr(pad, 'pointerup', x0 + ux * need * end, y0 + uy * need * end, id);
     if (short) note('the binding: let go short');
   }
   async function cut27(e) {
     const pad = pad27(), K = e.r27();
     if (!K) return;
-    await shot('cut');
+    await shot('cut', 1.2);
     // the moment: a quick hand taps in the middle of the gold, a child's aim is off by up to ±0.12 now and then
     const err = H() ? (rnd() < 0.3 ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08) : (rnd() - 0.5) * 0.04, want = 0.5 + err;
     for (let i = 0; i < 400; i++) { const k = e.r27(); if (!k || k.ph !== 'cut') return; if (Math.abs(k.u - want) < 0.025) break; await sleep(8); }
@@ -203,7 +204,7 @@
     if (pad) ptr(pad, 'pointerdown', x, y0, id);
     for (let i = 0; i < 400; i++) {
       const K = e.r27(); if (!K || K.ph !== 'recv') break;
-      if (i === 30) await shot('recv');
+      if (i === 30) await shot('recv', 1.3);
       const lag = H() ? 0.65 : 0.92, d = (K.sp - K.pos) * lag + (H() ? (rnd() - 0.5) * 0.08 : 0);
       if (pad) { x += (d * 0.42 * W27()) / 2; ptr(pad, 'pointermove', x, y0, id); } else e.r27move(d);
       await sleep(H() ? 60 : 35);
@@ -243,7 +244,7 @@
       ptr(pad, 'pointermove', x0 + (dx * i) / steps, y0 + (dy * i) / steps, id);
       await sleep(H() ? 50 : 30);
     }
-    await shot(demoHigh ? 'high' : c === 'NE' ? 'aimNE' : 'aimSW');
+    await shot(demoHigh ? 'high' : c === 'NE' ? 'aimNE' : 'aimSW', 1.2);
     await sleep(H() ? 200 : 80);
     ptr(pad, 'pointerup', x0 + dx, y0 + dy, id);
     await sleep(120);
@@ -266,7 +267,7 @@
     if (ph === 'bind') { await react(); await bind27(e); await sleep(150); return; }
     if (ph === 'cut' && K.role === 'shochet') { await react(); await cut27(e); return; }
     if (ph === 'recv') { await react(); await recv27(e); return; }
-    if (ph === 'full' || ph === 'hold') { swirlStep(0.05); if (ph === 'hold') await shot('hold'); await sleep(50); return; }
+    if (ph === 'full' || ph === 'hold') { swirlStep(0.05); if (ph === 'hold' && K.t > 0.9) await shot('hold'); await sleep(50); return; }
     if (ph === 'carry' || ph === 'carry2') {
       const f = e.flowNext(), half = { t: performance.now() };
       if (f && f.at) await walkTo(f.at, 1.4, 40000, async () => { swirlStep(H() ? 0.06 : 0.04); if (performance.now() - half.t > 1500) await shot(ph === 'carry' ? 'carry' : 'carry2'); const k = e.r27(); return !!k && k.ph === ph; });
@@ -275,6 +276,7 @@
     if (ph === 'aim' || ph === 'aim2') { await react(); await throw27(e, ph); return; }
     if (ph === 'base') { await react(); await base27(e); return; }
     if (ph === 'wait' && K.role === 'shochet') { await shot('wait'); await sleep(80); return; }
+    if (ph === 'cutd') { await shot('npcRecv', 0.5); await sleep(60); return; }   // (the court's receiver at the vessel)
     await sleep(60);
   }
   async function heichal(e) {
@@ -332,6 +334,7 @@
         if (e.m22() && e.m22().ph !== 'end') { A.phase = 'm22'; await pyre(e); continue; }
         if (e.p25()) { A.phase = 'lamb'; await lamb(e); continue; }
         if (e.r27 && e.r27() && e.r27().ph !== 'out') { A.phase = 'blood'; await blood(e); continue; }   // ── build 27 ──
+        if (SHOTS().includes('npcNE') && !A.shotDone.npcNE && globalThis.__D27 && globalThis.__D27.state().npc === 'NE') await shot('npcNE');
         if (e.r26() && e.r26().ph !== 'out') { A.phase = 'heichal'; await heichal(e); continue; }
         A.phase = 'walk'; await day(e);
       } catch (err) { if (!A.on) return; A.err = String(err && err.stack || err).slice(0, 400); note('error ' + A.err.slice(0, 120)); await sleep(300); }

@@ -10,7 +10,8 @@
 //                   counts and history — P23.open / P26.open: day 2 the pyre and the inner altar, day 3 the lamb and the menorah, day 4
 //                   the shochet, day 5 the zorek (build 27))
 //   --shots27 a,b   phase shots of the blood roles (bind, wait, cut, recv, carry, hold, aimNE, high, highCue, gammaNE, carry2, aimSW,
-//                   gammaSW, pour): the world frozen, a frame drawn, shot-<name>.png      --high27   the first throw over the thread
+//                   gammaSW, pour, npcRecv, npcNE): the world frozen, a frame drawn, shot-<name>.png      --high27   the first throw over the
+//                   thread      --book   at the end, the roles book opened and taken (shot-book.png)
 //   --q LEVEL       the page's quality (window.__FORCE_Q; default low — SwiftShader draws 'high' at a frame in seconds; the game's logic
 //                   is the same at every level)          --size WxH    the viewport (default 640x296)
 //   --frames        play on the page's own render loop (default: the world simulated without drawing — main.js __T.simulate, 0.05 s steps
@@ -27,7 +28,7 @@ const flag = (k) => args.includes(k);
 const run = opt('--run', 'run'), page = path.resolve(opt('--page', 'out/index.html')), minutes = +opt('--minutes', 4), shots = +opt('--shots', 3);
 const Q = opt('--q', 'low'), [VW, VH] = opt('--size', '640x296').split('x').map(Number);
 const frames = flag('--frames');
-const human = flag('--human'), cont = flag('--continue'), sound = flag('--sound'), seed = +opt('--seed', 1) || 1, days = +opt('--days', 1) || 1, morningOnly = flag('--morning'), dayN = +opt('--day', 0) || 0, shots27 = (opt('--shots27', '') || '').split(',').filter(Boolean), high27 = flag('--high27');
+const human = flag('--human'), cont = flag('--continue'), sound = flag('--sound'), seed = +opt('--seed', 1) || 1, days = +opt('--days', 1) || 1, morningOnly = flag('--morning'), dayN = +opt('--day', 0) || 0, shots27 = (opt('--shots27', '') || '').split(',').filter(Boolean), high27 = flag('--high27'), book = flag('--book');
 const OUT = path.join('/tmp/claude-0/-home-claude/92bf52df-7cb5-51be-8ceb-ea3690eaf336/auto', run);
 fs.mkdirSync(OUT, { recursive: true });
 const store = path.join(OUT, 'storage.json');
@@ -98,6 +99,7 @@ const store = path.join(OUT, 'storage.json');
   const res = await pg.evaluate(() => ({ state: globalThis.__AUTO35.state(), events: globalThis.__AUTO35.events(), trace: globalThis.__AUTO35.trace(), sfx: globalThis.__SFX26C || null, ls: Object.fromEntries(Object.keys(localStorage).map((k) => [k, localStorage.getItem(k)])) }));
   await pg.evaluate(() => globalThis.__AUTO35.stop()).catch(() => {});
   while (shot < shots) { if (!frames) await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, `shot-${shot}.png`), timeout: 240000 }).catch(() => {}); shot++; }
+  if (book) { await pg.evaluate(() => { try { window.__T.simulate(false); globalThis.__SHIFT.roles(); } catch (e) { /* */ } }).catch(() => {}); await pg.waitForTimeout(600); await pg.screenshot({ path: path.join(OUT, 'shot-book.png'), timeout: 240000 }).catch(() => {}); console.log('shot book', el()); }
   fs.writeFileSync(store, JSON.stringify(res.ls));
   const log = { run, page, human, seed, days, day: dayN || null, cont, sound, q: Q, size: [VW, VH], frames, wallS: Math.round((Date.now() - t0) / 1000), table: res.state.table, marks: res.state.marks, acts: res.state.acts, walks: res.state.walks, stuck: res.state.stuck, lag: res.state.lag, err: res.state.err, notes: res.state.notes, sfx: res.sfx, errors: errors.slice(0, 40), events: res.events, trace: res.trace };
   fs.writeFileSync(path.join(OUT, 'log.json'), JSON.stringify(log, null, 1));

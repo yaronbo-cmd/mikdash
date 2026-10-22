@@ -52,7 +52,7 @@ export function createDam27(o = {}) {
     proj = (x, y, z) => {
       try {
         const p = view && view.project(x, y, z);
-        return p && p.on !== false ? p : null;
+        return p && p.on !== false ? { x: p.x, y: p.y } : null;   // (a copy: the view hands back one shared point)
       } catch (e) {
         return null;
       }
@@ -285,7 +285,7 @@ export function createDam27(o = {}) {
       base: ['⬇', 'dn', 'החליקו מטה'],
     },
     HINT = {
-      bind: ['עקדו את הטלה — גררו את הרגל הקדמית אל האחורית', SRC.bind + ' · ' + SRC.yad],
+      bind: ['עקדו את הטלה — גררו את הרגל הקדמית אל האחורית', SRC.yad],
       bound: ['עקוד — ראשו לדרום ופניו למערב', SRC.head],
       wait: ['', SRC.gate],
       cut: ['שחטו — הקישו כשהמחוג בזהב', SRC.stand],

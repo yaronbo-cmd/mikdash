@@ -221,7 +221,7 @@ test('build 33 (12): the "מכאן" card — לשכת הטלאים open (≥ 44 
   assert.equal(Lb.pick('ch33'), true); assert.deepEqual(calls, ['chamber']);
   const L2 = createLobby({ save: {}, start: true, now: () => MON, where: () => W, on: {} }); L2.pick('here'); assert.ok(!/data-lb="ch33"/.test(L2.html()), 'no door without the shift\'s chamber'); assert.equal(L2.pick('ch33'), false);
   assert.match(read('src/avodah/shift/index.js'), /chamber: \(\) => \{ cardCtl = null; runChamber33\(\); \}/);
-  assert.equal(GAME_BUILD, 33);
+  assert.equal(GAME_BUILD, 34);   // (build 34: the constant moved on)
 });
 test('build 33 (13): the end cards — תמים (its tag, "נכנס ללשכה · מוכן בעוד 4 ימים", מנחות מט ע״ב), בעל מום (the blemish, its source, "מחר יש טלה אחר"), the rating; buttons ≥ 44 px; no red', () => {
   const s = withLambs(0), L = s.lambs33.list[0];
@@ -254,8 +254,9 @@ test('build 33 (14): the journal\'s tab "הטלאים שבדקתי" — each lam
   assert.match(tab, /המחשה: טלה אחד ביום — הקצב של המשחק/);
   assert.match(lambsTab33({}, D0), /כאן יירשם כל טלה שתבדקו/);
   const j = journalHTML32(s, { tab: 'taleh' });
-  assert.match(j, /data-j32t="taleh" aria-selected="true" class="on" aria-label="הטלאים שבדקתי">🐑 <span class="tl">הטלאים שבדקתי<\/span><span class="ts">הטלאים<\/span>/); assert.match(j, /data-tab="taleh"/);
-  assert.match(read('src/avodah/shift/book32.js'), /@media \(max-width:700px\)\{[^\n]*\.j32 \.tb \.tl\{display:none\}\.j32 \.tb \.ts\{display:inline\}/, 'a narrow phone: the short word');
+  // (build 34: the long word's class is .tl32 — tiles/ui.js's global .tl made it a full-screen layer — and the short word is on every phone)
+  assert.match(j, /data-j32t="taleh" aria-selected="true" class="on" aria-label="הטלאים שבדקתי">🐑 <span class="tl32">הטלאים שבדקתי<\/span><span class="ts">הטלאים<\/span>/); assert.match(j, /data-tab="taleh"/);
+  assert.match(read('src/avodah/shift/book32.js'), /\.j32 \.tb \.tl32\{display:none\}\.j32 \.tb \.ts\{display:inline\}/, 'a phone: the short word');
   assert.match(journalHTML32({ ...s, journal32: { v: 1, acts: {}, seen: {}, log: [{ d: 3, t: at(4), h: 'x', r: [['lamb', 'mehudar']], l33: 1 }], hello: true } }, { tab: 'mornings' }), /הטלה שבדקת עלה לתמיד/);
 });
 test('build 33 (15): days, never hours — no hour, minute or ticking clock in anything the hook shows', () => {

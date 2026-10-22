@@ -74,7 +74,8 @@ test('build 32 (1): the journal\'s four tabs — תפקידים · משניות 
   }
   const b = read('src/avodah/shift/book32.js');
   assert.match(b, /\.j32 \.tb button\{[^}]*min-height:44px/); assert.match(b, /\.j32 \.hd \.j32x\{[^}]*width:44px;height:44px/); assert.match(b, /\.j32 \.t\{[^}]*min-height:56px/);
-  assert.match(b, /\.j32 \.nv button,\.j32 \.pn button,\.j32 \.td button\{[^}]*min-height:44px/); assert.match(b, /\.j32-u \.bt button\{[^}]*min-height:52px/); assert.match(b, /\.j32 \.b\{[^}]*min-height:44px/);
+  // (build 34: the page nav is .pn32 — pen/ui.js's global .pn, left in the page after a game, made .pn a full-screen layer)
+  assert.match(b, /\.j32 \.nv button,\.j32 \.pn32 button,\.j32 \.td button\{[^}]*min-height:44px/); assert.match(b, /\.j32-u \.bt button\{[^}]*min-height:52px/); assert.match(b, /\.j32 \.b\{[^}]*min-height:44px/);
   // over everything of the day and the lobby: the summary (40), the practice's end card (61), end30's card (62)
   const z = (re, f = b) => +f.match(re)[0].match(/z-index:(\d+)/)[1];
   const zj = z(/\.j32\{[^}]*\}/); assert.ok(zj > z(/\.r30-c\{[^}]*\}/, read('src/avodah/shift/end30.js')) && zj > z(/\.p31-end\{[^}]*\}/, read('src/avodah/shift/practice31.js')) && zj > z(/\.f17-sum\{[^}]*\}/, read('src/avodah/shift/focus17.js')));
@@ -273,7 +274,7 @@ test('build 32 (9): the lobby — one door "יומן הכהן" on the full scree
   assert.equal((full.match(/data-lb="journal"/g) || []).length, 1); assert.ok(!/data-lb="(book|roles)"/.test(full), 'no separate ספר הזכרונות / titles door');
   assert.match(full, /data-lb="journal"><b>📖 יומן הכהן<\/b>[^]*שימשת[^]*📜 משניות<\/span><span>\d+\/\d+[^]*🏅 אותות<\/span><span>2\/15/);
   assert.match(start, /<div class="lb-sr"><button class="lb-door" type="button" data-lb="games">[^]*משחק קצר[^]*<\/button><button class="lb-door lb-jd" type="button" data-lb="journal"/);
-  assert.equal(GAME_BUILD, 33);   // ── fable32 (build 33) ── (the one constant moved on) ── /fable32 ──
+  assert.equal(GAME_BUILD, 34);   // ── fable32 (build 33) ── (the one constant moved on) ── /fable32 ── (build 34: 34)
   for (const h of [full, start, lock]) assert.match(h, new RegExp(`class="lb-draft">[^<]*בנייה ${GAME_BUILD}<`));
   const lb = read('src/avodah/shift/lobby35.js'); assert.ok(!/בנייה 13|בנייה 29/.test(lb.replace(/\/\/[^\n]*|\/\*[^]*?\*\//g, '')), 'no build number written by hand'); assert.equal((lb.match(/בנייה \$\{GAME_BUILD\}/g) || []).length, 3);
   assert.match(lb, /\.lb \.lb-side \.lb-jd\{min-width:60px;flex-direction:column/); assert.match(lb, /\.lb \.lb-new\{[^}]*background:#FFD66E/);

@@ -46,7 +46,7 @@ export function bookHTML23(save, o = {}) {
   }${k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}${door('kiyor', 'קידוש ידיים ורגליים')}</div>` : ''}<div class="g">${bookOf23(save).map(card).join('')}</div>
     <h4>הפיס השני — שלושה עשר תפקידים</h4><small>${SRC_LOT2}</small><div class="g g4">${bookOf23(save, POOL26)
       .map((a) => card({ ...a, lot: 2 }))
-      .join('')}</div><small class="tl">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small>${o.bare ? '' : '<button type="button" data-p23="close">סגור</button>'}</div>`;
+      .join('')}</div><small class="tl23">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small>${o.bare ? '' : '<button type="button" data-p23="close">סגור</button>'}</div>`;
 }
 export function rolesBook23(o = {}) {
   const doc = o.doc || (typeof document < 'u' ? document : null);
@@ -478,6 +478,9 @@ const SRC_LOT2 = 'הפיס השני: שלושה עשר כהנים — יומא �
 const SRC_UP = 'הממונה סופר אצבעות · יומא ב, א · טיוטה';
 reg30('lot', { chip: SRC_LOT1, all: [SRC_UP, SRC_LOT1] });
 reg30('lot2', { chip: SRC_LOT2, all: [SRC_UP, SRC_LOT2, '"מי שוחט, מי זורק, ומי מדשן מזבח הפנימי, ומי מדשן את המנורה…" — יומא ב, ג · טיוטה'] });
+// ── fable32 (build 34) ── (the titles' legend is .tl23: tiles/ui.js's global .tl — left in the page after "זיכרון המקדש" — made it a fixed
+// full-screen layer at z 200 over the journal's roles tab, its ✕ under it; the laver's row .kr a centred block — inline-block, it took the
+// line beside the head line's end, so "יומא ב, א–ד · טיוטה" broke in two round it) ── /fable32 ──
 const CSS = `.p23-c{position:fixed;left:75.5%;top:30%;transform:translateX(-50%);width:47vw;z-index:36;display:none;direction:rtl;text-align:center;color:#FFF6DA;font:900 16px/1.2 Heebo,system-ui,sans-serif}.p23-c.on{display:block}
 .p23-c h3{margin:0 0 8px;font-size:16px;padding:5px 14px;border-radius:14px;background:#1C140AE0;border:1.5px solid #E2B65A;display:inline-block}
 .p23-k{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:min(150px,20vw);min-height:104px;margin:0 5px;padding:6px 12px;border-radius:18px;border:3px solid #E2B65A;background:radial-gradient(#4A3618,#1C140A);color:#FFE6A0;font:900 21px/1.15 Heebo,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:0 6px 18px #0009;animation:p23in .35s cubic-bezier(.2,1.5,.4,1)}
@@ -498,7 +501,7 @@ body.p23-on .gm .tw-pad,body.p23-on .f17-bar{opacity:0!important;pointer-events:
 .p23-bk h2{margin:2px 0;font:900 22px/1.2 Heebo,system-ui,sans-serif}.p23-bk .g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.p23-bk .g4{grid-template-columns:repeat(4,1fr);gap:6px}.p23-bk .g4 .q i{font-size:24px}.p23-bk .g4 .q b{font-size:18px}.p23-bk h4{margin:6px 0 0;font:900 15px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}
 .p23-bk .q{padding:6px 4px;border-radius:14px;background:#1C140A;border:1.5px solid #E2B65A;font:800 13px/1.25 Heebo,system-ui,sans-serif}.p23-bk .q i{display:block;font:34px/1.1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
 .p23-bk .q b{display:block;font:900 24px/1.1 Heebo,system-ui,sans-serif;color:#FFD66E}.p23-bk .q.lk{border-style:dashed;border-color:#8A6A3A;color:#B8A88A}.p23-bk .q.lk i{filter:brightness(0) opacity(.55)}
-.p23-bk .q b.mehudar{color:#FFD66E;text-shadow:0 0 10px rgba(255,214,110,.6)}.p23-bk .q b.kasher{color:#FFF6DA;font-size:20px}.p23-bk .q b.tikkun{color:#E6D9BE;font-size:16px}.p23-bk .sv{font:800 14px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk .kr{margin:6px auto 0;padding:4px 10px;border-radius:12px;background:#1C140A;border:1.5px solid #8A6A3A;font:800 13px/1.3 Heebo,system-ui,sans-serif;display:inline-block}.p23-bk .kr b{color:#FFD66E}.p23-bk .kr b.kasher{color:#FFF6DA}.p23-bk .kr b.tikkun{color:#E6D9BE}.p23-bk .tl{display:block;margin:4px 0 2px}
+.p23-bk .q b.mehudar{color:#FFD66E;text-shadow:0 0 10px rgba(255,214,110,.6)}.p23-bk .q b.kasher{color:#FFF6DA;font-size:20px}.p23-bk .q b.tikkun{color:#E6D9BE;font-size:16px}.p23-bk .sv{font:800 14px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk .kr{margin:6px auto 0;padding:4px 10px;border-radius:12px;background:#1C140A;border:1.5px solid #8A6A3A;font:800 13px/1.3 Heebo,system-ui,sans-serif;display:block;width:fit-content;max-width:100%;box-sizing:border-box}.p23-bk .kr b{color:#FFD66E}.p23-bk .kr b.kasher{color:#FFF6DA}.p23-bk .kr b.tikkun{color:#E6D9BE}.p23-bk .tl23{display:block;margin:4px 0 2px}
 .p23-bk button{min-height:52px;min-width:180px;border-radius:16px;border:2px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:900 18px/1 Heebo,system-ui,sans-serif;cursor:pointer}.p23-bk small{font-size:11px;opacity:.7}
 .p23-bk button.p31{display:block;width:100%;min-width:0;min-height:44px;margin-top:5px;padding:0 6px;border-radius:12px;border:2px solid #E2B65A;background:linear-gradient(180deg,#6A4C1C,#3A2A10);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;touch-action:manipulation}.p23-bk button.p31:active{transform:scale(.95)}
 .p23-bk .kr button.p31{display:inline-block;width:auto;min-width:96px;margin:0 8px 0 0;vertical-align:middle}.p23-bk .q.sn b{opacity:.6}.p23-bk .n31{margin:4px 0 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;color:#FFE6A0;opacity:.85}`;   /* ── fable32 (build 31) ── (the practice doors) ── /fable32 ── */

@@ -26,6 +26,10 @@ import { day33n, L33 } from './lamb33.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 // (every class under .j32 / .j32-u; the close button is .j32x — page.html's global .x is absolutely placed)
+// ── fable32 (build 34) ── (the page nav is .pn32 and the tab's long word .tl32: the interludes' sheets — tiles/ui.js's .tl, pen/ui.js's .pn —
+// are global and stay in the page after a game; .tl / .pn here became a fixed full-screen layer at z 200 over the journal, its ✕ under it)
+// (and the compact header — the 📖 alone, the tabs' short words at 12 px — on every phone, not only ≤ 700 px: the sheet is never wider
+// than 660 px, and at 740–932 px the long names were cut to "🌅 הבקרים…" / "🐑 הטלאי…") ── /fable32 ──
 const CSS = `.j32{position:fixed;inset:0;z-index:63;display:flex;align-items:center;justify-content:center;background:#0E0A05B8;direction:rtl;font-family:Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:auto}
 .j32>.c{width:min(660px,calc(100vw - 16px));height:calc(100% - 12px);max-height:600px;display:flex;flex-direction:column;box-sizing:border-box;border-radius:18px;background:linear-gradient(#3A2A16,#21170B);border:2px solid #C8923A;box-shadow:0 10px 40px #0009;overflow:hidden}
 .j32 .hd{flex:none;display:flex;align-items:center;gap:6px;padding:5px 6px;border-bottom:1px solid #C8923A66}
@@ -47,13 +51,13 @@ const CSS = `.j32{position:fixed;inset:0;z-index:63;display:flex;align-items:cen
 .j32 .t.nw{border-color:#FFD66E;background:linear-gradient(180deg,#3A2A12,#1C140A)}.j32 .t em{position:absolute;top:4px;left:6px;padding:0 6px;border-radius:8px;background:#FFD66E;color:#2A1804;font:900 10px/16px Heebo,system-ui,sans-serif;font-style:normal}
 .j32 .pg{max-width:580px;margin:0 auto;text-align:right}
 .j32 .nv{display:flex;align-items:center;justify-content:space-between;gap:8px}.j32 .nv .ac{font:800 13px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.j32 .nv .ix{font:700 12px/1 Heebo,system-ui,sans-serif;opacity:.7}
-.j32 .nv button,.j32 .pn button,.j32 .td button{min-height:44px;padding:0 12px;border-radius:12px;border:1.5px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:800 14px/1 Heebo,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.j32 .nv button,.j32 .pn32 button,.j32 .td button{min-height:44px;padding:0 12px;border-radius:12px;border:1.5px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:800 14px/1 Heebo,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;white-space:nowrap}
 .j32 .pg .ld{margin-top:6px;font:700 13px/1.3 Heebo,system-ui,sans-serif;opacity:.85}
 .j32 blockquote{margin:6px 0 6px;padding:10px 14px;border-radius:14px;border-inline-start:4px solid #FFD66E;background:#FFF6DA14;font:800 19px/1.55 Heebo,system-ui,sans-serif;color:#FFF6DA}
 .j32 .gl{font:700 13px/1.3 Heebo,system-ui,sans-serif;opacity:.85}
 .j32 .rf{font:900 15px/1.3 Heebo,system-ui,sans-serif;color:#FFE6A0}.j32 .rf .tt{display:inline-block;margin-inline-start:6px;padding:0 8px;border-radius:9px;border:1px dashed #E2B65A;font:700 11px/1.5 Heebo,system-ui,sans-serif;color:#E6D9BE}
 .j32 .nt{margin-top:4px;font:700 12px/1.3 Heebo,system-ui,sans-serif;opacity:.75}.j32 .mt{margin-top:6px;font:700 12px/1.3 Heebo,system-ui,sans-serif;opacity:.7}
-.j32 .pn{display:flex;justify-content:space-between;gap:8px;margin-top:10px}
+.j32 .pn32{display:flex;justify-content:space-between;gap:8px;margin-top:10px}
 .j32 .mo{margin:6px 0;padding:6px 10px;border-radius:12px;background:#1C140A;border:1.5px solid #8A6A3A;text-align:right}
 .j32 .mh{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;font:700 12px/1.35 Heebo,system-ui,sans-serif}.j32 .mh b{font:900 15px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.j32 .mh .hb{color:#FFE6A0}
 .j32 .mr{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.j32 .mr i{font-style:normal;padding:2px 8px;border-radius:10px;background:#FFF6DA14;font:700 12px/1.45 Heebo,system-ui,sans-serif}.j32 .mr i b{margin-inline-start:4px}.j32 .mr b.mehudar{color:#FFD66E}.j32 .mr b.kasher{color:#FFF6DA}.j32 .mr b.tikkun{color:#D8CDB8}
@@ -63,7 +67,7 @@ const CSS = `.j32{position:fixed;inset:0;z-index:63;display:flex;align-items:cen
 .j32 .emp{margin:16px 8px;font:700 14px/1.5 Heebo,system-ui,sans-serif;opacity:.85;text-align:center}.j32 .old{display:block;margin:6px 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;opacity:.75;text-align:center}
 .j32 .dr{display:block;margin-top:10px;font:600 10px/1.3 Heebo,system-ui,sans-serif;opacity:.55;text-align:center}
 .j32 .tb .ts{display:none}
-@media (max-width:700px){.j32 .hd h2 span{display:none}.j32 .tb button{font-size:12px;padding:0 4px}.j32 .tb .tl{display:none}.j32 .tb .ts{display:inline}}
+.j32 .hd h2 span{display:none}.j32 .tb button{font-size:12px;padding:0 4px}.j32 .tb .tl32{display:none}.j32 .tb .ts{display:inline}
 .j32-u{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:#0E0A05A6;direction:rtl;font-family:Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:auto;animation:j32in .45s ease-out}
 .j32-u .c{width:min(480px,calc(100vw - 24px));max-height:calc(100% - 12px);overflow:auto;box-sizing:border-box;padding:10px 16px;border-radius:20px;background:radial-gradient(120% 90% at 50% 0%,#5A4220,#21170B 70%);border:2px solid #E2B65A;text-align:center;box-shadow:0 0 30px #FFD66E33,0 10px 40px #0009}
 .j32-u .hl{display:inline-block;margin:0 0 4px;padding:2px 12px;border-radius:12px;background:#FFD66E;color:#2A1804;font:900 14px/1.4 Heebo,system-ui,sans-serif}
@@ -109,7 +113,7 @@ function mishnaTab(save, o) {
     return `<div class="pg" data-key="${esc(p.key)}"><div class="nv"><button type="button" data-j32="list">› ${o.today ? 'המקורות של היום' : 'כל המשניות'}</button><span class="ac">${esc(A.icon)} ${esc(A.he)}</span><span class="ix">${j + 1}/${inAct.length}</span></div>
       ${p.lead ? `<div class="ld">${esc(p.lead)}:</div>` : ''}<blockquote>״${esc(p.quote)}״</blockquote>${p.gloss ? `<div class="gl">${esc(p.gloss)}</div>` : ''}
       <div class="rf">${esc(p.ref)}<span class="tt">טיוטה</span></div>${p.note ? `<div class="nt">${esc(p.note)}</div>` : ''}<div class="mt">${esc(met)}</div>
-      <div class="pn"><button type="button" data-j32="prev"${i > 0 ? '' : ' disabled'}>› הקודם</button><button type="button" data-j32="next"${i < flat.length - 1 ? '' : ' disabled'}>הבא ‹</button></div></div>`;
+      <div class="pn32"><button type="button" data-j32="prev"${i > 0 ? '' : ' disabled'}>› הקודם</button><button type="button" data-j32="next"${i < flat.length - 1 ? '' : ' disabled'}>הבא ‹</button></div></div>`;
   }
   const tile = (g, p) => `<button type="button" class="t${p.isNew ? ' nw' : ''}" data-j32p="${esc(p.key)}" data-j32a="${esc(g.id)}" aria-label="${esc(`${p.ref} — ${p.quote}`)}"><b>${esc(p.ref)}</b><span>${esc(p.quote)}</span>${p.isNew ? '<em>חדש</em>' : ''}</button>`;
   return `<div class="ct"><b>📜 ${c.n} מתוך ${c.m} משניות</b>${c.fresh ? `<em>${c.fresh} חדשות</em>` : ''}<small>${c.n < c.m ? 'עוד משניות מחכות בבקרים הבאים — כל עבודה חדשה מוסיפה עמודים' : 'כל המשניות שבמשחק עד כה — ביומן שלך'}</small></div>
@@ -154,7 +158,7 @@ export function journalHTML32(save, o = {}) {
     tab = tabs.some((t) => t.id === o.tab) ? o.tab : tabs[0].id,
     c = count32(save);
   return `<div class="c" role="dialog" aria-label="יומן הכהן"><div class="hd"><h2><i aria-hidden="true">📖</i><span>יומן הכהן</span></h2><div class="tb" role="tablist">${tabs
-    .map((t) => `<button type="button" role="tab" data-j32t="${t.id}" aria-selected="${t.id === tab}"${t.id === tab ? ' class="on"' : ''} aria-label="${esc(t.he)}">${t.icon} ${t.short ? `<span class="tl">${esc(t.he)}</span><span class="ts">${esc(t.short)}</span>` /* ── fable32 (build 33) ── (a long name and its short word) ── /fable32 ── */ : esc(t.he)}${t.id === 'mishna' && c.fresh ? `<em aria-label="חדשות">${c.fresh}</em>` : ''}</button>`)
+    .map((t) => `<button type="button" role="tab" data-j32t="${t.id}" aria-selected="${t.id === tab}"${t.id === tab ? ' class="on"' : ''} aria-label="${esc(t.he)}">${t.icon} ${t.short ? `<span class="tl32">${esc(t.he)}</span><span class="ts">${esc(t.short)}</span>` /* ── fable32 (build 33) ── (a long name and its short word) ── /fable32 ── */ : esc(t.he)}${t.id === 'mishna' && c.fresh ? `<em aria-label="חדשות">${c.fresh}</em>` : ''}</button>`)
     .join('')}</div><button type="button" class="j32x" data-j32="close" aria-label="סגור">✕</button></div><div class="bd" data-tab="${tab}">${TAB[tab](save, o)}</div></div>`;
 }
 /** the sheet over everything (the lobby, the day's summary, the unlock card); one at a time */

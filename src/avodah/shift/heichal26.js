@@ -117,7 +117,7 @@ export function createHeichal26(o = {}) {
       lineUntil = E.st33.t + s;
     },
     order = [0, 1, 2, 3, 4, 5, 6],
-    lamps = P26.lx.map((x) => ({ x: x, y: P26.ly, z: P26.lz })),
+    lamps = P26.lx.map((x) => ({ x, y: P26.ly, z: P26.lz })),
     hk0 = hk();
   if (hk0)
     try {
@@ -172,8 +172,8 @@ export function createHeichal26(o = {}) {
     }),
     glowMat = (map, color) =>
       new MeshBasicMaterial({
-        map: map,
-        color: color,
+        map,
+        color,
         transparent: true,
         opacity: 0,
         blending: AdditiveBlending,

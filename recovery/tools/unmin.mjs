@@ -88,7 +88,10 @@ for (const [sc, v] of varsOf) {
   if (!n || typeof n.type !== 'string') return;
   if (n.type === 'ImportSpecifier' && n.imported && topMap[n.imported.name]) n.imported = { ...n.imported, name: topMap[n.imported.name] };
   if (n.type === 'ExportSpecifier' && n.exported && n.exported.name !== n.local.name && topMap[n.exported.name]) n.exported = { ...n.exported, name: topMap[n.exported.name] };
-  if (n.type === 'Property' && n.shorthand && n.value) { const vn = n.value.type === 'AssignmentPattern' ? n.value.left.name : n.value.name; if (vn !== (n.key.name || n.key.value)) n.shorthand = false; }
+  if (n.type === 'Property' && n.value && !n.computed && !n.method && n.kind === 'init' && n.key.type === 'Identifier') {   // ({ E: E } → { E }; a renamed one loses it)
+    const vn = n.value.type === 'AssignmentPattern' ? n.value.left.name : n.value.type === 'Identifier' ? n.value.name : null;
+    n.shorthand = vn === n.key.name;
+  }
   for (const k in n) { if (k === 'loc' || k === 'range') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(fix); else if (v && typeof v.type === 'string') fix(v); }
 })(ast);
 // the check: same bindings as before (identifiers in source order → binding index)

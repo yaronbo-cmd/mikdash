@@ -273,7 +273,7 @@ export function createPen25(o = {}) {
         const m = new Mesh(quad, decalMat(texOf(sp2.kind === 'blem' ? BLEM25.cats[sp2.c].id : sp2.d)));
         m.visible = false;
         scene.add(m);
-        spots.push({ m: m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) });
+        spots.push({ m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) });
       }
     },
     dark = mk('p25-dk'),
@@ -371,7 +371,7 @@ export function createPen25(o = {}) {
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(type, up);
   const lambSt = [0, 1].map((sd) => ({
     ...P25.door,
-    sd: sd,
+    sd,
     v: 0,
     ph: 0,
     wk: 0,

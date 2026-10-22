@@ -23,6 +23,13 @@ export const DAY33 = Object.freeze({ idleOffer: 12, dayS: 180, nightS: 60, fuel0
 // ── recovered (R6) ── the tables of builds 17–26 that the day's own modules import (ramp19, kiyor20, deshen21, maaracha22, pis23, pen25,
 // heichal26, fx18, focus17), placed in the bundle's order; R7 fills the rest of day33 in around them. The names are the build reports'
 // where they have one (B17, C18, POOL23, rolesBook23, P25, BLEM25, at25, hash25, P26, POOL26), else the recovery's in their style.
+// ── recovered (build 17) ── B17 (the report's: "B17.graceK"): the focused day of build 17 (focus17.js, E.b17) — the fire's start and its
+// drain by day/night (drain, drainK), the logs' grades, the tamid's dawn and dusk, the first two minutes' grace (grace s, ×graceK on
+// the timing act's window), the catch-up, the warning and the critical fuel, the slots of the bar (slots, maxSlots), the pen's and
+// the wood's times, the levels by the logs and the day's goals
+export const B17 = Object.freeze({ fuel0: 70, drain: Object.freeze([0.25, 0.4]), drainK: Object.freeze([0.7, 0.6]), perLogGrade: Object.freeze({ gold: 10, good: 8, ok: 6 }), tamid: Object.freeze({ dawn: 45, dusk: 170, fire: 60 }),
+  grace: 120, graceK: 1.5, catchK: Object.freeze({ below: 60, at: 20, max: 2 }), warn: 40, crit: 25, powerShow: 50, night: false, slots: Object.freeze(['kiyor', 'wood', 'kevesh', 'song', 'pen', 'bake']), maxSlots: 5,
+  penBefore: 60, rushTamid: 25, woodAt: 60, tamidLead: 50, levels: Object.freeze([0, 5, 10, 40, 90, 200]), goals: Object.freeze({ wood: 10, kevesh: 2, kiyor: 1, song: 1, bake: 1 }), power: false });
 // ── recovered (build 18) ── C18 (the report's name: "C18.kiyorK"): the coins — a gold act pays 2, a good 1 (pay); a streak of 3 (streak); the
 // tamid's 5; the gift (nedava: 10 coins, at 140 s, p 0.3); the chests by the gate (chests); the three pads to buy at (pads: the good axe,
 // the big basket, the laver's second spigot — kiyorK: its walk ×0.6); the errand's 75

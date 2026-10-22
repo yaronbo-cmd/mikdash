@@ -1,0 +1,17 @@
+/* ── fable32 (build 17) ── ── recovered (build 17) ── focus17.js — the focused day of build 17 (E.b17; B17's numbers): one thing at a
+ * time on the screen and the rest at hand —
+ *   the top: the fire's ring (אש המערכה, 0…100; warn and crit shake it, "🔥 האש דועכת!" points at the altar; the gold notch at 60 when a
+ *   tamid waits for the fire), the card of the step now ("משימה" — its icon, its text, n/goal), the tamid's line ("⏳ תמיד של … בעוד
+ *   m:ss", the last seconds ticking); each a button (the fire and the tamid: E.fire17; the card: E.go17);
+ *   the bar at the foot: the day's slots (B17.slots: kiyor, wood, kevesh, song, pen, bake) — need, empty, done, a lock (k20's), a +1
+ *   flying in; a tap goes there (E.tap17);
+ *   the answers: "+N" flying from the thing to its slot or to the card, sparks, the stamp ("משימה ✓", "תמיד של … — בזמן ★", "התמיד
+ *   איחר" — late), "יום N", the day's summary (the stars, the tamids, the logs, the morning's roles) and "המשך ליום הבא";
+ *   SHARED.hot17 (0…1: how near the next place — flow31's ring warms) with the near17 chimes; SHARED.b17 (the chips' mini mode);
+ *   a portrait phone: "סובבו את הטלפון לרוחב" (the game paused till then, or "המשך בכל זאת");
+ * and it makes the day's own modules as the engine opens them: ramp19 (E.b19), kiyor20 (E.g20), deshen21 (E.g21), maaracha22 (E.g22),
+ * pis23 (E.p23on), pen25 (E.p25on), heichal26 (E.p26on) and fx18 (E.l18: the acts' answers, one place for their sound).
+ *   createFocus17({ E, view, sfx, doc }) → { destroy(), state(), stamp, banner, sparks, fly }      SHARED.hot17, SHARED.b17, globalThis.__F17
+ * The bundle kept no comment and no local name: the names are the recovery's, but for createFocus17, sfx and the modules' lines
+ * (focus17.js:14, :127, :129, :174–181 in the session transcript: E, doc, view, slotOf, top, sparks, stamp, pop, r19 … h26, fx). The CSS
+ * keeps its own comments (build 17c). Never a Divine Name. */

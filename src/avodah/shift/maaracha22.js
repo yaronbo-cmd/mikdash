@@ -352,7 +352,7 @@ export function createMaaracha22(o = {}) {
       ['walnut', 'M', 2, 0.45],
       ['walnut', 'S', 3, -0.16],
       ['pine', 'S', 3, 0.16],
-    ].map(([sp, size, ly, x]) => ({ sp: sp, size: size, at: { ly: ly, x: x }, __t: 0 })),
+    ].map(([sp, size, ly, x]) => ({ sp, size, at: { ly, x }, __t: 0 })),
     setMode = (active, hud) => {
       const mods = globalThis.__SHIFT && globalThis.__SHIFT.mods,
         twin = o.twin || (mods && mods.twin);
@@ -567,17 +567,17 @@ export function createMaaracha22(o = {}) {
         const a = rand() * 6.283,
           v = (0.4 + rand() * 1.2) * k;
         puffs.push({
-          x: x,
-          y: y,
-          z: z,
+          x,
+          y,
+          z,
           vx: Math.cos(a) * v,
           vy: (1 + rand() * 2) * k,
           vz: Math.sin(a) * v,
           t: 0,
           life: life * (0.7 + rand() * 0.6),
           c: color,
-          g: g,
-          r: r,
+          g,
+          r,
         });
       }
     },

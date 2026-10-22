@@ -296,7 +296,7 @@ export function createKiyor20(o = {}) {
       vis: rings.L.classList.contains('vis'),
       on: [rings.L.classList.contains('on'), rings.R.classList.contains('on')],
       flow: flowing,
-      stickOff: stickOff,
+      stickOff,
     }),
   };
   try {

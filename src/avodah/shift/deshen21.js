@@ -400,17 +400,17 @@ export function createDeshen21(o = {}) {
         const a = Math.random() * 6.283,
           v = (0.6 + Math.random() * 1.4) * k;
         puffs.push({
-          x: x,
-          y: y,
-          z: z,
+          x,
+          y,
+          z,
           vx: Math.cos(a) * v,
           vy: (1 + Math.random() * 2) * k,
           vz: Math.sin(a) * v,
           t: 0,
           life: life * (0.7 + Math.random() * 0.6),
           c: color,
-          g: g,
-          r: r,
+          g,
+          r,
         });
       }
     },

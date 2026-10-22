@@ -38,7 +38,7 @@ export function rolesBook23(o = {}) {
   });
   el.addEventListener('pointerdown', (a) => a.stopPropagation());
   doc.body.appendChild(el);
-  return { close: close, el: el };
+  return { close, el };
 }
 export function createPis23(o = {}) {
   const E = o.E,

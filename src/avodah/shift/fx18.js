@@ -214,8 +214,8 @@ export function createFx18(o = {}) {
   function walker(x, z, out) {
     const box = CROWD_BOX;
     return {
-      x: x,
-      z: z,
+      x,
+      z,
       tx: between(box[0], box[1]),
       tz: between(box[2], box[3]),
       sp: 1.3 + rand() * 0.6,
@@ -266,7 +266,7 @@ export function createFx18(o = {}) {
           robe: w.robe,
           cap: '#E8E0CC',
           yaw: w.yaw || Math.PI,
-          walk: walk,
+          walk,
           pose: bowing ? undefined : walk ? 'walk' : 'stand',
           lean: bowing ? 1.6 : 0,
           t: w.t + w.ph,
@@ -436,7 +436,7 @@ export function createFx18(o = {}) {
       } else if (type === 'drop') {
         const CH = C18.chests,
           z = CH.z0 + ev.i * CH.dz;
-        burst({ x: CH.x, y: gy(CH.x, z) + 2.6, z: z }, 5, '#FFD66E', 0.5);
+        burst({ x: CH.x, y: gy(CH.x, z) + 2.6, z }, 5, '#FFD66E', 0.5);
         snd('coin18', { n: 2 });
         for (const w of givers)
           if (!w.out && Math.abs(w.tz - z) < 0.1) {
@@ -469,7 +469,7 @@ export function createFx18(o = {}) {
     },
     offEv = E.on17(onEv),
     api = {
-      fb: fb,
+      fb,
       destroy() {
         offTick();
         offDraw();
@@ -483,7 +483,7 @@ export function createFx18(o = {}) {
           if (globalThis.__FX18 === api) delete globalThis.__FX18;
         } catch (e) {}
       },
-      state: () => ({ ...stat, till: tillB && tillB.textContent, inFly: inFly, hemi: hemi && hemi.intensity }),
+      state: () => ({ ...stat, till: tillB && tillB.textContent, inFly, hemi: hemi && hemi.intensity }),
     };
   try {
     globalThis.__FX18 = api;

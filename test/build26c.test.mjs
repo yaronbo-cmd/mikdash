@@ -73,15 +73,17 @@ test('build 26c: sound.js\'s own name wins where both kits have it', () => {
   const k = createSound({}); const both = SOUNDS.filter((n) => k.own(n)); assert.ok(both.length >= 1);
   assert.equal(k.own('ui'), true); assert.equal(k.own('chord17'), false);
 });
-test('build 26c: the guard — every literal sound name the day plays (63: shift/, day/, works/, minigames/, index.js, ui.js, SWING17.sfx, SND) exists in the composed kit', () => {
-  const k = createSound({}), names = playedNames(); assert.equal(names.size, 63, [...names.keys()].join(' '));
+// (build 27 added its own names — blade27 … bind27; the 26c report's counts are of the names before it: 63, and 43 of them silent)
+const of26c = (names) => [...names].filter((n) => !/27$/.test(n));
+test('build 26c: the guard — every literal sound name the day plays (63 in 26c: shift/, day/, works/, minigames/, index.js, ui.js, SWING17.sfx, SND) exists in the composed kit', () => {
+  const k = createSound({}), names = playedNames(); assert.equal(of26c(names.keys()).length, 63, [...names.keys()].join(' '));
   const missing = [...names].filter(([n]) => !k.has(n)).map(([n, f]) => `${n} (${f})`); assert.deepEqual(missing, []);
   for (const n of ['unlock20', 'bolt26', 'wick26', 'stamp25', 'scrape21', 'crack22', 'drum23', 'trumpet17', 'split', 'creak']) assert.ok(names.has(n), n);
 });
 test('build 26c: the guard — each of the 63 starts a voice on a fake WebAudio context; without audio.js\'s kit (26b\'s day) 43 of them made none', () => {
   const names = [...playedNames().keys()];
   const now = silent(names); assert.deepEqual(now.none, []); assert.deepEqual(now.bad, [], 'every exponential ramp stays > 0');
-  const before = silent(names, false); assert.equal(before.none.length, 43, before.none.join(' '));   // (the report: "43 of 63 names make no voice")
+  const before = silent(of26c(names), false); assert.equal(before.none.length, 43, before.none.join(' '));   // (the report: "43 of 63 names make no voice")
   for (const n of ['chord17', 'gate26', 'pour26', 'coin18', 'salt19', 'bolt26', 'wick26']) assert.ok(before.none.includes(n), n);
 });
 test('build 26c: TRIM26C — each trimmed name is one of audio.js\'s sounds, its gain measured (0 < g ≤ 3: some quiet ones raised)', () => {

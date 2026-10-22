@@ -27,10 +27,11 @@ async function lamps(R, fillTo = 0.95) {
 }
 
 test('build 26: POOL26 — thirteen roles of the second lot (יומא ב, ג), two built (the inner altar, the menorah), each of the lot 2', () => {
-  assert.equal(POOL26.length, 13); assert.deepEqual(POOL26.filter((r) => r.built).map((r) => r.id), ['inner', 'menorah']); assert.ok(POOL26.every((r) => r.lot === 2 && r.he));
+  // (build 27 built the shochet and the zorek: four of the thirteen)
+  assert.equal(POOL26.length, 13); assert.deepEqual(POOL26.filter((r) => r.built).map((r) => r.id), ['shochet', 'zorek', 'inner', 'menorah']); assert.ok(POOL26.every((r) => r.lot === 2 && r.he));
 });
 test('build 26: P26 — the schedule (menorah, inner, menorah), the gate at x −89.3 and its reach 3.2, the pour\'s band 0.9–1.0, seven pulls', () => {
-  assert.deepEqual([...P26.open], ['menorah', 'inner', 'menorah']); assert.equal(P26.reach, 3.2); assert.deepEqual({ ...P26.gate }, { x: -89.3, z: 0 });
+  assert.deepEqual([...P26.open].slice(0, 3), ['menorah', 'inner', 'menorah']); assert.equal(P26.reach, 3.2);   // (build 27: + morning 4 the shochet, 5 the zorek) assert.deepEqual({ ...P26.gate }, { x: -89.3, z: 0 });
   assert.equal(P26.pour.lo, 0.9); assert.equal(P26.pour.hi, 1); assert.equal(P26.pulls, 7); assert.equal(P26.ev, 0.2); assert.deepEqual({ ...P26.tT.menorah }, { 0: 13, 1: 39 });
 });
 test('build 26: after the pre-dawn task the morning holds — the second lot (gate26L), the clock and the stations wait', async () => {
@@ -46,7 +47,7 @@ test('build 26: draw26 — the second morning the inner altar, the third the men
   const roles = (h) => ({ roles26: { m: h.length, h: h.map((r, i) => [i + 1, r]) } });
   const a = await morning(roles(['menorah'])); await secondLot(a); assert.equal(a.E.role26(), 'inner');
   const b = await morning(roles(['menorah', 'inner'])); await secondLot(b); assert.equal(b.E.role26(), 'menorah');
-  const c = await morning(roles(['menorah', 'inner', 'menorah'])); await secondLot(c); assert.equal(c.E.role26(), 'inner');
+  const c = await morning(roles(['menorah', 'inner', 'menorah'])); await secondLot(c); assert.equal(c.E.role26(), 'shochet', 'build 27: the fourth morning is the shochet\'s');
 });
 test('build 26: the great gate — within 3.2 amot it begins; the bolt by a swipe, the key by a hold (0.8 s): the House open (HOUSE22.gate)', async () => {
   const R = await morning(); R.E.debug.skip26('menorah'); await R.step(0.1);

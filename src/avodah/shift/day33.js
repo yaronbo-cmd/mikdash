@@ -19,7 +19,11 @@
  *   · 22 סידור המערכה (M22, gate22) · 23 the lot (P23, POOL23, draw23, mastery23, rec23, gate23) · 24 no auto-walk (peek24, pk24)
  *   · 25 the lamb pen (P25, BLEM25, lamb25, hash25, at25, gate25) · 26 the second lot and the Heichal (P26, POOL26, draw26, gate26L,
  *   gate26, open26, at26, fill26, ev26, lit26, done26; 26b: the lot where he stands, free26/circle26).
- * Every module of builds 17–26 reads the engine through E (E.b17, E.on17, E.focus17() … E.r26(), E.st33). Never a Divine Name. */
+ * ── fable32 (build 27) ── · 27 the second lot's two blood roles, "מי שוחט, מי זורק" (יומא ב, ג; תמיד ד, א): P27, BLOOD27, gate27,
+ *   r27start/r27Step, the binding (r27bind), the cut on its gold moment (r27tap), the receiving under the stream (r27move), the swirl
+ *   on the way (r27swirl, the clot meter), the two gifts below the line (r27throw), the rest on the southern yesod (r27swipe), done27;
+ *   the great gate opened by the inner roles' winners when his role is a blood one (gateNpc27). dam27.js draws and hears them.
+ * Every module of builds 17–27 reads the engine through E (E.b17, E.on17, E.focus17() … E.r26(), E.r27(), E.st33). Never a Divine Name. */
 import { goLabel31, verb31 } from './layout31.js';
 import { SHARED } from './draw.js';
 import { DAYSCORE, interludeScore } from './score35.js';
@@ -355,6 +359,15 @@ function mastery23(id, r, timeBudget = P23.budget[1]) {
           : 0.3 * v + 0.5 * clamp01(+r.pourQ || 0) + 0.2 * (refused ? (refused <= 2 ? 0.6 : 0.3) : 1)),
     );
   }
+  // ── fable32 (build 27) ── the shochet: his time, the cut's misses, the binding's tries; the zorek: his time, the receiving's
+  // accuracy, the two gifts (Γ 1, one face 0.6; each throw over the line or past the corner −0.15), the clot meter's height ── /fable32 ──
+  if (id === 'shochet' || id === 'zorek') {
+    const T = P27.tT[id],
+      v = clamp01((T[1] - (+r.ownS || 0)) / (T[1] - T[0]));
+    if (id === 'shochet') return Math.round(100 * (0.3 * v + 0.5 * [1, 0.7, 0.45, 0.25][Math.min(3, r.misses | 0)] + 0.2 * [1, 0.7, 0.4][Math.min(2, r.rebinds | 0)]));
+    const g = Array.isArray(r.gifts) && r.gifts.length ? r.gifts.reduce((s, x) => s + x, 0) / r.gifts.length : 0;
+    return Math.round(100 * (0.2 * v + 0.25 * clamp01((+r.fillAcc || 0) / 100) + 0.4 * clamp01(g - 0.15 * (r.retries | 0)) + 0.15 * (1 - clamp01((+r.clotMax || 0) / 100))));
+  }
   if (id === 'lamb') {
     const T = P25.tT;
     return Math.round(
@@ -492,7 +505,7 @@ function lamb25(day, k, first = false, blems = 0, rej = 0) {
 // roles in the Heichal (heichal26.js) — the schedule of his role by the day (open), the Heichal's gate and its reach, the inner altar and
 // the menorah, the act's steps and pulls, the pour, the lamps (lx, ly, lz), the lot's walk-in (lotIn), the ramp's foot (foot), the times
 export const P26 = Object.freeze({
-  open: Object.freeze(['menorah', 'inner', 'menorah']),
+  open: Object.freeze(['menorah', 'inner', 'menorah', 'shochet', 'zorek']),   // ── fable32 (build 27) ── (morning 4 the shochet, 5 the zorek; then the draw, never yesterday's) ── /fable32 ──
   gate: Object.freeze({ x: -89.3, z: 0 }),
   reach: 3.2,
   alt: Object.freeze({ x: -119.7, z: 0.4 }),
@@ -531,8 +544,8 @@ export const P26 = Object.freeze({
 // menorah's ashes; the rest "כהנים אחרים — בקרוב"
 export const POOL26 = Object.freeze(
   [
-    ['shochet', 'השחיטה', '🔪'],
-    ['zorek', 'זריקת הדם', '🏺'],
+    ['shochet', 'השחיטה', '🔪', 1],   // ── fable32 (build 27) ── (built: o.p27) ── /fable32 ──
+    ['zorek', 'זריקת הדם', '🏺', 1],
     ['inner', 'דישון מזבח הפנימי', '🥣', 1],
     ['menorah', 'דישון המנורה', '🪔', 1],
     ['rosh', 'הראש והרגל', '🧺'],
@@ -562,6 +575,80 @@ function draw26(n, rec, ids, rnd = Math.random, done = {}) {
   return [pool[pool.length - 1]];
 }
 const ev26 = (day, seen) => !seen && hash25(day | 0, 26, 7) < P26.ev;
+// ── fable32 (build 27) ── the second lot's two blood roles (יומא ב, ג: "מי שוחט, מי זורק"; תמיד ד, א): BLOOD27 — built with o.p27; P27 — the
+// places (the morning's ring, north-west, the second row: "של שחר היה נשחט על קרן צפונית מערבית, על טבעת שניה"; the lamb's head south and
+// its face west; the shochet east of it, facing west; the receiver by the neck; the two corners' stands out on their diagonals; the
+// southern yesod by the south-west corner), the act's times, the cut's needle (one way in `sweep` s, back and forth; PERFECT in `win` —
+// the owner's protocol, [0.425, 0.575]), the receiving (the vessel under the stream: |pos − stream| < tol fills in fillS s), the swirl
+// (still s without a circle → the clot meter rises), the throw (the pull → the height on the wall: under `line` (the red thread, y 21),
+// over the yesod (`low`); ±deg of the corner → both faces, Γ; ≤ side° → one face), the base's swipe, the inner roles' winners' gate
+// (gateNpc s after the lot) and their five lamps (men5 s after the gate) when his role is a blood one, the mastery's time scales, score.
+// The numbers are a game's (המחשה), not halacha.
+export const BLOOD27 = Object.freeze(['shochet', 'zorek']);
+export const P27 = Object.freeze({
+  ring: Object.freeze({ x: -47, z: -33.5 }),
+  lamb: Object.freeze({ x: -47.3, z: -33.5 }),
+  stand: Object.freeze({ x: -45.3, z: -33.4 }),
+  recv: Object.freeze({ x: -48.8, z: -31.3 }),
+  reach: 2.6,
+  corner: Object.freeze({ NE: Object.freeze([-23, -18.5]), SW: Object.freeze([-53, 11.5]) }),
+  at: Object.freeze({ NE: Object.freeze({ x: -20.6, z: -20.9 }), SW: Object.freeze({ x: -55.3, z: 13.9 }) }),
+  hole: Object.freeze({ x: -52.6, y: 17.05, z: 12.1 }),
+  aimR: 2.4,
+  in: 0.45,
+  bound: 0.6,
+  cutd: 0.9,
+  npcCut: 0.8,
+  full: 0.4,
+  splash: 0.9,
+  poured: 1.1,
+  sweep: 1.15,
+  sweep1: 1.4,
+  win: Object.freeze([0.425, 0.575]),
+  fillS: 2.5,
+  tol: 0.15,
+  sMax: 0.75,
+  still: 3,
+  coagUp: 0.3,
+  coagDn: 0.7,
+  swirlRad: 1.4,
+  line: 21,
+  low: 17.2,
+  y0: 16.6,
+  yK: 8,
+  minPow: 0.12,
+  deg: 3,
+  side: 28,
+  dn: 0.22,
+  ms: 300,
+  gateNpc: 9,
+  men5: 10,
+  tT: Object.freeze({ shochet: Object.freeze([3, 12]), zorek: Object.freeze([14, 36]) }),
+  score: 120,
+  fast: 20,
+});
+const blood27 = (r) => r === 'shochet' || r === 'zorek';
+/** ── fable32 (build 27) ── the place of slaughter's floor north of the altar (the rings' rows, south of the hook pillars and the tables,
+ *  מדות ג, ה): the stick walks it (stages.js's 'lishka' footprint is solid to him there) */
+export const rings27 = (x, z) => x > -53.6 && x < -22.4 && z > -46 && z < -27;
+/** ── fable32 (build 27) ── the cut's needle at t s into the cut: 0 → 1 → 0 … (one way in `sweep` s) */
+export const needle27 = (t, sweep = P27.sweep) => {
+  const x = (Math.max(0, t) / sweep) % 2;
+  return x < 1 ? x : 2 - x;
+};
+/** ── fable32 (build 27) ── the stream's place under the neck at t s into the receiving (−sMax … sMax; a gentle wander, two waves) */
+export const stream27 = (t, k = 1) => P27.sMax * k * (0.65 * Math.sin(1.25 * t + 0.4) + 0.35 * Math.sin(2.7 * t + 1.9));
+/** ── fable32 (build 27) ── a throw's mark: the pull p (0…1) → the height on the wall, the aim a (degrees off the corner's edge) →
+ *  { res: 'weak' | 'high' | 'perfect' | 'good' | 'miss', y, face: 0 (both) | −1 (the first face) | 1 (the second), q } */
+export function throw27(p, a) {
+  const y = P27.y0 + P27.yK * Math.max(0, Math.min(1, +p || 0)),
+    d = Math.abs(+a || 0);
+  if (!(p >= P27.minPow)) return { res: 'weak', y, face: 0, q: 0 };
+  if (y >= P27.line) return { res: 'high', y, face: 0, q: 0 };
+  if (d <= P27.deg) return { res: 'perfect', y, face: 0, q: 1 };
+  if (d <= P27.side) return { res: 'good', y, face: a < 0 ? -1 : 1, q: 0.6 };
+  return { res: 'miss', y, face: a < 0 ? -1 : 1, q: 0 };
+}
 const fill26 = (f, dt) => {
   let P = P26.pour,
     t = dt;
@@ -684,6 +771,7 @@ export function createDay33(o = {}) {
     p23 = g22 && !!o.p23,
     p25 = p23 && !!o.p25,
     p26 = p23 && !!o.p26,
+    p27 = p26 && !!o.p27,   // ── fable32 (build 27) ── ── /fable32 ──
     act20 = K20.act,
     cam20 = K20.cam,
     subs17 = [],
@@ -1018,9 +1106,12 @@ export function createDay33(o = {}) {
     // ── fable32 (build 26) ── the second lot (gate26L) and his inner role (gate26): after the pre-dawn task, still the morning — the clock, the fire, the stations wait ── /fable32 ──
     pre26 = () => p26 && st.washed && st.p23day === st.day && !gate21() && !gate22() && !gate25() && !st.night && st.phase === 'run',
     gate26L = () => pre26() && st.p26day !== st.day,
-    gate26 = () => pre26() && st.p26day === st.day && st.r26day !== st.day,
+    gate26 = () => pre26() && st.p26day === st.day && st.r26day !== st.day && !blood27(st.role26),   // ── fable32 (build 27) ── (his inner role only) ── /fable32 ──
+    gate27 = () => p27 && pre26() && st.p26day === st.day && st.r26day !== st.day && blood27(st.role26),   // ── fable32 (build 27) ── (his blood role) ── /fable32 ──
+    on27 = () => !!(st.r27 && st.r27.ph !== 'out'),
+    act27 = () => !!(st.r27 && !/^(carry|carry2|out)$/.test(st.r27.ph)),
     open26 = () => p26 && st.g26day === st.day,
-    gateAny = () => gate20() || gate23() || gate21() || gate22() || gate25() || gate26L() || gate26();   // ── fable32 (build 25) ── ── /fable32 ── ── fable32 (build 26) ── ── /fable32 ──
+    gateAny = () => gate20() || gate23() || gate21() || gate22() || gate25() || gate26L() || gate26() || gate27();   // ── fable32 (build 25) ── ── /fable32 ── ── fable32 (build 26) ── ── /fable32 ──
   function gate26no(id) {   // ── fable32 (build 26) ── ── /fable32 ──
     L0('gate26', id);
     emit17('gate', { id, p26: true });
@@ -1695,6 +1786,7 @@ export function createDay33(o = {}) {
         newTasks(),
         (st.merchantRoll = rng() < DAY33.merchantP),
         (st.r26 = null),
+        (st.r27 = null),
         Object.assign(st, {
           tamD: 'wait',
           tamE: 'wait',
@@ -1780,6 +1872,7 @@ export function createDay33(o = {}) {
       newTasks();
       st.merchantRoll = rng() < DAY33.merchantP;
       st.r26 = null;
+      st.r27 = null;
       if (st.day > st.best) {
         st.best = st.day;
         save.bestDay = st.best;
@@ -2787,7 +2880,7 @@ export function createDay33(o = {}) {
         ? draw26(
             n,
             rec,
-            POOL26.filter((x) => x.built).map((x) => x.id),
+            POOL26.filter((x) => x.built && (p27 || !blood27(x.id))).map((x) => x.id),   // ── fable32 (build 27) ── ── /fable32 ──
             rng,
             Object.fromEntries(POOL26.map((x) => [x.id, timesOf(roles23(), x.id)])),
           )
@@ -2919,6 +3012,7 @@ export function createDay33(o = {}) {
     if (K.k26) {
       st.p26day = st.day;
       st.role26 = role;
+      st.l26t = st.t;   // ── fable32 (build 27) ── (the lot's end: the inner roles' winners go up to the gate) ── /fable32 ──
       rec.m = K.n;
       rec.h = [...(rec.h || []), [K.n, role]].slice(-8);
       say(() => o.persist && o.persist());
@@ -3467,6 +3561,323 @@ export function createDay33(o = {}) {
     }
     return a ? { x: a.t[0], z: a.t[2], view: a } : null;
   }
+  // ── fable32 (build 27) ── the second lot's two blood roles (תמיד ד, א). The shochet: at the morning's ring the lamb is bound — "לא היו
+  // כופתין את הטלה, אלא מעקדין אותו", "יד ורגל" (a right drag brings the foreleg to the hindleg; no rope) —, he waits for the great
+  // gate ("לא היה שוחט השוחט, עד ששומע קול שער הגדול שנפתח", תמיד ג, ז) and cuts on the needle's gold moment (a right tap; outside it
+  // a free retry). The zorek: "שחט השוחט, וקבל המקבל" — the vessel under the stream (a right drag ↔), then by the stick to the
+  // corners while the right thumb swirls ("ממרס… כדי שלא יקרש"); the two gifts below the red thread (a pull back and a release), and
+  // the rest on the southern yesod (a swipe down). The other role's kohen is the court's (dam27.js). His role a blood one, the
+  // inner roles' winners open the great gate (gateNpc27) and tend the five lamps — and "הטבת חמש נרות קודם לדם התמיד" (יומא לג, א):
+  // the first gift waits for them (hold).
+  const HANDS27 = /^(bind|cut|recv|carry|aim|carry2|aim2|base)$/,
+    yawTo = (x0, z0, x1, z1) => Math.atan2(x1 - x0, z1 - z0);
+  function gateNpc27() {
+    st.g26day = st.day;
+    st.g26t = st.t;
+    st.men5t = st.t + P27.men5;
+    L0('r26gate', 'npc');
+    emit17('r26gate', { jer: false, npc: true, at: { x: -95, y: 30, z: 0 } });
+  }
+  function r27start() {
+    const h = heroP(),
+      role = st.role26 === 'zorek' ? 'zorek' : 'shochet',
+      first = first26(role),
+      a = role === 'shochet' ? P27.stand : P27.recv;
+    if (o.walk && o.walk.stop) say(() => o.walk.stop());
+    goal = null;
+    drive(0, 0);
+    st.r27 = {
+      ph: 'in',
+      t: 0,
+      T: 0,
+      role,
+      first,
+      own: 0,
+      sx: h.x,
+      sz: h.z,
+      tx: a.x,
+      tz: a.z,
+      binds: 0,
+      rebinds: 0,
+      tc: 0,
+      miss: 0,
+      u: 0,
+      sweep: first ? P27.sweep1 : P27.sweep,
+      pos: 0,
+      sp: 0,
+      fill: 0,
+      inT: 0,
+      totT: 0,
+      tr: 0,
+      sk: first ? 0.8 : 1,
+      fillAcc: 0,
+      coag: 0,
+      coagMax: 0,
+      clot: false,
+      lastSw: 0,
+      swAcc: 0,
+      circT: 0,
+      circ: 0,
+      gifts: [],
+      retries: 0,
+      high: 0,
+      wide: 0,
+      corner: 'NE',
+      cutT: null,
+    };
+    evlog('act_start', 'r27');
+    emit17('r27', { ph: 'in', role, first });
+    return true;
+  }
+  const ph27 = (K, ph, extra) => {
+      K.ph = ph;
+      K.t = 0;
+      emit17('r27', { ph, role: K.role, corner: K.corner, ...extra });
+    },
+    glide27 = (K, x, z, dur, yaw) => {
+      const k = Math.min(1, K.t / dur);
+      moveHero(K.sx + (x - K.sx) * k, K.sz + (z - K.sz) * k, yaw);
+      return k >= 1;
+    };
+  function swirl27(K, dt) {
+    K.swAcc *= Math.exp(-dt * 1.2);
+    const still = K.T - K.lastSw;
+    K.coag = Math.max(0, Math.min(1, K.coag + (still > P27.still ? P27.coagUp : -P27.coagDn) * dt));
+    if (K.coag > K.coagMax) K.coagMax = K.coag;
+    if (K.coag >= 1 && !K.clot) {
+      K.clot = true;
+      emit17('r27clot', { on: true });
+    } else if (K.clot && K.coag < 0.6) {
+      K.clot = false;
+      emit17('r27clot', { on: false });
+    }
+  }
+  function r27Step(dt) {
+    const K = st.r27,
+      h = heroP();
+    if (gate27() || (K && K.ph !== 'out')) {
+      if (!(st.l26t <= st.t)) st.l26t = st.t;
+      if (!open26() && st.t >= st.l26t + P27.gateNpc) gateNpc27();
+    }
+    if (!K) {
+      if (gate27() && !acting && !st.summary && !st.paused && !st.p23) {
+        const a = st.role26 === 'zorek' ? P27.recv : P27.stand;
+        if (Math.hypot(a.x - h.x, a.z - h.z) <= P27.reach) r27start();
+      }
+      return;
+    }
+    K.t += dt;
+    K.T += dt;
+    const ph = K.ph;
+    if (HANDS27.test(ph)) K.own += dt;
+    if (ph === 'in') {
+      if (glide27(K, K.tx, K.tz, P27.in, K.role === 'shochet' ? -Math.PI / 2 : yawTo(K.tx, K.tz, P27.lamb.x, P27.lamb.z))) ph27(K, K.role === 'shochet' ? 'bind' : 'wait');
+    } else if (ph === 'bound') {
+      if (K.t >= P27.bound) ph27(K, open26() ? 'cut' : 'wait');
+    } else if (ph === 'wait') {
+      if (open26() && K.t >= 0.3) ph27(K, 'cut', K.role === 'zorek' ? { npc: true } : undefined);
+    } else if (ph === 'cut') {
+      if (K.role === 'shochet') {
+        K.tc += dt;
+        K.u = needle27(K.tc, K.sweep);
+      } else if (K.t >= P27.npcCut) {
+        K.cutT = st.t;
+        ph27(K, 'recv');
+      }
+    } else if (ph === 'cutd') {
+      if (K.t >= P27.cutd) done27();
+    } else if (ph === 'recv') {
+      K.tr += dt;
+      K.totT += dt;
+      K.sp = stream27(K.tr, K.sk);
+      if (Math.abs(K.pos - K.sp) < P27.tol) {
+        K.fill = Math.min(1, K.fill + dt / P27.fillS);
+        K.inT += dt;
+      }
+      if (K.fill >= 1) {
+        K.fillAcc = Math.round((100 * K.inT) / Math.max(1e-3, K.totT));
+        ph27(K, 'full');
+      }
+    } else if (ph === 'full') {
+      if (K.t >= P27.full) {
+        K.lastSw = K.T;
+        ph27(K, 'carry');
+      }
+    } else if (ph === 'carry' || ph === 'carry2' || ph === 'hold') {
+      swirl27(K, dt);
+      const c = ph === 'carry2' ? 'SW' : 'NE',
+        a = P27.at[c];
+      if (ph === 'hold') {
+        if (K.t <= 0.4) glide27(K, a.x, a.z, 0.35, yawTo(a.x, a.z, P27.corner.NE[0], P27.corner.NE[1]));
+        if (K.t > 0.4 && (st.men5t == null || st.t >= st.men5t)) {
+          K.sx = h.x;
+          K.sz = h.z;
+          ph27(K, 'aim');
+        }
+      } else if (!acting && Math.hypot(a.x - h.x, a.z - h.z) <= P27.aimR) {
+        K.corner = c;
+        K.sx = h.x;
+        K.sz = h.z;
+        drive(0, 0);
+        ph27(K, c === 'NE' ? (st.men5t != null && st.t < st.men5t ? 'hold' : 'aim') : 'aim2');
+      }
+    } else if (ph === 'aim' || ph === 'aim2') {
+      const c = ph === 'aim2' ? 'SW' : 'NE',
+        a = P27.at[c];
+      if (K.t <= 0.4) glide27(K, a.x, a.z, 0.35, yawTo(a.x, a.z, P27.corner[c][0], P27.corner[c][1]));
+    } else if (ph === 'splash') {
+      if (K.t >= P27.splash) {
+        K.lastSw = K.T;
+        ph27(K, 'carry2');
+      }
+    } else if (ph === 'splash2') {
+      if (K.t >= P27.splash) {
+        K.sx = h.x;
+        K.sz = h.z;
+        ph27(K, 'base');
+      }
+    } else if (ph === 'base') {
+      if (K.t <= 0.4) glide27(K, P27.at.SW.x, P27.at.SW.z, 0.35, yawTo(P27.at.SW.x, P27.at.SW.z, P27.hole.x, P27.hole.z));
+    } else if (ph === 'poured') {
+      if (K.t >= P27.poured) done27();
+    } else if (ph === 'out' && K.t >= 0.6) st.r27 = null;
+  }
+  function r27bind(ok = true) {
+    const K = st.r27;
+    if (!K || K.ph !== 'bind') return false;
+    K.binds++;
+    if (!ok) {
+      K.rebinds++;
+      emit17('r27bind', { ok: false });
+      return false;
+    }
+    emit17('r27bind', { ok: true });
+    ph27(K, 'bound');
+    return true;
+  }
+  function r27tap() {
+    const K = st.r27;
+    if (!K || K.ph !== 'cut' || K.role !== 'shochet' || st.paused) return false;
+    const u = needle27(K.tc, K.sweep);
+    if (u < P27.win[0] || u > P27.win[1]) {
+      K.miss++;
+      emit17('r27cut', { ok: false, u: Math.round(u * 1000) / 1000, n: K.miss });
+      return false;
+    }
+    K.cutT = st.t;
+    emit17('r27cut', { ok: true, u: Math.round(u * 1000) / 1000 });
+    ph27(K, 'cutd');
+    return true;
+  }
+  function r27move(d) {
+    const K = st.r27;
+    if (!K || K.ph !== 'recv' || !Number.isFinite(+d) || st.paused) return false;
+    K.pos = Math.max(-1, Math.min(1, K.pos + +d));
+    return true;
+  }
+  function r27swirl(rad) {
+    const K = st.r27,
+      r = Math.abs(+rad || 0);
+    if (!K || !/^(full|carry|carry2|hold)$/.test(K.ph) || !(r > 0) || st.paused) return false;
+    K.swAcc += r;
+    K.circT += r;
+    if (K.swAcc >= P27.swirlRad) {
+      K.swAcc = 0;
+      K.lastSw = K.T;
+    }
+    if (K.circT >= Math.PI * 2) {
+      K.circT -= Math.PI * 2;
+      K.circ++;
+      emit17('r27circ', { n: K.circ });
+    }
+    return true;
+  }
+  function r27throw(p, a) {
+    const K = st.r27;
+    if (!K || (K.ph !== 'aim' && K.ph !== 'aim2') || st.paused) return null;
+    if (K.clot) {
+      emit17('r27throw', { res: 'clot', corner: K.corner });
+      return 'clot';
+    }
+    const r = throw27(p, a),
+      ev = { ...r, y: Math.round(r.y * 100) / 100, corner: K.corner, a: Math.round((+a || 0) * 10) / 10, p: Math.round((+p || 0) * 100) / 100 };
+    if (r.res === 'weak') {
+      emit17('r27throw', ev);
+      return 'weak';
+    }
+    if (r.res === 'high' || r.res === 'miss') {
+      K.retries++;
+      if (r.res === 'high') K.high++;
+      else K.wide++;
+      emit17('r27throw', ev);
+      return r.res;
+    }
+    K.gifts.push(r.q);
+    emit17('r27throw', ev);
+    ph27(K, K.ph === 'aim' ? 'splash' : 'splash2', { res: r.res, face: r.face });
+    return r.res;
+  }
+  function r27swipe(dx, dy = 0, ms = 0) {
+    const K = st.r27;
+    if (!K || K.ph !== 'base' || st.paused) return false;
+    const why = dy < P27.dn ? 'short' : Math.abs(dx) > 0.6 * dy ? 'crooked' : ms > P27.ms ? 'slow' : '';
+    emit17('r27swipe', { ok: !why, why });
+    if (why) return false;
+    ph27(K, 'poured');
+    return true;
+  }
+  function done27() {
+    const K = st.r27,
+      own = r1(K.own),
+      sh = K.role === 'shochet',
+      fast = own <= P27.tT[K.role][0] * 1.3,
+      g = sh
+        ? { day: st.day, role: 'shochet', ownS: own, misses: K.miss, rebinds: K.rebinds, first: !!K.first }
+        : {
+            day: st.day,
+            role: 'zorek',
+            ownS: own,
+            fillAcc: K.fillAcc | 0,
+            gifts: K.gifts.slice(),
+            retries: K.retries,
+            high: K.high,
+            wide: K.wide,
+            clotMax: Math.round(K.coagMax * 100),
+            first: !!K.first,
+          };
+    g.cutT = K.cutT;
+    g.actS = r1(K.T);
+    rec23(K.role, g);
+    const q = (g.mastery | 0) / 100,
+      f = q >= 0.95 ? (fast ? 3 : 2) : q >= 0.75 ? 2 : 1,
+      n = Math.round(P27.score * q + (fast ? P27.fast : 0)),
+      at = sh ? { x: P27.lamb.x, y: 17.2, z: P27.lamb.z } : { x: P27.hole.x, y: 17.6, z: P27.hole.z };
+    Object.assign(g, { scoreEarned: n, coins: f });
+    st.r26day = st.day;
+    st.r26r = g;
+    ph27(K, 'out');
+    score(n, 'r27');
+    pay(f, 'r27', at);
+    L0('r27done', K.role, own);
+    evlog('dam27', g);
+    emit17('r27done', { ...g, at });
+    saveState('r27');
+  }
+  /** ── fable32 (build 27) ── the authored views (CAM24's way: the context per step): the ring from the south-east, medium-long, never
+   *  close on the lamb's neck; over his shoulder at each corner; the southern yesod from the south-west; none while he walks */
+  function camWork27() {
+    const K = st.r27;
+    if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
+    const ph = K.ph;
+    let a;
+    if (K.role === 'shochet') a = { p: [-40.4, 19.8, -26.6], t: [-47, 16.7, -33.8], e: ph === 'in' ? 2 : 2.6 };
+    else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-42.9, 19.6, -25.1], t: [-48.4, 16.7, -32.4], e: 2.4 };
+    else if (/^(hold|aim|splash)$/.test(ph)) a = { p: [-17.3, 20.3, -24.3], t: [-23.6, 18.9, -18], e: 2.2 };
+    else if (/^(aim2|splash2)$/.test(ph)) a = { p: [-58.6, 20.3, 17.3], t: [-52.6, 18.9, 11.2], e: 2.2 };
+    else a = { p: [-55.9, 20.7, 18.9], t: [-52.6, 17.1, 12.4], e: 2.2 };
+    return { x: a.t[0], z: a.t[2], view: a };
+  }
+  // ── /fable32 ──
   function card22(h) {
     const K = st.m22,
       ph = K ? K.ph : '';
@@ -3634,7 +4045,7 @@ export function createDay33(o = {}) {
     if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── (the lot) ── /fable32 ──
     if (gate21()) return gate21no(id);
     if (gate25()) return id === 'pen' ? peek24() : gate25no(id);   /* ── fable32 (build 25) ── */
-    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);   /* ── fable32 (build 26) ── */
+    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26() || gate27() || on27()) return gate26no(id);   /* ── fable32 (build 26) ── */ /* ── fable32 (build 27) ── */
     if (gate22() && !(id === 'kevesh' && carry22())) return id === 'wood' && !st.m22 ? peek24('wood') : gate22no(id);
     const h = heroP(),
       p = standOf(id);
@@ -3858,7 +4269,7 @@ export function createDay33(o = {}) {
     if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── ── /fable32 ──
     if (gate21()) return gate21no(id);
     if (gate25()) return id === 'pen' ? peek24() : gate25no(id);   /* ── fable32 (build 25) ── */
-    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no(id);   /* ── fable32 (build 26) ── */
+    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26() || gate27() || on27()) return gate26no(id);   /* ── fable32 (build 26) ── */ /* ── fable32 (build 27) ── */
     if (gate22() && !(id === 'kevesh' && carry22())) return id === 'wood' && !st.m22 ? peek24('wood') : gate22no(id);
     if (id === 'pyre') return runAt('pyre');
     const p = standOf(id),
@@ -3880,7 +4291,7 @@ export function createDay33(o = {}) {
     return true;
   }
   function stopAt33(h) {
-    if (st.phase !== 'run' || acting) return null;
+    if (st.phase !== 'run' || acting || gate27() || st.r27) return null;   // ── fable32 (build 27) ── ── /fable32 ──
     const n = nx33();
     if (n.kind !== 'station') return null;
     const p = standOf(n.id);
@@ -3928,6 +4339,17 @@ export function createDay33(o = {}) {
     if (gate25()) return { icon: '🐑', label: goLabel31('דיר הטלאים'), job: 'sh:go:p25', noRing: true, go31: true, go: () => peek24() };
     if (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out')
       return { icon: st.role26 === 'inner' ? '🥣' : '🪔', label: 'ההיכל', job: 'sh:r26', noRing: true, go: () => {} };
+    // ── fable32 (build 27) ── (his blood role: at its work, or the way to the ring and to the corners) ── /fable32 ──
+    if (act27()) return { icon: st.role26 === 'shochet' ? '🔪' : '🏺', label: st.role26 === 'shochet' ? 'השחיטה' : 'זריקת הדם', job: 'sh:r27', noRing: true, go: () => {} };
+    if (gate27() || on27())
+      return {
+        icon: st.role26 === 'shochet' ? '🔪' : '🏺',
+        label: goLabel31(!st.r27 ? 'הטבעות' : st.r27.ph === 'carry2' ? 'קרן מערבית דרומית' : 'קרן מזרחית צפונית'),
+        job: 'sh:go:r27',
+        noRing: true,
+        go31: true,
+        go: () => peek24(),
+      };
     if (gate26L() || gate26())
       return {
         icon: gate26L() ? '☝' : '🗝️',
@@ -4148,7 +4570,7 @@ export function createDay33(o = {}) {
     if (gate20()) return gate20no('pyre');
     if (lotOn() || gate23()) return gate23no('pyre');
     if (st.p25 || gate25()) return gate25no('pyre');
-    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26()) return gate26no('pyre');   // ── fable32 (build 26) ── ── /fable32 ──
+    if ((st.r26 && st.r26.ph !== 'out') || gate26L() || gate26() || gate27() || on27()) return gate26no('pyre');   // ── fable32 (build 26) ── ── /fable32 ──
     if (gate21()) return gate21no('pyre');
     if (gate22()) return carry22() ? false : gate22no('pyre');
     const h = heroP();
@@ -4223,6 +4645,7 @@ export function createDay33(o = {}) {
       gate23() ||
       st.p25 ||
       (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') ||
+      act27() ||
       (st.d21 && st.d21.ph !== 'foot') ||
       (st.m22 && !carry22())
     )
@@ -4234,6 +4657,10 @@ export function createDay33(o = {}) {
     if (gate26()) {   /* ── fable32 (build 26b) ── (no walk back to a circle: the lot where he stands — from the altar's top, down the ramp first) ── */
       const S0 = open26() ? at26(st.role26) : P26.gate;
       return { id: 'r26', kind: 'station', pid: null, at: { x: S0.x, y: 22, z: S0.z } };
+    }
+    if (gate27() || on27()) {   /* ── fable32 (build 27) ── (to his place at the ring; with the vessel, to the north-east corner, then round the north and the west to the south-west) ── */
+      const a = !st.r27 ? (st.role26 === 'zorek' ? P27.recv : P27.stand) : P27.at[st.r27.ph === 'carry2' ? 'SW' : 'NE'];
+      return { id: 'r27', kind: 'station', pid: null, at: { x: a.x, y: 16, z: a.z } };
     }
     /* ── fable32 (build 26) ── (the way back to the circle; up the steps to the great gate; in, to his vessel) ── */ /* ── fable32 (build 21) ── (no path while he sweeps and goes down; at the foot — to the ring) ── */ /* ── fable32 (build 22) ── (nor while he sorts or stacks) ── */
     if (gate21()) return { id: 'deshen', kind: 'station', pid: null, at: standOf('deshen') };
@@ -4337,6 +4764,31 @@ export function createDay33(o = {}) {
         goal: 0,
         st: null,
       };
+    if (gate27() || on27()) {   // ── fable32 (build 27) ── ── /fable32 ──
+      const K = st.r27,
+        sh = st.role26 === 'shochet',
+        ph = K ? K.ph : '',
+        T27 = sh
+          ? { in: 'אל הטלה', bind: 'עקדו את הטלה — יד ורגל: גררו ↔', bound: 'עקוד', wait: 'המתינו לקול השער הגדול', cut: 'שחטו — הקישו בפס הזהב', cutd: 'שחט השוחט — וקבל המקבל' }
+          : {
+              in: 'אל המזרק',
+              wait: open26() ? 'השוחט עומד לשחוט' : 'המתינו לקול השער הגדול',
+              cut: 'שחט השוחט',
+              recv: 'קבלו את הדם — המזרק תחת הזרם ↔',
+              full: 'המזרק מלא',
+              carry: 'לקרן מזרחית צפונית — מרסו בדרך ⟳',
+              hold: 'חמש נרות קודם לדם התמיד — מרסו ⟳',
+              aim: 'מתחת לחוט — משכו לאחור ושחררו',
+              splash: 'שתי מתנות שהן ארבע',
+              carry2: 'לקרן מערבית דרומית — מרסו בדרך ⟳',
+              aim2: 'מתחת לחוט — משכו לאחור ושחררו',
+              splash2: 'שתי מתנות שהן ארבע',
+              base: 'את השיריים — על יסוד דרומי: החליקו ⬇',
+              poured: 'שירי הדם — על יסוד דרומית',
+            },
+        text = K ? T27[ph] || (sh ? 'השחיטה' : 'זריקת הדם') : `${sh ? 'השחיטה' : 'זריקת הדם'} — לכו לטבעות, צפונית למזבח`;
+      return { id: 'r27', icon: sh ? '🔪' : '🏺', text, n: K && !sh ? K.gifts.length : 0, goal: K && !sh ? 2 : 0, st: null };
+    }
     if (gate26() || (st.r26 && st.r26.ph !== 'out')) {
       const r26 = st.r26,
         a = r26 ? r26.ph : '',
@@ -4451,7 +4903,7 @@ export function createDay33(o = {}) {
       },
       b = B17.slots.filter((x) => (x === 'song' ? open33('song') && (!!st.song || statN('songs') > 0) : open33(x))),
       c = gateAny(),
-      d = gate20() ? 'kiyor' : gate23() || gate26L() || gate26() ? '' : gate25() ? 'pen' : gate22() && !st.m22 ? 'wood' : 'kevesh';
+      d = gate20() ? 'kiyor' : gate23() || gate26L() || gate26() || gate27() || on27() ? '' : gate25() ? 'pen' : gate22() && !st.m22 ? 'wood' : 'kevesh';
     if (st.fuel < B17.crit && !c) b = b.filter((x) => x === 'wood' || x === 'kevesh');
     while (b.length > B17.maxSlots) {
       const c = b.findIndex((x) => x !== cur && a[x][0] >= a[x][1]);
@@ -4490,9 +4942,9 @@ export function createDay33(o = {}) {
             ? id === 'pen'
               ? peek24()
               : gate25no(id)
-            : st.r26 && st.r26.ph !== 'out'
+            : (st.r26 && st.r26.ph !== 'out') || act27()
               ? false
-              : gate26L() || gate26()
+              : gate26L() || gate26() || gate27() || on27()
                 ? gate26no(id)
                 : st.d21
                   ? false
@@ -4525,16 +4977,16 @@ export function createDay33(o = {}) {
       ? gate20no('fire')
       : lotOn() || gate23()
         ? gate23no('fire')
-        : st.d21 || st.p25 || (st.r26 && st.r26.ph !== 'out' && st.r26.ph !== 'walk')
+        : st.d21 || st.p25 || (st.r26 && st.r26.ph !== 'out' && st.r26.ph !== 'walk') || act27()
           ? false
-          : gate21() || gate22() || gate25() || gate26L() || gate26()
+          : gate21() || gate22() || gate25() || gate26L() || gate26() || gate27() || on27()
             ? peek24()
             : peek24(st.logs > 0 ? (atTop(h) ? 'pyre' : 'kevesh') : 'wood');
   }
   function go17() {
     if (!b17 || st.phase !== 'run' || acting || st.summary || st.k20) return false;
     const step = step17();
-    return !step || lotOn() || step.id === 'p23' || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out')
+    return !step || lotOn() || step.id === 'p23' || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') || act27()
       ? false
       : (L0('card17', step.id), evlog('card17', step.id), peek24());
   }
@@ -4648,6 +5100,7 @@ export function createDay33(o = {}) {
       HOUSE22.on = gate26() || !!st.r26;
       HOUSE22.gate = HOUSE22.on && open26();
     }
+    if (p27) r27Step(dt);   // ── fable32 (build 27) ── ── /fable32 ──
     SHARED.strong24 = !!(p23 && st.p23day === st.day && gateAny() && flowNext());
     if (g21) d21Step(dt);
     if (g22) m22Step(dt);
@@ -4700,14 +5153,14 @@ export function createDay33(o = {}) {
       st.ix = h.x;
       st.iz = h.z;
       st.idleT =
-        moved || acting || st.night || st.lost || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') ? 0 : (st.idleT || 0) + dt;
+        moved || acting || st.night || st.lost || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') || act27() ? 0 : (st.idleT || 0) + dt;
     }
     {
       const h = heroP(),
         a = Number.isFinite(st.sx) && Math.hypot(h.x - st.sx, h.z - st.sz) > 0.3;
       st.sx = h.x;
       st.sz = h.z;
-      st.stuckT = a || acting || st.night || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') ? 0 : st.stuckT + dt;
+      st.stuckT = a || acting || st.night || st.p25 || (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out') || act27() ? 0 : st.stuckT + dt;
       if (st.stuckT >= 10) {
         st.stuckT = 0;
         evlog('stuck', { x: Math.round(h.x), z: Math.round(h.z), y: Math.round((h.y || 16) * 10) / 10, next: nx33().id, logs: st.logs });
@@ -4837,6 +5290,8 @@ export function createDay33(o = {}) {
       r26: st.r26 ? st.r26.ph : null,
       r26r: st.r26r || null,
       open26: open26(),
+      gate27: gate27(),   // ── fable32 (build 27) ── ── /fable32 ──
+      r27: st.r27 ? st.r27.ph : null,
     };
   }
   const E = {
@@ -4853,7 +5308,7 @@ export function createDay33(o = {}) {
         st.logs = Math.max(0, st.logs - st.m22c);
         st.m22c = 0;
       }
-      if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b)));
+      if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b) || (p27 && rings27(a, b))));   // ── fable32 (build 27) ── (the place of slaughter's floor: stages' 'lishka' footprint keeps it solid) ── /fable32 ──
       if (p23 && !st.washed) wake23();
       if (st.resumeTasks) {
         newTasks();
@@ -4921,6 +5376,7 @@ export function createDay33(o = {}) {
       st.p25 = null;
       SHARED.strong24 = false;
       st.r26 = null;
+      st.r27 = null;
       HOUSE22.on = HOUSE22.gate = false;
       if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass(null));
     },
@@ -5024,6 +5480,17 @@ export function createDay33(o = {}) {
     g26t: () => (open26() ? st.g26t : null),
     men5t: () => (open26() && Number.isFinite(st.men5t) ? st.men5t : null),
     roles26: () => roles26(),
+    // ── fable32 (build 27) ── the blood roles (dam27.js; tests) ── /fable32 ──
+    p27on: p27,
+    gate27,
+    r27: () => st.r27,
+    r27bind,
+    r27tap,
+    r27move,
+    r27swirl,
+    r27throw,
+    r27swipe,
+    camWork27,
     p25on: p25,
     gate25,
     p25: () => st.p25,
@@ -5176,6 +5643,7 @@ export function createDay33(o = {}) {
         st.p23 = null;
         st.p26day = st.day;
         st.role26 = a;
+        st.l26t = st.t;   // ── fable32 (build 27) ── ── /fable32 ──
       },
       done26: () => {
         st.r26 = null;

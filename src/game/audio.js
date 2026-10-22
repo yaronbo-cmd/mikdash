@@ -63,6 +63,7 @@ export const SOUNDS = [
   'warn17', 'alarm17', 'near17', 'ding17', 'chord17', 'trumpet17', 'late17', 'coin18', 'salt19', 'wbell20', 'unlock20', 'scrape21', 'spill21', 'blast21',
   'torch25', 'hoof25', 'bleat25', 'stamp25', 'bell25', 'gate26', 'bolt26', 'step26', 'hand26', 'scrape26', 'pour26', 'bell26', 'wick26',
   'drum23', 'knock22', 'err22', 'crack22', 'fire22',
+  'blade27', 'fill27', 'clink27', 'splash27', 'pour27', 'bind27',   // ── fable32 (build 27) ── the blood roles (dam27.js) ── /fable32 ──
 ];
 export const BEDS = ['site', 'plaza', 'crowd', 'rain', 'birds', 'sea', 'night'];   // ── world12 ── + 'night': a dry night's crickets and a breath of wind
 
@@ -165,7 +166,8 @@ export function createAudio({ storage, root = null, settings = null, trim = null
   const LEVEL = { perfect: 2.8, thud: 1.5, settle: 2.5, joint: 1.7, tier: 5, fanfare: 3.2, stamp: 1.35, pop: 5, ui: 6, whoosh: 14, leaf: 2, coin: 1.6, chisel: 1.8, xpTick: 4.8, levelUp: 1.7, dinar: 1.6, good: 1.6, soft: 2.2, starPop: 2.4, flyIn: 2.4, tab: 4, big: 1.5,
     // ── recovered (17–26) ── the day's sounds (their builds in their names)
     warn17: 2.2, alarm17: 2.2, near17: 2.4, ding17: 2.2, chord17: 2.4, trumpet17: 3, late17: 2.4, coin18: 2, scrape21: 2.2, spill21: 2, blast21: 3, knock22: 2.6, err22: 2, crack22: 2.2, fire22: 2.6, drum23: 2.4,
-    torch25: 2, hoof25: 2.2, bleat25: 2.2, stamp25: 2.8, bell25: 2.6, gate26: 3, bolt26: 2.4, step26: 2.2, hand26: 2.2, scrape26: 2, pour26: 1.8, bell26: 2.6, wick26: 2.4 };   // (music18: + the new names)
+    torch25: 2, hoof25: 2.2, bleat25: 2.2, stamp25: 2.8, bell25: 2.6, gate26: 3, bolt26: 2.4, step26: 2.2, hand26: 2.2, scrape26: 2, pour26: 1.8, bell26: 2.6, wick26: 2.4,
+    blade27: 2.2, fill27: 1.8, clink27: 2, splash27: 2.4, pour27: 2.2, bind27: 2.2 };   // (music18: + the new names) ── fable32 (build 27) ── ── /fable32 ──
   const levelOf = (name, o) => (name === 'starPop' && o && o.n === 3 ? 3.4 : name === 'hammer' ? (o && (o.quality === 'perfect' || o.quality === 'combo') ? LEVEL.perfect : 1) : LEVEL[name] || 1);
   /* ── the kit ── */
   const KIT = {
@@ -530,6 +532,23 @@ export function createAudio({ storage, root = null, settings = null, trim = null
     pour26(t, o = {}) { const f = Math.max(250, Math.min(900, +o.f || 300)); tone(t, { f, peak: 0.07, a: 0.01, dec: 0.1, pj: 0 }); noiseHit(t, { f: f * 3, q: 4, peak: 0.02, dec: 0.06 }); },
     bell26(t) { bell(t, 1318.5, 0.1, 1.4); bell(t + 0.01, 1975.5, 0.04, 1); },
     wick26(t, o = {}) { noiseHit(t, { type: 'highpass', f: o.hi ? 4200 : 3000, peak: 0.14, dec: 0.02 }); tone(t, { f: o.hi ? 1760 : 1320, peak: 0.05, dec: 0.05 }); },
+    // ── fable32 (build 27) ── the blood roles: the blade's slice (a fast fall 1200 → 200 Hz in 0.1 s, and a copper ring; o.soft: the
+    // court's shochet, further off), the vessel filling (o.f its rising pitch), the copper clink of each circle (o.n), the splash on
+    // the stone (o.big: both faces), the rest poured on the yesod, the binding (wool and a soft knock)
+    blade27(t, o = {}) {
+      const k = o.soft ? 0.45 : 1;
+      tone(t, { type: 'sawtooth', f: 1200, f2: 200, peak: 0.1 * k, a: 0.002, dec: 0.1, lp: 3200, pj: 0 });
+      noiseHit(t, { type: 'highpass', f: 3600, peak: 0.09 * k, dec: 0.06 });
+      bell(t + 0.02, 880, 0.035 * k, 0.9);
+    },
+    fill27(t, o = {}) { const f = Math.max(200, Math.min(900, +o.f || 260)); tone(t, { f, peak: 0.05, a: 0.012, dec: 0.12, pj: 0 }); noiseHit(t, { f: f * 2.6, q: 5, peak: 0.025, dec: 0.08 }); },
+    clink27(t, o = {}) { const k = 1 + 0.05 * ((o.n | 0) % 3); tone(t, { type: 'triangle', f: 2100 * k, peak: 0.06, dec: 0.12 }); tone(t, { f: 3170 * k, peak: 0.02, dec: 0.07 }); },
+    splash27(t, o = {}) {
+      noiseHit(t, { type: 'lowpass', f: 900, peak: 0.22, a: 0.005, dec: 0.18 }); noiseHit(t + 0.03, { f: 2400, q: 2, peak: 0.06, dec: 0.1 });
+      if (o.big) { noiseHit(t + 0.07, { type: 'lowpass', f: 1100, peak: 0.18, a: 0.005, dec: 0.16 }); tone(t + 0.05, { f: 660, peak: 0.03, dec: 0.4 }); }
+    },
+    pour27(t) { noiseHit(t, { f: 700, f2: 400, q: 1.2, peak: 0.12, a: 0.08, dec: 0.9 }); tone(t, { f: 240, f2: 180, peak: 0.04, a: 0.1, dec: 0.8 }); },
+    bind27(t) { noiseHit(t, { type: 'lowpass', f: 1800, peak: 0.1, a: 0.03, dec: 0.2 }); tone(t + 0.12, { f: 330, peak: 0.04, dec: 0.08 }); },
     // ── recovered (build 21) ── the trumpets' blast (the terumat hadeshen's call)
     blast21(t) {
       for (const d of [0, 4]) { tone(t, { type: 'sawtooth', f: 587.33 + d, peak: 0.075, a: 0.04, dec: 0.62, lp: 3000, vib: 3 }); tone(t, { type: 'square', f: (587.33 + d) / 2, peak: 0.028, a: 0.05, dec: 0.56, lp: 1400 }); }

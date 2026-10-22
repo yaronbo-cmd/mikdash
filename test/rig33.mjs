@@ -1,12 +1,12 @@
 // ── recovered (R9) ── the day engine of builds 16–26c in node (no browser): createDay33 with the builds' flags, a hero that is set
 // where the test puts him, the stations' acts answered at once (gold unless told otherwise), the HUD and the world as stubs.
-// Used by test/build16 … build26c.test.mjs (not a test itself).
+// Used by test/build16 … build27.test.mjs (not a test itself).
 import { createDay33 } from '../src/avodah/shift/day33.js';
 import { STATIONS } from '../src/avodah/shift/stations.js';
 
 // the flags as shift/index.js passes them (each build needs the one before it): all on unless a test turns one off
-export const FLAGS = { b17: true, court18: true, coins: true, b19: true, g20: true, d21: true, m22: true, p23: true, p25: true, p26: true };
-const UPTO = ['b17', 'court18', 'b19', 'g20', 'd21', 'm22', 'p23', 'p25', 'p26'];
+export const FLAGS = { b17: true, court18: true, coins: true, b19: true, g20: true, d21: true, m22: true, p23: true, p25: true, p26: true, p27: true };   // (build 27: p27)
+const UPTO = ['b17', 'court18', 'b19', 'g20', 'd21', 'm22', 'p23', 'p25', 'p26', 'p27'];
 /** the flags up to a build: upTo('g20') → b17 … g20 on, the later ones off */
 export function upTo(last) {
   const out = {}, i = UPTO.indexOf(last);
@@ -14,6 +14,7 @@ export function upTo(last) {
   out.coins = out.court18;
   if (i < UPTO.indexOf('p25')) out.p25 = false;
   if (i < UPTO.indexOf('p26')) out.p26 = false;
+  if (i < UPTO.indexOf('p27')) out.p27 = false;
   return out;
 }
 /** a seeded rng (mulberry32), so a test's day repeats */

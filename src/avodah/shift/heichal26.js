@@ -521,7 +521,7 @@ export function createHeichal26(o = {}) {
       if (dragging) fire.style.transform = `translate(${(dragFire.x - 17) | 0}px,${(dragFire.y - 24) | 0}px)`;
       const g26 = E.g26t(),
         men5 = E.men5t();
-      if (g26 != null && men5 != null && bloodDay !== st.day && st.t > Math.max(men5, g26 + 12) + 0.6) {
+      if (g26 != null && men5 != null && bloodDay !== st.day && role !== 'shochet' && role !== 'zorek' && st.t > Math.max(men5, g26 + 12) + 0.6) {   // ── fable32 (build 27) ── (his own blood role: dam27.js) ── /fable32 ──
         bloodDay = st.day;
         say(`דם התמיד — אחרי חמש הנרות<small>${SRC.five}</small>`, 5);
       }
@@ -736,7 +736,7 @@ export function createHeichal26(o = {}) {
         }
         if (role === 'menorah' && ((K && /^(kuzd|out)$/.test(ph)) || (E.r26r() && E.r26r().day === st.day && !((st.dayT || 0) >= 36))))
           kuz(k, -122.8, 22.6, 7.5, 0.8);
-        if (open && g26 != null) {
+        if (open && g26 != null && role !== 'shochet' && role !== 'zorek') {   // ── fable32 (build 27) ── (the court's shochet and zorek — when his role is a blood one, dam27.js draws them) ── /fable32 ──
           const since = clock - g26,
             men5 = E.men5t(),
             bloodAt = Math.max(men5 != null ? men5 - g26 : 14, 12) + 0.6;

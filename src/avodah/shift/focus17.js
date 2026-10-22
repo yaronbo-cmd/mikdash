@@ -10,7 +10,7 @@
  *   SHARED.hot17 (0…1: how near the next place — flow31's ring warms) with the near17 chimes; SHARED.b17 (the chips' mini mode);
  *   a portrait phone: "סובבו את הטלפון לרוחב" (the game paused till then, or "המשך בכל זאת");
  * and it makes the day's own modules as the engine opens them: ramp19 (E.b19), kiyor20 (E.g20), deshen21 (E.g21), maaracha22 (E.g22),
- * pis23 (E.p23on), pen25 (E.p25on), heichal26 (E.p26on) and fx18 (E.l18: the acts' answers, one place for their sound).
+ * pis23 (E.p23on), pen25 (E.p25on), heichal26 (E.p26on), dam27 (E.p27on — build 27) and fx18 (E.l18: the acts' answers, one place for their sound).
  *   createFocus17({ E, view, sfx, doc }) → { destroy(), state(), stamp, banner, sparks, fly }      SHARED.hot17, SHARED.b17, globalThis.__F17
  * The bundle kept no comment and no local name: the names are the recovery's, but for createFocus17, sfx and the modules' lines
  * (focus17.js:14, :127, :129, :174–181 in the session transcript: E, doc, view, slotOf, top, sparks, stamp, pop, r19 … h26, fx). The CSS
@@ -24,6 +24,7 @@ import { createDeshen21 } from './deshen21.js';
 import { createMaaracha22 } from './maaracha22.js';
 import { createPen25 } from './pen25.js';
 import { createHeichal26 } from './heichal26.js';
+import { createDam27 } from './dam27.js';   // ── fable32 (build 27) ── ── /fable32 ──
 import { createPis23 } from './pis23.js';
 const F17 = Object.freeze({
   slot: 56,
@@ -376,6 +377,14 @@ export function createFocus17(o = {}) {
       h26 = createHeichal26({ E, sfx: o.sfx, doc, view });
     } catch (e) {
       console.warn('[focus17] h26', e && e.message);
+    }
+  // ── fable32 (build 27) ── the blood roles' module ── /fable32 ──
+  let d27 = null;
+  if (E.p27on)
+    try {
+      d27 = createDam27({ E, sfx: o.sfx, doc, view });
+    } catch (e) {
+      console.warn('[focus17] d27', e && e.message);
     }
   let fx = null;
   if (E.l18)
@@ -771,6 +780,7 @@ export function createFocus17(o = {}) {
         if (p23) p23.destroy();
         if (p25) p25.destroy();
         if (h26) h26.destroy();
+        if (d27) d27.destroy();   // ── fable32 (build 27) ── ── /fable32 ──
         try {
           if (offEv) offEv();
         } catch (e) {}

@@ -145,7 +145,7 @@ export function mountShift(o = {}) {
     try { mods.walk && mods.walk.pace && mods.walk.pace(PACE); const T = mods.twin; if (T) T.pace = { rim: PACE.rim, after: PACE.rimAfter, mul: PACE.sprint, soft: globalThis.__SH_HARDSTICK ? null : STICK, p24: globalThis.__SH_HARDSTICK || globalThis.__SH24_OFF ? null : STICK24 }; } catch (e) { /* */ }
     try { mods.camera && mods.camera.dayView && mods.camera.dayView(VIEW24); } catch (e) { /* */ }
     const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); },
-      camWork: () => (E && E.camWork20 ? E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
+      camWork: () => (E && E.camWork20 ? E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) /* ── fable32 (build 27) ── */ || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
     D.shiftMode(hook);
     try { S() && S().hero && S().hero.setPos(-34, 50, Math.PI); } catch (e) { /* */ }   // (he starts between the ramp's foot and the wood store, facing the altar)
     try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
@@ -155,7 +155,7 @@ export function mountShift(o = {}) {
       // ── recovered (17–26) ── the builds' flags: each on unless its __SH*_OFF (b17: __SH_B17OFF); the coins by ENABLE_TEMPLE_COINS
       b17: !globalThis.__SH_B17OFF, court18: !globalThis.__SH18_OFF, coins: coins18(), b19: !globalThis.__SH18_OFF && !globalThis.__SH19_OFF, g20: !globalThis.__SH20_OFF,
       d21: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF, m22: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF && !globalThis.__SH22_OFF,
-      p23: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF && !globalThis.__SH22_OFF && !globalThis.__SH23_OFF, p25: !globalThis.__SH25_OFF, p26: !globalThis.__SH26_OFF });
+      p23: !globalThis.__SH20_OFF && !globalThis.__SH21_OFF && !globalThis.__SH22_OFF && !globalThis.__SH23_OFF, p25: !globalThis.__SH25_OFF, p26: !globalThis.__SH26_OFF, p27: !globalThis.__SH27_OFF /* ── fable32 (build 27) ── */ });
     const me = E;
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
     if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }   // ── recovered (build 17) ──

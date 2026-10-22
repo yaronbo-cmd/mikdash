@@ -4,7 +4,8 @@
 //   const H = createShiftHud(root) → { set(state), stamp(text, o), intro(text), opening(steps, {tap, src}), pin(id, o), ring(id, o),
 //                                      end(result, {again, next}), destroy() }
 //   entryCard(root, { lvl, best, stars, shift(lvl), tour() }) → { close() }
-import { evlog, copyEvlog } from './evlog16.js';   // ── recovered (build 16) ── the event log (the names of the module and its exports are the recovery's)
+import { evlog, copyEvlog } from './evlog16.js';
+import { prefsHTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches on the pause card ── /fable32 ──   // ── recovered (build 16) ── the event log (the names of the module and its exports are the recovery's)
 const CSS = `
 .sh-root{position:fixed;inset:0;z-index:30;pointer-events:none;direction:rtl;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;-webkit-user-select:none;user-select:none}
 .sh-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:16px;background:rgba(28,20,10,.72);box-shadow:0 2px 10px rgba(0,0,0,.35);white-space:nowrap}
@@ -96,6 +97,7 @@ const CSS = `
 .sh-go.sh-day{background:radial-gradient(circle at 40% 30%,#FFC48A,#C86A2A 70%,#7A3A10);margin-top:8px}
 .sh-tour.sm{min-height:44px;font-size:12px;border:0;opacity:.75;text-decoration:underline;padding:0 10px}
 .f31-full{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 14px/1 "Heebo",system-ui,sans-serif;cursor:pointer;pointer-events:auto;padding:0 12px}
+.sh-p28{justify-content:center;margin:2px 0 6px}   /* ── fable32 (build 28) ── (the pause card's switches) ── /fable32 ── */
 .sh-tour{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;cursor:pointer}
 body.sh-on .dy-hud,body.sh-on .dy-coin,body.sh-on .dy-say,body.sh-on .dy-line,body.sh-on .dy-banner,body.sh-on .tw-goal,body.sh-on .g27-skip,body.sh-on .l28-tap,body.sh-on .s27-stamp,body.sh-on .tw-hand{display:none!important}
 @keyframes sh-pop{50%{transform:scale(1.35)}}
@@ -306,11 +308,13 @@ export function createShiftHud(root) {
       if (pauseEl) return pauseEl;
       pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>
         <div class="sh-btns"><button class="sh-btn resume" type="button" data-sh="resume">המשך</button><button class="sh-btn restart" type="button" data-sh="restart">מהתחלה</button></div>
+        ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28') : ''}
         ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}
         <button class="sh-tour sm sh-evlog" type="button" data-sh="evlog" style="opacity:.45;font-size:11px;min-height:32px">העתק לוג</button></div>`);
       R.appendChild(pauseEl);
       evlog('card_open', 'pause');   // ── recovered (build 16) ── (the event log, and "העתק לוג" copies it)
       { const b = pauseEl.querySelector('[data-sh=evlog]'); if (b) b.addEventListener('click', (e) => { e.stopPropagation(); copyEvlog().then((ok) => { b.textContent = ok ? 'הלוג הועתק ✓' : 'לא הועתק'; }); }); }
+      if (h.prefs) bindPrefs(pauseEl, h.prefs);   // ── fable32 (build 28) ── (צליל, רטט: the same switches as the lobby's) ── /fable32 ──
       const once = (fn) => { let used = false; return (e) => { if (e) e.stopPropagation(); if (used) return; used = true; if (pauseEl) { pauseEl.remove(); pauseEl = null; } evlog('card_close', 'pause'); fn && fn(); }; };
       pauseEl.querySelector('[data-sh=resume]').addEventListener('click', once(h.resume));
       pauseEl.querySelector('[data-sh=restart]').addEventListener('click', once(h.restart));

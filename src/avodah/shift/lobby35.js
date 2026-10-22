@@ -6,12 +6,18 @@
  * ספר הזכרונות, today's tasks; left — the shop, the merchant ("ביום 2"), the two interludes (זיכרון המקדש, משחק האוצר); bottom — the
  * big gold "משחק" (pulsing) and the mode pill (יום במקדש / משמרת / סיור). A dot blinks on a door with news. Every text a draft
  * (טיוטה); never a Divine Name; 44-px targets; RTL.
- *   const Lb = createLobby({ D, world, view, twin, save, persist, sfx, root, camera(view, twin, o), kit, on: { day, shift, tour, shop, book, tiles, m3 } })
+ * ── fable32 (build 28) ── (the owner's decisions, 22.10 09:19) the mode pill is gone — "משמרת" (the 90 s race) and "סיור" (the old day,
+ * the player as the אמרכל) left the game (their code stays: engine.js, avodah/day); a save's lobbyMode 'shift' / 'tour' opens the day.
+ * The start screen: "משחק קצר" — one door to a small picker of the three interludes (זיכרון המקדש, הוצאת הטלה מהדיר, משחק האוצר; the
+ * day no longer offers them) — and the two switches, צליל and רטט (prefs28.js; also on the pause card); the full screen's ממונה's
+ * tasks are the day's own ("יום N", it always said "יום 1"). ── /fable32 ──
+ *   const Lb = createLobby({ D, world, view, twin, save, persist, sfx, root, camera(view, twin, o), kit, games, score, start, on: { day, shop, book, merchant } })   (build 28: on.shift / on.tour never called)
  *   Lb.close() · Lb.refresh() · Lb.el · tests: globalThis.__LOBBY (state(), pick(name))
  * ── /fable32 ── */
 import { man, lamb, flame } from '../works/figures.js';
 import { addDrawer, L, SHARED } from './draw.js';
-import { BADGES33, SHOP33, DAY33, tasksForDay, resumeDay33 } from './day33.js';   // ── recovered (build 16) ── resumeDay33: the saved day to go on with, 0 = none (day33's; the name is the recovery's)
+import { BADGES33, SHOP33, DAY33, tasksNow33, resumeDay33 } from './day33.js';   // ── recovered (build 16) ── resumeDay33: the saved day to go on with, 0 = none (day33's; the name is the recovery's) ── fable32 (build 28) ── (tasksNow33: the day's own tasks; was tasksForDay) ── /fable32 ──
+import { prefsHTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches ── /fable32 ──
 import { interludeScore, fmt as fmtScore } from './score35.js';   // ── fable32 (build 14) ── the one score ── /fable32 ──
 
 export const LOBBY35 = Object.freeze({ x: -25, z: 34, y: 16, az0: Math.PI / 2, swing: 0.45, swingS: 0.22, el: 0.24, d: 16, motes: 14, cycleS: 7 });   // ── recovered (16–26c) ── (x −34 → −25, z 50 → 34, el 0.2 → 0.24, d 15 → 16)
@@ -46,6 +52,21 @@ const CSS = `
 @keyframes lb-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 @keyframes lb-glow{0%,100%{box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 0 0 rgba(255,214,110,.55)}50%{box-shadow:0 6px 18px rgba(0,0,0,.4),0 0 0 10px rgba(255,214,110,0)}}
 .lb .lb-full{right:calc(max(8px,env(safe-area-inset-right)) + 52px)}   /* (build 16: clear of the round home icon) */
+/* ── fable32 (build 28) ── the old top bar is off in the shift (prefs28's body.sh28): the full-screen button back at the corner; the start's
+   side — "משחק קצר" and the two switches — at the bottom right (the full screen: the switches alone, icons, at the top left); the picker */
+body.sh28 .lb .lb-full{right:max(8px,env(safe-area-inset-right))}
+.lb .lb-side{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:calc(max(10px,env(safe-area-inset-bottom)) + 14px);display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none}
+.lb .lb-side .lb-door{min-width:170px}
+.lb:not(.lb-start) .lb-side{top:max(6px,env(safe-area-inset-top));bottom:auto;right:auto;left:max(8px,env(safe-area-inset-left))}
+.lb:not(.lb-start) .lb-side .p28 span{display:none}
+.lb .lb-pk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(14,10,5,.55);pointer-events:auto;z-index:2}
+.lb .lb-pkc{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 12px);overflow:auto;box-sizing:border-box;padding:8px 12px 10px;border-radius:18px;border:2px solid #C8923A;background:linear-gradient(#3A2A16,#21170B);text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.lb .lb-pkc h2{margin:0;font:900 20px/1.2 "Heebo",system-ui,sans-serif}.lb .lb-pkc p{margin:2px 0 8px;font:700 11px/1.3 "Heebo",system-ui,sans-serif;opacity:.8}
+.lb .lb-pkg{display:flex;gap:8px;justify-content:center}
+.lb .lb-pkg .lb-door{flex:1;flex-direction:column;justify-content:center;text-align:center;min-height:96px;gap:4px;padding:8px 6px}
+.lb .lb-pkg .lb-door i{font-size:30px;width:auto}
+.lb .lb-pkx{margin-top:8px;min-height:44px;min-width:140px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;cursor:pointer}
+/* ── /fable32 ── */
 /* ── fable32 (build 16) ── the start (save.lobbyOff, default on): the world at dawn, one big button at the bottom-left (never over him — review #13), "מסך הבית" small at the top-left; minimal: the doors the owner has not asked for are hidden (DAY33.minimal) */
 .lb.lb-min .lb-bottom,.lb.lb-start .lb-bottom{left:max(12px,env(safe-area-inset-left));transform:none;align-items:flex-start}
 .lb.lb-start .lb-col,.lb.lb-start .lb-mode{display:none}
@@ -61,7 +82,7 @@ export function createLobby(o = {}) {
   const on = o.on || {};
   const persist = () => { try { o.persist && o.persist(); } catch (e) { /* */ } };
   const sfx = (n) => { try { o.sfx && o.sfx.play && o.sfx.play(n); } catch (e) { /* */ } };
-  const st = { t: 0, mode: save.lobbyMode === 'shift' || save.lobbyMode === 'tour' ? save.lobbyMode : 'day', start: !!o.start /* ── recovered (build 16) ── the start screen */, open: true, busy: false, cam: null, offDraw: null, drags: 0, dragT: -9, az: LOBBY35.az0, pose: 'stand', u: 1, hx: LOBBY35.x, hz: LOBBY35.z, hy: LOBBY35.y, n: 0 };
+  const st = { t: 0, mode: 'day' /* ── fable32 (build 28) ── (always the day: a save's 'shift' / 'tour' too) ── /fable32 ── */, games: false, start: !!o.start /* ── recovered (build 16) ── the start screen */, open: true, busy: false, cam: null, offDraw: null, drags: 0, dragT: -9, az: LOBBY35.az0, pose: 'stand', u: 1, hx: LOBBY35.x, hz: LOBBY35.z, hy: LOBBY35.y, n: 0 };
   const hp = { x: 0, y: 16, z: 0 };
   const H35 = () => { const H = globalThis.__HERO35; return H && H.loaded ? H : null; };   // ── fable32 (build 15) ── the real kohen (hero35.js), when loaded ── /fable32 ──
   const camNow = () => { try { if (view && view.camNow) return view.camNow(hp); } catch (e) { /* */ } return null; };
@@ -121,11 +142,17 @@ export function createLobby(o = {}) {
   const perutot = () => +save.perutot || 0;
   const owned = () => (save.day33 && typeof save.day33 === 'object' ? save.day33 : {});
   const canBuy = () => SHOP33.some((it) => !owned()[it.id] && !(it.needs && !owned()[it.needs]) && perutot() >= it.price);
-  const MODE = { day: ['יום במקדש', 'האש, העצים, הטלאים, הלילה'], shift: ['משמרת', '90 שניות — עולי הרגל בשער'], tour: ['סיור', 'היום במקדש — בלי שעון'] };
+  // ── fable32 (build 28) ── one mode: the day (the pill's "משמרת" — 90 שניות, עולי הרגל בשער — and "סיור" — היום במקדש בלי שעון — are gone) ── /fable32 ──
+  const MODE = { day: ['יום במקדש', 'האש, העצים, הטלאים, הלילה'] };
+  // ── fable32 (build 28) ── "משחק קצר": the three interludes in one small picker (their own runners, פרוטות and score: play(key) below) ── /fable32 ──
+  const GAMES28 = [['tiles', '🃏', 'זיכרון המקדש', 'קלפים מתהפכים'], ['pen', '🐑', 'הוצאת הטלה מהדיר', 'פאזל הזזה'], ['m3', '💎', 'משחק האוצר', 'שלושה בשורה']];
+  const lvl28 = (k) => { const g = save[k] && typeof save[k] === 'object' ? save[k] : null; if (!g) return 0; return k === 'm3' ? (g.level && g.level.quarry) | 0 : g.level | 0; };
+  const side28 = (door) => `<div class="lb-side">${door ? `<button class="lb-door" type="button" data-lb="games"><i>🃏</i><span><b>משחק קצר</b><small>זיכרון · הדיר · האוצר — פרוטות</small></span></button>` : ''}${prefsHTML(o.sfx)}</div>`;
+  const picker28 = () => `<div class="lb-pk" role="dialog" aria-label="משחק קצר"><div class="lb-pkc"><h2>משחק קצר</h2><p>משחקי ביניים — הפרוטות והנקודות שלכם · המחשה</p><div class="lb-pkg">${GAMES28.map(([k, ic, he, sub]) => `<button class="lb-door pick" type="button" data-lb="${k}"><i>${ic}</i><span><b>${he}</b><small>${lvl28(k) > 1 ? `${k === 'm3' ? 'מחצבה' : 'שלב'} ${lvl28(k)}` : sub}</small></span></button>`).join('')}</div><button class="lb-pkx" type="button" data-lb="games:close">סגור</button></div></div>`;
   function html() {
     const bd = claimed(), tl = save.tiles && typeof save.tiles === 'object' ? save.tiles : {}, pn = save.pen && typeof save.pen === 'object' ? save.pen : {}, m3 = save.m3 && typeof save.m3 === 'object' ? save.m3 : null;
     const sc = o.score ? (() => { try { return o.score.get(); } catch (e) { return null; } })() : null;
-    const tasks = tasksForDay(1);
+    const tn = tasksNow33(save), tasks = tn.tasks;   // ── fable32 (build 28) ── (the day's own; was tasksForDay(1)) ── /fable32 ──
     // ── recovered (build 16) ── the start (st.start): the world at dawn, one big button — "המשך יום N" when a day is saved — "מסך הבית"
     // and the full screen; minimal (DAY33.minimal): the doors the owner has not asked for are hidden
     const cont = resumeDay33(save), minimal = !!DAY33.minimal, playLabel = cont ? `המשך יום ${cont}` : 'משחק';
@@ -134,13 +161,14 @@ export function createLobby(o = {}) {
       <button class="lb-home" type="button" data-lb="home">☰ מסך הבית</button>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
       <div class="lb-bottom"><button class="lb-play" type="button" data-lb="play">${esc(playLabel)}<small>${cont ? `המערכה מחכה — ${MODE.day[1]}` : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
+      ${side28(true)}${st.games ? picker28() : ''}
       <div class="lb-draft">טיוטה — להמחשה · בנייה 16</div>` : `
       <div class="lb-top">🏛️ בית המקדש השני <span style="opacity:.6">·</span> ${sc ? `<span class="lb-star">★ ${fmtScore(sc.total)}${sc.coins ? ` · ◉ ${sc.coins}` : ''}${sc.title ? ` · ${esc(sc.title)}` : ''}</span> <span style="opacity:.6">·</span> ` : ''}🪙 <span data-lb="perutot">${perutot()}</span> פרוטות <span style="opacity:.6">·</span> 📜 ${bd}/${BADGES33.length}</div>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
       <div class="lb-col lb-r">
-        <div class="lb-card"><b>המשמר שלך בעזרה</b><div class="lb-row"><span>היום הטוב ביותר</span><span>${save.bestDay ? `יום ${+save.bestDay}` : '—'}</span></div><div class="lb-row"><span>שיא המשמרת</span><span>${save.best && save.best[save.lvl] ? save.best[save.lvl] : '—'}</span></div><div class="lb-bar"><i style="width:${Math.round(100 * bd / BADGES33.length)}%"></i></div><div class="lb-row"><span>ספר הזכרונות</span><span>${bd}/${BADGES33.length}</span></div></div>
+        <div class="lb-card"><b>המשמר שלך בעזרה</b><div class="lb-row"><span>היום הטוב ביותר</span><span>${save.bestDay ? `יום ${+save.bestDay}` : '—'}</span></div><div class="lb-bar"><i style="width:${Math.round(100 * bd / BADGES33.length)}%"></i></div><div class="lb-row"><span>ספר הזכרונות</span><span>${bd}/${BADGES33.length}</span></div></div>
         <button class="lb-door" type="button" data-lb="book"><i>📜</i><span><b>ספר הזכרונות</b><small>${bd ? `${bd} עיטורים שלכם` : 'מה מחכה לכם בעזרה'}</small></span></button>
-        <div class="lb-card"><b>משימות הממונה — יום 1</b>${tasks.map((q) => `<div class="lb-task"><span>${esc(q.text)}</span><span>+${DAY33.taskReward || 5}🪙</span></div>`).join('')}</div>
+        <div class="lb-card"><b>משימות הממונה — יום ${tn.day}</b>${tasks.map((q) => `<div class="lb-task${q.done ? ' done' : ''}"><span>${esc(q.text)}</span><span>${q.done ? '✓' : `+${DAY33.taskReward || 5}🪙`}</span></div>`).join('')}</div>
       </div>
       <div class="lb-col lb-l">
         ${minimal ? '' : `<button class="lb-door" type="button" data-lb="shop"><i>🪙</i><span><b>חנות</b><small>${perutot()} פרוטות</small></span>${canBuy() ? '<span class="lb-dot">!</span>' : ''}</button>
@@ -150,28 +178,31 @@ export function createLobby(o = {}) {
         <button class="lb-door pick" type="button" data-lb="m3"><i>💎</i><span><b>משחק האוצר</b><small>${m3 && m3.level ? `מחצבה ${m3.level.quarry || 1}` : 'שלושה בשורה — פרוטות'}</small></span></button>`}
       </div>
       <div class="lb-bottom">
-        <div class="lb-mode" role="tablist">${Object.keys(MODE).map((m) => `<button type="button" role="tab" data-lb="mode:${m}" class="${st.mode === m ? 'on' : ''}">${MODE[m][0]}</button>`).join('')}</div>
-        <button class="lb-play" type="button" data-lb="play">${st.mode === 'day' ? esc(playLabel) : 'משחק'}<small>${MODE[st.mode][0]} — ${MODE[st.mode][1]}</small></button>
+        <button class="lb-play" type="button" data-lb="play">${esc(playLabel)}<small>${MODE.day[0]} — ${MODE.day[1]}</small></button>
       </div>
-      <div class="lb-draft">טיוטה — להמחשה · מסך הבית (בנייה 13)</div>`;
+      ${side28(false)}${st.games ? picker28() : ''}
+      <div class="lb-draft">טיוטה — להמחשה · מסך הבית (בנייה 13)</div>`;   // ── fable32 (build 28) ── (no mode pill; the switches) ── /fable32 ──
   }
   function render() {
     if (!root) return;
     root.classList.toggle('lb-start', !!st.start); root.classList.toggle('lb-min', !!DAY33.minimal);   // ── recovered (build 16) ──
     root.innerHTML = html();
     root.querySelectorAll('[data-lb]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); pick(b.dataset.lb); }));
+    bindPrefs(root, { sfx: o.sfx });   // ── fable32 (build 28) ── (the two switches redraw themselves) ── /fable32 ──
   }
   function pick(name) {
     if (!st.open || st.busy) return false;
     sfx('ui');
-    if (name.startsWith('mode:')) { st.mode = name.slice(5); save.lobbyMode = st.mode; persist(); render(); return true; }
-    if (name === 'play') { const m = st.start ? 'day' : st.mode; close(); if (m === 'shift') on.shift && on.shift(); else if (m === 'tour') on.tour && on.tour(); else on.day && on.day(); return true; }   // ── recovered (build 16) ── (st.start: the start's button is the day)
+    if (name.startsWith('mode:')) return false;   // ── fable32 (build 28) ── (no modes but the day) ── /fable32 ──
+    if (name === 'play') { close(); on.day && on.day(); return true; }   // ── recovered (build 16) ── (st.start: the start's button is the day) ── fable32 (build 28) ── (and the full screen's: the day, always) ── /fable32 ──
+    if (name === 'games') { st.games = true; render(); return true; }   // ── fable32 (build 28) ── "משחק קצר": the picker ── /fable32 ──
+    if (name === 'games:close') { st.games = false; render(); return true; }
     if (name === 'home') { st.start = false; render(); return true; }   // ── recovered (build 16) ── (מסך הבית: the doors)
     if (name === 'full') { try { const d = doc.documentElement; if (doc.fullscreenElement) doc.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen(); } catch (e) { /* */ } return true; }
     if (name === 'shop') { on.shop && on.shop(); return true; }
     if (name === 'book') { on.book && on.book(); return true; }
     if (name === 'merchant') { on.merchant && on.merchant(); return true; }
-    if (name === 'tiles' || name === 'pen' || name === 'm3') { play(name); return true; }
+    if (name === 'tiles' || name === 'pen' || name === 'm3') { st.games = false; play(name); return true; }   // ── fable32 (build 28) ── (the picker closes) ── /fable32 ──
     return false;
   }
   // ── fable32 (build 14) ── one way for every interlude (o.games from index.js: tiles · pen · m3): the lobby hides while it plays; its פרוטות and score are the player's
@@ -201,7 +232,7 @@ export function createLobby(o = {}) {
     try { st.offDraw = addDrawer(o.kit || null, draw, 5); } catch (e) { st.offDraw = null; }
   }
   enterWorld();
-  const me = { close, refresh: render, pick, get el() { return root; }, state: () => ({ open: st.open, mode: st.mode, start: st.start, busy: st.busy, pose: st.pose, u: +st.u.toFixed(2), az: +st.az.toFixed(2), frames: st.n, cam: st.cam ? st.cam.state() : null, perutot: perutot(), badges: claimed() }) };
+  const me = { close, refresh: render, pick, html /* ── fable32 (build 28) ── (tests: the screen's markup) ── /fable32 ── */, get el() { return root; }, state: () => ({ open: st.open, mode: st.mode, start: st.start, games: st.games, busy: st.busy, pose: st.pose, u: +st.u.toFixed(2), az: +st.az.toFixed(2), frames: st.n, cam: st.cam ? st.cam.state() : null, perutot: perutot(), badges: claimed() }) };
   try { globalThis.__LOBBY = Object.assign({ __me: me }, me, { state: me.state, pick }); } catch (e) { /* */ }
   return me;
 }

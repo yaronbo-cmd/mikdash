@@ -953,6 +953,10 @@ const finale = createFinale({
 globalThis.__BH_FINALE = finale;
 // ── /world12 ──
 function startGame() {
+  // ── fable32 (build 28) ── the shipped page (__FORCE_SHIFT, tools/mkout.cjs) is the day alone: whatever the link says ('#shift=N' — the
+  // 90 s "משמרת"; '#avodah…' — the old Phase B home, the engine22 day where the player is the אמרכל) it opens the lobby, or the day itself
+  // for '#shift=day'. The plain dist keeps every link (the tests' and the tools') ── /fable32 ──
+  if (globalThis.__FORCE_SHIFT) { const f = String(globalThis.__FORCE_SHIFT); startAvodah(f === 'day' || /^#shift=day\b/.test(location.hash) ? 'shift:day' : 'shift:card'); return; }
   // a link with '#avodah' opens Phase B directly: '#avodah' = its home · '#avodah=live' · '#avodah=<segment or game id>'
   if (/^#avodah/.test(location.hash)) { startAvodah((location.hash.split('=')[1] || '').trim()); return; }
   if (/^#shift\b/.test(location.hash)) { startAvodah('shift:' + (location.hash.split('=')[1] || 'card').trim()); return; }

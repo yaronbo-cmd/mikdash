@@ -1,6 +1,10 @@
 // ── shift29 ── index.js — the shift's entry (docs/WAVE29-BRIEF.md SHIFT29A (6)): Phase B's entry card ("משמרת" big and gold, "סיור"
 // small — the old day), the `#shift` / `#shift=N` links, and A.shift = { best:{lvl:score}, lvl, stars } in Phase B's own save.
 // The shift runs in the day's world (day/index.js: D entered, its clock, guide and HUD held — D.shiftMode), the sky at 7:00.
+// ── fable32 (build 28) ── (the owner's decisions, 22.10 09:19) the shipped game is the day alone: the lobby's mode pill and the pause card's
+// "לסיור" are gone (run — the 90 s "משמרת" — and tour — the old day, the player as the אמרכל — stay in the code, reached by no door);
+// once the lobby or the day is up (SH.live) the old Phase B top bar is off (prefs28's cover28) and a turn to portrait shows the "turn the
+// phone" card over the paused day (avodah/index.js's tick → SH.turn28); the buzz's guard over navigator.vibrate, once (prefs28). ── /fable32 ──
 //   const SH = mountShift({ D, A, persist, sfx, emit })
 //   SH.card() · SH.run(lvl) · SH.stop() · SH.active · SH.destroy()      tests: globalThis.__SHIFT
 import { createShift } from './engine.js';
@@ -26,6 +30,7 @@ import { evlog } from './evlog16.js';   // ── recovered (build 16) ── th
 import { onTick } from './draw.js';
 import { STICK24 } from '../../game/twin.js';   // ── recovered (build 24) ── the stick of build 24 (twin's)
 import { VIEW24 } from './camera.js';   // ── recovered (build 24) ── the day's view
+import { installHaptics28, cover28, createTurn28 } from './prefs28.js';   // ── fable32 (build 28) ── ── /fable32 ──
 const WORLD = { pilgrims: createPilgrims, stations: createStations, STATIONS, camera: createShiftCam, walk: createWalk, gate: GATE_SPOT, kit: null /* (draw.js: the day's shared kit) */ };
 if (typeof location !== 'undefined' && /[?&]shiftstub=1\b/.test(location.search || '')) { WORLD.pilgrims = WORLD.stations = WORLD.camera = WORLD.walk = WORLD.gate = null; }   // (tests: the engine alone on the stubs)
 // ── /shift29-world ──
@@ -46,6 +51,11 @@ export function mountShift(o = {}) {
   const save = shiftSave(A);
   let E = null, hud = null, mods = null, cardCtl = null, lvlNow = 1, runs = 0, startT = 0;
   evlog('app_open', { day: (save.day33state && save.day33state.day) || 0 });   // ── recovered (build 16) ──
+  // ── fable32 (build 28) ── the shift is up (the lobby or the day): the old top bar off; the buzz's switch guards every vibrate ── /fable32 ──
+  let live = false;
+  const goLive = () => { live = true; cover28(doc, true); };
+  const T28 = createTurn28({ doc, E: () => E, log: (t, d) => evlog(t, d) });   // (the "turn the phone" card over the paused day)
+  installHaptics28();
   const emit = (t, d) => { try { o.emit && o.emit(t, d); } catch (e) { /* the host's */ } };
   const persist = () => { try { o.persist && o.persist(); } catch (e) { /* */ } };
   const rig = () => (globalThis.__DAY ? globalThis.__DAY : {});
@@ -94,7 +104,7 @@ export function mountShift(o = {}) {
   /** a round of level n: ≤ 2 s from the tap to the clock */
   function run(n) {
     if (!D) return false;
-    hero35();
+    hero35(); goLive();   // ── fable32 (build 28) ── ── /fable32 ──
     if (cardCtl) { cardCtl.close(); cardCtl = null; }
     if (!D.active && !(D.canEnter() && D.enter())) return false;
     teardown();
@@ -132,7 +142,7 @@ export function mountShift(o = {}) {
   // ── fable32 (build 6) ── "יום במקדש": the fire-and-day loop (day33.js) in the shift's rig — the same mods, hud, flow31 and twin
   function runDay() {
     if (!D) return false;
-    hero35();
+    hero35(); goLive();   // ── fable32 (build 28) ── ── /fable32 ──
     if (cardCtl) { cardCtl.close(); cardCtl = null; }
     if (!D.active && !(D.canEnter() && D.enter())) return false;
     teardown();
@@ -159,7 +169,8 @@ export function mountShift(o = {}) {
     const me = E;
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
     if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }   // ── recovered (build 17) ──
-    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, restart: () => runDay(), tour: () => tour() }); }); } catch (e) { /* */ }
+    // ── fable32 (build 28) ── the pause card: "המשך" / "מהתחלה" and the two switches (צליל, רטט) — no "לסיור" ── /fable32 ──
+    try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, restart: () => runDay(), prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
     hud.intro('יום במקדש', 'בקעו עצים, העלו אותם בכבש — שהאש לא תרד לגחלת', 1100);
@@ -217,18 +228,23 @@ export function mountShift(o = {}) {
   // ── /fable32 ──
   function card() {
     if (cardCtl || !doc) return;
-    hero35();
+    hero35(); goLive();   // ── fable32 (build 28) ── ── /fable32 ──
     if (globalThis.__SH_OLDCARD) { cardCtl = entryCard(doc.body, { lvl: save.lvl, best: save.best[save.lvl] | 0, bestDay: +save.bestDay || 0, perutot: +save.perutot || 0, shop: () => openShop(), shift: (n) => { cardCtl = null; run(n); }, day: () => { cardCtl = null; runDay(); }, tour: () => { cardCtl = null; tour(); } }); return; }   // ── fable32 (build 6) ── (+ day) ── /fable32 ──   // (build 13: the old card for a test)
     // ── fable32 (build 13) ── the 3D home screen (lobby35.js): the kohen live in the court, the doors round him
     const st = o.rig && o.rig.stages, view = o.rig && o.rig.view;
     cardCtl = createLobby({ D, world: st, view, twin: rig().twin || null, save, persist, sfx: o.sfx, kit: WORLD.kit, camera: WORLD.camera, games: games(), score: scoreOf(), start: save.lobbyOff !== false && !globalThis.__SH_LOBBYFULL /* ── recovered (build 16) ── the start screen (save.lobbyOff; __SH_LOBBYFULL the full one) */, on: {
-      day: () => { cardCtl = null; runDay(); }, shift: () => { cardCtl = null; run(save.lvl); }, tour: () => { cardCtl = null; tour(); },
+      day: () => { cardCtl = null; runDay(); },   // ── fable32 (build 28) ── (no shift, no tour: the day only) ── /fable32 ──
       shop: () => openShop(), book: () => openBook(), merchant: () => openMerchant(), event: (g, t, d) => emit(`${g}:${t}`, d) } });
     // ── /fable32 ──
   }
+  // ── fable32 (build 28) ── the phone turned to portrait while the shift is up: the "turn the phone" card over the paused day (prefs28's
+  // createTurn28); avodah/index.js's tick calls SH.turn28(port) every second with port = !D.canEnter() — the old way (D.exit + the old home)
+  // never runs once the shift is up ── /fable32 ──
+  const turn28 = (port) => T28.set(port);
   const SH = {
     run, runDay, card, tour, get active() { return !!E; }, get save() { return save; },   // ── fable32 (build 6) ── (+ runDay) ── /fable32 ──
-    destroy() { teardown(); if (cardCtl) { cardCtl.close(); cardCtl = null; } try { D && D.shiftMode && D.shiftMode(null); } catch (e) { /* */ } },
+    get live() { return live; }, turn28, get turned() { return T28.on; },   // ── fable32 (build 28) ── ── /fable32 ──
+    destroy() { teardown(); if (cardCtl) { cardCtl.close(); cardCtl = null; } T28.set(false); if (live) { live = false; cover28(doc, false); } try { D && D.shiftMode && D.shiftMode(null); } catch (e) { /* */ } },
   };
   globalThis.__SHIFT = {
     SH, run, runDay, card, tour, get E() { return E; }, set E(v) { /* */ }, mods: null, save,

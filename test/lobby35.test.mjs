@@ -21,13 +21,15 @@ test('the lobby enters the world: the hero at the lobby spot, hidden; the stick 
   assert.equal(Lb.pick('play'), false, 'closed: no second play');
 });
 
-test('the mode pill: kept in the save; שמשמרת and סיור go their own way', () => {
+// ── fable32 (build 28) ── the mode pill is gone ("משמרת" and "סיור" left the game, the owner 22.10 09:19): this test held that the pill
+// kept its mode in the save and that the two went their own way; now no mode but the day — a save's 'shift' / 'tour' open the day ── /fable32 ──
+test('the mode pill (build 28: gone): no mode but the day — mode:shift / mode:tour refused, a save\'s shift / tour open the day', () => {
   const calls = [], save = {};
   const Lb = createLobby({ save, persist: () => calls.push('persist'), on: { day: () => calls.push('day'), shift: () => calls.push('shift'), tour: () => calls.push('tour') } });
-  assert.equal(Lb.pick('mode:shift'), true); assert.equal(save.lobbyMode, 'shift'); assert.ok(calls.includes('persist'));
-  Lb.pick('play'); assert.equal(calls[calls.length - 1], 'shift');
-  const Lb2 = createLobby({ save, on: { tour: () => calls.push('tour') } }); assert.equal(Lb2.state().mode, 'shift');
-  Lb2.pick('mode:tour'); Lb2.pick('play'); assert.equal(calls[calls.length - 1], 'tour');
+  assert.equal(Lb.pick('mode:shift'), false); assert.equal(save.lobbyMode, undefined);
+  Lb.pick('play'); assert.equal(calls[calls.length - 1], 'day');
+  for (const m of ['shift', 'tour']) { const Lb2 = createLobby({ save: { lobbyMode: m }, on: { day: () => calls.push('day:' + m), shift: () => calls.push('shift'), tour: () => calls.push('tour') } }); assert.equal(Lb2.state().mode, 'day'); Lb2.pick('play'); assert.equal(calls[calls.length - 1], 'day:' + m); }
+  assert.ok(!calls.includes('shift') && !calls.includes('tour'));
 });
 
 test('the doors call the host: shop, book, merchant; the badges counted from the claimed book', () => {

@@ -25,6 +25,7 @@ import { musafSong } from './minigames/shir.js';   // ── avoda12 ── the 
 import { MISHMAROT, currentMishmar } from '../calendar.js';   // ── hooks ──
 import { createDay } from './day/index.js';
 import { mountShift } from './shift/index.js';   // ── shift29 ── "משמרת": the 90-second round, Phase B's default entry in landscape ── /shift29 ──   // ── engine22 ── "יום במקדש": the game-time clock, the errands, the two thumbs in the Temple (landscape)
+import { turnCard } from './shift/prefs28.js';   // ── fable32 (build 28) ── (the one "turn the phone" card) ── /fable32 ──
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** calendar.js event → the mini-game where a live player joins the service */
@@ -148,7 +149,14 @@ export function createAvodah({ world, root, onEvent, options = {} } = {}) {
     pushStatus();
     if (ui.homeOpen) liveScene();
     // ── engine22 ── rotate: the Temple (landscape) ↔ the home (portrait)
-    if (D && started && !busy && !ui.busy) {
+    // ── fable32 (build 28) ── once the shift is up (its lobby or its day: SH.live) a turn to portrait never leaves for the old home (that was a
+    // side door into Phase B's home, rohvi-he.md §1, §16): the "turn the phone" card over the paused day, and back on landscape ── /fable32 ──
+    if (D && started && SH && SH.live) {
+      const port = !D.canEnter();
+      SH.turn28(port);
+      if (!port && !D.active) D.enter();
+    }
+    else if (D && started && !busy && !ui.busy) {
       if (D.active && !D.canEnter()) { D.exit(); sceneKey = ''; ui.showHome(true); }
       else if (!D.active && D.canEnter() && A.seenIntro && S.hasPlayer(A)) { ui.showHome(false); D.enter(); }
     }
@@ -226,10 +234,7 @@ export function createAvodah({ world, root, onEvent, options = {} } = {}) {
     // panel and landed on the old home): a card that says to widen or turn, and the shift opens by itself once the window is landscape
     if (SH && o.shift != null && D && !D.canEnter() && typeof document !== 'undefined' && !document.getElementById('sh-turn')) {
       ui.showHome(false);
-      const el = document.createElement('div'); el.id = 'sh-turn'; el.dir = 'rtl';
-      el.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(28,20,10,.92);color:#FFF4DC;font:600 22px/1.5 Heebo,sans-serif;text-align:center;padding:24px';
-      el.innerHTML = '<div><div style="font-size:64px;line-height:1">📱↻</div><div style="margin-top:12px">המשמרת משחקים לרוחב</div><div style="font:500 16px/1.6 Heebo,sans-serif;opacity:.85;margin-top:8px">סובבו את הטלפון — או הרחיבו את החלון במחשב (במסך מלא: F11)</div></div>';
-      document.body.appendChild(el);
+      const el = turnCard(document, 'sh-turn');   // ── fable32 (build 28) ── (the same card, from prefs28.js) ── /fable32 ──
       const again = () => { if (D.canEnter()) { removeEventListener('resize', again); el.remove(); start(o); } };
       addEventListener('resize', again);
       return null;

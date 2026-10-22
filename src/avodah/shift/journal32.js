@@ -43,8 +43,8 @@ export const TABS32 = Object.freeze([
   Object.freeze({ id: 'mishna', he: 'משניות', icon: '📜', on: true }),
   Object.freeze({ id: 'mornings', he: 'הבקרים שלי', icon: '🌅', on: true }),
   Object.freeze({ id: 'badges', he: 'אותות', icon: '🏅', on: true }),
-  // (the four hooks — not built: their places only)
-  Object.freeze({ id: 'taleh', he: 'הטלה שבדקת', icon: '🐑', on: false }),
+  // (the four hooks — not built: their places only) ── fable32 (build 33) ── the first is: "הטלאים שבדקתי" (book32's lambsTab, chamber33.js) ── /fable32 ──
+  Object.freeze({ id: 'taleh', he: 'הטלאים שבדקתי', short: 'הטלאים', icon: '🐑', on: true }),   // (short: the tab's word on a narrow phone)
   Object.freeze({ id: 'etzim', he: 'העצים שהבאת', icon: '🪵', on: false }),
   Object.freeze({ id: 'orot', he: 'העורות', icon: '🧺', on: false }),
   Object.freeze({ id: 'tapuach', he: 'התפוח', icon: '⛰️', on: false }),

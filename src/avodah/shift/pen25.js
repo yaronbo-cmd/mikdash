@@ -16,6 +16,7 @@ import { man, ROBE, SKIN } from '../works/figures.js';
 import { sheepRig, rigEnd, rigMaterial, rigMesh, rigWrite, V3 } from '../../animals.js';
 import { at25, BLEM25, P25 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { L33, LINE33, stalls33 } from './lamb33.js';   // ── fable32 (build 33) ── the lamb chamber's run: its stalls, the tags, its words ── /fable32 ──
 export function createPen25(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -51,7 +52,14 @@ export function createPen25(o = {}) {
     },
     lerp = (a, b, u) => a + (b - a) * u,
     clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v),
-    is = (re, s) => re.test(s);
+    is = (re, s) => re.test(s),
+    // ── fable32 (build 33) ── the pen's places (the azara's pen, or the lamb chamber's run — E.pl25), the chamber's run (E.ch33: its stock
+    // in the stalls, the light of the real hour — by day no torch and a light dusk round the look, at night the torch), the tags ── /fable32 ──
+    PL = () => (E.pl25 ? E.pl25() : P25),
+    CH0 = E.ch33 ? E.ch33() : null,
+    CH = () => (E.ch33 ? E.ch33() : null),
+    dayLit = () => { const c = CH(); return !!(c && c.lit === 'day'); },
+    tagCol = (c) => (Number.isFinite(c) && c >= 0 ? L33.tags[c % L33.tags.length] : null);
   if (!doc.getElementById('p25-css')) {
     const css = doc.createElement('style');
     css.id = 'p25-css';
@@ -250,7 +258,7 @@ export function createPen25(o = {}) {
         ...opt,
       }),
     rig = sheepRig(),
-    lambs = rigMesh(rig.geo, rigMaterial('quad', rig.pose, { uPiv: { value: rig.piv.map(V3) } }, `uniform vec3 uPiv[${rig.piv.length}];`), 3),
+    lambs = rigMesh(rig.geo, rigMaterial('quad', rig.pose, { uPiv: { value: rig.piv.map(V3) } }, `uniform vec3 uPiv[${rig.piv.length}];`), CH0 ? 3 + L33.stalls : 3),   // ── fable32 (build 33) ── (+ the chamber's stalls in its run) ── /fable32 ──
     quad = new THREE.PlaneGeometry(1, 1),
     white = new THREE.Color(1, 1, 1),
     pose4 = [0, 0, 0, 0],
@@ -260,6 +268,10 @@ export function createPen25(o = {}) {
   stamp.visible = false;
   lambs.name = 'lamb25';
   if (scene) scene.add(lambs, stamp);
+  // ── fable32 (build 33) ── (the chamber's run: the world's six lambs of the chamber — avodah3d's — step out while ours, his and the court's,
+  // stand in the stalls; back at the end) ── /fable32 ──
+  const chamberLambs = (n) => { try { const C = T && T.avodah && T.avodah.lambsChamber; if (C && C.count) C.count(n); } catch (e) {} };
+  if (CH0) chamberLambs(0);
   let spots = [],
     shownL = null,
     setLamb = (L) => {
@@ -371,7 +383,7 @@ export function createPen25(o = {}) {
   };
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(type, up);
   const lambSt = [0, 1].map((sd) => ({
-    ...P25.door,
+    ...PL().door,
     sd,
     v: 0,
     ph: 0,
@@ -391,6 +403,30 @@ export function createPen25(o = {}) {
     on: false,
     k: 1,
   }));
+  // ── fable32 (build 33) ── the lamb chamber's stalls (its run only): his lambs with their tags from the first stall, the court's — plain —
+  // from the last (lamb33's stalls33), each breathing and turning its head like the pen's; his new lamb, led in, joins them ── /fable32 ──
+  const stockSt = CH0
+    ? Array.from({ length: L33.stalls }, (_, i) => ({ x: 0, z: 0, yaw: Math.PI / 2, s: 0.78, sd: i + 2, v: 0, ph: i, wk: 0, hp: 0, hy: 0, ear: 0, ef: 0, eT: 1 + i * 0.37, tail: 0, br: 0, lg: 0, lT: 2 + i * 0.61, hyT: 0, hpT: 0, nT: 1 + i * 0.29, on: false, k: 1, tag: null }))
+    : [];
+  let inStall = false;
+  function stock33(dt, t) {
+    const C = CH();
+    if (!C) return 0;
+    const tags = Array.isArray(C.tags) ? C.tags.slice() : [];
+    if (C.out === 'tamim' && inStall && Number.isFinite(C.next)) tags.push(C.next);
+    const mine = Math.min(tags.length, L33.stalls),
+      court = Math.max(0, L33.six - mine),
+      S = stalls33(mine, court),
+      list = [...S.mine.map((p, i) => [p, tags[i]]), ...S.court.map((p) => [p, null])];
+    list.forEach(([p, c], i) => {
+      const a = stockSt[i];
+      if (!a.on) Object.assign(a, { x: p.x, z: p.z, yaw: Math.PI / 2 + ((i * 0.83) % 1 - 0.5) * 0.9 });
+      Object.assign(a, { on: true, tag: c });
+      animate(a, dt, t, null);
+    });
+    for (let i = list.length; i < stockSt.length; i++) stockSt[i].on = false;
+    return list.length;
+  }
   function animate(a, dt, t, look) {
     const ease = (k) => Math.min(1, dt * k),
       rnd2 = Math.random;
@@ -490,7 +526,7 @@ export function createPen25(o = {}) {
     camera.getWorldDirection(v3);
     v3.y = 0;
     v3.normalize();
-    const door = P25.door,
+    const door = PL().door,
       dot = v1.x * v3.x + v1.z * v3.z;
     if (Math.abs(dot) < 1e-4) return false;
     const k = ((door.x - v2.x) * v3.x + (door.z - v2.z) * v3.z) / dot;
@@ -532,7 +568,7 @@ export function createPen25(o = {}) {
         w = W(),
         h = H(),
         m = Math.min(w, h),
-        door = P25.door,
+        door = PL().door,   // ── fable32 (build 33) ── ── /fable32 ──
         a0 = lambSt[0],
         a1 = lambSt[1];
       if (ph !== lastPh) {
@@ -548,34 +584,44 @@ export function createPen25(o = {}) {
       a0.on = false;
       stamp.visible = false;
       if (K) {
-        a0.on = ph !== 'wait';
+        a0.on = ph !== 'wait' && ph !== 'out';   // ── fable32 (build 33) ── (out: the chamber's בעל מום, gone) ── /fable32 ──
         a0.k = 1;
+        a0.tag = K.mine ? K.mine.c : null;   // ── fable32 (build 33) ── (his lamb from the chamber: its tag) ── /fable32 ──
         if (is(/^(in|scan|zoom|dirt|clean|blem|ok)$/, ph)) {
           if (ph === 'in' || since < 0.05) Object.assign(a0, { x: door.x, z: door.z, yaw: door.yaw });
           a0.v = 0;
         } else if (ph === 'aside') {
-          walkTo(a0, P25.side.x, P25.side.z, 3.4, dt);
+          walkTo(a0, PL().side.x, PL().side.z, 3.4, dt);
           a0.k = clamp01((P25.aside - since) / 0.3);
         } else if (ph === 'bring') {
-          if (since < 0.05) Object.assign(a0, { x: P25.side.x, z: P25.side.z, yaw: -Math.PI / 2 });
+          if (since < 0.05) Object.assign(a0, { x: PL().side.x, z: PL().side.z, yaw: -Math.PI / 2 });
           if (walkTo(a0, door.x, door.z, 4.2, dt)) a0.yaw += (door.yaw - a0.yaw) * Math.min(1, dt * 8);
           a0.k = clamp01(since / 0.25);
         } else if (ph === 'false') {
           if (since > 0.6 && since < 1.5) walkTo(a0, door.x - 1.6, door.z, 2.2, dt);
-          else if (since > 1.9) walkTo(a0, P25.side.x, P25.side.z, 3.2, dt);
+          else if (since > 1.9) walkTo(a0, PL().side.x, PL().side.z, 3.2, dt);
           else a0.v = 0;
           if (since > 2.8) a0.k = clamp01((P25.fals - since) / 0.4);
-        } else if (ph !== 'wait' && leadAt < 0) leadAt = t;
+        } else if (ph !== 'wait' && ph !== 'out' && leadAt < 0) {
+          leadAt = t;
+          a0.via = !!PL().via;   // ── fable32 (build 33) ── (the chamber: through its door, then to the stall) ── /fable32 ──
+        }
         if (leadAt < 0) animate(a0, dt, t, focus >= 0 && K.L.spots[focus].r < 4 ? P25.hy : ph === 'scan' && nearHead() ? P25.hy : null);
       }
       if (leadAt >= 0) {
         a0.on = true;
         a0.k = clamp01((14 - (t - leadAt)) / 0.6);
-        if (walkTo(a0, P25.rings.x, P25.rings.z, 2.2, dt) || t - leadAt > 14) {
+        const R = PL();
+        if (a0.via && R.via) {
+          if (walkTo(a0, R.via.x, R.via.z, 2.2, dt)) a0.via = false;
+        } else if (walkTo(a0, R.rings.x, R.rings.z, 2.2, dt) || t - leadAt > 14) {
           leadAt = -1;
           a0.on = false;
+          a0.tag = null;
+          if (CH0) inStall = true;   // ── fable32 (build 33) ── (in its stall: the stock draws it now) ── /fable32 ──
           setLamb(null);
         }
+        if (t - leadAt > 14 && leadAt >= 0) a0.via = false;
         animate(a0, dt, t, null);
       }
       const npc = live && E.npc25(),
@@ -589,12 +635,16 @@ export function createPen25(o = {}) {
       } else if (npcLeadAt >= 0) {
         a1.on = true;
         a1.k = clamp01((12 - (t - npcLeadAt)) / 0.6);
-        if (walkTo(a1, P25.rings.x, P25.rings.z, 2.2, dt) || t - npcLeadAt > 12) npcLeadAt = -1;
+        if (walkTo(a1, PL().rings.x, PL().rings.z, 2.2, dt) || t - npcLeadAt > 12) npcLeadAt = -1;
         animate(a1, dt, t, null);
       } else Object.assign(a1, { x: door.x, z: door.z, yaw: door.yaw });
       let n = 0;
       if (a0.on && a0.k > 0.01) write(n++, a0);
       if (a1.on && a1.k > 0.01) write(n++, a1);
+      if (CH0) {   // ── fable32 (build 33) ── the chamber's stock ── /fable32 ──
+        const m = stock33(dt, t);
+        for (let i = 0; i < m; i++) write(n++, stockSt[i]);
+      }
       rigEnd(lambs, n);
       if (((a0.on && a0.v > 0.05) || (a1.on && a1.v > 0.05 && Math.hypot(a1.x - hp.x, a1.z - hp.z) < 25)) && (hoofT -= dt) <= 0) {
         hoofT = 0.24;
@@ -608,7 +658,7 @@ export function createPen25(o = {}) {
         bleatT = 5 + Math.random() * 4;
         snd('bleat25', { hi: Math.random() < 0.5 });
       }
-      const hud = !!K && !is(/^(lead|end)$/, ph),
+      const hud = !!K && !is(/^(lead|end|out)$/, ph),
         padOn = is(/^(scan|dirt|blem|wait)$/, ph),
         looking = is(/^(scan|zoom|dirt|clean|blem)$/, ph),
         stamps = hud && ph !== 'wait' && ph !== 'ok';
@@ -697,10 +747,14 @@ export function createPen25(o = {}) {
       }
       dark.classList.toggle('on', hud);
       if (hud && Number.isFinite(bx)) {
-        const key = `${bx | 0},${by | 0},${br | 0}`;
+        const lit = dayLit(),
+          key = `${bx | 0},${by | 0},${br | 0},${lit}`;
         if (key !== darkKey) {
           darkKey = key;
-          dark.style.background = `radial-gradient(circle at ${bx | 0}px ${by | 0}px,rgba(255,196,120,.07) 0,rgba(255,170,90,.03) ${(br * 0.5) | 0}px,rgba(5,4,9,.8) ${br | 0}px)`;
+          // ── fable32 (build 33) ── (the chamber by day: no torch — a light dusk round the look, the same mechanic) ── /fable32 ──
+          dark.style.background = lit
+            ? `radial-gradient(circle at ${bx | 0}px ${by | 0}px,rgba(255,250,235,0) 0,rgba(255,250,235,0) ${(br * 0.55) | 0}px,rgba(20,16,10,.38) ${br | 0}px)`
+            : `radial-gradient(circle at ${bx | 0}px ${by | 0}px,rgba(255,196,120,.07) 0,rgba(255,170,90,.03) ${(br * 0.5) | 0}px,rgba(5,4,9,.8) ${br | 0}px)`;
         }
       }
       const camera = cam();
@@ -763,7 +817,7 @@ export function createPen25(o = {}) {
       setText(hint, '');
       setText(blemLine, '');
       void spot;
-      const Hr = hero();
+      const Hr = dayLit() ? null : hero();   // ── fable32 (build 33) ── (by day no torch in his hand) ── /fable32 ──
       if (Hr) {
         const fx = Math.sin(hp.yaw),
           fz = Math.cos(hp.yaw);
@@ -775,6 +829,21 @@ export function createPen25(o = {}) {
       }
     }),
     lit = false,
+    // ── fable32 (build 33) ── a lamb's tag (המחשה: the game's mark of HIS lamb — a colour, never a name): a band round the neck, a disc
+    // hanging at its front (the head's pivot: day33's HEAD25 — the neck a little behind and below it) ── /fable32 ──
+    tag33 = (k, a, col) => {
+      if (!col) return;
+      const s = a.s * a.k,
+        L = { x: a.x, y: 16 + Math.abs(Math.sin(a.ph || 0)) * 0.05 * (a.wk || 0) * (a.s || 1), z: a.z, yaw: a.yaw, s },
+        f = Math.sin(a.yaw),
+        g = Math.cos(a.yaw);
+      // (an ear tag on each ear — the pen's own places on the lamb, at25 with its head's turn — and a band low on the neck)
+      for (const r of [0, 1]) {
+        const e = at25(r, L, a.hy || 0, a.hp || 0);
+        k.ws(e.x + e.nx * 0.08 * s, e.y - 0.07 * s, e.z + e.nz * 0.08 * s, 0.11 * s, 0.14 * s, 0.11 * s, '!' + col);
+      }
+      k.ws(L.x + f * 0.62 * s, L.y + 1.12 * s, L.z + g * 0.62 * s, 0.34 * s, 0.1 * s, 0.34 * s, col);
+    },
     flame = (k, x, y, z, s, t) => {
       const fl = 0.85 + 0.15 * Math.sin(t * 23) * Math.sin(t * 7.1);
       for (const [r, h, dy, color] of [
@@ -800,10 +869,11 @@ export function createPen25(o = {}) {
         if (!st) return;
         const p = E.p25(),
           ph = p ? p.ph : '',
-          door = P25.door;
+          door = PL().door;   // ── fable32 (build 33) ── ── /fable32 ──
         if (st.paused) dt = 0;
         let flameAt = null;
-        if (tip.on && zi >= 0) flameAt = tip;
+        if (dayLit()) flameAt = null;   // ── fable32 (build 33) ── (the chamber by day: no torch, no torch's light) ── /fable32 ──
+        else if (tip.on && zi >= 0) flameAt = tip;
         else if (tip.on) {
           const v = toCam(tip.x, tip.z);
           flameAt = torchAt(k, tip.x + v.x * 0.6 + v.z * 0.55, tip.y - 0.6, tip.z + v.z * 0.6 - v.x * 0.55, tip.x, tip.y - 0.06, tip.z, 1, tt);
@@ -841,8 +911,8 @@ export function createPen25(o = {}) {
         if (leadAt >= 0 && a0.on && a0.v > 0.05) leader(a0);
         if (a1.on)
           if (npcLeadAt < 0) {
-            const x = P25.stand.x + 1.2,
-              z = P25.stand.z - 1.1,
+            const x = PL().stand.x + 1.2,
+              z = PL().stand.z - 1.1,
               fig = man(k, L(x), L(z), L(16), {
                 robe: ROBE.kohen,
                 skin: SKIN[0],
@@ -856,6 +926,11 @@ export function createPen25(o = {}) {
               flame(k, fig.R[0] * inv, fig.R[2] * inv + 0.45, fig.R[1] * inv, 1.4, tt);
             }
           } else if (a1.v > 0.05) leader(a1);
+        // ── fable32 (build 33) ── the tags: his lamb from the chamber at the pen (a0), today's lamb at the pen's door with the court's kohen
+        // (a1: E.tl33tag), the chamber's stock (his from the first stall) — a coloured band on the neck and a disc under it ── /fable32 ──
+        if (a0.on && a0.k > 0.3) tag33(k, a0, tagCol(a0.tag));
+        if (a1.on && a1.k > 0.3 && E.tl33tag) tag33(k, a1, tagCol(E.tl33tag()));
+        for (const a of stockSt) if (a.on && a.tag != null) tag33(k, a, tagCol(a.tag));
       },
       4,
     ),
@@ -888,14 +963,14 @@ export function createPen25(o = {}) {
         buzz(45);
         if (ev.v === 'pasul') {
           snd('bleat25');
-          flash(ev.ok ? 'פסול — יפה ראיתם' : ev.why === 'dirt' ? 'זה היה לכלוך — לא מום' : 'הטלה היה תמים');
+          flash(ev.ok ? 'פסול — יפה ראיתם' : ev.ch33 ? (ev.why === 'dirt' ? LINE33.dirt : LINE33.whole) /* ── fable32 (build 33) ── (the chamber: the lamb stays — look again) ── /fable32 ── */ : ev.why === 'dirt' ? 'זה היה לכלוך — לא מום' : 'הטלה היה תמים');
         } else if (ev.ok) snd('bell25');
         else {
           snd('late17');
           buzz([60, 40, 90]);
           const blem = ev.blem;
           // ── fable32 (build 30) ── (the "עיכוב!" banner is the step card's line for the delay: "עיכוב — יש בו מום"; which blemish, a word) ── /fable32 ──
-          if (!(E.say30 && E.say30(`עיכוב — ${BLEM25.cats[blem.c].he.split(' / ')[0]} · ${BLEM25.regs[blem.r].he}`, 'no', P25.fals - 0.4)))
+          if (!(E.say30 && E.say30(`${ev.ch33 ? LINE33.false /* ── fable32 (build 33) ── (the chamber: no delay — the blemish shown) ── /fable32 ── */ : 'עיכוב'} — ${BLEM25.cats[blem.c].he.split(' / ')[0]} · ${BLEM25.regs[blem.r].he}`, 'no', P25.fals - 0.4)))
             setTimeout(() => pop(bigNote, `<b>עיכוב!</b><small>אישור שגוי — בטלה יש מום: ${BLEM25.cats[blem.c].he} · ${BLEM25.regs[blem.r].he}. בדקו טלה חלופי · המחשה</small>`), 900);
         }
       } else if (type === 'p25no') {
@@ -914,6 +989,7 @@ export function createPen25(o = {}) {
           hero().hold21(null);
         } catch (e) {}
         if (scene) scene.remove(lambs, stamp);
+        if (CH0) chamberLambs(L33.six);   // ── fable32 (build 33) ── ── /fable32 ──
         for (const el of [dark, pad, focusRing, tamimBtn, pasulBtn, bringBtn, dawnClock, hint, blemLine, bigNote, flashEl]) el.remove();
         if (globalThis.__P25 === api) delete globalThis.__P25;
       },

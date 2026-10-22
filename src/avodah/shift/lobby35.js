@@ -30,10 +30,12 @@ import { RATE30, served30, servedHe30 } from './rate30.js';   // ── fable32 
 import { clock29, where29, sky29, templeNow29, readLoc29, saveLoc29 } from './time29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { css29, lockHTML29, nowLineHTML29, hereDoor29, hereHTML29, locButton29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { count32 } from './journal32.js';   // ── fable32 (build 32) ── the journal's door: its pages, the new ones ── /fable32 ──
+import { day33n } from './lamb33.js';   // ── fable32 (build 33) ── "הטלה המבוקר": the "מכאן" card's door to לשכת הטלאים ── /fable32 ──
+import { hereDoor33 } from './chamber33.js';
 
 // ── fable32 (build 32) ── the build's number, ONE constant: the start screen's, the full screen's and the lock's footers (the full one said
 // "בנייה 13" since build 13, the start and the lock "בנייה 29") ── /fable32 ──
-export const GAME_BUILD = 32;
+export const GAME_BUILD = 33;
 export const LOBBY35 = Object.freeze({ x: -25, z: 34, y: 16, az0: Math.PI / 2, swing: 0.45, swingS: 0.22, el: 0.24, d: 16, motes: 14, cycleS: 7 });   // ── recovered (16–26c) ── (x −34 → −25, z 50 → 34, el 0.2 → 0.24, d 15 → 16)
 // ── fable32 (build 29) ── the sky's preset for each part of the real day (main.js TIMES; the night is the readable moonlit one — HANDOFF §3
 // "לילה = דמדומים (לא חושך)" — not the day's dark 'nightd'); the lock's view: the court at rest, no one at work (the hidden kohen's spot is
@@ -199,7 +201,8 @@ export function createLobby(o = {}) {
       }
     },
     served = () => servedHe30(served30(save)),
-    j32 = () => { try { return count32(save); } catch (e) { return { n: 0, m: 0, fresh: 0 }; } };   // ── fable32 (build 32) ── ── /fable32 ──
+    j32 = () => { try { return count32(save); } catch (e) { return { n: 0, m: 0, fresh: 0 }; } },   // ── fable32 (build 32) ── ── /fable32 ──
+    door33 = () => { try { return hereDoor33(save, day33n(now29(), where())); } catch (e) { return ''; } };   // ── fable32 (build 33) ── (today's lamb, or "הטלה הבא — מחר") ── /fable32 ──
   const lvl28 = (k) => { const g = save[k] && typeof save[k] === 'object' ? save[k] : null; if (!g) return 0; return k === 'm3' ? (g.level && g.level.quarry) | 0 : g.level | 0; };
   // ── fable32 (build 32) ── (the start screen: the journal's small door beside "משחק קצר") ── /fable32 ──
   // (compact — the icon over its name — so the row ends where the switches' row ends: never over the kohen, who stands at the middle)
@@ -223,7 +226,7 @@ export function createLobby(o = {}) {
       <button class="lb-home" type="button" data-lb="home">☰ מסך הבית</button>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
       <div class="lb-bottom">${hereDoor29()}<button class="lb-play" type="button" data-lb="play"><small class="lb-k">נקודת המוצא שלי</small>${esc(playLabel)}<small>${cont ? `המערכה מחכה — ${MODE.day[1]}` : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
-      ${side28(true)}${st.games ? picker28() : ''}${st.here ? hereHTML29(tn29, where(), now29()) : ''}
+      ${side28(true)}${st.games ? picker28() : ''}${st.here ? hereHTML29(tn29, where(), now29(), { door: on.chamber ? door33() : '' } /* ── fable32 (build 33) ── (לשכת הטלאים, open) ── /fable32 ── */) : ''}
       <div class="lb-draft">טיוטה — להמחשה · בנייה ${GAME_BUILD}</div>` : `
       <div class="lb-top">🏛️ בית המקדש השני <span style="opacity:.6">·</span> ${sv ? `<span class="lb-star">${esc(sv)}</span> <span style="opacity:.6">·</span> ` : ''}🪙 <span data-lb="perutot">${perutot()}</span> פרוטות <span style="opacity:.6">·</span> 📜 ${bd}/${BADGES33.length}</div>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
@@ -261,6 +264,7 @@ export function createLobby(o = {}) {
     if (st.lock) return false;   // ── fable32 (build 29) ── (the lock: no door; its switches are prefs28's own) ── /fable32 ──
     if (name === 'here') { st.here = true; render(); return true; }   // ── fable32 (build 29) ── the second door: its card (no reward) ── /fable32 ──
     if (name === 'here:close') { st.here = false; render(); return true; }
+    if (name === 'ch33') { if (!on.chamber) return false; st.here = false; close(); on.chamber(); return true; }   // ── fable32 (build 33) ── לשכת הטלאים (shift/index.js runChamber33) ── /fable32 ──
     if (name === 'loc') return loc29();
     if (name === 'play') { close(); on.day && on.day(); return true; }   // ── recovered (build 16) ── (st.start: the start's button is the day) ── fable32 (build 28) ── (and the full screen's: the day, always) ── /fable32 ──
     if (name === 'games') { st.games = true; render(); return true; }   // ── fable32 (build 28) ── "משחק קצר": the picker ── /fable32 ──

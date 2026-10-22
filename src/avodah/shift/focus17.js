@@ -28,6 +28,7 @@ import { createDam27 } from './dam27.js';   // ── fable32 (build 27) ── 
 import { createPis23, rolesBook23 } from './pis23.js';   // ── fable32 (build 31) ── (+ the roles book, from the day's summary) ── /fable32 ──
 import { createEnd30 } from './end30.js';   // ── fable32 (build 30) ── an act's end: its source line, tappable ── /fable32 ──
 import { openJournal32, createUnlock32 } from './book32.js';   // ── fable32 (build 32) ── the kohen's journal: the unlock card, the summary's doors ── /fable32 ──
+import { createTl33 } from './chamber33.js';   // ── fable32 (build 33) ── "הטלה המבוקר": the morning's card ── /fable32 ──
 import { RATE30, servedHe30 } from './rate30.js';
 const F17 = Object.freeze({
   slot: 56,
@@ -416,6 +417,14 @@ export function createFocus17(o = {}) {
       u32 = createUnlock32({ E, sfx: o.sfx, doc });
     } catch (e) {
       console.warn('[focus17] u32', e && e.message);
+    }
+  // ── fable32 (build 33) ── the morning's lamb ("tl33new": the lamb he inspected four or more days ago goes up for the Tamid today) ── /fable32 ──
+  let t33 = null;
+  if (E.tl33card && !E.prac31)
+    try {
+      t33 = createTl33({ E, sfx: o.sfx, doc });
+    } catch (e) {
+      console.warn('[focus17] t33', e && e.message);
     }
   // ── fable32 (build 30) ── while an act is in progress (its one line) or its rating shows, the day's other words wait (a task done, a
   // level, a badge, the coins' first note): later30 holds them till the act and its word are over ── /fable32 ──
@@ -899,6 +908,7 @@ export function createFocus17(o = {}) {
         if (d27) d27.destroy();   // ── fable32 (build 27) ── ── /fable32 ──
         if (r30) r30.destroy();   // ── fable32 (build 30) ── ── /fable32 ──
         if (u32) u32.destroy();   // ── fable32 (build 32) ── ── /fable32 ──
+        if (t33) t33.destroy();   // ── fable32 (build 33) ── ── /fable32 ──
         try {
           if (offEv) offEv();
         } catch (e) {}

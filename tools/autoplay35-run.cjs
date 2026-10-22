@@ -37,6 +37,10 @@
 //                   (the cards are logged — [t, day, id, hello] — and printed; --shots30 j32 / j32-<id>: a card's shot)
 //   --src32         at each summary, its "📜 המקורות של היום": the journal on today's pages (logged; shot sum32 with --shots30 sum32), ✕
 //   (the practice runs' roles book is the journal's "תפקידים" tab now: the full lobby's door "יומן הכהן")
+//   ── build 33 ── "הטלה המבוקר":
+//   --lambs33 K[,K2…]  the save has his lambs inspected K (K2 …) real days ago in לשכת הטלאים (lamb33's save.lambs33, by the device's
+//                   clock and zone): with K ≥ 4 the morning takes the oldest — its card ("הטלה שבדקת … עולה היום לתמיד"; the bot reads it,
+//                   shots30 tl33) and its tag on the lamb
 //   --pause31       in each run, the pause card (shot-pause31.png: "המשך", "מהתחלה", "חזרה לספר התפקידים"), then "המשך"
 //   --book31 a,b    only the book: give the save these roles' records (a fresh save: a returning player who had them), open the book,
 //                   shot-book31.png (its top), shot-book31b.png (the second lot's), shot-book31c.png (the first lot's doors), and stop.
@@ -64,6 +68,7 @@ const src31 = flag('--src31'), pause31 = flag('--pause31');   // ── fable32 
 const skip32 = flag('--skip32'), open32 = flag('--open32') ? opt('--open32', '') || true : false, src32 = flag('--src32');   // ── fable32 (build 32) ── (the mornings one after another; the unlock card's "לפתוח ביומן") ── /fable32 ──
 const fromRun = opt('--from', ''), practice = (opt('--practice', '') || '').split(',').filter(Boolean), again31 = opt('--again31', ''), resume31 = flag('--resume31'), sum31 = flag('--sum31'), book31 = (opt('--book31', '') || '').split(',').filter(Boolean);
 const fromStore = fromRun ? path.join(path.dirname(OUT), fromRun, 'storage.json') : null;
+const lambs33 = (opt('--lambs33', '') || '').split(',').filter(Boolean).map(Number).filter((x) => x >= 0);   // ── fable32 (build 33) ── ── /fable32 ──
 if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no storage at', fromStore); process.exit(2); }
 
 (async () => {
@@ -78,7 +83,14 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
   for (const id of [...T23.slice(0, past), ...R26.slice(0, past)]) roles23[id] = { n: ((roles23[id] && roles23[id].n) | 0) + 1, best: 100, last: 100 };
   if (past) roles23.kiyor = { n: past, best: 100, last: 100 };   // ── fable32 (build 31) ── (the laver: every morning — build 30 rates it; its row in the roles book) ── /fable32 ──
   for (const id of book31) roles23[id] = roles23[id] || { n: 1, best: 100, last: 100 };   // ── fable32 (build 31) ── ── /fable32 ──
-  const pre = past ? { shift: { day33state: { day: dayN - 1, night: true, at: Date.now() }, roles23, roles26 } } : book31.length ? { shift: { roles23, roles26 } } : {};   // (the shift's save: A.shift, shift/index.js shiftSave) ── fable32 (build 31) ── (--book31: the roles alone) ── /fable32 ──
+  const pre = past ? { shift: { day33state: { day: dayN - 1, night: true, at: Date.now() }, roles23, roles26 } } : book31.length ? { shift: { roles23, roles26 } } : {};
+  // ── fable32 (build 33) ── his lambs in the chamber, K days ago (the day numbers by the device's own zone, as lamb33's day33n) ── /fable32 ──
+  if (lambs33.length) {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Jerusalem', p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+    const today = Math.floor(Date.UTC(+p.year, +p.month - 1, +p.day) / 864e5), ks = lambs33.slice().sort((a, b) => b - a);
+    pre.shift = pre.shift || {};
+    pre.shift.lambs33 = { v: 1, last: today - ks[ks.length - 1], n: ks.length, list: ks.map((k, i) => ({ i: i + 1, d: today - k, t: Date.now() - k * 864e5, h: '', c: i % 6, r: 'mehudar', q: 1, at: 0, by: '' })), blem: [] };
+  }   // (the shift's save: A.shift, shift/index.js shiftSave) ── fable32 (build 31) ── (--book31: the roles alone) ── /fable32 ──
   await ctx.addInitScript(({ seed, saved, sound, Q, pre }) => {
     window.__FORCE_Q = Q;
     // a seeded Math.random (the day's lots, lambs and logs repeat for a seed) and the save: a returning player's, or the run's own

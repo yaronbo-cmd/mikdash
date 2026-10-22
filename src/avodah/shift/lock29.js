@@ -13,8 +13,9 @@ import { status29, softLine29, lockText29, clock29, where29, hm29 } from './time
 import { prefsHTML } from './prefs28.js';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-/** the chambers the second door will lead to (build 32 on: the hooks of time-gating-hooks-he.md) */
-export const SOON29 = Object.freeze(['לשכת הטלאים', 'לשכת העצים']);
+/** the chambers the second door will lead to (build 32 on: the hooks of time-gating-hooks-he.md) — ── fable32 (build 33) ── לשכת הטלאים is
+ *  open (chamber33.js's door, given to hereHTML29 as o.door); the wood chamber stays "בקרוב" ── /fable32 ── */
+export const SOON29 = Object.freeze(['לשכת העצים']);
 
 export const LOCK29_CSS = `
 .lb .lb-now{position:absolute;top:calc(max(6px,env(safe-area-inset-top)) + 30px);left:50%;transform:translateX(-50%);max-width:min(64vw,520px);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
@@ -31,6 +32,7 @@ export const LOCK29_CSS = `
 .lb .lk-end{display:flex;gap:8px;align-items:stretch;margin-top:5px}
 .lb .lk-soon{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:12px;border:2px dashed rgba(255,230,180,.4);font:800 12px/1.3 "Heebo",system-ui,sans-serif;opacity:.85;text-align:center}
 .lb .lk-end .lb-pkx{margin-top:0;min-width:96px}
+.lb .lk-end .lk-ch{flex:1.4;min-height:48px;border-color:#FFD66E;background:linear-gradient(180deg,rgba(120,84,20,.92),rgba(70,46,10,.94))}.lb .lk-end .lk-ch small{white-space:nowrap}   /* ── fable32 (build 33) ── (לשכת הטלאים, open) ── */
 .lb.lb-lock{z-index:9100}
 .lb-on .tw-lift{display:none!important}
 .lb.lb-lock .lk-card{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));width:min(440px,calc(100vw - 210px));box-sizing:border-box;padding:10px 16px;border-radius:18px;border:2px solid rgba(255,222,150,.55);background:linear-gradient(180deg,rgba(40,28,12,.8),rgba(20,13,5,.84));text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto}
@@ -72,8 +74,9 @@ export function nowLineHTML29(tn, soft) {
 }
 /** the second door: "מכאן — המקדש עכשיו" */
 export const hereDoor29 = () => `<button class="lb-door lb-here" type="button" data-lb="here"><i>🕍</i><span><b>מכאן — המקדש עכשיו</b><small>מה קורה עכשיו במקדש, ומה אחר כך</small></span></button>`;
-/** its card: now, next (times by the sun where the phone is), the chambers to come (a visible lock) */
-export function hereHTML29(tn, w, now = clock29()) {
+/** its card: now, next (times by the sun where the phone is), the chambers to come (a visible lock) — ── fable32 (build 33) ── and the
+ *  open ones (o.door: לשכת הטלאים) ── /fable32 ── */
+export function hereHTML29(tn, w, now = clock29(), o = {}) {
   const t = tn || { current: null, next: [], night: null };
   const row = (k, e) => `<div class="lk-row"><b>${esc(k)}</b><span>${esc(e.name)}<small>${esc(e.src)} · טיוטה</small></span></div>`;
   const nowRow = t.current ? row('עכשיו', t.current) : `<div class="lk-row"><b>עכשיו</b><span>בין העבודות<small>המחשה</small></span></div>`;
@@ -83,7 +86,7 @@ export function hereHTML29(tn, w, now = clock29()) {
       <h2>המקדש עכשיו · ${esc(hm29(now, (w && w.tz) || 'Asia/Jerusalem'))}</h2>
       <p>${esc(whereHe(w))} · ≈ שעה משוערת: המשנה קובעת את הסדר, לא את הדקה · טיוטה</p>
       ${nowRow}${night}${next}
-      <div class="lk-end"><div class="lk-soon">🔒 בקרוב מכאן: ${SOON29.map(esc).join(' · ')}</div><button class="lb-pkx" type="button" data-lb="here:close">סגור</button></div>
+      <div class="lk-end">${o.door || ''}<div class="lk-soon">🔒 בקרוב${o.door ? '' : ' מכאן'}: ${SOON29.map(esc).join(' · ')}</div><button class="lb-pkx" type="button" data-lb="here:close">סגור</button></div>
     </div></div>`;
 }
 /** the "מיקום מדויק" switch (off by default; ≥ 44 px) */

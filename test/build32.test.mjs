@@ -60,13 +60,15 @@ const ids = (s) => groups32(s).map((g) => g.id);
 
 // ───────── (1) the tabs ─────────
 test('build 32 (1): the journal\'s four tabs — תפקידים · משניות · הבקרים שלי · אותות (≥ 44 px, ✕ 44 px); the hooks\' and the incense\'s places are there, off — nothing of them shown', () => {
-  assert.deepEqual(tabsOn32().map((t) => t.id), ['roles', 'mishna', 'mornings', 'badges']);
-  assert.deepEqual(tabsOn32().map((t) => t.he), ['תפקידים', 'משניות', 'הבקרים שלי', 'אותות']);
-  const off = TABS32.filter((t) => !t.on); assert.deepEqual(off.map((t) => t.id), ['taleh', 'etzim', 'orot', 'tapuach', 'ketoret']); assert.equal(off[0].he, 'הטלה שבדקת'); assert.equal(off[1].he, 'העצים שהבאת');
+  // ── fable32 (build 33) ── (the first hook's tab is on: "הטלאים שבדקתי" — build 33's own test holds its page; the other three hooks and the
+  // incense stay places, off) ── /fable32 ──
+  assert.deepEqual(tabsOn32().map((t) => t.id), ['roles', 'mishna', 'mornings', 'badges', 'taleh']);
+  assert.deepEqual(tabsOn32().map((t) => t.he), ['תפקידים', 'משניות', 'הבקרים שלי', 'אותות', 'הטלאים שבדקתי']);
+  const off = TABS32.filter((t) => !t.on); assert.deepEqual(off.map((t) => t.id), ['etzim', 'orot', 'tapuach', 'ketoret']); assert.equal(off[0].he, 'העצים שהבאת');
   const save = OLD();
   for (const tab of ['roles', 'mishna', 'mornings', 'badges']) {
     const h = journalHTML32(save, { tab });
-    assert.deepEqual([...h.matchAll(/data-j32t="(\w+)"/g)].map((m) => m[1]), ['roles', 'mishna', 'mornings', 'badges'], tab);
+    assert.deepEqual([...h.matchAll(/data-j32t="(\w+)"/g)].map((m) => m[1]), ['roles', 'mishna', 'mornings', 'badges', 'taleh'], tab);   // ── fable32 (build 33) ── (+ taleh) ── /fable32 ──
     assert.match(h, new RegExp(`data-j32t="${tab}" aria-selected="true" class="on"`)); assert.match(h, new RegExp(`data-tab="${tab}"`)); assert.match(h, /data-j32="close"/);
     for (const t of off) { assert.ok(!h.includes(`data-j32t="${t.id}"`), t.id); assert.ok(!h.includes(t.he) || t.id === 'ketoret', t.he); }
   }
@@ -271,7 +273,7 @@ test('build 32 (9): the lobby — one door "יומן הכהן" on the full scree
   assert.equal((full.match(/data-lb="journal"/g) || []).length, 1); assert.ok(!/data-lb="(book|roles)"/.test(full), 'no separate ספר הזכרונות / titles door');
   assert.match(full, /data-lb="journal"><b>📖 יומן הכהן<\/b>[^]*שימשת[^]*📜 משניות<\/span><span>\d+\/\d+[^]*🏅 אותות<\/span><span>2\/15/);
   assert.match(start, /<div class="lb-sr"><button class="lb-door" type="button" data-lb="games">[^]*משחק קצר[^]*<\/button><button class="lb-door lb-jd" type="button" data-lb="journal"/);
-  assert.equal(GAME_BUILD, 32);
+  assert.equal(GAME_BUILD, 33);   // ── fable32 (build 33) ── (the one constant moved on) ── /fable32 ──
   for (const h of [full, start, lock]) assert.match(h, new RegExp(`class="lb-draft">[^<]*בנייה ${GAME_BUILD}<`));
   const lb = read('src/avodah/shift/lobby35.js'); assert.ok(!/בנייה 13|בנייה 29/.test(lb.replace(/\/\/[^\n]*|\/\*[^]*?\*\//g, '')), 'no build number written by hand'); assert.equal((lb.match(/בנייה \$\{GAME_BUILD\}/g) || []).length, 3);
   assert.match(lb, /\.lb \.lb-side \.lb-jd\{min-width:60px;flex-direction:column/); assert.match(lb, /\.lb \.lb-new\{[^}]*background:#FFD66E/);

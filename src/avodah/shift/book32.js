@@ -20,7 +20,9 @@ import { J32, tabsOn32, jr32, groups32, count32, seen32, mainPage32, realDate32 
 import { ACT30, RATE30, served30, servedHe30 } from './rate30.js';
 import { bookHTML23, css23 } from './pis23.js';
 import { BADGES33 } from './day33.js';
-import { where29 } from './time29.js';
+import { where29, clock29 } from './time29.js';
+import { lambsTab33, css33 } from './chamber33.js';   // ── fable32 (build 33) ── the hook's tab: "הטלאים שבדקתי" ── /fable32 ──
+import { day33n, L33 } from './lamb33.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 // (every class under .j32 / .j32-u; the close button is .j32x — page.html's global .x is absolutely placed)
@@ -60,7 +62,8 @@ const CSS = `.j32{position:fixed;inset:0;z-index:63;display:flex;align-items:cen
 .j32 .b i{font-style:normal;font-size:20px;flex:none}.j32 .b b{display:block;font:800 13px/1.2 Heebo,system-ui,sans-serif}.j32 .b small{display:block;font:700 10px/1.3 Heebo,system-ui,sans-serif;opacity:.75}
 .j32 .emp{margin:16px 8px;font:700 14px/1.5 Heebo,system-ui,sans-serif;opacity:.85;text-align:center}.j32 .old{display:block;margin:6px 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;opacity:.75;text-align:center}
 .j32 .dr{display:block;margin-top:10px;font:600 10px/1.3 Heebo,system-ui,sans-serif;opacity:.55;text-align:center}
-@media (max-width:700px){.j32 .hd h2 span{display:none}.j32 .tb button{font-size:12px;padding:0 4px}}
+.j32 .tb .ts{display:none}
+@media (max-width:700px){.j32 .hd h2 span{display:none}.j32 .tb button{font-size:12px;padding:0 4px}.j32 .tb .tl{display:none}.j32 .tb .ts{display:inline}}
 .j32-u{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:#0E0A05A6;direction:rtl;font-family:Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:auto;animation:j32in .45s ease-out}
 .j32-u .c{width:min(480px,calc(100vw - 24px));max-height:calc(100% - 12px);overflow:auto;box-sizing:border-box;padding:10px 16px;border-radius:20px;background:radial-gradient(120% 90% at 50% 0%,#5A4220,#21170B 70%);border:2px solid #E2B65A;text-align:center;box-shadow:0 0 30px #FFD66E33,0 10px 40px #0009}
 .j32-u .hl{display:inline-block;margin:0 0 4px;padding:2px 12px;border-radius:12px;background:#FFD66E;color:#2A1804;font:900 14px/1.4 Heebo,system-ui,sans-serif}
@@ -126,7 +129,7 @@ function morningsTab(save) {
       return `<i>${esc(A.icon)} ${esc(A.he)}${r ? `<b class="${esc(r)}">${RATE30.icon[r] || ''} ${esc(RATE30.he[r] || '')}</b>` : ''}</i>`;
     };
   return `<div class="ct"><b>🌅 ${esc(servedHe30(n) || 'עוד לא שימשת בוקר')}</b><small>כל בוקר שתשמשו נרשם כאן — התאריך, התפקידים והדירוג</small></div>
-    ${log.map((e) => `<div class="mo"><div class="mh"><b>יום ${e.d | 0}</b><span>${esc(realDate32(e.t, tz))}</span><span class="hb">${esc(e.h || '')}</span></div><div class="mr">${(Array.isArray(e.r) ? e.r : []).map(chip).join('')}</div></div>`).join('')}
+    ${log.map((e) => `<div class="mo"><div class="mh"><b>יום ${e.d | 0}</b><span>${esc(realDate32(e.t, tz))}</span><span class="hb">${esc(e.h || '')}</span></div><div class="mr">${(Array.isArray(e.r) ? e.r : []).map(chip).join('')}${e.l33 ? `<i class="ch33c"><i class="t33" style="background:${L33.tags[((e.l33 | 0) - 1) % L33.tags.length]}" aria-hidden="true"></i>הטלה שבדקת עלה לתמיד</i>` : '' /* ── fable32 (build 33) ── ── /fable32 ── */}</div></div>`).join('')}
     ${older ? `<small class="old">ועוד ${older === 1 ? 'בוקר אחד' : `${older} בקרים`} מלפני היומן</small>` : ''}${!log.length && !older ? '<p class="emp">כאן יירשם כל בוקר שתשמשו</p>' : ''}
     <small class="dr">התאריך העברי — לפי השקיעה במקום הטלפון · טיוטה</small>`;
 }
@@ -136,14 +139,22 @@ function badgesTab(save) {
   return `<div class="ct"><b>🏅 ${bd}/${BADGES33.length} אותות</b><small>מה שעשיתם בעזרה נרשם; את הפרוטות גובים בלילה, בבית המוקד (המחשה: לוח המתגים)</small></div>
     <div class="bg">${BADGES33.map((b) => `<div class="b${cl[b.id] ? ' on' : ''}"><i>${cl[b.id] ? '✅' : '📜'}</i><span><b>${esc(b.text)}</b><small>${cl[b.id] ? 'שלכם' : `+${b.pay | 0} פרוטות — נרשם בעזרה, נגבה בלילה בבית המוקד`}</small></span></div>`).join('')}</div><small class="dr">טיוטה</small>`;
 }
-const TAB = { roles: rolesTab, mishna: mishnaTab, mornings: morningsTab, badges: badgesTab };   // (a hook's page joins here when its tab is turned on)
+// ── fable32 (build 33) ── the first hook's tab (time-gating-hooks-he.md hook 1): his lambs — inspected, ready, offered — and the sources ── /fable32 ──
+function lambsTab(save) {
+  let dn = 0;
+  try {
+    dn = day33n(clock29(), where29());
+  } catch (e) {}
+  return lambsTab33(save, dn);
+}
+const TAB = { roles: rolesTab, mishna: mishnaTab, mornings: morningsTab, badges: badgesTab, taleh: lambsTab };   // (a hook's page joins here when its tab is turned on) ── fable32 (build 33) ── (+ taleh) ── /fable32 ──
 /** the sheet's markup: its header (the tabs that are on, the "חדש" count on משניות, ✕) and the tab's page */
 export function journalHTML32(save, o = {}) {
   const tabs = tabsOn32().filter((t) => TAB[t.id]),
     tab = tabs.some((t) => t.id === o.tab) ? o.tab : tabs[0].id,
     c = count32(save);
   return `<div class="c" role="dialog" aria-label="יומן הכהן"><div class="hd"><h2><i aria-hidden="true">📖</i><span>יומן הכהן</span></h2><div class="tb" role="tablist">${tabs
-    .map((t) => `<button type="button" role="tab" data-j32t="${t.id}" aria-selected="${t.id === tab}"${t.id === tab ? ' class="on"' : ''}>${t.icon} ${esc(t.he)}${t.id === 'mishna' && c.fresh ? `<em aria-label="חדשות">${c.fresh}</em>` : ''}</button>`)
+    .map((t) => `<button type="button" role="tab" data-j32t="${t.id}" aria-selected="${t.id === tab}"${t.id === tab ? ' class="on"' : ''} aria-label="${esc(t.he)}">${t.icon} ${t.short ? `<span class="tl">${esc(t.he)}</span><span class="ts">${esc(t.short)}</span>` /* ── fable32 (build 33) ── (a long name and its short word) ── /fable32 ── */ : esc(t.he)}${t.id === 'mishna' && c.fresh ? `<em aria-label="חדשות">${c.fresh}</em>` : ''}</button>`)
     .join('')}</div><button type="button" class="j32x" data-j32="close" aria-label="סגור">✕</button></div><div class="bd" data-tab="${tab}">${TAB[tab](save, o)}</div></div>`;
 }
 /** the sheet over everything (the lobby, the day's summary, the unlock card); one at a time */
@@ -153,6 +164,7 @@ export function openJournal32(o = {}) {
   if (!doc || !save || typeof save !== 'object') return { close() {}, el: null, show() {} };
   css(doc);
   css23(doc);
+  css33(doc);   // ── fable32 (build 33) ── (the lambs' tab: the tag's dot) ── /fable32 ──
   try {
     doc.querySelectorAll('.j32').forEach((x) => (x.__j32 ? x.__j32.close(true) : x.remove()));
   } catch (e) {}

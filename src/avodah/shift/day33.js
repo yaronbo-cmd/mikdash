@@ -33,6 +33,7 @@ import './route31.js';
 import { RATE30, LINE30, ACT30, quality30, mastery30, rate30, best30, pay30, served30, role30 } from './rate30.js';   // ── fable32 (build 30) ── one rating for every act ── /fable32 ──
 import { J32, jr32, meet32, log32, served32, hebDate32 } from './journal32.js';   // ── fable32 (build 32) ── the kohen's journal ── /fable32 ──
 import { clock29, where29 } from './time29.js';   // ── fable32 (build 32) ── (the journal's real date where the phone is) ── /fable32 ──
+import { CH33, LINE33, day33n, pick33, offer33, ofDay33, stalls33, upLine33 } from './lamb33.js';   // ── fable32 (build 33) ── "הטלה המבוקר": the chamber's run and the morning's lamb ── /fable32 ──
 export const DAY33 = Object.freeze({
   // ── fable32 (build 28) ── (idleOffer: 12 — build 14's "משחק קצר?" after 12 s idle in the day — is gone with the offer) ── /fable32 ──
   dayS: 180,
@@ -763,8 +764,18 @@ export function createDay33(o = {}) {
       const P = o.practice,
         r = P && P.role,
         on = { kiyor: g20 && p23, deshen: g21 && p23, m22: g22 && p23, lamb: p25, inner: p26, menorah: p26, shochet: p27, zorek: p27 };
-      return r && PRAC31.roles.includes(r) && on[r] ? { role: r, seed: (P.seed | 0) || 101, day: Math.max(2, P.day | 0), fed: Math.max(0, +P.fed || 0), end: null, done: null } : null;
+      return r && PRAC31.roles.includes(r) && on[r]
+        ? { role: r, seed: (P.seed | 0) || 101, day: Math.max(2, P.day | 0), fed: Math.max(0, +P.fed || 0), end: null, done: null,
+            // ── fable32 (build 33) ── the lamb chamber's run (shift/index.js runChamber33: lamb33.js — one lamb a day, by the day's seed, at
+            // an easy level — the pen's first lamb, big; its places in Beit HaMoked, CH33; the real hour's sky; his lambs and the court's in
+            // the stalls; done: today's lamb inspected — the stock only) ── /fable32 ──
+            ch33: r === 'lamb' && P.ch33 && typeof P.ch33 === 'object' ? { dn: P.ch33.dn | 0, done: !!P.ch33.done, sky: P.ch33.sky || 'noon', lit: P.ch33.lit === 'night' ? 'night' : 'day', mine: Math.max(0, P.ch33.mine | 0), court: Math.max(0, P.ch33.court | 0), tags: Array.isArray(P.ch33.tags) ? P.ch33.tags.map((x) => x | 0) : [], next: P.ch33.next | 0, out: null } : null }
+        : null;
     })(),
+    // ── fable32 (build 33) ── the pen's places: the azara's pen (P25), or in the chamber's run the hall before the lamb chamber's door
+    // (CH33: the same layout, so the pen's authored views read it the same) and the stall his lamb walks to (the next free one) ── /fable32 ──
+    CH33P = prac && prac.ch33 ? Object.freeze({ ...P25, door: CH33.door, stand: CH33.stand, side: CH33.side, via: CH33.via, rings: stalls33(prac.ch33.mine, prac.ch33.court).next }) : null,
+    pl25 = () => CH33P || P25,
     act20 = K20.act,
     cam20 = K20.cam,
     subs17 = [],
@@ -977,6 +988,8 @@ export function createDay33(o = {}) {
     else if (second) Object.assign(st, { role26: r, r26day: 0, l26t: PRAC31.gate27 - P27.gateNpc });
     st.fuel = r === 'kiyor' ? (b17 ? B17.fuel0 : DAY33.fuel0) : second ? P23.fire : M22.ember;
     if (r !== 'lamb' && r !== 'kiyor' && p25 && st.lambs[0]) st.lambs[0].ok = true;   // (the court's lamb, checked: lambIn)
+    if (prac.ch33 && prac.ch33.done) st.p25day = d;   // ── fable32 (build 33) ── (today's lamb already inspected: the chamber shows its stock, no lamb comes) ── /fable32 ──
+    if (prac.ch33) st.fuel = 80;   // ── fable32 (build 33) ── (the chamber is not the altar: its fire is not his there — no warning, no alarm; its meter is hidden) ── /fable32 ──
   }
   if (!powerOn) st.power = DAY33.power0;
   if (b19)
@@ -1640,7 +1653,7 @@ export function createDay33(o = {}) {
     try {
       const W = globalThis.__T;
       if (W && typeof W.setTime === 'function')
-        W.setTime(prac && !ended ? (PRAC31.first.includes(prac.role) || prac.role === 'kiyor' ? 'predawn' : 'noon') /* ── fable32 (build 31) ── (the hour of his role's morning) ── /fable32 ── */ : night ? 'dusk' : g21 && !ended && (g22 ? st.m22day : st.d21day) !== st.day ? 'predawn' : 'noon');
+        W.setTime(prac && !ended ? (prac.ch33 ? prac.ch33.sky /* ── fable32 (build 33) ── (the chamber at the real hour where the phone is) ── /fable32 ── */ : PRAC31.first.includes(prac.role) || prac.role === 'kiyor' ? 'predawn' : 'noon') /* ── fable32 (build 31) ── (the hour of his role's morning) ── /fable32 ── */ : night ? 'dusk' : g21 && !ended && (g22 ? st.m22day : st.d21day) !== st.day ? 'predawn' : 'noon');
     } catch (e) {}
   }
   const lambReady = () => !open33('pen') || okLambs() > 0,
@@ -3114,7 +3127,7 @@ export function createDay33(o = {}) {
   function end30(id, rec, at, morning) {
     const q = rec.q != null ? rec.q : Math.round(quality30(id, rec) * 1000) / 1000,
       rating = rec.rating || rate30(q),
-      coins = prac ? 0 : pay30(rating);   // ── fable32 (build 31) ── (a practice run: no coins) ── /fable32 ──
+      coins = prac && !prac.ch33 ? 0 : pay30(rating);   // ── fable32 (build 31) ── (a practice run: no coins) ── /fable32 ── ── fable32 (build 33) ── (the chamber's inspection is an act like any: its coins by the rating — shift/index.js adds them to his save; nothing else) ── /fable32 ──
     Object.assign(rec, { q, rating, coins });
     st.r30day = [...(Array.isArray(st.r30day) ? st.r30day : []), [id, rating]].slice(-12);
     st.end30 = { id, rating, until: st.t + RATE30.wordS };
@@ -3123,7 +3136,7 @@ export function createDay33(o = {}) {
     if (!prac) j32end(id, rating);   // ── fable32 (build 32) ── (the journal: its pages, the morning's entry, the unlock card) ── /fable32 ──
     if (morning && !prac) morning30();   // ── fable32 (build 31) ── (a practice run is not a morning served) ── /fable32 ──
     // ── fable32 (build 31) ── the practice's end: its card as the rating's word ends (tick: "p31end") — only his own role's act ends it ── /fable32 ──
-    if (prac && id === prac.role && !prac.end) prac.end = { id, rating, q, at: st.t + PRAC31.endS, shown: false };
+    if (prac && id === prac.role && !prac.end) prac.end = { id, rating, q, at: st.t + PRAC31.endS, shown: false, ...(prac.ch33 ? { ch33: true, out: prac.ch33.out, blem: prac.ch33.blem || null, coins } : {}) };   // ── fable32 (build 33) ── (the chamber's: the lamb in or out, its blemish, the coins) ── /fable32 ──
     emit17('rate30', { id, rating, q, he: ACT30[id] ? ACT30[id].he : id, coins, at: at || null, served: served30(save) });
     evlog('rate30', { id, rating, q });
     L0('rate30', id, rating, q);
@@ -3143,7 +3156,9 @@ export function createDay33(o = {}) {
             ? w
               ? { x: w.x, z: w.z, yaw: Math.PI / 2 }
               : null
-            : r === 'lamb'
+            : r === 'lamb' && prac.ch33
+              ? { x: CH33.start.x, z: CH33.start.z, yaw: CH33.start.yaw }   // ── fable32 (build 33) ── (the chamber: in the azara before Beit HaMoked's door — the left thumb walks him in) ── /fable32 ──
+              : r === 'lamb'
               ? { x: P25.stand.x, z: P25.stand.z, yaw: Math.atan2(P25.door.x - P25.stand.x, P25.door.z - P25.stand.z) }
               : r === 'inner' || r === 'menorah'
                 ? { x: P26.gate.x + 1.2, z: P26.gate.z, yaw: -Math.PI / 2 }
@@ -3221,6 +3236,74 @@ export function createDay33(o = {}) {
     st.paused = false;
     return true;
   }
+  // ── fable32 (build 33) ── "הטלה המבוקר" in a real morning (lamb33.js; time-gating-hooks-he.md hook 1): the morning's Tamid lamb is the
+  // oldest of his that is ready (inspected four or more real days ago — the chamber's kohanim's offerings of those he did not come for
+  // settled first), assigned once a game day: for the lamb's role when he takes it at the pen (the pen's first lamb is his, whole, with
+  // its tag — newLamb25), for any other role once the first lot is done. Its card once ("tl33new": "הטלה שבדקת ביום שני עולה היום
+  // לתמיד" — the day waits under it, as under the journal's card, until "המשך": E.tl33done); the lamb leaves the chamber (offer33) and the
+  // morning's journal entry has it. Never in practice, never in the chamber's run; nothing of it is power — no speed, no bonus. ── /fable32 ──
+  const dn33 = () => day33n(now32(), where32());
+  function tl33take() {
+    if (prac || !b17) return null;
+    let L = ofDay33(save, st.day);
+    if (!L) {
+      const dn = dn33(),
+        P = pick33(save, dn);
+      if (!P) return null;
+      const t = now32();
+      L = offer33(save, P, { dn, gd: st.day, t, h: hebDate32(t, where32()) });
+      L0('tl33', L.i, L.c);
+      evlog('tl33', { i: L.i, c: L.c, d: L.d, gd: st.day });
+    }
+    try {
+      const j = jr32(save),
+        e = j && j.log.find((x) => x && x.d === st.day);
+      if (e) e.l33 = L.c + 1;   // (the morning's entry in "הבקרים שלי": its lamb)
+    } catch (e) {}
+    st.tl33c = L.c;
+    st.tl33cd = st.day;
+    say(() => o.persist && o.persist());
+    return { i: L.i, c: L.c, d: L.d };
+  }
+  function tl33Step() {
+    if (prac || !b17 || st.tl33card || st.j32card || st.j32q || st.summary || st.night || st.phase !== 'run') return false;
+    const K = st.p25;
+    let m = null,
+      role = '';
+    if (K && K.mine && K.k === 0 && K.ph === 'scan') {
+      m = K.mine;
+      role = 'lamb';
+    } else if (p23 && st.p23day === st.day && !st.p23 && !(p25 && st.lot === 'lamb')) {
+      if (st.tl33try !== st.day) {
+        st.tl33try = st.day;
+        st.tl33m = tl33take();
+        st.tl33at = st.t + 1.2;   // (a moment after the lot's end)
+      }
+      if (st.tl33m && st.t >= st.tl33at && !act30()) {
+        m = st.tl33m;
+        role = st.lot;
+      }
+    }
+    if (!m) return false;
+    const L = ofDay33(save, st.day);
+    if (!L || L.i !== m.i || L.seen) return false;
+    L.seen = 1;
+    st.tl33card = { i: L.i, c: L.c, d: L.d, role };
+    st.paused = true;
+    drive(0, 0);
+    let26();
+    L0('tl33new', L.i, role);
+    evlog('tl33_card', { i: L.i, role });
+    emit17('tl33new', { i: L.i, c: L.c, d: L.d, role, line: upLine33(L, dn33()) });
+    say(() => o.persist && o.persist());
+    return true;
+  }
+  function tl33done() {
+    if (!st.tl33card) return false;
+    st.tl33card = null;
+    st.paused = false;
+    return true;
+  }
   const wake23 = () => {
       const s = standOf('kiyor');
       if (s) moveHero(s.x, s.z, -Math.PI / 2);
@@ -3237,11 +3320,12 @@ export function createDay33(o = {}) {
       if (l) l.ok = true;
     },
     first25 = () => !timesOf(roles23(), 'lamb'),
-    door25 = () => ({ x: P25.door.x, y: 16, z: P25.door.z, yaw: P25.door.yaw, s: P25.door.s });
+    door25 = () => { const D = pl25().door; return { x: D.x, y: 16, z: D.z, yaw: D.yaw, s: D.s }; };   // ── fable32 (build 33) ── (the chamber's door in its run) ── /fable32 ──
   // ── recovered (build 25) ── the lamb pen: the door, the scan by torchlight, the zoom on a spot, the dirt wiped, the stamps תמים / פסול,
   // the dawn clock (a false approval's delay), the other kohanim's lamb (npc25)
   function newLamb25(K) {
-    const L = lamb25(prac ? prac.seed : st.day, K.k, K.first, K.blems, K.rej);   // ── fable32 (build 31) ── (a practice run: its own seed — another lamb each time) ── /fable32 ──
+    let L = lamb25(prac ? prac.seed : st.day, prac && prac.ch33 ? 0 : K.k, K.first || !!(prac && prac.ch33), K.blems, K.rej);   // ── fable32 (build 31) ── (a practice run: its own seed — another lamb each time) ── /fable32 ── ── fable32 (build 33) ── (the chamber: the day's one lamb at an easy level — the pen's first lamb: big, one blemish in a plain place or a straw) ── /fable32 ──
+    if (K.mine && K.k === 0) L = { ...L, blem: null };   // ── fable32 (build 33) ── (the morning's lamb is the one he inspected four days ago — whole; a straw may be on it) ── /fable32 ──
     if (L.blem) K.blems++;
     const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r }))]
       .sort((a, b) => a.r - b.r)
@@ -3273,8 +3357,9 @@ export function createDay33(o = {}) {
       br: 0,
       fo: -1,
       zi: -1,
-      first: first25(),
+      first: first25() || !!(prac && prac.ch33),   // ── fable32 (build 33) ── (the chamber: the easy reading of a first lamb — the bigger focus) ── /fable32 ──
       L: null,
+      mine: tl33take(),   // ── fable32 (build 33) ── (a real morning: the lamb he inspected four or more days ago, its tag — tl33take) ── /fable32 ──
     });
     newLamb25(K);
     evlog('act_start', 'lamb');
@@ -3291,7 +3376,7 @@ export function createDay33(o = {}) {
     if (!K) {
       if (gate25() && !acting && !st.summary && !st.paused) {
         const h = heroP(),
-          stand = P25.stand;
+          stand = pl25().stand;   // ── fable32 (build 33) ── (the chamber's in its run) ── /fable32 ──
         if ((h.y || 16) < 20 && Math.hypot(stand.x - h.x, stand.z - h.z) <= DAY33.reach) p25start();
       }
       return;
@@ -3301,8 +3386,8 @@ export function createDay33(o = {}) {
     const ph = K.ph;
     if (ph === 'scan' || ph === 'zoom' || ph === 'dirt' || ph === 'clean' || ph === 'blem' || ph === 'false') K.own += dt;
     if (ph === 'in') {
-      const stand = P25.stand,
-        door = P25.door,
+      const stand = pl25().stand,
+        door = pl25().door,   // ── fable32 (build 33) ── ── /fable32 ──
         k = Math.min(1, K.t / P25.in);
       moveHero(K.sx + (stand.x - K.sx) * k, K.sz + (stand.z - K.sz) * k, Math.atan2(door.x - stand.x, door.z - stand.z));
       if (k >= 1) ph25(K, 'scan');
@@ -3312,12 +3397,13 @@ export function createDay33(o = {}) {
     } else if ((ph === 'clean' && K.t >= P25.clean) || (ph === 'blem' && K.t >= P25.blem)) {
       K.zi = -1;
       ph25(K, 'scan');
-    } else if (ph === 'aside' && K.t >= P25.aside) ph25(K, 'wait');
+    } else if (ph === 'aside' && K.t >= P25.aside) (prac && prac.ch33 ? ch33end(K, 'blem') : ph25(K, 'wait'));   // ── fable32 (build 33) ── (the chamber: one lamb — a בעל מום goes, the act ends) ── /fable32 ──
     else if (ph === 'bring' && K.t >= P25.bring) ph25(K, 'scan');
-    else if (ph === 'false' && K.t >= P25.fals) ph25(K, 'wait', { fals: true });
+    else if (ph === 'false' && K.t >= P25.fals) (prac && prac.ch33 ? ch33end(K, 'blem') : ph25(K, 'wait', { fals: true }));   // ── fable32 (build 33) ── (its blemish shown: it does not enter) ── /fable32 ──
     else if (ph === 'ok' && K.t >= P25.ok) p25done();
     else if (ph === 'lead' && K.t >= P25.lead) ph25(K, 'end');
     else if (ph === 'end' && K.t >= P25.end) st.p25 = null;
+    else if (ph === 'out' && K.t >= P25.end) st.p25 = null;   // ── fable32 (build 33) ── (the chamber's בעל מום: gone) ── /fable32 ──
   }
   function p25focus(i) {
     const K = st.p25;
@@ -3366,19 +3452,59 @@ export function createDay33(o = {}) {
       if (truth === 'dirt') K.dm++;
       else if (truth === 'whole') K.wr++;
       K.zi = -1;
+      // ── fable32 (build 33) ── the chamber's one lamb: a whole lamb rejected is a free retry — it stays, "הטלה תמים — הביטו שוב" (the
+      // rating counts it, rate30's −0.2) ── /fable32 ──
+      if (prac && prac.ch33 && truth) {
+        ph25(K, 'scan', { v: how, ok: false, why: truth, again: true });
+        emit17('p25stamp', { v: how, ok: false, why: truth, ch33: true });
+        return true;
+      }
       ph25(K, 'aside', { v: how, ok: !!lambBlem, why: truth, blem: lambBlem ? { ...lambBlem } : null });
-      emit17('p25stamp', { v: how, ok: !!lambBlem, why: truth });
+      emit17('p25stamp', { v: how, ok: !!lambBlem, why: truth, ch33: !!(prac && prac.ch33) });
       return true;
     }
     K.zi = -1;
     return lambBlem
       ? (K.fa++,
         ph25(K, 'false', { v: how, blem: { ...lambBlem } }),
-        emit17('p25stamp', { v: how, ok: false, why: 'blem', blem: { ...lambBlem } }),
+        emit17('p25stamp', { v: how, ok: false, why: 'blem', blem: { ...lambBlem }, ch33: !!(prac && prac.ch33) }),
         true)
       : (ph25(K, 'ok', { v: how }), emit17('p25stamp', { v: how, ok: true }), true);
   }
+  /** ── fable32 (build 33) ── the chamber's inspection ends: 'tamim' — the lamb gets its tag and is led into the chamber, to its stall;
+   *  'blem' — a בעל מום (found, or approved and then shown): it does not enter. The act is rated like any (rate30: its coins by the
+   *  rating — shift/index.js adds them; the record is the run's copy, never the lot's). "ch33rec": the outcome for his save (lamb33's
+   *  inspect33), at once; the end card as the rating's word ends ("ch33end", the tick). ── /fable32 ── */
+  function ch33end(K, out) {
+    const C = prac.ch33,
+      blem = K.L && K.L.blem ? { ...K.L.blem } : null,
+      a = { x: CH33.door.x, y: 18.2, z: CH33.door.z },
+      b = {
+        day: st.day,
+        ownS: r1(K.own),
+        lambs: 1,
+        rejections: K.rej,
+        falseApprovals: K.fa,
+        wrongRejections: K.wr,
+        dirtMistaken: K.dm,
+        inspected: K.insp,
+        brushed: K.br,
+        scoreEarned: Math.max(0, P25.score - P25.fa * K.fa - P25.wr * (K.wr + K.dm)),
+        ch33: out,
+      };
+    C.out = out;
+    C.blem = out === 'blem' ? blem : null;
+    st.p25day = st.day;
+    st.p25r = b;
+    ph25(K, out === 'tamim' ? 'lead' : 'out');
+    rec23('lamb', b);
+    end30('lamb', b, a, false);
+    L0('ch33', out, b.rating);
+    evlog('lamb33', { out, rating: b.rating, q: b.q, dn: C.dn });
+    emit17('ch33rec', { out, rating: b.rating, q: b.q, coins: b.coins, blem: C.blem, dn: C.dn });
+  }
   function p25done() {
+    if (prac && prac.ch33) return ch33end(st.p25, 'tamim');   // ── fable32 (build 33) ── (the chamber: no pyre, no court — its own end) ── /fable32 ──
     const K = st.p25,
       own = r1(K.own),
       k = Math.max(0, P25.score - P25.fa * K.fa - P25.wr * (K.wr + K.dm)),   // ── fable32 (build 30) ── (no "fast" points; the coins by the rating) ── /fable32 ──
@@ -3433,16 +3559,21 @@ export function createDay33(o = {}) {
       return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * P25.zd), t: [at.x, at.y, at.z] };
     },
     camWork25 = () => {
-      const K = st.p25;
+      const K = st.p25,
+        C = prac && prac.ch33;
+      // ── fable32 (build 33) ── the chamber's run: after its inspection (or when today's is done) the stock's view — the stalls from the
+      // south, the hall's south wall cut away; the lamb led in to its stall seen the same way ── /fable32 ──
+      if (C && (!K || /^(lead|end|out)$/.test(K.ph)) && (C.done || C.out)) { const V = globalThis.__CH33VIEW || CH33.view; return { x: CH33.door.x, z: CH33.door.z, view: { p: V.p.slice(), t: V.t.slice(), e: 2 } }; }   // (__CH33VIEW: the browser checks may look closer)
       if (!K) return null;
       const ph = K.ph,
         L = door25(),
+        stand = pl25().stand,   // ── fable32 (build 33) ── ── /fable32 ──
         camP = P25.camP,
         a =
           (ph === 'zoom' || ph === 'dirt' || ph === 'clean' || ph === 'blem') && K.zi >= 0
             ? { ...spotView25(K), e: 10 }
-            : /^(ok|lead|end|false)$/.test(ph)
-              ? { ...camView({ ...camP, t: { x: (L.x + P25.stand.x) / 2 - 1, y: 16 + camP.ty, z: (L.z + P25.stand.z) / 2 } }), e: 3 }
+            : /^(ok|lead|end|false|out)$/.test(ph)
+              ? { ...camView({ ...camP, t: { x: (L.x + stand.x) / 2 - 1, y: 16 + camP.ty, z: (L.z + stand.z) / 2 } }), e: 3 }
               : { ...view25(), e: ph === 'in' ? 2.4 : 6 };
       return { x: L.x, z: L.z, view: a };
     },
@@ -4463,6 +4594,7 @@ export function createDay33(o = {}) {
     id === 'kevesh' ? (b19 ? 'עלו בכבש — בסטיק' : 'העלו עצים — החזיקו') : b19 && id === 'salt' ? 'מלאו שק מלח — הקישו' : verb31(id, s);
   function work(h) {
     if (st.phase !== 'run') return null;
+    if (prac && prac.ch33 && !st.p25 && !gate25()) return null;   // ── fable32 (build 33) ── (the chamber's run: no other work — the azara's stations are the day's) ── /fable32 ──
     if (acting) {
       const sa = ST && ST.state ? say(() => ST.state()) : null,
         s2 = STN[acting.id] || {};
@@ -4487,7 +4619,7 @@ export function createDay33(o = {}) {
     if (st.k20) return { icon: '💧', label: 'שתי הטבעות — החזיקו', job: 'sh:k20', noRing: true, go: () => {} };
     if (lotOn() || gate23()) return { icon: '☝', label: 'הפיס', job: 'sh:p23', noRing: true, go: () => {} };
     if (st.p25) return { icon: '🐑', label: 'בדיקת הטלה', job: 'sh:p25', noRing: true, go: () => {} };
-    if (gate25()) return { icon: '🐑', label: goLabel31('דיר הטלאים'), job: 'sh:go:p25', noRing: true, go31: true, go: () => peek24() };
+    if (gate25()) return { icon: '🐑', label: goLabel31(prac && prac.ch33 ? 'לשכת הטלאים' : 'דיר הטלאים'), job: 'sh:go:p25', noRing: true, go31: true, go: () => peek24() };   // ── fable32 (build 33) ── ── /fable32 ──
     if (st.r26 && st.r26.ph !== 'walk' && st.r26.ph !== 'out')
       return { icon: st.role26 === 'inner' ? '🥣' : '🪔', label: 'ההיכל', job: 'sh:r26', noRing: true, go: () => {} };
     // ── fable32 (build 27) ── (his blood role: at its work, or the way to the ring and to the corners) ── /fable32 ──
@@ -4790,6 +4922,7 @@ export function createDay33(o = {}) {
   function flowNext() {
     if (
       (prac && prac.end) ||   // ── fable32 (build 31) ── (a practice run: after his act, no next place — the card comes) ── /fable32 ──
+      (prac && prac.ch33 && (prac.ch33.done || prac.ch33.out)) ||   // ── fable32 (build 33) ── (the chamber: today's lamb inspected — no next place) ── /fable32 ──
       st.night ||
       st.k20 ||
       lotOn() ||
@@ -4816,7 +4949,7 @@ export function createDay33(o = {}) {
     /* ── fable32 (build 26) ── (the way back to the circle; up the steps to the great gate; in, to his vessel) ── */ /* ── fable32 (build 21) ── (no path while he sweeps and goes down; at the foot — to the ring) ── */ /* ── fable32 (build 22) ── (nor while he sorts or stacks) ── */
     if (gate21()) return { id: 'deshen', kind: 'station', pid: null, at: standOf('deshen') };
     if (gate22()) return { id: 'm22', kind: 'station', pid: null, at: standOf('m22') };
-    if (gate25()) return { id: 'pen', kind: 'station', pid: null, at: { x: P25.stand.x, y: 16, z: P25.stand.z } };   /* ── fable32 (build 25) ── (the way to the pen's door) ── */
+    if (gate25()) return { id: prac && prac.ch33 ? 'ch33' : 'pen', kind: 'station', pid: null, at: { x: pl25().stand.x, y: 16, z: pl25().stand.z } };   /* ── fable32 (build 33) ── (the chamber's door in its run) ── */   /* ── fable32 (build 25) ── (the way to the pen's door) ── */
     if (st.pk24 && st.t < st.pk24.until) return { id: st.pk24.id, kind: 'station', pid: null, at: st.pk24.at };   /* ── fable32 (build 24) ── (a tapped slot's way, 3 s) ── */ /* ── build 16 ── (no path at night) ── */ /* ── fable32 (build 20) ── (nor in the kiddush) ── */
     if (
       !st.night &&
@@ -4882,7 +5015,7 @@ export function createDay33(o = {}) {
       !!st.p23 ||
       !!(st.d21 && st.d21.ph !== 'end') ||
       !!(st.m22 && st.m22.ph !== 'end') ||
-      !!(st.p25 && !/^(lead|end)$/.test(st.p25.ph)) ||
+      !!(st.p25 && !/^(lead|end|out)$/.test(st.p25.ph)) ||   // ── fable32 (build 33) ── (+ out) ── /fable32 ──
       !!(st.r26 && st.r26.ph !== 'out') ||
       !!(st.r27 && st.r27.ph !== 'out'),
     say30 = (text, kind = 'info', s = 1.6) => {
@@ -4905,6 +5038,7 @@ export function createDay33(o = {}) {
   function step17a() {
     const h = heroP(),
       L30 = LINE30;
+    if (prac && prac.ch33 && !st.p25 && !gate25()) return { id: 'ch33', icon: '🐑', text: 'הטלאים בלשכה', n: 0, goal: 0, st: null };   // ── fable32 (build 33) ── (the chamber's run after its inspection: its stock, not the day's fire) ── /fable32 ──
     if (st.k20 && (st.k20.ph === 'up' || st.k20.ph === 'pose')) return { id: 'kiyor', icon: '💧', text: L30.kiyor[st.k20.ph], n: 0, goal: 0, st: 'kiyor' };
     if (gate23() || lotOn()) {
       const p23 = st.p23;
@@ -4929,8 +5063,8 @@ export function createDay33(o = {}) {
             ? `${sp.d === 'mud' ? 'בוץ' : 'קש'} — ${L30.lamb.dirt}`
             : a === 'blem' && sp && sp.kind === 'blem'
               ? `${BLEM25.cats[sp.c].he.split(' / ')[0]} · ${BLEM25.regs[sp.r].he}`   // (the blemish — המחשה: its kinds and places, the end's card)
-              : L30.lamb[a] || L30.lamb.scan
-          : 'בדיקת הטלה — לכו לדיר הטלאים',
+              : (prac && prac.ch33 && /^(lead|end|out)$/.test(a) ? 'הטלאים בלשכה' : prac && prac.ch33 && prac.ch33.lit === 'day' && a === 'scan' ? LINE33.scan : '') || L30.lamb[a] || L30.lamb.scan   // ── fable32 (build 33) ── (the chamber by day: "הביטו", not the torch's "האירו") ── /fable32 ──
+          : prac && prac.ch33 ? 'לשכת הטלאים — לכו לפתח הלשכה' : 'בדיקת הטלה — לכו לדיר הטלאים',
         n: 0,
         goal: 0,
         st: 'pen',
@@ -5234,11 +5368,13 @@ export function createDay33(o = {}) {
         let26();
         evlog('practice31_end', { id: P.id, rating: P.rating, q: P.q });
         L0('p31end', P.id, P.rating);
-        emit17('p31end', { id: P.id, rating: P.rating, q: P.q });
+        if (P.ch33) emit17('ch33end', { id: P.id, rating: P.rating, q: P.q, out: P.out, blem: P.blem, coins: P.coins, dn: prac.ch33.dn });   // ── fable32 (build 33) ── (the chamber's end card: chamber33.js) ── /fable32 ──
+        else emit17('p31end', { id: P.id, rating: P.rating, q: P.q });
         return st;
       }
     } else {
       if (j32Step()) return st;   // ── fable32 (build 32) ── (the unlock card: the day waits under it) ── /fable32 ──
+      if (tl33Step()) return st;   // ── fable32 (build 33) ── (the morning's lamb: its card, once — the day waits under it) ── /fable32 ──
       drainStep(dt);
       dayStep(dt);
       unlockStep();
@@ -5586,6 +5722,13 @@ export function createDay33(o = {}) {
     j32q: () => (st.j32q ? { ...st.j32q } : null),
     j32done,
     persist32: () => say(() => o.persist && o.persist()),
+    // ── fable32 (build 33) ── "הטלה המבוקר": the morning's card (chamber33.js createTl33) and its end; today's lamb's tag (the colour's index —
+    // the pen's lamb, the court's at its door, the shochet's at the ring draw it); the chamber's run (its day, outcome, places) ── /fable32 ──
+    tl33card: () => (st.tl33card ? { ...st.tl33card } : null),
+    tl33done,
+    tl33tag: () => (!prac && st.tl33cd === st.day && Number.isFinite(st.tl33c) ? st.tl33c : null),
+    ch33: () => (prac && prac.ch33 ? { ...prac.ch33, tags: prac.ch33.tags.slice(), blem: prac.ch33.blem ? { ...prac.ch33.blem } : null } : null),
+    pl25,
     tamid17,
     nextDay,
     grace17,
@@ -5743,7 +5886,7 @@ export function createDay33(o = {}) {
     leave: () => {},
     runAt,
     st33: st,
-    shown33,
+    shown33: () => (prac && prac.ch33 ? [] : shown33()),   // ── fable32 (build 33) ── (the chamber's run: no chip of the azara's stations) ── /fable32 ──
     onEnd(cb) {
       if (typeof cb === 'function') ends.push(cb);
       return E;

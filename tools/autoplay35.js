@@ -389,6 +389,9 @@
         // ── fable32 (build 31) ── a practice run (opts.practice): its end card is up — the run is over (the runner takes the card, "עוד פעם" / "חזרה") ── /fable32 ──
         if (A.opts.practice && e.p31 && e.p31() && e.p31().done) { mark('p31end'); A.phase = 'done'; A.on = false; return; }
         { const U = globalThis.__J32U; if (U && U.state().card) { A.phase = 'j32'; await card32(e, U); continue; } }   // ── fable32 (build 32) ── ── /fable32 ──
+        // ── fable32 (build 33) ── the morning's lamb card ("הטלה שבדקת … עולה היום לתמיד" — the day waits under it): read, its shot (shots30
+        // tl33), "המשך"; logged in notes ── /fable32 ──
+        { const U = globalThis.__TL33; if (U && U.state().card) { A.phase = 'tl33'; note(`lamb card: ${(U.state().last || {}).line || ''}`); await sleep(H() ? 1600 + rnd() * 900 : 500); await shot30('tl33', null, 300); U.cont(); await sleep(120); continue; } }
         if (e.st33.paused && !(e.focus17 && e.focus17().summary)) { await sleep(200); continue; }
         // ── fable32 (build 32) ── opts.skipDay: the morning done (his second lot's role, its word and any card past) — the day's rest skipped
         // to its sunset (E.debug.night), so a run plays mornings one after another; the summary as ever ── /fable32 ──

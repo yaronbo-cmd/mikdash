@@ -279,7 +279,9 @@ test('build 29 (C): the two doors — the gold one stays the player\'s own ("נ�
   const c = Lb.html(); assert.match(c, /המקדש עכשיו · 12:30/); assert.match(c, /<b>עכשיו<\/b><span>קרבנות יחיד/);
   const pm = hm29(+templeSchedule(new Date(t), JLM, JLM.tz).find((e) => e.id === 'tamid-bein-haarbayim').start, JLM.tz);   // (Pesachim 5:1's 8½ seasonal hours: exact — no ≈)
   assert.match(c, new RegExp(`<b>${pm}</b><span>תמיד של בין הערביים<small>פסחים ה, א · טיוטה`)); assert.match(c, /<b>≈ \d\d:\d\d<\/b><span>קטורת של בין הערביים/);
-  assert.match(c, /🔒 בקרוב מכאן: לשכת הטלאים · לשכת העצים/); assert.deepEqual([...SOON29], ['לשכת הטלאים', 'לשכת העצים']);
+  // ── fable32 (build 33) ── (לשכת הטלאים is open now — chamber33's door, given by the lobby when the shift wires on.chamber; this lobby has
+  // no on.chamber, so no door — the wood chamber alone stays "בקרוב"; build 33's own test holds the open door) ── /fable32 ──
+  assert.match(c, /🔒 בקרוב מכאן: לשכת העצים/); assert.deepEqual([...SOON29], ['לשכת העצים']);
   assert.ok(!/פרוטות|\+\d|★/.test(c.slice(c.indexOf('lk-here'))), 'no reward in the card'); assert.ok(!/בעוד|עוד \d+ דקות/.test(c), 'no countdown');
   assert.equal(Lb.pick('here:close'), true); assert.equal(Lb.state().here, false);
   assert.deepEqual(calls, []); assert.equal(JSON.stringify(save), per, 'nothing paid, nothing changed');

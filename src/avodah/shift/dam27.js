@@ -18,6 +18,7 @@ import { addDrawer, L, onTick } from './draw.js';
 import { lamb as lambFig, man, ROBE, SKIN } from '../works/figures.js';
 import { P27, needle27, throw27 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { L33 } from './lamb33.js';   // ── fable32 (build 33) ── (today's lamb's tag) ── /fable32 ──
 import { BLOOD, tagBlood } from '../works/blood.js';
 
 export function createDam27(o = {}) {
@@ -523,6 +524,16 @@ export function createDam27(o = {}) {
           if (K && K.role === 'shochet' && ph === 'bind') lambBound(k, tt, 0, bindG.prog);
           else if (!bound) lambFig(k, L(LAMB.x - 0.3), L(LAMB.z), L(gy(LAMB.x, LAMB.z)), { yaw: Math.PI / 2, scale: LS, head: 0.5 + 0.2 * Math.sin(tt * 1.3) });
           else lambBound(k, tt, since >= 0 ? clamp01(since / 1.2) : 0, 1);
+          // ── fable32 (build 33) ── today's lamb is the one he inspected in the chamber four days ago: its tag on the neck (המחשה) ── /fable32 ──
+          const tg = E.tl33tag ? E.tl33tag() : null;
+          if (tg != null) {
+            const col = L33.tags[tg % L33.tags.length], y0 = LY;
+            if (!bound && !(K && K.role === 'shochet' && ph === 'bind')) {   // (standing — figures.js's lamb in the kit's units, facing south: its neck 0.36 of its scale before the body's middle)
+              const a = L(LAMB.x - 0.3), b = L(LAMB.z), yk = L(gy(LAMB.x, LAMB.z));
+              k.s(a, b + 0.36 * LS, yk + 0.6 * LS, 0.13 * LS, 0.04 * LS, 0.13 * LS, col);
+              for (const e of [-1, 1]) k.s(a + e * 0.19 * LS, b + 0.44 * LS, yk + 0.68 * LS, 0.04 * LS, 0.05 * LS, 0.04 * LS, '!' + col);   // (an ear tag on each ear)
+            } else { k.ws(LAMB.x - 0.02 * LS, y0 + 0.3 * LS, LAMB.z + 0.46 * LS, 0.2 * LS, 0.17 * LS, 0.06 * LS, col); k.ws(LAMB.x - 0.24 * LS, y0 + 0.24 * LS, LAMB.z + 0.48 * LS, 0.05 * LS, 0.05 * LS, 0.05 * LS, '!' + col); }
+          }
         }
         // those who won the limbs hold it ("מי שזכו באברים, אוחזים בו") — from the west, at the back
         if (bound && !gone && (since < 8 || since < 0)) {

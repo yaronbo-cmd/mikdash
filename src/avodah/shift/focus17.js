@@ -41,6 +41,8 @@ const F17 = Object.freeze({
   tickLast: 5,
   flashLast: 10,
 });
+// ── fable32 (build 34) ── (.s17-mini::after: the far stations' 34-px chips take a tap over 46 px — every target ≥ 44; the look unchanged;
+// the summary's "המשך ליום הבא" sticks to the card's bottom — on 296–390-px-high phones the day's rows pushed it below the screen) ── /fable32 ──
 const CSS = `
 .f17-top{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);z-index:31;display:flex;align-items:flex-start;gap:8px;direction:rtl;pointer-events:none;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;-webkit-user-select:none;user-select:none}
 .f17-fire{position:relative;width:50px;height:50px;flex:none;border-radius:50%;background:rgba(28,20,10,.5)}
@@ -94,6 +96,7 @@ const CSS = `
 .f17-sum li b{color:#FFD66E}.f17-sum .pr{font:900 16px/1.3 "Heebo",system-ui,sans-serif;color:#FFE6A0;margin:4px 0 8px}
 .f17-sum button{width:100%;min-height:62px;border-radius:18px;border:0;font:900 26px/1 "Heebo",system-ui,sans-serif;cursor:pointer;background:radial-gradient(circle at 40% 30%,#FFE6A0,#E2B65A 70%,#9A6F1E);color:#2A1804;box-shadow:0 5px 0 #6A4614,0 0 24px rgba(255,214,110,.5);animation:f17-btn 1s ease-in-out infinite alternate}
 .f17-sum .dr{font:600 10px/1 "Heebo",system-ui,sans-serif;opacity:.55;margin-top:6px}
+.f17-sum .c>[data-f17=next]{position:sticky;bottom:0;z-index:1}
 body.f17-on .f31-hot{display:none!important}
 body.f17-crit .f17-tam,body.f17-crit .s29-st.s17-mini,body.f17-crit .sh-pin,body.f17-crit .f17-pop{display:none!important}
 .f17-rot{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(20,14,7,.94);color:#FFF6DA;direction:rtl;font:900 26px/1.3 "Heebo",system-ui,sans-serif;text-align:center;padding:24px;pointer-events:auto}
@@ -103,6 +106,7 @@ body.f17-crit .f17-tam,body.f17-crit .s29-st.s17-mini,body.f17-crit .sh-pin,body
 body.f17-on .tw-base{width:136px;height:136px;margin:-68px 0 0 -68px}
 body.f17-on .sh-hint{bottom:calc(env(safe-area-inset-bottom,0px) + 72px)}
 .s29-st.s17-mini{min-width:0;width:34px;height:34px;padding:0;justify-content:center;border-radius:50%;opacity:.5;background:rgba(40,28,12,.55);border-width:1.5px}
+.s29-st.s17-mini::after{content:"";position:absolute;inset:-6px;border-radius:50%}
 .s29-st.s17-mini span,.s29-st.s17-mini .s30-d,.s29-st.s17-mini .s30-ar,.s29-st.s17-mini small{display:none!important}
 .s29-st.s17-mini i{font-size:18px}
 body.f17-on .s29-st.cue{animation:s29cue 1.4s ease-in-out infinite alternate;box-shadow:0 0 0 calc(3px + 6px * var(--hot17,0)) rgba(255,190,90,calc(.35 + .5 * var(--hot17,0)))}

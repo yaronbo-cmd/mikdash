@@ -50,7 +50,7 @@ test('build 38 (A): through a morning — his links ringed, the done ticked, the
   assert.equal(link(c, 'gate').done, true); assert.equal(link(c, 'shochet').sign, true, 'the shochet signs'); assert.equal(link(c, 'shochet').wait, false);
   // his five lamps: the zorek who waited signs; the line with the five lamps' source
   st.r30day = [...st.r30day, ['menorah', 'kasher']]; st.men5t = st.t; await R.step(0.2); c = R.E.chain38();
-  assert.equal(link(c, 'menorah').done, true); assert.equal(link(c, 'zorek').sign, true); assert.match(c.msg.text, /^שלך הושלם · עכשיו: /); assert.equal(c.msg.src, WAIT38.zorek.src);
+  assert.equal(link(c, 'menorah').done, true); assert.equal(link(c, 'zorek').sign, true); assert.match(c.msg.text, /^שלך הושלם · עכשיו: /); assert.equal(c.msg.src, WAIT38.zorek.src); assert.equal(c.msg.sign, '🏺', 'the zorek\'s sign on the line');
   // the court's blood after the five lamps (heichal26's moment), then the close
   await R.step(14); c = R.E.chain38(); assert.equal(link(c, 'shochet').done, true); assert.equal(link(c, 'zorek').done, true); assert.equal(c.now, 'close');
 });

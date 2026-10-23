@@ -23,7 +23,7 @@ const CSS = `.c38{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) 
 .c38.msgon .row{display:none}
 .c38 .msg.on{display:block;animation:c38m .3s ease-out}
 .c38 .msg b{display:block;font:900 13px/1.25 Heebo,system-ui,sans-serif}.c38 .msg small{display:block;font:700 10px/1.2 Heebo,system-ui,sans-serif;opacity:.85;overflow:hidden;text-overflow:ellipsis}
-.c38.act .row{opacity:.55}
+.c38.act .row{opacity:.55}.c38 .msg .sg{display:inline-block;margin-right:6px;animation:c38s .5s ease-in-out infinite alternate}
 @media (orientation:portrait){.c38{top:calc(env(safe-area-inset-top,0px) + 112px)}}
 @keyframes c38n{0%,100%{box-shadow:0 0 0 0 rgba(255,214,110,0)}50%{box-shadow:0 0 0 3px rgba(255,214,110,.45)}}
 @keyframes c38s{from{transform:translateY(0) rotate(-12deg)}to{transform:translateY(-2px) rotate(12deg)}}
@@ -73,13 +73,19 @@ export function createChain38(doc) {
         .join('');
     }
     // the line in the bar's own place (the same small footprint, in an act too), below the act's source line while that shows (end30)
-    const m = c.msg ? `${c.msg.text}|${c.msg.src}` : '';
+    const m = c.msg ? `${c.msg.text}|${c.msg.src}|${c.msg.sign || ''}` : '';
     if (m !== mkey) {
       mkey = m;
       msg.classList.toggle('on', !!m);
       el.classList.toggle('msgon', !!m);
       if (m) {
         mb.textContent = c.msg.text;
+        if (c.msg.sign) {   // (a kohen who waited for him signs: his link's icon and ✋)
+          const g = doc.createElement('span');
+          g.className = 'sg';
+          g.textContent = ` ${c.msg.sign}✋`;
+          mb.appendChild(g);
+        }
         ms.textContent = c.msg.src;
       }
     }

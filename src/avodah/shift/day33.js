@@ -784,7 +784,7 @@ export const WAIT38 = Object.freeze({
   shochet: Object.freeze({ on: 'gate', src: '"לא היה שוחט השוחט, עד ששומע קול שער הגדול שנפתח" — תמיד ג, ז · טיוטה' }),
   zorek: Object.freeze({ on: 'menorah', src: '"והטבת חמש נרות קודם לדם התמיד" — יומא לג ע״א · טיוטה', then: 'shochet', src2: '"שחט השוחט, וקבל המקבל" — תמיד ד, א · טיוטה' }),
 });
-export const CH38 = Object.freeze({ msgS: 4.5, signS: 2.6, done: 'שלך הושלם', now: 'עכשיו', src: 'המחשה' });
+export const CH38 = Object.freeze({ msgS: 4.5, signS: 4.5, done: 'שלך הושלם', now: 'עכשיו', src: 'המחשה' });
 /** the roles the lots can give (the built ones) */
 const lotRoles35 = (on = {}) => [
   ...POOL23.filter((x) => x.built && (on.p25 !== false || x.id !== 'lamb')).map((x) => x.id),
@@ -5776,7 +5776,7 @@ export function createDay33(o = {}) {
     return {
       links: S.links.map((x) => ({ id: x.id, icon: x.icon, he: x.he, kind: x.kind, his: !!S.his[x.id], done: !!S.done[x.id], now: x.id === S.now, wait: !!(WAIT38[x.id] && !S.done[x.id] && !S.done[WAIT38[x.id].on]), sign: x.id === sign })),
       now: S.now,
-      msg: msg ? { text: msg.text, src: msg.src } : null,
+      msg: msg ? { text: msg.text, src: msg.src, sign: sign ? (CHAIN38.find((x) => x.id === sign) || {}).icon || null : null } : null,   // ── (the waiting kohen's sign rides on the line while it shows) ──
     };
   }
   function bar17() {

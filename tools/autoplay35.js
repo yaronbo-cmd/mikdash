@@ -191,7 +191,7 @@
     const k = (L.big ? 1.45 : 1) * (s.r < 4 ? 0.17 : s.r < 6 ? 0.2 : 0.26) * (s.small ? 0.62 : 1) * (s.sz || 1), e = EYE37[prof], n = (L.spots || []).length;
     return Math.min(0.9, (1 / (1 + Math.exp((k - e.k50) / e.w))) * (1 + EYE37.att * Math.max(0, n - 1)));
   }
-  function bal36(K, mem, setU) { setU(hand37(K.bT || 0, K.b || 0, H(), rnd, mem)); }   // ── fable32 (build 37) ── (the laver's stream and the teni: hand37) ── /fable32 ──
+  function bal36(K, mem, setU) { const u = hand37(K.bT || 0, K.b || 0, H(), rnd, mem); if (A.d21dbg !== undefined) { A.b36dbg = A.b36dbg || []; if (A.b36dbg.length < 600) A.b36dbg.push([+(K.bT || 0).toFixed(3), +u.toFixed(3), +(K.b || 0).toFixed(3), K.spills | 0]); } setU(u); }   // ── fable32 (build 37) ── (the laver's stream and the teni: hand37) ── /fable32 ──
   // the beam by the finger on pen25's pad (its frame focuses the spot nearest the beam, E.p25focus — a direct focus would be undone):
   // drag the beam onto the spot (the beam moves AIM_K 1.6 px a finger's px; a child's drag falls short and is corrected), lift, then a
   // short touch (< 14 px, < 380 ms) — pen25's tap; without the pad (or no focus in 0.8 s), E.p25focus + E.p25tap in one turn
@@ -545,7 +545,7 @@
     get on() { return A.on; },
     start(opts = {}) {
       A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = []; A.j32 = []; A.j32k = ''; A.j32open = 0; A.skip32 = 0; A.src32 = 0; A.src32s = [];   // ── fable32 (build 32) ── (the journal's cards) ── /fable32 ──
-      A.d21h = null; A.d21p = null; A.t36 = null; A.d21t = null; A.d21dbg = null;   // ── fable32 (build 36) ── (each run's own balance memory: a practice's "עוד פעם" starts the engine's clock again) ── /fable32 ──
+      A.d21h = null; A.d21p = null; A.t36 = null; A.d21t = null; A.d21dbg = null; A.b36dbg = null;   // ── fable32 (build 36) ── (each run's own balance memory: a practice's "עוד פעם" starts the engine's clock again) ── /fable32 ──
       A.share = {}; A.sh35 = null; A.close35 = []; A.sums = []; A.fire35 = []; A.runs = []; A.slips35 = 0; A.tasks35 = []; A.held19 = 0; A.h19 = null; A.shot35q = null;   // ── fable32 (build 35) ── ── /fable32 ──
       clearInterval(A.shInt); A.shInt = setInterval(() => { try { const e = E(); if (e && e.st33) share35(e); } catch (err) { /* */ } }, 100);   // ── fable32 (build 35) ── (the time shares: sampled apart from the bot's own turns, which a walk holds) ── /fable32 ──
       const e = E(); if (e) hook(e);
@@ -553,7 +553,7 @@
       return until(() => !A.on || A.marks.roleDone != null, (opts.morningS || 600) * 1000, 250).then(() => table());
     },
     stop() { A.on = false; clearInterval(A.shInt); try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
-    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), share: JSON.parse(JSON.stringify(A.share || {})), close35: (A.close35 || []).slice(), sums: (A.sums || []).slice(), fire35: (A.fire35 || []).slice(), runs: (A.runs || []).slice(), slips35: A.slips35 | 0, tasks35: (A.tasks35 || []).slice(), held19: A.held19 | 0, lifts19: A.h19 ? A.h19.n : 0 /* ── fable32 (build 35) ── */, j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, d21dbg: A.d21dbg || null /* ── fable32 (build 37) ── */, table: table() }),
+    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), share: JSON.parse(JSON.stringify(A.share || {})), close35: (A.close35 || []).slice(), sums: (A.sums || []).slice(), fire35: (A.fire35 || []).slice(), runs: (A.runs || []).slice(), slips35: A.slips35 | 0, tasks35: (A.tasks35 || []).slice(), held19: A.held19 | 0, lifts19: A.h19 ? A.h19.n : 0 /* ── fable32 (build 35) ── */, j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, d21dbg: A.d21dbg || null, b36dbg: A.b36dbg || null /* ── fable32 (build 37) ── */, table: table() }),
     events: () => A.ev.slice(),
     get shotReq() { return A.shotReq; },
     shotTaken() { A.shotReq = null; },

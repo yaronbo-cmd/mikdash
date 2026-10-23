@@ -57,7 +57,7 @@ export const LVL36 = Object.freeze({
     lv('חפינות מודרכות', 'המד מראה את קצב החפינה', {}, { guide: 1, vmax: 2.4, teni: null }),
     lv('רגישות לשריטה', 'הזהב רגיש — חופנים לאט יותר', {}, { guide: 1, vmax: 2.05, teni: null }),
     lv('בלי הדרכה', 'בלי מד הקצב — לפי היד', {}, { guide: 0, vmax: 2.05, teni: null }),
-    lv('הכניסה השנייה: הטני החוצה', 'נוטלים את הטני המלא ויוצאים בו בלי שתיפול גחלת', { src: cite('נכנס ונטל את הטני והשתחוה ויצא', 'תמיד ו, א') }, { guide: 0, vmax: 1.9, teni: Object.freeze({ wind: 1.6, shake: 1.6, fix: 2.4, lim: 0.5, gap: 0.9, s: 4.6 }) /* ── fable32 (build 37) ── (was 1.0 / 0.55: with hand37 the skilled 79 %) ── */ }),
+    lv('הכניסה השנייה: הטני החוצה', 'נוטלים את הטני המלא ויוצאים בו בלי שתיפול גחלת', { src: cite('נכנס ונטל את הטני והשתחוה ויצא', 'תמיד ו, א') }, { guide: 0, vmax: 1.9, teni: Object.freeze({ wind: 1.4, shake: 1.6, fix: 2.4, lim: 0.5, gap: 0.9, s: 4.6 }) /* ── fable32 (build 37) ── (was 1.0 / 0.55: with hand37 the skilled 79 %; 1.6 gave node 21 % and the browser 0 of 14) ── */ }),
   ]),
   // דישון המנורה: the lamp shown, the half-log band, the eastern lamp out, the western lamp out
   menorah: Object.freeze([

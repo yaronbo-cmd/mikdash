@@ -46,7 +46,7 @@ export function hand37(T, b, child, rnd, mem) {
 }
 // the look's interval: the page's (as measured in the browser, build 37: a skilled hand every frame, 0.05 s, one in eight 0.1; a child every other, 0.1, one in ten 0.05)
 export const look37 = (child, rnd) => { const r = rnd(); return child ? (r < 0.1 ? 0.05 : 0.1) : r < 0.12 ? 0.1 : 0.05; };
-function balance(K, H, rnd, mem, setU) { setU(hand37(K.bT != null ? K.bT : K.T, K.b, H === HAND.child, rnd, mem)); }
+function balance(K, H, rnd, mem, setU, bt = false) { setU(hand37(bt ? K.bT || 0 : K.T, K.b, H === HAND.child, rnd, mem)); }   // (bt: the laver's and the teni's own balance clock, K.bT — 0 before its first tick, as the autoplayer reads it)
 // ── fable32 (build 37) ── the eye's model (the lamb): a spot is missed by its drawn size — pen25's k (the region's scale × 0.62 if small
 // × the level's sz) — and a little more when the lamb shows more spots (attention): one logistic in the size for both hands (the same
 // slope; the child's half-seen size larger), set by build 36's guesses — the skilled 1 % a hoof's plain spot, 10 % a small one; the
@@ -69,7 +69,7 @@ const PLAY = {
       const K = R.E.k20();
       tt += 0.05;
       if (!lifted && tt >= liftAt) { lifted = 1; R.E.k20in('R', false); await R.step(0.4); R.E.k20in('R', true); }
-      if (K.P36 && K.P36.bal && (tBal += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tBal = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.k20bal(u)); }   // ── fable32 (build 37) ── (the page's look intervals) ── /fable32 ──
+      if (K.P36 && K.P36.bal && (tBal += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tBal = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.k20bal(u), true); }   // ── fable32 (build 37) ── (the page's look intervals) ── /fable32 ──
       await R.step(0.05, 0.05);
     }
   },
@@ -149,7 +149,7 @@ const PLAY = {
     const mem = {}; let tb = 0;
     for (let i = 0; i < 400 && R.E.r26() && R.E.r26().ph !== 'out'; i++) {
       const K = R.E.r26();
-      if (K.ph === 'teni36' && (tb += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tb = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.r26bal(u)); }   // ── fable32 (build 37) ── ── /fable32 ──
+      if (K.ph === 'teni36' && (tb += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tb = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.r26bal(u), true); }   // ── fable32 (build 37) ── ── /fable32 ──
       await R.step(0.05, 0.05);
     }
   },

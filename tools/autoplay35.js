@@ -416,7 +416,7 @@
       if (!A.on) return;
       await sleep(5);   // (every turn yields to the page: its frames, the engine's tick)
       const e = E(); if (!e || !e.st33) { await sleep(200); continue; }
-      if (A.shot35q && S30().includes(A.shot35q)) { const n = A.shot35q; A.shot35q = null; await shot30(n, null, 1400); continue; }   // ── fable32 (build 35) ── (the close's view: a frame after its cut) ── /fable32 ──
+      if (A.shot35q && S30().includes(A.shot35q)) { const n = A.shot35q; A.shot35q = null; await shot30(n, null, 2600); continue; }   // (the fade's own 1.5 s lifted first)   // ── fable32 (build 35) ── (the close's view: a frame after its cut) ── /fable32 ──
       if (S30().includes('run') && !A.shotDone.run && e.m22 && e.m22() && e.m22().ph === 'carry' && e.st33.r19 && e.st33.r19.run && hero().z < 30) await shot30('run', null, 0);   // ── fable32 (build 35) ── (the ramp run inside the maaracha role) ── /fable32 ──
       if (S30().includes('hud') && !A.shotDone.hud && e.gate26L && e.gate26L() && !e.p23() && !e.st33.paused && !(e.word30 && e.word30()) && !(e.j32q && e.j32q())) await shot30('hud', null, 300);   // ── fable32 (build 35) ── (the HUD between two acts: no fire meter, no countdown) ── /fable32 ──
       try {

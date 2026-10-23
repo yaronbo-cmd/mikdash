@@ -720,10 +720,10 @@ export function tasksNow33(save, on35 = true) {
 export const E35 = Object.freeze({
   close: 4.6,   // the close: 0.6 s to dark (the scene changes there), the altar's view, the calm line — then the summary
   fade: 0.6,
-  look: Object.freeze({ night: 0.85, ember: 0.31, kasher: 1, mehudar: 1.45 }),   // __FIRE33 (life.js: 0.25 … 1.6)
+  look: Object.freeze({ night: 0.85, ember: 0.31, kasher: 1, mehudar: 1.45 }),   // __FIRE33 (life.js: 0.25 … 1.6; at 1.6 the pyre seen from beside it on the altar's top blooms over the frame)
   fuel: Object.freeze({ night: 70, ember: 8, kasher: 80, mehudar: 100 }),   // the same on the old 0…100 scale (fx18's crowd and choir; the pyre's woodpile)
   spark: Object.freeze({ kasher: 0, mehudar: 1 }),   // __FIRE35.sp: the sparks; .clean: the smoke white and thin
-  cam: Object.freeze({ p: Object.freeze([-6, 47, 36]), t: Object.freeze([-33, 22.5, -2]), e: 40 }),   // the altar from the south-east, high: its fire, the ramp, the court
+  cam: Object.freeze({ p: Object.freeze([-8, 43, 30]), t: Object.freeze([-32, 23, -2]), e: 40 }),   // the altar from the south-east, above: its fire, the ramp's top, the court east of it
   src: 'אש תמיד תוקד על המזבח לא תכבה — ויקרא ו, ו · טיוטה',
   taskEvery: 0.5,
 });
@@ -751,6 +751,8 @@ function avail35(id, save, on = {}) {
   if (id === 'ch33') return on.p25 !== false;
   return true;
 }
+/** ── fable32 (build 35) ── the badges a morning of the work can earn (the mornings served); the rest were the old loop's ── */
+export const BADGE35 = Object.freeze(['day3', 'day7', 'day33']);
 /** the day's three (by the day's number, two places on each day — so no day has both of the opening screen's two; a task that cannot be
  *  offered gives its place to the next) */
 export function tasks35ForDay(day, save, on = {}) {
@@ -1654,7 +1656,7 @@ export function createDay33(o = {}) {
   /* ───────── build 11: the badges (earned by play; claimed at night in the Moked) and the 33rd day ───────── */
   function badgeStep() {
     for (const b of BADGES33)
-      if (!st.badges[b.id] && b.test(st)) {
+      if (!st.badges[b.id] && (!e35 || BADGE35.includes(b.id)) && b.test(st)) {   // ── fable32 (build 35) ── (BADGE35: the old loop's — the logs, the fire's levels, the bread, the six lambs, the lost lamb, the song, the watch, the merchant — are not earned in the morning of the work) ── /fable32 ──
         st.badges[b.id] = 1;
         score(DAYSCORE.badge, 'badge');
         if (b17 && !night17) emit17('pop', { text: `📜 ${b.text}` });

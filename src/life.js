@@ -247,12 +247,12 @@ export function buildLife(scene, tex) {
   // גבוהה ונקייה. אין עונש — רק גאווה"): sparks rise from a מהודר pyre and its smoke goes white and thin ("עמוד עשן לבן, זך וישר",
   // maaracha-he.md 4ב); its height is __FIRE33's. Without the global (Phase A, the old day) nothing changes ── /fable32 ──
   const spk35 = { k: 0, cl: 0 }, smokeClean = new THREE.Color('#FBFAF6');
-  const sparks35 = new Emitter(30, particleMat(tex.flame, new THREE.Color(3.6, 2.3, 0.9), true), spawnAt([FIRE[0], FIRE[1] + 1.4, FIRE[2]], 3.8, 1.5), (e, i, dt) => {
+  const sparks35 = new Emitter(40, particleMat(tex.flame, new THREE.Color(3.8, 2.4, 0.9), true), spawnAt([FIRE[0], FIRE[1] + 1.4, FIRE[2]], 3.8, 1.6), (e, i, dt) => {
     const k = e.age[i] / e.life[i];
     e.pos[i * 3 + 1] += dt * (6.5 + 7 * e.seed[i]);
     e.pos[i * 3] += dt * Math.sin(e.age[i] * 6 + e.seed[i] * 9) * 1.1;
     e.pos[i * 3 + 2] += dt * Math.cos(e.age[i] * 5 + e.seed[i] * 7) * 0.8;
-    e.size[i] = 0.6 * e.seed[i] * (1 - 0.6 * k) * spk35.k;
+    e.size[i] = 1.3 * e.seed[i] * (1 - 0.6 * k) * spk35.k;
     e.alpha[i] = (k < 0.12 ? k / 0.12 : 1 - (k - 0.12) / 0.88) * spk35.k;
   });
   sparks35.points.visible = false;

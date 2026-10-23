@@ -130,7 +130,10 @@
       const mb = own.match(/בנייה\s*(\d+)/); if (mb && o.build && +mb[1] !== o.build) F.push(['stale-build', own.trim().slice(0, 60), path(e)]);
       if (hasHe(own) && cs.direction === 'ltr' && !e.closest('[dir=ltr]')) F.push(['ltr-hebrew', own.trim().slice(0, 60), path(e)]);
       if (hasHe(own) && /\(\s*$|^\s*\)/.test(own.trim())) F.push(['paren', own.trim().slice(0, 60), path(e)]);
+      // (build 35: the fire loop's words — the morning is measured by its work: no alarm, no countdown, no "late", no feeding, no "נפתח:")
+      if (/דועכת|האש צריכה|איחר|באיחור|תמיד של (שחר|בין הערביים) בעוד|שקיעה בעוד|בקעו|נפתח:|שהאש לא תרד|המערכה ברמה|גזרים על המערכה|העלייה המהירה|הביאו עצים/.test(own)) F.push(['loop35', own.trim().slice(0, 60), path(e)]);
     }
+    for (const sel of ['.f17-fire', '.f17-ban.on', '.sh-fg']) { const e = [...document.querySelectorAll(sel)].find((x) => vis(x, 0.3)); if (e) F.push(['loop35', `${sel} on the screen`, path(e)]); }   // (build 35: the fire's meter, its alarm)
     // overlapping text, both seen (no opaque card between them)
     const boxes = tx.filter((t) => t.rr.width > 4 && t.rr.height > 4 && t.s.length > 1);
     let nOv = 0;
@@ -173,7 +176,7 @@
   function eng() {
     const E = globalThis.__SHIFT && globalThis.__SHIFT.E; if (!E || !E.st33) return null; const st = E.st33;
     const ph = (f) => { try { const k = f && f(); return k ? k.ph || '?' : ''; } catch (e) { return 'x'; } };
-    return { phase: st.phase, day: st.day, night: !!st.night, paused: !!st.paused, t: Math.round(st.t * 10) / 10, k20: ph(E.k20), p23: ph(E.p23), d21: ph(E.d21), m22: ph(E.m22), p25: ph(E.p25), r26: ph(E.r26), r27: ph(E.r27), washed: !!st.washed, gates: [st.p23day, st.d21day, st.m22day, st.p25day, st.p26day, st.r26day, st.r27day].map((x) => x | 0).join(','), perutot: st.perutot, prac: E.prac31 || null, ch33: !!(E.ch33 && E.ch33()), summary: !!(E.focus17 && E.focus17().summary) };
+    return { phase: st.phase, day: st.day, night: !!st.night, paused: !!st.paused, t: Math.round(st.t * 10) / 10, k20: ph(E.k20), p23: ph(E.p23), d21: ph(E.d21), m22: ph(E.m22), p25: ph(E.p25), r26: ph(E.r26), r27: ph(E.r27), washed: !!st.washed, gates: [st.p23day, st.d21day, st.m22day, st.p25day, st.p26day, st.r26day, st.r27day].map((x) => x | 0).join(','), perutot: st.perutot, prac: E.prac31 || null, ch33: !!(E.ch33 && E.ch33()), summary: !!(E.focus17 && E.focus17().summary), at: (() => { const h = hero(); return h ? [Math.round(h.x * 10) / 10, Math.round(h.z * 10) / 10] : null; })() /* (build 35: where he stands — a stuck's place) */, next: (() => { try { const f = E.flowNext && E.flowNext(); return f ? `${f.id}@${Math.round(f.at.x)},${Math.round(f.at.z)}` : null; } catch (e) { return 'x'; } })() };
   }
   function hero() { try { const hp = { x: 0, y: 0, z: 0 }; globalThis.__T.stages.heroXYZ(hp); const v = new globalThis.__T.Vector3(hp.x, hp.y + 1, hp.z).project((globalThis.__T.camera.updateMatrixWorld(), globalThis.__T.camera)); return { x: hp.x, z: hp.z, sx: ((v.x + 1) / 2) * W(), sy: ((1 - v.y) / 2) * H(), on: v.z < 1 }; } catch (e) { return null; } }
   // where the gold path leads, on the screen (what the child sees: the strong path and its arrow)

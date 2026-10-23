@@ -119,6 +119,9 @@ test('build 35 (1): the shipped flags carry e35; the engine\'s morning has no dr
   const f0 = I.E.state().fuel; await I.step(300, 0.25);
   assert.equal(I.E.state().fuel, f0); assert.equal(I.E.state().left, DAY33.dayS); assert.equal(I.E.state().summary, false); assert.ok(!allEv(I).some((k) => /late|tamid|summary/.test(k)));
   for (const x of I.hud.st || []) assert.ok(!/איחר|באיחור|דועכת|נפתח:|המערכה ברמה/.test(x), x);
+  // the old loop's badges ("🔥 המערכה ברמה 2", the logs …) are not earned in the morning of the work (an older save at level 3: none; the days' are)
+  const B = rig(FLAGS, { save: { day33state: { day: 3, at: Date.now(), fed: 25, washed: false } }, twin: twin() }); B.E.start(); await B.step(1);
+  assert.deepEqual(B.E.state().badges, ['day3']); assert.ok(!B.events.some((e) => e.type === 'pop' && /המערכה ברמה/.test(e.text)));
 });
 test('build 35 (1): the HUD — no fire ring (.f17-top.f35 hides it), no tamid line, no alarm (the fire\'s class is none in the morning of the work), no "האש דועכת" banner; the intro and the lobby speak of the work', () => {
   const f = read('src/avodah/shift/focus17.js');

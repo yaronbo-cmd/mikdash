@@ -6163,7 +6163,7 @@ export function createDay33(o = {}) {
     leave: () => {},
     runAt,
     st33: st,
-    shown33: () => (prac && prac.ch33 ? [] : shown33()),   // ── fable32 (build 33) ── (the chamber's run: no chip of the azara's stations) ── /fable32 ──
+    shown33: () => (prac && prac.ch33 ? [] : e35 ? [] : shown33()),   // ── fable32 (build 33) ── (the chamber's run: no chip of the azara's stations) ── /fable32 ── ── fable32 (build 35) ── (the morning of the work: no station chip — the salt chamber's bag is offered at its door, its chip said the old timing act's "קחו מלח — בזמן" and lay under the acts' pads) ── /fable32 ──
     onEnd(cb) {
       if (typeof cb === 'function') ends.push(cb);
       return E;

@@ -133,10 +133,10 @@ test('build 35 (1): the HUD — no fire ring (.f17-top.f35 hides it), no tamid l
   const L = [createLobby({ save: after(3), start: true }).html(), createLobby({ save: after(3), start: false }).html()].join('\n');
   assert.ok(!/האש, העצים|המערכה מחכה|בקעו|העלו \d+ גזרים/.test(L), 'the lobby: no fire loop'); assert.match(L, /הכיור, הפיס ועבודת הבוקר/);
 });
-test('build 35 (1): the old loop\'s stations have no door — runAt / tapStation of the wood, the ramp\'s trips, the stores, the old pen, the song: false; no chip but the salt\'s; the bar\'s dead slots hidden (the laver alone)', async () => {
+test('build 35 (1): the old loop\'s stations have no door — runAt / tapStation of the wood, the ramp\'s trips, the stores, the old pen, the song: false; no station chip (the salt chamber\'s door stays, its bag); the bar\'s dead slots hidden (the laver alone)', async () => {
   const R = rig(FLAGS, { save: after(3), twin: twin() }); R.E.start(); await R.step(0.3); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); R.E.debug.done26(); await R.step(0.2);
   for (const id of ['wood', 'kevesh', 'oil', 'bake', 'pen', 'song', 'pyre']) { const s = R.STATIONS[id].stand; R.at(s.x, s.z); assert.equal(await R.E.runAt(id), false, id); assert.equal(R.E.tapStation(id), false, id); }
-  assert.deepEqual(R.E.shown33(), ['salt']);
+  assert.deepEqual(R.E.shown33(), [], 'no station chip'); const sa = R.STATIONS.salt.stand; R.at(sa.x, sa.z); R.E.st33.r19.bag = 0; assert.equal(await R.E.runAt('salt'), true, 'the salt chamber\'s door'); assert.ok(R.E.st33.r19.bag > 0, 'the salt chamber\'s bag at its door');
   const B = rig(FLAGS, { save: after(3), twin: twin() }); B.E.start(); await B.step(0.3);
   assert.deepEqual(B.E.bar17().map((x) => x.id), ['kiyor']);
   const O = rig(FLAGS34, { save: after(3), twin: twin() }); O.E.start(); await O.step(0.3); O.E.debug.fed(200); await O.step(0.2);

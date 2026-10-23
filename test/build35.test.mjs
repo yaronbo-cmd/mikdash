@@ -341,7 +341,7 @@ test('build 35: no Divine Name in the changed files (by code points; spaced, hyp
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];
   const sep = '[\\u0591-\\u05C7\\s\\-\\u05BE\\u05F3\\u05F4\'".]*';
   const res = N.map((c) => new RegExp(c.map((x) => String.fromCharCode(x)).join(sep)));
-  const files = ['src/avodah/shift/day33.js', 'src/avodah/shift/focus17.js', 'src/avodah/shift/fx18.js', 'src/avodah/shift/index.js', 'src/avodah/shift/lobby35.js', 'src/avodah/shift/rate30.js', 'src/life.js',
+  const files = ['src/avodah/shift/day33.js', 'src/avodah/shift/focus17.js', 'src/avodah/shift/fx18.js', 'src/avodah/shift/index.js', 'src/avodah/shift/lobby35.js', 'src/avodah/shift/rate30.js', 'src/avodah/shift/ramp19.js', 'src/life.js', 'tools/kid34/kidpage.js',
     'tools/autoplay35.js', 'tools/autoplay35-run.cjs', 'test/build35.test.mjs', 'test/rig33.mjs', 'test/build26.test.mjs', 'test/build28.test.mjs', 'test/build29.test.mjs', 'test/build31.test.mjs', 'test/build32.test.mjs', 'test/build33.test.mjs', 'test/build34.test.mjs', 'PROJECT.md'];
   const hits = []; for (const f of files) { const s = read(f); res.forEach((r, i) => { const m = s.match(r); if (m) hits.push(`${f}: name ${i} at ${m.index}`); }); }
   assert.deepEqual(hits, []);

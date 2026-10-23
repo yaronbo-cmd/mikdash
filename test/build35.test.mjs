@@ -7,7 +7,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { E35, TASKS35, tasks35ForDay, tasksNow33, D21, M22, P23, P25, P26, P27, R19, C18, DAY33, PRAC31, rampY19 } from '../src/avodah/shift/day33.js';
+import { E35, TASKS35, tasks35ForDay, tasksNow33, D21, M22, P23, P25, P26, P27, R19, C18, DAY33, PRAC31, rampY19, CH38 } from '../src/avodah/shift/day33.js';   // (build 38: CH38)
 import { LINE30, RATE30, words30 } from '../src/avodah/shift/rate30.js';
 import { practiceSave31 } from '../src/avodah/shift/practice31.js';
 import { createLobby } from '../src/avodah/shift/lobby35.js';
@@ -219,7 +219,7 @@ test('build 35 (4): a log dropped on the run — a gold ring on the ramp, the wa
 test('build 35 (5): the morning ends when its work is done — after his last act\'s word the close (the fade with "הבוקר הושלם", then the altar\'s view and its source line), then the summary; never by a clock', async () => {
   const { R, role } = await morning(2); assert.equal(role, 'inner');
   assert.equal(R.E.state().summary, false); assert.equal(R.E.workDone35(), true);
-  for (let i = 0; i < 60 && !R.E.close35(); i++) await R.step(0.1);
+  for (let i = 0; i < 120 && !R.E.close35(); i++) await R.step(0.1);   // (build 38: the close waits CH38.msgS more — his last link's chain line)
   const c0 = R.ev('close35'); assert.equal(c0[0].ph, 'fade'); assert.equal(R.E.camWork35(), null, 'under the dark: no view yet');
   const r = R.ev('rate30').at(-1); assert.ok(c0[0].t - r.t >= RATE30.wordS - 0.11, 'after the rating\'s word');
   assert.equal(R.E.work(R.H), null, 'no button in the close'); assert.equal(R.E.step17().text, 'הבוקר הושלם'); assert.equal(R.E.flowNext(), null);
@@ -234,21 +234,21 @@ test('build 35 (5): the morning ends when its work is done — after his last ac
 });
 test('build 35 (5): a shochet morning ends after his cut\'s word (the court\'s zorek goes on in the close\'s view); the close waits for a journal card', async () => {
   const S = await morning(4); assert.equal(S.role, 'shochet');
-  for (let i = 0; i < 100 && !S.R.E.state().summary; i++) await S.R.step(0.1);
+  for (let i = 0; i < 160 && !S.R.E.state().summary; i++) await S.R.step(0.1);   // (build 38: + the chain line)
   assert.equal(S.R.E.state().summary, true);
   const sum = S.R.ev('summary')[0], want = ['deshen', 'm22', 'lamb'].filter((x) => x !== S.lot).concat(['zorek', 'inner', 'menorah']);
   assert.deepEqual(sum.court.map((x) => x.id).sort(), want.sort(), 'the court: the first lot\'s other two, the second lot\'s other three');
   // a card up (the morning's lamb card — the day waits under it, as under the journal's): the close waits for it
   const { R } = await morning(2); R.E.st33.tl33card = { i: 1, c: 0, d: 0, role: 'inner' };
   await R.step(RATE30.wordS + 1); assert.equal(R.E.close35(), null, 'under the card: no close');
-  R.E.tl33done(); await R.step(0.3); assert.equal(R.E.close35().ph, 'fade');
+  R.E.tl33done(); for (let i = 0; i < 70 && !R.E.close35(); i++) await R.step(0.1); assert.equal(R.E.close35().ph, 'fade');   // (build 38: the chain line, up to CH38.msgS, first)
   assert.match(read('src/avodah/shift/day33.js'), /if \(!workDone35\(\) \|\| \(st\.end30 && st\.t < st\.end30\.until\) \|\| st\.j32q \|\| st\.j32card \|\| st\.tl33card\) return;/, 'the journal\'s card too');
 });
 
 // ───────── (6) the summary's rows ─────────
 test('build 35 (6): the summary — his acts with ratings, the court\'s acts named plainly, the ממונה\'s three by name, the coins; no tamid row, no "afternoon tamid", no logs, no ramp time', async () => {
   const { R, lot, role } = await morning(2);
-  for (let i = 0; i < 100 && !R.E.state().summary; i++) await R.step(0.1);
+  for (let i = 0; i < 160 && !R.E.state().summary; i++) await R.step(0.1);   // (build 38: + the chain line)
   const s = R.E.focus17().summary;
   assert.equal(s.e35, true); assert.deepEqual(s.tamids, []);
   assert.deepEqual(s.ratings.map((x) => x.id), ['kiyor', lot, role]); assert.ok(s.ratings.every((x) => RATE30.ids.includes(x.rating)));

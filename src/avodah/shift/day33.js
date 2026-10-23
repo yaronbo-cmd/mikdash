@@ -2063,6 +2063,7 @@ export function createDay33(o = {}) {
     if (!C) {
       if (st.l36q && st.l36q.length) return;   // ── fable32 (build 36) ── (the levels' cards first) ── /fable32 ──
       if (!workDone35() || (st.end30 && st.t < st.end30.until) || st.j32q || st.j32card || st.tl33card) return;
+      if (st.c38 && st.c38.day === st.day && st.c38.msg && st.t < st.c38.msg.t + CH38.msgS) return;   // ── fable32 (build 38) ── (his last link's line "שלך הושלם · עכשיו: ‹הבא›" and the waiting kohen's sign first — the court carries on, then the close) ── /fable32 ──
       st.close35 = { t0: st.t, ph: 'fade' };
       if (o.walk && o.walk.stop) say(() => o.walk.stop());
       goal = null;
@@ -5739,8 +5740,12 @@ export function createDay33(o = {}) {
   function chain38Step() {
     const S = state38();
     if (!S) return;
-    const C = st.c38 && st.c38.day === S.d ? st.c38 : (st.c38 = { day: S.d, his: {}, msg: null, sign: null, gate: 0 }),
-      t = S.t,
+    let C = st.c38 && st.c38.day === S.d ? st.c38 : null;
+    if (!C) {   // (a morning met already under way — a resumed save: what is done is done, no line for it)
+      C = st.c38 = { day: S.d, his: {}, msg: null, sign: null, gate: S.gate ? 1 : 0 };
+      for (const id of Object.keys(S.his)) if (S.done[id]) C.his[id] = 1;
+    }
+    const t = S.t,
       after = st.end30 && st.end30.until > t ? st.end30.until : t;   // (after the act's own word)
     for (const id of Object.keys(S.his))
       if (S.done[id] && !C.his[id]) {

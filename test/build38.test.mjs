@@ -69,6 +69,9 @@ test('build 38 (A): the bar\'s page — a small line under the top bar, RTL, no 
   assert.match(s, /aria-label', 'סדר הבוקר'/);
   const f = read('src/avodah/shift/focus17.js'); assert.match(f, /chain38\.draw\(live && !F\.summary \? F\.chain : null, !!\(E\.act30 && E\.act30\(\)\)\)/);
   const d = read('src/avodah/shift/day33.js'); assert.match(d, /after = st\.end30 && st\.end30\.until > t \? st\.end30\.until : t/);
+  assert.match(d, /if \(st\.c38 && st\.c38\.day === st\.day && st\.c38\.msg && st\.t < st\.c38\.msg\.t \+ CH38\.msgS\) return;/, 'the close waits for his last link\'s line');
+  assert.match(d, /for \(const id of Object\.keys\(S\.his\)\) if \(S\.done\[id\]\) C\.his\[id\] = 1;/, 'a resumed morning: no line for what was done');
+  assert.match(s, /\.c38\.msgon \.row\{display:none\}/); assert.match(s, /querySelector\('\.r30\.on:not\(\.sr\):not\(\.sl\)'\)/, 'below the act\'s source line');
 });
 
 // ───────── B. the help at narrow openings ─────────

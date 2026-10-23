@@ -3,7 +3,7 @@
  * lot, its three roles, the second lot, the great gate, the Heichal's two, the blood's two, the close. His own links ringed in gold, the
  * done ones ticked, the morning's now lit; a link that waits for another (the slaughter for the gate, the blood for the five lamps) shows
  * its wait, and a kohen who waited for him signs (✋) when his link is done. When his link ends: "שלך הושלם · עכשיו: ‹הבא›" with its
- * source (or המחשה). Information only — no clock, nothing lost, no tap (it never takes a thumb from the stick or the act). Narrow
+ * source (or המחשה), in the bar's own place for a few seconds; the bar steps below an act's source line (end30's .r30) while it shows. Information only — no clock, nothing lost, no tap (it never takes a thumb from the stick or the act). Narrow
  * screens (≤ 700 px) and his acts: the links far from now drawn as dots. Never a Divine Name. ── /fable32 ── */
 const CSS = `.c38{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 54px);transform:translateX(-50%);z-index:30;display:none;flex-direction:column;align-items:center;gap:3px;direction:rtl;pointer-events:none;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;-webkit-user-select:none;user-select:none;max-width:calc(100vw - 24px)}
 .c38.on{display:flex}
@@ -19,10 +19,11 @@ const CSS = `.c38{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) 
 .c38 .l.wait:not(.done){filter:grayscale(.6)}
 .c38 .l.sign::after{content:"✋";position:absolute;right:-6px;top:-12px;font-size:12px;animation:c38s .5s ease-in-out infinite alternate}
 .c38 .l.dot{width:8px;height:8px;margin:0 3px;border-width:0;font-size:0;background:rgba(255,236,190,.55)}.c38 .l.dot.done{background:rgba(156,226,156,.6)}.c38 .l.dot::after{display:none}
-.c38 .msg{display:none;padding:3px 12px 4px;border-radius:12px;background:rgba(28,20,10,.8);border:1.5px solid #E2B65A;text-align:center;white-space:nowrap}
+.c38 .msg{display:none;max-width:calc(100vw - 32px);box-sizing:border-box;padding:2px 12px 3px;border-radius:12px;background:rgba(28,20,10,.82);border:1.5px solid #E2B65A;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c38.msgon .row{display:none}
 .c38 .msg.on{display:block;animation:c38m .3s ease-out}
-.c38 .msg b{display:block;font:900 14px/1.2 Heebo,system-ui,sans-serif}.c38 .msg small{display:block;font:700 10px/1.2 Heebo,system-ui,sans-serif;opacity:.85}
-.c38.act .row{opacity:.55}.c38.act .msg{display:none}
+.c38 .msg b{display:block;font:900 13px/1.25 Heebo,system-ui,sans-serif}.c38 .msg small{display:block;font:700 10px/1.2 Heebo,system-ui,sans-serif;opacity:.85;overflow:hidden;text-overflow:ellipsis}
+.c38.act .row{opacity:.55}
 @media (orientation:portrait){.c38{top:calc(env(safe-area-inset-top,0px) + 112px)}}
 @keyframes c38n{0%,100%{box-shadow:0 0 0 0 rgba(255,214,110,0)}50%{box-shadow:0 0 0 3px rgba(255,214,110,.45)}}
 @keyframes c38s{from{transform:translateY(0) rotate(-12deg)}to{transform:translateY(-2px) rotate(12deg)}}
@@ -53,6 +54,10 @@ export function createChain38(doc) {
     const on = !!(c && c.links && c.links.length);
     el.classList.toggle('on', on);
     if (!on) return;
+    const r30 = doc.querySelector('.r30.on:not(.sr):not(.sl)'),   // (the act's source line in the middle; at a side it leaves the bar be)
+      low = r30 ? Math.round(r30.getBoundingClientRect().bottom + 4) : 0,
+      topS = low > 40 ? `${low}px` : '';
+    if (el.style.top !== topS) el.style.top = topS;
     const narrow = (doc.defaultView && doc.defaultView.innerWidth) <= 700 || !!acting,
       ni = c.links.findIndex((x) => x.now);
     el.classList.toggle('act', !!acting);
@@ -67,10 +72,12 @@ export function createChain38(doc) {
         })
         .join('');
     }
-    const m = c.msg && !acting ? `${c.msg.text}|${c.msg.src}` : '';
+    // the line in the bar's own place (the same small footprint, in an act too), below the act's source line while that shows (end30)
+    const m = c.msg ? `${c.msg.text}|${c.msg.src}` : '';
     if (m !== mkey) {
       mkey = m;
       msg.classList.toggle('on', !!m);
+      el.classList.toggle('msgon', !!m);
       if (m) {
         mb.textContent = c.msg.text;
         ms.textContent = c.msg.src;

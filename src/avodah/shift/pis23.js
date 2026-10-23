@@ -19,6 +19,7 @@ import { CAP_MEMUNE } from '../works/dawn.js';
 import { bookOf23, D21, M22, P23, POOL26, POOL23 } from './day33.js';
 import { RATE30, role30, reg30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { canPractice31 } from './practice31.js';   // ── fable32 (build 31) ── the book's practice doors ── /fable32 ──
+import { LVL36, L36, row36, PTS36 } from './lvl36.js';   // ── fable32 (build 36) ── the four levels of each role, his points, his choice ── /fable32 ──
 // ── fable32 (build 30) ── the roles book by the ratings: each role's best rating (מהודר gold, כשר cream, טעון תיקון soft), how many
 // times מהודר, its skill title (rate30's title30: מתחיל → רגיל → מיומן → מומחה) and how often; the laver's row (every morning); "שימשת N
 // בקרים". The percentages are gone (the save keeps them; they had time in them) ── /fable32 ──
@@ -26,13 +27,42 @@ import { canPractice31 } from './practice31.js';   // ── fable32 (build 31) 
 // (o.practice: (id) => the run) every role he has had in a real morning — the laver's row too — has "לתרגל" (≥ 44 px); a built role the
 // lot never gave him stays locked, "עוד לא יצא לך בפיס" (the lot is the key: practice never opens one); a role not built yet, "בקרוב";
 // mid-day (the day's summary) the book is read-only (no door; o.note31: where the doors are). bookHTML23 is the markup (tests) ── /fable32 ──
+// ── fable32 (build 36) ── each role's row shows its four levels (open; locked: "2 × מהודר ברמה N"), the one he plays, his mastery points
+// and the title by the level (svivat-avoda-he.md §4.1, §4.3); from the lobby (o.practice — never mid-day) a level button opens the
+// role's picker (o.lvPick: bookHTML23 draws the picker instead of the grid — book32.js keeps it). No pressure: nothing is lost by any
+// level, a level never goes down ── /fable32 ──
+const lvMarks36 = (r) => `<span class="l36m" aria-label="${esc(`${L36.word} ${r.pick} מתוך 4`)}">${r.lv.map((x) => `<i class="${x.open ? (x.L === r.pick ? 'on' : 'o') : 'lk'}">${x.open ? x.L : '🔒'}</i>`).join('')}</span>`;
+const lvRow36 = (save, id, o) => {
+  const r = row36(save, id);
+  return `<div class="l36">${lvMarks36(r)}<b class="pt">✦ ${r.pts}</b>${o.practice ? `<button type="button" class="l36b" data-l36="${id}" aria-label="בחירת רמה — ${esc(ACT36[id] || id)}">${L36.word} ${r.pick}</button>` : ''}</div>`;
+};
+const ACT36 = { kiyor: 'קידוש ידיים ורגליים', deshen: 'תרומת הדשן', m22: 'סידור המערכה', lamb: 'בדיקת הטלה', inner: 'דישון מזבח הפנימי', menorah: 'דישון המנורה', shochet: 'השחיטה', zorek: 'זריקת הדם' };
+const ICON36 = { kiyor: '💧', deshen: '🔥', m22: '🪵', lamb: '🐑', inner: '🥣', menorah: '🪔', shochet: '🔪', zorek: '🏺' };
+/** the level picker of a role (the roles book, from the lobby): its four levels — what each adds, its source or המחשה, his מהודר there;
+ *  open ones are buttons (≥ 52 px), a locked one says what opens it */
+export function pickHTML36(save, id) {
+  const r = row36(save, id),
+    T = LVL36[id] || [];
+  return `<div class="c l36p" role="dialog" aria-label="בחירת רמה"><div class="nv"><button type="button" class="l36x" data-l36x="1">› חזרה</button><h3>${ICON36[id] || ''} ${esc(ACT36[id] || id)} — ${L36.word}</h3><b class="pt">✦ ${r.pts} נקודות שליטה</b></div>
+    ${T.map((x, i) => {
+      const L = i + 1,
+        v = r.lv[i],
+        src = x.src ? x.src : 'המחשה',
+        mh = v.h ? `✦ מהודר ×${v.h}` : '';
+      return v.open
+        ? `<button type="button" class="l36o${L === r.pick ? ' on' : ''}" data-l36p="${id}:${L}"><b>${L36.word} ${L} · ${esc(x.he)}</b><span>${esc(x.add)}</span><small>${esc(src)}${mh ? ` · ${mh}` : ''}${L === r.pick ? ' · ✓ זו הרמה שלך' : ''}</small></button>`
+        : `<div class="l36o lk"><b>🔒 ${L36.word} ${L} · ${esc(x.he)}</b><span>${esc(x.add)}</span><small>נפתחת אחרי ${L36.need} × מהודר ב${L36.word} ${L - 1} (יש ${r.lv[i - 1].h | 0}) · ${esc(src)}</small></div>`;
+    }).join('')}
+    <small class="tl23">נקודות שליטה לכל פעולה, לפי הדירוג והרמה — מהודר ${PTS36.mehudar.join(' / ')} · כשר ${PTS36.kasher.join(' / ')} · טעון תיקון ${PTS36.tikkun.join(' / ')} (רמה 1 / 2 / 3 / 4); הן לא יורדות לעולם · ${esc(L36.draft)}</small></div>`;
+}
 export function bookHTML23(save, o = {}) {
+  if (o.lvPick && LVL36[o.lvPick]) return pickHTML36(save, o.lvPick);   // ── fable32 (build 36) ── ── /fable32 ──
   const can = (id) => !!o.practice && (o.can ? !!o.can(id) : canPractice31(save, id)),
     door = (id, he) => (can(id) ? `<button type="button" class="p31" data-p31="${id}" aria-label="לתרגל — ${esc(he)}">▶ לתרגל</button>` : ''),
     rate = (r) => (r ? `<b class="${r}">${RATE30.he[r]}</b>` : '<b>—</b>'),
     card = (a) =>
       a.open && a.had > 0
-        ? `<div class="q"><i>${a.icon}</i>${esc(a.he)}${rate(a.rate)}<small>${a.title ? `${esc(a.title)} · ` : ''}${a.h ? `מהודר ×${a.h} · ` : ''}${a.n} ${a.n === 1 ? 'פעם' : 'פעמים'}</small>${door(a.id, a.he)}</div>`
+        ? `<div class="q"><i>${a.icon}</i>${esc(a.he)}${rate(a.rate)}<small>${a.title ? `${esc(a.title)} · ` : ''}${a.h ? `מהודר ×${a.h} · ` : ''}${a.n} ${a.n === 1 ? 'פעם' : 'פעמים'}</small>${LVL36[a.id] ? lvRow36(save, a.id, o) : '' /* ── fable32 (build 36) ── */}${door(a.id, a.he)}</div>`
         : a.built
           ? `<div class="q lk"><i>${a.icon}</i>${esc(a.he)}<b>🔒</b><small>עוד לא יצא לך בפיס</small></div>`
           : `<div class="q lk sn"><i>${a.icon}</i>${esc(a.he)}<b>🔒</b><small>${a.lot === 2 ? 'כהנים אחרים — בקרוב' : 'בקרוב'}</small></div>`,
@@ -43,10 +73,10 @@ export function bookHTML23(save, o = {}) {
   // dialog, title and "סגור" (the journal has its tabs and its ✕) ── /fable32 ──
   return `<div class="c"${o.bare ? '' : ' role="dialog" aria-label="ספר התפקידים"'}>${o.bare ? '' : '<h2>🎭 ספר התפקידים</h2>'}${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<small>כל בוקר הממונה מפיס — כל תפקיד, הדירוג הטוב שלכם בו והתואר${o.practice ? ' · "לתרגל": אימון בתפקיד שכבר יצא לכם (המחשה)' : ''} · ${SRC_LOT}</small>${
     o.note31 && !o.practice ? '<div class="n31">לתרגל תפקיד — מספר התפקידים שבמסך הבית (המחשה)</div>' : ''
-  }${k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}${door('kiyor', 'קידוש ידיים ורגליים')}</div>` : ''}<div class="g">${bookOf23(save).map(card).join('')}</div>
+  }${k.best ? `<div class="kr">💧 קידוש ידיים ורגליים — כל בוקר: ${rate(k.best)}${k.h ? ` · מהודר ×${k.h}` : ''}${k.title ? ` · ${esc(k.title.he)}` : ''}${lvRow36(save, 'kiyor', o) /* ── fable32 (build 36) ── */}${door('kiyor', 'קידוש ידיים ורגליים')}</div>` : ''}<div class="g">${bookOf23(save).map(card).join('')}</div>
     <h4>הפיס השני — שלושה עשר תפקידים</h4><small>${SRC_LOT2}</small><div class="g g4">${bookOf23(save, POOL26)
       .map((a) => card({ ...a, lot: 2 }))
-      .join('')}</div><small class="tl23">התארים: מתחיל · רגיל (כשר פעמיים) · מיומן (מהודר 3 פעמים) · מומחה (מהודר 6 פעמים) — טיוטה</small>${o.bare ? '' : '<button type="button" data-p23="close">סגור</button>'}</div>`;
+      .join('')}</div><small class="tl23">התארים — לפי הרמה שבה הגעתם למהודר: מתחיל · רגיל (רמה 1) · מיומן (רמה 2) · מומחה (רמה 3) · אומן (רמה 4) — טיוטה · רמה חדשה נפתחת אחרי ${L36.need} × מהודר ברמה שלפניה; בוחרים בה כאן, ואפשר תמיד לחזור לרמה קלה יותר</small>${o.bare ? '' : '<button type="button" data-p23="close">סגור</button>'}</div>`;
 }
 export function rolesBook23(o = {}) {
   const doc = o.doc || (typeof document < 'u' ? document : null);
@@ -504,7 +534,7 @@ body.p23-on .gm .tw-pad,body.p23-on .f17-bar{opacity:0!important;pointer-events:
 .p23-bk .q b.mehudar{color:#FFD66E;text-shadow:0 0 10px rgba(255,214,110,.6)}.p23-bk .q b.kasher{color:#FFF6DA;font-size:20px}.p23-bk .q b.tikkun{color:#E6D9BE;font-size:16px}.p23-bk .sv{font:800 14px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk .kr{margin:6px auto 0;padding:4px 10px;border-radius:12px;background:#1C140A;border:1.5px solid #8A6A3A;font:800 13px/1.3 Heebo,system-ui,sans-serif;display:block;width:fit-content;max-width:100%;box-sizing:border-box}.p23-bk .kr b{color:#FFD66E}.p23-bk .kr b.kasher{color:#FFF6DA}.p23-bk .kr b.tikkun{color:#E6D9BE}.p23-bk .tl23{display:block;margin:4px 0 2px}
 .p23-bk button{min-height:52px;min-width:180px;border-radius:16px;border:2px solid #E2B65A;background:#FFECBE1F;color:#FFF6DA;font:900 18px/1 Heebo,system-ui,sans-serif;cursor:pointer}.p23-bk small{font-size:11px;opacity:.7}
 .p23-bk button.p31{display:block;width:100%;min-width:0;min-height:44px;margin-top:5px;padding:0 6px;border-radius:12px;border:2px solid #E2B65A;background:linear-gradient(180deg,#6A4C1C,#3A2A10);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;touch-action:manipulation}.p23-bk button.p31:active{transform:scale(.95)}
-.p23-bk .kr button.p31{display:inline-block;width:auto;min-width:96px;margin:0 8px 0 0;vertical-align:middle}.p23-bk .q.sn b{opacity:.6}.p23-bk .n31{margin:4px 0 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;color:#FFE6A0;opacity:.85}`;   /* ── fable32 (build 31) ── (the practice doors) ── /fable32 ── */
+.p23-bk .kr button.p31{display:inline-block;width:auto;min-width:96px;margin:0 8px 0 0;vertical-align:middle}.p23-bk .q.sn b{opacity:.6}.p23-bk .n31{margin:4px 0 0;font:700 12px/1.3 Heebo,system-ui,sans-serif;color:#FFE6A0;opacity:.85}.p23-bk .l36{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:4px}.p23-bk .l36m{display:inline-flex;gap:2px;direction:ltr}.p23-bk .l36m i{display:inline-block;min-width:16px;height:18px;padding:0 2px;border-radius:5px;font:900 11px/18px Heebo,system-ui,sans-serif;font-style:normal;background:#FFF6DA1A;color:#FFF6DA;filter:none}.p23-bk .l36m i.on{background:#FFD66E;color:#2A1804}.p23-bk .l36m i.lk{opacity:.5;font-size:9px}.p23-bk .l36 .pt{display:inline;font:900 12px/1 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk button.l36b{display:block;width:100%;min-width:0;min-height:44px;margin-top:4px;padding:0 6px;border-radius:12px;border:2px solid #C8923A;background:#2A1E0E;color:#FFE6A0;font:900 14px/1 Heebo,system-ui,sans-serif;touch-action:manipulation}.p23-bk .kr .l36{display:inline-flex;margin:0 6px}.p23-bk .kr button.l36b{display:inline-block;width:auto;min-width:88px;margin:0 4px}.p23-bk .l36p .nv{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}.p23-bk .l36p h3{margin:0;font:900 17px/1.2 Heebo,system-ui,sans-serif}.p23-bk .l36p .pt{font:900 13px/1.2 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk button.l36x{min-width:0;min-height:44px;padding:0 14px;font-size:15px}.p23-bk .l36o{display:block;width:100%;min-height:52px;box-sizing:border-box;margin:6px 0;padding:6px 12px;border-radius:14px;border:2px solid #C8923A;background:#1C140A;color:#FFF6DA;text-align:right;font:800 13px/1.3 Heebo,system-ui,sans-serif}button.l36o{cursor:pointer;touch-action:manipulation}.p23-bk .l36o.on{border-color:#FFD66E;box-shadow:0 0 0 2px #FFD66E55 inset;background:#3A2A10}.p23-bk .l36o b{display:block;font:900 15px/1.25 Heebo,system-ui,sans-serif;color:#FFE6A0}.p23-bk .l36o span{display:block}.p23-bk .l36o small{display:block;opacity:.75}.p23-bk .l36o.lk{border-style:dashed;border-color:#8A6A3A;color:#B8A88A}.p23-bk .l36o.lk b{color:#CDBB98}`;   /* ── fable32 (build 36) ── (the levels' row, the picker) ── /fable32 ── */   /* ── fable32 (build 31) ── (the practice doors) ── /fable32 ── */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 export const css23 = (doc) => css(doc);   // ── fable32 (build 32) ── (the journal's "תפקידים" tab draws the book with these styles) ── /fable32 ──
 const css = (doc) => {

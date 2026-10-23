@@ -186,7 +186,8 @@ test('build 31 (3): the role\'s record changes — n, best, its rating counts (�
   const R = practise('deshen', save); await begin(R, 'deshen'); await PLAY.deshen(R); await R.step(3);
   const d = save.roles23.deshen;
   assert.equal(d.n, 3); assert.equal(d.pr, 1); assert.deepEqual({ ...d.r30 }, { h: 3, k: 0, t: 0, best: 'mehudar' });
-  assert.equal(role30(d).title.he, 'מיומן', 'three times מהודר: מיומן');
+  // (build 36: the title is by the level — svivat-avoda-he.md §4.3 — three מהודר at level 1 is רגיל; build 30's counts made it מיומן)
+  assert.equal(role30(d).title.he, 'רגיל', 'three times מהודר at level 1: רגיל');
   assert.equal(snap(save), before, 'the saved day, the lot (m, h), roles26, served30, perutot, badges, the shop — as they were');
   assert.equal(JSON.stringify(Object.fromEntries(Object.entries(save.roles23).filter(([k]) => k !== 'deshen'))), others, 'every other role as it was');
   assert.equal(served30(save), 5); assert.equal(R.ev('p31rec').length, 1); assert.equal(R.ev('summary').length, 0);

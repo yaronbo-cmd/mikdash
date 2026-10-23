@@ -130,6 +130,9 @@ export function createHeichal26(o = {}) {
       order = sorted.map((p) => p.i);
       lamps = sorted.map((p) => ({ x: p.p.x, y: p.p.y, z: p.p.z }));
     } catch (e) {}
+  // ── fable32 (build 36) ── the menorah's level 4: a pan of coals from the outer altar by the stone ("מדליקו מעל מזבח העולה", תמיד ו, א —
+  // brought in: המחשה), the western lamp's fire dragged from it ── /fable32 ──
+  const PAN36 = { x: (lamps[5].x + lamps[6].x) / 2 + 0.45, y: lamps[5].y - 0.9, z: lamps[5].z - 0.4 };
   let litKey = '',
     doors = -1,
     setLamps = (lit) => {
@@ -240,8 +243,8 @@ export function createHeichal26(o = {}) {
         pulled: false,
       });
       if (p.ph === 'key' || p.ph === 'pour') E.r26hold(true);
-      if (p.ph === 'drag') {
-        const q = proj(lamps[5].x, lamps[5].y + 0.1, lamps[5].z);
+      if (p.ph === 'drag' || p.ph === 'altar') {   // ── fable32 (build 36) ── (level 4, the western lamp: the fire from the outer altar's pan — PAN36) ── /fable32 ──
+        const q = p.ph === 'altar' ? proj(PAN36.x, PAN36.y + 0.12, PAN36.z) : proj(lamps[5].x, lamps[5].y + 0.1, lamps[5].z);
         if (q) {
           dragFire.x = q.x;
           dragFire.y = q.y;
@@ -269,15 +272,17 @@ export function createHeichal26(o = {}) {
       p.pulled = true;
       E.r26pull(p.v);
     }
-    if (k && k.ph === 'drag' && Number.isFinite(dragFire.x)) {
+    if (k && (k.ph === 'drag' || k.ph === 'altar') && Number.isFinite(dragFire.x)) {
       dragFire.x += dx * 1.4;
       dragFire.y += dy * 1.4;
-      const q = proj(lamps[6].x, lamps[6].y + 0.05, lamps[6].z);
+      const tg = k.ph === 'altar' ? lamps[5] : lamps[6],   // ── fable32 (build 36) ── (the western lamp from the pan) ── /fable32 ──
+        q = proj(tg.x, tg.y + 0.05, tg.z);
       if (q && Math.hypot(q.x - dragFire.x, q.y - dragFire.y) < 16) {
-        E.r26light();
+        E.r26light(k.ph === 'altar' ? 'altar' : undefined);
         dragFire.x = NaN;
       }
     }
+    if (k && k.ph === 'teni36') E.r26bal((ev.clientX - p.x0) / 70);   // ── fable32 (build 36) ── (the teni held level by the right thumb's drag, as the ashes' pan) ── /fable32 ──
   });
   const up = (ev) => {
     const p = touches.get(ev.pointerId);
@@ -285,6 +290,7 @@ export function createHeichal26(o = {}) {
     touches.delete(ev.pointerId);
     const k = E.r26();
     if (!k) return;
+    if (k.ph === 'teni36') E.r26bal(null);   // ── fable32 (build 36) ── ── /fable32 ──
     if (k.ph === 'key' || k.ph === 'pour') {
       E.r26hold(false);
       return;
@@ -301,6 +307,7 @@ export function createHeichal26(o = {}) {
     } else if (k.ph === 'pull') {
       if (!p.pulled && d > 14) flash('משכו ארוך יותר ⬇');
     } else if (d < 16 && ms < 400 && !E.r26tap() && k.ph === 'drag') flash('גררו את האש מן הנר הדולק');
+    else if (d < 16 && ms < 400 && k.ph === 'altar') flash('גררו את האש מן המחתה — ממזבח העולה');   // ── fable32 (build 36) ── ── /fable32 ──
   };
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(type, up);
   let hp = { x: 0, y: 16, z: 0, yaw: 0 },
@@ -335,8 +342,8 @@ export function createHeichal26(o = {}) {
         } catch (e) {}
       }
     },
-    ACTIVE = /^(in|bolt|key|open|step|set|pull|leave|wick|wipe|pour|spill|new|drag|lit|kuz|kuzd)$/,
-    PAD_PH = /^(bolt|key|pull|wick|wipe|pour|new|drag|kuz)$/,
+    ACTIVE = /^(in|bolt|key|open|step|set|pull|leave|wick|wipe|pour|spill|new|drag|lit|kuz|kuzd|altar|lift36|teni36)$/,   // ── fable32 (build 36) ── (+ the levels' phases) ── /fable32 ──
+    PAD_PH = /^(bolt|key|pull|wick|wipe|pour|new|drag|kuz|altar|teni36)$/,
     VERB = {
       bolt: ['↔', 'sw', 'החליקו לרוחב'],
       key: ['🗝️', 'hd', 'החזיקו'],
@@ -482,7 +489,7 @@ export function createHeichal26(o = {}) {
           pourT = 0.08;
           snd('pour26', { f: 300 + 500 * Math.min(1, K.fill) });
         }
-        const nowBand = K.fill >= P26.pour.lo && K.fill <= P26.pour.hi;
+        const nowBand = K.fill >= ((K.P36 && K.P36.lo) || P26.pour.lo) && K.fill <= ((K.P36 && K.P36.hi) || P26.pour.hi);   // ── fable32 (build 36) ── (the band by the level) ── /fable32 ──
         if (nowBand && !inBand) {
           snd('bell26');
           buzz(25);
@@ -505,11 +512,17 @@ export function createHeichal26(o = {}) {
       if (live && K)
         if (ph === 'key') g = `<div class="k" style="background:conic-gradient(#FFD66E ${(K.kp * 360) | 0}deg,#2A1C10 0)">🗝️</div>המפתח`;
         else if (/^(set|pull|leave)$/.test(ph))
-          g = `🥣 בטני: <b>${Math.round((1 - K.ash) * 100)}%</b><div class="r"><i style="width:${Math.round((1 - K.ash) * 100)}%"></i></div>דיוק: <b>${K.acc}%</b><div class="r"><i style="width:${K.acc}%"></i></div><small>המחשה</small>`;
+          g = `🥣 בטני: <b>${Math.round((1 - K.ash) * 100)}%</b><div class="r"><i style="width:${Math.round((1 - K.ash) * 100)}%"></i></div>${K.P36 && K.P36.guide === 0 ? '' : `דיוק: <b>${K.acc}%</b><div class="r"><i style="width:${K.acc}%"></i></div>` /* ── fable32 (build 36) ── (level 3 on: no guide — the gauge keeps the teni's fill only) ── */}<small>המחשה</small>`;
+        else if (ph === 'lift36' || ph === 'teni36') {   // ── fable32 (build 36) ── (level 4: the teni carried out — its tilt; the coals fallen) ── /fable32 ──
+          const b = Math.max(-1, Math.min(1, K.b || 0)), lim = (K.P36 && K.P36.teni && K.P36.teni.lim) || 0.6;
+          g = `🥣 הטני — ישר<div class="r t36"><u style="left:${(50 - 50 * lim).toFixed(1)}%;width:${(100 * lim).toFixed(1)}%"></u><i style="left:${(50 + 50 * b).toFixed(1)}%"></i></div>${K.spills ? `נפלו ${K.spills}` : 'אף גחלת'}<small>המחשה</small>`;
+        }
         else if (ph === 'pour' || ph === 'spill') {
-          const f = Math.min(P26.pour.max, K.fill) / P26.pour.max;
-          g = `🏺 חצי לוג<div class="b"><u style="bottom:${((P26.pour.lo / P26.pour.max) * 100).toFixed(1)}%;height:${(((P26.pour.hi - P26.pour.lo) / P26.pour.max) * 100).toFixed(1)}%"></u><i style="height:${(f * 100).toFixed(1)}%"></i></div>${Math.round(K.fill * 100)}%<small>המחשה</small>`;
-        } else if (K.role === 'menorah' && /^(wick|wipe|new|drag|lit)$/.test(ph)) g = `🪔 נר ${K.li + 1}/${K.ord.length}`;
+          const f = Math.min(P26.pour.max, K.fill) / P26.pour.max,
+            lo = (K.P36 && K.P36.lo) || P26.pour.lo,
+            hi = (K.P36 && K.P36.hi) || P26.pour.hi;   // ── fable32 (build 36) ── (the band by the level) ── /fable32 ──
+          g = `🏺 חצי לוג<div class="b"><u style="bottom:${((lo / P26.pour.max) * 100).toFixed(1)}%;height:${(((hi - lo) / P26.pour.max) * 100).toFixed(1)}%"></u><i style="height:${(f * 100).toFixed(1)}%"></i></div>${Math.round(K.fill * 100)}%<small>המחשה</small>`;
+        } else if (K.role === 'menorah' && /^(wick|wipe|new|drag|lit|altar)$/.test(ph)) g = `🪔 נר ${K.li + 1}/${K.ord.length}`;
       if (g !== gaugeHtml) {
         gaugeHtml = g;
         put(gauge, g);
@@ -621,7 +634,9 @@ export function createHeichal26(o = {}) {
         const tool = role === 'inner' ? 'teni' : 'kuz',
           H = hero(),
           handL = H && (H.at('handslotl') || H.at('handl'));
-        if (role && (E.gate26() || (K && /^(in|bolt|key|open|walk|step)$/.test(ph))) && handL)
+        if (K && /^(lift36|teni36)$/.test(ph) && handL)   // ── fable32 (build 36) ── (level 4: the full teni in his hands, tilting as it tilts) ── /fable32 ──
+          teni(k, handL.x + 0.12 * (K.b || 0), handL.y - 0.3, handL.z, 1, 0.75);
+        else if (role && (E.gate26() || (K && /^(in|bolt|key|open|walk|step)$/.test(ph))) && handL)
           if (tool === 'teni') teni(k, handL.x, handL.y - 0.35, handL.z, 0, 0.75);
           else kuz(k, handL.x, handL.y - 0.3, handL.z, 0.8);
         if (role && (E.gate26() || K) && !(E.r26r() && E.r26r().day === st.day && !K)) {
@@ -707,7 +722,11 @@ export function createHeichal26(o = {}) {
             if (K.held) k.wc(lamp.x + 0.14, lamp.y + 0.12, lamp.z - 0.06, 0.012, 0.22, '!#F2C44A', { roll: 0.45 });
             if (ph === 'spill') k.wc(lamp.x, lamp.y - 0.25 * clamp01(since / 0.4), lamp.z, 0.05, 0.3 * clamp01(since / 0.4), '!#E8B848');
           }
-          if (/^(new|drag|lit)$/.test(ph)) k.wc(lamp.x, lamp.y + 0.03, lamp.z, 0.02, 0.09, '#F2EBDD');
+          if (/^(new|drag|lit|altar)$/.test(ph)) k.wc(lamp.x, lamp.y + 0.03, lamp.z, 0.02, 0.09, '#F2EBDD');
+          if (K.west && /^(wick|wipe|pour|new|altar)$/.test(ph) && K.ord[K.li] === 5) {   // ── fable32 (build 36) ── (the pan of the outer altar's coals by the stone — המחשה) ── /fable32 ──
+            k.ws(PAN36.x, PAN36.y, PAN36.z, 0.22, 0.06, 0.22, '#C9C2B4');
+            for (let i = 0; i < 6; i++) k.ws(PAN36.x + 0.1 * Math.cos(i + t), PAN36.y + 0.06, PAN36.z + 0.1 * Math.sin(i * 1.7), 0.05, 0.04 + 0.01 * Math.sin(t * 9 + i), 0.05, i & 1 ? '!#FF7A2A' : '!#FFC062');
+          }
           if (/^(wick|wipe|pour|new|drag)$/.test(ph)) {
             const r = (ph === 'drag' ? 0.3 : 0.22) * (1 + 0.12 * Math.sin(t * 6));
             for (let i = 0; i < 14; i++) {
@@ -992,5 +1011,5 @@ const CSS = `.hk26{position:fixed;z-index:32;direction:rtl;text-align:center;fon
 @keyframes hk26d{0%{transform:translateY(-24px);opacity:.3}70%{transform:translateY(22px);opacity:1}to{transform:translateY(26px);opacity:0}}@keyframes hk26h{50%{transform:scale(.82)}}
 .hk26-g{right:16px;top:96px;width:116px;z-index:31;padding:6px 6px 8px;border-radius:14px;background:#1C140AD8;border:1.5px solid #E2B65A;font-size:12px}.hk26-g .k{width:62px;height:62px;margin:4px auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px}
 .hk26-g .b{position:relative;height:118px;width:34px;margin:4px auto;border-radius:6px;background:#2A1C10;border:2px solid #8A6A3A;overflow:hidden}.hk26-g .b i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#FFE08A,#C8902E)}.hk26-g .b u{position:absolute;left:-2px;right:-2px;border:2px solid #FFF1B8;background:#FFD66E33;box-shadow:0 0 8px #FFD66E}
-.hk26-g .r{height:10px;border-radius:5px;background:#2A1C10;margin:4px 2px;overflow:hidden}.hk26-g .r i{display:block;height:100%;background:linear-gradient(90deg,#C8902E,#FFE08A)}.hk26-g.hot{border-color:#FFF1B8;box-shadow:0 0 14px #FFD66E}
+.hk26-g .r{height:10px;border-radius:5px;background:#2A1C10;margin:4px 2px;overflow:hidden}.hk26-g .r.t36{position:relative;height:14px;overflow:visible}.hk26-g .r.t36 u{position:absolute;top:0;bottom:0;background:#FFD66E33;border:1.5px solid #FFF1B8;border-radius:5px;box-sizing:border-box}.hk26-g .r.t36 i{position:absolute;top:-2px;width:6px;height:18px;margin-left:-3px;border-radius:3px;background:#FFE08A;box-shadow:0 0 6px #FFD66E}.hk26-g .r i{display:block;height:100%;background:linear-gradient(90deg,#C8902E,#FFE08A)}.hk26-g.hot{border-color:#FFF1B8;box-shadow:0 0 14px #FFD66E}
 .hk26-fl{left:0;top:0;z-index:33;font-size:34px;display:none}.hk26-fl.on{display:block}body.hk26-on .gm .tw-pad,body.hk26-on .f17-bar{opacity:0!important;pointer-events:none!important}`;

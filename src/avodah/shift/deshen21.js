@@ -168,6 +168,9 @@ export function createDeshen21(o = {}) {
     hint = mk('d21-h', ''),
     gauge = mk('d21-g', GAUGE),
     tapRing = mk('d21-r', '✋'),
+    // ── fable32 (build 36) ── level 2 on: the consumed inner coals glow on one side of the bed — the scoop goes toward them ("חתה מן
+    // המאוכלות הפנימיות", תמיד א, ד); a glow over the bed's side on the screen ── /fable32 ──
+    inner36 = mk('d21-in36', ''),
     doneEl = mk('d21-w', '');   // ── fable32 (build 30) ── (was "תרומת הדשן הושלמה!" — the step card's rating now) ── /fable32 ──
   tapRing.setAttribute('aria-hidden', 'true');
   const needle = gauge.querySelector('.nd'),
@@ -356,6 +359,12 @@ export function createDeshen21(o = {}) {
         needle.style.transform = `rotate(${((k.b || 0) * 90).toFixed(1)}deg)`;
         gauge.classList.toggle('hot', Math.abs(k.b || 0) > 0.65);
       }
+      {   // ── fable32 (build 36) ── (the inner coals' side while he scoops) ── /fable32 ──
+        const sd = ph === 'sweep' && k.side ? k.side[Math.min(k.n | 0, k.side.length - 1)] : 0,
+          p = sd ? proj(D21.bed.x, gy(D21.bed.x, D21.bed.z, 25) + 0.1, D21.bed.z) : null;
+        inner36.classList.toggle('on', !!p);
+        if (p) inner36.style.transform = `translate(${((p.x | 0) + sd * Math.min(110, (innerWidth || 640) * 0.14)) | 0}px,${p.y | 0}px)`;
+      }
       const tapOn = ph === 'foot' && !k.near;
       tapRing.classList.toggle('on', tapOn);
       if (tapOn) {
@@ -471,7 +480,7 @@ export function createDeshen21(o = {}) {
       else if (type === 'd21swipe') {
         if (!ev.ok) {
           snd('soft');
-          flash(ev.why === 'short' ? 'ארוך יותר ↔' : ev.why === 'slow' ? 'מהר יותר ↔' : 'לרוחב ↔');
+          flash(ev.why === 'outer' ? 'מן הפנימיות — אל הגחלים הלוחשות' /* ── fable32 (build 36) ── */ : ev.why === 'short' ? 'ארוך יותר ↔' : ev.why === 'slow' ? 'מהר יותר ↔' : 'לרוחב ↔');
           return;
         }
         stat.swipes++;
@@ -528,7 +537,7 @@ export function createDeshen21(o = {}) {
           if (H) H.hold21(null);
         } catch (e) {}
         if (scene) scene.remove(bed, pan, glow);
-        for (const el of [pad, hint, gauge, tapRing, doneEl, flashEl])
+        for (const el of [pad, hint, gauge, tapRing, doneEl, flashEl, inner36])
           try {
             el.remove();
           } catch (e) {}
@@ -561,6 +570,7 @@ const CSS = `.d21-in{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:30;t
 .d21-h,.d21-w,.d21-g,.d21-r,.d21-f{position:fixed;left:50%;pointer-events:none;direction:rtl;white-space:nowrap;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA}
 .d21-h{top:58px;transform:translateX(-50%);z-index:32;padding:5px 14px;border-radius:14px;background:#1C140ADB;border:1.5px solid #E2B65A;opacity:0}.d21-h.on,.d21-g.on{opacity:1}.d21-h small,.d21-w small{display:block;font-size:12px;opacity:.85}
 .d21-g{bottom:10px;left:auto;right:14px;z-index:31;width:170px;opacity:0;color:#FFE6A0;font-size:13px}.d21-g.hot{animation:d21k .25s infinite}.d21-g svg{width:100%;height:78px;overflow:visible;fill:none;stroke-width:9}
+.d21-in36{position:fixed;left:0;top:0;z-index:32;width:86px;height:46px;margin:-23px 0 0 -43px;border-radius:50%;background:radial-gradient(#FFF1B8 0,#FFB347 30%,#FF6A1A88 58%,transparent 72%);box-shadow:0 0 24px 10px #FF8A2E66;display:none;pointer-events:none;animation:d21p .7s infinite alternate}.d21-in36.on{display:block}
 .d21-r{left:0;top:0;z-index:33;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;border:4px solid #FFD66E;background:radial-gradient(#FFE6A0E6,#C8923AB3 62%,#5A3A0880);box-shadow:0 0 18px 6px #FFD66E99;font-size:34px;line-height:64px;display:none;pointer-events:none;animation:d21p .8s infinite alternate}
 .d21-w{top:38%;transform:translate(-50%,-50%);z-index:37;opacity:0;padding:12px 44px}.d21-w.on{animation:d21w 1.9s forwards}.d21-f{top:47%;transform:translateX(-50%);z-index:34;font-size:22px;color:#FFB04A;text-shadow:0 2px 3px #000;opacity:0}.d21-f.on{animation:d21w 1.2s forwards}.d21-w b{display:block;font-size:40px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608;text-shadow:0 0 20px #FFB04A}
 @keyframes d21p{to{scale:1.14}}@keyframes d21k{50%{translate:3px 0}}@keyframes d21w{0%{opacity:0;scale:.6}14%{opacity:1;scale:1.08}24%{scale:1}82%{opacity:1}to{opacity:0}}`;

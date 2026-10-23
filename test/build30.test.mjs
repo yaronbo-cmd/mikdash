@@ -114,7 +114,7 @@ test('build 30 (3): the shochet\'s morning — its rating, its coins, the day\'s
   const r = R.E.r26r(); assert.equal(r.role, 'shochet'); assert.equal(r.rating, 'mehudar'); assert.equal(r.coins, 3); assert.equal(r.mastery, 100);
   assert.deepEqual(R.E.r30day(), [['shochet', 'mehudar']]); assert.equal(R.save.served30, 1);
   assert.deepEqual({ ...R.save.roles23.shochet.r30 }, { h: 1, k: 0, t: 0, best: 'mehudar' });
-  const row = bookOf23(R.save, POOL26).find((a) => a.id === 'shochet'); assert.equal(row.rate, 'mehudar'); assert.equal(row.h, 1); assert.equal(row.title, 'מתחיל');
+  const row = bookOf23(R.save, POOL26).find((a) => a.id === 'shochet'); assert.equal(row.rate, 'mehudar'); assert.equal(row.h, 1); assert.equal(row.title, 'רגיל');   // (build 36: the title by the level — one מהודר at level 1 is רגיל; build 30's counts said מתחיל)
   assert.ok(R.ev('coins').some((e) => e.why === 'shochet' && e.n === 3));
   // the end: the rating in the step card, no act in progress
   assert.equal(R.E.act30(), false); assert.equal(R.E.word30().rating, 'mehudar'); assert.equal(R.E.step17().text, 'מהודר');

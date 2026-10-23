@@ -283,10 +283,12 @@ export function createPen25(o = {}) {
       shownL = L;
       if (!L || !scene) return;
       for (const sp2 of L.spots) {
-        const m = new THREE.Mesh(quad, decalMat(texOf(sp2.kind === 'blem' ? BLEM25.cats[sp2.c].id : sp2.d)));
+        // ── fable32 (build 36) ── the lamb's levels: a small blemish (level 2 on) drawn smaller; dirt that looks like a blemish (level 3 on —
+        // sp2.mimic: one of the blemishes' kinds) drawn with a blemish's mark — up close he brushes it, and then knows ── /fable32 ──
+        const m = new THREE.Mesh(quad, decalMat(texOf(sp2.kind === 'blem' ? BLEM25.cats[sp2.c].id : sp2.mimic != null ? BLEM25.cats[sp2.mimic % BLEM25.cats.length].id : sp2.d)));
         m.visible = false;
         scene.add(m);
-        spots.push({ m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) });
+        spots.push({ m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) * (sp2.small ? 0.62 : 1) });
       }
     },
     dark = mk('p25-dk'),
@@ -949,9 +951,16 @@ export function createPen25(o = {}) {
           snd('warn17');
           buzz([40, 30, 40]);
         } else if (ph === 'dirt') snd('soft');
-        else if (ph === 'bring') snd('bleat25');
+        else if (ph === 'bring') {
+          snd('bleat25');
+          if (ev.two && E.say30) E.say30('טלה שני להשוואה', 'info', 1.6);   // ── fable32 (build 36) ── (level 4: the second lamb — המחשה) ── /fable32 ──
+        }
       } else if (type === 'p25swipe')
-        if (ev.ok) {
+        if (ev.ok && ev.stays) {   // ── fable32 (build 36) ── (level 3 on: brushed, and it stays — a blemish) ── /fable32 ──
+          snd('warn17');
+          buzz([40, 30, 40]);
+          if (E.say30) E.say30('לא יורד — מום', 'no', 1.4);
+        } else if (ev.ok) {
           snd('whoosh');
           buzz(30);
         } else {

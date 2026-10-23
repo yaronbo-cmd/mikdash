@@ -42,6 +42,7 @@ import { canPractice31, practiceSave31, merge31, createPractice31 } from './prac
 import { resumeDay33 } from './day33.js';   // ── fable32 (build 31) ── (the practice's court: the day he goes on with) ── /fable32 ──
 import { openJournal32 } from './book32.js';   // ── fable32 (build 32) ── "יומן הכהן": one journal (the roles book, the Mishnah pages, the mornings, the badges) ── /fable32 ──
 import { jr32 } from './journal32.js';
+import { migrate36 } from './lvl36.js';   // ── fable32 (build 36) ── the four mastery levels (the roles book's choice; an older save made level-aware) ── /fable32 ──
 // ── fable32 (build 33) ── "הטלה המבוקר" (time-gating-hooks-he.md hook 1): the "מכאן" card's door to לשכת הטלאים — the chamber's run ── /fable32 ──
 import { L33, lb33, day33n, canInspect33, inspect33, stock33, settle33 } from './lamb33.js';
 import { createChamber33 } from './chamber33.js';
@@ -71,6 +72,7 @@ export function mountShift(o = {}) {
   const doc = typeof document !== 'undefined' ? document : null;
   const save = shiftSave(A);
   try { jr32(save); } catch (e) { /* */ }   // ── fable32 (build 32) ── (the journal made once: an older save's roles count as met — the lobby's door shows them) ── /fable32 ──
+  try { migrate36(save); } catch (e) { /* */ }   // ── fable32 (build 36) ── (the levels: an older save's roles made level-aware once — the roles book shows them) ── /fable32 ──
   let E = null, hud = null, mods = null, cardCtl = null, lvlNow = 1, runs = 0, startT = 0;
   evlog('app_open', { day: (save.day33state && save.day33state.day) || 0 });   // ── recovered (build 16) ──
   // ── fable32 (build 28) ── the shift is up (the lobby or the day): the old top bar off; the buzz's switch guards every vibrate ── /fable32 ──

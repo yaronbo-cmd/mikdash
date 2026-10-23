@@ -49,13 +49,17 @@ export const best30 = (a, b) => (!a ? b || null : !b ? a : RATE30.rank[a] >= RAT
 export function quality30(id, r) {
   if (!r) return 0;
   switch (id) {
+    // ── fable32 (build 36) ── each level's own measures join its act's (lvl36.js; a record without them — level 1, or before build 36 — is
+    // rated as it was): the laver's spills at level 4 count as lifts; the ashes' scoops from the outer side (level 2 on) and the heap
+    // beside its place (level 4); the pyre's logs laid outside the band (level 3 on); the inner altar's coals fallen from the teni (level 4);
+    // the menorah's fire taken from a lamp for the western one (level 4) ── /fable32 ──
     case 'kiyor':   // the hands held under the spigots: each time a thumb lifted mid-wash (build 20's "lifts")
-      return pick([1, 0.75, 0.6, 0.45], r.lifts);
+      return pick([1, 0.75, 0.6, 0.45], (r.lifts | 0) + (r.spills36 | 0));
     case 'deshen':   // the coals spilled on the way down (build 21)
-      return pick([1, 0.65, 0.35], r.embersSpilledCount);
+      return pick([1, 0.65, 0.35], r.embersSpilledCount) * pick([1, 0.8, 0.65, 0.5], r.outer36) * (r.off36 ? 0.8 : 1);
     case 'm22': {   // the unfit woods taken (the first morning's warned one not counted), the air between the logs, the wrong sizes laid
       const bad = Math.max(0, (r.invalidWoodSelectedCount | 0) - (r.warned | 0));
-      return clamp01((0.25 * pick([1, 0.5, 0], bad) + 0.3 * clamp01((+r.airflowQualityScore || 0) / 100) + 0.15 * pick([1, 0.5, 0], r.cracks)) / 0.7);
+      return clamp01((0.25 * pick([1, 0.5, 0], bad) + 0.3 * clamp01((+r.airflowQualityScore || 0) / 100) * pick([1, 0.6, 0.4, 0.25], r.airMiss36) + 0.15 * pick([1, 0.5, 0], r.cracks)) / 0.7);
     }
     case 'lamb':   // a blemished lamb approved −0.55 (טעון תיקון); a whole lamb rejected −0.2; dirt taken for a blemish −0.2
       return clamp01(1 - 0.55 * (r.falseApprovals | 0) - 0.2 * (r.wrongRejections | 0) - 0.2 * (r.dirtMistaken | 0));
@@ -65,11 +69,11 @@ export function quality30(id, r) {
       // older record with its accuracy only: (100 − accuracy) / 5 scratches of INNER31.pulls ── /fable32 ──
       const n = (r.pulls | 0) > 0 ? r.pulls | 0 : INNER31.pulls,
         s = r.scratches != null ? +r.scratches || 0 : (100 - (Number.isFinite(+r.accuracy) ? +r.accuracy : 0)) / INNER31.scr;
-      return clamp01(1 - s / n);
+      return clamp01((1 - s / n) * pick([1, 0.8, 0.6, 0.45], r.spills36));
     }
     case 'menorah': {   // the half-log poured into each lamp (under 0.8, over 0.45) and the wick's swipes refused
       const ref = r.refused | 0;
-      return clamp01((0.5 * clamp01(+r.pourQ || 0) + 0.2 * (ref ? (ref <= 2 ? 0.6 : 0.3) : 1)) / 0.7);
+      return clamp01(((0.5 * clamp01(+r.pourQ || 0) + 0.2 * (ref ? (ref <= 2 ? 0.6 : 0.3) : 1)) / 0.7) * pick([1, 0.8, 0.6], r.wrong36));
     }
     case 'shochet':   // the cut's taps outside the gold, the binding let go short
       return clamp01((0.5 * pick([1, 0.7, 0.45, 0.25], r.misses) + 0.2 * pick([1, 0.7, 0.4], r.rebinds)) / 0.7);
@@ -93,6 +97,25 @@ export function title30(h, k) {
   for (const x of RATE30.titles) if (h >= x.h && k >= x.k) t = x;
   return t;
 }
+// ── fable32 (build 36) ── the titles by the LEVEL (svivat-avoda-he.md §4.3: "נקבעים מהרמה שבה הגיע למהודר, לא רק מספירה"): the highest
+// level at which the role was מהודר — none מתחיל · 1 רגיל · 2 מיומן · 3 מומחה · 4 אומן (draft names; the first four are build 30's own
+// objects, so a title reads the same everywhere). An older save keeps the title build 30's counts gave it (l36.keep — no title goes
+// down); a record not yet level-aware (lvl36.js's ensure36 makes it so) reads its counts as level 1's ── /fable32 ──
+export const TITLE36 = Object.freeze([...RATE30.titles, Object.freeze({ id: 'master', he: 'אומן', k: 0, h: 0 })]);
+export function titleLv36(a) {
+  if (!a || typeof a !== 'object') return TITLE36[0];
+  const l = a.l36 && typeof a.l36 === 'object' && a.l36.c && typeof a.l36.c === 'object' ? a.l36 : null;
+  let top = 0;
+  if (l) for (let L = 1; L <= 4; L++) if (((l.c[L] || {}).h | 0) > 0) top = L;
+  if (!l && ((a.r30 && a.r30.h) | 0) > 0) top = 1;
+  const keepId = l ? l.keep : (() => {
+      const c = counts30(a.r30),
+        old = Math.max(0, (a.n | 0) - c.h - c.k - c.t);
+      return title30(c.h, c.h + c.k + (old > 0 && (+a.best || 0) >= 50 ? old : 0)).id;
+    })(),
+    keep = Math.max(0, TITLE36.findIndex((x) => x.id === keepId));
+  return TITLE36[Math.max(top, keep)];
+}
 /** a roles-book row: { best (the best rating), h (מהודר times), title } from the save's entry { n, best, last, r30 } — a play before
  *  build 30 (in n, not in r30) counts as כשר when its best was ≥ 50 % (its mastery had time in it, so never as מהודר); its best rating
  *  from the old best % (not rewritten) */
@@ -102,7 +125,7 @@ export function role30(a) {
     old = Math.max(0, (a.n | 0) - c.h - c.k - c.t),
     oldBest = old > 0 || !a.r30 ? rate30((+a.best || 0) / 100) : null,
     k = c.h + c.k + (old > 0 && (+a.best || 0) >= 50 ? old : 0);
-  return { best: best30(c.best, oldBest), h: c.h, k, title: title30(c.h, k) };
+  return { best: best30(c.best, oldBest), h: c.h, k, title: titleLv36(a) };   // ── fable32 (build 36) ── (the title by the level — titleLv36; was title30(c.h, k)) ── /fable32 ──
 }
 /** the mornings served: build 30's count (save.served30), or for an older save the second lots held (roles26.m — a morning's last role) */
 export function served30(save) {
@@ -120,10 +143,10 @@ export const LINE30 = Object.freeze({
   lot: Object.freeze({ raise: 'החליקו למעלה ☝', count: 'הממונה סופר', show: 'הפיס' }),
   deshen: Object.freeze({ in: 'החליקו הילך והילך', sweep: 'החליקו הילך והילך', full: 'אזנו את המחתה', walk: 'אזנו את המחתה', desc: 'אזנו את המחתה', turn: 'לטבעת הזהב', foot: 'לטבעת הזהב', near: 'הקישו — צברו', go: 'צברו את הגחלים', pour: 'צברו את הגחלים' }),
   // (the pyre: l1–l3 the lot's four logs, L1–L3 the six of build 22; the first morning's sort says which woods go left — the names: the end's card)
-  m22: Object.freeze({ in: 'כשר ימינה · פסול שמאלה', sort: 'כשר ימינה · פסול שמאלה', first: 'זית, גפן, מתולע — שמאלה', sorted: 'הגזרים מוכנים', carry: 'העלו למזבח', log: 'הרימו את הגזר' /* ── fable32 (build 35) ── (the run inside the role: a log dropped) ── /fable32 ── */, stackIn: 'שני עבים לבסיס', l1: 'שני עבים לבסיס', l2: 'בינוני לרוחבם', l3: 'דק במרכז', L1: 'עבים לבסיס', L2: 'בינוניים לרוחב', L3: 'דקים במרכז', ready: 'הציתו — הקישו', ignite: 'המערכה בוערת' }),
+  m22: Object.freeze({ in: 'כשר ימינה · פסול שמאלה', sort: 'כשר ימינה · פסול שמאלה', first: 'זית, גפן, מתולע — שמאלה', sorted: 'הגזרים מוכנים', carry: 'העלו למזבח', log: 'הרימו את הגזר' /* ── fable32 (build 35) ── (the run inside the role: a log dropped) ── /fable32 ── */, stackIn: 'שני עבים לבסיס', l1: 'שני עבים לבסיס', l2: 'בינוני לרוחבם', l3: 'דק במרכז', L1: 'עבים לבסיס', L2: 'בינוניים לרוחב', L3: 'דקים במרכז', s2: 'המערכה השנייה — שניים' /* ── fable32 (build 36) ── (the maaracha's level 4) ── /fable32 ── */, ready: 'הציתו — הקישו', ignite: 'המערכה בוערת' }),
   lamb: Object.freeze({ in: 'בדקו את הטלה', scan: 'האירו ומצאו כתם', zoom: 'מקרוב', dirt: 'החליקו להבריש', clean: 'נקי ✓', blem: 'יש בו מום', aside: 'הוצא לצד', wait: 'הביאו טלה חדש', bring: 'טלה חדש', false: 'עיכוב — יש בו מום', ok: 'תמים לקרבן' }),
-  inner: Object.freeze({ in: 'העבירו את הנגר', bolt: 'העבירו את הנגר', key: 'סובבו את המפתח', open: 'השער הגדול נפתח', walk: 'אל מזבח הזהב', step: 'הטני לפניכם', set: 'הטני לפניכם', pull: 'חפנו את הדשן — לאט', leave: 'הניחו וצאו' }),
-  menorah: Object.freeze({ in: 'העבירו את הנגר', bolt: 'העבירו את הנגר', key: 'סובבו את המפתח', open: 'השער הגדול נפתח', walk: 'אל המנורה', step: 'עלו על האבן', wick: 'הוציאו את הפתילה', wick2: 'הוציאו וקנחו', wipe: 'קנחו את הנר', pour: 'עד הפס הזהוב', spill: 'נשפך — שוב', new: 'פתילה חדשה — הקישו', drag: 'גררו את האש', lit: 'הנר דולק', kuz: 'הכוז על המעלה', kuzd: 'הכוז על המעלה' }),
+  inner: Object.freeze({ in: 'העבירו את הנגר', bolt: 'העבירו את הנגר', key: 'סובבו את המפתח', open: 'השער הגדול נפתח', walk: 'אל מזבח הזהב', step: 'הטני לפניכם', set: 'הטני לפניכם', pull: 'חפנו את הדשן — לאט', leave: 'הניחו וצאו', lift36: 'נטלו את הטני', teni36: 'הטני ישר — החוצה' /* ── fable32 (build 36) ── (level 4: the teni out) ── /fable32 ── */ }),
+  menorah: Object.freeze({ in: 'העבירו את הנגר', bolt: 'העבירו את הנגר', key: 'סובבו את המפתח', open: 'השער הגדול נפתח', walk: 'אל המנורה', step: 'עלו על האבן', wick: 'הוציאו את הפתילה', wick2: 'הוציאו וקנחו', wipe: 'קנחו את הנר', pour: 'עד הפס הזהוב', spill: 'נשפך — שוב', new: 'פתילה חדשה — הקישו', drag: 'גררו את האש', lit: 'הנר דולק', kuz: 'הכוז על המעלה', kuzd: 'הכוז על המעלה', altar: 'אש ממזבח העולה' /* ── fable32 (build 36) ── (level 4: the western lamp) ── /fable32 ── */ }),
   shochet: Object.freeze({ in: 'אל הטלה', bind: 'גררו: יד ורגל', bound: 'עקוד — ראשו לדרום', wait: 'המתינו לקול השער', cut: 'שחטו בזהב', cutd: 'וקבל המקבל' }),
   zorek: Object.freeze({ in: 'אל המזרק', wait: 'המתינו לקול השער', waitOpen: 'השוחט עומד לשחוט', cut: 'שחט השוחט', recv: 'המזרק תחת הזרם', full: 'המזרק מלא', carry: 'לקרן מזרחית צפונית ⟳', hold: 'מרסו — חמש נרות קודם', aim: 'זרקו מתחת לחוט', splash: 'ניתנה מתנה', carry2: 'לקרן מערבית דרומית ⟳', aim2: 'זרקו מתחת לחוט', splash2: 'ניתנה מתנה', base: 'שפכו על היסוד', poured: 'שירי הדם ליסוד' }),
 });

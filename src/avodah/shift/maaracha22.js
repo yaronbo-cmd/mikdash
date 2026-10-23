@@ -275,10 +275,13 @@ export function createMaaracha22(o = {}) {
           return 25;
         }
       })()),
-    layerY = (ly) => topY() + (ly === 1 ? RAD.L : ly === 2 ? 2 * RAD.L + RAD.M : 2 * (RAD.L + RAD.M) + RAD.S),
+    layerY = (ly) => topY() + (ly === 4 ? RAD.M : ly === 1 ? RAD.L : ly === 2 ? 2 * RAD.L + RAD.M : 2 * (RAD.L + RAD.M) + RAD.S),   // ── fable32 (build 36) ── (ly 4: the second pyre's logs, on the top) ── /fable32 ──
     spot = (L) => {
       const ly = L.at.ly,
         cross = ly === 3 && L.at.x > 0;
+      // ── fable32 (build 36) ── the second pyre, of the incense (the maaracha's level 4; "וסדרו מערכה שניה של קטרת", תמיד ב, ה): two fig
+      // logs side by side, south-west of the big one (S2X, S2Z — nearer than the mishnah's place, so it is in the frame: המחשה) ── /fable32 ──
+      if (ly === 4) return { x: PX + S2X, y: layerY(4), z: PZ + S2Z + L.at.x, w: 0 };
       return {
         x: PX + (ly === 2 ? L.at.x : 0),
         y: layerY(ly) + (cross ? RAD.S * 1.7 : 0),
@@ -330,7 +333,7 @@ export function createMaaracha22(o = {}) {
     },
     stickUse = (x, y) => {
       const k = E.m22(),
-        dir = k && k.ph === 'stack' && rowDir(Math.min(2, k.layer));
+        dir = k && k.ph === 'stack' && rowDir(k.layer === 4 ? 1 : Math.min(2, k.layer));   // ── fable32 (build 36) ── (the second pyre's row: as the base's) ── /fable32 ──
       E.m22stick(dir ? x * dir.x - y * dir.y : 0);
     };
   stickUse.m22 = 1;
@@ -576,7 +579,8 @@ export function createMaaracha22(o = {}) {
     dots = (k, ly, y, off, color, r, dy) => {
       for (let i = -4; i <= 4; i++) {
         const s = i * 0.36;
-        k.ws(PX + (ly === 2 ? off : s), y + dy(i), PZ + (ly === 1 ? off : s), r, r, r, color);
+        if (ly === 4) k.ws(PX + S2X + s * 0.6, y + dy(i), PZ + S2Z + off, r, r, r, color);   // ── fable32 (build 36) ── ── /fable32 ──
+        else k.ws(PX + (ly === 2 ? off : s), y + dy(i), PZ + (ly === 1 ? off : s), r, r, r, color);
       }
     },
     offDraw = addDrawer(
@@ -642,7 +646,7 @@ export function createMaaracha22(o = {}) {
             m.got.forEach((L) => {
               if (!L.at) return;
               const sp = spot(L),
-                half = (LEN[L.size] / 2) * Math.min(1, u * [1.1, 1.6, 3][L.at.ly - 1]);
+                half = (LEN[L.size] / 2) * Math.min(1, u * [1.1, 1.6, 3, 1.6][L.at.ly - 1]);
               for (let i = -3; i <= 3; i += 2) {
                 const off = (i / 3) * half,
                   h = (0.3 + 0.14 * Math.sin(tt * (9 + i) + i * 2)) * (1.2 - Math.abs(i) / 8);
@@ -776,7 +780,7 @@ export function createMaaracha22(o = {}) {
         const sp = spot(L);
         return proj(sp.x, sp.y, sp.z);
       },
-      row: (ly, x = 0) => proj(PX + (ly === 2 ? x : 0), layerY(Math.min(ly, 2)), PZ + (ly === 1 ? x : 0)),
+      row: (ly, x = 0) => (ly === 4 ? proj(PX + S2X, layerY(4), PZ + S2Z + x) : proj(PX + (ly === 2 ? x : 0), layerY(Math.min(ly, 2)), PZ + (ly === 1 ? x : 0))),
       rowS: rowDir,
     };
   try {
@@ -810,6 +814,8 @@ const END_COLOR = { fig: '#E6D6B4', walnut: '#B98F66', pine: '#EAB27A', olive: '
 const SHOW_K = { L: 0.55, M: 0.62, S: 0.85 };
 const { r: RAD, len: LEN } = M22;
 const PX = M22.pyre.x;
+const S2X = -2.4,
+  S2Z = 2.2;   // ── fable32 (build 36) ── (the second pyre's offset from the big one, amot) ── /fable32 ──
 const PZ = M22.pyre.z;
 const HALF_PI = Math.PI / 2;
 const rand = Math.random;

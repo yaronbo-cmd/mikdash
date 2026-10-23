@@ -23,6 +23,8 @@ import { BADGES33 } from './day33.js';
 import { where29, clock29 } from './time29.js';
 import { lambsTab33, css33 } from './chamber33.js';   // ── fable32 (build 33) ── the hook's tab: "הטלאים שבדקתי" ── /fable32 ──
 import { day33n, L33 } from './lamb33.js';
+import { pick36, pages36, LVL36, SRC36, L36, ROLES36 } from './lvl36.js';   // ── fable32 (build 36) ── the levels: the roles book's choice, the mastery pages ── /fable32 ──
+import { TITLE36 } from './rate30.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 // (every class under .j32 / .j32-u; the close button is .j32x — page.html's global .x is absolutely placed)
@@ -96,7 +98,7 @@ const tz32 = () => {
 };
 // ── the tabs' pages ──
 function rolesTab(save, o) {
-  return `<div class="p23-bk">${bookHTML23(save, { practice: o.practice || null, can: o.can, note31: !o.practice && o.note31, bare: true })}</div>`;
+  return `<div class="p23-bk">${bookHTML23(save, { practice: o.practice || null, can: o.can, note31: !o.practice && o.note31, bare: true, lvPick: o.practice ? o.lvPick : null /* ── fable32 (build 36) ── (the level picker, from the lobby only) ── /fable32 ── */ })}</div>`;
 }
 /** the list of pages (or today's) as tiles — or one page open */
 function mishnaTab(save, o) {
@@ -137,10 +139,42 @@ function morningsTab(save) {
     ${older ? `<small class="old">ועוד ${older === 1 ? 'בוקר אחד' : `${older} בקרים`} מלפני היומן</small>` : ''}${!log.length && !older ? '<p class="emp">כאן יירשם כל בוקר שתשמשו</p>' : ''}
     <small class="dr">התאריך העברי — לפי השקיעה במקום הטלפון · טיוטה</small>`;
 }
-function badgesTab(save) {
+// ── fable32 (build 36) ── the mastery pages (svivat-avoda-he.md §4.3–§4.4): a page for every title he rose to (the role's own source with
+// it), a page for every "בוקר מהודר", and the badge "כל הרמות" — at the top of the badges' tab; a page opens by its key (o.m36) ── /fable32 ──
+const key36 = (p) => (p.k === 'title' ? `title:${p.id}:${p.ti}` : `boker:${p.d}`);
+const ti36 = (id) => TITLE36.find((x) => x.id === id) || TITLE36[0];
+function page36(save, p) {
+  const A = actOf(p.id),
+    when = p.d ? `נכנס ליומן ביום ${p.d}` : 'נכנס ליומן';
+  if (p.k === 'title') {
+    const mp = mainPage32(p.id),
+      lv = (LVL36[p.id] || [])[Math.max(0, (p.lv | 0) - 1)];
+    return `<div class="pg j36" data-key="${esc(key36(p))}"><div class="nv"><button type="button" data-j36="list">› דפי השליטה</button><span class="ac">${esc(A.icon)} ${esc(A.he)}</span></div>
+      <div class="hl36">🏅 תואר חדש: ${esc(ti36(p.ti).he)}</div><div class="ld">מהודר ב${esc(L36.word)} ${p.lv | 0}${lv ? ` — ${esc(lv.he)}` : ''}</div>
+      ${mp ? `<blockquote>״${esc(mp.quote)}״</blockquote><div class="rf">${esc(mp.ref)}<span class="tt">טיוטה</span></div>` : ''}
+      <div class="mt">${esc(when)}${p.pr ? ' · באימון (המחשה)' : ''}</div><small class="dr">התארים — לפי הרמה שבה הגעתם למהודר: ${TITLE36.slice(1).map((t, i) => `${t.he} (${i + 1})`).join(' · ')} · טיוטה</small></div>`;
+  }
+  const [q, ref] = SRC36.boker.replace(/ · טיוטה$/, '').split(' — ');
+  return `<div class="pg j36" data-key="${esc(key36(p))}"><div class="nv"><button type="button" data-j36="list">› דפי השליטה</button><span class="ac">🌅 בוקר מהודר</span></div>
+    <div class="hl36">🌅 בוקר מהודר — יום ${p.d | 0}</div><div class="mr">${(p.acts || []).map(([id, r, L]) => `<i>${esc(actOf(id).icon)} ${esc(actOf(id).he)}<b class="${esc(r)}">${RATE30.icon[r] || ''} ${esc(RATE30.he[r] || '')} · ${esc(L36.word)} ${L | 0}</b></i>`).join('')}</div>
+    <blockquote>${esc(q.replace(/^"|"$/g, ''))}</blockquote><div class="rf">${esc(ref || '')}<span class="tt">טיוטה</span></div>
+    <div class="mt">כל העבודות שלכם באותו בוקר — מהודר, ברמה 3 ומעלה · אתגר רשות: אין רצף ואין מה להפסיד</div></div>`;
+}
+function mastery36(save, o) {
+  const P = pages36(save),
+    open = o.m36 ? P.pages.find((p) => key36(p) === o.m36) : null;
+  if (open) return page36(save, open);
+  const all = P.all,
+    [aq, aref] = SRC36.all.replace(/ · טיוטה$/, '').split(' — ');
+  return `<h3>🏆 דפי השליטה</h3><div class="bg">${P.pages
+    .map((p) => `<button type="button" class="b on j36t" data-j36="${esc(key36(p))}"><i>${p.k === 'title' ? esc(actOf(p.id).icon) : '🌅'}</i><span><b>${p.k === 'title' ? `תואר חדש: ${esc(ti36(p.ti).he)} · ${esc(actOf(p.id).he)}` : `בוקר מהודר — יום ${p.d | 0}`}</b><small>${p.k === 'title' ? `מהודר ב${esc(L36.word)} ${p.lv | 0}` : 'כל העבודות מהודר, ברמה 3 ומעלה'}${p.d ? ` · יום ${p.d}` : ''}</small></span></button>`)
+    .join('')}<div class="b${all ? ' on' : ''}"><i>${all ? '🏅' : '📜'}</i><span><b>כל הרמות</b><small>${all ? `מהודר ברמה 4 בכל תפקיד בנוי · ${esc(aq)} — ${esc(aref)} · טיוטה` : `מהודר ברמה 4 בכל אחד מ-${ROLES36.length} התפקידים הבנויים — אתגר רשות`}</small></span></div></div>${P.pages.length ? '' : '<p class="emp">כאן ייכנס דף לכל תואר חדש ולכל "בוקר מהודר"</p>'}`;
+}
+function badgesTab(save, o = {}) {
   const cl = save.badges33 && typeof save.badges33 === 'object' ? save.badges33 : {},
     bd = BADGES33.filter((b) => cl[b.id]).length;
-  return `<div class="ct"><b>🏅 ${bd}/${BADGES33.length} אותות</b><small>מה שעשיתם בעזרה נרשם; את הפרוטות גובים בלילה, בבית המוקד (המחשה: לוח המתגים)</small></div>
+  if (o.m36) return mastery36(save, o);   // ── fable32 (build 36) ── (a mastery page open) ── /fable32 ──
+  return `${mastery36(save, o)}<div class="ct"><b>🏅 ${bd}/${BADGES33.length} אותות</b><small>מה שעשיתם בעזרה נרשם; את הפרוטות גובים בלילה, בבית המוקד (המחשה: לוח המתגים)</small></div>
     <div class="bg">${BADGES33.map((b) => `<div class="b${cl[b.id] ? ' on' : ''}"><i>${cl[b.id] ? '✅' : '📜'}</i><span><b>${esc(b.text)}</b><small>${cl[b.id] ? 'שלכם' : `+${b.pay | 0} פרוטות — נרשם בעזרה, נגבה בלילה בבית המוקד`}</small></span></div>`).join('')}</div><small class="dr">טיוטה</small>`;
 }
 // ── fable32 (build 33) ── the first hook's tab (time-gating-hooks-he.md hook 1): his lambs — inspected, ready, offered — and the sources ── /fable32 ──
@@ -173,7 +207,7 @@ export function openJournal32(o = {}) {
     doc.querySelectorAll('.j32').forEach((x) => (x.__j32 ? x.__j32.close(true) : x.remove()));
   } catch (e) {}
   jr32(save);
-  const st = { tab: o.page ? 'mishna' : o.tab || 'roles', page: o.page || null, act: o.act || null, today: Array.isArray(o.today) ? o.today.slice() : null, top: 0 },
+  const st = { tab: o.page ? 'mishna' : o.tab || 'roles', page: o.page || null, act: o.act || null, today: Array.isArray(o.today) ? o.today.slice() : null, top: 0, lv: null, m36: o.m36 || null /* ── fable32 (build 36) ── (the level picker's role; a mastery page) ── /fable32 ── */ },
     el = doc.createElement('div'),
     snd = (n) => {
       try {
@@ -191,7 +225,7 @@ export function openJournal32(o = {}) {
     const bd0 = el.querySelector('.bd'),
       keep = bd0 && !st.page ? bd0.scrollTop : 0;
     if (st.page && seen32(save, st.page)) persist();   // (a page opened: no longer "חדש")
-    el.innerHTML = journalHTML32(save, { ...o, tab: st.tab, page: st.page, act: st.act, today: st.today });
+    el.innerHTML = journalHTML32(save, { ...o, tab: st.tab, page: st.page, act: st.act, today: st.today, lvPick: st.lv, m36: st.m36 });
     const bd = el.querySelector('.bd');
     if (bd) bd.scrollTop = st.page ? 0 : st.top || keep || 0;
     try {
@@ -237,7 +271,18 @@ export function openJournal32(o = {}) {
       return;
     }
     snd('ui');
-    if (d.j32t) return void ((st.tab = d.j32t), (st.page = null), (st.top = 0), render());
+    // ── fable32 (build 36) ── the level picker (the roles tab, from the lobby): open it, choose (pick36 — an open level only; saved), back;
+    // the mastery pages (the badges' tab) ── /fable32 ──
+    if (d.l36) return void ((st.lv = d.l36), render());
+    if (d.l36x) return void ((st.lv = null), render());
+    if (d.l36p) {
+      const [id, L] = d.l36p.split(':');
+      if (pick36(save, id, +L)) persist();
+      st.lv = null;
+      return void render();
+    }
+    if (d.j36) return void ((st.m36 = d.j36 === 'list' ? null : d.j36), render());
+    if (d.j32t) return void ((st.tab = d.j32t), (st.page = null), (st.top = 0), (st.lv = null), (st.m36 = null), render());
     if (d.j32p) {
       const bd = el.querySelector('.bd');
       st.top = bd ? bd.scrollTop : 0;
@@ -273,6 +318,7 @@ export function openJournal32(o = {}) {
 /** the card: "עמוד חדש ביומן: ‹התפקיד›" (or, the first morning ever, "היומן שלך נפתח" and its first page), the role's main source
  *  line, the count, "לפתוח ביומן" and "המשך" */
 export function unlockHTML32(o = {}) {
+  if (o.kind) return unlock36(o);   // ── fable32 (build 36) ── (the levels' card) ── /fable32 ──
   const A = actOf(o.id),
     p = mainPage32(o.id),
     c = o.save ? count32(o.save) : null;
@@ -282,6 +328,24 @@ export function unlockHTML32(o = {}) {
     ${c ? `<div class="ct">📜 ${c.n} מתוך ${c.m} משניות ביומן שלך</div>` : ''}
     <p class="ex">${o.hello ? 'כל עבודה שתעשו נרשמת ביומן הכהן — וכל תפקיד חדש שיעלה לכם בפיס מוסיף עמוד עם המשנה שלו' : 'הפעם הראשונה שהפיס נתן לך את התפקיד הזה — המשנה שלו ביומן'}</p>
     <div class="bt"><button type="button" class="op" data-j32u="open">📖 לפתוח ביומן</button><button type="button" class="go" data-j32u="go">המשך</button></div><small>טיוטה · המחשה</small></div>`;
+}
+// ── fable32 (build 36) ── the levels' card (day33's l36Step: a title risen to and/or a level opened; "בוקר מהודר"): what happened, the
+// role's source, "לפתוח ביומן" (the badges' tab on its page — or, for a level only, the roles book read-only) and "המשך"; no countdown,
+// nothing lost by "המשך" ── /fable32 ──
+function unlock36(o) {
+  const A = actOf(o.id),
+    mp = o.kind === 'l36' ? mainPage32(o.id) : null;
+  if (o.kind === 'boker36') {
+    const [q, ref] = SRC36.boker.replace(/ · טיוטה$/, '').split(' — ');
+    return `<div class="c" role="dialog" aria-label="בוקר מהודר"><div class="hl">🌅 בוקר מהודר</div><h2>עמוד חדש ביומן: בוקר מהודר</h2><blockquote>${esc(q.replace(/^"|"$/g, ''))}</blockquote><div class="rf">${esc(ref || '')} · טיוטה</div><p class="ex">כל העבודות שלכם הבוקר — מהודר, ברמה 3 ומעלה. אתגר רשות: אין רצף ואין מה להפסיד</p><div class="bt"><button type="button" class="op" data-j32u="open">📖 לפתוח ביומן</button><button type="button" class="go" data-j32u="go">המשך</button></div><small>טיוטה · המחשה</small></div>`;
+  }
+  const ti = o.ti ? TITLE36.find((x) => x.id === o.ti) : null,
+    lv = o.opened ? (LVL36[o.id] || [])[o.opened - 1] : null;
+  return `<div class="c" role="dialog" aria-label="${ti ? 'תואר חדש' : 'רמה חדשה'}">${ti ? `<div class="hl">🏅 תואר חדש: ${esc(ti.he)}</div>` : `<div class="hl">✦ ${esc(L36.word)} ${o.opened} נפתחה</div>`}
+    <h2>${esc(A.icon)} ${esc(A.he)}${ti ? ` — מהודר ב${esc(L36.word)} ${o.lv | 0}` : ''}</h2>
+    ${mp ? `<blockquote>״${esc(mp.quote)}״</blockquote><div class="rf">${esc(mp.ref)} · טיוטה</div>` : ''}
+    ${lv ? `<div class="ct">${ti ? `ו${esc(L36.word)} ${o.opened} נפתחה: ` : ''}${esc(lv.he)} — ${esc(lv.add)}</div><p class="ex">אפשר לבחור בה בספר התפקידים — או להישאר ברמה שלכם; שום דבר לא יורד</p>` : '<p class="ex">עמוד חדש ביומן הכהן — דפי השליטה</p>'}
+    <div class="bt"><button type="button" class="op" data-j32u="open">📖 לפתוח ביומן</button><button type="button" class="go" data-j32u="go">המשך</button></div><small>${esc(L36.draft)} · המחשה</small></div>`;
 }
 export function createUnlock32(o = {}) {
   const E = o.E,
@@ -316,11 +380,11 @@ export function createUnlock32(o = {}) {
   function show(ev) {
     if (card || gone) return;
     stat.cards++;
-    stat.last = { id: ev.id, hello: !!ev.hello };
-    stat.ids.push(ev.id);
+    stat.last = { id: ev.id, hello: !!ev.hello, ...(ev.kind ? { kind: ev.kind, ti: ev.ti || null, lv: ev.lv | 0, opened: ev.opened | 0 } : {}) };
+    stat.ids.push(ev.kind ? `${ev.kind}:${ev.id}` : ev.id);
     card = doc.createElement('div');
     card.className = 'j32-u';
-    card.innerHTML = unlockHTML32({ id: ev.id, hello: ev.hello, save: saveOf() });
+    card.innerHTML = unlockHTML32({ id: ev.id, hello: ev.hello, save: saveOf(), kind: ev.kind || null, ti: ev.ti || null, lv: ev.lv | 0, opened: ev.opened | 0 });
     card.addEventListener('pointerdown', (e) => e.stopPropagation());
     card.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -334,10 +398,13 @@ export function createUnlock32(o = {}) {
       // "לפתוח ביומן": the role's page; the day waits until the journal closes (read-only: no practice mid-day)
       stat.opens++;
       const id = ev.id,
-        p = mainPage32(id);
+        p = ev.kind ? null : mainPage32(id),
+        // ── fable32 (build 36) ── (the levels' card: its mastery page — a title's, a morning's; a level opened only: the roles tab) ── /fable32 ──
+        m36 = ev.kind === 'boker36' ? (() => { const s = saveOf(), b = s && s.lvl36 && Array.isArray(s.lvl36.boker) ? s.lvl36.boker : []; return b.length ? `boker:${b[b.length - 1].d | 0}` : null; })() : ev.kind === 'l36' && ev.ti ? `title:${id}:${ev.ti}` : null,
+        tab36 = ev.kind ? (m36 ? 'badges' : 'roles') : null;
       card.remove();
       card = null;
-      jr = openJournal32({ doc, save: saveOf(), tab: 'mishna', page: p ? p.key : null, act: id, note31: true, sfx: o.sfx, persist: () => E.persist32 && E.persist32(),
+      jr = openJournal32({ doc, save: saveOf(), tab: tab36 || 'mishna', page: p ? p.key : null, act: ev.kind ? null : id, m36, note31: true, sfx: o.sfx, persist: () => E.persist32 && E.persist32(),
         onClose: () => {
           jr = null;
           try {
@@ -350,7 +417,7 @@ export function createUnlock32(o = {}) {
     snd('lyre');
   }
   const off = E.on17((ev) => {
-      if (ev.type === 'j32new') show(ev);
+      if (ev.type === 'j32new' || ev.type === 'l36new') show(ev);   // ── fable32 (build 36) ── (+ the levels' card) ── /fable32 ──
     }),
     api = {
       destroy() {

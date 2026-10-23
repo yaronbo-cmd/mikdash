@@ -34,6 +34,7 @@ import { RATE30, LINE30, ACT30, quality30, mastery30, rate30, best30, pay30, ser
 import { J32, jr32, meet32, log32, served32, hebDate32 } from './journal32.js';   // ── fable32 (build 32) ── the kohen's journal ── /fable32 ──
 import { clock29, where29 } from './time29.js';   // ── fable32 (build 32) ── (the journal's real date where the phone is) ── /fable32 ──
 import { CH33, LINE33, day33n, pick33, offer33, ofDay33, stalls33, upLine33 } from './lamb33.js';   // ── fable32 (build 33) ── "הטלה המבוקר": the chamber's run and the morning's lamb ── /fable32 ──
+import { LVL36, par36, lvl36, rec36, ensure36, migrate36, boker36, addBoker36, L36 } from './lvl36.js';   // ── fable32 (build 36) ── the four mastery levels of every built role (svivat-avoda-he.md §4) ── /fable32 ──
 export const DAY33 = Object.freeze({
   // ── fable32 (build 28) ── (idleOffer: 12 — build 14's "משחק קצר?" after 12 s idle in the day — is gone with the offer) ── /fable32 ──
   dayS: 180,
@@ -456,7 +457,9 @@ const hash25 = (a, b, c = 0) => {
   h = Math.imul(h, 3266489909);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 };
-function lamb25(day, k, first = false, blems = 0, rej = 0) {
+// ── fable32 (build 36) ── P36 (lvl36.js — the lamb's level): small — the blemish in an ear or an eye only (the pen draws it small); mimic
+// — the dirt looks like a blemish (the zoom no longer tells: he brushes, and then knows) ── /fable32 ──
+function lamb25(day, k, first = false, blems = 0, rej = 0, P36 = null) {
   const rnd = (a) => hash25(day | 0, k | 0, a),
     canBlem = blems < 2 && rej < P25.rej,
     nR = BLEM25.regs.length,
@@ -467,12 +470,12 @@ function lamb25(day, k, first = false, blems = 0, rej = 0) {
       : rnd(1) < 0.5
         ? { blem: { c: Math.floor(rnd(2) * nC) % nC, r: [6, 1, 3, 4][Math.floor(rnd(3) * 4) % 4] }, dirt: [], big: true }
         : { blem: null, dirt: [{ r: [6, 7, 1][Math.floor(rnd(4) * 3) % 3], kind: 'straw' }], big: true };
-  const newBlem = canBlem && rnd(1) < P25.pB ? { c: Math.floor(rnd(2) * nC) % nC, r: Math.floor(rnd(3) * nR) % nR } : null,
-    nDirt = Math.floor(rnd(4) * (P25.dirt + 1)) % (P25.dirt + 1),
+  const newBlem = canBlem && rnd(1) < ((P36 && P36.pB) || P25.pB) ? { c: Math.floor(rnd(2) * nC) % nC, r: P36 && P36.small ? Math.floor(rnd(3) * 4) % 4 : Math.floor(rnd(3) * nR) % nR, ...(P36 && P36.small ? { small: 1 } : {}) } : null,
+    nDirt = Math.floor(rnd(4) * (((P36 && P36.dirt) || P25.dirt) + 1)) % (((P36 && P36.dirt) || P25.dirt) + 1),   // ── fable32 (build 36) ── (level 4: more spots to read — P36.dirt, P36.pB) ── /fable32 ──
     dirt = [];
   for (let i = 0; i < 8 && dirt.length < nDirt; i++) {
     const r = Math.floor(rnd(10 + i) * nR) % nR;
-    if ((!newBlem || r !== newBlem.r) && !dirt.some((x) => x.r === r)) dirt.push({ r, kind: BLEM25.dirt[Math.floor(rnd(20 + i) * 2) % 2] });
+    if ((!newBlem || r !== newBlem.r) && !dirt.some((x) => x.r === r)) dirt.push({ r, kind: BLEM25.dirt[Math.floor(rnd(20 + i) * 2) % 2], ...(P36 && P36.mimic ? { mimic: Math.floor(rnd(30 + i) * 6) % 6 } : {}) });
   }
   return { blem: newBlem, dirt, big: false };
 }
@@ -613,12 +616,12 @@ export const needle27 = (t, sweep = P27.sweep) => {
 export const stream27 = (t, k = 1) => P27.sMax * k * (0.65 * Math.sin(1.25 * t + 0.4) + 0.35 * Math.sin(2.7 * t + 1.9));
 /** ── fable32 (build 27) ── a throw's mark: the pull p (0…1) → the height on the wall, the aim a (degrees off the corner's edge) →
  *  { res: 'weak' | 'high' | 'perfect' | 'good' | 'miss', y, face: 0 (both) | −1 (the first face) | 1 (the second), q } */
-export function throw27(p, a) {
+export function throw27(p, a, deg = P27.deg) {   // ── fable32 (build 36) ── (deg: the corner's Γ by the level — lvl36.js) ── /fable32 ──
   const y = P27.y0 + P27.yK * Math.max(0, Math.min(1, +p || 0)),
     d = Math.abs(+a || 0);
   if (!(p >= P27.minPow)) return { res: 'weak', y, face: 0, q: 0 };
   if (y >= P27.line) return { res: 'high', y, face: 0, q: 0 };
-  if (d <= P27.deg) return { res: 'perfect', y, face: 0, q: 1 };
+  if (d <= deg) return { res: 'perfect', y, face: 0, q: 1 };
   if (d <= P27.side) return { res: 'good', y, face: a < 0 ? -1 : 1, q: 0.6 };
   return { res: 'miss', y, face: a < 0 ? -1 : 1, q: 0 };
 }
@@ -845,6 +848,14 @@ export function createDay33(o = {}) {
     // (CH33: the same layout, so the pen's authored views read it the same) and the stall his lamb walks to (the next free one) ── /fable32 ──
     CH33P = prac && prac.ch33 ? Object.freeze({ ...P25, door: CH33.door, stand: CH33.stand, side: CH33.side, via: CH33.via, rings: stalls33(prac.ch33.mine, prac.ch33.court).next }) : null,
     pl25 = () => CH33P || P25,
+    // ── fable32 (build 36) ── the level of an act (lvl36.js): his pick in the roles book, never above what is open (in a practice run the
+    // same — the run's save is a copy of his); o.lv36 or globalThis.__LV36 — the tests' and the tools' override (a number for every role,
+    // or { id: L }; the autoplayer's --level) ── /fable32 ──
+    lvOf36 = (id) => {
+      let f = o.lv36 != null ? o.lv36 : globalThis.__LV36 != null ? globalThis.__LV36 : null;
+      if (f && typeof f === 'object') f = f[id];
+      return f ? Math.max(1, Math.min(4, f | 0)) : lvl36(save, id);
+    },
     act20 = K20.act,
     cam20 = K20.cam,
     subs17 = [],
@@ -985,6 +996,7 @@ export function createDay33(o = {}) {
     'r26r',
     'men5t',
     'r30day',   // ── fable32 (build 30) ── (the day's ratings, for its summary) ── /fable32 ──
+    'l36day',   // ── fable32 (build 36) ── (the day's acts with their levels: "בוקר מהודר" across a resumed morning) ── /fable32 ──
     'fire35',   // ── fable32 (build 35) ── (the morning's maaracha: the fire's look — 'mehudar' | 'kasher' — and its day) ── /fable32 ──
     'f35day',
     'fresh35',
@@ -1004,7 +1016,7 @@ export function createDay33(o = {}) {
     dayT: 0,
   });
   Object.assign(st, { earnD: 0, ndDay: 0, ch18: { n: 0, t: 0, c: [], k: 0, walk: null }, pad18: null, buys18: [] });
-  Object.assign(st, { r30day: [], end30: null, say30: null });   // ── fable32 (build 30) ── the day's ratings; the end's word; a word of feedback ── /fable32 ──
+  Object.assign(st, { r30day: [], l36day: [], end30: null, say30: null });   // ── fable32 (build 30) ── the day's ratings; the end's word; a word of feedback ── /fable32 ──
   Object.assign(st, { fire35: null, f35day: 0, fresh35: 0, close35: null, task35T: 0 });   // ── fable32 (build 35) ── the fire's look, a first role's day, the close ── /fable32 ──
   if (b19) st.r19 = { g: [], gd: 0, n: 0, cov: 0, sd: 0, bag: 0, bm: 0, bags: 0, fl: [], rn: 0, slips: 0, picks: 0 };
   if (b17) st.fuel = B17.fuel0;
@@ -1029,8 +1041,10 @@ export function createDay33(o = {}) {
         st.basketQ = [];
         st.dayStats = {};
         st.r30day = [];   // ── fable32 (build 30) ── ── /fable32 ──
+        st.l36day = [];
       }
       if (!Array.isArray(st.r30day)) st.r30day = [];
+      if (!Array.isArray(st.l36day)) st.l36day = [];
       // ── fable32 (build 35) ── an older save's day goes on in the morning of the work: what it held of the old loop — logs in the basket
       // (the pyre's carry starts again with its act), the tamids' states, the day's clock, its "late" — is let go; its saved fuel is not
       // the fire (the fire's look is the morning's own: fire35) ── /fable32 ──
@@ -1054,6 +1068,7 @@ export function createDay33(o = {}) {
   // ── fable32 (build 32) ── the kohen's journal, made once at the day's start (journal32's jr32): an older save's roles had, the laver had,
   // the lots held count as met — before any act of today adds to a record (so a role's first time is still its first) ── /fable32 ──
   if (!prac) jr32(save);
+  migrate36(save);   // ── fable32 (build 36) ── (an older save's roles made level-aware once: their counts are level 1's, their points from them, their titles kept) ── /fable32 ──
   // ── fable32 (build 31) ── a practice run's morning: everything of the morning done but his role (the gates as after the lot — p23done's
   // and the second lot's — for that role), the court's kohanim at the other parts as on a day with that lot (npc23: the pyre's wood or the
   // ashes' pan; npc25: the court's lamb), the fire as the day has it then (the laver: the day's start; the pre-dawn roles: the embers; the
@@ -2001,6 +2016,7 @@ export function createDay33(o = {}) {
   function close35Step() {
     const C = st.close35;
     if (!C) {
+      if (st.l36q && st.l36q.length) return;   // ── fable32 (build 36) ── (the levels' cards first) ── /fable32 ──
       if (!workDone35() || (st.end30 && st.t < st.end30.until) || st.j32q || st.j32card || st.tl33card) return;
       st.close35 = { t0: st.t, ph: 'fade' };
       if (o.walk && o.walk.stop) say(() => o.walk.stop());
@@ -2045,6 +2061,7 @@ export function createDay33(o = {}) {
         (st.r26 = null),
         (st.r27 = null),
         (st.r30day = []),   // ── fable32 (build 30) ── ── /fable32 ──
+        (st.l36day = []),
         (st.end30 = null),
         Object.assign(st, {
           tamD: 'wait',
@@ -2134,6 +2151,7 @@ export function createDay33(o = {}) {
       st.r26 = null;
       st.r27 = null;
       st.r30day = [];   // ── fable32 (build 30) ── ── /fable32 ──
+      st.l36day = [];
       if (st.day > st.best) {
         st.best = st.day;
         save.bestDay = st.best;
@@ -2439,6 +2457,29 @@ export function createDay33(o = {}) {
     else payAct(g, 'act:kevesh', at);
     L0('top', t, g);
   }
+  // ── fable32 (build 36) ── a balance of the levels (lvl36.js — the laver's stream and the teni carried out, at level 4): as the ashes'
+  // pan (D21.bal's way) — a drift that turns now and then, a small shake, the right thumb's counter (K.bin −1…1 × fix); past lim a
+  // spill, at most one every gap s (the tilt then eased). True when it spilled. ── /fable32 ──
+  function bal36(K, B, dt, shake = 1) {
+    if ((K.wt -= dt) <= 0) {
+      K.wd = rng() < 0.5 ? -1 : 1;
+      K.wt = 0.6 + rng() * 0.9;
+    }
+    (K.kt -= dt) > 0 || ((K.kd = rng() * 2 - 1), (K.kt = 0.15 + rng() * 0.15));
+    K.bT = (K.bT || 0) + dt;
+    K.b = clamp(K.b + (K.wd * B.wind * (0.8 + 0.4 * Math.sin(K.bT * 2.3)) + shake * B.shake * K.kd + (K.bin == null ? 0 : K.bin) * B.fix) * dt, -1, 1);
+    if (Math.abs(K.b) > B.lim && !(K.bT - K.sT < B.gap)) {
+      K.sT = K.bT;
+      K.spills++;
+      K.b *= 0.4;
+      return true;
+    }
+    return false;
+  }
+  function k20bal(v) {
+    const K = st.k20;
+    return K && K.P36 && K.P36.bal ? ((K.bin = v == null || !Number.isFinite(+v) ? null : clamp(+v, -1, 1)), true) : false;
+  }
   // ── recovered (build 20) ── the laver: up to the spigots, both hands held under (L, R) till the ring fills, the rise, the walk down
   function k20start() {
     if (!gate20() || st.k20 || st.summary) return false;
@@ -2447,7 +2488,19 @@ export function createDay33(o = {}) {
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
+    const L36k = lvOf36('kiyor'),
+      P36k = par36('kiyor', L36k);   // ── fable32 (build 36) ── (the laver's level: the ring's guide, the hold's length, the balance) ── /fable32 ──
     st.k20 = {
+      lv: L36k,
+      P36: P36k,
+      b: 0,
+      bin: null,
+      wd: 1,
+      wt: 0,
+      kd: 0,
+      kt: 0,
+      sT: -9,
+      spills: 0,
       ph: 'up',
       t: 0,
       t0: st.t,
@@ -2460,7 +2513,7 @@ export function createDay33(o = {}) {
       sx: h.x,
       sz: h.z,
       dur: p23 ? Math.max(P23.up, d / P23.upMax) : Math.max(K20.up, d / K20.upMax),
-      T: own18('kiyor2') ? K20.hold2 : K20.hold,
+      T: (own18('kiyor2') ? K20.hold2 : K20.hold) * (P36k.hold || 1),   // ── fable32 (build 36) ── (level 3 on: the water runs longer) ── /fable32 ──
       two: own18('kiyor2'),
       first: !save.k20seen,
     };
@@ -2495,6 +2548,9 @@ export function createDay33(o = {}) {
       if (a) {
         K.p = Math.min(1, K.p + dt / K.T);
         K.held += dt;
+        // ── fable32 (build 36) ── level 4: the stream tilts — the thumbs' heights level it ("ימין על ימין, שמאל על שמאל"); past the
+        // edge the water runs off a hand (a spill, counted as a lift is) ── /fable32 ──
+        if (K.P36 && K.P36.bal && bal36(K, K.P36.bal, dt)) emit17('k20spill', { n: K.spills, a: Math.sign(K.b) });
       } else K.p = Math.max(0, K.p - K20.back * dt);
       if (K.p >= 1) {
         K.ph = 'rise';
@@ -2511,7 +2567,7 @@ export function createDay33(o = {}) {
         evlog('act_done', { id: 'kiyor', grade: 'gate', s: st.k20T, lifts: K.lifts });
         emit17('unlock', { first: K.first, s: st.k20T, held: Math.round(K.held * 10) / 10, lifts: K.lifts, at: { x: act20.x, y: 20.5, z: act20.z } });
         // ── fable32 (build 30) ── the laver rated too: the hands held under the spigots (its lifts), its coins, the roles book's row ── /fable32 ──
-        st.k20r = { day: st.day, lifts: K.lifts, held: Math.round(K.held * 10) / 10, s: st.k20T, first: K.first };
+        st.k20r = { day: st.day, lifts: K.lifts, held: Math.round(K.held * 10) / 10, s: st.k20T, first: K.first, lv36: K.lv, ...(K.P36 && K.P36.bal ? { spills36: K.spills } : {}) };   // ── fable32 (build 36) ── (its level; level 4's spills) ── /fable32 ──
         rec23('kiyor', st.k20r);
         end30('kiyor', st.k20r, { x: act20.x, y: 20.5, z: act20.z }, false);
       }
@@ -2564,7 +2620,14 @@ export function createDay33(o = {}) {
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
+    const L36d = lvOf36('deshen'),
+      P36d = par36('deshen', L36d);   // ── fable32 (build 36) ── (the ashes' level: the inner coals' side of each scoop, the heavy pan, the heap's exact place) ── /fable32 ──
     st.d21 = {
+      lv: L36d,
+      P36: P36d,
+      side: P36d.inner ? Array.from({ length: D21.layers }, () => (rng() < 0.5 ? -1 : 1)) : null,
+      outer: 0,
+      off: 0,
       ph: 'in',
       t: 0,
       T: 0,
@@ -2600,6 +2663,13 @@ export function createDay33(o = {}) {
     const K = st.d21;
     if (!K || K.ph !== 'sweep') return false;
     const why = swipeWhy(dx, dy, ms, D21.sw);
+    // ── fable32 (build 36) ── level 2 on: "חתה מן המאוכלות הפנימיות" — each scoop from the side where the consumed coals glow (K.side[n]);
+    // a scoop from the other side takes none ("מן הפנימיות") and is counted (the rating's outer — a retry, never a loss) ── /fable32 ──
+    if (!why && K.side && Math.sign(dx) !== K.side[Math.min(K.n, K.side.length - 1)]) {
+      K.outer++;
+      emit17('d21swipe', { ok: false, why: 'outer', n: K.outer });
+      return false;
+    }
     return why
       ? (emit17('d21swipe', { ok: false, why }), false)
       : (K.n++,
@@ -2621,6 +2691,13 @@ export function createDay33(o = {}) {
     const K = st.d21;
     if (!K || K.ph !== 'foot' || !K.near) return false;
     const h = heroP();
+    // ── fable32 (build 36) ── level 4: "רחוק מן הכבש שלשה טפחים" — the heap's exact place (the gold mark): a tap beside it is taken, and
+    // counted (the rating's off) ── /fable32 ──
+    if (K.P36 && K.P36.exact) {
+      const g = D21.go[2];
+      K.off = Math.hypot(g[0] - h.x, g[1] - h.z) > K.P36.exact ? 1 : 0;
+      K.offD = Math.round(Math.hypot(g[0] - h.x, g[1] - h.z) * 100) / 100;
+    }
     K.ph = 'go';
     K.t = 0;
     K.sx = h.x;
@@ -2677,7 +2754,7 @@ export function createDay33(o = {}) {
         emit17('d21', { ph: 'walk' });
       }
     } else if (K.ph === 'walk' || K.ph === 'desc') {
-      const bal = D21.bal,
+      const bal = K.P36 && K.P36.heavy ? { ...D21.bal, spill: K.P36.heavy.spill, wind: D21.bal.wind.map((x) => x * K.P36.heavy.wind), shake: D21.bal.shake.map((x) => x * K.P36.heavy.shake) } : D21.bal,   // ── fable32 (build 36) ── (level 3 on: the full silver pan — more sway, a narrower balance) ── /fable32 ──
         a = first21() ? 0 : 1,
         b = 1 - Math.exp(-dt / 0.05),
         c = foot.z - head.z;
@@ -2764,6 +2841,9 @@ export function createDay33(o = {}) {
         scoreEarned: pts,
         actS: r1(K.T),
         ownS: r1((K.swS || 0) + (K.fS || 0)),
+        lv36: K.lv || 1,   // ── fable32 (build 36) ── (its level; the scoops from the outer side, the heap beside its place) ── /fable32 ──
+        ...(K.side ? { outer36: K.outer | 0 } : {}),
+        ...(K.P36 && K.P36.exact ? { off36: K.off | 0, offD36: K.offD } : {}),
       };
     st.d21day = st.day;
     K.ph = 'end';
@@ -2816,7 +2896,17 @@ export function createDay33(o = {}) {
       } else view = camView(ph === 'go' || ph === 'pour' || ph === 'end' ? D21.camP : ph === 'turn' ? D21.camC : D21.cam);
       return { x: h.x, z: h.z, view };
     },
-    band22 = () => M22.band[first22() ? 0 : 1],
+    // ── fable32 (build 36) ── the air's band by the level (lvl36.js): level 3 on narrower about its middle (band — the share of the width
+    // kept); the second pyre's (layer 4, level 4) narrower still (band2) ── /fable32 ──
+    band22 = (ly) => {
+      const b = M22.band[first22() ? 0 : 1],
+        P = st.m22 && st.m22.P36,
+        k = P ? ((ly || (st.m22 && st.m22.layer)) === 4 ? P.band2 || P.band : P.band) : 1;
+      if (!(k > 0 && k < 1)) return b;
+      const mid = (b[0] + b[1]) / 2,
+        half = ((b[1] - b[0]) / 2) * k;
+      return [Math.round((mid - half) * 1000) / 1000, Math.round((mid + half) * 1000) / 1000];
+    },
     gap24 = (gap, r) => Math.max(0, (gap - 2 * r) / (gap + 2 * r)),
     pickOne = (arr) => arr[Math.floor(rng() * arr.length) % arr.length],
     budget22 = () => (p23 ? P23.budget : M22.budget)[first22() ? 0 : 1],
@@ -2827,14 +2917,14 @@ export function createDay33(o = {}) {
     };
   // ── recovered (build 22) ── סידור המערכה: the logs dealt (sizes, woods, the unfit), sorted by swipes, stacked in three layers with the air
   // between them (the gaps' band), lit
-  function deal22() {
+  function deal22(P36) {
     const logs = [...(p23 ? P23.sizes : M22.sizes)].map((x) => ({ sp: pickOne(KINDS22[x]), size: x, ok: 1 }));
     for (let a = logs.length - 1; a > 0; a--) {
       const b = Math.floor(rng() * (a + 1)) % (a + 1);
       [logs[a], logs[b]] = [logs[b], logs[a]];
     }
     const first = first22(),
-      bad = first ? KINDS22.bad : Array.from({ length: p23 ? P23.bad[1] : rng() < 0.5 ? 4 : 3 }, () => pickOne(KINDS22.bad));   // (day 1: the three unfit in order)
+      bad = first ? KINDS22.bad : Array.from({ length: p23 ? Math.max(P23.bad[1], (P36 && P36.bad) | 0) : rng() < 0.5 ? 4 : 3 }, () => pickOne(KINDS22.bad));   // (day 1: the three unfit in order) ── fable32 (build 36) ── (level 2 on: more olive and vine among the fit — P36.bad) ── /fable32 ──
     bad.forEach((x, i) => {
       const a =
         x === 'worm'
@@ -2850,13 +2940,19 @@ export function createDay33(o = {}) {
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
+    const L36m = lvOf36('m22'),
+      P36m = par36('m22', L36m);   // ── fable32 (build 36) ── (the pyre's level: the unfit woods, the air's band, the logs laid wrong counted, the second pyre) ── /fable32 ──
     st.m22 = {
+      lv: L36m,
+      P36: P36m,
+      airMiss: 0,
+      s2: 0,
       ph: 'in',
       t: 0,
       T: 0,
       sx: h.x,
       sz: h.z,
-      q: deal22(),
+      q: deal22(P36m),
       i: -1,
       ls: 'gap',
       lt: 0,
@@ -2918,7 +3014,15 @@ export function createDay33(o = {}) {
     }
     K.gap = gaps.length ? gaps.reduce((s, x) => s + x, 0) / gaps.length : null;
     K.air = K.gap == null ? 50 : Math.max(0, Math.round(100 - (15 * Math.abs(K.gap - (band[0] + band[1]) / 2)) / ((band[1] - band[0]) / 2)));
-    if (K.ph === 'stack' && K.layer > 3) ph22(K, 'ready');
+    // ── fable32 (build 36) ── level 4: "וסדרו מערכה שניה של קטרת" (תמיד ב, ה) — after the big pyre, two fig logs for the second, its band
+    // narrower still (layer 4: beside the big one — המחשה: nearer than the mishnah's place, so it is in the frame) ── /fable32 ──
+    if (K.ph === 'stack' && K.layer === 4 && K.P36 && K.P36.second && !K.s2) {
+      K.s2 = 1;
+      for (let i = 0; i < K.P36.second; i++) K.got.push({ sp: 'fig', size: 'M', at: null, s2: 1 });
+      emit17('m22', { ph: 'second', n: K.P36.second });
+      return;
+    }
+    if (K.ph === 'stack' && K.layer > (K.s2 ? 4 : 3)) ph22(K, 'ready');
   }
   function m22place(x, dy = 0) {
     const m22 = st.m22;
@@ -2926,7 +3030,7 @@ export function createDay33(o = {}) {
     const a = m22.got[x];
     if (!a || a.at) return null;
     const layer = m22.layer,
-      b = 'LMS'[layer - 1],
+      b = sz22(layer),   // ── fable32 (build 36) ── (layer 4: the second pyre's fig logs) ── /fable32 ──
       span = M22.span;
     if (a.size !== b) {
       m22.mis++;
@@ -2935,18 +3039,19 @@ export function createDay33(o = {}) {
     }
     let c = m22.got.filter((x) => x.at && x.at.ly === layer),
       d = 2 * M22.r[b],
-      f = p23 ? P23.layn[layer - 1] : 2,
+      f = layN22(layer),
       g = f < 2 ? 0 : layer === 3 ? (c.length ? 0.16 : -0.16) : clamp(+dy || 0, -span, span);
-    if (layer < 3 && f > 1 && c.length) {
+    if ((layer < 3 || layer === 4) && f > 1 && c.length) {
       const x0 = c[0].at.x;
       if (Math.abs(g - x0) < d) {
         g = x0 + (g >= x0 ? d : -d);
         if (Math.abs(g) > span) g = x0 - Math.sign(g) * d;
       }
       const a = gap24(Math.abs(g - x0), M22.r[b]),
-        f = band22();
+        f = band22(layer);
       if (a < f[0] || a > f[1]) {
         const b = a < f[0] ? 'tight' : 'wide';
+        if (m22.P36 && m22.P36.strict) m22.airMiss++;   // ── fable32 (build 36) ── (level 3 on: a log laid outside the band is counted — the rating's airMiss36) ── /fable32 ──
         emit17('m22air', { k: x, ly: layer, why: b, gap: Math.round(a * 100) });
         return { ok: false, why: b, gap: a };
       }
@@ -2959,12 +3064,14 @@ export function createDay33(o = {}) {
     emit17('m22put', { k: x, ly: layer, air: m22.air });
     return { ok: true, ly: layer, x: g, air: m22.air };
   }
-  const layN22 = (layer) => (p23 ? P23.layn[layer - 1] : 2);
+  const layN22 = (layer) => (layer === 4 ? 2 : p23 ? P23.layn[layer - 1] : 2),   // ── fable32 (build 36) ── (layer 4: the second pyre's two) ── /fable32 ──
+    sz22 = (layer) => (layer === 4 ? 'M' : 'LMS'[layer - 1]),
+    two22 = (layer) => (layer < 3 || layer === 4) && layN22(layer) > 1;
   function hold22(K) {
-    const size = 'LMS'[K.layer - 1],
+    const size = sz22(K.layer),
       laid = K.got.filter((x) => x.at && x.at.ly === K.layer);
-    K.hold = K.got.findIndex((x) => !x.at && x.size === size);
-    K.gl = K.layer < 3 && layN22(K.layer) > 1 && !laid.length ? M22.l0 * (K.layer === 2 ? 0.75 : 1) : 0;
+    K.hold = K.got.findIndex((x) => !x.at && x.size === size && (K.layer === 4 ? x.s2 : !x.s2));
+    K.gl = two22(K.layer) && !laid.length ? M22.l0 * (K.layer === 2 || K.layer === 4 ? 0.75 : 1) : 0;
   }
   function m22stick(v) {
     const K = st.m22;
@@ -3046,9 +3153,9 @@ export function createDay33(o = {}) {
       }
     } else if (K.ph === 'stack') {
       const layer = K.layer,
-        a = layer < 3 && layN22(layer) > 1,
+        a = two22(layer),
         b = K.got.filter((x) => x.at && x.at.ly === layer),
-        c = M22.r['LMS'[layer - 1]];
+        c = M22.r[sz22(layer)];
       if (a) K.gl = clamp(K.gl + (K.sv || 0) * M22.gv * dt, -M22.span, M22.span);
       K.pv = a && b.length === 1 ? gap24(Math.max(2 * c, Math.abs(K.gl - b[0].at.x)), c) : null;
     } else if (K.ph === 'ignite' && K.t >= M22.ign) m22done();
@@ -3074,6 +3181,9 @@ export function createDay33(o = {}) {
         fire: n,
         actS: r1(K.T),
         cracks: K.mis,
+        lv36: K.lv || 1,   // ── fable32 (build 36) ── (its level; the logs laid outside the band at level 3 on; the second pyre at level 4) ── /fable32 ──
+        ...(K.P36 && K.P36.strict ? { airMiss36: K.airMiss | 0 } : {}),
+        ...(K.s2 ? { second36: K.got.filter((x) => x.s2 && x.at).length } : {}),
         ...(e35 && K.run ? { run: { ...K.run } } : {}),   // ── fable32 (build 35) ── (the ramp run inside the act: its time, its grade, its drops — not in the rating) ── /fable32 ──
       };
     st.m22day = st.day;
@@ -3341,6 +3451,21 @@ export function createDay33(o = {}) {
     m.best = Math.max(oldBest, mastery);
     c[RATE30.key[rating]] = (c[RATE30.key[rating]] | 0) + 1;
     c.best = best30(c.best, rating);
+    // ── fable32 (build 36) ── the act's level counted (lvl36.js rec36): its mastery points (never lost), the next level opened at two
+    // מהודר, a title risen to — in a real morning a card after the rating's word (st.l36q, as the journal's) and a page in the journal;
+    // in practice the end card says it (the record goes back whole: merge31) ── /fable32 ──
+    const L36r = Math.max(1, Math.min(4, r.lv36 | 0 || 1)),
+      u36 = rec36(m, L36r, rating, { d: st.day, t: now32(), pr: !!prac });
+    if (u36) {
+      r.lv36 = L36r;
+      r.pts36 = u36.pts;
+      if (u36.up) r.up36 = u36.up.ti;
+      if (u36.opened) r.open36 = u36.opened;
+      if (u36.up || u36.opened) {
+        emit17('l36up', { id, lv: L36r, ti: u36.up ? u36.up.ti : null, opened: u36.opened, title: u36.title.he, was: u36.was.he, pts: u36.total });
+        if (!prac && b17) (st.l36q || (st.l36q = [])).push({ id, kind: 'l36', lv: L36r, ti: u36.up ? u36.up.ti : null, opened: u36.opened, at: st.t + J32.cardS });
+      }
+    }
     r.mastery = mastery;
     r.q = Math.round(q * 1000) / 1000;
     r.rating = rating;
@@ -3361,13 +3486,14 @@ export function createDay33(o = {}) {
       coins = prac && !prac.ch33 ? 0 : pay30(rating);   // ── fable32 (build 31) ── (a practice run: no coins) ── /fable32 ── ── fable32 (build 33) ── (the chamber's inspection is an act like any: its coins by the rating — shift/index.js adds them to his save; nothing else) ── /fable32 ──
     Object.assign(rec, { q, rating, coins });
     st.r30day = [...(Array.isArray(st.r30day) ? st.r30day : []), [id, rating]].slice(-12);
+    st.l36day = [...(Array.isArray(st.l36day) ? st.l36day : []), [id, rating, rec.lv36 | 0 || 1]].slice(-12);   // ── fable32 (build 36) ── (the day's acts with their levels: "בוקר מהודר") ── /fable32 ──
     st.end30 = { id, rating, until: st.t + RATE30.wordS };
     st.say30 = null;
     pay(coins, id, at);
     if (!prac) j32end(id, rating);   // ── fable32 (build 32) ── (the journal: its pages, the morning's entry, the unlock card) ── /fable32 ──
     if (morning && !prac) morning30();   // ── fable32 (build 31) ── (a practice run is not a morning served) ── /fable32 ──
     // ── fable32 (build 31) ── the practice's end: its card as the rating's word ends (tick: "p31end") — only his own role's act ends it ── /fable32 ──
-    if (prac && id === prac.role && !prac.end) prac.end = { id, rating, q, at: st.t + PRAC31.endS, shown: false, ...(prac.ch33 ? { ch33: true, out: prac.ch33.out, blem: prac.ch33.blem || null, coins } : {}) };   // ── fable32 (build 33) ── (the chamber's: the lamb in or out, its blemish, the coins) ── /fable32 ──
+    if (prac && id === prac.role && !prac.end) prac.end = { id, rating, q, at: st.t + PRAC31.endS, shown: false, lv36: rec.lv36 | 0, pts36: rec.pts36 | 0, open36: rec.open36 | 0, ...(prac.ch33 ? { ch33: true, out: prac.ch33.out, blem: prac.ch33.blem || null, coins } : {}) };   // ── fable32 (build 33) ── (the chamber's: the lamb in or out, its blemish, the coins) ── /fable32 ──
     emit17('rate30', { id, rating, q, he: ACT30[id] ? ACT30[id].he : id, coins, at: at || null, served: served30(save) });
     evlog('rate30', { id, rating, q });
     L0('rate30', id, rating, q);
@@ -3406,6 +3532,13 @@ export function createDay33(o = {}) {
     st.srv30 = st.day;
     save.served30 = served30(save) + 1;
     served32(save, st.day);   // ── fable32 (build 32) ── (the journal's entry of this morning: served whole) ── /fable32 ──
+    // ── fable32 (build 36) ── "בוקר מהודר" (svivat-avoda-he.md §4.4 — a challenge he may take, never a streak): every act of his this
+    // morning מהודר, each at level 3 or more → its page in the journal (save.lvl36.boker) and its card ── /fable32 ──
+    const acts36 = (Array.isArray(st.l36day) ? st.l36day : []).filter((x) => Array.isArray(x) && LVL36[x[0]]);
+    if (boker36(acts36) && addBoker36(save, st.day, now32(), acts36)) {
+      emit17('l36boker', { day: st.day, acts: acts36.map((x) => x.slice()) });
+      if (b17) (st.l36q || (st.l36q = [])).push({ id: 'boker', kind: 'boker36', at: st.t + J32.cardS + 0.05 });
+    }
     say(() => o.persist && o.persist());
   }
   // ── fable32 (build 32) ── the kohen's journal (journal32.js; book32.js shows it). An act's end in a real morning: its pages are his
@@ -3458,6 +3591,22 @@ export function createDay33(o = {}) {
     L0('j32new', Q.id, Q.hello ? 1 : 0);
     emit17('j32new', { id: Q.id, hello: Q.hello });
     say(() => o.persist && o.persist());
+    return true;
+  }
+  // ── fable32 (build 36) ── the levels' cards (a title risen to, a level opened, "בוקר מהודר") — the journal's card's way: as the act's
+  // rating word ends, after any journal card, the day waiting under it until "המשך" (E.j32done); never in practice ── /fable32 ──
+  function l36Step() {
+    const q = st.l36q;
+    if (!Array.isArray(q) || !q.length || st.j32q || st.j32card || st.tl33card || st.t < q[0].at) return false;
+    const Q = q.shift();
+    if (prac || st.summary || st.night || st.phase !== 'run') return false;
+    st.j32card = { id: Q.id, kind: Q.kind, lv: Q.lv | 0, ti: Q.ti || null, opened: Q.opened | 0 };
+    st.paused = true;
+    drive(0, 0);
+    let26();
+    evlog('l36_card', { id: Q.id, kind: Q.kind, lv: Q.lv, ti: Q.ti, opened: Q.opened });
+    L0('l36new', Q.id, Q.kind);
+    emit17('l36new', { ...st.j32card });
     return true;
   }
   /** the card closed ("המשך", or the journal it opened): the day goes on */
@@ -3555,10 +3704,10 @@ export function createDay33(o = {}) {
   // ── recovered (build 25) ── the lamb pen: the door, the scan by torchlight, the zoom on a spot, the dirt wiped, the stamps תמים / פסול,
   // the dawn clock (a false approval's delay), the other kohanim's lamb (npc25)
   function newLamb25(K) {
-    let L = lamb25(prac ? prac.seed : st.day, prac && prac.ch33 ? 0 : K.k, K.first || !!(prac && prac.ch33), K.blems, K.rej);   // ── fable32 (build 31) ── (a practice run: its own seed — another lamb each time) ── /fable32 ── ── fable32 (build 33) ── (the chamber: the day's one lamb at an easy level — the pen's first lamb: big, one blemish in a plain place or a straw) ── /fable32 ──
+    let L = lamb25(prac ? prac.seed : st.day, prac && prac.ch33 ? 0 : K.k, K.first || !!(prac && prac.ch33), K.blems, K.rej, prac && prac.ch33 ? null : K.P36);   // ── fable32 (build 36) ── (the level's lamb; the chamber's stays easy) ── /fable32 ──   // ── fable32 (build 31) ── (a practice run: its own seed — another lamb each time) ── /fable32 ── ── fable32 (build 33) ── (the chamber: the day's one lamb at an easy level — the pen's first lamb: big, one blemish in a plain place or a straw) ── /fable32 ──
     if (K.mine && K.k === 0) L = { ...L, blem: null };   // ── fable32 (build 33) ── (the morning's lamb is the one he inspected four days ago — whole; a straw may be on it) ── /fable32 ──
     if (L.blem) K.blems++;
-    const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r }))]
+    const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r, ...(L.blem.small ? { small: 1 } : {}) }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r, ...(x.mimic != null ? { mimic: x.mimic } : {}) }))]
       .sort((a, b) => a.r - b.r)
       .map((x, i) => ({ ...x, i, seen: false, gone: false }));
     K.L = { blem: L.blem, big: L.big, spots };
@@ -3571,7 +3720,12 @@ export function createDay33(o = {}) {
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
+    const L36l = prac && prac.ch33 ? 1 : lvOf36('lamb'),
+      P36l = par36('lamb', L36l);   // ── fable32 (build 36) ── (the lamb's level: small blemishes, dirt like a blemish, two lambs; the chamber's run stays at its easy level) ── /fable32 ──
     const K = (st.p25 = {
+      lv: L36l,
+      P36: P36l,
+      judged: 0,
       ph: 'in',
       t: 0,
       T: 0,
@@ -3624,7 +3778,10 @@ export function createDay33(o = {}) {
       if (k >= 1) ph25(K, 'scan');
     } else if (ph === 'zoom' && K.t >= P25.zoom) {
       const a = K.L.spots[K.zi];
-      ph25(K, a.kind === 'dirt' ? 'dirt' : 'blem', { c: a.c, r: a.r });
+      // ── fable32 (build 36) ── level 3 on: up close a blemish and dirt look alike — both ask for the brush ('dirt', amb); the brush
+      // takes the dirt, and a blemish stays (then shown) ── /fable32 ──
+      const amb = !!(K.P36 && K.P36.mimic);
+      ph25(K, a.kind === 'dirt' || amb ? 'dirt' : 'blem', { c: a.c, r: a.r, ...(amb ? { amb: true } : {}) });
     } else if ((ph === 'clean' && K.t >= P25.clean) || (ph === 'blem' && K.t >= P25.blem)) {
       K.zi = -1;
       ph25(K, 'scan');
@@ -3662,8 +3819,13 @@ export function createDay33(o = {}) {
       return false;
     }
     const spot = K.L.spots[K.zi];
-    spot.gone = true;
     K.br++;
+    if (spot.kind === 'blem') {   // ── fable32 (build 36) ── (level 3 on: the brush on a blemish — it stays: a blemish) ── /fable32 ──
+      emit17('p25swipe', { ok: true, stays: true });
+      ph25(K, 'blem', { c: spot.c, r: spot.r, stays: true });
+      return true;
+    }
+    spot.gone = true;
     emit17('p25swipe', { ok: true });
     ph25(K, 'clean');
     return true;
@@ -3690,11 +3852,22 @@ export function createDay33(o = {}) {
         emit17('p25stamp', { v: how, ok: false, why: truth, ch33: true });
         return true;
       }
+      K.judged++;   // ── fable32 (build 36) ── (a lamb judged — level 4 judges two) ── /fable32 ──
       ph25(K, 'aside', { v: how, ok: !!lambBlem, why: truth, blem: lambBlem ? { ...lambBlem } : null });
       emit17('p25stamp', { v: how, ok: !!lambBlem, why: truth, ch33: !!(prac && prac.ch33) });
       return true;
     }
     K.zi = -1;
+    K.judged++;
+    // ── fable32 (build 36) ── level 4: "שני טלאים להשוואה" — a whole lamb judged first, a second is brought and judged too (the תמים of
+    // them goes up — the first: המחשה) ── /fable32 ──
+    if (!lambBlem && K.P36 && K.P36.two && K.judged < 2 && !(prac && prac.ch33)) {
+      emit17('p25stamp', { v: how, ok: true, two: true });
+      K.k++;
+      newLamb25(K);
+      ph25(K, 'bring', { two: true });
+      return true;
+    }
     return lambBlem
       ? (K.fa++,
         ph25(K, 'false', { v: how, blem: { ...lambBlem } }),
@@ -3751,6 +3924,8 @@ export function createDay33(o = {}) {
         inspected: K.insp,
         brushed: K.br,
         scoreEarned: k,
+        lv36: K.lv || 1,   // ── fable32 (build 36) ── (its level; the lambs judged) ── /fable32 ──
+        judged36: K.judged | 0,
       };
     st.p25day = st.day;
     st.p25r = b;
@@ -3814,17 +3989,32 @@ export function createDay33(o = {}) {
     // wicks, oil (the pour's band) and fire; the morning's event (a lamp gone out: the drag from the next); save.roles26, save.jer26
     roles26 = () => (save.roles26 && typeof save.roles26 === 'object' ? save.roles26 : (save.roles26 = { m: 0, h: [] })),
     first26 = (role) => !timesOf(roles23(), role),
-    HANDS26 = /^(pull|wick|wipe|pour|spill|new|drag)$/,
+    HANDS26 = /^(pull|wick|wipe|pour|spill|new|drag|altar|teni36)$/,   // ── fable32 (build 36) ── (+ the levels' altar fire and teni) ── /fable32 ──
     YAW26 = -Math.PI / 2;
   function r26start(how) {
     const h = heroP(),
       role = st.role26 === 'inner' ? 'inner' : 'menorah',
       first = first26(role),
-      ev = role === 'menorah' && ev26(prac ? prac.seed : st.day, first);   // ── fable32 (build 31) ── ── /fable32 ──
+      L36h = lvOf36(role),
+      P36h = par36(role, L36h),   // ── fable32 (build 36) ── (the Heichal's level: the inner altar's pulls and its teni out; the menorah's band, its lamps gone out) ── /fable32 ──
+      west = role === 'menorah' && !!P36h.west,
+      ev = role === 'menorah' && (!!P36h.ev || ev26(prac ? prac.seed : st.day, first));   // ── fable32 (build 31) ── ── /fable32 ── ── fable32 (build 36) ── (level 3 on: the eastern lamp is out every time — "מדשנן ומדליקן מן הדולקים") ── /fable32 ──
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
     st.r26 = {
+      lv: L36h,
+      P36: P36h,
+      west,
+      wrong: 0,
+      b: 0,
+      bin: null,
+      wd: 1,
+      wt: 0,
+      kd: 0,
+      kt: 0,
+      sT: -9,
+      spills: 0,
       ph: how,
       t: 0,
       T: 0,
@@ -3838,7 +4028,7 @@ export function createDay33(o = {}) {
       ash: 1,
       acc: 100,
       scr: 0,
-      ord: ev ? [6, 4, 3, 2, 1, 0] : [4, 3, 2, 1, 0],
+      ord: west ? [5, 6, 4, 3, 2, 1, 0] : ev ? [6, 4, 3, 2, 1, 0] : [4, 3, 2, 1, 0],   // ── fable32 (build 36) ── (level 4: the western of the two is out too — it first, from the outer altar's fire, then the eastern from it) ── /fable32 ──
       li: 0,
       fill: 0,
       q: [],
@@ -3846,7 +4036,7 @@ export function createDay33(o = {}) {
       over: 0,
       refused: 0,
       ev,
-      lit: [0, 0, 0, 0, 0, 1, ev ? 0 : 1],
+      lit: [0, 0, 0, 0, 0, west ? 0 : 1, ev ? 0 : 1],
       first,
     };
     evlog('act_start', 'r26');
@@ -3908,6 +4098,20 @@ export function createDay33(o = {}) {
       if (glide26(K, a.x, a.z, P26.step)) ph26(K, K.role === 'inner' ? 'set' : 'wick');
     } else if (ph === 'set' && K.t >= P26.set) ph26(K, 'pull');
     else if (ph === 'leave' && K.t >= P26.leave) done26();
+    // ── fable32 (build 36) ── the inner altar's level 4: "נכנס ונטל את הטני והשתחוה ויצא" (תמיד ו, א) — the full teni lifted (lift36)
+    // and carried out to the great gate (teni36: his glide, P36.teni.s seconds) held level by the right thumb (bal36); a coal that falls
+    // is counted (the rating's spills36) — the second entry folded into his act: המחשה ── /fable32 ──
+    else if (ph === 'lift36' && K.t >= 0.5) {
+      K.sx = h.x;
+      K.sz = h.z;
+      ph26(K, 'teni36');
+    } else if (ph === 'teni36') {
+      const B = K.P36.teni,
+        k = Math.min(1, K.t / B.s);
+      moveHero(K.sx + (P26.gate.x + 1.2 - K.sx) * k, K.sz + (P26.gate.z - K.sz) * k, -YAW26);
+      if (bal36(K, B, dt)) emit17('r26spill', { n: K.spills, a: Math.sign(K.b) });
+      if (k >= 1) done26();
+    }
     else if (ph === 'pour' && K.held) {
       K.fill = fill26(K.fill, dt);
       if (K.fill >= P26.pour.max) pour26(K);
@@ -3959,7 +4163,7 @@ export function createDay33(o = {}) {
     !K || !K.held || ((K.held = false), emit17('r26hold', { off: true, why: 'pause', ph: K.ph, fill: K.fill }), L0('r26let', K.ph));
   }
   function pour26(K) {
-    const P = P26.pour,
+    const P = K.P36 && K.P36.lo ? { ...P26.pour, lo: K.P36.lo, hi: K.P36.hi } : P26.pour,   // ── fable32 (build 36) ── (level 2 on: the half-log's band narrower) ── /fable32 ──
       fill = K.fill,
       li = K.li,
       q = K.q[li] == null ? 1 : K.q[li];
@@ -3988,14 +4192,14 @@ export function createDay33(o = {}) {
     if (!K || K.ph !== 'pull') return false;
     K.n++;
     const last = K.n >= P26.pulls,
-      fast = v > P26.vmax;
+      fast = v > ((K.P36 && K.P36.vmax) || P26.vmax);   // ── fable32 (build 36) ── (level 2 on: the gold more sensitive — a slower pull scratches) ── /fable32 ──
     K.ash = last ? 0 : Math.max(0, 1 - P26.hand * K.n);
     if (fast) {
       K.scr++;
       K.acc = Math.max(0, K.acc - P26.scr);
     }
     emit17('r26pull', { n: K.n, sweep: last, scratch: fast, ash: K.ash, acc: K.acc });
-    if (last) ph26(K, 'leave');
+    if (last) ph26(K, K.P36 && K.P36.teni ? 'lift36' : 'leave');   // ── fable32 (build 36) ── (level 4: the teni goes out with him) ── /fable32 ──
     return true;
   }
   function r26tap() {
@@ -4004,7 +4208,8 @@ export function createDay33(o = {}) {
     if (K.ph === 'new') {
       const lamp = K.ord[K.li];
       emit17('r26wick', { lamp });
-      if (K.ev && lamp === 6) ph26(K, 'drag');
+      if (K.west && lamp === 5) ph26(K, 'altar');   // ── fable32 (build 36) ── (level 4: the western lamp — from the outer altar's fire, brought in a pan: המחשה) ── /fable32 ──
+      else if (K.ev && lamp === 6) ph26(K, 'drag');
       else lit26(K, lamp, lamp + 1);
       return true;
     }
@@ -4015,9 +4220,22 @@ export function createDay33(o = {}) {
     if (K.li === K.ord.length - 1) st.men5t = st.t;
     ph26(K, 'lit', { lamp, from, drag: !!drag });
   }
-  function r26light() {
+  function r26light(src) {
     const K = st.r26;
+    if (K && K.ph === 'altar') {   // ── fable32 (build 36) ── (the western lamp: only from the altar's fire; from a lamp — refused, counted) ── /fable32 ──
+      if (src !== 'altar') {
+        K.wrong++;
+        emit17('r26fire', { ok: false, why: 'altar', n: K.wrong });
+        return false;
+      }
+      lit26(K, 5, 'altar', true);
+      return true;
+    }
     return !K || K.ph !== 'drag' ? false : (lit26(K, 6, 5, true), true);
+  }
+  function r26bal(v) {   // ── fable32 (build 36) ── (the teni carried out, level 4: the right thumb's counter) ── /fable32 ──
+    const K = st.r26;
+    return K && K.P36 && K.P36.teni ? ((K.bin = v == null || !Number.isFinite(+v) ? null : clamp(+v, -1, 1)), true) : false;
   }
   function done26() {
     const K = st.r26,
@@ -4027,7 +4245,7 @@ export function createDay33(o = {}) {
       pourQ = qs.length ? qs.reduce((s, x) => s + x, 0) / qs.length : 0,
       n = Math.round(P26.score * (inner ? K.acc / 100 : pourQ)),   // ── fable32 (build 30) ── (no "fast" points; the coins by the rating) ── /fable32 ──
       g = inner
-        ? { day: st.day, role: 'inner', ownS: own, pulls: K.n, scratches: K.scr, accuracy: K.acc }
+        ? { day: st.day, role: 'inner', ownS: own, pulls: K.n, scratches: K.scr, accuracy: K.acc, lv36: K.lv || 1, ...(K.P36 && K.P36.teni ? { spills36: K.spills | 0 } : {}) }   // ── fable32 (build 36) ── (its level; level 4's coals fallen from the teni) ── /fable32 ──
         : {
             day: st.day,
             role: 'menorah',
@@ -4038,6 +4256,8 @@ export function createDay33(o = {}) {
             over: K.over,
             refused: K.refused,
             relit: !!K.ev,
+            lv36: K.lv || 1,   // ── fable32 (build 36) ── (its level; level 4: the western lamp from the altar, a fire from a lamp refused) ── /fable32 ──
+            ...(K.west ? { west36: 1, wrong36: K.wrong | 0 } : {}),
           };
     Object.assign(g, { scoreEarned: n, actS: r1(K.T) });
     st.r26day = st.day;
@@ -4098,11 +4318,15 @@ export function createDay33(o = {}) {
     const h = heroP(),
       role = st.role26 === 'zorek' ? 'zorek' : 'shochet',
       first = first26(role),
-      a = role === 'shochet' ? P27.stand : P27.recv;
+      a = role === 'shochet' ? P27.stand : P27.recv,
+      L36b = lvOf36(role),
+      P36b = par36(role, L36b);   // ── fable32 (build 36) ── (the blood roles' level: the cut's window and pace, the binding's direction; the stream, the line's guide, the Γ, the clot) ── /fable32 ──
     if (o.walk && o.walk.stop) say(() => o.walk.stop());
     goal = null;
     drive(0, 0);
     st.r27 = {
+      lv: L36b,
+      P36: P36b,
       ph: 'in',
       t: 0,
       T: 0,
@@ -4118,7 +4342,7 @@ export function createDay33(o = {}) {
       tc: 0,
       miss: 0,
       u: 0,
-      sweep: first ? P27.sweep1 : P27.sweep,
+      sweep: (first ? P27.sweep1 : P27.sweep) * (role === 'shochet' && P36b.sweep ? P36b.sweep : 1),   // ── fable32 (build 36) ── (level 4: the needle quicker) ── /fable32 ──
       pos: 0,
       sp: 0,
       fill: 0,
@@ -4157,8 +4381,9 @@ export function createDay33(o = {}) {
     };
   function swirl27(K, dt) {
     K.swAcc *= Math.exp(-dt * 1.2);
-    const still = K.T - K.lastSw;
-    K.coag = Math.max(0, Math.min(1, K.coag + (still > P27.still ? P27.coagUp : -P27.coagDn) * dt));
+    const still = K.T - K.lastSw,
+      cg = (K.P36 && K.P36.coag) || 1;   // ── fable32 (build 36) ── (level 4: the blood clots sooner and faster) ── /fable32 ──
+    K.coag = Math.max(0, Math.min(1, K.coag + (still > P27.still / cg ? P27.coagUp * cg : -P27.coagDn) * dt));
     if (K.coag > K.coagMax) K.coagMax = K.coag;
     if (K.coag >= 1 && !K.clot) {
       K.clot = true;
@@ -4206,7 +4431,7 @@ export function createDay33(o = {}) {
       K.tr += dt;
       K.totT += dt;
       K.sp = stream27(K.tr, K.sk);
-      if (Math.abs(K.pos - K.sp) < P27.tol) {
+      if (Math.abs(K.pos - K.sp) < ((K.P36 && K.P36.tol) || P27.tol)) {   // ── fable32 (build 36) ── (the stream's width by the level) ── /fable32 ──
         K.fill = Math.min(1, K.fill + dt / P27.fillS);
         K.inT += dt;
       }
@@ -4238,6 +4463,7 @@ export function createDay33(o = {}) {
         ph27(K, c === 'NE' ? (st.men5t != null && st.t < st.men5t ? 'hold' : 'aim') : 'aim2');
       }
     } else if (ph === 'aim' || ph === 'aim2') {
+      if (K.clot) swirl27(K, dt);   // ── fable32 (build 36) ── (the clot circled away at the corner) ── /fable32 ──
       const c = ph === 'aim2' ? 'SW' : 'NE',
         a = P27.at[c];
       if (K.t <= 0.4) glide27(K, a.x, a.z, 0.35, yawTo(a.x, a.z, P27.corner[c][0], P27.corner[c][1]));
@@ -4274,8 +4500,9 @@ export function createDay33(o = {}) {
   function r27tap() {
     const K = st.r27;
     if (!K || K.ph !== 'cut' || K.role !== 'shochet' || st.paused) return false;
-    const u = needle27(K.tc, K.sweep);
-    if (u < P27.win[0] || u > P27.win[1]) {
+    const u = needle27(K.tc, K.sweep),
+      W = (K.P36 && K.P36.win) || P27.win;   // ── fable32 (build 36) ── (the gold's width by the level) ── /fable32 ──
+    if (u < W[0] || u > W[1]) {
       K.miss++;
       emit17('r27cut', { ok: false, u: Math.round(u * 1000) / 1000, n: K.miss });
       return false;
@@ -4294,7 +4521,7 @@ export function createDay33(o = {}) {
   function r27swirl(rad) {
     const K = st.r27,
       r = Math.abs(+rad || 0);
-    if (!K || !/^(full|carry|carry2|hold)$/.test(K.ph) || !(r > 0) || st.paused) return false;
+    if (!K || !(/^(full|carry|carry2|hold)$/.test(K.ph) || (K.clot && /^aim2?$/.test(K.ph))) || !(r > 0) || st.paused) return false;   // ── fable32 (build 36) ── (a vessel that clotted on the way: circled at the corner too — it could not be, and the throw said "נקרש" for ever: a soft-lock of build 27 the levels' quicker clot showed) ── /fable32 ──
     K.swAcc += r;
     K.circT += r;
     if (K.swAcc >= P27.swirlRad) {
@@ -4315,7 +4542,7 @@ export function createDay33(o = {}) {
       emit17('r27throw', { res: 'clot', corner: K.corner });
       return 'clot';
     }
-    const r = throw27(p, a),
+    const r = throw27(p, a, (K.P36 && K.P36.deg) || P27.deg),
       ev = { ...r, y: Math.round(r.y * 100) / 100, corner: K.corner, a: Math.round((+a || 0) * 10) / 10, p: Math.round((+p || 0) * 100) / 100 };
     if (r.res === 'weak') {
       emit17('r27throw', ev);
@@ -4347,7 +4574,7 @@ export function createDay33(o = {}) {
       own = r1(K.own),
       sh = K.role === 'shochet',
       g = sh
-        ? { day: st.day, role: 'shochet', ownS: own, misses: K.miss, rebinds: K.rebinds, first: !!K.first }
+        ? { day: st.day, role: 'shochet', ownS: own, misses: K.miss, rebinds: K.rebinds, first: !!K.first, lv36: K.lv || 1 }   // ── fable32 (build 36) ── (its level) ── /fable32 ──
         : {
             day: st.day,
             role: 'zorek',
@@ -4359,6 +4586,7 @@ export function createDay33(o = {}) {
             wide: K.wide,
             clotMax: Math.round(K.coagMax * 100),
             first: !!K.first,
+            lv36: K.lv || 1,   // ── fable32 (build 36) ── (its level) ── /fable32 ──
           };
     g.cutT = K.cutT;
     g.actS = r1(K.T);
@@ -5248,6 +5476,31 @@ export function createDay33(o = {}) {
   // the step card is its ONE line (rate30's LINE30, 2–4 words) and nothing else says words over the world (rohvi-he.md §14; the owner,
   // 22.10 09:19: "שורה אחת של 2–4 מילים בזמן הפעולה; המקור בשורה אחת בסוף הפעולה"); a word of feedback replaces it for a moment
   // (E.say30: the modules' "ארוך יותר ↔", "מעל החוט — לא כאן" …); at the act's end its rating, RATE30.wordS ── /fable32 ──
+  // ── fable32 (build 36) ── the role he will play (or plays) now — the laver until washed, the first lot's role once the lot gave it and
+  // until it ends, the second lot's likewise; in a practice run its role — and its level { id, lv } (null between his acts) ── /fable32 ──
+  function lv36now() {
+    if (!b17 || st.summary || st.night || st.close35) return null;
+    let id = null;
+    if (prac) id = prac.ch33 ? null : prac.end ? null : prac.role;
+    else if (st.k20 && st.k20.ph !== 'rise' && st.k20.ph !== 'down') id = 'kiyor';
+    else if (g20 && !st.washed) id = 'kiyor';
+    else if (st.d21 && st.d21.ph !== 'end') id = 'deshen';
+    else if (st.m22 && st.m22.ph !== 'end' && st.p23day === st.day && st.lot === 'm22') id = 'm22';
+    else if (st.p25 && !/^(lead|end|out)$/.test(st.p25.ph)) id = 'lamb';
+    else if (st.r26 && st.r26.ph !== 'out') id = st.r26.role;
+    else if (st.r27 && st.r27.ph !== 'out') id = st.r27.role;
+    else if (p23 && st.p23day === st.day && !st.p23 && st.lot && (st.lot === 'deshen' ? st.d21day : st.lot === 'm22' ? st.m22day : st.p25day) !== st.day) id = st.lot;
+    else if (p26 && st.p26day === st.day && !st.p23 && st.role26 && st.r26day !== st.day) id = st.role26;
+    if (!id || !LVL36[id]) return null;
+    const K = id === 'kiyor' ? st.k20 : id === 'deshen' ? st.d21 : id === 'm22' ? st.m22 : id === 'lamb' ? st.p25 : id === st.role26 && (st.r26 || st.r27) ? st.r26 || st.r27 : prac ? st.r26 || st.r27 : null;
+    return { id, lv: K && K.lv ? K.lv : lvOf36(id) };
+  }
+  /** the act in progress of a role: its level and its knobs (the role modules draw by them) — or the level he would play it at */
+  function lv36act(id) {
+    const K = id === 'kiyor' ? st.k20 : id === 'deshen' ? st.d21 : id === 'm22' ? st.m22 : id === 'lamb' ? st.p25 : id === 'inner' || id === 'menorah' ? st.r26 && st.r26.role === id && st.r26 : id === 'shochet' || id === 'zorek' ? st.r27 && st.r27.role === id && st.r27 : null,
+      lv = K && K.lv ? K.lv : lvOf36(id);
+    return { id, lv, p: (K && K.P36) || par36(id, lv) };
+  }
   const act30 = () =>
       !!(st.k20 && (st.k20.ph === 'up' || st.k20.ph === 'pose')) ||
       !!st.p23 ||
@@ -5368,7 +5621,7 @@ export function createDay33(o = {}) {
               ? L30.m22.first
               : L30.m22.sort
             : c
-              ? L30.m22[(p23 ? 'l' : 'L') + Math.min(3, m22.layer || 1)] || L30.m22.l1
+              ? (m22.layer === 4 ? L30.m22.s2 : L30.m22[(p23 ? 'l' : 'L') + Math.min(3, m22.layer || 1)]) || L30.m22.l1   // ── fable32 (build 36) ── (layer 4: the second pyre's line) ── /fable32 ──
               : a === 'carry' && e35 && b19 && st.r19.fl.length
                 ? L30.m22.log   // ── fable32 (build 35) ── (a log dropped on the run) ── /fable32 ──
                 : L30.m22[a] || L30.m22.ignite   // ── fable32 (build 30) ── ── /fable32 ──
@@ -5612,11 +5865,12 @@ export function createDay33(o = {}) {
         evlog('practice31_end', { id: P.id, rating: P.rating, q: P.q });
         L0('p31end', P.id, P.rating);
         if (P.ch33) emit17('ch33end', { id: P.id, rating: P.rating, q: P.q, out: P.out, blem: P.blem, coins: P.coins, dn: prac.ch33.dn });   // ── fable32 (build 33) ── (the chamber's end card: chamber33.js) ── /fable32 ──
-        else emit17('p31end', { id: P.id, rating: P.rating, q: P.q });
+        else emit17('p31end', { id: P.id, rating: P.rating, q: P.q, lv36: P.lv36 | 0, pts36: P.pts36 | 0, open36: P.open36 | 0 });   // ── fable32 (build 36) ── (+ its level, its points, a level opened) ── /fable32 ──
         return st;
       }
     } else {
       if (j32Step()) return st;   // ── fable32 (build 32) ── (the unlock card: the day waits under it) ── /fable32 ──
+      if (l36Step()) return st;   // ── fable32 (build 36) ── (the levels' card) ── /fable32 ──
       if (tl33Step()) return st;   // ── fable32 (build 33) ── (the morning's lamb: its card, once — the day waits under it) ── /fable32 ──
       if (e35) {
         // ── fable32 (build 35) ── the morning of the work: no drain, no day clock and no night, no tamid timers, no "נפתח:" stamps, no
@@ -5984,6 +6238,11 @@ export function createDay33(o = {}) {
     // ── fable32 (build 32) ── the journal's unlock card (book32.js's createUnlock32): the card up now, its end; the save's persist (a page
     // opened mid-day is no longer "חדש") ── /fable32 ──
     j32card: () => (st.j32card ? { ...st.j32card } : null),
+    // ── fable32 (build 36) ── the levels: the role he plays next or now and its level (the step card's chip), the act's own level and knobs
+    // (the role modules read them), the levels' cards waiting ── /fable32 ──
+    lv36now,
+    lv36act,
+    l36q: () => (Array.isArray(st.l36q) ? st.l36q.map((x) => ({ ...x })) : []),
     j32q: () => (st.j32q ? { ...st.j32q } : null),
     j32done,
     persist32: () => say(() => o.persist && o.persist()),
@@ -6051,6 +6310,7 @@ export function createDay33(o = {}) {
       const k20 = st.k20;
       return !k20 || (a !== 'L' && a !== 'R') ? false : ((k20[a] = !!b), true);
     },
+    k20bal,   // ── fable32 (build 36) ── (the laver's level 4: the thumbs' heights level the stream) ── /fable32 ──
     g21,
     gate21,
     d21: () => st.d21,
@@ -6083,6 +6343,7 @@ export function createDay33(o = {}) {
     r26pull,
     r26tap,
     r26light,
+    r26bal,   // ── fable32 (build 36) ── (the inner altar's level 4: the teni held level) ── /fable32 ──
     camWork26,
     r26r: () => st.r26r || null,
     g26t: () => (open26() ? st.g26t : null),

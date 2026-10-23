@@ -32,13 +32,14 @@ export function rig(flags = FLAGS, o = {}) {
   const hud = { set(s) { this.s = s; }, stamp(t, k) { (this.st ||= []).push(t); }, hint(t) { this.h = t; }, float(t) { (this.fl ||= []).push(t); }, pin: () => ({ at() {}, text() {}, close() {} }), choice(c) { this.choice1 = c; } };
   const save = o.save || {};
   const world = { hero: { drive(vx, vz) { H.vx = vx; H.vz = vz; }, setPos(x, z, yaw) { H.x = x; H.z = z; if (Number.isFinite(yaw)) H.yaw = yaw; } } };
-  const E = createDay33({ world, heroPos: () => H, hud, stations, save, persist: o.persist || (() => {}), rng: o.rng || seeded(o.seed || 7), twin: o.twin || null, ...flags, ...(o.practice ? { practice: o.practice } : {}), ...(o.now ? { now: o.now } : {}), ...(o.where ? { where: o.where } : {}) });   // (build 31: a practice run, o.practice) (build 32: the journal's clock and place, o.now / o.where)
+  const E = createDay33({ world, heroPos: () => H, hud, stations, save, persist: o.persist || (() => {}), rng: o.rng || seeded(o.seed || 7), twin: o.twin || null, ...flags, ...(o.practice ? { practice: o.practice } : {}), ...(o.now ? { now: o.now } : {}), ...(o.where ? { where: o.where } : {}), ...(o.lv36 != null ? { lv36: o.lv36 } : {}) });   // (build 36: a level forced, o.lv36)   // (build 31: a practice run, o.practice) (build 32: the journal's clock and place, o.now / o.where)
   const events = [];
   E.on17((ev) => events.push(ev));
   // ── fable32 (build 32) ── the journal's unlock card ("j32new": a role's first end, or the first page ever — the day waits under it): a
   // player's "המשך" at once, as the card's button does (E.j32done); o.j32hold keeps it up (build 32's own tests) ── /fable32 ──
   let j32 = false;
   if (!o.j32hold) E.on17((ev) => { if (ev.type === 'j32new') j32 = true; });
+  E.on17((ev) => { if (ev.type === 'l36new') j32 = true; });   // ── build 36 ── (the levels' card — a title, a level opened, "בוקר מהודר" — answered "המשך" at once, always)
   const step = async (s, dt = 0.1) => { for (let t = 0; t < s - 1e-9; t += dt) { E.tick(dt); if (j32) { j32 = false; E.j32done(); } while (pending.length) { pending.shift()(); await null; await null; } } };
   const at = (x, z, y = 16) => { H.x = x; H.z = z; H.y = y; };
   const ev = (type) => events.filter((e) => e.type === type);

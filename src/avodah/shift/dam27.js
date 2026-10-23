@@ -212,7 +212,7 @@ export function createDam27(o = {}) {
     if (p.ty == null && ev.clientY - p.y0 > P27.dn * HT()) p.ty = t - p.t0;
     if (!K) return;
     if (K.ph === 'recv') E.r27move((dx / (0.42 * WD())) * 2);
-    else if (/^(full|carry|carry2|hold)$/.test(K.ph)) {
+    else if (/^(full|carry|carry2|hold)$/.test(K.ph) || (K.clot && /^aim2?$/.test(K.ph))) {   // ── fable32 (build 36) ── (a clot at the corner: the thumb circles it away there) ── /fable32 ──
       // the circle: the turn of the thumb's way, round a slowly following centre
       p.cx += (ev.clientX - p.cx) * 0.12;
       p.cy += (ev.clientY - p.cy) * 0.12;
@@ -256,6 +256,7 @@ export function createDam27(o = {}) {
       ms = tsOf(ev) - p.t0;
     if (K.ph === 'bind' && !p.bound) {
       if (bindG.prog > 0.12 && ev.type === 'pointerup') E.r27bind(false);
+      else if (ev.type === 'pointerup' && d > 30 && K.P36 && K.P36.turn) (E.r27bind(false), flash('עקדו יד ורגל — ראשו לדרום'));   // ── fable32 (build 36) ── (level 2 on: no guide — a binding the other way is a try, counted) ── /fable32 ──
       else if (ev.type === 'pointerup' && d > 30) flash(`גררו ${bindDir(legsOnScreen()) === 'd' ? '⬇' : bindDir(legsOnScreen()) === 'u' ? '⬆' : '↔'} — מהרגל הקדמית אל האחורית`);   // (the other way: a word, not a try)
       bindG.prog = 0;
     } else if (K.ph === 'cut') {
@@ -366,8 +367,18 @@ export function createDam27(o = {}) {
       const cutOn = active && ph === 'cut' && K.role === 'shochet';
       ring.classList.toggle('on', cutOn);
       if (cutOn) {
+        // ── fable32 (build 36) ── (the gold by the level: the ring's arc redrawn when it changes) ── /fable32 ──
+        const W = (K.P36 && K.P36.win) || P27.win;
+        if (ring.__w !== W) {
+          ring.__w = W;
+          const ang = (u) => ((-150 + 300 * u) * Math.PI) / 180,
+            a0 = ang(W[0]),
+            a1 = ang(W[1]),
+            r = 46;
+          ring.querySelector('.gz').setAttribute('d', `M ${(Math.sin(a0) * r).toFixed(1)} ${(-Math.cos(a0) * r).toFixed(1)} A ${r} ${r} 0 0 1 ${(Math.sin(a1) * r).toFixed(1)} ${(-Math.cos(a1) * r).toFixed(1)}`);
+        }
         const u = needle27(K.tc, K.sweep),
-          gold = u >= P27.win[0] && u <= P27.win[1];
+          gold = u >= W[0] && u <= W[1];
         needleEl.setAttribute('transform', `rotate(${(-150 + 300 * u).toFixed(1)})`);
         ring.classList.toggle('hot', gold);
       }
@@ -377,7 +388,7 @@ export function createDam27(o = {}) {
         if (ph === 'recv' || ph === 'full') {
           const sx = ((K.sp + 1) / 2) * 100,
             px = ((K.pos + 1) / 2) * 100,
-            ok = Math.abs(K.pos - K.sp) < P27.tol;
+            ok = Math.abs(K.pos - K.sp) < ((K.P36 && K.P36.tol) || P27.tol);   // ── fable32 (build 36) ── (the stream's width by the level) ── /fable32 ──
           g = `<div class="lbl">🏺 המזרק</div><div class="v"><i style="height:${Math.round(K.fill * 100)}%"></i></div><div class="lane"><u style="left:${sx.toFixed(1)}%"></u><s class="${ok ? 'ok' : ''}" style="left:${px.toFixed(1)}%"></s></div>${Math.round(K.fill * 100)}%<small>המחשה</small>`;
         } else if (/^(carry|carry2|hold|aim|aim2|splash|splash2)$/.test(ph)) {
           const c = Math.round(K.coag * 100),
@@ -389,7 +400,7 @@ export function createDam27(o = {}) {
         put(gauge, g);
       }
       // the filling's tone and its low buzz (a sound and a gauge's glow as its twins)
-      if (active && ph === 'recv' && Math.abs(K.pos - K.sp) < P27.tol) {
+      if (active && ph === 'recv' && Math.abs(K.pos - K.sp) < ((K.P36 && K.P36.tol) || P27.tol)) {
         if ((fillT -= 1 / 30) <= 0) {
           fillT = 0.16;
           snd('fill27', { f: 260 + 420 * K.fill });
@@ -399,7 +410,7 @@ export function createDam27(o = {}) {
       } else gauge.classList.remove('hot');
       // the overlay: the binding's line from the foreleg; the throw's way (screen); nothing else
       let showOver = false;
-      if (active && ph === 'bind') {
+      if (active && ph === 'bind' && !(K.P36 && K.P36.turn)) {   // ── fable32 (build 36) ── (level 2 on: no binding guide — he reads the lamb) ── /fable32 ──
         const g2 = legsOnScreen();
         if (g2) {
           showOver = true;
@@ -414,7 +425,7 @@ export function createDam27(o = {}) {
           blEl.setAttribute('y2', g2.h.y.toFixed(1));
           trEl.setAttribute('points', '');
         }
-      } else if (active && (ph === 'aim' || ph === 'aim2') && aim.on && aim.p > 0.02) {
+      } else if (active && (ph === 'aim' || ph === 'aim2') && aim.on && aim.p > 0.02 && !(K.P36 && K.P36.guide === 0)) {   // ── fable32 (build 36) ── (level 2 on: no throw's way drawn — under the thread by the eye) ── /fable32 ──
         const c = ph === 'aim2' ? 'SW' : 'NE',
           w = impact(c, aim.p, aim.a),
           from = { x: hp.x, y: (hp.y || 16) + 1.5, z: hp.z },

@@ -64,6 +64,7 @@ export function endHTML31(o = {}) {
   return `<div class="c" role="dialog" aria-label="סוף האימון"><h2>${esc(A.icon)} ${esc(A.he)} <span class="tg">אימון</span></h2>
     <div class="rt ${r}">${RATE30.icon[r]} ${RATE30.he[r]}</div>
     <div class="rc">${fresh ? `<b>תואר חדש: ${esc(title)}!</b> · ` : ''}${now.best ? `הדירוג הטוב שלך: ${RATE30.he[now.best]}` : ''}${title && !fresh ? ` · ${esc(title)}` : ''}${now.h ? ` · מהודר ×${now.h}` : ''}</div>
+    ${o.lv36 ? `<div class="rc l36">רמה ${o.lv36 | 0} · +${o.pts36 | 0} נקודות שליטה${o.rec && o.rec.l36 ? ` (${o.rec.l36.pts | 0})` : ''}${o.open36 ? ` · <b>✦ רמה ${o.open36 | 0} נפתחה — בספר התפקידים</b>` : ''}</div>` : '' /* ── fable32 (build 36) ── (the level played, its points, a level opened) ── /fable32 ── */}
     ${s ? `<button type="button" class="src" data-p31="src" aria-label="המקור — הקישו לפתוח"><i aria-hidden="true">📜</i>${s.q ? `<span class="q">${esc(s.q)}</span>` : ''}<span class="r">${esc(s.r)}</span><b aria-hidden="true">›</b></button>` : ''}
     <div class="bt"><button type="button" class="ag" data-p31="again">עוד פעם</button><button type="button" class="bk" data-p31="back">חזרה</button></div>
     <small>אימון — המחשה: תרגול של המשחק, לא מסדר העבודה במקדש · הדירוג והתואר נרשמים; הפרוטות, היום והפיס — לא</small></div>`;
@@ -130,7 +131,7 @@ export function createPractice31(o = {}) {
     stat.last = { id: ev.id, rating: ev.rating, q: ev.q };
     card = doc.createElement('div');
     card.className = 'p31-end';
-    card.innerHTML = endHTML31({ id: ev.id, rating: ev.rating, rec: recOf(), was });
+    card.innerHTML = endHTML31({ id: ev.id, rating: ev.rating, rec: recOf(), was, lv36: ev.lv36, pts36: ev.pts36, open36: ev.open36 });
     card.addEventListener('pointerdown', (e) => e.stopPropagation());
     const on = (k, fn) => {
       const b = card.querySelector(`[data-p31="${k}"]`);

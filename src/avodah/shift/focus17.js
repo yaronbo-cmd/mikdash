@@ -54,6 +54,7 @@ const CSS = `
 .f17-fire.up{animation:f17-pop .4s ease-out}
 .f17-fire b{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:1px;font:900 12px/1 "Heebo",system-ui,sans-serif;color:#FFD66E;text-shadow:0 1px 2px #000;display:none}
 .f17-fire.warn b,.f17-fire.crit b{display:block}.f17-fire.crit b{color:#FF8A6A}
+.l36-chip{flex:none;min-height:44px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 10px;border-radius:14px;border:2px solid #E2B65A;background:rgba(28,20,10,.82);color:#FFE6A0;font:900 15px/1.05 Heebo,system-ui,sans-serif;pointer-events:none;white-space:nowrap;direction:rtl}.l36-chip small{font:700 9px/1 Heebo,system-ui,sans-serif;color:#FFF6DA;opacity:.7}
 .f17-card{min-height:44px;max-width:min(56vw,420px);box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:4px 12px 4px 8px;border-radius:16px;background:rgba(28,20,10,.8);border:2px solid #E2B65A;box-shadow:0 3px 12px rgba(0,0,0,.45);white-space:nowrap}
 .f17-card i{font:26px/1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
 .f17-card span{font:900 16px/1.1 "Heebo",system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis}
@@ -221,6 +222,11 @@ export function createFocus17(o = {}) {
   fire.querySelector('.mk').setAttribute('stroke-dashoffset', String(-(B17.tamid.fire - 0.8)));
   const card = mk('f17-card', '<i></i><span></span><b></b>', 'div', top);
   card.setAttribute('role', 'status');
+  // ── fable32 (build 36) ── the level chip beside the step card: the level of the act he plays next (or now) — his pick in the roles book
+  // (E.lv36now: the laver until washed, the lot's role once given, the second lot's; a practice run's); off between his acts ── /fable32 ──
+  const chip36 = mk('l36-chip', '', 'div', top);
+  chip36.setAttribute('role', 'note');
+  chip36.style.display = 'none';
   const cardIcon = card.querySelector('i'),
     cardText = card.querySelector('span'),
     cardProg = card.querySelector('b'),
@@ -777,6 +783,19 @@ export function createFocus17(o = {}) {
       showBanner();
     }
     if (now() < bannerUntil) aimBanner();
+    {   // ── fable32 (build 36) ── (the level chip) ── /fable32 ──
+      let lv = null;
+      try {
+        lv = E.lv36now ? E.lv36now() : null;
+      } catch (e) {}
+      const k = lv ? `${lv.id}:${lv.lv}` : '';
+      if (chip36.__k !== k) {
+        chip36.__k = k;
+        chip36.style.display = lv ? '' : 'none';
+        if (lv) chip36.innerHTML = `<b>רמה ${lv.lv | 0}</b><small>טיוטה</small>`;
+        stat.chip36 = lv ? { ...lv } : null;
+      }
+    }
     const step = F.step;
     if (step) {
       const key = `${step.id}|${step.text}`;
@@ -1008,6 +1027,7 @@ export function createFocus17(o = {}) {
         ...stat,
         ev: stat.ev.slice(-20),
         card: { icon: cardIcon.textContent, text: cardText.textContent, prog: cardProg.textContent, vis: card.style.visibility !== 'hidden' },
+        chip36: chip36.style.display === 'none' ? null : chip36.textContent,   // ── fable32 (build 36) ── (the level chip's text) ── /fable32 ──
         fire: { v: fire.__v, cls: stat.fireCls },
         tam: { text: tam.textContent, cls: tam.className },
         n60: fire.classList.contains('n60'),

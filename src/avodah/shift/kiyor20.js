@@ -62,6 +62,7 @@ export function createKiyor20(o = {}) {
     globalThis.__K20LAVER = true;
   } catch (e) {}
   const ptr = { L: null, R: null },
+    ys = { L: null, R: null },   // ── fable32 (build 36) ── (each thumb's height since it pressed — the laver's level 4 levels the stream by them) ── /fable32 ──
     rings = {};
   for (const [side, label] of [
     ['L', 'שמאל — יד ורגל'],
@@ -77,6 +78,7 @@ export function createKiyor20(o = {}) {
       ev.stopPropagation();
       if (ptr[side] == null) {
         ptr[side] = ev.pointerId;
+        ys[side] = { y0: ev.clientY, y: ev.clientY };
         try {
           btn.setPointerCapture(ev.pointerId);
         } catch (e) {}
@@ -87,6 +89,9 @@ export function createKiyor20(o = {}) {
       ptr[side] == null || (ev && ev.pointerId !== ptr[side]) || ((ptr[side] = null), press(side, false));
     };
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) btn.addEventListener(ev, up);
+    btn.addEventListener('pointermove', (ev) => {   // ── fable32 (build 36) ── ── /fable32 ──
+      if (ptr[side] === ev.pointerId && ys[side]) ys[side].y = ev.clientY;
+    });
     btn.addEventListener('contextmenu', (ev) => ev.preventDefault());
     btn.addEventListener('click', (ev) => {
       ev.preventDefault();
@@ -105,6 +110,9 @@ export function createKiyor20(o = {}) {
   }
   // ── fable32 (build 30) ── (the end's word "ידיים ורגליים מקודשות" and its source over the world are gone: the step card says its rating,
   // end30 its source line — SRC_K20) ── /fable32 ──
+  const balEl = mk('k20-bal', '');   // ── fable32 (build 36) ── (level 4: the stream's tilt between the rings — המחשה) ── /fable32 ──
+  balEl.style.display = 'none';
+  balEl.setAttribute('aria-hidden', 'true');
   const word = mk('k20-w', '');
   word.setAttribute('aria-hidden', 'true');
   let waves = [0, 1, 2].map(() => mk('k20-v', null)),
@@ -164,7 +172,20 @@ export function createKiyor20(o = {}) {
         for (const side of ['L', 'R']) rings[side].classList.remove('on', 'pl');
       }
       wasOn = on;
-      const p = k ? (k.ph === 'pose' ? k.p : k.ph === 'up' ? 0 : 1) : 0;
+      // ── fable32 (build 36) ── level 2 on: no guide — the rings do not fill (he holds till the water stops); level 4: the stream's tilt
+      // between the rings (bal36), levelled by the thumbs' heights: the left lower than the right tips it one way, and back ── /fable32 ──
+      const guide = !(k && k.P36 && k.P36.guide === 0),
+        p = k ? (k.ph === 'pose' ? (guide ? k.p : 0) : k.ph === 'up' ? 0 : 1) : 0,
+        bal = !!(k && k.ph === 'pose' && k.P36 && k.P36.bal);
+      if (bal) {
+        const dL = ys.L && ptr.L != null ? ys.L.y - ys.L.y0 : 0,
+          dR = ys.R && ptr.R != null ? ys.R.y - ys.R.y0 : 0;
+        E.k20bal(Math.max(-1, Math.min(1, (dL - dR) / 60)));
+        const lim = k.P36.bal.lim, b = Math.max(-1, Math.min(1, k.b || 0));
+        balEl.style.display = '';
+        balEl.innerHTML = `<u style="left:${(50 - 50 * lim).toFixed(1)}%;width:${(100 * lim).toFixed(1)}%"></u><i style="left:${(50 + 50 * b).toFixed(1)}%"></i>`;
+        balEl.classList.toggle('bad', Math.abs(b) > lim * 0.8);
+      } else if (balEl.style.display !== 'none') balEl.style.display = 'none';
       if (Math.abs(p - lastP) > 0.004) {
         lastP = p;
         const dash = `${(p * 100).toFixed(1)} ${(100 - p * 100).toFixed(1)}`;
@@ -320,6 +341,7 @@ const CSS = `body{--k20f:"Heebo",system-ui,sans-serif}
 .k20-r .pr{stroke-dasharray:0 100}.k20-r .lq{transform:translateY(36px);transition:transform .3s}.k20-r.on .lq{transform:translateY(-31px)}.k20-r .wv{animation:k20wv 1.1s linear infinite}
 .k20-r b{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:-4px;font:800 13px/1 var(--k20f);color:#FFE6A0;text-shadow:0 1px 3px #000;white-space:nowrap;pointer-events:none}
 .k20-r.pl,.f17-sl.k20-call{animation:k20pl .8s ease-in-out infinite alternate}
+.k20-bal{position:fixed;z-index:36;left:50%;top:calc(62% + 44px);width:min(220px,40vw);height:14px;margin-left:calc(min(220px,40vw) / -2);border-radius:7px;background:#1C140AD8;border:1.5px solid #E2B65A;pointer-events:none}.k20-bal u{position:absolute;top:0;bottom:0;background:#9FE0FF33;border:1.5px solid #CFF6FF;border-radius:6px;box-sizing:border-box}.k20-bal i{position:absolute;top:-3px;width:8px;height:20px;margin-left:-4px;border-radius:4px;background:#CFF6FF;box-shadow:0 0 8px #9FE0FF}.k20-bal.bad i{background:#FFC690}
 .k20-w,.k20-no,.k20-mm,.k20-v{position:fixed;pointer-events:none;direction:rtl;white-space:nowrap;text-align:center}
 .k20-w{left:50%;top:40%;transform:translate(-50%,-50%);z-index:37;opacity:0;padding:12px 44px;background:radial-gradient(ellipse,#0C1E1CB3,#0C1E1C59 55%,#0000 72%)}.k20-w.on{animation:k20w 1.3s ease-out forwards}
 .k20-w b{display:block;font:900 40px/1.1 var(--k20f);color:#FFEBB0;-webkit-text-stroke:1.5px #1D5A55;text-shadow:0 0 18px #78ECDE,0 3px 0 #5A3A12}

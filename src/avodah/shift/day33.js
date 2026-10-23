@@ -1953,6 +1953,7 @@ export function createDay33(o = {}) {
             { when: 'בין הערביים', ok: ok('tamE') },
           ],
       court: e35 ? court35() : [],
+      chain: e35 ? CHAIN38.filter((x) => x.id !== 'close' && (x.id !== 'lamb' || p25) && (!/^(menorah|inner|gate)$/.test(x.id) || p26) && (!/^(shochet|zorek)$/.test(x.id) || p27)).map((x) => ({ id: x.id, icon: x.icon, he: x.he, kind: x.kind, his: list.some((y) => y.id === x.id) })) : null,   // ── fable32 (build 38) ── (the morning's chain with his links, svivat-avoda §8) ── /fable32 ──
       taskList: e35 ? st.tasks.map((x) => ({ id: x.id, text: x.text, done: !!x.done })) : [],
       fire: e35 ? look35() : null,
       rampBest: st.rampBest ? Math.round(st.rampBest * 10) / 10 : 0,

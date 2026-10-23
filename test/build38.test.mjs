@@ -74,6 +74,16 @@ test('build 38 (A): the bar\'s page — a small line under the top bar, RTL, no 
   assert.match(s, /\.c38\.msgon \.row\{display:none\}/); assert.match(s, /querySelector\('\.r30\.on:not\(\.sr\):not\(\.sl\)'\)/, 'below the act\'s source line');
 });
 
+test('build 38 (A): the day\'s summary shows the morning\'s chain with his links (svivat-avoda §8)', async () => {
+  const R = rig(FLAGS, { save: SAVE(), twin: twin() }); R.E.start(); await R.step(0.3);
+  R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); R.E.debug.skip26('inner'); R.E.st33.r30day = [['kiyor', 'mehudar'], ['m22', 'kasher'], ['inner', 'mehudar']];
+  R.E.debug.night(); for (let i = 0; i < 40 && !R.E.state().summary; i++) await R.step(0.2);
+  const s = R.E.focus17().summary || R.ev('summary').at(-1);
+  assert.ok(s && Array.isArray(s.chain), 'the summary\'s chain'); assert.deepEqual(s.chain.filter((x) => x.his).map((x) => x.id), ['kiyor', 'm22', 'inner']);
+  assert.ok(!s.chain.some((x) => x.id === 'close'));
+  assert.match(read('src/avodah/shift/focus17.js'), /<small>החוליות שלך — מוזהבות · המחשה<\/small>/);
+});
+
 // ───────── B. the help at narrow openings ─────────
 test('build 38 (B): the door help — the stick toward the Heichal\'s gate beside its span is bent into it (the speed kept); never away, never with no stick, never with the gate shut, not when in line', () => {
   assert.deepEqual({ ...DOOR38 }, { k: 0.75, cone: 40, reach: 7, side: 5, inset: 1 });

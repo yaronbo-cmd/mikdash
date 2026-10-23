@@ -256,7 +256,7 @@ test('build 35 (6): the summary — his acts with ratings, the court\'s acts nam
   assert.equal(s.taskList.length, 3); assert.ok(s.taskList.every((q) => TASKS35.some((t) => t.id === q.id)));
   assert.ok(s.c18 && s.c18.earn > 0); assert.equal(s.fire, 'mehudar');
   const f = read('src/avodah/shift/focus17.js'), sum = f.slice(f.indexOf('function showSummary'), f.indexOf('function close35'));
-  assert.match(sum, /rows = e35 \? `\$\{acts\}\$\{court\}\$\{tk\}`/, 'the work\'s rows'); assert.match(sum, /<h2>🌅 הבוקר הושלם<\/h2>/);
+  assert.match(sum, /rows = e35 \? `\$\{ch38\}\$\{acts\}\$\{court\}\$\{tk\}`/, 'the work\'s rows (build 38: the chain first)'); assert.match(sum, /<h2>🌅 הבוקר הושלם<\/h2>/);
   assert.match(sum, /כהני העזרה:/); assert.match(sum, /משימות הממונה:/);
   assert.ok(!/בין הערביים|באיחור|איחר/.test(sum), 'no evening tamid, no lateness');
 });

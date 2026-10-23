@@ -140,6 +140,7 @@ body.f17-on .s29-st.cue{animation:s29cue 1.4s ease-in-out infinite alternate;box
 .f17-top.f35 .f17-fire{display:none}
 .f35-close{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:33;max-width:calc(100vw - 32px);box-sizing:border-box;padding:8px 20px 9px;border-radius:18px;background:rgba(28,20,10,.72);border:2px solid rgba(255,214,110,.7);color:#FFF6DA;text-align:center;direction:rtl;font-family:"Heebo",system-ui,sans-serif;pointer-events:none;opacity:0;transition:opacity .8s ease}
 .f35-close.on{opacity:1}.f35-close b{display:block;font:900 24px/1.15 "Heebo",system-ui,sans-serif;color:#FFE6A0;white-space:nowrap}.f35-close small{display:block;margin-top:3px;font:700 13px/1.25 "Heebo",system-ui,sans-serif;opacity:.9}
+.f17-sum li.ch38{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;list-style:none;direction:rtl}.f17-sum li.ch38 i{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-style:normal;font-size:12px;opacity:.6;border:2px solid transparent;box-sizing:border-box}.f17-sum li.ch38 i.h{opacity:1;border-color:#FFD66E;background:rgba(255,214,110,.2)}.f17-sum li.ch38 small{flex-basis:100%;text-align:center;font-size:11px;opacity:.8}
 body.f35-closing .f17-top,body.f35-closing .f17-bar,body.f35-closing .s29-st,body.f35-closing .r30,body.f35-closing .tw-pad,body.f35-closing .tw-zone,body.f35-closing .hk26-m,body.f35-closing .dm27-m,body.f35-closing .p23-m{visibility:hidden!important}
 .f17-sum li.ct35{grid-column:1/-1}.f17-sum li.ct35 span{opacity:.92}.f17-sum li.tk35{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px}.f17-sum li.tk35 i{font-style:normal;white-space:nowrap}.f17-sum li.tk35 i.ok{color:#FFE6A0}.f17-sum li.tk35 i.no{opacity:.6}
 `;
@@ -546,7 +547,8 @@ export function createFocus17(o = {}) {
     const e35 = !!sum.e35,
       court = e35 && (sum.court || []).length ? `<li class="ct35">כהני העזרה: <span>${(sum.court || []).map((x) => esc(x.he)).join(' · ')}</span></li>` : '',
       tk = e35 && (sum.taskList || []).length ? `<li class="tk35">משימות הממונה: ${(sum.taskList || []).map((q) => `<i class="${q.done ? 'ok' : 'no'}">${q.done ? '✓' : '○'} ${esc(String(q.text || '').replace(/^\S+\s/, ''))}</i>`).join('')}</li>` : '',
-      rows = e35 ? `${acts}${court}${tk}` : `${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>`,
+      ch38 = e35 && Array.isArray(sum.chain) && sum.chain.length ? `<li class="ch38" aria-label="סדר הבוקר">${sum.chain.map((x) => `<i class="${x.his ? 'h' : ''}" title="${esc(x.he)}">${x.icon}</i>`).join('')}<small>החוליות שלך — מוזהבות · המחשה</small></li>` : '',   // ── fable32 (build 38) ── (the morning's chain, his links ringed) ── /fable32 ──
+      rows = e35 ? `${ch38}${acts}${court}${tk}` : `${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>`,
       head = e35 ? `<h2>🌅 הבוקר הושלם</h2><div class="sv">${esc(`יום ${sum.day | 0}${sv ? ` · ${sv}` : ''}`)}</div>` : `<h2>יום ${sum.day | 0} הסתיים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}`;
     summary = mk(
       'f17-sum',

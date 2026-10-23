@@ -118,13 +118,11 @@
       // or the counter overshoots and the shovel rocks — then he slows and the descent takes seconds longer)
       // ── fable32 (build 36) ── (the tilt as he saw it a reaction ago — the child 0.2 s, the quick and skilled hand 0.1 s — and a gentler
       // gain for it; the same model as tools/lvl36sim.mjs) ── /fable32 ──
-      const lat = H() ? 0.2 : 0.1, hist = A.d21h || (A.d21h = []); hist.push([K.T, K.b]); while (hist.length > 2 && hist[1][0] <= K.T - lat) hist.shift(); const seen = hist[0][1];
-      const fix = 2.4, p = A.d21p, b = seen + (H() ? (rnd() - 0.5) * 0.3 : 0), dT = p && K.T > p.T + 1e-3 ? K.T - p.T : 0;
-      const push = dT ? (seen - p.b) / dT - (p.u || 0) * fix : 0;
-      const k0 = H() ? 2.2 + rnd() * 2 : 3.2, k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05, 0.6 * lat))), ff = dT > 0.12 ? 0 : H() ? 0.4 : 0.9;   // (a child corrects late and less)
-      const u = Math.max(-1, Math.min(1, -b * k - (ff * push) / fix));
+      const p = A.d21p, dT = p && K.T > p.T + 1e-3 ? K.T - p.T : 0, u = hand37(K.T, K.b, H(), rnd, A.d21h || (A.d21h = {}));   // ── fable32 (build 37) ── (hand37: was the rate over one look) ── /fable32 ──
       if (dT) { A.lag.n++; A.lag.s += dT; A.lag.max = Math.max(A.lag.max, dT); }
-      d21touch(u); A.d21p = { T: K.T, b: seen, u };
+      if (!A.d21dbg) { A.d21dbg = { looks: [], ins: [] }; const f = e.d21bal; if (!f.__dbg) { const g = (v) => { const k = e.d21(); if (k && A.d21dbg && A.d21dbg.ins.length < 600 && v !== A.d21dbg.lastIn) { A.d21dbg.lastIn = v; A.d21dbg.ins.push([+k.T.toFixed(3), v == null ? null : +(+v).toFixed(3)]); } return f(v); }; g.__dbg = 1; e.d21bal = g; } }   // ── fable32 (build 37) ── (the ashes' debug: when the pad's u reaches the engine — E.d21bal patched, the tool's only) ── /fable32 ──
+      if (A.d21dbg.looks.length < 600) A.d21dbg.looks.push([+K.T.toFixed(3), +u.toFixed(3), +K.b.toFixed(3), K.spills | 0, +(K.v || 0).toFixed(2)]);
+      d21touch(u); A.d21p = { T: K.T, u };
       const sy = H() ? (Math.abs(K.b) > 0.55 ? 0.5 : 0.75 + rnd() * 0.25) : Math.abs(K.b) > 0.4 ? 0.55 : 1; e.d21stick(sy);
       if (!(A.trT > K.T - 0.25)) { A.trT = K.T; A.trace.push([T(), K.ph[0], +K.b.toFixed(2), +(K.v || 0).toFixed(1), +u.toFixed(2), sy]); if (A.trace.length > 400) A.trace.shift(); }   // (the run's log: the walk's balance)
       await sleep(H() ? 90 : 50); return;
@@ -168,13 +166,32 @@
   }
   // ── fable32 (build 36) ── a balance of the levels (the laver's stream, the teni): as the ashes' — the tilt seen a reaction ago (the
   // child 0.2 s, the skilled 0.1 s), a gentler gain for it, a child's rougher eye; the engine's own clock (K.bT) ── /fable32 ──
-  function bal36(K, mem, setU) {
-    const lat = H() ? 0.2 : 0.1, Tn = K.bT || 0, hist = mem.h || (mem.h = []); hist.push([Tn, K.b || 0]); while (hist.length > 2 && hist[1][0] <= Tn - lat) hist.shift();
-    const seen = hist[0][1], fix = 2.4, p = mem.p, dT = p && Tn > p.T + 1e-3 ? Tn - p.T : 0, push = dT ? (seen - p.b) / dT - (p.u || 0) * fix : 0;
-    const k0 = H() ? 2.2 + rnd() * 2 : 3.2, k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05, 0.6 * lat))), ff = dT > 0.12 ? 0 : H() ? 0.4 : 0.9;
-    const u = Math.max(-1, Math.min(1, -(seen + (H() ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08)) * k - (ff * push) / fix));
-    setU(u); mem.p = { T: Tn, b: seen, u };
+  // ── fable32 (build 37) ── one balance hand for every balance act (the ashes' pan, the laver's stream at level 4, the teni), the same
+  // lines in tools/lvl36sim.mjs: the tilt as seen a reaction ago (lat: the child 0.2 s, the skilled 0.1 s — read between his looks,
+  // interpolated), its rate over a fixed 0.1 s less his own counter of then (the push he feels: the wind and the shake), a child's eye
+  // rough (±0.15) and his gain gentler (1.74; the skilled 3.2, the push fed forward 0.9). Build 36 took the rate over one look: in the
+  // page the looks come 0.05 or 0.1 s apart (the frames and the bot's timer beat), and that jitter became a ±1 counter that rocked the
+  // pan — the browser's skilled hand 0/10 at the ashes' level 4 where node made 30 %. ── /fable32 ──
+  function hand37(T, b, child, rnd, mem) {
+    const lat = child ? 0.2 : 0.1, W = 0.1, fix = 2.4, h = mem.h || (mem.h = []), us = mem.us || (mem.us = []);
+    h.push([T, b]);
+    while (h.length > 3 && h[1][0] <= T - lat - W - 0.1) h.shift();
+    while (us.length > 2 && us[1][0] <= T - lat - W - 0.1) us.shift();
+    const bAt = (t) => { let i = h.length - 1; while (i > 0 && h[i][0] > t) i--; const p = h[i], q = h[i + 1]; return q && q[0] > p[0] && t > p[0] ? p[1] + (q[1] - p[1]) * Math.min(1, (t - p[0]) / (q[0] - p[0])) : p[1]; };
+    const uAt = (t) => { let i = us.length - 1; while (i >= 0 && us[i][0] > t) i--; return i >= 0 ? us[i][1] : 0; };
+    const s1 = bAt(T - lat), s0 = bAt(T - lat - W), d = (s1 - s0) / W - uAt(T - lat - W / 2) * fix;
+    const seen = s1 + (child ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08), k = child ? 1.74 : 3.2, ff = child ? 0.4 : 0.9;
+    const u = Math.max(-1, Math.min(1, -seen * k - (ff * d) / fix));
+    us.push([T, u]);
+    return u;
   }
+  // ── fable32 (build 37) ── the eye's model (the lamb), the same numbers as tools/lvl36sim.mjs: missed by the drawn size and the spots' count ── /fable32 ──
+  const EYE37 = { child: { k50: 0.099, w: 0.0367 }, skilled: { k50: 0.031, w: 0.0367 }, att: 0.15 };
+  function miss37(s, L, prof) {
+    const k = (L.big ? 1.45 : 1) * (s.r < 4 ? 0.17 : s.r < 6 ? 0.2 : 0.26) * (s.small ? 0.62 : 1) * (s.sz || 1), e = EYE37[prof], n = (L.spots || []).length;
+    return Math.min(0.9, (1 / (1 + Math.exp((k - e.k50) / e.w))) * (1 + EYE37.att * Math.max(0, n - 1)));
+  }
+  function bal36(K, mem, setU) { setU(hand37(K.bT || 0, K.b || 0, H(), rnd, mem)); }   // ── fable32 (build 37) ── (the laver's stream and the teni: hand37) ── /fable32 ──
   // the beam by the finger on pen25's pad (its frame focuses the spot nearest the beam, E.p25focus — a direct focus would be undone):
   // drag the beam onto the spot (the beam moves AIM_K 1.6 px a finger's px; a child's drag falls short and is corrected), lift, then a
   // short touch (< 14 px, < 380 ms) — pen25's tap; without the pad (or no focus in 0.8 s), E.p25focus + E.p25tap in one turn
@@ -201,7 +218,7 @@
     const K = e.p25(); if (!K) return;
     if (K.ph === 'scan') {
       if (!A.shotDone.lamb) await shot30('lamb', null, 600);   // ── fable32 (build 31) ── (the lamb by torchlight: an act in progress) ── /fable32 ──
-      const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(s.skip36 = s.skip36 != null ? s.skip36 : rnd() < (H() ? (s.kind === 'blem' && s.small ? 0.18 : 0.06) : SK() ? (s.kind === 'blem' && s.small ? 0.1 : 0.01) : 0)));   // ── fable32 (build 36) ── (a spot missed — once a lamb; a small blemish more often) ── /fable32 ──
+      const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(s.skip36 = s.skip36 != null ? s.skip36 : rnd() < (H() || SK() ? miss37(s, K.L, H() ? 'child' : 'skilled') : 0)));   /* ── fable32 (build 37) ── (the eye by the spot's drawn size — tools/lvl36sim.mjs EYE37; was 6 % / 18 %, 1 % / 10 %) ── */   // ── fable32 (build 36) ── (a spot missed — once a lamb; a small blemish more often) ── /fable32 ──
       if (next) { await react(); await aim25(e, next.i); await sleep(100); return; }
       const blem = spots.some((s) => s.kind === 'blem' && s.seen && (!(K.P36 && K.P36.mimic) || s.shown36)), dirt = spots.some((s) => s.kind === 'dirt' && !s.gone);
       await react(); const say = blem || (dirt && rnd() < (H() ? 0.3 : SK() ? 0.05 : 0)) ? 'pasul' : 'tamim';
@@ -528,7 +545,7 @@
     get on() { return A.on; },
     start(opts = {}) {
       A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = []; A.j32 = []; A.j32k = ''; A.j32open = 0; A.skip32 = 0; A.src32 = 0; A.src32s = [];   // ── fable32 (build 32) ── (the journal's cards) ── /fable32 ──
-      A.d21h = null; A.d21p = null; A.t36 = null; A.d21t = null;   // ── fable32 (build 36) ── (each run's own balance memory: a practice's "עוד פעם" starts the engine's clock again) ── /fable32 ──
+      A.d21h = null; A.d21p = null; A.t36 = null; A.d21t = null; A.d21dbg = null;   // ── fable32 (build 36) ── (each run's own balance memory: a practice's "עוד פעם" starts the engine's clock again) ── /fable32 ──
       A.share = {}; A.sh35 = null; A.close35 = []; A.sums = []; A.fire35 = []; A.runs = []; A.slips35 = 0; A.tasks35 = []; A.held19 = 0; A.h19 = null; A.shot35q = null;   // ── fable32 (build 35) ── ── /fable32 ──
       clearInterval(A.shInt); A.shInt = setInterval(() => { try { const e = E(); if (e && e.st33) share35(e); } catch (err) { /* */ } }, 100);   // ── fable32 (build 35) ── (the time shares: sampled apart from the bot's own turns, which a walk holds) ── /fable32 ──
       const e = E(); if (e) hook(e);
@@ -536,7 +553,7 @@
       return until(() => !A.on || A.marks.roleDone != null, (opts.morningS || 600) * 1000, 250).then(() => table());
     },
     stop() { A.on = false; clearInterval(A.shInt); try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
-    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), share: JSON.parse(JSON.stringify(A.share || {})), close35: (A.close35 || []).slice(), sums: (A.sums || []).slice(), fire35: (A.fire35 || []).slice(), runs: (A.runs || []).slice(), slips35: A.slips35 | 0, tasks35: (A.tasks35 || []).slice(), held19: A.held19 | 0, lifts19: A.h19 ? A.h19.n : 0 /* ── fable32 (build 35) ── */, j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
+    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), share: JSON.parse(JSON.stringify(A.share || {})), close35: (A.close35 || []).slice(), sums: (A.sums || []).slice(), fire35: (A.fire35 || []).slice(), runs: (A.runs || []).slice(), slips35: A.slips35 | 0, tasks35: (A.tasks35 || []).slice(), held19: A.held19 | 0, lifts19: A.h19 ? A.h19.n : 0 /* ── fable32 (build 35) ── */, j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, d21dbg: A.d21dbg || null /* ── fable32 (build 37) ── */, table: table() }),
     events: () => A.ev.slice(),
     get shotReq() { return A.shotReq; },
     shotTaken() { A.shotReq = null; },

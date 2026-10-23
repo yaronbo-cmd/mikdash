@@ -489,7 +489,7 @@ function lamb25(day, k, first = false, blems = 0, rej = 0, P36 = null) {
       : rnd(1) < 0.5
         ? { blem: { c: Math.floor(rnd(2) * nC) % nC, r: [6, 1, 3, 4][Math.floor(rnd(3) * 4) % 4] }, dirt: [], big: true }
         : { blem: null, dirt: [{ r: [6, 7, 1][Math.floor(rnd(4) * 3) % 3], kind: 'straw' }], big: true };
-  const newBlem = canBlem && rnd(1) < ((P36 && P36.pB) || P25.pB) ? { c: Math.floor(rnd(2) * nC) % nC, r: P36 && P36.small ? Math.floor(rnd(3) * 4) % 4 : Math.floor(rnd(3) * nR) % nR, ...(P36 && P36.small ? { small: 1 } : {}) } : null,
+  const newBlem = canBlem && rnd(1) < ((P36 && P36.pB) || P25.pB) ? { c: Math.floor(rnd(2) * nC) % nC, r: P36 && P36.small ? Math.floor(rnd(3) * 4) % 4 : Math.floor(rnd(3) * nR) % nR, ...(P36 && P36.small ? { small: 1 } : {}), ...(P36 && P36.sz && P36.sz !== 1 ? { sz: P36.sz } : {}) /* ── fable32 (build 37) ── (the blemish's drawn size by the level) ── */ } : null,
     nDirt = Math.floor(rnd(4) * (((P36 && P36.dirt) || P25.dirt) + 1)) % (((P36 && P36.dirt) || P25.dirt) + 1),   // ── fable32 (build 36) ── (level 4: more spots to read — P36.dirt, P36.pB) ── /fable32 ──
     dirt = [];
   for (let i = 0; i < 8 && dirt.length < nDirt; i++) {
@@ -3726,7 +3726,7 @@ export function createDay33(o = {}) {
     let L = lamb25(prac ? prac.seed : st.day, prac && prac.ch33 ? 0 : K.k, K.first || !!(prac && prac.ch33), K.blems, K.rej, prac && prac.ch33 ? null : K.P36);   // ── fable32 (build 36) ── (the level's lamb; the chamber's stays easy) ── /fable32 ──   // ── fable32 (build 31) ── (a practice run: its own seed — another lamb each time) ── /fable32 ── ── fable32 (build 33) ── (the chamber: the day's one lamb at an easy level — the pen's first lamb: big, one blemish in a plain place or a straw) ── /fable32 ──
     if (K.mine && K.k === 0) L = { ...L, blem: null };   // ── fable32 (build 33) ── (the morning's lamb is the one he inspected four days ago — whole; a straw may be on it) ── /fable32 ──
     if (L.blem) K.blems++;
-    const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r, ...(L.blem.small ? { small: 1 } : {}) }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r, ...(x.mimic != null ? { mimic: x.mimic } : {}) }))]
+    const spots = [...(L.blem ? [{ kind: 'blem', c: L.blem.c, r: L.blem.r, ...(L.blem.small ? { small: 1 } : {}), ...(L.blem.sz ? { sz: L.blem.sz } : {}) /* ── fable32 (build 37) ── */ }] : []), ...L.dirt.map((x) => ({ kind: 'dirt', d: x.kind, r: x.r, ...(x.mimic != null ? { mimic: x.mimic } : {}) }))]
       .sort((a, b) => a.r - b.r)
       .map((x, i) => ({ ...x, i, seen: false, gone: false }));
     K.L = { blem: L.blem, big: L.big, spots };

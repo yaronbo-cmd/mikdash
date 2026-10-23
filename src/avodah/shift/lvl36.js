@@ -26,14 +26,17 @@ export const LVL36 = Object.freeze({
     lv('החזקה מודרכת', 'הטבעת מתמלאת ומראה כמה עוד', {}, { guide: 1, hold: 1, bal: null }),
     lv('בלי הדרכה', 'בלי מילוי הטבעת — מחזיקים עד שהמים פוסקים', {}, { guide: 0, hold: 1, bal: null }),
     lv('החזקה ארוכה', 'המים זורמים זמן רב יותר', {}, { guide: 0, hold: 1.6, bal: null }),
-    lv('שני אגודלים באיזון', 'הזרם נוטה — מאזנים בגובה האגודלים, בלי להרים', { src: cite('ימין על ימין, שמאל על שמאל', 'זבחים יט ע״ב') }, { guide: 0, hold: 1.6, bal: Object.freeze({ wind: 1.1, shake: 1.1, fix: 2.4, lim: 0.55, gap: 0.9 }) }),
+    lv('שני אגודלים באיזון', 'הזרם נוטה — מאזנים בגובה האגודלים, בלי להרים', { src: cite('ימין על ימין, שמאל על שמאל', 'זבחים יט ע״ב') }, { guide: 0, hold: 1.6, bal: Object.freeze({ wind: 1.55, shake: 1.55, fix: 2.4, lim: 0.5, gap: 0.9 }) /* ── fable32 (build 37) ── (was 1.1 / 0.55: with hand37 the skilled 86 %) ── */ }),
   ]),
   // תרומת הדשן: the coals, the pan's weight on the way down, the heap's exact place
+  // ── fable32 (build 37) ── (the pans retuned with the tools' new balance hand, hand37 — the browser and node now agree: level 1 the pan
+  // ×1.2 of build 35's, spilling at 0.68 (was ×0.65 at 0.8: with the steady hand the child never spilt — 100 %); level 3 ×1.45 at 0.6
+  // (was 1.4 / 0.62); level 4 ×1.65 at 0.53 (was 1.6 / 0.55)) ── /fable32 ──
   deshen: Object.freeze([
-    lv('גחלים ברורות', 'הגחלים לפניכם — פנו הילך והילך', {}, { inner: 0, heavy: Object.freeze({ wind: 0.65, shake: 0.65, spill: 0.8 }), exact: 0 }),
-    lv('מן המאוכלות הפנימיות', 'חותים רק מן הגחלים שאוכלו — בצד שבו הן לוחשות', { src: cite('חתה מן המאוכלות הפנימיות', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 0.65, shake: 0.65, spill: 0.8 }), exact: 0 }),
-    lv('מחתה כבדה', 'המחתה מלאה וכבדה — האיזון צר', { src: cite('נטל את מחתת הכסף', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.4, shake: 1.4, spill: 0.62 }), exact: 0 }),
-    lv('מקום ההנחה המדויק', 'צוברים שלושה טפחים מן הכבש — בדיוק', { src: cite('צבר את הגחלים על גבי הרצפה רחוק מן הכבש שלשה טפחים', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.6, shake: 1.6, spill: 0.55 }), exact: 0.75 }),
+    lv('גחלים ברורות', 'הגחלים לפניכם — פנו הילך והילך', {}, { inner: 0, heavy: Object.freeze({ wind: 1.2, shake: 1.2, spill: 0.68 }), exact: 0 }),
+    lv('מן המאוכלות הפנימיות', 'חותים רק מן הגחלים שאוכלו — בצד שבו הן לוחשות', { src: cite('חתה מן המאוכלות הפנימיות', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.2, shake: 1.2, spill: 0.68 }), exact: 0 }),
+    lv('מחתה כבדה', 'המחתה מלאה וכבדה — האיזון צר', { src: cite('נטל את מחתת הכסף', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.45, shake: 1.45, spill: 0.6 }), exact: 0 }),
+    lv('מקום ההנחה המדויק', 'צוברים שלושה טפחים מן הכבש — בדיוק', { src: cite('צבר את הגחלים על גבי הרצפה רחוק מן הכבש שלשה טפחים', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.65, shake: 1.65, spill: 0.53 }), exact: 0.75 }),
   ]),
   // המערכה: the sort, the air between the logs, the second pyre (of the incense)
   m22: Object.freeze([
@@ -44,17 +47,17 @@ export const LVL36 = Object.freeze({
   ]),
   // בדיקת הטלה: the blemish plain, small, dirt that looks like one, two lambs
   lamb: Object.freeze([
-    lv('מום גלוי', 'המום נראה לאור האבוקה', { src: cite('בודקין אותו לאור האבוקות', 'תמיד ג, ד') }, { small: 0, mimic: 0, two: 0 }),
-    lv('מומים קטנים', 'המום קטן — באוזן או בעין', { src: cite('כל מום משלשה ושבעים מום המנויין בבהמה פוסלין אותה מן הקרבן', 'רמב״ם, איסורי מזבח ב, י') }, { small: 1, mimic: 0, two: 0 }),
-    lv('לכלוך שנראה כמו מום', 'מקרוב לא רואים — מבריש, ואז יודע', {}, { small: 1, mimic: 1, two: 0, pB: 0.6 }),
-    lv('שני טלאים להשוואה', 'בודקים שני טלאים — ובוחרים את התמים', { src: cite('צאו והביאו טלה מלשכת הטלאים', 'תמיד ג, ג') }, { small: 1, mimic: 1, two: 1, pB: 0.65, dirt: 3 }),
+    lv('מום גלוי', 'המום נראה לאור האבוקה', { src: cite('בודקין אותו לאור האבוקות', 'תמיד ג, ד') }, { small: 0, mimic: 0, two: 0, pB: 0.7, dirt: 4 } /* ── fable32 (build 37) ── (more to read: more lambs with a blemish, up to four straws or mud — was P25's 0.5 and 2) ── */),
+    lv('מומים קטנים', 'המום קטן — באוזן או בעין', { src: cite('כל מום משלשה ושבעים מום המנויין בבהמה פוסלין אותה מן הקרבן', 'רמב״ם, איסורי מזבח ב, י') }, { small: 1, mimic: 0, two: 0, pB: 0.7, dirt: 4 }),
+    lv('לכלוך שנראה כמו מום', 'מקרוב לא רואים — מבריש, ואז יודע', {}, { small: 1, mimic: 1, two: 0, pB: 0.7, dirt: 4 }),
+    lv('שני טלאים להשוואה', 'בודקים שני טלאים, והמום זעיר — ובוחרים את התמים', { src: cite('צאו והביאו טלה מלשכת הטלאים', 'תמיד ג, ג') }, { small: 1, mimic: 1, two: 1, pB: 0.8, dirt: 4, sz: 0.5 } /* ── fable32 (build 37) ── (the blemish half a small one's size — was pB 0.65, dirt 3, sz 1) ── */),
   ]),
   // דישון מזבח הפנימי: the pulls (too fast scratches the gold), the guide, the teni out
   inner: Object.freeze([
     lv('חפינות מודרכות', 'המד מראה את קצב החפינה', {}, { guide: 1, vmax: 2.4, teni: null }),
     lv('רגישות לשריטה', 'הזהב רגיש — חופנים לאט יותר', {}, { guide: 1, vmax: 2.05, teni: null }),
     lv('בלי הדרכה', 'בלי מד הקצב — לפי היד', {}, { guide: 0, vmax: 2.05, teni: null }),
-    lv('הכניסה השנייה: הטני החוצה', 'נוטלים את הטני המלא ויוצאים בו בלי שתיפול גחלת', { src: cite('נכנס ונטל את הטני והשתחוה ויצא', 'תמיד ו, א') }, { guide: 0, vmax: 1.9, teni: Object.freeze({ wind: 1.0, shake: 1.0, fix: 2.4, lim: 0.55, gap: 0.9, s: 4.6 }) }),
+    lv('הכניסה השנייה: הטני החוצה', 'נוטלים את הטני המלא ויוצאים בו בלי שתיפול גחלת', { src: cite('נכנס ונטל את הטני והשתחוה ויצא', 'תמיד ו, א') }, { guide: 0, vmax: 1.9, teni: Object.freeze({ wind: 1.6, shake: 1.6, fix: 2.4, lim: 0.5, gap: 0.9, s: 4.6 }) /* ── fable32 (build 37) ── (was 1.0 / 0.55: with hand37 the skilled 79 %) ── */ }),
   ]),
   // דישון המנורה: the lamp shown, the half-log band, the eastern lamp out, the western lamp out
   menorah: Object.freeze([

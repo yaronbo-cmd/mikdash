@@ -288,7 +288,7 @@ export function createPen25(o = {}) {
         const m = new THREE.Mesh(quad, decalMat(texOf(sp2.kind === 'blem' ? BLEM25.cats[sp2.c].id : sp2.mimic != null ? BLEM25.cats[sp2.mimic % BLEM25.cats.length].id : sp2.d)));
         m.visible = false;
         scene.add(m);
-        spots.push({ m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) * (sp2.small ? 0.62 : 1) });
+        spots.push({ m, s: sp2, o: 1, k: (L.big ? 1.45 : 1) * (sp2.r < 4 ? 0.17 : sp2.r < 6 ? 0.2 : 0.26) * (sp2.small ? 0.62 : 1) * (sp2.sz || 1) });   // ── fable32 (build 37) ── (sz: the level's blemish drawn smaller still — lvl36.js) ── /fable32 ──
       }
     },
     dark = mk('p25-dk'),

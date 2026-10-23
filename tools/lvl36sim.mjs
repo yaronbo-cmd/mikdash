@@ -12,6 +12,7 @@ import '../src/avodah/shift/focus17.js';   // (every act's module: their sources
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 && args[i + 1] != null ? args[i + 1] : d; };
+if (opt('--p', null)) globalThis.__LV36P = JSON.parse(opt('--p', '{}'));   // ── fable32 (build 37) ── (--p '{"lamb":{"4":{"sz":0.5}}}': a level's knobs tried — lvl36.js par36) ── /fable32 ──
 const N = +opt('--n', 60), ROLES = opt('--roles', 'kiyor,deshen,m22,lamb,inner,menorah,shochet,zorek').split(','), LEVELS = opt('--levels', '1,2,3,4').split(',').map(Number), PROFILES = opt('--profiles', 'child,skilled').split(',');
 const SAVE = () => ({ served30: 5, roles23: { m: 6, h: [], kiyor: { n: 6, best: 100, last: 75 }, deshen: { n: 2, best: 100, last: 100 }, m22: { n: 2, best: 80, last: 80 }, lamb: { n: 2, best: 100, last: 45 }, menorah: { n: 2, best: 90, last: 90 }, inner: { n: 1, best: 95, last: 95 }, shochet: { n: 1, best: 100, last: 100 }, zorek: { n: 1, best: 88, last: 88 } }, roles26: { m: 6, h: [] } });
 // a gaussian from the bot's own rng
@@ -24,17 +25,36 @@ export const HAND = {
 };
 
 async function settle(R) { await R.step(0.5); }
-/** a balance by the thumb (the ashes' pan, the laver's stream, the teni): as autoplay35.js's — the tilt seen, the push felt, a child later and rougher */
-function balance(K, H, rnd, mem, setU) {
-  // (the tilt as he saw it H.lat s ago — a thumb's reaction: the child's 0.35 s, the skilled 0.15 s)
-  const T = K.bT != null ? K.bT : K.T, hist = mem.h || (mem.h = []);
-  hist.push([T, K.b]); while (hist.length > 2 && hist[1][0] <= T - H.lat) hist.shift();
-  const seen = hist[0][0] <= T - H.lat + 1e-6 ? hist[0][1] : hist[0][1];
-  const fix = 2.4, b = seen + (rnd() - 0.5) * 2 * H.balNoise * 0.5, p = mem.p, dT = p && T > p.T + 1e-3 ? T - p.T : 0;
-  const push = dT ? (seen - p.b) / dT - (p.u || 0) * fix : 0;
-  const k0 = H.balK[0] + rnd() * H.balK[1], k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05, 0.6 * H.lat)));   // (a hand that sees late corrects gently, or it rocks)
-  const u = Math.max(-1, Math.min(1, -b * k - (H.balFF * push) / fix));
-  setU(u); mem.p = { T, b: seen, u };
+// ── fable32 (build 37) ── one balance hand for every balance act (the ashes' pan, the laver's stream at level 4, the teni), the same
+// lines in tools/autoplay35.js: the tilt as seen a reaction ago (lat: the child 0.2 s, the skilled 0.1 s — read between his looks,
+// interpolated), its rate over a fixed 0.1 s less his own counter of then (the push he feels: the wind and the shake), a child's eye
+// rough (±0.15) and his gain gentler (1.74; the skilled 3.2, the push fed forward 0.9). Build 36 took the rate over one look: in the
+// page the looks come 0.05 or 0.1 s apart (the frames and the bot's timer beat), and that jitter became a ±1 counter that rocked the
+// pan — the browser's skilled hand 0/10 at the ashes' level 4 where node made 30 %. ── /fable32 ──
+export function hand37(T, b, child, rnd, mem) {
+  const lat = child ? 0.2 : 0.1, W = 0.1, fix = 2.4, h = mem.h || (mem.h = []), us = mem.us || (mem.us = []);
+  h.push([T, b]);
+  while (h.length > 3 && h[1][0] <= T - lat - W - 0.1) h.shift();
+  while (us.length > 2 && us[1][0] <= T - lat - W - 0.1) us.shift();
+  const bAt = (t) => { let i = h.length - 1; while (i > 0 && h[i][0] > t) i--; const p = h[i], q = h[i + 1]; return q && q[0] > p[0] && t > p[0] ? p[1] + (q[1] - p[1]) * Math.min(1, (t - p[0]) / (q[0] - p[0])) : p[1]; };
+  const uAt = (t) => { let i = us.length - 1; while (i >= 0 && us[i][0] > t) i--; return i >= 0 ? us[i][1] : 0; };
+  const s1 = bAt(T - lat), s0 = bAt(T - lat - W), d = (s1 - s0) / W - uAt(T - lat - W / 2) * fix;
+  const seen = s1 + (child ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08), k = child ? 1.74 : 3.2, ff = child ? 0.4 : 0.9;
+  const u = Math.max(-1, Math.min(1, -seen * k - (ff * d) / fix));
+  us.push([T, u]);
+  return u;
+}
+// the look's interval: the page's (as measured in the browser, build 37: a skilled hand every frame, 0.05 s, one in eight 0.1; a child every other, 0.1, one in ten 0.05)
+export const look37 = (child, rnd) => { const r = rnd(); return child ? (r < 0.1 ? 0.05 : 0.1) : r < 0.12 ? 0.1 : 0.05; };
+function balance(K, H, rnd, mem, setU) { setU(hand37(K.bT != null ? K.bT : K.T, K.b, H === HAND.child, rnd, mem)); }
+// ── fable32 (build 37) ── the eye's model (the lamb): a spot is missed by its drawn size — pen25's k (the region's scale × 0.62 if small
+// × the level's sz) — and a little more when the lamb shows more spots (attention): one logistic in the size for both hands (the same
+// slope; the child's half-seen size larger), set by build 36's guesses — the skilled 1 % a hoof's plain spot, 10 % a small one; the
+// child 6 % the plain one. The sizes are the game's; the curve is a guess — no eyes. tools/autoplay35.js carries the same numbers. ── /fable32 ──
+export const EYE37 = { child: { k50: 0.099, w: 0.0367 }, skilled: { k50: 0.031, w: 0.0367 }, att: 0.15 };
+export function miss37(s, L, prof) {
+  const k = (L.big ? 1.45 : 1) * (s.r < 4 ? 0.17 : s.r < 6 ? 0.2 : 0.26) * (s.small ? 0.62 : 1) * (s.sz || 1), e = EYE37[prof], n = (L.spots || []).length;
+  return Math.min(0.9, (1 / (1 + Math.exp((k - e.k50) / e.w))) * (1 + EYE37.att * Math.max(0, n - 1)));
 }
 const PLAY = {
   async kiyor(R, H, L, rnd) {
@@ -49,7 +69,7 @@ const PLAY = {
       const K = R.E.k20();
       tt += 0.05;
       if (!lifted && tt >= liftAt) { lifted = 1; R.E.k20in('R', false); await R.step(0.4); R.E.k20in('R', true); }
-      if (K.P36 && K.P36.bal && (tBal += 0.05) >= H.balDt) { tBal = 0; balance(K, H, rnd, mem, (u) => R.E.k20bal(u)); }
+      if (K.P36 && K.P36.bal && (tBal += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tBal = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.k20bal(u)); }   // ── fable32 (build 37) ── (the page's look intervals) ── /fable32 ──
       await R.step(0.05, 0.05);
     }
   },
@@ -67,7 +87,7 @@ const PLAY = {
         balance(K, H, rnd, mem, (u) => R.E.d21bal(u));
         R.E.d21stick(H === HAND.child ? (Math.abs(K.b) > 0.55 ? 0.5 : 0.75 + rnd() * 0.25) : Math.abs(K.b) > 0.4 ? 0.55 : 1);
       }
-      await R.step(H.balDt, 0.05);
+      await R.step(look37(H === HAND.child, rnd), 0.05);   // ── fable32 (build 37) ── (the page's look intervals — was H.balDt, even) ── /fable32 ──
     }
     // the walk to the heap's gold mark: he stops within his radius (a skilled hand nearer), somewhere round it
     const g = D21.go[2], a = rnd() * 2 * Math.PI, r = H.exactR * Math.sqrt(rnd());
@@ -101,7 +121,7 @@ const PLAY = {
     for (let n = 0; n < 200 && R.E.p25() && !/^(lead|end)$/.test(R.E.p25().ph); n++) {
       const K = R.E.p25();
       if (K.ph === 'scan') {
-        const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(s.skip36 = s.skip36 != null ? s.skip36 : rnd() < (s.kind === 'blem' && s.small ? H.miss[1] : H.miss[0])));
+        const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(s.skip36 = s.skip36 != null ? s.skip36 : rnd() < miss37(s, K.L, H === HAND.child ? 'child' : 'skilled')));   // ── fable32 (build 37) ── (the eye by the spot's drawn size — was H.miss: 6 % / 18 %, 1 % / 10 %) ── /fable32 ──
         if (next) { R.E.p25focus(next.i); R.E.p25tap(); await R.step(0.1); continue; }
         const blem = spots.some((s) => s.kind === 'blem' && s.seen && (!K.P36 || !K.P36.mimic || s.shown36)), dirt = spots.some((s) => s.kind === 'dirt' && !s.gone);
         const say = blem || (dirt && rnd() < H.dirtSay) ? 'pasul' : 'tamim';
@@ -129,7 +149,7 @@ const PLAY = {
     const mem = {}; let tb = 0;
     for (let i = 0; i < 400 && R.E.r26() && R.E.r26().ph !== 'out'; i++) {
       const K = R.E.r26();
-      if (K.ph === 'teni36' && (tb += 0.05) >= H.balDt) { tb = 0; balance(K, H, rnd, mem, (u) => R.E.r26bal(u)); }
+      if (K.ph === 'teni36' && (tb += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tb = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.r26bal(u)); }   // ── fable32 (build 37) ── ── /fable32 ──
       await R.step(0.05, 0.05);
     }
   },

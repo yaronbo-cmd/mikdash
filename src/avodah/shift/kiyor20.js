@@ -180,7 +180,7 @@ export function createKiyor20(o = {}) {
       if (bal) {
         const dL = ys.L && ptr.L != null ? ys.L.y - ys.L.y0 : 0,
           dR = ys.R && ptr.R != null ? ys.R.y - ys.R.y0 : 0;
-        E.k20bal(Math.max(-1, Math.min(1, (dL - dR) / 60)));
+        if (ptr.L != null || ptr.R != null) E.k20bal(Math.max(-1, Math.min(1, (dL - dR) / 60)));   // (a thumb on a ring: its heights level it)
         const lim = k.P36.bal.lim, b = Math.max(-1, Math.min(1, k.b || 0));
         balEl.style.display = '';
         balEl.innerHTML = `<u style="left:${(50 - 50 * lim).toFixed(1)}%;width:${(100 * lim).toFixed(1)}%"></u><i style="left:${(50 + 50 * b).toFixed(1)}%"></i>`;

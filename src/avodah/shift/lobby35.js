@@ -26,7 +26,7 @@ import { addDrawer, L, SHARED } from './draw.js';
 import { BADGES33, SHOP33, DAY33, tasksNow33, resumeDay33, bookOf23, POOL26 } from './day33.js';   // ── recovered (build 16) ── resumeDay33: the saved day to go on with, 0 = none (day33's; the name is the recovery's) ── fable32 (build 28) ── (tasksNow33: the day's own tasks; was tasksForDay) ── /fable32 ──
 import { prefsHTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches ── /fable32 ──
 import { interludeScore } from './score35.js';   // ── fable32 (build 14) ── the one score ── /fable32 ── ── fable32 (build 30) ── (its ★ capsule is not shown here any more) ── /fable32 ──
-import { RATE30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── the mornings served, the roles' titles ── /fable32 ──
+import { RATE30, served30, servedHe30, TITLE36 } from './rate30.js';   // ── fable32 (build 30) ── the mornings served, the roles' titles ── /fable32 ──
 import { clock29, where29, sky29, templeNow29, readLoc29, saveLoc29 } from './time29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { css29, lockHTML29, nowLineHTML29, hereDoor29, hereHTML29, locButton29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { count32 } from './journal32.js';   // ── fable32 (build 32) ── the journal's door: its pages, the new ones ── /fable32 ──
@@ -194,7 +194,7 @@ export function createLobby(o = {}) {
       try {
         return [...bookOf23(save), ...bookOf23(save, POOL26)]
           .filter((a) => a.open && a.title)
-          .map((a) => ({ ...a, rk: RANK30[(RATE30.titles.find((t) => t.he === a.title) || {}).id] | 0 }))
+          .map((a) => ({ ...a, rk: Math.max(0, TITLE36.findIndex((t) => t.he === a.title)) }))   // ── fable32 (build 36) ── (the titles by the level: אומן the highest) ── /fable32 ──
           .sort((a, b) => b.rk - a.rk || b.h - a.h || b.n - a.n);
       } catch (e) {
         return [];

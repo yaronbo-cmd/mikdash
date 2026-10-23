@@ -539,7 +539,7 @@ export function createHeichal26(o = {}) {
       }
       const doneToday = E.r26r() && E.r26r().day === st.day,
         dayT = st.dayT || 0;
-      if (doneToday && teni2Day !== st.day && dayT >= 22) {
+      if (doneToday && teni2Day !== st.day && dayT >= 22 && E.r26r().spills36 == null) {   // ── fable32 (build 36) ── (his own level 4 took the teni out: no court's kohen for it) ── /fable32 ──
         teni2Day = st.day;
         teniAt = st.t;
         teniDay = st.day;

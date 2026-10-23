@@ -20,6 +20,11 @@
   const rnd = () => { seed = (seed + 0x6d2b79f5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const H = () => !!A.opts.human;
+  // ── fable32 (build 36) ── the two profiles of the levels (svivat-avoda-he.md §4.5): "child" — the human hand as before (H); "skilled" —
+  // opts.skilled: the quick hand that plays near the gold moment, with a skilled human's small errors (its timing's spread, its aim's) —
+  // the same models as tools/lvl36sim.mjs (HAND.skilled); the act's level read from the engine (K.P36) ── /fable32 ──
+  const SK = () => !!A.opts.skilled && !H();
+  const gauss = () => { let u = 0; while (u === 0) u = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd()); };
   const react = () => sleep(H() ? 350 + rnd() * 500 : 120 + rnd() * 160);   // (a child's reaction: 0.35–0.85 s; the quick hand: 0.12–0.28 s)
   const note = (s) => { A.notes.push([T(), s]); if (A.notes.length > 300) A.notes.shift(); };
   const mark = (k) => { if (A.marks[k] == null) A.marks[k] = T(); };
@@ -27,7 +32,7 @@
   // a finger on the page's own pads (the input path a player's touch takes: the pads' pointer handlers read it every frame)
   const ptr = (el, type, x, y, id) => { try { el.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true, button: 0, buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1 })); return true; } catch (e) { return false; } };
   const padEl = (cls) => (typeof document !== 'undefined' ? document.querySelector('.' + cls) : null);
-  const swipe = (fn, dx, dy) => { const bad = H() && rnd() < 0.12; return bad ? fn(rnd() < 0.5 ? 0.15 : dx, rnd() < 0.5 ? dx * 0.7 : dy, 120) : fn(dx, dy, 90 + rnd() * 60); };
+  const swipe = (fn, dx, dy) => { const bad = rnd() < (H() ? 0.12 : A.opts && A.opts.skilled ? 0.02 : 0);   /* ── fable32 (build 36) ── (+ the skilled hand's rare slip) ── /fable32 ── */ return bad ? fn(rnd() < 0.5 ? 0.15 : dx, rnd() < 0.5 ? dx * 0.7 : dy, 120) : fn(dx, dy, 90 + rnd() * 60); };
 
   // ── the walk: as a player walks — by the stick along flow31's gold path (the strong path he sees, the House's floor in it), at the stick's
   // pace (walk.js PACE.stick 7 amot/s; the quick hand sprints ×1.5); a path that does not lead to the place → the shift's planned walk
@@ -70,6 +75,17 @@
   async function laver(e) {
     const K = e.k20(); if (!K || K.ph !== 'pose') return;
     await react(); e.k20in('L', true); await sleep(H() ? 120 + rnd() * 200 : 30); e.k20in('R', true);
+    // ── fable32 (build 36) ── the levels: a thumb lifted once now and then — with the ring's guide 30 % (the child) / 3 % (skilled), without it
+    // 40 % / 5 %, the more the longer the water runs (1 − (1 − p)^(T / 3.5)); level 4's balance by the tilt seen (bal36k) ── /fable32 ──
+    { const K0 = e.k20(), P = K0 && K0.P36;
+      if (P && (P.guide === 0 || P.bal || SK())) {
+        const p0 = (H() ? [0.3, 0.4] : [0.03, 0.05])[P.guide === 0 ? 1 : 0], pL = 1 - Math.pow(1 - p0, (K0.T || 3.5) / 3.5), liftAt = rnd() < pL ? rnd() * (K0.T || 3.5) * 0.8 : -1, t0 = T(), mem = {};
+        if (A.opts.bad30 !== 'kiyor') {
+          await shot30('k20', () => { const k = e.k20(); return k && k.ph === 'pose' && k.p > 0.25; });
+          for (let lifted = liftAt < 0; ;) { const k = e.k20(); if (!k || k.ph !== 'pose') break; if (!lifted && T() - t0 >= liftAt) { lifted = true; e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); } if (P.bal) bal36(k, mem, (u) => e.k20bal(u)); await sleep(H() ? 90 : 50); }
+          e.k20in('L', false); e.k20in('R', false); return;
+        }
+      } }
     await shot30('k20', () => { const k = e.k20(); return k && k.ph === 'pose' && k.p > 0.25; });   // ── fable32 (build 30) ── (the act's one line) ── /fable32 ──
     if (A.opts.bad30 === 'kiyor') { for (let i = 0; i < 3; i++) { await sleep(450); e.k20in('R', false); await sleep(250); e.k20in('R', true); } note('build 30: three lifts at the laver (a טעון תיקון end)'); }   // ── fable32 (build 30) ── ── /fable32 ──
     else if (H() && rnd() < 0.3) { await sleep(900); e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); }
@@ -94,28 +110,31 @@
     const K = e.d21(); if (!K) { d21lift(); return; }
     if (K.ph !== 'full' && K.ph !== 'walk' && K.ph !== 'desc') d21lift();
     if (K.ph === 'full') { d21touch(0); await sleep(50); return; }
-    if (K.ph === 'sweep') { if ((K.n | 0) === 1) await shot30('d21', null, 100); await react(); swipe(e.d21swipe, 0.55 + rnd() * 0.2, 0.04); await sleep(H() ? 250 : 120); return; }
+    if (K.ph === 'sweep') { if ((K.n | 0) === 1) await shot30('d21', null, 100); await react(); const want = K.side ? K.side[Math.min(K.n | 0, K.side.length - 1)] : 1, dir = K.side && rnd() < (H() ? 0.15 : 0.02) ? -want : want; swipe((dx, dy, ms) => e.d21swipe(dx * dir, dy, ms), 0.55 + rnd() * 0.2, 0.04); await sleep(H() ? 250 : 120); return; }   // ── fable32 (build 36) ── (level 2 on: toward the inner coals' side — K.side; a child misreads it now and then) ── /fable32 ──
     if (K.ph === 'walk' || K.ph === 'desc') {
       // the balance (D21.bal): the shovel tips by the wind and the walk's shake; he counters by the tilt he sees and by how fast it goes
       // (the push he feels: the tilt's rate less his own counter), and slows down when it tips far (the shake grows with the pace)
       // (the page's timers come late when its frame is heavy: the gain is held to what the time between two looks allows, k·fix·Δt ≤ 0.5,
       // or the counter overshoots and the shovel rocks — then he slows and the descent takes seconds longer)
-      const fix = 2.4, p = A.d21p, b = K.b + (H() ? (rnd() - 0.5) * 0.3 : 0), dT = p && K.T > p.T + 1e-3 ? K.T - p.T : 0;
-      const push = dT ? (K.b - p.b) / dT - (p.u || 0) * fix : 0;
-      const k0 = H() ? 2.2 + rnd() * 2 : 3.2, k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05))), ff = dT > 0.12 ? 0 : H() ? 0.4 : 0.9;   // (a child corrects late and less)
+      // ── fable32 (build 36) ── (the tilt as he saw it a reaction ago — the child 0.2 s, the quick and skilled hand 0.1 s — and a gentler
+      // gain for it; the same model as tools/lvl36sim.mjs) ── /fable32 ──
+      const lat = H() ? 0.2 : 0.1, hist = A.d21h || (A.d21h = []); hist.push([K.T, K.b]); while (hist.length > 2 && hist[1][0] <= K.T - lat) hist.shift(); const seen = hist[0][1];
+      const fix = 2.4, p = A.d21p, b = seen + (H() ? (rnd() - 0.5) * 0.3 : 0), dT = p && K.T > p.T + 1e-3 ? K.T - p.T : 0;
+      const push = dT ? (seen - p.b) / dT - (p.u || 0) * fix : 0;
+      const k0 = H() ? 2.2 + rnd() * 2 : 3.2, k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05, 0.6 * lat))), ff = dT > 0.12 ? 0 : H() ? 0.4 : 0.9;   // (a child corrects late and less)
       const u = Math.max(-1, Math.min(1, -b * k - (ff * push) / fix));
       if (dT) { A.lag.n++; A.lag.s += dT; A.lag.max = Math.max(A.lag.max, dT); }
-      d21touch(u); A.d21p = { T: K.T, b: K.b, u };
+      d21touch(u); A.d21p = { T: K.T, b: seen, u };
       const sy = H() ? (Math.abs(K.b) > 0.55 ? 0.5 : 0.75 + rnd() * 0.25) : Math.abs(K.b) > 0.4 ? 0.55 : 1; e.d21stick(sy);
       if (!(A.trT > K.T - 0.25)) { A.trT = K.T; A.trace.push([T(), K.ph[0], +K.b.toFixed(2), +(K.v || 0).toFixed(1), +u.toFixed(2), sy]); if (A.trace.length > 400) A.trace.shift(); }   // (the run's log: the walk's balance)
       await sleep(H() ? 90 : 50); return;
     }
-    if (K.ph === 'foot') { if (!K.near) await walkTo({ x: -28, z: 34.7 } /* D21.go[2]: the gold ring by the heap */, 1.2); else { await react(); e.d21tap(); } await sleep(80); return; }
+    if (K.ph === 'foot') { const r0 = K.P36 && K.P36.exact && !H() ? 0.4 : 1.2; if (!K.near || (r0 < 1 && Math.hypot(-28 - hero().x, 34.7 - hero().z) > r0)) await walkTo({ x: -28, z: 34.7 } /* D21.go[2]: the gold ring by the heap */, r0); else { await react(); e.d21tap(); } await sleep(80); return; }   // ── fable32 (build 36) ── (level 4: the skilled hand walks onto the exact mark) ── /fable32 ──
     await sleep(60);
   }
   async function pyre(e) {
     const K = e.m22(); if (!K) return;
-    if (K.ph === 'sort' && K.ls === 'on') { if (!A.shotDone.m22) await shot30('m22', null, 300); await react(); const wrong = H() && rnd() < 0.08; const take = wrong ? !K.cur.ok : K.cur.ok; swipe(e.m22swipe, take ? 0.5 : -0.5, 0.02); await sleep(60); return; }   // ── fable32 (build 31) ── (+ the sorting's shot) ── /fable32 ──
+    if (K.ph === 'sort' && K.ls === 'on') { if (!A.shotDone.m22) await shot30('m22', null, 300); await react(); const L2 = !!(K.P36 && K.P36.bad > 3), wrong = rnd() < (H() ? (L2 ? 0.1 : 0.08) : SK() ? (L2 ? 0.02 : 0.01) : 0); const take = wrong ? !K.cur.ok : K.cur.ok;   /* ── fable32 (build 36) ── (the sort's misreadings by the profile and the level) ── /fable32 ── */ swipe(e.m22swipe, take ? 0.5 : -0.5, 0.02); await sleep(60); return; }   // ── fable32 (build 31) ── (+ the sorting's shot) ── /fable32 ──
     // ── fable32 (build 35) ── the carry is the ramp run (R19 inside the maaracha role): the work button held — "ייצבו את הסל" (the twin's
     // held19; a child lets go now and then: the basket sways, and on bare stone a log may drop — the way then leads to it); the way by
     // flowNext (the stand on the altar's top, or a dropped log) ── /fable32 ──
@@ -126,9 +145,10 @@
     }
     if (K.ph === 'stack') {
       if (!(K.hold >= 0)) { await sleep(80); return; }
-      const band = e.band22(), mid = (band[0] + band[1]) / 2, aim = mid + (H() ? (rnd() - 0.5) * (band[1] - band[0]) * 1.4 : 0);
+      if (K.aim36 == null || K.aim36k !== `${K.layer}:${K.got.filter((g) => g.at).length}`) { const band = e.band22(), mid = (band[0] + band[1]) / 2; K.aim36k = `${K.layer}:${K.got.filter((g) => g.at).length}`; K.aim36 = mid + (H() ? (rnd() - 0.5) * (band[1] - band[0]) * 1.4 : SK() ? gauss() * 0.012 : 0); }   // ── fable32 (build 36) ── (one aim a log; the skilled hand's spread) ── /fable32 ──
+      const aim = K.aim36;
       if (K.pv == null) { await react(); e.m22put(); await sleep(150); return; }
-      const d = aim - K.pv; if (Math.abs(d) > (H() ? 0.04 : 0.015)) { e.m22stick(Math.max(-1, Math.min(1, (K.gl >= 0 ? 1 : -1) * Math.sign(d) * Math.min(1, Math.abs(d) * 8)))); await sleep(40); return; }
+      const d = aim - K.pv; if (Math.abs(d) > (H() ? 0.04 : SK() ? 0.004 : 0.015)) { e.m22stick(Math.max(-1, Math.min(1, (K.gl >= 0 ? 1 : -1) * Math.sign(d) * Math.min(1, Math.abs(d) * 8)))); await sleep(40); return; }
       e.m22stick(0); await react(); e.m22put(); await sleep(150); return;
     }
     if (K.ph === 'ready') { await react(); e.m22tap(); await sleep(200); return; }
@@ -145,6 +165,15 @@
     const r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
     if (on && !H9.down) { H9.down = ptr(btn, 'pointerdown', x, y, H9.id); A.held19 = (A.held19 | 0) + 1; }
     else if (!on && H9.down) { ptr(btn, 'pointercancel', x, y, H9.id); H9.down = false; }
+  }
+  // ── fable32 (build 36) ── a balance of the levels (the laver's stream, the teni): as the ashes' — the tilt seen a reaction ago (the
+  // child 0.2 s, the skilled 0.1 s), a gentler gain for it, a child's rougher eye; the engine's own clock (K.bT) ── /fable32 ──
+  function bal36(K, mem, setU) {
+    const lat = H() ? 0.2 : 0.1, Tn = K.bT || 0, hist = mem.h || (mem.h = []); hist.push([Tn, K.b || 0]); while (hist.length > 2 && hist[1][0] <= Tn - lat) hist.shift();
+    const seen = hist[0][1], fix = 2.4, p = mem.p, dT = p && Tn > p.T + 1e-3 ? Tn - p.T : 0, push = dT ? (seen - p.b) / dT - (p.u || 0) * fix : 0;
+    const k0 = H() ? 2.2 + rnd() * 2 : 3.2, k = Math.min(k0, 0.5 / (fix * Math.max(0.03, dT || 0.05, 0.6 * lat))), ff = dT > 0.12 ? 0 : H() ? 0.4 : 0.9;
+    const u = Math.max(-1, Math.min(1, -(seen + (H() ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08)) * k - (ff * push) / fix));
+    setU(u); mem.p = { T: Tn, b: seen, u };
   }
   // the beam by the finger on pen25's pad (its frame focuses the spot nearest the beam, E.p25focus — a direct focus would be undone):
   // drag the beam onto the spot (the beam moves AIM_K 1.6 px a finger's px; a child's drag falls short and is corrected), lift, then a
@@ -172,14 +201,14 @@
     const K = e.p25(); if (!K) return;
     if (K.ph === 'scan') {
       if (!A.shotDone.lamb) await shot30('lamb', null, 600);   // ── fable32 (build 31) ── (the lamb by torchlight: an act in progress) ── /fable32 ──
-      const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(H() && rnd() < 0.06));
+      const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(s.skip36 = s.skip36 != null ? s.skip36 : rnd() < (H() ? (s.kind === 'blem' && s.small ? 0.18 : 0.06) : SK() ? (s.kind === 'blem' && s.small ? 0.1 : 0.01) : 0)));   // ── fable32 (build 36) ── (a spot missed — once a lamb; a small blemish more often) ── /fable32 ──
       if (next) { await react(); await aim25(e, next.i); await sleep(100); return; }
-      const blem = spots.some((s) => s.kind === 'blem' && s.seen), dirt = spots.some((s) => s.kind === 'dirt' && !s.gone);
-      await react(); const say = blem || (dirt && H() && rnd() < 0.3) ? 'pasul' : 'tamim';
+      const blem = spots.some((s) => s.kind === 'blem' && s.seen && (!(K.P36 && K.P36.mimic) || s.shown36)), dirt = spots.some((s) => s.kind === 'dirt' && !s.gone);
+      await react(); const say = blem || (dirt && rnd() < (H() ? 0.3 : SK() ? 0.05 : 0)) ? 'pasul' : 'tamim';
       if (!e.p25stamp(say)) e.p25stamp('tamim'); await sleep(200); return;
     }
-    if (K.ph === 'dirt') { await react(); swipe(e.p25swipe, 0.5, 0.02); await sleep(120); return; }
-    if (K.ph === 'blem') { await sleep(H() ? 500 : 150); e.p25tap(); await sleep(100); return; }
+    if (K.ph === 'dirt') { await react(); const sp = K.L.spots[K.zi]; if (K.P36 && K.P36.mimic && rnd() < (H() ? 0.25 : SK() ? 0.06 : 0)) { e.p25stamp('pasul'); await sleep(200); return; } swipe(e.p25swipe, 0.5, 0.02); if (sp && sp.kind === 'blem') sp.shown36 = 1; await sleep(120); return; }   // ── fable32 (build 36) ── (level 3 on: up close alike — a hand that says "פסול" before brushing, now and then) ── /fable32 ──
+    if (K.ph === 'blem') { const sp = K.L.spots[K.zi]; if (sp) sp.shown36 = 1; await sleep(H() ? 500 : 150); e.p25tap(); await sleep(100); return; }
     if (K.ph === 'wait') { await react(); e.p25tap(); await sleep(150); return; }
     await sleep(80);
   }
@@ -227,7 +256,9 @@
     const pad = pad27(), D = globalThis.__D27, legs = D && D.state().legs;
     if (!pad || !legs) { e.r27bind(true); return; }
     const [fx, fy] = legs.f, [hx, hy] = legs.h, vl = Math.hypot(hx - fx, hy - fy) || 1, need = Math.max(70, vl) * 1.0, ux = (hx - fx) / vl, uy = (hy - fy) / vl;
-    const x0 = W27() * 0.72, y0 = H27() * 0.55, id = 970, short = H() && rnd() < 0.18;
+    const K0 = e.r27(), turnBad = !!(K0 && K0.P36 && K0.P36.turn) && rnd() < (H() ? 0.15 : SK() ? 0.03 : 0);
+    if (turnBad) { e.r27bind(false); note('the binding: the other way'); await sleep(400); }   // ── fable32 (build 36) ── (level 2 on: no guide — a binding the other way now and then, counted) ── /fable32 ──
+    const x0 = W27() * 0.72, y0 = H27() * 0.55, id = 970, short = (H() && rnd() < 0.18) || (SK() && rnd() < 0.02);
     ptr(pad, 'pointerdown', x0, y0, id);
     const n = 10, end = short ? 0.55 : 1;
     for (let i = 1; i <= n; i++) { const u = (i / n) * end; ptr(pad, 'pointermove', x0 + ux * need * u, y0 + uy * need * u, id); if (i === 6) await shot('bind', 1.4); await sleep(H() ? 45 : 25); }
@@ -239,7 +270,7 @@
     if (!K) return;
     await shot('cut', 1.2);
     // the moment: a quick hand taps in the middle of the gold, a child's aim is off by up to ±0.12 now and then
-    const err = H() ? (rnd() < 0.3 ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08) : (rnd() - 0.5) * 0.04, want = 0.5 + err;
+    const err = H() ? (rnd() < 0.3 ? (rnd() - 0.5) * 0.3 : (rnd() - 0.5) * 0.08) : SK() ? (gauss() * 0.03) / (K.sweep || 1.15) : (rnd() - 0.5) * 0.04, want = Math.max(0.02, Math.min(0.98, 0.5 + err));   // ── fable32 (build 36) ── (the skilled hand: a 30 ms timing spread on the needle's pace) ── /fable32 ──
     for (let i = 0; i < 400; i++) { const k = e.r27(); if (!k || k.ph !== 'cut') return; if (Math.abs(k.u - want) < 0.025) break; await sleep(8); }
     const x = W27() * 0.75, y = H27() * 0.5, id = 971;
     if (pad) { ptr(pad, 'pointerdown', x, y, id); ptr(pad, 'pointerup', x, y, id); } else e.r27tap();
@@ -252,7 +283,7 @@
     for (let i = 0; i < 400; i++) {
       const K = e.r27(); if (!K || K.ph !== 'recv') break;
       if (i === 30) await shot('recv', 1.3);
-      const lag = H() ? 0.65 : 0.92, d = (K.sp - K.pos) * lag + (H() ? (rnd() - 0.5) * 0.08 : 0);
+      const lag = H() ? 0.65 : 0.92, d = (K.sp - K.pos) * lag + (H() ? (rnd() - 0.5) * 0.08 : SK() ? (rnd() - 0.5) * 0.04 : 0);
       if (pad) { x += (d * 0.42 * W27()) / 2; ptr(pad, 'pointermove', x, y0, id); } else e.r27move(d);
       await sleep(H() ? 60 : 35);
     }
@@ -262,7 +293,7 @@
   function swirlStep(dt) {
     const pad = pad27(); if (!pad) { E().r27swirl(6.9 * dt); return; }
     const S2 = A.sw || (A.sw = { id: 973, cx: W27() * 0.76, cy: H27() * 0.58, a: 0, down: false, rest: 0 });
-    if (H() && S2.rest <= 0 && rnd() < 0.01) S2.rest = 1.5 + rnd() * 2.5;
+    if ((H() || SK()) && S2.rest <= 0 && rnd() < (H() ? 0.01 : 0.002)) S2.rest = 1.5 + rnd() * 2.5;   // ── fable32 (build 36) ── (+ the skilled hand's rare rest) ── /fable32 ──
     if (S2.rest > 0) { S2.rest -= dt; return; }
     const r = 42;
     if (!S2.down) { S2.down = true; ptr(pad, 'pointerdown', S2.cx + r, S2.cy, S2.id); }
@@ -278,8 +309,8 @@
     // over the thread (opts.high27: the red cue's shot)
     const demoHigh = A.opts.high27 && !A.highDone && c === 'NE';
     if (demoHigh) A.highDone = 1;
-    const p = demoHigh ? 0.8 : H() ? 0.35 + (rnd() - 0.5) * 0.36 : 0.33 + (rnd() - 0.5) * 0.06,
-      a = H() ? (rnd() < 0.5 ? (rnd() - 0.5) * 6 : (rnd() - 0.5) * 26) : (rnd() - 0.5) * 2;
+    const p = demoHigh ? 0.8 : H() ? 0.35 + (rnd() - 0.5) * 0.36 : SK() ? 0.33 + gauss() * 0.05 : 0.33 + (rnd() - 0.5) * 0.06,
+      a = H() ? (rnd() < 0.5 ? (rnd() - 0.5) * 6 : (rnd() - 0.5) * 26) : SK() ? gauss() * 1.0 : (rnd() - 0.5) * 2;   // ── fable32 (build 36) ── (the skilled hand's spread) ── /fable32 ──
     if (!pad) { e.r27throw(p, a); await sleep(200); return; }
     const x0 = W27() * 0.75, y0 = H27() * 0.42, id = 974, D = globalThis.__D27, sgn = 1;
     ptr(pad, 'pointerdown', x0, y0, id);
@@ -339,7 +370,7 @@
     if (ph === 'pour') {
       // released by eye on the game's clock: when the next look would pass the mark by more than this one falls short of it (the page's
       // timers come late; a child's mark is rougher and his hand a little late — he misjudges sometimes)
-      if (!K.held) { await react(); A.want = H() ? 0.86 + rnd() * 0.14 + rnd() * rnd() * 0.08 : 0.93 + rnd() * 0.04; A.pp = null; e.r26hold(true); await sleep(30); return; }
+      if (!K.held) { await react(); const P = K.P36 || { lo: 0.9, hi: 1 }; A.want = H() ? 0.86 + rnd() * 0.14 + rnd() * rnd() * 0.08 : SK() ? (P.lo + P.hi) / 2 + gauss() * 0.045 * 0.34 : 0.93 + rnd() * 0.04; A.pp = null; e.r26hold(true); await sleep(30); return; }   // ── fable32 (build 36) ── (the skilled hand at the band's middle, a 45 ms release spread on the slow fill) ── /fable32 ──
       const f = K.fill, p = A.pp, step = p != null && f > p ? f - p : 0, want = A.want || 0.95; A.pp = f;
       if (f >= want || (step > 0 && f + step - want > want - f)) { e.r26hold(false); A.pp = null; await sleep(80); }
       else await sleep(10);
@@ -347,7 +378,10 @@
     }
     if (ph === 'new' || ph === 'kuz') { await react(); e.r26tap(); await sleep(150); return; }
     if (ph === 'drag') { await react(); e.r26light(); await sleep(150); return; }
-    if (ph === 'pull') { if ((K.n | 0) === 2) await shot30('inner', null, 200); await sleep(H() ? 450 + rnd() * 400 : 200); e.r26pull(H() && rnd() < 0.15 ? 2.8 : 1.4 + rnd() * 0.5); return; }
+    if (ph === 'altar') { if (!A.shotDone.altar) await shot30('altar', null, 300); await react(); e.r26light('altar'); await sleep(150); return; }   // ── fable32 (build 36) ── (level 4: the western lamp from the outer altar's pan) ── /fable32 ──
+    if (ph === 'pull') { if ((K.n | 0) === 2) await shot30('inner', null, 200); await sleep(H() ? 450 + rnd() * 400 : 200); const g = !(K.P36 && K.P36.guide === 0); e.r26pull(H() ? (rnd() < (g ? 0.15 : 0.2) ? 2.8 : 1.4 + rnd() * 0.5) : SK() ? 1.55 + gauss() * (g ? 0.22 : 0.28) : 1.4 + rnd() * 0.5); return; }   // ── fable32 (build 36) ── (the pull's pace by the profile; without the guide a little rougher) ── /fable32 ──
+    if (ph === 'lift36') { await sleep(80); return; }
+    if (ph === 'teni36') { if (!A.shotDone.teni36) await shot30('teni36', null, 200); bal36(K, A.t36 || (A.t36 = {}), (u) => e.r26bal(u)); await sleep(H() ? 90 : 50); return; }   // ── fable32 (build 36) ── (level 4: the teni held level on the way out) ── /fable32 ──
     if (ph === 'out') { await walkTo({ x: -50, z: 0 }, 3); return; }
     await sleep(80);
   }

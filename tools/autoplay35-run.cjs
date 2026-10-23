@@ -59,7 +59,11 @@ const run = opt('--run', 'run'), page = path.resolve(opt('--page', 'out/index.ht
 const Q = opt('--q', 'low'), [VW, VH] = opt('--size', '640x296').split('x').map(Number);
 const frames = flag('--frames');
 const shots30 = (opt('--shots30', '') || '').split(',').filter(Boolean), bad30 = opt('--bad30', '');   // ── fable32 (build 30) ── (the build's shots; a poor act for a טעון תיקון end) ── /fable32 ──
-const human = flag('--human'), cont = flag('--continue'), sound = flag('--sound'), seed = +opt('--seed', 1) || 1, days = +opt('--days', 1) || 1, morningOnly = flag('--morning'), dayN = +opt('--day', 0) || 0, shots27 = (opt('--shots27', '') || '').split(',').filter(Boolean), high27 = flag('--high27'), book = flag('--book');
+// ── fable32 (build 36) ── the levels: --level N (every act at level N — the page's __LV36, the engine's override for the tools), --profile
+// child|skilled (child = --human; skilled: near the gold moment — tools/autoplay35.js SK), --reps N (each practised role N times, by
+// "עוד פעם"; the ratings per role in log.json p31.results) ── /fable32 ──
+const level36 = +opt('--level', 0) || 0, profile36 = opt('--profile', ''), reps36 = Math.max(1, +opt('--reps', 1) || 1);
+const human = flag('--human') || profile36 === 'child', cont = flag('--continue'), sound = flag('--sound'), seed = +opt('--seed', 1) || 1, days = +opt('--days', 1) || 1, morningOnly = flag('--morning'), dayN = +opt('--day', 0) || 0, shots27 = (opt('--shots27', '') || '').split(',').filter(Boolean), high27 = flag('--high27'), book = flag('--book');
 const OUT = path.join('/tmp/claude-0/-home-claude/92bf52df-7cb5-51be-8ceb-ea3690eaf336/auto', run);
 fs.mkdirSync(OUT, { recursive: true });
 const store = path.join(OUT, 'storage.json');
@@ -91,6 +95,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
     pre.shift = pre.shift || {};
     pre.shift.lambs33 = { v: 1, last: today - ks[ks.length - 1], n: ks.length, list: ks.map((k, i) => ({ i: i + 1, d: today - k, t: Date.now() - k * 864e5, h: '', c: i % 6, r: 'mehudar', q: 1, at: 0, by: '' })), blem: [] };
   }   // (the shift's save: A.shift, shift/index.js shiftSave) ── fable32 (build 31) ── (--book31: the roles alone) ── /fable32 ──
+  if (level36) await ctx.addInitScript((L) => { window.__LV36 = L; }, level36);   // ── fable32 (build 36) ── ── /fable32 ──
   await ctx.addInitScript(({ seed, saved, sound, Q, pre }) => {
     window.__FORCE_Q = Q;
     // a seeded Math.random (the day's lots, lambs and logs repeat for a seed) and the save: a returning player's, or the run's own
@@ -142,7 +147,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
     if (want31('book31c')) { await pg.evaluate(() => { const g = document.querySelector('.p23-bk .g .p31') || document.querySelector('.p23-bk .g'); if (g) g.scrollIntoView({ block: 'center' }); }).catch(() => {}); await snap31('book31c'); }
     if (!practice.length) { await writeLog31(); console.log(errors.length ? 'errors:\n' + errors.slice(0, 10).join('\n') : 'no page errors', '·', el()); await b.close(); return; }
     for (const role of practice) {
-      for (let rep = 0; rep < (again31 === role ? 2 : 1); rep++) {
+      for (let rep = 0; rep < (again31 === role ? 2 : reps36); rep++) {
         if (rep === 0) {
           await pg.waitForSelector(`.p23-bk [data-p31="${role}"]`, { timeout: 30000 });
           await pg.evaluate((r) => document.querySelector(`.p23-bk [data-p31="${r}"]`).scrollIntoView({ block: 'center' }), role);
@@ -151,7 +156,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
         const w0 = Date.now();
         await pg.waitForFunction((r) => globalThis.__SHIFT && globalThis.__SHIFT.E && globalThis.__SHIFT.E.prac31 === r && globalThis.__SHIFT.E.st33.phase === 'run', role, { timeout: 60000, polling: 200 });
         if (!frames) await pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); });
-        await pg.evaluate((o) => { globalThis.__AUTO35.stop(); globalThis.__AUTO35_P = globalThis.__AUTO35.start(o).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }, { human, seed: seed + P31.results.length, practice: true, shots30 });
+        await pg.evaluate((o) => { globalThis.__AUTO35.stop(); globalThis.__AUTO35_P = globalThis.__AUTO35.start(o).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }, { human, skilled: profile36 === 'skilled', seed: seed + P31.results.length, practice: true, shots30 });
         if (pause31 && rep === 0) {   // (the pause card in a practice run: "המשך", "מהתחלה", "חזרה לספר התפקידים")
           await pg.waitForTimeout(3000); await pg.click('.sh-pbtn', { force: true }).catch(() => {}); await pg.waitForSelector('.sh-pause', { timeout: 10000 }).catch(() => {});
           P31.pause = await pg.evaluate(() => ({ paused: globalThis.__SHIFT.E.st33.paused, text: ((document.querySelector('.sh-pause') || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 200), back: [...document.querySelectorAll('.sh-pause [data-sh=backP]')].map((x) => Math.round(x.getBoundingClientRect().height)) }));
@@ -171,7 +176,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
         }
         if (rep === 1) { r.again = true; }
         await pg.evaluate(() => globalThis.__AUTO35.stop()).catch(() => {});
-        if (again31 === role && rep === 0) { await pg.click('.p31-end [data-p31=again]', { force: true }); await pg.waitForTimeout(400); continue; }
+        if ((again31 === role && rep === 0) || (again31 !== role && rep < reps36 - 1)) { await pg.click('.p31-end [data-p31=again]', { force: true }); await pg.waitForTimeout(400); continue; }
         await pg.click('.p31-end [data-p31=back]', { force: true });
         await pg.waitForSelector('.j32 .p23-bk', { timeout: 60000 }); await pg.waitForTimeout(400);
       }

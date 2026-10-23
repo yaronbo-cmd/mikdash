@@ -39,7 +39,7 @@ import { clock29, where29, status29 } from './time29.js';   // ── fable32 (b
 import { createWatch29, softDay29, dropGames29 } from './lock29.js';   // ── fable32 (build 29) ── ── /fable32 ──
 import { served30, servedHe30, ACT30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ── ── fable32 (build 31) ── (ACT30: the practice's act name) ── /fable32 ──
 import { canPractice31, practiceSave31, merge31, createPractice31 } from './practice31.js';   // ── fable32 (build 31) ── the roles book's practice ── /fable32 ──
-import { resumeDay33 } from './day33.js';   // ── fable32 (build 31) ── (the practice's court: the day he goes on with) ── /fable32 ──
+import { resumeDay33, refund37 } from './day33.js';   // ── fable32 (build 31) ── (the practice's court: the day he goes on with) ── /fable32 ──
 import { openJournal32 } from './book32.js';   // ── fable32 (build 32) ── "יומן הכהן": one journal (the roles book, the Mishnah pages, the mornings, the badges) ── /fable32 ──
 import { jr32 } from './journal32.js';
 import { migrate36 } from './lvl36.js';   // ── fable32 (build 36) ── the four mastery levels (the roles book's choice; an older save made level-aware) ── /fable32 ──
@@ -72,6 +72,7 @@ export function mountShift(o = {}) {
   const doc = typeof document !== 'undefined' ? document : null;
   const save = shiftSave(A);
   try { jr32(save); } catch (e) { /* */ }   // ── fable32 (build 32) ── (the journal made once: an older save's roles count as met — the lobby's door shows them) ── /fable32 ──
+  try { refund37(save); } catch (e) { /* */ }   // ── fable32 (build 37) ── (the second spigot gone: its 40 perutot back once to a save that bought it) ── /fable32 ──
   try { migrate36(save); } catch (e) { /* */ }   // ── fable32 (build 36) ── (the levels: an older save's roles made level-aware once — the roles book shows them) ── /fable32 ──
   let E = null, hud = null, mods = null, cardCtl = null, lvlNow = 1, runs = 0, startT = 0;
   evlog('app_open', { day: (save.day33state && save.day33state.day) || 0 });   // ── recovered (build 16) ──

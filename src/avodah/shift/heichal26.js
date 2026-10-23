@@ -82,6 +82,8 @@ export function createHeichal26(o = {}) {
     big = mk('hk26-x'),
     flashEl = mk('hk26-f'),
     verb = mk('hk26-u'),
+    hand37 = mk('hk26-w37', '<i>👆</i><b>⬆</b>'),   // ── fable32 (build 37) ── (the wick's first time: a hand that swipes up on the right thumb's side, until his first wick counts — and again after two refused in a row) ── /fable32 ──
+    w37 = { done: false, no: 0 },
     gauge = mk('hk26-g'),
     fire = mk('hk26-fl', '🔥'),
     put = (el, html) => {
@@ -238,6 +240,7 @@ export function createHeichal26(o = {}) {
         t0: tsOf(ev),
         tx: null,
         ty: null,
+        ta: null,
         H: [[tsOf(ev), ev.clientY]],
         v: 0,
         pulled: false,
@@ -263,6 +266,7 @@ export function createHeichal26(o = {}) {
     p.ly = ev.clientY;
     if (p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * WD()) p.tx = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     if (p.ty == null && p.y0 - ev.clientY >= SWIPE36.dist * HT()) p.ty = t - p.t0;
+    if (p.ta == null && Math.max(Math.abs(ev.clientX - p.x0) / WD(), Math.abs(ev.clientY - p.y0) / HT()) >= SWIPE36.dist) p.ta = t - p.t0;   // ── fable32 (build 37) ── (the wick: the crossing time in any direction) ── /fable32 ──
     p.H.push([t, ev.clientY]);
     while (p.H.length > 2 && t - p.H[0][0] > 70) p.H.shift();
     const h0 = p.H[0],
@@ -303,7 +307,7 @@ export function createHeichal26(o = {}) {
     if (k.ph === 'bolt' || k.ph === 'wipe') {
       if (d > 14) E.r26swipe(dx / WD(), dy / HT(), p.tx != null ? p.tx : ms);
     } else if (k.ph === 'wick') {
-      if (d > 14) E.r26swipe(dx / WD(), dy / HT(), p.ty != null ? p.ty : ms);
+      if (d > 14) E.r26swipe(dx / WD(), dy / HT(), p.ta != null ? p.ta : ms);   // ── fable32 (build 37) ── (any clear direction — was p.ty, up only) ── /fable32 ──
     } else if (k.ph === 'pull') {
       if (!p.pulled && d > 14) flash('משכו ארוך יותר ⬇');
     } else if (d < 16 && ms < 400 && !E.r26tap() && k.ph === 'drag') flash('גררו את האש מן הנר הדולק');
@@ -507,6 +511,11 @@ export function createHeichal26(o = {}) {
         verb.__k = verbKey;
         verb.className = `hk26 hk26-u${verbRow ? ' on ' + verbRow[1] : ''}`;
         verb.innerHTML = verbRow ? `<i>${verbRow[0]}</i>` : '';
+      }
+      const h37 = !!(live && K && ph === 'wick' && (!w37.done || w37.no >= 2));   // ── fable32 (build 37) ── (the hand in the verb's place: the verb's arrow hidden meanwhile) ── /fable32 ──
+      if (hand37.classList.contains('on') !== h37) {
+        hand37.classList.toggle('on', h37);
+        verb.style.visibility = h37 ? 'hidden' : '';
       }
       let g = '';
       if (live && K)
@@ -841,6 +850,8 @@ export function createHeichal26(o = {}) {
             snd('bolt26');
             buzz(35);
           } else if (ev.ph === 'wick') {
+            w37.done = true;   // ── fable32 (build 37) ── ── /fable32 ──
+            w37.no = 0;
             snd('wick26');
             buzz(15);
             const K = E.r26();
@@ -862,6 +873,7 @@ export function createHeichal26(o = {}) {
             buzz(12);
           }
         else {
+          if (ev.ph === 'wick') w37.no++;   // ── fable32 (build 37) ── (two refused in a row: the hand again) ── /fable32 ──
           snd('soft');
           flash(
             ev.why === 'short'
@@ -1002,6 +1014,9 @@ const DOWN = -Math.PI / 2;
 const CSS = `.hk26{position:fixed;z-index:32;direction:rtl;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:none;display:none}.hk26.on{display:block}.hk26 small{display:block;font-size:11px;font-weight:700;opacity:.88}
 .hk26-v{display:block;inset:0;z-index:27;opacity:0;transition:opacity .8s;background:radial-gradient(ellipse at 50% 45%,#0000 30%,#140A02A0 72%,#080402E8)}.hk26-v.on{opacity:1}
 .hk26-in{top:0;bottom:0;left:51%;right:0;z-index:30;touch-action:none;pointer-events:auto}
+/* ── fable32 (build 37) ── (the wick's hand) ── /fable32 ── */
+.hk26-w37{left:75.5%;top:50%;z-index:31;width:0;height:0}.hk26-w37 i,.hk26-w37 b{position:absolute;left:0;font-style:normal;transform:translateX(-50%)}.hk26-w37 i{top:40px;font-size:52px;line-height:1;filter:drop-shadow(0 3px 4px #000);animation:hk26w37 1.2s ease-in-out infinite}.hk26-w37 b{top:-96px;font-size:30px;color:#FFE6A0;text-shadow:0 2px 4px #000;animation:hk26w37b 1.2s ease-in-out infinite}
+@keyframes hk26w37{0%{transform:translate(-50%,40px);opacity:0}15%{opacity:1}75%{transform:translate(-50%,-80px);opacity:1}to{transform:translate(-50%,-90px);opacity:0}}@keyframes hk26w37b{0%,50%{opacity:.25}80%{opacity:1}to{opacity:.25}}
 .hk26-h,.hk26-z,.hk26-x,.hk26-f,.hk26-m{left:50%;transform:translateX(-50%)}.hk26-h{top:58px;padding:4px 12px;border-radius:12px;background:#1C140ACC;font-size:13px;max-width:72vw}.hk26-m{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:31;padding:3px 12px;border-radius:12px;background:#1C140AD8;border:1.5px solid #E2B65A;color:#FFE6A0;font:800 12px/1.25 Heebo,system-ui,sans-serif;max-width:76vw}
 .hk26-x{top:44%;z-index:37;white-space:nowrap;text-shadow:0 2px 3px #000}.hk26-x b{display:block;font-size:40px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608}.hk26-f{top:64%;z-index:34;font-size:18px;color:#FFD08A;white-space:nowrap;text-shadow:0 2px 3px #000}
 .hk26-x.on,.hk26-f.on{animation:hk26w 2.2s forwards}@keyframes hk26w{0%{opacity:0}10%,82%{opacity:1}to{opacity:0}}

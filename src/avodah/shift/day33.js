@@ -124,7 +124,8 @@ export const B17 = Object.freeze({
 // ── recovered (build 18) ── C18 (the report's name: "C18.kiyorK"): the coins — a gold act pays 2, a good 1 (pay); a streak of 3 (streak); the
 // tamid's 5; the gift (nedava: 10 coins; ── fable32 (build 28) ── at a fixed moment, 140 s of the day — no chance, the old p 0.3 is gone:
 // a prize by luck is a bet, PLAY-PRINCIPLES §6 ── /fable32 ──); the chests by the gate (chests); the three pads to buy at (pads: the good axe,
-// the big basket, the laver's second spigot — kiyorK: its walk ×0.6); the errand's 75
+// the big basket; ── fable32 (build 37) ── the laver's second spigot (kiyor2, 40; kiyorK: its walk ×0.6; K20.hold2) is gone — the
+// owner's decision, 23.10 06:49 "להוריד הדד": the laver the same for everyone; a save that bought it has its 40 back once, refund37 ── /fable32 ──); the errand's 75
 export const C18 = Object.freeze({
   pay: Object.freeze({ gold: 2, good: 1, ok: 0 }),
   streak: 3,
@@ -135,13 +136,23 @@ export const C18 = Object.freeze({
   pads: Object.freeze([
     Object.freeze({ id: 'axe', icon: '🪓', he: 'גרזן טוב', price: 80, x: -31, z: 51 }),
     Object.freeze({ id: 'basket10', icon: '🧺', he: 'טנא גדול', price: 120, x: -45, z: 51 }),
-    Object.freeze({ id: 'kiyor2', icon: '🚰', he: 'דד שני לכיור', price: 40, x: -50.5, z: 16.5 }),
   ]),
   errand: 75,
   padR: 3,
   padS: 1.5,
-  kiyorK: 0.6,
 });
+// ── fable32 (build 37) ── the second spigot's refund: a save that owns kiyor2 gets its price back once (save.k2r37 = the perutot given,
+// the flag that it never repeats) and owns it no more; any other save untouched. Read at the mount (index.js) and by createDay33 ── /fable32 ──
+export const K2R37 = 40;
+export function refund37(save) {
+  if (!save || typeof save !== 'object' || save.k2r37 != null) return 0;
+  const d = save.day33 && typeof save.day33 === 'object' ? save.day33 : null;
+  if (!d || !d.kiyor2) return 0;
+  delete d.kiyor2;
+  save.perutot = (+save.perutot || 0) + K2R37;
+  save.k2r37 = K2R37;
+  return K2R37;
+}
 // ── recovered (build 18) ── ENABLE_TEMPLE_COINS (the report's): the temple's coins on — shift/index.js turns build 18's coins on by it
 // (with ?coins=0 off)
 export const ENABLE_TEMPLE_COINS = true;
@@ -161,7 +172,8 @@ export const R19 = Object.freeze({
   head: 12,
   hold: 0.35,
 });
-// ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and
+// ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; ── fable32 (build 37) ── hold2, the second spigot's
+// 2.5 s, gone with it ── /fable32 ──), the water's rise, his place and
 // turn at the laver (act), the spigot's two places (spig), its camera (cam)
 // ── fable32 (build 36) ── the owner's decision (23.10 06:37, "סף ההחלקה להקל" — the swipe thresholds relaxed; it overrides build 36's
 // brief "don't change the protocol's gesture thresholds"): ONE shared gate for every swipe — a swipe counts at |Δ| ≥ 0.15 of the screen
@@ -173,7 +185,6 @@ export const R19 = Object.freeze({
 export const SWIPE36 = Object.freeze({ dist: 0.15, ms: 350 });
 export const K20 = Object.freeze({
   hold: 3.5,
-  hold2: 2.5,
   back: 0.3,
   up: 1.2,
   upMax: 7,
@@ -817,6 +828,7 @@ export function createDay33(o = {}) {
     view = o.view || null,
     STN = (ST && ST.STATIONS) || o.STATIONS || {},
     save = o.save || {},
+    k2r37 = refund37(save),   // ── fable32 (build 37) ── (before st reads save.perutot) ── /fable32 ──
     rng = o.rng || Math.random,
     sfx = (n, a) => {
       try {
@@ -2247,9 +2259,9 @@ export function createDay33(o = {}) {
   // ── recovered (build 18) ── the coins in the world: the chests by the gate (the pilgrims' coins), the pads to buy at (own18)
   const chests = C18.chests,
     own18 = (a) => !!(save.day33 && typeof save.day33 === 'object' && save.day33[a]),
-    // ── fable32 (build 35) ── (the pads in the court: "גרזן טוב" and "טנא גדול" were the wood loop's — no use left, hidden; the laver's
-    // second spigot stays as it is — the owner's open decision, svivat-avoda-he.md §11.1) ── /fable32 ──
-    pads18 = () => (e35 ? C18.pads.filter((x) => x.id === 'kiyor2') : C18.pads),
+    // ── fable32 (build 35) ── (the pads in the court: "גרזן טוב" and "טנא גדול" were the wood loop's — no use left, hidden) ── /fable32 ──
+    // ── fable32 (build 37) ── (the laver's second spigot gone — the owner, 23.10 06:49 "להוריד הדד": no pad in the court) ── /fable32 ──
+    pads18 = () => (e35 ? [] : C18.pads),
     padOpen = () => (c18 && pads18().find((x) => !own18(x.id) && st.perutot >= x.price)) || null;
   function chestStep(dt) {
     const ch = st.ch18,
@@ -2521,8 +2533,7 @@ export function createDay33(o = {}) {
       sx: h.x,
       sz: h.z,
       dur: p23 ? Math.max(P23.up, d / P23.upMax) : Math.max(K20.up, d / K20.upMax),
-      T: (own18('kiyor2') ? K20.hold2 : K20.hold) * (P36k.hold || 1),   // ── fable32 (build 36) ── (level 3 on: the water runs longer) ── /fable32 ──
-      two: own18('kiyor2'),
+      T: K20.hold * (P36k.hold || 1),   // ── fable32 (build 36) ── (level 3 on: the water runs longer) ── /fable32 ── ── fable32 (build 37) ── (no second spigot: the same hold for everyone) ── /fable32 ──
       first: !save.k20seen,
     };
     L0('k20', Math.round(h.x), Math.round(h.z));
@@ -4140,12 +4151,10 @@ export function createDay33(o = {}) {
     if (ph !== 'bolt' && ph !== 'wick' && ph !== 'wipe') return false;
     const why =
       ph === 'wick'
-        ? dy <= -SWIPE36.dist   // ── fable32 (build 36) ── (the wick's swipe up: SWIPE36 — was P26.wick 0.25 within P26.ms 200) ── /fable32 ──
-          ? Math.abs(dx) > 0.5 * Math.abs(dy)
-            ? 'crooked'
-            : ms > SWIPE36.ms
-              ? 'slow'
-              : ''
+        ? Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE36.dist   // ── fable32 (build 37) ── (the wick's swipe counts in any clear direction past SWIPE36 — ⬆ is shown, ↔ ⬇ or slanted count too: the naive kid swiped ↔ where ⬆ was asked, 1 of 17 counted, the menorah unfinished in 8.5 min; build 36: up only, 'crooked' refused) ── /fable32 ──
+          ? ms > SWIPE36.ms
+            ? 'slow'
+            : ''
           : 'short'
         : swipeWhy(dx, dy, ms, P26.sw);
     if (why) {
@@ -4875,7 +4884,7 @@ export function createDay33(o = {}) {
             onMiss: (a) => missOf(id, a),
             fb18: l18,
           }
-        : { fb18: l18, kK: id === 'kiyor' && own18('kiyor2') ? C18.kiyorK : 1 },   // ── fable32 (build 18) ── (fb18: the act's sounds and buzz are focus17/fx18's — one place) ── /fable32 ──
+        : { fb18: l18 },   // ── fable32 (build 18) ── (fb18: the act's sounds and buzz are focus17/fx18's — one place) ── /fable32 ── ── fable32 (build 37) ── (kK, the second spigot's walk ×0.6, gone) ── /fable32 ──
       t0 = st.t,
       r = null;
     try {

@@ -9,8 +9,8 @@ import { rig, upTo } from './rig33.mjs';
 async function atLaver(flags = upTo('g20'), o) { const R = rig(flags, o); R.E.start(); await R.step(0.2); const k = R.STATIONS.kiyor.stand; R.at(k.x, k.z); await R.step(0.2); return R; }
 const untilPose = async (R) => { for (let i = 0; i < 40 && R.E.k20() && R.E.k20().ph !== 'pose'; i++) await R.step(0.1); };
 
-test('build 20: K20 — the hold 3.5 s (2.5 with the second spigot), back 0.3 a second, the walk up ≥ 1.2 s at ≤ 7 amot/s, the rise 0.35 s', () => {
-  assert.equal(K20.hold, 3.5); assert.equal(K20.hold2, 2.5); assert.equal(K20.back, 0.3); assert.equal(K20.up, 1.2); assert.equal(K20.upMax, 7); assert.equal(K20.rise, 0.35);
+test('build 20: K20 — the hold 3.5 s (build 37: no second spigot, no 2.5), back 0.3 a second, the walk up ≥ 1.2 s at ≤ 7 amot/s, the rise 0.35 s', () => {
+  assert.equal(K20.hold, 3.5); assert.equal(K20.hold2, undefined) /* (build 37: the second spigot's hold gone) */; assert.equal(K20.back, 0.3); assert.equal(K20.up, 1.2); assert.equal(K20.upMax, 7); assert.equal(K20.rise, 0.35);
   assert.deepEqual([K20.act.x, K20.act.z], [-60.2, 20]);
 });
 test('build 20: the laver first — gate20 holds every other station ("gate" with the station\'s id) and the bar\'s first slot is the laver', async () => {

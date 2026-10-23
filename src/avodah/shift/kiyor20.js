@@ -144,7 +144,7 @@ export function createKiyor20(o = {}) {
     const spig = K20.spig;
     if (on) {
       stat.pours++;
-      const rate = k && k.two ? 1 : 0.8;
+      const rate = 0.8;   // ── fable32 (build 37) ── (the second spigot's stronger stream gone with it: one stream for everyone) ── /fable32 ──
       w.pour20(spig[0], handAt('handr'), true, rate);
       w.pour20(spig[1], handAt('handl'), true, rate);
     } else {

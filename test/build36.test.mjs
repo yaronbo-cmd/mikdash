@@ -119,7 +119,7 @@ test('build 36 (1): the owner\'s decision (23.10 06:37, "סף ההחלקה לה�
   // every swipe gate reads it: the engine's swipeWhy, the wick, the yesod; the lot's swipe up; the modules' crossing times
   const d = read('src/avodah/shift/day33.js');
   assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= SWIPE36\.dist \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : ''\) : 'short'\)/);
-  assert.match(d, /\? dy <= -SWIPE36\.dist/); assert.match(d, /const why = dy < SWIPE36\.dist \? 'short' : Math\.abs\(dx\) > 0\.6 \* dy \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : '';/);
+  assert.match(d, /\? Math\.max\(Math\.abs\(dx\), Math\.abs\(dy\)\) >= SWIPE36\.dist/) /* (build 37: the wick in any clear direction — was "? dy <= -SWIPE36.dist", up only) */; assert.match(d, /const why = dy < SWIPE36\.dist \? 'short' : Math\.abs\(dx\) > 0\.6 \* dy \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : '';/);
   assert.ok(!/ms > D21\.ms|dy < -P26\.wick|ms > P26\.ms|dy < P27\.dn|ms > P27\.ms/.test(d), 'no swipe reads the old numbers');
   const pis = read('src/avodah/shift/pis23.js'); assert.match(pis, /t - trail\[0\]\[0\] > SWIPE36\.ms \/ 1e3/); assert.match(pis, />= SWIPE36\.dist \* \(innerHeight \|\| 390\) && E\.p23raise\(\)/);
   for (const f of ['deshen21', 'maaracha22', 'pen25', 'heichal26', 'dam27']) { const m = read(`src/avodah/shift/${f}.js`); assert.match(m, />= SWIPE36\.dist \* (W|WD|HT)\(\)/, f); assert.ok(!/> (D21|M22|P25|P26)\.sw \* |> P26\.wick \* |> P27\.dn \* /.test(m), `${f}: no old gate`); }

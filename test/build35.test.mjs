@@ -291,11 +291,12 @@ test('build 35 (7): the tasks done in the morning — "מהודר בכיור", "
 });
 
 // ───────── (8) the pads ─────────
-test('build 35 (8): the pads — "גרזן טוב" and "טנא גדול" (the wood loop\'s) hidden; the laver\'s second spigot as it is', async () => {
+test('build 35 (8): the pads — "גרזן טוב" and "טנא גדול" (the wood loop\'s) hidden; (build 37) the laver\'s second spigot removed — no pad in the court', async () => {
   const R = rig(FLAGS, { save: { ...after(3), perutot: 500 }, twin: twin() }); R.E.start(); await R.step(0.3);
-  assert.deepEqual(R.E.pads18().map((x) => x.id), ['kiyor2']); assert.deepEqual(R.E.focus17().c18.pads.map((x) => x.id), ['kiyor2']);
+  // ── fable32 (build 37) ── (was ['kiyor2'] in both — the owner, 23.10 06:49 "להוריד הדד") ── /fable32 ──
+  assert.deepEqual(R.E.pads18().map((x) => x.id), []); assert.deepEqual(R.E.focus17().c18.pads.map((x) => x.id), []);
   for (const id of ['axe', 'basket10']) { const p = C18.pads.find((x) => x.id === id); R.at(p.x, p.z); await R.step(C18.padS + 0.5); assert.ok(!(R.save.day33 && R.save.day33[id]), `${id}: not bought`); }
-  const k = C18.pads.find((x) => x.id === 'kiyor2'); assert.equal(k.price, 40); assert.equal(C18.kiyorK, 0.6);
+  assert.equal(C18.pads.find((x) => x.id === 'kiyor2'), undefined); assert.equal(C18.kiyorK, undefined);   // (build 37: was its price 40 and kiyorK 0.6)
   assert.match(read('src/avodah/shift/fx18.js'), /\(c\.pads \|\| C18\.pads\)\.forEach/);
 });
 

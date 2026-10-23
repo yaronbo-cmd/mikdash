@@ -47,10 +47,10 @@ export const LVL36 = Object.freeze({
   ]),
   // בדיקת הטלה: the blemish plain, small, dirt that looks like one, two lambs
   lamb: Object.freeze([
-    lv('מום גלוי', 'המום נראה לאור האבוקה', { src: cite('בודקין אותו לאור האבוקות', 'תמיד ג, ד') }, { small: 0, mimic: 0, two: 0, pB: 0.7, dirt: 4 } /* ── fable32 (build 37) ── (more to read: more lambs with a blemish, up to four straws or mud — was P25's 0.5 and 2) ── */),
-    lv('מומים קטנים', 'המום קטן — באוזן או בעין', { src: cite('כל מום משלשה ושבעים מום המנויין בבהמה פוסלין אותה מן הקרבן', 'רמב״ם, איסורי מזבח ב, י') }, { small: 1, mimic: 0, two: 0, pB: 0.7, dirt: 4 }),
-    lv('לכלוך שנראה כמו מום', 'מקרוב לא רואים — מבריש, ואז יודע', {}, { small: 1, mimic: 1, two: 0, pB: 0.7, dirt: 4 }),
-    lv('שני טלאים להשוואה', 'בודקים שני טלאים, והמום זעיר — ובוחרים את התמים', { src: cite('צאו והביאו טלה מלשכת הטלאים', 'תמיד ג, ג') }, { small: 1, mimic: 1, two: 1, pB: 0.8, dirt: 4, sz: 0.5 } /* ── fable32 (build 37) ── (the blemish half a small one's size — was pB 0.65, dirt 3, sz 1) ── */),
+    lv('מום גלוי', 'המום נראה לאור האבוקה', { src: cite('בודקין אותו לאור האבוקות', 'תמיד ג, ד') }, { small: 0, mimic: 0, two: 0, pB: 0.8, dirt: 4 } /* ── fable32 (build 37) ── (more to read: more lambs with a blemish, up to four straws or mud — was P25's 0.5 and 2) ── */),
+    lv('מומים קטנים', 'המום קטן — באוזן או בעין', { src: cite('כל מום משלשה ושבעים מום המנויין בבהמה פוסלין אותה מן הקרבן', 'רמב״ם, איסורי מזבח ב, י') }, { small: 1, mimic: 0, two: 0, pB: 0.8, dirt: 4 }),
+    lv('לכלוך שנראה כמו מום', 'מקרוב לא רואים — מבריש, ואז יודע', {}, { small: 1, mimic: 1, two: 0, pB: 0.8, dirt: 4 }),
+    lv('שני טלאים להשוואה', 'בודקים שני טלאים, והמום זעיר — ובוחרים את התמים', { src: cite('צאו והביאו טלה מלשכת הטלאים', 'תמיד ג, ג') }, { small: 1, mimic: 1, two: 1, pB: 0.85, dirt: 4, sz: 0.5 } /* ── fable32 (build 37) ── (the blemish half a small one's size — was pB 0.65, dirt 3, sz 1) ── */),
   ]),
   // דישון מזבח הפנימי: the pulls (too fast scratches the gold), the guide, the teni out
   inner: Object.freeze([
@@ -68,8 +68,8 @@ export const LVL36 = Object.freeze({
   ]),
   // השוחט: the cut's window, the binding's direction, the needle's pace
   shochet: Object.freeze([
-    lv('חלון רחב', 'פס הזהב רחב', {}, { win: Object.freeze([0.435, 0.565]), turn: 0, sweep: 1 }),
-    lv('עקידה בכיוון הנכון', 'בלי קו העזר — עוקדים יד ורגל, ראשו לדרום; עקידה הפוכה נספרת', { src: cite('וכך היתה עקדתו, ראשו לדרום ופניו למערב', 'תמיד ד, א') }, { win: Object.freeze([0.435, 0.565]), turn: 1, sweep: 1 }),
+    lv('חלון רחב', 'פס הזהב רחב', {}, { win: Object.freeze([0.445, 0.555]), turn: 0, sweep: 1 } /* ── fable32 (build 37) ── (was [0.435, 0.565]: the child 82 %) ── */),
+    lv('עקידה בכיוון הנכון', 'בלי קו העזר — עוקדים יד ורגל, ראשו לדרום; עקידה הפוכה נספרת', { src: cite('וכך היתה עקדתו, ראשו לדרום ופניו למערב', 'תמיד ד, א') }, { win: Object.freeze([0.445, 0.555]), turn: 1, sweep: 1 }),
     lv('חלון צר', 'פס הזהב צר', {}, { win: Object.freeze([0.465, 0.535]), turn: 1, sweep: 1 }),
     lv('חלון צר ומחוג מהיר', 'פס צר, והמחוג נע מהר יותר', {}, { win: Object.freeze([0.482, 0.518]), turn: 1, sweep: 0.7 }),
   ]),

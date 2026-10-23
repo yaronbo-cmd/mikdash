@@ -118,7 +118,7 @@ const PLAY = {
   },
   async lamb(R, H, L, rnd) {
     await settle(R);
-    for (let n = 0; n < 200 && R.E.p25() && !/^(lead|end)$/.test(R.E.p25().ph); n++) {
+    for (let n = 0; n < 600 && R.E.p25() && !/^(lead|end)$/.test(R.E.p25().ph); n++) {
       const K = R.E.p25();
       if (K.ph === 'scan') {
         const spots = (K.L && K.L.spots) || [], next = spots.find((s) => !s.seen && !s.gone && !(s.skip36 = s.skip36 != null ? s.skip36 : rnd() < miss37(s, K.L, H === HAND.child ? 'child' : 'skilled')));   // ── fable32 (build 37) ── (the eye by the spot's drawn size — was H.miss: 6 % / 18 %, 1 % / 10 %) ── /fable32 ──

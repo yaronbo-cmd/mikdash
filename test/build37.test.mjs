@@ -78,7 +78,7 @@ test('build 37 (3): the levels\' new knobs — the ashes\' pans, the laver\'s an
   for (const id of ROLES36) for (const x of LVL36[id]) assert.ok((x.src && /טיוטה/.test(x.src)) || x.mh === 1, `${id}: ${x.he}`);
   assert.deepEqual([1, 2, 3, 4].map((L) => { const h = par36('deshen', L).heavy; return [h.wind, h.spill]; }), [[1.2, 0.68], [1.2, 0.68], [1.45, 0.6], [1.65, 0.53]]);
   assert.deepEqual([par36('kiyor', 4).bal.wind, par36('kiyor', 4).bal.lim, par36('inner', 4).teni.wind, par36('inner', 4).teni.lim], [1.55, 0.5, 1.6, 0.5]);
-  assert.deepEqual([1, 2, 3, 4].map((L) => [par36('lamb', L).pB, par36('lamb', L).dirt, par36('lamb', L).sz || 1]), [[0.7, 4, 1], [0.7, 4, 1], [0.7, 4, 1], [0.8, 4, 0.5]]);
+  assert.deepEqual([1, 2, 3, 4].map((L) => [par36('lamb', L).pB, par36('lamb', L).dirt, par36('lamb', L).sz || 1]), [[0.8, 4, 1], [0.8, 4, 1], [0.8, 4, 1], [0.85, 4, 0.5]]);
   assert.match(read('src/avodah/shift/pen25.js'), /\* \(sp2\.small \? 0\.62 : 1\) \* \(sp2\.sz \|\| 1\)/);
 });
 test('build 37 (3): the lamb\'s level 4 carries its smaller blemish into the act (the spot\'s sz)', async () => {

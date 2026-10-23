@@ -11,7 +11,7 @@
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
 import * as THREE from 'three';
 import { addDrawer, onTick } from './draw.js';
-import { M22, P23 } from './day33.js';
+import { M22, P23, SWIPE36 } from './day33.js';
 import { reg30, draft30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 export function createMaaracha22(o = {}) {
   const E = o.E,
@@ -302,7 +302,7 @@ export function createMaaracha22(o = {}) {
   });
   pad.addEventListener('pointermove', (ev) => {
     const p = touches.get(ev.pointerId);
-    if (p && p.tx == null && Math.abs(ev.clientX - p.x0) > M22.sw * W()) p.tx = tsOf(ev) - p.t0;
+    if (p && p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * W()) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
   });
   const up = (ev) => {
     const p = touches.get(ev.pointerId);

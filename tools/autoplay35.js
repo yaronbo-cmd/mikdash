@@ -207,7 +207,7 @@
       await react(); const say = blem || (dirt && rnd() < (H() ? 0.3 : SK() ? 0.05 : 0)) ? 'pasul' : 'tamim';
       if (!e.p25stamp(say)) e.p25stamp('tamim'); await sleep(200); return;
     }
-    if (K.ph === 'dirt') { await react(); const sp = K.L.spots[K.zi]; if (K.P36 && K.P36.mimic && rnd() < (H() ? 0.25 : SK() ? 0.06 : 0)) { e.p25stamp('pasul'); await sleep(200); return; } swipe(e.p25swipe, 0.5, 0.02); if (sp && sp.kind === 'blem') sp.shown36 = 1; await sleep(120); return; }   // ── fable32 (build 36) ── (level 3 on: up close alike — a hand that says "פסול" before brushing, now and then) ── /fable32 ──
+    if (K.ph === 'dirt') { if (K.P36 && K.P36.mimic) await shot30('lamb36', null, 500); /* ── fable32 (build 36) ── (shot lamb36: up close, a spot that may be dirt or a blemish) ── /fable32 ── */ await react(); const sp = K.L.spots[K.zi]; if (K.P36 && K.P36.mimic && rnd() < (H() ? 0.25 : SK() ? 0.06 : 0)) { e.p25stamp('pasul'); await sleep(200); return; } swipe(e.p25swipe, 0.5, 0.02); if (sp && sp.kind === 'blem') sp.shown36 = 1; await sleep(120); return; }   // ── fable32 (build 36) ── (level 3 on: up close alike — a hand that says "פסול" before brushing, now and then) ── /fable32 ──
     if (K.ph === 'blem') { const sp = K.L.spots[K.zi]; if (sp) sp.shown36 = 1; await sleep(H() ? 500 : 150); e.p25tap(); await sleep(100); return; }
     if (K.ph === 'wait') { await react(); e.p25tap(); await sleep(150); return; }
     await sleep(80);

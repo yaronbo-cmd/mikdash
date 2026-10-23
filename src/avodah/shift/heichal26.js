@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb, man, ROBE, SKIN } from '../works/figures.js';
-import { P26, POOL26 } from './day33.js';
+import { P26, POOL26, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { ALTAR_CORNERS, DESHEN_PLACE, LIMBS_PLACE, TAMID_RING } from '../../places.js';
 export function createHeichal26(o = {}) {
@@ -261,8 +261,8 @@ export function createHeichal26(o = {}) {
       dy = ev.clientY - p.ly;
     p.lx = ev.clientX;
     p.ly = ev.clientY;
-    if (p.tx == null && Math.abs(ev.clientX - p.x0) > P26.sw * WD()) p.tx = t - p.t0;
-    if (p.ty == null && p.y0 - ev.clientY > P26.wick * HT()) p.ty = t - p.t0;
+    if (p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * WD()) p.tx = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
+    if (p.ty == null && p.y0 - ev.clientY >= SWIPE36.dist * HT()) p.ty = t - p.t0;
     p.H.push([t, ev.clientY]);
     while (p.H.length > 2 && t - p.H[0][0] > 70) p.H.shift();
     const h0 = p.H[0],

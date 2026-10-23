@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { man, ROBE, SKIN } from '../works/figures.js';
 import { sheepRig, rigEnd, rigMaterial, rigMesh, rigWrite, V3 } from '../../animals.js';
-import { at25, BLEM25, P25 } from './day33.js';
+import { at25, BLEM25, P25, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { L33, LINE33, stalls33 } from './lamb33.js';   // ── fable32 (build 33) ── the lamb chamber's run: its stalls, the tags, its words ── /fable32 ──
 export function createPen25(o = {}) {
@@ -363,7 +363,7 @@ export function createPen25(o = {}) {
       dy = ev.clientY - p.ly;
     p.lx = ev.clientX;
     p.ly = ev.clientY;
-    if (p.tx == null && Math.abs(ev.clientX - p.x0) > P25.sw * W()) p.tx = tsOf(ev) - p.t0;
+    if (p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * W()) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     if (L && L.ph === 'scan' && Number.isFinite(beam.x)) {
       beam.x += dx * AIM_K;
       beam.y += dy * AIM_K;

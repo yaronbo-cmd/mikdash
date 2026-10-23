@@ -106,7 +106,8 @@ test('build 34 (8): the pyre\'s sort says why a swipe did not count — "ארו�
   assert.ok(!/החליקו ימינה או שמאלה/.test(m.replace(/\/\/[^\n]*/g, '')), 'the old line is gone');
   // the engine gives the reason: a short, a slow and a crooked swipe at the sort
   const d = read('src/avodah/shift/day33.js');
-  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(Math\.abs\(dx\) > min \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > D21\.ms \? 'slow' : ''\) : 'short'\)/);
+  // (build 36: the owner's relaxed gate, SWIPE36 — 0.15 of the screen within 350 ms — in the same function; its why kept)
+  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= SWIPE36\.dist \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : ''\) : 'short'\)/);
   assert.match(d, /const a = swipeWhy\(dx, dy, ms, M22\.sw\);\s*if \(a\) \{\s*emit17\('m22sw', \{ ok: false, why: a \}\);/);
 });
 

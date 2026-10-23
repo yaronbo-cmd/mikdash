@@ -16,7 +16,7 @@
 import { addDrawer, L, onTick } from './draw.js';
 import { man, ROBE, SKIN } from '../works/figures.js';
 import { CAP_MEMUNE } from '../works/dawn.js';
-import { bookOf23, D21, M22, P23, POOL26, POOL23 } from './day33.js';
+import { bookOf23, D21, M22, P23, POOL26, POOL23, SWIPE36 } from './day33.js';
 import { RATE30, role30, reg30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { canPractice31 } from './practice31.js';   // ── fable32 (build 31) ── the book's practice doors ── /fable32 ──
 import { LVL36, L36, row36, PTS36 } from './lvl36.js';   // ── fable32 (build 36) ── the four levels of each role, his points, his choice ── /fable32 ──
@@ -171,8 +171,8 @@ export function createPis23(o = {}) {
     if (!trail) return;
     const t = now();
     trail.push([t, ev.clientY]);
-    while (trail.length > 1 && t - trail[0][0] > P23.fin.ms / 1e3) trail.shift();
-    if (trail[0][1] - ev.clientY > P23.fin.dy * (innerHeight || 390) && E.p23raise()) {
+    while (trail.length > 1 && t - trail[0][0] > SWIPE36.ms / 1e3) trail.shift();   // ── fable32 (build 36) ── (the lot's swipe up: the owner's SWIPE36 — was P23.fin.dy 0.3 within P23.fin.ms 200) ── /fable32 ──
+    if (trail[0][1] - ev.clientY >= SWIPE36.dist * (innerHeight || 390) && E.p23raise()) {
       drags.clear();
       stat.ups++;
     }

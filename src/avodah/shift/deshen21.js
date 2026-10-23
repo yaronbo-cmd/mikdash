@@ -11,7 +11,7 @@
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
 import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
-import { D21 } from './day33.js';
+import { D21, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 export function createDeshen21(o = {}) {
   const E = o.E,
@@ -190,7 +190,7 @@ export function createDeshen21(o = {}) {
     if (p) {
       p.x = ev.clientX;
       p.y = ev.clientY;
-      if (p.tx == null && Math.abs(p.x - p.x0) > D21.sw * W()) p.tx = tsOf(ev) - p.t0;
+      if (p.tx == null && Math.abs(p.x - p.x0) >= SWIPE36.dist * W()) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     }
   });
   const up = (ev) => {

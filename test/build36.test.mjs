@@ -7,7 +7,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { D21, M22, P25, P26, P27, rampY19, PRAC31 } from '../src/avodah/shift/day33.js';
+import { D21, M22, P25, P26, P27, rampY19, PRAC31, SWIPE36 } from '../src/avodah/shift/day33.js';
 import { RATE30, LINE30, words30, role30, titleLv36, TITLE36 } from '../src/avodah/shift/rate30.js';
 import { LVL36, ROLES36, par36, PTS36, pts36, L36, ensure36, open36, lvl36, pick36, rec36, migrate36, boker36, all36, row36, pages36, addBoker36, SRC36 } from '../src/avodah/shift/lvl36.js';
 import { bookHTML23, pickHTML36 } from '../src/avodah/shift/pis23.js';
@@ -114,9 +114,29 @@ test('build 36 (1): the levels are cumulative and harder by content — narrower
   const src = read('src/avodah/shift/lvl36.js');
   assert.ok(!/dayS|drain|fuel|speedMul|PACE|clock/.test(src.slice(src.indexOf('export const LVL36'), src.indexOf('export const par36'))), 'no day clock, drain or pace among the levels');
 });
-test('build 36 (1): no gesture threshold changed (the input protocol — an open question to the owner): the swipes, the holds, the drags as they were', () => {
-  assert.deepEqual([D21.sw, D21.ms, D21.straight, M22.sw, P25.sw, P26.sw, P26.wick, P26.ms, P26.dy, P27.dn, P27.ms, P27.minPow], [0.3, 200, 0.5, 0.3, 0.25, 0.25, 0.25, 200, 0.2, 0.22, 300, 0.12]);
-  for (const id of ROLES36) for (const x of LVL36[id]) for (const k of Object.keys(x.p)) assert.ok(!/^(sw|ms|wick|dy|dn|minPow|straight|dead|stick)$/.test(k), `${id}: ${k} is not a gesture threshold`);
+test('build 36 (1): the owner\'s decision (23.10 06:37, "סף ההחלקה להקל") — one shared swipe gate, SWIPE36: |Δ| ≥ 0.15 of the screen within ≤ 350 ms, read by every swipe check; holds, drags and timing windows untouched', async () => {
+  assert.deepEqual({ ...SWIPE36 }, { dist: 0.15, ms: 350 }); assert.ok(Object.isFrozen(SWIPE36));
+  // every swipe gate reads it: the engine's swipeWhy, the wick, the yesod; the lot's swipe up; the modules' crossing times
+  const d = read('src/avodah/shift/day33.js');
+  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= SWIPE36\.dist \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : ''\) : 'short'\)/);
+  assert.match(d, /\? dy <= -SWIPE36\.dist/); assert.match(d, /const why = dy < SWIPE36\.dist \? 'short' : Math\.abs\(dx\) > 0\.6 \* dy \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : '';/);
+  assert.ok(!/ms > D21\.ms|dy < -P26\.wick|ms > P26\.ms|dy < P27\.dn|ms > P27\.ms/.test(d), 'no swipe reads the old numbers');
+  const pis = read('src/avodah/shift/pis23.js'); assert.match(pis, /t - trail\[0\]\[0\] > SWIPE36\.ms \/ 1e3/); assert.match(pis, />= SWIPE36\.dist \* \(innerHeight \|\| 390\) && E\.p23raise\(\)/);
+  for (const f of ['deshen21', 'maaracha22', 'pen25', 'heichal26', 'dam27']) { const m = read(`src/avodah/shift/${f}.js`); assert.match(m, />= SWIPE36\.dist \* (W|WD|HT)\(\)/, f); assert.ok(!/> (D21|M22|P25|P26)\.sw \* |> P26\.wick \* |> P27\.dn \* /.test(m), `${f}: no old gate`); }
+  // on the engine: the ashes' raking, the pyre's sort, the lamb's brush, the bolt, the wick, the wipe, the yesod — 0.15 within 350 ms counts; under it or slower not
+  const s = SAVE(); migrate36(s);
+  const D = practise('deshen', s, 1); D.E.start(); D.H.y = 25; await D.step(0.8);
+  assert.equal(D.E.d21swipe(0.149, 0.02, 200), false); assert.equal(D.E.d21swipe(0.15, 0.02, 351), false); assert.equal(D.E.d21swipe(0.15, 0.02, 350), true, '0.15 in 350 ms: a scoop');
+  assert.ok(D.ev('d21swipe').some((e) => e.why === 'short') && D.ev('d21swipe').some((e) => e.why === 'slow'));
+  const M = practise('m22', s, 1); M.E.start(); await M.step(0.3); await settle(M);
+  for (let i = 0; i < 60 && !(M.E.m22() && M.E.m22().ph === 'sort' && M.E.m22().ls === 'on'); i++) await M.step(0.1);
+  assert.equal(M.E.m22swipe(0.14, 0, 200), null); assert.ok(M.E.m22swipe(-0.15, 0, 350), 'the sort: 0.15 counts');
+  const N = practise('menorah', s, 1); N.E.start(); await N.step(0.6); N.at(P26.gate.x + 2, P26.gate.z); await N.step(0.8);
+  assert.equal(N.E.r26swipe(0.149, 0, 300), false); assert.equal(N.E.r26swipe(0.15, 0, 350), true, 'the bolt: 0.15 in 350 ms');
+  N.E.r26hold(true); await N.step(P26.key + 0.2); N.E.r26hold(false); await N.step(P26.opn + 0.2); N.at(P26.walkM.x + 1, P26.walkM.z); await N.step(1.2);
+  assert.equal(N.E.r26().ph, 'wick'); assert.equal(N.E.r26swipe(0, -0.14, 200), false); assert.equal(N.E.r26swipe(0, -0.15, 350), true, 'the wick: 0.15 up in 350 ms');
+  // holds, drags and timing windows are not swipes: their numbers as they were
+  assert.deepEqual([P26.key, P26.vmax, P27.sweep, P27.still, D21.bal.fix, M22.gv], [0.8, 2.4, 1.15, 3, 2.4, 1.2]);
   assert.match(read('src/game/twin.js'), /STICK24/);
 });
 

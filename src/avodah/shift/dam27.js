@@ -16,7 +16,7 @@
  * Every text a draft (טיוטה) with its source, the numbers המחשה. Never a Divine Name. */
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb as lambFig, man, ROBE, SKIN } from '../works/figures.js';
-import { P27, needle27, throw27 } from './day33.js';
+import { P27, needle27, throw27, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { L33 } from './lamb33.js';   // ── fable32 (build 33) ── (today's lamb's tag) ── /fable32 ──
 import { BLOOD, tagBlood } from '../works/blood.js';
@@ -209,7 +209,7 @@ export function createDam27(o = {}) {
       dy = ev.clientY - p.ly;
     p.lx = ev.clientX;
     p.ly = ev.clientY;
-    if (p.ty == null && ev.clientY - p.y0 > P27.dn * HT()) p.ty = t - p.t0;
+    if (p.ty == null && ev.clientY - p.y0 >= SWIPE36.dist * HT()) p.ty = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     if (!K) return;
     if (K.ph === 'recv') E.r27move((dx / (0.42 * WD())) * 2);
     else if (/^(full|carry|carry2|hold)$/.test(K.ph) || (K.clot && /^aim2?$/.test(K.ph))) {   // ── fable32 (build 36) ── (a clot at the corner: the thumb circles it away there) ── /fable32 ──

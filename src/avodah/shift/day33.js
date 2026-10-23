@@ -163,6 +163,14 @@ export const R19 = Object.freeze({
 });
 // ── recovered (build 20) ── the laver's act (kiyor20.js): the two hands' hold (hold; the second, hold2), the water's rise, his place and
 // turn at the laver (act), the spigot's two places (spig), its camera (cam)
+// ── fable32 (build 36) ── the owner's decision (23.10 06:37, "סף ההחלקה להקל" — the swipe thresholds relaxed; it overrides build 36's
+// brief "don't change the protocol's gesture thresholds"): ONE shared gate for every swipe — a swipe counts at |Δ| ≥ 0.15 of the screen
+// (its width for ↔, its height for ↕) within ≤ 350 ms. Read by every swipe check: the engine's swipeWhy (the ashes' raking, the pyre's
+// sort, the lamb's brush, the Heichal's bolt and wipe), the wick's swipe up, the yesod's swipe down, the lot's swipe up (pis23), and
+// the modules' own crossing times (deshen21, maaracha22, pen25, heichal26, dam27). Holds, drags and timing windows are not swipes and
+// keep their numbers (D21.sw, M22.sw, P25.sw, P26.sw, P26.wick, P26.ms, P27.dn, P27.ms, D21.ms, P23.fin stay in their tables, unread
+// by the swipes — the history of builds 21–27) ── /fable32 ──
+export const SWIPE36 = Object.freeze({ dist: 0.15, ms: 350 });
 export const K20 = Object.freeze({
   hold: 3.5,
   hold2: 2.5,
@@ -2611,7 +2619,7 @@ export function createDay33(o = {}) {
     },
     clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v),
     r1 = (v) => Math.round(v * 10) / 10,
-    swipeWhy = (dx, dy, ms, min) => (Math.abs(dx) > min ? (Math.abs(dy) > 0.5 * Math.abs(dx) ? 'crooked' : ms > D21.ms ? 'slow' : '') : 'short');
+    swipeWhy = (dx, dy, ms, min) => (void min, Math.abs(dx) >= SWIPE36.dist ? (Math.abs(dy) > 0.5 * Math.abs(dx) ? 'crooked' : ms > SWIPE36.ms ? 'slow' : '') : 'short');   // ── fable32 (build 36) ── (the owner's relaxed gate, SWIPE36: was |dx| > min (0.25–0.3) within D21.ms 200) ── /fable32 ──
   // ── recovered (build 21) ── תרומת הדשן: the sweep of the coals (four layers), the walk down the ramp with the pan (the balance, the wind,
   // the spills), the turn at the foot, the pour onto the heap
   function d21start() {
@@ -4132,10 +4140,10 @@ export function createDay33(o = {}) {
     if (ph !== 'bolt' && ph !== 'wick' && ph !== 'wipe') return false;
     const why =
       ph === 'wick'
-        ? dy < -P26.wick
+        ? dy <= -SWIPE36.dist   // ── fable32 (build 36) ── (the wick's swipe up: SWIPE36 — was P26.wick 0.25 within P26.ms 200) ── /fable32 ──
           ? Math.abs(dx) > 0.5 * Math.abs(dy)
             ? 'crooked'
-            : ms > P26.ms
+            : ms > SWIPE36.ms
               ? 'slow'
               : ''
           : 'short'
@@ -4563,7 +4571,7 @@ export function createDay33(o = {}) {
   function r27swipe(dx, dy = 0, ms = 0) {
     const K = st.r27;
     if (!K || K.ph !== 'base' || st.paused) return false;
-    const why = dy < P27.dn ? 'short' : Math.abs(dx) > 0.6 * dy ? 'crooked' : ms > P27.ms ? 'slow' : '';
+    const why = dy < SWIPE36.dist ? 'short' : Math.abs(dx) > 0.6 * dy ? 'crooked' : ms > SWIPE36.ms ? 'slow' : '';   // ── fable32 (build 36) ── (the yesod's swipe down: SWIPE36 — was P27.dn 0.22 within P27.ms 300) ── /fable32 ──
     emit17('r27swipe', { ok: !why, why });
     if (why) return false;
     ph27(K, 'poured');

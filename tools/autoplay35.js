@@ -527,6 +527,7 @@
     get on() { return A.on; },
     start(opts = {}) {
       A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = []; A.j32 = []; A.j32k = ''; A.j32open = 0; A.skip32 = 0; A.src32 = 0; A.src32s = [];   // ── fable32 (build 32) ── (the journal's cards) ── /fable32 ──
+      A.d21h = null; A.d21p = null; A.t36 = null; A.d21t = null;   // ── fable32 (build 36) ── (each run's own balance memory: a practice's "עוד פעם" starts the engine's clock again) ── /fable32 ──
       A.share = {}; A.sh35 = null; A.close35 = []; A.sums = []; A.fire35 = []; A.runs = []; A.slips35 = 0; A.tasks35 = []; A.held19 = 0; A.h19 = null; A.shot35q = null;   // ── fable32 (build 35) ── ── /fable32 ──
       clearInterval(A.shInt); A.shInt = setInterval(() => { try { const e = E(); if (e && e.st33) share35(e); } catch (err) { /* */ } }, 100);   // ── fable32 (build 35) ── (the time shares: sampled apart from the bot's own turns, which a walk holds) ── /fable32 ──
       const e = E(); if (e) hook(e);

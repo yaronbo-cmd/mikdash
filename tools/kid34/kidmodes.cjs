@@ -153,6 +153,22 @@ module.exports = {
     const e = await waitEngine(K, 60000); K.ev('day-start', JSON.stringify(e));
     await playDay(K);
   },
+  // ── fable32 (build 37) ── one role, a child's way: its practice run opened as the roles book's "לתרגל" opens it (__SHIFT.practice),
+  // then played as the day is (playDay) until the practice's end card — the act finished — or the time is up (--role menorah) ── /fable32 ──
+  async role(K) {
+    const role = K.opt('--role', 'menorah');
+    let s = await lookRec(K, 'start');
+    for (let i = 0; i < 40 && !(s && s.tp.some((q) => /lb-play/.test(q.cls))); i++) { if (s) await K.pokeButton(s, null, 'first-run'); await K.sleep(800); s = await lookRec(K, 'start'); }
+    const r = await K.pg.evaluate((id) => { try { globalThis.__SHIFT.practice(id, 'start'); return 'ok'; } catch (e) { return String(e && e.message); } }, role).catch((e) => String(e.message));
+    K.ev('practice', role + ' ' + r);
+    const e = await waitEngine(K, 60000); K.ev('role-start', JSON.stringify(e));
+    const t0 = K.el();
+    const end = await playDay(K, { until: (x) => x.screens.some((q) => /p31-end/.test(q)) });
+    const fin = await K.pg.evaluate(() => { try { const E = globalThis.__SHIFT.E, p = E.p31 && E.p31(); return { end: !!(p && p.end), rating: p && p.end ? p.end.rating || null : null, card: ((document.querySelector('.p31-end') || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 160) }; } catch (err) { return { err: String(err.message) }; } }).catch(() => null);
+    K.R.role37 = { role, finished: !!(end && fin && (fin.end || fin.card)), at: K.el(), took: Math.round(K.el() - t0), fin };
+    K.ev('role-end', JSON.stringify(K.R.role37));
+    if (end) await K.shot('role-end-' + role);
+  },
   // the lamb chamber: the "מכאן" door, the walk in, wrong choices (approve a blemished one, reject a whole one), back, again
   async chamber(K) {
     let n = 0;

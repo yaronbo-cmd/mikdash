@@ -369,7 +369,7 @@ export function createDeshen21(o = {}) {
       tapRing.classList.toggle('on', tapOn);
       if (tapOn) {
         const p = proj(D21.heap.x, gy(D21.heap.x, D21.heap.z, 16) + 0.3, D21.heap.z);
-        if (p) tapRing.style.transform = `translate(${p.x | 0}px,${p.y | 0}px)`;
+        if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) tapRing.style.transform = `translate(${Math.max(48, Math.min((innerWidth || 640) - 48, p.x)) | 0}px,${Math.max(48, Math.min((innerHeight || 296) - 48, p.y)) | 0}px)`;   // ── fable32 (build 37) ── (the ring kept on the screen — the naive kid saw it cut at 640 × 296, the heap off the edge: at the edge it points the way) ── /fable32 ──
       }
       setHint('');   // ── fable32 (build 30) ── (were: the swipe, the walk, the pour — each with its source: SRC_SWEEP, SRC_DOWN, SRC_POUR, at the end) ── /fable32 ──
       if (dawnAt != null) {

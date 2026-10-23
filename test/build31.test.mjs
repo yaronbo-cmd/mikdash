@@ -8,13 +8,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { D21, M22, P23, P25, P26, P27, PRAC31, POOL23, POOL26, bookOf23 } from '../src/avodah/shift/day33.js';
+import { D21, M22, P23, P25, P26, P27, PRAC31, POOL23, POOL26, bookOf23, tasks35ForDay } from '../src/avodah/shift/day33.js';
 import { RATE30, LINE30, quality30, rate30, role30, served30, INNER31 } from '../src/avodah/shift/rate30.js';
 import { canPractice31, practiceSave31, merge31, endHTML31 } from '../src/avodah/shift/practice31.js';
 import { bookHTML23 } from '../src/avodah/shift/pis23.js';
 import { createLobby } from '../src/avodah/shift/lobby35.js';
 import { createFocus17 } from '../src/avodah/shift/focus17.js';   // (it imports every act's module: their sources register)
-import { rig, FLAGS, seeded } from './rig33.mjs';
+import { rig, FLAGS, FLAGS34, seeded } from './rig33.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
@@ -155,7 +155,8 @@ test('build 31 (2): every role\'s act opens at once in its own place — the act
     assert.ok(want === 'k20' ? s.k20 : s[want], `${role}: its act`); assert.equal(R.E.act30(), true, role); assert.equal(R.E.prac31, role);
     assert.ok(Object.values(LINE30).some((L) => Object.values(L).includes(R.E.step17().text)), `${role}: "${R.E.step17().text}"`);
     const t0 = R.E.focus17().tamid, left = s.left, fuel = s.fuel; await R.step(4);
-    assert.equal(R.E.state().left, left, `${role}: no day timer`); assert.equal(R.E.focus17().tamid.inS, t0.inS, `${role}: the tamid clock does not run`); assert.equal(R.E.state().fuel, fuel, `${role}: the fire does not drain`);
+    // (build 35: in the morning of the work there is no tamid clock at all — focus17().tamid is null)
+    assert.equal(R.E.state().left, left, `${role}: no day timer`); assert.equal((R.E.focus17().tamid || {}).inS, (t0 || {}).inS, `${role}: the tamid clock does not run`); assert.equal(R.E.state().fuel, fuel, `${role}: the fire does not drain`);
   }
   // the court: the pyre's wood by the court's kohen on an ashes run, the ashes' pan on a pyre run; the inner roles' winners open the great gate for a blood role
   const A = practise('deshen', SAVE()); await begin(A, 'deshen'); assert.equal(A.E.npc23(), 'm22');
@@ -208,9 +209,14 @@ test('build 31 (3): the saved day is byte-identical before and after a practice 
   assert.equal(JSON.stringify(save.day33state), day0, 'byte-identical'); assert.equal(lobby(save), 'המשך יום 7');
   for (const role of PRAC31.roles) assert.equal(save.roles23[role].pr, 1, role);
   // the day itself then goes on where it was (the day, the fire's logs, the gates, the tasks)
-  const R = rig(FLAGS, { save }); R.E.start(); await R.step(0.1); const s = R.E.state();
+  // (build 35: the old loop's tasks and their marks — FLAGS34; in the morning of the work an older save's wood and stores tasks give way to
+  // the day's three of the work, unmarked)
+  const R = rig(FLAGS34, { save }); R.E.start(); await R.step(0.1); const s = R.E.state();
   assert.equal(s.day, 7); assert.equal(s.fed, 44); assert.equal(s.lot, 'deshen'); assert.equal(R.E.st33.p23day, 7); assert.equal(R.E.st33.m22day, 7); assert.equal(s.gate26L, true, 'the second lot next, as it was');
   assert.deepEqual(s.tasks, [['jars2', true], ['bake1', false], ['carry20', false]]); assert.equal(s.resumed, 7);
+  const R35 = rig(FLAGS, { save }); R35.E.start(); await R35.step(0.1); const s35 = R35.E.state();
+  assert.equal(s35.day, 7); assert.equal(s35.lot, 'deshen'); assert.equal(s35.gate26L, true); assert.equal(s35.resumed, 7);
+  assert.deepEqual(s35.tasks.map(([id]) => id), tasks35ForDay(7, save).map((q) => q.id)); assert.ok(s35.tasks.every(([, d]) => !d));
   // shift/index.js: the run on a copy of his save — no saved day in it, its persist a no-op; only the role's entry merged back
   const ix = read('src/avodah/shift/index.js'), rp = ix.slice(ix.indexOf('function runPractice('), ix.indexOf('// ── /fable32 ──', ix.indexOf('function runPractice(')));
   assert.match(rp, /save: practiceSave31\(save\), persist: \(\) => \{\}/); assert.match(rp, /merge31\(save, ev\.id, ev\.rec\)/); assert.match(rp, /practice: \{ role, day: resumeDay33\(save\) \|\| 1/);
@@ -270,8 +276,11 @@ test('build 31 (6): the day\'s summary says no "באיחור" — a tamid not on
   assert.ok(!/באיחור|איחר|נכשל|פספס/.test(sum), 'the summary'); assert.match(sum, /tm\.ok \? 'בזמן ✓' : 'הוקרב'/);
   assert.match(sum, /data-f17="book">🎭 ספר התפקידים/, 'the roles book from the summary');
   // on the engine: a day whose evening tamid never came on time → the summary still lists it (ok: false → "הוקרב")
-  const R = rig(FLAGS); R.E.start(); await R.step(0.2); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); R.E.debug.done26(); R.E.debug.setFuel(10);
+  // (build 35: the old loop's tamids — FLAGS34; the morning of the work's summary has no tamid row at all)
+  const R = rig(FLAGS34); R.E.start(); await R.step(0.2); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); R.E.debug.done26(); R.E.debug.setFuel(10);
   R.E.debug.night(); await R.step(0.3); const s = R.E.focus17().summary; assert.ok(s && s.tamids.some((t) => !t.ok));
+  const N = rig(FLAGS); N.E.start(); await N.step(0.2); N.E.debug.wash20(); N.E.debug.skip23('m22'); N.E.debug.skip22(); N.E.debug.done26();
+  N.E.debug.night(); await N.step(0.3); const n = N.E.focus17().summary; assert.ok(n && n.e35 && n.tamids.length === 0);
   const L = [createLobby({ save: SAVE(), start: true }).html(), createLobby({ save: SAVE(), start: false }).html()].join('\n');
   assert.ok(!/באיחור|איחר|נכשל|פספס|הפסד/.test(L), 'the lobby');
 });

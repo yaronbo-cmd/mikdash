@@ -8,11 +8,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { DAY33, C18, P23, POOL23, TASKS33, resumeDay33, tasksNow33, tasksForDay, B17 } from '../src/avodah/shift/day33.js';
+import { DAY33, C18, P23, POOL23, TASKS33, resumeDay33, tasksNow33, tasksForDay, B17, E35, tasks35ForDay } from '../src/avodah/shift/day33.js';
 import { createLobby } from '../src/avodah/shift/lobby35.js';
 import { installHaptics28, setHaptics, hapticsOn, haptics28, prefsHTML, cover28, createTurn28, PREFS28_CSS, HAPTICS_KEY, MUTE_KEY } from '../src/avodah/shift/prefs28.js';
 // (shift/index.js itself is not imported: it pulls the kohen's .glb, which only esbuild loads — its build-28 lines are read as text below)
-import { rig, FLAGS, upTo, seeded } from './rig33.mjs';
+import { rig, FLAGS, FLAGS34, upTo, seeded } from './rig33.mjs';
 
 const read = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 const H = 3600e3;
@@ -48,17 +48,21 @@ test('build 28 (1): DAY33.saveMaxH is gone; resumeDay33 — a day saved 48 h and
   assert.equal(resumeDay33({ day33state: { day: 4 } }), 4, 'no stamp at all: still the day');
   for (const bad of [{ day33state: { day: 0 } }, { day33state: [3] }, { day33state: 'x' }, { day33state: null }, {}, null]) assert.equal(resumeDay33(bad), 0, JSON.stringify(bad));
 });
-for (const [name, ago] of [['48 h', 48 * H], ['30 days', 30 * 24 * H]]) {
+// (build 35: the old loop's fuel and basket — FLAGS34; in the morning of the work the saved fuel is not the fire (its look: the court's pyre,
+// כשר — E35.fuel.kasher on the old scale), the old basket is let go, and the morning whose work was done goes to its close)
+for (const [name, ago, FL] of [['48 h', 48 * H, FLAGS34], ['30 days', 30 * 24 * H, FLAGS34], ['48 h (build 35)', 48 * H, FLAGS], ['30 days (build 35)', 30 * 24 * H, FLAGS]]) {
   test(`build 28 (1): a day saved ${name} ago goes on — the same day, the gates passed, the fire and its level`, async () => {
-    const R = rig(FLAGS, { save: mid3(Date.now() - ago) }); R.E.start(); await R.step(0.3);
+    const R = rig(FL, { save: mid3(Date.now() - ago) }); R.E.start(); await R.step(0.3);
     const s = R.E.state();
-    assert.equal(s.day, 3); assert.equal(s.resumed, 3); assert.equal(s.level, 3); assert.ok(s.fuel > 59 && s.fuel <= 61, `fuel ${s.fuel}`); assert.equal(s.logs, 2); assert.equal(s.lambsOk, 1);
+    assert.equal(s.day, 3); assert.equal(s.resumed, 3); assert.equal(s.level, 3); assert.equal(s.lambsOk, 1);
+    if (FL.e35) { assert.equal(s.fuel, E35.fuel.kasher); assert.equal(s.look35, 'kasher'); assert.equal(s.logs, 0); assert.equal(s.close35, 'fade', 'the work was done: the close'); }
+    else { assert.ok(s.fuel > 59 && s.fuel <= 61, `fuel ${s.fuel}`); assert.equal(s.logs, 2); }
     assert.equal(s.washed33, true);
     for (const g of ['gate20', 'gate23', 'gate21', 'gate22', 'gate25', 'gate26L', 'gate26', 'gate27']) assert.equal(R.E[g](), false, g);
     assert.equal(s.lot, 'lamb'); assert.equal(s.role26, 'menorah');
     await new Promise((r) => setTimeout(r, 1300)); assert.ok(R.hud.st.some((t) => /המשך יום 3/.test(t)), R.hud.st.join(' | '));
     // the same as a day saved a minute ago
-    const F = rig(FLAGS, { save: mid3(Date.now() - 60e3) }); F.E.start(); await F.step(0.3); const f = F.E.state();
+    const F = rig(FL, { save: mid3(Date.now() - 60e3) }); F.E.start(); await F.step(0.3); const f = F.E.state();
     for (const k of ['day', 'resumed', 'level', 'fuel', 'fed', 'logs', 'lot', 'role26', 'tamD', 'gate', 'gate21', 'gate22', 'gate23', 'gate25', 'gate26L', 'gate26', 'gate27', 'open']) assert.deepEqual(s[k], f[k], k);
   });
 }
@@ -248,15 +252,17 @@ test('build 28 (7): every vibrate in the code is navigator.vibrate(…) looked u
 
 // ───────── (8) the full lobby's ממונה's tasks ─────────
 test('build 28 (8): "משימות הממונה — יום N" — the day the player goes on with, its own tasks and marks (it always said "יום 1")', () => {
-  const none = tasksNow33({}); assert.equal(none.day, 1); assert.deepEqual(none.tasks.map((q) => q.id), tasksForDay(1, 1, ['kiyor']).map((q) => q.id));
+  // (build 35: the shipped tasks are the work's — TASKS35, tasksNow33's default; the old pool and its marks are tasksNow33(save, false), tested here)
+  const none = tasksNow33({}, false); assert.equal(none.day, 1); assert.deepEqual(none.tasks.map((q) => q.id), tasksForDay(1, 1, ['kiyor']).map((q) => q.id));
   const t5 = tasksForDay(5, 3, ['kiyor']);
   const mid = { day33state: { day: 5, at: Date.now() - 40 * H, fed: 25, tasks: [[t5[0].id, true], [t5[1].id, false], [t5[2].id, false]] } };
-  const a = tasksNow33(mid); assert.equal(a.day, 5); assert.deepEqual(a.tasks.map((q) => [q.id, q.done]), [[t5[0].id, true], [t5[1].id, false], [t5[2].id, false]]);
-  const night = tasksNow33({ day33state: { day: 5, night: true, fed: 25, tasks: [[t5[0].id, true]] } }); assert.equal(night.day, 6); assert.ok(night.tasks.every((q) => !q.done));
+  const a = tasksNow33(mid, false); assert.equal(a.day, 5); assert.deepEqual(a.tasks.map((q) => [q.id, q.done]), [[t5[0].id, true], [t5[1].id, false], [t5[2].id, false]]);
+  const night = tasksNow33({ day33state: { day: 5, night: true, fed: 25, tasks: [[t5[0].id, true]] } }, false); assert.equal(night.day, 6); assert.ok(night.tasks.every((q) => !q.done));
   assert.deepEqual(night.tasks.map((q) => q.id), tasksForDay(6, 3, ['kiyor']).map((q) => q.id));
   const h = createLobby({ save: mid }).html();
   assert.match(h, /משימות הממונה — יום 5/); assert.ok(!/משימות הממונה — יום 1/.test(h));
-  assert.match(h, new RegExp(`lb-task done"><span>${t5[0].text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</span><span>✓`));
+  // (build 35: the lobby's card shows the work's three — an older save's wood and ramp tasks give way to them, unmarked)
+  assert.ok(!/בקעו|העלו \d+ גזרים/.test(h)); for (const q of tasks35ForDay(5, mid)) assert.ok(h.includes(`lb-task"><span>${q.text}</span>`), q.text);
   assert.ok(TASKS33.length && B17.levels.length);
 });
 

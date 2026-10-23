@@ -181,7 +181,7 @@ export function mountShift(o = {}) {
     try { mods.walk && mods.walk.pace && mods.walk.pace(PACE); const T = mods.twin; if (T) T.pace = { rim: PACE.rim, after: PACE.rimAfter, mul: PACE.sprint, soft: globalThis.__SH_HARDSTICK ? null : STICK, p24: globalThis.__SH_HARDSTICK || globalThis.__SH24_OFF ? null : STICK24 }; } catch (e) { /* */ }
     try { mods.camera && mods.camera.dayView && mods.camera.dayView(VIEW24); } catch (e) { /* */ }
     const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); },
-      camWork: () => (E && E.camWork20 ? E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) /* ── fable32 (build 27) ── */ || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
+      camWork: () => (E && E.camWork20 ? (E.camWork35 && E.camWork35()) /* ── fable32 (build 35) ── (the morning's close: the altar's view, first) ── */ || E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) /* ── fable32 (build 27) ── */ || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
     D.shiftMode(hook);
     try { S() && S().hero && S().hero.setPos(-34, 50, Math.PI); } catch (e) { /* */ }   // (he starts between the ramp's foot and the wood store, facing the altar)
     try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
@@ -196,7 +196,7 @@ export function mountShift(o = {}) {
     try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine /* ── fable32 (build 29) ── (the calm line) ── /fable32 ── */, sub: servedHe30(served30(save)) /* ── fable32 (build 30) ── */, restart: () => runDay(), back: { label: 'חזרה למסך הפתיחה', fn: () => { teardown(); card(); } } /* ── fable32 (build 34) ── (the day had no way back to the opening screen — the journal, the chamber, משחק קצר — but a reload; E.stop() saves the day as it is: "המשך יום N") ── /fable32 ── */, prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
-    hud.intro('יום במקדש', 'בקעו עצים, העלו אותם בכבש — שהאש לא תרד לגחלת', 1100);
+    hud.intro('יום במקדש', 'הכיור, הפיס — וכל העבודה חשובה', 1100);   // ── fable32 (build 35) ── (was the fire loop's: "בקעו עצים, העלו אותם בכבש…" — svivat-avoda-he.md §1: "כל העבודה חשובה") ── /fable32 ──
     setTimeout(() => { if (E === me) { E.start(); emit('dayStart', { run: runs }); } }, 1000);
     globalThis.__SHIFT.mods = mods;
     return true;
@@ -214,7 +214,7 @@ export function mountShift(o = {}) {
     const g = globalThis;
     return { b17: !g.__SH_B17OFF, court18: !g.__SH18_OFF, coins: coins18(), b19: !g.__SH18_OFF && !g.__SH19_OFF, g20: !g.__SH20_OFF,
       d21: !g.__SH20_OFF && !g.__SH21_OFF, m22: !g.__SH20_OFF && !g.__SH21_OFF && !g.__SH22_OFF,
-      p23: !g.__SH20_OFF && !g.__SH21_OFF && !g.__SH22_OFF && !g.__SH23_OFF, p25: !g.__SH25_OFF, p26: !g.__SH26_OFF, p27: !g.__SH27_OFF /* ── fable32 (build 27) ── */ };
+      p23: !g.__SH20_OFF && !g.__SH21_OFF && !g.__SH22_OFF && !g.__SH23_OFF, p25: !g.__SH25_OFF, p26: !g.__SH26_OFF, p27: !g.__SH27_OFF /* ── fable32 (build 27) ── */, e35: !g.__SH35_OFF /* ── fable32 (build 35) ── (the morning measured by the work: day33.js E35) ── */ };
   }
   // ── fable32 (build 31) ── practice any role you have had, from the roles book (hachraot-he.md "עולם ומבנה", 21.10 23:46: "ספר התפקידים —
   // אימון בכל תפקיד בנוי, לשיא"; build 30's טעון תיקון end: "אפשר לנסות שוב בספר התפקידים"). From the lobby only: its roles book (the titles'
@@ -258,7 +258,7 @@ export function mountShift(o = {}) {
     try { mods.walk && mods.walk.pace && mods.walk.pace(PACE); const T = mods.twin; if (T) T.pace = { rim: PACE.rim, after: PACE.rimAfter, mul: PACE.sprint, soft: globalThis.__SH_HARDSTICK ? null : STICK, p24: globalThis.__SH_HARDSTICK || globalThis.__SH24_OFF ? null : STICK24 }; } catch (e) { /* */ }
     try { mods.camera && mods.camera.dayView && mods.camera.dayView(VIEW24); } catch (e) { /* */ }
     const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); },
-      camWork: () => (E && E.camWork20 ? E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
+      camWork: () => (E && E.camWork20 ? (E.camWork35 && E.camWork35()) /* ── fable32 (build 35) ── (the morning's close: the altar's view, first) ── */ || E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
     D.shiftMode(hook);
     try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
     try { if (globalThis.__SH_AUTOWALK === undefined) globalThis.__SH_AUTOWALK = true; } catch (e) { /* */ }
@@ -266,7 +266,7 @@ export function mountShift(o = {}) {
     E = createDay33({ world: o.rig && o.rig.stages, twin: mods.twin, view: mods.view, hud, stations: mods.stations, camera: mods.camera, walk: mods.walk, sfx: o.sfx, save: practiceSave31(save), persist: () => {}, raf: false,
       score: null, games: null, practice: { role, day: resumeDay33(save) || 1, fed: (sd && +sd.fed) || 0, seed: 100 + Math.floor(Math.random() * 9000) }, ...flags33() });
     const me = E;
-    E.on17((ev) => { if (ev.type === 'p31rec' && E === me && merge31(save, ev.id, ev.rec)) { persist(); evlog('practice31_rec', { id: ev.id, rating: ev.rating, q: ev.q }); } });   // (his record of the role — only it — into his save)
+    E.on17((ev) => { if (ev.type === 'p31rec' && E === me && merge31(save, ev.id, ev.rec)) { save.prac35 = resumeDay33(save) || 1; /* ── fable32 (build 35) ── (the task "תרגלת תפקיד בספר": the game day it belongs to) ── */ persist(); evlog('practice31_rec', { id: ev.id, rating: ev.rating, q: ev.q }); } });   // (his record of the role — only it — into his save)
     try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
     if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }
     try { mods.p31 = createPractice31({ E, doc, sfx: o.sfx, save: () => save, onAgain: () => runPractice(role, from), onBack: () => backFrom31(from) }); } catch (e) { console.warn('[shift] p31', e && e.message); }
@@ -305,7 +305,7 @@ export function mountShift(o = {}) {
     try { mods.walk && mods.walk.pace && mods.walk.pace(PACE); const T = mods.twin; if (T) T.pace = { rim: PACE.rim, after: PACE.rimAfter, mul: PACE.sprint, soft: globalThis.__SH_HARDSTICK ? null : STICK, p24: globalThis.__SH_HARDSTICK || globalThis.__SH24_OFF ? null : STICK24 }; } catch (e) { /* */ }
     try { mods.camera && mods.camera.dayView && mods.camera.dayView(VIEW24); } catch (e) { /* */ }
     const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); },
-      camWork: () => (E && E.camWork20 ? E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
+      camWork: () => (E && E.camWork20 ? (E.camWork35 && E.camWork35()) /* ── fable32 (build 35) ── (the morning's close: the altar's view, first) ── */ || E.camWork20() || (E.camWork23 && E.camWork23()) || (E.camWork25 && E.camWork25()) || (E.camWork26 && E.camWork26()) || (E.camWork27 && E.camWork27()) || (E.camWork21 && E.camWork21()) || (E.camWork22 && E.camWork22()) : null) };
     D.shiftMode(hook);
     try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
     try { if (globalThis.__SH_AUTOWALK === undefined) globalThis.__SH_AUTOWALK = true; } catch (e) { /* */ }
@@ -321,6 +321,7 @@ export function mountShift(o = {}) {
       if (ev.type !== 'ch33rec' || E !== me) return;
       const t = clock29(), r = inspect33(save, { dn: ev.dn, t, h: hebDate32(t, where29()), out: ev.out, r: ev.rating, q: ev.q, k: ev.blem ? ev.blem.c : null, g: ev.blem ? ev.blem.r : null });
       if (r && ev.coins > 0) save.perutot = (+save.perutot || 0) + (ev.coins | 0);
+      if (r) save.ch35 = resumeDay33(save) || 1;   // ── fable32 (build 35) ── (the task "בדקת טלה בלשכה": the game day it belongs to) ── /fable32 ──
       persist();
       evlog('lamb33_rec', { out: ev.out, rating: ev.rating, q: ev.q, coins: ev.coins, dn: ev.dn, ok: !!r });
     });

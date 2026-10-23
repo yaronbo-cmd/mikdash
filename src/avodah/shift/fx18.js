@@ -290,7 +290,7 @@ export function createFx18(o = {}) {
     try {
       globalThis.__T.stages.heroXYZ(hp);
     } catch (e) {}
-    C18.pads.forEach((pad, i) => {
+    (c.pads || C18.pads).forEach((pad, i) => {   // ── fable32 (build 35) ── (the court's live pads: the wood loop's two are hidden — E.focus17().c18.pads) ── /fable32 ──
       const y = gy(pad.x, pad.z),
         own = c.own && c.own[i];
       if (Math.hypot(pad.x - hp.x, pad.z - hp.z) < 22 && !F.gate)

@@ -116,7 +116,14 @@
   async function pyre(e) {
     const K = e.m22(); if (!K) return;
     if (K.ph === 'sort' && K.ls === 'on') { if (!A.shotDone.m22) await shot30('m22', null, 300); await react(); const wrong = H() && rnd() < 0.08; const take = wrong ? !K.cur.ok : K.cur.ok; swipe(e.m22swipe, take ? 0.5 : -0.5, 0.02); await sleep(60); return; }   // ── fable32 (build 31) ── (+ the sorting's shot) ── /fable32 ──
-    if (K.ph === 'carry') { await walkTo({ x: -28.6, z: 1.6 } /* M22.stand, on the altar's top */, 2.4); await sleep(100); return; }
+    // ── fable32 (build 35) ── the carry is the ramp run (R19 inside the maaracha role): the work button held — "ייצבו את הסל" (the twin's
+    // held19; a child lets go now and then: the basket sways, and on bare stone a log may drop — the way then leads to it); the way by
+    // flowNext (the stand on the altar's top, or a dropped log) ── /fable32 ──
+    if (K.ph === 'carry') {
+      const f = e.flowNext(), at = f && f.at ? f.at : { x: -28.6, z: 1.6 } /* M22.stand, on the altar's top */, log = f && f.id === 'log19';
+      await walkTo(at, log ? 0.9 : 2.4, 40000, async () => { hold19(e); const k = e.m22(); return !!k && k.ph === 'carry' && (!!(e.flowNext() && e.flowNext().id === 'log19') === log); });
+      hold19(e, true); await sleep(100); return;
+    }
     if (K.ph === 'stack') {
       if (!(K.hold >= 0)) { await sleep(80); return; }
       const band = e.band22(), mid = (band[0] + band[1]) / 2, aim = mid + (H() ? (rnd() - 0.5) * (band[1] - band[0]) * 1.4 : 0);
@@ -126,6 +133,18 @@
     }
     if (K.ph === 'ready') { await react(); e.m22tap(); await sleep(200); return; }
     await sleep(80);
+  }
+  // ── fable32 (build 35) ── the work button held on the ramp while he carries the logs (the twin's held19: the basket steadied); a child's
+  // thumb lifts now and then (A.h19.off: 0.8–1.8 s off), the quick hand holds it all the way ── /fable32 ──
+  function hold19(e, lift) {
+    const btn = padEl('tw-btn'), w = e.work && e.work(hero()), want = !lift && !!(w && w.job === 'sh:run19');
+    const H9 = A.h19 || (A.h19 = { down: false, id: 960, off: 0, n: 0 });
+    if (H() && want && H9.down && rnd() < 0.012) { H9.off = performance.now() + 800 + rnd() * 1000; H9.n++; }
+    const on = want && performance.now() >= H9.off;
+    if (!btn) return;
+    const r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    if (on && !H9.down) { H9.down = ptr(btn, 'pointerdown', x, y, H9.id); A.held19 = (A.held19 | 0) + 1; }
+    else if (!on && H9.down) { ptr(btn, 'pointercancel', x, y, H9.id); H9.down = false; }
   }
   // the beam by the finger on pen25's pad (its frame focuses the spot nearest the beam, E.p25focus — a direct focus would be undone):
   // drag the beam onto the spot (the beam moves AIM_K 1.6 px a finger's px; a child's drag falls short and is corrected), lift, then a
@@ -380,11 +399,26 @@
     try { globalThis.__J32.close(); } catch (err) { /* */ }
     await sleep(300);
   }
+  // ── fable32 (build 35) ── where the morning's time goes (svivat-avoda-he.md §2, §10): the engine's clock sampled every turn and laid on
+  // what the engine is in — his act (act30: from his first step into it to its end — the ramp run and the zorek's walk with the vessel are
+  // in it), the shared work (the lots), the calm after an act (its rating's word), a card read (the journal's, the lamb's), the close, and
+  // the rest — walking and waiting; per morning (A.share[day]) ── /fable32 ──
+  function share35(e) {
+    const st = e.st33, t = st.t, last = A.sh35;
+    A.sh35 = { t, day: st.day };
+    if (!last || last.day !== st.day || !(t > last.t) || t - last.t > 1) return;
+    const dt = t - last.t, k = st.summary ? 'summary' : st.close35 ? 'close' : st.p23 ? 'lot' : e.act30 && e.act30() ? 'act' : e.word30 && e.word30() ? 'calm' : st.paused ? 'card' : 'walk';
+    const S = (A.share[st.day] || (A.share[st.day] = { act: 0, lot: 0, calm: 0, card: 0, close: 0, walk: 0, summary: 0 }));
+    S[k] += dt;
+  }
   async function loop() {
     for (;;) {
       if (!A.on) return;
       await sleep(5);   // (every turn yields to the page: its frames, the engine's tick)
       const e = E(); if (!e || !e.st33) { await sleep(200); continue; }
+      if (A.shot35q && S30().includes(A.shot35q)) { const n = A.shot35q; A.shot35q = null; await shot30(n, null, 1400); continue; }   // ── fable32 (build 35) ── (the close's view: a frame after its cut) ── /fable32 ──
+      if (S30().includes('run') && !A.shotDone.run && e.m22 && e.m22() && e.m22().ph === 'carry' && e.st33.r19 && e.st33.r19.run && hero().z < 30) await shot30('run', null, 0);   // ── fable32 (build 35) ── (the ramp run inside the maaracha role) ── /fable32 ──
+      if (S30().includes('hud') && !A.shotDone.hud && e.gate26L && e.gate26L() && !e.p23() && !e.st33.paused && !(e.word30 && e.word30()) && !(e.j32q && e.j32q())) await shot30('hud', null, 300);   // ── fable32 (build 35) ── (the HUD between two acts: no fire meter, no countdown) ── /fable32 ──
       try {
         // ── fable32 (build 31) ── a practice run (opts.practice): its end card is up — the run is over (the runner takes the card, "עוד פעם" / "חזרה") ── /fable32 ──
         if (A.opts.practice && e.p31 && e.p31() && e.p31().done) { mark('p31end'); A.phase = 'done'; A.on = false; return; }
@@ -429,6 +463,13 @@
       if (k === 'r27' && ev.ph === 'splash') mark('giftNE'); if (k === 'r27' && ev.ph === 'splash2') mark('giftSW');
       if (k === 'rate30') { A.rate.push([t, ev.id, ev.rating, ev.q, ev.coins, E() && E().st33 ? E().st33.day : 0 /* ── fable32 (build 32) ── (the day) ── */]); if (S30().includes('end-' + ev.id)) (A.end30q || (A.end30q = [])).push(ev.id); }   // ── fable32 (build 30) ── (each act's rating) ── /fable32 ──
       if (k === 'p31end') mark('p31end');   // ── fable32 (build 31) ── ── /fable32 ──
+      if (k === 'close35' && ev.ph === 'fade') { mark('close'); A.close35.push([t, E() && E().st33 ? E().st33.day : 0, ev.look]); }   // ── fable32 (build 35) ── (the morning's close; its fire's look) ── /fable32 ──
+      if (k === 'close35' && ev.ph === 'view') A.shot35q = 'close';
+      if (k === 'summary') { mark('sumAt'); A.sums.push([t, ev.day, (ev.ratings || []).map((x) => `${x.id}:${x.rating}`), (ev.court || []).map((x) => x.id), (ev.taskList || []).map((x) => `${x.id}:${x.done ? 1 : 0}`), ev.fire || null, ev.tamids ? ev.tamids.length : null]); }
+      if (k === 'fire35') A.fire35.push([t, ev.look]);
+      if (k === 'top') A.runs.push([t, ev.dur, ev.g, !!ev.m22]);
+      if (k === 'slip') A.slips35++;
+      if (k === 'task') A.tasks35.push([t, ev.id || ev.text]);
       if (k === 'k20' && ev.ph === 'pose') mark('k20pose'); if (k === 'd21' && ev.ph === 'sweep') mark('actIn'); if (k === 'm22' && ev.ph === 'sort') mark('actIn'); if (k === 'p25' && ev.ph === 'scan') mark('actIn'); if ((k === 'r26' || k === 'r27') && ev.ph === 'in') mark('actIn');
     });
   }
@@ -452,12 +493,14 @@
     get on() { return A.on; },
     start(opts = {}) {
       A.opts = opts; seed = (opts.seed | 0) || 1; A.on = true; A.err = null; A.marks = {}; A.ev = []; A.days = 0; A.shotDone = {}; A.shotReq = null; A.highDone = 0; A.rate = []; A.j32 = []; A.j32k = ''; A.j32open = 0; A.skip32 = 0; A.src32 = 0; A.src32s = [];   // ── fable32 (build 32) ── (the journal's cards) ── /fable32 ──
+      A.share = {}; A.sh35 = null; A.close35 = []; A.sums = []; A.fire35 = []; A.runs = []; A.slips35 = 0; A.tasks35 = []; A.held19 = 0; A.h19 = null; A.shot35q = null;   // ── fable32 (build 35) ── ── /fable32 ──
+      clearInterval(A.shInt); A.shInt = setInterval(() => { try { const e = E(); if (e && e.st33) share35(e); } catch (err) { /* */ } }, 100);   // ── fable32 (build 35) ── (the time shares: sampled apart from the bot's own turns, which a walk holds) ── /fable32 ──
       const e = E(); if (e) hook(e);
       A.run = loop();
       return until(() => !A.on || A.marks.roleDone != null, (opts.morningS || 600) * 1000, 250).then(() => table());
     },
-    stop() { A.on = false; try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
-    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
+    stop() { A.on = false; clearInterval(A.shInt); try { if (A.off) A.off(); } catch (e) { /* */ } A.off = null; },
+    state: () => ({ on: A.on, phase: A.phase, t: T(), marks: { ...A.marks }, rate: (A.rate || []).slice(), share: JSON.parse(JSON.stringify(A.share || {})), close35: (A.close35 || []).slice(), sums: (A.sums || []).slice(), fire35: (A.fire35 || []).slice(), runs: (A.runs || []).slice(), slips35: A.slips35 | 0, tasks35: (A.tasks35 || []).slice(), held19: A.held19 | 0, lifts19: A.h19 ? A.h19.n : 0 /* ── fable32 (build 35) ── */, j32: (A.j32 || []).slice(), j32page: A.j32page || null, src32: (A.src32s || []).slice() /* ── fable32 (build 32) ── */, pend30: ((A.end30q && A.end30q.length) | 0) + (A.in30 ? 1 : 0), acts: A.acts, walks: A.walks, stuck: A.stuck, days: A.days, err: A.err, notes: A.notes.slice(-12), lag: A.lag.n ? { mean: +(A.lag.s / A.lag.n).toFixed(3), max: +A.lag.max.toFixed(2), n: A.lag.n } : null, table: table() }),
     events: () => A.ev.slice(),
     get shotReq() { return A.shotReq; },
     shotTaken() { A.shotReq = null; },

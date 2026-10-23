@@ -5,7 +5,9 @@ import { createDay33 } from '../src/avodah/shift/day33.js';
 import { STATIONS } from '../src/avodah/shift/stations.js';
 
 // the flags as shift/index.js passes them (each build needs the one before it): all on unless a test turns one off
-export const FLAGS = { b17: true, court18: true, coins: true, b19: true, g20: true, d21: true, m22: true, p23: true, p25: true, p26: true, p27: true };   // (build 27: p27)
+export const FLAGS = { b17: true, court18: true, coins: true, b19: true, g20: true, d21: true, m22: true, p23: true, p25: true, p26: true, p27: true, e35: true };   // (build 27: p27) (build 35: e35 — the morning measured by the work)
+/** ── build 35 ── the flags as shift/index.js passed them before build 35 (the old fire loop on): the tests of that loop's own mechanics */
+export const FLAGS34 = { ...FLAGS, e35: false };
 const UPTO = ['b17', 'court18', 'b19', 'g20', 'd21', 'm22', 'p23', 'p25', 'p26', 'p27'];
 /** the flags up to a build: upTo('g20') → b17 … g20 on, the later ones off */
 export function upTo(last) {

@@ -35,7 +35,7 @@ import { hereDoor33 } from './chamber33.js';
 
 // ── fable32 (build 32) ── the build's number, ONE constant: the start screen's, the full screen's and the lock's footers (the full one said
 // "בנייה 13" since build 13, the start and the lock "בנייה 29") ── /fable32 ──
-export const GAME_BUILD = 34;   // ── fable32 (build 34) ── ── /fable32 ──
+export const GAME_BUILD = 35;   // ── fable32 (build 35) ── ── /fable32 ──
 export const LOBBY35 = Object.freeze({ x: -25, z: 34, y: 16, az0: Math.PI / 2, swing: 0.45, swingS: 0.22, el: 0.24, d: 16, motes: 14, cycleS: 7 });   // ── recovered (16–26c) ── (x −34 → −25, z 50 → 34, el 0.2 → 0.24, d 15 → 16)
 // ── fable32 (build 29) ── the sky's preset for each part of the real day (main.js TIMES; the night is the readable moonlit one — HANDOFF §3
 // "לילה = דמדומים (לא חושך)" — not the day's dark 'nightd'); the lock's view: the court at rest, no one at work (the hidden kohen's spot is
@@ -184,7 +184,7 @@ export function createLobby(o = {}) {
   const owned = () => (save.day33 && typeof save.day33 === 'object' ? save.day33 : {});
   const canBuy = () => SHOP33.some((it) => !owned()[it.id] && !(it.needs && !owned()[it.needs]) && perutot() >= it.price);
   // ── fable32 (build 28) ── one mode: the day (the pill's "משמרת" — 90 שניות, עולי הרגל בשער — and "סיור" — היום במקדש בלי שעון — are gone) ── /fable32 ──
-  const MODE = { day: ['יום במקדש', 'האש, העצים, הטלאים, הלילה'] };
+  const MODE = { day: ['יום במקדש', 'הכיור, הפיס ועבודת הבוקר'] };   // ── fable32 (build 35) ── (was the fire loop's "האש, העצים, הטלאים, הלילה": the morning is its work — svivat-avoda-he.md §1) ── /fable32 ──
   // ── fable32 (build 28) ── "משחק קצר": the three interludes in one small picker (their own runners, פרוטות and score: play(key) below) ── /fable32 ──
   const GAMES28 = [['tiles', '🃏', 'זיכרון המקדש', 'קלפים מתהפכים'], ['pen', '🐑', 'הוצאת הטלה מהדיר', 'פאזל הזזה'], ['m3', '💎', 'משחק האוצר', 'שלושה בשורה']];
   // ── fable32 (build 30) ── the player's titles (the owner, 22.10 09:19: "תארים לפי מיומנות בתפקיד ומניין בקרים"; Phase A's builder titles
@@ -225,7 +225,7 @@ export function createLobby(o = {}) {
       ${nowLineHTML29(tn29, st.soft)}
       <button class="lb-home" type="button" data-lb="home">☰ מסך הבית</button>
       <button class="lb-full" type="button" data-lb="full">⛶ מסך מלא</button>
-      <div class="lb-bottom">${hereDoor29()}<button class="lb-play" type="button" data-lb="play"><small class="lb-k">נקודת המוצא שלי</small>${esc(playLabel)}<small>${cont ? `המערכה מחכה — ${MODE.day[1]}` : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
+      <div class="lb-bottom">${hereDoor29()}<button class="lb-play" type="button" data-lb="play"><small class="lb-k">נקודת המוצא שלי</small>${esc(playLabel)}<small>${cont ? `הבוקר מחכה — ${MODE.day[1]}` /* ── fable32 (build 35) ── (was "המערכה מחכה") ── */ : `${MODE.day[0]} — ${MODE.day[1]}`}</small></button></div>
       ${side28(true)}${st.games ? picker28() : ''}${st.here ? hereHTML29(tn29, where(), now29(), { door: on.chamber ? door33() : '' } /* ── fable32 (build 33) ── (לשכת הטלאים, open) ── /fable32 ── */) : ''}
       <div class="lb-draft">טיוטה — להמחשה · בנייה ${GAME_BUILD}</div>` : `
       <div class="lb-top">🏛️ בית המקדש השני <span style="opacity:.6">·</span> ${sv ? `<span class="lb-star">${esc(sv)}</span> <span style="opacity:.6">·</span> ` : ''}🪙 <span data-lb="perutot">${perutot()}</span> פרוטות <span style="opacity:.6">·</span> 📜 ${bd}/${BADGES33.length}</div>

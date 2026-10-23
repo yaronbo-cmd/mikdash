@@ -243,6 +243,21 @@ export function buildLife(scene, tex) {
   const torchPos = [[-95, 27, -78.8], [-38, 27, -78.8], [-160, 27, 78.8], [-118, 27, 78.8], [-38, 27, 78.8], [10.9, 34.5, -6], [10.9, 34.5, 6], [150.9, 27, -6], [150.9, 27, 6], [-160, 25, -83.8], [285.9, 21, -7], [285.9, 21, 7]];
   const torches = new Emitter(torchPos.length * 3, fm, (e, i) => { const P = torchPos[Math.floor(i / 3)]; e.pos.set([P[0] + (r() - 0.5) * 0.4, P[1], P[2] + (r() - 0.5) * 0.4], i * 3); e.life[i] = 0.5 + r() * 0.4; e.seed[i] = 0.7 + r() * 0.5; }, flameStep(2.4, 2.4));
   for (const e of [smoke, ...flames]) scene.add(e.points);
+  // ── fable32 (build 35) ── the morning's fire tells its maaracha (the day's __FIRE35 = { k, sp, clean }; svivat-avoda-he.md §3: "מהודר = אש
+  // גבוהה ונקייה. אין עונש — רק גאווה"): sparks rise from a מהודר pyre and its smoke goes white and thin ("עמוד עשן לבן, זך וישר",
+  // maaracha-he.md 4ב); its height is __FIRE33's. Without the global (Phase A, the old day) nothing changes ── /fable32 ──
+  const spk35 = { k: 0, cl: 0 }, smokeClean = new THREE.Color('#FBFAF6');
+  const sparks35 = new Emitter(30, particleMat(tex.flame, new THREE.Color(3.6, 2.3, 0.9), true), spawnAt([FIRE[0], FIRE[1] + 1.4, FIRE[2]], 3.8, 1.5), (e, i, dt) => {
+    const k = e.age[i] / e.life[i];
+    e.pos[i * 3 + 1] += dt * (6.5 + 7 * e.seed[i]);
+    e.pos[i * 3] += dt * Math.sin(e.age[i] * 6 + e.seed[i] * 9) * 1.1;
+    e.pos[i * 3 + 2] += dt * Math.cos(e.age[i] * 5 + e.seed[i] * 7) * 0.8;
+    e.size[i] = 0.6 * e.seed[i] * (1 - 0.6 * k) * spk35.k;
+    e.alpha[i] = (k < 0.12 ? k / 0.12 : 1 - (k - 0.12) / 0.88) * spk35.k;
+  });
+  sparks35.points.visible = false;
+  scene.add(sparks35.points);
+  // ── /fable32 ──
   const nightG = new THREE.Group(); nightG.add(menFl.points, torches.points); nightG.visible = false; scene.add(nightG);
 
   const fireLight = new THREE.PointLight('#FF8A3A', 120, 0, 2); fireLight.position.set(FIRE[0], FIRE[1] + 5, FIRE[2]);
@@ -275,7 +290,7 @@ export function buildLife(scene, tex) {
   const festSync = () => { festG.visible = festN > 0 && (S.night || festOn); glow.points.visible = festOn; };
   // ── /world12 ──
 
-  const particles = [smoke, ...flames, menFl, torches];
+  const particles = [smoke, ...flames, menFl, torches, sparks35];   // ── fable32 (build 35) ── (+ the מהודר pyre's sparks) ── /fable32 ──
   const setScale = (s) => [...particles, festFl, glow].forEach((e) => { e.points.material.uniforms.scale.value = s; });   // (world12: + the lamps, the glow)
 
   let T = 0;
@@ -305,6 +320,11 @@ export function buildLife(scene, tex) {
       fireLv.sm = (0.45 + 0.55 * Math.min(1.4, kf)) * (Number.isFinite(globalThis.__FIRE33) ? 1 + 0.5 * Math.max(0, Math.min(1, (kf - 0.85) / 0.4)) : 1);
       const lo = Number.isFinite(globalThis.__FIRELOW33) ? Math.max(0, Math.min(1, globalThis.__FIRELOW33)) : 0;
       if (lo > 0 || fireLv.lo > 0) { fireLv.h *= 1 - 0.5 * lo; fireLv.s *= 1 - 0.3 * lo; fireLv.a *= 1 - 0.4 * lo; fireLv.sm = fireLv.sm * (1 - lo) + 1.35 * lo; smokeCol.copy(smokeBase).lerp(smokeLow, 0.75 * lo); fireLv.lo = lo; }
+      // ── fable32 (build 35) ── (the מהודר pyre: its sparks, its smoke white and thin; eased in and out) ── /fable32 ──
+      const f35 = globalThis.__FIRE35, sp = f35 && Number.isFinite(f35.sp) ? Math.max(0, Math.min(1, f35.sp)) : 0, cl = f35 && f35.clean ? 1 : 0, ek = Math.min(1, dt * 1.2);
+      spk35.k += (sp - spk35.k) * ek; if (spk35.k < 0.005 && !sp) spk35.k = 0;
+      sparks35.points.visible = spk35.k > 0;
+      if (cl || spk35.cl > 0) { spk35.cl += (cl - spk35.cl) * ek; if (spk35.cl < 0.005 && !cl) spk35.cl = 0; fireLv.sm *= 1 - 0.5 * spk35.cl; if (!(lo > 0)) smokeCol.copy(smokeBase).lerp(smokeClean, 0.35 * spk35.cl); }
     }
     // walkers
     const nW = walkers.count;

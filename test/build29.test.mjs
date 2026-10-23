@@ -11,7 +11,7 @@ import { createWatch29, saveDay29, lockHTML29, hereHTML29, nowLineHTML29, softDa
 import { createLobby, LOBBY29 } from '../src/avodah/shift/lobby35.js';
 import { civilDay, sunOnDay, sunTimes, templeSchedule, nowInTemple, TEMPLE_MOUNT } from '../src/calendar.js';
 import { skyOf } from '../src/avodah/schedule.js';
-import { rig, FLAGS } from './rig33.mjs';
+import { rig, FLAGS, FLAGS34 } from './rig33.mjs';
 
 const read = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 const MIN = 60e3, H = 3600e3;
@@ -183,8 +183,12 @@ test('build 29 (soft): the calm line in the last 15 minutes before the lock — 
 
 // ───────── the lock mid-day: saved, stopped, the lock screen; resumed after ─────────
 const mid3 = () => ({ day33state: { day: 3, at: Date.now() - 3 * H, washed: true, fuel: 61, fed: 25, logs: 2, left: 120, perutot: 9, p23day: 3, lot: 'lamb', d21day: 3, p25day: 3, p26day: 3, role26: 'menorah', g26day: 3, r26day: 3, tamD: 'ok', lambs: [true, false, false, false, false, false], tasks: [] } });
-test('build 29 (B): the lock mid-day — the watch saves the day as it is (day33\'s saveState), stops it, shows the lock screen; at its end the lobby; the day resumes ("המשך יום 3")', async () => {
-  const save = mid3(), R = rig(FLAGS, { save }); R.E.start(); await R.step(8);
+// (build 35: in the morning of the work a morning whose work is done goes to its close and its summary at once — mid3's day 3 is "mid-day"
+// only in the old loop (FLAGS34); in the morning of the work the lock comes mid-morning: the second lot drawn, his role not yet done — mid3b)
+const mid3b = () => { const s = mid3(); delete s.day33state.r26day; delete s.day33state.g26day; return s; };
+for (const [FL, mk, tag] of [[FLAGS34, mid3, ''], [FLAGS, mid3b, ' (build 35: mid-morning)']])
+test(`build 29 (B): the lock mid-day — the watch saves the day as it is (day33's saveState), stops it, shows the lock screen; at its end the lobby; the day resumes ("המשך יום 3")${tag}`, async () => {
+  const save = mk(), R = rig(FL, { save }); R.E.start(); await R.step(8);
   const s0 = at('2026-10-23T12:00:00+03:00');
   let t = s0.locksAt - 3 * MIN, stopped = 0, shown = null, hidden = 0, reopened = 0, persisted = 0; const softs = [], logs = [];
   const W = createWatch29({ now: () => t, where: () => JLM, active: () => true, E: () => R.E, persist: () => persisted++, stop: () => { stopped++; R.E.stop(); }, show: (s) => { shown = s; }, hide: () => hidden++, reopen: () => reopened++, soft: (l) => softs.push(l), log: (k, d) => logs.push([k, d]) });
@@ -198,7 +202,7 @@ test('build 29 (B): the lock mid-day — the watch saves the day as it is (day33
   t = s0.opensAt + 60e3; W.check(); assert.equal(W.locked, false); assert.equal(hidden, 1); assert.equal(reopened, 1);
   // the lobby after the lock: "המשך יום 3"; the day resumes as it was
   assert.match(createLobby({ save, start: true, now: () => t, where: () => JLM }).html(), /נקודת המוצא שלי<\/small>המשך יום 3/);
-  const R2 = rig(FLAGS, { save }); R2.E.start(); await R2.step(0.3);
+  const R2 = rig(FL, { save }); R2.E.start(); await R2.step(0.3);
   const s = R2.E.state(); assert.equal(s.day, 3); assert.equal(s.resumed, 3); assert.equal(s.lot, 'lamb'); assert.equal(s.role26, 'menorah'); assert.equal(s.washed33, true);
   assert.equal(saveDay29(null), false); assert.equal(saveDay29({}), false);
 });

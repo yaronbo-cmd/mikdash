@@ -133,6 +133,13 @@ body.f17-on .s29-st.cue{animation:s29cue 1.4s ease-in-out infinite alternate;box
 .f17-sum button.src30{min-height:44px;font:800 16px/1 Heebo,system-ui,sans-serif;margin:0 0 8px;background:#FFECBE1F;color:#FFF6DA;border:2px solid #E2B65A;box-shadow:none;animation:none}
 .f17-sum .r31{display:flex;gap:8px}.f17-sum .r31 button.src30{flex:1;min-width:0;padding:0 6px;font-size:15px}   /* ── fable32 (build 31) ── (the sources and the roles book side by side) ── */
 .f17-sum li b.mehudar{color:#FFD66E}.f17-sum li b.kasher{color:#FFF6DA}.f17-sum li b.tikkun{color:#E6D9BE}.f17-sum .sv{font:800 13px/1.2 Heebo,system-ui,sans-serif;opacity:.85;margin:0 0 2px}
+/* ── fable32 (build 35) ── the morning of the work: no fire ring, no tamid line; the morning's close — a calm card over the altar's view (no
+   sparks, no stamp: "הבוקר הושלם" and its source line); the summary's rows of the work — the court's acts plainly, the ממונה's three ── */
+.f17-top.f35 .f17-fire{display:none}
+.f35-close{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:33;max-width:calc(100vw - 32px);box-sizing:border-box;padding:8px 20px 9px;border-radius:18px;background:rgba(28,20,10,.72);border:2px solid rgba(255,214,110,.7);color:#FFF6DA;text-align:center;direction:rtl;font-family:"Heebo",system-ui,sans-serif;pointer-events:none;opacity:0;transition:opacity .8s ease}
+.f35-close.on{opacity:1}.f35-close b{display:block;font:900 24px/1.15 "Heebo",system-ui,sans-serif;color:#FFE6A0;white-space:nowrap}.f35-close small{display:block;margin-top:3px;font:700 13px/1.25 "Heebo",system-ui,sans-serif;opacity:.9}
+body.f35-closing .f17-top,body.f35-closing .f17-bar,body.f35-closing .s29-st,body.f35-closing .r30,body.f35-closing .tw-pad,body.f35-closing .tw-zone{visibility:hidden!important}
+.f17-sum li.ct35{grid-column:1/-1}.f17-sum li.ct35 span{opacity:.92}.f17-sum li.tk35{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px}.f17-sum li.tk35 i{font-style:normal;white-space:nowrap}.f17-sum li.tk35 i.ok{color:#FFE6A0}.f17-sum li.tk35 i.no{opacity:.6}
 `;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const mmss = (s) => {
@@ -497,10 +504,14 @@ export function createFocus17(o = {}) {
         stat.dings++;
         sfx('ding17');
         buzz(40);
-      } else if (ev.type === 'summary') showSummary(ev);
+      } else if (ev.type === 'close35') close35(ev);   // ── fable32 (build 35) ── (the morning's close) ── /fable32 ──
+      else if (ev.type === 'summary') {
+        close35(null);
+        showSummary(ev);
+      }
       else if (ev.type === 'day') {
         closeSummary();
-        setTimeout(() => stamp(`יום ${ev.day}`, 'בוקר בעזרה — האש מחכה לעצים'), 300);
+        setTimeout(() => stamp(`יום ${ev.day}`, E.e35 ? 'בוקר בעזרה — קודם לכיור' : 'בוקר בעזרה — האש מחכה לעצים'), 300);   // ── fable32 (build 35) ── (no fire waiting for wood) ── /fable32 ──
       }
     },
     offEv = E.on17(onEv);
@@ -521,10 +532,18 @@ export function createFocus17(o = {}) {
       tamids = (sum.tamids || []).map((tm) => `<li>תמיד של ${esc(tm.when)}: <b>${tm.ok ? 'בזמן ✓' : 'הוקרב'}</b></li>`).join(''),
       badges = (sum.badges || []).map((b) => `<li>📜 ${esc(b.text)}: <b>+${b.pay | 0}</b></li>`).join(''),
       sv = servedHe30(sum.served | 0);
+    // ── fable32 (build 35) ── the morning of the work: "הבוקר הושלם" — his acts with their ratings, the court's acts named plainly (no
+    // rating), the ממונה's three by name, the coins; no tamid rows (no clock, no "late"; the evening is the opening screen's), no logs
+    // fed, no ramp time ── /fable32 ──
+    const e35 = !!sum.e35,
+      court = e35 && (sum.court || []).length ? `<li class="ct35">כהני העזרה: <span>${(sum.court || []).map((x) => esc(x.he)).join(' · ')}</span></li>` : '',
+      tk = e35 && (sum.taskList || []).length ? `<li class="tk35">משימות הממונה: ${(sum.taskList || []).map((q) => `<i class="${q.done ? 'ok' : 'no'}">${q.done ? '✓' : '○'} ${esc(String(q.text || '').replace(/^\S+\s/, ''))}</i>`).join('')}</li>` : '',
+      rows = e35 ? `${acts}${court}${tk}` : `${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>`,
+      head = e35 ? `<h2>🌅 הבוקר הושלם</h2><div class="sv">${esc(`יום ${sum.day | 0}${sv ? ` · ${sv}` : ''}`)}</div>` : `<h2>יום ${sum.day | 0} הסתיים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}`;
     summary = mk(
       'f17-sum',
-      `<div class="c" role="dialog" aria-label="סוף היום"><h2>יום ${sum.day | 0} הסתיים</h2>${sv ? `<div class="sv">${esc(sv)}</div>` : ''}<div class="rt" aria-label="הדירוגים של היום">${chips}</div>
-      <ul>${acts}${tamids}<li>גזרים על המערכה: <b>${sum.logs | 0}</b></li><li>העלייה המהירה בכבש: <b>${sum.rampBest ? `${sum.rampBest} שנ׳` : '—'}</b></li><li>משימות הממונה: <b>${(sum.tasks || [0, 0])[0]}/${(sum.tasks || [0, 0])[1]}</b></li>${(extra = sum.c18) ? `<li>לקופת המקדש היום: <b>+${extra.earn} 🪙</b></li><li>בקופת המקדש: <b>${extra.total} 🪙</b></li>${extra.next ? `<li>${extra.next.icon} ${extra.next.he}: <b>${extra.next.have}/${extra.next.price} 🪙</b></li>` : ''}` : `<li>פרוטות היום: <b>+${sum.perutot | 0}</b></li>`}${badges}</ul>
+      `<div class="c" role="dialog" aria-label="${e35 ? 'הבוקר הושלם' : 'סוף היום'}">${head}<div class="rt" aria-label="הדירוגים של היום">${chips}</div>
+      <ul>${rows}${(extra = sum.c18) ? `<li>לקופת המקדש היום: <b>+${extra.earn} 🪙</b></li><li>בקופת המקדש: <b>${extra.total} 🪙</b></li>${extra.next ? `<li>${extra.next.icon} ${extra.next.he}: <b>${extra.next.have}/${extra.next.price} 🪙</b></li>` : ''}` : `<li>פרוטות היום: <b>+${sum.perutot | 0}</b></li>`}${badges}</ul>
       <div class="pr">${esc(sum.praise || '')}</div><div class="r31">${(sum.ratings || []).length && (E.book31 || r30) /* ── fable32 (build 32) ── (the journal's משניות, today's) ── /fable32 ── */ ? '<button type="button" class="src30" data-f17="src">📜 המקורות של היום</button>' : ''}${E.book31 ? '<button type="button" class="src30" data-f17="book">🎭 ספר התפקידים</button>' : '' /* ── fable32 (build 31) ── (the roles book, read-only mid-day) ── /fable32 ── */}</div><button type="button" data-f17="next">המשך ליום הבא</button><div class="dr">טיוטה — להמחשה</div></div>`,
     );
     // ── fable32 (build 31) ── the roles book from the day's summary: read-only (no practice mid-day — its doors are the lobby's) ── /fable32 ──
@@ -582,6 +601,46 @@ export function createFocus17(o = {}) {
       }
     });
     next.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+  }
+  // ── fable32 (build 35) ── the morning's close (day33's close35): under the dark — "הבוקר הושלם", day33's fade — the scene changes; then
+  // the altar's view and a calm card (the words and the fire's source line: no sparks, no stamp); the top bar, the bar and the chips step
+  // aside, and the stick rests — the hands' work is done ── /fable32 ──
+  let closeEl = null;
+  function close35(ev) {
+    let tw = null;
+    try {
+      tw = globalThis.__SHIFT && globalThis.__SHIFT.mods && globalThis.__SHIFT.mods.twin;
+    } catch (e) {}
+    if (!ev) {
+      if (closeEl) {
+        try {
+          closeEl.remove();
+        } catch (e) {}
+        closeEl = null;
+      }
+      doc.body.classList.remove('f35-closing');
+      if (stat.close35)
+        try {
+          if (tw && tw.noStick) tw.noStick(globalThis.__SH_NOSTICK === true);
+        } catch (e) {}
+      stat.close35 = 0;
+      return;
+    }
+    if (!stat.close35) {
+      stat.close35 = 1;
+      stat.closes = (stat.closes | 0) + 1;
+      try {
+        if (tw && tw.noStick) tw.noStick(true);
+      } catch (e) {}
+    }
+    doc.body.classList.add('f35-closing');
+    if (ev.ph === 'view' && !closeEl) {
+      const src = String(ev.src || ''), cut = src.lastIndexOf(' — ');   // (the source's name and "טיוטה" kept together on one line)
+      closeEl = mk('f35-close', `<b>🌅 הבוקר הושלם</b><small>${cut > 0 ? `${esc(src.slice(0, cut + 3))}<span style="white-space:nowrap">${esc(src.slice(cut + 3))}</span>` : esc(src)}</small>`);
+      closeEl.setAttribute('role', 'status');
+      closeEl.offsetWidth;
+      closeEl.classList.add('on');
+    }
   }
   function closeSummary() {
     if (summary) {
@@ -688,7 +747,11 @@ export function createFocus17(o = {}) {
       fire.setAttribute('aria-label', `אש המערכה ${v} מתוך 100`);
       if (up) fire.classList.contains('up');
     }
-    const cls = F.gate ? '' : fuelClass(fuel);
+    if (top.__e35 !== !!F.e35) {   // ── fable32 (build 35) ── (the morning of the work: no fire ring, no alarm — the fire is in the world) ── /fable32 ──
+      top.__e35 = !!F.e35;
+      top.classList.toggle('f35', !!F.e35);
+    }
+    const cls = F.gate || F.e35 ? '' : fuelClass(fuel);
     if (cls !== fireCls) {
       const loud = (cls === 'warn' && fireCls === '') || cls === 'crit';
       fire.classList.toggle('warn', cls === 'warn');
@@ -917,6 +980,7 @@ export function createFocus17(o = {}) {
           if (offEv) offEv();
         } catch (e) {}
         closeSummary();
+        close35(null);   // ── fable32 (build 35) ── ── /fable32 ──
         for (const el of [top, bar, banner, stampEl])
           try {
             el.remove();

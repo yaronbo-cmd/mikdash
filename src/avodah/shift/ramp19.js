@@ -185,7 +185,10 @@ export function createRamp19(o) {
           ghost.rotation.y = Math.atan2(gp[j + 2] - gp[j], gp[j + 3] - gp[j + 1] || -0.001);
         }
         const myBest = E.gh19();
-        if (myBest && Math.hypot(hp.x + 34, hp.z - 44) < 30) k.label(`שיא: ${myBest.t} ש׳`, L(-34), L(45.5), L(18.6), 0.36, TAG);
+        // ── fable32 (build 35) ── (the run's record at the ramp's foot: in the morning of the work only while the maaracha's logs go up — the run
+        // is the role's, not a trip of its own) ── /fable32 ──
+        const run35 = !E.e35 || !!(E.m22 && E.m22() && E.m22().ph === 'carry');
+        if (myBest && run35 && Math.hypot(hp.x + 34, hp.z - 44) < 30) k.label(`שיא: ${myBest.t} ש׳`, L(-34), L(45.5), L(18.6), 0.36, TAG);
         for (let i = words.length - 1; i >= 0; i--) {
           const w = words[i];
           if (now > w[1]) {

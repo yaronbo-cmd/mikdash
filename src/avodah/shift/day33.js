@@ -691,13 +691,79 @@ export const tasksForDay = (day, level = 1, skip = null) => {
  *  it always said "יום 1"): the saved day's own three with their marks, or — a day saved at night, or none — the next day's three, as the
  *  engine will set them (tasksForDay by the fire's level, the laver's task skipped as in the shipped day: build 20) → { day, tasks: [{ id, text,
  *  done }] } ── /fable32 ── */
-export function tasksNow33(save) {
+export function tasksNow33(save, on35 = true) {
   const s = savedDay33(save),
     day = s ? resumeDay33(save) : 1,
     level = s ? levelIn(+s.fed || 0, B17.levels) : 1,
     marks = s && !s.night && Array.isArray(s.tasks) ? new Map(s.tasks.filter((x) => Array.isArray(x)).map(([id, done]) => [id, !!done])) : null;
+  // ── fable32 (build 35) ── the morning's tasks are the work's (TASKS35): the saved day's own three with their marks, or the day's three
+  // as the engine will set them; "תרגלת תפקיד בספר" and "בדקת טלה בלשכה" are marked the moment they are done from the opening screen ── /fable32 ──
+  if (on35) {
+    const ids = marks ? [...marks.keys()] : [],
+      list = ids.length && ids.every((id) => TASKS35.some((q) => q.id === id)) ? ids.map((id) => TASKS35.find((q) => q.id === id)) : tasks35ForDay(day, save);
+    return { day, tasks: list.map((q) => ({ id: q.id, text: q.text, goal: 1, done: !!(marks && marks.get(q.id)) || lobby35done(q.id, save, day) })) };
+  }
   return { day, tasks: tasksForDay(day, level, ['kiyor']).map((q) => ({ id: q.id, text: q.text, goal: q.goal, done: !!(marks && marks.get(q.id)) })) };
 }
+/** ── fable32 (build 35) ── E1 of the work environment (docs/specs/svivat-avoda-he.md §3 and §9 item 1; the owner, 22.10 22:02: "האש לא
+ *  במרכז. כל העבודה חשובה."): the fire goes to the background and the morning is measured by the work, not by a clock. With o.e35 (shift/
+ *  index.js flags33: on unless __SH35_OFF; it needs b17) the morning has no fuel meter, no drain, no "האש דועכת" and no alarm, no 180/60
+ *  day and night, no tamid countdown and no lateness, no feeding loop (the wood, the ramp's trips, the salt as chores, the stores, the
+ *  old pen, the song, the merchant, the lost lamb); the code of that loop stays behind the flag, with no door to it. The fire always burns
+ *  — "אש תמיד תוקד על המזבח לא תכבה" (ויקרא ו, ו) — and its look tells the morning: the maaracha's rating that morning (his, or the court's
+ *  when the court did it — כשר) sets the flame's height and sparks: מהודר high and clean, כשר normal (and טעון תיקון — fixed by an elder
+ *  kohen — normal too: never a penalty, never a meter). Before the morning's lot it is the night's fire; from the lot to the new pyre's
+ *  lighting, the coals the ashes' role sweeps (trumat-hadeshen-he.md, maaracha-he.md — kept). The ramp run lives in the maaracha role: the
+ *  logs carried up once, the stick's depth the speed, the right thumb's hold steadying the basket (R19). The morning ends when its built
+ *  work is done — a calm close ("הבוקר הושלם": the court round the altar, the fire as it burns) and then the summary of the work. The
+ *  ממונה's three tasks a day are about the work itself (TASKS35). ── /fable32 ── */
+export const E35 = Object.freeze({
+  close: 4.6,   // the close: 0.6 s to dark (the scene changes there), the altar's view, the calm line — then the summary
+  fade: 0.6,
+  look: Object.freeze({ night: 0.85, ember: 0.31, kasher: 1, mehudar: 1.45 }),   // __FIRE33 (life.js: 0.25 … 1.6)
+  fuel: Object.freeze({ night: 70, ember: 8, kasher: 80, mehudar: 100 }),   // the same on the old 0…100 scale (fx18's crowd and choir; the pyre's woodpile)
+  spark: Object.freeze({ kasher: 0, mehudar: 1 }),   // __FIRE35.sp: the sparks; .clean: the smoke white and thin
+  cam: Object.freeze({ p: Object.freeze([-6, 47, 36]), t: Object.freeze([-33, 22.5, -2]), e: 40 }),   // the altar from the south-east, high: its fire, the ramp, the court
+  src: 'אש תמיד תוקד על המזבח לא תכבה — ויקרא ו, ו · טיוטה',
+  taskEvery: 0.5,
+});
+/** ── fable32 (build 35) ── the ממונה's tasks (שקלים ה, א: the officers — המחשה): three a day, about the work itself — never a count of logs
+ *  or salt; each pays DAY33.taskReward as before; none is lost or punished. "תפקיד שלא היה לך עד היום" only while the lots still have a role
+ *  he never had; "תרגלת תפקיד בספר" once he has a role to practise; "בדקת טלה בלשכה" where the lamb chamber is built ── */
+export const TASKS35 = Object.freeze([
+  Object.freeze({ id: 'kiyorH', text: '💧 מהודר בכיור' }),
+  Object.freeze({ id: 'prac', text: '🎭 תרגלת תפקיד בספר' }),
+  Object.freeze({ id: 'roleH', text: '⭐ מהודר בתפקיד שלך' }),
+  Object.freeze({ id: 'ch33', text: '🐑 בדקת טלה בלשכה' }),
+  Object.freeze({ id: 'twoH', text: '✨ שתי עבודות מהודרות' }),
+  Object.freeze({ id: 'fresh', text: '🆕 תפקיד שלא היה לך עד היום' }),
+]);
+/** the roles the lots can give (the built ones) */
+const lotRoles35 = (on = {}) => [
+  ...POOL23.filter((x) => x.built && (on.p25 !== false || x.id !== 'lamb')).map((x) => x.id),
+  ...(on.p26 !== false ? POOL26.filter((x) => x.built && (on.p27 !== false || !blood27(x.id))).map((x) => x.id) : []),
+];
+/** what each task needs to be offered (the save as the day begins) */
+function avail35(id, save, on = {}) {
+  const rec = (save && save.roles23) || {};
+  if (id === 'fresh') return lotRoles35(on).some((x) => !timesOf(rec, x));
+  if (id === 'prac') return ['kiyor', ...lotRoles35(on)].some((x) => timesOf(rec, x) > 0);
+  if (id === 'ch33') return on.p25 !== false;
+  return true;
+}
+/** the day's three (by the day's number, two places on each day — so no day has both of the opening screen's two; a task that cannot be
+ *  offered gives its place to the next) */
+export function tasks35ForDay(day, save, on = {}) {
+  const N = TASKS35.length,
+    out = [];
+  for (let i = 0; out.length < 3 && i < N * 2; i++) {
+    const q = TASKS35[((Math.max(1, day | 0) - 1) * 2 + i) % N];
+    if (!out.includes(q) && avail35(q.id, save, on)) out.push(q);
+  }
+  return out;
+}
+/** the two done outside the morning (the opening screen's doors): marked with the game day they belong to (shift/index.js) */
+const lobby35done = (id, save, day) => (id === 'prac' ? (save && save.prac35) === day : id === 'ch33' ? (save && save.ch35) === day : false);
 const GAME_HE = { tiles: 'זיכרון המקדש', pen: 'הוצאת הטלה מהדיר', m3: 'משחק האוצר' };   // ── fable32 (build 14) ── ── /fable32 ──
 const GAME_ICON = { tiles: '🃏', pen: '🐑', m3: '💎' };
 const GAME_SUB = { tiles: 'קלפים מתהפכים', pen: 'פאזל הזזה', m3: 'שלושה בשורה' };
@@ -758,6 +824,7 @@ export function createDay33(o = {}) {
     p25 = p23 && !!o.p25,
     p26 = p23 && !!o.p26,
     p27 = p26 && !!o.p27,   // ── fable32 (build 27) ── ── /fable32 ──
+    e35 = b17 && !!o.e35,   // ── fable32 (build 35) ── the morning measured by the work (E35; svivat-avoda-he.md §3) ── /fable32 ──
     // ── fable32 (build 31) ── a practice run (PRAC31): its role, its seed (the lamb's spots, the menorah's lamp gone out), the day and the
     // fire's level he goes on with (the court as he left it); only when the role's own build is on ── /fable32 ──
     prac = (() => {
@@ -916,6 +983,9 @@ export function createDay33(o = {}) {
     'r26r',
     'men5t',
     'r30day',   // ── fable32 (build 30) ── (the day's ratings, for its summary) ── /fable32 ──
+    'fire35',   // ── fable32 (build 35) ── (the morning's maaracha: the fire's look — 'mehudar' | 'kasher' — and its day) ── /fable32 ──
+    'f35day',
+    'fresh35',
   ];
   Object.assign(st, {
     tamD: 'wait',
@@ -933,6 +1003,7 @@ export function createDay33(o = {}) {
   });
   Object.assign(st, { earnD: 0, ndDay: 0, ch18: { n: 0, t: 0, c: [], k: 0, walk: null }, pad18: null, buys18: [] });
   Object.assign(st, { r30day: [], end30: null, say30: null });   // ── fable32 (build 30) ── the day's ratings; the end's word; a word of feedback ── /fable32 ──
+  Object.assign(st, { fire35: null, f35day: 0, fresh35: 0, close35: null, task35T: 0 });   // ── fable32 (build 35) ── the fire's look, a first role's day, the close ── /fable32 ──
   if (b19) st.r19 = { g: [], gd: 0, n: 0, cov: 0, sd: 0, bag: 0, bm: 0, bags: 0, fl: [], rn: 0, slips: 0, picks: 0 };
   if (b17) st.fuel = B17.fuel0;
   st.resumed = 0;
@@ -958,6 +1029,11 @@ export function createDay33(o = {}) {
         st.r30day = [];   // ── fable32 (build 30) ── ── /fable32 ──
       }
       if (!Array.isArray(st.r30day)) st.r30day = [];
+      // ── fable32 (build 35) ── an older save's day goes on in the morning of the work: what it held of the old loop — logs in the basket
+      // (the pyre's carry starts again with its act), the tamids' states, the day's clock, its "late" — is let go; its saved fuel is not
+      // the fire (the fire's look is the morning's own: fire35) ── /fable32 ──
+      if (e35) Object.assign(st, { logs: 0, basketQ: [], m22c: 0, tamD: 'wait', tamE: 'wait', lateDay: 0, left: DAY33.dayS, laidDay: 0 });
+      if (e35 && st.f35day !== st.day) st.fire35 = null;
       // ── fable32 (build 34) ── the saved moments are the old clock's — st.t starts again at 0 — so the gate's time and the five lamps'
       // (the zorek's first gift waits for them: "הטבת חמש נרות קודם לדם התמיד") are past: a day resumed (a reload, "מהתחלה", the next
       // visit) after the gate opened held the zorek at "מרסו — חמש נרות קודם" until the new clock reached the old one — minutes (the naive kid's
@@ -996,10 +1072,12 @@ export function createDay33(o = {}) {
     if (r !== 'lamb' && r !== 'kiyor' && p25 && st.lambs[0]) st.lambs[0].ok = true;   // (the court's lamb, checked: lambIn)
     if (prac.ch33 && prac.ch33.done) st.p25day = d;   // ── fable32 (build 33) ── (today's lamb already inspected: the chamber shows its stock, no lamb comes) ── /fable32 ──
     if (prac.ch33) st.fuel = 80;   // ── fable32 (build 33) ── (the chamber is not the altar: its fire is not his there — no warning, no alarm; its meter is hidden) ── /fable32 ──
+    if (e35) Object.assign(st, { fire35: second || prac.ch33 ? 'kasher' : null, f35day: second || prac.ch33 ? d : 0 });   // ── fable32 (build 35) ── (a second lot's role, the chamber: the court's pyre burns) ── /fable32 ──
   }
   if (!powerOn) st.power = DAY33.power0;
   if (b19)
     Object.assign(st.r19, { acc: 0, sc: 0, gr: [], A: 0, ph: 0, sw: 0, sp: 0, slip: -9, run: null, arm: 0, gt: -1, gp: null, lane: 0, lt: -9 });
+  if (b19 && e35) st.r19.fl = [];   // ── fable32 (build 35) ── (no log of the old trips lies on the ramp) ── /fable32 ──
   {
     const was = prac ? null : savedDay33(save);
     if (b17 && was && was.night)
@@ -1178,7 +1256,9 @@ export function createDay33(o = {}) {
     emit17('gate', { id, p23: true });
     return false;
   }
-  const shown33 = () => Object.keys(DAY33.unlock).filter(open33);
+  // ── fable32 (build 35) ── (the morning of the work: the old loop's stations — the wood's timing act, the ramp's trips, the stores, the
+  // bakers, the old pen, the song — have no chip and no door; the salt chamber stays, its bag salting the ramp — tied to the ramp as it was) ── /fable32 ──
+  const shown33 = () => (e35 ? ['salt'] : Object.keys(DAY33.unlock)).filter(open33);
   function unlockStep() {
     for (const id of shown33())
       if (!st.opened[id]) {
@@ -1287,7 +1367,32 @@ export function createDay33(o = {}) {
   // ── /fable32 ──
   function newTasks() {
     st.dayStats = {};
-    st.tasks = tasksForDay(st.day, st.level, g20 ? ['kiyor'] : null).map((q) => ({ ...q, done: false }));
+    st.tasks = e35
+      ? tasks35ForDay(st.day, save, { p25, p26, p27 }).map((q) => ({ ...q, key: q.id, goal: 1, done: false }))   // ── fable32 (build 35) ── (the work's tasks) ── /fable32 ──
+      : tasksForDay(st.day, st.level, g20 ? ['kiyor'] : null).map((q) => ({ ...q, done: false }));
+  }
+  // ── fable32 (build 35) ── the work's tasks (TASKS35): each read off the morning itself — the day's ratings (st.r30day), a role's first
+  // real morning (st.fresh35), and the two the opening screen's doors mark (save.prac35, save.ch35: the game day they belong to) ── /fable32 ──
+  function done35(id) {
+    const r = Array.isArray(st.r30day) ? st.r30day : [],
+      mine = [p23 && st.p23day === st.day ? st.lot : null, p26 && st.p26day === st.day ? st.role26 : null].filter(Boolean);
+    if (id === 'kiyorH') return r.some(([a, b]) => a === 'kiyor' && b === 'mehudar');
+    if (id === 'roleH') return r.some(([a, b]) => b === 'mehudar' && mine.includes(a));
+    if (id === 'twoH') return r.filter(([, b]) => b === 'mehudar').length >= 2;
+    if (id === 'fresh') return st.fresh35 === st.day;
+    return lobby35done(id, save, st.day);
+  }
+  function taskStep35() {
+    for (const q of st.tasks)
+      if (!q.done && done35(q.id)) {
+        q.done = true;
+        pay(DAY33.taskReward, q.id);
+        score(DAYSCORE.task, 'task');
+        emit17('task', { text: q.text, pay: DAY33.taskReward, id: q.id });
+        sfx('coin');
+        L0('task', q.id);
+        evlog('task35', q.id);
+      }
   }
   function saveState(why) {
     if (prac) return;   // ── fable32 (build 31) ── (a practice run: the saved day is the real day's, untouched — "המשך יום N" stays where it was) ── /fable32 ──
@@ -1303,6 +1408,7 @@ export function createDay33(o = {}) {
     say(() => o.persist && o.persist());
   }
   function taskStep() {
+    if (e35) return taskStep35();   // ── fable32 (build 35) ── ── /fable32 ──
     for (const q of st.tasks)
       if (!q.done && (st.dayStats[q.key] | 0) >= q.goal) {
         q.done = true;
@@ -1662,6 +1768,34 @@ export function createDay33(o = {}) {
         W.setTime(prac && !ended ? (prac.ch33 ? prac.ch33.sky /* ── fable32 (build 33) ── (the chamber at the real hour where the phone is) ── /fable32 ── */ : PRAC31.first.includes(prac.role) || prac.role === 'kiyor' ? 'predawn' : 'noon') /* ── fable32 (build 31) ── (the hour of his role's morning) ── /fable32 ── */ : night ? 'dusk' : g21 && !ended && (g22 ? st.m22day : st.d21day) !== st.day ? 'predawn' : 'noon');
     } catch (e) {}
   }
+  // ── fable32 (build 35) ── the fire's look (E35): the night's fire before the morning's lot; from the lot until today's pyre is lit, the
+  // coals the ashes' role sweeps (as the agreed specs have them); then the pyre's look — by the maaracha's rating (his, or the court's: כשר)
+  // for the rest of the morning. Never drained, never a meter: st.fuel follows the look on the old scale (fx18's court, the woodpile) ── /fable32 ──
+  const look35 = () => {
+    if (st.f35day === st.day && st.fire35) return st.fire35 === 'mehudar' ? 'mehudar' : 'kasher';
+    // (today's pyre lit — his or the court's — in a save from before build 35, which kept no look: his rating, or the court's כשר)
+    if (g22 && (st.m22day === st.day || (p23 && st.p23day === st.day && ((st.lot === 'lamb' && st.p25day === st.day) || (st.lot === 'deshen' && st.d21day === st.day)))) && !(prac && PRAC31.first.includes(prac.role)))
+      return p23 && st.lot === 'm22' && st.m22r && st.m22r.day === st.day && st.m22r.rating === 'mehudar' ? 'mehudar' : 'kasher';
+    if (prac && prac.role === 'kiyor') return 'night';
+    return (p23 ? st.p23day === st.day : g21 && st.d21day === st.day) ? 'ember' : 'night';
+  };
+  function fire35Step() {
+    const k = look35();
+    st.fuel = E35.fuel[k];
+    try {
+      globalThis.__FIRE33 = E35.look[k];
+      globalThis.__FIRELOW33 = 0;
+      globalThis.__FIRE35 = { k, sp: E35.spark[k] || 0, clean: k === 'mehudar' ? 1 : 0 };
+    } catch (e) {}
+  }
+  /** the pyre lit this morning: its look for the rest of the morning (his rating; the court's is כשר) */
+  function lit35(rating) {
+    if (!e35) return;
+    st.fire35 = rating === 'mehudar' ? 'mehudar' : 'kasher';
+    st.f35day = st.day;
+    L0('fire35', st.fire35);
+    emit17('fire35', { look: st.fire35 });
+  }
   const lambReady = () => !open33('pen') || okLambs() > 0,
     grace17 = () => b17 && st.day === 1 && (g22 ? st.dayT : st.t) < B17.grace;
   // ── recovered (build 17) ── the focused day's two tamids (B17.tamid: dawn 45 s, dusk 170 s, the fire at 60): on time, late, offered late;
@@ -1719,6 +1853,14 @@ export function createDay33(o = {}) {
             ? { k: 'tamE', when: 'בין הערביים', inS: 0, late: true }
             : { k: 'sun', when: 'שקיעה', inS: Math.max(0, st.left), late: false, done: true };
   }
+  // ── fable32 (build 35) ── the court's acts this morning: the roles the lots gave the other kohanim (the first lot's built roles but his,
+  // the second lot's built roles but his) — "כל העבודה חשובה": named plainly in the summary, no rating ── /fable32 ──
+  function court35() {
+    const out = [];
+    if (p23 && st.p23day === st.day) for (const x of POOL23) if (x.built && x.id !== st.lot && (p25 || x.id !== 'lamb')) out.push({ id: x.id, he: x.he });
+    if (p26 && st.p26day === st.day) for (const x of POOL26) if (x.built && x.id !== st.role26 && (p27 || !blood27(x.id))) out.push({ id: x.id, he: x.he });
+    return out;
+  }
   // ── fable32 (build 30) ── the day's summary: the day's ratings in place of the stars (they were 1 + each tamid on time — the clock, not
   // the work): how many מהודר, כשר, טעון תיקון, and each act's word; the praise by them (never a reproach) ── /fable32 ──
   function summary17() {
@@ -1733,16 +1875,24 @@ export function createDay33(o = {}) {
           : r30.t
             ? 'עבודה טובה! ומה שטעון תיקון — מתקנים בפעם הבאה'
             : 'יפה מאוד! כל העבודות כשרות',
-      pad = c18 ? C18.pads.find((x) => !own18(x.id)) : null;
+      pad = c18 ? pads18().find((x) => !own18(x.id)) : null;
     return {
       day: st.day,
       ratings: list,
       r30,
       served: served30(save),
-      tamids: [
-        { when: 'שחר', ok: ok('tamD') },
-        { when: 'בין הערביים', ok: ok('tamE') },
-      ],
+      // ── fable32 (build 35) ── the morning of the work: no tamid rows (no clock, no "late"; the evening is the opening screen's), the
+      // court's acts named plainly (the roles the lots gave the other kohanim today), the ממונה's three by name, the fire's look ── /fable32 ──
+      e35,
+      tamids: e35
+        ? []
+        : [
+            { when: 'שחר', ok: ok('tamD') },
+            { when: 'בין הערביים', ok: ok('tamE') },
+          ],
+      court: e35 ? court35() : [],
+      taskList: e35 ? st.tasks.map((x) => ({ id: x.id, text: x.text, done: !!x.done })) : [],
+      fire: e35 ? look35() : null,
       rampBest: st.rampBest ? Math.round(st.rampBest * 10) / 10 : 0,
       logs: st.laidDay,
       low: Math.round(st.lowDay),
@@ -1781,7 +1931,7 @@ export function createDay33(o = {}) {
     };
   }
   function endDay17() {
-    for (const [x, q] of [
+    for (const [x, q] of e35 ? [] : [   // ── fable32 (build 35) ── (no tamid clock in the morning of the work: nothing is "late") ── /fable32 ──
       ['tamD', 'שחר'],
       ['tamE', 'בין הערביים'],
     ])
@@ -1814,17 +1964,72 @@ export function createDay33(o = {}) {
     sum.perutot = st.perutot - st.pDay0;
     sum.c18 = summary17().c18;
     st.summary = sum;
+    st.close35 = null;
     st.paused = true;
-    setSky(true);
+    setSky(!e35);   // ── fable32 (build 35) ── (the morning's summary under the morning's sky — the evening is the opening screen's real hour) ── /fable32 ──
     sfx('fanfare');
     evlog('day_summary', { day: st.day, r30: sum.r30, logs: sum.logs, low: sum.low });   // ── fable32 (build 30) ── (the ratings, not the stars) ── /fable32 ──
     saveState('night');
     L0('summary', st.day, sum.r30.h, sum.r30.k, sum.r30.t);
     emit17('summary', sum);
   }
+  // ── fable32 (build 35) ── the morning ends on its work: the built work done — his acts (the laver, the first lot's role, the second
+  // lot's) and the court's (the roles the lots gave them) — his last rating's word over, no card up: a calm close (E35.close s — 0.6 s to
+  // dark with "הבוקר הושלם", where the scene changes; then the altar seen from the south-east, its fire as the morning's pyre burns, the
+  // court round it, the source line), then the summary of the work. No clock: an older save whose morning was done goes straight to it. ── /fable32 ──
+  const workDone35 = () =>
+    e35 &&
+    !prac &&
+    st.phase === 'run' &&
+    !st.night &&
+    !st.summary &&
+    st.washed &&
+    !gateAny() &&
+    (!p23 || st.p23day === st.day) &&
+    (!p26 || st.r26day === st.day) &&
+    (p23 || ((!g21 || st.d21day === st.day) && (!g22 || st.m22day === st.day))) &&
+    !acting &&
+    !st.k20 &&
+    !st.p23 &&
+    !(st.d21 && st.d21.ph !== 'end') &&
+    !(st.m22 && st.m22.ph !== 'end') &&
+    !(st.p25 && !/^(lead|end|out)$/.test(st.p25.ph)) &&
+    !(st.r26 && st.r26.ph !== 'out') &&
+    !(st.r27 && st.r27.ph !== 'out');
+  function close35Step() {
+    const C = st.close35;
+    if (!C) {
+      if (!workDone35() || (st.end30 && st.t < st.end30.until) || st.j32q || st.j32card || st.tl33card) return;
+      st.close35 = { t0: st.t, ph: 'fade' };
+      if (o.walk && o.walk.stop) say(() => o.walk.stop());
+      goal = null;
+      drive(0, 0);
+      L0('close35', look35());
+      evlog('morning_close', { day: st.day, look: look35(), r30: (st.r30day || []).map((x) => x.join(':')) });
+      emit17('close35', { ph: 'fade', look: look35() });
+      fade(null, 'הבוקר הושלם');
+      return;
+    }
+    drive(0, 0);
+    const k = st.t - C.t0;
+    if (C.ph === 'fade' && k >= E35.fade) {
+      C.ph = 'view';
+      sfx('chime');
+      emit17('close35', { ph: 'view', look: look35(), src: E35.src });
+    }
+    if (k >= E35.close) endDay17();
+  }
+  /** the close's view (the camera's authored view while it lasts — first in the shift's chain; a cut under the dark) */
+  const camWork35 = () => {
+    const C = st.close35;
+    if (!C || C.ph !== 'view') return null;
+    const V = E35.cam;
+    return { x: V.t[0], z: V.t[2], view: { p: V.p.slice(), t: V.t.slice(), e: V.e } };
+  };
   function nextDay() {
     return st.summary
       ? ((st.summary = null),
+        (st.close35 = null),   // ── fable32 (build 35) ── ── /fable32 ──
         (st.paused = false),
         st.day++,
         (st.left = DAY33.dayS),
@@ -1967,6 +2172,7 @@ export function createDay33(o = {}) {
     if (gate23()) return { id: 'p23', kind: 'lot' };
     if (gate21()) return { id: 'deshen', kind: 'station' };
     if (gate22()) return { id: 'm22', kind: 'station' };
+    if (e35) return gateAny() ? { id: 'gate', kind: 'gate' } : { id: 'done35', kind: 'done' };   // ── fable32 (build 35) ── (no next chore: the morning's next is its next act, then its close) ── /fable32 ──
     if (st.logs >= basketCap()) return { id: 'kevesh', kind: 'station' };
     if (st.logs > 0 && st.fuel <= DAY33.floor + 0.01) return { id: 'kevesh', kind: 'station' };   // (embers: whatever he carries, up now)
     if (b17) return next17();
@@ -2013,7 +2219,10 @@ export function createDay33(o = {}) {
   // ── recovered (build 18) ── the coins in the world: the chests by the gate (the pilgrims' coins), the pads to buy at (own18)
   const chests = C18.chests,
     own18 = (a) => !!(save.day33 && typeof save.day33 === 'object' && save.day33[a]),
-    padOpen = () => (c18 && C18.pads.find((x) => !own18(x.id) && st.perutot >= x.price)) || null;
+    // ── fable32 (build 35) ── (the pads in the court: "גרזן טוב" and "טנא גדול" were the wood loop's — no use left, hidden; the laver's
+    // second spigot stays as it is — the owner's open decision, svivat-avoda-he.md §11.1) ── /fable32 ──
+    pads18 = () => (e35 ? C18.pads.filter((x) => x.id === 'kiyor2') : C18.pads),
+    padOpen = () => (c18 && pads18().find((x) => !own18(x.id) && st.perutot >= x.price)) || null;
   function chestStep(dt) {
     const ch = st.ch18,
       h = heroP();
@@ -2057,7 +2266,7 @@ export function createDay33(o = {}) {
     }
     let h = heroP(),
       pad = null;
-    for (const x of C18.pads) if (!own18(x.id) && Math.hypot(h.x - x.x, h.z - x.z) <= C18.padR && (h.y || 16) < 20) pad = x;
+    for (const x of pads18()) if (!own18(x.id) && Math.hypot(h.x - x.x, h.z - x.z) <= C18.padR && (h.y || 16) < 20) pad = x;
     if (!pad || st.perutot < pad.price) {
       if (st.pad18) {
         st.pad18 = null;
@@ -2114,7 +2323,12 @@ export function createDay33(o = {}) {
       salting = !loaded && R.bag > 0,
       up = near19(h) && h.z > C.head,
       climbing = loaded && up,
-      strong = !!(p23 && st.p23day === st.day && gateAny());
+      // ── fable32 (build 35) ── the ramp run lives in the maaracha role (svivat-avoda-he.md §3; rizat-hakevesh-he.md; input-protocol-he.md
+      // decision 3): his sorted logs go up the ramp to the altar's top ONCE, as R19 runs it — the stick's depth the speed, the right thumb's
+      // hold steadying the basket, a fast unsteady run on bare stone may drop a log (a gold ring: picked up, never lost), the ghost of his best
+      // run and its time; on the way from the wood chamber to the ramp's foot the morning's quick pace as before ── /fable32 ──
+      run35 = e35 && carry22(),
+      strong = !!(p23 && st.p23day === st.day && gateAny()) && !(run35 && near19(h));
     if (pace) pace.k = strong ? P23.run / 7 : climbing ? (now - R.slip < 0.6 ? 1 : C.v1) / 7 : 0;
     R.sc = salting && up && held ? 1 : 0;
     const sy = Math.sin(yaw),
@@ -2144,13 +2358,13 @@ export function createDay33(o = {}) {
       payAct('gold', 'salt', a);
       L0('salted');
     }
-    const easy = st.day === 1 && R.rn < 2,
+    const easy = !run35 && st.day === 1 && R.rn < 2,   // ── fable32 (build 35) ── (the maaracha's run sways from the first: the hold has something to steady) ── /fable32 ──
       bare = onR && !R.g[cell19(h.x, h.z)],
       want = climbing && !easy ? C.swayMax * cl((R.sp - 3.2) / (C.v1 - 3.2), 0, 1) * (bare ? 1 : C.saltK) * (held ? C.hold : 1) : 0;
     R.A = want > R.A ? Math.min(want, R.A + 0.5 * dt) : Math.max(want, R.A - (now - R.slip < 1.2 ? 0.6 : 1.5) * dt);
     R.ph += dt * (4 + R.sp);
     R.sw = R.A * Math.sin(R.ph);
-    if (climbing && onR && !easy && bare && !carry22() && R.sp > C.slipV && R.A > 0.3 && now - R.slip > 2 && rng() < dt * 3.5 * (R.A - 0.3)) {
+    if (climbing && onR && !easy && bare && (!carry22() || (run35 && !first22())) && R.sp > C.slipV && R.A > 0.3 && now - R.slip > 2 && rng() < dt * 3.5 * (R.A - 0.3)) {   // ── fable32 (build 35) ── (in the maaracha's run a log may drop — never on his first maaracha) ── /fable32 ──
       R.slip = now;
       R.slips++;
       R.A = 0.9;
@@ -2180,7 +2394,7 @@ export function createDay33(o = {}) {
       R.run = { t0: now, p: [], c: 1 };
       R.gp = gh19 && gh19.p;
       R.gt = gh19 ? now : -1;
-      if (st.day === 1 && R.rn === 2) emit17('sway');
+      if (run35 ? first22() : st.day === 1 && R.rn === 2) emit17('sway');   // ── fable32 (build 35) ── (the maaracha's first run: "החזיקו — הסל מתייצב") ── /fable32 ──
     }
     const run = R.run;
     if (run) {
@@ -2215,9 +2429,12 @@ export function createDay33(o = {}) {
     stat('v_kevesh');
     if (!st.rampBest || t < st.rampBest) st.rampBest = t;
     st.trip = { n: st.logs, laid: 0 };
-    emit17('top', { dur: Math.round(t * 10) / 10, g });
+    emit17('top', { dur: Math.round(t * 10) / 10, g, m22: !!(e35 && st.m22) });
     emit17('act', { id: 'kevesh', g, at });
-    payAct(g, 'act:kevesh', at);
+    // ── fable32 (build 35) ── (the maaracha's run: part of its act — its coins are the act's, by its rating; the run's time and drops kept
+    // with the act's record) ── /fable32 ──
+    if (e35 && st.m22) st.m22.run = { t: Math.round(t * 10) / 10, g, slips: st.r19.slips - (st.m22.slip0 | 0) };
+    else payAct(g, 'act:kevesh', at);
     L0('top', t, g);
   }
   // ── recovered (build 20) ── the laver: up to the spigots, both hands held under (L, R) till the ring fills, the rise, the walk down
@@ -2562,6 +2779,7 @@ export function createDay33(o = {}) {
       } catch (e) {}
       rec23('deshen', rec);
       emit17('p23lit', { at: { x: M22.pyre.x, y: 28, z: M22.pyre.z } });
+      lit35('kasher');   // ── fable32 (build 35) ── (the court's pyre: כשר) ── /fable32 ──
     }
     end30('deshen', rec, at, p23 ? st.lot === 'deshen' && !p26 : false);   // ── fable32 (build 30) ── (the coins by the rating: were 3 / 1 / 0 by the spills) ── /fable32 ──
     score(pts, 'deshen');
@@ -2804,6 +3022,7 @@ export function createDay33(o = {}) {
         const a = need22();
         st.logs += a;
         st.m22c = a;
+        if (b19) K.slip0 = st.r19.slips | 0;   // ── fable32 (build 35) ── (the run's drops are counted from here) ── /fable32 ──
         ph22(K, 'carry');
         emit17('done', { text: p23 ? 'ארבעה גזרים כשרים!' : 'שישה גזרים כשרים!', sub: 'למזבח' });
       }
@@ -2812,6 +3031,7 @@ export function createDay33(o = {}) {
       if (
         atTop(h) &&
         !acting &&
+        !(e35 && b19 && st.r19.fl.length) &&   // ── fable32 (build 35) ── (a log dropped on the ramp: picked up first — the pyre needs all of them) ── /fable32 ──
         (Math.hypot(stand.x - h.x, stand.z - h.z) <= DAY33.reach || Math.hypot(M22.pyre.x - h.x, M22.pyre.z - h.z) <= DAY33.layReach)
       ) {
         if (o.walk && o.walk.stop) say(() => o.walk.stop());
@@ -2852,6 +3072,7 @@ export function createDay33(o = {}) {
         fire: n,
         actS: r1(K.T),
         cracks: K.mis,
+        ...(e35 && K.run ? { run: { ...K.run } } : {}),   // ── fable32 (build 35) ── (the ramp run inside the act: its time, its grade, its drops — not in the rating) ── /fable32 ──
       };
     st.m22day = st.day;
     st.m22r = b;
@@ -2862,7 +3083,8 @@ export function createDay33(o = {}) {
       st.npc23 = null;
       rec23('m22', b);
     }
-    end30('m22', b, at, p23 ? !p26 : true);   // ── fable32 (build 30) ── ── /fable32 ──
+    lit35(end30('m22', b, at, p23 ? !p26 : true));   // ── fable32 (build 30) ── ── /fable32 ── ── fable32 (build 35) ── (his pyre's rating: the fire's look) ── /fable32 ──
+    if (e35) b.look = st.fire35;
     st.fuel = Math.max(st.fuel, n);
     st.lowDay = st.fuel;
     try {
@@ -3110,6 +3332,7 @@ export function createDay33(o = {}) {
       first = !m.n,
       was = role30(m).best,
       c = m.r30 && typeof m.r30 === 'object' ? m.r30 : (m.r30 = { h: 0, k: 0, t: 0, best: null });
+    if (!prac && id !== 'kiyor' && !Math.max(0, (m.n | 0) - (m.pr | 0))) st.fresh35 = st.day;   // ── fable32 (build 35) ── (a role he never had in a real morning: the task "תפקיד שלא היה לך עד היום") ── /fable32 ──
     m.n = (m.n | 0) + 1;
     if (prac) m.pr = (m.pr | 0) + 1;   // ── fable32 (build 31) ── (a practice run: its own count — the lot reads n − pr) ── /fable32 ──
     m.last = mastery;
@@ -3544,6 +3767,7 @@ export function createDay33(o = {}) {
     rec23('lamb', b);
     end30('lamb', b, a, !p26);   // ── fable32 (build 30) ── ── /fable32 ──
     emit17('p23lit', { at: { x: M22.pyre.x, y: 28, z: M22.pyre.z } });
+    lit35('kasher');   // ── fable32 (build 35) ── (the court's pyre: כשר) ── /fable32 ──
     score(k, 'lamb');
     evlog('lamb25', b);
     emit17('p25done', { ...b, at: a });
@@ -4327,7 +4551,10 @@ export function createDay33(o = {}) {
     }
     return null;
   }
+  // ── fable32 (build 35) ── (the old loop's stations: no door in the morning of the work — the laver, the salt's bag, the pyre's carry) ── /fable32 ──
+  const door35 = (id) => !e35 || id === 'kiyor' || id === 'salt' || (id === 'kevesh' && carry22());
   async function runAt(id) {
+    if (!door35(id)) return false;   // ── fable32 (build 35) ── ── /fable32 ──
     if (acting || st.phase !== 'run' || !ST || !ST.act) return false;
     if (st.k20 || st.d21 || st.p25) return false;
     if (gate20() && id !== 'kiyor') return gate20no(id);   // ── fable32 (build 20) ── (the kiddush runs; before it, no other station) ── /fable32 ── ── fable32 (build 21) ── (terumat hadeshen likewise) ── /fable32 ──
@@ -4552,7 +4779,7 @@ export function createDay33(o = {}) {
     return true;
   }
   function tapStation(id) {
-    if (st.phase !== 'run' || acting || !STN[id]) return false;
+    if (st.phase !== 'run' || acting || !STN[id] || !door35(id)) return false;   // ── fable32 (build 35) ── (door35) ── /fable32 ──
     if (st.k20 || st.d21 || st.p25) return false;
     if (gate20() && id !== 'kiyor') return gate20no(id);   // ── fable32 (build 20) ── ── /fable32 ── ── fable32 (build 21) ── ── /fable32 ──
     if (gate23() || st.p23) return gate23no(id);   // ── fable32 (build 23) ── ── /fable32 ──
@@ -4609,6 +4836,7 @@ export function createDay33(o = {}) {
         ? { icon: '✓', label: 'יפה!', job: 'sh:done', noRing: true, go: () => {}, act31: true }
         : { icon: s2.icon || '✋', label: actLabel(acting.id, s2), job: 'sh:act', noRing: true, go: () => {}, act31: true };
     }
+    if (e35 && (st.close35 || workDone35())) return null;   // ── fable32 (build 35) ── (the work done: no button — the close comes) ── /fable32 ──
     const n = nx33();
     if (st.night && st.inMoked && !(st.torchOn && !st.watched) && unclaimed().length && st.bookNight !== st.day)   // (build 11)
       return { icon: '📜', label: `ספר הזכרונות (${unclaimed().length})`, job: 'sh:book', noRing: true, go: () => claimBook() };
@@ -4744,7 +4972,7 @@ export function createDay33(o = {}) {
           : { icon: '🐑', label: 'לך לטלה', job: 'sh:go:lamb', noRing: true, go31: true, id31: 'lamb', go: () => peek24() };
     }
     // (build 7: any OPEN station within reach is his to use — the Roblox way; the next one is only the path's suggestion)
-    let crit = b17 && st.fuel < B17.crit,
+    let crit = b17 && !e35 && st.fuel < B17.crit,   // ── fable32 (build 35) ── (no low fire in the morning of the work) ── /fable32 ──
       nearId = null,
       nd = 1e9;
     for (const id of shown33()) {
@@ -4955,6 +5183,7 @@ export function createDay33(o = {}) {
     }
     /* ── fable32 (build 26) ── (the way back to the circle; up the steps to the great gate; in, to his vessel) ── */ /* ── fable32 (build 21) ── (no path while he sweeps and goes down; at the foot — to the ring) ── */ /* ── fable32 (build 22) ── (nor while he sorts or stacks) ── */
     if (gate21()) return { id: 'deshen', kind: 'station', pid: null, at: standOf('deshen') };
+    if (gate22() && e35 && carry22() && b19 && st.r19.fl.length) return { id: 'log19', kind: 'station', pid: null, at: standOf('log19') };   // ── fable32 (build 35) ── (a log dropped on the run: the way to it first) ── /fable32 ──
     if (gate22()) return { id: 'm22', kind: 'station', pid: null, at: standOf('m22') };
     if (gate25()) return { id: prac && prac.ch33 ? 'ch33' : 'pen', kind: 'station', pid: null, at: { x: pl25().stand.x, y: 16, z: pl25().stand.z } };   /* ── fable32 (build 33) ── (the chamber's door in its run) ── */   /* ── fable32 (build 25) ── (the way to the pen's door) ── */
     if (st.pk24 && st.t < st.pk24.until) return { id: st.pk24.id, kind: 'station', pid: null, at: st.pk24.at };   /* ── fable32 (build 24) ── (a tapped slot's way, 3 s) ── */ /* ── build 16 ── (no path at night) ── */ /* ── fable32 (build 20) ── (nor in the kiddush) ── */
@@ -5046,6 +5275,7 @@ export function createDay33(o = {}) {
     const h = heroP(),
       L30 = LINE30;
     if (prac && prac.ch33 && !st.p25 && !gate25()) return { id: 'ch33', icon: '🐑', text: 'הטלאים בלשכה', n: 0, goal: 0, st: null };   // ── fable32 (build 33) ── (the chamber's run after its inspection: its stock, not the day's fire) ── /fable32 ──
+    if (e35 && (st.close35 || workDone35())) return { id: 'close35', icon: '🌅', text: 'הבוקר הושלם', n: 0, goal: 0, st: null };   // ── fable32 (build 35) ── (the work done: the morning's close) ── /fable32 ──
     if (st.k20 && (st.k20.ph === 'up' || st.k20.ph === 'pose')) return { id: 'kiyor', icon: '💧', text: L30.kiyor[st.k20.ph], n: 0, goal: 0, st: 'kiyor' };
     if (gate23() || lotOn()) {
       const p23 = st.p23;
@@ -5137,7 +5367,9 @@ export function createDay33(o = {}) {
               : L30.m22.sort
             : c
               ? L30.m22[(p23 ? 'l' : 'L') + Math.min(3, m22.layer || 1)] || L30.m22.l1
-              : L30.m22[a] || L30.m22.ignite   // ── fable32 (build 30) ── ── /fable32 ──
+              : a === 'carry' && e35 && b19 && st.r19.fl.length
+                ? L30.m22.log   // ── fable32 (build 35) ── (a log dropped on the run) ── /fable32 ──
+                : L30.m22[a] || L30.m22.ignite   // ── fable32 (build 30) ── ── /fable32 ──
           : 'סדרו את המערכה הגדולה',
         n: b ? m22.got.length : c ? m22.got.filter((x) => x.at).length : 0,
         goal: b || c ? need22() : 0,
@@ -5185,10 +5417,12 @@ export function createDay33(o = {}) {
         pen: penN(),
         bake: [statN('baked'), goals.bake],
       },
-      b = B17.slots.filter((x) => (x === 'song' ? open33('song') && (!!st.song || statN('songs') > 0) : open33(x))),
+      // ── fable32 (build 35) ── (the bar's dead slots hidden: the wood, the ramp's trips, the song, the old pen and the bakers were the
+      // old loop's — the laver alone is the morning's; the chain bar of the morning is a later build, svivat-avoda-he.md §6) ── /fable32 ──
+      b = (e35 ? (st.washed ? [] : ['kiyor']) : B17.slots).filter((x) => (x === 'song' ? open33('song') && (!!st.song || statN('songs') > 0) : open33(x))),   // (e35: the laver's slot while it is the morning's next; then none)
       c = gateAny(),
       d = gate20() ? 'kiyor' : gate23() || gate26L() || gate26() || gate27() || on27() ? '' : gate25() ? 'pen' : gate22() && !st.m22 ? 'wood' : 'kevesh';
-    if (st.fuel < B17.crit && !c) b = b.filter((x) => x === 'wood' || x === 'kevesh');
+    if (!e35 && st.fuel < B17.crit && !c) b = b.filter((x) => x === 'wood' || x === 'kevesh');   // ── fable32 (build 35) ── (!e35) ── /fable32 ──
     while (b.length > B17.maxSlots) {
       const c = b.findIndex((x) => x !== cur && a[x][0] >= a[x][1]);
       b.splice(c >= 0 ? c : b.length - 1, 1);
@@ -5382,11 +5616,21 @@ export function createDay33(o = {}) {
     } else {
       if (j32Step()) return st;   // ── fable32 (build 32) ── (the unlock card: the day waits under it) ── /fable32 ──
       if (tl33Step()) return st;   // ── fable32 (build 33) ── (the morning's lamb: its card, once — the day waits under it) ── /fable32 ──
-      drainStep(dt);
-      dayStep(dt);
-      unlockStep();
-      merchantStep();
-      lostTick(dt);
+      if (e35) {
+        // ── fable32 (build 35) ── the morning of the work: no drain, no day clock and no night, no tamid timers, no "נפתח:" stamps, no
+        // merchant, no lost lamb (the old loop's code stays behind the flag); the ממונה's tasks read off the work; the close on the work ── /fable32 ──
+        if ((st.task35T += dt) >= E35.taskEvery) {
+          st.task35T = 0;
+          taskStep35();
+        }
+        close35Step();
+      } else {
+        drainStep(dt);
+        dayStep(dt);
+        unlockStep();
+        merchantStep();
+        lostTick(dt);
+      }
     }
     if (c18 && !st.summary && !st.night && !prac) {
       chestStep(dt);
@@ -5446,10 +5690,12 @@ export function createDay33(o = {}) {
       stamp('השיר נגמר — מחר שוב', 'info');
       L0('song-close');
     }
-    try {
-      globalThis.__FIRE33 = 0.25 + 0.75 * (st.fuel / 100) + 0.12 * (st.level - 1);
-      if (b17) globalThis.__FIRELOW33 = Math.max(0, Math.min(1, (B17.warn - st.fuel) / 30));
-    } catch (e) {}
+    if (e35) fire35Step();   // ── fable32 (build 35) ── (the fire's look: the morning's pyre, never a meter) ── /fable32 ──
+    else
+      try {
+        globalThis.__FIRE33 = 0.25 + 0.75 * (st.fuel / 100) + 0.12 * (st.level - 1);
+        if (b17) globalThis.__FIRELOW33 = Math.max(0, Math.min(1, (B17.warn - st.fuel) / 30));
+      } catch (e) {}
     try {
       globalThis.__LOGS33 = st.logs;   // (build 14: the ramp act draws the basket with his logs)   // (the pyre's flames by the meter and the level — life.js)
     } catch (e) {}
@@ -5600,6 +5846,9 @@ export function createDay33(o = {}) {
       gate27: gate27(),   // ── fable32 (build 27) ── ── /fable32 ──
       r27: st.r27 ? st.r27.ph : null,
       prac31: prac ? prac.role : null,   // ── fable32 (build 31) ── ── /fable32 ──
+      e35,   // ── fable32 (build 35) ── (the morning of the work: its close, the fire's look) ── /fable32 ──
+      close35: st.close35 ? st.close35.ph : null,
+      look35: e35 ? look35() : null,
     };
   }
   const E = {
@@ -5621,10 +5870,16 @@ export function createDay33(o = {}) {
       if (prac) place31();   // ── fable32 (build 31) ── (at his act's place: it begins at once) ── /fable32 ──
       if (prac) st.tasks = [];
       else if (st.resumeTasks) {
-        newTasks();
-        for (const [x, q] of st.resumeTasks) {
-          const a = st.tasks.find((q) => q.id === x);
-          if (a && q) a.done = true;
+        // ── fable32 (build 35) ── (the saved day's own three, as they were set — the lots since may have changed what a new list would hold;
+        // an older save's wood and ramp tasks give way to the day's three of the work) ── /fable32 ──
+        const R = st.resumeTasks.filter((x) => Array.isArray(x));
+        if (e35 && R.length && R.every(([x]) => TASKS35.some((q) => q.id === x))) st.tasks = R.map(([x, d]) => ({ ...TASKS35.find((q) => q.id === x), key: x, goal: 1, done: !!d }));
+        else {
+          newTasks();
+          for (const [x, q] of R) {
+            const a = st.tasks.find((q) => q.id === x);
+            if (a && q) a.done = true;
+          }
         }
         st.resumeTasks = null;
       } else newTasks();
@@ -5636,7 +5891,7 @@ export function createDay33(o = {}) {
       push();
       L0('start');
       evlog('day_start', { day: st.day, resumed: st.resumed });
-      if (st.resumed) setTimeout(() => stamp(`המשך יום ${st.day} — המערכה ברמה ${st.level}`, 'combo'), 1200);
+      if (st.resumed) setTimeout(() => stamp(e35 ? `המשך יום ${st.day}` : `המשך יום ${st.day} — המערכה ברמה ${st.level}`, 'combo'), 1200);   // ── fable32 (build 35) ── (no fire's "level" in the morning of the work) ── /fable32 ──
       if (o.raf && typeof requestAnimationFrame === 'function') {
         lastMs = 0;
         raf = requestAnimationFrame(loop);
@@ -5672,6 +5927,7 @@ export function createDay33(o = {}) {
       try {
         delete globalThis.__FIRE33;
         delete globalThis.__FIRELOW33;
+        delete globalThis.__FIRE35;   // ── fable32 (build 35) ── ── /fable32 ──
         if (fadeEl) {
           fadeEl.remove();
           fadeEl = null;
@@ -5741,10 +5997,22 @@ export function createDay33(o = {}) {
     grace17,
     fire17,
     go17,
+    // ── fable32 (build 35) ── the morning of the work: its flag, the close (its phase), the fire's look, the close's view, the pads in the court ── /fable32 ──
+    e35,
+    close35: () => (st.close35 ? { ...st.close35, look: look35() } : null),
+    look35: () => (e35 ? look35() : null),
+    workDone35: () => !!workDone35(),
+    camWork35,
+    pads18: () => pads18().slice(),
+    tasks35: () => st.tasks.map((x) => ({ id: x.id, text: x.text, done: !!x.done })),
     focus17: () => ({
+      e35,
+      close35: st.close35 ? st.close35.ph : null,
+      look: e35 ? look35() : null,
+      tasks: e35 ? st.tasks.map((x) => ({ id: x.id, text: x.text, done: !!x.done })) : null,
       fuel: st.fuel,
-      drain: drainNow(),
-      tamid: tamid17(),
+      drain: e35 ? 0 : drainNow(),
+      tamid: e35 ? null : tamid17(),
       power: st.power,
       bread: st.bread,
       bake: open33('bake'),
@@ -5765,7 +6033,7 @@ export function createDay33(o = {}) {
       score: SC ? say(() => SC.get()) : null,
       perutot: st.perutot,
       c18: l18
-        ? { coins: c18, ch: st.ch18, pad: st.pad18, own: C18.pads.map((x) => own18(x.id)), tams: (st.tamD === 'ok') + (st.tamE === 'ok') }
+        ? { coins: c18, ch: st.ch18, pad: st.pad18, pads: pads18(), own: pads18().map((x) => own18(x.id)), tams: e35 ? 0 : (st.tamD === 'ok') + (st.tamE === 'ok') }   // ── fable32 (build 35) ── (pads: the court's live pads) ── /fable32 ──
         : null,
       gate: gateAny(),
     }),
@@ -5916,6 +6184,7 @@ export function createDay33(o = {}) {
       },
       night: () => {
         st.left = 0;
+        if (e35 && !st.summary && st.phase === 'run' && !prac) endDay17();   // ── fable32 (build 35) ── (no clock: the morning's end at once — the tools' "to the summary") ── /fable32 ──
       },
       fed: (n) => {
         st.fed = n;

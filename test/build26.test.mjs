@@ -6,9 +6,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { P26, POOL26 } from '../src/avodah/shift/day33.js';
 import { HOUSE22 } from '../src/avodah/day/world22.js';
-import { rig, FLAGS } from './rig33.mjs';
+import { rig, FLAGS, FLAGS34 } from './rig33.mjs';
 
-async function morning(save = {}, day = 1) { const R = rig(FLAGS, { save }); R.E.start(); await R.step(0.2); if (day > 1) R.E.debug.day(day); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); await R.step(0.2); return R; }
+async function morning(save = {}, day = 1, flags = FLAGS) { const R = rig(flags, { save }); R.E.start(); await R.step(0.2); if (day > 1) R.E.debug.day(day); R.E.debug.wash20(); R.E.debug.skip23('m22'); R.E.debug.skip22(); await R.step(0.2); return R; }
 async function secondLot(R) { R.at(-40, 30); await R.step(0.3); for (let i = 0; i < 80 && R.E.p23(); i++) { const K = R.E.p23(); if (K.ph === 'in' || K.ph === 'raise') R.E.p23raise(); if (K.ph === 'choose') R.E.p23pick(0); await R.step(0.2); } }
 async function throughGate(R) { R.at(P26.gate.x + 2, P26.gate.z); await R.step(0.8); R.E.r26swipe(0.5, 0, 100); R.E.r26hold(true); await R.step(1.0); R.E.r26hold(false); await R.step(1.2); }
 async function toRole(role, save = {}, day = 1) {
@@ -35,9 +35,11 @@ test('build 26: P26 — the schedule (menorah, inner, menorah), the gate at x �
   assert.equal(P26.pour.lo, 0.9); assert.equal(P26.pour.hi, 1); assert.equal(P26.pulls, 7); assert.equal(P26.ev, 0.2); assert.equal(P26.tT, undefined);   // ── fable32 (build 30) ── (the mastery's time scale is gone) ── /fable32 ──
 });
 test('build 26: after the pre-dawn task the morning holds — the second lot (gate26L), the clock and the stations wait', async () => {
-  const R = await morning(); assert.equal(R.E.gate26L(), true); assert.equal(R.E.gate26(), false); assert.equal(R.E.p26on, true);
+  // (build 35: the old loop's wood station and day clock are FLAGS34's — in the morning of the work the wood has no door at all)
+  const R = await morning({}, 1, FLAGS34); assert.equal(R.E.gate26L(), true); assert.equal(R.E.gate26(), false); assert.equal(R.E.p26on, true);
   const w = R.STATIONS.wood.stand; R.at(w.x, w.z); assert.equal(await R.E.runAt('wood'), false); assert.ok(R.ev('gate').some((e) => e.id === 'wood' && (e.p26 || e.p23)), 'held by the second lot');
   const left = R.E.state().left; await R.step(2); assert.equal(R.E.state().left, left, 'the clock waits');
+  const N = await morning(); assert.equal(N.E.gate26L(), true); N.at(w.x, w.z); assert.equal(await N.E.runAt('wood'), false); assert.ok(!N.ev('gate').some((e) => e.id === 'wood'), 'build 35: no door to the wood');
 });
 test('build 26: the second lot — the first morning\'s role is the menorah (P26.open), recorded in save.roles26', async () => {
   const R = await morning(); await secondLot(R); assert.equal(R.E.role26(), 'menorah'); assert.deepEqual(R.save.roles26, { m: 1, h: [[1, 'menorah']] });

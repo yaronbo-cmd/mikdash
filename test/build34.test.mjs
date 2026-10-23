@@ -97,7 +97,7 @@ test('build 34 (6): the "turn the phone" card says "משחקים לרוחב" —
 });
 
 test('build 34 (7): the footer says build 34', () => {
-  assert.equal(GAME_BUILD, 35);   // (build 35: the constant moved on)
+  assert.equal(GAME_BUILD, 36);   // (build 35: the constant moved on) (build 36: again)
 });
 
 test('build 34 (8): the pyre\'s sort says why a swipe did not count — "ארוך יותר ↔" / "מהר יותר ↔" / "לרוחב ↔", as the ashes\', the lamb\'s and the Heichal\'s do (it said "החליקו ימינה או שמאלה ↔" always: a child who swiped too short sorted nothing for minutes)', () => {

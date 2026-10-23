@@ -145,11 +145,11 @@
     }
     if (K.ph === 'stack') {
       if (!(K.hold >= 0)) { await sleep(80); return; }
-      if (K.aim36 == null || K.aim36k !== `${K.layer}:${K.got.filter((g) => g.at).length}`) { const band = e.band22(), mid = (band[0] + band[1]) / 2; K.aim36k = `${K.layer}:${K.got.filter((g) => g.at).length}`; K.aim36 = mid + (H() ? (rnd() - 0.5) * (band[1] - band[0]) * 1.4 : SK() ? gauss() * 0.012 : 0); }   // ── fable32 (build 36) ── (one aim a log; the skilled hand's spread) ── /fable32 ──
+      const key36 = `${K.layer}:${K.got.filter((g) => g.at).length}:${K.airMiss | 0}:${A.m22tries = (A.m22tries | 0)}`; if (K.aim36 == null || K.aim36k !== key36) { const band = e.band22(), mid = (band[0] + band[1]) / 2; K.aim36k = key36; K.aim36 = mid + (H() ? (rnd() - 0.5) * (band[1] - band[0]) * 1.4 : SK() ? gauss() * 0.012 : 0); }   // ── fable32 (build 36) ── (one aim a log; the skilled hand's spread) ── /fable32 ──
       const aim = K.aim36;
       if (K.pv == null) { await react(); e.m22put(); await sleep(150); return; }
       const d = aim - K.pv; if (Math.abs(d) > (H() ? 0.04 : SK() ? 0.004 : 0.015)) { e.m22stick(Math.max(-1, Math.min(1, (K.gl >= 0 ? 1 : -1) * Math.sign(d) * Math.min(1, Math.abs(d) * 8)))); await sleep(40); return; }
-      e.m22stick(0); await react(); e.m22put(); await sleep(150); return;
+      e.m22stick(0); await react(); if (!e.m22put()) A.m22tries = (A.m22tries | 0) + 1; await sleep(150); return;   // ── fable32 (build 36) ── (a log refused — outside the band: a new aim, as before) ── /fable32 ──
     }
     if (K.ph === 'ready') { await react(); e.m22tap(); await sleep(200); return; }
     await sleep(80);
@@ -452,6 +452,7 @@
       const e = E(); if (!e || !e.st33) { await sleep(200); continue; }
       if (A.shot35q && S30().includes(A.shot35q)) { const n = A.shot35q; A.shot35q = null; await shot30(n, null, 2600); continue; }   // (the fade's own 1.5 s lifted first)   // ── fable32 (build 35) ── (the close's view: a frame after its cut) ── /fable32 ──
       if (S30().includes('run') && !A.shotDone.run && e.m22 && e.m22() && e.m22().ph === 'carry' && e.st33.r19 && e.st33.r19.run && hero().z < 30) await shot30('run', null, 0);   // ── fable32 (build 35) ── (the ramp run inside the maaracha role) ── /fable32 ──
+      if (S30().includes('chip36') && !A.shotDone.chip36 && e.lv36now && e.lv36now() && e.lv36now().id !== 'kiyor' && !(e.act30 && e.act30()) && !e.st33.paused && !(e.word30 && e.word30())) await shot30('chip36', null, 300);   // ── fable32 (build 36) ── (the level chip on the way to his role, before its act) ── /fable32 ──
       if (S30().includes('hud') && !A.shotDone.hud && e.gate26L && e.gate26L() && !e.p23() && !e.st33.paused && !(e.word30 && e.word30()) && !(e.j32q && e.j32q())) await shot30('hud', null, 300);   // ── fable32 (build 35) ── (the HUD between two acts: no fire meter, no countdown) ── /fable32 ──
       try {
         // ── fable32 (build 31) ── a practice run (opts.practice): its end card is up — the run is over (the runner takes the card, "עוד פעם" / "חזרה") ── /fable32 ──

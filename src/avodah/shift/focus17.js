@@ -26,6 +26,7 @@ import { createPen25 } from './pen25.js';
 import { createHeichal26 } from './heichal26.js';
 import { createDam27 } from './dam27.js';   // ── fable32 (build 27) ── ── /fable32 ──
 import { createPis23, rolesBook23 } from './pis23.js';   // ── fable32 (build 31) ── (+ the roles book, from the day's summary) ── /fable32 ──
+import { createChain38 } from './chain38.js';   // ── fable32 (build 38) ── the chain bar (E3) ── /fable32 ──
 import { createEnd30 } from './end30.js';   // ── fable32 (build 30) ── an act's end: its source line, tappable ── /fable32 ──
 import { openJournal32, createUnlock32 } from './book32.js';   // ── fable32 (build 32) ── the kohen's journal: the unlock card, the summary's doors ── /fable32 ──
 import { createTl33 } from './chamber33.js';   // ── fable32 (build 33) ── "הטלה המבוקר": the morning's card ── /fable32 ──
@@ -252,6 +253,7 @@ export function createFocus17(o = {}) {
   button(fire, () => E.fire17 && E.fire17());
   button(tam, () => E.fire17 && E.fire17());
   button(card, () => E.go17 && E.go17());
+  const chain38 = createChain38(doc);   // ── fable32 (build 38) ── ── /fable32 ──
   let bar = mk('f17-bar', ''),
     banner = mk('f17-ban', '<span>🔥 האש דועכת!</span><u>➜</u>'),
     bannerArrow = banner.querySelector('u'),
@@ -739,6 +741,7 @@ export function createFocus17(o = {}) {
     setRot(live && !F.summary);
     const disp = live && !F.summary ? '' : 'none';
     for (const el of [top, bar]) if (el.style.display !== disp) el.style.display = disp;
+    try { chain38.draw(live && !F.summary ? F.chain : null, !!(E.act30 && E.act30())); } catch (e) {}   // ── fable32 (build 38) ── ── /fable32 ──
     if (!live) {
       SHARED.hot17 = 0;
       return;
@@ -995,6 +998,7 @@ export function createFocus17(o = {}) {
         if (r30) r30.destroy();   // ── fable32 (build 30) ── ── /fable32 ──
         if (u32) u32.destroy();   // ── fable32 (build 32) ── ── /fable32 ──
         if (t33) t33.destroy();   // ── fable32 (build 33) ── ── /fable32 ──
+        chain38.dispose();   // ── fable32 (build 38) ── ── /fable32 ──
         try {
           if (offEv) offEv();
         } catch (e) {}

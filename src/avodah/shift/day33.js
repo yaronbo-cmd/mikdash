@@ -27,7 +27,7 @@
 import { goLabel31, verb31 } from './layout31.js';
 import { SHARED } from './draw.js';
 import { DAYSCORE, interludeScore } from './score35.js';
-import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27, gap37 } from '../day/world22.js';
+import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27, gap37, assist38 } from '../day/world22.js';
 import { evlog } from './evlog16.js';
 import './route31.js';
 import { RATE30, LINE30, ACT30, quality30, mastery30, rate30, best30, pay30, served30, role30 } from './rate30.js';   // ── fable32 (build 30) ── one rating for every act ── /fable32 ──
@@ -760,6 +760,31 @@ export const TASKS35 = Object.freeze([
   Object.freeze({ id: 'twoH', text: '✨ שתי עבודות מהודרות' }),
   Object.freeze({ id: 'fresh', text: '🆕 תפקיד שלא היה לך עד היום' }),
 ]);
+/** ── fable32 (build 38) ── E3, the chain bar (svivat-avoda-he.md §6, the owner 23.10 10:39 "פס שרשרת כן"): the morning's order as the
+ *  engine has it — the laver (each one's own), the first lot (all), its three roles (his one), the second lot (all), the great gate
+ *  (watched), the Heichal's two and the blood's two (his one; the others the court's kohanim) and the close. Information only: no clock,
+ *  nothing lost. The waits that exist (svivat-avoda §6): the gate before the slaughter (תמיד ג, ז), the five lamps before the blood
+ *  (יומא לג ע"א), the shochet before the zorek (תמיד ד, א). ── /fable32 ── */
+export const CHAIN38 = Object.freeze([
+  Object.freeze({ id: 'kiyor', icon: '💧', he: 'הכיור', kind: 'own' }),
+  Object.freeze({ id: 'lot1', icon: '☝', he: 'הפיס', kind: 'shared' }),
+  Object.freeze({ id: 'deshen', icon: '🔥', he: 'תרומת הדשן', kind: 'lot1' }),
+  Object.freeze({ id: 'm22', icon: '🪵', he: 'המערכה', kind: 'lot1' }),
+  Object.freeze({ id: 'lamb', icon: '🐑', he: 'בדיקת הטלה', kind: 'lot1' }),
+  Object.freeze({ id: 'lot2', icon: '☝', he: 'הפיס השני', kind: 'shared' }),
+  Object.freeze({ id: 'gate', icon: '🚪', he: 'השער הגדול', kind: 'watch' }),
+  Object.freeze({ id: 'menorah', icon: '🪔', he: 'המנורה', kind: 'lot2' }),
+  Object.freeze({ id: 'inner', icon: '🥣', he: 'מזבח הזהב', kind: 'lot2' }),
+  Object.freeze({ id: 'shochet', icon: '🔪', he: 'השחיטה', kind: 'lot2' }),
+  Object.freeze({ id: 'zorek', icon: '🏺', he: 'זריקת הדם', kind: 'lot2' }),
+  Object.freeze({ id: 'close', icon: '✓', he: 'הבוקר הושלם', kind: 'watch' }),
+]);
+/** the waits (a link that waits for another), each with its source — טיוטה */
+export const WAIT38 = Object.freeze({
+  shochet: Object.freeze({ on: 'gate', src: '"לא היה שוחט השוחט, עד ששומע קול שער הגדול שנפתח" — תמיד ג, ז · טיוטה' }),
+  zorek: Object.freeze({ on: 'menorah', src: '"והטבת חמש נרות קודם לדם התמיד" — יומא לג ע״א · טיוטה', then: 'shochet', src2: '"שחט השוחט, וקבל המקבל" — תמיד ד, א · טיוטה' }),
+});
+export const CH38 = Object.freeze({ msgS: 4.5, signS: 2.6, done: 'שלך הושלם', now: 'עכשיו', src: 'המחשה' });
 /** the roles the lots can give (the built ones) */
 const lotRoles35 = (on = {}) => [
   ...POOL23.filter((x) => x.built && (on.p25 !== false || x.id !== 'lamb')).map((x) => x.id),
@@ -5676,6 +5701,78 @@ export function createDay33(o = {}) {
     }
     return g;
   }
+  // ── fable32 (build 38) ── the chain bar's state (CHAIN38): each link — his, done, the morning's now, a court kohen's sign when his
+  // link that was waited for is done; and the line "שלך הושלם · עכשיו: ‹הבא›" (after the act's own word, end30) ── /fable32 ──
+  function state38() {
+    if (!b17 || !e35 || prac || st.phase !== 'run' || st.night) return null;
+    const d = st.day,
+      r30 = (Array.isArray(st.r30day) ? st.r30day : []).map((x) => x[0]),
+      lot1 = p23 && st.p23day === d,
+      lot2 = p26 && st.p26day === d,
+      gate = p26 && st.g26day === d,
+      lot = lot1 ? st.lot : null,
+      role = lot2 ? st.role26 : null,
+      mine = (id) => r30.includes(id),
+      act1 = lot1 && !!lot && mine(lot),
+      t = st.t,
+      g = Number.isFinite(st.g26t) ? st.g26t : null,
+      m5 = Number.isFinite(st.men5t) ? st.men5t : null,
+      blood = gate && g != null && t >= Math.max(m5 != null ? m5 : g + 12, g + 12) + 0.6,   // (the court's blood: heichal26's moment)
+      K27 = st.r27,
+      cut = role === 'zorek' && ((K27 && !/^(in|bind|wait|cut)$/.test(K27.ph)) || mine('zorek')),
+      done = { kiyor: !!st.washed, lot1, lot2, gate, close: !!st.close35 };
+    for (const x of ['deshen', 'm22', 'lamb']) done[x] = lot1 && (x === lot ? mine(x) : act1 || lot2);
+    for (const x of ['menorah', 'inner', 'shochet', 'zorek']) {
+      if (x === role) done[x] = mine(x);
+      else if (!gate) done[x] = false;
+      else if (x === 'menorah') done[x] = m5 != null && t >= m5;
+      else if (x === 'inner') done[x] = role === 'menorah' ? mine('menorah') : m5 != null && t >= m5;
+      else if (x === 'shochet') done[x] = role === 'zorek' ? cut : role === 'shochet' ? false : blood;
+      else done[x] = role === 'shochet' ? mine('shochet') : blood;
+    }
+    const his = { kiyor: 1 };
+    if (lot) his[lot] = 1;
+    if (role) his[role] = 1;
+    const links = CHAIN38.filter((x) => (x.id !== 'lamb' || p25) && (!/^(menorah|inner|gate)$/.test(x.id) || p26) && (!/^(shochet|zorek)$/.test(x.id) || p27));
+    return { d, t, done, his, role, gate, links, now: (links.find((x) => !done[x.id]) || {}).id || null };
+  }
+  function chain38Step() {
+    const S = state38();
+    if (!S) return;
+    const C = st.c38 && st.c38.day === S.d ? st.c38 : (st.c38 = { day: S.d, his: {}, msg: null, sign: null, gate: 0 }),
+      t = S.t,
+      after = st.end30 && st.end30.until > t ? st.end30.until : t;   // (after the act's own word)
+    for (const id of Object.keys(S.his))
+      if (S.done[id] && !C.his[id]) {
+        C.his[id] = 1;
+        const next = S.links.find((x) => !S.done[x.id] && !S.his[x.id]) || S.links.find((x) => !S.done[x.id]),
+          w = id === 'menorah' || id === 'shochet' ? 'zorek' : null;
+        C.msg = { id, text: `${CH38.done} · ${CH38.now}: ${next ? next.he : CHAIN38[CHAIN38.length - 1].he}`, src: id === 'menorah' ? WAIT38.zorek.src : id === 'shochet' ? WAIT38.zorek.src2 : CH38.src, t: after };
+        if (w && !S.his[w]) C.sign = { id: w, t: after };
+        L0('c38', id, next ? next.id : '');
+        emit17('c38', { id, next: next ? next.id : null, sign: w && !S.his[w] ? w : null });
+      }
+    if (S.gate && !C.gate) {   // the gate opened: the shochet who waited for it signs (his own role a Heichal one: he opened it)
+      C.gate = 1;
+      if (S.role === 'menorah' || S.role === 'inner') {
+        C.sign = { id: 'shochet', t };
+        emit17('c38', { id: 'gate', next: 'shochet', sign: 'shochet' });
+      }
+    }
+  }
+  function chain38() {
+    const S = state38();
+    if (!S) return null;
+    const C = st.c38 && st.c38.day === S.d ? st.c38 : null,
+      t = S.t,
+      msg = C && C.msg && t >= C.msg.t && t < C.msg.t + CH38.msgS ? C.msg : null,
+      sign = C && C.sign && t >= C.sign.t && t < C.sign.t + CH38.signS ? C.sign.id : null;
+    return {
+      links: S.links.map((x) => ({ id: x.id, icon: x.icon, he: x.he, kind: x.kind, his: !!S.his[x.id], done: !!S.done[x.id], now: x.id === S.now, wait: !!(WAIT38[x.id] && !S.done[x.id] && !S.done[WAIT38[x.id].on]), sign: x.id === sign })),
+      now: S.now,
+      msg: msg ? { text: msg.text, src: msg.src } : null,
+    };
+  }
   function bar17() {
     if (!b17 || st.phase !== 'run' || st.night) return [];
     let step = step17(),
@@ -5691,7 +5788,7 @@ export function createDay33(o = {}) {
       },
       // ── fable32 (build 35) ── (the bar's dead slots hidden: the wood, the ramp's trips, the song, the old pen and the bakers were the
       // old loop's — the laver alone is the morning's; the chain bar of the morning is a later build, svivat-avoda-he.md §6) ── /fable32 ──
-      b = (e35 ? (st.washed ? [] : ['kiyor']) : B17.slots).filter((x) => (x === 'song' ? open33('song') && (!!st.song || statN('songs') > 0) : open33(x))),   // (e35: the laver's slot while it is the morning's next; then none)
+      b = (e35 ? [] /* ── fable32 (build 38) ── (the chain bar replaces the laver's slot — chain38) ── */ : B17.slots).filter((x) => (x === 'song' ? open33('song') && (!!st.song || statN('songs') > 0) : open33(x))),   // (e35: the laver's slot while it is the morning's next; then none)
       c = gateAny(),
       d = gate20() ? 'kiyor' : gate23() || gate26L() || gate26() || gate27() || on27() ? '' : gate25() ? 'pen' : gate22() && !st.m22 ? 'wood' : 'kevesh';
     if (!e35 && st.fuel < B17.crit && !c) b = b.filter((x) => x === 'wood' || x === 'kevesh');   // ── fable32 (build 35) ── (!e35) ── /fable32 ──
@@ -5896,6 +5993,7 @@ export function createDay33(o = {}) {
           st.task35T = 0;
           taskStep35();
         }
+        chain38Step();   // ── fable32 (build 38) ── ── /fable32 ──
         close35Step();
       } else {
         drainStep(dt);
@@ -6143,6 +6241,7 @@ export function createDay33(o = {}) {
         st.m22c = 0;
       }
       if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass((a, b) => houseFloor(a, b) || (p27 && (rings27(a, b) || westStrip27(a, b)))));   // ── fable32 (build 27) ── (the place of slaughter's floor: stages' 'lishka' footprint keeps it solid) ── /fable32 ──
+      if (p26 && T) T.assist38 = assist38;   // ── fable32 (build 38) ── (the help at the narrow openings: the stick's heading bent into the door — world22 assist38) ── /fable32 ──
       if (p23 && !st.washed) wake23();
       if (prac) place31();   // ── fable32 (build 31) ── (at his act's place: it begins at once) ── /fable32 ──
       if (prac) st.tasks = [];
@@ -6223,6 +6322,7 @@ export function createDay33(o = {}) {
       HOUSE22.on = HOUSE22.gate = false;
       WEST27.on = false;
       if (p26 && S && S.hero && S.hero.twinPass) say(() => S.hero.twinPass(null));
+      if (T && T.assist38 === assist38) T.assist38 = null;   // ── fable32 (build 38) ── ── /fable32 ──
     },
     state,
     tick,
@@ -6287,6 +6387,7 @@ export function createDay33(o = {}) {
     camWork35,
     pads18: () => pads18().slice(),
     tasks35: () => st.tasks.map((x) => ({ id: x.id, text: x.text, done: !!x.done })),
+    chain38,   // ── fable32 (build 38) ── ── /fable32 ──
     focus17: () => ({
       e35,
       close35: st.close35 ? st.close35.ph : null,
@@ -6300,6 +6401,7 @@ export function createDay33(o = {}) {
       bake: open33('bake'),
       step: step17(),
       bar: bar17(),
+      chain: chain38(),   // ── fable32 (build 38) ── ── /fable32 ──
       grace: grace17(),
       streak: st.streak,
       hot: st.hot17 || null,

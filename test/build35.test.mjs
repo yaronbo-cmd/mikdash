@@ -138,7 +138,8 @@ test('build 35 (1): the old loop\'s stations have no door — runAt / tapStation
   for (const id of ['wood', 'kevesh', 'oil', 'bake', 'pen', 'song', 'pyre']) { const s = R.STATIONS[id].stand; R.at(s.x, s.z); assert.equal(await R.E.runAt(id), false, id); assert.equal(R.E.tapStation(id), false, id); }
   assert.deepEqual(R.E.shown33(), [], 'no station chip'); const sa = R.STATIONS.salt.stand; R.at(sa.x, sa.z); R.E.st33.r19.bag = 0; assert.equal(await R.E.runAt('salt'), true, 'the salt chamber\'s door'); assert.ok(R.E.st33.r19.bag > 0, 'the salt chamber\'s bag at its door');
   const B = rig(FLAGS, { save: after(3), twin: twin() }); B.E.start(); await B.step(0.3);
-  assert.deepEqual(B.E.bar17().map((x) => x.id), ['kiyor']);
+  assert.deepEqual(B.E.bar17().map((x) => x.id), []);   // ── fable32 (build 38) ── (was ['kiyor']: the chain bar replaces the laver's slot — chain38) ── /fable32 ──
+  assert.equal(B.E.chain38().links[0].id, 'kiyor'); assert.equal(B.E.chain38().links[0].his, true);
   const O = rig(FLAGS34, { save: after(3), twin: twin() }); O.E.start(); await O.step(0.3); O.E.debug.fed(200); await O.step(0.2);
   assert.ok(O.E.bar17().length > 1 && O.E.shown33().includes('wood'), 'the old loop behind the flag');
 });

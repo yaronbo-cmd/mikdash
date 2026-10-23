@@ -713,7 +713,9 @@ export function createTwin(o = {}) {
         stick.v.vx = stick.v.vz = 0; stick.m.sp = 0; drive(0, 0); stick.vx = stick.vz = 0;
       } else {
         const fx = -Math.cos(st.az), fz = -Math.sin(st.az), v = stickVel(stick.v, (fx * uy - fz * ux) * M, (fz * uy + fx * ux) * M, top, dt, P.tau);
-        stick.m.sp = Math.hypot(v.vx, v.vz); drive(v.vx, v.vz); stick.vx = v.vx; stick.vz = v.vz;
+        let dvx = v.vx, dvz = v.vz;
+        if (typeof T.assist38 === 'function') { try { const a = T.assist38(hp.x, hp.z, dvx, dvz); if (a) { dvx = a[0]; dvz = a[1]; } } catch (e) { /* the shift's */ } }   // ── fable32 (build 38) ── (the help at narrow openings: the stick's heading bent into the door — world22 assist38; the speed the stick's) ── /fable32 ──
+        stick.m.sp = Math.hypot(dvx, dvz); drive(dvx, dvz); stick.vx = dvx; stick.vz = dvz;
       }
       stick.parked = false; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z);
     } else if (soft && stick.on && h && !moment) {

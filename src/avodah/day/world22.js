@@ -40,6 +40,44 @@ export function houseFloor(x, z) {
  *  hand could not move him either). A wall to his feet (blocked) and to the gold path (flow31); one already in it is set back on the
  *  step (day33). ── /fable32 ── */
 export const gap37 = (x, z) => x > -76.65 && x < -75.95 && Math.abs(z) > 9.3 && Math.abs(z) < 31;
+/** ── fable32 (build 38) ── the help at the narrow openings (the owner, 23.10 10:39: "עזרה בפתחים כן"; svivat-avoda-he.md §11.6): when
+ *  the stick pushes roughly toward an opening — the Ulam's door from its steps (and its inner mouth from the hall), the Heichal's gate
+ *  from the Ulam (and its inner mouth from the Heichal) — within DOOR38.reach of it and beside its span, the stick's heading is bent
+ *  toward the opening's near edge by DOOR38.k of the angle between them, so he slides along the jamb into it instead of stopping dead.
+ *  No walk of its own: no stick, no motion; the stick keeps the speed; never when the stick points away from the way through (the cone
+ *  is the stick's angle to the way through). The naive kid stood 60 s and more against the wall beside the Heichal's gate in four of six
+ *  runs (build 37). ── /fable32 ── */
+export const DOOR38 = Object.freeze({ k: 0.75, cone: 40, reach: 7, side: 5, inset: 1 });
+const DOORS38 = Object.freeze([
+  Object.freeze({ x: -76.6, w: 9.3, dir: -1, gate: false }),   // the Ulam's door, from its steps (west)
+  Object.freeze({ x: -81.2, w: 9.3, dir: 1, gate: false }),   // its inner mouth, from the Ulam's hall (east, out)
+  Object.freeze({ x: -91.6, w: 4.4, dir: -1, gate: true }),   // the Heichal's gate, from the Ulam (west)
+  Object.freeze({ x: -98.4, w: 4.4, dir: 1, gate: true }),   // its inner mouth, from the Heichal (east, out)
+]);
+/** the stick's velocity (vx, vz) at (x, z) → the bent one [vx, vz], or null (no help here) */
+export function assist38(x, z, vx, vz) {
+  const sp = Math.hypot(vx, vz);
+  if (!HOUSE22.on || !(sp > 0.05)) return null;
+  const ux = vx / sp,
+    uz = vz / sp,
+    cos = Math.cos((DOOR38.cone * Math.PI) / 180);
+  let best = null;
+  for (const d of DOORS38) {
+    if (d.gate && !HOUSE22.gate) continue;
+    const ahead = (d.x - x) * d.dir,
+      lim = d.w - DOOR38.inset,
+      az = Math.abs(z);
+    if (ahead <= 0.05 || ahead > DOOR38.reach || ux * d.dir < cos || az <= lim || az > d.w + DOOR38.side) continue;
+    if (!best || ahead < best.ahead) best = { d, ahead, zt: Math.sign(z) * lim };
+  }
+  if (!best) return null;
+  const a0 = Math.atan2(uz, ux);
+  let da = Math.atan2(best.zt - z, best.d.x - x) - a0;
+  while (da > Math.PI) da -= 2 * Math.PI;
+  while (da < -Math.PI) da += 2 * Math.PI;
+  const a = a0 + DOOR38.k * da;
+  return [Math.cos(a) * sp, Math.sin(a) * sp];
+}
 /** stages.hero.twinExtra: true = the step is blocked (never off the Temple's floors; never into a solid he is not already in) */
 export function blocked(x, z, x0, z0) {
   if (gap37(x, z) && !gap37(x0, z0)) return true;   // ── fable32 (build 37) ── ── /fable32 ──

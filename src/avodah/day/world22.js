@@ -47,7 +47,7 @@ export const gap37 = (x, z) => x > -76.65 && x < -75.95 && Math.abs(z) > 9.3 && 
  *  No walk of its own: no stick, no motion; the stick keeps the speed; never when the stick points away from the way through (the cone
  *  is the stick's angle to the way through). The naive kid stood 60 s and more against the wall beside the Heichal's gate in four of six
  *  runs (build 37). ── /fable32 ── */
-export const DOOR38 = Object.freeze({ k: 0.75, cone: 40, reach: 7, side: 5, inset: 1 });
+export const DOOR38 = Object.freeze({ k: 0.75, cone: 40, reach: 7, side: 5, inset: 1, round: 2.5, clear: 1 });
 const DOORS38 = Object.freeze([
   Object.freeze({ x: -76.6, w: 9.3, dir: -1, gate: false }),   // the Ulam's door, from its steps (west)
   Object.freeze({ x: -81.2, w: 9.3, dir: 1, gate: false }),   // its inner mouth, from the Ulam's hall (east, out)
@@ -70,11 +70,47 @@ export function assist38(x, z, vx, vz) {
     if (ahead <= 0.05 || ahead > DOOR38.reach || ux * d.dir < cos || az <= lim || az > d.w + DOOR38.side) continue;
     if (!best || ahead < best.ahead) best = { d, ahead, zt: Math.sign(z) * lim };
   }
-  if (!best) return null;
+  if (!best) return vessel38(x, z, ux, uz, sp);
   const a0 = Math.atan2(uz, ux);
   let da = Math.atan2(best.zt - z, best.d.x - x) - a0;
   while (da > Math.PI) da -= 2 * Math.PI;
   while (da < -Math.PI) da += 2 * Math.PI;
+  const a = a0 + DOOR38.k * da;
+  return [Math.cos(a) * sp, Math.sin(a) * sp];
+}
+/** ── fable32 (build 38) ── the same help round the Heichal's three vessels (the golden altar in the middle, the table, the menorah):
+ *  the stick that points into one within DOOR38.round is bent by DOOR38.k toward the corner (DOOR38.clear beyond its edge) nearest to
+ *  where it points — he goes round it instead of standing against it (the naive kid stood against the golden altar's north side on his
+ *  way to the menorah). The same rules: no stick, no motion; the stick's speed; only what the stick already points into. ── /fable32 ── */
+function vessel38(x, z, ux, uz, sp) {
+  if (!HOUSE22.gate || x > -98.4) return null;
+  const m = DOOR38.clear;
+  let best = null;
+  for (const r of HEICHAL_VESSELS) {
+    const x0 = r[0] - m, x1 = r[1] + m, z0 = r[2] - m, z1 = r[3] + m;
+    if (x > x0 && x < x1 && z > z0 && z < z1) continue;   // (in its margin already: the walls' own slide)
+    // the stick's ray (DOOR38.round long) against the box (slabs)
+    let t0 = 0, t1 = DOOR38.round, hit = true;
+    for (const [p, u, lo, hi] of [[x, ux, r[0], r[1]], [z, uz, r[2], r[3]]]) {
+      if (Math.abs(u) < 1e-9) { if (p < lo || p > hi) hit = false; continue; }
+      let a = (lo - p) / u, b = (hi - p) / u;
+      if (a > b) [a, b] = [b, a];
+      t0 = Math.max(t0, a);
+      t1 = Math.min(t1, b);
+    }
+    if (!hit || t0 > t1) continue;
+    if (!best || t0 < best.t) best = { t: t0, c: [[x0, z0], [x0, z1], [x1, z0], [x1, z1]] };
+  }
+  if (!best) return null;
+  const a0 = Math.atan2(uz, ux);
+  let da = null;
+  for (const [cx, cz] of best.c) {
+    let d = Math.atan2(cz - z, cx - x) - a0;
+    while (d > Math.PI) d -= 2 * Math.PI;
+    while (d < -Math.PI) d += 2 * Math.PI;
+    if (Math.abs(d) < Math.PI / 2 && (da == null || Math.abs(d) < Math.abs(da))) da = d;
+  }
+  if (da == null) return null;
   const a = a0 + DOOR38.k * da;
   return [Math.cos(a) * sp, Math.sin(a) * sp];
 }

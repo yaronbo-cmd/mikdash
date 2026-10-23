@@ -86,7 +86,7 @@ test('build 38 (A): the day\'s summary shows the morning\'s chain with his links
 
 // ───────── B. the help at narrow openings ─────────
 test('build 38 (B): the door help — the stick toward the Heichal\'s gate beside its span is bent into it (the speed kept); never away, never with no stick, never with the gate shut, not when in line', () => {
-  assert.deepEqual({ ...DOOR38 }, { k: 0.75, cone: 40, reach: 7, side: 5, inset: 1 });
+  assert.deepEqual({ ...DOOR38 }, { k: 0.75, cone: 40, reach: 7, side: 5, inset: 1, round: 2.5, clear: 1 });
   const on = HOUSE22.on, g = HOUSE22.gate;
   try {
     HOUSE22.on = true; HOUSE22.gate = true;
@@ -97,7 +97,11 @@ test('build 38 (B): the door help — the stick toward the Heichal\'s gate besid
     assert.equal(assist38(-70, -6.6, -6, 0), null, 'too far from the gate (and in line with the Ulam\'s door)');
     const u = assist38(-74, 12, -6, 0); assert.ok(u && u[1] < 0, 'the Ulam\'s door from its steps');
     const o = assist38(-105, 7, 6, 0); assert.ok(o && o[1] < 0, 'the gate\'s inner mouth, from the Heichal out');
-    HOUSE22.gate = false; assert.equal(assist38(-86.8, -6.6, -6, 0), null, 'the gate shut: none');
+    // round the Heichal's vessels: into the golden altar from the north — bent round its corner; away from it, none; too far, none
+    const v = assist38(-121, -3, 0, 6); assert.ok(v && v[0] > 0, 'round the golden altar'); assert.ok(Math.abs(Math.hypot(v[0], v[1]) - 6) < 1e-9);
+    assert.equal(assist38(-121, -3, 0, -6), null, 'away from it'); assert.equal(assist38(-122.9, -5.5, 0, 6), null, 'beyond DOOR38.round');
+    assert.ok(assist38(-124, -4, 0, -6), 'round the table');
+    HOUSE22.gate = false; assert.equal(assist38(-86.8, -6.6, -6, 0), null, 'the gate shut: none'); assert.equal(assist38(-121, -3, 0, 6), null, 'the Heichal shut: none');
     HOUSE22.on = false; assert.equal(assist38(-74, 12, -6, 0), null, 'the House shut: none');
   } finally { HOUSE22.on = on; HOUSE22.gate = g; }
   const t = read('src/game/twin.js'); assert.match(t, /if \(typeof T\.assist38 === 'function'\) \{ try \{ const a = T\.assist38\(hp\.x, hp\.z, dvx, dvz\);/);

@@ -34,8 +34,15 @@ export function houseFloor(x, z) {
   if (x > -98.4) return az < 4.4;
   return x > -136.4 && az < 9.2 && !HEICHAL_VESSELS.some((r) => x > r[0] && x < r[1] && z > r[2] && z < r[3]);
 }
+/** ── fable32 (build 37) ── the gap beside the Ulam's door: between the top of its steps (the ground 22 from x −76 east) and its front
+ *  wall (x −76.6), north and south of the door (|z| 9.3…31), the ground is the court's — 6 below; a step west off the top dropped him
+ *  into a slot he could not climb out of (the naive kid at 640 × 296: hard stucks at (−76.3, ±10) in three of nine runs, the parent's
+ *  hand could not move him either). A wall to his feet (blocked) and to the gold path (flow31); one already in it is set back on the
+ *  step (day33). ── /fable32 ── */
+export const gap37 = (x, z) => x > -76.65 && x < -75.95 && Math.abs(z) > 9.3 && Math.abs(z) < 31;
 /** stages.hero.twinExtra: true = the step is blocked (never off the Temple's floors; never into a solid he is not already in) */
 export function blocked(x, z, x0, z0) {
+  if (gap37(x, z) && !gap37(x0, z0)) return true;   // ── fable32 (build 37) ── ── /fable32 ──
   // ── recovered (16–26c) ── the House's floor is free; out of it only eastward, past the Ulam's front
   if (HOUSE22.on) {
     if (houseFloor(x, z)) return false;

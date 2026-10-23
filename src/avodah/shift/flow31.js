@@ -6,7 +6,7 @@
  * along it toward the place; only while there is a next place. Nothing here presses: no clock, no penalty. Never a Divine Name. ── /flow31 ── */
 import { planPath } from '../day/guide27.js';
 import { man, lamb } from '../works/figures.js';   // ── fable32 (build 8) ── (the merchant at the gate) ── /fable32 ──
-import { free, houseFloor, onHigh, rampWay, HOUSE22, WEST27, westStrip27 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onHigh, rampWay, HOUSE22) ── fable32 (build 27) ── (westStrip27) ── /fable32 ──
+import { free, houseFloor, onHigh, rampWay, HOUSE22, WEST27, westStrip27, gap37 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onHigh, rampWay, HOUSE22) ── fable32 (build 27) ── (westStrip27) ── /fable32 ──
 import { placeGround } from '../works/anchors.js';
 import { addDrawer, layerOf, L, SHARED } from './draw.js';
 
@@ -17,8 +17,8 @@ const FREE = (x, z) => free(x, z) && !(x < -54.95 && x > -76.5 && Math.abs(z) < 
 // the gate shut or open (houseFloor reads HOUSE22.gate). The names but LISHKA26 (the report's) are the recovery's.
 const LISHKA26 = (x, z) => x > -54.3 && x < -21.7 && z > -62.3 && z < -26.7;
 const FREE26 = (x, z) => FREE(x, z) && !LISHKA26(x, z);
-const FREE_HOUSE = (x, z) => houseFloor(x, z) || FREE26(x, z);
-const FREE_GATE = (x, z) => houseFloor(x, z) || FREE26(x, z);
+const FREE_HOUSE = (x, z) => !gap37(x, z) && (houseFloor(x, z) || FREE26(x, z));   // ── fable32 (build 37) ── (not through the gap beside the Ulam's door — world22 gap37) ── /fable32 ──
+const FREE_GATE = (x, z) => !gap37(x, z) && (houseFloor(x, z) || FREE26(x, z));
 // ── fable32 (build 27) ── while his blood role is on, the lowest steps by the altar's west face too (world22 westStrip27): functions of
 // their own, so guide27's grid (cached by its function) is planned again ── /fable32 ──
 const FREE_W = (x, z) => FREE(x, z) || westStrip27(x, z);

@@ -27,7 +27,7 @@
 import { goLabel31, verb31 } from './layout31.js';
 import { SHARED } from './draw.js';
 import { DAYSCORE, interludeScore } from './score35.js';
-import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27 } from '../day/world22.js';
+import { free, houseFloor, onHigh, HOUSE22, WEST27, westStrip27, gap37 } from '../day/world22.js';
 import { evlog } from './evlog16.js';
 import './route31.js';
 import { RATE30, LINE30, ACT30, quality30, mastery30, rate30, best30, pay30, served30, role30 } from './rate30.js';   // ── fable32 (build 30) ── one rating for every act ── /fable32 ──
@@ -5920,6 +5920,10 @@ export function createDay33(o = {}) {
       r26Step(dt);
       HOUSE22.on = gate26() || !!st.r26;
       HOUSE22.gate = HOUSE22.on && open26();
+      if (HOUSE22.on) {   // ── fable32 (build 37) ── (one already in the gap beside the Ulam's door — world22 gap37 — set back on the top step) ── /fable32 ──
+        const h = heroP();
+        if (gap37(h.x, h.z)) moveHero(-75.6, h.z, -Math.PI / 2), L0('gap37', Math.round(h.z));
+      }
     }
     if (p27) {   // ── fable32 (build 27) ── ── /fable32 ──
       r27Step(dt);

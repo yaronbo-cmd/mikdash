@@ -115,12 +115,32 @@ test('build 37 (3): a sample of the measured shares (node, the tuned table: the 
   const l4 = await share('lamb', 4, 'skilled', 20); assert.ok(l4 >= 0.1 && l4 <= 0.65, `the lamb, level 4, the skilled: ${l4}`);
 });
 
+// ───────── (5) the naive kid's sweep ─────────
+test('build 37 (5): the gap beside the Ulam\'s door (x −76.65…−75.95, |z| 9.3…31: the court\'s floor 6 below the top step) — a wall to the feet and to the gold path; one already in it set back on the step', async () => {
+  const W = await import('../src/avodah/day/world22.js');
+  W.HOUSE22.on = true;
+  try {
+    assert.equal(W.blocked(-76.3, 10, -75.8, 10), true); assert.equal(W.blocked(-76.3, -10, -75.8, -10), true);
+    assert.equal(W.blocked(-75.8, 10, -75.5, 10), false, 'the top step itself'); assert.equal(W.blocked(-76.8, 5, -76.3, 5), false, 'the door');
+    assert.equal(W.gap37(-76.3, 9), false); assert.equal(W.gap37(-76.3, 31.5), false);
+  } finally { W.HOUSE22.on = false; }
+  assert.match(read('src/avodah/shift/flow31.js'), /const FREE_HOUSE = \(x, z\) => !gap37\(x, z\) && /);
+  assert.match(read('src/avodah/shift/flow31.js'), /const FREE_GATE = \(x, z\) => !gap37\(x, z\) && /);
+  const N = practise('menorah', 1); N.E.start(); await N.step(0.6);
+  N.at(-76.3, 10); await N.step(0.1);
+  assert.ok(N.H.x > -76, `set back on the step: ${N.H.x}`); assert.equal(N.H.z, 10);
+});
+test('build 37 (5): the menorah\'s last step says its verb; the ashes\' gold-ring hand kept on the screen', () => {
+  assert.match(read('src/avodah/shift/rate30.js'), /kuz: 'הכוז על המעלה — הקישו'/);
+  assert.match(read('src/avodah/shift/deshen21.js'), /if \(p && Number\.isFinite\(p\.x\) && Number\.isFinite\(p\.y\)\) tapRing\.style\.transform = `translate\(\$\{Math\.max\(48, Math\.min\(\(innerWidth \|\| 640\) - 48, p\.x\)\)/);
+});
+
 // ───────── the Divine Name ─────────
 test('build 37: no Divine Name in the changed files (by code points; spaced, hyphenated or pointed forms too)', () => {
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];
   const sep = '[\\u0591-\\u05C7\\s\\-\\u05BE\\u05F3\\u05F4\'".]*';
   const res = N.map((c) => new RegExp(c.map((x) => String.fromCharCode(x)).join(sep)));
-  const files = ['src/avodah/shift/day33.js', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/kiyor20.js', 'src/avodah/shift/index.js', 'src/avodah/shift/lvl36.js', 'src/avodah/shift/pen25.js', 'src/avodah/shift/lobby35.js',
+  const files = ['src/avodah/shift/day33.js', 'src/avodah/day/world22.js', 'src/avodah/shift/flow31.js', 'src/avodah/shift/deshen21.js', 'src/avodah/shift/rate30.js', 'tools/kid34/kidmodes.cjs', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/kiyor20.js', 'src/avodah/shift/index.js', 'src/avodah/shift/lvl36.js', 'src/avodah/shift/pen25.js', 'src/avodah/shift/lobby35.js',
     'tools/lvl36sim.mjs', 'tools/autoplay35.js', 'tools/autoplay35-run.cjs', 'test/build37.test.mjs', 'test/build18.test.mjs', 'test/build20.test.mjs', 'test/build35.test.mjs', 'test/build36.test.mjs', 'PROJECT.md'];
   const hits = []; for (const f of files) { const s = read(f); res.forEach((r, i) => { const m = s.match(r); if (m) hits.push(`${f}: name ${i} at ${m.index}`); }); }
   assert.deepEqual(hits, []);

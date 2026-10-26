@@ -22,10 +22,11 @@ const TURN = [0.6, -0.6, 1.2, -1.2, 1.9, -1.9];
 // ── recovered (16–26c) ── the pull-only lift over his shoulder: at most PULL_LIFT, and the camera's elevation at most PULL_EL (the names are the recovery's)
 const PULL_LIFT = 0.35, PULL_EL = 0.7;
 // ── fable32 (build 40) ── the shift's follow camera never hugs his back by a wall (the coordinator's build-40 brief: build 39's probe at
-// 844×390 and the pyre at 640×296 — the hat filling the frame): before the pull, the least rise at his bearing (to `rise`), then a small
-// swing round him (`turn`, rad) a little risen — never above `elMax` (the owner's 57° cap, build 5.1); a pull that must come nearer than
-// 9 amot rises over his shoulder up to `lift` (to `el`) instead of PULL_LIFT / PULL_EL ── /fable32 ──
-export const WALL40 = Object.freeze({ rise: 0.5, turn: Object.freeze([0.35, -0.35, 0.7, -0.7]), elMax: 1.0, lift: 0.6, el: 0.95 });
+// 844×390 and the pyre at 640×296 — the hat filling the frame): before the pull, a swing round him at its full distance (`turn`, rad —
+// the least first; the walk is the guide's since build 39, so a turned camera turns no thumb) at most `rise` higher; only when no bearing
+// clears, the pull as before (PULL_LIFT / PULL_EL). Measured first with a rise to 0.5 and a pull lifted to 0.6: worse — at 640 × 296 he
+// fell out of the frame's foot (the look point is ahead of him), at 844 × 390 the camera looked down onto his head ── /fable32 ──
+export const WALL40 = Object.freeze({ rise: 0.09, turn: Object.freeze([0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4]), elMax: 1.0 });
 
 function segBox(px, py, pz, qx, qy, qz, B) {
   let t0 = 0, t1 = 1;
@@ -136,9 +137,8 @@ export function createCamGuard(o = {}) {
         }
         if (pullOnly) for (const ah of ahead ? [true, false] : [false]) {   // ── fable32 (build 40) ── WALL40 ── /fable32 ──
           useAhead = ah; if (got) break;
-          const cap = Math.max(0, WALL40.elMax - e0);
-          for (let i = 0; !got && i < RISE.length && RISE[i] <= Math.min(WALL40.rise, cap); i++) got = tryP(0, RISE[i], 1, 'rise');
-          for (let i = 0; !got && i < WALL40.turn.length; i++) for (const r of [0.09, 0.27, 0.45]) if (r <= cap && (got = tryP(WALL40.turn[i], r, 1, 'turn'))) break;
+          const cap = Math.max(0, Math.min(WALL40.rise, WALL40.elMax - e0));
+          for (let i = 0; !got && i < WALL40.turn.length; i++) for (const r of [0, cap]) if ((got = tryP(WALL40.turn[i], r, 1, 'turn'))) break;
         }
         useAhead = true;
         if (!got) {
@@ -147,7 +147,7 @@ export function createCamGuard(o = {}) {
           let t = firstHit(ax, ay, az, qx, qy, qz);
           let kMax = 1;
           if (pullOnly && t * L < 9) {   // (pulled nearer than 9 amot — his back would fill the frame: the camera also rises a little, to look over his shoulder — and stays near, at most 3 amot farther than the pull)
-            const d0 = t * L; r = Math.min(WALL40.lift, (9 - d0) / 9 * 1.1); if (e0 + r > WALL40.el) r = Math.max(0, WALL40.el - e0);   /* ── fable32 (build 40) ── (was PULL_LIFT / PULL_EL) ── /fable32 ── */ q = pose(ax, ay, az, vx, vy, vz, r, 1); qx = q.x; qy = q.y; qz = q.z; L = Math.hypot(qx - ax, qy - ay, qz - az) || 1; t = firstHit(ax, ay, az, qx, qy, qz); kMax = (d0 + 4) / L;   // ── recovered (16–26c) ── (capped)
+            const d0 = t * L; r = Math.min(PULL_LIFT, (9 - d0) / 9 * 0.8); if (e0 + r > PULL_EL) r = Math.max(0, PULL_EL - e0); q = pose(ax, ay, az, vx, vy, vz, r, 1); qx = q.x; qy = q.y; qz = q.z; L = Math.hypot(qx - ax, qy - ay, qz - az) || 1; t = firstHit(ax, ay, az, qx, qy, qz); kMax = (d0 + 4) / L;   // ── recovered (16–26c) ── (capped)
           }
           tA = 0; tE = r; tK = Math.min(kMax, Math.max(Math.min(1, (pullOnly ? 5 : 6) / L), t - 0.8 / L));   // (pull-only: as near as 5 amot)
         }

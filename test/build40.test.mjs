@@ -141,14 +141,13 @@ test('build 40: the act\'s camera (twin.js pan40) — the authored view slid sid
   assert.match(tw, /r40 = pan40\(V\.p, V\.t, O,/);
 });
 
-test('build 40: the follow camera by a wall (cam28 WALL40) — under the shift\'s pull-only rule the guard first rises at his bearing, then swings a little round him, never past the 57° cap; a pull nearer than 9 amot rises over his shoulder', () => {
-  assert.ok(WALL40.rise > 0 && WALL40.rise <= 0.6 && WALL40.elMax <= 1.0 && WALL40.turn.every((a) => Math.abs(a) <= 0.7));
+test('build 40: the follow camera by a wall (cam28 WALL40) — under the shift\'s pull-only rule the guard first swings round him at its full distance (the least turn first, hardly risen, never past the 57° cap); only then the pull as before', () => {
+  assert.ok(WALL40.rise <= 0.1 && WALL40.elMax <= 1.0 && Math.abs(WALL40.turn[0]) <= 0.35 && WALL40.turn.every((a, i) => i === 0 || Math.abs(a) >= Math.abs(WALL40.turn[i - 1])));
   const g = read('src/avodah/day/cam28.js');
   const i = g.indexOf('if (pullOnly) for (const ah of ahead'), j = g.indexOf("mode = 'pull';", i);
   assert.ok(i > 0 && j > i, 'the rise and the swing come before the pull');
-  assert.match(g.slice(i, j), /tryP\(0, RISE\[i\], 1, 'rise'\)/);
-  assert.match(g.slice(i, j), /tryP\(WALL40\.turn\[i\], r, 1, 'turn'\)/);
-  assert.match(g, /r = Math\.min\(WALL40\.lift, \(9 - d0\) \/ 9 \* 1\.1\); if \(e0 \+ r > WALL40\.el\)/);
+  assert.match(g.slice(i, j), /tryP\(WALL40\.turn\[i\], r, 1, 'turn'\)/, 'at the full distance (K 1)');
+  assert.match(g, /r = Math\.min\(PULL_LIFT, \(9 - d0\) \/ 9 \* 0\.8\); if \(e0 \+ r > PULL_EL\)/, 'the pull as it was');
 });
 
 // ───────── the acts ─────────

@@ -18,6 +18,7 @@ import { addDrawer, L, onTick } from './draw.js';
 import { lamb as lambFig, man, ROBE, SKIN } from '../works/figures.js';
 import { P27, needle27, throw27, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
 import { L33 } from './lamb33.js';   // ── fable32 (build 33) ── (today's lamb's tag) ── /fable32 ──
 import { BLOOD, tagBlood } from '../works/blood.js';
 
@@ -290,6 +291,9 @@ export function createDam27(o = {}) {
     pourAt = -1,
     npcGate = -1,
     hp = { x: 0, y: 16, z: 0 };
+  // ── fable32 (build 40) ── the act's surface on the thing (touch40.js): the lamb's legs to bind, its neck to cut and to catch, the vessel in
+  // his hand to stir, to aim and to pour (and the base's hole) ── /fable32 ──
+  const t40 = createTouch40({ doc, pad, id: 'dm27', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
   const setStick = (off) => {
       if (stickOff === off) return;
       stickOff = off;
@@ -360,6 +364,11 @@ export function createDam27(o = {}) {
       if (!pad.classList.contains('on')) {
         touches.clear();
         aim.on = false;
+      }
+      {   // ── fable32 (build 40) ── ── /fable32 ──
+        const on40 = active && PAD.test(ph), hand = { x: hp.x, y: (hp.y || 16) + 3.2, z: hp.z, r: 0.9 };
+        t40.place(on40, !on40 ? null : ph === 'bind' ? [{ ...FORE, r: 0.6 }, { ...HIND, r: 0.6 }] : ph === 'cut' ? [{ ...NECK, r: 0.7 }] : ph === 'recv' ? [{ ...NECK, r: 0.6 }, hand] : ph === 'base' ? [hand, { ...P27.hole, r: 0.5 }] : [hand],
+          ph === 'bind' ? 'dm27bind' : ph === 'cut' ? 'dm27cut' : ph === 'recv' ? 'dm27recv' : /^aim2?$/.test(ph) ? 'dm27aim' : ph === 'base' ? 'dm27base' : 'dm27stir');
       }
       // the hint and its source
       // ── fable32 (build 30) ── (the hint card — HINT's lines with their sources — is gone while he works: the step card's one line, "גררו: יד
@@ -834,6 +843,7 @@ export function createDam27(o = {}) {
   });
   const api = {
     destroy() {
+      t40.destroy();   // ── fable32 (build 40) ── ── /fable32 ──
       offTick();
       offDraw();
       offEv();

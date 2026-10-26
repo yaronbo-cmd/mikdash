@@ -19,6 +19,7 @@ import { addDrawer, L, onTick } from './draw.js';
 import { lamb, man, ROBE, SKIN } from '../works/figures.js';
 import { P26, POOL26, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
 import { ALTAR_CORNERS, DESHEN_PLACE, LIMBS_PLACE, TAMID_RING } from '../../places.js';
 export function createHeichal26(o = {}) {
   const E = o.E,
@@ -224,6 +225,9 @@ export function createHeichal26(o = {}) {
   const touches = new Map(),
     tsOf = (ev) => (ev.timeStamp > 0 ? ev.timeStamp : performance.now()),
     dragFire = { x: NaN, y: NaN };
+  // ── fable32 (build 40) ── the act's surface on the thing (touch40.js): the gate's bolt and key, the inner altar's ashes, the lamp he
+  // tends (and the lit lamp or the pan the fire comes from), the teni in his hand ── /fable32 ──
+  const t40 = createTouch40({ doc, pad, id: 'hk26', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
@@ -459,6 +463,19 @@ export function createHeichal26(o = {}) {
       setOn(acting && live);
       pad.classList.toggle('on', !!K && PAD_PH.test(ph) && live);
       if (!pad.classList.contains('on')) touches.clear();
+      {   // ── fable32 (build 40) ── ── /fable32 ──
+        let o40 = null, id40 = 'hk26';
+        if (K && PAD_PH.test(ph) && live) {
+          const li = K.ord && K.ord.length ? K.ord[Math.min(K.li | 0, K.ord.length - 1)] : 0, L0 = lamps[li] || lamps[0];
+          if (ph === 'bolt' || ph === 'key') { o40 = [{ x: P26.gate.x, y: gy(P26.gate.x, P26.gate.z) + 4.5, z: P26.gate.z, r: 2.6 }]; id40 = 'hk26gate'; }
+          else if (ph === 'pull') { o40 = [{ x: P26.alt.x, y: gy(P26.alt.x, P26.alt.z) + 1.4, z: P26.alt.z, r: 1.3 }]; id40 = 'hk26alt'; }
+          else if (ph === 'teni36') { o40 = [{ x: hp.x, y: (hp.y || 16) + 3.4, z: hp.z, r: 1.2 }]; id40 = 'hk26teni'; }
+          else if (ph === 'altar') o40 = [{ x: PAN36.x, y: PAN36.y, z: PAN36.z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
+          else if (ph === 'drag') o40 = [{ x: lamps[5].x, y: lamps[5].y, z: lamps[5].z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
+          else o40 = [{ x: L0.x, y: L0.y, z: L0.z, r: 0.8 }];
+        }
+        t40.place(!!o40, o40, id40);
+      }
       const H = hero();
       if (H) {
         const men = K && K.role === 'menorah',
@@ -931,6 +948,7 @@ export function createHeichal26(o = {}) {
     }),
     api = {
       destroy() {
+        t40.destroy();   // ── fable32 (build 40) ── ── /fable32 ──
         offTick();
         offDraw();
         offEv();

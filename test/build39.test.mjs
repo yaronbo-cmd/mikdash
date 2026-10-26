@@ -118,7 +118,7 @@ test('build 39: a morning walked by the guide alone — from the start to the la
     clockT += 0.05; await R.step(0.05, 0.05);
   }
   assert.ok(R.E.k20(), `the laver's act after ${n} steps`);
-  assert.equal(GAME_BUILD, 39);
+  assert.equal(GAME_BUILD, 40);   // (build 40: the constant moved on)
 });
 
 // ───────── the Divine Name ─────────

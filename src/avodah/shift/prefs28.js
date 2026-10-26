@@ -85,7 +85,13 @@ export function cover28(doc = (typeof document !== 'undefined' ? document : null
   try { doc.body.classList.toggle('sh28', !!on); } catch (e) { return false; }
   return true;
 }
+// ── fable32 (build 40) ── the work pad instead of touching the thing — the accessibility switch of touch40.js (bh_pad40: '1' → every act's
+// input on the old right-hand pad; default off: the gesture on the thing itself). In the pause card's row (hud.js), never the lobby's ── /fable32 ──
+export const PAD40_KEY = 'bh_pad40';
+const pad40 = () => read(PAD40_KEY) === '1';
+export const pad40HTML = () => one('pad40');
 const one = (kind, sfx) => {
+  if (kind === 'pad40') { const p = pad40(); return `<button class="p28${p ? '' : ' off'}" type="button" data-p28="pad40" aria-pressed="${p ? 'true' : 'false'}" aria-label="משטח עבודה גדול במקום נגיעה בחפץ"><i>✋</i><span>משטח גדול</span></button>`; }   // ── fable32 (build 40) ── ── /fable32 ──
   if (kind === 'mute') { const m = mutedNow(sfx); return `<button class="p28${m ? ' off' : ''}" type="button" data-p28="mute" aria-pressed="${m ? 'false' : 'true'}" aria-label="צליל"><i>${m ? '🔇' : '🔊'}</i><span>${m ? 'צליל כבוי' : 'צליל'}</span></button>`; }
   const h = hapticsOn(); return `<button class="p28${h ? '' : ' off'}" type="button" data-p28="haptics" aria-pressed="${h ? 'true' : 'false'}" aria-label="רטט"><i>${h ? '📳' : '📴'}</i><span>${h ? 'רטט' : 'רטט כבוי'}</span></button>`;
 };
@@ -96,12 +102,12 @@ export function bindPrefs(root, o = {}) {
   if (!root || !root.querySelectorAll) return 0;
   css(root.ownerDocument || (typeof document !== 'undefined' ? document : null));
   let n = 0;
-  root.querySelectorAll('[data-p28=mute],[data-p28=haptics]').forEach((b) => {
+  root.querySelectorAll('[data-p28=mute],[data-p28=haptics],[data-p28=pad40]').forEach((b) => {   // ── fable32 (build 40) ── (+ pad40) ── /fable32 ──
     n++;
     b.addEventListener('click', (e) => {
       e.stopPropagation();
       const kind = b.dataset.p28;
-      const v = kind === 'mute' ? toggleMute(o.sfx) : setHaptics(!hapticsOn());
+      const v = kind === 'mute' ? toggleMute(o.sfx) : kind === 'pad40' ? (write(PAD40_KEY, pad40() ? '0' : '1'), pad40()) : setHaptics(!hapticsOn());   // ── fable32 (build 40) ── ── /fable32 ──
       try { if (o.sfx && o.sfx.play) o.sfx.play('ui'); } catch (err) { /* */ }   // (the sound back on: its first tap heard; off: silent)
       if (kind === 'haptics' && v) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(18); } catch (err) { /* */ } }   // (the buzz back on: one short buzz, its twin the button's redraw)
       const t = b.ownerDocument.createElement('div'); t.innerHTML = one(kind, o.sfx); const nb = t.firstChild;

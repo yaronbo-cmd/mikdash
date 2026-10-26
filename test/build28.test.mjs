@@ -107,7 +107,8 @@ test('build 28 (3a): the old top bar off while the shift is up (body.sh28 .av-to
   assert.ok(ix.indexOf('goLive();') > ix.indexOf('function run(n)'), 'not at the mount: the first-run name and mishmar screens keep the bar');
   const h = createLobby({ save: {}, start: true }).html();
   assert.match(h, /data-p28="mute"/); assert.match(h, /data-p28="haptics"/);
-  assert.match(read('src/avodah/shift/hud.js'), /\$\{h\.prefs \? prefsHTML\(h\.prefs\.sfx, 'sh-p28'\) : ''\}/);
+  // (build 40: the pause card's row carries the work pad's switch too — prefsHTML's extra, pad40HTML())
+  assert.match(read('src/avodah/shift/hud.js'), /\$\{h\.prefs \? prefsHTML\(h\.prefs\.sfx, 'sh-p28', pad40HTML\(\)\)/);
   assert.match(read('src/avodah/shift/hud.js'), /if \(h\.prefs\) bindPrefs\(pauseEl, h\.prefs\)/);
   assert.match(PREFS28_CSS, /\.p28\{min-height:44px;min-width:44px/);
 });

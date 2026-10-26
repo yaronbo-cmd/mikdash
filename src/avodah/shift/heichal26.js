@@ -469,7 +469,7 @@ export function createHeichal26(o = {}) {
           const li = K.ord && K.ord.length ? K.ord[Math.min(K.li | 0, K.ord.length - 1)] : 0, L0 = lamps[li] || lamps[0];
           if (ph === 'bolt' || ph === 'key') { o40 = [{ x: P26.gate.x, y: gy(P26.gate.x, P26.gate.z) + 4.5, z: P26.gate.z, r: 2.6 }]; id40 = 'hk26gate'; }
           else if (ph === 'pull') { o40 = [{ x: P26.alt.x, y: gy(P26.alt.x, P26.alt.z) + 1.4, z: P26.alt.z, r: 1.3 }]; id40 = 'hk26alt'; }
-          else if (ph === 'teni36') { o40 = [{ x: hp.x, y: (hp.y || 16) + 3.4, z: hp.z, r: 1.2 }]; id40 = 'hk26teni'; }
+          else if (ph === 'teni36') { o40 = [{ x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 0.9 }]; id40 = 'hk26teni';   /* (the teni at his hands' height) */ }
           else if (ph === 'altar') o40 = [{ x: PAN36.x, y: PAN36.y, z: PAN36.z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
           else if (ph === 'drag') o40 = [{ x: lamps[5].x, y: lamps[5].y, z: lamps[5].z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
           else o40 = [{ x: L0.x, y: L0.y, z: L0.z, r: 0.8 }];

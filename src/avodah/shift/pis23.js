@@ -324,7 +324,7 @@ export function createPis23(o = {}) {
       {   // ── fable32 (build 40) ── the act's surface on the thing: his own hand, raised for the count (touch40.js) ── /fable32 ──
         const t40 = pad.__t40 || (pad.__t40 = createTouch40({ doc, pad, id: 'p23', proj: (x, y, z) => { try { const q = view && view.project(x, y, z); return q && q.on !== false ? { x: q.x, y: q.y } : null; } catch (e) { return null; } } }));
         let h40 = null;
-        if (wantUp) { try { const h = { x: 0, y: 16, z: 0 }; globalThis.__T.stages.heroXYZ(h); h40 = [{ x: h.x, y: (h.y || 16) + 3.6, z: h.z, r: 1.1 }]; } catch (e) { h40 = null; } }
+        if (wantUp) { try { const h = { x: 0, y: 16, z: 0 }; globalThis.__T.stages.heroXYZ(h); h40 = [{ x: h.x, y: (h.y || 16) + 2.3, z: h.z, r: 0.8 }];   /* (his hand, raised over his head) */ } catch (e) { h40 = null; } }
         t40.place(wantUp && !!h40, h40, 'p23');
       }
     }),

@@ -366,7 +366,7 @@ export function createDam27(o = {}) {
         aim.on = false;
       }
       {   // ── fable32 (build 40) ── ── /fable32 ──
-        const on40 = active && PAD.test(ph), hand = { x: hp.x, y: (hp.y || 16) + 3.2, z: hp.z, r: 0.9 };
+        const on40 = active && PAD.test(ph), hand = { x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 0.8 };   /* (the vessel at his hands' height) */
         t40.place(on40, !on40 ? null : ph === 'bind' ? [{ ...FORE, r: 0.6 }, { ...HIND, r: 0.6 }] : ph === 'cut' ? [{ ...NECK, r: 0.7 }] : ph === 'recv' ? [{ ...NECK, r: 0.6 }, hand] : ph === 'base' ? [hand, { ...P27.hole, r: 0.5 }] : [hand],
           ph === 'bind' ? 'dm27bind' : ph === 'cut' ? 'dm27cut' : ph === 'recv' ? 'dm27recv' : /^aim2?$/.test(ph) ? 'dm27aim' : ph === 'base' ? 'dm27base' : 'dm27stir');
       }

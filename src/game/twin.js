@@ -517,7 +517,7 @@ export function createTwin(o = {}) {
       { const G40 = globalThis.__T40, O = G40 && G40.obj;
         if (V && O && !globalThis.__CAM40_OFF) {
           if (G40.down && CBC.v40) V = CBC.v40;
-          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + 3.2, z: h.z } : null; r40 = pan40(V.p, V.t, O, H40, tanH);
+          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + 1.2, z: h.z } : null;   /* (his middle) */ r40 = pan40(V.p, V.t, O, H40, tanH);
             // (never into a wall — the House's narrow hall, a chamber: the slide shortened while its line from the look is cut and the
             // authored one's is not; else the authored view as it was — cam28's seg, the guard's own test)
             const sg = globalThis.__DAY && globalThis.__DAY.cam28, cut = (P, Tg) => !!(sg && typeof sg.seg === 'function' && sg.seg(Tg[0], Tg[1], Tg[2], P[0], P[1], P[2]));

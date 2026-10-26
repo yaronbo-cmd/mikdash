@@ -367,7 +367,7 @@ export function createDam27(o = {}) {
       }
       {   // ── fable32 (build 40) ── ── /fable32 ──
         const on40 = active && PAD.test(ph), hand = { x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 1.1 };   /* (the vessel in his two hands, at their height: the hands and the vessel one thing — the naive kid's zorek at 640 × 296 fell to the pad 9 times with the vessel alone, r 0.8) */
-        t40.place(on40, !on40 ? null : ph === 'bind' ? [{ ...FORE, r: 0.6 }, { ...HIND, r: 0.6 }] : ph === 'cut' ? [{ ...NECK, r: 0.7 }] : ph === 'recv' ? [{ ...NECK, r: 0.6 }, hand] : ph === 'base' ? [hand, { ...P27.hole, r: 0.5 }] : /^(full|carry|carry2|hold)$/.test(ph) ? [{ x: hp.x, y: (hp.y || 16) + 1.0, z: hp.z, r: 1.4 }] : [hand],   /* (carrying it: the vessel is him with it — the follow camera's far frame left the vessel alone under 44 px, the work pad's fallback, in the 640 × 296 practice) */
+        t40.place(on40, !on40 ? null : ph === 'bind' ? [{ ...FORE, r: 0.6 }, { ...HIND, r: 0.6 }] : ph === 'cut' ? [{ ...NECK, r: 0.7 }] : ph === 'recv' ? [{ ...NECK, r: 0.6 }, hand] : ph === 'base' ? [hand, { ...P27.hole, r: 0.5 }] : /^(full|carry|carry2|hold)$/.test(ph) ? [{ x: hp.x, y: (hp.y || 16) + 1.0, z: hp.z, r: 1.7 }] : [hand],   /* (carrying it: the vessel is him with it, his whole figure — the follow camera's far frame left the vessel alone under 44 px, and r 1.4 still 42 px, the work pad's fallback, in the 640 × 296 practice) */
           ph === 'bind' ? 'dm27bind' : ph === 'cut' ? 'dm27cut' : ph === 'recv' ? 'dm27recv' : /^aim2?$/.test(ph) ? 'dm27aim' : ph === 'base' ? 'dm27base' : 'dm27stir');
       }
       // the hint and its source

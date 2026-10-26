@@ -100,6 +100,7 @@ export function createTouch40(o = {}) {
     const p0 = (pts || []).find((p) => p && Number.isFinite(p.x));
     if (!st.down) { const pb = (pts || []).filter((p) => p && Number.isFinite(p.x)), n = pb.length || 1; SHARED.obj40 = p0 ? { x: pb.reduce((a, p) => a + p.x, 0) / n, y: pb.reduce((a, p) => a + p.y, 0) / n, z: pb.reduce((a, p) => a + p.z, 0) / n, r: p0.r || 0.5, id: st.id, at, t40: api } : null; pub(); }   // (the parts' middle; held under the finger)
     st.fb = fb; st.box = bx;
+    try { globalThis.__T40S = { id: st.id, fb, fp: bx ? Math.round(bx.fp) : null, x: bx ? Math.round(bx.x) : null, y: bx ? Math.round(bx.y) : null, n: (pts || []).length }; } catch (e) { /* */ }   // (the last surface's reasons, for the tools)
     if (st.down) return st.mode;   // (frozen under the finger: the layer never moves while it is held)
     if (fb) {
       if (st.mode !== 'pad') { clear(); pad.classList.add('t40-pad'); st.mode = 'pad'; }

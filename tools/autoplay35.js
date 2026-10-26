@@ -295,6 +295,7 @@
   async function t40shot() {
     const shown = (x) => { if (!x) return false; const r = x.getBoundingClientRect(), c = getComputedStyle(x); return r.width > 2 && r.height > 2 && c.display !== 'none' && c.visibility !== 'hidden'; };
     const L0 = [...document.querySelectorAll('.t40-obj,.t40-pad')].find(shown); if (!L0) return;
+    { const S = globalThis.__T40S; if (S && S.fb && A.fb40 !== S.id + S.fb) { A.fb40 = S.id + S.fb; note('t40 fallback ' + JSON.stringify(S)); } else if (S && !S.fb) A.fb40 = ''; }   // (each fall to the work pad, its reason)
     const G = globalThis.__T40, oid = (G && G.obj && G.obj.id) || String(L0.className).split(' ')[0], name = 't40-' + oid;
     if (A.shotDone[name]) return;
     A.shotDone[name] = 1;
@@ -303,7 +304,7 @@
     const ring = document.querySelector('.t40-ring.on'), rr = ring && shown(ring) ? ring.getBoundingClientRect() : null, lr = L.getBoundingClientRect(), W = innerWidth, Hh = innerHeight;
     const fx = rr ? rr.left + rr.width / 2 : lr.left + lr.width / 2, fy = rr ? rr.top + rr.height / 2 : lr.top + lr.height / 2;
     const tw = globalThis.__SHIFT && globalThis.__SHIFT.mods && globalThis.__SHIFT.mods.twin;
-    note(`t40 ${oid} ${/t40-obj/.test(L.className) ? 'obj' : 'pad'} at ${Math.round((fx / W) * 100)}% × ${Math.round((fy / Hh) * 100)}% · hit ${Math.round(lr.width)}×${Math.round(lr.height)} · ring ${rr ? Math.round(rr.width) + '×' + Math.round(rr.height) : '-'}`);
+    const S40 = globalThis.__T40S || {}; note(`t40 ${oid} ${/t40-obj/.test(L.className) ? 'obj' : 'pad'}${S40.fb ? ' (' + S40.fb + ' fp ' + S40.fp + ' @' + S40.x + ',' + S40.y + ' ' + S40.id + ')' : ''} at ${Math.round((fx / W) * 100)}% × ${Math.round((fy / Hh) * 100)}% · hit ${Math.round(lr.width)}×${Math.round(lr.height)} · ring ${rr ? Math.round(rr.width) + '×' + Math.round(rr.height) : '-'}`);
     const f = document.createElement('div');
     f.style.cssText = `position:fixed;left:${Math.round(fx - 22)}px;top:${Math.round(fy - 22)}px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.45);border:3px solid rgba(40,28,12,.75);box-shadow:0 0 8px rgba(0,0,0,.5);z-index:9999;pointer-events:none`;
     f.className = 'auto-finger40'; document.body.appendChild(f);

@@ -687,7 +687,7 @@ export function createPen25(o = {}) {
         rr = m * (K && K.first ? 0.19 : 0.13),
         scr = [];
       {   // ── fable32 (build 40) ── the act's surface on the thing: the lamb itself, its eight places (touch40.js) ── /fable32 ──
-        const t40 = pad.__t40 || (pad.__t40 = createTouch40({ doc, pad, id: 'p25', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } }));
+        const t40 = pad.__t40 || (pad.__t40 = createTouch40({ doc, pad, id: 'p25', at: 0.55 /* (the lamb a little left of the right thumb: the stamps תמים / פסול stand at the corner) */, proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } }));
         let pts40 = null;
         if (padOn && K) { pts40 = []; for (let i = 0; i < 8; i++) { const w = at25(i, La, a0.hy, a0.hp); pts40.push({ x: w.x, y: w.y, z: w.z, r: 0.45 }); } }
         t40.place(!!pts40, pts40, 'p25');

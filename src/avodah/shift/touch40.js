@@ -68,7 +68,7 @@ export const TOUCH40_CSS = `.t40-hand{position:fixed;left:0;top:0;z-index:31;poi
 .t40-obj{cursor:pointer}`;
 
 export function createTouch40(o = {}) {
-  const doc = o.doc || (typeof document !== 'undefined' ? document : null), pad = o.pad || null, proj = o.proj || (() => null);
+  const doc = o.doc || (typeof document !== 'undefined' ? document : null), pad = o.pad || null, proj = o.proj || (() => null), at = Number.isFinite(o.at) ? Math.max(0.55, Math.min(0.65, o.at)) : null;   // (at: the thing's own share of the width for the act's camera — 55–65 %)
   const st = { on: false, id: o.id || '', mode: '', fb: '', down: 0, miss: 0, hand: false, touched: false, n: 0, box: null, hit: null, objN: 0, padN: 0 };
   if (!doc || !pad) return { place() { return null; }, state: () => ({ ...st }), destroy() {} };
   if (!doc.getElementById('t40-css')) { const s = doc.createElement('style'); s.id = 't40-css'; s.textContent = TOUCH40_CSS; doc.head.appendChild(s); }
@@ -98,7 +98,7 @@ export function createTouch40(o = {}) {
     const w = W(), h = H(), bx = box40(pts, proj), fb = fallback40(bx, w, h, pad40On());
     // (the act's object for the camera: the middle of its parts)
     const p0 = (pts || []).find((p) => p && Number.isFinite(p.x));
-    if (!st.down) { const pb = (pts || []).filter((p) => p && Number.isFinite(p.x)), n = pb.length || 1; SHARED.obj40 = p0 ? { x: pb.reduce((a, p) => a + p.x, 0) / n, y: pb.reduce((a, p) => a + p.y, 0) / n, z: pb.reduce((a, p) => a + p.z, 0) / n, r: p0.r || 0.5, id: st.id, t40: api } : null; pub(); }   // (the parts' middle; held under the finger)
+    if (!st.down) { const pb = (pts || []).filter((p) => p && Number.isFinite(p.x)), n = pb.length || 1; SHARED.obj40 = p0 ? { x: pb.reduce((a, p) => a + p.x, 0) / n, y: pb.reduce((a, p) => a + p.y, 0) / n, z: pb.reduce((a, p) => a + p.z, 0) / n, r: p0.r || 0.5, id: st.id, at, t40: api } : null; pub(); }   // (the parts' middle; held under the finger)
     st.fb = fb; st.box = bx;
     if (st.down) return st.mode;   // (frozen under the finger: the layer never moves while it is held)
     if (fb) {

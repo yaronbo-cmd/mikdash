@@ -517,11 +517,11 @@ export function createTwin(o = {}) {
       { const G40 = globalThis.__T40, O = G40 && G40.obj;
         if (V && O && !globalThis.__CAM40_OFF) {
           if (G40.down && CBC.v40) V = CBC.v40;
-          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + 1.2, z: h.z } : null;   /* (his middle) */ r40 = pan40(V.p, V.t, O, H40, tanH);
+          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + 1.2, z: h.z } : null;   /* (his middle) */ const C40 = Number.isFinite(O.at) ? { ...CAM40, at: O.at } : CAM40; r40 = pan40(V.p, V.t, O, H40, tanH, C40);
             // (never into a wall — the House's narrow hall, a chamber: the slide shortened while its line from the look is cut and the
             // authored one's is not; else the authored view as it was — cam28's seg, the guard's own test)
             const sg = globalThis.__DAY && globalThis.__DAY.cam28, cut = (P, Tg) => !!(sg && typeof sg.seg === 'function' && sg.seg(Tg[0], Tg[1], Tg[2], P[0], P[1], P[2]));
-            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...CAM40, pan: Math.abs(r40.sh) * k, back: r40.back * k }); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
+            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...C40, pan: Math.abs(r40.sh) * k, back: r40.back * k }); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
         } else CBC.v40 = null; }
       if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * (V.e > 0 ? V.e : 2.4)); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)   // ── recovered (16–26c) ── (V.e: the view's own ease)
       CBC.vk += ((V ? 1 : 0) - CBC.vk) * (1 - Math.exp(-dt * 2.6)); if (!V && CBC.vk < 0.002) { CBC.vk = 0; CBC.vl = null; }

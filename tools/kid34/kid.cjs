@@ -35,7 +35,7 @@ function preset(k) {
   const now = Date.now();
   if (k === 'fresh') return {};   // (no save at all: the first run's name and mishmar screens)
   if (k === 'new') return { bh_avodah: JSON.stringify({ v: 1, name: 'דרור', mishmar: 5, seenIntro: true, created: now, lastSeen: now }) };
-  const d = k === 'd5' ? 5 : 3;
+  const d = k === 'd5' ? 5 : k === 'd2' ? 2 : 3;   // ── fable32 (build 39) ── (d2: a day-2 morning) ── /fable32 ──
   const shift = { day33state: { day: d, night: false, at: now - 3 * H, fuel: 64, fed: 25, logs: 0, left: 180, perutot: 12, washed: false, tamD: 'wait', tamE: 'wait', lambs: [true, true, false, false, false, false], tasks: [] },
     roles23: { m: d - 1, h: [[1, 'deshen', 'deshen'], [2, 'm22', 'm22'], [3, 'lamb', 'lamb'], [4, 'deshen', 'deshen']].slice(0, d - 1), kiyor: { n: d - 1, best: 100, last: 100 }, deshen: { n: 1, best: 90, last: 90 }, m22: { n: 1, best: 85, last: 85 }, ...(d > 3 ? { lamb: { n: 1, best: 80, last: 80 } } : {}) },
     roles26: { m: d - 1, h: [[1, 'menorah'], [2, 'inner'], [3, 'menorah'], [4, 'shochet']].slice(0, d - 1) }, perutot: 12, served30: d - 1 };

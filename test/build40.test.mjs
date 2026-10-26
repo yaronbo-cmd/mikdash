@@ -3,15 +3,13 @@
 // object's projected bounds + a margin, ≥ 96 px; the old right-hand pad only as the fallback: a footprint under 44 px, the object off the
 // screen, or the player's switch), frozen under the finger, a hand on the thing the first time and after two misses; the act's camera
 // slid so the thing stands near the right thumb with him still seen (twin.js pan40), held while a finger is on the thing; the follow
-// camera rising or swinging before it hugs his back by a wall (cam28 WALL40); the pause card's switch (prefs28 pad40); the laver's two
-// rings untouched (the approved two-thumb exception); GAME_BUILD 40; a Divine-Name scan of the changed files by code points.
+// camera's wall guard as build 39 had it (two tries reverted); the pause card's switch (prefs28 pad40); the laver's two rings untouched (the approved two-thumb exception); GAME_BUILD 40; a Divine-Name scan of the changed files by code points.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { T40, box40, hit40, fallback40, createTouch40, PAD40_KEY } from '../src/avodah/shift/touch40.js';
 import { SHARED } from '../src/avodah/shift/draw.js';
 import { pan40, CAM40 } from '../src/game/twin.js';
-import { WALL40 } from '../src/avodah/day/cam28.js';
 import { prefsHTML, pad40HTML } from '../src/avodah/shift/prefs28.js';
 import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
 
@@ -141,13 +139,10 @@ test('build 40: the act\'s camera (twin.js pan40) — the authored view slid sid
   assert.match(tw, /r40 = pan40\(V\.p, V\.t, O,/);
 });
 
-test('build 40: the follow camera by a wall (cam28 WALL40) — under the shift\'s pull-only rule the guard first swings round him at its full distance (the least turn first, hardly risen, never past the 57° cap); only then the pull as before', () => {
-  assert.ok(WALL40.rise <= 0.1 && WALL40.elMax <= 1.0 && Math.abs(WALL40.turn[0]) <= 0.35 && WALL40.turn.every((a, i) => i === 0 || Math.abs(a) >= Math.abs(WALL40.turn[i - 1])));
-  const g = read('src/avodah/day/cam28.js');
-  const i = g.indexOf('if (pullOnly) for (const ah of ahead'), j = g.indexOf("mode = 'pull';", i);
-  assert.ok(i > 0 && j > i, 'the rise and the swing come before the pull');
-  assert.match(g.slice(i, j), /tryP\(WALL40\.turn\[i\], r, 1, 'turn'\)/, 'at the full distance (K 1)');
-  assert.match(g, /r = Math\.min\(PULL_LIFT, \(9 - d0\) \/ 9 \* 0\.8\); if \(e0 \+ r > PULL_EL\)/, 'the pull as it was');
+// (the follow camera by a wall — the brief's second camera item — is not in this build: two tries, a rise and a swing round him,
+// were each measured worse in the probe at 640 × 296 and 844 × 390, and cam28.js is back as build 39 had it)
+test('build 40: the follow camera\'s wall guard as build 39 had it (the two tries reverted: no WALL40)', () => {
+  assert.ok(!/WALL40/.test(read('src/avodah/day/cam28.js')));
 });
 
 // ───────── the acts ─────────
@@ -181,7 +176,7 @@ test('build 40: the work pad\'s switch (prefs28 pad40) — in the pause card\'s 
 
 test('build 40: GAME_BUILD 40; no Divine Name in the changed files (by code points); the pilgrims\' word', () => {
   assert.equal(GAME_BUILD, 40);
-  const files = ['src/avodah/shift/touch40.js', 'src/avodah/shift/deshen21.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/dam27.js', 'src/avodah/shift/pen25.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/hud.js', 'src/game/twin.js', 'src/avodah/day/cam28.js', 'tools/autoplay35.js', 'tools/kid34/kid.cjs', 'tools/kid34/kidpage.js', 'PROJECT.md', 'test/build40.test.mjs'];
+  const files = ['src/avodah/shift/touch40.js', 'src/avodah/shift/deshen21.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/dam27.js', 'src/avodah/shift/pen25.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/hud.js', 'src/game/twin.js', 'tools/autoplay35.js', 'tools/kid34/kid.cjs', 'tools/kid34/kidpage.js', 'PROJECT.md', 'test/build40.test.mjs'];
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)];
   const P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of files) {

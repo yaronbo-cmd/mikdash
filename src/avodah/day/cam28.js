@@ -21,12 +21,6 @@ const RISE = [0.09, 0.18, 0.27, 0.36, 0.5, 0.65, 0.8, 0.95, 1.1];
 const TURN = [0.6, -0.6, 1.2, -1.2, 1.9, -1.9];
 // ── recovered (16–26c) ── the pull-only lift over his shoulder: at most PULL_LIFT, and the camera's elevation at most PULL_EL (the names are the recovery's)
 const PULL_LIFT = 0.35, PULL_EL = 0.7;
-// ── fable32 (build 40) ── the shift's follow camera never hugs his back by a wall (the coordinator's build-40 brief: build 39's probe at
-// 844×390 and the pyre at 640×296 — the hat filling the frame): before the pull, a swing round him at its full distance (`turn`, rad —
-// the least first; the walk is the guide's since build 39, so a turned camera turns no thumb) at most `rise` higher; only when no bearing
-// clears, the pull as before (PULL_LIFT / PULL_EL). Measured first with a rise to 0.5 and a pull lifted to 0.6: worse — at 640 × 296 he
-// fell out of the frame's foot (the look point is ahead of him), at 844 × 390 the camera looked down onto his head ── /fable32 ──
-export const WALL40 = Object.freeze({ rise: 0.09, turn: Object.freeze([0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4]), elMax: 1.0 });
 
 function segBox(px, py, pz, qx, qy, qz, B) {
   let t0 = 0, t1 = 1;
@@ -134,11 +128,6 @@ export function createCamGuard(o = {}) {
           if (!got) search: for (const K of [0.75, 0.5]) for (const E of [0.75, 1.05, 1.35]) for (let j = 0; j < 12; j++) { const A = (j % 2 ? -1 : 1) * Math.ceil(j / 2) * (Math.PI / 6); if (tryP(A, Math.max(0, E - e0), K, 'round')) { got = true; break search; } }
           // (under a roof — Nikanor's gateway, a chamber's door — nothing above sees him: low and near, along the way he stands in)
           if (!got) low: for (const K of [0.4, 0.25]) for (const E of [0.3, 0.12]) for (let j = 0; j < 12; j++) { const A = (j % 2 ? -1 : 1) * Math.ceil(j / 2) * (Math.PI / 6); if (tryP(A, E - e0, K, 'low')) { got = true; break low; } }
-        }
-        if (pullOnly) for (const ah of ahead ? [true, false] : [false]) {   // ── fable32 (build 40) ── WALL40 ── /fable32 ──
-          useAhead = ah; if (got) break;
-          const cap = Math.max(0, Math.min(WALL40.rise, WALL40.elMax - e0));
-          for (let i = 0; !got && i < WALL40.turn.length; i++) for (const r of [0, cap]) if ((got = tryP(WALL40.turn[i], r, 1, 'turn'))) break;
         }
         useAhead = true;
         if (!got) {

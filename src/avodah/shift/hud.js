@@ -5,7 +5,7 @@
 //                                      end(result, {again, next}), destroy() }
 //   entryCard(root, { lvl, best, stars, shift(lvl), tour() }) → { close() }
 import { evlog, copyEvlog } from './evlog16.js';
-import { prefsHTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches on the pause card ── /fable32 ──   // ── recovered (build 16) ── the event log (the names of the module and its exports are the recovery's)
+import { prefsHTML, pad40HTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches on the pause card ── /fable32 ──   // ── recovered (build 16) ── the event log (the names of the module and its exports are the recovery's)
 const CSS = `
 .sh-root{position:fixed;inset:0;z-index:30;pointer-events:none;direction:rtl;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;-webkit-user-select:none;user-select:none}
 .sh-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:16px;background:rgba(28,20,10,.72);box-shadow:0 2px 10px rgba(0,0,0,.35);white-space:nowrap}
@@ -314,7 +314,7 @@ export function createShiftHud(root) {
       R.classList.add('sh-up');
       pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>${h.sub ? `<p class="sh-sub30">${esc(h.sub)}</p>` : '' /* ── fable32 (build 30) ── "שימשת N בקרים" (the Phase A ★ capsule is not the Temple's) ── /fable32 ── */}${h.note ? `<p class="sh-note29">${String(h.note).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</p>` : '' /* ── fable32 (build 29) ── the calm line before the Shabbat / Yom Tov lock ── /fable32 ── */}
         <div class="sh-btns"><button class="sh-btn resume" type="button" data-sh="resume">המשך</button><button class="sh-btn restart" type="button" data-sh="restart">מהתחלה</button></div>
-        ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28') : ''}
+        ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28', pad40HTML()) /* ── fable32 (build 40) ── (+ the work pad's switch) ── /fable32 ── */ : ''}
         ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}
         ${h.back ? `<button class="sh-tour" type="button" data-sh="backP">${esc(h.back.label || 'חזרה')}</button>` : '' /* ── fable32 (build 31) ── (a practice run: back to the roles book) ── /fable32 ── */}
         <button class="sh-tour sm sh-evlog" type="button" data-sh="evlog" style="opacity:.45;font-size:11px;min-height:44px">העתק לוג</button></div>`);   // ── fable32 (build 34) ── ("העתק לוג" 32 → 44 px high: every target ≥ 44) ── /fable32 ──

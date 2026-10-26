@@ -291,6 +291,30 @@
     try { globalThis.__T.simulate(true, 0.05); } catch (e) { /* */ }
     return true;
   }
+  // ── fable32 (build 40) ── ── /fable32 ──
+  async function t40shot() {
+    const shown = (x) => { if (!x) return false; const r = x.getBoundingClientRect(), c = getComputedStyle(x); return r.width > 2 && r.height > 2 && c.display !== 'none' && c.visibility !== 'hidden'; };
+    const L0 = [...document.querySelectorAll('.t40-obj,.t40-pad')].find(shown); if (!L0) return;
+    { const S = globalThis.__T40S; if (S && S.fb && A.fb40 !== S.id + S.fb) { A.fb40 = S.id + S.fb; note('t40 fallback ' + JSON.stringify(S)); } else if (S && !S.fb) A.fb40 = ''; }   // (each fall to the work pad, its reason)
+    const G = globalThis.__T40, oid = (G && G.obj && G.obj.id) || String(L0.className).split(' ')[0], name = 't40-' + oid;
+    if (A.shotDone[name]) return;
+    A.shotDone[name] = 1;
+    await sleep(1400);   // (the act's camera eased in: pan40)
+    const L = [...document.querySelectorAll('.t40-obj,.t40-pad')].find(shown); if (!L) return;
+    const ring = document.querySelector('.t40-ring.on'), rr = ring && shown(ring) ? ring.getBoundingClientRect() : null, lr = L.getBoundingClientRect(), W = innerWidth, Hh = innerHeight;
+    const fx = rr ? rr.left + rr.width / 2 : lr.left + lr.width / 2, fy = rr ? rr.top + rr.height / 2 : lr.top + lr.height / 2;
+    const tw = globalThis.__SHIFT && globalThis.__SHIFT.mods && globalThis.__SHIFT.mods.twin;
+    const S40 = globalThis.__T40S || {}; note(`t40 ${oid} ${/t40-obj/.test(L.className) ? 'obj' : 'pad'}${S40.fb ? ' (' + S40.fb + ' fp ' + S40.fp + ' @' + S40.x + ',' + S40.y + ' ' + S40.id + ')' : ''} at ${Math.round((fx / W) * 100)}% × ${Math.round((fy / Hh) * 100)}% · hit ${Math.round(lr.width)}×${Math.round(lr.height)} · ring ${rr ? Math.round(rr.width) + '×' + Math.round(rr.height) : '-'}`);
+    const f = document.createElement('div');
+    f.style.cssText = `position:fixed;left:${Math.round(fx - 22)}px;top:${Math.round(fy - 22)}px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.45);border:3px solid rgba(40,28,12,.75);box-shadow:0 0 8px rgba(0,0,0,.5);z-index:9999;pointer-events:none`;
+    f.className = 'auto-finger40'; document.body.appendChild(f);
+    A.shotReq = name;
+    try { globalThis.__T.simulate(false); } catch (e) { /* */ }
+    await until(() => !A.shotReq, 120000, 100);
+    try { globalThis.__T.simulate(true, 0.05); } catch (e) { /* */ }
+    f.remove();
+    void tw;
+  }
   async function end30(id) {
     A.in30 = 1;
     try { await end30a(id); } finally { A.in30 = 0; }
@@ -502,6 +526,9 @@
       await sleep(5);   // (every turn yields to the page: its frames, the engine's tick)
       const e = E(); if (!e || !e.st33) { await sleep(200); continue; }
       if (A.shot35q && S30().includes(A.shot35q)) { const n = A.shot35q; A.shot35q = null; await shot30(n, null, 2600); continue; }   // (the fade's own 1.5 s lifted first)   // ── fable32 (build 35) ── (the close's view: a frame after its cut) ── /fable32 ──
+      // ── fable32 (build 40) ── the act's surface on the thing (touch40.js): one shot per surface (shots30 't40'), a thumb drawn where it
+      // lands on the thing; the thing's place on the screen noted (its middle's share of the width, the hit area, the footprint) ── /fable32 ──
+      if (S30().includes('t40')) { try { await t40shot(); } catch (err) { note('t40 shot: ' + String(err && err.message).slice(0, 80)); } }
       if (S30().includes('run') && !A.shotDone.run && e.m22 && e.m22() && e.m22().ph === 'carry' && e.st33.r19 && e.st33.r19.run && hero().z < 30) await shot30('run', null, 0);   // ── fable32 (build 35) ── (the ramp run inside the maaracha role) ── /fable32 ──
       if (S30().includes('chip36') && !A.shotDone.chip36 && e.lv36now && e.lv36now() && e.lv36now().id !== 'kiyor' && !(e.act30 && e.act30()) && !e.st33.paused && !(e.word30 && e.word30())) await shot30('chip36', null, 300);   // ── fable32 (build 36) ── (the level chip on the way to his role, before its act) ── /fable32 ──
       if (S30().includes('hud') && !A.shotDone.hud && e.gate26L && e.gate26L() && !e.p23() && !e.st33.paused && !(e.word30 && e.word30()) && !(e.j32q && e.j32q())) await shot30('hud', null, 300);   // ── fable32 (build 35) ── (the HUD between two acts: no fire meter, no countdown) ── /fable32 ──

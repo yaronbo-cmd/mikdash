@@ -12,7 +12,8 @@
 import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { D21, SWIPE36 } from './day33.js';
-import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { reg30 } from './rate30.js';
+import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──   // ── fable32 (build 30) ── ── /fable32 ──
 export function createDeshen21(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -173,6 +174,8 @@ export function createDeshen21(o = {}) {
     inner36 = mk('d21-in36', ''),
     doneEl = mk('d21-w', '');   // ── fable32 (build 30) ── (was "תרומת הדשן הושלמה!" — the step card's rating now) ── /fable32 ──
   tapRing.setAttribute('aria-hidden', 'true');
+  // ── fable32 (build 40) ── the act's surface on the thing: the bed of coals while he scoops, the pan in his hand on the way down (touch40.js) ── /fable32 ──
+  const t40 = createTouch40({ doc, pad, id: 'd21', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
   const needle = gauge.querySelector('.nd'),
     touches = new Map(),
     W = () => innerWidth || 844,
@@ -337,6 +340,7 @@ export function createDeshen21(o = {}) {
       const walking = ph === 'full' || ph === 'walk' || ph === 'desc';
       setMode(!!k && !walking && ph !== 'foot', !!k && ph !== 'foot', walking);
       const padOn = ph === 'sweep' || walking;
+      t40.place(padOn && !!k, ph === 'sweep' ? [{ x: D21.bed.x, y: gy(D21.bed.x, D21.bed.z, 25) + 0.4, z: D21.bed.z, r: 1.6 }] : [(() => { const o = POSE_PAN.carry, fx = Math.sin(hp.yaw || 0), fz = Math.cos(hp.yaw || 0); return { x: hp.x - fz * o[0] + fx * o[1], y: (hp.y || 16) + o[2], z: hp.z + fx * o[0] + fz * o[1], r: 0.9 }; })()], ph === 'sweep' ? 'd21' : 'd21pan');   /* (the pan where his hand holds it: POSE_PAN.carry) */   // ── fable32 (build 40) ── ── /fable32 ──
       if (pad.classList.contains('on') !== padOn) {
         pad.classList.toggle('on', padOn);
         if (!padOn) {
@@ -528,6 +532,7 @@ export function createDeshen21(o = {}) {
     }),
     api = {
       destroy() {
+        t40.destroy();   // ── fable32 (build 40) ── ── /fable32 ──
         offTick();
         offDraw();
         offEv();

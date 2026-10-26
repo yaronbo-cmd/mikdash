@@ -196,10 +196,29 @@
   }
   function scan(o = {}) {
     const tp = tappables().map(({ e, ...q }) => ({ ...q, cls: String(e.className || '').slice(0, 50), glow: /glow|lit|cue|pulse|\bon\b|pl\b|new/.test(String(e.className || '')) }));
-    return { W: W(), H: H(), tp, line: line(), screens: screens(), eng: eng(), hero: hero(), aim: pathAim(), sig: sig(), checks: o.checks === false ? [] : checks(o), guards: { ...G, offLog: G.offLog.slice(-6) }, coins: (() => { try { const A = JSON.parse(ls('bh_avodah') || '{}'); return (A.shift || {}).perutot; } catch (e) { return null; } })() };
+    return { W: W(), H: H(), tp, obj: (() => { try { return globalThis.__KID && globalThis.__KID.obj40 ? globalThis.__KID.obj40() : null; } catch (e) { return null; } })() /* build 40 */, line: line(), screens: screens(), eng: eng(), hero: hero(), aim: pathAim(), sig: sig(), checks: o.checks === false ? [] : checks(o), guards: { ...G, offLog: G.offLog.slice(-6) }, coins: (() => { try { const A = JSON.parse(ls('bh_avodah') || '{}'); return (A.shift || {}).perutot; } catch (e) { return null; } })() };
   }
   // the engine's events (the acts' outcomes: the ratings, the lamb's verdicts, the throws, the spills …): counted, the ratings kept
   const EV = { n: {}, rate: [], hooked: null };
   setInterval(() => { try { const E = globalThis.__SHIFT && globalThis.__SHIFT.E; if (!E || !E.on17 || EV.hooked === E) return; EV.hooked = E; E.on17((ev) => { const k = ev.type + (ev.ok === false ? ':no' : '') + (ev.why ? ':' + ev.why : '') + (ev.out ? ':' + ev.out : ''); EV.n[k] = (EV.n[k] | 0) + 1; if (ev.type === 'rate30') EV.rate.push([ev.id, ev.rating, ev.q, ev.coins]); }); } catch (e) { /* */ } }, 500);
-  globalThis.__KID = { scan, sig, checks, eng, line, screens, hero, pathAim, G, EV, tappables: () => tappables().map(({ e, ...q }) => q) };
+  // ── build 40 ── the act's touches: while an act's input is up, where the thumb lands — on the thing (.t40-obj: the act's surface on the
+  // object, build 40), on the pad (the work button, the act's right-half layer — every act touch before build 40 — or .t40-pad, the fallback),
+  // on the laver's rings (the two-thumb exception), on the world, elsewhere; and from the act's input appearing to its first touch on it
+  const ACT40 = '.d21-in,.m22-in,.hk26-in,.dm27-in,.p25-in,.p23-in,.s17-zone,.s31-zone,.k20-r';
+  const T40 = { ep: [], cur: null, n: { obj: 0, pad: 0, ring: 0, world: 0, other: 0 } };
+  const shown40 = (e) => { let x = e; while (x && x.nodeType === 1) { const c = getComputedStyle(x); if (c.display === 'none' || c.visibility === 'hidden') return false; x = x.parentElement; } const r = e.getBoundingClientRect(); return r.width > 2 && r.height > 2 && r.right > 0 && r.bottom > 0 && r.left < W() && r.top < H() && getComputedStyle(e).pointerEvents !== 'none'; };
+  const layer40 = () => { for (const e of document.querySelectorAll(ACT40)) if (shown40(e)) return e; return null; };
+  setInterval(() => { try { const e = layer40(), t = performance.now(); if (e && !T40.cur) T40.cur = { id: String(e.className).split(' ')[0], t0: t, first: null, obj: 0, pad: 0, ring: 0, world: 0 }; else if (!e && T40.cur) { T40.cur.ms = Math.round(t - T40.cur.t0); T40.ep.push(T40.cur); if (T40.ep.length > 200) T40.ep.shift(); T40.cur = null; } } catch (err) { /* */ } }, 100);
+  document.addEventListener('pointerdown', (ev) => {
+    try {
+      const t = ev.target && ev.target.closest ? ev.target : null; if (!t) return;
+      const k = t.closest('.t40-obj') ? 'obj' : t.closest('.k20-r') ? 'ring' : t.closest('.tw-btn,.t40-pad') || t.closest(ACT40) ? 'pad' : t.closest('.tw-zone') ? 'world' : 'other';
+      T40.n[k]++;
+      const c = T40.cur; if (!c) return; if (k in c) c[k]++;
+      if (c.first == null && (k === 'obj' || k === 'pad' || k === 'ring')) { c.first = Math.round(performance.now() - c.t0); c.how = k; }
+    } catch (err) { /* */ }
+  }, true);
+  const obj40 = () => { let best = null; for (const e of document.querySelectorAll('.t40-obj')) { if (!shown40(e)) continue; const r = e.getBoundingClientRect(); if (!best || r.width * r.height > best.w * best.h) best = { l: r.left, t: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height, x: r.left + r.width / 2, y: r.top + r.height / 2 }; } return best; };
+  // ── /build 40 ──
+  globalThis.__KID = { scan, sig, checks, eng, line, screens, hero, pathAim, G, EV, T40, obj40, tappables: () => tappables().map(({ e, ...q }) => q) };
 })();

@@ -12,7 +12,8 @@
 import * as THREE from 'three';
 import { addDrawer, onTick } from './draw.js';
 import { M22, P23, SWIPE36 } from './day33.js';
-import { reg30, draft30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { reg30, draft30 } from './rate30.js';
+import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──   // ── fable32 (build 30) ── ── /fable32 ──
 export function createMaaracha22(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -385,6 +386,8 @@ export function createMaaracha22(o = {}) {
     camLen = Math.hypot(camDir[0], camDir[2]),
     side = [-camDir[2] / camLen, camDir[0] / camLen],
     showYaw = Math.atan2(side[1], -side[0]),
+    // ── fable32 (build 40) ── the act's surface on the thing: the log he sorts, the pyre he stacks (touch40.js) ── /fable32 ──
+    t40 = createTouch40({ doc, pad, id: 'm22', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } }),
     offTick = onTick(() => {
       const st = E.st33;
       if (!st) return;
@@ -406,6 +409,10 @@ export function createMaaracha22(o = {}) {
       }
       setMode(!!k && ph !== 'carry' && ph !== 'stack', ph === 'stack');
       const padOn = sorting || stacking;
+      {   // ── fable32 (build 40) ── the log before him (its length) while he sorts; the pyre's layer while he stacks ── /fable32 ──
+        const lz = k && k.cur && k.cur.size ? k.cur.size : 'M';
+        t40.place(padOn && !!k, sorting ? [{ x: SHOW[0], y: SHOW[1], z: SHOW[2], r: Math.max(0.35, (LEN[lz] || 1.2) * (SHOW_K[lz] || 0.6) * 0.5) }] : [{ x: PX, y: layerY(k && k.layer === 4 ? 4 : Math.min(3, (k && k.layer) || 1)), z: PZ, r: 2.2 }], sorting ? 'm22' : 'm22stack');
+      }
       if (pad.classList.contains('on') !== padOn) {
         pad.classList.toggle('on', padOn);
         if (!padOn) touches.clear();
@@ -759,6 +766,7 @@ export function createMaaracha22(o = {}) {
     }),
     api = {
       destroy() {
+        t40.destroy();   // ── fable32 (build 40) ── ── /fable32 ──
         offTick();
         offDraw();
         offEv();

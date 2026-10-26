@@ -125,7 +125,9 @@ async function pokeButton(s, filt = null, why = 'poke') {
   return q;
 }
 async function randomRight(s) {
-  const W = curW, Hh = curH, x = between(W * 0.55, W * 0.95), y = between(Hh * 0.2, Hh * 0.9), r = rnd();
+  // ── build 40 ── (the thing on the screen draws a child's thumb half the time)
+  const ob = s && s.obj && s.obj.w > 8 ? s.obj : null, onOb = !!ob && rnd() < 0.5;
+  const W = curW, Hh = curH, x = onOb ? between(ob.l, ob.r) : between(W * 0.55, W * 0.95), y = onOb ? between(ob.t, ob.b) : between(Hh * 0.2, Hh * 0.9), r = rnd();
   if (r < 0.3) { await tap(x, y); ev('R-tap'); }
   else if (r < 0.4) { await taps(x, y, 2 + (rnd() < 0.3 ? 1 : 0)); ev('R-taps'); }
   else if (r < 0.55) { await hold(x, y, pick([120, 300, 900, 2500, 4500])); ev('R-hold'); }
@@ -141,7 +143,10 @@ async function towardPath(s, ms) {
 }
 // read the line and try (a child who reads but does not know the answers)
 async function tryLine(s) {
-  const L = s.line || '', W = curW, Hh = curH, rx = () => between(W * 0.6, W * 0.9), ry = () => between(Hh * 0.35, Hh * 0.8);
+  const L = s.line || '', W = curW, Hh = curH;
+  // ── build 40 ── the thing on the screen (.t40-obj): a child starts the act's gesture on what he sees — the old right-hand pad without one
+  const ob = s.obj && s.obj.w > 8 && s.obj.h > 8 ? s.obj : null, rx = () => (ob ? between(ob.l + ob.w * 0.2, ob.r - ob.w * 0.2) : between(W * 0.6, W * 0.9)), ry = () => (ob ? between(ob.t + ob.h * 0.2, ob.b - ob.h * 0.2) : between(Hh * 0.35, Hh * 0.8));
+  const cx0 = () => (ob ? ob.x : W * 0.75), cy0 = (y) => (ob ? ob.y : y);   // ── /build 40 ──
   const rings = s.tp.filter((q) => /k20-r/.test(q.cls));
   if (/החזיקו/.test(L) && rings.length) {   // the laver: thumbs on the rings — sometimes one, sometimes lifted early
     const ms = pick([400, 1500, 3000, 5000, 6000]);
@@ -150,31 +155,31 @@ async function tryLine(s) {
     const tEnd = Date.now() + ms; while (Date.now() < tEnd) { await sleep(150); await move(3, a.x + between(-2, 2), a.y); if (both) await move(4, c.x + between(-2, 2), c.y); }
     await liftAll(); ev('laver', `${both ? 'both' : 'one'} ${ms}ms`); return;
   }
-  if (/למעלה/.test(L)) { await swipe(rx(), Hh * 0.75, between(-20, 20), -between(40, 150), between(80, 300)); ev('swipe-up'); return; }
+  if (/למעלה/.test(L)) { await swipe(rx(), cy0(Hh * 0.75), between(-20, 20), -between(40, 150), between(80, 300)); ev('swipe-up'); return; }
   if (/הילך|להבריש|קנחו|הוציאו|ארוך|מהר|לרוחב/.test(L)) {   // (a child reads "ארוך יותר" / "מהר יותר" and swipes longer / quicker)
-    const dir = rnd() < 0.5 ? 1 : -1, longer = /ארוך/.test(L) ? 1.6 : 1, quicker = /מהר/.test(L) ? 0.6 : 1, x0 = dir > 0 ? W * between(0.55, 0.7) : W * between(0.8, 0.95);
+    const dir = rnd() < 0.5 ? 1 : -1, longer = /ארוך/.test(L) ? 1.6 : 1, quicker = /מהר/.test(L) ? 0.6 : 1, x0 = ob ? rx() : dir > 0 ? W * between(0.55, 0.7) : W * between(0.8, 0.95);
     await swipe(x0, ry(), dir * between(60, 230) * longer, between(-20, 20), between(70, 320) * quicker); ev('swipe-h'); return;
   }
   if (/אזנו/.test(L)) {   // the pan: the stick forward and the right thumb holds the balance by the tilt he sees (late and rough)
     const d21 = await pg.evaluate(() => { try { const K = globalThis.__SHIFT.E.d21(); return K ? K.b : 0; } catch (e) { return 0; } }).catch(() => 0);
-    const x0 = W * 0.75, y0 = Hh * 0.62; await down(5, x0, y0);
+    const x0 = cx0(), y0 = cy0(Hh * 0.62); await down(5, x0, y0);
     const x1 = curW * 0.2, y1 = curH * 0.7; await down(1, x1, y1);
     for (let i = 0, n = Math.round(between(25, 70)); i < n; i++) { const b0 = await pg.evaluate(() => { try { const K = globalThis.__SHIFT.E.d21(); return K ? K.b : null; } catch (e) { return null; } }).catch(() => null); if (b0 == null) break; await move(5, x0 - 70 * Math.max(-1, Math.min(1, b0 * between(0.8, 2.6) + between(-0.3, 0.3))), y0); await move(1, x1 + between(-8, 8), y1 - 56 * between(0.4, 1)); await sleep(between(90, 200)); }
     await liftAll(); ev('balance', String(d21).slice(0, 5)); return;
   }
-  if (/ימינה|שמאלה/.test(L)) { const d = rnd() < 0.5 ? 1 : -1; await swipe(d > 0 ? W * 0.58 : W * 0.92, ry(), d * between(60, 300), between(-10, 10), between(80, 260)); ev('sort', d > 0 ? 'right' : 'left'); return; }
+  if (/ימינה|שמאלה/.test(L)) { const d = rnd() < 0.5 ? 1 : -1; await swipe(ob ? rx() : d > 0 ? W * 0.58 : W * 0.92, ry(), d * between(60, 300), between(-10, 10), between(80, 260)); ev('sort', d > 0 ? 'right' : 'left'); return; }
   if (/עבים|בינוני|דק|לבסיס|לרוחב|במרכז/.test(L)) { if (rnd() < 0.5) await stick(between(-1, 1), between(-0.3, 0.3), between(200, 900)); await tap(rx(), ry()); ev('stack'); return; }
   if (/האירו|כתם/.test(L)) { await down(6, rx(), ry()); for (let i = 0; i < 14; i++) { await sleep(70); await move(6, rx(), ry()); } await up(6); await sleep(200); if (rnd() < 0.6) await tap(rx(), ry()); ev('scan'); return; }
   if (/נגר/.test(L)) { await swipe(rx(), ry(), (rnd() < 0.5 ? 1 : -1) * between(60, 160), 0, between(150, 500)); ev('bolt'); return; }
-  if (/סובבו/.test(L)) { const cx = W * 0.75, cy = Hh * 0.6; await down(6, cx + 50, cy); for (let i = 0; i <= 16; i++) { const a = (i / 16) * Math.PI * between(1, 2.2) * (rnd() < 0.8 ? 1 : -1); await move(6, cx + 50 * Math.cos(a), cy + 50 * Math.sin(a)); await sleep(50); } await up(6); ev('key'); return; }
-  if (/חפנו|הטני|לאט/.test(L)) { await swipe(rx(), Hh * 0.35, between(-10, 10), between(40, 150), pick([150, 500, 1200])); ev('pull'); return; }
+  if (/סובבו/.test(L)) { const cx = cx0(), cy = cy0(Hh * 0.6); await down(6, cx + 50, cy); for (let i = 0; i <= 16; i++) { const a = (i / 16) * Math.PI * between(1, 2.2) * (rnd() < 0.8 ? 1 : -1); await move(6, cx + 50 * Math.cos(a), cy + 50 * Math.sin(a)); await sleep(50); } await up(6); ev('key'); return; }
+  if (/חפנו|הטני|לאט/.test(L)) { await swipe(rx(), ob ? ry() : Hh * 0.35, between(-10, 10), between(40, 150), pick([150, 500, 1200])); ev('pull'); return; }
   if (/הפס|עד/.test(L)) { await hold(rx(), ry(), pick([300, 900, 1600, 2600, 4000])); ev('pour'); return; }
   if (/גררו/.test(L)) { const a = rnd() * Math.PI * 2; await swipe(rx(), ry(), Math.cos(a) * between(50, 150), Math.sin(a) * between(30, 100), between(200, 700)); ev('drag'); return; }
   if (/שחטו|הקישו|הציתו/.test(L)) { await sleep(between(0, 1500)); await tap(rx(), ry()); ev('tap-line'); return; }
-  if (/מזרק|הזרם/.test(L)) { await down(6, W * 0.75, ry()); for (let i = 0; i < 20; i++) { await sleep(90); await move(6, W * between(0.6, 0.9), Hh * 0.6); } await up(6); ev('catch'); return; }
-  if (/מרסו/.test(L)) { const x = rx(), y = Hh * 0.55; await down(6, x, y); for (let i = 0; i < 16; i++) { await sleep(between(80, 260)); await move(6, x, y + (i % 2 ? -40 : 40)); } await up(6); ev('shake'); return; }
-  if (/זרקו|מתחת/.test(L)) { await swipe(rx(), Hh * 0.8, between(-30, 30), -between(40, 200), between(80, 300)); ev('throw'); return; }
-  if (/שפכו|היסוד/.test(L)) { await swipe(rx(), Hh * 0.4, 0, between(40, 120), between(100, 300)); ev('pour-base'); return; }
+  if (/מזרק|הזרם/.test(L)) { await down(6, cx0(), ry()); for (let i = 0; i < 20; i++) { await sleep(90); await move(6, ob ? rx() : W * between(0.6, 0.9), cy0(Hh * 0.6)); } await up(6); ev('catch'); return; }
+  if (/מרסו/.test(L)) { const x = rx(), y = cy0(Hh * 0.55); await down(6, x, y); for (let i = 0; i < 16; i++) { await sleep(between(80, 260)); await move(6, x, y + (i % 2 ? -40 : 40)); } await up(6); ev('shake'); return; }
+  if (/זרקו|מתחת/.test(L)) { await swipe(rx(), ob ? ry() : Hh * 0.8, between(-30, 30), -between(40, 200), between(80, 300)); ev('throw'); return; }
+  if (/שפכו|היסוד/.test(L)) { await swipe(rx(), ob ? ry() : Hh * 0.4, 0, between(40, 120), between(100, 300)); ev('pour-base'); return; }
   // a walk line, a wait line, or none: the path
   await towardPath(s, between(600, 2600));
 }
@@ -219,6 +224,11 @@ async function tryLine(s) {
   console.log('== coins', JSON.stringify(R.coins));
   console.log('== guards', JSON.stringify(R.guards));
   console.log('== engine events', JSON.stringify(R.engineEv));
+  // ── build 40 ── the act's touches (kidpage.js T40): episodes, the first touch on the act's input, where the thumb landed
+  R.t40 = await pg.evaluate(() => { const T = globalThis.__KID && globalThis.__KID.T40; if (!T) return null; const ep = T.ep.concat(T.cur ? [{ ...T.cur, open: 1 }] : []); return { n: T.n, ep }; }).catch(() => null);
+  if (R.t40) { const f = R.t40.ep.filter((q) => q.first != null).map((q) => q.first).sort((a, b) => a - b), med = f.length ? f[f.length >> 1] : null, pad = R.t40.ep.reduce((a, q) => a + (q.pad | 0), 0), obj = R.t40.ep.reduce((a, q) => a + (q.obj | 0), 0);
+    console.log('== touch40', JSON.stringify({ acts: R.t40.ep.length, firstMs: { n: f.length, med, max: f.length ? f[f.length - 1] : null }, inActs: { obj, pad }, all: R.t40.n, ep: R.t40.ep.map((q) => [q.id, q.first, q.how || '-', q.obj | 0, q.pad | 0, q.ms || 0]) }).slice(0, 2500)); }
+  fs.writeFileSync(path.join(OUT, 'kid.json'), JSON.stringify(R, null, 1));
   console.log('== errors', R.errors.length); for (const e of R.errors.slice(0, 15)) console.log('  ', JSON.stringify(e));
   console.log('== screens', JSON.stringify(R.screens).slice(0, 1500));
   console.log('done', el() + 's');

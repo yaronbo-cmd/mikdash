@@ -18,6 +18,7 @@ import { man, ROBE, SKIN } from '../works/figures.js';
 import { CAP_MEMUNE } from '../works/dawn.js';
 import { bookOf23, D21, M22, P23, POOL26, POOL23, SWIPE36 } from './day33.js';
 import { RATE30, role30, reg30, served30, servedHe30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
+import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
 import { canPractice31 } from './practice31.js';   // ── fable32 (build 31) ── the book's practice doors ── /fable32 ──
 import { LVL36, L36, row36, PTS36 } from './lvl36.js';   // ── fable32 (build 36) ── the four levels of each role, his points, his choice ── /fable32 ──
 // ── fable32 (build 30) ── the roles book by the ratings: each role's best rating (מהודר gold, כשר cream, טעון תיקון soft), how many
@@ -320,6 +321,12 @@ export function createPis23(o = {}) {
         upHint.classList.toggle('on', wantUp);
         if (!wantUp) drags.clear();
       }
+      {   // ── fable32 (build 40) ── the act's surface on the thing: his own hand, raised for the count (touch40.js) ── /fable32 ──
+        const t40 = pad.__t40 || (pad.__t40 = createTouch40({ doc, pad, id: 'p23', proj: (x, y, z) => { try { const q = view && view.project(x, y, z); return q && q.on !== false ? { x: q.x, y: q.y } : null; } catch (e) { return null; } } }));
+        let h40 = null;
+        if (wantUp) { try { const h = { x: 0, y: 16, z: 0 }; globalThis.__T.stages.heroXYZ(h); h40 = [{ x: h.x, y: (h.y || 16) + 2.3, z: h.z, r: 0.8 }];   /* (his hand, raised over his head) */ } catch (e) { h40 = null; } }
+        t40.place(wantUp && !!h40, h40, 'p23');
+      }
     }),
     HOME = { x: P23.c.x, z: P23.c.z, a0: Math.PI },
     circle = HOME,
@@ -476,6 +483,7 @@ export function createPis23(o = {}) {
     ),
     api = {
       destroy() {
+        if (pad.__t40) pad.__t40.destroy();   // ── fable32 (build 40) ── ── /fable32 ──
         offEv();
         offTick();
         offDraw();

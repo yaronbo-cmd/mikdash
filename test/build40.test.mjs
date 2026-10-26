@@ -68,7 +68,8 @@ test('build 40: the thing\'s box on the screen (box40: each part projected, its 
 test('build 40: the act\'s layer on the thing (createTouch40) — on the thing: .t40-obj, its rect the hit area; frozen while a finger is down; the work pad (.t40-pad, the CSS right half) when small or by the switch; off → as it was; the hand the first time, retired by a touch on the thing, back after two touches that missed it', () => {
   const doc = mkDoc(), pad = doc.createElement('div'), ls = store();
   withGlobals({ localStorage: ls, innerWidth: 640, innerHeight: 296, __G39: undefined }, () => {
-    const t = createTouch40({ doc, pad, id: 'x40', proj });
+    let now = 0; const clock = () => now;   // (build 41: the fall to the pad waits T41.settle — the test's own clock)
+    const t = createTouch40({ doc, pad, id: 'x40', proj, clock });
     const big = [{ x: 2, y: 1, z: 0, r: 1 }];
     assert.equal(t.place(true, big, 'x40'), 'obj');
     assert.ok(pad.classList.contains('t40-obj') && !pad.classList.contains('t40-pad'));
@@ -98,7 +99,8 @@ test('build 40: the act\'s layer on the thing (createTouch40) — on the thing: 
     assert.equal(hand.classList.contains('on'), true, 'two misses: the hand back');
     pad.fire('pointerdown', {}); pad.fire('pointerup', {}); t.place(true, big, 'x40');
     assert.equal(hand.classList.contains('on'), false);
-    // small → the work pad, the CSS's own right half
+    // small → the work pad, the CSS's own right half (build 41: once it has stayed small past T41.settle)
+    t.place(true, [{ x: 0, y: 0, z: 0, r: 0.3 }], 'x40'); now += 1.1;
     assert.equal(t.place(true, [{ x: 0, y: 0, z: 0, r: 0.3 }], 'x40'), 'pad');
     assert.ok(pad.classList.contains('t40-pad') && !pad.classList.contains('t40-obj'));
     assert.equal(pad.style.left, ''); assert.equal(pad.style.width, '');
@@ -134,8 +136,9 @@ test('build 40: the act\'s camera (twin.js pan40) — the authored view slid sid
   assert.ok(Math.abs(r3.sh) <= CAM40.pan + 1e-9);
   // the twin: the view's slide from globalThis.__T40, held while a finger is down
   const tw = read('src/game/twin.js');
-  assert.match(tw, /const G40 = globalThis\.__T40, O = G40 && G40\.obj;/);
-  assert.match(tw, /if \(G40\.down && CBC\.v40\) V = CBC\.v40;/, 'frozen under the finger');
+  // (build 41: every authored view — with a thing (O0) or without (his middle, no slide) — and the freeze kept)
+  assert.match(tw, /const G40 = globalThis\.__T40, O0 = G40 && G40\.obj;/);
+  assert.match(tw, /else if \(G40 && G40\.down && CBC\.v40\) V = CBC\.v40;/, 'frozen under the finger');
   assert.match(tw, /r40 = pan40\(V\.p, V\.t, O,/);
 });
 
@@ -150,7 +153,7 @@ test('build 40: every act\'s layer goes on its thing — the ashes (the bed, the
   const want = {
     'src/avodah/shift/deshen21.js': [/t40\.place\(padOn && !!k, ph === 'sweep' \? \[\{ x: D21\.bed\.x/, /t40\.destroy\(\)/],
     'src/avodah/shift/maaracha22.js': [/t40\.place\(padOn && !!k, sorting \? \[\{ x: SHOW\[0\]/, /t40\.destroy\(\)/],
-    'src/avodah/shift/heichal26.js': [/P26\.gate\.x[^]*P26\.alt\.x[^]*t40\.place\(!!o40, o40, id40\)/, /t40\.destroy\(\)/],
+    'src/avodah/shift/heichal26.js': [/P26\.gate\.x[^]*GOLD_ALTAR\.x[^]*t40\.place\(!!o40, o40, id40\)/, /t40\.destroy\(\)/],   // (build 41: the inner altar's own top, GOLD_ALTAR — was his stand, P26.alt)
     'src/avodah/shift/dam27.js': [/ph === 'bind' \? \[\{ \.\.\.FORE, r: 0\.6 \}, \{ \.\.\.HIND, r: 0\.6 \}\] : ph === 'cut' \? \[\{ \.\.\.NECK/, /t40\.destroy\(\)/],
     'src/avodah/shift/pen25.js': [/at25\(i, La, a0\.hy, a0\.hp\); pts40\.push/, /pad\.__t40\.destroy\(\)/],
     'src/avodah/shift/pis23.js': [/t40\.place\(wantUp && !!h40, h40, 'p23'\)/, /pad\.__t40\.destroy\(\)/],
@@ -175,7 +178,7 @@ test('build 40: the work pad\'s switch (prefs28 pad40) — in the pause card\'s 
 });
 
 test('build 40: GAME_BUILD 40; no Divine Name in the changed files (by code points); the pilgrims\' word', () => {
-  assert.equal(GAME_BUILD, 40);
+  assert.equal(GAME_BUILD, 41);   // (build 41: the constant moved on)
   const files = ['src/avodah/shift/touch40.js', 'src/avodah/shift/deshen21.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/dam27.js', 'src/avodah/shift/pen25.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/hud.js', 'src/game/twin.js', 'tools/autoplay35.js', 'tools/kid34/kid.cjs', 'tools/kid34/kidpage.js', 'PROJECT.md', 'test/build40.test.mjs'];
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)];
   const P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);

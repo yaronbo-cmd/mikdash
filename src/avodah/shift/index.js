@@ -276,7 +276,7 @@ export function mountShift(o = {}) {
     try { hud.onPause(() => { if (E !== me || !hud) return; E.pause(true); T28.release(); hud.pauseCard({ resume: () => { if (E === me) E.pause(false); }, note: W29.softLine, sub: `אימון — ${A.he}`, restart: () => runPractice(role, from), back: { label: 'חזרה לספר התפקידים', fn: () => backFrom31(from) }, prefs: { sfx: o.sfx } }); }); } catch (e) { /* */ }
     startT = Date.now();
     hud.set(E.state());
-    hud.intro('אימון', `${A.icon} ${A.he} — המחשה`, 900);
+    hud.intro('אימון', `${A.icon} ${A.he} — המחשה`, 900, true);   // ── fable32 (build 41) ── (a slim line in the top band: the card covered him at each act's start) ── /fable32 ──
     setTimeout(() => { if (E === me) { E.start(); emit('practiceStart', { role, run: runs }); } }, 800);
     evlog('practice31_open', { id: role, from });
     globalThis.__SHIFT.mods = mods;

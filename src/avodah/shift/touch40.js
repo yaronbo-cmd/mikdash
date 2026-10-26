@@ -17,6 +17,10 @@ import { SHARED } from './draw.js';
  *  the fallback when the object's footprint is under `min` px (the owner's 44); the hand's hint after `miss` touches in a row off the thing */
 export const T40 = Object.freeze({ margin: 30, box: 96, min: 44, miss: 2, edge: 4 });
 /** the player's switch (prefs28): the work pad instead of the thing — accessibility */
+// ── fable32 (build 41) ── (the coordinator's build-41 brief, item 6: the zorek's cut showed the pad for ~1 s while the camera arrived,
+// the thing 37 px) the fall to the pad is decided after the move: never in the act's first `settle` s, and only once the thing has stayed
+// small or off the screen `settle` s in a row; back on the thing only past `hyst` px over the rule. No box at all, or the switch: at once ── /fable32 ──
+export const T41 = Object.freeze({ settle: 1.0, hyst: 8 });
 export const PAD40_KEY = 'bh_pad40';
 export const HAND40_KEY = 'bh_t40_hand';
 const ls = () => { try { return globalThis.localStorage || null; } catch (e) { return null; } };
@@ -69,7 +73,8 @@ export const TOUCH40_CSS = `.t40-hand{position:fixed;left:0;top:0;z-index:31;poi
 
 export function createTouch40(o = {}) {
   const doc = o.doc || (typeof document !== 'undefined' ? document : null), pad = o.pad || null, proj = o.proj || (() => null), at = Number.isFinite(o.at) ? Math.max(0.55, Math.min(0.65, o.at)) : null;   // (at: the thing's own share of the width for the act's camera — 55–65 %)
-  const st = { on: false, id: o.id || '', mode: '', fb: '', down: 0, miss: 0, hand: false, touched: false, n: 0, box: null, hit: null, objN: 0, padN: 0 };
+  const st = { on: false, id: o.id || '', mode: '', fb: '', down: 0, miss: 0, hand: false, touched: false, n: 0, box: null, hit: null, objN: 0, padN: 0, onAt: 0, fbAt: null };
+  const clock = o.clock || (() => (typeof performance !== 'undefined' ? performance.now() / 1000 : Date.now() / 1000));   // ── fable32 (build 41) ── ── /fable32 ──
   if (!doc || !pad) return { place() { return null; }, state: () => ({ ...st }), destroy() {} };
   if (!doc.getElementById('t40-css')) { const s = doc.createElement('style'); s.id = 't40-css'; s.textContent = TOUCH40_CSS; doc.head.appendChild(s); }
   const mk = (cls, html) => { const e = doc.createElement('div'); e.className = cls; e.innerHTML = html; e.setAttribute('aria-hidden', 'true'); (doc.body || doc.documentElement).appendChild(e); return e; };
@@ -94,8 +99,15 @@ export function createTouch40(o = {}) {
       if (st.on) { st.on = false; st.mode = ''; st.hand = false; clear(); hand.classList.remove('on'); ring.classList.remove('on'); if (SHARED.obj40 && SHARED.obj40.t40 === api) SHARED.obj40 = null; st.down = 0; pub(); }
       return null;
     }
+    if (!st.on) { st.onAt = clock(); st.fbAt = null; }   // ── fable32 (build 41) ── ── /fable32 ──
     st.on = true; st.n++;
-    const w = W(), h = H(), bx = box40(pts, proj), fb = fallback40(bx, w, h, pad40On());
+    const w = W(), h = H(), bx = box40(pts, proj), fb0 = fallback40(bx, w, h, pad40On());
+    // ── fable32 (build 41) ── T41: the fall to the pad after the camera's move, with hysteresis ── /fable32 ──
+    let fb = fb0;
+    { const now = clock(), soft = fb0 === 'small' || fb0 === 'off';
+      if (soft) { if (st.fbAt == null) st.fbAt = now; if (st.mode !== 'pad' && (now - st.onAt < T41.settle || now - st.fbAt < T41.settle)) fb = ''; }
+      else st.fbAt = null;
+      if (!fb0 && st.mode === 'pad' && bx && bx.fp < T40.min + T41.hyst) fb = 'small'; }
     // (the act's object for the camera: the middle of its parts)
     const p0 = (pts || []).find((p) => p && Number.isFinite(p.x));
     if (!st.down) { const pb = (pts || []).filter((p) => p && Number.isFinite(p.x)), n = pb.length || 1; SHARED.obj40 = p0 ? { x: pb.reduce((a, p) => a + p.x, 0) / n, y: pb.reduce((a, p) => a + p.y, 0) / n, z: pb.reduce((a, p) => a + p.z, 0) / n, r: p0.r || 0.5, id: st.id, at, t40: api } : null; pub(); }   // (the parts' middle; held under the finger)

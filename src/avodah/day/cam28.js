@@ -21,6 +21,15 @@ const RISE = [0.09, 0.18, 0.27, 0.36, 0.5, 0.65, 0.8, 0.95, 1.1];
 const TURN = [0.6, -0.6, 1.2, -1.2, 1.9, -1.9];
 // ── recovered (16–26c) ── the pull-only lift over his shoulder: at most PULL_LIFT, and the camera's elevation at most PULL_EL (the names are the recovery's)
 const PULL_LIFT = 0.35, PULL_EL = 0.7;
+// ── fable32 (build 41) ── the shift's follow camera by a wall (the coordinator's build-41 brief, item 1: "when the boom has to pull in,
+// move the look point back onto him first, then rise and pitch down more steeply (up to ~55°)"): blocked under the pull-only rule, before
+// the old pull the guard tries the poses about his head that keep him readable — at the camera's own elevation and then risen in steps to
+// `el` (55°), each at its own distance and then nearer down to `dMin` (the share of the screen his figure takes stays ≤ 45 % at the
+// shift's 50° view: his 3.96-amah figure needs ≥ 9.4 amot) — the least rise first, the farthest first; while such a pose (or the pull) is
+// held the camera's look comes back onto his middle (`lookY` over his feet), eased at `lookK`/s, so a risen camera looks down at him and
+// not past him (build 40's first try lost him off the frame's foot). The glide is the guard's own (≤ 50 amot a second, on the sphere about
+// his head): never a cut. ── /fable32 ──
+export const WALL41 = Object.freeze({ el: Object.freeze([0.55, 0.65, 0.75, 0.86, 0.96]), dMin: 9.5, d: Object.freeze([14, 12, 10.5, 9.5]), lookY: 1.9, lookK: 3 });
 
 function segBox(px, py, pz, qx, qy, qz, B) {
   let t0 = 0, t1 = 1;
@@ -129,6 +138,11 @@ export function createCamGuard(o = {}) {
           // (under a roof — Nikanor's gateway, a chamber's door — nothing above sees him: low and near, along the way he stands in)
           if (!got) low: for (const K of [0.4, 0.25]) for (const E of [0.3, 0.12]) for (let j = 0; j < 12; j++) { const A = (j % 2 ? -1 : 1) * Math.ceil(j / 2) * (Math.PI / 6); if (tryP(A, E - e0, K, 'low')) { got = true; break low; } }
         }
+        // ── fable32 (build 41) ── WALL41: his readable poses before the pull — the look comes back onto him (below) ── /fable32 ──
+        if (pullOnly && !got) {
+          const L0 = Math.hypot(vx, vy, vz) || 1, Ds = [L0, ...WALL41.d.filter((d) => d < L0 - 0.5)], Es = [e0, ...WALL41.el.filter((e) => e > e0 + 0.02)];
+          w41: for (const ah of ahead ? [true, false] : [false]) { useAhead = ah; for (const E of Es) for (const D of Ds) { if (D < WALL41.dMin && D < L0) continue; if (tryP(0, E - e0, D / L0, 'rise41')) { got = true; break w41; } } }
+        }
         useAhead = true;
         if (!got) {
           mode = 'pull';
@@ -147,7 +161,7 @@ export function createCamGuard(o = {}) {
     // never a cut: the guard's own change moves round him (on the sphere about the look point, not through it) at ≤ 50 amot a second —
     // 2.5 per 50 ms (a snap: at once); the wanted camera's own moves (the follow, the lift, the overview) pass untouched
     const D = Math.hypot(vx, vy, vz) || 1;
-    if (g.snap || !g.have) { g.cA = tA; g.cE = tE; g.cK = tK; g.have = true; g.snap = false; }
+    if (g.snap || !g.have) { g.cA = tA; g.cE = tE; g.cK = tK; g.have = true; g.snap = false; g.snap41 = true; }   // ── fable32 (build 41) ── (snap41: the look's blend snaps with it) ── /fable32 ──
     else {
       // (the camera already behind a wall — his line cut NOW — moves three times as fast, still a glide: ⚑ 7.5 amot per 50 ms)
       let fast = 1;
@@ -161,7 +175,11 @@ export function createCamGuard(o = {}) {
     g.w = [wx, wy, wz]; g.a = [ax, ay, az];
     g.cx = g.ox - wx; g.cy = g.oy - wy; g.cz = g.oz - wz;
     const moved = Math.hypot(g.cx, g.cy, g.cz) > 0.02;
-    if (moved) { g.fix++; o.view.camSet(g.ox, g.oy, g.oz, cq.tx, cq.ty, cq.tz); }
+    // ── fable32 (build 41) ── the look back onto his middle while the guard holds a readable pose or pulls (WALL41), eased; the camera
+    // turned to it at once (the render follows the guard's frame) ── /fable32 ──
+    { const want = !!globalThis.__CAM28_PULL && (g.mode === 'rise41' || g.mode === 'pull') && g.src === 'hero' ? 1 : 0; g.lw = (g.lw || 0) + (want - (g.lw || 0)) * Math.min(1, (dt > 0 ? dt : 0.016) * WALL41.lookK); if (g.snap41) { g.lw = want; g.snap41 = false; } if (g.lw < 0.002) g.lw = 0; }
+    const lw = g.lw || 0, ltx = cq.tx + (h.x - cq.tx) * lw, lty = cq.ty + (h.y + WALL41.lookY - cq.ty) * lw, ltz = cq.tz + (h.z - cq.tz) * lw;
+    if (moved || lw > 0) { g.fix++; o.view.camSet(g.ox, g.oy, g.oz, ltx, lty, ltz); if (lw > 0 && o.camera && typeof o.camera.lookAt === 'function') { try { o.camera.lookAt(ltx, lty, ltz); } catch (e) { /* */ } } }
     // (a camera nearer than OrbitControls' 35 amot, or a near plane at 4 that cuts a wall 3 amot away: the near limits are held, keyed)
     const near = moved && Math.hypot(g.ox - cq.tx, g.oy - cq.ty, g.oz - cq.tz) < 36;
     if (near !== !!g.held && o.view.closeCam) { o.view.closeCam(near, 'cam28'); g.held = near; }
@@ -184,7 +202,7 @@ export function createCamGuard(o = {}) {
     step, seg, firstHit, occluded,
     on(v) { v = !!v; if (v === g.on) return; g.on = v; g.snap = true; g.have = false; if (!v && g.held && o.view && o.view.closeCam) { o.view.closeCam(false, 'cam28'); g.held = false; } },
     snap() { g.snap = true; },
-    state: () => ({ on: g.on, mode: g.mode, turn: g.turn || 0, w: (g.w || []).map((v) => +v.toFixed(1)), cur: [+g.cA.toFixed(2), +g.cE.toFixed(2), +g.cK.toFixed(2)], a: (g.a || []).map((v) => +v.toFixed(1)), rise: +g.rise.toFixed(2), pull: +g.pull.toFixed(2), n: g.n, blk: g.blk, skips: g.skips | 0, fix: g.fix, ms: +g.ms.toFixed(2), src: g.src, held: !!g.held, cam: [g.ox, g.oy, g.oz].map((v) => +v.toFixed(1)) }),
+    state: () => ({ on: g.on, mode: g.mode, lw: Math.round((g.lw || 0) * 100) / 100 /* ── fable32 (build 41) ── */, turn: g.turn || 0, w: (g.w || []).map((v) => +v.toFixed(1)), cur: [+g.cA.toFixed(2), +g.cE.toFixed(2), +g.cK.toFixed(2)], a: (g.a || []).map((v) => +v.toFixed(1)), rise: +g.rise.toFixed(2), pull: +g.pull.toFixed(2), n: g.n, blk: g.blk, skips: g.skips | 0, fix: g.fix, ms: +g.ms.toFixed(2), src: g.src, held: !!g.held, cam: [g.ox, g.oy, g.oz].map((v) => +v.toFixed(1)) }),
     smoke: SMK, extra: EXTRA,
   };
 }

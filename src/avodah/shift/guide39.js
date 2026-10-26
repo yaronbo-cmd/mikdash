@@ -9,6 +9,7 @@
 import { planPath } from '../day/guide27.js';
 import { onHigh, rampWay } from '../day/world22.js';
 import { placeGround } from '../works/anchors.js';
+import { rings27 } from './day33.js';
 
 /** the walk's numbers: arrive within `arrive` of the place; a way point passed within `pass`; re-planned every `replanS` s once he is
  *  `replanMove` off its leg (or blocked `stuckS` s — within `near` of the place that is arrival); slower over the last `slowIn` amot (never under `minK` of the pace); the drag picks a
@@ -46,8 +47,15 @@ export function createGuide39(o = {}) {
     } catch (e) { /* the engine's */ }
     return out;
   }
+  // (the floors by the place, and the place of slaughter's floor while he stands on it — day33 rings27, the twin's pass with the blood
+  // roles: the zorek's way out of the rings to the altar's corners; the chambers' block round it stays a wall)
+  const floors = (h, T) => {
+    if (!freeFor) return () => true;
+    const a = freeFor(T.at);
+    return rings27(h.x, h.z) && !rings27(T.at.x, T.at.z) ? (x, z) => a(x, z) || rings27(x, z) : a;
+  };
   function plan(h, T) {
-    st.pts = way39(h.x, h.z, T.at, freeFor ? freeFor(T.at) : () => true);
+    st.pts = way39(h.x, h.z, T.at, floors(h, T));
     st.i = 0;
     st.t0 = clock();
     st.ox = h.x;
@@ -56,7 +64,7 @@ export function createGuide39(o = {}) {
   }
   /** the unit direction toward the first way point of T's way from h (for the drag's choice) */
   function head(h, T) {
-    const pts = way39(h.x, h.z, T.at, freeFor ? freeFor(T.at) : () => true);
+    const pts = way39(h.x, h.z, T.at, floors(h, T));
     for (const q of pts) {
       const d = Math.hypot(q.x - h.x, q.z - h.z);
       if (d > G39.pass) return { x: (q.x - h.x) / d, z: (q.z - h.z) / d };

@@ -64,8 +64,11 @@ async function taps(x, y, n) { for (let i = 0; i < n; i++) { await tap(x + betwe
 async function swipe(x, y, dx, dy, ms = between(90, 260), id = 8) { const n = Math.max(3, Math.round(ms / 30)); await down(id, x, y); for (let i = 1; i <= n; i++) { await sleep(ms / n); await move(id, x + (dx * i) / n, y + (dy * i) / n); } await up(id); }
 async function hold(x, y, ms, id = 8) { await down(id, x, y); const tEnd = Date.now() + ms; while (Date.now() < tEnd) { await sleep(Math.min(120, tEnd - Date.now())); await move(id, x + between(-1.5, 1.5), y + between(-1.5, 1.5)); } await up(id); }
 // the stick: a thumb on the left half pushed toward (ux, uy) (screen: up = forward) for ms; it wobbles like a child's
+// ── fable32 (build 39) ── the guided walk (no stick on the screen): the same thumb is a hold on the world — it lands anywhere (mostly the
+// left half, now and then the right), drags a little in its direction (the choice between open places) and lets go; ?stick=1 pages keep
+// the old stick ── /fable32 ──
 async function stick(ux, uy, ms, id = 1) {
-  const x0 = curW * between(0.1, 0.3), y0 = curH * between(0.55, 0.85), m = Math.hypot(ux, uy) || 1, R0 = 56 * between(0.5, 1.1);
+  const x0 = curW * (rnd() < 0.75 ? between(0.06, 0.45) : between(0.52, 0.72)), y0 = curH * between(0.3, 0.85), m = Math.hypot(ux, uy) || 1, R0 = 56 * between(0.3, 1.1);
   await down(id, x0, y0); const tEnd = Date.now() + ms;
   while (Date.now() < tEnd) { const wob = between(-0.25, 0.25); const a = Math.atan2(uy, ux) + wob; await move(id, x0 + Math.cos(a) * R0, y0 + Math.sin(a) * R0); await sleep(between(60, 140)); }
   await up(id);

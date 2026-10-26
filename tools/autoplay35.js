@@ -39,8 +39,41 @@
   // (__S29W.to), and the last few amot straight
   const SPEED = (el) => (H() ? 7 : el < 0.6 ? 7 : 10.5);   // (the quick hand holds the stick on the rim: after 0.6 s the sprint, PACE.rim/rimAfter/sprint)
   function drive(vx, vz) { try { const h = S().hero, sm = h.speedMul > 0 ? h.speedMul : 1; h.drive(vx / sm, vz / sm); } catch (e) { /* */ } }
+  // ── fable32 (build 39) ── the guided walk (twin.js T.guide39, shift/guide39.js): a thumb held on the world walks him on the guide's way to
+  // the task's place — the bot holds the walk's surface (.tw-zone) until he is there (or an act takes him), and drags toward p when the
+  // guide offers more than one place; a child lets go now and then. No direct drive. ── /fable32 ──
+  const g39zone = () => { try { return document.querySelector('.gm.tw-on.tw-g39 .tw-zone'); } catch (e) { return null; } };
+  async function walkTo39(z, p, r, ms, during) {
+    const t0 = performance.now(), W = innerWidth || 640, Hh = innerHeight || 296, id = 931, x0 = W * (0.25 + rnd() * 0.15), y0 = Hh * (0.55 + rnd() * 0.2);
+    let held = false, win = null, lastLift = performance.now();
+    const down = () => { if (!held) { ptr(z, 'pointerdown', x0, y0, id); held = true; } };
+    const up = () => { if (held) { ptr(z, 'pointerup', x0, y0, id); held = false; } };
+    try {
+      for (;;) {
+        if (!A.on) return false;
+        const h = hero(), left = Math.hypot(p.x - h.x, p.z - h.z), t = T();
+        if (left <= r) return true;
+        const e = E(); if (e && busy(e) && A.walkBusy !== true && (e.k20() || e.p23() || e.p25() || (e.r26() && !['walk', 'out'].includes(e.r26().ph)) || (e.d21() && e.d21().ph !== 'foot') || (e.m22() && e.m22().ph !== 'carry'))) return true;   // (an act took him)
+        const G = globalThis.__G39, T39 = G ? G.targets() : [];
+        if (!T39.length) { up(); if (performance.now() - t0 > ms) return false; await sleep(120); continue; }
+        down();
+        // (more than one place: drag toward p on the screen — the camera's bearing, as the twin reads it)
+        if (T39.length > 1 && Math.hypot(T39[0].at.x - p.x, T39[0].at.z - p.z) > 1.5) { const q = (() => { try { return __T.view.project(p.x, 17, p.z); } catch (err) { return null; } })(), me = (() => { try { return __T.view.project(h.x, 17, h.z); } catch (err) { return null; } })(); if (q && me) { const dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy) || 1; ptr(z, 'pointermove', x0 + (dx / d) * 60, y0 + (dy / d) * 60, id); } }
+        // (the guide there but not at p: p is not its place — the guide's own end is the way; stop)
+        const gs = G.state(); if (gs.arrived && left > r + 2.5) { note(`guided: at ${gs.arrived}, not at the bot's ${p.x.toFixed(1)},${p.z.toFixed(1)}`); return true; }
+        if (H() && performance.now() - lastLift > 1800 + rnd() * 2500) { up(); await sleep(150 + rnd() * 350); down(); lastLift = performance.now(); }   // (a child lets go now and then)
+        if (!(A.trW > t - 1)) { A.trW = t; A.trace.push([t, 'g', +h.x.toFixed(1), +h.z.toFixed(1), +p.x.toFixed(1), +p.z.toFixed(1), +left.toFixed(1), gs.id || '']); if (A.trace.length > 400) A.trace.shift(); }
+        if (!win || t < win.t) win = { t, left, x: h.x, z: h.z };
+        else if (t - win.t >= 3) { if (win.left - left < 0.5 && Math.hypot(h.x - win.x, h.z - win.z) < 1) { A.stuck++; A.trace.push([t, 'stuck39', +h.x.toFixed(1), +h.z.toFixed(1), +p.x.toFixed(1), +p.z.toFixed(1), +left.toFixed(1), gs.id || '']); note(`guided: no headway at ${h.x.toFixed(1)},${h.z.toFixed(1)} (to ${gs.id})`); } win = { t, left, x: h.x, z: h.z }; }
+        if (performance.now() - t0 > ms) { note('guided walk: given up'); return false; }
+        if (during) { try { if ((await during()) === false) return true; } catch (err) { /* */ } }
+        await sleep(H() ? 60 : 40);
+      }
+    } finally { up(); }
+  }
   async function walkTo(p, r = 1.6, ms = 40000, during = null) {
     if (!p) return false; A.walks++;
+    { const z = g39zone(); if (z && globalThis.__G39 && !A.opts.stick39) return walkTo39(z, p, r, ms, during); }   // ── fable32 (build 39) ── ── /fable32 ──
     const t0 = performance.now(); let win = null, tries = 0;
     for (;;) {
       if (!A.on) { drive(0, 0); return false; }

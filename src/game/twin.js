@@ -22,6 +22,9 @@
 const CSS = `
 .gm .tw-zone,.gm .tw-pad,.gm .tw-mk,.gm .tw-aim,.gm .tw-flash{display:none}
 .gm.tw-on .tw-zone.tw-nostick{display:none!important}
+/* ── fable32 (build 39) ── the guided walk: the whole world is the walk's surface (under every pad, button and card), no stick drawn ── /fable32 ── */
+.gm.tw-on.tw-g39 .tw-zone{left:0;top:0;width:100%;bottom:0;z-index:3}
+.gm.tw-on.tw-g39 .tw-base,.gm.tw-on.tw-g39 .tw-ghost,.gm.tw-on.tw-g39 .tw-zone .tw-tip{display:none!important}
 .gm.tw-on .tw-zone{display:block;position:absolute;left:0;bottom:0;width:var(--tw-left-w,45vw);top:var(--tw-left-top,35vh);z-index:4;touch-action:none;pointer-events:auto;-webkit-user-select:none;user-select:none}
 .gm.tw-on.tw-hold .tw-zone,.gm.tw-on.tw-hold .tw-pad{opacity:.25;pointer-events:none}
 .tw-base{position:absolute;left:0;top:0;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,rgba(28,20,10,.18),rgba(28,20,10,.38));border:2px solid rgba(255,236,190,.55);box-shadow:0 0 0 1px rgba(0,0,0,.25);opacity:0;transition:opacity .12s;pointer-events:none}
@@ -127,6 +130,21 @@ function stickCurve(L, c) {
 }
 // ── recovered (build 24) ── the protocol stick (T.pace.p24): its radius in px, its dead zone (of the radius) and the velocity's time constant (s)
 export const STICK24 = Object.freeze({ R: 56, dead: 0.15, tau: 0.05 });
+// ── fable32 (build 39) ── the guided walk (the owner, 26.10: "לחצת - זזת לכיוון הנקודה. לא לחצת נשארת לעמוד. בלי שרואים בכלל גויסטיק."):
+// on when the shift gives T.guide39 (shift/guide39.js) and no ?stick=1 (the developer's stick: the old floating stick, the door help with
+// it). A thumb held anywhere on the world walks him on the guide's way to the task's place at `speed` of the pace (`tau`: its ease in);
+// released, he stops; the drag only chooses between open places (`pick` px); an act that takes the stick (T.stickUse) gets the hold as a
+// steady push (`push`) where it walks (the ashes' descent), the drag where it aims (the pyre's row) ── /fable32 ──
+export const WALK39 = Object.freeze({ speed: 0.82, tau: 0.18, pick: 28, push: 0.72 });
+/** one frame of the guided walk's velocity (pure): toward the guide's direction g {x, z, k} at WALK39.speed of top, eased in over tau;
+ *  no direction (no place, or there) → eased to rest, and at rest under 0.3 */
+export function walk39(v, g, top, dt) {
+  const k = g ? Math.max(0, Math.min(1, g.k == null ? 1 : g.k)) * WALK39.speed : 0;
+  stickVel(v, g ? g.x * k : 0, g ? g.z * k : 0, top, dt, WALK39.tau);
+  if (!g && Math.hypot(v.vx, v.vz) < 0.3) { v.vx = 0; v.vz = 0; }
+  return v;
+}
+export const STICK39 = (() => { try { return typeof location !== 'undefined' && /[?&]stick=1(&|$)/.test(location.search || ''); } catch (e) { return false; } })();
 const stick24 = (L, r) => { const m = Math.min(1, L / r); return m < STICK24.dead ? 0 : m; };
 function stickMove(m, want, hd, dt, c, top) {
   const sp0 = m.sp;
@@ -262,6 +280,8 @@ export function createTwin(o = {}) {
 
   /* ── the left thumb ── */
   const stick = { id: null, bx: 0, by: 0, dx: 0, dy: 0, on: false, t0: 0, walked: 0 };
+  const g39 = () => !STICK39 && !globalThis.__STICK39 && typeof T.guide39 === 'function';   // ── fable32 (build 39) ── (the guided walk: the shift's guide, no developer's stick) ── /fable32 ──
+  const g39drag = { x: 0, z: 0 };
   const hp = { x: 0, y: 0, z: 0, yaw: 0, vis: false }, hp0 = { x: 0, z: 0 };
   const hero = () => { const s = o.stages; if (s && typeof s.heroXYZ === 'function') return s.heroXYZ(hp); return null; };
   function drive(vx, vz) { try { const h = o.stages && o.stages.hero; if (h && typeof h.drive === 'function') h.drive(vx, vz); } catch (e) { /* the world's */ } }
@@ -670,6 +690,7 @@ export function createTwin(o = {}) {
     const dt = st.prevMs ? Math.min(0.6, Math.max(0, (ms - st.prevMs) / 1000)) : 0; st.prevMs = ms;
     if ((st.chk -= dt) <= 0) { st.chk = 0.25; setOn(want()); }
     if (!st.on) return;
+    { const g = g39(); if (g !== st.g39) { st.g39 = g; root().classList.toggle('tw-g39', g); zone.setAttribute('aria-label', g ? 'החזיקו כדי ללכת' : 'גררו כאן כדי ללכת'); } }   // ── fable32 (build 39) ── (the guided walk: the world's surface, no stick drawn) ── /fable32 ──
     // (second fix round) the thumbs are held ONLY while a card that asks something is open (moment()); a film — a key moment, a course's
     // beat — only takes the camera for its shots (film()), the stick and the button stay live
     const moment = !!call('moment'), film = !!call('film');
@@ -708,13 +729,22 @@ export function createTwin(o = {}) {
       let top = 11 * (pc.k || 1);
       if (pc.mul > 0 && !pc.k) { stick.rimT = M >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) top *= pc.mul; } else stick.sprint = false;
       stick.M = M;
+      const G = g39();   // ── fable32 (build 39) ── ── /fable32 ──
       if (typeof T.stickUse === 'function') {
-        try { T.stickUse(ux * M, uy * M, M); } catch (e) { /* the shift's */ }
+        try { if (G && T.stickUse.d21) T.stickUse(0, WALK39.push, WALK39.push); else T.stickUse(ux * M, uy * M, M); } catch (e) { /* the shift's */ }   // ── fable32 (build 39) ── (the guided hold: the ashes' descent pushed steadily) ── /fable32 ──
         stick.v.vx = stick.v.vz = 0; stick.m.sp = 0; drive(0, 0); stick.vx = stick.vz = 0;
+      } else if (G) {   // ── fable32 (build 39) ── the guided walk: the guide's way, the drag only to choose; no motion with no place ── /fable32 ──
+        const Ld = Math.hypot(stick.dx, stick.dy), fx = -Math.cos(st.az), fz = -Math.sin(st.az);
+        let drag = null;
+        if (Ld >= WALK39.pick) { const qx = stick.dx / Ld, qy = -stick.dy / Ld; g39drag.x = fx * qy - fz * qx; g39drag.z = fz * qy + fx * qx; drag = g39drag; }
+        let g = null;
+        try { g = T.guide39(hp, drag); } catch (e) { g = null; }
+        const v = walk39(stick.v, g, top, dt);
+        stick.m.sp = Math.hypot(v.vx, v.vz); drive(v.vx, v.vz); stick.vx = v.vx; stick.vz = v.vz; stick.sprint = false; stick.M = g ? WALK39.speed : 0;
       } else {
         const fx = -Math.cos(st.az), fz = -Math.sin(st.az), v = stickVel(stick.v, (fx * uy - fz * ux) * M, (fz * uy + fx * ux) * M, top, dt, P.tau);
         let dvx = v.vx, dvz = v.vz;
-        if (typeof T.assist38 === 'function') { try { const a = T.assist38(hp.x, hp.z, dvx, dvz); if (a) { dvx = a[0]; dvz = a[1]; } } catch (e) { /* the shift's */ } }   // ── fable32 (build 38) ── (the help at narrow openings: the stick's heading bent into the door — world22 assist38; the speed the stick's) ── /fable32 ──
+        if (typeof T.assist38 === 'function' && !g39()) { try { const a = T.assist38(hp.x, hp.z, dvx, dvz); if (a) { dvx = a[0]; dvz = a[1]; } } catch (e) { /* the shift's */ } }   // ── fable32 (build 38) ── (the help at narrow openings: the stick's heading bent into the door — world22 assist38; the speed the stick's) ── /fable32 ──
         stick.m.sp = Math.hypot(dvx, dvz); drive(dvx, dvz); stick.vx = dvx; stick.vz = dvz;
       }
       stick.parked = false; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z);

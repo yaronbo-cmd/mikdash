@@ -5443,6 +5443,7 @@ export function createDay33(o = {}) {
       (st.m22 && !carry22())
     )
       return null;
+    if (st.r26 && st.r26.ph === 'out' && !st.close35 && !prac) return { id: 'out26', kind: 'station', pid: null, at: { x: -52, y: 16, z: 0 } };   // ── fable32 (build 39) ── (out of the House: the guided walk's place — no place, no motion) ── /fable32 ──
     if (gate26L()) {
       const h = heroP();
       return onHigh(h.x, h.z) ? { id: 'lot26', kind: 'station', pid: null, at: { x: P26.foot.x, y: 16, z: P26.foot.z } } : null;
@@ -6396,6 +6397,13 @@ export function createDay33(o = {}) {
     pads18: () => pads18().slice(),
     tasks35: () => st.tasks.map((x) => ({ id: x.id, text: x.text, done: !!x.done })),
     chain38,   // ── fable32 (build 38) ── ── /fable32 ──
+    // ── fable32 (build 39) ── the guided walk's other open place (guide39.js: the drag's direction chooses): the salt chamber while his
+    // pyre's run wants salt (saltDue, carrying) — the only open task beside the morning's next today ── /fable32 ──
+    alt39: () => {
+      if (acting || st.phase !== 'run' || st.night || prac || !saltDue() || !(st.m22 && carry22())) return [];
+      const a = standOf('salt');
+      return a && Number.isFinite(a.x) ? [{ id: 'salt', at: { x: a.x, y: 16, z: a.z } }] : [];
+    },
     focus17: () => ({
       e35,
       close35: st.close35 ? st.close35.ph : null,

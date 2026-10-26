@@ -8,6 +8,7 @@ import { planPath } from '../day/guide27.js';
 import { man, lamb } from '../works/figures.js';   // ── fable32 (build 8) ── (the merchant at the gate) ── /fable32 ──
 import { free, houseFloor, onHigh, rampWay, HOUSE22, WEST27, westStrip27, gap37 } from '../day/world22.js';   // ── recovered (16–26c) ── (houseFloor, onHigh, rampWay, HOUSE22) ── fable32 (build 27) ── (westStrip27) ── /fable32 ──
 import { placeGround } from '../works/anchors.js';
+import { createGuide39 } from './guide39.js';   // ── fable32 (build 39) ── the guided walk ── /fable32 ──
 import { addDrawer, layerOf, L, SHARED } from './draw.js';
 
 export const F31 = { gap: 1.4, maxDiscs: 40, replanS: 0.25, replanMove: 1.2, zoomUp: 0.35, zoomDown: 0.6, zoomEl: 1.18, zoomD: 78, reach: 3, field: { x0: -30, x1: -9, z0: -26, z1: 50, y0: 14 }, dayField: { x0: -46.5, x1: -9, z0: -26, z1: 50, y0: 14 } };   // (field: the court east of the altar and of the ramp, north of the altar's NE corner to past the ramp's foot) ── recovered (16–26c) ── (dayField: the day's, from the ramp's west side)
@@ -24,6 +25,7 @@ const FREE_GATE = (x, z) => !gap37(x, z) && (houseFloor(x, z) || FREE26(x, z));
 const FREE_W = (x, z) => FREE(x, z) || westStrip27(x, z);
 const FREE26_W = (x, z) => FREE_W(x, z) && !LISHKA26(x, z);
 const freeFor = (p) => (HOUSE22.on ? (HOUSE22.gate ? FREE_GATE : FREE_HOUSE) : WEST27.on ? (p && LISHKA26(p.x, p.z) ? FREE_W : FREE26_W) : p && LISHKA26(p.x, p.z) ? FREE : FREE26);
+export const freeFor31 = freeFor;   // ── fable32 (build 39) ── (the guided walk's floors — guide39.js) ── /fable32 ──
 const CSS = `.f31-zoom{position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);right:12px;z-index:31;min-width:96px;height:44px;padding:0 12px;border-radius:22px;border:2px solid rgba(255,236,190,.75);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;direction:rtl;display:flex;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:none;-webkit-user-select:none;user-select:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .f31-zoom i{font-style:normal;font-size:20px}.f31-zoom.on{background:#C8923A;color:#2A1804;border-color:#FFF1C8}
 .f31-me{position:fixed;left:0;top:0;z-index:23;pointer-events:none;padding:3px 9px;border-radius:10px;background:#FFD66E;color:#2A1804;font:900 15px/1.1 "Heebo",system-ui,sans-serif;direction:rtl;box-shadow:0 0 0 2px #2A1804;transform:translate(-999px,-999px)}
@@ -73,6 +75,10 @@ export function createFlow31(o = {}) {
   const gy = (x, z) => { try { const g = S && S.groundAt ? S.groundAt(x, z) : NaN; return Number.isFinite(g) ? g : 16; } catch (e) { return 16; } };
   const st = { pts: null, key: '', t: 0, ox: NaN, oz: NaN, zoom: 0, hold: false, holds: 0, n: 0, discs: 0, next: null, L: 0, shown: [], cue: null };
   const layer = layerOf(o.root || (doc && doc.body));
+  // ── fable32 (build 39) ── the guided walk: the twin asks the guide each frame a thumb is held on the world (twin.js T.guide39) ── /fable32 ──
+  const G39 = createGuide39({ E, freeFor: freeFor31 });
+  if (o.twin) o.twin.guide39 = (h, drag) => G39.dir(h, drag);
+  globalThis.__G39 = G39;
   /* the zoom-out button (FLOW31 (5)): a hold — never a gesture on the world */
   let zb = null, me = null, zl = null;
   const ZL = [{ d: 0.7, el: -0.05 }, { d: 1, el: 0 }, { d: 1.45, el: 0.12 }, { d: 2.1, el: 0.28 }, { d: 3.0, el: 0.45 }];   // ── fable32 ── ── /fable32 ──
@@ -258,7 +264,7 @@ export function createFlow31(o = {}) {
   // ── recovered (16–26c) ── in the day (E.shown33): the day's field, and the ramp's lane off while the shift runs
   try { const day = !!(E && E.shown33), lf = life(); if (lf && lf.clearField) st.cleared = lf.clearField(day ? F31.dayField : F31.field); if (lf && lf.rampLane && day) lf.rampLane('off'); } catch (e) { /* */ }
   const api = {
-    destroy() { off(); try { if (hot) hot.remove(); if (tag) tag.remove(); const b0 = btn(); if (b0) { b0.classList.remove('f31-prompt', 'f31-far'); b0.style.transform = ''; b0.__f31p = false; b0.__f31far = false; } } catch (e) { /* */ }   /* ── fable32 (build 5) ── ── /fable32 ── */ try { const lf = life(); if (lf && lf.clearField) lf.clearField(null); if (lf && lf.rampLane) lf.rampLane(0); /* ── recovered (16–26c) ── */ } catch (e) { /* */ } try { zb && zb.remove(); me && me.remove(); zl && zl.remove(); } catch (e) { /* */ } SHARED.zoomLvl = null; SHARED.f31 = null; SHARED.zoom31 = null; SHARED.path31 = null; const b = btn(); if (b) b.classList.remove('f31-go'); if (st.cue && o.stations && o.stations.cue) { try { o.stations.cue(st.cue, false); } catch (e) { /* */ } } },
+    destroy() { off(); try { if (o.twin && o.twin.guide39) o.twin.guide39 = null; if (globalThis.__G39 === G39) globalThis.__G39 = null; } catch (e) { /* */ }   /* ── fable32 (build 39) ── */ try { if (hot) hot.remove(); if (tag) tag.remove(); const b0 = btn(); if (b0) { b0.classList.remove('f31-prompt', 'f31-far'); b0.style.transform = ''; b0.__f31p = false; b0.__f31far = false; } } catch (e) { /* */ }   /* ── fable32 (build 5) ── ── /fable32 ── */ try { const lf = life(); if (lf && lf.clearField) lf.clearField(null); if (lf && lf.rampLane) lf.rampLane(0); /* ── recovered (16–26c) ── */ } catch (e) { /* */ } try { zb && zb.remove(); me && me.remove(); zl && zl.remove(); } catch (e) { /* */ } SHARED.zoomLvl = null; SHARED.f31 = null; SHARED.zoom31 = null; SHARED.path31 = null; const b = btn(); if (b) b.classList.remove('f31-go'); if (st.cue && o.stations && o.stations.cue) { try { o.stations.cue(st.cue, false); } catch (e) { /* */ } } },
     /** tests: the path, the next place, the zoom */
     state: () => ({ next: st.next ? { id: st.next.id, kind: st.next.kind } : null, discs: st.discs, pts: st.pts ? st.pts.map((q) => [Math.round(q.x * 10) / 10, Math.round(q.z * 10) / 10]) : null, L: Math.round(st.L * 10) / 10, zoom: Math.round(st.zoom * 100) / 100, hold: st.hold, holds: st.holds, cue: st.cue, n: st.n, cleared: st.cleared | 0, zl: st.zl }),
     setZoom(i) { if (st.setZ) st.setZ(i); return st.zl; },   // ── fable32 ── ── /fable32 ──

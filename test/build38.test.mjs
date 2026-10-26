@@ -104,11 +104,11 @@ test('build 38 (B): the door help — the stick toward the Heichal\'s gate besid
     HOUSE22.gate = false; assert.equal(assist38(-86.8, -6.6, -6, 0), null, 'the gate shut: none'); assert.equal(assist38(-121, -3, 0, 6), null, 'the Heichal shut: none');
     HOUSE22.on = false; assert.equal(assist38(-74, 12, -6, 0), null, 'the House shut: none');
   } finally { HOUSE22.on = on; HOUSE22.gate = g; }
-  const t = read('src/game/twin.js'); assert.match(t, /if \(typeof T\.assist38 === 'function'\) \{ try \{ const a = T\.assist38\(hp\.x, hp\.z, dvx, dvz\);/);
+  const t = read('src/game/twin.js'); assert.match(t, /if \(typeof T\.assist38 === 'function' && !g39\(\)\) \{ try \{ const a = T\.assist38\(hp\.x, hp\.z, dvx, dvz\);/);   // (build 39: the door help with the developer's stick only — ?stick=1)
   const d = read('src/avodah/shift/day33.js'); assert.match(d, /if \(p26 && T\) T\.assist38 = assist38;/); assert.match(d, /if \(T && T\.assist38 === assist38\) T\.assist38 = null;/);
 });
 test('build 38: GAME_BUILD 38; no Divine Name in the changed files (by code points); the pilgrims\' word', () => {
-  assert.equal(GAME_BUILD, 38);
+  assert.equal(GAME_BUILD, 39);   // (build 39: the constant moved on)
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];
   const sep = '[\\u0591-\\u05C7\\s\\-\\u05BE\\u05F3\\u05F4\'".]*';
   const res = N.map((c) => new RegExp(c.map((x) => String.fromCharCode(x)).join(sep)));

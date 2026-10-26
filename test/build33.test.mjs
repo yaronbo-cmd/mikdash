@@ -221,7 +221,7 @@ test('build 33 (12): the "מכאן" card — לשכת הטלאים open (≥ 44 
   assert.equal(Lb.pick('ch33'), true); assert.deepEqual(calls, ['chamber']);
   const L2 = createLobby({ save: {}, start: true, now: () => MON, where: () => W, on: {} }); L2.pick('here'); assert.ok(!/data-lb="ch33"/.test(L2.html()), 'no door without the shift\'s chamber'); assert.equal(L2.pick('ch33'), false);
   assert.match(read('src/avodah/shift/index.js'), /chamber: \(\) => \{ cardCtl = null; runChamber33\(\); \}/);
-  assert.equal(GAME_BUILD, 38);   // (build 34: the constant moved on) (build 35: again) (build 36: again) (build 37: again) (build 38: again)
+  assert.equal(GAME_BUILD, 39);   // (build 34: the constant moved on) (build 35: again) (build 36: again) (build 37: again) (build 38: again) (build 39: 39)
 });
 test('build 33 (13): the end cards — תמים (its tag, "נכנס ללשכה · מוכן בעוד 4 ימים", מנחות מט ע״ב), בעל מום (the blemish, its source, "מחר יש טלה אחר"), the rating; buttons ≥ 44 px; no red', () => {
   const s = withLambs(0), L = s.lambs33.list[0];

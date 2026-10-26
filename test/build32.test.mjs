@@ -274,7 +274,7 @@ test('build 32 (9): the lobby — one door "יומן הכהן" on the full scree
   assert.equal((full.match(/data-lb="journal"/g) || []).length, 1); assert.ok(!/data-lb="(book|roles)"/.test(full), 'no separate ספר הזכרונות / titles door');
   assert.match(full, /data-lb="journal"><b>📖 יומן הכהן<\/b>[^]*שימשת[^]*📜 משניות<\/span><span>\d+\/\d+[^]*🏅 אותות<\/span><span>2\/15/);
   assert.match(start, /<div class="lb-sr"><button class="lb-door" type="button" data-lb="games">[^]*משחק קצר[^]*<\/button><button class="lb-door lb-jd" type="button" data-lb="journal"/);
-  assert.equal(GAME_BUILD, 38);   // ── fable32 (build 33) ── (the one constant moved on) ── /fable32 ── (build 34: 34) (build 35: 35) (build 36: 36) (build 37: 37) (build 38: 38)
+  assert.equal(GAME_BUILD, 39);   // ── fable32 (build 33) ── (the one constant moved on) ── /fable32 ── (build 34: 34) (build 35: 35) (build 36: 36) (build 37: 37) (build 38: 38) (build 39: 39)
   for (const h of [full, start, lock]) assert.match(h, new RegExp(`class="lb-draft">[^<]*בנייה ${GAME_BUILD}<`));
   const lb = read('src/avodah/shift/lobby35.js'); assert.ok(!/בנייה 13|בנייה 29/.test(lb.replace(/\/\/[^\n]*|\/\*[^]*?\*\//g, '')), 'no build number written by hand'); assert.equal((lb.match(/בנייה \$\{GAME_BUILD\}/g) || []).length, 3);
   assert.match(lb, /\.lb \.lb-side \.lb-jd\{min-width:60px;flex-direction:column/); assert.match(lb, /\.lb \.lb-new\{[^}]*background:#FFD66E/);

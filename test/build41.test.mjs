@@ -101,7 +101,7 @@ test('build 41: the fall to the work pad after the camera\'s move (touch40 T41) 
 test('build 41: the practice\'s title a slim line in the top band (hud.intro slim) — never over him; the inner altar\'s ring on its own top (GOLD_ALTAR); the timing acts\' work button hidden while their zone is on the thing (stations s41-zone)', () => {
   const hud = read('src/avodah/shift/hud.js');
   assert.match(hud, /intro\(title, sub, ms = 1600, slim = false\)/);
-  assert.match(hud, /\.sh-intro\.slim\{top:calc\(env\(safe-area-inset-top,0px\) \+ 58px\)/);
+  assert.match(hud, /\.sh-intro\.slim\{top:calc\(env\(safe-area-inset-top,0px\) \+ 10px\);left:auto;right:calc\(env\(safe-area-inset-right,0px\) \+ 12px\)/);   // (the top band's right corner, beside the pills — at 58 px it touched his hat in the shochet's shot)
   assert.match(read('src/avodah/shift/index.js'), /hud\.intro\('אימון', `\$\{A\.icon\} \$\{A\.he\} — המחשה`, 900, true\);/);
   assert.match(read('src/avodah/shift/heichal26.js'), /o40 = \[\{ x: GOLD_ALTAR\.x, y: GOLD_ALTAR\.y \+ GOLD_ALTAR\.h, z: GOLD_ALTAR\.z, r: 0\.75 \}\]; id40 = 'hk26alt';/);
   const st = read('src/avodah/shift/stations.js');

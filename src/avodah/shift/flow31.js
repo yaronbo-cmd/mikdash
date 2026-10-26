@@ -32,7 +32,7 @@ const CSS = `.f31-zoom{position:fixed;top:calc(env(safe-area-inset-top,0px) + 60
 .f31-me::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-6px;border:6px solid transparent;border-top-color:#FFD66E}
 body.sh-on .tw-ov,body.sh-on .tw-lift,body.sh-on .tw-tip{display:none!important}
 body.sh-on .tw-btn{width:112px;height:112px}
-body.sh-on .gm.tw-on .tw-zone{width:50vw;top:0}
+body.sh-on .gm.tw-on:not(.tw-g39) .tw-zone{width:50vw;top:0}
 body.sh-on .tw-btn .tw-lb{font:900 13px/1.1 "Heebo",system-ui,sans-serif;max-width:96px;white-space:normal;text-align:center}
 body.sh-on .tw-btn.f31-go{background:radial-gradient(circle at 40% 30%,#E9C46A,#8A5A14);border-color:#FFF1C8}
 .s29-pc.taken{z-index:12!important}

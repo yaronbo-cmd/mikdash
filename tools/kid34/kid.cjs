@@ -41,6 +41,7 @@ function preset(k) {
     roles26: { m: d - 1, h: [[1, 'menorah'], [2, 'inner'], [3, 'menorah'], [4, 'shochet']].slice(0, d - 1) }, perutot: 12, served30: d - 1 };
   if (d > 3) shift.roles23.menorah = { n: 2, best: 80, last: 80 }, shift.roles23.inner = { n: 1, best: 85, last: 85 }, shift.roles23.shochet = { n: 1, best: 90, last: 90 };
   else shift.roles23.menorah = { n: 1, best: 80, last: 80 }, shift.roles23.inner = { n: 1, best: 85, last: 85 };
+  for (const id of (opt('--roles', '') || '').split(',').filter(Boolean)) shift.roles23[id] = shift.roles23[id] || { n: 1, best: 90, last: 90 };   // ── fable32 (build 39) ── (--roles: roles he has had — a practice of the zorek) ── /fable32 ──
   return { bh_avodah: JSON.stringify({ v: 1, name: 'דרור', mishmar: 5, seenIntro: true, created: now - 9 * 24 * H, lastSeen: now - 3 * H, shift }) };
 }
 const fromFile = FROM ? (fs.existsSync(FROM) ? FROM : [path.join(AUTO, 'b34-' + FROM, 'storage.json'), path.join(AUTO, FROM, 'storage.json')].find((f) => fs.existsSync(f))) : null;

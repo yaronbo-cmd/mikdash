@@ -23,7 +23,7 @@ const CSS = `
 .gm .tw-zone,.gm .tw-pad,.gm .tw-mk,.gm .tw-aim,.gm .tw-flash{display:none}
 .gm.tw-on .tw-zone.tw-nostick{display:none!important}
 /* ── fable32 (build 39) ── the guided walk: the whole world is the walk's surface (under every pad, button and card), no stick drawn ── /fable32 ── */
-.gm.tw-on.tw-g39 .tw-zone{left:0;top:0;width:100%;bottom:0;z-index:3}
+body .gm.tw-on.tw-g39 .tw-zone{left:0;top:0;width:100%;bottom:0;z-index:3}
 .gm.tw-on.tw-g39 .tw-base,.gm.tw-on.tw-g39 .tw-ghost,.gm.tw-on.tw-g39 .tw-zone .tw-tip{display:none!important}
 .gm.tw-on .tw-zone{display:block;position:absolute;left:0;bottom:0;width:var(--tw-left-w,45vw);top:var(--tw-left-top,35vh);z-index:4;touch-action:none;pointer-events:auto;-webkit-user-select:none;user-select:none}
 .gm.tw-on.tw-hold .tw-zone,.gm.tw-on.tw-hold .tw-pad{opacity:.25;pointer-events:none}

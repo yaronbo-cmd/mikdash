@@ -90,7 +90,7 @@ test('build 39: blocked (no headway) — a new way from where he stands; the twi
 // ───────── the input ─────────
 test('build 39: the twin — the guided walk only with a thumb held (the stick\'s branch), no stick drawn, the developer\'s stick behind ?stick=1 with the door help; acts keep their touches (the ashes\' descent pushed steadily, the pyre\'s row by the drag)', () => {
   const t = read('src/game/twin.js');
-  assert.match(t, /\.gm\.tw-on\.tw-g39 \.tw-zone\{left:0;top:0;width:100%;bottom:0;z-index:3\}/);
+  assert.match(t, /body \.gm\.tw-on\.tw-g39 \.tw-zone\{left:0;top:0;width:100%;bottom:0;z-index:3\}/); assert.match(read('src/avodah/shift/flow31.js'), /body\.sh-on \.gm\.tw-on:not\(\.tw-g39\) \.tw-zone\{width:50vw;top:0\}/, 'the old half-screen stick only with the developer\'s stick');
   assert.match(t, /\.gm\.tw-on\.tw-g39 \.tw-base,\.gm\.tw-on\.tw-g39 \.tw-ghost,\.gm\.tw-on\.tw-g39 \.tw-zone \.tw-tip\{display:none!important\}/);
   assert.match(t, /export const STICK39 = \(\(\) => \{ try \{ return typeof location !== 'undefined' && \/\[\?&\]stick=1\(&\|\$\)\/\.test/);
   assert.match(t, /const g39 = \(\) => !STICK39 && !globalThis\.__STICK39 && typeof T\.guide39 === 'function';/);

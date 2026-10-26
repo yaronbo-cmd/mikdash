@@ -63,6 +63,7 @@
         const gs = G.state(); if (gs.arrived && left > r + 2.5) { note(`guided: at ${gs.arrived}, not at the bot's ${p.x.toFixed(1)},${p.z.toFixed(1)}`); return true; }
         if (H() && performance.now() - lastLift > 1800 + rnd() * 2500) { up(); await sleep(150 + rnd() * 350); down(); lastLift = performance.now(); }   // (a child lets go now and then)
         if (!(A.trW > t - 1)) { A.trW = t; A.trace.push([t, 'g', +h.x.toFixed(1), +h.z.toFixed(1), +p.x.toFixed(1), +p.z.toFixed(1), +left.toFixed(1), gs.id || '']); if (A.trace.length > 400) A.trace.shift(); }
+        if (gs.arrived) win = null;   // (the guide has him at its place — the engine's next for now: standing is no stuck)
         if (!win || t < win.t) win = { t, left, x: h.x, z: h.z };
         else if (t - win.t >= 3) { if (win.left - left < 0.5 && Math.hypot(h.x - win.x, h.z - win.z) < 1) { A.stuck++; A.trace.push([t, 'stuck39', +h.x.toFixed(1), +h.z.toFixed(1), +p.x.toFixed(1), +p.z.toFixed(1), +left.toFixed(1), gs.id || '']); note(`guided: no headway at ${h.x.toFixed(1)},${h.z.toFixed(1)} (to ${gs.id})`); } win = { t, left, x: h.x, z: h.z }; }
         if (performance.now() - t0 > ms) { note('guided walk: given up'); return false; }

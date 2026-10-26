@@ -80,6 +80,7 @@ test('build 39: blocked (no headway) — a new way from where he stands; the twi
   clockT = 0; const G = createGuide39({ E: fakeE([p]), freeFor: freeFor31, clock });
   const h = { x: -30, z: 30 }; G.dir(h, null); const r0 = G.state().replans;
   clockT = G39.stuckS + 0.1; G.dir(h, null); assert.equal(G.state().replans, r0 + 1, 'replanned when he made no headway');
+  { clockT = 0; const N = createGuide39({ E: fakeE([p]), freeFor: freeFor31, clock }), hn = { x: p.at.x - 1.8, z: p.at.z }; assert.ok(N.dir(hn, null)); clockT = G39.stuckS + 0.1; assert.equal(N.dir(hn, null), null, 'no headway within G39.near: he is there (a fence, the place in a solid) — stand, never push at it'); assert.equal(N.state().arrived, 'x'); }
   const v = { vx: 0, vz: 0 }, top = 11;
   for (let i = 0; i < 4; i++) walk39(v, { x: 1, z: 0, k: 1 }, top, 0.05);
   assert.ok(v.vx > 0 && v.vx < top * WALK39.speed, 'eased in'); for (let i = 0; i < 60; i++) walk39(v, { x: 1, z: 0, k: 1 }, top, 0.05);

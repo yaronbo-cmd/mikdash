@@ -11,9 +11,9 @@ import { onHigh, rampWay } from '../day/world22.js';
 import { placeGround } from '../works/anchors.js';
 
 /** the walk's numbers: arrive within `arrive` of the place; a way point passed within `pass`; re-planned every `replanS` s once he is
- *  `replanMove` off its start (or blocked `stuckS` s); slower over the last `slowIn` amot (never under `minK` of the pace); the drag picks a
+ *  `replanMove` off its leg (or blocked `stuckS` s — within `near` of the place that is arrival); slower over the last `slowIn` amot (never under `minK` of the pace); the drag picks a
  *  target once it is `pickPx` long, and a new one only when its match is `hyst` better (cosines) */
-export const G39 = Object.freeze({ arrive: 0.35, pass: 0.7, replanS: 0.6, replanMove: 1.2, stuckS: 0.8, slowIn: 2.2, minK: 0.25, pickPx: 28, hyst: 0.3, speed: 0.82 });
+export const G39 = Object.freeze({ near: 2.5, arrive: 0.35, pass: 0.7, replanS: 0.6, replanMove: 1.2, stuckS: 0.8, slowIn: 2.2, minK: 0.25, pickPx: 28, hyst: 0.3, speed: 0.82 });
 
 /** the way from (x, z) to p over isFree (flow31's plan: on the altar down the ramp first; to the altar straight) — [{x, z}…], p last */
 export function way39(x, z, p, isFree) {
@@ -91,7 +91,11 @@ export function createGuide39(o = {}) {
     if (tg.id !== st.id || key !== st.key || !st.pts) { st.id = tg.id; st.key = key; plan(h, tg); st.bx = h.x; st.bz = h.z; st.bt = now; }
     // (blocked — no headway for stuckS: a new way from where he stands)
     if (Math.hypot(h.x - st.bx, h.z - st.bz) > 0.25) { st.bx = h.x; st.bz = h.z; st.bt = now; }
-    else if (now - st.bt > G39.stuckS) { plan(h, tg); st.bx = h.x; st.bz = h.z; st.bt = now; }
+    else if (now - st.bt > G39.stuckS) {
+      // (no headway: near the place — a fence, a vessel's foot, the place itself in a solid — he is there: stand; else a new way from here)
+      if (Math.hypot(tg.at.x - h.x, tg.at.z - h.z) <= G39.near) { st.arrived = tg.id; return null; }
+      plan(h, tg); st.bx = h.x; st.bz = h.z; st.bt = now;
+    }
     else if (now - st.t0 > G39.replanS) {   // (pushed off the way — a wall's slide, a crowd: a new way once he is replanMove off its leg)
       const a = st.i > 0 ? st.pts[st.i - 1] : { x: st.ox, z: st.oz }, b = st.pts[st.i], ux = b.x - a.x, uz = b.z - a.z, L2 = ux * ux + uz * uz,
         u = L2 > 1e-6 ? Math.max(0, Math.min(1, ((h.x - a.x) * ux + (h.z - a.z) * uz) / L2)) : 0;

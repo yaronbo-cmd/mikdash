@@ -144,6 +144,30 @@ export function walk39(v, g, top, dt) {
   if (!g && Math.hypot(v.vx, v.vz) < 0.3) { v.vx = 0; v.vz = 0; }
   return v;
 }
+// ── fable32 (build 40) ── the act's camera: the thing near the right thumb (shlav-alef-bimui-he.md §1 ש3 and rule 3: the object at 55–65 %
+// of the width, the kohen seen). An act's authored view (camWork's { p, t }) is slid sideways — the camera and its look together, at most
+// `pan` amot — so the thing (touch40.js's globalThis.__T40.obj) stands at `at` of the width; if that leaves him past `hero` (NDC, the left
+// edge −1) it steps back along its look, up to `back` amot. Pure; frozen by the caller while a finger is on the thing.
+export const CAM40 = Object.freeze({ at: 0.6, hero: -0.82, pan: 6, back: 8 });
+export function pan40(p, t, O, H, tanH, c = CAM40) {
+  let fx = t[0] - p[0], fy = t[1] - p[1], fz = t[2] - p[2];
+  const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+  const rl = Math.hypot(fz, fx) || 1, rx = -fz / rl, rz = fx / rl;
+  const want = 2 * c.at - 1;
+  const at = (q, back, sh) => { const vx = q.x - (p[0] - fx * back + rx * sh), vy = q.y - (p[1] - fy * back), vz = q.z - (p[2] - fz * back + rz * sh), d = vx * fx + vy * fy + vz * fz; return d > 0.2 ? (vx * rx + vz * rz) / (d * tanH) : -9; };
+  let best = null;
+  for (let back = 0; back <= c.back; back += 1) {
+    const vx = O.x - (p[0] - fx * back), vy = O.y - (p[1] - fy * back), vz = O.z - (p[2] - fz * back), d = vx * fx + vy * fy + vz * fz;
+    if (!(d > 0.2)) continue;
+    const sh = Math.max(-c.pan, Math.min(c.pan, vx * rx + vz * rz - want * d * tanH));
+    best = { back, sh };
+    if (!H || at(H, back, sh) >= c.hero) break;
+  }
+  if (!best) return null;
+  const P = [p[0] - fx * best.back + rx * best.sh, p[1] - fy * best.back, p[2] - fz * best.back + rz * best.sh], Tg = [t[0] + rx * best.sh, t[1], t[2] + rz * best.sh];
+  return { p: P, t: Tg, sh: best.sh, back: best.back, ox: at(O, best.back, best.sh), hx: H ? at(H, best.back, best.sh) : null };
+}
+// ── /fable32 ──
 export const STICK39 = (() => { try { return typeof location !== 'undefined' && /[?&]stick=1(&|$)/.test(location.search || ''); } catch (e) { return false; } })();
 const stick24 = (L, r) => { const m = Math.min(1, L / r); return m < STICK24.dead ? 0 : m; };
 function stickMove(m, want, hd, dt, c, top) {
@@ -488,7 +512,13 @@ export function createTwin(o = {}) {
     const e = 1 - Math.exp(-dt * 3);
     // ── places24 ── a work on a real place may ask for its own camera (Wk.view = { p, t }: the place's view — inside the Heichal's door for the
     // menorah / the golden altar; the אמרכל stays outside): eased in over ~0.9 s, held while it is asked, eased back when it is not
-    { const V = Wk && Wk.view && Wk.view.p && Wk.view.t && !OV.on && !zoom.free ? Wk.view : null;
+    { let V = Wk && Wk.view && Wk.view.p && Wk.view.t && !OV.on && !zoom.free ? Wk.view : null;
+      // ── fable32 (build 40) ── the thing near the right thumb (pan40); held as it was while a finger is on the thing ── /fable32 ──
+      { const G40 = globalThis.__T40, O = G40 && G40.obj;
+        if (V && O && !globalThis.__CAM40_OFF) {
+          if (G40.down && CBC.v40) V = CBC.v40;
+          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); r40 = pan40(V.p, V.t, O, h ? { x: h.x, y: (h.y || 16) + 3.2, z: h.z } : null, tanH); } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
+        } else CBC.v40 = null; }
       if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * (V.e > 0 ? V.e : 2.4)); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)   // ── recovered (16–26c) ── (V.e: the view's own ease)
       CBC.vk += ((V ? 1 : 0) - CBC.vk) * (1 - Math.exp(-dt * 2.6)); if (!V && CBC.vk < 0.002) { CBC.vk = 0; CBC.vl = null; }
       // (the place's view stands nearer than the orbit's 35-amah minimum: hold the near limits while it is on — main.js view.closeCam, keyed)

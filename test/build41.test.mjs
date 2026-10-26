@@ -47,6 +47,7 @@ test('build 41: the follow camera by a wall (cam28) — blocked under the shift\
     assert.ok(D >= WALL41.dMin - 1e-6, `the distance ${D.toFixed(2)}`);
     assert.ok(el <= 0.97, `the elevation ${el.toFixed(2)}`);
     assert.ok(!R.hits(head[0], head[1], head[2], c.px, c.py, c.pz), 'never inside or behind the wall');
+    { const k = (D + WALL41.room) / D, ex = head[0] + (c.px - head[0]) * k, ey = head[1] + (c.py - head[1]) * k, ez = head[2] + (c.pz - head[2]) * k; assert.ok(!R.hits(head[0], head[1], head[2], ex, ey, ez), 'room behind it: never at the wall\'s face'); }
     assert.ok(share(D) <= 0.45 + 1e-9, `his share ${share(D).toFixed(3)}`);
     assert.equal(st.lw, 1, 'the first frame (snap): the look on him at once');
     assert.ok(Math.abs(c.tx - R.H.x) < 1e-6 && Math.abs(c.ty - (R.H.y + WALL41.lookY)) < 1e-6, 'the look on his middle');

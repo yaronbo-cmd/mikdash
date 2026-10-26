@@ -29,7 +29,7 @@ const PULL_LIFT = 0.35, PULL_EL = 0.7;
 // held the camera's look comes back onto his middle (`lookY` over his feet), eased at `lookK`/s, so a risen camera looks down at him and
 // not past him (build 40's first try lost him off the frame's foot). The glide is the guard's own (≤ 50 amot a second, on the sphere about
 // his head): never a cut. ── /fable32 ──
-export const WALL41 = Object.freeze({ el: Object.freeze([0.55, 0.65, 0.75, 0.86, 0.96]), dMin: 9.5, d: Object.freeze([14, 12, 10.5, 9.5]), lookY: 1.9, lookK: 3 });
+export const WALL41 = Object.freeze({ el: Object.freeze([0.55, 0.65, 0.75, 0.86, 0.96]), dMin: 9.5, d: Object.freeze([14, 12, 10.5, 9.5]), lookY: 1.9, lookK: 3, room: 1.2 });   // (room: the line clear `room` amot past the camera too — never at a wall's face)
 
 function segBox(px, py, pz, qx, qy, qz, B) {
   let t0 = 0, t1 = 1;
@@ -141,7 +141,7 @@ export function createCamGuard(o = {}) {
         // ── fable32 (build 41) ── WALL41: his readable poses before the pull — the look comes back onto him (below) ── /fable32 ──
         if (pullOnly && !got) {
           const L0 = Math.hypot(vx, vy, vz) || 1, Ds = [L0, ...WALL41.d.filter((d) => d < L0 - 0.5)], Es = [e0, ...WALL41.el.filter((e) => e > e0 + 0.02)];
-          w41: for (const ah of ahead ? [true, false] : [false]) { useAhead = ah; for (const E of Es) for (const D of Ds) { if (D < WALL41.dMin && D < L0) continue; if (tryP(0, E - e0, D / L0, 'rise41')) { got = true; break w41; } } }
+          w41: for (const ah of ahead ? [true, false] : [false]) { useAhead = ah; for (const E of Es) for (const D of Ds) { if (D < WALL41.dMin && D < L0) continue; { const q2 = pose(ax, ay, az, vx, vy, vz, E - e0, (D + WALL41.room) / L0); if (segBoth(q2.x, q2.y, q2.z)) continue; }   /* (room behind it too: never at a wall's face) */ if (tryP(0, E - e0, D / L0, 'rise41')) { got = true; break w41; } } }
         }
         useAhead = true;
         if (!got) {

@@ -100,6 +100,7 @@ test('build 39: the twin — the guided walk only with a thumb held (the stick\'
   assert.match(t, /if \(G && T\.stickUse\.d21\) T\.stickUse\(0, WALK39\.push, WALK39\.push\); else T\.stickUse\(ux \* M, uy \* M, M\);/);
   assert.match(t, /if \(typeof T\.assist38 === 'function' && !g39\(\)\) \{/, 'the door help with the developer\'s stick only');
   const f = read('src/avodah/shift/flow31.js'); assert.match(f, /if \(o\.twin\) o\.twin\.guide39 = \(h, drag\) => G39\.dir\(h, drag\);/);
+  const d = read('src/avodah/shift/dam27.js'); assert.match(d, /export const STIR39 = Object\.freeze\(\{ px: 18, rad: 0\.8 \}\);/); assert.match(d, /if \(p\.sx != null && dx \* p\.sx \+ dy \* p\.sy < 0 && \(p\.trav \|\| 0\) >= STIR39\.px\) \{ E\.r27swirl\(STIR39\.rad\); p\.trav = 0; \}/, 'the zorek\'s stir back and forth counts');
 });
 test('build 39: the engine — the House\'s exit is a place (out26), the salt chamber an open alternative while the ramp wants salt, none in practice', async () => {
   const R = rig(FLAGS, { save: {} }); R.E.start(); await R.step(0.3);

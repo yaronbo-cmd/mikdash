@@ -224,6 +224,16 @@ export function createDam27(o = {}) {
         if (Math.abs(d) < 1.2) E.r27swirl(d);
       }
       p.ang = ang;
+      // ── fable32 (build 39) ── a stir back and forth counts too ("ממרס בו", יומא ד, ג — a child stirs to and fro as often as round): each
+      // turn of the thumb's way after STIR39.px of travel adds STIR39.rad to the stir (the naive kid shook where "מרסו" asked a circle, and
+      // the vessel clotted at the corner — 60 s with no way on) ── /fable32 ──
+      const mv = Math.hypot(dx, dy);
+      if (mv > 0.5) {
+        if (p.sx != null && dx * p.sx + dy * p.sy < 0 && (p.trav || 0) >= STIR39.px) { E.r27swirl(STIR39.rad); p.trav = 0; }
+        p.sx = dx;
+        p.sy = dy;
+        p.trav = (p.trav || 0) + mv;
+      }
     } else if (K.ph === 'bind' && bindG.fore && bindG.hind) {
       const vx = bindG.hind.x - bindG.fore.x,
         vy = bindG.hind.y - bindG.fore.y,
@@ -857,6 +867,9 @@ export function createDam27(o = {}) {
   globalThis.__D27 = api;
   return api;
 }
+/** ── fable32 (build 39) ── the stir back and forth: a turn of the thumb's way after `px` of travel adds `rad` to the stir (dam27's circle
+ *  adds the angle it turns; day33 P27.swirlRad 1.4 a stir) */
+export const STIR39 = Object.freeze({ px: 18, rad: 0.8 });
 const cite = (text, src) => `"${text}" — ${src} · טיוטה`;
 // (each line checked on Sefaria, 22.10.2026; the Mishnah's text by Torat Emet)
 const SRC = {

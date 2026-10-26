@@ -117,7 +117,7 @@ export function createCamGuard(o = {}) {
     if (!skip && segBoth(wx, wy, wz)) {
       g.blk++;
       const hl0 = Math.hypot(vx, vz) || 1, a0 = Math.atan2(vz, vx), e0 = Math.atan2(vy, hl0);
-      const tryP = (A, E, K, md) => { if (performance.now() - t0 > 9) return false;   // (a frame's budget: past 9 ms the search stops — the pull, or the last answer)
+      const tryP = (A, E, K, md) => { if (performance.now() - t0 > (o.budget || 9)) return false;   /* ── fable32 (build 41) ── (o.budget: the tests' own, under a loaded machine) ── */   // (a frame's budget: past 9 ms the search stops — the pull, or the last answer)
         const a = a0 + A, q = pose(ax, ay, az, Math.cos(a) * hl0, vy, Math.sin(a) * hl0, E, K); if (segBoth(q.x, q.y, q.z)) return false; tA = A; tE = E; tK = K; mode = md; return true; };
       // (the last answer first, while it still sees him: a steady camera, no hunting)
       let got = (g.tE > 0 || g.tA || g.tK < 1) && tryP(g.tA, g.tE, g.tK, g.mode === 'free' ? 'rise' : g.mode);

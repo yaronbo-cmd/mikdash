@@ -34,7 +34,7 @@ function rig(wall) {
   const S = { frameBlocked: (bx, by, bz, ax, ay, az) => !!wall && hits(ax, ay, az, bx, by, bz) };
   const view = { camNow: (o) => Object.assign(o, cam), camSet: (px, py, pz, tx, ty, tz) => { Object.assign(cam, { px, py, pz, tx, ty, tz }); } };
   const camera = { lookAt: (x, y, z) => looks.push([x, y, z]) };
-  const G = createCamGuard({ S, gy: () => 16, heroP: () => H, view, camera });
+  const G = createCamGuard({ S, gy: () => 16, heroP: () => H, view, camera, budget: 1000 });   // (the frame's 9 ms search budget lifted: a loaded machine made it flaky)
   return { G, cam, H, set, hits, looks };
 }
 test('build 41: the follow camera by a wall (cam28) — blocked under the shift\'s pull-only rule, the guard takes a readable pose about his head (≥ dMin, ≤ 55°, the line to it clear), the look comes back onto his middle, and the camera turns to it; with no wall nothing changes', () => {

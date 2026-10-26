@@ -29,7 +29,7 @@ const PULL_LIFT = 0.35, PULL_EL = 0.7;
 // held the camera's look comes back onto his middle (`lookY` over his feet), eased at `lookK`/s, so a risen camera looks down at him and
 // not past him (build 40's first try lost him off the frame's foot). The glide is the guard's own (≤ 50 amot a second, on the sphere about
 // his head): never a cut. ── /fable32 ──
-export const WALL41 = Object.freeze({ el: Object.freeze([0.55, 0.65, 0.75, 0.86, 0.96]), dMin: 9.5, d: Object.freeze([14, 12, 10.5, 9.5]), lookY: 1.9, lookK: 3, room: 1.2 });   // (room: the line clear `room` amot past the camera too — never at a wall's face)
+export const WALL41 = Object.freeze({ el: Object.freeze([0.55, 0.65, 0.75, 0.86, 0.96]), dMin: 9.5, d: Object.freeze([14, 12, 10.5, 9.5]), lookY: 1.9, lookK: 3, room: 1.2, turn: Object.freeze([0.35, -0.35, 0.7, -0.7]) });   // (turn: then a swing round him, its way clear — after every pose at his own bearing)   // (room: the line clear `room` amot past the camera too — never at a wall's face)
 
 function segBox(px, py, pz, qx, qy, qz, B) {
   let t0 = 0, t1 = 1;
@@ -141,7 +141,11 @@ export function createCamGuard(o = {}) {
         // ── fable32 (build 41) ── WALL41: his readable poses before the pull — the look comes back onto him (below) ── /fable32 ──
         if (pullOnly && !got) {
           const L0 = Math.hypot(vx, vy, vz) || 1, Ds = [L0, ...WALL41.d.filter((d) => d < L0 - 0.5)], Es = [e0, ...WALL41.el.filter((e) => e > e0 + 0.02)];
-          w41: for (const ah of ahead ? [true, false] : [false]) { useAhead = ah; for (const E of Es) for (const D of Ds) { if (D < WALL41.dMin && D < L0) continue; { const q2 = pose(ax, ay, az, vx, vy, vz, E - e0, (D + WALL41.room) / L0); if (segBoth(q2.x, q2.y, q2.z)) continue; }   /* (room behind it too: never at a wall's face) */ if (tryP(0, E - e0, D / L0, 'rise41')) { got = true; break w41; } } }
+          w41: for (const ah of ahead ? [true, false] : [false]) { useAhead = ah; for (const A of [0, ...WALL41.turn]) for (const E of Es) for (const D of Ds) { if (D < WALL41.dMin && D < L0) continue;
+            const aa = a0 + A, ok = (f) => { const q = pose(ax, ay, az, Math.cos(a0 + A * f) * hl0, vy, Math.sin(a0 + A * f) * hl0, E - e0, f === 1 ? (D + WALL41.room) / L0 : D / L0); return !segBoth(q.x, q.y, q.z); };
+            if (!ok(1)) continue;   /* (room behind it too: never at a wall's face) */
+            if (A && !(ok(1 / 3) && ok(2 / 3))) continue;   /* (a swing round him: its way there clear too — build 40's swing stood in a wall's face mid-way) */
+            void aa; if (tryP(A, E - e0, D / L0, A ? 'swing41' : 'rise41')) { got = true; break w41; } } }
         }
         useAhead = true;
         if (!got) {
@@ -177,7 +181,7 @@ export function createCamGuard(o = {}) {
     const moved = Math.hypot(g.cx, g.cy, g.cz) > 0.02;
     // ── fable32 (build 41) ── the look back onto his middle while the guard holds a readable pose or pulls (WALL41), eased; the camera
     // turned to it at once (the render follows the guard's frame) ── /fable32 ──
-    { const want = !!globalThis.__CAM28_PULL && (g.mode === 'rise41' || g.mode === 'pull') && g.src === 'hero' ? 1 : 0; g.lw = (g.lw || 0) + (want - (g.lw || 0)) * Math.min(1, (dt > 0 ? dt : 0.016) * WALL41.lookK); if (g.snap41) { g.lw = want; g.snap41 = false; } if (g.lw < 0.002) g.lw = 0; }
+    { const want = !!globalThis.__CAM28_PULL && (g.mode === 'rise41' || g.mode === 'swing41' || g.mode === 'pull') && g.src === 'hero' ? 1 : 0; g.lw = (g.lw || 0) + (want - (g.lw || 0)) * Math.min(1, (dt > 0 ? dt : 0.016) * WALL41.lookK); if (g.snap41) { g.lw = want; g.snap41 = false; } if (g.lw < 0.002) g.lw = 0; }
     const lw = g.lw || 0, ltx = cq.tx + (h.x - cq.tx) * lw, lty = cq.ty + (h.y + WALL41.lookY - cq.ty) * lw, ltz = cq.tz + (h.z - cq.tz) * lw;
     if (moved || lw > 0) { g.fix++; o.view.camSet(g.ox, g.oy, g.oz, ltx, lty, ltz); if (lw > 0 && o.camera && typeof o.camera.lookAt === 'function') { try { o.camera.lookAt(ltx, lty, ltz); } catch (e) { /* */ } } }
     // (a camera nearer than OrbitControls' 35 amot, or a near plane at 4 that cuts a wall 3 amot away: the near limits are held, keyed)

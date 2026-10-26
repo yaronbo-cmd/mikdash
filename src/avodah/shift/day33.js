@@ -5751,7 +5751,7 @@ export function createDay33(o = {}) {
     for (const id of Object.keys(S.his))
       if (S.done[id] && !C.his[id]) {
         C.his[id] = 1;
-        const next = S.links.find((x) => !S.done[x.id] && !S.his[x.id]) || S.links.find((x) => !S.done[x.id]),
+        const next = next38(S),
           w = id === 'menorah' || id === 'shochet' ? 'zorek' : null;
         C.msg = { id, text: `${CH38.done} · ${CH38.now}: ${next ? next.he : CHAIN38[CHAIN38.length - 1].he}`, src: id === 'menorah' ? WAIT38.zorek.src : id === 'shochet' ? WAIT38.zorek.src2 : CH38.src, t: after };
         if (w && !S.his[w]) C.sign = { id: w, t: after };
@@ -5766,6 +5766,7 @@ export function createDay33(o = {}) {
       }
     }
   }
+  const next38 = (S) => S.links.find((x) => !S.done[x.id] && !S.his[x.id]) || S.links.find((x) => !S.done[x.id]) || null;   // ── fable32 (build 38) ── (the next link: the court's or the morning's, else his own) ── /fable32 ──
   function chain38() {
     const S = state38();
     if (!S) return null;
@@ -5776,7 +5777,8 @@ export function createDay33(o = {}) {
     return {
       links: S.links.map((x) => ({ id: x.id, icon: x.icon, he: x.he, kind: x.kind, his: !!S.his[x.id], done: !!S.done[x.id], now: x.id === S.now, wait: !!(WAIT38[x.id] && !S.done[x.id] && !S.done[WAIT38[x.id].on]), sign: x.id === sign })),
       now: S.now,
-      msg: msg ? { text: msg.text, src: msg.src, sign: sign ? (CHAIN38.find((x) => x.id === sign) || {}).icon || null : null } : null,   // ── (the waiting kohen's sign rides on the line while it shows) ──
+      // (the line's "now" read at each look — what comes next as the court goes on; the sign of a waiting kohen rides on it while it shows)
+      msg: msg ? { text: next38(S) ? `${CH38.done} · ${CH38.now}: ${next38(S).he}` : msg.text, src: msg.src, sign: sign ? (CHAIN38.find((x) => x.id === sign) || {}).icon || null : null } : null,
     };
   }
   function bar17() {

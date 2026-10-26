@@ -340,7 +340,7 @@ export function createDeshen21(o = {}) {
       const walking = ph === 'full' || ph === 'walk' || ph === 'desc';
       setMode(!!k && !walking && ph !== 'foot', !!k && ph !== 'foot', walking);
       const padOn = ph === 'sweep' || walking;
-      t40.place(padOn && !!k, ph === 'sweep' ? [{ x: D21.bed.x, y: gy(D21.bed.x, D21.bed.z, 25) + 0.4, z: D21.bed.z, r: 1.6 }] : [(() => { const o = POSE_PAN.carry, fx = Math.sin(hp.yaw || 0), fz = Math.cos(hp.yaw || 0); return { x: hp.x - fz * o[0] + fx * o[1], y: (hp.y || 16) + o[2], z: hp.z + fx * o[0] + fz * o[1], r: 0.9 }; })()], ph === 'sweep' ? 'd21' : 'd21pan');   /* (the pan where his hand holds it: POSE_PAN.carry) */   // ── fable32 (build 40) ── ── /fable32 ──
+      t40.place(padOn && !!k, ph === 'sweep' ? [{ x: D21.bed.x, y: gy(D21.bed.x, D21.bed.z, 25) + 0.4, z: D21.bed.z, r: 1.6 }] : [{ x: hp.x, y: (hp.y || 16) + 1.0, z: hp.z, r: 1.7 }]   /* ── fable32 (build 41) ── (walking down with it: the pan is him with it, his whole figure — build 41's farther follow camera left the pan alone at 29 px, under the 44 px rule; as the zorek's carry) ── /fable32 ── */, ph === 'sweep' ? 'd21' : 'd21pan');   /* (the pan where his hand holds it: POSE_PAN.carry) */   // ── fable32 (build 40) ── ── /fable32 ──
       if (pad.classList.contains('on') !== padOn) {
         pad.classList.toggle('on', padOn);
         if (!padOn) {

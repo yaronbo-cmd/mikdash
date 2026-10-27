@@ -219,6 +219,13 @@ export function createAvodah({ world, root, onEvent, options = {} } = {}) {
     // ── fable32 (build 29) ── the Shabbat and Yom Tov lock (rule 16): a page opened during it shows its screen alone — before the first
     // run's name and mishmar screens too; at its end this start goes on from here ── /fable32 ──
     if (SH && o.shift != null && SH.gate29 && SH.gate29(() => start(o))) { try { ui.showHome(false); } catch (e) { /* */ } emit('lock29', {}); return null; }
+    // ── fable32 (build 44) ── the one-time vision from Phase A (v2 §12): no name, no intro — the finished House, one act, and back to the
+    // Mount (the shift's runVision; when the day cannot open — a portrait window — straight back)
+    if (SH && o.shift === 'vision') {
+      if (D && D.canEnter() && D.enter() && SH.runVision && SH.runVision({ exit: () => { busy = false; act.exit(); } })) { try { ui.showHome(false); } catch (e) { /* */ } emit('visionEnter', {}); return null; }
+      setTimeout(() => act.exit(), 0); return null;
+    }
+    // ── /fable32 ──
     if (!S.hasPlayer(A)) {
       busy = true;
       const r = await ui.namePick({ name: A.name });   // ── avoda12 ── (N69) a known name is never asked again

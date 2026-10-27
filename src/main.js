@@ -985,6 +985,7 @@ function startGame() {
       },
       setAutoRotate(v) { if (!v) controls.autoRotate = false; lastInput = performance.now(); },
       enterAvodah() { startAvodah(''); },
+      enterVision() { startAvodah('shift:vision'); },   // ── fable32 (build 44) ── the one-time vision after stage 01 (the shift's runVision) ── /fable32 ──
       pauseWorld,   // ── build6 ──
       opening, openingSkip,   // ── build7 ── the opening's fallback (WORLD7's world.vision first)
       celebrate: () => finale.celebrate(),   // ── world12 ── Chanukat HaBayit's night of light (src/finale.js) ── /world12 ──

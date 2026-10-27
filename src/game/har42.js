@@ -30,7 +30,7 @@ import { XRAY } from '../batch.js';   // ── build 46 ── (his stretch of 
 
 export const H42KEY = 'bh_har42';
 try { globalThis.__F46 = { kinds: F.LAT46.kinds, tile: F.tile46 }; } catch (e) { /* */ }
-try { globalThis.__F47 = { gates: F.GATES47 }; } catch (e) { /* */ }   // ── build 46 ── (the tools read the lattice's rule: never write)
+try { globalThis.__F47 = { gates: F.GATES47, fine: F.LINTEL47.fine }; } catch (e) { /* */ }   // ── build 46 ── (the tools read the lattice's rule: never write)
 export const PARTS42 = Object.freeze(['open', 'rope', 'lift', 'corner', 'rock0', 'rock1', 'rock2', 'course0', 'course1', 'roll', 'pave', 'trace', 'reveal']);
 /** the parts' families (for the grades' levels) and their materials (fam42 MAT42.cost) */
 export const PARTS45 = Object.freeze(['open', 'line', 'pulley', 'wcourse0', 'wcourse1', 'giant', 'wcorner', 'top', 'reveal']);   // ── build 45 ── stage 02, חומת העזרה (v2 §7)

@@ -474,12 +474,12 @@ export function createSpacing46(L = 1, o = {}) {
  *  window, the bubble centred) seats it; else one end misses (a correction) and the crews lift it back a little. Never a break. */
 export const LINTEL47 = Object.freeze({
   L: Object.freeze([null,
-    Object.freeze({ rise: 0.11, drift: 0.32, sway: 0, swayW: 0, win: 0.45, centre: 0.3 }),
+    Object.freeze({ rise: 0.11, drift: 0.32, sway: 0, swayW: 0, win: 0.5, centre: 0.3 }),
     Object.freeze({ rise: 0.1, drift: 0.42, sway: 0, swayW: 0, win: 0.35, centre: 0.26 }),
     Object.freeze({ rise: 0.09, drift: 0.4, sway: 0.45, swayW: 1.1, win: 0.3, centre: 0.24 }),
     Object.freeze({ rise: 0.08, drift: 0.5, sway: 0.6, swayW: 1.4, win: 0.25, centre: 0.2 }),
   ]),
-  G: 1.6, lim: 1, takeUp: 0.35, gain: 0.012, dx0: 1.2, offFault: 3,
+  G: 1.6, lim: 1, takeUp: 0.35, gain: 0.012, dx0: 1.2, offFault: 3, fine: 0.3,   // (fine: the lintel moves 0.3 of the finger — a heavy stone; at 1:1 the least drag, 24 px, moved it past the window: K47-P's 45 drags)
 });
 export function createLintel47(L = 1, o = {}) {
   const lv = clamp(L | 0, 1, 4), P = LINTEL47.L[lv], heavy = !!o.heavy, rnd = typeof o.rnd === 'function' ? o.rnd : Math.random;
@@ -505,7 +505,7 @@ export function createLintel47(L = 1, o = {}) {
   function set(px, ppa) {   // (ppa: the screen's px per amah there — else LINTEL47.gain)
     if (k.done) return 'done'; if (k.phase !== 'set') return 'wait';
     if (Math.abs(px || 0) < DRAG42) return 'tap';
-    k.dx = clamp(k.dx + (ppa > 0 ? px / ppa : px * LINTEL47.gain), -3, 3);
+    k.dx = clamp(k.dx + (ppa > 0 ? (px / ppa) * LINTEL47.fine : px * LINTEL47.gain), -3, 3);
     if (Math.abs(k.dx) <= k.win && Math.abs(k.tilt) <= k.centre) {
       k.done = true; const f = k.faults + k.fix + Math.floor(k.off / LINTEL47.offFault);
       k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'ok';

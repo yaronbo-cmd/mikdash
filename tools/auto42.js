@@ -113,7 +113,7 @@
     for (let k = 0; k < 6 && A.on; k++) {
       const s = J.state(); if (s.done) break;
       // the lintel's offset on the screen: from the director's own projection of the posts' middle and the lintel
-      const ppa = j.ref.ppa ? j.ref.ppa() : 20, sr = j.ref.sgn ? j.ref.sgn() : 1, px = -s.dx * ppa * (A.sk ? 1 : 0.85 + rnd() * 0.3);
+      const ppa = j.ref.ppa ? j.ref.ppa() : 20, fine = (globalThis.__F47 && globalThis.__F47.fine) || 1, px = (-s.dx * ppa / fine) * (A.sk ? 1 : 0.85 + rnd() * 0.3);
       const id2 = ++pid, xs = W0 * 0.5, ys = H0 * 0.55; ev(pad, 'pointerdown', xs, ys, id2); for (let i = 1; i <= 8; i++) { await sleep(30); ev(pad, 'pointermove', xs + (px * i) / 8, ys, id2); } ev(pad, 'pointerup', xs + px, ys, id2); await sleep(900);
     }
   }

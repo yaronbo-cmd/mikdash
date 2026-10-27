@@ -31,8 +31,9 @@ test('build 47: the balance rule — held still the crews drift the bubble out a
   assert.equal(F.LINTEL47.L[1].sway, 0); assert.ok(F.LINTEL47.L[3].sway > 0, 'level 3: it sways');
   const J = F.createLintel47(1, { rnd: () => 0.3 }); ctl(J); const dx = J.state().dx;
   assert.equal(J.set(10, 20), 'tap'); assert.equal(J.set(dx > 0 ? 60 : -60, 20), 'miss', 'away from the posts: one end off'); assert.equal(J.state().fix, 1);
-  const r = J.set(-J.state().dx * 20, 20); assert.equal(r, 'ok'); assert.equal(J.result().rating, 'kasher', 'one correction');
-  const K = F.createLintel47(2, { rnd: () => 0.3 }); ctl(K); assert.equal(K.set(-K.state().dx * 25, 25), 'ok'); assert.equal(K.result().rating, 'mehudar');
+  const r = J.set((-J.state().dx * 20) / F.LINTEL47.fine, 20); assert.equal(r, 'ok'); assert.equal(J.result().rating, 'kasher', 'one correction');
+  const K = F.createLintel47(2, { rnd: () => 0.3 }); ctl(K); assert.equal(K.set((-K.state().dx * 25) / F.LINTEL47.fine, 25), 'ok'); assert.equal(K.set(24, 25), 'done');
+  { const M = F.createLintel47(1, { rnd: () => 0.3 }); ctl(M); const before = M.state().dx; M.set(Math.sign(-before) * 24, 10); assert.ok(Math.abs(M.state().dx - before) < 0.75, 'the least drag moves it less than the window: the lintel 0.3 of the finger (K47-P)'); } assert.equal(K.result().rating, 'mehudar');
   const Hv = F.createLintel47(3, { heavy: true, rnd: () => 0.3 }); assert.ok(Math.abs(Hv.state().drift) > F.LINTEL47.L[3].drift, 'the heavy leaf: the crews drift more');
 });
 

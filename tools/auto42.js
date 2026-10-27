@@ -394,7 +394,7 @@
   async function benches50() {
     for (let k = 0; k < 30 && A.on; k++) {
       const j = H().job(); if (!j || j.kind !== 'benches50') break; if (j.ref.J.state().done) { await sleep(400); continue; }
-      const th = Math.PI * 0.15 + rnd() * Math.PI * 0.7, p = j.ref.at(th), c = j.ref.centre(); if (!p || !c) { await sleep(300); continue; }
+      const sp = j.ref.span, th = sp ? sp.m + (rnd() - 0.5) * 2 * sp.h * 0.85 : Math.PI * 0.15 + rnd() * Math.PI * 0.7, p = j.ref.at(th), c = j.ref.centre(); if (!p || !c) { await sleep(300); continue; }
       const jit = (A.sk ? 0.2 : 0.35 + rnd() * (rnd() < 0.15 ? 1.4 : 0.5)) * (rnd() < 0.5 ? -1 : 1) * 30, dx = p.x - c.x, dy = p.y - c.y, Lr = Math.hypot(dx, dy) || 1;
       await dragTo(j.ref.chip, p.x + (dx / Lr) * jit, p.y + (dy / Lr) * jit, 0); await sleep(A.sk ? 300 : 700 + rnd() * 500); if (k === 3) await shot('benches');
     }

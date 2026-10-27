@@ -580,7 +580,7 @@ export function createHar42(o = {}) {
    *  arc; the benches; the pit, the wheel on its frame, its hub, spokes, bucket and rope; the dome's drum, the centering on its posts and
    *  wedges, the voussoirs as they are set, the shell that appears when it holds; on the stage, the three chambers' gold outlines */
   const ARC50 = { R: 8 };
-  const DOME50 = { Rd: 10.5, Ra: 9.2, wall: 10 };
+  const DOME50 = { Rd: 12, Ra: 10.6, wall: 10, len: 30 };   // (the house's vault across its short side, as the model's: its arch in the plane x = const, spanning z)
   function props50(add) {
     const stoneM = mat('#E6DAC0', 0.88), wood = mat('#8A6440', 0.85), dark = mat('#1A1410', 0.95);
     if (STG === 'lishka') { add(new THREE.Mesh(new THREE.BoxGeometry(64, 0.4, 52), mat('#CFC4AA', 0.92)), -81, 15.82, 64); add(new THREE.Mesh(new THREE.BoxGeometry(38, 0.4, 28), mat('#CFC4AA', 0.92)), -160, 15.82, -70.5); }
@@ -591,7 +591,7 @@ export function createHar42(o = {}) {
     const Gl = PL.gl, wy = Gl.y + 6.2;
     add(new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 0.08, 24), dark), Gl.x + 2.6, Gl.y + 0.06, Gl.z);
     const rim = new THREE.Mesh(new THREE.TorusGeometry(2.25, 0.3, 8, 28), stoneM); rim.rotation.x = Math.PI / 2; add(rim, Gl.x + 2.6, Gl.y + 0.3, Gl.z);
-    for (const dz of [-1.3, 1.3]) { const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 7, 0.45), wood); add(p2, Gl.x, Gl.y + 3.5, Gl.z + dz); }
+    for (const dx of [-0.6, 0.6]) { const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 7, 0.45), wood); add(p2, Gl.x + dx, Gl.y + 3.5, Gl.z + 1.3); }   // (the frame behind the wheel: in front, its post hid the hub)
     const ax = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 3, 8), wood); ax.rotation.x = Math.PI / 2; add(ax, Gl.x, wy, Gl.z);
     const wg = new THREE.Group(); add(wg, Gl.x, wy, Gl.z); st.props.wheel50 = wg;
     const wr = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.17, 6, 32), wood); wg.add(wr);
@@ -605,16 +605,18 @@ export function createHar42(o = {}) {
     st.props.drops50 = Array.from({ length: 6 }, () => { const d = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 4), wat.material); d.visible = false; return add(d, 0, 0, 0); });
     // the dome: its drum (open above until it holds), the centering, the voussoirs' places, the shell
     const M = PL.mk, ys = M.y + DOME50.wall;
-    const drum = new THREE.Mesh(new THREE.CylinderGeometry(DOME50.Rd, DOME50.Rd, DOME50.wall, 40, 1, true), stoneM.clone()); drum.material.side = THREE.DoubleSide; add(drum, M.x, M.y + DOME50.wall / 2, M.z);
-    const ctr = new THREE.Group(); add(ctr, M.x, ys, M.z); st.props.ctr50 = ctr;
+    for (const sz of [-1, 1]) add(new THREE.Mesh(new THREE.BoxGeometry(DOME50.len + 2, DOME50.wall, 0.8), stoneM), M.x, M.y + DOME50.wall / 2, M.z + sz * (DOME50.Rd + 0.4));
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.8, DOME50.wall, 2 * DOME50.Rd + 1.6), stoneM), M.x - DOME50.len / 2 - 0.6, M.y + DOME50.wall / 2, M.z);
+    const ctr = new THREE.Group(); add(ctr, M.x, ys, M.z); ctr.rotation.y = Math.PI / 2; st.props.ctr50 = ctr;
     const rib = new THREE.Mesh(new THREE.TorusGeometry(DOME50.Ra - 0.9, 0.22, 6, 32, Math.PI), wood); ctr.add(rib);
     const beam = new THREE.Mesh(new THREE.BoxGeometry(2 * DOME50.Ra - 1, 0.4, 0.6), wood); beam.position.y = -0.2; ctr.add(beam);
     for (let i = 1; i < 6; i++) { const a = (i * Math.PI) / 6, r2 = DOME50.Ra - 0.9, st2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, r2 * Math.sin(a), 0.16), wood); st2.position.set(r2 * Math.cos(a), (r2 * Math.sin(a)) / 2, 0); ctr.add(st2); }
     st.props.posts50 = []; st.props.wedges50 = [];
-    for (const dx of [-DOME50.Ra + 1.2, -3, 3, DOME50.Ra - 1.2]) { const p2 = add(new THREE.Mesh(new THREE.BoxGeometry(0.4, DOME50.wall - 0.9, 0.4), wood), M.x + dx, M.y + (DOME50.wall - 0.9) / 2, M.z); st.props.posts50.push(p2); const w2 = add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.45, 0.7), mat('#5A4026', 0.9)), M.x + dx, ys - 0.67, M.z); w2.userData.x0 = M.x + dx; st.props.wedges50.push(w2); }
-    st.props.vous50 = new THREE.Group(); add(st.props.vous50, M.x, ys, M.z);
+    for (const dx of [-DOME50.Ra + 1.2, -3.5, 3.5, DOME50.Ra - 1.2]) { const p2 = add(new THREE.Mesh(new THREE.BoxGeometry(0.4, DOME50.wall - 0.9, 0.4), wood), M.x, M.y + (DOME50.wall - 0.9) / 2, M.z - dx); st.props.posts50.push(p2); const w2 = add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.45, 0.7), mat('#5A4026', 0.9)), M.x, ys - 0.67, M.z - dx); w2.userData.z0 = M.z - dx; st.props.wedges50.push(w2); }
+    st.props.vous50 = new THREE.Group(); add(st.props.vous50, M.x, ys, M.z); st.props.vous50.rotation.y = Math.PI / 2;
     let shellMap = null; try { if (doc) { const cv = doc.createElement('canvas'); cv.width = 256; cv.height = 128; const c = cv.getContext('2d'); c.fillStyle = '#E2D4B6'; c.fillRect(0, 0, 256, 128); c.strokeStyle = '#B5A283'; c.lineWidth = 3; for (let r = 0; r < 8; r++) { c.beginPath(); c.moveTo(0, r * 16); c.lineTo(256, r * 16); c.stroke(); for (let q = 0; q < 8; q++) { const x = (q * 32 + (r % 2) * 16) % 256; c.beginPath(); c.moveTo(x, r * 16); c.lineTo(x, r * 16 + 16); c.stroke(); } } shellMap = new THREE.CanvasTexture(cv); shellMap.colorSpace = THREE.SRGBColorSpace; shellMap.wrapS = shellMap.wrapT = THREE.RepeatWrapping; shellMap.repeat.set(4, 2); } } catch (e) { shellMap = null; }
-    const shell = new THREE.Mesh(new THREE.SphereGeometry(DOME50.Rd, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: shellMap, roughness: 0.9, side: THREE.DoubleSide, transparent: true, opacity: 0 })); shell.visible = false; st.props.shell50 = add(shell, M.x, ys, M.z);
+    const vg = new THREE.CylinderGeometry(DOME50.Rd, DOME50.Rd, DOME50.len, 32, 1, true, 0, Math.PI); vg.rotateZ(Math.PI / 2);   // (the vault, as the model's: "בית המוקד כפה")
+    const shell = new THREE.Mesh(vg, new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: shellMap, roughness: 0.9, side: THREE.DoubleSide, transparent: true, opacity: 0 })); shell.visible = false; st.props.shell50 = add(shell, M.x, ys, M.z);
     if (STG === 'lishka') {   // (the three chambers' gold outlines, rising in the opening)
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.85 });
       st.props.plan50 = [[-100, -62, 58, 82], [-146, -134, 50, 62], [-178, -142, -83, -58]].map(([x0, x1, z0, z1]) => { const g = new THREE.Group(); for (const [x, z, w, d] of [[(x0 + x1) / 2, z0, x1 - x0, 1.2], [(x0 + x1) / 2, z1, x1 - x0, 1.2], [x0, (z0 + z1) / 2, 1.2, z1 - z0], [x1, (z0 + z1) / 2, 1.2, z1 - z0]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 10, d), gm); m.position.set(x, 5, z); g.add(m); } g.scale.y = 0.001; return add(g, 0, 16, 0); });
@@ -899,7 +901,7 @@ export function createHar42(o = {}) {
         if (st.props.root) st.props.root.visible = false;
         let out = null; try { out = o.complete ? o.complete() : null; } catch (e) { out = null; }
         try { if (o.timeOfDay) o.timeOfDay('golden'); } catch (e) { /* */ }
-        const gc = gy(CW45.x, CW45.z), V = STG === 'lishka' ? { p: [-108, 72, -132], t: [-160, 26, -70] } : STG === 'nikanor' ? { p: [92, 52, 62], t: [8, 19, 0] } : STG === 'nashim' ? { p: [10, gc + 95, -150], t: [73, gc + 6, 0] } : STG === 'gates' ? { p: [-60, gc + 95, -175], t: [-60, gc + 8, -40] } : STG === 'soreg' ? { p: [PL.soreg.x - 40, gc + 70, PL.soreg.z - 120], t: [PL.soreg.x + 10, gc + 3, PL.soreg.z + 14] } : STG === 'wall' ? { p: [CW45.x - 70, gc + 150, CW45.z - 215], t: [CW45.x, gc + 6, CW45.z] } : (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };   // (build 45: the wall — up over the whole court, from the north: from its south-east the crane flew through the north wall)
+        const gc = gy(CW45.x, CW45.z), V = STG === 'lishka' ? { p: [-70, 125, -235], t: [-160, 28, -70] } : STG === 'nikanor' ? { p: [92, 52, 62], t: [8, 19, 0] } : STG === 'nashim' ? { p: [10, gc + 95, -150], t: [73, gc + 6, 0] } : STG === 'gates' ? { p: [-60, gc + 95, -175], t: [-60, gc + 8, -40] } : STG === 'soreg' ? { p: [PL.soreg.x - 40, gc + 70, PL.soreg.z - 120], t: [PL.soreg.x + 10, gc + 3, PL.soreg.z + 14] } : STG === 'wall' ? { p: [CW45.x - 70, gc + 150, CW45.z - 215], t: [CW45.x, gc + 6, CW45.z] } : (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };   // (build 45: the wall — up over the whole court, from the north: from its south-east the crane flew through the north wall)
         const P0 = STG === 'lishka' ? PL.mk : STG === 'nikanor' ? PL.arc : STG === 'wall' ? PL.course : STG === 'soreg' ? PL.soreg : STG === 'gates' ? PL.gate : STG === 'nashim' ? PL.wallY : PL.pave;
         if (STG === 'gates') { hole46(false); try { if (stages.setStage) stages.setStage('gates', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 47 ──
         if (STG === 'nashim') { try { stages.hero.show(true); if (stages.setStage) stages.setStage('nashim', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 48 ──
@@ -1423,7 +1425,7 @@ export function createHar42(o = {}) {
         const rope = J.sweep(ang, r / R - 1); const rr = Math.max(R * 0.75, Math.min(R * 1.15, r));
         if (lastA == null || Math.abs(ang - lastA) > 0.05) { mark(ang, rr); lastA = ang; }
         const rp = st.props.rope50, P2 = rp.geometry.attributes.position; rp.visible = true; P2.setXYZ(0, C.x, C.y + 0.9, C.z); P2.setXYZ(1, C.x + Math.cos(ang) * rr, C.y + (rope === 'slack' ? 0.05 : 0.5), C.z + Math.sin(ang) * rr); P2.needsUpdate = true; rp.material.color.set(rope === 'strain' ? '#E0503A' : rope === 'slack' ? '#8A7458' : '#FFE6A0');
-        if (rope !== said) { said = rope; line(rope === 'slack' ? LINE42.slack : rope === 'strain' ? LINE42.strain : LINE42.compass2, `${Math.round(J.covered())}° / ${F.COMPASS50.span}° · רמה ${L}`); if (rope !== 'taut') buzz42('tick'); }
+        const dg = Math.round(J.covered() / 15) * 15; if (rope !== said || dg !== this.dg) { this.dg = dg; said = rope; line(rope === 'slack' ? LINE42.slack : rope === 'strain' ? LINE42.strain : LINE42.compass2, `${Math.round(J.covered())}° / ${F.COMPASS50.span}° · רמה ${L}`); if (rope !== 'taut') buzz42('tick'); }
       },
       up() { holding = false; J.lift(); },
       view() { return topView50(C, R); },
@@ -1434,7 +1436,7 @@ export function createHar42(o = {}) {
         svgClear(); const c = centre();
         if (c && !J.state().planted) { const k2 = s.holdT / F.COMPASS50.plant; svgAdd(`<circle cx="${c.x}" cy="${c.y}" r="26" fill="rgba(255,214,110,.22)" stroke="#FFD66E" stroke-width="4" stroke-dasharray="${(k2 * 163).toFixed(1)} 163" transform="rotate(-90 ${c.x} ${c.y})"/><circle cx="${c.x}" cy="${c.y}" r="5" fill="#FFD66E"/>`); }
         if (c && J.state().planted && !s.done && s.L <= 1) { const pts = []; for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, q = proj(C.x + Math.cos(a) * R, C.y, C.z + Math.sin(a) * R); if (q) pts.push(`${q.x.toFixed(1)},${q.y.toFixed(1)}`); } if (pts.length > 3) svgAdd(`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,230,160,.35)" stroke-width="3" stroke-dasharray="6 8"/>`); }
-        if (s.done && halfT < 0) { halfT = 0; grade('compass', J.result().q, c || { x: W() / 2, y: H() * 0.4 }); st.props.rope50.visible = false; line(LINE42.half); o.emit && o.emit('h50half', {}); endT = 3.2; }
+        if (s.done && halfT < 0) { halfT = 0; st.arc50 = { a0: s.a0, lo: s.lo, hi: s.hi }; R.arc50 = st.arc50; save42(S); grade('compass', J.result().q, c || { x: W() / 2, y: H() * 0.4 }); st.props.rope50.visible = false; line(LINE42.half); o.emit && o.emit('h50half', {}); endT = 3.2; }
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
@@ -1444,14 +1446,16 @@ export function createHar42(o = {}) {
   /** PLACE: the benches along the arc — the Sanhedrin's half circle (fam42 createSteps49's drop: on the line, it lies true) */
   function mkBenches50() {
     const L = famL('place'), n = 5, J = F.createSteps49(L, n), C = PL.gz, R = ARC50.R, pile = st.ui.pile; let endT = -1, ghost = null;
+    const A0 = st.arc50 || R.arc50 || null, span = A0 && Number.isFinite(A0.a0) ? { m: A0.a0 + (A0.lo + A0.hi) / 2, h: (A0.hi - A0.lo) / 2 } : null;   // (the half circle he drew)
     hole50('gazit'); line(LINE42.benches, `ספסל 1/${n} · רמה ${L}`); pile.innerHTML = ''; pile.hidden = false; st.props.bench50.clear(); if (st.props.peg50) st.props.peg50.visible = true;
     const chip = el('h42-it h50-bench', `▭ ספסל 1/${n}`, 'button'); chip.type = 'button'; pile.appendChild(chip);
     const ppa = () => { const a = proj(C.x + R, C.y, C.z), b = proj(C.x + R + 1, C.y, C.z); return a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 20; };
     const unit = () => Math.max(0.5, 36 / Math.max(1, ppa()));
-    const bench = (ang, r, tilt) => { const m = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, 1.1), mat(tilt ? '#CDBE9E' : '#E9DDC3', 0.85)); m.position.set(Math.cos(ang) * r, 0.45, Math.sin(ang) * r); m.rotation.y = -ang + Math.PI / 2; if (tilt) m.rotation.z = 0.18; st.props.bench50.add(m); return m; };
+    const bench = (ang, r, tilt) => { const m = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, 1.1), mat(tilt ? '#8E7A5C' : '#A88E66', 0.85)); m.position.set(Math.cos(ang) * r, 0.45, Math.sin(ang) * r); m.rotation.y = -ang + Math.PI / 2; if (tilt) m.rotation.z = 0.18; st.props.bench50.add(m); return m; };
     dragItem(chip, (d) => {
       const s = J.state(); if (s.done) return false; const pt = onPlane49(d.x, d.y, C.y); const r = pt ? Math.hypot(pt.x - C.x, pt.z - C.z) : 0, ang = pt ? Math.atan2(pt.z - C.z, pt.x - C.x) : 0;
-      const err = pt ? (r - R) / (unit() * 2) : 99, res = J.drop({ dragPx: d.px, err });
+      let inArc = true; if (span) { let d2 = ang - span.m; while (d2 > Math.PI) d2 -= 2 * Math.PI; while (d2 < -Math.PI) d2 += 2 * Math.PI; inArc = Math.abs(d2) <= span.h + 0.25; }
+      const err = pt && inArc ? (r - R) / (unit() * 2) : 99, res = J.drop({ dragPx: d.px, err });
       if (res === 'tap') return false;
       if (res === 'off') { ghost = { m: bench(ang, Math.max(2, Math.min(R * 1.6, r)), true), t: 0 }; buzz42('retry'); line('הספסל לא על הקשת — גררו שוב, על הקו · המחשה', `ספסל ${s.i + 1}/${n} · רמה ${L}`); return false; }
       bench(ang, R, false); buzz42('settle'); o.sound && o.sound('thud');
@@ -1459,12 +1463,12 @@ export function createHar42(o = {}) {
       return true;
     });
     return {
-      acting: true, dragOnly: true, J, kind: 'benches50', chip, R, centre: () => proj(C.x, C.y, C.z), at: (th) => proj(C.x + Math.cos(th) * R, C.y, C.z + Math.sin(th) * R), unit,
+      acting: true, dragOnly: true, J, kind: 'benches50', chip, R, span, centre: () => proj(C.x, C.y, C.z), at: (th) => proj(C.x + Math.cos(th) * R, C.y, C.z + Math.sin(th) * R), unit,
       view() { return topView50(C, R); },
       frame(dt) {
         objPlace(true, [{ x: C.x, y: C.y, z: C.z, r: R }], 'h50benches');
         if (ghost) { ghost.t += dt; ghost.m.position.y -= dt * 1.5; if (ghost.t > 0.8) { st.props.bench50.remove(ghost.m); ghost = null; } }
-        svgClear(); if (!J.state().done) { const pts = []; for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, q = proj(C.x + Math.cos(a) * R, C.y, C.z + Math.sin(a) * R); if (q) pts.push(`${q.x.toFixed(1)},${q.y.toFixed(1)}`); } if (pts.length > 3) { if (J.state().L <= 1) svgAdd(`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,214,110,.25)" stroke-width="${Math.max(8, unit() * ppa() * 2 * F.STEPS49.tol[1] * 2).toFixed(1)}"/>`); svgAdd(`<polyline points="${pts.join(' ')}" fill="none" stroke="#FFD66E" stroke-width="3" stroke-dasharray="9 7"/>`); } }
+        svgClear(); if (!J.state().done) { const pts = []; for (let i = 0; i <= 48; i++) { const a = span ? span.m - span.h + (i / 48) * 2 * span.h : (i / 48) * Math.PI * 2, q = proj(C.x + Math.cos(a) * R, C.y, C.z + Math.sin(a) * R); if (q) pts.push(`${q.x.toFixed(1)},${q.y.toFixed(1)}`); } if (pts.length > 3) { if (J.state().L <= 1) svgAdd(`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,214,110,.22)" stroke-width="${Math.max(8, unit() * ppa() * 2 * F.STEPS49.tol[1]).toFixed(1)}"/>`); svgAdd(`<polyline points="${pts.join(' ')}" fill="none" stroke="#FFD66E" stroke-width="3" stroke-dasharray="9 7"/>`); } }
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
@@ -1530,9 +1534,9 @@ export function createHar42(o = {}) {
    *  out, the centering drops, a hush, the stones settle with a creak — THE DOME HOLDS (fam42 createArch50). From inside, low, looking up */
   function mkDome50(part = 'dome') {
     const L = famL('place'), J = F.createArch50(L), Mk = PL.mk, ys = Mk.y + DOME50.wall, n = J.state().n, Mn = 2 * n + 1, pile = st.ui.pile; let phase = 'set', endT = -1, fall = -1, tiltA = 0;
-    hole50('moked'); line(LINE42.dome, `רמה ${L}`); pile.innerHTML = ''; pile.hidden = false; st.props.vous50.clear(); st.props.ctr50.position.y = ys; st.props.ctr50.visible = true; st.props.wedges50.forEach((w) => { w.visible = true; w.userData.pop = 0; w.position.set(w.userData.x0, ys - 0.67, Mk.z); }); if (st.props.shell50) { st.props.shell50.visible = false; st.props.shell50.material.opacity = 0; }
-    let polar0 = null; try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl) { polar0 = ctl.maxPolarAngle; ctl.maxPolarAngle = Math.PI - 0.05; } } catch (e) { /* */ }   // (from inside, looking up: the orbit's floor at 1.46 kept the camera above its target)
-    const slot = (j) => { const th = Math.PI - ((j + 0.5) * Math.PI) / Mn; return proj(Mk.x + DOME50.Ra * Math.cos(th), ys + DOME50.Ra * Math.sin(th), Mk.z); };
+    hole50('moked'); line(LINE42.dome, `רמה ${L}`); pile.innerHTML = ''; pile.hidden = false; st.props.vous50.clear(); st.props.ctr50.position.y = ys; st.props.ctr50.visible = true; st.props.wedges50.forEach((w) => { w.visible = true; w.userData.pop = 0; w.position.set(Mk.x, ys - 0.67, w.userData.z0); }); if (st.props.shell50) { st.props.shell50.visible = false; st.props.shell50.material.opacity = 0; }
+    let polar0 = null, fov0 = null; try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl) { polar0 = ctl.maxPolarAngle; ctl.maxPolarAngle = Math.PI - 0.05; } const cam = camera(); if (cam) { fov0 = cam.fov; cam.fov = 62; cam.updateProjectionMatrix(); } } catch (e) { /* */ }   // (from inside, looking up: the orbit's floor at 1.46 kept the camera above its target)
+    const slot = (j) => { const th = Math.PI - ((j + 0.5) * Math.PI) / Mn; return proj(Mk.x, ys + DOME50.Ra * Math.sin(th), Mk.z - DOME50.Ra * Math.cos(th)); };   // (the arch's group turned a quarter: its local x is −z)
     const nextJ = (side) => (side === 'L' ? J.state().left : side === 'R' ? Mn - 1 - J.state().right : n);
     const chips = [['L', '◖ אבן שמאל'], ['K', '▲ אבן הראשה'], ['R', 'אבן ימין ◗']].map(([k, t]) => { const b = el('h42-it h50-vous', t, 'button'); b.type = 'button'; b.dataset.side = k; pile.appendChild(b); return b; });
     chips.forEach((b) => dragItem(b, (d) => {
@@ -1554,9 +1558,9 @@ export function createHar42(o = {}) {
         if (r === 'out' || r === 'holds') { const w = st.props.wedges50[J.state().out - 1]; if (w) w.userData.pop = 0.0001; buzz42('mallet'); o.sound && o.sound('wedge'); line(LINE42.strike, `טריזים ${J.state().wedges - J.state().out}`); }
         if (r === 'holds') { phase = 'fall'; fall = 0; if (st.ui.pad) st.ui.pad.classList.remove('full'); line(''); }
       },
-      view() { const t2 = phase === 'held' ? Math.min(1, Math.max(0, (fall - 3) / 4)) : 0; return { p: [Mk.x + 1.5 - 3 * t2, Mk.y + 1.6, Mk.z + 9.6], t: [Mk.x, ys + 2.5 + 2 * t2, Mk.z] }; },
+      view() { const t2 = phase === 'held' ? Math.min(1, Math.max(0, (fall - 3) / 4)) : 0; return { p: [Mk.x + 11 + 2 * t2, Mk.y + 1.6, Mk.z - 1.5], t: [Mk.x - 8 * t2, ys + 3 + 1.5 * t2, Mk.z] }; },
       frame(dt) {
-        if (phase === 'strike') { this.dragOnly = false; objPlace(true, [{ x: Mk.x, y: ys, z: Mk.z, r: 4 }], 'h50strike'); if (st.ui.pad) st.ui.pad.classList.add('full'); } else objPlace(true, [{ x: Mk.x, y: ys + 4, z: Mk.z, r: 6 }], 'h50dome');
+        if (phase === 'strike') { this.dragOnly = false; objPlace(true, [{ x: Mk.x, y: ys, z: Mk.z, r: 4 }], 'h50strike'); if (st.ui.pad) st.ui.pad.classList.add('full'); } else { this.dragOnly = true; objPlace(true, [{ x: Mk.x, y: ys + 4, z: Mk.z, r: 6 }], 'h50dome'); }
         st.props.vous50.children.forEach((m) => { if (m.userData.settle > 0) { const k2 = Math.min(m.userData.settle, dt); m.position.y -= (1.2 / 0.35) * k2; m.userData.settle -= k2; } });
         st.props.wedges50.forEach((w) => { if (w.userData.pop) { w.userData.pop += dt; w.position.y -= dt * 6; w.position.x += dt * 2; if (w.userData.pop > 0.6) w.visible = false; } });
         tiltA = Math.max(0, tiltA - dt * 1.6); st.props.ctr50.rotation.z = (phase === 'set' ? J.balance() * 0.03 : 0) + Math.sin(tiltA * 12) * 0.06 * tiltA;
@@ -1577,7 +1581,7 @@ export function createHar42(o = {}) {
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
-      end() { pile.innerHTML = ''; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl && polar0 != null) ctl.maxPolarAngle = polar0; } catch (e) { /* */ } },
+      end() { pile.innerHTML = ''; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl && polar0 != null) ctl.maxPolarAngle = polar0; const cam = camera(); if (cam && fov0 != null) { cam.fov = fov0; cam.updateProjectionMatrix(); } } catch (e) { /* */ } },
     };
   }
   /* ── build 47 ── stage 04's acts ── */

@@ -756,7 +756,7 @@ export function createCompass50(L = 1) {
   function sweep(angle, dev) {
     if (!k.planted || k.done) return null;
     if (k.a != null) { let d = angle - k.a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; if (Math.abs(d) > P.jump) { k.a = angle; return k.rope; } k.cum += d; k.lo = Math.min(k.lo, k.cum); k.hi = Math.max(k.hi, k.cum); }
-    k.a = angle; k.dev = dev; k.n++; k.sq += dev * dev; k.max = Math.max(k.max, Math.abs(dev)); k.rope = dev < P.slack ? 'slack' : dev > P.strain ? 'strain' : 'taut';
+    if (k.a0 == null) k.a0 = angle; k.a = angle; k.dev = dev; k.n++; k.sq += dev * dev; k.max = Math.max(k.max, Math.abs(dev)); k.rope = dev < P.slack ? 'slack' : dev > P.strain ? 'strain' : 'taut';
     if ((k.hi - k.lo) * 180 / Math.PI >= P.span) { k.done = true; const rms = Math.sqrt(k.sq / Math.max(1, k.n)); k.rms = rms; k.q = rms <= tol ? 1 : rms <= 2 * tol ? 0.65 : 0.3; }
     return k.rope;
   }

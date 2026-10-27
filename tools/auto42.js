@@ -140,7 +140,7 @@
       const h = H();
       if (!h || !h.on) {   // ── build 44 ── after stage 01: the vision (Phase B) — its shot, then "חזרה להר"; then the test (a new stage director) — until it is passed
         const V = globalThis.__SHIFT && globalThis.__SHIFT.vision;
-        if (V && !V.ended) { if (!A.visionT) { A.visionT = performance.now(); note('vision'); A.times.vision = Math.round((performance.now() - T0) / 100) / 10; } if (performance.now() - A.visionT > 9000) { await shot('vision'); const b = q('.v44-skip'); if (b && !b.hidden) { b.click(); note('vision skipped'); } } await sleep(400); continue; }
+        if (V && !V.ended) { if (!A.visionT) { A.visionT = performance.now(); note('vision'); A.times.vision = Math.round((performance.now() - T0) / 100) / 10; } if (performance.now() - A.visionT > 3500) await shot('vision'); if (performance.now() - A.visionT > 9000) { const b = q('.v44-skip'); if (b && !b.hidden) { b.click(); note('vision skipped'); } } await sleep(400); continue; }
         if (h && !h.on && h.state().mode === 'test' && h.state().test && h.state().test.passed) return;
         if (!A.waitOff) A.waitOff = performance.now(); if (performance.now() - A.waitOff > (A.opts.after ? 90000 : 1500)) return;
         await sleep(300); continue;

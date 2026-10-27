@@ -198,6 +198,8 @@ export function createHar42(o = {}) {
     const c = camera(), tanV = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), tanH = tanV * (W() / H());
     let v = { p, t };
     try { const r = pan40(p, t, O, { x: h.x, y: h.y + HERO41 / 2, z: h.z, h: HERO41 }, tanH, CAM41, tanV); if (r) v = { p: r.p, t: r.t }; } catch (e) { /* */ }
+    // (him ≤ 45 % of the height: at the camera's own distance pan40's pose stood ~10 amot from him — 60–70 % at 640 × 296; back along the view's ray to 16)
+    { const dh = Math.hypot(v.p[0] - h.x, v.p[1] - h.y - HERO41 / 2, v.p[2] - h.z), vx = v.p[0] - v.t[0], vy = v.p[1] - v.t[1], vz = v.p[2] - v.t[2], L = Math.hypot(vx, vy, vz) || 1; if (dh < 16) { const k = (L + (16 - dh)) / L; v = { p: [v.t[0] + vx * k, v.t[1] + vy * k, v.t[2] + vz * k], t: v.t }; } }
     st.camLock = v; return v;
   }
 

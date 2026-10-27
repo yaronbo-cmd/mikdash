@@ -166,6 +166,23 @@ async function names47k(K) {
   if (!r) return false; const tx = r.tx + K.between(-14, 14), ty = r.ty + K.between(-14, 14);
   await K.down(7, r.x, r.y); for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 70)); await K.move(7, r.x + ((tx - r.x) * i) / 10, r.y + ((ty - r.y) * i) / 10); } await K.up(7); K.ev('names47'); return true;
 }
+// ── build 48 ── stage 05, a child's way: the LOG — he turns it, peels it, taps it, and drags it to one of the two piles (as it strikes him);
+// the BEAMS — a chip to a socket, any socket, then a push roughly up; the TENON — a sideways drag; the PEG — a few taps, then he waits (or
+// not); the PLANKS — the chip to the dashed line; the WALK — a long hold
+async function wood48k(K) {
+  const g = await K.pg.evaluate(() => { const r = [...document.querySelectorAll('.h42 svg rect')].find((q) => +q.getAttribute('rx') > 25 && +q.getAttribute('width') > 150); const z = [...document.querySelectorAll('.h42 svg rect[data-z]')].map((q) => ({ k: q.getAttribute('data-z'), x: +q.getAttribute('x') + +q.getAttribute('width') / 2, y: +q.getAttribute('y') + +q.getAttribute('height') / 2 })); return r ? { x: +r.getAttribute('x'), y: +r.getAttribute('y'), w: +r.getAttribute('width'), h: +r.getAttribute('height'), z } : null; }).catch(() => null);
+  if (!g) return false; const cx = g.x + g.w / 2, cy = g.y + g.h / 2, r = K.rnd();
+  if (r < 0.3) { await K.swipe(cx + K.between(-g.w * 0.3, g.w * 0.3), cy, K.between(-8, 8), (K.rnd() < 0.5 ? -1 : 1) * K.between(30, 90), K.between(120, 400)); K.ev('log-turn'); }
+  else if (r < 0.52) { await K.swipe(g.x + g.w * K.between(0.1, 0.4), cy + K.between(-g.h * 0.3, g.h * 0.3), K.between(60, g.w * 0.6), K.between(-10, 10), K.between(150, 600)); K.ev('log-peel'); }
+  else if (r < 0.65) { await K.tap(g.x + K.between(0.1, 0.9) * g.w, cy + K.between(-g.h * 0.3, g.h * 0.3)); K.ev('log-mark'); }
+  else if (g.z.length) { const z = g.z[Math.floor(K.rnd() * g.z.length)]; await K.swipe(cx, cy, z.x - cx + K.between(-20, 20), z.y - cy + K.between(-14, 14), K.between(300, 900)); K.ev('log-' + z.k); }
+  return true;
+}
+async function beam48k(K) {
+  const r = await K.pg.evaluate(() => { const c = [...document.querySelectorAll('.h42 .h48-beam, .h42 .h48-plank')].filter((b) => b.style.display !== 'none' && b.getBoundingClientRect().width > 0); const m = [...document.querySelectorAll('.h42 svg rect')].filter((q) => +q.getAttribute('width') === 24); const ln = document.querySelector('.h42 svg line'); if (!c.length) return null; const b = c[Math.floor(Math.random() * c.length)].getBoundingClientRect(), t = m.length ? m[Math.floor(Math.random() * m.length)] : null; return { x: b.left + b.width / 2, y: b.top + b.height / 2, tx: t ? +t.getAttribute('x') + 12 : ln ? (+ln.getAttribute('x1') + +ln.getAttribute('x2')) / 2 : innerWidth / 2, ty: t ? +t.getAttribute('y') + 14 : ln ? (+ln.getAttribute('y1') + +ln.getAttribute('y2')) / 2 : innerHeight / 2 }; }).catch(() => null);
+  if (!r) return false; const tx = r.tx + K.between(-16, 16), ty = r.ty + K.between(-16, 16);
+  await K.down(7, r.x, r.y); for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 70)); await K.move(7, r.x + ((tx - r.x) * i) / 10, r.y + ((ty - r.y) * i) / 10); } await K.up(7); K.ev('beam-chip'); return true;
+}
 async function mount42(K) {
   let moodUntil = 0, mood = 'try';
   while (K.left() > 15000) {
@@ -178,6 +195,7 @@ async function mount42(K) {
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
+      if (h && !h.on && h.stg === 'nashim' && h.part === 'done') { K.R.nashim48 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('nashim done'); break; }   // ── build 48 ── stage 05's end
       if (h && !h.on && h.stg === 'gates' && h.part === 'done') { K.R.gates47 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('gates done'); break; }   // ── build 47 ── stage 04's end
       if (h && !h.on && h.stg === 'soreg' && h.part === 'done') { K.R.soreg46 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('soreg done'); break; }   // ── build 46 ── stage 03's end
       if (!K.R.offT) K.R.offT = K.el(); if (K.el() - K.R.offT > 120) { K.note('no stage director for 2 minutes'); break; }
@@ -201,6 +219,12 @@ async function mount42(K) {
     if (h.part === 'open') { if (K.rnd() < 0.3) await K.pokeButton(s, null, 'open'); await K.sleep(K.between(500, 1500)); continue; }
     if (mood === 'try') {
       if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      else if (/לערימה הנכונה|מסובבת|לא למזבח|כשר למערכה/.test(L) && r < 0.85) { if (!(await wood48k(K))) await K.tryLine(s); }   // ── build 48 ──
+      else if (/גררו קורה לשקע|קורות הפינה|לא הקורה לשקע|כולה שלכם|גררו את הקרשים/.test(L) && r < 0.85) { if (!(await beam48k(K))) await K.tryLine(s); }
+      else if (/לתוך השקע|בשפת השקע/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.35, W * 0.65), K.between(Hh * 0.55, Hh * 0.8), K.between(-50, 50), -K.between(40, 140), K.between(150, 600)); K.ev('beam-push'); }
+      else if (/השגם|לאורך החץ/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.3, W * 0.45), K.between(Hh * 0.5, Hh * 0.7), K.between(40, 160) * (K.rnd() < 0.8 ? 1 : -1), K.between(-30, 30), K.between(150, 600)); K.ev('tenon'); }
+      else if (/הקישו על היתד|יתד חדשה/.test(L) && r < 0.85) { const [W, Hh] = K.size(), n = Math.round(K.between(1, 8)); for (let i = 0; i < n; i++) { await K.tap(K.between(W * 0.4, W * 0.6), K.between(Hh * 0.35, Hh * 0.6)); await K.sleep(K.between(180, 600)); } K.ev('peg-taps', String(n)); await K.sleep(K.between(400, 2200)); }
+      else if (/הולכים על הגזוזטרא/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.3, W * 0.7), K.between(Hh * 0.4, Hh * 0.8), K.between(1500, 7000)); K.ev('walk48'); }
       else if (/החזיקו להרמה|הבועה ברחה|הכנף הכבדה/.test(L) && r < 0.85) await lift47k(K);   // ── build 47 ──
       else if (/מעל שתי המזוזות|קצה אחד לא נח/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.3, W * 0.7), K.between(Hh * 0.4, Hh * 0.75), (K.rnd() < 0.5 ? -1 : 1) * K.between(30, 220), K.between(-10, 10), K.between(150, 600)); K.ev('set47'); }
       else if (/ישר למטה|שפת הגומה/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.35, W * 0.65), K.between(Hh * 0.25, Hh * 0.45), K.between(-60, 60), K.between(40, 160), K.between(150, 700)); K.ev('pin47'); }

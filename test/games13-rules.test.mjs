@@ -123,9 +123,9 @@ ok('the words at the end are kind (solo and duel, every outcome); nothing says l
 });
 ok('where they appear: each is some stage\'s own game (נשים · הסורג · היסוד) and another\'s second; the hub has nine; חמש אבנים in the quarry\'s round', () => {
   assert.equal(GAMES.length, 9);
-  assert.equal(STAGE_GAMES.nashim[0], 'torches'); assert.equal(STAGE_GAMES.sorag[0], 'knuckle'); assert.equal(STAGE_GAMES.yesod[0], 'nuts');
-  for (const id of ['knuckle', 'torches', 'nuts']) assert.ok(Object.values(STAGE_GAMES).filter((l) => l.includes(id)).length >= 2, id);
-  assert.equal(pickFor({ games: {} }, 'nashim'), 'torches');
+  assert.ok(!Object.values(STAGE_GAMES).some((l) => l.includes('torches')), 'build 48: no stage offers "שמונה אבוקות" (שמחת בית השואבה opens on its date in Phase B — the owner)'); assert.equal(STAGE_GAMES.sorag[0], 'knuckle'); assert.equal(STAGE_GAMES.yesod[0], 'nuts');
+  for (const id of ['knuckle', 'nuts']) assert.ok(Object.values(STAGE_GAMES).filter((l) => l.includes(id)).length >= 2, id);
+  assert.equal(pickFor({ games: {} }, 'nashim'), 'levites');   // (build 48: was torches)
   assert.ok(OTHERS.includes('knuckle')); assert.ok(ahead({ ftue: 99, stats: { levels: 0 }, m3: {} }, 4).includes('knuckle'), 'in the first round');
 });
 console.log(bad ? `${bad} FAILED of ${n + bad}` : `all ${n} ok`);

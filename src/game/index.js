@@ -512,12 +512,15 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     try { if (/[?&]h46go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'sorag')) { if (!S.isDone(G, 'har')) { S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; } if (!S.isDone(G, 'wall')) { S.completeStage(G, 'wall'); G.st.wall.h45 = 1; } G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     // ── fable32 (build 47) ── the developers' fixture ?h47go=1: straight to stage 04 (the Mount, the court wall and the soreg done) ── /fable32 ──
     try { if (/[?&]h47go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'gates')) { for (const id of ['har', 'wall', 'sorag']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
+    // ── fable32 (build 48) ── the developers' fixture ?h48go=1: straight to stage 05 (the Mount, the wall, the soreg and the gates done) ── /fable32 ──
+    try { if (/[?&]h48go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'nashim')) { for (const id of ['har', 'wall', 'sorag', 'gates']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     ensureWall45();   // ── fable32 (build 46) ── his stones in the court wall, from the save ── /fable32 ──
     if (wanted42(G, S.isDone)) startHar42();   // ── fable32 (build 42) ── the Mount not done: the new stage 01 ── /fable32 ──
     else if (wantedTest44()) startH44('test');   // ── fable32 (build 44) ── the craftsman's test before chapter ב׳ ── /fable32 ──
     else if (wanted45()) startHar45();   // ── fable32 (build 45) ── stage 02, the court wall, the new way ── /fable32 ──
     else if (wanted46()) startHar46();   // ── fable32 (build 46) ── stage 03, the soreg and the chel, the new way ── /fable32 ──
     else if (wanted47()) startHar47();   // ── fable32 (build 47) ── stage 04, the court's gates, the new way ── /fable32 ──
+    else if (wanted48()) startHar48();   // ── fable32 (build 48) ── stage 05, the women's court, the new way ── /fable32 ──
     else if (isNew || G.ftue < 99) runFtue();
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
@@ -3358,6 +3361,28 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (wantedTest44()) return false;
     const w = G.st && G.st.gates; return !(w && (w.p > 0 || w.c > 0));
   }
+  // ── fable32 (build 48) ── stage 05, עזרת הנשים, the new way (har42 STG 'nashim'): after the gates; the old flow behind ?nashim48=0, ?stick=1,
+  // ?har42=0, the demo, the court begun the old way. No glimpse of שמחת בית השואבה here (the owner: it opens on its date in Phase B)
+  function wanted48() {
+    if (!G || G.demo || !['har', 'wall', 'sorag', 'gates'].every((id) => S.isDone(G, id)) || S.isDone(G, 'nashim') || globalThis.__H48_OFF) return false;
+    try { if (/[?&](nashim48=0|stick=1|har42=0)(&|$)/.test(location.search || '')) return false; } catch (e) { /* */ }
+    if (wantedTest44()) return false;
+    const w = G.st && G.st.nashim; return !(w && (w.p > 0 || w.c > 0));
+  }
+  function startHar48() {
+    if (H42 && H42.on) return;
+    for (const c of G.crews || []) if (c.at === 'nashim') c.at = null;
+    const nx = STAGES.find((x) => x.id === 'nikanor');
+    H42 = createHar42({
+      stage: 'nashim', stages: world && (world.stages || world), view, nextName: nx ? nx.n : '',
+      emit: (t, d) => emit(t, d), sound: (k) => { try { sfx.play(k); } catch (e) { /* a sound we lack */ } },
+      keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
+      timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
+      complete: () => { const out = S.completeStage(G, 'nashim'); persist(); syncWorld(null); hideNext44(); return out; },
+      onExit: () => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
+    });
+    H42.start();
+  }
   function startHar47() {
     if (H42 && H42.on) return;
     for (const c of G.crews || []) if (c.at === 'gates') c.at = null;
@@ -3368,7 +3393,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
       complete: () => { const out = S.completeStage(G, 'gates'); persist(); syncWorld(null); hideNext44(); return out; },
-      onExit: () => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
+      onExit: (done) => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } if (done && wanted48()) setTimeout(() => { if (!H42) startHar48(); }, 400); },   // (build 48: on to stage 05)
     });
     H42.start();
   }

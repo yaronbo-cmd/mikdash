@@ -63,7 +63,8 @@ import * as RD20 from './hooks/riddle.js';
 import { MISHMAROT } from '../calendar.js';
 // ── /hook20 ──
 import { createJuice18 } from './juice.js';
-import { createHar42, wanted42, H42KEY } from './har42.js';   // ── fable32 (build 42) ── the new stage 01, "שיטוח ההר" ── /fable32 ──   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
+import { createHar42, wanted42, H42KEY, load42 } from './har42.js';   // ── fable32 (build 44) ── (load42: the test's record) ── /fable32 ──
+   // ── fable32 (build 42) ── the new stage 01, "שיטוח ההר" ── /fable32 ──   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
 
 const DEFAULTS = {
   autosaveMs: 10000,
@@ -448,6 +449,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     enterWhole, exitWhole,
     /** Phase B, "העבודה בבית": main.js swaps the game (the save is kept; coming back resumes the building) */
     enterAvodah() { if (hooks.enterAvodah) { persist(); hooks.enterAvodah(); } },
+    openYard() { if (!(H42 && H42.on)) startH44('yard'); },   // ── fable32 (build 44) ── חצר האומנים from the menu ── /fable32 ──
+    get canYard() { return !!(G && S.isDone(G, 'har') && !G.demo); },   // ── fable32 (build 44) ── ── /fable32 ──
     get canAvodah() { return !!hooks.enterAvodah; },
     newGame,
     heroQuarry: () => onQuarryTap(),
@@ -503,6 +506,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     addEventListener('pagehide', persist);
     emit('start', { isNew, demo: G.demo });
     if (wanted42(G, S.isDone)) startHar42();   // ── fable32 (build 42) ── the Mount not done: the new stage 01 ── /fable32 ──
+    else if (wantedTest44()) startH44('test');   // ── fable32 (build 44) ── the craftsman's test before chapter ב׳ ── /fable32 ──
     else if (isNew || G.ftue < 99) runFtue();
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
@@ -2967,7 +2971,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (opening) W.demoMode(); else syncWorld(null);
     ui.refresh(); namePlate();               // ── flow8 ── (a new game has no name yet: the plate goes)
     emit('newGame');
-    if (wanted42(G, S.isDone)) startHar42(); else runFtue();   // ── fable32 (build 42) ── ── /fable32 ──
+    if (wanted42(G, S.isDone)) startHar42(); else if (wantedTest44()) startH44('test'); else runFtue();   // ── fable32 (build 42) ── ── /fable32 ── ── fable32 (build 44) ── ── /fable32 ──
   }
 
   /* ───────── per frame (from main.js) ───────── */
@@ -3256,11 +3260,47 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       snapshot: () => { try { const T = globalThis.__T; T.render(); return T.renderer.domElement.toDataURL('image/jpeg', 0.55); } catch (e) { return null; } },
       timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },   // ── fable32 (build 43) ── (the reveal's late sun; the real clock again after the card) ── /fable32 ──
-      complete: () => { const out = S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; persist(); syncWorld(null); return out; },
-      onExit: () => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
+      complete: () => { const out = S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; persist(); syncWorld(null); hideNext44(); return out; },
+      onExit: (done) => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } if (done) { try { syncWorld(null); } catch (e) { /* */ } } try { ui.refresh(); } catch (e) { /* */ } if (done) after01(); },
     });
     H42.start();
   }
+  // ── fable32 (build 44) ── between stage 01 and stage 02 (docs/specs/shlav-alef-v2-he.md §8, §12; shlav-alef-hard-fun-he.md §5):
+  // the reveal shows no next target (its gold beam and outline wait for the card); after the card, once, THE VISION (Phase B's finished
+  // House at sunrise, one act — main.js enterVision → the shift's runVision; a saved flag, never again); then the craftsman's test before
+  // chapter ב׳ (har42.js test44: three jobs at level 2) — and חצר האומנים (yard44) from the menu or the test's card
+  const VISION_KEY = 'bh_vision44';
+  const visionSeen = () => { try { return !!(G.vision44 || (globalThis.localStorage && localStorage.getItem(VISION_KEY))); } catch (e) { return !!G.vision44; } };
+  function hideNext44() { try { for (const s of STAGES) if (S.statusOf(G, s.id) === 'avail') W.setStage(s.id, 'locked', 0, { instant: true }); } catch (e) { /* */ } }
+  function wantedTest44() {
+    if (!G || G.demo || !S.isDone(G, 'har') || (G.st && G.st.wall) || globalThis.__H44_OFF) return false;
+    try { if (/[?&]test44=0(&|$)/.test(location.search || '')) return false; } catch (e) { /* */ }
+    const t = load42().test44; return !(t && t.passed);
+  }
+  function after01() {
+    if (!visionSeen() && !G.demo && hooks.enterVision) {
+      G.vision44 = 1; try { localStorage.setItem(VISION_KEY, '1'); } catch (e) { /* the save's flag */ } persist(); emit('vision44', {});
+      try { hooks.enterVision(); return; } catch (e) { /* the test, then */ }
+    }
+    if (wantedTest44()) startH44('test');
+  }
+  function startH44(mode, back = '') {
+    if (H42 && H42.on) return;
+    H42 = createHar42({
+      mode, from: back, stages: world && (world.stages || world), view,
+      spot: () => { try { return W.workSpot('har', 'dress'); } catch (e) { return null; } },
+      emit: (t, d) => emit(t, d),
+      keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
+      onExit: (done, next) => {
+        H42 = null; try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ }
+        if (next === 'yard') { startH44('yard', 'test'); return; }
+        if (mode === 'yard' && (back === 'test' || wantedTest44())) { if (wantedTest44()) startH44('test'); return; }
+        if (mode === 'test' && done) { try { ui.toast && ui.toast('פרק ב׳ נפתח — חומת העזרה'); } catch (e) { /* */ } }
+      },
+    });
+    H42.start();
+  }
+  // ── /fable32 ──
   function frame(ms) {
     if (H42 && H42.on) { H42.frame(ms); return; }   // ── fable32 (build 42) ── ── /fable32 ──
     ui.frame(ms);

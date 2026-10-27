@@ -23,7 +23,7 @@ import { createGuide39 } from '../avodah/shift/guide39.js';
 import { walk39, pan40, CAM41, HERO41 } from './twin.js';
 import { createTouch40 } from '../avodah/shift/touch40.js';
 import { buzz42 } from '../avodah/shift/prefs28.js';
-import { RATE30 } from '../avodah/shift/rate30.js';
+import { RATE30, rate30 } from '../avodah/shift/rate30.js';
 import * as F from './fam42.js';
 import * as TX from '../tex.js';   // ── build 43 ── (the props' stone, rock and wood: the game's own procedural textures)
 
@@ -51,6 +51,32 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   out: 'מחר: שיירת אבנים מהמחצבה · אלף עגלות — קדמוניות טו 390 · טיוטה',
   caravan: 'הבוקר הגיעה שיירה · אלף עגלות — קדמוניות טו 390 · טיוטה',
 });
+/** ── build 44 ── חצר האומנים (hard-fun §5) and the craftsman's test (v2 §8): the variants he has met (stage 01's), the families' titles
+ *  (טיוטה), the points a grade gives, the test's three jobs at level 2 and its rules (pass at כשר; מהודר in all three — a gold seal; free
+ *  tries; after 5 failed tries of a job רב האומנים shows it — passed without a seal) */
+export const YARD44 = Object.freeze([
+  Object.freeze({ part: 'lift', fam: 'lift', he: 'גלגל הדריכה' }), Object.freeze({ part: 'corner', fam: 'place', he: 'מוט הברזל' }),
+  Object.freeze({ part: 'course0', fam: 'place', he: 'נדבך' }), Object.freeze({ part: 'rock', fam: 'inspect', he: 'קריאת הסלע' }),
+  Object.freeze({ part: 'roll', fam: 'place', he: 'האבן על הגלילים' }), Object.freeze({ part: 'pave', fam: 'place', he: 'הריצוף' }),
+]);
+export const TITLE44 = Object.freeze({ lift: 'מנופאי', place: 'בנאי', inspect: 'בודק', fit: 'נגר' });
+export const PTS44 = Object.freeze({ mehudar: 3, kasher: 2, tikkun: 1, title: 6 });
+export const TEST44 = Object.freeze({ jobs: Object.freeze(['lift', 'course0', 'corner']), L: 2, demoAfter: 5, src: 'מן הכהנים לימד סתתות ונגרות — קדמוניות טו 390 · טיוטה' });
+/** the test's rule on one job's try: a grade at כשר or better passes; else another free try — the fifth failure brings the demonstration */
+export function testTry44(rec, rating) {
+  const r = rec || { tries: 0, fails: 0, best: null, demo: false, passed: false };
+  r.tries++;
+  if (rating === 'mehudar' || rating === 'kasher') { r.passed = true; if (r.best !== 'mehudar') r.best = rating; return { rec: r, next: 'pass' }; }
+  r.fails++;
+  return { rec: r, next: r.fails >= TEST44.demoAfter ? 'demo' : 'again' };
+}
+/** the test's end: passed when every job passed or was shown; the seal only when every job was מהודר */
+export function testEnd44(jobs) {
+  const all = TEST44.jobs.map((j) => jobs && jobs[j]); if (!all.every((r) => r && (r.passed || r.demo))) return null;
+  return { passed: true, seal: all.every((r) => r.passed && r.best === 'mehudar'), shown: all.some((r) => r.demo && !r.passed) };
+}
+/** a family's mastery points and title (the yard's practice, the test's tries) */
+export const title44 = (fam, pts) => ((pts | 0) >= PTS44.title ? TITLE44[fam] || '' : '');
 /** the card's sources (the long explanations, moved off the screen's line) */
 export const SRC42 = Object.freeze([
   'הר הבית היה חמש מאות אמה על חמש מאות אמה — מדות ב, א · טיוטה',
@@ -81,7 +107,12 @@ const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;directio
 .h42-skip{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:49;min-height:44px;min-width:88px;border-radius:14px;border:2px solid #FFE6A0;background:rgba(28,20,10,.8);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;pointer-events:auto}
 .h42-before{position:fixed;left:0;top:0;width:100vw;height:100vh;object-fit:cover;z-index:43;pointer-events:none}
 .h42-tag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:50;padding:2px 8px;border-radius:8px;background:rgba(28,20,10,.82);color:#FFE6A0;font:900 13px/1.2 Heebo,system-ui,sans-serif;pointer-events:none}
-body.h42-on .gm{display:none!important}`;
+body.h42-on .gm{display:none!important}
+.h42-card button.h44-alt{margin-inline-start:8px;background:#E8DCC0}.h44-seal{font:900 18px/1.3 Heebo,system-ui,sans-serif!important;color:#9A6B12}
+.h44-yard{position:relative;max-height:88vh;overflow:auto;max-width:min(560px,92vw)!important}.h44-yard>button[data-b="back"]{position:absolute;top:8px;left:8px;margin:0!important;min-width:88px!important;min-height:44px!important;font-size:14px!important}.h44-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}.h44-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:5px 0;padding:4px 6px;border-radius:12px;background:#F1E6CC}.h44-row b{font:800 15px/1.2 Heebo,system-ui,sans-serif}.h44-row span{display:flex;gap:4px}.h44-row button{margin:0!important;min-width:44px!important;min-height:44px!important;font-size:15px!important}
+.h44-fam{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 6px}.h44-fam i{font-style:normal;padding:2px 8px;border-radius:10px;background:#2A1804;color:#FFE6A0;font:700 12px/1.4 Heebo,system-ui,sans-serif}
+.h44-ghost{position:fixed;z-index:61;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.35);border:2px dashed #FFF;box-shadow:0 0 18px rgba(255,240,200,.8);pointer-events:none;transition:left .12s linear,top .12s linear}
+.h44-ghost::after{content:'רב האומנים';position:absolute;top:50px;left:50%;transform:translateX(-50%);white-space:nowrap;font:800 12px/1 Heebo,system-ui,sans-serif;color:#FFF;text-shadow:0 1px 3px #000}`;
 
 const ls = () => { try { return globalThis.localStorage || null; } catch (e) { return null; } };
 const qs = (k) => { try { const m = new RegExp(`[?&]${k}=([^&#]*)`).exec(location.search || ''); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } };
@@ -94,6 +125,7 @@ export function wanted42(G, isDone) { if (!G || G.demo || isDone(G, 'har')) retu
 /* ───────── the director ───────── */
 export function createHar42(o = {}) {
   const doc = typeof document !== 'undefined' ? document : null;
+  const MODE = o.mode === 'yard' || o.mode === 'test' ? o.mode : 'stage';   // ── build 44 ── (the yard and the test: one act at a time, no building)
   const st = { on: false, part: null, t: 0, last: 0, hold: null, drag: null, finger: 0, cam: null, camLock: null, ui: {}, props: {}, job: null, out: false, done: false, snapshot: null, pending: null };
   const S = load42();
   const stages = o.stages, view = o.view;
@@ -106,7 +138,7 @@ export function createHar42(o = {}) {
   const W = () => (typeof innerWidth === 'number' ? innerWidth : 844), H = () => (typeof innerHeight === 'number' ? innerHeight : 390);
   const now = () => performance.now() / 1000;
   // the places: around the Mount's work corner (the old stage's banker spot) — the rope's pegs, the wheel, the rocks, the course, the stone's run, the paving, the parapet
-  const base = (() => { const w = o.spot ? o.spot() : null; return w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; })();
+  const base = (() => { const w = o.spot ? o.spot() : null, b0 = w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; return MODE === 'stage' ? b0 : { x: b0.x - 85, z: b0.z }; })();   // (build 44: the yard and the test on the finished plaza, 85 amot in from the Mount's east wall — at the old corner the wall stood between the camera and him)
   const P = (dx, dz) => ({ x: base.x + dx, z: base.z + dz, get y() { return gy(this.x, this.z); } });
   const PL = { peg0: P(-14, 4), peg1: P(16, 4), wheel: P(10, -10), stone0: P(16, -10), rock: [P(-12, -14), P(-24, -6), P(-30, 8)], course: P(2, 16), roll0: P(-20, 24), roll1: P(4, 24), pave: P(18, 26), trace: P(30, 14) };
   const STAND = { rope: PL.peg1, lift: P(6, -10), rock0: P(-9, -12), rock1: P(-21, -4), rock2: P(-27, 10), course0: P(2, 12), course1: P(2, 12), roll: P(-18, 19.5), pave: P(28, 27), trace: P(27, 14), corner: P(12, -5) };   // (the paving from its east: from its south the act's camera stood behind the crews' course)
@@ -121,7 +153,8 @@ export function createHar42(o = {}) {
     if (texOn || !doc) return; texOn = true;
     try {
       const r = TX.texRock(91, 256), w = TX.texWood(61, 128), n2 = (a) => new THREE.Vector2(a, a);
-      for (const [m, k] of [[STONE, 0.45], [BOSS, 1.5], [ROCK, 1.7], [BED, 0.8]]) { m.map = r.map; m.normalMap = r.normalMap; m.normalScale = n2(k); m.needsUpdate = true; }
+      for (const [m, k] of [[STONE, 0.45], [BOSS, 1.5], [ROCK, 1.7], [BED, 0.8]]) { if (m !== STONE) m.map = r.map; m.normalMap = r.normalMap; m.normalScale = n2(k); m.needsUpdate = true; }
+      for (const m of [STONE, BOSS]) { m.emissive = new THREE.Color('#4A3D2A'); m.emissiveIntensity = 0.55; }   // ── build 44 ── (the big faces read dark in the dusk: the margin's smooth face without the rock map's blotches, and a little of the stone's own warmth)
       WOOD.map = w.map; WOOD.needsUpdate = true;
     } catch (e) { /* the plain colours */ }
   }
@@ -221,10 +254,11 @@ export function createHar42(o = {}) {
     const g = el('h42-g', `${RATE30.icon[rating]} ${RATE30.he[rating]}${opened ? ` · רמה ${opened} נפתחה` : ''}`); g.style.left = `${Math.round(at ? at.x : W() / 2)}px`; g.style.top = `${Math.round(at ? at.y : H() * 0.4)}px`; st.ui.root.appendChild(g); setTimeout(() => g.remove(), 1700);
     buzz42(rating === 'mehudar' ? 'ok' : rating === 'kasher' ? 'tick' : 'retry');
   }
-  function card(title, lines, btn, on) {
+  function card(title, lines, btn, on, alt, onAlt) {
     if (!doc) return null;
-    const c = el('h42-card', `<div role="dialog" aria-label="${esc(title)}"><h2>${esc(title)}</h2>${lines.map((l) => (l.startsWith('~') ? `<small>${esc(l.slice(1))}</small>` : `<p>${esc(l)}</p>`)).join('')}<button type="button">${esc(btn)}</button></div>`);
-    c.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); c.remove(); st.card = null; if (on) on(); });
+    const c = el('h42-card', `<div role="dialog" aria-label="${esc(title)}"><h2>${esc(title)}</h2>${lines.map((l) => (l.startsWith('~') ? `<small>${esc(l.slice(1))}</small>` : l.startsWith('!') ? `<p class="h44-seal">${esc(l.slice(1))}</p>` : `<p>${esc(l)}</p>`)).join('')}<button type="button" data-b="go">${esc(btn)}</button>${alt ? `<button type="button" data-b="alt" class="h44-alt">${esc(alt)}</button>` : ''}</div>`);
+    c.querySelector('[data-b="go"]').addEventListener('click', (e) => { e.stopPropagation(); c.remove(); st.card = null; if (on) on(); });
+    if (alt) c.querySelector('[data-b="alt"]').addEventListener('click', (e) => { e.stopPropagation(); c.remove(); st.card = null; if (onAlt) onAlt(); });
     c.addEventListener('pointerdown', (e) => e.stopPropagation());
     doc.body.appendChild(c); st.card = c; return c;
   }
@@ -287,9 +321,16 @@ export function createHar42(o = {}) {
   }
 
   /* ── the parts ── */
-  const famL = (fam) => F.famLevel(S, fam);
+  let Lover = 0;   // ── build 44 ── (the yard's chosen level, the test's 2)
+  const famL = (fam) => Lover || F.famLevel(S, fam);
   function grade(part, q, at) {
-    const fam = FAMOF[part] || 'place', L = famL(fam), r = F.famRate(S, fam, L, q);
+    const fam = FAMOF[part] || 'place', L = famL(fam);
+    if (MODE !== 'stage') {   // ── build 44 ── the yard counts toward the levels (lvl36) and the points; the test only rates
+      const r = MODE === 'yard' ? F.famRate(S, fam, L, q) : { rating: rate30(q), opened: 0 }; st.actQ = q; st.actRating = r.rating;
+      const Y = S.yard || (S.yard = { pts: {}, runs: 0 }); Y.pts[fam] = (Y.pts[fam] | 0) + (PTS44[r.rating] | 0); if (MODE === 'yard') Y.runs = (Y.runs | 0) + 1; save42(S);
+      toast(r.rating, at, r.opened); o.emit && o.emit('h44grade', { part, rating: r.rating, q, L, fam, mode: MODE }); return r.rating;
+    }
+    const r = F.famRate(S, fam, L, q);
     S.grades.push([part, r.rating, Math.round(q * 100) / 100, L]); save42(S);
     toast(r.rating, at, r.opened);
     o.emit && o.emit('h42grade', { part, rating: r.rating, q, L, fam });
@@ -594,12 +635,105 @@ export function createHar42(o = {}) {
     else { st.pending = null; p.begin && p.begin(); }
   }
   const labelOf = (part) => ({ lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
-  function endPart() { const p = PART[st.part]; if (st.job && st.job.end) st.job.end(); if (p && p.end) p.end(); if (st.job && st.job.el) st.job.el.forEach((e) => { try { e.remove(); } catch (err) { /* */ } }); st.job = null; objPlace(false); startPart(S.part + 1); }
+  function endPart() { const p = PART[st.part]; if (st.job && st.job.end) st.job.end(); if (p && p.end) p.end(); if (st.job && st.job.el) st.job.el.forEach((e) => { try { e.remove(); } catch (err) { /* */ } }); st.job = null; objPlace(false); if (MODE !== 'stage') { svgClear(); if (st.ui.pile) st.ui.pile.innerHTML = ''; line(''); st.part = 'menu'; const cb = st.onAct; st.onAct = null; Lover = 0; if (cb) setTimeout(() => cb(st.actQ, st.actRating), st.pull ? 2700 : 700); return; } startPart(S.part + 1); }
   function finish() { st.part = 'done'; }
   function finishCard() {
     const n = { mehudar: 0, kasher: 0, tikkun: 0 }; for (const g of S.grades) n[g[1]] = (n[g[1]] || 0) + 1;
     S.done = Date.now(); save42(S);
     card('שיטוח ההר — נבנה', [`${RATE30.icon.mehudar} מהודר ${n.mehudar} · ${RATE30.icon.kasher} כשר ${n.kasher} · ${RATE30.icon.tikkun} טעון תיקון ${n.tikkun}`, `ידיים: ${Math.round(S.hands / 60)} דק׳`, 'נפתח: חומת העזרה', ...SRC42.map((x) => `~${x}`)], 'המשך', () => stop(true));
+  }
+
+  /* ── build 44 ── one act on its own (the yard, the test): he is set at its place (no walk), no materials, the level chosen; its end → cb(q, rating) */
+  function resetFor(part) {
+    try {
+      if (part === 'lift' || part === 'corner') { const up = part === 'corner' ? 3.5 : 0, s0 = st.props.stone0; if (s0) s0.position.set(PL.stone0.x, PL.stone0.y + 0.9 + up, PL.stone0.z); craneRope(PL.stone0.y + 1.8 + up); if (st.props.ghost) st.props.ghost.visible = false; }
+      if (/^rock/.test(part) && st.props.rocks) st.props.rocks.forEach((m) => m.scale.set(1.35, 0.85, 1.05));
+      if (/^course/.test(part) && st.props.course) st.props.course.clear();
+      if (part === 'pave' && st.props.pave) { st.props.pave.clear(); st.props.pave.userData.bed = false; }
+    } catch (e) { /* */ }
+  }
+  function runAct(part, L, cb) {
+    if (part === 'rock') part = `rock${L >= 3 ? 2 : L === 2 ? 1 : 0}`;
+    resetFor(part); Lover = L; st.actQ = null; st.actRating = null; st.onAct = cb;
+    st.part = part; st.job = null; st.pending = null; st.camLock = null; st.pull = null; svgClear();
+    const p = standOf(part) || standOf('lift'); try { stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); stages.hero.drive(0, 0); } catch (e) { /* */ }
+    PART[part].begin();
+  }
+  const sleep44 = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function waitFor44(f, ms) { const t0 = Date.now(); while (Date.now() - t0 < ms) { let v = false; try { v = f(); } catch (e) { v = true; } if (v) return true; await sleep44(40); } return false; }
+  /** the demonstration (the test, after 5 failed tries of a job): רב האומנים's hand does it through the same surfaces — a ghost circle where it touches */
+  async function demo44(part) {
+    if (!doc || !st.ui.root) return;
+    const gh = el('h44-ghost'); st.ui.root.appendChild(gh); const at = (x, y) => { gh.style.left = `${Math.round(x)}px`; gh.style.top = `${Math.round(y)}px`; };
+    const ev = (t, type, x, y) => t.dispatchEvent(new PointerEvent(type, { pointerId: 777, clientX: x, clientY: y, bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true, button: 0, buttons: type === 'pointerup' ? 0 : 1 }));
+    try {
+      for (let k = 0; k < 40 && st.on && st.job && st.part === part; k++) {
+        const j = st.job, pad = st.ui.pad;
+        if (j.kind === 'lift') {
+          const q = proj(PL.wheel.x, PL.wheel.y + 3.3, PL.wheel.z); if (!q) { await sleep44(200); continue; } at(q.x, q.y);
+          const P = j.J.P, aim = (P.win[0] + P.win[1]) / 2;
+          if (j.J.state().y > P.win[1]) { ev(pad, 'pointerdown', q.x, q.y); for (let i = 1; i <= 4; i++) { await sleep44(30); ev(pad, 'pointermove', q.x, q.y + i * 10); at(q.x, q.y + i * 10); } await waitFor44(() => !st.job || j.J.state().y < aim, 6000); ev(pad, 'pointerup', q.x, q.y + 40); }
+          else { ev(pad, 'pointerdown', q.x, q.y); await waitFor44(() => !st.job || j.J.stopAt() >= aim, 12000); ev(pad, 'pointerup', q.x, q.y); }
+          await sleep44(1200);
+        } else if (j.kind === 'corner') {
+          if (!j.ready()) { await sleep44(200); continue; }
+          const A = j.axis(), s = j.J.state(); if (!A) { await sleep44(200); continue; }
+          const dir = s.x < 0 ? 1 : -1, px = Math.min(220, Math.abs(s.x) / j.J.P.gain + F.DRAG42 / 2);
+          ev(pad, 'pointerdown', A.x, A.y); at(A.x, A.y);
+          for (let i = 1; i <= 8; i++) { await sleep44(40); const x = A.x + (A.ux * dir * px * i) / 8, y = A.y + (A.uy * dir * px * i) / 8; ev(pad, 'pointermove', x, y); at(x, y); }
+          ev(pad, 'pointerup', A.x + A.ux * dir * px, A.y + A.uy * dir * px); await sleep44(700);
+        } else if (j.kind === 'course') {
+          const s = j.J.state(), left = s.b - s.at, ok = [4, 3, 2].filter((n) => n <= left && j.J.fits(n, s.at + n / 2)), good = ok.filter((n) => !j.J.overAt(n, s.at + n / 2)), n = (good.length ? good : ok)[0];
+          const item = n ? st.ui.pile.querySelector(`[data-len="${n}"]`) : null, T = n ? j.uAt(s.at + n / 2) : null; if (!item || !T) { await sleep44(300); continue; }
+          const r = item.getBoundingClientRect(), x0 = r.left + r.width / 2, y0 = r.top + r.height / 2;
+          ev(item, 'pointerdown', x0, y0); at(x0, y0);
+          for (let i = 1; i <= 12; i++) { await sleep44(40); const x = x0 + ((T.x - x0) * i) / 12, y = y0 + ((T.y - y0) * i) / 12; ev(item, 'pointermove', x, y); at(x, y); }
+          await sleep44(700); ev(item, 'pointerup', T.x, T.y); await sleep44(500);
+        } else await sleep44(300);
+      }
+    } finally { gh.remove(); }
+  }
+  /** the craftsman's test (v2 §8): three short jobs at level 2 — pass at כשר; מהודר in all three: the gold seal; free tries; the fifth failure: the demonstration */
+  function test44() {
+    const T = S.test44 || (S.test44 = { jobs: {}, passed: false, seal: false }); save42(S);
+    const label = { lift: 'גלגל הדריכה', course0: 'נדבך', corner: 'מוט הברזל' };
+    const next = () => TEST44.jobs.find((j) => !(T.jobs[j] && (T.jobs[j].passed || T.jobs[j].demo)));
+    const go = (j) => runAct(j, TEST44.L, (q, rating) => after(j, rating));
+    const run = () => { const j = next(); if (!j) { end(); return; } line(''); go(j); };
+    function after(j, rating) {
+      if (T.demoing === j) { T.demoing = null; const r = T.jobs[j] || { tries: 0, fails: 0, best: null }; r.demo = true; T.jobs[j] = r; save42(S); card('רב האומנים הראה', [`${label[j]} — הושלם`, '~בלי חותם · אפשר לתרגל אותה בחצר האומנים'], 'הלאה', run); return; }
+      const { rec, next: nx } = testTry44(T.jobs[j], rating); T.jobs[j] = rec; save42(S);
+      o.emit && o.emit('h44try', { job: j, rating, tries: rec.tries, next: nx });
+      if (nx === 'pass') card(rating === 'mehudar' ? `${RATE30.icon.mehudar} מהודר` : `${RATE30.icon.kasher} כשר — עברתם`, [`${label[j]}`], 'הלאה', run);
+      else if (nx === 'again') card('עוד ניסיון', [`${label[j]} — ${RATE30.he[rating]}`, `ניסיונות: ${rec.tries} · בלי הגבלה`], 'שוב', () => go(j));
+      else card('רב האומנים מדגים', [`${label[j]} — אחרי חמישה ניסיונות הוא מראה, ואתם ממשיכים`, '~המחשה'], 'הראו לי', () => { T.demoing = j; save42(S); go(j); setTimeout(() => demo44(j), 900); });
+    }
+    function end() {
+      const e = testEnd44(T.jobs); T.passed = true; T.seal = !!(e && e.seal); T.at = Date.now(); save42(S);
+      o.emit && o.emit('h44test', { seal: T.seal, shown: !!(e && e.shown) });
+      card(T.seal ? 'חותם זהב' : 'עברתם את מבחן האומן', T.seal ? ['!🏅 חותם זהב — מהודר בשלוש העבודות', 'נפתח: פרק ב׳ — העזרות', `~${TEST44.src}`] : ['נפתח: פרק ב׳ — העזרות', e && e.shown ? '~רב האומנים הראה חלק מהעבודות — בלי חותם' : '~"מהודר" בשלושתן — חותם זהב; אפשר לתרגל בחצר האומנים', `~${TEST44.src}`], 'לבנות', () => stop(true));
+    }
+    if (next()) card('מבחן אומן — לפני פרק ב׳', ['שלוש עבודות קצרות, ברמה 2: גלגל הדריכה · נדבך · מוט הברזל', 'עוברים ב"כשר" · "מהודר" בשלושתן — חותם זהב · ניסיונות בלי הגבלה', `~${TEST44.src}`], 'להתחיל', run, 'לחצר האומנים קודם', () => stop(false, 'yard'));
+    else end();
+  }
+  /** חצר האומנים (hard-fun §5): every variant he has met, at any level opened; points and a title per family — no building */
+  function yard44() {
+    const Y = S.yard || (S.yard = { pts: {}, runs: 0 }); save42(S);
+    const met = new Set(S.grades.map((g) => g[0])); if (S.done) for (const v of YARD44) met.add(v.part);
+    const has = (v) => (v.part === 'rock' ? [...met].some((p) => /^rock/.test(p)) || met.has('rock') : met.has(v.part) || (v.part === 'course0' && met.has('course1')));
+    const list = YARD44.filter(has), famH = { lift: 'הרמה', place: 'הנחה', inspect: 'בדיקה', fit: 'התאמה' }, fromTest = o.from === 'test'; let visit = 0;   // (from the test's card: after two runs רב האומנים asks — back to the test, the naive kid's runs stayed in the yard)
+    function open() {
+      line(''); st.part = 'menu';
+      const fams = ['lift', 'place', 'inspect', 'fit'].map((f) => `<i>${famH[f]} · ${Y.pts[f] | 0} נק׳${title44(f, Y.pts[f]) ? ` · ${title44(f, Y.pts[f])}` : f === 'fit' ? ' · בקרוב' : ''}</i>`).join('');
+      const rows = list.map((v, k) => { const top = Math.max(1, F.famLevel(S, v.fam)); let b = ''; for (let L = 1; L <= top; L++) b += `<button type="button" data-k="${k}" data-l="${L}" aria-label="${esc(v.he)} רמה ${L}">${L}</button>`; return `<div class="h44-row"><b>${esc(v.he)}</b><span>${b}</span></div>`; }).join('');
+      const seal = S.test44 && S.test44.seal ? '<p class="h44-seal">🏅 חותם זהב — מבחן אומן</p>' : '';
+      const sh = el('h42-card', `<div role="dialog" class="h44-yard" aria-label="חצר האומנים"><h2>חצר האומנים</h2><small>תרגול — בלי לבנות · בחרו עבודה ורמה · התארים: טיוטה</small><div class="h44-fam">${fams}</div>${seal}<div class="h44-rows">${rows}</div><button type="button" data-b="back">${fromTest ? 'חזרה למבחן' : 'חזרה'}</button></div>`);
+      sh.addEventListener('pointerdown', (e) => e.stopPropagation());
+      sh.querySelectorAll('[data-k]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); const v = list[+b.dataset.k], L = +b.dataset.l; sh.remove(); st.card = null; const again = () => runAct(v.part, L, done); function done(q, rating) { visit++; const head = `${v.he} — ${RATE30.icon[rating] || ''} ${RATE30.he[rating] || ''}`, ln = [`רמה ${L} · +${PTS44[rating] | 0} נק׳`]; if (fromTest && visit >= 2) card(head, [...ln, '~רב האומנים: מוכנים למבחן? · המחשה'], 'למבחן', () => stop(false), 'עוד פעם', again); else card(head, ln, 'עוד פעם', again, 'לחצר', open); } again(); }));
+      sh.querySelector('[data-b="back"]').addEventListener('click', (e) => { e.stopPropagation(); sh.remove(); st.card = null; stop(false); });
+      doc.body.appendChild(sh); st.card = sh;
+    }
+    open();
   }
 
   /* ── the frame ── */
@@ -611,6 +745,7 @@ export function createHar42(o = {}) {
     const part = st.part;
     if (part === 'open' || part === 'reveal') { const p = PART[part]; if (p.frame(dt)) { if (p.end) p.end(); if (part === 'open') { const r = st.resumeAt; st.resumeAt = null; startPart(r != null ? r : S.part + 1); } else { st.part = 'done'; } } return; }
     if (part === 'done' || part === 'out') return;
+    if (part === 'menu') { const h0 = hero(), fv = followView(h0); camTo(fv.p, fv.t, Math.min(1, dt * 2)); return; }   // ── build 44 ──
     const d = walkStep(dt), h = hero();
     if (st.pending) {   // walking to the part's place
       camTo(followView(h).p, followView(h).t, Math.min(1, dt * 3));
@@ -629,7 +764,14 @@ export function createHar42(o = {}) {
   function start() {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); ui(); props();
-    try { if (view.closeCam) view.closeCam(true); } catch (e) { /* */ }   // (main.js's OrbitControls keep the camera 35 amot from its target and the near plane at 4: the stage's follow (17) and act (12) views were pushed back to 35 — the picture farther than the frame, the marks projected off the things; Phase B's close-up gives way the same way)
+    try { if (view.closeCam) view.closeCam(true); } catch (e) { /* */ }
+    if (MODE !== 'stage') {   // ── build 44 ── the yard and the test: by the wheel, a quiet view; their sheet
+      if (st.ui.mat) st.ui.mat.hidden = true;
+      try { const p = standOf('lift'); stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); } catch (e) { /* */ }
+      st.part = 'menu'; if (MODE === 'yard') yard44(); else test44();
+      o.emit && o.emit(MODE === 'yard' ? 'h44yard' : 'h44testStart', {});
+      return true;
+    }   // (main.js's OrbitControls keep the camera 35 amot from its target and the near plane at 4: the stage's follow (17) and act (12) views were pushed back to 35 — the picture farther than the frame, the marks projected off the things; Phase B's close-up gives way the same way)
     // the morning's caravan (and the developer's flags)
     const add = +(qs('h42day') || 0) + (globalThis.__H42_DAY | 0), came = F.caravan42(S.mat, Date.now(), add);
     if (qs('h42stock') != null) S.mat.stock = +qs('h42stock') | 0;
@@ -643,17 +785,17 @@ export function createHar42(o = {}) {
     o.emit && o.emit('h42start', { part: PARTS42[S.part] });
     return true;
   }
-  function stop(done) {
+  function stop(done, next) {
     if (!st.on) return; st.on = false;
     try { if (view.closeCam) view.closeCam(false); } catch (e) { /* */ }
     try { stages.hero.drive(0, 0); } catch (e) { /* */ }
     dropUI(); dropProps();
-    if (o.onExit) o.onExit(!!done);
+    if (o.onExit) o.onExit(!!done, next || '');
   }
   const api = {
     start, stop, frame, get on() { return st.on; },
-    state: () => ({ rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: S.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: S.grades.slice(), hands: Math.round(S.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
-    sig: () => `${st.part}|${S.part}|${S.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}`,
+    state: () => ({ mode: MODE, test: S.test44 || null, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: S.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: S.grades.slice(), hands: Math.round(S.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
+    sig: () => `${MODE}|${st.part}|${S.part}|${S.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}|${S.test44 ? JSON.stringify(Object.values(S.test44.jobs || {}).map((r) => [r.tries, r.passed, r.demo])) : ''}`,
     line: () => (st.ui.line ? st.ui.line.textContent : ''),
     save: () => S, places: () => ({ PL, STAND, base }),
     heroBox: () => { const h = hero(); return { x: h.x, y: h.y, z: h.z, h: heroHeight() }; },

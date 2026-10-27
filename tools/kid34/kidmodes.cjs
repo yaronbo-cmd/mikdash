@@ -109,7 +109,16 @@ async function mount42(K) {
     const s = await lookRec(K, 'mount'); if (!s) { await K.sleep(500); continue; }   // (lookRec: the stuck watch sees each change — with K.look() alone the parent's hand took over for good after 75 s)
     if (K.isCard(s)) { await K.sleep(K.between(600, 2000)); const s2 = await K.look(); if (s2) await K.pokeButton(s2, null, 'card'); await K.sleep(600); continue; }
     const h = await K.pg.evaluate(() => (globalThis.__H42 ? { on: globalThis.__H42.on, ...globalThis.__H42.state() } : null)).catch(() => null);
-    if (!h || !h.on) { await K.sleep(1000); const s2 = await K.look(); if (s2 && s2.tp.length && K.rnd() < 0.3) await K.pokeButton(s2, null, 'after'); if (!h) continue; if (!h.on) { K.note('stage 01 over'); break; } }
+    if (!h || !h.on) {   // ── build 44 ── after stage 01: the vision (Phase B — he tries what the line says there, or goes back to the Mount), then the test
+      const v = await K.pg.evaluate(() => { const V = globalThis.__SHIFT && globalThis.__SHIFT.vision; return V ? { on: !V.ended } : null; }).catch(() => null);
+      if (v && v.on) { if (!K.R.vision44) { K.R.vision44 = K.el(); K.ev('vision'); } const r = K.rnd(); if (r < 0.45) await K.tryLine(s); else if (r < 0.7) await K.randomRight(s); else if (r < 0.85) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.2, W * 0.8), K.between(Hh * 0.3, Hh * 0.8), K.between(800, 4000)); K.ev('hold-walk'); } else await K.pokeButton(s, null, 'vision-poke'); await K.sleep(K.between(200, 600)); continue; }
+      const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
+      if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
+      if (!K.R.offT) K.R.offT = K.el(); if (K.el() - K.R.offT > 120) { K.note('no stage director for 2 minutes'); break; }
+      await K.sleep(1000); const s2 = await K.look(); if (s2 && s2.tp.length && K.rnd() < 0.3) await K.pokeButton(s2, null, 'after'); continue;
+    }
+    K.R.offT = 0;
+    if (h.mode && h.mode !== 'stage' && !K.R['m44' + h.mode]) { K.R['m44' + h.mode] = K.el(); K.ev('mode-' + h.mode); }
     if (K.stuckFor() > 75) {
       const sig0 = await K.pg.evaluate(() => globalThis.__KID.sig()).catch(() => '');
       await K.pg.addScriptTag({ path: require('path').join(__dirname, '..', 'auto42.js') }).catch(() => {});

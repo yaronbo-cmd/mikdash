@@ -282,6 +282,55 @@ export function mountShift(o = {}) {
     globalThis.__SHIFT.mods = mods;
     return true;
   }
+  // ── fable32 (build 44) ── THE VISION (docs/specs/shlav-alef-v2-he.md §12): once, after stage 01 — "כך זה ייראה כשתסיים לבנות": the
+  // finished House at sunrise (main.js flies to the altar and the House as Phase B opens), the court's priests at their work, and ONE act
+  // — the laver (kiyor20) at its level 1, the practice run's engine on a copy of his save (practiceSave31: nothing of his day written; no
+  // role book's door needed), the guided walk and the touch of builds 39–40; "חזרה להר" after 5 s; at the act's end (or 70 s) back to the Mount
+  function runVision(v = {}) {
+    if (!D || !doc) return false;
+    hero35(); goLive();
+    if (cardCtl) { cardCtl.close(); cardCtl = null; }
+    if (!D.active && !(D.canEnter() && D.enter())) return false;
+    teardown();
+    runs++;
+    hud = createShiftHud(doc.body);
+    mods = makeWorld();
+    try { mods.walk && mods.walk.pace && mods.walk.pace(PACE); const T = mods.twin; if (T) T.pace = { rim: PACE.rim, after: PACE.rimAfter, mul: PACE.sprint, soft: globalThis.__SH_HARDSTICK ? null : STICK, p24: globalThis.__SH_HARDSTICK || globalThis.__SH24_OFF ? null : STICK24 }; } catch (e) { /* */ }
+    try { mods.camera && mods.camera.dayView && mods.camera.dayView(VIEW24); } catch (e) { /* */ }
+    const hook = { work: (h) => (E ? E.work(h) : null), marks: () => [], tick: (dt) => { if (E) E.tick(dt); }, camWork: () => (E && E.camWork20 ? E.camWork20() : null) };
+    D.shiftMode(hook);
+    try { const T = rig().twin; if (T && T.noStick) T.noStick(globalThis.__SH_NOSTICK === true); } catch (e) { /* */ }
+    try { if (globalThis.__SH_AUTOWALK === undefined) globalThis.__SH_AUTOWALK = true; } catch (e) { /* */ }
+    const role = 'kiyor', pv = practiceSave31(save);
+    E = createDay33({ world: o.rig && o.rig.stages, twin: mods.twin, view: mods.view, hud, stations: mods.stations, camera: mods.camera, walk: mods.walk, sfx: o.sfx, save: pv, persist: () => {}, raf: false,
+      score: null, games: null, practice: { role, day: 1, fed: 0, seed: 100 + Math.floor(Math.random() * 9000) }, ...flags33() });
+    const me = E; let ended = false, tmax = 0;
+    const css = doc.getElementById('v44-css') || Object.assign(doc.createElement('style'), { id: 'v44-css', textContent: '.v44-ttl{position:fixed;top:calc(env(safe-area-inset-top,0px) + 58px);left:50%;transform:translateX(-50%);z-index:80;padding:6px 16px;border-radius:14px;background:rgba(28,20,10,.82);color:#FFF4DC;text-align:center;pointer-events:none;font-family:Heebo,system-ui,sans-serif;direction:rtl;transition:opacity 1.2s}.v44-ttl b{display:block;font:900 17px/1.3 Heebo,system-ui,sans-serif}.v44-ttl small{font:600 11px/1.3 Heebo,system-ui,sans-serif;opacity:.8}.v44-skip{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:81;min-height:44px;min-width:96px;border-radius:14px;border:2px solid #FFE6A0;background:rgba(28,20,10,.82);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;direction:rtl}' });
+    if (!css.parentNode) doc.head.appendChild(css);
+    const ttl = doc.createElement('div'); ttl.className = 'v44-ttl'; ttl.innerHTML = '<b>כך זה ייראה כשתסיים לבנות</b><small>חזון · הבית הגמור בזריחה · המחשה</small>'; doc.body.appendChild(ttl);
+    const sk = doc.createElement('button'); sk.type = 'button'; sk.className = 'v44-skip'; sk.textContent = 'חזרה להר'; sk.hidden = true; doc.body.appendChild(sk);
+    function finish(why) {
+      if (ended) return; ended = true; clearTimeout(tmax);
+      try { ttl.remove(); sk.remove(); } catch (e) { /* */ }
+      if (E === me) teardown();
+      evlog('vision44_end', { why }); emit('visionEnd', { why });
+      if (v.exit) v.exit();
+    }
+    sk.addEventListener('click', (e) => { e.stopPropagation(); finish('skip'); });
+    setTimeout(() => { if (!ended) sk.hidden = false; }, 5000);
+    setTimeout(() => { if (!ended) ttl.style.opacity = '0.0'; }, 7000);
+    tmax = setTimeout(() => finish('time'), 70000);
+    E.on17((ev) => { if (E === me && ev.type === 'p31end') setTimeout(() => finish('done'), 2400); });
+    try { mods.flow31 = createFlow31({ E, view: mods.view, world: o.rig && o.rig.stages, twin: mods.twin, root: doc.body, kit: WORLD.kit, stations: mods.stations }); } catch (e) { console.warn('[shift] flow31', e && e.message); }
+    if (E.b17) try { mods.focus17 = createFocus17({ E, view: mods.view, sfx: o.sfx }); } catch (e) { console.warn('[shift] focus17', e && e.message); }
+    startT = Date.now();
+    hud.set(E.state());
+    const dawn = () => { try { if (globalThis.__T && globalThis.__T.setTime) globalThis.__T.setTime('dawn'); } catch (e) { /* */ } };
+    setTimeout(() => { if (E === me && !ended) { E.start(); dawn(); setTimeout(dawn, 1500); emit('visionStart', {}); } }, 2800);   // (the flight to the House first)
+    evlog('vision44_open', {});
+    globalThis.__SHIFT.mods = mods; globalThis.__SHIFT.vision = { finish, get ended() { return ended; } };
+    return true;
+  }
   // ── /fable32 ──
   // ── fable32 (build 33) ── לשכת הטלאים (the opening screen's "מכאן — המקדש עכשיו" card): the day's engine on a COPY of his save (as a
   // practice run of the lamb — practiceSave31; the saved day untouched), its places the chamber's (Beit HaMoked's south-west corner,
@@ -436,7 +485,7 @@ export function mountShift(o = {}) {
   if (typeof setInterval === 'function' && doc) timer29 = setInterval(() => { try { tick29(); } catch (e) { /* */ } }, 2000);
   // ── /fable32 ──
   const SH = {
-    run, runDay, card, tour, get active() { return !!E; }, get save() { return save; },   // ── fable32 (build 6) ── (+ runDay) ── /fable32 ──
+    run, runDay, card, tour, runVision, get active() { return !!E; }, get save() { return save; },   // ── fable32 (build 44) ── (+ runVision) ── /fable32 ──   // ── fable32 (build 6) ── (+ runDay) ── /fable32 ──
     get live() { return live; }, turn28: (port) => turn28(port && !W29.locked) /* ── fable32 (build 29) ── (the lock's screen also in portrait: no "turn the phone" over it) ── /fable32 ── */, get turned() { return T28.on; },   // ── fable32 (build 28) ── ── /fable32 ──
     gate29, get locked() { return W29.locked; }, check29: () => W29.check(true),   // ── fable32 (build 29) ── ── /fable32 ──
     destroy() { teardown(); if (cardCtl) { cardCtl.close(); cardCtl = null; } T28.set(false); if (live) { live = false; cover28(doc, false); } try { D && D.shiftMode && D.shiftMode(null); } catch (e) { /* */ } if (timer29) { clearInterval(timer29); timer29 = 0; } softDay29(doc, ''); },

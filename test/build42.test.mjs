@@ -148,13 +148,13 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   assert.match(h, /\.h42-svg\{position:fixed;left:0;top:0;width:100vw;height:100vh;/, 'the marks\' layer covers the screen (an svg with inset 0 alone is 300 × 150 at its corner — the probe: every mark was off by 340 px at 640 × 296)');
   assert.match(h, /level 1: a tap lands on the nearest free marked place/); assert.match(h, /bd = J\.state\(\)\.L <= 1 \? Math\.max\(B\.w, B\.h\) : 26;/); assert.match(h, /\(level 1: the even places marked\)/);
   assert.match(h, /const paveBox = \(\) => boxOf\(/); assert.match(h, /const q = pts\.map\(\(p\) => proj\(p\[0\], p\[1\], p\[2\]\)\)\.filter\(Boolean\); if \(q\.length < 2\) return null;/);
-  assert.match(g, /if \(k === 'night' && \(G\.ftue < 99 \|\| \(H42 && H42\.on\) \|\|/); assert.match(g, /onExit: \(\) => \{ H42 = null; tod = null; try \{ syncTime\(\); \}/);
+  assert.match(g, /if \(k === 'night' && \(G\.ftue < 99 \|\| \(H42 && H42\.on\) \|\|/); assert.match(g, /onExit: \(done\) => \{ H42 = null; tod = null; try \{ syncTime\(\); \}/);   // (build 44: done → the vision, the test)
 });
 test('build 42: every line of the stage with its source or המחשה; touch targets ≥ 44 px; GAME_BUILD 42; no Divine Name (by code points); עולי רגל', () => {
   for (const [k, v] of Object.entries(LINE42)) if (!['walk', 'courseEnd', 'lift2'].includes(k)) assert.match(v, /טיוטה|המחשה/, `${k}: ${v}`);
   const h = read('src/game/har42.js');
   assert.match(h, /\.h42-it\{min-width:52px;min-height:48px/); assert.match(h, /\.h42-card button\{margin-top:10px;min-height:48px/); assert.match(h, /\.h42-skip\{[^}]*min-height:44px/);
-  assert.equal(GAME_BUILD, 43);   // (build 43: the constant moved on)
+  assert.equal(GAME_BUILD, 44);   // (build 43: the constant moved on) (build 44: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/avodah/shift/prefs28.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/mkout.cjs', 'PROJECT.md', 'test/build42.test.mjs']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); if (f !== 'test/build42.test.mjs') assert.ok(!s.includes(P), `${f}: עולי רגל`);

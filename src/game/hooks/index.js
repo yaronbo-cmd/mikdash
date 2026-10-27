@@ -434,6 +434,7 @@ export function createHooks({ G, now, ui, emit = () => {}, sfx, coach = () => {}
   async function avodahInvite(kind) {
     const g = G(), key = kind === 'altar' ? 'avInvAltar' : 'avInvFinale';
     if (!g || !g.story || g.story[key] || !act.canAvodah) return false;
+    if (kind === 'altar' && !AV.tester44()) return false;   // ── fable32 (build 44) ── (the mid-Phase A invitation: testers only — v2 §12) ── /fable32 ──
     g.story[key] = 1;
     const I = AV.invite(kind);
     emit('avodahInvite', kind);

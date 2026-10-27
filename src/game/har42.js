@@ -512,6 +512,7 @@ export function createHar42(o = {}) {
   function start() {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); ui(); props();
+    try { if (view.closeCam) view.closeCam(true); } catch (e) { /* */ }   // (main.js's OrbitControls keep the camera 35 amot from its target and the near plane at 4: the stage's follow (17) and act (12) views were pushed back to 35 — the picture farther than the frame, the marks projected off the things; Phase B's close-up gives way the same way)
     // the morning's caravan (and the developer's flags)
     const add = +(qs('h42day') || 0) + (globalThis.__H42_DAY | 0), came = F.caravan42(S.mat, Date.now(), add);
     if (qs('h42stock') != null) S.mat.stock = +qs('h42stock') | 0;
@@ -527,6 +528,7 @@ export function createHar42(o = {}) {
   }
   function stop(done) {
     if (!st.on) return; st.on = false;
+    try { if (view.closeCam) view.closeCam(false); } catch (e) { /* */ }
     try { stages.hero.drive(0, 0); } catch (e) { /* */ }
     dropUI(); dropProps();
     if (o.onExit) o.onExit(!!done);

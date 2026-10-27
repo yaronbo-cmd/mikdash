@@ -1535,7 +1535,7 @@ export function createHar42(o = {}) {
   function mkDome50(part = 'dome') {
     const L = famL('place'), J = F.createArch50(L), Mk = PL.mk, ys = Mk.y + DOME50.wall, n = J.state().n, Mn = 2 * n + 1, pile = st.ui.pile; let phase = 'set', endT = -1, fall = -1, tiltA = 0;
     hole50('moked'); line(LINE42.dome, `רמה ${L}`); pile.innerHTML = ''; pile.hidden = false; st.props.vous50.clear(); st.props.ctr50.position.y = ys; st.props.ctr50.visible = true; st.props.wedges50.forEach((w) => { w.visible = true; w.userData.pop = 0; w.position.set(Mk.x, ys - 0.67, w.userData.z0); }); if (st.props.shell50) { st.props.shell50.visible = false; st.props.shell50.material.opacity = 0; }
-    let polar0 = null, fov0 = null; try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl) { polar0 = ctl.maxPolarAngle; ctl.maxPolarAngle = Math.PI - 0.05; } const cam = camera(); if (cam) { fov0 = cam.fov; cam.fov = 62; cam.updateProjectionMatrix(); } } catch (e) { /* */ }   // (from inside, looking up: the orbit's floor at 1.46 kept the camera above its target)
+    let polar0 = null; try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl) { polar0 = ctl.maxPolarAngle; ctl.maxPolarAngle = Math.PI - 0.05; } } catch (e) { /* */ }   // (from inside, looking up: the orbit's floor at 1.46 kept the camera above its target)
     const slot = (j) => { const th = Math.PI - ((j + 0.5) * Math.PI) / Mn; return proj(Mk.x, ys + DOME50.Ra * Math.sin(th), Mk.z - DOME50.Ra * Math.cos(th)); };   // (the arch's group turned a quarter: its local x is −z)
     const nextJ = (side) => (side === 'L' ? J.state().left : side === 'R' ? Mn - 1 - J.state().right : n);
     const chips = [['L', '◖ אבן שמאל'], ['K', '▲ אבן הראשה'], ['R', 'אבן ימין ◗']].map(([k, t]) => { const b = el('h42-it h50-vous', t, 'button'); b.type = 'button'; b.dataset.side = k; pile.appendChild(b); return b; });
@@ -1558,7 +1558,7 @@ export function createHar42(o = {}) {
         if (r === 'out' || r === 'holds') { const w = st.props.wedges50[J.state().out - 1]; if (w) w.userData.pop = 0.0001; buzz42('mallet'); o.sound && o.sound('wedge'); line(LINE42.strike, `טריזים ${J.state().wedges - J.state().out}`); }
         if (r === 'holds') { phase = 'fall'; fall = 0; if (st.ui.pad) st.ui.pad.classList.remove('full'); line(''); }
       },
-      view() { const t2 = phase === 'held' ? Math.min(1, Math.max(0, (fall - 3) / 4)) : 0; return { p: [Mk.x + 11 + 2 * t2, Mk.y + 1.6, Mk.z - 1.5], t: [Mk.x - 8 * t2, ys + 3 + 1.5 * t2, Mk.z] }; },
+      view() { const t2 = phase === 'held' ? Math.min(1, Math.max(0, (fall - 2.8) / 3)) : 0; return { p: [Mk.x + 19 - 12 * t2, Mk.y + 2, Mk.z + 0.5], t: [Mk.x - 10 * t2, ys + 3.5 + 1.5 * t2, Mk.z] }; },   // (low, from the house's open end: the whole arch in the world's lens — a wider lens was taken back by the sanctuary's; when it holds, in under the vault)
       frame(dt) {
         if (phase === 'strike') { this.dragOnly = false; objPlace(true, [{ x: Mk.x, y: ys, z: Mk.z, r: 4 }], 'h50strike'); if (st.ui.pad) st.ui.pad.classList.add('full'); } else { this.dragOnly = true; objPlace(true, [{ x: Mk.x, y: ys + 4, z: Mk.z, r: 6 }], 'h50dome'); }
         st.props.vous50.children.forEach((m) => { if (m.userData.settle > 0) { const k2 = Math.min(m.userData.settle, dt); m.position.y -= (1.2 / 0.35) * k2; m.userData.settle -= k2; } });
@@ -1581,7 +1581,7 @@ export function createHar42(o = {}) {
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
-      end() { pile.innerHTML = ''; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl && polar0 != null) ctl.maxPolarAngle = polar0; const cam = camera(); if (cam && fov0 != null) { cam.fov = fov0; cam.updateProjectionMatrix(); } } catch (e) { /* */ } },
+      end() { pile.innerHTML = ''; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl && polar0 != null) ctl.maxPolarAngle = polar0; } catch (e) { /* */ } },
     };
   }
   /* ── build 47 ── stage 04's acts ── */

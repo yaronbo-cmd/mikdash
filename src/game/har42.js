@@ -502,7 +502,7 @@ export function createHar42(o = {}) {
   }
   /** ── build 49 ── stage 06's props: Nicanor's gate's frame (two posts, the lintel, the dark opening), his bronze leaf on the south pivot and the
    *  crews' on the north, the lever, its fulcrum and the wedges; the steps' container; on the stage, the steps' gold half circles (the opening) */
-  const BRONZE49 = new THREE.MeshStandardMaterial({ color: '#D39C56', metalness: 0.45, roughness: 0.34, emissive: new THREE.Color('#6A4218'), emissiveIntensity: 0.5 });   // (bright: with no environment a metal reads dark)
+  const BRONZE49 = new THREE.MeshStandardMaterial({ color: '#C99A5E', metalness: 0.45, roughness: 0.34, emissive: new THREE.Color('#563716'), emissiveIntensity: 0.45 });   // (bright: with no environment a metal reads dark)
   const LEAF49 = { w: 4.9, h: 19.4, pz: 4.5, rise: 0.35, seat: 0.12 };   // (the leaf rests on the sill (0); each notch raises it 0.35; hung, it sits 0.12 over the sill, its pin in the socket)
   function leaf49(sgn) {   // a pivot group on the pin's axis (sgn 1: the south pivot, the leaf toward the north; −1: the north's)
     const N = PL.ng, piv = new THREE.Group(), lf = new THREE.Mesh(new THREE.BoxGeometry(0.35, LEAF49.h, LEAF49.w), BRONZE49); lf.position.set(0, LEAF49.h / 2, -sgn * (LEAF49.w / 2 - 0.25)); piv.add(lf);
@@ -517,7 +517,10 @@ export function createHar42(o = {}) {
     for (const sz of [-1, 1]) { const p2 = ashlar(1.3, 21.6, 1.3); p2.rotation.y = Math.PI / 2; add(p2, N.x + 0.2, y0 + 10.8, N.z + sz * 5.65); }
     const lt = ashlar(12.6, 1.6, 1.3); lt.rotation.y = Math.PI / 2; add(lt, N.x + 0.2, y0 + 22.4, N.z);
     add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 21.6, 10), dark), N.x - 0.25, y0 + 10.8, N.z);
-    if (STG === 'nikanor') { const fm = new THREE.MeshStandardMaterial({ color: '#D9C7A4', roughness: 0.9, metalness: 0, map: BOSS.map || null, normalMap: BOSS.normalMap || null }); add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 24, 28), fm), N.x - 0.32, y0 + 12, N.z); }   // (the gate's face where the model's is not drawn: through its door the court showed)
+    if (STG === 'nikanor') {   // (the gate's face where the model's is not drawn: ashlar courses on a canvas, as the walls round it)
+      let map = null; try { if (doc) { const cv = doc.createElement('canvas'); cv.width = 256; cv.height = 256; const c = cv.getContext('2d'); c.fillStyle = '#E8DABD'; c.fillRect(0, 0, 256, 256); c.strokeStyle = '#B9A88A'; c.lineWidth = 3; for (let r = 0; r < 8; r++) { c.beginPath(); c.moveTo(0, r * 32); c.lineTo(256, r * 32); c.stroke(); for (let k = 0; k < 3; k++) { const x = ((k * 96 + (r % 2) * 48) % 256); c.beginPath(); c.moveTo(x, r * 32); c.lineTo(x, r * 32 + 32); c.stroke(); } } map = new THREE.CanvasTexture(cv); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.repeat.set(3.5, 3); } } catch (e) { map = null; }
+      add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 24, 28), new THREE.MeshStandardMaterial({ color: '#FFFFFF', map, roughness: 0.9, metalness: 0 })), N.x - 0.32, y0 + 12, N.z);
+    }   // (the gate's face where the model's is not drawn: through its door the court showed)
     if (MODE === 'yard') add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 22, 14), stoneM), N.x - 1.1, y0 + 11, N.z);
     st.props.sock49 = add(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.1, 8, 20), new THREE.MeshBasicMaterial({ color: '#FFD66E' })), N.x, y0 + 21.4, N.z + LEAF49.pz); st.props.sock49.rotation.x = Math.PI / 2;
     add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 12), dark), N.x, y0 + 0.04, N.z + LEAF49.pz);

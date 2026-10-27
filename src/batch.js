@@ -14,7 +14,7 @@ export const BUILD_TIME = { value: 0 };
 export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() },
   // ── fable32 (build 46) ── his stretch of the court wall (har42 wallStones45): the model's outer skin there (x0…x1, z0…z1, below yTop; below
   // gyTop west of gx1, the giant's slot) and the scaffold in front of it (zOut…z0) are not drawn — his own stones ARE the wall there
-  uHole: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole2: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole3: { value: new THREE.Vector4(-1e6, 0, 0, 0) }, uHoleB: { value: new THREE.Vector4(0, 0, 0, 0) } };   // (uHoleB: stage 03 — the model's soreg where his lattice panels stand, below uHole3.y)
+  uHole: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole2: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole3: { value: new THREE.Vector4(-1e6, 0, -1e6, 0) }, uHoleB: { value: new THREE.Vector4(0, 0, 0, 0) } };   // (uHoleB: stage 03 — the model's soreg where his lattice panels stand, below uHole3.y)
 // ── /twin18 ──
 // ── twin18 ── the see-through's shader code (a varying for the world position, a dithered discard in a cone to him); used by every
 // patched building material here and by the cranes (stages.js)
@@ -31,7 +31,7 @@ export function xrayCode(vs, fs, sh) {
     fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC; uniform vec4 uHole; uniform vec4 uHole2; uniform vec4 uHole3; uniform vec4 uHoleB;')
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
   if (uHole.y > uHole.x && vXrW.x > uHole.x && vXrW.x < uHole.y && vXrW.z < uHole.w && ((vXrW.z > uHole.z && vXrW.y > uHole3.x && vXrW.y < (vXrW.x < uHole2.z ? uHole2.w : uHole2.y)) || (vXrW.z > uHole2.x && vXrW.z <= uHole.z))) discard;
-  if (uHoleB.y > uHoleB.x && vXrW.x > uHoleB.x && vXrW.x < uHoleB.y && vXrW.z > uHoleB.z && vXrW.z < uHoleB.w && vXrW.y < uHole3.y) discard;
+  if (uHoleB.y > uHoleB.x && vXrW.x > uHoleB.x && vXrW.x < uHoleB.y && vXrW.z > uHoleB.z && vXrW.z < uHoleB.w && vXrW.y < uHole3.y && vXrW.y > uHole3.z) discard;   // (uHole3.z: its floor — build 47)
   if (uXr.w > 0.5 && vXrW.y > uXr.y - 0.9) {
     vec3 xrC = uXr.xyz - uXrC; float xrL = length(xrC); vec3 xrU = xrC / max(xrL, 0.001);
     vec3 xrP = vXrW - uXrC; float xrT = dot(xrP, xrU);

@@ -96,6 +96,53 @@
     }
     await until(() => { const j = H().job(); return !j || j.kind !== 'course'; }, 20000, 100);
   }
+  // ── build 47 ── the lintel / the heavy leaf on two cranes: hold, and slide against the bubble (a child: late and rough); at the top, the set:
+  // a drag toward the posts' middle
+  async function lift47(j) {
+    const pad = q('.h42-pad'), W0 = innerWidth, H0 = innerHeight, J = j.ref.J && j.ref.J.state && j.ref.J.state().phase !== undefined && j.ref.kind === 'lintel' ? j.ref.J : j.ref.LJ;
+    if (!J) return; const id = ++pid, x0 = W0 * 0.55, y0 = H0 * 0.6; let x = x0;
+    ev(pad, 'pointerdown', x0, y0, id);
+    for (let i = 0; i < 900 && A.on; i++) {
+      const s = J.state(); if (s.phase !== 'lift') break;
+      const bias = s.drift + s.sway * Math.sin(s.swayW * s.t + s.ph), want = Math.max(-1, Math.min(1, -s.tilt * (A.sk ? 2.2 : 1.4) - bias * (A.sk ? 1 : 0.8) + (A.sk ? 0 : (rnd() - 0.5) * 0.25)));
+      x = x0 - want * W0 * 0.22; ev(pad, 'pointermove', x, y0, id); await sleep(A.sk ? 50 : 90);
+    }
+    ev(pad, 'pointerup', x, y0, id); await sleep(300);
+    if (j.ref.kind !== 'lintel') return;
+    await shot('lintel-top');
+    for (let k = 0; k < 6 && A.on; k++) {
+      const s = J.state(); if (s.done) break;
+      // the lintel's offset on the screen: from the director's own projection of the posts' middle and the lintel
+      const ppa = j.ref.ppa ? j.ref.ppa() : 20, sr = j.ref.sgn ? j.ref.sgn() : 1, px = -s.dx * ppa * (A.sk ? 1 : 0.85 + rnd() * 0.3);
+      const id2 = ++pid, xs = W0 * 0.5, ys = H0 * 0.55; ev(pad, 'pointerdown', xs, ys, id2); for (let i = 1; i <= 8; i++) { await sleep(30); ev(pad, 'pointermove', xs + (px * i) / 8, ys, id2); } ev(pad, 'pointerup', xs + px, ys, id2); await sleep(900);
+    }
+  }
+  async function leaf47() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 30 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'leaf') break; const ph = j.ref.phase();
+      if (ph === 'lift') { await lift47(j); await sleep(400); continue; }
+      const s = j.s; if (s.done) { await sleep(300); continue; }
+      const W0 = innerWidth, H0 = innerHeight, id = ++pid;
+      if (ph === 'pin') { const a = (A.sk ? 0.3 : 0.5 + rnd()) * s.tol * Math.PI / 180 * (rnd() < 0.5 ? -1 : 1), L2 = 120, dx = Math.sin(a) * L2, dy = Math.cos(a) * L2, xs = W0 * 0.5, ys = H0 * 0.35; ev(pad, 'pointerdown', xs, ys, id); for (let i = 1; i <= 8; i++) { await sleep(40); ev(pad, 'pointermove', xs + (dx * i) / 8, ys + (dy * i) / 8, id); } ev(pad, 'pointerup', xs + dx, ys + dy, id); await sleep(900); continue; }
+      if (ph === 'swing') {
+        if (s.bound) { const b = j.ref.wedgeB; if (b && !b.hidden) { const c = mid(b), id3 = ++pid; ev(b, 'pointerdown', c.x, c.y, id3); ev(b, 'pointerup', c.x, c.y, id3); } await sleep(800); continue; }
+        await shot('leaf-swing');
+        const xs = W0 * 0.35, ys = H0 * 0.55, dist = 150, steps = A.sk ? 6 : 5 + Math.floor(rnd() * 4); ev(pad, 'pointerdown', xs, ys, id); for (let i = 1; i <= steps; i++) { await sleep(28); ev(pad, 'pointermove', xs + (dist * i) / steps, ys, id); } ev(pad, 'pointerup', xs + dist, ys, id); await sleep(3200);
+      }
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'leaf'; }, 15000, 100);
+  }
+  async function names47() {
+    for (let k = 0; k < 20 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'names' || j.ref.N.state().done) break;
+      const c = j.ref.N.current(); if (!c) break; const G7 = (globalThis.__F47 && globalThis.__F47.gates) || [];
+      const tgt = !A.sk && rnd() < 0.12 ? G7.find((g) => g.id !== c.id && !j.ref.N.state().set.includes(g.id)) || c : c;
+      const p = j.ref.at(tgt); if (!p) { await sleep(300); continue; }
+      await dragTo(j.ref.chip, p.x, p.y, 0); await sleep(1100);
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'names'; }, 15000, 100);
+  }
   // ── build 46 ── the lattice: the right piece (a child: now and then a wrong one first), turned (a tap) and flipped (a double tap) until it
   // matches the gap — read from the director's own pattern — then dragged into the gap
   async function lattice46() {
@@ -243,8 +290,8 @@
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
-      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top|lattice\d)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
-      if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
+      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top|lattice\d|leaf7)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
+      if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'lintel') { await lift47(j); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'lintel'; }, 15000, 100); } else if (j.kind === 'leaf') await leaf47(); else if (j.kind === 'names') await names47(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }
   }

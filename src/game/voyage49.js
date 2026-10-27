@@ -23,7 +23,8 @@ export const Y49 = 400;   // (the sea's level: 400 amot over the hidden world)
 export const VOY49 = Object.freeze(['harbour', 'sea', 'storm', 'hug', 'acre', 'road']);
 export const VLINE49 = Object.freeze({
   intro: 'הסיפור של הדלתות — הפעם אתם ניקנור · "כשהלך ניקנור להביא דלתות מאלכסנדריא של מצרים" — יומא לח ע"א · טיוטה',
-  harbour: 'משכו מטה בקצב — מנוף הנמל מעלה את הדלת · נמל אלכסנדריה; המגדלור — המחשה',
+  harbour: 'משכו מטה בקצב, ובין משיכה למשיכה החזיקו רגע · מנוף הנמל; המגדלור — המחשה',
+  high: 'גבוה מדי — הרפו, החבל יורד אל החלון · המחשה',
   sea: 'החזיקו — הולכים על הסיפון ובודקים את החבלים · המחשה',
   wind: 'הרוח מתחזקת — עוד חבל · המחשה',
   storm: 'שמאל — מאזנים את הסיפון; ימין — מחזיקים חבלים · "עמד עליו נחשול שבים לטבעו" — יומא לח ע"א · טיוטה',
@@ -234,6 +235,11 @@ export function createVoyage49(ctx) {
         const y = st.done ? 1 : Math.min(1.15, (st.y + P.sway()) / (P.P.win[1] + 0.05)), over = st.done ? Math.min(1, V.sub / 1.2) : 0, down = st.done ? Math.min(1, Math.max(0, (V.sub - 1.3) / 0.8)) : 0;
         door1.position.set(-2.5, 3.45 + y * 9 - (3.45 + 9 - deckY - 0.35) * down, 9 - 7.4 * over);
         cRope.geometry.attributes.position.setXYZ(1, -2.5, door1.position.y + 0.4, door1.position.z); cRope.geometry.attributes.position.setXYZ(0, -2.5, 18.8, door1.position.z - 0.5); cRope.geometry.attributes.position.needsUpdate = true;
+        if (svg && !st.done) {   // the crane's meter: the door's height and the window it must rest in (as stage 02's pulley)
+          const x = W() * 0.88, y0 = H() * 0.22, hh = H() * 0.5, sc = (v) => y0 + hh * (1 - Math.min(1.25, v) / 1.25), w0 = P.P.win[0], w1 = P.P.win[1];
+          svg.innerHTML = `<rect x="${x - 10}" y="${y0}" width="20" height="${hh}" rx="9" fill="rgba(28,20,10,.6)" stroke="#FFE6A0" stroke-width="2"/><rect x="${x - 12}" y="${sc(w1)}" width="24" height="${sc(w0) - sc(w1)}" fill="rgba(255,214,110,.55)" stroke="#FFD66E" stroke-width="2"/><rect x="${x - 7}" y="${sc(st.y)}" width="14" height="${y0 + hh - sc(st.y)}" rx="6" fill="#7FC0E0"/>`;
+        }
+        const hi = !st.done && st.y > P.P.win[1] + 0.02; if (hi !== V.hi) { V.hi = hi; ctx.line(hi ? VLINE49.high : VLINE49.harbour, `רמה ${V.L}`); }
         if (st.done) { V.sub += dt; if (V.sub > 2.1) { if (!V.pq) { V.pq = P.result(); ctx.buzz('settle'); ctx.sound && ctx.sound('thud'); } if (V.sub > 3) begin('sea'); } }
         const d = door1.position; camK(V.t < 3.5 ? [62, 28, -52] : [d.x - 17, d.y + 3.5, -14], V.t < 3.5 ? [-2.5, 7, 8] : [d.x, d.y + 0.5, d.z]);   // (wide — the quay, the city, the lighthouse; then low on the shining door)
         nic.position.set(-6, deckY + 0.15, 1); nic.rotation.y = 0.4;

@@ -62,7 +62,7 @@ test('build 44: the gold button — gone for players before Chanukat HaBayit, ke
 });
 
 test('build 44: חצר האומנים — every variant of stage 01, any level opened, no building; points and a title per family (טיוטה); from the menu and the test\'s card', () => {
-  assert.deepEqual(YARD44.map((v) => v.part), ['lift', 'corner', 'course0', 'rock', 'roll', 'pave', 'pulley', 'line', 'wcorner', 'lattice', 'warn']);   // (build 45: the wall's variants; build 46: the soreg's)
+  assert.deepEqual(YARD44.map((v) => v.part), ['lift', 'corner', 'course0', 'rock', 'roll', 'pave', 'pulley', 'line', 'wcorner', 'lattice', 'warn', 'lintel', 'leaf']);   // (build 45: the wall's variants; build 46: the soreg's; build 47: the gates')
   assert.deepEqual({ ...TITLE44 }, { lift: 'מנופאי', place: 'בנאי', inspect: 'בודק', fit: 'נגר' });
   assert.equal(title44('lift', PTS44.title - 1), ''); assert.equal(title44('lift', PTS44.title), 'מנופאי');
   const h = read('src/game/har42.js');
@@ -76,7 +76,7 @@ test('build 44: חצר האומנים — every variant of stage 01, any level o
 
 test('build 44: the reveal shows no next target; GAME_BUILD 44; no Divine Name; עולי רגל', () => {
   assert.match(read('src/game/index.js'), /syncWorld\(null\); hideNext44\(\); return out; \}/);
-  assert.equal(GAME_BUILD, 46);   // (build 45: the constant moved on) (build 46: again)
+  assert.equal(GAME_BUILD, 47);   // (build 45: the constant moved on) (build 46: again) (build 47: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/har42.js', 'src/game/index.js', 'src/game/hooks/avodah.js', 'src/avodah/shift/index.js', 'src/avodah/index.js', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(P), `${f}: עולי רגל`); }
 });

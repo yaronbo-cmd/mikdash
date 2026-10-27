@@ -264,8 +264,9 @@ export function createVoyage49(ctx) {
           nic.position.set(6.5, deckY + 0.15, 0.8); nic.rotation.y = Math.PI; nic.userData.top.rotation.x = T.right ? 0.8 : 0.3; door2.rotation.x = st.slackT > 0.15 ? -0.25 * Math.min(1, st.slackT / 0.35) : 0;
         } else { nic.position.set(-2, deckY + 0.15, -1.5); nic.rotation.y = Math.PI / 2; nic.userData.top.rotation.z = -st.h * 0.4; }
         gauge(S); const shake = s === 'hug' ? 0.4 : 0.6;
-        const cp = st.hug ? [15, 7.5 + ship.position.y, 10] : [-30, 9 + ship.position.y + Math.sin(t * 2.3) * shake, 12];   // (the hug: from the bow's side — Nicanor, the door, the sailors coming; the mast behind)
-        camK(cp, st.hug ? [6.5, 3.4, -0.4] : [2, 4 + st.h * 1.5, 0]);
+        if (st.hug) {   // (the hug: close, from over the bow's side, riding with the ship — Nicanor kneeling on the door, the sailors coming)
+          ship.updateMatrix(); const a = new THREE.Vector3(13.5, 9, 6.5).applyMatrix4(ship.matrix), b2 = new THREE.Vector3(6.5, 3.4, -0.6).applyMatrix4(ship.matrix); camK([a.x, a.y, a.z], [b2.x, b2.y, b2.z]);
+        } else camK([-30, 9 + ship.position.y + Math.sin(t * 2.3) * shake, 12], [2, 4 + st.h * 1.5, 0]);
         if (st.done) {   // "ומיד נח הים מזעפו": the sea calms at once
           V.q = S.result(); setSea(0.25, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000, '#EAD6BA'); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ }
           ctx.line(VLINE49.calm); ctx.sound && ctx.sound('solemn'); ctx.buzz('peak'); ctx.emit && ctx.emit('h49calm', V.q); V.scene = 'calm'; V.t = 0;

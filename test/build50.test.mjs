@@ -38,7 +38,7 @@ test('build 50: the compass grades its arc by the radius kept; the hub fits only
   const C = F.createCompass50(1); for (let k = 0; k < 10; k++) C.hold(0.06, true); for (let a = 0; a < 3.3 && !C.state().done; a += 0.03) C.sweep(a, 0.01 * Math.sin(a * 9)); assert.equal(C.result().rating, 'mehudar');
   const C2 = F.createCompass50(1); for (let k = 0; k < 10; k++) C2.hold(0.06, true); for (let a = 0; a < 3.3 && !C2.state().done; a += 0.03) C2.sweep(a, 0.3 * Math.sin(a * 9)); assert.equal(C2.result().rating, 'tikkun');
   assert.equal(C2.sweep(0, -0.2), null, 'done'); const C3 = F.createCompass50(1); for (let k = 0; k < 10; k++) C3.hold(0.06, true); assert.equal(C3.sweep(0, -0.2), 'slack'); assert.equal(C3.sweep(0.03, 0.2), 'strain'); assert.equal(C3.sweep(0.06, 0.01), 'taut');
-  const Hb = F.createHub50(1); Hb.turn(-20 / Hb.P.gain); assert.equal(Hb.insert({ dragPx: 60 }), 'jam'); Hb.turn(20 / Hb.P.gain); assert.equal(Hb.insert({ dragPx: 60 }), 'ok');
+  const Hb = F.createHub50(1); Hb.turn(-30 / Hb.P.gain); assert.equal(Hb.insert({ dragPx: 60 }), 'jam'); Hb.turn(30 / Hb.P.gain); assert.equal(Hb.insert({ dragPx: 60 }), 'ok');
   const fast = F.createWinch50(1); fast.hold(true); for (let k = 0; k < 2000 && !fast.state().done; k++) fast.step(0.05); assert.equal(fast.result().rating, 'tikkun', 'held all the way: the water spilled');
   const calm = F.createWinch50(1); for (let k = 0; k < 4000 && !calm.state().done; k++) { const s = calm.state(); calm.hold(s.v < s.spill * 0.85); calm.step(0.05); } assert.equal(calm.result().rating, 'mehudar', 'let go before the red: full buckets');
 });

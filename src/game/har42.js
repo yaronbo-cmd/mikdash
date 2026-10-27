@@ -106,7 +106,7 @@ export const SRC42 = Object.freeze([
 ]);
 const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;direction:rtl;font-family:Heebo,system-ui,sans-serif}
 .h42-walk{position:fixed;inset:0;z-index:41;pointer-events:auto;touch-action:none}
-.h42-pad{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:45;touch-action:none;pointer-events:auto;display:none}.h42-pad.on{display:block}.h42-pad.full{left:0}
+.h42-it.nofit{opacity:.38;filter:grayscale(.6)}.h42-pad{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:45;touch-action:none;pointer-events:auto;display:none}.h42-pad.on{display:block}.h42-pad.full{left:0}
 .h42-line{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);max-width:min(64vw,520px);z-index:47;padding:4px 12px;border-radius:14px;background:rgba(28,20,10,.82);color:#FFF4DC;font:800 14px/1.3 Heebo,system-ui,sans-serif;text-align:center;pointer-events:none}
 .h42-line b{display:block;font:800 14px/1.25 Heebo,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.h42-line small{display:flex;flex-wrap:nowrap;gap:6px;justify-content:center;margin-top:2px;font:600 10.5px/1.25 Heebo,system-ui,sans-serif;white-space:nowrap;overflow:hidden}.h42-line i{font-style:normal;padding:0 6px;border-radius:8px;background:rgba(255,230,160,.16);color:#FFE6A0;overflow:hidden;text-overflow:ellipsis}.h42-line em{font-style:normal;opacity:.75}
 .h42-mat{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:calc(env(safe-area-inset-right,0px) + 10px);z-index:47;min-height:44px;box-sizing:border-box;padding:4px 10px;border-radius:14px;background:rgba(28,20,10,.78);color:#FFE6A0;font:900 15px/1.2 Heebo,system-ui,sans-serif;display:flex;align-items:center;gap:4px;pointer-events:none}
@@ -271,7 +271,7 @@ export function createHar42(o = {}) {
     st.props.pRope = add(new THREE.LineSegments(pr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.pTop = top;
     if (STG === 'wall') {
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.8 }), hw = CW45.w / 2 + 3, hd = CW45.d / 2 + 3;   // (the gold line along the wall's middle: it rises inside the wall to be)
-      st.props.plan = [[0, -hd, 2 * hw + 3, 3], [0, hd, 2 * hw + 3, 3], [-hw, 0, 3, 2 * hd], [hw, 0, 3, 2 * hd]].map(([dx, dz, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 3, d), gm); m.geometry.translate(0, 1.5, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, gy(CW45.x + dx, CW45.z + dz), CW45.z + dz); });
+      st.props.plan = [[0, -hd, 2 * hw + 3, 3], [0, hd, 2 * hw + 3, 3], [-hw, 0, 3, 2 * hd], [hw, 0, 3, 2 * hd]].map(([dx, dz, w, d]) => { const y0 = gy(CW45.x + dx, CW45.z + dz), yP = gy(CW45.x + dx * 1.2, CW45.z + dz * 1.25), Hh = Math.max(3, yP + 2.5 - y0); const m = new THREE.Mesh(new THREE.BoxGeometry(w, Hh, d), gm); m.geometry.translate(0, Hh / 2, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, y0, CW45.z + dz); });   // (from the trench's floor to 2.5 amot over the plaza: in the wall's 4-amah trench a 3-amah plan stood hidden)
     }
   }
   /** the crane's rope from the jib's end down to the stone's top */
@@ -637,7 +637,7 @@ export function createHar42(o = {}) {
     if (spec.corner) cornerM(spec.corner.want === 'a' ? 'b' : 'a', 0.5 + (n > 0 ? n - 1 : 0) * 1.0);
     const settle = (m) => { if (!m) return; const y1 = m.position.y; m.position.y = y1 + 0.7; st.anims = (st.anims || []).concat([{ m, y0: y1 + 0.7, y1, t: 0, T: 0.22 }]); buzz42('settle'); o.emit && o.emit('h45thud', {}); };   // (#6: it settles by itself — a short drop, the thud, the haptic)
     const crew = []; for (let x = 0; x < spec.a; x += 2) crew.push([x, Math.min(2, spec.a - x)]); for (let x = spec.b; x < 15; x += 3) crew.push([x, Math.min(3, 15 - x)]);
-    let crewT = 0, crewN = 0, graded = false;
+    let crewT = 0, crewN = 0, graded = false, backT = 0, fitT = 0;
     // the pile
     const pile = st.ui.pile; pile.innerHTML = '';
     const laid = [];
@@ -657,7 +657,7 @@ export function createHar42(o = {}) {
       const r = J.place(len, { dragPx: drop.px, u: bu });
       if (r === 'ok') { const [s0, l0] = J.state().last; const m = box3(l0, s0, 1.5 + n * 1.0); laid.push(m); settle(m); return true; }
       if (r === 'unsettled') line('החזיקו רגע על הנדבך — שתתיישב · המחשה', `נדבך ${n + 1}`);
-      if (r === 'long' || r === 'gap') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); line(r === 'gap' ? 'תישאר שם פרצה קטנה מדי — בחרו אחרת · המחשה' : 'אין לה מקום שם — בחרו קצרה יותר · המחשה', `נדבך ${n + 1}`); }
+      if (r === 'long' || r === 'gap') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); line(r === 'gap' ? 'תישאר שם פרצה קטנה מדי — גררו אבן אחרת · המחשה' : 'אין לה מקום שם — גררו אבן קצרה יותר · המחשה', `נדבך ${n + 1}`); backT = 2.6; }   // (build 45: the verb kept, and back to the course's own line in 2.6 s — the naive kid K45-P read "בחרו" as no task and walked for 5 minutes)
       return false;
     }
     return {
@@ -666,6 +666,8 @@ export function createHar42(o = {}) {
       up(a) { if (J.state().prot && J.state().prot.length && Math.hypot(a.x - a.x0, a.y - a.y0) >= F.DRAG42) { const i = J.state().prot[0], m = laid[i]; if (J.pushIn({ dragPx: Math.hypot(a.x - a.x0, a.y - a.y0) }) === 'ok' && m) { m.position.z = 0; buzz42('settle'); } } },   // (the retreat: a drag pushes the next stone that stands out back into line)
       frame(dt) {
         if (J.state().prot && J.state().prot.length && !this.plumb) { this.plumb = 1; this.dragOnly = false; J.state().prot.forEach((i) => { if (laid[i]) laid[i].position.z = 0.35; }); line(LINE42.retreat, `נדבך ${n + 1} · רמה ${L}`); }
+        if (backT > 0 && (backT -= dt) <= 0 && !J.state().done && !(J.state().prot && J.state().prot.length)) line(kind === 'corner' ? LINE42.wcorner : kind === 'top' ? LINE42.top : LINE42.place, `נדבך ${n + 1} · רמה ${L}`);
+        fitT -= dt; if (fitT <= 0) { fitT = 0.3; for (const it of pile.querySelectorAll('.h42-it[data-len]')) { const len = +it.dataset.len; let ok = false; for (let s0 = spec.a; !ok && s0 + len <= spec.b; s0++) ok = J.fits(len, s0 + len / 2); it.classList.toggle('nofit', !ok); } }   // ── build 45 ── the stones that fit no free place are dimmed
         crewT += dt; if (crewN < crew.length && crewT > 1.6) { crewT = 0; const [x, len] = crew[crewN++]; box3(len, x, 1.5 + n * 1.0); }
         objPlace(true, [{ x: C.x + ((spec.a + spec.b) / 2) * U - 7, y: C.y + 1, z: C.z, r: ((spec.b - spec.a) * U) / 2 + 0.6 }], 'h42course');
         // the joints below his stretch, shown at level 1 (the rule's teacher)

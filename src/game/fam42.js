@@ -197,9 +197,9 @@ export function createPulley(L = 1) {
 
 /* ───────── the LINE (the wall's opening act): stretched between two pins, its straightness graded ───────── */
 /** a drag from the near pin to the far one: points (u along 0…1, d across, both as shares of the pins' distance); it ends when the finger
- *  reaches the far pin (u ≥ 0.95) having started at the near one (u ≤ 0.12); straight within 4 % — מהודר, 9 % — כשר, more — טעון תיקון;
+ *  reaches the far pin (u ≥ 0.95) having started at the near one (u ≤ 0.12); straight within 4 % — מהודר, 9 % — כשר, more — טעון תיקון (of the line's length, times the level's tolerance);
  *  a let-go midway: the line falls slack — draw again (a correction). A tap never stretches it. */
-export const LINE45 = Object.freeze({ start: 0.12, end: 0.95, hi: 0.04, mid: 0.09, L: Object.freeze([null, 1, 0.85, 0.7, 0.6]) });
+export const LINE45 = Object.freeze({ start: 0.12, end: 0.95, hi: 0.04, mid: 0.09, L: Object.freeze([null, 1.5, 1.2, 1, 0.8]) });   // (build 45: level 1 forgives a finger's wobble — 1 made the naive kid's lines טעון תיקון: 4 % of a 300-px line is 12 px)
 export function createLine45(L = 1) {
   const k = { on: false, u: 0, dmax: 0, fix: 0, done: false, q: null, L: clamp(L | 0, 1, 4), tries: 0 };
   const tol = LINE45.L[k.L];

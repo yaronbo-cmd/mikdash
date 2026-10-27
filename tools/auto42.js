@@ -189,7 +189,8 @@
         const b = q('.h42-card button'); if (b) b.click(); await sleep(400); continue;
       }
       if (s.part === 'reveal') { await sleep(1500); await shot('reveal'); await until(() => { const r = H().state(); return r.part !== 'reveal' || r.rev >= 9; }, 30000, 50); if (H().state().part === 'reveal') await shot('reveal-end'); continue; }   // (build 43: the reveal's end — the whole platform from the opening's viewpoint)
-      if (s.part === 'open') { await shot('open'); await sleep(400); if (A.sk) { const b = q('.h42-skip'); if (b) ev(b, 'pointerdown', 10, 10, ++pid); } continue; }
+      if (s.part === 'open') { await shot('open'); if (!A.openT) A.openT = performance.now(); else if (performance.now() - A.openT > 14000) await shot('open-plan'); await sleep(400);   // (build 45: and a later frame of the opening — the plan risen)
+        if (A.sk) { const b = q('.h42-skip'); if (b) ev(b, 'pointerdown', 10, 10, ++pid); } continue; }
       if (s.part === 'done' || s.part === 'out') { await sleep(500); if (!q('.h42-card')) return; continue; }
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }

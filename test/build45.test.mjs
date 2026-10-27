@@ -89,3 +89,16 @@ test('build 45: the stage — its parts in the order of §7, its lines with thei
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/stages.js', 'tools/auto42.js', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });
+
+test('build 45: the naive kid\'s stall at a course (K45-P) — a refused stone keeps the verb and the course\'s line comes back; the stones that fit no place are dimmed; the line forgives a finger at level 1', () => {
+  const h = read('src/game/har42.js');
+  assert.match(h, /'תישאר שם פרצה קטנה מדי — גררו אבן אחרת · המחשה' : 'אין לה מקום שם — גררו אבן קצרה יותר · המחשה', `נדבך \$\{n \+ 1\}`\); backT = 2\.6; \}/);
+  assert.match(h, /if \(backT > 0 && \(backT -= dt\) <= 0 && !J\.state\(\)\.done/);
+  assert.match(h, /it\.classList\.toggle\('nofit', !ok\)/); assert.match(h, /\.h42-it\.nofit\{opacity:\.38/);
+  // a course with one place left for a 2: the 3 and the 4 fit nowhere
+  const sp = F.courseSpec(0, 1), C = F.createCourse(sp); assert.equal(C.place(4, { dragPx: 60, u: sp.a + 4 }), 'ok');
+  const fitsAny = (len) => { for (let s0 = sp.a; s0 + len <= sp.b; s0++) if (C.fits(len, s0 + len / 2)) return true; return false; };
+  assert.deepEqual([2, 3, 4].map(fitsAny), [true, false, false]); assert.equal(C.state().stones.length, 1, 'fits() never lays a stone');
+  const Ln = F.createLine45(1); Ln.down(0.02, 0); for (let i = 1; i <= 20; i++) Ln.move(i / 20, 0.055 * Math.sin((Math.PI * i) / 20)); assert.equal(Ln.result().rating, 'mehudar', 'level 1: a 5.5 % wobble still מהודר');
+  const L4 = F.createLine45(4); L4.down(0.02, 0); for (let i = 1; i <= 20; i++) L4.move(i / 20, 0.055 * Math.sin((Math.PI * i) / 20)); assert.equal(L4.result().rating, 'kasher', 'level 4: the same line כשר');
+});

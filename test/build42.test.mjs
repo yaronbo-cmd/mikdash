@@ -44,6 +44,9 @@ test('build 42: LIFT — held, the wheel lifts; released early, momentum carries
   const K = F.createLift(1); run(K, 5, { hold: true }); assert.ok(K.state().y > P.win[1], 'held too long: over');
   let s = run(K, 1, { back: true }); for (let i = 0; i < 80 && !K.state().done; i++) s = run(K, 0.05, K.state().y > aim ? { back: true } : {});
   run(K, 4, {}); assert.equal(K.state().done, true); assert.equal(K.result().rating, 'kasher');
+  // (a child lifts in pushes: stopped short is no fault — the naive kid's runs; over is counted once)
+  const Q = F.createLift(1); for (let k = 0; k < 2; k++) { run(Q, 0.9, { hold: true }); run(Q, 3, {}); assert.equal(Q.state().done, false); }
+  let lg = false; run(Q, 8, () => { if (!lg && Q.stopAt() >= aim) lg = true; return { hold: !lg }; }); assert.equal(Q.state().done, true); assert.equal(Q.result().rating, 'mehudar', 'three pushes, no overshoot');
   void s;
 });
 test('build 42: INSPECT — the line shows only at its grazing light; even wedges and a release as the crack reaches the end are מהודר; rock 3\'s other line (not with the layers) is טעון תיקון; let go early: pour again', () => {
@@ -135,6 +138,7 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   const mk = read('tools/mkout.cjs'); assert.match(mk, /const HEAD = args\.includes\('--no-shift'\) \? '' : HEAD0;/);
   // (the runs' fixes: the paving's drop box from the points in front of the camera's near plane, kept on the screen — a corner behind it had
   // made the box null and the paving undroppable; the stage's reveal and card stay in its dusk light, the real night after it)
+  assert.match(h, /level 1: a tap near a marked place lands on it/); assert.match(h, /\(level 1: the even places marked\)/);
   assert.match(h, /const paveBox = \(\) => boxOf\(/); assert.match(h, /const q = pts\.map\(\(p\) => proj\(p\[0\], p\[1\], p\[2\]\)\)\.filter\(Boolean\); if \(q\.length < 2\) return null;/);
   assert.match(g, /if \(k === 'night' && \(G\.ftue < 99 \|\| \(H42 && H42\.on\) \|\|/); assert.match(g, /onExit: \(\) => \{ H42 = null; tod = null; try \{ syncTime\(\); \}/);
 });

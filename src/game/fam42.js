@@ -54,7 +54,7 @@ export function createLift(L = 1) {
     if (still && !s.stopped) {
       s.stopped = true;
       if (s.y >= P.win[0] && s.y <= P.win[1]) { s.done = true; s.q = q3(s.fix + (s.backed ? 1 : 0)); }
-      else s.fix++;   // (stopped short or over: lift again or lower — a correction)
+      // (stopped short: lift again — no fault, a child lifts in pushes; stopped over: counted once, as it passed the window — the naive kid's runs)
     }
     if (!still) s.stopped = false;
     return s;

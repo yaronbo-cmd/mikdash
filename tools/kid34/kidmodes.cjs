@@ -183,6 +183,33 @@ async function beam48k(K) {
   if (!r) return false; const tx = r.tx + K.between(-16, 16), ty = r.ty + K.between(-16, 16);
   await K.down(7, r.x, r.y); for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 70)); await K.move(7, r.x + ((tx - r.x) * i) / 10, r.y + ((ty - r.y) * i) / 10); } await K.up(7); K.ev('beam-chip'); return true;
 }
+// ── build 49 ── stage 06, a child's way: the STORM — two thumbs, as the rings show: the right one down (now and then lifted, forgotten), the
+// left one sliding — now the way the yellow arrow points (he sees it: 60 %), now anyhow — for three to ten seconds; the LEVER — a swipe down
+// of any length, and when the line says "הקישו" a tap (late or not); the STEPS — the chip dragged to the gold arc, roughly
+async function storm49k(K) {
+  const [W, Hh] = K.size(), lx0 = K.between(W * 0.1, W * 0.3), ly = K.between(Hh * 0.5, Hh * 0.8), rx = K.between(W * 0.7, W * 0.92), ry = K.between(Hh * 0.5, Hh * 0.8), T = K.between(3000, 10000), t0 = Date.now();
+  let lx = lx0, right = K.rnd() < 0.85, left = K.rnd() < 0.9;
+  if (right) await K.down(4, rx, ry); if (left) { await K.sleep(K.between(50, 700)); await K.down(3, lx, ly); }
+  while (Date.now() - t0 < T) {
+    const a = await K.pg.evaluate(() => { const t = [...document.querySelectorAll('.v49 svg text')].find((q) => /⇦|⇨/.test(q.textContent)); return t ? (t.textContent.includes('⇦') ? -1 : 1) : 0; }).catch(() => 0);
+    if (left) { if (a && K.rnd() < 0.6) lx += a * K.between(6, 26); else lx += K.between(-18, 18); lx = Math.max(6, Math.min(W / 2 - 6, lx)); await K.move(3, lx, ly + K.between(-3, 3)); }
+    if (right) await K.move(4, rx + K.between(-2, 2), ry);
+    if (right && K.rnd() < 0.02) { await K.up(4); right = false; K.ev('storm-right-off'); } else if (!right && K.rnd() < 0.15) { await K.down(4, rx, ry); right = true; }
+    if (!left && K.rnd() < 0.1) { await K.down(3, lx, ly); left = true; }
+    await K.sleep(K.between(70, 180));
+  }
+  await K.liftAll(); K.ev('storm49', `${Math.round(T / 100) / 10}s`);
+}
+async function lever49k(K, L) {
+  const [W, Hh] = K.size();
+  if (/הקישו/.test(L)) { await K.sleep(K.between(150, 1400)); await K.tap(K.between(W * 0.3, W * 0.7), K.between(Hh * 0.3, Hh * 0.7)); K.ev('lever-tap'); return; }
+  await K.swipe(K.between(W * 0.3, W * 0.8), K.between(Hh * 0.15, Hh * 0.45), K.between(-30, 30), K.between(30, Hh * 0.5), K.between(150, 700)); K.ev('lever-drag');
+}
+async function steps49k(K) {
+  const r = await K.pg.evaluate(() => { const c = document.querySelector('.h42 .h49-step'), pl = [...document.querySelectorAll('.h42 svg polyline')].pop(); if (!c || !pl) return null; const pts = pl.getAttribute('points').split(' ').map((p) => p.split(',').map(Number)), q = pts[Math.floor(Math.random() * pts.length)], b = c.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, tx: q[0], ty: q[1] }; }).catch(() => null);
+  if (!r) return false; const tx = r.tx + K.between(-22, 22), ty = r.ty + K.between(-22, 22);
+  await K.down(7, r.x, r.y); for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 70)); await K.move(7, r.x + ((tx - r.x) * i) / 10, r.y + ((ty - r.y) * i) / 10); } await K.sleep(K.between(0, 300)); await K.up(7); K.ev('step49'); return true;
+}
 async function mount42(K) {
   let moodUntil = 0, mood = 'try';
   while (K.left() > 15000) {
@@ -195,6 +222,7 @@ async function mount42(K) {
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
+      if (h && !h.on && h.stg === 'nikanor' && h.part === 'done') { K.R.nikanor49 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('nikanor done'); break; }   // ── build 49 ── stage 06's end
       if (h && !h.on && h.stg === 'nashim' && h.part === 'done') { K.R.nashim48 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('nashim done'); break; }   // ── build 48 ── stage 05's end
       if (h && !h.on && h.stg === 'gates' && h.part === 'done') { K.R.gates47 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('gates done'); break; }   // ── build 47 ── stage 04's end
       if (h && !h.on && h.stg === 'soreg' && h.part === 'done') { K.R.soreg46 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('soreg done'); break; }   // ── build 46 ── stage 03's end
@@ -218,7 +246,11 @@ async function mount42(K) {
     const L = s.line || '', r = K.rnd();
     if (h.part === 'open') { if (K.rnd() < 0.3) await K.pokeButton(s, null, 'open'); await K.sleep(K.between(500, 1500)); continue; }
     if (mood === 'try') {
-      if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      if (h.part === 'voyage' && /מאזנים את הסיפון|חבלי הדלת|חבקו אותה|הגל הפיל|כמעט לקחו|השליכו דלת/.test(L) && r < 0.9) await storm49k(K);   // ── build 49 ── the voyage's storm: two thumbs
+      else if (h.part === 'voyage' && /הולכים על הסיפון|עוד חבל|מבצבצת/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(1000, 7000)); K.ev('hold-voy'); }
+      else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
+      else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
+      else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
       else if (/לערימה הנכונה|מסובבת|לא למזבח|כשר למערכה/.test(L) && r < 0.85) { if (!(await wood48k(K))) await K.tryLine(s); }   // ── build 48 ──
       else if (/גררו קורה לשקע|קורות הפינה|לא הקורה לשקע|כולה שלכם|גררו את הקרשים/.test(L) && r < 0.85) { if (!(await beam48k(K))) await K.tryLine(s); }
       else if (/לתוך השקע|בשפת השקע/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.35, W * 0.65), K.between(Hh * 0.55, Hh * 0.8), K.between(-50, 50), -K.between(40, 140), K.between(150, 600)); K.ev('beam-push'); }

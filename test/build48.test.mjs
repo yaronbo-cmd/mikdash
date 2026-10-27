@@ -66,13 +66,13 @@ test('build 48: the stage — its parts and lines, the chambers WITHOUT roofs (�
   }
   assert.ok(!STAGE_GAMES.nashim.includes('torches') && !STAGE_GAMES.nikanor.includes('torches'), 'no שמחת בית השואבה by the women\'s court');
   const h = read('src/game/har42.js'); assert.ok(!/שמחת בית השואבה|שואבה/.test(h.slice(h.indexOf('function mkWood'), h.indexOf('/* ── build 47 ── stage 04\'s acts'))), 'no glimpse in stage 05\'s acts');
-  for (const k of ['wood', 'beams', 'pegs', 'corner', 'walk']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
+  for (const k of ['wood', 'beams', 'pegs', 'walk']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k); assert.match(h, /\n    corner: \{ begin\(\) \{ st\.job = STG === 'nashim' && MODE === 'stage' \? mkCorner48\(\) : mkCorner\(\); \} \},/);   // (build 49: one 'corner' key — stage 05's by its STG)
   assert.match(h, /const r = J\.push\(cur, a\.x - a\.x0, a\.y - a\.y0, 0, -1\);/, 'into the wall: up the screen (K48-P2: from below the beam\'s own way in ran down)'); assert.ok(!/DEBUG48|dbg48/.test(h));
   assert.match(h, /function book48\(back\)/); assert.match(h, /data-b="book">📖 ספר הפגימות/); assert.match(h, /R\.logSeq\.push\(t\)/);
-  assert.deepEqual(YARD44.slice(13).map((v) => v.part), ['log', 'beam', 'peg']);
+  assert.deepEqual(YARD44.slice(13, 16).map((v) => v.part), ['log', 'beam', 'peg']);   // (build 49: then stage 06's)
   const cost = F.MAT42.cost; assert.ok(cost.wood + cost.beams + cost.pegs + cost.corner48 > F.MAT42.daily, 'beyond a morning');
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted48\(\)\) startHar48\(\);/); assert.match(g, /\(nashim48=0\|stick=1\|har42=0\)/); assert.match(g, /h48go=1/); assert.match(g, /if \(done && wanted48\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar48\(\); \}, 400\);/);
-  assert.equal(GAME_BUILD, 48);
+  assert.equal(GAME_BUILD, 49);   // (build 49: the constant moved on)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

@@ -71,7 +71,7 @@ test('build 44: חצר האומנים — every variant of stage 01, any level o
   assert.match(read('src/game/ui.js'), /case 'yard44': closeSheet\(\); if \(act\.openYard\) act\.openYard\(\); break;/);
   assert.match(h, /'לחצר האומנים קודם', \(\) => stop\(false, 'yard'\)/);
   assert.match(h, /if \(fromTest && visit >= 2\) card\(head, \[\.\.\.ln, '~רב האומנים: מוכנים למבחן\? · המחשה'\], 'למבחן', \(\) => stop\(false\), 'עוד פעם', again\);/, 'from the test, after two runs: back to the test');
-  assert.match(read('src/game/index.js'), /mode, from: back, stages:/);
+  assert.match(read('src/game/index.js'), /mode, from: back, test, stages:/);   // (build 50: and which test — chapter ג׳'s too)
 });
 
 test('build 44: the reveal shows no next target; GAME_BUILD 44; no Divine Name; עולי רגל', () => {

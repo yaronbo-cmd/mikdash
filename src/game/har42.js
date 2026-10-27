@@ -518,7 +518,7 @@ export function createHar42(o = {}) {
     for (const sz of [-1, 1]) { const p2 = ashlar(1.3, 21.6, 1.3); p2.rotation.y = Math.PI / 2; add(p2, N.x + 0.2, y0 + 10.8, N.z + sz * 5.65); }
     const lt = ashlar(12.6, 1.6, 1.3); lt.rotation.y = Math.PI / 2; add(lt, N.x + 0.2, y0 + 22.4, N.z);
     add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 21.6, 10), dark), N.x - 0.25, y0 + 10.8, N.z);
-    if (STG === 'nikanor') add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 24, 28), STONE), N.x - 0.32, y0 + 12, N.z);   // (the gate's face where the model's is not drawn: through its door the court showed)
+    if (STG === 'nikanor') { const fm = new THREE.MeshStandardMaterial({ color: '#D9C7A4', roughness: 0.9, metalness: 0, map: BOSS.map || null, normalMap: BOSS.normalMap || null }); add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 24, 28), fm), N.x - 0.32, y0 + 12, N.z); }   // (the gate's face where the model's is not drawn: through its door the court showed)
     if (MODE === 'yard') add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 22, 14), stoneM), N.x - 1.1, y0 + 11, N.z);
     st.props.sock49 = add(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.1, 8, 20), new THREE.MeshBasicMaterial({ color: '#FFD66E' })), N.x, y0 + 21.4, N.z + LEAF49.pz); st.props.sock49.rotation.x = Math.PI / 2;
     add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 12), dark), N.x, y0 + 0.04, N.z + LEAF49.pz);
@@ -801,7 +801,7 @@ export function createHar42(o = {}) {
         const P0 = STG === 'nikanor' ? PL.arc : STG === 'wall' ? PL.course : STG === 'soreg' ? PL.soreg : STG === 'gates' ? PL.gate : STG === 'nashim' ? PL.wallY : PL.pave;
         if (STG === 'gates') { hole46(false); try { if (stages.setStage) stages.setStage('gates', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 47 ──
         if (STG === 'nashim') { try { stages.hero.show(true); if (stages.setStage) stages.setStage('nashim', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 48 ──
-        if (STG === 'nikanor') { hole49(null); try { stages.hero.show(true); if (stages.setStage) stages.setStage('nikanor', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 49 ── (the model's own steps and doors: his Levites stand on them)
+        if (STG === 'nikanor') { hole49(null); try { stages.hero.show(true); } catch (e) { /* */ } }   // ── build 49 ── (the model's own steps and doors, done — complete() set it at once; 'building' at 1 kept the scaffold up: his Levites stand on them)
         if (STG === 'soreg') { hole46(false); try { if (stages.setStage) stages.setStage('sorag', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 46 ── (the soreg whole: the model's own where his panels stood)
         st.rev = { t: 0, out, V, p0: [P0.x + 7, P0.y + 4.5, P0.z + 6], t0: [P0.x, P0.y + 0.5, P0.z + 1.5] };
         if (st.snapshot && doc && STG === 'har') { const im = el('h42-before', '', 'img'); im.src = st.snapshot; im.style.opacity = '0'; st.ui.root.appendChild(im); st.ui.before = im; }

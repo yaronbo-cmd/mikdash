@@ -181,7 +181,7 @@ export function createRock(i = 0, L = 1) {
         const over = k.crack > INSPECT42.end[1];
         k.done = true;
         k.q = !line || !line.layers ? 0.3 : clamp(0.55 * even + 0.45 * (over ? 0.5 : 1) - 0.15 * k.fix, 0, 1);
-      } else if (k.poured) k.fix++;   // (let go early: the crack stops — pour again)
+      }   // (let go early: the crack stops — pour again; no fault: a child pours in pushes, as he lifts — the naive kid's runs; poured past the end is the mistake)
     }
     return k;
   }

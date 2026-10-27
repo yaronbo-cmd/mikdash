@@ -49,7 +49,7 @@ test('build 42: LIFT — held, the wheel lifts; released early, momentum carries
   let lg = false; run(Q, 8, () => { if (!lg && Q.stopAt() >= aim) lg = true; return { hold: !lg }; }); assert.equal(Q.state().done, true); assert.equal(Q.result().rating, 'mehudar', 'three pushes, no overshoot');
   void s;
 });
-test('build 42: INSPECT — the line shows only at its grazing light; even wedges and a release as the crack reaches the end are מהודר; rock 3\'s other line (not with the layers) is טעון תיקון; let go early: pour again', () => {
+test('build 42: INSPECT — the line shows only at its grazing light; even wedges and a release as the crack reaches the end are מהודר; rock 3\'s other line (not with the layers) is טעון תיקון; let go early: pour again, no fault', () => {
   const R = F.createRock(0, 1); assert.deepEqual(R.sweep(0.9), []); assert.deepEqual(R.sweep(0.3), ['a']);
   for (let i = 1; i <= 4; i++) assert.equal(R.wedge('a', i / 5), 'ok');
   while (R.state().crack < 0.95) R.pour(0.05, true); R.pour(0.05, false);
@@ -58,7 +58,8 @@ test('build 42: INSPECT — the line shows only at its grazing light; even wedge
   for (let i = 1; i <= 4; i++) T.wedge('a', i / 5); while (T.state().crack < 0.95) T.pour(0.05, true); T.pour(0.05, false);
   assert.equal(T.result().rating, 'tikkun', 'the line against the layers');
   const E = F.createRock(1, 1); E.sweep(0.7); for (let i = 1; i <= 4; i++) E.wedge('a', i / 5);
-  for (let k = 0; k < 20; k++) E.pour(0.05, true); E.pour(0.05, false); assert.equal(E.state().done, false); assert.equal(E.state().fix, 1, 'let go early: a correction');
+  for (let k = 0; k < 20; k++) E.pour(0.05, true); E.pour(0.05, false); assert.equal(E.state().done, false); assert.equal(E.state().fix, 0, 'let go early: pour again — no fault');
+  while (E.state().crack < 0.95) E.pour(0.05, true); E.pour(0.05, false); assert.equal(E.result().rating, 'mehudar', 'poured in two pushes, stopped at the end');
   assert.ok(F.ROCKS42[1].lines[0].band < F.ROCKS42[0].lines[0].band, 'rock 2 faint (a narrower light)');
 });
 test('build 42: PLACE — no joint over a joint is מהודר; a joint over one is a fault; a stone too long does not fit; the course ends exactly; the rollers in time are מהודר, a gap is a correction; the paving fills exactly', () => {

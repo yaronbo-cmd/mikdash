@@ -70,18 +70,19 @@ export const PLACE42 = Object.freeze({ lens: Object.freeze([2, 3, 4]), settle: 0
 /** a course: the joints of the course below (positions), and his stretch [a, b) to fill (in units) */
 export function createCourse(spec) {
   const c = { below: (spec.below || []).slice(), a: spec.a, b: spec.b, at: spec.a, joints: [], faults: 0, rejects: 0, done: false, q: null, L: spec.L || 1 };
-  /** place a stone of length len: it must be dragged (≥ DRAG42 px) and held to settle (≥ settle s); it must fit the stretch; → 'ok' | 'tap' | 'unsettled' | 'long' | 'done' */
+  /** place a stone of length len: it must be dragged (≥ DRAG42 px) and held to settle (≥ settle s); it must fit the stretch; → 'ok' | 'tap' | 'unsettled' | 'long' | 'gap' | 'done' */
   function place(len, o = {}) {
     if (c.done) return 'done';
     if (!((o.dragPx || 0) >= DRAG42)) return 'tap';
     if (!((o.settleS || 0) >= PLACE42.settle)) return 'unsettled';
     if (c.at + len > c.b + 1e-9) { c.rejects++; return 'long'; }
+    { const rem = c.b - (c.at + len); if (rem > 1e-9 && rem < Math.min(...PLACE42.lens) - 1e-9) { c.rejects++; return 'gap'; } }   // (it would leave a gap no stone fills: the course could never end — the naive kid's run K42-P-new stood there 3 minutes)
     c.at += len;
     if (c.at < c.b - 1e-9) { const over = c.below.some((j) => Math.abs(j - c.at) < 1e-6); c.joints.push({ x: c.at, over }); if (over) c.faults++; }
     if (Math.abs(c.at - c.b) < 1e-6) { c.done = true; c.q = q3(c.faults + (c.rejects > 1 ? 1 : 0)); }
     return 'ok';
   }
-  const fits = (len) => c.at + len <= c.b + 1e-9;
+  const fits = (len) => { const rem = c.b - (c.at + len); return rem > -1e-9 && !(rem > 1e-9 && rem < Math.min(...PLACE42.lens) - 1e-9); };
   const overAt = (len) => { const e = c.at + len; return e < c.b - 1e-9 && c.below.some((j) => Math.abs(j - e) < 1e-6); };
   return { place, fits, overAt, state: () => c, result: () => (c.done ? { q: c.q, rating: rate30(c.q), faults: c.faults } : null) };
 }

@@ -363,7 +363,7 @@ export function createHar42(o = {}) {
       const r = J.place(len, { dragPx: drop.px, settleS: drop.still });
       if (r === 'ok') { box3(len, J.state().at - len, 1.5 + n * 1.0); buzz42('settle'); return true; }
       if (r === 'unsettled') line('החזיקו רגע על הנדבך — שתתיישב · המחשה', `נדבך ${n + 1}`);
-      if (r === 'long') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); }
+      if (r === 'long' || r === 'gap') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); if (r === 'gap') line('האבן הזאת תשאיר רווח שאין אבן קטנה מספיק למלא — בחרו אחרת · המחשה', `נדבך ${n + 1}`); }
       return false;
     }
     return {

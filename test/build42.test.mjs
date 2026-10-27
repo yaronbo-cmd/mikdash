@@ -65,6 +65,10 @@ test('build 42: PLACE — no joint over a joint is מהודר; a joint over one 
   assert.equal(C.place(2, { dragPx: 60, settleS: 0.6 }), 'ok'); assert.equal(C.state().done, true); assert.equal(C.result().rating, 'mehudar');
   const D = F.createCourse(sp); D.place(2, { dragPx: 60, settleS: 0.6 }); D.place(2, { dragPx: 60, settleS: 0.6 }); D.place(2, { dragPx: 60, settleS: 0.6 });
   assert.equal(D.state().faults, 1); assert.equal(D.result().rating, 'kasher');
+  // (the naive kid's dead end, K42-P-new: a stone that leaves a gap no stone fills is refused — every course can always end)
+  const E = F.createCourse(sp); E.place(3, { dragPx: 60, settleS: 0.6 }); assert.equal(E.place(2, { dragPx: 60, settleS: 0.6 }), 'gap'); assert.equal(E.fits(2), false); assert.equal(E.fits(3), true);
+  assert.equal(E.state().at, 4); assert.equal(E.place(3, { dragPx: 60, settleS: 0.6 }), 'ok'); assert.equal(E.state().done, true);
+  for (let seed = 1; seed <= 300; seed++) { let a = seed; const rnd = () => ((a = (a * 16807) % 2147483647) / 2147483647); for (const n of [0, 1]) for (const L of [1, 3]) { const K = F.createCourse(F.courseSpec(n, L)); for (let k = 0; k < 60 && !K.state().done; k++) K.place([2, 3, 4][Math.floor(rnd() * 3)], { dragPx: 60, settleS: 0.6 }); assert.ok(K.state().done, `seed ${seed}: the course ends`); } }
   const O = F.createRoll(1); for (let k = 0; k < 4000 && !O.state().done; k++) { O.step(0.05); if (O.state().free && O.state().t - O.state().freeAt > 0.3) O.moveRoller({ dragPx: 120 }); }
   assert.equal(O.result().rating, 'mehudar');
   const G = F.createRoll(1); for (let k = 0; k < 4000 && !G.state().done; k++) { G.step(0.05); if (G.state().waiting || (G.state().free && k % 300 === 0)) G.moveRoller({ dragPx: 120 }); }

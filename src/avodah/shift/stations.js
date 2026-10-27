@@ -21,7 +21,8 @@ import { addDrawer, layerOf, L, K29, SHARED, chipsTime, edgeChip, EDGE30_CSS, pl
 import { STATIONS31, SLICE31, CLIMB31, PARTS31, PYRE31, KEN_MARK31, OLAH_MARK31, actPts31 } from './route31.js';
 import { PLACE31 } from './layout31.js';   // ── fable32 (build 3) ── the laver at the real laver ── /fable32 ──
 import { PACE } from './walk.js';   // ── recovered (16–26c) ── (PACE.laver: his walk up to the laver)
-import { gradeOf, GRADE } from '../../game/twin.js';   // ── recovered (build 17) ── (the timing acts' grade windows, shared with the twin)
+import { gradeOf, GRADE } from '../../game/twin.js';
+import { pad40On } from './touch40.js';   // ── fable32 (build 41) ── (the work pad's switch) ── /fable32 ──   // ── recovered (build 17) ── (the timing acts' grade windows, shared with the twin)
 
 export const STATIONS = Object.freeze({
   // ── shift30 ── the shift's own stage: a compact ring round the altar's east side (WAVE30 (3) — fidelity second, the owner's words):
@@ -93,6 +94,7 @@ const CSS = `.s29-st{position:absolute;left:0;top:0;min-width:58px;height:48px;p
 .s31-pips{position:absolute;left:0;top:0;z-index:8;pointer-events:none;display:flex;gap:6px;direction:ltr}
 .s17-zone{position:absolute;left:0;top:0;width:104px;height:104px;margin:-52px 0 0 -52px;z-index:9;border-radius:50%;pointer-events:auto;touch-action:none;transform:translate(-999px,-999px);-webkit-tap-highlight-color:transparent}
 .s17-tg{position:absolute;left:0;top:0;width:64px;height:64px;margin:-32px 0 0 -32px;z-index:8;border-radius:50%;pointer-events:none;border:4px solid rgba(255,214,110,.95);box-shadow:0 0 0 2px rgba(40,28,12,.5),inset 0 0 10px rgba(255,214,110,.35);transform:translate(-999px,-999px)}
+body.s41-zone .tw-btn{opacity:0!important;pointer-events:none!important}
 .s17-tg.hot{border-color:#FFFFFF;box-shadow:0 0 0 2px rgba(40,28,12,.5),0 0 18px 6px rgba(255,214,110,.9)}
 .s17-cl{position:absolute;left:0;top:0;width:64px;height:64px;margin:-32px 0 0 -32px;z-index:8;border-radius:50%;pointer-events:none;border:3px solid #FFF6DA;box-shadow:0 0 0 1px rgba(40,28,12,.55);transform:translate(-999px,-999px)}
 .s17-cl.good{border-color:#FFD66E}.s17-cl.off{opacity:0}
@@ -481,6 +483,7 @@ export function createStations(o = {}) {
   function floatAt(at, text, kind) { try { if (twin && typeof twin.feedback === 'function') { twin.feedback(at, text, kind); return; } } catch (e) { /* */ } try { if (ctx.float) ctx.float(at, text, kind); } catch (e) { /* */ } }
   function finish(q, gold, why) {
     const a = A; if (!a) return; A = null;
+    try { if (doc && doc.body) doc.body.classList.remove('s41-zone'); } catch (e) { /* */ }   // ── fable32 (build 41) ── ── /fable32 ──
     SHARED.act = null;
     // ── recovered (16–26c) ── the real kohen freed (but his cheer); the act's own camera view gone; a release still to come swallowed
     try { const H = H35(); if (H && H.state().acting !== 'Cheer') H.free(); } catch (e) { /* */ }
@@ -771,6 +774,9 @@ export function createStations(o = {}) {
     // ── recovered (build 17) ── the timing act's rings on the thing: the closing ring from ring0 × down to the target (and on, shrinking,
     // past it); good within GRADE.GOOD (×k) of the gold moment, the target hot within PERF; off during the pause, a stuck axe, a blow
     if (A.sw && A.tg && A.thing) { const p = view.project(A.thing.x, A.thing.y, A.thing.z);
+      // ── fable32 (build 41) ── (the coordinator's build-41 brief, item 7) the thing's own zone on the screen: the work button beside it
+      // hidden — only the fallback (the zone off the screen, or the player's switch) ── /fable32 ──
+      { const Wd = innerWidth || 844, Hd = innerHeight || 390, onS = !!(p && p.on && p.x >= 0 && p.y >= 0 && p.x <= Wd && p.y <= Hd) && !pad40On(); if (doc && doc.body && doc.body.classList.contains('s41-zone') !== onS) doc.body.classList.toggle('s41-zone', onS); }
       if (p && p.on) { const tr = `translate(${Math.round(p.x)}px,${Math.round(p.y)}px)`, sw = A.sw, tn = now(), off = tn < sw.pauseUntil || tn < sw.stuckUntil || !!sw.imp || A.phase !== 'act', d = tn - (sw.t0 + sw.C), u = Math.max(0, (tn - sw.t0) / sw.C), sc = off ? 1 : u < 1 ? SWING17.ring0 - (SWING17.ring0 - 1) * u : Math.max(0.55, 1 - (u - 1) * 1.6);
         A.tg.style.transform = tr; A.zone17.style.transform = tr; A.cl.style.transform = `${tr} scale(${sc.toFixed(3)})`;
         const good = !off && Math.abs(d) <= GRADE.GOOD * sw.k; A.cl.classList.toggle('good', good); A.cl.classList.toggle('off', off); A.tg.classList.toggle('hot', !off && Math.abs(d) <= GRADE.PERF * sw.k); } }

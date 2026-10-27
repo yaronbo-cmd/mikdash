@@ -197,6 +197,8 @@ export const K20 = Object.freeze({
 });
 // ── recovered (build 21) ── תרומת הדשן (deshen21.js): the swipe (px) and how straight, the coal's layers; the pan's bed and his stand at it,
 // the way up the ramp and down (up, head, foot, go), the walk, the pour at the heap, the wind and the spill, the score, its cameras
+// ── fable32 (build 41) ── the lamb's views (view25, spotView25): the scan from higher and farther, the macro from the lamb's far side ── /fable32 ──
+export const P41 = Object.freeze({ lamb: Object.freeze({ el: 0.72, d: 7.5, away: 0.6, zd: 3.4 }) });
 export const D21 = Object.freeze({
   swipe: 120,
   straight: 0.5,
@@ -4000,16 +4002,22 @@ export function createDay33(o = {}) {
       const c = P25.cam,
         L = door25(),
         asp = Math.max(0.4, (globalThis.innerWidth || 844) / (globalThis.innerHeight || 390));
-      return camView({ az: c.az, el: c.el, d: Math.max(c.d, 3.5 / asp), t: { x: L.x, y: 16 + c.ty, z: L.z } });
+      // ── fable32 (build 41) ── (the coordinator's build-41 brief, items 2 and 4: the lamb's view had him huge or out of the frame — 2.9
+      // amot from the lamb, him beside it, the pen's walls behind) from higher and farther (P41.lamb): over the pen's walls, him whole ── /fable32 ──
+      return camView({ az: c.az, el: Math.max(c.el, P41.lamb.el), d: Math.max(c.d, 3.5 / asp, P41.lamb.d), t: { x: L.x, y: 16 + c.ty, z: L.z } });
     },
     spotView25 = (K) => {
       const spot = K.L.spots[K.zi],
         at = at25(spot.r, door25(), spot.r < 4 ? P25.hy : 0),
         v = view25(),
         d = Math.hypot(v.p[0] - at.x, v.p[1] - at.y, v.p[2] - at.z) || 1,
-        a = [0, 1, 2].map((x) => ((v.p[x] - [at.x, at.y, at.z][x]) / d) * 0.55 + [at.nx, at.ny, at.nz][x] * 0.45),
+        a0 = [0, 1, 2].map((x) => ((v.p[x] - [at.x, at.y, at.z][x]) / d) * 0.55 + [at.nx, at.ny, at.nz][x] * 0.45),
+        // ── fable32 (build 41) ── (the macro: him at least in part in the frame — the close look from the lamb's far side from him, so he
+        // stands beyond it in the frame; P41.lamb.away) ── /fable32 ──
+        hh = heroP(), hx = hh.x - at.x, hz = hh.z - at.z, hl = Math.hypot(hx, hz) || 1,
+        a = [a0[0] - (hx / hl) * P41.lamb.away, a0[1], a0[2] - (hz / hl) * P41.lamb.away],
         b = Math.hypot(...a) || 1;
-      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * P25.zd), t: [at.x, at.y, at.z] };
+      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * Math.max(P25.zd, P41.lamb.zd)), t: [at.x, at.y, at.z] };   // ── fable32 (build 41) ── (a little farther: 3.4) ── /fable32 ──
     },
     camWork25 = () => {
       const K = st.p25,

@@ -299,7 +299,7 @@ export function createDay(o = {}) {
     T.onWork(() => false);
     // ── cam28 ── the guard on every rendered frame (main.js view.guard): the look point is his head; under a work's closer camera and FIGURES24's close-up the
     // close-up's own target; off while a sheet, a card or a place's authored view (places24: inside the Heichal's door) holds the camera
-    C28 = createCamGuard({ S, gy, heroP, view, look: () => (!T || !T.cam || sheetOn || !entered ? 'off' : (T.viewK && T.viewK() > 0.001) ? 'off' : (f24Hold || (running && running.zoom && !running.game)) ? 'target' : 'hero') });   // (a work's camera looks at its stage: the line to the stage is the one kept — the lots under the Gazit's roof light)
+    C28 = createCamGuard({ S, gy, heroP, view, camera: rig && rig.camera /* ── fable32 (build 41) ── (the look back onto him: the guard turns the camera itself) ── */, look: () => (!T || !T.cam || sheetOn || !entered ? 'off' : (T.viewK && T.viewK() > 0.001) ? 'off' : (f24Hold || (running && running.zoom && !running.game)) ? 'target' : 'hero') });   // (a work's camera looks at its stage: the line to the stage is the one kept — the lots under the Gazit's roof light)
     c28Fn = (dt) => { try { C28.step(dt); } catch (e) { /* the world's */ } };
     // ── /cam28 ──
     // ── guide27 ──

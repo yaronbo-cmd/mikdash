@@ -1035,7 +1035,7 @@ const SAY = {
 reg30('lamb', { chip: SAY.scan, all: [SAY.bring, SAY.pen, SAY.scan, SAY.blem, SAY.ill] });   // ── fable32 (build 30) ── (the pen's lines at its end) ── /fable32 ──
 const AIM_K = 1.6;
 const TORCH_COLOR = '#FFB066';
-const ZOOM_FOV = 20;
+const ZOOM_FOV = 28;   // ── fable32 (build 41) ── (was 20: the macro a little wider — him at least in part in the frame) ── /fable32 ──
 const CSS = `.p25{position:fixed;z-index:32;direction:rtl;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:none;display:none}.p25.on{display:block}.p25 small{display:block;font-size:11px;font-weight:700;opacity:.85}
 .p25-dk{display:block;inset:0;z-index:28;opacity:0;transition:opacity .5s}.p25-dk.on{opacity:1}.p25-in{top:0;bottom:0;left:51%;right:0;z-index:30;touch-action:none;pointer-events:auto}
 .p25-fr{left:0;top:0;z-index:30;border-radius:50%;border:3px solid #FFE08A;box-shadow:0 0 14px 4px #FFD66E99;animation:p25r 1s infinite alternate}

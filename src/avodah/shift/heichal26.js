@@ -20,7 +20,7 @@ import { lamb, man, ROBE, SKIN } from '../works/figures.js';
 import { P26, POOL26, SWIPE36 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
-import { ALTAR_CORNERS, DESHEN_PLACE, LIMBS_PLACE, TAMID_RING } from '../../places.js';
+import { ALTAR_CORNERS, DESHEN_PLACE, LIMBS_PLACE, TAMID_RING, GOLD_ALTAR } from '../../places.js';   // ── fable32 (build 41) ── (+ GOLD_ALTAR: the inner altar's own top for its ring) ── /fable32 ──
 export function createHeichal26(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
@@ -468,7 +468,7 @@ export function createHeichal26(o = {}) {
         if (K && PAD_PH.test(ph) && live) {
           const li = K.ord && K.ord.length ? K.ord[Math.min(K.li | 0, K.ord.length - 1)] : 0, L0 = lamps[li] || lamps[0];
           if (ph === 'bolt' || ph === 'key') { o40 = [{ x: P26.gate.x, y: gy(P26.gate.x, P26.gate.z) + 4.5, z: P26.gate.z, r: 2.6 }]; id40 = 'hk26gate'; }
-          else if (ph === 'pull') { o40 = [{ x: P26.alt.x, y: gy(P26.alt.x, P26.alt.z) + 1.4, z: P26.alt.z, r: 1.3 }]; id40 = 'hk26alt'; }
+          else if (ph === 'pull') { o40 = [{ x: GOLD_ALTAR.x, y: GOLD_ALTAR.y + GOLD_ALTAR.h, z: GOLD_ALTAR.z, r: 0.75 }]; id40 = 'hk26alt'; }   /* ── fable32 (build 41) ── (the altar's own top — GOLD_ALTAR, places.js — not his stand, P26.alt: the ring sat on his shoulder and the altar together) ── /fable32 ── */
           else if (ph === 'teni36') { o40 = [{ x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 0.9 }]; id40 = 'hk26teni';   /* (the teni at his hands' height) */ }
           else if (ph === 'altar') o40 = [{ x: PAN36.x, y: PAN36.y, z: PAN36.z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
           else if (ph === 'drag') o40 = [{ x: lamps[5].x, y: lamps[5].y, z: lamps[5].z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];

@@ -135,6 +135,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
   if (practice.length || book31.length) {
     if (!frames) await pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); });
     await pg.addScriptTag({ path: path.join(__dirname, 'autoplay35.js') });
+    if (flag('--cam41')) { await pg.addScriptTag({ path: path.join(__dirname, 'cam41.js') }); await pg.evaluate(() => globalThis.__CAM41.start()); }   // ── build 41 ── the camera's measure, every frame ── /build 41 ──
     P31.before = await save31(); console.log('before', P31.before.label, P31.before.day.slice(0, 200));
     if (await pg.$('[data-lb=home]')) { await pg.click('[data-lb=home]', { force: true }); await pg.waitForTimeout(600); }
     await pg.click('[data-lb=journal]', { force: true }); await pg.waitForSelector('.j32 .p23-bk', { timeout: 30000 }); await pg.waitForTimeout(500);   // ── fable32 (build 32) ── (the journal's roles tab) ── /fable32 ──
@@ -154,6 +155,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
           await pg.click(`.p23-bk [data-p31="${role}"]`, { force: true });
         }
         const w0 = Date.now();
+        if (flag('--cam41')) await pg.evaluate(() => globalThis.__CAM41 && globalThis.__CAM41.reset()).catch(() => {});   // ── build 41 ── ── /build 41 ──
         await pg.waitForFunction((r) => globalThis.__SHIFT && globalThis.__SHIFT.E && globalThis.__SHIFT.E.prac31 === r && globalThis.__SHIFT.E.st33.phase === 'run', role, { timeout: 60000, polling: 200 });
         if (!frames) await pg.evaluate(() => { window.__T.pause(true); window.__T.simulate(true, 0.05); });
         await pg.evaluate((o) => { globalThis.__AUTO35.stop(); globalThis.__AUTO35_P = globalThis.__AUTO35.start(o).catch((e) => { if (!/^stopped$/.test(String(e && e.message))) throw e; }); }, { human, skilled: profile36 === 'skilled', seed: seed + P31.results.length, practice: true, shots30 });
@@ -166,6 +168,7 @@ if (fromStore && !fs.existsSync(fromStore)) { console.log('FAIL --from: no stora
         const s = await pg.evaluate(() => { const E = globalThis.__SHIFT.E, A = globalThis.__AUTO35.state(); return { p31: E.p31(), t: Math.round(E.st33.t * 10) / 10, a: { stuck: A.stuck, err: A.err, marks: A.marks, rate: A.rate, notes: A.notes, lag: A.lag, d21dbg: A.d21dbg, b36dbg: A.b36dbg /* ── fable32 (build 37) ── */ }, tag: !!document.querySelector('.f17-top .p31-tag'), fire: (() => { const f = document.querySelector('.f17-fire'); return f ? getComputedStyle(f).display : null; })(), card: ((document.querySelector('.p31-end') || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 220), btn: [...document.querySelectorAll('.p31-end button')].map((x) => `${x.dataset.p31}:${Math.round(x.getBoundingClientRect().height)}`) }; });
         const done = s.p31 && s.p31.done, m = s.a.marks || {}, inAt = m.k20pose != null ? m.k20pose : m.actIn;
         const r = { role, rep, ok: !!ok, rating: done ? done.rating : null, q: done ? done.q : null, act: done && inAt != null && m.p31end != null ? Math.round((m.p31end - inAt) * 10) / 10 : null, end: s.t, wallS: Math.round((Date.now() - w0) / 100) / 10, stuck: s.a.stuck, err: s.a.err, tag: s.tag, fire: s.fire, btn: s.btn, card: s.card, coins: (s.a.rate || []).map((x) => x[4]), lag: s.a.lag || null /* ── fable32 (build 36) ── (the page's late looks: the balance's) ── */, d21dbg: s.a.d21dbg || undefined, b36dbg: s.a.b36dbg || undefined /* ── fable32 (build 37) ── */, notes: (s.a.notes || []).slice(-6) /* ── fable32 (build 39) ── */ };
+        if (flag('--cam41')) { r.cam41 = await pg.evaluate(() => globalThis.__CAM41 && globalThis.__CAM41.stats()).catch(() => null); console.log('cam41', role, JSON.stringify(r.cam41)); }   // ── build 41 ── ── /build 41 ──
         P31.results.push(r); console.log('practice', JSON.stringify(r));
         if (rep === 0 && (shots30.includes('p31end') || shots30.includes(`p31end-${role}`))) await snap31(`p31end-${role}`);
         if (src31 && rep === 0) {   // (the source line: a tap opens end30's card of the act's lines, over the end card; "סגור" back to it)

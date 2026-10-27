@@ -30,6 +30,7 @@ const CSS = `
 .sh-hint.on{opacity:1;animation:sh-bob 1.1s ease-in-out infinite alternate}
 @keyframes sh-bob{from{margin-bottom:0}to{margin-bottom:5px}}
 .sh-intro{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;padding:14px 26px;border-radius:18px;background:rgba(28,20,10,.85);opacity:0;transition:opacity .25s}
+.sh-intro.slim{top:calc(env(safe-area-inset-top,0px) + 10px);left:auto;right:calc(env(safe-area-inset-right,0px) + 12px);transform:none;padding:3px 14px;border-radius:12px;white-space:nowrap;pointer-events:none}.sh-intro.slim b{display:inline;font-size:16px;line-height:1.2}.sh-intro.slim span{font-size:13px;margin-inline-start:8px}
 .sh-intro.on{opacity:1}.sh-intro b{display:block;font:900 30px/1.15 "Heebo",system-ui,sans-serif;color:#FFD66E}.sh-intro span{font:700 16px/1.3 "Heebo",system-ui,sans-serif}
 .sh-op-b{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translateX(-50%);font:900 20px/1 "Heebo",system-ui,sans-serif;color:#FFD66E;padding:8px 16px;border-radius:14px;background:rgba(28,20,10,.8);white-space:nowrap}
 .sh-op-b small{display:block;font:600 11px/1.3 "Heebo",system-ui,sans-serif;color:#FFF6DA;opacity:.8;margin-top:3px;text-align:center}
@@ -219,8 +220,9 @@ export function createShiftHud(root) {
       clearTimeout(hintEl.__t); hintEl.textContent = text || ''; hintEl.classList.toggle('on', !!text);
       if (text) hintEl.__t = setTimeout(() => { hintEl.classList.remove('on'); }, 4000);
     },
-    intro(title, sub, ms = 1600) {
+    intro(title, sub, ms = 1600, slim = false) {   // ── fable32 (build 41) ── (slim: one thin line in the top band, beside the pills — never over the kohen or the thing) ── /fable32 ──
       introEl.innerHTML = `<b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`;
+      introEl.classList.toggle('slim', !!slim);
       introEl.classList.add('on'); setTimeout(() => introEl.classList.remove('on'), ms);
     },
     /** the opening's four rings: steps [{id, label}], h.tap(i); the engine places them (place(i, {x,y}|null)) each frame */

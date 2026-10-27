@@ -149,23 +149,33 @@ export function walk39(v, g, top, dt) {
 // `pan` amot — so the thing (touch40.js's globalThis.__T40.obj) stands at `at` of the width; if that leaves him past `hero` (NDC, the left
 // edge −1) it steps back along its look, up to `back` amot. Pure; frozen by the caller while a finger is on the thing.
 export const CAM40 = Object.freeze({ at: 0.6, hero: -0.82, pan: 6, back: 8 });
-export function pan40(p, t, O, H, tanH, c = CAM40) {
+// ── fable32 (build 41) ── (the coordinator's build-41 brief, item 2: the menorah's view had his head huge on the left) every act's view also
+// keeps his whole figure at most `big` of the screen's height (HERO41: his figure's height, the model's bounds measured by tools/cam41.js:
+// 3.96) and inside the frame on both sides (`heroR`), stepping back up to `back` amot ── /fable32 ──
+export const CAM41 = Object.freeze({ ...CAM40, back: 14, big: 0.45, heroR: 0.92 });
+export const HERO41 = 3.96;
+export function pan40(p, t, O, H, tanH, c = CAM40, tanV = 0) {
   let fx = t[0] - p[0], fy = t[1] - p[1], fz = t[2] - p[2];
   const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
   const rl = Math.hypot(fz, fx) || 1, rx = -fz / rl, rz = fx / rl;
   const want = 2 * c.at - 1;
+  const depth = (q, back, sh) => (q.x - (p[0] - fx * back + rx * sh)) * fx + (q.y - (p[1] - fy * back)) * fy + (q.z - (p[2] - fz * back + rz * sh)) * fz;
   const at = (q, back, sh) => { const vx = q.x - (p[0] - fx * back + rx * sh), vy = q.y - (p[1] - fy * back), vz = q.z - (p[2] - fz * back + rz * sh), d = vx * fx + vy * fy + vz * fz; return d > 0.2 ? (vx * rx + vz * rz) / (d * tanH) : -9; };
+  // (build 41: his figure's share of the screen's height at that depth — H.h his height, tanV the view's half-height tangent)
+  const big = (back, sh) => { if (!H || !(H.h > 0) || !(tanV > 0)) return 0; const d = depth(H, back, sh); return d > 0.2 ? H.h / (2 * d * tanV) : 9; };
   let best = null;
   for (let back = 0; back <= c.back; back += 1) {
     const vx = O.x - (p[0] - fx * back), vy = O.y - (p[1] - fy * back), vz = O.z - (p[2] - fz * back), d = vx * fx + vy * fy + vz * fz;
     if (!(d > 0.2)) continue;
     const sh = Math.max(-c.pan, Math.min(c.pan, vx * rx + vz * rz - want * d * tanH));
     best = { back, sh };
-    if (!H || at(H, back, sh) >= c.hero) break;
+    if (!H) break;
+    const hx = at(H, back, sh);
+    if (hx >= c.hero && hx <= (c.heroR || 9) && (!(c.big > 0) || big(back, sh) <= c.big)) break;   // (build 41: both sides and his size too)
   }
   if (!best) return null;
   const P = [p[0] - fx * best.back + rx * best.sh, p[1] - fy * best.back, p[2] - fz * best.back + rz * best.sh], Tg = [t[0] + rx * best.sh, t[1], t[2] + rz * best.sh];
-  return { p: P, t: Tg, sh: best.sh, back: best.back, ox: at(O, best.back, best.sh), hx: H ? at(H, best.back, best.sh) : null };
+  return { p: P, t: Tg, sh: best.sh, back: best.back, ox: at(O, best.back, best.sh), hx: H ? at(H, best.back, best.sh) : null, big: H ? big(best.back, best.sh) : null };
 }
 // ── /fable32 ──
 export const STICK39 = (() => { try { return typeof location !== 'undefined' && /[?&]stick=1(&|$)/.test(location.search || ''); } catch (e) { return false; } })();
@@ -514,14 +524,21 @@ export function createTwin(o = {}) {
     // menorah / the golden altar; the אמרכל stays outside): eased in over ~0.9 s, held while it is asked, eased back when it is not
     { let V = Wk && Wk.view && Wk.view.p && Wk.view.t && !OV.on && !zoom.free ? Wk.view : null;
       // ── fable32 (build 40) ── the thing near the right thumb (pan40); held as it was while a finger is on the thing ── /fable32 ──
-      { const G40 = globalThis.__T40, O = G40 && G40.obj;
-        if (V && O && !globalThis.__CAM40_OFF) {
-          if (G40.down && CBC.v40) V = CBC.v40;
-          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + 1.2, z: h.z } : null;   /* (his middle) */ const C40 = Number.isFinite(O.at) ? { ...CAM40, at: O.at } : CAM40; r40 = pan40(V.p, V.t, O, H40, tanH, C40);
+      // ── fable32 (build 41) ── every authored act view, with a thing to touch or without (the laver, the lot): his figure ≤ 45 % of the
+      // height and inside the frame — without a thing the view only steps back (no slide) ── /fable32 ──
+      { const G40 = globalThis.__T40, O0 = G40 && G40.obj;
+        if (V && !globalThis.__CAM40_OFF) {
+          const O = O0 || (h ? { x: h.x, y: (h.y || 16) + HERO41 / 2, z: h.z, at: 0.5, none: true } : null);
+          if (!O) { CBC.v40 = null; }
+          else if (G40 && G40.down && CBC.v40) V = CBC.v40;
+          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + HERO41 / 2, z: h.z, h: HERO41 } : null, tanV = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360);   /* (his middle and his height — build 41) */ const C40 = O.none ? { ...CAM41, pan: 0 } : Number.isFinite(O.at) ? { ...CAM41, at: O.at } : CAM41; r40 = pan40(V.p, V.t, O, H40, tanH, C40, tanV);
             // (never into a wall — the House's narrow hall, a chamber: the slide shortened while its line from the look is cut and the
             // authored one's is not; else the authored view as it was — cam28's seg, the guard's own test)
             const sg = globalThis.__DAY && globalThis.__DAY.cam28, cut = (P, Tg) => !!(sg && typeof sg.seg === 'function' && sg.seg(Tg[0], Tg[1], Tg[2], P[0], P[1], P[2]));
-            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...C40, pan: Math.abs(r40.sh) * k, back: r40.back * k }); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
+            // ── fable32 (build 41) ── (the lamb's pen, a chamber: a step back cut by a wall) first the same step raised over it — the camera
+            // looks down at him and the thing — then the shorter steps ── /fable32 ──
+            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { for (const up of [2, 4, 6]) { const P2 = [r40.p[0], r40.p[1] + up, r40.p[2]]; if (!cut(P2, r40.t)) { r40 = { ...r40, p: P2, up }; break; } } }
+            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...C40, pan: Math.abs(r40.sh) * k, back: r40.back * k }, tanV); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } try { globalThis.__CAM40R = r40 ? { back: r40.back, sh: Math.round(r40.sh * 10) / 10, big: r40.big == null ? null : Math.round(r40.big * 100) / 100, hx: r40.hx == null ? null : Math.round(r40.hx * 100) / 100, up: r40.up || 0 } : { none: 1, cutV: cut(V.p, V.t) }; } catch (e2) { /* */ }   /* ── fable32 (build 41) ── (the tools' note: the act view's step) ── */ } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
         } else CBC.v40 = null; }
       if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * (V.e > 0 ? V.e : 2.4)); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)   // ── recovered (16–26c) ── (V.e: the view's own ease)
       CBC.vk += ((V ? 1 : 0) - CBC.vk) * (1 - Math.exp(-dt * 2.6)); if (!V && CBC.vk < 0.002) { CBC.vk = 0; CBC.vl = null; }

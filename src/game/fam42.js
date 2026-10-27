@@ -766,7 +766,7 @@ export function createCompass50(L = 1) {
 }
 /** the WHEEL's HUB (לשכת הגולה — "וְהַגַּלְגַּל נָתוּן עָלָיו", מדות ה, ד): a drag across turns the hub with the finger; a spoke dragged in
  *  fits only while an empty slot stands at the top (|err| ≤ tol) — else it jams (a correction). A tap fits nothing. Eight spokes */
-export const HUB50 = Object.freeze({ n: 8, gain: 0.4, tol: Object.freeze([null, 24, 16, 11, 8]) });   // (build 50: the naive kid K50-P turned and missed for 170 s at 15°)
+export const HUB50 = Object.freeze({ n: 8, gain: 0.4, tol: Object.freeze([null, 18, 14, 10, 7]) });   // (build 50: the naive kid K50-P turned and missed for 170 s at 15°)
 export function createHub50(L = 1) {
   const lv = clamp(L | 0, 1, 4), P = HUB50, tol = P.tol[lv];
   const k = { L: lv, tol, angle: 0, filled: Array(P.n).fill(false), jams: 0, done: false, q: null };

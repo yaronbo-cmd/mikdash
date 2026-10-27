@@ -44,7 +44,7 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   wedge: 'הקישו על הקו — יתדות במרווחים שווים · המחשה',
   pour: 'החזיקו — מים; שחררו בסוף הסדק · המחשה',
   two: 'שני קווים — רק אחד עם השכבות · המחשה',
-  place: 'גררו אבן לנדבך והחזיקו רגע · "אריח על גבי לבנה" — מגילה טז ע"ב · טיוטה',
+  place: 'גררו אבן לנדבך — היא מתיישבת מעצמה · "אריח על גבי לבנה" — מגילה טז ע"ב · טיוטה',
   roll: 'גררו את הגליל מאחור — לחזית · המחשה',
   pave: 'גררו לוחות שימלאו את השורה בדיוק · המחשה',
   trace: 'גררו לאורך הנקודות · "לבית התקיעה" — ב. מזר, 1968 · טיוטה',
@@ -163,14 +163,16 @@ export function createHar42(o = {}) {
   const W = () => (typeof innerWidth === 'number' ? innerWidth : 844), H = () => (typeof innerHeight === 'number' ? innerHeight : 390);
   const now = () => performance.now() / 1000;
   // the places: around the Mount's work corner (the old stage's banker spot) — the rope's pegs, the wheel, the rocks, the course, the stone's run, the paving, the parapet
-  const base = (() => { const w = o.spot ? o.spot() : null, b0 = w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; return MODE === 'stage' ? b0 : { x: b0.x - 85, z: b0.z }; })();   // (build 44: the yard and the test on the finished plaza, 85 amot in from the Mount's east wall — at the old corner the wall stood between the camera and him)
+  const base = (() => { const w = STG === 'wall' ? { x: -100, z: -45 } : o.spot ? o.spot() : null, b0 = w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; return MODE === 'stage' ? b0 : { x: b0.x - 85, z: b0.z }; })();   // (build 44: the yard and the test on the finished plaza, 85 amot in from the Mount's east wall — at the old corner the wall stood between the camera and him)
   const P = (dx, dz) => ({ x: base.x + dx, z: base.z + dz, get y() { return gy(this.x, this.z); } });
   const PL = { peg0: P(-14, 4), peg1: P(16, 4), wheel: P(10, -10), stone0: P(16, -10), rock: [P(-12, -14), P(-24, -6), P(-30, 8)], course: P(2, 16), roll0: P(-20, 24), roll1: P(4, 24), pave: P(18, 26), trace: P(30, 14), pulley: P(-2, -18), pstone: P(1, -18) };
   const STAND = { rope: PL.peg1, lift: P(6, -10), rock0: P(-9, -12), rock1: P(-21, -4), rock2: P(-27, 10), course0: P(2, 12), course1: P(2, 12), roll: P(-18, 19.5), pave: P(28, 27), trace: P(27, 14), corner: P(12, -5),
     line: PL.peg0, pulley: P(-6, -18), wcorner: P(8, 12), wcourse0: P(2, 12), wcourse1: P(2, 12), top: P(2, 12), giant: P(12, -5) };
-  if (STG === 'wall') {   // ── build 45 ── the court wall's work front (its work spot): the line's pins, the pulley and its stone, the courses, the giant low in the wall
-    Object.assign(PL, { peg0: P(-12, 6), peg1: P(12, 6), pulley: P(9, -6), pstone: P(12, -6), course: P(2, 16), stone0: P(-11, 15.4) });
-    Object.assign(STAND, { line: PL.peg0, pulley: P(5, -6), wcourse0: P(2, 11), wcourse1: P(2, 11), giant: P(-11, 10.5), wcorner: P(10, 11), top: P(2, 11) });
+  if (STG === 'wall') {   // ── build 45 ── the court wall's work front: INSIDE the court, 22.5 amot in from the north wall's inner face (z −67.5); the courses
+    // between him and the wall (the wall rising behind them), he on the court's side, the follow camera (az 0.9: +x +z) into the open court —
+    // at the old stage's work spot ('dress', 3 amot out from the face, on the wall's outer side) the camera stood inside the wall, every walk
+    Object.assign(PL, { peg0: P(-12, -4), peg1: P(12, -4), pulley: P(9, 8), pstone: P(12, 8), course: P(2, -12), stone0: P(-11, -11.4) });
+    Object.assign(STAND, { line: PL.peg0, pulley: P(5, 8), wcourse0: P(2, -7), wcourse1: P(2, -7), giant: P(-11, -6.5), wcorner: P(10, -7), top: P(2, -7) });
   }   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */
@@ -256,7 +258,7 @@ export function createHar42(o = {}) {
   }
   /** ── build 45 ── stage 02's props: the pulley's rig (a gin pole of two legs, the sheave, the rope) and its stone; the court wall's gold
    *  plan, 187 × 135 amot (מדות ה, א) round the court, rising from the ground in the opening; the morning's puddles after a night's rain */
-  const CW45 = { x: -85, z: 0, w: 187, d: 135 };
+  const CW45 = { x: -93.5, z: 0, w: 187, d: 135 };   // (the court's inside, מדות ה, א: the wall's foot −193…6 × ±73.5 less its 6 amot)
   function props45(add) {
     const top = PL.pulley.y + 7.5, g2 = new THREE.Group();
     for (const sx of [-1, 1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.24, 7.8, 0.24), WOOD); l.position.set(sx * 1.4, -3.75, 0); l.rotation.z = -sx * 0.19; g2.add(l); }
@@ -267,8 +269,8 @@ export function createHar42(o = {}) {
     const pr = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(PL.pstone.x, top, PL.pstone.z), new THREE.Vector3(PL.pstone.x, top - 6, PL.pstone.z), new THREE.Vector3(PL.pulley.x, top, PL.pulley.z), new THREE.Vector3(PL.pulley.x - 0.6, PL.pulley.y + 1.4, PL.pulley.z + 0.6)]);
     st.props.pRope = add(new THREE.LineSegments(pr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.pTop = top;
     if (STG === 'wall') {
-      const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.8 }), hw = CW45.w / 2, hd = CW45.d / 2;
-      st.props.plan = [[0, -hd, CW45.w, 1.6], [0, hd, CW45.w, 1.6], [-hw, 0, 1.6, CW45.d], [hw, 0, 1.6, CW45.d]].map(([dx, dz, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 3, d), gm); m.geometry.translate(0, 1.5, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, gy(CW45.x + dx, CW45.z + dz), CW45.z + dz); });
+      const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.8 }), hw = CW45.w / 2 + 3, hd = CW45.d / 2 + 3;   // (the gold line along the wall's middle: it rises inside the wall to be)
+      st.props.plan = [[0, -hd, 2 * hw + 1.6, 1.6], [0, hd, 2 * hw + 1.6, 1.6], [-hw, 0, 1.6, 2 * hd], [hw, 0, 1.6, 2 * hd]].map(([dx, dz, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 3, d), gm); m.geometry.translate(0, 1.5, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, gy(CW45.x + dx, CW45.z + dz), CW45.z + dz); });
     }
   }
   /** the crane's rope from the jib's end down to the stone's top */
@@ -439,7 +441,8 @@ export function createHar42(o = {}) {
     pulley: { begin() { st.job = mkPulley(); } },
     wcourse0: { begin() { st.job = mkCourse(0, '', 'wcourse0'); } }, wcourse1: { begin() { st.job = mkCourse(1, '', 'wcourse1'); } },
     giant: { begin() { const s0 = st.props.stone0; if (s0) s0.position.y = PL.stone0.y + 0.9 + 4; st.job = mkCorner(LINE42.giant, 'giant'); } },
-    wcorner: { begin() { st.job = mkCourse(MODE === 'yard' ? 0 : 2, 'corner', 'wcorner'); } },   // (the yard: on the ground row) top: { begin() { st.job = mkCourse(3, 'top', 'top'); } },
+    wcorner: { begin() { st.job = mkCourse(MODE === 'yard' ? 0 : 2, 'corner', 'wcorner'); } },   // (the yard: on the ground row)
+    top: { begin() { st.job = mkCourse(3, 'top', 'top'); } },
     rock0: { begin() { st.job = mkRock(0); } }, rock1: { begin() { st.job = mkRock(1); } }, rock2: { begin() { st.job = mkRock(2); } },
     course0: { begin() { st.job = mkCourse(0); } }, course1: { begin() { st.job = mkCourse(1); } },
     roll: { begin() { st.job = mkRoll(); } },
@@ -466,7 +469,7 @@ export function createHar42(o = {}) {
         camTo(p, t, 1);
         const im = st.ui.before, tg = st.ui.btag, k = r.t;
         if (im) im.style.opacity = String(k < 6.6 ? 0 : k < 7.1 ? (k - 6.6) / 0.5 : k < 8.3 ? 1 : k < 8.9 ? 1 - (k - 8.3) / 0.6 : 0);
-        if (tg && k > 6.6) { tg.hidden = false; tg.textContent = k < 8.6 && im ? 'לפני — הסלע של הבוקר' : 'אחרי — משטח חלק'; }
+        if (tg && k > 6.6) { tg.hidden = false; tg.textContent = STG === 'wall' ? 'חומת העזרה — קפ״ז על קל״ה' : k < 8.6 && im ? 'לפני — הסלע של הבוקר' : 'אחרי — משטח חלק'; }   // (build 45: the court, 187 × 135 — מדות ה, א)
         return r.t > 9.5;
       },
       end() { if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } finishCard(); },
@@ -948,7 +951,7 @@ export function createHar42(o = {}) {
   }
   const api = {
     start, stop, frame, get on() { return st.on; },
-    state: () => ({ mode: MODE, test: S.test44 || null, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: R.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: R.grades.slice(), hands: Math.round(R.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
+    state: () => ({ mode: MODE, stg: STG, test: S.test44 || null, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: R.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: R.grades.slice(), hands: Math.round(R.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
     sig: () => `${MODE}|${st.part}|${R.part}|${R.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}|${S.test44 ? JSON.stringify(Object.values(S.test44.jobs || {}).map((r) => [r.tries, r.passed, r.demo])) : ''}`,
     line: () => (st.ui.line ? st.ui.line.textContent : ''),
     save: () => S, places: () => ({ PL, STAND, base }),

@@ -194,7 +194,7 @@
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
-      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + j.kind);
+      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
       if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }

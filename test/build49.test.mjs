@@ -44,9 +44,9 @@ test('build 49: NO FAILURE — a wave that beats him (the heel, the ropes let go
 test('build 49: THE PLAYER IS NICANOR in the voyage — not a kohen (the kohen hidden; a figure in travelling clothes); the kohen returns after', async () => {
   const scene = new THREE.Scene(); scene.add(new THREE.AmbientLight()); const heroMesh = new THREE.Group(); heroMesh.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1))); scene.add(heroMesh);
   const sky = new THREE.Mesh(new THREE.SphereGeometry(10)); sky.name = 'sky'; scene.add(sky);
-  const shows = [], lines = [], cams = []; let done = null;
+  const shows = [], lines = [], cams = [], emits = []; let done = null;
   const hero = { show: (v) => { shows.push(v); heroMesh.visible = v; } };
-  const job = createVoyage49({ scene, doc: null, camTo: (p, t) => cams.push([p, t]), line: (t) => lines.push(t), root: null, W: () => 844, H: () => 390, buzz: () => {}, sound: () => {}, emit: () => {}, timeOfDay: () => {}, stages: { hero }, L: 1, seen: false, done: (r) => { done = r; } });
+  const job = createVoyage49({ scene, doc: null, camTo: (p, t) => cams.push([p, t]), line: (t) => lines.push(t), root: null, W: () => 844, H: () => 390, buzz: () => {}, sound: () => {}, emit: (t, d) => emits.push([t, d && d.s]), timeOfDay: () => {}, stages: { hero }, L: 1, seen: false, done: (r) => { done = r; } });
   assert.deepEqual(shows, [false], 'the kohen hidden as the voyage begins'); assert.equal(heroMesh.visible, false); assert.equal(sky.visible, true, 'the sky kept');
   assert.ok(job.nic && job.nic.parent, 'Nicanor stands on the ship'); assert.notEqual(NICANOR49.tunic.toUpperCase(), '#FFFFFF'); assert.ok(!/^#F[0-9A-F]F[0-9A-F]F/i.test(NICANOR49.tunic), 'no white linen'); assert.ok(NICANOR49.cloak && NICANOR49.beard, 'a cloak and a beard: a wealthy Alexandrian');
   assert.match(VLINE49.intro, /הסיפור של הדלתות — הפעם אתם ניקנור/); assert.deepEqual([...VOY49], ['harbour', 'sea', 'storm', 'hug', 'acre', 'road']); assert.ok(Y49 >= 300);
@@ -59,6 +59,7 @@ test('build 49: THE PLAYER IS NICANOR in the voyage — not a kohen (the kohen h
   assert.ok(done && done.q != null && done.rating, 'graded by the storm'); assert.equal(done.skipped, false);
   assert.equal(shows[shows.length - 1], true, 'the kohen returns'); assert.equal(heroMesh.visible, true); assert.equal(scene.getObjectByName('voyage49'), undefined, 'the sea gone');
   assert.ok(cams.every(([p]) => p[1] > Y49 - 20), 'the voyage\'s cameras over its own sea');
+  assert.deepEqual(emits.filter((e) => e[0] === 'h49scene').map((e) => e[1]), ['harbour', 'storm', 'hug', 'acre', 'road'], 'each scene announced (the harbour, then the jump to the storm)');
   // seen once: a skip
   const j2 = createVoyage49({ scene, doc: null, camTo: () => {}, line: () => {}, root: null, W: () => 844, H: () => 390, buzz: () => {}, stages: { hero }, L: 1, seen: true, done: (r) => { done = r; } });
   j2.V.skipped = true; assert.equal(j2.frame(0.05), true); assert.equal(done.skipped, true); assert.equal(heroMesh.visible, true);

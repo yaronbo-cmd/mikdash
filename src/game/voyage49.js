@@ -183,11 +183,11 @@ export function createVoyage49(ctx) {
   const setSea = (A, deep, crest, sky) => { seas.forEach((m) => { m.uniforms.uA.value = A; if (deep) m.uniforms.uDeep.value.set(deep); if (crest) m.uniforms.uCrest.value.set(crest); if (sky) m.uniforms.uSky.value.set(sky); }); };
   const fogTo = (n, f, c) => { if (!scene.fog) return; scene.fog.near = n; scene.fog.far = f; if (c) scene.fog.color.set(c); };
   function begin(s) {
-    V.scene = s; V.t = 0; V.sub = 0; V.cp = null; V.ct = null; showTitle(TITLES[s] || '');   // (a cut between scenes) ctx.emit && ctx.emit('h49scene', { s });
-    if (s === 'harbour') { try { ctx.timeOfDay && ctx.timeOfDay('dawn'); } catch (e) { /* */ } V.P = F.createPulley(V.L); setSea(0.35, '#1D4A63', '#5DA2B7', '#BCD6E2'); fogTo(300, 5000); door1.visible = true; door1.position.set(-2.5, 3.45, 9); ctx.line(VLINE49.harbour, `רמה ${V.L}`); }
+    V.scene = s; V.t = 0; V.sub = 0; V.cp = null; V.ct = null; showTitle(TITLES[s] || ''); ctx.emit && ctx.emit('h49scene', { s });   // (a cut between scenes)
+    if (s === 'harbour') { try { ctx.timeOfDay && ctx.timeOfDay('dawn'); } catch (e) { /* */ } V.P = F.createPulley(V.L); setSea(0.35, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000); door1.visible = true; door1.position.set(-2.5, 3.45, 9); ctx.line(VLINE49.harbour, `רמה ${V.L}`); }
     if (s === 'sea') { harbour.visible = false; V.P = null; V.walk = 0; setSea(0.55); ctx.line(VLINE49.sea); }
     if (s === 'storm') { try { ctx.timeOfDay && ctx.timeOfDay('dusk'); } catch (e) { /* */ } V.S = F.createStorm49(V.L); setSea(2.2, '#22343E', '#52707A', '#7E8E96'); fogTo(60, 700, '#6E7A80'); ctx.line(VLINE49.storm, `רמה ${V.L}`); ctx.sound && ctx.sound('rope'); }
-    if (s === 'acre') { V.acreY = 0; acre.visible = true; door1.visible = true; door1.parent && door1.parent.remove(door1); G.add(door1); door1.position.set(-4, -6, 4.3); door1.rotation.set(Math.PI / 2 - 0.25, 0, 0); setSea(0.3, '#1D4A63', '#5DA2B7', '#BCD6E2'); fogTo(300, 5000); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ } ctx.line(VLINE49.acre); }
+    if (s === 'acre') { V.acreY = 0; acre.visible = true; door1.visible = true; door1.parent && door1.parent.remove(door1); G.add(door1); door1.position.set(-4, -6, 4.3); door1.rotation.set(Math.PI / 2 - 0.25, 0, 0); setSea(0.3, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ } ctx.line(VLINE49.acre); }
     if (s === 'road') { acre.visible = false; near.visible = false; far.visible = false; ship.visible = false; door1.visible = false; road.visible = true; V.carT = 0; try { ctx.timeOfDay && ctx.timeOfDay('golden'); } catch (e) { /* */ } ctx.line(VLINE49.road); }
   }
   const camK = (p, t) => { V.cp = V.cp ? V.cp.map((v, i) => v + (p[i] - v) * 0.08) : p.slice(); V.ct = V.ct ? V.ct.map((v, i) => v + (t[i] - v) * 0.08) : t.slice(); ctx.camTo([V.cp[0], V.cp[1] + Y49, V.cp[2]], [V.ct[0], V.ct[1] + Y49, V.ct[2]], 1); };   // (the voyage's own coordinates: G's, 400 amot up)
@@ -238,7 +238,7 @@ export function createVoyage49(ctx) {
         const d = door1.position; camK(V.t < 3.5 ? [62, 28, -52] : [d.x - 17, d.y + 3.5, -14], V.t < 3.5 ? [-2.5, 7, 8] : [d.x, d.y + 0.5, d.z]);   // (wide — the quay, the city, the lighthouse; then low on the shining door)
         nic.position.set(-6, deckY + 0.15, 1); nic.rotation.y = 0.4;
       } else if (s === 'sea') {
-        if (T.one) V.walk = Math.min(1, V.walk + dt / 14);
+        if (T.one) V.walk = Math.min(1, V.walk + dt / 18);
         const x = -9.5 + 21 * V.walk; nic.position.set(x, deckY + 0.15, -0.9 + Math.sin(V.walk * 9) * 0.25); nic.rotation.y = Math.PI / 2; nic.userData.top.rotation.z = T.one ? Math.sin(t * 8) * 0.04 : 0;
         knots.forEach((kn, i) => { const at = [-6, 2.5, 10][i]; if (x > at && !kn.userData.ok) { kn.userData.ok = 1; kn.material = new THREE.MeshStandardMaterial({ color: '#FFD66E', emissive: new THREE.Color('#8A6A20'), emissiveIntensity: 0.6 }); V.knotsOk++; ctx.buzz('tick'); ctx.sound && ctx.sound('rope'); if (V.knotsOk === 2) ctx.line(VLINE49.wind); } });
         setSea(0.55 + 0.9 * V.walk); fogTo(300 - 120 * V.walk, 5000 - 3000 * V.walk);
@@ -246,7 +246,8 @@ export function createVoyage49(ctx) {
         if (V.walk >= 1 && (V.sub += dt) > 1.2) begin('storm');
       } else if (s === 'storm' || s === 'hug') {
         const S = V.S, st0 = S.state(), wasI = st0.i, wasR = st0.replays, wasPh = st0.ph;
-        const b = T.left ? Math.max(-1, Math.min(1, (T.left.x - T.left.x0) / (W() * 0.16))) : 0; S.balance(b); S.holdOn(!!T.right); S.step(dt);
+        const b = T.left ? Math.max(-1, Math.min(1, (T.left.x - T.left.x0) / (W() * 0.16))) : 0, rising = s === 'storm' && V.t < 3;   // (the storm rises for 3 s before its first wave: the sky darkens, the swell grows)
+        if (rising) setSea(1.45 + 0.75 * (V.t / 3)); S.balance(b); S.holdOn(!!T.right); if (!rising) S.step(dt);
         const st = S.state();
         if (st.replays > wasR) { ctx.line(st.why === 'heel' ? VLINE49.heel : st.why === 'hug' ? VLINE49.hugLost : VLINE49.ropes, `גל ${st.i + 1}`); ctx.buzz('retry'); ctx.emit && ctx.emit('h49replay', { why: st.why }); }
         if (wasPh !== 'throw' && st.ph === 'throw') { ctx.line(VLINE49.thrown); ctx.sound && ctx.sound('splash'); V.throwT = 0; }
@@ -266,17 +267,18 @@ export function createVoyage49(ctx) {
         const cp = st.hug ? [15, 7.5 + ship.position.y, 10] : [-30, 9 + ship.position.y + Math.sin(t * 2.3) * shake, 12];   // (the hug: from the bow's side — Nicanor, the door, the sailors coming; the mast behind)
         camK(cp, st.hug ? [6.5, 3.4, -0.4] : [2, 4 + st.h * 1.5, 0]);
         if (st.done) {   // "ומיד נח הים מזעפו": the sea calms at once
-          V.q = S.result(); setSea(0.25, '#1D4A63', '#5DA2B7', '#BCD6E2'); fogTo(300, 5000, '#EAD6BA'); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ }
+          V.q = S.result(); setSea(0.25, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000, '#EAD6BA'); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ }
           ctx.line(VLINE49.calm); ctx.sound && ctx.sound('solemn'); ctx.buzz('peak'); ctx.emit && ctx.emit('h49calm', V.q); V.scene = 'calm'; V.t = 0;
           sailors.forEach((sl, i) => { sl.position.set([-8, 11, -4, 12][i], deckY + 0.15, [2, -2.2, -2.5, 2.4][i]); }); nic.userData.top.rotation.x = 0; door2.rotation.x = 0;
         }
       } else if (s === 'calm') {
         camK([-26, 10, 16], [4, 3, 0]); if (V.t > 6) begin('acre');
       } else if (s === 'acre') {
-        if (T.one) V.acreY = Math.min(1, V.acreY + dt / 7);
+        const dock = Math.min(1, V.t / 4), e = dock * dock * (3 - 2 * dock); ship.position.z = 16 * (1 - e);   // (docking: 4 s, the ship glides in to the quay)
+        if (T.one && dock >= 1) V.acreY = Math.min(1, V.acreY + dt / 7);
         const y = -6 + 8.6 * V.acreY; door1.position.set(-4, y, 4.3 + 1.6 * Math.max(0, (V.acreY - 0.85) / 0.15)); door1.rotation.x = (Math.PI / 2 - 0.25) * (1 - Math.max(0, (V.acreY - 0.85) / 0.15));
         if (V.acreY > 0.05 && !V.bub) { V.bub = 1; ctx.sound && ctx.sound('splash'); }
-        camK([-15, 4.5, 21], [-4, Math.max(1.2, y + 1), 4.3]);   // (low over the water: the door rising by the hull; Acre's quay behind)
+        camK(dock < 1 ? [-30, 9, 34] : [-15, 4.5, 21], dock < 1 ? [-2, 2, ship.position.z] : [-4, Math.max(1.2, y + 1), 4.3]);   // (low over the water: the door rising by the hull; Acre's quay behind)
         if (V.acreY >= 1 && (V.sub += dt) > 1.5) begin('road');
       } else if (s === 'road') {
         V.carT += dt; carts.forEach((c2, i) => { c2.position.x = -40 - i * 9 + V.carT * 6; }); const lead = -40 + V.carT * 6;

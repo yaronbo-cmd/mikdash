@@ -712,7 +712,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     const h = new Date(now()).getHours();
     // options.fixedTime: a time-of-day key the host pinned (tests, screenshots); the world is not changed then
     let k = typeof opt.fixedTime === 'string' ? opt.fixedTime : h >= 5 && h < 9 ? 'dawn' : h >= 9 && h < 16 ? 'noon' : h >= 16 && h < 19 ? 'dusk' : 'night';
-    if (k === 'night' && (G.ftue < 99 || (G.demo && typeof opt.fixedTime !== 'string'))) k = 'dusk';   // the first minutes, and the investor demo on the real clock, stay readable (dusk light, no rain); the real night comes after (a host-pinned time is kept)
+    if (k === 'night' && (G.ftue < 99 || (H42 && H42.on) || (G.demo && typeof opt.fixedTime !== 'string'))) k = 'dusk';   /* ── fable32 (build 42) ── (the new stage 01's reveal and card stay in its dusk light; the real night after it) ── /fable32 ── */   // the first minutes, and the investor demo on the real clock, stay readable (dusk light, no rain); the real night comes after (a host-pinned time is kept)
     if (k === tod || whole || opening) return;   // (build7: the opening keeps its golden hour until its swap)
     tod = k;
     if (!opt.fixedTime) W.setTimeOfDay(k);
@@ -3256,7 +3256,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       snapshot: () => { try { const T = globalThis.__T; T.render(); return T.renderer.domElement.toDataURL('image/jpeg', 0.55); } catch (e) { return null; } },
       complete: () => { const out = S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; persist(); syncWorld(null); return out; },
-      onExit: () => { H42 = null; try { ui.refresh(); } catch (e) { /* */ } },
+      onExit: () => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
     });
     H42.start();
   }

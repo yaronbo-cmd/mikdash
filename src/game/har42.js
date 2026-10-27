@@ -98,7 +98,7 @@ export function createHar42(o = {}) {
   const base = (() => { const w = o.spot ? o.spot() : null; return w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; })();
   const P = (dx, dz) => ({ x: base.x + dx, z: base.z + dz, get y() { return gy(this.x, this.z); } });
   const PL = { peg0: P(-14, 4), peg1: P(16, 4), wheel: P(10, -10), stone0: P(16, -10), rock: [P(-12, -14), P(-24, -6), P(-30, 8)], course: P(2, 16), roll0: P(-20, 24), roll1: P(4, 24), pave: P(18, 26), trace: P(30, 14) };
-  const STAND = { rope: PL.peg1, lift: P(6, -10), rock0: P(-9, -12), rock1: P(-21, -4), rock2: P(-27, 10), course0: P(2, 12), course1: P(2, 12), roll: P(-8, 20), pave: P(18, 22), trace: P(27, 14) };
+  const STAND = { rope: PL.peg1, lift: P(6, -10), rock0: P(-9, -12), rock1: P(-21, -4), rock2: P(-27, 10), course0: P(2, 12), course1: P(2, 12), roll: P(-8, 20), pave: P(28, 27), trace: P(27, 14) };   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */
   const mat = (c, r = 0.85) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 });
@@ -404,13 +404,26 @@ export function createHar42(o = {}) {
     const J = F.createPave(), U = 1.4, rowsY = [0, 1.5, 3]; line(LINE42.pave, `השורה ${J.state().row + 1} · נשארו ${J.state().left[0]}`);
     const pile = st.ui.pile; pile.innerHTML = '';
     for (const n of F.PAVE42.sizes) { const b = el('h42-it', `▢ ${n}`, 'button'); b.type = 'button'; b.setAttribute('aria-label', `לוח בגודל ${n}`); pile.appendChild(b); dragItem(b, (drop) => { const B = paveBox(); if (!B || !(drop.x >= B.l && drop.x <= B.r && drop.y >= B.t && drop.y <= B.b)) return false; const row = J.state().row, at = J.state().rows[row] - J.state().left[row], r = J.lay(n, { dragPx: drop.px }); if (r === 'ok') { const m = new THREE.Mesh(new THREE.BoxGeometry(n * U - 0.06, 0.18, 1.3), STONE); m.position.set((at + n / 2) * U - 4, 0.1, rowsY[row]); st.props.pave.add(m); buzz42('settle'); return true; } if (r === 'long') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); } return false; }); }
-    const paveBox = () => { const a = proj(PL.pave.x - 6, PL.pave.y, PL.pave.z - 1), b = proj(PL.pave.x + 6, PL.pave.y, PL.pave.z + 4.5); return a && b ? { l: Math.min(a.x, b.x) - 40, r: Math.max(a.x, b.x) + 40, t: Math.min(a.y, b.y) - 40, b: Math.max(a.y, b.y) + 40 } : null; };
+    // the rows' empty beds (darker) inside the paving already laid round them — the gap each row's slabs must fill exactly (simple shapes · המחשה)
+    const X0 = -4, g0 = st.props.pave;
+    if (g0 && !g0.userData.bed) {
+      g0.userData.bed = true;
+      const slab = (w, d, x, z, m, h) => { const k = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); k.position.set(x, h / 2, z); g0.add(k); };
+      J.state().rows.forEach((n, r) => { slab(n * U, 1.3, X0 + (n * U) / 2, rowsY[r], ROCK, 0.06); const e = X0 + n * U; if (6.7 - e > 0.05) slab(6.7 - e, 1.3, (e + 6.7) / 2, rowsY[r], STONE, 0.2); });
+      slab(13.5, 1.4, 1.35, -1.35, STONE, 0.2); slab(13.5, 1.4, 1.35, 4.35, STONE, 0.2); slab(1.4, 4.6, -4.7, 1.5, STONE, 0.2); slab(1.4, 4.6, 7.4, 1.5, STONE, 0.2);
+    }
+    // the drop's box from the points in front of the camera (its near plane is 4 amot: a corner of the paving can fall behind it), kept on the screen
+    const at3 = (u, r, dz = 0) => [PL.pave.x + X0 + u * U, PL.pave.y + 0.1, PL.pave.z + rowsY[r] + dz];
+    const boxOf = (pts, m) => { const q = pts.map((p) => proj(p[0], p[1], p[2])).filter(Boolean); if (q.length < 2) return null; const xs = q.map((p) => p.x), ys = q.map((p) => p.y); const B = { l: Math.max(0, Math.min(...xs) - m), r: Math.min(W(), Math.max(...xs) + m), t: Math.max(0, Math.min(...ys) - m), b: Math.min(H(), Math.max(...ys) + m) }; return B.r - B.l > 20 && B.b - B.t > 20 ? B : null; };
+    const paveBox = () => boxOf([0, 3.5, 7].flatMap((u) => [0, 1, 2].map((r) => at3(u, r, r === 0 ? -0.7 : r === 2 ? 0.7 : 0))), 40);
+    const gapBox = () => { const s = J.state(); if (s.done) return null; const r = s.row, a = s.rows[r] - s.left[r], b = s.rows[r]; return boxOf([at3(a, r, -0.65), at3(b, r, -0.65), at3(a, r, 0.65), at3(b, r, 0.65), at3((a + b) / 2, r)], 0); };
     return {
       acting: true, dragOnly: true, J, kind: 'pave', box: paveBox,
       frame() {
         const s = J.state(); objPlace(true, [{ x: PL.pave.x, y: PL.pave.y, z: PL.pave.z + 1.5, r: 5 }], 'h42pave');
+        svgClear(); { const B = gapBox(); if (B) svgAdd(`<rect x="${B.l}" y="${B.t}" width="${Math.max(10, B.r - B.l)}" height="${Math.max(10, B.b - B.t)}" fill="rgba(255,214,110,.14)" stroke="#FFD66E" stroke-width="2" stroke-dasharray="6 4" rx="6"/>`); }
         if (!s.done) line(LINE42.pave, `שורה ${s.row + 1} מתוך ${s.rows.length} · נשארו ${s.left[s.row]}`);
-        if (s.done) { pile.innerHTML = ''; grade('pave', s.q, proj(PL.pave.x, PL.pave.y, PL.pave.z)); return true; }
+        if (s.done) { pile.innerHTML = ''; svgClear(); grade('pave', s.q, proj(PL.pave.x, PL.pave.y, PL.pave.z)); return true; }
         return false;
       },
     };

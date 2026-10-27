@@ -129,6 +129,10 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   assert.match(h, /if \(st\.finger > 0 && st\.camLock\) return st\.camLock;/, 'frozen under the finger');
   assert.ok(!/לשלם/.test(h.replace(/\/\*[\s\S]*?\*\//g, '')), 'no paid finishing (the header only names what is gone)');
   const mk = read('tools/mkout.cjs'); assert.match(mk, /const HEAD = args\.includes\('--no-shift'\) \? '' : HEAD0;/);
+  // (the runs' fixes: the paving's drop box from the points in front of the camera's near plane, kept on the screen — a corner behind it had
+  // made the box null and the paving undroppable; the stage's reveal and card stay in its dusk light, the real night after it)
+  assert.match(h, /const paveBox = \(\) => boxOf\(/); assert.match(h, /const q = pts\.map\(\(p\) => proj\(p\[0\], p\[1\], p\[2\]\)\)\.filter\(Boolean\); if \(q\.length < 2\) return null;/);
+  assert.match(g, /if \(k === 'night' && \(G\.ftue < 99 \|\| \(H42 && H42\.on\) \|\|/); assert.match(g, /onExit: \(\) => \{ H42 = null; tod = null; try \{ syncTime\(\); \}/);
 });
 test('build 42: every line of the stage with its source or המחשה; touch targets ≥ 44 px; GAME_BUILD 42; no Divine Name (by code points); עולי רגל', () => {
   for (const [k, v] of Object.entries(LINE42)) if (!['walk', 'courseEnd', 'lift2'].includes(k)) assert.match(v, /טיוטה|המחשה/, `${k}: ${v}`);

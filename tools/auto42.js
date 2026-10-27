@@ -133,7 +133,8 @@
       if (s.part === 'done' || s.part === 'out') { await sleep(500); if (!q('.h42-card')) return; continue; }
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }
-      await sleep(400); await shot('act-' + j.kind);
+      await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
+      await shot('act-' + j.kind);
       if (j.kind === 'lift') await lift(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }

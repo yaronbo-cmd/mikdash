@@ -621,7 +621,7 @@ export function woodGrade48(results) { const bad = results.some((r) => r === 'ba
 /** the GALLERY (גזוזטרא, מדות ב, ה): its beams into the wall's sockets — the corner beams first, else the next ones will not go in (blocked:
  *  an order mistake, undone free); each beam set at its socket is pushed in: the push's angle off the socket's line is the beam's — within the
  *  tolerance it enters and locks; past it, it stops at the rim (a correction, no damage). A tap never sets or pushes. */
-export const GAL48 = Object.freeze({ tol: Object.freeze([null, 15, 11, 8, 6]), sockets: Object.freeze(['corner', 'next', 'next', 'next', 'corner']) });
+export const GAL48 = Object.freeze({ tol: Object.freeze([null, 20, 14, 10, 7]), sockets: Object.freeze(['corner', 'next', 'next', 'next', 'corner']) });
 export function createGallery48(L = 1, kinds = GAL48.sockets) {
   const lv = clamp(L | 0, 1, 4), tol = GAL48.tol[lv];
   const k = { L: lv, tol, kinds: kinds.slice(), set: kinds.map(() => null), locked: kinds.map(() => false), order: 0, wrong: 0, rims: 0, done: false, q: null };

@@ -183,7 +183,7 @@ export function createHar42(o = {}) {
   function camTo(p, t, k) {
     if (!camInit) { cq.p.set(...p); cq.t.set(...t); camInit = true; }
     else { cq.p.x += (p[0] - cq.p.x) * k; cq.p.y += (p[1] - cq.p.y) * k; cq.p.z += (p[2] - cq.p.z) * k; cq.t.x += (t[0] - cq.t.x) * k; cq.t.y += (t[1] - cq.t.y) * k; cq.t.z += (t[2] - cq.t.z) * k; }
-    try { view.camSet(cq.p.x, cq.p.y, cq.p.z, cq.t.x, cq.t.y, cq.t.z); const c = camera(); if (c) c.lookAt(cq.t); } catch (e) { /* */ }
+    try { view.camSet(cq.p.x, cq.p.y, cq.p.z, cq.t.x, cq.t.y, cq.t.z); const c = camera(); if (c) { c.lookAt(cq.t); c.updateMatrixWorld(); } } catch (e) { /* */ }   // (the matrices now: the marks and the touch ring projected this frame match the picture — without it they lagged a camera step behind)
   }
   const FOLLOW = { d: 17, el: 0.52, az: 0.9 };
   function followView(h) { const ce = Math.cos(FOLLOW.el), t = [h.x, h.y + 1.9, h.z]; return { p: [t[0] + Math.cos(FOLLOW.az) * ce * FOLLOW.d, t[1] + Math.sin(FOLLOW.el) * FOLLOW.d, t[2] + Math.sin(FOLLOW.az) * ce * FOLLOW.d], t }; }

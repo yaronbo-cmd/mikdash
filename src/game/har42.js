@@ -239,7 +239,7 @@ export function createHar42(o = {}) {
   Object.assign(STAND, { lattice0: P(-15.5, -37.5), lattice1: P(-15.5, -37.5), lattice2: P(-15.5, -37.5), lattice: P(-15.5, -37.5), warn: P(-40, -53.5), bows: P(-41, -53.5) });
   if (STG === 'soreg') {
     Object.assign(PL, { soreg: { x: base.x, y: 0, z: -91.5 }, warnA: { x: base.x + 9, y: 0, z: -93.2 }, bow0: { x: base.x + 10, y: 0, z: -91.3 } });
-    Object.assign(STAND, { lattice0: P(4.5, 4), lattice1: P(1, 4), lattice2: P(-2.5, 4), warn: P(9, 4.5), bows: P(10, 7.2) });   // (the bows: at the first mark, between the procession and the soreg)
+    Object.assign(STAND, { lattice0: P(5.5, 6.5), lattice1: P(2, 6.5), lattice2: P(-1.5, 6.5), warn: P(9, 4.5), bows: P(6.5, 5) });   // (the lattice: beside the panel, east and close — not between it and the camera; the bows: just before the first mark, the procession passing between him and the soreg)   // (the bows: at the first mark, between the procession and the soreg)
   }   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */
@@ -661,6 +661,7 @@ export function createHar42(o = {}) {
   }
   /* ── build 46 ── the LATTICE: the panel's pattern on a board over the scene (front-on, so it reads), the gap outlined; the tray's three
    * pieces — a tap turns one, a double tap flips it, a drag sets it in the gap: the right one the right way — in; else out, a mistake */
+  const addP = (m, x, y, z) => { m.position.set(x, y, z); if (st.props.root) st.props.root.add(m); return m; };   // (an act's own props, into the props' root)
   function mkLattice(k) {
     const kind = ['diamonds', 'interlaced', 'twotone'][k], L = famL('place'), pan = st.props.panels && st.props.panels[k];
     const seed = ((R.grades ? R.grades.length : 0) * 7 + k * 13 + 5) >>> 0; let a = seed * 9301 + 49297; const rnd = () => ((a = (a * 9301 + 49297) % 233280) / 233280);
@@ -703,7 +704,7 @@ export function createHar42(o = {}) {
     return {
       acting: true, J, kind: 'lattice', slotRect, items: () => items, panel: k,
       down() {}, move() {}, up() {},
-      view(h) { const t = [P.x - 0.6, gy(P.x, P.z) + 2.3, P.z], p = [P.x - 0.6, t[1] + 4.6, P.z - 17]; return { p, t }; },   // (front-on, ש3: the panel square to the camera, him beside it under 45 %)
+      view(h) { const D = Math.max(24, needD() + 1.5), t = [P.x - 1.6, gy(P.x, P.z) + 3.4, P.z], p = [P.x - 1.6, t[1] + D * 0.16, P.z - D]; return { p, t }; },   // (him ≤ 45 %: needD at his depth)   // (front-on, ש3: the panel square to the camera, him beside it under 45 %)
       frame(dt) {
         objPlace(true, [{ x: P.x, y: gy(P.x, P.z) + 0.85, z: P.z, r: 1.9 }], 'h46lat');
         svgClear(); if (!J.state().done || endT > 0.4) svgAdd(board());
@@ -724,7 +725,7 @@ export function createHar42(o = {}) {
     const btn = el('h42-it h46-set', 'הציבו כאן', 'button'); btn.type = 'button'; pile.appendChild(btn);
     const stele = (x, ghost) => { const m = new THREE.Group(), body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.15, 0.22), ghost ? new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.35, depthWrite: false }) : mat('#E9E1CF', 0.7)); body.position.y = 0.58; m.add(body);
       if (!ghost && greek) { const f = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), new THREE.MeshBasicMaterial({ map: greek, transparent: true })); f.position.set(0, 0.72, -0.12); f.rotation.y = Math.PI; m.add(f); }
-      return add(m, x, gy(x, A.z), A.z); };
+      st.props.steles = (st.props.steles || []).concat([m]); return addP(m, x, gy(x, A.z), A.z); };
     let greek = null; try { if (doc) { const cv = doc.createElement('canvas'); cv.width = 256; cv.height = 160; const c = cv.getContext('2d'); c.fillStyle = '#3A2A18'; c.font = 'bold 22px serif'; c.textAlign = 'center'; ['ΜΗΘΕΝΑ ΑΛΛΟ', 'ΓΕΝΗ ΕΙΣΠΟΡΕΥ', 'ΕΣΘΑΙ ΕΝΤΟΣ', 'ΤΟΥ ΠΕΡΙ ΤΟ', 'ΙΕΡΟΝ ΤΡΥΦΑ'].forEach((t, i) => c.fillText(t, 128, 30 + i * 28)); greek = new THREE.CanvasTexture(cv); greek.colorSpace = THREE.SRGBColorSpace; } } catch (e) { greek = null; }
     let walkDir = 0, endT = -1, shown = null;
     const sideDir = (x) => { const h = hero(), a = proj(h.x, h.y + 1, h.z), b = proj(h.x + 1, h.y + 1, h.z); if (!a || !b) return 1; return Math.sign((x - W() / 2) * (b.x - a.x)) || 1; };
@@ -737,7 +738,7 @@ export function createHar42(o = {}) {
     const job = {
       acting: true, J, kind: 'warn', A, len, setBtn: btn, u: () => J.state().x,
       down(a2) { if (!J.state().done) walkDir = sideDir(a2.x); }, move(a2) { if (!J.state().done && walkDir) walkDir = sideDir(a2.x); }, up() { walkDir = 0; try { stages.hero.drive(0, 0); } catch (e) { /* */ } },
-      view(h) { if (endT >= 0) { const mx = A.x + len / 2; return { p: [mx, gy(mx, A.z) + 21, A.z - 34], t: [mx, gy(mx, A.z), A.z] }; } return { p: [h.x - 1.5, h.y + 7.2, h.z - 16.5], t: [h.x - 1.5, h.y + 1.6, h.z + 3] }; },
+      view(h) { if (endT >= 0) { const mx = A.x + len / 2; return { p: [mx, gy(mx, A.z) + 21, A.z - 34], t: [mx, gy(mx, A.z), A.z] }; } const D = Math.max(24, needD() + 1.5); return { p: [h.x - 2, h.y + 2.6 + D * 0.24, h.z - D], t: [h.x - 2, h.y + 2.6, h.z + 3] }; },
       frame(dt) {
         const h = hero(), s = J.state();
         if (!s.done && walkDir) { try { stages.hero.drive(walkDir * 6, (z - h.z) * 3); } catch (e) { /* */ } }
@@ -760,7 +761,7 @@ export function createHar42(o = {}) {
   function mkBows() {
     line(LINE42.bowFirst);
     if (st.ui.pad) st.ui.pad.classList.add('full');
-    const z = PL.bow0.z - 2.9, N = 6, robe = mat('#F4F1E8', 0.9), skin = mat('#C99B72', 0.8), sash = mat('#3E5A9A', 0.7);
+    const z = PL.bow0.z - 1.3, N = 6, robe = mat('#F4F1E8', 0.9), skin = mat('#C99B72', 0.8), sash = mat('#3E5A9A', 0.7);
     (st.props.marks || []).forEach((m) => { m.visible = true; });
     const priests = Array.from({ length: N }, (_, i) => {
       const g = new THREE.Group(), top = new THREE.Group(); top.position.y = 1.5; g.add(top);
@@ -769,7 +770,7 @@ export function createHar42(o = {}) {
       const band = new THREE.Mesh(new THREE.CylinderGeometry(0.345, 0.345, 0.14, 10), sash); band.position.y = 0.08; top.add(band);
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), skin); head.position.y = 1.32; top.add(head);
       const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.2, 12), robe); hat.position.y = 1.52; top.add(hat);
-      g.scale.setScalar(2.1); add(g, PL.bow0.x - 8 - i * 3.4, gy(PL.bow0.x, z), z); return { g, top };   // (his own figure's scale)
+      g.scale.setScalar(2.1); addP(g, PL.bow0.x - 8 - i * 3.4, gy(PL.bow0.x, z), z); return { g, top };   // (his own figure's scale)
     });
     const M = { at: -1, t: 0, phase: 'wait', first: false, joined: 0, bowT: 0, kid: 0, swipe: null, done: false, hold: 0 };
     const bowAt = (i) => PL.bow0.x + i * 2.6;
@@ -784,14 +785,14 @@ export function createHar42(o = {}) {
           else if (M.phase === 'bow' || M.phase === 'walk') { M.kid = 1; M.joined++; o.emit && o.emit('h46bow', { first: false }); }
         }
       },
-      view() { const x = (M.at < 0 ? PL.bow0.x - 4 : bowAt(Math.max(0, Math.min(12, M.at)))), y0 = gy(x, z); return { p: [x - 14, y0 + 3.6, z - 12.5], t: [x + 4, y0 + 2.6, z + 2.2] }; },   // (low along the soreg)
+      view() { const x = (M.at < 0 ? PL.bow0.x - 4 : bowAt(Math.max(0, Math.min(12, M.at)))), y0 = gy(x, z); const D = Math.max(24, needD() + 1.5); return { p: [x - D * 0.72, y0 + 3.8, z - D * 0.7], t: [x + 5, y0 + 2.6, z + 2.2] }; },   // (low along the soreg)
       frame(dt) {
         M.t += dt;
         const target = M.at < 0 ? 0 : M.at;
         if (M.phase === 'wait') { M.at = 0; const lead = priests[0].g.position.x; if (lead < bowAt(0)) priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 3.2, bowAt(0) - i * 3.4); }); M.hold += dt; if (M.hold > 14 && !M.first) { M.first = true; M.phase = 'bow'; M.t = 0; line(LINE42.bows); } }
-        else if (M.phase === 'walk') { const goal = bowAt(target); priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 3.0, goal - i * 3.4); }); if (priests[0].g.position.x >= goal - 0.01) { M.phase = 'bow'; M.t = 0; } }
+        else if (M.phase === 'walk') { const goal = bowAt(target); priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 4.5, goal - i * 3.4); }); if (priests[0].g.position.x >= goal - 0.01) { M.phase = 'bow'; M.t = 0; } }
         else if (M.phase === 'bow') {
-          const T = 1.9, u = Math.min(1, M.t / T), k = u < 0.35 ? u / 0.35 : u < 0.6 ? 1 : 1 - (u - 0.6) / 0.4, e = k * k * (3 - 2 * k);
+          const T = 1.3, u = Math.min(1, M.t / T), k = u < 0.35 ? u / 0.35 : u < 0.6 ? 1 : 1 - (u - 0.6) / 0.4, e = k * k * (3 - 2 * k);
           priests.forEach((p, i) => { p.top.rotation.x = 0.95 * e * (i === 0 || M.t > 0.08 * i ? 1 : 0); });
           if (M.kid) { try { const hh = stages.hero; if (hh && hh.mesh) hh.mesh.rotation.x = 0.5 * e; } catch (e2) { /* */ } }
           if (u >= 1) { M.kid = 0; try { if (stages.hero.mesh) stages.hero.mesh.rotation.x = 0; } catch (e2) { /* */ } if (st.props.marks && st.props.marks[target]) st.props.marks[target].material = st.props.marks[target].material; M.at = target + 1; if (M.at >= 13) { M.phase = 'end'; M.t = 0; } else { M.phase = 'walk'; M.t = 0; } }
@@ -1065,6 +1066,7 @@ export function createHar42(o = {}) {
       if (/^course|^wcourse|^wcorner|^top/.test(part) && st.props.course) { st.props.course.clear(); st.props.course.userData.below = 0; }
       if (part === 'pulley' && st.props.pstone) st.props.pstone.position.y = PL.pstone.y + 0.55;
       if (/^lattice/.test(part) && st.props.panels) st.props.panels.forEach((pn) => pn.draw(null));   // ── build 46 ──
+      if (part === 'warn' && st.props.steles) { st.props.steles.forEach((m) => { if (m.parent) m.parent.remove(m); }); st.props.steles = []; }
       if (part === 'pave' && st.props.pave) { st.props.pave.clear(); st.props.pave.userData.bed = false; }
     } catch (e) { /* */ }
   }

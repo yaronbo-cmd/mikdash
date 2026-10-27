@@ -35,7 +35,7 @@ import { hereDoor33 } from './chamber33.js';
 
 // ── fable32 (build 32) ── the build's number, ONE constant: the start screen's, the full screen's and the lock's footers (the full one said
 // "בנייה 13" since build 13, the start and the lock "בנייה 29") ── /fable32 ──
-export const GAME_BUILD = 45;   // ── fable32 (build 36) ── ── /fable32 ── ── fable32 (build 37) ── ── /fable32 ── ── fable32 (build 38) ── ── /fable32 ── ── fable32 (build 39) ── ── /fable32 ── ── fable32 (build 40) ── ── /fable32 ── ── fable32 (build 41) ── ── /fable32 ── ── fable32 (build 42) ── ── /fable32 ── ── fable32 (build 43) ── ── /fable32 ── ── fable32 (build 44) ── ── /fable32 ── ── fable32 (build 45) ── ── /fable32 ──
+export const GAME_BUILD = 46;   // ── fable32 (build 36) ── ── /fable32 ── ── fable32 (build 37) ── ── /fable32 ── ── fable32 (build 38) ── ── /fable32 ── ── fable32 (build 39) ── ── /fable32 ── ── fable32 (build 40) ── ── /fable32 ── ── fable32 (build 41) ── ── /fable32 ── ── fable32 (build 42) ── ── /fable32 ── ── fable32 (build 43) ── ── /fable32 ── ── fable32 (build 44) ── ── /fable32 ── ── fable32 (build 45) ── ── /fable32 ──
 export const LOBBY35 = Object.freeze({ x: -25, z: 34, y: 16, az0: Math.PI / 2, swing: 0.45, swingS: 0.22, el: 0.24, d: 16, motes: 14, cycleS: 7 });   // ── recovered (16–26c) ── (x −34 → −25, z 50 → 34, el 0.2 → 0.24, d 15 → 16)
 // ── fable32 (build 29) ── the sky's preset for each part of the real day (main.js TIMES; the night is the readable moonlit one — HANDOFF §3
 // "לילה = דמדומים (לא חושך)" — not the day's dark 'nightd'); the lock's view: the court at rest, no one at work (the hidden kohen's spot is

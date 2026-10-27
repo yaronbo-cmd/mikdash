@@ -27,6 +27,7 @@ const t0 = Date.now(), el = () => Math.round((Date.now() - t0) / 100) / 10;
   console.log('har42 on', ok, el());
   if (!ok) { console.log('errors', JSON.stringify(errors)); await b.close(); process.exit(1); }
   await pg.addScriptTag({ path: path.join(__dirname, 'auto42.js') });
+  if (flag('--cam')) { await pg.addScriptTag({ path: path.join(__dirname, 'cam41.js') }); await pg.evaluate(() => globalThis.__CAM41.start()); }   // (build 43: the camera's measure on the stage's acts)
   await pg.exposeFunction('__shot42', async (name) => { await pg.evaluate(() => window.__T.simulate(false)).catch(() => {}); await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, `shot-${name}.png`), timeout: 240000 }).catch(() => {}); await pg.evaluate(() => window.__T.simulate(true, 0.05)).catch(() => {}); console.log('shot', name, el()); });
   const res = await Promise.race([
     pg.evaluate((o) => globalThis.__AUTO42.start({ ...o, shot: (n) => globalThis.__shot42(n) }), { skilled: flag('--skilled'), seed: +opt('--seed', 7) }),
@@ -36,12 +37,15 @@ const t0 = Date.now(), el = () => Math.round((Date.now() - t0) / 100) / 10;
   const st = await pg.evaluate(() => (globalThis.__H42 ? { s: globalThis.__H42.state(), on: globalThis.__H42.on } : null)).catch(() => null);
   const after = await pg.evaluate(() => { try { const g = window.__T.game && window.__T.game.state; return g ? { harDone: !!(g.st && g.st.har && g.st.har.done), ftue: g.ftue } : null; } catch (e) { return null; } }).catch(() => null);
   await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, 'shot-end.png'), timeout: 240000 }).catch(() => {});
-  const R = { run: RUN, size: [VW, VH], at: AT || null, wallS: el(), res, st, after, errors };
+  const cam = flag('--cam') ? await pg.evaluate(() => globalThis.__CAM41 && globalThis.__CAM41.stats()).catch(() => null) : null;
+  if (cam) console.log('cam41', JSON.stringify(cam));
+  const R = { run: RUN, size: [VW, VH], at: AT || null, wallS: el(), res, st, after, errors, cam };
   fs.writeFileSync(path.join(OUT, 'auto42.json'), JSON.stringify(R, null, 1));
   console.log('times', JSON.stringify(res && res.times));
   console.log('grades', JSON.stringify(res && res.grades));
   console.log('state', JSON.stringify(st), 'after', JSON.stringify(after));
   console.log('notes', JSON.stringify((res && res.notes || []).slice(-12)));
   console.log(errors.length ? 'errors ' + JSON.stringify(errors.slice(0, 8)) : 'no page errors', '·', el());
-  await b.close();
+  await Promise.race([b.close(), new Promise((r) => setTimeout(r, 20000))]);   // (build 43: after a finished stage the browser's close took ~5 minutes under swiftshader — the queue does not wait for it)
+  process.exit(0);
 })().catch((e) => { console.error('FAIL', e && e.stack || e); process.exit(1); });

@@ -71,30 +71,78 @@ export function createLift(L = 1) {
 
 /* ───────── PLACE: the course's hand stones ───────── */
 export const PLACE42 = Object.freeze({ lens: Object.freeze([2, 3, 4]), settle: 0.5 });
-/** a course: the joints of the course below (positions), and his stretch [a, b) to fill (in units) */
+/** a course: the joints of the course below (positions), and his stretch [a, b) to fill (in units). ── build 43 ── a stone may go anywhere
+ *  in the stretch: o.u (units) is where it was let go — it goes to the free place nearest it where it fits (the coordinator's build-43 #6:
+ *  a release anywhere over the course's stretch); without o.u, the first free place (the order of build 42). His choice of stone and
+ *  place stays his: a joint over a joint below is counted, never corrected. */
 export function createCourse(spec) {
-  const c = { below: (spec.below || []).slice(), a: spec.a, b: spec.b, at: spec.a, joints: [], faults: 0, rejects: 0, done: false, q: null, L: spec.L || 1 };
-  /** place a stone of length len: it must be dragged (≥ DRAG42 px) and held to settle (≥ settle s); it must fit the stretch; → 'ok' | 'tap' | 'unsettled' | 'long' | 'gap' | 'done' */
+  const c = { below: (spec.below || []).slice(), a: spec.a, b: spec.b, at: spec.a, occ: [], stones: [], last: null, joints: [], faults: 0, rejects: 0, done: false, q: null, L: spec.L || 1 };
+  const free = (s, len) => { if (s < c.a || s + len > c.b + 1e-9) return false; for (let k = s; k < s + len; k++) if (c.occ[k]) return false; return true; };
+  const runs = () => { const r = []; let s0 = null; for (let k = c.a; k <= c.b; k++) { const e = k < c.b && !c.occ[k]; if (e && s0 == null) s0 = k; if (!e && s0 != null) { r.push([s0, k - s0]); s0 = null; } } return r; };
+  const minLen = () => Math.min(...PLACE42.lens);
+  /** the free place for a stone of len nearest u (or the first), or null */
+  function slotFor(len, u) {
+    let best = null, bd = Infinity;
+    for (let s = c.a; s + len <= c.b + 1e-9; s++) { if (!free(s, len)) continue; const d = u == null ? s - c.a : Math.abs(s + len / 2 - u); if (d < bd - 1e-9) { bd = d; best = s; } }
+    return best;
+  }
+  /** place a stone of length len: dragged (≥ DRAG42 px), held to settle (≥ settle s), fitting a free place → 'ok' | 'tap' | 'unsettled' | 'long' | 'gap' | 'done' */
   function place(len, o = {}) {
     if (c.done) return 'done';
     if (!((o.dragPx || 0) >= DRAG42)) return 'tap';
     if (!((o.settleS || 0) >= PLACE42.settle)) return 'unsettled';
-    if (c.at + len > c.b + 1e-9) { c.rejects++; return 'long'; }
-    { const rem = c.b - (c.at + len); if (rem > 1e-9 && rem < Math.min(...PLACE42.lens) - 1e-9) { c.rejects++; return 'gap'; } }   // (it would leave a gap no stone fills: the course could never end — the naive kid's run K42-P-new stood there 3 minutes)
-    c.at += len;
-    if (c.at < c.b - 1e-9) { const over = c.below.some((j) => Math.abs(j - c.at) < 1e-6); c.joints.push({ x: c.at, over }); if (over) c.faults++; }
-    if (Math.abs(c.at - c.b) < 1e-6) { c.done = true; c.q = q3(c.faults + (c.rejects > 1 ? 1 : 0)); }
+    const s0 = slotFor(len, Number.isFinite(o.u) ? o.u : null);
+    if (s0 == null) { c.rejects++; return 'long'; }
+    // (it would leave a gap no stone fills: the course could never end — the naive kid's run K42-P-new stood there 3 minutes)
+    for (let k = s0; k < s0 + len; k++) c.occ[k] = true;
+    if (runs().some((r) => r[1] < minLen())) { for (let k = s0; k < s0 + len; k++) c.occ[k] = false; c.rejects++; return 'gap'; }
+    c.stones.push([s0, len]); c.last = [s0, len];
+    for (const e of [s0, s0 + len]) { if (e <= c.a + 1e-9 || e >= c.b - 1e-9 || c.joints.some((j) => Math.abs(j.x - e) < 1e-6)) continue; const over = c.below.some((j) => Math.abs(j - e) < 1e-6); c.joints.push({ x: e, over }); if (over) c.faults++; }
+    const r = runs(); c.at = r.length ? r[0][0] : c.b;
+    if (!r.length) { c.done = true; c.q = q3(c.faults + (c.rejects > 1 ? 1 : 0)); }
     return 'ok';
   }
-  const fits = (len) => { const rem = c.b - (c.at + len); return rem > -1e-9 && !(rem > 1e-9 && rem < Math.min(...PLACE42.lens) - 1e-9); };
-  const overAt = (len) => { const e = c.at + len; return e < c.b - 1e-9 && c.below.some((j) => Math.abs(j - e) < 1e-6); };
-  return { place, fits, overAt, state: () => c, result: () => (c.done ? { q: c.q, rating: rate30(c.q), faults: c.faults } : null) };
+  const fits = (len, u) => { const s0 = slotFor(len, Number.isFinite(u) ? u : null); if (s0 == null) return false; for (let k = s0; k < s0 + len; k++) c.occ[k] = true; const ok = !runs().some((r) => r[1] < minLen()); for (let k = s0; k < s0 + len; k++) c.occ[k] = false; return ok; };
+  const overAt = (len, u) => { const s0 = slotFor(len, Number.isFinite(u) ? u : null); if (s0 == null) return false; return [s0, s0 + len].some((e) => e > c.a + 1e-9 && e < c.b - 1e-9 && c.below.some((j) => Math.abs(j - e) < 1e-6)); };
+  return { place, fits, overAt, slotFor, runs, state: () => c, result: () => (c.done ? { q: c.q, rating: rate30(c.q), faults: c.faults } : null) };
 }
 /** the course's lay-out for a seed: the course below's joints and his stretch (the crews lay the rest) */
 export function courseSpec(n, L = 1) {
   const below = n % 2 ? [2, 5, 8, 11] : [3, 6, 9, 12];   // (the crews' course below, its joints every 3 units)
   const a = n % 2 ? 4 : 1, len = L >= 3 ? 7 : 6;
   return { below, a, b: a + len, L };
+}
+
+/* ───────── FLICK: the giant corner stone nudged home with a crowbar (v2 §3; the coordinator's build-43 #5) ───────── */
+/** the crane has lowered it a little short of its place (x < 0; the place at 0, in amot along the course). Each flick of the lever is a
+ *  drag: its length is the push (gain amot per px past half DRAG42, at most cap), its way on the screen toward (+1) or away from (−1) the
+ *  place. Inside the window it is home. A push past the window the other side is an overshoot (a fault; nudge it back). Level 1 shows a
+ *  ghost of the place; the levels narrow the window and make the lever livelier. A tap (< DRAG42 px) moves nothing. */
+export const FLICK42 = Object.freeze({
+  L: Object.freeze([null,
+    Object.freeze({ gain: 0.0045, win: 0.07, ghost: true }),
+    Object.freeze({ gain: 0.0045, win: 0.055, ghost: false }),
+    Object.freeze({ gain: 0.006, win: 0.045, ghost: false }),
+    Object.freeze({ gain: 0.007, win: 0.035, ghost: false }),
+  ]),
+  d0: 0.75, cap: 0.6, many: 6,
+});
+export function createFlick(L = 1, d0 = FLICK42.d0) {
+  const P = FLICK42.L[clamp(L | 0, 1, 4)];
+  const f = { x: -Math.abs(d0), flicks: 0, overs: 0, done: false, q: null, L: clamp(L | 0, 1, 4), win: P.win, ghost: P.ghost, side: -1 };
+  /** a flick: { dragPx, dir: +1 toward the place (the +x way), −1 back } → 'ok' | 'tap' | 'home' | 'over' | 'done' */
+  function flick(o = {}) {
+    if (f.done) return 'done';
+    if (!((o.dragPx || 0) >= DRAG42)) return 'tap';
+    const dir = o.dir < 0 ? -1 : 1, m = Math.min(FLICK42.cap, (o.dragPx - DRAG42 / 2) * P.gain);
+    f.flicks++; f.x += dir * m;
+    if (Math.abs(f.x) <= f.win) { f.done = true; f.q = q3(f.overs + (f.flicks > FLICK42.many ? 1 : 0)); return 'home'; }
+    const side = f.x < 0 ? -1 : 1; if (side !== f.side) { f.overs++; f.side = side; return 'over'; }
+    return 'ok';
+  }
+  /** the push a drag of px gives (for the lever's look and the tools) */
+  const push = (px) => Math.min(FLICK42.cap, Math.max(0, (px - DRAG42 / 2) * P.gain));
+  return { flick, push, P, state: () => f, result: () => (f.done ? { q: f.q, rating: rate30(f.q), overs: f.overs } : null) };
 }
 
 /* ───────── ROLL: the great stone on rollers ───────── */

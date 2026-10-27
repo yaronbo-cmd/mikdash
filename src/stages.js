@@ -6174,8 +6174,8 @@ export function createStages(ctx) {
   /* ── per-frame ── */
   const pv = new THREE.Vector3();
   // ── twin18 ── the see-through follows him while twin is ON (batch.js XRAY)
-  let xrOn = false;
-  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
+  let xrOn = false, xrW = null;   // ── fable32 (build 43) ── (xrW: Phase B's guard asks the see-through for the wall between the camera and the kohen, cam28 xray) ── /fable32 ──
+  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else if (xrW) { XRAY.uXr.value.set(xrW[0], xrW[1], xrW[2], 1); XRAY.uXrC.value.copy(camera.position); } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
   // ── /twin18 ──
   function update(dt) {
     xrayStep();   // ── twin18 ── ── /twin18 ──
@@ -8769,7 +8769,8 @@ export function createStages(ctx) {
     craftB,   // ── craftb19 ── (tests: my crafts' state) ── /craftb19 ──
     caTread, caCord, caSurvey, caKey, caDress, caColumn, caWork,   // ── crafta19 ── (tests; the survey's counter) ── /crafta19 ──
     // ── twin17 ── (twin.js) his feet, read every frame without a new vector; a small shake for a touch on material
-    xray: (on) => { xrOn = !!on; },   // ── twin18 ── ── /twin18 ──
+    xray: (on) => { xrOn = !!on; },
+    xrayAt: (on, x, y, z) => { xrW = on && Number.isFinite(x) ? [x, y, z] : null; },   // ── fable32 (build 43) ── ── /fable32 ──   // ── twin18 ── ── /twin18 ──
     // ── twin20 ── the right thumb's aim in the world: ONE flat arrow on the ground from (x, z) along dir (radians, from +x toward +z), len in amot
     aim: (x, z, dir, len, on, hot) => {
       let A = createStages.__aim20; if (!A || A.scene !== scene) {

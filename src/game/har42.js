@@ -583,7 +583,7 @@ export function createHar42(o = {}) {
   const DOME50 = { Rd: 10.5, Ra: 9.2, wall: 10 };
   function props50(add) {
     const stoneM = mat('#E6DAC0', 0.88), wood = mat('#8A6440', 0.85), dark = mat('#1A1410', 0.95);
-    if (STG === 'lishka') { add(new THREE.Mesh(new THREE.BoxGeometry(40, 0.4, 30), mat('#D8CCB2', 0.92)), -81, 15.82, 70); add(new THREE.Mesh(new THREE.BoxGeometry(38, 0.4, 28), mat('#D8CCB2', 0.92)), -160, 15.82, -70.5); }
+    if (STG === 'lishka') { add(new THREE.Mesh(new THREE.BoxGeometry(64, 0.4, 52), mat('#CFC4AA', 0.92)), -81, 15.82, 64); add(new THREE.Mesh(new THREE.BoxGeometry(38, 0.4, 28), mat('#CFC4AA', 0.92)), -160, 15.82, -70.5); }
     const C = PL.gz; st.props.peg50 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 1.4, 8), wood), C.x, C.y + 0.3, C.z); st.props.peg50.visible = false;
     const rg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]); st.props.rope50 = add(new THREE.Line(rg, new THREE.LineBasicMaterial({ color: '#E8D9B0' })), 0, 0, 0); st.props.rope50.visible = false;
     st.props.arc50 = new THREE.Group(); add(st.props.arc50, C.x, C.y + 0.06, C.z); st.props.bench50 = new THREE.Group(); add(st.props.bench50, C.x, C.y, C.z);
@@ -2059,6 +2059,7 @@ export function createHar42(o = {}) {
     if (m) { F.spend42(S.mat, m); matChip(); save42(S); }
     st.part = part; st.job = null; st.near = false; st.camLock = null; svgClear(); if (st.ui.pile) st.ui.pile.innerHTML = '';
     st.target = standOf(part); G39.reset();
+    if (STG === 'lishka' && st.target) { const h0 = hero(); if (Math.hypot(h0.x - st.target.x, h0.z - st.target.z) > 30) { try { stages.hero.setPos(st.target.x + 3, st.target.z + 3, 0); } catch (e) { /* */ } } }   // ── build 50 ── (across the courts, the chambers are far apart: a cut to the next — the walk round the Heichal's ground stuck at a wall)
     const p = PART[part];
     if (st.target && part !== 'rope') { line(LINE42.walk, labelOf(part)); st.pending = p; }
     else { st.pending = null; p.begin && p.begin(); }

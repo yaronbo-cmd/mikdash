@@ -126,7 +126,7 @@ async function mount42(K) {
     if (h.part === 'open') { if (K.rnd() < 0.3) await K.pokeButton(s, null, 'open'); await K.sleep(K.between(500, 1500)); continue; }
     if (mood === 'try') {
       if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
-      else if (/גררו אבן|גררו לוחות|גררו את הגליל|הגליל/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }
+      else if (/גררו אבן|גררו לוחות|גליל/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }
       else if (/^החזיקו/.test(L) && s.obj && s.obj.w > 8 && r < 0.7) { const ob = s.obj; await K.hold(K.between(ob.l, ob.r), K.between(ob.t, ob.b), K.between(600, 5000)); K.ev('hold-thing'); }   // (the line says hold: he holds the thing — for as long as he feels like)
       else await K.tryLine(s);
     } else {

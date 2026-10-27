@@ -68,7 +68,7 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   wood: 'סובבו, קלפו, וגררו לערימה הנכונה · "כל עץ שנמצא בו תולעת, פסול" — מדות ב, ה · טיוטה',   // ── build 48 ── stage 05's lines
   woodHow: 'החלקה למעלה — מסובבת · לאורך — מקלפת · הקשה — מסמנת · המחשה',
   beams: 'גררו קורה לשקע שלה — קורות הפינה קודם · "והקיפוה גזוזטרא" — מדות ב, ה · טיוטה',
-  beamPush: 'דחפו את הקורה לתוך השקע — ישר · המחשה',
+  beamPush: 'דחפו את הקורה לתוך השקע — ישר למעלה · המחשה',
   beamRim: 'הקורה נעצרה בשפת השקע — ישר יותר · המחשה',
   beamBlocked: 'קודם קורות הפינה — אחרת היא לא נכנסת · המחשה',
   beamWrong: 'זו לא הקורה לשקע הזה · המחשה',
@@ -956,7 +956,7 @@ export function createHar42(o = {}) {
       down() {}, move() {},
       up(a) {
         if (cur < 0 || anim) return; const p0 = endAt(cur), p1 = sockAt(cur); if (!p0 || !p1) return;
-        const r = J.push(cur, a.x - a.x0, a.y - a.y0, p1.x - p0.x, p1.y - p0.y);
+        const r = J.push(cur, a.x - a.x0, a.y - a.y0, 0, -1);   // (into the wall: UP the screen — from below the beam's own way in ran DOWN the screen, and the naive kid pushed up 200 times: K48-P2)
         if (r === 'lock') { anim = { i: cur, t: 0 }; o.sound && o.sound('wood'); buzz42('settle'); }
         else if (r === 'rim') { anim = { i: cur, t: 0, rim: true }; buzz42('retry'); line(LINE42.beamRim, `רמה ${L}`); }
       },
@@ -966,7 +966,7 @@ export function createHar42(o = {}) {
         if (anim) { anim.t += dt; const m = beams[anim.i]; if (m) { if (anim.rim) { m.position.z = W2.z + sz * (3.4 - 0.6 * Math.sin(Math.min(1, anim.t / 0.4) * Math.PI)); if (anim.t > 0.45) { anim = null; } } else { const u = Math.min(1, anim.t / 0.35); m.position.z = W2.z + sz * (3.4 - 1.5 * u); m.rotation.y *= 1 - u; if (u >= 1) { anim = null; cur = -1; paint(); if (!J.state().done) line(LINE42.beams, `רמה ${L}`); } } } }
         svgClear();
         for (let i = 0; i < 5; i++) { const p2 = sockAt(i); if (!p2) continue; const st2 = J.state(), lk = st2.locked[i], cor = st2.kinds[i] === 'corner'; svgAdd(`<rect x="${p2.x - 12}" y="${p2.y - 14}" width="24" height="28" rx="4" fill="${lk ? 'rgba(232,181,49,.55)' : 'rgba(0,0,0,.25)'}" stroke="${cur === i ? '#FFF' : '#FFD66E'}" stroke-width="${cur === i ? 3 : 2}"/>${cor && !lk ? `<text x="${p2.x}" y="${p2.y - 20}" font-size="12" font-weight="800" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="3" paint-order="stroke">פינה</text>` : ''}`); }
-        if (cur >= 0 && !anim && J.state().L <= 1) { const p0 = endAt(cur), p1 = sockAt(cur); if (p0 && p1) svgAdd(`<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="#FFD66E" stroke-width="3" stroke-dasharray="6 5"/>`); }
+        if (cur >= 0 && !anim && J.state().L <= 1) { const p1 = sockAt(cur); if (p1) svgAdd(`<line x1="${p1.x}" y1="${p1.y + 70}" x2="${p1.x}" y2="${p1.y + 18}" stroke="#FFD66E" stroke-width="4" stroke-dasharray="6 5"/><text x="${p1.x}" y="${p1.y + 92}" font-size="22" text-anchor="middle" fill="#FFD66E">⬆</text>`); }   // (level 1: the way in — up)
         if (J.state().done && endT < 0 && !anim) { endT = 1.1; if (onDone) onDone(J.state().q); else grade('beams', J.state().q, sockAt(2)); }
         if (endT >= 0) { endT -= dt; if (endT <= 0) { svgClear(); return true; } }
         return false;

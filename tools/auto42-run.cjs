@@ -37,6 +37,7 @@ const OCC = () => {
   await pg.addScriptTag({ path: path.join(__dirname, 'auto42.js') });
   if (flag('--cam')) { await pg.addScriptTag({ path: path.join(__dirname, 'cam41.js') }); await pg.evaluate(() => globalThis.__CAM41.start()); }   // (build 43: the camera's measure on the stage's acts)
   await pg.exposeFunction('__shot42', async (name) => { await pg.evaluate(() => window.__T.simulate(false)).catch(() => {}); await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, `shot-${name}.png`), timeout: 240000 }).catch(() => {}); await pg.evaluate(() => window.__T.simulate(true, 0.05)).catch(() => {}); console.log('shot', name, el());
+    if (flag('--under')) console.log('under', name, JSON.stringify(await pg.evaluate(() => [...document.querySelectorAll('.h42 .h42-pile > *')].map((c) => { const q = c.getBoundingClientRect(), e = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return [c.className, c.style.display, Math.round(q.left), Math.round(q.top), Math.round(q.width), e ? `${e.tagName}.${e.className}` : null]; })).catch((e) => String(e).slice(0, 100))));   // (build 48: what lies under the pile's items)
     if (flag('--occ')) console.log('occ', name, JSON.stringify(await pg.evaluate(OCC).catch((e) => String(e).slice(0, 120)))); });
   const res = await Promise.race([
     pg.evaluate((o) => globalThis.__AUTO42.start({ ...o, shot: (n) => globalThis.__shot42(n) }), { skilled: flag('--skilled'), seed: +opt('--seed', 7), after: flag('--after') }),

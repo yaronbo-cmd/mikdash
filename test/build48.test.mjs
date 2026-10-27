@@ -66,6 +66,7 @@ test('build 48: the stage — its parts and lines, the chambers WITHOUT roofs (�
   assert.ok(!STAGE_GAMES.nashim.includes('torches') && !STAGE_GAMES.nikanor.includes('torches'), 'no שמחת בית השואבה by the women\'s court');
   const h = read('src/game/har42.js'); assert.ok(!/שמחת בית השואבה|שואבה/.test(h.slice(h.indexOf('function mkWood'), h.indexOf('/* ── build 47 ── stage 04\'s acts'))), 'no glimpse in stage 05\'s acts');
   for (const k of ['wood', 'beams', 'pegs', 'corner', 'walk']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
+  assert.match(h, /const r = J\.push\(cur, a\.x - a\.x0, a\.y - a\.y0, 0, -1\);/, 'into the wall: up the screen (K48-P2: from below the beam\'s own way in ran down)'); assert.ok(!/DEBUG48|dbg48/.test(h));
   assert.match(h, /function book48\(back\)/); assert.match(h, /data-b="book">📖 ספר הפגימות/); assert.match(h, /R\.logSeq\.push\(t\)/);
   assert.deepEqual(YARD44.slice(13).map((v) => v.part), ['log', 'beam', 'peg']);
   const cost = F.MAT42.cost; assert.ok(cost.wood + cost.beams + cost.pegs + cost.corner48 > F.MAT42.daily, 'beyond a morning');

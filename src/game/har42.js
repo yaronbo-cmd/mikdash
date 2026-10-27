@@ -125,12 +125,10 @@ export const YARD44 = Object.freeze([
 ]);
 /** ── build 49 ── stage 06's card's sources (בבלי יומא לח ע"א; מדות ב, ג; ב, ה) and the find */
 export const SRC49 = Object.freeze([
-  'כשהלך ניקנור להביא דלתות מאלכסנדריא של מצרים, בחזירתו עמד עליו נחשול שבים לטבעו — יומא לח ע"א · טיוטה',
-  'נטלו אחת מהן והטילוה לים, ובקשו להטיל את חברתה; עמד הוא וכרכה, אמר להם: הטילוני עמה! מיד נח הים מזעפו — יומא לח ע"א · טיוטה',
-  'כיון שהגיע לנמל של עכו, היתה מבצבצת ויוצאה מתחת דופני הספינה — יומא לח ע"א · טיוטה',
+  'ניקנור הביא דלתות מאלכסנדריא; בים עמד עליו נחשול, השליכו אחת לים; "הטילוני עמה!" — ונח הים; בעכו היתה מבצבצת מתחת דופני הספינה — יומא לח ע"א · טיוטה',
   'כל השערים נשתנו להיות של זהב חוץ משערי נקנור, "מפני שנעשו בהן נסים" — יומא לח ע"א; מדות ב, ג · טיוטה',
   'לא היו טרוטות, אלא מקפות כחצי גרן עגלה — ושעליהן הלוים אומרים בשיר — מדות ב, ה · טיוטה',
-  'הספינה, המגדלור, הסערה, המוט והיתדות, צלילי המעלות — המחשה',
+  'הספינה, המגדלור, הסערה, המוט והיתדות, הצלילים — המחשה',
 ]);
 export const FIND49 = 'ממצא: גלוסקמת ניקנור — הר הצופים, 1902: "ניקנור האלכסנדרוני, שעשה את הדלתות" (ביוונית)';
 /** ── build 46 ── stage 03's card's sources (the find: the warning inscription, 1871 — the game's existing find) */
@@ -208,7 +206,7 @@ const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;directio
 .h42-meter{position:fixed;z-index:46;width:18px;height:110px;border-radius:9px;background:rgba(28,20,10,.6);border:2px solid #FFE6A0;overflow:hidden;pointer-events:none}
 .h42-meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#9FD3F0,#3C8DC4)}.h42-meter b{position:absolute;left:-2px;right:-2px;background:rgba(255,214,110,.55);border-top:2px solid #FFD66E;border-bottom:2px solid #FFD66E}.h42-meter u{position:absolute;left:-4px;right:-4px;height:3px;background:#fff;opacity:.85}
 .h42-card{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(20,14,6,.55);pointer-events:auto}
-.h42-card>div{max-width:min(420px,86vw);padding:16px 20px;border-radius:18px;background:#FBF3E2;color:#2A1804;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.h42-card>div{max-width:min(420px,86vw);max-height:94vh;overflow:auto;box-sizing:border-box;padding:16px 20px;border-radius:18px;background:#FBF3E2;color:#2A1804;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .h42-card h2{margin:0 0 6px;font:900 22px/1.2 Heebo,system-ui,sans-serif}.h42-card p{margin:4px 0;font:600 15px/1.35 Heebo,system-ui,sans-serif}.h42-card small{display:block;opacity:.7;font:600 11px/1.3 Heebo,system-ui,sans-serif}
 .h42-card button{margin-top:10px;min-height:48px;min-width:140px;border-radius:14px;border:0;background:#C8923A;color:#2A1804;font:900 17px/1 Heebo,system-ui,sans-serif}
 .h42-skip{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:49;min-height:44px;min-width:88px;border-radius:14px;border:2px solid #FFE6A0;background:rgba(28,20,10,.8);color:#FFE6A0;font:900 15px/1 Heebo,system-ui,sans-serif;pointer-events:auto}

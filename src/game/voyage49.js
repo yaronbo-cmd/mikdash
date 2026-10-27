@@ -128,10 +128,10 @@ export function createVoyage49(ctx) {
   const sail0 = sail.geometry.attributes.position.array.slice();
   // the doors: bronze, glinting
   const bronze = new THREE.MeshStandardMaterial({ color: '#D9A35C', metalness: 0.45, roughness: 0.3, emissive: new THREE.Color('#6A4218'), emissiveIntensity: 0.55 });   // (bright: with no environment a metal reads dark)
-  const door = (x, z) => { const d = new THREE.Group(), b = new THREE.Mesh(new THREE.BoxGeometry(9, 0.35, 4.9), bronze); d.add(b); for (let i = 1; i < 4; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.42, 4.6), mat('#8A5A2A', 0.4, 0.8)); r.position.x = -4.5 + i * 2.25; d.add(r); } return add(d, x, deckY + 0.35, z, ship); };
+  const door = (x, z) => { const d = new THREE.Group(), b = new THREE.Mesh(new THREE.BoxGeometry(9, 0.35, 4.9), bronze); d.add(b); for (let i = 1; i < 4; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.42, 4.6), mat('#B98242', 0.35, 0.6)); r.position.x = -4.5 + i * 2.25; d.add(r); } return add(d, x, deckY + 0.35, z, ship); };
   const door1 = door(-2.5, 1.6), door2 = door(7, -1.4); door1.visible = false;
   let glow = null; try { glow = TX.texGlow(); } catch (e) { glow = null; }
-  const glints = [door1, door2].map((d) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: '#FFF1C8', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(5, 5, 1); s.position.set(1.5, 0.6, 0.8); d.add(s); return s; });
+  const glints = [door1, door2].map((d) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: '#FFF1C8', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(7, 7, 1); s.position.set(1.5, 1.2, 0.8); d.add(s); return s; });   // (the sun's glint on the bronze)
   const ropesM = new THREE.LineBasicMaterial({ color: '#D9C9A0' });
   const ropeLine = (pts) => { const g2 = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(...p))); return new THREE.LineSegments(g2, ropesM); };
   ship.add(ropeLine([[2, deckY + 15, 0], [13, deckY + 0.6, 0], [2, deckY + 15, 0], [-11, deckY + 2, 0], [2, deckY + 14, 0], [2, deckY + 0.6, 3.3], [2, deckY + 14, 0], [2, deckY + 0.6, -3.3]]));
@@ -220,7 +220,7 @@ export function createVoyage49(ctx) {
       V.t += dt; V.fly += dt; const t = V.fly, s = V.scene;
       const A = seas[0].uniforms.uA.value; seas.forEach((m) => { m.uniforms.uT.value = t; });
       if (s === 'sea' || s === 'storm' || s === 'hug') seas.forEach((m) => { m.uniforms.uOff.value += dt * (s === 'sea' ? 3 : 1.5); });
-      glints.forEach((g2, i) => { g2.material.opacity = 0.35 + 0.65 * Math.max(0, Math.sin(t * 2.3 + i * 1.7)) * (s === 'storm' || s === 'hug' ? 0.25 : 1); });
+      glints.forEach((g2, i) => { g2.visible = g2.parent.visible; g2.material.opacity = (0.45 + 0.55 * Math.max(0, Math.sin(t * 2.3 + i * 1.7))) * (s === 'storm' || s === 'hug' ? 0.25 : s === 'road' ? 0 : 1); });
       fire.material.opacity = 0.75 + 0.25 * Math.sin(t * 7);
       // the ship rides the sea: its bob and pitch from the swells; its roll from the storm's heel
       const off = seas[0].uniforms.uOff.value, hb = waveH(12 + off, 0, t, A), hs = waveH(-12 + off, 0, t, A), hm = waveH(off, 0, t, A);

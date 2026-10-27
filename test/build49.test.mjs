@@ -68,7 +68,7 @@ test('build 49: THE PLAYER IS NICANOR in the voyage — not a kohen (the kohen h
 test('build 49: the stage — its parts, the doors left bronze ("מפני שנעשו בהן נסים"), the steps (מדות ב, ה), the wiring, the yard, the find, GAME_BUILD 49', () => {
   assert.deepEqual([...PARTS49], ['open', 'voyage', 'lever', 'hang', 'steps', 'reveal']);
   assert.match(LINE42.ungilded, /"מפני שנעשו בהן נסים" · יומא לח ע"א; מדות ב, ג · טיוטה/); assert.match(LINE42.steps, /"מקפות כחצי גרן עגלה" — מדות ב, ה · טיוטה/); assert.match(LINE42.levites, /מדות ב, ה · טיוטה/);
-  assert.ok(SRC49.some((x) => /עמד עליו נחשול שבים לטבעו — יומא לח ע"א/.test(x)) && SRC49.some((x) => /הטילוני עמה/.test(x)) && SRC49.some((x) => /מבצבצת ויוצאה מתחת דופני הספינה/.test(x)) && SRC49.some((x) => /לא היו טרוטות/.test(x)));
+  assert.ok(SRC49.some((x) => /עמד עליו נחשול/.test(x) && /הטילוני עמה/.test(x) && /מבצבצת מתחת דופני הספינה — יומא לח ע"א/.test(x)) && SRC49.some((x) => /לא היו טרוטות/.test(x)));
   assert.match(FIND49, /גלוסקמת ניקנור — הר הצופים, 1902/);
   for (const [k, v] of Object.entries(VLINE49)) { const head = v.split(' · ')[0]; assert.ok(head.length <= 50, `${k}: ${head}`); assert.match(v, /טיוטה|המחשה|יומא/, k); }
   assert.ok(!STAGE_GAMES.nikanor.includes('levites'), 'the Levites\' song is the stage\'s own steps now: the old board off the stage\'s list');

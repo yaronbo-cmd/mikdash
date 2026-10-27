@@ -1534,7 +1534,7 @@ export function createHar42(o = {}) {
    *  out, the centering drops, a hush, the stones settle with a creak — THE DOME HOLDS (fam42 createArch50). From inside, low, looking up */
   function mkDome50(part = 'dome') {
     const L = famL('place'), J = F.createArch50(L), Mk = PL.mk, ys = Mk.y + DOME50.wall, n = J.state().n, Mn = 2 * n + 1, pile = st.ui.pile; let phase = 'set', endT = -1, fall = -1, tiltA = 0;
-    hole50('moked'); line(LINE42.dome, `רמה ${L}`); pile.innerHTML = ''; pile.hidden = false; st.props.vous50.clear(); st.props.ctr50.position.y = ys; st.props.ctr50.visible = true; st.props.wedges50.forEach((w) => { w.visible = true; w.userData.pop = 0; w.position.set(Mk.x, ys - 0.67, w.userData.z0); }); if (st.props.shell50) { st.props.shell50.visible = false; st.props.shell50.material.opacity = 0; }
+    hole50('moked'); line(LINE42.dome, `רמה ${L}`); pile.innerHTML = ''; pile.hidden = false; st.props.vous50.clear(); st.props.ctr50.position.y = ys; st.props.ctr50.visible = true; (st.props.posts50 || []).forEach((p2) => { p2.visible = true; }); st.props.wedges50.forEach((w) => { w.visible = true; w.userData.pop = 0; w.position.set(Mk.x, ys - 0.67, w.userData.z0); }); if (st.props.shell50) { st.props.shell50.visible = false; st.props.shell50.material.opacity = 0; }
     let polar0 = null; try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl) { polar0 = ctl.maxPolarAngle; ctl.maxPolarAngle = Math.PI - 0.05; } } catch (e) { /* */ }   // (from inside, looking up: the orbit's floor at 1.46 kept the camera above its target)
     const slot = (j) => { const th = Math.PI - ((j + 0.5) * Math.PI) / Mn; return proj(Mk.x, ys + DOME50.Ra * Math.sin(th), Mk.z - DOME50.Ra * Math.cos(th)); };   // (the arch's group turned a quarter: its local x is −z)
     const nextJ = (side) => (side === 'L' ? J.state().left : side === 'R' ? Mn - 1 - J.state().right : n);
@@ -1572,7 +1572,7 @@ export function createHar42(o = {}) {
         }
         if (phase === 'strike') st.props.wedges50.forEach((w) => { if (!w.visible || w.userData.pop) return; const p2 = proj(w.position.x, w.position.y, w.position.z); if (p2) svgAdd(`<circle cx="${p2.x}" cy="${p2.y}" r="15" fill="rgba(255,214,110,.3)" stroke="#FFD66E" stroke-width="3"/>`); });
         if (phase === 'fall' || phase === 'held') {   // the centering drops; a hush; the creak; the stones settle; the dome holds
-          fall += dt; const c = st.props.ctr50; c.position.y = ys - Math.min(2.5, fall * fall * 6); if (fall > 0.6) c.visible = false;
+          fall += dt; const c = st.props.ctr50; c.position.y = ys - Math.min(2.5, fall * fall * 6); if (fall > 0.6) { c.visible = false; (st.props.posts50 || []).forEach((p2) => { p2.visible = false; }); }   // (the centering and its posts away)
           if (fall > 2.0 && !this.creak) { this.creak = 1; o.sound && o.sound('creak'); buzz42('settle'); st.props.vous50.children.forEach((m) => { m.position.y -= 0.04; }); }
           if (fall > 2.6 && phase === 'fall') { phase = 'held'; line(LINE42.holds); o.emit && o.emit('h50holds', {}); if (st.props.shell50) st.props.shell50.visible = true; }
           if (st.props.shell50 && phase === 'held') st.props.shell50.material.opacity = Math.min(1, (fall - 2.6) / 1.6);

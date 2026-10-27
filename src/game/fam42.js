@@ -33,6 +33,7 @@ export const LIFT42 = Object.freeze({
     Object.freeze({ acc: 0.42, drag: 0.5, vmax: 0.45, win: Object.freeze([0.66, 0.74]), shadow: false, sway: 0.8 }),
   ]),
   back: 0.5, still: 0.012,
+  slipAfter: 3, slip: 0.1,   // (over the window and left alone this long, the crew's brake lets the stone sink back into it — a correction; the wheel never stays stuck over it)
 });
 export function createLift(L = 1) {
   const P = LIFT42.L[clamp(L | 0, 1, 4)];
@@ -46,7 +47,10 @@ export function createLift(L = 1) {
     if (push) s.v = Math.min(P.vmax, s.v + P.acc * dt);
     else if (inp.back) s.v = Math.max(-P.vmax, s.v - P.acc * LIFT42.back * 2 * dt);
     else { const d = P.drag * dt; s.v = Math.abs(s.v) <= d ? 0 : s.v - Math.sign(s.v) * d; }
+    if (s.slip) { if (inp.hold || inp.back) s.slip = false; else s.v = -LIFT42.slip; }
     s.y = clamp(s.y + s.v * dt, 0, 1.25);
+    if (s.slip && s.y <= P.win[1] - 0.03) { s.y = P.win[1] - 0.03; s.v = 0; s.slip = false; s.backed = true; s.idle = 0; }
+    if (!s.slip) { s.idle = !inp.hold && !inp.back && s.y > P.win[1] && Math.abs(s.v) < LIFT42.still * 2 ? (s.idle || 0) + dt : 0; if (s.idle > LIFT42.slipAfter) s.slip = true; }
     if (s.y > P.win[1] + 0.02 && !s.over) { s.over = true; s.fix++; }   // (past the window: a correction is needed)
     if (s.y < P.win[1]) s.over = false;
     if (inp.back) s.backed = true;

@@ -44,6 +44,8 @@ test('build 42: LIFT — held, the wheel lifts; released early, momentum carries
   const K = F.createLift(1); run(K, 5, { hold: true }); assert.ok(K.state().y > P.win[1], 'held too long: over');
   let s = run(K, 1, { back: true }); for (let i = 0; i < 80 && !K.state().done; i++) s = run(K, 0.05, K.state().y > aim ? { back: true } : {});
   run(K, 4, {}); assert.equal(K.state().done, true); assert.equal(K.result().rating, 'kasher');
+  // (the naive kid's K42-P-new4: over the window, he never dragged down — let alone, the brake lets the stone sink back into the window: כשר, never stuck)
+  const Z = F.createLift(1); run(Z, 5, { hold: true }); assert.ok(Z.state().y > P.win[1]); run(Z, 12, {}); assert.equal(Z.state().done, true); assert.ok(Z.state().y >= P.win[0] && Z.state().y <= P.win[1]); assert.equal(Z.result().rating, 'kasher');
   // (a child lifts in pushes: stopped short is no fault — the naive kid's runs; over is counted once)
   const Q = F.createLift(1); for (let k = 0; k < 2; k++) { run(Q, 0.9, { hold: true }); run(Q, 3, {}); assert.equal(Q.state().done, false); }
   let lg = false; run(Q, 8, () => { if (!lg && Q.stopAt() >= aim) lg = true; return { hold: !lg }; }); assert.equal(Q.state().done, true); assert.equal(Q.result().rating, 'mehudar', 'three pushes, no overshoot');

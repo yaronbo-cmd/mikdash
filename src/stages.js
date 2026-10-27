@@ -5049,6 +5049,7 @@ export function createStages(ctx) {
   })();
   const paves = list.map((st) => st.cache.pave).filter(Boolean).map((m) => ({ m, r: m.roughness, c: m.color.clone() }));
   function setRain(on) { rain.want = !!on; }
+  function setWet(k) { rain.wetM = Math.max(0, Math.min(1, +k || 0)); }   // ── fable32 (build 45) ── (a morning after the night's rain: the paving wet without the rain falling; it dries as the sun rises) ── /fable32 ──
   function rainUpdate(dt) {
     const want = rain.want && buildPhase() ? 1 : 0;
     rain.k += (want - rain.k) * Math.min(1, dt * (want ? 0.8 : 1.5));
@@ -5056,9 +5057,10 @@ export function createStages(ctx) {
     rain.L.visible = rain.k > 0.003;
     if (rain.L.visible) { camera.getWorldDirection(camDir); rain.U.uC.value.copy(camera.position).addScaledVector(camDir, 45); rain.U.uA.value = rain.k; }
     // wet paving: darker, and glossy enough to catch the braziers
-    if (Math.abs(rain.k - rain.wet) > 0.02 || (rain.k === 0 && rain.wet !== 0)) {
-      rain.wet = rain.k;
-      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, rain.k); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * rain.k); }
+    const wk = Math.max(rain.k, rain.wetM || 0);   // ── fable32 (build 45) ── ── /fable32 ──
+    if (Math.abs(wk - rain.wet) > 0.02 || (wk === 0 && rain.wet !== 0)) {
+      rain.wet = wk;
+      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, wk); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * wk); }
     }
   }
 
@@ -8740,7 +8742,7 @@ export function createStages(ctx) {
     hero: heroApi,   // ── hero (PEOPLE) ── the hero API is built in the hero block (walkTo swing place show setTool tool position at act onImpact workpiece …)
     pick, siteCenter, siteTop, focus, celebrate, workFX, update,
     // GDD §12 world API (v2)
-    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, shine,
+    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)

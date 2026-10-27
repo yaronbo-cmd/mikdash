@@ -30,8 +30,9 @@ import * as TX from '../tex.js';   // ── build 43 ── (the props' stone, 
 export const H42KEY = 'bh_har42';
 export const PARTS42 = Object.freeze(['open', 'rope', 'lift', 'corner', 'rock0', 'rock1', 'rock2', 'course0', 'course1', 'roll', 'pave', 'trace', 'reveal']);
 /** the parts' families (for the grades' levels) and their materials (fam42 MAT42.cost) */
-const FAMOF = { lift: 'lift', corner: 'place', rock0: 'inspect', rock1: 'inspect', rock2: 'inspect', course0: 'place', course1: 'place', roll: 'place', pave: 'place', trace: 'place' };
-const MATOF = { lift: 'lift', rock0: 'rock', rock1: 'rock', rock2: 'rock', course0: 'stone', course1: 'stone', roll: 'roll', pave: 'pave' };
+export const PARTS45 = Object.freeze(['open', 'line', 'pulley', 'wcourse0', 'wcourse1', 'giant', 'wcorner', 'top', 'reveal']);   // ── build 45 ── stage 02, חומת העזרה (v2 §7)
+const FAMOF = { line: 'place', pulley: 'lift', wcourse0: 'place', wcourse1: 'place', giant: 'place', wcorner: 'place', top: 'place', lift: 'lift', corner: 'place', rock0: 'inspect', rock1: 'inspect', rock2: 'inspect', course0: 'place', course1: 'place', roll: 'place', pave: 'place', trace: 'place' };
+const MATOF = { pulley: 'pulley', wcourse0: 'wstone', wcourse1: 'wstone', giant: 'giant', wcorner: 'wstone', top: 'top', lift: 'lift', rock0: 'rock', rock1: 'rock', rock2: 'rock', course0: 'stone', course1: 'stone', roll: 'roll', pave: 'pave' };
 /** the lines (short; each with its source, or המחשה) */
 export const LINE42 = Object.freeze({   // ── build 43 ── (one short instruction; after " · " the source chip — the long explanations are on the card)
   rope: 'החזיקו — הולכים עם החבל ליתד הרחוקה · "חמש מאות אמה" — מדות ב, א · טיוטה',
@@ -48,6 +49,15 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   pave: 'גררו לוחות שימלאו את השורה בדיוק · המחשה',
   trace: 'גררו לאורך הנקודות · "לבית התקיעה" — ב. מזר, 1968 · טיוטה',
   courseEnd: 'הנדבך הושלם — הצוותים ממשיכים',
+  line: 'גררו את החוט מיתד ליתד — ישר · "וקו ינטה על ירושלים" — זכריה א, טז · טיוטה',   // ── build 45 ── stage 02's lines
+  pulley: 'משכו מטה בקצב — ובין משיכה למשיכה החזיקו רגע · גלגלת — המחשה',
+  pulley2: 'גבוה מדי — הרפו מעט, החבל יורד · המחשה',
+  giant: 'אבן ענק — המנוף מוריד; הניפו את המוט · המחשה',
+  wcorner: 'אבן הפינה — הפוכה לזו שמתחת · המחשה',
+  top: 'הנדבך העליון — כולו שלכם · המחשה',
+  retreat: 'האנך ירד: אבן בולטת — גררו אותה פנימה · המחשה',
+  yishar: 'יישר כח! — הצוות · טיוטה',
+  wet: 'בלילה ירד גשם, בבוקר שמש · תענית כג ע"א · טיוטה',
   out: 'מחר: שיירת אבנים מהמחצבה · אלף עגלות — קדמוניות טו 390 · טיוטה',
   caravan: 'הבוקר הגיעה שיירה · אלף עגלות — קדמוניות טו 390 · טיוטה',
 });
@@ -77,6 +87,14 @@ export function testEnd44(jobs) {
 }
 /** a family's mastery points and title (the yard's practice, the test's tries) */
 export const title44 = (fam, pts) => ((pts | 0) >= PTS44.title ? TITLE44[fam] || '' : '');
+/** ── build 45 ── stage 02's card's sources */
+export const SRC45 = Object.freeze([
+  'עזרה — מאה שמונים ושבע על מאה שלושים וחמש — מדות ה, א · טיוטה',
+  'וקו ינטה על ירושלים — זכריה א, טז · טיוטה',
+  'אריח על גבי לבנה — מגילה טז ע"ב · טיוטה',
+  'גשמים בלילות — תענית כג ע"א · טיוטה',
+  'הגלגלת, החוט, הפינות המתחלפות והנסיגה — המחשה',
+]);
 /** the card's sources (the long explanations, moved off the screen's line) */
 export const SRC42 = Object.freeze([
   'הר הבית היה חמש מאות אמה על חמש מאות אמה — מדות ב, א · טיוטה',
@@ -87,7 +105,7 @@ export const SRC42 = Object.freeze([
 ]);
 const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;direction:rtl;font-family:Heebo,system-ui,sans-serif}
 .h42-walk{position:fixed;inset:0;z-index:41;pointer-events:auto;touch-action:none}
-.h42-pad{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:45;touch-action:none;pointer-events:auto;display:none}.h42-pad.on{display:block}
+.h42-pad{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:45;touch-action:none;pointer-events:auto;display:none}.h42-pad.on{display:block}.h42-pad.full{left:0}
 .h42-line{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);max-width:min(64vw,520px);z-index:47;padding:4px 12px;border-radius:14px;background:rgba(28,20,10,.82);color:#FFF4DC;font:800 14px/1.3 Heebo,system-ui,sans-serif;text-align:center;pointer-events:none}
 .h42-line b{display:block;font:800 14px/1.25 Heebo,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.h42-line small{display:flex;flex-wrap:nowrap;gap:6px;justify-content:center;margin-top:2px;font:600 10.5px/1.25 Heebo,system-ui,sans-serif;white-space:nowrap;overflow:hidden}.h42-line i{font-style:normal;padding:0 6px;border-radius:8px;background:rgba(255,230,160,.16);color:#FFE6A0;overflow:hidden;text-overflow:ellipsis}.h42-line em{font-style:normal;opacity:.75}
 .h42-mat{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:calc(env(safe-area-inset-right,0px) + 10px);z-index:47;min-height:44px;box-sizing:border-box;padding:4px 10px;border-radius:14px;background:rgba(28,20,10,.78);color:#FFE6A0;font:900 15px/1.2 Heebo,system-ui,sans-serif;display:flex;align-items:center;gap:4px;pointer-events:none}
@@ -109,6 +127,7 @@ const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;directio
 .h42-tag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:50;padding:2px 8px;border-radius:8px;background:rgba(28,20,10,.82);color:#FFE6A0;font:900 13px/1.2 Heebo,system-ui,sans-serif;pointer-events:none}
 body.h42-on .gm{display:none!important}
 .h42-card button.h44-alt{margin-inline-start:8px;background:#E8DCC0}.h44-seal{font:900 18px/1.3 Heebo,system-ui,sans-serif!important;color:#9A6B12}
+.h45-yishar,.h45-wet{font-size:26px;white-space:nowrap;animation-duration:2.2s}
 .h44-yard{position:relative;max-height:88vh;overflow:auto;max-width:min(560px,92vw)!important}.h44-yard>button[data-b="back"]{position:absolute;top:8px;left:8px;margin:0!important;min-width:88px!important;min-height:44px!important;font-size:14px!important}.h44-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}.h44-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:5px 0;padding:4px 6px;border-radius:12px;background:#F1E6CC}.h44-row b{font:800 15px/1.2 Heebo,system-ui,sans-serif}.h44-row span{display:flex;gap:4px}.h44-row button{margin:0!important;min-width:44px!important;min-height:44px!important;font-size:15px!important}
 .h44-fam{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 6px}.h44-fam i{font-style:normal;padding:2px 8px;border-radius:10px;background:#2A1804;color:#FFE6A0;font:700 12px/1.4 Heebo,system-ui,sans-serif}
 .h44-ghost{position:fixed;z-index:61;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.35);border:2px dashed #FFF;box-shadow:0 0 18px rgba(255,240,200,.8);pointer-events:none;transition:left .12s linear,top .12s linear}
@@ -128,6 +147,11 @@ export function createHar42(o = {}) {
   const MODE = o.mode === 'yard' || o.mode === 'test' ? o.mode : 'stage';   // ── build 44 ── (the yard and the test: one act at a time, no building)
   const st = { on: false, part: null, t: 0, last: 0, hold: null, drag: null, finger: 0, cam: null, camLock: null, ui: {}, props: {}, job: null, out: false, done: false, snapshot: null, pending: null };
   const S = load42();
+  // ── build 45 ── one director for the new stages: 'har' (stage 01) and 'wall' (stage 02, חומת העזרה — v2 §7). The families' levels, the
+  // materials, the yard and the test are the save's own (S); each stage's progress — its part, its opening, its grades, its hands — R
+  const STG = o.stage === 'wall' ? 'wall' : 'har';
+  const R = STG === 'wall' ? (S.wall && typeof S.wall === 'object' ? S.wall : (S.wall = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : S;
+  const PARTS = STG === 'wall' ? PARTS45 : PARTS42;
   const stages = o.stages, view = o.view;
   const scene = () => (o.scene && o.scene()) || (globalThis.__T && globalThis.__T.scene) || null;
   const camera = () => (globalThis.__T && globalThis.__T.camera) || null;
@@ -140,8 +164,13 @@ export function createHar42(o = {}) {
   // the places: around the Mount's work corner (the old stage's banker spot) — the rope's pegs, the wheel, the rocks, the course, the stone's run, the paving, the parapet
   const base = (() => { const w = o.spot ? o.spot() : null, b0 = w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; return MODE === 'stage' ? b0 : { x: b0.x - 85, z: b0.z }; })();   // (build 44: the yard and the test on the finished plaza, 85 amot in from the Mount's east wall — at the old corner the wall stood between the camera and him)
   const P = (dx, dz) => ({ x: base.x + dx, z: base.z + dz, get y() { return gy(this.x, this.z); } });
-  const PL = { peg0: P(-14, 4), peg1: P(16, 4), wheel: P(10, -10), stone0: P(16, -10), rock: [P(-12, -14), P(-24, -6), P(-30, 8)], course: P(2, 16), roll0: P(-20, 24), roll1: P(4, 24), pave: P(18, 26), trace: P(30, 14) };
-  const STAND = { rope: PL.peg1, lift: P(6, -10), rock0: P(-9, -12), rock1: P(-21, -4), rock2: P(-27, 10), course0: P(2, 12), course1: P(2, 12), roll: P(-18, 19.5), pave: P(28, 27), trace: P(27, 14), corner: P(12, -5) };   // (the paving from its east: from its south the act's camera stood behind the crews' course)
+  const PL = { peg0: P(-14, 4), peg1: P(16, 4), wheel: P(10, -10), stone0: P(16, -10), rock: [P(-12, -14), P(-24, -6), P(-30, 8)], course: P(2, 16), roll0: P(-20, 24), roll1: P(4, 24), pave: P(18, 26), trace: P(30, 14), pulley: P(-2, -18), pstone: P(1, -18) };
+  const STAND = { rope: PL.peg1, lift: P(6, -10), rock0: P(-9, -12), rock1: P(-21, -4), rock2: P(-27, 10), course0: P(2, 12), course1: P(2, 12), roll: P(-18, 19.5), pave: P(28, 27), trace: P(27, 14), corner: P(12, -5),
+    line: PL.peg0, pulley: P(-6, -18), wcorner: P(8, 12), wcourse0: P(2, 12), wcourse1: P(2, 12), top: P(2, 12), giant: P(12, -5) };
+  if (STG === 'wall') {   // ── build 45 ── the court wall's work front (its work spot): the line's pins, the pulley and its stone, the courses, the giant low in the wall
+    Object.assign(PL, { peg0: P(-12, 6), peg1: P(12, 6), pulley: P(9, -6), pstone: P(12, -6), course: P(2, 16), stone0: P(-11, 15.4) });
+    Object.assign(STAND, { line: PL.peg0, pulley: P(5, -6), wcourse0: P(2, 11), wcourse1: P(2, 11), giant: P(-11, 10.5), wcorner: P(10, 11), top: P(2, 11) });
+  }   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */
   const mat = (c, r = 0.85) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 });
@@ -185,6 +214,7 @@ export function createHar42(o = {}) {
     st.props.peg0 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.6, 6), WOOD), PL.peg0.x, PL.peg0.y + 0.8, PL.peg0.z);
     st.props.peg1 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.6, 6), WOOD), PL.peg1.x, PL.peg1.y + 0.8, PL.peg1.z);
     const rg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]); st.props.rope = add(new THREE.Line(rg, new THREE.LineBasicMaterial({ color: '#E8D9B0' })), 0, 0, 0);
+    if (STG === 'har') {   // ── build 45 ── (stage 01's own props; the giant, the course and the crowbar are both stages')
     // the treadwheel: a wooden drum of two rims and the boards he walks on, its spokes and axle, standing in its frame; the jib over the stone and its rope
     const wy = PL.wheel.y + 3.4, wh = new THREE.Group();
     for (const z of [-1, 1]) { const rim = new THREE.Mesh(new THREE.TorusGeometry(3, 0.13, 6, 32), WOOD); rim.position.z = z; wh.add(rim); for (let i = 0; i < 4; i++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.14, 5.9, 0.14), WOOD); sp.rotation.z = (i * Math.PI) / 4; sp.position.z = z; wh.add(sp); } }
@@ -197,14 +227,20 @@ export function createHar42(o = {}) {
     const mast = new THREE.Mesh(new THREE.BoxGeometry(0.3, jy - PL.wheel.y, 0.3), WOOD); add(mast, jx0, PL.wheel.y + (jy - PL.wheel.y) / 2, PL.wheel.z);
     const jib = new THREE.Mesh(new THREE.BoxGeometry(jl + 0.6, 0.26, 0.26), WOOD); jib.rotation.y = -Math.atan2(PL.stone0.z - PL.wheel.z, jx1 - jx0); add(jib, (jx0 + jx1) / 2, jy, (PL.wheel.z + PL.stone0.z) / 2);
     const cr = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(jx1, jy, PL.stone0.z), new THREE.Vector3(jx1, jy - 3, PL.stone0.z)]); st.props.crRope = add(new THREE.Line(cr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.jibY = jy;
+    }
     // the giant corner stone (lifted by the wheel, set home with the crowbar), its ghost (level 1) and the crowbar
-    st.props.stone0 = add(ashlar(4.2, 1.8, 2), PL.stone0.x, PL.stone0.y + 0.9, PL.stone0.z);
-    const gh = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.8, 2), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.22, depthWrite: false })); gh.visible = false; st.props.ghost = add(gh, PL.stone0.x, PL.stone0.y + 0.9, PL.stone0.z);
+    const GW = STG === 'wall' ? 6 : 4.2;   // (stage 02: the giant low in the wall, 6 amot)
+    st.props.stone0 = add(ashlar(GW, 1.8, 2), PL.stone0.x, PL.stone0.y + 0.9, PL.stone0.z);
+    const gh = new THREE.Mesh(new THREE.BoxGeometry(GW, 1.8, 2), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.22, depthWrite: false })); gh.visible = false; st.props.ghost = add(gh, PL.stone0.x, PL.stone0.y + 0.9, PL.stone0.z);
     const lv = new THREE.Mesh(new THREE.BoxGeometry(0.13, 2.8, 0.13), mat('#5C5650', 0.5)); lv.geometry.translate(0, 1.4, 0); lv.visible = false; st.props.lever = add(lv, PL.stone0.x - 2.2, PL.stone0.y + 0.2, PL.stone0.z);
+    if (STG === 'wall' || MODE === 'yard') props45(add);   // ── build 45 ── the pulley's rig and its stone, the wall's gold plan
+    if (STG === 'har') {
     // the rocks
     st.props.rocks = PL.rock.map((p, i) => { const m = add(new THREE.Mesh(rockGeo(2.2, i + 3), ROCK), p.x, p.y + 1.3, p.z); m.scale.set(1.35, 0.85, 1.05); m.rotation.y = i * 1.3; return m; });
+    }
     // the course: the crews' stones below and in his course, and the slot
     st.props.course = new THREE.Group(); add(st.props.course, PL.course.x, PL.course.y, PL.course.z);
+    if (STG === 'har') {
     // the great stone (huge) and its rollers
     st.props.big = add(ashlar(12, 3, 3.6), PL.roll0.x, PL.roll0.y + 2.4, PL.roll0.z);
     st.props.rollers = [0, 1, 2, 3].map((i) => { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 4.4, 10), WOOD); c.rotation.x = Math.PI / 2; return add(c, PL.roll0.x - 4.5 + i * 3, PL.roll0.y + 0.45, PL.roll0.z); });
@@ -215,6 +251,24 @@ export function createHar42(o = {}) {
     // the gold plan of the platform (unrolling in the opening)
     const R = 140, c0 = { x: base.x - 40, z: base.z - 50 }, gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.85 }), C4 = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
     st.props.plan = C4.map((a, i) => { const b = C4[(i + 1) % 4], x0 = c0.x + a[0] * R, z0 = c0.z + a[1] * R, x1 = c0.x + b[0] * R, z1 = c0.z + b[1] * R, L = Math.hypot(x1 - x0, z1 - z0); const m = new THREE.Mesh(new THREE.BoxGeometry(L, 0.6, 2.4), gm); m.geometry.translate(L / 2, 0, 0); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); m.scale.x = 0.001; return add(m, x0, gy(x0, z0) + 2, z0); });
+    }
+  }
+  /** ── build 45 ── stage 02's props: the pulley's rig (a gin pole of two legs, the sheave, the rope) and its stone; the court wall's gold
+   *  plan, 187 × 135 amot (מדות ה, א) round the court, rising from the ground in the opening; the morning's puddles after a night's rain */
+  const CW45 = { x: -85, z: 0, w: 187, d: 135 };
+  function props45(add) {
+    const top = PL.pulley.y + 7.5, g2 = new THREE.Group();
+    for (const sx of [-1, 1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.24, 7.8, 0.24), WOOD); l.position.set(sx * 1.4, -3.75, 0); l.rotation.z = -sx * 0.19; g2.add(l); }
+    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.22, 14), WOOD); sh.rotation.x = Math.PI / 2; g2.add(sh);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(PL.pstone.x - PL.pulley.x + 0.4, 0.22, 0.22), WOOD); arm.position.x = (PL.pstone.x - PL.pulley.x) / 2; g2.add(arm);
+    add(g2, PL.pulley.x, top, PL.pulley.z); st.props.sheave = sh;
+    st.props.pstone = add(ashlar(2.4, 1.1, 1.2), PL.pstone.x, PL.pstone.y + 0.55, PL.pstone.z);
+    const pr = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(PL.pstone.x, top, PL.pstone.z), new THREE.Vector3(PL.pstone.x, top - 6, PL.pstone.z), new THREE.Vector3(PL.pulley.x, top, PL.pulley.z), new THREE.Vector3(PL.pulley.x - 0.6, PL.pulley.y + 1.4, PL.pulley.z + 0.6)]);
+    st.props.pRope = add(new THREE.LineSegments(pr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.pTop = top;
+    if (STG === 'wall') {
+      const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.8 }), hw = CW45.w / 2, hd = CW45.d / 2;
+      st.props.plan = [[0, -hd, CW45.w, 1.6], [0, hd, CW45.w, 1.6], [-hw, 0, 1.6, CW45.d], [hw, 0, 1.6, CW45.d]].map(([dx, dz, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 3, d), gm); m.geometry.translate(0, 1.5, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, gy(CW45.x + dx, CW45.z + dz), CW45.z + dz); });
+    }
   }
   /** the crane's rope from the jib's end down to the stone's top */
   function craneRope(top) { const r = st.props.crRope; if (!r) return; const a = r.geometry.attributes.position; a.setXYZ(1, a.getX(0), top, a.getZ(0)); a.needsUpdate = true; }
@@ -316,7 +370,7 @@ export function createHar42(o = {}) {
     if (st.hold && !st.job) g = G39.dir(h, null);
     walk39(vel, g, 14, dt);
     try { stages.hero.drive(vel.vx, vel.vz); } catch (e) { /* */ }
-    if (st.hold && !st.job) S.hands += dt;
+    if (st.hold && !st.job) R.hands += dt;
     return st.target ? Math.hypot(st.target.x - h.x, st.target.z - h.z) : 99;
   }
 
@@ -331,7 +385,8 @@ export function createHar42(o = {}) {
       toast(r.rating, at, r.opened); o.emit && o.emit('h44grade', { part, rating: r.rating, q, L, fam, mode: MODE }); return r.rating;
     }
     const r = F.famRate(S, fam, L, q);
-    S.grades.push([part, r.rating, Math.round(q * 100) / 100, L]); save42(S);
+    if (STG === 'wall') { R.streak = r.rating === 'mehudar' ? (R.streak | 0) + 1 : 0; if (R.streak >= 3) { R.streak = 0; setTimeout(() => { if (!doc || !st.ui.root) return; const y = el('h42-g h45-yishar', esc(LINE42.yishar.split(' · ')[0])); y.style.left = `${W() / 2}px`; y.style.top = `${H() * 0.3}px`; st.ui.root.appendChild(y); setTimeout(() => y.remove(), 2200); buzz42('peak'); o.emit && o.emit('h45yishar', {}); }, 900); } }   // ── build 45 ── three מהודר in a row: the crew calls (טיוטה)
+    R.grades.push([part, r.rating, Math.round(q * 100) / 100, L]); save42(S);
     toast(r.rating, at, r.opened);
     o.emit && o.emit('h42grade', { part, rating: r.rating, q, L, fam });
     return r.rating;
@@ -346,19 +401,27 @@ export function createHar42(o = {}) {
   // each part: begin() → its state; frame(dt) → true when the part is done
   const PART = {
     open: {
-      begin() { const first = !S.open; st.fly = { t: 0, T: first ? 16 : 3, first, snap: false }; line(''); if (!first) skipBtn(); else skipBtn(5); },
+      begin() { const first = !R.open; st.fly = { t: 0, T: first ? (STG === 'wall' ? 8 : 16) : 3, first, snap: false }; line(''); if (!first) skipBtn(); else skipBtn(STG === 'wall' ? 3 : 5); },
       frame(dt) {
         const f = st.fly; f.t += dt; const u = Math.min(1, f.t / f.T), V = (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };
+        if (STG === 'wall') {   // ── build 45 ── from the finished plaza: the court wall's gold plan rises from the ground (187 × 135, מדות ה, א); the crews already at work; the dive to him
+          const c = CW45, gc = gy(c.x, c.z), orbit = Math.min(1, u / 0.78), a = 0.75 + orbit * 0.55, Rr = 230 - 60 * orbit;
+          let p = [c.x + Math.cos(a) * Rr, gc + 150 - 50 * orbit, c.z + Math.sin(a) * Rr], t = [c.x, gc + 4, c.z];
+          if (u > 0.78) { const k = (u - 0.78) / 0.22, e = k * k * (3 - 2 * k), fv = followView(hero()); p = p.map((v, i) => v + (fv.p[i] - v) * e); t = t.map((v, i) => v + (fv.t[i] - v) * e); }
+          camTo(p, t, 1);
+          if (st.props.plan) st.props.plan.forEach((m) => { m.scale.y = Math.max(0.001, Math.min(1, (u - 0.08) / 0.45)); });
+          return u >= 1;
+        }
         const c = { x: V.t[0], z: V.t[2] }, R0 = Math.hypot(V.p[0] - c.x, V.p[2] - c.z), a0 = Math.atan2(V.p[2] - c.z, V.p[0] - c.x);
         const orbit = Math.min(1, u / 0.78), a = a0 + orbit * 0.9, R = R0 * (1 - 0.35 * orbit), y = V.p[1] * (1 - 0.3 * orbit);
         let p = [c.x + Math.cos(a) * R, y, c.z + Math.sin(a) * R], t = [V.t[0], V.t[1], V.t[2]];
         if (u > 0.78) { const k = (u - 0.78) / 0.22, e = k * k * (3 - 2 * k), fv = followView(hero()); p = p.map((v, i) => v + (fv.p[i] - v) * e); t = t.map((v, i) => v + (fv.t[i] - v) * e); }
         camTo(p, t, 1);
-        if (!f.snap && f.t > 0.05) { f.snap = true; try { if (o.snapshot) st.snapshot = o.snapshot(); } catch (e) { st.snapshot = null; } }   // (build 43: the before — from the opening's own viewpoint, before the plan unrolls)
+        if (!f.snap && f.t > 0.05 && STG === 'har') { f.snap = true; try { if (o.snapshot) st.snapshot = o.snapshot(); } catch (e) { st.snapshot = null; } }   // (build 43: the before — from the opening's own viewpoint, before the plan unrolls)
         if (st.props.plan) st.props.plan.forEach((m, i) => { m.scale.x = Math.max(0.001, Math.min(1, (u - 0.12) * 6 - i)); });   // (the four edges unroll one after another)
         return u >= 1;
       },
-      end() { S.open = (S.open | 0) + 1; if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } },
+      end() { R.open = (R.open | 0) + 1; if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } },
     },
     rope: {
       begin() { line(LINE42.rope); },
@@ -371,6 +434,11 @@ export function createHar42(o = {}) {
       begin() { const L = famL('lift'); st.job = mkLift(L); line(LINE42.lift, `רמה ${L}`); },
     },
     corner: { begin() { st.job = mkCorner(); } },
+    line: { begin() { st.job = mkLine(); } },   // ── build 45 ── stage 02's parts
+    pulley: { begin() { st.job = mkPulley(); } },
+    wcourse0: { begin() { st.job = mkCourse(0, '', 'wcourse0'); } }, wcourse1: { begin() { st.job = mkCourse(1, '', 'wcourse1'); } },
+    giant: { begin() { const s0 = st.props.stone0; if (s0) s0.position.y = PL.stone0.y + 0.9 + 4; st.job = mkCorner(LINE42.giant, 'giant'); } },
+    wcorner: { begin() { st.job = mkCourse(2, 'corner', 'wcorner'); } }, top: { begin() { st.job = mkCourse(3, 'top', 'top'); } },
     rock0: { begin() { st.job = mkRock(0); } }, rock1: { begin() { st.job = mkRock(1); } }, rock2: { begin() { st.job = mkRock(2); } },
     course0: { begin() { st.job = mkCourse(0); } }, course1: { begin() { st.job = mkCourse(1); } },
     roll: { begin() { st.job = mkRoll(); } },
@@ -383,9 +451,10 @@ export function createHar42(o = {}) {
         line(''); objPlace(false); svgClear(); if (st.props.root) st.props.root.visible = false;
         let out = null; try { out = o.complete ? o.complete() : null; } catch (e) { out = null; }
         try { if (o.timeOfDay) o.timeOfDay('golden'); } catch (e) { /* */ }
-        const V = (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };
-        st.rev = { t: 0, out, V, p0: [PL.pave.x + 7, PL.pave.y + 4.5, PL.pave.z + 6], t0: [PL.pave.x, PL.pave.y + 0.5, PL.pave.z + 1.5] };
-        if (st.snapshot && doc) { const im = el('h42-before', '', 'img'); im.src = st.snapshot; im.style.opacity = '0'; st.ui.root.appendChild(im); st.ui.before = im; }
+        const gc = gy(CW45.x, CW45.z), V = STG === 'wall' ? { p: [CW45.x + 150, gc + 140, CW45.z + 165], t: [CW45.x, gc + 6, CW45.z] } : (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };   // (build 45: the wall — up over the whole court)
+        const P0 = STG === 'wall' ? PL.course : PL.pave;
+        st.rev = { t: 0, out, V, p0: [P0.x + 7, P0.y + 4.5, P0.z + 6], t0: [P0.x, P0.y + 0.5, P0.z + 1.5] };
+        if (st.snapshot && doc && STG === 'har') { const im = el('h42-before', '', 'img'); im.src = st.snapshot; im.style.opacity = '0'; st.ui.root.appendChild(im); st.ui.before = im; }
         const tg = el('h42-tag', ''); tg.hidden = true; st.ui.root.appendChild(tg); st.ui.btag = tg;
         if (doc && st.ui.root) { const b = el('h42-skip', 'דלגו', 'button'); b.type = 'button'; b.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (st.rev) st.rev.t = Math.max(st.rev.t, 8.9); }); st.ui.root.appendChild(b); st.ui.skip = b; }
         buzz42('peak');
@@ -430,12 +499,12 @@ export function createHar42(o = {}) {
   }
   /* PLACE (twist, build 43): the giant corner stone — the crane lowers it a little short of its place; short flicks of the crowbar nudge it
    * home (a flick's length is its push; too strong overshoots — nudge it back); level 1 shows a ghost of the place (v2 §3) */
-  function mkCorner() {
+  function mkCorner(label = LINE42.corner, part = 'corner') {
     const L = famL('place'), J = F.createFlick(L), S0 = PL.stone0, s0 = st.props.stone0, y1 = S0.y + 0.9, y0 = s0 ? s0.position.y : y1 + 3;
     let lowT = 0, cx = 0, lev = 0;
     if (st.props.ghost) { st.props.ghost.visible = !!J.state().ghost; st.props.ghost.position.set(S0.x, y1, S0.z); }
     const axis = () => { const a = proj(S0.x + cx, y1, S0.z), b = proj(S0.x + cx + 1, y1, S0.z); if (!a || !b) return null; const n = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { x: a.x, y: a.y, ux: (b.x - a.x) / n, uy: (b.y - a.y) / n, ppm: n }; };
-    line(LINE42.corner, `רמה ${L}`);
+    line(label, `רמה ${L}`);
     return {
       acting: true, J, kind: 'corner', axis, ready: () => lowT >= 1.4,
       down() {}, move() {},
@@ -450,8 +519,61 @@ export function createHar42(o = {}) {
         const yy = y0 + (y1 - y0) * e; if (s0) s0.position.set(S0.x + cx, yy, S0.z); craneRope(lowT < 1.6 ? yy + 0.9 : (st.props.jibY || yy) - 0.5);
         if (st.props.lever) { const lv = st.props.lever; lv.visible = lowT >= 1.4; lev *= Math.max(0, 1 - dt * 5); lv.position.set(S0.x + cx - 2.3, S0.y + 0.15, S0.z + 0.3); lv.rotation.z = -0.55 + lev; }
         objPlace(true, [{ x: S0.x + cx, y: y1, z: S0.z, r: 2.4 }], 'h42corner');
-        if (!s.done && lowT > 1.4 && !(s.flicks && s.side > 0)) line(LINE42.corner, `רמה ${s.L} · דחיפות ${s.flicks}`);
-        if (s.done) { if (st.props.ghost) st.props.ghost.visible = false; if (st.props.lever) st.props.lever.visible = false; if (s0) s0.position.set(S0.x + s.x, y1, S0.z); grade('corner', s.q, proj(S0.x, y1 + 1.2, S0.z)); return true; }
+        if (!s.done && lowT > 1.4 && !(s.flicks && s.side > 0)) line(label, `רמה ${s.L} · דחיפות ${s.flicks}`);
+        if (s.done) { if (st.props.ghost) st.props.ghost.visible = false; if (st.props.lever) st.props.lever.visible = false; if (s0) s0.position.set(S0.x + s.x, y1, S0.z); grade(part, s.q, proj(S0.x, y1 + 1.2, S0.z)); return true; }
+        return false;
+      },
+    };
+  }
+  /* ── build 45 ── the LINE: stretched from pin to pin — a drag from the near pin to the far one, graded by its straightness ("וקו ינטה על
+   * ירושלים", זכריה א, טז; the chalk line itself המחשה); the touch on the whole screen for it */
+  function mkLine() {
+    const L = famL('place'), J = F.createLine45(L), A = PL.peg0, B = PL.peg1, ya = A.y + 1.2, yb = B.y + 1.2;
+    line(LINE42.line, `רמה ${L}`);
+    const ends = () => { const a = proj(A.x, ya, A.z), b = proj(B.x, yb, B.z); return a && b ? { a, b } : null; };
+    const uv = (x, y) => { const E = ends(); if (!E) return null; const vx = E.b.x - E.a.x, vy = E.b.y - E.a.y, L2 = vx * vx + vy * vy || 1, Ln = Math.sqrt(L2); return { u: ((x - E.a.x) * vx + (y - E.a.y) * vy) / L2, d: ((x - E.a.x) * -vy + (y - E.a.y) * vx) / L2, Ln }; };
+    let path = [];
+    const ropeTo = (x, y, z) => { const r = st.props.rope; if (!r) return; const a = r.geometry.attributes.position; a.setXYZ(0, A.x, ya, A.z); a.setXYZ(1, x, y, z); a.needsUpdate = true; };
+    if (st.ui.pad) st.ui.pad.classList.add('full');
+    return {
+      acting: true, J, kind: 'line', ends,
+      down(a) { const q = uv(a.x, a.y); if (q) J.down(q.u, q.d); path = J.state().on ? [[a.x, a.y]] : []; if (!J.state().on) line('מתחילים ביתד הקרובה — שם החוט קשור · המחשה', `רמה ${J.state().L}`); },
+      move(a) { const q = uv(a.x, a.y); if (!q) return; J.move(q.u, q.d); if (J.state().on || J.state().done) path.push([a.x, a.y]); const k = Math.max(0, Math.min(1, q.u)); ropeTo(A.x + (B.x - A.x) * k, ya + (yb - ya) * k, A.z + (B.z - A.z) * k); },
+      up() { J.up(); if (!J.state().done) path = []; },
+      frame() {
+        const s = J.state(), E = ends(); objPlace(true, [{ x: (A.x + B.x) / 2, y: (ya + yb) / 2, z: (A.z + B.z) / 2, r: Math.hypot(B.x - A.x, B.z - A.z) / 2 }], 'h45line');
+        if (st.ui.pad) st.ui.pad.classList.add('full');
+        svgClear(); if (E) { svgAdd(`<circle cx="${E.a.x}" cy="${E.a.y}" r="14" fill="rgba(255,214,110,.35)" stroke="#FFD66E" stroke-width="2"/><circle cx="${E.b.x}" cy="${E.b.y}" r="14" fill="none" stroke="#FFD66E" stroke-width="2" stroke-dasharray="4 3"/>`); if (s.L <= 1) svgAdd(`<line x1="${E.a.x}" y1="${E.a.y}" x2="${E.b.x}" y2="${E.b.y}" stroke="#FFE6A0" stroke-width="1.5" stroke-dasharray="3 6" opacity=".6"/>`); }
+        if (path.length > 1) svgAdd(`<polyline points="${path.map((p2) => p2.join(',')).join(' ')}" fill="none" stroke="#F4EBD6" stroke-width="3"/>`);
+        if (s.done) { if (st.ui.pad) st.ui.pad.classList.remove('full'); ropeTo(B.x, yb, B.z); svgClear(); grade('line', s.q, E ? E.b : null); return true; }
+        return false;
+      },
+      end() { if (st.ui.pad) st.ui.pad.classList.remove('full'); },
+    };
+  }
+  /* ── build 45 ── LIFT on the wall: the PULLEY, hand over hand — swipe down in rhythm; between pulls a still hold catches the rope (else it
+   * slips back); stop in the window; the meter and, at level 1, the window's shadow (v2 §2) */
+  function mkPulley() {
+    const L = famL('lift'), J = F.createPulley(L), mt = el('h42-meter', '<i></i><b></b><u></u>'); st.ui.root.appendChild(mt);
+    const [w0, w1] = J.P.win; mt.querySelector('b').style.bottom = `${w0 * 80}%`; mt.querySelector('b').style.height = `${(w1 - w0) * 80}%`; mt.querySelector('u').style.display = 'none';
+    let lastY = 0, ps = st.props.pstone, y0 = ps ? PL.pstone.y + 0.55 : 0;
+    line(LINE42.pulley, `רמה ${L}`);
+    return {
+      acting: true, el: [mt], J, kind: 'pulley',
+      down(a) { J.grab(); lastY = a.y; },
+      move(a) { const dy = a.y - lastY; lastY = a.y; if (dy > 0) J.pull(dy); },
+      up() { J.release(); },
+      frame(dt) {
+        const a = st.act; if (a && a.down && Math.abs(a.y - lastY) < 2) J.hold(dt);
+        const s = J.step(dt), y = s.y + J.sway();
+        if (ps) ps.position.y = y0 + y * 6; if (st.props.sheave) st.props.sheave.rotation.z = -s.y * 9;
+        const r = st.props.pRope; if (r && ps) { const p = r.geometry.attributes.position; p.setY(1, ps.position.y + 0.55); p.needsUpdate = true; }
+        const top = ps ? ps.position.y + 0.6 : PL.pstone.y + 2;
+        objPlace(true, [{ x: (PL.pulley.x + PL.pstone.x) / 2, y: Math.min(top, PL.pulley.y + 4), z: PL.pulley.z, r: 2.6 }], 'h45pulley');
+        const q = proj(PL.pstone.x, top, PL.pstone.z); if (q) { mt.style.left = `${Math.round(Math.min(W() - 40, q.x + 70))}px`; mt.style.top = `${Math.round(Math.max(60, q.y - 55))}px`; }
+        mt.querySelector('i').style.height = `${Math.round(Math.min(1.2, s.y) * 80)}%`;
+        line(s.y > w1 + 0.02 ? LINE42.pulley2 : LINE42.pulley, `רמה ${s.L} · משיכות ${s.pulls}`);
+        if (s.done) { grade('pulley', s.q, q); buzz42('settle'); return true; }
         return false;
       },
     };
@@ -499,17 +621,23 @@ export function createHar42(o = {}) {
     };
   }
   /* PLACE: his hand stones in the course — drag from the pile, hold over the course to settle; the crews lay the rest */
-  function mkCourse(n) {
-    const L = famL('place'), spec = F.courseSpec(n, L), J = F.createCourse(spec), U = 1.2, C = { x: PL.course.x, y: PL.course.y + 1.5 + n * 1.0, z: PL.course.z };
-    line(LINE42.place, `נדבך ${n + 1} · רמה ${L}`);
+  function mkCourse(n, kind = '', part = '') {
+    const L = famL('place'), spec = kind ? F.wallSpec45(kind, L, n) : F.courseSpec(n, L), J = F.createCourse(spec), U = 1.2, C = { x: PL.course.x, y: PL.course.y + 1.5 + n * 1.0, z: PL.course.z };
+    line(kind === 'corner' ? LINE42.wcorner : kind === 'top' ? LINE42.top : LINE42.place, `נדבך ${n + 1} · רמה ${L}`);
     // the course below (the crews'), and the crews' stones of this course outside his stretch, laid one by one
     const g = st.props.course; const box3 = (len, x0, y) => { const m = ashlar(len * U - 0.1, 0.96, 1.2); m.position.set((x0 + len / 2) * U - 7, y, 0); g.add(m); return m; };   // (build 43: drafted margins and a boss)
-    if (n === 0) { let x = 0; const bl = spec.below.concat([15]); for (const j of bl) { box3(j - x, x, 0.5); x = j; } }
+    if (n === 0 || (STG === 'wall' && !g.userData.below)) { g.userData.below = 1; let x = 0; const bl = spec.below.concat([15]); for (const j of bl) { box3(j - x, x, 0.5 + (n > 0 ? n - 1 : 0) * 1.0); x = j; } }
+    // ── build 45 ── a corner at the course's east end: the corner stone the other way from the one below (they alternate, המחשה) — the one below is shown
+    const cornerM = (dir, y) => { const m = new THREE.Group(), a1 = ashlar(2 * U - 0.1, 0.96, 1.2), a2 = ashlar(1.1, 0.96, 1.8); a2.position.set(dir === 'a' ? 0.55 - U : U - 0.55, 0, 1.45); m.add(a1, a2); m.position.set((spec.b - 1) * U - 7, y, 0); g.add(m); return m; };
+    if (spec.corner) cornerM(spec.corner.want === 'a' ? 'b' : 'a', 0.5 + (n > 0 ? n - 1 : 0) * 1.0);
+    const settle = (m) => { if (!m) return; const y1 = m.position.y; m.position.y = y1 + 0.7; st.anims = (st.anims || []).concat([{ m, y0: y1 + 0.7, y1, t: 0, T: 0.22 }]); buzz42('settle'); o.emit && o.emit('h45thud', {}); };   // (#6: it settles by itself — a short drop, the thud, the haptic)
     const crew = []; for (let x = 0; x < spec.a; x += 2) crew.push([x, Math.min(2, spec.a - x)]); for (let x = spec.b; x < 15; x += 3) crew.push([x, Math.min(3, 15 - x)]);
     let crewT = 0, crewN = 0, graded = false;
     // the pile
     const pile = st.ui.pile; pile.innerHTML = '';
+    const laid = [];
     for (const len of F.PLACE42.lens) { const b = el('h42-it', `${'▭'.repeat(1)} ${len}`, 'button'); b.type = 'button'; b.dataset.len = String(len); b.setAttribute('aria-label', `אבן באורך ${len}`); pile.appendChild(b); dragItem(b, (drop) => tryPlace(len, b, drop)); }
+    if (spec.corner) for (const dir of ['a', 'b']) { const b = el('h42-it', dir === 'a' ? '┐ פינה' : '┌ פינה', 'button'); b.type = 'button'; b.dataset.corner = dir; b.setAttribute('aria-label', `אבן פינה ${dir === 'a' ? 'לצפון' : 'לדרום'}`); pile.appendChild(b); dragItem(b, (drop) => { const q = uAt(spec.b - 1); if (!q || Math.hypot(drop.x - q.x, drop.y - q.y) > Math.max(70, H() * 0.22)) return false; const r = J.placeCorner(dir, { dragPx: drop.px }); if (r === 'ok') { settle(cornerM(dir, 1.5 + n * 1.0)); b.remove(); const o2 = pile.querySelector('[data-corner]'); if (o2) o2.remove(); if (dir !== spec.corner.want) line('הפינה באותו כיוון כמו שמתחת — חיבור חלש · המחשה', `נדבך ${n + 1}`); return true; } return false; }); }
     // ── build 43 ── the drop: anywhere over his stretch — the stone goes to the free place nearest where it was let go (#6)
     const uAt = (u) => proj(C.x + u * U - 7, C.y, C.z);
     const stretch = () => { const a = uAt(spec.a), b = uAt(spec.b); return a && b ? { a, b } : null; };
@@ -518,21 +646,25 @@ export function createHar42(o = {}) {
       const S2 = stretch(); if (!S2) return false;
       const vx = S2.b.x - S2.a.x, vy = S2.b.y - S2.a.y, L2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((drop.x - S2.a.x) * vx + (drop.y - S2.a.y) * vy) / L2));
       const d = Math.hypot(drop.x - (S2.a.x + vx * t), drop.y - (S2.a.y + vy * t)); if (d > Math.max(64, H() * 0.2)) return false;
-      const r = J.place(len, { dragPx: drop.px, settleS: drop.still, u: spec.a + t * (spec.b - spec.a) });
-      if (r === 'ok') { const [s0, l0] = J.state().last; box3(l0, s0, 1.5 + n * 1.0); buzz42('settle'); return true; }
+      const r = J.place(len, { dragPx: drop.px, u: spec.a + t * (spec.b - spec.a) });
+      if (r === 'ok') { const [s0, l0] = J.state().last; const m = box3(l0, s0, 1.5 + n * 1.0); laid.push(m); settle(m); return true; }
       if (r === 'unsettled') line('החזיקו רגע על הנדבך — שתתיישב · המחשה', `נדבך ${n + 1}`);
       if (r === 'long' || r === 'gap') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); line(r === 'gap' ? 'תישאר שם פרצה קטנה מדי — בחרו אחרת · המחשה' : 'אין לה מקום שם — בחרו קצרה יותר · המחשה', `נדבך ${n + 1}`); }
       return false;
     }
     return {
-      acting: true, dragOnly: true, J, kind: 'course', slot: slotBox, uAt, spec,
+      acting: true, dragOnly: true, J, kind: 'course', slot: slotBox, uAt, spec, cornerAt: () => (spec.corner ? uAt(spec.b - 1) : null),
+      down() {}, move() {},
+      up(a) { if (J.state().prot && J.state().prot.length && Math.hypot(a.x - a.x0, a.y - a.y0) >= F.DRAG42) { const i = J.state().prot[0], m = laid[i]; if (J.pushIn({ dragPx: Math.hypot(a.x - a.x0, a.y - a.y0) }) === 'ok' && m) { m.position.z = 0; buzz42('settle'); } } },   // (the retreat: a drag pushes the next stone that stands out back into line)
       frame(dt) {
+        if (J.state().prot && J.state().prot.length && !this.plumb) { this.plumb = 1; this.dragOnly = false; J.state().prot.forEach((i) => { if (laid[i]) laid[i].position.z = 0.35; }); line(LINE42.retreat, `נדבך ${n + 1} · רמה ${L}`); }
         crewT += dt; if (crewN < crew.length && crewT > 1.6) { crewT = 0; const [x, len] = crew[crewN++]; box3(len, x, 1.5 + n * 1.0); }
         objPlace(true, [{ x: C.x + ((spec.a + spec.b) / 2) * U - 7, y: C.y + 1, z: C.z, r: ((spec.b - spec.a) * U) / 2 + 0.6 }], 'h42course');
         // the joints below his stretch, shown at level 1 (the rule's teacher)
         svgClear(); if (!J.state().done) for (const [r0, rl] of J.runs()) { const a = proj(C.x + r0 * U - 7 + 0.08, C.y + 0.5, C.z), b = proj(C.x + (r0 + rl) * U - 7 - 0.08, C.y - 0.5, C.z), c2 = proj(C.x + r0 * U - 7 + 0.08, C.y - 0.5, C.z), d2 = proj(C.x + (r0 + rl) * U - 7 - 0.08, C.y + 0.5, C.z); if (a && b && c2 && d2) svgAdd(`<polygon points="${a.x},${a.y} ${d2.x},${d2.y} ${b.x},${b.y} ${c2.x},${c2.y}" fill="rgba(255,214,110,.16)" stroke="#FFD66E" stroke-width="2" stroke-dasharray="6 4"/>`); }   // (build 43: each empty place of the course, on the course)
+        if (spec.corner && !J.state().corner.dir && !J.state().done) { const a = proj(C.x + (spec.b - 2) * U - 7 + 0.08, C.y + 0.5, C.z), b = proj(C.x + spec.b * U - 7 - 0.08, C.y - 0.5, C.z), c2 = proj(C.x + (spec.b - 2) * U - 7 + 0.08, C.y - 0.5, C.z), d2 = proj(C.x + spec.b * U - 7 - 0.08, C.y + 0.5, C.z); if (a && b && c2 && d2) svgAdd(`<polygon points="${a.x},${a.y} ${d2.x},${d2.y} ${b.x},${b.y} ${c2.x},${c2.y}" fill="rgba(255,160,80,.2)" stroke="#FFA94D" stroke-width="2" stroke-dasharray="4 3"/>`); }   // (build 45: the corner's place)
         if (J.state().L <= 1) for (const j of spec.below) { if (j <= spec.a || j >= spec.b) continue; const q = proj(C.x + j * U - 7, C.y + 0.4, C.z); if (q) svgAdd(`<line x1="${q.x}" y1="${q.y - 22}" x2="${q.x}" y2="${q.y + 6}" stroke="#C0392B" stroke-width="3" opacity=".7"/>`); }
-        if (J.state().done) { if (!graded) { graded = true; pile.innerHTML = ''; svgClear(); const q = proj(C.x, C.y + 1, C.z); grade(`course${n}`, J.state().q, q); } return crewN >= crew.length; }   /* (graded once; the part ends when the crews have laid the rest) */
+        if (J.state().done) { if (!graded) { graded = true; pile.innerHTML = ''; svgClear(); const q = proj(C.x, C.y + 1, C.z); grade(part || `course${n}`, J.state().q, q); if (STG === 'wall' && MODE === 'stage') { try { if (stages.setStage) stages.setStage('wall', 'building', PARTS.indexOf(part) / (PARTS.length - 2), {}); } catch (e) { /* */ } }   /* (build 45: the court wall's own model rises with the courses — the pull-back shows it) */ } return crewN >= crew.length; }   /* (graded once; the part ends when the crews have laid the rest) */
         return false;
       },
       end() { pile.innerHTML = ''; st.pull = { t: 0 }; line(LINE42.courseEnd); },
@@ -622,8 +754,8 @@ export function createHar42(o = {}) {
   /* ── the flow ── */
   function standOf(part) { const s = STAND[part]; return s ? { x: s.x, y: s.y, z: s.z } : null; }
   function startPart(i) {
-    if (i >= PARTS42.length) { finish(); return; }
-    const part = PARTS42[i]; S.part = i; save42(S);
+    if (i >= PARTS.length) { finish(); return; }
+    const part = PARTS[i]; R.part = i; save42(S);
     // the materials: checked at a part's start only (never mid-act): out → "מחר: …" (the open loop)
     const m = MATOF[part];
     if (m && !F.enough42(S.mat, m)) { st.part = 'out'; st.target = null; line(''); card('השיירה של היום נגמרה', [LINE42.out, '~הצוותים ממשיכים לבנות גם כשאתם לא כאן · המחשה'], 'עד מחר', () => {}); return; }
@@ -634,13 +766,13 @@ export function createHar42(o = {}) {
     if (st.target && part !== 'rope') { line(LINE42.walk, labelOf(part)); st.pending = p; }
     else { st.pending = null; p.begin && p.begin(); }
   }
-  const labelOf = (part) => ({ lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
-  function endPart() { const p = PART[st.part]; if (st.job && st.job.end) st.job.end(); if (p && p.end) p.end(); if (st.job && st.job.el) st.job.el.forEach((e) => { try { e.remove(); } catch (err) { /* */ } }); st.job = null; objPlace(false); if (MODE !== 'stage') { svgClear(); if (st.ui.pile) st.ui.pile.innerHTML = ''; line(''); st.part = 'menu'; const cb = st.onAct; st.onAct = null; Lover = 0; if (cb) setTimeout(() => cb(st.actQ, st.actRating), st.pull ? 2700 : 700); return; } startPart(S.part + 1); }
+  const labelOf = (part) => ({ line: 'החוט', pulley: 'הגלגלת', wcourse0: 'הנדבך', wcourse1: 'הנדבך הבא', giant: 'אבן הענק', wcorner: 'הפינה', top: 'הנדבך העליון', lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
+  function endPart() { const p = PART[st.part]; if (st.job && st.job.end) st.job.end(); if (p && p.end) p.end(); if (st.job && st.job.el) st.job.el.forEach((e) => { try { e.remove(); } catch (err) { /* */ } }); st.job = null; objPlace(false); if (MODE !== 'stage') { svgClear(); if (st.ui.pile) st.ui.pile.innerHTML = ''; line(''); st.part = 'menu'; const cb = st.onAct; st.onAct = null; Lover = 0; if (cb) setTimeout(() => cb(st.actQ, st.actRating), st.pull ? 2700 : 700); return; } startPart(R.part + 1); }
   function finish() { st.part = 'done'; }
   function finishCard() {
-    const n = { mehudar: 0, kasher: 0, tikkun: 0 }; for (const g of S.grades) n[g[1]] = (n[g[1]] || 0) + 1;
-    S.done = Date.now(); save42(S);
-    card('שיטוח ההר — נבנה', [`${RATE30.icon.mehudar} מהודר ${n.mehudar} · ${RATE30.icon.kasher} כשר ${n.kasher} · ${RATE30.icon.tikkun} טעון תיקון ${n.tikkun}`, `ידיים: ${Math.round(S.hands / 60)} דק׳`, 'נפתח: חומת העזרה', ...SRC42.map((x) => `~${x}`)], 'המשך', () => stop(true));
+    const n = { mehudar: 0, kasher: 0, tikkun: 0 }; for (const g of R.grades) n[g[1]] = (n[g[1]] || 0) + 1;
+    R.done = Date.now(); save42(S);
+    card(STG === 'wall' ? 'חומת העזרה — נבנתה' : 'שיטוח ההר — נבנה', [`${RATE30.icon.mehudar} מהודר ${n.mehudar} · ${RATE30.icon.kasher} כשר ${n.kasher} · ${RATE30.icon.tikkun} טעון תיקון ${n.tikkun}`, `ידיים: ${Math.round(R.hands / 60)} דק׳`, `נפתח: ${STG === 'wall' ? o.nextName || 'השלב הבא' : 'חומת העזרה'}`, ...(STG === 'wall' ? SRC45 : SRC42).map((x) => `~${x}`)], 'המשך', () => stop(true));
   }
 
   /* ── build 44 ── one act on its own (the yard, the test): he is set at its place (no walk), no materials, the level chosen; its end → cb(q, rating) */
@@ -719,7 +851,7 @@ export function createHar42(o = {}) {
   /** חצר האומנים (hard-fun §5): every variant he has met, at any level opened; points and a title per family — no building */
   function yard44() {
     const Y = S.yard || (S.yard = { pts: {}, runs: 0 }); save42(S);
-    const met = new Set(S.grades.map((g) => g[0])); if (S.done) for (const v of YARD44) met.add(v.part);
+    const met = new Set(R.grades.map((g) => g[0])); if (R.done) for (const v of YARD44) met.add(v.part);
     const has = (v) => (v.part === 'rock' ? [...met].some((p) => /^rock/.test(p)) || met.has('rock') : met.has(v.part) || (v.part === 'course0' && met.has('course1')));
     const list = YARD44.filter(has), famH = { lift: 'הרמה', place: 'הנחה', inspect: 'בדיקה', fit: 'התאמה' }, fromTest = o.from === 'test'; let visit = 0;   // (from the test's card: after two runs רב האומנים asks — back to the test, the naive kid's runs stayed in the yard)
     function open() {
@@ -741,9 +873,11 @@ export function createHar42(o = {}) {
     if (!st.on) return;
     const t = ms / 1000, dt = st.last ? Math.min(0.1, Math.max(0, t - st.last)) : 0.016; st.last = t;
     if (o.keepAwake) o.keepAwake();
+    if (st.anims && st.anims.length) st.anims = st.anims.filter((A2) => { A2.t += dt; const k = Math.min(1, A2.t / A2.T); A2.m.position.y = A2.y0 + (A2.y1 - A2.y0) * k * k; return k < 1; });   // ── build 45 ── (a stone settling)
+    if (st.wet > 0) dry45(dt);
     if (st.card) return;
     const part = st.part;
-    if (part === 'open' || part === 'reveal') { const p = PART[part]; if (p.frame(dt)) { if (p.end) p.end(); if (part === 'open') { const r = st.resumeAt; st.resumeAt = null; startPart(r != null ? r : S.part + 1); } else { st.part = 'done'; } } return; }
+    if (part === 'open' || part === 'reveal') { const p = PART[part]; if (p.frame(dt)) { if (p.end) p.end(); if (part === 'open') { const r = st.resumeAt; st.resumeAt = null; startPart(r != null ? r : R.part + 1); } else { st.part = 'done'; } } return; }
     if (part === 'done' || part === 'out') return;
     if (part === 'menu') { const h0 = hero(), fv = followView(h0); camTo(fv.p, fv.t, Math.min(1, dt * 2)); return; }   // ── build 44 ──
     const d = walkStep(dt), h = hero();
@@ -755,12 +889,28 @@ export function createHar42(o = {}) {
     if (part === 'rope') { st.near = d < 2.6; camTo(followView(h).p, followView(h).t, Math.min(1, dt * 3)); if (PART.rope.frame()) endPart(); return; }
     if (st.pull) { st.pull.t += dt; const fv = followView(h), u = Math.min(1, st.pull.t / 2.6), k = Math.sin(u * Math.PI); camTo(fv.p.map((v, i) => (i === 1 ? v + 30 * k : v + (v - fv.t[i]) * 1.6 * k)), fv.t, Math.min(1, dt * 4)); if (u >= 1) st.pull = null; return; }
     const J = st.job; if (!J) return;
-    S.hands += dt;
+    R.hands += dt;
     const O = st.obj || { x: h.x, y: h.y + 1, z: h.z };
     const v = actView(O); camTo(v.p, v.t, st.finger > 0 ? 0 : Math.min(1, dt * 2));
     if (J.frame(dt)) endPart();
   }
 
+  // ── build 45 ── (#7) rain at night (תענית כג ע"א): a morning whose caravan came during stage 02 opens wet — the plaza's paving dark and
+  // glossy (stages.wet), the props' stones darker, a few puddles — and dries as the sun rises (≈ 70 s); no effect on the work
+  const STONE0 = STONE.color.clone(), BOSS0 = BOSS.color.clone();
+  function wetMorning() {
+    st.wet = 1; st.puddles = [];
+    try { const pm = new THREE.MeshStandardMaterial({ color: '#5A6470', roughness: 0.05, metalness: 0.35, transparent: true, opacity: 0.8, depthWrite: false });
+      for (const [dx, dz, r] of [[-6, 2, 1.6], [4, 3, 1.1], [7, 9, 1.9], [-3, 9, 1.2], [12, -2, 1.4]]) { const m = new THREE.Mesh(new THREE.CircleGeometry(r, 18), pm.clone()); m.rotation.x = -Math.PI / 2; m.position.set(base.x + dx, gy(base.x + dx, base.z + dz) + 0.06, base.z + dz); m.scale.set(1, 0.7 + 0.3 * Math.sin(dx), 1); st.props.root && st.props.root.add(m); st.puddles.push(m); } } catch (e) { /* */ }
+    dry45(0);
+    setTimeout(() => { if (!st.on || !doc || !st.ui.root) return; const w = el('h42-g h45-wet', esc(LINE42.wet.split(' · ')[0])); w.style.left = `${W() / 2}px`; w.style.top = `${H() * 0.25}px`; st.ui.root.appendChild(w); setTimeout(() => w.remove(), 2400); }, 1200);
+  }
+  function dry45(dt) {
+    st.wet = Math.max(0, st.wet - dt / 70); const k = st.wet;
+    try { if (stages.wet) stages.wet(k); } catch (e) { /* */ }
+    STONE.color.copy(STONE0).multiplyScalar(1 - 0.3 * k); BOSS.color.copy(BOSS0).multiplyScalar(1 - 0.3 * k);
+    if (st.puddles) for (const m of st.puddles) m.material.opacity = 0.8 * k;
+  }
   function start() {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); ui(); props();
@@ -774,19 +924,21 @@ export function createHar42(o = {}) {
     }   // (main.js's OrbitControls keep the camera 35 amot from its target and the near plane at 4: the stage's follow (17) and act (12) views were pushed back to 35 — the picture farther than the frame, the marks projected off the things; Phase B's close-up gives way the same way)
     // the morning's caravan (and the developer's flags)
     const add = +(qs('h42day') || 0) + (globalThis.__H42_DAY | 0), came = F.caravan42(S.mat, Date.now(), add);
+    if (STG === 'wall') { if (came > 0 || qs('h45wet') === '1') wetMorning(); try { if (stages.setStage) stages.setStage('wall', 'building', Math.max(0, (R.part - 1) / (PARTS.length - 2)), { instant: true }); } catch (e) { /* */ } }   // ── build 45 ── (the wall's own model as far as it is built)
     if (qs('h42stock') != null) S.mat.stock = +qs('h42stock') | 0;
-    const at = qs('h42at'); if (at && PARTS42.includes(at)) S.part = PARTS42.indexOf(at);
+    const at = qs('h42at'); if (at && PARTS.includes(at)) R.part = PARTS.indexOf(at);
     matChip(); save42(S);
     // where he stands at the start: by the first peg (a new stage) or at his part
-    try { const p = S.part <= 1 ? PL.peg0 : standOf(PARTS42[S.part]) || PL.peg0; stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); } catch (e) { /* */ }
+    try { const p = R.part <= 1 ? PL.peg0 : standOf(PARTS[R.part]) || PL.peg0; stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); } catch (e) { /* */ }
     // (a new stage: the flyover in full; back to it: the flyover's 3 s, then his part)
-    const go = () => { if (S.part > 0 && S.part < PARTS42.indexOf('reveal')) { st.resumeAt = S.part; st.part = 'open'; PART.open.begin(); } else startPart(S.part); };
-    if (came && S.part > 0) card('בוקר טוב', [LINE42.caravan, `+${F.MAT42.daily * came} אבנים`], 'לעבודה', go); else go();
-    o.emit && o.emit('h42start', { part: PARTS42[S.part] });
+    const go = () => { if (R.part > 0 && R.part < PARTS.indexOf('reveal')) { st.resumeAt = R.part; st.part = 'open'; PART.open.begin(); } else startPart(R.part); };
+    if (came && R.part > 0) card('בוקר טוב', [LINE42.caravan, `+${F.MAT42.daily * came} אבנים`], 'לעבודה', go); else go();
+    o.emit && o.emit('h42start', { part: PARTS[R.part] });
     return true;
   }
   function stop(done, next) {
     if (!st.on) return; st.on = false;
+    try { if (st.wet > 0 && stages.wet) stages.wet(0); STONE.color.copy(STONE0); BOSS.color.copy(BOSS0); } catch (e) { /* */ }
     try { if (view.closeCam) view.closeCam(false); } catch (e) { /* */ }
     try { stages.hero.drive(0, 0); } catch (e) { /* */ }
     dropUI(); dropProps();
@@ -794,8 +946,8 @@ export function createHar42(o = {}) {
   }
   const api = {
     start, stop, frame, get on() { return st.on; },
-    state: () => ({ mode: MODE, test: S.test44 || null, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: S.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: S.grades.slice(), hands: Math.round(S.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
-    sig: () => `${MODE}|${st.part}|${S.part}|${S.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}|${S.test44 ? JSON.stringify(Object.values(S.test44.jobs || {}).map((r) => [r.tries, r.passed, r.demo])) : ''}`,
+    state: () => ({ mode: MODE, test: S.test44 || null, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: R.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: R.grades.slice(), hands: Math.round(R.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
+    sig: () => `${MODE}|${st.part}|${R.part}|${R.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}|${S.test44 ? JSON.stringify(Object.values(S.test44.jobs || {}).map((r) => [r.tries, r.passed, r.demo])) : ''}`,
     line: () => (st.ui.line ? st.ui.line.textContent : ''),
     save: () => S, places: () => ({ PL, STAND, base }),
     heroBox: () => { const h = hero(); return { x: h.x, y: h.y, z: h.z, h: heroHeight() }; },

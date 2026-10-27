@@ -44,7 +44,7 @@ test('build 37 (1): the wick\'s hand — shown on the wick until his first wick 
   assert.match(h, /if \(ev\.ph === 'wick'\) w37\.no\+\+;/);
   assert.match(h, /p\.ta = t - p\.t0/); assert.match(h, /E\.r26swipe\(dx \/ WD\(\), dy \/ HT\(\), p\.ta != null \? p\.ta : ms\)/);
   assert.match(h, /\.hk26-w37\{[^}]*\}/); assert.match(h, /@keyframes hk26w37\{/);
-  assert.equal(GAME_BUILD, 44);   // (build 38: the constant moved on) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again)
+  assert.equal(GAME_BUILD, 45);   // (build 38: the constant moved on) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again)
 });
 
 // ───────── (2) the second spigot ─────────

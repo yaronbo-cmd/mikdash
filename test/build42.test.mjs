@@ -141,6 +141,7 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   const mk = read('tools/mkout.cjs'); assert.match(mk, /const HEAD = args\.includes\('--no-shift'\) \? '' : HEAD0;/);
   // (the runs' fixes: the paving's drop box from the points in front of the camera's near plane, kept on the screen — a corner behind it had
   // made the box null and the paving undroppable; the stage's reveal and card stay in its dusk light, the real night after it)
+  assert.match(h, /h\.style\.zIndex = '46'; h\.style\.pointerEvents = 'auto';/, 'the freed roller\'s handle takes a finger');
   assert.match(h, /level 1: a tap lands on the nearest free marked place/); assert.match(h, /bd = J\.state\(\)\.L <= 1 \? Math\.max\(B\.w, B\.h\) : 26;/); assert.match(h, /\(level 1: the even places marked\)/);
   assert.match(h, /const paveBox = \(\) => boxOf\(/); assert.match(h, /const q = pts\.map\(\(p\) => proj\(p\[0\], p\[1\], p\[2\]\)\)\.filter\(Boolean\); if \(q\.length < 2\) return null;/);
   assert.match(g, /if \(k === 'night' && \(G\.ftue < 99 \|\| \(H42 && H42\.on\) \|\|/); assert.match(g, /onExit: \(\) => \{ H42 = null; tod = null; try \{ syncTime\(\); \}/);

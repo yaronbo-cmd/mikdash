@@ -741,6 +741,7 @@ export function createHar42(o = {}) {
       view(h) { if (endT >= 0) { const mx = A.x + len / 2; return { p: [mx, gy(mx, A.z) + 21, A.z - 34], t: [mx, gy(mx, A.z), A.z] }; } const D = Math.max(24, needD() + 1.5); return { p: [h.x - 2, h.y + 2.6 + D * 0.24, h.z - D], t: [h.x - 2, h.y + 2.6, h.z + 3] }; },
       frame(dt) {
         const h = hero(), s = J.state();
+        objPlace(!s.done, [{ x: h.x, y: h.y + 1.2, z: h.z, r: 1.6 }], 'h46warn');   // (the act's surface on: held anywhere — the bot's events reached the pad, a finger never did: K46-P)
         if (!s.done && walkDir) { try { stages.hero.drive(walkDir * 6, (z - h.z) * 3); } catch (e) { /* */ } }
         J.walk(Math.max(0, Math.min(len, h.x - A.x)) - s.x);
         svgClear();
@@ -788,7 +789,7 @@ export function createHar42(o = {}) {
       },
       view() { const x = (M.at < 0 ? PL.bow0.x - 4 : bowAt(Math.max(0, Math.min(12, M.at)))), y0 = gy(x, z); const D = Math.max(24, needD() + 1.5); return { p: [x - D * 0.72, y0 + 3.8, z - D * 0.7], t: [x + 5, y0 + 2.6, z + 2.2] }; },   // (low along the soreg)
       frame(dt) {
-        M.t += dt;
+        M.t += dt; objPlace(M.phase !== 'end', [{ x: bowAt(Math.max(0, Math.min(12, M.at))), y: gy(PL.bow0.x, z) + 1, z: PL.bow0.z, r: 1.4 }], 'h46bows');
         const target = M.at < 0 ? 0 : M.at;
         if (M.phase === 'wait') { M.at = 0; const lead = priests[0].g.position.x; if (lead < bowAt(0)) priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 3.2, bowAt(0) - i * 3.4); }); M.hold += dt; if (M.hold > 14 && !M.first) { M.first = true; M.phase = 'bow'; M.t = 0; line(LINE42.bows); } }
         else if (M.phase === 'walk') { const goal = bowAt(target); priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 4.5, goal - i * 3.4); }); if (priests[0].g.position.x >= goal - 0.01) { M.phase = 'bow'; M.t = 0; } }

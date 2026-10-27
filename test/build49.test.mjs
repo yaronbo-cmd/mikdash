@@ -78,6 +78,7 @@ test('build 49: the stage — its parts, the doors left bronze ("מפני שנע
   const h = read('src/game/har42.js');
   assert.match(h, /o\.stage === 'nikanor' \? 'nikanor' : 'har';/); assert.match(h, /STG === 'nikanor' \? PARTS49 :/);
   for (const k of ['voyage', 'lever', 'hang', 'steps']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
+  for (const line of h.split('\n')) { const c = line.indexOf('//'); if (c < 0 || /https?:|'[^']*\/\/|`[^`]*\/\//.test(line)) continue; assert.ok(!/\b(target|frame|view|begin|end|down|up|move): \(/.test(line.slice(c)), `code after a comment: ${line.slice(c, c + 120)}`); }   // (four times this build a // swallowed code on its line)
   assert.match(h, /if \(J\.camK\) \{ if \(J\.frame\(dt\)\) endPart\(\); return; \}/, 'the voyage\'s own camera');
   assert.match(h, /stages\.setStage\('nikanor', 'done', 1, \{ instant: true \}\); \} catch \(e\) \{ \/\* \*\/ \} if \(qs\('h49voy'\) === '1' && R\.part <= PARTS49\.indexOf\('voyage'\)\) \{ R\.part = PARTS49\.indexOf\('voyage'\); R\.open = Math\.max\(1, R\.open \| 0\); st\.voyNow = 1; \} \}/, 'the gatehouse standing; ?h49voy=1 straight into the voyage (code, not a comment)');
   assert.match(h, /if \(STG === 'nikanor'\) \{ hole49\(null\); try \{ stages\.hero\.show\(true\);/, 'the reveal: the model\'s own doors and steps');

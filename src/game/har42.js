@@ -1278,7 +1278,7 @@ export function createHar42(o = {}) {
       (scene() || st.props.root).add(g); st.lev49 = g; return g;
     }
     return {
-      acting: true, dragOnly: true, J, kind: 'steps49', chip, unit, onPlane: onPlane49, target: () => { const s = J.state(), k = s.i; if (s.done) return null; const j = jOf(k), y = A.y + topOf(k); return { k, R: Rmid(j), y, c: [A.x, A.z], at: (th) => proj(A.x + Rmid(j) * Math.cos(th), y, A.z + Rmid(j) * Math.sin(th)) }; },
+      acting: true, dragOnly: true, J, kind: 'steps49', chip, unit, onPlane: onPlane49, sing: () => (sing ? { t: Math.round(sing.t * 10) / 10, i: sing.i } : null), endT: () => endT, target: () => { const s = J.state(), k = s.i; if (s.done) return null; const j = jOf(k), y = A.y + topOf(k); return { k, R: Rmid(j), y, c: [A.x, A.z], at: (th) => proj(A.x + Rmid(j) * Math.cos(th), y, A.z + Rmid(j) * Math.sin(th)) }; },
       view() { if (sing && sing.t > 0) { return { p: [A.x + 36, A.y + 4.5, A.z + 9], t: [A.x + 3, A.y + 11, A.z] }; } return view(); },
       frame(dt) {
         objPlace(true, [{ x: A.x + 7, y: A.y + 3, z: A.z, r: 10 }], 'h49steps');

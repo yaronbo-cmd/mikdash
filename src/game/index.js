@@ -3287,7 +3287,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function startH44(mode, back = '') {
     if (H42 && H42.on) return;
     H42 = createHar42({
-      mode, stages: world && (world.stages || world), view,
+      mode, from: back, stages: world && (world.stages || world), view,
       spot: () => { try { return W.workSpot('har', 'dress'); } catch (e) { return null; } },
       emit: (t, d) => emit(t, d),
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },

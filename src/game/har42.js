@@ -124,13 +124,13 @@ export const YARD44 = Object.freeze([
   Object.freeze({ part: 'lever', fam: 'lift', he: 'מוט ויתדות' }), Object.freeze({ part: 'step', fam: 'place', he: 'מעלה מכוונת' }),   // ── build 49 ── (stage 06's)
 ]);
 /** ── build 49 ── stage 06's card's sources (בבלי יומא לח ע"א; מדות ב, ג; ב, ה) and the find */
-export const SRC49 = Object.freeze([
-  'ניקנור הביא דלתות מאלכסנדריא; בים עמד עליו נחשול, השליכו אחת לים; "הטילוני עמה!" — ונח הים; בעכו היתה מבצבצת מתחת דופני הספינה — יומא לח ע"א · טיוטה',
-  'כל השערים נשתנו להיות של זהב חוץ משערי נקנור, "מפני שנעשו בהן נסים" — יומא לח ע"א; מדות ב, ג · טיוטה',
-  'לא היו טרוטות, אלא מקפות כחצי גרן עגלה — ושעליהן הלוים אומרים בשיר — מדות ב, ה · טיוטה',
+export const SRC49 = Object.freeze([   // (the card's: short — the voyage's own lines carry the long quotes)
+  'מסע הדלתות: הנחשול, הדלת שהושלכה, "הטילוני עמה", הדלת בעכו — יומא לח ע"א · טיוטה',
+  'השערים נשתנו לזהב חוץ משערי נקנור, "מפני שנעשו בהן נסים" — יומא לח ע"א; מדות ב, ג · טיוטה',
+  'לא היו טרוטות אלא מקפות כחצי גרן עגלה, ועליהן הלוים אומרים בשיר — מדות ב, ה · טיוטה',
   'הספינה, המגדלור, הסערה, המוט והיתדות, הצלילים — המחשה',
-]);
-export const FIND49 = 'ממצא: גלוסקמת ניקנור — הר הצופים, 1902: "ניקנור האלכסנדרוני, שעשה את הדלתות" (ביוונית)';
+])
+export const FIND49 = 'ממצא: גלוסקמת ניקנור (הר הצופים, 1902) — "ניקנור האלכסנדרוני, שעשה את הדלתות"';
 /** ── build 46 ── stage 03's card's sources (the find: the warning inscription, 1871 — the game's existing find) */
 export const SRC46 = Object.freeze([
   'סורג גבוה עשרה טפחים; שלש עשרה פרצות פרצו מלכי יון, וגזרו כנגדן שלש עשרה השתחויות — מדות ב, ג · טיוטה',
@@ -213,6 +213,7 @@ const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;directio
 .h42-before{position:fixed;left:0;top:0;width:100vw;height:100vh;object-fit:cover;z-index:43;pointer-events:none}
 .h42-tag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:50;padding:2px 8px;border-radius:8px;background:rgba(28,20,10,.82);color:#FFE6A0;font:900 13px/1.2 Heebo,system-ui,sans-serif;pointer-events:none}
 body.h42-on .gm{display:none!important}
+@media (max-height:340px){.h42-card>div{padding:10px 14px}.h42-card h2{font-size:18px;margin-bottom:3px}.h42-card p{font-size:13px;line-height:1.25;margin:2px 0}.h42-card small{font-size:10px;line-height:1.2}.h42-card button{margin-top:6px;min-height:44px}}   /* (build 49: the cards on a short screen — stage 06's ran off a 296-px height) */
 .h42-card button.h44-alt{margin-inline-start:8px;background:#E8DCC0}.h44-seal{font:900 18px/1.3 Heebo,system-ui,sans-serif!important;color:#9A6B12}
 .h45-yishar,.h45-wet{font-size:26px;white-space:nowrap;animation-duration:2.2s}
 .h44-yard{position:relative;max-height:88vh;overflow:auto;max-width:min(560px,92vw)!important}.h44-yard>button[data-b="back"]{position:absolute;top:8px;left:8px;margin:0!important;min-width:88px!important;min-height:44px!important;font-size:14px!important}.h44-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}.h44-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:5px 0;padding:4px 6px;border-radius:12px;background:#F1E6CC}.h44-row b{font:800 15px/1.2 Heebo,system-ui,sans-serif}.h44-row span{display:flex;gap:4px}.h44-row button{margin:0!important;min-width:44px!important;min-height:44px!important;font-size:15px!important}

@@ -271,7 +271,7 @@ export function createVoyage49(ctx) {
         } else { nic.position.set(-2, deckY + 0.15, -1.5); nic.rotation.y = Math.PI / 2; nic.userData.top.rotation.z = -st.h * 0.4; }
         gauge(S); const shake = s === 'hug' ? 0.4 : 0.6;
         if (st.hug) {   // (the hug: close, from over the bow's side, riding with the ship — Nicanor kneeling on the door, the sailors coming)
-          ship.updateMatrix(); const a = new THREE.Vector3(13.5, 9, 6.5).applyMatrix4(ship.matrix), b2 = new THREE.Vector3(6.5, 3.4, -0.6).applyMatrix4(ship.matrix); camK([a.x, a.y, a.z], [b2.x, b2.y, b2.z]);
+          ship.updateMatrix(); const a = new THREE.Vector3(17.5, 10.5, 9.5).applyMatrix4(ship.matrix), b2 = new THREE.Vector3(6.2, 4.4, -0.5).applyMatrix4(ship.matrix); camK([a.x, a.y, a.z], [b2.x, b2.y, b2.z]);
         } else camK([-30, 9 + ship.position.y + Math.sin(t * 2.3) * shake, 12], [2, 4 + st.h * 1.5, 0]);
         if (st.done) {   // "ומיד נח הים מזעפו": the sea calms at once
           V.q = S.result(); setSea(0.25, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000, '#EAD6BA'); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ }

@@ -584,7 +584,7 @@ export function createHar42(o = {}) {
           let p = [c.x + Math.cos(a) * Rr, gc + 160 - 60 * orbit, c.z + Math.sin(a) * Rr], t = [c.x, gc + 6, c.z];
           if (u > 0.78) { const k = (u - 0.78) / 0.22, e = k * k * (3 - 2 * k), fv = followView(hero()); p = p.map((v, i) => v + (fv.p[i] - v) * e); t = t.map((v, i) => v + (fv.t[i] - v) * e); }
           camTo(p, t, 1);
-          if (st.props.plan47) st.props.plan47.forEach((m, i) => { m.scale.y = Math.max(0.001, Math.min(1, (u - 0.06 - i * 0.04) / 0.3)); });
+          if (st.props.plan47) st.props.plan47.forEach((m, i) => { m.scale.y = Math.max(0.001, Math.min(1, (u - 0.02 - i * 0.015) / 0.12)); });
           return u >= 1;
         }
         if (STG === 'soreg') {   // ── build 46 ── the finished court wall; the soreg's gold line rises round the courts; the crews already lay the חיל
@@ -787,10 +787,10 @@ export function createHar42(o = {}) {
     };
   }
   /* ── build 47 ── stage 04's acts ── */
-  const gateView = (cy, D0) => { const G = PL.gate, g0 = G.y, D = Math.max(needD() + 2, D0 || 0, 12.6 / tanV()); return { p: [G.x - 3, g0 + 5.5, G.z - D], t: [G.x, g0 + cy, G.z] }; };   // (ש5 low, from the north: the whole gate and him; him ≤ 45 % at needD)
+  const gateView = (cy, D0) => { const G = PL.gate, g0 = G.y, D = Math.max(needD() + 2, D0 || 0, 15.5 / tanV()); return { p: [G.x - 3, g0 + 6, G.z - D], t: [G.x, g0 + cy, G.z] }; };   // (ש5 low, from the north: the whole gate and him; him ≤ 45 % at needD)
   const sgnR47 = () => { const G = PL.gate, a = proj(G.x, G.y + 10, G.z), b = proj(G.x + 1, G.y + 10, G.z); return a && b && b.x < a.x ? -1 : 1; };   // (+x toward the screen's right: 1)
   const level47 = (s, L) => {   // the bubble level, big, under the line
-    const cx = W() / 2, cy = Math.max(74, H() * 0.2), hw = Math.min(150, W() * 0.24), bx = cx - (s.tilt / F.LINTEL47.lim) * (hw - 14), cz = (s.centre / F.LINTEL47.lim) * (hw - 14);
+    const cx = W() / 2, cy = H() - Math.max(38, H() * 0.13), hw = Math.min(150, W() * 0.24), /* (at the screen's bottom: at the top it hid the lintel) */ bx = cx - (s.tilt / F.LINTEL47.lim) * (hw - 14), cz = (s.centre / F.LINTEL47.lim) * (hw - 14);
     let h = `<rect x="${cx - hw}" y="${cy - 15}" width="${2 * hw}" height="30" rx="15" fill="rgba(210,235,190,.9)" stroke="#5B4A2A" stroke-width="3"/><rect x="${cx - cz - 13}" y="${cy - 15}" width="${2 * cz + 26}" height="30" fill="${L <= 1 ? 'rgba(90,170,80,.35)' : 'none'}" stroke="#5B4A2A" stroke-width="2" stroke-dasharray="${L <= 1 ? '0' : '4 3'}"/><ellipse cx="${bx}" cy="${cy}" rx="13" ry="10" fill="#FFFDF2" stroke="#9AB98A" stroke-width="2"/>`;
     if (s.out) { const right = s.tilt > 0; h += `<text x="${cx + (right ? hw + 26 : -hw - 26)}" y="${cy + 9}" font-size="30" font-weight="900" text-anchor="middle" fill="#FFD66E" stroke="#2A1804" stroke-width="3" paint-order="stroke">${right ? '→' : '←'}</text>`; }
     return h;
@@ -841,7 +841,7 @@ export function createHar42(o = {}) {
     const C = lift47(J, 'lintel', () => { grade('lintel', J.state().q, proj(G.x, G.y + 21, G.z)); endT = 1.2; });
     return { acting: true, fullPad: true, J, kind: 'lintel', down: (a) => C.down(a), move: (a) => C.move(a), up: (a) => C.up(a), sgn: sgnR47,
       ppa: () => { const p0 = proj(G.x, G.y + 20, G.z), p1 = proj(G.x + 1, G.y + 20, G.z); return p0 && p1 ? Math.abs(p1.x - p0.x) : 20; },
-      view() { return gateView(11); },
+      view() { return gateView(13); },   // (the lintel at the posts' top, 21.6 amot, in the frame: the shot at the top had it out)
       frame(dt) { C.frame(dt); if (endT >= 0) { endT -= dt; if (endT <= 0) { svgClear(); return true; } } return false; },
       end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); } };
   }
@@ -871,7 +871,7 @@ export function createHar42(o = {}) {
           else if (r === 'ok' || r === 'slam') { anim = { k: r, t: 0 }; o.sound && o.sound('creak'); }
           else if (r === 'weak') { anim = { k: 'weak', t: 0 }; } }
       },
-      view() { if (phase === 'lift') return gateView(10); const v = gateView(9); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
+      view() { if (phase === 'lift') return gateView(12); const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
       frame(dt) {
         objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');
         if (phase === 'lift') { C.frame(dt); return false; }

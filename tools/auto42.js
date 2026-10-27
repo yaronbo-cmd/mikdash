@@ -232,7 +232,7 @@
       if (s.card) {
         await sleep(A.sk ? 300 : 1200);
         const t = (q('.h42-card h2') || {}).textContent || '';
-        await shot(s.mode === 'test' ? (/מבחן אומן/.test(t) ? 'test-card' : /חותם/.test(t) ? 'seal' : /עברתם את/.test(t) ? 'test-end' : 'test-' + (A.tc = (A.tc | 0) + 1)) : 'card');
+        await shot(s.mode === 'test' ? (/מבחן אומן/.test(t) ? 'test-card' : /חותם/.test(t) ? 'seal' : /עברתם את/.test(t) ? 'test-end' : 'test-' + (A.tc = (A.tc | 0) + 1)) : s.stg && s.stg !== 'har' ? `card-${s.stg}` : 'card');   // (build 46: each stage's card its own shot)
         const alt = q('.h42-card [data-b="alt"]'); if (alt && A.opts.after && !A.yardSeen && /חצר/.test(alt.textContent)) { alt.click(); await sleep(500); continue; }   // (build 44: the yard visited once on the way to the test)
         const b = q('.h42-card button'); if (b) b.click(); await sleep(400); continue;
       }

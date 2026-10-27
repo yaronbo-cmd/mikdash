@@ -49,6 +49,7 @@ test('build 48: the order rule — the corner beams first, else blocked (counted
   assert.equal(G.state().done, true); assert.equal(G.result().rating, 'tikkun', 'three mistakes (the order, the wrong beam, the rim)');
   const H = F.createGallery48(2); for (const i of [0, 4, 1, 2, 3]) { H.place(i, i === 0 || i === 4 ? 'corner' : 'next', { dragPx: 40 }); H.push(i, 0, -40, 0, -1); } assert.equal(H.result().rating, 'mehudar');
   const P = F.createPeg48(1, seeded(2)); assert.equal(P.tenon(40, 30, 1, 0), 'rim'); assert.equal(P.tenon(50, 3, 1, 0), 'in'); let r, n = 0; do { r = P.tap(); n++; } while (r !== 'lock' && n < 20); assert.equal(r, 'lock'); assert.ok(n >= 4, 'several taps: it goes in a little each'); assert.ok(P.pitch() > 600, 'the pitch rose');
+  { const Q = F.createPeg48(1, seeded(8)); Q.tenon(50, 0, 1, 0); for (let n2 = 0; n2 < 2; n2++) { while (Q.tap() !== 'lock'); assert.equal(Q.tap(), 'split'); } while (Q.tap() !== 'lock'); assert.equal(Q.state().done, true, 'after two splits the third peg holds as it locks'); assert.equal(Q.tap(), 'done'); assert.equal(Q.result().rating, 'kasher'); }
   assert.equal(P.tap(), 'split', 'a tap after the lock: the peg splits — a new one, free'); assert.equal(P.state().depth, 0); do { r = P.tap(); } while (r !== 'lock'); for (let i = 0; i < 30; i++) P.step(0.05); assert.equal(P.state().done, true); assert.equal(P.result().rating, 'kasher');
 });
 

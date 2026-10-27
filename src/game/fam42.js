@@ -662,7 +662,7 @@ export function createPeg48(L = 1, rnd = Math.random) {
     if (k.done) return 'done'; if (!k.tenon) return 'wait'; k.taps++; k.idle = 0;
     if (k.locked) { k.over++; k.locked = false; k.depth = 0; return 'split'; }
     k.depth = Math.min(1, k.depth + PEG48.step[0] + rnd() * (PEG48.step[1] - PEG48.step[0]));
-    if (k.depth >= 1) { k.locked = true; return 'lock'; }
+    if (k.depth >= 1) { k.locked = true; if (k.over >= 2) { k.done = true; const f = k.rims + k.over; k.q = f <= 2 ? 0.65 : 0.3; } return 'lock'; }   // (after two split pegs the third holds as it locks — the master's hand on the mallet: the naive kid K48-P3 split and split for a minute)
     return 'in';
   }
   function step(dt) { if (k.done || !k.locked) return; k.idle += dt; if (k.idle >= PEG48.idle) { k.done = true; const f = k.rims + k.over; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; } }

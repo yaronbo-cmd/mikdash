@@ -173,7 +173,7 @@ export function createHar42(o = {}) {
     // follow's azimuth turned, FOLLOW45). Inside the court its floor rises with the wall (stages.groundAt: up to 16 amot) and buried the props;
     // at the old stage's work spot ('dress', 3 amot out from a face) the walk's camera stood inside the wall
     Object.assign(PL, { peg0: P(12, 0), peg1: P(-12, 0), pulley: P(-9, -6), pstone: P(-12, -6), course: P(2, 16), stone0: P(-11, 15.4) });
-    Object.assign(STAND, { line: PL.peg0, pulley: P(-5, -6), wcourse0: P(2, 11), wcourse1: P(2, 11), giant: P(-5, 13), wcorner: P(10, 11), top: P(2, 11) });   // (the giant: from its east, the camera north — broadside; north of it, and west, he stood in front of it)
+    Object.assign(STAND, { line: PL.peg0, pulley: P(-5, -6), wcourse0: P(2, 11), wcourse1: P(2, 11), giant: P(-5, 13), wcorner: P(15, 11), top: P(15, 11) });   // (the corner and the top: from the corner's east end, the camera north — broadside; at x 10 / 2 he stood in front of the corner, or the camera looked along the course)   // (the giant: from its east, the camera north — broadside; north of it, and west, he stood in front of it)
   }   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */

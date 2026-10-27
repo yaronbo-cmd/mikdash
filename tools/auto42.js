@@ -79,18 +79,49 @@
     ev(item, 'pointerup', x, y, id);
   }
   async function course() {
-    for (let k = 0; k < 10 && A.on; k++) {
+    for (let k = 0; k < 24 && A.on; k++) {
       const j = H().job(); if (!j || j.kind !== 'course' || j.s.done) break;
-      await react(); const s = j.s, sp = j.ref.spec, left = sp.b - s.at;
+      await react(); const s = j.s, sp = j.ref.spec, rb = sp.corner ? sp.b - 2 : sp.b, left = rb - s.at;
+      // ── build 45 ── the retreat (level 3): a drag on the course pushes the next stone that stands out back in
+      if (s.prot && s.prot.length) { const pad = q('.h42-pad'), P = j.ref.uAt((sp.a + sp.b) / 2); if (pad && P) { const id = ++pid; ev(pad, 'pointerdown', P.x, P.y, id); for (let i = 1; i <= 5; i++) { await sleep(30); ev(pad, 'pointermove', P.x, P.y - i * 8, id); } ev(pad, 'pointerup', P.x, P.y - 40, id); } await sleep(300); continue; }
+      // ── build 45 ── the corner: once the stretch is full, the corner stone the other way from the one below (a child: now and then the wrong way)
+      if (left <= 0 && sp.corner && !s.corner.dir) { const dir = rnd() < (A.sk ? 0.98 : 0.75) ? sp.corner.want : sp.corner.want === 'a' ? 'b' : 'a', item = q(`.h42-pile [data-corner="${dir}"]`), T = j.ref.cornerAt(); if (item && T) await dragTo(item, T.x, T.y, 0); await sleep(300); continue; }
       // a length that fits; a child avoids the red joints most of the time
-      let opts = [2, 3, 4].filter((n) => n <= left); if (!opts.length) break;
+      let opts = [2, 3, 4].filter((n) => n <= left); if (!opts.length) { await sleep(200); continue; }
       const good = opts.filter((n) => n === left || !sp.below.some((jn) => Math.abs(jn - (s.at + n)) < 1e-6) && (left - n === 0 || left - n >= 2));
       const n = good.length && rnd() < (A.sk ? 0.97 : 0.75) ? good[Math.floor(rnd() * good.length)] : opts[Math.floor(rnd() * opts.length)];
-      const item = [...document.querySelectorAll('.h42-pile .h42-it')].find((b) => b.textContent.trim().endsWith(String(n))); const B = j.ref.uAt ? j.ref.uAt(s.at + n / 2) : (() => { const b0 = j.ref.slot && j.ref.slot(); return b0 ? { x: (b0.l + b0.r) / 2, y: (b0.t + b0.b) / 2 } : null; })(); if (!item || !B) { await sleep(200); continue; }   // (build 42's page: its slot box)
-      await dragTo(item, B.x + (A.sk ? 0 : (rnd() - 0.5) * 16), B.y + (A.sk ? 0 : (rnd() - 0.5) * 24), A.sk ? 600 : rnd() < 0.15 ? 250 : 700);   // (build 43: let go over the place it wants — the stone goes to the free place nearest)
+      const item = [...document.querySelectorAll('.h42-pile .h42-it')].find((b) => !b.dataset.corner && b.textContent.trim().endsWith(String(n))); const B = j.ref.uAt ? j.ref.uAt(s.at + n / 2) : (() => { const b0 = j.ref.slot && j.ref.slot(); return b0 ? { x: (b0.l + b0.r) / 2, y: (b0.t + b0.b) / 2 } : null; })(); if (!item || !B) { await sleep(200); continue; }
+      await dragTo(item, B.x + (A.sk ? 0 : (rnd() - 0.5) * 16), B.y + (A.sk ? 0 : (rnd() - 0.5) * 24), 0);   // (build 45: no hold — it settles by itself)
       await sleep(250);
     }
     await until(() => { const j = H().job(); return !j || j.kind !== 'course'; }, 20000, 100);
+  }
+  // ── build 45 ── the line: a drag from the near pin to the far one (a child's hand wavers a little)
+  async function line45() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 4 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'line') break;
+      await react(); const E = j.ref.ends(); if (!E) { await sleep(200); continue; }
+      const id = ++pid, N = 14, w = A.sk ? 2 : 9, vx = E.b.x - E.a.x, vy = E.b.y - E.a.y, Ln = Math.hypot(vx, vy) || 1, nx = -vy / Ln, ny = vx / Ln, ph = rnd() * 6;
+      ev(pad, 'pointerdown', E.a.x, E.a.y, id);
+      for (let i = 1; i <= N; i++) { await sleep(A.sk ? 25 : 45); const t = i / N, d = Math.sin(t * Math.PI + ph) * w * Math.sin(t * Math.PI); ev(pad, 'pointermove', E.a.x + vx * t + nx * d, E.a.y + vy * t + ny * d, id); }
+      ev(pad, 'pointerup', E.b.x, E.b.y, id); await sleep(400);
+    }
+  }
+  // ── build 45 ── the pulley: pull down, hold a moment (the catch), let go; again — until the stone is in the window (a child: now and then lets go uncaught)
+  async function pulley45() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 40 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'pulley') break;
+      const s = j.s, P = j.ref.J.P, aim = (P.win[0] + P.win[1]) / 2;
+      if (s.y >= P.win[0] + 0.01) { await sleep(400); continue; }   // (in the window: rest — it stops there)
+      await sleep(A.sk ? 120 : 200 + rnd() * 300);
+      const r = pad.getBoundingClientRect(), x = r.left + r.width * 0.5, y0 = r.top + r.height * 0.35, want = Math.min(70, (aim - s.y) / P.gain + 14), id = ++pid;
+      ev(pad, 'pointerdown', x, y0, id);
+      for (let i = 1; i <= 5; i++) { await sleep(30); ev(pad, 'pointermove', x, y0 + (want * i) / 5, id); }
+      if (A.sk || rnd() < 0.8) await sleep(380);   // (the catch)
+      ev(pad, 'pointerup', x, y0 + want, id);
+    }
   }
   // build 43: the corner stone — flicks of the crowbar along the stone's axis on the screen, each as long as the push it wants (a child's: ±)
   async function corner() {
@@ -164,7 +195,7 @@
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
       await shot((s.mode === 'test' ? 'test-act-' : 'act-') + j.kind);
-      if (j.kind === 'lift') await lift(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
+      if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }
   }

@@ -18,7 +18,7 @@ const t0 = Date.now(), el = () => Math.round((Date.now() - t0) / 100) / 10;
   await ctx.addInitScript(() => { window.__FORCE_Q = 'low'; try { if (!sessionStorage.getItem('a42')) { sessionStorage.setItem('a42', '1'); localStorage.clear(); } } catch (e) { /* */ } });
   const pg = await ctx.newPage(), errors = [];
   pg.on('pageerror', (e) => errors.push(String(e.message).slice(0, 300)));
-  const url = 'file://' + PAGE + (AT ? `?h42at=${AT}` : '');
+  const QX = opt('--query', ''), url = 'file://' + PAGE + '?' + [AT ? `h42at=${AT}` : '', QX].filter(Boolean).join('&');   // (build 45: --query adds the developers' flags, e.g. h45go=1)
   await pg.goto(url, { waitUntil: 'load', timeout: 180000 });
   await pg.waitForFunction(() => window.__T && window.__T.booted, null, { timeout: 240000, polling: 500 });
   console.log('booted', el());

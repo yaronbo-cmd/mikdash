@@ -510,8 +510,10 @@ export function createHar42(o = {}) {
     if (st.props.ghost) { st.props.ghost.visible = !!J.state().ghost; st.props.ghost.position.set(S0.x, y1, S0.z); }
     const axis = () => { const a = proj(S0.x + cx, y1, S0.z), b = proj(S0.x + cx + 1, y1, S0.z); if (!a || !b) return null; const n = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { x: a.x, y: a.y, ux: (b.x - a.x) / n, uy: (b.y - a.y) / n, ppm: n }; };
     line(label, `רמה ${L}`);
+    if (st.ui.pad) st.ui.pad.classList.add('full');   // ── build 45 ── the lever's drag anywhere on the screen (the naive kid dragged on the stone, left of the half-screen pad: K45-P3's parent's hand)
     return {
       acting: true, J, kind: 'corner', axis, ready: () => lowT >= 1.4,
+      end() { if (st.ui.pad) st.ui.pad.classList.remove('full'); },
       down() {}, move() {},
       up(a) {
         if (lowT < 1.4) return;
@@ -798,7 +800,7 @@ export function createHar42(o = {}) {
   function runAct(part, L, cb) {
     if (part === 'rock') part = `rock${L >= 3 ? 2 : L === 2 ? 1 : 0}`;
     resetFor(part); Lover = L; st.actQ = null; st.actRating = null; st.onAct = cb;
-    st.part = part; st.job = null; st.pending = null; st.camLock = null; st.pull = null; svgClear();
+    st.part = part; st.job = null; st.pending = null; st.camLock = null; st.pull = null; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full');
     const p = standOf(part) || standOf('lift'); try { stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); stages.hero.drive(0, 0); } catch (e) { /* */ }
     PART[part].begin();
   }

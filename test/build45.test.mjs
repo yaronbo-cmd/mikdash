@@ -94,7 +94,8 @@ test('build 45: the naive kid\'s stall at a course (K45-P) — a refused stone k
   const h = read('src/game/har42.js');
   assert.match(h, /'תישאר שם פרצה קטנה מדי — גררו אבן אחרת · המחשה' : 'אין לה מקום שם — גררו אבן קצרה יותר · המחשה', `נדבך \$\{n \+ 1\}`\); backT = 2\.6; \}/);
   assert.match(h, /if \(backT > 0 && \(backT -= dt\) <= 0 && !J\.state\(\)\.done/);
-  assert.match(h, /it\.classList\.toggle\('nofit', !ok\)/); assert.match(h, /\.h42-it\.nofit\{opacity:\.38/);
+  assert.match(h, /it\.classList\.toggle\('nofit', !ok\)/);
+  assert.match(h, /line\(label, `רמה \$\{L\}`\);\n    if \(st\.ui\.pad\) st\.ui\.pad\.classList\.add\('full'\);/, 'the crowbar: its drag anywhere on the screen'); assert.match(h, /'יותר מדי — גררו את המוט חזרה, בעדינות · המחשה'/); assert.match(h, /\.h42-it\.nofit\{opacity:\.38/);
   // a course with one place left for a 2: the 3 and the 4 fit nowhere
   const sp = F.courseSpec(0, 1), C = F.createCourse(sp); assert.equal(C.place(4, { dragPx: 60, u: sp.a + 4 }), 'ok');
   const fitsAny = (len) => { for (let s0 = sp.a; s0 + len <= sp.b; s0++) if (C.fits(len, s0 + len / 2)) return true; return false; };

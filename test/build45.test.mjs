@@ -33,6 +33,8 @@ test('build 45: the settle — a released stone settles by itself (no hold), pre
   const D = F.createCourse(sp); D.place(2, { dragPx: 60, u: sp.a + 1 }); assert.equal(D.state().loose, 0, 'let go on its place: precise');
   D.place(2, { dragPx: 60, u: sp.a - 3 }); assert.equal(D.state().loose, 1, 'let go off the wall\'s end, it lands on the next free place 6 units away: imprecise');
   const h = read('src/game/har42.js'); assert.match(h, /const settle = \(m\) => \{ if \(!m\) return; const y1 = m\.position\.y; m\.position\.y = y1 \+ 0\.7;/); assert.match(h, /buzz42\('settle'\); o\.emit && o\.emit\('h45thud', \{\}\);/);
+  assert.match(h, /for \(let u = spec\.a; u <= spec\.b \+ 1e-9; u \+= 0\.25\) \{ const p = uAt\(u\);/, 'the drop read in the course\'s own units, as projected (perspective)');
+  assert.match(h, /const r = J\.place\(len, \{ dragPx: drop\.px, u: bu \}\);/);
 });
 
 test('build 45: the corner rule — corner stones alternate course to course; the same way as below is a fault (counted, never corrected); the top course all his; the retreat at level 3', () => {

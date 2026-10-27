@@ -173,7 +173,7 @@ export function createHar42(o = {}) {
     // follow's azimuth turned, FOLLOW45). Inside the court its floor rises with the wall (stages.groundAt: up to 16 amot) and buried the props;
     // at the old stage's work spot ('dress', 3 amot out from a face) the walk's camera stood inside the wall
     Object.assign(PL, { peg0: P(12, 0), peg1: P(-12, 0), pulley: P(-9, -6), pstone: P(-12, -6), course: P(2, 16), stone0: P(-11, 15.4) });
-    Object.assign(STAND, { line: PL.peg0, pulley: P(-5, -6), wcourse0: P(2, 11), wcourse1: P(2, 11), giant: P(-11, 10.5), wcorner: P(10, 11), top: P(2, 11) });
+    Object.assign(STAND, { line: PL.peg0, pulley: P(-5, -6), wcourse0: P(2, 11), wcourse1: P(2, 11), giant: P(-5, 13), wcorner: P(10, 11), top: P(2, 11) });   // (the giant: from its east, the camera north — broadside; north of it, and west, he stood in front of it)
   }   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */
@@ -271,7 +271,7 @@ export function createHar42(o = {}) {
     st.props.pRope = add(new THREE.LineSegments(pr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.pTop = top;
     if (STG === 'wall') {
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.8 }), hw = CW45.w / 2 + 3, hd = CW45.d / 2 + 3;   // (the gold line along the wall's middle: it rises inside the wall to be)
-      st.props.plan = [[0, -hd, 2 * hw + 1.6, 1.6], [0, hd, 2 * hw + 1.6, 1.6], [-hw, 0, 1.6, 2 * hd], [hw, 0, 1.6, 2 * hd]].map(([dx, dz, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 3, d), gm); m.geometry.translate(0, 1.5, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, gy(CW45.x + dx, CW45.z + dz), CW45.z + dz); });
+      st.props.plan = [[0, -hd, 2 * hw + 3, 3], [0, hd, 2 * hw + 3, 3], [-hw, 0, 3, 2 * hd], [hw, 0, 3, 2 * hd]].map(([dx, dz, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 3, d), gm); m.geometry.translate(0, 1.5, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, gy(CW45.x + dx, CW45.z + dz), CW45.z + dz); });
     }
   }
   /** the crane's rope from the jib's end down to the stone's top */
@@ -456,7 +456,7 @@ export function createHar42(o = {}) {
         line(''); objPlace(false); svgClear(); if (st.props.root) st.props.root.visible = false;
         let out = null; try { out = o.complete ? o.complete() : null; } catch (e) { out = null; }
         try { if (o.timeOfDay) o.timeOfDay('golden'); } catch (e) { /* */ }
-        const gc = gy(CW45.x, CW45.z), V = STG === 'wall' ? { p: [CW45.x + 150, gc + 140, CW45.z + 165], t: [CW45.x, gc + 6, CW45.z] } : (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };   // (build 45: the wall — up over the whole court)
+        const gc = gy(CW45.x, CW45.z), V = STG === 'wall' ? { p: [CW45.x - 70, gc + 150, CW45.z - 215], t: [CW45.x, gc + 6, CW45.z] } : (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };   // (build 45: the wall — up over the whole court, from the north: from its south-east the crane flew through the north wall)
         const P0 = STG === 'wall' ? PL.course : PL.pave;
         st.rev = { t: 0, out, V, p0: [P0.x + 7, P0.y + 4.5, P0.z + 6], t0: [P0.x, P0.y + 0.5, P0.z + 1.5] };
         if (st.snapshot && doc && STG === 'har') { const im = el('h42-before', '', 'img'); im.src = st.snapshot; im.style.opacity = '0'; st.ui.root.appendChild(im); st.ui.before = im; }
@@ -649,9 +649,12 @@ export function createHar42(o = {}) {
     const slotBox = () => { const a = proj(C.x + (spec.a * U - 7) - 0.2, C.y + 0.7, C.z), b = proj(C.x + (spec.b * U - 7) + 0.2, C.y - 0.6, C.z); return a && b ? { l: Math.min(a.x, b.x) - 30, r: Math.max(a.x, b.x) + 30, t: Math.min(a.y, b.y) - 30, b: Math.max(a.y, b.y) + 30 } : null; };
     function tryPlace(len, b, drop) {
       const S2 = stretch(); if (!S2) return false;
-      const vx = S2.b.x - S2.a.x, vy = S2.b.y - S2.a.y, L2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((drop.x - S2.a.x) * vx + (drop.y - S2.a.y) * vy) / L2));
-      const d = Math.hypot(drop.x - (S2.a.x + vx * t), drop.y - (S2.a.y + vy * t)); if (d > Math.max(64, H() * 0.2)) return false;
-      const r = J.place(len, { dragPx: drop.px, u: spec.a + t * (spec.b - spec.a) });
+      // ── build 45 ── where it was let go, in the course's own units: the nearest of its points AS PROJECTED (every quarter unit) — the
+      // screen's straight line between the stretch's ends is not the course's measure in perspective: over the top course (15 units, seen
+      // from one end) a drop on its middle read up to 3 units off — "imprecise" and the wrong place, the bot's top course טעון תיקון 3 runs of 3
+      let bu = null, bd = Infinity; for (let u = spec.a; u <= spec.b + 1e-9; u += 0.25) { const p = uAt(u); if (!p) continue; const dd = Math.hypot(drop.x - p.x, drop.y - p.y); if (dd < bd) { bd = dd; bu = u; } }
+      if (bu == null || bd > Math.max(64, H() * 0.2)) return false;
+      const r = J.place(len, { dragPx: drop.px, u: bu });
       if (r === 'ok') { const [s0, l0] = J.state().last; const m = box3(l0, s0, 1.5 + n * 1.0); laid.push(m); settle(m); return true; }
       if (r === 'unsettled') line('החזיקו רגע על הנדבך — שתתיישב · המחשה', `נדבך ${n + 1}`);
       if (r === 'long' || r === 'gap') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); line(r === 'gap' ? 'תישאר שם פרצה קטנה מדי — בחרו אחרת · המחשה' : 'אין לה מקום שם — בחרו קצרה יותר · המחשה', `נדבך ${n + 1}`); }

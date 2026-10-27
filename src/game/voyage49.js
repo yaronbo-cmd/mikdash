@@ -127,7 +127,7 @@ export function createVoyage49(ctx) {
   const sail = new THREE.Mesh(new THREE.PlaneGeometry(10, 8.5, 8, 6), new THREE.MeshStandardMaterial({ color: '#FFFFFF', map: sailC, side: THREE.DoubleSide, roughness: 0.9 })); sail.rotation.y = Math.PI / 2; add(sail, 2.25, deckY + 9.2, 0, ship);
   const sail0 = sail.geometry.attributes.position.array.slice();
   // the doors: bronze, glinting
-  const bronze = new THREE.MeshStandardMaterial({ color: '#C58A45', metalness: 0.85, roughness: 0.28, emissive: new THREE.Color('#5A3410'), emissiveIntensity: 0.55 });
+  const bronze = new THREE.MeshStandardMaterial({ color: '#D9A35C', metalness: 0.45, roughness: 0.3, emissive: new THREE.Color('#6A4218'), emissiveIntensity: 0.55 });   // (bright: with no environment a metal reads dark)
   const door = (x, z) => { const d = new THREE.Group(), b = new THREE.Mesh(new THREE.BoxGeometry(9, 0.35, 4.9), bronze); d.add(b); for (let i = 1; i < 4; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.42, 4.6), mat('#8A5A2A', 0.4, 0.8)); r.position.x = -4.5 + i * 2.25; d.add(r); } return add(d, x, deckY + 0.35, z, ship); };
   const door1 = door(-2.5, 1.6), door2 = door(7, -1.4); door1.visible = false;
   let glow = null; try { glow = TX.texGlow(); } catch (e) { glow = null; }
@@ -154,7 +154,7 @@ export function createVoyage49(ctx) {
   for (let i = 0; i < 4; i++) { const hm = new THREE.Mesh(new THREE.SphereGeometry(60 + i * 15, 18, 10), mat(['#A99B6E', '#8E8A5C'][i % 2], 0.95)); hm.scale.y = 0.28; add(hm, -120 + i * 80, -4, -150 - (i % 2) * 40, acre); }
   const road = new THREE.Group(); road.visible = false; G.add(road);
   for (let i = 0; i < 7; i++) { const hm = new THREE.Mesh(new THREE.SphereGeometry(70 + (i % 3) * 25, 18, 10), mat(['#B9A776', '#9E9468', '#C2AE7A'][i % 3], 0.95)); hm.scale.y = 0.32; add(hm, -260 + i * 90, -10 - (i % 2) * 6, -60 - (i % 3) * 70, road); }
-  add(new THREE.Mesh(new THREE.BoxGeometry(600, 0.6, 400), mat('#B49F6C', 0.95)), 0, -0.4, 0, road);
+  add(new THREE.Mesh(new THREE.BoxGeometry(600, 0.6, 400), mat('#CDB98A', 0.95)), 0, -0.4, 0, road); add(new THREE.Mesh(new THREE.BoxGeometry(600, 0.62, 7), mat('#E2D3A8', 0.95)), 0, -0.38, 6, road);   // (the hills' ground and the road)
   const carts = [0, 1, 2, 3].map((i) => { const c2 = new THREE.Group(); const bed = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 2.6), wood); bed.position.y = 1.4; c2.add(bed); for (const wx of [-1.8, 1.8]) for (const wz of [-1.4, 1.4]) { const w2 = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.25, 12), dk); w2.rotation.x = Math.PI / 2; w2.position.set(wx, 0.75, wz); c2.add(w2); } const ox = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.4, 1.1), mat('#6E5A44', 0.9)); ox.position.set(4.4, 1.1, 0); c2.add(ox); if (i < 2) { const d = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.3, 2.4), bronze); d.position.y = 2.05; c2.add(d); } return add(c2, -40 - i * 9, 0, 6, road); });
   // the UI: titles, the heel gauge, the swell's warning, the thumbs' rings
   const ui = doc ? doc.createElement('div') : null;
@@ -183,7 +183,7 @@ export function createVoyage49(ctx) {
   const setSea = (A, deep, crest, sky) => { seas.forEach((m) => { m.uniforms.uA.value = A; if (deep) m.uniforms.uDeep.value.set(deep); if (crest) m.uniforms.uCrest.value.set(crest); if (sky) m.uniforms.uSky.value.set(sky); }); };
   const fogTo = (n, f, c) => { if (!scene.fog) return; scene.fog.near = n; scene.fog.far = f; if (c) scene.fog.color.set(c); };
   function begin(s) {
-    V.scene = s; V.t = 0; V.sub = 0; showTitle(TITLES[s] || ''); ctx.emit && ctx.emit('h49scene', { s });
+    V.scene = s; V.t = 0; V.sub = 0; V.cp = null; V.ct = null; showTitle(TITLES[s] || '');   // (a cut between scenes) ctx.emit && ctx.emit('h49scene', { s });
     if (s === 'harbour') { try { ctx.timeOfDay && ctx.timeOfDay('dawn'); } catch (e) { /* */ } V.P = F.createPulley(V.L); setSea(0.35, '#1D4A63', '#5DA2B7', '#BCD6E2'); fogTo(300, 5000); door1.visible = true; door1.position.set(-2.5, 3.45, 9); ctx.line(VLINE49.harbour, `רמה ${V.L}`); }
     if (s === 'sea') { harbour.visible = false; V.P = null; V.walk = 0; setSea(0.55); ctx.line(VLINE49.sea); }
     if (s === 'storm') { try { ctx.timeOfDay && ctx.timeOfDay('dusk'); } catch (e) { /* */ } V.S = F.createStorm49(V.L); setSea(2.2, '#22343E', '#52707A', '#7E8E96'); fogTo(60, 700, '#6E7A80'); ctx.line(VLINE49.storm, `רמה ${V.L}`); ctx.sound && ctx.sound('rope'); }
@@ -199,7 +199,10 @@ export function createVoyage49(ctx) {
     if (s2.ph === 'tele' || s2.ph === 'push') {   // the swell rising on the side the deck will dip; by the left thumb, the way to slide
       const d = S.dirAt(), rise = s2.ph === 'tele' ? Math.min(1, s2.t / F.STORM49.tele) : 1 - Math.min(1, s2.t / F.STORM49.push) * 0.6, x0 = d > 0 ? W() : 0, sx = d > 0 ? -1 : 1, hh = H() * (0.18 + 0.32 * rise), ww = W() * 0.16;
       h += `<path d="M${x0} ${H()} L${x0} ${H() - hh} Q${x0 + sx * ww * 0.6} ${H() - hh - 18} ${x0 + sx * ww} ${H() - hh * 0.35} L${x0 + sx * ww} ${H()} Z" fill="rgba(70,140,170,.55)" stroke="#E8F6FA" stroke-width="3"/>`;
-      const lx0 = T.left ? T.left.x : W() * 0.18, ly0 = (T.left ? T.left.y : H() * 0.62) - 52; h += `<text x="${lx0}" y="${ly0}" font-size="40" font-weight="900" text-anchor="middle" fill="#FFD66E" stroke="#1A2A30" stroke-width="4" paint-order="stroke" opacity="${s2.ph === 'tele' ? 0.55 + 0.45 * Math.abs(Math.sin(s2.t * 6)) : 1}">${d > 0 ? '⇦' : '⇨'}</text>`;
+    }
+    if (s2.L <= 1) {   // (level 1, the shadow: by the left thumb, the way to slide now — until the arrow goes out)
+      const ideal = Math.max(-1, Math.min(1, -s2.p - 0.5 * s2.h)), off = ideal - s2.b;
+      if (Math.abs(off) > 0.22) { const lx0 = T.left ? T.left.x : W() * 0.18, ly0 = (T.left ? T.left.y : H() * 0.62) - 52; h += `<text x="${lx0}" y="${ly0}" font-size="40" font-weight="900" text-anchor="middle" fill="#FFD66E" stroke="#1A2A30" stroke-width="4" paint-order="stroke">${off < 0 ? '⇦' : '⇨'}</text>`; }
     }
     const lx = T.left ? T.left.x : W() * 0.18, ly = T.left ? T.left.y : H() * 0.62, rx = T.right ? T.right.x : W() * 0.82, ry = T.right ? T.right.y : H() * 0.62;
     h += `<circle cx="${lx}" cy="${ly}" r="30" fill="${T.left ? 'rgba(255,214,110,.25)' : 'none'}" stroke="#FFD66E" stroke-width="3" stroke-dasharray="${T.left ? '0' : '6 5'}"/><text x="${lx}" y="${ly + 50}" font-size="13" font-weight="800" text-anchor="middle" fill="#FFF4DC" stroke="#1A2A30" stroke-width="3" paint-order="stroke">⇆ איזון</text>`;
@@ -253,22 +256,22 @@ export function createVoyage49(ctx) {
           door1.rotation.x = -1.2 * Math.min(1, u * 1.6); door1.position.set(-2.5, deckY + 0.35 + Math.sin(Math.min(1, u) * Math.PI) * 2.5 - (u > 0.7 ? (u - 0.7) * 20 : 0), 1.6 + 6 * Math.min(1, u * 1.3));
           if (u >= 1) door1.visible = false;
         }
-        if (wasI !== st.i && st.i === 5 && s === 'storm') { V.scene = 'hug'; showTitle(TITLES.hug); ctx.line(VLINE49.hug, `רמה ${V.L}`); ctx.emit && ctx.emit('h49scene', { s: 'hug' }); }
+        if (wasI !== st.i && st.i === F.STORM49.waves.length - 1 && s === 'storm') { V.scene = 'hug'; showTitle(TITLES.hug); ctx.line(VLINE49.hug, `רמה ${V.L}`); ctx.emit && ctx.emit('h49scene', { s: 'hug' }); }
         if (st.hug) {   // the sailors come for the second door; he kneels and holds it
           const go = st.ph === 'push' && st.slackT > 0 ? Math.min(1, st.slackT / 0.35) : st.ph === 'tele' ? 0.25 : 0.4;
           sailors[1].position.set(9.5 - 1.5 * go, deckY + 0.15, -3.4 + go); sailors[3].position.set(4.5 + 1.2 * go, deckY + 0.15, 0.6 - go);
           nic.position.set(6.5, deckY + 0.15, 0.8); nic.rotation.y = Math.PI; nic.userData.top.rotation.x = T.right ? 0.8 : 0.3; door2.rotation.x = st.slackT > 0.15 ? -0.25 * Math.min(1, st.slackT / 0.35) : 0;
         } else { nic.position.set(-2, deckY + 0.15, -1.5); nic.rotation.y = Math.PI / 2; nic.userData.top.rotation.z = -st.h * 0.4; }
         gauge(S); const shake = s === 'hug' ? 0.4 : 0.6;
-        const cp = st.hug ? [nic.position.x - 8, 7 + ship.position.y, 9] : [-30, 9 + ship.position.y + Math.sin(t * 2.3) * shake, 12];
-        camK(cp, st.hug ? [6.5, 3.5, -0.5] : [2, 4 + st.h * 1.5, 0]);
+        const cp = st.hug ? [15, 7.5 + ship.position.y, 10] : [-30, 9 + ship.position.y + Math.sin(t * 2.3) * shake, 12];   // (the hug: from the bow's side — Nicanor, the door, the sailors coming; the mast behind)
+        camK(cp, st.hug ? [6.5, 3.4, -0.4] : [2, 4 + st.h * 1.5, 0]);
         if (st.done) {   // "ומיד נח הים מזעפו": the sea calms at once
           V.q = S.result(); setSea(0.25, '#1D4A63', '#5DA2B7', '#BCD6E2'); fogTo(300, 5000, '#EAD6BA'); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ }
           ctx.line(VLINE49.calm); ctx.sound && ctx.sound('solemn'); ctx.buzz('peak'); ctx.emit && ctx.emit('h49calm', V.q); V.scene = 'calm'; V.t = 0;
           sailors.forEach((sl, i) => { sl.position.set([-8, 11, -4, 12][i], deckY + 0.15, [2, -2.2, -2.5, 2.4][i]); }); nic.userData.top.rotation.x = 0; door2.rotation.x = 0;
         }
       } else if (s === 'calm') {
-        camK([-26, 10, 16], [4, 3, 0]); if (V.t > 4.5) begin('acre');
+        camK([-26, 10, 16], [4, 3, 0]); if (V.t > 6) begin('acre');
       } else if (s === 'acre') {
         if (T.one) V.acreY = Math.min(1, V.acreY + dt / 7);
         const y = -6 + 8.6 * V.acreY; door1.position.set(-4, y, 4.3 + 1.6 * Math.max(0, (V.acreY - 0.85) / 0.15)); door1.rotation.x = (Math.PI / 2 - 0.25) * (1 - Math.max(0, (V.acreY - 0.85) / 0.15));

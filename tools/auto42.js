@@ -342,7 +342,7 @@
         if (s.ph === 'push' && s.i >= 1 && !s.hug) await shot('voy-storm'); if (s.ph === 'throw' && s.t > 1.6) await shot('voy-throw'); if (s.hug && s.ph === 'push' && s.t > 0.8) await shot('voy-hug');
         await sleep(A.sk ? 50 : 110 + rnd() * 120); continue;
       }
-      if (sc === 'road') await shot('voy-road'); if (sc === 'calm') await shot('voy-calm');
+      if (sc === 'road' && V.V.carT > 2.2) await shot('voy-road'); if (sc === 'calm') await shot('voy-calm');
       await sleep(250);
     }
     if (L) ev(ui, 'pointerup', lx, H0 * 0.62, L); if (R) ev(ui, 'pointerup', W0 * 0.82, H0 * 0.62, R); if (held) ev(ui, 'pointerup', W0 * 0.5, H0 * 0.55, held);

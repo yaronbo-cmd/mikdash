@@ -517,7 +517,8 @@ export function createHar42(o = {}) {
     const N = PL.ng, y0 = N.y, stoneM = mat('#E9DFC8', 0.85), dark = mat('#2A2018', 0.95);
     for (const sz of [-1, 1]) { const p2 = ashlar(1.3, 21.6, 1.3); p2.rotation.y = Math.PI / 2; add(p2, N.x + 0.2, y0 + 10.8, N.z + sz * 5.65); }
     const lt = ashlar(12.6, 1.6, 1.3); lt.rotation.y = Math.PI / 2; add(lt, N.x + 0.2, y0 + 22.4, N.z);
-    add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 21.6, 10), dark), N.x - 0.35, y0 + 10.8, N.z);
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 21.6, 10), dark), N.x - 0.25, y0 + 10.8, N.z);
+    if (STG === 'nikanor') add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 24, 28), STONE), N.x - 0.32, y0 + 12, N.z);   // (the gate's face where the model's is not drawn: through its door the court showed)
     if (MODE === 'yard') add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 22, 14), stoneM), N.x - 1.1, y0 + 11, N.z);
     st.props.sock49 = add(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.1, 8, 20), new THREE.MeshBasicMaterial({ color: '#FFD66E' })), N.x, y0 + 21.4, N.z + LEAF49.pz); st.props.sock49.rotation.x = Math.PI / 2;
     add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 12), dark), N.x, y0 + 0.04, N.z + LEAF49.pz);
@@ -536,7 +537,7 @@ export function createHar42(o = {}) {
   /** the leaf's place: its pivot raised by u amot over the hung height (the lever: from −n·rise up to 0 … the drop) */
   function leafAt(piv, u) { const N = PL.ng; piv.position.y = N.y + u; }
   /** the model's door (and, at the steps, the model's steps) not drawn where his stand (batch.js XRAY.uHoleB) */
-  function hole49(k) { if (STG !== 'nikanor') return; if (!k) { hole46(false); return; } if (k === 'door') hole46(true, [10.02, 34, -17, 17], 70, 13.55); else hole46(true, [10.02, 34, -17, 17], 70, 6.03); }   // (and the stage's scaffold in front of the gate: it stood between the camera and his door)
+  function hole49(k) { if (STG !== 'nikanor') return; if (!k) { hole46(false); return; } if (k === 'door') hole46(true, [10.02, 34, -17, 17], 37.5, 13.55); else hole46(true, [10.02, 34, -17, 17], 37.5, 6.03); }   // (and the stage's scaffold in front of the gate: it stood between the camera and his door)
   const CW45 = { x: -93.5, z: 0, w: 187, d: 135 };   // (the court's inside, מדות ה, א: the wall's foot −193…6 × ±73.5 less its 6 amot)
   function props45(add) {
     const top = PL.pulley.y + 7.5, g2 = new THREE.Group();
@@ -1250,8 +1251,8 @@ export function createHar42(o = {}) {
     hole49('steps'); if (st.props.pole49) st.props.pole49.visible = false; if (st.props.fulc49) st.props.fulc49.visible = false; if (st.props.wedges49) st.props.wedges49.visible = false;
     if (G2) G2.clear();
     const jOf = (k) => 14 - k, Rout = (j) => 6.5 + 0.5 * j, Rmid = (j) => 6.25 + 0.5 * j, topOf = (k) => 0.5 * (k + 1);   // (k: laid from the bottom, 0; j: the model's index from the top)
-    const stoneM = mat('#EFE4CC', 0.85);
-    const ring = (k) => { const j = jOf(k), h = topOf(k) + 0.06, g = new THREE.CylinderGeometry(Rout(j), Rout(j), h, 48, 1, false, 0, Math.PI); g.translate(0, h / 2 - 0.06, 0); const m = new THREE.Mesh(g, stoneM); return m; };
+    const stoneM = [mat('#F1E7D0', 0.85), mat('#D9CBAE', 0.88)];   // (alternate shades: from above, the fifteen treads read as steps)
+    const ring = (k) => { const j = jOf(k), h = topOf(k) + 0.06, g = new THREE.CylinderGeometry(Rout(j), Rout(j), h, 48, 1, false, 0, Math.PI); g.translate(0, h / 2 - 0.06, 0); const m = new THREE.Mesh(g, stoneM[k % 2]); return m; };
     line(LINE42.steps, `מעלה 1/${nSteps} · רמה ${L}`);
     pile.innerHTML = ''; pile.hidden = false;
     const chip = el('h42-it h49-step', `◠ מעלה 1/${nSteps}`, 'button'); chip.type = 'button'; pile.appendChild(chip);
@@ -1264,11 +1265,11 @@ export function createHar42(o = {}) {
       if (res === 'tap') return false;
       if (res === 'off') { const m = ring(k); m.material = mat('#D8C9A8', 0.9); const rr = pt ? Math.max(2, Math.min(17, r)) : Rmid(j); m.scale.set(rr / Rout(j), 1, rr / Rout(j)); m.position.y = topOf(k) * 0.2; m.rotation.x = 0.09 * Math.sign(err || 1); G2.add(m); ghost = { m, t: 0 }; { const sc = F.STEPS49.scale, dg = sc[k % sc.length] + 12 * Math.floor(k / sc.length); tone49(J.freq(dg) * 1.06, 0.6, 1); } buzz42('retry'); line(LINE42.stepOff, `מעלה ${k + 1}/${nSteps} · רמה ${L}`); return false; }
       const m = ring(k); m.position.y = 2.5; G2.add(m); drop = { m, t: 0 }; const deg = s.notes[s.notes.length - 1]; tone49(J.freq(deg), 0.9); buzz42('settle');
-      if (res === 'done') { pile.innerHTML = ''; sing = { t: -1.2, i: -1 }; line(LINE42.levites); }
+      if (J.state().done) { pile.innerHTML = ''; sing = { t: -1.2, i: -1 }; line(LINE42.levites); }   // (the fifteenth rings true: the engine's 'true', then done)
       else { chip.textContent = `◠ מעלה ${s.i + 1}/${nSteps}`; line(s.i === 1 ? LINE42.stepTrue : LINE42.steps, `מעלה ${s.i + 1}/${nSteps} · רמה ${L}`); }
       return true;
     });
-    const view = () => { const c = [A.x + 6.8, A.y, A.z], tH = tanV() * (W() / H()), D = Math.max(15 / tH, 8.4 / tanV()); return { p: [c[0] + D * 0.14, A.y + D, c[2]], t: c }; };
+    const view = () => { const c = [A.x + 6.8, A.y, A.z], tH = tanV() * (W() / H()), D = Math.max(16.5 / tH, 9.2 / tanV()); return { p: [c[0] + D * 0.14, A.y + D, c[2]], t: c }; };
     function levites() {
       const g = new THREE.Group(), list = [1, 4, 7, 10, 13].filter((j) => j >= 15 - nSteps);
       for (const j of list) for (const ph of [-0.95, 0, 0.95]) { const f = figure49({ tunic: '#F2EEE2', cap: '#F2EEE2', belt: '#5B7FB0' }), R2 = 6.25 + 0.5 * j; f.position.set(A.x + R2 * Math.cos(ph), A.y + 0.5 * (15 - j), A.z + R2 * Math.sin(ph)); f.rotation.y = Math.PI / 2 - ph * 0.2; f.scale.setScalar(1.75); g.add(f); }

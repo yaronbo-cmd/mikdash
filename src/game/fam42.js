@@ -679,7 +679,7 @@ export function createPeg48(L = 1, rnd = Math.random) {
  *  thumb must stay on the door the whole push (else the sailors take it: replay). Then the sea calms at once. A tap holds nothing (take-up). */
 export const STORM49 = Object.freeze({
   K: 2.4, D: 1.2, line: 0.55, beat: 1, tele: 1.5, push: 2.4, rest: 0.9, throwT: 4.2, slack: 1.5, takeUp: 0.25,
-  waves: Object.freeze([1, -1, 1, -1, 1, -1]), str: Object.freeze([null, 0.8, 0.9, 1, 1.1]),
+  waves: Object.freeze([1, -1, 1, -1, 1, -1, 1, -1]), str: Object.freeze([null, 0.8, 0.9, 1, 1.1]),   // (eight waves — the storm long enough to be one)
 });
 export function createStorm49(L = 1, o = {}) {
   const lv = clamp(L | 0, 1, 4), P = STORM49, W = o.waves || P.waves, last = W.length - 1;

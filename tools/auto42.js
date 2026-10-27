@@ -137,17 +137,33 @@
     const T0 = performance.now(); let last = '';
     for (;;) {
       if (!A.on) return;
-      const h = H(); if (!h || !h.on) { await sleep(300); if (h && !h.on) return; continue; }
+      const h = H();
+      if (!h || !h.on) {   // ── build 44 ── after stage 01: the vision (Phase B) — its shot, then "חזרה להר"; then the test (a new stage director) — until it is passed
+        const V = globalThis.__SHIFT && globalThis.__SHIFT.vision;
+        if (V && !V.ended) { if (!A.visionT) { A.visionT = performance.now(); note('vision'); A.times.vision = Math.round((performance.now() - T0) / 100) / 10; } if (performance.now() - A.visionT > 9000) { await shot('vision'); const b = q('.v44-skip'); if (b && !b.hidden) { b.click(); note('vision skipped'); } } await sleep(400); continue; }
+        if (h && !h.on && h.state().mode === 'test' && h.state().test && h.state().test.passed) return;
+        if (!A.waitOff) A.waitOff = performance.now(); if (performance.now() - A.waitOff > (A.opts.after ? 90000 : 1500)) return;
+        await sleep(300); continue;
+      }
+      A.waitOff = 0;
       const s = h.state();
+      if (s.mode !== 'stage' && !A['m' + s.mode]) { A['m' + s.mode] = 1; note(`mode ${s.mode}`); A.times[s.mode] = Math.round((performance.now() - T0) / 100) / 10; }
+      if (q('.h44-yard')) { await sleep(A.sk ? 600 : 1500); await shot('yard'); A.yardSeen = 1; const b = q('.h44-yard [data-b="back"]'); if (b) b.click(); await sleep(500); continue; }   // (build 44: the yard — its shot, back to the test)
       if (s.part !== last) { last = s.part; A.times[s.part] = Math.round((performance.now() - T0) / 100) / 10; note(`part ${s.part}`); }
-      if (s.card) { await sleep(A.sk ? 300 : 1200); await shot('card'); const b = q('.h42-card button'); if (b) b.click(); await sleep(400); continue; }
+      if (s.card) {
+        await sleep(A.sk ? 300 : 1200);
+        const t = (q('.h42-card h2') || {}).textContent || '';
+        await shot(s.mode === 'test' ? (/מבחן אומן/.test(t) ? 'test-card' : /חותם/.test(t) ? 'seal' : /עברתם את/.test(t) ? 'test-end' : 'test-' + (A.tc = (A.tc | 0) + 1)) : 'card');
+        const alt = q('.h42-card [data-b="alt"]'); if (alt && A.opts.after && !A.yardSeen && /חצר/.test(alt.textContent)) { alt.click(); await sleep(500); continue; }   // (build 44: the yard visited once on the way to the test)
+        const b = q('.h42-card button'); if (b) b.click(); await sleep(400); continue;
+      }
       if (s.part === 'reveal') { await sleep(1500); await shot('reveal'); await until(() => { const r = H().state(); return r.part !== 'reveal' || r.rev >= 9; }, 30000, 50); if (H().state().part === 'reveal') await shot('reveal-end'); continue; }   // (build 43: the reveal's end — the whole platform from the opening's viewpoint)
       if (s.part === 'open') { await shot('open'); await sleep(400); if (A.sk) { const b = q('.h42-skip'); if (b) ev(b, 'pointerdown', 10, 10, ++pid); } continue; }
       if (s.part === 'done' || s.part === 'out') { await sleep(500); if (!q('.h42-card')) return; continue; }
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
-      await shot('act-' + j.kind);
+      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + j.kind);
       if (j.kind === 'lift') await lift(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }

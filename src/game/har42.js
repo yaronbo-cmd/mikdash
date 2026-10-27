@@ -784,7 +784,7 @@ export function createHar42(o = {}) {
       move() {},
       up(a2) {
         const sw = M.swipe; M.swipe = null; if (!sw) return; const dy = a2.y - sw.y0, dt2 = now() - sw.t0;
-        if (dy > 50 && dt2 > 0.45) {   // a slow swipe down: a bow
+        if (dy > 40 && dt2 > 0.25) {   // a slow swipe down: a bow (0.25 s, 40 px: the naive kid K46-W2's 22 swipes joined none at 0.45 s)
           if (!M.first && M.phase === 'wait') { M.first = true; M.phase = 'bow'; M.t = 0; M.kid = 1; line(LINE42.bows); o.emit && o.emit('h46bow', { first: true }); }
           else if (M.phase === 'bow' || M.phase === 'walk') { M.kid = 1; M.joined++; o.emit && o.emit('h46bow', { first: false }); }
         }

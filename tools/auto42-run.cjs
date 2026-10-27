@@ -45,6 +45,13 @@ const OCC = () => {
   if (res && res.timeout) { await pg.evaluate(() => globalThis.__AUTO42.stop()).catch(() => {}); }
   const st = await pg.evaluate(() => (globalThis.__H42 ? { s: globalThis.__H42.state(), on: globalThis.__H42.on } : null)).catch(() => null);
   const after = await pg.evaluate(() => { try { const g = window.__T.game && window.__T.game.state; return g ? { harDone: !!(g.st && g.st.har && g.st.har.done), ftue: g.ftue } : null; } catch (e) { return null; } }).catch(() => null);
+  if (opt('--look', '')) {   // (build 46: a last look — the camera set by hand: --look "px,py,pz;tx,ty,tz", --look-hero "x,z" puts him there first)
+    const [pp, tt] = opt('--look', '').split(';').map((v) => v.split(',').map(Number)), hh = opt('--look-hero', '') ? opt('--look-hero', '').split(',').map(Number) : null;
+    await pg.evaluate(({ pp, tt, hh }) => { try { if (hh) window.__T.stages.hero.setPos(hh[0], hh[1], 0); window.__T.simulate(true, 0.05); } catch (e) { /* */ } }, { pp, tt, hh }).catch(() => {});
+    for (let i = 0; i < 40; i++) { await pg.evaluate(({ pp, tt }) => { window.__T.look(pp, tt); }, { pp, tt }).catch(() => {}); await new Promise((r) => setTimeout(r, 150)); }
+    await pg.evaluate(({ pp, tt }) => { window.__T.simulate(false); window.__T.look(pp, tt); window.__T.render(); }, { pp, tt }).catch(() => {});
+    await pg.screenshot({ path: path.join(OUT, 'shot-look.png'), timeout: 240000 }).catch(() => {}); console.log('shot look', el());
+  }
   await pg.evaluate(() => window.__T.render()).catch(() => {}); await pg.screenshot({ path: path.join(OUT, 'shot-end.png'), timeout: 240000 }).catch(() => {});
   const h44 = await pg.evaluate(() => { try { const S = JSON.parse(localStorage.getItem('bh_har42') || 'null'); return { test: S && S.test44, yard: S && S.yard, vision: localStorage.getItem('bh_vision44') }; } catch (e) { return null; } }).catch(() => null);   // (build 44)
   if (h44) console.log('h44', JSON.stringify(h44));

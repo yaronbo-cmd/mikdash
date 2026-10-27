@@ -344,7 +344,7 @@ export function createHar42(o = {}) {
     for (let i = 0; i < 13; i++) { const x = PL.bow0.x + i * 2.6, m = add(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.06), gold), x, gy(x, PL.bow0.z) + 1.0, PL.bow0.z - 0.05); m.visible = false; st.props.marks.push(m); }
     if (STG === 'soreg') {
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.85 }), c = SG46, w = c.x1 - c.x0, d = c.z1 - c.z0, cx = (c.x0 + c.x1) / 2;
-      st.props.plan46 = [[cx, c.z0, w + 2, 2], [cx, c.z1, w + 2, 2], [c.x0, 0, 2, d], [c.x1, 0, 2, d]].map(([x, z, ww, dd]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(ww, 2.5, dd), gm); m.geometry.translate(0, 1.25, 0); m.scale.y = 0.001; return add(m, x, gy(x, z), z); });
+      st.props.plan46 = [[cx, c.z0, w + 4, 4], [cx, c.z1, w + 4, 4], [c.x0, 0, 4, d], [c.x1, 0, 4, d]].map(([x, z, ww, dd]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(ww, 9, dd), gm); m.geometry.translate(0, 4.5, 0);   /* (4 wide, 9 high over the Chel's dig: from the opening's height 2 × 2.5 read as nothing) */ m.scale.y = 0.001; return add(m, x, gy(x, z), z); });
     }
   }
   const drawTile = (c, segs, x, y, sz, lw) => { for (const [x1, y1, x2, y2, t] of segs) { c.strokeStyle = t ? '#6B3E14' : '#EBD9B0'; c.lineWidth = lw; c.beginPath(); c.moveTo(x + x1 * sz, y + y1 * sz); c.lineTo(x + x2 * sz, y + y2 * sz); c.stroke(); } };
@@ -504,6 +504,7 @@ export function createHar42(o = {}) {
     const p0 = on && pts && pts[0]; st.obj = p0 ? { x: p0.x, y: p0.y, z: p0.z } : null;
     const touch = on && !(st.job && st.job.dragOnly);
     if (st.ui.pad) st.ui.pad.classList.toggle('on', !!touch);
+    if (st.job && st.job.fullPad) { if (st.t40) st.t40.place(false); if (st.ui.pad) st.ui.pad.classList.add('full'); return; }   // ── build 46 ── (the walk and the bows: the whole screen — touch40 sized the pad to a box round the thing, and the naive kid's swipes missed it: K46-dbg)
     if (st.t40) st.t40.place(touch, touch ? pts : null, id);
   }
   // ── build 46 ── his stretch of the wall: the hole in the model's skin (x0, x1, z0, z1, zOut, yTop, gx1, gyTop) and the stones laid there
@@ -736,7 +737,7 @@ export function createHar42(o = {}) {
       else line(LINE42.warn, `אבנים ${J.state().stones.length}/${J.state().n} · רמה ${L}`);
     });
     const job = {
-      acting: true, J, kind: 'warn', A, len, setBtn: btn, u: () => J.state().x,
+      acting: true, fullPad: true, J, kind: 'warn', A, len, setBtn: btn, u: () => J.state().x,
       down(a2) { if (!J.state().done) walkDir = sideDir(a2.x); }, move() {}, up() { walkDir = 0; try { stages.hero.drive(0, 0); } catch (e) { /* */ } },
       view(h) { if (endT >= 0) { const mx = A.x + len / 2; return { p: [mx, gy(mx, A.z) + 21, A.z - 34], t: [mx, gy(mx, A.z), A.z] }; } const D = Math.max(24, needD() + 1.5); return { p: [h.x - 2, h.y + 2.6 + D * 0.24, h.z - D], t: [h.x - 2, h.y + 2.6, h.z + 3] }; },
       frame(dt) {
@@ -779,11 +780,11 @@ export function createHar42(o = {}) {
     const M = { at: -1, t: 0, phase: 'wait', first: false, joined: 0, bowT: 0, kid: 0, swipe: null, done: false, hold: 0 };
     const bowAt = (i) => PL.bow0.x + i * 2.6;
     const job = {
-      acting: true, kind: 'bows', M,
+      acting: true, fullPad: true, kind: 'bows', M,
       down(a2) { M.swipe = { y0: a2.y, t0: now() }; },
       move() {},
       up(a2) {
-        const sw = M.swipe; M.swipe = null; if (!sw) return; const dy = a2.y - sw.y0, dt2 = now() - sw.t0;
+        const sw = M.swipe || { y0: a2.y0, t0: a2.t0 }; M.swipe = null; const dy = a2.y - sw.y0, dt2 = now() - sw.t0;   // (the touch's own start when the down came before the job's)
         if (dy > 40 && dt2 > 0.25) {   // a slow swipe down: a bow (0.25 s, 40 px: the naive kid K46-W2's 22 swipes joined none at 0.45 s)
           if (!M.first && M.phase === 'wait') { M.first = true; M.phase = 'bow'; M.t = 0; M.kid = 1; line(LINE42.bows); o.emit && o.emit('h46bow', { first: true }); }
           else if (M.phase === 'bow' || M.phase === 'walk') { M.kid = 1; M.joined++; o.emit && o.emit('h46bow', { first: false }); }

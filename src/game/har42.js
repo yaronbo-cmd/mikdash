@@ -742,7 +742,8 @@ export function createHar42(o = {}) {
       frame(dt) {
         const h = hero(), s = J.state();
         objPlace(!s.done, [{ x: h.x, y: h.y + 1.2, z: h.z, r: 1.6 }], 'h46warn');   // (the act's surface on: held anywhere — the bot's events reached the pad, a finger never did: K46-P)
-        if (!s.done && walkDir) { try { stages.hero.drive(walkDir * 6, (z - h.z) * 3); } catch (e) { /* */ } }
+        if (!s.done && walkDir) { const stop = (walkDir < 0 && h.x <= A.x + 0.05) || (walkDir > 0 && h.x >= A.x + len - 0.05); try { stages.hero.drive(stop ? 0 : walkDir * 6, (z - h.z) * 3); } catch (e) { /* */ } }   // (the stretch's ends stop him: K46-S walked on past post A, the stones all refused there)
+        if (h.x < A.x - 0.4 || h.x > A.x + len + 0.4) { try { stages.hero.drive(0, 0); stages.hero.setPos(Math.max(A.x, Math.min(A.x + len, h.x)), z, 0); } catch (e) { /* */ } }
         J.walk(Math.max(0, Math.min(len, h.x - A.x)) - s.x);
         svgClear();
         if (endT >= 0) {   // the real gaps

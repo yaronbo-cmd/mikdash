@@ -76,7 +76,7 @@ test('build 46: the stage — its parts, lines and sources, the find on the card
   assert.ok(SRC46.some((x) => /שלש עשרה השתחויות/.test(x))); assert.match(FIND46, /1871/);
   const h = read('src/game/har42.js'), bows = h.slice(h.indexOf('function mkBows()'), h.indexOf('/* ── build 45 ── the LINE'));
   assert.ok(bows.length > 500); assert.ok(!/buzz42\(/.test(bows), 'no haptics during the bows'); assert.ok(!/grade\(/.test(bows), 'not a skill: no grade');
-  assert.match(h, /objPlace\(!s\.done, \[\{ x: h\.x, y: h\.y \+ 1\.2, z: h\.z, r: 1\.6 \}\], 'h46warn'\);/, 'the walk\'s surface on for a finger (K46-P: only the bot\'s events reached it)'); assert.match(bows, /objPlace\(M\.phase !== 'end'/);
+  assert.match(h, /objPlace\(!s\.done, \[\{ x: h\.x, y: h\.y \+ 1\.2, z: h\.z, r: 1\.6 \}\], 'h46warn'\);/, 'the walk\'s surface on for a finger (K46-P: only the bot\'s events reached it)'); assert.match(bows, /objPlace\(M\.phase !== 'end'/); assert.match(h, /const stop = \(walkDir < 0 && h\.x <= A\.x \+ 0\.05\) \|\| \(walkDir > 0 && h\.x >= A\.x \+ len - 0\.05\);/, 'the stretch\'s ends stop him (K46-S)');
   assert.match(h, /const STG = o\.stage === 'wall' \? 'wall' : o\.stage === 'soreg' \? 'soreg' : 'har';/);
   for (const k of ['lattice0', 'lattice1', 'lattice2', 'warn', 'bows']) assert.match(h, new RegExp(`(\\n    |\\} \\}, )${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   assert.match(h, /SG46 = \{ x: -23, z: 0, x0: -211, x1: 165, z0: -91\.5, z1: 91\.5 \}/, 'the soreg\'s line (temple.js)');

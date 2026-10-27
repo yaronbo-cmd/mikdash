@@ -125,7 +125,7 @@ test('build 42: the haptic library (hishaarut-ve-retet-he.md §1.2) next to pref
 test('build 42: the new stage 01 takes the Mount over while it is not done (wanted42), and its end completes the Mount; the old Mount\'s flow, its opening and the twin step aside; the parts in order; mkout --no-shift', () => {
   const isDone = (G, id) => !!(G.st[id] && G.st[id].done);
   assert.equal(wanted42({ st: {} }, isDone), true); assert.equal(wanted42({ st: { har: { done: true } } }, isDone), false); assert.equal(wanted42({ st: {}, demo: true }, isDone), false);
-  assert.deepEqual(PARTS42, ['open', 'rope', 'lift', 'rock0', 'rock1', 'rock2', 'course0', 'course1', 'roll', 'pave', 'trace', 'reveal']);
+  assert.deepEqual(PARTS42, ['open', 'rope', 'lift', 'corner', 'rock0', 'rock1', 'rock2', 'course0', 'course1', 'roll', 'pave', 'trace', 'reveal']);   // (build 43: the corner stone set home with the crowbar, after the wheel)
   const g = read('src/game/index.js');
   assert.match(g, /if \(wanted42\(G, S\.isDone\)\) startHar42\(\);/);
   assert.match(g, /opening = openingDue\(\) && !wanted42\(G, S\.isDone\);/);
@@ -135,7 +135,7 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   const h = read('src/game/har42.js');
   assert.match(h, /createGuide39\(\{ E: E39, freeFor: \(\) => \(\) => true \}\)/, 'the guided walk (build 39)');
   assert.match(h, /createTouch40\(\{ doc, pad: st\.ui\.pad, id: 'h42', proj \}\)/, 'the touch on the thing (build 40)');
-  assert.match(h, /pan40\(p, t, O, \{ x: h\.x, y: h\.y \+ HERO41 \/ 2, z: h\.z, h: HERO41 \}, tanH, CAM41, tanV\)/, 'the act\'s frame (build 41)');
+  assert.match(h, /pan40\(p, t, O, \{ x: h\.x, y: h\.y \+ HH \/ 2, z: h\.z, h: HH \}, tanH, CAM41, tanV\)/, 'the act\'s frame (build 41; build 43: his own height)');
   assert.match(h, /if \(st\.finger > 0 && st\.camLock\) return st\.camLock;/, 'frozen under the finger');
   assert.ok(!/לשלם/.test(h.replace(/\/\*[\s\S]*?\*\//g, '')), 'no paid finishing (the header only names what is gone)');
   const mk = read('tools/mkout.cjs'); assert.match(mk, /const HEAD = args\.includes\('--no-shift'\) \? '' : HEAD0;/);
@@ -154,7 +154,7 @@ test('build 42: every line of the stage with its source or המחשה; touch tar
   for (const [k, v] of Object.entries(LINE42)) if (!['walk', 'courseEnd', 'lift2'].includes(k)) assert.match(v, /טיוטה|המחשה/, `${k}: ${v}`);
   const h = read('src/game/har42.js');
   assert.match(h, /\.h42-it\{min-width:52px;min-height:48px/); assert.match(h, /\.h42-card button\{margin-top:10px;min-height:48px/); assert.match(h, /\.h42-skip\{[^}]*min-height:44px/);
-  assert.equal(GAME_BUILD, 42);
+  assert.equal(GAME_BUILD, 43);   // (build 43: the constant moved on)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/avodah/shift/prefs28.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/mkout.cjs', 'PROJECT.md', 'test/build42.test.mjs']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); if (f !== 'test/build42.test.mjs') assert.ok(!s.includes(P), `${f}: עולי רגל`);

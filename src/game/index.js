@@ -3255,6 +3255,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       emit: (t, d) => emit(t, d),
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       snapshot: () => { try { const T = globalThis.__T; T.render(); return T.renderer.domElement.toDataURL('image/jpeg', 0.55); } catch (e) { return null; } },
+      timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },   // ── fable32 (build 43) ── (the reveal's late sun; the real clock again after the card) ── /fable32 ──
       complete: () => { const out = S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; persist(); syncWorld(null); return out; },
       onExit: () => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
     });

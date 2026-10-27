@@ -67,6 +67,17 @@ export function createCamGuard(o = {}) {
     try { if (S && typeof S.frameBlocked === 'function' && S.frameBlocked(bx, Math.max(by, gb + 3.05), bz, ax, ay, az, 'x')) return true; } catch (e) { /* the world's */ }
     return false;
   }
+  // ── fable32 (build 43) ── (the coordinator's build-43 #9: by the Ulam's south wall the pull showed his hat from above) a block by the
+  // stages' buildings alone — not the ground, an extra box or the smoke — is a wall the see-through can dither (batch.js XRAY, as Phase A's
+  // walls already do): the camera keeps its pose and the wall between fades, instead of the pull ── /fable32 ──
+  function segWorldOnly(ax, ay, az, bx, by, bz) {
+    if (!(Number.isFinite(ax) && Number.isFinite(bx) && Number.isFinite(by))) return false;
+    const gb = gy(bx, bz); if (by < gb + 1.0) return false;
+    { const L = Math.hypot(bx - ax, by - ay, bz - az), k = L > 1.6 ? 0.8 / L : 0, sx = ax + (bx - ax) * k, sy = ay + (by - ay) * k, sz = az + (bz - az) * k;
+      for (let i = 0; i < EXTRA.length; i++) { const B = EXTRA[i]; if (inBox(ax, ay, az, B)) continue; if (segBox(sx, sy, sz, bx, by, bz, B)) return false; } }
+    if (segSmoke(ax, ay, az, bx, by, bz)) return false;
+    try { return !!(S && typeof S.xrayAt === 'function' && typeof S.frameBlocked === 'function' && S.frameBlocked(bx, Math.max(by, gb + 3.05), bz, ax, ay, az, 'x')); } catch (e) { return false; }
+  }
   /** the first blocked share of the segment (bisection, 7 steps) — 1 when clear */
   function firstHit(ax, ay, az, bx, by, bz) {
     if (!seg(ax, ay, az, bx, by, bz)) return 1;
@@ -148,6 +159,7 @@ export function createCamGuard(o = {}) {
             void aa; if (tryP(A, E - e0, D / L0, A ? 'swing41' : 'rise41')) { got = true; break w41; } } }
         }
         useAhead = true;
+        if (!got && globalThis.__CAM43_XRAY !== false && segWorldOnly(ax, ay, az, ax + vx, ay + vy, az + vz)) { got = true; mode = 'xray'; tA = 0; tE = 0; tK = 1; }   // ── fable32 (build 43) ── ── /fable32 ──
         if (!got) {
           mode = 'pull';
           let r = pullOnly ? 0 : 0.36, q = pose(ax, ay, az, vx, vy, vz, r, 1), qx = q.x, qy = q.y, qz = q.z, L = Math.hypot(qx - ax, qy - ay, qz - az) || 1;
@@ -162,6 +174,7 @@ export function createCamGuard(o = {}) {
       }
     }
     g.mode = mode; g.tA = tA; g.tE = tE; g.tK = tK; g.rise = tE; g.pull = tK; g.turn = tA;
+    try { if (S && typeof S.xrayAt === 'function') S.xrayAt(mode === 'xray', ax, ay - 0.1, az); } catch (e) { /* */ }   // ── fable32 (build 43) ── (the wall between dithered while the pose stands behind it) ── /fable32 ──
     // never a cut: the guard's own change moves round him (on the sphere about the look point, not through it) at ≤ 50 amot a second —
     // 2.5 per 50 ms (a snap: at once); the wanted camera's own moves (the follow, the lift, the overview) pass untouched
     const D = Math.hypot(vx, vy, vz) || 1;

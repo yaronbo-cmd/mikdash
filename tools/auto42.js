@@ -141,7 +141,7 @@
       const s = h.state();
       if (s.part !== last) { last = s.part; A.times[s.part] = Math.round((performance.now() - T0) / 100) / 10; note(`part ${s.part}`); }
       if (s.card) { await sleep(A.sk ? 300 : 1200); await shot('card'); const b = q('.h42-card button'); if (b) b.click(); await sleep(400); continue; }
-      if (s.part === 'reveal') { await sleep(3200); await shot('reveal'); await sleep(500); continue; }
+      if (s.part === 'reveal') { await sleep(1500); await shot('reveal'); await until(() => { const r = H().state(); return r.part !== 'reveal' || r.rev >= 9; }, 30000, 50); if (H().state().part === 'reveal') await shot('reveal-end'); continue; }   // (build 43: the reveal's end — the whole platform from the opening's viewpoint)
       if (s.part === 'open') { await shot('open'); await sleep(400); if (A.sk) { const b = q('.h42-skip'); if (b) ev(b, 'pointerdown', 10, 10, ++pid); } continue; }
       if (s.part === 'done' || s.part === 'out') { await sleep(500); if (!q('.h42-card')) return; continue; }
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }

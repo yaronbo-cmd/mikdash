@@ -652,7 +652,7 @@ export function createHar42(o = {}) {
   }
   const api = {
     start, stop, frame, get on() { return st.on; },
-    state: () => ({ part: st.part, idx: S.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: S.grades.slice(), hands: Math.round(S.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
+    state: () => ({ rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: S.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: S.grades.slice(), hands: Math.round(S.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
     sig: () => `${st.part}|${S.part}|${S.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}`,
     line: () => (st.ui.line ? st.ui.line.textContent : ''),
     save: () => S, places: () => ({ PL, STAND, base }),

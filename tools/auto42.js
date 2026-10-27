@@ -96,6 +96,54 @@
     }
     await until(() => { const j = H().job(); return !j || j.kind !== 'course'; }, 20000, 100);
   }
+  // ── build 46 ── the lattice: the right piece (a child: now and then a wrong one first), turned (a tap) and flipped (a double tap) until it
+  // matches the gap — read from the director's own pattern — then dragged into the gap
+  async function lattice46() {
+    for (let k = 0; k < 14 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'lattice' || j.s.done) break;
+      await react(); const s = j.s, items = j.ref.items(), R2 = j.ref.slotRect(); if (!R2) { await sleep(200); continue; }
+      const same = (a, b) => JSON.stringify(a.map((x) => x.join(',')).sort()) === JSON.stringify(b.map((x) => x.join(',')).sort());
+      const T = globalThis.__F46 || null;
+      const tray = s.tray, ri = tray.findIndex((p) => p.type === (T ? T.kinds[s.kind].tile : tray[0].type));
+      const pick = !A.sk && rnd() < 0.2 && !s.mistakes ? (ri + 1) % tray.length : ri, b = items[pick]; if (!b) break;
+      const c = mid(b);
+      if (pick === ri && T) {   // turn and flip until it matches
+        for (let g = 0; g < 9; g++) { const p = j.ref.J.state().tray[ri]; if (same(T.tile(p.type, p.r, p.f), s.need)) break; const want = (() => { for (let f = 0; f < 2; f++) for (let r = 0; r < 4; r++) if (same(T.tile(p.type, r, f), s.need)) return { r, f }; return null; })(); if (!want) break;
+          if (want.f !== p.f) { const id = ++pid; ev(b, 'pointerdown', c.x, c.y, id); ev(b, 'pointerup', c.x, c.y, id); await sleep(90); const id2 = ++pid; ev(b, 'pointerdown', c.x, c.y, id2); ev(b, 'pointerup', c.x, c.y, id2); await sleep(420); }
+          else { const id = ++pid; ev(b, 'pointerdown', c.x, c.y, id); ev(b, 'pointerup', c.x, c.y, id); await sleep(480); } }
+      }
+      await dragTo(b, R2.l + R2.s / 2 + (A.sk ? 0 : (rnd() - 0.5) * 8), R2.t + R2.s / 2 + (A.sk ? 0 : (rnd() - 0.5) * 8), 0);
+      await sleep(700);
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'lattice'; }, 15000, 100);
+  }
+  // ── build 46 ── the warning stones: hold the side the stretch runs to, let go near each even place (a child's eye: a little off), "הציבו כאן"
+  async function warn46() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 10 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'warn' || j.s.done) break;
+      await react(); const s = j.s, n = s.n, i = s.stones.length, goal = (s.len / (n + 1)) * (i + 1) + (A.sk ? 0 : (rnd() - 0.5) * s.len * 0.07);
+      const T = globalThis.__T, hp = { x: 0, y: 0, z: 0 }; T.stages.heroXYZ(hp); const a = T.view && T.view.project ? null : null;
+      // which side of the screen is +x: try the right half, watch the walk
+      const W0 = innerWidth, H0 = innerHeight, id = ++pid; let side = A.side46 || 0.8;
+      ev(pad, 'pointerdown', W0 * side, H0 * 0.6, id); const u0 = j.ref.u(); await sleep(250); if (j.ref.u() < u0 - 0.05) { ev(pad, 'pointerup', W0 * side, H0 * 0.6, id); side = side > 0.5 ? 0.2 : 0.8; A.side46 = side; const id2 = ++pid; ev(pad, 'pointerdown', W0 * side, H0 * 0.6, id2); await until(() => j.ref.u() >= goal, 12000, 30); ev(pad, 'pointerup', W0 * side, H0 * 0.6, id2); }
+      else { A.side46 = side; await until(() => j.ref.u() >= goal, 12000, 30); ev(pad, 'pointerup', W0 * side, H0 * 0.6, id); }
+      await sleep(250); const b = q('.h46-set'); if (b) { const c = mid(b), id3 = ++pid; ev(b, 'pointerdown', c.x, c.y, id3); ev(b, 'pointerup', c.x, c.y, id3); }
+      await sleep(350); if (j.ref.J.state().done) { await sleep(1500); await shot('warn-result'); }
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'warn'; }, 15000, 100);
+  }
+  // ── build 46 ── the prostrations: the first bow (a slow swipe down), then with the procession now and then
+  async function bows46() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 40 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'bows') break;
+      const M = j.ref.M; if (M.phase === 'bow' && M.at >= 2 && M.t > 0.5) await shot('bow');
+      if (!M.first || (M.phase === 'bow' && M.t < 0.4 && rnd() < 0.5)) { const id = ++pid, x = innerWidth * 0.6, y0 = innerHeight * 0.35; ev(pad, 'pointerdown', x, y0, id); for (let i = 1; i <= 8; i++) { await sleep(80); ev(pad, 'pointermove', x, y0 + i * 12, id); } ev(pad, 'pointerup', x, y0 + 96, id); }
+      await sleep(700);
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'bows'; }, 40000, 200);
+  }
   // ── build 45 ── the line: a drag from the near pin to the far one (a child's hand wavers a little)
   async function line45() {
     const pad = q('.h42-pad');
@@ -184,7 +232,7 @@
       if (s.card) {
         await sleep(A.sk ? 300 : 1200);
         const t = (q('.h42-card h2') || {}).textContent || '';
-        await shot(s.mode === 'test' ? (/מבחן אומן/.test(t) ? 'test-card' : /חותם/.test(t) ? 'seal' : /עברתם את/.test(t) ? 'test-end' : 'test-' + (A.tc = (A.tc | 0) + 1)) : 'card');
+        await shot(s.mode === 'test' ? (/מבחן אומן/.test(t) ? 'test-card' : /חותם/.test(t) ? 'seal' : /עברתם את/.test(t) ? 'test-end' : 'test-' + (A.tc = (A.tc | 0) + 1)) : s.stg && s.stg !== 'har' ? `card-${s.stg}` : 'card');   // (build 46: each stage's card its own shot)
         const alt = q('.h42-card [data-b="alt"]'); if (alt && A.opts.after && !A.yardSeen && /חצר/.test(alt.textContent)) { alt.click(); await sleep(500); continue; }   // (build 44: the yard visited once on the way to the test)
         const b = q('.h42-card button'); if (b) b.click(); await sleep(400); continue;
       }
@@ -195,8 +243,8 @@
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
-      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
-      if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
+      await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top|lattice\d)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
+      if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }
   }

@@ -2201,6 +2201,7 @@ export function createStages(ctx) {
 
   /* ── scaffolding: two instanced meshes per building stage, instances sorted by lift ── */
   const woodMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.86 });
+  woodMat.onBeforeCompile = (sh) => { const x = xrayCode(sh.vertexShader, sh.fragmentShader, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; };   // ── fable32 (build 46) ── (the scaffold too: clear in front of his stretch of the wall — batch.js uHole — and seen through near him)
   const poleGeo = new THREE.CylinderGeometry(1, 1, 1, 5, 1, true).translate(0, 0.5, 0);
   const boardGeo = new THREE.BoxGeometry(1, 1, 1);
   function makeScaffold(st) {

@@ -322,9 +322,9 @@ export function createHar42(o = {}) {
         if (pourOn) { pourOn = false; J.pour(0.016, false); return; }
         if (now() - (a.tDown || 0) < F.TAP42 + 0.05 && a.moved < 10) {   // a tap: a wedge on a seen line near the touch
           const B = box(); if (!B) return;
-          let best = null, bd = 26;
+          let best = null, bd = J.state().L <= 1 ? Math.max(B.w, B.h) : 26;   // (level 1: a tap anywhere on the rock goes to the line — and to its nearest free mark)
           for (const l of J.rock.lines) { if (!J.state().seen[l.id]) continue; const s = seg(l, B), vx = s.x1 - s.x0, vy = s.y1 - s.y0, t = Math.max(0, Math.min(1, ((a.x - s.x0) * vx + (a.y - s.y0) * vy) / (vx * vx + vy * vy))), d = Math.hypot(a.x - (s.x0 + vx * t), a.y - (s.y0 + vy * t)); if (d < bd) { bd = d; best = { id: l.id, t }; } }
-          if (best && J.state().L <= 1) { const m = Math.round(best.t * 5) / 5; if (m >= 0.2 && m <= 0.8 && Math.abs(m - best.t) < 0.08) best.t = m; }   // (level 1: a tap near a marked place lands on it — the marks teach the even spacing)
+          if (best && J.state().L <= 1) { const ws = J.state().wedges, free = [0.2, 0.4, 0.6, 0.8].filter((m) => !ws.some((w) => Math.abs(w - m) < 0.04)); if (free.length) best.t = free.reduce((p, m) => (Math.abs(m - best.t) < Math.abs(p - best.t) ? m : p), free[0]); }   // (level 1: a tap lands on the nearest free marked place — the marks teach the even spacing)
           if (best) { const r = J.wedge(best.id, best.t); if (r === 'ok') buzz42('mallet'); }
         }
       },

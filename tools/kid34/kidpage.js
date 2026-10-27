@@ -191,7 +191,7 @@
   function sig() {
     const e = eng(), sc = screens();
     const l = line().replace(/[0-9:]+/g, '#');
-    const core = e ? [e.phase, e.day, e.night, e.paused, e.k20, e.p23, e.d21, e.m22, e.p25, e.r26, e.r27, e.washed, e.gates, e.prac, e.ch33, e.summary].join('|') : globalThis.__H42 && globalThis.__H42.on ? 'h42|' + globalThis.__H42.sig() + '|' + JSON.stringify((globalThis.__H42.job() || {}).s || null).replace(/[0-9.]+/g, (m) => (Math.round(+m * 20) / 20).toString()).slice(0, 200) : '';   // (build 42: the new stage 01's part and its act's state, rounded)
+    const core = e ? [e.phase, e.day, e.night, e.paused, e.k20, e.p23, e.d21, e.m22, e.p25, e.r26, e.r27, e.washed, e.gates, e.prac, e.ch33, e.summary].join('|') : globalThis.__H42 && globalThis.__H42.on ? 'h42|' + globalThis.__H42.sig() + '|' + (() => { const js = (globalThis.__H42.job() || {}).s; if (!js) return ''; const o = {}; for (const [k, v] of Object.entries(js)) { if (/^(t|y|v|held|light|beatT|x|freeAt|wasHeld|stopped|over|backed|poured|q|L|win|shadow|rows|below|a|b|rock)$/.test(k)) continue; o[k] = Array.isArray(v) ? v.length : v && typeof v === 'object' ? Object.keys(v).length : typeof v === 'number' ? Math.round(v * 4) / 4 : v; } if (typeof js.crack === 'number') o.crack = Math.floor(js.crack * 4); return JSON.stringify(o).slice(0, 200); })() : '';   // (build 42: the new stage 01's part and its act's PROGRESS — counts and steps, not the light's or the wheel's every move — so a child who sweeps for minutes without a wedge counts as stuck)
     return sc.join(' ') + ' § ' + core + ' § ' + l;
   }
   function scan(o = {}) {

@@ -32,7 +32,7 @@ test('build 42: TAPS ALONE NEVER FINISH A JOB — the wheel, the rock, the cours
   const O = F.createRoll(1); for (let k = 0; k < 400; k++) { O.step(0.05); O.moveRoller({ dragPx: 5 }); }
   assert.equal(O.state().done, false);
   // and a drag with no settle does not set a stone
-  assert.equal(F.createCourse(F.courseSpec(0, 1)).place(3, { dragPx: 80, settleS: 0.1 }), 'unsettled');
+  assert.equal(F.createCourse(F.courseSpec(0, 1)).place(3, { dragPx: 80, settleS: 0.1 }), 'ok');   // (build 45: no hold to settle — a released stone settles by itself; a tap still places nothing)
 });
 
 // ───────── the families' grades ─────────

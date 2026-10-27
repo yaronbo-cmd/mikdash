@@ -52,7 +52,7 @@ test('build 43: one short instruction and a small source chip; the long explanat
   }
   assert.ok(SRC42.some((x) => x.includes('הר הבית היה חמש מאות אמה על חמש מאות אמה') && x.includes('מדות ב, א')));
   const h = read('src/game/har42.js'); assert.ok(!h.includes('מכוסה שלג'), 'the House\'s snow (War 5.222) is gone from the Mount\'s card');
-  assert.match(h, /\.\.\.\(STG === 'wall' \? SRC45 : SRC42\)\.map\(\(x\) => `~\$\{x\}`\)/, 'the sources on the card');   // (build 45: each stage's)
+  assert.match(h, /\.\.\.\(STG === 'soreg' \? SRC46 : STG === 'wall' \? SRC45 : SRC42\)\.map\(\(x\) => `~\$\{x\}`\)/, 'the sources on the card');   // (build 45: each stage's; build 46: stage 03's)
   assert.match(h, /\.h42-line b\{display:block;[^}]*white-space:nowrap/); assert.match(h, /\.h42-line i\{font-style:normal;/);
 });
 

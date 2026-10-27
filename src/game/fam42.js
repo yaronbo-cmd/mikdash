@@ -361,7 +361,7 @@ export function famRate(save, fam, L, q) {
 }
 
 /* ───────── the day's materials (v2 §9): a caravan each morning; never out mid-act — only at a course's end; up to 3 days kept ───────── */
-export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8 }) });   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
+export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
 export const dayKey42 = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dayN = (key) => { const [y, m, d] = key.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
 /** the morning's caravan(s): each new day since the last adds a day's load, never more than `keep` days in store → the loads that came */
@@ -377,3 +377,90 @@ export function caravan42(m, now, add = 0) {
 /** enough for this part (checked only at a course's end / a part's start: never mid-act) */
 export const enough42 = (m, part) => (m.stock | 0) >= (MAT42.cost[part] | 0);
 export function spend42(m, part) { m.stock = Math.max(0, (m.stock | 0) - (MAT42.cost[part] | 0)); return m.stock; }
+
+/* ───────── ── build 46 ── stage 03, הסורג: the LATTICE (a PLACE variant, v2 §3 "סריג") and the WARNING STONES' spacing ───────── */
+/** a lattice panel: W × H cells, each cell a tile — a set of strokes in the unit cell (x right, y down), drawn in one or two tones — in one of
+ *  eight orientations (a flip, then quarter turns). The pattern runs on across the panels (the cell's column counts from the stretch's start),
+ *  so the missing cell must continue it. The tray holds the right tile, turned at random, and two others. A tap turns a tray piece, a double
+ *  tap flips it, a drag (≥ DRAG42 px) onto the gap sets it: the right shape the right way — in; anything else — out again, a mistake (never
+ *  corrected for him). Graded by the mistakes and the turns beyond the fewest. The panels grow harder: diamonds → interlaced → two tones. */
+const TILE46 = Object.freeze({
+  diag: Object.freeze([[0, 1, 1, 0, 0]]),                                           // "/" — the diamonds' bar
+  bar: Object.freeze([[0, 0.5, 1, 0.5, 0]]),                                        // "—" (an odd one in the tray)
+  over: Object.freeze([[0, 1, 1, 0, 0], [0, 0, 0.38, 0.38, 0], [0.62, 0.62, 1, 1, 0]]),   // "/" over "\" (interlaced: the under bar broken)
+  plus: Object.freeze([[0.5, 0, 0.5, 1, 0], [0, 0.5, 1, 0.5, 0]]),                  // "+" (an odd one)
+  flag: Object.freeze([[0, 1, 1, 0, 0], [1, 0, 0.62, 0, 1]]),                       // "/" and a dark tick at its top end (two tones: it has a hand)
+  hook: Object.freeze([[0, 1, 1, 0, 1], [0, 1, 0.38, 1, 0]]),                       // a dark "/" with a light foot (an odd one)
+});
+export const LAT46 = Object.freeze({
+  kinds: Object.freeze({
+    diamonds: Object.freeze({ tile: 'diag', odd: Object.freeze(['bar', 'plus']), rule: 'checker', he: 'מעוינים' }),
+    interlaced: Object.freeze({ tile: 'over', odd: Object.freeze(['diag', 'plus']), rule: 'checker', he: 'שזורים' }),
+    twotone: Object.freeze({ tile: 'flag', odd: Object.freeze(['hook', 'diag']), rule: 'turns', he: 'שני גוונים' }),
+  }),
+  W: 8, H: 4, extra: Object.freeze([null, 4, 3, 2, 2]),   // turns beyond the fewest, per level, before they cost a step
+});
+const r3 = (v) => Math.round(v * 1000) / 1000;
+/** the strokes of a tile in an orientation (f: flipped left-right first, then r quarter turns clockwise) */
+export function tile46(type, r = 0, f = 0) {
+  return (TILE46[type] || []).map(([x1, y1, x2, y2, tone]) => {
+    let a = [x1, y1], b = [x2, y2];
+    if (f) { a = [1 - a[0], a[1]]; b = [1 - b[0], b[1]]; }
+    for (let k = 0; k < (r & 3); k++) { a = [1 - a[1], a[0]]; b = [1 - b[1], b[0]]; }
+    return [r3(a[0]), r3(a[1]), r3(b[0]), r3(b[1]), tone];
+  });
+}
+const key46 = (segs) => segs.map(([a, b, c, d, t]) => ((a < c || (a === c && b <= d)) ? [a, b, c, d, t] : [c, d, a, b, t]).join(',')).sort().join('|');
+export const same46 = (a, b) => key46(a) === key46(b);
+/** the orientation a cell wants: 'checker' — the tile and its quarter turn alternate like a chessboard; 'turns' — a quarter turn more each
+ *  column, a flip each row (two tones: its hand shows the way) */
+export function want46(kind, col, row) {
+  const K = LAT46.kinds[kind]; if (!K) return { r: 0, f: 0 };
+  return K.rule === 'turns' ? { r: col & 3, f: row & 1 } : { r: (col + row) & 1, f: 0 };
+}
+export function createLattice46(kind = 'diamonds', L = 1, o = {}) {
+  const K = LAT46.kinds[kind] || LAT46.kinds.diamonds, lv = clamp(L | 0, 1, 4), rnd = typeof o.rnd === 'function' ? o.rnd : Math.random;
+  const col0 = o.col0 | 0, slot = o.slot || { c: Math.floor(rnd() * LAT46.W), r: Math.floor(rnd() * LAT46.H) };
+  const w = want46(kind, col0 + slot.c, slot.r), need = tile46(K.tile, w.r, w.f);
+  const types = [K.tile, ...K.odd]; for (let i = types.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [types[i], types[j]] = [types[j], types[i]]; }
+  const tray = types.map((t) => { let r = Math.floor(rnd() * 4), f = Math.floor(rnd() * 2); if (t === K.tile && same46(tile46(t, r, f), need)) r = (r + 1) & 3; return { type: t, r, f }; });
+  // the fewest turns and flips from the right piece's start to a right orientation
+  const ri = tray.findIndex((p) => p.type === K.tile), p0 = tray[ri];
+  let fewest = 9; for (let f = 0; f < 2; f++) for (let r = 0; r < 4; r++) if (same46(tile46(K.tile, r, f), need)) { const df = f !== p0.f ? 1 : 0, dr = (r - p0.r + 4) & 3; fewest = Math.min(fewest, df + dr); }
+  const k = { kind, L: lv, slot, col0, tray, need, moves: 0, fewest, mistakes: 0, done: false, q: null, wrong: null };
+  function tap(i) { const p = tray[i]; if (!p || k.done) return 'done'; p.r = (p.r + 1) & 3; k.moves++; return 'turn'; }
+  function flip(i) { const p = tray[i]; if (!p || k.done) return 'done'; p.f ^= 1; k.moves++; return 'flip'; }
+  /** a piece let go: { dragPx, onSlot } → 'tap' | 'off' | 'wrong' | 'ok' | 'done' */
+  function drop(i, d = {}) {
+    const p = tray[i]; if (!p || k.done) return 'done';
+    if (!((d.dragPx || 0) >= DRAG42)) return 'tap';
+    if (!d.onSlot) return 'off';
+    if (p.type !== K.tile || !same46(tile46(p.type, p.r, p.f), need)) { k.mistakes++; k.wrong = { type: p.type, r: p.r, f: p.f }; return 'wrong'; }
+    k.done = true; const over = Math.max(0, k.moves - k.fewest), ex = LAT46.extra[lv];
+    k.q = clamp((k.mistakes === 0 ? 1 : k.mistakes <= 1 ? 0.65 : 0.3) - (over > ex ? 0.35 * Math.ceil((over - ex) / (ex + 1)) : 0), 0, 1);
+    return 'ok';
+  }
+  return { tap, flip, drop, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null), cellWant: (c, r) => { const q = want46(kind, col0 + c, r); return tile46(K.tile, q.r, q.f); } };
+}
+/** the WARNING STONES: along a stretch of the soreg (from post A at 0 to post B at len amot) he walks (hold) and sets n stones where his eye
+ *  says the gaps are equal; a stone too near a post or another (< 1.5 amot) is refused. After the last: the real gaps against the even ones —
+ *  the largest miss within 8 % of the even gap מהודר, 18 % כשר, more טעון תיקון (the levels tighten it). A tap without walking sets nothing. */
+export const SPACE46 = Object.freeze({ len: 36, near: 1.5, hi: 0.08, mid: 0.18, n: Object.freeze([null, 3, 3, 4, 4]), tol: Object.freeze([null, 1.25, 1.1, 1, 0.85]) });
+export function createSpacing46(L = 1, o = {}) {
+  const lv = clamp(L | 0, 1, 4), len = o.len || SPACE46.len, n = o.n || SPACE46.n[lv];
+  const k = { L: lv, len, n, x: 0, stones: [], refused: 0, done: false, q: null, gaps: null, even: len / (n + 1), miss: null };
+  function walk(dx) { if (k.done) return k.x; k.x = clamp(k.x + dx, 0, len); return k.x; }
+  function set() {
+    if (k.done) return 'done';
+    const x = Math.round(k.x * 10) / 10;
+    if (x < SPACE46.near || x > len - SPACE46.near || k.stones.some((s) => Math.abs(s - x) < SPACE46.near)) { k.refused++; return 'near'; }
+    k.stones.push(x); k.stones.sort((a, b) => a - b);
+    if (k.stones.length >= n) {
+      const pts = [0, ...k.stones, len]; k.gaps = pts.slice(1).map((v, i) => Math.round((v - pts[i]) * 10) / 10);
+      k.miss = Math.max(...k.gaps.map((g) => Math.abs(g - k.even))) / k.even; const m = k.miss / SPACE46.tol[lv];
+      k.q = m <= SPACE46.hi ? 1 : m <= SPACE46.mid ? 0.65 : 0.3; k.done = true; return 'last';
+    }
+    return 'ok';
+  }
+  return { walk, set, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null), ideal: () => Array.from({ length: n }, (_, i) => Math.round(k.even * (i + 1) * 10) / 10) };
+}

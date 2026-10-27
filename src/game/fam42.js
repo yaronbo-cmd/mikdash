@@ -361,7 +361,7 @@ export function famRate(save, fam, L, q) {
 }
 
 /* ───────── the day's materials (v2 §9): a caravan each morning; never out mid-act — only at a course's end; up to 3 days kept ───────── */
-export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12, wood: 6, beams: 10, pegs: 6, corner48: 12, voyage: 0, lever: 10, leaf49: 8, steps: 12 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
+export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12, wood: 6, beams: 10, pegs: 6, corner48: 12, voyage: 0, lever: 10, leaf49: 8, steps: 12, compass: 6, benches: 6, hub: 8, wheel: 6, dome: 14 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
 export const dayKey42 = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dayN = (key) => { const [y, m, d] = key.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
 /** the morning's caravan(s): each new day since the last adds a day's load, never more than `keep` days in store → the loads that came */
@@ -741,4 +741,86 @@ export function createSteps49(L = 1, n = STEPS49.n) {
     return 'true';
   }
   return { drop, state: () => k, freq: (deg) => 220 * Math.pow(2, deg / 12), result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+
+/* ── build 50 ── stage 07, הלשכות: "קשתות ועיגולים" (v2 §10 "07", §3 the compass, the arch and dome; §2/§5 the wheel). Never a Divine Name. */
+/** the COMPASS (לשכת הגזית — "כחצי גורן עגולה", סנהדרין ד, ג): a HOLD at the centre plants the peg (`plant` s); then the finger sweeps round
+ *  it and the rope marks the arc. Each sample: its angle (rad) and its radius relative to the rope's (dev = r/R − 1): pulled in, the rope
+ *  slackens; out, it strains (both shown). Done when `span` degrees are covered (a jump over 0.5 rad is not a sweep). The grade: the arc's
+ *  RMS deviation against `tol` (מהודר ≤ tol; כשר ≤ 2·tol). A tap neither plants nor sweeps */
+export const COMPASS50 = Object.freeze({ plant: 0.5, span: 180, jump: 0.5, slack: -0.06, strain: 0.06, tol: Object.freeze([null, 0.08, 0.065, 0.05, 0.04]) });
+export function createCompass50(L = 1) {
+  const lv = clamp(L | 0, 1, 4), P = COMPASS50, tol = P.tol[lv];
+  const k = { L: lv, tol, planted: false, holdT: 0, a: null, cum: 0, lo: 0, hi: 0, n: 0, sq: 0, max: 0, dev: 0, rope: 'taut', done: false, q: null, lifts: 0 };
+  function hold(dt, onCentre) { if (k.planted || k.done) return k.planted; if (onCentre) { k.holdT += dt; if (k.holdT >= P.plant) k.planted = true; } else k.holdT = 0; return k.planted; }
+  function sweep(angle, dev) {
+    if (!k.planted || k.done) return null;
+    if (k.a != null) { let d = angle - k.a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; if (Math.abs(d) > P.jump) { k.a = angle; return k.rope; } k.cum += d; k.lo = Math.min(k.lo, k.cum); k.hi = Math.max(k.hi, k.cum); }
+    k.a = angle; k.dev = dev; k.n++; k.sq += dev * dev; k.max = Math.max(k.max, Math.abs(dev)); k.rope = dev < P.slack ? 'slack' : dev > P.strain ? 'strain' : 'taut';
+    if ((k.hi - k.lo) * 180 / Math.PI >= P.span) { k.done = true; const rms = Math.sqrt(k.sq / Math.max(1, k.n)); k.rms = rms; k.q = rms <= tol ? 1 : rms <= 2 * tol ? 0.65 : 0.3; }
+    return k.rope;
+  }
+  function lift() { if (k.planted && !k.done) { k.a = null; k.lifts++; } }
+  const covered = () => (k.hi - k.lo) * 180 / Math.PI;
+  return { hold, sweep, lift, covered, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the WHEEL's HUB (לשכת הגולה — "וְהַגַּלְגַּל נָתוּן עָלָיו", מדות ה, ד): a drag across turns the hub with the finger; a spoke dragged in
+ *  fits only while an empty slot stands at the top (|err| ≤ tol) — else it jams (a correction). A tap fits nothing. Eight spokes */
+export const HUB50 = Object.freeze({ n: 8, gain: 0.55, tol: Object.freeze([null, 15, 11, 8, 6]) });
+export function createHub50(L = 1) {
+  const lv = clamp(L | 0, 1, 4), P = HUB50, tol = P.tol[lv];
+  const k = { L: lv, tol, angle: 0, filled: Array(P.n).fill(false), jams: 0, done: false, q: null };
+  const wrap = (d) => { d = ((d % 360) + 540) % 360 - 180; return d; };
+  /** the empty slot nearest the top and its error (deg; the slot i stands at i·45° + the hub's angle) */
+  function nearest() { let best = null; for (let i = 0; i < P.n; i++) { if (k.filled[i]) continue; const e = wrap(i * (360 / P.n) + k.angle); if (!best || Math.abs(e) < Math.abs(best.err)) best = { i, err: e }; } return best; }
+  function turn(dxPx) { if (!k.done) k.angle += (+dxPx || 0) * P.gain; return k.angle; }   // (live, with the finger)
+  function insert(d = {}) {
+    if (k.done) return 'done'; if (!((d.dragPx || 0) >= DRAG42)) return 'tap';
+    const nb = nearest(); if (!nb || Math.abs(nb.err) > tol) { k.jams++; return 'jam'; }
+    k.filled[nb.i] = true; k.angle -= nb.err;
+    if (k.filled.every(Boolean)) { k.done = true; k.q = k.jams <= 1 ? 1 : k.jams <= 3 ? 0.65 : 0.3; return 'done'; }
+    return 'ok';
+  }
+  return { turn, insert, nearest, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the WHEEL turned (LIFT): HOLD — the wheel gathers speed (after `takeUp` s: a tap is nothing); let go — it slows. The bucket rises with the
+ *  turning; over `spill` (speed) the water spills from it. Three buckets; each delivered with what is left in it. Full buckets — מהודר */
+export const WINCH50 = Object.freeze({ buckets: 3, takeUp: 0.25, acc: 0.9, fric: 0.7, vmax: 2.4, rise: 0.3, spillRate: 0.45, spill: Object.freeze([null, 1.6, 1.4, 1.25, 1.1]) });
+export function createWinch50(L = 1) {
+  const lv = clamp(L | 0, 1, 4), P = WINCH50, sp = P.spill[lv];
+  const k = { L: lv, spill: sp, v: 0, h: 0, i: 0, full: 1, hold: false, held: 0, spills: 0, spilling: false, got: [], done: false, q: null };
+  function hold(on) { if (on && !k.hold) k.held = 0; k.hold = !!on; }
+  function step(dt) {
+    if (k.done) return null; if (k.hold) k.held += dt;
+    k.v = k.hold && k.held >= P.takeUp ? Math.min(P.vmax, k.v + P.acc * dt) : Math.max(0, k.v - P.fric * dt);
+    k.h += k.v * P.rise * dt;
+    const was = k.spilling; k.spilling = k.v > sp && k.full > 0; if (k.spilling) { k.full = Math.max(0, k.full - P.spillRate * dt); if (!was) k.spills++; }
+    if (k.h >= 1) { k.got.push(Math.round(k.full * 100) / 100); k.i++; k.h = 0; k.full = 1; k.v *= 0.3; if (k.i >= P.buckets) { k.done = true; const m = k.got.reduce((a, b) => a + b, 0) / k.got.length; k.q = m >= 0.9 ? 1 : m >= 0.6 ? 0.65 : 0.3; return 'done'; } return 'bucket'; }
+    return k.spilling ? 'spill' : null;
+  }
+  return { hold, step, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the ARCH and the DOME (בית המוקד — "כִּפָּה", מדות א, ח): voussoirs on the wooden centering, ALTERNATELY left and right — a stone that
+ *  would put one side two ahead tilts the centering (refused, a correction); the KEYSTONE last (before the sides are full — refused, a
+ *  correction). Then taps knock out the wedges under the centering; the last one out: the centering drops and THE DOME HOLDS — only with its
+ *  keystone (before it, a tap knocks nothing). A tap never sets a stone */
+export const ARCH50 = Object.freeze({ side: Object.freeze([null, 3, 4, 4, 5]), wedges: 4 });
+export function createArch50(L = 1) {
+  const lv = clamp(L | 0, 1, 4), P = ARCH50;
+  const k = { L: lv, n: P.side[lv], left: 0, right: 0, key: false, tilts: 0, early: 0, wedges: P.wedges, out: 0, holds: false, done: false, q: null };
+  function place(side, d = {}) {
+    if (k.key) return 'full'; if (!((d.dragPx || 0) >= DRAG42)) return 'tap';
+    const l = k.left + (side === 'L' ? 1 : 0), r = k.right + (side === 'R' ? 1 : 0);
+    if ((side === 'L' ? k.left : k.right) >= k.n) return 'full';
+    if (Math.abs(l - r) > 1) { k.tilts++; return 'tilt'; }
+    k.left = l; k.right = r; return 'ok';
+  }
+  function keystone(d = {}) { if (k.key) return 'full'; if (!((d.dragPx || 0) >= DRAG42)) return 'tap'; if (k.left < k.n || k.right < k.n) { k.early++; return 'early'; } k.key = true; return 'ok'; }
+  const balance = () => k.left - k.right;
+  function strike() {
+    if (k.done) return 'done'; if (!k.key) return 'no';
+    k.out++; if (k.out < k.wedges) return 'out';
+    k.holds = true; k.done = true; const f = k.tilts + k.early; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'holds';
+  }
+  return { place, keystone, balance, strike, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

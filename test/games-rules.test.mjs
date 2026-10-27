@@ -58,7 +58,7 @@ ok('facts: every game ends on a fact with its source; no Name letters anywhere; 
 ok('the game of the stage: every stage has one, every game is some stage\'s own, and the last offered steps aside', () => {
   const ids = GAMES.map((g) => g.id);
   for (const s of STAGES) { const l = STAGE_GAMES[s.id]; assert.ok(Array.isArray(l) && l.length >= 2 && l.every((g) => ids.includes(g)), s.id); }
-  for (const g of ids) assert.ok(STAGES.some((s) => STAGE_GAMES[s.id][0] === g), `${g} is some stage's own game`);
+  for (const g of ids) if (g !== 'torches') assert.ok(STAGES.some((s) => STAGE_GAMES[s.id][0] === g), `${g} is some stage's own game`);   // (build 48: torches — שמחת בית השואבה's — no stage's: it opens on its date in Phase B)
   const G = { games: {} };
   for (const s of STAGES) {
     const a = pickFor(G, s.id); assert.equal(a, STAGE_GAMES[s.id][0]);

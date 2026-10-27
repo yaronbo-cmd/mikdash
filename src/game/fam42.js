@@ -361,7 +361,7 @@ export function famRate(save, fam, L, q) {
 }
 
 /* ───────── the day's materials (v2 §9): a caravan each morning; never out mid-act — only at a course's end; up to 3 days kept ───────── */
-export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
+export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12, wood: 6, beams: 10, pegs: 6, corner48: 12 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
 export const dayKey42 = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dayN = (key) => { const [y, m, d] = key.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
 /** the morning's caravan(s): each new day since the last adds a day's load, never more than `keep` days in store → the loads that came */
@@ -568,4 +568,103 @@ export function createNames47(order) {
     return 'ok';
   }
   return { drop, state: () => k, current: () => (k.done ? null : GATES47.find((g) => g.id === k.order[k.i])), result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+
+/* ───────── ── build 48 ── stage 05, עזרת הנשים: the shared INSPECT engine (v2 §4.2, §4.4) and the gallery's FIT (v2 §5) ───────── */
+/** the wood's defect pool: each a kind with its verdict and its source; the species are told by the bark and the leaf (named at level 1) */
+export const WOOD48 = Object.freeze({
+  holes: Object.freeze({ he: 'חורי תולעת', bad: true, why: '"וְכָל עֵץ שֶׁנִּמְצָא בוֹ תוֹלַעַת, פָּסוּל מֵעַל גַּבֵּי הַמִּזְבֵּחַ" — מדות ב, ה · טיוטה' }),
+  gallery: Object.freeze({ he: 'מחילות תולעת מתחת לקליפה', bad: true, under: true, why: 'תולעת מתחת לקליפה — רואים רק כשמקלפים; "כל עץ שנמצא בו תולעת, פסול" — מדות ב, ה · טיוטה' }),
+  olive: Object.freeze({ he: 'עץ זית', bad: true, species: true, why: '"כָּל הָעֵצִים כְּשֵׁרִין לַמַּעֲרָכָה, חוּץ מִשֶּׁל זַיִת וְשֶׁל גֶּפֶן" — תמיד ב, ג · טיוטה' }),
+  vine: Object.freeze({ he: 'עץ גפן', bad: true, species: true, why: '"חוּץ מִשֶּׁל זַיִת וְשֶׁל גֶּפֶן" — תמיד ב, ג · טיוטה' }),
+  fig: Object.freeze({ he: 'תאנה', bad: false, species: true, why: '"בְּאֵלּוּ רְגִילִין: בְּמֻרְבִּיּוֹת שֶׁל תְּאֵנָה" — תמיד ב, ג · טיוטה' }),
+  walnut: Object.freeze({ he: 'אגוז', bad: false, species: true, why: '"וְשֶׁל אֱגוֹז" — תמיד ב, ג · טיוטה' }),
+  shemen: Object.freeze({ he: 'עץ שמן', bad: false, species: true, why: '"וְשֶׁל עֵץ שָׁמֶן" — תמיד ב, ג · טיוטה' }),
+  knot: Object.freeze({ he: 'קשר בעץ', bad: false, decoy: true, why: 'קשר (סיקוס) נראה כמו חור — אבל אין בו מחילה; כשר · המחשה' }),
+  scar: Object.freeze({ he: 'צלקת בקליפה', bad: false, decoy: true, why: 'צלקת בקליפה — לא תולעת; כשר · המחשה' }),
+  drop: Object.freeze({ he: 'לשלשת ציפורים', bad: false, decoy: true, wipe: true, why: 'לשלשת — מנגבים, ונשאר עץ נקי · המחשה' }),
+});
+export const WOOD48_TYPES = Object.freeze(Object.keys(WOOD48));
+/** the shuffle-bag (v2 §4.4): every type once before any repeats; never the same type twice in a row — across refills too */
+export function createBag48(saved, rnd = Math.random, types = WOOD48_TYPES) {
+  const k = saved && Array.isArray(saved.bag) ? { bag: saved.bag.filter((t) => types.includes(t)), last: saved.last || null } : { bag: [], last: null };
+  const shuffle = () => { const a = types.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  function draw() {
+    if (!k.bag.length) { k.bag = shuffle(); if (k.bag[0] === k.last && k.bag.length > 1) [k.bag[0], k.bag[1]] = [k.bag[1], k.bag[0]]; }
+    const t = k.bag.shift(); k.last = t; return t;
+  }
+  return { draw, state: () => k };
+}
+/** a log in hand: four faces round it; the defect (or the species) on one face, at a place, a size and a turn of its own. A vertical swipe
+ *  turns it; a swipe along it PEELS the bark of the face in view (and wipes what lies on it); a tap MARKS a spot; a drag to a pile DECIDES
+ *  (a tap never decides). Verdict: a good log rejected — כשר (a waste, no harm); a bad log to the altar — טעון תיקון (removed, with the reason). */
+const SPECIES48 = ['fig', 'walnut', 'shemen'];
+export function createLog48(type, rnd = Math.random, L = 1) {
+  const T = WOOD48[type] || WOOD48.knot, sp = T.species ? type : SPECIES48[Math.floor(rnd() * 3)];
+  const k = { type, species: sp, bad: !!T.bad, face: 0, at: { face: Math.floor(rnd() * 4), u: 0.18 + rnd() * 0.64, v: 0.25 + rnd() * 0.5, size: 0.7 + rnd() * 0.6, turn: rnd() * 6.28 },
+    peeled: [false, false, false, false], wiped: false, marks: [], turns: 0, decided: null, right: null, L: clamp(L | 0, 1, 4) };
+  if (T.species) k.at.face = -1;   // (the species: on every face)
+  const visible = () => { if (k.at.face < 0) return true; if (k.at.face !== k.face) return false; if (T.under) return k.peeled[k.face]; if (T.wipe) return !k.wiped; return true; };
+  function turn(dir) { if (k.decided) return 'done'; k.face = (k.face + (dir < 0 ? 3 : 1)) % 4; k.turns++; return 'turn'; }
+  function peel(px) { if (k.decided) return 'done'; if (!(px >= DRAG42)) return 'tap'; const was = k.peeled[k.face]; k.peeled[k.face] = true; if (T.wipe && k.at.face === k.face) k.wiped = true; return was ? 'again' : 'peel'; }
+  function mark(u, v) { if (k.decided) return 'done'; const hit = visible() && k.at.face >= 0 && Math.abs(u - k.at.u) < 0.12 && Math.abs((v == null ? k.at.v : v) - k.at.v) < 0.3; k.marks.push({ face: k.face, u, hit }); return hit ? 'hit' : 'mark'; }
+  /** toAltar: true — "למערכה", false — "לא למזבח" → 'tap' | 'ok' | 'waste' (a good log rejected) | 'bad' (a bad log accepted) | 'done' */
+  function decide(toAltar, px) {
+    if (k.decided) return 'done'; if (!(px >= DRAG42)) return 'tap';
+    k.decided = toAltar ? 'altar' : 'out'; k.right = toAltar ? !k.bad : k.bad;
+    return k.right ? 'ok' : toAltar ? 'bad' : 'waste';
+  }
+  return { turn, peel, mark, decide, visible, state: () => k, T };
+}
+/** the wood's grade over the chamber's logs: all right מהודר; a good log rejected (only) כשר; a bad log to the altar טעון תיקון */
+export function woodGrade48(results) { const bad = results.some((r) => r === 'bad'), waste = results.some((r) => r === 'waste'); return bad ? 0.3 : waste ? 0.65 : 1; }
+/** the GALLERY (גזוזטרא, מדות ב, ה): its beams into the wall's sockets — the corner beams first, else the next ones will not go in (blocked:
+ *  an order mistake, undone free); each beam set at its socket is pushed in: the push's angle off the socket's line is the beam's — within the
+ *  tolerance it enters and locks; past it, it stops at the rim (a correction, no damage). A tap never sets or pushes. */
+export const GAL48 = Object.freeze({ tol: Object.freeze([null, 15, 11, 8, 6]), sockets: Object.freeze(['corner', 'next', 'next', 'next', 'corner']) });
+export function createGallery48(L = 1, kinds = GAL48.sockets) {
+  const lv = clamp(L | 0, 1, 4), tol = GAL48.tol[lv];
+  const k = { L: lv, tol, kinds: kinds.slice(), set: kinds.map(() => null), locked: kinds.map(() => false), order: 0, wrong: 0, rims: 0, done: false, q: null };
+  const cornersIn = () => k.kinds.every((t, i) => t !== 'corner' || k.locked[i]);
+  /** a beam (its kind) let go at socket i: { dragPx } → 'tap' | 'blocked' | 'wrong' | 'taken' | 'ok' | 'done' */
+  function place(i, kind, d = {}) {
+    if (k.done) return 'done'; if (!((d.dragPx || 0) >= DRAG42)) return 'tap'; if (!(i >= 0 && i < k.kinds.length)) return 'off';
+    if (k.set[i]) return 'taken';
+    if (kind !== k.kinds[i]) { k.wrong++; return 'wrong'; }
+    if (kind !== 'corner' && !cornersIn()) { k.order++; return 'blocked'; }
+    k.set[i] = kind; return 'ok';
+  }
+  /** push the beam at socket i: the drag (dx, dy) against the socket's line (ax, ay) → 'tap' | 'rim' | 'lock' | 'wait' | 'done' */
+  function push(i, dx, dy, ax, ay) {
+    if (k.done) return 'done'; if (!k.set[i] || k.locked[i]) return 'wait';
+    const n = Math.hypot(dx, dy); if (!(n >= DRAG42)) return 'tap';
+    const a = Math.abs(Math.atan2(dx * ay - dy * ax, dx * ax + dy * ay) * 180 / Math.PI);
+    if (a > tol) { k.rims++; return 'rim'; }
+    k.locked[i] = true;
+    if (k.locked.every(Boolean)) { k.done = true; const f = k.order + k.wrong + k.rims; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; }
+    return 'lock';
+  }
+  return { place, push, cornersIn, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** TENON & PEG (v2 §5 "שגם ויתד"): slide the tenon into its mortise (a drag along it: its angle within the tolerance, else it stops — a
+ *  correction); then taps on the peg with the mallet drive it in a little each (the pitch rises as it goes in); when it LOCKS the sound
+ *  changes — stop; a tap after the lock splits it (a correction: a new peg, free — drive it again); left alone a moment after the lock, done. */
+export const PEG48 = Object.freeze({ step: Object.freeze([0.16, 0.27]), idle: 1.2, tol: Object.freeze([null, 18, 13, 10, 8]) });
+export function createPeg48(L = 1, rnd = Math.random) {
+  const lv = clamp(L | 0, 1, 4), tol = PEG48.tol[lv];
+  const k = { L: lv, tol, tenon: false, rims: 0, depth: 0, locked: false, over: 0, idle: 0, taps: 0, done: false, q: null };
+  function tenon(dx, dy, ax, ay) {
+    if (k.done) return 'done'; if (k.tenon) return 'in'; const n = Math.hypot(dx, dy); if (!(n >= DRAG42)) return 'tap';
+    const a = Math.abs(Math.atan2(dx * ay - dy * ax, dx * ax + dy * ay) * 180 / Math.PI); if (a > tol) { k.rims++; return 'rim'; }
+    k.tenon = true; return 'in';
+  }
+  function tap() {
+    if (k.done) return 'done'; if (!k.tenon) return 'wait'; k.taps++; k.idle = 0;
+    if (k.locked) { k.over++; k.locked = false; k.depth = 0; return 'split'; }
+    k.depth = Math.min(1, k.depth + PEG48.step[0] + rnd() * (PEG48.step[1] - PEG48.step[0]));
+    if (k.depth >= 1) { k.locked = true; return 'lock'; }
+    return 'in';
+  }
+  function step(dt) { if (k.done || !k.locked) return; k.idle += dt; if (k.idle >= PEG48.idle) { k.done = true; const f = k.rims + k.over; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; } }
+  return { tenon, tap, step, state: () => k, pitch: () => 280 + k.depth * 380, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

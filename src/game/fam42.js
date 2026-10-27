@@ -18,7 +18,7 @@ import { ensure36, open36, L36 } from '../avodah/shift/lvl36.js';
 /** a hold shorter than this is a tap: it moves nothing; a drag shorter than this (px) is a tap */
 export const TAP42 = 0.25;
 export const DRAG42 = 24;
-export const FAM42 = Object.freeze(['lift', 'place', 'inspect']);
+export const FAM42 = Object.freeze(['lift', 'place', 'inspect', 'fit']);   // (build 47: the FIT family opens — the door leaf)
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const q3 = (faults) => (faults <= 0 ? 1 : faults <= 2 ? 0.65 : 0.3);   // (0 → מהודר, 1–2 → כשר, more → טעון תיקון)
 
@@ -361,7 +361,7 @@ export function famRate(save, fam, L, q) {
 }
 
 /* ───────── the day's materials (v2 §9): a caravan each morning; never out mid-act — only at a course's end; up to 3 days kept ───────── */
-export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
+export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
 export const dayKey42 = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dayN = (key) => { const [y, m, d] = key.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
 /** the morning's caravan(s): each new day since the last adds a day's load, never more than `keep` days in store → the loads that came */
@@ -463,4 +463,109 @@ export function createSpacing46(L = 1, o = {}) {
     return 'ok';
   }
   return { walk, set, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null), ideal: () => Array.from({ length: n }, (_, i) => Math.round(k.even * (i + 1) * 10) / 10) };
+}
+
+/* ───────── ── build 47 ── stage 04, שערי העזרה: the LINTEL on two cranes (LIFT, v2 §2) and the FIT family (v2 §5) ───────── */
+/** the lintel (or the heavy leaf) on two cranes, a crew at each: a HOLD lifts it — after a moment's take-up (a tap lifts nothing); the
+ *  finger's slide left or right of where it went down shifts the pull between the two crews (pull: −1 … 1, the screen-left crew +); the
+ *  crews are never even (drift), and at level 3 it sways — the bubble on the lintel shows the tilt. Out past the tube's end the crews stop and
+ *  call (a fault, counted once each time). It rises only while the bubble is in the tube; at the top it waits until the bubble is centred;
+ *  then SET: a drag moves it along (dx, amot) over the two posts, and letting go lowers it — both ends on their posts (|dx| within the
+ *  window, the bubble centred) seats it; else one end misses (a correction) and the crews lift it back a little. Never a break. */
+export const LINTEL47 = Object.freeze({
+  L: Object.freeze([null,
+    Object.freeze({ rise: 0.11, drift: 0.32, sway: 0, swayW: 0, win: 0.45, centre: 0.3 }),
+    Object.freeze({ rise: 0.1, drift: 0.42, sway: 0, swayW: 0, win: 0.35, centre: 0.26 }),
+    Object.freeze({ rise: 0.09, drift: 0.4, sway: 0.45, swayW: 1.1, win: 0.3, centre: 0.24 }),
+    Object.freeze({ rise: 0.08, drift: 0.5, sway: 0.6, swayW: 1.4, win: 0.25, centre: 0.2 }),
+  ]),
+  G: 1.6, lim: 1, takeUp: 0.35, gain: 0.012, dx0: 1.2, offFault: 3,
+});
+export function createLintel47(L = 1, o = {}) {
+  const lv = clamp(L | 0, 1, 4), P = LINTEL47.L[lv], heavy = !!o.heavy, rnd = typeof o.rnd === 'function' ? o.rnd : Math.random;
+  const k = { L: lv, heavy, phase: 'lift', y: 0, tilt: 0, pull: 0, held: 0, holding: false, t: 0, faults: 0, out: false, off: 0, fix: 0, dx: (rnd() < 0.5 ? -1 : 1) * LINTEL47.dx0, done: false, q: null,
+    drift: (rnd() < 0.5 ? -1 : 1) * P.drift * (heavy ? 1.15 : 1), sway: P.sway * (heavy ? 1.2 : 1), swayW: P.swayW, ph: rnd() * 6.28, centre: P.centre, win: P.win };
+  function hold(on) { if (k.done) return; k.holding = !!on; if (!on) k.held = 0; }
+  function slide(pull) { k.pull = clamp(+pull || 0, -1, 1); }
+  function step(dt) {
+    if (k.done) return; k.t += dt;
+    if (k.phase !== 'lift' || !k.holding) return;
+    k.held += dt; if (k.held < LINTEL47.takeUp) return;   // (the crews take up the slack: a tap lifts nothing)
+    const bias = k.drift + k.sway * Math.sin(k.swayW * k.t + k.ph);
+    k.tilt = clamp(k.tilt + LINTEL47.G * (k.pull + bias) * dt * 0.5, -LINTEL47.lim, LINTEL47.lim);
+    const a = Math.abs(k.tilt);
+    if (a >= LINTEL47.lim - 1e-6) { if (!k.out) { k.out = true; k.faults++; } return; }   // (out of the tube: the crews stop and call)
+    if (k.out && a < LINTEL47.lim * 0.6) k.out = false;
+    if (k.out) return;
+    if (a > k.centre) k.off += dt;   // (time off the centre, beyond the window)
+    k.y = Math.min(1, k.y + P.rise * (heavy ? 0.85 : 1) * dt);
+    if (k.y >= 1 && a <= k.centre) k.phase = 'set';
+  }
+  /** set: a drag along (px, signed: + toward the screen-right post), then let go → 'tap' | 'ok' (seated) | 'miss' (one end off) | 'done' | 'wait' */
+  function set(px, ppa) {   // (ppa: the screen's px per amah there — else LINTEL47.gain)
+    if (k.done) return 'done'; if (k.phase !== 'set') return 'wait';
+    if (Math.abs(px || 0) < DRAG42) return 'tap';
+    k.dx = clamp(k.dx + (ppa > 0 ? px / ppa : px * LINTEL47.gain), -3, 3);
+    if (Math.abs(k.dx) <= k.win && Math.abs(k.tilt) <= k.centre) {
+      k.done = true; const f = k.faults + k.fix + Math.floor(k.off / LINTEL47.offFault);
+      k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'ok';
+    }
+    k.fix++; return 'miss';
+  }
+  return { hold, slide, step, set, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the DOOR LEAF on its pivot (FIT, v2 §5 — the family's engine, reused later): PIN — a drag down lowers the leaf's pin into its socket; the
+ *  drag's angle off the vertical is the pin's (within tol it seats; past it, it stops on the rim — a correction, lifted back, free); a pin
+ *  seated off by more than half the tol binds on the first swing. SWING — a flick (a quick drag) swings it: free, and a soft flick, it swings
+ *  and closes softly; a hard one slams (a correction); bound, it stops part way — a TAP on the wedge under it frees it, then flick again.
+ *  Graded by the corrections: none מהודר. A tap never seats or swings it; never a break. */
+export const LEAF47 = Object.freeze({ tol: Object.freeze([null, 16, 11, 8, 6]), hard: 2.6, soft: 0.25, quick: 0.6 });
+export function createLeaf47(L = 1) {
+  const lv = clamp(L | 0, 1, 4), tol = LEAF47.tol[lv];
+  const k = { L: lv, tol, phase: 'pin', rims: 0, wedges: 0, slams: 0, binds: false, bound: false, angle: null, open: 0, done: false, q: null };
+  /** a drag down from the leaf: { dx, dy } px → 'tap' | 'rim' | 'seated' | 'done' | 'wait' */
+  function pin(dx, dy) {
+    if (k.done) return 'done'; if (k.phase !== 'pin') return 'wait';
+    if (!(dy >= DRAG42)) return 'tap';
+    const a = Math.abs(Math.atan2(dx || 0, dy) * 180 / Math.PI); k.angle = Math.round(a * 10) / 10;
+    if (a > tol) { k.rims++; return 'rim'; }
+    k.binds = a > tol * 0.5; k.phase = 'swing'; return 'seated';
+  }
+  /** a flick: { px, sec } → 'tap' | 'binds' | 'slam' | 'ok' | 'weak' | 'done' | 'wait' | 'wedge' */
+  function flick(px, sec) {
+    if (k.done) return 'done'; if (k.phase !== 'swing') return 'wait';
+    if (!(px >= DRAG42) || !(sec > 0)) return 'tap';
+    if (k.bound) return 'wedge';
+    if (k.binds) { k.bound = true; k.binds = false; k.open = 0.3; return 'binds'; }
+    const v = px / sec / 1000;   // (px per ms)
+    if (sec > LEAF47.quick * 2 || v < LEAF47.soft) return 'weak';
+    if (v > LEAF47.hard) { k.slams++; }
+    k.open = 1; k.done = true; const f = k.rims + k.wedges + k.slams; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3;
+    return v > LEAF47.hard ? 'slam' : 'ok';
+  }
+  function wedge() { if (k.done || !k.bound) return 'no'; k.bound = false; k.wedges++; k.open = 0; return 'ok'; }
+  return { pin, flick, wedge, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** "שבעת השערים" (מדות א, ד–ה): each gate's name dragged to its gate; a name let go on another gate is a mistake (it flies back, the
+ *  Mishnah's words for that gate shown); a tap never places it. No mistake — מהודר; one or two — כשר; more — טעון תיקון. */
+export const GATES47 = Object.freeze([
+  Object.freeze({ id: 'delek', n: 'שער הדלק', side: 'S', x: -160, z: 71, why: '"שֶׁבַּדָּרוֹם, שַׁעַר הַדֶּלֶק" (מדות א, ד)' }),
+  Object.freeze({ id: 'bechorot', n: 'שער הבכורות', side: 'S', x: -118, z: 71, why: 'בדרום: "שֵׁנִי לוֹ, שַׁעַר הַבְּכוֹרוֹת" (מדות א, ד)' }),
+  Object.freeze({ id: 'mayim', n: 'שער המים', side: 'S', x: -38, z: 71, why: 'בדרום: "שְׁלִישִׁי לוֹ, שַׁעַר הַמַּיִם" (מדות א, ד)' }),
+  Object.freeze({ id: 'moked', n: 'בית המוקד', side: 'N', x: -160, z: -70.5, why: 'בצפון: "שְׁלִישִׁי לוֹ, בֵּית הַמּוֹקֵד" (מדות א, ה)' }),
+  Object.freeze({ id: 'korban', n: 'שער הקרבן', side: 'N', x: -95, z: -71, why: 'בצפון: "שֵׁנִי לוֹ, שַׁעַר הַקָּרְבָּן" (מדות א, ה)' }),
+  Object.freeze({ id: 'nitzotz', n: 'שער הניצוץ', side: 'N', x: -38, z: -71, why: '"וְשֶׁבַּצָּפוֹן, שַׁעַר הַנִּיצוֹץ" (מדות א, ה)' }),
+  Object.freeze({ id: 'nikanor', n: 'שער ניקנור', side: 'E', x: 3, z: 0, why: '"שֶׁבַּמִּזְרָח, שַׁעַר נִקָּנוֹר" (מדות א, ד)' }),
+]);
+export function createNames47(order) {
+  const ids = Array.isArray(order) && order.length === GATES47.length ? order.slice() : GATES47.map((g) => g.id);
+  const k = { order: ids, i: 0, set: [], mistakes: 0, last: null, done: false, q: null };
+  /** the current name let go: { dragPx, on: gate id | null } → 'tap' | 'off' | 'wrong' | 'ok' | 'done' */
+  function drop(d = {}) {
+    if (k.done) return 'done'; if (!((d.dragPx || 0) >= DRAG42)) return 'tap'; if (!d.on) return 'off';
+    const want = k.order[k.i]; if (d.on !== want) { if (!k.set.includes(d.on)) { k.mistakes++; k.last = { want, got: d.on }; return 'wrong'; } return 'off'; }
+    k.set.push(want); k.i++; if (k.i >= k.order.length) { k.done = true; k.q = k.mistakes === 0 ? 1 : k.mistakes <= 2 ? 0.65 : 0.3; }
+    return 'ok';
+  }
+  return { drop, state: () => k, current: () => (k.done ? null : GATES47.find((g) => g.id === k.order[k.i])), result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

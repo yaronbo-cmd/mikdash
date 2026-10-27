@@ -89,7 +89,56 @@ async function playDay(K, o = {}) {
   }
 }
 
+// ── build 42 ── the new Phase A, stage 01 (src/game/har42.js), a child's way: he reads the line and tries — holds the world to walk, drags
+// the light across the rock, taps the line, holds for the water; drags a stone from the pile to the course (and holds it there a moment, or
+// not), drags the freed roller, drags slabs, swipes along the dots; pokes what glows; now and then wanders. The parent's hand after 75 s
+// without a change: the stage's own autoplayer (tools/auto42.js, the quick hand) for up to 40 s. ── /build 42 ──
+async function pile42(K, s) {
+  const r = await K.pg.evaluate(() => { const it = [...document.querySelectorAll('.h42 .h42-it')].filter((b) => !b.hidden && b.getBoundingClientRect().width > 0); if (!it.length) return null; const b = it[Math.floor(Math.random() * it.length)].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, roller: it.length === 1 }; }).catch(() => null);
+  if (!r) return false;
+  const [W, Hh] = K.size(), ob = s.obj && s.obj.w > 8 ? s.obj : null;
+  const tx = r.roller ? r.x + K.between(60, 220) : ob ? K.between(ob.l, ob.r) : K.between(W * 0.2, W * 0.7), ty = r.roller ? r.y + K.between(-30, 30) : ob ? K.between(ob.t, ob.b) : K.between(Hh * 0.3, Hh * 0.7);
+  await K.down(7, r.x, r.y);
+  for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 70)); await K.move(7, r.x + ((tx - r.x) * i) / 10, r.y + ((ty - r.y) * i) / 10); }
+  if (K.rnd() < 0.65) await K.sleep(K.between(300, 1100));   // (holds it there a moment — or lets go at once)
+  await K.up(7); K.ev('pile', r.roller ? 'roller' : 'stone'); return true;
+}
+async function mount42(K) {
+  let moodUntil = 0, mood = 'try';
+  while (K.left() > 15000) {
+    const s = await K.look(); if (!s) { await K.sleep(500); continue; }
+    if (K.isCard(s)) { await K.sleep(K.between(600, 2000)); const s2 = await K.look(); if (s2) await K.pokeButton(s2, null, 'card'); await K.sleep(600); continue; }
+    const h = await K.pg.evaluate(() => (globalThis.__H42 ? { on: globalThis.__H42.on, ...globalThis.__H42.state() } : null)).catch(() => null);
+    if (!h || !h.on) { await K.sleep(1000); const s2 = await K.look(); if (s2 && s2.tp.length && K.rnd() < 0.3) await K.pokeButton(s2, null, 'after'); if (!h) continue; if (!h.on) { K.note('stage 01 over'); break; } }
+    if (K.stuckFor() > 75) {
+      const sig0 = await K.pg.evaluate(() => globalThis.__KID.sig()).catch(() => '');
+      await K.pg.addScriptTag({ path: require('path').join(__dirname, '..', 'auto42.js') }).catch(() => {});
+      await K.pg.evaluate((seed) => { try { globalThis.__AUTO42.stop(); globalThis.__AUTO42.start({ skilled: true, seed }); } catch (e) { /* */ } }, Math.floor(K.rnd() * 1000) + 1).catch(() => {});
+      const t1 = Date.now(); let changed = false;
+      while (Date.now() - t1 < 40000 && K.left() > 15000) { await K.sleep(1500); const s3 = await K.pg.evaluate(() => globalThis.__KID.sig()).catch(() => ''); if (s3 && s3 !== sig0) { changed = true; break; } }
+      await K.pg.evaluate(() => { try { globalThis.__AUTO42.stop(); } catch (e) { /* */ } }).catch(() => {});
+      K.R.helps = (K.R.helps || 0) + 1; K.ev('helper', `part ${h.part} → ${changed ? 'moved on' : 'NO CHANGE'}`);
+      if (!changed) K.R.stuck.push({ at: K.el(), hard: true, why: `part ${h.part}`, sig: String(sig0).slice(0, 300) });
+      continue;
+    }
+    if (K.el() > moodUntil) { mood = K.rnd() < 0.75 ? 'try' : 'mess'; moodUntil = K.el() + K.between(6, 18); }
+    const L = s.line || '', r = K.rnd();
+    if (h.part === 'open') { if (K.rnd() < 0.3) await K.pokeButton(s, null, 'open'); await K.sleep(K.between(500, 1500)); continue; }
+    if (mood === 'try') {
+      if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      else if (/גררו אבן|גררו לוחות|גררו את הגליל|הגליל/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }
+      else await K.tryLine(s);
+    } else {
+      if (r < 0.4) { const a = K.rnd() * Math.PI * 2; await K.stick(Math.cos(a), Math.sin(a), K.between(400, 3000)); K.ev('stick-wander'); }
+      else if (r < 0.75) await K.randomRight(s);
+      else await K.pokeButton(s, null, 'poke-any');
+    }
+    await K.sleep(K.between(80, 400));
+  }
+}
+
 module.exports = {
+  mount: mount42,   // ── build 42 ── ── /build 42 ──
   // the opening screen, every door: start + full lobby, "מכאן" and its card, the chamber door, "משחק קצר" and each interlude's first
   // screen and back, the journal's tabs and pages, the switches; back/close at odd moments; the phone turned once
   async lobby(K) {

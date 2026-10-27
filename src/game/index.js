@@ -62,7 +62,8 @@ import { createEndChain } from './hooks/endchain.js';
 import * as RD20 from './hooks/riddle.js';
 import { MISHMAROT } from '../calendar.js';
 // ── /hook20 ──
-import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
+import { createJuice18 } from './juice.js';
+import { createHar42, wanted42, H42KEY } from './har42.js';   // ── fable32 (build 42) ── the new stage 01, "שיטוח ההר" ── /fable32 ──   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
 
 const DEFAULTS = {
   autosaveMs: 10000,
@@ -126,6 +127,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   let started = false, whole = false, dayOpen = '', tod = null;
   let opening = false;                     // ── build7 ── the opening vision is on screen (the world shows the finished House)
   let JU = null;   // ── juice18 ── (juice.js: made with the thumbs, registered at __BH_PARTS.juice) ── /juice18 ──
+  let H42 = null;   // ── fable32 (build 42) ── ── /fable32 ──
   let TW = null, twinMarks = [], twinMarkN = 0, twinWas = false, twinCamWas = false, twinSheet = false, twinPerfect = false, twinModeWas = 'follow', twinDir = false, twinSiteT = 0, twinDealRef = null;   // ── twin17 ── (twinSiteT: twin18) (declared before emit can run) ── /twin17 ──
   const intervals = [];
   const log = [];
@@ -479,7 +481,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     SCR.sync(true);   // ── hook19 ── (a total that passed a multiple without its coin: the coin is kept, quietly)
     const before = isNew ? null : S.snapshot(G);
     // ── build7 ── a new game opens on the vision: the boot's finished House stays on screen until the opening's swap
-    opening = openingDue();
+    opening = openingDue() && !wanted42(G, S.isDone);   // ── fable32 (build 42) ── (the new stage 01 opens on its own flyover) ── /fable32 ──
     // ── flow11 ── (N34) a player coming back sees the world as it is NOW from the first frame, and lands on his kohen at his work
     // (what the crews built while he was away is told by the welcome card: v20's 4-s tour of it began on an empty frame)
     const rep = settleNow(t);
@@ -500,7 +502,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     document.addEventListener('visibilitychange', onVisibility);
     addEventListener('pagehide', persist);
     emit('start', { isNew, demo: G.demo });
-    if (isNew || G.ftue < 99) runFtue();
+    if (wanted42(G, S.isDone)) startHar42();   // ── fable32 (build 42) ── the Mount not done: the new stage 01 ── /fable32 ──
+    else if (isNew || G.ftue < 99) runFtue();
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
   }
@@ -2958,11 +2961,13 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     cardsShown.clear();
     S.dailyCheck(G, now(), isRestDay);
     persist();
-    opening = openingDue();                  // ── build7 ── a new game opens on the vision too (the finished House first)
+    try { localStorage.removeItem(H42KEY); } catch (e) { /* */ }   // ── fable32 (build 42) ── (a new game: the new stage 01 from its start) ── /fable32 ──
+    if (H42 && H42.on) H42.stop(false);
+    opening = openingDue() && !wanted42(G, S.isDone);                  // ── build7 ── a new game opens on the vision too (the finished House first)
     if (opening) W.demoMode(); else syncWorld(null);
     ui.refresh(); namePlate();               // ── flow8 ── (a new game has no name yet: the plate goes)
     emit('newGame');
-    runFtue();
+    if (wanted42(G, S.isDone)) startHar42(); else runFtue();   // ── fable32 (build 42) ── ── /fable32 ──
   }
 
   /* ───────── per frame (from main.js) ───────── */
@@ -3007,7 +3012,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       if (!ui.root) return;
       TW = createTwin({
         ui, view, stages: world && (world.stages || world), root: ui.root, emit: (t, d) => emit(t, d), sfx, haptic, settings: () => settings,
-        live: () => started && !whole && !opening && !reelOn(),
+        live: () => started && !whole && !opening && !reelOn() && !(H42 && H42.on),   // ── fable32 (build 42) ── (the new stage 01 walks and touches by its own) ── /fable32 ──
         stage: () => twinStage(),   // ── twin18 ── (every stage of the building site) ── /twin18 ──
         moment: () => !!(ui.busy || opening || whole || (ui.root && ui.root.querySelector('.gm-modal.on'))),   // (second fix round: only a card that asks something holds the thumbs) ── twin18 ── (+ any card on screen: the arrow and the markers never over it) ── /twin18 ──
         film: () => !!(!(globalThis.__HANDS && globalThis.__HANDS.twin) && !jobBusy && !SC && (momentBusy || overlay)),   // (a key moment's or a check's own shots take the camera)
@@ -3240,7 +3245,23 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   // ── /twin17 ──
   let lastFrameMs = 0, coachChk = 0;
+  // ── fable32 (build 42) ── the new stage 01 (har42.js): the old Mount's site not worked (no crews on it), the old opening and the old
+  // first-time flow not played; its end completes the Mount (S.completeStage) and the stages after it play as before ── /fable32 ──
+  function startHar42() {
+    for (const c of G.crews || []) if (c.at === 'har') c.at = null;
+    H42 = createHar42({
+      stages: world && (world.stages || world), view,
+      spot: () => { try { return W.workSpot('har', 'dress'); } catch (e) { return null; } },
+      emit: (t, d) => emit(t, d),
+      keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
+      snapshot: () => { try { const T = globalThis.__T; T.render(); return T.renderer.domElement.toDataURL('image/jpeg', 0.55); } catch (e) { return null; } },
+      complete: () => { const out = S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; persist(); syncWorld(null); return out; },
+      onExit: () => { H42 = null; try { ui.refresh(); } catch (e) { /* */ } },
+    });
+    H42.start();
+  }
   function frame(ms) {
+    if (H42 && H42.on) { H42.frame(ms); return; }   // ── fable32 (build 42) ── ── /fable32 ──
     ui.frame(ms);
     twinTick(ms);   // ── twin17 ── ── /twin17 ──
     { const dt = lastFrameMs ? Math.min(0.5, Math.max(0, (ms - lastFrameMs) / 1000)) : 0; lastFrameMs = ms; keepAtWork(dt); keepInFrame(ms); stepFollow(ms); if ((coachChk -= dt) <= 0) { coachChk = 0.5; staleCoach(); if (beatWait || checkWait) courseMoment(); } }   // ── director13 ── (a course end's moment that waited)

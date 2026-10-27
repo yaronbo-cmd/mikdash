@@ -169,9 +169,9 @@
     } catch (e) { /* */ }
     return F;
   }
-  function line() { const c = document.querySelector('.f17-card'); return c && vis(c) ? (c.innerText || c.textContent).replace(/\s+/g, ' ').trim() : ''; }
+  function line() { const c = document.querySelector('.f17-card') || document.querySelector('.h42-line');   /* (build 42: the new stage 01's line) */ return c && vis(c) ? (c.innerText || c.textContent).replace(/\s+/g, ' ').trim() : ''; }
   // the overlays on screen (by their classes): a screen's name
-  const SCREENS = ['.lb-play', '.lb-home', '.lb-pk', '.lb29-here,.lb-here', '.lock29,.l29', '.sh-pause', '.f17-sum', '.j32', '.p31-end', '.r30-c', '.ch33-end,.ch33', '.tl33', '.j32u', '.tl', '.pn', '.m3', '#sh-turn28,#sh-turn', '.f17-rot', '.sh-intro', '.p23-bk'];
+  const SCREENS = ['.h42-card', '.lb-play', '.lb-home', '.lb-pk', '.lb29-here,.lb-here', '.lock29,.l29', '.sh-pause', '.f17-sum', '.j32', '.p31-end', '.r30-c', '.ch33-end,.ch33', '.tl33', '.j32u', '.tl', '.pn', '.m3', '#sh-turn28,#sh-turn', '.f17-rot', '.sh-intro', '.p23-bk'];
   function screens() { const out = []; for (const s of SCREENS) { const e = [...document.querySelectorAll(s)].find((x) => vis(x, 0.3)); if (e) out.push(s.split(',')[0]); } return out; }
   function eng() {
     const E = globalThis.__SHIFT && globalThis.__SHIFT.E; if (!E || !E.st33) return null; const st = E.st33;
@@ -191,7 +191,7 @@
   function sig() {
     const e = eng(), sc = screens();
     const l = line().replace(/[0-9:]+/g, '#');
-    const core = e ? [e.phase, e.day, e.night, e.paused, e.k20, e.p23, e.d21, e.m22, e.p25, e.r26, e.r27, e.washed, e.gates, e.prac, e.ch33, e.summary].join('|') : '';
+    const core = e ? [e.phase, e.day, e.night, e.paused, e.k20, e.p23, e.d21, e.m22, e.p25, e.r26, e.r27, e.washed, e.gates, e.prac, e.ch33, e.summary].join('|') : globalThis.__H42 && globalThis.__H42.on ? 'h42|' + globalThis.__H42.sig() + '|' + JSON.stringify((globalThis.__H42.job() || {}).s || null).replace(/[0-9.]+/g, (m) => (Math.round(+m * 20) / 20).toString()).slice(0, 200) : '';   // (build 42: the new stage 01's part and its act's state, rounded)
     return sc.join(' ') + ' § ' + core + ' § ' + l;
   }
   function scan(o = {}) {

@@ -154,7 +154,7 @@ test('build 42: every line of the stage with its source or המחשה; touch tar
   for (const [k, v] of Object.entries(LINE42)) if (!['walk', 'courseEnd', 'lift2'].includes(k)) assert.match(v, /טיוטה|המחשה/, `${k}: ${v}`);
   const h = read('src/game/har42.js');
   assert.match(h, /\.h42-it\{min-width:52px;min-height:48px/); assert.match(h, /\.h42-card button\{margin-top:10px;min-height:48px/); assert.match(h, /\.h42-skip\{[^}]*min-height:44px/);
-  assert.equal(GAME_BUILD, 49);   // (build 43: the constant moved on) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again)
+  assert.equal(GAME_BUILD, 50);   // (build 43: the constant moved on) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/avodah/shift/prefs28.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/mkout.cjs', 'PROJECT.md', 'test/build42.test.mjs']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); if (f !== 'test/build42.test.mjs') assert.ok(!s.includes(P), `${f}: עולי רגל`);

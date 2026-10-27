@@ -381,6 +381,61 @@
       if (k === 4) await shot('steps');
     }
   }
+  // ── build 50 ── stage 07: the COMPASS (hold the centre, then round at the rope's radius — a child's hand wobbling), the BENCHES (the chip
+  // to the arc), the HUB (a drag across to bring a slot up, the spoke in), the WHEEL (hold, let go before the red), the DOME (left, right,
+  // left…, the keystone, then the taps)
+  async function compass50() {
+    const pad = q('.h42-pad'); const j = H().job(); if (!j || j.kind !== 'compass50') return; const c = j.ref.centre(); if (!c) { await sleep(300); return; }
+    const id = ++pid; ev(pad, 'pointerdown', c.x, c.y, id); await until(() => { const jj = H().job(); return !jj || jj.kind !== 'compass50' || jj.ref.J.state().planted; }, 6000, 50);
+    let th = (rnd() - 0.5) * 0.4; const wob = A.sk ? 0.03 : 0.07 + rnd() * 0.06;
+    for (let i = 0; i < 200 && A.on; i++) { const jj = H().job(); if (!jj || jj.kind !== 'compass50' || jj.ref.J.state().done) break; const p = jj.ref.rimAt(th, 1 + (rnd() - 0.5) * 2 * wob); if (p) ev(pad, 'pointermove', p.x, p.y, id); if (i === 30) await shot('compass-arc'); th += 0.05; await sleep(A.sk ? 25 : 45); }
+    ev(pad, 'pointerup', c.x, c.y, id); await until(() => { const jj = H().job(); return !jj || jj.kind !== 'compass50'; }, 8000, 100);
+  }
+  async function benches50() {
+    for (let k = 0; k < 30 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'benches50') break; if (j.ref.J.state().done) { await sleep(400); continue; }
+      const sp = j.ref.span, th = sp ? sp.m + (rnd() - 0.5) * 2 * sp.h * 0.85 : Math.PI * 0.15 + rnd() * Math.PI * 0.7, p = j.ref.at(th), c = j.ref.centre(); if (!p || !c) { await sleep(300); continue; }
+      const jit = (A.sk ? 0.2 : 0.35 + rnd() * (rnd() < 0.15 ? 1.4 : 0.5)) * (rnd() < 0.5 ? -1 : 1) * 30, dx = p.x - c.x, dy = p.y - c.y, Lr = Math.hypot(dx, dy) || 1;
+      await dragTo(j.ref.chip, p.x + (dx / Lr) * jit, p.y + (dy / Lr) * jit, 0); await sleep(A.sk ? 300 : 700 + rnd() * 500); if (k === 3) await shot('benches');
+    }
+  }
+  async function hub50() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 60 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'hub50') break; const J = j.ref.J, s = J.state(); if (s.done) { await sleep(400); continue; }
+      const nb = J.nearest(); if (!nb) break;
+      if (Math.abs(nb.err) > s.tol * (A.sk ? 0.4 : 0.7)) { const dx = (-nb.err / J.P.gain) * (A.sk ? 1 : 0.85 + rnd() * 0.3), id = ++pid, x0 = innerWidth * 0.5, y0 = innerHeight * 0.55; ev(pad, 'pointerdown', x0, y0, id); for (let i = 1; i <= 8; i++) { await sleep(30); ev(pad, 'pointermove', x0 + (dx * i) / 8, y0, id); } ev(pad, 'pointerup', x0 + dx, y0, id); await sleep(A.sk ? 150 : 400); continue; }
+      const t = j.ref.top(); if (!t) { await sleep(300); continue; } await dragTo(j.ref.chip, t.x, t.y + 30, 0); await sleep(A.sk ? 250 : 600); if (k === 6) await shot('hub');
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'hub50'; }, 8000, 100);
+  }
+  async function wheel50() {
+    const pad = q('.h42-pad'); let id = null; const x = innerWidth * 0.5, y = innerHeight * 0.55;
+    for (let k = 0; k < 2000 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'wheel50') break; const s = j.ref.J.state(); if (s.done) break;
+      const hi = s.spill * (A.sk ? 0.92 : 0.8 + rnd() * 0.3), lo = s.spill * 0.55;
+      if (id && s.v > hi) { ev(pad, 'pointerup', x, y, id); id = null; } else if (!id && s.v < lo) { id = ++pid; ev(pad, 'pointerdown', x, y, id); }
+      if (s.i === 1 && s.h > 0.5) await shot('wheel'); await sleep(A.sk ? 40 : 90);
+    }
+    if (id) ev(pad, 'pointerup', x, y, id);
+    await until(() => { const j = H().job(); return !j || j.kind !== 'wheel50'; }, 8000, 100);
+  }
+  async function dome50() {
+    let side = rnd() < 0.5 ? 'L' : 'R';
+    for (let k = 0; k < 40 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'dome50') break; const J = j.ref.J, s = J.state();
+      if (j.ref.phase() !== 'set') break;
+      let sd = s.left >= s.n && s.right >= s.n ? 'K' : s.left > s.right ? 'R' : s.right > s.left ? 'L' : side;
+      if (!A.sk && sd !== 'K' && rnd() < 0.15) sd = sd === 'L' ? 'R' : 'L';   // (a child: now and then the same side again — the centering tilts)
+      const chip = j.ref.chips.find((b) => b.dataset.side === sd), p = j.ref.slot(j.ref.nextJ(sd)); if (!chip || !p) { await sleep(300); continue; }
+      await dragTo(chip, p.x + (rnd() - 0.5) * 20, p.y + (rnd() - 0.5) * 20, 0); side = sd === 'L' ? 'R' : 'L'; await sleep(A.sk ? 300 : 650);
+      if (k === 2) await shot('dome-inside');
+    }
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 12 && A.on; k++) { const j = H().job(); if (!j || j.kind !== 'dome50' || j.ref.phase() !== 'strike') break; const id = ++pid, x = innerWidth * (0.4 + rnd() * 0.2), y = innerHeight * 0.5; ev(pad, 'pointerdown', x, y, id); await sleep(70); ev(pad, 'pointerup', x, y, id); await sleep(A.sk ? 350 : 700); }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'dome50' || j.ref.phase() === 'held'; }, 12000, 100); await sleep(1500); await shot('dome-holds');
+    await until(() => { const j = H().job(); return !j || j.kind !== 'dome50'; }, 12000, 100);
+  }
   async function loop() {
     const T0 = performance.now(); let last = '';
     for (;;) {
@@ -413,7 +468,7 @@
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
       await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top|lattice\d|leaf7)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
-      if (j.kind === 'voyage') await voyage49(); else if (j.kind === 'lever49') await lever49(); else if (j.kind === 'hang49') await hang49(); else if (j.kind === 'steps49') await steps49(); else if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'lintel') { await lift47(j); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'lintel'; }, 15000, 100); } else if (j.kind === 'leaf') await leaf47(); else if (j.kind === 'names') await names47(); else if (j.kind === 'wood') await wood48(j); else if (j.kind === 'beams') { await beams48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'beams'; }, 15000, 100); } else if (j.kind === 'pegs') { await pegs48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'pegs'; }, 15000, 100); } else if (j.kind === 'corner48') await corner48(); else if (j.kind === 'walk48') await walk48(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
+      if (j.kind === 'compass50') await compass50(); else if (j.kind === 'benches50') await benches50(); else if (j.kind === 'hub50') await hub50(); else if (j.kind === 'wheel50') await wheel50(); else if (j.kind === 'dome50') await dome50(); else if (j.kind === 'voyage') await voyage49(); else if (j.kind === 'lever49') await lever49(); else if (j.kind === 'hang49') await hang49(); else if (j.kind === 'steps49') await steps49(); else if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'lintel') { await lift47(j); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'lintel'; }, 15000, 100); } else if (j.kind === 'leaf') await leaf47(); else if (j.kind === 'names') await names47(); else if (j.kind === 'wood') await wood48(j); else if (j.kind === 'beams') { await beams48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'beams'; }, 15000, 100); } else if (j.kind === 'pegs') { await pegs48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'pegs'; }, 15000, 100); } else if (j.kind === 'corner48') await corner48(); else if (j.kind === 'walk48') await walk48(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }
   }

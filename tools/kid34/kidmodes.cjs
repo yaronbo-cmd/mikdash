@@ -160,6 +160,7 @@ async function mount42(K) {
       if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
       else if (/החוט/.test(L) && r < 0.85) await line45(K);
       else if (/משכו מטה/.test(L) && r < 0.85) await pulley45(K, s);
+      else if (/גררו את המוט/.test(L) && r < 0.85) { const [W, Hh] = K.size(), ob = s.obj && s.obj.w > 8 ? s.obj : null, a = K.rnd() * Math.PI * 2; await K.swipe(ob ? K.between(ob.l, ob.r) : K.between(W * 0.3, W * 0.8), ob ? K.between(ob.t, ob.b) : K.between(Hh * 0.35, Hh * 0.75), Math.cos(a) * K.between(40, 160), Math.sin(a) * K.between(20, 90), K.between(150, 600)); K.ev('lever'); }   // ── build 45 ── the crowbar: he drags the lever, any way (tryLine read "בעדינות" as the pour's "עד" and held — K45-P4)
       else if (/גררו אבן|גררו לוחות|גליל|פינה|הנדבך העליון/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }
       else if (/^החזיקו/.test(L) && s.obj && s.obj.w > 8 && r < 0.7) { const ob = s.obj; await K.hold(K.between(ob.l, ob.r), K.between(ob.t, ob.b), K.between(600, 5000)); K.ev('hold-thing'); }   // (the line says hold: he holds the thing — for as long as he feels like)
       else await K.tryLine(s);

@@ -106,7 +106,7 @@ async function pile42(K, s) {
 async function mount42(K) {
   let moodUntil = 0, mood = 'try';
   while (K.left() > 15000) {
-    const s = await K.look(); if (!s) { await K.sleep(500); continue; }
+    const s = await lookRec(K, 'mount'); if (!s) { await K.sleep(500); continue; }   // (lookRec: the stuck watch sees each change — with K.look() alone the parent's hand took over for good after 75 s)
     if (K.isCard(s)) { await K.sleep(K.between(600, 2000)); const s2 = await K.look(); if (s2) await K.pokeButton(s2, null, 'card'); await K.sleep(600); continue; }
     const h = await K.pg.evaluate(() => (globalThis.__H42 ? { on: globalThis.__H42.on, ...globalThis.__H42.state() } : null)).catch(() => null);
     if (!h || !h.on) { await K.sleep(1000); const s2 = await K.look(); if (s2 && s2.tp.length && K.rnd() < 0.3) await K.pokeButton(s2, null, 'after'); if (!h) continue; if (!h.on) { K.note('stage 01 over'); break; } }

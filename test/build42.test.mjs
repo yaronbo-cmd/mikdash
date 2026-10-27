@@ -32,7 +32,7 @@ test('build 42: TAPS ALONE NEVER FINISH A JOB — the wheel, the rock, the cours
   const O = F.createRoll(1); for (let k = 0; k < 400; k++) { O.step(0.05); O.moveRoller({ dragPx: 5 }); }
   assert.equal(O.state().done, false);
   // and a drag with no settle does not set a stone
-  assert.equal(F.createCourse(F.courseSpec(0, 1)).place(3, { dragPx: 80, settleS: 0.1 }), 'unsettled');
+  assert.equal(F.createCourse(F.courseSpec(0, 1)).place(3, { dragPx: 80, settleS: 0.1 }), 'ok');   // (build 45: no hold to settle — a released stone settles by itself; a tap still places nothing)
 });
 
 // ───────── the families' grades ─────────
@@ -154,7 +154,7 @@ test('build 42: every line of the stage with its source or המחשה; touch tar
   for (const [k, v] of Object.entries(LINE42)) if (!['walk', 'courseEnd', 'lift2'].includes(k)) assert.match(v, /טיוטה|המחשה/, `${k}: ${v}`);
   const h = read('src/game/har42.js');
   assert.match(h, /\.h42-it\{min-width:52px;min-height:48px/); assert.match(h, /\.h42-card button\{margin-top:10px;min-height:48px/); assert.match(h, /\.h42-skip\{[^}]*min-height:44px/);
-  assert.equal(GAME_BUILD, 44);   // (build 43: the constant moved on) (build 44: again)
+  assert.equal(GAME_BUILD, 45);   // (build 43: the constant moved on) (build 44: again) (build 45: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/avodah/shift/prefs28.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/mkout.cjs', 'PROJECT.md', 'test/build42.test.mjs']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); if (f !== 'test/build42.test.mjs') assert.ok(!s.includes(P), `${f}: עולי רגל`);

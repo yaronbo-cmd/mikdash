@@ -70,47 +70,143 @@ export function createLift(L = 1) {
 }
 
 /* ───────── PLACE: the course's hand stones ───────── */
-export const PLACE42 = Object.freeze({ lens: Object.freeze([2, 3, 4]), settle: 0.5 });
+export const PLACE42 = Object.freeze({ lens: Object.freeze([2, 3, 4]), settle: 0, loose: 1.6 });   // ── build 45 ── (settle 0: a released stone settles by itself — the naive kid's stall everywhere; loose: a release this far (units) from where it lands is imprecise)
 /** a course: the joints of the course below (positions), and his stretch [a, b) to fill (in units). ── build 43 ── a stone may go anywhere
  *  in the stretch: o.u (units) is where it was let go — it goes to the free place nearest it where it fits (the coordinator's build-43 #6:
  *  a release anywhere over the course's stretch); without o.u, the first free place (the order of build 42). His choice of stone and
- *  place stays his: a joint over a joint below is counted, never corrected. */
+ *  place stays his: a joint over a joint below is counted, never corrected. ── build 45 ── no hold to settle (it settles by itself);
+ *  precision still counts (a release far from where it lands: every second such is a fault); spec.corner { want: 'a' | 'b' } — the
+ *  course ends at a corner: its last 2 units are the corner stone's, laid with placeCorner(dir) — corner stones alternate direction
+ *  course to course (המחשה), the wrong way is a fault; spec.retreat (level 3) — the plumb drops when the course is full: the stones that
+ *  stand out are pushed in, one drag each (pushIn), before it is done. */
 export function createCourse(spec) {
-  const c = { below: (spec.below || []).slice(), a: spec.a, b: spec.b, at: spec.a, occ: [], stones: [], last: null, joints: [], faults: 0, rejects: 0, done: false, q: null, L: spec.L || 1 };
-  const free = (s, len) => { if (s < c.a || s + len > c.b + 1e-9) return false; for (let k = s; k < s + len; k++) if (c.occ[k]) return false; return true; };
-  const runs = () => { const r = []; let s0 = null; for (let k = c.a; k <= c.b; k++) { const e = k < c.b && !c.occ[k]; if (e && s0 == null) s0 = k; if (!e && s0 != null) { r.push([s0, k - s0]); s0 = null; } } return r; };
+  const c = { below: (spec.below || []).slice(), a: spec.a, b: spec.b, at: spec.a, occ: [], stones: [], last: null, joints: [], faults: 0, rejects: 0, loose: 0, done: false, q: null, L: spec.L || 1,
+    corner: spec.corner ? { want: spec.corner.want, dir: null, at: spec.b - 2 } : null, prot: null };
+  const rb = () => (c.corner ? c.b - 2 : c.b);
+  const free = (s, len) => { if (s < c.a || s + len > rb() + 1e-9) return false; for (let k = s; k < s + len; k++) if (c.occ[k]) return false; return true; };
+  const runs = () => { const r = []; let s0 = null; const e0 = rb(); for (let k = c.a; k <= e0; k++) { const e = k < e0 && !c.occ[k]; if (e && s0 == null) s0 = k; if (!e && s0 != null) { r.push([s0, k - s0]); s0 = null; } } return r; };
   const minLen = () => Math.min(...PLACE42.lens);
   /** the free place for a stone of len nearest u (or the first), or null */
   function slotFor(len, u) {
     let best = null, bd = Infinity;
-    for (let s = c.a; s + len <= c.b + 1e-9; s++) { if (!free(s, len)) continue; const d = u == null ? s - c.a : Math.abs(s + len / 2 - u); if (d < bd - 1e-9) { bd = d; best = s; } }
+    for (let s = c.a; s + len <= rb() + 1e-9; s++) { if (!free(s, len)) continue; const d = u == null ? s - c.a : Math.abs(s + len / 2 - u); if (d < bd - 1e-9) { bd = d; best = s; } }
     return best;
   }
-  /** place a stone of length len: dragged (≥ DRAG42 px), held to settle (≥ settle s), fitting a free place → 'ok' | 'tap' | 'unsettled' | 'long' | 'gap' | 'done' */
+  const joint = (e) => { if (e <= c.a + 1e-9 || e >= c.b - 1e-9 || c.joints.some((j) => Math.abs(j.x - e) < 1e-6)) return; const over = c.below.some((j) => Math.abs(j - e) < 1e-6); c.joints.push({ x: e, over }); if (over) c.faults++; };
+  function check() {
+    if (runs().length || (c.corner && !c.corner.dir)) { const r = runs(); c.at = r.length ? r[0][0] : c.b; return; }
+    c.at = c.b;
+    if (spec.retreat && !c.prot) { c.prot = c.stones.map((x, i) => i).filter((i) => i % 2 === 0); if (c.prot.length) return; }
+    if (c.prot && c.prot.length) return;
+    c.done = true; c.q = q3(c.faults + Math.floor(c.loose / 2) + (c.rejects > 1 ? 1 : 0));
+  }
+  /** place a stone of length len: dragged (≥ DRAG42 px), fitting a free place → 'ok' | 'tap' | 'long' | 'gap' | 'done' (it settles by itself) */
   function place(len, o = {}) {
-    if (c.done) return 'done';
+    if (c.done || c.prot) return 'done';
     if (!((o.dragPx || 0) >= DRAG42)) return 'tap';
-    if (!((o.settleS || 0) >= PLACE42.settle)) return 'unsettled';
     const s0 = slotFor(len, Number.isFinite(o.u) ? o.u : null);
     if (s0 == null) { c.rejects++; return 'long'; }
     // (it would leave a gap no stone fills: the course could never end — the naive kid's run K42-P-new stood there 3 minutes)
     for (let k = s0; k < s0 + len; k++) c.occ[k] = true;
     if (runs().some((r) => r[1] < minLen())) { for (let k = s0; k < s0 + len; k++) c.occ[k] = false; c.rejects++; return 'gap'; }
     c.stones.push([s0, len]); c.last = [s0, len];
-    for (const e of [s0, s0 + len]) { if (e <= c.a + 1e-9 || e >= c.b - 1e-9 || c.joints.some((j) => Math.abs(j.x - e) < 1e-6)) continue; const over = c.below.some((j) => Math.abs(j - e) < 1e-6); c.joints.push({ x: e, over }); if (over) c.faults++; }
-    const r = runs(); c.at = r.length ? r[0][0] : c.b;
-    if (!r.length) { c.done = true; c.q = q3(c.faults + (c.rejects > 1 ? 1 : 0)); }
+    if (Number.isFinite(o.u) && Math.abs(o.u - (s0 + len / 2)) > PLACE42.loose) c.loose++;
+    joint(s0); joint(s0 + len);
+    check();
     return 'ok';
+  }
+  /** the corner stone, laid one way or the other ('a' | 'b'): it must be dragged; the wrong way is a fault (counted, never corrected) */
+  function placeCorner(dir, o = {}) {
+    if (!c.corner || c.done || c.prot) return 'done';
+    if (!((o.dragPx || 0) >= DRAG42)) return 'tap';
+    if (c.corner.dir) return 'long';
+    c.corner.dir = dir === 'b' ? 'b' : 'a'; if (c.corner.dir !== c.corner.want) c.faults++;
+    joint(c.corner.at); c.last = [c.corner.at, 2];
+    check();
+    return 'ok';
+  }
+  /** the retreat (level 3): a drag pushes the next stone that stands out back into line */
+  function pushIn(o = {}) {
+    if (!c.prot || !c.prot.length || c.done) return 'done';
+    if (!((o.dragPx || 0) >= DRAG42)) return 'tap';
+    c.prot.shift(); check(); return 'ok';
   }
   const fits = (len, u) => { const s0 = slotFor(len, Number.isFinite(u) ? u : null); if (s0 == null) return false; for (let k = s0; k < s0 + len; k++) c.occ[k] = true; const ok = !runs().some((r) => r[1] < minLen()); for (let k = s0; k < s0 + len; k++) c.occ[k] = false; return ok; };
   const overAt = (len, u) => { const s0 = slotFor(len, Number.isFinite(u) ? u : null); if (s0 == null) return false; return [s0, s0 + len].some((e) => e > c.a + 1e-9 && e < c.b - 1e-9 && c.below.some((j) => Math.abs(j - e) < 1e-6)); };
-  return { place, fits, overAt, slotFor, runs, state: () => c, result: () => (c.done ? { q: c.q, rating: rate30(c.q), faults: c.faults } : null) };
+  return { place, placeCorner, pushIn, fits, overAt, slotFor, runs, state: () => c, result: () => (c.done ? { q: c.q, rating: rate30(c.q), faults: c.faults } : null) };
 }
 /** the course's lay-out for a seed: the course below's joints and his stretch (the crews lay the rest) */
 export function courseSpec(n, L = 1) {
   const below = n % 2 ? [2, 5, 8, 11] : [3, 6, 9, 12];   // (the crews' course below, its joints every 3 units)
   const a = n % 2 ? 4 : 1, len = L >= 3 ? 7 : 6;
   return { below, a, b: a + len, L };
+}
+
+/** ── build 45 ── the court wall's courses (v2 §7): two courses of hand stones, the giant's course, the corner course (its corner the other way
+ *  from the course below's — the corners alternate, המחשה), and the top course, entirely his (and at level 3, the retreat) */
+export function wallSpec45(kind, L = 1, n = 0) {
+  const below = n % 2 ? [2, 5, 8, 11] : [3, 6, 9, 12];
+  if (kind === 'corner') return { below, a: 6, b: 15, L, corner: { want: n % 2 ? 'b' : 'a' } };
+  if (kind === 'top') return { below, a: 0, b: 15, L, corner: { want: n % 2 ? 'b' : 'a' }, retreat: L >= 3 };
+  return courseSpec(n, L);
+}
+
+/* ───────── LIFT (the wall's variant): the pulley, hand over hand (v2 §2) ───────── */
+/** short swipes down in rhythm — each lifts the stone a little (gain per px, at most cap a pull); between pulls a brief still hold (catch s)
+ *  catches the rope, else it slips back (slip); stop in the window; past it — a correction (as the wheel), and left alone there the rope
+ *  is let out to the window's top (no kid stuck). A tap pulls nothing (the first 12 px of a gesture lift nothing; a pull counts from DRAG42). */
+export const PULLEY45 = Object.freeze({
+  L: Object.freeze([null,
+    Object.freeze({ gain: 0.0032, cap: 0.17, slip: 0.05, win: Object.freeze([0.6, 0.8]), shadow: true, sway: 0 }),
+    Object.freeze({ gain: 0.0032, cap: 0.17, slip: 0.06, win: Object.freeze([0.62, 0.78]), shadow: false, sway: 0 }),
+    Object.freeze({ gain: 0.0028, cap: 0.15, slip: 0.08, win: Object.freeze([0.64, 0.76]), shadow: false, sway: 0.5 }),
+    Object.freeze({ gain: 0.0026, cap: 0.13, slip: 0.09, win: Object.freeze([0.66, 0.74]), shadow: false, sway: 0.8 }),
+  ]),
+  catch: 0.12, dead: 12, idle: 0.7, letOut: 2.2,
+});
+export function createPulley(L = 1) {
+  const P = PULLEY45.L[clamp(L | 0, 1, 4)];
+  const s = { y: 0, t: 0, g: false, travel: 0, gained: 0, still: 0, caught: false, pulls: 0, slips: 0, over: false, fix: 0, idle: 0, done: false, q: null, L: clamp(L | 0, 1, 4), win: P.win, shadow: P.shadow };
+  /** a gesture begins (the finger down on the rope) */
+  function grab() { if (s.done) return; s.g = true; s.travel = 0; s.gained = 0; s.still = 0; s.caught = false; }
+  /** the finger moved down by dyPx (up: nothing) */
+  function pull(dyPx) {
+    if (s.done || !s.g || !(dyPx > 0)) return;
+    const before = s.travel; s.travel += dyPx; const eff = Math.max(0, s.travel - PULLEY45.dead) - Math.max(0, before - PULLEY45.dead);
+    if (eff > 0 && s.gained < P.cap) { const inc = Math.min(P.cap - s.gained, eff * P.gain); s.gained += inc; s.y = clamp(s.y + inc, 0, 1.25); s.still = 0; s.caught = false; }
+    if (before < DRAG42 && s.travel >= DRAG42) s.pulls++;
+    if (s.y > P.win[1] + 0.02 && !s.over) { s.over = true; s.fix++; }
+  }
+  /** the finger down and still for dt */
+  function hold(dt) { if (s.done || !s.g) return; s.still += dt; if (s.gained > 0 && s.still >= PULLEY45.catch) s.caught = true; }
+  /** the finger up: a pull not caught slips back */
+  function release() { if (s.done || !s.g) return; s.g = false; if (s.gained > 0 && !s.caught) { s.y = Math.max(0, s.y - P.slip); s.slips++; } s.idle = 0; }
+  /** time; the stop: a rest in the window; past the window, left alone, the rope let out to its top (a correction already counted) */
+  function step(dt) {
+    if (s.done || !(dt > 0)) return s;
+    s.t += dt; if (s.g) { s.idle = 0; return s; }
+    s.idle += dt;
+    if (s.y < P.win[1]) s.over = false;
+    if (s.y > P.win[1] && s.idle > PULLEY45.letOut) s.y = Math.max(P.win[1] - 0.02, s.y - dt * 0.1);
+    if (s.idle >= PULLEY45.idle && s.y >= P.win[0] && s.y <= P.win[1]) { s.done = true; s.q = q3(s.fix + Math.floor(s.slips / 2)); }
+    return s;
+  }
+  const sway = () => (P.sway ? Math.sin(s.t * 2.3) * P.sway * 0.04 : 0);
+  return { grab, pull, hold, release, step, sway, P, state: () => s, result: () => (s.done ? { q: s.q, rating: rate30(s.q), fix: s.fix } : null) };
+}
+
+/* ───────── the LINE (the wall's opening act): stretched between two pins, its straightness graded ───────── */
+/** a drag from the near pin to the far one: points (u along 0…1, d across, both as shares of the pins' distance); it ends when the finger
+ *  reaches the far pin (u ≥ 0.95) having started at the near one (u ≤ 0.12); straight within 4 % — מהודר, 9 % — כשר, more — טעון תיקון (of the line's length, times the level's tolerance);
+ *  a let-go midway: the line falls slack — draw again (a correction). A tap never stretches it. */
+export const LINE45 = Object.freeze({ start: 0.12, end: 0.95, hi: 0.04, mid: 0.09, L: Object.freeze([null, 1.5, 1.2, 1, 0.8]) });   // (build 45: level 1 forgives a finger's wobble — 1 made the naive kid's lines טעון תיקון: 4 % of a 300-px line is 12 px)
+export function createLine45(L = 1) {
+  const k = { on: false, u: 0, dmax: 0, fix: 0, done: false, q: null, L: clamp(L | 0, 1, 4), tries: 0 };
+  const tol = LINE45.L[k.L];
+  function down(u, d) { if (k.done) return; k.on = u <= LINE45.start && Math.abs(d) < 0.2; k.u = u; k.dmax = 0; if (k.on) k.tries++; }
+  function move(u, d) { if (!k.on || k.done) return; k.u = Math.max(k.u, u); k.dmax = Math.max(k.dmax, Math.abs(d)); if (u >= LINE45.end) { k.on = false; k.done = true; const dev = k.dmax / tol; k.q = clamp((dev <= LINE45.hi ? 1 : dev <= LINE45.mid ? 0.65 : 0.3) - 0.2 * k.fix, 0, 1); } }
+  function up() { if (!k.on || k.done) return; k.on = false; if (k.u > LINE45.start + 0.08) k.fix++; }
+  return { down, move, up, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
 
 /* ───────── FLICK: the giant corner stone nudged home with a crowbar (v2 §3; the coordinator's build-43 #5) ───────── */
@@ -265,7 +361,7 @@ export function famRate(save, fam, L, q) {
 }
 
 /* ───────── the day's materials (v2 §9): a caravan each morning; never out mid-act — only at a course's end; up to 3 days kept ───────── */
-export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2 }) });
+export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8 }) });   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
 export const dayKey42 = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dayN = (key) => { const [y, m, d] = key.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
 /** the morning's caravan(s): each new day since the last adds a day's load, never more than `keep` days in store → the loads that came */

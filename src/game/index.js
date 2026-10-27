@@ -63,7 +63,7 @@ import * as RD20 from './hooks/riddle.js';
 import { MISHMAROT } from '../calendar.js';
 // ── /hook20 ──
 import { createJuice18 } from './juice.js';
-import { createHar42, wanted42, H42KEY, load42 } from './har42.js';   // ── fable32 (build 44) ── (load42: the test's record) ── /fable32 ──
+import { createHar42, wanted42, H42KEY, load42, save42 } from './har42.js';   // ── fable32 (build 44) ── (load42: the test's record) ── /fable32 ──
    // ── fable32 (build 42) ── the new stage 01, "שיטוח ההר" ── /fable32 ──   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
 
 const DEFAULTS = {
@@ -505,8 +505,11 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     document.addEventListener('visibilitychange', onVisibility);
     addEventListener('pagehide', persist);
     emit('start', { isNew, demo: G.demo });
+    // ── fable32 (build 45) ── the developers' fixture ?h45go=1: straight to stage 02 (the Mount done, the vision seen, the test passed) ── /fable32 ──
+    try { if (/[?&]h45go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'wall')) { if (!S.isDone(G, 'har')) { S.completeStage(G, 'har'); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; } G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     if (wanted42(G, S.isDone)) startHar42();   // ── fable32 (build 42) ── the Mount not done: the new stage 01 ── /fable32 ──
     else if (wantedTest44()) startH44('test');   // ── fable32 (build 44) ── the craftsman's test before chapter ב׳ ── /fable32 ──
+    else if (wanted45()) startHar45();   // ── fable32 (build 45) ── stage 02, the court wall, the new way ── /fable32 ──
     else if (isNew || G.ftue < 99) runFtue();
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
@@ -2971,7 +2974,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (opening) W.demoMode(); else syncWorld(null);
     ui.refresh(); namePlate();               // ── flow8 ── (a new game has no name yet: the plate goes)
     emit('newGame');
-    if (wanted42(G, S.isDone)) startHar42(); else if (wantedTest44()) startH44('test'); else runFtue();   // ── fable32 (build 42) ── ── /fable32 ── ── fable32 (build 44) ── ── /fable32 ──
+    if (wanted42(G, S.isDone)) startHar42(); else if (wantedTest44()) startH44('test'); else if (wanted45()) startHar45(); else runFtue();   // ── fable32 (build 42) ── ── /fable32 ── ── fable32 (build 44) ── ── /fable32 ──
   }
 
   /* ───────── per frame (from main.js) ───────── */
@@ -3295,8 +3298,33 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
         H42 = null; try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ }
         if (next === 'yard') { startH44('yard', 'test'); return; }
         if (mode === 'yard' && (back === 'test' || wantedTest44())) { if (wantedTest44()) startH44('test'); return; }
-        if (mode === 'test' && done) { try { ui.toast && ui.toast('פרק ב׳ נפתח — חומת העזרה'); } catch (e) { /* */ } }
+        if (mode === 'test' && done) { try { ui.toast && ui.toast('פרק ב׳ נפתח — חומת העזרה'); } catch (e) { /* */ } if (wanted45()) startHar45(); }   // ── fable32 (build 45) ── (the test passed: the wall, at once) ── /fable32 ──
       },
+    });
+    H42.start();
+  }
+  // ── /fable32 ──
+  // ── fable32 (build 45) ── stage 02, חומת העזרה, the new way (docs/specs/shlav-alef-v2-he.md §7, §10 "02"): it takes the wall over as the
+  // new stage 01 took the Mount — when the Mount is done and the craftsman's test passed (or not wanted), and the wall not done; the old
+  // wall's flow behind the same switches (?wall45=0, ?stick=1, the demo); its end completes the wall, the stages after it play as before
+  function wanted45() {
+    if (!G || G.demo || !S.isDone(G, 'har') || S.isDone(G, 'wall') || globalThis.__H45_OFF) return false;
+    try { if (/[?&](wall45=0|stick=1|har42=0)(&|$)/.test(location.search || '')) return false; } catch (e) { /* */ }
+    if (wantedTest44()) return false;
+    const w = G.st && G.st.wall; return !(w && !w.h45 && (w.p > 0 || w.c > 0));   // (a wall the old way already begun stays the old way's)
+  }
+  function startHar45() {
+    if (H42 && H42.on) return;
+    for (const c of G.crews || []) if (c.at === 'wall') c.at = null;
+    const nx = STAGES.find((x) => x.deps && x.deps.includes('wall'));
+    H42 = createHar42({
+      stage: 'wall', stages: world && (world.stages || world), view, nextName: nx ? nx.n : '',
+      spot: () => { try { return W.workSpot('wall', 'dress'); } catch (e) { return null; } },
+      emit: (t, d) => emit(t, d),
+      keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
+      timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
+      complete: () => { const out = S.completeStage(G, 'wall'); persist(); syncWorld(null); hideNext44(); return out; },
+      onExit: (done) => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
     });
     H42.start();
   }

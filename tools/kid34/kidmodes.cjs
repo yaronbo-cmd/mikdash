@@ -94,7 +94,7 @@ async function playDay(K, o = {}) {
 // not), drags the freed roller, drags slabs, swipes along the dots; pokes what glows; now and then wanders. The parent's hand after 75 s
 // without a change: the stage's own autoplayer (tools/auto42.js, the quick hand) for up to 40 s. ── /build 42 ──
 async function pile42(K, s) {
-  const r = await K.pg.evaluate(() => { const it = [...document.querySelectorAll('.h42 .h42-it')].filter((b) => !b.hidden && b.getBoundingClientRect().width > 0); if (!it.length) return null; const b = it[Math.floor(Math.random() * it.length)].getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, roller: it.length === 1 }; }).catch(() => null);
+  const r = await K.pg.evaluate(() => { const it0 = [...document.querySelectorAll('.h42 .h42-it')].filter((b) => !b.hidden && b.getBoundingClientRect().width > 0); if (!it0.length) return null; const lit = it0.filter((b) => !b.classList.contains('nofit')), it = lit.length && Math.random() < 0.7 ? lit : it0; const b = it[Math.floor(Math.random() * it.length)].getBoundingClientRect();   /* (build 45: a child reaches for the bright stones more often than the dimmed) */ return { x: b.left + b.width / 2, y: b.top + b.height / 2, roller: it0.length === 1 }; }).catch(() => null);
   if (!r) return false;
   const [W, Hh] = K.size(), ob = s.obj && s.obj.w > 8 ? s.obj : null;
   const tx = r.roller ? r.x + K.between(60, 220) : ob ? K.between(ob.l, ob.r) : K.between(W * 0.2, W * 0.7), ty = r.roller ? r.y + K.between(-30, 30) : ob ? K.between(ob.t, ob.b) : K.between(Hh * 0.3, Hh * 0.7);
@@ -102,6 +102,28 @@ async function pile42(K, s) {
   for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 70)); await K.move(7, r.x + ((tx - r.x) * i) / 10, r.y + ((ty - r.y) * i) / 10); }
   if (K.rnd() < 0.65) await K.sleep(K.between(300, 1100));   // (holds it there a moment — or lets go at once)
   await K.up(7); K.ev('pile', r.roller ? 'roller' : 'stone'); return true;
+}
+// ── build 45 ── stage 02, a child's way: the LINE — he puts his finger on a pin (mostly the bright near one, sometimes the far one) and drags
+// toward the other, wobbling as a hand does, now and then letting go midway; the PULLEY — he swipes down on the rope, one to five pulls,
+// quick or slow, sometimes still for a moment before lifting (the catch), mostly not
+async function line45(K) {
+  const c = await K.pg.evaluate(() => [...document.querySelectorAll('.h42 svg circle')].filter((q) => +q.getAttribute('r') === 14).map((q) => ({ x: +q.getAttribute('cx'), y: +q.getAttribute('cy') }))).catch(() => []);
+  if (c.length < 2) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.2, W * 0.5), K.between(Hh * 0.4, Hh * 0.7), K.between(80, 300), K.between(-40, 40), K.between(200, 800)); K.ev('line-blind'); return; }
+  const [a, b] = K.rnd() < 0.75 ? [c[0], c[1]] : [c[1], c[0]], wob = K.between(4, 45), stop = K.rnd() < 0.2 ? K.between(0.3, 0.8) : 1.05, n = Math.round(K.between(10, 22));
+  await K.down(7, a.x + K.between(-10, 10), a.y + K.between(-10, 10));
+  for (let i = 1; i <= n; i++) { const u = (i / n) * stop; await K.sleep(K.between(20, 90)); await K.move(7, a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u + wob * Math.sin(Math.PI * Math.min(1, u)) * (K.rnd() < 0.5 ? 1 : 0.6)); }
+  await K.up(7); K.ev('line', `${a === c[0] ? 'near' : 'far'} wob ${Math.round(wob)} ${stop < 1 ? 'let-go' : 'across'}`);
+}
+async function pulley45(K, s) {
+  const [W, Hh] = K.size(), ob = s.obj && s.obj.w > 8 ? s.obj : null, x = ob ? K.between(ob.l, ob.r) : K.between(W * 0.4, W * 0.8);
+  const pulls = Math.round(K.between(1, 5)), still = K.rnd() < 0.35;
+  for (let k = 0; k < pulls; k++) {
+    const y0 = K.between(Hh * 0.25, Hh * 0.45), dy = K.between(30, 140), steps = Math.round(K.between(3, 9));
+    await K.down(7, x, y0); for (let i = 1; i <= steps; i++) { await K.sleep(K.between(15, 60)); await K.move(7, x + K.between(-3, 3), y0 + (dy * i) / steps); }
+    if (still || K.rnd() < 0.2) await K.sleep(K.between(150, 700));
+    await K.up(7); await K.sleep(K.between(60, 600));
+  }
+  K.ev('pulley', `${pulls} pulls${still ? ' still' : ''}`);
 }
 async function mount42(K) {
   let moodUntil = 0, mood = 'try';
@@ -114,6 +136,7 @@ async function mount42(K) {
       if (v && v.on) { if (!K.R.vision44) { K.R.vision44 = K.el(); K.ev('vision'); } const r = K.rnd(); if (r < 0.45) await K.tryLine(s); else if (r < 0.7) await K.randomRight(s); else if (r < 0.85) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.2, W * 0.8), K.between(Hh * 0.3, Hh * 0.8), K.between(800, 4000)); K.ev('hold-walk'); } else await K.pokeButton(s, null, 'vision-poke'); await K.sleep(K.between(200, 600)); continue; }
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
+      if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
       if (!K.R.offT) K.R.offT = K.el(); if (K.el() - K.R.offT > 120) { K.note('no stage director for 2 minutes'); break; }
       await K.sleep(1000); const s2 = await K.look(); if (s2 && s2.tp.length && K.rnd() < 0.3) await K.pokeButton(s2, null, 'after'); continue;
     }
@@ -135,7 +158,10 @@ async function mount42(K) {
     if (h.part === 'open') { if (K.rnd() < 0.3) await K.pokeButton(s, null, 'open'); await K.sleep(K.between(500, 1500)); continue; }
     if (mood === 'try') {
       if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
-      else if (/גררו אבן|גררו לוחות|גליל/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }
+      else if (/החוט/.test(L) && r < 0.85) await line45(K);
+      else if (/משכו מטה/.test(L) && r < 0.85) await pulley45(K, s);
+      else if (/גררו את המוט/.test(L) && r < 0.85) { const [W, Hh] = K.size(), ob = s.obj && s.obj.w > 8 ? s.obj : null, a = K.rnd() * Math.PI * 2; await K.swipe(ob ? K.between(ob.l, ob.r) : K.between(W * 0.3, W * 0.8), ob ? K.between(ob.t, ob.b) : K.between(Hh * 0.35, Hh * 0.75), Math.cos(a) * K.between(40, 160), Math.sin(a) * K.between(20, 90), K.between(150, 600)); K.ev('lever'); }   // ── build 45 ── the crowbar: he drags the lever, any way (tryLine read "בעדינות" as the pour's "עד" and held — K45-P4)
+      else if (/גררו אבן|גררו לוחות|גליל|פינה|הנדבך העליון/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }
       else if (/^החזיקו/.test(L) && s.obj && s.obj.w > 8 && r < 0.7) { const ob = s.obj; await K.hold(K.between(ob.l, ob.r), K.between(ob.t, ob.b), K.between(600, 5000)); K.ev('hold-thing'); }   // (the line says hold: he holds the thing — for as long as he feels like)
       else await K.tryLine(s);
     } else {

@@ -42,7 +42,7 @@ test('build 43: the corner stone after the wheel; a build-42 save moves on by on
     mem[H42KEY] = JSON.stringify({ v: 1, part: 5, open: 1, fam: {}, mat: {}, grades: [], hands: 0 }); const S = load42(); assert.equal(S.v, 2); assert.equal(S.part, 6, 'rock1 stays rock1');
     mem[H42KEY] = JSON.stringify({ v: 1, part: 2, open: 1, fam: {}, mat: {}, grades: [], hands: 0 }); assert.equal(load42().part, 2, 'the wheel stays the wheel');
   } finally { delete globalThis.localStorage; }
-  const h = read('src/game/har42.js'); assert.match(h, /const FAMOF = \{ lift: 'lift', corner: 'place',/); assert.match(h, /corner: \{ begin\(\) \{ st\.job = mkCorner\(\); \} \}/);
+  const h = read('src/game/har42.js'); assert.match(h, /const FAMOF = \{[^}]*lift: 'lift', corner: 'place',/);   // (build 45: the wall's parts first) assert.match(h, /corner: \{ begin\(\) \{ st\.job = mkCorner\(\); \} \}/);
 });
 
 test('build 43: one short instruction and a small source chip; the long explanations on the card; the card\'s source is the Mount\'s (מדות ב, א)', () => {
@@ -52,13 +52,13 @@ test('build 43: one short instruction and a small source chip; the long explanat
   }
   assert.ok(SRC42.some((x) => x.includes('הר הבית היה חמש מאות אמה על חמש מאות אמה') && x.includes('מדות ב, א')));
   const h = read('src/game/har42.js'); assert.ok(!h.includes('מכוסה שלג'), 'the House\'s snow (War 5.222) is gone from the Mount\'s card');
-  assert.match(h, /\.\.\.SRC42\.map\(\(x\) => `~\$\{x\}`\)/, 'the sources on the card');
+  assert.match(h, /\.\.\.\(STG === 'wall' \? SRC45 : SRC42\)\.map\(\(x\) => `~\$\{x\}`\)/, 'the sources on the card');   // (build 45: each stage's)
   assert.match(h, /\.h42-line b\{display:block;[^}]*white-space:nowrap/); assert.match(h, /\.h42-line i\{font-style:normal;/);
 });
 
 test('build 43: the reveal ends where the opening began (VIEWS.olives), in the late sun, with a quick before/after crossfade; skippable; the before taken from the opening\'s own first frame', () => {
   const h = read('src/game/har42.js');
-  assert.match(h, /if \(!f\.snap && f\.t > 0\.05\) \{ f\.snap = true; try \{ if \(o\.snapshot\) st\.snapshot = o\.snapshot\(\);/);
+  assert.match(h, /if \(!f\.snap && f\.t > 0\.05 && STG === 'har'\) \{ f\.snap = true; try \{ if \(o\.snapshot\) st\.snapshot = o\.snapshot\(\);/);   // (build 45: stage 01's before only)
   assert.match(h, /if \(o\.timeOfDay\) o\.timeOfDay\('golden'\);/); assert.match(h, /globalThis\.__T\.VIEWS\.olives/);
   assert.match(h, /const r = st\.rev; r\.t \+= dt; const T = 6\.5,/); assert.match(h, /return r\.t > 9\.5;/); assert.match(h, /st\.rev\.t = Math\.max\(st\.rev\.t, 8\.9\)/);
   assert.match(h, /\.h42-before\{position:fixed;left:0;top:0;width:100vw;height:100vh;object-fit:cover;/);
@@ -69,7 +69,7 @@ test('build 43: the props — rocks of displaced geometry, ashlars with drafted 
   const h = read('src/game/har42.js');
   assert.match(h, /import \* as TX from '\.\.\/tex\.js';/); assert.match(h, /const r = TX\.texRock\(91, 256\), w = TX\.texWood\(61, 128\)/);
   assert.match(h, /function ashlar\(w, h, d\)/); assert.match(h, /function rockGeo\(r, seed\)/); assert.match(h, /new THREE\.IcosahedronGeometry\(r, 3\)/);
-  assert.match(h, /st\.props\.big = add\(ashlar\(12, 3, 3\.6\)/, 'the great stone huge'); assert.match(h, /st\.props\.stone0 = add\(ashlar\(4\.2, 1\.8, 2\)/);
+  assert.match(h, /st\.props\.big = add\(ashlar\(12, 3, 3\.6\)/, 'the great stone huge'); assert.match(h, /const GW = STG === 'wall' \? 6 : 4\.2;[^\n]*\n    st\.props\.stone0 = add\(ashlar\(GW, 1\.8, 2\)/);   // (build 45: the wall's giant 6 amot)
   assert.match(h, /for \(let i = 0; i < 30; i\+\+\) \{ const a = \(i \/ 30\) \* Math\.PI \* 2, b = new THREE\.Mesh\(new THREE\.BoxGeometry\(0\.5, 0\.07, 2\.15\), WOOD\)/, 'the wheel\'s boards');
   assert.match(h, /\(wooden wedges, driven into the line\)/); assert.match(h, /the laid paving in slabs with their joints/);
   assert.match(h, /the gap's outline on its row — #7/);
@@ -83,7 +83,7 @@ test('build 43: Phase B — by a wall of the stages\' buildings the follow camer
 });
 
 test('build 43: GAME_BUILD 43; no Divine Name (by code points); עולי רגל', () => {
-  assert.equal(GAME_BUILD, 44);   // (build 44: the constant moved on)
+  assert.equal(GAME_BUILD, 45);   // (build 44: the constant moved on) (build 45: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/cam41.js', 'tools/kid34/kidmodes.cjs', 'tools/kid34/kidpage.js', 'PROJECT.md']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(P), `${f}: עולי רגל`);

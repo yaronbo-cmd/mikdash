@@ -79,7 +79,7 @@ test('build 45: the stage — its parts in the order of §7, its lines with thei
   const h = read('src/game/har42.js');
   assert.match(h, /const STG = o\.stage === 'wall' \? 'wall' : 'har';/); assert.match(h, /CW45 = \{ x: -93\.5, z: 0, w: 187, d: 135 \}/, 'the court 187 × 135');
   for (const k of PARTS45.slice(1, -1)) assert.match(h, new RegExp(`(\\n    |\\} \\}, )${k}: \\{ begin\\(\\) \\{ (st\\.job = mk|const s0)`), `part ${k}: its own entry (build 45: a comment once swallowed 'top')`);
-  assert.match(h, /const base = \(\(\) => \{ const w = STG === 'wall' \? \{ x: -100, z: -45 \}/, 'the work front inside the court');
+  assert.match(h, /const base = \(\(\) => \{ const w = STG === 'wall' \? \{ x: -100, z: -118 \}/, 'the work front outside the court, north (inside, its floor rises with the wall)');
   assert.match(h, /if \(R\.streak >= 3\) \{ R\.streak = 0;/, 'three מהודר in a row: יישר כח'); assert.match(h, /if \(came > 0 \|\| qs\('h45wet'\) === '1'\) wetMorning\(\);/);
   assert.match(read('src/stages.js'), /function setWet\(k\) \{ rain\.wetM = /);
   assert.deepEqual(YARD44.slice(6).map((v) => v.part), ['pulley', 'line', 'wcorner']);

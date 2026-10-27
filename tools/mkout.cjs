@@ -1,7 +1,7 @@
 // mkout — the page the owner opens: out/index.html = dist/play.html (node build.mjs) + the head script that opens the shift
 // (globalThis.__FORCE_SHIFT, #shift) + the build's title.  The script and the title are those of the published builds
 // (recovery/build26c.min.html: "משמרת 45 (בנייה 26ג) — בית המקדש השני").
-//   node tools/mkout.cjs ["<title>"] [--out out/index.html] [--check recovery/build26c.min.html]
+//   node tools/mkout.cjs ["<title>"] [--out out/index.html] [--check recovery/build26c.min.html] [--no-shift]
 //   --check: the written page against a published one — the same bytes but for the app's minified names (the same length, the
 //            head and the tail byte for byte); prints where they part
 const fs = require('fs');
@@ -15,7 +15,9 @@ const out = path.resolve(root, opt('--out') || 'out/index.html');
 const play = path.join(root, 'dist/play.html');
 if (!fs.existsSync(play)) { console.error('mkout: no dist/play.html — run node build.mjs first'); process.exit(2); }
 
-const HEAD = '<script>globalThis.__FORCE_SHIFT=true;try{if(!/^#shift/.test(location.hash))location.hash="#shift";}catch(e){}</script>';
+const HEAD0 = '<script>globalThis.__FORCE_SHIFT=true;try{if(!/^#shift/.test(location.hash))location.hash="#shift";}catch(e){}</script>';
+// ── fable32 (build 42) ── --no-shift: the page without the head script — Phase A opens (the new stage 01 for a new game) ── /fable32 ──
+const HEAD = args.includes('--no-shift') ? '' : HEAD0;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 let html = fs.readFileSync(play, 'utf8');
 if (!html.includes('<head>')) { console.error('mkout: dist/play.html has no <head>'); process.exit(2); }

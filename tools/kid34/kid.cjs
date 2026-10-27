@@ -109,7 +109,7 @@ function watch(s) {
 const stuckFor = () => (Date.now() - sigAt) / 1000;
 
 // ── the child's hands on whatever is on the screen ──
-const isCard = (s) => s.screens.some((x) => /sh-pause|f17-sum|j32|p31-end|r30-c|tl33|j32u|lb-pk|sh-turn28|f17-rot|ch33/.test(x));
+const isCard = (s) => s.screens.some((x) => /sh-pause|f17-sum|j32|p31-end|r30-c|tl33|j32u|lb-pk|sh-turn28|f17-rot|ch33|h42-card/.test(x));   // (build 42: + the new stage 01's card)
 async function pokeButton(s, filt = null, why = 'poke') {
   let c = s.tp.filter((q) => q.reach && (!filt || filt(q)));
   if (!c.length) return false;
@@ -199,7 +199,8 @@ async function tryLine(s) {
   pg.on('console', (m) => { if (m.type() === 'error') R.errors.push([el(), 'console', m.text().slice(0, 300)]); });
   pg.on('pageerror', (e) => { R.errors.push([el(), 'PAGEERR', String(e.message).slice(0, 300)]); log('PAGEERR', e.message.slice(0, 200)); });
   cdp = await ctx.newCDPSession(pg);
-  const url = 'file://' + PAGE + (NOW ? `?now=${encodeURIComponent(NOW)}&tz=${encodeURIComponent(TZ)}` : '');
+  const url0 = 'file://' + PAGE + (NOW ? `?now=${encodeURIComponent(NOW)}&tz=${encodeURIComponent(TZ)}` : '');
+  const QS = opt('--query', ''), url = url0 + (QS ? (url0.includes('?') ? '&' : '?') + QS : '');   // ── build 42 ── (--query h42at=roll: the new stage 01's fixture) ── /build 42 ──
   log('kid34', RUN, MODE, `${VW}x${VH}`, 'seed', SEED, 'save', FROM || SAVE, NOW || '');
   await pg.goto(url, { waitUntil: 'load', timeout: 180000 });
   await pg.waitForFunction(() => window.__T && window.__T.booted, null, { timeout: 240000, polling: 500 });

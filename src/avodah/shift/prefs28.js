@@ -24,6 +24,19 @@ export function hapticsOn() {
   return mem == null ? true : !!mem;
 }
 const G = { nav: null, orig: null, wrapped: null, blocked: 0, passed: 0 };
+// ── fable32 (build 42) ── the pattern library (docs/specs/hishaarut-ve-retet-he.md §1.2; ms, [buzz, pause, buzz…]) next to the switch; never
+// a buzz without an act (the caller's), at most 2 s of buzz a minute (the battery and the heat), silent where the spec says so ── /fable32 ──
+export const HAPTIC42 = Object.freeze({ tick: 8, ok: 15, settle: 25, heavy: Object.freeze([30, 40, 30]), mallet: Object.freeze([12, 60, 12]), creak: 6, retry: Object.freeze([10, 50, 10]), wave: Object.freeze([40, 100, 40]), gate: 60, peak: Object.freeze([20, 60, 20, 60, 50]) });
+const H42B = { t0: 0, ms: 0 };
+/** buzz42(name, nav?) → true when it buzzed: the switch on, a known pattern, the minute's budget not spent */
+export function buzz42(name, nav = (typeof navigator !== 'undefined' ? navigator : null)) {
+  const p = HAPTIC42[name]; if (p == null || !hapticsOn() || !nav || typeof nav.vibrate !== 'function') return false;
+  const now = Date.now(); if (now - H42B.t0 > 60000) { H42B.t0 = now; H42B.ms = 0; }
+  const on = Array.isArray(p) ? p.filter((_, i) => i % 2 === 0).reduce((a, b) => a + b, 0) : p;
+  if (H42B.ms + on > 2000) return false;
+  H42B.ms += on;
+  try { return nav.vibrate(p) !== false; } catch (e) { return false; }
+}
 /** the switch: kept in bh_haptics; off cancels a vibration under way (once, through the browser's own vibrate) */
 export function setHaptics(on) {
   on = !!on; mem = on;

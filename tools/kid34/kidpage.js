@@ -169,9 +169,9 @@
     } catch (e) { /* */ }
     return F;
   }
-  function line() { const c = document.querySelector('.f17-card'); return c && vis(c) ? (c.innerText || c.textContent).replace(/\s+/g, ' ').trim() : ''; }
+  function line() { const c = document.querySelector('.f17-card') || document.querySelector('.h42-line');   /* (build 42: the new stage 01's line) */ return c && vis(c) ? (c.innerText || c.textContent).replace(/\s+/g, ' ').trim() : ''; }
   // the overlays on screen (by their classes): a screen's name
-  const SCREENS = ['.lb-play', '.lb-home', '.lb-pk', '.lb29-here,.lb-here', '.lock29,.l29', '.sh-pause', '.f17-sum', '.j32', '.p31-end', '.r30-c', '.ch33-end,.ch33', '.tl33', '.j32u', '.tl', '.pn', '.m3', '#sh-turn28,#sh-turn', '.f17-rot', '.sh-intro', '.p23-bk'];
+  const SCREENS = ['.h42-card', '.lb-play', '.lb-home', '.lb-pk', '.lb29-here,.lb-here', '.lock29,.l29', '.sh-pause', '.f17-sum', '.j32', '.p31-end', '.r30-c', '.ch33-end,.ch33', '.tl33', '.j32u', '.tl', '.pn', '.m3', '#sh-turn28,#sh-turn', '.f17-rot', '.sh-intro', '.p23-bk'];
   function screens() { const out = []; for (const s of SCREENS) { const e = [...document.querySelectorAll(s)].find((x) => vis(x, 0.3)); if (e) out.push(s.split(',')[0]); } return out; }
   function eng() {
     const E = globalThis.__SHIFT && globalThis.__SHIFT.E; if (!E || !E.st33) return null; const st = E.st33;
@@ -191,7 +191,7 @@
   function sig() {
     const e = eng(), sc = screens();
     const l = line().replace(/[0-9:]+/g, '#');
-    const core = e ? [e.phase, e.day, e.night, e.paused, e.k20, e.p23, e.d21, e.m22, e.p25, e.r26, e.r27, e.washed, e.gates, e.prac, e.ch33, e.summary].join('|') : '';
+    const core = e ? [e.phase, e.day, e.night, e.paused, e.k20, e.p23, e.d21, e.m22, e.p25, e.r26, e.r27, e.washed, e.gates, e.prac, e.ch33, e.summary].join('|') : globalThis.__H42 && globalThis.__H42.on ? 'h42|' + globalThis.__H42.sig() + '|' + (() => { const js = (globalThis.__H42.job() || {}).s; if (!js) return ''; const o = {}; for (const [k, v] of Object.entries(js)) { if (/^(t|y|v|held|light|beatT|x|freeAt|wasHeld|stopped|over|backed|poured|q|L|win|shadow|rows|below|a|b|rock|idle|slip)$/.test(k)) continue; o[k] = Array.isArray(v) ? v.length : v && typeof v === 'object' ? Object.keys(v).length : typeof v === 'number' ? Math.round(v * 4) / 4 : v; } if (typeof js.crack === 'number') o.crack = Math.floor(js.crack * 4); return JSON.stringify(o).slice(0, 200); })() : '';   // (build 42: the new stage 01's part and its act's PROGRESS — counts and steps, not the light's or the wheel's every move — so a child who sweeps for minutes without a wedge counts as stuck)
     return sc.join(' ') + ' § ' + core + ' § ' + l;
   }
   function scan(o = {}) {

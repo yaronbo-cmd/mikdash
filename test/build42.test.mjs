@@ -142,6 +142,7 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   // (the runs' fixes: the paving's drop box from the points in front of the camera's near plane, kept on the screen — a corner behind it had
   // made the box null and the paving undroppable; the stage's reveal and card stay in its dusk light, the real night after it)
   assert.match(h, /h\.style\.zIndex = '46'; h\.style\.pointerEvents = 'auto';/, 'the freed roller\'s handle takes a finger');
+  assert.match(h, /const over = J\.state\(\)\.y > J\.P\.win\[1\]; if \(a\.y - a\.y0 > 20 \|\| \(over && Math\.hypot\(a\.x - a\.x0, a\.y - a\.y0\) > 20\)\)/, 'over the window a drag any way lowers');
   assert.match(h, /\.h42-svg\{position:fixed;left:0;top:0;width:100vw;height:100vh;/, 'the marks\' layer covers the screen (an svg with inset 0 alone is 300 × 150 at its corner — the probe: every mark was off by 340 px at 640 × 296)');
   assert.match(h, /level 1: a tap lands on the nearest free marked place/); assert.match(h, /bd = J\.state\(\)\.L <= 1 \? Math\.max\(B\.w, B\.h\) : 26;/); assert.match(h, /\(level 1: the even places marked\)/);
   assert.match(h, /const paveBox = \(\) => boxOf\(/); assert.match(h, /const q = pts\.map\(\(p\) => proj\(p\[0\], p\[1\], p\[2\]\)\)\.filter\(Boolean\); if \(q\.length < 2\) return null;/);

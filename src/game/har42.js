@@ -291,7 +291,7 @@ export function createHar42(o = {}) {
     const inp = { hold: false, back: false };
     return {
       acting: true, el: [mt], J, kind: 'lift',
-      down() { inp.hold = true; inp.back = false; }, move(a) { if (a.y - a.y0 > 20) { inp.hold = false; inp.back = true; } },
+      down() { inp.hold = true; inp.back = false; }, move(a) { const over = J.state().y > J.P.win[1]; if (a.y - a.y0 > 20 || (over && Math.hypot(a.x - a.x0, a.y - a.y0) > 20)) { inp.hold = false; inp.back = true; } },   // (over the window, a drag any way lowers it — the naive kid dragged every way but down)
       up() { inp.hold = false; inp.back = false; },
       frame(dt) {
         const s = J.step(dt, inp); if (inp.hold && s.held > F.TAP42 && Math.random() < dt * 6) buzz42('creak');

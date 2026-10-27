@@ -361,7 +361,7 @@ export function famRate(save, fam, L, q) {
 }
 
 /* ───────── the day's materials (v2 §9): a caravan each morning; never out mid-act — only at a course's end; up to 3 days kept ───────── */
-export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12, wood: 6, beams: 10, pegs: 6, corner48: 12 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
+export const MAT42 = Object.freeze({ daily: 24, keep: 3, cost: Object.freeze({ rock: 2, stone: 1, roll: 4, pave: 3, lift: 2, pulley: 4, wstone: 5, giant: 5, top: 8, lattice: 8, warnst: 6, lintel: 10, leaf: 8, leaf7: 12, wood: 6, beams: 10, pegs: 6, corner48: 12, voyage: 0, lever: 10, leaf49: 8, steps: 12 }) });   // ── build 46 ── (the soreg: 30 — three panels and the warning stones; a second morning again)   // ── build 45 ── (the wall: 32 in all — beyond one morning's caravan with stage 01's leftover, so its "מחר" comes in normal play)
 export const dayKey42 = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const dayN = (key) => { const [y, m, d] = key.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
 /** the morning's caravan(s): each new day since the last adds a day's load, never more than `keep` days in store → the loads that came */
@@ -667,4 +667,78 @@ export function createPeg48(L = 1, rnd = Math.random) {
   }
   function step(dt) { if (k.done || !k.locked) return; k.idle += dt; if (k.idle >= PEG48.idle) { k.done = true; const f = k.rims + k.over; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; } }
   return { tenon, tap, step, state: () => k, pitch: () => 280 + k.depth * 380, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+
+/* ───────── ── build 49 ── stage 06, שער ניקנור: the STORM (the voyage, v2 §11 — the approved two-thumb exception), the LEVER & WEDGE (v2 §2),
+ * the FIFTEEN STEPS tuned by ear (v2 §3) ───────── */
+/** the storm: waves one by one, each telegraphed (a swell rising on its side: `tele`), then its push (`push`), then a breath (`rest`). The deck's
+ *  heel h integrates the wave's push and the LEFT thumb's balance b (−1…1, the slide from where it went down): dh/dt = K·(p + b) − D·h, so the
+ *  balance must answer the push. Past the line (|h| > line) — counted once a wave; beaten (|h| ≥ 1) — that wave REPLAYS (no failure, counted).
+ *  The RIGHT thumb holds the second door's ropes: let go more than `slack` s in a push, the door slides — that wave replays. After the third
+ *  wave the sailors throw the first door overboard (a scene, never his fault: `throw`). The last wave is the hug — "הטילוני עמה לים": the right
+ *  thumb must stay on the door the whole push (else the sailors take it: replay). Then the sea calms at once. A tap holds nothing (take-up). */
+export const STORM49 = Object.freeze({
+  K: 2.4, D: 1.2, line: 0.55, beat: 1, tele: 1.5, push: 2.4, rest: 0.9, throwT: 4.2, slack: 1.5, takeUp: 0.25,
+  waves: Object.freeze([1, -1, 1, -1, 1, -1, 1, -1]), str: Object.freeze([null, 0.8, 0.9, 1, 1.1]),   // (eight waves — the storm long enough to be one)
+});
+export function createStorm49(L = 1, o = {}) {
+  const lv = clamp(L | 0, 1, 4), P = STORM49, W = o.waves || P.waves, last = W.length - 1;
+  const k = { L: lv, i: 0, ph: 'tele', t: 0, h: 0, b: 0, hold: false, held: 0, slackT: 0, crossed: false, crossings: 0, replays: 0, thrown: false, done: false, q: null, p: 0, why: null, hug: false };
+  const str = (i) => P.str[lv] * (i === last ? 1.15 : 1);
+  function balance(b) { k.b = clamp(+b || 0, -1, 1); }
+  function holdOn(on) { if (on && !k.hold) k.held = 0; k.hold = !!on; }
+  const holding = () => k.hold && k.held >= P.takeUp;
+  function replay(why) { k.replays++; k.why = why; k.h = 0; k.ph = 'tele'; k.t = 0; k.crossed = false; k.slackT = 0; }
+  function step(dt) {
+    if (k.done) return; if (k.hold) k.held += dt;
+    k.t += dt; k.hug = k.i === last;
+    if (k.ph === 'throw') { k.h *= Math.max(0, 1 - dt * 2); k.p = 0; if (k.t >= P.throwT) { k.thrown = true; k.ph = 'tele'; k.t = 0; k.i++; } return; }
+    const u = k.ph === 'push' ? Math.min(1, k.t / P.push) : 0; k.p = k.ph === 'push' ? W[k.i] * str(k.i) * Math.sin(Math.PI * u) : 0;
+    k.h += (P.K * (k.p + k.b) - P.D * k.h) * dt;
+    if (k.ph === 'push') {
+      if (!holding()) k.slackT += dt; else k.slackT = Math.max(0, k.slackT - dt * 2);
+      if (Math.abs(k.h) > P.line && !k.crossed) { k.crossed = true; k.crossings++; }
+      if (Math.abs(k.h) >= P.beat) { replay('heel'); return; }
+      if (k.hug ? k.slackT > 0.35 : k.slackT > P.slack) { replay(k.hug ? 'hug' : 'ropes'); return; }
+    }
+    if (k.ph === 'tele' && k.t >= P.tele) { k.ph = 'push'; k.t = 0; }
+    else if (k.ph === 'push' && k.t >= P.push) { k.ph = 'rest'; k.t = 0; }
+    else if (k.ph === 'rest' && k.t >= P.rest) {
+      k.t = 0; k.crossed = false; k.slackT = 0;
+      if (k.i >= last) { k.done = true; const f = k.crossings + k.replays; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return; }
+      if (k.i === 2 && !k.thrown) { k.ph = 'throw'; return; }
+      k.i++; k.ph = 'tele';
+    }
+  }
+  return { balance, holdOn, step, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null), dirAt: () => W[k.i] };
+}
+/** the LEVER & WEDGE (v2 §2): the bronze leaf raised notch by notch — a LONG drag down on the lever (≥ long px) lifts it one notch at the drag's
+ *  end; at the top it holds for `win` s: a TAP then slides a wedge under it (the notch kept); missed — it sinks back a notch (a correction). A
+ *  short drag lifts a little and it settles back (nothing). Taps never lift. */
+export const LEVER49 = Object.freeze({ notches: Object.freeze([null, 4, 4, 5, 5]), win: Object.freeze([null, 1.6, 1.3, 1.05, 0.85]), long: 0.22 });
+export function createLever49(L = 1) {
+  const lv = clamp(L | 0, 1, 4), n = LEVER49.notches[lv], win = LEVER49.win[lv];
+  const k = { L: lv, n, win, notch: 0, up: false, upT: 0, misses: 0, shorts: 0, done: false, q: null };
+  /** a drag on the lever: dy (px, + down), H (the screen's height) → 'tap' | 'short' | 'up' | 'busy' | 'done' */
+  function pump(dy, H) { if (k.done) return 'done'; if (k.up) return 'busy'; if (!(dy >= DRAG42)) return 'tap'; if (dy < LEVER49.long * (H || 400)) { k.shorts++; return 'short'; } k.up = true; k.upT = 0; return 'up'; }
+  function wedge() { if (k.done || !k.up) return 'no'; k.up = false; k.notch++; if (k.notch >= k.n) { k.done = true; const f = k.misses; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'done'; } return 'ok'; }
+  function step(dt) { if (k.done || !k.up) return null; k.upT += dt; if (k.upT >= k.win) { k.up = false; k.misses++; return 'sank'; } return null; }
+  return { pump, wedge, step, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the FIFTEEN STEPS (מדות ב, ה: "מֻקָּפוֹת כַּחֲצִי גֹרֶן עֲגֻלָּה"): each curved step stone dragged onto its arc; let go on the arc's line (|err|
+ *  ≤ tol, in step-depths) it lies level and its note rings true; off it, it lies tilted — off-key — and slides back (a correction). A tap never
+ *  places. 15 steps, 15 notes: the tune he built */
+export const STEPS49 = Object.freeze({ n: 15, tol: Object.freeze([null, 0.6, 0.48, 0.38, 0.3]), scale: Object.freeze([0, 2, 4, 7, 9]) });
+export function createSteps49(L = 1, n = STEPS49.n) {
+  const lv = clamp(L | 0, 1, 4), tol = STEPS49.tol[lv];
+  const k = { L: lv, n, tol, i: 0, off: 0, notes: [], done: false, q: null };
+  /** the stone let go: { dragPx, err } (err: the drop's distance from the arc's line, in step-depths) → 'tap' | 'off' | 'true' | 'done' */
+  function drop(d = {}) {
+    if (k.done) return 'done'; if (!((d.dragPx || 0) >= DRAG42)) return 'tap';
+    if (!(Math.abs(d.err) <= tol)) { k.off++; return 'off'; }
+    const s = STEPS49.scale, deg = s[k.i % s.length] + 12 * Math.floor(k.i / s.length); k.notes.push(deg); k.i++;
+    if (k.i >= k.n) { k.done = true; const f = k.off; k.q = f <= 1 ? 1 : f <= 4 ? 0.65 : 0.3; }
+    return 'true';
+  }
+  return { drop, state: () => k, freq: (deg) => 220 * Math.pow(2, deg / 12), result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

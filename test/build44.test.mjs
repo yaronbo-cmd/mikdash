@@ -62,7 +62,7 @@ test('build 44: the gold button — gone for players before Chanukat HaBayit, ke
 });
 
 test('build 44: חצר האומנים — every variant of stage 01, any level opened, no building; points and a title per family (טיוטה); from the menu and the test\'s card', () => {
-  assert.deepEqual(YARD44.map((v) => v.part), ['lift', 'corner', 'course0', 'rock', 'roll', 'pave']);
+  assert.deepEqual(YARD44.map((v) => v.part), ['lift', 'corner', 'course0', 'rock', 'roll', 'pave', 'pulley', 'line', 'wcorner']);   // (build 45: the wall's variants)
   assert.deepEqual({ ...TITLE44 }, { lift: 'מנופאי', place: 'בנאי', inspect: 'בודק', fit: 'נגר' });
   assert.equal(title44('lift', PTS44.title - 1), ''); assert.equal(title44('lift', PTS44.title), 'מנופאי');
   const h = read('src/game/har42.js');

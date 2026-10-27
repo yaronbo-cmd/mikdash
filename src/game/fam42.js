@@ -204,7 +204,7 @@ export function createLine45(L = 1) {
   const k = { on: false, u: 0, dmax: 0, fix: 0, done: false, q: null, L: clamp(L | 0, 1, 4), tries: 0 };
   const tol = LINE45.L[k.L];
   function down(u, d) { if (k.done) return; k.on = u <= LINE45.start && Math.abs(d) < 0.2; k.u = u; k.dmax = 0; if (k.on) k.tries++; }
-  function move(u, d) { if (!k.on || k.done) return; k.u = Math.max(k.u, u); k.dmax = Math.max(k.dmax, Math.abs(d)); if (u >= LINE45.end) { k.on = false; k.done = true; const dev = k.dmax / tol; k.q = clamp((dev <= LINE45.hi ? 1 : dev <= LINE45.mid ? 0.65 : 0.3) - 0.15 * k.fix, 0, 1); } }
+  function move(u, d) { if (!k.on || k.done) return; k.u = Math.max(k.u, u); k.dmax = Math.max(k.dmax, Math.abs(d)); if (u >= LINE45.end) { k.on = false; k.done = true; const dev = k.dmax / tol; k.q = clamp((dev <= LINE45.hi ? 1 : dev <= LINE45.mid ? 0.65 : 0.3) - 0.2 * k.fix, 0, 1); } }
   function up() { if (!k.on || k.done) return; k.on = false; if (k.u > LINE45.start + 0.08) k.fix++; }
   return { down, move, up, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

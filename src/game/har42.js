@@ -57,7 +57,7 @@ export function slow53(g, top = 14) {
 export const LINTEL54 = Object.freeze({ h: 0.275, x: 0.62 });
 export const WARN54 = Object.freeze({ v: 3 });
 export const LAT54 = Object.freeze({ win: 0.4, fill: 0.72 });
-export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place)
+export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86, leaf7: 0.78 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place; leaf7: the heavy leaf's lift nearer still — its leaf 32 % wide on average at 0.86, 28 % of the frames under 30: c54A-04R)
 export const OBJ53 = Object.freeze({ stg: Object.freeze(['har', 'wall']), big: 0.45, margin: 0.06 });   // (margin: the thing kept 6 % over the rule when he is stepped back from — at the rule's edge the second AFTER page held it in 43–64 % of the frames)
 /** his figure on a view (pure; as twin.js's fig51): his middle across the width (NDC), his half-height share s, whole in the frame */
 export function fig53(P, T, H, tanH, tanV) {
@@ -1934,7 +1934,7 @@ export function createHar42(o = {}) {
       // ── build 54 ── (§2 stage 04: "you can't see whether it stuck") while the pin goes down: a macro on the pin and its socket (from the north,
       // 6.5 amot, a little above — the pin's foot, the socket's rim, the leaf's edge) ── /build 54 ──
       ownView: () => phase === 'pin',
-      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.gate); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [pivX - sx * 3.8, g0 + 2.8, G.z + 5], t: [tx, g0 + 1.1, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
+      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.leaf7); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [pivX - sx * 3.8, g0 + 2.8, G.z + 5], t: [tx, g0 + 1.1, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
       frame(dt) {
         if (phase === 'pin') objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf', [{ x: pivX - sx * 0.5, y: g0 + 1.3, z: G.z, r: 1.25 }]); else objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');   // ── build 54 ── (in the macro: the pin and its socket) ── /build 54 ──
         if (phase === 'lift') { C.frame(dt); return false; }

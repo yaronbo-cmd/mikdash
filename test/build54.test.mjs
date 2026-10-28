@@ -35,6 +35,7 @@ test('build 54: the object rule on 03–07\'s failing parts — rule53 (obj51, t
   for (const p of ['warn', 'leaf', 'wood', 'hub', 'wheel']) assert.ok(OBJ54.parts.includes(p), p);
   assert.match(H, /'h46bows', \[\{ x: priests\[0\]\.g\.position\.x/, 'the bows: the procession is the thing');
   assert.ok(OBJ54.gate < 1 && OBJ54.gate > 0.7);
+  assert.ok(OBJ54.leaf7 < OBJ54.gate && OBJ54.leaf7 > 0.7, 'the heavy leaf\'s lift nearer still'); assert.match(H, /if \(phase === 'lift'\) return gateView\(12, 0, OBJ54\.leaf7\);/);
   assert.match(H, /function rule53\(v, h, HH, tanH, tanV\)/);
   assert.match(H, /if \(J\.view && OBJ54\.parts\.includes\(st\.part\) && !\(J\.ownView && J\.ownView\(\)\)\)/);
   assert.match(H, /if \(OBJ53\.stg\.includes\(STG\) \|\| OBJ54\.parts\.includes\(st\.part\)\) v = rule53\(v, h, HH, tanH, tanV\);/);

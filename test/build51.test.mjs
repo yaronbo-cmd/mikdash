@@ -55,7 +55,7 @@ test('build 51 (2, 3): the lamb seen from its far side, knee-high; the lantern �
   assert.match(read('src/game/twin.js'), /C40 = M51 \? \{ \.\.\.C40a, big: 9, heroR: 9, hero: -9, back: 0 \} : C40a/, 'a macro view: the thing first, him not stepped back for');
   const pen = read('src/avodah/shift/pen25.js'); assert.match(pen, /export const LIT51 = Object\.freeze\(\{ k: 2,/); assert.match(pen, /\* LIT51\.k \*/);
   assert.match(LINE30.lamb.scan, /^כוונו את האור/, 'the aim\'s line at once — the scan\'s own line');
-  assert.match(read('src/avodah/shift/day33.js'), /\.\.\.\(\/\^\(bind\|bound\|cut\)\$\/\.test\(ph\) \? \{ fov: SH51\.fov, macro: true, aimW: SH51\.aim \} : \{\}\)/);
+  assert.match(read('src/avodah/shift/day33.js'), /\.\.\.\(\/\^\(bind\|bound\|cut\)\$\/\.test\(ph\) \? \{ fov: SH51\.fov, macro: true, aimW: SH51\.aim, e: 5 \} : \{\}\)/);
 });
 test('build 51 (4): the swipe\'s gate relative to the thing — min(0.12·W, 0.4·its width), never under 0.035·W, within 500 ms', () => {
   assert.deepEqual({ ...SWIPE51 }, { k: 0.4, max: 0.12, min: 0.035, ms: 500 }); assert.ok(Object.isFrozen(SWIPE51));

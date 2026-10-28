@@ -4689,7 +4689,7 @@ export function createDay33(o = {}) {
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6, ...(/^(bind|bound|cut)$/.test(ph) ? { fov: SH51.fov, macro: true, aimW: SH51.aim } : {}) };   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
+    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6, ...(/^(bind|bound|cut)$/.test(ph) ? { fov: SH51.fov, macro: true, aimW: SH51.aim, e: 5 } : {}) };   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
     // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's

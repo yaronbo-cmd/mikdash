@@ -190,7 +190,10 @@ export function pan40(p, t, O, H, tanH, c = CAM40, tanV = 0) {
 // `swing` turns round the thing's upright (0, ±30°, ±50°) is tried and scored: through him, the rule missed, a wall in the way (the
 // caller's cut), him over `big` of the height, him right of the thing, the size of the turn. Pure (the cut is the caller's).
 // A thing in his own hands (flagged 'self' by its act — the pan on the way down, the vessel carried, the teni, the log held up — or its middle within `self` amot of him) keeps build 41's view.
-export const OBJ51 = Object.freeze({ w: 0.3, h: 0.2, aimW: 0.36, maxH: 0.95, near: 1.4, swing: Object.freeze([0, 0.52, -0.52, 0.87, -0.87]), R: 0.6, big: 0.45, self: 0.25 });
+/** the things a lifted view serves (measured, build 51: the bed of coals on the altar, the laver — from above he is shorter on the screen
+ *  and the thing no smaller; lifted, the inner altar and the menorah's lamps cut him at 844 — 60 % of their frames — so they stay level) */
+export const LIFT51 = Object.freeze(['d21', 'k20']);
+export const OBJ51 = Object.freeze({ w: 0.3, h: 0.2, aimW: 0.36, maxH: 0.95, near: 1.4, swing: Object.freeze([0, 0.52, -0.52, 0.87, -0.87]), lift: Object.freeze([0, 2, 4]), liftK: 2, bigK: 40, whole: 45, wK: 150, R: 0.6, big: 0.45, self: 0.25 });
 /** does the segment from the camera C to the thing's middle O pass through his figure (feet A, height top, radius R)? (pure) */
 export function occl51(C, O, A, top, R = OBJ51.R) {
   const dx = O.x - C.x, dz = O.z - C.z, fx = C.x - A.x, fz = C.z - A.z, a = dx * dx + dz * dz, b = 2 * (fx * dx + fz * dz), c = fx * fx + fz * fz - R * R;
@@ -214,13 +217,16 @@ export function share51(P, T, bb, tanH, tanV) {
   }
   return { w: Math.max(0, (Math.min(1, x1) - Math.max(-1, x0)) / 2), h: Math.max(0, (Math.min(1, y1) - Math.max(-1, y0)) / 2), x0, x1, y0, y1 };
 }
-/** his height's share of the screen from P looking at T when his middle is in the frame (else 0) (pure) */
-function big51(P, T, H, tanH, tanV) {
+/** his figure from P looking at T (pure): his middle across the width and up (NDC) and his height's share of the screen — his feet and his
+ *  top each projected, so a look from above (he is shorter on the screen) counts as cam41 measures it — or null (behind the camera) */
+function fig51(P, T, H, tanH, tanV) {
   let fx = T[0] - P[0], fy = T[1] - P[1], fz = T[2] - P[2]; const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
-  const rl = Math.hypot(fx, fz) || 1, vx = H.x - P[0], vy = H.y + H.h / 2 - P[1], vz = H.z - P[2], d = vx * fx + vy * fy + vz * fz;
-  if (!(d > 0.2)) return 0;
-  const hx = (vx * (-fz / rl) + vz * (fx / rl)) / (d * tanH);
-  return Math.abs(hx) < 1.1 ? H.h / (2 * d * tanV) : 0;
+  const rl = Math.hypot(fx, fz) || 1, rx = -fz / rl, rz = fx / rl, ux = -rz * fy, uy = rz * fx - rx * fz, uz = rx * fy;
+  const pr = (y) => { const vx = H.x - P[0], vy = y - P[1], vz = H.z - P[2], d = vx * fx + vy * fy + vz * fz; return d > 0.2 ? { x: (vx * rx + vz * rz) / (d * tanH), y: (vx * ux + vy * uy + vz * uz) / (d * tanV), d } : null; };
+  const a = pr(H.y), b = pr(H.y + H.h), m = pr(H.y + H.h / 2);
+  if (!a || !b || !m) return null;
+  const inS = (q) => Math.abs(q.x) <= 1 && Math.abs(q.y) <= 1;
+  return { x: m.x, y: (a.y + b.y) / 2, s: Math.abs(b.y - a.y) / 2, d: m.d, whole: inS(a) && inS(b) };
 }
 /** the object rule on a view { p, t } (pure): → { p, t, w, h, occ, a, s, big, hx, ok, score, cands } | null (no box). H: his feet
  *  { x, y, z } and height h; cut(P, T) → true when a wall stands between (optional) */
@@ -229,23 +235,33 @@ export function obj51(p, t, bb, H, tanH, tanV, c = OBJ51, cut = null) {
   const O = { x: (bb[0] + bb[3]) / 2, y: (bb[1] + bb[4]) / 2, z: (bb[2] + bb[5]) / 2 };
   const self = !!(H && Math.hypot(O.x - H.x, O.z - H.z) < c.self);
   const cands = [];
-  for (const a of c.swing) {
+  // (each turn also lifted — 2, 4 amot, still looking at the same point: from above he is shorter on the screen, a flat thing taller)
+  for (const a of c.swing) for (const L of (c.lift || [0])) {
     const ca = Math.cos(a), sa = Math.sin(a), rot = (q) => [O.x + (q[0] - O.x) * ca - (q[2] - O.z) * sa, q[1], O.z + (q[0] - O.x) * sa + (q[2] - O.z) * ca];
-    let P = rot(p), T = rot(t);
+    let P = rot(p), T = rot(t); P[1] += L;
     const D = [O.x - P[0], O.y - P[1], O.z - P[2]], dist = Math.hypot(D[0], D[1], D[2]) || 1;
     let s = 0, v = share51(P, T, bb, tanH, tanV);
+    // (him kept — whole in the frame and ≤ big — while he was: c.whole false (a macro) lets him go)
+    const keep = (P2, T2) => { const F = fig51(P2, T2, H, tanH, tanV); return !!F && (c.whole === false || F.whole) && (Math.abs(F.x) >= 1.1 || F.s <= c.big); };
+    const whole0 = (P2, T2) => { const F = fig51(P2, T2, H, tanH, tanV); return !!F && F.whole; };
+    let kept = !!H && keep(P, T), wh = !!H && whole0(P, T), sK = wh ? 0 : null, vK = wh ? v : null;
     if (!(v.w >= c.aimW && v.h >= c.h)) {
       const smax = Math.max(0, 1 - c.near / dist);
       for (let k = 1; k <= 16; k++) {
         const s2 = (smax * k) / 16, P2 = [P[0] + D[0] * s2, P[1] + D[1] * s2, P[2] + D[2] * s2], T2 = [T[0] + D[0] * s2, T[1] + D[1] * s2, T[2] + D[2] * s2], v2 = share51(P2, T2, bb, tanH, tanV);
         if (v2.behind || v2.h > c.maxH) break;
-        // (him ≤ big: once the rule holds, no nearer than where he would pass `big` of the height in the frame)
-        if (H && v.w >= c.w && v.h >= c.h && big51(P2, T2, H, tanH, tanV) > c.big) break;
-        s = s2; v = v2;
+        // (him ≤ big and whole: once the rule holds, no nearer than where he would pass `big` of the height or leave the frame)
+        const k2 = !!H && keep(P2, T2);
+        if (H && v.w >= c.w && v.h >= c.h && kept && !k2) break;
+        s = s2; v = v2; kept = k2; wh = !!H && whole0(P2, T2); if (wh) { sK = s2; vK = v2; }
         if (v2.w >= c.aimW && v2.h >= c.h) break;
       }
     }
-    P = [P[0] + D[0] * s, P[1] + D[1] * s, P[2] + D[2] * s]; T = [T[0] + D[0] * s, T[1] + D[1] * s, T[2] + D[2] * s];
+    const P0 = P, T0 = T;
+    // (the slide's end; and, when it lost him — cut by the frame — before the rule held, also where it last had him whole:
+    //  the score chooses between the thing a little small and him cut)
+    const mk = (s, v, alt) => {
+    const P = [P0[0] + D[0] * s, P0[1] + D[1] * s, P0[2] + D[2] * s], T = [T0[0] + D[0] * s, T0[1] + D[1] * s, T0[2] + D[2] * s];
     const ok = v.w >= c.w && v.h >= c.h;
     const occ = !self && !!H && occl51({ x: P[0], y: P[1], z: P[2] }, O, H, H.h, c.R);
     // (c.avoid: other things that must not stand between — the other lamb: the line to the thing within its radius, or the camera in it)
@@ -254,19 +270,22 @@ export function obj51(p, t, bb, H, tanH, tanV, c = OBJ51, cut = null) {
     // (him: his middle's place across the width and his height's share at his depth)
     // (his screen box — his middle across the width ± c.R·1.4 (the head is wider), feet to top — and how much of the thing's box it covers
     //  when he stands in front of it or level with it)
-    let hx = null, big = 0, cover = 0;
+    let hx = null, big = 0, cover = 0, whole = false;
     if (H) {
       let fx = T[0] - P[0], fy = T[1] - P[1], fz = T[2] - P[2]; const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
-      const rl = Math.hypot(fx, fz) || 1, rx = -fz / rl, rz = fx / rl, ux = -rz * fy, uy = rz * fx - rx * fz, uz = rx * fy, vx = H.x - P[0], vy = H.y + H.h / 2 - P[1], vz = H.z - P[2], d = vx * fx + vy * fy + vz * fz;
-      if (d > 0.2) {
-        hx = (vx * rx + vz * rz) / (d * tanH); big = H.h / (2 * d * tanV);
-        const hy = (vx * ux + vy * uy + vz * uz) / (d * tanV), hw = (c.R * 1.4) / (d * tanH), dO = (O.x - P[0]) * fx + (O.y - P[1]) * fy + (O.z - P[2]) * fz;
+      const F = fig51(P, T, H, tanH, tanV);
+      if (F) {
+        const d = F.d; hx = F.x; big = F.s; whole = F.whole;
+        const hy = F.y, hw = (c.R * 1.4) / (d * tanH), dO = (O.x - P[0]) * fx + (O.y - P[1]) * fy + (O.z - P[2]) * fz;
         if (d < dO + 0.5) { const X0 = Math.max(-1, v.x0), X1 = Math.min(1, v.x1), Y0 = Math.max(-1, v.y0), Y1 = Math.min(1, v.y1), A = Math.max(1e-6, (X1 - X0) * (Y1 - Y0)), ix = Math.max(0, Math.min(X1, hx + hw) - Math.max(X0, hx - hw)), iy = Math.max(0, Math.min(Y1, hy + big) - Math.max(Y0, hy - big)); cover = Math.min(1, (ix * iy) / A); }
       }
     }
     const thingX = (Math.max(-1, v.x0) + Math.min(1, v.x1)) / 2, inF = hx != null && Math.abs(hx) < 1.1;
-    const score = (occ ? 100 : 0) + (blk ? 70 : 0) + 60 * cover + (ok ? 0 : 40 + 100 * Math.max(0, c.w - v.w) + 100 * Math.max(0, c.h - v.h)) + (big > c.big && inF ? 25 * Math.min(2, big - c.big) : 0) + (inF && hx > thingX - 0.15 ? 8 : 0) + Math.abs(a) * 8 + (c.prefer != null && a !== c.prefer ? 5 : 0);   // (prefer: the turn chosen last frame — no flicker)
-    cands.push({ p: P, t: T, w: v.w, h: v.h, occ, a, s, big, hx, cover, ok, score });
+    const score = (occ ? 100 : 0) + (blk ? 70 : 0) + 60 * cover + (ok ? 0 : 40 + (c.wK || 100) * Math.max(0, c.w - v.w) + 100 * Math.max(0, c.h - v.h)) + (big > c.big && inF && (whole || c.whole === false || !H) ? (c.bigK || 25) * Math.min(1.5, big - c.big) : 0) + (inF && hx > thingX - 0.15 ? 8 : 0) + Math.abs(a) * 8 + L * (c.liftK || 0) + (H && c.whole !== false && !whole ? (c.whole || 0) + (inF ? 0 : 30) : 0) + (c.prefer != null && a + L * 10 + (alt ? 100 : 0) !== c.prefer ? 5 : 0);   // (prefer: the turn, lift and stop chosen last frame — no flicker)
+    cands.push({ p: P, t: T, w: v.w, h: v.h, occ, a, L, key: a + L * 10 + (alt ? 100 : 0), s, big, hx, whole, cover, ok, score });
+    };
+    mk(s, v, 0);
+    if (H && c.whole !== false && !wh && sK != null && sK !== s) mk(sK, vK, 1);
   }
   cands.sort((x, y) => x.score - y.score);
   let best = null, n = 0;
@@ -641,7 +660,7 @@ export function createTwin(o = {}) {
             // ── fable32 (build 41) ── (the lamb's pen, a chamber: a step back cut by a wall) first the same step raised over it — the camera
             // looks down at him and the thing — then the shorter steps ── /fable32 ──
             if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { for (const up of [2, 4, 6]) { const P2 = [r40.p[0], r40.p[1] + up, r40.p[2]]; if (!cut(P2, r40.t)) { r40 = { ...r40, p: P2, up }; break; } } }
-            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...C40, pan: Math.abs(r40.sh) * k, back: r40.back * k }, tanV); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } /* ── build 51 ── the object rule (obj51): the thing ≥ 30 % of the width and 20 % of the height, never behind him ── */ { const bb51 = (O0 && O0.bb) || (globalThis.__OBJ51K && globalThis.__OBJ51K.bb) || null; if (bb51 && !globalThis.__OBJ51_OFF && !(O0 && O0.self)) { const Oc = [(bb51[0] + bb51[3]) / 2, (bb51[1] + bb51[4]) / 2 + 0.3, (bb51[2] + bb51[5]) / 2], segO = (P) => !!(sg && typeof sg.seg === 'function' && sg.seg(Oc[0], Oc[1], Oc[2], P[0], P[1], P[2])), cutA = segO(V.p), cut51 = (P) => !cutA && segO(P);   /* (the line of sight to the thing — counted only where the authored view's own is clear: a look into a mass is not a wall) */ const b0 = r40 || { p: V.p, t: V.t, sh: 0, back: 0 }, q51 = obj51(b0.p, b0.t, bb51, h ? { x: h.x, y: h.y || 16, z: h.z, h: HERO41 } : null, tanH, tanV, { ...OBJ51, ...(M51 ? { big: 9, aimW: Wk.view.aimW || OBJ51.aimW } : {}), ...(CBC.a51 == null ? {} : { prefer: CBC.a51 }), ...(Array.isArray(globalThis.__AVOID51) ? { avoid: globalThis.__AVOID51 } : {}) }, cut51); try { globalThis.__CAM51R = q51 ? { w: Math.round(q51.w * 100), h: Math.round(q51.h * 100), occ: q51.occ, a: Math.round(q51.a * 57), s: Math.round(q51.s * 100) / 100, big: Math.round(q51.big * 100), self: q51.self } : { none: 1 }; } catch (e3) { /* */ } if (q51 && !q51.self) { r40 = { ...b0, p: q51.p, t: q51.t, o51: q51 }; CBC.a51 = q51.a; } } } /* ── /build 51 ── */ try { globalThis.__CAM40R = r40 ? { back: r40.back, sh: Math.round(r40.sh * 10) / 10, big: r40.big == null ? null : Math.round(r40.big * 100) / 100, hx: r40.hx == null ? null : Math.round(r40.hx * 100) / 100, up: r40.up || 0 } : { none: 1, cutV: cut(V.p, V.t) }; } catch (e2) { /* */ }   /* ── fable32 (build 41) ── (the tools' note: the act view's step) ── */ } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
+            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...C40, pan: Math.abs(r40.sh) * k, back: r40.back * k }, tanV); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } /* ── build 51 ── the object rule (obj51): the thing ≥ 30 % of the width and 20 % of the height, never behind him ── */ { const bb51 = (O0 && O0.bb) || (globalThis.__OBJ51K && globalThis.__OBJ51K.bb) || null, id51 = (O0 && O0.bb && O0.id) || (globalThis.__OBJ51K && globalThis.__OBJ51K.id) || ''; if (bb51 && !globalThis.__OBJ51_OFF && !(O0 && O0.self)) { const Oc = [(bb51[0] + bb51[3]) / 2, (bb51[1] + bb51[4]) / 2 + 0.3, (bb51[2] + bb51[5]) / 2], segO = (P) => !!(sg && typeof sg.seg === 'function' && sg.seg(Oc[0], Oc[1], Oc[2], P[0], P[1], P[2])), cutA = segO(V.p), cut51 = (P) => !cutA && segO(P);   /* (the line of sight to the thing — counted only where the authored view's own is clear: a look into a mass is not a wall) */ const b0 = r40 || { p: V.p, t: V.t, sh: 0, back: 0 }, q51 = obj51(b0.p, b0.t, bb51, h ? { x: h.x, y: h.y || 16, z: h.z, h: HERO41 } : null, tanH, tanV, { ...OBJ51, ...(M51 ? { big: 9, whole: false, lift: [0], aimW: Wk.view.aimW || OBJ51.aimW } : LIFT51.includes(id51) ? {} : { lift: [0] }), ...(CBC.a51 == null ? {} : { prefer: CBC.a51 }), ...(Array.isArray(globalThis.__AVOID51) ? { avoid: globalThis.__AVOID51 } : {}) }, cut51); try { globalThis.__CAM51R = q51 ? { w: Math.round(q51.w * 100), h: Math.round(q51.h * 100), occ: q51.occ, a: Math.round(q51.a * 57), L: q51.L, s: Math.round(q51.s * 100) / 100, big: Math.round(q51.big * 100), self: q51.self } : { none: 1 }; } catch (e3) { /* */ } if (q51 && !q51.self) { r40 = { ...b0, p: q51.p, t: q51.t, o51: q51 }; CBC.a51 = q51.key; } } } /* ── /build 51 ── */ try { globalThis.__CAM40R = r40 ? { back: r40.back, sh: Math.round(r40.sh * 10) / 10, big: r40.big == null ? null : Math.round(r40.big * 100) / 100, hx: r40.hx == null ? null : Math.round(r40.hx * 100) / 100, up: r40.up || 0 } : { none: 1, cutV: cut(V.p, V.t) }; } catch (e2) { /* */ }   /* ── fable32 (build 41) ── (the tools' note: the act view's step) ── */ } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
         } else { CBC.v40 = null; CBC.a51 = null; } }
       if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * (V.e > 0 ? V.e : 2.4)); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)   // ── recovered (16–26c) ── (V.e: the view's own ease)
       // ── build 51 ── an act's view may ask its own field of view (Wk.view.fov — the shochet's macro on the lamb, 35°): eased in, and the

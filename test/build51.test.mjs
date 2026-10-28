@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { D21, SWIPE51, swipe51, K20M, P51, SH51 } from '../src/avodah/shift/day33.js';
 import { LINE30, words30, quality30, rate30 } from '../src/avodah/shift/rate30.js';
-import { obj51, occl51, share51, OBJ51, walk39, WALK51 } from '../src/game/twin.js';
+import { obj51, occl51, share51, OBJ51, LIFT51, walk39, WALK51 } from '../src/game/twin.js';
 import { bb51 } from '../src/avodah/shift/touch40.js';
 import { practiceSave31 } from '../src/avodah/shift/practice31.js';
 import '../src/avodah/shift/focus17.js';
@@ -48,6 +48,9 @@ test('build 51 (1): the thing\'s box — its parts\' spheres or the act\'s own t
   assert.equal(bb51([]), null);
   const tw = read('src/game/twin.js'); assert.match(tw, /q51 = obj51\(b0\.p, b0\.t, bb51, h \? \{ x: h\.x, y: h\.y \|\| 16, z: h\.z, h: HERO41 \} : null, tanH, tanV,/); assert.match(tw, /cut51 = \(P\) => !cutA && segO\(P\)/, 'the line of sight to the thing');
   assert.match(read('tools/cam41.js'), /function objM\(B, O, cam, p, top\)/);
+  // (the lifted view — the bed of coals and the laver only (measured); every other thing keeps the level view; a macro never)
+  assert.deepEqual([...LIFT51], ['d21', 'k20']); assert.deepEqual([...OBJ51.lift], [0, 2, 4]);
+  assert.match(tw, /LIFT51\.includes\(id51\) \? \{\} : \{ lift: \[0\] \}/); assert.match(tw, /M51 \? \{ big: 9, whole: false, lift: \[0\],/);
   assert.match(read('src/avodah/shift/dam27.js'), /thing: \(\) => \{ const K = E\.r27\(\); return K && \/\^\(bind\|cut\)\$\/\.test\(K\.ph\)/, 'the shochet\'s thing: the whole lamb');
 });
 test('build 51 (2, 3): the lamb seen from its far side, knee-high; the lantern ×2; the shochet\'s macro at FOV 35', () => {

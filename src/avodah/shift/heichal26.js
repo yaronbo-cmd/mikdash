@@ -227,7 +227,10 @@ export function createHeichal26(o = {}) {
     dragFire = { x: NaN, y: NaN };
   // ── fable32 (build 40) ── the act's surface on the thing (touch40.js): the gate's bolt and key, the inner altar's ashes, the lamp he
   // tends (and the lit lamp or the pan the fire comes from), the teni in his hand ── /fable32 ──
-  const t40 = createTouch40({ doc, pad, id: 'hk26', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
+  // ── build 51 ── (the inspector: "the menorah ~120 px beside a huge kohen — enlarge the menorah in the framing") the object rule's thing at
+  // the lamps: the whole row of the seven lamps (the menorah's head), not the one lamp — framed whole, a little apart from him ── /build 51 ──
+  const lampRow51 = () => { const K = E.r26(); if (!K || K.role !== 'menorah' || !/^(wick|wipe|pour|spill|new|drag|lit|altar)$/.test(K.ph) || !lamps.length) return null; let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, y = lamps[0].y; for (const l of lamps) { x0 = Math.min(x0, l.x); x1 = Math.max(x1, l.x); z0 = Math.min(z0, l.z); z1 = Math.max(z1, l.z); } return [x0 - 0.3, y - 0.9, z0 - 0.3, x1 + 0.3, y + 0.35, z1 + 0.3]; };
+  const t40 = createTouch40({ doc, pad, id: 'hk26', thing: lampRow51, proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
   let thr51 = 0;   // ── build 51 ── (the last touch's swipe length — the hint's) ── /build 51 ──
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();

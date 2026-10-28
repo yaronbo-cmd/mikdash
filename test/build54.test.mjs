@@ -95,7 +95,12 @@ test('build 54: the beams (05) — on the ground by the wall, taken where they l
   assert.doesNotMatch(bm, />פינה</);
   assert.doesNotMatch(bm, /קורת פינה' : '━ קורה'\} ×/);
   assert.match(bm, /const gb = \[\];/); assert.match(bm, /const nextOf = \(kd\) =>/);
-  assert.match(bm, /const D = Math\.max\(needD\(\) \+ 2, 26\)/);
+  assert.match(bm, /const D = Math\.max\(needD\(\) \+ 2, 30\)/);
+  assert.match(bm, /W2\.y \+ 6\.2, W2\.z \+ sz \* D\], t: \[cx, W2\.y \+ 6\.2, W2\.z\]/, 'level, at the middle of the sockets\' height');
+  assert.match(bm, /b\.style\.top = `\$\{Math\.round\(Math\.max\(56, Math\.min\(H\(\) - 50, q\.y - 23\)\)\)\}px`/, 'the handle kept on the screen');
+  // (pure: from 30 amot, level at 6.2 — the sockets (11.5) under the line's box and the beams on the ground (3.2 from the wall) over the frame's foot)
+  const tv = Math.tan((32 * Math.PI) / 360), sock = 0.5 - (11.5 - 6.2) / (30 * tv) / 2, beam = 0.5 + (6.2 - 0.55) / ((30 - 3.2) * tv) / 2;
+  assert.ok(sock > 0.17 && beam < 0.9, `sockets at ${(sock * 100).toFixed(0)} %, beams at ${(beam * 100).toFixed(0)} % of the height`);
 });
 
 test('build 54: the peg (05) — the joint in the world (the plank\'s tenon, the beam\'s mortise, the peg, the mallet), a macro; no 2D diagram', () => {

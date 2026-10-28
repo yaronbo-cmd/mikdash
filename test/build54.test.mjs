@@ -35,6 +35,7 @@ test('build 54: the object rule on 03–07\'s failing parts — rule53 (obj51, t
   for (const p of ['warn', 'leaf', 'wood', 'hub', 'wheel']) assert.ok(OBJ54.parts.includes(p), p);
   assert.match(H, /'h46bows', \[\{ x: priests\[0\]\.g\.position\.x/, 'the bows: the procession is the thing');
   assert.ok(OBJ54.gate < 1 && OBJ54.gate > 0.7);
+  assert.ok(OBJ54.leaf7 < OBJ54.gate && OBJ54.leaf7 > 0.7, 'the heavy leaf\'s lift nearer still'); assert.match(H, /if \(phase === 'lift'\) return gateView\(12, 0, OBJ54\.leaf7\);/);
   assert.match(H, /function rule53\(v, h, HH, tanH, tanV\)/);
   assert.match(H, /if \(J\.view && OBJ54\.parts\.includes\(st\.part\) && !\(J\.ownView && J\.ownView\(\)\)\)/);
   assert.match(H, /if \(OBJ53\.stg\.includes\(STG\) \|\| OBJ54\.parts\.includes\(st\.part\)\) v = rule53\(v, h, HH, tanH, tanV\);/);
@@ -46,6 +47,9 @@ test('build 54: the lattice (03) — the board a window of 40 % of the width in 
   const lat = fnOf('mkLattice', 'mkWood');
   assert.match(lat, /const geo = \(\) => \{ const bw = W\(\) \* LAT54\.win, sz = bw \/ 10; return \{ x: 10,/);
   assert.match(lat, /D = PAN46\.w \/ \(2 \* LAT54\.fill \* th\)/);
+  assert.match(lat, /cx = gx \+ LAT54\.gx \* D \* th, cy = gyy \+ LAT54\.gy \* D \* tv;/, 'the view on the gap itself');
+  // (pure: the gap at gx, gy of the half-frame right of and below the middle — clear of the window, 40 % wide over the top-left)
+  assert.ok(0.5 + LAT54.gx / 2 > LAT54.win + 0.05 && 0.5 + LAT54.gy / 2 < 0.8);
   assert.match(lat, /pan\.draw\(slot, pc \? F\.tile46\(pc\.type, pc\.r, pc\.f\) : null\)/);
   assert.match(lat, /function gapAt\(\)/);
   assert.match(H, /const draw = \(gap, ghost\) =>/);
@@ -71,15 +75,20 @@ test('build 54: the lintel (04) — level 1 without drift; "הבועה ברחה 
 test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop seen (a jolt, "נתקעה"); a door', () => {
   const lf = fnOf('mkLeaf', 'mkNames');
   assert.match(lf, /ownView: \(\) => phase === 'pin',/);
-  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.6; return \{ p: \[pivX - sx \* 3\.8, g0 \+ 2\.8, G\.z \+ 5\]/);
+  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.3; return \{ p: \[pivX - sx \* 4, g0 \+ 1\.7, G\.z \+ 5\.7\], t: \[tx, g0 \+ 1\.5, G\.z\] \}; \}/);
+  // (pure: level from 6.8 amot — the socket (0.1) and the leaf's foot (2.9) inside the frame's height)
+  { const tv = Math.tan((32 * Math.PI) / 360), d = Math.hypot(3.7, 5.7), lo = 1.5 - d * tv, hi = 1.5 + d * tv; assert.ok(lo < 0 && hi > 3.1, `${lo.toFixed(2)}..${hi.toFixed(2)}`); }
   assert.match(lf, /נתקעה/);
-  assert.match(H, /const DOOR54 = \{/); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
+  assert.match(H, /const DOOR54 = \{/); assert.match(H, /DOOR54\[k\]\.emissive = new THREE\.Color\(e\)/, 'the door read in the shade'); assert.match(H, /new THREE\.CylinderGeometry\(0\.2, 0\.2, 0\.6, 10\), DOOR54\.bronze\); pin\.position/, 'the pin in bronze'); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
 });
 
 test('build 54: the seven gates (04) — the court paved and the gatehouses (26 amot, their shadows) from above; the name beside its gate once set', () => {
   assert.match(H, /function court54\(on\)/); assert.match(H, /court54\(true\);/); assert.match(H, /court54\(false\);/);
   assert.match(H, /new THREE\.BoxGeometry\(ax \? 9 : 6, 26, ax \? 6 : 9\)/);
-  assert.match(H, /font-size="15" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">\$\{esc\(q\.n\)\}/);
+  assert.match(H, /font-size="\$\{W\(\) < 700 \? 13 : 15\}" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">\$\{esc\(q\.n\)\}/);
+  // (the names of neighbouring gates on one wall a row apart — "שער הדלק" over "שער הבכורות" at 640: K54-P-04)
+  assert.match(H, /\(q\.z > 0 \? 1 : -1\) \* \(F\.GATES47\.filter\(\(g\) => g\.side === q\.side\)\.indexOf\(q\) % 2 \? 0 : 18\)/);
+  assert.match(H, /const c = \{ x: -93, z: 6 \}, Hh = Math\.max\(230, 110 \/ tanV\(\)\);/);
 });
 
 test('build 54: the wood (05) — the species\' name only after the decision (or at level 1 after 10 s); the defects drawn larger, the worm\'s exit holes on the bark; "קלפו"', () => {
@@ -95,11 +104,11 @@ test('build 54: the beams (05) — on the ground by the wall, taken where they l
   assert.doesNotMatch(bm, />פינה</);
   assert.doesNotMatch(bm, /קורת פינה' : '━ קורה'\} ×/);
   assert.match(bm, /const gb = \[\];/); assert.match(bm, /const nextOf = \(kd\) =>/);
-  assert.match(bm, /const D = Math\.max\(needD\(\) \+ 2, 30\)/);
+  assert.match(bm, /const D = Math\.max\(needD\(\) \+ 7\.5, 30\)/);
   assert.match(bm, /W2\.y \+ 6\.2, W2\.z \+ sz \* D\], t: \[cx, W2\.y \+ 6\.2, W2\.z\]/, 'level, at the middle of the sockets\' height');
   assert.match(bm, /b\.style\.top = `\$\{Math\.round\(Math\.max\(56, Math\.min\(H\(\) - 50, q\.y - 23\)\)\)\}px`/, 'the handle kept on the screen');
-  // (pure: from 30 amot, level at 6.2 — the sockets (11.5) under the line's box and the beams on the ground (3.2 from the wall) over the frame's foot)
-  const tv = Math.tan((32 * Math.PI) / 360), sock = 0.5 - (11.5 - 6.2) / (30 * tv) / 2, beam = 0.5 + (6.2 - 0.55) / ((30 - 3.2) * tv) / 2;
+  // (pure: from 34 amot (his 6.4-amah figure: needD + 7.5), level at 6.2 — the sockets (11.5) under the line's box and the beams on the ground (3.2 from the wall) over the frame's foot)
+  const tv = Math.tan((32 * Math.PI) / 360), sock = 0.5 - (11.5 - 6.2) / (34 * tv) / 2, beam = 0.5 + (6.2 - 0.55) / ((34 - 3.2) * tv) / 2;
   assert.ok(sock > 0.17 && beam < 0.9, `sockets at ${(sock * 100).toFixed(0)} %, beams at ${(beam * 100).toFixed(0)} % of the height`);
 });
 
@@ -138,5 +147,6 @@ test('build 54 (the coordinator\'s touch play of 53): the bar\'s label says the 
 
 test('build 54 (the coordinator\'s touch play of 53): stage 02\'s gold plan — a thin line (¾ amah; was 3), half seen', () => {
   assert.match(H, /const gm = new THREE\.MeshBasicMaterial\(\{ color: '#FFD66E', transparent: true, opacity: 0\.4, depthWrite: false \}\)/);
+  assert.match(H, /Hh = 0\.35; const m = new THREE\.Mesh\(new THREE\.BoxGeometry\(w, Hh, d\), gm\);[^\n]*return add\(m, CW45\.x \+ dx, Math\.max\(y0, yP\) \+ 0\.3, CW45\.z \+ dz\)/, 'a line, not a wall of gold');
   assert.match(H, /st\.props\.plan = \[\[0, -hd, 2 \* hw \+ 0\.75, 0\.75\], \[0, hd, 2 \* hw \+ 0\.75, 0\.75\], \[-hw, 0, 0\.75, 2 \* hd\], \[hw, 0, 0\.75, 2 \* hd\]\]/);
 });

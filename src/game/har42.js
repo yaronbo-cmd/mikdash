@@ -56,8 +56,8 @@ export function slow53(g, top = 14) {
 // views now take the object rule (obj51 + fig53, as stages 01–02's act view) ── /build 54 ──
 export const LINTEL54 = Object.freeze({ h: 0.275, x: 0.62 });
 export const WARN54 = Object.freeze({ v: 3 });
-export const LAT54 = Object.freeze({ win: 0.4, fill: 0.72 });
-export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place)
+export const LAT54 = Object.freeze({ win: 0.4, fill: 0.72, gx: 0.3, gy: 0.25 });   // (gx, gy: the gap this share of the half-frame right of and below the middle — clear of the window)
+export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86, leaf7: 0.78 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place; leaf7: the heavy leaf's lift nearer still — its leaf 32 % wide on average at 0.86, 28 % of the frames under 30: c54A-04R)
 export const OBJ53 = Object.freeze({ stg: Object.freeze(['har', 'wall']), big: 0.45, margin: 0.06 });   // (margin: the thing kept 6 % over the rule when he is stepped back from — at the rule's edge the second AFTER page held it in 43–64 % of the frames)
 /** his figure on a view (pure; as twin.js's fig51): his middle across the width (NDC), his half-height share s, whole in the frame */
 export function fig53(P, T, H, tanH, tanV) {
@@ -629,6 +629,7 @@ export function createHar42(o = {}) {
    *  on the stage, the seven gate openings in gold (the opening) and a pair of small leaves at each gate (the names' moment) */
   const GATE47 = { half: 5, post: 1.5, H: 20, lw: 13, leafW: 4.9, leafH: 19.4 };
   const DOOR54 = { wood: mat('#6E4428', 0.7), frame: mat('#4E2F1A', 0.75), panel: mat('#7C5232', 0.65), bronze: new THREE.MeshStandardMaterial({ color: '#B08A4A', metalness: 0.7, roughness: 0.35 }) };   // ── build 54 ── the leaves' door ── /build 54 ──
+  for (const [k, e] of [['wood', '#3A2010'], ['frame', '#24140A'], ['panel', '#4A2A14'], ['bronze', '#5A4420']]) { DOOR54[k].emissive = new THREE.Color(e); DOOR54[k].emissiveIntensity = 0.55; }   // ── build 54 ── (its court face in the shade read as one dark plane in the pin's macro: its panels and studs seen there too) ── /build 54 ──
   function props47(add) {
     const G = PL.gate, g0 = G.y, stoneM = mat('#E9DFC8', 0.85), wood = mat('#8A5A32', 0.75), dark = mat('#4A3A2A', 0.9);
     st.props.posts = [-1, 1].map((sx) => add(ashlar(GATE47.post, GATE47.H, GATE47.post), G.x + sx * (GATE47.half + GATE47.post / 2), g0 + GATE47.H / 2, G.z));
@@ -643,7 +644,7 @@ export function createHar42(o = {}) {
         for (let i = 0; i < 4; i++) for (const fz of [-1, 1]) { const pn = new THREE.Mesh(new THREE.BoxGeometry(GATE47.leafW * 0.7, GATE47.leafH / 4 - 1.1, 0.12), DOOR54.panel); pn.position.set(-sx * GATE47.leafW * 0.52, (i + 0.5) * GATE47.leafH / 4, fz * 0.22); piv.add(pn); }
         const studG = new THREE.SphereGeometry(0.11, 6, 4); for (let i = 1; i < 4; i++) for (let j = 0; j < 6; j++) for (const fz of [-1, 1]) { const sd = new THREE.Mesh(studG, DOOR54.bronze); sd.position.set(-sx * (0.5 + j * (GATE47.leafW - 0.9) / 5), i * GATE47.leafH / 4, fz * 0.24); piv.add(sd); }
         for (const fz of [-1, 1]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.06, 6, 14), DOOR54.bronze); ring.position.set(-sx * (GATE47.leafW - 0.7), GATE47.leafH * 0.45, fz * 0.3); piv.add(ring); } }
-      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.6, 8), dark); pin.position.set(-sx * 0.25, -0.3, 0); piv.add(pin);
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.6, 10), DOOR54.bronze); pin.position.set(-sx * 0.25, -0.3, 0); piv.add(pin);   // ── build 54 ── (bronze: the pin seen over its socket in the macro) ── /build 54 ──
       add(piv, G.x + sx * (GATE47.half - 0.25) + sx * 0.25, g0 + 0.5, G.z - 7 - (sx > 0 ? 0 : 1.2)); piv.rotation.x = -Math.PI / 2 + 0.02; piv.userData.sx = sx; return piv;   // (lying on the ground north of the gate until hung)
     });
     st.props.cranes = [-1, 1].map((sx) => { const g2 = new THREE.Group(); for (const dz of [-1.1, 1.1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.34, 31, 0.34), WOOD); l.position.set(0, 15.5, dz); l.rotation.x = -dz * 0.05; g2.add(l); } const arm = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 0.3), WOOD); arm.position.set(-sx * 1.8, 30.6, 0); g2.add(arm); return add(g2, G.x + sx * 10.5, g0, G.z - 1.6); });
@@ -778,7 +779,7 @@ export function createHar42(o = {}) {
     st.props.pRope = add(new THREE.LineSegments(pr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.pTop = top;
     if (STG === 'wall') {
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.4, depthWrite: false }), hw = CW45.w / 2 + 3, hd = CW45.d / 2 + 3;   // ── build 54 ── (the coordinator's touch play of 53: "a wide glowing slab across 40 % of the screen at the giant" — 53's treatment: half seen, ¼ as wide, below) ── /build 54 ──   // (the gold line along the wall's middle: it rises inside the wall to be)
-      st.props.plan = [[0, -hd, 2 * hw + 0.75, 0.75], [0, hd, 2 * hw + 0.75, 0.75], [-hw, 0, 0.75, 2 * hd], [hw, 0, 0.75, 2 * hd]].map(([dx, dz, w, d]) => { const y0 = gy(CW45.x + dx, CW45.z + dz), yP = gy(CW45.x + dx * 1.2, CW45.z + dz * 1.25), Hh = Math.max(3, yP + 2.5 - y0); const m = new THREE.Mesh(new THREE.BoxGeometry(w, Hh, d), gm); m.geometry.translate(0, Hh / 2, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, y0, CW45.z + dz); });   // (from the trench's floor to 2.5 amot over the plaza: in the wall's 4-amah trench a 3-amah plan stood hidden)
+      st.props.plan = [[0, -hd, 2 * hw + 0.75, 0.75], [0, hd, 2 * hw + 0.75, 0.75], [-hw, 0, 0.75, 2 * hd], [hw, 0, 0.75, 2 * hd]].map(([dx, dz, w, d]) => { const y0 = gy(CW45.x + dx, CW45.z + dz), yP = gy(CW45.x + dx * 1.2, CW45.z + dz * 1.25), Hh = 0.35; const m = new THREE.Mesh(new THREE.BoxGeometry(w, Hh, d), gm); m.geometry.translate(0, Hh / 2, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, Math.max(y0, yP) + 0.3, CW45.z + dz); });   // ── build 54 ── (a line over the plaza's level, ⅓ amah high: from the trench's floor to 2.5 over the plaza its face was the band — between the course's stones at the giant — B54G) ── /build 54 ──
     }
   }
   /** the crane's rope from the jib's end down to the stone's top */
@@ -1239,7 +1240,7 @@ export function createHar42(o = {}) {
       down() {}, move() {}, up() {},
       // ── build 54 ── (§4 important 14: "a 2D board covering the world — a game inside a game") the real lattice fills the frame — front-on,
       // LAT54.fill of the width, a little right of and below the middle (the window over the top-left); he is out of its frame ── /build 54 ──
-      view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), th = tv * (W() / H()), D = PAN46.w / (2 * LAT54.fill * th), y0 = gy(P.x, P.z) + PAN46.h / 2, sx = 0.2 * D * th, sy = 0.14 * D * tv; return { p: [P.x + sx, y0 + sy + D * 0.08, P.z - D], t: [P.x + sx, y0 + sy, P.z] }; },
+      view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), th = tv * (W() / H()), D = PAN46.w / (2 * LAT54.fill * th), g0 = gy(P.x, P.z), gx = P.x + PAN46.w / 2 - (slot.c + 0.5) * (PAN46.w / 8), gyy = g0 + PAN46.h - (slot.r + 0.5) * (PAN46.h / 4), cx = gx + LAT54.gx * D * th, cy = gyy + LAT54.gy * D * tv; return { p: [cx, cy + D * 0.08, P.z - D], t: [cx, cy, P.z] }; },   // ── build 54 ── (the gap itself right of and below the middle — from the panel's middle a gap on its left half stood under the window: c54A-03P2) ── /build 54 ──
       frame(dt) {
         { const cw = PAN46.w / 8, ch = PAN46.h / 4, y0 = gy(P.x, P.z); objPlace(true, [{ x: P.x + PAN46.w / 2 - (slot.c + 0.5) * cw, y: y0 + PAN46.h - (slot.r + 0.5) * ch, z: P.z, r: 0.3 }], 'h46lat', [{ x: P.x, y: y0 + 0.85, z: P.z, r: 1.9 }]); }   // ── build 54 ── (the ring on the gap; the camera's thing the panel) ── /build 54 ──
         svgClear(); if (!J.state().done || endT > 0.4) svgAdd(board());
@@ -1368,7 +1369,7 @@ export function createHar42(o = {}) {
         if (r === 'lock') { anim = { i: cur, t: 0 }; o.sound && o.sound('wood'); buzz42('settle'); }
         else if (r === 'rim') { anim = { i: cur, t: 0, rim: true }; buzz42('retry'); line(LINE42.beamRim, `רמה ${L}`); }
       },
-      view() { const D = Math.max(needD() + 2, 30), cx = cur >= 0 ? W2.x + SOCK48[cur] : W2.x; return { p: [cx + (cur >= 0 ? 0 : 4), W2.y + 6.2, W2.z + sz * D], t: [cx, W2.y + 6.2, W2.z] }; },   // ── build 54 ── (level, at the middle of the sockets' height, 30 amot off (K54-P-05 and c54A-05W: from 26, looking up, the beams on the ground lay on the frame's bottom edge, their handles half off it, him cut at the chest): him and the beams on the ground in the frame, the sockets over them — "him tiny at the bottom") ── /build 54 ──   // (ש3: from below in the court, looking up at the sockets; square to the beam being pushed — its way in straight up the screen: the naive kid K48-P pushed up 236 times at the corner sockets, whose way in leaned 30°)
+      view() { const D = Math.max(needD() + 7.5, 30), cx = cur >= 0 ? W2.x + SOCK48[cur] : W2.x;   /* (needD from him: he stands 5.5 amot off the wall — at needD + 2 from the wall his figure was 47 % of the height at 640: c54A-05BP) */ return { p: [cx + (cur >= 0 ? 0 : 4), W2.y + 6.2, W2.z + sz * D], t: [cx, W2.y + 6.2, W2.z] }; },   // ── build 54 ── (level, at the middle of the sockets' height, 30 amot off (K54-P-05 and c54A-05W: from 26, looking up, the beams on the ground lay on the frame's bottom edge, their handles half off it, him cut at the chest): him and the beams on the ground in the frame, the sockets over them — "him tiny at the bottom") ── /build 54 ──   // (ש3: from below in the court, looking up at the sockets; square to the beam being pushed — its way in straight up the screen: the naive kid K48-P pushed up 236 times at the corner sockets, whose way in leaned 30°)
       frame(dt) {
         objPlace(true, [{ x: W2.x, y: W2.y + 11, z: W2.z, r: 12 }], 'h48beams');
         for (const b of chips) { const g3 = nextOf(b.dataset.kind), q = g3 ? proj(g3.m.position.x, g3.m.position.y, g3.m.position.z) : null; if (q && b.style.display !== 'none') { b.style.left = `${Math.round(Math.max(4, Math.min(W() - 74, q.x - 35)))}px`; b.style.top = `${Math.round(Math.max(56, Math.min(H() - 50, q.y - 23)))}px`; } }   // ── build 54 ── (the handle over the beam where it lies) ── /build 54 ──
@@ -1934,7 +1935,7 @@ export function createHar42(o = {}) {
       // ── build 54 ── (§2 stage 04: "you can't see whether it stuck") while the pin goes down: a macro on the pin and its socket (from the north,
       // 6.5 amot, a little above — the pin's foot, the socket's rim, the leaf's edge) ── /build 54 ──
       ownView: () => phase === 'pin',
-      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.gate); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [pivX - sx * 3.8, g0 + 2.8, G.z + 5], t: [tx, g0 + 1.1, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
+      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.leaf7); if (phase === 'pin') { const tx = pivX - sx * 0.3; return { p: [pivX - sx * 4, g0 + 1.7, G.z + 5.7], t: [tx, g0 + 1.5, G.z] }; }   /* (level, 6.8 amot off: the socket and the leaf's foot both in the frame — from 2.8 up, looking down, the pin hung at the frame's top under the line: S54-leafW) */   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
       frame(dt) {
         if (phase === 'pin') objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf', [{ x: pivX - sx * 0.5, y: g0 + 1.3, z: G.z, r: 1.25 }]); else objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');   // ── build 54 ── (in the macro: the pin and its socket) ── /build 54 ──
         if (phase === 'lift') { C.frame(dt); return false; }
@@ -2002,13 +2003,13 @@ export function createHar42(o = {}) {
     return {
       acting: true, kind: 'names', N, chip, at, dragOnly: true,
       down() {}, move() {}, up() {},
-      view() { const c = { x: -93, z: 0 }, Hh = Math.max(230, 98 / tanV()); return { p: [c.x, Hh, c.z - Hh * 0.18], t: [c.x, 0, c.z] }; },   // (ש8: over the court, north at the screen's bottom)
+      view() { const c = { x: -93, z: 6 }, Hh = Math.max(230, 110 / tanV()); return { p: [c.x, Hh, c.z - Hh * 0.18], t: [c.x, 0, c.z] }; },   // (ש8: over the court, north at the screen's bottom)   // ── build 54 ── (a little higher, its middle 6 amot south: the south gates' row stood under the line's box at 640 — K54-P-04) ── /build 54 ──
       ownView: () => true,
       frame(dt) {
         objPlace(true, [{ x: -93, y: 8, z: 0, r: 90 }], 'h47names');
         for (const c of closing) { c.t += dt; const u = Math.min(1, c.t / 0.9), e = 1 - (1 - u) * (1 - u); (st.props.gl47[c.i] || []).forEach((pv) => { pv.rotation.y = pv.userData.sx * 1.1 * (1 - e); }); }
         svgClear(); const S2 = N.state();
-        for (const q of F.GATES47) { const p2 = at(q); if (!p2) continue; const set = S2.set.includes(q.id); svgAdd(`<circle cx="${p2.x}" cy="${p2.y}" r="${set ? 9 : 16}" fill="${set ? '#E8B531' : 'rgba(255,214,110,.22)'}" stroke="#FFD66E" stroke-width="3"/>${set ? `<text x="${p2.x}" y="${p2.y + (q.z > 0 ? 30 : -18)}" font-size="15" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">${esc(q.n)}</text>` : ''}`); }   /* ── build 54 ── (the name beside its gate, larger, off the wall's side) ── /build 54 ── */
+        for (const q of F.GATES47) { const p2 = at(q); if (!p2) continue; const set = S2.set.includes(q.id); svgAdd(`<circle cx="${p2.x}" cy="${p2.y}" r="${set ? 9 : 16}" fill="${set ? '#E8B531' : 'rgba(255,214,110,.22)'}" stroke="#FFD66E" stroke-width="3"/>${set ? `<text x="${p2.x}" y="${p2.y + (q.z > 0 ? 30 : -18) + (q.side === 'E' ? 0 : (q.z > 0 ? 1 : -1) * (F.GATES47.filter((g) => g.side === q.side).indexOf(q) % 2 ? 0 : 18))}" font-size="${W() < 700 ? 13 : 15}" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">${esc(q.n)}</text>` : ''}`); }   /* ── build 54 ── (the name beside its gate, larger, off the wall's side) ── /build 54 ── */
         if (endT >= 0) { endT -= dt; if (endT <= 0) { svgClear(); return true; } }
         return false;
       },

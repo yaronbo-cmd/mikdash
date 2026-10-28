@@ -27,6 +27,30 @@
       return ok ? top - ry : null;
     } catch (e) { return null; }
   }
+  // ── build 51 ── the object rule (the inspector's review 27.10 §4 item 1; the coordinator's build-51 brief): in an act's view the thing
+  // ≥ 30 % of the screen's width and ≥ 20 % of its height, and the line from the camera to its middle not through him (a ray against his
+  // figure: a 0.6-amah cylinder from his feet to his top). The thing: the act's world box (touch40's obj40.bb — its parts or the act's own
+  // thing; the laver's __OBJ51K). Per act frame: its width and height shares (its box's eight corners projected, clipped to the screen),
+  // occluded or not ('self': the thing is in his own hands — the pan on the way down, the blood's vessel carried — not counted) ── /build 51 ──
+  function occl(C, O, A, top, R) {
+    const dx = O.x - C.x, dz = O.z - C.z, fx = C.x - A.x, fz = C.z - A.z, a = dx * dx + dz * dz, b = 2 * (fx * dx + fz * dz), c = fx * fx + fz * fz - R * R;
+    if (a < 1e-9) return false; const D = b * b - 4 * a * c; if (D < 0) return false;
+    const q = Math.sqrt(D), s0 = Math.max(0, (-b - q) / (2 * a)), s1 = Math.min(0.97, (-b + q) / (2 * a)); if (s0 > s1) return false;
+    const y0 = C.y + (O.y - C.y) * s0, y1 = C.y + (O.y - C.y) * s1; return Math.max(y0, y1) >= A.y && Math.min(y0, y1) <= A.y + top;
+  }
+  function objM(B, O, cam, p, top) {
+    const bb = O.bb, V = cam.position.constructor; let x0 = 9, x1 = -9, y0 = 9, y1 = -9, n = 0;
+    for (const i of [0, 3]) for (const j of [1, 4]) for (const k of [2, 5]) { const v = new V(bb[i], bb[j], bb[k]).project(cam); if (!(v.z < 1 && v.z > -1)) continue; n++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
+    const id = String(O.id || '?'), I = (B.ids || (B.ids = {}))[id] || (B.ids[id] = { n: 0, w: 0, h: 0, wOk: 0, hOk: 0, ok: 0, occ: 0, self: 0 });
+    B.oN = (B.oN || 0) + 1; I.n++;
+    if (!n) return;
+    const ws = Math.max(0, (Math.min(1, x1) - Math.max(-1, x0)) / 2), hs = Math.max(0, (Math.min(1, y1) - Math.max(-1, y0)) / 2);
+    const c = { x: (bb[0] + bb[3]) / 2, y: (bb[1] + bb[4]) / 2, z: (bb[2] + bb[5]) / 2 }, self = !!O.self || Math.hypot(c.x - p.x, c.z - p.z) < 0.7;
+    const oc = !self && top > 0 && occl(cam.position, c, p, top, 0.6);
+    B.oW = (B.oW || 0) + ws; B.oH = (B.oH || 0) + hs; I.w += ws; I.h += hs;
+    if (ws >= 0.3) { B.oWok = (B.oWok || 0) + 1; I.wOk++; } if (hs >= 0.2) { B.oHok = (B.oHok || 0) + 1; I.hOk++; } if (ws >= 0.3 && hs >= 0.2) { B.oOk = (B.oOk || 0) + 1; I.ok++; }
+    if (self) { B.oSelf = (B.oSelf || 0) + 1; I.self++; } if (oc) { B.oOcc = (B.oOcc || 0) + 1; I.occ++; }
+  }
   function frame() {
     if (!st.on) return;
     try {
@@ -58,6 +82,7 @@
       if (!(inside(a) && inside(b))) B.out++;
       if (k === 'act') { try { const ca = globalThis.__H42.camAt(), cp = cam.position; B.camN = (B.camN || 0) + 1; B.camOff = (B.camOff || 0) + Math.hypot(cp.x - ca.p[0], cp.y - ca.p[1], cp.z - ca.p[2]); B.dHero = (B.dHero || 0) + Math.hypot(cp.x - p.x, cp.y - p.y - 2, cp.z - p.z); } catch (e) { /* */ } }   // (build 43: the camera that renders vs the stage's own, and its distance to him)
       if (k === 'act') { try { const o = globalThis.__H42 && globalThis.__H42.objAt && globalThis.__H42.objAt(); if (o) { const v = new p.constructor(o.x, o.y, o.z).project(cam), ox = (v.x + 1) / 2; B.objN = (B.objN || 0) + 1; B.objSum = (B.objSum || 0) + ox; if (ox < 0.5 || ox > 0.7) B.objOff = (B.objOff || 0) + 1; } } catch (e) { /* */ } }   // (build 43: the act's thing across the width — 55–65 % wanted)
+      if (k === 'act') { try { const T4 = globalThis.__T40, O = T4 && T4.obj && T4.obj.bb ? T4.obj : globalThis.__OBJ51K || null; if (O && O.bb) objM(B, O, cam, p, st.top); } catch (e) { st.err = 'obj51 ' + String(e && e.message).slice(0, 80); } }   // ── build 51 ── the object rule's measure ── /build 51 ──
       if (k === 'walk') {
         try { const E = globalThis.__SHIFT.E, nx = E.flowNext && E.flowNext(); if (nx && nx.at) { B.tgtN++; const s = globalThis.__T.view.project(nx.at.x, (nx.at.y || 16) + 1, nx.at.z); if (!s || s.on === false || s.x < 0 || s.y < 0 || s.x > W || s.y > Hh) B.tgtOff++; } } catch (e) { /* */ }
       }
@@ -66,12 +91,15 @@
       st.n++; st.last = { k, frac, gm };
     } catch (e) { st.err = String(e && e.message).slice(0, 120); }
   }
+  const pc = (a, n) => (n ? Math.round((a / n) * 1000) / 10 : null);
+  const objS = (B) => ({ n: B.oN, w: pc(B.oW || 0, B.oN), h: pc(B.oH || 0, B.oN), wOk: pc(B.oWok || 0, B.oN), hOk: pc(B.oHok || 0, B.oN), ok: pc(B.oOk || 0, B.oN), occ: pc(B.oOcc || 0, B.oN - (B.oSelf || 0)), self: B.oSelf || 0,
+    ids: Object.fromEntries(Object.entries(B.ids || {}).map(([k, I]) => [k, { n: I.n, w: pc(I.w, I.n), h: pc(I.h, I.n), ok: pc(I.ok, I.n), occ: pc(I.occ, I.n - I.self), self: I.self }])) });   // (shares in %; occ of the frames not 'self')
   globalThis.__CAM41 = {
     start() { if (st.on) return; st.on = true; st.timer = setInterval(frame, 50); },   // (the page's simulated loop steps every 50 ms — main.js simulate — and renders only for a shot: sampled on its beat)
     stop() { st.on = false; clearInterval(st.timer); },
     reset() { for (const k of Object.keys(K)) delete K[k]; st.want = null; },
     take() { const w = st.want; st.want = null; return w; },
     now: () => st.last,
-    stats() { const o = {}; for (const [k, B] of Object.entries(K)) o[k] = { n: B.n, min: Math.round(B.min * 1000) / 1000, max: Math.round(B.max * 1000) / 1000, mean: B.n ? Math.round((B.sum / B.n) * 1000) / 1000 : null, lo: B.lo, hi: B.hi, out: B.out, tgtOff: B.tgtOff, tgtN: B.tgtN, worst: B.worst, low: B.low, objX: B.objN ? Math.round((B.objSum / B.objN) * 1000) / 1000 : null, objOff: B.objOff || 0, camOff: B.camN ? Math.round((B.camOff / B.camN) * 100) / 100 : null, dHero: B.camN ? Math.round((B.dHero / B.camN) * 100) / 100 : null }; return { top: st.top, frames: st.n, err: st.err || null, figD: st.figD, k: o }; },
+    stats() { const o = {}; for (const [k, B] of Object.entries(K)) o[k] = { n: B.n, min: Math.round(B.min * 1000) / 1000, max: Math.round(B.max * 1000) / 1000, mean: B.n ? Math.round((B.sum / B.n) * 1000) / 1000 : null, lo: B.lo, hi: B.hi, out: B.out, tgtOff: B.tgtOff, tgtN: B.tgtN, worst: B.worst, low: B.low, objX: B.objN ? Math.round((B.objSum / B.objN) * 1000) / 1000 : null, objOff: B.objOff || 0, camOff: B.camN ? Math.round((B.camOff / B.camN) * 100) / 100 : null, dHero: B.camN ? Math.round((B.dHero / B.camN) * 100) / 100 : null, ...(B.oN ? { obj: objS(B) } : {}) }; return { top: st.top, frames: st.n, err: st.err || null, figD: st.figD, k: o }; },
   };
 })();

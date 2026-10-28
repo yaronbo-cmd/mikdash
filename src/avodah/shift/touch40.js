@@ -46,6 +46,14 @@ export function box40(pts, proj) {
   if (!n) return null;
   return { l, t, r, b, w: r - l, h: b - t, x: (l + r) / 2, y: (t + b) / 2, fp: Math.max(r - l, b - t) };
 }
+/** ── build 51 ── the thing's world box (pure): the parts' spheres' bounds, or the act's own thing (o.thing() → [x0, y0, z0, x1, y1, z1] —
+ *  the whole lamb, the whole menorah, where the touch parts are only its legs or one lamp) → [x0, y0, z0, x1, y1, z1] | null ── /build 51 ── */
+export function bb51(pts, thing) {
+  try { const t = typeof thing === 'function' ? thing() : null; if (Array.isArray(t) && t.length === 6 && t.every(Number.isFinite)) return t; } catch (e) { /* the act's */ }
+  const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  for (const p of pts || []) { if (!p || !Number.isFinite(p.x)) continue; const r = p.r > 0 ? p.r : 0.5; b[0] = Math.min(b[0], p.x - r); b[1] = Math.min(b[1], p.y - r); b[2] = Math.min(b[2], p.z - r); b[3] = Math.max(b[3], p.x + r); b[4] = Math.max(b[4], p.y + r); b[5] = Math.max(b[5], p.z + r); }
+  return Number.isFinite(b[0]) ? b : null;
+}
 /** the hit area for a box on a W × H screen (pure): + margin, at least T40.box square, kept on the screen → { l, t, w, h } */
 export function hit40(bx, W, H, c = T40) {
   let w = Math.max(c.box, bx.w + 2 * c.margin), h = Math.max(c.box, bx.h + 2 * c.margin);
@@ -110,7 +118,7 @@ export function createTouch40(o = {}) {
       if (!fb0 && st.mode === 'pad' && bx && bx.fp < T40.min + T41.hyst) fb = 'small'; }
     // (the act's object for the camera: the middle of its parts)
     const p0 = (pts || []).find((p) => p && Number.isFinite(p.x));
-    if (!st.down) { const pb = (pts || []).filter((p) => p && Number.isFinite(p.x)), n = pb.length || 1; SHARED.obj40 = p0 ? { x: pb.reduce((a, p) => a + p.x, 0) / n, y: pb.reduce((a, p) => a + p.y, 0) / n, z: pb.reduce((a, p) => a + p.z, 0) / n, r: p0.r || 0.5, id: st.id, at, t40: api } : null; pub(); }   // (the parts' middle; held under the finger)
+    if (!st.down) { const pb = (pts || []).filter((p) => p && Number.isFinite(p.x)), n = pb.length || 1; SHARED.obj40 = p0 ? { x: pb.reduce((a, p) => a + p.x, 0) / n, y: pb.reduce((a, p) => a + p.y, 0) / n, z: pb.reduce((a, p) => a + p.z, 0) / n, r: p0.r || 0.5, id: st.id, at, t40: api, bb: bb51(pb, o.thing), self: pb.some((p) => p.self) } : null; pub(); }   // (the parts' middle; held under the finger)   // ── build 51 ── (bb: the thing's world box for the object rule — twin.js obj51; o.thing(): an act's own, larger thing) ── /build 51 ──
     st.fb = fb; st.box = bx;
     try { globalThis.__T40S = { id: st.id, fb, fp: bx ? Math.round(bx.fp) : null, x: bx ? Math.round(bx.x) : null, y: bx ? Math.round(bx.y) : null, n: (pts || []).length }; } catch (e) { /* */ }   // (the last surface's reasons, for the tools)
     if (st.down) return st.mode;   // (frozen under the finger: the layer never moves while it is held)

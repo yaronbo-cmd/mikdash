@@ -7,6 +7,7 @@
  * The stick is off while the rings are up (twin.noStick).
  *   createKiyor20({ E, sfx, doc, slot, twin }) → { destroy(), state() }      (focus17.js makes it when E.g20; globalThis.__K20)
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
+import * as THREE from 'three';
 import { onTick } from './draw.js';
 import { K20, K20M } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
@@ -16,6 +17,9 @@ const SRC_K20 = '"עד שתקדש ידיך ורגליך מן הכיור" — ת�
 const SRC_MM = 'הממונה: ״ימין על ימין, שמאל על שמאל״ — זבחים יט ע״ב · טיוטה';
 reg30('kiyor', { chip: SRC_K20, all: [SRC_K20, SRC_MM] });
 // ── build 51 ── the laver's own box (avodah3d.js's solid R_(-66.1, -60.9, 17.4, 22.6); from the stand's middle to the bowl's rim, 17–21.2): the act's thing ── /build 51 ──
+// ── build 52 ── the laver lit while he washes (the coordinator's build-52 play-test: "a black silhouette"): a warm light on the view's
+// side (day33 KV52 — the north), over his head, its reach the bowl and him ── /build 52 ──
+export const LIGHT52 = Object.freeze({ color: '#FFD9A8', k: 120, d: 18, decay: 1.6, at: Object.freeze([-60.6, 24.2, 15.2]), fill: Object.freeze({ k: 45, at: Object.freeze([-64.8, 20.5, 14.8]) }) });
 export const LAVER51 = Object.freeze({ id: 'k20', x: -63.5, y: 19.1, z: 20, bb: Object.freeze([-66.1, 17, 17.4, -60.9, 21.2, 22.6]) });   // (the bowl and its spigots over the stand's foot: the look on the bowl, not the floor)
 export function createKiyor20(o = {}) {
   const E = o.E,
@@ -154,6 +158,20 @@ export function createKiyor20(o = {}) {
       w.pour20(spig[1], null, false);
     }
   }
+  // ── build 52 ── (LIGHT52: made at the first wash, in the scene while he washes) ── /build 52 ──
+  let lights52 = null;
+  const light52 = (on) => {
+    try {
+      const sc = globalThis.__T && globalThis.__T.scene;
+      if (!sc) return;
+      if (!lights52 && on) {
+        const a = new THREE.PointLight(LIGHT52.color, LIGHT52.k, LIGHT52.d, LIGHT52.decay), b = new THREE.PointLight(LIGHT52.color, LIGHT52.fill.k, LIGHT52.d, LIGHT52.decay);
+        a.position.set(...LIGHT52.at); b.position.set(...LIGHT52.fill.at); a.name = 'k20-light52'; b.name = 'k20-fill52';
+        sc.add(a, b); lights52 = [a, b];
+      }
+      if (lights52) { lights52[0].intensity = on ? LIGHT52.k : 0; lights52[1].intensity = on ? LIGHT52.fill.k : 0; }   // (intensity, not visible: the shaders' light count stays — no recompile at each wash)
+    } catch (e) {}
+  };
   const offTick = onTick((tt, dt) => {
       const st = E.st33,
         k = E.k20();
@@ -161,6 +179,7 @@ export function createKiyor20(o = {}) {
       const on = !!k,
         vis = on && (k.ph === 'up' || k.ph === 'pose');
       setOn(on);
+      light52(vis);   // ── build 52 ── ── /build 52 ──
       try { globalThis.__OBJ51K = vis ? LAVER51 : null; } catch (e) {}   // ── build 51 ── (the laver: the act's thing for the object rule — twin.js obj51 — and the tools) ── /build 51 ──
       for (const side of ['L', 'R']) {
         const btn = rings[side];
@@ -319,6 +338,7 @@ export function createKiyor20(o = {}) {
         H.pose20(false);
         H.dust20(0, 0);
       }
+      try { if (lights52) for (const L of lights52) L.removeFromParent(); lights52 = null; } catch (e) {}   // ── build 52 ── ── /build 52 ──
       try {
         delete globalThis.__K20LAVER;
         if (globalThis.__K20 === api) delete globalThis.__K20;

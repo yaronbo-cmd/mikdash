@@ -44,7 +44,7 @@ test('build 37 (1): the wick\'s hand — shown on the wick until his first wick 
   assert.match(h, /if \(ev\.ph === 'wick'\) w37\.no\+\+;/);
   assert.match(h, /p\.ta = t - p\.t0/); assert.match(h, /E\.r26swipe\(dx \/ WD\(\), dy \/ HT\(\), p\.ta != null \? p\.ta : ms\)/);
   assert.match(h, /\.hk26-w37\{[^}]*\}/); assert.match(h, /@keyframes hk26w37\{/);
-  assert.equal(GAME_BUILD, 51);   // (build 38: the constant moved on) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 52);   // (build 38: the constant moved on) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
 });
 
 // ───────── (2) the second spigot ─────────
@@ -76,7 +76,7 @@ test('build 37 (2): a save that owns kiyor2 gets its 40 perutot back once (save.
 test('build 37 (3): the levels\' new knobs — the ashes\' pans, the laver\'s and the teni\'s balance at level 4, the lamb\'s spots and level 4\'s smaller blemish; every level still with its source or המחשה', () => {
   assert.deepEqual(ROLES36.map((id) => LVL36[id].length), [4, 4, 4, 4, 4, 4, 4, 4]);
   for (const id of ROLES36) for (const x of LVL36[id]) assert.ok((x.src && /טיוטה/.test(x.src)) || x.mh === 1, `${id}: ${x.he}`);
-  assert.deepEqual([1, 2, 3, 4].map((L) => { const h = par36('deshen', L).heavy; return [h.wind, h.spill]; }), [[1.2, 0.68], [1.2, 0.68], [1.45, 0.6], [1.65, 0.53]]);
+  assert.deepEqual([1, 2, 3, 4].map((L) => { const h = par36('deshen', L).heavy; return [h.wind, h.spill]; }), [[0.6, 0.9], [1.2, 0.68], [1.45, 0.6], [1.65, 0.53]]);   // (build 52: level 1 softened — a child a reaction (~250 ms) behind the meter spilled 3 times a walk; tools/bal52.mjs)
   assert.deepEqual([par36('kiyor', 4).bal.wind, par36('kiyor', 4).bal.lim, par36('inner', 4).teni.wind, par36('inner', 4).teni.lim], [1.55, 0.5, 1.4, 0.5]);
   assert.deepEqual([1, 2, 3, 4].map((L) => [par36('lamb', L).pB, par36('lamb', L).dirt, par36('lamb', L).sz || 1]), [[0.8, 4, 1], [0.8, 4, 1], [0.8, 4, 1], [0.85, 4, 0.5]]);
   assert.match(read('src/avodah/shift/pen25.js'), /\* \(sp2\.small \? 0\.62 : 1\) \* \(sp2\.sz \|\| 1\)/);
@@ -111,7 +111,7 @@ test('build 37 (3): the tools\' balance hand (hand37) — the same lines in the 
 test('build 37 (3): a sample of the measured shares (node, the tuned table: the ashes, the laver, the lamb)', async () => {
   const share = async (role, L, prof, n) => { let h = 0; for (let i = 0; i < n; i++) if ((await run1(role, L, prof, i)).rating === 'mehudar') h++; return h / n; };
   const a1 = await share('deshen', 1, 'child', 20), a4 = await share('deshen', 4, 'skilled', 20);
-  assert.ok(a1 >= 0.45 && a1 <= 0.95, `the ashes, level 1, the child: ${a1}`); assert.ok(a4 >= 0.1 && a4 <= 0.6, `the ashes, level 4, the skilled: ${a4}`);
+  assert.ok(a1 >= 0.45 && a1 <= 1, `the ashes, level 1, the child: ${a1}`);   /* (build 52: level 1 softened for the slower child — this faster one all מהודר) */ assert.ok(a4 >= 0.1 && a4 <= 0.6, `the ashes, level 4, the skilled: ${a4}`);
   const l4 = await share('lamb', 4, 'skilled', 20); assert.ok(l4 >= 0.1 && l4 <= 0.65, `the lamb, level 4, the skilled: ${l4}`);
 });
 

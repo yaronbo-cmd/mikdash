@@ -140,12 +140,12 @@ export function createDam27(o = {}) {
   const LAMB = P27.lamb,
     LY = 16.18,
     LS = 1.35,   // (the lamb's size, as the other works draw a lamb: about an amah and a third long — a yearling beside a man)
-    FORE = { x: LAMB.x + 0.67 * LS, y: LY + 0.1 * LS, z: LAMB.z + 0.3 * LS },
-    HIND = { x: LAMB.x + 0.67 * LS, y: LY + 0.07 * LS, z: LAMB.z - 0.18 * LS },
+    FORE = { x: LAMB.x + 0.42 * LS, y: LY + 0.1 * LS, z: LAMB.z + 0.3 * LS },   // ── build 52 ── (on the legs themselves — lambBound's two legs, x + 0.42 — was 0.67, beyond them) ── /build 52 ──
+    HIND = { x: LAMB.x + 0.42 * LS, y: LY + 0.07 * LS, z: LAMB.z - 0.21 * LS },
     NECK = { x: LAMB.x + 0.12 * LS, y: LY + 0.22 * LS, z: LAMB.z + 0.72 * LS };
   // the guide on the screen: the moving ring on the foreleg, the target ring BIND_PX along the legs' own screen direction — the legs
   // are half an amah apart and, from the ring's north view, lie along the view's depth (≈ 10 px apart, the target straight below)
-  const BIND_PX = 76,
+  const BIND_PX = 76,   // (build 36–51; build 52: BIND52)
     legsOnScreen = () => {
       const f = proj(FORE.x, FORE.y, FORE.z),
         h = proj(HIND.x, HIND.y, HIND.z);
@@ -154,7 +154,7 @@ export function createDam27(o = {}) {
         vy = h.y - f.y,
         vl = Math.hypot(vx, vy);
       if (vl < 3) (vx = 0), (vy = 1), (vl = 1);
-      const L = Math.max(BIND_PX, vl);
+      const L = Math.max(BIND52.min, vl);   // ── build 52 ── (the arrow on the legs themselves, foreleg → hind leg: SH52's view sets them ~70 px apart; was BIND_PX 76 down from the foreleg — "a ring to the floor ring") ── /build 52 ──
       return { f, h: { x: f.x + (vx / vl) * L, y: f.y + (vy / vl) * L } };
     },
     bindDir = (g) => (!g ? '' : Math.abs(g.h.y - g.f.y) >= Math.abs(g.h.x - g.f.x) ? (g.h.y > g.f.y ? 'd' : 'u') : 's');
@@ -243,13 +243,13 @@ export function createDam27(o = {}) {
       const vx = bindG.hind.x - bindG.fore.x,
         vy = bindG.hind.y - bindG.fore.y,
         vl = Math.hypot(vx, vy) || 1,
-        need = Math.max(70, Math.min(vl, thr51 > 0 ? thr51 : vl)),   // ── build 51 ── (the binding's drag: along the arrow, as long as the swipe's gate (swipe51) — not the legs' whole span: in the macro the lamb fills the screen and a child's drag fell short, 32 tries; the naive kid K51-P-sho) ── /build 51 ──
+        need = bindNeed52(vl, thr51, WD()),   // ── build 52 ── (as long as the swipe's gate, at most 0.8 of the arrow, at least 0.035 of the width — was ≥ 70 px) ── /build 52 ──
         ux = vx / vl,
         uy = vy / vl,
         mx = ev.clientX - p.x0,
         my = ev.clientY - p.y0;
       bindG.prog = clamp01((mx * ux + my * uy) / need);
-      if (bindG.prog >= 0.88 && Math.abs(mx * -uy + my * ux) < need * 0.7) {
+      if (bindOk52(mx, my, ux, uy, need)) {   // ── build 52 ── (roughly along the arrow: within ±35°, the gate's length) ── /build 52 ──
         bindG.prog = 1;
         p.bound = true;
         E.r27bind(true);
@@ -949,3 +949,10 @@ const CSS = `.dm27{position:fixed;z-index:32;direction:rtl;text-align:center;fon
 .dm27-o .fa{fill:#FFD66E33;stroke:#FFE6A0;stroke-width:3}.dm27-o .hi{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:5 4}.dm27-o .bl{stroke:#FFE6A0;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 1px 2px #000)}
 .dm27-o .st51{fill:none;stroke:#C0141A;stroke-width:5;stroke-linecap:round;stroke-dasharray:10 6;animation:dm27st 0.5s linear infinite;filter:drop-shadow(0 0 3px #ff4a3a88)}.dm27-o .vs51{fill:none;stroke:#FFE6A0;stroke-width:3}.dm27-o .vs51.ok{stroke:#9CFF9A;fill:#9CFF9A33}@keyframes dm27st{to{stroke-dashoffset:-16}}
 body.dm27-on .gm .tw-pad,body.dm27-on .f17-bar{opacity:.0!important;pointer-events:none!important}`;
+// ── build 52 ── the binding's drag (the coordinator's build-52 play-test: "accept a drag that roughly follows the arrow (±35°) and is at
+// least the swipe gate long"): min — the arrow's least length on the screen (px); ang — the drag's most angle from the arrow ── /build 52 ──
+export const BIND52 = Object.freeze({ min: 40, ang: (35 * Math.PI) / 180, floor: 0.035, k: 0.8 });
+/** the drag needed (px): the swipe's gate (thr), at most k of the arrow's length (vl), at least floor of the width (W) (pure) */
+export const bindNeed52 = (vl, thr, W) => Math.max(BIND52.floor * (W || 844), Math.min(thr > 0 ? thr : vl, BIND52.k * vl));
+/** a drag (mx, my) along the arrow's unit (ux, uy): long enough and within ±35° of it (pure) */
+export const bindOk52 = (mx, my, ux, uy, need) => { const a = mx * ux + my * uy, p = Math.abs(mx * -uy + my * ux); return a >= need && Math.atan2(p, a) <= BIND52.ang; };

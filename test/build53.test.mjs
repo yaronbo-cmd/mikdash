@@ -99,7 +99,8 @@ test('build 53: the course — stage 01 starts at the second course, on the crew
 
 test('build 53: the corner (01, 02) — the place\'s dashed outline on the ground at every level and "עוד X" by the bar', () => {
   assert.match(H, /stroke-dasharray="9 6"/);
-  assert.match(H, /more\.textContent = s\.x > 0 \? `\$\{n\} טפחים חזרה` : `עוד \$\{n\} טפחים`;/);
+  // (build 54: the arrow toward the place by its side on the screen, "לצד השני" after a push away, one tefach in words)
+  assert.match(H, /more\.textContent = away54 > 0 \? `לצד השני \$\{arr\}` : s\.x > 0 \? `\$\{tf\} חזרה \$\{arr\}` : `עוד \$\{tf\} \$\{arr\}`;/);
 });
 
 test('build 53: the Mount alive — crews, carts and heaps round the work and one behind each act\'s thing; shapes only (no assets)', () => {

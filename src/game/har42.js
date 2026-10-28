@@ -777,8 +777,8 @@ export function createHar42(o = {}) {
     const pr = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(PL.pstone.x, top, PL.pstone.z), new THREE.Vector3(PL.pstone.x, top - 6, PL.pstone.z), new THREE.Vector3(PL.pulley.x, top, PL.pulley.z), new THREE.Vector3(PL.pulley.x + Math.sign(STAND.pulley.x - PL.pulley.x || -1) * 0.6, PL.pulley.y + 1.4, PL.pulley.z + 0.6)]);
     st.props.pRope = add(new THREE.LineSegments(pr, new THREE.LineBasicMaterial({ color: '#D9C9A0' })), 0, 0, 0); st.props.pTop = top;
     if (STG === 'wall') {
-      const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.8 }), hw = CW45.w / 2 + 3, hd = CW45.d / 2 + 3;   // (the gold line along the wall's middle: it rises inside the wall to be)
-      st.props.plan = [[0, -hd, 2 * hw + 3, 3], [0, hd, 2 * hw + 3, 3], [-hw, 0, 3, 2 * hd], [hw, 0, 3, 2 * hd]].map(([dx, dz, w, d]) => { const y0 = gy(CW45.x + dx, CW45.z + dz), yP = gy(CW45.x + dx * 1.2, CW45.z + dz * 1.25), Hh = Math.max(3, yP + 2.5 - y0); const m = new THREE.Mesh(new THREE.BoxGeometry(w, Hh, d), gm); m.geometry.translate(0, Hh / 2, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, y0, CW45.z + dz); });   // (from the trench's floor to 2.5 amot over the plaza: in the wall's 4-amah trench a 3-amah plan stood hidden)
+      const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.4, depthWrite: false }), hw = CW45.w / 2 + 3, hd = CW45.d / 2 + 3;   // ── build 54 ── (the coordinator's touch play of 53: "a wide glowing slab across 40 % of the screen at the giant" — 53's treatment: half seen, ¼ as wide, below) ── /build 54 ──   // (the gold line along the wall's middle: it rises inside the wall to be)
+      st.props.plan = [[0, -hd, 2 * hw + 0.75, 0.75], [0, hd, 2 * hw + 0.75, 0.75], [-hw, 0, 0.75, 2 * hd], [hw, 0, 0.75, 2 * hd]].map(([dx, dz, w, d]) => { const y0 = gy(CW45.x + dx, CW45.z + dz), yP = gy(CW45.x + dx * 1.2, CW45.z + dz * 1.25), Hh = Math.max(3, yP + 2.5 - y0); const m = new THREE.Mesh(new THREE.BoxGeometry(w, Hh, d), gm); m.geometry.translate(0, Hh / 2, 0); m.scale.y = 0.001; return add(m, CW45.x + dx, y0, CW45.z + dz); });   // (from the trench's floor to 2.5 amot over the plaza: in the wall's 4-amah trench a 3-amah plan stood hidden)
     }
   }
   /** the crane's rope from the jib's end down to the stone's top */
@@ -1153,7 +1153,7 @@ export function createHar42(o = {}) {
    * home (a flick's length is its push; too strong overshoots — nudge it back); level 1 shows a ghost of the place (v2 §3) */
   function mkCorner(label = LINE42.corner, part = 'corner') {
     const L = famL('place'), J = F.createFlick(L), S0 = PL.stone0, s0 = st.props.stone0, y1 = S0.y + 0.9, y0 = s0 ? s0.position.y : y1 + 3;
-    let lowT = 0, cx = 0, lev = 0;
+    let lowT = 0, cx = 0, lev = 0, away54 = 0;
     if (st.props.ghost) { st.props.ghost.visible = !!J.state().ghost; st.props.ghost.position.set(S0.x, y1, S0.z); }
     // ── build 53 ── (§4 important 11) the place as a dashed outline on the ground under it — at every level — and "עוד X" by the bar: the way
     // still to go, in tefachim (6 to the amah) ── /build 53 ──
@@ -1170,7 +1170,7 @@ export function createHar42(o = {}) {
       up(a) {
         if (lowT < 1.4) return;
         const dx = a.x - a.x0, dy = a.y - a.y0, px = Math.hypot(dx, dy), A = axis(), dir = A ? (dx * A.ux + dy * A.uy >= 0 ? 1 : -1) : 1;
-        const r = J.flick({ dragPx: px, dir }); if (r !== 'tap') { lev = 0.45 * dir; buzz42(r === 'over' ? 'retry' : r === 'home' ? 'settle' : 'mallet'); if (r === 'over') line('יותר מדי — גררו את המוט חזרה, בעדינות · המחשה', `רמה ${J.state().L}`); }
+        const abs0 = Math.abs(J.state().x), r = J.flick({ dragPx: px, dir }); if (r !== 'tap') { lev = 0.45 * dir; buzz42(r === 'over' ? 'retry' : r === 'home' ? 'settle' : 'mallet'); if (r === 'over') line('יותר מדי — גררו את המוט חזרה, בעדינות · המחשה', `רמה ${J.state().L}`); away54 = r === 'ok' && Math.abs(J.state().x) > abs0 + 1e-6 ? 2.4 : 0; }   // ── build 54 ── (a push away from the place: "לצד השני") ── /build 54 ──
       },
       frame(dt) {
         lowT += dt; const s = J.state(), k = Math.min(1, lowT / 1.4), e = k * k * (3 - 2 * k);
@@ -1180,7 +1180,7 @@ export function createHar42(o = {}) {
         objPlace(true, [{ x: S0.x + cx, y: y1, z: S0.z, r: 2.4 }], 'h42corner');
         if (!s.done && lowT > 1.4 && !(s.flicks && s.side > 0)) line(label, `רמה ${s.L} · דחיפות ${s.flicks}`);
         svgClear(); if (!s.done) { const G = ghost53(); if (G) svgAdd(`<polygon points="${G.map((v) => `${v.x},${v.y}`).join(' ')}" fill="rgba(255,214,110,.16)" stroke="#FFD66E" stroke-width="3" stroke-dasharray="9 6"/>`); }   // ── build 53 ── the place (§4 important 11) ── /build 53 ──
-        { const lvTop = proj(S0.x + cx - 2.3, S0.y + 3.1, S0.z + 0.3), n = Math.max(1, Math.round(Math.abs(s.x) * 6)); more.hidden = s.done || lowT < 1.4 || !lvTop; if (!more.hidden) { more.textContent = s.x > 0 ? `${n} טפחים חזרה` : `עוד ${n} טפחים`; more.style.left = `${Math.round(Math.max(60, Math.min(W() - 60, lvTop.x)))}px`; more.style.top = `${Math.round(Math.max(70, lvTop.y - 6))}px`; } }   // ── build 53 ── "עוד X" by the bar ── /build 53 ──
+        { const lvTop = proj(S0.x + cx - 2.3, S0.y + 3.1, S0.z + 0.3), n = Math.max(1, Math.round(Math.abs(s.x) * 6)); more.hidden = s.done || lowT < 1.4 || !lvTop; away54 = Math.max(0, away54 - dt); if (!more.hidden) { const ps = proj(S0.x + cx, y1, S0.z), ph = proj(S0.x, y1, S0.z), arr = (ps && ph ? ph.x < ps.x : s.x > 0) ? '⬅' : '➡', tf = n === 1 ? 'טפח אחד' : `${n} טפחים`; more.textContent = away54 > 0 ? `לצד השני ${arr}` : s.x > 0 ? `${tf} חזרה ${arr}` : `עוד ${tf} ${arr}`;   /* ── build 54 ── (the coordinator's touch play of 53: the way to the place — an arrow by its side on the screen; one tefach in words) ── /build 54 ── */ more.style.left = `${Math.round(Math.max(60, Math.min(W() - 60, lvTop.x)))}px`; more.style.top = `${Math.round(Math.max(70, lvTop.y - 6))}px`; } }   // ── build 53 ── "עוד X" by the bar ── /build 53 ──
         if (s.done) { if (st.props.ghost) st.props.ghost.visible = false; if (st.props.lever) st.props.lever.visible = false; if (s0) s0.position.set(S0.x + s.x, y1, S0.z); grade(part, s.q, proj(S0.x, y1 + 1.2, S0.z)); if (STG === 'wall' && MODE === 'stage') { try { if (s0) s0.position.x = S0.x; R.stones = stones45(); save42(S); } catch (e) { /* */ } } return true; }
         return false;
       },

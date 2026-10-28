@@ -118,3 +118,19 @@ test('build 54: the wheel over the pit (07) — the spokes a pile in the world, 
   assert.match(wh, /bk\.rotation\.z \+= \(\(s\.spilling \? 0\.55 : 0\) - bk\.rotation\.z\)/);
   assert.match(wh, /st\.props\.puddle54 = pm;/);
 });
+
+test('build 54 (the coordinator\'s touch play of 53): the bar\'s label says the way — an arrow toward the place by its side on the screen; "לצד השני" after a push away; one tefach in words', () => {
+  const c = fnOf('mkCorner', 'mkLattice');
+  assert.match(c, /arr = \(ps && ph \? ph\.x < ps\.x : s\.x > 0\) \? '⬅' : '➡'/);
+  assert.match(c, /tf = n === 1 \? 'טפח אחד' : `\$\{n\} טפחים`/);
+  assert.match(c, /away54 = r === 'ok' && Math\.abs\(J\.state\(\)\.x\) > abs0 \+ 1e-6 \? 2\.4 : 0;/);
+  assert.doesNotMatch(c, /`\$\{n\} טפחים חזרה`|`עוד \$\{n\} טפחים`/, 'never "עוד 1 טפחים"');
+  // (pure: a push away from the place grows |x| and is 'ok' — the label's "לצד השני")
+  const J = F.createFlick(1); const a0 = Math.abs(J.state().x); assert.equal(J.flick({ dragPx: 60, dir: -1 }), 'ok'); assert.ok(Math.abs(J.state().x) > a0);
+  const J2 = F.createFlick(1); const b0 = Math.abs(J2.state().x); J2.flick({ dragPx: 60, dir: 1 }); assert.ok(Math.abs(J2.state().x) < b0, 'a push toward it shrinks the way');
+});
+
+test('build 54 (the coordinator\'s touch play of 53): stage 02\'s gold plan — a thin line (¾ amah; was 3), half seen', () => {
+  assert.match(H, /const gm = new THREE\.MeshBasicMaterial\(\{ color: '#FFD66E', transparent: true, opacity: 0\.4, depthWrite: false \}\)/);
+  assert.match(H, /st\.props\.plan = \[\[0, -hd, 2 \* hw \+ 0\.75, 0\.75\], \[0, hd, 2 \* hw \+ 0\.75, 0\.75\], \[-hw, 0, 0\.75, 2 \* hd\], \[hw, 0, 0\.75, 2 \* hd\]\]/);
+});

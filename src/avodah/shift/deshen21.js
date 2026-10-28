@@ -365,9 +365,9 @@ export function createDeshen21(o = {}) {
         // the first walk of the act, side to side, till the right thumb is down or 10 s have gone; touch40's hand hidden meanwhile) ── /build 52 ──
         const wk = ph === 'walk' || ph === 'desc';
         if (ph === 'in' || ph === 'sweep') { walk52.t0 = null; walk52.done = false; }   // (a new act: its first walk again)
-        if (wk && walk52.t0 == null) walk52.t0 = tt;
+        if (wk && walk52.t0 == null) walk52.t0 = tt / 1000;   // (the tick's clock is in ms)
         if (wk && touch) walk52.done = true;
-        const on52 = wk && !walk52.done && walk52.t0 != null && tt - walk52.t0 < WALK52.hint;
+        const on52 = wk && !walk52.done && walk52.t0 != null && tt / 1000 - walk52.t0 < WALK52.hint;
         if (hand52.classList.contains('on') !== on52) { hand52.classList.toggle('on', on52); doc.body.classList.toggle('d21-h52on', on52); if (on52) stat.hint52 = (stat.hint52 | 0) + 1; }
       }
       const balance = ph === 'walk' || ph === 'desc' || ph === 'full';   // ── build 51 ── (+ 'full': the meter from the moment the pan is full) ── /build 51 ──

@@ -49,7 +49,7 @@ test('build 52 (1): the shochet\'s binding view — the lamb whole and ≥ 35 % 
   assert.ok(Math.abs(h.x - f.x) * 844 > Math.abs(h.y - f.y) * 390, 'the arrow along the frame, foreleg → hind leg (not down to the floor)');
   // (the cut: build 27's medium shot — the neck ≥ 8 amot off)
   const C = SH52.cut, neck = Math.hypot(C.p[0] - (L.x + 0.12 * LS), C.p[2] - (L.z + 0.72 * LS)); assert.ok(neck >= 8, `the cut's view ${neck} from the neck`);
-  const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /FORE = \{ x: LAMB\.x \+ 0\.42 \* LS,/); assert.match(dm, /const L = Math\.max\(BIND52\.min, vl\);/);
+  const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /FORE = \{ x: LAMB\.x \+ 0\.42 \* LS,/); assert.match(dm, /\{ roll: Math\.PI \/ 2, yaw: -Math\.PI \/ 2 - 0\.3 \* bp \}/, 'the legs out from the belly toward him'); assert.match(dm, /\{ roll: Math\.PI \/ 2, yaw: -Math\.PI \/ 2 \+ 0\.25 \* bp \}/); assert.match(dm, /const L = Math\.max\(BIND52\.min, vl\);/);
   assert.match(read('src/game/twin.js'), /if \(V && !globalThis\.__CAM40_OFF && !V\.own\) \{/, 'a view of its own: no pan40, no obj51');
 });
 test('build 52 (1): the binding\'s drag — within ±35° of the arrow and as long as the gate (at most 0.8 of the arrow, at least 0.035 of the width)', () => {
@@ -83,7 +83,7 @@ test('build 52 (2): the laver from its side, lit — a view of its own, the bowl
 });
 test('build 52 (3): the ashes\' walk — its line the gesture (≤ 5 words, a verb and the arrow); one hand on the right half at the first walk; level 1 softened', async () => {
   for (const ph of ['walk', 'desc']) { const s = LINE30.deshen[ph]; assert.equal(s, 'ימין: גררו נגד הנטייה ↔'); assert.ok(words30(s) <= 5); }
-  const d = read('src/avodah/shift/deshen21.js'); assert.match(d, /hand52 = mk\('d21-h52', '<i>👆<\/i>'\)/); assert.match(d, /const on52 = wk && !walk52\.done && walk52\.t0 != null && tt - walk52\.t0 < WALK52\.hint;/);
+  const d = read('src/avodah/shift/deshen21.js'); assert.match(d, /hand52 = mk\('d21-h52', '<i>👆<\/i>'\)/); assert.match(d, /const on52 = wk && !walk52\.done && walk52\.t0 != null && tt \/ 1000 - walk52\.t0 < WALK52\.hint;/, 'seconds — the tick gives ms');
   assert.match(d, /\.d21-h52\{position:fixed;left:74%;/, 'on the right half'); assert.match(d, /body\.d21-h52on \.t40-hand\{opacity:0!important\}/, 'one hand at a time'); assert.equal(WALK52.hint, 10);
   assert.deepEqual({ ...par36('deshen', 1).heavy }, { wind: 0.6, shake: 0.45, spill: 0.9 }); assert.deepEqual({ ...par36('deshen', 2).heavy }, { wind: 1.2, shake: 1.2, spill: 0.68 }, 'level 2 as it was');
   // (a child's two thumbs, the right a reaction (0.25 s) behind the meter: ≤ 1 spill a walk on the whole)

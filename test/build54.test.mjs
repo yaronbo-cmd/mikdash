@@ -47,6 +47,9 @@ test('build 54: the lattice (03) — the board a window of 40 % of the width in 
   const lat = fnOf('mkLattice', 'mkWood');
   assert.match(lat, /const geo = \(\) => \{ const bw = W\(\) \* LAT54\.win, sz = bw \/ 10; return \{ x: 10,/);
   assert.match(lat, /D = PAN46\.w \/ \(2 \* LAT54\.fill \* th\)/);
+  assert.match(lat, /cx = gx \+ LAT54\.gx \* D \* th, cy = gyy \+ LAT54\.gy \* D \* tv;/, 'the view on the gap itself');
+  // (pure: the gap at gx, gy of the half-frame right of and below the middle — clear of the window, 40 % wide over the top-left)
+  assert.ok(0.5 + LAT54.gx / 2 > LAT54.win + 0.05 && 0.5 + LAT54.gy / 2 < 0.8);
   assert.match(lat, /pan\.draw\(slot, pc \? F\.tile46\(pc\.type, pc\.r, pc\.f\) : null\)/);
   assert.match(lat, /function gapAt\(\)/);
   assert.match(H, /const draw = \(gap, ghost\) =>/);

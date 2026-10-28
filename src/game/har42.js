@@ -56,7 +56,7 @@ export function slow53(g, top = 14) {
 // views now take the object rule (obj51 + fig53, as stages 01–02's act view) ── /build 54 ──
 export const LINTEL54 = Object.freeze({ h: 0.275, x: 0.62 });
 export const WARN54 = Object.freeze({ v: 3 });
-export const LAT54 = Object.freeze({ win: 0.4, fill: 0.72 });
+export const LAT54 = Object.freeze({ win: 0.4, fill: 0.72, gx: 0.3, gy: 0.25 });   // (gx, gy: the gap this share of the half-frame right of and below the middle — clear of the window)
 export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86, leaf7: 0.78 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place; leaf7: the heavy leaf's lift nearer still — its leaf 32 % wide on average at 0.86, 28 % of the frames under 30: c54A-04R)
 export const OBJ53 = Object.freeze({ stg: Object.freeze(['har', 'wall']), big: 0.45, margin: 0.06 });   // (margin: the thing kept 6 % over the rule when he is stepped back from — at the rule's edge the second AFTER page held it in 43–64 % of the frames)
 /** his figure on a view (pure; as twin.js's fig51): his middle across the width (NDC), his half-height share s, whole in the frame */
@@ -1240,7 +1240,7 @@ export function createHar42(o = {}) {
       down() {}, move() {}, up() {},
       // ── build 54 ── (§4 important 14: "a 2D board covering the world — a game inside a game") the real lattice fills the frame — front-on,
       // LAT54.fill of the width, a little right of and below the middle (the window over the top-left); he is out of its frame ── /build 54 ──
-      view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), th = tv * (W() / H()), D = PAN46.w / (2 * LAT54.fill * th), y0 = gy(P.x, P.z) + PAN46.h / 2, sx = 0.2 * D * th, sy = 0.14 * D * tv; return { p: [P.x + sx, y0 + sy + D * 0.08, P.z - D], t: [P.x + sx, y0 + sy, P.z] }; },
+      view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), th = tv * (W() / H()), D = PAN46.w / (2 * LAT54.fill * th), g0 = gy(P.x, P.z), gx = P.x + PAN46.w / 2 - (slot.c + 0.5) * (PAN46.w / 8), gyy = g0 + PAN46.h - (slot.r + 0.5) * (PAN46.h / 4), cx = gx + LAT54.gx * D * th, cy = gyy + LAT54.gy * D * tv; return { p: [cx, cy + D * 0.08, P.z - D], t: [cx, cy, P.z] }; },   // ── build 54 ── (the gap itself right of and below the middle — from the panel's middle a gap on its left half stood under the window: c54A-03P2) ── /build 54 ──
       frame(dt) {
         { const cw = PAN46.w / 8, ch = PAN46.h / 4, y0 = gy(P.x, P.z); objPlace(true, [{ x: P.x + PAN46.w / 2 - (slot.c + 0.5) * cw, y: y0 + PAN46.h - (slot.r + 0.5) * ch, z: P.z, r: 0.3 }], 'h46lat', [{ x: P.x, y: y0 + 0.85, z: P.z, r: 1.9 }]); }   // ── build 54 ── (the ring on the gap; the camera's thing the panel) ── /build 54 ──
         svgClear(); if (!J.state().done || endT > 0.4) svgAdd(board());

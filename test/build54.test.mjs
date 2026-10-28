@@ -145,5 +145,6 @@ test('build 54 (the coordinator\'s touch play of 53): the bar\'s label says the 
 
 test('build 54 (the coordinator\'s touch play of 53): stage 02\'s gold plan — a thin line (¾ amah; was 3), half seen', () => {
   assert.match(H, /const gm = new THREE\.MeshBasicMaterial\(\{ color: '#FFD66E', transparent: true, opacity: 0\.4, depthWrite: false \}\)/);
+  assert.match(H, /Hh = 0\.35; const m = new THREE\.Mesh\(new THREE\.BoxGeometry\(w, Hh, d\), gm\);[^\n]*return add\(m, CW45\.x \+ dx, Math\.max\(y0, yP\) \+ 0\.3, CW45\.z \+ dz\)/, 'a line, not a wall of gold');
   assert.match(H, /st\.props\.plan = \[\[0, -hd, 2 \* hw \+ 0\.75, 0\.75\], \[0, hd, 2 \* hw \+ 0\.75, 0\.75\], \[-hw, 0, 0\.75, 2 \* hd\], \[hw, 0, 0\.75, 2 \* hd\]\]/);
 });

@@ -15,8 +15,8 @@ import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ─�
 const SRC_K20 = '"עד שתקדש ידיך ורגליך מן הכיור" — תמיד א, ד · טיוטה';
 const SRC_MM = 'הממונה: ״ימין על ימין, שמאל על שמאל״ — זבחים יט ע״ב · טיוטה';
 reg30('kiyor', { chip: SRC_K20, all: [SRC_K20, SRC_MM] });
-// ── build 51 ── the laver's own box (avodah3d.js's solid R_(-66.1, -60.9, 17.4, 22.6), its bowl to 20.4): the act's thing ── /build 51 ──
-export const LAVER51 = Object.freeze({ id: 'k20', x: -63.5, y: 18.2, z: 20, bb: Object.freeze([-66.1, 16, 17.4, -60.9, 20.4, 22.6]) });
+// ── build 51 ── the laver's own box (avodah3d.js's solid R_(-66.1, -60.9, 17.4, 22.6); from the stand's middle to the bowl's rim, 17–21.2): the act's thing ── /build 51 ──
+export const LAVER51 = Object.freeze({ id: 'k20', x: -63.5, y: 19.1, z: 20, bb: Object.freeze([-66.1, 17, 17.4, -60.9, 21.2, 22.6]) });   // (the bowl and its spigots over the stand's foot: the look on the bowl, not the floor)
 export function createKiyor20(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),

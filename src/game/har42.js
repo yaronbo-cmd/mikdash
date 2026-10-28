@@ -509,7 +509,7 @@ export function createHar42(o = {}) {
       if (!L.set && L.jt > 0.3) {
         L.set = true;
         const b = st.objBB, ox = (b[0] + b[3]) / 2, oz = (b[2] + b[5]) / 2, rad = Math.max(b[3] - b[0], b[5] - b[2]) / 2;
-        const cp = st.job.view && v ? { x: v.p[0], z: v.p[2] } : cq.p, fx0 = ox - cp.x, fz0 = oz - cp.z, fl = Math.hypot(fx0, fz0) || 1, fx = fx0 / fl, fz = fz0 / fl, rx = -fz, rz = fx, dd = rad + 5.5;
+        const cp = st.job.view && v ? { x: v.p[0], z: v.p[2] } : cq.p, fx0 = ox - cp.x, fz0 = oz - cp.z, fl = Math.hypot(fx0, fz0) || 1, fx = fx0 / fl, fz = fz0 / fl, rx = -fz, rz = fx, dd = rad + (st.job.view ? 11 : 5.5);   /* ── build 54 ── (a macro's crew farther: at 5.5 a worker stood cut at the rock's macro's top) ── /build 54 ── */
         const x = ox + fx * dd - rx * 4.5, z = oz + fz * dd - rz * 4.5;   // (5.5 beyond its edge: in the frame of a view that looks down on the thing — 9 put them over the top of it)
         L.act.position.set(x, gy(x, z), z); L.act.rotation.y = Math.atan2(fx, fz); L.act.visible = true; L.at = { x: Math.round(x * 10) / 10, z: Math.round(z * 10) / 10, part: st.part };
       }

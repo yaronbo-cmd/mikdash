@@ -75,7 +75,9 @@ test('build 54: the lintel (04) — level 1 without drift; "הבועה ברחה 
 test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop seen (a jolt, "נתקעה"); a door', () => {
   const lf = fnOf('mkLeaf', 'mkNames');
   assert.match(lf, /ownView: \(\) => phase === 'pin',/);
-  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.6; return \{ p: \[pivX - sx \* 3\.8, g0 \+ 2\.8, G\.z \+ 5\]/);
+  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.3; return \{ p: \[pivX - sx \* 4, g0 \+ 1\.7, G\.z \+ 5\.7\], t: \[tx, g0 \+ 1\.5, G\.z\] \}; \}/);
+  // (pure: level from 6.8 amot — the socket (0.1) and the leaf's foot (2.9) inside the frame's height)
+  { const tv = Math.tan((32 * Math.PI) / 360), d = Math.hypot(3.7, 5.7), lo = 1.5 - d * tv, hi = 1.5 + d * tv; assert.ok(lo < 0 && hi > 3.1, `${lo.toFixed(2)}..${hi.toFixed(2)}`); }
   assert.match(lf, /נתקעה/);
   assert.match(H, /const DOOR54 = \{/); assert.match(H, /DOOR54\[k\]\.emissive = new THREE\.Color\(e\)/, 'the door read in the shade'); assert.match(H, /new THREE\.CylinderGeometry\(0\.2, 0\.2, 0\.6, 10\), DOOR54\.bronze\); pin\.position/, 'the pin in bronze'); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
 });

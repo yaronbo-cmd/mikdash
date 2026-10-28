@@ -1935,7 +1935,7 @@ export function createHar42(o = {}) {
       // ── build 54 ── (§2 stage 04: "you can't see whether it stuck") while the pin goes down: a macro on the pin and its socket (from the north,
       // 6.5 amot, a little above — the pin's foot, the socket's rim, the leaf's edge) ── /build 54 ──
       ownView: () => phase === 'pin',
-      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.leaf7); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [pivX - sx * 3.8, g0 + 2.8, G.z + 5], t: [tx, g0 + 1.1, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
+      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.leaf7); if (phase === 'pin') { const tx = pivX - sx * 0.3; return { p: [pivX - sx * 4, g0 + 1.7, G.z + 5.7], t: [tx, g0 + 1.5, G.z] }; }   /* (level, 6.8 amot off: the socket and the leaf's foot both in the frame — from 2.8 up, looking down, the pin hung at the frame's top under the line: S54-leafW) */   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
       frame(dt) {
         if (phase === 'pin') objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf', [{ x: pivX - sx * 0.5, y: g0 + 1.3, z: G.z, r: 1.25 }]); else objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');   // ── build 54 ── (in the macro: the pin and its socket) ── /build 54 ──
         if (phase === 'lift') { C.frame(dt); return false; }

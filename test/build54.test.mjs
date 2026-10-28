@@ -1,0 +1,119 @@
+// ── build 54 ── Phase A, round 2 — stages 03–07 (docs/specs/bikoret-mefakeach-27-10-he.md §2 (03, 04, 05, 07) and §4; the coordinator's build-54
+// brief): the rock's macro out of his way (01, item 1), the object rule on 03–07's failing parts (rule53 — obj51 + fig53 — on their views), the
+// lattice's board a 40 % window and the real lattice filling the frame, live; the warning stones at 3 amot/s with a gauge from the last stone;
+// the lintel without drift at level 1, its arrow by the side, big and blinking, him in the left third; the leaf's pin in a macro, its stop seen,
+// a door; the seven gates from above — the court paved, the gatehouses with their shadows, the names beside them; the wood's name only after
+// the decision, its defects drawn, "קלפו"; the beams on the ground, no "פינה"; the peg's joint in the world; the compass's room and its peg;
+// the spokes' pile; the spilt water. GAME_BUILD 54. Never a Divine Name.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { LINTEL54, WARN54, LAT54, OBJ54, OBJ53 } from '../src/game/har42.js';
+import * as F from '../src/game/fam42.js';
+import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
+
+const ROOT = new URL('../', import.meta.url);
+const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
+const H = read('src/game/har42.js');
+const fnOf = (name, next) => H.slice(H.indexOf(`  function ${name}(`), next ? H.indexOf(`  function ${next}(`, H.indexOf(`  function ${name}(`)) : undefined);
+
+test('build 54: GAME_BUILD 54', () => {
+  assert.equal(GAME_BUILD, 54);
+});
+
+test('build 54: the rock\'s macro (01) — his stands 9 amot east of each rock and 3 south, the camera 4.5 aside away from him: out of its frame', () => {
+  assert.match(H, /rock0: P\(-3, -11\), rock1: P\(-15, -3\), rock2: P\(-21, 11\),/);
+  assert.match(H, /return \{ p: \[C\.x \+ sx \* 4\.5, C\.y \+ 0\.6 \+ D \* 0\.3, C\.z \+ D\]/);
+  // (pure: from the macro's camera his figure is out of the frame — lateral over the half-width at his depth)
+  const tv = Math.tan((32 * Math.PI) / 360), th = tv * (640 / 296), D = 5.6 / (2 * 0.62 * th), cam = { x: -4.5, z: D }, him = { x: 9, z: 3 };
+  const fwd = { x: -0.6 - cam.x, z: 0 - cam.z }, fl = Math.hypot(fwd.x, fwd.z), f = { x: fwd.x / fl, z: fwd.z / fl }, v = { x: him.x - cam.x, z: him.z - cam.z };
+  const depth = v.x * f.x + v.z * f.z, lat = Math.abs(v.x * -f.z + v.z * f.x);
+  assert.ok(lat - 0.8 - 2.6 > depth * th, `lateral ${lat.toFixed(2)} over the half-width ${(depth * th).toFixed(2)}`);
+});
+
+test('build 54: the object rule on 03–07\'s failing parts — rule53 (obj51, then him stepped back) on their own views; the lintel\'s lift nearer', () => {
+  for (const p of ['warn', 'bows', 'leaf', 'wood', 'hub', 'wheel']) assert.ok(OBJ54.parts.includes(p), p);
+  assert.ok(OBJ54.gate < 1 && OBJ54.gate > 0.7);
+  assert.match(H, /function rule53\(v, h, HH, tanH, tanV\)/);
+  assert.match(H, /if \(J\.view && OBJ54\.parts\.includes\(st\.part\) && !\(J\.ownView && J\.ownView\(\)\)\)/);
+  assert.match(H, /if \(OBJ53\.stg\.includes\(STG\) \|\| OBJ54\.parts\.includes\(st\.part\)\) v = rule53\(v, h, HH, tanH, tanV\);/);
+  assert.deepEqual([...OBJ53.stg], ['har', 'wall']);
+});
+
+test('build 54: the lattice (03) — the board a window of 40 % of the width in the top-left corner; the real lattice fills the frame, its gap outlined and the piece in hand shown in it', () => {
+  assert.equal(LAT54.win, 0.4); assert.ok(LAT54.fill >= 0.6);
+  const lat = fnOf('mkLattice', 'mkWood');
+  assert.match(lat, /const geo = \(\) => \{ const bw = W\(\) \* LAT54\.win, sz = bw \/ 10; return \{ x: 10,/);
+  assert.match(lat, /D = PAN46\.w \/ \(2 \* LAT54\.fill \* th\)/);
+  assert.match(lat, /pan\.draw\(slot, pc \? F\.tile46\(pc\.type, pc\.r, pc\.f\) : null\)/);
+  assert.match(lat, /function gapAt\(\)/);
+  assert.match(H, /const draw = \(gap, ghost\) =>/);
+});
+
+test('build 54: the warning stones (03) — 3 amot/s, the gauge from the last stone (a tick each amah, the count in amot)', () => {
+  assert.equal(WARN54.v, 3);
+  const w = fnOf('mkWarn', 'mkBows');
+  assert.match(w, /stages\.hero\.drive\(stop \? 0 : walkDir \* WARN54\.v,/);
+  assert.match(w, /אמות<\/text>/);
+});
+
+test('build 54: the lintel (04) — level 1 without drift; "הבועה ברחה — הזיזו ⬅/➡" by its side; the arrow big and blinking; him in the left third at ~27 % of the height', () => {
+  assert.equal(F.LINTEL47.L[1].drift, 0); assert.ok(F.LINTEL47.L[2].drift > 0);
+  const N = F.createLintel47(1, { rnd: () => 0.2 }); N.hold(true); for (let i = 0; i < 400; i++) N.step(0.05);
+  assert.equal(N.state().out, false, 'level 1 held still: never out'); assert.equal(N.state().phase, 'set');
+  assert.match(H, /line\(`הבועה ברחה — הזיזו \$\{s\.tilt > 0 \? '➡' : '⬅'\} · המחשה`/);
+  assert.match(H, /<animate attributeName="opacity" values="1;\.2;1" dur="0\.7s" repeatCount="indefinite"\/>/);
+  assert.ok(LINTEL54.h >= 0.25 && LINTEL54.h <= 0.3); assert.ok(LINTEL54.x > 0.33 && LINTEL54.x < 1, 'the left third');
+  assert.match(H, /lintel: \{ get x\(\) \{ return lintelStand54\(\)\.x; \}/);
+});
+
+test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop seen (a jolt, "נתקעה"); a door', () => {
+  const lf = fnOf('mkLeaf', 'mkNames');
+  assert.match(lf, /ownView: \(\) => phase === 'pin',/);
+  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.6; return \{ p: \[tx - sx \* 1\.2, g0 \+ 3\.2, G\.z - 6\.5\]/);
+  assert.match(lf, /נתקעה/);
+  assert.match(H, /const DOOR54 = \{/); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
+});
+
+test('build 54: the seven gates (04) — the court paved and the gatehouses (26 amot, their shadows) from above; the name beside its gate once set', () => {
+  assert.match(H, /function court54\(on\)/); assert.match(H, /court54\(true\);/); assert.match(H, /court54\(false\);/);
+  assert.match(H, /new THREE\.BoxGeometry\(ax \? 9 : 6, 26, ax \? 6 : 9\)/);
+  assert.match(H, /font-size="15" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">\$\{esc\(q\.n\)\}/);
+});
+
+test('build 54: the wood (05) — the species\' name only after the decision (or at level 1 after 10 s); the defects drawn larger, the worm\'s exit holes on the bark; "קלפו"', () => {
+  const wd = fnOf('mkWood', 'mkBeams');
+  assert.match(wd, /if \(s2\.decided != null \|\| \(L <= 1 && logT > 10\)\)/);
+  assert.doesNotMatch(wd, /if \(L <= 1\) h \+= `<text/);
+  assert.match(wd, /sz = A\.size \* G\.h \* 0\.3/);
+  assert.match(wd, /קלפו ⟷/);
+});
+
+test('build 54: the beams (05) — on the ground by the wall, taken where they lie; no "פינה" on the sockets; a nearer view', () => {
+  const bm = fnOf('mkBeams', 'mkPegs');
+  assert.doesNotMatch(bm, />פינה</);
+  assert.doesNotMatch(bm, /קורת פינה' : '━ קורה'\} ×/);
+  assert.match(bm, /const gb = \[\];/); assert.match(bm, /const nextOf = \(kd\) =>/);
+  assert.match(bm, /const D = Math\.max\(needD\(\) \+ 2, 26\)/);
+});
+
+test('build 54: the peg (05) — the joint in the world (the plank\'s tenon, the beam\'s mortise, the peg, the mallet), a macro; no 2D diagram', () => {
+  const pg = fnOf('mkPegs', 'mkCorner48');
+  assert.match(pg, /const D54 = \(\(\) => \{/); assert.match(pg, /ownView: \(\) => true,/);
+  assert.doesNotMatch(pg, /rx="12" fill="rgba\(40,28,14,\.78\)"/, 'the board over the scene is gone');
+  assert.doesNotMatch(pg, /🔨/);
+});
+
+test('build 54: the compass (07) — the chamber\'s paved floor and its walls from above; him by the peg; the peg ≥ 44 px', () => {
+  assert.match(H, /function room54\(on\)/); assert.match(H, /hole50\('gazit'\); room54\(true\);/);
+  assert.match(H, /compass: F16\(-79\.5, 62\.5\)/);
+  assert.match(H, /r="22" fill="rgba\(255,214,110,\.18\)" stroke="#FFD66E" stroke-width="3"\/><circle cx="\$\{c\.x\}" cy="\$\{c\.y\}" r="6"/);
+});
+
+test('build 54: the wheel over the pit (07) — the spokes a pile in the world, not "חישור ×8"; the spill — the bucket tips, the water on the floor', () => {
+  const hb = fnOf('mkHub50', 'mkWheel50');
+  assert.doesNotMatch(hb, /`╱ חישור ×\$\{/); assert.match(hb, /const heap = \[\];/);
+  const wh = fnOf('mkWheel50');
+  assert.match(wh, /bk\.rotation\.z \+= \(\(s\.spilling \? 0\.55 : 0\) - bk\.rotation\.z\)/);
+  assert.match(wh, /st\.props\.puddle54 = pm;/);
+});

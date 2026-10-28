@@ -8,7 +8,7 @@
  *   createKiyor20({ E, sfx, doc, slot, twin }) → { destroy(), state() }      (focus17.js makes it when E.g20; globalThis.__K20)
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
 import { onTick } from './draw.js';
-import { K20 } from './day33.js';
+import { K20, K20M } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 // ── fable32 (build 30) ── the laver's lines: no longer over the world while he washes (the step card's one line: "שני אגודלים — החזיקו");
 // at its end the rating and ONE source line, a tap opens both (end30.js) ── /fable32 ──
@@ -178,7 +178,7 @@ export function createKiyor20(o = {}) {
       // ── fable32 (build 36) ── level 2 on: no guide — the rings do not fill (he holds till the water stops); level 4: the stream's tilt
       // between the rings (bal36), levelled by the thumbs' heights: the left lower than the right tips it one way, and back ── /fable32 ──
       const guide = !(k && k.P36 && k.P36.guide === 0),
-        p = k ? (k.ph === 'pose' ? (guide ? k.p : 0) : k.ph === 'up' ? 0 : 1) : 0,
+        p = k ? (k.ph === 'pose' ? (guide || MARK51 ? k.p : 0) : k.ph === 'up' ? 0 : 1) : 0,   // ── build 51 ── (the water's level shown at every level: the mark is the skill) ── /build 51 ──
         bal = !!(k && k.ph === 'pose' && k.P36 && k.P36.bal);
       if (bal) {
         const dL = ys.L && ptr.L != null ? ys.L.y - ys.L.y0 : 0,
@@ -189,6 +189,8 @@ export function createKiyor20(o = {}) {
         balEl.innerHTML = `<u style="left:${(50 - 50 * lim).toFixed(1)}%;width:${(100 * lim).toFixed(1)}%"></u><i style="left:${(50 + 50 * b).toFixed(1)}%"></i>`;
         balEl.classList.toggle('bad', Math.abs(b) > lim * 0.8);
       } else if (balEl.style.display !== 'none') balEl.style.display = 'none';
+      { const win = !!(k && k.ph === 'pose' && k.flow && Math.abs(k.p - K20M.at) <= K20M.win);   // ── build 51 ── (the level at the mark: both rings glow — release now) ── /build 51 ──
+        for (const side of ['L', 'R']) if (rings[side].classList.contains('win') !== win) rings[side].classList.toggle('win', win); }
       if (Math.abs(p - lastP) > 0.004) {
         lastP = p;
         const dash = `${(p * 100).toFixed(1)} ${(100 - p * 100).toFixed(1)}`;
@@ -337,6 +339,7 @@ export function createKiyor20(o = {}) {
 }
 const DROP = 'M0-17C4-10 11-3 11 5A11 11 0 1 1-11 5C-11-3-4-10 0-17Z';
 const CSS = `body{--k20f:"Heebo",system-ui,sans-serif}
+.k20-r .mk51{stroke:#FFFFFF;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 2px #000)}.k20-r.win svg{filter:drop-shadow(0 0 12px #9CFFEA) brightness(1.25)}.k20-r.win .mk51{stroke:#9CFF9A}
 .k20-r{position:fixed;z-index:36;top:62%;width:112px;height:112px;margin:-56px 0 0 -56px;opacity:0;transform:scale(.6);transition:opacity .3s,transform .3s;pointer-events:none;touch-action:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .k20-r.L{left:max(calc(env(safe-area-inset-left,0px) + 72px),13vw)}.k20-r.R{left:auto;right:max(calc(env(safe-area-inset-right,0px) + 72px),13vw);margin:-56px -56px 0 0}
 .k20-r.vis{opacity:.6;transform:none;pointer-events:auto}.k20-r.vis.on{opacity:1}
@@ -369,7 +372,10 @@ const WAVE = (() => {
   for (let x = -60; x < 60; x += 10) d += `Q${x + 5} ${x % 20 ? 3.5 : -3.5} ${x + 10} 0`;
   return `${d}V40H-60Z`;
 })();
-const RING = `<svg viewBox="-50-50 100 100" aria-hidden="true"><circle r="45" fill="none" stroke="#FFE6AA47" stroke-width="4.5"/><circle class="pr" r="45" fill="none" stroke="url(#k20pr)" stroke-width="5.5" stroke-linecap="round" pathLength="100" transform="rotate(-90)"/>
+// ── build 51 ── the mark on each ring: where the water's level (the ring's fill) should be when both thumbs let go (K20M.at) ── /build 51 ──
+const MARK51 = true;
+const MK51 = (() => { const a = K20M.at * 2 * Math.PI - Math.PI / 2, c = Math.cos(a), s = Math.sin(a); return `<line class="mk51" x1="${(37 * c).toFixed(1)}" y1="${(37 * s).toFixed(1)}" x2="${(52 * c).toFixed(1)}" y2="${(52 * s).toFixed(1)}"/>`; })();
+const RING = `<svg viewBox="-50-50 100 100" aria-hidden="true"><circle r="45" fill="none" stroke="#FFE6AA47" stroke-width="4.5"/><circle class="pr" r="45" fill="none" stroke="url(#k20pr)" stroke-width="5.5" stroke-linecap="round" pathLength="100" transform="rotate(-90)"/>${MK51}
 <circle r="33" fill="#120C046B"/><g clip-path="url(#k20cl)"><g class="lq"><path class="wv" d="${WAVE}" fill="url(#k20lq)"/></g></g>
 <circle r="34" fill="none" stroke="url(#k20br)" stroke-width="7"/><circle r="37.7" fill="none" stroke="#3A2408B3"/>${Array.from(
   { length: 12 },

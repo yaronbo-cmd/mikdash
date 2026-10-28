@@ -116,14 +116,30 @@
         const p0 = (H() ? [0.3, 0.4] : [0.03, 0.05])[P.guide === 0 ? 1 : 0], pL = 1 - Math.pow(1 - p0, (K0.T || 3.5) / 3.5), liftAt = rnd() < pL ? rnd() * (K0.T || 3.5) * 0.8 : -1, t0 = T(), mem = {};
         if (A.opts.bad30 !== 'kiyor') {
           await shot30('k20', () => { const k = e.k20(); return k && k.ph === 'pose' && k.p > 0.25; });
-          for (let lifted = liftAt < 0; ;) { const k = e.k20(); if (!k || k.ph !== 'pose') break; if (!lifted && T() - t0 >= liftAt) { lifted = true; e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); } if (P.bal) bal36(k, mem, (u) => e.k20bal(u)); await sleep(H() ? 90 : 50); }
+          let aim51 = aimOf51();   // ── build 51 ── (release at the laver's mark) ── /build 51 ──
+          for (let lifted = liftAt < 0; ;) { const k = e.k20(); if (!k || k.ph !== 'pose') break; if (k.p >= aim51 && k.L && k.R) { e.k20in('L', false); e.k20in('R', false); await sleep(250); const k2 = e.k20(); if (!k2 || k2.ph !== 'pose') break; e.k20in('L', true); e.k20in('R', true); aim51 = aimOf51(); continue; } if (!lifted && T() - t0 >= liftAt) { lifted = true; e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); } if (P.bal) bal36(k, mem, (u) => e.k20bal(u)); await sleep(H() ? 90 : 50); }
           e.k20in('L', false); e.k20in('R', false); return;
         }
       } }
     await shot30('k20', () => { const k = e.k20(); return k && k.ph === 'pose' && k.p > 0.25; });   // ── fable32 (build 30) ── (the act's one line) ── /fable32 ──
     if (A.opts.bad30 === 'kiyor') { for (let i = 0; i < 3; i++) { await sleep(450); e.k20in('R', false); await sleep(250); e.k20in('R', true); } note('build 30: three lifts at the laver (a טעון תיקון end)'); }   // ── fable32 (build 30) ── ── /fable32 ──
     else if (H() && rnd() < 0.3) { await sleep(900); e.k20in('R', false); await sleep(400); e.k20in('R', true); note('a hand lifted at the laver'); }
-    await until(() => !e.k20() || e.k20().ph !== 'pose', 15000); e.k20in('L', false); e.k20in('R', false);
+    if (A.opts.bad30 === 'kiyor') await until(() => !e.k20() || e.k20().ph !== 'pose', 15000); else await mark51(e);   // ── build 51 ── ── /build 51 ──
+    e.k20in('L', false); e.k20in('R', false);
+  }
+  // ── build 51 ── the laver's mark (day33 K20M: the level 0.8 ± 0.08): both thumbs let go as the water reaches it — the child misjudges by
+  // up to ± 0.1, the skilled hand by ± 0.03; an early release (a free retry) presses again ── /build 51 ──
+  function aimOf51() { return 0.8 + (H() ? (rnd() - 0.5) * 0.2 : (rnd() - 0.5) * 0.06); }
+  async function mark51(e) {
+    for (let n = 0; n < 4; n++) {
+      const aim = aimOf51();
+      await until(() => { const k = e.k20(); return !k || k.ph !== 'pose' || k.p >= aim; }, 15000);
+      const k = e.k20(); if (!k || k.ph !== 'pose') return;
+      e.k20in('L', false); e.k20in('R', false); await sleep(250);
+      const k2 = e.k20(); if (!k2 || k2.ph !== 'pose') return;
+      e.k20in('L', true); await sleep(60); e.k20in('R', true);
+    }
+    await until(() => !e.k20() || e.k20().ph !== 'pose', 15000);
   }
   async function lot(e) {
     const K = e.p23(); if (!K) return;

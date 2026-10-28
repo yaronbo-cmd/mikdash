@@ -77,7 +77,11 @@ export const TOUCH40_CSS = `.t40-hand{position:fixed;left:0;top:0;z-index:31;poi
 .t40-ring{position:fixed;left:0;top:0;z-index:29;pointer-events:none;border-radius:50%;border:3px dashed rgba(255,226,150,.85);box-shadow:0 0 14px 3px rgba(255,214,110,.35);display:none;animation:t40ring 1.4s ease-in-out infinite alternate}
 .t40-ring.on{display:block}
 @keyframes t40ring{0%{opacity:.45}100%{opacity:.95}}
-.t40-obj{cursor:pointer}`;
+.t40-obj{cursor:pointer}
+.t51-len{position:fixed;left:0;top:0;z-index:31;pointer-events:none;display:none}.t51-len.on{display:block}
+.t51-len i{display:block;width:100%;height:100%;border-radius:6px;background:linear-gradient(90deg,rgba(255,230,160,.25),#FFE6A0);box-shadow:0 0 10px 2px rgba(255,214,110,.6);transform-origin:0 50%;animation:t51x .6s ease-out 2}
+.t51-len.y i{background:linear-gradient(0deg,rgba(255,230,160,.25),#FFE6A0);transform-origin:50% 100%;animation-name:t51y}
+@keyframes t51x{0%{transform:scaleX(0)}80%,100%{transform:scaleX(1)}}@keyframes t51y{0%{transform:scaleY(0)}80%,100%{transform:scaleY(1)}}`;
 
 export function createTouch40(o = {}) {
   const doc = o.doc || (typeof document !== 'undefined' ? document : null), pad = o.pad || null, proj = o.proj || (() => null), at = Number.isFinite(o.at) ? Math.max(0.55, Math.min(0.65, o.at)) : null;   // (at: the thing's own share of the width for the act's camera — 55–65 %)
@@ -86,7 +90,7 @@ export function createTouch40(o = {}) {
   if (!doc || !pad) return { place() { return null; }, state: () => ({ ...st }), destroy() {} };
   if (!doc.getElementById('t40-css')) { const s = doc.createElement('style'); s.id = 't40-css'; s.textContent = TOUCH40_CSS; doc.head.appendChild(s); }
   const mk = (cls, html) => { const e = doc.createElement('div'); e.className = cls; e.innerHTML = html; e.setAttribute('aria-hidden', 'true'); (doc.body || doc.documentElement).appendChild(e); return e; };
-  const hand = mk('t40-hand', '👆'), ring = mk('t40-ring', '');
+  const hand = mk('t40-hand', '👆'), ring = mk('t40-ring', ''), len = mk('t51-len', '<i></i>');   // ── build 51 ── (len: the swipe's length hint) ── /build 51 ──
   const W = () => (typeof innerWidth === 'number' ? innerWidth : 844), H = () => (typeof innerHeight === 'number' ? innerHeight : 390);
   // (the finger on the thing: the hint retired for this act, the camera frozen till it lifts)
   // (globalThis.__T40 = { obj, down }: the act's thing for the twin's act camera — twin.js pan40 — and the finger on it)
@@ -142,8 +146,18 @@ export function createTouch40(o = {}) {
   }
   const api = {
     place,
-    state: () => ({ on: st.on, id: st.id, mode: st.mode, fb: st.fb, hand: st.hand, miss: st.miss, objN: st.objN, padN: st.padN, hit: st.hit && { l: Math.round(st.hit.l), t: Math.round(st.hit.t), w: Math.round(st.hit.w), h: Math.round(st.hit.h) }, fp: st.box ? Math.round(st.box.fp) : 0 }),
-    destroy() { place(false); try { pad.removeEventListener('pointerdown', onDown, true); for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.removeEventListener(t, onUp, true); doc.removeEventListener('pointerdown', onDoc, true); hand.remove(); ring.remove(); } catch (e) { /* */ } },
+    state: () => ({ on: st.on, id: st.id, mode: st.mode, fb: st.fb, hand: st.hand, miss: st.miss, objN: st.objN, padN: st.padN, hit: st.hit && { l: Math.round(st.hit.l), t: Math.round(st.hit.t), w: Math.round(st.hit.w), h: Math.round(st.hit.h) }, fp: st.box ? Math.round(st.box.fp) : 0, w: st.box && st.mode === 'obj' ? Math.round(st.box.w) : 0 }),   // ── build 51 ── (w: the thing's width on the screen — the swipe's gate, swipe51) ── /build 51 ──
+    // ── build 51 ── (the coordinator's build-51 brief, item 4: "ארוך יותר / מהר יותר" with a short animated hint of the right length ON the
+    // thing) a bar of `px` that draws itself across (axis 'x') or up (axis 'y') over the thing's middle, twice, ~1.2 s ── /build 51 ──
+    hint51(px, axis = 'x') {
+      if (!(px > 0)) return;
+      const b = st.box, x = b ? b.x : W() * 0.62, y = b ? b.y : H() * 0.55;
+      len.className = `t51-len ${axis === 'y' ? 'y' : 'x'}`;
+      if (axis === 'y') { len.style.width = '8px'; len.style.height = `${Math.round(px)}px`; len.style.transform = `translate(${Math.round(x - 4)}px,${Math.round(y - px / 2)}px)`; }
+      else { len.style.height = '8px'; len.style.width = `${Math.round(px)}px`; len.style.transform = `translate(${Math.round(x - px / 2)}px,${Math.round(y - 4)}px)`; }
+      void len.offsetWidth; len.classList.add('on'); clearTimeout(len.__t); len.__t = setTimeout(() => len.classList.remove('on'), 1300);
+    },
+    destroy() { place(false); try { pad.removeEventListener('pointerdown', onDown, true); for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.removeEventListener(t, onUp, true); doc.removeEventListener('pointerdown', onDoc, true); hand.remove(); ring.remove(); len.remove(); } catch (e) { /* */ } },
   };
   return api;
 }

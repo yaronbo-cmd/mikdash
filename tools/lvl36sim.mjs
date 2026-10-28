@@ -65,9 +65,14 @@ const PLAY = {
     // water runs, more: 1 − (1 − p)^(T / 3.5 s))
     const K0 = R.E.k20(), guide = !!(K0.P36 && K0.P36.guide), p0 = H.k20h[guide ? 0 : 1], pL = 1 - Math.pow(1 - p0, K0.T / 3.5), mem = {};
     let lifted = rnd() < pL ? 0 : 1, liftAt = rnd() * K0.T * 0.8, tBal = 0, tt = 0;
+    // ── build 51 ── (the laver's mark, day33 K20M: both thumbs let go as the level reaches 0.8 — the child misjudges by up to ± 0.1, the
+    // skilled hand by ± 0.03, as autoplay35's mark51; a release off the window presses again) ── /build 51 ──
+    const aimOf = () => 0.8 + (rnd() - 0.5) * (H === HAND.child ? 0.2 : 0.06);
+    let aim = aimOf();
     for (let i = 0; i < 400 && R.E.k20() && R.E.k20().ph === 'pose'; i++) {
       const K = R.E.k20();
       tt += 0.05;
+      if (K.p >= aim && K.L && K.R) { R.E.k20in('L', false); R.E.k20in('R', false); await R.step(0.25, 0.05); if (!R.E.k20() || R.E.k20().ph !== 'pose') break; R.E.k20in('L', true); R.E.k20in('R', true); aim = aimOf(); continue; }
       if (!lifted && tt >= liftAt) { lifted = 1; R.E.k20in('R', false); await R.step(0.4); R.E.k20in('R', true); }
       if (K.P36 && K.P36.bal && (tBal += 0.05) >= (mem.nx || H.balDt) - 1e-6) { tBal = 0; mem.nx = look37(H === HAND.child, rnd); balance(K, H, rnd, mem, (u) => R.E.k20bal(u), true); }   // ── fable32 (build 37) ── (the page's look intervals) ── /fable32 ──
       await R.step(0.05, 0.05);

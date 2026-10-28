@@ -97,7 +97,7 @@ test('build 34 (6): the "turn the phone" card says "משחקים לרוחב" —
 });
 
 test('build 34 (7): the footer says build 34', () => {
-  assert.equal(GAME_BUILD, 50);   // (build 35: the constant moved on) (build 36: again) (build 37: again) (build 38: again) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again)
+  assert.equal(GAME_BUILD, 51);   // (build 35: the constant moved on) (build 36: again) (build 37: again) (build 38: again) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
 });
 
 test('build 34 (8): the pyre\'s sort says why a swipe did not count — "ארוך יותר ↔" / "מהר יותר ↔" / "לרוחב ↔", as the ashes\', the lamb\'s and the Heichal\'s do (it said "החליקו ימינה או שמאלה ↔" always: a child who swiped too short sorted nothing for minutes)', () => {
@@ -107,7 +107,7 @@ test('build 34 (8): the pyre\'s sort says why a swipe did not count — "ארו�
   // the engine gives the reason: a short, a slow and a crooked swipe at the sort
   const d = read('src/avodah/shift/day33.js');
   // (build 36: the owner's relaxed gate, SWIPE36 — 0.15 of the screen within 350 ms — in the same function; its why kept)
-  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= SWIPE36\.dist \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : ''\) : 'short'\)/);
+  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= sw51\.x \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE51\.ms \? 'slow' : ''\) : 'short'\)/);   // (build 51: the gate relative to the thing — sw51, SWIPE51)
   assert.match(d, /const a = swipeWhy\(dx, dy, ms, M22\.sw\);\s*if \(a\) \{\s*emit17\('m22sw', \{ ok: false, why: a \}\);/);
 });
 

@@ -118,7 +118,7 @@ export function createGuide39(o = {}) {
     const q = pts[st.i],
       d = Math.hypot(q.x - h.x, q.z - h.z) || 1;
     st.n++;
-    return { x: (q.x - h.x) / d, z: (q.z - h.z) / d, k: Math.max(G39.minK, Math.min(1, left / G39.slowIn)), id: tg.id };
+    return { x: (q.x - h.x) / d, z: (q.z - h.z) / d, k: Math.max(G39.minK, Math.min(1, left / G39.slowIn)), id: tg.id, left };   // ── build 51 ── (left: the way still to go — twin.js WALK51 slows him near the place) ── /build 51 ──
   }
   return {
     dir,

@@ -11,7 +11,7 @@
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
 import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
-import { D21, SWIPE36 } from './day33.js';
+import { D21, SWIPE36, swipe51 } from './day33.js';
 import { reg30 } from './rate30.js';
 import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──   // ── fable32 (build 30) ── ── /fable32 ──
 export function createDeshen21(o = {}) {
@@ -180,20 +180,22 @@ export function createDeshen21(o = {}) {
     touches = new Map(),
     W = () => innerWidth || 844,
     tsOf = (ev) => (ev.timeStamp > 0 ? ev.timeStamp : performance.now());
+  let thr51 = 0;   // ── build 51 ── (the last touch's swipe length — the hint's) ── /build 51 ──
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     try {
       pad.setPointerCapture(ev.pointerId);
     } catch (e) {}
-    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, x: ev.clientX, y: ev.clientY, t0: tsOf(ev), tx: null });
+    const thr = swipe51(W(), t40.state().w); try { E.sw51(thr / W(), thr / (innerHeight || 390)); } catch (e) {} thr51 = thr;   // ── build 51 ── (the swipe's gate relative to the thing: swipe51 — E.sw51 for the engine) ── /build 51 ──
+    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, x: ev.clientX, y: ev.clientY, t0: tsOf(ev), tx: null, thr });
   });
   pad.addEventListener('pointermove', (ev) => {
     const p = touches.get(ev.pointerId);
     if (p) {
       p.x = ev.clientX;
       p.y = ev.clientY;
-      if (p.tx == null && Math.abs(p.x - p.x0) >= SWIPE36.dist * W()) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
+      if (p.tx == null && Math.abs(p.x - p.x0) >= p.thr) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     }
   });
   const up = (ev) => {
@@ -340,7 +342,7 @@ export function createDeshen21(o = {}) {
       const walking = ph === 'full' || ph === 'walk' || ph === 'desc';
       setMode(!!k && !walking && ph !== 'foot', !!k && ph !== 'foot', walking);
       const padOn = ph === 'sweep' || walking;
-      t40.place(padOn && !!k, ph === 'sweep' ? [{ x: D21.bed.x, y: gy(D21.bed.x, D21.bed.z, 25) + 0.4, z: D21.bed.z, r: 1.6 }] : [{ x: hp.x, y: (hp.y || 16) + 1.0, z: hp.z, r: 1.7 }]   /* ── fable32 (build 41) ── (r 2.0 round his middle was measured worse — his figure out of the descent's frame 125 of 307 frames at 640 × 296 — back to r 1.7; at 844 × 390 the pad may come after its settle)  (walking down with it: the pan is him with it, his whole figure — build 41's farther follow camera left the pan alone at 29 px, under the 44 px rule; as the zorek's carry) ── /fable32 ── */, ph === 'sweep' ? 'd21' : 'd21pan');   /* (the pan where his hand holds it: POSE_PAN.carry) */   // ── fable32 (build 40) ── ── /fable32 ──
+      t40.place(padOn && !!k, ph === 'sweep' ? [{ x: D21.bed.x, y: gy(D21.bed.x, D21.bed.z, 25) + 0.4, z: D21.bed.z, r: 1.6 }] : [{ x: hp.x, y: (hp.y || 16) + 1.0, z: hp.z, r: 1.7, self: true /* ── build 51 ── (the pan in his hands: the object rule keeps build 41's view) */ }]   /* ── fable32 (build 41) ── (r 2.0 round his middle was measured worse — his figure out of the descent's frame 125 of 307 frames at 640 × 296 — back to r 1.7; at 844 × 390 the pad may come after its settle)  (walking down with it: the pan is him with it, his whole figure — build 41's farther follow camera left the pan alone at 29 px, under the 44 px rule; as the zorek's carry) ── /fable32 ── */, ph === 'sweep' ? 'd21' : 'd21pan');   /* (the pan where his hand holds it: POSE_PAN.carry) */   // ── fable32 (build 40) ── ── /fable32 ──
       if (pad.classList.contains('on') !== padOn) {
         pad.classList.toggle('on', padOn);
         if (!padOn) {
@@ -357,11 +359,17 @@ export function createDeshen21(o = {}) {
         const b = touch ? Math.max(-1, Math.min(1, (touch.x - touch.x0) / 70)) : null;
         E.d21bal(b);
       }
-      const balance = ph === 'walk' || ph === 'desc';
+      const balance = ph === 'walk' || ph === 'desc' || ph === 'full';   // ── build 51 ── (+ 'full': the meter from the moment the pan is full) ── /build 51 ──
       gauge.classList.toggle('on', balance);
       if (balance) {
         needle.style.transform = `rotate(${((k.b || 0) * 90).toFixed(1)}deg)`;
         gauge.classList.toggle('hot', Math.abs(k.b || 0) > 0.65);
+        // ── build 51 ── (the inspector's review 27.10: "the coals spilled 4 times and I did not see why — no balance meter on the screen";
+        // the coordinator's build-51 brief, item 8) the meter beside the pan itself (in his hands), not in the corner: its tilt and the
+        // spill zones at its ends, like the zorek's vessel meter ── /build 51 ──
+        const q = proj(hp.x, (hp.y || 16) + 1.0, hp.z), gw = 124, gh = 70, Wd = innerWidth || 844, Hd = innerHeight || 390;
+        if (q) { gauge.classList.add('n51'); gauge.style.transform = `translate(${Math.round(Math.max(6, Math.min(Wd - gw - 6, q.x + 46)))}px,${Math.round(Math.max(54, Math.min(Hd - gh - 6, q.y - gh / 2)))}px)`; }
+        else gauge.classList.remove('n51');
       }
       {   // ── fable32 (build 36) ── (the inner coals' side while he scoops) ── /fable32 ──
         const sd = ph === 'sweep' && k.side ? k.side[Math.min(k.n | 0, k.side.length - 1)] : 0,
@@ -485,6 +493,7 @@ export function createDeshen21(o = {}) {
         if (!ev.ok) {
           snd('soft');
           flash(ev.why === 'outer' ? 'מן הפנימיות — אל הגחלים הלוחשות' /* ── fable32 (build 36) ── */ : ev.why === 'short' ? 'ארוך יותר ↔' : ev.why === 'slow' ? 'מהר יותר ↔' : 'לרוחב ↔');
+          if (ev.why === 'short' || ev.why === 'slow') t40.hint51(thr51, 'x');   // ── build 51 ── (the right length on the coals) ── /build 51 ──
           return;
         }
         stat.swipes++;
@@ -574,7 +583,7 @@ const PAN = { r: 0.42, l: 0.5 };
 const CSS = `.d21-in{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:30;touch-action:none;display:none}.d21-in.on,.d21-r.on{display:block}body.d21-on .gm .tw-pad{opacity:0!important;pointer-events:none!important}
 .d21-h,.d21-w,.d21-g,.d21-r,.d21-f{position:fixed;left:50%;pointer-events:none;direction:rtl;white-space:nowrap;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA}
 .d21-h{top:58px;transform:translateX(-50%);z-index:32;padding:5px 14px;border-radius:14px;background:#1C140ADB;border:1.5px solid #E2B65A;opacity:0}.d21-h.on,.d21-g.on{opacity:1}.d21-h small,.d21-w small{display:block;font-size:12px;opacity:.85}
-.d21-g{bottom:10px;left:auto;right:14px;z-index:31;width:170px;opacity:0;color:#FFE6A0;font-size:13px}.d21-g.hot{animation:d21k .25s infinite}.d21-g svg{width:100%;height:78px;overflow:visible;fill:none;stroke-width:9}
+.d21-g{bottom:10px;left:auto;right:14px;z-index:31;width:170px;opacity:0;color:#FFE6A0;font-size:13px}.d21-g.n51{left:0;top:0;right:auto;bottom:auto;width:124px;font-size:11px;background:rgba(28,20,10,.55);border-radius:12px;padding:2px 4px}.d21-g.n51 svg{height:56px}.d21-g.hot{animation:d21k .25s infinite}.d21-g svg{width:100%;height:78px;overflow:visible;fill:none;stroke-width:9}
 .d21-in36{position:fixed;left:0;top:0;z-index:32;width:86px;height:46px;margin:-23px 0 0 -43px;border-radius:50%;background:radial-gradient(#FFF1B8 0,#FFB347 30%,#FF6A1A88 58%,transparent 72%);box-shadow:0 0 24px 10px #FF8A2E66;display:none;pointer-events:none;animation:d21p .7s infinite alternate}.d21-in36.on{display:block}
 .d21-r{left:0;top:0;z-index:33;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;border:4px solid #FFD66E;background:radial-gradient(#FFE6A0E6,#C8923AB3 62%,#5A3A0880);box-shadow:0 0 18px 6px #FFD66E99;font-size:34px;line-height:64px;display:none;pointer-events:none;animation:d21p .8s infinite alternate}
 .d21-w{top:38%;transform:translate(-50%,-50%);z-index:37;opacity:0;padding:12px 44px}.d21-w.on{animation:d21w 1.9s forwards}.d21-f{top:47%;transform:translateX(-50%);z-index:34;font-size:22px;color:#FFB04A;text-shadow:0 2px 3px #000;opacity:0}.d21-f.on{animation:d21w 1.2s forwards}.d21-w b{display:block;font-size:40px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608;text-shadow:0 0 20px #FFB04A}

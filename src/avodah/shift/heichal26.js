@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb, man, ROBE, SKIN } from '../works/figures.js';
-import { P26, POOL26, SWIPE36 } from './day33.js';
+import { P26, POOL26, SWIPE36, swipe51 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
 import { ALTAR_CORNERS, DESHEN_PLACE, LIMBS_PLACE, TAMID_RING, GOLD_ALTAR } from '../../places.js';   // ── fable32 (build 41) ── (+ GOLD_ALTAR: the inner altar's own top for its ring) ── /fable32 ──
@@ -228,6 +228,7 @@ export function createHeichal26(o = {}) {
   // ── fable32 (build 40) ── the act's surface on the thing (touch40.js): the gate's bolt and key, the inner altar's ashes, the lamp he
   // tends (and the lit lamp or the pan the fire comes from), the teni in his hand ── /fable32 ──
   const t40 = createTouch40({ doc, pad, id: 'hk26', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
+  let thr51 = 0;   // ── build 51 ── (the last touch's swipe length — the hint's) ── /build 51 ──
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
@@ -236,7 +237,9 @@ export function createHeichal26(o = {}) {
     } catch (e) {}
     const p = E.r26();
     if (p) {
+      const thr = swipe51(WD(), t40.state().w); try { E.sw51(thr / WD(), thr / HT()); } catch (e) {} thr51 = thr;   // ── build 51 ── (the swipe's gate relative to the thing: swipe51 — E.sw51 for the engine) ── /build 51 ──
       touches.set(ev.pointerId, {
+        thr,
         x0: ev.clientX,
         y0: ev.clientY,
         lx: ev.clientX,
@@ -268,9 +271,9 @@ export function createHeichal26(o = {}) {
       dy = ev.clientY - p.ly;
     p.lx = ev.clientX;
     p.ly = ev.clientY;
-    if (p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * WD()) p.tx = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
-    if (p.ty == null && p.y0 - ev.clientY >= SWIPE36.dist * HT()) p.ty = t - p.t0;
-    if (p.ta == null && Math.max(Math.abs(ev.clientX - p.x0) / WD(), Math.abs(ev.clientY - p.y0) / HT()) >= SWIPE36.dist) p.ta = t - p.t0;   // ── fable32 (build 37) ── (the wick: the crossing time in any direction) ── /fable32 ──
+    if (p.tx == null && Math.abs(ev.clientX - p.x0) >= p.thr) p.tx = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
+    if (p.ty == null && p.y0 - ev.clientY >= p.thr) p.ty = t - p.t0;
+    if (p.ta == null && Math.max(Math.abs(ev.clientX - p.x0), Math.abs(ev.clientY - p.y0)) >= p.thr) p.ta = t - p.t0;   // ── fable32 (build 37) ── (the wick: the crossing time in any direction) ── /fable32 ──
     p.H.push([t, ev.clientY]);
     while (p.H.length > 2 && t - p.H[0][0] > 70) p.H.shift();
     const h0 = p.H[0],
@@ -469,7 +472,7 @@ export function createHeichal26(o = {}) {
           const li = K.ord && K.ord.length ? K.ord[Math.min(K.li | 0, K.ord.length - 1)] : 0, L0 = lamps[li] || lamps[0];
           if (ph === 'bolt' || ph === 'key') { o40 = [{ x: P26.gate.x, y: gy(P26.gate.x, P26.gate.z) + 4.5, z: P26.gate.z, r: 2.6 }]; id40 = 'hk26gate'; }
           else if (ph === 'pull') { o40 = [{ x: GOLD_ALTAR.x, y: GOLD_ALTAR.y + GOLD_ALTAR.h, z: GOLD_ALTAR.z, r: 0.75 }]; id40 = 'hk26alt'; }   /* ── fable32 (build 41) ── (the altar's own top — GOLD_ALTAR, places.js — not his stand, P26.alt: the ring sat on his shoulder and the altar together) ── /fable32 ── */
-          else if (ph === 'teni36') { o40 = [{ x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 0.9 }]; id40 = 'hk26teni';   /* (the teni at his hands' height) */ }
+          else if (ph === 'teni36') { o40 = [{ x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 0.9, self: true }]; id40 = 'hk26teni';   /* (the teni at his hands' height) */ }
           else if (ph === 'altar') o40 = [{ x: PAN36.x, y: PAN36.y, z: PAN36.z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
           else if (ph === 'drag') o40 = [{ x: lamps[5].x, y: lamps[5].y, z: lamps[5].z, r: 0.6 }, { x: L0.x, y: L0.y, z: L0.z, r: 0.6 }];
           else o40 = [{ x: L0.x, y: L0.y, z: L0.z, r: 0.8 }];
@@ -522,14 +525,18 @@ export function createHeichal26(o = {}) {
       // one line (rate30 LINE30.menorah / .inner); HINT's sources at the end, SRC30. The gesture's cue by the right thumb keeps its icon,
       // its words (VERB[2]) are the line's) ── /fable32 ──
       put(hint, '');
-      const verbRow = live && K ? VERB[ph] : null,
+      // ── build 51 ── (the inspector's review §4 item 20; the coordinator's build-51 brief, item 12: "the menorah showed two hand hints")
+      // ONE hand at a time: while the thing itself is touched (touch40 'obj'), its own hand on the thing is the one — the cue by the
+      // right thumb and build 37's swiping hand stay hidden (the wrong length is shown ON the lamp: t40.hint51) ── /build 51 ──
+      const t51 = t40.state(), onObj51 = t51.mode === 'obj';
+      const verbRow = live && K && !(t51.hand || (onObj51 && VERB[ph] && VERB[ph][0] === '👆')) ? VERB[ph] : null,
         verbKey = verbRow ? ph : '';
       if (verb.__k !== verbKey) {
         verb.__k = verbKey;
         verb.className = `hk26 hk26-u${verbRow ? ' on ' + verbRow[1] : ''}`;
         verb.innerHTML = verbRow ? `<i>${verbRow[0]}</i>` : '';
       }
-      const h37 = !!(live && K && ph === 'wick' && (!w37.done || w37.no >= 2));   // ── fable32 (build 37) ── (the hand in the verb's place: the verb's arrow hidden meanwhile) ── /fable32 ──
+      const h37 = !!(live && K && ph === 'wick' && !onObj51 && (!w37.done || w37.no >= 2));   // ── fable32 (build 37) ── (the hand in the verb's place: the verb's arrow hidden meanwhile) ── /fable32 ──
       if (hand37.classList.contains('on') !== h37) {
         hand37.classList.toggle('on', h37);
         verb.style.visibility = h37 ? 'hidden' : '';
@@ -903,6 +910,7 @@ export function createHeichal26(o = {}) {
                   ? 'ישר למעלה ⬆'
                   : 'לרוחב ↔',
           );
+          if (ev.why === 'short' || ev.why === 'slow') t40.hint51(thr51, ev.ph === 'wick' ? 'y' : 'x');   // ── build 51 ── (the right length on the lamp / the bolt) ── /build 51 ──
         }
       else if (y === 'r26gate') {
         S.gate++;

@@ -34,7 +34,7 @@ const ACT = {
     for (let i = 0; i < 60 && !R.E.k20(); i++) await R.step(0.1);
     for (let i = 0; i < 40 && R.E.k20() && R.E.k20().ph !== 'pose'; i++) await R.step(0.1);
     R.E.k20in('L', true); R.E.k20in('R', true);
-    for (let i = 0; i < 400 && R.E.k20() && R.E.k20().ph === 'pose'; i++) { const K = R.E.k20(); if (K.P36 && K.P36.bal) R.E.k20bal(Math.max(-1, Math.min(1, -K.b * 4))); await R.step(0.05); }
+    for (let i = 0; i < 400 && R.E.k20() && R.E.k20().ph === 'pose'; i++) { const K = R.E.k20(); if (K.p >= 0.8) { R.E.k20in('L', false); R.E.k20in('R', false); } if (K.P36 && K.P36.bal) R.E.k20bal(Math.max(-1, Math.min(1, -K.b * 4))); await R.step(0.05); }   // (build 51: let go at the laver's mark — K20M)
     R.E.k20in('L', false); R.E.k20in('R', false);
   },
   async lot(R) { for (let i = 0; i < 160 && (R.E.p23() || R.E.gate23() || R.E.gate26L()); i++) { const K = R.E.p23(); if (K && (K.ph === 'in' || K.ph === 'raise')) R.E.p23raise(); if (K && K.ph === 'choose') R.E.p23pick(0); await R.step(0.2); } },
@@ -118,21 +118,22 @@ test('build 36 (1): the owner\'s decision (23.10 06:37, "סף ההחלקה לה�
   assert.deepEqual({ ...SWIPE36 }, { dist: 0.15, ms: 350 }); assert.ok(Object.isFrozen(SWIPE36));
   // every swipe gate reads it: the engine's swipeWhy, the wick, the yesod; the lot's swipe up; the modules' crossing times
   const d = read('src/avodah/shift/day33.js');
-  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= SWIPE36\.dist \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : ''\) : 'short'\)/);
-  assert.match(d, /\? Math\.max\(Math\.abs\(dx\), Math\.abs\(dy\)\) >= SWIPE36\.dist/) /* (build 37: the wick in any clear direction — was "? dy <= -SWIPE36.dist", up only) */; assert.match(d, /const why = dy < SWIPE36\.dist \? 'short' : Math\.abs\(dx\) > 0\.6 \* dy \? 'crooked' : ms > SWIPE36\.ms \? 'slow' : '';/);
+  // (build 51: the gate relative to the thing — the act sets it at each touch, E.sw51, from swipe51; SWIPE51.ms 500 — the inspector's review §4 item 4)
+  assert.match(d, /swipeWhy = \(dx, dy, ms, min\) => \(void min, Math\.abs\(dx\) >= sw51\.x \? \(Math\.abs\(dy\) > 0\.5 \* Math\.abs\(dx\) \? 'crooked' : ms > SWIPE51\.ms \? 'slow' : ''\) : 'short'\)/);
+  assert.match(d, /\? Math\.max\(Math\.abs\(dx\) \/ sw51\.x, Math\.abs\(dy\) \/ sw51\.y\) >= 1/) /* (build 37: the wick in any clear direction — was "? dy <= -SWIPE36.dist", up only) */; assert.match(d, /const why = dy < sw51\.y \? 'short' : Math\.abs\(dx\) > 0\.6 \* dy \? 'crooked' : ms > SWIPE51\.ms \? 'slow' : '';/);
   assert.ok(!/ms > D21\.ms|dy < -P26\.wick|ms > P26\.ms|dy < P27\.dn|ms > P27\.ms/.test(d), 'no swipe reads the old numbers');
   const pis = read('src/avodah/shift/pis23.js'); assert.match(pis, /t - trail\[0\]\[0\] > SWIPE36\.ms \/ 1e3/); assert.match(pis, />= SWIPE36\.dist \* \(innerHeight \|\| 390\) && E\.p23raise\(\)/);
-  for (const f of ['deshen21', 'maaracha22', 'pen25', 'heichal26', 'dam27']) { const m = read(`src/avodah/shift/${f}.js`); assert.match(m, />= SWIPE36\.dist \* (W|WD|HT)\(\)/, f); assert.ok(!/> (D21|M22|P25|P26)\.sw \* |> P26\.wick \* |> P27\.dn \* /.test(m), `${f}: no old gate`); }
+  for (const f of ['deshen21', 'maaracha22', 'pen25', 'heichal26', 'dam27']) { const m = read(`src/avodah/shift/${f}.js`); assert.match(m, />= p\.thr\)/, f); assert.match(m, /const thr = swipe51\(/, f); assert.ok(!/> (D21|M22|P25|P26)\.sw \* |> P26\.wick \* |> P27\.dn \* /.test(m), `${f}: no old gate`); }
   // on the engine: the ashes' raking, the pyre's sort, the lamb's brush, the bolt, the wick, the wipe, the yesod — 0.15 within 350 ms counts; under it or slower not
   const s = SAVE(); migrate36(s);
-  const D = practise('deshen', s, 1); D.E.start(); D.H.y = 25; await D.step(0.8);
-  assert.equal(D.E.d21swipe(0.149, 0.02, 200), false); assert.equal(D.E.d21swipe(0.15, 0.02, 351), false); assert.equal(D.E.d21swipe(0.15, 0.02, 350), true, '0.15 in 350 ms: a scoop');
+  const D = practise('deshen', s, 1); D.E.start(); D.H.y = 25; await D.step(0.8); D.E.sw51(0.15, 0.15);   // (build 51: the act's gate set as a touch would — here 0.15)
+  assert.equal(D.E.d21swipe(0.149, 0.02, 200), false); assert.equal(D.E.d21swipe(0.15, 0.02, 501), false); assert.equal(D.E.d21swipe(0.15, 0.02, 500), true, '0.15 in 500 ms: a scoop');
   assert.ok(D.ev('d21swipe').some((e) => e.why === 'short') && D.ev('d21swipe').some((e) => e.why === 'slow'));
   const M = practise('m22', s, 1); M.E.start(); await M.step(0.3); await settle(M);
   for (let i = 0; i < 60 && !(M.E.m22() && M.E.m22().ph === 'sort' && M.E.m22().ls === 'on'); i++) await M.step(0.1);
-  assert.equal(M.E.m22swipe(0.14, 0, 200), null); assert.ok(M.E.m22swipe(-0.15, 0, 350), 'the sort: 0.15 counts');
+  M.E.sw51(0.15, 0.15); assert.equal(M.E.m22swipe(0.14, 0, 200), null); assert.ok(M.E.m22swipe(-0.15, 0, 350), 'the sort: 0.15 counts');
   const N = practise('menorah', s, 1); N.E.start(); await N.step(0.6); N.at(P26.gate.x + 2, P26.gate.z); await N.step(0.8);
-  assert.equal(N.E.r26swipe(0.149, 0, 300), false); assert.equal(N.E.r26swipe(0.15, 0, 350), true, 'the bolt: 0.15 in 350 ms');
+  N.E.sw51(0.15, 0.15); assert.equal(N.E.r26swipe(0.149, 0, 300), false); assert.equal(N.E.r26swipe(0.15, 0, 350), true, 'the bolt: 0.15 in 350 ms');
   N.E.r26hold(true); await N.step(P26.key + 0.2); N.E.r26hold(false); await N.step(P26.opn + 0.2); N.at(P26.walkM.x + 1, P26.walkM.z); await N.step(1.2);
   assert.equal(N.E.r26().ph, 'wick'); assert.equal(N.E.r26swipe(0, -0.14, 200), false); assert.equal(N.E.r26swipe(0, -0.15, 350), true, 'the wick: 0.15 up in 350 ms');
   // holds, drags and timing windows are not swipes: their numbers as they were

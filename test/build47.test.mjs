@@ -72,7 +72,7 @@ test('build 47: the stage — its parts, lines and sources (the Mishnah\'s own w
   const w = { stones: [[2, 1, 1, -100, 7, -72.9, 1]], hole: [-111.05, -86.95, -73.62, -71.4, -80, 11, -104.95, 7.86, 5.98] };
   assert.equal(migrate45(w), true); assert.equal(w.stones[0][3], -67.5); assert.equal(w.hole[0], -78.55); assert.equal(w.hole[6], -72.45); assert.equal(migrate45(w), false, 'once');
   assert.match(h, /const w = STG === 'wall' \? \{ x: -67\.5, z: -100 \}/, 'his stretch between שער הקרבן and שער הניצוץ');
-  assert.equal(GAME_BUILD, 50);   // (build 48: the constant moved on) (build 49: again) (build 50: again)
+  assert.equal(GAME_BUILD, 51);   // (build 48: the constant moved on) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

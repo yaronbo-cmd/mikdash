@@ -24,10 +24,10 @@ async function toWick(L = 1) {
 
 // ───────── (1) the wick ─────────
 test('build 37 (1): the wick\'s swipe counts in any clear direction past SWIPE36 (↔ ⬇ ⬆ or slanted, ≥ 0.15 within ≤ 350 ms); short or slow still refused', async () => {
-  const N = await toWick();
+  const N = await toWick(); N.E.sw51(0.15, 0.15);   // (build 51: the act's gate as a touch sets it — here 0.15 both ways)
   assert.equal(N.E.r26().ph, 'wick');
   assert.equal(N.E.r26swipe(0.14, 0.05, 200), false, 'short'); assert.equal(N.ev('r26swipe').at(-1).why, 'short');
-  assert.equal(N.E.r26swipe(-0.3, 0, 400), false, 'slow'); assert.equal(N.ev('r26swipe').at(-1).why, 'slow');
+  assert.equal(N.E.r26swipe(-0.3, 0, 520), false, 'slow');   // (build 51: SWIPE51.ms 500) assert.equal(N.ev('r26swipe').at(-1).why, 'slow');
   assert.equal(N.E.r26swipe(-SWIPE36.dist, 0.02, SWIPE36.ms), true, 'sideways counts (the naive kid\'s ↔)');
   assert.equal(N.E.r26().ph, 'wipe');
   const M = await toWick(); assert.equal(M.E.r26swipe(0.05, 0.2, 150), true, 'down counts');
@@ -38,13 +38,13 @@ test('build 37 (1): the wick\'s swipe counts in any clear direction past SWIPE36
 test('build 37 (1): the wick\'s hand — shown on the wick until his first wick counts, again after two refused in a row; the verb\'s arrow hidden meanwhile; the pad reads the crossing time in any axis', () => {
   const h = read('src/avodah/shift/heichal26.js');
   assert.match(h, /hand37 = mk\('hk26-w37', '<i>👆<\/i><b>⬆<\/b>'\)/);
-  assert.match(h, /const h37 = !!\(live && K && ph === 'wick' && \(!w37\.done \|\| w37\.no >= 2\)\)/);
+  assert.match(h, /const h37 = !!\(live && K && ph === 'wick' && !onObj51 && \(!w37\.done \|\| w37\.no >= 2\)\)/);   // (build 51: one hand at a time — touch40's on the lamp when the lamp itself is touched)
   assert.match(h, /verb\.style\.visibility = h37 \? 'hidden' : ''/);
   assert.match(h, /w37\.done = true;[^]{0,120}w37\.no = 0;/);
   assert.match(h, /if \(ev\.ph === 'wick'\) w37\.no\+\+;/);
   assert.match(h, /p\.ta = t - p\.t0/); assert.match(h, /E\.r26swipe\(dx \/ WD\(\), dy \/ HT\(\), p\.ta != null \? p\.ta : ms\)/);
   assert.match(h, /\.hk26-w37\{[^}]*\}/); assert.match(h, /@keyframes hk26w37\{/);
-  assert.equal(GAME_BUILD, 50);   // (build 38: the constant moved on) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again)
+  assert.equal(GAME_BUILD, 51);   // (build 38: the constant moved on) (build 39: 39) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
 });
 
 // ───────── (2) the second spigot ─────────
@@ -131,7 +131,7 @@ test('build 37 (5): the gap beside the Ulam\'s door (x −76.65…−75.95, |z| 
   assert.ok(N.H.x > -76, `set back on the step: ${N.H.x}`); assert.equal(N.H.z, 10);
 });
 test('build 37 (5): the menorah\'s last step says its verb; the ashes\' gold-ring hand kept on the screen', () => {
-  assert.match(read('src/avodah/shift/rate30.js'), /kuz: 'הכוז על המעלה — הקישו'/);
+  assert.match(read('src/avodah/shift/rate30.js'), /kuz: 'הכוז על המעלה — הקישו 👆'/);   // (build 51: with its gesture's sign)
   assert.match(read('src/avodah/shift/deshen21.js'), /if \(p && Number\.isFinite\(p\.x\) && Number\.isFinite\(p\.y\)\) tapRing\.style\.transform = `translate\(\$\{Math\.max\(48, Math\.min\(\(innerWidth \|\| 640\) - 48, p\.x\)\)/);
 });
 

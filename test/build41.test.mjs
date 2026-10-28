@@ -75,7 +75,7 @@ test('build 41: every act\'s view (pan40 with CAM41) keeps him ≤ 45 % of the s
   assert.ok(Math.abs(r.ox - (2 * CAM41.at - 1)) < 0.03, `the thing at ${(((r.ox + 1) / 2) * 100).toFixed(1)} %`);
   assert.ok(CAM41.at >= 0.55 && CAM41.at <= 0.65 && CAM41.big === 0.45);
   const tw = read('src/game/twin.js');
-  assert.match(tw, /\{ \.\.\.CAM41, at: O\.at \} : CAM41; r40 = pan40\(V\.p, V\.t, O, H40, tanH, C40, tanV\);/);
+  assert.match(tw, /\{ \.\.\.CAM41, at: O\.at \} : CAM41, C40 = M51 \? \{ \.\.\.C40a, big: 9, heroR: 9, hero: -9, back: 0 \} : C40a; r40 = pan40\(V\.p, V\.t, O, H40, tanH, C40, tanV\);/);   // (build 51: a macro view — the lamb, the shochet's binding — the thing first, him not stepped back for)
 });
 
 // ───────── the act's surface ─────────

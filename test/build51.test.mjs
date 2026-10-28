@@ -38,6 +38,7 @@ test('build 51 (1): the line to the thing never through him — a view behind hi
   // (a wall in the way of the first choice: the next one; all four cut — none, the caller keeps its view)
   const r2 = obj51(p, t, bb, H, tanH, tanV, OBJ51, (P) => Math.abs(P[0] - r.p[0]) < 1e-6 && Math.abs(P[2] - r.p[2]) < 1e-6); assert.ok(r2 && (r2.p[0] !== r.p[0] || r2.p[2] !== r.p[2]));
   assert.equal(obj51(p, t, bb, H, tanH, tanV, OBJ51, () => true), null);
+  const r4 = obj51(p, t, bb, H, tanH, tanV, OBJ51, (P) => P[1] < r.p[1] + 1); assert.ok(r4 && r4.up >= 1.5, 'a low wall: the same view raised over it');
   // (the thing in his own hands — the pan, the vessel carried: 'self', the view kept)
   const r3 = obj51(p, t, [-0.5, 17, 2.5, 0.5, 18, 3.5], H, tanH, tanV); assert.equal(r3.self, true);
 });
@@ -45,15 +46,16 @@ test('build 51 (1): the thing\'s box — its parts\' spheres or the act\'s own t
   assert.deepEqual(bb51([{ x: 0, y: 16, z: 0, r: 0.5 }, { x: 2, y: 17, z: 1, r: 0.25 }]), [-0.5, 15.5, -0.5, 2.25, 17.25, 1.25]);
   assert.deepEqual(bb51([{ x: 0, y: 16, z: 0, r: 0.5 }], () => [1, 2, 3, 4, 5, 6]), [1, 2, 3, 4, 5, 6]);
   assert.equal(bb51([]), null);
-  const tw = read('src/game/twin.js'); assert.match(tw, /q51 = obj51\(b0\.p, b0\.t, bb51, h \? \{ x: h\.x, y: h\.y \|\| 16, z: h\.z, h: HERO41 \} : null, tanH, tanV,/);
+  const tw = read('src/game/twin.js'); assert.match(tw, /q51 = obj51\(b0\.p, b0\.t, bb51, h \? \{ x: h\.x, y: h\.y \|\| 16, z: h\.z, h: HERO41 \} : null, tanH, tanV,/); assert.match(tw, /cut51 = \(P\) => !cutA && segO\(P\)/, 'the line of sight to the thing');
   assert.match(read('tools/cam41.js'), /function objM\(B, O, cam, p, top\)/);
   assert.match(read('src/avodah/shift/dam27.js'), /thing: \(\) => \{ const K = E\.r27\(\); return K && \/\^\(bind\|cut\)\$\/\.test\(K\.ph\)/, 'the shochet\'s thing: the whole lamb');
 });
 test('build 51 (2, 3): the lamb seen from its far side, knee-high; the lantern ×2; the shochet\'s macro at FOV 35', () => {
-  assert.deepEqual({ ...P51.lamb }, { d: 3.4, y: 2.4, ty: 0.6, zd: 2.2 }); assert.equal(SH51.fov, 35);
+  assert.deepEqual({ ...P51.lamb }, { d: 3.4, y: 2.4, ty: 0.6, zd: 2.2, aim: 0.42, zAim: 0.62 }); assert.equal(SH51.fov, 35); assert.equal(SH51.aim, 0.4);
+  assert.match(read('src/game/twin.js'), /C40 = M51 \? \{ \.\.\.C40a, big: 9, heroR: 9, hero: -9, back: 0 \} : C40a/, 'a macro view: the thing first, him not stepped back for');
   const pen = read('src/avodah/shift/pen25.js'); assert.match(pen, /export const LIT51 = Object\.freeze\(\{ k: 2,/); assert.match(pen, /\* LIT51\.k \*/);
   assert.match(LINE30.lamb.scan, /^כוונו את האור/, 'the aim\'s line at once — the scan\'s own line');
-  assert.match(read('src/avodah/shift/day33.js'), /\.\.\.\(\/\^\(bind\|bound\|cut\)\$\/\.test\(ph\) \? \{ fov: SH51\.fov \} : \{\}\)/);
+  assert.match(read('src/avodah/shift/day33.js'), /\.\.\.\(\/\^\(bind\|bound\|cut\)\$\/\.test\(ph\) \? \{ fov: SH51\.fov, macro: true, aimW: SH51\.aim \} : \{\}\)/);
 });
 test('build 51 (4): the swipe\'s gate relative to the thing — min(0.12·W, 0.4·its width), never under 0.035·W, within 500 ms', () => {
   assert.deepEqual({ ...SWIPE51 }, { k: 0.4, max: 0.12, min: 0.035, ms: 500 }); assert.ok(Object.isFrozen(SWIPE51));

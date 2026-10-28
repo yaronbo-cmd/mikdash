@@ -209,10 +209,10 @@ export const P41 = Object.freeze({ lamb: Object.freeze({ el: 0.72, d: 7.5, away:
 // ── build 51 ── the lamb's scan from its far side, knee-high (y over the floor, ty the look's height, d amot off), the macro's distance (zd);
 // the lantern ×2 (pen25 LIT51) ── /build 51 ──
 // ── build 51 ── the shochet's macro on the lamb (the inspector's review §4 item 3: FOV 35, about 2.5 m; the lamb ≥ 35 % of the width) ── /build 51 ──
-export const SH51 = Object.freeze({ fov: 35 });
+export const SH51 = Object.freeze({ fov: 35, aim: 0.4 });
 // ── build 51 ── the laver's mark: the water's level (the fill 0…1) to release at, ± win; a release past `free` is a free retry ── /build 51 ──
 export const K20M = Object.freeze({ at: 0.8, win: 0.08, free: 0.5 });
-export const P51 = Object.freeze({ lamb: Object.freeze({ d: 3.4, y: 2.4, ty: 0.6, zd: 2.2 }), off: false });
+export const P51 = Object.freeze({ lamb: Object.freeze({ d: 3.4, y: 2.4, ty: 0.6, zd: 2.2, aim: 0.42, zAim: 0.62 }), off: false });
 export const D21 = Object.freeze({
   swipe: 120,
   straight: 0.5,
@@ -4027,7 +4027,7 @@ export function createDay33(o = {}) {
       // ── build 51 ── (the inspector's review 27.10: "the lamb not seen — the camera over his hat, the hat covers the lamb"; the
       // coordinator's build-51 brief, item 2) the scan from the lamb's FAR side from him, knee-high (P51.lamb.y over the floor), P51.lamb.d
       // amot off, looking at the lamb's middle: he stands beyond it; the object rule (twin.js obj51) brings it to ≥ 35 % of the width ── /build 51 ──
-      if (!P51.off) { const hh = heroP(), Q = P51.lamb; let dx = L.x - hh.x, dz = L.z - hh.z; const dl = Math.hypot(dx, dz); if (dl < 0.3) { dx = Math.cos(c.az); dz = Math.sin(c.az); } else { dx /= dl; dz /= dl; } return { p: [L.x + dx * Q.d, 16 + Q.y, L.z + dz * Q.d], t: [L.x, 16 + Q.ty, L.z] }; }
+      if (!P51.off) { const hh = heroP(), Q = P51.lamb; let dx = L.x - hh.x, dz = L.z - hh.z; const dl = Math.hypot(dx, dz); if (dl < 0.3) { dx = Math.cos(c.az); dz = Math.sin(c.az); } else { dx /= dl; dz /= dl; } return { p: [L.x + dx * Q.d, 16 + Q.y, L.z + dz * Q.d], t: [L.x, 16 + Q.ty, L.z], macro: true, aimW: Q.aim }; }
       return camView({ az: c.az, el: Math.max(c.el, P41.lamb.el), d: Math.max(c.d, 3.5 / asp, P41.lamb.d), t: { x: L.x, y: 16 + c.ty, z: L.z } });
     },
     spotView25 = (K) => {
@@ -4041,7 +4041,7 @@ export function createDay33(o = {}) {
         hh = heroP(), hx = hh.x - at.x, hz = hh.z - at.z, hl = Math.hypot(hx, hz) || 1,
         a = [a0[0] - (hx / hl) * P41.lamb.away, a0[1], a0[2] - (hz / hl) * P41.lamb.away],
         b = Math.hypot(...a) || 1;
-      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * (P51.off ? Math.max(P25.zd, P41.lamb.zd) : P51.lamb.zd)), t: [at.x, at.y, at.z] };   // ── build 51 ── (the macro nearer: the lamb ≥ 60 % of the width at ZOOM_FOV) ── /build 51 ──   // ── fable32 (build 41) ── (a little farther: 3.4) ── /fable32 ──
+      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * (P51.off ? Math.max(P25.zd, P41.lamb.zd) : P51.lamb.zd)), t: [at.x, at.y, at.z], ...(P51.off ? {} : { macro: true, aimW: P51.lamb.zAim }) };   // ── build 51 ── (the macro nearer: the lamb ≥ 60 % of the width at ZOOM_FOV) ── /build 51 ──   // ── fable32 (build 41) ── (a little farther: 3.4) ── /fable32 ──
     },
     camWork25 = () => {
       const K = st.p25,
@@ -4689,7 +4689,7 @@ export function createDay33(o = {}) {
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6, ...(/^(bind|bound|cut)$/.test(ph) ? { fov: SH51.fov } : {}) };   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
+    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6, ...(/^(bind|bound|cut)$/.test(ph) ? { fov: SH51.fov, macro: true, aimW: SH51.aim } : {}) };   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
     // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's

@@ -1396,7 +1396,7 @@ export function createHar42(o = {}) {
     // ── build 54 ── (§2 stage 05: "a 2D diagram on the screen — you don't see the gallery") the joint itself, on the gallery in the wall: the
     // plank's end over the beam, its tenon slid into the beam's mortise, the peg driven down through both by the mallet — a macro on it
     // (ש4), the gesture as before (along the arrow, then taps). The joint i is the i-th plank's end ── /build 54 ──
-    const jointAt = () => ({ x: W2.x - 8.25 + i * 5.5 + 2.75, y: W2.y + 12.25, z: W2.z + sz * 2.4 });
+    const jointAt = () => ({ x: W2.x - 8.25 + i * 5.5 + 2.75, y: W2.y + 12.25, z: W2.z + sz * 4.5 });   // (at the plank's outer edge, its end: from over the plank the first AFTER page saw only its boards)
     const D54 = (() => { const g = new THREE.Group(), wd = mat('#C79E6C', 0.8), dk = mat('#2E2014', 0.95), pg = mat('#D8C098', 0.8), gold = mat('#E8B531', 0.6);
       const beamEnd = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.6), mat('#8A6038', 0.8)); beamEnd.position.set(0.55, -0.6, 0); g.add(beamEnd);
       const mort = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.3, 0.5), dk); mort.position.set(0.25, -0.3, 0); g.add(mort);
@@ -1425,7 +1425,7 @@ export function createHar42(o = {}) {
         D54.strike = 1; const r = P.tap(); if (r === 'lock') { flash = 1; tone(P.pitch(), 0.22, 'square'); o.sound && o.sound('wood'); buzz42('settle'); } else if (r === 'split') { buzz42('retry'); o.sound && o.sound('crack'); line(LINE42.pegSplit, `יתד ${i + 1} / ${n}`); } else if (r === 'in') { tone(P.pitch()); buzz42('tick'); }
       },
       ownView: () => true,
-      view() { const J3 = jointAt(); return { p: [J3.x + 1.3, J3.y + 0.7, J3.z + sz * 3.4], t: [J3.x + 0.1, J3.y - 0.2, J3.z] }; },   // ── build 54 ── (the macro on the joint, from the court) ── /build 54 ──
+      view() { const J3 = jointAt(); return { p: [J3.x + 1.3, J3.y + 0.35, J3.z + sz * 3.6], t: [J3.x + 0.1, J3.y - 0.25, J3.z] }; },   // ── build 54 ── (the macro on the joint, from the court) ── /build 54 ──
       frame(dt) {
         { const J3 = jointAt(); objPlace(true, [{ x: W2.x, y: W2.y + 12, z: W2.z + sz * 2, r: 9 }], 'h48pegs', [{ x: J3.x, y: J3.y - 0.25, z: J3.z, r: 0.6 }]); }
         place54();

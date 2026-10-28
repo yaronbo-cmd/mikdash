@@ -21,7 +21,7 @@
 import * as THREE from 'three';
 import { createGuide39 } from '../avodah/shift/guide39.js';
 import { walk39, pan40, CAM41, HERO41 } from './twin.js';
-import { createTouch40 } from '../avodah/shift/touch40.js';
+import { createTouch40, bb51 } from '../avodah/shift/touch40.js';
 import { buzz42 } from '../avodah/shift/prefs28.js';
 import { RATE30, rate30 } from '../avodah/shift/rate30.js';
 import * as F from './fam42.js';
@@ -766,6 +766,7 @@ export function createHar42(o = {}) {
   /** the act's thing: for the camera always; the touch surface on it only for the acts touched on the thing (the pile's acts drag from the pile) */
   function objPlace(on, pts, id) {
     const p0 = on && pts && pts[0]; st.obj = p0 ? { x: p0.x, y: p0.y, z: p0.z } : null;
+    st.objBB = p0 ? bb51(pts.filter((p) => p && Number.isFinite(p.x))) : null;   // ── build 53 ── (the act's thing as a box — its touch parts' spheres — for the object rule and the tools, touched or dragged) ── /build 53 ──
     const touch = on && !(st.job && st.job.dragOnly);
     if (st.ui.pad) st.ui.pad.classList.toggle('on', !!touch);
     if (st.job && st.job.fullPad) { if (st.t40) st.t40.place(false); if (st.ui.pad) st.ui.pad.classList.add('full'); return; }   // ── build 46 ── (the walk and the bows: the whole screen — touch40 sized the pad to a box round the thing, and the naive kid's swipes missed it: K46-dbg)
@@ -2288,7 +2289,8 @@ export function createHar42(o = {}) {
     line: () => (st.ui.line ? st.ui.line.textContent : ''),
     save: () => S, places: () => ({ PL, STAND, base }),
     heroBox: () => { const h = hero(); return { x: h.x, y: h.y, z: h.z, h: heroHeight() }; },
-    objAt: () => (st.obj ? { x: st.obj.x, y: st.obj.y, z: st.obj.z } : null), camAt: () => ({ p: [cq.p.x, cq.p.y, cq.p.z], t: [cq.t.x, cq.t.y, cq.t.z] }),   // (build 43: the camera's measure — tools/cam41.js)
+    objAt: () => (st.obj ? { x: st.obj.x, y: st.obj.y, z: st.obj.z } : null), objBox: () => (st.objBB ? { bb: st.objBB } : null),   // ── build 53 ── (objBox: the thing's box — tools/cam41.js) ── /build 53 ──
+    camAt: () => ({ p: [cq.p.x, cq.p.y, cq.p.z], t: [cq.t.x, cq.t.y, cq.t.z] }),   // (build 43: the camera's measure — tools/cam41.js)
     job: () => (st.job ? { kind: st.job.kind || '', s: st.job.J ? st.job.J.state() : null, ref: st.job } : null),   // (the tools read the act: never write)
   };
   try { globalThis.__H42 = api; } catch (e) { /* */ }

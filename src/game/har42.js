@@ -1900,7 +1900,7 @@ export function createHar42(o = {}) {
     const C = lift47(J, 'lintel', () => { grade('lintel', J.state().q, proj(G.x, G.y + 21, G.z)); endT = 1.2; });
     return { acting: true, fullPad: true, J, kind: 'lintel', down: (a) => C.down(a), move: (a) => C.move(a), up: (a) => C.up(a), sgn: sgnR47,
       ppa: () => { const p0 = proj(G.x, G.y + 20, G.z), p1 = proj(G.x + 1, G.y + 20, G.z); return p0 && p1 ? Math.abs(p1.x - p0.x) : 20; },
-      view() { return gateView(13, 0, OBJ54.gate); },   // (the lintel at the posts' top, 21.6 amot, in the frame: the shot at the top had it out) ── build 54 ── (OBJ54.gate: nearer) ── /build 54 ──
+      view() { const v = gateView(13, 0, OBJ54.gate); v.p[1] = v.t[1] = PL.gate.y + 11.5; return v; },   // (the lintel at the posts' top, 21.6 amot, in the frame: the shot at the top had it out) ── build 54 ── (OBJ54.gate: nearer; level at 11.5 amot — the lintel's top and his feet, 6 amot before the gate, both in the frame: from 6 up he was cut at the shoulders) ── /build 54 ──
       frame(dt) { C.frame(dt); if (endT >= 0) { endT -= dt; if (endT <= 0) { svgClear(); return true; } } return false; },
       end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); } };
   }

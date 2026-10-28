@@ -13,7 +13,8 @@ import { LIGHT52 } from '../src/avodah/shift/kiyor20.js';
 import { WALK52 } from '../src/avodah/shift/deshen21.js';
 import { LINE30, words30 } from '../src/avodah/shift/rate30.js';
 import { par36 } from '../src/avodah/shift/lvl36.js';
-import { share51, LIFT51, OBJ52 } from '../src/game/twin.js';
+import * as TW from '../src/game/twin.js';
+const { share51, LIFT51 } = TW;
 import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
 import { rig, FLAGS } from './rig33.mjs';
 import { walk52 } from '../tools/bal52.mjs';
@@ -47,8 +48,8 @@ test('build 52 (1): the shochet\'s binding view — the lamb whole and ≥ 35 % 
   const f = ndc(P, T, [L.x + 0.42 * LS, LY + 0.1 * LS, L.z + 0.3 * LS], tH, tV), h = ndc(P, T, [L.x + 0.42 * LS, LY + 0.07 * LS, L.z - 0.21 * LS], tH, tV);
   const px = Math.hypot(((h.x - f.x) * 844) / 2, ((h.y - f.y) * 390) / 2); assert.ok(px >= 60, `the legs ${px} px apart`);
   assert.ok(Math.abs(h.x - f.x) * 844 > Math.abs(h.y - f.y) * 390, 'the arrow along the frame, foreleg → hind leg (not down to the floor)');
-  // (the cut: build 27's medium shot — the neck ≥ 8 amot off)
-  const C = SH52.cut, neck = Math.hypot(C.p[0] - (L.x + 0.12 * LS), C.p[2] - (L.z + 0.72 * LS)); assert.ok(neck >= 8, `the cut's view ${neck} from the neck`);
+  // (the cut in the same view: the neck ≥ 5 amot off — no close-up)
+  const neck = Math.hypot(P[0] - (L.x + 0.12 * LS), P[1] - (LY + 0.3), P[2] - (L.z + 0.72 * LS)); assert.ok(neck >= 5, `the view ${neck} from the neck`);
   const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /FORE = \{ x: LAMB\.x \+ 0\.42 \* LS,/); assert.match(dm, /\{ roll: Math\.PI \/ 2, yaw: -Math\.PI \/ 2 - 0\.3 \* bp \}/, 'the legs out from the belly toward him'); assert.match(dm, /\{ roll: Math\.PI \/ 2, yaw: -Math\.PI \/ 2 \+ 0\.25 \* bp \}/); assert.match(dm, /const L = Math\.max\(BIND52\.min, vl\);/);
   assert.match(read('src/game/twin.js'), /if \(V && !globalThis\.__CAM40_OFF && !V\.own\) \{/, 'a view of its own: no pan40, no obj51');
 });
@@ -69,7 +70,7 @@ test('build 52 (1): the cut\'s needle waits for the view (SH52.settle): a tap be
   assert.equal(R.E.r27().ph, 'bind'); assert.deepEqual(R.E.camWork27().view.p, [...SH52.p]); assert.equal(R.E.camWork27().view.own, true);
   R.E.r27bind(true); await R.step(P27.bound + 0.1);
   for (let i = 0; i < 200 && R.E.r27().ph !== 'cut'; i++) await R.step(0.1);
-  const K = R.E.r27(); assert.equal(K.ph, 'cut'); assert.deepEqual(R.E.camWork27().view.p, [...SH52.cut.p]);
+  const K = R.E.r27(); assert.equal(K.ph, 'cut'); assert.deepEqual(R.E.camWork27().view.p, [...SH52.p], 'the cut in the binding\'s view');
   if (K.t < SH52.settle - 0.2) { assert.equal(R.E.r27tap(), false); assert.equal(R.E.r27().miss | 0, 0, 'no miss while the view settles'); assert.equal(R.E.r27().tc || 0, 0, 'the needle still'); }
   await R.step(SH52.settle + 0.3); assert.ok(R.E.r27().tc > 0, 'then the needle moves');
 });
@@ -90,9 +91,8 @@ test('build 52 (3): the ashes\' walk — its line the gesture (≤ 5 words, a ve
   let n = 0, sum = 0; for (let s = 0; s < 8; s++) { const r = await walk52(s, { level: 1, lat: 0.25, gain: 2.5 }); if (r.walked) { n++; sum += r.spills; } }
   assert.ok(n >= 6 && sum / n <= 1, `spills ${sum}/${n}`);
 });
-test('build 52 (4): the menorah\'s and the inner altar\'s rule at 28 % (the slide stops sooner, him ≤ 45 % where it can); the tools measure his width and his cover', () => {
-  assert.deepEqual({ ...OBJ52.hk26 }, { w: 0.28, aimW: 0.3 }); assert.deepEqual({ ...OBJ52.hk26alt }, { w: 0.28, aimW: 0.3 });
-  assert.match(read('src/game/twin.js'), /\.\.\.\(OBJ52\[id51\] \|\| \{\}\)/);
+test('build 52 (4): the menorah\'s and the inner altar\'s rule at 28 % tried and left (him over 45 % 72 → 71 %, 34 → 31 % of the frames, the thing 33 → 29 %, 39 → 29 %); the tools measure his width and his cover', () => {
+  assert.equal(TW.OBJ52, undefined); assert.doesNotMatch(read('src/game/twin.js'), /OBJ52\[id51\]/);
   const c = read('tools/cam41.js'); assert.match(c, /hw: pc\(I\.hw \|\| 0, I\.hwN \|\| 0\)/); assert.match(c, /cov: pc\(I\.cov \|\| 0,/);
   assert.equal(GAME_BUILD, 52);
 });

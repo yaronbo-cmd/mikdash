@@ -214,9 +214,9 @@ export const SH51 = Object.freeze({ fov: 35, aim: 0.4 });
 // 40 %, the lamb a white blob, no legs"): from the lamb's back (west, a little south) and high — the lamb on its side across the frame, its
 // legs toward him beyond it, he behind it (≈ 35 % of the width, never over it), the zorek out of the frame (70° up, 5.5 amot off,
 // FOV 35); a view of its own (twin.js V.own: no pan40, no obj51);
-// the cut itself back at build 27's medium shot (the neck never close: ≥ 8 amot), the camera's own lens, and its needle waits `settle` s there while
-// the view settles ── /build 52 ──
-export const SH52 = Object.freeze({ p: Object.freeze([-48.78, 21.55, -32.68]), t: Object.freeze([-47.04, 16.38, -33.45]), fov: 35, settle: 1, cut: Object.freeze({ p: Object.freeze([-46.2, 23.6, -42.4]), t: Object.freeze([-46.4, 16.5, -33.6]), fov: 0, e: 3 }) });
+// the cut in the same view (5.3 amot from the neck, from above its back — no close-up; build 27's medium shot made the lamb 11 % of the
+// width), its needle still for `settle` s as the cut begins ── /build 52 ──
+export const SH52 = Object.freeze({ p: Object.freeze([-48.78, 21.55, -32.68]), t: Object.freeze([-47.04, 16.38, -33.45]), fov: 35, settle: 1 });
 // ── build 52 ── the laver from the north side (the coordinator: "a black silhouette from above, his head the focus — show the bronze laver
 // lit, from the front or side: the spigots, the streams, his hands and feet under them"): 10 amot off, from the north, a little up — the
 // bowl and its spouts (rim 22.95) to his feet in the frame, the laver right, he left;
@@ -4702,7 +4702,7 @@ export function createDay33(o = {}) {
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = /^(bind|bound)$/.test(ph) ? { p: [...SH52.p], t: [...SH52.t], fov: SH52.fov, own: true, e: 5 } : ph === 'cut' ? { p: [...SH52.cut.p], t: [...SH52.cut.t], fov: SH52.cut.fov, own: true, e: SH52.cut.e } : { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // ── build 52 ── (the binding: SH52, a view of its own; the cut: build 27's shot at FOV 35 — was build 51's macro, FOV 35 by obj51, for both) ── /build 52 ──   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
+    if (K.role === 'shochet') a = /^(bind|bound|cut)$/.test(ph) ? { p: [...SH52.p], t: [...SH52.t], fov: SH52.fov, own: true, e: 5 } : { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // ── build 52 ── (the binding and the cut: SH52, a view of its own — was build 51's macro, FOV 35 by obj51) ── /build 52 ──   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
     // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's

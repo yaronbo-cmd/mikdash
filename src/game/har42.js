@@ -1751,7 +1751,7 @@ export function createHar42(o = {}) {
       view() { return wheelView50(); },
       frame(dt) {
         objPlace(true, [{ x: G.x, y: G.y + 6, z: G.z, r: 3 }], 'h50hub');
-        { const q = heapAt(); if (q && chip.style.display !== 'none') { chip.style.left = `${Math.round(q.x - 38)}px`; chip.style.top = `${Math.round(q.y - 26)}px`; } }   // ── build 54 ── ── /build 54 ──
+        { const q = heapAt(); if (q && chip.style.display !== 'none') { chip.style.left = `${Math.round(Math.max(4, Math.min(W() - 80, q.x - 38)))}px`; chip.style.top = `${Math.round(Math.max(56, Math.min(H() - 56, q.y - 26)))}px`; } }   // ── build 54 ── (over the pile, kept on the screen: K54-P-07 — at 640 its foot 14 px under the frame's edge) ── /build 54 ──
         st.props.wheel50.rotation.z = (J.state().angle * Math.PI) / 180;
         svgClear(); const t = proj(G.x, G.y + 6.2 + 1.25, G.z), nb = J.nearest();
         if (t && !J.state().done) { const ok = nb && Math.abs(nb.err) <= J.state().tol; svgAdd(`<path d="M${t.x - 11} ${t.y - 30} L${t.x + 11} ${t.y - 30} L${t.x} ${t.y - 12} Z" fill="${ok ? '#7CD67C' : '#FFD66E'}" stroke="#2A1804" stroke-width="2"/>`); if (J.state().L <= 1 && nb && !ok) svgAdd(`<text x="${t.x + (nb.err > 0 ? -40 : 40)}" y="${t.y - 14}" font-size="30" font-weight="900" text-anchor="middle" fill="#FFD66E" stroke="#2A1804" stroke-width="3" paint-order="stroke">${nb.err > 0 ? '⇦' : '⇨'}</text>`); }

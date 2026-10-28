@@ -119,6 +119,7 @@ test('build 54: the compass (07) — the chamber\'s paved floor and its walls fr
 test('build 54: the wheel over the pit (07) — the spokes a pile in the world, not "חישור ×8"; the spill — the bucket tips, the water on the floor', () => {
   const hb = fnOf('mkHub50', 'mkWheel50');
   assert.doesNotMatch(hb, /`╱ חישור ×\$\{/); assert.match(hb, /const heap = \[\];/);
+  assert.match(hb, /chip\.style\.top = `\$\{Math\.round\(Math\.max\(56, Math\.min\(H\(\) - 56, q\.y - 26\)\)\)\}px`/, 'the pile\'s handle kept on the screen');
   const wh = fnOf('mkWheel50');
   assert.match(wh, /bk\.rotation\.z \+= \(\(s\.spilling \? 0\.55 : 0\) - bk\.rotation\.z\)/);
   assert.match(wh, /st\.props\.puddle54 = pm;/);

@@ -458,6 +458,7 @@ export function createMaaracha22(o = {}) {
         const u = Math.min(1, (t - showAt) / 0.2),
           e = 1 - (1 - u) * (1 - u);
         place(cur, L, SHOW[0], SHOW[1] - 0.5 * (1 - e), SHOW[2], SHOW_K[L.size] * (0.7 + 0.3 * e), showYaw, t * 0.9);
+        cur.scale.x *= THICK51; cur.scale.z *= THICK51;   // ── build 51 ── (the log in hand thicker: its bark and its worm read on a phone) ── /build 51 ──
       }
       if (throwing) {
         const th = throwing,
@@ -848,6 +849,7 @@ reg30('m22', {
   ],
 });
 const END_COLOR = { fig: '#E6D6B4', walnut: '#B98F66', pine: '#EAB27A', olive: '#CDBF94', vine: '#A47A52' };
+const THICK51 = 1.8;   // ── build 51 ── (the log in hand: its girth ×1.8 — the defect shown) ── /build 51 ──
 const SHOW_K = { L: 0.55 * 1.45, M: 0.62 * 1.45, S: 0.85 * 1.45 };   // ── build 51 ── (the log in hand ×1.45: its defect read at a phone's size; the object rule frames it) ── /build 51 ──
 const { r: RAD, len: LEN } = M22;
 const PX = M22.pyre.x;

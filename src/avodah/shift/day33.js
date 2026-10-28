@@ -4722,7 +4722,7 @@ export function createDay33(o = {}) {
     return {
       x: h.x,
       z: h.z,
-      view: ph === 'in' || ph === 'sort' || ph === 'sorted' ? M22.camS : camView(ph === 'ignite' || ph === 'end' ? M22.camP : M22.camB),
+      view: ph === 'in' || ph === 'sort' || ph === 'sorted' ? (ph === 'sort' ? { ...M22.camS, macro: true } /* ── build 51 ── (the sort: the log held up to the eye — the view not stepped back for him) ── */ : M22.camS) : camView(ph === 'ignite' || ph === 'end' ? M22.camP : M22.camB),
     };
   };
   // ── recovered (build 17) ── the focused day's next step (after the gates: the lost lamb at home, the pen before a tamid, the fire low, the

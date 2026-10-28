@@ -1933,7 +1933,7 @@ export function createHar42(o = {}) {
       // ── build 54 ── (§2 stage 04: "you can't see whether it stuck") while the pin goes down: a macro on the pin and its socket (from the north,
       // 6.5 amot, a little above — the pin's foot, the socket's rim, the leaf's edge) ── /build 54 ──
       ownView: () => phase === 'pin',
-      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.gate); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [tx - sx * 1.2, g0 + 3.2, G.z + 6.5], t: [tx, g0 + 1.2, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
+      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.gate); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [pivX - sx * 3.8, g0 + 2.8, G.z + 5], t: [tx, g0 + 1.1, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
       frame(dt) {
         if (phase === 'pin') objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf', [{ x: pivX - sx * 0.4, y: g0 + 1.2, z: G.z, r: 0.9 }]); else objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');   // ── build 54 ── (in the macro: the pin and its socket) ── /build 54 ──
         if (phase === 'lift') { C.frame(dt); return false; }
@@ -1966,11 +1966,11 @@ export function createHar42(o = {}) {
       const g = new THREE.Group(), xs = F.GATES47.map((q) => q.x), x0 = Math.min(...xs) - 18, x1 = Math.max(...xs) + 4, z0 = -67.5, z1 = 67.5, cy = gy((x0 + x1) / 2, 0) + 0.12;
       let tex = null; try { if (doc) { const cv = doc.createElement('canvas'); cv.width = 512; cv.height = 512; const c = cv.getContext('2d'); c.fillStyle = '#E4D7BC'; c.fillRect(0, 0, 512, 512); for (let r = 0; r < 16; r++) for (let q = 0; q < 16; q++) { const sh = 205 + ((r * 7 + q * 13) % 23); c.fillStyle = `rgb(${sh + 12},${sh + 2},${sh - 22})`; c.fillRect(q * 32 + 1.5 + (r % 2) * 16, r * 32 + 1.5, 29, 29); } tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set((x1 - x0) / 24, (z1 - z0) / 24); tex.colorSpace = THREE.SRGBColorSpace; } } catch (e) { tex = null; }
       const pv = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), new THREE.MeshStandardMaterial({ map: tex, color: tex ? '#FFFFFF' : '#E4D7BC', roughness: 0.95 })); pv.rotation.x = -Math.PI / 2; pv.position.set((x0 + x1) / 2, cy, (z0 + z1) / 2); g.add(pv);
-      const stoneM = mat('#EFE6D2', 0.8), shM = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.32, depthWrite: false });
+      const stoneM = mat('#BFA77A', 0.8), capM = mat('#E2B65A', 0.6), shM = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.45, depthWrite: false });
       for (const q of F.GATES47) { const ax = q.side === 'E', y0 = gy(q.x, q.z), gh = new THREE.Group();
         for (const sx of [-1, 1]) { const t = new THREE.Mesh(new THREE.BoxGeometry(ax ? 9 : 6, 26, ax ? 6 : 9), stoneM); t.position.set(ax ? 0 : sx * 8, 13, ax ? sx * 8 : 0); gh.add(t); }
-        const top = new THREE.Mesh(new THREE.BoxGeometry(ax ? 9 : 22, 5, ax ? 22 : 9), stoneM); top.position.y = 23.5; gh.add(top);
-        const sh = new THREE.Mesh(new THREE.PlaneGeometry(ax ? 9 : 22, ax ? 22 : 9), shM); sh.rotation.x = -Math.PI / 2; sh.position.set(7, 0.3, 9); gh.add(sh);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(ax ? 9 : 22, 5, ax ? 22 : 9), capM); top.position.y = 23.5; gh.add(top);
+        const sh = new THREE.Mesh(new THREE.PlaneGeometry(ax ? 14 : 26, ax ? 26 : 14), shM); sh.rotation.x = -Math.PI / 2; sh.position.set(9, Math.max(0, cy - y0) + 0.5, 11); sh.renderOrder = 2; gh.add(sh);
         gh.position.set(q.x, y0, q.z); g.add(gh); }
       st.props.root.add(g); st.props.court54 = g;
     }

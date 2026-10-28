@@ -71,7 +71,7 @@ test('build 54: the lintel (04) — level 1 without drift; "הבועה ברחה 
 test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop seen (a jolt, "נתקעה"); a door', () => {
   const lf = fnOf('mkLeaf', 'mkNames');
   assert.match(lf, /ownView: \(\) => phase === 'pin',/);
-  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.6; return \{ p: \[tx - sx \* 1\.2, g0 \+ 3\.2, G\.z \+ 6\.5\]/);
+  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.6; return \{ p: \[pivX - sx \* 3\.8, g0 \+ 2\.8, G\.z \+ 5\]/);
   assert.match(lf, /נתקעה/);
   assert.match(H, /const DOOR54 = \{/); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
 });

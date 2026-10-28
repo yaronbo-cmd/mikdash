@@ -1895,6 +1895,7 @@ export function createHar42(o = {}) {
   }
   function mkLintel() {
     const LL = famL('lift'), J = F.createLintel47(LL); line(LINE42.lintel, `רמה ${LL}`);
+    try { const q = lintelStand54(); stages.hero.drive(0, 0); stages.hero.setPos(q.x, q.z, 0); } catch (e) { /* */ }   // ── build 54 ── (at his place in the left third — the walk stops 2.6 amot short of it) ── /build 54 ──
     let endT = -1; const G = PL.gate;
     const C = lift47(J, 'lintel', () => { grade('lintel', J.state().q, proj(G.x, G.y + 21, G.z)); endT = 1.2; });
     return { acting: true, fullPad: true, J, kind: 'lintel', down: (a) => C.down(a), move: (a) => C.move(a), up: (a) => C.up(a), sgn: sgnR47,

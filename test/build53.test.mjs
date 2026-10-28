@@ -8,7 +8,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { LINE42, FADE53, WALK53, OBJ53, VIEW53, ROPE53, slow53, PARTS42, PARTS45 } from '../src/game/har42.js';
+import { LINE42, FADE53, WALK53, OBJ53, VIEW53, ROPE53, slow53, fig53, PARTS42, PARTS45 } from '../src/game/har42.js';
 import { walk39, WALK39, OBJ51 } from '../src/game/twin.js';
 import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
 
@@ -128,3 +128,15 @@ test('build 53: stage 02 — the thread\'s ring on the near peg only, the far on
   assert.equal(head, 'משכו ⬇ · החזיקו · משכו ⬇');
   assert.ok(PARTS45.includes('pulley'));
 });
+
+test('build 53: him kept ≤ 45 % of the height after obj51 (fig53, pure); the act\'s crew beyond the thing as the camera sees it; the great stone\'s side view', () => {
+  assert.equal(OBJ53.big, 0.45);
+  // a 6.4-amah figure 10 amot before a level camera (the page's 50° field): about 0.69 of the height — over; at 16 amot ≤ 0.45
+  const tv = Math.tan((50 * Math.PI) / 360), th = tv * (844 / 390), H = { x: 0, y: 0, z: 0, h: 6.4 };
+  const near = fig53([0, 3.2, 10], [0, 3.2, 0], H, th, tv), far = fig53([0, 3.2, 16], [0, 3.2, 0], H, th, tv);
+  assert.ok(near.s > 0.45 && far.s <= 0.45, `${near.s} ${far.s}`);
+  assert.match(H0(), /if \(F0 && F0\.s > OBJ53\.big && Math\.abs\(F0\.x\) < 1\.1\)/);
+  assert.match(H0(), /const fx0 = ox - cq\.p\.x, fz0 = oz - cq\.p\.z/);
+  assert.match(H0(), /view\(\) \{ const y = PL\.roll0\.y; return \{ p: \[xNow \+ 0\.5, y \+ 5\.5, PL\.roll0\.z \+ VIEW53\.roll\]/);
+});
+function H0() { return H; }

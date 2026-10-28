@@ -62,7 +62,7 @@ export function fig53(P, T, H, tanH, tanV) {
   return { x: m.x, s: Math.abs(b.y - a.y) / 2, whole: inS(a) && inS(b) };
 }
 // ── build 53 ── the macros and the side view (§4 important 9, 10; the rock's ש4): the share of the width each view gives its thing
-export const VIEW53 = Object.freeze({ trace: 0.7, rock: 0.62, course: 0.5, courseMin: 9, courseMax: 22, roll: 17 });
+export const VIEW53 = Object.freeze({ trace: 0.7, rock: 0.62, course: 0.44, courseMin: 9, courseMax: 24, roll: 17 });
 // ── build 53 ── the rope (§4 nice 19): the pull off the line (amot/s of drift at each level) and the deviation that is still מהודר / כשר
 export const ROPE53 = Object.freeze({ drift: Object.freeze([0, 0.32, 0.42, 0.52, 0.6]), steer: 0.9, ok: 1.2, kasher: 2.6 });   // (from near + lead amot out: v × under — walk39's ease (tau 0.18) then has him ≤ v by near: 4.75 amot/s at most, simulated)
 const FAMOF = { rope: 'rope', compass: 'place', benches: 'place', hub: 'fit', wheel: 'lift', dome: 'place', arch: 'place', voyage: 'lift', lever: 'lift', hang: 'fit', steps: 'place', step: 'place', wood: 'inspect', log: 'inspect', beams: 'fit', beam: 'fit', pegs: 'fit', peg: 'fit', corner48: 'fit', lintel: 'lift', leaf: 'fit', leaf7: 'fit', names: 'inspect', lattice0: 'place', lattice1: 'place', lattice2: 'place', lattice: 'place', warn: 'place', line: 'place', pulley: 'lift', wcourse0: 'place', wcourse1: 'place', giant: 'place', wcorner: 'place', top: 'place', lift: 'lift', corner: 'place', rock0: 'inspect', rock1: 'inspect', rock2: 'inspect', course0: 'place', course1: 'place', roll: 'place', pave: 'place', trace: 'place' };
@@ -487,7 +487,7 @@ export function createHar42(o = {}) {
     L.t += dt;
     for (const c of L.crews) { if (!c.visible) continue; c.userData.workers.forEach((w, i) => { const ph = L.t * 3.2 + w.userData.ph; w.userData.arms[0].rotation.x = -0.9 + Math.sin(ph) * 0.7; w.userData.arms[1].rotation.x = -0.9 + Math.sin(ph + 0.8) * 0.7; w.rotation.z = Math.sin(ph) * 0.06; }); }
     // (the act's crew: once the act has set its thing and the camera has mostly come round to its view (0.9 s), beyond the thing as the
-    // camera sees it — the thing's box's middle + its half-size + 9 amot along the line from the camera, 5 to the side; the first page set it
+    // camera sees it — the thing's box's middle + its half-size + 5.5 amot along the line from the camera, 4.5 to the side; the first page set it
     // from the view's target on the act's first frame, and it stood round him)
     if (st.job && st.objBB) {
       if (L.part !== st.part) { L.part = st.part; L.jt = 0; L.set = false; }
@@ -495,8 +495,8 @@ export function createHar42(o = {}) {
       if (!L.set && L.jt > 0.9) {
         L.set = true;
         const b = st.objBB, ox = (b[0] + b[3]) / 2, oz = (b[2] + b[5]) / 2, rad = Math.max(b[3] - b[0], b[5] - b[2]) / 2;
-        const fx0 = ox - cq.p.x, fz0 = oz - cq.p.z, fl = Math.hypot(fx0, fz0) || 1, fx = fx0 / fl, fz = fz0 / fl, rx = -fz, rz = fx, dd = rad + 9;
-        const x = ox + fx * dd - rx * 5, z = oz + fz * dd - rz * 5;
+        const fx0 = ox - cq.p.x, fz0 = oz - cq.p.z, fl = Math.hypot(fx0, fz0) || 1, fx = fx0 / fl, fz = fz0 / fl, rx = -fz, rz = fx, dd = rad + 5.5;
+        const x = ox + fx * dd - rx * 4.5, z = oz + fz * dd - rz * 4.5;   // (5.5 beyond its edge: in the frame of a view that looks down on the thing — 9 put them over the top of it)
         L.act.position.set(x, gy(x, z), z); L.act.rotation.y = Math.atan2(fx, fz); L.act.visible = true; L.at = { x: Math.round(x * 10) / 10, z: Math.round(z * 10) / 10, part: st.part };
       }
     }
@@ -2144,7 +2144,7 @@ export function createHar42(o = {}) {
       acting: true, dragOnly: true, J, kind: 'course', slot: slotBox, uAt, spec, cornerAt: () => (spec.corner ? uAt(spec.b - 1) : null),
       // ── build 53 ── (§4 important 10) stage 01's courses from the side — the course's far face, him beyond it (never between): his stretch
       // VIEW53.course of the width, a little from above; the pile below it ── /build 53 ──
-      view: n53 ? () => { const c = camera(), tanV = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), tanH = tanV * (W() / H()), Ls = Math.max(4, (spec.b - spec.a) * U + 0.6), D = Math.max(VIEW53.courseMin, Math.min(VIEW53.courseMax, Ls / (2 * VIEW53.course * tanH))), mx = C.x + ((spec.a + spec.b) / 2) * U - 7, el2 = 0.18; return { p: [mx, C.y + 0.4 + Math.sin(el2) * D, C.z + Math.cos(el2) * D], t: [mx, C.y + 0.5, C.z] }; } : null,   // (el 0.18 and the look at the course's top: his head in the frame beyond it — the first page's 0.26 cut it)
+      view: n53 ? () => { const c = camera(), tanV = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), tanH = tanV * (W() / H()), Ls = Math.max(4, (spec.b - spec.a) * U + 0.6), D = Math.max(VIEW53.courseMin, Math.min(VIEW53.courseMax, Ls / (2 * VIEW53.course * tanH))), mx = C.x + ((spec.a + spec.b) / 2) * U - 7, el2 = 0.18; return { p: [mx, C.y + 0.4 + Math.sin(el2) * D, C.z + Math.cos(el2) * D], t: [mx, C.y + 1.0, C.z] }; } : null,   // (el 0.18 and the look an amah over the course's top: his head in the frame beyond it — the first pages' cut it)
       down() {}, move() {},
       up(a) { if (J.state().prot && J.state().prot.length && Math.hypot(a.x - a.x0, a.y - a.y0) >= F.DRAG42) { const i = J.state().prot[0], m = laid[i]; if (J.pushIn({ dragPx: Math.hypot(a.x - a.x0, a.y - a.y0) }) === 'ok' && m) { m.position.z = 0; buzz42('settle'); } } },   // (the retreat: a drag pushes the next stone that stands out back into line)
       frame(dt) {

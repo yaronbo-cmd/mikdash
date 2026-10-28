@@ -1732,15 +1732,16 @@ export function createHar42(o = {}) {
     st.props.spokes50.forEach((s2) => { s2.visible = false; });
     // ── build 54 ── (§2 stage 07: "the spokes are a button 'חישור ×8'") the spokes lie in a pile on the floor by the wheel; the finger takes one
     // from the pile where it lies (a clear handle over it) ── /build 54 ──
-    const heap = []; { const wd = mat('#9A7046', 0.85); for (let k = 0; k < F.HUB50.n; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 2.2), wd), a = (k * 2.4) % 3.1 - 1.5; b.rotation.set(0, a * 0.5, 0); const x = G.x - 3.4 + (k % 3) * 0.32, z = G.z - 2.2 + (k % 2) * 0.25; b.position.set(x, G.y + 0.12 + Math.floor(k / 3) * 0.2, z); if (st.props.root) st.props.root.add(b); heap.push(b); } }
+    const heap = []; { const wd = mat('#9A7046', 0.85); for (let k = 0; k < F.HUB50.n; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 2.2), wd), a = (k * 2.4) % 3.1 - 1.5; b.rotation.set(0, a * 0.5, 0); const x = G.x - 3.4 + (k % 3) * 0.32, z = G.z - 1.6 + (k % 2) * 0.25; b.position.set(x, G.y + 1.62 + Math.floor(k / 3) * 0.2, z); if (st.props.root) st.props.root.add(b); heap.push(b); }
+      const tr = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.2, 2.6), wd), legs = [-0.6, 0.6].map((dx) => new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.4, 2.2), wd)); tr.position.set(G.x - 3.1, G.y + 1.4, G.z - 1.5); legs.forEach((l, k2) => { l.position.set(G.x - 3.1 + [-0.6, 0.6][k2], G.y + 0.7, G.z - 1.5); }); if (st.props.root) [tr, ...legs].forEach((m) => { st.props.root.add(m); heap.push(m); m.userData.stand = 1; }); }   // (on a trestle by the wheel: on the floor the pile stood under the frame's edge)
     const chip = el('h42-it h50-spoke', '', 'button'); chip.type = 'button'; chip.setAttribute('aria-label', 'חישור'); chip.style.cssText = 'position:fixed;z-index:46;pointer-events:auto;width:76px;height:52px;min-width:0;padding:0;background:transparent;box-shadow:none;border:2px dashed rgba(255,214,110,.85);border-radius:14px;color:transparent'; st.ui.root.appendChild(chip);
-    const heapAt = () => { const b = heap.find((m) => m.visible); return b ? proj(b.position.x, b.position.y, b.position.z) : null; };
+    const heapAt = () => { const b = heap.find((m) => m.visible && !m.userData.stand); return b ? proj(b.position.x, b.position.y, b.position.z) : null; };
     dragItem(chip, (d) => {
       if (J.state().done || d.y > H() * 0.8) return false; const r = J.insert({ dragPx: d.px });
       if (r === 'tap') return false;
       if (r === 'jam') { buzz42('retry'); o.sound && o.sound('grind'); line(LINE42.hubJam, `רמה ${L}`); return false; }
       const filled = J.state().filled; filled.forEach((f, i) => { st.props.spokes50[i].visible = f; }); buzz42('settle'); o.sound && o.sound('wood');
-      const left = filled.filter((f) => !f).length; chip.textContent = ''; heap.forEach((m, k) => { m.visible = k < left; });
+      const left = filled.filter((f) => !f).length; chip.textContent = ''; heap.forEach((m, k) => { if (!m.userData.stand) m.visible = k < left; });
       if (r === 'done') { pile.innerHTML = ''; chip.style.display = 'none'; grade('hub', J.result().q, proj(G.x, G.y + 6, G.z)); endT = 1.3; } else line(LINE42.hub, `חישור ${F.HUB50.n - left + 1}/${F.HUB50.n} · רמה ${L}`);
       return true;
     });

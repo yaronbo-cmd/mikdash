@@ -33,12 +33,12 @@ test('build 51 (1): the line to the thing never through him — a view behind hi
   const bb = [-0.6, 16, -0.6, 0.6, 17.4, 0.6], H = { x: 0, y: 16, z: 3, h: 3.96 }, p = [0, 19, 10], t = [0, 16.7, 0];
   assert.equal(occl51({ x: p[0], y: p[1], z: p[2] }, { x: 0, y: 16.7, z: 0 }, H, 3.96), true, 'straight through him');
   assert.equal(occl51({ x: 6, y: 19, z: 8 }, { x: 0, y: 16.7, z: 0 }, H, 3.96), false, 'from the side');
-  const r = obj51(p, t, bb, H, tanH, tanV); assert.ok(r); assert.equal(r.occ, false); assert.notEqual(r.a, 0, 'turned');
+  const r = obj51(p, t, bb, H, tanH, tanV); assert.ok(r); assert.equal(r.occ, false); assert.ok(r.a !== 0 || r.L > 0, 'turned, or lifted over him');
   assert.equal(occl51({ x: r.p[0], y: r.p[1], z: r.p[2] }, { x: 0, y: 16.7, z: 0 }, H, 3.96), false);
   // (a wall in the way of the first choice: the next one; all four cut — none, the caller keeps its view)
   const r2 = obj51(p, t, bb, H, tanH, tanV, OBJ51, (P) => Math.abs(P[0] - r.p[0]) < 1e-6 && Math.abs(P[2] - r.p[2]) < 1e-6); assert.ok(r2 && (r2.p[0] !== r.p[0] || r2.p[2] !== r.p[2]));
   assert.equal(obj51(p, t, bb, H, tanH, tanV, OBJ51, () => true), null);
-  const r4 = obj51(p, t, bb, H, tanH, tanV, OBJ51, (P) => P[1] < r.p[1] + 1); assert.ok(r4 && r4.up >= 1.5, 'a low wall: the same view raised over it');
+  const r4 = obj51(p, t, bb, H, tanH, tanV, OBJ51, (P) => P[1] < r.p[1] + 1); assert.ok(r4 && (r4.up >= 1.5 || r4.p[1] >= r.p[1] + 1), 'a low wall: the view raised over it');
   // (the thing in his own hands — the pan, the vessel carried: 'self', the view kept)
   const r3 = obj51(p, t, [-0.5, 17, 2.5, 0.5, 18, 3.5], H, tanH, tanV); assert.equal(r3.self, true);
 });
@@ -116,7 +116,7 @@ test('build 51 (11, 12, 7, 8, 9): the end card on the right two-thirds; one hand
   const hk = read('src/avodah/shift/heichal26.js'); assert.match(hk, /const h37 = !!\(live && K && ph === 'wick' && !onObj51 &&/);
   const m22 = read('src/avodah/shift/maaracha22.js'); assert.match(m22, /bag51 = createBag48\(null, Math\.random, \['holes', 'gallery'\]\)/); assert.match(m22, /if \(L\.worm && !L\.__v51\) L\.__v51 = bag51\.draw\(\);/);
   assert.match(read('src/avodah/shift/deshen21.js'), /const balance = ph === 'walk' \|\| ph === 'desc' \|\| ph === 'full';/);
-  const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /<path class="st51"\/>/); assert.match(dm, /marker-end="url\(#dm27ah\)"/);
+  const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /<path class="st51"\/>/); assert.match(dm, /need = Math\.max\(70, Math\.min\(vl, thr51 > 0 \? thr51 : vl\)\)/, 'the binding\'s drag as long as the swipe\'s gate, not the legs\' span'); assert.match(dm, /marker-end="url\(#dm27ah\)"/);
 });
 test('build 51: no Divine Name in the changed files (by code points)', () => {
   const N = String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4);

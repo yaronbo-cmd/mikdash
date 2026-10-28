@@ -51,7 +51,7 @@ export function slow53(g, top = 14) {
   return Object.assign({}, g, { k: Math.min(g.k == null ? 1 : g.k, (WALK53.v * WALK53.under) / (top * WALK39.speed)) });
 }
 // ── build 53 ── the object rule in Phase A (§4 must 1): the stages whose act views take Phase B's obj51 now (03–07: build 54)
-export const OBJ53 = Object.freeze({ stg: Object.freeze(['har', 'wall']), big: 0.45 });
+export const OBJ53 = Object.freeze({ stg: Object.freeze(['har', 'wall']), big: 0.45, margin: 0.06 });   // (margin: the thing kept 6 % over the rule when he is stepped back from — at the rule's edge the second AFTER page held it in 43–64 % of the frames)
 /** his figure on a view (pure; as twin.js's fig51): his middle across the width (NDC), his half-height share s, whole in the frame */
 export function fig53(P, T, H, tanH, tanV) {
   let fx = T[0] - P[0], fy = T[1] - P[1], fz = T[2] - P[2]; const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
@@ -854,7 +854,7 @@ export function createHar42(o = {}) {
     // ≤ OBJ53.big or out of the frame, while the thing keeps the rule)
     if (OBJ53.stg.includes(STG) && st.objBB && !globalThis.__OBJ53_OFF) { try { const q = obj51(v.p, v.t, st.objBB, { x: h.x, y: h.y, z: h.z, h: HH }, tanH, tanV, { ...OBJ51, ...(st.a53 == null ? {} : { prefer: st.a53 }) }); if (q && !q.self) { v = { p: q.p, t: q.t }; st.a53 = q.key; st.o53 = { w: Math.round(q.w * 100), h: Math.round(q.h * 100), occ: q.occ, a: Math.round(q.a * 57), L: q.L }; }
       const Hf = { x: h.x, y: h.y, z: h.z, h: HH }, F0 = fig53(v.p, v.t, Hf, tanH, tanV);
-      if (F0 && F0.s > OBJ53.big && Math.abs(F0.x) < 1.1) { const dx = v.p[0] - v.t[0], dy = v.p[1] - v.t[1], dz = v.p[2] - v.t[2]; for (let k = 1; k <= 16; k++) { const m = 1 + 0.08 * k, P2 = [v.t[0] + dx * m, v.t[1] + dy * m, v.t[2] + dz * m], S2 = share51(P2, v.t, st.objBB, tanH, tanV); if (!(S2.w >= OBJ51.w && S2.h >= OBJ51.h)) break; v = { p: P2, t: v.t }; const F2 = fig53(P2, v.t, Hf, tanH, tanV); if (!F2 || F2.s <= OBJ53.big || Math.abs(F2.x) >= 1.1) break; } }
+      if (F0 && F0.s > OBJ53.big && Math.abs(F0.x) < 1.1) { const dx = v.p[0] - v.t[0], dy = v.p[1] - v.t[1], dz = v.p[2] - v.t[2]; for (let k = 1; k <= 16; k++) { const m = 1 + 0.08 * k, P2 = [v.t[0] + dx * m, v.t[1] + dy * m, v.t[2] + dz * m], S2 = share51(P2, v.t, st.objBB, tanH, tanV); if (!(S2.w >= OBJ51.w + OBJ53.margin && S2.h >= OBJ51.h + OBJ53.margin)) break; v = { p: P2, t: v.t }; const F2 = fig53(P2, v.t, Hf, tanH, tanV); if (!F2 || F2.s <= OBJ53.big || Math.abs(F2.x) >= 1.1) break; } }
     } catch (e) { /* */ } }
     st.camLock = v; return v;
   }

@@ -850,7 +850,7 @@ reg30('m22', {
 });
 const END_COLOR = { fig: '#E6D6B4', walnut: '#B98F66', pine: '#EAB27A', olive: '#CDBF94', vine: '#A47A52' };
 const THICK51 = 1.8;   // ── build 51 ── (the log in hand: its girth ×1.8 — the defect shown) ── /build 51 ──
-const SHOW_K = { L: 0.55 * 1.45, M: 0.62 * 1.45, S: 0.85 * 1.45 };   // ── build 51 ── (the log in hand ×1.45: its defect read at a phone's size; the object rule frames it) ── /build 51 ──
+const SHOW_K = { L: 0.55 * 1.7, M: 0.62 * 1.7, S: 0.85 * 1.7 };   // ── build 51 ── (the log in hand ×1.7: its defect read at a phone's size; the object rule frames it) ── /build 51 ──
 const { r: RAD, len: LEN } = M22;
 const PX = M22.pyre.x;
 const S2X = -2.4,

@@ -189,7 +189,7 @@ export function pan40(p, t, O, H, tanH, c = CAM40, tanV = 0) {
 // (the thing keeps its place on the screen) until it is `aimW` wide (never nearer than `near` amot, never taller than `maxH`); each of the
 // `swing` turns round the thing's upright (0, ±30°, ±50°) is tried and scored: through him, the rule missed, a wall in the way (the
 // caller's cut), him over `big` of the height, him right of the thing, the size of the turn. Pure (the cut is the caller's).
-// A thing in his own hands (its middle within `self` amot of him: the pan on the way down, the vessel carried) keeps build 41's view.
+// A thing in his own hands (flagged 'self' by its act — the pan on the way down, the vessel carried, the teni, the log held up — or its middle within `self` amot of him) keeps build 41's view.
 export const OBJ51 = Object.freeze({ w: 0.3, h: 0.2, aimW: 0.36, maxH: 0.95, near: 1.4, swing: Object.freeze([0, 0.52, -0.52, 0.87, -0.87]), R: 0.6, big: 0.45, self: 0.25 });
 /** does the segment from the camera C to the thing's middle O pass through his figure (feet A, height top, radius R)? (pure) */
 export function occl51(C, O, A, top, R = OBJ51.R) {

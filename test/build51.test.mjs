@@ -112,6 +112,7 @@ test('build 51 (13): the guided walk at most 5 amot/s within 6 amot of its place
 });
 test('build 51 (11, 12, 7, 8, 9): the end card on the right two-thirds; one hand at a time; the worm on the log from build 48\'s bag; the pan\'s meter by the pan; the blood\'s stream drawn', () => {
   assert.match(read('src/avodah/shift/practice31.js'), /@media \(orientation:landscape\)\{\.p31-end\{justify-content:flex-start;padding-inline-start:8px;/);
+  assert.match(read('src/main.js'), /const c = document\.querySelector\('\.p31-end \.c'\);\s*if \(c\) \{ const r = c\.getBoundingClientRect\(\), W = innerWidth; if \(r\.left > W \* 0\.2 && r\.height > H \* 0\.4\) gx = Math\.max\(0, W - r\.left \+ 8\); \}/, 'him in the left third: the principal point moved as for a side panel');
   const hk = read('src/avodah/shift/heichal26.js'); assert.match(hk, /const h37 = !!\(live && K && ph === 'wick' && !onObj51 &&/);
   const m22 = read('src/avodah/shift/maaracha22.js'); assert.match(m22, /bag51 = createBag48\(null, Math\.random, \['holes', 'gallery'\]\)/); assert.match(m22, /if \(L\.worm && !L\.__v51\) L\.__v51 = bag51\.draw\(\);/);
   assert.match(read('src/avodah/shift/deshen21.js'), /const balance = ph === 'walk' \|\| ph === 'desc' \|\| ph === 'full';/);

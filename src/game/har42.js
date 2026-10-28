@@ -1225,7 +1225,7 @@ export function createHar42(o = {}) {
         return false;
       }
       sel = i; live();
-      const R2 = slotRect(), G3 = gapAt(), on = (drop.x > R2.l - R2.s * 0.6 && drop.x < R2.l + R2.s * 1.6 && drop.y > R2.t - R2.s * 0.6 && drop.y < R2.t + R2.s * 1.6) || !!(G3 && Math.hypot(drop.x - G3.x, drop.y - G3.y) < Math.max(36, G3.s * 0.9));   // ── build 54 ── (or on the real lattice's gap) ── /build 54 ──
+      const R2 = slotRect(), G3 = gapAt(), on = (drop.x > R2.l - R2.s * 1.1 && drop.x < R2.l + R2.s * 2.1 && drop.y > R2.t - R2.s * 1.1 && drop.y < R2.t + R2.s * 2.1) || !!(G3 && Math.hypot(drop.x - G3.x, drop.y - G3.y) < Math.max(52, G3.s * 1.3));   /* (the window's slot is small — 26 px at 640: a finger's drop forgiven a cell round it; the naive kid K54-P-03 stood 75 s twice) */   // ── build 54 ── (or on the real lattice's gap) ── /build 54 ──
       const r = J.drop(i, { dragPx: drop.px, onSlot: on });
       if (r === 'ok') { buzz42('settle'); if (pan) pan.draw(null); pile.innerHTML = ''; endT = 1.1; grade(`lattice${k}`, J.state().q, { x: R2.l + R2.s / 2, y: R2.t }); return true; }
       if (r === 'wrong') { b.classList.remove('no'); void b.offsetWidth; b.classList.add('no'); buzz42('retry'); line(LINE42.latWrong, `${K.he} · טעויות ${J.state().mistakes}`); setTimeout(() => { if (!J.state().done) line(LINE42.lattice, `${K.he} · רמה ${L}`); }, 2400); }

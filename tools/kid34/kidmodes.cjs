@@ -305,7 +305,7 @@ async function mount42(K) {
       else if (/במרחקים שווים|קרוב מדי/.test(L) && r < 0.85) await warn46(K);
       else if (/החליקו לאט|משתחווים/.test(L) && r < 0.6) await bow46(K);
       else if (/החוט/.test(L) && r < 0.85) await line45(K);
-      else if (/משכו מטה/.test(L) && r < 0.85) await pulley45(K, s);
+      else if (/משכו מטה|משכו ⬇/.test(L) && r < 0.85) await pulley45(K, s);   // ── build 53 ── (the pulley's line in three signs) ── /build 53 ──
       else if (/גררו את המוט/.test(L) && r < 0.85) { const [W, Hh] = K.size(), ob = s.obj && s.obj.w > 8 ? s.obj : null, a = K.rnd() * Math.PI * 2; await K.swipe(ob ? K.between(ob.l, ob.r) : K.between(W * 0.3, W * 0.8), ob ? K.between(ob.t, ob.b) : K.between(Hh * 0.35, Hh * 0.75), Math.cos(a) * K.between(40, 160), Math.sin(a) * K.between(20, 90), K.between(150, 600)); K.ev('lever'); }   // ── build 45 ── the crowbar: he drags the lever, any way (tryLine read "בעדינות" as the pour's "עד" and held — K45-P4)
       else if (/גליל/.test(L) && r < 0.85) { if (!(await roll53k(K))) await K.tryLine(s); }   // ── build 53 ── (the freed roller lies in the world) ── /build 53 ──
       else if (/גררו אבן|גררו לוחות|גליל|פינה|הנדבך העליון/.test(L) && r < 0.8) { if (!(await pile42(K, s))) await K.tryLine(s); }

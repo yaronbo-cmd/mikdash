@@ -83,7 +83,10 @@ test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop 
 test('build 54: the seven gates (04) — the court paved and the gatehouses (26 amot, their shadows) from above; the name beside its gate once set', () => {
   assert.match(H, /function court54\(on\)/); assert.match(H, /court54\(true\);/); assert.match(H, /court54\(false\);/);
   assert.match(H, /new THREE\.BoxGeometry\(ax \? 9 : 6, 26, ax \? 6 : 9\)/);
-  assert.match(H, /font-size="15" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">\$\{esc\(q\.n\)\}/);
+  assert.match(H, /font-size="\$\{W\(\) < 700 \? 13 : 15\}" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">\$\{esc\(q\.n\)\}/);
+  // (the names of neighbouring gates on one wall a row apart — "שער הדלק" over "שער הבכורות" at 640: K54-P-04)
+  assert.match(H, /\(q\.z > 0 \? 1 : -1\) \* \(F\.GATES47\.filter\(\(g\) => g\.side === q\.side\)\.indexOf\(q\) % 2 \? 0 : 18\)/);
+  assert.match(H, /const c = \{ x: -93, z: 6 \}, Hh = Math\.max\(230, 110 \/ tanV\(\)\);/);
 });
 
 test('build 54: the wood (05) — the species\' name only after the decision (or at level 1 after 10 s); the defects drawn larger, the worm\'s exit holes on the bark; "קלפו"', () => {

@@ -2003,13 +2003,13 @@ export function createHar42(o = {}) {
     return {
       acting: true, kind: 'names', N, chip, at, dragOnly: true,
       down() {}, move() {}, up() {},
-      view() { const c = { x: -93, z: 0 }, Hh = Math.max(230, 98 / tanV()); return { p: [c.x, Hh, c.z - Hh * 0.18], t: [c.x, 0, c.z] }; },   // (ש8: over the court, north at the screen's bottom)
+      view() { const c = { x: -93, z: 6 }, Hh = Math.max(230, 110 / tanV()); return { p: [c.x, Hh, c.z - Hh * 0.18], t: [c.x, 0, c.z] }; },   // (ש8: over the court, north at the screen's bottom)   // ── build 54 ── (a little higher, its middle 6 amot south: the south gates' row stood under the line's box at 640 — K54-P-04) ── /build 54 ──
       ownView: () => true,
       frame(dt) {
         objPlace(true, [{ x: -93, y: 8, z: 0, r: 90 }], 'h47names');
         for (const c of closing) { c.t += dt; const u = Math.min(1, c.t / 0.9), e = 1 - (1 - u) * (1 - u); (st.props.gl47[c.i] || []).forEach((pv) => { pv.rotation.y = pv.userData.sx * 1.1 * (1 - e); }); }
         svgClear(); const S2 = N.state();
-        for (const q of F.GATES47) { const p2 = at(q); if (!p2) continue; const set = S2.set.includes(q.id); svgAdd(`<circle cx="${p2.x}" cy="${p2.y}" r="${set ? 9 : 16}" fill="${set ? '#E8B531' : 'rgba(255,214,110,.22)'}" stroke="#FFD66E" stroke-width="3"/>${set ? `<text x="${p2.x}" y="${p2.y + (q.z > 0 ? 30 : -18)}" font-size="15" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">${esc(q.n)}</text>` : ''}`); }   /* ── build 54 ── (the name beside its gate, larger, off the wall's side) ── /build 54 ── */
+        for (const q of F.GATES47) { const p2 = at(q); if (!p2) continue; const set = S2.set.includes(q.id); svgAdd(`<circle cx="${p2.x}" cy="${p2.y}" r="${set ? 9 : 16}" fill="${set ? '#E8B531' : 'rgba(255,214,110,.22)'}" stroke="#FFD66E" stroke-width="3"/>${set ? `<text x="${p2.x}" y="${p2.y + (q.z > 0 ? 30 : -18) + (q.side === 'E' ? 0 : (q.z > 0 ? 1 : -1) * (F.GATES47.filter((g) => g.side === q.side).indexOf(q) % 2 ? 0 : 18))}" font-size="${W() < 700 ? 13 : 15}" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="4" paint-order="stroke">${esc(q.n)}</text>` : ''}`); }   /* ── build 54 ── (the name beside its gate, larger, off the wall's side) ── /build 54 ── */
         if (endT >= 0) { endT -= dt; if (endT <= 0) { svgClear(); return true; } }
         return false;
       },

@@ -49,7 +49,7 @@ test('build 51 (1): the thing\'s box — its parts\' spheres or the act\'s own t
   const tw = read('src/game/twin.js'); assert.match(tw, /q51 = obj51\(b0\.p, b0\.t, bb51, h \? \{ x: h\.x, y: h\.y \|\| 16, z: h\.z, h: HERO41 \} : null, tanH, tanV,/); assert.match(tw, /cut51 = \(P\) => !cutA && segO\(P\)/, 'the line of sight to the thing');
   assert.match(read('tools/cam41.js'), /function objM\(B, O, cam, p, top\)/);
   // (the lifted view — the bed of coals and the laver only (measured); every other thing keeps the level view; a macro never)
-  assert.deepEqual([...LIFT51], ['d21', 'k20']); assert.deepEqual([...OBJ51.lift], [0, 2, 4]);
+  assert.deepEqual([...LIFT51], ['d21']);   /* (build 52: the laver its own side view — KV52) */ assert.deepEqual([...OBJ51.lift], [0, 2, 4]);
   assert.match(tw, /LIFT51\.includes\(id51\) \? \{\} : \{ lift: \[0\] \}/); assert.match(tw, /M51 \? \{ big: 9, whole: false, lift: \[0\],/);
   assert.match(read('src/avodah/shift/dam27.js'), /thing: \(\) => \{ const K = E\.r27\(\); return K && \/\^\(bind\|cut\)\$\/\.test\(K\.ph\)/, 'the shochet\'s thing: the whole lamb');
 });
@@ -58,7 +58,7 @@ test('build 51 (2, 3): the lamb seen from its far side, knee-high; the lantern �
   assert.match(read('src/game/twin.js'), /C40 = M51 \? \{ \.\.\.C40a, big: 9, heroR: 9, hero: -9, back: 0 \} : C40a/, 'a macro view: the thing first, him not stepped back for');
   const pen = read('src/avodah/shift/pen25.js'); assert.match(pen, /export const LIT51 = Object\.freeze\(\{ k: 2,/); assert.match(pen, /\* LIT51\.k \*/);
   assert.match(LINE30.lamb.scan, /^כוונו את האור/, 'the aim\'s line at once — the scan\'s own line');
-  assert.match(read('src/avodah/shift/day33.js'), /\.\.\.\(\/\^\(bind\|bound\|cut\)\$\/\.test\(ph\) \? \{ fov: SH51\.fov, macro: true, aimW: SH51\.aim, e: 5 \} : \{\}\)/);
+  assert.match(read('src/avodah/shift/day33.js'), /a = \/\^\(bind\|bound\|cut\)\$\/\.test\(ph\) \? \{ p: \[\.\.\.SH52\.p\], t: \[\.\.\.SH52\.t\], fov: SH52\.fov, own: true, e: SH52\.e \}/, '(build 52: the binding its own view, SH52 — was the macro by obj51)');
 });
 test('build 51 (4): the swipe\'s gate relative to the thing — min(0.12·W, 0.4·its width), never under 0.035·W, within 500 ms', () => {
   assert.deepEqual({ ...SWIPE51 }, { k: 0.4, max: 0.12, min: 0.035, ms: 500 }); assert.ok(Object.isFrozen(SWIPE51));
@@ -119,7 +119,7 @@ test('build 51 (11, 12, 7, 8, 9): the end card on the right two-thirds; one hand
   const hk = read('src/avodah/shift/heichal26.js'); assert.match(hk, /const h37 = !!\(live && K && ph === 'wick' && !onObj51 &&/);
   const m22 = read('src/avodah/shift/maaracha22.js'); assert.match(m22, /bag51 = createBag48\(null, Math\.random, \['holes', 'gallery'\]\)/); assert.match(m22, /if \(L\.worm && !L\.__v51\) L\.__v51 = bag51\.draw\(\);/);
   assert.match(read('src/avodah/shift/deshen21.js'), /const balance = ph === 'walk' \|\| ph === 'desc' \|\| ph === 'full';/);
-  const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /<path class="st51"\/>/); assert.match(dm, /need = Math\.max\(70, Math\.min\(vl, thr51 > 0 \? thr51 : vl\)\)/, 'the binding\'s drag as long as the swipe\'s gate, not the legs\' span'); assert.match(dm, /marker-end="url\(#dm27ah\)"/);
+  const dm = read('src/avodah/shift/dam27.js'); assert.match(dm, /<path class="st51"\/>/); assert.match(dm, /need = bindNeed52\(vl, thr51, WD\(\)\)/, 'the binding\'s drag as long as the swipe\'s gate, not the legs\' span (build 52: bindNeed52)'); assert.match(dm, /marker-end="url\(#dm27ah\)"/);
 });
 test('build 51: no Divine Name in the changed files (by code points)', () => {
   const N = String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4);

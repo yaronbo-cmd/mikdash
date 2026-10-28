@@ -33,7 +33,7 @@ export const LVL36 = Object.freeze({
   // ×1.2 of build 35's, spilling at 0.68 (was ×0.65 at 0.8: with the steady hand the child never spilt — 100 %); level 3 ×1.45 at 0.6
   // (was 1.4 / 0.62); level 4 ×1.65 at 0.53 (was 1.6 / 0.55)) ── /fable32 ──
   deshen: Object.freeze([
-    lv('גחלים ברורות', 'הגחלים לפניכם — פנו הילך והילך', {}, { inner: 0, heavy: Object.freeze({ wind: 1.2, shake: 1.2, spill: 0.68 }), exact: 0 }),
+    lv('גחלים ברורות', 'הגחלים לפניכם — פנו הילך והילך', {}, { inner: 0, heavy: Object.freeze({ wind: 0.6, shake: 0.45, spill: 0.9 }), exact: 0 }),   // ── build 52 ── (level 1 softened: a child's two thumbs, the right a reaction (~250 ms) behind the meter, spilled 3.25 times a walk (7 % ≤ 1) at wind 1.2, shake 1.2, spill 0.68 — now 0.28 (98 % ≤ 1); tools/bal52.mjs) ── /build 52 ──
     lv('מן המאוכלות הפנימיות', 'חותים רק מן הגחלים שאוכלו — בצד שבו הן לוחשות', { src: cite('חתה מן המאוכלות הפנימיות', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.2, shake: 1.2, spill: 0.68 }), exact: 0 }),
     lv('מחתה כבדה', 'המחתה מלאה וכבדה — האיזון צר', { src: cite('נטל את מחתת הכסף', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.45, shake: 1.45, spill: 0.6 }), exact: 0 }),
     lv('מקום ההנחה המדויק', 'צוברים שלושה טפחים מן הכבש — בדיוק', { src: cite('צבר את הגחלים על גבי הרצפה רחוק מן הכבש שלשה טפחים', 'תמיד א, ד') }, { inner: 1, heavy: Object.freeze({ wind: 1.65, shake: 1.65, spill: 0.53 }), exact: 0.75 }),

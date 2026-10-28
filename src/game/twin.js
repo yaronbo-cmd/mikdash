@@ -192,7 +192,7 @@ export function pan40(p, t, O, H, tanH, c = CAM40, tanV = 0) {
 // A thing in his own hands (flagged 'self' by its act — the pan on the way down, the vessel carried, the teni, the log held up — or its middle within `self` amot of him) keeps build 41's view.
 /** the things a lifted view serves (measured, build 51: the bed of coals on the altar, the laver — from above he is shorter on the screen
  *  and the thing no smaller; lifted, the inner altar and the menorah's lamps cut him at 844 — 60 % of their frames — so they stay level) */
-export const LIFT51 = Object.freeze(['d21', 'k20']);
+export const LIFT51 = Object.freeze(['d21']);   // ── build 52 ── (the laver: its own view from the side — day33 KV52 — no longer lifted) ── /build 52 ──
 export const OBJ51 = Object.freeze({ w: 0.3, h: 0.2, aimW: 0.36, maxH: 0.95, near: 1.4, swing: Object.freeze([0, 0.52, -0.52, 0.87, -0.87]), lift: Object.freeze([0, 2, 4]), liftK: 2, bigK: 40, whole: 45, wK: 150, R: 0.6, big: 0.45, self: 0.25 });
 /** does the segment from the camera C to the thing's middle O pass through his figure (feet A, height top, radius R)? (pure) */
 export function occl51(C, O, A, top, R = OBJ51.R) {
@@ -649,7 +649,7 @@ export function createTwin(o = {}) {
       // ── fable32 (build 41) ── every authored act view, with a thing to touch or without (the laver, the lot): his figure ≤ 45 % of the
       // height and inside the frame — without a thing the view only steps back (no slide) ── /fable32 ──
       { const G40 = globalThis.__T40, O0 = G40 && G40.obj;
-        if (V && !globalThis.__CAM40_OFF) {
+        if (V && !globalThis.__CAM40_OFF && !V.own) {   /* ── build 52 ── (V.own: an act's view set by hand for its look — the shochet's binding, the laver — taken as it is: no pan40, no obj51) ── */
           const O = O0 || (h ? { x: h.x, y: (h.y || 16) + HERO41 / 2, z: h.z, at: 0.5, none: true } : null);
           if (!O) { CBC.v40 = null; }
           else if (G40 && G40.down && CBC.v40) V = CBC.v40;

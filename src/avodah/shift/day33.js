@@ -210,6 +210,18 @@ export const P41 = Object.freeze({ lamb: Object.freeze({ el: 0.72, d: 7.5, away:
 // the lantern ×2 (pen25 LIT51) ── /build 51 ──
 // ── build 51 ── the shochet's macro on the lamb (the inspector's review §4 item 3: FOV 35, about 2.5 m; the lamb ≥ 35 % of the width) ── /build 51 ──
 export const SH51 = Object.freeze({ fov: 35, aim: 0.4 });
+// ── build 52 ── the shochet's binding seen whole (the coordinator's build-52 play-test: "the macro is unreadable — his sash fills the left
+// 40 %, the lamb a white blob, no legs"): from the lamb's back (west, a little south) and high — the lamb on its side across the frame, its
+// legs toward him beyond it, he behind it (≈ 35 % of the width, never over it), the zorek out of the frame (70° up, 5.5 amot off,
+// FOV 35); a view of its own (twin.js V.own: no pan40, no obj51);
+// the cut in the same view (5.3 amot from the neck, from above its back — no close-up; build 27's medium shot made the lamb 11 % of the
+// width), its needle still for `settle` s as the cut begins ── /build 52 ──
+export const SH52 = Object.freeze({ p: Object.freeze([-48.78, 21.55, -32.68]), t: Object.freeze([-47.04, 16.38, -33.45]), fov: 35, settle: 1, e: 9 });   // (e: the glide in — quick: on its way the zorek's figure crosses the frame's corner)
+// ── build 52 ── the laver from the north side (the coordinator: "a black silhouette from above, his head the focus — show the bronze laver
+// lit, from the front or side: the spigots, the streams, his hands and feet under them"): 10 amot off, from the north, a little up — the
+// bowl and its spouts (rim 22.95) to his feet in the frame, the laver right, he left;
+// kiyor20 lights it (LIGHT52) ── /build 52 ──
+export const KV52 = Object.freeze({ p: Object.freeze([-60.68, 21.4, 10.25]), t: Object.freeze([-62.4, 20.0, 20]), fov: 50 });
 // ── build 51 ── the laver's mark: the water's level (the fill 0…1) to release at, ± win; a release past `free` is a free retry ── /build 51 ──
 export const K20M = Object.freeze({ at: 0.8, win: 0.08, free: 0.5 });
 export const P51 = Object.freeze({ lamb: Object.freeze({ d: 3.4, y: 2.4, ty: 0.6, zd: 2.2, aim: 0.42, zAim: 0.62 }), off: false });
@@ -2673,7 +2685,7 @@ export function createDay33(o = {}) {
         z: act20.z,
         k: 0.62,
         share: 0,
-        view: { t: [t.x, t.y, t.z], p: [t.x + c * Math.cos(C.az) * C.d, t.y + Math.sin(C.el) * C.d, t.z + c * Math.sin(C.az) * C.d] },
+        view: KV52 ? { p: [...KV52.p], t: [...KV52.t], fov: KV52.fov, own: true } : { t: [t.x, t.y, t.z], p: [t.x + c * Math.cos(C.az) * C.d, t.y + Math.sin(C.el) * C.d, t.z + c * Math.sin(C.az) * C.d] },   // ── build 52 ── (the laver from its side, lit: KV52) ── /build 52 ──
       };
     },
     clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v),
@@ -4495,7 +4507,7 @@ export function createDay33(o = {}) {
       if (open26() && K.t >= 0.3) ph27(K, 'cut', K.role === 'zorek' ? { npc: true } : undefined);
     } else if (ph === 'cut') {
       if (K.role === 'shochet') {
-        K.tc += dt;
+        if (K.t >= SH52.settle) K.tc += dt;   // ── build 52 ── (the needle waits while the view settles) ── /build 52 ──
         K.u = needle27(K.tc, K.sweep);
       } else if (K.t >= P27.npcCut) {
         K.cutT = st.t;
@@ -4576,6 +4588,7 @@ export function createDay33(o = {}) {
   function r27tap() {
     const K = st.r27;
     if (!K || K.ph !== 'cut' || K.role !== 'shochet' || st.paused) return false;
+    if (K.t < SH52.settle) return false;   // ── build 52 ── (before the needle moves: no cut, no miss) ── /build 52 ──
     const u = needle27(K.tc, K.sweep),
       W = (K.P36 && K.P36.win) || P27.win;   // ── fable32 (build 36) ── (the gold's width by the level) ── /fable32 ──
     if (u < W[0] || u > W[1]) {
@@ -4689,7 +4702,7 @@ export function createDay33(o = {}) {
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6, ...(/^(bind|bound|cut)$/.test(ph) ? { fov: SH51.fov, macro: true, aimW: SH51.aim, e: 5 } : {}) };   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
+    if (K.role === 'shochet') a = /^(bind|bound|cut)$/.test(ph) ? { p: [...SH52.p], t: [...SH52.t], fov: SH52.fov, own: true, e: SH52.e } : { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // ── build 52 ── (the binding and the cut: SH52, a view of its own — was build 51's macro, FOV 35 by obj51) ── /build 52 ──   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
     // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's

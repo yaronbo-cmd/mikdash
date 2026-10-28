@@ -18,7 +18,8 @@ export function createDeshen21(o = {}) {
   const E = o.E,
     doc = o.doc || (typeof document < 'u' ? document : null),
     view = o.view || null,
-    stat = { swipes: 0, spills: 0, done: 0, buzz: 0 };
+    stat = { swipes: 0, spills: 0, done: 0, buzz: 0 },
+    walk52 = { t0: null, done: false };   // ── build 52 ── (the act's first walk: when it began, the right thumb down since) ── /build 52 ──
   if (!doc || !E || !E.on17 || !E.g21) return { destroy() {}, state: () => stat };
   const T = globalThis.__T,
     scene = T && T.scene,
@@ -172,6 +173,7 @@ export function createDeshen21(o = {}) {
     // ── fable32 (build 36) ── level 2 on: the consumed inner coals glow on one side of the bed — the scoop goes toward them ("חתה מן
     // המאוכלות הפנימיות", תמיד א, ד); a glow over the bed's side on the screen ── /fable32 ──
     inner36 = mk('d21-in36', ''),
+    hand52 = mk('d21-h52', '<i>👆</i>'),   // ── build 52 ── (the right thumb's hint at the first walk: drag against the tilt, side to side) ── /build 52 ──
     doneEl = mk('d21-w', '');   // ── fable32 (build 30) ── (was "תרומת הדשן הושלמה!" — the step card's rating now) ── /fable32 ──
   tapRing.setAttribute('aria-hidden', 'true');
   // ── fable32 (build 40) ── the act's surface on the thing: the bed of coals while he scoops, the pan in his hand on the way down (touch40.js) ── /fable32 ──
@@ -358,6 +360,15 @@ export function createDeshen21(o = {}) {
       if (ph === 'desc' || ph === 'walk' || ph === 'full') {
         const b = touch ? Math.max(-1, Math.min(1, (touch.x - touch.x0) / 70)) : null;
         E.d21bal(b);
+      }
+      {   // ── build 52 ── (the coordinator's build-52 play-test: the walk's line never said how to balance — one hand on the right half at
+        // the first walk of the act, side to side, till the right thumb is down or 30 s have gone; touch40's hand hidden meanwhile) ── /build 52 ──
+        const wk = ph === 'walk' || ph === 'desc';
+        if (ph === 'in' || ph === 'sweep') { walk52.t0 = null; walk52.done = false; }   // (a new act: its first walk again)
+        if (wk && walk52.t0 == null) walk52.t0 = tt / 1000;   // (the tick's clock is in ms)
+        if (wk && touch) walk52.done = true;
+        const on52 = wk && !walk52.done && walk52.t0 != null && tt / 1000 - walk52.t0 < WALK52.hint;
+        if (hand52.classList.contains('on') !== on52) { hand52.classList.toggle('on', on52); doc.body.classList.toggle('d21-h52on', on52); if (on52) stat.hint52 = (stat.hint52 | 0) + 1; }
       }
       const balance = ph === 'walk' || ph === 'desc' || ph === 'full';   // ── build 51 ── (+ 'full': the meter from the moment the pan is full) ── /build 51 ──
       gauge.classList.toggle('on', balance);
@@ -551,7 +562,8 @@ export function createDeshen21(o = {}) {
           if (H) H.hold21(null);
         } catch (e) {}
         if (scene) scene.remove(bed, pan, glow);
-        for (const el of [pad, hint, gauge, tapRing, doneEl, flashEl, inner36])
+        try { doc.body.classList.remove('d21-h52on'); } catch (e) {}
+        for (const el of [pad, hint, gauge, tapRing, doneEl, flashEl, inner36, hand52])
           try {
             el.remove();
           } catch (e) {}
@@ -587,6 +599,14 @@ const CSS = `.d21-in{position:fixed;top:0;bottom:0;left:51%;right:0;z-index:30;t
 .d21-in36{position:fixed;left:0;top:0;z-index:32;width:86px;height:46px;margin:-23px 0 0 -43px;border-radius:50%;background:radial-gradient(#FFF1B8 0,#FFB347 30%,#FF6A1A88 58%,transparent 72%);box-shadow:0 0 24px 10px #FF8A2E66;display:none;pointer-events:none;animation:d21p .7s infinite alternate}.d21-in36.on{display:block}
 .d21-r{left:0;top:0;z-index:33;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;border:4px solid #FFD66E;background:radial-gradient(#FFE6A0E6,#C8923AB3 62%,#5A3A0880);box-shadow:0 0 18px 6px #FFD66E99;font-size:34px;line-height:64px;display:none;pointer-events:none;animation:d21p .8s infinite alternate}
 .d21-w{top:38%;transform:translate(-50%,-50%);z-index:37;opacity:0;padding:12px 44px}.d21-w.on{animation:d21w 1.9s forwards}.d21-f{top:47%;transform:translateX(-50%);z-index:34;font-size:22px;color:#FFB04A;text-shadow:0 2px 3px #000;opacity:0}.d21-f.on{animation:d21w 1.2s forwards}.d21-w b{display:block;font-size:40px;color:#FFD66E;-webkit-text-stroke:1.5px #5A3608;text-shadow:0 0 20px #FFB04A}
-@keyframes d21p{to{scale:1.14}}@keyframes d21k{50%{translate:3px 0}}@keyframes d21w{0%{opacity:0;scale:.6}14%{opacity:1;scale:1.08}24%{scale:1}82%{opacity:1}to{opacity:0}}`;
+@keyframes d21p{to{scale:1.14}}@keyframes d21k{50%{translate:3px 0}}@keyframes d21w{0%{opacity:0;scale:.6}14%{opacity:1;scale:1.08}24%{scale:1}82%{opacity:1}to{opacity:0}}
+/* ── build 52 ── the right thumb's hint at the first walk: a hand on the right half, side to side (one hand at a time: touch40's hidden) ── /build 52 ── */
+.d21-h52{position:fixed;left:74%;top:64%;z-index:32;width:0;height:0;pointer-events:none;opacity:0;transition:opacity .25s}.d21-h52.on{opacity:1}
+.d21-h52 i{position:absolute;left:-20px;top:-20px;font:40px/1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55));animation:d21h52 1.3s ease-in-out infinite}
+@keyframes d21h52{0%,100%{transform:translateX(-44px)}50%{transform:translateX(44px)}}
+body.d21-h52on .t40-hand{opacity:0!important}
+@media (prefers-reduced-motion:reduce){.d21-h52 i{animation:none}}`;
 const GAUGE =
   '<svg viewBox="-60 -58 120 64"><path stroke="#FFECBE59" d="M-50 0A50 50 0 0 1 50 0"/><path stroke="#8FE07A" d="M-19.1-46.2A50 50 0 0 1 19.1-46.2"/><path stroke="#FF8A3A" d="M-50 0A50 50 0 0 1-47.6-15.5M47.6-15.5A50 50 0 0 1 50 0"/><g class="nd"><line y2="-46" stroke="#FFF6DA" stroke-width="4"/><circle r="6" fill="#E4E8EF"/></g></svg>איזון המחתה';
+// ── build 52 ── the walk's hint: its seconds at the act's first walk ── /build 52 ──
+export const WALK52 = Object.freeze({ hint: 30 });   // (the first walk down the ramp at a child's pace — the hand till his right thumb is down)

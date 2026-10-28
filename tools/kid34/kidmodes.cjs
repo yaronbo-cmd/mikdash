@@ -289,7 +289,7 @@ async function mount42(K) {
       else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
       else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
       else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
-      else if (/לערימה הנכונה|מסובבת|לא למזבח|כשר למערכה/.test(L) && r < 0.85) { if (!(await wood48k(K))) await K.tryLine(s); }   // ── build 48 ──
+      else if (/לערימה הנכונה|מסובבת|לא למזבח|כשר למערכה/.test(L) && !/לפרצה/.test(L) && r < 0.85) { if (!(await wood48k(K))) await K.tryLine(s); }   // ── build 48 ──
       else if (/גררו קורה לשקע|קורות הפינה|לא הקורה לשקע|כולה שלכם|גררו את הקרשים/.test(L) && r < 0.85) { if (!(await beam48k(K))) await K.tryLine(s); }
       else if (/לתוך השקע|בשפת השקע/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.35, W * 0.65), K.between(Hh * 0.55, Hh * 0.8), K.between(-50, 50), -K.between(40, 140), K.between(150, 600)); K.ev('beam-push'); }
       else if (/השגם|לאורך החץ/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.3, W * 0.45), K.between(Hh * 0.5, Hh * 0.7), K.between(40, 160) * (K.rnd() < 0.8 ? 1 : -1), K.between(-30, 30), K.between(150, 600)); K.ev('tenon'); }

@@ -50,9 +50,9 @@
     B.oW = (B.oW || 0) + ws; B.oH = (B.oH || 0) + hs; I.w += ws; I.h += hs;
     if (ws >= 0.3) { B.oWok = (B.oWok || 0) + 1; I.wOk++; } if (hs >= 0.2) { B.oHok = (B.oHok || 0) + 1; I.hOk++; } if (ws >= 0.3 && hs >= 0.2) { B.oOk = (B.oOk || 0) + 1; I.ok++; }
     if (self) { B.oSelf = (B.oSelf || 0) + 1; I.self++; } if (oc) { B.oOcc = (B.oOcc || 0) + 1; I.occ++; }
-    // ── build 52 ── his screen box (a 0.6-amah figure, feet to top, its 16 points projected and clipped): its width share (hw), and the
+    // ── build 52 ── his screen box (a 0.6-amah figure, feet to top, 8 × 9 points projected — those in front of the camera — and clipped): its width share (hw), and the
     // share of the thing's box under it when he stands nearer than the thing (cov — "he covers it") ── /build 52 ──
-    if (top > 0) { let a0 = 9, a1 = -9, b0 = 9, b1 = -9, m = 0; for (let q = 0; q < 8; q++) for (const yy of [0, top]) { const v = new V(p.x + Math.cos(q * Math.PI / 4) * 0.6, p.y + yy, p.z + Math.sin(q * Math.PI / 4) * 0.6).project(cam); if (!(v.z < 1 && v.z > -1)) continue; m++; a0 = Math.min(a0, v.x); a1 = Math.max(a1, v.x); b0 = Math.min(b0, v.y); b1 = Math.max(b1, v.y); }
+    if (top > 0) { let a0 = 9, a1 = -9, b0 = 9, b1 = -9, m = 0; for (let q = 0; q < 8; q++) for (let j = 0; j <= 8; j++) { const yy = (top * j) / 8, v = new V(p.x + Math.cos(q * Math.PI / 4) * 0.6, p.y + yy, p.z + Math.sin(q * Math.PI / 4) * 0.6).project(cam); if (!(v.z < 1 && v.z > -1)) continue; m++; a0 = Math.min(a0, v.x); a1 = Math.max(a1, v.x); b0 = Math.min(b0, v.y); b1 = Math.max(b1, v.y); }
       if (m) { const hw = Math.max(0, (Math.min(1, a1) - Math.max(-1, a0)) / 2), dH = Math.hypot(p.x - cam.position.x, p.y + top / 2 - cam.position.y, p.z - cam.position.z), dO = Math.hypot(c.x - cam.position.x, c.y - cam.position.y, c.z - cam.position.z);
         const X0 = Math.max(-1, x0), X1 = Math.min(1, x1), Y0 = Math.max(-1, y0), Y1 = Math.min(1, y1), A = Math.max(1e-6, (X1 - X0) * (Y1 - Y0)), cv = dH < dO ? Math.max(0, Math.min(X1, a1) - Math.max(X0, a0)) * Math.max(0, Math.min(Y1, b1) - Math.max(Y0, b0)) / A : 0;
         I.hw = (I.hw || 0) + hw; I.hwN = (I.hwN || 0) + 1; if (hw <= 0.35) I.hw35 = (I.hw35 || 0) + 1; if (!self && cv > 0.2) I.cov = (I.cov || 0) + 1; } }

@@ -84,7 +84,7 @@ test('build 52 (2): the laver from its side, lit — a view of its own, the bowl
 test('build 52 (3): the ashes\' walk — its line the gesture (≤ 5 words, a verb and the arrow); one hand on the right half at the first walk; level 1 softened', async () => {
   for (const ph of ['walk', 'desc']) { const s = LINE30.deshen[ph]; assert.equal(s, 'ימין: גררו נגד הנטייה ↔'); assert.ok(words30(s) <= 5); }
   const d = read('src/avodah/shift/deshen21.js'); assert.match(d, /hand52 = mk\('d21-h52', '<i>👆<\/i>'\)/); assert.match(d, /const on52 = wk && !walk52\.done && walk52\.t0 != null && tt - walk52\.t0 < WALK52\.hint;/);
-  assert.match(d, /\.d21-h52\{position:fixed;left:74%;/, 'on the right half'); assert.match(d, /body\.d21-h52on \.t40-hand\{opacity:0!important\}/, 'one hand at a time'); assert.equal(WALK52.hint, 6);
+  assert.match(d, /\.d21-h52\{position:fixed;left:74%;/, 'on the right half'); assert.match(d, /body\.d21-h52on \.t40-hand\{opacity:0!important\}/, 'one hand at a time'); assert.equal(WALK52.hint, 10);
   assert.deepEqual({ ...par36('deshen', 1).heavy }, { wind: 0.6, shake: 0.45, spill: 0.9 }); assert.deepEqual({ ...par36('deshen', 2).heavy }, { wind: 1.2, shake: 1.2, spill: 0.68 }, 'level 2 as it was');
   // (a child's two thumbs, the right a reaction (0.25 s) behind the meter: ≤ 1 spill a walk on the whole)
   let n = 0, sum = 0; for (let s = 0; s < 8; s++) { const r = await walk52(s, { level: 1, lat: 0.25, gain: 2.5 }); if (r.walked) { n++; sum += r.spills; } }

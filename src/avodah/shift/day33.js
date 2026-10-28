@@ -214,9 +214,9 @@ export const SH51 = Object.freeze({ fov: 35, aim: 0.4 });
 // 40 %, the lamb a white blob, no legs"): from the lamb's back (west, a little south) and high — the lamb on its side across the frame, its
 // legs toward him beyond it, he behind it (≈ 35 % of the width, never over it), the zorek out of the frame (70° up, 5.5 amot off,
 // FOV 35); a view of its own (twin.js V.own: no pan40, no obj51);
-// the cut itself back at build 27's medium shot (the neck never close: ≥ 8 amot), FOV 35, and its needle waits `settle` s there while
+// the cut itself back at build 27's medium shot (the neck never close: ≥ 8 amot), the camera's own lens, and its needle waits `settle` s there while
 // the view settles ── /build 52 ──
-export const SH52 = Object.freeze({ p: Object.freeze([-48.78, 21.55, -32.68]), t: Object.freeze([-47.04, 16.38, -33.45]), fov: 35, settle: 1, cut: Object.freeze({ p: Object.freeze([-46.2, 23.6, -42.4]), t: Object.freeze([-46.4, 16.5, -33.6]), fov: 35, e: 3 }) });
+export const SH52 = Object.freeze({ p: Object.freeze([-48.78, 21.55, -32.68]), t: Object.freeze([-47.04, 16.38, -33.45]), fov: 35, settle: 1, cut: Object.freeze({ p: Object.freeze([-46.2, 23.6, -42.4]), t: Object.freeze([-46.4, 16.5, -33.6]), fov: 0, e: 3 }) });
 // ── build 52 ── the laver from the north side (the coordinator: "a black silhouette from above, his head the focus — show the bronze laver
 // lit, from the front or side: the spigots, the streams, his hands and feet under them"): 10 amot off, from the north, a little up — the
 // bowl and its spouts (rim 22.95) to his feet in the frame, the laver right, he left;

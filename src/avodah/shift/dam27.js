@@ -663,8 +663,8 @@ export function createDam27(o = {}) {
     k.ws(x - 0.12 * s, y + 0.36 * s, z + 0.78 * s, 0.022 * s, 0.022 * s, 0.022 * s, '#3A2E22');
     k.ws(x, y + 0.2 * s, z - 0.52 * s, 0.08 * s, 0.08 * s, 0.1 * s, WOOL);
     // the legs: toward the east; the fore and the hind brought together and held by hand
-    k.wc(x + 0.42 * s, y + 0.1 * s, z + (0.3 * (1 - bp) - 0.08 * bp) * s, 0.045 * s, 0.5 * s, HOOF, { roll: Math.PI / 2, yaw: -0.3 * bp });   // (the foreleg — brought back)
-    k.wc(x + 0.42 * s, y + 0.07 * s, z + (-0.21 + 0.05 * bp) * s, 0.045 * s, 0.5 * s, HOOF, { roll: Math.PI / 2, yaw: 0.25 * bp });   // (the hindleg)
+    k.wc(x + 0.42 * s, y + 0.1 * s, z + (0.3 * (1 - bp) - 0.08 * bp) * s, 0.045 * s, 0.5 * s, HOOF, { roll: Math.PI / 2, yaw: -Math.PI / 2 - 0.3 * bp });   // (the foreleg — brought back) ── build 52 ── (the legs out from the belly toward him, east: −π/2 — they lay along the body, a dark bar; the play-test: "no legs visible") ── /build 52 ──
+    k.wc(x + 0.42 * s, y + 0.07 * s, z + (-0.21 + 0.05 * bp) * s, 0.045 * s, 0.5 * s, HOOF, { roll: Math.PI / 2, yaw: -Math.PI / 2 + 0.25 * bp });   // (the hindleg)
     if (bp >= 1) k.ws(x + 0.62 * s, y + 0.1 * s, z - 0.13 * s, 0.07 * s, 0.07 * s, 0.07 * s, SKIN[0]);   // (held by hand where they meet — no rope)
   }
   function blade(k, at, u) {

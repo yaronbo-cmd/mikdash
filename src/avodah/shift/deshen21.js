@@ -362,7 +362,7 @@ export function createDeshen21(o = {}) {
         E.d21bal(b);
       }
       {   // ── build 52 ── (the coordinator's build-52 play-test: the walk's line never said how to balance — one hand on the right half at
-        // the first walk of the act, side to side, till the right thumb is down or 6 s have gone; touch40's hand hidden meanwhile) ── /build 52 ──
+        // the first walk of the act, side to side, till the right thumb is down or 10 s have gone; touch40's hand hidden meanwhile) ── /build 52 ──
         const wk = ph === 'walk' || ph === 'desc';
         if (ph === 'in' || ph === 'sweep') { walk52.t0 = null; walk52.done = false; }   // (a new act: its first walk again)
         if (wk && walk52.t0 == null) walk52.t0 = tt;
@@ -609,4 +609,4 @@ body.d21-h52on .t40-hand{opacity:0!important}
 const GAUGE =
   '<svg viewBox="-60 -58 120 64"><path stroke="#FFECBE59" d="M-50 0A50 50 0 0 1 50 0"/><path stroke="#8FE07A" d="M-19.1-46.2A50 50 0 0 1 19.1-46.2"/><path stroke="#FF8A3A" d="M-50 0A50 50 0 0 1-47.6-15.5M47.6-15.5A50 50 0 0 1 50 0"/><g class="nd"><line y2="-46" stroke="#FFF6DA" stroke-width="4"/><circle r="6" fill="#E4E8EF"/></g></svg>איזון המחתה';
 // ── build 52 ── the walk's hint: its seconds at the act's first walk ── /build 52 ──
-export const WALK52 = Object.freeze({ hint: 6 });
+export const WALK52 = Object.freeze({ hint: 10 });

@@ -18,8 +18,8 @@ const SRC_MM = 'הממונה: ״ימין על ימין, שמאל על שמאל״
 reg30('kiyor', { chip: SRC_K20, all: [SRC_K20, SRC_MM] });
 // ── build 51 ── the laver's own box (avodah3d.js's solid R_(-66.1, -60.9, 17.4, 22.6); from the stand's middle to the bowl's rim, 17–21.2): the act's thing ── /build 51 ──
 // ── build 52 ── the laver lit while he washes (the coordinator's build-52 play-test: "a black silhouette"): a warm light on the view's
-// side (day33 KV52 — the north), over his head, its reach the bowl and him ── /build 52 ──
-export const LIGHT52 = Object.freeze({ color: '#FFD9A8', k: 120, d: 18, decay: 1.6, at: Object.freeze([-60.6, 24.2, 15.2]), fill: Object.freeze({ k: 45, at: Object.freeze([-64.8, 20.5, 14.8]) }) });
+// side (day33 KV52 — the north), over the rim, and a little by his hands ── /build 52 ──
+export const LIGHT52 = Object.freeze({ color: '#FFD9A8', k: 30, d: 7, decay: 2, at: Object.freeze([-61.8, 24.6, 18]), fill: Object.freeze({ k: 8, at: Object.freeze([-60.4, 20.6, 18.4]) }) });   // (near the bowl's north-east rim and by his hands — not between the view and them: a light near the eye washed the frame white)
 export const LAVER51 = Object.freeze({ id: 'k20', x: -63.5, y: 19.1, z: 20, bb: Object.freeze([-66.1, 17, 17.4, -60.9, 21.2, 22.6]) });   // (the bowl and its spigots over the stand's foot: the look on the bowl, not the floor)
 export function createKiyor20(o = {}) {
   const E = o.E,

@@ -76,7 +76,7 @@ test('build 44: חצר האומנים — every variant of stage 01, any level o
 
 test('build 44: the reveal shows no next target; GAME_BUILD 44; no Divine Name; עולי רגל', () => {
   assert.match(read('src/game/index.js'), /syncWorld\(null\); hideNext44\(\); return out; \}/);
-  assert.equal(GAME_BUILD, 53);   // (build 45: the constant moved on) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 54);   // (build 45: the constant moved on) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/har42.js', 'src/game/index.js', 'src/game/hooks/avodah.js', 'src/avodah/shift/index.js', 'src/avodah/index.js', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(P), `${f}: עולי רגל`); }
 });

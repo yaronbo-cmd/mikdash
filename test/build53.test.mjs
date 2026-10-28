@@ -17,12 +17,13 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 53: GAME_BUILD 53', () => {
-  assert.equal(GAME_BUILD, 53);
+  assert.equal(GAME_BUILD, 54);
 });
 
 test('build 53: the object rule in stages 01–02 — Phase B\'s obj51 on the act view (03–07 untouched: build 54); the measure per Phase A part', () => {
   assert.deepEqual([...OBJ53.stg], ['har', 'wall']);
-  assert.match(H, /if \(OBJ53\.stg\.includes\(STG\) && st\.objBB && !globalThis\.__OBJ53_OFF\) \{ try \{ const q = obj51\(v\.p, v\.t, st\.objBB, \{ x: h\.x, y: h\.y, z: h\.z, h: HH \}, tanH, tanV, \{ \.\.\.OBJ51,/);
+  // (build 54: the rule became a function, rule53, on stages 01–02's act views and on 03–07's failing parts)
+  assert.match(H, /if \(OBJ53\.stg\.includes\(STG\) \|\| OBJ54\.parts\.includes\(st\.part\)\) v = rule53\(v, h, HH, tanH, tanV\);/); assert.match(H, /const q = obj51\(v\.p, v\.t, st\.objBB, \{ x: h\.x, y: h\.y, z: h\.z, h: HH \}, tanH, tanV, \{ \.\.\.OBJ51,/);
   assert.equal(OBJ51.w, 0.3); assert.equal(OBJ51.h, 0.2);
   // (the thing for the camera may be the whole of what the touch is a part of — the roller's stone)
   assert.match(H, /function objPlace\(on, pts, id, bbPts\)/);

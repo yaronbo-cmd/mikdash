@@ -474,7 +474,7 @@ export function createSpacing46(L = 1, o = {}) {
  *  window, the bubble centred) seats it; else one end misses (a correction) and the crews lift it back a little. Never a break. */
 export const LINTEL47 = Object.freeze({
   L: Object.freeze([null,
-    Object.freeze({ rise: 0.11, drift: 0.32, sway: 0, swayW: 0, win: 0.5, centre: 0.3 }),
+    Object.freeze({ rise: 0.11, drift: 0, sway: 0, swayW: 0, win: 0.5, centre: 0.3 }),   // ── build 54 ── (level 1: no drift — the inspector's review §4 must 8: four times in a row "the bubble ran") ── /build 54 ──
     Object.freeze({ rise: 0.1, drift: 0.42, sway: 0, swayW: 0, win: 0.35, centre: 0.26 }),
     Object.freeze({ rise: 0.09, drift: 0.4, sway: 0.45, swayW: 1.1, win: 0.3, centre: 0.24 }),
     Object.freeze({ rise: 0.08, drift: 0.5, sway: 0.6, swayW: 1.4, win: 0.25, centre: 0.2 }),

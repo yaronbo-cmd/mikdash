@@ -224,6 +224,7 @@ export async function run1(role, L, prof, seed) {
   R.E.start(); if (role === 'deshen') R.H.y = 25; await R.step(0.3);
   await PLAY[role](R, H, L, rnd);
   for (let i = 0; i < 60 && !out; i++) await R.step(0.2);
+  if (role === 'kiyor') globalThis.__k20r = R.E.k20r ? R.E.k20r() : null;   // ── build 51 ── (the laver's record: its mark, early releases, lifts, spills — for the build's check) ── /build 51 ──
   if (!out) { const K = R.E.r27 && R.E.r27(); globalThis.__last36 = K ? { ph: K.ph, clot: K.clot, coag: K.coag, gifts: K.gifts, retries: K.retries, t: K.t } : null; }
   return out || { rating: "stuck", q: 0 };
 }

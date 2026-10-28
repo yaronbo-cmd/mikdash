@@ -32,7 +32,8 @@ test('build 54: the rock\'s macro (01) — his stands 9 amot east of each rock a
 });
 
 test('build 54: the object rule on 03–07\'s failing parts — rule53 (obj51, then him stepped back) on their own views; the lintel\'s lift nearer', () => {
-  for (const p of ['warn', 'bows', 'leaf', 'wood', 'hub', 'wheel']) assert.ok(OBJ54.parts.includes(p), p);
+  for (const p of ['warn', 'leaf', 'wood', 'hub', 'wheel']) assert.ok(OBJ54.parts.includes(p), p);
+  assert.match(H, /'h46bows', \[\{ x: priests\[0\]\.g\.position\.x/, 'the bows: the procession is the thing');
   assert.ok(OBJ54.gate < 1 && OBJ54.gate > 0.7);
   assert.match(H, /function rule53\(v, h, HH, tanH, tanV\)/);
   assert.match(H, /if \(J\.view && OBJ54\.parts\.includes\(st\.part\) && !\(J\.ownView && J\.ownView\(\)\)\)/);

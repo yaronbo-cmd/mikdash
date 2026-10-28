@@ -57,7 +57,7 @@ export function slow53(g, top = 14) {
 export const LINTEL54 = Object.freeze({ h: 0.275, x: 0.62 });
 export const WARN54 = Object.freeze({ v: 3 });
 export const LAT54 = Object.freeze({ win: 0.4, fill: 0.72 });
-export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'bows', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place)
+export const OBJ54 = Object.freeze({ parts: Object.freeze(['warn', 'leaf', 'wood', 'hub', 'wheel']), gate: 0.86 });   // (gate: the lintel's and the heavy leaf's lift a little nearer — 29 % → over 30; obj51 would slide past his left-third place)
 export const OBJ53 = Object.freeze({ stg: Object.freeze(['har', 'wall']), big: 0.45, margin: 0.06 });   // (margin: the thing kept 6 % over the rule when he is stepped back from — at the rule's edge the second AFTER page held it in 43–64 % of the frames)
 /** his figure on a view (pure; as twin.js's fig51): his middle across the width (NDC), his half-height share s, whole in the frame */
 export function fig53(P, T, H, tanH, tanV) {
@@ -2097,7 +2097,7 @@ export function createHar42(o = {}) {
       },
       view() { const x = (M.at < 0 ? PL.bow0.x - 4 : bowAt(Math.max(0, Math.min(12, M.at)))), y0 = gy(x, z); const D = Math.max(24, needD() + 1.5); return { p: [x - D * 0.72, y0 + 3.8, z - D * 0.7], t: [x + 5, y0 + 2.6, z + 2.2] }; },   // (low along the soreg)
       frame(dt) {
-        M.t += dt; objPlace(M.phase !== 'end', [{ x: bowAt(Math.max(0, Math.min(12, M.at))), y: gy(PL.bow0.x, z) + 1, z: PL.bow0.z, r: 1.4 }], 'h46bows');
+        M.t += dt; { const yP = gy(PL.bow0.x, z); objPlace(M.phase !== 'end', [{ x: bowAt(Math.max(0, Math.min(12, M.at))), y: yP + 1, z: PL.bow0.z, r: 1.4 }], 'h46bows', [{ x: priests[0].g.position.x, y: yP + 2.4, z, r: 1.4 }, { x: priests[N - 1].g.position.x, y: yP + 2.4, z, r: 1.4 }]); }   // ── build 54 ── (the thing of this moment is the procession — the camera's and the rule's — the touch on the mark; the inspector called the low view along the soreg "a good moment": kept) ── /build 54 ──
         const target = M.at < 0 ? 0 : M.at;
         if (M.phase === 'wait') { M.at = 0; const lead = priests[0].g.position.x; if (lead < bowAt(0)) priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 3.2, bowAt(0) - i * 3.4); }); M.hold += dt; if (M.hold > 14 && !M.first) { M.first = true; M.phase = 'bow'; M.t = 0; line(LINE42.bows); } }
         else if (M.phase === 'walk') { const goal = bowAt(target); priests.forEach((p, i) => { p.g.position.x = Math.min(p.g.position.x + dt * 4.5, goal - i * 3.4); }); if (priests[0].g.position.x >= goal - 0.01) { M.phase = 'bow'; M.t = 0; } }

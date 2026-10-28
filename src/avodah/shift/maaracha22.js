@@ -410,7 +410,7 @@ export function createMaaracha22(o = {}) {
     },
     CAM_S = M22.camS,
     camDir = CAM_S.t.map((v, i) => v - CAM_S.p[i]),
-    SHOW = CAM_S.p.map((v, i) => v + camDir[i] * 0.55),
+    SHOW = CAM_S.p.map((v, i) => v + camDir[i] * 0.38),   // ── build 51 ── (the log in hand held nearer the eye: 0.38 of the way, was 0.55 — its defect read) ── /build 51 ──
     camLen = Math.hypot(camDir[0], camDir[2]),
     side = [-camDir[2] / camLen, camDir[0] / camLen],
     showYaw = Math.atan2(side[1], -side[0]),
@@ -439,7 +439,7 @@ export function createMaaracha22(o = {}) {
       const padOn = sorting || stacking;
       {   // ── fable32 (build 40) ── the log before him (its length) while he sorts; the pyre's layer while he stacks ── /fable32 ──
         const lz = k && k.cur && k.cur.size ? k.cur.size : 'M';
-        t40.place(padOn && !!k, sorting ? [{ x: SHOW[0], y: SHOW[1], z: SHOW[2], r: Math.max(0.35, (LEN[lz] || 1.2) * (SHOW_K[lz] || 0.6) * 0.5) }] : [{ x: PX, y: layerY(k && k.layer === 4 ? 4 : Math.min(3, (k && k.layer) || 1)), z: PZ, r: 2.2 }], sorting ? 'm22' : 'm22stack');
+        t40.place(padOn && !!k, sorting ? [{ x: SHOW[0], y: SHOW[1], z: SHOW[2], r: Math.max(0.35, (LEN[lz] || 1.2) * (SHOW_K[lz] || 0.6) * 0.5), self: true /* ── build 51 ── (held up to the eye: its own size on the screen — the object rule leaves the view) */ }] : [{ x: PX, y: layerY(k && k.layer === 4 ? 4 : Math.min(3, (k && k.layer) || 1)), z: PZ, r: 2.2 }], sorting ? 'm22' : 'm22stack');
       }
       if (pad.classList.contains('on') !== padOn) {
         pad.classList.toggle('on', padOn);
@@ -848,7 +848,7 @@ reg30('m22', {
   ],
 });
 const END_COLOR = { fig: '#E6D6B4', walnut: '#B98F66', pine: '#EAB27A', olive: '#CDBF94', vine: '#A47A52' };
-const SHOW_K = { L: 0.55 * 1.25, M: 0.62 * 1.25, S: 0.85 * 1.25 };   // ── build 51 ── (the log in hand ×1.25: its defect read at a phone's size; the object rule frames it) ── /build 51 ──
+const SHOW_K = { L: 0.55 * 1.45, M: 0.62 * 1.45, S: 0.85 * 1.45 };   // ── build 51 ── (the log in hand ×1.45: its defect read at a phone's size; the object rule frames it) ── /build 51 ──
 const { r: RAD, len: LEN } = M22;
 const PX = M22.pyre.x;
 const S2X = -2.4,

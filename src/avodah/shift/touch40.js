@@ -21,6 +21,7 @@ export const T40 = Object.freeze({ margin: 30, box: 96, min: 44, miss: 2, edge: 
 // the thing 37 px) the fall to the pad is decided after the move: never in the act's first `settle` s, and only once the thing has stayed
 // small or off the screen `settle` s in a row; back on the thing only past `hyst` px over the rule. No box at all, or the switch: at once ── /fable32 ──
 export const T41 = Object.freeze({ settle: 1.0, hyst: 8 });
+export const TOP51 = 52;   // ── build 51 ── (the top band's height in px: no touch area over it) ── /build 51 ──
 export const PAD40_KEY = 'bh_pad40';
 export const HAND40_KEY = 'bh_t40_hand';
 const ls = () => { try { return globalThis.localStorage || null; } catch (e) { return null; } };
@@ -132,6 +133,7 @@ export function createTouch40(o = {}) {
       return st.mode;
     }
     const q = hit40(bx, w, h);
+    if (q.t < TOP51) { const d = TOP51 - q.t; q.t += d; q.h = Math.max(48, q.h - d); }   // ── build 51 ── (the thing now big near the top: its touch area kept off the top band — the act's line, the pause, the chips; the naive kid found the lamb's line under it) ── /build 51 ──
     st.hit = q;
     if (st.mode !== 'obj') { pad.classList.remove('t40-pad'); pad.classList.add('t40-obj'); st.mode = 'obj'; pad.style.right = 'auto'; pad.style.bottom = 'auto'; }
     pad.style.left = `${Math.round(q.l)}px`; pad.style.top = `${Math.round(q.t)}px`; pad.style.width = `${Math.round(q.w)}px`; pad.style.height = `${Math.round(q.h)}px`;

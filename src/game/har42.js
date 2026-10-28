@@ -629,6 +629,7 @@ export function createHar42(o = {}) {
    *  on the stage, the seven gate openings in gold (the opening) and a pair of small leaves at each gate (the names' moment) */
   const GATE47 = { half: 5, post: 1.5, H: 20, lw: 13, leafW: 4.9, leafH: 19.4 };
   const DOOR54 = { wood: mat('#6E4428', 0.7), frame: mat('#4E2F1A', 0.75), panel: mat('#7C5232', 0.65), bronze: new THREE.MeshStandardMaterial({ color: '#B08A4A', metalness: 0.7, roughness: 0.35 }) };   // ── build 54 ── the leaves' door ── /build 54 ──
+  for (const [k, e] of [['wood', '#3A2010'], ['frame', '#24140A'], ['panel', '#4A2A14'], ['bronze', '#5A4420']]) { DOOR54[k].emissive = new THREE.Color(e); DOOR54[k].emissiveIntensity = 0.55; }   // ── build 54 ── (its court face in the shade read as one dark plane in the pin's macro: its panels and studs seen there too) ── /build 54 ──
   function props47(add) {
     const G = PL.gate, g0 = G.y, stoneM = mat('#E9DFC8', 0.85), wood = mat('#8A5A32', 0.75), dark = mat('#4A3A2A', 0.9);
     st.props.posts = [-1, 1].map((sx) => add(ashlar(GATE47.post, GATE47.H, GATE47.post), G.x + sx * (GATE47.half + GATE47.post / 2), g0 + GATE47.H / 2, G.z));
@@ -643,7 +644,7 @@ export function createHar42(o = {}) {
         for (let i = 0; i < 4; i++) for (const fz of [-1, 1]) { const pn = new THREE.Mesh(new THREE.BoxGeometry(GATE47.leafW * 0.7, GATE47.leafH / 4 - 1.1, 0.12), DOOR54.panel); pn.position.set(-sx * GATE47.leafW * 0.52, (i + 0.5) * GATE47.leafH / 4, fz * 0.22); piv.add(pn); }
         const studG = new THREE.SphereGeometry(0.11, 6, 4); for (let i = 1; i < 4; i++) for (let j = 0; j < 6; j++) for (const fz of [-1, 1]) { const sd = new THREE.Mesh(studG, DOOR54.bronze); sd.position.set(-sx * (0.5 + j * (GATE47.leafW - 0.9) / 5), i * GATE47.leafH / 4, fz * 0.24); piv.add(sd); }
         for (const fz of [-1, 1]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.06, 6, 14), DOOR54.bronze); ring.position.set(-sx * (GATE47.leafW - 0.7), GATE47.leafH * 0.45, fz * 0.3); piv.add(ring); } }
-      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.6, 8), dark); pin.position.set(-sx * 0.25, -0.3, 0); piv.add(pin);
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.6, 10), DOOR54.bronze); pin.position.set(-sx * 0.25, -0.3, 0); piv.add(pin);   // ── build 54 ── (bronze: the pin seen over its socket in the macro) ── /build 54 ──
       add(piv, G.x + sx * (GATE47.half - 0.25) + sx * 0.25, g0 + 0.5, G.z - 7 - (sx > 0 ? 0 : 1.2)); piv.rotation.x = -Math.PI / 2 + 0.02; piv.userData.sx = sx; return piv;   // (lying on the ground north of the gate until hung)
     });
     st.props.cranes = [-1, 1].map((sx) => { const g2 = new THREE.Group(); for (const dz of [-1.1, 1.1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.34, 31, 0.34), WOOD); l.position.set(0, 15.5, dz); l.rotation.x = -dz * 0.05; g2.add(l); } const arm = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 0.3), WOOD); arm.position.set(-sx * 1.8, 30.6, 0); g2.add(arm); return add(g2, G.x + sx * 10.5, g0, G.z - 1.6); });

@@ -74,7 +74,7 @@ test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop 
   assert.match(lf, /ownView: \(\) => phase === 'pin',/);
   assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.6; return \{ p: \[pivX - sx \* 3\.8, g0 \+ 2\.8, G\.z \+ 5\]/);
   assert.match(lf, /נתקעה/);
-  assert.match(H, /const DOOR54 = \{/); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
+  assert.match(H, /const DOOR54 = \{/); assert.match(H, /DOOR54\[k\]\.emissive = new THREE\.Color\(e\)/, 'the door read in the shade'); assert.match(H, /new THREE\.CylinderGeometry\(0\.2, 0\.2, 0\.6, 10\), DOOR54\.bronze\); pin\.position/, 'the pin in bronze'); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
 });
 
 test('build 54: the seven gates (04) — the court paved and the gatehouses (26 amot, their shadows) from above; the name beside its gate once set', () => {

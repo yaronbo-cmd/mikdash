@@ -286,9 +286,10 @@
     for (let k = 0; k < 20 && A.on; k++) {
       const j = H().job(); if (!j || j.kind !== 'roll') break;
       const h = await until(() => { const jj = H().job(); return !jj || jj.kind !== 'roll' ? 'end' : jj.ref.handle(); }, 8000, 40); if (!h || h === 'end') break;
-      await react(); const it = [...document.querySelectorAll('.h42 .h42-it')].find((b) => !b.hidden && b.textContent.includes('⟳')); if (!it) continue;
-      const r = it.getBoundingClientRect(); await dragTo(it, r.left + r.width / 2 + 160, r.top + r.height / 2 - 10, 0);
-      await sleep(150);
+      // ── build 53 ── the freed roller is a thing in the world (no ⟳ button): a drag from where it lies, on the act's surface ── /build 53 ──
+      await react(); const pad = q('.h42-pad'), id = ++pid, x0 = h.x, y0 = h.y;
+      ev(pad, 'pointerdown', x0, y0, id); for (let i = 1; i <= 6; i++) { await sleep(25); ev(pad, 'pointermove', x0 + i * 26, y0 - i * 2, id); } ev(pad, 'pointerup', x0 + 156, y0 - 12, id);
+      await sleep(250);
     }
   }
   async function pave() {

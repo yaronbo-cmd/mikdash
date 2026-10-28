@@ -85,14 +85,14 @@ test('build 45: the stage — its parts in the order of §7, its lines with thei
   assert.match(h, /if \(R\.streak >= 3\) \{ R\.streak = 0;/, 'three מהודר in a row: יישר כח'); assert.match(h, /if \(came > 0 \|\| qs\('h45wet'\) === '1'\) wetMorning\(\);/);
   assert.match(read('src/stages.js'), /function setWet\(k\) \{ rain\.wetM = /);
   assert.deepEqual(YARD44.slice(6, 9).map((v) => v.part), ['pulley', 'line', 'wcorner']);   // (build 46: then stage 03's)
-  assert.equal(GAME_BUILD, 52);   // (build 46: the constant moved on) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 53);   // (build 46: the constant moved on) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/stages.js', 'tools/auto42.js', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });
 
 test('build 45: the naive kid\'s stall at a course (K45-P) — a refused stone keeps the verb and the course\'s line comes back; the stones that fit no place are dimmed; the line forgives a finger at level 1', () => {
   const h = read('src/game/har42.js');
-  assert.match(h, /'תישאר שם פרצה קטנה מדי — גררו אבן אחרת · המחשה' : 'אין לה מקום שם — גררו אבן קצרה יותר · המחשה', `נדבך \$\{n \+ 1\}`\); backT = 2\.6; \}/);
+  assert.match(h, /'תישאר שם פרצה קטנה מדי — גררו אבן אחרת · המחשה' : 'אין לה מקום שם — גררו אבן קצרה יותר · המחשה', `נדבך \$\{nn \+ 1\}`\); backT = 2\.6; \}/);   // (build 53: nn — stage 01's courses start at the second)
   assert.match(h, /if \(backT > 0 && \(backT -= dt\) <= 0 && !J\.state\(\)\.done/);
   assert.match(h, /it\.classList\.toggle\('nofit', !ok\)/);
   assert.match(h, /line\(label, `רמה \$\{L\}`\);\n    if \(st\.ui\.pad\) st\.ui\.pad\.classList\.add\('full'\);/, 'the crowbar: its drag anywhere on the screen'); assert.match(h, /'יותר מדי — גררו את המוט חזרה, בעדינות · המחשה'/); assert.match(h, /\.h42-it\.nofit\{opacity:\.38/);

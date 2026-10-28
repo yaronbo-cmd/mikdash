@@ -486,13 +486,13 @@ export function createHar42(o = {}) {
     const L = st.life53; if (!L) return;
     L.t += dt;
     for (const c of L.crews) { if (!c.visible) continue; c.userData.workers.forEach((w, i) => { const ph = L.t * 3.2 + w.userData.ph; w.userData.arms[0].rotation.x = -0.9 + Math.sin(ph) * 0.7; w.userData.arms[1].rotation.x = -0.9 + Math.sin(ph + 0.8) * 0.7; w.rotation.z = Math.sin(ph) * 0.06; }); }
-    // (the act's crew: once the act has set its thing and the camera has mostly come round to its view (0.9 s), beyond the thing as the
+    // (the act's crew: once the act has set its thing and the camera has begun to come round to its view (0.3 s), beyond the thing as the
     // camera sees it — the thing's box's middle + its half-size + 5.5 amot along the line from the camera, 4.5 to the side; the first page set it
     // from the view's target on the act's first frame, and it stood round him)
     if (st.job && st.objBB) {
       if (L.part !== st.part) { L.part = st.part; L.jt = 0; L.set = false; }
       L.jt += dt;
-      if (!L.set && L.jt > 0.9) {
+      if (!L.set && L.jt > 0.3) {
         L.set = true;
         const b = st.objBB, ox = (b[0] + b[3]) / 2, oz = (b[2] + b[5]) / 2, rad = Math.max(b[3] - b[0], b[5] - b[2]) / 2;
         const fx0 = ox - cq.p.x, fz0 = oz - cq.p.z, fl = Math.hypot(fx0, fz0) || 1, fx = fx0 / fl, fz = fz0 / fl, rx = -fz, rz = fx, dd = rad + 5.5;
@@ -2067,7 +2067,7 @@ export function createHar42(o = {}) {
       end() { try { beam.parent && beam.parent.remove(beam); lamp.parent && lamp.parent.remove(lamp); beam.geometry.dispose(); lamp.geometry.dispose(); } catch (e) { /* */ } },
       // ── build 53 ── (§2 stage 01: "the rock is small" — ש4's macro) the rock VIEW53.rock of the width, from its south and a little above —
       // across the line the light sweeps (the overlay's box is the rock's east–west); he stands off its east end, out of the frame ── /build 53 ──
-      view(h) { const c = camera(), tanV = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), tanH = tanV * (W() / H()), D = 5.6 / (2 * VIEW53.rock * tanH), sx = h && h.x > C.x ? -1 : 1; return { p: [C.x + sx * 0.8, C.y + 0.6 + D * 0.3, C.z + D], t: [C.x + sx * 0.3, C.y - 0.1, C.z] }; }, lines: () => { const B = box(); return B ? J.rock.lines.filter((l) => J.state().seen[l.id]).map((l) => ({ id: l.id, ...seg(l, B) })) : []; },
+      view(h) { const c = camera(), tanV = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), tanH = tanV * (W() / H()), D = 5.6 / (2 * VIEW53.rock * tanH), sx = h && h.x > C.x ? -1 : 1; return { p: [C.x + sx * 2.6, C.y + 0.6 + D * 0.3, C.z + D], t: [C.x + sx * 0.3, C.y - 0.1, C.z] }; },   // (2.6 to the side away from him: at 0.8 his near figure stood huge, cut, at the frame's edge — the first AFTER page's 'big' at rock 1–2) lines: () => { const B = box(); return B ? J.rock.lines.filter((l) => J.state().seen[l.id]).map((l) => ({ id: l.id, ...seg(l, B) })) : []; },
       down(a) { mode = ''; pourOn = false; a.tDown = now(); },
       move(a) { if (a.moved > 10) { mode = 'sweep'; const B = box(); if (B) { const u = (a.x - B.l) / B.w; J.sweep(Math.max(0, Math.min(1, u))); swept++; if (swept % 6 === 0) buzz42('creak'); } } },
       up(a) {

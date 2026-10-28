@@ -136,7 +136,7 @@ test('build 53: him kept ≤ 45 % of the height after obj51 (fig53, pure); the a
   const near = fig53([0, 3.2, 10], [0, 3.2, 0], H, th, tv), far = fig53([0, 3.2, 16], [0, 3.2, 0], H, th, tv);
   assert.ok(near.s > 0.45 && far.s <= 0.45, `${near.s} ${far.s}`);
   assert.match(H0(), /if \(F0 && F0\.s > OBJ53\.big && Math\.abs\(F0\.x\) < 1\.1\)/);
-  assert.match(H0(), /const fx0 = ox - cq\.p\.x, fz0 = oz - cq\.p\.z/);
+  assert.match(H0(), /const cp = st\.job\.view && v \? \{ x: v\.p\[0\], z: v\.p\[2\] \} : cq\.p, fx0 = ox - cp\.x, fz0 = oz - cp\.z/);
   assert.match(H0(), /view\(\) \{ const y = PL\.roll0\.y; return \{ p: \[xNow \+ 0\.5, y \+ 5\.5, PL\.roll0\.z \+ VIEW53\.roll\]/);
 });
 function H0() { return H; }

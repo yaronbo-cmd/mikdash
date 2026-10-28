@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { addDrawer, L, onTick } from './draw.js';
 import { man, ROBE, SKIN } from '../works/figures.js';
 import { sheepRig, rigEnd, rigMaterial, rigMesh, rigWrite, V3 } from '../../animals.js';
-import { at25, BLEM25, P25, SWIPE36 } from './day33.js';
+import { at25, BLEM25, P25, SWIPE36, swipe51 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
 import { L33, LINE33, stalls33 } from './lamb33.js';   // ── fable32 (build 33) ── the lamb chamber's run: its stalls, the tags, its words ── /fable32 ──
@@ -348,13 +348,15 @@ export function createPen25(o = {}) {
         beam.y = Math.max(beamBox[1], Math.min(beamBox[3], beam.y));
       }
     };
+  let thr51 = 0;   // ── build 51 ── (the last touch's swipe length — the hint's) ── /build 51 ──
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     try {
       pad.setPointerCapture(ev.pointerId);
     } catch (e) {}
-    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, lx: ev.clientX, ly: ev.clientY, t0: tsOf(ev), tx: null });
+    const thr = swipe51(W(), pad.__t40 ? pad.__t40.state().w : 0); try { E.sw51(thr / W(), thr / (innerHeight || 390)); } catch (e) {} thr51 = thr;   // ── build 51 ── (the swipe's gate relative to the thing: swipe51 — E.sw51 for the engine) ── /build 51 ──
+    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, lx: ev.clientX, ly: ev.clientY, t0: tsOf(ev), tx: null, thr });
   });
   pad.addEventListener('pointermove', (ev) => {
     const p = touches.get(ev.pointerId);
@@ -364,7 +366,7 @@ export function createPen25(o = {}) {
       dy = ev.clientY - p.ly;
     p.lx = ev.clientX;
     p.ly = ev.clientY;
-    if (p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * W()) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
+    if (p.tx == null && Math.abs(ev.clientX - p.x0) >= p.thr) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     if (L && L.ph === 'scan' && Number.isFinite(beam.x)) {
       beam.x += dx * AIM_K;
       beam.y += dy * AIM_K;
@@ -691,6 +693,7 @@ export function createPen25(o = {}) {
         let pts40 = null;
         if (padOn && K) { pts40 = []; for (let i = 0; i < 8; i++) { const w = at25(i, La, a0.hy, a0.hp); pts40.push({ x: w.x, y: w.y, z: w.z, r: 0.45 }); } }
         t40.place(!!pts40, pts40, 'p25');
+        try { globalThis.__AVOID51 = pts40 && a1 && a1.on ? [{ x: a1.x, y: 16.5, z: a1.z, r: 0.9 }] : null; } catch (e) { /* */ }   // ── build 51 ── (the other lamb: never between the camera and the one inspected — twin.js obj51's avoid) ── /build 51 ──
       }
       beam.regs = [];
       if (K) {
@@ -763,7 +766,7 @@ export function createPen25(o = {}) {
           // ── fable32 (build 33) ── (the chamber by day: no torch — a light dusk round the look, the same mechanic) ── /fable32 ──
           dark.style.background = lit
             ? `radial-gradient(circle at ${bx | 0}px ${by | 0}px,rgba(255,250,235,0) 0,rgba(255,250,235,0) ${(br * 0.55) | 0}px,rgba(20,16,10,.38) ${br | 0}px)`
-            : `radial-gradient(circle at ${bx | 0}px ${by | 0}px,rgba(255,196,120,.07) 0,rgba(255,170,90,.03) ${(br * 0.5) | 0}px,rgba(5,4,9,.8) ${br | 0}px)`;
+            : `radial-gradient(circle at ${bx | 0}px ${by | 0}px,rgba(255,196,120,.07) 0,rgba(255,170,90,.03) ${(br * 0.5 * LIT51.r) | 0}px,rgba(5,4,9,${LIT51.dark}) ${(br * LIT51.r) | 0}px)`;   // ── build 51 ── (the pen less dark, the torch's hole wider) ── /build 51 ──
         }
       }
       const camera = cam();
@@ -896,9 +899,9 @@ export function createPen25(o = {}) {
             zoomed = zi >= 0;
           lt.color.set(TORCH_COLOR);
           lt.position.set(flameAt.x, flameAt.y + 0.05, flameAt.z);
-          lt.distance = zoomed ? 2.6 : 3;
+          lt.distance = (zoomed ? 2.6 : 3) * LIT51.d;
           lt.decay = 1.6;
-          lt.intensity = (zoomed ? 1.8 : 1.2) * (0.9 + 0.1 * Math.sin(tt * 17) * Math.sin(tt * 5.3));
+          lt.intensity = (zoomed ? 1.8 : 1.2) * LIT51.k * (0.9 + 0.1 * Math.sin(tt * 17) * Math.sin(tt * 5.3));   // ── build 51 ── (the lantern ×2: LIT51) ── /build 51 ──
           lit = true;
         } else if (lit && k.light) {
           k.light.color.set('#FFC27A');
@@ -973,6 +976,7 @@ export function createPen25(o = {}) {
         } else {
           snd('soft');
           flash(ev.why === 'short' ? 'ארוך יותר ↔' : ev.why === 'slow' ? 'מהר יותר ↔' : 'לרוחב ↔');
+          if ((ev.why === 'short' || ev.why === 'slow') && pad.__t40) pad.__t40.hint51(thr51, 'x');   // ── build 51 ── ── /build 51 ──
         }
       else if (type === 'p25stamp') {
         snd('stamp25', { ok: ev.v === 'tamim', no: ev.v === 'pasul' });
@@ -1035,6 +1039,9 @@ const SAY = {
 reg30('lamb', { chip: SAY.scan, all: [SAY.bring, SAY.pen, SAY.scan, SAY.blem, SAY.ill] });   // ── fable32 (build 30) ── (the pen's lines at its end) ── /fable32 ──
 const AIM_K = 1.6;
 const TORCH_COLOR = '#FFB066';
+// ── build 51 ── (the inspector's review 27.10: "the pen dark"; the coordinator's build-51 brief, item 2: the lantern ×2) the torch's light
+// ×k (intensity) and ×d (reach), the dark round its hole lighter (dark) and the hole wider (r) ── /build 51 ──
+export const LIT51 = Object.freeze({ k: 2, d: 1.5, dark: 0.6, r: 1.35 });
 const ZOOM_FOV = 28;   // ── fable32 (build 41) ── (was 20: the macro a little wider — him at least in part in the frame) ── /fable32 ──
 const CSS = `.p25{position:fixed;z-index:32;direction:rtl;text-align:center;font:900 16px/1.2 Heebo,system-ui,sans-serif;color:#FFF6DA;pointer-events:none;display:none}.p25.on{display:block}.p25 small{display:block;font-size:11px;font-weight:700;opacity:.85}
 .p25-dk{display:block;inset:0;z-index:28;opacity:0;transition:opacity .5s}.p25-dk.on{opacity:1}.p25-in{top:0;bottom:0;left:51%;right:0;z-index:30;touch-action:none;pointer-events:auto}

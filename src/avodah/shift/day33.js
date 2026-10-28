@@ -183,6 +183,13 @@ export const R19 = Object.freeze({
 // keep their numbers (D21.sw, M22.sw, P25.sw, P26.sw, P26.wick, P26.ms, P27.dn, P27.ms, D21.ms, P23.fin stay in their tables, unread
 // by the swipes — the history of builds 21–27) ── /fable32 ──
 export const SWIPE36 = Object.freeze({ dist: 0.15, ms: 350 });
+// ── build 51 ── (the inspector's review 27.10 §4 item 4; the coordinator's build-51 brief, item 4: "15 % of the SCREEN within 350 ms
+// regardless of the thing" — 127 px on a 190-px pan, on a 30-px lamp) the swipe's length relative to the thing: min(max·W, k·the thing's
+// width on the screen), never under min·W (a tap is no swipe), within ms. The act's module sets the engine's gate at each touch
+// (E.sw51(x, y): the length as a share of the width and of the height); without one the gate is max·W across and 0.15·H down ── /build 51 ──
+export const SWIPE51 = Object.freeze({ k: 0.4, max: 0.12, min: 0.035, ms: 500 });
+/** the swipe's length in px for a thing w px wide on a W-px screen (pure) */
+export const swipe51 = (W, w) => Math.max(SWIPE51.min * W, Math.min(SWIPE51.max * W, Number.isFinite(w) && w > 0 ? SWIPE51.k * w : SWIPE51.max * W));
 export const K20 = Object.freeze({
   hold: 3.5,
   back: 0.3,
@@ -199,6 +206,13 @@ export const K20 = Object.freeze({
 // the way up the ramp and down (up, head, foot, go), the walk, the pour at the heap, the wind and the spill, the score, its cameras
 // ── fable32 (build 41) ── the lamb's views (view25, spotView25): the scan from higher and farther, the macro from the lamb's far side ── /fable32 ──
 export const P41 = Object.freeze({ lamb: Object.freeze({ el: 0.72, d: 7.5, away: 0.6, zd: 3.4 }) });
+// ── build 51 ── the lamb's scan from its far side, knee-high (y over the floor, ty the look's height, d amot off), the macro's distance (zd);
+// the lantern ×2 (pen25 LIT51) ── /build 51 ──
+// ── build 51 ── the shochet's macro on the lamb (the inspector's review §4 item 3: FOV 35, about 2.5 m; the lamb ≥ 35 % of the width) ── /build 51 ──
+export const SH51 = Object.freeze({ fov: 35, aim: 0.4 });
+// ── build 51 ── the laver's mark: the water's level (the fill 0…1) to release at, ± win; a release past `free` is a free retry ── /build 51 ──
+export const K20M = Object.freeze({ at: 0.8, win: 0.08, free: 0.5 });
+export const P51 = Object.freeze({ lamb: Object.freeze({ d: 3.4, y: 2.4, ty: 0.6, zd: 2.2, aim: 0.42, zAim: 0.62 }), off: false });
 export const D21 = Object.freeze({
   swipe: 120,
   straight: 0.5,
@@ -2591,7 +2605,11 @@ export function createDay33(o = {}) {
       }
     } else if (K.ph === 'pose') {
       const a = K.L && K.R;
-      if (K.flow && !a) K.lifts++;
+      // ── build 51 ── (the inspector's review 27.10: "a 3.5 s hold → מהודר, nothing to read — idle in disguise"; the coordinator's build-51
+      // brief, item 6) the skill: the water rises to the mark (K20M.at) — release both thumbs AT it (within ±win): the wash ends there,
+      // מהודר; held to the brim it ends late (כשר); a release on the way up past `free` of the fill is a free retry (the water sinks back,
+      // no lift counted); a thumb lifted early in the wash (under `free`) is a lift as before ── /build 51 ──
+      if (K.flow && !a) { if (K.p >= K20M.at - K20M.win && K.p <= K20M.at + K20M.win) { K.mark51 = 'in'; K.p = 1; } else if (K.p >= K20M.free) K.early51 = (K.early51 | 0) + 1; else K.lifts++; }
       K.flow = a;
       if (a) {
         K.p = Math.min(1, K.p + dt / K.T);
@@ -2599,8 +2617,9 @@ export function createDay33(o = {}) {
         // ── fable32 (build 36) ── level 4: the stream tilts — the thumbs' heights level it ("ימין על ימין, שמאל על שמאל"); past the
         // edge the water runs off a hand (a spill, counted as a lift is) ── /fable32 ──
         if (K.P36 && K.P36.bal && bal36(K, K.P36.bal, dt)) emit17('k20spill', { n: K.spills, a: Math.sign(K.b) });
-      } else K.p = Math.max(0, K.p - K20.back * dt);
+      } else if (K.mark51 !== 'in') K.p = Math.max(0, K.p - K20.back * dt);
       if (K.p >= 1) {
+        if (!K.mark51) K.mark51 = 'late';   // ── build 51 ── (held to the brim) ── /build 51 ──
         K.ph = 'rise';
         K.t = 0;
         K.flow = false;
@@ -2615,7 +2634,7 @@ export function createDay33(o = {}) {
         evlog('act_done', { id: 'kiyor', grade: 'gate', s: st.k20T, lifts: K.lifts });
         emit17('unlock', { first: K.first, s: st.k20T, held: Math.round(K.held * 10) / 10, lifts: K.lifts, at: { x: act20.x, y: 20.5, z: act20.z } });
         // ── fable32 (build 30) ── the laver rated too: the hands held under the spigots (its lifts), its coins, the roles book's row ── /fable32 ──
-        st.k20r = { day: st.day, lifts: K.lifts, held: Math.round(K.held * 10) / 10, s: st.k20T, first: K.first, lv36: K.lv, ...(K.P36 && K.P36.bal ? { spills36: K.spills } : {}) };   // ── fable32 (build 36) ── (its level; level 4's spills) ── /fable32 ──
+        st.k20r = { day: st.day, lifts: K.lifts, held: Math.round(K.held * 10) / 10, s: st.k20T, first: K.first, lv36: K.lv, ...(K.P36 && K.P36.bal ? { spills36: K.spills } : {}), mark51: K.mark51 || 'late', early51: K.early51 | 0 };   // ── build 51 ── (the release at the mark) ── /build 51 ──   // ── fable32 (build 36) ── (its level; level 4's spills) ── /fable32 ──
         rec23('kiyor', st.k20r);
         end30('kiyor', st.k20r, { x: act20.x, y: 20.5, z: act20.z }, false);
       }
@@ -2658,8 +2677,9 @@ export function createDay33(o = {}) {
       };
     },
     clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v),
+    sw51 = { x: SWIPE51.max, y: SWIPE36.dist },   // ── build 51 ── (the swipe's gate: the act's module sets it at each touch — E.sw51) ── /build 51 ──
     r1 = (v) => Math.round(v * 10) / 10,
-    swipeWhy = (dx, dy, ms, min) => (void min, Math.abs(dx) >= SWIPE36.dist ? (Math.abs(dy) > 0.5 * Math.abs(dx) ? 'crooked' : ms > SWIPE36.ms ? 'slow' : '') : 'short');   // ── fable32 (build 36) ── (the owner's relaxed gate, SWIPE36: was |dx| > min (0.25–0.3) within D21.ms 200) ── /fable32 ──
+    swipeWhy = (dx, dy, ms, min) => (void min, Math.abs(dx) >= sw51.x ? (Math.abs(dy) > 0.5 * Math.abs(dx) ? 'crooked' : ms > SWIPE51.ms ? 'slow' : '') : 'short');   // ── build 51 ── (the gate relative to the thing: sw51, SWIPE51 — was SWIPE36.dist within SWIPE36.ms) ── /build 51 ──   // ── fable32 (build 36) ── (the owner's relaxed gate, SWIPE36: was |dx| > min (0.25–0.3) within D21.ms 200) ── /fable32 ──
   // ── recovered (build 21) ── תרומת הדשן: the sweep of the coals (four layers), the walk down the ramp with the pan (the balance, the wind,
   // the spills), the turn at the foot, the pour onto the heap
   function d21start() {
@@ -4004,6 +4024,10 @@ export function createDay33(o = {}) {
         asp = Math.max(0.4, (globalThis.innerWidth || 844) / (globalThis.innerHeight || 390));
       // ── fable32 (build 41) ── (the coordinator's build-41 brief, items 2 and 4: the lamb's view had him huge or out of the frame — 2.9
       // amot from the lamb, him beside it, the pen's walls behind) from higher and farther (P41.lamb): over the pen's walls, him whole ── /fable32 ──
+      // ── build 51 ── (the inspector's review 27.10: "the lamb not seen — the camera over his hat, the hat covers the lamb"; the
+      // coordinator's build-51 brief, item 2) the scan from the lamb's FAR side from him, knee-high (P51.lamb.y over the floor), P51.lamb.d
+      // amot off, looking at the lamb's middle: he stands beyond it; the object rule (twin.js obj51) brings it to ≥ 35 % of the width ── /build 51 ──
+      if (!P51.off) { const hh = heroP(), Q = P51.lamb; let dx = L.x - hh.x, dz = L.z - hh.z; const dl = Math.hypot(dx, dz); if (dl < 0.3) { dx = Math.cos(c.az); dz = Math.sin(c.az); } else { dx /= dl; dz /= dl; } return { p: [L.x + dx * Q.d, 16 + Q.y, L.z + dz * Q.d], t: [L.x, 16 + Q.ty, L.z], macro: true, aimW: Q.aim }; }
       return camView({ az: c.az, el: Math.max(c.el, P41.lamb.el), d: Math.max(c.d, 3.5 / asp, P41.lamb.d), t: { x: L.x, y: 16 + c.ty, z: L.z } });
     },
     spotView25 = (K) => {
@@ -4017,7 +4041,7 @@ export function createDay33(o = {}) {
         hh = heroP(), hx = hh.x - at.x, hz = hh.z - at.z, hl = Math.hypot(hx, hz) || 1,
         a = [a0[0] - (hx / hl) * P41.lamb.away, a0[1], a0[2] - (hz / hl) * P41.lamb.away],
         b = Math.hypot(...a) || 1;
-      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * Math.max(P25.zd, P41.lamb.zd)), t: [at.x, at.y, at.z] };   // ── fable32 (build 41) ── (a little farther: 3.4) ── /fable32 ──
+      return { p: a.map((x, i) => [at.x, at.y, at.z][i] + (x / b) * (P51.off ? Math.max(P25.zd, P41.lamb.zd) : P51.lamb.zd)), t: [at.x, at.y, at.z], ...(P51.off ? {} : { macro: true, aimW: P51.lamb.zAim }) };   // ── build 51 ── (the macro nearer: the lamb ≥ 60 % of the width at ZOOM_FOV) ── /build 51 ──   // ── fable32 (build 41) ── (a little farther: 3.4) ── /fable32 ──
     },
     camWork25 = () => {
       const K = st.p25,
@@ -4186,8 +4210,8 @@ export function createDay33(o = {}) {
     if (ph !== 'bolt' && ph !== 'wick' && ph !== 'wipe') return false;
     const why =
       ph === 'wick'
-        ? Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE36.dist   // ── fable32 (build 37) ── (the wick's swipe counts in any clear direction past SWIPE36 — ⬆ is shown, ↔ ⬇ or slanted count too: the naive kid swiped ↔ where ⬆ was asked, 1 of 17 counted, the menorah unfinished in 8.5 min; build 36: up only, 'crooked' refused) ── /fable32 ──
-          ? ms > SWIPE36.ms
+        ? Math.max(Math.abs(dx) / sw51.x, Math.abs(dy) / sw51.y) >= 1   // ── build 51 ── (sw51: relative to the lamp) ── /build 51 ──   // ── fable32 (build 37) ── (the wick's swipe counts in any clear direction past SWIPE36 — ⬆ is shown, ↔ ⬇ or slanted count too: the naive kid swiped ↔ where ⬆ was asked, 1 of 17 counted, the menorah unfinished in 8.5 min; build 36: up only, 'crooked' refused) ── /fable32 ──
+          ? ms > SWIPE51.ms
             ? 'slow'
             : ''
           : 'short'
@@ -4615,7 +4639,7 @@ export function createDay33(o = {}) {
   function r27swipe(dx, dy = 0, ms = 0) {
     const K = st.r27;
     if (!K || K.ph !== 'base' || st.paused) return false;
-    const why = dy < SWIPE36.dist ? 'short' : Math.abs(dx) > 0.6 * dy ? 'crooked' : ms > SWIPE36.ms ? 'slow' : '';   // ── fable32 (build 36) ── (the yesod's swipe down: SWIPE36 — was P27.dn 0.22 within P27.ms 300) ── /fable32 ──
+    const why = dy < sw51.y ? 'short' : Math.abs(dx) > 0.6 * dy ? 'crooked' : ms > SWIPE51.ms ? 'slow' : '';   // ── build 51 ── (sw51) ── /build 51 ──   // ── fable32 (build 36) ── (the yesod's swipe down: SWIPE36 — was P27.dn 0.22 within P27.ms 300) ── /fable32 ──
     emit17('r27swipe', { ok: !why, why });
     if (why) return false;
     ph27(K, 'poured');
@@ -4665,7 +4689,7 @@ export function createDay33(o = {}) {
     if (!K || K.ph === 'out' || K.ph === 'carry' || K.ph === 'carry2') return null;
     const ph = K.ph;
     let a;
-    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6 };   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
+    if (K.role === 'shochet') a = { p: [-46.2, 23.6, -42.4], t: [-46.4, 16.5, -33.6], e: ph === 'in' ? 2 : 2.6, ...(/^(bind|bound|cut)$/.test(ph) ? { fov: SH51.fov, macro: true, aimW: SH51.aim, e: 5 } : {}) };   // ── build 51 ── (the macro on the lamb while binding and cutting: FOV 35 — the object rule, twin.js obj51, brings it near) ── /build 51 ──   // (from the north, behind the lamb's rear: he east of it, the lamb west, the legs between them; the neck at the far end, ≈ 9.9 amot off)
     else if (/^(in|wait|cut|recv|full)$/.test(ph)) a = { p: [-46.8, 23.6, -42.2], t: [-47.5, 16.5, -33], e: 2.4 };
     // (the corners: he stands on the corner's diagonal, so a view from behind him had his head on the corner's lower half — the views
     // stand 62–65° round from the diagonal, 10 amot off and 6 up: the corner's edge from the yesod to over the thread in the frame's
@@ -6453,6 +6477,7 @@ export function createDay33(o = {}) {
     gate20,
     camWork20,
     k20: () => st.k20,
+    sw51(x, y) { if (Number.isFinite(x) && x > 0) sw51.x = x; if (Number.isFinite(y) && y > 0) sw51.y = y; return { x: sw51.x, y: sw51.y }; },   // ── build 51 ── ── /build 51 ──
     k20in(a, b) {
       const k20 = st.k20;
       return !k20 || (a !== 'L' && a !== 'R') ? false : ((k20[a] = !!b), true);

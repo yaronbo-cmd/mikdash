@@ -75,7 +75,7 @@ test('build 41: every act\'s view (pan40 with CAM41) keeps him ≤ 45 % of the s
   assert.ok(Math.abs(r.ox - (2 * CAM41.at - 1)) < 0.03, `the thing at ${(((r.ox + 1) / 2) * 100).toFixed(1)} %`);
   assert.ok(CAM41.at >= 0.55 && CAM41.at <= 0.65 && CAM41.big === 0.45);
   const tw = read('src/game/twin.js');
-  assert.match(tw, /\{ \.\.\.CAM41, at: O\.at \} : CAM41; r40 = pan40\(V\.p, V\.t, O, H40, tanH, C40, tanV\);/);
+  assert.match(tw, /\{ \.\.\.CAM41, at: O\.at \} : CAM41, C40 = M51 \? \{ \.\.\.C40a, big: 9, heroR: 9, hero: -9, back: 0 \} : C40a; r40 = pan40\(V\.p, V\.t, O, H40, tanH, C40, tanV\);/);   // (build 51: a macro view — the lamb, the shochet's binding — the thing first, him not stepped back for)
 });
 
 // ───────── the act's surface ─────────
@@ -112,7 +112,7 @@ test('build 41: the practice\'s title a slim line in the top band (hud.intro sli
 });
 
 test('build 41: GAME_BUILD 41; no Divine Name in the changed files (by code points); the pilgrims\' word', () => {
-  assert.equal(GAME_BUILD, 50);   // (build 42: the constant moved on) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again)
+  assert.equal(GAME_BUILD, 51);   // (build 42: the constant moved on) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const files = ['src/avodah/day/cam28.js', 'src/avodah/day/index.js', 'src/game/twin.js', 'src/avodah/shift/touch40.js', 'src/avodah/shift/hud.js', 'src/avodah/shift/index.js', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/stations.js', 'tools/cam41.js', 'tools/autoplay35.js', 'tools/autoplay35-run.cjs', 'PROJECT.md', 'test/build41.test.mjs'];
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)];
   const P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);

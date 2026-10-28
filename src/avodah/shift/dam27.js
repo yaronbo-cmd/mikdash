@@ -16,7 +16,7 @@
  * Every text a draft (טיוטה) with its source, the numbers המחשה. Never a Divine Name. */
 import { addDrawer, L, onTick } from './draw.js';
 import { lamb as lambFig, man, ROBE, SKIN } from '../works/figures.js';
-import { P27, needle27, throw27, SWIPE36 } from './day33.js';
+import { P27, needle27, throw27, SWIPE36, swipe51 } from './day33.js';
 import { reg30 } from './rate30.js';   // ── fable32 (build 30) ── ── /fable32 ──
 import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──
 import { L33 } from './lamb33.js';   // ── fable32 (build 33) ── (today's lamb's tag) ── /fable32 ──
@@ -83,12 +83,14 @@ export function createDam27(o = {}) {
     verb = mk('dm27-u'),
     gauge = mk('dm27-g'),
     ring = mk('dm27-r', `<svg viewBox="-60 -60 120 120"><circle r="46" class="bg"/><path class="gz"/><line class="nd" x1="0" y1="0" x2="0" y2="-50"/><circle r="7" class="hub"/></svg>`),   // ── fable32 (build 30) ── (the dial's word "שחטו בזהב" is the step card's line) ── /fable32 ──
-    over = mk('dm27-o', `<svg><polyline class="tr"/><circle class="fa" r="16"/><circle class="hi" r="18"/><line class="bl"/></svg>`),
+    over = mk('dm27-o', `<svg><defs><marker id="dm27ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#FFE6A0"/></marker></defs><polyline class="tr"/><circle class="fa" r="16"/><circle class="hi" r="18"/><line class="bl" marker-end="url(#dm27ah)"/><path class="st51"/><circle class="vs51" r="9"/></svg>`),   // ── build 51 ── (the binding's arrow ON the lamb, foreleg → hind leg; the blood's stream — a moving red line — and the vessel under it) ── /build 51 ──
     svg = over.querySelector('svg'),
     trEl = svg.querySelector('.tr'),
     faEl = svg.querySelector('.fa'),
     hiEl = svg.querySelector('.hi'),
     blEl = svg.querySelector('.bl'),
+    stEl = svg.querySelector('.st51'),
+    vsEl = svg.querySelector('.vs51'),
     needleEl = ring.querySelector('.nd'),
     put = (el, html) => {
       if (el.__h !== html) {
@@ -174,6 +176,7 @@ export function createDam27(o = {}) {
       u = Math.min(3.2, 3.4 * Math.tan((Math.min(60, Math.abs(a)) * Math.PI) / 180) * 1.2);
     return { ...face(c, a < 0 ? -1 : 1, u, Math.min(r.y, 24.6)), r };
   };
+  let thr51 = 0;   // ── build 51 ── (the last touch's swipe length — the hint's) ── /build 51 ──
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
@@ -182,7 +185,8 @@ export function createDam27(o = {}) {
     } catch (e) {}
     const K = E.r27();
     if (!K) return;
-    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, lx: ev.clientX, ly: ev.clientY, t0: tsOf(ev), ty: null, ang: null, cx: ev.clientX, cy: ev.clientY });
+    const thr = swipe51(WD(), t40 ? t40.state().w : 0); try { E.sw51(thr / WD(), thr / HT()); } catch (e) {} thr51 = thr;   // ── build 51 ── (the swipe's gate relative to the thing: swipe51 — E.sw51 for the engine) ── /build 51 ──
+    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, lx: ev.clientX, ly: ev.clientY, t0: tsOf(ev), ty: null, ang: null, cx: ev.clientX, cy: ev.clientY, thr });
     if (K.ph === 'bind') {
       const g = legsOnScreen();
       bindG.fore = g && g.f;
@@ -210,7 +214,7 @@ export function createDam27(o = {}) {
       dy = ev.clientY - p.ly;
     p.lx = ev.clientX;
     p.ly = ev.clientY;
-    if (p.ty == null && ev.clientY - p.y0 >= SWIPE36.dist * HT()) p.ty = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
+    if (p.ty == null && ev.clientY - p.y0 >= p.thr) p.ty = t - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
     if (!K) return;
     if (K.ph === 'recv') E.r27move((dx / (0.42 * WD())) * 2);
     else if (/^(full|carry|carry2|hold)$/.test(K.ph) || (K.clot && /^aim2?$/.test(K.ph))) {   // ── fable32 (build 36) ── (a clot at the corner: the thumb circles it away there) ── /fable32 ──
@@ -239,7 +243,7 @@ export function createDam27(o = {}) {
       const vx = bindG.hind.x - bindG.fore.x,
         vy = bindG.hind.y - bindG.fore.y,
         vl = Math.hypot(vx, vy) || 1,
-        need = Math.max(70, vl),
+        need = Math.max(70, Math.min(vl, thr51 > 0 ? thr51 : vl)),   // ── build 51 ── (the binding's drag: along the arrow, as long as the swipe's gate (swipe51) — not the legs' whole span: in the macro the lamb fills the screen and a child's drag fell short, 32 tries; the naive kid K51-P-sho) ── /build 51 ──
         ux = vx / vl,
         uy = vy / vl,
         mx = ev.clientX - p.x0,
@@ -293,7 +297,8 @@ export function createDam27(o = {}) {
     hp = { x: 0, y: 16, z: 0 };
   // ── fable32 (build 40) ── the act's surface on the thing (touch40.js): the lamb's legs to bind, its neck to cut and to catch, the vessel in
   // his hand to stir, to aim and to pour (and the base's hole) ── /fable32 ──
-  const t40 = createTouch40({ doc, pad, id: 'dm27', proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
+  // ── build 51 ── (the object rule's thing while binding and cutting: the whole lamb on its side — twin.js obj51 frames IT, ≥ 35 % of the width) ── /build 51 ──
+  const t40 = createTouch40({ doc, pad, id: 'dm27', thing: () => { const K = E.r27(); return K && /^(bind|cut)$/.test(K.ph) && K.role === 'shochet' ? [LAMB.x - 0.35 * LS, LY - 0.05, LAMB.z - 0.5 * LS, LAMB.x + 0.85 * LS, LY + 0.55 * LS, LAMB.z + 1.0 * LS] : null; }, proj: (x, y, z) => { try { const p = view && view.project(x, y, z); return p && p.on !== false ? { x: p.x, y: p.y } : null; } catch (e) { return null; } } });
   const setStick = (off) => {
       if (stickOff === off) return;
       stickOff = off;
@@ -367,7 +372,7 @@ export function createDam27(o = {}) {
       }
       {   // ── fable32 (build 40) ── ── /fable32 ──
         const on40 = active && PAD.test(ph), hand = { x: hp.x, y: (hp.y || 16) + 1.3, z: hp.z, r: 1.1 };   /* (the vessel in his two hands, at their height: the hands and the vessel one thing — the naive kid's zorek at 640 × 296 fell to the pad 9 times with the vessel alone, r 0.8) */
-        t40.place(on40, !on40 ? null : ph === 'bind' ? [{ ...FORE, r: 0.6 }, { ...HIND, r: 0.6 }] : ph === 'cut' ? [{ ...NECK, r: 0.7 }] : ph === 'recv' ? [{ ...NECK, r: 0.6 }, hand] : ph === 'base' ? [hand, { ...P27.hole, r: 0.5 }] : /^(full|carry|carry2|hold)$/.test(ph) ? [{ x: hp.x, y: (hp.y || 16) + 1.9, z: hp.z, r: 2.0 }] : [hand],   /* ── fable32 (build 41) ── (his whole 3.9-amah figure, r 2.0 round his middle, as the ashes' pan) ── /fable32 ── */   /* (carrying it: the vessel is him with it, his whole figure — the follow camera's far frame left the vessel alone under 44 px, and r 1.4 still 42 px, the work pad's fallback, in the 640 × 296 practice) */
+        t40.place(on40, !on40 ? null : ph === 'bind' ? [{ ...FORE, r: 0.6 }, { ...HIND, r: 0.6 }] : ph === 'cut' ? [{ ...NECK, r: 0.7 }] : ph === 'recv' ? [{ ...NECK, r: 0.6 }, hand] : ph === 'base' ? [hand, { ...P27.hole, r: 0.5 }] : /^(full|carry|carry2|hold)$/.test(ph) ? [{ x: hp.x, y: (hp.y || 16) + 1.9, z: hp.z, r: 2.0, self: true }] : [hand],   /* ── fable32 (build 41) ── (his whole 3.9-amah figure, r 2.0 round his middle, as the ashes' pan) ── /fable32 ── */   /* (carrying it: the vessel is him with it, his whole figure — the follow camera's far frame left the vessel alone under 44 px, and r 1.4 still 42 px, the work pad's fallback, in the 640 × 296 practice) */
           ph === 'bind' ? 'dm27bind' : ph === 'cut' ? 'dm27cut' : ph === 'recv' ? 'dm27recv' : /^aim2?$/.test(ph) ? 'dm27aim' : ph === 'base' ? 'dm27base' : 'dm27stir');
       }
       // the hint and its source
@@ -375,7 +380,7 @@ export function createDam27(o = {}) {
       // ורגל", "זרקו מתחת לחוט" …; HINT's sources at the end, SRC30.shochet / .zorek. The cue by the right thumb keeps its icon only) ── /fable32 ──
       put(hint, '');
       const bd = active && ph === 'bind' ? bindDir(legsOnScreen()) : '',
-        vr = active ? (bd ? (bd === 's' ? VERB.bind : [bd === 'd' ? '⬇' : '⬆', bd === 'd' ? 'dn' : '', VERB.bind[2]]) : VERB[ph]) : null,   // (the binding's arrow: the guide's own direction on the screen)
+        vr = active && ph !== 'bind' && !(t40.state().hand || (t40.state().mode === 'obj' && VERB[ph] && VERB[ph][0] === '👆')) ? VERB[ph] || null : null,   // ── build 51 ── (one hand at a time: on the thing, its own hand) ── /build 51 ──   // ── build 51 ── (no cue hanging at the side while binding — the arrow is on the lamb — nor while receiving on the thing: the stream is drawn) ── /build 51 ──
         vk = vr ? ph + bd : '';
       if (verb.__k !== vk) {
         verb.__k = vk;
@@ -464,6 +469,18 @@ export function createDam27(o = {}) {
           blEl.setAttribute('x2', -99);
         }
       }
+      // ── build 51 ── the blood's stream while receiving (the inspector: "the stream invisible"): a moving red line from the neck down to
+      // where it falls (K.sp across the lane) and the vessel's ring at its place (K.pos) — green while under it, the only time it fills ── /build 51 ──
+      if (active && (ph === 'recv' || ph === 'full') && K.role !== 'shochet') {
+        const n = proj(NECK.x, NECK.y, NECK.z);
+        if (n) {
+          showOver = true;
+          const lane = 60, fx = n.x + (K.sp || 0) * lane, fy = n.y + 78, vx = n.x + (K.pos || 0) * lane, ok = Math.abs((K.pos || 0) - (K.sp || 0)) < ((K.P36 && K.P36.tol) || P27.tol);
+          stEl.setAttribute('d', `M${n.x.toFixed(1)},${n.y.toFixed(1)} Q${((n.x + fx) / 2 + (K.sp || 0) * 10).toFixed(1)},${(n.y + 30).toFixed(1)} ${fx.toFixed(1)},${fy.toFixed(1)}`);
+          vsEl.setAttribute('cx', vx.toFixed(1)); vsEl.setAttribute('cy', (fy + 6).toFixed(1)); vsEl.setAttribute('class', ok ? 'vs51 ok' : 'vs51');
+          if (ph !== 'bind') { faEl.setAttribute('cx', -99); hiEl.setAttribute('cx', -99); blEl.setAttribute('x1', -99); blEl.setAttribute('x2', -99); }
+        }
+      } else { stEl.setAttribute('d', ''); vsEl.setAttribute('cx', -99); }
       over.classList.toggle('on', showOver);
       // his hand: the knife at the cut, the vessel from the receiving on (it circles while he swirls)
       const H = hero();
@@ -837,6 +854,7 @@ export function createDam27(o = {}) {
     } else if (y === 'r27swipe' && !ev.ok) {
       snd('soft');
       flash(ev.why === 'short' ? 'ארוך יותר ⬇' : ev.why === 'slow' ? 'מהר יותר ⬇' : 'ישר למטה ⬇');
+      if (ev.why === 'short' || ev.why === 'slow') t40.hint51(thr51, 'y');   // ── build 51 ── ── /build 51 ──
     } else if (y === 'r27done') {
       snd('chord17', { up: 1 });   // ── fable32 (build 30) ── (the end's banner — "+N ★ · coins · N%" — is the step card's rating; end30 its source) ── /fable32 ──
     }
@@ -928,5 +946,6 @@ const CSS = `.dm27{position:fixed;z-index:32;direction:rtl;text-align:center;fon
 .dm27-r{left:75.5%;top:46%;transform:translate(-50%,-50%);z-index:31;width:150px}.dm27-r svg{width:150px;height:150px;overflow:visible}.dm27-r .bg{fill:#1C140AC0;stroke:#8A6A3A;stroke-width:8}.dm27-r .gz{fill:none;stroke:#FFD66E;stroke-width:12;stroke-linecap:round}.dm27-r .nd{stroke:#FFF6DA;stroke-width:5;stroke-linecap:round}.dm27-r .hub{fill:#FFF6DA}
 .dm27-r.hot .gz{stroke:#FFF1B8;filter:drop-shadow(0 0 6px #FFD66E)}.dm27-r.ok .bg{stroke:#FFE6A0;filter:drop-shadow(0 0 12px #FFD66E)}.dm27-r b{display:block;margin-top:-6px;font-size:14px;color:#FFE6A0;text-shadow:0 2px 3px #000}
 .dm27-o{inset:0;z-index:29}.dm27-o svg{width:100%;height:100%;overflow:visible}.dm27-o .tr{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:6 6;opacity:.9}.dm27-o .tr.bad{stroke:#FF8E7A}.dm27-o .tr.gold{stroke:#FFF1B8;stroke-width:4}
-.dm27-o .fa{fill:#FFD66E33;stroke:#FFE6A0;stroke-width:3}.dm27-o .hi{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:5 4}.dm27-o .bl{stroke:#FFE6A088;stroke-width:3;stroke-dasharray:3 6}
+.dm27-o .fa{fill:#FFD66E33;stroke:#FFE6A0;stroke-width:3}.dm27-o .hi{fill:none;stroke:#FFE6A0;stroke-width:3;stroke-dasharray:5 4}.dm27-o .bl{stroke:#FFE6A0;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 1px 2px #000)}
+.dm27-o .st51{fill:none;stroke:#C0141A;stroke-width:5;stroke-linecap:round;stroke-dasharray:10 6;animation:dm27st 0.5s linear infinite;filter:drop-shadow(0 0 3px #ff4a3a88)}.dm27-o .vs51{fill:none;stroke:#FFE6A0;stroke-width:3}.dm27-o .vs51.ok{stroke:#9CFF9A;fill:#9CFF9A33}@keyframes dm27st{to{stroke-dashoffset:-16}}
 body.dm27-on .gm .tw-pad,body.dm27-on .f17-bar{opacity:.0!important;pointer-events:none!important}`;

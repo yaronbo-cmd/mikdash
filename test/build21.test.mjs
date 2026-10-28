@@ -27,8 +27,8 @@ test('build 21: at the coals\' stand on the altar\'s top the act begins and turn
 });
 // (build 36: the owner's relaxed swipe gate — SWIPE36, 0.15 of the screen within 350 ms; was 0.3 within 200 ms — the short and slow swipes below are under the new gate)
 test('build 21: a swipe too short, crooked (|dy| > ½|dx|) or slow (> 350 ms, build 36) is refused with its why', async () => {
-  const R = await washed(); R.at(D21.stand.x, D21.stand.z, 25); await R.step(0.8);
-  assert.equal(R.E.d21swipe(0.1, 0, 100), false); assert.equal(R.E.d21swipe(0.6, 0.4, 100), false); assert.equal(R.E.d21swipe(0.6, 0, 400), false);
+  const R = await washed(); R.at(D21.stand.x, D21.stand.z, 25); await R.step(0.8); R.E.sw51(0.15, 0.15);
+  assert.equal(R.E.d21swipe(0.1, 0, 100), false); assert.equal(R.E.d21swipe(0.6, 0.4, 100), false); assert.equal(R.E.d21swipe(0.6, 0, 520), false);   // (build 51: the gate relative to the thing — SWIPE51, 0.12 of the width at most within 500 ms; the short one 0.1 is under the act's gate set to 0.15 here)
   assert.deepEqual(R.ev('d21swipe').map((e) => e.why), ['short', 'crooked', 'slow']); assert.equal(R.E.d21().n, 0);
 });
 test('build 21: four good swipes — the coals 100 → 0 %, the pan 0 → 100 %; full', async () => {

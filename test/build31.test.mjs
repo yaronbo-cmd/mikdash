@@ -48,6 +48,7 @@ const PLAY = {
     for (let i = 0; i < 40 && R.E.k20().ph !== 'pose'; i++) await R.step(0.1);
     R.E.k20in('L', true); R.E.k20in('R', true);
     if (poor) for (let i = 0; i < 3; i++) { await R.step(0.4); R.E.k20in('R', false); await R.step(0.1); R.E.k20in('R', true); }
+    else { for (let i = 0; i < 300 && R.E.k20() && R.E.k20().ph === 'pose' && R.E.k20().p < 0.8; i++) await R.step(0.05); R.E.k20in('L', false); R.E.k20in('R', false); }   // (build 51: let go at the laver's mark — K20M)
     for (let i = 0; i < 80 && R.E.k20() && R.E.k20().ph === 'pose'; i++) await R.step(0.1);
   },
   async deshen(R) {

@@ -11,8 +11,9 @@
  * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */
 import * as THREE from 'three';
 import { addDrawer, onTick } from './draw.js';
-import { M22, P23, SWIPE36 } from './day33.js';
+import { M22, P23, SWIPE36, swipe51 } from './day33.js';
 import { reg30, draft30 } from './rate30.js';
+import { createBag48 } from '../../game/fam42.js';   // ── build 51 ── (the defect pool's shuffle-bag of build 48: the worm's look varies, never twice in a row) ── /build 51 ──
 import { createTouch40 } from './touch40.js';   // ── fable32 (build 40) ── touch the thing itself ── /fable32 ──   // ── fable32 (build 30) ── ── /fable32 ──
 export function createMaaracha22(o = {}) {
   const E = o.E,
@@ -186,12 +187,37 @@ export function createMaaracha22(o = {}) {
     }),
     mats = {},
     glowK = { v: 0.32 },
+    // ── build 51 ── (the inspector's review 27.10: "no defect you can see on the log in hand — why is it unfit?"; the coordinator's
+    // build-51 brief, item 7) the worm SHOWN: big bored holes with their pale frass rims ('holes'), or long galleries under a peeled patch of
+    // bark ('gallery') — the look drawn from build 48's shuffle-bag (WOOD48: חורי תולעת / מחילות), so it varies and never repeats back to
+    // back; the olive's and the vine's bark as before, stronger ── /build 51 ──
+    holes51 = (g) => {
+      for (let i = 0; i < 16; i++) {
+        const x = 6 + rnd() * 52,
+          y = 6 + rnd() * 116,
+          r = 2.6 + rnd() * 1.8;
+        blob(g, '#F2E2B8', x, y, r + 2.2, r + 2.2);
+        blob(g, '#0A0503', x, y, r, r);
+      }
+    },
+    gallery51 = (g) => {
+      blob(g, '#D8B47E', 32, 64, 24, 50);
+      strokes(g, 5, '#1A0E06', 4.2, (g2) => {
+        let x = 10 + rnd() * 44,
+          y = 18 + rnd() * 12;
+        g2.moveTo(x, y);
+        for (let i = 0; i < 10; i++) g2.lineTo((x = Math.max(10, Math.min(54, x + (rnd() - 0.5) * 16))), (y += 7 + rnd() * 4));
+      });
+      for (let i = 0; i < 8; i++) blob(g, '#0A0503', 12 + rnd() * 40, 20 + rnd() * 88, 2.4, 2.4);
+    },
+    bag51 = createBag48(null, Math.random, ['holes', 'gallery']),
     matsOf = (L) => {
-      const key = L.sp + (L.worm ? 'w' : '');
+      if (L.worm && !L.__v51) L.__v51 = bag51.draw();
+      const key = L.sp + (L.worm ? 'w' + (L.__v51 || '') : '');
       if (mats[key]) return mats[key];
       const side = paintTex(64, 128, (g) => {
           PAINT[L.sp](g);
-          if (L.worm) wormPaint(g);
+          if (L.worm) (L.__v51 === 'gallery' ? gallery51 : L.__v51 === 'holes' ? holes51 : wormPaint)(g);
         }),
         end = END_COLOR[L.sp],
         mat = (o2) => new THREE.MeshStandardMaterial({ emissiveIntensity: glowK.v, roughness: 0.9, ...o2 }),
@@ -293,17 +319,19 @@ export function createMaaracha22(o = {}) {
     touches = new Map(),
     W = () => innerWidth || 844,
     tsOf = (ev) => (ev.timeStamp > 0 ? ev.timeStamp : performance.now());
+  let thr51 = 0;   // ── build 51 ── (the last touch's swipe length — the hint's) ── /build 51 ──
   pad.addEventListener('pointerdown', (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     try {
       pad.setPointerCapture(ev.pointerId);
     } catch (e) {}
-    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, t0: tsOf(ev), tx: null });
+    const thr = swipe51(W(), t40 ? t40.state().w : 0); try { E.sw51(thr / W(), thr / (innerHeight || 390)); } catch (e) {} thr51 = thr;   // ── build 51 ── (the swipe's gate relative to the thing: swipe51 — E.sw51 for the engine) ── /build 51 ──
+    touches.set(ev.pointerId, { x0: ev.clientX, y0: ev.clientY, t0: tsOf(ev), tx: null, thr });
   });
   pad.addEventListener('pointermove', (ev) => {
     const p = touches.get(ev.pointerId);
-    if (p && p.tx == null && Math.abs(ev.clientX - p.x0) >= SWIPE36.dist * W()) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
+    if (p && p.tx == null && Math.abs(ev.clientX - p.x0) >= p.thr) p.tx = tsOf(ev) - p.t0;   // ── fable32 (build 36) ── (SWIPE36) ── /fable32 ──
   });
   const up = (ev) => {
     const p = touches.get(ev.pointerId);
@@ -382,7 +410,7 @@ export function createMaaracha22(o = {}) {
     },
     CAM_S = M22.camS,
     camDir = CAM_S.t.map((v, i) => v - CAM_S.p[i]),
-    SHOW = CAM_S.p.map((v, i) => v + camDir[i] * 0.55),
+    SHOW = CAM_S.p.map((v, i) => v + camDir[i] * 0.38),   // ── build 51 ── (the log in hand held nearer the eye: 0.38 of the way, was 0.55 — its defect read) ── /build 51 ──
     camLen = Math.hypot(camDir[0], camDir[2]),
     side = [-camDir[2] / camLen, camDir[0] / camLen],
     showYaw = Math.atan2(side[1], -side[0]),
@@ -411,7 +439,7 @@ export function createMaaracha22(o = {}) {
       const padOn = sorting || stacking;
       {   // ── fable32 (build 40) ── the log before him (its length) while he sorts; the pyre's layer while he stacks ── /fable32 ──
         const lz = k && k.cur && k.cur.size ? k.cur.size : 'M';
-        t40.place(padOn && !!k, sorting ? [{ x: SHOW[0], y: SHOW[1], z: SHOW[2], r: Math.max(0.35, (LEN[lz] || 1.2) * (SHOW_K[lz] || 0.6) * 0.5) }] : [{ x: PX, y: layerY(k && k.layer === 4 ? 4 : Math.min(3, (k && k.layer) || 1)), z: PZ, r: 2.2 }], sorting ? 'm22' : 'm22stack');
+        t40.place(padOn && !!k, sorting ? [{ x: SHOW[0], y: SHOW[1], z: SHOW[2], r: Math.max(0.35, (LEN[lz] || 1.2) * (SHOW_K[lz] || 0.6) * 0.5), self: true /* ── build 51 ── (held up to the eye: its own size on the screen — the object rule leaves the view) */ }] : [{ x: PX, y: layerY(k && k.layer === 4 ? 4 : Math.min(3, (k && k.layer) || 1)), z: PZ, r: 2.2 }], sorting ? 'm22' : 'm22stack');
       }
       if (pad.classList.contains('on') !== padOn) {
         pad.classList.toggle('on', padOn);
@@ -430,6 +458,7 @@ export function createMaaracha22(o = {}) {
         const u = Math.min(1, (t - showAt) / 0.2),
           e = 1 - (1 - u) * (1 - u);
         place(cur, L, SHOW[0], SHOW[1] - 0.5 * (1 - e), SHOW[2], SHOW_K[L.size] * (0.7 + 0.3 * e), showYaw, t * 0.9);
+        cur.scale.x *= THICK51; cur.scale.z *= THICK51;   // ── build 51 ── (the log in hand thicker: its bark and its worm read on a phone) ── /build 51 ──
       }
       if (throwing) {
         const th = throwing,
@@ -712,6 +741,7 @@ export function createMaaracha22(o = {}) {
           // ── fable32 (build 34) ── the reason, as the ashes', the lamb's and the Heichal's swipes say it — a child who swiped right but too
           // short or too slow read "החליקו ימינה או שמאלה ↔" again and again, swiped the same, and sorted nothing (0/4 for minutes) ── /fable32 ──
           flash(ev.why === 'short' ? 'ארוך יותר ↔' : ev.why === 'slow' ? 'מהר יותר ↔' : 'לרוחב ↔', 'ok');
+          if (ev.why === 'short' || ev.why === 'slow') t40.hint51(thr51, 'x');   // ── build 51 ── (the right length on the log) ── /build 51 ──
           return;
         }
         const L0 = cur.__L;
@@ -819,7 +849,8 @@ reg30('m22', {
   ],
 });
 const END_COLOR = { fig: '#E6D6B4', walnut: '#B98F66', pine: '#EAB27A', olive: '#CDBF94', vine: '#A47A52' };
-const SHOW_K = { L: 0.55, M: 0.62, S: 0.85 };
+const THICK51 = 1.8;   // ── build 51 ── (the log in hand: its girth ×1.8 — the defect shown) ── /build 51 ──
+const SHOW_K = { L: 0.55 * 1.7, M: 0.62 * 1.7, S: 0.85 * 1.7 };   // ── build 51 ── (the log in hand ×1.7: its defect read at a phone's size; the object rule frames it) ── /build 51 ──
 const { r: RAD, len: LEN } = M22;
 const PX = M22.pyre.x;
 const S2X = -2.4,

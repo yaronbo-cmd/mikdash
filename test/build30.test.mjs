@@ -89,6 +89,7 @@ test('build 30 (3): the laver is rated at its end — no lift מהודר, three 
     for (let i = 0; i < 40 && R.E.k20().ph !== 'pose'; i++) await R.step(0.1);
     R.E.k20in('L', true); R.E.k20in('R', true);
     for (let i = 0; i < lifts; i++) { await R.step(0.4); R.E.k20in('R', false); await R.step(0.1); R.E.k20in('R', true); }
+    if (!lifts) { for (let i = 0; i < 80 && R.E.k20() && R.E.k20().ph === 'pose' && R.E.k20().p < 0.8; i++) await R.step(0.05); R.E.k20in('L', false); R.E.k20in('R', false); }   // (build 51: the clean wash lets go at the laver's mark — K20M; held to the brim it is כשר)
     for (let i = 0; i < 80 && R.E.k20() && R.E.k20().ph === 'pose'; i++) await R.step(0.1);
     return R;
   };
@@ -128,7 +129,7 @@ test('build 30 (3): the shochet\'s morning — its rating, its coins, the day\'s
 // ───────── (4) one line during an act ─────────
 test('build 30 (4): the step tables — every line of every act\'s phase is 2–4 words; while the act is on the card is that line, a word of feedback replaces it for a moment', async () => {
   for (const [act, rows] of Object.entries(LINE30)) for (const [ph, s] of Object.entries(rows)) { const n = words30(s); assert.ok(n >= 1 && n <= 4, `${act}.${ph}: "${s}" ${n} words`); }
-  assert.equal(LINE30.zorek.aim, 'זרקו מתחת לחוט'); assert.equal(LINE30.shochet.bind, 'גררו: יד ורגל');   // (the owner's own examples, rohvi-he.md §14)
+  assert.equal(LINE30.zorek.aim, 'זרקו מתחת לחוט ⤵'); assert.equal(LINE30.shochet.bind, 'גררו: יד ורגל ⤳');   // (the owner's own examples, rohvi-he.md §14; build 51: each with its gesture's arrow — the inspector's review §4 item 7)
   const R = rig(upTo('d21')); R.E.start(); await R.step(0.2); R.E.debug.wash20(); await R.step(0.2);
   R.at(D21.stand.x, D21.stand.z, 25); await R.step(0.8); assert.equal(R.E.d21().ph, 'sweep');
   assert.equal(R.E.act30(), true); assert.equal(R.E.step17().text, LINE30.deshen.sweep);

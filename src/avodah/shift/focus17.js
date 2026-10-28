@@ -58,6 +58,7 @@ const CSS = `
 .l36-chip{flex:none;min-height:44px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 10px;border-radius:14px;border:2px solid #E2B65A;background:rgba(28,20,10,.82);color:#FFE6A0;font:900 15px/1.05 Heebo,system-ui,sans-serif;pointer-events:none;white-space:nowrap;direction:rtl}.l36-chip small{font:700 9px/1 Heebo,system-ui,sans-serif;color:#FFF6DA;opacity:.7}
 .f17-card{min-height:44px;max-width:min(56vw,420px);box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:4px 12px 4px 8px;border-radius:16px;background:rgba(28,20,10,.8);border:2px solid #E2B65A;box-shadow:0 3px 12px rgba(0,0,0,.45);white-space:nowrap}
 .f17-card i{font:26px/1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
+@media (orientation:landscape) and (max-width:700px){.f17-card{max-width:min(60vw,420px);padding-left:6px;gap:6px}.f17-card span{font-size:15px}}
 .f17-card span{font:900 16px/1.1 "Heebo",system-ui,sans-serif;overflow:hidden;text-overflow:ellipsis}
 .f17-card b{font:900 15px/1 "Heebo",system-ui,sans-serif;padding:4px 8px;border-radius:10px;background:#FFD66E;color:#2A1804;font-variant-numeric:tabular-nums;direction:ltr}
 .f17-card b:empty{display:none}

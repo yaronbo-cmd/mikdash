@@ -530,6 +530,12 @@ function measureSafeArea() {
       else if (r.left < W * 0.5 && r.right > W * 0.5 && r.top > H * 0.22 && r.bottom > H - 4) goal = Math.max(0, H - r.top);
     }
   }
+  // ── build 51 ── (the inspector's review §4 item 17; the build-51 brief, item 11) Phase B's practice end card on a wide screen
+  // stands on its right two-thirds (practice31): the subject — him — to the middle of the third left of it, as for a side panel
+  if (!goal && !gx && innerWidth > innerHeight) {
+    const c = document.querySelector('.p31-end .c');
+    if (c) { const r = c.getBoundingClientRect(), W = innerWidth; if (r.left > W * 0.2 && r.height > H * 0.4) gx = Math.max(0, W - r.left + 8); }
+  }
   viewOffXGoal = gx;
   // ── end world ──
   viewOffGoal = goal;

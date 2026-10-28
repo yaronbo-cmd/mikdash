@@ -83,7 +83,7 @@ test('build 46: the stage — its parts, lines and sources, the find on the card
   const cost = F.MAT42.cost; assert.ok(cost.lattice * 3 + cost.warnst > F.MAT42.daily, 'beyond a morning: "מחר" in normal play');
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted46\(\)\) startHar46\(\);/); assert.match(g, /\(soreg46=0\|stick=1\|har42=0\)/); assert.match(g, /complete: \(\) => \{ const out = S\.completeStage\(G, 'sorag'\);/); assert.match(g, /h46go=1/);
   assert.deepEqual(YARD44.slice(9, 11).map((v) => v.part), ['lattice', 'warn']);   // (build 47: then stage 04's)
-  assert.equal(GAME_BUILD, 50);   // (build 47: the constant moved on) (build 48: again) (build 49: again) (build 50: again)
+  assert.equal(GAME_BUILD, 51);   // (build 47: the constant moved on) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/batch.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

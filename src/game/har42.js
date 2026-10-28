@@ -372,7 +372,7 @@ export function createHar42(o = {}) {
   // ── build 46 ── stage 03's places: the lattice panels on the north soreg (z −91.5, temple.js), in front of his stretch of the wall; the warning
   // stones' stretch east of them; the thirteen marks beyond. In the yard (and stage 01's layout), the same on the open plaza.
   Object.assign(PL, { soreg: P(-20, -34), warnA: P(-40, -50), bow0: P(-40, -50) });
-  Object.assign(STAND, { lattice0: P(-15.5, -37.5), lattice1: P(-15.5, -37.5), lattice2: P(-15.5, -37.5), lattice: P(-15.5, -37.5), warn: P(-40, -53.5), bows: P(-41, -53.5) });
+  Object.assign(STAND, { lattice0: P(-11.1, -36), lattice1: P(-14.5, -36), lattice2: P(-17.9, -36), lattice: P(-14.5, -36),   /* ── build 54 ── (5.5 east of each panel and 2 north: out of the lattice's macro — at 2 and 2 his near figure stood in it) ── /build 54 ── */ warn: P(-40, -53.5), bows: P(-41, -53.5) });
   // ── build 47 ── stage 04's places: his gate — שער הניצוץ, in the north wall (its opening x −43…−33, temple.js), the posts on the Chel's terrace in
   // front of the gatehouse (z −80); he stands north of it; the cameras from the north. In the yard, the same gate on the open plaza.
   Object.assign(PL, { gate: P(30, -34) });
@@ -381,7 +381,7 @@ export function createHar42(o = {}) {
   // of the half-width to the left — the left third ── /build 54 ──
   const lintelStand54 = () => { const G = PL.gate, tv = tanV(), D = Math.max(needD() + 2, 15.5 / tv) * OBJ54.gate, dh = Math.min(D - 6, heroHeight() / (2 * LINTEL54.h * tv)), x = G.x - 3 + LINTEL54.x * dh * tv * (W() / H()), z = G.z - D + dh; return { x, z }; };
   Object.assign(STAND, { lintel: { get x() { return lintelStand54().x; }, get z() { return lintelStand54().z; }, get y() { const q = lintelStand54(); return gy(q.x, q.z); } } });
-  Object.assign(STAND, { leaf: P(28, -40.5), leaf7: P(28, -40.5) });
+  Object.assign(STAND, { leaf: P(19, -40.5), leaf7: P(41, -40.5) });   // ── build 54 ── (beside the gate, 11 amot off its middle: in front of his leaf he hid it from the camera — the AFTER page's leaf, line through him 42 %) ── /build 54 ──
   // ── build 48 ── stage 05's places: the wagon of logs at the wood chamber's door (NE, its door x 117…125 on z −29.5); his stretch of the
   // gallery on the court's north wall (inner face z −67.5, x 48.5…70.5 — by the NW chamber's corner); the conclusion's corner on the south wall
   Object.assign(PL, { trestle: P(-42, 32), wallY: P(-45, 10), wallS: P(-45, 10) }); Object.assign(STAND, { log: P(-46, 37), beam: P(-45, 15.5), peg: P(-45, 15.5) });
@@ -397,10 +397,10 @@ export function createHar42(o = {}) {
   Object.assign(PL, { gz: P(-60, -30), gl: P(-75, 5), mk: P(-95, -30) }); Object.assign(STAND, { compass: P(-58.5, -31.5), benches: P(-58.5, -31.5),   /* ── build 54 ── (by the peg — §2 stage 07: "the kohen out of the frame") ── /build 54 ── */ hub: P(-69, -3), wheel: P(-69, -3), arch: P(-88, -22) });
   if (STG === 'lishka') { const F16 = (x, z) => ({ x, y: 16, z }); Object.assign(PL, { gz: F16(-81, 64), gl: F16(-140, 56), mk: F16(-160, -70.5) }); Object.assign(STAND, { compass: F16(-79.5, 62.5), benches: F16(-79.5, 62.5), hub: F16(-134, 48), wheel: F16(-134, 48), dome: F16(-150, -55) }); }
   if (STG === 'nikanor') { Object.assign(PL, { ng: { x: 10.4, y: 13.5, z: 0 }, arc: { x: 10, y: 6, z: 0 } }); Object.assign(STAND, { lever: { x: 13.6, y: 11.5, z: 8.6 }, hang: { x: 13.6, y: 11.5, z: 8.6 }, steps: { x: 26, get y() { return gy(26, 15); }, z: 15 } }); }
-  if (STG === 'gates') { Object.assign(PL, { gate: { x: -38, get y() { return gy(-38, -80); }, z: -80 } }); Object.assign(STAND, { lintel: P(-4, 0), leaf: P(-2.5, 0.5), leaf7: P(2.5, 0.5), names: P(0, -2) }); }
+  if (STG === 'gates') { Object.assign(PL, { gate: { x: -38, get y() { return gy(-38, -80); }, z: -80 } }); Object.assign(STAND, { leaf: P(-11, 0.5), leaf7: P(11, 0.5), names: P(0, -2) }); }   // ── build 54 ── (the lintel's stand: the getter above — the left third — for this gate too) ── /build 54 ──
   if (STG === 'soreg') {
     Object.assign(PL, { soreg: { x: base.x, y: 0, z: -91.5 }, warnA: { x: base.x + 9, y: 0, z: -93.2 }, bow0: { x: base.x + 10, y: 0, z: -91.3 } });
-    Object.assign(STAND, { lattice0: P(5.5, 6.5), lattice1: P(2, 6.5), lattice2: P(-1.5, 6.5), warn: P(9, 4.5), bows: P(6.5, 5) });   // (the lattice: beside the panel, east and close — not between it and the camera; the bows: just before the first mark, the procession passing between him and the soreg)   // (the bows: at the first mark, between the procession and the soreg)
+    Object.assign(STAND, { lattice0: P(9, 8), lattice1: P(5.5, 8), lattice2: P(2, 8), warn: P(9, 4.5), bows: P(6.5, 5) });   // ── build 54 ── (the lattice: 5.5 east of its panel, 2 north — out of its macro's frame) ── /build 54 ──   // (the lattice: beside the panel, east and close — not between it and the camera; the bows: just before the first mark, the procession passing between him and the soreg)   // (the bows: at the first mark, between the procession and the soreg)
   }   // (the paving from its east: from its south the act's camera stood behind the crews' course)
 
   /* ── the scene's props (simple shapes; המחשה) ── */
@@ -1932,7 +1932,7 @@ export function createHar42(o = {}) {
       // ── build 54 ── (§2 stage 04: "you can't see whether it stuck") while the pin goes down: a macro on the pin and its socket (from the north,
       // 6.5 amot, a little above — the pin's foot, the socket's rim, the leaf's edge) ── /build 54 ──
       ownView: () => phase === 'pin',
-      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.gate); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [tx - sx * 1.2, g0 + 3.2, G.z - 6.5], t: [tx, g0 + 1.2, G.z] }; } const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
+      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.gate); if (phase === 'pin') { const tx = pivX - sx * 0.6; return { p: [tx - sx * 1.2, g0 + 3.2, G.z + 6.5], t: [tx, g0 + 1.2, G.z] }; }   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
       frame(dt) {
         if (phase === 'pin') objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf', [{ x: pivX - sx * 0.4, y: g0 + 1.2, z: G.z, r: 0.9 }]); else objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');   // ── build 54 ── (in the macro: the pin and its socket) ── /build 54 ──
         if (phase === 'lift') { C.frame(dt); return false; }

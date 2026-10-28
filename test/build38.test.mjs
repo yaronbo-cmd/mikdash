@@ -108,7 +108,7 @@ test('build 38 (B): the door help — the stick toward the Heichal\'s gate besid
   const d = read('src/avodah/shift/day33.js'); assert.match(d, /if \(p26 && T\) T\.assist38 = assist38;/); assert.match(d, /if \(T && T\.assist38 === assist38\) T\.assist38 = null;/);
 });
 test('build 38: GAME_BUILD 38; no Divine Name in the changed files (by code points); the pilgrims\' word', () => {
-  assert.equal(GAME_BUILD, 52);   // (build 39: the constant moved on) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 54);   // (build 39: the constant moved on) (build 40: again) (build 41: again) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [[0x5d9, 0x5d4, 0x5d5, 0x5d4], [0x5d0, 0x5dc, 0x5d4, 0x5d9, 0x5dd], [0x5d0, 0x5d3, 0x5e0, 0x5d9], [0x5d0, 0x5dc, 0x5d5, 0x5d4, 0x5d9, 0x5e0, 0x5d5]];
   const sep = '[\\u0591-\\u05C7\\s\\-\\u05BE\\u05F3\\u05F4\'".]*';
   const res = N.map((c) => new RegExp(c.map((x) => String.fromCharCode(x)).join(sep)));

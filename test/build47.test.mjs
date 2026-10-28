@@ -25,7 +25,7 @@ test('build 47: TAPS ALONE NEVER FINISH the lintel or the leaf — taps under th
 });
 
 test('build 47: the balance rule — held still the crews drift the bubble out and stop; sliding against the drift it rises to the top; at level 3 it sways; then both ends on the posts', () => {
-  const N = F.createLintel47(1, { rnd: () => 0.2 }); N.hold(true); for (let i = 0; i < 1200; i++) N.step(0.05);
+  const N = F.createLintel47(2, { rnd: () => 0.2 }); N.hold(true);   /* (build 54: level 1 has no drift — the inspector's review §4 must 8; the drift from level 2) */ for (let i = 0; i < 1200; i++) N.step(0.05);
   assert.equal(N.state().phase, 'lift', 'held without the slide: never to the top'); assert.ok(N.state().out); assert.ok(N.state().faults >= 1, 'out of the tube: a fault');
   for (const L of [1, 2, 3, 4]) { const J = F.createLintel47(L, { rnd: () => 0.3 }); ctl(J); assert.equal(J.state().phase, 'set', `level ${L}: to the top, the bubble centred`); assert.equal(J.state().faults, 0); }
   assert.equal(F.LINTEL47.L[1].sway, 0); assert.ok(F.LINTEL47.L[3].sway > 0, 'level 3: it sways');
@@ -72,7 +72,7 @@ test('build 47: the stage — its parts, lines and sources (the Mishnah\'s own w
   const w = { stones: [[2, 1, 1, -100, 7, -72.9, 1]], hole: [-111.05, -86.95, -73.62, -71.4, -80, 11, -104.95, 7.86, 5.98] };
   assert.equal(migrate45(w), true); assert.equal(w.stones[0][3], -67.5); assert.equal(w.hole[0], -78.55); assert.equal(w.hole[6], -72.45); assert.equal(migrate45(w), false, 'once');
   assert.match(h, /const w = STG === 'wall' \? \{ x: -67\.5, z: -100 \}/, 'his stretch between שער הקרבן and שער הניצוץ');
-  assert.equal(GAME_BUILD, 52);   // (build 48: the constant moved on) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 54);   // (build 48: the constant moved on) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

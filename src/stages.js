@@ -1617,7 +1617,7 @@ export function createStages(ctx) {
   function sparkBurst(x, y, z, n = 30, spread = 8, up = 10) { spark.spawn(x, y, z, n, PO(spread, spread * 0.5, spread * 0.6, up, 1.8, 0.6, 1.6, 5, 1.4, 1, true)); }
 
   /* ── footprint outlines: one mesh for all stages, per-stage intensity in a uniform array ── */
-  const OL = { I: new Float32Array(16), base: new Float32Array(16) };
+  const OL = { I: new Float32Array(16), base: new Float32Array(16), thinW: 1 };   // ── build 53 ── (thinW: the pins' beams' width factor, with the line's — outlineThin) ── /build 53 ──
   const outline = (() => {
     const P = [], N = [], S = [], I = [], D = [], V = [], HY = [], idx = [];
     // per sample: a ground ribbon (2 vertices, aV = 0) and a vertical glow curtain (2 vertices, aS = 0, aV = 0 → 1)
@@ -1648,26 +1648,26 @@ export function createStages(ctx) {
     g.setAttribute('aHY', new THREE.Float32BufferAttribute(HY, 1));
     g.setIndex(idx);
     const m = new THREE.ShaderMaterial({
-      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 } },
-      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan;
+      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 }, uThin: { value: new THREE.Vector2(1, 1) } },   // ── build 53 ── (uThin: the line's width and alpha factors — Phase A's thin line, stages.outlineThin) ── /build 53 ──
+      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan; uniform vec2 uThin;
         varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           vI = uI[int(aI + 0.5)]; vS = aS; vD = aD; vV = aV; vK = aS == 0.0 ? 1.0 : 0.0;
           vec3 base = vec3(position.x, mix(position.y, aHY, uPlan), position.z);
           float d = distance(cameraPosition, base);
           float on = vI > 0.0 ? 1.0 : 0.0;
-          float w = clamp(d * 0.0045, 0.7, 8.0) * on, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
+          float w = clamp(d * 0.0045, 0.7, 8.0) * on * uThin.x, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
           vec3 p = base + vec3(aN.x, 0.0, aN.y) * aS * w * 0.5 + vec3(0.0, aV * h, 0.0);
           gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
         }`,
-      fragmentShader: `uniform vec3 uCol; uniform float uTime; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
+      fragmentShader: `uniform vec3 uCol; uniform float uTime; uniform vec2 uThin; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           if (vI < 0.002) discard;
           float pulse = 0.62 + 0.38 * sin(uTime * 3.4);
           float f = fract(vD / 90.0 - uTime * 0.22);
           float dash = smoothstep(0.0, 0.08, f) * (1.0 - smoothstep(0.1, 0.24, f));
           float alpha = vK > 0.5 ? (1.0 - vV) * (1.0 - vV) * 0.5 : 1.0 - smoothstep(0.55, 1.0, abs(vS));
-          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0));
+          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0) * uThin.y);
         }`,
       transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
     });
@@ -6242,7 +6242,7 @@ export function createStages(ctx) {
       const d = pv.distanceTo(camera.position), s = clamp(d * 0.012, 1.4, 22) * (0.45 + 0.55 * w), bob = Math.sin(time * 2.4 + np) * s * 0.35;
       tmpQ.setFromAxisAngle(UP, time * 1.6); tmpV.set(pv.x, pv.y + bob, pv.z); tmpS.set(s, s, s);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5);
+      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5) * OL.thinW;
       tmpQ.identity(); tmpV.set(pv.x, gy, pv.z); tmpS.set(bw, Math.max(0.01, pv.y - gy + s * 0.5), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = pv.x; halo.pos[np * 3 + 1] = pv.y + s * 1.5 + bob; halo.pos[np * 3 + 2] = pv.z;
       halo.size[np] = s * 5.5; halo.alpha[np] = (0.55 + 0.25 * Math.sin(time * 3.4)) * w;
@@ -6254,7 +6254,7 @@ export function createStages(ctx) {
       const d = Math.hypot(m.x - camera.position.x, m.y - camera.position.y, m.z - camera.position.z), s = clamp(d * 0.0085, 0.8, 9), bob = Math.sin(time * 3 + np * 1.7) * s * 0.3;
       tmpQ.setFromAxisAngle(UP, time * 2.1 + np); tmpV.set(m.x, m.y + s * 0.4 + bob, m.z); tmpS.set(s * 0.8, s * 0.8, s * 0.8);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4);
+      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4) * OL.thinW;
       tmpQ.identity(); tmpV.set(m.x, gy, m.z); tmpS.set(bw, Math.max(0.01, m.y + s * 0.4 - gy), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = m.x; halo.pos[np * 3 + 1] = m.y + s * 1.6 + bob; halo.pos[np * 3 + 2] = m.z;
       halo.size[np] = s * 4.5; halo.alpha[np] = 0.5 + 0.25 * Math.sin(time * 3.4 + np);
@@ -8743,6 +8743,8 @@ export function createStages(ctx) {
     hero: heroApi,   // ── hero (PEOPLE) ── the hero API is built in the hero block (walkTo swing place show setTool tool position at act onImpact workpiece …)
     pick, siteCenter, siteTop, focus, celebrate, workFX, update,
     // GDD §12 world API (v2)
+    // ── build 53 ── outlineThin(w, a): the footprint line's width and alpha factors (Phase A: ¼ and ½ — the inspector's review §4 important 12; 1, 1 elsewhere) ── /build 53 ──
+    outlineThin: (w = 1, a = 1) => { try { outline.material.uniforms.uThin.value.set(+w || 1, +a || 1); OL.thinW = +w || 1; beams.material.opacity = +a || 1; } catch (e) { /* */ } },
     hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)

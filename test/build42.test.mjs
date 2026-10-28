@@ -141,10 +141,12 @@ test('build 42: the new stage 01 takes the Mount over while it is not done (want
   const mk = read('tools/mkout.cjs'); assert.match(mk, /const HEAD = args\.includes\('--no-shift'\) \? '' : HEAD0;/);
   // (the runs' fixes: the paving's drop box from the points in front of the camera's near plane, kept on the screen — a corner behind it had
   // made the box null and the paving undroppable; the stage's reveal and card stay in its dusk light, the real night after it)
-  assert.match(h, /h\.style\.zIndex = '46'; h\.style\.pointerEvents = 'auto';/, 'the freed roller\'s handle takes a finger');
+  // (build 53 — the inspector's review §4 must 6: the freed roller is a thing in the world, touched where it lies; the ⟳ button is gone)
+  assert.match(h, /const fr = new THREE\.Mesh\(new THREE\.CylinderGeometry\(0\.45, 0\.45, 4\.4, 12\)/, 'the freed roller is a thing in the world'); assert.doesNotMatch(h, /el\('h42-it', '⟳'/, 'no ⟳ button');
   assert.match(h, /if \(c\) \{ c\.lookAt\(cq\.t\); c\.updateMatrixWorld\(\); \}/, 'the marks projected with this frame\'s camera');
   assert.match(h, /if \(view\.closeCam\) view\.closeCam\(true\);/); assert.match(h, /if \(view\.closeCam\) view\.closeCam\(false\);/);   // (the stage's views at their own distance: OrbitControls' 35-amot floor gives way while it is on)
-  assert.match(h, /const over = J\.state\(\)\.y > J\.P\.win\[1\]; if \(a\.y - a\.y0 > 20 \|\| \(over && Math\.hypot\(a\.x - a\.x0, a\.y - a\.y0\) > 20\)\)/, 'over the window a drag any way lowers');
+  // (build 53 — §4 must 5: down and left lower at any time; over the window, any way)
+  assert.match(h, /const over = J\.state\(\)\.y > J\.P\.win\[1\], dx = a\.x - a\.x0, dy = a\.y - a\.y0; if \(dy > 20 \|\| dx < -20 \|\| \(over && Math\.hypot\(dx, dy\) > 20\)\)/, 'over the window a drag any way lowers');
   assert.match(h, /\.h42-svg\{position:fixed;left:0;top:0;width:100vw;height:100vh;/, 'the marks\' layer covers the screen (an svg with inset 0 alone is 300 × 150 at its corner — the probe: every mark was off by 340 px at 640 × 296)');
   assert.match(h, /level 1: a tap lands on the nearest free marked place/); assert.match(h, /bd = J\.state\(\)\.L <= 1 \? Math\.max\(B\.w, B\.h\) : 26;/); assert.match(h, /\(level 1: the even places marked\)/);
   assert.match(h, /const paveBox = \(\) => boxOf\(/); assert.match(h, /const q = pts\.map\(\(p\) => proj\(p\[0\], p\[1\], p\[2\]\)\)\.filter\(Boolean\); if \(q\.length < 2\) return null;/);
@@ -154,7 +156,7 @@ test('build 42: every line of the stage with its source or המחשה; touch tar
   for (const [k, v] of Object.entries(LINE42)) if (!['walk', 'courseEnd', 'lift2'].includes(k)) assert.match(v, /טיוטה|המחשה/, `${k}: ${v}`);
   const h = read('src/game/har42.js');
   assert.match(h, /\.h42-it\{min-width:52px;min-height:48px/); assert.match(h, /\.h42-card button\{margin-top:10px;min-height:48px/); assert.match(h, /\.h42-skip\{[^}]*min-height:44px/);
-  assert.equal(GAME_BUILD, 52);   // (build 43: the constant moved on) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 54);   // (build 43: the constant moved on) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/avodah/shift/prefs28.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/mkout.cjs', 'PROJECT.md', 'test/build42.test.mjs']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); if (f !== 'test/build42.test.mjs') assert.ok(!s.includes(P), `${f}: עולי רגל`);

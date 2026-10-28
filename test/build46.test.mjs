@@ -64,7 +64,7 @@ test('build 46: (A) his stones stand in the wall for good — rebuilt from the s
   const h = read('src/game/har42.js');
   assert.match(h, /course: \{ x: base\.x \+ 2, y: 6, z: -72\.94 \}/, 'the stretch in the north face, over the Chel\'s terrace (y 6)');
   assert.match(h, /R\.stones = stones45\(\); R\.hole = H45\(\); save42\(S\); wallStones45\(/, 'kept at the reveal and standing');
-  assert.match(h, /m\.userData\.his = 1; laid\.push\(m\)/); assert.match(h, /const cm = cornerM\(dir, 1\.5 \+ n \* 1\.0\); cm\.userData\.his = 1;/);
+  assert.match(h, /m\.userData\.his = 1; laid\.push\(m\)/); assert.match(h, /const cm = cornerM\(dir, 1\.5 \+ nn \* 1\.0\); cm\.userData\.his = 1;/);   // (build 53: nn — the course's height; stage 02's as it was)
   assert.match(h, /LINE42\.mine\.split/); assert.match(LINE42.mine, /האבנים שלך · טיוטה/);
   assert.match(read('src/game/index.js'), /ensureWall45\(\);/);
 });
@@ -76,14 +76,14 @@ test('build 46: the stage — its parts, lines and sources, the find on the card
   assert.ok(SRC46.some((x) => /שלש עשרה השתחויות/.test(x))); assert.match(FIND46, /1871/);
   const h = read('src/game/har42.js'), bows = h.slice(h.indexOf('function mkBows()'), h.indexOf('/* ── build 45 ── the LINE'));
   assert.ok(bows.length > 500); assert.ok(!/buzz42\(/.test(bows), 'no haptics during the bows'); assert.ok(!/grade\(/.test(bows), 'not a skill: no grade');
-  assert.match(h, /objPlace\(!s\.done, \[\{ x: h\.x, y: h\.y \+ 1\.2, z: h\.z, r: 1\.6 \}\], 'h46warn'\);/, 'the walk\'s surface on for a finger (K46-P: only the bot\'s events reached it)'); assert.match(bows, /objPlace\(M\.phase !== 'end'/); assert.match(h, /if \(st\.job && st\.job\.fullPad\) \{ if \(st\.t40\) st\.t40\.place\(false\);/, 'the walk and the bows on the whole screen (K46-dbg: touch40 had boxed the pad round the thing)'); assert.match(bows, /acting: true, fullPad: true, kind: 'bows'/); assert.match(h, /const stop = \(walkDir < 0 && h\.x <= A\.x \+ 0\.05\) \|\| \(walkDir > 0 && h\.x >= A\.x \+ len - 0\.05\);/, 'the stretch\'s ends stop him (K46-S)');
+  assert.match(h, /objPlace\(!s\.done, \[\{ x: h\.x, y: h\.y \+ 1\.2, z: h\.z, r: 1\.6 \}\], 'h46warn'(, \[|\);)/,   /* (build 54: + the stretch as the camera's thing) */ 'the walk\'s surface on for a finger (K46-P: only the bot\'s events reached it)'); assert.match(bows, /objPlace\(M\.phase !== 'end'/); assert.match(h, /if \(st\.job && st\.job\.fullPad\) \{ if \(st\.t40\) st\.t40\.place\(false\);/, 'the walk and the bows on the whole screen (K46-dbg: touch40 had boxed the pad round the thing)'); assert.match(bows, /acting: true, fullPad: true, kind: 'bows'/); assert.match(h, /const stop = \(walkDir < 0 && h\.x <= A\.x \+ 0\.05\) \|\| \(walkDir > 0 && h\.x >= A\.x \+ len - 0\.05\);/, 'the stretch\'s ends stop him (K46-S)');
   assert.match(h, /const STG = o\.stage === 'wall' \? 'wall' : o\.stage === 'soreg' \? 'soreg' : o\.stage === 'gates' \? 'gates' : o\.stage === 'nashim' \? 'nashim' : o\.stage === 'nikanor' \? 'nikanor' : o\.stage === 'lishka' \? 'lishka' : 'har';/);   // (build 49: and stage 06's; build 50: 07's)
   for (const k of ['lattice0', 'lattice1', 'lattice2', 'warn', 'bows']) assert.match(h, new RegExp(`(\\n    |\\} \\}, )${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   assert.match(h, /SG46 = \{ x: -23, z: 0, x0: -211, x1: 165, z0: -91\.5, z1: 91\.5 \}/, 'the soreg\'s line (temple.js)');
   const cost = F.MAT42.cost; assert.ok(cost.lattice * 3 + cost.warnst > F.MAT42.daily, 'beyond a morning: "מחר" in normal play');
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted46\(\)\) startHar46\(\);/); assert.match(g, /\(soreg46=0\|stick=1\|har42=0\)/); assert.match(g, /complete: \(\) => \{ const out = S\.completeStage\(G, 'sorag'\);/); assert.match(g, /h46go=1/);
   assert.deepEqual(YARD44.slice(9, 11).map((v) => v.part), ['lattice', 'warn']);   // (build 47: then stage 04's)
-  assert.equal(GAME_BUILD, 52);   // (build 47: the constant moved on) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 54);   // (build 47: the constant moved on) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'src/batch.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

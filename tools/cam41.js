@@ -55,7 +55,7 @@
     if (top > 0) { let a0 = 9, a1 = -9, b0 = 9, b1 = -9, m = 0; for (let q = 0; q < 8; q++) for (let j = 0; j <= 8; j++) { const yy = (top * j) / 8, v = new V(p.x + Math.cos(q * Math.PI / 4) * 0.6, p.y + yy, p.z + Math.sin(q * Math.PI / 4) * 0.6).project(cam); if (!(v.z < 1 && v.z > -1)) continue; m++; a0 = Math.min(a0, v.x); a1 = Math.max(a1, v.x); b0 = Math.min(b0, v.y); b1 = Math.max(b1, v.y); }
       if (m) { const hw = Math.max(0, (Math.min(1, a1) - Math.max(-1, a0)) / 2), dH = Math.hypot(p.x - cam.position.x, p.y + top / 2 - cam.position.y, p.z - cam.position.z), dO = Math.hypot(c.x - cam.position.x, c.y - cam.position.y, c.z - cam.position.z);
         const X0 = Math.max(-1, x0), X1 = Math.min(1, x1), Y0 = Math.max(-1, y0), Y1 = Math.min(1, y1), A = Math.max(1e-6, (X1 - X0) * (Y1 - Y0)), cv = dH < dO ? Math.max(0, Math.min(X1, a1) - Math.max(X0, a0)) * Math.max(0, Math.min(Y1, b1) - Math.max(Y0, b0)) / A : 0;
-        I.hw = (I.hw || 0) + hw; I.hwN = (I.hwN || 0) + 1; if (hw <= 0.35) I.hw35 = (I.hw35 || 0) + 1; if (!self && cv > 0.2) I.cov = (I.cov || 0) + 1; } }
+        I.hw = (I.hw || 0) + hw; I.hwN = (I.hwN || 0) + 1; if (hw <= 0.35) I.hw35 = (I.hw35 || 0) + 1; if (!self && cv > 0.2) I.cov = (I.cov || 0) + 1; const hh = Math.max(0, (Math.min(1, b1) - Math.max(-1, b0)) / 2); if (hw > 0 && hh > 0.45) I.big = (I.big || 0) + 1; } }   // ── build 53 ── (big: his figure seen over 45 % of the height) ── /build 53 ──
   }
   function frame() {
     if (!st.on) return;
@@ -66,6 +66,8 @@
         const inside = (v) => v.z < 1 && v.z > -1 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1, k = kind() || 'walk', B = K[k] || (K[k] = { n: 0, min: Infinity, max: -Infinity, lo: 0, hi: 0, out: 0, tgtOff: 0, tgtN: 0, sum: 0, worst: [], low: [] });
         B.n++; st.top = hb.h; if (Number.isFinite(frac)) { B.min = Math.min(B.min, frac); B.max = Math.max(B.max, frac); B.sum += frac; if (frac < LO) B.lo++; if (frac > HI) { B.hi++; if (B.worst.length < 6) B.worst.push([Math.round(frac * 1000) / 1000, h4.state().part]); } } if (!(inside(a) && inside(b))) B.out++;
         if (k === 'act' && h4.objAt) { try { const o = h4.objAt(); if (o) { const v = new V(o.x, o.y, o.z).project(cam), ox = (v.x + 1) / 2; B.objN = (B.objN || 0) + 1; B.objSum = (B.objSum || 0) + ox; if (ox < 0.5 || ox > 0.7) { B.objOff = (B.objOff || 0) + 1; if (B.low.length < 6) B.low.push([Math.round(ox * 100) / 100, h4.state().part]); } } const ca = h4.camAt(), cp = cam.position; B.camN = (B.camN || 0) + 1; B.camOff = (B.camOff || 0) + Math.hypot(cp.x - ca.p[0], cp.y - ca.p[1], cp.z - ca.p[2]); B.dHero = (B.dHero || 0) + Math.hypot(cp.x - hb.x, cp.y - hb.y - hb.h / 2, cp.z - hb.z); } catch (e) { /* */ } }
+        // ── build 53 ── the object rule in Phase A (the inspector's review §4 must 1): the act's thing — its box from the stage (objBox) — per part ── /build 53 ──
+        if (k === 'act' && h4.objBox) { try { const O = h4.objBox(); if (O && O.bb) objM(B, { bb: O.bb, id: String(h4.state().part || '?') }, cam, { x: hb.x, y: hb.y, z: hb.z }, hb.h); } catch (e) { st.err = 'obj53 ' + String(e && e.message).slice(0, 80); } }
         st.n++; return;
       }
       if (!(H && H.loaded && H.root && H.root.visible)) {   // (Phase A — build 43: the visible figure standing where the stages' hero is: a skinned mesh within 3 amot of him, found once)
@@ -99,7 +101,7 @@
   }
   const pc = (a, n) => (n ? Math.round((a / n) * 1000) / 10 : null);
   const objS = (B) => ({ n: B.oN, w: pc(B.oW || 0, B.oN), h: pc(B.oH || 0, B.oN), wOk: pc(B.oWok || 0, B.oN), hOk: pc(B.oHok || 0, B.oN), ok: pc(B.oOk || 0, B.oN), occ: pc(B.oOcc || 0, B.oN - (B.oSelf || 0)), self: B.oSelf || 0,
-    ids: Object.fromEntries(Object.entries(B.ids || {}).map(([k, I]) => [k, { n: I.n, w: pc(I.w, I.n), h: pc(I.h, I.n), ok: pc(I.ok, I.n), occ: pc(I.occ, I.n - I.self), self: I.self, hw: pc(I.hw || 0, I.hwN || 0), hw35: pc(I.hw35 || 0, I.hwN || 0), cov: pc(I.cov || 0, (I.hwN || 0) - I.self) }])) });   // (shares in %; occ of the frames not 'self')
+    ids: Object.fromEntries(Object.entries(B.ids || {}).map(([k, I]) => [k, { n: I.n, w: pc(I.w, I.n), h: pc(I.h, I.n), ok: pc(I.ok, I.n), occ: pc(I.occ, I.n - I.self), self: I.self, hw: pc(I.hw || 0, I.hwN || 0), hw35: pc(I.hw35 || 0, I.hwN || 0), cov: pc(I.cov || 0, (I.hwN || 0) - I.self), big: pc(I.big || 0, I.hwN || 0) }])) });   // (shares in %; occ of the frames not 'self')
   globalThis.__CAM41 = {
     start() { if (st.on) return; st.on = true; st.timer = setInterval(frame, 50); },   // (the page's simulated loop steps every 50 ms — main.js simulate — and renders only for a shot: sampled on its beat)
     stop() { st.on = false; clearInterval(st.timer); },

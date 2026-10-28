@@ -693,6 +693,7 @@ export function createPen25(o = {}) {
         let pts40 = null;
         if (padOn && K) { pts40 = []; for (let i = 0; i < 8; i++) { const w = at25(i, La, a0.hy, a0.hp); pts40.push({ x: w.x, y: w.y, z: w.z, r: 0.45 }); } }
         t40.place(!!pts40, pts40, 'p25');
+        try { globalThis.__AVOID51 = pts40 && a1 && a1.on ? [{ x: a1.x, y: 16.5, z: a1.z, r: 0.9 }] : null; } catch (e) { /* */ }   // ── build 51 ── (the other lamb: never between the camera and the one inspected — twin.js obj51's avoid) ── /build 51 ──
       }
       beam.regs = [];
       if (K) {

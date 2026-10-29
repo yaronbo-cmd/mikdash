@@ -183,12 +183,12 @@ async function names47k(K) {
 // dragged to a gap (roughly), or a pebble from the heap to a gap; the LAST ROW — a stone from the heap to the altar's rim, roughly where the
 // gold shows (or anywhere on the rim)
 async function stone55k(K) {
-  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'stone55') return null; const B = j.ref.box(), Z = j.ref.zones(), E = j.ref.edge ? j.ref.edge() : null; return { B, Z, E, ph: j.ref.phase() }; }).catch(() => null);
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'stone55') return null; const B = j.ref.box(), Z = j.ref.zones(), E = j.ref.edge ? j.ref.edge() : null, hz = document.querySelector('.h42 svg rect[data-hint]'), ln = (document.querySelector('.h42-line b') || {}).textContent || ''; return { B, Z, E, ph: j.ref.phase(), hint: hz ? hz.getAttribute('data-z') : null, says: /⬅/.test(ln) && !/➡/.test(ln) ? 'out' : /➡/.test(ln) && !/⬅/.test(ln) ? 'altar' : null }; }).catch(() => null);
   if (!g || !g.B) return false; const B = g.B, r = K.rnd();
   if (g.ph === 'feel' && g.E) { const E = g.E, slow = /לאט/.test(await K.pg.evaluate(() => (document.querySelector('.h42-line') || {}).textContent || '').catch(() => '')) ? 0.75 : 0.45, u0 = K.between(0, 0.3), u1 = K.between(0.6, 1), T = K.rnd() < slow ? K.between(1200, 3200) : K.between(250, 900); await K.swipe(E.a.x + (E.b.x - E.a.x) * u0, E.a.y + (E.b.y - E.a.y) * u0 + K.between(-12, 12), (E.b.x - E.a.x) * (u1 - u0), (E.b.y - E.a.y) * (u1 - u0) + K.between(-10, 10), T); K.ev('nail-slide', `${Math.round(T)}ms`); return true; }
   if (r < 0.35) { await K.swipe(B.cx + K.between(-B.w * 0.2, B.w * 0.2), B.cy + K.between(-B.h * 0.2, B.h * 0.2), (K.rnd() < 0.5 ? -1 : 1) * K.between(B.w * 0.25, B.w * 0.6), K.between(-12, 12), K.between(120, 500)); K.ev('stone-turn'); }
   else if (r < 0.55) { const id = 7; await K.down(id, B.cx, B.cy); for (let i = 0; i < 20; i++) { await K.sleep(K.between(25, 60)); await K.move(id, B.cx + Math.sin(i * 0.9) * B.w * K.between(0.15, 0.35), B.cy + K.between(-10, 10)); } await K.up(id); K.ev('stone-rub'); }
-  else { const z = K.rnd() < 0.5 ? g.Z.altar : g.Z.out; await K.swipe(B.cx + K.between(-20, 20), B.cy + K.between(-15, 15), z.x + z.w / 2 - B.cx + K.between(-25, 25), z.y + z.h / 2 - B.cy + K.between(-20, 20), K.between(300, 900)); K.ev('stone-' + (z === g.Z.altar ? 'altar' : 'out')); }
+  else { const seen = g.hint || g.says, z = seen && K.rnd() < 0.6 ? g.Z[seen] : K.rnd() < 0.5 ? g.Z.altar : g.Z.out;   /* (the glowing heap at level 1, or the one line's lone arrow: he goes there 60 % of the time) */ await K.swipe(B.cx + K.between(-20, 20), B.cy + K.between(-15, 15), z.x + z.w / 2 - B.cx + K.between(-25, 25), z.y + z.h / 2 - B.cy + K.between(-20, 20), K.between(300, 900)); K.ev('stone-' + (z === g.Z.altar ? 'altar' : 'out')); }
   return true;
 }
 async function field55k(K) {

@@ -536,7 +536,7 @@ export function createHar42(o = {}) {
     // ── build 58 ── stage 11: on the altar's top by each corner — nine amot along its edge, out of the corner's view; the holes from the court
     // floor west of the south-west corner (out of their low view); the pyre's from the top's west of the wood (out of its view) ── /build 58 ──
     CORNERS58.forEach((c, i) => { STAND['horn' + i] = A(c.x - c.sx * 6.5, c.z - c.sz * 6.5); });   // (inside the top, behind the corner's camera)
-    Object.assign(STAND, { horns: STAND.horn0, holes: A(-57.5, 12.5), fire: A(-37.5, -3) });   // ── build 57 ── (the kevesh from its east side: he at its foot, low on the left; the whitewash's macro: he behind its camera)
+    Object.assign(STAND, { horns: STAND.horn0, holes: A(-57.5, 12.5), fire: A(-40.5, -3) });   // ── build 57 ── (the kevesh from its east side: he at its foot, low on the left; the whitewash's macro: he behind its camera)
   }
   if (STG === 'soreg') {
     Object.assign(PL, { soreg: { x: base.x, y: 0, z: -91.5 }, warnA: { x: base.x + 9, y: 0, z: -93.2 }, bow0: { x: base.x + 10, y: 0, z: -91.3 } });
@@ -1830,9 +1830,10 @@ export function createHar42(o = {}) {
    * (two fingers, or the ring) till both faces are flush and glow green, never snapped; the two holes on the yesod by the south-west horn,
    * found open by a jug's water that must go down them without running over (the stream goes on a little after the jug is straightened);
    * the first pyre — the wood sorted ➡/⬅ and stacked in three layers with air between, then the fire and its straight column of smoke ── /build 58 ── */
-  const hornAt58 = (c, u, v) => ({ x: c.x - c.sx * u, z: c.z - c.sz * v });   // the horn's middle in the world from its place in the corner's frame
+  const hornAt58 = (c, u, v) => ({ x: c.x - c.sx * u, z: c.z - c.sz * v });
+  let ringWas58 = null; const ring58 = (v) => { try { const r = stages.hero && stages.hero.ring; if (!r) return; if (!v) { if (ringWas58 == null) ringWas58 = r.visible; r.visible = false; } else if (ringWas58 != null) { r.visible = ringWas58; ringWas58 = null; } } catch (e) { /* */ } };   // (his gold ring off in the macros: at their frame's edge it read as a target — c58B-SP)   // the horn's middle in the world from its place in the corner's frame
   function props58(add) {
-    const M = masonry56(1, 1, '#F2ECDD'); st.props.horns58 = CORNERS58.map((c) => { const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), M); const p = hornAt58(c, 2.2, 2.2); add(m, p.x, TOP58 + 0.5, p.z); return m; });
+    const M = masonry56(1, 1, '#ECE6DA'); if (M.map) { M.map.repeat.set(0.4, 0.4); M.map.offset.set(0.3, 0.55); }   /* (the tile's joint-free patch: with its joints a horn read as a crate — c58B-SP) */ st.props.horns58 = CORNERS58.map((c) => { const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), M); const p = hornAt58(c, 2.2, 2.2); add(m, p.x, TOP58 + 0.5, p.z); return m; });
     // the jug (clay) over the holes; the water: its stream, the pool on the yesod, the runs over its edge and the puddle below
     const clay = mat('#A8653A', 0.8), prof = [[0, 0], [0.2, 0.02], [0.3, 0.2], [0.32, 0.4], [0.25, 0.62], [0.13, 0.74], [0.12, 0.86], [0.15, 0.9]].map(([x, y]) => new THREE.Vector2(x, y));
     const jug = new THREE.Group(); { const b = new THREE.Mesh(new THREE.LatheGeometry(prof, 16), clay); b.position.x = 0.3; jug.add(b); const sp = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.28, 8), clay); sp.rotation.z = Math.PI / 2 + 0.5; sp.position.set(0.08, 0.84, 0); jug.add(sp); const hd = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 6, 12, Math.PI), clay); hd.rotation.z = -Math.PI / 2; hd.position.set(0.58, 0.55, 0); jug.add(hd); jug.userData.spout = new THREE.Vector3(-0.04, 0.9, 0); }
@@ -1914,7 +1915,7 @@ export function createHar42(o = {}) {
    *  Level 1: the arc's gold mark where the stream equals what the holes take */
   function mkHoles58(L) {
     const J = F.createPour58(L), k = J.state(), jug = st.props.jug58, P = HOLES58; if (!jug) return null;
-    jug.visible = true; let tilt = 0, want = 0, drag = false, endT = -1, msgT = 0, pud = 0, spT = 0, tryP = null;
+    jug.visible = true; ring58(false); let tilt = 0, want = 0, drag = false, endT = -1, msgT = 0, pud = 0, spT = 0, tryP = null;
     line(LINE42.holes58, `רמה ${L}`); if (st.ui.pad) st.ui.pad.classList.add('full');
     const pivot = () => proj(jug.position.x, jug.position.y + 0.1, jug.position.z), arcR = () => Math.max(70, H() * 0.32);
     const arcAt = (t) => { const p = pivot(); if (!p) return null; const a = -Math.PI / 2 - t * (Math.PI * 0.55); return { x: p.x + Math.cos(a) * arcR(), y: p.y + Math.sin(a) * arcR() }; };   // (from straight up, round to the left and down)
@@ -1947,7 +1948,7 @@ export function createHar42(o = {}) {
         if (!st.finger && !drag && hq) { const g2 = arcAt(L <= 1 ? J.safe() : 0.55), k2 = (now() * 0.5) % 1; if (g2) svgAdd(`<text x="${hq.x + (g2.x - hq.x) * k2}" y="${hq.y + (g2.y - hq.y) * k2 + 32}" font-size="28" text-anchor="middle" opacity=".85">👆</text>`); }
         return false;
       },
-      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (st.props.stream58) st.props.stream58.visible = false; },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (st.props.stream58) st.props.stream58.visible = false; jug.visible = false; ring58(true); },   // (the jug taken away: left on the yesod it read as a second fire in the reveal — c58B-SP)
     };
     let said58 = '';
     return job;
@@ -1977,15 +1978,15 @@ export function createHar42(o = {}) {
   function mkPyre58(L) {
     const J = F.createPyre58(L, Math.random), k = J.state(), made = [], logs = [], Y = F.PYRE58;
     const add58 = (m, x, y, z) => { m.position.set(x, y, z); if (st.props.root) st.props.root.add(m); made.push(m); return m; };
-    const pileAt = (i) => ({ x: -33.6 + (i % 4) * 0.72, z: i < 4 ? -0.7 : 1.2 });
+    const pileAt = (i) => ({ x: -33.3 + (i % 4) * 0.72, z: i < 4 ? -2.35 : -0.75 });   // (two rows, both in the frame: the near row was under its bottom edge — c58B-SP saw four logs of eight)
     const OUT = { x: -35.6, z: -3.4 };
-    const logMesh = (g) => { const r = R58[g.cls], m = new THREE.Group(), bark = mat(BARK58[g.kind], 0.95), body = new THREE.Mesh(new THREE.CylinderGeometry(r, r * (g.kind === 'vine' ? 0.7 : 0.95), g.kind === 'vine' ? 1.9 : 2.2, 9), bark); body.rotation.x = Math.PI / 2; m.add(body);
-      for (let q = 0; q < 2; q++) { const e = new THREE.Mesh(new THREE.CircleGeometry(r * 0.92, 10), mat('#E2C896', 0.9)); e.position.z = (q ? 1 : -1) * (g.kind === 'vine' ? 0.95 : 1.1); e.rotation.y = q ? 0 : Math.PI; m.add(e); }
-      if (g.kind === 'olive') for (let q = 0; q < 5; q++) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 4), mat('#8FA05A', 0.8)); lf.scale.set(1, 0.35, 2.2); lf.position.set(Math.cos(q) * r * 1.2, r * 0.9, -0.6 + q * 0.2); lf.rotation.y = q; m.add(lf); }
-      if (g.kind === 'vine') { body.rotation.z = 0.25; const lf = new THREE.Mesh(new THREE.CircleGeometry(0.26, 5), mat('#6E8C3A', 0.8)); lf.rotation.x = -Math.PI / 2; lf.position.set(0.15, r + 0.04, 0.5); m.add(lf); }
+    const logMesh = (g) => { const r = R58[g.cls], m = new THREE.Group(), bark = mat(BARK58[g.kind], 0.95), body = new THREE.Mesh(new THREE.CylinderGeometry(r, r * (g.kind === 'vine' ? 0.7 : 0.95), g.kind === 'vine' ? 1.2 : 1.4, 9), bark); body.rotation.x = Math.PI / 2; m.add(body);
+      for (let q = 0; q < 2; q++) { const e = new THREE.Mesh(new THREE.CircleGeometry(r * 0.92, 10), mat('#E2C896', 0.9)); e.position.z = (q ? 1 : -1) * (g.kind === 'vine' ? 0.6 : 0.7); e.rotation.y = q ? 0 : Math.PI; m.add(e); }
+      if (g.kind === 'olive') for (let q = 0; q < 5; q++) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 4), mat('#8FA05A', 0.8)); lf.scale.set(1, 0.35, 2.2); lf.position.set(Math.cos(q) * r * 1.2, r * 0.9, -0.4 + q * 0.2); lf.rotation.y = q; m.add(lf); }
+      if (g.kind === 'vine') { body.rotation.z = 0.25; const lf = new THREE.Mesh(new THREE.CircleGeometry(0.26, 5), mat('#6E8C3A', 0.8)); lf.rotation.x = -Math.PI / 2; lf.position.set(0.15, r + 0.04, 0.3); m.add(lf); }
       m.userData.g = g; return m; };
     k.logs.forEach((g) => { const m = logMesh(g), p = pileAt(g.i); add58(m, p.x, TOP58 + R58[g.cls], p.z); logs.push(m); });   // (in the pile: along z — up and down the screen)
-    let drag = null, endT = -1, msgT = 0, lit = false, litT = -1;
+    let drag = null, endT = -1, msgT = 0, lit = false, litT = -1; ring58(false);
     const lineNext = () => { const n = J.next(); return !n ? (J.ready() ? LINE42.pyreLight58 : LINE42.pyre58) : n === 'thick' ? LINE42.pyreThick58 : n === 'mid' ? LINE42.pyreMid58 : LINE42.pyreThin58; };
     line(LINE42.pyre58, `רמה ${L}`); if (st.ui.pad) st.ui.pad.classList.add('full');
     const zones = () => { const zh = Math.max(96, H() * 0.5), zw = Math.max(96, W() * 0.22); return { altar: { x: W() - zw - 8, y: Math.max(56, H() * 0.18), w: zw, h: zh }, out: { x: 8, y: Math.max(56, H() * 0.18), w: zw, h: zh } }; };
@@ -1994,7 +1995,7 @@ export function createHar42(o = {}) {
     const torchAt = () => proj(PYRE58P.x, TOP58 + 0.25, PYRE58P.z + 0.9);
     const job = {
       acting: true, fullPad: true, kind: 'pyre58', J, ownView: () => true, zones, logsAt: () => logs.map((m) => ({ i: m.userData.g.i, kind: m.userData.g.kind, fit: m.userData.g.fit, cls: m.userData.g.cls, at: m.userData.g.at, p: logScr(m) })), slotAt: () => { const n = J.next(); if (!n) return null; const sl = slot58(k.laid.length); return proj(sl.x, sl.y, sl.z); }, torchAt, lit: () => lit,
-      view() { if (litT >= 0) return { p: [PYRE58P.x - 2, TOP58 + 14 + litT * 4, PYRE58P.z + 22], t: [PYRE58P.x, TOP58 + 8 + litT * 3, PYRE58P.z] }; const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1), t2 = tv * (W() / H()), D = 10.4 / (2 * t2), el = 1.0, T = [-31.4, TOP58 + 0.3, -2.3]; return { p: [T[0], T[1] + Math.sin(el) * D, T[2] + Math.cos(el) * D], t: T }; },   // (¾ from the south: the pyre on the right, the pile in the middle, the out-pile on the left; then up with the smoke)
+      view() { const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1); if (litT >= 0) { const d = 24, h = 4 + litT * 1.5, th = Math.atan(0.6 * tv) - Math.atan(h / d); return { p: [PYRE58P.x - 2, TOP58 + h, PYRE58P.z + d], t: [PYRE58P.x, TOP58 + h + Math.tan(th) * d, PYRE58P.z] }; }   /* (lit: back and low from the south — the fire at ⅘ down the frame, its column straight up through the top; from above it the fire fell under the frame: c58B-SP) */ const t2 = tv * (W() / H()), D = 10.4 / (2 * t2), el = 1.0, T = [-31.4, TOP58 + 0.3, -1.9]; return { p: [T[0], T[1] + Math.sin(el) * D, T[2] + Math.cos(el) * D], t: T }; },   // (¾ from the south: the pyre on the right, the pile in the middle, the out-pile on the left; then up with the smoke)
       down(a) {
         if (endT >= 0 || lit) return;
         if (J.ready()) { const t = torchAt(); if (t && Math.hypot(t.x - a.x, t.y - a.y) < Math.max(56, W() * 0.09)) { J.light(); lit = true; litT = 0; st.fire58 = fire58Make(); line(LINE42.fire58, ''); o.sound && o.sound('fire'); buzz42('peak'); try55('fire', true); } return; }
@@ -2030,7 +2031,7 @@ export function createHar42(o = {}) {
         else if (!st.finger && !drag && n) { const fit = logs.find((m) => m.userData.g.at === 'pile' && m.userData.g.fit && m.userData.g.cls === n), q = fit ? logScr(fit) : null, sq = job.slotAt(); if (q && sq) { const k2 = (now() * 0.45) % 1; svgAdd(`<text x="${q.x + (sq.x - q.x) * k2}" y="${q.y + (sq.y - q.y) * k2 + 30}" font-size="28" text-anchor="middle" opacity=".85">👆</text>`); } }
         return false;
       },
-      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); ring58(true); },
     };
     return job;
   }

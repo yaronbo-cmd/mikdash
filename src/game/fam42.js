@@ -838,7 +838,13 @@ export const STONE55 = Object.freeze({
   iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בִּנְגִיעָה" — מדות ג, ד · טיוטה' }),
   hair: Object.freeze({ he: 'סדק נסתר', bad: true, raking: true, why: 'רק באור צד; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),   // ── build 56 ──
   deep: Object.freeze({ he: 'סדק עמוק', bad: true, ring: true, why: 'צליל עמום; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  // ── build 57 ── stage 10's decoys: they look like flaws and are not — each its own page in ספר הפגימות ── /build 57 ──
+  moss: Object.freeze({ he: 'טחב', bad: false, decoy: true, wipe: true, page: 'טחב — לא פגימה', why: 'טחב — מנגבים, ונשארת אבן שלמה · המחשה' }),
+  fossil: Object.freeze({ he: 'מאובן של צדפה', bad: false, decoy: true, mark: 'fossil', page: 'מאובן — לא פגימה', why: 'נשאר אחרי ניגוב, והאצבע עוברת חלק — טבע, לא פגימה · המחשה' }),
+  pits: Object.freeze({ he: 'גומות טבעיות', bad: false, decoy: true, mark: 'pits', page: 'גומות — לא פגימה', why: 'האצבע לא נתפסת — טבע, לא פגימה · המחשה' }),
 });
+/** ── build 57 ── the decoys' pages in the book (the mud's too — build 55's decoy) */
+export const PAGE57 = Object.freeze({ mud: 'בוץ — לא פגימה', moss: 'טחב — לא פגימה', fossil: 'מאובן — לא פגימה', pits: 'גומות — לא פגימה' });
 export const STONE55_TYPES = Object.freeze(Object.keys(STONE55));
 /** the bag's types by level: the first inspection (level 1) — a crack, a mud stain, a whole stone; then the mud over a crack; after the twist — iron */
 export const BAG55 = Object.freeze({ 1: Object.freeze(['crack', 'mud', 'whole']), 2: Object.freeze(['crack', 'mud', 'whole', 'mudcrack']), iron: Object.freeze(['crack', 'mud', 'whole', 'mudcrack', 'iron']) });
@@ -991,4 +997,117 @@ export function createThread56(L = 1) {
     k.washes++; k.step = 1; k.yL = 3; k.yR = 2; return 'wash';
   }
   return { setL, releaseL, setR, releaseR, bubble, snap, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+
+/* ───────── ── build 57 ── stage 10, גוף המזבח והכבש (docs/specs/shlav-alef-08-16-he.md §3 "10"): what is pasul and what only looks pasul
+ *  (the inspection's decoys, levels 3–4), the kevesh's rows on an even slope ("שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה", מדות ג, ג) and the
+ *  whitewash with a cloth ("וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה", מדות ג, ד; never iron) ───────── */
+/** the stones of stage 10: each a set of marks on its faces. A mark is a crack (the finger catches), a fossil or natural pits (the finger runs
+ *  over them smooth — nature); mud or moss over a face (rubbed off); a nick on the top edge (a slow finger along it catches); a deep crack
+ *  (the mallet: dull). Level 3 — one mark; level 4 — two marks on one stone (each to be checked). Kasher ➡, pasul ⬅ */
+export const STONE57 = Object.freeze({
+  fossil: Object.freeze({ he: 'מאובן של צדפה', L: 3, bad: false, marks: Object.freeze([['fossil', 0]]), why: 'האצבע עוברת חלק — טבע, לא פגימה · המחשה' }),
+  pits: Object.freeze({ he: 'גומות טבעיות', L: 3, bad: false, marks: Object.freeze([['pits', 0]]), why: 'האצבע לא נתפסת — טבע, לא פגימה · המחשה' }),
+  moss: Object.freeze({ he: 'טחב', L: 3, bad: false, coat: Object.freeze(['moss', 0]), marks: Object.freeze([]), why: 'טחב — מנגבים, ונשארת אבן שלמה · המחשה' }),
+  mud: Object.freeze({ he: 'כתם בוץ', L: 3, bad: false, coat: Object.freeze(['mud', 1]), marks: Object.freeze([]), why: 'בוץ — מנגבים, ונשארת אבן שלמה · המחשה' }),
+  crack: Object.freeze({ he: 'סדק', L: 3, bad: true, marks: Object.freeze([['crack', 1]]), why: 'האצבע נתפסת בסדק; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  deep: Object.freeze({ he: 'סדק עמוק', L: 3, bad: true, deep: true, marks: Object.freeze([]), why: 'צליל עמום; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  nick: Object.freeze({ he: 'פגימה בשפה', L: 3, bad: true, nick: true, marks: Object.freeze([]), why: '"כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה' }),
+  fossilcrack: Object.freeze({ he: 'מאובן — וסדק', L: 4, bad: true, marks: Object.freeze([['fossil', 0], ['crack', 2]]), why: 'המאובן — טבע; הסדק — פגימה · המחשה' }),
+  pitsmoss: Object.freeze({ he: 'גומות וטחב', L: 4, bad: false, coat: Object.freeze(['moss', 2]), marks: Object.freeze([['pits', 0]]), why: 'גומות טבע, וטחב שנוגב — אבן שלמה · המחשה' }),
+  mossdeep: Object.freeze({ he: 'טחב — וסדק עמוק', L: 4, bad: true, deep: true, coat: Object.freeze(['moss', 0]), marks: Object.freeze([]), why: 'הטחב נוגב; הצליל עמום — סדוקה · המחשה' }),
+  fossilnick: Object.freeze({ he: 'מאובן — ופגימה בשפה', L: 4, bad: true, nick: true, marks: Object.freeze([['fossil', 0]]), why: 'המאובן — טבע; השפה — פגומה · המחשה' }),
+});
+/** the act's stones: four at level 3 (a fossil and a crack — the heart of it: both stay after wiping; one of pits / moss / mud; one of the
+ *  deep crack / the nick: a stone that looks whole), then two at level 4 (the two decoys together, and one decoy with a flaw) */
+export function list57(rnd = Math.random, L = 3) {
+  const pick = (a) => a[Math.floor(rnd() * a.length)], mix = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const l3 = mix(['fossil', 'crack', pick(['pits', 'moss', 'mud']), pick(['deep', 'nick'])]);
+  return L >= 4 ? mix(['pitsmoss', pick(['fossilcrack', 'mossdeep', 'fossilnick']), 'fossil', pick(['deep', 'nick'])]) : l3.concat(mix(['pitsmoss', pick(['fossilcrack', 'mossdeep', 'fossilnick'])]));
+}
+export function createStone57(type, rnd = Math.random) {
+  const T = STONE57[type] || STONE57.fossil, lv = T.L;
+  const k = { type, bad: !!T.bad, face: 0, L: lv, at: { face: -1, u: 0.25 + rnd() * 0.5, v: 0.3 + rnd() * 0.4, len: 0.45 + rnd() * 0.3, seed: Math.floor(rnd() * 1e6) },
+    marks: T.marks.map(([kind, face]) => ({ kind, face: lv <= 3 && kind === 'crack' ? (rnd() < 0.5 ? 0 : 1) : face, u: 0.3 + rnd() * 0.4, v: 0.35 + rnd() * 0.3 })),
+    coat: T.coat ? T.coat[0] : null, mud: T.coat ? T.coat[1] : -1, wiped: 0, deep: !!T.deep, nick: T.nick ? { face: 0, u: 0.2 + rnd() * 0.6 } : null,
+    turns: 0, felt: {}, edge: {}, taps: 0, decided: null, right: null };
+  const covered = () => k.mud >= 0 && k.wiped < 1;
+  /** what the face f carries: { crack, mark ('fossil' | 'pits' | null), coat amount and kind } */
+  const look = (f) => { const ms = k.marks.filter((m) => m.face === f); const cr = ms.find((m) => m.kind === 'crack'), mk = ms.find((m) => m.kind !== 'crack'); return { crack: cr || null, mark: mk ? mk.kind : null, markAt: mk || null, coat: k.mud === f ? 1 - k.wiped : 0, moss: k.coat === 'moss' }; };
+  /** what shows on the face in view: 'moss' | 'mud' | 'crack' | 'fossil' | 'pits' | null */
+  const shows = () => { if (k.mud === k.face && covered()) return k.coat; const l = look(k.face); return l.crack ? 'crack' : l.mark; };
+  function turn(dir) { if (k.decided) return 'done'; k.face = (k.face + (dir < 0 ? 3 : 1)) % 4; k.turns++; return 'turn'; }
+  function wipe(amount) { if (k.decided) return 'done'; if (k.mud !== k.face || k.wiped >= 1) return 'clean'; k.wiped = Math.min(1, k.wiped + Math.max(0, amount)); return k.wiped >= 1 ? 'wiped' : 'wiping'; }
+  /** the finger over the face in view (clean): a crack catches it; a fossil or pits — smooth (nature); else plain → 'catch' | 'fossil' | 'pits' | 'plain' | 'covered' */
+  function feel() { if (k.decided) return 'done'; if (k.mud === k.face && covered()) return 'covered'; const l = look(k.face), r = l.crack ? 'catch' : l.mark || 'plain'; k.felt[k.face] = r; return r; }
+  /** a finger along the top edge of the face in view, from u0 to u1 in dt s → 'fast' | 'caught' | 'ok' (the nick, as build 55's fingernail) */
+  function edgeSlide(u0, u1, dt) {
+    if (k.decided) return 'done'; const e = k.edge[k.face] || (k.edge[k.face] = { bins: new Array(NAIL55.bins).fill(0), caught: false });
+    if (e.caught) return 'caught';
+    const a = clamp(Math.min(u0, u1), 0, 1), b = clamp(Math.max(u0, u1), 0, 1), v = (b - a) / Math.max(1e-3, dt);
+    if (v > NAIL55.vmax[3]) return 'fast';
+    for (let i = Math.floor(a * NAIL55.bins); i <= Math.min(NAIL55.bins - 1, Math.floor(b * NAIL55.bins)); i++) e.bins[i] = 1;
+    if (k.nick && k.nick.face === k.face && b >= k.nick.u - NAIL55.w && a <= k.nick.u + NAIL55.w) { e.caught = true; return 'caught'; }
+    return 'ok';
+  }
+  const edgeFelt = () => { const e = k.edge[k.face]; return e ? e.bins.reduce((s, x) => s + x, 0) / NAIL55.bins : 0; };
+  /** the mallet on the stone: a deep crack rings dull */
+  const tap = () => { k.taps++; return k.deep ? 'dull' : 'ring'; };
+  function decide(toAltar, px) {
+    if (k.decided) return 'done'; if (!(px >= DRAG42)) return 'tap';
+    k.decided = toAltar ? 'altar' : 'out'; k.right = toAltar ? !k.bad : k.bad;
+    return k.right ? 'ok' : toAltar ? 'bad' : 'waste';
+  }
+  /** the book's pages this stone opens: its decoys (each its own page) and its flaws */
+  const pages = () => { const p = new Set(); for (const m of k.marks) p.add(m.kind); if (k.coat) p.add(k.coat); if (k.deep) p.add('deep'); if (k.nick) p.add('nick'); return [...p]; };
+  return { turn, wipe, feel, edgeSlide, edgeFelt, tap, decide, shows, look, covered, pages, state: () => k, T };
+}
+/** THE KEVESH (מדות ג, ג): its paving rows, two amot each along it, laid from the crews' last row up to the altar's top; each row's height set
+ *  before it is let go — even when it continues the slope from the row below (S per amah: nine amot over thirty-two). A row's error is
+ *  carried by the next (each continues from the one below it) — so small errors add up to a step where the kevesh meets the altar's top.
+ *  Level 1: within `snap` of the right height it settles there (and the slope's shadow shows it); off by more than `crooked` — lifted again (free). */
+export const KEVESH57 = Object.freeze({ S: 9 / 32, row: 2, foot: 16, rows: 16, his: 6, snap: Object.freeze([null, 0.15, 0, 0, 0]), crooked: 0.35, hi: 0.04, ok: 0.1, top: 0.08, topOk: 0.2, gear: Object.freeze([null, 0.42, 0.36, 0.3, 0.26]) });
+export function createKevesh57(L = 1, n = KEVESH57.his) {
+  const lv = clamp(L | 0, 1, 4), K = KEVESH57, first = K.rows - n, k = { n, L: lv, first, rows: [], tries: 0, crooked: 0, done: false, q: null };
+  /** the true height of row i's middle (rows from the foot: one amah up the slope, then two by two) */
+  const ideal = (i) => K.foot + K.S * (1 + K.row * i);
+  /** where the next row should be: on from the row below it (the crews' last row is true) */
+  const target = () => (k.rows.length ? k.rows[k.rows.length - 1].h : ideal(first - 1)) + K.S * K.row;
+  /** the slope gauge on the row below and the stone in hand: the bubble −1…1, centred when the row goes on at the slope */
+  const bubble = (h) => clamp((h - target()) / 0.25, -1, 1);
+  /** a row let go at height h → 'even' | 'off' (laid, its error carried on) | 'crooked' (lifted again) */
+  function lay(h) {
+    if (k.done) return 'done'; k.tries++;
+    let e = h - target(); if (Math.abs(e) <= K.snap[lv]) e = 0;
+    if (Math.abs(e) > K.crooked) { k.crooked++; return 'crooked'; }
+    k.rows.push({ i: first + k.rows.length, h: target() + e, e });
+    if (k.rows.length >= n) { k.done = true; const m = Math.max(...k.rows.map((r) => Math.abs(r.e))), d = Math.abs(drift()); k.q = m <= K.hi && d <= K.top ? 1 : m <= K.ok && d <= K.topOk ? 0.65 : 0.3; }
+    return Math.abs(e) <= K.hi ? 'even' : 'off';
+  }
+  /** at the top: how far the last row is off the kevesh's true line (where it meets the altar's top: a step of this much) */
+  const drift = () => (k.rows.length ? k.rows[k.rows.length - 1].h - ideal(k.rows[k.rows.length - 1].i) : 0);
+  return { lay, target, ideal, bubble, drift, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** THE WHITEWASH (מדות ג, ד: "וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה"; with a cloth — "לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל"): the finger
+ *  spreads it over a grid on the face; its speed in face-widths a second — slower than vmin drips (each a drop that runs down), faster than
+ *  vmax streaks (half covered: a second pass at a good pace covers it). Done at `need` covered. Grade: drips and streaks ≤ hi מהודר, ≤ ok כשר */
+export const SID57 = Object.freeze({ cols: 20, rows: 10, vmin: Object.freeze([null, 0.1, 0.15, 0.2, 0.26]), vmax: Object.freeze([null, 4, 3.2, 2.6, 2.1]), need: Object.freeze([null, 0.8, 0.86, 0.9, 0.92]), hi: 2, ok: 6, gap: 0.6 });   // (level 1 — §1 rule 7, forgiving: from a stroke across the whole face in 10 s to one in a quarter second; the naive kid's 1.7-s strokes over 40 % of the face read slow at 0.2 — K57-P-S2, W-S1)
+export function createSid57(L = 1) {
+  const lv = clamp(L | 0, 1, 4), C = SID57, cells = new Array(C.cols * C.rows).fill(0), k = { L: lv, drips: 0, streaks: 0, done: false, q: null, lastDrip: -9, lastStreak: -9 };
+  const cover = () => cells.reduce((a, c) => a + Math.min(1, c), 0) / cells.length;
+  const speed = (v) => (v < C.vmin[lv] ? 'slow' : v > C.vmax[lv] ? 'fast' : 'ok');
+  /** the cloth over (u, v ∈ 0…1) at speed sp (face-widths a second), at time t (s) → 'ok' | 'slow' | 'fast' | 'drip' | 'streak' | 'done' */
+  function wipe(u, v, sp, t) {
+    if (k.done) return 'done';
+    const ci = clamp(Math.floor(u * C.cols), 0, C.cols - 1), ri = clamp(Math.floor(v * C.rows), 0, C.rows - 1), r = speed(sp);
+    for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) { const c = ci + dc, rr = ri + dr; if (c < 0 || rr < 0 || c >= C.cols || rr >= C.rows) continue; const i = rr * C.cols + c, w = dc === 0 && dr === 0 ? 1 : 0.6; cells[i] = r === 'fast' ? Math.max(cells[i], 0.5 * w) : Math.max(cells[i], w); }
+    let out = r;
+    if (r === 'slow' && t - k.lastDrip > C.gap) { k.drips++; k.lastDrip = t; out = 'drip'; }
+    if (r === 'fast' && t - k.lastStreak > C.gap) { k.streaks++; k.lastStreak = t; out = 'streak'; }
+    if (cover() >= C.need[lv]) { k.done = true; const bad = k.drips + k.streaks; k.q = bad <= C.hi ? 1 : bad <= C.ok ? 0.65 : 0.3; }
+    return out;
+  }
+  /** the least-covered row (0…1 from the top) — where the hint points */
+  const gapRow = () => { let best = 0, bv = Infinity; for (let r = 0; r < C.rows; r++) { let s = 0; for (let c = 0; c < C.cols; c++) s += Math.min(1, cells[r * C.cols + c]); if (s < bv) { bv = s; best = r; } } return (best + 0.5) / C.rows; };
+  return { wipe, cover, speed, gapRow, cell: (c, r) => cells[r * C.cols + c], state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

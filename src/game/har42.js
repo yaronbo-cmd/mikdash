@@ -1438,7 +1438,7 @@ export function createHar42(o = {}) {
           const q = job.curAt(), v = job.inward(); if (q && v && Math.abs(ez) > J.tol && !nud) { const vl = Math.hypot(v.x, v.y) || 1, sg = s.e > 0 ? 1 : -1, ax = q.x + (v.x / vl) * 34 * sg, ay = q.y + (v.y / vl) * 34 * sg; svgAdd(`<text x="${ax}" y="${ay - 18}" font-size="30" font-weight="900" text-anchor="middle" fill="${col}" stroke="#2A1804" stroke-width="4" paint-order="stroke">${(v.x * sg) < 0 ? '⬅' : '➡'}</text>`); if (!st.finger) { const k = (now() * 0.6) % 1; svgAdd(`<text x="${q.x + (v.x / vl) * 60 * sg * k}" y="${q.y + (v.y / vl) * 60 * sg * k + 28}" font-size="28" text-anchor="middle" opacity=".85">👆</text>`); } }
         }
         if (!st.finger && endT < 0 && s0.cur < 0 && !drag && !s0.done) { const p0 = job.palAt(), p1 = job.slotAt(); if (p0 && p1) { const k = (now() * 0.4) % 1; svgAdd(`<text x="${p0.x + (p1.x - p0.x) * k}" y="${p0.y + (p1.y - p0.y) * k + 30}" font-size="30" text-anchor="middle" opacity=".85">👆</text>`); } }
-        if (endT < 0 && s0.done) { grade('sovev', s0.q, proj(-29, 22.5, NF56.z)); endT = 1.4; trueLine.visible = false; plumb.visible = false; if (shadow) shadow.visible = false; if (st.props.pal56) st.props.pal56.visible = false; }
+        if (endT < 0 && s0.done) { grade('sovev', s0.q, proj(-26.5, 19.5, NF56.z));   /* (mid-face: over the course the grade stood on the line's chip) */ endT = 1.4; trueLine.visible = false; plumb.visible = false; if (shadow) shadow.visible = false; if (st.props.pal56) st.props.pal56.visible = false; }
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
@@ -1458,7 +1458,7 @@ export function createHar42(o = {}) {
     pegs.forEach((m) => { m.rotation.x = Math.PI / 2; });
     const reed = add56(new THREE.Mesh(new THREE.BoxGeometry(0.12, 10, 0.12), mat('#C9A86A', 0.8)), XL + 0.5, NF56.y0 + 5, FZ - 0.3);
     let drag = null, pull = null, endT = -1, snapT = -1, wash = 0, red = null, msgT = 0, hint = '';
-    const Y = (u) => NF56.y0 + u, CAP = L <= 1 ? 0.75 : 0.5;   // (the reed's notches: the peg let go settles on the nearest amah; level 1 — the middle's gold band catches it from ¾ amah; level 1's shadow on the right too)
+    const Y = (u) => NF56.y0 + u, CAP = L <= 1 ? 1.25 : 0.5;   // (the reed's notches: the peg let go settles on the nearest amah; level 1 — the middle's gold band catches it from 1¼ amot; level 1's shadow on the right too)
     if (st.props.pal56) st.props.pal56.visible = false;
     const lineFor = () => (k.step === 1 ? LINE42.thread1_56 : k.step === 2 ? LINE42.thread2_56 : LINE42.thread3_56);
     let fine = null, doneT = -1;

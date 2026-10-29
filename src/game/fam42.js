@@ -836,8 +836,8 @@ export const STONE55 = Object.freeze({
   whole: Object.freeze({ he: 'אבן שלמה', bad: false, why: '"אֲבָנִים שְׁלֵמוֹת" — דברים כז, ו · טיוטה' }),
   nick: Object.freeze({ he: 'פגימה בשפה', bad: true, edge: true, why: '"וכמה פגימת המזבח — כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה' }),
   iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בְּמַגָּע" — מדות ג, ד · טיוטה' }),
-  hair: Object.freeze({ he: 'סדק נסתר', bad: true, raking: true, why: 'סדק דק — נראה רק באור צד; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),   // ── build 56 ──
-  deep: Object.freeze({ he: 'סדק עמוק', bad: true, ring: true, why: 'אבן סדוקה — צלילה עמום (המחשה); "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  hair: Object.freeze({ he: 'סדק נסתר', bad: true, raking: true, why: 'רק באור צד; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),   // ── build 56 ──
+  deep: Object.freeze({ he: 'סדק עמוק', bad: true, ring: true, why: 'צליל עמום; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
 });
 export const STONE55_TYPES = Object.freeze(Object.keys(STONE55));
 /** the bag's types by level: the first inspection (level 1) — a crack, a mud stain, a whole stone; then the mud over a crack; after the twist — iron */

@@ -1204,7 +1204,7 @@ export function createPyre58(L = 1, rnd = Math.random) {
  *  f = what ran in ÷ the mould's cap. A pour ends when the stream stops: f in the window [1 − win, 1 + win] → 'done'; above it → 'over'
  *  (and at 1 + rim it runs over the mould's lip → 'spill'); below it → 'more' (pour again — not a try). Over or spilt: the mould is emptied
  *  and poured again ("יוצקים שוב" — no loss). Level 1 a wide window, level 4 a very short one. The grade: the fails, and how near the line */
-export const CAST59 = Object.freeze({ qmax: 0.55, from: 0.2, tau: Object.freeze([null, 0.25, 0.38, 0.5, 0.62]), win: Object.freeze([null, 0.2, 0.1, 0.05, 0.025]), rim: 0.26, still: 0.006, mark: 0.9, react: 0.45 });   // (mark: level 1's even tilt — what still comes after a child's reaction (react s) and the bronze's own after-flow fill at most this share of the window: K59-P-S1/S2, the eye on the line and the finger ¼–½ s late: K59-W-S4)
+export const CAST59 = Object.freeze({ qmax: 0.55, from: 0.2, tau: Object.freeze([null, 0.25, 0.38, 0.5, 0.62]), win: Object.freeze([null, 0.2, 0.1, 0.05, 0.025]), rim: 0.26, still: 0.03, mark: 0.9, react: 0.45 });   // (mark: level 1's even tilt — what still comes after a child's reaction (react s) and the bronze's own after-flow fill at most this share of the window: K59-P-S1/S2, the eye on the line and the finger ¼–½ s late: K59-W-S4)
 export function createCast59(L = 1, cap = 1, qm = CAST59.qmax) {
   const lv = clamp(L | 0, 1, 4), C = CAST59, win = C.win[lv], tau = C.tau[lv], QM = Math.max(0.02, +qm || C.qmax), k = { L: lv, cap: Math.max(0.02, +cap || 1), tilt: 0, s: 0, f: 0, pouring: false, over: false, fails: 0, spills: 0, pours: 0, done: false, q: null, last: null };
   const flowOf = (tilt) => (tilt < C.from ? 0 : ((tilt - C.from) / (1 - C.from)) * QM);
@@ -1215,7 +1215,7 @@ export function createCast59(L = 1, cap = 1, qm = CAST59.qmax) {
     if (k.done) return 'done';
     k.tilt = clamp(+tilt || 0, 0, 1); const q = flowOf(k.tilt);
     k.s += (q - k.s) * Math.min(1, dt / tau); if (k.s < 1e-4 && q === 0) k.s = 0;
-    const still = C.still * Math.min(1, k.cap); k.f += (k.s * dt) / k.cap; if (q > 0 || k.s > still) k.pouring = true;   // (still: by the mould's size — a small mould's last trickle counts)
+    const still = C.still * Math.min(1, k.cap); k.f += (k.s * dt) / k.cap; if (q > 0 || k.s > still) k.pouring = true;   // (still: by the mould's size — a small mould's last trickle counts; what still comes below it is under 1 % of the mould — judged ½ s after the straightening, not 1: K59-P-S6)
     if (k.f >= 1 + C.rim) { k.f = 1 + C.rim; k.over = true; }
     if (k.pouring && q === 0 && k.s <= still) {   // the stream has stopped: the pour is judged
       k.pouring = false; k.pours++;

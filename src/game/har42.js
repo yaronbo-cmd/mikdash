@@ -2208,7 +2208,7 @@ export function createHar42(o = {}) {
         const T0 = twelve ? [P.T.x - 1.7, P.y0 + 2.2, P.T.z] : [P.M1.x - 1.2, P.y0 + 2.75, P.M1.z], D = (twelve ? 5.8 : 11.5) / (2 * t2);   // (the furnace whole and its arc over it in the frame — at 8.6 its arc's top was off the screen: c59A)
         return { p: T0.map((v, k) => v + (dir[k] / nl) * D), t: T0 };
       },   // (from the south-east and above, into the mould: the furnace's mouth on the left, the mould's cavity and its line; he behind the camera)
-      down(a) { if (endT >= 0 || J.state().done || turnT > 0 || rest >= 0) return; const h = arcAt(tilt); if (h && Math.hypot(h.x - a.x, h.y - a.y) < Math.max(48, W() * 0.08)) { drag = true; tryOn = true; } },
+      down(a) { if (endT >= 0 || J.state().done || J.state().pouring || turnT > 0 || rest >= 0) return; /* (the furnace still settling — its pour not yet judged: a second press waits; K59-P-S6 pressed again in the after-flow and ran over) */ const h = arcAt(tilt); if (h && Math.hypot(h.x - a.x, h.y - a.y) < Math.max(48, W() * 0.08)) { drag = true; tryOn = true; } },
       move(a) { if (drag) want = tOf(a.x, a.y); },
       up() { if (!drag) return; drag = false; want = 0; },
       frame(dt) {

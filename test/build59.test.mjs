@@ -69,6 +69,7 @@ test('build 59: the casting — the stream follows the furnace late (straightene
   assert.equal(F.SPIGOTS59.his, 4, 'his four, his fellows the other eight'); assert.equal(new Set(caps.slice(0, 4)).size, 4);
   assert.ok(F.spigotQ59(0.13) < F.spigotQ59(0.38) && F.spigotQ59(0.13) / F.spigotQ59(0.38) > 0.13 / 0.38, 'a smaller stream for a smaller mould — not in proportion: each pour a different amount');
   assert.match(H, /tilt \+= \(want - tilt\) \* Math\.min\(1, dt \* 14\); fur\.rotation\.z = -tilt \* 1\.35;/, 'the furnace straightened at once — the bronze\'s after-flow is the act');
+  assert.match(H, /J\.state\(\)\.done \|\| J\.state\(\)\.pouring \|\| turnT > 0/, 'a press while the last pour still settles waits');
   assert.equal(F.spigotsGrade59(Array(12).fill(0)), 1); assert.equal(F.spigotsGrade59([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]), 0.65); assert.equal(F.spigotsGrade59([1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]), 0.3);
   assert.match(H, /if \(L <= 1\) \{ const h0 = hOf\(1 - win\), h1 = hOf\(1 \+ win\);/, 'level 1: the line\'s shadow — the window in the mould');
   assert.match(H, /data-safe59/); assert.match(H, /data-fill59/); assert.match(H, /data-line59/);

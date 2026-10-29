@@ -2933,6 +2933,7 @@ export function createHar42(o = {}) {
   function start() {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); ui(); props();
+    if (STG === 'yesod') { try { if (stages.setLife) stages.setLife(false); } catch (e) { /* */ } }   // ── build 55 ── (the world's own crews at the done sites stood in the altar's north course — the chambers' crews' places: the stage's own crews and carts work round the altar instead) ── /build 55 ──
     try { if (stages.outlineThin) stages.outlineThin(0.25, 0.5); } catch (e) { /* */ }   // ── build 53 ── the gold line and the pins' beams: ¼ wide, half seen (§4 important 12) ── /build 53 ──
     try { if (view.closeCam) view.closeCam(true); } catch (e) { /* */ }
     if (MODE !== 'stage') {   // ── build 44 ── the yard and the test: by the wheel, a quiet view; their sheet
@@ -2964,6 +2965,7 @@ export function createHar42(o = {}) {
   }
   function stop(done, next) {
     if (!st.on) return; st.on = false;
+    if (STG === 'yesod') { try { if (stages.setLife) stages.setLife(true); } catch (e) { /* */ } }   // ── build 55 ── (the world's own crews back) ── /build 55 ──
     try { if (st.wet > 0 && stages.wet) stages.wet(0); STONE.color.copy(STONE0); BOSS.color.copy(BOSS0); } catch (e) { /* */ }
     try { if (view.closeCam) view.closeCam(false); } catch (e) { /* */ }
     try { stages.hero.drive(0, 0); } catch (e) { /* */ }

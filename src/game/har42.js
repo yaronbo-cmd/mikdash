@@ -1042,7 +1042,7 @@ export function createHar42(o = {}) {
     if (STG === 'yesod') {
       // the first course on the altar's north side: its dark bed, the fixed stones, the gaps' recesses (filled in by the job)
       const C = PL.course55, cy = gy(C.x, C.z); st.props.course55 = new THREE.Group(); add(st.props.course55, C.x, cy, C.z);
-      st.props.course55.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(12.4, 0.3, 2.6), mat('#4A3D2E', 0.95)), { position: new THREE.Vector3(0, 0.15, 0) }));
+      { const bed = new THREE.Mesh(new THREE.BoxGeometry(12.4, 0.3, 2.6), mat('#4A3D2E', 0.95)); bed.position.set(0, 0.15, 0); st.props.course55.add(bed); }
       // the altar's plan: its gold line (thin, half seen), rising in the opening
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.45, depthWrite: false }), X0 = ALT55.x0, Z0 = ALT55.z0, S0 = ALT55.side, ay = gy(X0 + 16, Z0 + 16);
       st.props.plan55 = [[X0 + S0 / 2, Z0, S0 + 0.5, 0.5], [X0 + S0 / 2, Z0 + S0, S0 + 0.5, 0.5], [X0, Z0 + S0 / 2, 0.5, S0 + 0.5], [X0 + S0, Z0 + S0 / 2, 0.5, S0 + 0.5]].map(([x, z, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.3, d), gm); m.geometry.translate(0, 0.15, 0); m.scale.y = 0.001; return add(m, x, ay + 0.05, z); });
@@ -1101,7 +1101,7 @@ export function createHar42(o = {}) {
       view() {
         const { th: t2, tv } = th();
         if (phase === 'feel') { const D = 1.8 / (2 * VIEW55.edge * t2); return { p: [B.x, y0 + 2.2 + D * 0.45, B.z + 0.76 + D * 0.9], t: [B.x, y0 + 2.12, B.z + 0.76] }; }
-        const D = 1.8 / (2 * VIEW55.stone * t2); return { p: [B.x, y0 + 1.6 + D * 0.32, B.z + D], t: [B.x, y0 + 1.55 - D * tv * 0.12, B.z] };
+        const D = 1.8 / (2 * VIEW55.stone * t2); void tv; return { p: [B.x, y0 + 1.6 + D * 0.22, B.z + 0.75 + D], t: [B.x, y0 + 1.5, B.z + 0.3] };   /* (the share at its front face, a little above it: from its middle the face stood 55 % wide, its top under the line — c55-T1) */
       },
       down(a) { holdT = now(); lastMv = { x: a.x, y: a.y, t: now(), u: null }; rub = 0; },
       move(a) {

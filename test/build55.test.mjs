@@ -100,7 +100,7 @@ test('build 55: the craftsman\'s test before chapter ג׳ — the stone with a c
 
 test('build 55: the views — the stone 45 % of the width from the south (him behind the camera), the edge 66 %, the course half; the touch in the world', () => {
   assert.equal(VIEW55.stone, 0.45); assert.ok(VIEW55.edge >= 0.6); assert.ok(VIEW55.course >= 0.4);
-  assert.match(H, /const D = 1\.8 \/ \(2 \* VIEW55\.stone \* t2\); return \{ p: \[B\.x, y0 \+ 1\.6 \+ D \* 0\.32, B\.z \+ D\]/);
+  assert.match(H, /const D = 1\.8 \/ \(2 \* VIEW55\.stone \* t2\); void tv; return \{ p: \[B\.x, y0 \+ 1\.6 \+ D \* 0\.22, B\.z \+ 0\.75 \+ D\]/);
   assert.match(H, /inspect: A\(-11\.5, -18\), nail: A\(-11\.5, -18\), iron: A\(-11\.5, -18\)/, 'his stand south of the bench — behind the macro\'s camera');
   assert.doesNotMatch(H.slice(H.indexOf('function mkField55('), H.indexOf('function mkLast55(')), /×\d|⟳ ×/, 'no "×3" buttons — the stones and the fill heap in the world');
   assert.match(H, /\['altar', 1\.75\], \['out', -1\.75\]\]\) \{ const g2 = new THREE\.Group\(\);/, 'the two heaps by the stone: למזבח right, לא למזבח left');

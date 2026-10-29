@@ -178,6 +178,33 @@ async function names47k(K) {
 // ── build 48 ── stage 05, a child's way: the LOG — he turns it, peels it, taps it, and drags it to one of the two piles (as it strikes him);
 // the BEAMS — a chip to a socket, any socket, then a push roughly up; the TENON — a sideways drag; the PEG — a few taps, then he waits (or
 // not); the PLANKS — the chip to the dashed line; the WALK — a long hold
+// ── build 55 ── stage 08, a child's way: the STONE — he swipes it round, rubs it, or drags it to one of the two heaps (as it strikes him);
+// the EDGE — a finger along the dashed line, now fast, now slow (slower once the line says "לאט"); the FIELD STONES — a tap on one, or one
+// dragged to a gap (roughly), or a pebble from the heap to a gap; the LAST ROW — a stone from the heap to the altar's rim, roughly where the
+// gold shows (or anywhere on the rim)
+async function stone55k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'stone55') return null; const B = j.ref.box(), Z = j.ref.zones(), E = j.ref.edge ? j.ref.edge() : null; return { B, Z, E, ph: j.ref.phase() }; }).catch(() => null);
+  if (!g || !g.B) return false; const B = g.B, r = K.rnd();
+  if (g.ph === 'feel' && g.E) { const E = g.E, slow = /לאט/.test(await K.pg.evaluate(() => (document.querySelector('.h42-line') || {}).textContent || '').catch(() => '')) ? 0.75 : 0.45, u0 = K.between(0, 0.3), u1 = K.between(0.6, 1), T = K.rnd() < slow ? K.between(1200, 3200) : K.between(250, 900); await K.swipe(E.a.x + (E.b.x - E.a.x) * u0, E.a.y + (E.b.y - E.a.y) * u0 + K.between(-12, 12), (E.b.x - E.a.x) * (u1 - u0), (E.b.y - E.a.y) * (u1 - u0) + K.between(-10, 10), T); K.ev('nail-slide', `${Math.round(T)}ms`); return true; }
+  if (r < 0.35) { await K.swipe(B.cx + K.between(-B.w * 0.2, B.w * 0.2), B.cy + K.between(-B.h * 0.2, B.h * 0.2), (K.rnd() < 0.5 ? -1 : 1) * K.between(B.w * 0.25, B.w * 0.6), K.between(-12, 12), K.between(120, 500)); K.ev('stone-turn'); }
+  else if (r < 0.55) { const id = 7; await K.down(id, B.cx, B.cy); for (let i = 0; i < 20; i++) { await K.sleep(K.between(25, 60)); await K.move(id, B.cx + Math.sin(i * 0.9) * B.w * K.between(0.15, 0.35), B.cy + K.between(-10, 10)); } await K.up(id); K.ev('stone-rub'); }
+  else { const z = K.rnd() < 0.5 ? g.Z.altar : g.Z.out; await K.swipe(B.cx + K.between(-20, 20), B.cy + K.between(-15, 15), z.x + z.w / 2 - B.cx + K.between(-25, 25), z.y + z.h / 2 - B.cy + K.between(-20, 20), K.between(300, 900)); K.ev('stone-' + (z === g.Z.altar ? 'altar' : 'out')); }
+  return true;
+}
+async function field55k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'field55') return null; return { st: j.ref.stones().filter((x) => !x.placed && x.p), gp: j.ref.gaps().filter((x) => x.p), f: j.ref.fillAt() }; }).catch(() => null);
+  if (!g || !g.gp.length) return false; const r = K.rnd();
+  if (g.st.length && r < 0.35) { const s = g.st[Math.floor(K.rnd() * g.st.length)]; await K.tap(s.p.x + K.between(-10, 10), s.p.y + K.between(-8, 8)); K.ev('field-tap'); return true; }
+  const t = g.gp[Math.floor(K.rnd() * g.gp.length)];
+  if (g.st.length && r < 0.85) { const s = g.st[Math.floor(K.rnd() * g.st.length)]; const id = 7; await K.down(id, s.p.x, s.p.y); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, s.p.x + ((t.p.x - s.p.x) * i) / 12 + K.between(-6, 6), s.p.y + ((t.p.y - s.p.y) * i) / 12 + K.between(-6, 6)); } await K.up(id); K.ev('field-drag'); return true; }
+  if (g.f) { const id = 7; await K.down(id, g.f.x, g.f.y); for (let i = 1; i <= 10; i++) { await K.sleep(K.between(25, 60)); await K.move(id, g.f.x + ((t.p.x - g.f.x) * i) / 10, g.f.y + ((t.p.y - g.f.y) * i) / 10); } await K.up(id); K.ev('field-fill'); return true; }
+  return false;
+}
+async function last55k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'last55') return null; const R = j.ref, op = R.J.open(); return { hp: R.heapAt(), slots: op.map((s) => R.slotAt(s.id)).filter(Boolean), rim: [[16, 31.6], [31.6, 16], [10, 0.5], [0.5, 20], [24, 31.6], [31.6, 26]].map(([x, z]) => R.rimAt(x, z)).filter(Boolean) }; }).catch(() => null);
+  if (!g || !g.hp) return false; const pool = K.rnd() < 0.6 && g.slots.length ? g.slots : g.rim, t = pool[Math.floor(K.rnd() * pool.length)]; if (!t) return false;
+  const id = 7; await K.down(id, g.hp.x + K.between(-12, 12), g.hp.y + K.between(-10, 10)); for (let i = 1; i <= 14; i++) { await K.sleep(K.between(25, 60)); await K.move(id, g.hp.x + ((t.x - g.hp.x) * i) / 14 + K.between(-8, 8), g.hp.y + ((t.y - g.hp.y) * i) / 14 + K.between(-8, 8)); } await K.up(id); K.ev('last-drag'); return true;
+}
 async function wood48k(K) {
   const g = await K.pg.evaluate(() => { const r = [...document.querySelectorAll('.h42 svg rect')].find((q) => +q.getAttribute('rx') > 25 && +q.getAttribute('width') > 150); const z = [...document.querySelectorAll('.h42 svg rect[data-z]')].map((q) => ({ k: q.getAttribute('data-z'), x: +q.getAttribute('x') + +q.getAttribute('width') / 2, y: +q.getAttribute('y') + +q.getAttribute('height') / 2 })); return r ? { x: +r.getAttribute('x'), y: +r.getAttribute('y'), w: +r.getAttribute('width'), h: +r.getAttribute('height'), z } : null; }).catch(() => null);
   if (!g) return false; const cx = g.x + g.w / 2, cy = g.y + g.h / 2, r = K.rnd();
@@ -289,7 +316,10 @@ async function mount42(K) {
       else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
       else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
       else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
-      else if (/לערימה הנכונה|מסובבת|לא למזבח|כשר למערכה/.test(L) && !/לפרצה/.test(L) && r < 0.85) { if (!(await wood48k(K))) await K.tryLine(s); }   // ── build 48 ──
+      else if (/סובבו ↔ ∙ כשר|נגבו את הבוץ|סובבו מול האור|העבירו אצבע לאט|לאט — כדי להרגיש|נתפסה! פסול|השפה חלקה|האבן שלמה. אבל|למזבח · |לא למזבח · /.test(L) && h.part !== 'wood' && r < 0.88) { if (!(await stone55k(K))) await K.tryLine(s); }   // ── build 55 ──
+      else if (/גררו לרווח|לא נכנסת|לא זו — אבן|נשאר רווח|כאן אין רווח/.test(L) && r < 0.88) { if (!(await field55k(K))) await K.tryLine(s); }
+      else if (/רק על היסוד|כאן אין יסוד/.test(L) && r < 0.88) { if (!(await last55k(K))) await K.tryLine(s); }
+      else if (/לערימה הנכונה|קלפו ∙ כשר|מסובבת|לא למזבח|כשר למערכה/.test(L) && !/לפרצה/.test(L) && r < 0.85) { if (!(await wood48k(K))) await K.tryLine(s); }   // ── build 48 ──
       else if (/גררו קורה לשקע|קורות הפינה|לא הקורה לשקע|כולה שלכם|גררו את הקרשים/.test(L) && r < 0.85) { if (!(await beam48k(K))) await K.tryLine(s); }
       else if (/לתוך השקע|בשפת השקע/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.35, W * 0.65), K.between(Hh * 0.55, Hh * 0.8), K.between(-50, 50), -K.between(40, 140), K.between(150, 600)); K.ev('beam-push'); }
       else if (/השגם|לאורך החץ/.test(L) && r < 0.85) { const [W, Hh] = K.size(); await K.swipe(K.between(W * 0.3, W * 0.45), K.between(Hh * 0.5, Hh * 0.7), K.between(40, 160) * (K.rnd() < 0.8 ? 1 : -1), K.between(-30, 30), K.between(150, 600)); K.ev('tenon'); }

@@ -824,3 +824,123 @@ export function createArch50(L = 1) {
   }
   return { place, keystone, balance, strike, state: () => k, P, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
+
+/* ───────── ── build 55 ── stage 08, היסוד (docs/specs/shlav-alef-08-16-he.md §2, §3 "08"): the altar's field stones — the INSPECT family's
+ *  stone (turned face by face, wiped, felt along its edge, seen against the light), the PLACE family's field stones (an untrimmed puzzle — no
+ *  snapping) and the last row of the yesod (only where there is one: Middot 3:1). Kasher ➡, pasul ⬅ (§1 rule 13). ───────── */
+/** the stones' defect pool: each a kind with its verdict and its source */
+export const STONE55 = Object.freeze({
+  crack: Object.freeze({ he: 'סדק', bad: true, why: '"וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  mud: Object.freeze({ he: 'כתם בוץ', bad: false, decoy: true, wipe: true, why: 'בוץ — מנגבים, ונשארת אבן שלמה · המחשה' }),
+  mudcrack: Object.freeze({ he: 'סדק מתחת לבוץ', bad: true, wipe: true, under: true, why: 'מתחת לבוץ — סדק; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  whole: Object.freeze({ he: 'אבן שלמה', bad: false, why: '"אֲבָנִים שְׁלֵמוֹת" — דברים כז, ו · טיוטה' }),
+  nick: Object.freeze({ he: 'פגימה בשפה', bad: true, edge: true, why: '"וכמה פגימת המזבח — כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה' }),
+  iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בְּמַגָּע" — מדות ג, ד · טיוטה' }),
+});
+export const STONE55_TYPES = Object.freeze(Object.keys(STONE55));
+/** the bag's types by level: the first inspection (level 1) — a crack, a mud stain, a whole stone; then the mud over a crack; after the twist — iron */
+export const BAG55 = Object.freeze({ 1: Object.freeze(['crack', 'mud', 'whole']), 2: Object.freeze(['crack', 'mud', 'whole', 'mudcrack']), iron: Object.freeze(['crack', 'mud', 'whole', 'mudcrack', 'iron']) });
+/** a stone on the bench: four faces round it; its defect on one face at a place; at level 1 a mud stain as a decoy on another face. A quick
+ *  swipe ↔ turns it; rubbing WIPES the face in view (the mud goes); a drag to a heap DECIDES — kasher ➡ "למזבח", pasul ⬅ "לא למזבח" */
+export function createStone55(type, rnd = Math.random, L = 1) {
+  const T = STONE55[type] || STONE55.whole, lv = clamp(L | 0, 1, 4);
+  const f0 = lv <= 1 ? (rnd() < 0.5 ? 0 : 1) : 1 + Math.floor(rnd() * 3);   // (level 1: the crack on the face in view or the next one)
+  const k = { type, bad: !!T.bad, face: 0, L: lv, at: { face: T.edge ? -1 : f0, u: 0.25 + rnd() * 0.5, v: 0.3 + rnd() * 0.4, len: 0.45 + rnd() * 0.3, seed: Math.floor(rnd() * 1e6) },
+    mud: -1, wiped: 0, turns: 0, decided: null, right: null };
+  if (T.wipe) k.mud = k.at.face;
+  else if (lv <= 1 && !T.edge && !T.glint) k.mud = (k.at.face + 2) % 4;   // (the decoy, on the face opposite)
+  const covered = () => k.mud >= 0 && k.wiped < 1;
+  /** what shows on the face in view: 'crack' | 'mud' | 'glint' | null */
+  const shows = () => { if (k.mud === k.face && covered()) return 'mud'; if (k.at.face !== k.face) return null; return type === 'crack' || type === 'mudcrack' ? 'crack' : type === 'iron' ? 'glint' : null; };
+  function turn(dir) { if (k.decided) return 'done'; k.face = (k.face + (dir < 0 ? 3 : 1)) % 4; k.turns++; return 'turn'; }
+  /** rubbing on the face in view: amount 0…1 of a full wipe */
+  function wipe(amount) { if (k.decided) return 'done'; if (k.mud !== k.face || k.wiped >= 1) return 'clean'; k.wiped = Math.min(1, k.wiped + Math.max(0, amount)); return k.wiped >= 1 ? 'wiped' : 'wiping'; }
+  function decide(toAltar, px) {
+    if (k.decided) return 'done'; if (!(px >= DRAG42)) return 'tap';
+    k.decided = toAltar ? 'altar' : 'out'; k.right = toAltar ? !k.bad : k.bad;
+    return k.right ? 'ok' : toAltar ? 'bad' : 'waste';
+  }
+  return { turn, wipe, decide, shows, covered, state: () => k, T };
+}
+/** the stones' grade: as the wood's — all right מהודר; a good stone rejected (only) כשר; a bad stone to the altar טעון תיקון */
+export function stoneGrade55(results) { return woodGrade48(results); }
+/** the FINGERNAIL (חולין יח ע"א): a finger slid slowly along the edge (0…1); at the nick it catches. Faster than vmax edges a second: "לאט" */
+export const NAIL55 = Object.freeze({ vmax: Object.freeze([null, 0.95, 0.8, 0.7, 0.6]), w: 0.05, bins: 20 });
+export function createNail55(hasNick, rnd = Math.random, L = 2) {
+  const lv = clamp(L | 0, 1, 4), k = { nick: hasNick ? 0.18 + rnd() * 0.64 : null, caught: false, fast: 0, bins: new Array(NAIL55.bins).fill(0), L: lv, decided: null, right: null };
+  /** the finger from u0 to u1 in dt seconds → 'fast' | 'caught' | 'ok' | 'done' */
+  function slide(u0, u1, dt) {
+    if (k.decided) return 'done'; if (k.caught) return 'caught';
+    const a = clamp(Math.min(u0, u1), 0, 1), b = clamp(Math.max(u0, u1), 0, 1), v = (b - a) / Math.max(1e-3, dt);
+    if (v > NAIL55.vmax[lv]) { k.fast++; return 'fast'; }
+    for (let i = Math.floor(a * NAIL55.bins); i <= Math.min(NAIL55.bins - 1, Math.floor(b * NAIL55.bins)); i++) k.bins[i] = 1;
+    if (k.nick != null && b >= k.nick - NAIL55.w && a <= k.nick + NAIL55.w) { k.caught = true; return 'caught'; }
+    return 'ok';
+  }
+  const felt = () => k.bins.reduce((s, x) => s + x, 0) / NAIL55.bins;
+  function decide(toAltar, px) {
+    if (k.decided) return 'done'; if (!(px >= DRAG42)) return 'tap';
+    k.decided = toAltar ? 'altar' : 'out'; const bad = k.nick != null; k.right = toAltar ? !bad : bad;
+    return k.right ? 'ok' : toAltar ? 'bad' : 'waste';
+  }
+  return { slide, felt, decide, state: () => k };
+}
+/** FIELD STONES (the yesod's first course, untrimmed — the contrast to the hewn stone before): each gap has its stone, turned one way. A tap
+ *  turns a stone a quarter; a drag lays it where it is let go — no snapping: within `tight` of the gap's middle it closes it; within `loose`
+ *  it lies with a sliver open (a fill stone from the heap closes it); further, or the wrong stone or turn, it does not go in.
+ *  Grade: no fill מהודר; up to two כשר; more טעון תיקון */
+export const FIELD55 = Object.freeze({ tight: Object.freeze([null, 0.45, 0.35, 0.28, 0.22]), loose: 0.95, kasherFills: 2 });
+export function createField55(n = 3, rnd = Math.random, L = 1) {
+  const lv = clamp(L | 0, 1, 4), order = [0, 1, 2, 3].slice(0, Math.max(2, Math.min(4, n)));
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const k = { L: lv, gaps: order.map((shape) => ({ shape, rot: 1 + Math.floor(rnd() * 3), stone: -1, sliver: false })), stones: order.map((_, i) => ({ shape: i < order.length ? [...order].sort()[i] : 0, rot: 0, gap: -1 })), fills: 0, extra: 0, misses: 0, done: false, q: null };
+  function rotate(i) { const s = k.stones[i]; if (!s || s.gap >= 0 || k.done) return 'no'; s.rot = (s.rot + 1) % 4; return 'turn'; }
+  /** stone i let go at distance `off` (amot) from gap g's middle → 'nofit' | 'tight' | 'gap' | 'busy' | 'no' */
+  function drop(i, g, off) {
+    const s = k.stones[i], G = k.gaps[g]; if (!s || !G || s.gap >= 0 || k.done) return 'no'; if (G.stone >= 0) return 'busy';
+    if (s.shape !== G.shape || s.rot !== G.rot || !(off <= FIELD55.loose)) { k.misses++; return 'nofit'; }
+    s.gap = g; G.stone = i; G.sliver = off > FIELD55.tight[lv]; end(); return G.sliver ? 'gap' : 'tight';
+  }
+  /** a fill stone into gap g → 'filled' | 'extra' (no sliver there: an unneeded fill) | 'no' */
+  function fill(g) { const G = k.gaps[g]; if (!G || k.done) return 'no'; if (G.stone < 0) return 'no'; if (G.sliver) { G.sliver = false; k.fills++; end(); return 'filled'; } k.extra++; return 'extra'; }
+  function end() { if (k.gaps.every((G) => G.stone >= 0 && !G.sliver)) { k.done = true; const f = k.fills + k.extra; k.q = f === 0 ? 1 : f <= FIELD55.kasherFills ? 0.65 : 0.3; } }
+  return { rotate, drop, fill, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the four field-stone shapes (outline points, amot, about their middle): no two alike, none symmetric under a quarter turn */
+export const SHAPES55 = Object.freeze([
+  Object.freeze([[-0.85, -0.45], [0.2, -0.62], [0.82, -0.2], [0.7, 0.5], [-0.15, 0.6], [-0.78, 0.25]]),
+  Object.freeze([[-0.7, -0.6], [0.75, -0.5], [0.85, 0.15], [0.3, 0.62], [-0.55, 0.55], [-0.9, -0.05]]),
+  Object.freeze([[-0.6, -0.65], [0.55, -0.6], [0.88, 0.05], [0.45, 0.6], [-0.85, 0.48]]),
+  Object.freeze([[-0.88, -0.3], [-0.3, -0.66], [0.62, -0.55], [0.8, 0.35], [0.1, 0.64], [-0.62, 0.42]]),
+]);
+/** THE LAST ROW, ALONE (מדות ג, א): the yesod runs along all the north and all the west, and one amah into the south and one into the east.
+ *  Slots in the altar's own frame (x from its west 0…32, z from its north 0…32): the north and the west in four stretches each (the first two
+ *  of each laid by the crews), and the two amah-long ends. A stone let go on the rim where there is no yesod: "כאן אין יסוד" — back to the
+ *  heap, no penalty. Grade: one stray or none מהודר, else כשר. */
+export const LAST55 = Object.freeze({
+  slots: Object.freeze([
+    Object.freeze({ id: 'n1', x: 4, z: 0.5, w: 8, d: 1, pre: true }), Object.freeze({ id: 'n2', x: 12, z: 0.5, w: 8, d: 1, pre: true }),
+    Object.freeze({ id: 'n3', x: 20, z: 0.5, w: 8, d: 1 }), Object.freeze({ id: 'n4', x: 28, z: 0.5, w: 8, d: 1 }),
+    Object.freeze({ id: 'w1', x: 0.5, z: 5, w: 1, d: 8, pre: true }), Object.freeze({ id: 'w2', x: 0.5, z: 13, w: 1, d: 8, pre: true }),
+    Object.freeze({ id: 'w3', x: 0.5, z: 21, w: 1, d: 8 }), Object.freeze({ id: 'w4', x: 0.5, z: 28.5, w: 1, d: 7 }),
+    Object.freeze({ id: 's1', x: 1.5, z: 31.5, w: 1, d: 1, end: 'south' }), Object.freeze({ id: 'e1', x: 31.5, z: 1.5, w: 1, d: 1, end: 'east' }),
+  ]),
+  near: 3.2, side: 32,
+});
+export function createLast55(L = 1) {
+  const lv = clamp(L | 0, 1, 4), k = { L: lv, set: {}, strays: 0, done: false, q: null };
+  for (const s of LAST55.slots) if (s.pre) k.set[s.id] = true;
+  const open = () => LAST55.slots.filter((s) => !k.set[s.id]);
+  const dist = (s, x, z) => Math.hypot(Math.max(0, Math.abs(x - s.x) - s.w / 2), Math.max(0, Math.abs(z - s.z) - s.d / 2));
+  /** where on the rim (x, z in the altar's frame) a stone was let go → { r: 'set' | 'noyesod' | 'away' | 'taken', slot } */
+  function drop(x, z) {
+    if (k.done) return { r: 'away' };
+    let best = null; for (const s of LAST55.slots) { const d = dist(s, x, z); if (d <= LAST55.near && (!best || d < best.d)) best = { s, d }; }
+    const rim = Math.min(Math.abs(x), Math.abs(z), Math.abs(LAST55.side - x), Math.abs(LAST55.side - z)) <= LAST55.near && x > -LAST55.near && z > -LAST55.near && x < LAST55.side + LAST55.near && z < LAST55.side + LAST55.near;
+    if (best && !k.set[best.s.id] && (best.d <= 1.6 || !rim)) { k.set[best.s.id] = true; if (!open().length) { k.done = true; k.q = k.strays <= 1 ? 1 : 0.65; } return { r: 'set', slot: best.s }; }
+    if (best && k.set[best.s.id] && best.d <= 1.6) return { r: 'taken', slot: best.s };
+    if (rim) { k.strays++; return { r: 'noyesod' }; }
+    return { r: 'away' };
+  }
+  return { drop, open, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}

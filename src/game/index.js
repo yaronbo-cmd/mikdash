@@ -3461,6 +3461,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function startHar55() {
     if (H42 && H42.on) return;
     for (const c of G.crews || []) if (c.at === 'yesod') c.at = null;
+    hideNext44();   // (no gold pin over the altar's site while he builds it — from above it stood in the last row's frame)
     const nx = STAGES.find((x) => x.id === 'sovev');
     H42 = createHar42({
       stage: 'yesod', stages: world && (world.stages || world), view, nextName: nx ? nx.n : '',

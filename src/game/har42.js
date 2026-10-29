@@ -1234,6 +1234,7 @@ export function createHar42(o = {}) {
     for (const sl of F.LAST55.slots) if (sl.pre) block(sl);
     const shadows = {}; if (L <= 1) for (const sl of F.LAST55.slots) if (!sl.pre) shadows[sl.id] = add55(new THREE.Mesh(new THREE.BoxGeometry(sl.w, 0.12, sl.d), SHD), X0 + sl.x, ay + 0.08, Z0 + sl.z);
     const heap = { x: X0 + S0 + 7, z: Z0 + 10 }, hg = heap53(10, 3); add55(hg, heap.x, gy(heap.x, heap.z), heap.z);
+    if (st.props.plan55) st.props.plan55.forEach((m) => { m.visible = false; });   // (the whole square's gold line hid the ר: only the yesod's own shadow now)
     let drag = null, endT = -1, msgT = 0, rise = -1;
     line(LINE42.last55, `רמה ${L}`);
     if (st.ui.pad) st.ui.pad.classList.add('full');
@@ -1258,7 +1259,7 @@ export function createHar42(o = {}) {
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
-      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (st.life53) st.life53.still = false; },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (st.life53) st.life53.still = false; if (st.props.plan55) st.props.plan55.forEach((m) => { m.visible = true; }); },
     };
     return job;
   }
@@ -2840,7 +2841,7 @@ export function createHar42(o = {}) {
     const go = (j) => runAct(j, TT.L, (q, rating) => after(j, rating));
     const run = () => { const j = next(); if (!j) { end(); return; } line(''); go(j); };
     function after(j, rating) {
-      if (T.demoing === j) { T.demoing = null; const r = T.jobs[j] || { tries: 0, fails: 0, best: null }; r.demo = true; T.jobs[j] = r; save42(S); card('רב האומנים הראה', [`${label[j]} — הושלם`, '~בלי חותם · אפשר לתרגל אותה בחצר האומנים'], 'הלאה', run); return; }
+      if (T.demoing === j) { T.demoing = null; const r = T.jobs[j] || { tries: 0, fails: 0, best: null }; r.demo = true; T.jobs[j] = r; save42(S); card('רב האומנים הראה', [t50 ? `${label[j]} — השלים` : `${label[j]} — הושלם`, '~בלי חותם · אפשר לתרגל אותה בחצר האומנים'], 'הלאה', run); return; }
       const { rec, next: nx } = testTry44(T.jobs[j], rating); T.jobs[j] = rec; save42(S);
       o.emit && o.emit('h44try', { job: j, rating, tries: rec.tries, next: nx });
       if (nx === 'pass') card(rating === 'mehudar' ? `${RATE30.icon.mehudar} מהודר` : `${RATE30.icon.kasher} כשר — עברתם`, [`${label[j]}`], 'הלאה', run);

@@ -1001,7 +1001,7 @@ export function createThread56(L = 1) {
 
 /* ───────── ── build 57 ── stage 10, גוף המזבח והכבש (docs/specs/shlav-alef-08-16-he.md §3 "10"): what is pasul and what only looks pasul
  *  (the inspection's decoys, levels 3–4), the kevesh's rows on an even slope ("שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה", מדות ג, ג) and the
- *  whitewash with a cloth ("וּמְלַבְּנִין אוֹתָן פַּעֲמַיִם בַּשָּׁנָה", מדות ג, ד; never iron) ───────── */
+ *  whitewash with a cloth ("וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה", מדות ג, ד; never iron) ───────── */
 /** the stones of stage 10: each a set of marks on its faces. A mark is a crack (the finger catches), a fossil or natural pits (the finger runs
  *  over them smooth — nature); mud or moss over a face (rubbed off); a nick on the top edge (a slow finger along it catches); a deep crack
  *  (the mallet: dull). Level 3 — one mark; level 4 — two marks on one stone (each to be checked). Kasher ➡, pasul ⬅ */
@@ -1088,7 +1088,7 @@ export function createKevesh57(L = 1, n = KEVESH57.his) {
   const drift = () => (k.rows.length ? k.rows[k.rows.length - 1].h - ideal(k.rows[k.rows.length - 1].i) : 0);
   return { lay, target, ideal, bubble, drift, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
-/** THE WHITEWASH (מדות ג, ד: "וּמְלַבְּנִין אוֹתָן פַּעֲמַיִם בַּשָּׁנָה"; with a cloth — "לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל"): the finger
+/** THE WHITEWASH (מדות ג, ד: "וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה"; with a cloth — "לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל"): the finger
  *  spreads it over a grid on the face; its speed in face-widths a second — slower than vmin drips (each a drop that runs down), faster than
  *  vmax streaks (half covered: a second pass at a good pace covers it). Done at `need` covered. Grade: drips and streaks ≤ hi מהודר, ≤ ok כשר */
 export const SID57 = Object.freeze({ cols: 20, rows: 10, vmin: Object.freeze([null, 0.1, 0.15, 0.2, 0.26]), vmax: Object.freeze([null, 4, 3.2, 2.6, 2.1]), need: Object.freeze([null, 0.8, 0.86, 0.9, 0.92]), hi: 2, ok: 6, gap: 0.6 });   // (level 1 — §1 rule 7, forgiving: from a stroke across the whole face in 10 s to one in a quarter second; the naive kid's 1.7-s strokes over 40 % of the face read slow at 0.2 — K57-P-S2, W-S1)

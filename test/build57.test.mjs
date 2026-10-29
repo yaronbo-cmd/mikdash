@@ -112,7 +112,7 @@ test('build 57: the whitewash — with a cloth, never iron; too slow drips, too 
 test('build 57: §1 rule 12 — every Phase A end card on the right two-thirds, him seen in the left third', () => {
   assert.match(H, /@media \(orientation:landscape\)\{\.h42-card\.h57-end\{direction:ltr;justify-content:flex-end;/);
   assert.match(H, /\.h42-card\.h57-end>div\{direction:rtl;max-width:min\(420px,calc\(66\.6vw - 22px\)\)\}/);
-  assert.match(H, /cardView57\(\);   \/\/ ── build 57 ── \(§1 rule 12/); assert.match(H, /if \(fc\) fc\.classList\.add\('h57-end'\);/);
+  assert.match(H, /cardView57\(\); if \(st\.ui\.btag\) st\.ui\.btag\.hidden = true;   \/\/ ── build 57 ── \(§1 rule 12/); assert.match(H, /if \(fc\) fc\.classList\.add\('h57-end'\);/);
   assert.match(H, /const t = \[fv\.p\[0\] \+ dx \* ca - dz \* sa, fv\.t\[1\], fv\.p\[2\] \+ dz \* ca \+ dx \* sa\];/);
   // the turn (pure): a forward along −x; turned toward the screen's right (f × up = −z) — the point he stands on lands left of the middle
   const fwd = [-1, 0], a = Math.atan(CARD57.at * 1), f2 = [fwd[0] * Math.cos(a) - fwd[1] * Math.sin(a), fwd[1] * Math.cos(a) + fwd[0] * Math.sin(a)], right2 = [-f2[1], f2[0]];

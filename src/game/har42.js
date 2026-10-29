@@ -1173,6 +1173,7 @@ export function createHar42(o = {}) {
     const stones = s0.stones.map((S2, i) => { const m = new THREE.Mesh(shapeGeo(S2.shape, 1, 0.5), ROCK55.clone()); m.material.color.offsetHSL(0, 0, (i - 1) * 0.04); add55(m, home[i].x, top, home[i].z); return m; });
     const fillHome = { x: C.x - 7.4, z: C.z - 2.4 }, fh = new THREE.Group(); for (let k = 0; k < 9; k++) { const p2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.26, 0), ROCK55); p2.position.set(Math.cos(k * 2.4) * 0.45, 0.2 + (k > 5 ? 0.25 : 0), Math.sin(k * 2.4) * 0.45); fh.add(p2); } add55(fh, fillHome.x, cy, fillHome.z);
     function add55(m, x, y, z) { m.position.set(x, y, z); if (st.props.root) st.props.root.add(m); made.push(m); return m; }
+    st.props.field55 = made;
     let drag = null, endT = -1, msgT = 0, lastLine = '';
     const say = (t) => { lastLine = t; msgT = 2.6; line(t, `רמה ${L}`); };
     line(LINE42.field55, `רמה ${L}`);
@@ -1236,6 +1237,7 @@ export function createHar42(o = {}) {
     const shadows = {}; if (L <= 1) for (const sl of F.LAST55.slots) if (!sl.pre) shadows[sl.id] = add55(new THREE.Mesh(new THREE.BoxGeometry(sl.w, 0.12, sl.d), SHD), X0 + sl.x, ay + 0.08, Z0 + sl.z);
     const heap = { x: X0 + S0 + 7, z: Z0 + 10 }, hg = heap53(10, 3); add55(hg, heap.x, gy(heap.x, heap.z), heap.z);
     if (st.props.plan55) st.props.plan55.forEach((m) => { m.visible = false; });   // (the whole square's gold line hid the ר: only the yesod's own shadow now)
+    if (st.props.course55) st.props.course55.visible = false; (st.props.field55 || []).forEach((m) => { m.visible = false; });   // (the first course under the last row: from above it lay over the north's stretches)
     let drag = null, endT = -1, msgT = 0, rise = -1;
     line(LINE42.last55, `רמה ${L}`);
     if (st.ui.pad) st.ui.pad.classList.add('full');

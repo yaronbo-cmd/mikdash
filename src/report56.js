@@ -71,7 +71,7 @@ function dom56(x, W, H, src) {
       const ctr = cs.textAlign === 'center' || tg === 'BUTTON' || (/flex/.test(cs.display) && cs.justifyContent === 'center');
       const pl = (parseFloat(cs.paddingLeft) || 0) * sx, pr = (parseFloat(cs.paddingRight) || 0) * sx, maxW = Math.max(10, w - pl - pr);
       const lines = []; let cur = '';
-      for (const wd of t.split(' ')) { const tr = cur ? cur + ' ' + wd : wd; if (cur && x.measureText(tr).width > maxW) { lines.push(cur); cur = wd; } else cur = tr; }
+      for (const wd of t.split(' ')) { const tr = cur ? cur + ' ' + wd : wd; if (cur && x.measureText(tr).width > maxW * 1.1) { lines.push(cur); cur = wd; } else cur = tr; }
       if (cur) lines.push(cur);
       const keep = lines.slice(0, Math.max(1, Math.ceil(h / lh) + 1)), y0 = Y + Math.max(lh / 2, (h - keep.length * lh) / 2 + lh / 2);
       x.textAlign = ctr ? 'center' : rtl ? 'right' : 'left';

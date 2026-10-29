@@ -1,3 +1,5 @@
+import './fix56.js';   // ── build 56ב ── FIRST: the tester's chosen stage into the page's address, before any module reads it ── /build 56ב ──
+import { installTester56 } from './tester56.js';   // ── build 56ב ── the tester's stage menu ── /build 56ב ──
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -958,6 +960,7 @@ const finale = createFinale({
 { const ev = music.event; music.event = function (t, d, ph) { try { finale.event(t, d, ph); } catch (e) { /* the finale's */ } return ev.apply(this, arguments); }; }
 globalThis.__BH_FINALE = finale;
 // ── /world12 ──
+try { installTester56(); } catch (e) { /* */ }   // ── build 56ב ── (five taps in the top-right corner) ── /build 56ב ──
 function startGame() {
   // ── fable32 (build 28) ── the shipped page (__FORCE_SHIFT, tools/mkout.cjs) is the day alone: whatever the link says ('#shift=N' — the
   // 90 s "משמרת"; '#avodah…' — the old Phase B home, the engine22 day where the player is the אמרכל) it opens the lobby, or the day itself

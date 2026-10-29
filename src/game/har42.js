@@ -1004,7 +1004,7 @@ export function createHar42(o = {}) {
     if (o2.nick != null) { const x = o2.nick * w; c2.fillStyle = 'rgba(60,45,30,.55)'; c2.beginPath(); c2.moveTo(x - 7, 0); c2.lineTo(x + 7, 0); c2.lineTo(x + 1, 9); c2.closePath(); c2.fill(); }
     if (o2.mud > 0) {   // a mud stain over the face (o2.mud: how much is left)
       c2.globalAlpha = Math.min(1, o2.mud * 1.15); c2.fillStyle = '#6B4A2C';
-      const cx = (o2.mu != null ? o2.mu : o2.u) * w, cy = (o2.mv != null ? o2.mv : o2.v) * h; c2.beginPath(); for (let i = 0; i <= 14; i++) { const a = (i / 14) * 6.283, r = (0.36 + 0.1 * Math.sin(i * 2.3 + (o2.seed % 7))) * h; const x = cx + Math.cos(a) * r * 1.55, y = cy + Math.sin(a) * r; i ? c2.lineTo(x, y) : c2.moveTo(x, y); } c2.closePath(); c2.fill();
+      const cx = (o2.mu != null ? o2.mu : o2.u) * w, cy = (o2.mv != null ? o2.mv : o2.v) * h; c2.beginPath(); for (let i = 0; i <= 28; i++) { const a = (i / 28) * 6.283, r = (0.34 + 0.06 * Math.sin(a * 2 + (o2.seed % 7)) + 0.025 * Math.sin(a * 5 + 1.3)) * h;   /* (a soft blob — at 14 points ± 0.1 it was a star) */ const x = cx + Math.cos(a) * r * 1.55, y = cy + Math.sin(a) * r; i ? c2.lineTo(x, y) : c2.moveTo(x, y); } c2.closePath(); c2.fill();
       c2.fillStyle = '#4E331C'; for (let i = 0; i < 9; i++) { c2.beginPath(); c2.arc(cx + (rnd() - 0.5) * h * 0.9, cy + (rnd() - 0.5) * h * 0.5, 3 + rnd() * 5, 0, 6.283); c2.fill(); }
       c2.globalAlpha = 1;
     }
@@ -1440,7 +1440,7 @@ export function createHar42(o = {}) {
         if (STG === 'lishka') hole50(null);   // ── build 50 ── (the chambers done — complete() set them at once)
         if (STG === 'nikanor') { hole49(null); try { stages.hero.show(true); } catch (e) { /* */ } }   // ── build 49 ── (the model's own steps and doors, done — complete() set it at once; 'building' at 1 kept the scaffold up: his Levites stand on them)
         if (STG === 'soreg') { hole46(false); try { if (stages.setStage) stages.setStage('sorag', 'building', 1, {}); } catch (e) { /* */ } }   // ── build 46 ── (the soreg whole: the model's own where his panels stood)
-        st.rev = { t: 0, out, V, p0: [P0.x + 7, P0.y + 4.5, P0.z + 6], t0: [P0.x, P0.y + 0.5, P0.z + 1.5] };
+        st.rev = { t: 0, out, V, p0: STG === 'yesod' ? [cq.p.x, cq.p.y, cq.p.z] : [P0.x + 7, P0.y + 4.5, P0.z + 6], t0: STG === 'yesod' ? [cq.t.x, cq.t.y, cq.t.z] : [P0.x, P0.y + 0.5, P0.z + 1.5] };   // ── build 55 ── (from the last row's own view, risen — from close over the altar's middle the first frames were the slab's dark top) ── /build 55 ──
         if (st.snapshot && doc && STG === 'har') { const im = el('h42-before', '', 'img'); im.src = st.snapshot; im.style.opacity = '0'; st.ui.root.appendChild(im); st.ui.before = im; }
         const tg = el('h42-tag', ''); tg.hidden = true; st.ui.root.appendChild(tg); st.ui.btag = tg;
         if (doc && st.ui.root) { const b = el('h42-skip', 'דלגו', 'button'); b.type = 'button'; b.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (st.rev) st.rev.t = Math.max(st.rev.t, 8.9); }); st.ui.root.appendChild(b); st.ui.skip = b; }

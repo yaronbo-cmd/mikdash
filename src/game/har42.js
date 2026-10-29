@@ -1967,14 +1967,14 @@ export function createHar42(o = {}) {
   function fire58Make() {   // the fire (flickering cones) and its column of smoke (puffs rising straight up — "ולא נצחה הרוח את עמוד העשן")
     const sc = scene(); if (!sc) return null; const g = new THREE.Group(); g.name = 'fire58'; g.position.set(PYRE58P.x, TOP58 + 0.3, PYRE58P.z);
     const FM = new THREE.MeshBasicMaterial({ color: '#FFA23A', transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }), FM2 = new THREE.MeshBasicMaterial({ color: '#FFE08A', transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
-    g.userData.flames = []; for (let i = 0; i < 9; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.28 + (i % 3) * 0.08, 1.3, 8), i % 3 ? FM : FM2); const a = i * 2.39, r = (i % 4) * 0.25; f.position.set(Math.cos(a) * r, 0.65, Math.sin(a) * r); f.userData.ph = i * 1.3; g.add(f); g.userData.flames.push(f); }
-    const SM = new THREE.MeshLambertMaterial({ color: '#66615B', transparent: true, opacity: 0.6, depthWrite: false });   /* (darker: grey on the court's sandstone read faint — c58C-SP) */ g.userData.puffs = []; for (let i = 0; i < 26; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), SM.clone()); p.userData.t = i / 26;   /* (each its own: one shared material took the last puff's fade) */ g.add(p); g.userData.puffs.push(p); }
+    g.userData.flames = []; for (let i = 0; i < 9; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.28 + (i % 3) * 0.08, 1.8, 8), i % 3 ? FM : FM2); const a = i * 2.39, r = (i % 4) * 0.22; f.position.set(Math.cos(a) * r, 0.9, Math.sin(a) * r); f.userData.ph = i * 1.3; g.add(f); g.userData.flames.push(f); }
+    const SM = new THREE.MeshLambertMaterial({ color: '#66615B', transparent: true, opacity: 0.6, depthWrite: false });   /* (darker: grey on the court's sandstone read faint — c58C-SP) */ g.userData.puffs = []; for (let i = 0; i < 44; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), SM.clone()); p.userData.t = i / 44;   /* (each its own: one shared material took the last puff's fade) */ g.add(p); g.userData.puffs.push(p); }
     g.userData.k = 0; sc.add(g); return g;
   }
   function fireFrame58(dt) {
     const g = st.fire58; if (!g) return; g.userData.k = Math.min(1, g.userData.k + dt / 2.5); const k = g.userData.k, t = now();
     for (const f of g.userData.flames) { const s = (0.3 + 0.7 * k) * (0.8 + 0.25 * Math.sin(t * 9 + f.userData.ph)); f.scale.set(s, s * (1 + 0.3 * Math.sin(t * 7 + f.userData.ph)), s); }
-    for (const p of g.userData.puffs) { p.userData.t = (p.userData.t + dt / 9) % 1; const u = p.userData.t, h = 1.5 + u * 48 * k, r = 0.5 + u * 2.2; p.position.set(Math.sin(u * 7 + t * 0.3) * 0.15, h, Math.cos(u * 5) * 0.15); p.scale.setScalar(r * (0.6 + 0.4 * k)); p.material.opacity = 0.62 * (1 - u * 0.85) * k; p.visible = k > 0.05; }
+    for (const p of g.userData.puffs) { p.userData.t = (p.userData.t + dt / 9) % 1; const u = p.userData.t, h = 1.3 + u * 36 * k, r = 0.7 + u * 2.4;   /* (44 puffs ≈ 0.8 amah apart, each wider than the step: one column, not beads — c58D-SP) */ p.position.set(Math.sin(u * 7 + t * 0.3) * 0.15, h, Math.cos(u * 5) * 0.15); p.scale.setScalar(r * (0.6 + 0.4 * k)); p.material.opacity = 0.62 * (1 - u * 0.85) * k; p.visible = k > 0.05; }
   }
   function mkPyre58(L) {
     const J = F.createPyre58(L, Math.random), k = J.state(), made = [], logs = [], Y = F.PYRE58;

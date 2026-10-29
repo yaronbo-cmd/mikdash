@@ -17,7 +17,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 53: GAME_BUILD 53', () => {
-  assert.equal(GAME_BUILD, 57);
+  assert.equal(GAME_BUILD, 58);
 });
 
 test('build 53: the object rule in stages 01–02 — Phase B\'s obj51 on the act view (03–07 untouched: build 54); the measure per Phase A part', () => {

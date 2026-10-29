@@ -314,6 +314,30 @@ async function sid57k(K) {
   if (!g || !g.fb) return false; const fb = g.fb, y = K.rnd() < 0.6 ? fb.t + fb.h * g.row + K.between(-12, 12) : K.between(fb.t + 8, fb.b - 8), x0 = K.between(fb.l, fb.l + fb.w * 0.3), x1 = K.between(fb.r - fb.w * 0.3, fb.r), r = K.rnd(), T = r < 0.12 ? K.between(3000, 6000) : r < 0.25 ? K.between(80, 160) : K.between(500, 1800), rev = K.rnd() < 0.5;
   await K.swipe(rev ? x1 : x0, y, rev ? x0 - x1 : x1 - x0, K.between(-20, 20), T); K.ev('sid-stroke', `${Math.round(T)}ms`); return true;
 }
+// ── build 58 ── stage 11, a child's way: the HORN — dragged toward the corner (the gold shadow he sees: 60 %), or turned round its ring, or
+// twisted with two fingers, any amount; the JUG — its handle dragged along the arc to a point (the gold mark he sees: 60 %), held a while, let
+// go; the WOOD — a log from the pile to the right (the gold place he sees: 60 %) or to the left, any; the torch when it glows
+async function horns58k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'horns58') return null; const R = j.ref; return { h: R.hornAt(), t: R.targetAt(), r: R.ringR() }; }).catch(() => null);
+  if (!g || !g.h) return false; const r = K.rnd(), id = 7;
+  if (r < 0.45 && g.t) { const aim = K.rnd() < 0.6 ? g.t : { x: g.h.x + K.between(-120, 120), y: g.h.y + K.between(-80, 80) }; await K.down(id, g.h.x + K.between(-12, 12), g.h.y + K.between(-10, 10)); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, g.h.x + ((aim.x - g.h.x) * i) / 12 + K.between(-6, 6), g.h.y + ((aim.y - g.h.y) * i) / 12 + K.between(-6, 6)); } await K.up(id); K.ev('horn-drag'); return true; }
+  if (r < 0.8) { const a0 = K.between(-1.5, 0.5), da = K.between(-1.2, 1.2), n = 10; await K.down(id, g.h.x + Math.cos(a0) * g.r, g.h.y + Math.sin(a0) * g.r); for (let i = 1; i <= n; i++) { await K.sleep(K.between(30, 70)); const a = a0 + (da * i) / n; await K.move(id, g.h.x + Math.cos(a) * g.r + K.between(-5, 5), g.h.y + Math.sin(a) * g.r + K.between(-5, 5)); } await K.up(id); K.ev('horn-ring', `${Math.round((da * 180) / Math.PI)}°`); return true; }
+  const a0 = K.between(0, 3), da = K.between(-0.9, 0.9), R0 = K.between(35, 70), n = 10; await K.down(7, g.h.x + Math.cos(a0) * R0, g.h.y + Math.sin(a0) * R0); await K.down(8, g.h.x - Math.cos(a0) * R0, g.h.y - Math.sin(a0) * R0);
+  for (let i = 1; i <= n; i++) { await K.sleep(K.between(30, 70)); const a = a0 + (da * i) / n; await K.move(7, g.h.x + Math.cos(a) * R0, g.h.y + Math.sin(a) * R0); await K.move(8, g.h.x - Math.cos(a) * R0, g.h.y - Math.sin(a) * R0); }
+  await K.up(8); await K.sleep(40); await K.up(7); K.ev('horn-twist', `${Math.round((da * 180) / Math.PI)}°`); return true;
+}
+async function holes58k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'holes58') return null; const R = j.ref, m = document.querySelector('.h42 svg circle[data-safe58]'); return { h: R.arcAt(R.tilt()), arc: [0.2, 0.4, 0.6, 0.8, 1].map((t) => R.arcAt(t)), mark: m ? { x: +m.getAttribute('cx'), y: +m.getAttribute('cy') } : null }; }).catch(() => null);
+  if (!g || !g.h) return false; const aim = g.mark && K.rnd() < 0.6 ? g.mark : g.arc[Math.floor(K.rnd() * g.arc.length)]; if (!aim) return false; const id = 7;
+  await K.down(id, g.h.x + K.between(-10, 10), g.h.y + K.between(-10, 10)); for (let i = 1; i <= 8; i++) { await K.sleep(K.between(30, 70)); await K.move(id, g.h.x + ((aim.x - g.h.x) * i) / 8 + K.between(-5, 5), g.h.y + ((aim.y - g.h.y) * i) / 8 + K.between(-5, 5)); }
+  const hold = K.between(400, 3500); await K.sleep(hold); await K.up(id); K.ev('jug-pour', `${Math.round(hold)}ms`); return true;
+}
+async function pyre58k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'pyre58') return null; const R = j.ref, ln = (document.querySelector('.h42-line b') || {}).textContent || ''; return { logs: R.logsAt().filter((x) => x.at === 'pile' && x.p), slot: R.slotAt(), torch: R.J.ready() ? R.torchAt() : null, Z: R.zones(), says: /⬅/.test(ln) && !/➡/.test(ln) ? 'out' : null }; }).catch(() => null);
+  if (!g) return false; if (g.torch) { await K.tap(g.torch.x + K.between(-12, 12), g.torch.y + K.between(-10, 10)); K.ev('pyre-torch'); return true; }
+  if (!g.logs.length) return false; const lg = g.logs[Math.floor(K.rnd() * g.logs.length)], toOut = g.says ? K.rnd() < 0.6 : K.rnd() < 0.3, t = toOut ? { x: g.Z.out.x + g.Z.out.w / 2, y: g.Z.out.y + g.Z.out.h / 2 } : g.slot && K.rnd() < 0.6 ? g.slot : { x: g.Z.altar.x + K.between(0, g.Z.altar.w), y: g.Z.altar.y + K.between(0, g.Z.altar.h) }, id = 7;
+  await K.down(id, lg.p.x + K.between(-10, 10), lg.p.y + K.between(-8, 8)); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, lg.p.x + ((t.x - lg.p.x) * i) / 12 + K.between(-6, 6), lg.p.y + ((t.y - lg.p.y) * i) / 12 + K.between(-6, 6)); } await K.up(id); K.ev('pyre-' + (toOut ? 'out' : 'in')); return true;
+}
 // chip, any of the three, to a dashed ring; the WEDGES — taps
 async function compass50k(K) {
   const g = await K.pg.evaluate(() => { const c = [...document.querySelectorAll('.h42 svg circle')].find((q) => +q.getAttribute('r') === 26); const pl = [...document.querySelectorAll('.h42 svg polyline')].pop(); return { c: c ? { x: +c.getAttribute('cx'), y: +c.getAttribute('cy') } : null, pts: pl ? pl.getAttribute('points').split(' ').map((p) => p.split(',').map(Number)) : null }; }).catch(() => null);
@@ -345,6 +369,7 @@ async function mount42(K) {
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
+      if (h && !h.on && h.stg === 'karnot' && h.part === 'done') { K.R.karnot58 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('karnot done'); break; }   /* ── build 58 ── stage 11's end */
       if (h && !h.on && h.stg === 'guf' && h.part === 'done') { K.R.guf57 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('guf done'); break; }   /* ── build 57 ── stage 10's end */
       if (h && !h.on && h.stg === 'sovev' && h.part === 'done') { K.R.sovev56 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('sovev done'); break; }   /* ── build 56 ── stage 09's end */
       if (h && !h.on && h.stg === 'yesod' && h.part === 'done') { K.R.yesod55 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('yesod done'); break; }   // ── build 55 ── stage 08's end
@@ -384,6 +409,9 @@ async function mount42(K) {
       else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
       else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
       else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      else if (/גררו לפינה ⤵|סובבו עוד ⟳|הזיזו אל הפינה|הונחה ישר|הרביעית בלי צל/.test(L) && r < 0.88) { if (!(await horns58k(K))) await K.tryLine(s); }   /* ── build 58 ── */
+      else if (/הטו את הכד|גלש! הטו|יורדים לנקבים/.test(L) && r < 0.88) { if (!(await holes58k(K))) await K.tryLine(s); }
+      else if (/גררו: כשר|הניחו שניים|הניחו בינוניים|הניחו דקים|לא למערכה|גררו למערכה|הדליקו 👆|רוח בין העצים|צפוף — אין|רחב מדי/.test(L) && r < 0.88) { if (!(await pyre58k(K))) await K.tryLine(s); }
       else if (/^בדקו ∙|נוגב — שלמה|האצבע עוברת חלק|לא נתפסת — גומות|חלק — בדקו עוד|נתפסה בסדק|חלקה — הקישו|נתפסה בשפה|עברה חלק ∙|העדות מצלצלת|מצלצלת ∙ אין|עמומה — סדוקה/.test(L) && r < 0.88) { if (!(await decoy57k(K))) await K.tryLine(s); }   /* ── build 57 ── */
       else if (/גררו ⤵ ∙ כוונו|נמוכה — הרימו|גבוהה — הורידו|אחיד! ∙ גררו|כמעט — הבאה|עקומה — הורידו|גררו לשורה|הכבש פוגש|מראש המזבח/.test(L) && r < 0.88) { if (!(await kevesh57k(K))) await K.tryLine(s); }
       else if (/מרחו ↔|לאט מדי — נוטף|מהר מדי — פסים|מרחו במטלית/.test(L) && r < 0.88) { if (!(await sid57k(K))) await K.tryLine(s); }

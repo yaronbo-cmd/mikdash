@@ -76,7 +76,7 @@ test('build 49: the stage — its parts, the doors left bronze ("מפני שנע
   assert.deepEqual(YARD44.slice(16, 18).map((v) => v.part), ['lever', 'step']);   // (build 50: then stage 07's)
   const c = F.MAT42.cost; assert.equal(c.voyage, 0, 'the voyage costs nothing'); assert.ok(c.lever > 0 && c.leaf49 > 0 && c.steps > 0);
   const h = read('src/game/har42.js');
-  assert.match(h, /o\.stage === 'nikanor' \? 'nikanor' : o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?(?:o\.stage === 'sovev' \? 'sovev' : )?(?:o\.stage === 'guf' \? 'guf' : )?'har';/);   // (build 50: and stage 07's) assert.match(h, /STG === 'nikanor' \? PARTS49 :/);
+  assert.match(h, /o\.stage === 'nikanor' \? 'nikanor' : o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?(?:o\.stage === 'sovev' \? 'sovev' : )?(?:o\.stage === 'guf' \? 'guf' : )?(?:o\.stage === 'karnot' \? 'karnot' : )?'har';/);   // (build 50: and stage 07's) assert.match(h, /STG === 'nikanor' \? PARTS49 :/);
   for (const k of ['voyage', 'lever', 'hang', 'steps']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   for (const line of [h, read('src/game/voyage49.js'), read('src/game/fam42.js')].join('\n').split('\n')) { const c = line.indexOf('//'); if (c < 0 || /https?:|'[^']*\/\/|`[^`]*\/\//.test(line)) continue; assert.ok(!/\b(target|frame|view|begin|end|down|up|move): \(/.test(line.slice(c)), `code after a comment: ${line.slice(c, c + 120)}`); }   // (four times this build a // swallowed code on its line)
   assert.match(h, /if \(J\.camK\) \{ if \(J\.frame\(dt\)\) endPart\(\); return; \}/, 'the voyage\'s own camera');
@@ -84,7 +84,7 @@ test('build 49: the stage — its parts, the doors left bronze ("מפני שנע
   assert.match(h, /if \(STG === 'nikanor'\) \{ hole49\(null\); try \{ stages\.hero\.show\(true\);/, 'the reveal: the model\'s own doors and steps');
   assert.match(h, /\n    corner: \{ begin\(\) \{ st\.job = STG === 'nashim' && MODE === 'stage' \? mkCorner48\(\) : mkCorner\(\); \} \},/); assert.equal((h.match(/\n    corner: \{ begin\(\)/g) || []).length, 1, 'one corner part (build 48 had two keys: stage 01\'s crowbar was overridden)');
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted49\(\)\) startHar49\(\);/); assert.match(g, /\(nikanor49=0\|stick=1\|har42=0\)/); assert.match(g, /h49\(go\|voy\)=1/); assert.match(g, /if \(done && wanted49\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar49\(\); \}, 400\);/); assert.match(g, /restoreTime: \(\) => \{ tod = null;/);
-  assert.equal(GAME_BUILD, 57);   // (build 50: the constant moved on) (build 51: again)
+  assert.equal(GAME_BUILD, 58);   // (build 50: the constant moved on) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/voyage49.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

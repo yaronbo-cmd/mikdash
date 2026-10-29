@@ -315,7 +315,7 @@ async function sid57k(K) {
   await K.swipe(rev ? x1 : x0, y, rev ? x0 - x1 : x1 - x0, K.between(-20, 20), T); K.ev('sid-stroke', `${Math.round(T)}ms`); return true;
 }
 // ── build 58 ── stage 11, a child's way: the HORN — dragged toward the corner (the gold shadow he sees: 60 %), or turned round its ring, or
-// twisted with two fingers (the way the ring's arrow shows: 60 %), any amount, stopping when both faces glow green (60 %); the WOOD — a ringed log
+// twisted with two fingers (the way the ring's arrow shows: 60 %), any amount, stopping when the ring or both faces glow green (60 %); the WOOD — a ringed log
 // (level 1's gold or red ring he sees: 60 %) where its ring says; the JUG — its handle dragged along the arc to a point (the gold mark he sees: 60 %), held a while, let
 // go; the WOOD — a log from the pile to the right (the gold place he sees: 60 %) or to the left, any; the torch when it glows
 async function horns58k(K) {
@@ -323,7 +323,7 @@ async function horns58k(K) {
   if (!g || !g.h) return false; const r = K.rnd(), id = 7;
   if (r < 0.45 && g.t) { const aim = K.rnd() < 0.6 ? g.t : { x: g.h.x + K.between(-120, 120), y: g.h.y + K.between(-80, 80) }; await K.down(id, g.h.x + K.between(-12, 12), g.h.y + K.between(-10, 10)); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, g.h.x + ((aim.x - g.h.x) * i) / 12 + K.between(-6, 6), g.h.y + ((aim.y - g.h.y) * i) / 12 + K.between(-6, 6)); } await K.up(id); K.ev('horn-drag'); return true; }
   // a turn: the way the ring's arrow shows (60 %) or his own; any amount — but he sees the faces glow and, 60 % of the time, stops when both are green
-  const sg = g.turn && K.rnd() < 0.6 ? (g.turn === 'cw' ? 1 : -1) : K.rnd() < 0.5 ? 1 : -1, watch = K.rnd() < 0.6, green = () => K.pg.evaluate(() => { const e = [...document.querySelectorAll('.h42 svg line[data-edge58]')].map((q) => q.getAttribute('data-edge58')); return e.length === 2 && e.every((x) => x.endsWith('1')); }).catch(() => false);
+  const sg = g.turn && K.rnd() < 0.6 ? (g.turn === 'cw' ? 1 : -1) : K.rnd() < 0.5 ? 1 : -1, watch = K.rnd() < 0.6, green = () => K.pg.evaluate(() => { const e = [...document.querySelectorAll('.h42 svg line[data-edge58]')].map((q) => q.getAttribute('data-edge58')), rg = document.querySelector('.h42 svg circle[data-ring58]'); return (e.length === 2 && e.every((x) => x.endsWith('1'))) || (!!rg && rg.getAttribute('data-ring58') === 'sq'); }).catch(() => false);
   let stopped = false;
   if (r < 0.8) { const a0 = K.between(-1.5, 0.5), da = sg * K.between(0.15, 1.2), n = 14; await K.down(id, g.h.x + Math.cos(a0) * g.r, g.h.y + Math.sin(a0) * g.r); for (let i = 1; i <= n; i++) { await K.sleep(K.between(30, 70)); const a = a0 + (da * i) / n; await K.move(id, g.h.x + Math.cos(a) * g.r + K.between(-3, 3), g.h.y + Math.sin(a) * g.r + K.between(-3, 3)); if (watch && (await green())) { stopped = true; break; } } await K.up(id); K.ev('horn-ring', `${Math.round((da * 180) / Math.PI)}°${stopped ? ' green' : ''}`); return true; }
   const a0 = K.between(0, 3), da = sg * K.between(0.1, 0.9), R0 = K.between(35, 70), n = 14; await K.down(7, g.h.x + Math.cos(a0) * R0, g.h.y + Math.sin(a0) * R0); await K.down(8, g.h.x - Math.cos(a0) * R0, g.h.y - Math.sin(a0) * R0);

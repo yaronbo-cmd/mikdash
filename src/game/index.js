@@ -520,6 +520,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     try { if (/[?&]h50go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'lishka')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     // ── fable32 (build 55) ── the developers' fixture ?h55go=1: straight to stage 08 (the stages before it done, chapter ג׳'s test passed) ── /fable32 ──
     try { if (/[?&]h55go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'yesod')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.test50 = Object.assign(S4.test50 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
+    // ── fable32 (build 56) ── the developers' fixture ?h56go=1: straight to stage 09 (the stages before it done, chapter ג׳'s test passed) ── /fable32 ──
+    try { if (/[?&]h56go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'sovev')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.test50 = Object.assign(S4.test50 || { jobs: {} }, { passed: true }); S4.yesod = Object.assign(S4.yesod || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     // ── fable32 (build 50) ── ?h50test=1: straight to the craftsman's test before chapter ג׳ (the chambers done the new way) ── /fable32 ──
     try { if (/[?&]h50test=1(&|$)/.test(location.search || '') && !S.isDone(G, 'yesod')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     ensureWall45();   // ── fable32 (build 46) ── his stones in the court wall, from the save ── /fable32 ──
@@ -533,6 +535,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     else if (wanted50()) startHar50();   // ── fable32 (build 50) ── stage 07, the chambers, the new way ── /fable32 ──
     else if (wantedTest50()) startH44('test', '', 50);   // ── fable32 (build 50) ── the craftsman's test before chapter ג׳ ── /fable32 ──
     else if (wanted55()) startHar55();   // ── fable32 (build 55) ── stage 08, the yesod, the new way ── /fable32 ──
+    else if (wanted56()) startHar56();   // ── fable32 (build 56) ── stage 09, the sovev and the red line, the new way ── /fable32 ──
     else if (isNew || G.ftue < 99) runFtue();
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
@@ -3469,6 +3472,29 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
       complete: () => { const out = S.completeStage(G, 'yesod'); persist(); syncWorld(null); hideNext44(); return out; },
+      onExit: (done) => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } if (done && wanted56()) setTimeout(() => { if (!H42) startHar56(); }, 400); },   // ── fable32 (build 56) ── (stage 09 follows) ── /fable32 ──
+    });
+    H42.start();
+  }
+  // ── fable32 (build 56) ── stage 09, הסובב וחוט הסיקרא, the new way (har42 STG 'sovev' — docs/specs/shlav-alef-08-16-he.md §3 "09"): after
+  // stage 08; the old flow behind ?sovev56=0, ?stick=1, ?har42=0, the demo, the sovev begun the old way
+  function wanted56() {
+    if (!G || G.demo || !['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod'].every((id) => S.isDone(G, id)) || S.isDone(G, 'sovev') || globalThis.__H56_OFF) return false;
+    try { if (/[?&](sovev56=0|stick=1|har42=0)(&|$)/.test(location.search || '')) return false; } catch (e) { /* */ }
+    if (wantedTest44() || wantedTest50()) return false;
+    const w = G.st && G.st.sovev; return !(w && (w.p > 0 || w.c > 0));
+  }
+  function startHar56() {
+    if (H42 && H42.on) return;
+    for (const c of G.crews || []) if (c.at === 'sovev') c.at = null;
+    hideNext44();
+    const nx = STAGES.find((x) => x.id === 'guf');
+    H42 = createHar42({
+      stage: 'sovev', stages: world && (world.stages || world), view, nextName: nx ? nx.n : '',
+      emit: (t, d) => emit(t, d), sound: (k) => { try { sfx.play(k); } catch (e) { /* a sound we lack */ } },
+      keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
+      timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
+      complete: () => { const out = S.completeStage(G, 'sovev'); persist(); syncWorld(null); hideNext44(); return out; },
       onExit: () => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
     });
     H42.start();

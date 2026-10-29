@@ -830,12 +830,14 @@ export function createArch50(L = 1) {
  *  snapping) and the last row of the yesod (only where there is one: Middot 3:1). Kasher ➡, pasul ⬅ (§1 rule 13). ───────── */
 /** the stones' defect pool: each a kind with its verdict and its source */
 export const STONE55 = Object.freeze({
-  crack: Object.freeze({ he: 'סדק', bad: true, why: '"וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  crack: Object.freeze({ he: 'סדק', bad: true, why: '"וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
   mud: Object.freeze({ he: 'כתם בוץ', bad: false, decoy: true, wipe: true, why: 'בוץ — מנגבים, ונשארת אבן שלמה · המחשה' }),
-  mudcrack: Object.freeze({ he: 'סדק מתחת לבוץ', bad: true, wipe: true, under: true, why: 'מתחת לבוץ — סדק; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  mudcrack: Object.freeze({ he: 'סדק מתחת לבוץ', bad: true, wipe: true, under: true, why: 'מתחת לבוץ — סדק; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
   whole: Object.freeze({ he: 'אבן שלמה', bad: false, why: '"אֲבָנִים שְׁלֵמוֹת" — דברים כז, ו · טיוטה' }),
   nick: Object.freeze({ he: 'פגימה בשפה', bad: true, edge: true, why: '"וכמה פגימת המזבח — כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה' }),
-  iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בְּמַגָּע" — מדות ג, ד · טיוטה' }),
+  iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בִּנְגִיעָה" — מדות ג, ד · טיוטה' }),
+  hair: Object.freeze({ he: 'סדק נסתר', bad: true, raking: true, why: 'רק באור צד; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),   // ── build 56 ──
+  deep: Object.freeze({ he: 'סדק עמוק', bad: true, ring: true, why: 'צליל עמום; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
 });
 export const STONE55_TYPES = Object.freeze(Object.keys(STONE55));
 /** the bag's types by level: the first inspection (level 1) — a crack, a mud stain, a whole stone; then the mud over a crack; after the twist — iron */
@@ -844,14 +846,14 @@ export const BAG55 = Object.freeze({ 1: Object.freeze(['crack', 'mud', 'whole'])
  *  swipe ↔ turns it; rubbing WIPES the face in view (the mud goes); a drag to a heap DECIDES — kasher ➡ "למזבח", pasul ⬅ "לא למזבח" */
 export function createStone55(type, rnd = Math.random, L = 1) {
   const T = STONE55[type] || STONE55.whole, lv = clamp(L | 0, 1, 4);
-  const f0 = lv <= 1 ? (type === 'iron' ? 0 : rnd() < 0.5 ? 0 : 1) : 1 + Math.floor(rnd() * 3);   // (level 1: the crack on the face in view or the next one; the iron's face in view — its glint still only at its angle)
+  const f0 = T.raking || T.ring ? 0 : lv <= 1 ? (type === 'iron' ? 0 : rnd() < 0.5 ? 0 : 1) : 1 + Math.floor(rnd() * 3);   // (build 56: the raking light's crack and the mallet's on the face in view)   // (level 1: the crack on the face in view or the next one; the iron's face in view — its glint still only at its angle)
   const k = { type, bad: !!T.bad, face: 0, L: lv, at: { face: T.edge ? -1 : f0, u: 0.25 + rnd() * 0.5, v: 0.3 + rnd() * 0.4, len: 0.45 + rnd() * 0.3, seed: Math.floor(rnd() * 1e6) },
     mud: -1, wiped: 0, turns: 0, decided: null, right: null };
   if (T.wipe) k.mud = k.at.face;
-  else if (lv <= 1 && !T.edge && !T.glint) k.mud = (k.at.face + 2) % 4;   // (the decoy, on the face opposite)
+  else if (lv <= 1 && !T.edge && !T.glint && !T.raking && !T.ring) k.mud = (k.at.face + 2) % 4;   // (the decoy, on the face opposite)
   const covered = () => k.mud >= 0 && k.wiped < 1;
   /** what shows on the face in view: 'crack' | 'mud' | 'glint' | null */
-  const shows = () => { if (k.mud === k.face && covered()) return 'mud'; if (k.at.face !== k.face) return null; return type === 'crack' || type === 'mudcrack' ? 'crack' : type === 'iron' ? 'glint' : null; };
+  const shows = () => { if (k.mud === k.face && covered()) return 'mud'; if (k.at.face !== k.face) return null; return type === 'crack' || type === 'mudcrack' ? 'crack' : type === 'iron' ? 'glint' : type === 'hair' ? 'hair' : null; };
   function turn(dir) { if (k.decided) return 'done'; k.face = (k.face + (dir < 0 ? 3 : 1)) % 4; k.turns++; return 'turn'; }
   /** rubbing on the face in view: amount 0…1 of a full wipe */
   function wipe(amount) { if (k.decided) return 'done'; if (k.mud !== k.face || k.wiped >= 1) return 'clean'; k.wiped = Math.min(1, k.wiped + Math.max(0, amount)); return k.wiped >= 1 ? 'wiped' : 'wiping'; }
@@ -945,4 +947,48 @@ export function createLast55(L = 1) {
     return { r: 'away' };
   }
   return { drop, open, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+
+/* ───────── ── build 56 ── stage 09, הסובב וחוט הסיקרא (docs/specs/shlav-alef-08-16-he.md §3 "09"): the raking light, the mallet and the
+ *  witness stone, the courses stepped in (מדות ג, א: "עלה חמש וכנס אמה"), the red line at the altar's middle ───────── */
+/** the raking light: a crack that shows only when the lamp is low at the stone's side — its angle θ (radians from the front, ± to the sides) */
+export const RAKE56 = Object.freeze({ from: Object.freeze([null, 0.7, 0.95, 1.05, 1.15]), span: 0.3 });
+export const rake56 = (theta, L = 2) => { const lv = clamp(L | 0, 1, 4), k = clamp((Math.abs(theta) - RAKE56.from[lv]) / RAKE56.span, 0, 1); return lv <= 1 ? Math.max(0.25, k) : k; };
+/** the mallet's ring: a whole stone rings long and wide; a cracked one dull — short and broken; level 4's deep crack only a little shorter */
+export const RING56 = Object.freeze({ whole: Object.freeze({ rings: 5, T: 1.6, reach: 0.5, broken: false }), crack: Object.freeze([null, Object.freeze({ rings: 2, T: 0.55, reach: 0.18, broken: true }), Object.freeze({ rings: 2, T: 0.6, reach: 0.2, broken: true }), Object.freeze({ rings: 2, T: 0.65, reach: 0.22, broken: true }), Object.freeze({ rings: 4, T: 1.25, reach: 0.4, broken: true })]) });
+export const ring56 = (cracked, L = 3) => (cracked ? RING56.crack[clamp(L | 0, 1, 4)] : RING56.whole);
+/** THE SOVEV's course: each stone laid where it is let go — out from the plumb line by e (amot; + juts out, − set in); small drags inward ⬅ /
+ *  outward ➡ move it; within tol of the line it is true. Grade: the nudges over the course — n or fewer מהודר, 2n כשר, more טעון תיקון */
+export const COURSE56 = Object.freeze({ tol: Object.freeze([null, 0.12, 0.09, 0.07, 0.05]), max: 0.8 });
+export function createCourse56(n = 4, L = 1) {
+  const lv = clamp(L | 0, 1, 4), k = { L: lv, n, stones: [], cur: -1, nudges: 0, done: false, q: null };
+  const tol = COURSE56.tol[lv];
+  /** the next stone let go at e0 → 'true' | 'out' | 'in' */
+  function lay(e0) { if (k.done || k.cur >= 0) return 'busy'; const e = clamp(e0, -COURSE56.max, COURSE56.max); k.stones.push({ e, nudges: 0, ok: false }); k.cur = k.stones.length - 1; return check(); }
+  function check() { const s = k.stones[k.cur]; if (Math.abs(s.e) <= tol) { s.ok = true; k.cur = -1; if (k.stones.length >= k.n) { k.done = true; k.q = k.nudges <= k.n ? 1 : k.nudges <= 2 * k.n ? 0.65 : 0.3; } return 'true'; } return s.e > 0 ? 'out' : 'in'; }
+  /** a drag of d amot inward (+) or outward (−) on the stone in hand */
+  function nudge(d) { if (k.cur < 0) return 'none'; const s = k.stones[k.cur]; s.e = clamp(s.e - d, -COURSE56.max, COURSE56.max); s.nudges++; k.nudges++; return check(); }
+  return { lay, nudge, state: () => k, tol, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** חוט הסיקרא (מדות ג, א: "חוגרו באמצע"): the left peg to the middle by the reed, the right one to the same height by the level on the
+ *  thread, then the snap. Heights in amot from the court's floor; the altar is ten high — the middle at five. Grade: both ends within half a
+ *  tefach of the middle מהודר; within `kasher` כשר; else the line is washed off and done again, free */
+export const THREAD56 = Object.freeze({ mid: 5, hi: 1 / 12, kasher: 0.3, band: Object.freeze([null, 0.25, 0.15, 0.1, 0.08]) });
+export function createThread56(L = 1) {
+  const lv = clamp(L | 0, 1, 4), k = { L: lv, step: 1, yL: 3, yR: 2, washes: 0, done: false, q: null, err: null };   // (both pegs low on the sovev's face to begin)
+  const setL = (y) => { if (k.step !== 1) return k.step; k.yL = clamp(y, 1, 9.5); return k.step; };
+  /** step 1 done when the left peg is let go within the level's band of the middle (level 1 shows the band on the reed) */
+  function releaseL() { if (k.step !== 1) return 'no'; if (Math.abs(k.yL - THREAD56.mid) <= THREAD56.band[lv]) { k.step = 2; return 'next'; } return Math.abs(k.yL - THREAD56.mid) <= THREAD56.kasher && lv >= 2 ? (k.step = 2, 'next') : 'again'; }
+  const setR = (y) => { if (k.step !== 2 && k.step !== 3) return k.step; k.yR = clamp(y, 1, 9.5); return k.step; };   /* (before the snap the right peg may be set again) */
+  /** the level on the thread: the bubble's offset (−1…1), centred when the two ends are level */
+  const bubble = () => clamp((k.yR - k.yL) / 0.6, -1, 1);
+  function releaseR(gate) { if (k.step !== 2 && k.step !== 3) return 'no'; if (gate && Math.abs(k.yR - k.yL) > THREAD56.kasher) { k.step = 2; return 'again'; } k.step = 3; return 'next'; }   /* (gate — level 1: let go with the bubble far off, the peg is set again before the pull) */
+  /** the snap: the red line struck — graded; out of `kasher` it is washed off and done again (free) */
+  function snap() {
+    if (k.step !== 3) return 'no';
+    const err = Math.max(Math.abs(k.yL - THREAD56.mid), Math.abs(k.yR - THREAD56.mid)); k.err = err;
+    if (err <= THREAD56.kasher) { k.done = true; k.q = err <= THREAD56.hi ? 1 : 0.65; return k.q === 1 ? 'mehudar' : 'kasher'; }
+    k.washes++; k.step = 1; k.yL = 3; k.yR = 2; return 'wash';
+  }
+  return { setL, releaseL, setR, releaseR, bubble, snap, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

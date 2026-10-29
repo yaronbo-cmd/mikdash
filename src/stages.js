@@ -1571,9 +1571,9 @@ export function createStages(ctx) {
     // (── site13 ── N76 b) the altar as it stands — the yesod's ledge, the sovev, the top — and the kevesh (temple.js 120–137)
     if (x > -54 && x < -22 && z > -19.5 && z < 42.5) {
       if (z <= 12.5) {
-        const yes = (z <= -18.5) || (x <= -53) || (x <= -23 && z <= 11.5) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);
+        const yes = (z <= -18.5) || (x <= -53) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);   // (build 56: the ר alone — the body's first course is the sovev's)
         if (yes) y = Math.max(y, shownTop('yesod', x, z, 17, 16));
-        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 17));
+        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 16));
         if (x >= -52 && x <= -24 && z >= -17.5 && z <= 10.5) y = Math.max(y, shownTop('guf', x, z, 25, 22));
       }
       if (x > -46 && x < -30 && z >= 10.5) y = Math.max(y, shownTop('guf', x, z, 16.05 + 8.95 * clamp((42.5 - z) / 32, 0, 1), 16));

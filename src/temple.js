@@ -131,9 +131,8 @@ export function buildTemple(B, P) {
   A(-54, 16, -18.5, -53, 17, 12.5);    // yesod — the whole west
   A(-53, 16, 11.5, -52, 17, 12.5);     // one amah into the south
   A(-23, 16, -18.5, -22, 17, -17.5);   // one amah into the east
-  A(-53, 16, -18.5, -23, 17, 11.5);    // the first course under the body
   S('sovev');
-  A(-53, 17, -18.5, -23, 22, 11.5);    // up to the sovev
+  A(-53, 16, -18.5, -23, 22, 11.5);    // the body from the court's floor up to the sovev (build 56: its first course no longer the yesod's — the yesod is the ר alone, מדות ג, א)
   box('red', -53.06, 20.85, -18.56, -22.94, 21.15, 11.56, -999);   // חוט הסיקרא
   S('guf');
   A(-52, 22, -17.5, -24, 25, 10.5);    // above the sovev

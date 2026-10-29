@@ -178,7 +178,7 @@ test('build 40: the work pad\'s switch (prefs28 pad40) — in the pause card\'s 
 });
 
 test('build 40: GAME_BUILD 40; no Divine Name in the changed files (by code points); the pilgrims\' word', () => {
-  assert.equal(GAME_BUILD, 58);   // (build 41: the constant moved on) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 59);   // (build 41: the constant moved on) (build 42: again) (build 43: again) (build 44: again) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const files = ['src/avodah/shift/touch40.js', 'src/avodah/shift/deshen21.js', 'src/avodah/shift/maaracha22.js', 'src/avodah/shift/heichal26.js', 'src/avodah/shift/dam27.js', 'src/avodah/shift/pen25.js', 'src/avodah/shift/pis23.js', 'src/avodah/shift/prefs28.js', 'src/avodah/shift/hud.js', 'src/game/twin.js', 'tools/autoplay35.js', 'tools/kid34/kid.cjs', 'tools/kid34/kidpage.js', 'PROJECT.md', 'test/build40.test.mjs'];
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)];
   const P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);

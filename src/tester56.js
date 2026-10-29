@@ -19,6 +19,7 @@ const STAGES56 = [
   { id: '09', he: '09 · הסובב וחוט הסיקרא', q: 'h56go=1&h42stock=99' },
   { id: '10', he: '10 · גוף המזבח והכבש', q: 'h57go=1&h42stock=99' },   // ── build 57 ──
   { id: '11', he: '11 · הקרנות', q: 'h58go=1&h42stock=99' },   // ── build 58 ──
+  { id: '12', he: '12 · הכיור', q: 'h59go=1&h42stock=99' },   // ── build 59 ──
   { id: 'B', he: 'שלב ב׳ — המשמרת, וכל העבודות לתרגול', q: 'tester=1', h: 'shift=card', b: true },
 ];
 const CSS56 = `.t56{position:fixed;inset:0;z-index:99999;background:rgba(18,12,6,.94);direction:rtl;color:#FFF3D6;font:600 15px/1.3 Heebo,system-ui,sans-serif;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 18px}

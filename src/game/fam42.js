@@ -1195,3 +1195,82 @@ export function createPyre58(L = 1, rnd = Math.random) {
   function light() { if (!ready() || k.lit) return 'no'; k.lit = true; k.done = true; const bad = gaps().filter((x) => !x.ok).length, m = k.wrong + k.waste; k.q = bad === 0 && m === 0 ? 1 : bad <= 1 && m <= 2 ? 0.65 : 0.3; return 'lit'; }
   return { toPyre, toOut, next, gaps, ready, light, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
+
+/* ── build 59 ── STAGE 12, הכיור (docs/specs/shlav-alef-08-16-he.md §3 "12"): the laver cast in bronze, its twelve spigots cast and screwed in,
+ * and Ben Katin's mukhni that sinks it into the water at night ("בֶּן קָטִין עָשָׂה שְׁנֵים עָשָׂר דַּד לַכִּיּוֹר… וְאַף הוּא עָשָׂה מוּכְנִי לַכִּיּוֹר",
+ * יומא ג, י). The ways of the work — the furnace, the moulds, the thread, the rope and its counterweight — are המחשה ── /build 59 ── */
+/** THE CASTING (lift — "to stop before the time"): bronze from the furnace into a mould whose line is its fill 1. The furnace's tilt 0…1
+ *  (from `from` it pours); the stream follows the tilt late (tau — the bronze is thick: straightened, it still runs a little); the fill
+ *  f = what ran in ÷ the mould's cap. A pour ends when the stream stops: f in the window [1 − win, 1 + win] → 'done'; above it → 'over'
+ *  (and at 1 + rim it runs over the mould's lip → 'spill'); below it → 'more' (pour again — not a try). Over or spilt: the mould is emptied
+ *  and poured again ("יוצקים שוב" — no loss). Level 1 a wide window, level 4 a very short one. The grade: the fails, and how near the line */
+export const CAST59 = Object.freeze({ qmax: 0.55, from: 0.2, tau: Object.freeze([null, 0.35, 0.45, 0.55, 0.65]), win: Object.freeze([null, 0.12, 0.08, 0.05, 0.025]), rim: 0.22, still: 0.006 });
+export function createCast59(L = 1, cap = 1) {
+  const lv = clamp(L | 0, 1, 4), C = CAST59, win = C.win[lv], tau = C.tau[lv], k = { L: lv, cap: Math.max(0.02, +cap || 1), tilt: 0, s: 0, f: 0, pouring: false, over: false, fails: 0, spills: 0, pours: 0, done: false, q: null, last: null };
+  const flowOf = (tilt) => (tilt < C.from ? 0 : ((tilt - C.from) / (1 - C.from)) * C.qmax);
+  /** the tilt whose after-flow (the stream × tau) fills at most 0.8 of the window: level 1's gold mark on the furnace's arc */
+  const safe = () => C.from + ((1 - C.from) * Math.min(C.qmax, (0.8 * win * k.cap) / tau)) / C.qmax;
+  /** one step: the furnace at tilt, dt s → 'pour' | 'spilling' | 'still' | 'more' | 'over' | 'spill' | 'done' */
+  function step(tilt, dt) {
+    if (k.done) return 'done';
+    k.tilt = clamp(+tilt || 0, 0, 1); const q = flowOf(k.tilt);
+    k.s += (q - k.s) * Math.min(1, dt / tau); if (k.s < 1e-4 && q === 0) k.s = 0;
+    k.f += (k.s * dt) / k.cap; if (k.s > C.still) k.pouring = true;
+    if (k.f >= 1 + C.rim) { k.f = 1 + C.rim; k.over = true; }
+    if (k.pouring && q === 0 && k.s <= C.still) {   // the stream has stopped: the pour is judged
+      k.pouring = false; k.pours++;
+      if (k.over || k.f > 1 + win) { const sp = k.over; k.fails++; if (sp) k.spills++; k.over = false; k.f = 0; k.s = 0; k.last = sp ? 'spill' : 'over'; return k.last; }
+      if (k.f >= 1 - win) { k.done = true; k.q = k.fails === 0 ? (Math.abs(k.f - 1) <= win / 2 ? 1 : 0.65) : k.fails === 1 ? 0.65 : 0.3; k.last = 'done'; return 'done'; }
+      k.last = 'more'; return 'more';
+    }
+    return k.over ? 'spilling' : k.s > C.still ? 'pour' : 'still';
+  }
+  return { step, safe, flowOf, state: () => k, win, tau, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the twelve spigots' moulds (פ׳): each a different size — so each pour a different amount (cap: the laver's mould is 1) */
+export const SPIGOTS59 = Object.freeze({ caps: Object.freeze([0.16, 0.28, 0.2, 0.34, 0.13, 0.24, 0.3, 0.18, 0.38, 0.22, 0.14, 0.26]) });
+/** the twelve's grade: by the moulds that needed a second pour */
+export function spigotsGrade59(fails) { const n = fails.filter((x) => x > 0).length; return n === 0 ? 1 : n <= 3 ? 0.65 : 0.3; }
+/** THE SPIGOT SCREWED IN (fit): a ⟳ turn screws it in (the thread's lock at `lock` degrees); the resistance rises as it goes (each degree of
+ *  the finger turns it less); at the lock — a click; past the lock by more than the level's slack — "too hard": it turns no further, a turn
+ *  back ⟲ eases it (no damage). Let go at the click (or within the slack) → set. A let-go before the click is no try */
+export const SCREW59 = Object.freeze({ lock: 540, slack: Object.freeze([null, 70, 45, 30, 18]), stiff: 0.55, past: 0.35 });
+export function createScrew59(L = 1) {
+  const lv = clamp(L | 0, 1, 4), C = SCREW59, slack = C.slack[lv], k = { L: lv, th: 0, clicked: false, tight: false, set: false, fails: 0, q: null };
+  const gain = () => 1 - C.stiff * Math.min(1, k.th / C.lock) ** 2;
+  /** a turn of the finger by deg (+ ⟳ in) → 'turn' | 'click' | 'tight' | 'eased' | 'stuck' | 'set' */
+  function turn(deg) {
+    if (k.set) return 'set'; let d = +deg || 0; if (!d) return 'turn';
+    if (d > 0) {
+      if (k.tight) return 'stuck';
+      if (k.th < C.lock) { const was = k.th; k.th = Math.min(C.lock, k.th + d * gain()); if (was < C.lock && k.th >= C.lock) { k.clicked = true; return 'click'; } return 'turn'; }
+      k.th += d * C.past; if (k.th > C.lock + slack) { k.th = C.lock + slack; k.tight = true; return 'tight'; } return 'turn';
+    }
+    k.th = Math.max(0, k.th + d); if (k.th < C.lock) k.clicked = false;
+    if (k.tight && k.th <= C.lock + slack * 0.5) { k.tight = false; return 'eased'; } return 'turn';
+  }
+  /** let go → 'set' | 'tight' (a try failed: turn back a little) | 'more' (before the click: no try) */
+  function release() {
+    if (k.set) return 'set'; if (k.tight) { k.fails++; return 'tight'; } if (k.th < C.lock) return 'more';
+    k.set = true; k.q = k.fails === 0 ? 1 : k.fails === 1 ? 0.65 : 0.3; return 'set';
+  }
+  return { turn, release, state: () => k, slack, depth: () => Math.min(1, k.th / C.lock), result: () => (k.set ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** the spigots' grade: the mean of their own */
+export function screwGrade59(qs) { const m = qs.reduce((a, q) => a + (q || 0.3), 0) / Math.max(1, qs.length); return m >= 0.9 ? 1 : m >= 0.6 ? 0.65 : 0.3; }
+/** THE MUKHNI AT NIGHT (lift, turned over): slow ⬆ drags pay out the rope — the laver goes down into the water of its pit, its counterweight
+ *  rises; paid too fast (over vmax, amot a second) the rope slips and the laver lurches down (`slip` more); it sits on the curb at `drop` —
+ *  softly when the last of it came slower than `soft`, else a splash. Level 1 the most patient rope */
+export const MUKHNI59 = Object.freeze({ drop: 2.05, gear: 0.9, vmax: Object.freeze([null, 1.4, 1.05, 0.8, 0.6]), soft: Object.freeze([null, 0.8, 0.6, 0.45, 0.32]), near: 0.4, slip: 0.18 });
+export function createMukhni59(L = 1) {
+  const lv = clamp(L | 0, 1, 4), C = MUKHNI59, k = { L: lv, d: 0, slips: 0, landed: false, soft: null, vLand: 0, done: false, q: null };
+  /** the rope paid dd amot at v amot a second → 'pay' | 'near' | 'slip' | 'soft' | 'splash' | 'done' */
+  function pay(dd, v) {
+    if (k.done) return 'done'; dd = Math.max(0, +dd || 0); v = Math.max(0, +v || 0); if (!dd) return k.d >= C.drop - C.near ? 'near' : 'pay';
+    let r = 'pay'; if (v > C.vmax[lv]) { k.slips++; dd += C.slip; r = 'slip'; }
+    k.d += dd;
+    if (k.d >= C.drop) { k.d = C.drop; k.landed = true; k.done = true; k.vLand = r === 'slip' ? Math.max(v, C.vmax[lv]) * 1.5 : v; k.soft = k.vLand <= C.soft[lv]; k.q = k.slips === 0 && k.soft ? 1 : k.slips <= 1 && (k.soft || k.slips === 0) ? 0.65 : 0.3; return k.soft ? 'soft' : 'splash'; }
+    return r === 'slip' ? 'slip' : k.d >= C.drop - C.near ? 'near' : 'pay';
+  }
+  return { pay, state: () => k, vmax: C.vmax[lv], soft: C.soft[lv], result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}

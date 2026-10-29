@@ -1248,7 +1248,7 @@ export function createHar42(o = {}) {
       down(a) { const q = proj(heap.x, gy(heap.x, heap.z) + 0.8, heap.z); if (endT >= 0 || rise >= 0 || !q || Math.hypot(q.x - a.x, q.y - a.y) > Math.max(70, W() * 0.1)) return; const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1, 1), STN); add55(m, heap.x, top, heap.z); drag = { m }; },
       move(a) { if (!drag) return; const gp = ground55(a.x, a.y, top); if (gp) drag.m.position.set(gp.x, top + 0.4, gp.z); },
       up() {
-        const d0 = drag; drag = null; if (!d0) return; const m = d0.m, r = J.drop(m.position.x - X0, m.position.z - Z0); if (r.r !== 'away') try55('last', r.r === 'set');
+        const d0 = drag; drag = null; if (!d0) return; const m = d0.m, r = J.drop(m.position.x - X0, m.position.z - Z0); if (r.r === 'set' || r.r === 'noyesod') try55('last', r.r === 'set');
         if (r.r === 'set') { const sl = r.slot; if (m.parent) m.parent.remove(m); block(sl); if (shadows[sl.id]) shadows[sl.id].visible = false; buzz42('settle'); o.sound && o.sound('stone'); o.emit && o.emit('h55last', { slot: sl.id }); }
         else { if (m.parent) m.parent.remove(m); if (r.r === 'noyesod') { msgT = 2.8; line(LINE42.noYesod55, `רמה ${L}`); buzz42('retry'); } }
       },

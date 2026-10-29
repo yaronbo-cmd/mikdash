@@ -939,7 +939,7 @@ export function createLast55(L = 1) {
     if (k.done) return { r: 'away' };
     let best = null; for (const s of LAST55.slots) { const d = dist(s, x, z); if (d <= LAST55.near && (!best || d < best.d)) best = { s, d }; }
     const rim = Math.min(Math.abs(x), Math.abs(z), Math.abs(LAST55.side - x), Math.abs(LAST55.side - z)) <= LAST55.near && x > -LAST55.near && z > -LAST55.near && x < LAST55.side + LAST55.near && z < LAST55.side + LAST55.near;
-    if (best && !k.set[best.s.id] && (best.d <= 1.6 || !rim)) { k.set[best.s.id] = true; if (!open().length) { k.done = true; k.q = k.strays <= 1 ? 1 : 0.65; } return { r: 'set', slot: best.s }; }
+    if (best && !k.set[best.s.id] && (best.d <= (lv <= 1 ? 2.6 : 1.6) || !rim)) {   /* (level 1 a little wider round its stretch — §1 rule 7) */ k.set[best.s.id] = true; if (!open().length) { k.done = true; k.q = k.strays <= 1 ? 1 : 0.65; } return { r: 'set', slot: best.s }; }
     if (best && k.set[best.s.id] && best.d <= 1.6) return { r: 'taken', slot: best.s };
     if (rim) { k.strays++; return { r: 'noyesod' }; }
     return { r: 'away' };

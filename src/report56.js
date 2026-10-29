@@ -41,16 +41,61 @@ function poll() {
 }
 function build56() { const m = /בנייה\s+([0-9]+[א-ת]?)/.exec(document.title || ''); return m ? m[1] : '?'; }
 // ── the screenshot: the 3D frame drawn now, scaled to 800 px, the line written over it ──
+// the page's own layer (lines, cards, buttons — HTML over the 3D) drawn over the frame as it lies: boxes, borders and their text. No
+// library (the file's 6 MiB cap); images only from data:/blob: (anything else would taint the shot); a failure leaves the bare frame.
+const A56 = (c) => { const m = /rgba?\(([^)]+)\)/.exec(c || ''); if (!m) return 0; const p = m[1].split(/[\s,/]+/).filter(Boolean); return p.length > 3 ? parseFloat(p[3]) : 1; };
+function dom56(x, W, H, src) {
+  const cr = src.getBoundingClientRect(); if (!cr.width || !cr.height) return 0;
+  const sx = W / cr.width, sy = H / cr.height, all = document.body.getElementsByTagName('*'); let n = 0, texts = 0;
+  const box = (X, Y, w, h, rad) => { x.beginPath(); if (x.roundRect && rad > 0) x.roundRect(X, Y, w, h, Math.min(rad, w / 2, h / 2)); else x.rect(X, Y, w, h); };
+  for (let i = 0; i < all.length && n < 900; i++) {
+    const el = all[i], tg = el.tagName;
+    if (tg === 'CANVAS' || tg === 'SCRIPT' || tg === 'STYLE' || tg === 'svg' || (g.SVGElement && el instanceof g.SVGElement)) continue;
+    if (el.closest('.r56p,.r56b,.r56v')) continue;
+    const r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2 || r.bottom < cr.top || r.top > cr.bottom || r.right < cr.left || r.left > cr.right) continue;
+    const cs = g.getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+    try { if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue; } catch (e) { /* */ }
+    n++;
+    const X = (r.left - cr.left) * sx, Y = (r.top - cr.top) * sy, w = r.width * sx, h = r.height * sy, rad = (parseFloat(cs.borderTopLeftRadius) || 0) * sx;
+    x.save(); x.globalAlpha = Math.max(0, Math.min(1, parseFloat(cs.opacity) || 1));
+    if (A56(cs.backgroundColor) > 0.04) { x.fillStyle = cs.backgroundColor; box(X, Y, w, h, rad); x.fill(); }
+    const bw = parseFloat(cs.borderTopWidth) || 0; if (bw > 0 && A56(cs.borderTopColor) > 0.1) { x.lineWidth = Math.max(1, bw * sx); x.strokeStyle = cs.borderTopColor; box(X, Y, w, h, rad); x.stroke(); }
+    if (tg === 'IMG' && el.complete && el.naturalWidth && /^(data|blob):/.test(el.currentSrc || el.src || '')) { try { x.drawImage(el, X, Y, w, h); } catch (e) { /* */ } }
+    let t = ''; if (tg === 'INPUT' || tg === 'TEXTAREA') t = el.value || el.placeholder || ''; else for (const c of el.childNodes) if (c.nodeType === 3) t += c.nodeValue;
+    t = t.replace(/\s+/g, ' ').trim();
+    if (t) {
+      texts++;
+      const fs = Math.max(6, (parseFloat(cs.fontSize) || 14) * sy), lh = fs * 1.22;
+      x.font = `${cs.fontWeight || 400} ${fs.toFixed(1)}px Heebo, system-ui, sans-serif`; x.fillStyle = A56(cs.color) > 0 ? cs.color : '#fff';
+      const rtl = cs.direction !== 'ltr'; x.direction = rtl ? 'rtl' : 'ltr'; x.textBaseline = 'middle';
+      const ctr = cs.textAlign === 'center' || tg === 'BUTTON' || (/flex/.test(cs.display) && cs.justifyContent === 'center');
+      const pl = (parseFloat(cs.paddingLeft) || 0) * sx, pr = (parseFloat(cs.paddingRight) || 0) * sx, maxW = Math.max(10, w - pl - pr);
+      const lines = []; let cur = '';
+      for (const wd of t.split(' ')) { const tr = cur ? cur + ' ' + wd : wd; if (cur && x.measureText(tr).width > maxW) { lines.push(cur); cur = wd; } else cur = tr; }
+      if (cur) lines.push(cur);
+      const keep = lines.slice(0, Math.max(1, Math.ceil(h / lh) + 1)), y0 = Y + Math.max(lh / 2, (h - keep.length * lh) / 2 + lh / 2);
+      x.textAlign = ctr ? 'center' : rtl ? 'right' : 'left';
+      const tx = ctr ? X + pl + maxW / 2 : rtl ? X + w - pr : X + pl;
+      keep.forEach((L, k) => x.fillText(L, tx, y0 + k * lh));
+    }
+    x.restore();
+  }
+  return texts;
+}
 function shot56(line) {
   try {
     const T = g.__T; if (!T || !T.renderer) return null;
     try { T.render(); } catch (e) { /* */ }
     const src = T.renderer.domElement, w0 = src.width, h0 = src.height; if (!w0 || !h0) return null;
     const W = 800, H = Math.round((h0 / w0) * W), c = document.createElement('canvas'); c.width = W; c.height = H;
-    const x = c.getContext('2d'); x.drawImage(src, 0, 0, W, H);
-    if (line) { x.fillStyle = 'rgba(20,14,8,.72)'; x.fillRect(0, 0, W, 30); x.fillStyle = '#FFE6A0'; x.font = '600 16px Heebo, system-ui, sans-serif'; x.direction = 'rtl'; x.textAlign = 'right'; x.fillText(cut(line, 90), W - 10, 21); }
-    for (const q of [0.62, 0.45, 0.3]) { const d = c.toDataURL('image/jpeg', q); if (d.length < 170000) return d; }
-    return null;
+    const x = c.getContext('2d');
+    const base = () => { x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.drawImage(src, 0, 0, W, H); };
+    const band = () => { if (!line) return; x.fillStyle = 'rgba(20,14,8,.72)'; x.fillRect(0, 0, W, 30); x.fillStyle = '#FFE6A0'; x.font = '600 16px Heebo, system-ui, sans-serif'; x.direction = 'rtl'; x.textAlign = 'right'; x.textBaseline = 'alphabetic'; x.fillText(cut(line, 90), W - 10, 21); };
+    base(); let texts = 0;
+    try { texts = dom56(x, W, H, src); } catch (e) { pushErr('report56', 'shot dom: ' + e.message); try { base(); } catch (e2) { /* */ } }
+    if (!texts) band();
+    const enc = () => { for (const q of [0.62, 0.45, 0.3]) { const d = c.toDataURL('image/jpeg', q); if (d.length < 170000) return d; } return null; };
+    try { return enc(); } catch (e) { pushErr('report56', 'shot enc: ' + e.message); base(); band(); return enc(); }
   } catch (e) { pushErr('report56', 'shot: ' + e.message); return null; }
 }
 function bytes56(o) { try { const t = JSON.stringify(o); return g.TextEncoder ? new g.TextEncoder().encode(t).length : t.length * 2; } catch (e) { return 1e9; } }

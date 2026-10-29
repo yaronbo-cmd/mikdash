@@ -1733,7 +1733,7 @@ export function createHar42(o = {}) {
     redraw();
     const toUV = (px, py) => { const c = camera(); if (!c) return null; const nd = new THREE.Vector2((px / W()) * 2 - 1, -(py / H()) * 2 + 1), rc = new THREE.Raycaster(); rc.setFromCamera(nd, c); const o3 = rc.ray.origin, d3 = rc.ray.direction; if (Math.abs(d3.x) < 1e-4) return null; const t = (V.x - o3.x) / d3.x; if (t < 0) return null; const z = o3.z + d3.z * t, y = o3.y + d3.y * t; return { u: (V.z1 - z) / Wd, v: (V.y1 - y) / Ht }; };
     const faceBox = () => { const a = proj(V.x, V.y1, V.z1), b = proj(V.x, V.y0, V.z0); if (!a || !b) return null; const l = Math.min(a.x, b.x), r = Math.max(a.x, b.x), t = Math.min(a.y, b.y), bt = Math.max(a.y, b.y); return { l, r, t, b: bt, w: r - l, h: bt - t }; };
-    let last = null, sp = 0, endT = -1, msgT = 0, cloth = null, still = 0, trail = [], stk = null;   // (stk: the stroke in hand — the §1 tally: a stroke is a try, one with no drip and no streak a success)   // (trail: the finger's last ⅓ s — its pace is the path over that time, not one event's step: events come in bursts)
+    let last = null, sp = 0, endT = -1, msgT = 0, cloth = null, still = 0, trail = [], stk = null, stillF = 0, lastMv57 = 0;   // (stk: the stroke in hand — the §1 tally: a stroke is a try, one with no drip and no streak a success)   // (trail: the finger's last ⅓ s — its pace is the path over that time, not one event's step: events come in bursts)
     line(LINE42.sid57, `רמה ${L}`); if (st.ui.pad) st.ui.pad.classList.add('full');
     function stroke(u, v, r) {
       const x = u * cw, y = v * ch, R0 = cw * 0.085;
@@ -1752,14 +1752,14 @@ export function createHar42(o = {}) {
     const job = {
       acting: true, fullPad: true, kind: 'sid57', J, ownView: () => true, snapView: () => true, faceBox, cover: () => J.cover(), gapRow: () => J.gapRow(), speedWin: () => { const fb = faceBox(); return fb ? { min: F.SID57.vmin[k.L] * fb.w, max: F.SID57.vmax[k.L] * fb.w } : null; },
       view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), t2 = tv * (W() / H()), D = Wd / (2 * V.share * t2), ym = (V.y0 + V.y1) / 2, zm = (V.z0 + V.z1) / 2; return { p: [V.x + D, ym + 0.15, zm], t: [V.x, ym, zm] }; },   // (a macro, level, square on the face)
-      down(a) { if (endT >= 0) return; const q = toUV(a.x, a.y); last = q ? { u: q.u, v: q.v, x: a.x, y: a.y, t: now(), t0: now(), dir: null } : null; sp = 0; still = 0; cloth = { x: a.x, y: a.y }; trail = [{ x: a.x, y: a.y, t: now() }]; stk = { bad: false, px: 0, c0: J.cover() }; },
+      down(a) { if (endT >= 0) return; const q = toUV(a.x, a.y); last = q ? { u: q.u, v: q.v, x: a.x, y: a.y, t: now(), t0: now(), dir: null } : null; sp = 0; still = 0; stillF = 0; lastMv57 = now(); cloth = { x: a.x, y: a.y }; trail = [{ x: a.x, y: a.y, t: now() }]; stk = { bad: false, px: 0, c0: J.cover() }; },
       move(a) {
         cloth = { x: a.x, y: a.y }; if (endT >= 0 || !last) return; const q = toUV(a.x, a.y); if (!q) return;
         const t = now(), d = Math.hypot(a.x - last.x, a.y - last.y), fb = faceBox(), fw = fb ? Math.max(60, fb.w) : W() * 0.7;
         if (d < 2) return;   // (a tremor — not a stroke)
         if (stk) stk.px += d; trail.push({ x: a.x, y: a.y, t }); while (trail.length > 2 && t - trail[0].t > 0.34) trail.shift();
-        let pl = 0; for (let q2 = 1; q2 < trail.length; q2++) pl += Math.hypot(trail[q2].x - trail[q2 - 1].x, trail[q2].y - trail[q2 - 1].y);
-        sp = pl / Math.max(0.12, t - trail[0].t) / fw; still = 0;
+        let pl = 0, tl = 0; for (let q2 = 1; q2 < trail.length; q2++) { pl += Math.hypot(trail[q2].x - trail[q2 - 1].x, trail[q2].y - trail[q2 - 1].y); tl += Math.min(0.05, trail[q2].t - trail[q2 - 1].t); }   // (each step's time at most 50 ms: a moving finger sends events at 20 Hz or more — a longer gap is the page stalling, not the finger slowing; a finger at rest is the frame's "still")
+        sp = pl / Math.max(0.06, tl) / fw; still = 0; stillF = 0; lastMv57 = t;
         const dir = Math.atan2(a.y - last.y, a.x - last.x), n = Math.max(1, Math.ceil(d / 14));
         for (let s2 = 1; s2 <= n; s2++) { const f = s2 / n; at(last.u + (q.u - last.u) * f, last.v + (q.v - last.v) * f, t - last.t0 < 0.12 ? Math.max(sp, F.SID57.vmin[k.L] * 1.01) : sp, t); }   // (the first moment of a stroke is never "too slow")
         last = { u: q.u, v: q.v, x: a.x, y: a.y, t, dir, t0: last.t0 != null ? last.t0 : last.t };
@@ -1767,7 +1767,7 @@ export function createHar42(o = {}) {
       up() { if (stk && stk.px > 40 && (J.cover() > stk.c0 + 0.005 || stk.bad)) try55('sid', !stk.bad); stk = null; last = null; cloth = null; still = 0; trail = []; },
       frame(dt) {
         objPlace(endT < 0, [{ x: V.x, y: (V.y0 + V.y1) / 2, z: (V.z0 + V.z1) / 2, r: 2 }], 'h57sid', [{ x: V.x, y: V.y0, z: V.z0, r: 0.05 }, { x: V.x, y: V.y1, z: V.z1, r: 0.05 }]);
-        if (last && st.finger && endT < 0) { still += Math.min(dt, 0.05); if (still > 0.6) { still = 0; at(last.u, last.v, 0, now()); } }   // (the cloth held still on the face: it drips — counted by frames, at most 50 ms each: a slow frame is not a still finger)
+        if (last && st.finger && endT < 0) { stillF++; if (stillF >= 6 && now() - Math.max(lastMv57, last.t0 || 0) > 0.7) { stillF = 0; lastMv57 = now(); at(last.u, last.v, 0, now()); } }   // (the cloth held still on the face: it drips — no move for 0.7 s of real time and six frames drawn meanwhile: a stalled page is not a still finger)
         for (const d of drips) { if (d.t < 1.6) { d.t += dt; d.len = Math.min(0.42, d.len + dt * 0.26); dirty = true; } }
         if (dirty) redraw();
         if (msgT > 0 && msgT < 90) { msgT -= dt; if (msgT <= 0) line(k.drips + k.streaks === 0 && J.cover() < 0.25 ? LINE42.sidCloth57 : LINE42.sid57, `רמה ${L}`); }

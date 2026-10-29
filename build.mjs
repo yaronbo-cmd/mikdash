@@ -42,6 +42,7 @@ await build({
   entryPoints: ['src/main.js'], bundle: true, minify: true, format: 'iife', target: 'es2020',
   outfile: 'dist/app.js', legalComments: 'none', logLevel: 'warning', charset: 'utf8', loader: { '.glb': 'dataurl' },   // ── fable32 (build 15) ── (the kohen's model inlined; a Pages folder will serve it as a file) ── /fable32 ──   // Hebrew stays readable (and ~⅓ smaller than \uXXXX escapes)
   plugins: [contentStrip, optionalParts],   // ── build6 ── optionalParts
+  define: { 'location.search': '__QS56', 'location.hash': '__QH56' },   // ── build 56ב ── the tester's chosen stage (src/fix56.js), even where the artifact's frame refuses history.replaceState ── /build 56ב ──
 });
 const js = fs.readFileSync('dist/app.js', 'utf8').replace(/<\/script/gi, '<\\/script');
 const html = fs.readFileSync('src/page.html', 'utf8').replace('/*__APP__*/', () => js);

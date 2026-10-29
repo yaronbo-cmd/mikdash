@@ -53,6 +53,7 @@ function shot56(line) {
     return null;
   } catch (e) { pushErr('report56', 'shot: ' + e.message); return null; }
 }
+function bytes56(o) { try { const t = JSON.stringify(o); return g.TextEncoder ? new g.TextEncoder().encode(t).length : t.length * 2; } catch (e) { return 1e9; } }
 async function db56() {
   if (R56.dbTried) return R56.db; R56.dbTried = true;
   try { if (g.claude && typeof g.claude.use === 'function') R56.db = await g.claude.use('db'); } catch (e) { R56.db = null; }
@@ -77,14 +78,15 @@ async function list56(box, st) {
   try {
     box.innerHTML = '<li class="st">טוען…</li>';
     const db = await db56(); let rows = [];
-    if (db) { const q = await db.collection('reports').orderBy('at', 'desc').limit(60).get(); rows = (q.docs || []).map((d) => ({ id: d.id, ...(d.data ? d.data() : d) })); } else rows = R56.local.slice().reverse();
+    if (db) { try { const q = await db.collection('reports').orderBy('at', 'desc').limit(60).get(); rows = (q.docs || []).map((d) => ({ id: d.id, ...(d.data ? d.data() : d) })); } catch (e) { st.textContent = 'הרשימה המקוונת לא נטענה (' + cut(e && (e.code || e.message), 40) + ').'; } }
+    rows = rows.concat(R56.local.slice().reverse());
     if (!rows.length) { box.innerHTML = '<li class="st">עוד אין דיווחים.</li>'; return; }
     box.innerHTML = '';
     for (const r of rows) {
       const li = document.createElement('li');
       const sv = (SEV56.find((s) => s[0] === r.sev) || [0, ''])[1];
       li.innerHTML = `${r.shot ? `<img src="${r.shot}" alt="">` : ''}<div class="tx"><b>${sv}</b> · ${cut(r.where, 40)} · ${cut((r.iso || '').slice(11, 16), 5)}<br>${cut(r.note, 140).replace(/</g, '&lt;') || '—'}</div><button aria-label="מחיקה">🗑</button>`;
-      li.querySelector('button').addEventListener('click', async (ev) => { ev.stopPropagation(); try { if (db && r.id) await db.doc('reports/' + r.id).delete(); else R56.local = R56.local.filter((x) => x !== r); li.remove(); } catch (e) { st.textContent = 'המחיקה לא הצליחה: ' + cut(e.message || e.code, 60); } });
+      li.querySelector('button').addEventListener('click', async (ev) => { ev.stopPropagation(); try { if (db && r.id) await db.doc('reports/' + r.id).delete(); else { R56.local = R56.local.filter((x) => x !== r); try { g.localStorage.setItem('bh_reports56', JSON.stringify(R56.local.map((x) => ({ ...x, shot: null })).slice(-50))); } catch (e) { /* */ } } li.remove(); } catch (e) { st.textContent = 'המחיקה לא הצליחה: ' + cut(e.message || e.code, 60); } });
       box.appendChild(li);
     }
   } catch (e) { box.innerHTML = '<li class="st">לא נטען: ' + cut(e && (e.code || e.message), 80) + '</li>'; }
@@ -92,10 +94,10 @@ async function list56(box, st) {
 async function export56(st) {
   try {
     const db = await db56(); let rows = R56.local.slice();
-    if (db) { const q = await db.collection('reports').orderBy('at', 'asc').limit(500).get(); rows = (q.docs || []).map((d) => ({ id: d.id, ...(d.data ? d.data() : d) })); }
+    if (db) { try { const q = await db.collection('reports').orderBy('at', 'asc').limit(500).get(); rows = (q.docs || []).map((d) => ({ id: d.id, ...(d.data ? d.data() : d) })).concat(rows); } catch (e) { /* the phone's own reports still go out */ } }
     const data = JSON.stringify({ exported: new Date().toISOString(), build: build56(), reports: rows }, null, 1), filename = `mikdash-reports-${build56()}-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
     let dl = null; try { if (g.claude && g.claude.use) dl = await g.claude.use('downloads'); } catch (e) { dl = null; }
-    if (dl) { await dl.save({ filename, data }); st.textContent = 'הקובץ נשמר.'; return; }
+    if (dl) { try { await dl.save({ filename, data }); st.textContent = 'הקובץ נשמר.'; return; } catch (e) { if (!e || e.code !== 'unavailable') { st.textContent = 'הקובץ לא נשמר (' + cut(e && (e.code || e.message), 40) + ').'; return; } } }
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) { /* */ } }, 4000); st.textContent = 'הקובץ ירד.';
   } catch (e) { st.textContent = 'הייצוא לא הצליח: ' + cut(e && (e.code || e.message), 80); }
 }
@@ -125,10 +127,13 @@ function open56() {
       b.disabled = true; st.textContent = 'שומר…';
       const rep = { at: Date.now(), iso: new Date().toISOString(), build: build56(), sev, note: cut(ta.value, 4000), where: cut(where, 80), state, actions: R56.actions.slice(-20), errors: R56.errors.slice(-100), device: device56(), shot };
       try {
-        let s = JSON.stringify(rep); if (s.length > 250000) { rep.errors = rep.errors.slice(-30); s = JSON.stringify(rep); } if (s.length > 250000) { rep.shot = null; rep.shotDropped = true; }
-        const db = await db56();
-        if (db) { await db.collection('reports').add(rep); st.textContent = 'נשמר — Claude קורא את הדיווחים ישירות.'; }
-        else { R56.local.push(rep); try { g.localStorage.setItem('bh_reports56', JSON.stringify(R56.local.map((r) => ({ ...r, shot: null })).slice(-50))); } catch (e) { /* */ } st.textContent = 'נשמר בטלפון הזה בלבד — "ייצא הכל" מוריד קובץ לשליחה.'; }
+        if (bytes56(rep) > 240000) rep.errors = rep.errors.slice(-30);
+        if (bytes56(rep) > 240000) { rep.shot = null; rep.shotDropped = true; }
+        if (bytes56(rep) > 240000) { rep.errors = rep.errors.slice(-5); rep.actions = rep.actions.slice(-10); }
+        const db = await db56(); let dbErr = '';
+        if (db) { try { await db.collection('reports').add(rep); } catch (e) { dbErr = cut(e && (e.code || e.message), 60) || 'שגיאה'; } }
+        if (db && !dbErr) st.textContent = 'נשמר — Claude קורא את הדיווחים ישירות.';
+        else { R56.local.push(rep); try { g.localStorage.setItem('bh_reports56', JSON.stringify(R56.local.map((r) => ({ ...r, shot: null })).slice(-50))); } catch (e) { /* */ } st.textContent = (dbErr ? 'השמירה המקוונת נכשלה (' + dbErr + '). ' : '') + 'נשמר בטלפון הזה בלבד — "ייצא הכל" מוריד קובץ לשליחה.'; }
         ta.value = ''; act('report-saved', { sev }); list56(ul, st);
       } catch (e) { st.textContent = 'לא נשמר: ' + cut(e && (e.code || e.message), 100); }
       b.disabled = false;

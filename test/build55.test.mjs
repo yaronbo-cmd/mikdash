@@ -17,7 +17,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲∙!—]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w)).length;
 
 test('build 55: GAME_BUILD 55; stage 08\'s parts in the spec\'s order; the altar 32 × 32 where the world has it', () => {
-  assert.equal(GAME_BUILD, 55);
+  assert.equal(GAME_BUILD, 56);
   assert.deepEqual([...PARTS55], ['open', 'inspect', 'field', 'nail', 'iron', 'last', 'reveal']);
   assert.deepEqual({ ...ALT55 }, { x0: -54, z0: -19.5, side: 32 });
   assert.match(read('src/stages.js'), /yesod: \{\n\s+foot: \[\[-54, -19\.5, -22, 12\.5\]\]/, 'the world\'s yesod footprint');
@@ -93,7 +93,7 @@ test('build 55: the last row — only along the north and the west, and one amah
   const lr = H.slice(H.indexOf('function mkLast55('), H.indexOf('const try55 = '));
   assert.match(lr, /if \(st\.props\.plan55\) st\.props\.plan55\.forEach\(\(m\) => \{ m\.visible = false; \}\);/, 'the square\'s gold line hidden while he lays the ר');
   assert.match(lr, /if \(L <= 1\) for \(const sl of F\.LAST55\.slots\) if \(!sl\.pre\) shadows\[sl\.id\]/, 'level 1: the ר\'s shadow; level 2: none');
-  assert.match(H, /if \(STG === 'yesod'\) \{ try \{ if \(stages\.setLife\) stages\.setLife\(false\);/, 'the world\'s own crews quiet in stage 08 (and back at its end)');
+  assert.match(H, /if \(STG === 'yesod'(?: \|\| STG === 'sovev')?\) \{ try \{ if \(stages\.setLife\) stages\.setLife\(false\);/, 'the world\'s own crews quiet in stage 08 (and back at its end)');
   const s1 = F.LAST55.slots.find((s) => s.id === 's1'), e1 = F.LAST55.slots.find((s) => s.id === 'e1'); assert.ok(s1.w === 1 && s1.d === 1 && e1.w === 1 && e1.d === 1, 'one amah each');
 });
 
@@ -101,7 +101,7 @@ test('build 55: the craftsman\'s test before chapter ג׳ — the stone with a c
   assert.deepEqual([...TEST50.jobs], ['stone', 'mud', 'nail']); assert.equal(TEST50.L, 2); assert.equal(TEST50.demoAfter, 5);
   assert.match(H, /const label = t50 \? \{ stone: 'אבן עם סדק', mud: 'בוץ או סדק\?', nail: 'מבחן הציפורן' \}/);
   assert.match(H, /\} else if \(j\.kind === 'stone55'\) \{/, 'the master\'s hand knows the stone');
-  assert.match(H, /if \(STG === 'yesod' \|\| MODE === 'test'\) props55\(add\);/, 'the test has its bench');
+  assert.match(H, /if \(STG === 'yesod' (?:\|\| STG === 'sovev' )?\|\| MODE === 'test'\) props55\(add\);/, 'the test has its bench');
   assert.match(H, /stone: \{ begin\(\) \{ st\.job = mkStone55\('look', mix55\(\['crack', 'whole'\]\), Lover \|\| 2, 'stone'\); \} \},/);
   assert.match(H, /mud: \{ begin\(\) \{ st\.job = mkStone55\('look', mix55\(\['mud', 'mudcrack'\]\), Lover \|\| 2, 'mud'\); \} \},/);
 });

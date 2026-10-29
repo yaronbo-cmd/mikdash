@@ -1,5 +1,6 @@
 import './fix56.js';   // ── build 56ב ── FIRST: the tester's chosen stage into the page's address, before any module reads it ── /build 56ב ──
 import { installTester56 } from './tester56.js';   // ── build 56ב ── the tester's stage menu ── /build 56ב ──
+import { installReport56 } from './report56.js';   // ── build 56ג ── "🐞 דווח": its error hooks from here on ── /build 56ג ──
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -960,7 +961,8 @@ const finale = createFinale({
 { const ev = music.event; music.event = function (t, d, ph) { try { finale.event(t, d, ph); } catch (e) { /* the finale's */ } return ev.apply(this, arguments); }; }
 globalThis.__BH_FINALE = finale;
 // ── /world12 ──
-try { installTester56(); } catch (e) { /* */ }   // ── build 56ב ── (five taps in the top-right corner) ── /build 56ב ──
+try { installTester56(); } catch (e) { /* */ }
+try { installReport56(); } catch (e) { /* */ }   // ── build 56ג ── (the report button; never breaks the game) ── /build 56ג ──   // ── build 56ב ── (five taps in the top-right corner) ── /build 56ב ──
 function startGame() {
   // ── fable32 (build 28) ── the shipped page (__FORCE_SHIFT, tools/mkout.cjs) is the day alone: whatever the link says ('#shift=N' — the
   // 90 s "משמרת"; '#avodah…' — the old Phase B home, the engine22 day where the player is the אמרכל) it opens the lobby, or the day itself
@@ -1126,7 +1128,7 @@ window.__T = {
   // ── end world ──
   // advance the simulation (construction, crowd, flights) without rendering
   step: (sec = 1, dt = 1 / 30) => { for (let t = 0; t < sec; t += dt) { life.update(dt); stages.update(dt); if (sanct) sanct.update(dt); } },
-  pause: (v) => { paused = v; }, showInfo, get ready() { return !!life; },
+  pause: (v) => { paused = v; }, get paused() { return paused; }, showInfo, get ready() { return !!life; },
   get stages() { return stages; },
   get game() { return game; },
   // tests: advance the world in real time without rendering (the loop is paused; renders come from render())

@@ -2198,11 +2198,11 @@ export function createHar42(o = {}) {
     begin(); ringOn59(false); if (st.ui.pad) st.ui.pad.classList.add('full'); try { if (o.timeOfDay) o.timeOfDay('dusk'); } catch (e) { /* */ }
     if (twelve && st.props.tbl59) st.props.tbl59.rotation.y = 0;
     const pivot = () => proj(fur.position.x, fur.position.y, fur.position.z), arcR = () => Math.max(56, H() * 0.26);
-    const arcAt = (t) => { const p = pivot(); if (!p) return null; const a = -Math.PI / 2 + t * (Math.PI * 0.55); return { x: p.x + Math.cos(a) * arcR(), y: p.y + Math.sin(a) * arcR() }; };   // (from straight up, round to the right and down — the spout's way)
-    const tOf = (x, y) => { const p = pivot(); if (!p) return 0; let a = Math.atan2(y - p.y, x - p.x) + Math.PI / 2; a = Math.atan2(Math.sin(a), Math.cos(a)); return Math.max(0, Math.min(1, a / (Math.PI * 0.55))); };
+    const PW = F.SPIGOTS59.pow, arcAt = (tl) => { const p = pivot(); if (!p) return null; const t = Math.pow(Math.max(0, tl), 1 / PW), a = -Math.PI / 2 + t * (Math.PI * 0.55); return { x: p.x + Math.cos(a) * arcR(), y: p.y + Math.sin(a) * arcR() }; };   // (by the tilt: from straight up, round to the right and down — the spout's way; the gentle tilts have the arc's longer part)
+    const tOf = (x, y) => { const p = pivot(); if (!p) return 0; let a = Math.atan2(y - p.y, x - p.x) + Math.PI / 2; a = Math.atan2(Math.sin(a), Math.cos(a)); return Math.pow(Math.max(0, Math.min(1, a / (Math.PI * 0.55))), PW); };   // (→ the tilt)
     const cupWorld = () => { const v = new THREE.Vector3(0, 0, 0); if (twelve) { M.g.getWorldPosition(v); return v; } return new THREE.Vector3(P.M1.x, 0, P.M1.z); };
     const job = {
-      acting: true, fullPad: true, kind: twelve ? 'spigots59' : 'cast59', get J() { return J; }, i: () => i, ownView: () => true, snapView: () => true, arcAt, tilt: () => tilt, safe: () => J.safe(), fill: () => (J ? J.state().f : 0), win: () => (J ? J.win : 0),
+      acting: true, fullPad: true, kind: twelve ? 'spigots59' : 'cast59', get J() { return J; }, i: () => i, ownView: () => true, snapView: () => true, arcAt, arcPos: (u) => arcAt(Math.pow(Math.max(0, u), PW)), tilt: () => tilt, safe: () => J.safe(), fill: () => (J ? J.state().f : 0), win: () => (J ? J.win : 0),
       view() {
         const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1), t2 = tv * (W() / H()), dir = [0.33, 0.5, 0.8], nl = Math.hypot(...dir);
         const T0 = twelve ? [P.T.x - 1.7, P.y0 + 2.2, P.T.z] : [P.M1.x - 1.2, P.y0 + 2.75, P.M1.z], D = (twelve ? 5.8 : 11.5) / (2 * t2);   // (the furnace whole and its arc over it in the frame — at 8.6 its arc's top was off the screen: c59A)

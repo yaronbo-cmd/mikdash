@@ -322,7 +322,7 @@ async function sid57k(K) {
 // sees the bronze reach the gold line on the gauge (60 %) or for a while of his own; the SPIGOT — round its dial the way its arrow shows
 // (60 %), any amount, stopping at the green click he sees (60 %); the ROPE — drags ⬆ now slow, now quick (slow when the line says "לאט": 60 %)
 async function pour59k(K) {
-  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || !/^(cast59|spigots59)$/.test(j.kind)) return null; const R = j.ref, m = document.querySelector('.h42 svg circle[data-safe59]'); return { h: R.arcAt(R.tilt()), arc: [0.25, 0.45, 0.65, 0.85, 1].map((t) => R.arcAt(t)), mark: m ? { x: +m.getAttribute('cx'), y: +m.getAttribute('cy') } : null }; }).catch(() => null);
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || !/^(cast59|spigots59)$/.test(j.kind)) return null; const R = j.ref, m = document.querySelector('.h42 svg circle[data-safe59]'); return { h: R.arcAt(R.tilt()), arc: [0.25, 0.45, 0.65, 0.85, 1].map((u) => (R.arcPos ? R.arcPos(u) : R.arcAt(u))), mark: m ? { x: +m.getAttribute('cx'), y: +m.getAttribute('cy') } : null }; }).catch(() => null);
   if (!g || !g.h) return false; const aim = g.mark && K.rnd() < 0.6 ? g.mark : g.arc[Math.floor(K.rnd() * g.arc.length)]; if (!aim) return false; const id = 7, watch = K.rnd() < 0.6;
   await K.down(id, g.h.x + K.between(-10, 10), g.h.y + K.between(-10, 10)); for (let i = 1; i <= 8; i++) { await K.sleep(K.between(30, 70)); await K.move(id, g.h.x + ((aim.x - g.h.x) * i) / 8 + K.between(-5, 5), g.h.y + ((aim.y - g.h.y) * i) / 8 + K.between(-5, 5)); }
   const T = K.between(500, 4500), t0 = Date.now(); let saw = false;

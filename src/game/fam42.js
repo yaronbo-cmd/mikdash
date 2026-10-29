@@ -1228,7 +1228,7 @@ export function createCast59(L = 1, cap = 1, qm = CAST59.qmax) {
   return { step, safe, flowOf, state: () => k, win, tau, qm: QM, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
 /** the twelve spigots' moulds (פ׳): each a different size — so each pour a different amount (cap: the laver's mould is 1) */
-export const SPIGOTS59 = Object.freeze({ caps: Object.freeze([0.16, 0.28, 0.2, 0.34, 0.13, 0.24, 0.3, 0.18, 0.38, 0.22, 0.14, 0.26]), his: 4 });   // (his: the first four his — small, large, middling, larger; the other eight his fellows')
+export const SPIGOTS59 = Object.freeze({ caps: Object.freeze([0.24, 0.34, 0.2, 0.3, 0.13, 0.28, 0.16, 0.38, 0.18, 0.22, 0.14, 0.26]), his: 4, pow: 1.5 });   // (his: the first four his — middling, large, small, larger; the other eight his fellows' — the smallest among them: K59-W-S2's 28 runs-over in the small ones) (pow: along the furnace's arc the tilt grows as t^pow — the gentle pours have the arc's longer part)
 /** the small furnace's stream for a mould of cap: smaller for a smaller mould, but not in proportion — each mould still a different pour */
 export const spigotQ59 = (cap) => CAST59.qmax * Math.sqrt(Math.max(0.01, cap));
 /** the twelve's grade: by the moulds that needed a second pour */

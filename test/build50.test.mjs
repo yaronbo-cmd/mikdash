@@ -66,7 +66,7 @@ test('build 50: the stage — its parts and lines, no chisel in the courts, the 
   assert.deepEqual(YARD44.slice(18).map((v) => v.part), ['compass', 'wheel', 'arch']);
   const c = F.MAT42.cost; assert.ok(c.compass > 0 && c.benches > 0 && c.hub > 0 && c.wheel > 0 && c.dome > 0);
   const h = read('src/game/har42.js');
-  assert.match(h, /o\.stage === 'lishka' \? 'lishka' : 'har';/); assert.match(h, /STG === 'lishka' \? PARTS50 :/);
+  assert.match(h, /o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?'har';/); assert.match(h, /STG === 'lishka' \? PARTS50 :/);
   for (const k of ['compass', 'benches', 'hub', 'wheel', 'dome', 'arch', 'log2']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   assert.match(h, /if \(STG === 'lishka' && R\.part > 0\) \{ try \{ if \(stages\.setStage\) stages\.setStage\('lishka', 'done', 1, \{ instant: true \}\); \}/, 'the chambers stand while he works: no saw or chisel in the courts');
   assert.ok(!/אזמל|מסתת|לסתת/.test(h.slice(h.indexOf('/* ── build 50 ── stage 07\'s acts'), h.indexOf('/* ── build 47 ── stage 04\'s acts'))), 'no chisel in stage 07\'s acts');

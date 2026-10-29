@@ -76,7 +76,7 @@ test('build 49: the stage — its parts, the doors left bronze ("מפני שנע
   assert.deepEqual(YARD44.slice(16, 18).map((v) => v.part), ['lever', 'step']);   // (build 50: then stage 07's)
   const c = F.MAT42.cost; assert.equal(c.voyage, 0, 'the voyage costs nothing'); assert.ok(c.lever > 0 && c.leaf49 > 0 && c.steps > 0);
   const h = read('src/game/har42.js');
-  assert.match(h, /o\.stage === 'nikanor' \? 'nikanor' : o\.stage === 'lishka' \? 'lishka' : 'har';/);   // (build 50: and stage 07's) assert.match(h, /STG === 'nikanor' \? PARTS49 :/);
+  assert.match(h, /o\.stage === 'nikanor' \? 'nikanor' : o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?'har';/);   // (build 50: and stage 07's) assert.match(h, /STG === 'nikanor' \? PARTS49 :/);
   for (const k of ['voyage', 'lever', 'hang', 'steps']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   for (const line of [h, read('src/game/voyage49.js'), read('src/game/fam42.js')].join('\n').split('\n')) { const c = line.indexOf('//'); if (c < 0 || /https?:|'[^']*\/\/|`[^`]*\/\//.test(line)) continue; assert.ok(!/\b(target|frame|view|begin|end|down|up|move): \(/.test(line.slice(c)), `code after a comment: ${line.slice(c, c + 120)}`); }   // (four times this build a // swallowed code on its line)
   assert.match(h, /if \(J\.camK\) \{ if \(J\.frame\(dt\)\) endPart\(\); return; \}/, 'the voyage\'s own camera');

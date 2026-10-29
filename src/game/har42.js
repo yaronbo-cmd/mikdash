@@ -1849,7 +1849,7 @@ export function createHar42(o = {}) {
   /** ה׳ the four horns (fit; horn i at level i): a finger on the horn drags it over the top (it lies where it is let go); two fingers twist it,
    *  or one finger on its ring; its two outer faces glow green when it is square and flush; let go with both green — it is set as it lies */
   function mkHorns58() {
-    let ci = 0, J = null, endT = -1, msgT = 0, pts = new Map(), mode = null, last = null, grip = null, shadow = null, qs = [], said = '';
+    let ci = 0, J = null, endT = -1, msgT = 0, pts = new Map(), mode = null, last = null, grip = null, shadow = null, qs = [], said = '', snapN = 0;
     const SH = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.32, depthWrite: false });
     const cur = () => CORNERS58[Math.min(ci, 3)], mesh = () => st.props.horns58 && st.props.horns58[Math.min(ci, 3)];   // (after the fourth: still the last corner — c58A-SP read past the four)
     const sync = () => { const c = cur(), s = J.state(), p = hornAt58(c, s.u, s.v), m = mesh(); if (m) { m.position.set(p.x, TOP58 + 0.5, p.z); m.rotation.y = (s.rot * Math.PI) / 180; } };
@@ -1857,6 +1857,7 @@ export function createHar42(o = {}) {
       J = F.createHorn58(ci + 1, Math.random); const c = cur(); sync();
       if (shadow) { if (shadow.parent) shadow.parent.remove(shadow); shadow = null; }
       if (J.shadow && st.props.root) { shadow = new THREE.Mesh(new THREE.BoxGeometry(1.02, 1.02, 1.02), SH); const p = hornAt58(c, 0.5, 0.5); shadow.position.set(p.x, TOP58 + 0.5, p.z); st.props.root.add(shadow); }
+      if (ci > 0) snapN = 3;   // (the next corner: the camera cut there with him — its glide along the top lost the frame: c58C-SP 90.5 %)
       try { const s2 = STAND['horn' + ci]; if (ci > 0 && s2) stages.hero.setPos(s2.x, s2.z, 0); } catch (e) { /* */ }   // (the next corner: a cut along the top — out of the corner's view)
       said = ci === 3 ? LINE42.hornLast58 : LINE42.horns58; line(said, `קרן ${ci + 1} / 4 · רמה ${ci + 1}`);
     };
@@ -1867,7 +1868,7 @@ export function createHar42(o = {}) {
     const ringR = () => Math.max(46, Math.min(hornPx() * 0.85, H() * 0.36));
     const toUV = (g) => { const c = cur(); return { u: (c.x - g.x) * c.sx, v: (c.z - g.z) * c.sz }; };
     const job = {
-      acting: true, fullPad: true, kind: 'horns58', get J() { return J; }, ci: () => ci, ownView: () => true, snapView: () => false, hornAt: hornScr, ringR,
+      acting: true, fullPad: true, kind: 'horns58', get J() { return J; }, ci: () => ci, ownView: () => true, snapView: () => (snapN > 0 ? (snapN--, true) : false), hornAt: hornScr, ringR,
       targetAt: () => { const p = hornAt58(cur(), 0.5, 0.5); return proj(p.x, TOP58 + 0.5, p.z); }, edgesNow: () => (J ? J.edges() : null),
       view() { return hornsView58(cur()); },
       raw(type, id, x, y) {   // every finger (the pad's own act takes the first only)
@@ -1967,13 +1968,13 @@ export function createHar42(o = {}) {
     const sc = scene(); if (!sc) return null; const g = new THREE.Group(); g.name = 'fire58'; g.position.set(PYRE58P.x, TOP58 + 0.3, PYRE58P.z);
     const FM = new THREE.MeshBasicMaterial({ color: '#FFA23A', transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }), FM2 = new THREE.MeshBasicMaterial({ color: '#FFE08A', transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
     g.userData.flames = []; for (let i = 0; i < 9; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.28 + (i % 3) * 0.08, 1.3, 8), i % 3 ? FM : FM2); const a = i * 2.39, r = (i % 4) * 0.25; f.position.set(Math.cos(a) * r, 0.65, Math.sin(a) * r); f.userData.ph = i * 1.3; g.add(f); g.userData.flames.push(f); }
-    const SM = new THREE.MeshLambertMaterial({ color: '#8E8A84', transparent: true, opacity: 0.5, depthWrite: false }); g.userData.puffs = []; for (let i = 0; i < 26; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), SM); p.userData.t = i / 26; g.add(p); g.userData.puffs.push(p); }
+    const SM = new THREE.MeshLambertMaterial({ color: '#66615B', transparent: true, opacity: 0.6, depthWrite: false });   /* (darker: grey on the court's sandstone read faint — c58C-SP) */ g.userData.puffs = []; for (let i = 0; i < 26; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), SM.clone()); p.userData.t = i / 26;   /* (each its own: one shared material took the last puff's fade) */ g.add(p); g.userData.puffs.push(p); }
     g.userData.k = 0; sc.add(g); return g;
   }
   function fireFrame58(dt) {
     const g = st.fire58; if (!g) return; g.userData.k = Math.min(1, g.userData.k + dt / 2.5); const k = g.userData.k, t = now();
     for (const f of g.userData.flames) { const s = (0.3 + 0.7 * k) * (0.8 + 0.25 * Math.sin(t * 9 + f.userData.ph)); f.scale.set(s, s * (1 + 0.3 * Math.sin(t * 7 + f.userData.ph)), s); }
-    for (const p of g.userData.puffs) { p.userData.t = (p.userData.t + dt / 9) % 1; const u = p.userData.t, h = 1.5 + u * 48 * k, r = 0.5 + u * 2.2; p.position.set(Math.sin(u * 7 + t * 0.3) * 0.15, h, Math.cos(u * 5) * 0.15); p.scale.setScalar(r * (0.6 + 0.4 * k)); p.material.opacity = 0.5 * (1 - u) * k; p.visible = k > 0.05; }
+    for (const p of g.userData.puffs) { p.userData.t = (p.userData.t + dt / 9) % 1; const u = p.userData.t, h = 1.5 + u * 48 * k, r = 0.5 + u * 2.2; p.position.set(Math.sin(u * 7 + t * 0.3) * 0.15, h, Math.cos(u * 5) * 0.15); p.scale.setScalar(r * (0.6 + 0.4 * k)); p.material.opacity = 0.62 * (1 - u * 0.85) * k; p.visible = k > 0.05; }
   }
   function mkPyre58(L) {
     const J = F.createPyre58(L, Math.random), k = J.state(), made = [], logs = [], Y = F.PYRE58;
@@ -1995,7 +1996,7 @@ export function createHar42(o = {}) {
     const torchAt = () => proj(PYRE58P.x, TOP58 + 0.25, PYRE58P.z + 0.9);
     const job = {
       acting: true, fullPad: true, kind: 'pyre58', J, ownView: () => true, zones, logsAt: () => logs.map((m) => ({ i: m.userData.g.i, kind: m.userData.g.kind, fit: m.userData.g.fit, cls: m.userData.g.cls, at: m.userData.g.at, p: logScr(m) })), slotAt: () => { const n = J.next(); if (!n) return null; const sl = slot58(k.laid.length); return proj(sl.x, sl.y, sl.z); }, torchAt, lit: () => lit,
-      view() { const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1); if (litT >= 0) { const d = 24, h = 4 + litT * 1.5, th = Math.atan(0.6 * tv) - Math.atan(h / d); return { p: [PYRE58P.x - 2, TOP58 + h, PYRE58P.z + d], t: [PYRE58P.x, TOP58 + h + Math.tan(th) * d, PYRE58P.z] }; }   /* (lit: back and low from the south — the fire at ⅘ down the frame, its column straight up through the top; from above it the fire fell under the frame: c58B-SP) */ const t2 = tv * (W() / H()), D = 10.4 / (2 * t2), el = 1.0, T = [-31.4, TOP58 + 0.3, -1.9]; return { p: [T[0], T[1] + Math.sin(el) * D, T[2] + Math.cos(el) * D], t: T }; },   // (¾ from the south: the pyre on the right, the pile in the middle, the out-pile on the left; then up with the smoke)
+      view() { const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1); if (litT >= 0) { const d = 16, h = 3 + litT * 1.2, th = Math.atan(0.6 * tv) - Math.atan(h / d); return { p: [PYRE58P.x - 2, TOP58 + h, PYRE58P.z + d], t: [PYRE58P.x, TOP58 + h + Math.tan(th) * d, PYRE58P.z] }; }   /* (lit: back and low from the south — the fire at ⅘ down the frame, its column straight up through the top; from above it the fire fell under the frame: c58B-SP) */ const t2 = tv * (W() / H()), D = 10.4 / (2 * t2), el = 1.0, T = [-31.4, TOP58 + 0.3, -1.9]; return { p: [T[0], T[1] + Math.sin(el) * D, T[2] + Math.cos(el) * D], t: T }; },   // (¾ from the south: the pyre on the right, the pile in the middle, the out-pile on the left; then up with the smoke)
       down(a) {
         if (endT >= 0 || lit) return;
         if (J.ready()) { const t = torchAt(); if (t && Math.hypot(t.x - a.x, t.y - a.y) < Math.max(56, W() * 0.09)) { J.light(); lit = true; litT = 0; st.fire58 = fire58Make(); line(LINE42.fire58, ''); o.sound && o.sound('fire'); buzz42('peak'); try55('fire', true); } return; }

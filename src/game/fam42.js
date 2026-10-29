@@ -1108,6 +1108,6 @@ export function createSid57(L = 1) {
     return out;
   }
   /** the least-covered row (0…1 from the top) — where the hint points */
-  const gapRow = () => { let best = 0, bv = 9; for (let r = 0; r < C.rows; r++) { let s = 0; for (let c = 0; c < C.cols; c++) s += Math.min(1, cells[r * C.cols + c]); if (s < bv) { bv = s; best = r; } } return (best + 0.5) / C.rows; };
+  const gapRow = () => { let best = 0, bv = Infinity; for (let r = 0; r < C.rows; r++) { let s = 0; for (let c = 0; c < C.cols; c++) s += Math.min(1, cells[r * C.cols + c]); if (s < bv) { bv = s; best = r; } } return (best + 0.5) / C.rows; };
   return { wipe, cover, speed, gapRow, cell: (c, r) => cells[r * C.cols + c], state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

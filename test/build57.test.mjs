@@ -102,6 +102,7 @@ test('build 57: the whitewash — with a cloth, never iron; too slow drips, too 
   assert.equal(S.wipe(0.2, 0.2, 1, (t += 0.5)), 'ok'); assert.equal(S.cell(4, 2), 1, 'a second pass at a good pace covers it');
   const G = F.createSid57(1); for (let r = 0; r < 10; r += 1) for (let c = 0; c < 20; c += 1) G.wipe((c + 0.5) / 20, (r + 0.5) / 10, 1, (t += 0.1)); assert.ok(G.cover() >= 0.8); assert.equal(G.result().rating, 'mehudar');
   assert.ok(F.SID57.vmin[1] < F.SID57.vmin[4] && F.SID57.vmax[1] > F.SID57.vmax[4], 'the pace window narrows by level');
+  const Q = F.createSid57(1); for (let c = 0; c < 20; c++) Q.wipe((c + 0.5) / 20, 0.05, 1, (t += 0.1)); assert.ok(Q.gapRow() > 0.2, `the hint goes where it is still grey (${Q.gapRow()}) — it stayed on the top row: the autoplayer never covered (c57C-SP)`);
   const sd = H.slice(H.indexOf('function mkSid57('), H.indexOf('const mix55 = '));
   assert.match(sd, /if \(o\.timeOfDay\) o\.timeOfDay\('dawn'\);/, 'the morning light'); assert.match(sd, /data-cloth="1"/); assert.match(sd, /data-cover=/); assert.ok(!/ברזל|כפיס/.test(sd.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')), 'no iron tool in the act');
   assert.match(sd, /drips\.push\(\{ u, v, len: 0, t: 0 \}\)/, 'the drops seen running');

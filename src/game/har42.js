@@ -914,8 +914,8 @@ export function createHar42(o = {}) {
     for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) w.addEventListener(t, (e) => { if (st.hold && e.pointerId === st.hold.id) st.hold = null; });
     // the act's surface on the thing: its gesture (each part reads st.act: { down, x0, y0, x, y, t0, moved, up })
     const pad = st.ui.pad;
-    pad.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); st.act = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t0: now(), moved: 0, down: true }; st.finger++; try { pad.setPointerCapture(e.pointerId); } catch (err) { /* */ } if (st.job && st.job.down) st.job.down(st.act); });
-    pad.addEventListener('pointermove', (e) => { const a = st.act; if (!a || e.pointerId !== a.id) return; a.x = e.clientX; a.y = e.clientY; a.moved = Math.max(a.moved, Math.hypot(a.x - a.x0, a.y - a.y0)); if (st.job && st.job.move) st.job.move(a); });
+    pad.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); st.act = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t0: now(), ts: e.timeStamp > 0 ? e.timeStamp / 1000 : null, moved: 0, down: true }; st.finger++; try { pad.setPointerCapture(e.pointerId); } catch (err) { /* */ } if (st.job && st.job.down) st.job.down(st.act); });
+    pad.addEventListener('pointermove', (e) => { const a = st.act; if (!a || e.pointerId !== a.id) return; a.x = e.clientX; a.y = e.clientY; a.ts = e.timeStamp > 0 ? e.timeStamp / 1000 : null;   /* ── build 57 ── (the event's own time: a pace read off it is not bent by a late frame) */ a.moved = Math.max(a.moved, Math.hypot(a.x - a.x0, a.y - a.y0)); if (st.job && st.job.move) st.job.move(a); });
     const up = (e) => { const a = st.act; if (!a || e.pointerId !== a.id) return; a.down = false; st.finger = Math.max(0, st.finger - 1); if (st.job && st.job.up) st.job.up(a, e.type); st.act = null; };
     for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(t, up);
   }
@@ -1752,22 +1752,23 @@ export function createHar42(o = {}) {
     const job = {
       acting: true, fullPad: true, kind: 'sid57', J, ownView: () => true, snapView: () => true, faceBox, cover: () => J.cover(), gapRow: () => J.gapRow(), speedWin: () => { const fb = faceBox(); return fb ? { min: F.SID57.vmin[k.L] * fb.w, max: F.SID57.vmax[k.L] * fb.w } : null; },
       view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), t2 = tv * (W() / H()), D = Wd / (2 * V.share * t2), ym = (V.y0 + V.y1) / 2, zm = (V.z0 + V.z1) / 2; return { p: [V.x + D, ym + 0.15, zm], t: [V.x, ym, zm] }; },   // (a macro, level, square on the face)
-      down(a) { if (endT >= 0) return; const q = toUV(a.x, a.y); last = q ? { u: q.u, v: q.v, x: a.x, y: a.y, t: now(), t0: now(), dir: null } : null; sp = 0; still = 0; stillF = 0; lastMv57 = now(); cloth = { x: a.x, y: a.y }; trail = [{ x: a.x, y: a.y, t: now() }]; stk = { bad: false, px: 0, c0: J.cover() }; },
+      down(a) { if (endT >= 0) return; const q = toUV(a.x, a.y); last = q ? { u: q.u, v: q.v, x: a.x, y: a.y, t: now(), t0: now(), dir: null } : null; sp = 0; still = 0; stillF = 0; lastMv57 = now(); cloth = { x: a.x, y: a.y }; trail = [{ p: 0, ts: a.ts != null ? a.ts : now() }]; stk = { bad: false, px: 0, c0: J.cover() }; },
       move(a) {
         cloth = { x: a.x, y: a.y }; if (endT >= 0 || !last) return; const q = toUV(a.x, a.y); if (!q) return;
         const t = now(), d = Math.hypot(a.x - last.x, a.y - last.y), fb = faceBox(), fw = fb ? Math.max(60, fb.w) : W() * 0.7;
         if (d < 2) return;   // (a tremor — not a stroke)
-        if (stk) stk.px += d; trail.push({ x: a.x, y: a.y, t }); while (trail.length > 2 && t - trail[0].t > 0.34) trail.shift();
-        let pl = 0, tl = 0; for (let q2 = 1; q2 < trail.length; q2++) { pl += Math.hypot(trail[q2].x - trail[q2 - 1].x, trail[q2].y - trail[q2 - 1].y); tl += Math.min(0.05, trail[q2].t - trail[q2 - 1].t); }   // (each step's time at most 50 ms: a moving finger sends events at 20 Hz or more — a longer gap is the page stalling, not the finger slowing; a finger at rest is the frame's "still")
-        sp = pl / Math.max(0.06, tl) / fw; still = 0; stillF = 0; lastMv57 = t;
+        // the pace: the stroke's path over its time (the last 1.2 s of it) by the events' own clock — not one step's: steps come in bursts after a
+        // late frame (c57B-TW: one step's pace read slow — 274 drips; c57C-SP: per step, fast — streaks over and over, never covered)
+        const ts = a.ts != null ? a.ts : t; if (stk) stk.px += d; trail.push({ p: stk ? stk.px : 0, ts }); while (trail.length > 2 && ts - trail[1].ts > 1.2) trail.shift();
+        const el = ts - trail[0].ts; sp = (trail[trail.length - 1].p - trail[0].p) / Math.max(0.1, el) / fw; if (el < 0.25) sp = Math.max(sp, F.SID57.vmin[k.L] * 1.01); still = 0; stillF = 0; lastMv57 = t;   // (the stroke's first quarter second is never "too slow")
         const dir = Math.atan2(a.y - last.y, a.x - last.x), n = Math.max(1, Math.ceil(d / 14));
-        for (let s2 = 1; s2 <= n; s2++) { const f = s2 / n; at(last.u + (q.u - last.u) * f, last.v + (q.v - last.v) * f, t - last.t0 < 0.12 ? Math.max(sp, F.SID57.vmin[k.L] * 1.01) : sp, t); }   // (the first moment of a stroke is never "too slow")
+        for (let s2 = 1; s2 <= n; s2++) { const f = s2 / n; at(last.u + (q.u - last.u) * f, last.v + (q.v - last.v) * f, sp, t); }
         last = { u: q.u, v: q.v, x: a.x, y: a.y, t, dir, t0: last.t0 != null ? last.t0 : last.t };
       },
       up() { if (stk && stk.px > 40 && (J.cover() > stk.c0 + 0.005 || stk.bad)) try55('sid', !stk.bad); stk = null; last = null; cloth = null; still = 0; trail = []; },
       frame(dt) {
         objPlace(endT < 0, [{ x: V.x, y: (V.y0 + V.y1) / 2, z: (V.z0 + V.z1) / 2, r: 2 }], 'h57sid', [{ x: V.x, y: V.y0, z: V.z0, r: 0.05 }, { x: V.x, y: V.y1, z: V.z1, r: 0.05 }]);
-        if (last && st.finger && endT < 0) { stillF++; if (stillF >= 6 && now() - Math.max(lastMv57, last.t0 || 0) > 0.7) { stillF = 0; lastMv57 = now(); at(last.u, last.v, 0, now()); } }   // (the cloth held still on the face: it drips — no move for 0.7 s of real time and six frames drawn meanwhile: a stalled page is not a still finger)
+        if (last && st.finger && endT < 0) { stillF++; if (stillF >= 6 && now() - Math.max(lastMv57, last.t0 || 0) > 0.9) { stillF = 0; lastMv57 = now(); at(last.u, last.v, 0, now()); } }   // (the cloth held still on the face: it drips — no move for 0.7 s of real time and six frames drawn meanwhile: a stalled page is not a still finger)
         for (const d of drips) { if (d.t < 1.6) { d.t += dt; d.len = Math.min(0.42, d.len + dt * 0.26); dirty = true; } }
         if (dirty) redraw();
         if (msgT > 0 && msgT < 90) { msgT -= dt; if (msgT <= 0) line(k.drips + k.streaks === 0 && J.cover() < 0.25 ? LINE42.sidCloth57 : LINE42.sid57, `רמה ${L}`); }

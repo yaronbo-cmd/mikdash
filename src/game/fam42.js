@@ -830,14 +830,14 @@ export function createArch50(L = 1) {
  *  snapping) and the last row of the yesod (only where there is one: Middot 3:1). Kasher ➡, pasul ⬅ (§1 rule 13). ───────── */
 /** the stones' defect pool: each a kind with its verdict and its source */
 export const STONE55 = Object.freeze({
-  crack: Object.freeze({ he: 'סדק', bad: true, why: '"וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  crack: Object.freeze({ he: 'סדק', bad: true, why: '"וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
   mud: Object.freeze({ he: 'כתם בוץ', bad: false, decoy: true, wipe: true, why: 'בוץ — מנגבים, ונשארת אבן שלמה · המחשה' }),
-  mudcrack: Object.freeze({ he: 'סדק מתחת לבוץ', bad: true, wipe: true, under: true, why: 'מתחת לבוץ — סדק; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  mudcrack: Object.freeze({ he: 'סדק מתחת לבוץ', bad: true, wipe: true, under: true, why: 'מתחת לבוץ — סדק; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
   whole: Object.freeze({ he: 'אבן שלמה', bad: false, why: '"אֲבָנִים שְׁלֵמוֹת" — דברים כז, ו · טיוטה' }),
   nick: Object.freeze({ he: 'פגימה בשפה', bad: true, edge: true, why: '"וכמה פגימת המזבח — כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה' }),
-  iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בְּמַגָּע" — מדות ג, ד · טיוטה' }),
-  hair: Object.freeze({ he: 'סדק נסתר', bad: true, raking: true, why: 'רק באור צד; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),   // ── build 56 ──
-  deep: Object.freeze({ he: 'סדק עמוק', bad: true, ring: true, why: 'צליל עמום; "וּבִפְגִימָה בְּכָל דָּבָר" — מדות ג, ד · טיוטה' }),
+  iron: Object.freeze({ he: 'נגיעת ברזל', bad: true, glint: true, why: '"שֶׁהַבַּרְזֶל פּוֹסֵל בִּנְגִיעָה" — מדות ג, ד · טיוטה' }),
+  hair: Object.freeze({ he: 'סדק נסתר', bad: true, raking: true, why: 'רק באור צד; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),   // ── build 56 ──
+  deep: Object.freeze({ he: 'סדק עמוק', bad: true, ring: true, why: 'צליל עמום; "וּבִפְגִימָה לְכָל דָּבָר" — מדות ג, ד · טיוטה' }),
 });
 export const STONE55_TYPES = Object.freeze(Object.keys(STONE55));
 /** the bag's types by level: the first inspection (level 1) — a crack, a mud stain, a whole stone; then the mud over a crack; after the twist — iron */

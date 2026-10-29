@@ -45,14 +45,14 @@ export const ALT55 = Object.freeze({ x0: -54, z0: -19.5, side: 32 });
 export const VIEW55 = Object.freeze({ stone: 0.45, edge: 0.66, course: 0.5 });
 export const SRC55 = Object.freeze([
   'אחד אבני הכבש ואחד אבני המזבח, מבקעת בית כרם — מדות ג, ד · טיוטה',
-  'שהברזל פוסל בנגיעה, ובפגימה בכל דבר — מדות ג, ד · טיוטה',
+  'שהברזל פוסל בנגיעה, ובפגימה לכל דבר — מדות ג, ד · טיוטה',
   'היה מהלך על פני כל הצפון ועל פני כל המערב, ואוכל בדרום אמה אחת ובמזרח אמה אחת — מדות ג, א · טיוטה',
 ]);
 export const PARTS56 = Object.freeze(['open', 'light', 'tap', 'sovev', 'thread', 'reveal']);   // ── build 56 ── stage 09, הסובב וחוט הסיקרא (§3 "09")
 export const SRC56 = Object.freeze([
   'עלה חמש וכנס אמה, זה הסובב — מדות ג, א · טיוטה',
   'וחוט של סיקרא חוגרו באמצע, להבדיל בין דמים העליונים לדמים התחתונים — מדות ג, א · טיוטה',
-  'שהברזל פוסל בנגיעה, ובפגימה בכל דבר — מדות ג, ד · טיוטה',
+  'שהברזל פוסל בנגיעה, ובפגימה לכל דבר — מדות ג, ד · טיוטה',
   'המנורה, הפטיש ואבן העדות, האנך, הקנה והפלס — המחשה',
 ]);
 export const PARTS50 = Object.freeze(['open', 'compass', 'benches', 'hub', 'wheel', 'dome', 'reveal']);   // ── build 50 ── stage 07, הלשכות: "קשתות ועיגולים" (v2 §10 "07")   // ── build 49 ── stage 06, שער ניקנור וט״ו המעלות (v2 §10 "06", §11)
@@ -119,14 +119,14 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   wood: 'סובבו, קלפו ∙ כשר ➡ פסול ⬅ · "כל עץ שנמצא בו תולעת, פסול" — מדות ב, ה · טיוטה',   // ── build 48 ── stage 05's lines   // ── build 55 ── (rule 13 of the 08–16 spec: kasher right, pasul left in the whole game) ── /build 55 ──
   woodHow: 'החלקה למעלה — מסובבת · לאורך — מקלפת · הקשה — מסמנת · המחשה',
   // ── build 55 ── stage 08's lines (§1 rule 4: a verb and the gesture's arrow, five words at most) ── /build 55 ──
-  stone55: 'סובבו ↔ ∙ כשר ➡ פסול ⬅ · "שהברזל פוסל במגע, ובפגימה בכל דבר" — מדות ג, ד · טיוטה',
+  stone55: 'סובבו ↔ ∙ כשר ➡ פסול ⬅ · "שהברזל פוסל בנגיעה, ובפגימה לכל דבר" — מדות ג, ד · טיוטה',
   mud55: 'נגבו את הבוץ ⟲ ∙ כשר ➡ פסול ⬅ · המחשה',
   nail55: 'העבירו אצבע לאט ↔ · "כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה',
   slow55: 'לאט — כדי להרגיש ↔ · המחשה',
   caught55: 'נתפסה! פסול ⬅ · "כדי שתחגור בה צפורן" — חולין יח ע"א · טיוטה',
   smooth55: 'השפה חלקה ∙ כשר ➡ · המחשה',
   iron55: 'סובבו מול האור ↔ ∙ כשר ➡ פסול ⬅ · המחשה',
-  ironWhy55: 'האבן שלמה. אבל ברזל נגע בה. · "שהברזל פוסל במגע" — מדות ג, ד · טיוטה',
+  ironWhy55: 'האבן שלמה. אבל ברזל נגע בה. · "שהברזל פוסל בנגיעה" — מדות ג, ד · טיוטה',
   field55: 'גררו לרווח ⤵ ∙ הקישו ⟳ · "אחד אבני הכבש ואחד אבני המזבח, מבקעת בית כרם" — מדות ג, ד · טיוטה',
   fieldTurn55: 'לא נכנסת — הקישו ⟳ · המחשה',
   fieldOther55: 'לא זו — אבן אחרת ⤵ · המחשה',
@@ -136,7 +136,7 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   noYesod55: 'כאן אין יסוד · "ואוכל בדרום אמה אחת, ובמזרח אמה אחת" — מדות ג, א · טיוטה',
   yesodDone55: 'זה היסוד · "עלה אמה וכנס אמה, זה היסוד" — מדות ג, א · טיוטה',
   // ── build 56 ── stage 09's lines ── /build 56 ──
-  lamp56: 'הזיזו את האור ⟲ · "ובפגימה בכל דבר" — מדות ג, ד · טיוטה',
+  lamp56: 'הזיזו את האור ⟲ · "ובפגימה לכל דבר" — מדות ג, ד · טיוטה',
   rakeSeen56: 'סדק באור הצד! פסול ⬅ · המחשה',
   rakeWhole56: 'שלמה גם באור צד ∙ כשר ➡ · המחשה',
   tap56: 'הקישו 👆 ∙ השוו לעדות · אבן שלמה מצלצלת, סדוקה עמומה — המחשה',
@@ -233,7 +233,7 @@ export const SRC50 = Object.freeze([
 export const FIND50 = 'ארכאולוגיה: קשתות הורדוסיות — קשת רובינסון וקשת וילסון';
 /** ── build 50 ── the craftsman's test before chapter ג׳ (the altar): the INSPECT family — a log check, a rock reading, a log check again —
  *  at level 2; the same rules as build 44's */
-export const TEST50 = Object.freeze({ jobs: Object.freeze(['stone', 'mud', 'nail']), L: 2, demoAfter: 5, src: 'שהברזל פוסל בנגיעה, ובפגימה בכל דבר — מדות ג, ד · טיוטה' });   // ── build 55 ── (the 08–16 spec §2: the stone with a crack, mud or crack, the fingernail — was build 50's log, rock, log) ── /build 55 ──
+export const TEST50 = Object.freeze({ jobs: Object.freeze(['stone', 'mud', 'nail']), L: 2, demoAfter: 5, src: 'שהברזל פוסל בנגיעה, ובפגימה לכל דבר — מדות ג, ד · טיוטה' });   // ── build 55 ── (the 08–16 spec §2: the stone with a crack, mud or crack, the fingernail — was build 50's log, rock, log) ── /build 55 ──
 /** ── build 49 ── stage 06's card's sources (בבלי יומא לח ע"א; מדות ב, ג; ב, ה) and the find */
 export const SRC49 = Object.freeze([   // (the card's: short — the voyage's own lines carry the long quotes)
   'מסע הדלתות: הנחשול, הדלת שהושלכה, "הטילוני עמה", הדלת בעכו — יומא לח ע"א · טיוטה',

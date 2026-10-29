@@ -535,7 +535,7 @@ export function createHar42(o = {}) {
     Object.assign(STAND, { decoy: A(-11.5, -18), kevesh: A(-41, 48), sid: A(-11, 6) });
     // ── build 58 ── stage 11: on the altar's top by each corner — nine amot along its edge, out of the corner's view; the holes from the court
     // floor west of the south-west corner (out of their low view); the pyre's from the top's west of the wood (out of its view) ── /build 58 ──
-    CORNERS58.forEach((c, i) => { STAND['horn' + i] = A(c.x - c.sx * 9, c.z - c.sz * 1.5); });
+    CORNERS58.forEach((c, i) => { STAND['horn' + i] = A(c.x - c.sx * 6.5, c.z - c.sz * 6.5); });   // (inside the top, behind the corner's camera)
     Object.assign(STAND, { horns: STAND.horn0, holes: A(-57.5, 12.5), fire: A(-37.5, -3) });   // ── build 57 ── (the kevesh from its east side: he at its foot, low on the left; the whitewash's macro: he behind its camera)
   }
   if (STG === 'soreg') {
@@ -1844,13 +1844,13 @@ export function createHar42(o = {}) {
     const pud = new THREE.Mesh(new THREE.CircleGeometry(1, 24), new THREE.MeshBasicMaterial({ color: '#4E86B8', transparent: true, opacity: 0.55, depthWrite: false })); pud.rotation.x = -Math.PI / 2; pud.scale.setScalar(0.01); pud.visible = false; add(pud, HOLES58.pool[0], 16.03, HOLES58.edge + 0.7); st.props.pud58 = pud;
   }
   /** a screen point's world place on the altar's top, for a horn being dragged */
-  function hornsView58(c) { const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1), t2 = tv * (W() / H()), D = 3.9 / (2 * t2), T = hornAt58(c, 1.15, 1.15), el = 0.88, o = Math.SQRT1_2; return { p: [T.x + c.sx * o * Math.cos(el) * D, TOP58 + 0.4 + Math.sin(el) * D, T.z + c.sz * o * Math.cos(el) * D], t: [T.x, TOP58 + 0.4, T.z] }; }
+  function hornsView58(c) { const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1), t2 = tv * (W() / H()), D = 4.4 / (2 * t2), T = hornAt58(c, 0.95, 0.95), el = 0.96, o = Math.SQRT1_2; return { p: [T.x - c.sx * o * Math.cos(el) * D, TOP58 + 0.5 + Math.sin(el) * D, T.z - c.sz * o * Math.cos(el) * D], t: [T.x, TOP58 + 0.5, T.z] }; }   // (from over the altar's top, looking out and down at the corner — he behind the camera, inside; from outside, close, the horn's shadow filled the frame: c58A-SP)
   /** ה׳ the four horns (fit; horn i at level i): a finger on the horn drags it over the top (it lies where it is let go); two fingers twist it,
    *  or one finger on its ring; its two outer faces glow green when it is square and flush; let go with both green — it is set as it lies */
   function mkHorns58() {
     let ci = 0, J = null, endT = -1, msgT = 0, pts = new Map(), mode = null, last = null, grip = null, shadow = null, qs = [], said = '';
     const SH = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.32, depthWrite: false });
-    const cur = () => CORNERS58[ci], mesh = () => st.props.horns58 && st.props.horns58[ci];
+    const cur = () => CORNERS58[Math.min(ci, 3)], mesh = () => st.props.horns58 && st.props.horns58[Math.min(ci, 3)];   // (after the fourth: still the last corner — c58A-SP read past the four)
     const sync = () => { const c = cur(), s = J.state(), p = hornAt58(c, s.u, s.v), m = mesh(); if (m) { m.position.set(p.x, TOP58 + 0.5, p.z); m.rotation.y = (s.rot * Math.PI) / 180; } };
     const begin = () => {
       J = F.createHorn58(ci + 1, Math.random); const c = cur(); sync();
@@ -1863,7 +1863,7 @@ export function createHar42(o = {}) {
     const onPlane = (x, y) => ground55(x, y, TOP58 + 0.5);
     const hornScr = () => { const m = mesh(); return m ? proj(m.position.x, TOP58 + 0.5, m.position.z) : null; };
     const hornPx = () => { const m = mesh(); if (!m) return 80; const a = proj(m.position.x - 0.5, TOP58 + 0.5, m.position.z), b = proj(m.position.x + 0.5, TOP58 + 0.5, m.position.z); return a && b ? Math.max(40, Math.hypot(b.x - a.x, b.y - a.y)) : 80; };
-    const ringR = () => Math.max(46, hornPx() * 0.95);
+    const ringR = () => Math.max(46, Math.min(hornPx() * 0.85, H() * 0.36));
     const toUV = (g) => { const c = cur(); return { u: (c.x - g.x) * c.sx, v: (c.z - g.z) * c.sz }; };
     const job = {
       acting: true, fullPad: true, kind: 'horns58', get J() { return J; }, ci: () => ci, ownView: () => true, snapView: () => false, hornAt: hornScr, ringR,

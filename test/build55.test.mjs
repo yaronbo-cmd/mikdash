@@ -90,6 +90,10 @@ test('build 55: the last row — only along the north and the west, and one amah
   assert.equal(l.drop(31.6, 5).r, 'noyesod', 'the east, three amot down: none'); assert.equal(k.strays, 3);
   for (const [x, z] of [[20, 0.4], [28, 0.6], [0.5, 21], [0.4, 29], [1.6, 31.4], [31.4, 1.6]]) assert.equal(l.drop(x, z).r, 'set');
   assert.equal(k.done, true); assert.equal(k.q, 0.65, 'strays cost no more than כשר');
+  const lr = H.slice(H.indexOf('function mkLast55('), H.indexOf('const try55 = '));
+  assert.match(lr, /if \(st\.props\.plan55\) st\.props\.plan55\.forEach\(\(m\) => \{ m\.visible = false; \}\);/, 'the square\'s gold line hidden while he lays the ר');
+  assert.match(lr, /if \(L <= 1\) for \(const sl of F\.LAST55\.slots\) if \(!sl\.pre\) shadows\[sl\.id\]/, 'level 1: the ר\'s shadow; level 2: none');
+  assert.match(H, /if \(STG === 'yesod'\) \{ try \{ if \(stages\.setLife\) stages\.setLife\(false\);/, 'the world\'s own crews quiet in stage 08 (and back at its end)');
   const s1 = F.LAST55.slots.find((s) => s.id === 's1'), e1 = F.LAST55.slots.find((s) => s.id === 'e1'); assert.ok(s1.w === 1 && s1.d === 1 && e1.w === 1 && e1.d === 1, 'one amah each');
 });
 

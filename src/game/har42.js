@@ -1088,7 +1088,7 @@ export function createHar42(o = {}) {
       c2.beginPath(); c2.ellipse(cx, by + R0 * 0.05, R0 * 0.22, R0 * 0.12, 0, 0, 6.283); c2.fill(); c2.stroke();
     }
     if (o2.mark === 'pits') {   // ── build 57 ── natural pits: small round hollows, soft-edged, shaded inside ── /build 57 ──
-      for (let i = 0; i < 11; i++) { const x = ((o2.mu2 != null ? o2.mu2 : 0.5) - 0.22 + rnd() * 0.44) * w, y = ((o2.mv2 != null ? o2.mv2 : 0.5) - 0.2 + rnd() * 0.4) * h, r = 3.5 + rnd() * 5.5; const gg = c2.createRadialGradient(x - r * 0.3, y - r * 0.3, 0.5, x, y, r); gg.addColorStop(0, 'rgba(70,52,34,.8)'); gg.addColorStop(1, 'rgba(70,52,34,0)'); c2.fillStyle = gg; c2.beginPath(); c2.arc(x, y, r, 0, 6.283); c2.fill(); }
+      for (let i = 0; i < 12; i++) { const x = ((o2.mu2 != null ? o2.mu2 : 0.5) - 0.24 + rnd() * 0.48) * w, y = ((o2.mv2 != null ? o2.mv2 : 0.5) - 0.22 + rnd() * 0.44) * h, r = 6 + rnd() * 7; const gg = c2.createRadialGradient(x - r * 0.25, y - r * 0.25, 0.5, x, y, r); gg.addColorStop(0, 'rgba(58,42,26,.92)'); gg.addColorStop(0.6, 'rgba(70,52,34,.55)'); gg.addColorStop(1, 'rgba(70,52,34,0)'); c2.fillStyle = gg; c2.beginPath(); c2.arc(x, y, r, 0, 6.283); c2.fill(); }
     }
     if (o2.mud > 0) {   // a mud stain over the face (o2.mud: how much is left)
       c2.globalAlpha = Math.min(1, o2.mud * 1.15); c2.fillStyle = o2.moss ? '#4F6B2E' : '#6B4A2C';   /* (── build 57 ── moss: green) */
@@ -1661,7 +1661,7 @@ export function createHar42(o = {}) {
     const job = {
       acting: true, fullPad: true, kind: 'kevesh57', J, ownView: () => true, gear: GEAR, palAt, slotAt: slotP,
       curAt: () => (drag ? proj(drag.m.position.x, drag.m.position.y + 0.25, drag.m.position.z) : null), locked: () => !!(drag && drag.lock), bubble: () => (drag && drag.lock ? J.bubble(drag.h) : null),
-      view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), t2 = tv * (W() / H()), zc = 28, half = 23, D = half / t2; return { p: [XM57 + D, 22.4, zc], t: [XM57, 20.6, zc] }; },   // (from the east, level: the kevesh's length ≈ 70 % of the width, the altar's south face on the right, his place at its foot on the left)
+      view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360) / ((c && c.zoom) || 1), t2 = tv * (W() / H()), zc = 27, D = 8 + (zc - KEV57.zTop) / (0.84 * t2); return { p: [XM57 + D, 23, zc], t: [XM57, 20.8, zc] }; },   // (from the east, level: the kevesh's near top corner — where it meets the altar — at 0.84 of the half-width on the right, so its length ≈ 60 % of the width at its middle; his place at its foot on the left — c57A-SP: from 23 amot the near edge ran off the frame)
       down(a) {
         if (endT >= 0 || k.done || drag) return; const pq = palAt();
         if (pq && Math.hypot(pq.x - a.x, pq.y - a.y) < Math.max(70, W() * 0.11)) { const g = planeX57(a.x, a.y, XM57); const m = add57(slab(), XM57, g ? Math.max(16.4, g.y) : 17, g ? g.z : PAL57.z); m.rotation.x = 0; drag = { m, lock: false, h: 0 }; buzz42('tick'); o.sound && o.sound('stone'); }
@@ -1733,7 +1733,7 @@ export function createHar42(o = {}) {
     redraw();
     const toUV = (px, py) => { const c = camera(); if (!c) return null; const nd = new THREE.Vector2((px / W()) * 2 - 1, -(py / H()) * 2 + 1), rc = new THREE.Raycaster(); rc.setFromCamera(nd, c); const o3 = rc.ray.origin, d3 = rc.ray.direction; if (Math.abs(d3.x) < 1e-4) return null; const t = (V.x - o3.x) / d3.x; if (t < 0) return null; const z = o3.z + d3.z * t, y = o3.y + d3.y * t; return { u: (V.z1 - z) / Wd, v: (V.y1 - y) / Ht }; };
     const faceBox = () => { const a = proj(V.x, V.y1, V.z1), b = proj(V.x, V.y0, V.z0); if (!a || !b) return null; const l = Math.min(a.x, b.x), r = Math.max(a.x, b.x), t = Math.min(a.y, b.y), bt = Math.max(a.y, b.y); return { l, r, t, b: bt, w: r - l, h: bt - t }; };
-    let last = null, sp = 0, endT = -1, msgT = 0, cloth = null, still = 0;
+    let last = null, sp = 0, endT = -1, msgT = 0, cloth = null, still = 0, trail = [], stk = null;   // (stk: the stroke in hand — the §1 tally: a stroke is a try, one with no drip and no streak a success)   // (trail: the finger's last ⅓ s — its pace is the path over that time, not one event's step: events come in bursts)
     line(LINE42.sid57, `רמה ${L}`); if (st.ui.pad) st.ui.pad.classList.add('full');
     function stroke(u, v, r) {
       const x = u * cw, y = v * ch, R0 = cw * 0.085;
@@ -1744,6 +1744,7 @@ export function createHar42(o = {}) {
     function at(u, v, speed, t) {
       if (u < -0.05 || u > 1.05 || v < -0.05 || v > 1.05 || k.done) return;
       const r = J.wipe(Math.max(0, Math.min(1, u)), Math.max(0, Math.min(1, v)), speed, t); stroke(u, v, r);
+      if ((r === 'drip' || r === 'streak') && stk) stk.bad = true;
       if (r === 'drip') { drips.push({ u, v, len: 0, t: 0 }); msgT = 1.6; line(LINE42.sidSlow57, `טפטופים ${k.drips} · פסים ${k.streaks}`); buzz42('retry'); }
       else if (r === 'streak') { msgT = 1.6; line(LINE42.sidFast57, `טפטופים ${k.drips} · פסים ${k.streaks}`); buzz42('tick'); }
       if (k.done && endT < 0) { R.sid57 = { d: k.drips, s: k.streaks }; line(LINE42.sidDone57, `טפטופים ${k.drips} · פסים ${k.streaks}`); msgT = 99; endT = 2.0; buzz42('ok'); o.sound && o.sound('brush'); grade('sid', k.q, { x: W() / 2, y: H() * 0.35 }); }
@@ -1751,20 +1752,22 @@ export function createHar42(o = {}) {
     const job = {
       acting: true, fullPad: true, kind: 'sid57', J, ownView: () => true, snapView: () => true, faceBox, cover: () => J.cover(), gapRow: () => J.gapRow(), speedWin: () => { const fb = faceBox(); return fb ? { min: F.SID57.vmin[k.L] * fb.w, max: F.SID57.vmax[k.L] * fb.w } : null; },
       view() { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), t2 = tv * (W() / H()), D = Wd / (2 * V.share * t2), ym = (V.y0 + V.y1) / 2, zm = (V.z0 + V.z1) / 2; return { p: [V.x + D, ym + 0.15, zm], t: [V.x, ym, zm] }; },   // (a macro, level, square on the face)
-      down(a) { if (endT >= 0) return; const q = toUV(a.x, a.y); last = q ? { u: q.u, v: q.v, x: a.x, y: a.y, t: now(), t0: now(), dir: null } : null; sp = 0; still = 0; cloth = { x: a.x, y: a.y }; },
+      down(a) { if (endT >= 0) return; const q = toUV(a.x, a.y); last = q ? { u: q.u, v: q.v, x: a.x, y: a.y, t: now(), t0: now(), dir: null } : null; sp = 0; still = 0; cloth = { x: a.x, y: a.y }; trail = [{ x: a.x, y: a.y, t: now() }]; stk = { bad: false, px: 0, c0: J.cover() }; },
       move(a) {
         cloth = { x: a.x, y: a.y }; if (endT >= 0 || !last) return; const q = toUV(a.x, a.y); if (!q) return;
-        const t = now(), dtm = Math.max(1 / 240, t - last.t), d = Math.hypot(a.x - last.x, a.y - last.y), fb = faceBox(), fw = fb ? Math.max(60, fb.w) : W() * 0.7;
+        const t = now(), d = Math.hypot(a.x - last.x, a.y - last.y), fb = faceBox(), fw = fb ? Math.max(60, fb.w) : W() * 0.7;
         if (d < 2) return;   // (a tremor — not a stroke)
-        const inst = d / dtm / fw; sp = sp ? sp * 0.55 + inst * 0.45 : inst; still = 0;
+        if (stk) stk.px += d; trail.push({ x: a.x, y: a.y, t }); while (trail.length > 2 && t - trail[0].t > 0.34) trail.shift();
+        let pl = 0; for (let q2 = 1; q2 < trail.length; q2++) pl += Math.hypot(trail[q2].x - trail[q2 - 1].x, trail[q2].y - trail[q2 - 1].y);
+        sp = pl / Math.max(0.12, t - trail[0].t) / fw; still = 0;
         const dir = Math.atan2(a.y - last.y, a.x - last.x), n = Math.max(1, Math.ceil(d / 14));
         for (let s2 = 1; s2 <= n; s2++) { const f = s2 / n; at(last.u + (q.u - last.u) * f, last.v + (q.v - last.v) * f, t - last.t0 < 0.12 ? Math.max(sp, F.SID57.vmin[k.L] * 1.01) : sp, t); }   // (the first moment of a stroke is never "too slow")
         last = { u: q.u, v: q.v, x: a.x, y: a.y, t, dir, t0: last.t0 != null ? last.t0 : last.t };
       },
-      up() { last = null; cloth = null; still = 0; },
+      up() { if (stk && stk.px > 40 && (J.cover() > stk.c0 + 0.005 || stk.bad)) try55('sid', !stk.bad); stk = null; last = null; cloth = null; still = 0; trail = []; },
       frame(dt) {
         objPlace(endT < 0, [{ x: V.x, y: (V.y0 + V.y1) / 2, z: (V.z0 + V.z1) / 2, r: 2 }], 'h57sid', [{ x: V.x, y: V.y0, z: V.z0, r: 0.05 }, { x: V.x, y: V.y1, z: V.z1, r: 0.05 }]);
-        if (last && st.finger && endT < 0) { still += dt; if (still > 0.3) { still = 0; at(last.u, last.v, 0, now()); } }   // (the cloth held still on the face: it drips)
+        if (last && st.finger && endT < 0) { still += Math.min(dt, 0.05); if (still > 0.6) { still = 0; at(last.u, last.v, 0, now()); } }   // (the cloth held still on the face: it drips — counted by frames, at most 50 ms each: a slow frame is not a still finger)
         for (const d of drips) { if (d.t < 1.6) { d.t += dt; d.len = Math.min(0.42, d.len + dt * 0.26); dirty = true; } }
         if (dirty) redraw();
         if (msgT > 0 && msgT < 90) { msgT -= dt; if (msgT <= 0) line(k.drips + k.streaks === 0 && J.cover() < 0.25 ? LINE42.sidCloth57 : LINE42.sid57, `רמה ${L}`); }

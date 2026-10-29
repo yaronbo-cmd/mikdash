@@ -112,6 +112,7 @@ test('build 55: the views — the stone 45 % of the width from the south (him be
   assert.match(H, /inspect: A\(-11\.5, -18\), nail: A\(-11\.5, -18\), iron: A\(-11\.5, -18\)/, 'his stand south of the bench — behind the macro\'s camera');
   assert.doesNotMatch(H.slice(H.indexOf('function mkField55('), H.indexOf('function mkLast55(')), /×\d|⟳ ×/, 'no "×3" buttons — the stones and the fill heap in the world');
   assert.match(H, /\['altar', 1\.75\], \['out', -1\.75\]\]\) \{ const g2 = new THREE\.Group\(\);/, 'the two heaps by the stone: למזבח right, לא למזבח left');
+  assert.match(H, /if \(z != null && px >= F\.DRAG42 && fromStone\)/, 'the decision: the stone itself carried to its heap');
   assert.match(H, /hint = L <= 1 && kind !== 'nail' \? \(sw === 'crack' \|\| sw === 'glint' \? 'out' : !s3\.bad && \(s3\.mud < 0 \|\| s3\.wiped >= 1\) && s3\.turns >= 3 \? 'altar' : null\) : null/, 'level 1\'s shadow (§1 rule 7): the right heap glows once the stone has shown itself');
 });
 

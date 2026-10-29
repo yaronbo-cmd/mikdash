@@ -1123,7 +1123,8 @@ export function createHar42(o = {}) {
         const dx = a.x - a.x0, dy = a.y - a.y0, px = Math.hypot(dx, dy), dur = now() - holdT, Z = zones(), Bx = box();
         if (phase === 'feel') { if (catchAt != null || (N && N.felt() >= 0.9)) { phase = 'decide'; line(N.state().caught ? LINE42.caught55 : LINE42.smooth55, `אבן ${i + 1} / ${list.length}`); } return; }
         const z = inZ(Z.altar, a.x, a.y) ? true : inZ(Z.out, a.x, a.y) ? false : null;
-        if (z != null && px >= F.DRAG42) { const r = kind === 'nail' ? N.decide(z, px) : J.decide(z, px); if (r === 'ok' || r === 'waste' || r === 'bad') decided(r, z); return; }
+        const fromStone = !!Bx && a.x0 >= Bx.l - 24 && a.x0 <= Bx.r + 24 && a.y0 >= Bx.t - 24 && a.y0 <= Bx.b + 24;   /* (the stone itself carried to its heap — a swipe anywhere that ended on a heap decided: the naive kid's stray swipes at 844) */
+        if (z != null && px >= F.DRAG42 && fromStone) { const r = kind === 'nail' ? N.decide(z, px) : J.decide(z, px); if (r === 'ok' || r === 'waste' || r === 'bad') decided(r, z); return; }
         const thr = Math.max(W() * 0.035, Math.min(W() * 0.12, 0.4 * (Bx ? Bx.w : W() * 0.4)));
         if (kind !== 'nail' && Math.abs(dx) >= thr && Math.abs(dx) > Math.abs(dy) * 1.2 && dur <= 0.6 && rub < thr * 2.5) { const dir = dx > 0 ? -1 : 1; J.turn(dir); rotT += dir > 0 ? -Math.PI / 2 : Math.PI / 2; buzz42('tick'); o.sound && o.sound('stone'); }
       },

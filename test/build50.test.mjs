@@ -44,11 +44,11 @@ test('build 50: the compass grades its arc by the radius kept; the hub fits only
 });
 
 test('build 50: the craftsman\'s test before chapter ג׳ — the INSPECT family at level 2; pass at כשר; the seal; the master\'s hand after 5', () => {
-  assert.deepEqual([...TEST50.jobs], ['log', 'rock', 'log2']); assert.equal(TEST50.L, 2); assert.equal(TEST50.demoAfter, 5);
+  assert.deepEqual([...TEST50.jobs], ['stone', 'mud', 'nail']); assert.equal(TEST50.L, 2);   // (build 55: the 08–16 spec §2 — the stone, the mud, the fingernail) assert.equal(TEST50.demoAfter, 5);
   const jobs = {}; for (const j of TEST50.jobs) jobs[j] = testTry44(null, 'mehudar').rec; assert.deepEqual(testEnd44(jobs, TEST50.jobs), { passed: true, seal: true, shown: false });
-  jobs.rock = testTry44(null, 'kasher').rec; assert.equal(testEnd44(jobs, TEST50.jobs).seal, false);
+  jobs.mud = testTry44(null, 'kasher').rec; assert.equal(testEnd44(jobs, TEST50.jobs).seal, false);
   let r = null; for (let k = 0; k < 5; k++) r = testTry44(r && r.rec, 'tikkun'); assert.equal(r.next, 'demo');
-  assert.equal(testEnd44({ log: jobs.log }, TEST50.jobs), null, 'not all done: no end'); assert.deepEqual([...TEST44.jobs], ['lift', 'course0', 'corner'], 'chapter ב׳\'s test unchanged');
+  assert.equal(testEnd44({ stone: jobs.stone }, TEST50.jobs), null, 'not all done: no end'); assert.deepEqual([...TEST44.jobs], ['lift', 'course0', 'corner'], 'chapter ב׳\'s test unchanged');
   const h = read('src/game/har42.js');
   assert.match(h, /const t50 = o\.test === 50, TT = t50 \? TEST50 : TEST44, key = t50 \? 'test50' : 'test44';/); assert.match(h, /'מבחן אומן — לפני פרק ג׳'/); assert.match(h, /'נפתח: פרק ג׳ — המזבח'/);
   assert.match(h, /\} else if \(j\.kind === 'wood'\) \{/, 'the master\'s hand knows the log check'); assert.match(h, /\} else if \(j\.kind === 'rock'\) \{/, 'and the rock reading');
@@ -66,14 +66,14 @@ test('build 50: the stage — its parts and lines, no chisel in the courts, the 
   assert.deepEqual(YARD44.slice(18).map((v) => v.part), ['compass', 'wheel', 'arch']);
   const c = F.MAT42.cost; assert.ok(c.compass > 0 && c.benches > 0 && c.hub > 0 && c.wheel > 0 && c.dome > 0);
   const h = read('src/game/har42.js');
-  assert.match(h, /o\.stage === 'lishka' \? 'lishka' : 'har';/); assert.match(h, /STG === 'lishka' \? PARTS50 :/);
+  assert.match(h, /o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?'har';/); assert.match(h, /STG === 'lishka' \? PARTS50 :/);
   for (const k of ['compass', 'benches', 'hub', 'wheel', 'dome', 'arch', 'log2']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   assert.match(h, /if \(STG === 'lishka' && R\.part > 0\) \{ try \{ if \(stages\.setStage\) stages\.setStage\('lishka', 'done', 1, \{ instant: true \}\); \}/, 'the chambers stand while he works: no saw or chisel in the courts');
   assert.ok(!/אזמל|מסתת|לסתת/.test(h.slice(h.indexOf('/* ── build 50 ── stage 07\'s acts'), h.indexOf('/* ── build 47 ── stage 04\'s acts'))), 'no chisel in stage 07\'s acts');
   assert.match(h, /ctl\.maxPolarAngle = Math\.PI - 0\.05;/, 'from inside, looking up'); assert.match(h, /if \(ctl && polar0 != null\) ctl\.maxPolarAngle = polar0;/, 'and the orbit\'s floor back');
   for (const line of [h, read('src/game/fam42.js')].join('\n').split('\n')) { const i = line.indexOf('//'); if (i < 0 || /https?:|'[^']*\/\/|`[^`]*\/\//.test(line)) continue; assert.ok(!/\b(target|frame|view|begin|end|down|up|move): \(/.test(line.slice(i)), `code after a comment: ${line.slice(i, i + 120)}`); }
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted50\(\)\) startHar50\(\);/); assert.match(g, /\(lishka50=0\|stick=1\|har42=0\)/); assert.match(g, /h50go=1/); assert.match(g, /if \(done && wanted50\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar50\(\); \}, 400\);/);
-  assert.equal(GAME_BUILD, 54);   // (build 51: the constant moved on)
+  assert.equal(GAME_BUILD, 55);   // (build 51: the constant moved on)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

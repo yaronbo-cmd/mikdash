@@ -1485,8 +1485,8 @@ export function createHar42(o = {}) {
           const d = drag; drag = null; fine = null;
           if (d === 'l') { const n = Math.abs(k.yL - F.THREAD56.mid) <= CAP ? F.THREAD56.mid : Math.round(k.yL); J.setL(n); }   // (the notch it settles in)
           else if (L <= 1 && Math.abs(k.yR - k.yL) <= CAP) J.setR(k.yL);   // (level 1: the right's shadow catches it)
-          const y0 = d === 'l' ? k.yL : k.yR, r = d === 'l' ? J.releaseL() : J.releaseR(); buzz42(r === 'next' ? 'settle' : 'tick'); if (r === 'again') try55('thread', false);   /* (a try: a peg let go off the middle, or a snap) */
-          if (r === 'next') { o.sound && o.sound('wood'); line(lineFor(), `רמה ${L}`); } else { const dd = F.THREAD56.mid - y0; hint = dd > 0 ? `עוד ${Math.round(dd)} ${Math.round(dd) === 1 ? 'אמה' : 'אמות'} ⬆` : `${Math.round(-dd)} ${Math.round(-dd) === 1 ? 'אמה' : 'אמות'} למטה ⬇`; msgT = 0; }
+          const y0 = d === 'l' ? k.yL : k.yR, r = d === 'l' ? J.releaseL() : J.releaseR(L <= 1); buzz42(r === 'next' ? 'settle' : 'tick'); if (r === 'again') try55('thread', false);   /* (a try: a peg let go off the middle, or a snap) */
+          if (r === 'next') { o.sound && o.sound('wood'); line(lineFor(), `רמה ${L}`); } else if (d === 'r') { hint = k.yL > k.yR ? 'הבועה ברחה — הרימו ⬆' : 'הבועה ברחה — הורידו ⬇'; msgT = 0; line(lineFor(), `רמה ${L}`); } else { const dd = F.THREAD56.mid - y0; hint = dd > 0 ? `עוד ${Math.round(dd)} ${Math.round(dd) === 1 ? 'אמה' : 'אמות'} ⬆` : `${Math.round(-dd)} ${Math.round(-dd) === 1 ? 'אמה' : 'אמות'} למטה ⬇`; msgT = 0; }
           return;
         }
         if (pull) { const p0 = pull; pull = null; if (Math.hypot(a.x - p0.x0, a.y - p0.y0) < 30) return; const yl = k.yL, yr = k.yR, r = J.snap(); try55('thread', r === 'mehudar' || r === 'kasher'); snapT = 0.6; buzz42(r === 'wash' ? 'retry' : 'settle'); o.sound && o.sound('twang'); stamp(yl, yr);
@@ -1501,7 +1501,7 @@ export function createHar42(o = {}) {
         svgClear(); if (endT >= 0) { if ((endT -= dt) <= 0) return true; return false; }
         const p = P(); if (!p.l || !p.r) return false;
         if (wash > 0 && red) { const a3 = proj(XL - 4, red.position.y, FZ), b3 = proj(XR + 4, red.position.y, FZ); if (a3 && b3) for (let i = 0; i < 9; i++) { const u = (i + 0.5) / 9, x = a3.x + (b3.x - a3.x) * u, y = a3.y + (b3.y - a3.y) * u, dl = (2.2 - wash) * 40 * (0.6 + 0.4 * ((i * 7) % 5) / 5); svgAdd(`<line x1="${x}" y1="${y}" x2="${x}" y2="${y + dl}" stroke="#8AC6FF" stroke-width="3" stroke-linecap="round" opacity=".8"/>`); } }   // (the water running down the face)
-        if (hint && k.step <= 2) { const hp2 = k.step === 1 ? p.l : p.r; svgAdd(`<text x="${hp2.x + 40}" y="${hp2.y - 34}" font-size="18" font-weight="800" text-anchor="middle" fill="#FFD66E" stroke="#2A1804" stroke-width="3" paint-order="stroke">${hint}</text>`); }
+        if (hint && k.step <= 2) { const hp2 = k.step === 1 ? p.l : p.r, rx = k.step === 1 ? hp2.x + 34 : hp2.x - 34; svgAdd(`<text x="${rx}" y="${hp2.y - 30}" font-size="18" font-weight="800" direction="rtl" text-anchor="${k.step === 1 ? 'end' : 'start'}" fill="#FFD66E" stroke="#2A1804" stroke-width="3" paint-order="stroke">${hint}</text>`); }
         if (k.step === 1 && L <= 1) { const a4 = proj(XL + 0.5, Y(F.THREAD56.mid - CAP), FZ - 0.3), b4 = proj(XL + 0.5, Y(F.THREAD56.mid + CAP), FZ - 0.3); if (a4 && b4) svgAdd(`<rect x="${a4.x - 14}" y="${b4.y}" width="28" height="${Math.max(4, a4.y - b4.y)}" rx="5" fill="rgba(255,214,110,.28)"/>`); }   // (level 1: the middle's band on the reed)
         if (k.step === 2 && L <= 1) { const g4 = proj(XR, Y(k.yL), FZ - 0.2); if (g4) svgAdd(`<circle cx="${g4.x}" cy="${g4.y}" r="13" fill="none" stroke="#FFD66E" stroke-width="3" stroke-dasharray="5 4" opacity=".85"/>`); }   // (level 1: the right's shadow at the left's height)
         // the reed and its amah marks (step 1); the middle gold at level 1
@@ -3029,11 +3029,11 @@ export function createHar42(o = {}) {
     const box = fc.querySelector('[role="dialog"]'); if (!box) return;
     const p0 = box.querySelector('p');
     const d = doc.createElement('div'); d.className = 'h56-zorek'; d.style.cssText = 'float:left;margin:2px 10px 2px 0;width:132px';
-    d.innerHTML = `<svg viewBox="0 0 132 74" width="132" height="74" role="img" aria-label="הזריקה: למעלה מחוט הסיקרא ולמטה ממנו" style="display:block;direction:ltr">`
+    d.innerHTML = `<svg viewBox="0 0 132 74" width="132" height="74" role="img" aria-label="הזריקה: למעלה מחוט הסיקרא ולמטה ממנו" style="display:block">`
       + `<rect x="58" y="4" width="56" height="62" fill="#d9cfb8" stroke="#8a7d62"/><rect x="52" y="64" width="68" height="7" fill="#cbbfa4" stroke="#8a7d62"/>`
       + `<rect x="58" y="34" width="56" height="3" fill="#c0261b"/>`
       + `<g fill="#9b1010"><circle cx="76" cy="18" r="4"/><circle cx="85" cy="13" r="2.5"/><circle cx="72" cy="26" r="2"/><circle cx="96" cy="50" r="4"/><circle cx="104" cy="56" r="2.5"/><circle cx="90" cy="45" r="2"/></g>`
-      + `<text x="54" y="20" font-size="9.5" font-weight="700" text-anchor="end" fill="#2A1804">דמים עליונים</text><text x="54" y="53" font-size="9.5" font-weight="700" text-anchor="end" fill="#2A1804">דמים תחתונים</text><text x="54" y="38" font-size="9.5" font-weight="800" text-anchor="end" fill="#c0261b">חוט הסיקרא</text></svg>`;
+      + `<text x="54" y="20" font-size="9.5" font-weight="700" text-anchor="start" direction="rtl" fill="#2A1804">דמים עליונים</text><text x="54" y="53" font-size="9.5" font-weight="700" text-anchor="start" direction="rtl" fill="#2A1804">דמים תחתונים</text><text x="54" y="38" font-size="9.5" font-weight="800" text-anchor="start" direction="rtl" fill="#c0261b">חוט הסיקרא</text></svg>`;
     if (p0) box.insertBefore(d, p0); else box.appendChild(d);
   }
 

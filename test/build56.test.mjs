@@ -84,6 +84,8 @@ test('build 56: the red line — the reed\'s middle, the level, the snap; מהו
   const k3 = F.createThread56(2); k3.setL(5); k3.releaseL(); k3.setR(6); k3.releaseR(); assert.equal(k3.snap(), 'wash'); assert.equal(k3.state().step, 1); assert.equal(k3.state().washes, 1);
   const k4 = F.createThread56(2); k4.setL(5); k4.releaseL(); k4.setR(6); k4.releaseR(); k4.setR(5); assert.equal(k4.snap(), 'mehudar', 'before the snap the right peg may be set again');
   assert.ok(F.THREAD56.hi <= 1 / 12 + 1e-9, 'half a tefach');
+  const k5 = F.createThread56(1); k5.setL(5); k5.releaseL(); k5.setR(3); assert.equal(k5.releaseR(true), 'again', 'level 1: the bubble far off — set again before the pull'); assert.equal(k5.state().step, 2); k5.setR(5.1); assert.equal(k5.releaseR(true), 'next');
+  assert.match(H, /J\.releaseR\(L <= 1\)/); assert.match(H, /הבועה ברחה — הרימו ⬆/);
   assert.match(H, /r="24" fill="rgba\(255,214,110,\.25\)" stroke="#FFD66E" stroke-width="3" data-peg=/, 'the pegs\' handles 48 px');
   assert.match(H, /D = \(NF56\.x1 - NF56\.x0\) \/ \(2 \* 0\.64 \* t2\)/, 'the wall 64 % of the width, level');
   assert.match(H, /thread: A\(-20\.8, -21\.5\)/, 'he by the east end: the left third');

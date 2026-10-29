@@ -982,7 +982,7 @@ export function createThread56(L = 1) {
   const setR = (y) => { if (k.step !== 2 && k.step !== 3) return k.step; k.yR = clamp(y, 1, 9.5); return k.step; };   /* (before the snap the right peg may be set again) */
   /** the level on the thread: the bubble's offset (−1…1), centred when the two ends are level */
   const bubble = () => clamp((k.yR - k.yL) / 0.6, -1, 1);
-  function releaseR() { if (k.step !== 2 && k.step !== 3) return 'no'; k.step = 3; return 'next'; }
+  function releaseR(gate) { if (k.step !== 2 && k.step !== 3) return 'no'; if (gate && Math.abs(k.yR - k.yL) > THREAD56.kasher) { k.step = 2; return 'again'; } k.step = 3; return 'next'; }   /* (gate — level 1: let go with the bubble far off, the peg is set again before the pull) */
   /** the snap: the red line struck — graded; out of `kasher` it is washed off and done again (free) */
   function snap() {
     if (k.step !== 3) return 'no';

@@ -54,8 +54,8 @@ test('build 59: the casting — the stream follows the furnace late (straightene
   assert.ok(F.CAST59.win[4] <= 0.03 && F.CAST59.tau[4] > F.CAST59.tau[1], 'level 4: the bronze slower to stop');
   // at the even tilt, let go when the fill and the stream still to come reach the line: within the window, the first time
   for (const L of [1, 2, 3, 4]) for (const cap of [1, ...F.SPIGOTS59.caps]) {
-    const P = F.createCast59(L, cap), q = P.state(); let r = 'pour', t = 0;
-    const quick = F.CAST59.from + ((1 - F.CAST59.from) * Math.min(F.CAST59.qmax, (0.4 * cap) / P.tau)) / F.CAST59.qmax;   // (above level 1: quicker to half — as far as what is still coming stays under half — then slow to the line)
+    const P = F.createCast59(L, cap, cap < 1 ? F.spigotQ59(cap) : undefined), q = P.state(); let r = 'pour', t = 0;
+    const quick = F.CAST59.from + ((1 - F.CAST59.from) * Math.min(P.qm, (0.4 * cap) / P.tau)) / P.qm;   // (above level 1: quicker to half — as far as what is still coming stays under half — then slow to the line)
     while (q.f + (q.s * P.tau) / q.cap < 1 && t < 60) { P.step(L > 1 && q.f + (q.s * P.tau) / q.cap < 0.55 ? quick : P.safe(), 0.02); t += 0.02; }
     for (let u = 0; u < 10 && r !== 'done' && r !== 'over' && r !== 'spill' && r !== 'more'; u += 0.02) r = P.step(0, 0.02);
     assert.equal(r, 'done', `level ${L}, cap ${cap}: ${q.f}`); assert.equal(q.fails, 0); if (L === 1) assert.equal(P.result().rating, 'mehudar');
@@ -66,6 +66,9 @@ test('build 59: the casting — the stream follows the furnace late (straightene
   // a short pour under the window: more (no try)
   const M2 = F.createCast59(1, 1); let r2 = 'pour'; for (let i = 0; i < 25; i++) r2 = M2.step(0.6, 0.02); for (let u = 0; u < 10 && (r2 === 'pour' || r2 === 'still'); u += 0.02) r2 = M2.step(0, 0.02); assert.equal(r2, 'more'); assert.equal(M2.state().fails, 0);
   const caps = F.SPIGOTS59.caps; assert.equal(caps.length, 12); assert.equal(new Set(caps).size, 12, 'each mould a different size');
+  assert.equal(F.SPIGOTS59.his, 4, 'his four, his fellows the other eight'); assert.equal(new Set(caps.slice(0, 4)).size, 4);
+  assert.ok(F.spigotQ59(0.13) < F.spigotQ59(0.38) && F.spigotQ59(0.13) / F.spigotQ59(0.38) > 0.13 / 0.38, 'a smaller stream for a smaller mould — not in proportion: each pour a different amount');
+  assert.match(H, /tilt \+= \(want - tilt\) \* Math\.min\(1, dt \* 14\); fur\.rotation\.z = -tilt \* 1\.35;/, 'the furnace straightened at once — the bronze\'s after-flow is the act');
   assert.equal(F.spigotsGrade59(Array(12).fill(0)), 1); assert.equal(F.spigotsGrade59([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]), 0.65); assert.equal(F.spigotsGrade59([1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]), 0.3);
   assert.match(H, /if \(L <= 1\) \{ const h0 = hOf\(1 - win\), h1 = hOf\(1 \+ win\);/, 'level 1: the line\'s shadow — the window in the mould');
   assert.match(H, /data-safe59/); assert.match(H, /data-fill59/); assert.match(H, /data-line59/);

@@ -248,6 +248,8 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   castDone59: 'הכיור נוצק ∙ לדדים ⤵ · המחשה',
   spigots59: 'כל תבנית — אחרת ∙ הטו ⤵ · "בֶּן קָטִין עָשָׂה שְׁנֵים עָשָׂר דַּד לַכִּיּוֹר" — יומא ג, י · טיוטה',
   spigotNext59: 'עד הקו ∙ לתבנית הבאה ⤵ · המחשה',
+  spigotRest59: 'ואת השמונה — חבריכם ⤵ · המחשה',
+  screwRest59: 'ואת התשעה — חבריכם ⤵ · המחשה',
   screw59: 'סובבו ⟳ ∙ עצרו בנקישה · "הַכִּיּוֹר הָיָה בֵּין הָאוּלָם וְלַמִּזְבֵּחַ, וּמָשׁוּךְ כְּלַפֵּי הַדָּרוֹם" — מדות ג, ו · טיוטה',
   screwClick59: 'נקישה ∙ עזבו 👆 · המחשה',
   screwTight59: 'חזק מדי ∙ קצת חזרה ⟲ · בלי נזק · המחשה',
@@ -2191,8 +2193,8 @@ export function createHar42(o = {}) {
   function mkPour59(L, twelve) {
     const fur = twelve ? st.props.fur59b : st.props.fur59a, P = at59(); if (!fur || !st.props.mould59) return null;
     let i = 0, J = null, M = null, tilt = 0, want = 0, drag = false, endT = -1, msgT = 0, turnT = 0, said = '', tryOn = false; const fails = [];
-    const caps = twelve ? F.SPIGOTS59.caps : [1], cupOf = (n) => (twelve ? st.props.cups59[n] : st.props.mould59);
-    const begin = () => { J = F.createCast59(L, caps[i]); M = cupOf(i); M.set(0, false); said = twelve ? (i === 0 ? LINE42.spigots59 : LINE42.spigotNext59) : LINE42.cast59; line(said, twelve ? `תבנית ${i + 1} / 12 · רמה ${L}` : `רמה ${L}`); };
+    const caps = twelve ? F.SPIGOTS59.caps : [1], cupOf = (n) => (twelve ? st.props.cups59[n] : st.props.mould59), NH = twelve ? F.SPIGOTS59.his : 1; let rest = -1;   // (rest: the fellows' eight, filled one by one after his four)
+    const begin = () => { J = F.createCast59(L, caps[i], twelve ? F.spigotQ59(caps[i]) : undefined); M = cupOf(i); M.set(0, false); said = twelve ? (i === 0 ? LINE42.spigots59 : LINE42.spigotNext59) : LINE42.cast59; line(said, twelve ? `תבנית ${i + 1} / ${NH} · רמה ${L}` : `רמה ${L}`); };
     begin(); ringOn59(false); if (st.ui.pad) st.ui.pad.classList.add('full'); try { if (o.timeOfDay) o.timeOfDay('dusk'); } catch (e) { /* */ }
     if (twelve && st.props.tbl59) st.props.tbl59.rotation.y = 0;
     const pivot = () => proj(fur.position.x, fur.position.y, fur.position.z), arcR = () => Math.max(56, H() * 0.26);
@@ -2206,29 +2208,33 @@ export function createHar42(o = {}) {
         const T0 = twelve ? [P.T.x - 1.7, P.y0 + 2.2, P.T.z] : [P.M1.x - 1.2, P.y0 + 2.75, P.M1.z], D = (twelve ? 5.8 : 11.5) / (2 * t2);   // (the furnace whole and its arc over it in the frame — at 8.6 its arc's top was off the screen: c59A)
         return { p: T0.map((v, k) => v + (dir[k] / nl) * D), t: T0 };
       },   // (from the south-east and above, into the mould: the furnace's mouth on the left, the mould's cavity and its line; he behind the camera)
-      down(a) { if (endT >= 0 || J.state().done || turnT > 0) return; const h = arcAt(tilt); if (h && Math.hypot(h.x - a.x, h.y - a.y) < Math.max(48, W() * 0.08)) { drag = true; tryOn = true; } },
+      down(a) { if (endT >= 0 || J.state().done || turnT > 0 || rest >= 0) return; const h = arcAt(tilt); if (h && Math.hypot(h.x - a.x, h.y - a.y) < Math.max(48, W() * 0.08)) { drag = true; tryOn = true; } },
       move(a) { if (drag) want = tOf(a.x, a.y); },
       up() { if (!drag) return; drag = false; want = 0; },
       frame(dt) {
         const cw = cupWorld(), fx = twelve ? 0.55 : 2.3;
         objPlace(endT < 0, [{ x: cw.x, y: M.oy + M.top - M.D0 * 0.4, z: cw.z, r: fx }], twelve ? 'h59cups' : 'h59cast', [{ x: cw.x - fx, y: M.oy + M.bottom, z: cw.z - fx * 0.6, r: 0.1 }, { x: cw.x + fx, y: M.oy + M.top + 0.1, z: cw.z + fx * 0.6, r: 0.1 }, { x: fur.position.x, y: fur.position.y + 0.6 * (twelve ? 0.55 : 1), z: fur.position.z, r: twelve ? 0.45 : 0.85 }]);
+        if (rest >= 0 && endT < 0) {   // the fellows' eight: the table turns past the furnace, each filled to its line
+          rest += dt; const tb = st.props.tbl59, n2 = Math.min(12, NH + Math.floor(rest / 0.45)); if (tb) tb.rotation.y += ((-(n2 - 1) * Math.PI) / 6 - tb.rotation.y) * Math.min(1, dt * 8); for (let q2 = NH; q2 < n2; q2++) st.props.cups59[q2].set(1, false);
+          if (n2 >= 12 && rest > (12 - NH) * 0.45 + 0.6) { endT = 1.6; grade('spigots', F.spigotsGrade59(fails), proj(cw.x, M.oy + M.top + 0.4, cw.z)); }
+        }
         if (turnT > 0) { turnT -= dt; const tb = st.props.tbl59; if (tb) tb.rotation.y += ((-i * Math.PI) / 6 - tb.rotation.y) * Math.min(1, dt * 6); if (turnT <= 0) { if (tb) tb.rotation.y = (-i * Math.PI) / 6; begin(); } }
-        tilt += (want - tilt) * Math.min(1, dt * (drag ? 14 : 6)); fur.rotation.z = -tilt * 1.35;
-        const r = endT < 0 && turnT <= 0 ? J.step(tilt, dt) : 'still', k = J.state();
+        tilt += (want - tilt) * Math.min(1, dt * 14); fur.rotation.z = -tilt * 1.35;   // (straightened at once: the bronze's own after-flow is the act — at ×6 the furnace's slow return added as much again: K59-P-S1)
+        const r = endT < 0 && turnT <= 0 && rest < 0 ? J.step(tilt, dt) : 'still', k = J.state();
         M.set(k.f, k.over);
-        if (r === 'more') { msgT = 2.2; line(LINE42.castMore59, twelve ? `תבנית ${i + 1} / 12` : ''); }
-        if (r === 'over' || r === 'spill') { try55(twelve ? 'spigots' : 'cast', false); tryOn = false; R[twelve ? 'spig59' : 'cast59'] = (R[twelve ? 'spig59' : 'cast59'] | 0) + 1; msgT = 2.4; line(r === 'spill' ? LINE42.castSpill59 : LINE42.castOver59, twelve ? `תבנית ${i + 1} / 12` : ''); buzz42('retry'); o.sound && o.sound('grind'); M.set(0, false); }
+        if (r === 'more') { msgT = 2.2; line(LINE42.castMore59, twelve ? `תבנית ${i + 1} / ${NH}` : ''); }
+        if (r === 'over' || r === 'spill') { try55(twelve ? 'spigots' : 'cast', false); tryOn = false; R[twelve ? 'spig59' : 'cast59'] = (R[twelve ? 'spig59' : 'cast59'] | 0) + 1; msgT = 2.4; line(r === 'spill' ? LINE42.castSpill59 : LINE42.castOver59, twelve ? `תבנית ${i + 1} / ${NH}` : ''); buzz42('retry'); o.sound && o.sound('grind'); M.set(0, false); }
         if (r === 'done') {
           try55(twelve ? 'spigots' : 'cast', true); tryOn = false; o.sound && o.sound('ring'); buzz42('settle');
           if (!twelve) { line(LINE42.castDone59, ''); endT = 2.0; grade('cast', k.q, proj(cw.x, M.oy + M.top + 0.5, cw.z)); }
-          else { fails.push(k.fails); if (i >= 11) { line(LINE42.spigotNext59, '12 / 12'); endT = 1.8; grade('spigots', F.spigotsGrade59(fails), proj(cw.x, M.oy + M.top + 0.4, cw.z)); } else { i++; turnT = 0.9; line(LINE42.spigotNext59, `תבנית ${i} / 12 ✓`); } }
+          else { fails.push(k.fails); if (i >= NH - 1) { line(LINE42.spigotRest59, ''); rest = 0; } else { i++; turnT = 0.9; line(LINE42.spigotNext59, `תבנית ${i} / ${NH} ✓`); } }
         }
-        if (msgT > 0) { msgT -= dt; if (msgT <= 0 && endT < 0) line(said, twelve ? `תבנית ${i + 1} / 12 · רמה ${L}` : `רמה ${L}`); }
+        if (msgT > 0) { msgT -= dt; if (msgT <= 0 && endT < 0 && rest < 0) line(said, twelve ? `תבנית ${i + 1} / ${NH} · רמה ${L}` : `רמה ${L}`); }
         // the stream: straight down from the spout to the bronze's surface; its glow on the hall's walls
         const S = st.props.stream59, sp = fur.localToWorld(fur.userData.spout.clone()); if (S) { const on = k.s > 0.004 && endT < 0; S.visible = on; if (on) { const bot = M.oy + Math.max(M.hOf(Math.min(k.f, 1.2)), M.bottom), L2 = Math.max(0.05, sp.y - bot), w = (twelve ? 0.012 : 0.03) + (twelve ? 0.03 : 0.07) * Math.min(1, k.s / F.CAST59.qmax); S.position.set(sp.x, bot + L2 / 2, sp.z); S.scale.set(w, L2, w); S.rotation.set(0, 0, 0); } }
         if (st.props.wall59) st.props.wall59.emissiveIntensity = 0.03 + 0.22 * Math.min(1, k.s / F.CAST59.qmax);
         svgClear(); if (endT >= 0) { if ((endT -= dt) <= 0) return true; return false; }
-        if (turnT > 0) return false;
+        if (turnT > 0 || rest >= 0) return false;
         // the furnace's arc (dashed) and its handle, level 1's gold mark; the fill's gauge beside the mould — the line, level 1's window
         let d = ''; for (let t = 0; t <= 1.001; t += 0.1) { const q = arcAt(t); if (q) d += `${d ? 'L' : 'M'}${q.x.toFixed(1)} ${q.y.toFixed(1)} `; } if (d) svgAdd(`<path d="${d}" fill="none" stroke="#FFE6A0" stroke-width="2.5" stroke-dasharray="8 7" opacity=".8"/>`);
         if (L <= 1) { const g = arcAt(J.safe()); if (g) svgAdd(`<circle cx="${g.x}" cy="${g.y}" r="11" fill="rgba(255,214,110,.35)" stroke="#FFD66E" stroke-width="3" data-safe59="1"/>`); }
@@ -2273,7 +2279,7 @@ export function createHar42(o = {}) {
       frame(dt) {
         const s = S0(), hp = s.w.clone().addScaledVector(s.u, 0.62);
         objPlace(endT < 0, [{ x: s.w.x, y: s.w.y, z: s.w.z, r: 0.42 }], 'h59screw', [{ x: s.w.x, y: s.w.y, z: s.w.z, r: 0.45 }, { x: hp.x, y: hp.y, z: hp.z, r: 0.3 }]);
-        if (msgT > 0) { msgT -= dt; if (msgT <= 0 && endT < 0) { if (J.state().set) { n++; if (n >= 3) { spigShow59(3, true); line('ואת התשעה הנותרים — חבריכם ⤵ · המחשה', ''); grade('screw', F.screwGrade59(qs), head() || { x: W() / 2, y: H() * 0.35 }); endT = 2.2; } else begin(); } else line(said, `דד ${n + 1} / 3 · רמה ${L}`); } }
+        if (msgT > 0) { msgT -= dt; if (msgT <= 0 && endT < 0) { if (J.state().set) { n++; if (n >= 3) { spigShow59(3, true); line(LINE42.screwRest59, ''); grade('screw', F.screwGrade59(qs), head() || { x: W() / 2, y: H() * 0.35 }); endT = 2.2; } else begin(); } else line(said, `דד ${n + 1} / 3 · רמה ${L}`); } }
         svgClear(); if (endT >= 0) { if ((endT -= dt) <= 0) return true; return false; }
         const h = head(); if (!h) return false; const k = J.state(), R0 = dialR(), dep = J.depth(), st0 = k.tight ? 'tight' : k.th >= F.SCREW59.lock ? 'lock' : 'free', col = st0 === 'tight' ? '#FF7A5A' : st0 === 'lock' ? '#7CD86A' : '#FFD66E';
         const a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * Math.min(0.999, dep), big = a1 - a0 > Math.PI ? 1 : 0, ax = (a) => h.x + Math.cos(a) * R0, ay = (a) => h.y + Math.sin(a) * R0;

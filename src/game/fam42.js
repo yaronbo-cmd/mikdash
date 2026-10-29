@@ -1204,12 +1204,12 @@ export function createPyre58(L = 1, rnd = Math.random) {
  *  f = what ran in ÷ the mould's cap. A pour ends when the stream stops: f in the window [1 − win, 1 + win] → 'done'; above it → 'over'
  *  (and at 1 + rim it runs over the mould's lip → 'spill'); below it → 'more' (pour again — not a try). Over or spilt: the mould is emptied
  *  and poured again ("יוצקים שוב" — no loss). Level 1 a wide window, level 4 a very short one. The grade: the fails, and how near the line */
-export const CAST59 = Object.freeze({ qmax: 0.55, from: 0.2, tau: Object.freeze([null, 0.35, 0.45, 0.55, 0.65]), win: Object.freeze([null, 0.12, 0.08, 0.05, 0.025]), rim: 0.22, still: 0.006 });
-export function createCast59(L = 1, cap = 1) {
-  const lv = clamp(L | 0, 1, 4), C = CAST59, win = C.win[lv], tau = C.tau[lv], k = { L: lv, cap: Math.max(0.02, +cap || 1), tilt: 0, s: 0, f: 0, pouring: false, over: false, fails: 0, spills: 0, pours: 0, done: false, q: null, last: null };
-  const flowOf = (tilt) => (tilt < C.from ? 0 : ((tilt - C.from) / (1 - C.from)) * C.qmax);
-  /** the tilt whose after-flow (the stream × tau) fills at most 0.8 of the window: level 1's gold mark on the furnace's arc */
-  const safe = () => C.from + ((1 - C.from) * Math.min(C.qmax, (0.8 * win * k.cap) / tau)) / C.qmax;
+export const CAST59 = Object.freeze({ qmax: 0.55, from: 0.2, tau: Object.freeze([null, 0.25, 0.38, 0.5, 0.62]), win: Object.freeze([null, 0.15, 0.09, 0.05, 0.025]), rim: 0.22, still: 0.006, mark: 0.6 });   // (mark: level 1's even tilt leaves this share of the window to the bronze still coming — the furnace's own straightening takes the rest: K59-P-S1)
+export function createCast59(L = 1, cap = 1, qm = CAST59.qmax) {
+  const lv = clamp(L | 0, 1, 4), C = CAST59, win = C.win[lv], tau = C.tau[lv], QM = Math.max(0.02, +qm || C.qmax), k = { L: lv, cap: Math.max(0.02, +cap || 1), tilt: 0, s: 0, f: 0, pouring: false, over: false, fails: 0, spills: 0, pours: 0, done: false, q: null, last: null };
+  const flowOf = (tilt) => (tilt < C.from ? 0 : ((tilt - C.from) / (1 - C.from)) * QM);
+  /** the tilt whose after-flow (the stream × tau) fills at most `mark` of the window: level 1's gold mark on the furnace's arc */
+  const safe = () => C.from + ((1 - C.from) * Math.min(QM, (C.mark * win * k.cap) / tau)) / QM;
   /** one step: the furnace at tilt, dt s → 'pour' | 'spilling' | 'still' | 'more' | 'over' | 'spill' | 'done' */
   function step(tilt, dt) {
     if (k.done) return 'done';
@@ -1225,10 +1225,12 @@ export function createCast59(L = 1, cap = 1) {
     }
     return k.over ? 'spilling' : k.s > still ? 'pour' : 'still';
   }
-  return { step, safe, flowOf, state: () => k, win, tau, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+  return { step, safe, flowOf, state: () => k, win, tau, qm: QM, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
 /** the twelve spigots' moulds (פ׳): each a different size — so each pour a different amount (cap: the laver's mould is 1) */
-export const SPIGOTS59 = Object.freeze({ caps: Object.freeze([0.16, 0.28, 0.2, 0.34, 0.13, 0.24, 0.3, 0.18, 0.38, 0.22, 0.14, 0.26]) });
+export const SPIGOTS59 = Object.freeze({ caps: Object.freeze([0.16, 0.28, 0.2, 0.34, 0.13, 0.24, 0.3, 0.18, 0.38, 0.22, 0.14, 0.26]), his: 4 });   // (his: the first four his — small, large, middling, larger; the other eight his fellows')
+/** the small furnace's stream for a mould of cap: smaller for a smaller mould, but not in proportion — each mould still a different pour */
+export const spigotQ59 = (cap) => CAST59.qmax * Math.sqrt(Math.max(0.01, cap));
 /** the twelve's grade: by the moulds that needed a second pour */
 export function spigotsGrade59(fails) { const n = fails.filter((x) => x > 0).length; return n === 0 ? 1 : n <= 3 ? 0.65 : 0.3; }
 /** THE SPIGOT SCREWED IN (fit): a ⟳ turn screws it in (the thread's lock at `lock` degrees); the resistance rises as it goes (each degree of

@@ -1857,7 +1857,7 @@ export function createHar42(o = {}) {
       J = F.createHorn58(ci + 1, Math.random); const c = cur(); sync();
       if (shadow) { if (shadow.parent) shadow.parent.remove(shadow); shadow = null; }
       if (J.shadow && st.props.root) { shadow = new THREE.Mesh(new THREE.BoxGeometry(1.02, 1.02, 1.02), SH); const p = hornAt58(c, 0.5, 0.5); shadow.position.set(p.x, TOP58 + 0.5, p.z); st.props.root.add(shadow); }
-      if (ci > 0) snapN = 3;   // (the next corner: the camera cut there with him — its glide along the top lost the frame: c58C-SP 90.5 %)
+      snapN = 3;   // (a cut to each corner's view — the next one with him: its glide along the top lost the frame, c58C-SP 90.5 %; the first from the walk: the horn not moving under the first finger)
       try { const s2 = STAND['horn' + ci]; if (ci > 0 && s2) stages.hero.setPos(s2.x, s2.z, 0); } catch (e) { /* */ }   // (the next corner: a cut along the top — out of the corner's view)
       said = ci === 3 ? LINE42.hornLast58 : LINE42.horns58; line(said, `קרן ${ci + 1} / 4 · רמה ${ci + 1}`);
     };
@@ -1987,7 +1987,7 @@ export function createHar42(o = {}) {
       if (g.kind === 'vine') { body.rotation.z = 0.25; const lf = new THREE.Mesh(new THREE.CircleGeometry(0.26, 5), mat('#6E8C3A', 0.8)); lf.rotation.x = -Math.PI / 2; lf.position.set(0.15, r + 0.04, 0.3); m.add(lf); }
       m.userData.g = g; return m; };
     k.logs.forEach((g) => { const m = logMesh(g), p = pileAt(g.i); add58(m, p.x, TOP58 + R58[g.cls], p.z); logs.push(m); });   // (in the pile: along z — up and down the screen)
-    let drag = null, endT = -1, msgT = 0, lit = false, litT = -1; ring58(false);
+    let drag = null, endT = -1, msgT = 0, lit = false, litT = -1, snapN = 3; ring58(false);   // (snapN: a cut from the walk to the wood — the logs still under the first finger)
     const lineNext = () => { const n = J.next(); return !n ? (J.ready() ? LINE42.pyreLight58 : LINE42.pyreUnfit58) : n === 'thick' ? LINE42.pyreThick58 : n === 'mid' ? LINE42.pyreMid58 : LINE42.pyreThin58; };
     line(LINE42.pyre58, `רמה ${L}`); if (st.ui.pad) st.ui.pad.classList.add('full');
     const zones = () => { const zh = Math.max(96, H() * 0.5), zw = Math.max(96, W() * 0.22); return { altar: { x: W() - zw - 8, y: Math.max(56, H() * 0.18), w: zw, h: zh }, out: { x: 8, y: Math.max(56, H() * 0.18), w: zw, h: zh } }; };
@@ -1995,7 +1995,7 @@ export function createHar42(o = {}) {
     const logScr = (m) => proj(m.position.x, m.position.y, m.position.z);
     const torchAt = () => proj(PYRE58P.x, TOP58 + 0.25, PYRE58P.z + 0.9);
     const job = {
-      acting: true, fullPad: true, kind: 'pyre58', J, ownView: () => true, zones, logsAt: () => logs.map((m) => ({ i: m.userData.g.i, kind: m.userData.g.kind, fit: m.userData.g.fit, cls: m.userData.g.cls, at: m.userData.g.at, p: logScr(m) })), slotAt: () => { const n = J.next(); if (!n) return null; const sl = slot58(k.laid.length); return proj(sl.x, sl.y, sl.z); }, torchAt, lit: () => lit,
+      acting: true, fullPad: true, kind: 'pyre58', J, ownView: () => true, snapView: () => (snapN > 0 ? (snapN--, true) : false), zones, logsAt: () => logs.map((m) => ({ i: m.userData.g.i, kind: m.userData.g.kind, fit: m.userData.g.fit, cls: m.userData.g.cls, at: m.userData.g.at, p: logScr(m) })), slotAt: () => { const n = J.next(); if (!n) return null; const sl = slot58(k.laid.length); return proj(sl.x, sl.y, sl.z); }, torchAt, lit: () => lit,
       view() { const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1); if (litT >= 0) { const d = 16, h = 3 + litT * 1.2, th = Math.atan(0.6 * tv) - Math.atan(h / d); return { p: [PYRE58P.x - 2, TOP58 + h, PYRE58P.z + d], t: [PYRE58P.x, TOP58 + h + Math.tan(th) * d, PYRE58P.z] }; }   /* (lit: back and low from the south — the fire at ⅘ down the frame, its column straight up through the top; from above it the fire fell under the frame: c58B-SP) */ const t2 = tv * (W() / H()), D = 10.4 / (2 * t2), el = 1.0, T = [-31.4, TOP58 + 0.3, -1.9]; return { p: [T[0], T[1] + Math.sin(el) * D, T[2] + Math.cos(el) * D], t: T }; },   // (¾ from the south: the pyre on the right, the pile in the middle, the out-pile on the left; then up with the smoke)
       down(a) {
         if (endT >= 0 || lit) return;

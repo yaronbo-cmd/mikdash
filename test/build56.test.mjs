@@ -17,13 +17,13 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍∙!—]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w)).length;
 
 test('build 56: GAME_BUILD 56; stage 09\'s parts in the spec\'s order; its sources (מדות ג, א; ג, ד)', () => {
-  assert.equal(GAME_BUILD, 57);
+  assert.equal(GAME_BUILD, 58);
   assert.deepEqual([...PARTS56], ['open', 'light', 'tap', 'sovev', 'thread', 'reveal']);
   assert.ok(SRC56.some((s) => /עלה חמש וכנס אמה, זה הסובב — מדות ג, א/.test(s)));
   assert.ok(SRC56.some((s) => /להבדיל בין דמים העליונים לדמים התחתונים — מדות ג, א/.test(s)));
   assert.ok(SRC56.every((s) => /טיוטה|המחשה/.test(s)));
   assert.match(H, /const FAMOF = \{ rope: 'rope', light: 'inspect', tap: 'inspect', sovev: 'place', thread: 'fit',/);
-  assert.match(H, /o\.stage === 'yesod' \? 'yesod' : o\.stage === 'sovev' \? 'sovev' : (?:o\.stage === 'guf' \? 'guf' : )?'har';/);
+  assert.match(H, /o\.stage === 'yesod' \? 'yesod' : o\.stage === 'sovev' \? 'sovev' : (?:o\.stage === 'guf' \? 'guf' : )?(?:o\.stage === 'karnot' \? 'karnot' : )?'har';/);
   assert.match(H, /const PARTS = STG === 'sovev' \? PARTS56 : STG === 'yesod' \? PARTS55 :/);
 });
 
@@ -92,7 +92,7 @@ test('build 56: the red line — the reed\'s middle, the level, the snap; מהו
 });
 
 test('build 56: the end card — stage 09\'s sources and the zorek (blood above the line and below it); stage 08\'s card its own sources', () => {
-  assert.match(H, /\.\.\.\((?:STG === 'guf' \? SRC57 : )?STG === 'sovev' \? SRC56 : STG === 'yesod' \? SRC55 : STG === 'lishka' \? SRC50/);
+  assert.match(H, /\.\.\.\((?:STG === 'karnot' \? SRC58 : )?(?:STG === 'guf' \? SRC57 : )?STG === 'sovev' \? SRC56 : STG === 'yesod' \? SRC55 : STG === 'lishka' \? SRC50/);
   assert.match(H, /if \(STG === 'sovev' && fc\) zorek56\(fc\);/);
   assert.match(H, /דמים עליונים<\/text>/); assert.match(H, /דמים תחתונים<\/text>/);
   assert.ok(!SRC55.some((s) => /הר הבית|אריח|לבית התקיעה|אלף עגלות|גלגל הדריכה/.test(s)), 'stage 08\'s card: not stage 01\'s lines');
@@ -106,7 +106,7 @@ test('build 56: the yesod after stage 08 is the ר — all the north and the wes
   assert.match(T, /S\('sovev'\);\n\s+A\(-53, 16, -18\.5, -23, 22, 11\.5\);/, 'the body from the court\'s floor is the sovev\'s');
   assert.ok(!/A\(-54, 16, -19\.5, -22, 17, 12\.5\)/.test(T), 'no full slab');
   const S = read('src/stages.js'); assert.match(S, /const yes = \(z <= -18\.5\) \|\| \(x <= -53\) \|\| \(x >= -23 && z <= -17\.5\) \|\| \(x <= -52 && z >= 11\.5\);/);
-  assert.match(H, /o\.timeOfDay\(STG === 'yesod' \|\| STG === 'sovev'(?: \|\| STG === 'guf')? \? 'noon' : 'golden'\)/);
+  assert.match(H, /o\.timeOfDay\(STG === 'yesod' \|\| STG === 'sovev'(?: \|\| STG === 'guf')?(?: \|\| STG === 'karnot')? \? 'noon' : 'golden'\)/);
 });
 
 test('build 56: the wiring — after stage 08, on resume, the fixture ?h56go=1; the old flow behind ?sovev56=0; the tools\' hands', () => {

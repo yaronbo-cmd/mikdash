@@ -1111,3 +1111,87 @@ export function createSid57(L = 1) {
   const gapRow = () => { let best = 0, bv = Infinity; for (let r = 0; r < C.rows; r++) { let s = 0; for (let c = 0; c < C.cols; c++) s += Math.min(1, cells[r * C.cols + c]); if (s < bv) { bv = s; best = r; } } return (best + 0.5) / C.rows; };
   return { wipe, cover, speed, gapRow, cell: (c, r) => cells[r * C.cols + c], state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
+
+/* ───────── ── build 58 ── stage 11, הקרנות (docs/specs/shlav-alef-08-16-he.md §3 "11"): the four horns, set square in the altar's corners
+ *  ("מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה", מדות ג, א) — no snapping, the tolerance smaller horn by horn, the fourth with no shadow; the
+ *  two holes in the south-west horn's yesod, found open by water poured from a jug (מדות ג, ב — המחשה) — the stream goes on a little after
+ *  the jug is straightened; the first pyre — the wood sorted and stacked as in Phase B, the fire lit ───────── */
+/** a horn in its corner, in the corner's own frame: u along one edge inward, v along the other (amot), its middle true at (½, ½) — its two
+ *  outer faces flush with the altar's edges; rot its turn (degrees). Horn i (1…4) is level i: the tolerances shrink, the fourth has no shadow */
+export const HORN58 = Object.freeze({ tolA: Object.freeze([null, 8, 6, 4, 3]), tolP: Object.freeze([null, 0.25, 0.18, 0.13, 0.1]), shadow: Object.freeze([null, true, true, true, false]), from: 1.55, rot: Object.freeze([22, 38]), min: 0.3 });
+export function createHorn58(L = 1, rnd = Math.random) {
+  const lv = clamp(L | 0, 1, 4), H = HORN58, sg = rnd() < 0.5 ? -1 : 1;
+  const k = { L: lv, u: H.from + rnd() * 0.3, v: H.from + rnd() * 0.3, rot: sg * (H.rot[0] + rnd() * (H.rot[1] - H.rot[0])), set: false, tries: 0, q: null };
+  const tolA = H.tolA[lv], tolP = H.tolP[lv];
+  const move = (du, dv) => { if (k.set) return; k.u = Math.max(H.min, k.u + du); k.v = Math.max(H.min, k.v + dv); };
+  const place = (u, v) => { if (k.set) return; k.u = Math.max(H.min, u); k.v = Math.max(H.min, v); };
+  const turn = (d) => { if (k.set) return; k.rot = ((k.rot + d + 540) % 360) - 180; };
+  /** its two edges: each glows green when the horn is square (within tolA of the altar's line, any quarter turn) and that face is flush */
+  const sq = () => { const r = ((k.rot % 90) + 90) % 90; return Math.min(r, 90 - r); };
+  const edges = () => { const a = sq() <= tolA; return { a: a && Math.abs(k.v - 0.5) <= tolP, b: a && Math.abs(k.u - 0.5) <= tolP, sq: sq(), du: k.u - 0.5, dv: k.v - 0.5 }; };
+  /** let go: set where it lies when both edges are green (no snapping), else it stays to be moved or turned again */
+  function release() {
+    if (k.set) return 'set'; k.tries++; const e = edges();
+    if (e.a && e.b) { k.set = true; const n = Math.max(e.sq / tolA, Math.abs(e.du) / tolP, Math.abs(e.dv) / tolP); k.q = n <= 0.5 ? 1 : 0.65; return 'set'; }
+    return e.sq > tolA ? 'turn' : 'move';
+  }
+  return { move, place, turn, edges, release, state: () => k, tolA, tolP, shadow: H.shadow[lv] };
+}
+/** the four horns' grade: the mean of their own */
+export function hornsGrade58(qs) { const m = qs.reduce((a, q) => a + (q || 0.3), 0) / Math.max(1, qs.length); return m >= 0.9 ? 1 : m >= 0.6 ? 0.65 : 0.3; }
+/** THE TWO HOLES (מדות ג, ב): water from a jug onto the yesod by the south-west horn must go down the holes without running over the yesod.
+ *  The jug's tilt 0…1 (from 0.2 it pours, full at 1); the stream follows the tilt late (tau s) — it goes on a little after the jug is
+ *  straightened; the holes take `drain` a second; the water on the yesod over its rim runs off (a spill). The jug holds 1. Grade: no spill
+ *  מהודר, one כשר, more טעון תיקון */
+export const POUR58 = Object.freeze({ qmax: 0.6, drain: 0.3, from: 0.2, rim: Object.freeze([null, 0.14, 0.1, 0.08, 0.065]), tau: Object.freeze([null, 0.3, 0.45, 0.6, 0.75]), gap: 0.8, jugs: 3 });   // (jugs: a jugful that ran over is poured again — a fresh jug — up to three; c58 kid W-S2 emptied his one jug in one spilling pour)
+export function createPour58(L = 1) {
+  const lv = clamp(L | 0, 1, 4), P = POUR58, k = { L: lv, tilt: 0, s: 0, pool: 0, poured: 0, spills: 0, done: false, q: null, lastSpill: -9, t: 0, jug: 1, jug0: 0 };
+  const flowOf = (tilt) => (tilt < P.from ? 0 : ((tilt - P.from) / (1 - P.from)) * P.qmax);
+  /** the tilt at which the stream equals what the holes take — level 1's mark on the jug's arc */
+  const safe = () => P.from + (1 - P.from) * (P.drain / P.qmax);
+  /** one step: the jug at tilt, dt s → 'pour' | 'spill' | 'still' | 'refill' (that jugful ran over: a fresh one, up to P.jugs) | 'done' */
+  function step(tilt, dt) {
+    if (k.done) return 'done'; k.t += dt; k.tilt = clamp(tilt, 0, 1);
+    const q = k.poured >= 1 ? 0 : flowOf(k.tilt); k.s += (q - k.s) * Math.min(1, dt / P.tau[lv]); if (k.s < 1e-4 && q === 0) k.s = 0;
+    const s = Math.min(k.s, Math.max(0, 1 - k.poured) / Math.max(dt, 1e-3)); k.poured = Math.min(1, k.poured + s * dt);
+    k.pool = Math.max(0, k.pool + (s - P.drain) * dt);
+    let r = s > 0.002 ? 'pour' : 'still';
+    if (k.pool > P.rim[lv]) { k.pool = P.rim[lv]; if (k.t - k.lastSpill > P.gap) { k.spills++; k.lastSpill = k.t; r = 'spill'; } else r = 'spilling'; }
+    if (k.poured >= 1 && k.s < 0.01 && k.pool <= 0.002 && k.spills > k.jug0 && k.jug < P.jugs) { k.jug++; k.jug0 = k.spills; k.poured = 0; k.s = 0; return 'refill'; }
+    if (k.poured >= 1 && k.s < 0.01 && k.pool <= 0.002) { k.done = true; k.q = k.spills === 0 ? 1 : k.spills === 1 ? 0.65 : 0.3; return 'done'; }
+    return r;
+  }
+  return { step, safe, flowOf, state: () => k, rim: P.rim[lv], result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** THE FIRST PYRE: eight logs by the altar's fire place — six fit (fig, walnut, pine; two thick, two middling, two thin) and two unfit (olive,
+ *  vine). Each carried ➡ to the pyre's next place or ⬅ out (§1 rule 13): an unfit log on the pyre comes back; a fit one thrown out comes back.
+ *  The pyre: two thick logs below, two middling across them, two thin on top — the air between each pair ("רוח" — too tight, right, too wide);
+ *  a log lies where it is let go (its error along its pair's spread), level 1 settles it within `forgive`. Then the fire */
+export const WOOD58 = Object.freeze({
+  fig: Object.freeze({ he: 'תאנה', fit: true }), walnut: Object.freeze({ he: 'אגוז', fit: true }), pine: Object.freeze({ he: 'עץ שמן', fit: true }),
+  olive: Object.freeze({ he: 'זית', fit: false }), vine: Object.freeze({ he: 'גפן', fit: false }),
+});
+export const PYRE58 = Object.freeze({ order: Object.freeze(['thick', 'thick', 'mid', 'mid', 'thin', 'thin']), air: 0.6, tight: 0.3, wide: 0.95, reach: 1.3, forgive: Object.freeze([null, 0.35, 0.15, 0.1, 0.08]), max: 0.6 });
+export function createPyre58(L = 1, rnd = Math.random) {
+  const lv = clamp(L | 0, 1, 4), Y = PYRE58;
+  const base = [['fig', 'thick'], ['walnut', 'thick'], ['pine', 'mid'], ['fig', 'mid'], ['walnut', 'thin'], ['pine', 'thin'], ['olive', 'thick'], ['vine', 'thin']];
+  for (let i = base.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [base[i], base[j]] = [base[j], base[i]]; }
+  const k = { L: lv, logs: base.map(([kind, cls], i) => ({ i, kind, cls, fit: WOOD58[kind].fit, at: 'pile' })), laid: [], wrong: 0, waste: 0, lit: false, done: false, q: null };
+  const next = () => (k.laid.length < Y.order.length ? Y.order[k.laid.length] : null);
+  /** log i let go on the pyre, off its place by e along its pair's spread (amot, + out) and d across → 'laid' | 'unfit' | 'size' | 'far' | 'no' */
+  function toPyre(i, e = 0, d = 0) {
+    const g = k.logs[i]; if (!g || g.at !== 'pile' || k.done) return 'no';
+    if (!g.fit) { k.wrong++; return 'unfit'; }
+    if (g.cls !== next()) return 'size';
+    if (Math.abs(d) > Y.reach || Math.abs(e) > Y.reach) return 'far';
+    let ee = clamp(e, -Y.max, Y.max); if (Math.abs(ee) <= Y.forgive[lv]) ee = 0;
+    g.at = 'pyre'; k.laid.push({ i, e: ee }); return 'laid';
+  }
+  /** log i thrown out → 'out' (unfit: right) | 'waste' (fit: it comes back) | 'no' */
+  function toOut(i) { const g = k.logs[i]; if (!g || g.at !== 'pile' || k.done) return 'no'; if (g.fit) { k.waste++; return 'waste'; } g.at = 'out'; return 'out'; }
+  /** the air between each laid pair: the nominal gap plus both errors (outward widens) */
+  const gaps = () => { const out = []; for (let p = 0; p + 1 < k.laid.length; p += 2) { const g = Y.air + k.laid[p].e + k.laid[p + 1].e; out.push({ g, ok: g >= Y.tight && g <= Y.wide, tight: g < Y.tight, wide: g > Y.wide }); } return out; };
+  const ready = () => k.laid.length >= Y.order.length && k.logs.every((g) => g.fit || g.at === 'out');
+  function light() { if (!ready() || k.lit) return 'no'; k.lit = true; k.done = true; const bad = gaps().filter((x) => !x.ok).length, m = k.wrong + k.waste; k.q = bad === 0 && m === 0 ? 1 : bad <= 1 && m <= 2 ? 0.65 : 0.3; return 'lit'; }
+  return { toPyre, toOut, next, gaps, ready, light, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}

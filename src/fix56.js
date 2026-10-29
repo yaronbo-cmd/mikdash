@@ -19,6 +19,11 @@ export function seedB56(ls) {
 }
 (function fix56() {
   const g = globalThis;
+  let S = '', H = '';
+  try { S = g.location.search || ''; H = g.location.hash || ''; } catch (e) { /* */ }
+  // (build.mjs replaces every `location.search` / `location.hash` in the bundle by __QS56 / __QH56: the artifact's frame may refuse
+  //  history.replaceState, so the game reads the chosen stage from these, whatever the frame allows)
+  g.__QS56 = S; g.__QH56 = H;
   let q = '', h = '';
   try {
     const c = g.localStorage.getItem('bh_fixclear');   // (the menu's choice: clear the save here, at the start — the game saved itself as the page unloaded)
@@ -29,10 +34,9 @@ export function seedB56(ls) {
     if (h) g.localStorage.removeItem('bh_fixh');
   } catch (e) { return; }
   if (!q && !h) return;
-  try {
-    const L = g.location, base = (L.search || '').replace(/^\?/, '');
-    const search = '?' + [base, q].filter(Boolean).join('&');
-    g.history.replaceState(g.history.state, '', L.pathname + search + (h ? '#' + h : L.hash || ''));
-    g.__FIX56 = { q, h };
-  } catch (e) { g.__FIX56 = { q, h, failed: String(e && e.message) }; }
+  const base = S.replace(/^\?/, '').split('&').filter((p) => p && !/^(h\d\dgo|h42stock|h42at|h49voy|h50test|tester)=/.test(p)).join('&');   // (a stage chosen before: its flags out)
+  const S2 = [base, q].filter(Boolean).join('&');
+  g.__QS56 = S2 ? '?' + S2 : ''; g.__QH56 = h ? '#' + h : H;
+  if (/(^|&)tester=1(&|$)/.test(q)) { try { g.localStorage.setItem('bh_tester44', '1'); } catch (e) { /* */ } }   // (hooks/avodah.js reads the real address for it)
+  try { g.history.replaceState(g.history.state, '', g.location.pathname + g.__QS56 + g.__QH56); g.__FIX56 = { q, h }; } catch (e) { g.__FIX56 = { q, h, frame: String(e && e.message) }; }
 })();

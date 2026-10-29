@@ -47,7 +47,7 @@ function openMenu56(doc) {
       ls.setItem('bh_fix', s.q); if (s.h) ls.setItem('bh_fixh', s.h); else ls.removeItem('bh_fixh');
     } catch (e) { b.textContent = 'לא נשמר — הדפדפן חוסם אחסון'; return; }
     b.textContent = 'נפתח…';
-    try { const L = globalThis.location; globalThis.history.replaceState(null, '', L.pathname); L.reload(); } catch (e) { b.textContent = 'סגרו ופתחו את הקישור מחדש'; }
+    try { globalThis.location.reload(); } catch (e) { b.textContent = 'סגרו ופתחו את הקישור מחדש'; }   // (the artifact's frame may refuse a reload: the choice waits for the next opening)
   });
   function close() { try { el.remove(); st.remove(); } catch (e) { /* */ } open56 = null; }
   doc.body.appendChild(el); open56 = el;

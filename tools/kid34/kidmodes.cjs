@@ -192,8 +192,13 @@ async function stone55k(K) {
   return true;
 }
 async function field55k(K) {
-  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'field55') return null; return { st: j.ref.stones().filter((x) => !x.placed && x.p), gp: j.ref.gaps().filter((x) => x.p), f: j.ref.fillAt() }; }).catch(() => null);
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'field55') return null; const s0 = j.ref.J.state(); return { st: j.ref.stones().filter((x) => !x.placed && x.p).map((x) => Object.assign(x, { shape: s0.stones[x.i].shape, rot: s0.stones[x.i].rot })), gp: j.ref.gaps().filter((x) => x.p).map((x) => Object.assign(x, { shape: s0.gaps[x.g].shape, rot: s0.gaps[x.g].rot })), f: j.ref.fillAt(), L: s0.L }; }).catch(() => null);
   if (!g || !g.gp.length) return false; const r = K.rnd();
+  if (g.L <= 1 && g.st.length && K.rnd() < 0.5) {   // (level 1: the gold shadow in each gap shows its stone and its turn — half the time he matches what he sees)
+    const s = g.st[Math.floor(K.rnd() * g.st.length)], t2 = g.gp.find((x) => x.shape === s.shape && x.open);
+    if (t2 && s.rot !== t2.rot) { await K.tap(s.p.x + K.between(-8, 8), s.p.y + K.between(-6, 6)); K.ev('field-tap-seen'); return true; }
+    if (t2) { const id = 7; await K.down(id, s.p.x, s.p.y); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, s.p.x + ((t2.p.x - s.p.x) * i) / 12 + K.between(-5, 5), s.p.y + ((t2.p.y - s.p.y) * i) / 12 + K.between(-5, 5)); } await K.up(id); K.ev('field-drag-seen'); return true; }
+  }
   if (g.st.length && r < 0.35) { const s = g.st[Math.floor(K.rnd() * g.st.length)]; await K.tap(s.p.x + K.between(-10, 10), s.p.y + K.between(-8, 8)); K.ev('field-tap'); return true; }
   const t = g.gp[Math.floor(K.rnd() * g.gp.length)];
   if (g.st.length && r < 0.85) { const s = g.st[Math.floor(K.rnd() * g.st.length)]; const id = 7; await K.down(id, s.p.x, s.p.y); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, s.p.x + ((t.p.x - s.p.x) * i) / 12 + K.between(-6, 6), s.p.y + ((t.p.y - s.p.y) * i) / 12 + K.between(-6, 6)); } await K.up(id); K.ev('field-drag'); return true; }
@@ -280,7 +285,8 @@ async function mount42(K) {
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
-      if (h && !h.on && h.mode === 'test' && h.test50 && h.test && h.test.passed) { K.R.test50 = h.test; K.note('test50 passed'); break; }   // ── build 50 ── chapter ג׳'s test
+      if (h && !h.on && h.stg === 'yesod' && h.part === 'done') { K.R.yesod55 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('yesod done'); break; }   // ── build 55 ── stage 08's end
+      if (h && !h.on && h.mode === 'test' && h.test50 && h.test && h.test.passed) { K.R.test50 = h.test; K.note('test50 passed'); if (/h50test=1/.test(K.query || '')) break; K.R.offT = 0; await K.sleep(3000); continue; }   // (build 55: from chapter ג׳'s test on into stage 08 when the run began at the stage)   // ── build 50 ── chapter ג׳'s test
       if (h && !h.on && h.stg === 'nikanor' && h.part === 'done') { K.R.nikanor49 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('nikanor done'); break; }   // ── build 49 ── stage 06's end
       if (h && !h.on && h.stg === 'nashim' && h.part === 'done') { K.R.nashim48 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('nashim done'); break; }   // ── build 48 ── stage 05's end
       if (h && !h.on && h.stg === 'gates' && h.part === 'done') { K.R.gates47 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('gates done'); break; }   // ── build 47 ── stage 04's end

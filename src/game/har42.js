@@ -537,7 +537,7 @@ export function createHar42(o = {}) {
     // act's own view (a macro, the side views) or else the camera now sees it —
     // camera sees it — the thing's box's middle + its half-size + 5.5 amot along the line from the camera, 4.5 to the side; the first page set it
     // from the view's target on the act's first frame, and it stood round him)
-    if (st.job && st.objBB) {
+    if (st.job && st.objBB && !L.noAct) {
       if (L.part !== st.part) { L.part = st.part; L.jt = 0; L.set = false; }
       L.jt += dt;
       if (!L.set && L.jt > 0.3) {
@@ -1054,7 +1054,7 @@ export function createHar42(o = {}) {
     [[-12 + 4, -36], [-64, -30], [-64, 20], [-6, 14]].forEach(([x, z], k) => { const c = crew53(k + 3); add(c, x, gy(x, z), z); L.crews.push(c); });
     L.act = crew53(11); L.act.visible = false; add(L.act, -38, gy(-38, -3), -3); L.crews.push(L.act);
     for (let k = 0; k < 2; k++) { const c = cart53(); add(c, 4, gy(4, -30), -30); c.rotation.y = Math.PI; L.carts.push({ g: c, ph: k * 0.5 }); }
-    st.life53 = L;
+    L.noAct = true; st.life53 = L;   // (no crew set behind the act's thing: in the field's view from above it stood in the course)
   }
   function lifeFrame55(dt) {
     const L = st.life53; if (!L || !L.carts) return;
@@ -1072,7 +1072,7 @@ export function createHar42(o = {}) {
   function mkStone55(kind, list, L, part) {
     const B = PL.bench55, y0 = gy(B.x, B.z), sm = st.props.stone55, heaps = st.props.heap55 || {}, book = S.book48 || (S.book48 = {});
     if (!sm) return null;
-    sm.visible = true; let i = 0, J = null, N = null, res = [], wait = -1, endT = -1, rotY = 0, rotT = 0, tilt = 0, phase = 'look', fly = null, rub = 0, slowT = 0, catchAt = null, flash = 0, lastMv = null, holdT = 0, said = 0;
+    sm.visible = true; let jt = 0, i = 0, J = null, N = null, res = [], wait = -1, endT = -1, rotY = 0, rotT = 0, tilt = 0, phase = 'look', fly = null, rub = 0, slowT = 0, catchAt = null, flash = 0, lastMv = null, holdT = 0, said = 0;
     const lineFor = () => (kind === 'nail' ? (phase === 'feel' ? LINE42.nail55 : N && N.state().caught ? LINE42.caught55 : LINE42.smooth55) : part === 'iron' ? LINE42.iron55 : part === 'mud' ? LINE42.mud55 : LINE42.stone55);
     const next = () => {
       const t = list[i]; J = F.createStone55(kind === 'nail' ? 'whole' : t, Math.random, L); N = kind === 'nail' ? F.createNail55(t === 'nick', Math.random, L) : null;
@@ -1089,7 +1089,7 @@ export function createHar42(o = {}) {
     const onEdge = (x, y) => { const E = edge(); if (!E) return null; const dx = E.b.x - E.a.x, dy = E.b.y - E.a.y, l2 = dx * dx + dy * dy || 1, u = ((x - E.a.x) * dx + (y - E.a.y) * dy) / l2, px = E.a.x + dx * u, py = E.a.y + dy * u; return { u, d: Math.hypot(x - px, y - py), lenPx: Math.sqrt(l2) }; };
     function decided(r, toAltar) {
       const T2 = kind === 'nail' ? (N.state().nick != null ? F.STONE55.nick : F.STONE55.whole) : J.T, key = kind === 'nail' ? (N.state().nick != null ? 'nick' : 'whole') : J.state().type;
-      res.push(r); buzz42(r === 'ok' ? 'settle' : 'retry'); o.sound && o.sound(r === 'ok' ? 'stone' : 'grind');
+      res.push(r); try55(part, r === 'ok'); buzz42(r === 'ok' ? 'settle' : 'retry'); o.sound && o.sound(r === 'ok' ? 'stone' : 'grind');
       const isNew = !book[key]; if (isNew) book[key] = { t: Date.now() }; save42(S);
       const why = key === 'iron' && r === 'ok' ? LINE42.ironWhy55 : `${T2.he} — ${T2.bad ? 'לא למזבח' : 'למזבח'} · ${T2.why}`;
       line(why, `${isNew ? '📖 עמוד חדש בספר הפגימות · ' : ''}${r === 'ok' ? 'נכון' : r === 'waste' ? 'נפסלה אבן כשרה — כשר' : 'אבן פסולה הונחה — טעון תיקון'}`);
@@ -1097,11 +1097,11 @@ export function createHar42(o = {}) {
     }
     const job = {
       acting: true, fullPad: true, kind: 'stone55', mode: kind, part, get J() { return J; }, get N() { return N; }, phase: () => phase, box, zones, edge, list, res: () => res,
-      ownView: () => true,
+      ownView: () => true, snapView: () => jt < 0.2,
       view() {
         const { th: t2, tv } = th();
         if (phase === 'feel') { const D = 1.8 / (2 * VIEW55.edge * t2); return { p: [B.x, y0 + 2.2 + D * 0.45, B.z + 0.76 + D * 0.9], t: [B.x, y0 + 2.12, B.z + 0.76] }; }
-        const D = 1.8 / (2 * VIEW55.stone * t2); void tv; return { p: [B.x, y0 + 1.6 + D * 0.22, B.z + 0.75 + D], t: [B.x, y0 + 1.5, B.z + 0.3] };   /* (the share at its front face, a little above it: from its middle the face stood 55 % wide, its top under the line — c55-T1) */
+        const D = 1.8 / (2 * VIEW55.stone * t2); void tv; return { p: [B.x, y0 + 1.6 + D * 0.26, B.z + 0.75 + D], t: [B.x, y0 + 1.78, B.z + 0.3] };   /* (the share at its front face, a little above it: from its middle the face stood 55 % wide, its top under the line — c55-T1) */
       },
       down(a) { holdT = now(); lastMv = { x: a.x, y: a.y, t: now(), u: null }; rub = 0; },
       move(a) {
@@ -1128,7 +1128,7 @@ export function createHar42(o = {}) {
         if (kind !== 'nail' && Math.abs(dx) >= thr && Math.abs(dx) > Math.abs(dy) * 1.2 && dur <= 0.6 && rub < thr * 2.5) { const dir = dx > 0 ? -1 : 1; J.turn(dir); rotT += dir > 0 ? -Math.PI / 2 : Math.PI / 2; buzz42('tick'); o.sound && o.sound('stone'); }
       },
       frame(dt) {
-        const h2 = hero(); void h2;
+        jt += dt;
         rotY += (rotT - rotY) * Math.min(1, dt * 9); sm.rotation.y = rotY + tilt * 0.6; sm.rotation.x = tilt * 0.08;
         if (slowT > 0) { slowT -= dt; if (slowT <= 0 && phase === 'feel') line(lineFor(), `אבן ${i + 1} / ${list.length} · רמה ${L}`); }
         // the iron's glint: bright only when the face, turned or tilted, meets the light from the left (≈ 20° toward it); faint at rest
@@ -1199,7 +1199,7 @@ export function createHar42(o = {}) {
           let best = null; s0.gaps.forEach((G, g) => { const d = Math.hypot(m.position.x - gx(g), m.position.z - C.z); if (!best || d < best.d) best = { g, d }; });
           const back = () => { m.position.set(home[d0.i].x, top, home[d0.i].z); };
           if (!best || best.d > 2.2) { back(); return; }
-          const S2 = s0.stones[d0.i], G = s0.gaps[best.g], r = J.drop(d0.i, best.g, best.d);
+          const S2 = s0.stones[d0.i], G = s0.gaps[best.g], r = J.drop(d0.i, best.g, best.d); try55('field', r === 'tight' || r === 'gap');
           if (r === 'tight' || r === 'gap') { m.position.y = top - 0.3; buzz42('settle'); o.sound && o.sound('stone'); if (shadow[best.g]) shadow[best.g].visible = false; if (r === 'tight') recess[best.g].visible = false; else say(LINE42.fieldGap55); o.emit && o.emit('h55field', { r }); }
           else { back(); buzz42('retry'); say(S2.shape === G.shape ? LINE42.fieldTurn55 : LINE42.fieldOther55); }
           return;
@@ -1228,7 +1228,7 @@ export function createHar42(o = {}) {
   /** the last row of the yesod, alone: from above the altar — the north and the west, and one amah into the south and the east (מדות ג, א) */
   function mkLast55(L) {
     const X0 = ALT55.x0, Z0 = ALT55.z0, S0 = ALT55.side, ay = gy(X0 + 16, Z0 + 16), top = ay + 1.0, J = F.createLast55(L), made = [];
-    const STN = mat('#D2C29F', 0.92), SHD = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.32, depthWrite: false });
+    const STN = mat('#8C7856', 0.92), SHD = new THREE.MeshBasicMaterial({ color: '#FFC24A', transparent: true, opacity: 0.6, depthWrite: false });   /* (dark field stone on the light court; the shadow strong: from above the pale ones were not seen) */
     const add55 = (m, x, y, z) => { m.position.set(x, y, z); if (st.props.root) st.props.root.add(m); made.push(m); return m; };
     const block = (sl) => add55(new THREE.Mesh(new THREE.BoxGeometry(sl.w * 0.98, 1, sl.d * 0.98), STN), X0 + sl.x, ay + 0.5, Z0 + sl.z);
     for (const sl of F.LAST55.slots) if (sl.pre) block(sl);
@@ -1244,7 +1244,7 @@ export function createHar42(o = {}) {
       down(a) { const q = proj(heap.x, gy(heap.x, heap.z) + 0.8, heap.z); if (endT >= 0 || rise >= 0 || !q || Math.hypot(q.x - a.x, q.y - a.y) > Math.max(70, W() * 0.1)) return; const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1, 1), STN); add55(m, heap.x, top, heap.z); drag = { m }; },
       move(a) { if (!drag) return; const gp = ground55(a.x, a.y, top); if (gp) drag.m.position.set(gp.x, top + 0.4, gp.z); },
       up() {
-        const d0 = drag; drag = null; if (!d0) return; const m = d0.m, r = J.drop(m.position.x - X0, m.position.z - Z0);
+        const d0 = drag; drag = null; if (!d0) return; const m = d0.m, r = J.drop(m.position.x - X0, m.position.z - Z0); if (r.r !== 'away') try55('last', r.r === 'set');
         if (r.r === 'set') { const sl = r.slot; if (m.parent) m.parent.remove(m); block(sl); if (shadows[sl.id]) shadows[sl.id].visible = false; buzz42('settle'); o.sound && o.sound('stone'); o.emit && o.emit('h55last', { slot: sl.id }); }
         else { if (m.parent) m.parent.remove(m); if (r.r === 'noyesod') { msgT = 2.8; line(LINE42.noYesod55, `רמה ${L}`); buzz42('retry'); } }
       },
@@ -1262,6 +1262,8 @@ export function createHar42(o = {}) {
     };
     return job;
   }
+  /** the §1 check's tally (the naive kid's "first success within three tries"): each act's attempts and the attempt of its first success */
+  const try55 = (part, ok) => { const T = R.t55 || (R.t55 = {}), r = T[part] || (T[part] = { tries: 0, first: 0 }); r.tries++; if (ok && !r.first) r.first = r.tries; save42(S); };
   const mix55 = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
   /** the defect bag (build 48's shuffle-bag) over the stones' types of a level: n draws */
   const bag55 = (n, L) => { const B2 = F.createBag48(S.bag55 || null, Math.random, F.BAG55[L] || F.BAG55[2]), out = []; for (let k = 0; k < n; k++) out.push(B2.draw()); S.bag55 = B2.state(); save42(S); if (!out.some((t) => F.STONE55[t].bad)) out[out.length - 1] = 'crack'; if (!out.some((t) => !F.STONE55[t].bad)) out[0] = 'mud'; return out; };
@@ -1285,7 +1287,7 @@ export function createHar42(o = {}) {
           return u >= 1;
         }
         if (STG === 'yesod') {   // ── build 55 ── from over the court's heart: the altar's gold plan, 32 × 32, rises from the ground (מדות ג, א); the carts from בית כרם come in
-          const c = { x: -38, z: -3.5 }, gc = gy(c.x, c.z), orbit = Math.min(1, u / 0.78), a = 0.35 + orbit * 0.75, Rr = 170 - 70 * orbit;
+          const c = { x: -38, z: -3.5 }, gc = gy(c.x, c.z), orbit = Math.min(1, u / 0.78), a = -1.45 + orbit * 0.5, Rr = 170 - 70 * orbit;   /* (from the north-east: from the east Nicanor's gatehouse hid the altar — stages.js's own view for it, az −60) */
           let p = [c.x + Math.cos(a) * Rr, gc + 105 - 45 * orbit, c.z + Math.sin(a) * Rr], t = [c.x, gc + 2, c.z];
           if (u > 0.78) { const k = (u - 0.78) / 0.22, e = k * k * (3 - 2 * k), fv = followView(hero()); p = p.map((v, i) => v + (fv.p[i] - v) * e); t = t.map((v, i) => v + (fv.t[i] - v) * e); }
           camTo(p, t, 1);
@@ -2888,6 +2890,7 @@ export function createHar42(o = {}) {
     if (st.wet > 0) dry45(dt);
     if (st.card) return;
     const part = st.part;
+    if ((part === 'open' || part === 'reveal') && STG === 'yesod') lifeFrame55(dt);   // ── build 55 ── (the carts come in during the opening) ── /build 55 ──
     if (part === 'open' || part === 'reveal') { const p = PART[part]; if (p.frame(dt)) { if (p.end) p.end(); if (part === 'open') { const r = st.resumeAt; st.resumeAt = null; startPart(r != null ? r : R.part + 1); } else { st.part = 'done'; } } return; }
     if (part === 'done' || part === 'out') return;
     if (part === 'menu') { const h0 = hero(), fv = followView(h0); camTo(fv.p, fv.t, Math.min(1, dt * 2)); return; }   // ── build 44 ──
@@ -2906,7 +2909,7 @@ export function createHar42(o = {}) {
     if (J.camK) { if (J.frame(dt)) endPart(); return; }   // ── build 49 ── (the voyage: its own camera over its own sea)
     let v = (J.view && J.view(h)) || actView(O);
     if (J.view && OBJ54.parts.includes(st.part) && !(J.ownView && J.ownView())) { if (st.finger > 0 && st.lock54) v = st.lock54; else { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), HH = heroHeight(); v = rule53({ p: v.p.slice(), t: v.t.slice() }, h, HH, tv * (W() / H()), tv); st.lock54 = v; } }   // ── build 54 ── (the object rule on their own views; held under the finger) ── /build 54 ──
-    camTo(v.p, v.t, J.view ? Math.min(1, dt * 2.5) : st.finger > 0 ? 0 : Math.min(1, dt * 2));   // (build 46: an act's own view — the lattice front-on, the walk along the soreg, the procession low)
+    camTo(v.p, v.t, J.snapView && J.snapView() ? 1 : J.view ? Math.min(1, dt * 2.5) : st.finger > 0 ? 0 : Math.min(1, dt * 2));   // ── build 55 ── (snapView: a macro cut to at once — the way there passed through him) ── /build 55 ──   // (build 46: an act's own view — the lattice front-on, the walk along the soreg, the procession low)
     lifeFrame53(dt, v);   // ── build 53 ── ── /build 53 ──
     if (J.frame(dt)) endPart();
   }
@@ -2973,7 +2976,7 @@ export function createHar42(o = {}) {
   }
   const api = {
     start, stop, frame, get on() { return st.on; },
-    state: () => ({ mode: MODE, stg: STG, test: (o.test === 50 ? S.test50 : S.test44) || null, test50: o.test === 50, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: R.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: R.grades.slice(), hands: Math.round(R.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
+    state: () => ({ t55: R.t55 || null, mode: MODE, stg: STG, test: (o.test === 50 ? S.test50 : S.test44) || null, test50: o.test === 50, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: R.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: R.grades.slice(), hands: Math.round(R.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
     sig: () => `${MODE}|${st.part}|${R.part}|${R.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}|${S.test44 ? JSON.stringify(Object.values(S.test44.jobs || {}).map((r) => [r.tries, r.passed, r.demo])) : ''}`,
     line: () => (st.ui.line ? st.ui.line.textContent : ''),
     save: () => S, places: () => ({ PL, STAND, base }),

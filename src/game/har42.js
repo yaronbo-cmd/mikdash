@@ -216,6 +216,7 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   holes58: 'הטו את הכד ⤵ ∙ עצרו בזמן · "וּבְקֶרֶן מַעֲרָבִית דְּרוֹמִית הָיוּ שְׁנֵי נְקָבִים, כְּמִין שְׁנֵי חֳטָמִין דַּקִּין" — מדות ג, ב · טיוטה',
   holesSpill58: 'גלש! הטו פחות ⤵ · המים ממשיכים לזרום אחרי שמיישרים — המחשה',
   holesGood58: 'יורדים לנקבים ∙ עוד ⤵ · המחשה',
+  holesRefill58: 'כד חדש ∙ הטו לאט ⤵ · מים שגלשו — לא נכנסו לנקבים · המחשה',
   holesDone58: 'הנקבים פתוחים · "וְיוֹצְאִין לְנַחַל קִדְרוֹן" — מדות ג, ב · טיוטה',
   pyre58: 'גררו: כשר ➡ פסול ⬅ · עצי המערכה — המחשה',
   pyreThick58: 'הניחו שניים עבים ⤵ · שכבה ראשונה — המחשה',
@@ -1884,7 +1885,7 @@ export function createHar42(o = {}) {
         if (type === 'up') {
           pts.delete(id); if (pts.size > 0) { if (mode === 'twist') mode = 'after'; return; }   // (one finger of the twist lifted: the other's lift lets go)
           const m0 = mode; mode = null; grip = null; last = null; if (m0 === 'none' || m0 == null) return;
-          const r = J.release(), s1 = J.state(); if (r === 'set' || Math.max(Math.abs(s1.u - 0.5), Math.abs(s1.v - 0.5)) <= 2 * J.tolP) try55('horns', r === 'set'); buzz42(r === 'set' ? 'settle' : 'tick');   // (§1's try: a let-go in its place — set or not; a drag let go on the way is not one)
+          const r = J.release(), s1 = J.state(); if (r === 'set' || (m0 !== 'drag' && Math.max(Math.abs(s1.u - 0.5), Math.abs(s1.v - 0.5)) <= 2 * J.tolP)) try55('horns', r === 'set'); buzz42(r === 'set' ? 'settle' : 'tick');   // (§1's try: a turn let go in its place, or the horn set; a drag is the way there — the turn its attempt)
           if (r === 'set') { o.sound && o.sound('stone'); qs.push(J.state().q); if (shadow) shadow.visible = false; msgT = 1.3; line(LINE42.hornSet58, `קרן ${ci + 1} / 4`); return; }
           line(r === 'turn' ? LINE42.hornTurn58 : LINE42.hornMove58, `קרן ${ci + 1} / 4 · רמה ${ci + 1}`); msgT = 2.4;
         }
@@ -1933,6 +1934,7 @@ export function createHar42(o = {}) {
         const r = endT < 0 ? J.step(tilt, dt) : 'done';
         if (r === 'spill') { R.spill58 = (R.spill58 | 0) + 1; msgT = 2; line(LINE42.holesSpill58, `גלש ${k.spills} · רמה ${L}`); buzz42('retry'); o.sound && o.sound('grind'); spT = 1.6; }
         else if (r === 'pour' && msgT <= 0 && k.pool < J.rim * 0.7) { if (said58 !== 'good') { said58 = 'good'; line(LINE42.holesGood58, `רמה ${L}`); } }
+        if (r === 'refill') { msgT = 2.4; line(LINE42.holesRefill58, `כד ${k.jug} / ${F.POUR58.jugs} · רמה ${L}`); buzz42('tick'); }   // (that jugful ran over: a fresh one)
         if (r === 'done' && endT < 0) { line(LINE42.holesDone58, `גלש ${k.spills}`); o.sound && o.sound('ring'); endT = 2.2; grade('holes', k.q, pivot()); }
         if (msgT > 0) { msgT -= dt; if (msgT <= 0 && endT < 0) { said58 = ''; line(LINE42.holes58, `רמה ${L}`); } }
         // the water: the stream from the spout to the pool, the pool on the yesod (its rim the yesod's edge), the runs over the edge, the puddle

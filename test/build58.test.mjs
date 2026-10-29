@@ -30,7 +30,7 @@ test('build 58: GAME_BUILD 58; stage 11\'s parts; the quotes exactly as the spec
 });
 
 test('build 58: the lines — a verb and the gesture\'s arrow, five words at most (§1 rule 4); kasher ➡ pasul ⬅ (rule 13); each with its chip', () => {
-  for (const k of ['horns58', 'hornTurn58', 'hornMove58', 'hornSet58', 'hornLast58', 'holes58', 'holesSpill58', 'holesGood58', 'pyre58', 'pyreThick58', 'pyreMid58', 'pyreThin58', 'pyreAir58', 'pyreUnfit58', 'pyreWaste58', 'pyreLight58']) {
+  for (const k of ['horns58', 'hornTurn58', 'hornMove58', 'hornSet58', 'hornLast58', 'holes58', 'holesSpill58', 'holesGood58', 'holesRefill58', 'pyre58', 'pyreThick58', 'pyreMid58', 'pyreThin58', 'pyreAir58', 'pyreUnfit58', 'pyreWaste58', 'pyreLight58']) {
     assert.ok(words(LINE42[k]) <= 5, `${k}: "${head(LINE42[k])}" ${words(LINE42[k])} words`);
     assert.ok(/[↔➡⬅⤵⟳⟲⬍⬆⬇👆]/u.test(head(LINE42[k])), `${k}: an arrow`);
     assert.match(LINE42[k], /טיוטה|המחשה/, `${k}: its chip`);
@@ -65,6 +65,8 @@ test('build 58: the two holes — the stream goes on after the jug is straighten
   const Q = F.createPour58(2); let sp = 0; for (let i = 0; i < 40; i++) if (Q.step(1, 0.05) === 'spill') sp++; assert.ok(sp >= 1 && Q.state().spills >= 1, 'full tilt — it runs over');
   const G = F.createPour58(1); for (let t = 0; t < 30 && !G.state().done; t += 0.05) G.step(G.safe() - 0.02, 0.05); for (let t = 0; t < 5 && !G.state().done; t += 0.05) G.step(0, 0.05); assert.ok(G.state().done); assert.equal(G.result().rating, 'mehudar', 'at the even stream: no spill');
   assert.ok(Math.abs(G.flowOf(G.safe()) - F.POUR58.drain) < 1e-9, 'level 1\'s mark: the stream the holes take');
+  { const Rf = F.createPour58(1); let rf = 0, n = 0; for (let t = 0; t < 40 && !Rf.state().done; t += 0.05) { const r = Rf.step(t % 8 < 4 ? 1 : 0, 0.05); if (r === 'refill') rf++; n++; } assert.ok(rf >= 1 && Rf.state().jug >= 2, 'a jugful that ran over: a fresh jug'); assert.ok(Rf.state().jug <= F.POUR58.jugs); }
+  { const Ok = F.createPour58(1); for (let t = 0; t < 30 && !Ok.state().done; t += 0.05) Ok.step(Ok.safe() - 0.02, 0.05); for (let t = 0; t < 5 && !Ok.state().done; t += 0.05) Ok.step(0, 0.05); assert.equal(Ok.state().jug, 1, 'a clean jugful: no second'); }
   assert.ok(F.POUR58.rim[4] < F.POUR58.rim[1] && F.POUR58.tau[4] > F.POUR58.tau[1], 'higher levels: a lower rim, a later stream');
   assert.deepEqual([...HOLES58.a], [-53.55, 17, 12]); assert.deepEqual([...HOLES58.b], [-52.5, 17, 12]);
   assert.match(read('src/places.js'), /holes: \[\[-53\.55, 17, 12\], \[-52\.5, 17, 12\]\]/, 'the world\'s two holes');

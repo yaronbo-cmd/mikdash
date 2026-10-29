@@ -1143,13 +1143,13 @@ export function hornsGrade58(qs) { const m = qs.reduce((a, q) => a + (q || 0.3),
  *  The jug's tilt 0…1 (from 0.2 it pours, full at 1); the stream follows the tilt late (tau s) — it goes on a little after the jug is
  *  straightened; the holes take `drain` a second; the water on the yesod over its rim runs off (a spill). The jug holds 1. Grade: no spill
  *  מהודר, one כשר, more טעון תיקון */
-export const POUR58 = Object.freeze({ qmax: 0.6, drain: 0.3, from: 0.2, rim: Object.freeze([null, 0.14, 0.1, 0.08, 0.065]), tau: Object.freeze([null, 0.3, 0.45, 0.6, 0.75]), gap: 0.8 });
+export const POUR58 = Object.freeze({ qmax: 0.6, drain: 0.3, from: 0.2, rim: Object.freeze([null, 0.14, 0.1, 0.08, 0.065]), tau: Object.freeze([null, 0.3, 0.45, 0.6, 0.75]), gap: 0.8, jugs: 3 });   // (jugs: a jugful that ran over is poured again — a fresh jug — up to three; c58 kid W-S2 emptied his one jug in one spilling pour)
 export function createPour58(L = 1) {
-  const lv = clamp(L | 0, 1, 4), P = POUR58, k = { L: lv, tilt: 0, s: 0, pool: 0, poured: 0, spills: 0, done: false, q: null, lastSpill: -9, t: 0 };
+  const lv = clamp(L | 0, 1, 4), P = POUR58, k = { L: lv, tilt: 0, s: 0, pool: 0, poured: 0, spills: 0, done: false, q: null, lastSpill: -9, t: 0, jug: 1, jug0: 0 };
   const flowOf = (tilt) => (tilt < P.from ? 0 : ((tilt - P.from) / (1 - P.from)) * P.qmax);
   /** the tilt at which the stream equals what the holes take — level 1's mark on the jug's arc */
   const safe = () => P.from + (1 - P.from) * (P.drain / P.qmax);
-  /** one step: the jug at tilt, dt s → 'pour' | 'spill' | 'still' | 'done' */
+  /** one step: the jug at tilt, dt s → 'pour' | 'spill' | 'still' | 'refill' (that jugful ran over: a fresh one, up to P.jugs) | 'done' */
   function step(tilt, dt) {
     if (k.done) return 'done'; k.t += dt; k.tilt = clamp(tilt, 0, 1);
     const q = k.poured >= 1 ? 0 : flowOf(k.tilt); k.s += (q - k.s) * Math.min(1, dt / P.tau[lv]); if (k.s < 1e-4 && q === 0) k.s = 0;
@@ -1157,6 +1157,7 @@ export function createPour58(L = 1) {
     k.pool = Math.max(0, k.pool + (s - P.drain) * dt);
     let r = s > 0.002 ? 'pour' : 'still';
     if (k.pool > P.rim[lv]) { k.pool = P.rim[lv]; if (k.t - k.lastSpill > P.gap) { k.spills++; k.lastSpill = k.t; r = 'spill'; } else r = 'spilling'; }
+    if (k.poured >= 1 && k.s < 0.01 && k.pool <= 0.002 && k.spills > k.jug0 && k.jug < P.jugs) { k.jug++; k.jug0 = k.spills; k.poured = 0; k.s = 0; return 'refill'; }
     if (k.poured >= 1 && k.s < 0.01 && k.pool <= 0.002) { k.done = true; k.q = k.spills === 0 ? 1 : k.spills === 1 ? 0.65 : 0.3; return 'done'; }
     return r;
   }

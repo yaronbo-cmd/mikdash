@@ -1417,7 +1417,7 @@ export function createHar42(o = {}) {
     inspect: { begin() { st.job = mkStone55('look', bag55(4, 1), 1, 'inspect'); } },
     field: { begin() { st.job = mkField55(famL('place')); } },
     nail: { begin() { st.job = mkStone55('nail', MODE === 'test' ? mix55(['nick', 'whole']) : ['nick', 'whole', 'nick'], Math.max(2, Lover || 2), 'nail'); } },
-    iron: { begin() { st.job = mkStone55('look', ['whole', 'iron'], famL('inspect'), 'iron'); } },
+    iron: { begin() { st.job = mkStone55('look', ['whole', 'iron'], Lover || 1, 'iron'); } },   // (the twist met at level 1: the heap glows once the glint has shown — the first stone that looks perfect and is pasul)
     last: { begin() { st.job = mkLast55(famL('place')); } },
     stone: { begin() { st.job = mkStone55('look', mix55(['crack', 'whole']), Lover || 2, 'stone'); } },
     mud: { begin() { st.job = mkStone55('look', mix55(['mud', 'mudcrack']), Lover || 2, 'mud'); } },

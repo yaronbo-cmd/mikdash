@@ -210,6 +210,39 @@ async function last55k(K) {
   if (!g || !g.hp) return false; const pool = K.rnd() < 0.6 && g.slots.length ? g.slots : g.rim, t = pool[Math.floor(K.rnd() * pool.length)]; if (!t) return false;
   const id = 7; await K.down(id, g.hp.x + K.between(-12, 12), g.hp.y + K.between(-10, 10)); for (let i = 1; i <= 14; i++) { await K.sleep(K.between(25, 60)); await K.move(id, g.hp.x + ((t.x - g.hp.x) * i) / 14 + K.between(-8, 8), g.hp.y + ((t.y - g.hp.y) * i) / 14 + K.between(-8, 8)); } await K.up(id); K.ev('last-drag'); return true;
 }
+// ── build 56 ── stage 09, a child's way: the LAMP — its handle dragged along some of the arc (one side or both), or the stone swiped, or the
+// stone carried to a heap (the line's lone arrow: 60 %); the MALLET — a tap on the witness or on the new stone (the line's word: 60 %), then
+// the heap by the rings he saw (60 %); the COURSE — a stone from the pallet to roughly its place, then a drag on it along the arrow he sees
+// (60 %), any length; the THREAD — the peg's handle dragged up or down, to the gold he sees (60 %), then a pull on the thread, any way
+async function lamp56k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'stone55' || j.ref.mode !== 'lamp') return null; const R = j.ref, ln = (document.querySelector('.h42-line b') || {}).textContent || ''; return { B: R.box(), Z: R.zones(), lamp: R.lampAt(), arc: [-1.35, -1, -0.5, 0, 0.5, 1, 1.35].map((t) => R.lampTo(t)), says: /⬅/.test(ln) && !/➡/.test(ln) ? 'out' : /➡/.test(ln) && !/⬅/.test(ln) ? 'altar' : null }; }).catch(() => null);
+  if (!g || !g.B || !g.lamp) return false; const r = K.rnd(), B = g.B;
+  if (r < 0.55) { const a = g.arc.filter(Boolean), side = K.rnd(), pts = side < 0.35 ? a.slice(0, 4).reverse() : side < 0.7 ? a.slice(3) : a.slice().reverse().concat(a); const id = 7; await K.down(id, g.lamp.x + K.between(-12, 12), g.lamp.y + K.between(-12, 12)); for (const p of pts) { for (let i = 0; i < 3; i++) { await K.sleep(K.between(30, 90)); await K.move(id, p.x + K.between(-14, 14), p.y + K.between(-14, 14)); } } await K.up(id); K.ev('lamp-drag', `${pts.length}`); return true; }
+  if (r < 0.7) { await K.swipe(B.cx + K.between(-B.w * 0.2, B.w * 0.2), B.cy, (K.rnd() < 0.5 ? -1 : 1) * K.between(B.w * 0.25, B.w * 0.6), K.between(-12, 12), K.between(120, 500)); K.ev('lamp-swipe'); return true; }
+  const z = g.says && K.rnd() < 0.6 ? g.Z[g.says] : K.rnd() < 0.5 ? g.Z.altar : g.Z.out; await K.swipe(B.cx + K.between(-20, 20), B.cy + K.between(-15, 15), z.x + z.w / 2 - B.cx + K.between(-25, 25), z.y + z.h / 2 - B.cy + K.between(-20, 20), K.between(300, 900)); K.ev('lamp-' + (z === g.Z.altar ? 'altar' : 'out')); return true;
+}
+async function tap56k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'stone55' || j.ref.mode !== 'tap') return null; const R = j.ref, ln = (document.querySelector('.h42-line b') || {}).textContent || ''; return { B: R.box(), Z: R.zones(), w: R.witAt(), t: R.taps(), wave: R.lastWave, ln }; }).catch(() => null);
+  if (!g || !g.B) return false; const B = g.B, r = K.rnd();
+  if (!g.t.n || r < 0.25) { const toW = /העדות/.test(g.ln) || !g.t.w ? K.rnd() < 0.6 : K.rnd() < 0.3, p = toW && g.w ? g.w : { x: B.cx, y: B.cy }; await K.tap(p.x + K.between(-14, 14), p.y + K.between(-12, 12)); K.ev(toW ? 'tap-witness' : 'tap-new'); return true; }
+  const seen = g.wave === 'short' ? 'out' : g.wave === 'long' ? 'altar' : null, z = seen && K.rnd() < 0.6 ? g.Z[seen] : K.rnd() < 0.5 ? g.Z.altar : g.Z.out;
+  await K.swipe(B.cx + K.between(-20, 20), B.cy + K.between(-15, 15), z.x + z.w / 2 - B.cx + K.between(-25, 25), z.y + z.h / 2 - B.cy + K.between(-20, 20), K.between(300, 900)); K.ev('tap-' + (z === g.Z.altar ? 'altar' : 'out')); return true;
+}
+async function course56k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'course56') return null; const R = j.ref, s0 = j.s, ar = [...document.querySelectorAll('.h42 svg text')].find((q) => /^[⬅➡]$/.test(q.textContent.trim())); return { cur: s0.cur, pal: R.palAt(), slot: R.slotAt(), at: R.curAt(), arrow: ar ? ar.textContent.trim() : null }; }).catch(() => null);
+  if (!g) return false; const [W, Hh] = K.size(), id = 7;
+  if (g.cur < 0) { if (!g.pal) return false; const t = g.slot && K.rnd() < 0.7 ? { x: g.slot.x + K.between(-35, 35), y: g.slot.y + K.between(-25, 25) } : { x: K.between(W * 0.2, W * 0.8), y: K.between(Hh * 0.2, Hh * 0.7) }; await K.down(id, g.pal.x + K.between(-15, 15), g.pal.y + K.between(-12, 12)); for (let i = 1; i <= 12; i++) { await K.sleep(K.between(25, 60)); await K.move(id, g.pal.x + ((t.x - g.pal.x) * i) / 12 + K.between(-6, 6), g.pal.y + ((t.y - g.pal.y) * i) / 12 + K.between(-6, 6)); } await K.up(id); K.ev('course-drag'); return true; }
+  if (!g.at) return false; const dir = g.arrow && K.rnd() < 0.6 ? (g.arrow === '⬅' ? -1 : 1) : K.rnd() < 0.5 ? -1 : 1, len = K.between(25, 170);
+  await K.swipe(g.at.x + K.between(-20, 20), g.at.y + K.between(-12, 12), dir * len, K.between(-15, 15), K.between(200, 900)); K.ev('course-push', `${dir < 0 ? 'L' : 'R'} ${Math.round(len)}`); return true;
+}
+async function thread56k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'thread56') return null; const R = j.ref, s0 = j.s, P = R.pegsAt(), band = [...document.querySelectorAll('.h42 svg rect')].find((q) => /255,214,110,.28/.test(q.getAttribute('fill') || '')), sh = [...document.querySelectorAll('.h42 svg circle')].find((q) => q.getAttribute('stroke-dasharray') === '5 4'); return { step: s0.step, l: P.l, r: P.r, band: band ? { y: +band.getAttribute('y') + +band.getAttribute('height') / 2 } : null, sh: sh ? { y: +sh.getAttribute('cy') } : null }; }).catch(() => null);
+  if (!g || !g.l || !g.r) return false; const [, Hh] = K.size(), id = 7;
+  if (g.step === 1 || g.step === 2) { const p = g.step === 1 ? g.l : g.r, aim = g.step === 1 ? g.band : g.sh, ty = aim && K.rnd() < 0.6 ? aim.y + K.between(-10, 10) : K.between(Hh * 0.15, Hh * 0.75), n = Math.round(K.between(6, 14));
+    await K.down(id, p.x + K.between(-14, 14), p.y + K.between(-12, 12)); for (let i = 1; i <= n; i++) { await K.sleep(K.between(25, 70)); await K.move(id, p.x + K.between(-6, 6), p.y + ((ty - p.y) * i) / n); } await K.up(id); K.ev('peg-' + (g.step === 1 ? 'l' : 'r')); return true; }
+  const mx = (g.l.x + g.r.x) / 2 + K.between(-60, 60), my = (g.l.y + g.r.y) / 2 + K.between(-10, 10), a = K.rnd() * Math.PI * 2, len = K.between(15, 120);
+  await K.swipe(mx, my, Math.cos(a) * len, Math.sin(a) * len, K.between(150, 700)); K.ev('thread-pull', `${Math.round(len)}`); return true;
+}
 async function wood48k(K) {
   const g = await K.pg.evaluate(() => { const r = [...document.querySelectorAll('.h42 svg rect')].find((q) => +q.getAttribute('rx') > 25 && +q.getAttribute('width') > 150); const z = [...document.querySelectorAll('.h42 svg rect[data-z]')].map((q) => ({ k: q.getAttribute('data-z'), x: +q.getAttribute('x') + +q.getAttribute('width') / 2, y: +q.getAttribute('y') + +q.getAttribute('height') / 2 })); return r ? { x: +r.getAttribute('x'), y: +r.getAttribute('y'), w: +r.getAttribute('width'), h: +r.getAttribute('height'), z } : null; }).catch(() => null);
   if (!g) return false; const cx = g.x + g.w / 2, cy = g.y + g.h / 2, r = K.rnd();
@@ -285,6 +318,7 @@ async function mount42(K) {
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
+      if (h && !h.on && h.stg === 'sovev' && h.part === 'done') { K.R.sovev56 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('sovev done'); break; }   /* ── build 56 ── stage 09's end */
       if (h && !h.on && h.stg === 'yesod' && h.part === 'done') { K.R.yesod55 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('yesod done'); break; }   // ── build 55 ── stage 08's end
       if (h && !h.on && h.mode === 'test' && h.test50 && h.test && h.test.passed) { K.R.test50 = h.test; K.note('test50 passed'); if (/h50test=1/.test(K.query || '')) break; K.R.offT = 0; await K.sleep(3000); continue; }   // (build 55: from chapter ג׳'s test on into stage 08 when the run began at the stage)   // ── build 50 ── chapter ג׳'s test
       if (h && !h.on && h.stg === 'nikanor' && h.part === 'done') { K.R.nikanor49 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('nikanor done'); break; }   // ── build 49 ── stage 06's end
@@ -322,6 +356,11 @@ async function mount42(K) {
       else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
       else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
       else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      else if (/הזיזו את האור|סדק באור הצד|שלמה גם באור צד/.test(L) && r < 0.88) { if (!(await lamp56k(K))) await K.tryLine(s); }   /* ── build 56 ── */
+      else if (/הקישו 👆|הקישו קודם על העדות|הקישו על החדשה|השוו ∙ כשר/.test(L) && r < 0.88) { if (!(await tap56k(K))) await K.tryLine(s); }
+      else if (/גררו ⤵ ∙ יישרו|בולטת — דחפו|שקועה — משכו|ישרה לאנך/.test(L) && r < 0.88) { if (!(await course56k(K))) await K.tryLine(s); }
+      else if (/גררו את היתד|ימין — לאותו גובה|מתחו ↔ ושחררו/.test(L) && r < 0.88) { if (!(await thread56k(K))) await K.tryLine(s); }
+      else if (/שוטפים ושוב/.test(L)) { await K.sleep(K.between(600, 2000)); K.ev('thread-wash-wait'); }
       else if (/סובבו ↔ ∙ כשר|נגבו את הבוץ|סובבו מול האור|העבירו אצבע לאט|לאט — כדי להרגיש|נתפסה! פסול|השפה חלקה|האבן שלמה. אבל|למזבח · |לא למזבח · /.test(L) && h.part !== 'wood' && r < 0.88) { if (!(await stone55k(K))) await K.tryLine(s); }   // ── build 55 ──
       else if (/גררו לרווח|לא נכנסת|לא זו — אבן|נשאר רווח|כאן אין רווח/.test(L) && r < 0.88) { if (!(await field55k(K))) await K.tryLine(s); }
       else if (/רק על היסוד|כאן אין יסוד/.test(L) && r < 0.88) { if (!(await last55k(K))) await K.tryLine(s); }

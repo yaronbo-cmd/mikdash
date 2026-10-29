@@ -69,14 +69,18 @@ test('build 55: the fingernail — slow along the edge it catches at the nick; t
 });
 
 test('build 55: the field stones — no snapping: tight, a sliver (a fill stone closes it), or not in; the grade by the fills', () => {
-  const f = F.createField55(3, seq(0.1, 0.7, 0.3, 0.5, 0.9, 0.2), 1), k = f.state();
+  const f = F.createField55(3, seq(0.1, 0.7, 0.3, 0.5, 0.9, 0.2), 2), k = f.state();
   assert.equal(k.gaps.length, 3); assert.ok(k.gaps.every((G) => G.rot >= 1 && G.rot <= 3), 'every gap wants a turn'); assert.deepEqual(k.stones.map((s) => s.shape).sort(), k.gaps.map((G) => G.shape).sort());
   const g0 = k.gaps[0], i0 = k.stones.findIndex((s) => s.shape === g0.shape);
   assert.equal(f.drop(i0, 0, 0.1), 'nofit', 'unturned: not in'); while (k.stones[i0].rot !== g0.rot) f.rotate(i0);
-  assert.equal(f.drop(i0, 0, F.FIELD55.tight[1] + 0.1), 'gap', 'a little off: a sliver open'); assert.equal(f.fill(0), 'filled'); assert.equal(f.fill(0), 'extra', 'no sliver there');
+  assert.equal(f.drop(i0, 0, F.FIELD55.tight[2] + 0.1), 'gap', 'a little off: a sliver open'); assert.equal(f.fill(0), 'filled'); assert.equal(f.fill(0), 'extra', 'no sliver there');
   for (const g of [1, 2]) { const G = k.gaps[g], i = k.stones.findIndex((s) => s.shape === G.shape); while (k.stones[i].rot !== G.rot) f.rotate(i); assert.equal(f.drop(i, g, 0.05), 'tight'); }
   assert.equal(k.done, true); assert.equal(k.q, 0.65, 'two fills: כשר');
   assert.equal(F.SHAPES55.length, 4);
+  // (level 1 forgives the turn: the right stone unturned settles turned, with a sliver for a fill stone)
+  const f1 = F.createField55(3, seq(0.1, 0.7, 0.3, 0.5, 0.9, 0.2), 1), k1 = f1.state(), G1 = k1.gaps[0], j1 = k1.stones.findIndex((s) => s.shape === G1.shape);
+  assert.equal(f1.drop(j1, 0, 0.05), 'gap'); assert.equal(k1.stones[j1].rot, G1.rot); assert.equal(k1.gaps[0].sliver, true);
+  const wrong = k1.stones.findIndex((s) => s.shape !== k1.gaps[1].shape && s.gap < 0); assert.equal(f1.drop(wrong, 1, 0.05), 'nofit', 'the wrong stone never');
 });
 
 test('build 55: the last row — only along the north and the west, and one amah into the south and the east (מדות ג, א); "כאן אין יסוד", no penalty', () => {

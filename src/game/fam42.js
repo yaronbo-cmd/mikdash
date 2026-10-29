@@ -898,8 +898,10 @@ export function createField55(n = 3, rnd = Math.random, L = 1) {
   /** stone i let go at distance `off` (amot) from gap g's middle → 'nofit' | 'tight' | 'gap' | 'busy' | 'no' */
   function drop(i, g, off) {
     const s = k.stones[i], G = k.gaps[g]; if (!s || !G || s.gap >= 0 || k.done) return 'no'; if (G.stone >= 0) return 'busy';
-    if (s.shape !== G.shape || s.rot !== G.rot || !(off <= FIELD55.loose)) { k.misses++; return 'nofit'; }
-    s.gap = g; G.stone = i; G.sliver = off > FIELD55.tight[lv]; end(); return G.sliver ? 'gap' : 'tight';
+    const turned = s.rot !== G.rot && lv <= 1;   // (level 1 forgives the turn — §1 rule 7: the stone settles turned, a sliver left for a fill stone)
+    if (s.shape !== G.shape || (s.rot !== G.rot && !turned) || !(off <= FIELD55.loose)) { k.misses++; return 'nofit'; }
+    if (turned) s.rot = G.rot;
+    s.gap = g; G.stone = i; G.sliver = turned || off > FIELD55.tight[lv]; end(); return G.sliver ? 'gap' : 'tight';
   }
   /** a fill stone into gap g → 'filled' | 'extra' (no sliver there: an unneeded fill) | 'no' */
   function fill(g) { const G = k.gaps[g]; if (!G || k.done) return 'no'; if (G.stone < 0) return 'no'; if (G.sliver) { G.sliver = false; k.fills++; end(); return 'filled'; } k.extra++; return 'extra'; }

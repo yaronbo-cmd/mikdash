@@ -1201,7 +1201,7 @@ export function createHar42(o = {}) {
           const back = () => { m.position.set(home[d0.i].x, top, home[d0.i].z); };
           if (!best || best.d > 2.2) { back(); return; }
           const S2 = s0.stones[d0.i], G = s0.gaps[best.g], r = J.drop(d0.i, best.g, best.d); try55('field', r === 'tight' || r === 'gap');
-          if (r === 'tight' || r === 'gap') { m.position.y = top - 0.3; buzz42('settle'); o.sound && o.sound('stone'); if (shadow[best.g]) shadow[best.g].visible = false; if (r === 'tight') recess[best.g].visible = false; else say(LINE42.fieldGap55); o.emit && o.emit('h55field', { r }); }
+          if (r === 'tight' || r === 'gap') { m.rotation.y = -S2.rot * Math.PI / 2; m.position.y = top - 0.3; buzz42('settle'); o.sound && o.sound('stone'); if (shadow[best.g]) shadow[best.g].visible = false; if (r === 'tight') recess[best.g].visible = false; else say(LINE42.fieldGap55); o.emit && o.emit('h55field', { r }); }
           else { back(); buzz42('retry'); say(S2.shape === G.shape ? LINE42.fieldTurn55 : LINE42.fieldOther55); }
           return;
         }

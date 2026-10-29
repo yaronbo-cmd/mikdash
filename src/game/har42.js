@@ -2137,7 +2137,7 @@ export function createHar42(o = {}) {
     const st59 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 10), HOT59()); st59.visible = false; add(st59, 0, 0, 0); st.props.stream59 = st59;
     laverSite59(add);
     // the opening's gold plan: the laver's round where it will stand
-    const pl = new THREE.Mesh(new THREE.TorusGeometry(2.42, 0.14, 8, 40), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.9 })); pl.rotation.x = Math.PI / 2; pl.scale.setScalar(0.001); st.props.plan59 = add(pl, KIYOR59.x, 19.35, KIYOR59.z);
+    const pl = new THREE.Mesh(new THREE.TorusGeometry(2.42, 0.26, 8, 40), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.9 })); pl.rotation.x = Math.PI / 2; pl.scale.setScalar(0.001); st.props.plan59 = add(pl, KIYOR59.x, 19.35, KIYOR59.z);
     try { const rr = globalThis.__T && globalThis.__T.renderer; if (rr && rr.shadowMap) rr.shadowMap.needsUpdate = true; } catch (e) { /* */ }   // (the hall's walls and roof cast the sun's shadow inside it)
   }
   /** the laver at its place (its pad, the pit's curb and water, the bowl on its stand with the twelve sockets and spigots, the mukhni's posts,
@@ -2352,8 +2352,8 @@ export function createHar42(o = {}) {
           return u >= 1;
         }
         if (STG === 'kiyor') {   // ── build 59 ── from over the court: the laver's gold round, between the Ulam and the altar, drawn to the south (מדות ג, ו)
-          const c = { x: KIYOR59.x, z: KIYOR59.z }, orbit = Math.min(1, u / 0.78), a = 0.5 + orbit * 0.6, Rr = 150 - 80 * orbit;   // (from the south-east: from the north-east the altar hid it — c59A)
-          let p = [c.x + Math.cos(a) * Rr, 19 + 95 - 50 * orbit, c.z + Math.sin(a) * Rr], t = [c.x, 21, c.z];
+          const c = { x: KIYOR59.x, z: KIYOR59.z }, orbit = Math.min(1, u / 0.78), a = 0.5 + orbit * 0.6, Rr = 70 - 48 * orbit;   // (from the south-east: from the north-east the altar hid it — c59A; nearer: at 150 its gold round was a speck — c59C)
+          let p = [c.x + Math.cos(a) * Rr, 19 + 45 - 31 * orbit, c.z + Math.sin(a) * Rr], t = [c.x, 20, c.z];
           if (u > 0.78) { const k = (u - 0.78) / 0.22, e = k * k * (3 - 2 * k), fv = followView(hero()); p = p.map((v, i) => v + (fv.p[i] - v) * e); t = t.map((v, i) => v + (fv.t[i] - v) * e); }
           camTo(p, t, 1);
           if (st.props.plan59) st.props.plan59.scale.setScalar(Math.max(0.001, Math.min(1, (u - 0.1) / 0.3)));

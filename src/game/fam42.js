@@ -1091,7 +1091,7 @@ export function createKevesh57(L = 1, n = KEVESH57.his) {
 /** THE WHITEWASH (מדות ג, ד: "וּמְלַבְּנִין אוֹתָן פַּעֲמַיִם בַּשָּׁנָה"; with a cloth — "לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל"): the finger
  *  spreads it over a grid on the face; its speed in face-widths a second — slower than vmin drips (each a drop that runs down), faster than
  *  vmax streaks (half covered: a second pass at a good pace covers it). Done at `need` covered. Grade: drips and streaks ≤ hi מהודר, ≤ ok כשר */
-export const SID57 = Object.freeze({ cols: 20, rows: 10, vmin: Object.freeze([null, 0.2, 0.28, 0.34, 0.4]), vmax: Object.freeze([null, 3.4, 2.8, 2.3, 1.9]), need: Object.freeze([null, 0.8, 0.86, 0.9, 0.92]), hi: 2, ok: 6, gap: 0.35 });
+export const SID57 = Object.freeze({ cols: 20, rows: 10, vmin: Object.freeze([null, 0.1, 0.15, 0.2, 0.26]), vmax: Object.freeze([null, 4, 3.2, 2.6, 2.1]), need: Object.freeze([null, 0.8, 0.86, 0.9, 0.92]), hi: 2, ok: 6, gap: 0.6 });   // (level 1 — §1 rule 7, forgiving: from a stroke across the whole face in 10 s to one in a quarter second; the naive kid's 1.7-s strokes over 40 % of the face read slow at 0.2 — K57-P-S2, W-S1)
 export function createSid57(L = 1) {
   const lv = clamp(L | 0, 1, 4), C = SID57, cells = new Array(C.cols * C.rows).fill(0), k = { L: lv, drips: 0, streaks: 0, done: false, q: null, lastDrip: -9, lastStreak: -9 };
   const cover = () => cells.reduce((a, c) => a + Math.min(1, c), 0) / cells.length;

@@ -67,7 +67,7 @@ export const SRC57 = Object.freeze([
 /** ── build 57 ── the kevesh in the world (temple.js: x −46…−30, from the altar's south face z 10.5 at its top, 25, down to the court's floor, 16, at z 42.5) */
 export const KEV57 = Object.freeze({ x0: -46, x1: -30, zTop: 10.5, zFoot: 42.5, y0: 16, y1: 25 });
 /** ── build 57 ── the whitewash's face: a patch of the altar's east face (x −23) in the morning light, its width's share of the frame */
-export const SID57V = Object.freeze({ x: -22.96, z0: -5, z1: 1, y0: 16.6, y1: 20.6, share: 0.7 });   // (under the red line — it stays red over the white)
+export const SID57V = Object.freeze({ x: -22.96, z0: -14, z1: -8, y0: 16.6, y1: 20.6, share: 0.7 });   // (under the red line — it stays red over the white; north of the old flow's work spot at z −4 — with the patch at −5…1 its camera stood on that spot, and a dark post and a grey block filled the frame's lower right: c57A–D)
 /** ── build 57 ── (§1 rule 12) the end card on the right two-thirds: him seen in the left third — the turn of the view (its share of the half-width) */
 export const CARD57 = Object.freeze({ at: 0.62 });
 export const PARTS50 = Object.freeze(['open', 'compass', 'benches', 'hub', 'wheel', 'dome', 'reveal']);   // ── build 50 ── stage 07, הלשכות: "קשתות ועיגולים" (v2 §10 "07")   // ── build 49 ── stage 06, שער ניקנור וט״ו המעלות (v2 §10 "06", §11)

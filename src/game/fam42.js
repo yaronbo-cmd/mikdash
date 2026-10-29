@@ -844,7 +844,7 @@ export const BAG55 = Object.freeze({ 1: Object.freeze(['crack', 'mud', 'whole'])
  *  swipe ↔ turns it; rubbing WIPES the face in view (the mud goes); a drag to a heap DECIDES — kasher ➡ "למזבח", pasul ⬅ "לא למזבח" */
 export function createStone55(type, rnd = Math.random, L = 1) {
   const T = STONE55[type] || STONE55.whole, lv = clamp(L | 0, 1, 4);
-  const f0 = lv <= 1 ? (rnd() < 0.5 ? 0 : 1) : 1 + Math.floor(rnd() * 3);   // (level 1: the crack on the face in view or the next one)
+  const f0 = lv <= 1 ? (type === 'iron' ? 0 : rnd() < 0.5 ? 0 : 1) : 1 + Math.floor(rnd() * 3);   // (level 1: the crack on the face in view or the next one; the iron's face in view — its glint still only at its angle)
   const k = { type, bad: !!T.bad, face: 0, L: lv, at: { face: T.edge ? -1 : f0, u: 0.25 + rnd() * 0.5, v: 0.3 + rnd() * 0.4, len: 0.45 + rnd() * 0.3, seed: Math.floor(rnd() * 1e6) },
     mud: -1, wiped: 0, turns: 0, decided: null, right: null };
   if (T.wipe) k.mud = k.at.face;

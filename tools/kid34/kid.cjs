@@ -195,6 +195,9 @@ async function tryLine(s) {
     try { if (!sessionStorage.getItem('kid34')) { sessionStorage.setItem('kid34', '1'); localStorage.clear(); for (const [k, v] of Object.entries(saved)) localStorage.setItem(k, v); } } catch (e) { /* */ }
   }, { saved: SAVED, seed: SEED });
   await ctx.addInitScript({ path: path.join(__dirname, 'kidpage.js') });
+  // ── build 57 ── --no-r56: the tester's "🐞 דווח" button (src/report56.js, 56ג) out of the kid's reach — a stage's §1 check measures the stage;
+  // with it the naive kid opened the report panel over the stage and its page went on to a navigation (K57-P-S3) ── /build 57 ──
+  if (flag('--no-r56')) await ctx.addInitScript(() => { const put = () => { try { const st = document.createElement('style'); st.textContent = '.r56b,.r56v{display:none!important}'; (document.head || document.documentElement).appendChild(st); } catch (e) { /* */ } }; if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', put); else put(); });
   pg = await ctx.newPage();
   pg.on('console', (m) => { if (m.type() === 'error') R.errors.push([el(), 'console', m.text().slice(0, 300)]); });
   pg.on('pageerror', (e) => { R.errors.push([el(), 'PAGEERR', String(e.message).slice(0, 300)]); log('PAGEERR', e.message.slice(0, 200)); });

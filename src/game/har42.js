@@ -1680,7 +1680,7 @@ export function createHar42(o = {}) {
         const row = k.rows[k.rows.length - 1]; d.m.position.set(XM57, yOf(row.h), zRow57(row.i)); laid.push(d.m); buzz42(r === 'even' ? 'settle' : 'tick'); o.sound && o.sound('stone');
         const p = st.props.pal57; if (p) p.children.forEach((c2, q) => { if (q > 0) c2.visible = q <= Math.min(4, k.n - k.rows.length); });
         said = r === 'even' ? LINE42.keveshEven57 : LINE42.keveshOff57; msgT = 1.6; lastCue = ''; cue(said);
-        if (k.done) { const dr = J.drift(); R.kev57 = Math.round(dr * 600) / 100; said = Math.abs(dr) <= 0.05 ? LINE42.keveshTop57 : `${dr > 0 ? 'גבוה' : 'נמוך'} מראש המזבח — ${Math.max(1, Math.round(Math.abs(dr) * 6))} ${Math.round(Math.abs(dr) * 6) > 1 ? 'טפחים' : 'טפח'} · הטעויות הקטנות הצטברו · המחשה`; lastCue = ''; cue(said); msgT = 99; endT = 2.6; grade('kevesh', k.q, proj(XM57, 25.5, 14)); }
+        if (k.done) { const dr = J.drift(); R.kev57 = Math.round(dr * 600) / 100; said = Math.abs(dr) <= 0.05 ? LINE42.keveshTop57 : `${dr > 0 ? 'גבוה' : 'נמוך'} מראש המזבח — ${Math.round(Math.abs(dr) * 6) > 1 ? Math.round(Math.abs(dr) * 6) + ' טפחים' : 'טפח אחד'} · הטעויות הקטנות הצטברו · המחשה`; lastCue = ''; cue(said); msgT = 99; endT = 2.6; grade('kevesh', k.q, proj(XM57, 25.5, 14)); }
       },
       frame(dt) {
         objPlace(endT < 0, [{ x: XM57, y: 21, z: 26.5, r: 4 }], 'h57kevesh', [{ x: KEV57.x0, y: KEV57.y0, z: KEV57.zTop, r: 0.3 }, { x: KEV57.x1, y: KEV57.y1, z: KEV57.zFoot, r: 0.3 }]);

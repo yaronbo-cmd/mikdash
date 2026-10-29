@@ -2011,7 +2011,7 @@ export function createHar42(o = {}) {
         const n = J.next(); if (!n) { back(''); return; }
         const sl = slot58(k.laid.length), g = ground55(a.x, a.y, sl.y);
         if (!g || (!inZ(Z.altar, a.x, a.y) && Math.hypot(g.x - PYRE58P.x, g.z - PYRE58P.z) > 2.6)) { back(lineNext()); return; }
-        const e0 = (sl.spread === 'z' ? g.z - sl.z : g.x - sl.x) * sl.side, d0 = sl.along === 'x' ? g.x - sl.x : g.z - sl.z, e = L <= 1 ? Math.max(-Y.max, Math.min(Y.max, e0)) : e0, dd = L <= 1 ? 0 : d0, r = J.toPyre(gl.i, e, dd); try55('fire', r === 'laid');   // (level 1: let go over the pyre's zone, it is laid — its place along its pair's spread still sets the air)
+        const e0 = (sl.spread === 'z' ? g.z - sl.z : g.x - sl.x) * sl.side, dA = sl.along === 'x' ? g.x - sl.x : g.z - sl.z, e = L <= 1 ? Math.max(-Y.max, Math.min(Y.max, e0)) : e0, dd = L <= 1 ? 0 : dA, r = J.toPyre(gl.i, e, dd); try55('fire', r === 'laid');   // (level 1: let go over the pyre's zone, it is laid — its place along its pair's spread still sets the air)
         if (r === 'unfit') { back(LINE42.pyreUnfit58, F.WOOD58[gl.kind].he); buzz42('retry'); return; }
         if (r === 'size' || r === 'far') { back(lineNext(), r === 'size' ? 'לא בעובי הזה' : 'קרוב יותר'); buzz42('tick'); return; }
         const ld = k.laid[k.laid.length - 1], ex = ld.e * sl.side; m.rotation.set(0, sl.along === 'x' ? Math.PI / 2 : 0, 0); m.position.set(sl.x + (sl.spread === 'x' ? ex : 0), sl.y, sl.z + (sl.spread === 'z' ? ex : 0)); buzz42('settle'); o.sound && o.sound('wood');

@@ -573,7 +573,7 @@ export function createHar42(o = {}) {
   }
   if (STG === 'kiyor') {   // ── build 59 ── stage 12's stands: in the foundry, behind each view's camera; east of the laver, behind the macro's and the night's
     const A = (x, z) => ({ x, z, get y() { return gy(this.x, this.z); } }), F0 = FOUND59;
-    Object.assign(STAND, { cast: A(F0.x + 5, F0.z + 9), spigots: A(F0.x - 8, F0.z + 9), screw: A(-54.5, 20), mukhni: A(-51, 8.5) });
+    Object.assign(STAND, { cast: A(F0.x + 5, F0.z + 9), spigots: A(F0.x - 8, F0.z + 9), screw: A(-54.5, 20), mukhni: A(-48, 27) });
   }
   if (STG === 'soreg') {
     Object.assign(PL, { soreg: { x: base.x, y: 0, z: -91.5 }, warnA: { x: base.x + 9, y: 0, z: -93.2 }, bow0: { x: base.x + 10, y: 0, z: -91.3 } });
@@ -774,7 +774,7 @@ export function createHar42(o = {}) {
     const R = 140, c0 = { x: base.x - 40, z: base.z - 50 }, gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.85 }), C4 = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
     st.props.plan = C4.map((a, i) => { const b = C4[(i + 1) % 4], x0 = c0.x + a[0] * R, z0 = c0.z + a[1] * R, x1 = c0.x + b[0] * R, z1 = c0.z + b[1] * R, L = Math.hypot(x1 - x0, z1 - z0); const m = new THREE.Mesh(new THREE.BoxGeometry(L, 0.6, 2.4), gm); m.geometry.translate(L / 2, 0, 0); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); m.scale.x = 0.001; return add(m, x0, gy(x0, z0) + 2, z0); });
     }
-    if (STG === 'guf' || STG === 'karnot' || STG === 'kiyor') life55(add);   // ── build 57 ── (build 58: and stage 11) (the court alive round the altar: build 55's crews and carts — its call above sits inside stage 01's block, so stages 08–09 never had them)
+    if (STG === 'guf' || STG === 'karnot') life55(add);   // (build 59: not stage 12 — one of its crews stands where the laver goes: c59A)   // ── build 57 ── (build 58: and stage 11) (the court alive round the altar: build 55's crews and carts — its call above sits inside stage 01's block, so stages 08–09 never had them)
   }
   /** ── build 45 ── stage 02's props: the pulley's rig (a gin pole of two legs, the sheave, the rope) and its stone; the court wall's gold
    *  plan, 187 × 135 amot (מדות ה, א) round the court, rising from the ground in the opening; the morning's puddles after a night's rain */
@@ -2172,7 +2172,7 @@ export function createHar42(o = {}) {
     st.props.cwRope59 = sadd(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1, 6), ROPE), K.x, 25, 25.0);
     // three torches: a pole, a bowl, flames that flicker (additive), a halo — the night's light at the pit
     const FL = new THREE.MeshBasicMaterial({ color: '#FFB050', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }), HA = new THREE.MeshBasicMaterial({ color: '#FF9A3A', transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false });
-    st.props.torch59 = [[-59.9, 15.4], [-59.9, 24.6], [-67.2, 20]].map(([x, z]) => { const t = new THREE.Group(); sadd(t, x, fy, z); const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 3.4, 6), oak); pole.position.y = 1.7; t.add(pole); const bw = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.14, 0.24, 10), mat('#3A3530', 0.6)); bw.position.y = 3.45; t.add(bw); const fl = [0, 1, 2].map((q) => { const f = new THREE.Mesh(new THREE.ConeGeometry(0.16 - q * 0.03, 0.75 - q * 0.12, 8), FL); f.position.set(Math.cos(q * 2.1) * 0.06, 3.85, Math.sin(q * 2.1) * 0.06); t.add(f); return f; }); const h = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 8), HA); h.position.y = 3.9; t.add(h); t.userData.fl = fl; t.visible = false; return t; });
+    st.props.torch59 = [[-66.9, 15.8], [-66.9, 24.2], [-60.2, 25.6]].map(([x, z]) => { const t = new THREE.Group(); sadd(t, x, fy, z); const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 3.4, 6), oak); pole.position.y = 1.7; t.add(pole); const bw = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.14, 0.24, 10), mat('#3A3530', 0.6)); bw.position.y = 3.45; t.add(bw); const fl = [0, 1, 2].map((q) => { const f = new THREE.Mesh(new THREE.ConeGeometry(0.16 - q * 0.03, 0.75 - q * 0.12, 8), FL); f.position.set(Math.cos(q * 2.1) * 0.06, 3.85, Math.sin(q * 2.1) * 0.06); t.add(f); return f; }); const h = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 8), HA); h.position.y = 3.9; t.add(h); t.userData.fl = fl; t.visible = false; return t; });
     // the splash and the ripples (the landing)
     const RP = new THREE.MeshBasicMaterial({ color: '#BFE0FF', transparent: true, opacity: 0, depthWrite: false }); st.props.rip59 = sadd(new THREE.Mesh(new THREE.RingGeometry(0.9, 1.05, 32), RP), K.x, fy + 0.07, K.z); st.props.rip59.rotation.x = -Math.PI / 2;
   }
@@ -2195,15 +2195,15 @@ export function createHar42(o = {}) {
     const begin = () => { J = F.createCast59(L, caps[i]); M = cupOf(i); M.set(0, false); said = twelve ? (i === 0 ? LINE42.spigots59 : LINE42.spigotNext59) : LINE42.cast59; line(said, twelve ? `תבנית ${i + 1} / 12 · רמה ${L}` : `רמה ${L}`); };
     begin(); ringOn59(false); if (st.ui.pad) st.ui.pad.classList.add('full'); try { if (o.timeOfDay) o.timeOfDay('dusk'); } catch (e) { /* */ }
     if (twelve && st.props.tbl59) st.props.tbl59.rotation.y = 0;
-    const pivot = () => proj(fur.position.x, fur.position.y, fur.position.z), arcR = () => Math.max(64, H() * 0.3);
+    const pivot = () => proj(fur.position.x, fur.position.y, fur.position.z), arcR = () => Math.max(56, H() * 0.26);
     const arcAt = (t) => { const p = pivot(); if (!p) return null; const a = -Math.PI / 2 + t * (Math.PI * 0.55); return { x: p.x + Math.cos(a) * arcR(), y: p.y + Math.sin(a) * arcR() }; };   // (from straight up, round to the right and down — the spout's way)
     const tOf = (x, y) => { const p = pivot(); if (!p) return 0; let a = Math.atan2(y - p.y, x - p.x) + Math.PI / 2; a = Math.atan2(Math.sin(a), Math.cos(a)); return Math.max(0, Math.min(1, a / (Math.PI * 0.55))); };
     const cupWorld = () => { const v = new THREE.Vector3(0, 0, 0); if (twelve) { M.g.getWorldPosition(v); return v; } return new THREE.Vector3(P.M1.x, 0, P.M1.z); };
     const job = {
       acting: true, fullPad: true, kind: twelve ? 'spigots59' : 'cast59', get J() { return J; }, i: () => i, ownView: () => true, snapView: () => true, arcAt, tilt: () => tilt, safe: () => J.safe(), fill: () => (J ? J.state().f : 0), win: () => (J ? J.win : 0),
       view() {
-        const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1), t2 = tv * (W() / H()), dir = [0.3, 0.64, 0.71], nl = Math.hypot(...dir);
-        const T0 = twelve ? [P.T.x - 1.45, P.y0 + 1.45, P.T.z] : [P.M1.x - 1.0, P.y0 + 1.9, P.M1.z], D = (twelve ? 3.9 : 8.6) / (2 * t2);
+        const cam = camera(), tv = Math.tan((((cam && cam.fov) || 50) * Math.PI) / 360) / ((cam && cam.zoom) || 1), t2 = tv * (W() / H()), dir = [0.33, 0.5, 0.8], nl = Math.hypot(...dir);
+        const T0 = twelve ? [P.T.x - 1.7, P.y0 + 2.2, P.T.z] : [P.M1.x - 1.2, P.y0 + 2.75, P.M1.z], D = (twelve ? 5.8 : 11.5) / (2 * t2);   // (the furnace whole and its arc over it in the frame — at 8.6 its arc's top was off the screen: c59A)
         return { p: T0.map((v, k) => v + (dir[k] / nl) * D), t: T0 };
       },   // (from the south-east and above, into the mould: the furnace's mouth on the left, the mould's cavity and its line; he behind the camera)
       down(a) { if (endT >= 0 || J.state().done || turnT > 0) return; const h = arcAt(tilt); if (h && Math.hypot(h.x - a.x, h.y - a.y) < Math.max(48, W() * 0.08)) { drag = true; tryOn = true; } },
@@ -2254,7 +2254,7 @@ export function createHar42(o = {}) {
     const dialR = () => Math.max(60, Math.min(120, H() * 0.3));
     const job = {
       acting: true, fullPad: true, kind: 'screw59', get J() { return J; }, n: () => n, ownView: () => true, snapView: () => (snapN > 0 ? (snapN--, true) : false), head, dialR,
-      view() { const s = S0(), D = 2.25, c = Math.cos(0.62), sn = Math.sin(0.62), P0 = s.w; return { p: [P0.x + s.n.x * D * c + s.t.x * D * sn, P0.y + 0.75, P0.z + s.n.z * D * c + s.t.z * D * sn], t: [P0.x + s.u.x * 0.42, P0.y + s.u.y * 0.42 - 0.05, P0.z + s.u.z * 0.42] }; },   // (beside the spigot, a little above: its length, its handle and the wall's socket in one frame)
+      view() { const s = S0(), D = 2.3, c = Math.cos(0.36), sn = Math.sin(0.36), P0 = s.w; return { p: [P0.x + s.n.x * D * c + s.t.x * D * sn, P0.y + 0.6, P0.z + s.n.z * D * c + s.t.z * D * sn], t: [P0.x + s.u.x * 0.38, P0.y + s.u.y * 0.38 - 0.05, P0.z + s.u.z * 0.38] }; },   // (before the spigot, a little aside and above: the laver's wall behind it fills the frame, its handle turning toward us)
       down(a) { if (endT >= 0 || !J || J.state().set) return; const h = head(); if (!h || Math.hypot(h.x - a.x, h.y - a.y) > dialR() + 60) return; last = Math.atan2(a.y - h.y, a.x - h.x); },
       move(a) {
         if (last == null || endT >= 0) return; const h = head(); if (!h) return; const an = Math.atan2(a.y - h.y, a.x - h.x); let da = an - last; da = Math.atan2(Math.sin(da), Math.cos(da)); last = an;
@@ -2293,7 +2293,7 @@ export function createHar42(o = {}) {
     line(said, `רמה ${L}`); ringOn59(false); if (st.ui.pad) st.ui.pad.classList.add('full'); try { if (o.timeOfDay) o.timeOfDay('night'); } catch (e) { /* */ }
     const job = {
       acting: true, fullPad: true, kind: 'mukhni59', J, ownView: () => true, snapView: () => true, d: () => k.d, vNow: () => (trail.length ? trail.reduce((a, q) => a + q.dd, 0) / Math.max(0.08, (trail[trail.length - 1].ts - trail[0].ts) || 0.08) : 0),
-      view() { const K = KIYOR59; return { p: [-55.4, 20.1, 12.9], t: [K.x, 21.0, K.z] }; },   // (ש5: low by the pit's north-east, a little up at the laver; the counterweight beyond on the left; he behind the camera)
+      view() { const K = KIYOR59; return { p: [-51, 19.7, 22], t: [K.x, 21.2, K.z] }; },   // (ש5: low from the east, a little up at the laver between its posts; the counterweight beyond on the left; he behind the camera)
       down(a) { if (endT >= 0 || k.done) return; prev = { y: a.y, ts: a.ts != null ? a.ts : now() }; trail = []; dragOk = true; paid = 0; },
       move(a) {
         if (!prev || endT >= 0 || k.done) return; const ts = a.ts != null ? a.ts : now(), dy = prev.y - a.y; prev = { y: a.y, ts }; if (dy <= 0) return;
@@ -2346,7 +2346,7 @@ export function createHar42(o = {}) {
           return u >= 1;
         }
         if (STG === 'kiyor') {   // ── build 59 ── from over the court: the laver's gold round, between the Ulam and the altar, drawn to the south (מדות ג, ו)
-          const c = { x: KIYOR59.x, z: KIYOR59.z }, orbit = Math.min(1, u / 0.78), a = -1.0 + orbit * 0.6, Rr = 150 - 80 * orbit;
+          const c = { x: KIYOR59.x, z: KIYOR59.z }, orbit = Math.min(1, u / 0.78), a = 0.5 + orbit * 0.6, Rr = 150 - 80 * orbit;   // (from the south-east: from the north-east the altar hid it — c59A)
           let p = [c.x + Math.cos(a) * Rr, 19 + 95 - 50 * orbit, c.z + Math.sin(a) * Rr], t = [c.x, 21, c.z];
           if (u > 0.78) { const k = (u - 0.78) / 0.22, e = k * k * (3 - 2 * k), fv = followView(hero()); p = p.map((v, i) => v + (fv.p[i] - v) * e); t = t.map((v, i) => v + (fv.t[i] - v) * e); }
           camTo(p, t, 1);

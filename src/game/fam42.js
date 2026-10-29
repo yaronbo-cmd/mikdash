@@ -1215,15 +1215,15 @@ export function createCast59(L = 1, cap = 1) {
     if (k.done) return 'done';
     k.tilt = clamp(+tilt || 0, 0, 1); const q = flowOf(k.tilt);
     k.s += (q - k.s) * Math.min(1, dt / tau); if (k.s < 1e-4 && q === 0) k.s = 0;
-    k.f += (k.s * dt) / k.cap; if (k.s > C.still) k.pouring = true;
+    const still = C.still * Math.min(1, k.cap); k.f += (k.s * dt) / k.cap; if (q > 0 || k.s > still) k.pouring = true;   // (still: by the mould's size — a small mould's last trickle counts)
     if (k.f >= 1 + C.rim) { k.f = 1 + C.rim; k.over = true; }
-    if (k.pouring && q === 0 && k.s <= C.still) {   // the stream has stopped: the pour is judged
+    if (k.pouring && q === 0 && k.s <= still) {   // the stream has stopped: the pour is judged
       k.pouring = false; k.pours++;
       if (k.over || k.f > 1 + win) { const sp = k.over; k.fails++; if (sp) k.spills++; k.over = false; k.f = 0; k.s = 0; k.last = sp ? 'spill' : 'over'; return k.last; }
       if (k.f >= 1 - win) { k.done = true; k.q = k.fails === 0 ? (Math.abs(k.f - 1) <= win / 2 ? 1 : 0.65) : k.fails === 1 ? 0.65 : 0.3; k.last = 'done'; return 'done'; }
       k.last = 'more'; return 'more';
     }
-    return k.over ? 'spilling' : k.s > C.still ? 'pour' : 'still';
+    return k.over ? 'spilling' : k.s > still ? 'pour' : 'still';
   }
   return { step, safe, flowOf, state: () => k, win, tau, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }

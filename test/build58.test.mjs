@@ -17,15 +17,15 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,:]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 58: GAME_BUILD 58; stage 11\'s parts; the quotes exactly as the spec verified them (מדות ג, א; ג, ב; אבות ה, ה)', () => {
-  assert.equal(GAME_BUILD, 58);
+  assert.equal(GAME_BUILD, 59);
   assert.deepEqual([...PARTS58], ['open', 'horns', 'holes', 'fire', 'reveal']);
   for (const q of ['מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה', 'וּבְקֶרֶן מַעֲרָבִית דְּרוֹמִית הָיוּ שְׁנֵי נְקָבִים, כְּמִין שְׁנֵי חֳטָמִין דַּקִּין', 'וְיוֹצְאִין לְנַחַל קִדְרוֹן', 'וְלֹא נָצְחָה הָרוּחַ אֶת עַמּוּד הֶעָשָׁן']) assert.ok(SRC58.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC58.some((s) => /"מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה" — מדות ג, א/.test(s)));
   assert.ok(SRC58.some((s) => /"וְלֹא נָצְחָה הָרוּחַ אֶת עַמּוּד הֶעָשָׁן" — אבות ה, ה · המחשה/.test(s)), 'the smoke — marked המחשה for this moment');
   assert.ok(SRC58.every((s) => /טיוטה|המחשה/.test(s)));
   assert.ok(!/מִכָּאן/.test(H.slice(H.indexOf('export const PARTS58'), H.indexOf('export const PARTS58') + 4000)), 'not "מכאן"');
-  assert.match(H, /o\.stage === 'guf' \? 'guf' : o\.stage === 'karnot' \? 'karnot' : 'har';/);
-  assert.match(H, /STG === 'guf' \? PARTS57 : STG === 'karnot' \? PARTS58 : PARTS42;/);
+  assert.match(H, /o\.stage === 'guf' \? 'guf' : o\.stage === 'karnot' \? 'karnot' : (?:o\.stage === 'kiyor' \? 'kiyor' : )?'har';/);
+  assert.match(H, /STG === 'guf' \? PARTS57 : STG === 'karnot' \? PARTS58 : (?:STG === 'kiyor' \? PARTS59 : )?PARTS42;/);
   assert.match(H, /horns: 'fit', holes: 'lift', fire: 'place',/);
 });
 
@@ -97,7 +97,7 @@ test('build 58: the wiring — after stage 10, on resume, the fixture ?h58go=1; 
   assert.match(G, /else if \(wanted58\(\)\) startHar58\(\);/); assert.match(G, /\[\?&\]h58go=1/); assert.match(G, /karnot58=0\|stick=1\|har42=0/);
   assert.match(G, /if \(done && wanted58\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar58\(\); \}, 400\);/, 'stage 11 after stage 10');
   const T = read('src/tester56.js'), ids = [...T.matchAll(/\{ id: '([^']+)', he: '([^']+)', q: '([^']+)'/g)].map((m) => [m[1], m[2], m[3]]);
-  assert.deepEqual(ids.map((x) => x[0]), ['01', '02', '03', '04', '05', '06', '06v', '07', 't3', '08', '09', '10', '11', 'B']);
+  assert.deepEqual(ids.map((x) => x[0]).filter((x) => !['12'].includes(x)), ['01', '02', '03', '04', '05', '06', '06v', '07', 't3', '08', '09', '10', '11', 'B']);   // (build 59: and stage 12's)
   assert.deepEqual(ids.find((x) => x[0] === '11'), ['11', '11 · הקרנות', 'h58go=1&h42stock=99']);
   const A = read('tools/auto42.js'), K = read('tools/kid34/kidmodes.cjs');
   assert.match(A, /else if \(j\.kind === 'horns58'\) await horns58\(\); else if \(j\.kind === 'holes58'\) await holes58\(\); else if \(j\.kind === 'pyre58'\) await pyre58\(\);/);

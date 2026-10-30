@@ -318,6 +318,29 @@ async function sid57k(K) {
 // twisted with two fingers (the way the ring's arrow shows: 60 %), any amount, stopping when the ring or both faces glow green (60 %); the WOOD — a ringed log
 // (level 1's gold or red ring he sees: 60 %) where its ring says; the JUG — its handle dragged along the arc to a point (the gold mark he sees: 60 %), held a while, let
 // go; the WOOD — a log from the pile to the right (the gold place he sees: 60 %) or to the left, any; the torch when it glows
+// ── build 59 ── stage 12, a child's way: the FURNACE — its handle along the arc to a point (the gold mark he sees: 60 %) and held, till he
+// sees the bronze reach the gold line on the gauge (60 %) or for a while of his own; the SPIGOT — round its dial the way its arrow shows
+// (60 %), any amount, stopping at the green click he sees (60 %); the ROPE — drags ⬆ now slow, now quick (slow when the line says "לאט": 60 %)
+async function pour59k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || !/^(cast59|spigots59)$/.test(j.kind)) return null; const R = j.ref, m = document.querySelector('.h42 svg circle[data-safe59]'); return { h: R.arcAt(R.tilt()), arc: [0.25, 0.45, 0.65, 0.85, 1].map((u) => (R.arcPos ? R.arcPos(u) : R.arcAt(u))), mark: m ? { x: +m.getAttribute('cx'), y: +m.getAttribute('cy') } : null }; }).catch(() => null);
+  if (!g || !g.h) return false; const aim = g.mark && K.rnd() < 0.6 ? g.mark : g.arc[Math.floor(K.rnd() * g.arc.length)]; if (!aim) return false; const id = 7, watch = K.rnd() < 0.6;
+  await K.down(id, g.h.x + K.between(-10, 10), g.h.y + K.between(-10, 10)); for (let i = 1; i <= 8; i++) { await K.sleep(K.between(30, 70)); await K.move(id, g.h.x + ((aim.x - g.h.x) * i) / 8 + K.between(-5, 5), g.h.y + ((aim.y - g.h.y) * i) / 8 + K.between(-5, 5)); }
+  const T = K.between(500, 4500), t0 = Date.now(); let saw = false;
+  while (Date.now() - t0 < T) { await K.sleep(120); if (!watch) continue; const at = await K.pg.evaluate(() => { const f = document.querySelector('.h42 svg rect[data-fill59]'), l = document.querySelector('.h42 svg line[data-line59]'); return f && l ? { top: +f.getAttribute('y'), line: +l.getAttribute('y1') } : null; }).catch(() => null); if (at && at.top <= at.line + 3) { saw = true; break; } }
+  await K.up(id); K.ev('furnace-pour', `${Date.now() - t0}ms${saw ? ' at-line' : ''}`); return true;
+}
+async function screw59k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'screw59') return null; const R = j.ref, tu = document.querySelector('.h42 svg text[data-turn59]'); return { h: R.head(), r: R.dialR(), turn: tu ? tu.getAttribute('data-turn59') : null }; }).catch(() => null);
+  if (!g || !g.h) return false; const sg = g.turn && K.rnd() < 0.6 ? (g.turn === 'cw' ? 1 : -1) : K.rnd() < 0.7 ? 1 : -1, watch = K.rnd() < 0.6, total = K.between(1.5, 9), n = Math.max(6, Math.ceil(total / 0.22)), dial = () => K.pg.evaluate(() => { const c = document.querySelector('.h42 svg circle[data-dial59]'); return c ? c.getAttribute('data-dial59') : null; }).catch(() => null);
+  let a = K.between(-Math.PI, Math.PI), stopped = false; const R0 = g.r * K.between(0.8, 1.15); await K.down(7, g.h.x + Math.cos(a) * R0, g.h.y + Math.sin(a) * R0);
+  for (let i = 1; i <= n; i++) { await K.sleep(K.between(25, 60)); a += (sg * total) / n; await K.move(7, g.h.x + Math.cos(a) * R0 + K.between(-4, 4), g.h.y + Math.sin(a) * R0 + K.between(-4, 4)); if (watch) { const d = await dial(); if ((sg > 0 && d === 'lock') || (sg < 0 && g.turn === 'ccw' && d !== 'tight')) { stopped = true; break; } } }
+  await K.up(7); K.ev('screw-turn', `${Math.round((sg * total * 180) / Math.PI)}°${stopped ? ' saw' : ''}`); return true;
+}
+async function mukhni59k(K, L) {
+  const ok = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); return !!(j && j.kind === 'mukhni59'); }).catch(() => false); if (!ok) return false;
+  const [W, Hh] = K.size(), slow = /לאט/.test(L || '') && K.rnd() < 0.6 ? true : K.rnd() < 0.5, dy = K.between(Hh * 0.15, Hh * 0.6), T = slow ? K.between(700, 1800) : K.between(120, 500);
+  await K.swipe(K.between(W * 0.3, W * 0.9), K.between(Hh * 0.62, Hh * 0.92), K.between(-20, 20), -dy, T); K.ev('rope-pull', `${Math.round(T)}ms`); return true;
+}
 async function horns58k(K) {
   const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'horns58') return null; const R = j.ref, tu = document.querySelector('.h42 svg text[data-turn58]'); return { h: R.hornAt(), t: R.targetAt(), r: R.ringR(), turn: tu ? tu.getAttribute('data-turn58') : null }; }).catch(() => null);
   if (!g || !g.h) return false; const r = K.rnd(), id = 7;
@@ -373,6 +396,7 @@ async function mount42(K) {
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
+      if (h && !h.on && h.stg === 'kiyor' && h.part === 'done') { K.R.kiyor59 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('kiyor done'); break; }   /* ── build 59 ── stage 12's end */
       if (h && !h.on && h.stg === 'karnot' && h.part === 'done') { K.R.karnot58 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('karnot done'); break; }   /* ── build 58 ── stage 11's end */
       if (h && !h.on && h.stg === 'guf' && h.part === 'done') { K.R.guf57 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('guf done'); break; }   /* ── build 57 ── stage 10's end */
       if (h && !h.on && h.stg === 'sovev' && h.part === 'done') { K.R.sovev56 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('sovev done'); break; }   /* ── build 56 ── stage 09's end */
@@ -413,6 +437,9 @@ async function mount42(K) {
       else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
       else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
       else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      else if (/^הטו ⤵|עוד קצת ⤵|עבר את הקו|גלש מהתבנית|כל תבנית|לתבנית הבאה|הכיור נוצק/.test(L) && r < 0.88) { if (!(await pour59k(K))) await K.tryLine(s); }   /* ── build 59 ── */
+      else if (/סובבו ⟳ ∙ עצרו בנקישה|נקישה ∙ עזבו|חזק מדי ∙ קצת חזרה|עוד ⟳ ∙ עד הנקישה|הדד ננעל/.test(L) && r < 0.88) { if (!(await screw59k(K))) await K.tryLine(s); }
+      else if (/גררו לאט ⬆|מהר מדי ∙ לאט|כמעט במים/.test(L) && r < 0.88) { if (!(await mukhni59k(K, L))) await K.tryLine(s); }
       else if (/גררו לפינה ⤵|סובבו עוד ⟳|הזיזו אל הפינה|הונחה ישר|הרביעית בלי צל/.test(L) && r < 0.88) { if (!(await horns58k(K))) await K.tryLine(s); }   /* ── build 58 ── */
       else if (/הטו את הכד|גלש! הטו|יורדים לנקבים/.test(L) && r < 0.88) { if (!(await holes58k(K))) await K.tryLine(s); }
       else if (/גררו: כשר|הניחו שניים|הניחו בינוניים|הניחו דקים|לא למערכה|גררו למערכה|הדליקו 👆|רוח בין העצים|צפוף — אין|רחב מדי/.test(L) && r < 0.88) { if (!(await pyre58k(K))) await K.tryLine(s); }

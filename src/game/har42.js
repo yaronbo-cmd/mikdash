@@ -2137,7 +2137,7 @@ export function createHar42(o = {}) {
     const st59 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 10), HOT59()); st59.visible = false; add(st59, 0, 0, 0); st.props.stream59 = st59;
     laverSite59(add);
     // the opening's gold plan: the laver's round where it will stand
-    const pl = new THREE.Mesh(new THREE.TorusGeometry(2.42, 0.26, 8, 40), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.9 })); pl.rotation.x = Math.PI / 2; pl.scale.setScalar(0.001); st.props.plan59 = add(pl, KIYOR59.x, Math.max(19.35, gy(KIYOR59.x, KIYOR59.z) + 0.25), KIYOR59.z);   // (on the floor there, whatever the steps' height: at 19.35 it was under them — c59D)
+    const pl = new THREE.Mesh(new THREE.TorusGeometry(2.42, 0.26, 8, 40), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.9 })); pl.rotation.x = Math.PI / 2; pl.scale.setScalar(0.001); st.props.plan59 = add(pl, KIYOR59.x, gy(KIYOR59.x, KIYOR59.z) + 0.25, KIYOR59.z);   // (on the court's floor there — 16 till the Ulam's steps are built: at 19.35 it floated over it — p59-ring)
     try { const rr = globalThis.__T && globalThis.__T.renderer; if (rr && rr.shadowMap) rr.shadowMap.needsUpdate = true; } catch (e) { /* */ }   // (the hall's walls and roof cast the sun's shadow inside it)
   }
   /** the laver at its place (its pad, the pit's curb and water, the bowl on its stand with the twelve sockets and spigots, the mukhni's posts,

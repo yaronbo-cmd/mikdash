@@ -87,6 +87,8 @@ test('build 59: the spigot screwed in — the resistance rises, a click at the l
   assert.equal(T.release(), 'tight'); assert.equal(t.fails, 1); assert.ok(!t.set);
   let e = ''; for (let i = 0; i < 50 && e !== 'eased'; i++) e = T.turn(-3); assert.equal(e, 'eased', 'a turn back ⟲ eases it'); assert.ok(t.th >= C.lock, 'still locked — no damage');
   assert.equal(T.release(), 'set'); assert.equal(T.result().rating, 'kasher');
+  { const U = F.createScrew59(1), u = U.state(); let r2 = ''; for (let i = 0; i < 400 && r2 !== 'tight'; i++) r2 = U.turn(20); for (let i = 0; i < 40; i++) U.turn(-25); assert.ok(u.th >= F.SCREW59.lock && !u.tight, 'eased, the click holds it — a little back, not out'); assert.equal(U.release(), 'set'); }
+  { const V = F.createScrew59(1), v = V.state(); for (let i = 0; i < 60; i++) V.turn(10); V.turn(-200); assert.ok(v.th < 600 - 200 + 1 && !v.tight, 'before any too-hard, a turn back unscrews'); }
   assert.ok(C.slack[1] > C.slack[4]); assert.equal(F.screwGrade59([1, 1, 0.65]), 0.65); assert.equal(F.screwGrade59([1, 1, 1]), 1);
   assert.deepEqual([...SOCKETS59], [11, 0, 1], 'the east face\'s three');
   assert.match(H, /data-dial59="\$\{st0\}"/); assert.match(H, /data-turn59="\$\{k\.tight \? 'ccw' : 'cw'\}">\$\{k\.tight \? '⟲' : '⟳'\}/);

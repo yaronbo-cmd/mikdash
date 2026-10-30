@@ -1236,9 +1236,9 @@ export function spigotsGrade59(fails) { const n = fails.filter((x) => x > 0).len
 /** THE SPIGOT SCREWED IN (fit): a ⟳ turn screws it in (the thread's lock at `lock` degrees); the resistance rises as it goes (each degree of
  *  the finger turns it less); at the lock — a click; past the lock by more than the level's slack — "too hard": it turns no further, a turn
  *  back ⟲ eases it (no damage). Let go at the click (or within the slack) → set. A let-go before the click is no try */
-export const SCREW59 = Object.freeze({ lock: 540, slack: Object.freeze([null, 70, 45, 30, 18]), stiff: 0.55, past: 0.35 });
+export const SCREW59 = Object.freeze({ lock: 540, slack: Object.freeze([null, 110, 60, 35, 18]), stiff: 0.55, past: 0.3 });   // (level 1's slack wider: a child's turn ran a third of a turn past the click and on — K59-W-S7)
 export function createScrew59(L = 1) {
-  const lv = clamp(L | 0, 1, 4), C = SCREW59, slack = C.slack[lv], k = { L: lv, th: 0, clicked: false, tight: false, set: false, fails: 0, q: null };
+  const lv = clamp(L | 0, 1, 4), C = SCREW59, slack = C.slack[lv], k = { L: lv, th: 0, clicked: false, tight: false, set: false, fails: 0, q: null, detent: false };
   const gain = () => 1 - C.stiff * Math.min(1, k.th / C.lock) ** 2;
   /** a turn of the finger by deg (+ ⟳ in) → 'turn' | 'click' | 'tight' | 'eased' | 'stuck' | 'set' */
   function turn(deg) {
@@ -1248,12 +1248,12 @@ export function createScrew59(L = 1) {
       if (k.th < C.lock) { const was = k.th; k.th = Math.min(C.lock, k.th + d * gain()); if (was < C.lock && k.th >= C.lock) { k.clicked = true; return 'click'; } return 'turn'; }
       k.th += d * C.past; if (k.th > C.lock + slack) { k.th = C.lock + slack; k.tight = true; return 'tight'; } return 'turn';
     }
-    k.th = Math.max(0, k.th + d); if (k.th < C.lock) k.clicked = false;
-    if (k.tight && k.th <= C.lock + slack * 0.5) { k.tight = false; return 'eased'; } return 'turn';
+    k.th = Math.max(k.detent ? C.lock : 0, k.th + d); if (k.th < C.lock) k.clicked = false;   // (eased from too hard, the click holds it: "קצת חזרה" — a little back, not out — till the finger lifts)
+    if (k.tight && k.th <= C.lock + slack * 0.5) { k.tight = false; k.detent = true; return 'eased'; } return 'turn';
   }
   /** let go → 'set' | 'tight' (a try failed: turn back a little) | 'more' (before the click: no try) */
   function release() {
-    if (k.set) return 'set'; if (k.tight) { k.fails++; return 'tight'; } if (k.th < C.lock) return 'more';
+    k.detent = false; if (k.set) return 'set'; if (k.tight) { k.fails++; return 'tight'; } if (k.th < C.lock) return 'more';
     k.set = true; k.q = k.fails === 0 ? 1 : k.fails === 1 ? 0.65 : 0.3; return 'set';
   }
   return { turn, release, state: () => k, slack, depth: () => Math.min(1, k.th / C.lock), result: () => (k.set ? { q: k.q, rating: rate30(k.q) } : null) };

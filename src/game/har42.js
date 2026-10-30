@@ -2121,7 +2121,7 @@ export function createHar42(o = {}) {
     const box = (w, h, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), WALL); m.castShadow = true; m.receiveShadow = true; return add(m, x, y, z); };
     box(F0.w + 1.2, F0.h, 0.6, F0.x, y0 + F0.h / 2, F0.z - F0.d / 2 - 0.3); box(F0.w + 1.2, F0.h, 0.6, F0.x, y0 + F0.h / 2, F0.z + F0.d / 2 + 0.3);
     box(0.6, F0.h, F0.d, F0.x - F0.w / 2 - 0.3, y0 + F0.h / 2, F0.z); box(0.6, F0.h, F0.d, F0.x + F0.w / 2 + 0.3, y0 + F0.h / 2, F0.z);
-    box(F0.w + 1.2, 0.6, F0.d + 1.2, F0.x, y0 + F0.h + 0.3, F0.z);
+    { const r = box(F0.w + 1.2, 0.6, F0.d + 1.2, F0.x, y0 + F0.h + 0.3, F0.z); if (r && r.isMesh) { r.material = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }); r.receiveShadow = false; } }   // ── 59ב ── the roof casts its shade but is not drawn: the walk's camera above it saw only the roof — a blank maroon screen between the casting and the twelve
     st.props.wall59 = WALL;
     // the laver's mould (its cavity the bowl's own) and its furnace on the west, the spout over the mould's west part
     const L = famL('lift'), w1 = F.CAST59.win[Math.max(1, Math.min(4, L))];

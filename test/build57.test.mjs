@@ -18,14 +18,14 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 57: GAME_BUILD 57; stage 10\'s parts in the spec\'s order; the Mishnah as the spec has it (מדות ג, ג; ג, ד)', () => {
-  assert.equal(GAME_BUILD, 59);
+  assert.equal(GAME_BUILD, 60);
   assert.deepEqual([...PARTS57], ['open', 'decoy', 'kevesh', 'sid', 'reveal']);
   for (const q of ['שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה', 'וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה, אַחַת בַּפֶּסַח וְאַחַת בֶּחָג', 'לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל', 'מְלַבְּנִים אוֹתוֹ בְמַפָּה']) assert.ok(SRC57.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC57.some((s) => /"שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה" — מדות ג, ג/.test(s)));
   assert.ok(SRC57.some((s) => /^רבי: "מְלַבְּנִים אוֹתוֹ בְמַפָּה" — מדות ג, ד/.test(s)));
   assert.ok(SRC57.every((s) => /טיוטה|המחשה/.test(s)));
-  assert.match(H, /o\.stage === 'sovev' \? 'sovev' : o\.stage === 'guf' \? 'guf' : (?:o\.stage === 'karnot' \? 'karnot' : )?(?:o\.stage === 'kiyor' \? 'kiyor' : )?'har';/);
-  assert.match(H, /STG === 'lishka' \? PARTS50 : STG === 'guf' \? PARTS57 : (?:STG === 'karnot' \? PARTS58 : )?(?:STG === 'kiyor' \? PARTS59 : )?PARTS42;/);
+  assert.match(H, /o\.stage === 'sovev' \? 'sovev' : o\.stage === 'guf' \? 'guf' : (?:o\.stage === 'karnot' \? 'karnot' : )?(?:o\.stage === 'kiyor' \? 'kiyor' : )?(?:o\.stage === 'ulam' \? 'ulam' : )?'har';/);
+  assert.match(H, /STG === 'lishka' \? PARTS50 : STG === 'guf' \? PARTS57 : (?:STG === 'karnot' \? PARTS58 : )?(?:STG === 'kiyor' \? PARTS59 : )?(?:STG === 'ulam' \? PARTS60 : )?PARTS42;/);
   assert.match(H, /decoy: 'inspect', kevesh: 'place', sid: 'place',/);
 });
 
@@ -118,8 +118,8 @@ test('build 57: §1 rule 12 — every Phase A end card on the right two-thirds, 
   const fwd = [-1, 0], a = Math.atan(CARD57.at * 1), f2 = [fwd[0] * Math.cos(a) - fwd[1] * Math.sin(a), fwd[1] * Math.cos(a) + fwd[0] * Math.sin(a)], right2 = [-f2[1], f2[0]];
   const toHim = [-1, 0], x = (toHim[0] * right2[0] + toHim[1] * right2[1]) / (toHim[0] * f2[0] + toHim[1] * f2[1]);
   assert.ok(x < -0.5 && x > -0.75, `he at ${x.toFixed(2)} of the half-width — the left third`);
-  assert.match(H, /const fc = card\((?:STG === 'kiyor' \? '[^']*' : )?(?:STG === 'karnot' \? '[^']*' : )?STG === 'guf' \? 'גוף המזבח והכבש — נבנו' :/);
-  assert.match(H, /\.\.\.\((?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?STG === 'guf' \? SRC57 : STG === 'sovev' \? SRC56 :/);
+  assert.match(H, /const fc = card\((?:STG === 'kiyor' \? '[^']*' : )?(?:STG === 'ulam' \? '[^']*' : )?(?:STG === 'karnot' \? '[^']*' : )?STG === 'guf' \? 'גוף המזבח והכבש — נבנו' :/);
+  assert.match(H, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?(?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?STG === 'guf' \? SRC57 : STG === 'sovev' \? SRC56 :/);
 });
 
 test('build 57: the wiring — after stage 09, on resume, the fixture ?h57go=1; the old flow behind ?guf57=0; the tester\'s menu keeps every stage', () => {
@@ -128,7 +128,7 @@ test('build 57: the wiring — after stage 09, on resume, the fixture ?h57go=1; 
   assert.match(G, /else if \(wanted57\(\)\) startHar57\(\);/); assert.match(G, /\[\?&\]h57go=1/); assert.match(G, /guf57=0\|stick=1\|har42=0/);
   assert.match(G, /if \(done && wanted57\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar57\(\); \}, 400\);/, 'stage 10 after stage 09');
   const T = read('src/tester56.js'), ids = [...T.matchAll(/\{ id: '([^']+)', he: '([^']+)', q: '([^']+)'/g)].map((m) => [m[1], m[3]]);
-  assert.deepEqual(ids.map((x) => x[0]).filter((x) => !['11', '12'].includes(x)), ['01', '02', '03', '04', '05', '06', '06v', '07', 't3', '08', '09', '10', 'B']);   // (build 58: and stage 11's) (build 59: and 12's)
+  assert.deepEqual(ids.map((x) => x[0]).filter((x) => !['11', '12', 't4', '13'].includes(x)), ['01', '02', '03', '04', '05', '06', '06v', '07', 't3', '08', '09', '10', 'B']);   // (build 58: and stage 11's) (build 59: and 12's)
   assert.deepEqual(ids.find((x) => x[0] === '10'), ['10', 'h57go=1&h42stock=99']); assert.deepEqual(ids.find((x) => x[0] === '09'), ['09', 'h56go=1&h42stock=99']);
   const A = read('tools/auto42.js'), K = read('tools/kid34/kidmodes.cjs');
   assert.match(A, /else if \(j\.kind === 'kevesh57'\) await kevesh57\(\); else if \(j\.kind === 'sid57'\) await sid57\(\);/); assert.match(A, /if \(R\.mode === 'all'\) \{/);

@@ -18,7 +18,7 @@ const H = read('src/game/har42.js');
 const fnOf = (name, next) => H.slice(H.indexOf(`  function ${name}(`), next ? H.indexOf(`  function ${next}(`, H.indexOf(`  function ${name}(`)) : undefined);
 
 test('build 54: GAME_BUILD 54', () => {
-  assert.equal(GAME_BUILD, 59);
+  assert.equal(GAME_BUILD, 60);
 });
 
 test('build 54: the rock\'s macro (01) — his stands 9 amot east of each rock and 3 south, the camera 4.5 aside away from him: out of its frame', () => {

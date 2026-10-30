@@ -19,7 +19,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,:]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 59: GAME_BUILD 59; stage 12\'s parts in the spec\'s order; the quotes exactly as verified (מדות ג, ו; יומא ג, י)', () => {
-  assert.equal(GAME_BUILD, 59);
+  assert.equal(GAME_BUILD, 60);
   assert.deepEqual([...PARTS59], ['open', 'cast', 'spigots', 'screw', 'mukhni', 'reveal']);
   for (const q of ['הַכִּיּוֹר הָיָה בֵּין הָאוּלָם וְלַמִּזְבֵּחַ, וּמָשׁוּךְ כְּלַפֵּי הַדָּרוֹם', 'בֶּן קָטִין עָשָׂה שְׁנֵים עָשָׂר דַּד לַכִּיּוֹר', 'וְאַף הוּא עָשָׂה מוּכְנִי לַכִּיּוֹר']) assert.ok(SRC59.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC59.some((s) => /"הַכִּיּוֹר הָיָה בֵּין הָאוּלָם וְלַמִּזְבֵּחַ, וּמָשׁוּךְ כְּלַפֵּי הַדָּרוֹם" — מדות ג, ו · טיוטה/.test(s)));
@@ -29,8 +29,8 @@ test('build 59: GAME_BUILD 59; stage 12\'s parts in the spec\'s order; the quote
   // every quoted Hebrew text in stage 12's lines and sources is one of the three
   const ok = ['הַכִּיּוֹר הָיָה בֵּין הָאוּלָם וְלַמִּזְבֵּחַ, וּמָשׁוּךְ כְּלַפֵּי הַדָּרוֹם', 'בֶּן קָטִין עָשָׂה שְׁנֵים עָשָׂר דַּד לַכִּיּוֹר', 'וְאַף הוּא עָשָׂה מוּכְנִי לַכִּיּוֹר'];
   for (const s of [...SRC59, ...Object.entries(LINE42).filter(([k]) => /59$/.test(k)).map(([, v]) => v)]) for (const m of s.matchAll(/"([^"]+)"/g)) assert.ok(ok.includes(m[1]), `an unverified quote: ${m[1]}`);
-  assert.match(H, /o\.stage === 'karnot' \? 'karnot' : o\.stage === 'kiyor' \? 'kiyor' : 'har';/);
-  assert.match(H, /STG === 'karnot' \? PARTS58 : STG === 'kiyor' \? PARTS59 : PARTS42;/);
+  assert.match(H, /o\.stage === 'karnot' \? 'karnot' : o\.stage === 'kiyor' \? 'kiyor' : (?:o\.stage === 'ulam' \? 'ulam' : )?'har';/);
+  assert.match(H, /STG === 'karnot' \? PARTS58 : STG === 'kiyor' \? PARTS59 : (?:STG === 'ulam' \? PARTS60 : )?PARTS42;/);
   assert.match(H, /cast: 'lift', spigots: 'lift', screw: 'fit', mukhni: 'lift',/);
 });
 
@@ -109,10 +109,10 @@ test('build 59: the mukhni — slow ⬆ pays out; too fast, the rope slips (a lu
 test('build 59: the places — the laver where the world has it (places.js KIYOR); the foundry on the Mount\'s open south; the reveal at dawn, the world\'s own laver and its twelve spigots running', () => {
   assert.equal(KIYOR59.x, KIYOR.x); assert.equal(KIYOR59.z, KIYOR.z); assert.equal(KIYOR59.rim, KIYOR.rim);
   assert.ok(FOUND59.z > 100, 'outside the courts, on the Mount\'s south');
-  assert.match(H, /STG === 'kiyor' \? 'dawn' : /); assert.match(H, /V = STG === 'kiyor' \? \{ p: \[-36, 40, 44\], t: \[-63\.5, 21, 20\] \}/);
+  assert.match(H, /STG === 'kiyor'(?: \|\| STG === 'ulam')? \? 'dawn' : /); assert.match(H, /V = STG === 'kiyor' \? \{ p: \[-36, 40, 44\], t: \[-63\.5, 21, 20\] \}/);
   assert.match(H, /tg\.textContent = STG === 'kiyor' \? 'הכיור — בין האולם ולמזבח, ושנים עשר דדים'/);
   assert.match(H, /const fc = card\(STG === 'kiyor' \? 'הכיור — נוצק, ובלילה ירד למים'/);
-  assert.match(H, /\.\.\.\(STG === 'kiyor' \? SRC59 : STG === 'karnot' \? SRC58/);
+  assert.match(H, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?STG === 'kiyor' \? SRC59 : STG === 'karnot' \? SRC58/);
   const G = read('src/game/index.js'); assert.match(G, /S\.completeStage\(G, 'kiyor'\); persist\(\); syncWorld\(null\); hideNext44\(\); setTimeout\(\(\) => \{ try \{ kiyorFlow\(\); \} catch \(e\) \{ \/\* \*\/ \} \}, 4200\);/, 'the twelve spigots run at the reveal');
 });
 
@@ -122,7 +122,7 @@ test('build 59: the wiring — after stage 11, on resume, the fixture ?h59go=1; 
   assert.match(G, /else if \(wanted59\(\)\) startHar59\(\);/); assert.match(G, /\[\?&\]h59go=1/); assert.match(G, /kiyor59=0\|stick=1\|har42=0/);
   assert.match(G, /if \(done && wanted59\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar59\(\); \}, 400\);/, 'stage 12 after stage 11');
   const T = read('src/tester56.js'), ids = [...T.matchAll(/\{ id: '([^']+)', he: '([^']+)', q: '([^']+)'/g)].map((m) => [m[1], m[2], m[3]]);
-  assert.deepEqual(ids.map((x) => x[0]), ['01', '02', '03', '04', '05', '06', '06v', '07', 't3', '08', '09', '10', '11', '12', 'B']);
+  assert.deepEqual(ids.map((x) => x[0]).filter((x) => !['t4', '13'].includes(x)), ['01', '02', '03', '04', '05', '06', '06v', '07', 't3', '08', '09', '10', '11', '12', 'B']);   // (build 60: and the test before chapter ד׳, stage 13)
   assert.deepEqual(ids.find((x) => x[0] === '12'), ['12', '12 · הכיור', 'h59go=1&h42stock=99']);
   const A = read('tools/auto42.js'), K = read('tools/kid34/kidmodes.cjs');
   assert.match(A, /else if \(j\.kind === 'cast59'\) await pour59\('cast59'\); else if \(j\.kind === 'spigots59'\) await pour59\('spigots59'\); else if \(j\.kind === 'screw59'\) await screw59\(\); else if \(j\.kind === 'mukhni59'\) await mukhni59\(\);/);

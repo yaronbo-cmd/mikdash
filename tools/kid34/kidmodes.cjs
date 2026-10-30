@@ -341,6 +341,40 @@ async function mukhni59k(K, L) {
   const [W, Hh] = K.size(), slow = /לאט/.test(L || '') && K.rnd() < 0.6 ? true : K.rnd() < 0.5, dy = K.between(Hh * 0.15, Hh * 0.6), T = slow ? K.between(700, 1800) : K.between(120, 500);
   await K.swipe(K.between(W * 0.3, W * 0.9), K.between(Hh * 0.62, Hh * 0.92), K.between(-20, 20), -dy, T); K.ev('rope-pull', `${Math.round(T)}ms`); return true;
 }
+// ── build 60 ── stage 13, a child's way: the WAVES — a flagged stone: a drag the way its arrow shows (60 %) or any way, or two taps when
+// he sees 👆👆 (60 %); the pallet's 👆👆: two taps on it (60 %); else a stone from the pallet to its place (the 👆's path) and, as he lets
+// go, a small drag one way or the other (65 %) — or none; the LINTELS — held for a while of his own, now and then dragged the way the
+// arrow shows (60 %) or any way, let go when the line says "עזבו" (60 %) or when he feels like it; centred by drags the way the arrow
+// shows (60 %); the LEAF — from the tray up to the blinking point (60 %) or anywhere above
+async function waves60k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'waves60') return null; const R = j.ref, ar = [...document.querySelectorAll('.h42 svg text')].find((q) => /^[⬅➡]$/.test(q.textContent.trim())), sh2 = [...document.querySelectorAll('.h42 svg text')].some((q) => q.textContent.trim() === '👆👆' && !q.getAttribute('data-flip60')), fl = !!document.querySelector('.h42 svg text[data-flip60]'); return { pal: R.palAt(), slot: R.slotAt(), bad: R.wrong(), arrow: ar ? ar.textContent.trim() : null, shade: sh2, flip: fl, th: R.tap() }; }).catch(() => null);
+  if (!g) return false; const tap2 = async (x, y) => { await K.tap(x + K.between(-6, 6), y + K.between(-6, 6)); await K.sleep(K.between(90, 260)); await K.tap(x + K.between(-6, 6), y + K.between(-6, 6)); };
+  if (g.bad && g.bad.at && K.rnd() < 0.75) { if (g.shade && !g.bad.io && K.rnd() < 0.6) { await tap2(g.bad.at.x, g.bad.at.y); K.ev('waves-flip'); } else { const dir = g.arrow && K.rnd() < 0.6 ? (g.arrow === '➡' ? 1 : -1) : K.rnd() < 0.5 ? 1 : -1; await K.swipe(g.bad.at.x + K.between(-8, 8), g.bad.at.y + K.between(-8, 8), dir * K.between(20, 100), K.between(-8, 8), K.between(150, 500)); K.ev('waves-nudge'); } return true; }
+  if (g.flip && g.pal && K.rnd() < 0.6) { await tap2(g.pal.x, g.pal.y); K.ev('waves-palflip'); return true; }
+  if (!g.pal || !g.slot) return false;
+  const id = 7, tx = g.slot.x + K.between(-14, 14), ty = g.slot.y + K.between(-14, 14); await K.down(id, g.pal.x + K.between(-12, 12), g.pal.y + K.between(-12, 12));
+  for (let i = 1; i <= 10; i++) { await K.sleep(K.between(30, 70)); await K.move(id, g.pal.x + ((tx - g.pal.x) * i) / 10, g.pal.y + ((ty - g.pal.y) * i) / 10); }
+  let x = tx; const r = K.rnd(); if (r < 0.65) { const d = (K.rnd() < 0.5 ? 1 : -1) * K.between(g.th * 1.1, g.th * 3); for (let i = 1; i <= 4; i++) { await K.sleep(K.between(40, 90)); await K.move(id, tx + (d * i) / 4, ty + K.between(-4, 4)); } x = tx + d; }
+  await K.sleep(K.between(60, 300)); await K.up(id); K.ev('waves-drag', r < 0.65 ? (x > tx ? 'right' : 'left') : 'level'); return true;
+}
+async function lintel60k(K) {
+  const look = () => K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'lintel60' || !j.ref.J) return null; const s = j.ref.J.state(), c = document.querySelector('.h42 svg text[data-calm60]'), sl = document.querySelector('.h42 svg text[data-slide60]'), ln = document.querySelector('.h42-line b'); return { phase: s.phase, calm: c ? c.getAttribute('data-calm60') : null, slide: sl ? sl.getAttribute('data-slide60') : null, still: !!(ln && /עזבו|הקישו/.test(ln.textContent)) }; }).catch(() => null);
+  const g = await look(); if (!g || !g.phase) return false; const [W, Hh] = K.size();
+  if (g.phase === 'lift' || g.phase === 'hang') {
+    const id = 7, y0 = K.between(Hh * 0.35, Hh * 0.85); let x = K.between(W * 0.25, W * 0.75); await K.down(id, x, y0);
+    const T = K.between(1200, 9000), t0 = Date.now(), follow = K.rnd() < 0.6, waitStill = K.rnd() < 0.6; let saw = false;
+    while (Date.now() - t0 < T) { await K.sleep(K.between(60, 150)); const s = await look(); if (!s || (s.phase !== 'lift' && s.phase !== 'hang')) break; if (waitStill && s.still) { saw = true; break; } let d = 0; if (follow && s.calm) d = s.calm === 'r' ? 1 : -1; else if (K.rnd() < 0.25) d = K.rnd() < 0.5 ? 1 : -1; if (d) { x = Math.max(W * 0.08, Math.min(W * 0.92, x + d * K.between(6, 28))); await K.move(id, x, y0 + K.between(-5, 5)); } }
+    await K.up(id); K.ev('lintel-hold', `${Date.now() - t0}ms${saw ? ' still' : ''}`); return true;
+  }
+  if (g.phase === 'center') { const dir = g.slide && K.rnd() < 0.6 ? (g.slide === 'r' ? 1 : -1) : K.rnd() < 0.5 ? 1 : -1; await K.swipe(K.between(W * 0.25, W * 0.75), K.between(Hh * 0.35, Hh * 0.8), dir * K.between(10, 140), K.between(-6, 6), K.between(200, 700)); K.ev('lintel-slide'); return true; }
+  await K.sleep(K.between(200, 500)); return true;
+}
+async function vine60k(K) {
+  const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'vine60' || j.ref.hung()) return null; return { a: j.ref.trayAt(), t: j.ref.target() }; }).catch(() => null);
+  if (!g || !g.a) return false; const [W, Hh] = K.size(), t = g.t && K.rnd() < 0.6 ? g.t : { x: K.between(W * 0.15, W * 0.85), y: K.between(Hh * 0.1, Hh * 0.9) };
+  const id = 7; await K.down(id, g.a.x + K.between(-8, 8), g.a.y + K.between(-8, 8)); for (let i = 1; i <= 10; i++) { await K.sleep(K.between(30, 80)); await K.move(id, g.a.x + ((t.x - g.a.x) * i) / 10, g.a.y + ((t.y - g.a.y) * i) / 10); }
+  await K.up(id); K.ev('vine-leaf', t.y < Hh * 0.55 ? 'up' : 'low'); return true;
+}
 async function horns58k(K) {
   const g = await K.pg.evaluate(() => { const j = globalThis.__H42 && globalThis.__H42.job(); if (!j || j.kind !== 'horns58') return null; const R = j.ref, tu = document.querySelector('.h42 svg text[data-turn58]'); return { h: R.hornAt(), t: R.targetAt(), r: R.ringR(), turn: tu ? tu.getAttribute('data-turn58') : null }; }).catch(() => null);
   if (!g || !g.h) return false; const r = K.rnd(), id = 7;
@@ -393,6 +427,8 @@ async function mount42(K) {
     if (!h || !h.on) {   // ── build 44 ── after stage 01: the vision (Phase B — he tries what the line says there, or goes back to the Mount), then the test
       const v = await K.pg.evaluate(() => { const V = globalThis.__SHIFT && globalThis.__SHIFT.vision; return V ? { on: !V.ended } : null; }).catch(() => null);
       if (v && v.on) { if (!K.R.vision44) { K.R.vision44 = K.el(); K.ev('vision'); } const r = K.rnd(); if (r < 0.45) await K.tryLine(s); else if (r < 0.7) await K.randomRight(s); else if (r < 0.85) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.2, W * 0.8), K.between(Hh * 0.3, Hh * 0.8), K.between(800, 4000)); K.ev('hold-walk'); } else await K.pokeButton(s, null, 'vision-poke'); await K.sleep(K.between(200, 600)); continue; }
+      if (h && !h.on && h.mode === 'test' && h.test60 && h.test && h.test.passed) { K.R.test60 = h.test; K.note('test60 passed'); break; }   /* ── build 60 ── chapter ד׳'s test */
+      if (h && !h.on && h.stg === 'ulam' && h.part === 'done') { K.R.ulam60 = { grades: h.grades, hands: h.hands, t55: h.t55, at: K.el() }; K.note('ulam done'); break; }   /* ── build 60 ── stage 13's end */
       const done44 = h && !h.on && h.mode === 'test' && h.test && h.test.passed;
       if (done44) { K.R.test44 = h.test; K.note('test passed'); break; }
       if (h && !h.on && h.stg === 'wall' && h.part === 'done') { K.R.wall45 = { grades: h.grades, hands: h.hands, at: K.el() }; K.note('wall done'); break; }   // ── build 45 ── stage 02's end
@@ -437,6 +473,9 @@ async function mount42(K) {
       else if (/המוט למטה|קצר מדי|הדלת שקעה|בשיא — הקישו/.test(L) && r < 0.85) await lever49k(K, L);
       else if (/אל הקשת|הצליל מזייף|המעלה הבאה/.test(L) && r < 0.85) { if (!(await steps49k(K))) await K.tryLine(s); }
       else if (h.pending || h.part === 'rope' || /מחזיקים/.test(L)) { const [W, Hh] = K.size(); await K.hold(K.between(W * 0.1, W * 0.9), K.between(Hh * 0.3, Hh * 0.85), K.between(800, 5000)); K.ev('hold-walk'); }
+      else if (/פנימה ⬅ החוצה ➡|משכו החוצה ➡|דחפו פנימה ⬅|גוון אחר ∙ הקישו|נכון ∙ האבן הבאה|הנדבך שלם ∙|אבן הפינה ∙ גררו/.test(L) && r < 0.88) { if (!(await waves60k(K))) await K.tryLine(s); }   /* ── build 60 ── */
+      else if (/החזיקו ✋|רסנו ↔|שקטה ∙ עזבו|שקטה ∙ הקישו|עוד מתנדנדת|מרכזו ↔|עד האמצע|הונחה ∙ לקורה|האחרונה בלי צל/.test(L) && r < 0.88) { if (!(await lintel60k(K))) await K.tryLine(s); }
+      else if (/גררו את העלה|תלית עלה/.test(L) && r < 0.88) { if (!(await vine60k(K))) await K.tryLine(s); }
       else if (/^הטו ⤵|עוד קצת ⤵|עבר את הקו|גלש מהתבנית|כל תבנית|לתבנית הבאה|הכיור נוצק/.test(L) && r < 0.88) { if (!(await pour59k(K))) await K.tryLine(s); }   /* ── build 59 ── */
       else if (/סובבו ⟳ ∙ עצרו בנקישה|נקישה ∙ עזבו|חזק מדי ∙ קצת חזרה|עוד ⟳ ∙ עד הנקישה|הדד ננעל/.test(L) && r < 0.88) { if (!(await screw59k(K))) await K.tryLine(s); }
       else if (/גררו לאט ⬆|מהר מדי ∙ לאט|כמעט במים/.test(L) && r < 0.88) { if (!(await mukhni59k(K, L))) await K.tryLine(s); }

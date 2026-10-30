@@ -52,14 +52,14 @@ test('build 43: one short instruction and a small source chip; the long explanat
   }
   assert.ok(SRC42.some((x) => x.includes('הר הבית היה חמש מאות אמה על חמש מאות אמה') && x.includes('מדות ב, א')));
   const h = read('src/game/har42.js'); assert.ok(!h.includes('מכוסה שלג'), 'the House\'s snow (War 5.222) is gone from the Mount\'s card');
-  assert.match(h, /\.\.\.\((?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?(?:STG === 'guf' \? SRC57 : )?(?:STG === 'sovev' \? SRC56 : )?(?:STG === 'yesod' \? SRC55 : )?STG === 'lishka' \? SRC50 : STG === 'nikanor' \? SRC49 : STG === 'nashim' \? SRC48 : STG === 'gates' \? SRC47 : STG === 'soreg' \? SRC46 : STG === 'wall' \? SRC45 : SRC42\)\.map\(\(x\) => `~\$\{x\}`\)/, 'the sources on the card');   // (build 45: each stage's; build 46: stage 03's; build 47: stage 04's; build 48: stage 05's)
+  assert.match(h, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?(?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?(?:STG === 'guf' \? SRC57 : )?(?:STG === 'sovev' \? SRC56 : )?(?:STG === 'yesod' \? SRC55 : )?STG === 'lishka' \? SRC50 : STG === 'nikanor' \? SRC49 : STG === 'nashim' \? SRC48 : STG === 'gates' \? SRC47 : STG === 'soreg' \? SRC46 : STG === 'wall' \? SRC45 : SRC42\)\.map\(\(x\) => `~\$\{x\}`\)/, 'the sources on the card');   // (build 45: each stage's; build 46: stage 03's; build 47: stage 04's; build 48: stage 05's)
   assert.match(h, /\.h42-line b\{display:block;[^}]*white-space:nowrap/); assert.match(h, /\.h42-line i\{font-style:normal;/);
 });
 
 test('build 43: the reveal ends where the opening began (VIEWS.olives), in the late sun, with a quick before/after crossfade; skippable; the before taken from the opening\'s own first frame', () => {
   const h = read('src/game/har42.js');
   assert.match(h, /if \(!f\.snap && f\.t > 0\.05 && STG === 'har'\) \{ f\.snap = true; try \{ if \(o\.snapshot\) st\.snapshot = o\.snapshot\(\);/);   // (build 45: stage 01's before only)
-  assert.match(h, /if \(o\.timeOfDay\) o\.timeOfDay\((?:STG === 'kiyor' \? 'dawn' : )?(?:STG === 'yesod' \|\| STG === 'sovev'(?: \|\| STG === 'guf')?(?: \|\| STG === 'karnot')? \? 'noon' : )?'golden'\);/); assert.match(h, /globalThis\.__T\.VIEWS\.olives/);
+  assert.match(h, /if \(o\.timeOfDay\) o\.timeOfDay\((?:STG === 'kiyor'(?: \|\| STG === 'ulam')? \? 'dawn' : )?(?:STG === 'yesod' \|\| STG === 'sovev'(?: \|\| STG === 'guf')?(?: \|\| STG === 'karnot')? \? 'noon' : )?'golden'\);/); assert.match(h, /globalThis\.__T\.VIEWS\.olives/);
   assert.match(h, /const r = st\.rev; r\.t \+= dt; const T = 6\.5,/); assert.match(h, /return r\.t > 9\.5;/); assert.match(h, /st\.rev\.t = Math\.max\(st\.rev\.t, 8\.9\)/);
   assert.match(h, /\.h42-before\{position:fixed;left:0;top:0;width:100vw;height:100vh;object-fit:cover;/);
   const g = read('src/game/index.js'); assert.match(g, /timeOfDay: \(k\) => \{ try \{ if \(W\.setTimeOfDay\) W\.setTimeOfDay\(k\);/);
@@ -83,7 +83,7 @@ test('build 43: Phase B — by a wall of the stages\' buildings the follow camer
 });
 
 test('build 43: GAME_BUILD 43; no Divine Name (by code points); עולי רגל', () => {
-  assert.equal(GAME_BUILD, 59);   // (build 44: the constant moved on) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
+  assert.equal(GAME_BUILD, 60);   // (build 44: the constant moved on) (build 45: again) (build 46: again) (build 47: again) (build 48: again) (build 49: again) (build 50: again) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], P = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/auto42-run.cjs', 'tools/cam41.js', 'tools/kid34/kidmodes.cjs', 'tools/kid34/kidpage.js', 'PROJECT.md']) {
     const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(P), `${f}: עולי רגל`);

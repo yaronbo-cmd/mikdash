@@ -4993,6 +4993,9 @@ export function createStages(ctx) {
     vs.grown = !!(o && o.grown); vs.demo = !!(o && o.demo);
     vineSync(was && !vs.grown);
   }
+  // ── fable32 (build 60) ── where the vine's next leaf will hang (the stage-13 act hangs the player's first leaf there: the blinking point);
+  // read-only — null while the vine is not hung ── /fable32 ──
+  function vineNext() { const K = vine.kinds[0]; if (!vine.on || !K) return null; const s = K.slots[Math.min(K.cap - 1, Math.max(0, K.want))]; return s ? { x: s.x, y: s.y, z: s.z } : null; }
   const vE = new THREE.Euler();
   function vineSlot(K, i, d) {
     const s = K.slots[i], a = clamp(d - i, 0, 1), k = a <= 0 ? 0 : a >= 1 ? 1 : easeBack(a);
@@ -8745,7 +8748,7 @@ export function createStages(ctx) {
     // GDD §12 world API (v2)
     // ── build 53 ── outlineThin(w, a): the footprint line's width and alpha factors (Phase A: ¼ and ½ — the inspector's review §4 important 12; 1, 1 elsewhere) ── /build 53 ──
     outlineThin: (w = 1, a = 1) => { try { outline.material.uniforms.uThin.value.set(+w || 1, +a || 1); OL.thinW = +w || 1; beams.material.opacity = +a || 1; } catch (e) { /* */ } },
-    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
+    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, vineNext, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)

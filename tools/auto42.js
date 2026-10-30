@@ -224,6 +224,53 @@
     }
     await until(() => { const j = H().job(); return !j || j.kind !== 'mukhni59'; }, 20000, 100);
   }
+  // ── build 60 ── stage 13: the waves (a wrong stone first set right — a drag its way, two taps for its shade; the pallet's stone turned to the
+  // shade wanted (the child: mostly); each stone dragged to its place and, before letting go, a small drag out or in — the child now and then
+  // the wrong way); the lintels (held, a drag against the swing while it swings, let go when still — the child a little before; then slid to
+  // the middle); the leaf (from the tray to the vine's blinking point) ── /build 60 ──
+  async function waves60() {
+    const pad = q('.h42-pad'), tap2 = async (x, y) => { for (let i = 0; i < 2; i++) { const id = ++pid; ev(pad, 'pointerdown', x, y, id); await sleep(60); ev(pad, 'pointerup', x, y, id); await sleep(140); } };
+    for (let k = 0; k < 160 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'waves60') break; const R = j.ref, J = R.J; if (!J || J.state().done) { await sleep(300); continue; }
+      await react(); const bad = R.wrong(), th = R.tap(), sg = R.outSign();
+      if (bad && bad.at) { if (bad.io) { const id = ++pid, x0 = bad.at.x, y0 = bad.at.y, dx = sg * bad.io * (th + 26); ev(pad, 'pointerdown', x0, y0, id); for (let i = 1; i <= 8; i++) { await sleep(30); ev(pad, 'pointermove', x0 + (dx * i) / 8, y0, id); } ev(pad, 'pointerup', x0 + dx, y0, id); } else await tap2(bad.at.x, bad.at.y); await sleep(450); continue; }
+      const w = R.want(), p0 = R.palAt(), s0 = R.slotAt(); if (!w || !p0 || !s0) { await sleep(300); continue; }
+      if (R.palShade() !== w.sh && (A.sk || rnd() < 0.75)) { await tap2(p0.x, p0.y); await sleep(250); continue; }
+      const io = A.sk || rnd() < 0.8 ? w.io : -w.io, dx = sg * io * (th + 18), id = ++pid;
+      ev(pad, 'pointerdown', p0.x, p0.y, id); for (let i = 1; i <= 12; i++) { await sleep(30); ev(pad, 'pointermove', p0.x + ((s0.x - p0.x) * i) / 12, p0.y + ((s0.y - p0.y) * i) / 12, id); }
+      for (let i = 1; i <= 4; i++) { await sleep(40); ev(pad, 'pointermove', s0.x + (dx * i) / 4, s0.y, id); } await sleep(120); ev(pad, 'pointerup', s0.x + dx, s0.y, id);
+      if (!A.wavesShot && R.laidN() >= 3) { A.wavesShot = 1; await sleep(300); await shot('waves60'); } await sleep(350);
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'waves60'; }, 20000, 100);
+  }
+  async function lintel60() {
+    const pad = q('.h42-pad');
+    for (let k = 0; k < 220 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'lintel60') break; const R = j.ref, J = R.J; if (!J) { await sleep(200); continue; } const s = J.state(); if (s.done) { await sleep(250); continue; }
+      await react();
+      if (s.phase === 'lift' || s.phase === 'hang') {
+        const id = ++pid, x0 = innerWidth * 0.5, y = innerHeight * 0.6; let x = x0; ev(pad, 'pointerdown', x, y, id); const t0 = performance.now(), aim = A.sk ? 0.7 : 0.8 + rnd() * 0.5;
+        while (performance.now() - t0 < 16000 && A.on) {
+          await sleep(40); const s2 = J.state(); if (s2.phase !== 'lift' && s2.phase !== 'hang') break;
+          const cd = R.calmDir(); if (cd && (A.sk || rnd() < 0.85)) { x = Math.max(innerWidth * 0.12, Math.min(innerWidth * 0.88, x + cd * (A.sk ? 7 : 4 + rnd() * 6))); ev(pad, 'pointermove', x, y, id); }
+          if (s2.phase === 'hang' && J.amp() <= J.still * aim && performance.now() - t0 > 350) break;
+        }
+        ev(pad, 'pointerup', x, y, id); if (!A.lintelShot) { A.lintelShot = 1; await sleep(500); await shot('lintel60'); } await sleep(500); continue;
+      }
+      if (s.phase === 'center') { const P2 = R.gear(), px = -s.off * P2.k * P2.s * (A.sk ? 1 : 0.8 + rnd() * 0.4), id = ++pid, x0 = innerWidth * 0.5, y0 = innerHeight * 0.55; ev(pad, 'pointerdown', x0, y0, id); for (let i = 1; i <= 8; i++) { await sleep(35); ev(pad, 'pointermove', x0 + (px * i) / 8, y0, id); } await sleep(80); ev(pad, 'pointerup', x0 + px, y0, id); await sleep(600); continue; }
+      await sleep(200);
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'lintel60'; }, 20000, 100);
+  }
+  async function vine60() {
+    for (let k = 0; k < 12 && A.on; k++) {
+      const j = H().job(); if (!j || j.kind !== 'vine60') break; const R = j.ref; if (R.hung()) { await sleep(400); continue; }
+      await react(); const b = q('.h60-leaf'), T = R.target(); if (!b || !T) { await sleep(300); continue; }
+      const a2 = R.trayAt(), id = ++pid; ev(b, 'pointerdown', a2.x, a2.y, id); for (let i = 1; i <= 14; i++) { await sleep(35); ev(b, 'pointermove', a2.x + ((T.x - a2.x) * i) / 14, a2.y + ((T.y - a2.y) * i) / 14, id); } ev(b, 'pointerup', T.x, T.y, id);
+      await sleep(1600); await shot('vine60');
+    }
+    await until(() => { const j = H().job(); return !j || j.kind !== 'vine60'; }, 20000, 100);
+  }
   async function horns58() {
     const pad = q('.h42-pad'); let k = 0;
     for (; k < 80 && A.on; k++) {
@@ -682,7 +729,7 @@
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */
       await shot((s.mode === 'test' ? 'test-act-' : 'act-') + (/^(giant|wcorner|top|lattice\d|leaf7)$/.test(s.part) ? s.part : j.kind));   // (build 45: the wall's giant, corner course and top course each its own shot)
-      if (j.kind === 'compass50') await compass50(); else if (j.kind === 'benches50') await benches50(); else if (j.kind === 'hub50') await hub50(); else if (j.kind === 'wheel50') await wheel50(); else if (j.kind === 'dome50') await dome50(); else if (j.kind === 'voyage') await voyage49(); else if (j.kind === 'lever49') await lever49(); else if (j.kind === 'hang49') await hang49(); else if (j.kind === 'steps49') await steps49(); else if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'lintel') { await lift47(j); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'lintel'; }, 15000, 100); } else if (j.kind === 'leaf') await leaf47(); else if (j.kind === 'names') await names47(); else if (j.kind === 'wood') await wood48(j); else if (j.kind === 'stone55') await stone55(); else if (j.kind === 'course56') await course56(); else if (j.kind === 'kevesh57') await kevesh57(); else if (j.kind === 'sid57') await sid57(); else if (j.kind === 'horns58') await horns58(); else if (j.kind === 'holes58') await holes58(); else if (j.kind === 'pyre58') await pyre58(); else if (j.kind === 'cast59') await pour59('cast59'); else if (j.kind === 'spigots59') await pour59('spigots59'); else if (j.kind === 'screw59') await screw59(); else if (j.kind === 'mukhni59') await mukhni59(); else if (j.kind === 'thread56') await thread56(); else if (j.kind === 'field55') await field55(); else if (j.kind === 'last55') await last55(); else if (j.kind === 'beams') { await beams48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'beams'; }, 15000, 100); } else if (j.kind === 'pegs') { await pegs48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'pegs'; }, 15000, 100); } else if (j.kind === 'corner48') await corner48(); else if (j.kind === 'walk48') await walk48(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
+      if (j.kind === 'compass50') await compass50(); else if (j.kind === 'benches50') await benches50(); else if (j.kind === 'hub50') await hub50(); else if (j.kind === 'wheel50') await wheel50(); else if (j.kind === 'dome50') await dome50(); else if (j.kind === 'voyage') await voyage49(); else if (j.kind === 'lever49') await lever49(); else if (j.kind === 'hang49') await hang49(); else if (j.kind === 'steps49') await steps49(); else if (j.kind === 'lift') await lift(); else if (j.kind === 'line') await line45(); else if (j.kind === 'pulley') await pulley45(); else if (j.kind === 'corner') await corner(); else if (j.kind === 'lattice') await lattice46(); else if (j.kind === 'lintel') { await lift47(j); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'lintel'; }, 15000, 100); } else if (j.kind === 'leaf') await leaf47(); else if (j.kind === 'names') await names47(); else if (j.kind === 'wood') await wood48(j); else if (j.kind === 'stone55') await stone55(); else if (j.kind === 'course56') await course56(); else if (j.kind === 'kevesh57') await kevesh57(); else if (j.kind === 'sid57') await sid57(); else if (j.kind === 'horns58') await horns58(); else if (j.kind === 'holes58') await holes58(); else if (j.kind === 'pyre58') await pyre58(); else if (j.kind === 'cast59') await pour59('cast59'); else if (j.kind === 'spigots59') await pour59('spigots59'); else if (j.kind === 'screw59') await screw59(); else if (j.kind === 'mukhni59') await mukhni59(); else if (j.kind === 'waves60') await waves60(); else if (j.kind === 'lintel60') await lintel60(); else if (j.kind === 'vine60') await vine60(); else if (j.kind === 'thread56') await thread56(); else if (j.kind === 'field55') await field55(); else if (j.kind === 'last55') await last55(); else if (j.kind === 'beams') { await beams48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'beams'; }, 15000, 100); } else if (j.kind === 'pegs') { await pegs48(); await until(() => { const j2 = H().job(); return !j2 || j2.kind !== 'pegs'; }, 15000, 100); } else if (j.kind === 'corner48') await corner48(); else if (j.kind === 'walk48') await walk48(); else if (j.kind === 'warn') await warn46(); else if (j.kind === 'bows') await bows46(); else if (j.kind === 'rock') await rock(); else if (j.kind === 'course') await course(); else if (j.kind === 'roll') await roll(); else if (j.kind === 'pave') await pave(); else if (j.kind === 'trace') await trace();
       await sleep(200);
     }
   }

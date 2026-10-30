@@ -1276,3 +1276,75 @@ export function createMukhni59(L = 1) {
   }
   return { pay, state: () => k, vmax: C.vmax[lv], soft: C.soft[lv], result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
 }
+
+/* ── build 60 ── STAGE 13, האולם (docs/specs/shlav-alef-08-16-he.md §3 "13") ── /build 60 ── */
+/** "גלי הים" (PLACE): "אַפֵּיק שָׂפָה וְעַיֵּיל שָׂפָה" (בבא בתרא ד ע"א) — a course out, a course in, in two shades. A course of n stones laid from
+ *  the corner: each set out (+1) or in (−1) by a small drag ➡/⬅ before the finger lifts, its shade changed by a double tap. The whole course
+ *  one way (the opposite of the course under it); its shades alternate stone by stone, the first the opposite of the stone under it — the
+ *  pattern held the whole course: rhythm and memory. A stone laid wrong is flagged at once (a correction) and set right by a drag on it or a
+ *  double tap. Level 1: each slot's shadow shows its way and shade, and a stone let go level with the face goes the shadow's way (rule 7);
+ *  levels 2–4 no shadow — the course under it is the pattern. Its grade: the stones laid wrong. The two shades and the rule: המחשה */
+export const WAVES60 = Object.freeze({ n: Object.freeze([null, 5, 6, 6, 7]), more: 2, off: 0.32, hi: 1, mid: 3 });
+export function createWaves60(n, L = 1, o = {}) {
+  const lv = clamp(L | 0, 1, 4), k = { L: lv, n: Math.max(1, n | 0), out: o.out !== false, shade0: Math.abs(o.shade0 | 0) % 2, stones: [], errs: 0, done: false, q: null };
+  const want = (i) => ({ io: k.out ? 1 : -1, sh: (k.shade0 + i) % 2 });
+  const okAt = (i) => { const s = k.stones[i], w = want(i); return !!s && s.io === w.io && s.sh === w.sh; };
+  const finish = () => { if (!k.done && k.stones.length >= k.n && k.stones.every((_, i) => okAt(i))) { k.done = true; k.q = k.errs <= WAVES60.hi ? 1 : k.errs <= WAVES60.mid ? 0.65 : 0.3; } };
+  /** a stone let go on the next slot: its way (+1 out, −1 in, 0 level with the face) and its shade (0, 1) → { i, io, sh, okIo, okSh, ok } */
+  function lay(io, sh) {
+    if (k.done || k.stones.length >= k.n) return null;
+    const i = k.stones.length, w = want(i); let v = io > 0 ? 1 : io < 0 ? -1 : 0; if (v === 0 && lv <= 1) v = w.io;
+    const s = { io: v, sh: sh ? 1 : 0 }; k.stones.push(s);
+    const okIo = s.io === w.io, okSh = s.sh === w.sh; if (!okIo) k.errs++; if (!okSh) k.errs++;
+    finish(); return { i, io: s.io, sh: s.sh, okIo, okSh, ok: okIo && okSh };
+  }
+  /** a laid stone pushed out (+1) or in (−1) → it is right now */
+  function nudge(i, io) { const s = k.stones[i]; if (!s || k.done) return okAt(i); const v = io > 0 ? 1 : io < 0 ? -1 : 0; if (!v) return okAt(i); const was = s.io === want(i).io; s.io = v; if (was && s.io !== want(i).io) k.errs++; finish(); return okAt(i); }
+  /** a laid stone's shade changed (a double tap) → it is right now */
+  function flip(i) { const s = k.stones[i]; if (!s || k.done) return okAt(i); const was = s.sh === want(i).sh; s.sh = 1 - s.sh; if (was) k.errs++; finish(); return okAt(i); }
+  return { lay, nudge, flip, want, okAt, state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}
+/** THE LINTELS (LIFT + FIT): five oak beams over the Ulam's opening — "הַתַּחְתּוֹנָה עוֹדֶפֶת עַל הַפֶּתַח אַמָּה מִזֶּה וְאַמָּה מִזֶּה" (מדות ג, ז), each over
+ *  the one under it. Held, the beam rises on its ropes and swings (a pendulum along its length); small drags against the swing calm it (the
+ *  finger's pace against the beam's takes its speed — with it, a little more); let go when it is still, it is lowered onto its place —
+ *  still swinging, it knocks the jamb (a correction; it hangs again); then centred — drags slide it, let go with the same overhang on both
+ *  sides. Each beam two amot longer than the one under it, and it swings more: five beams, five steps of difficulty */
+export const LINTEL60 = Object.freeze({ amp: Object.freeze([0.8, 1.05, 1.3, 1.55, 1.8]), per: Object.freeze([2.6, 2.8, 3.0, 3.2, 3.4]), damp: Object.freeze([null, 0.34, 0.16, 0.1, 0.07]), still: Object.freeze([null, 0.42, 0.3, 0.22, 0.16]), calm: 0.5, pump: 0.06, rise: 0.75, fall: 0.35, hold: 0.3, ctr: Object.freeze([null, 0.5, 0.3, 0.22, 0.15]), snap: 0.75, off: Object.freeze([null, 1.0, 1.3, 1.6, 1.9]) });
+export const lintelLen60 = (i) => 22 + 2 * (i | 0);   // (the bottom one: the opening's 20 and an amah each side; each two amot longer)
+export function createLintel60(i = 0, L = 1, rnd = Math.random) {
+  const C = LINTEL60, lv = clamp(L | 0, 1, 4), b = clamp(i | 0, 0, 4), w = (2 * Math.PI) / C.per[b];
+  const k = { i: b, L: lv, phase: 'lift', y: 0, s: 0, v: 0, held: false, started: false, knocks: 0, misses: 0, off: 0, t: 0, lowT: 0, done: false, q: null, w };
+  const amp = () => Math.hypot(k.s, k.v / w);
+  function hold() { if (k.done) return; k.held = true; if (!k.started) { k.started = true; k.v = C.amp[b] * w * (rnd() < 0.5 ? -1 : 1); } }
+  /** the finger up after held for heldS seconds → 'none' | 'knock' (still swinging: a correction, it hangs again) | 'lower' | 'set' | 'miss' */
+  function release(heldS = 1) {
+    const was = k.held; k.held = false; if (k.done || !was) return 'none';
+    if (k.phase === 'hang') {
+      if (amp() > C.still[lv] && heldS < C.hold) return 'none';   // (a quick tap while it swings: nothing — it knocks only when let go after a hold; still, a tap lowers it)
+      if (amp() <= C.still[lv]) { k.phase = 'lower'; k.lowT = 0; k.off = clamp(k.s + (rnd() < 0.5 ? -1 : 1) * C.off[lv] * (0.7 + 0.6 * rnd()), -3, 3); return 'lower'; }
+      k.knocks++; k.v += (k.v >= 0 ? 1 : -1) * w * 0.25; return 'knock';
+    }
+    if (k.phase === 'center') {
+      const tol = lv <= 1 ? C.snap : C.ctr[lv];
+      if (Math.abs(k.off) <= tol) { k.off = 0; k.phase = 'set'; k.done = true; const f = k.knocks + k.misses; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'set'; }
+      k.misses++; return 'miss';
+    }
+    return 'none';
+  }
+  /** time; u: the finger's pace along the beam (amot a second) while it is held */
+  function step(dt, u = 0) {
+    if (k.done || !(dt > 0)) return k.phase; k.t += dt;
+    if (k.phase === 'lift') { if (k.held) k.y = Math.min(1, k.y + C.rise * dt); else k.y = Math.max(0, k.y - C.fall * dt); if (k.y >= 1) k.phase = 'hang'; }
+    if (k.phase === 'lift' || k.phase === 'hang') {
+      if (k.started) {
+        let v = k.v + (-w * w * k.s - C.damp[lv] * k.v) * dt;
+        if (k.held && u) { if (u * v < 0) v = Math.sign(v) * Math.max(0, Math.abs(v) - C.calm * Math.abs(u) * dt); else v += C.pump * u * dt; }
+        k.v = v; k.s += k.v * dt;
+      }
+    } else if (k.phase === 'lower') { k.lowT += dt; k.s *= Math.exp(-dt * 6); k.v *= Math.exp(-dt * 6); if (k.lowT >= 0.7) { k.phase = 'center'; k.s = 0; k.v = 0; } }
+    return k.phase;
+  }
+  /** centred by a drag: the beam slid dz amot along its length */
+  function slide(dz) { if (k.phase !== 'center' || k.done) return k.off; k.off = clamp(k.off + (+dz || 0), -3, 3); return k.off; }
+  return { hold, release, step, slide, amp, still: C.still[lv], tol: lv <= 1 ? C.snap : C.ctr[lv], len: lintelLen60(b), state: () => k, result: () => (k.done ? { q: k.q, rating: rate30(k.q) } : null) };
+}

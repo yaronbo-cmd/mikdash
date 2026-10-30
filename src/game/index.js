@@ -528,6 +528,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     try { if (/[?&]h58go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'karnot')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.test50 = Object.assign(S4.test50 || { jobs: {} }, { passed: true }); S4.yesod = Object.assign(S4.yesod || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.sovev = Object.assign(S4.sovev || { grades: [], hands: 0, open: 1 }, { part: 5, done: Date.now() }); S4.guf = Object.assign(S4.guf || { grades: [], hands: 0, open: 1 }, { part: 4, done: Date.now() }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     // ── fable32 (build 59) ── the developers' fixture ?h59go=1: straight to stage 12 (the stages before it done, chapter ג׳'s test passed) ── /fable32 ──
     try { if (/[?&]h59go=1(&|$)/.test(location.search || '') && !S.isDone(G, 'kiyor')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.test50 = Object.assign(S4.test50 || { jobs: {} }, { passed: true }); S4.yesod = Object.assign(S4.yesod || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.sovev = Object.assign(S4.sovev || { grades: [], hands: 0, open: 1 }, { part: 5, done: Date.now() }); S4.guf = Object.assign(S4.guf || { grades: [], hands: 0, open: 1 }, { part: 4, done: Date.now() }); S4.karnot = Object.assign(S4.karnot || { grades: [], hands: 0, open: 1 }, { part: 5, done: Date.now() }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
+    // ── fable32 (build 60) ── the developers' fixtures ?h60test=1: straight to the craftsman's test before chapter ד׳ (the stages through 12 done the new way); ?h60go=1: and it passed — straight to stage 13 ── /fable32 ──
+    try { if (/[?&]h60(test|go)=1(&|$)/.test(location.search || '') && !S.isDone(G, 'ulam')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.test50 = Object.assign(S4.test50 || { jobs: {} }, { passed: true }); S4.yesod = Object.assign(S4.yesod || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); S4.sovev = Object.assign(S4.sovev || { grades: [], hands: 0, open: 1 }, { part: 5, done: Date.now() }); S4.guf = Object.assign(S4.guf || { grades: [], hands: 0, open: 1 }, { part: 4, done: Date.now() }); S4.karnot = Object.assign(S4.karnot || { grades: [], hands: 0, open: 1 }, { part: 5, done: Date.now() }); S4.kiyor = Object.assign(S4.kiyor || { grades: [], hands: 0, open: 1 }, { part: 5, done: Date.now() }); if (/[?&]h60go=1(&|$)/.test(location.search || '')) S4.test60 = Object.assign(S4.test60 || { jobs: {} }, { passed: true }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     // ── fable32 (build 50) ── ?h50test=1: straight to the craftsman's test before chapter ג׳ (the chambers done the new way) ── /fable32 ──
     try { if (/[?&]h50test=1(&|$)/.test(location.search || '') && !S.isDone(G, 'yesod')) { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka']) if (!S.isDone(G, id)) S.completeStage(G, id); G.ftue = Math.max(G.ftue | 0, 99); G.op = 1; if (G.st.wall) G.st.wall.h45 = 1; G.vision44 = 1; try { localStorage.setItem('bh_vision44', '1'); } catch (e) { /* */ } const S4 = load42(); S4.test44 = Object.assign(S4.test44 || { jobs: {} }, { passed: true }); S4.lishka = Object.assign(S4.lishka || { grades: [], hands: 0, open: 1 }, { part: 6, done: Date.now() }); save42(S4); persist(); syncWorld(null); } } catch (e) { /* */ }
     ensureWall45();   // ── fable32 (build 46) ── his stones in the court wall, from the save ── /fable32 ──
@@ -545,6 +547,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     else if (wanted57()) startHar57();   // ── fable32 (build 57) ── stage 10, the altar's body and the kevesh, the new way ── /fable32 ──
     else if (wanted58()) startHar58();   // ── fable32 (build 58) ── stage 11, the horns, the holes and the first fire, the new way ── /fable32 ──
     else if (wanted59()) startHar59();   // ── fable32 (build 59) ── stage 12, the laver: cast, its twelve spigots, the mukhni at night, the new way ── /fable32 ──
+    else if (wantedTest60()) startH44('test', '', 60);   // ── fable32 (build 60) ── the craftsman's test before chapter ד׳ ── /fable32 ──
+    else if (wanted60()) startHar60();   // ── fable32 (build 60) ── stage 13, the Ulam: the waves of the sea, the lintels, the first leaf, the new way ── /fable32 ──
     else if (isNew || G.ftue < 99) runFtue();
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
@@ -3332,6 +3336,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       onExit: (done, next) => {
         H42 = null; try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ }
         if (next === 'yard') { startH44('yard', 'test', test); return; }
+        if (mode === 'yard' && test === 60 && (back === 'test' || wantedTest60())) { if (wantedTest60()) startH44('test', '', 60); return; }   // ── fable32 (build 60) ── (from chapter ד׳'s test to the yard and back) ── /fable32 ──
+        if (mode === 'test' && test === 60 && done) { try { ui.toast && ui.toast('פרק ד׳ נפתח — הבית'); } catch (e) { /* */ } if (wanted60()) setTimeout(() => { if (!H42) startHar60(); }, 400); return; }   // ── fable32 (build 60) ── (the test passed: stage 13 at once) ── /fable32 ──
         if (mode === 'yard' && test === 50 && (back === 'test' || wantedTest50())) { if (wantedTest50()) startH44('test', '', 50); return; }   // ── fable32 (build 50) ── (from chapter ג׳'s test to the yard and back) ── /fable32 ──
         if (mode === 'test' && test === 50 && done) { try { ui.toast && ui.toast('פרק ג׳ נפתח — המזבח'); } catch (e) { /* */ } if (wanted55()) setTimeout(() => { if (!H42) startHar55(); }, 400); return; }   // ── fable32 (build 55) ── (the test passed: stage 08 at once) ── /fable32 ──
         if (mode === 'yard' && (back === 'test' || wantedTest44())) { if (wantedTest44()) startH44('test'); return; }
@@ -3568,11 +3574,44 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     hideNext44();
     const nx = STAGES.find((x) => x.id === 'ulam');
     H42 = createHar42({
-      stage: 'kiyor', stages: world && (world.stages || world), view, nextName: nx ? nx.n : '',
+      stage: 'kiyor', stages: world && (world.stages || world), view, nextName: nx ? 'מבחן אומן, ואחריו — ' + nx.n : '',
       emit: (t, d) => emit(t, d), sound: (k) => { try { sfx.play(k); } catch (e) { /* a sound we lack */ } },
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
       complete: () => { const out = S.completeStage(G, 'kiyor'); persist(); syncWorld(null); hideNext44(); setTimeout(() => { try { kiyorFlow(); } catch (e) { /* */ } }, 4200); return out; },
+      onExit: (done) => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } if (done && wantedTest60()) setTimeout(() => { if (!H42) startH44('test', '', 60); }, 400); },   // ── fable32 (build 60) ── (the test before chapter ד׳) ── /fable32 ──
+    });
+    H42.start();
+  }
+  // ── fable32 (build 60) ── the craftsman's test before chapter ד׳ (the House, 13–15): after stage 12 done the new way; ?test60=0: none ── /fable32 ──
+  function wantedTest60() {
+    if (!G || G.demo || !S.isDone(G, 'kiyor') || globalThis.__H44_OFF) return false;
+    try { if (/[?&](test60=0|stick=1|har42=0)(&|$)/.test(location.search || '')) return false; } catch (e) { /* */ }
+    for (const id of ['ulam', 'heichal', 'kodesh']) { const w = G.st && G.st[id]; if (S.isDone(G, id) || (w && (w.p > 0 || w.c > 0))) return false; }
+    const S4 = load42(); if (!(S4.kiyor && S4.kiyor.done)) return false; const t = S4.test60; return !(t && t.passed);
+  }
+  // ── fable32 (build 60) ── stage 13, האולם (har42 STG 'ulam' — docs/specs/shlav-alef-08-16-he.md §3 "13"): after chapter ד׳'s test; the old
+  // flow behind ?ulam60=0, ?stick=1, ?har42=0, the demo, the Ulam begun the old way. Its vine act hangs the player's first leaf (G.vine) ── /fable32 ──
+  function wanted60() {
+    if (!G || G.demo || !['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor'].every((id) => S.isDone(G, id)) || S.isDone(G, 'ulam') || globalThis.__H60_OFF) return false;
+    try { if (/[?&](ulam60=0|stick=1|har42=0)(&|$)/.test(location.search || '')) return false; } catch (e) { /* */ }
+    if (wantedTest44() || wantedTest50() || wantedTest60()) return false;
+    const S4 = load42(); if (!(S4.test60 && S4.test60.passed)) return false;
+    const w = G.st && G.st.ulam; return !(w && (w.p > 0 || w.c > 0));
+  }
+  function startHar60() {
+    if (H42 && H42.on) return;
+    for (const c of G.crews || []) if (c.at === 'ulam') c.at = null;
+    hideNext44();
+    const nx = STAGES.find((x) => x.id === 'heichal');
+    H42 = createHar42({
+      stage: 'ulam', stages: world && (world.stages || world), view, nextName: nx ? nx.n : '',
+      emit: (t, d) => emit(t, d), sound: (k) => { try { sfx.play(k); } catch (e) { /* a sound we lack */ } },
+      keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
+      timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },
+      vineSync: () => { try { W.setVine(S.vineSize(G)); } catch (e) { /* */ } },
+      leaf: () => { try { if (G.vine && typeof G.vine === 'object') G.vine.leaves = (G.vine.leaves | 0) + 1; persist(); W.setVine(S.vineSize(G)); emit('h60leaf', { leaves: G.vine ? G.vine.leaves : 0 }); } catch (e) { /* */ } },
+      complete: () => { const out = S.completeStage(G, 'ulam'); persist(); syncWorld(null); hideNext44(); return out; },
       onExit: (done) => { H42 = null; tod = null; try { syncTime(); } catch (e) { /* */ } try { syncWorld(null); } catch (e) { /* */ } try { ui.refresh(); } catch (e) { /* */ } },
     });
     H42.start();

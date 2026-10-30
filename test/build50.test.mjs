@@ -66,14 +66,14 @@ test('build 50: the stage — its parts and lines, no chisel in the courts, the 
   assert.deepEqual(YARD44.slice(18).map((v) => v.part), ['compass', 'wheel', 'arch']);
   const c = F.MAT42.cost; assert.ok(c.compass > 0 && c.benches > 0 && c.hub > 0 && c.wheel > 0 && c.dome > 0);
   const h = read('src/game/har42.js');
-  assert.match(h, /o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?(?:o\.stage === 'sovev' \? 'sovev' : )?(?:o\.stage === 'guf' \? 'guf' : )?(?:o\.stage === 'karnot' \? 'karnot' : )?(?:o\.stage === 'kiyor' \? 'kiyor' : )?'har';/); assert.match(h, /STG === 'lishka' \? PARTS50 :/);
+  assert.match(h, /o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?(?:o\.stage === 'sovev' \? 'sovev' : )?(?:o\.stage === 'guf' \? 'guf' : )?(?:o\.stage === 'karnot' \? 'karnot' : )?(?:o\.stage === 'kiyor' \? 'kiyor' : )?(?:o\.stage === 'ulam' \? 'ulam' : )?'har';/); assert.match(h, /STG === 'lishka' \? PARTS50 :/);
   for (const k of ['compass', 'benches', 'hub', 'wheel', 'dome', 'arch', 'log2']) assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
   assert.match(h, /if \(STG === 'lishka' && R\.part > 0\) \{ try \{ if \(stages\.setStage\) stages\.setStage\('lishka', 'done', 1, \{ instant: true \}\); \}/, 'the chambers stand while he works: no saw or chisel in the courts');
   assert.ok(!/אזמל|מסתת|לסתת/.test(h.slice(h.indexOf('/* ── build 50 ── stage 07\'s acts'), h.indexOf('/* ── build 47 ── stage 04\'s acts'))), 'no chisel in stage 07\'s acts');
   assert.match(h, /ctl\.maxPolarAngle = Math\.PI - 0\.05;/, 'from inside, looking up'); assert.match(h, /if \(ctl && polar0 != null\) ctl\.maxPolarAngle = polar0;/, 'and the orbit\'s floor back');
   for (const line of [h, read('src/game/fam42.js')].join('\n').split('\n')) { const i = line.indexOf('//'); if (i < 0 || /https?:|'[^']*\/\/|`[^`]*\/\//.test(line)) continue; assert.ok(!/\b(target|frame|view|begin|end|down|up|move): \(/.test(line.slice(i)), `code after a comment: ${line.slice(i, i + 120)}`); }
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted50\(\)\) startHar50\(\);/); assert.match(g, /\(lishka50=0\|stick=1\|har42=0\)/); assert.match(g, /h50go=1/); assert.match(g, /if \(done && wanted50\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar50\(\); \}, 400\);/);
-  assert.equal(GAME_BUILD, 59);   // (build 51: the constant moved on)
+  assert.equal(GAME_BUILD, 60);   // (build 51: the constant moved on)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

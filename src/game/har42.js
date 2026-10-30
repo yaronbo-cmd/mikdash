@@ -2617,7 +2617,7 @@ export function createHar42(o = {}) {
       frame(dt) {
         if (!J) return false; const k = J.state(), y = seat60(b), len = F.lintelLen60(b);
         let u = 0; const a = st.act; if (a && a.down && (k.phase === 'lift' || k.phase === 'hang')) { const P2 = pxA(); if (lastX != null && dt > 0) u = Math.max(-30, Math.min(30, ((a.x - lastX) / P2.k / dt) * P2.s)); lastX = a.x; }   // (a finger's pace along the beam, amot a second — capped: a jump of the finger is no push)
-        J.step(dt, u); knockT = Math.max(0, knockT - dt * 1.6); pose();
+        J.step(dt, u); knockT = Math.max(0, knockT - dt * 1.6); pose(); if (ghost) ghost.visible = k.phase !== 'center' && k.phase !== 'set';   // (centring: the beam where the shadow was — the shadow off, the amah marks and the overhangs on)
         crew.forEach((w, i) => { const ph = now() * 2.4 + i; w.userData.arms[0].rotation.x = -1.9 + Math.sin(ph) * 0.25; w.userData.arms[1].rotation.x = -1.7 + Math.sin(ph + 1) * 0.25; });
         objPlace(endT < 0, [{ x: U60.lx, y: y - 1.6, z: -len / 2, r: 0.6 }, { x: U60.lx, y: y + 3.9, z: len / 2, r: 0.6 }], 'h60lintel', [{ x: U60.lx, y: y - 1.6, z: -len / 2, r: 0.6 }, { x: U60.lx, y: y + 3.9, z: len / 2, r: 0.6 }, { x: U60.lx, y: bm.position.y, z: bm.position.z, r: 0.6 }]);
         svgClear();
@@ -2632,7 +2632,7 @@ export function createHar42(o = {}) {
           }
           if (k.phase === 'center' && q) {
             const sOut = proj(U60.lx, y, U60.open), nOut = proj(U60.lx, y, -U60.open), ovS = len / 2 + k.off - U60.open, ovN = len / 2 - k.off - U60.open, okC = Math.abs(k.off) <= J.tol, col = okC ? '#7CD86A' : '#FFE6A0';
-            for (const [P3, v] of [[sOut, ovS], [nOut, ovN]]) if (P3) svgAdd(`<text x="${P3.x}" y="${P3.y + 46}" font-size="20" font-weight="900" text-anchor="middle" fill="${col}" stroke="#2A1804" stroke-width="4" paint-order="stroke" data-over60="1">${fmt(v)} אמה</text>`);
+            for (const [P3, v] of [[sOut, ovS], [nOut, ovN]]) if (P3) svgAdd(`<text x="${P3.x}" y="${P3.y + 46}" font-size="20" font-weight="900" text-anchor="middle" fill="${col}" stroke="#2A1804" stroke-width="4" paint-order="stroke" data-over60="1">\u2066${fmt(v)}\u2069 אמה</text>`);   // (the number isolated left-to-right: "2½" in a right-to-left line)
             if (!okC) { const P2 = pxA(), dir = -Math.sign(k.off) * P2.s; svgAdd(`<text x="${q.x + dir * 60}" y="${q.y + 8}" font-size="32" font-weight="900" text-anchor="middle" fill="#FFE6A0" stroke="#2A1804" stroke-width="4" paint-order="stroke" data-slide60="${dir > 0 ? 'r' : 'l'}">${dir > 0 ? '➡' : '⬅'}</text>`); }
           }
         }

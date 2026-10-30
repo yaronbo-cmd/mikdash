@@ -225,6 +225,8 @@ import { hasDivineName } from '../src/avodah/data.js';
 test('Phase A → B: the menu button follows the building (preview → the altar → Chanukat HaBayit); soft gate by default', () => {
   const G = S.fresh(T0);
   assert.equal(AV.avodahStage(G), 'building');
+  assert.equal(AV.menuLabel(G), null);   // ── fable32 (build 44) ── (v2 §12: no gold button for players before Chanukat HaBayit; the labels below: the hidden test switch) ── /fable32 ──
+  globalThis.__FORCE_SHIFT = 'card';
   assert.match(AV.menuLabel(G).t, /הצצה/);
   G.st.karnot = { done: true };
   assert.equal(AV.avodahStage(G), 'altar');
@@ -237,6 +239,7 @@ test('Phase A → B: the menu button follows the building (preview → the altar
   assert.equal(AV.menuLabel(H, 'hard'), null);
   H.demo = true;
   assert.ok(AV.menuLabel(H, 'hard'));
+  delete globalThis.__FORCE_SHIFT;   // ── fable32 (build 44) ── ── /fable32 ──
   assert.equal(AV.GATE, 'soft', 'the owner decides (⚑); everything stays reachable meanwhile');
 });
 
@@ -256,7 +259,8 @@ test('Phase A → B: the altar invitation shows once, and "go" hands over to Pha
   const G = S.fresh(T0); G.st.karnot = { done: true };
   let entered = 0, shown = 0, answer = 'go';
   const store = new Map();
-  globalThis.localStorage = { setItem: (k, v) => store.set(k, v), getItem: (k) => store.get(k) ?? null };
+  globalThis.localStorage = { setItem: (k, v) => store.set(k, v), getItem: (k) => store.get(k) ?? null, removeItem: (k) => store.delete(k) };
+  store.set('bh_tester44', '1');   // ── fable32 (build 44) ── (the altar's invitation: testers only — v2 §12) ── /fable32 ──
   const HK = createHooks({ G: () => G, now: () => T0, ui: { modal: async (html) => { shown++; assert.match(html, /עזרא ג, [דו]/); return answer; } }, act: { canAvodah: true, enterAvodah: () => { entered++; } } });
   assert.equal(await HK.avodahInvite('altar'), true);
   assert.equal(entered, 1); assert.equal(shown, 1);

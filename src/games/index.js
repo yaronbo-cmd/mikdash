@@ -42,10 +42,10 @@ export const PAID_PER_DAY = 6;
 /* ── FUN11 (wave 11): which game fits which stage — variety with a reason. The first is the stage's own; the next ones take its
    turn when it was the last offered. The line is the invitation's (the true fact with its source comes at the game's end). ── */
 export const STAGE_GAMES = {
-  har: ['sling', 'knuckle'], wall: ['stack', 'four'], gates: ['four', 'memory'], nashim: ['torches', 'levites'], sorag: ['knuckle', 'four'],
-  nikanor: ['levites', 'torches'], lishka: ['levites', 'nuts'], yesod: ['nuts', 'race'], sovev: ['race', 'four'], guf: ['race', 'memory'],
+  har: ['sling', 'knuckle'], wall: ['stack', 'four'], gates: ['four', 'memory'], nashim: ['levites', 'memory'], sorag: ['knuckle', 'four'],   // ── fable32 (build 48) ── (no torches by the women's court and Nikanor: "שמונה אבוקות" is שמחת בית השואבה's — the owner: it opens on its date in Phase B) ── /fable32 ──
+  nikanor: ['race', 'memory'], lishka: ['levites', 'nuts'], yesod: ['nuts', 'race'], sovev: ['race', 'four'], guf: ['race', 'memory'],
   karnot: ['race', 'levites'], kiyor: ['memory', 'race'], ulam: ['stack', 'memory'], heichal: ['memory', 'levites'], kodesh: ['memory', 'stack'],
-};   // (games13: נשים — the lamps of שמחת בית השואבה stood in עזרת הנשים, סוכה ה, ב · הסורג — the Mount's plaza, where the bones were found · היסוד — the Pesach's blood at the altar's base, the children's nuts that night)
+};   // ── fable32 (build 49) ── (Nikanor: the Levites' song is now the stage's own steps — the game built there, not a board beside it) ── /fable32 ──   // (games13: נשים — the lamps of שמחת בית השואבה stood in עזרת הנשים, סוכה ה, ב · הסורג — the Mount's plaza, where the bones were found · היסוד — the Pesach's blood at the altar's base, the children's nuts that night)
 export const WHY = {
   sling: 'על ההר הזה קנה דוד את גורן ארוונה (שמואל ב כד, כד). עכשיו הקלע שלו: חמש אבנים מן הנחל.',
   stack: 'בנית נדבכים — עכשיו נדבך על נדבך: כמה נדבכים ישרים תניח זה על זה?',

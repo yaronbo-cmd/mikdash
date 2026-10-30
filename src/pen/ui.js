@@ -109,7 +109,8 @@ const CSS = `
  .pn-sec{min-height:44px;margin-top:6px}
  .pn-stars3{font-size:30px;margin:0}
  .pn-card .pn-lambpic{width:90px;height:45px}
-}`;
+}
+@media ${LAND} and (max-height:330px){.pn-card .pn-lambpic{display:none}.pn-card{max-height:100%;overflow-y:auto}}`;   // ── fable32 (build 34) ── (on a 296-px-high phone the start card ran 20 px over the screen and cut its title "הוצאת הטלה מהדיר · שלב N": the lamb's small picture goes, and the card scrolls if it still would not fit) ── /fable32 ──
 let cssDone = false;
 function css() {
   if (cssDone || !globalThis.document) return;

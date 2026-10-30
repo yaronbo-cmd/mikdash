@@ -58,14 +58,14 @@ ok('facts: every game ends on a fact with its source; no Name letters anywhere; 
 ok('the game of the stage: every stage has one, every game is some stage\'s own, and the last offered steps aside', () => {
   const ids = GAMES.map((g) => g.id);
   for (const s of STAGES) { const l = STAGE_GAMES[s.id]; assert.ok(Array.isArray(l) && l.length >= 2 && l.every((g) => ids.includes(g)), s.id); }
-  for (const g of ids) assert.ok(STAGES.some((s) => STAGE_GAMES[s.id][0] === g), `${g} is some stage's own game`);
+  for (const g of ids) if (g !== 'torches') assert.ok(STAGES.some((s) => STAGE_GAMES[s.id][0] === g), `${g} is some stage's own game`);   // (build 48: torches — שמחת בית השואבה's — no stage's: it opens on its date in Phase B)
   const G = { games: {} };
   for (const s of STAGES) {
     const a = pickFor(G, s.id); assert.equal(a, STAGE_GAMES[s.id][0]);
     G.games.lastOffer = a; const b = pickFor(G, s.id); assert.notEqual(b, a, `${s.id}: not the same game twice in a row`);
     G.games.lastOffer = '';
   }
-  const t = tableInfo({ games: {}, focus: 'nikanor' });
+  const t = tableInfo({ games: {}, focus: 'nashim' });   // (build 49: Nikanor's steps are the Levites' song itself now — the women's court's own game)
   assert.equal(t.game, 'levites'); assert.ok(/שולחן המשחקים/.test(t.title) && /שיר הלויים/.test(t.sub), JSON.stringify(t));
   const NAME = new RegExp([0x5d9, 0x5d4, 0x5d5, 0x5d4].map((c) => String.fromCharCode(c)).join(''));
   for (const [k, line] of Object.entries(WHY)) { assert.ok(ids.includes(k) && line.length > 20 && !NAME.test(line), k); }
@@ -73,7 +73,7 @@ ok('the game of the stage: every stage has one, every game is some stage\'s own,
   assert.ok(!/נשברה|דחף/.test(WHY.race), 'the race is told without its injury');
   // the menu marks the stage's own game (gold ✦), one at most; none before the first-time flow ends or without a stage
   const gold = (h) => (h.match(/gm-btn gm-btn-gold" data-g10="(\w+)"/g) || []).map((m) => m.replace(/.*data-g10="/, '').replace('"', ''));
-  assert.deepEqual(gold(menuHTML({ games: {}, ftue: 99, focus: 'nikanor', st: {} })), ['levites']);
+  assert.deepEqual(gold(menuHTML({ games: {}, ftue: 99, focus: 'nashim', st: {} })), ['levites']);   // (build 49: as above)
   assert.deepEqual(gold(menuHTML({ games: {}, ftue: 99, focus: 'guf', st: {} })), ['race']);
   assert.deepEqual(gold(menuHTML({ games: {}, ftue: 3, focus: 'nikanor', st: {} })), [], 'not in the first-time flow');
   assert.deepEqual(gold(menuHTML({ games: {}, ftue: 99, st: {} })), [], 'no stage, no mark');

@@ -1,0 +1,11 @@
+/* ── fable32 (build 21) ── ── recovered (build 21) ── deshen21.js — תרומת הדשן, the first task of the morning (תמיד א, ד; זבחים ו, ג),
+ * in the world, before dawn: the bed of coals on the altar's top, glowing under its ash; he sweeps it with the silver pan — "פנה את
+ * הגחלים הילך והילך" — a swipe across the right half of the screen, back and forth (D21.swipe px, straight enough, fast enough), layer
+ * by layer (D21.layers) until the pan is full; then the walk down the ramp with the full pan, the left stick forward and the right
+ * thumb against its tilt (the balance gauge "איזון המחתה"; a spill costs points); at the ramp's foot the gold ring, a tap — "צבר את
+ * הגחלים על גבי הרצפה" — the coals poured on the floor east of the ramp, and "תרומת הדשן הושלמה!". The pre-dawn light (PREDAWN),
+ * the fire's glow on the altar (FIRE_LIGHT), the heap that smokes the rest of the day; after the morning's last task the sky turns to day
+ * (mixTime predawn → noon). The engine is day33.js (E.d21(): in → sweep → full → walk/desc → foot → pour → end; d21swipe, d21bal,
+ * d21stick; its events through E.on17).
+ *   createDeshen21({ E, sfx, doc, view, twin }) → { destroy(), state() }      (focus17.js makes it when E.g21; globalThis.__D21)
+ * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */

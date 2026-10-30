@@ -1567,12 +1567,13 @@ export function createStages(ctx) {
     if (x > 6 && x < 141 && Math.abs(z) < 67.5) y = Math.max(y, shownTop('nashim', x, z, 5.9, 0));   // (the court's floor on its footing)
     if (x > -76.2 && x < -54.5 && Math.abs(z) < 50) { let n = 0; for (const xr of XR12) if (x <= xr) n++; if (n) y = Math.max(y, shownTop('ulam', x, z, 16 + 0.5 * n, 15.9)); }
     if (x > -92 && x < -76 && Math.abs(z) < 30 && (x < -81 || Math.abs(z) < 10)) y = Math.max(y, shownTop('ulam', x, z, 22, 16));   // (the Ulam's hall and its opening's sill)
+    if (x > -139 && x <= -92 && Math.abs(z) < 10) y = Math.max(y, shownTop('heichal', x, z, 22, 16));   // ── recovered (build 26) ── (the Heichal's floor: he may go in)
     // (── site13 ── N76 b) the altar as it stands — the yesod's ledge, the sovev, the top — and the kevesh (temple.js 120–137)
     if (x > -54 && x < -22 && z > -19.5 && z < 42.5) {
       if (z <= 12.5) {
-        const yes = (z <= -18.5) || (x <= -53) || (x <= -23 && z <= 11.5) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);
+        const yes = (z <= -18.5) || (x <= -53) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);   // (build 56: the ר alone — the body's first course is the sovev's)
         if (yes) y = Math.max(y, shownTop('yesod', x, z, 17, 16));
-        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 17));
+        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 16));
         if (x >= -52 && x <= -24 && z >= -17.5 && z <= 10.5) y = Math.max(y, shownTop('guf', x, z, 25, 22));
       }
       if (x > -46 && x < -30 && z >= 10.5) y = Math.max(y, shownTop('guf', x, z, 16.05 + 8.95 * clamp((42.5 - z) / 32, 0, 1), 16));
@@ -1616,7 +1617,7 @@ export function createStages(ctx) {
   function sparkBurst(x, y, z, n = 30, spread = 8, up = 10) { spark.spawn(x, y, z, n, PO(spread, spread * 0.5, spread * 0.6, up, 1.8, 0.6, 1.6, 5, 1.4, 1, true)); }
 
   /* ── footprint outlines: one mesh for all stages, per-stage intensity in a uniform array ── */
-  const OL = { I: new Float32Array(16), base: new Float32Array(16) };
+  const OL = { I: new Float32Array(16), base: new Float32Array(16), thinW: 1 };   // ── build 53 ── (thinW: the pins' beams' width factor, with the line's — outlineThin) ── /build 53 ──
   const outline = (() => {
     const P = [], N = [], S = [], I = [], D = [], V = [], HY = [], idx = [];
     // per sample: a ground ribbon (2 vertices, aV = 0) and a vertical glow curtain (2 vertices, aS = 0, aV = 0 → 1)
@@ -1647,26 +1648,26 @@ export function createStages(ctx) {
     g.setAttribute('aHY', new THREE.Float32BufferAttribute(HY, 1));
     g.setIndex(idx);
     const m = new THREE.ShaderMaterial({
-      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 } },
-      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan;
+      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 }, uThin: { value: new THREE.Vector2(1, 1) } },   // ── build 53 ── (uThin: the line's width and alpha factors — Phase A's thin line, stages.outlineThin) ── /build 53 ──
+      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan; uniform vec2 uThin;
         varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           vI = uI[int(aI + 0.5)]; vS = aS; vD = aD; vV = aV; vK = aS == 0.0 ? 1.0 : 0.0;
           vec3 base = vec3(position.x, mix(position.y, aHY, uPlan), position.z);
           float d = distance(cameraPosition, base);
           float on = vI > 0.0 ? 1.0 : 0.0;
-          float w = clamp(d * 0.0045, 0.7, 8.0) * on, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
+          float w = clamp(d * 0.0045, 0.7, 8.0) * on * uThin.x, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
           vec3 p = base + vec3(aN.x, 0.0, aN.y) * aS * w * 0.5 + vec3(0.0, aV * h, 0.0);
           gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
         }`,
-      fragmentShader: `uniform vec3 uCol; uniform float uTime; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
+      fragmentShader: `uniform vec3 uCol; uniform float uTime; uniform vec2 uThin; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           if (vI < 0.002) discard;
           float pulse = 0.62 + 0.38 * sin(uTime * 3.4);
           float f = fract(vD / 90.0 - uTime * 0.22);
           float dash = smoothstep(0.0, 0.08, f) * (1.0 - smoothstep(0.1, 0.24, f));
           float alpha = vK > 0.5 ? (1.0 - vV) * (1.0 - vV) * 0.5 : 1.0 - smoothstep(0.55, 1.0, abs(vS));
-          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0));
+          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0) * uThin.y);
         }`,
       transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
     });
@@ -2200,6 +2201,7 @@ export function createStages(ctx) {
 
   /* ── scaffolding: two instanced meshes per building stage, instances sorted by lift ── */
   const woodMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.86 });
+  woodMat.onBeforeCompile = (sh) => { const x = xrayCode(sh.vertexShader, sh.fragmentShader, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; };   // ── fable32 (build 46) ── (the scaffold too: clear in front of his stretch of the wall — batch.js uHole — and seen through near him)
   const poleGeo = new THREE.CylinderGeometry(1, 1, 1, 5, 1, true).translate(0, 0.5, 0);
   const boardGeo = new THREE.BoxGeometry(1, 1, 1);
   function makeScaffold(st) {
@@ -3093,6 +3095,7 @@ export function createStages(ctx) {
   const TW_SOLID = ['ulam', 'heichal', 'kodesh', 'lishka', 'kiyor', 'gates'], TW_KODESH = [-176, -35, -139, 35];
   const inR = (f, x, z) => x > f[0] && x < f[2] && z > f[1] && z < f[3];
   function twinSolid(x, z, x0, z0) {
+    if (TWD.pass && TWD.pass(x, z)) return false;   // ── recovered (build 26) ── (where day33 lets him through — world22's Ulam and Heichal)
     if (inR(TW_KODESH, x, z) && !inR(TW_KODESH, x0, z0)) return true;
     for (let i = 0; i < TW_SOLID.length; i++) {
       const st = ST[TW_SOLID[i]]; if (!st || (st.status !== 'building' && st.status !== 'done') || !st.def || !st.def.foot) continue;
@@ -4073,6 +4076,7 @@ export function createStages(ctx) {
     dash: heroDash, get dashing() { return hero.dash || 0; }, navLog: () => NAV_LOG.slice(),   // ── nav19 ── ── /nav19 ──
     // ── engine22 ── Phase B's two thumbs: the Temple's own solids (xtra(x, z, x0, z0) → true = blocked) and a place by coordinates (the builder's feet)
     twinExtra: (f) => { TWD.xtra = typeof f === 'function' ? f : null; },
+    twinPass: (f) => { TWD.pass = typeof f === 'function' ? f : null; },   // ── recovered (build 26) ── (pass(x, z) → true = never solid here)
     setPos: (x, z, yaw) => { if (hero.resolve) { const r = hero.resolve; hero.resolve = null; r(false); } heroCancel(); hero.path = null; hero.door = null; hero.fade = 1; hero.x = x; hero.z = z; hero.y = groundAt(x, z); if (Number.isFinite(yaw)) hero.yaw = yaw; hero.face = null; hero.vis = true; hero.mesh.visible = hero.ring.visible = true; },
     // ── /engine22 ──
     get speedMul() { return hero.speedMul || 1; }, set speedMul(v) { hero.speedMul = v > 0 && v < 4 ? +v : 1; },   // ── shift29 ── ── /shift29 ──
@@ -4989,6 +4993,9 @@ export function createStages(ctx) {
     vs.grown = !!(o && o.grown); vs.demo = !!(o && o.demo);
     vineSync(was && !vs.grown);
   }
+  // ── fable32 (build 60) ── where the vine's next leaf will hang (the stage-13 act hangs the player's first leaf there: the blinking point);
+  // read-only — null while the vine is not hung ── /fable32 ──
+  function vineNext() { const K = vine.kinds[0]; if (!vine.on || !K) return null; const s = K.slots[Math.min(K.cap - 1, Math.max(0, K.want))]; return s ? { x: s.x, y: s.y, z: s.z } : null; }
   const vE = new THREE.Euler();
   function vineSlot(K, i, d) {
     const s = K.slots[i], a = clamp(d - i, 0, 1), k = a <= 0 ? 0 : a >= 1 ? 1 : easeBack(a);
@@ -5046,6 +5053,7 @@ export function createStages(ctx) {
   })();
   const paves = list.map((st) => st.cache.pave).filter(Boolean).map((m) => ({ m, r: m.roughness, c: m.color.clone() }));
   function setRain(on) { rain.want = !!on; }
+  function setWet(k) { rain.wetM = Math.max(0, Math.min(1, +k || 0)); }   // ── fable32 (build 45) ── (a morning after the night's rain: the paving wet without the rain falling; it dries as the sun rises) ── /fable32 ──
   function rainUpdate(dt) {
     const want = rain.want && buildPhase() ? 1 : 0;
     rain.k += (want - rain.k) * Math.min(1, dt * (want ? 0.8 : 1.5));
@@ -5053,9 +5061,10 @@ export function createStages(ctx) {
     rain.L.visible = rain.k > 0.003;
     if (rain.L.visible) { camera.getWorldDirection(camDir); rain.U.uC.value.copy(camera.position).addScaledVector(camDir, 45); rain.U.uA.value = rain.k; }
     // wet paving: darker, and glossy enough to catch the braziers
-    if (Math.abs(rain.k - rain.wet) > 0.02 || (rain.k === 0 && rain.wet !== 0)) {
-      rain.wet = rain.k;
-      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, rain.k); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * rain.k); }
+    const wk = Math.max(rain.k, rain.wetM || 0);   // ── fable32 (build 45) ── ── /fable32 ──
+    if (Math.abs(wk - rain.wet) > 0.02 || (wk === 0 && rain.wet !== 0)) {
+      rain.wet = wk;
+      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, wk); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * wk); }
     }
   }
 
@@ -6171,8 +6180,8 @@ export function createStages(ctx) {
   /* ── per-frame ── */
   const pv = new THREE.Vector3();
   // ── twin18 ── the see-through follows him while twin is ON (batch.js XRAY)
-  let xrOn = false;
-  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
+  let xrOn = false, xrW = null;   // ── fable32 (build 43) ── (xrW: Phase B's guard asks the see-through for the wall between the camera and the kohen, cam28 xray) ── /fable32 ──
+  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else if (xrW) { XRAY.uXr.value.set(xrW[0], xrW[1], xrW[2], 1); XRAY.uXrC.value.copy(camera.position); } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
   // ── /twin18 ──
   function update(dt) {
     xrayStep();   // ── twin18 ── ── /twin18 ──
@@ -6236,7 +6245,7 @@ export function createStages(ctx) {
       const d = pv.distanceTo(camera.position), s = clamp(d * 0.012, 1.4, 22) * (0.45 + 0.55 * w), bob = Math.sin(time * 2.4 + np) * s * 0.35;
       tmpQ.setFromAxisAngle(UP, time * 1.6); tmpV.set(pv.x, pv.y + bob, pv.z); tmpS.set(s, s, s);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5);
+      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5) * OL.thinW;
       tmpQ.identity(); tmpV.set(pv.x, gy, pv.z); tmpS.set(bw, Math.max(0.01, pv.y - gy + s * 0.5), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = pv.x; halo.pos[np * 3 + 1] = pv.y + s * 1.5 + bob; halo.pos[np * 3 + 2] = pv.z;
       halo.size[np] = s * 5.5; halo.alpha[np] = (0.55 + 0.25 * Math.sin(time * 3.4)) * w;
@@ -6248,7 +6257,7 @@ export function createStages(ctx) {
       const d = Math.hypot(m.x - camera.position.x, m.y - camera.position.y, m.z - camera.position.z), s = clamp(d * 0.0085, 0.8, 9), bob = Math.sin(time * 3 + np * 1.7) * s * 0.3;
       tmpQ.setFromAxisAngle(UP, time * 2.1 + np); tmpV.set(m.x, m.y + s * 0.4 + bob, m.z); tmpS.set(s * 0.8, s * 0.8, s * 0.8);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4);
+      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4) * OL.thinW;
       tmpQ.identity(); tmpV.set(m.x, gy, m.z); tmpS.set(bw, Math.max(0.01, m.y + s * 0.4 - gy), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = m.x; halo.pos[np * 3 + 1] = m.y + s * 1.6 + bob; halo.pos[np * 3 + 2] = m.z;
       halo.size[np] = s * 4.5; halo.alpha[np] = 0.5 + 0.25 * Math.sin(time * 3.4 + np);
@@ -8737,7 +8746,9 @@ export function createStages(ctx) {
     hero: heroApi,   // ── hero (PEOPLE) ── the hero API is built in the hero block (walkTo swing place show setTool tool position at act onImpact workpiece …)
     pick, siteCenter, siteTop, focus, celebrate, workFX, update,
     // GDD §12 world API (v2)
-    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, shine,
+    // ── build 53 ── outlineThin(w, a): the footprint line's width and alpha factors (Phase A: ¼ and ½ — the inspector's review §4 important 12; 1, 1 elsewhere) ── /build 53 ──
+    outlineThin: (w = 1, a = 1) => { try { outline.material.uniforms.uThin.value.set(+w || 1, +a || 1); OL.thinW = +w || 1; beams.material.opacity = +a || 1; } catch (e) { /* */ } },
+    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, vineNext, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
@@ -8766,7 +8777,8 @@ export function createStages(ctx) {
     craftB,   // ── craftb19 ── (tests: my crafts' state) ── /craftb19 ──
     caTread, caCord, caSurvey, caKey, caDress, caColumn, caWork,   // ── crafta19 ── (tests; the survey's counter) ── /crafta19 ──
     // ── twin17 ── (twin.js) his feet, read every frame without a new vector; a small shake for a touch on material
-    xray: (on) => { xrOn = !!on; },   // ── twin18 ── ── /twin18 ──
+    xray: (on) => { xrOn = !!on; },
+    xrayAt: (on, x, y, z) => { xrW = on && Number.isFinite(x) ? [x, y, z] : null; },   // ── fable32 (build 43) ── ── /fable32 ──   // ── twin18 ── ── /twin18 ──
     // ── twin20 ── the right thumb's aim in the world: ONE flat arrow on the ground from (x, z) along dir (radians, from +x toward +z), len in amot
     aim: (x, z, dir, len, on, hot) => {
       let A = createStages.__aim20; if (!A || A.scene !== scene) {

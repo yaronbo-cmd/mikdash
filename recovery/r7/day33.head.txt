@@ -1,0 +1,22 @@
+/* ── fable32 (build 6) ── day33.js — "יום במקדש": the fire-and-day loop copied from 99 Nights in the Forest (docs/MIKDASH99.md §3–4,
+ * docs/FOREST33-RESEARCH.md §1–2, §8 #1–#4), in the shift's own rig (stations, walk, camera, hud, flow31's path and prompt):
+ *   the fire   — אש המערכה on the altar: a fuel meter 0…100 that drains all day, NEVER out (a floor of embers — "אש תמיד תוקד על המזבח
+ *                לא תכבה", ויקרא ו, ו), fed by logs carried up the ramp; six levels by the logs fed in all (the court "opens" — build 7);
+ *   the wood   — לשכת העץ at the court's south: "בקעו" = 5 taps, a log pops into the basket (5 at most); one log in four is wormy —
+ *                "התליעו" (מידות ב, ה): a tap-inspect says פסול, it is thrown away;
+ *   the ramp   — "העלו עצים — החזיקו": the kevesh act (stations.js holdWalk), the climb; at the top the logs go onto the pyre, +10 each;
+ *   the day    — 180 s of day, 60 s of night: at night the court darkens, the fuel drains slower, and once "איש הר הבית" passes — a tap on
+ *                the torch (מידות א, ב); the first night cannot be failed. Days count up; the best day is kept.
+ * The engine's surface is the shift engine's (index.js, flow31.js and the twin read: start/stop/tick/work/state/flowNext/pause/onEnd/
+ * tapStation/debug). Every text a draft (טיוטה); never a Divine Name. ── /fable32 ── */
+/* ── recovered (builds 16–26c) ── the day grew from build 15's loop into the shift's engine of builds 16–26c (the bundle kept no comment and
+ * no local name; the comments above each block and the names are the recovery's, but where the build reports or the original lines
+ * quoted in the session transcript give them — day33.js:369–373, :924, :936, :1074, :1214, :1234, :1267, :1304, :1356, :1385 —
+ * and those lines' own comments):
+ *   build 16 the saved day (save.day33state; resumeDay33 for the start screen) · 17 the focused day (o.b17: B17, the two tamids, the
+ *   card and the bar — focus17.js; emit17 → E.on17) · 18 the coins in the world (C18, ENABLE_TEMPLE_COINS, the chests, the pads,
+ *   own18) · 19 the ramp run (R19, the salt, the sway, the ghost) · 20 the laver's act (K20, gate20) · 21 תרומת הדשן (D21, gate21)
+ *   · 22 סידור המערכה (M22, gate22) · 23 the lot (P23, POOL23, draw23, mastery23, rec23, gate23) · 24 no auto-walk (peek24, pk24)
+ *   · 25 the lamb pen (P25, BLEM25, lamb25, hash25, at25, gate25) · 26 the second lot and the Heichal (P26, POOL26, draw26, gate26L,
+ *   gate26, open26, at26, fill26, ev26, lit26, done26; 26b: the lot where he stands, free26/circle26).
+ * Every module of builds 17–26 reads the engine through E (E.b17, E.on17, E.focus17() … E.r26(), E.st33). Never a Divine Name. */

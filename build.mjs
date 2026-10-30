@@ -42,6 +42,7 @@ await build({
   entryPoints: ['src/main.js'], bundle: true, minify: true, format: 'iife', target: 'es2020',
   outfile: 'dist/app.js', legalComments: 'none', logLevel: 'warning', charset: 'utf8', loader: { '.glb': 'dataurl' },   // ── fable32 (build 15) ── (the kohen's model inlined; a Pages folder will serve it as a file) ── /fable32 ──   // Hebrew stays readable (and ~⅓ smaller than \uXXXX escapes)
   plugins: [contentStrip, optionalParts],   // ── build6 ── optionalParts
+  define: { 'location.search': '__QS56', 'location.hash': '__QH56' },   // ── build 56ב ── the tester's chosen stage (src/fix56.js), even where the artifact's frame refuses history.replaceState ── /build 56ב ──
 });
 const js = fs.readFileSync('dist/app.js', 'utf8').replace(/<\/script/gi, '<\\/script');
 const html = fs.readFileSync('src/page.html', 'utf8').replace('/*__APP__*/', () => js);
@@ -54,4 +55,4 @@ fs.writeFileSync('dist/test.html', "<!doctype html><html lang='he'><head><meta c
 const bytes = Buffer.byteLength(html, 'utf8'), gz = zlib.gzipSync(html, { level: 9 }).length;
 const mib = (n) => (n / 1048576).toFixed(2) + ' MiB';
 console.log(`built dist/temple3d.html: ${bytes.toLocaleString('en-US')} bytes (${mib(bytes)}), gzip ${gz.toLocaleString('en-US')} bytes (${mib(gz)})`);
-if (bytes > 5 * 1048576) console.warn('WARNING: over the 5 MiB budget (PROJECT.md §3)');
+if (bytes > 6 * 1048576) console.warn('WARNING: over the 6 MiB budget (PROJECT.md §3)');   // (the owner, 20.10: "בוא נעלה את התקרה כרגע" — 5 → 6 MiB)

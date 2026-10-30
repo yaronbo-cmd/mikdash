@@ -22,6 +22,9 @@
 const CSS = `
 .gm .tw-zone,.gm .tw-pad,.gm .tw-mk,.gm .tw-aim,.gm .tw-flash{display:none}
 .gm.tw-on .tw-zone.tw-nostick{display:none!important}
+/* ── fable32 (build 39) ── the guided walk: the whole world is the walk's surface (under every pad, button and card), no stick drawn ── /fable32 ── */
+body .gm.tw-on.tw-g39 .tw-zone{left:0;top:0;width:100%;bottom:0;z-index:3}
+.gm.tw-on.tw-g39 .tw-base,.gm.tw-on.tw-g39 .tw-ghost,.gm.tw-on.tw-g39 .tw-zone .tw-tip{display:none!important}
 .gm.tw-on .tw-zone{display:block;position:absolute;left:0;bottom:0;width:var(--tw-left-w,45vw);top:var(--tw-left-top,35vh);z-index:4;touch-action:none;pointer-events:auto;-webkit-user-select:none;user-select:none}
 .gm.tw-on.tw-hold .tw-zone,.gm.tw-on.tw-hold .tw-pad{opacity:.25;pointer-events:none}
 .tw-base{position:absolute;left:0;top:0;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,rgba(28,20,10,.18),rgba(28,20,10,.38));border:2px solid rgba(255,236,190,.55);box-shadow:0 0 0 1px rgba(0,0,0,.25);opacity:0;transition:opacity .12s;pointer-events:none}
@@ -113,6 +116,208 @@ const CSS_CA = `
 `;
 // ── /crafta19 ──
 const R = 60, DEAD = 8, SPEED = 11, PIPS = 3, PIP_MS = 330, PIP_WAIT = 300;   // ── crafta19 ── (PIP_WAIT 700 → 300: at the rhythm's ≈ 1 act a second the pips never run dry — a touch that does nothing is the bug; a mash still dries them) ── /crafta19 ──   // ── twin18 ── (PIP_WAIT 380 → 700: the pips really run dry under a quick thumb) ── /twin18 ──
+// ── recovered (16–26c) ── the grade windows (seconds from the gold moment: מושלם · טוב · the rest soft), shared with stations.js's timing acts
+export const GRADE = Object.freeze({ PERF: 0.085, GOOD: 0.2 });
+// ── recovered (16–26c) ── a grade from the offset to the gold moment (k widens the windows) — stations.js's timing acts
+export const gradeOf = (d, k = 1) => (Math.abs(d) <= GRADE.PERF * k ? 'perfect' : Math.abs(d) <= GRADE.GOOD * k ? 'good' : 'soft');
+// ── recovered (16–26c) ── the soft stick (T.pace.soft = walk.js STICK): the thumb's reach → 0…1 past the dead zone, eased (ease) or with
+// a low end (low); stickMove: the speed rises by acc and falls by dec (seconds to the top speed), the heading turns over `turn` s;
+// stickVel: the protocol stick's velocity eases to the thumb's over tau
+function stickCurve(L, c) {
+  if (!(L > c.dead)) return 0;
+  const m = Math.min(1, L / c.R);
+  return c.ease > 0 ? 1 - Math.pow(1 - m, c.ease) : m < 0.5 ? m - c.low * m * (1 - 2 * m) : m;
+}
+// ── recovered (build 24) ── the protocol stick (T.pace.p24): its radius in px, its dead zone (of the radius) and the velocity's time constant (s)
+export const STICK24 = Object.freeze({ R: 56, dead: 0.15, tau: 0.05 });
+// ── fable32 (build 39) ── the guided walk (the owner, 26.10: "לחצת - זזת לכיוון הנקודה. לא לחצת נשארת לעמוד. בלי שרואים בכלל גויסטיק."):
+// on when the shift gives T.guide39 (shift/guide39.js) and no ?stick=1 (the developer's stick: the old floating stick, the door help with
+// it). A thumb held anywhere on the world walks him on the guide's way to the task's place at `speed` of the pace (`tau`: its ease in);
+// released, he stops; the drag only chooses between open places (`pick` px); an act that takes the stick (T.stickUse) gets the hold as a
+// steady push (`push`) where it walks (the ashes' descent), the drag where it aims (the pyre's row) ── /fable32 ──
+export const WALK39 = Object.freeze({ speed: 0.82, tau: 0.18, pick: 28, push: 0.72 });
+// ── build 51 ── (the inspector's review 27.10 §1 and §4 item 13: "~8 amot/s — he overshoots the place"; the coordinator's build-51 brief,
+// item 13) within `near` amot of the guide's place he walks at most `v` amot/s ── /build 51 ──
+export const WALK51 = Object.freeze({ near: 6, v: 5 });
+/** one frame of the guided walk's velocity (pure): toward the guide's direction g {x, z, k} at WALK39.speed of top, eased in over tau;
+ *  no direction (no place, or there) → eased to rest, and at rest under 0.3 */
+export function walk39(v, g, top, dt) {
+  let k = g ? Math.max(0, Math.min(1, g.k == null ? 1 : g.k)) * WALK39.speed : 0;
+  if (g && Number.isFinite(g.left) && g.left < WALK51.near && top > 0) k = Math.min(k, WALK51.v / top);   // ── build 51 ── (WALK51) ── /build 51 ──
+  stickVel(v, g ? g.x * k : 0, g ? g.z * k : 0, top, dt, WALK39.tau);
+  if (!g && Math.hypot(v.vx, v.vz) < 0.3) { v.vx = 0; v.vz = 0; }
+  return v;
+}
+// ── fable32 (build 40) ── the act's camera: the thing near the right thumb (shlav-alef-bimui-he.md §1 ש3 and rule 3: the object at 55–65 %
+// of the width, the kohen seen). An act's authored view (camWork's { p, t }) is slid sideways — the camera and its look together, at most
+// `pan` amot — so the thing (touch40.js's globalThis.__T40.obj) stands at `at` of the width; if that leaves him past `hero` (NDC, the left
+// edge −1) it steps back along its look, up to `back` amot. Pure; frozen by the caller while a finger is on the thing.
+export const CAM40 = Object.freeze({ at: 0.6, hero: -0.82, pan: 6, back: 8 });
+// ── fable32 (build 41) ── (the coordinator's build-41 brief, item 2: the menorah's view had his head huge on the left) every act's view also
+// keeps his whole figure at most `big` of the screen's height (HERO41: his figure's height, the model's bounds measured by tools/cam41.js:
+// 3.96) and inside the frame on both sides (`heroR`), stepping back up to `back` amot ── /fable32 ──
+export const CAM41 = Object.freeze({ ...CAM40, back: 14, big: 0.45, heroR: 0.92 });
+export const HERO41 = 3.96;
+export function pan40(p, t, O, H, tanH, c = CAM40, tanV = 0) {
+  let fx = t[0] - p[0], fy = t[1] - p[1], fz = t[2] - p[2];
+  const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+  const rl = Math.hypot(fz, fx) || 1, rx = -fz / rl, rz = fx / rl;
+  const want = 2 * c.at - 1;
+  const depth = (q, back, sh) => (q.x - (p[0] - fx * back + rx * sh)) * fx + (q.y - (p[1] - fy * back)) * fy + (q.z - (p[2] - fz * back + rz * sh)) * fz;
+  const at = (q, back, sh) => { const vx = q.x - (p[0] - fx * back + rx * sh), vy = q.y - (p[1] - fy * back), vz = q.z - (p[2] - fz * back + rz * sh), d = vx * fx + vy * fy + vz * fz; return d > 0.2 ? (vx * rx + vz * rz) / (d * tanH) : -9; };
+  // (build 41: his figure's share of the screen's height at that depth — H.h his height, tanV the view's half-height tangent)
+  const big = (back, sh) => { if (!H || !(H.h > 0) || !(tanV > 0)) return 0; const d = depth(H, back, sh); return d > 0.2 ? H.h / (2 * d * tanV) : 9; };
+  let best = null;
+  for (let back = 0; back <= c.back; back += 1) {
+    const vx = O.x - (p[0] - fx * back), vy = O.y - (p[1] - fy * back), vz = O.z - (p[2] - fz * back), d = vx * fx + vy * fy + vz * fz;
+    if (!(d > 0.2)) continue;
+    const sh = Math.max(-c.pan, Math.min(c.pan, vx * rx + vz * rz - want * d * tanH));
+    best = { back, sh };
+    if (!H) break;
+    const hx = at(H, back, sh);
+    if (hx >= c.hero && hx <= (c.heroR || 9) && (!(c.big > 0) || big(back, sh) <= c.big)) break;   // (build 41: both sides and his size too)
+  }
+  if (!best) return null;
+  const P = [p[0] - fx * best.back + rx * best.sh, p[1] - fy * best.back, p[2] - fz * best.back + rz * best.sh], Tg = [t[0] + rx * best.sh, t[1], t[2] + rz * best.sh];
+  return { p: P, t: Tg, sh: best.sh, back: best.back, ox: at(O, best.back, best.sh), hx: H ? at(H, best.back, best.sh) : null, big: H ? big(best.back, best.sh) : null };
+}
+// ── /fable32 ──
+// ── build 51 ── THE OBJECT RULE (the inspector's review 27.10 §1 and §4 item 1; the coordinator's build-51 brief, item 1: "in 5 of 8 acts
+// the kohen is 3–5× bigger than the thing and hides it"): in every act view the thing is ≥ `w` of the screen's width and ≥ `h` of its
+// height, and the line from the camera to the thing's middle does not pass through him (a ray against his figure: a cylinder of `R` amot
+// from his feet to his top). After pan40 (the thing near the right thumb, him ≤ 45 %) the view is slid along its own look toward the thing
+// (the thing keeps its place on the screen) until it is `aimW` wide (never nearer than `near` amot, never taller than `maxH`); each of the
+// `swing` turns round the thing's upright (0, ±30°, ±50°) is tried and scored: through him, the rule missed, a wall in the way (the
+// caller's cut), him over `big` of the height, him right of the thing, the size of the turn. Pure (the cut is the caller's).
+// A thing in his own hands (flagged 'self' by its act — the pan on the way down, the vessel carried, the teni, the log held up — or its middle within `self` amot of him) keeps build 41's view.
+/** the things a lifted view serves (measured, build 51: the bed of coals on the altar, the laver — from above he is shorter on the screen
+ *  and the thing no smaller; lifted, the inner altar and the menorah's lamps cut him at 844 — 60 % of their frames — so they stay level) */
+export const LIFT51 = Object.freeze(['d21']);   // ── build 52 ── (the laver: its own view from the side — day33 KV52 — no longer lifted) ── /build 52 ──
+export const OBJ51 = Object.freeze({ w: 0.3, h: 0.2, aimW: 0.36, maxH: 0.95, near: 1.4, swing: Object.freeze([0, 0.52, -0.52, 0.87, -0.87]), lift: Object.freeze([0, 2, 4]), liftK: 2, bigK: 40, whole: 45, wK: 150, R: 0.6, big: 0.45, self: 0.25 });
+/** does the segment from the camera C to the thing's middle O pass through his figure (feet A, height top, radius R)? (pure) */
+export function occl51(C, O, A, top, R = OBJ51.R) {
+  const dx = O.x - C.x, dz = O.z - C.z, fx = C.x - A.x, fz = C.z - A.z, a = dx * dx + dz * dz, b = 2 * (fx * dx + fz * dz), c = fx * fx + fz * fz - R * R;
+  if (a < 1e-9) return false;
+  const D = b * b - 4 * a * c; if (D < 0) return false;
+  const q = Math.sqrt(D), s0 = Math.max(0, (-b - q) / (2 * a)), s1 = Math.min(0.97, (-b + q) / (2 * a)); if (s0 > s1) return false;
+  const y0 = C.y + (O.y - C.y) * s0, y1 = C.y + (O.y - C.y) * s1;
+  return Math.max(y0, y1) >= A.y && Math.min(y0, y1) <= A.y + top;
+}
+/** the thing's share of the screen from a camera at P looking at T (pure): its world box bb [x0, y0, z0, x1, y1, z1]'s corners projected,
+ *  clipped to the screen → { w, h, x0, x1, y0, y1 } (NDC) — w, h 0 when a corner is behind the camera's near plane */
+export function share51(P, T, bb, tanH, tanV) {
+  let fx = T[0] - P[0], fy = T[1] - P[1], fz = T[2] - P[2]; const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+  const rl = Math.hypot(fx, fz) || 1, rx = -fz / rl, rz = fx / rl, ux = -rz * fy, uy = rz * fx - rx * fz, uz = rx * fy;
+  let x0 = 9, x1 = -9, y0 = 9, y1 = -9;
+  for (const i of [0, 3]) for (const j of [1, 4]) for (const k of [2, 5]) {
+    const vx = bb[i] - P[0], vy = bb[j] - P[1], vz = bb[k] - P[2], d = vx * fx + vy * fy + vz * fz;
+    if (!(d > 0.05)) return { w: 0, h: 0, x0: -1, x1: 1, y0: -1, y1: 1, behind: true };
+    const x = (vx * rx + vz * rz) / (d * tanH), y = (vx * ux + vy * uy + vz * uz) / (d * tanV);
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  return { w: Math.max(0, (Math.min(1, x1) - Math.max(-1, x0)) / 2), h: Math.max(0, (Math.min(1, y1) - Math.max(-1, y0)) / 2), x0, x1, y0, y1 };
+}
+/** his figure from P looking at T (pure): his middle across the width and up (NDC) and his height's share of the screen — his feet and his
+ *  top each projected, so a look from above (he is shorter on the screen) counts as cam41 measures it — or null (behind the camera) */
+function fig51(P, T, H, tanH, tanV) {
+  let fx = T[0] - P[0], fy = T[1] - P[1], fz = T[2] - P[2]; const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+  const rl = Math.hypot(fx, fz) || 1, rx = -fz / rl, rz = fx / rl, ux = -rz * fy, uy = rz * fx - rx * fz, uz = rx * fy;
+  const pr = (y) => { const vx = H.x - P[0], vy = y - P[1], vz = H.z - P[2], d = vx * fx + vy * fy + vz * fz; return d > 0.2 ? { x: (vx * rx + vz * rz) / (d * tanH), y: (vx * ux + vy * uy + vz * uz) / (d * tanV), d } : null; };
+  const a = pr(H.y), b = pr(H.y + H.h), m = pr(H.y + H.h / 2);
+  if (!a || !b || !m) return null;
+  const inS = (q) => Math.abs(q.x) <= 1 && Math.abs(q.y) <= 1;
+  return { x: m.x, y: (a.y + b.y) / 2, s: Math.abs(b.y - a.y) / 2, d: m.d, whole: inS(a) && inS(b) };
+}
+/** the object rule on a view { p, t } (pure): → { p, t, w, h, occ, a, s, big, hx, ok, score, cands } | null (no box). H: his feet
+ *  { x, y, z } and height h; cut(P, T) → true when a wall stands between (optional) */
+export function obj51(p, t, bb, H, tanH, tanV, c = OBJ51, cut = null) {
+  if (!bb || !(tanH > 0) || !(tanV > 0)) return null;
+  const O = { x: (bb[0] + bb[3]) / 2, y: (bb[1] + bb[4]) / 2, z: (bb[2] + bb[5]) / 2 };
+  const self = !!(H && Math.hypot(O.x - H.x, O.z - H.z) < c.self);
+  const cands = [];
+  // (each turn also lifted — 2, 4 amot, still looking at the same point: from above he is shorter on the screen, a flat thing taller)
+  for (const a of c.swing) for (const L of (c.lift || [0])) {
+    const ca = Math.cos(a), sa = Math.sin(a), rot = (q) => [O.x + (q[0] - O.x) * ca - (q[2] - O.z) * sa, q[1], O.z + (q[0] - O.x) * sa + (q[2] - O.z) * ca];
+    let P = rot(p), T = rot(t); P[1] += L;
+    const D = [O.x - P[0], O.y - P[1], O.z - P[2]], dist = Math.hypot(D[0], D[1], D[2]) || 1;
+    let s = 0, v = share51(P, T, bb, tanH, tanV);
+    // (him kept — whole in the frame and ≤ big — while he was: c.whole false (a macro) lets him go)
+    const keep = (P2, T2) => { const F = fig51(P2, T2, H, tanH, tanV); return !!F && (c.whole === false || F.whole) && (Math.abs(F.x) >= 1.1 || F.s <= c.big); };
+    const whole0 = (P2, T2) => { const F = fig51(P2, T2, H, tanH, tanV); return !!F && F.whole; };
+    let kept = !!H && keep(P, T), wh = !!H && whole0(P, T), sK = wh ? 0 : null, vK = wh ? v : null;
+    if (!(v.w >= c.aimW && v.h >= c.h)) {
+      const smax = Math.max(0, 1 - c.near / dist);
+      for (let k = 1; k <= 16; k++) {
+        const s2 = (smax * k) / 16, P2 = [P[0] + D[0] * s2, P[1] + D[1] * s2, P[2] + D[2] * s2], T2 = [T[0] + D[0] * s2, T[1] + D[1] * s2, T[2] + D[2] * s2], v2 = share51(P2, T2, bb, tanH, tanV);
+        if (v2.behind || v2.h > c.maxH) break;
+        // (him ≤ big and whole: once the rule holds, no nearer than where he would pass `big` of the height or leave the frame)
+        const k2 = !!H && keep(P2, T2);
+        if (H && v.w >= c.w && v.h >= c.h && kept && !k2) break;
+        s = s2; v = v2; kept = k2; wh = !!H && whole0(P2, T2); if (wh) { sK = s2; vK = v2; }
+        if (v2.w >= c.aimW && v2.h >= c.h) break;
+      }
+    }
+    const P0 = P, T0 = T;
+    // (the slide's end; and, when it lost him — cut by the frame — before the rule held, also where it last had him whole:
+    //  the score chooses between the thing a little small and him cut)
+    const mk = (s, v, alt) => {
+    const P = [P0[0] + D[0] * s, P0[1] + D[1] * s, P0[2] + D[2] * s], T = [T0[0] + D[0] * s, T0[1] + D[1] * s, T0[2] + D[2] * s];
+    const ok = v.w >= c.w && v.h >= c.h;
+    const occ = !self && !!H && occl51({ x: P[0], y: P[1], z: P[2] }, O, H, H.h, c.R);
+    // (c.avoid: other things that must not stand between — the other lamb: the line to the thing within its radius, or the camera in it)
+    let blk = 0;
+    if (c.avoid) for (const q of c.avoid) { const ux = O.x - P[0], uy = O.y - P[1], uz = O.z - P[2], L2 = ux * ux + uy * uy + uz * uz || 1, k = Math.max(0, Math.min(0.97, ((q.x - P[0]) * ux + (q.y - P[1]) * uy + (q.z - P[2]) * uz) / L2)); if (Math.hypot(P[0] + ux * k - q.x, P[1] + uy * k - q.y, P[2] + uz * k - q.z) < (q.r || 0.8)) blk = 1; }
+    // (him: his middle's place across the width and his height's share at his depth)
+    // (his screen box — his middle across the width ± c.R·1.4 (the head is wider), feet to top — and how much of the thing's box it covers
+    //  when he stands in front of it or level with it)
+    let hx = null, big = 0, cover = 0, whole = false;
+    if (H) {
+      let fx = T[0] - P[0], fy = T[1] - P[1], fz = T[2] - P[2]; const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+      const F = fig51(P, T, H, tanH, tanV);
+      if (F) {
+        const d = F.d; hx = F.x; big = F.s; whole = F.whole;
+        const hy = F.y, hw = (c.R * 1.4) / (d * tanH), dO = (O.x - P[0]) * fx + (O.y - P[1]) * fy + (O.z - P[2]) * fz;
+        if (d < dO + 0.5) { const X0 = Math.max(-1, v.x0), X1 = Math.min(1, v.x1), Y0 = Math.max(-1, v.y0), Y1 = Math.min(1, v.y1), A = Math.max(1e-6, (X1 - X0) * (Y1 - Y0)), ix = Math.max(0, Math.min(X1, hx + hw) - Math.max(X0, hx - hw)), iy = Math.max(0, Math.min(Y1, hy + big) - Math.max(Y0, hy - big)); cover = Math.min(1, (ix * iy) / A); }
+      }
+    }
+    const thingX = (Math.max(-1, v.x0) + Math.min(1, v.x1)) / 2, inF = hx != null && Math.abs(hx) < 1.1;
+    const score = (occ ? 100 : 0) + (blk ? 70 : 0) + 60 * cover + (ok ? 0 : 40 + (c.wK || 100) * Math.max(0, c.w - v.w) + 100 * Math.max(0, c.h - v.h)) + (big > c.big && inF && (whole || c.whole === false || !H) ? (c.bigK || 25) * Math.min(1.5, big - c.big) : 0) + (inF && hx > thingX - 0.15 ? 8 : 0) + Math.abs(a) * 8 + L * (c.liftK || 0) + (H && c.whole !== false && !whole ? (c.whole || 0) + (inF ? 0 : 30) : 0) + (c.prefer != null && a + L * 10 + (alt ? 100 : 0) !== c.prefer ? 5 : 0);   // (prefer: the turn, lift and stop chosen last frame — no flicker)
+    cands.push({ p: P, t: T, w: v.w, h: v.h, occ, a, L, key: a + L * 10 + (alt ? 100 : 0), s, big, hx, whole, cover, ok, score });
+    };
+    mk(s, v, 0);
+    if (H && c.whole !== false && !wh && sK != null && sK !== s) mk(sK, vK, 1);
+  }
+  cands.sort((x, y) => x.score - y.score);
+  let best = null, n = 0;
+  // (a wall in the way: the same view raised over it — up 1.5, then 3 amot, still looking at the thing — then the next candidate)
+  for (const q of cands) {
+    if (!cut) { best = q; break; }
+    if (n >= 4) break; n++;
+    for (const up of [0, 1.5, 3]) { const P2 = [q.p[0], q.p[1] + up, q.p[2]]; if (cut(P2, q.t)) continue; const v2 = up ? share51(P2, q.t, bb, tanH, tanV) : q; best = up ? { ...q, p: P2, w: v2.w, h: v2.h, up } : q; break; }
+    if (best) break;
+  }
+  if (!best) return null;
+  return { ...best, self, cands: cands.length };
+}
+// ── /build 51 ──
+export const STICK39 = (() => { try { return typeof location !== 'undefined' && /[?&]stick=1(&|$)/.test(location.search || ''); } catch (e) { return false; } })();
+const stick24 = (L, r) => { const m = Math.min(1, L / r); return m < STICK24.dead ? 0 : m; };
+function stickMove(m, want, hd, dt, c, top) {
+  const sp0 = m.sp;
+  if (want > 0) m.rel = 0; else if (!(m.rel > 0)) m.rel = Math.max(top, sp0);
+  const up = top / c.acc, down = (want > 0 ? top : m.rel) / c.dec;
+  m.sp = want > m.sp ? Math.min(want, m.sp + up * dt) : Math.max(want, m.sp - down * dt);
+  if (Number.isFinite(hd)) {
+    if (!Number.isFinite(m.hd) || sp0 <= 0.06 * top) m.hd = hd;
+    else { const d = Math.atan2(Math.sin(hd - m.hd), Math.cos(hd - m.hd)); m.hd += d * (1 - Math.exp(-dt * 3 / c.turn)); }
+  }
+  return m;
+}
+function stickVel(v, x, z, k, dt, tau = STICK24.tau) {
+  const a = dt > 0 ? 1 - Math.exp(-dt / tau) : 0;
+  v.vx = v.vx * (1 - a) + x * k * a; v.vz = v.vz * (1 - a) + z * k * a;
+  return v;
+}
 const CA19 = true;   // ── crafta19 ── FUN19 §2's rule under two thumbs (one switch for a bisect) ── /crafta19 ──
 const CAM = { az: 0.42, el: 0.995, d: 30, lead: 0.32 };   // (az from +x toward +z, el 57°, 30 amot: him ≈ 80 px at 390 tall)
 const isLand = () => typeof innerWidth === 'number' && innerWidth > innerHeight && innerWidth >= 640;
@@ -138,7 +343,7 @@ export function createTwin(o = {}) {
   const handBtn = pad.querySelector('.tw-hand'), handFill = handBtn.querySelector('.tw-fill');
   // ── twin18 ── the timing ring on the work button (contract 4): a ring closes on the gold one; a touch on the gold = מושלם
   const rg = pad.querySelector('.tw-rg'), RG = { on: false, t0: 0, cyc: 1.0, s: 0, src: '' };
-  const PERF = 0.085, GOOD = 0.2, RGO = { u: 0, d: 0, win: 0 };   // (seconds from the gold moment: מושלם · טוב · the rest soft)
+  const PERF = GRADE.PERF, GOOD = GRADE.GOOD, RGO = { u: 0, d: 0, win: 0 };   // ── recovered (16–26c) ── (GRADE)   // (seconds from the gold moment: מושלם · טוב · the rest soft)
   /** where the ring is now: { u: 0…1 to the gold, d: seconds from the gold moment } | null (no ring) */
   function ringNow(ms) {
     if (call('rhythm') === false) return null;
@@ -231,12 +436,22 @@ export function createTwin(o = {}) {
 
   /* ── the left thumb ── */
   const stick = { id: null, bx: 0, by: 0, dx: 0, dy: 0, on: false, t0: 0, walked: 0 };
+  const g39 = () => !STICK39 && !globalThis.__STICK39 && typeof T.guide39 === 'function';   // ── fable32 (build 39) ── (the guided walk: the shift's guide, no developer's stick) ── /fable32 ──
+  const g39drag = { x: 0, z: 0 };
   const hp = { x: 0, y: 0, z: 0, yaw: 0, vis: false }, hp0 = { x: 0, z: 0 };
   const hero = () => { const s = o.stages; if (s && typeof s.heroXYZ === 'function') return s.heroXYZ(hp); return null; };
   function drive(vx, vz) { try { const h = o.stages && o.stages.hero; if (h && typeof h.drive === 'function') h.drive(vx, vz); } catch (e) { /* the world's */ } }
   function stickEnd(why = '') {
     if (!stick.on) return;
-    stick.on = false; stick.id = null; stick.dx = stick.dy = 0; base.classList.remove('on'); zone.classList.remove('act'); drive(0, 0); stick.parked = false;   // ── fable32 ── ── /fable32 ──
+    // ── recovered (16–26c) ── the soft stick let go: where the shift parks him (__SH_STOP) he stops facing it; else he coasts to a stop
+    // (update()); T.stickUse hears the release
+    let soft = T.pace && T.pace.soft, lift = /^(pointerup|pointercancel|lostpointercapture)$/.test(why), park = null;
+    if (soft && lift) { try { const h = hero(); if (h && typeof globalThis.__SH_STOP === 'function') park = globalThis.__SH_STOP(h); if (park && o.stages && o.stages.hero && o.stages.hero.setPos) o.stages.hero.setPos(h.x, h.z, Math.atan2(park.x - h.x, park.z - h.z)); } catch (e) { park = null; } }
+    stick.coast = !!(soft && lift && !park && stick.m && stick.m.sp > 0);
+    if (!stick.coast && stick.m) { stick.m.sp = 0; if (stick.v) stick.v.vx = stick.v.vz = 0; }
+    stick.parkedAt = park ? performance.now() : 0; stick.M = 0;
+    if (typeof T.stickUse === 'function') { try { T.stickUse(0, 0, 0); } catch (e) { /* the shift's */ } }
+    stick.on = false; stick.id = null; stick.dx = stick.dy = 0; stick.rimT = 0; stick.sprint = false; base.classList.remove('on'); zone.classList.remove('act'); if (!stick.coast) drive(0, 0); stick.parked = false;   // ── fable32 ── ── /fable32 ──   // ── recovered (16–26c) ── (rimT, sprint; a coast keeps driving)
     call('emit', 'twinWalk', { d: Math.round(stick.walked * 10) / 10, why });
     // ── nav19 ── (the supervisor, B2) "גררו כאן כדי ללכת" is retired once the stick has walked him three times (2 amot or more each),
     // saved on this device so it stays gone
@@ -247,7 +462,7 @@ export function createTwin(o = {}) {
     if (!st.on || stick.on || zone.classList.contains('tw-nostick')) return;   // ── fable32 (build 4) ── (the shift: no stick — the genre's tap-to-go) ── /fable32 ──
     if (zoom.pin) return;   // ── fix26 ── (a pinch's finger) ── /fix26 ──
     e.preventDefault(); e.stopPropagation();
-    stick.id = e.pointerId; stick.on = true; stick.dx = stick.dy = 0; stick.walked = 0; stick.t0 = performance.now(); stick.az0 = Number.isFinite(globalThis.__SH_STICK_AZ) ? globalThis.__SH_STICK_AZ : NaN;   // ── fable32 (build 12) ── ── /fable32 ──
+    stick.id = e.pointerId; stick.on = true; stick.coast = false; if (!stick.m) stick.m = { sp: 0, hd: NaN }; stick.dx = stick.dy = 0; stick.walked = 0; stick.t0 = performance.now(); stick.az0 = Number.isFinite(globalThis.__SH_STICK_AZ) ? globalThis.__SH_STICK_AZ : NaN;   // ── fable32 (build 12) ── ── /fable32 ──   // ── recovered (16–26c) ── (coast, m)
     const r = zone.getBoundingClientRect();
     stick.bx = e.clientX; stick.by = e.clientY;
     base.style.transform = `translate(${Math.round(e.clientX - r.left)}px,${Math.round(e.clientY - r.top)}px)`; knob.style.transform = '';
@@ -261,8 +476,8 @@ export function createTwin(o = {}) {
   zone.addEventListener('pointermove', (e) => {
     if (!stick.on || e.pointerId !== stick.id) return;
     e.preventDefault();
-    let dx = e.clientX - stick.bx, dy = e.clientY - stick.by; const L = Math.hypot(dx, dy);
-    if (L > R) { dx *= R / L; dy *= R / L; }
+    let dx = e.clientX - stick.bx, dy = e.clientY - stick.by; const L = Math.hypot(dx, dy), RR = T.pace && T.pace.p24 ? T.pace.p24.R : T.pace && T.pace.soft ? T.pace.soft.R : R;   // ── recovered (16–26c) ── (the pace's own reach)
+    if (L > RR) { dx *= RR / L; dy *= RR / L; }
     stick.dx = dx; stick.dy = dy;
     knob.style.transform = `translate(${Math.round(dx)}px,${Math.round(dy)}px)`;
   });
@@ -291,6 +506,7 @@ export function createTwin(o = {}) {
   }
   const bPos = () => { const r = btn.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
   btn.addEventListener('pointerdown', (e) => {
+    if (T.swallowUp && performance.now() - T.swallowUp > 40) T.swallowUp = 0;   // ── recovered (16–26c) ── (an old swallow lapses)
     if (!st.on || bt.id != null) return;
     e.preventDefault(); e.stopPropagation();
     const c = bPos(); bt.id = e.pointerId; bt.x = c.x; bt.y = c.y; bt.dx = bt.dy = 0; bt.drag = false; bt.t0 = performance.now(); bt.spec = spec && !spec.craft ? spec : null;   // ── crafta19 ── ── /crafta19 ──
@@ -318,11 +534,12 @@ export function createTwin(o = {}) {
     e.preventDefault();
     bt.dx = e.clientX - bt.x; bt.dy = e.clientY - bt.y;
     if (!bt.drag && Math.hypot(bt.dx, bt.dy) > 18) { bt.drag = true; fire({ t: 'down', dx: 0, dy: 0 }); }
-    if (bt.drag) { fire({ t: 'move', dx: bt.dx, dy: bt.dy }); t20Step(bt.dx, bt.dy); }   // ── twin20 ── (aimAt → the world's aim + the target + the power) ── /twin20 ──
+    if (bt.drag) { fire({ t: 'move', dx: bt.dx, dy: bt.dy }); if (!T.noPinch) t20Step(bt.dx, bt.dy); }   // ── recovered (16–26c) ── (T.noPinch)   // ── twin20 ── (aimAt → the world's aim + the target + the power) ── /twin20 ──
   });
   const bUp = (e) => {
     if (e.pointerId !== bt.id) return;
     const drag = bt.drag; bt.id = null; btn.classList.remove('down'); aim.classList.remove('on'); if (e.type === 'pointercancel' || e.type === 'lostpointercapture') t20Off(true);   // ── twin20 ── ── /twin20 ──
+    if (T.swallowUp) { T.swallowUp = 0; return; }   // ── recovered (16–26c) ── (T.swallowUp: this release belongs to what the touch-down already did)
     if (spec && spec.craft) fire({ t: 'press', down: false });   // ── craftb19 ── (the release, before its tap or its drag's end) ── /craftb19 ──
     if (e.type === 'pointercancel' || e.type === 'lostpointercapture') { if (drag) fire({ t: 'cancel', dx: bt.dx, dy: bt.dy }); return; }
     if (bt.fired && !drag) return;   // ── twin18 ── (the strike already fired on the touch) ── /twin18 ──
@@ -427,8 +644,29 @@ export function createTwin(o = {}) {
     const e = 1 - Math.exp(-dt * 3);
     // ── places24 ── a work on a real place may ask for its own camera (Wk.view = { p, t }: the place's view — inside the Heichal's door for the
     // menorah / the golden altar; the אמרכל stays outside): eased in over ~0.9 s, held while it is asked, eased back when it is not
-    { const V = Wk && Wk.view && Wk.view.p && Wk.view.t && !OV.on && !zoom.free ? Wk.view : null;
-      if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * 2.4); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)
+    { let V = Wk && Wk.view && Wk.view.p && Wk.view.t && !OV.on && !zoom.free ? Wk.view : null;
+      // ── fable32 (build 40) ── the thing near the right thumb (pan40); held as it was while a finger is on the thing ── /fable32 ──
+      // ── fable32 (build 41) ── every authored act view, with a thing to touch or without (the laver, the lot): his figure ≤ 45 % of the
+      // height and inside the frame — without a thing the view only steps back (no slide) ── /fable32 ──
+      { const G40 = globalThis.__T40, O0 = G40 && G40.obj;
+        if (V && !globalThis.__CAM40_OFF && !V.own) {   /* ── build 52 ── (V.own: an act's view set by hand for its look — the shochet's binding, the laver — taken as it is: no pan40, no obj51) ── */
+          const O = O0 || (h ? { x: h.x, y: (h.y || 16) + HERO41 / 2, z: h.z, at: 0.5, none: true } : null);
+          if (!O) { CBC.v40 = null; }
+          else if (G40 && G40.down && CBC.v40) V = CBC.v40;
+          else { let r40 = null; try { const cam = globalThis.__T && globalThis.__T.camera, tanH = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360) * ((typeof innerWidth === 'number' ? innerWidth : 844) / (typeof innerHeight === 'number' ? innerHeight : 390)); const H40 = h ? { x: h.x, y: (h.y || 16) + HERO41 / 2, z: h.z, h: HERO41 } : null, tanV = Math.tan(((cam && cam.fov) || 50) * Math.PI / 360);   /* (his middle and his height — build 41) */ const M51 = !!(Wk && Wk.view && Wk.view.macro), C40a = O.none ? { ...CAM41, pan: 0 } : Number.isFinite(O.at) ? { ...CAM41, at: O.at } : CAM41, C40 = M51 ? { ...C40a, big: 9, heroR: 9, hero: -9, back: 0 } : C40a; r40 = pan40(V.p, V.t, O, H40, tanH, C40, tanV);   /* ── build 51 ── (a macro view — the lamb, the shochet's binding: the thing first, him not stepped back for; the object rule brings it to its aim) ── */
+            // (never into a wall — the House's narrow hall, a chamber: the slide shortened while its line from the look is cut and the
+            // authored one's is not; else the authored view as it was — cam28's seg, the guard's own test)
+            const sg = globalThis.__DAY && globalThis.__DAY.cam28, cut = (P, Tg) => !!(sg && typeof sg.seg === 'function' && sg.seg(Tg[0], Tg[1], Tg[2], P[0], P[1], P[2]));
+            // ── fable32 (build 41) ── (the lamb's pen, a chamber: a step back cut by a wall) first the same step raised over it — the camera
+            // looks down at him and the thing — then the shorter steps ── /fable32 ──
+            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { for (const up of [2, 4, 6]) { const P2 = [r40.p[0], r40.p[1] + up, r40.p[2]]; if (!cut(P2, r40.t)) { r40 = { ...r40, p: P2, up }; break; } } }
+            if (r40 && cut(r40.p, r40.t) && !cut(V.p, V.t)) { let q = null; for (const k of [0.6, 0.3]) { q = pan40(V.p, V.t, O, H40, tanH, { ...C40, pan: Math.abs(r40.sh) * k, back: r40.back * k }, tanV); if (q && !cut(q.p, q.t)) break; q = null; } r40 = q; } /* ── build 51 ── the object rule (obj51): the thing ≥ 30 % of the width and 20 % of the height, never behind him ── */ { const bb51 = (O0 && O0.bb) || (globalThis.__OBJ51K && globalThis.__OBJ51K.bb) || null, id51 = (O0 && O0.bb && O0.id) || (globalThis.__OBJ51K && globalThis.__OBJ51K.id) || ''; if (bb51 && !globalThis.__OBJ51_OFF && !(O0 && O0.self)) { const Oc = [(bb51[0] + bb51[3]) / 2, (bb51[1] + bb51[4]) / 2 + 0.3, (bb51[2] + bb51[5]) / 2], segO = (P) => !!(sg && typeof sg.seg === 'function' && sg.seg(Oc[0], Oc[1], Oc[2], P[0], P[1], P[2])), cutA = segO(V.p), cut51 = (P) => !cutA && segO(P);   /* (the line of sight to the thing — counted only where the authored view's own is clear: a look into a mass is not a wall) */ const b0 = r40 || { p: V.p, t: V.t, sh: 0, back: 0 }, q51 = obj51(b0.p, b0.t, bb51, h ? { x: h.x, y: h.y || 16, z: h.z, h: HERO41 } : null, tanH, tanV, { ...OBJ51, ...(M51 ? { big: 9, whole: false, lift: [0], aimW: Wk.view.aimW || OBJ51.aimW } : LIFT51.includes(id51) ? {} : { lift: [0] }), ...(CBC.a51 == null ? {} : { prefer: CBC.a51 }), ...(Array.isArray(globalThis.__AVOID51) ? { avoid: globalThis.__AVOID51 } : {}) }, cut51); try { globalThis.__CAM51R = q51 ? { w: Math.round(q51.w * 100), h: Math.round(q51.h * 100), occ: q51.occ, a: Math.round(q51.a * 57), L: q51.L, s: Math.round(q51.s * 100) / 100, big: Math.round(q51.big * 100), self: q51.self } : { none: 1 }; } catch (e3) { /* */ } if (q51 && !q51.self) { r40 = { ...b0, p: q51.p, t: q51.t, o51: q51 }; CBC.a51 = q51.key; } } } /* ── /build 51 ── */ try { globalThis.__CAM40R = r40 ? { back: r40.back, sh: Math.round(r40.sh * 10) / 10, big: r40.big == null ? null : Math.round(r40.big * 100) / 100, hx: r40.hx == null ? null : Math.round(r40.hx * 100) / 100, up: r40.up || 0 } : { none: 1, cutV: cut(V.p, V.t) }; } catch (e2) { /* */ }   /* ── fable32 (build 41) ── (the tools' note: the act view's step) ── */ } catch (e) { r40 = null; } if (r40) { V = { p: r40.p, t: r40.t, e: V.e }; CBC.v40 = V; CBC.r40 = r40; } }
+        } else { CBC.v40 = null; CBC.a51 = null; } }
+      if (V) { if (!CBC.vl) CBC.vl = { p: V.p.slice(), t: V.t.slice() }; else { const ev = 1 - Math.exp(-dt * (V.e > 0 ? V.e : 2.4)); for (let i = 0; i < 3; i++) { CBC.vl.p[i] += (V.p[i] - CBC.vl.p[i]) * ev; CBC.vl.t[i] += (V.t[i] - CBC.vl.t[i]) * ev; } } }   // (a view that moves — the act's next place — glides, never cuts)   // ── recovered (16–26c) ── (V.e: the view's own ease)
+      // ── build 51 ── an act's view may ask its own field of view (Wk.view.fov — the shochet's macro on the lamb, 35°): eased in, and the
+      // camera's own back when it is not asked ── /build 51 ──
+      { const cam = globalThis.__T && globalThis.__T.camera, fw = Wk && Wk.view && Wk.view.fov > 0 && !OV.on && !zoom.free ? Wk.view.fov : 0;
+        if (cam && cam.isPerspectiveCamera) { if (fw) { if (CBC.fov0 == null) CBC.fov0 = cam.fov; const nf = cam.fov + (fw - cam.fov) * (1 - Math.exp(-dt * 3)); if (Math.abs(nf - cam.fov) > 0.01) { cam.fov = nf; cam.updateProjectionMatrix(); } } else if (CBC.fov0 != null) { let nf = cam.fov + (CBC.fov0 - cam.fov) * (1 - Math.exp(-dt * 3)); if (Math.abs(nf - CBC.fov0) < 0.05) { nf = CBC.fov0; CBC.fov0 = null; } cam.fov = nf; cam.updateProjectionMatrix(); } } }
       CBC.vk += ((V ? 1 : 0) - CBC.vk) * (1 - Math.exp(-dt * 2.6)); if (!V && CBC.vk < 0.002) { CBC.vk = 0; CBC.vl = null; }
       // (the place's view stands nearer than the orbit's 35-amah minimum: hold the near limits while it is on — main.js view.closeCam, keyed)
       const hold = !!(V || CBC.vk > 0); if (hold !== !!CBC.vh && o.view && typeof o.view.closeCam === 'function') { o.view.closeCam(hold, 'p24'); CBC.vh = hold; } }
@@ -511,6 +749,7 @@ export function createTwin(o = {}) {
   const onPtr = (e) => {
     if (!st.on) return;
     if (e.type === 'pointerdown') {
+      if (T.noPinch) return;   // ── recovered (16–26c) ── (T.noPinch: no pinch, no drag-turn)
       const c = e.target === canvas(), zn = zoneOf(e.target); if (!c && !zn) return;
       const now = performance.now(); zoom.ids.set(e.pointerId, [e.clientX, e.clientY, now, zn]);
       if (c) liftDown(e);   // ── cam28 ── ── /cam28 ──
@@ -628,6 +867,7 @@ export function createTwin(o = {}) {
     const dt = st.prevMs ? Math.min(0.6, Math.max(0, (ms - st.prevMs) / 1000)) : 0; st.prevMs = ms;
     if ((st.chk -= dt) <= 0) { st.chk = 0.25; setOn(want()); }
     if (!st.on) return;
+    { const g = g39(); if (g !== st.g39) { st.g39 = g; root().classList.toggle('tw-g39', g); zone.setAttribute('aria-label', g ? 'החזיקו כדי ללכת' : 'גררו כאן כדי ללכת'); } }   // ── fable32 (build 39) ── (the guided walk: the world's surface, no stick drawn) ── /fable32 ──
     // (second fix round) the thumbs are held ONLY while a card that asks something is open (moment()); a film — a key moment, a course's
     // beat — only takes the camera for its shots (film()), the stick and the button stay live
     const moment = !!call('moment'), film = !!call('film');
@@ -641,15 +881,71 @@ export function createTwin(o = {}) {
     // ── /nav19 ──
     // (debug: the stick held, he does not move — what holds him: the game's state each such frame)
     if (stick.on && h && Math.hypot(stick.dx, stick.dy) > DEAD) { if (Math.hypot(h.x - dbg.x, h.z - dbg.z) < 0.01 && dt > 0) dbgPush(ms, 'still'); dbg.x = h.x; dbg.z = h.z; }
+    // ── recovered (16–26c) ── the soft stick's coast after the thumb lifts: it ends at a moment, a walk or a busy station; the
+    // protocol stick (build 24) eases its velocity to rest over tau, the soft one decelerates along its heading
+    const soft = T.pace && T.pace.soft;
+    if (soft && !stick.on && stick.coast && h && stick.m) {
+      if (moment || (globalThis.__S29W && globalThis.__S29W.on) || (globalThis.__S29S && globalThis.__S29S.busy)) { stick.coast = false; stick.m.sp = 0; }
+      else if (T.pace.p24 && stick.v) {
+        const v = stickVel(stick.v, 0, 0, 0, dt, T.pace.p24.tau);
+        stick.m.sp = Math.hypot(v.vx, v.vz); if (stick.m.sp < 0.05) { v.vx = v.vz = 0; stick.coast = false; }
+        drive(v.vx, v.vz); stick.vx = v.vx; stick.vz = v.vz;
+      } else {
+        stickMove(stick.m, 0, NaN, dt, soft, 11);
+        const sp = stick.m.sp;
+        drive(Math.sin(stick.m.hd) * sp, Math.cos(stick.m.hd) * sp); stick.vx = Math.sin(stick.m.hd) * sp; stick.vz = Math.cos(stick.m.hd) * sp;
+        if (sp <= 0) { stick.coast = false; drive(0, 0); stick.vx = stick.vz = 0; }
+      }
+    }
     // the stick → his walk, relative to the camera's bearing (screen up = away from the camera)
-    if (stick.on && h && !moment) {
+    if (soft && stick.on && h && !moment && T.pace.p24) {
+      // ── recovered (build 24) ── the protocol stick: the thumb's reach (stick24) is the velocity's share of the top speed (11 × pace.k);
+      // held at the rim (pace.rim) for pace.after s it sprints (× pace.mul); with T.stickUse the stick is the shift's (an act's input), not a walk
+      const P = T.pace.p24, pc = T.pace, L = Math.hypot(stick.dx, stick.dy), M = stick24(L, P.R), ux = L > 0 ? stick.dx / L : 0, uy = L > 0 ? -stick.dy / L : 0;
+      if (!stick.m) stick.m = { sp: 0, hd: NaN }; if (!stick.v) stick.v = { vx: 0, vz: 0 };
+      let top = 11 * (pc.k || 1);
+      if (pc.mul > 0 && !pc.k) { stick.rimT = M >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) top *= pc.mul; } else stick.sprint = false;
+      stick.M = M;
+      const G = g39();   // ── fable32 (build 39) ── ── /fable32 ──
+      if (typeof T.stickUse === 'function') {
+        try { if (G && T.stickUse.d21) T.stickUse(0, WALK39.push, WALK39.push); else T.stickUse(ux * M, uy * M, M); } catch (e) { /* the shift's */ }   // ── fable32 (build 39) ── (the guided hold: the ashes' descent pushed steadily) ── /fable32 ──
+        stick.v.vx = stick.v.vz = 0; stick.m.sp = 0; drive(0, 0); stick.vx = stick.vz = 0;
+      } else if (G) {   // ── fable32 (build 39) ── the guided walk: the guide's way, the drag only to choose; no motion with no place ── /fable32 ──
+        const Ld = Math.hypot(stick.dx, stick.dy), fx = -Math.cos(st.az), fz = -Math.sin(st.az);
+        let drag = null;
+        if (Ld >= WALK39.pick) { const qx = stick.dx / Ld, qy = -stick.dy / Ld; g39drag.x = fx * qy - fz * qx; g39drag.z = fz * qy + fx * qx; drag = g39drag; }
+        let g = null;
+        try { g = T.guide39(hp, drag); } catch (e) { g = null; }
+        const v = walk39(stick.v, g, top, dt);
+        stick.m.sp = Math.hypot(v.vx, v.vz); drive(v.vx, v.vz); stick.vx = v.vx; stick.vz = v.vz; stick.sprint = false; stick.M = g ? WALK39.speed : 0;
+      } else {
+        const fx = -Math.cos(st.az), fz = -Math.sin(st.az), v = stickVel(stick.v, (fx * uy - fz * ux) * M, (fz * uy + fx * ux) * M, top, dt, P.tau);
+        let dvx = v.vx, dvz = v.vz;
+        if (typeof T.assist38 === 'function' && !g39()) { try { const a = T.assist38(hp.x, hp.z, dvx, dvz); if (a) { dvx = a[0]; dvz = a[1]; } } catch (e) { /* the shift's */ } }   // ── fable32 (build 38) ── (the help at narrow openings: the stick's heading bent into the door — world22 assist38; the speed the stick's) ── /fable32 ──
+        stick.m.sp = Math.hypot(dvx, dvz); drive(dvx, dvz); stick.vx = dvx; stick.vz = dvz;
+      }
+      stick.parked = false; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z);
+    } else if (soft && stick.on && h && !moment) {
+      // ── recovered (16–26c) ── the soft stick: the speed eases toward the thumb's (stickCurve × 11 × pace.k), the heading turns toward it
+      const L = Math.hypot(stick.dx, stick.dy), pc = T.pace;
+      if (!stick.m) stick.m = { sp: 0, hd: NaN };
+      const M = stickCurve(L, soft);
+      let want = 11 * M * (pc.k || 1);
+      if (pc.mul > 0 && !pc.k) { stick.rimT = L / soft.R >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) want *= pc.mul; }
+      let hd = NaN;
+      if (L > soft.dead) { const fx = -Math.cos(st.az), fz = -Math.sin(st.az), rx = -fz, rz = fx, ux = stick.dx / L, uy = -stick.dy / L, vx = fx * uy + rx * ux, vz = fz * uy + rz * ux; hd = Math.atan2(vx, vz); }
+      stickMove(stick.m, want, hd, dt, soft, 11);
+      const sp = stick.m.sp, vx = Number.isFinite(stick.m.hd) ? Math.sin(stick.m.hd) * sp : 0, vz = Number.isFinite(stick.m.hd) ? Math.cos(stick.m.hd) * sp : 0;
+      drive(vx, vz); stick.vx = vx; stick.vz = vz; stick.parked = false; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z);
+    } else if (stick.on && h && !moment) {
       const L = Math.hypot(stick.dx, stick.dy);
       // ── fable32 ── the arrival stop (the owner 13.10: "הדמות אמורה להיעצר כשמגיעה לנקודת משימה"): the shift says when he is at the next place —
       // he stops there and faces it; the thumb must be lifted and pushed again to walk on
       if (typeof globalThis.__SH_STOP === 'function' && !stick.parked) { try { const q = globalThis.__SH_STOP(h); if (q) { stick.parked = true; drive(0, 0); stick.vx = stick.vz = 0; try { if (o.stages && o.stages.hero && o.stages.hero.setPos) o.stages.hero.setPos(h.x, h.z, Math.atan2(q.x - h.x, q.z - h.z)); } catch (e) { /* */ } } } catch (e) { /* */ } }
       if (stick.parked) { drive(0, 0); stick.vx = stick.vz = 0; stick.walked = Math.hypot(hp.x - hp0.x, hp.z - hp0.z); }
       else if (L > DEAD) {
-        const m = Math.min(1, (L - DEAD) / (R - DEAD)), sp = SPEED * (0.35 + 0.65 * m);
+        const m = Math.min(1, (L - DEAD) / (R - DEAD)); let sp = SPEED * (0.35 + 0.65 * m);
+        { const pc = T.pace; if (pc && pc.mul > 0) { stick.rimT = m >= (pc.rim || 0.95) ? (stick.rimT || 0) + dt : 0; stick.sprint = stick.rimT > (pc.after || 0.6); if (stick.sprint) sp *= pc.mul; } else { stick.rimT = 0; stick.sprint = false; } }   // ── recovered (16–26c) ── (a sprint at the rim)
         const fx = -Math.cos(st.az), fz = -Math.sin(st.az), rx = -fz, rz = fx;   // forward on the ground, and its right (── nav19 ── st.az: the camera's bearing AS IT IS)
         const ux = stick.dx / L, uy = -stick.dy / L;
         const vx = (fx * uy + rx * ux) * sp, vz = (fz * uy + rz * ux) * sp;
@@ -836,9 +1132,10 @@ export function createTwin(o = {}) {
   function dbgPush(ms, kind) { const w = call('why'); dbg.list.push(`${Math.round(ms)}:${kind}:${w || ''}`); if (dbg.list.length > 40) dbg.list.shift(); }
   T.pips = () => pip.n;
   T.spec = () => spec;
+  T.held19 = () => bt.id != null;   // ── recovered (build 19) ── (the work button held)
   T.pinch = () => !!zoom.pin;   // ── fable32 (build 5) ── ── /fable32 ──
   T.noStick = (on) => { zone.classList.toggle('tw-nostick', !!on); if (on && stick.on) stickEnd(); return !!on; };   // ── fable32 (build 4) ── ── /fable32 ──
-  T.stick = () => ({ on: stick.on, dx: Math.round(stick.dx), dy: Math.round(stick.dy), walked: stick.walked });
+  T.stick = () => ({ on: stick.on, dx: Math.round(stick.dx), dy: Math.round(stick.dy), walked: stick.walked, sprint: !!stick.sprint, sp: stick.m ? Math.round(stick.m.sp * 100) / 100 : 0, coast: !!stick.coast, soft: !!(T.pace && T.pace.soft), R: T.pace && T.pace.p24 ? T.pace.p24.R : T.pace && T.pace.soft ? T.pace.soft.R : R, parkedAt: stick.parkedAt || 0, M: (stick.on && stick.M) || 0 });   // ── recovered (16–26c) ── (+ the paced stick's state)
   T.destroy = () => { setOn(false); try { window.removeEventListener('resize', onTurn); window.removeEventListener('orientationchange', onTurn); } catch (e) { /* */ } for (const t of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) window.removeEventListener(t, onPtr, true); for (const e of [zone, pad, aim, flash, goal, me, ...MK.map((m) => m.el)]) { try { e.remove(); } catch (err) { /* */ } } };
   // tests and bots read what a player sees
   globalThis.__TWIN = { graded: (q) => T.graded(q) /* ── crafta19 ── (CRAFTB19's acts: the button answers the impact) ── /crafta19 ── */, on: () => st.on, force: (v) => { st.force = v; st.chk = 0; }, pips: () => pip.n, spec: () => (spec ? { icon: spec.icon, label: spec.label, job: spec.job || null, strike: !!spec.strike } : null), stick: T.stick, t20: () => T.t20() /* ── twin20 ── */, fb: () => ({ ...fb }), cam: () => ({ on: st.camOn, mode: camMode(), zoom: zoom.k, goal: zoom.goal, free: zoom.free, pin: zoom.pin, ids: zoom.ids.size /* ── fix26 ── */ }), hand: () => hand.k, marks: () => MK.filter((m) => m.on).map((m) => m.job), goal: () => goalOn, over: (v) => { if (v !== undefined) overview(v, 'test'); return { on: OV.on, k: Math.round(OV.k * 100) / 100, n: OV.n }; }, az: () => st.az, goTo: () => call('goTo'), dbg: () => dbg.list.slice(), ring: () => { const r = ringNow(performance.now()); return r ? { on: true, u: r.u, d: r.d, cyc: spec && spec.strike ? null : RG.cyc } : { on: false }; }, probe: () => { const h = hero(); let w = null, err = null; try { w = h ? o.work(h) : 'no hero'; } catch (e) { err = e && e.message; } return { specT, prev: st.prevMs, h: h && [Math.round(h.x), Math.round(h.z)], w: w && typeof w === 'object' ? w.job : w, err, moment: !!call('moment') }; }, charge: () => { hand.k = 1; } };

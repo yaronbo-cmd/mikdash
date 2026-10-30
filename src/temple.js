@@ -131,9 +131,8 @@ export function buildTemple(B, P) {
   A(-54, 16, -18.5, -53, 17, 12.5);    // yesod — the whole west
   A(-53, 16, 11.5, -52, 17, 12.5);     // one amah into the south
   A(-23, 16, -18.5, -22, 17, -17.5);   // one amah into the east
-  A(-53, 16, -18.5, -23, 17, 11.5);    // the first course under the body
   S('sovev');
-  A(-53, 17, -18.5, -23, 22, 11.5);    // up to the sovev
+  A(-53, 16, -18.5, -23, 22, 11.5);    // the body from the court's floor up to the sovev (build 56: its first course no longer the yesod's — the yesod is the ר alone, מדות ג, א)
   box('red', -53.06, 20.85, -18.56, -22.94, 21.15, 11.56, -999);   // חוט הסיקרא
   S('guf');
   A(-52, 22, -17.5, -24, 25, 10.5);    // above the sovev
@@ -365,6 +364,7 @@ function extraMats(B) {
   // (few new materials: every material is a draw call in each build stage that uses it)
   M.silver = { mat: std({ color: '#DCE0E4', metalness: 1, roughness: 0.22 }), tile: 5 };
   M.ember = { mat: std({ color: BLOOD.ember, emissive: new THREE.Color(1.75, 0.72, 0.14), roughness: 0.9 }), tile: 4, cast: false };   // ── blooda25 ── orange coals (DAM25 §4.6: red is the blood's and the line's only)
+  M.pyre22 = { ...M.cedar };   // ── recovered (build 22) ── the great pyre's logs: cedar's look under a material of their own
   // the roofs of Beit HaMoked and Beit Avtinas, which open when the camera comes close (sanctuary.js finds this mesh by
   // its name in the lishka stage)
   M.roofCut = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1 }), tile: 24 };
@@ -504,7 +504,7 @@ function buildAltarService(B, box, S) {
   { const { x, z } = MA.great;
     for (let lay = 0; lay < 4; lay++) for (let i = 0; i < 5; i++) {
       const o = (i - 2) * 1.05 + (r() - 0.5) * 0.2, y = 25.3 + lay * 0.5;
-      log('cedar', lay % 2 ? x + o : x, y, lay % 2 ? z : z + o, 5.2 + r() * 0.6, 0.26 + r() * 0.05, lay % 2 ? Math.PI / 2 + (r() - 0.5) * 0.1 : (r() - 0.5) * 0.1);
+      log('pyre22', lay % 2 ? x + o : x, y, lay % 2 ? z : z + o, 5.2 + r() * 0.6, 0.26 + r() * 0.05, lay % 2 ? Math.PI / 2 + (r() - 0.5) * 0.1 : (r() - 0.5) * 0.1);   // ── recovered (build 22) ── 'pyre22'
     }
     for (let k = 0; k < 22; k++) { const g = new THREE.IcosahedronGeometry(0.2 + r() * 0.16, 0); g.translate(x + (r() - 0.5) * 4.4, 25.15 + r() * 0.5, z + (r() - 0.5) * 4.4); B.geo('ember', g, -999); } }
   // the second maaracha, for the coals of the ketoret: small, of fine fig wood (Tamid 2:5)

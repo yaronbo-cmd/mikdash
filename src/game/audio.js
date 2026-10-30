@@ -59,11 +59,19 @@ export const SOUNDS = [
   'dinar',   // ── hook19 ── the gold coin's ring (the master score's 10,000)
   'grave',   // ── blooda25 ── (the slaughter behind the screen: one soft deep tone, the beds dip)
   'xpTick', 'levelUp', 'good', 'soft', 'starPop', 'star', 'big', 'flyIn', 'tab',   // ── music18 ── (wave 18: the work's points, its grades, a landing, a top tab; 'perfect' is redefined below)
+  // ── recovered (17–26) ── the day's sounds (Phase B plays them through sound.js since build 26c)
+  'warn17', 'alarm17', 'near17', 'ding17', 'chord17', 'trumpet17', 'late17', 'coin18', 'salt19', 'wbell20', 'unlock20', 'scrape21', 'spill21', 'blast21',
+  'torch25', 'hoof25', 'bleat25', 'stamp25', 'bell25', 'gate26', 'bolt26', 'step26', 'hand26', 'scrape26', 'pour26', 'bell26', 'wick26',
+  'drum23', 'knock22', 'err22', 'crack22', 'fire22',
+  'blade27', 'fill27', 'clink27', 'splash27', 'pour27', 'bind27',   // ── fable32 (build 27) ── the blood roles (dam27.js) ── /fable32 ──
 ];
 export const BEDS = ['site', 'plaza', 'crowd', 'rain', 'birds', 'sea', 'night'];   // ── world12 ── + 'night': a dry night's crickets and a breath of wind
 
-export function createAudio({ storage, root = null, settings = null } = {}) {
-  let ctx = null, master = null, noise = null, amb = null, ambKind = null, flowBed = null, flowWant = 0;
+// ── recovered (build 26c) ── trim: a gain per sound name (sound.js's TRIM26C, when Phase B builds this kit too); declick: every
+// envelope's gain starts at its floor (a gain sits at 1 until its first event — one sample of raw noise on a phone). Phase A
+// passes neither: its sound is unchanged.
+export function createAudio({ storage, root = null, settings = null, trim = null, declick = false } = {}) {
+  let ctx = null, master = null, noise = null, amb = null, ambKind = null, flowBed = null, flowWant = 0, beds = null, bedsK = 1;   // ── recovered (build 26c) ── (beds: the ambience's bus, at 1; duck() lowers it)
   let muted = false, lastLand = 0, heroBound = false, lastImpact = -9, OUT = null, PJ = 0, FJ = 0;   // (music18: PJ / FJ — the play's pitch and filter variation)   // (land17: OUT — the level trim's bus while a trimmed sound is made)
   try { muted = !!(storage && storage.get(MUTE_KEY) === '1'); } catch (e) { muted = false; }
 
@@ -85,6 +93,7 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
       sat.curve = cv; sat.connect(ctx.destination); ctx.__bhOut = sat;
     }
     master.connect(comp); comp.connect(sat || ctx.destination);
+    beds = ctx.createGain(); beds.gain.value = bedsK; beds.connect(master);   // ── recovered (build 26c) ── the beds bus: the ambience, the running water, the choir
     // one second of white noise, reused by every noisy sound
     noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noise.getChannelData(0);
@@ -109,6 +118,7 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
 
   /* ── building blocks ── */
   function env(g, t, a, peak, dec, sus = 0.0001) {
+    if (declick) g.gain.value = 0.0001;   // ── recovered (build 26c) ──
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + a);
     g.gain.exponentialRampToValueAtTime(Math.max(sus, 0.0001), t + a + dec);
@@ -153,7 +163,11 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
   let beatFn = () => { try { const M = globalThis.__BH_MUSIC; return M && typeof M.beat === 'function' ? M.beat() : null; } catch (e) { return null; } };
   let xpRun = 0, xpLast = -9;
   // ── /music18 ──
-  const LEVEL = { perfect: 2.8, thud: 1.5, settle: 2.5, joint: 1.7, tier: 5, fanfare: 3.2, stamp: 1.35, pop: 5, ui: 6, whoosh: 14, leaf: 2, coin: 1.6, chisel: 1.8, xpTick: 4.8, levelUp: 1.7, dinar: 1.6, good: 1.6, soft: 2.2, starPop: 2.4, flyIn: 2.4, tab: 4, big: 1.5 };   // (music18: + the new names)
+  const LEVEL = { perfect: 2.8, thud: 1.5, settle: 2.5, joint: 1.7, tier: 5, fanfare: 3.2, stamp: 1.35, pop: 5, ui: 6, whoosh: 14, leaf: 2, coin: 1.6, chisel: 1.8, xpTick: 4.8, levelUp: 1.7, dinar: 1.6, good: 1.6, soft: 2.2, starPop: 2.4, flyIn: 2.4, tab: 4, big: 1.5,
+    // ── recovered (17–26) ── the day's sounds (their builds in their names)
+    warn17: 2.2, alarm17: 2.2, near17: 2.4, ding17: 2.2, chord17: 2.4, trumpet17: 3, late17: 2.4, coin18: 2, scrape21: 2.2, spill21: 2, blast21: 3, knock22: 2.6, err22: 2, crack22: 2.2, fire22: 2.6, drum23: 2.4,
+    torch25: 2, hoof25: 2.2, bleat25: 2.2, stamp25: 2.8, bell25: 2.6, gate26: 3, bolt26: 2.4, step26: 2.2, hand26: 2.2, scrape26: 2, pour26: 1.8, bell26: 2.6, wick26: 2.4,
+    blade27: 2.2, fill27: 1.8, clink27: 2, splash27: 2.4, pour27: 2.2, bind27: 2.2 };   // (music18: + the new names) ── fable32 (build 27) ── ── /fable32 ──
   const levelOf = (name, o) => (name === 'starPop' && o && o.n === 3 ? 3.4 : name === 'hammer' ? (o && (o.quality === 'perfect' || o.quality === 'combo') ? LEVEL.perfect : 1) : LEVEL[name] || 1);
   /* ── the kit ── */
   const KIT = {
@@ -438,6 +452,108 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
       tone(t, { f: 110, f2: 55, peak: 0.28, a: 0.004, dec: 0.3 });
     },
     // ── /hook19 ──
+    // ── recovered (build 17) ── focus17's warnings and rewards: the fire low (two dull knocks), the alarm (three; o.soft), near a
+    // record (a bell up the scale, o.n 1–3), a hit, a chord (o.up a fifth higher), the silver trumpets, too late (a falling pair)
+    warn17(t) { for (const k of [0, 0.26]) { tone(t + k, { f: 92, f2: 70, peak: 0.42, a: 0.006, dec: 0.16 }); tone(t + k, { type: 'triangle', f: 330, peak: 0.07, a: 0.004, dec: 0.12, lp: 1400 }); } },
+    alarm17(t, o = {}) {
+      const s = o.soft ? 0.6 : 1;
+      for (const k of [0, 0.17, 0.34]) { tone(t + k, { f: 104, f2: 78, peak: 0.45 * s, a: 0.004, dec: 0.12 }); tone(t + k, { type: 'square', f: 523.25, peak: 0.05 * s, a: 0.004, dec: 0.09, lp: 2200 }); }
+      noiseHit(t, { type: 'lowpass', f: 900, peak: 0.12 * s, dec: 0.2 });
+    },
+    near17(t, o = {}) { const n = Math.max(1, Math.min(3, (o.n | 0) || 1)); bell(t, semis(783.99, PENTA[n + 1]), 0.06 + 0.02 * n, 0.6); },
+    ding17(t) { bell(t, 1567.98, 0.13, 0.9); bell(t + 0.09, 2093, 0.1, 1); tone(t, { f: 140, f2: 90, peak: 0.12, dec: 0.08 }); },
+    chord17(t, o = {}) {
+      const b = o.up ? semis(587.33, 7) : 587.33;
+      for (const [i, s] of [[0, 0], [1, 4], [2, 7], [3, 12]]) pluck(t + i * 0.045, semis(b, s), 0.11, 0.6);
+      bell(t + 0.2, semis(b, 24), 0.06, 1.1); tone(t, { f: 98, f2: 60, peak: 0.3, dec: 0.25 }); noiseHit(t + 0.05, { type: 'highpass', f: 5000, f2: 9000, peak: 0.05, a: 0.03, dec: 0.4 });
+    },
+    trumpet17(t) {   // the silver trumpets (חצוצרות), a pair a little apart, never a shofar
+      const N = [[440, 0, 0.14], [440, 0.16, 0.14], [659.25, 0.32, 0.22], [880, 0.56, 0.6]];
+      for (const [f, dt, d] of N) for (const det of [0, 3.5]) { tone(t + dt, { type: 'sawtooth', f: f + det, peak: 0.07, a: 0.025, dec: d, lp: 2600, vib: 4 }); tone(t + dt, { type: 'square', f: (f + det) / 2, peak: 0.025, a: 0.03, dec: d, lp: 1200 }); }
+      tone(t, { f: 110, f2: 55, peak: 0.35, dec: 0.3 });
+    },
+    late17(t) { pluck(t, 523.25, 0.1, 0.4); pluck(t + 0.18, 440, 0.09, 0.6); },
+    // ── recovered (build 18) ── a coin into the till: one small bell up the scale with the count (o.n), an octave above ten
+    coin18(t, o = {}) { const n = Math.max(0, o.n | 0), f = semis(1046.5, PENTA[n % 10] + 12 * Math.min(1, Math.floor(n / 10))); bell(t, f, o.big ? 0.08 : 0.055, 0.28); },
+    // ── recovered (build 19) ── salt grains on the ramp
+    salt19(t) { for (let i = 0; i < 3; i++) noiseHit(t + i * 0.025, { type: 'highpass', f: 4200 + Math.random() * 3000, peak: 0.08, dec: 0.022 }); },
+    // ── recovered (build 20) ── the laver: a water bell, and the hands washed (a latch and a rising run)
+    wbell20(t) {
+      bell(t, 1318.51, 0.12, 1.6); bell(t + 0.06, 1975.53, 0.08, 1.4); bell(t, 659.25, 0.06, 1.8);
+      for (const k of [0.32, 0.47, 0.66]) tone(t + k, { f: 1500 + Math.random() * 400, f2: 750, peak: 0.04, dec: 0.06 });
+      noiseHit(t, { type: 'highpass', f: 5200, f2: 8000, peak: 0.04, a: 0.02, dec: 0.5 });
+    },
+    unlock20(t) {
+      tone(t, { f: 120, f2: 70, peak: 0.3, dec: 0.12 }); noiseHit(t, { f: 520, q: 2.5, peak: 0.25, dec: 0.06 }); noiseHit(t + 0.07, { f: 900, f2: 600, q: 3, peak: 0.08, a: 0.02, dec: 0.16 });
+      for (const [i, s] of [[0, 0], [1, 4], [2, 7], [3, 12], [4, 16]]) pluck(t + 0.16 + i * 0.06, semis(587.33, s), 0.1, 0.7);
+      bell(t + 0.48, semis(587.33, 24), 0.07, 1.3);
+    },
+    // ── recovered (build 21) ── the ashes: the shovel's scrape (o.n climbs), a spill
+    scrape21(t, o = {}) { const k = 1 + 0.05 * (o.n | 0); noiseHit(t, { f: 2300 * k, f2: 1000 * k, q: 3, peak: 0.22, a: 0.02, dec: 0.3 }); tone(t, { type: 'triangle', f: 1870 * k, f2: 1720 * k, peak: 0.03, dec: 0.38 }); tone(t + 0.02, { f: 2760 * k, peak: 0.016, dec: 0.28 }); },
+    spill21(t) {
+      tone(t, { f: 160, f2: 60, peak: 0.25, dec: 0.18 });
+      for (let i = 0; i < 9; i++) noiseHit(t + 0.03 + Math.random() * 0.45, { f: 1800 + Math.random() * 2600, q: 4, peak: 0.12, a: 0.001, dec: 0.02 });
+      noiseHit(t + 0.05, { type: 'highpass', f: 3000, peak: 0.06, a: 0.05, dec: 0.5 });
+    },
+    // ── recovered (build 22) ── the pyre: a log knocked on the stack (o.n climbs), a wrong one, a log that cracks, the fire taking
+    knock22(t, o = {}) { const k = 1 + 0.04 * (o.n | 0); tone(t, { f: 165 * k, f2: 105 * k, peak: 0.42, dec: 0.16 }); noiseHit(t, { f: 720 * k, q: 4, peak: 0.3, dec: 0.07 }); noiseHit(t, { type: 'highpass', f: 3800, peak: 0.07, dec: 0.012 }); },
+    err22(t) { for (const k of [0, 0.17]) tone(t + k, { type: 'square', f: 138, f2: 120, peak: 0.08, a: 0.004, dec: 0.12, lp: 900 }); },
+    crack22(t) {
+      noiseHit(t, { type: 'highpass', f: 2400, peak: 0.34, dec: 0.03 }); tone(t, { f: 230, f2: 70, peak: 0.25, dec: 0.12 });
+      for (let i = 0; i < 5; i++) noiseHit(t + 0.03 + Math.random() * 0.18, { f: 1400 + Math.random() * 2400, q: 5, peak: 0.1, a: 0.001, dec: 0.02 });
+    },
+    fire22(t) {
+      noiseHit(t, { f: 260, f2: 900, q: 0.8, peak: 0.25, a: 0.08, dec: 1.4 }); tone(t, { f: 62, f2: 48, peak: 0.22, a: 0.2, dec: 1.4 });
+      for (let i = 0; i < 16; i++) noiseHit(t + 0.1 + Math.random() * 1.4, { f: 1600 + Math.random() * 3000, q: 4, peak: 0.07 + Math.random() * 0.08, a: 0.001, dec: 0.018 });
+    },
+    // ── recovered (build 23) ── the lots' drum (o.n climbs a semitone; o.end / o.big: the last, deeper, a second beat)
+    drum23(t, o = {}) {
+      const k = Math.pow(2, Math.min(12, o.n | 0) / 12), big = o.end || o.big;
+      tone(t, { f: (big ? 92 : 140) * k, f2: (big ? 55 : 90) * k, peak: big ? 0.5 : 0.34, dec: big ? 0.3 : 0.12 }); noiseHit(t, { f: 1500 * k, q: 2, peak: 0.16, dec: 0.035 });
+      if (o.end) tone(t + 0.11, { f: 110, f2: 60, peak: 0.42, dec: 0.32 });
+    },
+    // ── recovered (build 25) ── the pen: the torch, a hoof (o.n), the lamb's bleat (o.hi), the inspector's stamp (o.no: rejected), a bell
+    torch25(t) { noiseHit(t, { f: 320, peak: 0.05, a: 0.06, dec: 0.4 }); for (let i = 0; i < 4; i++) noiseHit(t + Math.random() * 0.3, { type: 'highpass', f: 3000, peak: 0.08, dec: 0.015 }); },
+    hoof25(t, o = {}) { const k = 1 + 0.03 * ((o.n | 0) % 4); tone(t, { f: 300 * k, f2: 170 * k, peak: 0.12, dec: 0.05 }); noiseHit(t, { f: 1300 * k, q: 3, peak: 0.08, dec: 0.025 }); },
+    bleat25(t, o = {}) { const k = o.hi ? 1.12 : 1; for (let i = 0; i < 6; i++) tone(t + i * 0.055, { type: 'sawtooth', f: (540 - i * 18) * k, peak: 0.035 * (1 - i * 0.1), a: 0.01, dec: 0.05, lp: 1700 }); },
+    stamp25(t, o = {}) { const k = o.no ? 0.8 : 1; tone(t, { f: 72 * k, f2: 44, peak: 0.6, dec: 0.32 }); noiseHit(t, { type: 'lowpass', f: 600, peak: 0.3, dec: 0.08 }); tone(t, { f: 420 * k, peak: 0.07, dec: 0.5 }); tone(t, { f: 1130 * k, peak: 0.035, dec: 0.4 }); },
+    bell25(t) { bell(t, 698.46, 0.15, 1.8); bell(t + 0.02, 1046.5, 0.05, 1.3); bell(t + 0.4, 698.46, 0.07, 1.4); },
+    // ── recovered (build 26) ── the Heichal (its report: "gate, bolt, echoing step, handful, scrape, pour tone 300→800 Hz, gold
+    // bell, wick"): the great gate's echo, the bolt drawn, a step in the hall (o.n), the incense's handful, a scrape, the oil's
+    // pour (o.f its pitch), the gold bell, the wick (o.hi)
+    gate26(t) {
+      for (let i = 0; i < 4; i++) { const k = Math.pow(0.42, i), dt = i * 0.33; tone(t + dt, { f: 52, f2: 38, peak: 0.55 * k, a: 0.02, dec: 1.4 }); noiseHit(t + dt, { type: 'lowpass', f: 380, peak: 0.3 * k, a: 0.03, dec: 0.6 }); }
+      tone(t + 0.15, { type: 'sawtooth', f: 92, f2: 70, peak: 0.05, a: 0.2, dec: 1.2, lp: 400 });
+    },
+    bolt26(t) { noiseHit(t, { f: 900, f2: 420, q: 2, peak: 0.25, a: 0.03, dec: 0.32 }); tone(t + 0.3, { f: 140, f2: 90, peak: 0.3, dec: 0.12 }); },
+    step26(t, o = {}) { const k = (o.n | 0) % 2 ? 1.06 : 1; for (let i = 0; i < 3; i++) { const e = Math.pow(0.35, i); noiseHit(t + i * 0.13, { f: 2100 * k, q: 2, peak: 0.12 * e, dec: 0.03 }); tone(t + i * 0.13, { f: 190 * k, f2: 120, peak: 0.09 * e, dec: 0.06 }); } },
+    hand26(t, o = {}) { const k = 1 + 0.04 * (o.n | 0); noiseHit(t, { type: 'lowpass', f: 1200 * k, peak: 0.2, a: 0.02, dec: 0.16 }); tone(t + 0.08, { f: 1480 * k, peak: 0.02, dec: 0.3 }); },
+    scrape26(t) { noiseHit(t, { f: 3800, f2: 2600, q: 6, peak: 0.16, a: 0.01, dec: 0.4 }); tone(t, { type: 'triangle', f: 2900, f2: 2500, peak: 0.05, dec: 0.38, vib: 9 }); },
+    pour26(t, o = {}) { const f = Math.max(250, Math.min(900, +o.f || 300)); tone(t, { f, peak: 0.07, a: 0.01, dec: 0.1, pj: 0 }); noiseHit(t, { f: f * 3, q: 4, peak: 0.02, dec: 0.06 }); },
+    bell26(t) { bell(t, 1318.5, 0.1, 1.4); bell(t + 0.01, 1975.5, 0.04, 1); },
+    wick26(t, o = {}) { noiseHit(t, { type: 'highpass', f: o.hi ? 4200 : 3000, peak: 0.14, dec: 0.02 }); tone(t, { f: o.hi ? 1760 : 1320, peak: 0.05, dec: 0.05 }); },
+    // ── fable32 (build 27) ── the blood roles: the blade's slice (a fast fall 1200 → 200 Hz in 0.1 s, and a copper ring; o.soft: the
+    // court's shochet, further off), the vessel filling (o.f its rising pitch), the copper clink of each circle (o.n), the splash on
+    // the stone (o.big: both faces), the rest poured on the yesod, the binding (wool and a soft knock)
+    blade27(t, o = {}) {
+      const k = o.soft ? 0.45 : 1;
+      tone(t, { type: 'sawtooth', f: 1200, f2: 200, peak: 0.1 * k, a: 0.002, dec: 0.1, lp: 3200, pj: 0 });
+      noiseHit(t, { type: 'highpass', f: 3600, peak: 0.09 * k, dec: 0.06 });
+      bell(t + 0.02, 880, 0.035 * k, 0.9);
+    },
+    fill27(t, o = {}) { const f = Math.max(200, Math.min(900, +o.f || 260)); tone(t, { f, peak: 0.05, a: 0.012, dec: 0.12, pj: 0 }); noiseHit(t, { f: f * 2.6, q: 5, peak: 0.025, dec: 0.08 }); },
+    clink27(t, o = {}) { const k = 1 + 0.05 * ((o.n | 0) % 3); tone(t, { type: 'triangle', f: 2100 * k, peak: 0.06, dec: 0.12 }); tone(t, { f: 3170 * k, peak: 0.02, dec: 0.07 }); },
+    splash27(t, o = {}) {
+      noiseHit(t, { type: 'lowpass', f: 900, peak: 0.22, a: 0.005, dec: 0.18 }); noiseHit(t + 0.03, { f: 2400, q: 2, peak: 0.06, dec: 0.1 });
+      if (o.big) { noiseHit(t + 0.07, { type: 'lowpass', f: 1100, peak: 0.18, a: 0.005, dec: 0.16 }); tone(t + 0.05, { f: 660, peak: 0.03, dec: 0.4 }); }
+    },
+    pour27(t) { noiseHit(t, { f: 700, f2: 400, q: 1.2, peak: 0.12, a: 0.08, dec: 0.9 }); tone(t, { f: 240, f2: 180, peak: 0.04, a: 0.1, dec: 0.8 }); },
+    bind27(t) { noiseHit(t, { type: 'lowpass', f: 1800, peak: 0.1, a: 0.03, dec: 0.2 }); tone(t + 0.12, { f: 330, peak: 0.04, dec: 0.08 }); },
+    // ── recovered (build 21) ── the trumpets' blast (the terumat hadeshen's call)
+    blast21(t) {
+      for (const d of [0, 4]) { tone(t, { type: 'sawtooth', f: 587.33 + d, peak: 0.075, a: 0.04, dec: 0.62, lp: 3000, vib: 3 }); tone(t, { type: 'square', f: (587.33 + d) / 2, peak: 0.028, a: 0.05, dec: 0.56, lp: 1400 }); }
+      tone(t + 0.4, { type: 'sawtooth', f: 880, peak: 0.065, a: 0.03, dec: 0.55, lp: 3200, vib: 4 }); tone(t, { f: 98, f2: 60, peak: 0.3, dec: 0.3 });
+    },
   };
 
   function play(name, o = {}) {
@@ -455,12 +571,42 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
       if (heroBound && (name === 'good' || name === 'soft') && ctx.currentTime - lastImpact < 0.9) oo = Object.assign({}, oo, { light: true });
       const vr = VARY[name]; PJ = vr ? vr[0] : 0; FJ = vr ? vr[1] : 0;
       if (BEATQ[name]) { const b = beatFn(); if (b && b.toNext > 0.02 && b.toNext <= b.period + 0.01) oo = Object.assign({}, oo, { tb: ctx.currentTime + b.toNext }); }
-      const lv = levelOf(name, oo) * (vr && vr[2] ? 1 + (Math.random() * 2 - 1) * vr[2] : 1);
+      const lv = levelOf(name, oo) * (trim && trim[name] > 0 ? trim[name] : 1) * (vr && vr[2] ? 1 + (Math.random() * 2 - 1) * vr[2] : 1);   // ── recovered (build 26c) ── (× trim)
       // ── /music18 ──
       if (name === 'levelUp' || name === 'big') { try { const M = globalThis.__BH_MUSIC; if (M && typeof M.flourish === 'function') M.flourish(name === 'levelUp' ? 'level' : oo.kind === 'stage' ? 'stage' : 'course', oo.level); } catch (e) { /* the music's */ } }   // the music's own hit lands on the same beat
       if (lv !== 1) { const g = ctx.createGain(); g.gain.value = lv; g.connect(master); OUT = g; }
       try { f(tt, oo); } finally { OUT = null; PJ = 0; FJ = 0; }
     } catch (e) { /* audio is best-effort */ }
+  }
+
+  // ── recovered (build 20) ── the kiddush water's rush (kiyor20, through sound.js's rush20): two loops of noise — a band and a hiss —
+  // under one gain; k 0…1 sets it, under 0.02 it fades and stops
+  let rush = null;
+  function rush20(k) {
+    k = Math.max(0, Math.min(1, +k || 0));
+    if (!ready() || (!rush && k < 0.02)) return;
+    const t = ctx.currentTime;
+    if (!rush) {
+      const g = ctx.createGain(); g.gain.value = 0.0001; g.connect(master);
+      rush = { g, L: [[1100, 'bandpass', 1], [3800, 'highpass', 0.4]].map(([f, type, v]) => { const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), gg = ctx.createGain(); s.buffer = noise; s.loop = true; fl.type = type; fl.frequency.value = f; fl.Q.value = 0.6; gg.gain.value = v; s.connect(fl); fl.connect(gg); gg.connect(g); s.start(t, Math.random() * 0.8); return s; }) };
+    }
+    rush.g.gain.setTargetAtTime(0.0001 + 0.12 * k, t, k > 0.5 ? 0.04 : 0.06);
+    if (k < 0.02) { const R = rush; rush = null; setTimeout(() => { try { for (const s of R.L) s.stop(); R.g.disconnect(); } catch (e) { /* */ } }, 900); }
+  }
+  // ── recovered (16–26c) ── the Levites' choir: a held chord (five voices through a low-pass) on the beds bus; k 0…1, slow to swell
+  // and to fade (trim.choir: 26c's level)
+  let choirV = null;
+  function choir(k) {
+    k = Math.max(0, Math.min(1, +k || 0));
+    if (!ready() || (!choirV && k < 0.02)) return;
+    const t = ctx.currentTime;
+    if (!choirV) {
+      const g = ctx.createGain(), lp = ctx.createBiquadFilter();
+      g.gain.value = 0.0001; lp.type = 'lowpass'; lp.frequency.value = 760; lp.connect(g); g.connect(beds || master);
+      choirV = { g, os: [146.83, 220, 293.66, 440.6, 369.99].map((f, i) => { const o = ctx.createOscillator(); o.type = i & 1 ? 'triangle' : 'sawtooth'; o.frequency.value = f; o.detune.value = (i - 2) * 6; o.connect(lp); o.start(t); return o; }) };
+    }
+    choirV.g.gain.setTargetAtTime(0.0001 + 0.05 * k * (trim && trim.choir > 0 ? trim.choir : 1), t, 1.5);
+    if (k < 0.02) { const C = choirV; choirV = null; setTimeout(() => { try { for (const o of C.os) o.stop(); C.g.disconnect(); } catch (e) { /* */ } }, 6000); }
   }
 
   /* ── ambience beds: filtered noise with a slow swell, plus scheduled life (birds, far hammers, doves) ── */
@@ -507,7 +653,7 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
     else if (kind === 'night') { fl.type = 'lowpass'; fl.frequency.value = 380; fl.Q.value = 0.3; lfo.frequency.value = 0.06; lg.gain.value = 0.006; level = 0.012; }   // ── world12 ── a still night: a breath of wind under the crickets
     else { fl.type = 'highpass'; fl.frequency.value = 1400; fl.Q.value = 0.5; lfo.frequency.value = 0.11; lg.gain.value = 0.008; }
     lfo.connect(lg); lg.connect(g.gain);
-    src.connect(fl); fl.connect(g); g.connect(master);
+    src.connect(fl); fl.connect(g); g.connect(beds || master);   // ── recovered (build 26c) ── (the beds bus)
     g.gain.setTargetAtTime(level, t, 1.2);
     src.start(t); lfo.start(t);
     amb = { src, g, lfo };
@@ -532,7 +678,7 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
       const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 260;
       const g = ctx.createGain(); g.gain.value = 0.0001;
       const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.7; lg.gain.value = 120; lfo.connect(lg); lg.connect(bp.frequency);
-      src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(master); src.start(); lfo.start();
+      src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(beds || master); src.start(); lfo.start();   // ── recovered (build 26c) ── (beds)
       flowBed = { src, g, lfo };
     }
     try { flowBed.g.gain.setTargetAtTime(0.0001 + 0.06 * Math.sqrt(flowWant), ctx.currentTime, 0.5); } catch (e) { /* ignore */ }
@@ -584,6 +730,9 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
     haptic: juice.haptic, shake: juice.shake, pop: juice.pop, juice, SOUNDS, BEDS,
     has: (name) => !!KIT[name],
     beatSource(fn) { if (typeof fn === 'function') beatFn = fn; },   // ── music18 ── (tests: a beat grid for the big moments; by default the music's own beat())
+    // ── recovered (build 26c) ── the choir, the kiddush water, and duck(k): the beds bus to k (0…1; the Heichal's hush, heichal26)
+    choir, rush20,
+    duck(k) { bedsK = Math.max(0, Math.min(1, k == null ? 1 : +k || 0)); try { if (beds && ctx) beds.gain.setTargetAtTime(bedsK, ctx.currentTime, 0.12); } catch (e) { /* */ } return bedsK; },
   });
   Object.defineProperty(api, 'muted', {
     get() { return muted; },

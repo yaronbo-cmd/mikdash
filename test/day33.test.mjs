@@ -13,7 +13,9 @@ function rig(rng = () => 0.9) {
   const E = createDay33({ world: { hero: { drive(vx, vz) { H.vx = vx; H.vz = vz; }, setPos(x, z) { H.x = x; H.z = z; } } }, heroPos: () => H, hud, stations, save: {}, rng, speed: 20 });
   const step = async (s, dt = 0.1) => { for (let t = 0; t < s - 1e-9; t += dt) { H.x += H.vx * dt; H.z += H.vz * dt; E.tick(dt); while (pending.length) { pending.shift()(); await null; await null; } } };
   // (build 14.1) after the climb he stands at the top; the laying is his own tap there — then back to the foot
-  const lay = async () => { const x0 = H.x, z0 = H.z; H.x = -34; H.z = 12; H.y = 25; await step(0.1); const w = E.work(H); if (w && w.job === 'sh:lay') w.go(); await step(0.1); H.x = x0; H.z = z0; H.y = 16; await step(0.1); };
+  // ── recovered (R9) ── 26c: the laying is at the pyre itself (within DAY33.layReach 6.5 of it, on the altar's top), ONE log a tap
+  // ("הניחו גזר — הקישו", lay1) — a build after 15 (in the bundle of 26c); from farther on the top the card is "למערכה"
+  const lay = async () => { const x0 = H.x, z0 = H.z; H.x = -31; H.z = 0; H.y = 25; await step(0.1); for (let k = 0; k < 30; k++) { const w = E.work(H); if (!w || w.job !== 'sh:lay') break; w.go(); await step(0.1); } H.x = x0; H.z = z0; H.y = 16; await step(0.1); };
   return { E, H, hud, step, lay };
 }
 test('levels by the logs fed: 0→1, 6→2, 17→3, 67→4, 137→5, 300→6', () => {
@@ -82,7 +84,10 @@ test('build 9: six lambs in the pen from level 2; inspected on the beat (gold); 
   R.H.x = STATIONS.pen.stand.x; R.H.z = STATIONS.pen.stand.z; let w = R.E.work(R.H); assert.match(w.label, /^פתחו את הדיר/); /* (build 12: open the gate — quick = in) */ w.go(); await R.step(0.3); assert.equal(R.E.state().lambsOk, 1);
   R.E.debug.setFuel(30); R.E.debug.night(); await R.step(0.3); let s = R.E.state(); assert.ok(s.night); assert.equal(s.lambsOk, 0); assert.equal(s.tamids, 1); assert.ok(s.fuel >= 44 && s.fuel <= 45.5, 'tamid fed ' + s.fuel);
   await R.step(61); s = R.E.state(); assert.equal(s.day, 2); assert.ok(s.fuel < 36, 'dawn without a lamb: −10 — ' + s.fuel);
-  R.E.debug.lose(); await R.step(0.2); s = R.E.state(); assert.ok(s.lostLamb && !s.lostLamb.follow); assert.equal(R.E.flowNext().id, 'lamb');
+  R.E.debug.lose(); await R.step(0.2); s = R.E.state(); assert.ok(s.lostLamb && !s.lostLamb.follow);
+  // ── recovered (R9) ── 26c: the lost lamb is the next place only within DAY33.lostNear (15 amot) of it (a build after 15); farther, the
+  // morning's laver comes first
+  assert.equal(R.E.flowNext().id, 'kiyor'); R.H.x = -30; R.H.z = 30; assert.equal(R.E.flowNext().id, 'lamb');
   R.H.x = -30; R.H.z = 30; w = R.E.work(R.H); assert.equal(w.label, 'קחו את הטלה'); w.go(); assert.ok(R.E.state().lostLamb.follow); assert.equal(R.E.flowNext().id, 'pen');
   const p0 = R.E.state().perutot; R.H.x = STATIONS.pen.at.x; R.H.z = STATIONS.pen.at.z + 2; await R.step(9);
   s = R.E.state(); assert.equal(s.lostLamb, null); assert.equal(s.lambsOk, 1); assert.equal(s.perutot, p0 + 15);
@@ -112,7 +117,9 @@ test('build 11: badges are earned by play and claimed at night in the Moked (the
 });
 
 // ── fable32 (build 14) ── the gear on him, the flights, the one score, the idle offer ── /fable32 ──
-test('build 14: the axe within reach of the wood, the basket with his logs after a chop (a flight into it); the score counts the act; idle 12 s with nothing near → "משחק קצר?"', async () => {
+// ── fable32 (build 28) ── the idle offer is gone from the day ("משחק קצר?" — only from the lobby's start screen, the owner 22.10 09:19): idle
+// 13 s far from everything is the way to the next station now; the interlude's פרוטות and score are held by the night's offer (offerPlay) ── /fable32 ──
+test('build 14: the axe within reach of the wood, the basket with his logs after a chop (a flight into it); the score counts the act; idle 12 s with nothing near → the way, no "משחק קצר?" (build 28)', async () => {
   const H = { x: -34, y: 16, z: 50, vx: 0, vz: 0 }, pending = [], scored = [];
   const stations = { STATIONS, act: () => new Promise((res) => { pending.push(() => res({ quality: 1, gold: true })); }), cue() {}, place() {}, clear() {}, state: () => null };
   const hud = { set(s) { this.s = s; }, stamp(t) { (this.st ||= []).push(t); }, hint(t) { this.h = t; }, pin: () => ({ at() {}, text() {}, close() {} }), choice: (h) => { hud.ch = h; return { close() {} }; } };
@@ -130,10 +137,10 @@ test('build 14: the axe within reach of the wood, the basket with his logs after
   assert.ok(scored.some((q) => q[0] === 40 && /^act:wood/.test(q[1])), `the gold chop scores 40: ${JSON.stringify(scored)}`);
   assert.ok(hud.s.day33.score35 && hud.s.day33.score35.total >= 40, 'the HUD carries the score');
   assert.ok(!(hud.h && /לכו/.test(hud.h)), `no walk hints any more: ${hud.h}`);
-  // idle: he stands far from everything 13 s → the corner offers a short game; the game pays פרוטות and score
+  // idle: he stands far from everything 13 s → (build 28) no offer: the way to the next station; the game (offered at night) pays פרוטות and score
   H.x = -60; H.z = 0; await step(13);
-  const w = E.work(H); assert.equal(w.job, 'sh:play', JSON.stringify(w));
-  w.go(); assert.ok(hud.ch && hud.ch.items.length === 1 && hud.ch.items[0].label === 'זיכרון המקדש');
+  const w = E.work(H); assert.notEqual(w.job, 'sh:play', JSON.stringify(w)); assert.ok(/^sh:go:/.test(w.job), JSON.stringify(w));
+  E.offerPlay(); assert.ok(hud.ch && hud.ch.items.length === 1 && hud.ch.items[0].label === 'זיכרון המקדש');
   const p0 = E.state().perutot | 0; hud.ch.items[0].go(); await null; await null; await null;
   assert.equal(played, 1); assert.equal(E.state().perutot, p0 + 9); assert.ok(scored.some((q) => q[1] === 'tiles' && q[0] === 350), `tiles won with 3 stars = 200 + 150: ${JSON.stringify(scored)}`);
   assert.equal(E.state().paused, false);
@@ -151,8 +158,11 @@ test('build 14.1: the ramp — climbed to the top he stays there with his logs; 
   const fed0 = E.state().fed; w.go(); await step(0.5);
   assert.equal(E.state().logs, 4, 'the logs still his at the top'); assert.equal(E.state().fed, fed0, 'nothing fed by itself');
   assert.ok(hud.st.some((t) => /הניחו את העצים/.test(t)));
-  const w2 = E.work(H); assert.equal(w2.job, 'sh:lay', JSON.stringify(w2));
-  w2.go(); await step(0.2);
-  assert.equal(E.state().logs, 0); assert.equal(E.state().fed, fed0 + 4); assert.ok(E.fx33().some((f) => f.kind === 'unload' && f.n === 4), 'the logs fly onto the pyre');
+  // ── recovered (R9) ── 26c: from the ramp's top "למערכה" (sh:go:pyre); at the pyre (DAY33.layReach) "הניחו גזר — הקישו" lays ONE log a
+  // tap — each arcs from the basket onto its place in the stack (lay1) — a build after 15 (in the bundle of 26c)
+  const w2 = E.work(H); assert.equal(w2.job, 'sh:go:pyre', JSON.stringify(w2)); assert.equal(w2.label, 'למערכה');
+  H.x = -31; H.z = 0; await step(0.1);
+  for (let k = 0; k < 4; k++) { const w3 = E.work(H); assert.equal(w3.job, 'sh:lay', JSON.stringify(w3)); w3.go(); await step(0.1); assert.equal(E.state().logs, 3 - k); assert.ok(E.fx33().some((f) => f.kind === 'lay1'), 'a log flies onto the pyre'); }
+  assert.equal(E.state().logs, 0); assert.equal(E.state().fed, fed0 + 4);
   assert.equal(E.work(H).job === 'sh:lay', false);
 });

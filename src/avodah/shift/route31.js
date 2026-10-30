@@ -61,7 +61,8 @@ export function mentorLines(types = ['olah']) {
 }
 /** the act's gesture thresholds: the slice ≥ 60 px within 300 ms; the drag down ≥ 24 px; the climb's hold */
 export const SLICE31 = Object.freeze({ px: 60, ms: 300 });
-export const CLIMB31 = Object.freeze({ s: 1.0, gold: 0.8, tail: 1.05 });   // (the tail: the rest of the climb, the parts onto the pyre, the flame)
+export const CLIMB31 = Object.freeze({ s: 4, gold: 0.8, tail: 1.05, top: Object.freeze({ x: -33.2, z: 0.8 }), tailDay: 0.2 });   // (the tail: the rest of the climb, the parts onto the pyre, the flame)
+// ── recovered (16–26c) ── s 1 → 4; top: the climb's last point, on the ramp's top; tailDay: the tail in the day (both read by stations.js)
 /** the parts (תמיד ד, ב–ג: the order of the limbs) — drawn as pale abstract shapes: a list of kinds and sizes, nothing anatomical */
 export const PARTS31 = Object.freeze([
   { kind: 'slab', w: 0.34, d: 0.2, h: 0.08, hex: '#EFE8DA' },

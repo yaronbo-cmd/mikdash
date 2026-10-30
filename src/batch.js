@@ -11,13 +11,16 @@ export const BUILD_TIME = { value: 0 };
 // ── twin18 ── the see-through under two thumbs (PRINCIPLES §3: "קירות שמסתירים… הופך לשקוף למחצה"): what stands between the camera
 // and the kohen, above his knees, inside a cone to him, is dithered away (screen-door half-transparency; shadows stay whole).
 // uXr = his chest (xyz) and on (w); uXrC = the camera. stages.js fills them each frame while twin is ON.
-export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() } };
+export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() },
+  // ── fable32 (build 46) ── his stretch of the court wall (har42 wallStones45): the model's outer skin there (x0…x1, z0…z1, below yTop; below
+  // gyTop west of gx1, the giant's slot) and the scaffold in front of it (zOut…z0) are not drawn — his own stones ARE the wall there
+  uHole: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole2: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole3: { value: new THREE.Vector4(-1e6, 0, -1e6, 0) }, uHoleB: { value: new THREE.Vector4(0, 0, 0, 0) } };   // (uHoleB: stage 03 — the model's soreg where his lattice panels stand, below uHole3.y)
 // ── /twin18 ──
 // ── twin18 ── the see-through's shader code (a varying for the world position, a dithered discard in a cone to him); used by every
 // patched building material here and by the cranes (stages.js)
 export function xrayCode(vs, fs, sh) {
   if (!(fs.includes('#include <clipping_planes_fragment>') && vs.includes('#include <project_vertex>'))) return { vs, fs };
-    sh.uniforms.uXr = XRAY.uXr; sh.uniforms.uXrC = XRAY.uXrC;
+    sh.uniforms.uXr = XRAY.uXr; sh.uniforms.uXrC = XRAY.uXrC; sh.uniforms.uHole = XRAY.uHole; sh.uniforms.uHole2 = XRAY.uHole2; sh.uniforms.uHole3 = XRAY.uHole3; sh.uniforms.uHoleB = XRAY.uHoleB;
     vs = vs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW;')
       .replace('#include <project_vertex>', `#include <project_vertex>
 #ifdef USE_INSTANCING
@@ -25,8 +28,10 @@ export function xrayCode(vs, fs, sh) {
 #else
   vXrW = (modelMatrix * vec4(transformed, 1.0)).xyz;
 #endif`);
-    fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC;')
+    fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC; uniform vec4 uHole; uniform vec4 uHole2; uniform vec4 uHole3; uniform vec4 uHoleB;')
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+  if (uHole.y > uHole.x && vXrW.x > uHole.x && vXrW.x < uHole.y && vXrW.z < uHole.w && ((vXrW.z > uHole.z && vXrW.y > uHole3.x && vXrW.y < (vXrW.x < uHole2.z ? uHole2.w : uHole2.y)) || (vXrW.z > uHole2.x && vXrW.z <= uHole.z))) discard;
+  if (uHoleB.y > uHoleB.x && vXrW.x > uHoleB.x && vXrW.x < uHoleB.y && vXrW.z > uHoleB.z && vXrW.z < uHoleB.w && vXrW.y < uHole3.y && vXrW.y > uHole3.z) discard;   // (uHole3.z: its floor — build 47)
   if (uXr.w > 0.5 && vXrW.y > uXr.y - 0.9) {
     vec3 xrC = uXr.xyz - uXrC; float xrL = length(xrC); vec3 xrU = xrC / max(xrL, 0.001);
     vec3 xrP = vXrW - uXrC; float xrT = dot(xrP, xrU);

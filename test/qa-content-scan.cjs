@@ -5,7 +5,7 @@
 // 2. No Divine Name written in full anywhere in the repo (src, content, docs, test, PROJECT.md): code comments and test
 //    patterns included (§2.3 "in any text, code comment or asset"); a test may build its pattern from \u escapes.
 // 3. Every tap-to-identify card (src/info.js INFO) carries "טיוטה" (its source line) or status 'draft' (§2.2).
-// 4. The bundle stays < 5 MiB (§3; 3 MiB from wave 6, 2026-09-27 — it was 2 MB; 3.25 for wave 14's jobs, 2026-10-01; 5 MiB at the owner's question, 2026-10-07), and its gzip size is reported.
+// 4. The bundle stays < 6 MiB (§3; 3 MiB from wave 6, 2026-09-27 — it was 2 MB; 3.25 for wave 14's jobs, 2026-10-01; 5 MiB at the owner's question, 2026-10-07; 6 MiB, 2026-10-20: "בוא נעלה את התקרה כרגע"), and its gzip size is reported.
 // 5. The wave-6 content files (content/build_process, city, plaza, water, finds, kings, vessels): ids, sources, drafts, word limits.
 // The patterns below are written with \u escapes on purpose: this file must not contain a Name either.
 const fs = require('fs');
@@ -89,7 +89,7 @@ check(`info.js: every tap-to-identify card is tagged "טיוטה" (${Object.keys
 
 // 4. size
 const bytes = fs.statSync(bundleFile).size, gz = zlib.gzipSync(fs.readFileSync(bundleFile)).length;
-check('bundle < 5 MiB', bytes < 5 * 1024 * 1024, `${(bytes / 1048576).toFixed(2)} MiB (${bytes} bytes), gzip ${(gz / 1048576).toFixed(2)} MiB`);
+check('bundle < 6 MiB', bytes < 6 * 1024 * 1024, `${(bytes / 1048576).toFixed(2)} MiB (${bytes} bytes), gzip ${(gz / 1048576).toFixed(2)} MiB`);
 
 const f = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - f}/${results.length} passed`);

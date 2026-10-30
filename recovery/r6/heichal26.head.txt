@@ -1,0 +1,16 @@
+/* ── fable32 (build 26) ── ── recovered (build 26) ── heichal26.js — inside the Heichal, the second lot's inner roles (יומא ב, ג;
+ * תמיד ג, ו–ט; ו, א): the two who won go up first with the teni and the kuz and two keys; at the great gate the bolt (a swipe ↔) and the
+ * key (a hold) — "השער הגדול נפתח!" and, once in a while, "נשמע עד יריחו!"; then by his role:
+ *   the inner altar (דישון מזבח הפנימי) — the teni set before him, the ashes drawn into it with slow pulls (too fast: a scratch in
+ *   the gold), "ובאחרונה כבד את השאר", the teni left, and out;
+ *   the menorah (דישון המנורה, הטבת הנרות) — on the three-step stone, lamp by lamp in the schedule's order: the old wick out with the
+ *   tongs (a swipe ⬆), the lamp wiped (↔), half a log of oil from the kuz (a hold to the gold band), a new wick, its fire dragged from a
+ *   lit lamp when the eastern one went out; two lamps left for after the tamid's blood, the kuz on the second step.
+ * The Heichal's dark (a vignette), its fake volumetric light (cones, halos, the card on the parochet, the gate's shaft), the music and
+ * the beds ducked inside (mute26: __BH_MUSIC.duck and o.sfx.duck), his steps' echo; the other kohanim at the roles the lot did not give
+ * him, seen on screen (the shochet at the rings, the zorek after the five lamps, the limb carriers, the teni's second entry).
+ * The engine is day33.js (E.r26(): in → bolt → key → open → walk → step … → out; r26swipe, r26hold, r26pull, r26tap, r26light; role26,
+ * open26, g26t, men5t, r26r); its places and times: P26; the roles: POOL26.
+ *   createHeichal26({ E, sfx, doc, view }) → { destroy(), state() }      (focus17.js makes it when E.p26on; globalThis.__H26)
+ * The bundle kept no comment and no local name: the names are the recovery's, but for snd, buzz, WD, HT (heichal26.js:46), mute26
+ * (:56), S, ev, y, pop, big and SRC (:207) — the build reports' lines. Never a Divine Name. */

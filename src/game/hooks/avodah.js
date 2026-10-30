@@ -11,6 +11,17 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 export const GATE = 'soft';                 // ⚑ 'soft' (built) · 'hard' (no button before the altar, except demo)
 export const INTENT_KEY = 'bh_avodah_intent';
+// ── fable32 (build 44) ── (docs/specs/shlav-alef-v2-he.md §12, "כפתור הזהב"): the menu's gold "הצצה" to Phase B and the invitation after the
+// horns are gone for players — Phase B opens after Chanukat HaBayit. Our testers keep it behind a hidden switch: ?tester=1 (kept in this
+// browser; ?tester=0 clears it), the shipped page's head flag (tools/mkout.cjs without --no-shift, __FORCE_SHIFT), #avodah, the demo.
+export const TESTER_KEY = 'bh_tester44';
+export function tester44() {
+  const g = globalThis;
+  try { const m = /[?&]tester=([01])(&|$)/.exec((g.location && g.location.search) || ''); if (m && g.localStorage) { if (m[1] === '1') g.localStorage.setItem(TESTER_KEY, '1'); else g.localStorage.removeItem(TESTER_KEY); } } catch (e) { /* */ }
+  try { if (g.__FORCE_SHIFT || /^#avodah/.test((g.location && g.location.hash) || '')) return true; } catch (e) { /* */ }
+  try { return !!(g.localStorage && g.localStorage.getItem(TESTER_KEY) === '1'); } catch (e) { return false; }
+}
+// ── /fable32 ──
 
 /** where the builder is on the way to the service */
 export function avodahStage(G) {
@@ -22,6 +33,7 @@ export function avodahStage(G) {
 /** the Phase A menu button: {t, sub} or null (hidden: only with GATE 'hard' before the altar, outside the demo) */
 export function menuLabel(G, gate = GATE) {
   const s = avodahStage(G);
+  if (s !== 'done' && !(G && G.demo) && !tester44()) return null;   // ── fable32 (build 44) ── (players: no button before Chanukat HaBayit) ── /fable32 ──
   if (s === 'building') {
     if (gate === 'hard' && !(G && G.demo)) return null;
     return { t: 'הצצה: העבודה בבית · שלב ב׳', sub: 'נפתח במלואו בחנוכת הבית — אפשר להציץ כבר עכשיו' };

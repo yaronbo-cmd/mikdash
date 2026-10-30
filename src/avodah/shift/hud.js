@@ -4,6 +4,8 @@
 //   const H = createShiftHud(root) → { set(state), stamp(text, o), intro(text), opening(steps, {tap, src}), pin(id, o), ring(id, o),
 //                                      end(result, {again, next}), destroy() }
 //   entryCard(root, { lvl, best, stars, shift(lvl), tour() }) → { close() }
+import { evlog, copyEvlog } from './evlog16.js';
+import { prefsHTML, pad40HTML, bindPrefs } from './prefs28.js';   // ── fable32 (build 28) ── the two switches on the pause card ── /fable32 ──   // ── recovered (build 16) ── the event log (the names of the module and its exports are the recovery's)
 const CSS = `
 .sh-root{position:fixed;inset:0;z-index:30;pointer-events:none;direction:rtl;font-family:"Heebo",system-ui,sans-serif;color:#FFF6DA;-webkit-user-select:none;user-select:none}
 .sh-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:4px 12px;border-radius:16px;background:rgba(28,20,10,.72);box-shadow:0 2px 10px rgba(0,0,0,.35);white-space:nowrap}
@@ -28,6 +30,7 @@ const CSS = `
 .sh-hint.on{opacity:1;animation:sh-bob 1.1s ease-in-out infinite alternate}
 @keyframes sh-bob{from{margin-bottom:0}to{margin-bottom:5px}}
 .sh-intro{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;padding:14px 26px;border-radius:18px;background:rgba(28,20,10,.85);opacity:0;transition:opacity .25s}
+.sh-intro.slim{top:calc(env(safe-area-inset-top,0px) + 10px);left:auto;right:calc(env(safe-area-inset-right,0px) + 12px);transform:none;padding:3px 14px;border-radius:12px;white-space:nowrap;pointer-events:none}.sh-intro.slim b{display:inline;font-size:16px;line-height:1.2}.sh-intro.slim span{font-size:13px;margin-inline-start:8px}
 .sh-intro.on{opacity:1}.sh-intro b{display:block;font:900 30px/1.15 "Heebo",system-ui,sans-serif;color:#FFD66E}.sh-intro span{font:700 16px/1.3 "Heebo",system-ui,sans-serif}
 .sh-op-b{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translateX(-50%);font:900 20px/1 "Heebo",system-ui,sans-serif;color:#FFD66E;padding:8px 16px;border-radius:14px;background:rgba(28,20,10,.8);white-space:nowrap}
 .sh-op-b small{display:block;font:600 11px/1.3 "Heebo",system-ui,sans-serif;color:#FFF6DA;opacity:.8;margin-top:3px;text-align:center}
@@ -48,7 +51,20 @@ const CSS = `
 .sh-day33 .sh-riv,.sh-day33 .sh-combo{display:none}
 .sh-dayc{font:800 13px/1.2 "Heebo",system-ui,sans-serif;color:#FFF4DC;white-space:nowrap}
 .sh-day33 .sh-score b{color:#FFB066}
+/* ── fable32 (build 17a) ── the fire gauge: a flame in a ring the fuel fills; amber under 40, a red pulse under 25 (the owner: "I can't tell if it fades") */
+.sh-fg{position:relative;width:44px;height:44px;flex:none;margin-inline-start:2px}.sh-fg svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.sh-fg circle{fill:none;stroke-width:5}.sh-fg .bg{stroke:rgba(255,236,190,.2)}.sh-fg .fl{stroke:#FFB066;stroke-linecap:round;transition:stroke-dasharray .35s,stroke .3s}
+.sh-fg i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:22px/1 "Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal;transition:transform .2s}
+.sh-fg.low .fl{stroke:#FF9F1C}.sh-fg.low i{transform:scale(.88)}
+.sh-fg.crit .fl{stroke:#E5402A}.sh-fg.crit{animation:sh-fgp .7s ease-in-out infinite alternate}.sh-fg.crit i{transform:scale(.75)}
+.sh-day33 .sh-score.crit b{color:#FF6A4A}
+.sh-fg.up{animation:sh-pop .35s}
+@keyframes sh-fgp{from{filter:drop-shadow(0 0 0 rgba(229,64,42,0))}to{filter:drop-shadow(0 0 7px rgba(229,64,42,.95))}}
 .sh-day33.sh-night .sh-top{background:rgba(10,8,20,.8)}
+/* ── fable32 (build 17b) ── the top bar is focus17's three meters and its one step card: the score, the day, the level, the logs and the clock leave the bar (a change pops; the summary has them) */
+.sh-b17 .sh-top,.sh-b17 .sh-tasks{display:none!important}.sh-b17 .sh-stamp{top:36%;font-size:22px}
+/* ── fable32 (build 17a) ── the day's bar lets the world through: the altar's fire straight ahead of the follow camera sits behind its middle (b17-court-fire.png) */
+.sh-day33:not(.sh-night) .sh-top{background:rgba(28,20,10,.38);box-shadow:none}.sh-day33 .sh-top{text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 6px rgba(0,0,0,.6)}
 .sh-choice .sh-card h2{margin:4px 0 6px;font:900 22px/1.2 "Heebo",system-ui,sans-serif}
 .sh-choice .sh-card p{margin:0 0 10px;font:600 14px/1.35 "Heebo",system-ui,sans-serif;color:#FFF0CC}
 .sh-ch{display:flex;flex-direction:column;gap:8px}
@@ -82,8 +98,11 @@ const CSS = `
 .sh-go.sh-day{background:radial-gradient(circle at 40% 30%,#FFC48A,#C86A2A 70%,#7A3A10);margin-top:8px}
 .sh-tour.sm{min-height:44px;font-size:12px;border:0;opacity:.75;text-decoration:underline;padding:0 10px}
 .f31-full{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 14px/1 "Heebo",system-ui,sans-serif;cursor:pointer;pointer-events:auto;padding:0 12px}
+.sh-sub30{margin:-4px 0 8px;font:800 14px/1.3 "Heebo",system-ui,sans-serif;color:#FFE6A0}
+.sh-p28{justify-content:center;margin:2px 0 6px}   /* ── fable32 (build 28) ── (the pause card's switches) ── /fable32 ── */
+.sh-root.sh-up{z-index:58}   /* ── fable32 (build 31) ── (the pause card over the acts' touch pads) ── /fable32 ── */
 .sh-tour{min-height:44px;min-width:120px;border-radius:14px;border:2px solid rgba(255,236,190,.55);background:transparent;color:#FFF6DA;font:800 15px/1 "Heebo",system-ui,sans-serif;cursor:pointer}
-body.sh-on .dy-hud,body.sh-on .dy-coin,body.sh-on .dy-say,body.sh-on .dy-line,body.sh-on .dy-banner,body.sh-on .tw-goal,body.sh-on .g27-skip,body.sh-on .l28-tap,body.sh-on .s27-stamp{display:none!important}
+body.sh-on .dy-hud,body.sh-on .dy-coin,body.sh-on .dy-say,body.sh-on .dy-line,body.sh-on .dy-banner,body.sh-on .tw-goal,body.sh-on .g27-skip,body.sh-on .l28-tap,body.sh-on .s27-stamp,body.sh-on .tw-hand{display:none!important}
 @keyframes sh-pop{50%{transform:scale(1.35)}}
 @keyframes sh-blink{to{opacity:.45}}
 @keyframes sh-stamp{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%)}}
@@ -156,7 +175,13 @@ export function createShiftHud(root) {
     set(s) {
       if (!s) return;
       // ── fable32 (build 6) ── the day's HUD: the fire (0…100) in place of the score, the day and the basket, no rival/combo; the clock = the day's or the night's
-      if (s.day33) { const D = s.day33; if (!R.classList.contains('sh-day33')) { R.classList.add('sh-day33'); E.score.parentNode.querySelector('small').textContent = 'אש המערכה'; E.thN.textContent = ''; } let de = R.querySelector('.sh-dayc'); if (!de) { de = el(doc, 'sh-dayc'); top.appendChild(de); } const dt2 = `${D.score35 ? `★ ${String(Math.floor(D.score35.total || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${D.score35.coins ? ` ◉${D.score35.coins}` : ''} · ` : ''}${D.night ? '🌙 לילה' : '☀️ יום'} ${D.day} · 🪵 ${D.logs}/${D.basket} · רמה ${D.level}${D.power != null ? ` · 💪 ${Math.round(D.power)}` : ''}${D.bread ? ` · 🍞 ${D.bread}` : ''}${D.lambs ? ` · 🐑 ${D.lambs}` : ''}`; if (de.textContent !== dt2) de.textContent = dt2; R.classList.toggle('sh-night', !!D.night); }
+      if (s.day33 && s.day33.b17 && !R.classList.contains('sh-b17')) R.classList.add('sh-b17');   // ── recovered (build 17b) ── (focus17's bar)
+      if (s.day33) { const D = s.day33; if (!R.classList.contains('sh-day33')) { R.classList.add('sh-day33'); E.score.parentNode.querySelector('small').textContent = 'אש המערכה'; E.thN.textContent = '';
+          // ── recovered (build 17a) ── the fire gauge, first in the score's box
+          E.fg = el(doc, 'sh-fg', '<svg viewBox="0 0 44 44" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="18.5"/><circle class="fl" cx="22" cy="22" r="18.5" pathLength="100" stroke-dasharray="0 100"/></svg><i>🔥</i>'); E.fg.setAttribute('role', 'img'); E.score.parentNode.insertBefore(E.fg, E.score.parentNode.firstChild); E.fgC = E.fg.querySelector('.fl'); }
+        // ── recovered (build 17a) ── the fuel (0…100) fills the ring; amber under 40, red under 25; a rise of more than 2 pops it
+        if (E.fg) { const f = Math.max(0, Math.min(100, +D.fuel || 0)), r = Math.round(f); if (r !== E.fgV) { const up = E.fgV != null && r > E.fgV + 2; E.fgV = r; E.fgC.setAttribute('stroke-dasharray', `${f.toFixed(1)} 100`); E.fg.classList.toggle('low', f < 40 && f >= 25); E.fg.classList.toggle('crit', f < 25); E.score.parentNode.classList.toggle('crit', f < 25); E.fg.setAttribute('aria-label', `אש המערכה ${r} מתוך 100`); if (up) { E.fg.classList.remove('up'); E.fg.offsetWidth; E.fg.classList.add('up'); } } }
+        let de = R.querySelector('.sh-dayc'); if (!de) { de = el(doc, 'sh-dayc'); top.appendChild(de); } const dt2 = `${D.night ? '🌙 לילה' : '☀️ יום'} ${D.day} · 🪵 ${D.logs}/${D.basket} · רמה ${D.level}${D.power != null ? ` · 💪 ${Math.round(D.power)}` : ''}${D.bread ? ` · 🍞 ${D.bread}` : ''}${D.lambs ? ` · 🐑 ${D.lambs}` : ''}`; if (de.textContent !== dt2) de.textContent = dt2; R.classList.toggle('sh-night', !!D.night); }
       if (s.score !== last.score) { last.score = s.score; E.score.textContent = String(s.score); E.meB.textContent = String(s.score); }
       if (s.combo !== last.combo) { const up = s.combo > last.combo && last.combo > 0; last.combo = s.combo; E.combo.textContent = `×${s.combo}`; E.combo.classList.toggle('on', s.combo > 1); if (up) { E.combo.classList.remove('pop'); void E.combo.offsetWidth; E.combo.classList.add('pop'); } }
       if (s.rivalName && s.rivalName !== last.name) { last.name = s.rivalName; E.thN.textContent = `משמר ${s.rivalName}`; }
@@ -195,8 +220,9 @@ export function createShiftHud(root) {
       clearTimeout(hintEl.__t); hintEl.textContent = text || ''; hintEl.classList.toggle('on', !!text);
       if (text) hintEl.__t = setTimeout(() => { hintEl.classList.remove('on'); }, 4000);
     },
-    intro(title, sub, ms = 1600) {
+    intro(title, sub, ms = 1600, slim = false) {   // ── fable32 (build 41) ── (slim: one thin line in the top band, beside the pills — never over the kohen or the thing) ── /fable32 ──
       introEl.innerHTML = `<b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`;
+      introEl.classList.toggle('slim', !!slim);
       introEl.classList.add('on'); setTimeout(() => introEl.classList.remove('on'), ms);
     },
     /** the opening's four rings: steps [{id, label}], h.tap(i); the engine places them (place(i, {x,y}|null)) each frame */
@@ -267,8 +293,10 @@ export function createShiftHud(root) {
     choice(h = {}) {
       const c = el(doc, 'sh-end sh-choice', `<div class="sh-card" role="dialog" aria-label="${esc(h.title || '')}"><h2>${esc(h.title || '')}</h2>${h.text ? `<p>${esc(h.text)}</p>` : ''}<div class="sh-ch"></div><div class="sh-btns"><button class="sh-btn restart" type="button" data-sh="close">${esc(h.closeLabel || 'סגור')}</button></div></div>`);
       const box = c.querySelector('.sh-ch');
-      for (const it of h.items || []) { const b = doc.createElement('button'); b.type = 'button'; b.innerHTML = `<span>${esc(it.icon || '')} ${esc(it.label)}${it.sub ? `<br><small>${esc(it.sub)}</small>` : ''}</span>${it.price != null ? `<small>${esc(String(it.price))} פרוטות</small>` : ''}`; if (it.disabled) b.disabled = true; if (it.pick) b.classList.add('pick'); b.addEventListener('click', (e) => { e.stopPropagation(); if (it.go && it.go() !== false) { c.remove(); h.onClose && h.onClose(); } else if (h.refresh) { c.remove(); h.refresh(); } }); box.appendChild(b); }
-      c.querySelector('[data-sh=close]').addEventListener('click', (e) => { e.stopPropagation(); c.remove(); h.onClose && h.onClose(); });
+      if (!h.quiet) evlog('card_open', h.title || '');   // ── recovered (build 16) ── (the event log)
+      const closed = () => { evlog('card_close', h.title || ''); if (h.onClose) h.onClose(); };
+      for (const it of h.items || []) { const b = doc.createElement('button'); b.type = 'button'; b.innerHTML = `<span>${esc(it.icon || '')} ${esc(it.label)}${it.sub ? `<br><small>${esc(it.sub)}</small>` : ''}</span>${it.price != null ? `<small>${esc(String(it.price))} פרוטות</small>` : ''}`; if (it.disabled) b.disabled = true; if (it.pick) b.classList.add('pick'); b.addEventListener('click', (e) => { e.stopPropagation(); if (it.go && it.go() !== false) { c.remove(); closed(); } else if (h.refresh) { c.remove(); h.refresh(); } }); box.appendChild(b); }
+      c.querySelector('[data-sh=close]').addEventListener('click', (e) => { e.stopPropagation(); c.remove(); closed(); });
       R.appendChild(c); return { close() { c.remove(); }, el: c };
     },
     tasks(list) {
@@ -282,14 +310,25 @@ export function createShiftHud(root) {
     onPause(cb) { onPause = cb; return H; },
     pauseCard(h = {}) {
       if (pauseEl) return pauseEl;
-      pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>
+      // ── fable32 (build 31) ── the card over everything in the day: every act's touch pad (deshen21's, maaracha22's, pen25's, heichal26's,
+      // dam27's, the lot's — the right half, z-index 30 like this root and later in the page) lay over its right half — its "המשך" (RTL:
+      // the right) and the right switches took no tap during an act (found by build 31's pause probe); while it is up the root stands at 58 ── /fable32 ──
+      R.classList.add('sh-up');
+      pauseEl = el(doc, 'sh-end sh-pause', `<div class="sh-card" role="dialog" aria-label="הפסקה"><h2>הפסקה</h2>${h.sub ? `<p class="sh-sub30">${esc(h.sub)}</p>` : '' /* ── fable32 (build 30) ── "שימשת N בקרים" (the Phase A ★ capsule is not the Temple's) ── /fable32 ── */}${h.note ? `<p class="sh-note29">${String(h.note).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))}</p>` : '' /* ── fable32 (build 29) ── the calm line before the Shabbat / Yom Tov lock ── /fable32 ── */}
         <div class="sh-btns"><button class="sh-btn resume" type="button" data-sh="resume">המשך</button><button class="sh-btn restart" type="button" data-sh="restart">מהתחלה</button></div>
-        ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}</div>`);
+        ${h.prefs ? prefsHTML(h.prefs.sfx, 'sh-p28', pad40HTML()) /* ── fable32 (build 40) ── (+ the work pad's switch) ── /fable32 ── */ : ''}
+        ${h.tour ? '<button class="sh-tour sm" type="button" data-sh="tourP">לסיור — היום במקדש</button>' : ''}
+        ${h.back ? `<button class="sh-tour" type="button" data-sh="backP">${esc(h.back.label || 'חזרה')}</button>` : '' /* ── fable32 (build 31) ── (a practice run: back to the roles book) ── /fable32 ── */}
+        <button class="sh-tour sm sh-evlog" type="button" data-sh="evlog" style="opacity:.45;font-size:11px;min-height:44px">העתק לוג</button></div>`);   // ── fable32 (build 34) ── ("העתק לוג" 32 → 44 px high: every target ≥ 44) ── /fable32 ──
       R.appendChild(pauseEl);
-      const once = (fn) => { let used = false; return (e) => { if (e) e.stopPropagation(); if (used) return; used = true; if (pauseEl) { pauseEl.remove(); pauseEl = null; } fn && fn(); }; };
+      evlog('card_open', 'pause');   // ── recovered (build 16) ── (the event log, and "העתק לוג" copies it)
+      { const b = pauseEl.querySelector('[data-sh=evlog]'); if (b) b.addEventListener('click', (e) => { e.stopPropagation(); copyEvlog().then((ok) => { b.textContent = ok ? 'הלוג הועתק ✓' : 'לא הועתק'; }); }); }
+      if (h.prefs) bindPrefs(pauseEl, h.prefs);   // ── fable32 (build 28) ── (צליל, רטט: the same switches as the lobby's) ── /fable32 ──
+      const once = (fn) => { let used = false; return (e) => { if (e) e.stopPropagation(); if (used) return; used = true; if (pauseEl) { pauseEl.remove(); pauseEl = null; } R.classList.remove('sh-up'); evlog('card_close', 'pause'); fn && fn(); }; };
       pauseEl.querySelector('[data-sh=resume]').addEventListener('click', once(h.resume));
       pauseEl.querySelector('[data-sh=restart]').addEventListener('click', once(h.restart));
       const tb = pauseEl.querySelector('[data-sh=tourP]'); if (tb) tb.addEventListener('click', once(h.tour));
+      const bb = pauseEl.querySelector('[data-sh=backP]'); if (bb) bb.addEventListener('click', once(h.back.fn));   // ── fable32 (build 31) ── ── /fable32 ──
       return pauseEl;
     },
     // ── /fable32 ──

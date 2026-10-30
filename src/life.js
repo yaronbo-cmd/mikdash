@@ -174,6 +174,7 @@ export function buildLife(scene, tex) {
     { x0: -20.5, x1: -12, z0: 20, z1: 62, y: 16, n: 6, priest: true },
   ];
   const W = [];
+  const lane = { dx: 0, off: false, zero: new THREE.Vector3(0, 0, 0) };   // ── recovered (16–26c) ── rampLane(): the kevesh's kohanim stepped aside by dx, or hidden ('off')
   zones.forEach((Z, zi) => { for (let k = 0; k < Z.n; k++) { const [x, z] = rect(Z.x0, Z.x1, Z.z0, Z.z1); W.push({ zi, x, z, y: Z.y, tx: x, tz: z, sp: 1.6 + r() * 1.1, ph: r() * 6.28, c: Z.priest ? WHITE : pil(), kev: false }); } });
   // (on the eastern half of the kevesh only: the limbs lie on its lower western half, Tamid 4:3)
   for (let k = 0; k < 4; k++) W.push({ kev: true, x: -35.5 + r() * 4.5, z: 12 + r() * 30, dir: r() < 0.5 ? 1 : -1, sp: 1.3 + r() * 0.6, ph: r() * 6.28, c: WHITE });
@@ -205,6 +206,7 @@ export function buildLife(scene, tex) {
   /* ── fire, smoke ── */
   const FIRE = [-29.5, 25.4, -3.5], KET = [-49.5, 25.3, 6.5], NAZ = [121, 9.3, 50];
   const smokeCol = new THREE.Color('#DDD4C9');
+  const smokeBase = smokeCol.clone(), smokeLow = new THREE.Color('#8A8279');   // ── recovered (16–26c) ── (setNight's smoke, and a low fire's grey)
   // "ולא נצחה הרוח את עמוד העשן" — a straight column
   const smoke = new Emitter(120, particleMat(tex.puff, smokeCol, false), (e, i) => {
     e.pos.set([FIRE[0] + (r() - 0.5) * 1.4, FIRE[1] + 1.5, FIRE[2] + (r() - 0.5) * 1.4], i * 3);
@@ -213,8 +215,8 @@ export function buildLife(scene, tex) {
     const k = e.age[i] / e.life[i], sm = LV.smoke;
     e.pos[i * 3 + 1] += dt * (7.2 - k * 1.8) * (0.8 + 0.2 * sm);
     e.pos[i * 3] += dt * Math.sin(t * 0.3 + e.seed[i] * 6.28) * 0.35;
-    e.size[i] = (2.4 + k * 26 + e.seed[i] * 2) * (0.7 + 0.3 * sm);
-    e.alpha[i] = Math.min(1, e.age[i] / 3.5) * Math.pow(1 - k, 1.0) * Math.min(0.95, 0.62 * sm);
+    e.size[i] = (2.4 + k * 26 + e.seed[i] * 2) * (0.7 + 0.3 * sm) * fireLv.sm;   // ── recovered (16–26c) ── (× fireLv.sm)
+    e.alpha[i] = Math.min(1, e.age[i] / 3.5) * Math.pow(1 - k, 1.0) * Math.min(0.95, 0.62 * sm) * Math.min(1.25, fireLv.sm);
   });
   const flameCol = new THREE.Color(3.2, 1.55, 0.55);
   const spawnAt = (P, spread, life) => (e, i) => {
@@ -223,7 +225,9 @@ export function buildLife(scene, tex) {
   };
   const flameStep = (h, s) => (e, i, dt) => { const k = e.age[i] / e.life[i]; e.pos[i * 3 + 1] += dt * h; e.size[i] = s * e.seed[i] * (1 - k * 0.6); e.alpha[i] = Math.sin(Math.PI * k) * 0.95; };
   const fm = particleMat(tex.flame, flameCol, true);
-  const greatStep = (e, i, dt) => { const k = e.age[i] / e.life[i], f = LV.fire; e.pos[i * 3 + 1] += dt * 6.5 * (0.7 + 0.3 * f); e.size[i] = 5.2 * e.seed[i] * (1 - k * 0.6) * (0.55 + 0.45 * f); e.alpha[i] = Math.sin(Math.PI * k) * Math.min(1, 0.95 * f); };
+  // ── recovered (16–26c) ── the great fire's live scale (update(): the day's fire meter, a flare, a low fire): height, size, alpha, smoke
+  const fireLv = { h: 1, s: 1, a: 1, sm: 1, lo: 0 };
+  const greatStep = (e, i, dt) => { const k = e.age[i] / e.life[i], f = LV.fire; e.pos[i * 3 + 1] += dt * 6.5 * (0.7 + 0.3 * f) * fireLv.h; e.size[i] = 5.2 * e.seed[i] * (1 - k * 0.6) * (0.55 + 0.45 * f) * fireLv.s; e.alpha[i] = Math.sin(Math.PI * k) * Math.min(1, 0.95 * f) * fireLv.a; };
   // the great fire has its own material so that at night its HDR flames can burn less white-hot: at night the bloom is
   // strong (0.6, threshold 1.0) and a close view of the altar (the whole view's "המזבח", Phase B at night) went all orange
   const fireCol = flameCol.clone(), fmGreat = particleMat(tex.flame, fireCol, true);
@@ -239,6 +243,21 @@ export function buildLife(scene, tex) {
   const torchPos = [[-95, 27, -78.8], [-38, 27, -78.8], [-160, 27, 78.8], [-118, 27, 78.8], [-38, 27, 78.8], [10.9, 34.5, -6], [10.9, 34.5, 6], [150.9, 27, -6], [150.9, 27, 6], [-160, 25, -83.8], [285.9, 21, -7], [285.9, 21, 7]];
   const torches = new Emitter(torchPos.length * 3, fm, (e, i) => { const P = torchPos[Math.floor(i / 3)]; e.pos.set([P[0] + (r() - 0.5) * 0.4, P[1], P[2] + (r() - 0.5) * 0.4], i * 3); e.life[i] = 0.5 + r() * 0.4; e.seed[i] = 0.7 + r() * 0.5; }, flameStep(2.4, 2.4));
   for (const e of [smoke, ...flames]) scene.add(e.points);
+  // ── fable32 (build 35) ── the morning's fire tells its maaracha (the day's __FIRE35 = { k, sp, clean }; svivat-avoda-he.md §3: "מהודר = אש
+  // גבוהה ונקייה. אין עונש — רק גאווה"): sparks rise from a מהודר pyre and its smoke goes white and thin ("עמוד עשן לבן, זך וישר",
+  // maaracha-he.md 4ב); its height is __FIRE33's. Without the global (Phase A, the old day) nothing changes ── /fable32 ──
+  const spk35 = { k: 0, cl: 0 }, smokeClean = new THREE.Color('#FBFAF6');
+  const sparks35 = new Emitter(40, particleMat(tex.flame, new THREE.Color(3.8, 2.4, 0.9), true), spawnAt([FIRE[0], FIRE[1] + 1.4, FIRE[2]], 3.8, 1.6), (e, i, dt) => {
+    const k = e.age[i] / e.life[i];
+    e.pos[i * 3 + 1] += dt * (6.5 + 7 * e.seed[i]);
+    e.pos[i * 3] += dt * Math.sin(e.age[i] * 6 + e.seed[i] * 9) * 1.1;
+    e.pos[i * 3 + 2] += dt * Math.cos(e.age[i] * 5 + e.seed[i] * 7) * 0.8;
+    e.size[i] = 1.3 * e.seed[i] * (1 - 0.6 * k) * spk35.k;
+    e.alpha[i] = (k < 0.12 ? k / 0.12 : 1 - (k - 0.12) / 0.88) * spk35.k;
+  });
+  sparks35.points.visible = false;
+  scene.add(sparks35.points);
+  // ── /fable32 ──
   const nightG = new THREE.Group(); nightG.add(menFl.points, torches.points); nightG.visible = false; scene.add(nightG);
 
   const fireLight = new THREE.PointLight('#FF8A3A', 120, 0, 2); fireLight.position.set(FIRE[0], FIRE[1] + 5, FIRE[2]);
@@ -271,7 +290,7 @@ export function buildLife(scene, tex) {
   const festSync = () => { festG.visible = festN > 0 && (S.night || festOn); glow.points.visible = festOn; };
   // ── /world12 ──
 
-  const particles = [smoke, ...flames, menFl, torches];
+  const particles = [smoke, ...flames, menFl, torches, sparks35];   // ── fable32 (build 35) ── (+ the מהודר pyre's sparks) ── /fable32 ──
   const setScale = (s) => [...particles, festFl, glow].forEach((e) => { e.points.material.uniforms.scale.value = s; });   // (world12: + the lamps, the glow)
 
   let T = 0;
@@ -286,13 +305,27 @@ export function buildLife(scene, tex) {
     // white-orange cloud over a third of the frame — the owner's shot 4, the תפוח beside it; from 30° up it dims to 0.35 at 70°)
     const el = Math.asin(Math.max(-1, Math.min(1, (c.position.y - FIRE[1]) / Math.max(1e-3, d)))) * 180 / Math.PI, kEl = 1 - 0.65 * Math.max(0, Math.min(1, (el - 30) / 40));
     const kf = Number.isFinite(globalThis.__FIRE33) ? Math.max(0.25, Math.min(1.6, globalThis.__FIRE33)) : 1;   // ── fable32 (build 10) ── (the day's fire meter: embers at 0.25, full at 1, a high level up to 1.6) ── /fable32 ──
-    const k = Math.max(0.14, Math.min(1, (d - 6) / 34)) * kEl * kf;
+    const k = Math.max(0.14, Math.min(1, (d - 6) / 34)) * kEl * (d < 30 ? Math.min(1, kf) : kf);   // ── recovered (16–26c) ── (near, a high level no brighter)
     // ── /light28 ──
     if (Math.abs(k - fireK.near) > 0.01) { fireK.near = k; fireSync(); }
   }
   // ── /fable27 ──
   function update(dt) {
     T += dt; fireNear();   // ── fable27 ── ── /fable27 ──
+    // ── recovered (16–26c) ── the great fire follows the day: its level (__FIRE33), a flare for 0.7 s when wood lands (__FLARE33, a
+    // time), and a low fire (__FIRELOW33 0…1): smaller, dimmer, its smoke heavier and grey
+    {
+      const kf = Number.isFinite(globalThis.__FIRE33) ? Math.max(0.25, Math.min(1.6, globalThis.__FIRE33)) : 1, ago = Number.isFinite(globalThis.__FLARE33) ? performance.now() - globalThis.__FLARE33 : 1e9, fl = ago >= 0 && ago < 700 ? 1 - ago / 700 : 0;
+      fireLv.h = (0.45 + 0.65 * kf) * (1 + 0.5 * fl); fireLv.s = (0.55 + 0.4 * Math.min(1.2, kf)) * (1 + 0.25 * fl); fireLv.a = Math.min(0.9, 0.5 + 0.4 * Math.min(1, kf) + 0.2 * fl);
+      fireLv.sm = (0.45 + 0.55 * Math.min(1.4, kf)) * (Number.isFinite(globalThis.__FIRE33) ? 1 + 0.5 * Math.max(0, Math.min(1, (kf - 0.85) / 0.4)) : 1);
+      const lo = Number.isFinite(globalThis.__FIRELOW33) ? Math.max(0, Math.min(1, globalThis.__FIRELOW33)) : 0;
+      if (lo > 0 || fireLv.lo > 0) { fireLv.h *= 1 - 0.5 * lo; fireLv.s *= 1 - 0.3 * lo; fireLv.a *= 1 - 0.4 * lo; fireLv.sm = fireLv.sm * (1 - lo) + 1.35 * lo; smokeCol.copy(smokeBase).lerp(smokeLow, 0.75 * lo); fireLv.lo = lo; }
+      // ── fable32 (build 35) ── (the מהודר pyre: its sparks, its smoke white and thin; eased in and out) ── /fable32 ──
+      const f35 = globalThis.__FIRE35, sp = f35 && Number.isFinite(f35.sp) ? Math.max(0, Math.min(1, f35.sp)) : 0, cl = f35 && f35.clean ? 1 : 0, ek = Math.min(1, dt * 1.2);
+      spk35.k += (sp - spk35.k) * ek; if (spk35.k < 0.005 && !sp) spk35.k = 0;
+      sparks35.points.visible = spk35.k > 0;
+      if (cl || spk35.cl > 0) { spk35.cl += (cl - spk35.cl) * ek; if (spk35.cl < 0.005 && !cl) spk35.cl = 0; fireLv.sm *= 1 - 0.5 * spk35.cl; if (!(lo > 0)) smokeCol.copy(smokeBase).lerp(smokeClean, 0.35 * spk35.cl); }
+    }
     // walkers
     const nW = walkers.count;
     for (let i = 0; i < nW; i++) {
@@ -302,7 +335,8 @@ export function buildLife(scene, tex) {
         if (w.z < 12) { w.z = 12; w.dir = 1; } if (w.z > 44) { w.z = 44; w.dir = -1; }
         const y = w.z > 42.5 ? 16 : 16 + (42.5 - w.z) / 32 * 9;
         q.setFromAxisAngle(up, w.dir > 0 ? 0 : Math.PI);
-        p.set(w.x, y + Math.abs(Math.sin(T * 6 + w.ph)) * 0.12, w.z);
+        p.set(w.x + lane.dx, y + Math.abs(Math.sin(T * 6 + w.ph)) * 0.12, w.z);   // ── recovered (16–26c) ── (+ lane.dx; 'off': scaled to nothing)
+        if (lane.off) { M.compose(p, q, lane.zero); walkers.setMatrixAt(i, M); continue; }
       } else {
         const Z = zones[w.zi], dx = w.tx - w.x, dz = w.tz - w.z, d = Math.hypot(dx, dz);
         if (d < 1) { [w.tx, w.tz] = rect(Z.x0, Z.x1, Z.z0, Z.z1); }
@@ -364,7 +398,7 @@ export function buildLife(scene, tex) {
   function setNight(on, fireBase, smokeHex, menK = 1) {
     S.night = on; S.menK = menK;   // ── polish23 ──
     fireLight.userData.base = fireBase;
-    smokeCol.set(smokeHex);
+    smokeCol.set(smokeHex); smokeBase.copy(smokeCol);   // ── recovered (16–26c) ── (smokeBase)
     fireK.night = on ? 0.1 : 1; fireSync();   // ── fable27 ── (× the near-camera dim) ── /fable27 ──   // 46 additive sprites overlap: at night even a tenth still blooms into a glow, without flooding a close view
     apply();
   }
@@ -380,6 +414,8 @@ export function buildLife(scene, tex) {
   return {
     update, setNight, setScale, setPhase, setFire, setPilgrims, get phase() { return S.phase; }, get night() { return S.night; },
     animals, blobs,
+    // ── recovered (16–26c) ── the kohanim walking on the kevesh step aside by dx amot (a number), or vanish ('off'); 0 → back
+    rampLane(v) { lane.off = v === 'off'; lane.dx = Number.isFinite(v) ? v : 0; return lane.off ? 'off' : lane.dx; },
     // ── flow31 ── the shift's open field (WAVE31 FLOW31 (1)): the day's crowd steps out of a rect of the court while a shift runs (scale 0),
     // and back (rect null) — the field east of the altar holds only the shift's own people; the camera behind the kohen never stands in a head ── /flow31 ──
     clearField(r) {

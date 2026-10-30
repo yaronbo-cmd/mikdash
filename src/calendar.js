@@ -74,6 +74,10 @@ const at = (d, minutes) => new Date(d.getTime() + minutes * MIN);
 
 const civilFmt = new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: 'numeric', day: 'numeric' });
 const partsOf = (fmt, d) => Object.fromEntries(fmt.formatToParts(d).map((p) => [p.type, p.value]));
+// ── fable32 (build 29) ── the civil date in another time zone (the phone's: rule 16 — the sun and the festivals by where the phone
+// is). Every function below keeps Jerusalem as its default; a bad zone name throws (Intl's RangeError) ── /fable32 ──
+const civilFmts = { [TZ]: civilFmt };
+const civilFmtOf = (tz) => civilFmts[tz] || (civilFmts[tz] = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric' }));
 
 function toDate(d) {
   const x = d === undefined ? new Date() : d instanceof Date ? d : new Date(d);
@@ -81,9 +85,9 @@ function toDate(d) {
   return x;
 }
 
-/** Day number (days since 1970-01-01) of the civil date in Jerusalem at instant `d`. */
-function dayOf(d) {
-  const p = partsOf(civilFmt, d), t = new Date(0);
+/** Day number (days since 1970-01-01) of the civil date at instant `d` in Jerusalem (or in time zone `tz`). */
+function dayOf(d, tz = TZ) {
+  const p = partsOf(civilFmtOf(tz), d), t = new Date(0);
   t.setUTCFullYear(+p.year, +p.month - 1, +p.day); // setUTCFullYear keeps years < 100 literal (70 CE)
   return Math.round(t.getTime() / DAY);
 }
@@ -212,9 +216,23 @@ function sunOfDay(dn, loc) {
  * @param {Loc} [loc=TEMPLE_MOUNT]
  * @returns {{alotHaShachar: Date, sunrise: Date, solarNoon: Date, sunset: Date, tzeit: Date}}
  */
-export function sunTimes(date, loc = TEMPLE_MOUNT) {
-  return sunOfDay(dayOf(toDate(date)), loc);
+export function sunTimes(date, loc = TEMPLE_MOUNT, tz = TZ) {
+  return sunOfDay(dayOf(toDate(date), tz), loc);   // ── fable32 (build 29) ── (tz: the civil date where the phone is) ── /fable32 ──
 }
+
+// ── fable32 (build 29) ── by civil day number (the Shabbat and Yom Tov lock, src/avodah/shift/time29.js): a day number is the civil
+// date itself, the same in every zone, so these need no zone. sunOnDay works wherever local noon is within ±12 h of 12:00 UTC.
+/** Day number (days since 1970-01-01) of the civil date at `date` in time zone `tz` (default Jerusalem). */
+export function civilDay(date, tz = TZ) { return dayOf(toDate(date), tz); }
+/** Sun times (as sunTimes) of civil day number `dn` at `loc`. */
+export function sunOnDay(dn, loc = TEMPLE_MOUNT) { return sunOfDay(dn, loc); }
+/** Hebrew date of the daytime of civil day number `dn` (it does not roll over at sunset). */
+export function hebrewOnDay(dn) { return hebrewOfDay(dn); }
+/** 0 = Sunday … 6 = Shabbat, of civil day number `dn`. */
+export function weekdayOnDay(dn) { return weekdayOf(dn); }
+/** The Temple service (as templeSchedule) of civil day number `dn`, by the sun at `loc`. */
+export function scheduleOnDay(dn, loc = TEMPLE_MOUNT) { return scheduleOfDay(dn, loc); }
+// ── /fable32 ──
 
 const hourOf = (sun, n) => new Date(sun.sunrise.getTime() + (n * (sun.sunset - sun.sunrise)) / 12);
 
@@ -404,8 +422,8 @@ function scheduleOfDay(dn, loc) {
  * @param {Loc} [loc=TEMPLE_MOUNT]
  * @returns {TempleEvent[]}
  */
-export function templeSchedule(date, loc = TEMPLE_MOUNT) {
-  return scheduleOfDay(dayOf(toDate(date)), loc);
+export function templeSchedule(date, loc = TEMPLE_MOUNT, tz = TZ) {
+  return scheduleOfDay(dayOf(toDate(date), tz), loc);   // ── fable32 (build 29) ── (tz: the civil date where the phone is) ── /fable32 ──
 }
 
 /** 'עוד 42 דקות', 'עוד שעה ודקה', 'עוד שעתיים ו־5 דקות'. */
@@ -426,8 +444,8 @@ function untilHe(m) {
  * @returns {{current: TempleEvent|null, active: TempleEvent[],
  *   next: {event: TempleEvent, inMinutes: number, textHe: string}|null}}  textHe, e.g. 'עוד 42 דקות: תמיד של בין הערביים'
  */
-export function nowInTemple(date, loc = TEMPLE_MOUNT) {
-  const now = toDate(date), dn = dayOf(now);
+export function nowInTemple(date, loc = TEMPLE_MOUNT, tz = TZ) {
+  const now = toDate(date), dn = dayOf(now, tz);   // ── fable32 (build 29) ── (tz) ── /fable32 ──
   const all = [dn - 1, dn, dn + 1].flatMap((d) => scheduleOfDay(d, loc)).sort((a, b) => a.start - b.start);
   const active = all.filter((e) => e.start <= now && now < e.end);
   const next = all.find((e) => e.start > now) ?? null;

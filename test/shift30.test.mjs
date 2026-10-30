@@ -19,7 +19,9 @@ test('the compact ring: the seals and the דוכן 8–10 amot from the line; th
   assert.ok(d2(BASIN30, se) >= 8 && d2(BASIN30, se) <= 12 && BASIN30.x > se.x && BASIN30.z > se.z, 'basin SE of the altar');
   // ── fable32 (build 3) ── the basin is off: the laver's act is at the real laver (−63.5, 20), the kohen at the steps' foot ── /fable32 ──
   assert.ok(BASIN30.off); assert.equal(STATIONS.kiyor.at.x, -63.5); assert.equal(STATIONS.kiyor.at.z, 20); assert.ok(STATIONS.kiyor.stand.x >= -54.95 && STATIONS.kiyor.stand.x < -50);
-  for (const id in STATIONS) { const s = STATIONS[id].stand; assert.ok(!(s.x > ALTAR.x0 && s.x < ALTAR.x1 && s.z > ALTAR.z0 && s.z < ALTAR.z1), `${id} stand off the altar`); }
+  // ── recovered (R9) ── every stand off the altar but the pyre's: the pyre station of builds 16–26c (stations.js — the logs laid on the fire, one a tap)
+  // stands on the altar's top, as in 26c ({ x: −34, z: 5 })
+  for (const id in STATIONS) { const s = STATIONS[id].stand; const on = s.x > ALTAR.x0 && s.x < ALTAR.x1 && s.z > ALTAR.z0 && s.z < ALTAR.z1; assert.ok(id === 'pyre' ? on : !on, `${id} stand ${id === 'pyre' ? 'on the altar\'s top' : 'off the altar'}`); }
 });
 test('a pilgrim\'s walk (his three stations from the line, straight) ≤ 8 s at the tap-walk\'s pace, which is ≤ 20 amot/s', () => {
   const sp = RUN29.base * RUN29.mul; assert.ok(sp <= 20, `pace ${sp}`);

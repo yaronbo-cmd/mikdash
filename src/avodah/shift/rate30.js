@@ -1,0 +1,178 @@
+/* ── fable32 (build 30) ── rate30.js — ONE rating for every act of the morning (the owner, 22.10 09:19, hachraot-he.md "המערכות
+ * הרוחביות" 3: "דירוג אחד 'מהודר / כשר / טעון תיקון' לפי דיוק; מהירות רק כקצב בתוך הפעולה; תארים לפי מיומנות בתפקיד ומניין בקרים").
+ *   quality30(id, record) → q 0…1 from the act's own accuracy measures (the build's records — spills, wrong woods, false approvals, the
+ *     pour, the scratches, the cut's misses, the throws …); NO time, NO speed: a slow, careful child is מהודר
+ *   rate30(q) → 'mehudar' (q ≥ 0.85) · 'kasher' (0.5 ≤ q < 0.85) · 'tikkun' (q < 0.5)       mastery30 = round(100 q) (the roles book's %)
+ *   RATE30.pay — the act's coins by its rating (מהודר 3 · כשר 2 · טעון תיקון 1): "טעון תיקון" is a label and an invitation, never a loss
+ *   title30(counts) — a role's skill title by its counts of כשר / מהודר (draft: מתחיל → רגיל → מיומן → מומחה); served30(save) — the
+ *     mornings served ("שימשת N בקרים"); role30(entry) — a roles-book row's best rating, its מהודר count and its title
+ *   LINE30 — the ONE short action line (2–4 words) of each act's phase, the step card's text while an act is in progress (rohvi-he.md
+ *     §14: "בזמן הפעולה — שורה אחת של 2–4 מילים"); reg30 / SRC30 — each act's source lines, shown at its end (one line, a tap opens them all)
+ * Pure (no DOM, no three): day33.js, the modules and the tests read it. Every word a draft (טיוטה); never a Divine Name. ── /fable32 ── */
+export const RATE30 = Object.freeze({
+  hi: 0.85,
+  lo: 0.5,
+  ids: Object.freeze(['mehudar', 'kasher', 'tikkun']),
+  he: Object.freeze({ mehudar: 'מהודר', kasher: 'כשר', tikkun: 'טעון תיקון' }),
+  icon: Object.freeze({ mehudar: '✦', kasher: '✓', tikkun: '↻' }),
+  pay: Object.freeze({ mehudar: 3, kasher: 2, tikkun: 1 }),
+  key: Object.freeze({ mehudar: 'h', kasher: 'k', tikkun: 't' }),
+  rank: Object.freeze({ mehudar: 3, kasher: 2, tikkun: 1 }),
+  invite: 'אפשר לנסות שוב בספר התפקידים',
+  // (the end: the word in the step card this long — the engine's seconds; the source line stays tappable until the next act, at most chipS)
+  wordS: 2.4,
+  chipS: 8,
+  // ── the skill titles (draft; by the counts the roles book keeps): מתחיל — played; רגיל — 2 times כשר or better; מיומן — 3 times מהודר;
+  // מומחה — 6 times מהודר (a role comes up every 3–4 mornings: רגיל in a week or two, מומחה after a few months of mornings) ──
+  titles: Object.freeze([
+    Object.freeze({ id: 'start', he: 'מתחיל', k: 0, h: 0 }),
+    Object.freeze({ id: 'regular', he: 'רגיל', k: 2, h: 0 }),
+    Object.freeze({ id: 'skilled', he: 'מיומן', k: 0, h: 3 }),
+    Object.freeze({ id: 'expert', he: 'מומחה', k: 0, h: 6 }),
+  ]),
+});
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : Number.isFinite(v) ? v : 0);
+// ── fable32 (build 31) ── the inner altar's act (day33's P26.pulls and P26.scr — rate30 stays pure, so its two numbers are here too; a
+// test holds them equal) ── /fable32 ──
+export const INNER31 = Object.freeze({ pulls: 7, scr: 5 });
+const pick = (arr, n) => arr[Math.max(0, Math.min(arr.length - 1, n | 0))];
+/** the rating of a quality 0…1 */
+export function rate30(q) {
+  const v = clamp01(+q);
+  return v >= RATE30.hi ? 'mehudar' : v >= RATE30.lo ? 'kasher' : 'tikkun';
+}
+/** the better of two ratings (either may be missing) */
+export const best30 = (a, b) => (!a ? b || null : !b ? a : RATE30.rank[a] >= RATE30.rank[b] ? a : b);
+/** the act's quality 0…1 from its record — accuracy and the right action only. The weights of builds 22–27's mastery formulas with
+ *  their time share taken out (renormalized); the laver, the ashes and the lamb by the build's own measures (the lamb: a blemished lamb
+ *  approved is the halacha's "פסול" — "טעון תיקון", HANDOFF §5א-4) */
+export function quality30(id, r) {
+  if (!r) return 0;
+  switch (id) {
+    // ── fable32 (build 36) ── each level's own measures join its act's (lvl36.js; a record without them — level 1, or before build 36 — is
+    // rated as it was): the laver's spills at level 4 count as lifts; the ashes' scoops from the outer side (level 2 on) and the heap
+    // beside its place (level 4); the pyre's logs laid outside the band (level 3 on); the inner altar's coals fallen from the teni (level 4);
+    // the menorah's fire taken from a lamp for the western one (level 4) ── /fable32 ──
+    case 'kiyor':   // the hands held under the spigots: each time a thumb lifted mid-wash (build 20's "lifts")
+      return pick([1, 0.75, 0.6, 0.45], (r.lifts | 0) + (r.spills36 | 0)) * (r.mark51 && r.mark51 !== 'in' ? 0.7 : 1);   // ── build 51 ── (released at the mark: מהודר; held to the brim: ×0.7 — כשר) ── /build 51 ──
+    case 'deshen':   // the coals spilled on the way down (build 21)
+      return pick([1, 0.65, 0.35], r.embersSpilledCount) * pick([1, 0.8, 0.65, 0.5], r.outer36) * (r.off36 ? 0.8 : 1);
+    case 'm22': {   // the unfit woods taken (the first morning's warned one not counted), the air between the logs, the wrong sizes laid
+      const bad = Math.max(0, (r.invalidWoodSelectedCount | 0) - (r.warned | 0));
+      return clamp01((0.25 * pick([1, 0.5, 0], bad) + 0.3 * clamp01((+r.airflowQualityScore || 0) / 100) * pick([1, 0.6, 0.4, 0.25], r.airMiss36) + 0.15 * pick([1, 0.5, 0], r.cracks)) / 0.7);
+    }
+    case 'lamb':   // a blemished lamb approved −0.55 (טעון תיקון); a whole lamb rejected −0.2; dirt taken for a blemish −0.2
+      return clamp01(1 - 0.55 * (r.falseApprovals | 0) - 0.2 * (r.wrongRejections | 0) - 0.2 * (r.dirtMistaken | 0));
+    case 'inner': {   // the pulls into the teni, each one too fast scratches the gold (build 26's accuracy, 100 − 5 a scratch)
+      // ── fable32 (build 31) ── the share of the pulls that did not scratch: 0 scratches 1, every pull too fast 0 (build 30's accuracy / 100
+      // could not go under 0.65 — seven pulls, 5 each — so a poor run never rated טעון תיקון). Scratches and pulls from the record; an
+      // older record with its accuracy only: (100 − accuracy) / 5 scratches of INNER31.pulls ── /fable32 ──
+      const n = (r.pulls | 0) > 0 ? r.pulls | 0 : INNER31.pulls,
+        s = r.scratches != null ? +r.scratches || 0 : (100 - (Number.isFinite(+r.accuracy) ? +r.accuracy : 0)) / INNER31.scr;
+      return clamp01((1 - s / n) * pick([1, 0.8, 0.6, 0.45], r.spills36));
+    }
+    case 'menorah': {   // the half-log poured into each lamp (under 0.8, over 0.45) and the wick's swipes refused
+      const ref = r.refused | 0;
+      return clamp01(((0.5 * clamp01(+r.pourQ || 0) + 0.2 * (ref ? (ref <= 2 ? 0.6 : 0.3) : 1)) / 0.7) * pick([1, 0.8, 0.6], r.wrong36));
+    }
+    case 'shochet':   // the cut's taps outside the gold, the binding let go short
+      return clamp01((0.5 * pick([1, 0.7, 0.45, 0.25], r.misses) + 0.2 * pick([1, 0.7, 0.4], r.rebinds)) / 0.7);
+    case 'zorek': {   // the vessel under the stream, the two gifts (Γ 1, one face 0.6; a throw over the line or past the corner −0.15), the clot
+      const g = Array.isArray(r.gifts) && r.gifts.length ? r.gifts.reduce((s, x) => s + x, 0) / r.gifts.length : 0;
+      return clamp01((0.25 * clamp01((+r.fillAcc || 0) / 100) + 0.4 * clamp01(g - 0.15 * (r.retries | 0)) + 0.15 * (1 - clamp01((+r.clotMax || 0) / 100))) / 0.8);
+    }
+    default:
+      return 0;
+  }
+}
+/** the roles book's mastery 0…100: accuracy only (build 30; the saves' older values stay as they were) */
+export const mastery30 = (id, r) => Math.round(100 * quality30(id, r));
+/** the coins of a rating */
+export const pay30 = (rating) => RATE30.pay[rating] | 0;
+/** a role's counts { h: מהודר, k: כשר, t: טעון תיקון, best } (a record's r30; none → zeros) */
+export const counts30 = (r30) => ({ h: (r30 && r30.h) | 0, k: (r30 && r30.k) | 0, t: (r30 && r30.t) | 0, best: (r30 && r30.best) || null });
+/** a role's title by its counts: k = the times כשר or better, h = the times מהודר (draft) */
+export function title30(h, k) {
+  let t = RATE30.titles[0];
+  for (const x of RATE30.titles) if (h >= x.h && k >= x.k) t = x;
+  return t;
+}
+// ── fable32 (build 36) ── the titles by the LEVEL (svivat-avoda-he.md §4.3: "נקבעים מהרמה שבה הגיע למהודר, לא רק מספירה"): the highest
+// level at which the role was מהודר — none מתחיל · 1 רגיל · 2 מיומן · 3 מומחה · 4 אומן (draft names; the first four are build 30's own
+// objects, so a title reads the same everywhere). An older save keeps the title build 30's counts gave it (l36.keep — no title goes
+// down); a record not yet level-aware (lvl36.js's ensure36 makes it so) reads its counts as level 1's ── /fable32 ──
+export const TITLE36 = Object.freeze([...RATE30.titles, Object.freeze({ id: 'master', he: 'אומן', k: 0, h: 0 })]);
+export function titleLv36(a) {
+  if (!a || typeof a !== 'object') return TITLE36[0];
+  const l = a.l36 && typeof a.l36 === 'object' && a.l36.c && typeof a.l36.c === 'object' ? a.l36 : null;
+  let top = 0;
+  if (l) for (let L = 1; L <= 4; L++) if (((l.c[L] || {}).h | 0) > 0) top = L;
+  if (!l && ((a.r30 && a.r30.h) | 0) > 0) top = 1;
+  const keepId = l ? l.keep : (() => {
+      const c = counts30(a.r30),
+        old = Math.max(0, (a.n | 0) - c.h - c.k - c.t);
+      return title30(c.h, c.h + c.k + (old > 0 && (+a.best || 0) >= 50 ? old : 0)).id;
+    })(),
+    keep = Math.max(0, TITLE36.findIndex((x) => x.id === keepId));
+  return TITLE36[Math.max(top, keep)];
+}
+/** a roles-book row: { best (the best rating), h (מהודר times), title } from the save's entry { n, best, last, r30 } — a play before
+ *  build 30 (in n, not in r30) counts as כשר when its best was ≥ 50 % (its mastery had time in it, so never as מהודר); its best rating
+ *  from the old best % (not rewritten) */
+export function role30(a) {
+  if (!a || !((a.n | 0) > 0)) return { best: null, h: 0, k: 0, title: null };
+  const c = counts30(a.r30),
+    old = Math.max(0, (a.n | 0) - c.h - c.k - c.t),
+    oldBest = old > 0 || !a.r30 ? rate30((+a.best || 0) / 100) : null,
+    k = c.h + c.k + (old > 0 && (+a.best || 0) >= 50 ? old : 0);
+  return { best: best30(c.best, oldBest), h: c.h, k, title: titleLv36(a) };   // ── fable32 (build 36) ── (the title by the level — titleLv36; was title30(c.h, k)) ── /fable32 ──
+}
+/** the mornings served: build 30's count (save.served30), or for an older save the second lots held (roles26.m — a morning's last role) */
+export function served30(save) {
+  if (!save || typeof save !== 'object') return 0;
+  if (Number.isFinite(+save.served30) && save.served30 != null) return Math.max(0, save.served30 | 0);
+  const r26 = save.roles26 && typeof save.roles26 === 'object' ? save.roles26.m | 0 : 0,
+    r23 = save.roles23 && typeof save.roles23 === 'object' ? save.roles23.m | 0 : 0;
+  return Math.max(0, r26 || r23);
+}
+/** "שימשת N בקרים" (one morning: "שימשת בוקר אחד"; none: '') */
+export const servedHe30 = (n) => (n > 1 ? `שימשת ${n} בקרים` : n === 1 ? 'שימשת בוקר אחד' : '');
+/** ── the one line while an act is in progress (2–4 words; the act's sources at its end). The keys are the engine's phases. ── */
+// ── build 51 ── (the inspector's review 27.10 §4 item 7; the coordinator's build-51 brief, item 5: the top pill always carries the verb and
+// the gesture's arrow, never the noun alone — "קבלו — עקבו אחרי הזרם ↔", "העבירו את הנגר — החליקו ↔"; up to 5 words now) ── /build 51 ──
+export const LINE30 = Object.freeze({
+  kiyor: Object.freeze({ up: 'קדשו ידיים ורגליים', pose: 'החזיקו ✋✋ — שחררו בסימן' }),
+  lot: Object.freeze({ raise: 'החליקו למעלה ☝', count: 'הממונה סופר', show: 'הפיס' }),
+  deshen: Object.freeze({ in: 'חתו — החליקו הילך והילך ↔', sweep: 'חתו — החליקו הילך והילך ↔', full: 'אזנו את המחתה ⚖', walk: 'ימין: גררו נגד הנטייה ↔', desc: 'ימין: גררו נגד הנטייה ↔', turn: 'לכו לטבעת הזהב', foot: 'לכו לטבעת הזהב', near: 'צברו — הקישו 👆', go: 'צברו את הגחלים 👆', pour: 'צברו את הגחלים 👆' }),
+  // (the pyre: l1–l3 the lot's four logs, L1–L3 the six of build 22; the first morning's sort says which woods go left — the names: the end's card)
+  m22: Object.freeze({ in: 'מיינו: כשר ➡ · פסול ⬅', sort: 'מיינו: כשר ➡ · פסול ⬅', first: 'פסלו ⬅ זית, גפן, מתולע', sorted: 'הגזרים מוכנים', carry: 'העלו למזבח', log: 'הרימו את הגזר' /* ── fable32 (build 35) ── (the run inside the role: a log dropped) ── /fable32 ── */, stackIn: 'הקישו 👆 — שני עבים לבסיס', l1: 'הקישו 👆 — שני עבים לבסיס', l2: 'הקישו 👆 — בינוני לרוחבם', l3: 'הקישו 👆 — דק במרכז', L1: 'הקישו 👆 — עבים לבסיס', L2: 'הקישו 👆 — בינוניים לרוחב', L3: 'הקישו 👆 — דקים במרכז', s2: 'המערכה השנייה — שניים' /* ── fable32 (build 36) ── (the maaracha's level 4) ── /fable32 ── */, ready: 'הציתו — הקישו 👆', ignite: 'המערכה בוערת' }),
+  lamb: Object.freeze({ in: 'בדקו את הטלה', scan: 'כוונו את האור — גררו ✥', zoom: 'מקרוב', dirt: 'הבריש — החליקו ↔', clean: 'נקי ✓', blem: 'יש בו מום', aside: 'הוצא לצד', wait: 'הביאו טלה חדש — הקישו 👆', bring: 'טלה חדש', false: 'עיכוב — יש בו מום', ok: 'תמים לקרבן' }),
+  inner: Object.freeze({ in: 'העבירו את הנגר — החליקו ↔', bolt: 'העבירו את הנגר — החליקו ↔', key: 'סובבו את המפתח — החזיקו ✋', open: 'השער הגדול נפתח', walk: 'לכו אל מזבח הזהב', step: 'הטני לפניכם', set: 'הטני לפניכם', pull: 'חפנו — משכו ⬇ לאט', leave: 'הניחו וצאו', lift36: 'נטלו את הטני', teni36: 'הטני ישר — החוצה' /* ── fable32 (build 36) ── (level 4: the teni out) ── /fable32 ── */ }),
+  menorah: Object.freeze({ in: 'העבירו את הנגר — החליקו ↔', bolt: 'העבירו את הנגר — החליקו ↔', key: 'סובבו את המפתח — החזיקו ✋', open: 'השער הגדול נפתח', walk: 'לכו אל המנורה', step: 'עלו על האבן', wick: 'הוציאו את הפתילה — החליקו ⬆', wick2: 'הוציאו וקנחו — החליקו ⬆', wipe: 'קנחו את הנר — החליקו ↔', pour: 'החזיקו ✋ — שחררו בפס', spill: 'נשפך — שוב', new: 'פתילה חדשה — הקישו 👆', drag: 'גררו את האש ↔', lit: 'הנר דולק', kuz: 'הכוז על המעלה — הקישו 👆' /* ── fable32 (build 37) ── (the verb: the naive kid stood at this line without knowing to tap — 43 looks, the run ended at 5/5 lamps; the hint card's own words, heichal26 HINT.kuz) ── */, kuzd: 'הכוז על המעלה', altar: 'אש ממזבח העולה' /* ── fable32 (build 36) ── (level 4: the western lamp) ── /fable32 ── */ }),
+  shochet: Object.freeze({ in: 'לכו אל הטלה', bind: 'גררו: יד ורגל ⤳', bound: 'עקוד — ראשו לדרום', wait: 'המתינו לקול השער', cut: 'שחטו בזהב — הקישו 👆', cutd: 'וקבל המקבל' }),
+  zorek: Object.freeze({ in: 'לכו אל המזרק', wait: 'המתינו לקול השער', waitOpen: 'השוחט עומד לשחוט', cut: 'שחט השוחט', recv: 'קבלו — עקבו אחרי הזרם ↔', full: 'המזרק מלא', carry: 'לכו לקרן — מרסו ⟳', hold: 'מרסו ⟳ — חמש נרות קודם', aim: 'זרקו מתחת לחוט ⤵', splash: 'ניתנה מתנה', carry2: 'לכו לקרן — מרסו ⟳', aim2: 'זרקו מתחת לחוט ⤵', splash2: 'ניתנה מתנה', base: 'שפכו על היסוד — החליקו ⬇', poured: 'שירי הדם ליסוד' }),
+});
+/** the words of a line (the test's 2–4: a glyph — ✓ ☝ ⟳ · — is not a word) */
+export const words30 = (s) => String(s || '').replace(/[—·:,!?✓☝⟳✦↻]/g, ' ').split(/\s+/).filter((w) => /[א-ת]/.test(w)).length;
+/** ── the acts' names and their source lines (each module registers its own, at load: its texts stay in it — only where they show
+ *  changed). SRC30[id] = { he, icon, chip: the one line at the end, all: every line the act showed (a tap on the chip opens them) } ── */
+export const SRC30 = {};
+export const ACT30 = Object.freeze({
+  kiyor: Object.freeze({ he: 'קידוש ידיים ורגליים', icon: '💧' }),
+  deshen: Object.freeze({ he: 'תרומת הדשן', icon: '🔥' }),
+  m22: Object.freeze({ he: 'סידור המערכה', icon: '🪵' }),
+  lamb: Object.freeze({ he: 'בדיקת הטלה', icon: '🐑' }),
+  inner: Object.freeze({ he: 'דישון מזבח הפנימי', icon: '🥣' }),
+  menorah: Object.freeze({ he: 'דישון המנורה', icon: '🪔' }),
+  shochet: Object.freeze({ he: 'השחיטה', icon: '🔪' }),
+  zorek: Object.freeze({ he: 'זריקת הדם', icon: '🏺' }),
+  lot: Object.freeze({ he: 'הפיס', icon: '☝' }),
+  lot2: Object.freeze({ he: 'הפיס השני', icon: '☝' }),
+});
+export function reg30(id, o = {}) {
+  const all = (o.all || []).filter(Boolean);
+  SRC30[id] = Object.freeze({ he: (ACT30[id] && ACT30[id].he) || id, icon: (ACT30[id] && ACT30[id].icon) || '•', chip: o.chip || all[0] || '', all: Object.freeze(all.length ? all : [o.chip].filter(Boolean)) });
+  return SRC30[id];
+}
+/** a source line with "טיוטה" (the older lines that lacked it get it here, where they now show) */
+export const draft30 = (s) => (/טיוטה|המחשה/.test(s) ? s : `${s} · טיוטה`);

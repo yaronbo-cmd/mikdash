@@ -1,0 +1,11 @@
+/* ── fable32 (build 22) ── ── recovered (build 22) ── maaracha22.js — סידור המערכה, the great pyre (תמיד ב, ג–ד), in the world:
+ *   the sorting — in the wood chamber each log is shown before him (its kind painted: fig, walnut, pine — kasher; olive, vine, wormy —
+ *   "כל העצים כשרים למערכה חוץ משל זית ושל גפן"): a swipe right takes it, left puts it back; a wrong take is a warning or points;
+ *   the stacking — on the altar's top, six logs in three layers (two thick for the base, their heads to the תפוח; two medium across;
+ *   two thin in the middle — the אליתא), the left stick moves the log along its row, a tap lays it; the air between the logs ("ורוח
+ *   היה בין הגזרין") on the gauge — too tight, too wide, or right (E.band22());
+ *   the lighting — a tap where the gap is, the torch, the fire catching layer by layer, the smoke; "המערכה הגדולה נבנתה כהלכה!".
+ * Under the lot of build 23 its short form (P23.budget, LAYERS23) and, when another kohen has the role, the logs laid by him (E.npc23()).
+ * The engine is day33.js (E.m22(): in → sort → sorted → carry → stack → ready → ignite → end; m22swipe, m22put, m22stick; band22).
+ *   createMaaracha22({ E, sfx, doc, view, twin }) → { destroy(), state(), at(i), row(ly, x), rowS }      (focus17.js makes it when E.g22; __M22)
+ * The bundle kept no comment and no local name: the names are the recovery's. Never a Divine Name. */

@@ -318,7 +318,12 @@ function stepFly(now) {
 function clampCam() {
   const p = camera.position, onMount = p.x > -310 && p.x < 290 && p.z > -490 && p.z < 410;
   const minY = onMount ? (stages && typeof stages.camFloor === 'function' ? stages.camFloor(p.x, p.z) : 7) : terrainH(p.x, p.z) + 14;   // ── site9 ── (the Mount's walls: 8 over the ground there)
-  if (p.y < minY) p.y = minY;
+  // ── camfix ── (the owner's playtest 29.10: on the live screen the camera stood 50 amot over his work, the capture showed it right) the
+  // Mount's works (har42: stages 01–11) are in the working bay, 45–64 amot under the platform; the floor of 7 over the platform lifted
+  // every frame of their cameras there before it was drawn (the tests' simulated world never runs this clamp). While har42 is on, the
+  // floor is the ground under the camera ── /camfix ──
+  if (globalThis.__H42 && globalThis.__H42.on && stages && typeof stages.groundAt === 'function') { const g = stages.groundAt(p.x, p.z); if (Number.isFinite(g) && p.y < g + 1.5) p.y = g + 1.5; }
+  else if (p.y < minY) p.y = minY;
   const t = controls.target;
   t.x = THREE.MathUtils.clamp(t.x, -1800, 1800); t.z = THREE.MathUtils.clamp(t.z, -1800, 1800); t.y = THREE.MathUtils.clamp(t.y, -60, 160);
 }

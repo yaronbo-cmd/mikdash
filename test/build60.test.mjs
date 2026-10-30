@@ -63,10 +63,11 @@ test('build 60: "גלי הים" — a course one way, the opposite of the course
 test('build 60: the lintels — each two amot longer and swinging more; held it rises and swings; drags against the swing calm it; let go swinging — a knock; still — down, then centred', () => {
   for (let i = 0; i < 5; i++) assert.equal(F.lintelLen60(i), 22 + 2 * i);
   const C = F.LINTEL60; for (let i = 1; i < 5; i++) { assert.ok(C.amp[i] > C.amp[i - 1]); assert.ok(C.per[i] > C.per[i - 1]); }
-  assert.ok(C.still[1] > C.still[4] && C.damp[1] > C.damp[4]);
+  assert.ok(C.still[1] > C.still[4] && C.damp[1] > C.damp[4]); assert.ok(C.lvAmp[1] < C.lvAmp[2] && C.lvAmp[2] <= C.lvAmp[4], 'level 1: a gentler swing (rule 7)');
   const T = read('src/temple.js'); assert.match(T, /for \(let i = 0; i < 5; i\+\+\) \{ const hw = 11 \+ i, y0 = 62\.3 \+ 2 \* i; box\('oak', -76, y0, -hw, -75\.3, y0 \+ 1\.1, hw, -999\); \}/);
   assert.equal(ULAM60.ly, 62.3); assert.equal(ULAM60.ldy, 2); assert.equal(ULAM60.open, 10); assert.equal(F.lintelLen60(0) / 2 - ULAM60.open, 1, 'the bottom one: an amah this side and an amah that side');
   const rise = (J) => { J.hold(); let t = 0; while (J.state().phase === 'lift' && t < 5) { J.step(0.02); t += 0.02; } return t; };
+  { const E = F.createLintel60(0, 1, () => 0.3); rise(E); let t1 = 0; while (E.amp() > E.still && t1 < 10) { E.step(0.02); t1 += 0.02; } assert.ok(t1 < 1.5, `level 1, the first beam: still within moments of the top (${t1})`); }
   const A = F.createLintel60(2, 2, () => 0.3); assert.ok(rise(A) < 2); assert.equal(A.state().phase, 'hang'); assert.equal(A.release(1), 'knock', 'still swinging'); assert.equal(A.state().knocks, 1);
   // calm: the finger against the swing — faster than left alone
   const calm = (drag) => { const J = F.createLintel60(3, 2, () => 0.7); rise(J); J.hold(); let t = 0; while (J.amp() > J.still && t < 30) { const v = J.state().v; J.step(0.02, drag ? -Math.sign(v) * 6 : 0); t += 0.02; } return t; };

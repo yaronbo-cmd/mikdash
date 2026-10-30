@@ -1309,13 +1309,13 @@ export function createWaves60(n, L = 1, o = {}) {
  *  finger's pace against the beam's takes its speed — with it, a little more); let go when it is still, it is lowered onto its place —
  *  still swinging, it knocks the jamb (a correction; it hangs again); then centred — drags slide it, let go with the same overhang on both
  *  sides. Each beam two amot longer than the one under it, and it swings more: five beams, five steps of difficulty */
-export const LINTEL60 = Object.freeze({ amp: Object.freeze([0.8, 1.05, 1.3, 1.55, 1.8]), per: Object.freeze([2.6, 2.8, 3.0, 3.2, 3.4]), damp: Object.freeze([null, 0.34, 0.16, 0.1, 0.07]), still: Object.freeze([null, 0.42, 0.3, 0.22, 0.16]), calm: 0.5, pump: 0.06, rise: 0.75, fall: 0.35, hold: 0.3, ctr: Object.freeze([null, 0.5, 0.3, 0.22, 0.15]), snap: 0.75, off: Object.freeze([null, 1.0, 1.3, 1.6, 1.9]) });
+export const LINTEL60 = Object.freeze({ amp: Object.freeze([0.8, 1.05, 1.3, 1.55, 1.8]), per: Object.freeze([2.6, 2.8, 3.0, 3.2, 3.4]), damp: Object.freeze([null, 0.34, 0.16, 0.1, 0.07]), still: Object.freeze([null, 0.42, 0.3, 0.22, 0.16]), calm: 0.5, pump: 0.06, rise: 0.75, fall: 0.35, hold: 0.3, lvAmp: Object.freeze([null, 0.6, 0.85, 1, 1.1]), ctr: Object.freeze([null, 0.5, 0.3, 0.22, 0.15]), snap: 0.75, off: Object.freeze([null, 1.0, 1.3, 1.6, 1.9]) });
 export const lintelLen60 = (i) => 22 + 2 * (i | 0);   // (the bottom one: the opening's 20 and an amah each side; each two amot longer)
 export function createLintel60(i = 0, L = 1, rnd = Math.random) {
   const C = LINTEL60, lv = clamp(L | 0, 1, 4), b = clamp(i | 0, 0, 4), w = (2 * Math.PI) / C.per[b];
   const k = { i: b, L: lv, phase: 'lift', y: 0, s: 0, v: 0, held: false, started: false, knocks: 0, misses: 0, off: 0, t: 0, lowT: 0, done: false, q: null, w };
   const amp = () => Math.hypot(k.s, k.v / w);
-  function hold() { if (k.done) return; k.held = true; if (!k.started) { k.started = true; k.v = C.amp[b] * w * (rnd() < 0.5 ? -1 : 1); } }
+  function hold() { if (k.done) return; k.held = true; if (!k.started) { k.started = true; k.v = C.amp[b] * C.lvAmp[lv] * w * (rnd() < 0.5 ? -1 : 1); } }   // (level 1 a gentler swing — rule 7; each beam still swinging more than the one under it)
   /** the finger up after held for heldS seconds → 'none' | 'knock' (still swinging: a correction, it hangs again) | 'lower' | 'set' | 'miss' */
   function release(heldS = 1) {
     const was = k.held; k.held = false; if (k.done || !was) return 'none';

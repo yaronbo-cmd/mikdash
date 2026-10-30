@@ -2423,10 +2423,10 @@ export function createHar42(o = {}) {
     const done = R.part > PARTS60.indexOf('courses') ? 3 : R.part > PARTS60.indexOf('waves') ? 1 : 0;   // (back to a stage begun: his courses as laid — the crews' pattern)
     for (let k = 0; k < U60.crews + done; k++) crew60(k, 0, false);
     // the scaffold's deck along the face, the pallet on it; posts down to the court
-    const deck = new THREE.Group(), pl = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.22, 31), M.wood); pl.position.set(0, -0.11, 0); deck.add(pl);
+    const deck = new THREE.Group(), pl = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 31), M.wood); pl.position.set(0, -0.11, 0); deck.add(pl);
     for (const dz of [-15, -5, 5, 15]) for (const dx of [-1.7, 1.7]) { const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 12, 0.22), M.wood); p2.position.set(dx, -6.1, dz); deck.add(p2); }
-    deck.position.set(U60.face + 2.6 + 1.9 - 1.6, yOf60(U60.crews) - 1.5, (U60.corner + z0) / 2 + 0.8); g.add(deck); st.props.deck60 = deck;   // (the masons' deck an amah and a half under the course: it at their waist)
-    const pal = new THREE.Group(), pw = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.2, 2.8), M.wood); pw.position.y = 0.1; pal.add(pw); for (const dz of [-1.1, 1.1]) { const lg = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.5, 0.22), M.wood); lg.position.set(0, -0.75, dz); pal.add(lg); }   // (on a trestle: its top at the course's foot)
+    deck.position.set(U60.face + 2.6 + 1.9 - 1.6, yOf60(U60.crews) - 2.7, (U60.corner + z0) / 2 + 0.8); g.add(deck); st.props.deck60 = deck;   // (the masons' deck two courses under his: it at their chest — the courses under it, the pattern, in the frame over the deck)
+    const pal = new THREE.Group(), pw = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.2, 2.8), M.wood); pw.position.y = 0.1; pal.add(pw); for (const dz of [-1.1, 1.1]) { const lg = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.7, 0.22), M.wood); lg.position.set(0, -1.35, dz); pal.add(lg); }   // (on a trestle: its top at the course's foot)
     const pst = [0, 1].map((q) => { const m = stone60(q, false); m.scale.set(0.9, 0.9, 0.9); m.position.set(0, 0.2 + U60.sh * 0.45 + q * U60.sh * 0.9, 0); pal.add(m); return m; });
     pal.userData.top = pst[1]; pal.userData.low = pst[0]; g.add(pal); st.props.pal60 = pal;
     // the façade above in gold: the haze of its face up to the parapet, its corner's edge, the engaged column's two edges (temple.js: z 38, ±2.7)
@@ -2439,7 +2439,7 @@ export function createHar42(o = {}) {
     st.props.plan60 = [[-73.5, -50, 37, 1.2], [-73.5, 50, 37, 1.2], [-92, 0, 1.2, 100], [-55, 0, 1.2, 100], [-76, 0, 1.2, 100]].map(([x, z, w, d]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 12, d), gm); m.geometry.translate(0, 6, 0); m.scale.y = 0.001; return add(m, x, 16, z); });
   }
   /** the crews on the deck: placed by the course; their arms at work */
-  function crewAt60(k, n) { const c = st.props.crew60; if (!c) return; const y = yOf60(k), zP = U60.corner - U60.sl * n - 2.4; c[0].position.set(U60.face + 3.6, y - 1.5, zP - 3.4); c[1].position.set(U60.face + 3.4, y - 1.5, zP - 8.5); }
+  function crewAt60(k, n) { const c = st.props.crew60; if (!c) return; const y = yOf60(k), zP = U60.corner - U60.sl * n - 2.4; c[0].position.set(U60.face + 3.6, y - 2.7, zP - 3.4); c[1].position.set(U60.face + 3.4, y - 2.7, zP - 8.5); }
   function frame60(dt) { const c = st.props.crew60; if (!c) return; st.t60 = (st.t60 || 0) + dt; c.forEach((w, i) => { const ph = st.t60 * 3 + i * 1.7; w.userData.arms[0].rotation.x = -0.9 + Math.sin(ph) * 0.6; w.userData.arms[1].rotation.x = -0.9 + Math.sin(ph + 0.8) * 0.6; }); }
   /** the world's Ulam as far as he has come (the part he begins) */
   function world60(part) {
@@ -2475,7 +2475,7 @@ export function createHar42(o = {}) {
     function showGhost() { if (L > 1 || !J || J.state().done || j() >= n) { ghost.visible = false; return; } const w = want(); ghost.material = M.ghost[w.sh]; ghost.position.set(xOf60(w.io), yOf60(k) + U60.sh / 2, zOf60(j())); ghost.visible = true; }
     function beginCourse() {
       J = F.createWaves60(n, L, { out: out60(k), shade0: sh060(k) }); laid = [];
-      if (deck) deck.position.y = yOf60(k) - 1.5; if (pal) pal.position.set(U60.face + 2.7, yOf60(k), U60.corner - U60.sl * n - 2.4); crewAt60(k, n);
+      if (deck) deck.position.y = yOf60(k) - 2.7; if (pal) pal.position.set(U60.face + 2.7, yOf60(k), U60.corner - U60.sl * n - 2.4); crewAt60(k, n);
       nextPal(); showGhost(); line(baseLine(), sub());
     }
     beginCourse();
@@ -2650,7 +2650,7 @@ export function createHar42(o = {}) {
   const LEAF60 = '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><path d="M20 36 C 19 30 18 26 20 22 M20 22 C 10 24 4 16 7 8 C 12 11 16 9 20 4 C 24 9 28 11 33 8 C 36 16 30 24 20 22 Z" fill="#E7B64A" stroke="#7A4E10" stroke-width="2" stroke-linejoin="round"/></svg>';
   function mkVine60() {
     let N = null; try { if (o.vineSync) o.vineSync(); N = stages.vineNext ? stages.vineNext() : null; } catch (e) { N = null; } if (!N || !Number.isFinite(N.y)) N = { x: -90.4, y: 47.6, z: 0 };
-    const Ty = Math.max(30, Math.min(42, (N.y + 41) / 2)), tz = N.z * 0.35;
+    const Ty = Math.max(32, Math.min(42, (N.y + 46) / 2)), tz = N.z * 0.3;
     const tray = el('h60-tray', `<button type="button" class="h60-leaf" aria-label="עלה של זהב">${LEAF60}</button>`); tray.style.cssText = 'position:fixed;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:46;padding:6px 10px;border-radius:16px;background:linear-gradient(#F3D27A,#B8862A);box-shadow:0 3px 10px rgba(0,0,0,.4);pointer-events:auto';
     st.ui.root.appendChild(tray); const btn = tray.querySelector('button'); btn.style.cssText = 'width:60px;height:60px;min-width:52px;min-height:52px;border:0;border-radius:12px;background:rgba(255,248,220,.35);display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab';
     let fly = null, hung = false, endT = -1, idle = 0, leaf = null;
@@ -2667,13 +2667,13 @@ export function createHar42(o = {}) {
       const at = (x, y) => { g.style.left = `${Math.round(x - 30)}px`; g.style.top = `${Math.round(y - 30)}px`; }; at(e.clientX, e.clientY); try { btn.setPointerCapture(e.pointerId); } catch (err) { /* */ }
       let x = e.clientX, y = e.clientY;
       const mv = (ev) => { x = ev.clientX; y = ev.clientY; at(x, y); };
-      const upF = () => { btn.removeEventListener('pointermove', mv); btn.removeEventListener('pointerup', upF); btn.removeEventListener('pointercancel', upF); g.remove(); st.finger = Math.max(0, st.finger - 1); if (y < H() * 0.55) hang(x, y); else line(LINE42.vine60); };
+      const upF = () => { btn.removeEventListener('pointermove', mv); btn.removeEventListener('pointerup', upF); btn.removeEventListener('pointercancel', upF); g.remove(); st.finger = Math.max(0, st.finger - 1); const T3 = proj(N.x + 0.25, N.y, N.z), top = tray.getBoundingClientRect().top; if (y < H() * 0.55 || y < top - 40 || (T3 && Math.hypot(x - T3.x, y - T3.y) < 90)) hang(x, y); else line(LINE42.vine60); };   // (up out of the tray, over the middle, or onto the blinking point — it hangs; let go in the tray — back, nothing lost)
       btn.addEventListener('pointermove', mv); btn.addEventListener('pointerup', upF); btn.addEventListener('pointercancel', upF);
     });
     line(LINE42.vine60);
     const jv = {
       acting: true, dragOnly: true, kind: 'vine60', el: [tray], ownView: () => true, target: () => proj(N.x + 0.25, N.y, N.z), trayAt: () => { const r = btn.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, hung: () => hung,
-      view() { return { p: [-47, 29, 3 + tz * 0.5], t: [-90.8, Ty, tz] }; },
+      view() { return { p: [-40, 30, 3 + tz * 0.5], t: [-90.8, Ty, tz] }; },   // (from the court through the Ulam's opening: the vine from its foot to the bar over the door)
       down() {}, move() {}, up() {},
       frame(dt) {
         objPlace(endT < 0, [{ x: -90.8, y: 23, z: -11, r: 1 }, { x: -90.8, y: 47.5, z: 11, r: 1 }], 'h60vine');
@@ -2844,7 +2844,7 @@ export function createHar42(o = {}) {
     hang: { begin() { st.job = mkHang49(); } },
     steps: { begin() { st.job = mkSteps49(); } },
     step: { begin() { st.job = mkSteps49(5, 'step'); } },   // (the yard's: five steps)
-    log: { begin() { st.job = mkWood(3); } }, beam: { begin() { st.job = mkBeams('N'); } }, peg: { begin() { st.job = mkPegs(1, 'N'); } },   // (the yard's)
+    log: { begin() { st.job = mkWood(3); } }, beam: { begin() { st.job = mkBeams('N', null, MODE === 'test' && o.test === 60); } },   /* ── build 60 ── (the test's: one beam) */ peg: { begin() { st.job = mkPegs(1, 'N'); } },   // (the yard's)
     line: { begin() { st.job = mkLine(); } },   // ── build 45 ── stage 02's parts
     pulley: { begin() { st.job = mkPulley(); } },
     wcourse0: { begin() { st.job = mkCourse(0, '', 'wcourse0'); } }, wcourse1: { begin() { st.job = mkCourse(1, '', 'wcourse1'); } },
@@ -3144,19 +3144,22 @@ export function createHar42(o = {}) {
   /** FIT — the GALLERY's beams into the wall's sockets (fam42 createGallery48): chips "קורת פינה" ×2 and "קורה" ×3 dragged to their sockets
    *  (the corner beams first — else blocked, free), each then pushed in: the push's angle is the beam's — straight, it locks with a wooden
    *  click; crooked, it stops at the rim. From below, looking up at the sockets (ש3) */
-  function mkBeams(side = 'N', onDone) {
+  function mkBeams(side = 'N', onDone, one = false) {
     const L = famL('fit'), J = F.createGallery48(L), W2 = side === 'N' ? PL.wallY : PL.wallS, sz = side === 'N' ? 1 : -1, socks = (st.props.sock48 && st.props.sock48[side]) || [];
     line(LINE42.beams, `רמה ${L}`);
     const pile = st.ui.pile; pile.innerHTML = ''; pile.hidden = false; let cur = -1, endT = -1; const beams = [];
     const sockAt = (i) => proj(W2.x + SOCK48[i], W2.y + 11.5, W2.z);
     const endAt = (i) => proj(W2.x + SOCK48[i], W2.y + 11.0, W2.z + sz * 4.2);
     const left = { corner: 2, next: 3 };
+    // ── build 60 ── (the test before chapter ד׳: "קורה לשקע" — one beam: the crews have set the other four, the corners first; his the middle one)
+    const pre = one ? [0, 4, 1, 3] : []; for (const i of pre) { const kd = J.state().kinds[i]; J.place(i, kd, { dragPx: 99 }); J.push(i, 0, -60, 0, -1); left[kd]--; }
     // ── build 54 ── (§2 stage 05: "the beams are buttons 'קורה ×3', not beams in the world") the beams lie on the ground by the wall — the two
     // corner beams with their return, the three plain ones — and the finger takes one where it lies (a clear handle over it, touch40's way);
     // the corner shows by its place, no label ── /build 54 ──
     const gb = []; { const bm = mat('#8A6038', 0.8); for (let k = 0; k < 5; k++) { const kd = k < 2 ? 'corner' : 'next', g2 = new THREE.Group(), b1 = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.1, 1.1), bm); g2.add(b1); if (kd === 'corner') { const b2 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 2.4), bm); b2.position.set(1.55, 0, 1.2); g2.add(b2); } const x = W2.x - 9 + k * 4.6, z = W2.z + sz * 3.2; g2.position.set(x, gy(x, z) + 0.55, z); if (st.props.root) st.props.root.add(g2); gb.push({ kd, m: g2, used: false }); } }
     const chips = ['corner', 'next'].map((kd) => { const b = el('h42-it h48-beam', '', 'button'); b.type = 'button'; b.dataset.kind = kd; b.setAttribute('aria-label', kd === 'corner' ? 'קורת פינה' : 'קורה'); b.style.cssText = 'position:fixed;z-index:46;pointer-events:auto;width:70px;height:46px;min-width:0;padding:0;background:transparent;box-shadow:none;border:2px dashed rgba(255,214,110,.85);border-radius:12px;color:transparent'; st.ui.root.appendChild(b); return b; });
     const nextOf = (kd) => gb.find((q) => q.kd === kd && !q.used);
+    for (const i of pre) { const g3 = nextOf(J.state().kinds[i]); if (g3) { g3.used = true; g3.m.visible = false; } const m = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.5, 4.2), mat('#8A6038', 0.8)); m.position.set(W2.x + SOCK48[i], W2.y + 11.4, W2.z + sz * 1.9); st.props.root.add(m); beams[i] = m; }   // ── build 60 ──
     const paint = () => chips.forEach((b) => { const kd = b.dataset.kind; b.textContent = ''; b.style.display = left[kd] > 0 && cur < 0 ? '' : 'none'; });
     paint();
     chips.forEach((b) => dragItem(b, (drop) => {
@@ -4288,7 +4291,7 @@ export function createHar42(o = {}) {
       if (fixed) return fixed; const b = st.objBB; if (!b) return actView(st.obj || hero());
       const c = { x: (b[0] + b[3]) / 2, y: (b[1] + b[4]) / 2, z: (b[2] + b[5]) / 2 }, bw = Math.max(b[3] - b[0], b[5] - b[2]), bh = b[4] - b[1];
       let dx = h0.x - c.x, dz = h0.z - c.z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
-      const tv = tanV(), tH = tv * (W() / H()), D = Math.max(bw / (2 * 0.5 * tH), bh / (2 * 0.62 * tv), 12) + bw / 2, el = 0.32;
+      const tv = tanV(), tH = tv * (W() / H()), D = Math.max(bw / (2 * 0.4 * tH), bh / (2 * 0.9 * tv), 8) + bw / 2, el = 0.32;   // (its thing ≥ 30 % of the width: at 0.5 and 0.62 of the height it stood at 29.9 % — c60B-T)
       fixed = { p: [c.x + dx * D * Math.cos(el), c.y + 0.8 + D * Math.sin(el), c.z + dz * D * Math.cos(el)], t: [c.x, c.y + 0.8, c.z] }; behind(fixed); return fixed;
     };
   }

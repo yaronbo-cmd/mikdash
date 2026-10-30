@@ -1326,7 +1326,7 @@ export function createLintel60(i = 0, L = 1, rnd = Math.random) {
     }
     if (k.phase === 'center') {
       const tol = lv <= 1 ? C.snap : C.ctr[lv];
-      if (Math.abs(k.off) <= tol) { k.off = 0; k.phase = 'set'; k.done = true; const f = k.knocks + k.misses; k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'set'; }
+      if (Math.abs(k.off) <= tol) { k.off = 0; k.phase = 'set'; k.done = true; const f = k.knocks + Math.floor(k.misses / 2); k.q = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; return 'set'; }   // (a knock a correction; two lets-go off the middle, one)
       k.misses++; return 'miss';
     }
     return 'none';

@@ -73,7 +73,8 @@ test('build 60: the lintels — each two amot longer and swinging more; held it 
   assert.ok(calm(true) < calm(false) / 2, 'drags against the swing calm it');
   const P = F.createLintel60(1, 2, () => 0.7); rise(P); P.hold(); const a0 = P.amp(); for (let i = 0; i < 40; i++) { const v = P.state().v; P.step(0.02, Math.sign(v) * 6); } assert.ok(P.amp() > a0 * 0.95, 'with the swing, a little more');
   const B = F.createLintel60(0, 1, () => 0.2); rise(B); let t = 0; while (B.amp() > B.still && t < 20) { B.step(0.02); t += 0.02; } B.hold(); assert.equal(B.release(1), 'lower'); for (let i = 0; i < 50; i++) B.step(0.02);
-  assert.equal(B.state().phase, 'center'); B.hold(); B.slide(2.5); assert.equal(B.release(1), 'miss'); B.hold(); B.slide(-B.state().off + 0.1); assert.equal(B.release(1), 'set'); assert.equal(B.result().rating, 'kasher', 'a knock-free beam, one miss: כשר');
+  assert.equal(B.state().phase, 'center'); B.hold(); B.slide(2.5); assert.equal(B.release(1), 'miss'); B.hold(); B.slide(-B.state().off + 0.1); assert.equal(B.release(1), 'set'); assert.equal(B.result().rating, 'mehudar', 'a knock-free beam, one miss: still מהודר (two lets-go off the middle count one)');
+  const K2 = F.createLintel60(0, 2, () => 0.2); rise(K2); K2.release(1); K2.hold(); assert.equal(K2.state().knocks, 1); let t2 = 0; while (K2.amp() > K2.still && t2 < 30) { K2.step(0.02); t2 += 0.02; } assert.equal(K2.release(0.05), 'lower', 'still: a tap lowers it'); for (let i = 0; i < 50; i++) K2.step(0.02); K2.hold(); K2.slide(-K2.state().off); assert.equal(K2.release(1), 'set'); assert.equal(K2.result().rating, 'kasher', 'a knock: כשר');
   assert.match(H, /if \(L <= 1 && !last\) \{ ghost = /, 'level 1: the shadow — not on the fifth'); assert.match(H, /fifth: \{ begin\(\) \{ world60\('fifth'\); st\.job = mkLintel60\(Lover \|\| famL\('lift'\), 4, 4, 'fifth'\); \} \},/);
   assert.match(H, /view\(\) \{ const y = seat60\(b\); return \{ p: \[-55\.5, y - 38, 3\], t: \[U60\.lx, y \+ 0\.9, 0\] \}; \}/, 'from the court, low, looking up at the opening');
   assert.match(H, /data-calm60/); assert.match(H, /data-over60/); assert.match(H, /data-amp60/);
@@ -100,6 +101,8 @@ test('build 60: the craftsman\'s test before chapter ד׳ — one job of each fa
   let r = null; for (let k = 0; k < 5; k++) r = testTry44(r && r.rec, 'tikkun'); assert.equal(r.next, 'demo');
   assert.deepEqual([...TEST44.jobs], ['lift', 'course0', 'corner']); assert.deepEqual([...TEST50.jobs], ['stone', 'mud', 'nail'], 'the earlier tests unchanged');
   assert.match(H, /const t60 = o\.test === 60, T6 = t60 \? TEST60 : TT, K6 = t60 \? 'test60' : key;/); assert.match(H, /'מבחן אומן — לפני פרק ד׳'/); assert.match(H, /'נפתח: פרק ד׳ — הבית'/);
+  assert.match(H, /beam: \{ begin\(\) \{ st\.job = mkBeams\('N', null, MODE === 'test' && o\.test === 60\); \} \},/, '"קורה לשקע" — one beam: the crews have set the other four');
+  assert.match(H, /const pre = one \? \[0, 4, 1, 3\] : \[\];/); assert.match(H, /if \(MODE === 'test' && o\.test === 60 && \(part === 'pulley' \|\| part === 'course0'\)\) back60t\(\);/, 'he steps behind the camera at the pulley and the course');
   assert.match(H, /\} else if \(j\.kind === 'pulley'\) \{/, 'the master\'s hand knows the pulley'); assert.match(H, /\} else if \(j\.kind === 'beams'\) \{/, 'and the beams');
   assert.match(H, /if \(STG === 'wall' \|\| MODE === 'yard' \|\| \(MODE === 'test' && o\.test === 60\)\) props45\(add\);/, 'the test has its pulley');
   assert.match(H, /if \(MODE === 'yard' \|\| \(MODE === 'test' && o\.test === 60\)\) \{ const W2 = PL\.wallY;/, 'and its wall for the beam');

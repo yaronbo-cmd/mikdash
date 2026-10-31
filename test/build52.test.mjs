@@ -94,7 +94,7 @@ test('build 52 (3): the ashes\' walk — its line the gesture (≤ 5 words, a ve
 test('build 52 (4): the menorah\'s and the inner altar\'s rule at 28 % tried and left (him over 45 % 72 → 71 %, 34 → 31 % of the frames, the thing 33 → 29 %, 39 → 29 %); the tools measure his width and his cover', () => {
   assert.equal(TW.OBJ52, undefined); assert.doesNotMatch(read('src/game/twin.js'), /OBJ52\[id51\]/);
   const c = read('tools/cam41.js'); assert.match(c, /hw: pc\(I\.hw \|\| 0, I\.hwN \|\| 0\)/); assert.match(c, /cov: pc\(I\.cov \|\| 0,/);
-  assert.equal(GAME_BUILD, 60);
+  assert.equal(GAME_BUILD, 61);
 });
 test('build 52: no Divine Name in the changed files (by code points)', () => {
   const N = String.fromCharCode(0x5d9, 0x5d4, 0x5d5, 0x5d4);

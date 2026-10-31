@@ -33,28 +33,26 @@ const t0 = Date.now(), el = () => Math.round((Date.now() - t0) / 100) / 10;
   const ev = (type, id, x, y) => pg.evaluate(([type, id, x, y]) => { const w = document.querySelector('.h42-walk'); if (!w) return false; w.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: id === 1 })); return true; }, [type, id, x, y]);
   const wait = (ms) => pg.waitForTimeout(ms);
   await shot('0-start');
-  const h0 = await W();
-  // 1. the left thumb: a drag up the screen and held — he walks away along the look
-  await ev('pointerdown', 1, VW * 0.2, VH * 0.7); for (let i = 1; i <= 5; i++) { await ev('pointermove', 1, VW * 0.2, VH * 0.7 - i * 14); await wait(40); }
-  await wait(2500); const h1 = await W(); await shot('1-drag-up'); await ev('pointerup', 1, VW * 0.2, VH * 0.7 - 70);
-  // 2. the left thumb to the right
-  await ev('pointerdown', 1, VW * 0.2, VH * 0.6); for (let i = 1; i <= 5; i++) { await ev('pointermove', 1, VW * 0.2 + i * 14, VH * 0.6); await wait(40); }
-  await wait(2500); const h2 = await W(); await ev('pointerup', 1, VW * 0.2 + 70, VH * 0.6);
-  console.log('drag up', JSON.stringify(h0.hero), '→', JSON.stringify(h1.hero), '· right →', JSON.stringify(h2.hero), 'free s', h2.free);
-  // 3. the right thumb up: the look lifts
-  await ev('pointerdown', 2, VW * 0.8, VH * 0.75); for (let i = 1; i <= 8; i++) { await ev('pointermove', 2, VW * 0.8, VH * 0.75 - i * 20); await wait(30); } await ev('pointerup', 2, VW * 0.8, VH * 0.75 - 160);
-  await wait(1500); const h3 = await W(); const cam3 = await pg.evaluate(() => globalThis.__H42.camAt()); await shot('3-lifted');
-  console.log('lift', h3.lift, 'cam', JSON.stringify(cam3.p.map((v) => Math.round(v))), '→', JSON.stringify(cam3.t.map((v) => Math.round(v))));
-  // 4. back down
-  await ev('pointerdown', 2, VW * 0.8, VH * 0.2); for (let i = 1; i <= 8; i++) { await ev('pointermove', 2, VW * 0.8, VH * 0.2 + i * 20); await wait(30); } await ev('pointerup', 2, VW * 0.8, VH * 0.2 + 160);
-  await wait(1200); console.log('down', (await W()).lift);
-  // 5. a tap: he walks to the work by himself, to its start
+  const away = (dx, dz) => pg.evaluate(([dx, dz]) => { const t = globalThis.__H42.walk61().target; if (t) window.__T.stages.hero.setPos(t.x + dx, t.z + dz, 0); }, [dx, dz]);
+  const drag = async (id, x0, y0, dx, dy, holdMs) => { await ev('pointerdown', id, x0, y0); for (let i = 1; i <= 8; i++) { await ev('pointermove', id, x0 + (dx * i) / 8, y0 + (dy * i) / 8); await wait(30); } await wait(holdMs); await ev('pointerup', id, x0 + dx, y0 + dy); };
+  // 1. the right thumb up: the look lifts (he stands away from the work: no work begins)
+  await drag(2, VW * 0.8, VH * 0.75, 0, -160, 0); await wait(1500);
+  const h1 = await W(), cam1 = await pg.evaluate(() => globalThis.__H42.camAt()); await shot('1-lifted');
+  console.log('lift', h1.lift, 'cam', JSON.stringify(cam1.p.map((v) => Math.round(v))), '→', JSON.stringify(cam1.t.map((v) => Math.round(v))), h1.part, 'pending', h1.pending);
+  // 2. back down
+  await drag(2, VW * 0.8, VH * 0.2, 0, 160, 0); await wait(1500); const h2 = await W(); console.log('down', h2.lift); await shot('2-down');
+  // 3. the left thumb: a drag held up the screen — he walks along the look; then left — along the screen's left
+  const a0 = (await W()).hero; await drag(1, VW * 0.2, VH * 0.7, 0, -70, 1800); const a1 = (await W()).hero; await shot('3-walked');
+  await away(18, -9); const b0 = (await W()).hero; await drag(1, VW * 0.2, VH * 0.6, -70, 0, 1500); const b1 = (await W()).hero;
+  console.log('drag up', JSON.stringify(a0), '→', JSON.stringify(a1), '· left', JSON.stringify(b0), '→', JSON.stringify(b1), 'free s', (await W()).free, (await W()).part);
+  // 4. a short drag on the left half that ends within the dead zone and lifts fast: nothing (not a tap); a tap: he walks to the work by himself
+  await away(18, -9);
   await ev('pointerdown', 1, VW * 0.3, VH * 0.5); await wait(80); await ev('pointerup', 1, VW * 0.3, VH * 0.5);
   const tapAt = await W(); console.log('tap', JSON.stringify(tapAt.hero), 'auto', tapAt.auto, 'target', JSON.stringify(tapAt.target));
   await pg.waitForFunction(() => { const s = globalThis.__H42.walk61(); return !s.pending && !s.auto; }, null, { timeout: 60000, polling: 300 }).catch(() => {});
   const h5 = await W(); await shot('5-at-work'); console.log('arrived', JSON.stringify(h5.hero), h5.sig, '|', h5.line);
   // 6. the wall grows while the crews lay: world61's share now and 20 s later
-  const b0 = (await W()).built.wall || 0; await wait(20000); const b1 = (await W()).built.wall || 0; console.log('wall built', b0, '→', b1);
+  const w0 = (await W()).built.wall || 0; await wait(20000); const w1 = (await W()).built.wall || 0; console.log('wall built', w0, '→', w1);
   console.log('errors', JSON.stringify(errors), el());
   await b.close();
 })();

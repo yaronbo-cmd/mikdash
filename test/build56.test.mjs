@@ -17,7 +17,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍∙!—]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w)).length;
 
 test('build 56: GAME_BUILD 56; stage 09\'s parts in the spec\'s order; its sources (מדות ג, א; ג, ד)', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.deepEqual([...PARTS56], ['open', 'light', 'tap', 'sovev', 'thread', 'reveal']);
   assert.ok(SRC56.some((s) => /עלה חמש וכנס אמה, זה הסובב — מדות ג, א/.test(s)));
   assert.ok(SRC56.some((s) => /להבדיל בין דמים העליונים לדמים התחתונים — מדות ג, א/.test(s)));

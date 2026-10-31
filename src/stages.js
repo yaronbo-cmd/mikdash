@@ -11,6 +11,7 @@ import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
+import { secLevel62 } from './game/har62.js';   // ── build 62 ── (the crest's sectors brought down)
 
 export const STAGE_IDS = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor', 'ulam', 'heichal', 'kodesh'];
 const FOUND = 0.15;   // progress below which the site is in its foundation phase
@@ -313,7 +314,10 @@ function makeHill(T) {
     uCrest: { value: new THREE.Vector4(1000, 1000, 0, 2.5) },
     // ── site12 ── the plaza's paving laid from the west as the last courses go up: x the paving's front (paved west of it), y on;
     // east of the front the fill lies a little over the paving's top, so the brown fill shows until it is paved
-    uPave: { value: new THREE.Vector2(1e4, 0) } };
+    uPave: { value: new THREE.Vector2(1e4, 0) },
+    // ── build 62 ── the crest's sectors (har62.js SECT62): (x, z, half size, level) — the ground inside is cut down to the level (never
+    // raised); half size 0 = none; and each one's paving (0…1, laid from its east edge)
+    uSec: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, 0, 1000)) }, uSecPv: { value: new Array(8).fill(0) } };
   // ── site12 ── (the owner's note 2, 29.9 21:01: "בשלב שיטוח ההר צריך שכשעושים זום אאוט רואים את ההתקדמות של החציבה. אני בשלב 3
   // עכשיו וזה נראה בדיוק כמו בשלב ראשון") the crest comes down in benches, COURSE BY COURSE: each of the Mount's six courses
   // cuts a new floor (uCrest.x) swept across the crest from the east over the last course's floor (uCrest.y), with a rim of
@@ -337,15 +341,21 @@ function makeHill(T) {
       vec2 d = abs(position.xz - P.xy); float k = 1.0 - smoothstep(P.z * 0.72, P.z, max(d.x, d.y));
       if (k > hPk) { hPk = k; hPl = P.w; } }
     hPk *= 1.0 - smoothstep(0.0, 0.3, uCut);
-    hY = mix(hY, hPl, hPk * 0.92);`;
+    hY = mix(hY, hPl, hPk * 0.92);
+    float hSk = 0.0, hPv = 0.0;   // ── build 62 ── (the sectors: cut down to their level, fresh-cut rock where they are; the paving laid)
+    if (aK > 1.5 && uCut < 0.5) for (int i = 0; i < 8; i++) { vec4 S = uSec[i]; if (S.z <= 0.0) continue;
+      vec2 d = abs(position.xz - S.xy); float m = max(d.x, d.y), k = 1.0 - smoothstep(S.z * 0.55, S.z, m);
+      if (k <= 0.0) continue; float y1 = min(hY, S.w); hSk = max(hSk, k * step(S.w + 0.4, hY));
+      hY = mix(hY, y1, k);
+      if (m < S.z * 0.8 && position.x > S.x + S.z * 0.8 - 1.6 * S.z * uSecPv[i]) hPv = max(hPv, step(0.001, uSecPv[i])); }`;
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(1.3, 1.3, 1.3), vertexColors: true, map: T.rock.map, normalMap: T.rock.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughness: 0.96 });
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; uniform vec4 uSec[8]; uniform float uSecPv[8]; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vSk; varying float vPv;')
       .replace('#include <beginnormal_vertex>', `${morph}
-    float hFlat = aK > 1.5 ? max(step(hYc + 0.01, hYI), hPk) : uCut;
-    vPk = hPk;
+    float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hSk) : uCut;
+    vPk = max(hPk, hSk); vSk = hSk; vPv = hPv;   // ── build 62 ──
     vLev = aK > 1.5 ? step(hYc + 0.01, hYI) : 0.0;
     // ── site12 ── the worked crest (its floor and benches: fresh-cut rock, lit by its facets), the floor cut this course, and
     // the spoil tipped on the slope just above the fill (the next lift); everything else keeps the hill's own colours (v21
@@ -364,7 +374,7 @@ function makeHill(T) {
       .replace('#include <begin_vertex>', 'vec3 transformed = vec3(position.x, hY, position.z);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;
+        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vSk; varying float vPv;
         float hh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float hn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hh(i), hh(i + vec2(1.0, 0.0)), f.x), mix(hh(i + vec2(0.0, 1.0)), hh(i + vec2(1.0, 1.0)), f.x), f.y); }`)
@@ -389,7 +399,11 @@ function makeHill(T) {
         { float cl = smoothstep(0.93, 1.0, abs(fract(vHXZ.x / 3.0) * 2.0 - 1.0)) * 0.5 + smoothstep(0.95, 1.0, abs(fract(vHXZ.y / 1.5 + 0.3 * hn(vHXZ / 4.0)) * 2.0 - 1.0)) * 0.35;
           // ── site8 ── the levelled patch: fresh-cut rock, paler than the weathered hill but keeping its grain, the chisel's lines
           vec3 pc = uCutCol * (0.8 + 0.1 * hn(vHXZ / 2.0)) * (1.0 - 0.16 * cl) * (0.62 + 0.45 * dot(diffuseColor.rgb, vec3(0.333)));
-          diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }`)
+          diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }
+        // ── build 62 ── a sector's paving: pale slabs, 3 × 1.5 amot in courses offset by half a slab, their joints darker
+        if (vPv > 0.5) { float row = floor(vHXZ.y / 1.5), jx = abs(fract(vHXZ.x / 3.0 + 0.5 * mod(row, 2.0)) * 2.0 - 1.0), jz = abs(fract(vHXZ.y / 1.5) * 2.0 - 1.0);
+          float j = max(smoothstep(0.9, 0.97, jx), smoothstep(0.86, 0.95, jz)), sh = 0.92 + 0.12 * hh(vec2(floor(vHXZ.x / 3.0 + 0.5 * mod(row, 2.0)), row));
+          diffuseColor.rgb = mix(vec3(0.66, 0.6, 0.5) * sh, vec3(0.36, 0.32, 0.26), j * 0.8); }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         normal = normalize(mix(normal, nonPerturbedNormal, vBl));
         // ── site12 ── the cut rock lit by its own facets: the benches' treads and risers, the sweep's fresh face
@@ -400,7 +414,7 @@ function makeHill(T) {
   depth.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; uniform vec4 uSec[8]; uniform float uSecPv[8];')
       .replace('#include <begin_vertex>', `${morph}\nvec3 transformed = vec3(position.x, hY, position.z);`);
   };
   depth.customProgramCacheKey = () => 'hilldepth';
@@ -411,6 +425,7 @@ function makeHill(T) {
 
   // CPU mirror of the shader (heights of the rendered triangles)
   let patchN = 0;   // ── site8 ── patches on (siteLife sets it through setPatchN)
+  let secN = 0;     // ── build 62 ── sectors on (setSectors62)
   // ── site12 ── each vertex's place in the crest's sweep (hSw in the shader), fixed
   const sw = new Float32Array(N);
   for (let k = 0; k < N; k++) sw[k] = clamp((14 - pos[k * 3] + 16 * Math.sin(pos[k * 3 + 2] / 61)) / 270, 0, 1);
@@ -430,6 +445,10 @@ function makeHill(T) {
       const px = pos[k * 3], pz = pos[k * 3 + 2]; let pk = 0, pl = 0;
       for (const P of U.uPatch.value) { if (P.z <= 0) continue; const kk2 = 1 - smooth(P.z * 0.72, P.z, Math.max(Math.abs(px - P.x), Math.abs(pz - P.y))); if (kk2 > pk) { pk = kk2; pl = P.w; } }
       if (pk > 0) y = lerp(y, pl, pk * 0.92 * (1 - smooth(0, 0.3, cut)));
+    }
+    if (secN && cut < 0.5) {   // ── build 62 ── (the sectors, as the shader cuts them)
+      const px = pos[k * 3], pz = pos[k * 3 + 2];
+      for (const S of U.uSec.value) { if (S.z <= 0) continue; const kk2 = 1 - smooth(S.z * 0.55, S.z, Math.max(Math.abs(px - S.x), Math.abs(pz - S.y))); if (kk2 > 0) y = lerp(y, Math.min(y, S.w), kk2); }
     }
     return y;
   };
@@ -474,13 +493,16 @@ function makeHill(T) {
     let ch = false;
     bushes.forEach(([x, y, z], i) => {
       const s = clamp((14 - x + 16 * Math.sin(z / 61)) / 270, 0, 1), lv = lerp(C.y, C.x, 1 - smooth(C.z - 0.012, C.z + 0.012, s));
-      const off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
+      let off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
+      if (!off && secN) for (const S of U.uSec.value) { if (S.z > 0 && S.w < y - 0.8 && Math.max(Math.abs(x - S.x), Math.abs(z - S.y)) < S.z) { off = 1; break; } }   // ── build 62 ── (cut away with the sector)
       if (off !== bushOff[i]) { bushOff[i] = off; bm.setMatrixAt(i, off ? ZM : bushM[i]); ch = true; }
     });
     if (ch) bm.instanceMatrix.needsUpdate = true;
     return ch;
   }
-  return { mesh, bushes: bm, U, heightAt, bushCull, setPatchN: (n) => { patchN = n; } };
+  /** ── build 62 ── the natural top of a square (the highest vertex of the hill as first shaped inside it) */
+  const topIn = (x, z, half) => { let t = -1e9; for (let k = 0; k < N; k++) { if (Math.abs(pos[k * 3] - x) <= half && Math.abs(pos[k * 3 + 2] - z) <= half) t = Math.max(t, y0[k]); } return t > -1e8 ? t : 0; };
+  return { mesh, bushes: bm, U, heightAt, bushCull, setPatchN: (n) => { patchN = n; }, setSecN: (n) => { secN = n; }, topIn };
 }
 
 /* ───────────────────────── boulders ───────────────────────── */
@@ -5990,7 +6012,7 @@ export function createStages(ctx) {
   }
   function harBay(dt) {
     const hs = ST.har, U = hill.U;
-    const on = hs.status === 'building' && hs.disp >= FOUND && hs.phase !== 'finish' && hs.phase !== 'done' && U.uFill.value > -999;
+    const on = !bayOff62 && hs.status === 'building' && hs.disp >= FOUND && hs.phase !== 'finish' && hs.phase !== 'done' && U.uFill.value > -999;
     if (on && crane.st === hs && !crane.lift && !hs.harPosed) harCranePose(hs);
     // (the next slot ran on along the front — the game set stones without the crane: a segment, a resume — the crane, its stock
     //  and the builder's banker go to it, so the frame keeps them together; checked twice a second)
@@ -8740,8 +8762,29 @@ export function createStages(ctx) {
     hero.vis = false; hero.mesh.visible = hero.ring.visible = false; hero.path = null;
   }
 
+  /* ── build 62 ── the crest's sectors for stage 01 (har62.js): [{ x, z, half, k, pv }] — k 0…1 brought down from its natural top to the
+     plaza (secLevel62), pv 0…1 paved; null = none. And the Mount's working bay off while the new stage 01 builds it (no bay — the spec's rule 1) */
+  const secTop62 = new Map();
+  let secKey62 = '';
+  function setSectors62(list) {
+    const U = hill.U, A = U.uSec.value, P = U.uSecPv.value; let n = 0;
+    for (let i = 0; i < 8; i++) {
+      const q = list && list[i];
+      if (!q || !(q.half > 0)) { A[i].set(0, 0, 0, 1000); P[i] = 0; continue; }
+      const key = `${q.x},${q.z},${q.half}`; if (!secTop62.has(key)) secTop62.set(key, hill.topIn(q.x, q.z, q.half));
+      A[i].set(q.x, q.z, q.half, secLevel62(secTop62.get(key), q.k || 0)); P[i] = Math.max(0, Math.min(1, q.pv || 0)); n++;
+    }
+    hill.setSecN(n);
+    const key = A.map((v) => Math.round(v.w * 2)).join(',') + '|' + P.map((v) => Math.round(v * 10)).join(',');
+    if (key !== secKey62) { secKey62 = key; requestShadow(false); propsDirty = true; try { hill.bushCull(U.uFill.value, U.uCrest.value); } catch (e) { /* */ } }
+    return n;
+  }
+  const secInfo62 = () => hill.U.uSec.value.map((v, i) => ({ x: v.x, z: v.y, half: v.z, lv: Math.round(v.w * 100) / 100, pv: hill.U.uSecPv.value[i] }));
+  let bayOff62 = false;
+
   const api = {
     ids: STAGE_IDS.slice(),
+    setSectors62, sectors62: secInfo62, noBay62: (on) => { bayOff62 = !!on; },   // ── build 62 ──
     setStage, setBoulders, hitBoulder,
     hero: heroApi,   // ── hero (PEOPLE) ── the hero API is built in the hero block (walkTo swing place show setTool tool position at act onImpact workpiece …)
     pick, siteCenter, siteTop, focus, celebrate, workFX, update,

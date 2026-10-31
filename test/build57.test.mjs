@@ -18,7 +18,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 57: GAME_BUILD 57; stage 10\'s parts in the spec\'s order; the Mishnah as the spec has it (מדות ג, ג; ג, ד)', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.deepEqual([...PARTS57], ['open', 'decoy', 'kevesh', 'sid', 'reveal']);
   for (const q of ['שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה', 'וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה, אַחַת בַּפֶּסַח וְאַחַת בֶּחָג', 'לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל', 'מְלַבְּנִים אוֹתוֹ בְמַפָּה']) assert.ok(SRC57.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC57.some((s) => /"שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה" — מדות ג, ג/.test(s)));

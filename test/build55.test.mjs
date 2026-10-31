@@ -17,7 +17,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲∙!—]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w)).length;
 
 test('build 55: GAME_BUILD 55; stage 08\'s parts in the spec\'s order; the altar 32 × 32 where the world has it', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.deepEqual([...PARTS55], ['open', 'inspect', 'field', 'nail', 'iron', 'last', 'reveal']);
   assert.deepEqual({ ...ALT55 }, { x0: -54, z0: -19.5, side: 32 });
   assert.match(read('src/stages.js'), /yesod: \{\n\s+foot: \[\[-54, -19\.5, -22, 12\.5\]\]/, 'the world\'s yesod footprint');

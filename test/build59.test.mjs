@@ -19,7 +19,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,:]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 59: GAME_BUILD 59; stage 12\'s parts in the spec\'s order; the quotes exactly as verified (מדות ג, ו; יומא ג, י)', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.deepEqual([...PARTS59], ['open', 'cast', 'spigots', 'screw', 'mukhni', 'reveal']);
   for (const q of ['הַכִּיּוֹר הָיָה בֵּין הָאוּלָם וְלַמִּזְבֵּחַ, וּמָשׁוּךְ כְּלַפֵּי הַדָּרוֹם', 'בֶּן קָטִין עָשָׂה שְׁנֵים עָשָׂר דַּד לַכִּיּוֹר', 'וְאַף הוּא עָשָׂה מוּכְנִי לַכִּיּוֹר']) assert.ok(SRC59.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC59.some((s) => /"הַכִּיּוֹר הָיָה בֵּין הָאוּלָם וְלַמִּזְבֵּחַ, וּמָשׁוּךְ כְּלַפֵּי הַדָּרוֹם" — מדות ג, ו · טיוטה/.test(s)));

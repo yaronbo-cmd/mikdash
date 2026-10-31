@@ -17,7 +17,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,:]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 58: GAME_BUILD 58; stage 11\'s parts; the quotes exactly as the spec verified them (מדות ג, א; ג, ב; אבות ה, ה)', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.deepEqual([...PARTS58], ['open', 'horns', 'holes', 'fire', 'reveal']);
   for (const q of ['מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה', 'וּבְקֶרֶן מַעֲרָבִית דְּרוֹמִית הָיוּ שְׁנֵי נְקָבִים, כְּמִין שְׁנֵי חֳטָמִין דַּקִּין', 'וְיוֹצְאִין לְנַחַל קִדְרוֹן', 'וְלֹא נָצְחָה הָרוּחַ אֶת עַמּוּד הֶעָשָׁן']) assert.ok(SRC58.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC58.some((s) => /"מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה" — מדות ג, א/.test(s)));

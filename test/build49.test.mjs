@@ -84,7 +84,7 @@ test('build 49: the stage — its parts, the doors left bronze ("מפני שנע
   assert.match(h, /if \(STG === 'nikanor'\) \{ hole49\(null\); try \{ stages\.hero\.show\(true\);/, 'the reveal: the model\'s own doors and steps');
   assert.match(h, /\n    corner: \{ begin\(\) \{ st\.job = STG === 'nashim' && MODE === 'stage' \? mkCorner48\(\) : mkCorner\(\); \} \},/); assert.equal((h.match(/\n    corner: \{ begin\(\)/g) || []).length, 1, 'one corner part (build 48 had two keys: stage 01\'s crowbar was overridden)');
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted49\(\)\) startHar49\(\);/); assert.match(g, /\(nikanor49=0\|stick=1\|har42=0\)/); assert.match(g, /h49\(go\|voy\)=1/); assert.match(g, /if \(done && wanted49\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar49\(\); \}, 400\);/); assert.match(g, /restoreTime: \(\) => \{ tod = null;/);
-  assert.equal(GAME_BUILD, 61);   // (build 50: the constant moved on) (build 51: again)
+  assert.equal(GAME_BUILD, 62);   // (build 50: the constant moved on) (build 51: again)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/voyage49.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

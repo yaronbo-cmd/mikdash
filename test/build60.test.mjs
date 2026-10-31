@@ -20,7 +20,7 @@ const words = (l) => head(l).replace(/[↔➡⬅⤵⤴⟳⟲⬍⬆⬇∙·!—,:
 const Q1 = 'אַפֵּיק שָׂפָה וְעַיֵּיל שָׂפָה', Q2 = 'הַתַּחְתּוֹנָה עוֹדֶפֶת עַל הַפֶּתַח אַמָּה מִזֶּה וְאַמָּה מִזֶּה';
 
 test('build 60: GAME_BUILD 60; stage 13\'s parts in the spec\'s order; the two quotes exactly as verified (בבא בתרא ד ע"א; מדות ג, ז — מִזֶּה); no other quote', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.deepEqual([...PARTS60], ['open', 'waves', 'courses', 'lintels', 'fifth', 'vine', 'reveal']);
   assert.ok(SRC60.includes(`"${Q1}" — בבא בתרא ד ע"א · טיוטה`)); assert.ok(SRC60.includes(`"${Q2}" — מדות ג, ז · טיוטה`));
   assert.ok(!SRC60.join('').includes('מִכָּאן'), 'מִזֶּה, not מִכָּאן');

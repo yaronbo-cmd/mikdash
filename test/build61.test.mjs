@@ -17,7 +17,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 61: GAME_BUILD 61; the spec in the repo; the walk line says how', () => {
-  assert.equal(GAME_BUILD, 61);
+  assert.equal(GAME_BUILD, 62);
   assert.ok(read('docs/specs/shlav-alef-olam-he.md').includes('## 9. התנועה והמצלמה'));
   assert.equal(LINE42.walk.split(' · ')[0], 'גררו כדי ללכת');
 });

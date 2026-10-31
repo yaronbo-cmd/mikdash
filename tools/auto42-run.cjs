@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; }, flag = (k) => args.includes(k);
 const RUN = opt('--run', 'h42'), [VW, VH] = opt('--size', '640x296').split('x').map(Number), AT = opt('--at', ''), MIN = +opt('--minutes', 9);
-const AUTO = '/tmp/claude-0/-home-claude/92bf52df-7cb5-51be-8ceb-ea3690eaf336/auto', OUT = path.join(AUTO, RUN);
+const AUTO = opt('--auto', '/tmp/claude-0/-home-claude/92bf52df-7cb5-51be-8ceb-ea3690eaf336/auto'), OUT = path.join(AUTO, RUN);
 const PAGE = path.resolve(__dirname, '..', opt('--page', 'out/index.html'));
 fs.mkdirSync(OUT, { recursive: true });
 const t0 = Date.now(), el = () => Math.round((Date.now() - t0) / 100) / 10;

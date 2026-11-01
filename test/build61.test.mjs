@@ -17,7 +17,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 61: GAME_BUILD 61; the spec in the repo; the walk line says how', () => {
-  assert.equal(GAME_BUILD, 62);
+  assert.equal(GAME_BUILD, 63);   // (build 63: again)
   assert.ok(read('docs/specs/shlav-alef-olam-he.md').includes('## 9. התנועה והמצלמה'));
   assert.equal(LINE42.walk.split(' · ')[0], 'גררו כדי ללכת');
 });
@@ -69,7 +69,7 @@ test('build 61 har42: wired — the halves, the tap, the hold kept for the guide
   assert.match(H, /return liftView61\(\{ p: \[/);
   assert.match(H, /if \(st\.job\) st\.lift61 = 0;/);
   assert.match(H, /creep61\(W61, 'wall', from, to, dt\)/);
-  assert.match(H, /grow61\(W61, 'wall', PARTS\.indexOf\(part\)/);
+  assert.match(H, /grow61\(W61, 'wall', wShare63\(part\)\)/); assert.match(H, /: PARTS\.indexOf\(part\) \/ \(PARTS\.length - 2\)\);/);   // (build 63: by how many works are done; the old way behind ?h63=0)
   assert.match(H, /built61\(W61, 'wall'\)/);
 });
 

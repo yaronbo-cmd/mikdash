@@ -271,10 +271,27 @@ export function createCrews(ctx = {}) {
     if (!SITES[id] && id !== 'har') return false;
     const s = siteState(id);
     s.waiting = !!(opts && opts.waiting);        // ── people6 ── (PEOPLE) the site waits (a key stone, materials, Shabbat): the crew rests
-    const want = clamp(Math.floor(+n || 0), 0, 4), list = idList(want, ids), key = list.join(',');
+    const want = clamp(Math.max(Math.floor(+n || 0), s.pin65 | 0), 0, 4), list = idList(want, ids), key = list.join(',');   // ── build 65 ── (pin65: never fewer than the stage asked)
     if (want === s.n && key === s.ids && !s.dirty) return true;
     s.n = want; s.ids = key; s.idList = list; s.dirty = true;
     return true;
+  }
+  // ── build 65 ── the stage tells the crews WHERE (a front: stand [[x, z, fx, fz]…], drop, pile, boss, enter, rope?, key) and HOW MANY (n, kept
+  // as a floor under later setCrews calls); null clears the front (the site's own layout again). beat(id, per, u0): the site's diggers strike
+  // together on one period, their phase u0 now (0…1, the blow at 0.66) — the hammer act's beat; per 0 frees them ── /build 65 ──
+  function setFront(id, L, n) {
+    if (!SITES[id] && id !== 'har') return false;
+    const s = siteState(id);
+    s.front65 = L && Array.isArray(L.stand) && L.stand.length ? L : null;
+    if (n != null) s.pin65 = clamp(Math.floor(+n || 0), 0, 4);
+    s.dirty = true; if (n != null) setCrews(id, Math.max(s.n, s.pin65), s.idList);
+    return true;
+  }
+  function beat(id, per, u0) {
+    const s = siteState(id);
+    if (!(per > 0)) { s.tempo = null; return; }
+    if (!s.tempo) s.tempo = { per: 0, t0: 0 };
+    s.tempo.per = per; s.tempo.t0 = T - (u0 || 0) * per;
   }
   // keep the crews whose ids are still wanted, dismiss the others, add the new ones (at the end)
   function rosterSync(list, want, make, dismissCrew) {
@@ -368,6 +385,14 @@ export function createCrews(ctx = {}) {
   for (let i = 0; i < 8; i++) harL.stand.push([0, 0, 0, 0]);
   let heroX = 150, heroZ = -96, heroAt = null;
   function harLayout(s) {
+    // ── build 65 ── the stage's own front (setFront): the stands round the sectors at work, the rubble's way, the foreman — as given ── /build 65 ──
+    if (s.front65) {
+      const F = s.front65, n = F.stand.length;
+      for (let i = 0; i < 8; i++) { const S = harL.stand[i], Q = F.stand[i % n], ring = Math.floor(i / n); S[0] = Q[0] + ring * 2.2; S[1] = Q[1] + ring * 1.6; S[2] = Q[2]; S[3] = Q[3]; }
+      harL.drop = F.drop; harL.pile = F.pile; harL.boss[0] = F.boss[0]; harL.boss[1] = F.boss[1]; harL.enter[0] = F.enter[0]; harL.enter[1] = F.enter[1];
+      harL.bay = false; s.bould = F.key || 'front';
+      return harL;
+    }
     // ── site9 ── (DESIGN9 16:08, R5 "the frame has no one in it but him") the Mount's walls: the crew works in the working bay
     // (stages.js harBay) — men at the dressing yard's bankers and round the stock, carriers between the stock and a banker
     try {
@@ -1233,8 +1258,9 @@ export function createCrews(ctx = {}) {
   function swing(w, dt, role) {
     const a = w.a;
     const fine = sites[w.site] && sites[w.site].phase === 2 && role === 'mason' && w.site !== 'quarry' && w.site !== 'yard';
-    const per = fine ? w.per * 0.62 : role === 'digger' ? w.per * 1.25 : w.per;
-    const u = ((T + w.off) % per) / per;
+    const tp = sites[w.site] && sites[w.site].tempo;   // ── build 65 ── (the stage's beat: every digger of the site on one period, in step)
+    const per = tp && tp.per > 0 && role === 'digger' ? tp.per : fine ? w.per * 0.62 : role === 'digger' ? w.per * 1.25 : w.per;
+    const u = tp && tp.per > 0 && role === 'digger' ? (((T - tp.t0) / per) % 1 + 1) % 1 : ((T + w.off) % per) / per;
     let r, bow;
     const top = fine ? 2.0 : role === 'digger' ? 2.9 : R_TOP, hit = role === 'digger' ? 0.62 : w.rHit || R_HIT;
     const bh = w.bHit !== undefined && role === 'mason' ? w.bHit : 0.34;   // (── people6 ── a yard mason's solved blow)
@@ -1628,7 +1654,7 @@ export function createCrews(ctx = {}) {
   }
 
   const api = {
-    setCrews, setQuarry, caravan, trainees, cheer, update, reset,
+    setCrews, setQuarry, caravan, trainees, cheer, update, reset, setFront, beat,   // ── build 65 ──
     lifeCount, lifeList, pickPerson, setLife(v) { LIFE.on = !!v; LIFE.key = ''; },   // ── site16 ── the life layer and the tap card
     setEnabled(v) { enabled = !!v; },
     setScale(s) { if (Number.isFinite(s) && s > 0) pxScale = s; },

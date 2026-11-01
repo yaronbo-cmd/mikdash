@@ -28,7 +28,8 @@ import * as F from './fam42.js';
 import * as TX from '../tex.js';
 import { createVoyage49, figure49 } from './voyage49.js';   // ── build 49 ── (the voyage of the doors: Nicanor's, once)
 import { WALK61, side61, stick61, toWorld61, magnet61, kind61 } from './walk61.js';   // ── build 64 ── (the lift of build 61 gone: the right thumb owns the whole orbit — cam64.js)
-import { CAM64, orbit64, drag64, pinch64, view64, fromView64, pull64, two64 } from './cam64.js';   // ── build 64 ── (the camera of the first stages, the player's)   // ── build 61 ── (the free walk and the lifted look: shlav-alef-olam-he.md §9)
+import { CAM64, orbit64, drag64, pinch64, view64, fromView64, pull64, two64 } from './cam64.js';
+import { CREW65, front65, beatU65 } from './crew65.js';   // ── build 65 ── (the real crews on the Mount: crews.js told where and how many)   // ── build 64 ── (the camera of the first stages, the player's)   // ── build 61 ── (the free walk and the lifted look: shlav-alef-olam-he.md §9)
 import { load61, save61, built61, grow61, creep61, stand61, at61, WORLD61 } from './world61.js';
 import { PARTS62, MOUNT62, mount62, mountBefore62, ZONE62, SECT62, sectorOf62, crewSec62, glide62, glideView62, GLIDE62, createHammer62, LINE62 } from './har62.js';   // ── build 62 ── (stage 01 again: the hammer in the Mount — shlav-alef-olam-he.md §5)   // ── build 61 ── (what stands on the Mount: §3)
 import { DEP63, SITE63, open63, migrate63, shareAt63, shotView63, LINE63 } from './site63.js';   // ── build 63 ── (the building loop: site → work → result → site — shlav-alef-olam-he.md §4)
@@ -559,6 +560,8 @@ export function createHar42(o = {}) {
   const PARTS = ON62 ? PARTS62 : parts0();
   // ── build 63 ── (§4) stage 01 (the new one) and stage 02: the works open side by side, chosen on the site; a result shot after each (?h63=0 — one after another)
   const ON63 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h63') !== '0' && !!DEP63[STG];
+  const ON65 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h65') !== '0';   // ── build 65 ── (crews.js's people at the work, not the stage's own figures; ?h65=0 the build-64 ones)
+  const crews65 = () => { try { return o.crews || (globalThis.__T && globalThis.__T.crews) || null; } catch (e) { return null; } };
   const D63 = () => (Array.isArray(R.done63) ? R.done63 : (R.done63 = []));
   const n63 = () => D63().length;
   const past63 = (name) => (ON63 ? D63().includes(name) : R.part > PARTS.indexOf(name));   // (a work done — by the set when they open side by side)
@@ -733,9 +736,9 @@ export function createHar42(o = {}) {
     const L = { crews: [], act: null, team: null, t: 0 };
     // the fixed crews round the work, beyond its places (in the walks' frames and the wide ones — never between an act's camera and its thing:
     // the first page had one 16 amot east of the wheel, and the treadwheel's view looked at the wheel through it)
-    (ON62 ? SECT62.filter((s2) => !Number.isFinite(s2.his)).map((s2) => [s2.x - base.x + 5, s2.z - base.z - 6]).concat([[ZONE62.se.x - base.x - 6, ZONE62.se.z - base.z - 30]]) : [[-8, 52], [48, -26], [-50, -30], [52, 44], [-52, 34]]).forEach(([dx, dz], k) => { const c = crew53(k); const x = base.x + dx, z = base.z + dz;   /* ── build 62 ── (in the sectors the crews bring down; one by the wheel) */ add(c, x, gy(x, z), z); L.crews.push(c); });
+    (ON65 ? [] : ON62 ? SECT62.filter((s2) => !Number.isFinite(s2.his)).map((s2) => [s2.x - base.x + 5, s2.z - base.z - 6]).concat([[ZONE62.se.x - base.x - 6, ZONE62.se.z - base.z - 30]]) : [[-8, 52], [48, -26], [-50, -30], [52, 44], [-52, 34]]).forEach(([dx, dz], k) => { const c = crew53(k); const x = base.x + dx, z = base.z + dz;   /* ── build 62 ── (in the sectors the crews bring down; one by the wheel) */ add(c, x, gy(x, z), z); L.crews.push(c); });
     // the act's crew: set behind each act's thing as its view settles
-    L.act = crew53(9); L.act.visible = false; add(L.act, base.x, gy(base.x, base.z), base.z); L.crews.push(L.act);
+    if (ON65) L.noAct = true; else { L.act = crew53(9); L.act.visible = false; add(L.act, base.x, gy(base.x, base.z), base.z); L.crews.push(L.act); }   // ── build 65 ── (no stage's own crew behind the thing: crews.js's people are at the work)
     // the team on the great stone's ropes: six in two files before it, the ropes from its front
     const tg = new THREE.Group(), pullers = [];
     for (let i = 0; i < 6; i++) { const w = worker53(i + 20); w.position.set(9.5 + (i >> 1) * 2.4, 0, i % 2 ? 1.5 : -1.5); w.rotation.y = -Math.PI / 2; tg.add(w); pullers.push(w); }
@@ -4532,6 +4535,14 @@ export function createHar42(o = {}) {
     try { if (stages.setStage) stages.setStage('har', 'building', p, instant ? { instant: true } : {}); } catch (e) { /* */ }
     st.mp62 = p; sectors62(p);
   }
+  /** ── build 65 ── the crews' front on the Mount from the sectors at work (crew65.js), handed to crews.js when it changes; four crews */
+  function front65Sync() {
+    if (!ON65 || STG !== 'har') return;
+    const C = crews65(); if (!C || !C.setFront) return;
+    const p = st.mp62 == null ? mBefore62(st.part) : st.mp62, F = front65(SECT62, PL.rock, p, past63, crewSec62);
+    if (st.front65 && st.front65.key === F.key) return;
+    st.front65 = F; C.setFront('har', F, CREW65.crews);
+  }
   function sectors62(p) {
     const list = SECT62.map((s2, i) => { const c = crewSec62(i, p); return { x: s2.x, z: s2.z, half: s2.half, k: Math.max(c.lv, built61(W61, K62(i, 'k')), st.hk62 && st.hk62.i === i ? st.hk62.k : 0), pv: Math.max(c.pv, built61(W61, K62(i, 'p')), st.pv62 && st.pv62.i === i ? st.pv62.v : 0) }; });
     try { if (stages.setSectors62) stages.setSectors62(list); } catch (e) { /* */ }
@@ -4551,7 +4562,7 @@ export function createHar42(o = {}) {
     sectors62(st.mp62 == null ? mBefore62(part) : st.mp62);
     if (st.props.rocks) st.props.rocks.forEach((m, n) => { const r2 = PL.rock[n]; m.position.y = gy(r2.x, r2.z) + 1.3 * (m.scale.y / 0.85); });
     if (st.life53) st.life53.crews.forEach((c) => { if (c !== st.life53.act) c.position.y = gy(c.position.x, c.position.z); });
-    st.ld62 = (st.ld62 || 0) + dt2; if (st.ld62 > 0.6) { st.ld62 = 0; sectDrape62(); }
+    st.ld62 = (st.ld62 || 0) + dt2; if (st.ld62 > 0.6) { st.ld62 = 0; sectDrape62(); front65Sync(); }   // ── build 65 ──
     if (st.cart62) { const c = st.cart62; c.t += dt2; if (c.t > 1.6) { const u = Math.min(1, (c.t - 1.6) / 6); c.g.position.x = c.x0 + 26 * u; c.g.position.z = c.z0 + 6 * u; c.g.position.y = gy(c.g.position.x, c.g.position.z); c.g.userData.wheels.forEach((w) => { w.rotation.z -= dt2 * 2; }); if (u >= 1) { c.g.parent && c.g.parent.remove(c.g); st.cart62 = null; } } }
   }
   /** a rock read and split: the blocks to a cart beside it, which goes off toward the east */
@@ -4579,7 +4590,7 @@ export function createHar42(o = {}) {
     const i = sectorOf62(`hammer${n}`), S2 = SECT62[i], L = famL('lift'), J = createHammer62(L), k0 = built61(W61, K62(i, 'k'));
     const P0 = { x: S2.x - 2, z: S2.z - 2 }, hewers = [];
     line(LINE62.hammer, `רמה ${L}`);
-    if (st.props.root) for (let w = 0; w < 3; w++) { const m = worker53(30 + w), x = S2.x - 8 + w * 5, z = S2.z - 5 - (w % 2) * 1.5; m.position.set(x, gy(x, z), z); m.rotation.y = Math.PI; st.props.root.add(m); hewers.push(m); }
+    if (st.props.root && !ON65) for (let w = 0; w < 3; w++) { const m = worker53(30 + w), x = S2.x - 8 + w * 5, z = S2.z - 5 - (w % 2) * 1.5; m.position.set(x, gy(x, z), z); m.rotation.y = Math.PI; st.props.root.add(m); hewers.push(m); }   // ── build 65 ── (the hewers are crews.js's diggers at the rock, on the act's beat)
     const rock = st.props.rocks && st.props.rocks[n];
     st.hk62 = { i, k: k0 };
     let fx = 0, said = '', swing = 0;
@@ -4595,13 +4606,14 @@ export function createHar42(o = {}) {
         else { buzz42('tick'); o.sound && o.sound('thud'); try { stages.dustBurst && stages.dustBurst(c.x, c.y + 0.3, c.z, 4, 2, 2, 1); } catch (e) { /* */ } said = LINE62.dull; }
         fx = 0.6;
       },
-      end() { hewers.forEach((m) => { if (m.parent) m.parent.remove(m); }); st.hk62 = null; },
+      end() { hewers.forEach((m) => { if (m.parent) m.parent.remove(m); }); st.hk62 = null; if (ON65) { const C = crews65(); if (C && C.beat) C.beat('har', 0); } },
       frame(dt) {
         const fell = J.step(dt), s = J.state(), c = strikeAt();
         st.hk62.k = Math.max(k0, s.k);
         if (fell) { swing = 0.35; o.sound && o.sound('stone'); try { stages.dustBurst && stages.dustBurst(c.x - 4, c.y + 0.3, c.z - 3, 5, 3, 3, 1.4); } catch (e) { /* */ } }
         swing = Math.max(0, swing - dt);
         const ph = s.phase, lift = s.t < 0 ? 0 : Math.cos(ph * Math.PI * 2);   // (their arms up between strokes, down on the beat)
+        if (ON65) { const C = crews65(); if (C && C.beat) C.beat('har', s.beat, beatU65(ph)); }   // ── build 65 ── (crews.js's diggers strike on the act's beat)
         hewers.forEach((m, w) => { const x = m.position.x, z = m.position.z; m.position.y = gy(x, z); const a = -1.6 + 1.3 * (1 - lift) * 0.5 - (swing > 0 ? 0.6 : 0); m.userData.arms.forEach((arm) => { arm.rotation.x = a - w * 0.05; }); });
         if (rock) { const sc = Math.max(0.05, 1 - s.k * 1.4); rock.scale.set(1.3 * sc + 0.2, 0.35 * sc, 1 * sc + 0.2); rock.visible = s.k < 0.7; }
         objPlace(true, [{ x: c.x, y: c.y + 0.6, z: c.z, r: 3 }], 'h62hammer');
@@ -4771,6 +4783,7 @@ export function createHar42(o = {}) {
   function start() {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); mig63(); ui(); props();
+    if (ON65) { st.front65 = null; front65Sync(); if (STG === 'wall') { const C = crews65(); if (C && C.setFront) C.setFront('wall', null, CREW65.wall); } }   // ── build 65 ── (crews.js's people at the work from the first frame)
     st.cam64 = R.cam64 && typeof R.cam64 === 'object' ? orbit64(+R.cam64.az || FOLLOW.az, +R.cam64.el || FOLLOW.el, +R.cam64.d || FOLLOW.d) : orbit64(FOLLOW.az, FOLLOW.el, FOLLOW.d); st.turned64 = !!R.cam64; st.act64 = null; st.two64 = null; st.pinch64 = null;   // ── build 64 ── (the orbit where his thumb left it last time, else the follow's own pose)
     if (STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.setLife) stages.setLife(false); } catch (e) { /* */ } }
     if (STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.crowd && stages.crowd.setEnabled) stages.crowd.setEnabled(false); } catch (e) { /* */ } }   // ── build 56 ── (the site's crowd stations — the overseer and his man — stood before the altar's north face in the red line's view) ── /build 56 ──   // ── build 55 ── (the world's own crews at the done sites stood in the altar's north course — the chambers' crews' places: the stage's own crews and carts work round the altar instead) ── /build 55 ──
@@ -4840,6 +4853,7 @@ export function createHar42(o = {}) {
     site63: () => (st.part === 'site' && st.site63 ? st.site63.map((b) => b.part) : null), choose63: (p) => choose63(p, true), w63: () => ({ on: ON63, done: ON63 ? D63().slice() : null, part: st.part, shot: !!st.shot63 }),   // ── build 63 ──
     world62: () => ON62 && st.on && st.part !== 'reveal' && st.part !== 'done', w62: () => ({ on: ON62, mount: st.mp62 == null ? null : Math.round(st.mp62 * 1000) / 1000, glide: !!st.glide62, hk: st.hk62 ? { ...st.hk62 } : null, pv: st.pv62 ? { ...st.pv62 } : null, sect: stages.sectors62 ? stages.sectors62() : null, status: stages.status ? stages.status('har') : null }),   // ── build 62 ── (the tools read it)
     cam64: () => ({ ...st.cam64, act: st.act64 ? { ...st.act64 } : null, turned: !!st.turned64, two: !!st.two64, pinch: !!st.pinch64 }),   // ── build 64 ── (the tools read the orbit)
+    front65: () => (st.front65 ? { ...st.front65 } : null), on65: ON65,   // ── build 65 ──
     walk61: () => ({ lift: 0, auto: !!st.auto61, free: Math.round((st.free61 || 0) * 10) / 10, built: { ...W61.built }, at: { ...W61.at }, target: st.target ? { x: st.target.x, z: st.target.z } : null, part: st.part, pending: !!st.pending }),   // ── build 61 ── (the tools read the walk and the world)
   };
   try { globalThis.__H42 = api; } catch (e) { /* */ }

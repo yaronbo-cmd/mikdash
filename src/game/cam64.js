@@ -8,7 +8,7 @@
  * ground under the camera) and the pull-in (`pull64`: nearer along the same line until the look point is seen) keep the figure in the
  * frame. Never a Divine Name. ── /build 64 ── */
 
-export const CAM64 = Object.freeze({ elMin: 0.12, elMax: 1.42, dMin: 9, dMax: 90, turnPx: 520, tiltPx: 340, ease: 7, pull: 0.86, pullSteps: 8, twoPx: 6 });
+export const CAM64 = Object.freeze({ elMin: 0.12, elMax: 1.42, dMin: 9, dMax: 140, turnPx: 520, tiltPx: 340, ease: 7, pull: 0.86, pullSteps: 8, twoPx: 6 });
 
 /** an orbit: the bearing (rad, +x east → +z south), the elevation (rad over the horizon) and the distance (amot), all kept in range */
 export function orbit64(az, el, d, c = CAM64) {

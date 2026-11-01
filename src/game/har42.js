@@ -1136,7 +1136,7 @@ export function createHar42(o = {}) {
     else { cq.p.x += (p[0] - cq.p.x) * k; cq.p.y += (p[1] - cq.p.y) * k; cq.p.z += (p[2] - cq.p.z) * k; cq.t.x += (t[0] - cq.t.x) * k; cq.t.y += (t[1] - cq.t.y) * k; cq.t.z += (t[2] - cq.t.z) * k; }
     try { view.camSet(cq.p.x, cq.p.y, cq.p.z, cq.t.x, cq.t.y, cq.t.z); const c = camera(); if (c) { c.lookAt(cq.t); c.updateMatrixWorld(); } } catch (e) { /* */ }   // (the matrices now: the marks and the touch ring projected this frame match the picture — without it they lagged a camera step behind)
   }
-  const FOLLOW = { d: 17, el: 0.52, az: STG !== 'har' ? -0.9 : 0.9 };   // (build 47: the gates too, from the north)   // (build 45, FOLLOW45: at the wall from the north — away from it)
+  const FOLLOW = { d: 34, el: 0.52, az: STG !== 'har' ? -0.9 : 0.9 };   // ── build 64 ── (d 17 → 34: the first stages' camera stood ≥ 35 amot off — the world round him, not his back; a pinch brings it in)   // (build 47: the gates too, from the north)   // (build 45, FOLLOW45: at the wall from the north — away from it)
   // ── build 43 ── (the coordinator's #1) his figure in Phase A is taller than Phase B's kohen (twin.js HERO41 3.96): pan40 stepped back for a
   // 3.96-amah figure and stopped too near — at 640 × 296 he filled 60–70 % of the height. His own height, measured once from the visible
   // figure; the distance his figure needs to stay ≤ 45 % at the field's height (0.42: a margin), for the act and the follow alike.

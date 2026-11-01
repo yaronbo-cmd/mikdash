@@ -5,7 +5,7 @@
  * in) and HOW MANY crews (four), and crews.js does the rest. The hammer act's hewers are those same diggers: the act sets their beat
  * (crews.beat), so they strike with it and he with them. Pure. Never a Divine Name. ── /build 65 ── */
 
-export const CREW65 = Object.freeze({ crews: 4, wall: 3, rockR: 4.6, secR: 6.5, pileE: 26, pileS: 10, bossE: 9, bossS: 8, enterE: 30, enterS: -12, maxSec: 4 });
+export const CREW65 = Object.freeze({ crews: 4, wall: 3, rockR: 4.6, secR: 6.5, dropE: 5, dropS: -4, pileE: 26, pileS: 10, bossE: 12, bossS: -2, enterE: -40, enterS: -30, maxSec: 4 });   // (the drop and the foreman east of the first place, clear of where he stands (its south-east); the way in and out: north-west, over the crest behind the rock — where the dismissed walk off out of his frame, not into his feet)
 
 /** the sectors at work now, for the share p: his rocks still standing (sector i, rock n) first, then the crews' sectors between their start
  *  and their end (crewSec: (i, p) → { lv }) — at most c.maxSec; none at all: his first rock's sector (the crews wait by it) */
@@ -18,7 +18,8 @@ export function active65(sect, p, done, crewSec, c = CREW65) {
 }
 
 /** the front for crews.js: { stand: [[x, z, fx, fz]…], drop, pile, boss, enter, key } — two stands at each active place (a rock: its flanks, a
- *  sector: its downhill side), facing it; the rubble carried from the first place east (downhill: the crest's east flank) to the pile */
+ *  sector: its downhill side), facing it; the rubble carried from the first place east (downhill: the crest's east flank) to the pile; the way in
+ *  (where crews.js lets its dismissed walk off and fade) north-west over the crest, behind the first place, out of his frame */
 export function front65(sect, rocks, p, done, crewSec, c = CREW65) {
   const act = active65(sect, p, done, crewSec, c), stand = [];
   for (const a of act) {
@@ -28,7 +29,7 @@ export function front65(sect, rocks, p, done, crewSec, c = CREW65) {
   }
   const f = act[0], s0 = sect[f.i], r0 = f.rock >= 0 && rocks[f.rock] ? rocks[f.rock] : null, dx = r0 ? r0.x : s0.x, dz = r0 ? r0.z : s0.z;
   return {
-    stand, drop: [r2(dx + 3), r2(dz + 3)], pile: [r2(dx + c.pileE), r2(dz + c.pileS)], boss: [r2(dx + c.bossE), r2(dz + c.bossS)], enter: [r2(dx + c.enterE), r2(dz + c.enterS)],
+    stand, drop: [r2(dx + c.dropE), r2(dz + c.dropS)], pile: [r2(dx + c.pileE), r2(dz + c.pileS)], boss: [r2(dx + c.bossE), r2(dz + c.bossS)], enter: [r2(dx + c.enterE), r2(dz + c.enterS)],
     key: act.map((a) => `${a.i}${a.idle ? 'w' : ''}`).join(','),
   };
 }

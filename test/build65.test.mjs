@@ -33,7 +33,7 @@ test('build 65: the front — two stands at each place facing it (a rock at its 
   const F = front65(SECT62, ROCKS, MOUNT62.open, () => false, crewSec62);
   assert.equal(F.stand.length, 6);
   for (let k = 0; k < 6; k++) { const S = F.stand[k], r = ROCKS[k >> 1]; assert.ok(near(Math.hypot(S[0] - r.x, S[1] - r.z), CREW65.rockR, 0.11), `stand ${k} at the rock's flank`); assert.deepEqual([S[2], S[3]], [r.x, r.z]); }
-  assert.deepEqual(F.drop, [ROCKS[0].x + 3, ROCKS[0].z + 3]); assert.ok(F.pile[0] > F.drop[0] + 20, 'the pile east, downhill'); assert.equal(F.key, '0,1,2');
+  assert.deepEqual(F.drop, [ROCKS[0].x + 5, ROCKS[0].z - 4]); assert.deepEqual(F.boss, [ROCKS[0].x + 12, ROCKS[0].z - 2]); assert.ok(F.pile[0] > F.drop[0] + 20, 'the pile east, downhill'); assert.equal(F.key, '0,1,2');
   const G = front65(SECT62, ROCKS, 0.33, (w) => w === 'hammer0' || w === 'hammer1', crewSec62);
   assert.equal(G.key, '2,3'); const s3 = SECT62[3]; assert.ok(G.stand.slice(2).every((S) => S[3] === s3.z && Math.abs(S[2] - s3.x) < 1e-9 && S[1] > s3.z), 'the sector\'s stands south of it, facing it');
   const W = front65(SECT62, ROCKS, 0.9, () => true, crewSec62); assert.equal(W.key, '0w'); assert.equal(W.stand.length, 2);

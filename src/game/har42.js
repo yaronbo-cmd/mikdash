@@ -560,6 +560,7 @@ export function createHar42(o = {}) {
   const PARTS = ON62 ? PARTS62 : parts0();
   // ── build 63 ── (§4) stage 01 (the new one) and stage 02: the works open side by side, chosen on the site; a result shot after each (?h63=0 — one after another)
   const ON63 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h63') !== '0' && !!DEP63[STG];
+  const ON66 = MODE === 'stage' && qs('h66') !== '0' && !globalThis.__SH_NOHERO35;   // ── build 66 ── (Phase B's kohen for Phase A; ?h66=0 the built figure)
   const ON65 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h65') !== '0';   // ── build 65 ── (crews.js's people at the work, not the stage's own figures; ?h65=0 the build-64 ones)
   const crews65 = () => { try { return o.crews || (globalThis.__T && globalThis.__T.crews) || null; } catch (e) { return null; } };
   const D63 = () => (Array.isArray(R.done63) ? R.done63 : (R.done63 = []));
@@ -573,6 +574,32 @@ export function createHar42(o = {}) {
   const camera = () => (globalThis.__T && globalThis.__T.camera) || null;
   const hp = { x: 0, y: 0, z: 0, yaw: 0 };
   const hero = () => { try { stages.heroXYZ(hp); } catch (e) { /* */ } return hp; };
+  // ── build 66 ── Phase B's kohen (hero35.js: the rigged glTF — Idle, Walking_A, Running_A by his pace, the acts' clips) stands in for Phase A's
+  // built figure (its two-pose bob — the owner, 1.11: "גם הדמויות נראות פחח", "התנועה של הדמות מלאכותית"), following stages.js's hero as in
+  // Phase B; one per page (globalThis.__HERO35). His height is the model's (≈ 3.96 amot: a head over crews.js's people, not the built 6.44).
+  // (hero35.js is brought in when he is wanted — its import of the model (a .glb) is the bundle's, not node's: the tests read this file)
+  function hero66() {
+    if (!ON66 || st.h35 || st.h35p) return st.h35 || null;
+    try { const K = globalThis.__HERO35; if (K && K.update && K.root && K.root.parent && !K.err) { st.h35 = K; return K; } } catch (e) { /* */ }
+    const sc = scene(); if (!sc) return null;
+    st.h35p = import('../avodah/shift/hero35.js').then((m) => { if (!st.h35) st.h35 = m.createHero35({ scene: sc, S: stages }); return st.h35; }).catch((e) => { st.h35p = null; try { console.warn('[har42] hero66', e && e.message); } catch (e2) { /* */ } return null; });
+    return null;
+  }
+  const h66 = () => (st.h35 && st.h35.loaded ? st.h35 : null);
+  /** the sledge in his right hand for the hammer's strokes (on the kit's hand slot, its weapons' bone); gone at the act's end */
+  function sledge66(on) {
+    const K = h66(); if (!K) return;
+    if (!on) { if (st.sledge66) { if (st.sledge66.parent) st.sledge66.parent.remove(st.sledge66); st.sledge66 = null; } return; }
+    if (st.sledge66) return;
+    const b = K.bone('handslotr') || K.bone('handslot.r') || K.bone('handr') || K.bone('hand.r'); if (!b) return;   // (GLTFLoader drops the dot from a node's name)
+    const g = new THREE.Group(), wood = new THREE.MeshStandardMaterial({ color: '#6B4A2B', roughness: 0.9 }), iron = new THREE.MeshStandardMaterial({ color: '#3A3A3E', roughness: 0.6, metalness: 0.3 });
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.1, 8), wood); h.position.y = 0.45; g.add(h);
+    const hd = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.2, 0.2), iron); hd.position.y = 1.0; g.add(hd);
+    b.add(g); st.sledge66 = g;
+  }
+  /** his stroke: the kit's two-handed chop, fitted to the beat (the clip's length over the beat's) */
+  function chop66(beat) { const K = h66(); if (!K) return false; sledge66(true); const L2 = K.clipLen('2H_Melee_Attack_Chop'); return K.play('2H_Melee_Attack_Chop', { once: true, restart: true, speed: L2 > 0 ? Math.max(1, L2 / Math.max(0.4, (beat || 0.95) * 0.9)) : 1.4 }); }
+  // ── /build 66 ──
   const now61 = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());   // ── build 61 ──
   const W61 = load61();   // ── build 61 ── (what stands on the Mount: one record — world61.js)
   const gy = (x, z) => { try { const y = stages.groundAt(x, z); return Number.isFinite(y) ? y : 20; } catch (e) { return 20; } };
@@ -1145,6 +1172,7 @@ export function createHar42(o = {}) {
   // figure; the distance his figure needs to stay ≤ 45 % at the field's height (0.42: a margin), for the act and the follow alike.
   let heroH = 0;
   function heroHeight() {
+    if (ON66) { const K = h66(), v = K && K.height ? K.height() : 0; return v > 2 && v < 12 ? v : 3.96; }   // ── build 66 ── (the kohen's own height; 3.96 — twin.js HERO41 — until he is loaded)
     if (heroH) return heroH;
     try {
       const m = stages.hero && stages.hero.mesh; if (!m) return 6.4;
@@ -4597,16 +4625,19 @@ export function createHar42(o = {}) {
     const strikeAt = () => ({ x: P0.x, y: gy(P0.x, P0.z) + 0.6, z: P0.z });
     return {
       acting: true, J, kind: 'hammer',
-      view() { const c = strikeAt(); return { p: [c.x + 20, c.y + 15, c.z + 27], t: [c.x - 1, c.y + 1, c.z - 2] }; },
+      view() { const c = strikeAt(), h = hero(), k = ON66 ? 0.3 : 0; return { p: [c.x + 20, c.y + 15, c.z + 27], t: [c.x - 1 + (h.x - c.x) * k, c.y + 1, c.z - 2 + (h.z - c.z) * k] }; },   // ── build 66 ── (the look point a third of the way to him: his whole figure, smaller now, in the frame with the rock)
       down() {
         const r = J.tap(); if (r === 'wait') return;
         const c = strikeAt();
-        try { if (stages.hero.act) stages.hero.act('split', { x: c.x, y: c.y, z: c.z }); } catch (e) { /* */ }
+        // ── build 66 ── his stroke is the kohen's: turned to the rock (stages.js's yaw: atan2(dx, dz)), the kit's chop; the built figure's own stroke (stages.hero.act) is not asked for — it would turn him its way and show its mesh
+        if (h66()) { try { const h0 = hero(); stages.hero.setPos(h0.x, h0.z, Math.atan2(c.x - h0.x, c.z - h0.z)); chop66(J.state().beat); const m = stages.hero.mesh; if (m) m.visible = false; } catch (e) { /* */ } }
+        else { try { if (stages.hero.act) stages.hero.act('split', { x: c.x, y: c.y, z: c.z }); } catch (e) { /* */ } }
+        // ── /build 66 ──
         if (r === 'big') { buzz42('mallet'); o.sound && o.sound('crack'); try { stages.dustBurst && stages.dustBurst(c.x, c.y + 0.5, c.z, 14, 5, 5, 2); stages.sparkBurst && stages.sparkBurst(c.x, c.y + 0.8, c.z, 8, 4, 6); } catch (e) { /* */ } said = LINE62.big; }
         else { buzz42('tick'); o.sound && o.sound('thud'); try { stages.dustBurst && stages.dustBurst(c.x, c.y + 0.3, c.z, 4, 2, 2, 1); } catch (e) { /* */ } said = LINE62.dull; }
         fx = 0.6;
       },
-      end() { hewers.forEach((m) => { if (m.parent) m.parent.remove(m); }); st.hk62 = null; if (ON65) { const C = crews65(); if (C && C.beat) C.beat('har', 0); } },
+      end() { hewers.forEach((m) => { if (m.parent) m.parent.remove(m); }); st.hk62 = null; sledge66(false); if (ON65) { const C = crews65(); if (C && C.beat) C.beat('har', 0); } },
       frame(dt) {
         const fell = J.step(dt), s = J.state(), c = strikeAt();
         st.hk62.k = Math.max(k0, s.k);
@@ -4653,6 +4684,7 @@ export function createHar42(o = {}) {
   function frame(ms) {
     if (!st.on) return;
     const t = ms / 1000, dt = st.last ? Math.min(0.1, Math.max(0, t - st.last)) : 0.016; st.last = t;
+    if (st.h35) { try { st.h35.update(dt); } catch (e) { /* */ } }   // ── build 66 ── (the kohen follows the hero every frame, cards and all)
     if (o.keepAwake) o.keepAwake();
     if (st.anims && st.anims.length) st.anims = st.anims.filter((A2) => { A2.t += dt; const k = Math.min(1, A2.t / A2.T); A2.m.position.y = A2.y0 + (A2.y1 - A2.y0) * k * k; return k < 1; });   // ── build 45 ── (a stone settling)
     if (st.wet > 0) dry45(dt);
@@ -4783,6 +4815,7 @@ export function createHar42(o = {}) {
   function start() {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); mig63(); ui(); props();
+    hero66();   // ── build 66 ──
     if (ON65) { st.front65 = null; front65Sync(); if (STG === 'wall') { const C = crews65(); if (C && C.setFront) C.setFront('wall', null, CREW65.wall); } }   // ── build 65 ── (crews.js's people at the work from the first frame)
     st.cam64 = R.cam64 && typeof R.cam64 === 'object' ? orbit64(+R.cam64.az || FOLLOW.az, +R.cam64.el || FOLLOW.el, +R.cam64.d || FOLLOW.d) : orbit64(FOLLOW.az, FOLLOW.el, FOLLOW.d); st.turned64 = !!R.cam64; st.act64 = null; st.two64 = null; st.pinch64 = null;   // ── build 64 ── (the orbit where his thumb left it last time, else the follow's own pose)
     if (STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.setLife) stages.setLife(false); } catch (e) { /* */ } }
@@ -4854,6 +4887,7 @@ export function createHar42(o = {}) {
     world62: () => ON62 && st.on && st.part !== 'reveal' && st.part !== 'done', w62: () => ({ on: ON62, mount: st.mp62 == null ? null : Math.round(st.mp62 * 1000) / 1000, glide: !!st.glide62, hk: st.hk62 ? { ...st.hk62 } : null, pv: st.pv62 ? { ...st.pv62 } : null, sect: stages.sectors62 ? stages.sectors62() : null, status: stages.status ? stages.status('har') : null }),   // ── build 62 ── (the tools read it)
     cam64: () => ({ ...st.cam64, act: st.act64 ? { ...st.act64 } : null, turned: !!st.turned64, two: !!st.two64, pinch: !!st.pinch64 }),   // ── build 64 ── (the tools read the orbit)
     front65: () => (st.front65 ? { ...st.front65 } : null), on65: ON65,   // ── build 65 ──
+    hero66: () => (st.h35 ? { ...st.h35.state(), h: st.h35.height ? +st.h35.height().toFixed(2) : 0, sledge: !!st.sledge66 } : null), on66: ON66,   // ── build 66 ──
     walk61: () => ({ lift: 0, auto: !!st.auto61, free: Math.round((st.free61 || 0) * 10) / 10, built: { ...W61.built }, at: { ...W61.at }, target: st.target ? { x: st.target.x, z: st.target.z } : null, part: st.part, pending: !!st.pending }),   // ── build 61 ── (the tools read the walk and the world)
   };
   try { globalThis.__H42 = api; } catch (e) { /* */ }

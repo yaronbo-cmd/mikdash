@@ -73,7 +73,7 @@ test('build 50: the stage — its parts and lines, no chisel in the courts, the 
   assert.match(h, /ctl\.maxPolarAngle = Math\.PI - 0\.05;/, 'from inside, looking up'); assert.match(h, /if \(ctl && polar0 != null\) ctl\.maxPolarAngle = polar0;/, 'and the orbit\'s floor back');
   for (const line of [h, read('src/game/fam42.js')].join('\n').split('\n')) { const i = line.indexOf('//'); if (i < 0 || /https?:|'[^']*\/\/|`[^`]*\/\//.test(line)) continue; assert.ok(!/\b(target|frame|view|begin|end|down|up|move): \(/.test(line.slice(i)), `code after a comment: ${line.slice(i, i + 120)}`); }
   const g = read('src/game/index.js'); assert.match(g, /else if \(wanted50\(\)\) startHar50\(\);/); assert.match(g, /\(lishka50=0\|stick=1\|har42=0\)/); assert.match(g, /h50go=1/); assert.match(g, /if \(done && wanted50\(\)\) setTimeout\(\(\) => \{ if \(!H42\) startHar50\(\); \}, 400\);/);
-  assert.equal(GAME_BUILD, 60);   // (build 51: the constant moved on)
+  assert.equal(GAME_BUILD, 62);   // (build 51: the constant moved on)
   const N = [String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05d4), String.fromCharCode(0x05d9, 0x05d4, 0x05d5, 0x05bc, 0x05d4)], Pp = String.fromCharCode(0x05e6, 0x05dc, 0x05d9, 0x05d9, 0x05e0);
   for (const f of ['src/game/fam42.js', 'src/game/har42.js', 'src/game/index.js', 'tools/auto42.js', 'tools/kid34/kidmodes.cjs', 'PROJECT.md']) { const s = read(f); for (const n of N) assert.ok(!s.includes(n), `${f}: a Name`); assert.ok(!s.includes(Pp), `${f}: עולי רגל`); }
 });

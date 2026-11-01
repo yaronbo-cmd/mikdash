@@ -569,6 +569,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /* Push the whole state to the world. snap: an earlier snapshot to show (for the offline timelapse). */
   function syncWorld(snap) {
     for (const s of STAGES) {
+      if (s.id === 'har' && H42 && H42.on && H42.world62 && H42.world62()) continue;   // ── fable32 (build 62) ── (stage 01 builds the Mount itself, as far as it stands — har42 world62) ── /fable32 ──
       const o = snap ? snap.st[s.id] : { status: S.statusOf(G, s.id), p: S.progressOf(G, s.id) };
       W.setStage(s.id, o.status, o.p, { instant: true });
       // ── build6 ── the site as it stands: phase, stones, stock — ── flow11 ── at once (the count landed: no eased ripple that
@@ -3298,7 +3299,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     H42 = createHar42({
       stages: world && (world.stages || world), view,
       spot: () => { try { return W.workSpot('har', 'dress'); } catch (e) { return null; } },
-      emit: (t, d) => emit(t, d),
+      emit: (t, d) => emit(t, d), sound: (k) => { try { sfx.play(k); } catch (e) { /* a sound we lack */ } },   // ── fable32 (build 62) ── (stage 01's sounds: the hammer) ── /fable32 ──
       keepAwake: () => { try { if (hooks.setAutoRotate) hooks.setAutoRotate(false); } catch (e) { /* */ } },
       snapshot: () => { try { const T = globalThis.__T; T.render(); return T.renderer.domElement.toDataURL('image/jpeg', 0.55); } catch (e) { return null; } },
       timeOfDay: (k) => { try { if (W.setTimeOfDay) W.setTimeOfDay(k); } catch (e) { /* */ } },   // ── fable32 (build 43) ── (the reveal's late sun; the real clock again after the card) ── /fable32 ──

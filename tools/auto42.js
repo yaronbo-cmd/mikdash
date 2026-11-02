@@ -737,6 +737,11 @@
       if (s.part === 'open') { if (!A.openT) A.openT = performance.now(); await shot('open'); if (performance.now() - A.openT > 6000) await shot('open-plan'); await sleep(400);   // (build 45: and a later frame of the opening — the plan risen)
         if (A.sk) { const b = q('.h42-skip'); if (b) ev(b, 'pointerdown', 10, 10, ++pid); } continue; }
       if (s.part === 'done' || s.part === 'out') { await sleep(500); if (!q('.h42-card')) return; continue; }
+      if (s.part === 'shot') { if (A.opts.shot && !A.shots.result) { await sleep(2300); if (H().state().part === 'shot') await shot('result'); } await sleep(200); continue; }   // ── build 63 ── (the result shot after a work)
+      if (s.part === 'site') {   // ── build 63 ── the site: the open works — the skilled hand takes the first, the child any of them
+        const L = h.site63 && h.site63(); await shot('site'); if (L && L.length) { const k = A.sk ? 0 : Math.floor(rnd() * L.length), b = q(`.h63-chip[data-part="${L[k]}"]`); if (b) { b.click(); note(`chose ${L[k]} of ${L.join(',')}`); } }
+        await sleep(400); continue;
+      }
       if (s.pending || s.part === 'rope') { await shot('walk-' + s.part); await walk(); await sleep(150); continue; }
       const j = h.job(); if (!j) { await sleep(150); continue; }
       await sleep(400); if (A.opts.shot && !A.shots['act-' + j.kind]) await sleep(2600);   /* (the act's shot once the camera has settled on the act's frame) */

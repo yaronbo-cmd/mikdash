@@ -16,7 +16,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js'), SJ = read('src/stages.js'), IX = read('src/game/index.js');
 
 test('build 62: GAME_BUILD 62; the parts — the old ones all kept, two hammers after their rocks, the reveal last', () => {
-  assert.equal(GAME_BUILD, 62);
+  assert.equal(GAME_BUILD, 68);   // (build 63: again)
   assert.deepEqual(PARTS62, ['open', 'rope', 'lift', 'corner', 'course0', 'course1', 'rock0', 'hammer0', 'rock1', 'hammer1', 'rock2', 'pave', 'roll', 'trace', 'reveal']);
   for (const p of PARTS42) assert.ok(PARTS62.includes(p), p);
   assert.equal(PARTS62.indexOf('hammer0'), PARTS62.indexOf('rock0') + 1); assert.equal(PARTS62.indexOf('hammer1'), PARTS62.indexOf('rock1') + 1);
@@ -80,9 +80,10 @@ test('build 62: stages.js — the sectors cut down in the shader and its CPU mir
 test('build 62: har42 and index.js wired — the parts, the places, the Mount from world61, the glide, the hammer; the Mount left to stage 01', () => {
   assert.match(H, /const PARTS = ON62 \? PARTS62 : parts0\(\);/);
   assert.match(H, /STG === 'kiyor' \? PARTS59 : STG === 'ulam' \? PARTS60 : PARTS42;/, 'the old order kept behind ?h62=0');
-  assert.match(H, /const from = mountBefore62\(part\), to = mount62\(part\), p = creep61\(W61, 'har', from, to, dt\);/);
-  assert.match(H, /world62\(grow61\(W61, 'har', mount62\(part\)\), false\)/);
-  assert.match(H, /if \(ON62 && st\.target && glide62\(hero\(\), st\.target\)\) glideTo62\(st\.target\);/);
+  assert.match(H, /const from = mBefore62\(part\), to = mNow62\(part\), p = creep61\(W61, 'har', from, to, dt\);/);   // (build 63: the share by how many works are done; mount62 behind ?h63=0)
+  assert.match(H, /: mount62\(part\)\);/); assert.match(H, /: mountBefore62\(part\)\);/);
+  assert.match(H, /world62\(grow61\(W61, 'har', mNow62\(part\)\), false\)/);
+  assert.match(H, /if \(\(ON62 \|\| ON63\) && st\.target && glide62\(hero\(\), st\.target\)\) glideTo62\(st\.target\);/);
   assert.match(H, /hammer0: \{ begin\(\) \{ st\.job = mkHammer\(0\); \} \}/);
   assert.match(H, /if \(stages\.noBay62\) stages\.noBay62\(true\);/);
   assert.match(IX, /if \(s\.id === 'har' && H42 && H42\.on && H42\.world62 && H42\.world62\(\)\) continue;/);

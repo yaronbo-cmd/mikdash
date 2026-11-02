@@ -34,6 +34,7 @@ export function createHero35(o = {}) {
         for (const c of g.animations) st.clips[c.name] = c;
         props();
         try { dustMat(model); } catch (e) { /* ── recovered (build 20) ── the dust's material: without it, the plain robe */ }
+        try { model.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(model); st.h = bb.max.y - bb.min.y; } catch (e) { st.h = 0; }   // ── build 66 ── (his height as loaded: Phase A frames him by it)
         st.loaded = true; root.visible = true;
         play(HERO35.idleClip);
       } catch (e) { st.err = String(e && e.message); }
@@ -173,13 +174,14 @@ totalEmissiveRadiance+=vec3(.62,.95,1)*clamp(vD,0.,1.)*uG*(.25+.75*pow(.5+.5*sin
   const api = {
     ready, root, update, play, stop: () => { if (st.cur) { st.cur.stop(); st.cur = null; st.curName = ''; } st.acting = null; },
     free: () => { st.acting = null; }, hitStop: (s) => { st.stopUntil = st.t + Math.max(0, s || 0); },   // ── recovered (16–26c) ── (free: the act's clip may give way; hitStop(s): the frame held s seconds)
-    bone: (n) => st.bones[n] || null, at: (n) => worldOf(st.bones[n]), handR: () => worldOf(st.bones['handslot.r'] || st.bones['hand.r']), handL: () => worldOf(st.bones['handslot.l'] || st.bones['hand.l']), head: () => worldOf(st.bones.head),
+    bone: (n) => st.bones[n] || null, at: (n) => worldOf(st.bones[n]), handR: () => worldOf(st.bones.handslotr || st.bones['handslot.r'] || st.bones.handr || st.bones['hand.r']), handL: () => worldOf(st.bones.handslotl || st.bones['handslot.l'] || st.bones.handl || st.bones['hand.l']),   // ── build 66 ── (GLTFLoader drops the dot from a node's name: handslot.r → handslotr) head: () => worldOf(st.bones.head),
     // ── recovered (builds 20–21) ── pose20(on) → its weight · dust20(dust, glint) · p20 · hold21(point | null) → its weight · lift(h)
     pose20: (on) => { crouch.want = on ? 1 : 0; return crouch.w; },
     dust20: (dust, glint) => { DUST.uD.value = Math.max(0, Math.min(1, +dust || 0)); DUST.uG.value = Math.max(0, Math.min(1.5, +glint || 0)); DUST.uT.value = st.t; },
     get p20() { return { w: crouch.w, want: crouch.want, dust: DUST.uD.value, glint: DUST.uG.value }; },
     hold21: (p) => { reach.p = p && Number.isFinite(p.x) ? { x: p.x, y: p.y, z: p.z } : null; if (reach.p) reach.last = reach.p; return reach.w; },
     lift: (h) => { st.lift = +h || 0; },
+    height: () => st.h || 0, clipLen: (n) => (st.clips[n] ? st.clips[n].duration : 0),   // ── build 66 ── (for Phase A: his height, a clip's length) ── /build 66 ──
     get loaded() { return st.loaded; }, get err() { return st.err; },
     state: () => ({ loaded: st.loaded, err: st.err, clip: st.curName, acting: st.acting ? st.acting.name : null, sp: +st.sp.toFixed(1), rate: st.cur ? +st.cur.getEffectiveTimeScale().toFixed(2) : 0, slip: st.gait ? st.gait.slip : 0 /* ── recovered (16–26c) ── */, n: st.n, clips: Object.keys(st.clips).length, vis: root.visible, pos: [+root.position.x.toFixed(1), +root.position.y.toFixed(1), +root.position.z.toFixed(1)] }),
     destroy() { try { if (scene) scene.remove(root); } catch (e) { /* */ } try { const m = S && S.hero && S.hero.mesh; if (m && st.hidOld) m.visible = !!hp.vis; } catch (e) { /* */ } st.loaded = false; },

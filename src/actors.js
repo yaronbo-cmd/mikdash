@@ -476,6 +476,7 @@ const HOLD = {
   none: null, two: [1.05, -0.3, 1.05, -0.3], R: [0, 0.05, 0.62, -0.05], shoulder: [0, 0.05, 2.55, -0.42], arms: [1.15, -0.36, 1.15, -0.36],
   blow: [1.75, -0.42, 1.95, -0.34], lyre: [0.95, -0.12, 0.85, -0.38], harp: [0.8, -0.2, 0.8, -0.2], cymbals: [1.25, 0.1, 1.25, 0.1], staff: [0, 0.05, 0.5, -0.05], rope: [0, 0.05, 0.5, -0.02],
 };
+export const NEAR73 = 9;   // ── build 73 ── (amot, on the ground: in Phase A's building (har42 on) a figure nearer a low camera than this is not drawn)
 /** ctx: { scene, camera?, blobs, ground(x, z) } */
 export function createActors(ctx) {
   const { scene, blobs } = ctx;
@@ -666,6 +667,7 @@ export function createActors(ctx) {
     let cx = 0, cy = 0, cz = 0;
     if (camera) { camera.updateMatrixWorld(); pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); fr.setFromProjectionMatrix(pm); cx = camera.position.x; cy = camera.position.y; cz = camera.position.z; }
     for (const k in meshes) meshes[k].n = 0;
+    const near73 = camera && globalThis.__H42 && globalThis.__H42.on ? NEAR73 : 0;   // ── build 73 ── (Phase A only: Phase B's courts keep their people)
     let ni = 0;
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
@@ -688,7 +690,8 @@ export function createActors(ctx) {
       B[0] = a.arm[0]; B[1] = a.arm[1]; B[2] = a.arm[2]; B[3] = a.arm[3];
       C[0] = a.hy; C[1] = a.hp; C[2] = a.shade; C[3] = a.sway;
       const sc = a.s * (a.vis < 1 ? Math.max(0.001, a.vis) : 1);
-      if (a.lod71) { if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw); continue; }   // ── build 71 ── (a real figure stands for him — crew71.js: his blob shadow only)
+      if (a.lod71) { if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw); continue; }
+      if (near73 && (a.x - cx) ** 2 + (a.z - cz) ** 2 < near73 * near73 && cy - a.y < 7) continue;   // ── build 73 ── (a man in the camera's lap not drawn: stage 03's views stood in a crew, two bodies filling the frame)   // ── build 71 ── (a real figure stands for him — crew71.js: his blob shadow only)
       rigWrite(K.m, K.n++, a.x, a.y + Math.abs(Math.cos(a.ph)) * 0.06 * a.wk, a.z, a.yaw, sc, a.col, A, B, C, a.col2);
       if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw);
       // the held item

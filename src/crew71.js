@@ -21,6 +21,7 @@ export const CREW71 = Object.freeze({
   strikeHit: 0.66, walkAt: 0.18, walkRate: 0.42,   // (crews.js's blow in the stroke; walking from this wk; the clip's rate per amah/s)
   tunics: Object.freeze(['#D6C8A8', '#B49B76', '#9C8466', '#E2D6BE']),   // (crews.js's TUNIC, four of them: one texture each)
   robeMin: 200,   // (the kohen's texture: a pixel whose r, g and b are all over this is the robe's linen)
+  clear: 7,   // ── build 73 ── (a man nearer the camera than this, on the ground, is not drawn at all)
 });
 
 /** the real figures for this frame: cands [{ id, x, y, z }], the camera { x, y, z, fx, fz } (its forward on the ground, unit), cur (a Set of
@@ -150,12 +151,12 @@ export function createCrew71(o = {}) {
       if (f.belt) f.belt.material.color.copy(c.white ? C2.set('#E8DCC0') : c.cloth || C2.set('#2F6DB5'));
       const tk = c.tool === 'pick' || c.tool === 'hammer' || c.tool === 'mallet' || c.tool === 'staff' ? c.tool : null;
       if (f.tool !== tk) { f.tool = tk; if (f.toolM) { if (f.toolM.parent) f.toolM.parent.remove(f.toolM); f.toolM = null; } const hb = f.B.handslotr || f.B['handslot.r']; if (tk && hb) { f.toolM = tool(tk); f.toolM.traverse((n) => { n.userData.prop71 = 1; }); hb.add(f.toolM); } }
-      f.m.visible = true; f.m.position.set(c.x, c.y, c.z); f.m.rotation.y = c.yaw; f.m.scale.setScalar((CREW71.model * c.h) / CREW71.modelH);
+      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= CREW71.clear; f.m.position.set(c.x, c.y, c.z);   // ── build 73 ── (a man in the camera's lap not drawn — nor his instanced one: the warning stones' view stood among a crew) f.m.rotation.y = c.yaw; f.m.scale.setScalar((CREW71.model * c.h) / CREW71.modelH);
       play(f, c.clip());
       f.mixer.update(dt);
     }
     st.n = st.by.size;
   }
   function setEnabled(v) { st.on = !!v; if (!st.on) for (const [id, f] of st.by) { if (f.set) f.set(false); f.id = null; f.m.visible = false; st.by.delete(id); } }
-  return { update, ready, setEnabled, root, state: () => ({ on: st.on, loaded: st.loaded, err: st.err, n: st.n, figs: st.figs.length, hitT: +st.hitT.toFixed(3), dur: +st.dur.toFixed(3), clips: [...st.by.values()].map((f) => f.curName) }) };
+  return { update, ready, setEnabled, root, state: () => ({ on: st.on, loaded: st.loaded, err: st.err, n: st.n, figs: st.figs.length, hitT: +st.hitT.toFixed(3), dur: +st.dur.toFixed(3), clips: [...st.by.values()].map((f) => f.curName), at: [...st.by.values()].map((f) => [f.m.position.x, f.m.position.y, f.m.position.z].map((v) => Math.round(v * 10) / 10).concat(f.m.visible ? 1 : 0)) }) };
 }

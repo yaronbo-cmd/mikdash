@@ -12,7 +12,7 @@ const ROOT = new URL('../', import.meta.url);
 const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
-test('build 72: GAME_BUILD 72', () => { assert.equal(GAME_BUILD, 72); });
+test('build 72: GAME_BUILD (72 or later)', () => { assert.ok(GAME_BUILD >= 72); });
 
 test('build 72 har42: the giant comes down on the station\'s rig — the rig to the giant, the arm over the course, the hook on the stone, then up; back at the end', () => {
   assert.match(H, /const K8g = ON68 && part === 'giant' \? crane68\(\) : null;/);

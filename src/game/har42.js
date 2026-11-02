@@ -574,12 +574,13 @@ export function createHar42(o = {}) {
   };
   const PARTS = ON62 ? PARTS62 : parts0();
   // ── build 63 ── (§4) stage 01 (the new one) and stage 02: the works open side by side, chosen on the site; a result shot after each (?h63=0 — one after another)
-  const ON63 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h63') !== '0' && !!DEP63[STG];
+  const ON73 = MODE === 'stage' && STG === 'soreg' && qs('h73') !== '0';   // ── build 73 ── (stage 03 in the building loop: its works open side by side, crews.js's people at them; ?h73=0 one after another as before)
+  const ON63 = MODE === 'stage' && (ON62 || STG === 'wall' || ON73) && qs('h63') !== '0' && !!DEP63[STG];
   const ON69 = MODE === 'stage' && STG === 'wall' && ON63 && qs('h69') !== '0' && qs('h68') !== '0';   // ── build 69 ── (the free play at the wall: after the stage's works, more courses through the station; ?h69=0 the stage ends as before)
   const ON68 = MODE === 'stage' && STG === 'wall' && qs('h68') !== '0';   // ── build 68 ── (the crane station: the stones lifted onto the real wall; ?h68=0 the pile of buttons as before)
   const ON67 = MODE === 'stage' && qs('h67') !== '0';   // ── build 67 ── (the works by day, the rock in chunks, the corner's wall; ?h67=0 as before)
   const ON66 = MODE === 'stage' && qs('h66') !== '0' && !globalThis.__SH_NOHERO35;   // ── build 66 ── (Phase B's kohen for Phase A; ?h66=0 the built figure)
-  const ON65 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h65') !== '0';   // ── build 65 ── (crews.js's people at the work, not the stage's own figures; ?h65=0 the build-64 ones)
+  const ON65 = MODE === 'stage' && (ON62 || STG === 'wall' || ON73) && qs('h65') !== '0';   // ── build 65 ── (crews.js's people at the work, not the stage's own figures; ?h65=0 the build-64 ones)
   const crews65 = () => { try { return o.crews || (globalThis.__T && globalThis.__T.crews) || null; } catch (e) { return null; } };
   const D63 = () => (Array.isArray(R.done63) ? R.done63 : (R.done63 = []));
   const n63 = () => D63().length;
@@ -1395,7 +1396,7 @@ export function createHar42(o = {}) {
     if (STG !== 'har') { R.streak = r.rating === 'mehudar' ? (R.streak | 0) + 1 : 0; if (R.streak >= 3) { R.streak = 0; setTimeout(() => { if (!doc || !st.ui.root) return; const y = el('h42-g h45-yishar', esc(LINE42.yishar.split(' · ')[0])); y.style.left = `${W() / 2}px`; y.style.top = `${H() * 0.3}px`; st.ui.root.appendChild(y); setTimeout(() => y.remove(), 2200); buzz42('peak'); o.emit && o.emit('h45yishar', {}); }, 900); } }   // ── build 45 ── three מהודר in a row: the crew calls (טיוטה)
     R.grades.push([part, r.rating, Math.round(q * 100) / 100, L]); save42(S);
     if (ON62) { try { const m = /^rock(\d)$/.exec(part); if (m) { grow61(W61, K62(+m[1], 'r'), 1); cart62(+m[1]); } world62(grow61(W61, 'har', mNow62(part)), false); if (part === 'pave') st.pv62 = { i: 0, v: 0 }; save61(W61); } catch (e) { /* */ } }   // ── build 62 ── (the Mount as far as his part: world61)
-    if (STG === 'soreg' || STG === 'gates' || STG === 'nashim') { try { if (stages.setStage) stages.setStage(STG === 'soreg' ? 'sorag' : STG, 'building', Math.min(STG === 'nashim' ? 0.62 : 0.92, (PARTS.indexOf(part) + 1) / (PARTS.length - 1)), {}); } catch (e) { /* */ } }   // (build 48: the women's court under 0.62 — the model's own gallery comes in its finish, at the reveal: his stands alone till then)   // ── build 46 ── (the crews' חיל rises with his parts; build 47: the gatehouses)
+    if (STG === 'soreg' || STG === 'gates' || STG === 'nashim') { try { if (stages.setStage) stages.setStage(STG === 'soreg' ? 'sorag' : STG, 'building', Math.min(STG === 'nashim' ? 0.62 : 0.92, ON73 ? wShare63(part) : (PARTS.indexOf(part) + 1) / (PARTS.length - 1)), {}); } catch (e) { /* */ } }   // (build 48: the women's court under 0.62 — the model's own gallery comes in its finish, at the reveal: his stands alone till then)   // ── build 46 ── (the crews' חיל rises with his parts; build 47: the gatehouses)
     toast(r.rating, at, r.opened);
     o.emit && o.emit('h42grade', { part, rating: r.rating, q, L, fam });
     return r.rating;
@@ -5155,7 +5156,7 @@ export function createHar42(o = {}) {
     if (STG === 'lishka' && R.part > 0) { try { if (stages.setStage) stages.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ } }   // ── build 50 ── (the chambers stand — the crews built them, and no saw or chisel in the courts: "ומקבות והגרזן כל כלי ברזל לא נשמע בבית", מלכים א ו, ז; his works are not drawn in them till he does them)
     if (STG === 'gates') hole46(true, [PL.gate.x - 10, PL.gate.x + 10, PL.gate.z - 4, PL.gate.z + 1.8], 80, PL.gate.y + 0.2);   // ── build 47 ── (the gatehouse's scaffold not drawn in front of his gate)
     if (STG === 'gates') { try { if (stages.setStage) stages.setStage('gates', 'building', Math.max(0.04, Math.min(0.92, (R.part - 1) / (PARTS.length - 1))), { instant: true }); } catch (e) { /* */ } }   // ── build 47 ──
-    if (STG === 'soreg') { const x0 = PL.soreg.x - 2 * (PAN46.w + 0.06) - PAN46.w / 2 - 0.25, x1 = PL.soreg.x + PAN46.w / 2 + 0.25; hole46(true, [x0, x1, PL.soreg.z - 0.9, PL.soreg.z + 0.9]); try { if (stages.setStage) stages.setStage('sorag', 'building', Math.max(0.04, Math.min(0.92, (R.part - 1) / (PARTS.length - 1))), { instant: true }); } catch (e) { /* */ } }   // ── build 46 ──
+    if (STG === 'soreg') { const x0 = PL.soreg.x - 2 * (PAN46.w + 0.06) - PAN46.w / 2 - 0.25, x1 = PL.soreg.x + PAN46.w / 2 + 0.25; hole46(true, [x0, x1, PL.soreg.z - 0.9, PL.soreg.z + 0.9]); try { if (stages.setStage) stages.setStage('sorag', 'building', Math.max(0.04, Math.min(0.92, ON73 ? n63() / (PARTS.length - 2) : (R.part - 1) / (PARTS.length - 1))), { instant: true }); /* ── build 73 ── (by the works done) */ } catch (e) { /* */ } }   // ── build 46 ──
     if (STG === 'wall') { R.hole = H45(); hole45(true, R.hole); if (came > 0 || qs('h45wet') === '1') wetMorning(); try { const pw = Math.max(ON63 ? n63() / (PARTS.length - 2) : Math.max(0, (R.part - 1) / (PARTS.length - 2)), built61(W61, 'wall')); st.wp61 = pw; if (stages.setStage) stages.setStage('wall', 'building', pw, { instant: true }); } catch (e) { /* */ } }   // ── build 45 ── (the wall's own model as far as it is built)
     if (ON62) {   // ── build 62 ── (a stage 01 begun before: its part by name; the Mount and the sectors as they stand; no working bay)
       if (R.part > 0 && !R.v62) { const nm = PARTS42[R.part], j = PARTS62.indexOf(nm); R.part = j >= 0 ? j : 0; } R.v62 = 1;
@@ -5169,7 +5170,7 @@ export function createHar42(o = {}) {
     if (STG === 'ulam') world60(PARTS60[R.part] || 'open');   // ── build 60 ── (the world's Ulam as far as he has come)
     matChip(); save42(S);
     // where he stands at the start: by the first peg (a new stage) or at his part
-    try { const a61 = MODE === 'stage' && R.part > 1 && (STG === 'wall' || ON62) ? at61(W61, STG) : ON63 && STG === 'wall' && R.part <= 1 && !R.open && !qs('h42at') ? on63(at61(W61, 'har')) : null, p = a61 || (R.part <= 1 ? PL.peg0 : standOf(PARTS[R.part]) || PL.peg0);   // ── build 63 ── (stage 02 begun: he stands where stage 01 left him — the wall's plan rises, and he goes to it)
+    try { const a61 = MODE === 'stage' && R.part > 1 && (STG === 'wall' || ON62 || ON73) ? at61(W61, STG) : ON63 && STG === 'wall' && R.part <= 1 && !R.open && !qs('h42at') ? on63(at61(W61, 'har')) : null, p = a61 || (R.part <= 1 ? PL.peg0 : standOf(PARTS[R.part]) || PL.peg0);   // ── build 63 ── (stage 02 begun: he stands where stage 01 left him — the wall's plan rises, and he goes to it)
       stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); } catch (e) { /* */ }   // ── build 61 ── (stage 02: back where he stood — world61)
     // (a new stage: the flyover in full; back to it: the flyover's 3 s, then his part)
     const go = () => { if (st.voyNow) { st.voyNow = 0; startPart(R.part); return; } if (ON63 && R.site63 && R.part > 0) { st.resumeAt = 'site'; st.part = 'open'; PART.open.begin(); return; } if (R.part > 0 && R.part < PARTS.indexOf('reveal')) { st.resumeAt = R.part; st.part = 'open'; PART.open.begin(); } else startPart(R.part); };

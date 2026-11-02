@@ -16,7 +16,7 @@ const ROCKS = [{ x: -42, z: -26 }, { x: -42, z: -66 }, { x: -42, z: 14 }];
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 65: GAME_BUILD 65; the sectors at work — his rocks while they stand, the crews\' sectors between their start and their end, never more than four; none left: the first rock\'s, waiting', () => {
-  assert.equal(GAME_BUILD, 72);
+  assert.equal(GAME_BUILD, 73);
   const none = () => false;
   const a0 = active65(SECT62, MOUNT62.open, none, crewSec62);
   assert.deepEqual(a0.map((a) => a.rock), [0, 1, 2], 'at the opening: his three rocks, no crew sector yet');
@@ -54,7 +54,7 @@ test('build 65 crews.js: setFront (the stands, the rubble\'s way, the foreman, t
 });
 
 test('build 65 har42: wired — ON65; the front from the sectors every 0.6 s and at the start; four crews on the Mount, three at the wall; no stage-made crews at the sectors, behind the thing, or at the hammer; the hammer\'s beat to the crews', () => {
-  assert.match(H, /const ON65 = MODE === 'stage' && \(ON62 \|\| STG === 'wall'\) && qs\('h65'\) !== '0';/);
+  assert.match(H, /const ON65 = MODE === 'stage' && \(ON62 \|\| STG === 'wall'( \|\| ON73)?\) && qs\('h65'\) !== '0';/);
   assert.match(H, /import \{ CREW65, front65, beatU65 \} from '\.\/crew65\.js';/);
   assert.match(H, /function front65Sync\(\) \{/); assert.match(H, /F = front65\(SECT62, PL\.rock, p, past63, crewSec62\);/); assert.match(H, /st\.front65 = F; C\.setFront\('har', F, CREW65\.crews\);/);
   assert.match(H, /sectDrape62\(\); front65Sync\(\); \}/);

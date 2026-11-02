@@ -774,7 +774,7 @@ export function createHar42(o = {}) {
       for (const [dx, dz] of [[-0.8, -0.32], [-0.8, 0.32], [0.8, -0.32], [0.8, 0.32]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.95, 7), OX); leg.position.set(5.6 + dx, 0.47, z + dz); g.add(leg); }
       const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.9, 5), DK); tail.position.set(6.8, 1.1, z); tail.rotation.z = 0.2; g.add(tail);
     }
-    for (const w of g.userData.wheels) { for (let i = 0; i < 4; i++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.9, 0.08), G.M.wood); sp.rotation.z = (i * Math.PI) / 4; w.add(sp); } const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.34, 8), DK); hub.rotation.x = Math.PI / 2; w.add(hub); }   // (the wheels spoked)
+    for (const w of g.userData.wheels) { for (let i = 0; i < 4; i++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.9, 0.32), G.M.cap); sp.rotation.z = (i * Math.PI) / 4; w.add(sp); } const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.34, 8), DK); hub.rotation.x = Math.PI / 2; w.add(hub); }   // (the wheels spoked)
     return g;
   }
   function heap53(n = 7, seed = 1) {

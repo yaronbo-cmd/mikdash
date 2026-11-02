@@ -522,12 +522,12 @@ export function wallStones45(o = {}) {
   if (W45 && W45.parent) W45.parent.remove(W45); W45 = null;
   if (!sc || !list.length) return null;
   const mk = (c, r) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 });
-  const ST = mk('#FFF7E6', 0.8), BS = mk('#F1E4C6', 0.95), HB = mk('#F1E4C6', 0.95), GOLD = new THREE.Color('#E8B84A'), W0 = new THREE.Color('#4A3D2A');
-  try { const r = TX.texRock(91, 256); for (const [m, k] of [[ST, 0.45], [BS, 1.5], [HB, 1.5]]) { if (m !== ST) m.map = r.map; m.normalMap = r.normalMap; m.normalScale = new THREE.Vector2(k, k); m.emissive = W0.clone(); m.emissiveIntensity = 0.55; } } catch (e) { /* the plain colours */ }
+  const ST = mk('#D3C3A0', 0.9), BS = mk('#E9DDC0', 0.95), HB = mk('#E9DDC0', 0.95), GOLD = new THREE.Color('#E8B84A'), W0 = new THREE.Color('#2A2218');   // ── build 67 ── (the ashlar's look: as har42's STONE/BOSS)
+  try { const r = TX.texRock(91, 256); for (const [m, k] of [[ST, 0.45], [BS, 0.5], [HB, 0.5]]) { m.normalMap = r.normalMap; m.normalScale = new THREE.Vector2(k, k); m.emissive = W0.clone(); m.emissiveIntensity = 0.55; } } catch (e) { /* the plain colours */ }
   const g = new THREE.Group(); g.name = 'wall45'; let glow = 0, shownAt = -1e9, probe = null;
   for (const [w, h, d, x, y, z, his] of list) {
     const a = new THREE.Group(); a.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), ST));
-    const m = Math.min(0.26, Math.min(w, h) * 0.12), bd = Math.min(0.16, d * 0.08);
+    const m = Math.min(0.2, Math.min(w, h) * 0.1), bd = Math.min(0.1, d * 0.05);   // ── build 67 ──
     for (const sz of [1, -1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.1, w - 2 * m), Math.max(0.1, h - 2 * m), bd), his ? HB : BS); b.position.z = sz * (d / 2 + bd / 2); a.add(b); if (his && !probe) probe = b; }
     a.position.set(x, y, z); a.userData.his = his ? 1 : 0; g.add(a);
   }
@@ -560,6 +560,7 @@ export function createHar42(o = {}) {
   const PARTS = ON62 ? PARTS62 : parts0();
   // ── build 63 ── (§4) stage 01 (the new one) and stage 02: the works open side by side, chosen on the site; a result shot after each (?h63=0 — one after another)
   const ON63 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h63') !== '0' && !!DEP63[STG];
+  const ON67 = MODE === 'stage' && qs('h67') !== '0';   // ── build 67 ── (the works by day, the rock in chunks, the corner's wall; ?h67=0 as before)
   const ON66 = MODE === 'stage' && qs('h66') !== '0' && !globalThis.__SH_NOHERO35;   // ── build 66 ── (Phase B's kohen for Phase A; ?h66=0 the built figure)
   const ON65 = MODE === 'stage' && (ON62 || STG === 'wall') && qs('h65') !== '0';   // ── build 65 ── (crews.js's people at the work, not the stage's own figures; ?h65=0 the build-64 ones)
   const crews65 = () => { try { return o.crews || (globalThis.__T && globalThis.__T.crews) || null; } catch (e) { return null; } };
@@ -693,7 +694,7 @@ export function createHar42(o = {}) {
 
   /* ── the scene's props (simple shapes; המחשה) ── */
   const mat = (c, r = 0.85) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 });
-  const STONE = mat('#FFF7E6', 0.8), BOSS = mat('#F1E4C6', 0.95), ROCK = mat('#C9BA9C', 0.95), WOOD = mat('#B98B5C', 0.9), BED = mat('#A99A7E', 0.95);   // (light: the procedural maps multiply them — Jerusalem stone, not brown)
+  const STONE = mat('#D3C3A0', 0.9), BOSS = mat('#E9DDC0', 0.95), ROCK = mat('#DACBAE', 0.95), WOOD = mat('#B98B5C', 0.9), BED = mat('#A99A7E', 0.95);   // (light: the procedural maps multiply them — Jerusalem stone, not brown) ── build 67 ── (the rock lighter too: the map darkens it) (the ashlar: a warm limestone margin, the boss a shade lighter and flat — not a white frame round a dark core)
   let texOn = false;
   /** ── build 43 ── the props' look (the coordinator: "rocks as real rocks, ashlars with Herodian drafted margins and a raised boss, the
    *  treadwheel a real wooden wheel, wooden wedges, paving slabs with joints" — procedural, within the size budget) */
@@ -701,15 +702,15 @@ export function createHar42(o = {}) {
     if (texOn || !doc) return; texOn = true;
     try {
       const r = TX.texRock(91, 256), w = TX.texWood(61, 128), n2 = (a) => new THREE.Vector2(a, a);
-      for (const [m, k] of [[STONE, 0.45], [BOSS, 1.5], [ROCK, 1.7], [BED, 0.8]]) { if (m !== STONE) m.map = r.map; m.normalMap = r.normalMap; m.normalScale = n2(k); m.needsUpdate = true; }
-      for (const m of [STONE, BOSS]) { m.emissive = new THREE.Color('#4A3D2A'); m.emissiveIntensity = 0.55; }   // ── build 44 ── (the big faces read dark in the dusk: the margin's smooth face without the rock map's blotches, and a little of the stone's own warmth)
+      for (const [m, k] of [[STONE, 0.45], [BOSS, 0.5], [ROCK, 1.7], [BED, 0.8]]) { if (m !== STONE && m !== BOSS) m.map = r.map; m.normalMap = r.normalMap; m.normalScale = n2(k); m.needsUpdate = true; }   // ── build 67 ── (the boss: the fine grain only, no rock blotches)
+      for (const m of [STONE, BOSS]) { m.emissive = new THREE.Color('#2A2218'); m.emissiveIntensity = 0.25; }   // ── build 67 ── (the works by day now: a touch for the golden hour, not the dusk's lamp)   // ── build 44 ── (the big faces read dark in the dusk: the margin's smooth face without the rock map's blotches, and a little of the stone's own warmth)
       WOOD.map = w.map; WOOD.needsUpdate = true;
     } catch (e) { /* the plain colours */ }
   }
   /** an ashlar: the drafted margin (the body, smoother) and the raised boss on both long faces (as the Western Wall's stones) */
   function ashlar(w, h, d) {
     const g = new THREE.Group(); g.userData.dims = [w, h, d]; g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), STONE));
-    const m = Math.min(0.26, Math.min(w, h) * 0.12), bw = Math.max(0.1, w - 2 * m), bh = Math.max(0.1, h - 2 * m), bd = Math.min(0.16, d * 0.08);
+    const m = Math.min(0.2, Math.min(w, h) * 0.1), bw = Math.max(0.1, w - 2 * m), bh = Math.max(0.1, h - 2 * m), bd = Math.min(0.1, d * 0.05);   // ── build 67 ── (a narrow drafted margin, a flat boss: the Herodian face)
     for (const sz of [1, -1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), BOSS); b.position.z = sz * (d / 2 + bd / 2); g.add(b); }
     return g;
   }
@@ -814,6 +815,23 @@ export function createHar42(o = {}) {
     }
     geo.computeVertexNormals(); return geo;
   }
+  // ── build 67 ── the rock split (the owner, 1.11: "לחוץ על נקודות ואז עובר זרם שחור בתוך הסלע… לא קשור לעולם"; "הסלע מתבקע במקום; הגושים עולים
+  // לעגלה" — spec §5): a rock read to its end parts into four chunks lying where it stood (its mesh gone), and the hammer's crews break
+  // the chunks down (mkHammer) as the sector's ground comes down. chunks67(i): the chunks of rock i, made once; burst: the dust of the split
+  function chunks67(i, burst) {
+    const rk = st.props.rocks && st.props.rocks[i], R = PL.rock[i]; if (!ON67 || !rk || !R || !st.props.root) return null;
+    const all = st.props.chunks67 || (st.props.chunks67 = {}); if (all[i]) return all[i];
+    rk.visible = false; const ch = [];
+    for (let k = 0; k < 4; k++) {
+      const m = new THREE.Mesh(rockGeo(1.05 + (k % 2) * 0.25, i * 7 + k + 11), ROCK), ang = -0.4 + k * 1.1, rr = 1.3 + (k % 2) * 0.5;
+      m.position.set(R.x - 1.6 + k * 1.1 + Math.cos(ang) * 0.4, R.y + 0.72, R.z + Math.sin(ang) * rr); m.rotation.set(k * 0.7, k * 1.9, k * 0.3); m.scale.y = 0.72;
+      st.props.root.add(m); ch.push(m);
+    }
+    all[i] = ch;
+    if (burst) { try { stages.dustBurst && stages.dustBurst(R.x, R.y + 1, R.z, 18, 5, 5, 2); stages.sparkBurst && stages.sparkBurst(R.x, R.y + 1.4, R.z, 6, 3, 5); } catch (e) { /* */ } }
+    return ch;
+  }
+  // ── /build 67 ──
   function props() {
     const sc = scene(); if (!sc || st.props.root) return;
     textures();
@@ -3088,6 +3106,9 @@ export function createHar42(o = {}) {
     // still to go, in tefachim (6 to the amah) ── /build 53 ──
     const fp = (() => { try { const b = new THREE.Box3().setFromObject(s0), w = b.max.x - b.min.x, d = b.max.z - b.min.z; return Number.isFinite(w) && w > 0 ? { w, d } : { w: 4.2, d: 2 }; } catch (e) { return { w: 4.2, d: 2 }; } })();
     const more = el('h42-more', ''); more.hidden = true; st.ui.root.appendChild(more);
+    // ── build 67 ── (the owner, 1.11: "תזוזת האבן ימינה ושמאלה ל'מקומה' היא סתמית… באמצע שומקום") the corner is a corner: the crews' first course
+    // runs west and north from the stone's place (the retaining wall's two faces), his stone the one that closes it ── /build 67 ──
+    if (ON67 && STG === 'har' && st.props.root && !st.props.cornerWall67) { const g = new THREE.Group(); st.props.cornerWall67 = g; st.props.root.add(g); for (let k = 0; k < 3; k++) { const ax = S0.x - fp.w / 2 - 1.3 - k * 2.5, a = ashlar(2.4, 1.8, 2); a.position.set(ax, gy(ax, S0.z) + 0.9, S0.z); g.add(a); const bz = S0.z - fp.d / 2 - 1.3 - k * 2.5, bx = S0.x + fp.w / 2 - 1, b = ashlar(2.4, 1.8, 2); b.rotation.y = Math.PI / 2; b.position.set(bx, gy(bx, bz) + 0.9, bz); g.add(b); } }
     const ghost53 = () => { const y = y1 - 0.88, c4 = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => proj(S0.x + (a * fp.w) / 2, y, S0.z + (b * fp.d) / 2)); return c4.every(Boolean) ? c4 : null; };
     const axis = () => { const a = proj(S0.x + cx, y1, S0.z), b = proj(S0.x + cx + 1, y1, S0.z); if (!a || !b) return null; const n = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { x: a.x, y: a.y, ux: (b.x - a.x) / n, uy: (b.y - a.y) / n, ppm: n }; };
     line(label, `רמה ${L}`);
@@ -4114,11 +4135,15 @@ export function createHar42(o = {}) {
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 8), new THREE.MeshBasicMaterial({ color: '#FFF1C4' }));
     beam.visible = lamp.visible = false; beam.renderOrder = 6; if (st.props.root) st.props.root.add(beam, lamp);
     const UP = new THREE.Vector3(0, 1, 0), dir = new THREE.Vector3();
+    // ── build 67 ── a tapped wedge is an iron wedge standing in the rock's top along the line (where the overlay's mark was); gone with the split
+    const W67 = []; const wedgeAt = (t) => { if (!ON67 || !st.props.root) return; const g = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.75, 5), mat('#4A4A50', 0.5)); g.rotation.x = Math.PI; g.position.set(C.x - 2.8 + 5.6 * t, C.y + 1.45, C.z); st.props.root.add(g); W67.push(g); };
+    const wedgesOff = () => { W67.forEach((g) => { if (g.parent) g.parent.remove(g); }); W67.length = 0; };
+    // ── /build 67 ──
     const beamAt = (u) => { const lx = C.x - 2.8 + 5.6 * u, A = new THREE.Vector3(lx - 0.6, C.y - 0.7, C.z + 4.2), B = new THREE.Vector3(lx, C.y + 0.1, C.z + 0.9); dir.subVectors(A, B); const L2 = dir.length() || 1; beam.scale.set(1, L2, 1); beam.position.copy(A).add(B).multiplyScalar(0.5); beam.quaternion.setFromUnitVectors(UP, dir.normalize()); lamp.position.copy(A); beam.visible = lamp.visible = true; };
     return {
       acting: true, J, kind: 'rock', box, beam: () => beam.visible,
       lines: () => { const B = box(); return B ? J.rock.lines.filter((l) => J.state().seen[l.id]).map((l) => ({ id: l.id, ...seg(l, B) })) : []; },   // ── build 62 ── (the tools read the lines seen on the screen — tools/auto42.js)
-      end() { try { beam.parent && beam.parent.remove(beam); lamp.parent && lamp.parent.remove(lamp); beam.geometry.dispose(); lamp.geometry.dispose(); } catch (e) { /* */ } },
+      end() { wedgesOff(); try { beam.parent && beam.parent.remove(beam); lamp.parent && lamp.parent.remove(lamp); beam.geometry.dispose(); lamp.geometry.dispose(); } catch (e) { /* */ } },
       // ── build 53 ── (§2 stage 01: "the rock is small" — ש4's macro) the rock VIEW53.rock of the width, from its south and a little above —
       // across the line the light sweeps (the overlay's box is the rock's east–west); he stands off its east end, out of the frame ── /build 53 ──
       view(h) { const c = camera(), tanV = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), tanH = tanV * (W() / H()), D = 5.6 / (2 * VIEW53.rock * tanH), sx = h && h.x > C.x ? -1 : 1; return { p: [C.x + sx * 4.5, C.y + 0.6 + D * 0.3, C.z + D], t: [C.x + sx * 0.6, C.y - 0.1, C.z] }; },   // (4.5 to the side away from him: at 0.8 and 2.6 his near figure stood huge, cut, at the frame's edge — the AFTER pages' 'big' at the rocks) lines: () => { const B = box(); return B ? J.rock.lines.filter((l) => J.state().seen[l.id]).map((l) => ({ id: l.id, ...seg(l, B) })) : []; },
@@ -4132,7 +4157,7 @@ export function createHar42(o = {}) {
           let best = null, bd = J.state().L <= 1 ? Math.max(B.w, B.h) : 26;   // (level 1: a tap anywhere on the rock goes to the line — and to its nearest free mark)
           for (const l of J.rock.lines) { if (!J.state().seen[l.id]) continue; const s = seg(l, B), vx = s.x1 - s.x0, vy = s.y1 - s.y0, t = Math.max(0, Math.min(1, ((a.x - s.x0) * vx + (a.y - s.y0) * vy) / (vx * vx + vy * vy))), d = Math.hypot(a.x - (s.x0 + vx * t), a.y - (s.y0 + vy * t)); if (d < bd) { bd = d; best = { id: l.id, t }; } }
           if (best && J.state().L <= 1) { const ws = J.state().wedges, free = [0.2, 0.4, 0.6, 0.8].filter((m) => !ws.some((w) => Math.abs(w - m) < 0.04)); if (free.length) best.t = free.reduce((p, m) => (Math.abs(m - best.t) < Math.abs(p - best.t) ? m : p), free[0]); }   // (level 1: a tap lands on the nearest free marked place — the marks teach the even spacing)
-          if (best) { const r = J.wedge(best.id, best.t); if (r === 'ok') buzz42('mallet'); }
+          if (best) { const r = J.wedge(best.id, best.t); if (r === 'ok') { buzz42('mallet'); wedgeAt(best.t); } }   // ── build 67 ── (the wedge in the rock)
         }
       },
       frame(dt) {
@@ -4150,7 +4175,7 @@ export function createHar42(o = {}) {
         }
         const seen = Object.keys(s.seen).length;
         line(!seen ? LINE42.sweep : s.wedges.length < F.INSPECT42.minWedges ? LINE42.wedge : LINE42.pour, i === 2 ? LINE42.two : `סלע ${i + 1} מתוך 3 · רמה ${J.state().L}`);
-        if (s.done) { const q = proj(C.x, C.y, C.z); grade(`rock${i}`, s.q, q); buzz42('heavy'); if (st.props.rocks && st.props.rocks[i]) st.props.rocks[i].scale.set(1.3, 0.35, 1); svgClear(); return true; }
+        if (s.done) { const q = proj(C.x, C.y, C.z); grade(`rock${i}`, s.q, q); buzz42('heavy'); if (ON67) { wedgesOff(); chunks67(i, true); o.sound && o.sound('crack'); } else if (st.props.rocks && st.props.rocks[i]) st.props.rocks[i].scale.set(1.3, 0.35, 1); svgClear(); return true; }   // ── build 67 ── (the split: the rock parts into chunks)
         return false;
       },
     };
@@ -4619,7 +4644,7 @@ export function createHar42(o = {}) {
     const P0 = { x: S2.x - 2, z: S2.z - 2 }, hewers = [];
     line(LINE62.hammer, `רמה ${L}`);
     if (st.props.root && !ON65) for (let w = 0; w < 3; w++) { const m = worker53(30 + w), x = S2.x - 8 + w * 5, z = S2.z - 5 - (w % 2) * 1.5; m.position.set(x, gy(x, z), z); m.rotation.y = Math.PI; st.props.root.add(m); hewers.push(m); }   // ── build 65 ── (the hewers are crews.js's diggers at the rock, on the act's beat)
-    const rock = st.props.rocks && st.props.rocks[n];
+    const rock = st.props.rocks && st.props.rocks[n], chunks = ON67 ? chunks67(n, false) : null;   // ── build 67 ── (the split rock's chunks: the hammer breaks them down)
     st.hk62 = { i, k: k0 };
     let fx = 0, said = '', swing = 0;
     const strikeAt = () => ({ x: P0.x, y: gy(P0.x, P0.z) + 0.6, z: P0.z });
@@ -4646,7 +4671,8 @@ export function createHar42(o = {}) {
         const ph = s.phase, lift = s.t < 0 ? 0 : Math.cos(ph * Math.PI * 2);   // (their arms up between strokes, down on the beat)
         if (ON65) { const C = crews65(); if (C && C.beat) C.beat('har', s.beat, beatU65(ph)); }   // ── build 65 ── (crews.js's diggers strike on the act's beat)
         hewers.forEach((m, w) => { const x = m.position.x, z = m.position.z; m.position.y = gy(x, z); const a = -1.6 + 1.3 * (1 - lift) * 0.5 - (swing > 0 ? 0.6 : 0); m.userData.arms.forEach((arm) => { arm.rotation.x = a - w * 0.05; }); });
-        if (rock) { const sc = Math.max(0.05, 1 - s.k * 1.4); rock.scale.set(1.3 * sc + 0.2, 0.35 * sc, 1 * sc + 0.2); rock.visible = s.k < 0.7; }
+        if (chunks) { const sc = Math.max(0.05, 1 - s.k * 1.4); chunks.forEach((m, j) => { m.scale.set(sc, 0.72 * sc, sc); m.visible = s.k < 0.7 - j * 0.07; }); if (rock) rock.visible = false; }   // ── build 67 ── (chunk after chunk, the last first to go)
+        else if (rock) { const sc = Math.max(0.05, 1 - s.k * 1.4); rock.scale.set(1.3 * sc + 0.2, 0.35 * sc, 1 * sc + 0.2); rock.visible = s.k < 0.7; }
         objPlace(true, [{ x: c.x, y: c.y + 0.6, z: c.z, r: 3 }], 'h62hammer');
         // the beat's ring: closing on the strike's place as the crew's stroke comes; gold when a tap now is on it
         svgClear(); const q = proj(c.x, c.y + 0.6, c.z);
@@ -4816,6 +4842,7 @@ export function createHar42(o = {}) {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); mig63(); ui(); props();
     hero66();   // ── build 66 ──
+    if (ON67 && (STG === 'har' || STG === 'wall')) { try { if (o.timeOfDay) o.timeOfDay('noon'); } catch (e) { /* */ } }   // ── build 67 ── (the works by day — the owner, 1.11: "מה זו התאורה הזו?"; the reveal's golden hour stays its own)
     if (ON65) { st.front65 = null; front65Sync(); if (STG === 'wall') { const C = crews65(); if (C && C.setFront) C.setFront('wall', null, CREW65.wall); } }   // ── build 65 ── (crews.js's people at the work from the first frame)
     st.cam64 = R.cam64 && typeof R.cam64 === 'object' ? orbit64(+R.cam64.az || FOLLOW.az, +R.cam64.el || FOLLOW.el, +R.cam64.d || FOLLOW.d) : orbit64(FOLLOW.az, FOLLOW.el, FOLLOW.d); st.turned64 = !!R.cam64; st.act64 = null; st.two64 = null; st.pinch64 = null;   // ── build 64 ── (the orbit where his thumb left it last time, else the follow's own pose)
     if (STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.setLife) stages.setLife(false); } catch (e) { /* */ } }
@@ -4843,7 +4870,7 @@ export function createHar42(o = {}) {
       try { if (stages.noBay62) stages.noBay62(true); } catch (e) { /* */ }
       const at0 = qs('h42at'); if (at0 && PARTS62.includes(at0)) R.part = PARTS62.indexOf(at0);
       world62(Math.max(ON63 ? mBefore62() : mountBefore62(PARTS62[R.part] || 'open'), built61(W61, 'har')), true);
-      if (st.props.rocks) st.props.rocks.forEach((m, n) => { if (built61(W61, K62(n, 'r')) > 0.5) m.scale.set(1.3, 0.35, 1); if (built61(W61, K62(sectorOf62(`rock${n}`), 'k')) > 0.7) m.visible = false; });
+      if (st.props.rocks) st.props.rocks.forEach((m, n) => { const kk = built61(W61, K62(sectorOf62(`rock${n}`), 'k')); if (built61(W61, K62(n, 'r')) > 0.5) { if (ON67) { const ch = chunks67(n, false); if (ch && kk > 0.7) ch.forEach((c) => { c.visible = false; }); } else m.scale.set(1.3, 0.35, 1); } if (kk > 0.7) m.visible = false; });   // ── build 67 ── (a rock read: its chunks; its sector down: nothing)
     }
     if (qs('h42stock') != null) S.mat.stock = +qs('h42stock') | 0;
     const at = qs('h42at'); if (at && PARTS.includes(at)) R.part = PARTS.indexOf(at);
@@ -4875,6 +4902,7 @@ export function createHar42(o = {}) {
   }
   const api = {
     start, stop, frame, get on() { return st.on; },
+    get day67() { return ON67 && st.on && (STG === 'har' || STG === 'wall') && st.part !== 'reveal' && st.part !== 'done' && st.part !== 'out' ? 'noon' : null; }, on67: ON67,   // ── build 67 ── (index.js's clock: the works by day; null — leave the light as the stage set it)
     state: () => ({ t55: R.t55 || null, mode: MODE, stg: STG, test: (o.test === 60 ? S.test60 : o.test === 50 ? S.test50 : S.test44) || null, test50: o.test === 50, test60: o.test === 60, yard: S.yard || null, rev: st.rev ? Math.round(st.rev.t * 10) / 10 : null, part: st.part, idx: R.part, job: !!st.job, pending: !!st.pending, hold: !!st.hold, finger: st.finger, mat: S.mat.stock | 0, grades: R.grades.slice(), hands: Math.round(R.hands), card: !!st.card, fam: Object.fromEntries(F.FAM42.map((f) => [f, famL(f)])) }),
     sig: () => `${MODE}|${st.part}|${R.part}|${R.grades.length}|${st.card ? 'card' : ''}|${st.job && st.job.frame ? 'job' : ''}|${S.test44 ? JSON.stringify(Object.values(S.test44.jobs || {}).map((r) => [r.tries, r.passed, r.demo])) : ''}`,
     line: () => (st.ui.line ? st.ui.line.textContent : ''),

@@ -2702,7 +2702,14 @@ export function createStages(ctx) {
       }
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
-      wmBody.compose(wv, wq, ONE); wBody.setMatrixAt(i, wmBody);
+      wmBody.compose(wv, wq, ONE);
+      // ── build 71 ── (a real figure stands for him — crew71.js: what he does, where and when, read here; his instanced body not drawn, the stone he carries still)
+      w.x71 = w.x + ox; w.z71 = w.z + oz; w.y71 = w.y; w.u71 = (w.role === 'mason' || w.role === 'dig') ? ((((w.ph / 6.2832) - 0.25 + 0.66) % 1) + 1) % 1 : null; w.moving71 = w.role === 'carry' ? !(w.wait > 0) : w.role === 'tread' ? !!(crane && crane.walking) : false; w.stone71 = stone; w.field71 = !!(st && FIELD.has(st.id));
+      if (w.lod71) {
+        if (stone) { wmT.makeTranslation(-0.3, 3.16, 0.05); wmR.makeRotationZ(0.12); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR); wStone.setMatrixAt(ns, tmpM); wStone.setColorAt(ns, tmpC0.set(STONE[st.def.stone] || STONE.ash)); ns++; }
+        tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue;
+      }
+      wBody.setMatrixAt(i, wmBody);
       wmT.makeTranslation(-0.44, 2.72, 0); wmR.makeRotationX(arm); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR);
       // ── site13 ── a hammer only for a mason or a digger away from the altar; bare hands for the rest (N76 c)
       if ((w.role === 'mason' || w.role === 'dig') && !(st && FIELD.has(st.id))) { wArm.setMatrixAt(na, tmpM); wArm.setColorAt(na, WPAL[i % WPAL.length]); na++; }
@@ -8783,6 +8790,7 @@ export function createStages(ctx) {
   let bayOff62 = false;
 
   const api = {
+    workers71: () => ({ W, n: nWork, on: wBody.visible !== false && wBody.parent != null, pal: WPAL }),   // ── build 71 ── (crew71.js: the site workers, for their real figures)
     ids: STAGE_IDS.slice(),
     setSectors62, sectors62: secInfo62, noBay62: (on) => { bayOff62 = !!on; },   // ── build 62 ──
     setStage, setBoulders, hitBoulder,

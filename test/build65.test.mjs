@@ -16,7 +16,7 @@ const ROCKS = [{ x: -42, z: -26 }, { x: -42, z: -66 }, { x: -42, z: 14 }];
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 65: GAME_BUILD 65; the sectors at work — his rocks while they stand, the crews\' sectors between their start and their end, never more than four; none left: the first rock\'s, waiting', () => {
-  assert.equal(GAME_BUILD, 70);
+  assert.equal(GAME_BUILD, 71);
   const none = () => false;
   const a0 = active65(SECT62, MOUNT62.open, none, crewSec62);
   assert.deepEqual(a0.map((a) => a.rock), [0, 1, 2], 'at the opening: his three rocks, no crew sector yet');

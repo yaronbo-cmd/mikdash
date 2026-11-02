@@ -15,7 +15,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 64: GAME_BUILD 64; the orbit kept in range — the horizon and the top view its ends, never nearer than dMin nor farther than dMax', () => {
-  assert.equal(GAME_BUILD, 70);
+  assert.equal(GAME_BUILD, 71);
   const o = orbit64(4, 3, 1000); assert.ok(near(o.az, 4 - 2 * Math.PI)); assert.equal(o.el, CAM64.elMax); assert.equal(o.d, CAM64.dMax);
   const q = orbit64(-4, -1, 0); assert.ok(near(q.az, -4 + 2 * Math.PI)); assert.equal(q.el, CAM64.elMin); assert.equal(q.d, CAM64.dMin);
   assert.ok(near(wrap64(3 * Math.PI), Math.PI) || near(wrap64(3 * Math.PI), -Math.PI));

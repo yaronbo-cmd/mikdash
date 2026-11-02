@@ -688,6 +688,7 @@ export function createActors(ctx) {
       B[0] = a.arm[0]; B[1] = a.arm[1]; B[2] = a.arm[2]; B[3] = a.arm[3];
       C[0] = a.hy; C[1] = a.hp; C[2] = a.shade; C[3] = a.sway;
       const sc = a.s * (a.vis < 1 ? Math.max(0.001, a.vis) : 1);
+      if (a.lod71) { if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw); continue; }   // ── build 71 ── (a real figure stands for him — crew71.js: his blob shadow only)
       rigWrite(K.m, K.n++, a.x, a.y + Math.abs(Math.cos(a.ph)) * 0.06 * a.wk, a.z, a.yaw, sc, a.col, A, B, C, a.col2);
       if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw);
       // the held item

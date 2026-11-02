@@ -39,6 +39,7 @@ games.bindHost({ game: () => game, pause: (on) => pauseWorld(on), world: () => (
 // ── /games10 ──
 import { createSanctuary } from './sanctuary.js';   // ── sanctuary ──
 import { createCrews } from './crews.js';   // ── crews ──
+import { createCrew71 } from './crew71.js';   // ── build 71 ──
 import { createCrowd } from './crowd.js';   // ── crowd ──
 // ── build8 ── (FLOW8B, wave 8B) true facts in rotation: FACTS8B's content/facts.json (on a lone branch build.mjs stubs it as
 // []: the game's own verified texts stand in). The loading screen shows one the save has not seen: a new one on every open.
@@ -718,6 +719,8 @@ async function boot() {
     life.addUpdater(crews.update);
     Object.assign(stages, { setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
     window.__T.crews = crews;
+    // ── build 71 ── the crews near the camera as real people (crew71.js: the kohen's rigged body, in the crew's tunic, cloth and belt); ?h71=0 off
+    try { if (new URLSearchParams(location.search).get('h71') !== '0') { const c71 = createCrew71({ scene, camera, crews, stages }); life.addUpdater(c71.update); window.__T.crew71 = c71; } } catch (e) { console.warn('[crew71]', e); }
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;
     // ── site16 ── the life layer and the tap card (crews.lifeCount / lifeList / pickPerson)

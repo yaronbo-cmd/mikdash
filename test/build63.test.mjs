@@ -16,7 +16,7 @@ const H = read('src/game/har42.js'), A = read('tools/auto42.js');
 const WORKS = (parts) => parts.filter((p) => p !== 'open' && p !== 'reveal');
 
 test('build 63: GAME_BUILD 63; every work of stages 01 and 02 has its place in the order, and the old order is one way through it', () => {
-  assert.equal(GAME_BUILD, 70);
+  assert.equal(GAME_BUILD, 71);
   for (const [stg, parts] of [['har', PARTS62], ['wall', PARTS45]]) {
     assert.deepEqual(Object.keys(DEP63[stg]).sort(), WORKS(parts).sort(), stg);
     for (const [w, need] of Object.entries(DEP63[stg])) for (const q of need) assert.ok(parts.indexOf(q) < parts.indexOf(w), `${stg}: ${w} needs ${q}, which comes before it`);

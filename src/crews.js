@@ -1261,6 +1261,7 @@ export function createCrews(ctx = {}) {
     const tp = sites[w.site] && sites[w.site].tempo;   // ── build 65 ── (the stage's beat: every digger of the site on one period, in step)
     const per = tp && tp.per > 0 && role === 'digger' ? tp.per : fine ? w.per * 0.62 : role === 'digger' ? w.per * 1.25 : w.per;
     const u = tp && tp.per > 0 && role === 'digger' ? (((T - tp.t0) / per) % 1 + 1) % 1 : ((T + w.off) % per) / per;
+    w.u71 = u;   // ── build 71 ── (the stroke's phase, for his real figure's blow — crew71.js)
     let r, bow;
     const top = fine ? 2.0 : role === 'digger' ? 2.9 : R_TOP, hit = role === 'digger' ? 0.62 : w.rHit || R_HIT;
     const bh = w.bHit !== undefined && role === 'mason' ? w.bHit : 0.34;   // (── people6 ── a yard mason's solved blow)

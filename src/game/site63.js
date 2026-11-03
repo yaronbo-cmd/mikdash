@@ -43,6 +43,8 @@ export const DEP63 = Object.freeze({
   karnot: Object.freeze({ horns: [], holes: [], fire: ['horns', 'holes'] }),
   // ── build 82 ── stage 12 (spec §6 "12": יציקה, 12 דדים, הברגה, מוכני): the cast first; then the spigots and the wheel side by side; the screw after the spigots
   kiyor: Object.freeze({ cast: [], spigots: ['cast'], screw: ['spigots'], mukhni: ['cast'] }),
+  // ── build 83 ── stage 13 (spec §6 "13"): one after another as the façade rises — the waves' courses, the courses, the lintels, the fifth, the vine
+  ulam: Object.freeze({ waves: [], courses: ['waves'], lintels: ['courses'], fifth: ['lintels'], vine: ['fifth'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 

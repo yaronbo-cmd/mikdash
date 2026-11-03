@@ -584,7 +584,8 @@ export function createHar42(o = {}) {
   const ON80 = MODE === 'stage' && STG === 'guf' && qs('h80') !== '0';   // ── build 80 ── (stage in the building loop; ?h80=0 one after another as before)
   const ON81 = MODE === 'stage' && STG === 'karnot' && qs('h81') !== '0';   // ── build 81 ── (stage in the building loop; ?h81=0 one after another as before)
   const ON82 = MODE === 'stage' && STG === 'kiyor' && qs('h82') !== '0';   // ── build 82 ── (stage in the building loop; ?h82=0 one after another as before)
-  const ONL73 = ON73 || ON74 || ON75 || ON76 || ON77 || ON78 || ON79 || ON80 || ON81 || ON82;   // ── build 73 ── (the stages from 03 on brought into the loop, one build each)
+  const ON83 = MODE === 'stage' && STG === 'ulam' && qs('h83') !== '0';   // ── build 83 ── (stage in the building loop; ?h83=0 one after another as before)
+  const ONL73 = ON73 || ON74 || ON75 || ON76 || ON77 || ON78 || ON79 || ON80 || ON81 || ON82 || ON83;   // ── build 73 ── (the stages from 03 on brought into the loop, one build each)
   const ON63 = MODE === 'stage' && (ON62 || STG === 'wall' || ONL73) && qs('h63') !== '0' && !!DEP63[STG];
   const ON69 = MODE === 'stage' && STG === 'wall' && ON63 && qs('h69') !== '0' && qs('h68') !== '0';   // ── build 69 ── (the free play at the wall: after the stage's works, more courses through the station; ?h69=0 the stage ends as before)
   const ON68 = MODE === 'stage' && STG === 'wall' && qs('h68') !== '0';   // ── build 68 ── (the crane station: the stones lifted onto the real wall; ?h68=0 the pile of buttons as before)
@@ -2674,7 +2675,7 @@ export function createHar42(o = {}) {
     const M = mats60(), g = new THREE.Group(); add(g, 0, 0, 0); st.props.w60 = g;
     const z0 = U60.corner - U60.sl * U60.run, wD = 11.1;
     const pod = new THREE.Mesh(new THREE.BoxGeometry(wD, U60.base - 16, U60.corner - z0), masonry56(28, 6)); pod.position.set(U60.face - wD / 2, (16 + U60.base) / 2, (U60.corner + z0) / 2); g.add(pod);   // (the façade's foot up to the Ulam's floor — the twelve steps will hide it)
-    const done = R.part > PARTS60.indexOf('courses') ? 3 : R.part > PARTS60.indexOf('waves') ? 1 : 0;   // (back to a stage begun: his courses as laid — the crews' pattern)
+    const done = past63('courses') ? 3 : past63('waves') ? 1 : 0;   /* ── build 83 ── (by the works done) */   // (back to a stage begun: his courses as laid — the crews' pattern)
     for (let k = 0; k < U60.crews + done; k++) crew60(k, 0, false);
     // the scaffold's deck along the face, the pallet on it; posts down to the court
     const deck = new THREE.Group(), pl = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 31), M.wood); pl.position.set(0, -0.11, 0); deck.add(pl);
@@ -2809,7 +2810,7 @@ export function createHar42(o = {}) {
     const M = mats60(), g = new THREE.Group(); st.props.root.add(g); st.props.l60 = g; g.userData.set = [];
     for (const sz of [-1, 1]) { const tw = new THREE.Group(); for (const [dx, dz] of [[-1.2, -1.4], [1.2, -1.4], [-1.2, 1.4], [1.2, 1.4]]) { const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.26, 54, 0.26), M.wood); p2.position.set(dx, 27, dz); tw.add(p2); } for (let b = 0; b < 5; b++) { const pk = new THREE.Mesh(new THREE.BoxGeometry(3, 0.2, 3.4), M.wood); pk.position.set(0, seat60(b) - U60.lh / 2 - 22 - 0.2, 0); tw.add(pk); } tw.position.set(-69.6, 22, sz * 18.2); g.add(tw); }
     g.userData.crew = [-1, 1].map((sz, q) => { const w = worker53(q + 41); w.rotation.y = -Math.PI / 2 + sz * 0.5; g.add(w); w.userData.sz = sz; return w; });
-    const n0 = R.part > PARTS60.indexOf('lintels') ? 4 : 0; for (let b = 0; b < n0; b++) { const m = beam60(b, true); m.position.set(U60.lx, seat60(b), 0); g.add(m); g.userData.set.push(m); }
+    const n0 = past63('lintels') ? 4 : 0;   /* ── build 83 ── */ for (let b = 0; b < n0; b++) { const m = beam60(b, true); m.position.set(U60.lx, seat60(b), 0); g.add(m); g.userData.set.push(m); }
     return g;
   }
   let oak60 = null;
@@ -5177,7 +5178,7 @@ export function createHar42(o = {}) {
     }
     if (qs('h42stock') != null) S.mat.stock = +qs('h42stock') | 0;
     const at = qs('h42at'); if (at && PARTS.includes(at)) R.part = PARTS.indexOf(at);
-    if (STG === 'ulam') world60(PARTS60[R.part] || 'open');   // ── build 60 ── (the world's Ulam as far as he has come)
+    if (STG === 'ulam') world60(ON83 ? (PARTS60.find((q) => q !== 'open' && q !== 'reveal' && !past63(q)) || 'reveal') : PARTS60[R.part] || 'open');   /* ── build 83 ── (the first work not done) */   // ── build 60 ── (the world's Ulam as far as he has come)
     matChip(); save42(S);
     // where he stands at the start: by the first peg (a new stage) or at his part
     try { const a61 = MODE === 'stage' && R.part > 1 && (STG === 'wall' || ON62 || ONL73) ? at61(W61, STG) : ON63 && STG === 'wall' && R.part <= 1 && !R.open && !qs('h42at') ? on63(at61(W61, 'har')) : null, p = a61 || (R.part <= 1 ? PL.peg0 : standOf(PARTS[R.part]) || PL.peg0);   // ── build 63 ── (stage 02 begun: he stands where stage 01 left him — the wall's plan rises, and he goes to it)

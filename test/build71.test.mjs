@@ -16,7 +16,7 @@ const M = new Function(`${pure}; return { CREW71, pick71, clip71, strikeT71, tun
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 71: GAME_BUILD 71; the pick — the nearest within reach, ahead of the camera, at most n; those standing kept a little farther (no flicker at the edge)', () => {
-  assert.equal(GAME_BUILD, 82);
+  assert.equal(GAME_BUILD, 83);
   const { pick71, CREW71: C } = M, cam = { x: 0, y: 0, z: 0, fx: 0, fz: 1 };
   const c = Array.from({ length: 14 }, (_, i) => ({ id: i, x: 0, y: 0, z: 5 + i * 6 }));
   const s = pick71(c, cam, new Set()); assert.equal(s.size, Math.min(C.n, c.filter((p) => p.z <= C.near).length)); assert.ok(s.has(0) && s.has(1));

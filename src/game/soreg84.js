@@ -35,7 +35,7 @@ export const SOREG84 = Object.freeze({
   // must go in with the dressed face out; set down hard it breaks. The rope is a winch brake lever: where it is left, it pays out at that speed.
   damp85: Object.freeze([0.95, 0.16]), sway85: Object.freeze([0.3, 0.55]), tolZk: 0.8, tolR: Object.freeze([0.24, 0.09]),
   dampYaw: 0.45, dampYawHeld: 2.6, twist0: Object.freeze([0.25, 0.7]), twistPull: 0.12, windYaw: 0.35, spinK: 1.12, squareK: 2.2,
-  flipP: Object.freeze([0.5, 0.6, 0.7]), vBreakK: 1.75, vTol: 0.4, vTolR: 0.7, vDown: 2.6, vUp: 1.3, jamYaw: 0.5,
+  flipP: Object.freeze([0.5, 0.6, 0.7]), vBreakK: 1.75, vTol: 0.4, vTolR: 0.7, dampZHeld: 2.2, vDown: 2.6, vUp: 1.3, jamYaw: 0.5,
 });
 
 export const VALUE84 = Object.freeze({ mehudar: 1, kasher: 0.5, tikkun: 0 });
@@ -150,7 +150,7 @@ export function createHoist84(spec, c = SOREG84) {
       for (let q = 0; q < n; q++) {
         const tt = s.t + q * h, gx = spec.wind ? spec.wind * (Math.sin(tt * 0.9) * 0.7 + Math.sin(tt * 2.3 + 1) * 0.3) : 0, gz = spec.wind ? spec.wind * 0.6 * Math.sin(tt * 0.7 + 2) : 0;
         const ax = -(c.g / w) * s.x - damp * s.vx + clamp(px, -1, 1) * c.pullA + gx;
-        const az = -(c.g / w) * s.z - damp * s.vz + clamp(pz, -1, 1) * c.pullA + gz;
+        const az = -(c.g / w) * s.z - (held ? Math.max(damp, c.dampZHeld) : damp) * s.vz + clamp(pz, -1, 1) * c.pullA + gz;   // ── build 86 ── (his hand on the stone steadies its swing toward and away)
         const sqr = held || s.help ? -c.squareK * (s.r - Math.round(s.r / Math.PI) * Math.PI) : 0;   // (his hand on the line squares it to the nearer face: past a half-turn, the other one)
         const ar = -dr * s.vr + sqr + clamp(px, -1, 1) * c.twistPull + (spec.wind ? c.windYaw * spec.wind * Math.sin(tt * 0.5 + 0.7) : 0);
         s.vx += ax * h; s.x += s.vx * h; s.vz += az * h; s.z += s.vz * h; s.vr += ar * h; s.r += s.vr * h;
@@ -174,7 +174,7 @@ export function createHoist84(spec, c = SOREG84) {
     return s;
   }
   /** the crew's half-turn on the swivel: a spin that carries it about π if nothing stops it (his hand on the line slows it sooner) */
-  function turn() { if (s.ph !== 'hang') return false; const dir = s.vr < -0.05 ? -1 : 1; s.vr += dir * Math.PI * c.dampYaw * c.spinK; return true; }
+  function turn(dir = 0, k = 1) { if (s.ph !== 'hang') return false; const d = dir ? Math.sign(dir) : s.vr < -0.05 ? -1 : 1; s.vr += d * Math.PI * c.dampYaw * c.spinK * clamp(k, 0.4, 1.6); return true; }   // ── build 86 ── (either way: his swipe's direction; its strength)
   return { step, turn, state: () => s, L, top, aligned, sq };
 }
 

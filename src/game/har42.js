@@ -36,6 +36,7 @@ import { DEP63, SITE63, open63, migrate63, shareAt63, shotView63, LINE63 } from 
 import { CRANE68, hangY68, alignU68, pile68, cartAt68, pick68, slide68 } from './crane68.js';
 import * as F84 from './soreg84.js';   // ── build 84 ── (stage 03 rebuilt: the stone lattice on the hoist, the warning stones by paces, the bows with the procession)
 import { fitRuns68, fitsAny68, armRot68, sheaveZ68 } from './crane68.js';   // ── build 70 ── (the fit rules, the arm's swing)   // ── build 68 ── (the crane station at the court wall)   // ── build 63 ── (the building loop: site → work → result → site — shlav-alef-olam-he.md §4)
+import * as F91 from './crane91.js';   // ── build 91 ── (stage 01's crane like the world's; the walk's pull)
 import * as P88w from './props88.js';   // ── build 88 ── (the hand cart and the crane's timbers in the kit's real wood)
 import { XRAY } from '../batch.js';   // ── build 46 ── (his stretch of the court wall: the model's skin there is not drawn — uHole)   // ── build 43 ── (the props' stone, rock and wood: the game's own procedural textures)
 
@@ -166,7 +167,9 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   rope: 'החזיקו — הולכים ליתד; גררו הצידה — ישר על הקו · "חמש מאות אמה" — מדות ב, א · טיוטה',   // ── build 53 ── (the rope's steer — §4 nice 19) ── /build 53 ──
   walk: 'גררו כדי ללכת · הקישו — אל העבודה',   // ── build 61 ── (§9: the left thumb walks him; a tap takes him to the work)
   lift: 'החזיקו על הגלגל — הוא מרים; שחררו לפני החלון · גלגל דריכה — ויטרוביוס י, ב · המחשה',
-  lift2: 'גררו ⬇ — מורידים מעט · המחשה',   // ── build 53 ── (the arrow: which way — §4 must 5)
+  lift2: 'גררו ⬇ — מורידים מעט · המחשה',
+  lift91: 'החזיקו: האבן עולה מלמטה; שחררו כשהיא מעל מקומה · גלגל דריכה — ויטרוביוס י, ב · המחשה',   // ── build 91 ──
+  lift91b: 'עבר את מקומו — גררו ⬇, והעמוד מחזיר אותה החוצה · המחשה',   // ── build 53 ── (the arrow: which way — §4 must 5)
   corner: 'גררו את המוט — דחיפה קצרה, האבן זזה מעט · מוט ברזל · המחשה',
   sweep: 'גררו את האור על הסלע · קו השכבה נראה באור נמוך · המחשה',
   wedge: 'הקישו על הקו — יתדות במרווחים שווים · המחשה',
@@ -612,6 +615,7 @@ export function createHar42(o = {}) {
   const ON82 = MODE === 'stage' && STG === 'kiyor' && qs('h82') !== '0';   // ── build 82 ── (stage in the building loop; ?h82=0 one after another as before)
   const ON83 = MODE === 'stage' && STG === 'ulam' && qs('h83') !== '0';   // ── build 83 ── (stage in the building loop; ?h83=0 one after another as before)
   const ON84 = MODE === 'stage' && STG === 'soreg' && qs('h84') !== '0';
+  const ON91 = ON62 && qs('h91') !== '0', MAG91 = qs('h91') !== '0';   // ── build 91 ── (stage 01's crane like the world's, the stone from below into the wall; the walk's pull toward the open works; ?h91=0 as in 90)
   const ON89 = qs('h89') !== '0';   // ── build 89 ── (stage 03: a new skill in each section, the treadwheel; ?h89=0 as in 88)
   const ON88 = qs('p88') !== '0';   // ── build 88 ── (the people and the wooden things from people88 / props88; ?p88=0 the shapes as before)   // ── build 84 ── (stage 03's acts rebuilt in the world — soreg84.js; ?h84=0 the build-46 acts)
   const ON84H = MODE === 'stage' && qs('h84') !== '0';   // ── build 84 ── (the shared vocabulary: two soft buzzes for מהודר)
@@ -696,6 +700,14 @@ export function createHar42(o = {}) {
     PL.rock = [0, 1, 2].map((n) => { const s2 = SECT62[sectorOf62(`rock${n}`)]; return at(s2.x - 2, s2.z - 2); });
     PL.rock.forEach((r2, n) => { STAND[`rock${n}`] = at(r2.x + 9, r2.z + 3); });
     for (const n of [0, 1]) { const s2 = SECT62[sectorOf62(`hammer${n}`)]; STAND[`hammer${n}`] = at(s2.x + 3, s2.z + 7); }
+  }
+  // ── build 91 ── (the owner, 3.11 21:09: "האבן אמורה להתחבר לקיר שנבנה") the corner stone's place is in the Mount's east wall, its top course
+  // flush with the floor; he works the crane from inside its wheel, and stands on the floor by the wall for the crowbar
+  const C91 = F91.CRANE91;
+  if (ON91) {
+    PL.stone0 = { x: C91.slotX, y: F91.base91(), z: C91.z };
+    STAND.lift = { x: C91.bx - C91.back, z: C91.z, get y() { return gy(this.x, this.z); } };
+    STAND.corner = { x: C91.bx + 1.4, z: C91.z - 6.5, get y() { return gy(this.x, this.z); } };
   }
   // ── build 46 ── stage 03's places: the lattice panels on the north soreg (z −91.5, temple.js), in front of his stretch of the wall; the warning
   // stones' stretch east of them; the thirteen marks beyond. In the yard (and stage 01's layout), the same on the open plaza.
@@ -919,7 +931,7 @@ export function createHar42(o = {}) {
     st.props.peg0 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.6, 6), WOOD), PL.peg0.x, PL.peg0.y + 0.8, PL.peg0.z);
     st.props.peg1 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.6, 6), WOOD), PL.peg1.x, PL.peg1.y + 0.8, PL.peg1.z);
     const rg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]); st.props.rope = add(new THREE.Line(rg, new THREE.LineBasicMaterial({ color: '#E8D9B0' })), 0, 0, 0);
-    if (STG === 'har') {   // ── build 45 ── (stage 01's own props; the giant, the course and the crowbar are both stages')
+    if (STG === 'har' && ON91) props91(add); else if (STG === 'har') {   // ── build 45 ── (stage 01's own props; the giant, the course and the crowbar are both stages')
     // the treadwheel: a wooden drum of two rims and the boards he walks on, its spokes and axle, standing in its frame; the jib over the stone and its rope
     const wy = PL.wheel.y + 3.4, wh = new THREE.Group();
     for (const z of [-1, 1]) { const rim = new THREE.Mesh(new THREE.TorusGeometry(3, 0.13, 6, 32), WOOD); rim.position.z = z; wh.add(rim); for (let i = 0; i < 4; i++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.14, 5.9, 0.14), WOOD); sp.rotation.z = (i * Math.PI) / 4; sp.position.z = z; wh.add(sp); } }
@@ -938,6 +950,7 @@ export function createHar42(o = {}) {
     st.props.stone0 = add(ashlar(GW, 1.8, 2), PL.stone0.x, PL.stone0.y + 0.9, PL.stone0.z); st.props.stone0.userData.his = 1;
     const gh = new THREE.Mesh(new THREE.BoxGeometry(GW, 1.8, 2), new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.22, depthWrite: false })); gh.visible = false; st.props.ghost = add(gh, PL.stone0.x, PL.stone0.y + 0.9, PL.stone0.z);
     const lv = new THREE.Mesh(new THREE.BoxGeometry(0.13, 2.8, 0.13), mat('#5C5650', 0.5)); lv.geometry.translate(0, 1.4, 0); lv.visible = false; st.props.lever = add(lv, PL.stone0.x - 2.2, PL.stone0.y + 0.2, PL.stone0.z);
+    if (ON91) place91();   // ── build 91 ── (the stone lies outside below, hangs over its gap, or stands in the wall)
     if (STG === 'wall' || MODE === 'yard' || (MODE === 'test' && o.test === 60)) props45(add);   // ── build 60 ── (and the test before chapter ד׳: its pulley)
     if (STG === 'soreg' || MODE === 'yard') props46(add);   // ── build 46 ──
     if (STG === 'gates' || MODE === 'yard') props47(add);   // ── build 47 ──
@@ -1414,7 +1427,7 @@ export function createHar42(o = {}) {
     if (!st.job) {
       const f = st.hold, s = f ? stick61(f.x - f.x0, f.y - f.y0) : null, still = (q) => !!q && q.px <= WALK61.dead && now61() - q.t0 >= WALK61.holdMs;
       if (st.part === 'rope') { if (f || st.look61 || st.auto61) g = G39.dir(h, null); }   // (stage 01's rope: the walk IS the work — held, he walks it to the far peg; a drag sideways steers it, below)
-      else if (s) { const d = magnet61(toWorld61(s, [cq.p.x, cq.p.y, cq.p.z], [cq.t.x, cq.t.y, cq.t.z]), h, st.target); if (d) g = { x: d.x, z: d.z, k: s.k / WALK39.speed > 1 ? 1 : s.k, left: st.target ? Math.hypot(st.target.x - h.x, st.target.z - h.z) : 99 }; st.free61 = (st.free61 || 0) + dt; }
+      else if (s) { const d0 = toWorld61(s, [cq.p.x, cq.p.y, cq.p.z], [cq.t.x, cq.t.y, cq.t.z]), d = !MAG91 ? magnet61(d0, h, st.target) : st.target ? F91.pull91(d0, h, [st.target]) : st.part === 'site' && st.site63 ? F91.pull91(d0, h, st.site63.map((b) => b.s)) : d0;   /* ── build 91 ── (the owner, 3.11: "ההליכה של השחקן לא מגנטית": the pull from 14 amot, and on the site toward the nearest open work) */ if (d) g = { x: d.x, z: d.z, k: s.k / WALK39.speed > 1 ? 1 : s.k, left: st.target ? Math.hypot(st.target.x - h.x, st.target.z - h.z) : 99 }; st.free61 = (st.free61 || 0) + dt; }
       else if (still(f) || still(st.look61) || st.auto61) { g = G39.dir(h, null); if (!g) st.auto61 = false; }
     }
     if (g && st.part === 'rope' && st.rope53 && STG === 'har') {   // ── build 53 ── the rope's sway and his steer (a drag sideways from where the finger went down; its way on the screen read from the line's own) ── /build 53 ──
@@ -3108,7 +3121,7 @@ export function createHar42(o = {}) {
       },
     },
     lift: {
-      begin() { const L = famL('lift'); st.job = mkLift(L); line(LINE42.lift, `רמה ${L}`); },
+      begin() { const L = famL('lift'); if (ON91 && st.props.c91) { st.job = mkLift91(L); return; } st.job = mkLift(L); line(LINE42.lift, `רמה ${L}`); },
     },
     corner: { begin() { st.job = STG === 'nashim' && MODE === 'stage' ? mkCorner48() : mkCorner(); } },   // ── build 49 ── (one key: build 48's second 'corner' overrode stage 01's crowbar — in stage 01, the test and the yard)
     lattice0: { begin() { st.job = ON84 ? mkLattice84(0) : mkLattice(0); } }, lattice1: { begin() { st.job = ON84 ? mkLattice84(1) : mkLattice(1); } }, lattice2: { begin() { st.job = ON84 ? mkLattice84(2) : mkLattice(2); } },   // ── build 46 ── stage 03's parts
@@ -3229,6 +3242,105 @@ export function createHar42(o = {}) {
     setTimeout(() => { if (!st.on || st.part !== 'open' || st.ui.skip) return; const b = el('h42-skip', 'דלגו', 'button'); b.type = 'button'; b.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (st.fly) st.fly.t = Math.max(st.fly.t, st.fly.T * 0.78); }); st.ui.root.appendChild(b); st.ui.skip = b; }, after * 1000);
   }
 
+  /* ── build 91 ── STAGE 01'S CRANE LIKE THE WORLD'S (the owner, 3.11 21:09, a picture of the world's treadwheel crane: "המנוף הזה ברקע עובד
+   * יפה. צריך שגם המנוף של המשחק ייראה ויעבוד אותו דבר"): its frame as stages.js draws it — a sled of beams, the great wheel behind (two rims,
+   * spokes, treads) on its trestles, a lattice pole on a pivot leaning out over the wall, its sheave at the head, the rope from the wheel's
+   * axle over the head down to the hook, two back-stays to stakes behind. His stretch of the Mount's east wall stands in the trench (the
+   * crews' courses), his gap in its top course; the corner stone lies outside on the slope ("מאחורי ההר מלמטה למעלה"). ── /build 91 ── */
+  const ropeGeo91 = new THREE.CylinderGeometry(1, 1, 1, 6, 1).translate(0, 0.5, 0), up91 = new THREE.Vector3(0, 1, 0), v91 = new THREE.Vector3();
+  function rope91(m, a, b, r) { const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, L = Math.max(1e-3, Math.hypot(dx, dy, dz)); m.position.set(a.x, a.y, a.z); m.quaternion.setFromUnitVectors(up91, v91.set(dx / L, dy / L, dz / L)); m.scale.set(r, L, r); }
+  function props91(add) {
+    const C = C91, y0 = C.floor, T = ON88 ? P88w.wood88('a', '#E8D8C4') : WOOD, Td = ON88 ? P88w.wood88('b', '#F0E2D0') : mat('#6E4E30', 0.9), RP = mat('#CDBB94', 0.95);
+    const bm = (a, b, w, m) => { const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], L = Math.hypot(dx, dy, dz) || 1e-3, g = new THREE.Mesh(ON88 && m.userData.wood88 ? P88w.grain88(new THREE.BoxGeometry(w, L, w), L) : new THREE.BoxGeometry(w, L, w), m); g.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2); g.quaternion.setFromUnitVectors(up91, v91.set(dx / L, dy / L, dz / L)); g.castShadow = true; return g; };
+    // the crane, in its own frame: local +z = out (east, +x in the world), local x along the wall
+    const g = new THREE.Group(); g.name = 'crane91'; g.rotation.y = Math.PI / 2; add(g, C.bx, y0, C.z);
+    for (const sx of [-3.1, 3.1]) g.add(bm([sx, 0.3, -5.2], [sx, 0.3, 3.4], 0.6, Td));
+    for (const z of [-4.6, -1.6, 2.6]) g.add(bm([-3.4, 0.62, z], [3.4, 0.62, z], 0.42, Td));
+    const ax = C.axleY, wz = -C.back, WR = C.wheelR, WW = C.wheelW;
+    for (const sx of [-1, 1]) { const x = sx * (WW / 2 + 0.45); g.add(bm([x, 0.6, wz - 1.3], [x, ax, wz], 0.24, T), bm([x, 0.6, wz + 1.3], [x, ax, wz], 0.24, T)); }
+    const wh = new THREE.Group(); wh.position.set(0, ax, wz); g.add(wh); wh.name = 'wheel91';
+    for (const sx of [-WW / 2, WW / 2]) {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(WR, 0.13, 8, 44), T); rim.rotation.y = Math.PI / 2; rim.position.x = sx; rim.castShadow = true; wh.add(rim);
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; wh.add(bm([sx, 0, 0], [sx, Math.cos(a) * WR, Math.sin(a) * WR], 0.11, Td)); }
+    }
+    for (let k = 0; k < 24; k++) { const a = ((k + 0.5) / 24) * Math.PI * 2, b = new THREE.Mesh(new THREE.BoxGeometry(WW + 0.2, 0.08, 0.5), Td); b.position.set(0, Math.cos(a) * (WR - 0.06), Math.sin(a) * (WR - 0.06)); b.rotation.x = -a; wh.add(b); }
+    { const axl = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, WW + 1.4, 10), Td); axl.rotation.z = Math.PI / 2; wh.add(axl); }
+    // the pole: two legs from the pivot's ends to the head, three ledgers, two braces, the sheave
+    const tilt = new THREE.Group(); tilt.position.set(0, C.pivotY, C.pivot); g.add(tilt); tilt.name = 'tilt91';
+    const H = C.H, w = (f) => 2.5 - 2.25 * f;
+    tilt.add(bm([2.5, 0, 0], [0.25, H, 0], 0.32, T), bm([-2.5, 0, 0], [-0.25, H, 0], 0.32, T));
+    for (const f of [0.22, 0.5, 0.78]) tilt.add(bm([w(f), H * f, 0], [-w(f), H * f, 0], 0.16, Td));
+    tilt.add(bm([w(0.22), H * 0.22, 0], [-w(0.5), H * 0.5, 0], 0.12, Td), bm([-w(0.5), H * 0.5, 0], [w(0.78), H * 0.78, 0], 0.12, Td));
+    { const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.42, 14), Td); sh.rotation.z = Math.PI / 2; sh.position.y = H - 0.15; tilt.add(sh); }
+    { const pv = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 5.6, 10), Td); pv.rotation.z = Math.PI / 2; tilt.add(pv); }
+    // the ropes (world): the axle's to the head, the head's to the hook, two stays, the sling's two legs; the hook's block; two stakes
+    const ropes = [0, 1, 2, 3, 4, 5].map((i) => { const m = new THREE.Mesh(ropeGeo91, RP); m.castShadow = false; add(m, 0, 0, 0); return m; });
+    const hook = add(new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 0.5), Td), 0, 0, 0);
+    const stakes = [-1, 1].map((sg) => { const x = C.bx - H * 0.55 - 4, z = C.z + sg * 4, s = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 1.6, 8), Td); add(s, x, gy(x, z) + 0.5, z); return { x, z, y: gy(x, z) + 1.2 }; });
+    st.props.c91 = { g, wh, tilt, ropes, hook, stakes, wheelA: 0, ropeL: null, a: F91.angleFor91(C.pickX) };
+    // his stretch of the east wall: the crews' courses in one draw of bodies and one of faces (the face row's outer boss)
+    const W = F91.wall91(C), body = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), STONE, W.length), nf = W.filter((q) => q[6]).length, face = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), BOSS, nf), M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P3 = new THREE.Vector3(), S3 = new THREE.Vector3();
+    let j = 0; W.forEach(([x, y, z, L, h, d, f], i) => { M4.compose(P3.set(x, y, z), Q, S3.set(d, h, L)); body.setMatrixAt(i, M4); if (f) { const m = Math.min(0.2, h * 0.1); M4.compose(P3.set(x + d / 2 + 0.05, y, z), Q, S3.set(0.1, h - 2 * m, L - 2 * m)); face.setMatrixAt(j++, M4); } });
+    body.castShadow = true; body.receiveShadow = true; add(body, 0, 0, 0); add(face, 0, 0, 0); st.props.wall91 = body;
+  }
+  /** the crane at the pole's angle a with the hook at (hx, hy, hz): the pole, the ropes, the wheel turned by the rope it wound */
+  function pose91(a, hx, hy, hz) {
+    const K = st.props.c91; if (!K) return;
+    const C = C91, y0 = C.floor; K.a = a; K.tilt.rotation.x = a;
+    const tip = { x: C.bx + F91.reach91(a), y: y0 + F91.tipH91(a), z: C.z }, axl = { x: C.bx - C.back, y: y0 + C.axleY, z: C.z }, hk = { x: hx, y: hy, z: hz };
+    rope91(K.ropes[0], axl, tip, 0.06); rope91(K.ropes[1], tip, hk, 0.06);
+    rope91(K.ropes[2], tip, K.stakes[0], 0.05); rope91(K.ropes[3], tip, K.stakes[1], 0.05);
+    const s0 = st.props.stone0, sy = s0 ? s0.position.y + 0.9 : hy - 0.4;
+    rope91(K.ropes[4], hk, { x: hx, y: sy, z: hz - 1.4 }, 0.04); rope91(K.ropes[5], hk, { x: hx, y: sy, z: hz + 1.4 }, 0.04);
+    K.ropes[4].visible = K.ropes[5].visible = !!(s0 && Math.abs(s0.position.x - hx) < 0.6 && sy < hy && sy > hy - 3);
+    K.hook.position.set(hx, hy + 0.2, hz);
+    const L = Math.hypot(tip.x - hx, tip.y - hy) + Math.hypot(tip.x - axl.x, tip.y - axl.y);
+    if (K.ropeL != null) K.wheelA += (K.ropeL - L) / C.wheelR; K.ropeL = L; K.wh.rotation.x = K.wheelA;
+  }
+  /** where the corner stone is by the stage's own record: outside below (before the lift); hanging over its gap (lifted, not set); in the wall */
+  function place91() {
+    const s0 = st.props.stone0, C = C91; if (!s0) return;
+    s0.rotation.y = Math.PI / 2; if (st.props.ghost) st.props.ghost.rotation.y = Math.PI / 2; if (st.props.lever) st.props.lever.rotation.y = Math.PI / 2;
+    const lifted = past63('lift'), set = past63('corner');
+    const px = C.pickX, py = gy(px, C.z) + 0.9, topY = F91.top91() + C.clear;
+    if (set) { s0.position.set(C.slotX, F91.base91() + C.top / 2, C.z); pose91(F91.angleFor91(C.slotX), C.slotX, F91.top91() + 6, C.z); }
+    else if (lifted) { s0.position.set(C.slotX, topY, C.z); pose91(F91.angleFor91(C.slotX), C.slotX, topY + 1.3, C.z); }
+    else { s0.position.set(px, py, C.z); pose91(F91.angleFor91(px), px, py + 1.3, C.z); }
+  }
+  /** the lift on it: he walks in the great wheel (held: the wheel turns, the rope winds) — the stone comes up from the slope, the pole swings
+   *  it in over the wall; let go with it over its gap (the window); past it, a drag down (or back) brings it back. The gap's outline on the
+   *  wall's top lights when the stone is over it — no meter */
+  /** the crane's frame: from inside the Mount, south-west of it and up — the wheel and him in it, the pole, the stone outside below and the
+   *  wall's top with his gap, all at once (farther on a portrait phone) */
+  function view91() { const C = C91, nar = W() / H() < 0.8, t = [nar ? C.slotX - 7 : C.slotX - 1.5, C.floor + 5, C.z + (nar ? -1 : 1)], d = nar ? 90 : 54, u = [-0.3, 0.62, -0.72]; return { p: t.map((v, i) => v + u[i] * d), t }; }
+  function mkLift91(L) {
+    const J = F.createLift(L), C = C91, s0 = st.props.stone0, inp = { hold: false, back: false }, pickY = gy(C.pickX, C.z) + 0.9, topY = F91.top91() + C.clear;
+    const Kh = h66(), wx = C.bx - C.back;
+    try { stages.hero.setPos(wx, C.z, Math.PI / 2); } catch (e) { /* */ }
+    if (Kh && Kh.lift) Kh.lift(C.tread);
+    let walking = false;
+    const gap = () => { const y = F91.top91() + 0.02, c4 = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => proj(C.slotX + a * 1.2, y, C.z + b * C.len / 2)); return c4.every(Boolean) ? c4 : null; };
+    const done91 = () => { if (Kh) { try { Kh.play('Idle', { fade: 0.2 }); if (Kh.lift) Kh.lift(0); } catch (e) { /* */ } } };
+    line(LINE42.lift91, `רמה ${L}`);
+    return {
+      acting: true, J, kind: 'lift', on91: true, view: () => view91(), ownView: () => true,
+      down() { inp.hold = true; inp.back = false; }, move(a) { const over = J.state().y > J.P.win[1], dx = a.x - a.x0, dy = a.y - a.y0; if (dy > 20 || dx < -20 || (over && Math.hypot(dx, dy) > 20)) { inp.hold = false; inp.back = true; } },
+      up() { inp.hold = false; inp.back = false; },
+      end() { svgClear(); done91(); },
+      frame(dt) {
+        const s = J.step(dt, inp); if (inp.hold && s.held > F.TAP42 && Math.random() < dt * 6) buzz42('creak');
+        const p = F91.path91(s.y + J.sway(), J.P.win, pickY, topY);
+        if (s0) s0.position.set(p.x, p.hy, C.z);
+        pose91(p.a, p.x, p.hy + 1.3, C.z);
+        const w = Math.abs(s.v) > 0.03; if (Kh && w !== walking) { walking = w; try { Kh.play(w ? 'Walking_A' : 'Idle', { act: true, fade: 0.15, speed: s.v < 0 ? -1 : 1 }); } catch (e) { /* */ } }
+        objPlace(true, [{ x: wx, y: C.floor + C.axleY, z: C.z, r: C.wheelR + 0.6 }, { x: p.x, y: p.hy, z: C.z, r: 2.4 }], 'h42lift');   // (the hold on the wheel or on the stone; the frame is view91's)
+        svgClear(); if (!s.done) { const G = gap(); if (G) svgAdd(`<polygon points="${G.map((v) => `${v.x},${v.y}`).join(' ')}" fill="${p.over ? 'rgba(150,230,120,.28)' : 'rgba(255,214,110,.14)'}" stroke="${p.over ? '#9BE37A' : '#FFD66E'}" stroke-width="3" stroke-dasharray="9 6"/>`); }
+        line(s.slip ? 'הבלם מוריד את האבן לאט אל מקומה — או גררו מטה · המחשה' : s.y > J.P.win[1] + 0.02 ? LINE42.lift91b : LINE42.lift91, `רמה ${s.L}`);
+        if (s.done) { svgClear(); done91(); grade('lift', s.q, proj(p.x, p.hy + 1.2, C.z)); buzz42('settle'); return true; }
+        return false;
+      },
+    };
+  }
   /* LIFT: the treadwheel — hold on the wheel: he walks it; a drag down: lowers; the shadow (level 1) and the window on a meter */
   function mkLift(L) {
     const J = F.createLift(L), mt = el('h42-meter', '<i></i><b></b><u></u>'); st.ui.root.appendChild(mt);
@@ -3256,6 +3368,8 @@ export function createHar42(o = {}) {
    * home (a flick's length is its push; too strong overshoots — nudge it back); level 1 shows a ghost of the place (v2 §3) */
   function mkCorner(label = LINE42.corner, part = 'corner') {
     const L = famL('place'), J = F.createFlick(L), S0 = PL.stone0, s0 = st.props.stone0, y1 = S0.y + 0.9, y0 = s0 ? s0.position.y : y1 + 3;
+    const Z91 = ON91 && part === 'corner' && !!st.props.c91, x91 = s0 ? s0.position.x : S0.x;   // ── build 91 ── (his stone in the east wall: the crowbar along the wall (z); it comes in from where the crane left it)
+    const at91 = (u) => (Z91 ? { x: S0.x, z: S0.z + u } : { x: S0.x + u, z: S0.z });
     let lowT = 0, cx = 0, lev = 0, away54 = 0;
     // ── build 72 ── (the plan told the owner 2.11: "המנוף של אבן הענק בתחנה") the giant comes down on the station's own rig: the rig slides on its sled to the giant's place, its arm over the course, the stone on its hook; once it is down the hook lets go and rises; the rig goes back to his stretch at the act's end
     const K8g = ON68 && part === 'giant' ? crane68() : null;
@@ -3268,14 +3382,15 @@ export function createHar42(o = {}) {
     const more = el('h42-more', ''); more.hidden = true; st.ui.root.appendChild(more);
     // ── build 67 ── (the owner, 1.11: "תזוזת האבן ימינה ושמאלה ל'מקומה' היא סתמית… באמצע שומקום") the corner is a corner: the crews' first course
     // runs west and north from the stone's place (the retaining wall's two faces), his stone the one that closes it ── /build 67 ──
-    if (ON67 && STG === 'har' && st.props.root && !st.props.cornerWall67) { const g = new THREE.Group(); st.props.cornerWall67 = g; st.props.root.add(g); for (let k = 0; k < 3; k++) { const ax = S0.x - fp.w / 2 - 1.3 - k * 2.5, a = ashlar(2.4, 1.8, 2); a.position.set(ax, gy(ax, S0.z) + 0.9, S0.z); g.add(a); const bz = S0.z - fp.d / 2 - 1.3 - k * 2.5, bx = S0.x + fp.w / 2 - 1, b = ashlar(2.4, 1.8, 2); b.rotation.y = Math.PI / 2; b.position.set(bx, gy(bx, bz) + 0.9, bz); g.add(b); } }
+    if (ON67 && !ON91 && STG === 'har' && st.props.root && !st.props.cornerWall67) { const g = new THREE.Group(); st.props.cornerWall67 = g; st.props.root.add(g); for (let k = 0; k < 3; k++) { const ax = S0.x - fp.w / 2 - 1.3 - k * 2.5, a = ashlar(2.4, 1.8, 2); a.position.set(ax, gy(ax, S0.z) + 0.9, S0.z); g.add(a); const bz = S0.z - fp.d / 2 - 1.3 - k * 2.5, bx = S0.x + fp.w / 2 - 1, b = ashlar(2.4, 1.8, 2); b.rotation.y = Math.PI / 2; b.position.set(bx, gy(bx, bz) + 0.9, bz); g.add(b); } }
     const ghost53 = () => { const y = y1 - 0.88, c4 = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => proj(S0.x + (a * fp.w) / 2, y, S0.z + (b * fp.d) / 2)); return c4.every(Boolean) ? c4 : null; };
-    const axis = () => { const a = proj(S0.x + cx, y1, S0.z), b = proj(S0.x + cx + 1, y1, S0.z); if (!a || !b) return null; const n = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { x: a.x, y: a.y, ux: (b.x - a.x) / n, uy: (b.y - a.y) / n, ppm: n }; };
+    const axis = () => { const p0 = at91(cx), p1 = at91(cx + 1), a = proj(p0.x, y1, p0.z), b = proj(p1.x, y1, p1.z); if (!a || !b) return null; const n = Math.hypot(b.x - a.x, b.y - a.y) || 1; return { x: a.x, y: a.y, ux: (b.x - a.x) / n, uy: (b.y - a.y) / n, ppm: n }; };
     line(label, `רמה ${L}`);
     if (st.ui.pad) st.ui.pad.classList.add('full');   // ── build 45 ── the lever's drag anywhere on the screen (the naive kid dragged on the stone, left of the half-screen pad: K45-P3's parent's hand)
     return {
       acting: true, J, kind: 'corner', axis, ready: () => lowT >= 1.4, el: [more], ghost53, more: () => (more.hidden ? '' : more.textContent),
-      ...(K8g ? { view: () => ({ p: [S0.x + 26, S0.y + 13, S0.z - 18], t: [S0.x - 2, S0.y + 1.5, S0.z - 1] }) } : {}),   // ── build 72 ── (from aside: the rig's legs stood between the camera and the giant)
+      ...(K8g ? { view: () => ({ p: [S0.x + 26, S0.y + 13, S0.z - 18], t: [S0.x - 2, S0.y + 1.5, S0.z - 1] }) } : {}),
+      ...(Z91 ? { view: () => { const k = W() / H() < 0.8 ? 1.6 : 1; return { p: [S0.x + 15 * k, y1 + 7 * k, S0.z - 15 * k], t: [S0.x - 1.5, y1 + 0.6, S0.z] }; }, ownView: () => true } : {}),   // ── build 91 ── (from outside the wall, below on the slope: his stone in the wall's face, the crane and him beyond)   // ── build 72 ── (from aside: the rig's legs stood between the camera and the giant)
       end() { if (st.ui.pad) st.ui.pad.classList.remove('full'); more.remove(); svgClear(); if (K8g) { K8g.G8.position.x = PL.pulley.x; armTo68(Math.PI); unhook68(null); const p = K8g.rope.geometry.attributes.position; K8g.hook.position.z = CRANE68.boom; p.setZ(3, CRANE68.boom); p.needsUpdate = true; } },   // ── build 72 ── (the rig back to his stretch, its arm out)
       down() {}, move() {},
       up(a) {
@@ -3286,14 +3401,14 @@ export function createHar42(o = {}) {
       frame(dt) {
         lowT += dt; const s = J.state(), k = Math.min(1, lowT / 1.4), e = k * k * (3 - 2 * k);
         cx += (s.x - cx) * Math.min(1, dt * (lowT < 1.4 ? 2.5 : 10));
-        const yy = y0 + (y1 - y0) * e; if (s0) s0.position.set(S0.x + cx, yy, S0.z); craneRope(lowT < 1.6 ? yy + 0.9 : (st.props.jibY || yy) - 0.5);
+        const yy = y0 + (y1 - y0) * e; if (Z91) { const hx = x91 + (S0.x - x91) * e, p = at91(cx); if (s0) s0.position.set(hx, yy, p.z); const K = st.props.c91, hy = lowT < 1.6 ? yy + 1.3 : Math.min(F91.top91() + 6, K.hook.position.y - 0.2 + dt * 3); pose91(F91.angleFor91(hx), hx, hy, lowT < 1.6 ? p.z : C91.z); } else { if (s0) s0.position.set(S0.x + cx, yy, S0.z); craneRope(lowT < 1.6 ? yy + 0.9 : (st.props.jibY || yy) - 0.5); }
         if (K8g) { const top = yy + 0.95; if (lowT < 1.6) hookTo72(top); else { const hy = K8g.hook.position.y + K8g.gY + K8g.Lh; hookTo72(Math.min(K8g.gY + K8g.Lh - 1.2, hy + dt * 3)); } }   // ── build 72 ── (on the hook while it comes down; then the hook lets go and rises)
-        if (st.props.lever) { const lv = st.props.lever; lv.visible = lowT >= 1.4; lev *= Math.max(0, 1 - dt * 5); lv.position.set(S0.x + cx - 2.3, S0.y + 0.15, S0.z + 0.3); lv.rotation.z = -0.55 + lev; }
-        objPlace(true, [{ x: S0.x + cx, y: y1, z: S0.z, r: 2.4 }], 'h42corner');
+        if (st.props.lever) { const lv = st.props.lever; lv.visible = lowT >= 1.4; lev *= Math.max(0, 1 - dt * 5); if (Z91) { lv.position.set(S0.x - 0.3, S0.y + 0.15, S0.z + cx - 2.3); lv.rotation.set(0.55 - lev, Math.PI / 2, 0); } else { lv.position.set(S0.x + cx - 2.3, S0.y + 0.15, S0.z + 0.3); lv.rotation.z = -0.55 + lev; } }
+        { const p = at91(cx); objPlace(true, [{ x: p.x, y: y1, z: p.z, r: 2.4 }], 'h42corner'); }
         if (!s.done && lowT > 1.4 && !(s.flicks && s.side > 0)) line(label, `רמה ${s.L} · דחיפות ${s.flicks}`);
         svgClear(); if (!s.done) { const G = ghost53(); if (G) svgAdd(`<polygon points="${G.map((v) => `${v.x},${v.y}`).join(' ')}" fill="rgba(255,214,110,.16)" stroke="#FFD66E" stroke-width="3" stroke-dasharray="9 6"/>`); }   // ── build 53 ── the place (§4 important 11) ── /build 53 ──
-        { const lvTop = proj(S0.x + cx - 2.3, S0.y + 3.1, S0.z + 0.3), n = Math.max(1, Math.round(Math.abs(s.x) * 6)); more.hidden = s.done || lowT < 1.4 || !lvTop; away54 = Math.max(0, away54 - dt); if (!more.hidden) { const ps = proj(S0.x + cx, y1, S0.z), ph = proj(S0.x, y1, S0.z), arr = (ps && ph ? ph.x < ps.x : s.x > 0) ? '⬅' : '➡', tf = n === 1 ? 'טפח אחד' : `${n} טפחים`; more.textContent = away54 > 0 ? `לצד השני ${arr}` : s.x > 0 ? `${tf} חזרה ${arr}` : `עוד ${tf} ${arr}`;   /* ── build 54 ── (the coordinator's touch play of 53: the way to the place — an arrow by its side on the screen; one tefach in words) ── /build 54 ── */ more.style.left = `${Math.round(Math.max(60, Math.min(W() - 60, lvTop.x)))}px`; more.style.top = `${Math.round(Math.max(70, lvTop.y - 6))}px`; } }   // ── build 53 ── "עוד X" by the bar ── /build 53 ──
-        if (s.done) { if (st.props.ghost) st.props.ghost.visible = false; if (st.props.lever) st.props.lever.visible = false; if (s0) s0.position.set(S0.x + s.x, y1, S0.z); grade(part, s.q, proj(S0.x, y1 + 1.2, S0.z)); if (STG === 'wall' && MODE === 'stage') { try { if (s0) s0.position.x = S0.x; R.stones = stones45(); save42(S); } catch (e) { /* */ } } return true; }
+        { const lv91 = at91(cx - 2.3), lvTop = Z91 ? proj(lv91.x, S0.y + 3.1, lv91.z) : proj(S0.x + cx - 2.3, S0.y + 3.1, S0.z + 0.3), n = Math.max(1, Math.round(Math.abs(s.x) * 6)); more.hidden = s.done || lowT < 1.4 || !lvTop; away54 = Math.max(0, away54 - dt); if (!more.hidden) { const p91 = at91(cx), ps = proj(p91.x, y1, p91.z), ph = proj(S0.x, y1, S0.z), arr = (ps && ph ? ph.x < ps.x : s.x > 0) ? '⬅' : '➡', tf = n === 1 ? 'טפח אחד' : `${n} טפחים`; more.textContent = away54 > 0 ? `לצד השני ${arr}` : s.x > 0 ? `${tf} חזרה ${arr}` : `עוד ${tf} ${arr}`;   /* ── build 54 ── (the coordinator's touch play of 53: the way to the place — an arrow by its side on the screen; one tefach in words) ── /build 54 ── */ more.style.left = `${Math.round(Math.max(60, Math.min(W() - 60, lvTop.x)))}px`; more.style.top = `${Math.round(Math.max(70, lvTop.y - 6))}px`; } }   // ── build 53 ── "עוד X" by the bar ── /build 53 ──
+        if (s.done) { if (st.props.ghost) st.props.ghost.visible = false; if (st.props.lever) st.props.lever.visible = false; if (s0) { const p = at91(s.x); s0.position.set(p.x, y1, p.z); } if (Z91) pose91(F91.angleFor91(S0.x), S0.x, F91.top91() + 6, C91.z); grade(part, s.q, proj(S0.x, y1 + 1.2, S0.z)); if (STG === 'wall' && MODE === 'stage') { try { if (s0) s0.position.x = S0.x; R.stones = stones45(); save42(S); } catch (e) { /* */ } } return true; }
         return false;
       },
     };
@@ -5792,6 +5907,7 @@ export function createHar42(o = {}) {
     hero66: () => (st.h35 ? { ...st.h35.state(), h: st.h35.height ? +st.h35.height().toFixed(2) : 0, sledge: !!st.sledge66 } : null), on66: ON66,   // ── build 66 ──
     walk61: () => ({ lift: 0, auto: !!st.auto61, free: Math.round((st.free61 || 0) * 10) / 10, built: { ...W61.built }, at: { ...W61.at }, target: st.target ? { x: st.target.x, z: st.target.z } : null, part: st.part, pending: !!st.pending }),   // ── build 61 ── (the tools read the walk and the world)
   };
+  api.stages91 = () => stages;   // ── build 91 ── (the tools read the world: the Mount's wall, its crane)
   try { globalThis.__H42 = api; } catch (e) { /* */ }
   return api;
 }

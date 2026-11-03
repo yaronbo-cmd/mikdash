@@ -1370,6 +1370,15 @@ The owner on v44: "הג׳ויסטיק לא מתפקד… שביל הזהב מר�
 - **What remains:** the acts themselves unchanged from build 60.
 - **How out/index.html was made:** `node build.mjs` then `node tools/mkout.cjs --no-shift "בנייה 83 — שלב 13, האולם, בלולאת הבנייה — בית המקדש השני"`; copied to `index.html`.
 
+### build 91 — stage 01: the crane like the world's, the stone from below into the wall, the walk's pull (3.11)
+- **Why:** the owner, 3.11 21:09, with a picture of the world's treadwheel crane at the Mount's wall: "המנוף הזה ברקע עובד יפה. צריך שגם המנוף של המשחק ייראה ויעבוד אותו דבר"; "האבן אמורה להיות מונפת מאחורי ההר מלמטה למעלה"; "האבן אמורה להתחבר לקיר שנבנה ולא סתם לפתוח אותו"; "ההליכה של השחקן לא מגנטית כמו בשלב 3. צריך להחזיר".
+- **The crane (crane91.js, har42 props91/pose91):** built as stages.js draws the world's: a sled of beams, the great wheel behind (two rims, spokes, 24 treads) on its trestles, a lattice pole (two legs, three ledgers, braces, the sheave) on a pivot leaning out over the wall, the rope from the wheel's axle over the head to the hook, two back-stays to stakes, the sling. It stands on the Mount's floor inside the east wall by the south-east corner. The old box wheel, mast and jib are gone.
+- **The lift (mkLift91):** he stands in the wheel and walks it while held (the walk clip; the wheel turns with the rope it winds). The corner stone lies outside, on the slope below the wall; it comes straight up, then the pole swings it in over the wall; the lift's window is the stone over its gap (the gap's outline on the wall's top turns green). Past it, a drag down brings it back out. No meter. Its own frame (view91): the wheel, the pole, the stone and the gap together.
+- **The wall (wall91):** his stretch of the Mount's east wall stands in the trench, the crews' courses from its foot to the floor, a little shorter each course; his gap in the top course, its neighbours meeting it on both sides. The corner act's crowbar now runs along the wall (z) and seats the stone in that gap, seen from outside the wall below. The build-67 crews' "corner" on the floor is not drawn under 91.
+- **The walk's pull (pull91):** a drag roughly toward a work bends onto it from 14 amot (was 6, and only after a work was chosen); on the site, toward the nearest open work's stake.
+- **Size:** the .glb files' JSON without glTF defaults (tools/glbslim91.mjs, the same models): 14 KB back under the 6 MiB budget.
+- `?h91=0`: as in 90. GAME_BUILD 91; test/build91.test.mjs; build67's corner test takes the 91 guard.
+
 ### build 90 — stage 03: the slab turns with weight, the turn is on the slab, stakes instead of flashes (3.11)
 - **Why:** the owner, 3.11 20:51, on 89: "הסיבוב שלו לא דינמי אלא קופץ במלאכותיות מצד למשנהו"; "מיקום סיבוב האריח הוא מתחת לאריח לא על האריח עצמו"; "ההבהובים הצהובים האלה לא נראים טוב … הם נצרכים בכלל?".
 - **The turn follows the hand with weight:** the finger sets a target (`twistBy` → `rT`), and the slab follows it on a spring (`SOREG90` kT 60, cT 9): over several frames, a little past, then settles. Let go (`twistEnd`) and it swings free as before.

@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 73: GAME_BUILD 73; stage 03\'s order — two works open at the start, the panels one after another, the bows last, then the reveal', () => {
-  assert.equal(GAME_BUILD, 73);
+  assert.ok(GAME_BUILD >= 73);
   assert.deepEqual(Object.keys(DEP63.soreg).sort(), PARTS46.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
   assert.deepEqual(open63('soreg', PARTS46, []), ['lattice0', 'warn']);
   assert.deepEqual(open63('soreg', PARTS46, ['lattice0']), ['lattice1', 'warn']);
@@ -25,11 +25,11 @@ test('build 73: GAME_BUILD 73; stage 03\'s order — two works open at the start
 
 test('build 73 har42: wired — ON73 in the loop and the crews; the soreg\'s share by the works done; he starts where he stood', () => {
   assert.match(H, /const ON73 = MODE === 'stage' && STG === 'soreg' && qs\('h73'\) !== '0';/);
-  assert.match(H, /const ON63 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ON73\) && qs\('h63'\) !== '0' && !!DEP63\[STG\];/);
-  assert.match(H, /const ON65 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ON73\) && qs\('h65'\) !== '0';/);
-  assert.match(H, /ON73 \? wShare63\(part\) : \(PARTS\.indexOf\(part\) \+ 1\) \/ \(PARTS\.length - 1\)/);
+  assert.match(H, /const ONL73 = ON73 \|\| ON74;/); assert.match(H, /const ON63 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ONL73\) && qs\('h63'\) !== '0' && !!DEP63\[STG\];/);
+  assert.match(H, /const ON65 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ONL73\) && qs\('h65'\) !== '0';/);
+  assert.match(H, /ONL73 \? wShare63\(part\) : \(PARTS\.indexOf\(part\) \+ 1\) \/ \(PARTS\.length - 1\)/);
   assert.match(H, /ON73 \? n63\(\) \/ \(PARTS\.length - 2\) : \(R\.part - 1\) \/ \(PARTS\.length - 1\)/);
-  assert.match(H, /\(STG === 'wall' \|\| ON62 \|\| ON73\) \? at61\(W61, STG\)/);
+  assert.match(H, /\(STG === 'wall' \|\| ON62 \|\| ONL73\) \? at61\(W61, STG\)/);
 });
 
 test('build 73 crew71: a man in the camera\'s lap is not drawn (the warning stones\' view stood among a crew)', () => {

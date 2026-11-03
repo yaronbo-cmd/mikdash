@@ -12,7 +12,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js'), I = read('src/game/index.js');
 
 test('build 67: GAME_BUILD 67; the works by day — har42 asks for noon at the start of 01/02, tells the clock (day67) while a working part runs, nothing at the reveal; index.js\'s clock yields', () => {
-  assert.equal(GAME_BUILD, 73);
+  assert.equal(GAME_BUILD, 74);
   assert.match(H, /const ON67 = MODE === 'stage' && qs\('h67'\) !== '0';/);
   assert.match(H, /if \(ON67 && \(STG === 'har' \|\| STG === 'wall'\)\) \{ try \{ if \(o\.timeOfDay\) o\.timeOfDay\('noon'\); \} catch \(e\) \{ \/\* \*\/ \} \}/);
   assert.match(H, /get day67\(\) \{ return ON67 && st\.on && \(STG === 'har' \|\| STG === 'wall'\) && st\.part !== 'reveal' && st\.part !== 'done' && st\.part !== 'out' \? 'noon' : null; \}, on67: ON67,/);

@@ -21,6 +21,8 @@ export const DEP63 = Object.freeze({
   // ── build 73 ── stage 03 (PARTS46) in the loop: the first lattice panel and the warning stones side by side; each panel after the one
   // beside it (the soreg closes panel by panel); the bows at the breaches once the soreg is closed and the warning stands
   soreg: Object.freeze({ lattice0: [], warn: [], lattice1: ['lattice0'], lattice2: ['lattice1'], bows: ['lattice2', 'warn'] }),
+  // ── build 74 ── stage 04 (PARTS47): the lintel and the gates' names side by side; the two leaves once the lintel is up
+  gates: Object.freeze({ lintel: [], names: [], leaf: ['lintel'], leaf7: ['lintel'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 

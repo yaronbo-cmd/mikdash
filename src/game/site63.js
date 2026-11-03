@@ -26,6 +26,9 @@ export const DEP63 = Object.freeze({
   // ── build 75 ── stage 05 (PARTS48): the wood's sorting and the gallery's beams side by side; the pegs in the beams; the corner after the
   // pegs; the walk on the gallery once its corner is closed
   nashim: Object.freeze({ wood: [], beams: [], pegs: ['beams'], corner: ['pegs'], walk: ['corner'] }),
+  // ── build 76 ── stage 06 (PARTS49): one after another — the doors' voyage (the exception, at sea), the lever and pegs at the gate, the
+  // leaves hung, then the fifteen steps in the opening; the loop's result shot and walk between them
+  nikanor: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], steps: ['hang'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 

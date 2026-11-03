@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 76: GAME_BUILD 76; stage 06\'s order — the voyage, the lever, the hanging, the steps, the reveal', () => {
-  assert.equal(GAME_BUILD, 76);
+  assert.ok(GAME_BUILD >= 76);
   assert.deepEqual(Object.keys(DEP63.nikanor).sort(), PARTS49.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
   assert.deepEqual(open63('nikanor', PARTS49, []), ['voyage']);
   assert.deepEqual(open63('nikanor', PARTS49, ['voyage']), ['lever']);

@@ -578,7 +578,8 @@ export function createHar42(o = {}) {
   const ON74 = MODE === 'stage' && STG === 'gates' && qs('h74') !== '0';   // ── build 74 ── (stage 04 in the building loop; ?h74=0 one after another as before)
   const ON75 = MODE === 'stage' && STG === 'nashim' && qs('h75') !== '0';   // ── build 75 ── (stage 05 in the building loop; ?h75=0 one after another as before)
   const ON76 = MODE === 'stage' && STG === 'nikanor' && qs('h76') !== '0';   // ── build 76 ── (stage 06 in the building loop; ?h76=0 one after another as before)
-  const ONL73 = ON73 || ON74 || ON75 || ON76;   // ── build 73 ── (the stages from 03 on brought into the loop, one build each)
+  const ON77 = MODE === 'stage' && STG === 'lishka' && qs('h77') !== '0';   // ── build 77 ── (stage 07 in the building loop; ?h77=0 one after another as before)
+  const ONL73 = ON73 || ON74 || ON75 || ON76 || ON77;   // ── build 73 ── (the stages from 03 on brought into the loop, one build each)
   const ON63 = MODE === 'stage' && (ON62 || STG === 'wall' || ONL73) && qs('h63') !== '0' && !!DEP63[STG];
   const ON69 = MODE === 'stage' && STG === 'wall' && ON63 && qs('h69') !== '0' && qs('h68') !== '0';   // ── build 69 ── (the free play at the wall: after the stage's works, more courses through the station; ?h69=0 the stage ends as before)
   const ON68 = MODE === 'stage' && STG === 'wall' && qs('h68') !== '0';   // ── build 68 ── (the crane station: the stones lifted onto the real wall; ?h68=0 the pile of buttons as before)

@@ -29,6 +29,9 @@ export const DEP63 = Object.freeze({
   // ── build 76 ── stage 06 (PARTS49): one after another — the doors' voyage (the exception, at sea), the lever and pegs at the gate, the
   // leaves hung, then the fifteen steps in the opening; the loop's result shot and walk between them
   nikanor: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], steps: ['hang'] }),
+  // ── build 77 ── stage 07 (PARTS50): the three chambers side by side — the hewn stone's compass, the exiles' hub, the hearth's dome; in
+  // each its next work after its first (the benches after the compass, the buckets' wheel after the hub)
+  lishka: Object.freeze({ compass: [], hub: [], dome: [], benches: ['compass'], wheel: ['hub'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 

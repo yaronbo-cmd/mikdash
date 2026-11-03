@@ -13,7 +13,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js'), K = read('src/avodah/shift/hero35.js');
 
 test('build 66: GAME_BUILD 66; hero35 measures his height as loaded and tells a clip\'s length', () => {
-  assert.equal(GAME_BUILD, 81);
+  assert.equal(GAME_BUILD, 82);
   assert.match(K, /const bb = new THREE\.Box3\(\)\.setFromObject\(model\); st\.h = bb\.max\.y - bb\.min\.y;/);
   assert.match(K, /height: \(\) => st\.h \|\| 0, clipLen: \(n\) => \(st\.clips\[n\] \? st\.clips\[n\]\.duration : 0\),/);
 });

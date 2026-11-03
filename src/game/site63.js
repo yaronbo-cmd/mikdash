@@ -41,6 +41,8 @@ export const DEP63 = Object.freeze({
   guf: Object.freeze({ decoy: [], kevesh: [], sid: ['decoy', 'kevesh'] }),
   // ── build 81 ── stage 11 (PARTS58): the four horns and the two holes side by side; the first fire once the altar is whole
   karnot: Object.freeze({ horns: [], holes: [], fire: ['horns', 'holes'] }),
+  // ── build 82 ── stage 12 (spec §6 "12": יציקה, 12 דדים, הברגה, מוכני): the cast first; then the spigots and the wheel side by side; the screw after the spigots
+  kiyor: Object.freeze({ cast: [], spigots: ['cast'], screw: ['spigots'], mukhni: ['cast'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 

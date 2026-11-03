@@ -16,7 +16,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js'), SJ = read('src/stages.js'), IX = read('src/game/index.js');
 
 test('build 62: GAME_BUILD 62; the parts — the old ones all kept, two hammers after their rocks, the reveal last', () => {
-  assert.equal(GAME_BUILD, 91);   // (build 63: again)
+  assert.equal(GAME_BUILD, 92);   // (build 63: again)
   assert.deepEqual(PARTS62, ['open', 'rope', 'lift', 'corner', 'course0', 'course1', 'rock0', 'hammer0', 'rock1', 'hammer1', 'rock2', 'pave', 'roll', 'trace', 'reveal']);
   for (const p of PARTS42) assert.ok(PARTS62.includes(p), p);
   assert.equal(PARTS62.indexOf('hammer0'), PARTS62.indexOf('rock0') + 1); assert.equal(PARTS62.indexOf('hammer1'), PARTS62.indexOf('rock1') + 1);

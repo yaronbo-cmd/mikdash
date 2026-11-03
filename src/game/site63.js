@@ -25,6 +25,8 @@ export const DEP63 = Object.freeze({
   soreg: Object.freeze({ lattice0: [], warn: [], lattice1: ['lattice0'], lattice2: ['lattice1'] }),
   // ── build 74 ── stage 04 (PARTS47): the lintel and the gates' names side by side; the two leaves once the lintel is up
   gates: Object.freeze({ lintel: [], names: [], leaf: ['lintel'], leaf7: ['lintel'] }),
+  // ── build 92 ── stage 04 rebuilt (PARTS92): a lintel at each of three gates, one after another (each heavier); a gate's leaf once its lintel is up
+  gates92: Object.freeze({ lintel: [], names: [], lintel2: ['lintel'], lintel3: ['lintel2'], leaf: ['lintel'], leaf7: ['lintel2'] }),
   // ── build 75 ── stage 05 (PARTS48): the wood's sorting and the gallery's beams side by side; the pegs in the beams; the corner after the
   // pegs; the walk on the gallery once its corner is closed
   nashim: Object.freeze({ wood: [], beams: [], pegs: ['beams'], corner: ['pegs'], walk: ['corner'] }),

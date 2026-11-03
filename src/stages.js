@@ -2647,6 +2647,7 @@ export function createStages(ctx) {
   const scaffLevel = (st, run) => { const L = st.def.scaff.lift, y0 = run[3], m = Math.floor((Math.min(revealY(st), run[4]) - y0 - 0.5) / L); return y0 + Math.max(0, m) * L + (m > 0 ? 0.21 : 0); };
   const tmpC0 = new THREE.Color();
   const wmBody = new THREE.Matrix4(), wmT = new THREE.Matrix4(), wmR = new THREE.Matrix4(), wv = new THREE.Vector3(), wq = new THREE.Quaternion(), we = new THREE.Euler();
+  let HIDEW92 = null;   // ── build 92 ── boxes [x0, x1, z0, z1] where the site workers are not shown (hideWorkers)
   function workersUpdate(dt) {
     let ns = 0, na = 0, nb = 0;
     for (let i = 0; i < nWork; i++) {
@@ -2703,6 +2704,7 @@ export function createStages(ctx) {
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
       wmBody.compose(wv, wq, ONE);
+      if (HIDEW92 && HIDEW92.some((q) => w.x >= q[0] && w.x <= q[1] && w.z >= q[2] && w.z <= q[3])) { w.x71 = NaN; tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue; }   // ── build 92 ── (a stretch the game draws itself: its scaffold's masons not there)
       // ── build 71 ── (a real figure stands for him — crew71.js: what he does, where and when, read here; his instanced body not drawn, the stone he carries still)
       w.x71 = w.x + ox; w.z71 = w.z + oz; w.y71 = w.y; w.u71 = (w.role === 'mason' || w.role === 'dig') ? ((((w.ph / 6.2832) - 0.25 + 0.66) % 1) + 1) % 1 : null; w.moving71 = w.role === 'carry' ? !(w.wait > 0) : w.role === 'tread' ? !!(crane && crane.walking) : false; w.stone71 = stone; w.field71 = !!(st && FIELD.has(st.id));
       if (w.lod71) {
@@ -8791,6 +8793,7 @@ export function createStages(ctx) {
   let bayOff62 = false;
 
   const api = {
+    hideWorkers(boxes) { HIDEW92 = Array.isArray(boxes) && boxes.length ? boxes.map((q) => q.slice(0, 4)) : null; },   // ── build 92 ──
     workers71: () => ({ W, n: nWork, on: wBody.visible !== false && wBody.parent != null, pal: WPAL }),   // ── build 71 ── (crew71.js: the site workers, for their real figures)
     ids: STAGE_IDS.slice(),
     setSectors62, sectors62: secInfo62, noBay62: (on) => { bayOff62 = !!on; },   // ── build 62 ──

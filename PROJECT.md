@@ -1370,6 +1370,14 @@ The owner on v44: "הג׳ויסטיק לא מתפקד… שביל הזהב מר�
 - **What remains:** the acts themselves unchanged from build 60.
 - **How out/index.html was made:** `node build.mjs` then `node tools/mkout.cjs --no-shift "בנייה 83 — שלב 13, האולם, בלולאת הבנייה — בית המקדש השני"`; copied to `index.html`.
 
+### build 90 — stage 03: the slab turns with weight, the turn is on the slab, stakes instead of flashes (3.11)
+- **Why:** the owner, 3.11 20:51, on 89: "הסיבוב שלו לא דינמי אלא קופץ במלאכותיות מצד למשנהו"; "מיקום סיבוב האריח הוא מתחת לאריח לא על האריח עצמו"; "ההבהובים הצהובים האלה לא נראים טוב … הם נצרכים בכלל?".
+- **The turn follows the hand with weight:** the finger sets a target (`twistBy` → `rT`), and the slab follows it on a spring (`SOREG90` kT 60, cT 9): over several frames, a little past, then settles. Let go (`twistEnd`) and it swings free as before.
+- **The turn is on the slab itself:** grab the slab: down lowers it (the hold ramp of 88), across turns it (3/4 of the screen's width = one turn). The drag below the slab no longer turns it. His hand on the slab steadies its swing across too (`dampZHeld` for x as well).
+- **Site marks:** the glowing post and ring on each job's place are now a wooden stake with a red cloth and three stones (`mark90`). The chips at the bottom stay.
+- **Name question open:** the owner asked whether "אבני האזהרה" should be "אבני העזרה". Josephus (Wars 5.193–194) names them warning pillars; the name stays until his answer.
+- **Verified by:** test/build90.test.mjs (weighted follow, held steadies x, wiring); the whole suite (1202); a live mouse run (drag across the slab: target leads, slab follows, no lowering, no errors).
+
 ### build 89 — stage 03: a new skill in each lattice section; the treadwheel (3.11)
 - **Why:** the owner, 3.11 16:34, on 87: "אין הבדל באמת בין השלב הראשון לשלב הסריג השזור"; his choice on the card, 17:07: "מיומנות חדשה בכל קטע". And 18:50, on v29 (artifact 46bgWDHedDV54kemeFVtvM, 4.10): "דברים מוצלחים יותר בגרסה שבלינק … 1. תנועת האייטמים כמו גלגל המנוף".
 - **Section 1 (diamonds):** as before: the grip, the swing, the face out.

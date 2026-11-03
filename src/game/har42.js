@@ -352,7 +352,7 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   bowFirst: 'החליקו לאט למטה — השתחוויה · מדות ב, ג · טיוטה',
   bows: 'משתחווים מול המקדש — הודיה על הניצחון על היוונים · מדות ב, ג · ברטנורא שם · טיוטה',   // ── build 46 ── (his stones in the court wall, when he passes by)
   // ── build 84 ── stage 03 rebuilt (soreg84.js): the lattice of stone slabs on the hoist, the warning stones by paces, the bows with the procession
-  lat84: 'החזיקו את הלוח מטה; החליקו בעולם כדי לסובב · סורג של אבן — יוספוס, מלחמות ה 193; עשרה טפחים — מדות ב, ג · המחשה',
+  lat84: 'החזיקו את הלוח: מטה — יורד, לצדדים — מסתובב · סורג של אבן — יוספוס, מלחמות ה 193; עשרה טפחים — מדות ב, ג · המחשה',
   lat84jam: 'נתקעה על ראש העמוד — ייצבו אותה מעל התעלות, ושוב · המחשה',
   lat84in: 'בתוך התעלות — הורידו לאט עד הסף · המחשה',
   lat85break: 'ירד חזק מדי — הלוח נשבר על הסף · המחשה',
@@ -3384,7 +3384,7 @@ export function createHar42(o = {}) {
   /** a single stone's result over it: the rating, and what it adds to his stones (the small words under it — the act's own, not a claim) */
   const SAY85 = Object.freeze({ back: 'הגב המחוספס היה בחוץ — הצוות הפך אותו', backOut: 'הגב בחוץ', hot: 'מהר מדי — יישבר!', broke1: 'הלוח הקודם נשבר', broke2: 'שני לוחות נשברו — הצוות הציב', onMeasure: 'בדיוק במידה' });   // ── build 85 ──
   const SAY89 = Object.freeze({ upside: 'הפוך! סובבו בשתי אצבעות', upsidePC: '(במחשב: גלגלת העכבר)', gust: 'רוח!', gustWarn: 'רוח מתקרבת', close: 'מקום צר — בין שני לוחות' });   // ── build 89 ──
-  const SAY86 = Object.freeze({ grab: 'משכו את הלוח מטה והחזיקו — ככל שמחזיקים, יורד מהר יותר; עזבו — עוצר', spin: 'גררו בעולם ימינה או שמאלה — הלוח מסתובב איתכם', drag: 'גררו קדימה — הוא הולך; גררו אחורה — חוזר; עזבו — עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
+  const SAY86 = Object.freeze({ grab: ON89 ? 'החזיקו את הלוח: מטה — יורד (ככל שמחזיקים, מהר יותר); לצדדים — מסתובב' : 'משכו את הלוח מטה והחזיקו — ככל שמחזיקים, יורד מהר יותר; עזבו — עוצר', spin: 'גררו בעולם ימינה או שמאלה — הלוח מסתובב איתכם', drag: 'גררו קדימה — הוא הולך; גררו אחורה — חוזר; עזבו — עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
   const SAY84 = Object.freeze({ crew: 'הצוות החליף — הדוגמה לא המשיכה', help: 'הצוות ייצב אותה', chip: 'ירדה מהר — הפינה נסדקה', slow: 'לאט!', moved: 'הצוות הזיז אותה למקום' });
   function toast84(rating, at, extra) {
     if (!doc || !st.ui.root) return;
@@ -3606,7 +3606,8 @@ export function createHar42(o = {}) {
       move(a) {
         const sc = Math.max(90, Math.min(W(), H()) * 0.3);
         if (st84.two) return;   // ── build 89 ──
-        if (st84.grab) { st84.pull = Math.max(-1, Math.min(1, (a.x - st84.grab.x0) / sc)); const dy = (a.y - st84.grab.y0) / sc; if (dy > 0.08) { if (!st84.grab.down) { st84.grab.down = true; st84.grab.tl = now88(); } setLever(0); } else { st84.grab.down = false; setLever(dy < -0.1 ? dy : 0); } }   // ── build 88 ── (drawn down and held: the longer, the faster — hold88)
+        if (st84.grab && ON89 && st84.J) { const gx = st84.grab.x1 != null ? st84.grab.x1 : st84.grab.x0; if (st84.J.twistBy(((a.x - gx) / Math.max(200, W() * 0.75)) * 2 * Math.PI, 0) && Math.abs(a.x - st84.grab.x0) > 30) st84.learnSpin = true; st84.grab.x1 = a.x; st84.pull = 0; }   // ── build 90 ── (the owner, 3.11: the turn belongs on the slab itself — across on the slab turns it; his hand steadies the swing)
+        if (st84.grab) { if (!ON89) st84.pull = Math.max(-1, Math.min(1, (a.x - st84.grab.x0) / sc)); const dy = (a.y - st84.grab.y0) / sc; if (dy > 0.08) { if (!st84.grab.down) { st84.grab.down = true; st84.grab.tl = now88(); } setLever(0); } else { st84.grab.down = false; setLever(dy < -0.1 ? dy : 0); } }   // ── build 88 ── (drawn down and held: the longer, the faster — hold88)
         else if (st84.spin && st84.J) {   // ── build 87 ── (the finger turns it round directly: a full turn for most of the screen's width)
           const now = typeof performance !== 'undefined' ? performance.now() : Date.now(), dx = a.x - st84.spin.x1, dts = Math.max(0.001, (now - st84.spin.t) / 1000);
           if (st84.J.twistBy((dx / Math.max(200, W() * 0.75)) * 2 * Math.PI, dts) && Math.abs(dx) > 0) st84.learnSpin = st84.learnSpin || Math.abs(a.x - st84.spin.x0) > 40;
@@ -3615,13 +3616,14 @@ export function createHar42(o = {}) {
       },
       up() {
         if (st84.spin && Math.abs(st84.spin.x1 - st84.spin.x0) > 40) { buzz42('rise'); tone(420, 0.1); }
+        if (st84.J && st84.J.twistEnd) st84.J.twistEnd();   // ── build 90 ── (let go: it keeps the turn it had)
         st84.grab = null; st84.spin = null; st84.pull = 0; st84.pullZ = 0; st84.held = false; setLever(0);
       },
       // ── build 89 ── two fingers on the screen turn the slab in its own plane, as a picture is turned (the angle between them); a mouse's
       // wheel does it on a computer. The way it turns follows the fingers whichever face is out.
       raw(type, id, x, y) {
         const P2 = st84.ptr || (st84.ptr = new Map());
-        if (type === 'down') { P2.set(id, { x, y }); if (P2.size === 2 && ON89) { const [a, b] = [...P2.values()]; st84.two = { ang: Math.atan2(b.y - a.y, b.x - a.x), t: now88() }; st84.grab = null; st84.spin = null; st84.held = false; st84.pull = 0; setLever(0); } return; }
+        if (type === 'down') { P2.set(id, { x, y }); if (P2.size === 2 && ON89) { const [a, b] = [...P2.values()]; st84.two = { ang: Math.atan2(b.y - a.y, b.x - a.x), t: now88() }; if (st84.J && st84.J.twistEnd) st84.J.twistEnd(); st84.grab = null; st84.spin = null; st84.held = false; st84.pull = 0; setLever(0); } return; }
         if (type === 'move') { const q = P2.get(id); if (!q) return; q.x = x; q.y = y; if (st84.two && P2.size >= 2 && st84.J && st84.ph === 'hoist') { const [a, b] = [...P2.values()], an = Math.atan2(b.y - a.y, b.x - a.x), d = F84.wrapPi(an - st84.two.ang), tn = now88(), sg = Math.cos(st84.J.state().r) >= 0 ? -1 : 1; if (st84.J.rollBy(sg * d, Math.max(0.001, tn - st84.two.t)) && Math.abs(d) > 0.01) st84.learnRoll = true; st84.two.ang = an; st84.two.t = tn; } return; }
         P2.delete(id); if (P2.size < 2 && st84.two) { st84.two = null; if (st84.learnRoll) { buzz42('tick'); } }
       },
@@ -5597,6 +5599,15 @@ export function createHar42(o = {}) {
     line(LINE63.shot, labelOf(part));
     o.emit && o.emit('h63shot', { part, done: D.length });
   }
+  /** ── build 90 ── (the owner, 3.11 20:51: "ההבהובים הצהובים האלה לא נראים טוב … הם נצרכים בכלל?"): a job's place on the site is a surveyor's
+   *  stake with a cloth on it — a thing of the building site, not a glowing column and a ring on the ground */
+  function mark90(g) {
+    const wd = mat('#8A6440', 0.9), cl = new THREE.MeshStandardMaterial({ color: '#C24A32', roughness: 0.9, side: THREE.DoubleSide });
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 2.6, 8), wd); pole.position.y = 1.3; pole.castShadow = true; g.add(pole);
+    const sh = new THREE.Shape(); sh.moveTo(0, 0.3); sh.lineTo(0.9, 0.18); sh.lineTo(0.9, -0.12); sh.lineTo(0, -0.3); sh.lineTo(0, 0.3);
+    const f = new THREE.Mesh(new THREE.ShapeGeometry(sh), cl); f.position.set(0.04, 2.25, 0); f.rotation.z = -0.12; f.name = 'flag90'; g.add(f);
+    for (let q = 0; q < 3; q++) { const a = (q * 2 * Math.PI) / 3 + 0.4, st2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.16, 0), STONE); st2.position.set(Math.cos(a) * 0.24, 0.1, Math.sin(a) * 0.24); st2.castShadow = true; g.add(st2); }   // (stones at its foot)
+  }
   function site63() {
     drop63();
     if (ON69 && D63().includes('reveal')) { site69(); return; }   // ── build 69 ── (the stage's works and its reveal done: the wall stays open — not the reveal again)
@@ -5609,8 +5620,8 @@ export function createHar42(o = {}) {
     const h = hero(), gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide });
     st.site63 = open.map((part) => {
       const s2 = standOf(part) || hero(), y = gy(s2.x, s2.z), g = new THREE.Group();
-      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 5, 12, 1, true), gm); col.position.y = 2.5; g.add(col);   // ── build 64 ── (the owner's report 1.11: the 16-amah column filled the screen — a short post over the ring)
-      const ring = new THREE.Mesh(new THREE.RingGeometry(2.2, 3, 28), gm.clone()); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; ring.material.opacity = 0.7; g.add(ring);
+      if (ON89) mark90(g); else { const col = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 5, 12, 1, true), gm); col.position.y = 2.5; g.add(col);   // ── build 64 ── (the owner's report 1.11: the 16-amah column filled the screen — a short post over the ring)
+      const ring = new THREE.Mesh(new THREE.RingGeometry(2.2, 3, 28), gm.clone()); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; ring.material.opacity = 0.7; g.add(ring); }
       g.position.set(s2.x, y, s2.z); if (st.props.root) st.props.root.add(g); else { const sc = scene(); if (sc) sc.add(g); }
       return { part, s: { x: s2.x, z: s2.z }, g, armed: Math.hypot(s2.x - h.x, s2.z - h.z) > SITE63.near + 1.5 };
     });
@@ -5633,8 +5644,8 @@ export function createHar42(o = {}) {
     line(LINE42.site69, `נדבכים חופשיים: ${R.free69 | 0}`);
     const h = hero(), gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide });
     const s2 = standOf('wcourse0') || hero(), y = gy(s2.x, s2.z), g = new THREE.Group();
-    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 5, 12, 1, true), gm); col.position.y = 2.5; g.add(col);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(2.2, 3, 28), gm.clone()); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; ring.material.opacity = 0.7; g.add(ring);
+    if (ON89) mark90(g); else { const col = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 5, 12, 1, true), gm); col.position.y = 2.5; g.add(col);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(2.2, 3, 28), gm.clone()); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; ring.material.opacity = 0.7; g.add(ring); }
     g.position.set(s2.x, y, s2.z); if (st.props.root) st.props.root.add(g); else { const sc = scene(); if (sc) sc.add(g); }
     st.site63 = [{ part: 'free69', s: { x: s2.x, z: s2.z }, g, armed: Math.hypot(s2.x - h.x, s2.z - h.z) > SITE63.near + 1.5 }];
     if (st.ui.root) {

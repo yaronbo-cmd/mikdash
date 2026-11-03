@@ -12,7 +12,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { clone as skClone } from 'three/addons/utils/SkeletonUtils.js';
-import KOHEN_URL from '../assets/kohen.glb';
+const KOHEN_URL = null;   // ── build 88 ── (the KayKit body is no longer in the page — people88 draws every man; ?p88=0 or a url: the shapes alone)
+import { createPeople88 } from './game/people88.js';   // ── build 88 ── (the crews' near figures: real proportions, the clothes of the time)
+import { P88_ON } from './game/fig84.js';
 
 export const CREW71 = Object.freeze({
   n: 10, near: 95, keep: 110, behind: -6,   // (at most n real figures; a new one within near amot; kept until past keep; not when this far behind the camera)
@@ -63,8 +65,9 @@ export function createCrew71(o = {}) {
   const st = { on: o.enabled !== false, loaded: false, err: null, gltf: null, mats: [], hitT: 0.5, dur: 1, figs: [], by: new Map(), n: 0 };
   const root = new THREE.Group(); root.name = 'crew71'; if (scene) scene.add(root);
   const loader = new GLTFLoader(); try { loader.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
-  const ready = new Promise((res) => {
-    loader.load(o.url || KOHEN_URL, (g) => { try { st.gltf = g; prep(g); st.loaded = true; } catch (e) { st.err = String(e && e.message); } res(st.loaded); }, undefined, (e) => { st.err = String(e && (e.message || e)); res(false); });
+  const P88 = P88_ON && !o.url ? createPeople88({}) : null; if (P88) root.add(P88.root);   // ── build 88 ──
+  const ready = P88 ? P88.ready.then((ok) => { try { if (ok) prep88(); st.loaded = !!ok; } catch (e) { st.err = String(e && e.message); st.loaded = false; } return st.loaded; }) : new Promise((res) => {
+    if (!(o.url || KOHEN_URL)) { res(false); return; } loader.load(o.url || KOHEN_URL, (g) => { try { st.gltf = g; prep(g); st.loaded = true; } catch (e) { st.err = String(e && e.message); } res(st.loaded); }, undefined, (e) => { st.err = String(e && (e.message || e)); res(false); });
   });
   /** the four tunics: the kohen's texture with its linen dyed (the skin, the hair and the eyes kept) */
   function prep(g) {
@@ -93,6 +96,18 @@ export function createCrew71(o = {}) {
       } catch (e) { st.hitT = clip.duration * 0.45; }
     }
   }
+  // ── build 88 ── the blow of people88's chop (Sword_Attack): where the right hand is lowest
+  function prep88() {
+    const f = P88.make({}); if (!f) return; f.play('2H_Melee_Attack_Chop', 1); const a = f.cur, clip = a && a.getClip(); if (!clip) { P88.clear(); return; }
+    st.dur = clip.duration; let lo = Infinity; const v = new THREE.Vector3();
+    for (let i = 0; i <= 40; i++) { const t = (clip.duration * i) / 40; f.mixer.setTime(t); f.root.updateMatrixWorld(true); if (f.B.hand_r) { f.B.hand_r.getWorldPosition(v); if (v.y < lo) { lo = v.y; st.hitT = t; } } }
+    P88.clear();
+  }
+  function make88(white) {
+    const pf = P88.make({ white }); if (!pf) return null;
+    return { m: pf.root, B: pf.B, mixer: pf.mixer, pf, white: !!white, cur: null, curName: '', id: null, ti: -1, tun: '', tool: undefined, toolM: null, cloth: null, belt: null };
+  }
+  // ── /build 88 ──
   const TOOL = {};
   function tool(kind) {
     if (TOOL[kind]) return TOOL[kind].clone();
@@ -104,6 +119,7 @@ export function createCrew71(o = {}) {
   }
   /** one real figure: the body (a skinned clone), its mixer, the head cloth and the belt in his crew's colour, a tool in the right hand */
   function make() {
+    if (P88) { const f = make88(false); f.m.visible = false; return f; }   // ── build 88 ──
     const g = st.gltf, m = skClone(g.scene); const B = {}; m.traverse((n) => { if (n.name) B[n.name] = n; if (n.isMesh) { n.castShadow = true; n.frustumCulled = false; } });
     const f = { m, B, mixer: new THREE.AnimationMixer(m), cur: null, curName: '', id: null, ti: -1, tool: undefined, toolM: null, cloth: null, belt: null };
     if (B.head) { const c = new THREE.Mesh(new THREE.SphereGeometry(0.52, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), new THREE.MeshStandardMaterial({ color: '#2F6DB5', roughness: 0.95 })); c.position.y = 0.62; c.scale.y = 0.8; c.userData.prop71 = 1; B.head.add(c); f.cloth = c; }   // (the head cloth: a cap of cloth, his crew's colour — illustration)
@@ -111,6 +127,7 @@ export function createCrew71(o = {}) {
     root.add(m); m.visible = false; return f;
   }
   function play(f, c) {
+    if (f.pf) { f.pf.play(c.name, c.sync != null ? 0 : c.rate || 1); f.cur = f.pf.cur; f.curName = c.name; if (c.sync != null && f.cur) { f.cur.setEffectiveTimeScale(0); f.cur.time = strikeT71(c.sync, st.hitT, st.dur); } return; }   // ── build 88 ──
     const clip = st.gltf.animations.find((a) => a.name === c.name) || st.gltf.animations.find((a) => a.name === 'Idle'); if (!clip) return;
     if (f.curName !== c.name) { const a = f.mixer.clipAction(clip); a.reset(); a.setLoop(THREE.LoopRepeat, Infinity); a.enabled = true; a.setEffectiveWeight(1); if (f.cur && f.cur !== a) a.crossFadeFrom(f.cur, 0.2, true); a.play(); f.cur = a; f.curName = c.name; }
     if (c.sync != null) { f.cur.setEffectiveTimeScale(0); f.cur.time = strikeT71(c.sync, st.hitT, st.dur); } else f.cur.setEffectiveTimeScale(c.rate || 1);
@@ -145,13 +162,19 @@ export function createCrew71(o = {}) {
       const c = byId.get(id); if (!c) continue;
       let f = st.by.get(id);
       if (!f) { f = st.figs.find((q) => !q.id) || null; if (!f) { if (st.figs.length >= CREW71.n) continue; f = make(); st.figs.push(f); } f.id = id; f.set = c.set; st.by.set(id, f); c.set(true); f.curName = ''; }
-      const ti = c.white ? -2 : tunic71(c.tunic);
+      if (f.pf) {   // ── build 88 ── (a kohen is a kohen's figure: rebuilt when the man it stands for changes kind; a worker's tunic and cloth his own)
+        if (f.white !== !!c.white) { const t2 = make88(!!c.white); if (t2) { if (f.m.parent) f.m.parent.remove(f.m); if (f.toolM && f.toolM.parent) f.toolM.parent.remove(f.toolM); Object.assign(f, { m: t2.m, B: t2.B, mixer: t2.mixer, pf: t2.pf, white: t2.white, cur: null, curName: '', tun: '', tool: undefined, toolM: null }); } }
+        const th = String(c.tunic || '#E2D6BE'), ch = c.cloth && c.cloth.isColor ? '#' + c.cloth.getHexString() : String(c.cloth || '#2F6DB5');
+        if (!f.white && f.tun !== th + ch) { f.tun = th + ch; f.pf.dress(th, ch); }
+      }
+      const ti = f.pf ? -3 : c.white ? -2 : tunic71(c.tunic);
       if (f.ti !== ti) { f.ti = ti; const mat = ti >= 0 ? st.mats[ti] : null; f.m.traverse((n) => { if (n.isMesh && !n.userData.prop71) { if (!n.userData.m0) n.userData.m0 = n.material; n.material = mat || n.userData.m0; } }); }
       if (f.cloth) { f.cloth.material.color.copy(c.cloth || C2.set('#2F6DB5')); f.cloth.visible = !c.white; }
       if (f.belt) f.belt.material.color.copy(c.white ? C2.set('#E8DCC0') : c.cloth || C2.set('#2F6DB5'));
       const tk = c.tool === 'pick' || c.tool === 'hammer' || c.tool === 'mallet' || c.tool === 'staff' ? c.tool : null;
       if (f.tool !== tk) { f.tool = tk; if (f.toolM) { if (f.toolM.parent) f.toolM.parent.remove(f.toolM); f.toolM = null; } const hb = f.B.handslotr || f.B['handslot.r']; if (tk && hb) { f.toolM = tool(tk); f.toolM.traverse((n) => { n.userData.prop71 = 1; }); hb.add(f.toolM); } }
-      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= CREW71.clear; f.m.position.set(c.x, c.y, c.z);   // ── build 73 ── (a man in the camera's lap not drawn — nor his instanced one: the warning stones' view stood among a crew) f.m.rotation.y = c.yaw; f.m.scale.setScalar((CREW71.model * c.h) / CREW71.modelH);
+      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= CREW71.clear; f.m.position.set(c.x, c.y, c.z);
+      f.m.rotation.y = c.yaw; f.m.scale.setScalar(f.pf ? c.h / f.pf.H0 : (CREW71.model * c.h) / CREW71.modelH);   // ── build 73 ── (a man in the camera's lap not drawn — nor his instanced one: the warning stones' view stood among a crew) ── build 88 ── (his facing and size had fallen into that comment since 73: back in code)
       play(f, c.clip());
       f.mixer.update(dt);
     }

@@ -36,6 +36,7 @@ import { DEP63, SITE63, open63, migrate63, shareAt63, shotView63, LINE63 } from 
 import { CRANE68, hangY68, alignU68, pile68, cartAt68, pick68, slide68 } from './crane68.js';
 import * as F84 from './soreg84.js';   // ── build 84 ── (stage 03 rebuilt: the stone lattice on the hoist, the warning stones by paces, the bows with the procession)
 import { fitRuns68, fitsAny68, armRot68, sheaveZ68 } from './crane68.js';   // ── build 70 ── (the fit rules, the arm's swing)   // ── build 68 ── (the crane station at the court wall)   // ── build 63 ── (the building loop: site → work → result → site — shlav-alef-olam-he.md §4)
+import * as P88w from './props88.js';   // ── build 88 ── (the hand cart and the crane's timbers in the kit's real wood)
 import { XRAY } from '../batch.js';   // ── build 46 ── (his stretch of the court wall: the model's skin there is not drawn — uHole)   // ── build 43 ── (the props' stone, rock and wood: the game's own procedural textures)
 
 export const H42KEY = 'bh_har42';
@@ -351,7 +352,7 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   bowFirst: 'החליקו לאט למטה — השתחוויה · מדות ב, ג · טיוטה',
   bows: 'משתחווים מול המקדש — הודיה על הניצחון על היוונים · מדות ב, ג · ברטנורא שם · טיוטה',   // ── build 46 ── (his stones in the court wall, when he passes by)
   // ── build 84 ── stage 03 rebuilt (soreg84.js): the lattice of stone slabs on the hoist, the warning stones by paces, the bows with the procession
-  lat84: 'גררו את הלוח למטה; החליקו בעולם כדי לסובב · סורג של אבן — יוספוס, מלחמות ה 193; עשרה טפחים — מדות ב, ג · המחשה',
+  lat84: 'החזיקו את הלוח מטה; החליקו בעולם כדי לסובב · סורג של אבן — יוספוס, מלחמות ה 193; עשרה טפחים — מדות ב, ג · המחשה',
   lat84jam: 'נתקעה על ראש העמוד — ייצבו אותה מעל התעלות, ושוב · המחשה',
   lat84in: 'בתוך התעלות — הורידו לאט עד הסף · המחשה',
   lat85break: 'ירד חזק מדי — הלוח נשבר על הסף · המחשה',
@@ -607,7 +608,8 @@ export function createHar42(o = {}) {
   const ON81 = MODE === 'stage' && STG === 'karnot' && qs('h81') !== '0';   // ── build 81 ── (stage in the building loop; ?h81=0 one after another as before)
   const ON82 = MODE === 'stage' && STG === 'kiyor' && qs('h82') !== '0';   // ── build 82 ── (stage in the building loop; ?h82=0 one after another as before)
   const ON83 = MODE === 'stage' && STG === 'ulam' && qs('h83') !== '0';   // ── build 83 ── (stage in the building loop; ?h83=0 one after another as before)
-  const ON84 = MODE === 'stage' && STG === 'soreg' && qs('h84') !== '0';   // ── build 84 ── (stage 03's acts rebuilt in the world — soreg84.js; ?h84=0 the build-46 acts)
+  const ON84 = MODE === 'stage' && STG === 'soreg' && qs('h84') !== '0';
+  const ON88 = qs('p88') !== '0';   // ── build 88 ── (the people and the wooden things from people88 / props88; ?p88=0 the shapes as before)   // ── build 84 ── (stage 03's acts rebuilt in the world — soreg84.js; ?h84=0 the build-46 acts)
   const ON84H = MODE === 'stage' && qs('h84') !== '0';   // ── build 84 ── (the shared vocabulary: two soft buzzes for מהודר)
   const ONL73 = ON73 || ON74 || ON75 || ON76 || ON77 || ON78 || ON79 || ON80 || ON81 || ON82 || ON83;   // ── build 73 ── (the stages from 03 on brought into the loop, one build each)
   const ON63 = MODE === 'stage' && (ON62 || STG === 'wall' || ONL73) && qs('h63') !== '0' && !!DEP63[STG];
@@ -3376,7 +3378,7 @@ export function createHar42(o = {}) {
   }
   /** a single stone's result over it: the rating, and what it adds to his stones (the small words under it — the act's own, not a claim) */
   const SAY85 = Object.freeze({ back: 'הגב המחוספס היה בחוץ — הצוות הפך אותו', backOut: 'הגב בחוץ', hot: 'מהר מדי — יישבר!', broke1: 'הלוח הקודם נשבר', broke2: 'שני לוחות נשברו — הצוות הציב', onMeasure: 'בדיוק במידה' });   // ── build 85 ──
-  const SAY86 = Object.freeze({ grab: 'גררו את הלוח: למטה מוריד, הצידה מזיז', spin: 'גררו בעולם ימינה או שמאלה — הלוח מסתובב איתכם', drag: 'גררו לאורך הקו — הוא הולך; עזבו — הוא עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
+  const SAY86 = Object.freeze({ grab: 'משכו את הלוח מטה והחזיקו — ככל שמחזיקים, יורד מהר יותר; עזבו — עוצר', spin: 'גררו בעולם ימינה או שמאלה — הלוח מסתובב איתכם', drag: 'גררו קדימה — הוא הולך; גררו אחורה — חוזר; עזבו — עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
   const SAY84 = Object.freeze({ crew: 'הצוות החליף — הדוגמה לא המשיכה', help: 'הצוות ייצב אותה', chip: 'ירדה מהר — הפינה נסדקה', slow: 'לאט!', moved: 'הצוות הזיז אותה למקום' });
   function toast84(rating, at, extra) {
     if (!doc || !st.ui.root) return;
@@ -3490,9 +3492,10 @@ export function createHar42(o = {}) {
     // with the rope), two back-stays to stakes behind the line, and the windlass on its trestles — a drum with the rope wound on it and a
     // spoked wheel the crew turns. Built once in its own frame (the bay's middle, on the ground) and moved bay to bay.
     const H8 = new THREE.Group(); H8.name = 'crane86';
-    const T86 = mat('#9A7048', 0.88), T86d = mat('#6E4E30', 0.9), R86 = mat('#8A7350', 0.95), I86 = mat('#4A4038', 0.6);
+    const T86 = ON88 ? P88w.wood88('a', '#E8D8C4') : mat('#9A7048', 0.88), T86d = ON88 ? P88w.wood88('b', '#F0E2D0') : mat('#6E4E30', 0.9),   // ── build 88 ── (real wood)
+      R86 = mat('#8A7350', 0.95), I86 = mat('#4A4038', 0.6);
     const yb86 = () => gy(cx(), z), apexL = () => apexY - yb86() + 0.25;
-    const beam86 = (a, b, w, m) => { const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, Lb = Math.hypot(dx, dy, dz) || 1e-3, g = new THREE.Mesh(new THREE.BoxGeometry(w, Lb, w), m); g.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2); g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx / Lb, dy / Lb, dz / Lb)); g.castShadow = true; return g; };
+    const beam86 = (a, b, w, m) => { const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, Lb = Math.hypot(dx, dy, dz) || 1e-3, g = new THREE.Mesh(ON88 && m.userData.wood88 ? P88w.grain88(new THREE.BoxGeometry(w, Lb, w), Lb) : new THREE.BoxGeometry(w, Lb, w), m); g.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2); g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx / Lb, dy / Lb, dz / Lb)); g.castShadow = true; return g; };
     const rope86 = (a, b) => { const g = beam86(a, b, 0.035, R86); g.castShadow = false; return g; };
     const parts86 = { wheel: null, spokes: null, built: false };
     function build86() {
@@ -3525,7 +3528,7 @@ export function createHar42(o = {}) {
     const spin86 = (pay) => { if (parts86.wheel) parts86.wheel.rotation.z -= pay / 0.24; if (parts86.spokes) parts86.spokes.rotation.x += pay / 0.2; const dr = H8.getObjectByName('drum'); if (dr) dr.rotation.x += pay / 0.2; };
     const rope = rope84(null), winchRope = rope84(null), tag = rope84(null);
     // the cart, west of the bay, the slabs standing on it
-    const cartG = new THREE.Group(); { const bed = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.22, 1.6), WOOD); bed.position.y = 0.95; cartG.add(bed); for (const sz of [-1, 1]) { const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.16, 16).rotateX(Math.PI / 2), mat('#5E4128', 0.9)); wh.position.set(0, 0.62, sz * 0.86); cartG.add(wh); } const rail = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.5, 0.1), WOOD); rail.position.set(0, 1.3, 0.7); cartG.add(rail); }
+    const cartG = new THREE.Group(); if (ON88) { cartG.add(P88w.wagon88({ k: 1.3 })); } else { const bed = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.22, 1.6), WOOD); bed.position.y = 0.95; cartG.add(bed); for (const sz of [-1, 1]) { const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.16, 16).rotateX(Math.PI / 2), mat('#5E4128', 0.9)); wh.position.set(0, 0.62, sz * 0.86); cartG.add(wh); } const rail = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.5, 0.1), WOOD); rail.position.set(0, 1.3, 0.7); cartG.add(rail); }
     addP(cartG, 0, 0, 0);
     const cartAt = (cx) => ({ x: cx - 2.9, z: z - 2.7 });
     // the people: the winch's man at the drum, a second at the cart; he holds the tag line by the bay's east side
@@ -3552,6 +3555,7 @@ export function createHar42(o = {}) {
     // ── build 86 ── (the owner, 3.11: "כדי לסובב אמרנו שלוחצים על העולם עצמו, לא על כפתורים בצד"; the lever did not move under his mouse):
     // no side controls. He takes the slab itself: drawn down it goes down (the further, the faster), up it rises, across it moves; let go,
     // the brake holds. A swipe elsewhere in the world spins it on the swivel that way. A tap on the cart sends it back.
+    const now88 = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now()) / 1000;   // ── build 88 ──
     function setLever(v) { st84.lever = Math.max(-1, Math.min(1, v)); if (Math.abs(st84.lever) < 0.1) st84.lever = 0; }
     setLever(0);
     function seat(right, s) {
@@ -3577,7 +3581,7 @@ export function createHar42(o = {}) {
       },
       move(a) {
         const sc = Math.max(90, Math.min(W(), H()) * 0.3);
-        if (st84.grab) { st84.pull = Math.max(-1, Math.min(1, (a.x - st84.grab.x0) / sc)); setLever((a.y - st84.grab.y0) / sc); }
+        if (st84.grab) { st84.pull = Math.max(-1, Math.min(1, (a.x - st84.grab.x0) / sc)); const dy = (a.y - st84.grab.y0) / sc; if (dy > 0.08) { if (!st84.grab.down) { st84.grab.down = true; st84.grab.tl = now88(); } setLever(0); } else { st84.grab.down = false; setLever(dy < -0.1 ? dy : 0); } }   // ── build 88 ── (drawn down and held: the longer, the faster — hold88)
         else if (st84.spin && st84.J) {   // ── build 87 ── (the finger turns it round directly: a full turn for most of the screen's width)
           const now = typeof performance !== 'undefined' ? performance.now() : Date.now(), dx = a.x - st84.spin.x1, dts = Math.max(0.001, (now - st84.spin.t) / 1000);
           if (st84.J.twistBy((dx / Math.max(200, W() * 0.75)) * 2 * Math.PI, dts) && Math.abs(dx) > 0) st84.learnSpin = st84.learnSpin || Math.abs(a.x - st84.spin.x0) > 40;
@@ -3606,7 +3610,8 @@ export function createHar42(o = {}) {
           if (u >= 1) { st84.J = F84.createHoist84({ ...st84.spec, r0: st84.cur.cand.flip ? Math.PI : 0 }); st84.ph = 'hoist'; st84.t = 0; btns(true); buzz42('tick'); }
         }
         if (st84.ph === 'hoist' && st84.J) {
-          const pay = (st84.lever > 0 ? st84.lever * SG84.vDown : st84.lever * SG84.vUp) * dt; st84.payNow = pay; const s = st84.J.step(dt, pay, { x: st84.pull, z: st84.pullZ }, st84.held), m = st84.cur.mesh, hp = hangPos(s); spin86(s.ph === 'seated' || s.ph === 'broken' ? 0 : pay);
+          const lv88 = st84.grab && st84.grab.down ? F84.hold88(now88() - st84.grab.tl) : st84.lever; st84.hold88 = st84.grab && st84.grab.down ? lv88 : 0;   // ── build 88 ──
+          const pay = (lv88 > 0 ? lv88 * SG84.vDown : lv88 * SG84.vUp) * dt; st84.payNow = pay; const s = st84.J.step(dt, pay, { x: st84.pull, z: st84.pullZ }, st84.held), m = st84.cur.mesh, hp = hangPos(s); spin86(s.ph === 'seated' || s.ph === 'broken' ? 0 : pay);
           m.position.set(hp.x, hp.y, hp.z); m.rotation.set(s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, s.vz * 0.06)) : 0, Math.PI - s.r, s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, -s.vx * 0.06)) : 0);
           for (const ev of s.ev) {
             if (ev === 'jam') { buzz42('rumble'); tone(110, 0.22, 'square'); line(LINE42.lat84jam, `${SG84.he[kind]} · מכות ${s.jams}${s.help ? ' · הצוות מייצב' : ''}`); o.emit && o.emit('h84jam', { jams: s.jams }); }
@@ -3714,7 +3719,7 @@ export function createHar42(o = {}) {
       // ── build 86 ── drawn along the line, he walks that way (the further, the same pace: it is a walk); let go, he stops; a tap on him
       // when he has stopped — the stone is set there
       down(a) { if (w8.ph !== 'walk') return; const q = heroAt(); if (q && Math.hypot(a.x - q.x, a.y - q.y) <= 80 && J.stopped() && J.state().x >= 0.5) { doSet(); return; } w8.drag = { x0: a.x }; },
-      move(a) { if (!w8.drag || w8.ph !== 'walk') return; const d = (a.x - w8.drag.x0) * dirX(); w8.fwd = d > 18; w8.backH = d < -18; },
+      move(a) { if (!w8.drag || w8.ph !== 'walk') return; const dd = (a.x - (w8.drag.lx != null ? w8.drag.lx : w8.drag.x0)) * dirX(); if (Math.abs(dd) < 10) return; w8.drag.lx = a.x; w8.fwd = dd > 0; w8.backH = dd < 0; if (w8.backH) w8.learnBack = true; },   // ── build 88 ── (the owner, 3.11: "אין אפשרות לחזור אחורה אם התקדמתי יותר מדי": the way his finger moves now — forward, he walks on; back, he walks back — not where it began)
       up() { w8.drag = null; w8.fwd = false; w8.backH = false; },
       view() {
         const fr = w8.ph === 'end' ? [A.x - 2, last() + 2] : w8.frame, cxm = (fr[0] + fr[1]) / 2, wd = fr[1] - fr[0], asp = Math.max(0.3, W() / Math.max(1, H()));

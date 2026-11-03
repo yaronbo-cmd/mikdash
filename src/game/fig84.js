@@ -10,9 +10,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { clone as skClone } from 'three/addons/utils/SkeletonUtils.js';
-import KOHEN_URL from '../../assets/kohen.glb';
+const KOHEN_URL = null;   // ── build 88 ── (the KayKit body is no longer in the page — people88 draws every man; ?p88=0 or a url: the shapes alone)
+import { createPeople88 } from './people88.js';   // ── build 88 ──
 
-export const FIG84 = Object.freeze({ scale: 1.6, robeMin: 200, bend: Object.freeze({ spine: 0.62, chest: 0.42, head: 0.25 }) });
+export const FIG84 = Object.freeze({ scale: 1.6, h88: 3.96 /* ── build 88 ── (the KayKit body at scale 1.6: people88's figures as tall) */, robeMin: 200, bend: Object.freeze({ spine: 0.62, chest: 0.42, head: 0.25 }) });
 
 let G = null;   // (one load per page)
 const qA = new THREE.Quaternion(), qB = new THREE.Quaternion(), qC = new THREE.Quaternion(), UP = new THREE.Vector3(0, 1, 0), FW = new THREE.Vector3(), AX = new THREE.Vector3();
@@ -20,12 +21,23 @@ function load() {
   if (G) return G;
   G = new Promise((res) => {
     const L = new GLTFLoader(); try { L.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
-    L.load(KOHEN_URL, (g) => res(g), undefined, () => res(null));
+    if (!KOHEN_URL) { res(null); return; } L.load(KOHEN_URL, (g) => res(g), undefined, () => res(null));
   });
   return G;
 }
 
+// ── build 88 ── the act's people are people88's now: real proportions, dressed in the clothes of the time (?p88=0: the KayKit body as before)
+export const P88_ON = (() => { try { return !(typeof location !== 'undefined' && /[?&]p88=0\b/.test(location.search)); } catch (e) { return true; } })();
 export function createFigs84(o = {}) {
+  if (P88_ON) {
+    const P = createPeople88(o);
+    return { ready: P.ready, root: P.root, clear: P.clear, figs: P.figs, get loaded() { return P.loaded; },
+      make: (opt = {}) => P.make({ ...opt, height: FIG84.h88 * ((opt.scale || FIG84.scale) / FIG84.scale) }) };
+  }
+  return createFigs84Old(o);
+}
+// ── /build 88 ──
+function createFigs84Old(o = {}) {
   const scene = o.scene, root = new THREE.Group(); root.name = 'fig84'; if (scene) scene.add(root);
   const st = { g: null, loaded: false, figs: [], dyed: {} };
   const ready = load().then((g) => { st.g = g; st.loaded = !!g; return st.loaded; });

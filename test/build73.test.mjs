@@ -15,12 +15,11 @@ const H = read('src/game/har42.js');
 
 test('build 73: GAME_BUILD 73; stage 03\'s order — two works open at the start, the panels one after another, the bows last, then the reveal', () => {
   assert.ok(GAME_BUILD >= 73);
-  assert.deepEqual(Object.keys(DEP63.soreg).sort(), PARTS46.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
+  assert.deepEqual(Object.keys(DEP63.soreg).sort(), PARTS46.filter((p) => p !== 'open' && p !== 'reveal' && p !== 'bows').sort(), 'every work of the stage (build 88: the bows out of the loop)');
   assert.deepEqual(open63('soreg', PARTS46, []), ['lattice0', 'warn']);
   assert.deepEqual(open63('soreg', PARTS46, ['lattice0']), ['lattice1', 'warn']);
-  assert.deepEqual(open63('soreg', PARTS46, ['lattice0', 'lattice1', 'lattice2']), ['warn'], 'the bows wait for the warning stones');
-  assert.deepEqual(open63('soreg', PARTS46, ['lattice0', 'lattice1', 'lattice2', 'warn']), ['bows']);
-  assert.deepEqual(open63('soreg', PARTS46, ['lattice0', 'lattice1', 'lattice2', 'warn', 'bows']), ['reveal']);
+  assert.deepEqual(open63('soreg', PARTS46, ['lattice0', 'lattice1', 'lattice2']), ['warn']);
+  assert.deepEqual(open63('soreg', PARTS46, ['lattice0', 'lattice1', 'lattice2', 'warn']), ['reveal'], 'build 88: no bows — the reveal');
 });
 
 test('build 73 har42: wired — ON73 in the loop and the crews; the soreg\'s share by the works done; he starts where he stood', () => {

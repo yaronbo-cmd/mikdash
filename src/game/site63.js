@@ -20,7 +20,9 @@ export const DEP63 = Object.freeze({
   }),
   // ── build 73 ── stage 03 (PARTS46) in the loop: the first lattice panel and the warning stones side by side; each panel after the one
   // beside it (the soreg closes panel by panel); the bows at the breaches once the soreg is closed and the warning stands
-  soreg: Object.freeze({ lattice0: [], warn: [], lattice1: ['lattice0'], lattice2: ['lattice1'], bows: ['lattice2', 'warn'] }),
+  // ── build 88 ── (the owner, 3.11: "השתחוויות — למי? למה? אנחנו תוך כדי בנייה?"): the thirteen bows are not a builder's act — Middot 2:3
+  // ties them to the thirteen breaches the Greek kings made in the soreg, bowed by those who come in, not by its builders: out of the building loop
+  soreg: Object.freeze({ lattice0: [], warn: [], lattice1: ['lattice0'], lattice2: ['lattice1'] }),
   // ── build 74 ── stage 04 (PARTS47): the lintel and the gates' names side by side; the two leaves once the lintel is up
   gates: Object.freeze({ lintel: [], names: [], leaf: ['lintel'], leaf7: ['lintel'] }),
   // ── build 75 ── stage 05 (PARTS48): the wood's sorting and the gallery's beams side by side; the pegs in the beams; the corner after the
@@ -53,7 +55,7 @@ export function open63(stg, parts, done) {
   const D = DEP63[stg]; if (!D) return [];
   const d = new Set(done || []), out = [];
   for (const p of parts) { if (p === 'open' || p === 'reveal' || d.has(p) || !D[p]) continue; if (D[p].every((q) => d.has(q))) out.push(p); }
-  if (!out.length && parts.includes('reveal') && parts.every((p) => p === 'open' || p === 'reveal' || d.has(p))) return ['reveal'];
+  if (!out.length && parts.includes('reveal') && parts.every((p) => p === 'open' || p === 'reveal' || d.has(p) || !D[p])) return ['reveal'];   // ── build 88 ── (a part out of the loop — stage 03's bows — does not hold the reveal)
   return out.slice(0, SITE63.max);
 }
 /** the works done, from an old save (one work after another): the ones before the current */

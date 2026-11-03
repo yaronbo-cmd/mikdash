@@ -36,7 +36,14 @@ export const SOREG84 = Object.freeze({
   damp85: Object.freeze([0.95, 0.16]), sway85: Object.freeze([0.3, 0.55]), tolZk: 0.8, tolR: Object.freeze([0.24, 0.09]),
   dampYaw: 0.45, dampYawHeld: 2.6, twist0: Object.freeze([0.25, 0.7]), twistPull: 0.12, windYaw: 0.35, spinK: 1.12, squareK: 2.2,
   flipP: Object.freeze([0.5, 0.6, 0.7]), vBreakK: 1.75, vTol: 0.4, vTolR: 0.7, dampZHeld: 2.2, vDown: 2.6, vUp: 1.3, jamYaw: 0.5,
+  // ── build 88 ── (the owner, 3.11: "ככל שהלחיצה של השחקן מתארכת עוצמת המהירות של הירידה גדלה — שיהיה גם מבחן בעדינות"; "כותב לי תיקון טעות גם
+  // אם … רגע לפני ההנחה עצרתי והנחתי מאוד בעדינות"): held down, the rope runs out faster the longer he holds (from hold0 of vDown, a full
+  // vDown after holdRamp seconds, up to holdMax — past the break); let go, it stops; a new hold starts slow again. A slab that only touches
+  // a post's top (slower than vKnock) is set back a little — no knock counted; only a real blow is a knock.
+  hold0: 0.12, holdRamp: 1.6, holdMax: 1.8, vKnock: 0.55,
 });
+/** ── build 88 ── the lowering speed (a multiple of vDown) after holding t seconds */
+export const hold88 = (t, c = SOREG84) => (t > 0 ? Math.min(c.holdMax, c.hold0 + (1 - c.hold0) * (t / c.holdRamp)) : 0);
 
 export const VALUE84 = Object.freeze({ mehudar: 1, kasher: 0.5, tikkun: 0 });
 export const Q84 = Object.freeze({ mehudar: 1, kasher: 0.7, tikkun: 0.3 });
@@ -157,6 +164,7 @@ export function createHoist84(spec, c = SOREG84) {
       }
       if (s.yb > c.postH && y1 <= c.postH) {
         if (aligned()) { s.ph = 'groove'; s.yb = Math.min(y1, c.postH - 0.001); s.ev.push('enter'); }
+        else if (!(s.v > c.vKnock) && Number.isFinite(c.vKnock)) { s.yb = c.postH + 0.04; s.vx += Math.sign(s.x || 1) * c.jamKick * 0.2; s.v = 0; s.ev.push('touch'); }   // ── build 88 ── (a gentle touch on the post's top: no knock)
         else { s.jams++; s.yb = c.postH + c.jamUp; s.vx += Math.sign(s.x || 1) * c.jamKick; s.vz += Math.sign(s.z || 1) * c.jamKick * 0.6; s.vr += Math.sign((s.r - Math.round(s.r / Math.PI) * Math.PI) || 1) * c.jamYaw; s.v = 0; s.ev.push('jam'); if (s.jams >= c.helpAt) s.help = true; }
       } else s.yb = y1;
       return s;
@@ -239,7 +247,7 @@ export function createPaces84(spec, c = WARN84) {
  * from the one before, both gaps in sight side by side; then the measuring cord is laid on his gap and shows how far off. Held: he walks
  * with the stone's crew behind him; let go: he stops — the heavy last stone keeps them going a little (its weight), so let go early. Each
  * stone a harder look: the camera turns along the line (the gaps foreshortened), the tolerance tightens. ── */
-export const WARN85 = Object.freeze({ pace: 1.5, n: 3, gaps: Object.freeze([5, 6, 7]), v: 2.2, vHeavy: 1.5, acc: 9, accHeavy: 1.3, vBack: 1.2,
+export const WARN85 = Object.freeze({ pace: 1.5, n: 3, gaps: Object.freeze([5, 6, 7]), v: 2.2, vHeavy: 1.5, acc: 9, accHeavy: 1.3, vBack: 1.6 /* ── build 88 ── (1.2: back a little quicker) */,
   tolM: Object.freeze([0.07, 0.05, 0.04]), tolK: 2.6, lvTol: 0.1, view: Object.freeze([0, 0.15, 0.25]) });
 /** the run: the measure G (amot) and each stone's tolerance (מהודר within tolM of G; כשר within tolK times that), weight and view angle */
 export function warn85(L = 1, rnd = Math.random, c = WARN85) {

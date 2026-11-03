@@ -4100,6 +4100,7 @@ export function createStages(ctx) {
   }
   // the hero's public API (stages.hero): the game (BUILD) and the hooks (FUN) call it, guarded; every promise resolves
   const heroApi = {
+    get mesh() { return hero.mesh; },   // ── build 88 ── (hero35's kohen stands in for this figure and hides it every frame: since build 66 it looked for S.hero.mesh and found nothing, so both were drawn, one inside the other)
     walkTo: heroWalkTo, swing: heroSwing, place: heroPlace, show: (v) => { hero.vis = !!v; hero.mesh.visible = hero.ring.visible = !!v; if (!v) heroCancel(); },
     twinSite: (id) => { TWD.site = id || 'har'; TWD.twin = !!id; },   // ── twin18 ── ── /twin18 ── (── nav19 ── TWD.twin: two thumbs on)
     dash: heroDash, get dashing() { return hero.dash || 0; }, navLog: () => NAV_LOG.slice(),   // ── nav19 ── ── /nav19 ──

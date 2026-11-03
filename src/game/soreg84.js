@@ -175,7 +175,10 @@ export function createHoist84(spec, c = SOREG84) {
   }
   /** the crew's half-turn on the swivel: a spin that carries it about π if nothing stops it (his hand on the line slows it sooner) */
   function turn(dir = 0, k = 1) { if (s.ph !== 'hang') return false; const d = dir ? Math.sign(dir) : s.vr < -0.05 ? -1 : 1; s.vr += d * Math.PI * c.dampYaw * c.spinK * clamp(k, 0.4, 1.6); return true; }   // ── build 86 ── (either way: his swipe's direction; its strength)
-  return { step, turn, state: () => s, L, top, aligned, sq };
+  /** ── build 87 ── (the owner, 3.11: "האריח לא מסתובב 360 — רק ימינה ושמאלה"): his finger turns it directly, all the way round and on;
+   *  let go, it keeps the spin it had (and the swivel's friction slows it) */
+  function twistBy(dr, dt) { if (s.ph !== 'hang' || !Number.isFinite(dr)) return false; s.r += dr; if (dt > 0) s.vr += (dr / dt - s.vr) * Math.min(1, dt / 0.08); return true; }
+  return { step, turn, twistBy, state: () => s, L, top, aligned, sq };
 }
 
 /** one slab's result: { right, jams, chip } → { rating, v (האבנים שלך), q } — the wrong slab seated is a failed act (0: the crew sets the

@@ -3376,7 +3376,7 @@ export function createHar42(o = {}) {
   }
   /** a single stone's result over it: the rating, and what it adds to his stones (the small words under it — the act's own, not a claim) */
   const SAY85 = Object.freeze({ back: 'הגב המחוספס היה בחוץ — הצוות הפך אותו', backOut: 'הגב בחוץ', hot: 'מהר מדי — יישבר!', broke1: 'הלוח הקודם נשבר', broke2: 'שני לוחות נשברו — הצוות הציב', onMeasure: 'בדיוק במידה' });   // ── build 85 ──
-  const SAY86 = Object.freeze({ grab: 'גררו את הלוח: למטה מוריד, הצידה מזיז', spin: 'החליקו בעולם ימינה או שמאלה — הלוח מסתובב', drag: 'גררו לאורך הקו — הוא הולך; עזבו — הוא עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
+  const SAY86 = Object.freeze({ grab: 'גררו את הלוח: למטה מוריד, הצידה מזיז', spin: 'גררו בעולם ימינה או שמאלה — הלוח מסתובב איתכם', drag: 'גררו לאורך הקו — הוא הולך; עזבו — הוא עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
   const SAY84 = Object.freeze({ crew: 'הצוות החליף — הדוגמה לא המשיכה', help: 'הצוות ייצב אותה', chip: 'ירדה מהר — הפינה נסדקה', slow: 'לאט!', moved: 'הצוות הזיז אותה למקום' });
   function toast84(rating, at, extra) {
     if (!doc || !st.ui.root) return;
@@ -3573,15 +3573,19 @@ export function createHar42(o = {}) {
         const rr = qt && qb ? Math.max(70, Math.abs(qb.y - qt.y) * 0.95) : 90, C = cartAt(cx()), qc = proj(C.x, gy(C.x, C.z) + 1.3, C.z);
         if (q && Math.hypot(a.x - q.x, a.y - q.y) <= rr) { st84.grab = { x0: a.x, y0: a.y }; st84.held = true; st84.learnGrab = true; return; }
         if (s.ph === 'hang' && qc && Math.hypot(a.x - qc.x, a.y - qc.y) <= 80) { this.back(); return; }
-        st84.spin = { x0: a.x, x1: a.x };
+        st84.spin = { x0: a.x, x1: a.x, t: (typeof performance !== 'undefined' ? performance.now() : Date.now()) };
       },
       move(a) {
         const sc = Math.max(90, Math.min(W(), H()) * 0.3);
         if (st84.grab) { st84.pull = Math.max(-1, Math.min(1, (a.x - st84.grab.x0) / sc)); setLever((a.y - st84.grab.y0) / sc); }
-        else if (st84.spin) st84.spin.x1 = a.x;
+        else if (st84.spin && st84.J) {   // ── build 87 ── (the finger turns it round directly: a full turn for most of the screen's width)
+          const now = typeof performance !== 'undefined' ? performance.now() : Date.now(), dx = a.x - st84.spin.x1, dts = Math.max(0.001, (now - st84.spin.t) / 1000);
+          if (st84.J.twistBy((dx / Math.max(200, W() * 0.75)) * 2 * Math.PI, dts) && Math.abs(dx) > 0) st84.learnSpin = st84.learnSpin || Math.abs(a.x - st84.spin.x0) > 40;
+          st84.spin.x1 = a.x; st84.spin.t = now;
+        }
       },
       up() {
-        if (st84.spin && st84.J) { const dx = st84.spin.x1 - st84.spin.x0, sc = Math.max(90, Math.min(W(), H()) * 0.3); if (Math.abs(dx) > 24 && st84.J.turn(Math.sign(dx), Math.abs(dx) / sc)) { buzz42('rise'); tone(420, 0.1); st84.learnSpin = true; } }
+        if (st84.spin && Math.abs(st84.spin.x1 - st84.spin.x0) > 40) { buzz42('rise'); tone(420, 0.1); }
         st84.grab = null; st84.spin = null; st84.pull = 0; st84.pullZ = 0; st84.held = false; setLever(0);
       },
       view() { const c = cx(), v = st84.ph === 'end' ? { p: [bayC84(k, 2) + 1.5, y0 + 7, z - 24], t: [bayC84(k, 2), y0 + 1.2, z] } : (() => { const far = W() > H() ? 1.3 : 1; return { p: [c + 0.7, y0 + 6.4 * far + 0.4, z - 20 * far], t: [c + 0.5, y0 + 2.3 + (far - 1) * 2, z] }; })()   /* ── build 86 ── (a wide screen: further and higher — the crane's head in the frame) */; return v; },

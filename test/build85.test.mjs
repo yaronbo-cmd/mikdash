@@ -12,7 +12,7 @@ const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 const seeded = (seed) => { let a = seed; return () => ((a = (a * 16807) % 2147483647) / 2147483647); };
 const C = F84.SOREG84;
 
-test('build 85: GAME_BUILD 85', () => { assert.equal(GAME_BUILD, 86); });
+test('build 85: GAME_BUILD 85', () => { assert.equal(GAME_BUILD, 87); });
 
 test('build 85: the slab swings in both directions and keeps swinging (it takes a while to settle)', () => {
   const spec = F84.slab84(0, 1, 1, seeded(5));
@@ -68,7 +68,7 @@ test('build 85: the warning stones by eye — stop at the measure; near is כש�
 
 test('build 85: wiring — the lever, the tag line both ways, the break, the back, the eye walk; lines sourced', () => {
   const h = read('src/game/har42.js');
-  assert.match(h, /st84\.grab/); assert.match(h, /st84\.J\.turn\(Math\.sign\(dx\)/); assert.match(h, /ev === 'break'/); assert.match(h, /LINE42\.lat85back/);
+  assert.match(h, /st84\.grab/); assert.match(h, /ev === 'break'/); assert.match(h, /LINE42\.lat85back/);
   assert.match(h, /F84\.createWalk85\(spec\)/); assert.match(h, /F84\.warn85\(L, rnd\)/);
   for (const k of ['lat84', 'lat85break', 'lat85back', 'warn84demo', 'warn84', 'warn84heavy']) { const t = LINE42[k]; assert.ok(t && /המחשה|טיוטה/.test(t), k); assert.ok(t.split(' · ')[0].length <= 50, `${k} head`); }
 });

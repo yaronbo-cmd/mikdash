@@ -1370,6 +1370,11 @@ The owner on v44: "הג׳ויסטיק לא מתפקד… שביל הזהב מר�
 - **What remains:** the acts themselves unchanged from build 60.
 - **How out/index.html was made:** `node build.mjs` then `node tools/mkout.cjs --no-shift "בנייה 83 — שלב 13, האולם, בלולאת הבנייה — בית המקדש השני"`; copied to `index.html`.
 
+### build 87 — stage 03: the slab turns all the way round (3.11)
+- **Why:** the owner, 3.11, on 86: "כעת האריח לא מסתובב 360. רק ימינה ושמאלה. אז אני במשחקון הזה בכלל לא יכול לסובב אותו לצד הקדמי."
+- **The lattice:** a swipe in the world turns the slab directly with the finger (`createHoist84().twistBy(dr, dt)`): ¾ of the screen's width is a full turn, either way, as far as he likes; on release it keeps the finger's spin and slows on the swivel; held by the slab, the line squares it to the nearer face as before. The old impulse (`turn`) stays for the keys.
+- **Verified by:** test/build87.test.mjs (a half turn brings the face out; two and a half turns back the other way; let go, it spins on, slowing); the whole suite.
+
 ### build 86 — stage 03: the controls are the world (3.11)
 - **Why:** the owner, 3.11, on 85 (a laptop, a mouse): "כדי לסובב אמרנו שלוחצים על העולם עצמו, לא על כפתורים בצד"; the slab spun one way only; green, yet it would not go down — the side lever moved a little and stayed.
 - **The lattice:** no lever, no buttons. He takes the slab itself (press on it — its twist and its swing toward / away steady): drawn down it goes down on the rope, the further the faster (too far — it breaks on the sill); up raises; across moves it; let go — the brake holds. A swipe elsewhere in the world spins it on the swivel, left or right, as hard as the swipe (`turn(dir, k)`). A tap on the cart sends it back. Hints on the slab until he has done each once (L ≤ 2).

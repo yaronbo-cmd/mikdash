@@ -45,6 +45,35 @@ export const SOREG84 = Object.freeze({
 /** ── build 88 ── the lowering speed (a multiple of vDown) after holding t seconds */
 export const hold88 = (t, c = SOREG84) => (t > 0 ? Math.min(c.holdMax, c.hold0 + (1 - c.hold0) * (t / c.holdRamp)) : 0);
 
+/* ── build 89 ── (the owner's choice, 3.11 17:07: "מיומנות חדשה בכל קטע" — section 1 and the woven sections felt the same):
+ * section 1 — the grip, the swing, the face (as before);
+ * section 2 — the slab may come up from the cart UPSIDE DOWN (its carved coping at the bottom): he turns it right way up in its own plane
+ *   with two fingers (a mouse's wheel on a computer) before it can go into the grooves;
+ * section 3 — GUSTS of wind come and go (the pennant on the crane's head flies a moment before each), and his slabs go in the order
+ *   bay 1, bay 3, then bay 2: the last one CLOSES between two set slabs, a tight place (a narrower window to go in).
+ * All of it illustration (המחשה). */
+export const SOREG89 = Object.freeze({
+  upP: Object.freeze([0, 0.7, 0.4]),   // (the chance a slab comes up upside down, by section; never in the first)
+  tolU: Object.freeze([0.22, 0.1]), dampRoll: 3.0, dampRollHeld: 4.5, rightK: 1.2, rollCarry: 0.4,
+  order: Object.freeze([Object.freeze([1, 2, 3]), Object.freeze([1, 2, 3]), Object.freeze([1, 3, 2])]),
+  tightK: 0.55, tightR: 0.6,   // (the closing slab: its window across and toward, and its twist)
+  gustEvery: Object.freeze([4.2, 6.6]), gustLen: 1.5, gustK: 2.6, gustWarn: 1.0, gustFirst: 2.6,
+});
+const TAU = Math.PI * 2;
+/** an angle brought to −π…π */
+export const wrapPi = (a) => a - TAU * Math.round(a / TAU);
+/** the bay his slab i of section k goes into */
+export const bay89 = (k, i, c = SOREG89) => c.order[Math.max(0, Math.min(2, k | 0))][Math.max(0, Math.min(2, i | 0))];
+/** the gust at time t: { e 0…1 (its strength now), dir ±1, warn (the pennant flies: one comes) } */
+export function gust89(gusts, t, c = SOREG89) {
+  if (!Array.isArray(gusts) || !gusts.length) return { e: 0, dir: 1, warn: false };
+  for (const g of gusts) {
+    if (t >= g.t0 && t <= g.t0 + c.gustLen) return { e: Math.sin((Math.PI * (t - g.t0)) / c.gustLen), dir: g.dir, warn: false };
+    if (t >= g.t0 - c.gustWarn && t < g.t0) return { e: 0, dir: g.dir, warn: true };
+  }
+  return { e: 0, dir: 1, warn: false };
+}
+
 export const VALUE84 = Object.freeze({ mehudar: 1, kasher: 0.5, tikkun: 0 });
 export const Q84 = Object.freeze({ mehudar: 1, kasher: 0.7, tikkun: 0.3 });
 
@@ -107,7 +136,7 @@ export function diff84(k, i, L = 1, c = SOREG84) { const n = k * c.bays + i, N =
 /** one slab's set-up: the section's kind, its candidates on the cart (one right; the rest a wrong phase; in the third section any may
  *  stand back to front) and the hoist's numbers by its difficulty */
 export function slab84(k, i, L = 1, rnd = Math.random, c = SOREG84) {
-  const kind = c.kinds[clamp(k, 0, 2)], d = diff84(k, i, L, c), X0 = bayX84(i + 1, c);
+  const kind = c.kinds[clamp(k, 0, 2)], d = diff84(k, i, L, c), bay = bay89(k, i), X0 = bayX84(bay, c);   // ── build 89 ── (section 3: bays 1, 3, 2)
   const nC = c.cands[clamp(k, 0, 2)][clamp(i, 0, 2)] + (L >= 3 && i === 2 ? 1 : 0);
   const offs = kind === 'rings' ? [c.p, c.p * 0.5, c.p * 1.5] : kind === 'tri' ? [c.p * 0.5, c.p * 0.25, c.p * 0.75] : [c.p * 0.5, c.p * 0.25, c.p * 0.75];
   const out = [{ off: 0, flip: !(k === 0 && i === 0 && L <= 1) && rnd() < c.flipP[clamp(k, 0, 2)], right: true }];   // ── build 85 ── (any kind: its plain back may come out first)
@@ -120,7 +149,7 @@ export function slab84(k, i, L = 1, rnd = Math.random, c = SOREG84) {
   // the cart's order: shuffled, but never the right one first at a level above 1 (a look first)
   for (let a = out.length - 1; a > 0; a--) { const b = Math.floor(rnd() * (a + 1)); [out[a], out[b]] = [out[b], out[a]]; }
   if ((L > 1 || k > 0) && out.length > 1 && out[0].right) { [out[0], out[1]] = [out[1], out[0]]; }
-  return {
+  const spec = {
     k, i, kind, X0, d, cands: out,
     tol: +lerp(c.tolMax, c.tolMin, d).toFixed(3), damp: +lerp(c.damp85[0], c.damp85[1], d).toFixed(3),
     sway0: +lerp(c.sway85[0], c.sway85[1], d).toFixed(3) * (rnd() < 0.5 ? -1 : 1), vChip: +lerp(c.vChip[0], c.vChip[1], d).toFixed(3),
@@ -128,6 +157,16 @@ export function slab84(k, i, L = 1, rnd = Math.random, c = SOREG84) {
     tolZ: +(lerp(c.tolMax, c.tolMin, d) * c.tolZk).toFixed(3), tolR: +lerp(c.tolR[0], c.tolR[1], d).toFixed(3), vBreak: +(lerp(c.vChip[0], c.vChip[1], d) * c.vBreakK).toFixed(3),
     wind: k >= 2 || d > 0.62 ? +(c.wind * (0.6 + 0.4 * d)).toFixed(3) : 0, ghost: k === 0 && i === 0 && L <= 1,
   };
+  // ── build 89 ── (drawn after the rest: the earlier numbers stay as they were for the same seed)
+  const C9 = SOREG89, kk = clamp(k, 0, 2);
+  spec.bay = bay; spec.tolU = +lerp(C9.tolU[0], C9.tolU[1], d).toFixed(3);
+  spec.upside = kk > 0 && rnd() < C9.upP[kk];
+  spec.u0 = spec.upside ? +(Math.PI + (rnd() - 0.5) * 0.5).toFixed(3) : 0;
+  spec.gusts = [];
+  if (kk === 2) { let t = C9.gustFirst; for (let n = 0; n < 40; n++) { spec.gusts.push({ t0: +t.toFixed(2), dir: rnd() < 0.5 ? -1 : 1 }); t += C9.gustLen + lerp(C9.gustEvery[0], C9.gustEvery[1], rnd()); } if (!spec.wind) spec.wind = +(c.wind * 0.6).toFixed(3); }
+  spec.closing = kk === 2 && clamp(i, 0, 2) === 2;
+  if (spec.closing) { spec.tol = +(spec.tol * C9.tightK).toFixed(3); spec.tolZ = +(spec.tolZ * C9.tightK).toFixed(3); spec.tolR = +(spec.tolR * C9.tightR).toFixed(3); }
+  return spec;
 }
 
 /** THE HOIST (build 85): the slab on its rope under the sheave. step(dt, pay, pull, held): pay — amot of rope let out this frame (− hauls
@@ -139,12 +178,14 @@ export function slab84(k, i, L = 1, rnd = Math.random, c = SOREG84) {
  *  (it spins on until his hand catches it). Events: 'jam', 'enter', 'leave', 'seat' (with chip, back), 'break'. */
 export function createHoist84(spec, c = SOREG84) {
   const top = c.postH + c.hang;
-  const s = { ph: 'hang', yb: top, x: spec.sway0 || 0, vx: 0, z: spec.swayZ0 || 0, vz: 0, r: (spec.r0 || 0) + (spec.twist0 || 0), vr: 0, t: 0, jams: 0, chip: false, broken: false, back: false, vLand: 0, help: false, ev: [] };
+  const s = { ph: 'hang', yb: top, x: spec.sway0 || 0, vx: 0, z: spec.swayZ0 || 0, vz: 0, r: (spec.r0 || 0) + (spec.twist0 || 0), vr: 0, t: 0, jams: 0, chip: false, broken: false, back: false, vLand: 0, help: false, ev: [],
+    u: Number.isFinite(spec.u0) ? spec.u0 : 0, vu: 0, gust: { e: 0, dir: 1, warn: false } };   // ── build 89 ── (u: the slab turned in its own plane — 0 right way up, π upside down; the gust now)
+  const C9 = SOREG89, tolU = () => (Number.isFinite(spec.tolU) ? spec.tolU : 9), upright = () => Math.abs(wrapPi(s.u)) <= tolU();
   const L = () => Math.max(0.4, c.apex - (s.yb + c.H));
   const tolZ = () => (Number.isFinite(spec.tolZ) ? spec.tolZ : spec.tol), tolR = () => (Number.isFinite(spec.tolR) ? spec.tolR : 9);
   /** the twist off square (0…π/2) and which face is out */
   const sq = () => { const k = Math.round(s.r / Math.PI); return { off: Math.abs(s.r - k * Math.PI), back: ((k % 2) + 2) % 2 === 1 }; };
-  const aligned = () => Math.abs(s.x) <= spec.tol && Math.abs(s.z) <= tolZ() && sq().off <= tolR() && Math.hypot(s.vx, s.vz) <= c.vTol && Math.abs(s.vr) <= c.vTolR;   // (and still: a slab swinging through the middle knocks the grooves' edges)
+  const aligned = () => Math.abs(s.x) <= spec.tol && Math.abs(s.z) <= tolZ() && sq().off <= tolR() && Math.hypot(s.vx, s.vz) <= c.vTol && Math.abs(s.vr) <= c.vTolR && upright() && Math.abs(s.vu) <= c.vTolR;   // ── build 89 ── (and right way up, not turning)   // (and still: a slab swinging through the middle knocks the grooves' edges)
   function step(dt, pay = 0, pull = 0, held = false) {
     s.ev = []; if (s.ph === 'seated' || s.ph === 'broken' || !(dt > 0)) return s;
     s.t += dt;
@@ -155,22 +196,25 @@ export function createHoist84(spec, c = SOREG84) {
       // the swing in two directions and the twist (a few sub-steps: the short rope at the top swings fast)
       const n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n, damp = s.help ? Math.max(spec.damp, 3.2) : spec.damp, dr = held || s.help ? c.dampYawHeld : c.dampYaw, w = L();
       for (let q = 0; q < n; q++) {
-        const tt = s.t + q * h, gx = spec.wind ? spec.wind * (Math.sin(tt * 0.9) * 0.7 + Math.sin(tt * 2.3 + 1) * 0.3) : 0, gz = spec.wind ? spec.wind * 0.6 * Math.sin(tt * 0.7 + 2) : 0;
+        const tt = s.t + q * h, G9 = gust89(spec.gusts, tt), gx = (spec.wind ? spec.wind * (Math.sin(tt * 0.9) * 0.7 + Math.sin(tt * 2.3 + 1) * 0.3) : 0) + (G9.e ? G9.e * G9.dir * C9.gustK * (spec.wind || 0.6) : 0), gz = spec.wind ? spec.wind * 0.6 * Math.sin(tt * 0.7 + 2) + (G9.e ? G9.e * 0.5 * C9.gustK * spec.wind : 0) : 0;   // ── build 89 ── (the gusts)
         const ax = -(c.g / w) * s.x - damp * s.vx + clamp(px, -1, 1) * c.pullA + gx;
         const az = -(c.g / w) * s.z - (held ? Math.max(damp, c.dampZHeld) : damp) * s.vz + clamp(pz, -1, 1) * c.pullA + gz;   // ── build 86 ── (his hand on the stone steadies its swing toward and away)
         const sqr = held || s.help ? -c.squareK * (s.r - Math.round(s.r / Math.PI) * Math.PI) : 0;   // (his hand on the line squares it to the nearer face: past a half-turn, the other one)
         const ar = -dr * s.vr + sqr + clamp(px, -1, 1) * c.twistPull + (spec.wind ? c.windYaw * spec.wind * Math.sin(tt * 0.5 + 0.7) : 0);
         s.vx += ax * h; s.x += s.vx * h; s.vz += az * h; s.z += s.vz * h; s.vr += ar * h; s.r += s.vr * h;
+        // ── build 89 ── the turn in its own plane: free on the sling, slowed by its friction (more with his hand on it); the crew (after three knocks) rights it
+        s.vu += (-(held || s.help ? C9.dampRollHeld : C9.dampRoll) * s.vu + (s.help ? -C9.rightK * 3 * wrapPi(s.u) : 0)) * h; if (!s.rollF) s.u += s.vu * h;   // (while his fingers turn it, it follows them only)
       }
+      s.gust = gust89(spec.gusts, s.t); s.rollF = false;
       if (s.yb > c.postH && y1 <= c.postH) {
         if (aligned()) { s.ph = 'groove'; s.yb = Math.min(y1, c.postH - 0.001); s.ev.push('enter'); }
         else if (!(s.v > c.vKnock) && Number.isFinite(c.vKnock)) { s.yb = c.postH + 0.04; s.vx += Math.sign(s.x || 1) * c.jamKick * 0.2; s.v = 0; s.ev.push('touch'); }   // ── build 88 ── (a gentle touch on the post's top: no knock)
-        else { s.jams++; s.yb = c.postH + c.jamUp; s.vx += Math.sign(s.x || 1) * c.jamKick; s.vz += Math.sign(s.z || 1) * c.jamKick * 0.6; s.vr += Math.sign((s.r - Math.round(s.r / Math.PI) * Math.PI) || 1) * c.jamYaw; s.v = 0; s.ev.push('jam'); if (s.jams >= c.helpAt) s.help = true; }
+        else { s.jams++; s.yb = c.postH + c.jamUp; s.vx += Math.sign(s.x || 1) * c.jamKick; s.vz += Math.sign(s.z || 1) * c.jamKick * 0.6; s.vr += Math.sign((s.r - Math.round(s.r / Math.PI) * Math.PI) || 1) * c.jamYaw; if (!upright()) s.vu += Math.sign(wrapPi(s.u) || 1) * c.jamYaw * 0.6; s.v = 0; s.ev.push('jam'); if (s.jams >= c.helpAt) s.help = true; }
       } else s.yb = y1;
       return s;
     }
     if (s.ph === 'groove') {
-      const k = Math.min(1, dt * 14); s.x += (0 - s.x) * k; s.vx = 0; s.z += (0 - s.z) * k; s.vz = 0; const r0 = Math.round(s.r / Math.PI) * Math.PI; s.r += (r0 - s.r) * k; s.vr = 0;
+      const k = Math.min(1, dt * 14); s.x += (0 - s.x) * k; s.vx = 0; s.z += (0 - s.z) * k; s.vz = 0; const r0 = Math.round(s.r / Math.PI) * Math.PI; s.r += (r0 - s.r) * k; s.vr = 0; s.u -= wrapPi(s.u) * k; s.vu = 0;   // ── build 89 ── (the grooves hold it square and upright)
       if (s.yb - pay >= c.postH) { s.ph = 'hang'; s.yb = c.postH + 0.01; s.ev.push('leave'); return s; }   // (hauled back up out of the grooves: a look at the seam, and back)
       const y1 = s.yb - pay;
       if (y1 <= 0) {
@@ -186,7 +230,9 @@ export function createHoist84(spec, c = SOREG84) {
   /** ── build 87 ── (the owner, 3.11: "האריח לא מסתובב 360 — רק ימינה ושמאלה"): his finger turns it directly, all the way round and on;
    *  let go, it keeps the spin it had (and the swivel's friction slows it) */
   function twistBy(dr, dt) { if (s.ph !== 'hang' || !Number.isFinite(dr)) return false; s.r += dr; if (dt > 0) s.vr += (dr / dt - s.vr) * Math.min(1, dt / 0.08); return true; }
-  return { step, turn, twistBy, state: () => s, L, top, aligned, sq };
+  /** ── build 89 ── his two fingers (or the mouse's wheel) turn it in its own plane; let go, it keeps a little of the turn */
+  function rollBy(du, dt) { if (s.ph !== 'hang' || !Number.isFinite(du)) return false; s.u += du; s.rollF = true; if (dt > 0) s.vu += ((du / dt) * C9.rollCarry - s.vu) * Math.min(1, dt / 0.08); return true; }
+  return { step, turn, twistBy, rollBy, upright, state: () => s, L, top, aligned, sq };
 }
 
 /** one slab's result: { right, jams, chip } → { rating, v (האבנים שלך), q } — the wrong slab seated is a failed act (0: the crew sets the

@@ -12,7 +12,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 69: GAME_BUILD 69; ON69 at the wall under the site; the works done → the wall open, not the stage\'s end; the chips: another course, the way on, the count', () => {
-  assert.equal(GAME_BUILD, 88);
+  assert.equal(GAME_BUILD, 89);
   assert.match(H, /const ON69 = MODE === 'stage' && STG === 'wall' && ON63 && qs\('h69'\) !== '0' && qs\('h68'\) !== '0';/);
   assert.match(H, /if \(ON69 && D63\(\)\.includes\('reveal'\)\) \{ site69\(\); return; \}/, 'the reveal done: the open wall, not the reveal again');
   assert.match(H, /if \(ON69\) \{ const D = D63\(\); if \(!D\.includes\('reveal'\)\) D\.push\('reveal'\); save42\(S\); \}/, 'the reveal counted as done');

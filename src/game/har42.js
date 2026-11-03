@@ -357,6 +357,9 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   lat84in: 'בתוך התעלות — הורידו לאט עד הסף · המחשה',
   lat85break: 'ירד חזק מדי — הלוח נשבר על הסף · המחשה',
   lat85back: 'הגב המחוספס בחוץ — הצוות מרים והופך · המחשה',
+  lat89up: 'הלוח עלה הפוך — סובבו אותו בשתי אצבעות · המחשה',   // ── build 89 ──
+  lat89gust: 'משבי רוח — חכו לשקט, ואז הורידו · המחשה',
+  lat89close: 'הלוח האחרון נסגר בין שניים — מקום צר · המחשה',
   lat84wrong: 'הדוגמה לא ממשיכה — הצוות מחליף את הלוח · המחשה',
   lat84done: 'הקטע עומד — שלושה לוחות · המחשה',
   warn84demo: 'האמן מציב שתי אבנים — המרחק ביניהן הוא המידה · "עמודים במרחקים שווים" — יוספוס, מלחמות ה 193 · המחשה',
@@ -609,6 +612,7 @@ export function createHar42(o = {}) {
   const ON82 = MODE === 'stage' && STG === 'kiyor' && qs('h82') !== '0';   // ── build 82 ── (stage in the building loop; ?h82=0 one after another as before)
   const ON83 = MODE === 'stage' && STG === 'ulam' && qs('h83') !== '0';   // ── build 83 ── (stage in the building loop; ?h83=0 one after another as before)
   const ON84 = MODE === 'stage' && STG === 'soreg' && qs('h84') !== '0';
+  const ON89 = qs('h89') !== '0';   // ── build 89 ── (stage 03: a new skill in each section, the treadwheel; ?h89=0 as in 88)
   const ON88 = qs('p88') !== '0';   // ── build 88 ── (the people and the wooden things from people88 / props88; ?p88=0 the shapes as before)   // ── build 84 ── (stage 03's acts rebuilt in the world — soreg84.js; ?h84=0 the build-46 acts)
   const ON84H = MODE === 'stage' && qs('h84') !== '0';   // ── build 84 ── (the shared vocabulary: two soft buzzes for מהודר)
   const ONL73 = ON73 || ON74 || ON75 || ON76 || ON77 || ON78 || ON79 || ON80 || ON81 || ON82 || ON83;   // ── build 73 ── (the stages from 03 on brought into the loop, one build each)
@@ -1305,6 +1309,7 @@ export function createHar42(o = {}) {
     pad.addEventListener('pointermove', (e) => { if (st.job && st.job.raw) st.job.raw('move', e.pointerId, e.clientX, e.clientY); if (st.two64) { const T = st.two64, f = T.a.id === e.pointerId ? T.a : T.b.id === e.pointerId ? T.b : null; if (f) { f.x = e.clientX; f.y = e.clientY; const m = two64(T.a, T.b); st.act64 = drag64(pinch64({ ...st.act64, d: T.d0 }, m.L / T.L0), m.x - T.m.x, m.y - T.m.y); T.m = m; } return; }   /* ── build 64 ── */ const a = st.act; if (!a || e.pointerId !== a.id) return; a.x = e.clientX; a.y = e.clientY; a.ts = e.timeStamp > 0 ? e.timeStamp / 1000 : null;   /* ── build 57 ── (the event's own time: a pace read off it is not bent by a late frame) */ a.moved = Math.max(a.moved, Math.hypot(a.x - a.x0, a.y - a.y0)); if (st.job && st.job.move) st.job.move(a); });
     const up = (e) => { if (st.job && st.job.raw && (e.type === 'pointerup' || e.type === 'pointercancel')) st.job.raw('up', e.pointerId, e.clientX, e.clientY); if (st.two64 && (st.two64.a.id === e.pointerId || st.two64.b.id === e.pointerId)) { if (st.ptrs) st.ptrs.delete(e.pointerId); st.two64 = null; return; }   /* ── build 64 ── (the other finger, still down, is no act's: it lifts on its own) */ const a = st.act; if (st.ptrs && st.ptrs.has(e.pointerId)) { st.ptrs.delete(e.pointerId); if (!a || e.pointerId !== a.id) st.finger = Math.max(0, st.finger - 1); } if (!a || e.pointerId !== a.id) return; a.down = false; st.finger = Math.max(0, st.finger - 1); if (st.job && st.job.up) st.job.up(a, e.type); st.act = null; };
     for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(t, up);
+    pad.addEventListener('wheel', (e) => { if (st.job && st.job.wheel) { e.preventDefault(); st.job.wheel(e.deltaY, e); } }, { passive: false });   // ── build 89 ── (a computer's mouse wheel: the slab turns in its own plane)
   }
   function dropUI() { try { if (st.t40) st.t40.destroy(); if (st.ui.root) st.ui.root.remove(); } catch (e) { /* */ } st.ui = {}; if (doc) doc.body.classList.remove('h42-on'); }
   const line = (t, sub = '') => { if (!st.ui.line) return; const parts = String(t || '').split(' · '), head = parts.shift() || '', src = parts.join(' · '); const h = head ? `<b>${esc(head)}</b>${src || sub ? `<small>${src ? `<i>${esc(src)}</i>` : ''}${sub ? `<em>${esc(sub)}</em>` : ''}</small>` : ''}` : ''; if (st.ui.line.__h !== h) { st.ui.line.__h = h; st.ui.line.innerHTML = h; } st.ui.line.hidden = !head; };   // (build 43: one short instruction line and a small source chip)
@@ -3378,6 +3383,7 @@ export function createHar42(o = {}) {
   }
   /** a single stone's result over it: the rating, and what it adds to his stones (the small words under it — the act's own, not a claim) */
   const SAY85 = Object.freeze({ back: 'הגב המחוספס היה בחוץ — הצוות הפך אותו', backOut: 'הגב בחוץ', hot: 'מהר מדי — יישבר!', broke1: 'הלוח הקודם נשבר', broke2: 'שני לוחות נשברו — הצוות הציב', onMeasure: 'בדיוק במידה' });   // ── build 85 ──
+  const SAY89 = Object.freeze({ upside: 'הפוך! סובבו בשתי אצבעות', upsidePC: '(במחשב: גלגלת העכבר)', gust: 'רוח!', gustWarn: 'רוח מתקרבת', close: 'מקום צר — בין שני לוחות' });   // ── build 89 ──
   const SAY86 = Object.freeze({ grab: 'משכו את הלוח מטה והחזיקו — ככל שמחזיקים, יורד מהר יותר; עזבו — עוצר', spin: 'גררו בעולם ימינה או שמאלה — הלוח מסתובב איתכם', drag: 'גררו קדימה — הוא הולך; גררו אחורה — חוזר; עזבו — עוצר', tapSet: 'לחצו עליו — האבן תוצב כאן' });   // ── build 86 ──
   const SAY84 = Object.freeze({ crew: 'הצוות החליף — הדוגמה לא המשיכה', help: 'הצוות ייצב אותה', chip: 'ירדה מהר — הפינה נסדקה', slow: 'לאט!', moved: 'הצוות הזיז אותה למקום' });
   function toast84(rating, at, extra) {
@@ -3393,6 +3399,7 @@ export function createHar42(o = {}) {
     return null;
   }
   /** a rope between two points: a thin cylinder (a line of one pixel is lost on a phone) */
+  const TREAD89 = Object.freeze({ r: 2.3, w: 1.1, x: -3.6, z: 2.7 });   // ── build 89 ── (the treadwheel: its radius, its width, where it stands from the crane's feet — behind the line, west)
   const ROPE84 = { geo: null, mat: null };
   function rope84(m, a, b) {
     if (!m) { if (!ROPE84.geo) { ROPE84.geo = new THREE.CylinderGeometry(1, 1, 1, 6); ROPE84.geo.translate(0, 0.5, 0); ROPE84.mat = mat('#8A7350', 0.95); } m = new THREE.Mesh(ROPE84.geo, ROPE84.mat); m.scale.set(0.03, 1, 0.03); addP(m, 0, 0, 0); }
@@ -3433,6 +3440,11 @@ export function createHar42(o = {}) {
       const bk = new THREE.Mesh(geo, m.clone()); bk.material.side = THREE.BackSide; bk.material.map = slabTex84(kind, X0, { off: cand.off, flip: false }, false, true); bk.material.emissiveIntensity = 0.08; bk.position.z = -T / 2; g.add(bk);
       for (const [w2, h2, x2, y2] of [[SG84.bay, SG84.rim, 0, SG84.rim / 2], [SG84.bay, SG84.rim, 0, SG84.H - SG84.rim / 2], [SG84.side, SG84.H, -SG84.bay / 2 + SG84.side / 2, SG84.H / 2], [SG84.side, SG84.H, SG84.bay / 2 - SG84.side / 2, SG84.H / 2]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w2, h2, T * 0.97), STONE); b.position.set(x2, y2, 0); b.castShadow = true; g.add(b); }
       f.castShadow = true;
+    }
+    if (ON89) {   // ── build 89 ── the coping on its top edge (a moulding on the face: which way is up), and a body turning about its middle
+      if (!ghost) { const cp = new THREE.Mesh(new THREE.BoxGeometry(SG84.bay + 0.06, 0.09, T + 0.1), BOSS); cp.position.set(0, SG84.H - 0.02, 0); cp.castShadow = true; g.add(cp); const bead = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, SG84.bay, 8).rotateZ(Math.PI / 2), BOSS); bead.position.set(0, SG84.H - 0.12, T / 2 + 0.03); g.add(bead); const bead2 = bead.clone(); bead2.position.z = -T / 2 - 0.03; g.add(bead2); }
+      const body = new THREE.Group(); body.position.y = SG84.H / 2; for (const ch of [...g.children]) { g.remove(ch); ch.position.y -= SG84.H / 2; body.add(ch); } g.add(body); g.userData.body = body;
+      body.rotation.z = Number.isFinite(cand.u) ? cand.u : 0;
     }
     g.rotation.y = Math.PI; g.userData.cand = { ...cand }; return g;
   }
@@ -3507,6 +3519,7 @@ export function createHar42(o = {}) {
       }
       for (const h of [0.26, 0.58]) { const a = at(feet[0], h), b = at(feet[1], h); H8.add(beam86(a, b, 0.14, T86d)); for (const q of [a, b]) { const lash = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.12, 10), R86); lash.position.set(q.x, q.y, q.z); H8.add(lash); } }
       { const lash = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.32, 12).rotateX(Math.PI / 2), R86); lash.position.set(ap.x, ap.y + 0.2, ap.z); H8.add(lash); }   // (the head's lashing)
+      if (ON89) { const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 1.1, 6), T86d); pole.position.set(ap.x, ap.y + 0.85, ap.z); H8.add(pole); const pn = new THREE.Group(); pn.name = 'pennant'; pn.position.set(ap.x, ap.y + 1.3, ap.z); H8.add(pn); const sh = new THREE.Shape(); sh.moveTo(0, 0.14); sh.lineTo(0.75, 0); sh.lineTo(0, -0.14); sh.lineTo(0, 0.14); const cl = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({ color: '#B8402E', roughness: 0.9, side: THREE.DoubleSide })); cl.name = 'cloth'; pn.add(cl); }   // ── build 89 ── (the pennant: it flies a moment before each gust)
       // the pulley block under the head: two iron-bound cheeks and the wheel
       const blk = new THREE.Group(); blk.position.set(ap.x, ap.y - 0.15, ap.z); H8.add(blk); blk.name = 'sheave';
       for (const sz of [-1, 1]) { const ch = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.7, 0.06), T86d); ch.position.set(0, -0.05, sz * 0.09); blk.add(ch); const band = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.06, 0.08), I86); band.position.set(0, 0.22, sz * 0.09); blk.add(band); }
@@ -3514,6 +3527,17 @@ export function createHar42(o = {}) {
       { const rim = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.035, 8, 20), T86); wheel.add(rim); const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.16, 10).rotateX(Math.PI / 2), I86); wheel.add(hub); for (let k = 0; k < 3; k++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.04, 0.04), T86); sp.rotation.z = (k * Math.PI) / 3; wheel.add(sp); } }
       // the back-stays: from the head to two stakes behind the line
       for (const sx of [-1, 1]) { const st2 = { x: sx * 1.6, y: 0.35, z: 3.4 }; H8.add(rope86({ x: ap.x, y: ap.y + 0.2, z: ap.z }, st2)); const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.6, 8), T86d); stake.position.set(st2.x, 0.25, st2.z); stake.rotation.x = -0.35; H8.add(stake); }
+      if (ON89) {   // ── build 89 ── (the owner, 3.11 on v29: "תנועת האייטמים כמו גלגל המנוף") THE TREADWHEEL (המחשה; Vitruvius 10.2 describes
+        // the great wheel a man walks in): two rims, the treads between them, the spokes, the axle on two A-frames; the rope's drum on the
+        // axle. The wheel turns with the rope — a man walks inside it — so every amah the slab goes up or down is seen in the wheel.
+        const RW = TREAD89.r, tw = new THREE.Group(); tw.position.set(TREAD89.x, 0, TREAD89.z); H8.add(tw);
+        const axY = RW + 0.2, rotG = new THREE.Group(); rotG.position.y = axY; rotG.name = 'tread'; tw.add(rotG);
+        for (const sz of [-1, 1]) { const rim = new THREE.Mesh(new THREE.TorusGeometry(RW, 0.07, 8, 40), T86); rim.position.z = sz * TREAD89.w / 2; rim.castShadow = true; rotG.add(rim); for (let q = 0; q < 8; q++) { const a = (q * Math.PI) / 4, sp = beam86({ x: 0, y: 0, z: sz * TREAD89.w / 2 }, { x: Math.cos(a) * RW, y: Math.sin(a) * RW, z: sz * TREAD89.w / 2 }, 0.07, T86d); rotG.add(sp); } }
+        for (let q = 0; q < 22; q++) { const a = (q * 2 * Math.PI) / 22, tr = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, TREAD89.w + 0.08), T86d); tr.position.set(Math.cos(a) * (RW - 0.05), Math.sin(a) * (RW - 0.05), 0); tr.rotation.z = a; rotG.add(tr); }
+        { const ax = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, TREAD89.w + 1.0, 12).rotateX(Math.PI / 2), I86); rotG.add(ax); const d1 = new THREE.Group(); d1.name = 'drum'; d1.position.z = TREAD89.w / 2 + 0.32; rotG.add(d1); const coil = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.3, 12).rotateX(Math.PI / 2), R86); d1.add(coil); }
+        for (const sz of [-1, 1]) { const z2 = sz * (TREAD89.w / 2 + (sz > 0 ? 0.62 : 0.14)); tw.add(beam86({ x: -0.9, y: 0, z: z2 }, { x: 0, y: axY + 0.1, z: z2 }, 0.14, T86)); tw.add(beam86({ x: 0.9, y: 0, z: z2 }, { x: 0, y: axY + 0.1, z: z2 }, 0.14, T86)); tw.add(beam86({ x: -0.6, y: 0.5, z: z2 }, { x: 0.6, y: 0.5, z: z2 }, 0.1, T86d)); }
+        parts86.built = true; return;
+      }
       // the windlass: two trestles, the drum with its coil, a spoked wheel at its west end
       const wl = new THREE.Group(); wl.position.set(-1.9, 0, 0.9); H8.add(wl);
       for (const sx of [-1, 1]) { const x = sx * 0.62; wl.add(beam86({ x, y: 0, z: -0.35 }, { x, y: 1.05, z: 0 }, 0.1, T86)); wl.add(beam86({ x, y: 0, z: 0.35 }, { x, y: 1.05, z: 0 }, 0.1, T86)); }
@@ -3525,7 +3549,7 @@ export function createHar42(o = {}) {
     }
     addP(H8, 0, 0, 0);
     const setH8 = (cx2) => { build86(); H8.position.set(cx2, yb86(), z); };
-    const spin86 = (pay) => { if (parts86.wheel) parts86.wheel.rotation.z -= pay / 0.24; if (parts86.spokes) parts86.spokes.rotation.x += pay / 0.2; const dr = H8.getObjectByName('drum'); if (dr) dr.rotation.x += pay / 0.2; };
+    const spin86 = (pay) => { if (parts86.wheel) parts86.wheel.rotation.z -= pay / 0.24; if (parts86.spokes) parts86.spokes.rotation.x += pay / 0.2; const tg = H8.getObjectByName('tread'); if (tg) { tg.rotation.z += pay / 0.22; return; } const dr = H8.getObjectByName('drum'); if (dr) dr.rotation.x += pay / 0.2; };   // ── build 89 ── (the treadwheel turns on its axle: the rope off its drum)
     const rope = rope84(null), winchRope = rope84(null), tag = rope84(null);
     // the cart, west of the bay, the slabs standing on it
     const cartG = new THREE.Group(); if (ON88) { cartG.add(P88w.wagon88({ k: 1.3 })); } else { const bed = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.22, 1.6), WOOD); bed.position.y = 0.95; cartG.add(bed); for (const sz of [-1, 1]) { const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.16, 16).rotateX(Math.PI / 2), mat('#5E4128', 0.9)); wh.position.set(0, 0.62, sz * 0.86); cartG.add(wh); } const rail = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.5, 0.1), WOOD); rail.position.set(0, 1.3, 0.7); cartG.add(rail); }
@@ -3539,16 +3563,16 @@ export function createHar42(o = {}) {
     const btns = () => {};   // ── build 86 ── (no buttons: the slab, the world and the cart are the controls)
     pile.hidden = true;
     btns(false);
-    const cx = () => bayC84(k, st84.i + 1);
+    const bayN = () => F84.bay89(k, st84.i), cx = () => bayC84(k, bayN());   // ── build 89 ── (section 3: bays 1, 3, then 2 — the last closes between two)
     const yawOf = (cand) => (cand.flip ? 0 : Math.PI);   // ── build 85 ── (π: the dressed face out, to the north; 0: its plain back out)
     function cartLay() { const C = cartAt(cx()); st84.cart.forEach((q, n) => { q.mesh.position.set(C.x - 0.05 + n * 0.05, gy(C.x, C.z) + 1.06, C.z - 0.45 + n * 0.32); q.mesh.rotation.set(-0.12, yawOf(q.cand), 0); }); cartG.position.set(C.x, gy(C.x, C.z), C.z); }
     function setup() {
       const spec = F84.slab84(k, st84.i, L, rnd); st84.spec = spec;
-      st84.cart.forEach((q) => { if (q.mesh.parent) q.mesh.parent.remove(q.mesh); }); st84.cart = spec.cands.map((c2) => ({ cand: { ...c2 }, mesh: addP(slab84(kind, spec.X0, c2), 0, 0, 0) }));
+      st84.cart.forEach((q) => { if (q.mesh.parent) q.mesh.parent.remove(q.mesh); }); if (!ON89) { spec.upside = false; spec.u0 = 0; spec.gusts = []; } st84.cart = spec.cands.map((c2) => { const cd = { ...c2, u: spec.u0 || 0 }; return { cand: cd, mesh: addP(slab84(kind, spec.X0, cd), 0, 0, 0) }; });   // ── build 89 ── (it may come up upside down)
       cartLay();
       if (st84.ghost) { if (st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); st84.ghost = null; }
       if (spec.ghost) st84.ghost = addP(slab84(kind, spec.X0, { off: 0, flip: false }, true), cx(), y0, z);
-      setH8(cx()); st84.ph = 'bring'; st84.t = 0; st84.cur = null; st84.breaks = 0; lineNow();
+      setH8(cx()); st84.ph = 'bring'; st84.t = 0; st84.cur = null; st84.breaks = 0; lineNow(); if (ON89 && spec.closing) line(LINE42.lat89close, `${SG84.he[kind]} · לוח 3 מתוך 3 · רמה ${L}`);
     }
     function bring() { st84.cur = st84.cart.shift(); st84.cur.from = st84.cur.mesh.position.clone(); st84.ph = 'bring'; st84.t = 0; setLever(0); cartLay(); }
     const hangPos = (s) => ({ x: cx() - (s ? s.x : 0), y: y0 + (s ? s.yb : SG84.postH + SG84.hang), z: z + (s ? s.z || 0 : 0) });
@@ -3572,7 +3596,7 @@ export function createHar42(o = {}) {
       // rope (the further, the faster: let go, the brake holds), up raises, across moves it; elsewhere in the world — a swipe spins it on
       // the swivel, left or right; on the cart — sent back.
       down(a) {
-        st84.grab = null; st84.spin = null; if (st84.ph !== 'hoist' || !st84.J) return;
+        st84.grab = null; st84.spin = null; if (st84.ph !== 'hoist' || !st84.J || st84.two) return;
         const s = st84.J.state(), hp = hangPos(s), q = proj(hp.x, hp.y + SG84.H / 2, hp.z), qt = proj(hp.x, hp.y + SG84.H, hp.z), qb = proj(hp.x, hp.y, hp.z);
         const rr = qt && qb ? Math.max(70, Math.abs(qb.y - qt.y) * 0.95) : 90, C = cartAt(cx()), qc = proj(C.x, gy(C.x, C.z) + 1.3, C.z);
         if (q && Math.hypot(a.x - q.x, a.y - q.y) <= rr) { st84.grab = { x0: a.x, y0: a.y }; st84.held = true; st84.learnGrab = true; return; }
@@ -3581,6 +3605,7 @@ export function createHar42(o = {}) {
       },
       move(a) {
         const sc = Math.max(90, Math.min(W(), H()) * 0.3);
+        if (st84.two) return;   // ── build 89 ──
         if (st84.grab) { st84.pull = Math.max(-1, Math.min(1, (a.x - st84.grab.x0) / sc)); const dy = (a.y - st84.grab.y0) / sc; if (dy > 0.08) { if (!st84.grab.down) { st84.grab.down = true; st84.grab.tl = now88(); } setLever(0); } else { st84.grab.down = false; setLever(dy < -0.1 ? dy : 0); } }   // ── build 88 ── (drawn down and held: the longer, the faster — hold88)
         else if (st84.spin && st84.J) {   // ── build 87 ── (the finger turns it round directly: a full turn for most of the screen's width)
           const now = typeof performance !== 'undefined' ? performance.now() : Date.now(), dx = a.x - st84.spin.x1, dts = Math.max(0.001, (now - st84.spin.t) / 1000);
@@ -3592,12 +3617,23 @@ export function createHar42(o = {}) {
         if (st84.spin && Math.abs(st84.spin.x1 - st84.spin.x0) > 40) { buzz42('rise'); tone(420, 0.1); }
         st84.grab = null; st84.spin = null; st84.pull = 0; st84.pullZ = 0; st84.held = false; setLever(0);
       },
+      // ── build 89 ── two fingers on the screen turn the slab in its own plane, as a picture is turned (the angle between them); a mouse's
+      // wheel does it on a computer. The way it turns follows the fingers whichever face is out.
+      raw(type, id, x, y) {
+        const P2 = st84.ptr || (st84.ptr = new Map());
+        if (type === 'down') { P2.set(id, { x, y }); if (P2.size === 2 && ON89) { const [a, b] = [...P2.values()]; st84.two = { ang: Math.atan2(b.y - a.y, b.x - a.x), t: now88() }; st84.grab = null; st84.spin = null; st84.held = false; st84.pull = 0; setLever(0); } return; }
+        if (type === 'move') { const q = P2.get(id); if (!q) return; q.x = x; q.y = y; if (st84.two && P2.size >= 2 && st84.J && st84.ph === 'hoist') { const [a, b] = [...P2.values()], an = Math.atan2(b.y - a.y, b.x - a.x), d = F84.wrapPi(an - st84.two.ang), tn = now88(), sg = Math.cos(st84.J.state().r) >= 0 ? -1 : 1; if (st84.J.rollBy(sg * d, Math.max(0.001, tn - st84.two.t)) && Math.abs(d) > 0.01) st84.learnRoll = true; st84.two.ang = an; st84.two.t = tn; } return; }
+        P2.delete(id); if (P2.size < 2 && st84.two) { st84.two = null; if (st84.learnRoll) { buzz42('tick'); } }
+      },
+      wheel(dy) { if (!ON89 || st84.ph !== 'hoist' || !st84.J) return; const d = Math.max(-0.35, Math.min(0.35, dy * 0.004)), sg = Math.cos(st84.J.state().r) >= 0 ? -1 : 1; if (st84.J.rollBy(sg * d, 0.05)) st84.learnRoll = true; },
       view() { const c = cx(), v = st84.ph === 'end' ? { p: [bayC84(k, 2) + 1.5, y0 + 7, z - 24], t: [bayC84(k, 2), y0 + 1.2, z] } : (() => { const far = W() > H() ? 1.3 : 1; return { p: [c + 0.7, y0 + 6.4 * far + 0.4, z - 20 * far], t: [c + 0.5, y0 + 2.3 + (far - 1) * 2, z] }; })()   /* ── build 86 ── (a wide screen: further and higher — the crane's head in the frame) */; return v; },
       frame(dt) {
         keepScrub84(); st84.t += dt; const M2 = menUp(), c = cx();
         if (M2) {
-          const dr = { x: c - 2.3, z: z + 1.5 }, C = cartAt(c); M2.winch.root.position.set(dr.x, gy(dr.x, dr.z), dr.z); M2.winch.root.rotation.y = Math.PI * 0.85;   /* (behind the soreg, at the drum: seen through the lattice, not in front of it) */ M2.cart.root.position.set(C.x - 1.3, gy(C.x - 1.3, C.z + 1.1), C.z + 1.1);   /* ── build 86 ── (behind the cart's far side: not in the camera's lap) */ M2.cart.root.rotation.y = Math.PI / 2;
-          M2.winch.play(st84.cheerT > 0 ? 'Cheer' : st84.J && st84.J.state().ph !== 'seated' && Math.abs(st84.payNow) > 1e-4 ? 'Interact' : 'Idle', 1); M2.cart.play(st84.ph === 'bring' || st84.ph === 'swap' ? 'Interact' : st84.cheerT > 0 ? 'Cheer' : 'Idle', 1);
+          const dr = { x: c - 2.3, z: z + 1.5 }, C = cartAt(c); M2.winch.root.position.set(dr.x, gy(dr.x, dr.z), dr.z); M2.winch.root.rotation.y = Math.PI * 0.85;
+          if (ON89) { const v9 = st84.payNow / Math.max(1e-4, dt), wx = H8.position.x + TREAD89.x + (v9 >= 0 ? 0.5 : -0.5) * Math.min(1, Math.abs(v9) / 1.5); M2.winch.root.position.set(wx, H8.position.y + 0.27, H8.position.z + TREAD89.z); M2.winch.root.rotation.y = v9 >= 0 ? -Math.PI / 2 : Math.PI / 2; }   // ── build 89 ── (the man inside the treadwheel: he walks as the rope runs)   /* (behind the soreg, at the drum: seen through the lattice, not in front of it) */ M2.cart.root.position.set(C.x - 1.3, gy(C.x - 1.3, C.z + 1.1), C.z + 1.1);   /* ── build 86 ── (behind the cart's far side: not in the camera's lap) */ M2.cart.root.rotation.y = Math.PI / 2;
+          if (ON89) { const v9 = Math.abs(st84.payNow) / Math.max(1e-4, dt); M2.winch.play(v9 > 0.05 && st84.J && st84.J.state().ph !== 'seated' ? 'Walking_A' : st84.cheerT > 0 ? 'Cheer' : 'Idle', v9 > 0.05 ? Math.max(0.5, Math.min(1.8, v9 / 1.2)) : 1); }
+          else M2.winch.play(st84.cheerT > 0 ? 'Cheer' : st84.J && st84.J.state().ph !== 'seated' && Math.abs(st84.payNow) > 1e-4 ? 'Interact' : 'Idle', 1); M2.cart.play(st84.ph === 'bring' || st84.ph === 'swap' ? 'Interact' : st84.cheerT > 0 ? 'Cheer' : 'Idle', 1);
           M2.winch.update(dt); M2.cart.update(dt); st84.cheerT = Math.max(0, st84.cheerT - dt);
         }
         // his place: by the bay's east side, the tag line in his hand
@@ -3607,12 +3643,12 @@ export function createHar42(o = {}) {
           const u = Math.min(1, st84.t / 1.1), e = u * u * (3 - 2 * u), m = st84.cur.mesh, f = st84.cur.from, hp = hangPos(null);
           m.position.set(f.x + (hp.x - f.x) * e, f.y + (hp.y - f.y) * e + Math.sin(Math.PI * e) * 1.2, f.z + (hp.z - f.z) * e); m.rotation.set(-0.12 * (1 - e), yawOf(st84.cur.cand), 0);
           rope84(rope, { x: c, y: apexY, z: z - 0.05 }, { x: m.position.x, y: m.position.y + SG84.H, z: m.position.z });
-          if (u >= 1) { st84.J = F84.createHoist84({ ...st84.spec, r0: st84.cur.cand.flip ? Math.PI : 0 }); st84.ph = 'hoist'; st84.t = 0; btns(true); buzz42('tick'); }
+          if (u >= 1) { st84.J = F84.createHoist84({ ...st84.spec, r0: st84.cur.cand.flip ? Math.PI : 0, u0: st84.cur.cand.u || 0 }); st84.ph = 'hoist'; st84.t = 0; btns(true); buzz42('tick'); if (ON89 && !st84.J.upright()) line(LINE42.lat89up, `${SG84.he[kind]} · לוח ${st84.i + 1} מתוך 3`); else if (ON89 && st84.spec.gusts && st84.spec.gusts.length && !st84.spec.closing) line(LINE42.lat89gust, `${SG84.he[kind]} · לוח ${st84.i + 1} מתוך 3`); }
         }
         if (st84.ph === 'hoist' && st84.J) {
           const lv88 = st84.grab && st84.grab.down ? F84.hold88(now88() - st84.grab.tl) : st84.lever; st84.hold88 = st84.grab && st84.grab.down ? lv88 : 0;   // ── build 88 ──
           const pay = (lv88 > 0 ? lv88 * SG84.vDown : lv88 * SG84.vUp) * dt; st84.payNow = pay; const s = st84.J.step(dt, pay, { x: st84.pull, z: st84.pullZ }, st84.held), m = st84.cur.mesh, hp = hangPos(s); spin86(s.ph === 'seated' || s.ph === 'broken' ? 0 : pay);
-          m.position.set(hp.x, hp.y, hp.z); m.rotation.set(s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, s.vz * 0.06)) : 0, Math.PI - s.r, s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, -s.vx * 0.06)) : 0);
+          m.position.set(hp.x, hp.y, hp.z); m.rotation.set(s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, s.vz * 0.06)) : 0, Math.PI - s.r, s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, -s.vx * 0.06)) : 0); if (m.userData.body) m.userData.body.rotation.z = s.u || 0;   // ── build 89 ──
           for (const ev of s.ev) {
             if (ev === 'jam') { buzz42('rumble'); tone(110, 0.22, 'square'); line(LINE42.lat84jam, `${SG84.he[kind]} · מכות ${s.jams}${s.help ? ' · הצוות מייצב' : ''}`); o.emit && o.emit('h84jam', { jams: s.jams }); }
             else if (ev === 'enter') { buzz42('dbl'); tone(660, 0.08); line(LINE42.lat84in, `${SG84.he[kind]} · לוח ${st84.i + 1} מתוך 3`); btns(false); }
@@ -3629,7 +3665,7 @@ export function createHar42(o = {}) {
               if (st84.ghost) { if (st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); st84.ghost = null; }
               seat(right, s);
               if (!good) { st84.ph = 'swap'; st84.t = 0; st84.swap = { wrong: st84.cur.mesh, right: addP(slab84(kind, st84.spec.X0, { off: 0, flip: false }), 0, 0, 0) }; line(right ? LINE42.lat85back : LINE42.lat84wrong, `${SG84.he[kind]} · 0`); }
-              else { P.slabs84[k][st84.i + 1] = m; st84.ph = 'next'; st84.t = 0; }
+              else { P.slabs84[k][bayN()] = m; st84.ph = 'next'; st84.t = 0; }
             }
           }
           rope84(rope, { x: c, y: apexY, z: z - 0.05 }, { x: hp.x, y: hp.y + SG84.H, z });
@@ -3644,6 +3680,13 @@ export function createHar42(o = {}) {
             if (e1 && e2) svgAdd(`<line x1="${e1.x}" y1="${e1.y}" x2="${e2.x}" y2="${e2.y}" stroke="${ok ? '#7CD67C' : '#FFF4DC'}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${ok ? '0' : '7 5'}"/>`);
             if (yb2 && e1 && e2) svgAdd(`<line x1="${(e1.x + e2.x) / 2}" y1="${(e1.y + e2.y) / 2}" x2="${yb2.x}" y2="${yb2.y}" stroke="#FFF4DC" stroke-width="1.5" opacity=".6"/>`);
             if (L <= 2 && st84.J.sq().back) { const q2 = proj(hp.x, hp.y + SG84.H + 0.35, hp.z); if (q2) svgAdd(`<text x="${q2.x}" y="${q2.y}" font-size="18" font-weight="900" text-anchor="middle" fill="#FFB070" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(SAY85.backOut)}</text>`); }
+            if (ON89) {   // ── build 89 ── upside down: said on the slab until it is right way up; the gust: said by the pennant
+              const tx9 = (t, x, y, f, col) => svgAdd(`<text x="${x}" y="${y}" font-size="${f}" font-weight="900" text-anchor="middle" fill="${col || '#FFE6A0'}" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(t)}</text>`);
+              const qU = proj(hp.x, hp.y + SG84.H + 0.75, hp.z);
+              if (qU && Math.abs(F84.wrapPi(s.u || 0)) > Math.PI / 2) { tx9(SAY89.upside, qU.x, qU.y, 19, '#FFB070'); if (!st84.learnRoll) { tx9('⟲ ⟳', qU.x, qU.y + 30, 24); tx9(SAY89.upsidePC, qU.x, qU.y + 54, 13); } }
+              const G9 = s.gust, qp = G9 && (G9.e > 0.15 || G9.warn) ? proj(hp.x, hp.y + SG84.H + 1.35, hp.z) : null;   // (by the slab: the crane's head is out of a tall frame)
+              if (qp) tx9(G9.warn ? SAY89.gustWarn : SAY89.gust, qp.x, qp.y, G9.warn ? 16 : 22, G9.warn ? '#FFE6A0' : '#9FD8FF');
+            }
             if (L <= 2 && !st84.grab) {   // ── build 86 ── (how: on the slab itself — until he has done it once; the swipe — while its back is out)
               const q = proj(hp.x, hp.y + SG84.H * 0.5, hp.z), tx = (t, x, y, f) => svgAdd(`<text x="${x}" y="${y}" font-size="${f}" font-weight="900" text-anchor="middle" fill="#FFE6A0" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(t)}</text>`);
               if (q && !st84.learnGrab && st84.i === 0) { tx('✋', q.x, q.y + 10, 30); tx(SAY86.grab, q.x, q.y + 44, 16); }
@@ -3656,7 +3699,7 @@ export function createHar42(o = {}) {
           rope84(rope, { x: c, y: apexY, z: z - 0.05 }, { x: c, y: y0 + SG84.postH + 1.0, z });
           if (st84.t > 2.0) {
             for (const bm of st84.bits || []) if (bm.parent) bm.parent.remove(bm); st84.bits = null; const old = st84.cur; if (old && old.mesh.parent) old.mesh.parent.remove(old.mesh);
-            if (st84.breaks >= 2) { seat(true, { back: false, jams: st84.J.state().jams, chip: false, broken: true }); const rt = addP(slab84(kind, st84.spec.X0, { off: 0, flip: false }), c, y0, z); P.slabs84[k][st84.i + 1] = rt; st84.ph = 'next'; st84.t = 0; }
+            if (st84.breaks >= 2) { seat(true, { back: false, jams: st84.J.state().jams, chip: false, broken: true }); const rt = addP(slab84(kind, st84.spec.X0, { off: 0, flip: false }), c, y0, z); P.slabs84[k][bayN()] = rt; st84.ph = 'next'; st84.t = 0; }
             else { const nc = { ...old.cand }; st84.cart.unshift({ cand: nc, mesh: addP(slab84(kind, st84.spec.X0, nc), 0, 0, 0) }); st84.J = null; cartLay(); bring(); lineNow(); }
           }
         }
@@ -3665,12 +3708,18 @@ export function createHar42(o = {}) {
           if (u < 0.45) { const e = u / 0.45; w.position.y = y0 + e * (ya - y0); rt.position.set(c, ya + 3, z); rt.visible = false; }
           else { if (w.parent) w.parent.remove(w); const e = (u - 0.45) / 0.55, e2 = e * e * (3 - 2 * e); rt.visible = true; rt.position.set(c, ya - e2 * (ya - y0), z); }
           rope84(rope, { x: c, y: apexY, z: z - 0.05 }, { x: c, y: (u < 0.45 ? w.position.y : rt.position.y) + SG84.H, z });
-          if (u >= 1) { rt.position.y = y0; P.slabs84[k][st84.i + 1] = rt; st84.ph = 'next'; st84.t = 0; }
+          if (u >= 1) { rt.position.y = y0; P.slabs84[k][bayN()] = rt; st84.ph = 'next'; st84.t = 0; }
         }
         if (st84.ph === 'next' && st84.t > 1.2) {
           st84.J = null; st84.i++;
           if (st84.i >= 3) { st84.cart.forEach((q) => { if (q.mesh.parent) q.mesh.parent.remove(q.mesh); }); st84.cart = []; rope84(rope, null, null); tag.visible = false; btns(false); st84.ph = 'end'; st84.t = 0; const q = proj(bayC84(k, 2), y0 + SG84.H + 0.5, z); grade(`lattice${k}`, F84.partQ84(items), q); line(LINE42.lat84done, `${SG84.he[kind]} · ${items.map((r) => RATE30.icon[r.rating]).join(' ')}`); }
           else { st84.ph = 'move'; st84.t = 0; }
+        }
+        if (ON89) {   // ── build 89 ── the pennant: hangs in the calm; flies out a moment before a gust and flaps in it
+          const pn = H8.getObjectByName('pennant'), G9 = st84.J && st84.ph === 'hoist' ? st84.J.state().gust : null, on9 = G9 && (G9.warn || G9.e > 0.05), u9 = pn ? pn.userData : {};
+          u9.lift = (u9.lift || 0) + ((on9 ? 1 : 0) - (u9.lift || 0)) * Math.min(1, dt * 3); u9.t = (u9.t || 0) + dt;
+          if (pn) { pn.rotation.y = G9 && G9.dir > 0 ? Math.PI : 0; pn.rotation.z = (pn.rotation.y ? 1 : -1) * (-1.25 * (1 - u9.lift)) + Math.sin(u9.t * 1.3) * 0.08; const cl = pn.getObjectByName('cloth'); if (cl) cl.rotation.x = Math.sin(u9.t * (6 + 14 * u9.lift)) * (0.12 + 0.35 * (G9 ? G9.e : 0)); }
+          if (G9 && G9.e > 0.2 && !st84.gustOn) { st84.gustOn = true; tone(150, 0.45, 'triangle'); buzz42('rise'); } else if (!G9 || G9.e < 0.05) st84.gustOn = false;
         }
         // the tag line: from his hand to the slab's east corner
         { const K = h66(), hd = K && K.handR ? K.handR() : null, m = st84.cur && st84.cur.mesh; if (hd && m && m.parent && (st84.ph === 'hoist' || st84.ph === 'bring')) rope84(tag, hd, { x: m.position.x + SG84.bay / 2 - 0.05, y: m.position.y + 0.15, z: m.position.z }); else tag.visible = false; }
@@ -3681,7 +3730,7 @@ export function createHar42(o = {}) {
         return false;
       },
       turn() { if (st84.ph !== 'hoist' || !st84.J || !st84.cur || !st84.J.turn()) return false; buzz42('rise'); tone(420, 0.1); return true; },   // ── build 85 ── (a spin on the swivel: his hand on the line catches it)
-      back() { if (st84.ph !== 'hoist' || !st84.J || st84.J.state().ph !== 'hang' || !st84.cur) return false; const q = st84.cur; q.cand.flip = st84.J.sq().back; q.mesh.rotation.set(-0.12, yawOf(q.cand), 0); st84.cart.push(q); st84.J = null; btns(false); buzz42('tick'); o.emit && o.emit('h84back', {}); bring(); return true; },
+      back() { if (st84.ph !== 'hoist' || !st84.J || st84.J.state().ph !== 'hang' || !st84.cur) return false; const q = st84.cur; q.cand.flip = st84.J.sq().back; q.cand.u = F84.wrapPi(st84.J.state().u || 0); if (q.mesh.userData.body) q.mesh.userData.body.rotation.z = q.cand.u; q.mesh.rotation.set(-0.12, yawOf(q.cand), 0); st84.cart.push(q); st84.J = null; btns(false); buzz42('tick'); o.emit && o.emit('h84back', {}); bring(); return true; },
       end() { pile.innerHTML = ''; pile.classList.remove('h84-off'); svgClear(); pile.hidden = false; for (const bm of st84.bits || []) if (bm.parent) bm.parent.remove(bm); for (const m of [H8, cartG, rope, winchRope, tag, ...st84.gone, ...st84.cart.map((q) => q.mesh)]) { if (m && m.parent) m.parent.remove(m); } if (st84.ghost && st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); if (men) { for (const f of [men.winch, men.cart]) if (f.root.parent) f.root.parent.remove(f.root); } },
       init() { return this; },
     }.init();

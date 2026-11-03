@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 77: GAME_BUILD 77; stage 07\'s order — three chambers side by side, each one\'s second work after its first, then the reveal', () => {
-  assert.equal(GAME_BUILD, 77);
+  assert.ok(GAME_BUILD >= 77);
   assert.deepEqual(Object.keys(DEP63.lishka).sort(), PARTS50.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
   assert.deepEqual(open63('lishka', PARTS50, []), ['compass', 'hub', 'dome']);
   assert.deepEqual(open63('lishka', PARTS50, ['compass']), ['benches', 'hub', 'dome']);

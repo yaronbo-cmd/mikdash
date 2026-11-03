@@ -32,6 +32,9 @@ export const DEP63 = Object.freeze({
   // ── build 77 ── stage 07 (PARTS50): the three chambers side by side — the hewn stone's compass, the exiles' hub, the hearth's dome; in
   // each its next work after its first (the benches after the compass, the buckets' wheel after the hub)
   lishka: Object.freeze({ compass: [], hub: [], dome: [], benches: ['compass'], wheel: ['hub'] }),
+  // ── build 78 ── stage 08 (PARTS55): the first inspection first (what makes a stone unfit); then the field stones, the nail's test and
+  // "no iron" side by side; the last row once the three are done
+  yesod: Object.freeze({ inspect: [], field: ['inspect'], nail: ['inspect'], iron: ['inspect'], last: ['field', 'nail', 'iron'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 

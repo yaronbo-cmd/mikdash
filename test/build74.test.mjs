@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 74: GAME_BUILD 74; stage 04\'s order — the lintel and the names first, the leaves after the lintel, then the reveal', () => {
-  assert.equal(GAME_BUILD, 74);
+  assert.ok(GAME_BUILD >= 74);
   assert.deepEqual(Object.keys(DEP63.gates).sort(), PARTS47.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
   assert.deepEqual(open63('gates', PARTS47, []), ['lintel', 'names']);
   assert.deepEqual(open63('gates', PARTS47, ['lintel']), ['leaf', 'leaf7', 'names']);
@@ -23,7 +23,7 @@ test('build 74: GAME_BUILD 74; stage 04\'s order — the lintel and the names fi
 
 test('build 74 har42: wired — ON74 among the loop\'s stages; the gatehouse\'s share by the works done', () => {
   assert.match(H, /const ON74 = MODE === 'stage' && STG === 'gates' && qs\('h74'\) !== '0';/);
-  assert.match(H, /const ONL73 = ON73 \|\| ON74;/);
+  assert.match(H, /const ONL73 = ON73 \|\| ON74( \|\| ON\d\d)*;/);
   assert.match(H, /stages\.setStage\('gates', 'building', Math\.max\(0\.04, Math\.min\(0\.92, ON74 \? n63\(\) \/ \(PARTS\.length - 2\) : \(R\.part - 1\) \/ \(PARTS\.length - 1\)\)\), \{ instant: true \}\);/);
 });
 

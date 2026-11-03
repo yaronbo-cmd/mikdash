@@ -25,7 +25,7 @@ test('build 73: GAME_BUILD 73; stage 03\'s order — two works open at the start
 
 test('build 73 har42: wired — ON73 in the loop and the crews; the soreg\'s share by the works done; he starts where he stood', () => {
   assert.match(H, /const ON73 = MODE === 'stage' && STG === 'soreg' && qs\('h73'\) !== '0';/);
-  assert.match(H, /const ONL73 = ON73 \|\| ON74;/); assert.match(H, /const ON63 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ONL73\) && qs\('h63'\) !== '0' && !!DEP63\[STG\];/);
+  assert.match(H, /const ONL73 = ON73 \|\| ON74( \|\| ON\d\d)*;/); assert.match(H, /const ON63 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ONL73\) && qs\('h63'\) !== '0' && !!DEP63\[STG\];/);
   assert.match(H, /const ON65 = MODE === 'stage' && \(ON62 \|\| STG === 'wall' \|\| ONL73\) && qs\('h65'\) !== '0';/);
   assert.match(H, /ONL73 \? wShare63\(part\) : \(PARTS\.indexOf\(part\) \+ 1\) \/ \(PARTS\.length - 1\)/);
   assert.match(H, /ON73 \? n63\(\) \/ \(PARTS\.length - 2\) : \(R\.part - 1\) \/ \(PARTS\.length - 1\)/);

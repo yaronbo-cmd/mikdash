@@ -351,14 +351,16 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   bowFirst: 'החליקו לאט למטה — השתחוויה · מדות ב, ג · טיוטה',
   bows: 'משתחווים מול המקדש — הודיה על הניצחון על היוונים · מדות ב, ג · ברטנורא שם · טיוטה',   // ── build 46 ── (his stones in the court wall, when he passes by)
   // ── build 84 ── stage 03 rebuilt (soreg84.js): the lattice of stone slabs on the hoist, the warning stones by paces, the bows with the procession
-  lat84: 'בדקו שהדוגמה ממשיכה, והורידו בחבל · סורג של אבן — יוספוס, מלחמות ה 193; עשרה טפחים — מדות ב, ג · המחשה',
+  lat84: 'הדוגמה ממשיכה? הפנים החוצה? ייצבו בחבל והורידו · סורג של אבן — יוספוס, מלחמות ה 193; עשרה טפחים — מדות ב, ג · המחשה',
   lat84jam: 'נתקעה על ראש העמוד — ייצבו אותה מעל התעלות, ושוב · המחשה',
   lat84in: 'בתוך התעלות — הורידו לאט עד הסף · המחשה',
+  lat85break: 'ירד חזק מדי — הלוח נשבר על הסף · המחשה',
+  lat85back: 'הגב המחוספס בחוץ — הצוות מרים והופך · המחשה',
   lat84wrong: 'הדוגמה לא ממשיכה — הצוות מחליף את הלוח · המחשה',
   lat84done: 'הקטע עומד — שלושה לוחות · המחשה',
-  warn84demo: 'האמן פוסע את המרחק — ספרו את הצעדים · "עמודים במרחקים שווים" — יוספוס, מלחמות ה 193 · המחשה',
-  warn84: 'החזיקו ללכת, וספרו — אותו מספר צעדים מהאבן הקודמת · המחשה',
-  warn84heavy: 'האבן האחרונה כבדה — הצעד איטי; ספרו · המחשה',
+  warn84demo: 'האמן מציב שתי אבנים — המרחק ביניהן הוא המידה · "עמודים במרחקים שווים" — יוספוס, מלחמות ה 193 · המחשה',
+  warn84: 'החזיקו ללכת, ועצרו באותו מרחק כמו בין שתי האבנים · המחשה',
+  warn84heavy: 'האבן כבדה — ממשיכים לנוע אחרי שמרפים; הרפו מוקדם · המחשה',
   warn84done: 'אבני האזהרה עומדות, במרחקים שווים · יוספוס, מלחמות ה 193–194 · המחשה',
   bow84first: 'החליקו לאט למטה — השתחוו עם הכהנים · מדות ב, ג · טיוטה',
   bow84: 'שלוש עשרה השתחוויות, כנגד שלוש עשרה הפרצות · מדות ב, ג · טיוטה',
@@ -500,6 +502,13 @@ const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;directio
 @keyframes h84pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
 .h84-g small{display:block;font-size:14px;font-weight:800;color:#FFF4DC;margin-top:4px;text-align:center}
 .h84-b{min-width:88px;font-size:15px}
+.h85-lever{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:30;width:58px;height:250px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;border-radius:16px;background:rgba(42,24,4,.55);color:#FFF4DC;touch-action:none;user-select:none;font-weight:900}
+.h85-lever i{font-style:normal;font-size:18px;line-height:1}
+.h85-lever small{font-size:12px}
+.h85-track{position:relative;flex:1;width:14px;border-radius:7px;background:linear-gradient(#9FC7E8,#FFF4DC 50%,#FFB070 82%,#FF6A4A);display:block}
+.h85-mid{position:absolute;left:-8px;right:-8px;top:50%;height:2px;background:#FFF4DC;opacity:.8}
+.h85-knob{position:absolute;left:50%;top:50%;width:40px;height:22px;margin:-11px 0 0 -20px;border-radius:8px;background:#E2D4B6;border:2px solid #2A1804;box-shadow:0 2px 4px rgba(0,0,0,.4);text-decoration:none}
+.h85-lever.dn .h85-knob{background:#FFB070}.h85-lever.up .h85-knob{background:#9FC7E8}
 .h42-pile.h84-off .h84-b{opacity:.45}
 @keyframes h42g{0%{opacity:0;margin-top:8px}15%{opacity:1}100%{opacity:0;margin-top:-40px}}
 .h42-svg{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:44;pointer-events:none;overflow:visible}
@@ -3373,6 +3382,7 @@ export function createHar42(o = {}) {
     const t = `האבנים שלך: \u2066${F84.yoursHe84(sum84())}\u2069`;   /* (LRI…PDI: "2½" stays 2½ in the RTL line, not ½2) */ if (c.textContent !== t) { c.textContent = t; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
   }
   /** a single stone's result over it: the rating, and what it adds to his stones (the small words under it — the act's own, not a claim) */
+  const SAY85 = Object.freeze({ back: 'הגב המחוספס היה בחוץ — הצוות הפך אותו', backOut: 'הגב בחוץ — סובבו ותפסו בחבל', hot: 'מהר מדי — יישבר!', broke1: 'הלוח הקודם נשבר', broke2: 'שני לוחות נשברו — הצוות הציב', onMeasure: 'בדיוק במידה' });   // ── build 85 ──
   const SAY84 = Object.freeze({ crew: 'הצוות החליף — הדוגמה לא המשיכה', help: 'הצוות ייצב אותה', chip: 'ירדה מהר — הפינה נסדקה', slow: 'לאט!', moved: 'הצוות הזיז אותה למקום' });
   function toast84(rating, at, extra) {
     if (!doc || !st.ui.root) return;
@@ -3396,8 +3406,8 @@ export function createHar42(o = {}) {
   }
   /** the slab's carved face: the pattern in the section's coordinates, pierced (alpha), with the carving's relief lit from above */
   const TEX84 = new Map();
-  function slabTex84(kind, X0, cand, ghost) {
-    const key = `${kind}|${X0.toFixed(3)}|${cand.off.toFixed(3)}|${cand.flip ? 1 : 0}|${ghost ? 1 : 0}`; if (TEX84.has(key)) return TEX84.get(key);
+  function slabTex84(kind, X0, cand, ghost, plain) {
+    const key = `${kind}|${X0.toFixed(3)}|${cand.off.toFixed(3)}|${cand.flip ? 1 : 0}|${ghost ? 1 : 0}|${plain ? 1 : 0}`; if (TEX84.has(key)) return TEX84.get(key);
     if (!doc) return null;
     const w = 240, h = 270, cv = doc.createElement('canvas'); cv.width = w; cv.height = h; const c = cv.getContext('2d'), im = c.createImageData(w, h), d = im.data, val = new Uint8Array(w * h);
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) val[j * w + i] = F84.face84(kind, X0, cand, ((i + 0.5) / w) * SG84.bay, SG84.H - ((j + 0.5) / h) * SG84.H);
@@ -3405,22 +3415,26 @@ export function createHar42(o = {}) {
     const at = (i, j) => (i < 0 || j < 0 || i >= w || j >= h ? 1 : val[j * w + i]), cl = (v) => Math.max(0, Math.min(255, Math.round(v)));
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
       const v = val[j * w + i], p = (j * w + i) * 4; if (!v) { d[p + 3] = 0; continue; }
-      let r = 226, g = 212, b = 182; if (v === 2) { r = 196; g = 180; b = 148; }
-      if (!at(i, j - 1) || !at(i, j - 2) || !at(i - 1, j)) { r += 20; g += 18; b += 14; }   // (the edge lit)
-      if (!at(i, j + 1) || !at(i, j + 2) || !at(i + 1, j) || !at(i + 2, j)) { r -= 58; g -= 56; b -= 50; }   // (the edge in shade: the hole's depth)
-      const n = (rn() - 0.5) * 18 + Math.sin(i * 0.21 + j * 0.05) * 3; d[p] = cl(r + n); d[p + 1] = cl(g + n); d[p + 2] = cl(b + n * 0.8); d[p + 3] = ghost ? 70 : 255;
+      let r = 226, g = 212, b = 182; if (v === 2 && !plain) { r = 196; g = 180; b = 148; }
+      if (plain) { r = 168; g = 150; b = 120; }   // ── build 85 ── (the back: rough-tooled and darker, no carving, no bevels — the dressed face is the light one)
+      else {
+        if (!at(i, j - 1) || !at(i, j - 2) || !at(i - 1, j)) { r += 20; g += 18; b += 14; }   // (the edge lit)
+        if (!at(i, j + 1) || !at(i, j + 2) || !at(i + 1, j) || !at(i + 2, j)) { r -= 58; g -= 56; b -= 50; }   // (the edge in shade: the hole's depth)
+      }
+      const n = plain ? (rn() - 0.5) * 44 + (((i + j * 2) % 9) < 2 ? -16 : 0) : (rn() - 0.5) * 18 + Math.sin(i * 0.21 + j * 0.05) * 3;   // (the back: the pick's diagonal strokes)
+      d[p] = cl(r + n); d[p + 1] = cl(g + n); d[p + 2] = cl(b + n * 0.8); d[p + 3] = ghost ? 70 : 255;
     }
     c.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; TEX84.set(key, t); return t;
   }
   /** a slab: the pierced face front and back (the back one the mirror, as a pierced stone is), its rims as stone; turned to face the north */
   function slab84(kind, X0, cand, ghost) {
-    const g = new THREE.Group(), T = SG84.T, t = slabTex84(kind, X0, cand, ghost);
+    const g = new THREE.Group(), T = SG84.T, t = slabTex84(kind, X0, { off: cand.off, flip: false }, ghost);   // ── build 85 ── (the dressed face as carved: cand.flip is now only which face is out)
     const m = new THREE.MeshStandardMaterial({ map: t, alphaTest: ghost ? 0.1 : 0.5, transparent: !!ghost, depthWrite: !ghost, roughness: 0.92, metalness: 0, side: THREE.FrontSide });
     m.emissive = new THREE.Color('#2A2218'); m.emissiveIntensity = 0.22;
     const geo = new THREE.PlaneGeometry(SG84.bay, SG84.H); geo.translate(0, SG84.H / 2, 0);
     const f = new THREE.Mesh(geo, m); f.position.z = T / 2; g.add(f);
     if (!ghost) {
-      const bk = new THREE.Mesh(geo, m.clone()); bk.material.side = THREE.BackSide; bk.position.z = -T / 2; g.add(bk);
+      const bk = new THREE.Mesh(geo, m.clone()); bk.material.side = THREE.BackSide; bk.material.map = slabTex84(kind, X0, { off: cand.off, flip: false }, false, true); bk.material.emissiveIntensity = 0.08; bk.position.z = -T / 2; g.add(bk);
       for (const [w2, h2, x2, y2] of [[SG84.bay, SG84.rim, 0, SG84.rim / 2], [SG84.bay, SG84.rim, 0, SG84.H - SG84.rim / 2], [SG84.side, SG84.H, -SG84.bay / 2 + SG84.side / 2, SG84.H / 2], [SG84.side, SG84.H, SG84.bay / 2 - SG84.side / 2, SG84.H / 2]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w2, h2, T * 0.97), STONE); b.position.set(x2, y2, 0); b.castShadow = true; g.add(b); }
       f.castShadow = true;
     }
@@ -3475,7 +3489,7 @@ export function createHar42(o = {}) {
     const L = famL('place'), kind = SG84.kinds[k], z = PL.soreg.z, y0 = y084(k), apexY = y0 + SG84.apex;
     const seed = ((R.grades ? R.grades.length : 0) * 7 + k * 13 + 5 + (Y84().length * 31)) >>> 0; let a0 = seed * 9301 + 49297; const rnd = () => ((a0 = (a0 * 9301 + 49297) % 233280) / 233280);
     const P = st.props; if (!P.slabs84) P.slabs84 = [[], [], []];
-    const items = [], st84 = { i: 0, ph: 'move', t: 0, pay: 0, pull: 0, last: null, cart: [], cur: null, J: null, spec: null, ghost: null, cheerT: 0, turn: null, endT: -1, swap: null, mv: null, gone: [] };
+    const items = [], st84 = { i: 0, ph: 'move', t: 0, pay: 0, pull: 0, pullZ: 0, held: false, lever: 0, payNow: 0, breaks: 0, bits: null, last: null, cart: [], cur: null, J: null, spec: null, ghost: null, cheerT: 0, turn: null, endT: -1, swap: null, mv: null, gone: [] };
     // the hoist: two shear legs over the bay, the sheave, the rope down to the slab; the winch's drum by the west leg
     const H8 = new THREE.Group(); { const leg = new THREE.CylinderGeometry(0.055, 0.075, 1, 8), legM = mat('#B08A5E', 0.9); leg.translate(0, 0.5, 0); for (const sx of [-1, 1]) { const m = new THREE.Mesh(leg, legM); m.userData.sx = sx; m.castShadow = true; H8.add(m); } const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.12, 14).rotateX(Math.PI / 2), mat('#5A4026', 0.8)); sh.name = 'sheave'; H8.add(sh); const dr = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.9, 12).rotateZ(Math.PI / 2), WOOD); dr.name = 'drum'; H8.add(dr); }
     addP(H8, 0, 0, 0);
@@ -3497,36 +3511,52 @@ export function createHar42(o = {}) {
     const btns = (on) => { bBack.disabled = bTurn.disabled = !on; pile.classList.toggle('h84-off', !on); };
     btns(false);
     const cx = () => bayC84(k, st84.i + 1);
-    function cartLay() { const C = cartAt(cx()); st84.cart.forEach((q, n) => { q.mesh.position.set(C.x - 0.05 + n * 0.05, gy(C.x, C.z) + 1.06, C.z - 0.45 + n * 0.32); q.mesh.rotation.set(-0.12, q.cand.flip !== q.mesh.userData.cand.flip ? 0 : Math.PI, 0); }); cartG.position.set(C.x, gy(C.x, C.z), C.z); }
+    const yawOf = (cand) => (cand.flip ? 0 : Math.PI);   // ── build 85 ── (π: the dressed face out, to the north; 0: its plain back out)
+    function cartLay() { const C = cartAt(cx()); st84.cart.forEach((q, n) => { q.mesh.position.set(C.x - 0.05 + n * 0.05, gy(C.x, C.z) + 1.06, C.z - 0.45 + n * 0.32); q.mesh.rotation.set(-0.12, yawOf(q.cand), 0); }); cartG.position.set(C.x, gy(C.x, C.z), C.z); }
     function setup() {
       const spec = F84.slab84(k, st84.i, L, rnd); st84.spec = spec;
       st84.cart.forEach((q) => { if (q.mesh.parent) q.mesh.parent.remove(q.mesh); }); st84.cart = spec.cands.map((c2) => ({ cand: { ...c2 }, mesh: addP(slab84(kind, spec.X0, c2), 0, 0, 0) }));
       cartLay();
       if (st84.ghost) { if (st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); st84.ghost = null; }
       if (spec.ghost) st84.ghost = addP(slab84(kind, spec.X0, { off: 0, flip: false }, true), cx(), y0, z);
-      setH8(cx()); st84.ph = 'bring'; st84.t = 0; st84.cur = null; lineNow();
+      setH8(cx()); st84.ph = 'bring'; st84.t = 0; st84.cur = null; st84.breaks = 0; lineNow();
     }
-    function bring() { st84.cur = st84.cart.shift(); st84.cur.from = st84.cur.mesh.position.clone(); st84.ph = 'bring'; st84.t = 0; cartLay(); }
-    const hangPos = (s) => ({ x: cx() - (s ? s.x : 0), y: y0 + (s ? s.yb : SG84.postH + SG84.hang), z });
+    function bring() { st84.cur = st84.cart.shift(); st84.cur.from = st84.cur.mesh.position.clone(); st84.ph = 'bring'; st84.t = 0; setLever(0); cartLay(); }
+    const hangPos = (s) => ({ x: cx() - (s ? s.x : 0), y: y0 + (s ? s.yb : SG84.postH + SG84.hang), z: z + (s ? s.z || 0 : 0) });
+    // ── build 85 ── the winch's brake lever (right side): up hauls in, the middle holds, down pays out — the further down, the faster; it
+    // stays where it is left (as a brake lever does). The keyboard's arrows move it a notch.
+    const lev = el('h85-lever'); lev.innerHTML = '<i class="h85-up">⬆</i><b class="h85-track"><s class="h85-mid"></s><u class="h85-knob"></u></b><i class="h85-dn">⬇</i><small>חבל</small>';
+    (st.ui.root || (doc && doc.body)) && (st.ui.root || doc.body).appendChild(lev);
+    const knob = lev.querySelector('.h85-knob'), track = lev.querySelector('.h85-track');
+    function setLever(v) { st84.lever = Math.max(-1, Math.min(1, v)); if (Math.abs(st84.lever) < 0.08) st84.lever = 0; knob.style.top = `${50 + st84.lever * 44}%`; lev.classList.toggle('dn', st84.lever > 0); lev.classList.toggle('up', st84.lever < 0); }
+    const levAt = (e) => { const r = track.getBoundingClientRect(); setLever(((e.clientY - r.top) / Math.max(1, r.height) - 0.5) / 0.44); };
+    lev.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); try { lev.setPointerCapture(e.pointerId); } catch (e2) { /* */ } lev.dataset.drag = '1'; levAt(e); });
+    lev.addEventListener('pointermove', (e) => { if (lev.dataset.drag) { e.preventDefault(); e.stopPropagation(); levAt(e); } });
+    for (const t2 of ['pointerup', 'pointercancel']) lev.addEventListener(t2, (e) => { e.stopPropagation(); delete lev.dataset.drag; });
+    const onKey = (e) => { if (e.key === 'ArrowDown') { setLever(st84.lever + 0.25); e.preventDefault(); } else if (e.key === 'ArrowUp') { setLever(st84.lever - 0.25); e.preventDefault(); } };
+    if (doc) doc.addEventListener('keydown', onKey);
+    setLever(0);
     function seat(right, s) {
-      const r = F84.slabQ84({ right, jams: s.jams, chip: s.chip }); items.push(r); Y84().push([`lattice${k}`, st84.i, r.v]); save42(S); chip84();
+      const r = F84.slabQ84({ right, back: s.back, jams: s.jams, chip: s.chip, breaks: st84.breaks }); items.push(r); Y84().push([`lattice${k}`, st84.i, r.v]); save42(S); chip84();
       const q = proj(cx(), y0 + SG84.H + 0.6, z);
-      toast84(r.rating, q, !right ? SAY84.crew : s.jams >= SG84.helpAt ? SAY84.help : s.chip ? SAY84.chip : s.jams ? `${s.jams} ${s.jams === 1 ? 'מכה' : 'מכות'} בראש העמוד` : '');
+      toast84(r.rating, q, !right ? SAY84.crew : s.back ? SAY85.back : s.broken || st84.breaks >= 2 ? SAY85.broke2 : s.jams >= SG84.helpAt ? SAY84.help : s.chip ? SAY84.chip : st84.breaks ? SAY85.broke1 : s.jams ? `${s.jams} ${s.jams === 1 ? 'מכה' : 'מכות'} בראש העמוד` : '');
       o.emit && o.emit('h84slab', { k, i: st84.i, rating: r.rating, right, jams: s.jams, chip: s.chip });
       if (r.rating === 'mehudar' && men) st84.cheerT = 1.6;
     }
     return {
       acting: true, fullPad: true, kind: 'lattice84', panel: k, st84, items, el: [],
       J: { state: () => (st84.J ? st84.J.state() : { ph: st84.ph }) },
-      down(a) { st84.last = { y: a.y, x0: a.x }; },
-      move(a) { if (!st84.last) return; st84.pay += ((a.y - st84.last.y) / Math.max(200, H())) * SG84.payK; st84.last.y = a.y; st84.pull = Math.max(-1, Math.min(1, (a.x - st84.last.x0) / Math.max(90, W() * 0.3))); },
-      up() { st84.last = null; st84.pull = 0; },
+      // ── build 85 ── the finger is his hand on the tag line: down — he holds it (the twist steadies); drawn — he pulls it, across (left /
+      // right) and away or toward him (up / down on the screen). The rope is the lever's.
+      down(a) { st84.last = { y0: a.y, x0: a.x }; st84.held = true; },
+      move(a) { if (!st84.last) return; const sc = Math.max(90, Math.min(W(), H()) * 0.3); st84.pull = Math.max(-1, Math.min(1, (a.x - st84.last.x0) / sc)); st84.pullZ = Math.max(-1, Math.min(1, -(a.y - st84.last.y0) / sc)); },
+      up() { st84.last = null; st84.pull = 0; st84.pullZ = 0; st84.held = false; },
       view() { const c = cx(), v = st84.ph === 'end' ? { p: [bayC84(k, 2) + 1.5, y0 + 7, z - 24], t: [bayC84(k, 2), y0 + 1.2, z] } : { p: [c + 0.7, y0 + 6.4, z - 20], t: [c + 0.5, y0 + 2.3, z] }; return v; },
       frame(dt) {
         keepScrub84(); st84.t += dt; const M2 = menUp(), c = cx();
         if (M2) {
           const dr = { x: c - 2.3, z: z + 1.5 }, C = cartAt(c); M2.winch.root.position.set(dr.x, gy(dr.x, dr.z), dr.z); M2.winch.root.rotation.y = Math.PI * 0.85;   /* (behind the soreg, at the drum: seen through the lattice, not in front of it) */ M2.cart.root.position.set(C.x - 1.0, gy(C.x - 1.0, C.z + 0.4), C.z + 0.4); M2.cart.root.rotation.y = Math.PI / 2;
-          M2.winch.play(st84.cheerT > 0 ? 'Cheer' : st84.J && st84.J.state().ph !== 'seated' && Math.abs(st84.pay) > 1e-4 ? 'Interact' : 'Idle', 1); M2.cart.play(st84.ph === 'bring' || st84.ph === 'swap' ? 'Interact' : st84.cheerT > 0 ? 'Cheer' : 'Idle', 1);
+          M2.winch.play(st84.cheerT > 0 ? 'Cheer' : st84.J && st84.J.state().ph !== 'seated' && Math.abs(st84.payNow) > 1e-4 ? 'Interact' : 'Idle', 1); M2.cart.play(st84.ph === 'bring' || st84.ph === 'swap' ? 'Interact' : st84.cheerT > 0 ? 'Cheer' : 'Idle', 1);
           M2.winch.update(dt); M2.cart.update(dt); st84.cheerT = Math.max(0, st84.cheerT - dt);
         }
         // his place: by the bay's east side, the tag line in his hand
@@ -3534,24 +3564,29 @@ export function createHar42(o = {}) {
         if (st84.ph === 'move') { setup(); bring(); }
         if (st84.ph === 'bring') {   // (from the cart up and over onto the hook)
           const u = Math.min(1, st84.t / 1.1), e = u * u * (3 - 2 * u), m = st84.cur.mesh, f = st84.cur.from, hp = hangPos(null);
-          m.position.set(f.x + (hp.x - f.x) * e, f.y + (hp.y - f.y) * e + Math.sin(Math.PI * e) * 1.2, f.z + (hp.z - f.z) * e); m.rotation.set(-0.12 * (1 - e), st84.cur.cand.flip !== (m.userData.cand.flip) ? 0 : Math.PI, 0);
+          m.position.set(f.x + (hp.x - f.x) * e, f.y + (hp.y - f.y) * e + Math.sin(Math.PI * e) * 1.2, f.z + (hp.z - f.z) * e); m.rotation.set(-0.12 * (1 - e), yawOf(st84.cur.cand), 0);
           rope84(rope, { x: c, y: apexY, z: z - 0.05 }, { x: m.position.x, y: m.position.y + SG84.H, z: m.position.z });
-          if (u >= 1) { st84.J = F84.createHoist84(st84.spec); st84.ph = 'hoist'; st84.t = 0; btns(true); buzz42('tick'); }
+          if (u >= 1) { st84.J = F84.createHoist84({ ...st84.spec, r0: st84.cur.cand.flip ? Math.PI : 0 }); st84.ph = 'hoist'; st84.t = 0; btns(true); buzz42('tick'); }
         }
-        if (st84.turn) { st84.turn.t += dt; const u = Math.min(1, st84.turn.t / 0.6); if (st84.cur) st84.cur.mesh.rotation.y = st84.turn.a0 + Math.PI * (u * u * (3 - 2 * u)); if (u >= 1) st84.turn = null; }
         if (st84.ph === 'hoist' && st84.J) {
-          const pay = st84.pay; st84.pay = 0; const s = st84.J.step(dt, pay, st84.pull), m = st84.cur.mesh, hp = hangPos(s);
-          m.position.set(hp.x, hp.y, hp.z); m.rotation.z = s.ph === 'hang' ? Math.max(-0.12, Math.min(0.12, -s.vx * 0.05)) : 0;
+          const pay = (st84.lever > 0 ? st84.lever * SG84.vDown : st84.lever * SG84.vUp) * dt; st84.payNow = pay; const s = st84.J.step(dt, pay, { x: st84.pull, z: st84.pullZ }, st84.held), m = st84.cur.mesh, hp = hangPos(s);
+          m.position.set(hp.x, hp.y, hp.z); m.rotation.set(s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, s.vz * 0.06)) : 0, Math.PI - s.r, s.ph === 'hang' ? Math.max(-0.14, Math.min(0.14, -s.vx * 0.06)) : 0);
           for (const ev of s.ev) {
             if (ev === 'jam') { buzz42('rumble'); tone(110, 0.22, 'square'); line(LINE42.lat84jam, `${SG84.he[kind]} · מכות ${s.jams}${s.help ? ' · הצוות מייצב' : ''}`); o.emit && o.emit('h84jam', { jams: s.jams }); }
             else if (ev === 'enter') { buzz42('dbl'); tone(660, 0.08); line(LINE42.lat84in, `${SG84.he[kind]} · לוח ${st84.i + 1} מתוך 3`); btns(false); }
             else if (ev === 'leave') { btns(true); lineNow(); }
+            else if (ev === 'break') {   // ── build 85 ── (down too hard: it breaks on the sill — the crew brings another; two broken, they set it)
+              st84.breaks++; buzz42('rumble'); tone(90, 0.35, 'sawtooth'); o.sound && o.sound('settle'); setLever(0); btns(false);
+              m.visible = false; st84.bits = []; for (let b = 0; b < 9; b++) { const bm = new THREE.Mesh(new THREE.BoxGeometry(0.2 + Math.random() * 0.35, 0.25 + Math.random() * 0.45, SG84.T), STONE); bm.castShadow = true; addP(bm, hp.x + (Math.random() - 0.5) * 1.2, y0 + 0.2 + Math.random() * 1.3, z + (Math.random() - 0.5) * 0.1); bm.userData.v = { x: (Math.random() - 0.5) * 2.6, y: 1 + Math.random() * 2.2, z: -0.6 - Math.random() * 1.8, r: (Math.random() - 0.5) * 9 }; st84.bits.push(bm); }
+              line(LINE42.lat85break, `${SG84.he[kind]} · ${st84.breaks >= 2 ? 'שני לוחות נשברו — הצוות מציב · 0' : 'לוח חדש בדרך · לכל היותר כשר'}`);
+              st84.ph = 'broke'; st84.t = 0; o.emit && o.emit('h85break', { k, i: st84.i, breaks: st84.breaks });
+            }
             else if (ev === 'seat') {
-              const right = F84.fits84(kind, st84.spec.X0, st84.cur.cand); o.sound && o.sound('settle'); buzz42('deep');
+              const right = F84.fits84(kind, st84.spec.X0, { off: st84.cur.cand.off, flip: false }), good = right && !s.back; o.sound && o.sound('settle'); buzz42('deep');
               if (s.chip) { const ch = addP(new THREE.Mesh(new THREE.DodecahedronGeometry(0.07, 0), STONE), hp.x + 0.6, y0 + 0.1, z - 0.15); st84.gone.push(ch); }
               if (st84.ghost) { if (st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); st84.ghost = null; }
               seat(right, s);
-              if (!right) { st84.ph = 'swap'; st84.t = 0; st84.swap = { wrong: st84.cur.mesh, right: addP(slab84(kind, st84.spec.X0, { off: 0, flip: false }), 0, 0, 0) }; line(LINE42.lat84wrong, `${SG84.he[kind]} · 0`); }
+              if (!good) { st84.ph = 'swap'; st84.t = 0; st84.swap = { wrong: st84.cur.mesh, right: addP(slab84(kind, st84.spec.X0, { off: 0, flip: false }), 0, 0, 0) }; line(right ? LINE42.lat85back : LINE42.lat84wrong, `${SG84.he[kind]} · 0`); }
               else { P.slabs84[k][st84.i + 1] = m; st84.ph = 'next'; st84.t = 0; }
             }
           }
@@ -3559,11 +3594,26 @@ export function createHar42(o = {}) {
           // the alignment over the grooves: a band at the posts' tops, the slab's middle marked (green inside)
           svgClear();
           if (s.ph === 'hang') {
-            const tol = st84.spec.tol, ya = y0 + SG84.postH + 0.04, l = proj(c + tol, ya, z - 0.25), r = proj(c - tol, ya, z - 0.25), mk = proj(hp.x, ya, z - 0.25), ok = Math.abs(s.x) <= tol;
-            if (l && r && mk) svgAdd(`<line x1="${l.x}" y1="${l.y}" x2="${r.x}" y2="${r.y}" stroke="${ok ? '#7CD67C' : '#FFD66E'}" stroke-width="7" stroke-linecap="round" opacity=".85"/><path d="M${mk.x - 9} ${mk.y - 16} L${mk.x + 9} ${mk.y - 16} L${mk.x} ${mk.y - 3} Z" fill="${ok ? '#7CD67C' : '#FFF4DC'}" stroke="#2A1804" stroke-width="2"/>`);
+            // ── build 85 ── the grooves' line on the posts' tops (gold), and under the slab its own bottom edge as it hangs — off to the side,
+            // forward or back, twisted; all green when it would go in. The plain back out: said, at the first levels.
+            const ok = st84.J.aligned(), ya = y0 + SG84.postH + 0.04, hw = SG84.bay / 2 + SG84.post / 2, g1 = proj(c + hw, ya, z), g2 = proj(c - hw, ya, z);
+            const cr = Math.cos(s.r), sr = Math.sin(s.r), e1 = proj(hp.x + (SG84.bay / 2) * cr, ya, hp.z + (SG84.bay / 2) * sr), e2 = proj(hp.x - (SG84.bay / 2) * cr, ya, hp.z - (SG84.bay / 2) * sr), yb2 = proj(hp.x, hp.y, hp.z);
+            if (g1 && g2) svgAdd(`<line x1="${g1.x}" y1="${g1.y}" x2="${g2.x}" y2="${g2.y}" stroke="${ok ? '#7CD67C' : '#FFD66E'}" stroke-width="5" stroke-linecap="round" opacity=".8"/>`);
+            if (e1 && e2) svgAdd(`<line x1="${e1.x}" y1="${e1.y}" x2="${e2.x}" y2="${e2.y}" stroke="${ok ? '#7CD67C' : '#FFF4DC'}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${ok ? '0' : '7 5'}"/>`);
+            if (yb2 && e1 && e2) svgAdd(`<line x1="${(e1.x + e2.x) / 2}" y1="${(e1.y + e2.y) / 2}" x2="${yb2.x}" y2="${yb2.y}" stroke="#FFF4DC" stroke-width="1.5" opacity=".6"/>`);
+            if (L <= 2 && st84.J.sq().back) { const q2 = proj(hp.x, hp.y + SG84.H + 0.35, hp.z); if (q2) svgAdd(`<text x="${q2.x}" y="${q2.y}" font-size="18" font-weight="900" text-anchor="middle" fill="#FFB070" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(SAY85.backOut)}</text>`); }
             if (L <= 2 && st84.i === 0 && st84.t < 6) { const q = proj(hp.x, hp.y + SG84.H * 0.5, z); if (q) svgAdd(`<text x="${q.x + 46}" y="${q.y}" font-size="30" font-weight="900" text-anchor="middle" fill="#FFE6A0" stroke="#2A1804" stroke-width="3" paint-order="stroke">⇩</text>`); }
-          } else if (s.ph === 'groove' && s.yb < 0.6 && s.v > st84.spec.vChip * 0.75 && L <= 2) { const q = proj(hp.x, hp.y + SG84.H + 0.3, z); if (q) svgAdd(`<text x="${q.x}" y="${q.y}" font-size="22" font-weight="900" text-anchor="middle" fill="#FFB070" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(SAY84.slow)}</text>`); }
+          } else if (s.ph === 'groove' && s.yb < 0.9 && s.v > st84.spec.vChip * 0.75 && L <= 2) { const q = proj(hp.x, hp.y + SG84.H + 0.3, z), hot = s.v > (st84.spec.vBreak || 9) * 0.8; if (q) svgAdd(`<text x="${q.x}" y="${q.y}" font-size="${hot ? 26 : 22}" font-weight="900" text-anchor="middle" fill="${hot ? '#FF6A4A' : '#FFB070'}" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(hot ? SAY85.hot : SAY84.slow)}</text>`); }
         } else svgClear();
+        if (st84.ph === 'broke') {   // ── build 85 ── the pieces fall and lie; then a new slab (or, the second time, the crew's)
+          for (const bm of st84.bits || []) { const v = bm.userData.v; if (bm.position.y > y0 + 0.1) { v.y -= 9.8 * dt; bm.position.x += v.x * dt; bm.position.y = Math.max(y0 + 0.1, bm.position.y + v.y * dt); bm.position.z += v.z * dt; bm.rotation.x += v.r * dt; bm.rotation.z += v.r * 0.6 * dt; } }
+          rope84(rope, { x: c, y: apexY, z: z - 0.05 }, { x: c, y: y0 + SG84.postH + 1.0, z });
+          if (st84.t > 2.0) {
+            for (const bm of st84.bits || []) if (bm.parent) bm.parent.remove(bm); st84.bits = null; const old = st84.cur; if (old && old.mesh.parent) old.mesh.parent.remove(old.mesh);
+            if (st84.breaks >= 2) { seat(true, { back: false, jams: st84.J.state().jams, chip: false, broken: true }); const rt = addP(slab84(kind, st84.spec.X0, { off: 0, flip: false }), c, y0, z); P.slabs84[k][st84.i + 1] = rt; st84.ph = 'next'; st84.t = 0; }
+            else { const nc = { ...old.cand }; st84.cart.unshift({ cand: nc, mesh: addP(slab84(kind, st84.spec.X0, nc), 0, 0, 0) }); st84.J = null; cartLay(); bring(); lineNow(); }
+          }
+        }
         if (st84.ph === 'swap') {   // the crew lifts the wrong one out and sets the right one
           const u = Math.min(1, st84.t / 2.4), w = st84.swap.wrong, rt = st84.swap.right, ya = y0 + SG84.postH + 1.2;
           if (u < 0.45) { const e = u / 0.45; w.position.y = y0 + e * (ya - y0); rt.position.set(c, ya + 3, z); rt.visible = false; }
@@ -3577,100 +3627,120 @@ export function createHar42(o = {}) {
           else { st84.ph = 'move'; st84.t = 0; }
         }
         // the tag line: from his hand to the slab's east corner
-        { const K = h66(), hd = K && K.handR ? K.handR() : null, m = st84.cur && st84.cur.mesh; if (hd && m && m.parent && (st84.ph === 'hoist' || st84.ph === 'bring')) rope84(tag, hd, { x: m.position.x + SG84.bay / 2 - 0.05, y: m.position.y + 0.15, z }); else tag.visible = false; }
+        { const K = h66(), hd = K && K.handR ? K.handR() : null, m = st84.cur && st84.cur.mesh; if (hd && m && m.parent && (st84.ph === 'hoist' || st84.ph === 'bring')) rope84(tag, hd, { x: m.position.x + SG84.bay / 2 - 0.05, y: m.position.y + 0.15, z: m.position.z }); else tag.visible = false; }
         { const sw = H8.getObjectByName('drum'); if (sw) rope84(winchRope, { x: sw.position.x, y: sw.position.y, z: sw.position.z }, { x: c, y: apexY + 0.1, z: z - 0.05 }); }
         objPlace(true, [{ x: c, y: y0 + 1.6, z, r: 1.6 }], 'h84lat');
         chip84();
         if (st84.ph === 'end') return st84.t > 1.8;
         return false;
       },
-      turn() { if (st84.ph !== 'hoist' || !st84.J || st84.J.state().ph !== 'hang' || st84.turn || !st84.cur) return false; st84.cur.cand.flip = !st84.cur.cand.flip; st84.turn = { t: 0, a0: st84.cur.mesh.rotation.y }; buzz42('tick'); tone(420, 0.1); return true; },
-      back() { if (st84.ph !== 'hoist' || !st84.J || st84.J.state().ph !== 'hang' || !st84.cur) return false; const q = st84.cur; st84.turn = null; q.mesh.rotation.y = q.cand.flip !== (q.mesh.userData.cand.flip) ? 0 : Math.PI; st84.cart.push(q); st84.J = null; btns(false); buzz42('tick'); o.emit && o.emit('h84back', {}); bring(); return true; },
-      end() { pile.innerHTML = ''; pile.classList.remove('h84-off'); svgClear(); for (const m of [H8, cartG, rope, winchRope, tag, ...st84.gone, ...st84.cart.map((q) => q.mesh)]) { if (m && m.parent) m.parent.remove(m); } if (st84.ghost && st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); if (men) { for (const f of [men.winch, men.cart]) if (f.root.parent) f.root.parent.remove(f.root); } },
+      turn() { if (st84.ph !== 'hoist' || !st84.J || !st84.cur || !st84.J.turn()) return false; buzz42('rise'); tone(420, 0.1); return true; },   // ── build 85 ── (a spin on the swivel: his hand on the line catches it)
+      back() { if (st84.ph !== 'hoist' || !st84.J || st84.J.state().ph !== 'hang' || !st84.cur) return false; const q = st84.cur; q.cand.flip = st84.J.sq().back; q.mesh.rotation.set(-0.12, yawOf(q.cand), 0); st84.cart.push(q); st84.J = null; btns(false); buzz42('tick'); o.emit && o.emit('h84back', {}); bring(); return true; },
+      end() { pile.innerHTML = ''; pile.classList.remove('h84-off'); svgClear(); lev.remove(); if (doc) doc.removeEventListener('keydown', onKey); for (const bm of st84.bits || []) if (bm.parent) bm.parent.remove(bm); for (const m of [H8, cartG, rope, winchRope, tag, ...st84.gone, ...st84.cart.map((q) => q.mesh)]) { if (m && m.parent) m.parent.remove(m); } if (st84.ghost && st84.ghost.parent) st84.ghost.parent.remove(st84.ghost); if (men) { for (const f of [men.winch, men.cart]) if (f.root.parent) f.root.parent.remove(f.root); } },
       init() { bTurn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); this.turn(); }); bBack.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); this.back(); }); return this; },
     }.init();
   }
   /** THE WARNING STONES: the master builder paces the gap once; he sets each stone that many paces from the one before — held, he walks a
    *  pace at a time (a tick each), "צעד אחורה" a pace back, "הציבו כאן" the crew lowers the stone there */
-  function mkWarn84() {
-    const L = famL('place'), A = WA84(), wz = A.z - 1.9, pace = F84.WARN84.pace;
+  function mkWarn84() {   // ── build 85 ── (by eye: the owner, 3.11 — "במשחק הצעדים לא הבנתי מה המשחק")
+    const L = famL('place'), A = WA84(), wz = A.z - 1.9, W85 = F84.WARN85, T16 = Math.tan((16 * Math.PI) / 180);
     const seed = ((R.grades ? R.grades.length : 0) * 11 + 3 + Y84().length * 17) >>> 0; let a0 = seed * 9301 + 49297; const rnd = () => ((a0 = (a0 * 9301 + 49297) % 233280) / 233280);
-    const spec = F84.warn84(L, rnd), J = F84.createPaces84(spec), w8 = { ph: 'demo', t: 0, hold: false, origin: A.x, demoN: 0, demoT: 0, prints: [], steles: [], placedX: [], lowering: null, move: null, endT: -1, graded: false, carry: null };
+    const spec = F84.warn85(L, rnd), G = spec.G, J = F84.createWalk85(spec);
+    const w8 = { ph: 'demo', t: 0, fwd: false, backH: false, P: [A.x], steles: [], lowering: null, move: null, cord: null, endT: -1, graded: false, carry: null, demo: null, frame: [A.x - 3, A.x + G + 3], yaw: 0 };
     if (st.ui.pad) st.ui.pad.classList.add('full');
     const pile = st.ui.pile; pile.innerHTML = ''; pile.hidden = false;
-    const bBack = el('h42-it h84-b', 'צעד אחורה', 'button'), bSet = el('h42-it h84-b h84-set', 'הציבו כאן', 'button'); bBack.type = bSet.type = 'button'; pile.appendChild(bBack); pile.appendChild(bSet);
+    const bBack = el('h42-it h84-b', 'אחורה', 'button'), bSet = el('h42-it h84-b h84-set', 'הציבו כאן', 'button'); bBack.type = bSet.type = 'button'; pile.appendChild(bBack); pile.appendChild(bSet);
     const btns = (on) => { bBack.disabled = bSet.disabled = !on; pile.classList.toggle('h84-off', !on); }; btns(false);
     let men = null; const menUp = () => { if (men) return men; const F2 = figs84(); if (!F2) return null; men = { boss: F2.make({ tunic: '#E2D6BE', cloth: '#7A4A2A' }), c1: F2.make({ tunic: '#B49B76', cloth: '#2F6DB5' }), c2: F2.make({ tunic: '#9C8466', cloth: '#2F6DB5' }) }; return men; };
-    const print = (x) => { const m = new THREE.Mesh(new THREE.CircleGeometry(0.16, 12), new THREE.MeshBasicMaterial({ color: '#6E5638', transparent: true, opacity: 0.75, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.scale.set(1, 1.7, 1); return addP(m, x, gy(x, wz) + 0.03, wz + 0.35); };
-    const heroX = () => w8.origin + J.at() * pace;
-    const cur = () => spec.stones[Math.min(J.state().i, spec.stones.length - 1)];
+    const last = () => w8.P[w8.P.length - 1], prev = () => w8.P[w8.P.length - 2];
+    const heroX = () => last() + J.state().x;
+    const cur = () => J.cur();
+    const frameFor = () => { w8.frame = [prev() - 2, last() + G * 1.4 + 2]; w8.yaw = cur().yaw; };
     const lineNow = () => { const s2 = cur(); line(s2 && s2.heavy ? LINE42.warn84heavy : LINE42.warn84, `אבן ${Math.min(J.state().i + 1, spec.stones.length)} מתוך ${spec.stones.length} · רמה ${spec.L}`); };
     line(LINE42.warn84demo, `רמה ${spec.L}`);
-    bBack.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (w8.ph === 'walk' && J.back()) { tone(330, 0.07); } });
+    w8.steles.push(stele84(A.x, A.z));   // (the master's first stone, by the breach post)
+    bBack.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (w8.ph === 'walk') w8.backH = true; });
+    for (const t2 of ['pointerup', 'pointerleave', 'pointercancel']) bBack.addEventListener(t2, () => { w8.backH = false; });
     bSet.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation(); if (w8.ph !== 'walk') return; w8.hold = false;
+      e.preventDefault(); e.stopPropagation(); if (w8.ph !== 'walk') return; w8.fwd = false;
       const r = J.set(); if (!r) { buzz42('retry'); return; }
-      const x = w8.origin + r.paces * pace, good = w8.origin + spec.gap * pace, g = stele84(x, A.z); g.position.y += 1.4; w8.steles.push(g);
-      w8.lowering = { g, t: 0, y1: gy(x, A.z), x, good, r }; w8.ph = 'lower'; btns(false);
+      const x = last() + r.x, good = last() + G, g = stele84(x, A.z); g.position.y += 1.4; w8.steles.push(g);
+      w8.lowering = { g, t: 0, y1: gy(x, A.z), x, good, r, from: prev(), at: last() }; w8.ph = 'lower'; btns(false);
       Y84().push(['warn', r.i, r.v]); save42(S); chip84();
-      o.emit && o.emit('h84stone', { i: r.i, paces: r.paces, gap: spec.gap, rating: r.rating });
+      o.emit && o.emit('h84stone', { i: r.i, x: r.x, G, err: r.err, rating: r.rating });
     });
+    const bracket = (x0, x1, col, dash, lab) => { const y = gy(x0, A.z) + 2.3, p0 = proj(x0, y, A.z - 0.6), p1 = proj(x1, y, A.z - 0.6); if (!p0 || !p1) return; svgAdd(`<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="${col}" stroke-width="5" stroke-linecap="round" ${dash ? 'stroke-dasharray="9 6"' : ''}/><line x1="${p0.x}" y1="${p0.y - 11}" x2="${p0.x}" y2="${p0.y + 11}" stroke="${col}" stroke-width="4"/><line x1="${p1.x}" y1="${p1.y - 11}" x2="${p1.x}" y2="${p1.y + 11}" stroke="${col}" stroke-width="4"/>${lab ? `<text x="${(p0.x + p1.x) / 2}" y="${(p0.y + p1.y) / 2 - 14}" fill="${col}" font-size="15" font-weight="900" text-anchor="middle" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(lab)}</text>` : ''}`); };
     return {
-      acting: true, fullPad: true, kind: 'warn84', J, spec, w8, A, ownView: () => true,   // (its own frame: from outside, square to the line — not the object rule's)
-      down() { if (w8.ph === 'walk') w8.hold = true; }, move() {}, up() { w8.hold = false; },
-      view() { const h = hero(), x = w8.ph === 'demo' && men ? men.boss.root.position.x : w8.ph === 'end' ? A.x + 0.5 * spec.gap * pace * spec.stones.length : h.x; const yv = gy(x, wz); return w8.ph === 'end' ? { p: [x - 26, yv + 17, wz - 40], t: [x, yv + 0.5, A.z] } : { p: [x - 4, yv + 10, wz - 30], t: [x + 3, yv + 1.3, A.z + 0.5] }; },   // (the camera's 32° field: ~8 amot across at 30)
+      acting: true, fullPad: true, kind: 'warn84', J, spec, w8, A, ownView: () => true,   // (its own frame: from outside, both gaps in it)
+      down() { if (w8.ph === 'walk') w8.fwd = true; }, move() {}, up() { w8.fwd = false; },
+      view() {
+        const fr = w8.ph === 'end' ? [A.x - 2, last() + 2] : w8.frame, cxm = (fr[0] + fr[1]) / 2, wd = fr[1] - fr[0], asp = Math.max(0.3, W() / Math.max(1, H()));
+        const d = Math.max(22, (wd / (2 * T16 * asp)) * 1.06), yw = w8.ph === 'end' ? 0 : w8.yaw, yv = gy(cxm, wz);
+        return { p: [cxm - Math.sin(yw) * d, yv + d * 0.17, A.z - Math.cos(yw) * d], t: [cxm, yv + 1.6, A.z] };   // (low: the line across the screen's middle, little empty court)
+      },
       frame(dt) {
-        keepScrub84(); w8.t += dt; const M = menUp(), s = J.state();
-        if (w8.ph === 'demo') {
-          if (!M) { if (w8.t > 12) { w8.ph = 'walk'; btns(true); lineNow(); } }   // (the figures not loaded: no demonstration — the count on the line)
-          else {
-            if (!w8.demo) { w8.demo = { x: A.x, n: 0, t: 0, phase: 'go' }; M.boss.root.position.set(A.x, gy(A.x, wz), wz); M.boss.root.rotation.y = Math.PI / 2; }
-            const D = w8.demo; D.t += dt;
-            if (D.phase === 'go') { M.boss.play('Walking_A', 0.9); const k2 = Math.min(1, D.t / F84.WARN84.demoCad); M.boss.root.position.x = A.x + (D.n + k2) * pace; M.boss.root.position.y = gy(M.boss.root.position.x, wz);
-              if (k2 >= 1) { D.n++; D.t = 0; tone(560, 0.07); buzz42('pace'); w8.prints.push(print(A.x + D.n * pace)); if (D.n >= spec.gap) { D.phase = 'here'; D.t = 0; tone(780, 0.16); buzz42('dbl'); } } }
-            else if (D.phase === 'here') { M.boss.play('Interact', 1); if (D.t > 1.6) { D.phase = 'back'; D.t = 0; } }
-            else if (D.phase === 'back') { M.boss.play('Walking_A', 1.3); M.boss.root.rotation.y = -Math.PI / 2; const x2 = M.boss.root.position.x - dt * 3.4; M.boss.root.position.x = Math.max(A.x - 2.4, x2); M.boss.root.position.z = wz - 1.6; M.boss.root.position.y = gy(M.boss.root.position.x, wz - 1.6); if (x2 <= A.x - 2.4) { D.phase = 'done'; M.boss.root.rotation.y = Math.PI / 2; M.boss.play('Idle', 1); w8.ph = 'walk'; btns(true); lineNow(); if (!spec.stones[0].prints) { w8.prints.forEach((p) => { if (p.parent) p.parent.remove(p); }); w8.prints = []; } } }
-            // the count over his head as he paces it
-            svgClear(); if (D.phase !== 'done' && D.n > 0) { const hd = proj(M.boss.root.position.x, gy(M.boss.root.position.x, wz) + 4.6, wz); if (hd) svgAdd(`<text x="${hd.x}" y="${hd.y}" font-size="34" font-weight="900" text-anchor="middle" fill="#FFE6A0" stroke="#2A1804" stroke-width="4" paint-order="stroke">${D.n}</text>`); }
+        keepScrub84(); w8.t += dt; const M = menUp();
+        svgClear();
+        if (w8.ph === 'demo') {   // the master builder walks the measure and his crew sets the second stone there
+          if (!w8.demo) w8.demo = { x: A.x, t: 0, phase: 'go' };
+          const D = w8.demo; D.t += dt;
+          if (D.phase === 'go') { D.x = Math.min(A.x + G, D.x + dt * 1.9); if (M) { M.boss.play('Walking_A', 0.9); M.boss.root.position.set(D.x, gy(D.x, wz), wz); M.boss.root.rotation.y = Math.PI / 2; } bracket(A.x, D.x, '#FFD66E', false, ''); if (D.x >= A.x + G) { D.phase = 'set'; D.t = 0; tone(780, 0.16); buzz42('dbl'); const g = stele84(A.x + G, A.z); g.position.y += 1.4; w8.steles.push(g); D.g = g; } }
+          else if (D.phase === 'set') { if (M) M.boss.play('Interact', 1); const u = Math.min(1, D.t / 0.7); D.g.position.y = gy(A.x + G, A.z) + 1.4 * (1 - u * u); bracket(A.x, A.x + G, '#FFD66E', false, 'המידה'); if (D.t > 2.2) { D.phase = 'back'; D.t = 0; buzz42('deep'); } }
+          else if (D.phase === 'back') {
+            bracket(A.x, A.x + G, '#FFD66E', false, 'המידה'); let home = D.t >= 1.2;
+            if (M) { M.boss.play('Walking_A', 1.3); M.boss.root.rotation.y = -Math.PI / 2; const x2 = M.boss.root.position.x - dt * 3.4; M.boss.root.position.set(Math.max(A.x - 2.4, x2), gy(x2, wz - 1.6), wz - 1.6); home = x2 <= A.x - 2.4; if (home) { M.boss.root.rotation.y = Math.PI / 2; M.boss.play('Idle', 1); } }
+            if (home) { D.phase = 'done'; w8.P.push(A.x + G); frameFor(); w8.ph = 'walk'; btns(true); lineNow(); }
           }
+          if (!M && D.phase === 'go' && w8.t > 14) { D.x = A.x + G; }
         }
         if (w8.ph === 'walk') {
-          const ss = J.step(dt, w8.hold);
-          for (const ev of ss.ev) { if (ev === 'pace') { tone(cur() && cur().heavy ? 470 : 560, 0.07); buzz42('pace'); } else if (ev === 'back') buzz42('tick'); }
-          svgClear(); const c2 = cur(); if (c2 && c2.count && ss.n + (ss.walking > 0 ? 0 : 0) > 0) { const hd = proj(heroX(), gy(heroX(), wz) + 4.8, wz); if (hd) svgAdd(`<text x="${hd.x}" y="${hd.y}" font-size="34" font-weight="900" text-anchor="middle" fill="#FFE6A0" stroke="#2A1804" stroke-width="4" paint-order="stroke">${ss.n}</text>`); }
+          const ss = J.step(dt, w8.fwd, w8.backH);
+          for (const ev of ss.ev) if (ev === 'stop') { buzz42(cur().heavy ? 'deep' : 'tick'); }
+          if (ss.v > 0.05 && ((w8.t * (cur().heavy ? 1.6 : 2.4)) % 1) < dt * (cur().heavy ? 1.6 : 2.4)) { tone(cur().heavy ? 470 : 560, 0.05); buzz42('pace'); }
+          bSet.disabled = !J.stopped() || ss.x < 0.5; pile.classList.toggle('h84-off', false);
+          bracket(prev(), last(), '#FFD66E', false, J.state().i === 0 && spec.L <= 1 ? 'המידה' : '');
+          if (ss.x > 0.05) bracket(last(), heroX(), '#FFF4DC', true, '');
         }
         if (w8.ph === 'lower') {
           const Lw = w8.lowering; Lw.t += dt; const u = Math.min(1, Lw.t / 0.7); Lw.g.position.y = Lw.y1 + 1.4 * (1 - u * u);
-          if (u >= 1 && !Lw.done) { Lw.done = true; buzz42('deep'); o.sound && o.sound('settle'); const q = proj(Lw.x, Lw.y1 + 2.2, A.z); toast84(Lw.r.rating, q, Lw.r.err === 0 ? `${Lw.r.paces} צעדים` : Lw.r.moved ? SAY84.moved : `${Lw.r.paces} צעדים — ${Lw.r.err > 0 ? 'אחד יותר' : 'אחד פחות'}`); if (Lw.r.moved) { w8.move = { g: Lw.g, from: Lw.x, to: Lw.good, t: 0 }; } }
-          if (Lw.done && (!w8.move || w8.move.t >= 1.6) && Lw.t > 1.2) {
-            const fx = w8.move ? Lw.good : Lw.x; w8.placedX.push(fx); w8.origin = fx; w8.move = null; w8.lowering = null;
-            if (w8.prints.length) { w8.prints.forEach((p) => { if (p.parent) p.parent.remove(p); }); w8.prints = []; }
-            if (J.state().done) { w8.ph = 'end'; w8.t = 0; R.warn84 = w8.placedX.slice(); save42(S); line(LINE42.warn84done, `${spec.gap} צעדים בין אבן לאבן`); }
-            else { w8.ph = 'walk'; btns(true); lineNow(); }
+          bracket(Lw.from, Lw.at, '#FFD66E', false, ''); bracket(Lw.at, Lw.x, '#FFF4DC', true, '');
+          if (u >= 1 && !Lw.done) { Lw.done = true; buzz42('deep'); o.sound && o.sound('settle'); w8.cord = { t: 0, Lw }; w8.ph = 'cord'; }
+        }
+        if (w8.ph === 'cord') {   // the measuring cord laid from the measure onto his gap: where it ends, against where his stone stands
+          const C = w8.cord, Lw = C.Lw; C.t += dt; const u = Math.min(1, C.t / 0.9), e = u * u * (3 - 2 * u), x0 = Lw.from + (Lw.at - Lw.from) * e;
+          bracket(Lw.at, Lw.x, '#FFF4DC', true, ''); bracket(x0, x0 + G, '#FFD66E', false, '');
+          if (u >= 1) {
+            const okc = Lw.r.rating === 'mehudar' ? '#7CD67C' : Lw.r.rating === 'kasher' ? '#FFD66E' : '#FF6A4A', y = gy(Lw.x, A.z) + 2.3, pa = proj(Lw.good, y, A.z - 0.6), pb = proj(Lw.x, y, A.z - 0.6);
+            if (pa && pb) svgAdd(`<line x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}" stroke="${okc}" stroke-width="9" stroke-linecap="round" opacity=".9"/>`);
+            if (!C.said) { C.said = true; const q = proj(Lw.x, Lw.y1 + 2.9, A.z), am = Math.abs(Lw.r.err), amHe = am < 0.75 ? 'חצי אמה' : am < 1.25 ? 'אמה' : `${Math.round(am)} אמות`; toast84(Lw.r.rating, q, Lw.r.rating === 'mehudar' ? SAY85.onMeasure : Lw.r.moved ? SAY84.moved : `${amHe} ${Lw.r.err > 0 ? 'יותר מדי' : 'קצר מדי'}`); if (Lw.r.moved) w8.move = { g: Lw.g, from: Lw.x, to: Lw.good, t: 0 }; }
+            if (C.t > 2.3 && (!w8.move || w8.move.t >= 1.6)) {
+              w8.P.push(w8.move ? Lw.good : Lw.x); w8.move = null; w8.lowering = null; w8.cord = null;
+              if (J.state().done) { w8.ph = 'end'; w8.t = 0; R.warn84 = w8.P.slice(); save42(S); line(LINE42.warn84done, `${spec.stones.length + 2} אבנים במרחקים שווים`); }
+              else { frameFor(); w8.ph = 'walk'; btns(true); lineNow(); }
+            }
           }
         }
         if (w8.move) { const mv = w8.move; mv.t += dt; const u = Math.min(1, mv.t / 1.6), e = u * u * (3 - 2 * u); mv.g.position.x = mv.from + (mv.to - mv.from) * e; mv.g.position.y = gy(mv.g.position.x, A.z) + Math.sin(Math.PI * e) * 0.5; }
-        // him: on his line, a pace at a time; facing along it
-        if (w8.ph !== 'demo' && w8.ph !== 'end') { const x = w8.ph === 'lower' && w8.lowering ? (w8.move ? w8.move.g.position.x : w8.lowering.x) : heroX();   /* (by the stone while it goes down — the count is already back at 0) */ try { stages.hero.setPos(x, wz, Math.PI / 2); } catch (e) { /* */ } }
+        // him: on his line, walking with the stone's crew behind him; facing along it
+        if (w8.ph !== 'demo' && w8.ph !== 'end') { const x = w8.lowering ? (w8.move ? w8.move.g.position.x : w8.lowering.x) : heroX(); try { stages.hero.setPos(x, wz, J.state().v < -0.05 ? -Math.PI / 2 : Math.PI / 2); } catch (e) { /* */ } }
         else if (w8.ph === 'demo') { try { stages.hero.setPos(A.x - 1.2, wz - 0.4, Math.PI / 2); } catch (e) { /* */ } }
-        // the crew: the two carry the next stone behind him; the master builder watches from the post
         if (M) {
-          const hx = hero().x, walking = J.state().walking || (w8.move && w8.move.t < 1.6);
-          if (w8.ph !== 'end') for (const [f, dz2] of [[M.c1, -0.55], [M.c2, 0.55]]) { const tx = Math.max(A.x - 3.5, hx - 2.6); const p0 = f.root.position; const nx = p0.x + Math.max(-dt * 5, Math.min(dt * 5, tx - p0.x)); f.root.position.set(nx, gy(nx, wz - 0.9 + dz2), wz - 0.9 + dz2); f.root.rotation.y = Math.PI / 2; f.play(Math.abs(tx - p0.x) > 0.05 || walking ? 'Walking_A' : 'Idle', 0.9); }
+          const hx = hero().x, walking = Math.abs(J.state().v) > 0.05 || (w8.move && w8.move.t < 1.6);
+          if (w8.ph !== 'end') for (const [f, dz2] of [[M.c1, -0.55], [M.c2, 0.55]]) { const tx = Math.max(A.x - 3.5, (w8.ph === 'demo' && w8.demo ? w8.demo.x : hx) - 2.6); const p0 = f.root.position; const nx = p0.x + Math.max(-dt * 5, Math.min(dt * 5, tx - p0.x)); f.root.position.set(nx, gy(nx, wz - 0.9 + dz2), wz - 0.9 + dz2); f.root.rotation.y = Math.PI / 2; f.play(Math.abs(tx - p0.x) > 0.05 || walking ? 'Walking_A' : 'Idle', cur().heavy ? 0.6 : 0.9); }
           if (!w8.carry && st.props.root) { w8.carry = ashlar(0.95, 1.5, 0.32); w8.carry.rotation.z = Math.PI / 2; addP(w8.carry, 0, 0, 0); }
-          if (w8.carry) { w8.carry.visible = w8.ph === 'walk' || w8.ph === 'demo'; w8.carry.position.set(M.c1.root.position.x, M.c1.root.position.y + 1.45, wz - 0.9); }
+          if (w8.carry) { w8.carry.visible = w8.ph === 'walk'; w8.carry.position.set(M.c1.root.position.x, M.c1.root.position.y + 1.45, wz - 0.9); }
           for (const f of [M.boss, M.c1, M.c2]) f.update(dt);
         }
         objPlace(w8.ph !== 'end', [{ x: hero().x, y: hero().y + 1.2, z: wz, r: 1.6 }], 'h84warn');
         chip84();
         if (w8.ph === 'end') {
-          svgClear(); const pts = [A.x, ...w8.placedX]; for (let i = 1; i < pts.length; i++) { const p0 = proj(pts[i - 1], gy(pts[i - 1], A.z) + 0.2, A.z - 0.8), p1 = proj(pts[i], gy(pts[i], A.z) + 0.2, A.z - 0.8); if (p0 && p1) svgAdd(`<line x1="${p0.x}" y1="${p0.y}" x2="${p1.x}" y2="${p1.y}" stroke="#FFD66E" stroke-width="4"/><text x="${(p0.x + p1.x) / 2}" y="${(p0.y + p1.y) / 2 - 10}" fill="#FFF4DC" font-size="15" font-weight="800" text-anchor="middle" stroke="#2A1804" stroke-width="3" paint-order="stroke">${Math.round((pts[i] - pts[i - 1]) / pace)}</text>`); }
-          if (!w8.graded && w8.t > 1.4) { w8.graded = true; grade('warn', J.q(), proj(A.x + (pts[pts.length - 1] - A.x) / 2, 2, A.z)); }
+          for (let n = 1; n < w8.P.length; n++) bracket(w8.P[n - 1], w8.P[n], n === 1 ? '#FFD66E' : '#FFF4DC', n !== 1, '');
+          if (!w8.graded && w8.t > 1.4) { w8.graded = true; grade('warn', J.q(), proj((A.x + last()) / 2, 2, A.z)); }
           return w8.t > 3.4;
         }
         return false;
       },
-      end() { pile.innerHTML = ''; pile.classList.remove('h84-off'); svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); w8.prints.forEach((p) => { if (p.parent) p.parent.remove(p); }); if (w8.carry && w8.carry.parent) w8.carry.parent.remove(w8.carry); if (men) for (const f of [men.boss, men.c1, men.c2]) if (f.root.parent) f.root.parent.remove(f.root); st.props.steles84 = (st.props.steles84 || []).concat(w8.steles); },
+      end() { pile.innerHTML = ''; pile.classList.remove('h84-off'); svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (w8.carry && w8.carry.parent) w8.carry.parent.remove(w8.carry); if (men) for (const f of [men.boss, men.c1, men.c2]) if (f.root.parent) f.root.parent.remove(f.root); st.props.steles84 = (st.props.steles84 || []).concat(w8.steles); },
     };
   }
   /** THE THIRTEEN BOWS: a procession of priests along the soreg, outside it; at each of the thirteen marks they bow together; a slow swipe

@@ -17,7 +17,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 70: GAME_BUILD 70; the fit — a run holds the stone with nothing or at least a small stone left; the owner\'s case: a small stone laid, the big one has no place', () => {
-  assert.equal(GAME_BUILD, 84);
+  assert.equal(GAME_BUILD, 85);
   assert.deepEqual(fitRuns68([[1, 3], [5, 2], [8, 5]], 3), [[1, 3], [8, 5]]);
   assert.deepEqual(fitRuns68([[1, 3]], 2), [], 'a 2 in a 3 leaves 1: no stone fills it');
   assert.deepEqual(fitRuns68([[1, 4]], 2), [[1, 4]]); assert.deepEqual(fitRuns68([[1, 6]], 4), [[1, 6]]);

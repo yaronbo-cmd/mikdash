@@ -115,13 +115,14 @@ export function createVoyage49(ctx) {
   const seaU = (k, v) => seas.forEach((m) => { if (m.uniforms[k].value && m.uniforms[k].value.copy) m.uniforms[k].value.copy(v); else m.uniforms[k].value = v; });
   // the ship: a hull, its deck, the stern's raised deck, the bow, a mast, the yard and a square sail, the rails; the sailors
   const ship = new THREE.Group(); G.add(ship); const deckY = 2.6;
-  const wood = mat('#7A5434', 0.85), dk = mat('#4E3420', 0.9), plank = mat('#A27A50', 0.85);
-  add(new THREE.Mesh(new THREE.BoxGeometry(24, 3.2, 7.2), wood), 0, 1, 0, ship);
-  add(new THREE.Mesh(new THREE.BoxGeometry(24, 0.3, 6.8), plank), 0, deckY, 0, ship);
+  const WD = ctx.wood || null, wood = WD ? WD('a', '#C9A27A') : mat('#7A5434', 0.85), dk = WD ? WD('b', '#B89A7A') : mat('#4E3420', 0.9), plank = WD ? WD('a', '#F4E6D2') : mat('#A27A50', 0.85);   // ── build 95 ── (the kit's wood, its grain along the planks: the voyage was flat colour)
+  const longX = (w, h, d) => (ctx.grain ? ctx.grain(new THREE.BoxGeometry(h, w, d), w).rotateZ(Math.PI / 2) : new THREE.BoxGeometry(w, h, d));
+  add(new THREE.Mesh(longX(24, 3.2, 7.2), wood), 0, 1, 0, ship);
+  add(new THREE.Mesh(longX(24, 0.3, 6.8), plank), 0, deckY, 0, ship);
   const bow = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 3.6, 7, 4, 1), wood); bow.rotation.z = -Math.PI / 2; bow.rotation.x = Math.PI / 4; bow.scale.z = 0.7; add(bow, 15.2, 1.2, 0, ship);
   add(new THREE.Mesh(new THREE.BoxGeometry(5, 1.6, 6.8), wood), -10, deckY + 0.9, 0, ship);
   const post = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.45, 5, 8), dk); post.rotation.z = 0.5; add(post, -13.6, 4, 0, ship);
-  for (const sz of [-1, 1]) add(new THREE.Mesh(new THREE.BoxGeometry(22, 0.9, 0.25), dk), 0.5, deckY + 0.6, sz * 3.4, ship);
+  for (const sz of [-1, 1]) add(new THREE.Mesh(longX(22, 0.9, 0.25), dk), 0.5, deckY + 0.6, sz * 3.4, ship);
   add(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.36, 15, 10), dk), 2, deckY + 7.5, 0, ship);
   add(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 11, 8), dk), 2, deckY + 13.6, 0, ship).rotation.x = Math.PI / 2;
   const sailC = doc ? (() => { try { const cv = doc.createElement('canvas'); cv.width = 128; cv.height = 128; const c = cv.getContext('2d'); c.fillStyle = '#E8DCC0'; c.fillRect(0, 0, 128, 128); c.fillStyle = '#B34A32'; for (let i = 0; i < 4; i++) c.fillRect(i * 32 + 12, 0, 8, 128); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; } catch (e) { return null; } })() : null;
@@ -132,13 +133,25 @@ export function createVoyage49(ctx) {
   const door = (x, z) => { const d = new THREE.Group(), b = new THREE.Mesh(new THREE.BoxGeometry(9, 0.35, 4.9), bronze); d.add(b); for (let i = 1; i < 4; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.42, 4.6), mat('#B98242', 0.35, 0.6)); r.position.x = -4.5 + i * 2.25; d.add(r); } return add(d, x, deckY + 0.35, z, ship); };
   const door1 = door(-2.5, 1.6), door2 = door(7, -1.4); door1.visible = false;
   let glow = null; try { glow = TX.texGlow(); } catch (e) { glow = null; }
-  const glints = [door1, door2].map((d) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: '#FFF1C8', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(7, 7, 1); s.position.set(1.5, 1.2, 0.8); d.add(s); return s; });   // (the sun's glint on the bronze)
+  const glints = [door1, door2].map((d) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: '#FFF1C8', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.set(4.2, 4.2, 1); s.position.set(1.5, 1.2, 0.8); d.add(s); return s; });   // ── build 95 ── (7 blinded the deck at sea)   // (the sun's glint on the bronze)
   const ropesM = new THREE.LineBasicMaterial({ color: '#D9C9A0' });
   const ropeLine = (pts) => { const g2 = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(...p))); return new THREE.LineSegments(g2, ropesM); };
   ship.add(ropeLine([[2, deckY + 15, 0], [13, deckY + 0.6, 0], [2, deckY + 15, 0], [-11, deckY + 2, 0], [2, deckY + 14, 0], [2, deckY + 0.6, 3.3], [2, deckY + 14, 0], [2, deckY + 0.6, -3.3]]));
   const knots = [[-6, -2.6], [2.5, 2.6], [10, -2.6]].map(([x, z]) => { const k = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), mat('#D9C9A0')); return add(k, x, deckY + 0.5, z, ship); });
-  const sailors = [0, 1, 2, 3].map((i) => { const f = figure49({ tunic: ['#C9B48A', '#A88F68', '#B9A27A', '#8E7A5A'][i], cap: '#6A5238' }); return add(f, [-8, 11, -4, 12][i], deckY + 0.15, [2, -2.2, -2.5, 2.4][i], ship); });
+  const sailors = [0, 1, 2, 3].map((i) => { const f = figure49({ tunic: ['#C9B48A', '#A88F68', '#B9A27A', '#8E7A5A'][i], cap: '#6A5238' }); return add(f, [-6.8, 11, -4, 12][i], deckY + 0.15, [2, -2.2, -2.5, 2.4][i], ship); });
   const nic = add(figure49(NICANOR49), -9.5, deckY + 1.85, -1, ship); nic.rotation.y = Math.PI / 2;
+  /* ── build 95 ── the voyage's people are people88's (the owner, 3.11, on build 76: "שוב גלילים"): each stands on figure49's place
+   * (kept, unseen, as its anchor), with its own walk, push, kneel; Nicanor in a blue tunic and a red head cloth, a dark beard (המחשה) */
+  const cast = { on: false, sail: [], nic: null };
+  function cast95(dt) {
+    if (!cast.on) { const F2 = ctx.figs ? ctx.figs() : null; if (!F2) return; const mk = (o) => { const f = F2.make(o); if (f) ship.add(f.root); return f; };
+      cast.sail = ['#C9B48A', '#A88F68', '#B9A27A', '#8E7A5A'].map((c, i) => mk({ tunic: c, cloth: ['#E6DCC8', '#6F5B44', '#D9CBB0', '#8A6A48'][i] })); cast.nic = mk({ tunic: '#2E4E86', cloth: '#8C2E26', beardColor: '#2A1C12' });
+      if (!cast.nic || cast.sail.some((f) => !f)) return; cast.on = true; sailors.forEach((a) => { a.visible = false; }); nic.visible = false; }
+    const put = (f, a, clip, rate = 1) => { f.root.position.copy(a.position); f.root.rotation.y = a.rotation.y; f.play(clip, rate); f.update(dt); };
+    const s = V.scene, st = V.S ? V.S.state() : null;
+    put(cast.nic, nic, s === 'sea' ? (T.one ? 'Walking_A' : 'Idle') : (s === 'storm' || s === 'hug') && st && st.hug ? (T.right ? 'Fixing_Kneeling' : 'Idle') : s === 'storm' ? (T.left ? 'Push_Loop' : 'Idle') : 'Idle');
+    cast.sail.forEach((f, i) => put(f, sailors[i], st && st.ph === 'throw' && (i === 0 || i === 2) ? 'Push_Loop' : st && st.hug && (i === 1 || i === 3) && st.ph === 'push' ? 'Walking_A' : 'Idle'));
+  }
   // the places: Alexandria's quay and lighthouse, the harbour crane; Acre's quay; the hills and the caravan (each shown in its scene)
   const harbour = new THREE.Group(); G.add(harbour);
   const stone = mat('#D9CDB4', 0.9);
@@ -184,6 +197,7 @@ export function createVoyage49(ctx) {
   const setSea = (A, deep, crest, sky) => { seas.forEach((m) => { m.uniforms.uA.value = A; if (deep) m.uniforms.uDeep.value.set(deep); if (crest) m.uniforms.uCrest.value.set(crest); if (sky) m.uniforms.uSky.value.set(sky); }); };
   const fogTo = (n, f, c) => { if (!scene.fog) return; scene.fog.near = n; scene.fog.far = f; if (c) scene.fog.color.set(c); };
   function begin(s) {
+    { const lying = s === 'sea' || s === 'storm' || s === 'hug'; bronze.emissiveIntensity = lying ? 0.12 : 0.55; bronze.roughness = lying ? 0.65 : 0.3; }   // ── build 95 ── (lying flat under the high sun the bronze blew out white on the deck)
     V.scene = s; V.t = 0; V.sub = 0; V.cp = null; V.ct = null; showTitle(TITLES[s] || ''); ctx.emit && ctx.emit('h49scene', { s });   // (a cut between scenes)
     if (s === 'harbour') { try { ctx.timeOfDay && ctx.timeOfDay('dawn'); } catch (e) { /* */ } V.P = F.createPulley(V.L); setSea(0.35, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000); door1.visible = true; door1.position.set(-2.5, 3.45, 9); ctx.line(VLINE49.harbour, `רמה ${V.L}`); }
     if (s === 'sea') { harbour.visible = false; V.P = null; V.walk = 0; setSea(0.55); ctx.line(VLINE49.sea); }
@@ -221,11 +235,12 @@ export function createVoyage49(ctx) {
       V.t += dt; V.fly += dt; const t = V.fly, s = V.scene;
       const A = seas[0].uniforms.uA.value; seas.forEach((m) => { m.uniforms.uT.value = t; });
       if (s === 'sea' || s === 'storm' || s === 'hug') seas.forEach((m) => { m.uniforms.uOff.value += dt * (s === 'sea' ? 3 : 1.5); });
-      glints.forEach((g2, i) => { g2.visible = g2.parent.visible; g2.material.opacity = (0.45 + 0.55 * Math.max(0, Math.sin(t * 2.3 + i * 1.7))) * (s === 'storm' || s === 'hug' ? 0.25 : s === 'road' ? 0 : 1); });
+      glints.forEach((g2, i) => { g2.visible = g2.parent.visible; g2.material.opacity = 0.6 * (0.45 + 0.55 * Math.max(0, Math.sin(t * 2.3 + i * 1.7))) * (s === 'storm' || s === 'hug' ? 0.25 : s === 'sea' ? 0.3 : s === 'road' ? 0 : 1); });
       fire.material.opacity = 0.75 + 0.25 * Math.sin(t * 7);
       // the ship rides the sea: its bob and pitch from the swells; its roll from the storm's heel
       const off = seas[0].uniforms.uOff.value, hb = waveH(12 + off, 0, t, A), hs = waveH(-12 + off, 0, t, A), hm = waveH(off, 0, t, A);
       const heel = V.S && (s === 'storm' || s === 'hug') ? V.S.state().h : 0;
+      cast95(dt);   // ── build 95 ──
       ship.position.y = hm * 0.8 - 0.4; ship.rotation.z = Math.atan2(hb - hs, 24) * 0.8; ship.rotation.x = heel * 0.32 + (s === 'storm' || s === 'hug' ? 0 : Math.sin(t * 0.9) * 0.02);
       { const a = sail.geometry.attributes.position, wind = s === 'sea' ? Math.min(1, V.t / 18) : s === 'storm' || s === 'hug' ? 1 : 0.2; for (let i = 0; i < a.count; i++) { const y = sail0[i * 3 + 1], x = sail0[i * 3]; a.setZ(i, (1 - (y / 4.25) ** 2) * (1 - (x / 5) ** 2) * (0.6 + 1.6 * wind) * (1 + 0.08 * Math.sin(t * 6 + x))); } a.needsUpdate = true; }
       svg && (svg.innerHTML = '');
@@ -276,7 +291,7 @@ export function createVoyage49(ctx) {
         if (st.done) {   // "ומיד נח הים מזעפו": the sea calms at once
           V.q = S.result(); setSea(0.25, '#163C55', '#3D86A0', '#A6C6D8'); fogTo(300, 5000, '#EAD6BA'); try { ctx.timeOfDay && ctx.timeOfDay('noon'); } catch (e) { /* */ }
           ctx.line(VLINE49.calm); ctx.sound && ctx.sound('solemn'); ctx.buzz('peak'); ctx.emit && ctx.emit('h49calm', V.q); V.scene = 'calm'; V.t = 0;
-          sailors.forEach((sl, i) => { sl.position.set([-8, 11, -4, 12][i], deckY + 0.15, [2, -2.2, -2.5, 2.4][i]); }); nic.userData.top.rotation.x = 0; door2.rotation.x = 0;
+          sailors.forEach((sl, i) => { sl.position.set([-6.8, 11, -4, 12][i], deckY + 0.15, [2, -2.2, -2.5, 2.4][i]); }); nic.userData.top.rotation.x = 0; door2.rotation.x = 0;
         }
       } else if (s === 'calm') {
         camK([-26, 10, 16], [4, 3, 0]); if (V.t > 6) begin('acre');
@@ -306,6 +321,7 @@ export function createVoyage49(ctx) {
   let cleaned = false;
   function cleanup() {
     if (cleaned) return; cleaned = true;
+    for (const f of [cast.nic, ...cast.sail]) if (f && f.root.parent) f.root.parent.remove(f.root);   // ── build 95 ── (people88's shared shapes: not disposed with the voyage)
     for (const c of hidden) c.visible = true; if (G.parent) G.parent.remove(G);
     if (fog0 && scene.fog) { scene.fog.near = fog0.n; scene.fog.far = fog0.f; scene.fog.color.copy(fog0.c); }
     try { if (ctx.stages && ctx.stages.hero) ctx.stages.hero.show(true); } catch (e) { /* */ }   // (the kohen returns)

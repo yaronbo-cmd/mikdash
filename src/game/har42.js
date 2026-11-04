@@ -4284,7 +4284,8 @@ export function createHar42(o = {}) {
   /** THE VOYAGE (v2 §11): the doors' story, once — here he is Nicanor (voyage49.js); its grade is the storm's */
   function mkVoyage49() {
     const L = famL('lift');
-    return createVoyage49({ scene: scene(), camTo, line, root: st.ui.root, doc, W, H, buzz: buzz42, sound: o.sound, emit: o.emit, timeOfDay: o.timeOfDay, stages, L, seen: !!R.voySeen,
+    return createVoyage49({ scene: scene(), camTo, line, root: st.ui.root, doc, W, H, buzz: buzz42, sound: o.sound, emit: o.emit, timeOfDay: o.timeOfDay, stages, L, seen: !!R.voySeen, figs: figs84, wood: ON88 ? P88w.wood88 : null, grain: ON88 ? P88w.grain88 : null,   // ── build 95 ── (real people, the kit's wood)
+     
       done(r) {
         R.voySeen = 1; R.voy = { rating: r.rating || null, crossings: r.crossings | 0, replays: r.replays | 0, skipped: !!r.skipped }; save42(S);
         try { if (o.restoreTime) o.restoreTime(); } catch (e) { /* */ }

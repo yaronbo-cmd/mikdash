@@ -76,7 +76,7 @@ test('build 93: the peg — the mallet\'s height is the blow; a measured hand ta
 
 test('build 93: wiring — the parts, the order, the acts in the world; lines sourced and short', async () => {
   const { GAME_BUILD } = await import('../src/avodah/shift/lobby35.js');
-  assert.equal(GAME_BUILD, 94);
+  assert.equal(GAME_BUILD, 95);
   const { LINE42, PARTS93 } = await import('../src/game/har42.js');
   const { DEP63, open63 } = await import('../src/game/site63.js');
   assert.deepEqual([...PARTS93], ['open', 'wood', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);

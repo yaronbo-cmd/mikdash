@@ -40,6 +40,7 @@ import * as F91 from './crane91.js';
 import * as F92 from './gates92.js';
 import * as F94 from './nikanor94.js';   // ── build 94 ── (stage 06 rebuilt: the leaf on the lever and wedges, hung on its pivot; the steps' key stones)
 import * as F93 from './gallery93.js';
+import * as F99 from './gates99.js';   // ── build 99 ── (stage 04 after the owner's notes on 96: the lintel with two hands, an end each; the leaf turned round its pivot)
 import * as F98 from './nik98.js';   // ── build 98 ── (stage 06 after the owner's notes on 96: the steps ring by ring round a core, the key stone his on the hoist; the leaf turned round its pivot)
 import * as F97 from './court97.js';   // ── build 97 ── (stage 05: the chambers rise before his eyes; build 15's wall jobs back)
 import { tread as TREAD15 } from './minigames/tread.js';
@@ -415,6 +416,10 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   swing98a: 'סובבו את הכנף סביב הציר עד העוצר. לאט, היא כבדה · המחשה',
   swing98b: 'עכשיו סגרו אותה אל המשקוף, בלי לטרוק · המחשה',
   swing98bang: 'בום! מהר מדי, והכנף חזרה לאחור. האטו לפני הסוף · המחשה',
+  lintel99: 'אצבע על כל קצה: כל קצה עולה במנוף שלו · שני מנופי דריכה והפלס — המחשה',
+  lintel99b: 'עכשיו להוריד: כל אצבע משחררת את החבל של הקצה שלה · שני הקצוות יחד, לאט — המחשה',
+  lintel99c: 'קצה אחד נחת לפני השני — חכו לשני · המחשה',
+  leaf99: 'הכנף על צירה: סובבו אותה באצבע, הפועלים דוחפים · עד העוצר, ובחזרה בלי לטרוק — המחשה',
   lever: 'גררו את המוט למטה, ארוך — הדלת עולה מעט · מוט ויתדות — המחשה',   // ── build 49 ── stage 06's lines
   leverTop: 'בשיא — הקישו: יתד נכנסת מתחת לדלת · המחשה',
   leverShort: 'קצר מדי — גררו ארוך יותר, עד למטה · המחשה',
@@ -447,6 +452,8 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
 /** ── build 44 ── חצר האומנים (hard-fun §5) and the craftsman's test (v2 §8): the variants he has met (stage 01's), the families' titles
  *  (טיוטה), the points a grade gives, the test's three jobs at level 2 and its rules (pass at כשר; מהודר in all three — a gold seal; free
  *  tries; after 5 failed tries of a job רב האומנים shows it — passed without a seal) */
+/** ── build 99 ── the yard's acts whose world is the stage's own (build 92's gates, build 94's leaves): not in the yard since their first acts went out (98, 99) */
+export const OUT99 = Object.freeze(['lintel', 'leaf', 'lever']);
 export const YARD44 = Object.freeze([
   Object.freeze({ part: 'lift', fam: 'lift', he: 'גלגל הדריכה' }), Object.freeze({ part: 'corner', fam: 'place', he: 'מוט הברזל' }),
   Object.freeze({ part: 'course0', fam: 'place', he: 'נדבך' }), Object.freeze({ part: 'rock', fam: 'inspect', he: 'קריאת הסלע' }),
@@ -643,6 +650,7 @@ export function createHar42(o = {}) {
   const ON92 = MODE === 'stage' && STG === 'gates' && qs('h92') !== '0';
   const ON94 = MODE === 'stage' && STG === 'nikanor' && qs('h94') !== '0';   // ── build 94 ── (stage 06 rebuilt in the world — nikanor94.js; ?h94=0 as in 93)
   const ON93 = MODE === 'stage' && STG === 'nashim' && qs('h93') !== '0';
+  const ON99 = ON92 && qs('h99') !== '0';   // ── build 99 ── (stage 04 after the notes on 96 — gates99.js; ?h99=0 as in 98)
   const ON98 = ON94 && qs('h98') !== '0';   // ── build 98 ── (stage 06 after the notes on 96 — nik98.js; ?h98=0 as in 97)
   const ON97 = ON93 && qs('h97') !== '0';   // ── build 97 ── (the chambers built in view; the treadwheel and the line among the works; ?h97=0 as in 96)   // ── build 93 ── (stage 05 rebuilt in the world — gallery93.js; ?h93=0 as in 92)   // ── build 92 ── (stage 04 rebuilt in the world — gates92.js; ?h92=0 as in 91)
   const parts0 = () => {   // (each stage's parts — build 62: stage 01's new order in front of them)
@@ -3187,9 +3195,9 @@ export function createHar42(o = {}) {
     lattice: { begin() { st.job = mkLattice(Math.min(2, Math.max(0, (Lover || 1) - 1))); } },   // (the yard: the panel by the level)
     warn: { begin() { st.job = ON84 ? mkWarn84() : mkWarn(); } },
     bows: { begin() { st.job = ON84 ? mkBows84() : mkBows(); } },
-    lintel: { begin() { st.job = ON92 ? mkLintel92(0) : mkLintel(); } }, lintel2: { begin() { st.job = mkLintel92(1); } }, lintel3: { begin() { st.job = mkLintel92(2); } },   // ── build 92 ──   // ── build 47 ── stage 04's parts
-    leaf: { begin() { st.job = ON92 ? mkLeaf92(false) : mkLeaf(0, false); } },
-    leaf7: { begin() { st.job = ON92 ? mkLeaf92(true) : mkLeaf(1, true); } },
+    lintel: { begin() { st.job = mkLintel92(0); } }, lintel2: { begin() { st.job = mkLintel92(1); } }, lintel3: { begin() { st.job = mkLintel92(2); } },   // ── build 92 ──   // ── build 47 ── stage 04's parts
+    leaf: { begin() { st.job = mkLeaf92(false); } },
+    leaf7: { begin() { st.job = mkLeaf92(true); } },
     names: { begin() { st.job = mkNames(); } },
     wood: { begin() { st.job = mkWood(); } },   // ── build 97 ── (build 93's log peeled: out since 96 — the owner, 4.11)
     tread97: { begin() { st.job = mkTread97('tread97'); } }, tread97b: { begin() { st.job = mkTread97('tread97b'); } }, line97: { begin() { st.job = mkLine97(); } },   // ── build 97 ──   // ── build 48 ── stage 05's parts
@@ -4573,120 +4581,7 @@ export function createHar42(o = {}) {
       end() { pile.innerHTML = ''; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); try { const ctl = globalThis.__T && globalThis.__T.controls; if (ctl && polar0 != null) ctl.maxPolarAngle = polar0; } catch (e) { /* */ } },
     };
   }
-  /* ── build 47 ── stage 04's acts ── */
-  const gateView = (cy, D0, k = 1) => { const G = PL.gate, g0 = G.y, D = Math.max(needD() + 2, D0 || 0, 15.5 / tanV()) * k; return { p: [G.x - 3, g0 + 6, G.z - D], t: [G.x, g0 + cy, G.z] }; };   // (ש5 low, from the north: the whole gate and him; him ≤ 45 % at needD)
-  const sgnR47 = () => { const G = PL.gate, a = proj(G.x, G.y + 10, G.z), b = proj(G.x + 1, G.y + 10, G.z); return a && b && b.x < a.x ? -1 : 1; };   // (+x toward the screen's right: 1)
-  const level47 = (s, L) => {   // the bubble level, big, under the line
-    const cx = W() / 2, cy = H() - Math.max(38, H() * 0.13), hw = Math.min(150, W() * 0.24), /* (at the screen's bottom: at the top it hid the lintel) */ bx = cx - (s.tilt / F.LINTEL47.lim) * (hw - 14), cz = (s.centre / F.LINTEL47.lim) * (hw - 14);
-    let h = `<rect x="${cx - hw}" y="${cy - 15}" width="${2 * hw}" height="30" rx="15" fill="rgba(210,235,190,.9)" stroke="#5B4A2A" stroke-width="3"/><rect x="${cx - cz - 13}" y="${cy - 15}" width="${2 * cz + 26}" height="30" fill="${L <= 1 ? 'rgba(90,170,80,.35)' : 'none'}" stroke="#5B4A2A" stroke-width="2" stroke-dasharray="${L <= 1 ? '0' : '4 3'}"/><ellipse cx="${bx}" cy="${cy}" rx="13" ry="10" fill="#FFFDF2" stroke="#9AB98A" stroke-width="2"/>`;
-    // ── build 54 ── (must 8: "the arrow big and blinking") the way to drag — big, blinking, beside the tube, as soon as the bubble leaves the centre ── /build 54 ──
-    if (s.out || Math.abs(s.tilt) > s.centre) { const right = s.tilt > 0, ax = cx + (right ? hw + 34 : -hw - 34); h += `<text x="${ax}" y="${cy + 18}" font-size="${s.out ? 58 : 44}" font-weight="900" text-anchor="middle" fill="#FFD66E" stroke="#2A1804" stroke-width="4" paint-order="stroke">${right ? '➡' : '⬅'}<animate attributeName="opacity" values="1;.2;1" dur="0.7s" repeatCount="indefinite"/></text>`; }
-    return h;
-  };
-  /** LIFT on two cranes: the lintel (or the heavy leaf): hold — it rises; slide — the pull between the crews; the bubble; then set (the lintel) */
-  function lift47(J, kind, done) {
-    const G = PL.gate, g0 = G.y, ob = kind === 'lintel' ? st.props.lintel : st.props.leaves[1], L = J.state().L;
-    let x0 = null, lowerT = -1, liftT = 0;
-    if (st.ui.pad) st.ui.pad.classList.add('full'); if (st.props.ropes47) st.props.ropes47.visible = true;
-    const ropes = (a, b) => { const r = st.props.ropes47; if (!r) return; const P2 = r.geometry.attributes.position, tip = [-1, 1].map((sx) => [G.x + sx * 8.7, g0 + 30.6, G.z - 1.6]); P2.setXYZ(0, ...tip[0]); P2.setXYZ(1, ...a); P2.setXYZ(2, ...tip[1]); P2.setXYZ(3, ...b); P2.needsUpdate = true; };
-    const place = () => {
-      const s = J.state(), sr = sgnR47();
-      if (kind === 'lintel') {
-        const y = lowerT >= 0 ? g0 + GATE47.H + 0.75 + 1.6 * Math.max(0, 1 - lowerT / 0.5) : g0 + 0.75 + s.y * (GATE47.H + 1.6), x = G.x + s.dx * sr, z = G.z - 4 * (1 - s.y), rz = -sr * s.tilt * 0.2;
-        ob.position.set(x, y, z); ob.rotation.z = rz; const c = Math.cos(rz), sn = Math.sin(rz), hl = GATE47.lw / 2 - 0.6; ropes([x - hl * c, y - hl * sn + 0.75, z], [x + hl * c, y + hl * sn + 0.75, z]);
-      } else {
-        const sx = ob.userData.sx, u = s.y, px2 = G.x + sx * GATE47.half; ob.rotation.x = (-Math.PI / 2 + 0.02) * (1 - Math.min(1, u / 0.45)); ob.rotation.z = -sr * s.tilt * 0.2;
-        ob.position.set(px2, g0 + 0.5 + 2.4 * u, G.z - 7 * (1 - u)); const top = g0 + 0.5 + 2.4 * u + GATE47.leafH * Math.min(1, u / 0.45); ropes([px2 - sx * 0.6, top, ob.position.z], [px2 - sx * (GATE47.leafW - 0.6), top, ob.position.z]);
-      }
-    };
-    place();
-    return {
-      down(a) { if (J.state().phase === 'lift') { x0 = a.x; J.hold(true); } },
-      move(a) { if (J.state().phase === 'lift' && x0 != null) J.slide((x0 - a.x) / (W() * 0.22)); },
-      up(a) {
-        const s = J.state();
-        if (s.phase === 'lift') { J.hold(false); x0 = null; return; }
-        if (kind !== 'lintel' || s.done || lowerT >= 0) return;
-        const G2 = PL.gate, p0 = proj(G2.x, G2.y + 20, G2.z), p1 = proj(G2.x + 1, G2.y + 20, G2.z), ppa = p0 && p1 ? Math.abs(p1.x - p0.x) : 0;
-        const r = J.set(a.x - a.x0, ppa);
-        if (r === 'ok') { lowerT = 0; buzz42('settle'); o.sound && o.sound('thud'); }
-        else if (r === 'miss') { buzz42('retry'); line(LINE42.lintelMiss, `רמה ${L}`); setTimeout(() => { if (!J.state().done) line(LINE42.lintelSet, `רמה ${L}`); }, 2200); }
-      },
-      frame(dt) {
-        const s = J.state(), was = s.phase; J.step(dt); place();
-        objPlace(true, [{ x: G.x, y: g0 + 10, z: G.z, r: 8 }], 'h47lift');
-        svgClear(); if (s.phase === 'lift' || (kind === 'lintel' && !s.done)) svgAdd(level47(s, L));
-        if (s.phase === 'lift') { liftT += dt; if (s.out && !this.outSaid) { this.outSaid = 1; line(`הבועה ברחה — הזיזו ${s.tilt > 0 ? '➡' : '⬅'} · המחשה`, `רמה ${L}`); buzz42('retry'); }   /* ── build 54 ── (the way to drag, by the side it ran — must 8) ── /build 54 ── */ else if (!s.out && this.outSaid) { this.outSaid = 0; line(kind === 'lintel' ? LINE42.lintel : LINE42.leaf7, `רמה ${L}`); } }
-        if (was === 'lift' && s.phase === 'set') { if (kind === 'lintel') line(LINE42.lintelSet, `רמה ${L}`); else { done(); return false; } }
-        if (lowerT >= 0) { lowerT += dt; if (lowerT > 0.5 && !this.graded) { this.graded = 1; if (st.props.ropes47) st.props.ropes47.visible = false; done(); } }
-        return false;
-      },
-    };
-  }
-  function mkLintel() {
-    const LL = famL('lift'), J = F.createLintel47(LL); line(LINE42.lintel, `רמה ${LL}`);
-    try { const q = lintelStand54(); stages.hero.drive(0, 0); stages.hero.setPos(q.x, q.z, 0); } catch (e) { /* */ }   // ── build 54 ── (at his place in the left third — the walk stops 2.6 amot short of it) ── /build 54 ──
-    let endT = -1; const G = PL.gate;
-    const C = lift47(J, 'lintel', () => { grade('lintel', J.state().q, proj(G.x, G.y + 21, G.z)); endT = 1.2; });
-    return { acting: true, fullPad: true, J, kind: 'lintel', down: (a) => C.down(a), move: (a) => C.move(a), up: (a) => C.up(a), sgn: sgnR47,
-      ppa: () => { const p0 = proj(G.x, G.y + 20, G.z), p1 = proj(G.x + 1, G.y + 20, G.z); return p0 && p1 ? Math.abs(p1.x - p0.x) : 20; },
-      view() { const v = gateView(13, 0, OBJ54.gate); v.p[1] = v.t[1] = PL.gate.y + 11.5; return v; },   // (the lintel at the posts' top, 21.6 amot, in the frame: the shot at the top had it out) ── build 54 ── (OBJ54.gate: nearer; level at 11.5 amot — the lintel's top and his feet, 6 amot before the gate, both in the frame: from 6 up he was cut at the shoulders) ── /build 54 ──
-      frame(dt) { C.frame(dt); if (endT >= 0) { endT -= dt; if (endT <= 0) { svgClear(); return true; } } return false; },
-      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); } };
-  }
-  /** FIT: the door leaf on its pivot — the pin into the socket (a drag down; its angle), then a flick swings it (bound — the wedge); the heavy
-   *  leaf of the seventh gate first lifted on the two cranes (level 3, swaying) */
-  function mkLeaf(idx, heavy) {
-    const LF = famL('fit'), J = F.createLeaf47(LF), G = PL.gate, g0 = G.y, piv = st.props.leaves[idx], sx = piv.userData.sx, pivX = G.x + sx * GATE47.half;
-    const LJ = heavy ? F.createLintel47(Math.max(3, famL('lift')), { heavy: true }) : null; let qLift = null, phase = heavy ? 'lift' : 'pin', anim = null, endT = -1, flickT0 = 0, stuck54 = 0;
-    const hang = () => { piv.rotation.set(0, 0, 0); piv.position.set(pivX, g0 + 0.5 + 2.4, G.z); };
-    const C = heavy ? lift47(LJ, 'leaf', () => { const s = LJ.state(), f = s.faults + Math.floor(s.off / F.LINTEL47.offFault); qLift = f <= 0 ? 1 : f <= 2 ? 0.65 : 0.3; phase = 'pin'; if (st.props.ropes47) st.props.ropes47.visible = false; hang(); line(LINE42.leafPin, `רמה ${LF}`); }) : null;
-    if (!heavy) { hang(); line(LINE42.leafPin, `רמה ${LF}`); } else line(LINE42.leaf7, `רמה ${LJ.state().L}`);
-    if (st.ui.pad) st.ui.pad.classList.add('full');
-    const pile = st.ui.pile; pile.innerHTML = ''; pile.hidden = false;
-    const wedgeB = el('h42-it h47-wedge', '◢ טריז', 'button'); wedgeB.type = 'button'; wedgeB.hidden = true; wedgeB.style.display = 'none'; pile.appendChild(wedgeB);   // (display: the class's flex beat [hidden])
-    wedgeB.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (J.wedge() === 'ok') { wedgeB.hidden = true; wedgeB.style.display = 'none'; buzz42('mallet'); o.sound && o.sound('wedge'); anim = { k: 'shut', t: 0, from: J.state().open || 0.3 }; line(LINE42.leafSwing, `רמה ${LF}`); } });
-    const openOf = (v) => -sx * 1.3 * v;
-    return {
-      acting: true, fullPad: true, J, LJ, kind: 'leaf', phase: () => phase, socket: () => proj(pivX - sx * 0.25, g0 + 0.1, G.z), pinAt: () => proj(pivX - sx * 0.25, piv.position.y - 0.6, G.z), wedgeB,
-      down(a) { if (phase === 'lift') C.down(a); else flickT0 = now(); },
-      move(a) { if (phase === 'lift') C.move(a); },
-      up(a) {
-        if (phase === 'lift') { C.up(a); return; }
-        const dx = a.x - a.x0, dy = a.y - a.y0;
-        if (phase === 'pin' && !anim) { const r = J.pin(dx, dy); if (r === 'rim') { anim = { k: 'rim', t: 0, tilt: Math.sign(dx || 1) * 0.16 }; buzz42('retry'); line(LINE42.leafRim, `זווית ${Math.round(J.state().angle)}° · רמה ${LF}`); } else if (r === 'seated') { anim = { k: 'seat', t: 0 }; buzz42('settle'); o.sound && o.sound('wood'); } return; }
-        if (phase === 'swing' && !anim) { const r = J.flick(Math.abs(dx), Math.max(0.01, now() - flickT0));
-          if (r === 'binds') { anim = { k: 'bind', t: 0 }; buzz42('retry'); o.sound && o.sound('grind'); line(LINE42.leafBind, `רמה ${LF}`); wedgeB.hidden = false; wedgeB.style.display = ''; }
-          else if (r === 'ok' || r === 'slam') { anim = { k: r, t: 0 }; o.sound && o.sound('creak'); }
-          else if (r === 'weak') { anim = { k: 'weak', t: 0 }; } }
-      },
-      // ── build 54 ── (§2 stage 04: "you can't see whether it stuck") while the pin goes down: a macro on the pin and its socket (from the north,
-      // 6.5 amot, a little above — the pin's foot, the socket's rim, the leaf's edge) ── /build 54 ──
-      ownView: () => phase === 'pin',
-      view() { if (phase === 'lift') return gateView(12, 0, OBJ54.leaf7); if (phase === 'pin') { const tx = pivX - sx * 0.3; return { p: [pivX - sx * 4, g0 + 1.7, G.z + 5.7], t: [tx, g0 + 1.5, G.z] }; }   /* (level, 6.8 amot off: the socket and the leaf's foot both in the frame — from 2.8 up, looking down, the pin hung at the frame's top under the line: S54-leafW) */   /* ── build 54 ── (from the court's side: he stands outside, behind the posts — not in the macro) ── /build 54 ── */ const v = gateView(10); v.t[0] = pivX - sx * GATE47.leafW / 2; v.p[0] = v.t[0] - 2; return v; },
-      frame(dt) {
-        if (phase === 'pin') objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf', [{ x: pivX - sx * 0.5, y: g0 + 1.3, z: G.z, r: 1.25 }]); else objPlace(true, [{ x: pivX - sx * GATE47.leafW / 2, y: g0 + 9, z: G.z, r: 5 }], 'h47leaf');   // ── build 54 ── (in the macro: the pin and its socket) ── /build 54 ──
-        if (phase === 'lift') { C.frame(dt); return false; }
-        svgClear();
-        if (stuck54 > 0) { stuck54 -= dt; const ex = proj(pivX - sx * (GATE47.leafW * 0.95), g0 + 0.6, G.z), op = Math.min(1, stuck54); if (ex) svgAdd(`<g opacity="${op.toFixed(2)}"><circle cx="${ex.x}" cy="${ex.y}" r="22" fill="none" stroke="#E0503A" stroke-width="4"/><path d="M${ex.x - 30} ${ex.y - 8} l-14 -10 M${ex.x + 30} ${ex.y - 8} l14 -10 M${ex.x} ${ex.y - 30} l0 -14" stroke="#E0503A" stroke-width="4" stroke-linecap="round"/><text x="${ex.x}" y="${ex.y + 44}" font-size="16" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="3" paint-order="stroke">נתקעה</text></g>`); }
-        if (phase === 'pin' && J.state().L <= 1 && !anim) { const a2 = this.pinAt(), b2 = this.socket(); if (a2 && b2) svgAdd(`<line x1="${a2.x}" y1="${a2.y}" x2="${b2.x}" y2="${b2.y}" stroke="#FFD66E" stroke-width="3" stroke-dasharray="6 5"/><circle cx="${b2.x}" cy="${b2.y}" r="9" fill="none" stroke="#FFD66E" stroke-width="3"/>`); }
-        if (anim) {
-          anim.t += dt; const t = anim.t;
-          if (anim.k === 'rim') { const u = t < 0.3 ? t / 0.3 : Math.max(0, 1 - (t - 0.5) / 0.4); piv.position.y = g0 + 0.5 + 2.4 - 1.9 * u; piv.rotation.z = anim.tilt * u; if (t > 0.9) { anim = null; hang(); } }
-          else if (anim.k === 'seat') { const u = Math.min(1, t / 0.45); piv.position.y = g0 + 0.5 + 2.4 * (1 - u); if (u >= 1) { anim = null; phase = 'swing'; line(LINE42.leafSwing, `רמה ${LF}`); } }
-          else if (anim.k === 'bind') { const u = Math.min(1, t / 0.35); piv.rotation.y = openOf(0.3 * u) + (u >= 1 ? Math.sin(t * 60) * 0.025 * Math.max(0, 1 - (t - 0.35) / 0.35) : 0); if (t > 0.75) { piv.rotation.y = openOf(0.3); anim = null; } stuck54 = 2.2; }   // ── build 54 ── (the stop seen: a jolt, a shudder, and a mark at its foot) ── /build 54 ──
-          else if (anim.k === 'shut') { piv.rotation.y = openOf(anim.from * Math.max(0, 1 - t / 0.5)); if (t > 0.5) anim = null; }
-          else if (anim.k === 'weak') { piv.rotation.y = openOf(0.15 * Math.sin(Math.min(1, t / 0.8) * Math.PI)); if (t > 0.8) { anim = null; line('חזק מעט יותר — הנפה מהירה · המחשה', `רמה ${LF}`); } }
-          else { const hard = anim.k === 'slam', T1 = 0.8, T2 = hard ? 0.35 : 1.7; const v = t < T1 ? Math.sin((t / T1) * Math.PI / 2) : Math.max(0, 1 - (t - T1) / T2); piv.rotation.y = openOf(v);
-            if (t > T1 + T2 && !this.graded) { this.graded = 1; if (hard) { buzz42('retry'); o.sound && o.sound('thud'); } else o.sound && o.sound('settle');
-              const q = heavy ? ((qLift == null ? 1 : qLift) + J.state().q) / 2 : J.state().q; grade(heavy ? 'leaf7' : 'leaf', q, proj(pivX - sx * 2.4, g0 + 12, G.z)); endT = 1.3; } }
-        }
-        if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
-        return false;
-      },
-      end() { pile.innerHTML = ''; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); },
-    };
-  }
+  /* ── build 47 ── stage 04's first acts (the lintel on a bubble level, the leaf on its pin): out in build 99 — build 92's acts take every way in ── */
   // ── build 54 ── (§2 stage 04: "from above the court is an empty purple plane — the gates don't look like gates") for the names: the court's
   // paving (a canvas of slabs over its floor) and at each gate a gatehouse — two towers 26 amot high and the block over the opening — with its
   // shadow on the paving (the height read from above) ── /build 54 ──
@@ -4858,9 +4753,9 @@ export function createHar42(o = {}) {
   /** THE LINTEL at gate i (0…2): held on the stone it rises, the end held faster; the libella's plumb; a slip; the swing-in; held again it
    *  lowers onto the jambs — both ends together, gently */
   function mkLintel92(i) {
-    const g = gate92(i), Gp = st.props.g92[i], ob = Gp.lintel, y0 = Gp.y0, J = F92.createLintel92(i), part = PART92[i];
+    const g = gate92(i), Gp = st.props.g92[i], ob = Gp.lintel, y0 = Gp.y0, J = ON99 ? F99.createLintel99(i) : F92.createLintel92(i), part = PART92[i], fing = new Map();   // ── build 99 ── (fing: each finger on the stone and its end)
     let endT = -1, seen = { slips: 0, misses: 0, ph: 'lift' }, tHint = 0;
-    Gp.lib.visible = true; line(LINE42.lintel92, `${g.n} · משקוף ${i + 1} מתוך 3`);
+    Gp.lib.visible = true; line(ON99 ? LINE42.lintel99 : LINE42.lintel92, `${g.n} · משקוף ${i + 1} מתוך 3`);
     try { stages.hero.setPos(g.x - g.o * -1 * 11, g.face + g.o * 3.5, g.o > 0 ? Math.PI : 0); } catch (e) { /* */ }
     const sR = () => { const a = proj(g.x, y0 + 10, g.face), b = proj(g.x + 1, y0 + 10, g.face); return a && b && b.x < a.x ? -1 : 1; };
     const ends = () => { const s = J.state(), c = Math.cos(ob.rotation.z), sn = Math.sin(ob.rotation.z), hl = G92.lw / 2 - 0.6, p = ob.position; return [-1, 1].map((e) => ({ x: p.x + e * hl * c, y: p.y + e * hl * sn + G92.lh / 2, z: p.z, e, s })); };
@@ -4881,18 +4776,22 @@ export function createHar42(o = {}) {
     place();
     return {
       acting: true, J, kind: 'lintel92', i, uAt, ends, ownView: () => true, view: () => view92(g, y0),
-      down(a) { J.hold(true, uAt(a.x, a.y)); }, move(a) { J.hold(true, uAt(a.x, a.y)); }, up() { J.hold(false); },
+      fullPad: ON99, raw: ON99 ? (ty, id, x, y) => { if (ty === 'up') fing.delete(id); else if (ty === 'down' || fing.has(id)) fing.set(id, uAt(x, y) < 0 ? 0 : 1); [0, 1].forEach((e) => J.hold(e, [...fing.values()].includes(e))); } : null,   // ── build 99 ── (every finger: the end nearer it rises — a finger slid along the stone takes the other end)
+      down(a) { if (!ON99) J.hold(true, uAt(a.x, a.y)); }, move(a) { if (!ON99) J.hold(true, uAt(a.x, a.y)); }, up() { if (!ON99) J.hold(false); },
       frame(dt) {
         if (endT >= 0) { endT -= dt; crew92(Gp, dt); return endT <= 0; }
+        if (ON99 && globalThis.__H99AUTO) { const q = J.state(), ok = q.ph !== 'over' || (Math.abs(q.sx) < 0.15 && Math.abs(q.sv) < 0.3), d = q.ph === 'lift' ? q.e[1].h - q.e[0].h : q.e[1].low - q.e[0].low, tl = q.ph === 'lift' ? 0.03 : 0.25; J.hold(0, ok && d > -tl); J.hold(1, ok && d < tl); }   // ── build 99 ── (the live test's two steady hands)
         const k = J.step(dt * (globalThis.__H92X || 1)); place(); crew92(Gp, dt);   // (__H92X: the live tests' speed)
         if (k.holding && Math.random() < dt * 5) buzz42('creak');
         if (k.slips > seen.slips) { seen.slips = k.slips; buzz42('retry'); o.sound && o.sound('grind'); line(LINE42.lintel92c, `החליקה ${k.slips} · ${k.slips >= 2 ? 'עוד אחת — והצוות יציב' : 'בחינם'}`); }
         if (k.misses > seen.misses) { seen.misses = k.misses; buzz42('retry'); o.sound && o.sound('thud'); line('קצה אחד החטיא את המזוזה — חכו שהנדנוד ייגמר · המחשה', `החטיאה ${k.misses}`); }
-        if (k.ph !== seen.ph) { if (k.ph === 'over') line(LINE42.lintel92b, `${g.n}`); if (k.ph === 'lift' && seen.ph === 'slip') line(LINE42.lintel92, `${g.n} · משקוף ${i + 1} מתוך 3`); seen.ph = k.ph; }
+        if (k.ph !== seen.ph) { if (k.ph === 'over') line(ON99 ? LINE42.lintel99b : LINE42.lintel92b, `${g.n}`); if (k.ph === 'lift' && seen.ph === 'slip') line(ON99 ? LINE42.lintel99 : LINE42.lintel92, `${g.n} · משקוף ${i + 1} מתוך 3`); if (k.ph === 'slip') fing.clear(); seen.ph = k.ph; }
+        if (ON99 && k.last === 'first' && seen.last !== 'first') { buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.lintel99c, g.n); } if (ON99) seen.last = k.last;
         const E = ends(); objPlace(true, [{ x: ob.position.x, y: ob.position.y, z: ob.position.z, r: 3.4 }, { x: E[0].x, y: E[0].y, z: E[0].z, r: 2.6 }, { x: E[1].x, y: E[1].y, z: E[1].z, r: 2.6 }], 'h92lintel');
         svgClear(); tHint += dt;
         if (k.ph === 'lift' || k.ph === 'over') {   // (the hint: an arrow at the end that wants his hand, while it tilts)
-          const want = k.ph === 'lift' ? (k.th > 0.025 ? -1 : k.th < -0.025 ? 1 : 0) : (k.th > 0.025 ? 1 : k.th < -0.025 ? -1 : 0);
+          const w9 = ON99 ? J.want() : -1, want = ON99 ? (w9 < 0 ? 0 : w9 ? 1 : -1) : k.ph === 'lift' ? (k.th > 0.025 ? -1 : k.th < -0.025 ? 1 : 0) : (k.th > 0.025 ? 1 : k.th < -0.025 ? -1 : 0);   // ── build 99 ── (the end that lags)
+          if (ON99 && !fing.size) for (const e of E) { const p2 = proj(e.x, e.y - 0.4, e.z); if (p2) svgAdd(`<text x="${p2.x}" y="${p2.y + 14}" font-size="34" text-anchor="middle">👆</text>`); }
           for (const e of E) { const p2 = proj(e.x, e.y + 1.2, e.z); if (!p2) continue; const right = (proj(e.x, e.y, e.z) || p2).x > (proj(ob.position.x, ob.position.y, ob.position.z) || p2).x ? 1 : -1;
             if (want && right === want) svgAdd(`<text x="${p2.x}" y="${p2.y}" font-size="40" font-weight="900" text-anchor="middle" fill="#FFD66E" stroke="#2A1804" stroke-width="4" paint-order="stroke">${k.ph === 'lift' ? '⬆' : '⬇'}<animate attributeName="opacity" values="1;.25;1" dur="0.8s" repeatCount="indefinite"/></text>`); }
           if (k.ph === 'over') for (const sx of [-1, 1]) { const jx = g.x + sx * (G92.W / 2 + 0.85), p2 = proj(jx, y0 + g.H + 0.05, g.face - g.o * 0.9), ok = Math.abs(k.sx) <= J.P.win; if (p2) svgAdd(`<circle cx="${p2.x}" cy="${p2.y}" r="10" fill="${ok ? 'rgba(150,230,120,.45)' : 'rgba(255,170,90,.35)'}" stroke="${ok ? '#9BE37A' : '#FFB070'}" stroke-width="3"/>`); }
@@ -4908,6 +4807,9 @@ export function createHar42(o = {}) {
   function mkLeaf92(heavy) {
     const i = heavy ? 1 : 0, g = gate92(i), Gp = st.props.g92[i], y0 = Gp.y0, lf = Gp.leaves[0], sx = lf.userData.sx, J = F92.createLeaf92(heavy), K = Gp.cranes[0], part = heavy ? 'leaf7' : 'leaf';
     let endT = -1, drag = null, open = 0, opening = -1, flickT0 = 0, seen = { knocks: 0, weak: 0 };
+    let SW = null, swD = null, swSg = 1; const men = [], M98 = F98.SWING98.max;   // ── build 99 ── (seated, the leaf turned round its pin under his finger, the crews pushing: nik98 createSwing98)
+    const edge99 = (th, f = 1) => { const a = sx * Math.PI / 2 * (th / M98), r = -sx * (G92.W / 2 - 0.6) * f; return { x: lf.userData.px + r * Math.cos(a), z: lf.userData.pz - r * Math.sin(a), nx: Math.sin(a), nz: Math.cos(a) }; };
+    const sg99 = (th) => { const c = proj(lf.userData.px, y0 + 1, lf.userData.pz), e0 = edge99(th), e1 = edge99(th + 0.08), a = proj(e0.x, y0 + 1, e0.z), b = proj(e1.x, y0 + 1, e1.z); if (!c || !a || !b) return 1; return F98.wrapA98(Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(a.y - c.y, a.x - c.x)) >= 0 ? 1 : -1; };
     lf.visible = true; line(LINE42.leaf92, `${g.n}${heavy ? ' · הכנף הכבדה' : ''}`);
     try { stages.hero.setPos(g.x + sx * 12, g.face + g.o * 3.5, g.o > 0 ? Math.PI : 0); } catch (e) { /* */ }
     const ppa = () => { const a = proj(lf.userData.px, y0 + 8, lf.userData.pz), b = proj(lf.userData.px + 1, y0 + 8, lf.userData.pz); return a && b ? b.x - a.x : 20; };
@@ -4920,20 +4822,39 @@ export function createHar42(o = {}) {
     };
     const finish = () => {
       const k = J.state(), rating = rate30(k.q), at = proj(lf.userData.px - sx * 2.5, y0 + 12, lf.userData.pz);
-      const extra = k.slam ? 'נטרקה — חזק מדי' : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : 'נסגרה ברכות';
-      Y84().push([part, 0, k.q >= 1 ? 1 : k.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rating, at, extra); grade(part, k.q, null, true); endT = 2.4;
+      if (SW) { const f = k.knocks + SW.state().bangs; k.q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0; }   // ── build 99 ── (the knocks on the socket's rim and the bangs on its stop and its jamb)
+      const extra = SW && SW.state().bangs ? `נדפקה ${SW.state().bangs}` : k.slam ? 'נטרקה — חזק מדי' : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : SW ? 'נפתחה ונסגרה ברכות' : 'נסגרה ברכות';
+      Y84().push([part, 0, k.q >= 1 ? 1 : k.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(SW ? rate30(k.q) : rating, at, extra); grade(part, k.q, null, true); endT = 2.4;
       line(heavy ? 'הכנף הכבדה תלויה — ושתי הכנפיים של השער · מדות ב, ג' : 'הכנף תלויה על צירה · מדות ב, ג', extra);
     };
     place();
     return {
-      acting: true, J, kind: 'leaf92', heavy, ownView: () => true, view: () => { const v = view92(g, y0, 0.78); v.t[0] = lf.userData.px - sx * 2; return v; },
-      down(a) { const k = J.state(); if (k.ph === 'hang') { drag = { x: a.x, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
-      move(a) { const k = J.state(); if (k.ph === 'hang' && drag) { const p = ppa(); if (Math.abs(p) > 1) J.pull(drag.tx + (a.x - drag.x) / p); } },
-      up(a) { const k = J.state(); J.hold(false); drag = null;
+      acting: true, J, kind: 'leaf92', heavy, ownView: () => true, view: () => { if (!SW) { const v = view92(g, y0, 0.78); v.t[0] = lf.userData.px - sx * 2; return v; } return look94([lf.userData.px - sx * 2.5, y0 + 1.5, lf.userData.pz - g.o * 1.5], dir94(0, 0.8, 0.6 * g.o), Math.max(16 / (2 * tanV()), 11 / (2 * tanV() * Math.min(1.6, asp94())))); },   // ── build 99 ── (turning it: from over the threshold — its way round the pin and the men at its edge)   // ── build 99 ── (turning it: from over the threshold, its whole way round the pin and the men at its edge)
+      sw: () => (SW ? { ...SW.state(), ev: undefined, task: SW.task() } : null),
+      down(a) { const k = J.state(); if (SW) { if (endT < 0) { const c = proj(lf.userData.px, y0 + 1, lf.userData.pz); if (c) { swD = c; swSg = sg99(SW.state().th); SW.grab(swSg * Math.atan2(a.y - c.y, a.x - c.x)); } } return; } if (k.ph === 'hang') { drag = { x: a.x, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
+      move(a) { const k = J.state(); if (SW) { if (swD) SW.drag(swSg * Math.atan2(a.y - swD.y, a.x - swD.x)); return; } if (k.ph === 'hang' && drag) { const p = ppa(); if (Math.abs(p) > 1) J.pull(drag.tx + (a.x - drag.x) / p); } },
+      up(a) { const k = J.state(); if (SW) { SW.let(); swD = null; return; } J.hold(false); drag = null;
         if (k.ph === 'swing' && opening < 0 && open >= 0.99) { const v = Math.abs(a.x - a.x0) / Math.max(1, W()) / Math.max(0.05, now() - flickT0), r = J.flick(v); if (r === 'weak') { o.sound && o.sound('creak'); } } },
       frame(dt) {
         if (endT >= 0) { endT -= dt; crew92(Gp, dt); place(); return endT <= 0; }
         const k = J.step(dt * (globalThis.__H92X || 1)); crew92(Gp, dt);
+        if (ON99 && men94(men, [{ tunic: '#8E7356', cloth: '#6B4A2B' }, { tunic: '#7E6A4E', cloth: '#D9CBB0' }]) && !men.ready) men.ready = 1;
+        if (ON99 && k.ph === 'swing' && !SW) { SW = F98.createSwing98(i, 0); buzz42('deep'); o.sound && o.sound('wood'); line(LINE42.leaf99, `${g.n}${heavy ? ' · הכנף הכבדה' : ''}`); }   // ── build 99 ── (seated: now his hand turns it, the crews push)
+        if (SW) {
+          if (globalThis.__H99AUTO && !SW.state().done) { const q = SW.state(), tg = SW.target(); if (!q.held) SW.grab(0); const d = tg - q.tt; SW.drag(q.phi + Math.sign(d) * Math.min(Math.abs(d), 0.4 * dt * (globalThis.__H92X || 1))); }   // (the test's gentle hand)
+          const q = SW.step(dt * (globalThis.__H92X || 1)); open = q.th / M98;
+          for (const ev of q.ev) { if (ev === 'bang') { buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.swing98bang, `${g.n} · דפיקות ${q.bangs}`); } else if (ev === 'touch') { buzz42('soft2'); o.sound && o.sound('settle'); } else if (ev === 'task' && !q.done) line(LINE42.swing98b, g.n); }
+          const push = q.held && Math.abs(q.w) > 0.04;
+          if (men.ready) men.forEach((m, mi) => { const e = edge99(q.th, mi ? 0.6 : 1), sd = SW.target() > q.th ? -1 : 1; m.root.position.set(e.x + e.nx * 0.75 * sd, y0, e.z + e.nz * 0.75 * sd); m.root.rotation.y = Math.atan2(-e.nx * sd, -e.nz * sd); m.play(push ? 'Push_Loop' : 'Idle', 1); m.update(dt); });
+          place(); svgClear();
+          if (!q.done) { const c = proj(lf.userData.px, y0 + 1, lf.userData.pz), e = edge99(q.th), ed = proj(e.x, y0 + 6, e.z), tg = edge99(SW.target()), te = proj(tg.x, y0 + 0.6, tg.z);
+            if (te) svgAdd(`<circle cx="${te.x}" cy="${te.y}" r="16" fill="none" stroke="#9BE37A" stroke-width="3" stroke-dasharray="5 4"/>`);
+            if (ed && !q.held) svgAdd(`<text x="${ed.x}" y="${ed.y}" font-size="32" text-anchor="middle">👆</text>`);
+            if (c && ed && q.held) svgAdd(`<line x1="${c.x}" y1="${c.y}" x2="${ed.x}" y2="${ed.y}" stroke="rgba(255,244,220,.5)" stroke-width="2" stroke-dasharray="4 6"/>`); }
+          objPlace(true, [{ x: lf.userData.px - sx * 2.4, y: y0 + 9, z: lf.userData.pz - g.o * 2.4, r: 6 }], 'h99leaf');
+          if (q.done && endT < 0) finish();
+          return false;
+        }
         if (k.knocks > seen.knocks) { seen.knocks = k.knocks; buzz42('retry'); o.sound && o.sound('wedge'); line('הציר נקש בשפת הגומה — ישר יותר, מעל הגומה · המחשה', `נקישות ${k.knocks}`); }
         if (k.ph === 'swing' && opening < 0 && open < 0.99) { opening = 0; buzz42('deep'); o.sound && o.sound('wood'); }
         if (opening >= 0) { opening += dt; open = Math.min(1, opening / 1.6); if (open >= 1) { opening = -1; line(LINE42.leaf92b, g.n); } }
@@ -4947,7 +4868,7 @@ export function createHar42(o = {}) {
         if (k.done && k.ph !== 'hang' && endT < 0) { if (k.slam) { buzz42('retry'); o.sound && o.sound('thud'); } else { buzz42('soft2'); o.sound && o.sound('settle'); } finish(); }
         return false;
       },
-      end() { svgClear(); if (!J.state().done) seat92(i); },
+      end() { svgClear(); bye94(men); if (!J.state().done || SW) seat92(i); },
     };
   }
   // ── /build 92 ──
@@ -6277,7 +6198,7 @@ export function createHar42(o = {}) {
     const Y = S.yard || (S.yard = { pts: {}, runs: 0 }); save42(S);
     const met = new Set(R.grades.map((g) => g[0]).concat(S.wall && S.wall.grades ? S.wall.grades.map((g) => g[0]) : []).concat(S.soreg && S.soreg.grades ? S.soreg.grades.map((g) => (/^lattice/.test(g[0]) ? 'lattice' : g[0])) : []).concat(S.gates && S.gates.grades ? S.gates.grades.map((g) => (g[0] === 'leaf7' ? 'leaf' : g[0])) : []).concat(S.nashim && S.nashim.grades ? S.nashim.grades.flatMap((g) => (g[0] === 'wood' ? ['log'] : g[0] === 'beams' ? ['beam'] : g[0] === 'pegs' ? ['peg'] : g[0] === 'corner' ? ['beam', 'peg'] : [g[0]])) : []).concat(S.nikanor && S.nikanor.grades ? S.nikanor.grades.map((g) => (g[0] === 'steps' ? 'step' : g[0] === 'hang' ? 'leaf' : g[0])) : []).concat(S.lishka && S.lishka.grades ? S.lishka.grades.map((g) => (g[0] === 'dome' ? 'arch' : g[0])) : []));   // (build 50: stage 07's)   // (build 49: stage 06's)   // (build 46–47: stages 03 and 04's variants once met there) if (R.done) for (const v of YARD44.slice(0, 6)) met.add(v.part);   // (build 45: stage 02's variants once met there)
     const has = (v) => (v.part === 'rock' ? [...met].some((p) => /^rock/.test(p)) || met.has('rock') : met.has(v.part) || (v.part === 'course0' && met.has('course1')));
-    const list = YARD44.filter(has), famH = { lift: 'הרמה', place: 'הנחה', inspect: 'בדיקה', fit: 'התאמה' }, fromTest = o.from === 'test'; let visit = 0;   // (from the test's card: after two runs רב האומנים asks — back to the test, the naive kid's runs stayed in the yard)
+    const list = YARD44.filter((v) => has(v) && !OUT99.includes(v.part)), famH = { lift: 'הרמה', place: 'הנחה', inspect: 'בדיקה', fit: 'התאמה' }, fromTest = o.from === 'test'; let visit = 0;   // (from the test's card: after two runs רב האומנים asks — back to the test, the naive kid's runs stayed in the yard)
     function open() {
       line(''); st.part = 'menu';
       const fams = ['lift', 'place', 'inspect', 'fit'].map((f) => `<i>${famH[f]} · ${Y.pts[f] | 0} נק׳${title44(f, Y.pts[f]) ? ` · ${title44(f, Y.pts[f])}` : ''}</i>`).join('');

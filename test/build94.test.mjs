@@ -55,7 +55,8 @@ test('build 94: wiring — the parts, the order, the acts in the world; lines so
   assert.ok(DEP63.nikanor, 'the old order kept for ?h94=0');
   const h = read('src/game/har42.js');
   assert.match(h, /const ON94 = MODE === 'stage' && STG === 'nikanor' && qs\('h94'\)/);
-  for (const f of ['props94', 'mkLever94', 'mkHang94', 'mkSteps94']) assert.match(h, new RegExp(`function ${f}\\(`), f);
-  assert.doesNotMatch(h.slice(h.indexOf('function mkSteps94('), h.indexOf('// ── /build 94 ──')), /dragItem|createElement\('button'\)|'button'\)/, 'the steps: no side button — the stone in the world');
+  for (const f of ['props94', 'mkLever94', 'mkHang94', 'mkSteps98'])   // (build 98: the steps' act is mkSteps98)
+  assert.match(h, new RegExp(`function ${f}\\(`), f);
+  assert.doesNotMatch(h.slice(h.indexOf('function mkSteps98('), h.indexOf('// ── /build 98 ──')), /dragItem|createElement\('button'\)|'button'\)/, 'the steps: no side button — the stone in the world');
   for (const k of ['lever94', 'lever94b', 'lever94c', 'lever94d', 'hang94', 'steps94', 'steps94b', 'steps94c']) { const t = LINE42[k]; assert.ok(t, k); assert.ok(/המחשה|מדות|טיוטה/.test(t), k); assert.ok(t.split(' · ')[0].length <= 50, `${k} head ${t.split(' · ')[0].length}`); }
 });

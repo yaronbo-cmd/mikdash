@@ -40,7 +40,7 @@ test('build 99: wiring — the flag, every finger on the stone, the leaf on its 
   assert.match(h, /const ON99 = ON92 && qs\('h99'\) !== '0'/);
   assert.match(h, /J = ON99 \? F99\.createLintel99\(i\) : F92\.createLintel92\(i\)/);
   assert.match(h, /raw: ON99 \? \(ty, id, x, y\) => \{/, 'every finger: the end nearer it');
-  assert.match(h, /if \(ON99 && k\.ph === 'swing' && !SW\) \{ SW = F98\.createSwing98\(i, 0\)/, 'seated, his hand turns the leaf');
+  assert.match(h, /if \(ON99 && k\.ph === 'swing' && !SW\) \{ const dry = !!OIL && !OIL\.k\.oiled; SW = F98\.createSwing98\(i, 0, \{ dry \}\)/, 'seated, his hand turns the leaf');
   assert.match(h, /m\.play\(push \? 'Push_Loop' : 'Idle', 1\)/, 'the crews push it');
   assert.doesNotMatch(h, /function mkLintel\(\)|function mkLeaf\(idx, heavy\)|function lift47\(/, 'the first acts out');
   assert.deepEqual([...OUT99], ['lintel', 'leaf', 'lever']); assert.ok(OUT99.every((p) => YARD44.some((v) => v.part === p)));

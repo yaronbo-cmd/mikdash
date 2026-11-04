@@ -419,6 +419,9 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   lintel99: 'אצבע על כל קצה: כל קצה עולה במנוף שלו · שני מנופי דריכה והפלס — המחשה',
   lintel99b: 'עכשיו להוריד: כל אצבע משחררת את החבל של הקצה שלה · שני הקצוות יחד, לאט — המחשה',
   lintel99c: 'קצה אחד נחת לפני השני — חכו לשני · המחשה',
+  oil100: 'קודם שמן: געו בכד ושפכו לגומה, ואז הציר · המחשה',
+  oil100b: 'השמן בגומה — עכשיו הציר · המחשה',
+  dry100: 'הגומה יבשה: הציר נתקע וחורק. שמן לפני הציר · המחשה',
   leaf99: 'הכנף על צירה: סובבו אותה באצבע, הפועלים דוחפים · עד העוצר, ובחזרה בלי לטרוק — המחשה',
   lever: 'גררו את המוט למטה, ארוך — הדלת עולה מעט · מוט ויתדות — המחשה',   // ── build 49 ── stage 06's lines
   leverTop: 'בשיא — הקישו: יתד נכנסת מתחת לדלת · המחשה',
@@ -650,7 +653,8 @@ export function createHar42(o = {}) {
   const ON92 = MODE === 'stage' && STG === 'gates' && qs('h92') !== '0';
   const ON94 = MODE === 'stage' && STG === 'nikanor' && qs('h94') !== '0';   // ── build 94 ── (stage 06 rebuilt in the world — nikanor94.js; ?h94=0 as in 93)
   const ON93 = MODE === 'stage' && STG === 'nashim' && qs('h93') !== '0';
-  const ON99 = ON92 && qs('h99') !== '0';   // ── build 99 ── (stage 04 after the notes on 96 — gates99.js; ?h99=0 as in 98)
+  const ON99 = ON92 && qs('h99') !== '0';
+  const ON100 = qs('h100') !== '0';   // ── build 100 ── (the oil in the socket before the pin; a dry leaf sticks and creaks — felt in the hand; ?h100=0 as in 99)   // ── build 99 ── (stage 04 after the notes on 96 — gates99.js; ?h99=0 as in 98)
   const ON98 = ON94 && qs('h98') !== '0';   // ── build 98 ── (stage 06 after the notes on 96 — nik98.js; ?h98=0 as in 97)
   const ON97 = ON93 && qs('h97') !== '0';   // ── build 97 ── (the chambers built in view; the treadwheel and the line among the works; ?h97=0 as in 96)   // ── build 93 ── (stage 05 rebuilt in the world — gallery93.js; ?h93=0 as in 92)   // ── build 92 ── (stage 04 rebuilt in the world — gates92.js; ?h92=0 as in 91)
   const parts0 = () => {   // (each stage's parts — build 62: stage 01's new order in front of them)
@@ -4807,10 +4811,11 @@ export function createHar42(o = {}) {
   function mkLeaf92(heavy) {
     const i = heavy ? 1 : 0, g = gate92(i), Gp = st.props.g92[i], y0 = Gp.y0, lf = Gp.leaves[0], sx = lf.userData.sx, J = F92.createLeaf92(heavy), K = Gp.cranes[0], part = heavy ? 'leaf7' : 'leaf';
     let endT = -1, drag = null, open = 0, opening = -1, flickT0 = 0, seen = { knocks: 0, weak: 0 };
-    let SW = null, swD = null, swSg = 1; const men = [], M98 = F98.SWING98.max;   // ── build 99 ── (seated, the leaf turned round its pin under his finger, the crews pushing: nik98 createSwing98)
+    let SW = null, swD = null, swSg = 1; const men = [], M98 = F98.SWING98.max;
+    const OIL = ON100 && ON99 ? oil100({ x: lf.userData.px, y: y0 + 0.37, z: lf.userData.pz }, { x: sx * 0.6, z: g.o * 2.4 }, y0) : null, crk = {};   // ── build 100 ── (the jar before the socket, outside the face)   // ── build 99 ── (seated, the leaf turned round its pin under his finger, the crews pushing: nik98 createSwing98)
     const edge99 = (th, f = 1) => { const a = sx * Math.PI / 2 * (th / M98), r = -sx * (G92.W / 2 - 0.6) * f; return { x: lf.userData.px + r * Math.cos(a), z: lf.userData.pz - r * Math.sin(a), nx: Math.sin(a), nz: Math.cos(a) }; };
     const sg99 = (th) => { const c = proj(lf.userData.px, y0 + 1, lf.userData.pz), e0 = edge99(th), e1 = edge99(th + 0.08), a = proj(e0.x, y0 + 1, e0.z), b = proj(e1.x, y0 + 1, e1.z); if (!c || !a || !b) return 1; return F98.wrapA98(Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(a.y - c.y, a.x - c.x)) >= 0 ? 1 : -1; };
-    lf.visible = true; line(LINE42.leaf92, `${g.n}${heavy ? ' · הכנף הכבדה' : ''}`);
+    lf.visible = true; line(OIL ? LINE42.oil100 : LINE42.leaf92, `${g.n}${heavy ? ' · הכנף הכבדה' : ''}`);
     try { stages.hero.setPos(g.x + sx * 12, g.face + g.o * 3.5, g.o > 0 ? Math.PI : 0); } catch (e) { /* */ }
     const ppa = () => { const a = proj(lf.userData.px, y0 + 8, lf.userData.pz), b = proj(lf.userData.px + 1, y0 + 8, lf.userData.pz); return a && b ? b.x - a.x : 20; };
     const place = () => {
@@ -4822,8 +4827,8 @@ export function createHar42(o = {}) {
     };
     const finish = () => {
       const k = J.state(), rating = rate30(k.q), at = proj(lf.userData.px - sx * 2.5, y0 + 12, lf.userData.pz);
-      if (SW) { const f = k.knocks + SW.state().bangs; k.q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0; }   // ── build 99 ── (the knocks on the socket's rim and the bangs on its stop and its jamb)
-      const extra = SW && SW.state().bangs ? `נדפקה ${SW.state().bangs}` : k.slam ? 'נטרקה — חזק מדי' : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : SW ? 'נפתחה ונסגרה ברכות' : 'נסגרה ברכות';
+      if (SW) { const f = k.knocks + SW.state().bangs + (SW.state().dry ? 1 : 0); k.q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0; }   // (build 100: dry, half)   // ── build 99 ── (the knocks on the socket's rim and the bangs on its stop and its jamb)
+      const extra = SW && SW.state().bangs ? `נדפקה ${SW.state().bangs}` : SW && SW.state().dry ? 'חרקה — בלי שמן' : k.slam ? 'נטרקה — חזק מדי' : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : SW ? 'נפתחה ונסגרה ברכות' : 'נסגרה ברכות';
       Y84().push([part, 0, k.q >= 1 ? 1 : k.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(SW ? rate30(k.q) : rating, at, extra); grade(part, k.q, null, true); endT = 2.4;
       line(heavy ? 'הכנף הכבדה תלויה — ושתי הכנפיים של השער · מדות ב, ג' : 'הכנף תלויה על צירה · מדות ב, ג', extra);
     };
@@ -4831,7 +4836,7 @@ export function createHar42(o = {}) {
     return {
       acting: true, J, kind: 'leaf92', heavy, ownView: () => true, view: () => { if (!SW) { const v = view92(g, y0, 0.78); v.t[0] = lf.userData.px - sx * 2; return v; } return look94([lf.userData.px - sx * 2.5, y0 + 1.5, lf.userData.pz - g.o * 1.5], dir94(0, 0.8, 0.6 * g.o), Math.max(16 / (2 * tanV()), 11 / (2 * tanV() * Math.min(1.6, asp94())))); },   // ── build 99 ── (turning it: from over the threshold — its way round the pin and the men at its edge)   // ── build 99 ── (turning it: from over the threshold, its whole way round the pin and the men at its edge)
       sw: () => (SW ? { ...SW.state(), ev: undefined, task: SW.task() } : null),
-      down(a) { const k = J.state(); if (SW) { if (endT < 0) { const c = proj(lf.userData.px, y0 + 1, lf.userData.pz); if (c) { swD = c; swSg = sg99(SW.state().th); SW.grab(swSg * Math.atan2(a.y - c.y, a.x - c.x)); } } return; } if (k.ph === 'hang') { drag = { x: a.x, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
+      down(a) { const k = J.state(); if (OIL && k.ph === 'hang' && !OIL.k.oiled && OIL.near(a)) { OIL.pour(); return; } if (SW) { if (endT < 0) { const c = proj(lf.userData.px, y0 + 1, lf.userData.pz); if (c) { swD = c; swSg = sg99(SW.state().th); SW.grab(swSg * Math.atan2(a.y - c.y, a.x - c.x)); } } return; } if (k.ph === 'hang') { drag = { x: a.x, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
       move(a) { const k = J.state(); if (SW) { if (swD) SW.drag(swSg * Math.atan2(a.y - swD.y, a.x - swD.x)); return; } if (k.ph === 'hang' && drag) { const p = ppa(); if (Math.abs(p) > 1) J.pull(drag.tx + (a.x - drag.x) / p); } },
       up(a) { const k = J.state(); if (SW) { SW.let(); swD = null; return; } J.hold(false); drag = null;
         if (k.ph === 'swing' && opening < 0 && open >= 0.99) { const v = Math.abs(a.x - a.x0) / Math.max(1, W()) / Math.max(0.05, now() - flickT0), r = J.flick(v); if (r === 'weak') { o.sound && o.sound('creak'); } } },
@@ -4839,11 +4844,13 @@ export function createHar42(o = {}) {
         if (endT >= 0) { endT -= dt; crew92(Gp, dt); place(); return endT <= 0; }
         const k = J.step(dt * (globalThis.__H92X || 1)); crew92(Gp, dt);
         if (ON99 && men94(men, [{ tunic: '#8E7356', cloth: '#6B4A2B' }, { tunic: '#7E6A4E', cloth: '#D9CBB0' }]) && !men.ready) men.ready = 1;
-        if (ON99 && k.ph === 'swing' && !SW) { SW = F98.createSwing98(i, 0); buzz42('deep'); o.sound && o.sound('wood'); line(LINE42.leaf99, `${g.n}${heavy ? ' · הכנף הכבדה' : ''}`); }   // ── build 99 ── (seated: now his hand turns it, the crews push)
+        if (OIL && globalThis.__H100OIL && !OIL.k.oiled) OIL.pour();   // (the live test's hand on the jar)
+        if (OIL && OIL.frame(dt)) line(LINE42.oil100b, g.n);   // ── build 100 ──
+        if (ON99 && k.ph === 'swing' && !SW) { const dry = !!OIL && !OIL.k.oiled; SW = F98.createSwing98(i, 0, { dry }); buzz42('deep'); o.sound && o.sound('wood'); line(dry ? LINE42.dry100 : LINE42.leaf99, `${g.n}${heavy ? ' · הכנף הכבדה' : ''}`); }   // ── build 99 ── (seated: now his hand turns it, the crews push)
         if (SW) {
           if (globalThis.__H99AUTO && !SW.state().done) { const q = SW.state(), tg = SW.target(); if (!q.held) SW.grab(0); const d = tg - q.tt; SW.drag(q.phi + Math.sign(d) * Math.min(Math.abs(d), 0.4 * dt * (globalThis.__H92X || 1))); }   // (the test's gentle hand)
           const q = SW.step(dt * (globalThis.__H92X || 1)); open = q.th / M98;
-          for (const ev of q.ev) { if (ev === 'bang') { buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.swing98bang, `${g.n} · דפיקות ${q.bangs}`); } else if (ev === 'touch') { buzz42('soft2'); o.sound && o.sound('settle'); } else if (ev === 'task' && !q.done) line(LINE42.swing98b, g.n); }
+          for (const ev of q.ev) { if (ev === 'creak') { creak100(crk); continue; } if (ev === 'bang') { buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.swing98bang, `${g.n} · דפיקות ${q.bangs}`); } else if (ev === 'touch') { buzz42('soft2'); o.sound && o.sound('settle'); } else if (ev === 'task' && !q.done) line(LINE42.swing98b, g.n); }
           const push = q.held && Math.abs(q.w) > 0.04;
           if (men.ready) men.forEach((m, mi) => { const e = edge99(q.th, mi ? 0.6 : 1), sd = SW.target() > q.th ? -1 : 1; m.root.position.set(e.x + e.nx * 0.75 * sd, y0, e.z + e.nz * 0.75 * sd); m.root.rotation.y = Math.atan2(-e.nx * sd, -e.nz * sd); m.play(push ? 'Push_Loop' : 'Idle', 1); m.update(dt); });
           place(); svgClear();
@@ -4861,14 +4868,15 @@ export function createHar42(o = {}) {
         if (k.ph === 'shut' || k.ph === 'short' || k.ph === 'back') open = k.open;
         if (k.weak > seen.weak) { seen.weak = k.weak; line('חלש מדי — הכנף לא נסגרה; הניפו שוב, חזק יותר · המחשה', g.n); }
         place();
-        objPlace(true, [{ x: lf.position.x - sx * 2.4 * (k.ph === 'hang' ? 1 : 1 - open), y: lf.position.y + 9, z: lf.position.z + (k.ph === 'hang' ? 0 : -g.o * 2.4 * open), r: 5 }], 'h92leaf');
+        objPlace(true, [{ x: lf.position.x - sx * 2.4 * (k.ph === 'hang' ? 1 : 1 - open), y: lf.position.y + 9, z: lf.position.z + (k.ph === 'hang' ? 0 : -g.o * 2.4 * open), r: 5 }].concat(OIL && !OIL.k.oiled ? [{ x: OIL.pos.x, y: OIL.pos.y + 1.1, z: OIL.pos.z, r: 1.8 }] : []), 'h92leaf');   /* (build 100: the jar within his reach too) */
         svgClear();
+        if (OIL && k.ph === 'hang') OIL.hint();
         if (k.ph === 'hang') { const s2 = proj(lf.userData.px, y0 + 0.35, lf.userData.pz), p2 = proj(lf.position.x - sx * 0.25, lf.position.y - 0.7, lf.position.z), ok = Math.abs(k.x) <= J.P.tol && Math.abs(k.lean) <= J.P.tolLean;
           if (s2) svgAdd(`<circle cx="${s2.x}" cy="${s2.y}" r="12" fill="none" stroke="${ok ? '#9BE37A' : '#FFD66E'}" stroke-width="3" stroke-dasharray="5 4"/>`); if (p2 && s2) svgAdd(`<line x1="${p2.x}" y1="${p2.y}" x2="${s2.x}" y2="${s2.y}" stroke="${ok ? '#9BE37A' : '#FFD66E'}" stroke-width="2" stroke-dasharray="4 5"/>`); }
         if (k.done && k.ph !== 'hang' && endT < 0) { if (k.slam) { buzz42('retry'); o.sound && o.sound('thud'); } else { buzz42('soft2'); o.sound && o.sound('settle'); } finish(); }
         return false;
       },
-      end() { svgClear(); bye94(men); if (!J.state().done || SW) seat92(i); },
+      end() { svgClear(); bye94(men); if (OIL) OIL.bye(); if (!J.state().done || SW) seat92(i); },
     };
   }
   // ── /build 92 ──
@@ -5243,10 +5251,11 @@ export function createHar42(o = {}) {
     const n = F94.LEVER94.L[i].n, U0 = (st.lever94 && st.lever94[i]) || n * LEAF49.rise, nm = i ? 'הכנף הצפונית' : 'הכנף הדרומית';
     let endT = -1, drag = null, open = 0, opening = -1, flickT0 = 0, said = 0; const seen = { knocks: 0, weak: 0 }, men = [];
     let SW = null, swD = null, swSg = 1, swSaid = -1;   // ── build 98 ── (the leaf on its pivot under his finger: nik98 createSwing98)
+    const OIL = ON100 && ON98 ? oil100({ x: N.x, y: N.y + 0.05, z: pz }, { x: 0.3, z: s * 2.4 }, N.y) : null, crk = {};   // ── build 100 ── (the jar beside the socket, off the leaf's side)
     if (ON98) { const k0 = J.state(); k0.x = Math.abs(k0.x); k0.tx = k0.x; }   // ── build 98 ── (it comes in from the court, east of its socket — the other leaf seen beside it, not behind it)
     piv.visible = true; piv.rotation.set(0, 0, 0); leafAt(piv, U0); G.pole.visible = G.fulc.visible = false;
     if (G.wedges.children.length < n) { G.wedges.clear(); for (let k = 0; k < n; k++) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.7, LEAF49.rise * 0.96, 1.1), G.W); w.position.set(0, (k + 0.5) * LEAF49.rise, 0); G.wedges.add(w); } }
-    line(LINE42.hang94, nm); try { stages.hero.show(false); } catch (e) { /* */ }
+    line(OIL ? LINE42.oil100 : LINE42.hang94, nm); try { stages.hero.show(false); } catch (e) { /* */ }
     const place = () => {
       const k = J.state(), hang = k.ph === 'hang', f = hang ? Math.min(1, k.low / C.drop) : 1, y = LEAF49.seat + (U0 - LEAF49.seat) * (1 - f);
       if (ON98) { leafAt(piv, y); piv.position.set(N.x + (hang ? k.x : 0), piv.position.y, pz); piv.rotation.set(0, SW ? -s * SW.state().th : 0, hang ? -k.lean : 0); G.wedges.position.set(N.x + 0.25 + (hang ? k.x : 0), G.wedges.position.y, zc); }   // ── build 98 ──
@@ -5254,7 +5263,7 @@ export function createHar42(o = {}) {
       G.wedges.position.z = zc + (hang ? -s * k.x : 0); } G.wedges.children.forEach((w, q) => { w.visible = hang && q < Math.ceil(n * (1 - f) - 1e-6); });
     };
     const finish98 = () => {   // ── build 98 ── (its grade: the knocks on the socket's rim and the bangs on its stop and its jamb)
-      const k = J.state(), q2 = SW.state(), f = k.knocks + q2.bangs, q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0, at = proj(N.x, N.y + 12, pz - s * 2.5), extra = q2.bangs ? `נדפקה ${q2.bangs}` : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : 'נפתחה ונסגרה ברכות';
+      const k = J.state(), q2 = SW.state(), f = k.knocks + q2.bangs + (q2.dry ? 1 : 0), q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0, at = proj(N.x, N.y + 12, pz - s * 2.5), extra = q2.bangs ? `נדפקה ${q2.bangs}` : q2.dry ? 'חרקה — בלי שמן' : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : 'נפתחה ונסגרה ברכות';   // ── build 100 ── (dry: half)
       Y84().push([part, 0, q >= 1 ? 1 : q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(q), at, extra); grade(part, q, null, true); endT = i ? 4.2 : 2.4;
       line(`${nm} על צירה · "כל הפתחים שהיו שם היו להם דלתות" — מדות ב, ג · טיוטה`, extra);
     };
@@ -5267,21 +5276,24 @@ export function createHar42(o = {}) {
     return {
       acting: true, fullPad: true, J, kind: 'hang94', i, ownView: () => true, sw: () => (SW ? { ...SW.state(), ev: undefined, task: SW.task() } : null), socket: () => proj(N.x, N.y + 0.05, pz), pinAt: () => proj(N.x, piv.position.y - 0.7, piv.position.z),
       view: () => { if (ON98 && SW) return swingView98(i, pz, s); if (ON98) { const t = [N.x + 1.6, N.y + 4.2, pz - s * 1.2], d = dir94(0.62, 0.3, 0.72 * s), D = Math.max(13 / (2 * tanV()), 9 / (2 * tanV() * Math.min(1.6, asp94()))); return look94(t, d, D); } const t = [N.x + 1.5, N.y + 4.2, pz - s * 2.2], d = dir94(0.86, 0.3, 0.42 * s), D = Math.max(12 / (2 * tanV()), 8.5 / (2 * tanV() * Math.min(1.6, asp94()))); return look94(t, d, D); },
-      down(a) { const k = J.state(); if (endT >= 0) return; if (SW) { const c = proj(N.x, N.y + 1, pz); if (c) { swD = c; swSg = swSign98(piv, s, SW.state().th); SW.grab(swSg * Math.atan2(a.y - c.y, a.x - c.x)); } return; } if (k.ph === 'hang') { drag = { x: a.x, y: a.y, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
+      down(a) { const k = J.state(); if (endT >= 0) return; if (OIL && k.ph === 'hang' && !OIL.k.oiled && OIL.near(a)) { OIL.pour(); return; } if (SW) { const c = proj(N.x, N.y + 1, pz); if (c) { swD = c; swSg = swSign98(piv, s, SW.state().th); SW.grab(swSg * Math.atan2(a.y - c.y, a.x - c.x)); } return; } if (k.ph === 'hang') { drag = { x: a.x, y: a.y, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
       move(a) { const k = J.state(); if (SW) { if (swD) SW.drag(swSg * Math.atan2(a.y - swD.y, a.x - swD.x)); return; } if (k.ph === 'hang' && drag) J.pull(ON98 ? drag.tx + along94('x', piv.position.x, N.y + 1, pz, a.x - drag.x, a.y - drag.y) : drag.tx - s * along94('z', N.x, N.y + 1, piv.position.z, a.x - drag.x, a.y - drag.y)); },
       up(a) { const k = J.state(); if (SW) { SW.let(); swD = null; return; } J.hold(false); drag = null; if (k.ph === 'swing' && opening < 0 && open >= 0.99) { const v = Math.abs(a.x - a.x0) / Math.max(1, W()) / Math.max(0.05, now() - flickT0), r = J.flick(v); if (r === 'weak') o.sound && o.sound('creak'); } },
       frame(dt) {
         if (men94(men, [{ tunic: '#8E7356', cloth: '#6B4A2B' }, { tunic: '#7E6A4E', cloth: '#D9CBB0' }]) && !men.ready) men.ready = 1;
         if (men.ready && !SW) { men.forEach((m, q) => { m.root.position.set(ON98 ? piv.position.x + 1.3 : N.x + 1.3, N.y, ON98 ? pz - s * (q ? 3.7 : 1.6) : pz - s * (q ? 3.7 : 1.6) - s * (J.state().ph === 'hang' ? J.state().x : 0));   /* (at the leaf's foot, off the camera's line to the socket) */ m.root.rotation.y = -Math.PI / 2; m.play(J.state().ph === 'hang' && J.state().holding ? 'Fixing_Kneeling' : 'Idle', 1); m.update(dt); }); }
         if (endT >= 0) { endT -= dt; place(); if (i && endT < 3.0 && !said) { said = 1; line(LINE42.ungilded); o.emit && o.emit('h49ungilded', {}); } return endT <= 0; }
+        if (OIL && globalThis.__H100OIL && !OIL.k.oiled) OIL.pour();   // (the live test's hand on the jar)
+        if (OIL && OIL.frame(dt)) line(LINE42.oil100b, nm);   // ── build 100 ──
         const k = J.step(dt * (globalThis.__H94X || 1));
-        if (ON98 && k.ph === 'swing' && !SW) { SW = F98.createSwing98(i, 0); buzz42('deep'); o.sound && o.sound('wood'); line(LINE42.swing98a, nm); }   // ── build 98 ── (seated: now his hand turns it)
+        if (ON98 && k.ph === 'swing' && !SW) { const dry = !!OIL && !OIL.k.oiled; SW = F98.createSwing98(i, 0, { dry }); buzz42('deep'); o.sound && o.sound('wood'); line(dry ? LINE42.dry100 : LINE42.swing98a, nm); }   // ── build 98 ── (seated: now his hand turns it)
         if (SW) {
           if (globalThis.__H98AUTO && !SW.state().done) { const q = SW.state(), g = SW.target(); if (!q.held) SW.grab(0); const d = g - q.tt; SW.drag(q.phi + Math.sign(d) * Math.min(Math.abs(d), 0.4 * dt * (globalThis.__H94X || 1))); }   // (the test's gentle hand)
           const q = SW.step(dt * (globalThis.__H94X || 1));
           for (const ev of q.ev) {
             if (ev === 'bang') { buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.swing98bang, `${nm} · דפיקות ${q.bangs}`); }
             else if (ev === 'touch') { buzz42('soft2'); o.sound && o.sound('settle'); }
+            else if (ev === 'creak') creak100(crk);
             else if (ev === 'task' && !q.done) line(LINE42.swing98b, nm);
           }
           if (men.ready) { const th = q.th, e = new THREE.Vector3(0, 0, -s * (LEAF49.w - 0.7)).applyAxisAngle(new THREE.Vector3(0, 1, 0), -s * th), nv = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), -s * th), push = q.held && Math.abs(q.w) > 0.04;
@@ -5304,12 +5316,13 @@ export function createHar42(o = {}) {
         place();
         objPlace(true, [{ x: N.x, y: N.y + 6, z: pz - s * 2.4, r: 6 }], 'h94hang');
         svgClear();
+        if (OIL && k.ph === 'hang') OIL.hint();
         if (k.ph === 'hang') { const s2 = this.socket(), p2 = this.pinAt(), ok = Math.abs(k.x) <= J.P.tol && Math.abs(k.lean) <= J.P.tolLean, c = ok ? '#9BE37A' : '#FFD66E';
           if (s2) svgAdd(`<circle cx="${s2.x}" cy="${s2.y}" r="12" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="5 4"/>`); if (s2 && p2) svgAdd(`<line x1="${p2.x}" y1="${p2.y}" x2="${s2.x}" y2="${s2.y}" stroke="${c}" stroke-width="2" stroke-dasharray="4 5"/>`); }
         if (k.done && endT < 0) { if (k.slam) { buzz42('retry'); o.sound && o.sound('thud'); } else { buzz42('soft2'); o.sound && o.sound('settle'); } finish(); }
         return false;
       },
-      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); bye94(men); try { stages.hero.show(true); } catch (e) { /* */ } if (J.state().done || (SW && SW.state().done)) { G.wedges.visible = false; leafAt(piv, LEAF49.seat); piv.position.set(N.x, piv.position.y, pz); piv.rotation.set(0, 0, 0); } },
+      end() { svgClear(); if (OIL) OIL.bye(); if (st.ui.pad) st.ui.pad.classList.remove('full'); bye94(men); try { stages.hero.show(true); } catch (e) { /* */ } if (J.state().done || (SW && SW.state().done)) { G.wedges.visible = false; leafAt(piv, LEAF49.seat); piv.position.set(N.x, piv.position.y, pz); piv.rotation.set(0, 0, 0); } },
     };
   }
   // ── /build 94 ──
@@ -5487,6 +5500,39 @@ export function createHar42(o = {}) {
   function swSign98(piv, s, th) { const N = PL.ng, pz = piv.position.z, c = proj(N.x, N.y + 1, pz), E = (t) => proj(N.x + Math.sin(-s * t) * -s * (LEAF49.w - 0.7), N.y + 1, pz + Math.cos(-s * t) * -s * (LEAF49.w - 0.7)), a = E(th), b = E(th + 0.08); if (!c || !a || !b) return 1; const d = F98.wrapA98(Math.atan2(b.y - c.y, b.x - c.x) - Math.atan2(a.y - c.y, a.x - c.x)); return d >= 0 ? 1 : -1; }
   function swingView98(i, pz, s) { const N = PL.ng; return { p: [N.x + 12.5, N.y + 15, pz - s * 1.5 + s * 5], t: [N.x - 0.8, N.y + 2.5, pz - s * 2.3] }; }
   // ── /build 98 ──
+  /* ── build 100 ── the oil (the owner, 4.11 13:37–16:34: "אפשר לשמן את הדלת שלא תחרוק?" — "כן. ושאת החריקה ירגישו בנייד"): a clay jar
+   *  by the socket; a touch on it, before the pin goes in, tips it and oil runs into the socket. Without it the leaf turns dry — it sticks,
+   *  jerks free and creaks (nik98 DRY100), each creak a grating buzz in the hand (HAPTIC42.grate), and it costs half its grade. המחשה. */
+  function oil100(at, off, fy) {   // (at: the socket's mouth; off: the jar's place from it; fy: the floor under the jar)
+    const G = new THREE.Group(), jar = new THREE.Group(), clay = new THREE.MeshStandardMaterial({ color: '#A0623A', roughness: 0.85 }),   /* (its own material: the shared ones are cut by the stage's x-ray hole) */ oilM = new THREE.MeshStandardMaterial({ color: '#C9A13E', roughness: 0.12, metalness: 0.15, transparent: true, opacity: 0.85 });
+    const body = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.24, 0.03], [0.34, 0.3], [0.31, 0.6], [0.15, 0.8], [0.12, 0.92], [0.18, 0.97]].map(([x, y]) => new THREE.Vector2(x, y)), 14), clay); body.castShadow = true; jar.add(body);
+    const pos = { x: at.x + off.x, y: fy, z: at.z + off.z }; jar.position.set(pos.x, pos.y, pos.z); jar.scale.setScalar(2.2); G.add(jar);   // (waist-high to the figures)
+    const stream = beam98({ x: 0, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, 0.09, oilM); stream.visible = false; G.add(stream);
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(0.6, 18).rotateX(-Math.PI / 2), oilM); pool.position.set(at.x, at.y + 0.01, at.z); pool.scale.setScalar(0.01); pool.visible = false; G.add(pool);
+    (st.props.root || scene()).add(G);
+    const k = { oiled: false, t: -1, yaw: Math.atan2(-off.x, -off.z) };
+    jar.rotation.y = k.yaw;
+    return {
+      k, pos,
+      near(a) { const q = proj(pos.x, pos.y + 1.1, pos.z); return !!q && Math.hypot(a.x - q.x, a.y - q.y) < Math.max(56, H() * 0.07); },
+      pour() { if (k.oiled || k.t >= 0) return false; k.t = 0; o.sound && o.sound('splash'); buzz42('tick'); return true; },
+      frame(dt) {
+        if (k.t < 0) return false;
+        k.t += dt; const u = Math.min(1, k.t / 1.6), tip = Math.sin(Math.min(1, u * 1.4) * Math.PI) * 1.35;
+        jar.rotation.set(tip, k.yaw, 0, 'YXZ');
+        const lip = new THREE.Vector3(0, 0.95 * 2.2, 0).applyEuler(jar.rotation).add(jar.position); stream.visible = u > 0.15 && u < 0.8;
+        if (stream.visible) beamSet98(stream, { x: lip.x, y: lip.y, z: lip.z }, { x: at.x, y: at.y, z: at.z });
+        if (u > 0.3) { pool.visible = true; pool.scale.setScalar(Math.min(1, (u - 0.3) / 0.5)); }
+        if (u >= 1) { k.t = -1; k.oiled = true; jar.rotation.set(0, k.yaw, 0); stream.visible = false; return true; }
+        return false;
+      },
+      hint() { if (k.oiled || k.t >= 0) return; const q = proj(pos.x, pos.y + 1.1, pos.z); if (q) svgAdd(`<circle cx="${q.x}" cy="${q.y}" r="24" fill="none" stroke="#FFD66E" stroke-width="3"><animate attributeName="r" values="20;30;20" dur="1.1s" repeatCount="indefinite"/></circle><text x="${q.x}" y="${q.y - 30}" font-size="15" font-weight="800" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="3" paint-order="stroke">שמן</text>`); },
+      bye() { if (G.parent) G.parent.remove(G); },
+    };
+  }
+  /** a creak from the dry leaf: its sound and, at most every 0.3 s, a grating buzz in the hand */
+  function creak100(c) { const t = now(); if (t - (c.t || 0) < 0.3) return; c.t = t; buzz42('grate'); o.sound && o.sound('creak'); }
+  // ── /build 100 ──
   /** ── build 46 ── the WARNING STONES: held, he walks along the soreg (the side he holds — the way he goes); "הציבו כאן" sets a stone where he
    *  stands; after the last — the real gaps (gold) against the even ones (faint), and the grade */
   function mkWarn() {

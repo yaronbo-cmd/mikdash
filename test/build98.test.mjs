@@ -46,7 +46,7 @@ test('build 98: wiring — the flag, the core and the cut, the acts; lines sourc
   for (const f of ['cut98', 'props98', 'mkSteps98', 'ringStone98', 'swSign98', 'swingView98']) assert.match(h, new RegExp(`function ${f}\\(`), f);
   assert.match(h, /steps: \{ begin\(\) \{ st\.job = ON94 \? mkSteps98\(0\)/);
   assert.match(h, /if \(ON98\) cut98\(laidNow98\(\)\); else hole49\(past63\('hang'\) \? 'steps' : 'door'\)/, 'the stage opens with the steps as far as laid, the core under the landing');
-  assert.match(h, /if \(ON98 && k\.ph === 'swing' && !SW\) \{ SW = F98\.createSwing98\(i, 0\)/, 'seated, his hand turns the leaf');
+  assert.match(h, /if \(ON98 && k\.ph === 'swing' && !SW\) \{ const dry = !!OIL && !OIL\.k\.oiled; SW = F98\.createSwing98\(i, 0, \{ dry \}\)/, 'seated, his hand turns the leaf');
   assert.match(h, /k0\.x = Math\.abs\(k0\.x\)/, 'the leaf comes in from the court, beside the other, not behind it');
   assert.doesNotMatch(h, /function mkLever49\(|function mkHang49\(|function mkSteps94\(/, 'the old acts out');
   for (const k of ['steps98', 'steps98crew', 'steps98jam', 'steps98brk', 'swing98a', 'swing98b', 'swing98bang']) { const t = LINE42[k]; assert.ok(t, k); assert.ok(/המחשה/.test(t), k); assert.ok(t.split(' · ')[0].length <= 50, k); }

@@ -1521,3 +1521,9 @@ The owner on v44: "הג׳ויסטיק לא מתפקד… שביל הזהב מר�
 - **The leaf (mkLeaf92 under ON99):** hung on its pin as in 92, then build 98's heavy swing (createSwing98): his finger round the pin opens it to its stop and shuts it into its jamb without a bang; two crewmen push at its edge on the side it goes. Graded by the knocks on the socket's rim and the bangs.
 - **Out:** build 47's lintel and leaf acts (mkLintel, mkLeaf, lift47, level47, gateView) — size. The yard no longer offers the lintel, the leaf and the lever (OUT99): their world is the stage's own now. `?h92=0` has no acts of its own any more.
 - `?h99=0`: the lintel and the leaf as in 98. GAME_BUILD 99; test/build99.test.mjs.
+
+### build 100 — the oil: a jar by each leaf's socket, poured before the pin goes in; a dry leaf sticks, jerks and creaks, felt in the hand (4.11)
+- **Why:** the owner, 4.11 13:37: "בדלתות אפשר לשמן את הדלת שלא תחרוק?" — the answer: not a game of its own, a step inside the leaf's act, with cause and effect; 16:34: "כן. ושאת החריקה ירגישו בנייד".
+- **The jar (oil100):** a clay jar, waist-high to the figures, beside the socket (stage 06's leaves and stage 04's). A touch on it while the leaf still hangs tips it: oil runs into the socket and pools there. A pulsing ring and "שמן" over it until it is poured.
+- **Dry (nik98 DRY100):** if the pin goes in without oil the leaf sticks: it moves only when his finger leads it by more than `stick` (0.15 rad), then jerks free with a creak; while it moves it drags, and it creaks every 0.32 s. Each creak is the sound and a grating buzz (HAPTIC42.grate, a stutter of short pulses; at most every 0.3 s, within the minute's buzz budget). A dry leaf grades half at best. Browsers on iPhone do not vibrate; Android phones do.
+- `?h100=0`: as in 99. GAME_BUILD 100; test/build100.test.mjs.

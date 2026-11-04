@@ -22,14 +22,19 @@ export const SWING98 = Object.freeze({
     Object.freeze({ k: 5, c: 2.0, mu: 0.36, vHard: 0.62, e: 0.4 }),
   ]),
 });
+/** ── build 100 ── a dry socket (no oil poured before the pin went in): the pin sticks — it moves only when his pull passes stick, then
+ *  jerks free (stick: the lead of his finger, rad, it takes); a drag of muD on it while it moves (and mu × muK when he lets go); it creaks each time it breaks free and every creakT s it
+ *  turns (the owner, 4.11 16:34: "ושאת החריקה ירגישו בנייד") */
+export const DRY100 = Object.freeze({ stick: 0.15, muD: 0.9, muK: 3, creakT: 0.32, wMove: 0.03 });
 /** the jobs, in order: open it against its stop; swing it shut into its jamb */
 export const TASKS98 = Object.freeze(['open', 'shut']);
 export const wrapA98 = (a) => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
 /** the leaf: grab(phi) with his finger's angle round the pivot on the screen; drag(phi) as it goes round (any number of turns); let() —
  *  it swings on; step(dt) → events ('bang', 'touch', 'task', 'done'). th 0 shut … max open. */
-export function createSwing98(i = 0, th0 = 0) {
-  const P = SWING98.L[clamp(i | 0, 0, 1)], M = SWING98.max;
-  const k = { i: clamp(i | 0, 0, 1), th: clamp(+th0 || 0, 0, M), w: 0, held: false, tt: 0, phi: 0, task: 0, bangs: 0, shorts: 0, done: false, q: null, last: null, t: 0, ev: [] };
+export function createSwing98(i = 0, th0 = 0, o = {}) {
+  const P = SWING98.L[clamp(i | 0, 0, 1)], M = SWING98.max, D = DRY100;
+  const k = { i: clamp(i | 0, 0, 1), th: clamp(+th0 || 0, 0, M), w: 0, held: false, tt: 0, phi: 0, task: 0, bangs: 0, shorts: 0, done: false, q: null, last: null, t: 0, ev: [],
+    dry: !!(o && o.dry), creaks: 0, cT: 0, stuck: true };   // ── build 100 ── (dry: no oil in its socket)
   const target = () => (TASKS98[k.task] === 'open' ? M : 0);
   function grab(phi) { if (k.done || !Number.isFinite(phi)) return false; k.held = true; k.phi = phi; k.tt = k.th; return true; }
   function drag(phi) { if (!k.held || !Number.isFinite(phi)) return; k.tt = clamp(k.tt + wrapA98(phi - k.phi), -SWING98.over, M + SWING98.over); k.phi = phi; }
@@ -43,13 +48,18 @@ export function createSwing98(i = 0, th0 = 0) {
   }
   function step1(h) {
     k.t += h;
-    const a = k.held ? P.k * (k.tt - k.th) - P.c * k.w : -Math.sign(k.w) * Math.min(Math.abs(k.w) / h, P.mu);
+    let a = k.held ? P.k * (k.tt - k.th) - P.c * k.w : -Math.sign(k.w) * Math.min(Math.abs(k.w) / h, P.mu * (k.dry ? D.muK : 1));
+    if (k.dry) {   // ── build 100 ── (stick, then a jerk free and a creak; a drag while it moves)
+      const pull = k.held ? P.k * (k.tt - k.th) : 0;
+      if (Math.abs(k.w) < D.wMove) { if (Math.abs(pull) < D.stick * P.k) { k.w = 0; a = 0; k.stuck = true; } else if (k.stuck) { k.stuck = false; k.creaks++; k.cT = 0; k.ev.push('creak'); } }
+      else { if (k.held) a -= Math.sign(k.w) * Math.min(Math.abs(k.w) / h, D.muD); k.cT += h; if (k.cT >= D.creakT) { k.cT = 0; k.creaks++; k.ev.push('creak'); } }
+    }
     k.w += a * h; k.th += k.w * h;
     for (const lim of [0, M]) {
       const past = lim === 0 ? k.th < 0 : k.th > M; if (!past) continue;
       const v = Math.abs(k.w); k.th = lim;
       if (v > P.vHard) { k.bangs++; k.w = -k.w * P.e; k.last = 'bang'; k.ev.push('bang'); if (k.held) k.tt = lim + (lim ? -0.12 : 0.12); }
-      else { k.w = 0; k.last = 'touch'; k.ev.push('touch'); if (lim === target()) { k.task++; k.ev.push('task'); if (k.task >= TASKS98.length) { k.done = true; k.held = false; const f = k.bangs; k.q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0; k.ev.push('done'); } } }
+      else { k.w = 0; k.last = 'touch'; k.ev.push('touch'); if (lim === target()) { k.task++; k.ev.push('task'); if (k.task >= TASKS98.length) { k.done = true; k.held = false; const f = k.bangs + (k.dry ? 1 : 0); k.q = f <= 0 ? 1 : f <= 2 ? 0.5 : 0; k.ev.push('done'); } } }
     }
   }
   return { grab, drag, let: let_, step, state: () => k, P, target, task: () => TASKS98[Math.min(k.task, TASKS98.length - 1)] };

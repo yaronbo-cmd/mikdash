@@ -76,7 +76,7 @@ test('build 93: the peg — the mallet\'s height is the blow; a measured hand ta
 
 test('build 93: wiring — the parts, the order, the acts in the world; lines sourced and short', async () => {
   const { GAME_BUILD } = await import('../src/avodah/shift/lobby35.js');
-  assert.equal(GAME_BUILD, 96);
+  assert.equal(GAME_BUILD, 97);
   const { LINE42, PARTS93 } = await import('../src/game/har42.js');
   const { DEP63, open63 } = await import('../src/game/site63.js');
   assert.deepEqual([...PARTS93], ['open', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);
@@ -85,6 +85,6 @@ test('build 93: wiring — the parts, the order, the acts in the world; lines so
   assert.ok(DEP63.nashim, 'the old order kept for ?h93=0');
   const h = read('src/game/har42.js');
   assert.match(h, /const ON93 = MODE === 'stage' && STG === 'nashim' && qs\('h93'\) !== '0'/);
-  for (const f of ['props93', 'mkWood93', 'mkBeam93', 'mkPeg93', 'mkCorner93']) assert.match(h, new RegExp(`function ${f}\\(`), f);
-  for (const k of ['wood93', 'beam93', 'beam93b', 'peg93', 'peg93b', 'corner93']) { const t = LINE42[k]; assert.ok(t, k); assert.ok(/המחשה|מדות|תמיד|טיוטה/.test(t), k); assert.ok(t.split(' · ')[0].length <= 50, `${k} head ${t.split(' · ')[0].length}`); }
+  for (const f of ['props93', 'mkBeam93', 'mkPeg93', 'mkCorner93']) assert.match(h, new RegExp(`function ${f}\\(`), f);
+  for (const k of ['beam93', 'beam93b', 'peg93', 'peg93b', 'corner93']) { const t = LINE42[k]; assert.ok(t, k); assert.ok(/המחשה|מדות|תמיד|טיוטה/.test(t), k); assert.ok(t.split(' · ')[0].length <= 50, `${k} head ${t.split(' · ')[0].length}`); }
 });

@@ -9,6 +9,8 @@
  *  the paving once the crest is down and the fill is level; the great stone and the inscription on the level plaza. Stage 02 (PARTS45):
  *  the line first; the pulley and the first course; the course over it; the giant once the pulley stands and a course is laid; the corner
  *  over the second course; the top course last */
+import { DEP97 } from './court97.js';
+
 export const DEP63 = Object.freeze({
   har: Object.freeze({
     rope: [], lift: ['rope'], corner: ['lift'], course0: ['corner'], course1: ['course0'],
@@ -33,6 +35,7 @@ export const DEP63 = Object.freeze({
   // ── build 93 ── stage 05 rebuilt (PARTS93): the wood and the first beam side by side; each beam after the one before it (each harder);
   // a peg once its corner beam is in; the south corner after the third beam and the second peg; the walk once the corner is closed
   nashim93: Object.freeze({ beams: [], beams2: ['beams'], beams3: ['beams2'], pegs: ['beams'], pegs2: ['beams2', 'pegs'], corner: ['beams3', 'pegs2'], walk: ['corner'] }),
+  nashim97: DEP97,   // ── build 97 ── (build 15's wall jobs among the gallery's: court97.js)
   // ── build 76 ── stage 06 (PARTS49): one after another — the doors' voyage (the exception, at sea), the lever and pegs at the gate, the
   // leaves hung, then the fifteen steps in the opening; the loop's result shot and walk between them
   nikanor: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], steps: ['hang'] }),

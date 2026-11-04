@@ -2019,7 +2019,7 @@ export function createStages(ctx) {
             put(mx + nx * tw / 2, st.base + 0.085, mz + nz * tw / 2, tw * 0.62, 0.03, L, yaw, '#D4C8AA');
             put(mx + nx * tw * 0.1, st.base + 0.09, mz + nz * tw * 0.1, tw * 0.2, 0.03, L, yaw, '#3B2E22');
             put(mx + nx * tw * 0.9, st.base + 0.09, mz + nz * tw * 0.9, tw * 0.2, 0.03, L, yaw, '#4A3A2A');
-            const kb = Math.max(1, Math.ceil(L / 12));
+            const kb = st.id === 'nashim' && st.phase === 'courses' ? 0 : Math.max(1, Math.ceil(L / 12));   // ── build 97 ── (the women's court's chambers rise in view from their first courses: no faceted earth banks round them)
             // ── site11 ── (by touch, 29.9: at the wall's first course the banks stood as tall beige tents in his working frame) once
             // the courses start the trench is being filled round the first stones: its banks lie low, the tall heaps are gone
             // (and in the dig they lie lower too: by touch at the altar's dig a bank stood before him like a tent, PRODUCER11 s3-13)
@@ -2779,6 +2779,8 @@ export function createStages(ctx) {
     // (toward the laid stones: beyond him in the working frame, which looks from the unlaid side — DIRECTOR13's wall frame looks
     //  from the laid side (C4), so at the wall they stand on the unlaid side, with his crane, behind the slot)
     let [ux, uz] = slotTangent(st.id, s); if (st.id === 'wall') { ux = -ux; uz = -uz; }
+    { const dn = ux * s.n[0] + uz * s.n[1]; let px = ux - dn * s.n[0], pz = uz - dn * s.n[1], pl = Math.hypot(px, pz);   // ── build 97 ── (the tangent square to the face: at a chamber's corner the next slot lies round it and the tangent ran along the normal — the hauling pairs stood in one another)
+      if (pl < 0.3) { const sg = (-s.n[1]) * ux + s.n[0] * uz < 0 ? -1 : 1; px = -s.n[1] * sg; pz = s.n[0] * sg; pl = 1; } ux = px / pl; uz = pz / pl; }
     if (!m.ok || Math.hypot(s.face[0] - m.ax, s.face[2] - m.az) > 30 || s.n[0] * m.nx + s.n[1] * m.nz < 0.9) {
       m.ax = s.face[0]; m.az = s.face[2]; m.nx = s.n[0]; m.nz = s.n[1]; m.ux = ux; m.uz = uz; m.ok = true;
       const run = mkRun(st, m);   // (a short run: the machines close up toward the slot, the shear-legs by the corner)
@@ -6463,14 +6465,21 @@ export function createStages(ctx) {
     if (p) { ux = p.face[0] - s.face[0]; uz = p.face[2] - s.face[2]; } else if (q) { ux = s.face[0] - q.face[0]; uz = s.face[2] - q.face[2]; } else { ux = -s.n[1]; uz = s.n[0]; }
     const L = Math.hypot(ux, uz) || 1; return [ux / L, uz / L];
   }
-  function slots(id, course) {
+  function slots(id, course, all) {   // ── build 97 ── (all: every front's stones of the course — stage 05's chambers' inner faces)
     const st = ST[id]; if (!st) return null;
     const L = layout(st), c = course === undefined ? Math.min(L.cur, L.C - 1) : clamp(Math.round(+course || 0), 0, L.C - 1);
     // the working front's stones of that course (or, where its run is lower than the others, the first front that has some)
-    const F = L.cs[c].fr, fr = F[0] && F[0].length ? F[0] : (F.find((a) => a && a.length) || []);
+    const F = L.cs[c].fr, fr = all ? F.flat() : F[0] && F[0].length ? F[0] : (F.find((a) => a && a.length) || []);
     // ── flow10 ── the Mount: the east face's own stones in the bay (harSlotOk), set when shown or set ahead of the count (L.pend)
     if (id === 'har') { const P = L.pend || []; return fr.filter((bi) => harSlotOk(L, L.blocks[bi])).map((bi) => slotOf(L.blocks[bi], L.blocks[bi].g < L.n || P.some((p) => p.g === L.blocks[bi].g))); }
     return fr.map((bi) => slotOf(L.blocks[bi], L.blocks[bi].g < L.n));
+  }
+  /** ── build 97 ── the lowest course (from the count's) with free slots that pick takes, not his or the crews' kept stones: every front */
+  function pickSlots(id, pick) {
+    const st = ST[id]; if (!st) return [];
+    const L = layout(st), kq = new Set(TW.keep.map((q) => q.g)), set = new Set(TW.set.map((q) => q.g));
+    for (let c = Math.min(Math.max(0, L.cur), L.C - 1); c < L.C; c++) { const a = (slots(id, c, true) || []).filter((q) => !q.set && !kq.has(q.stone) && !set.has(q.stone) && pick(q)); if (a.length) return a; }
+    return [];
   }
   function workSpot(id, kind = 'set') {
     const st = ST[id]; if (!st && kind !== 'quarry') return null;
@@ -6679,6 +6688,12 @@ export function createStages(ctx) {
     const st = ST[id]; if (!st || st.status !== 'building') return Promise.resolve(false);
     const L = layout(st); if (L.kind !== 'cast' && st.disp < FOUND) return Promise.resolve(false);
     const i = nextWorkIdx(L); if (i < 0) return Promise.resolve(false);
+    // ── build 97 ── (o.pick: a stone the crews set where it is seen — stage 05's chambers' inner faces — ahead of the count, kept as his are)
+    if (o.pick && st.lay.kind !== 'cast') {
+      const C = crane, c = pickSlots(id, o.pick);
+      if (c.length && !c.some((q) => q.stone === i)) { const lk = TW.keep.length ? TW.keep[TW.keep.length - 1] : { x: C.bx, z: C.bz }; c.sort((a, q) => Math.hypot(a.x - lk.x, a.z - lk.z) - Math.hypot(q.x - lk.x, q.z - lk.z)); const g = c[0].stone;
+        return new Promise((resolve) => { lifts.push({ st, b: L.blocks[L.order[g]], i: g, t: 0, dur: clamp((+o.ms || 4200) / 1000, 0.3, 12), great: false, keep: true, resolve }); }); }
+    }
     const b = L.blocks[L.order[i]];
     return new Promise((resolve) => {
       lifts.push({ st, b, i, t: 0, dur: clamp((+o.ms || 4200) / 1000, 0.3, 12), great: !!o.great, resolve });
@@ -6686,6 +6701,7 @@ export function createStages(ctx) {
   }
   function liftLand(it) {
     const st = it.st, L = st.lay;
+    if (it.keep) { const s = slotOf(it.b, true); TW.keep.push({ x: s.x, y: s.y, z: s.z, w: s.w * 0.98, h: s.h * 0.97, d: s.d, yaw: s.yaw, g: it.i, st }); propsDirty = true; dustBurst(s.face[0], s.y - s.h * 0.45, s.face[2], 8, 2.4, 1.3, 0.7); st.U.uF.value.x = 1; it.resolve({ course: it.b.c, index: it.b.j, stones: Math.max(0, L.n), kept: true }); return; }   // ── build 97 ──
     // ── flow10 ── the Mount: the player's stone stays where the crane set it. The game's count is block-linear and the Mount's
     // course 0 holds every deep row, so the east face's next slot in the bay lies up to ≈ 3 stones ahead of the count: the
     // stone waits as a set stone of its own (L.pend, drawn with the site's props) until the count reveals it — no jump of the
@@ -6717,9 +6733,9 @@ export function createStages(ctx) {
     if (crane.st !== it.st) { cranePref = it.st.id; craneAssign(); }
     if (crane.st !== it.st) { lifts.shift(); liftLand(it); return; }   // (no crane there: set at once)
     // the stone may have been set meanwhile (setWork): lift the working front's next one
-    const L = it.st.lay, i = nextWorkIdx(L);
+    const L = it.st.lay, i = it.keep ? (it.i >= Math.max(0, L.n) ? it.i : -1) : nextWorkIdx(L);
     if (i < 0) { lifts.shift(); it.resolve(false); return; }
-    it.i = i; it.b = L.blocks[L.order[i]];
+    if (!it.keep) { it.i = i; it.b = L.blocks[L.order[i]]; }
     lifts.shift(); it.onCrane = true;
     craneLiftStart(it);
   }
@@ -7439,7 +7455,7 @@ export function createStages(ctx) {
   // controls (tread.js draws a meter strip when linked). treadBegin(site) → { ok, at } · treadUpdate(s) each frame from the
   // game's draw · treadEnd(r). GAMES14's model and scoring are untouched; the stones are counted by FUN14's setShare as before —
   // the three stones he seats stand as props until the count's ripple reveals the real ones (≤ 3 s).
-  const TW = { on: false, site: null, st: null, slots: [], i: 0, h: 0, mark: 0.7, phase: 'lift', pt: 0, v: 0, over: false, placed: false, set: [], hy: null, hySet: null, ox: 0, oz: 0, at: null, dy: 1.2, lift: 0, inWheel: false, clearT: 0 };
+  const TW = { keep: [], keepOn: false, on: false, site: null, st: null, slots: [], i: 0, h: 0, mark: 0.7, phase: 'lift', pt: 0, v: 0, over: false, placed: false, set: [], hy: null, hySet: null, ox: 0, oz: 0, at: null, dy: 1.2, lift: 0, inWheel: false, clearT: 0 };
   /** where he stands inside the wheel (world): on the bottom tread, facing the wheel's rolling direction (the jib's side) */
   function treadWheelPoint() {
     const C = crane, st = C.st, by = C.byFix !== null ? C.byFix : craneY(st);
@@ -7466,14 +7482,20 @@ export function createStages(ctx) {
     const f = tsFit(best, [tx, ty, tz], him, { top: 150, bottom: 330 }, also, true);
     return flyTo(f.p, f.t, 1000);
   }
-  function treadBegin(site) {
+  function treadBegin(site, o) {   // ── build 97 ── (o.pick: the slots he may lift into — stage 05's chambers: their inner faces, seen; not the outer, inside the court's wall)
     const st = ST[site], C = crane;
     if (!st || st.status !== 'building' || st.disp < FOUND || !st.lay || st.lay.kind === 'cast' || TS.run) return { ok: false, why: 'site' };
     if (C.st !== st) { cranePref = site; craneAssign(); }
     if (C.st !== st || C.lift || lifts.length) return { ok: false, why: C.lift || lifts.length ? 'lifting' : 'crane' };
-    const open = (slots(site) || []).filter((q) => !q.set).slice(0, 3);
+    const pick = o && typeof o.pick === 'function' ? o.pick : null, all = (slots(site) || []).filter((q) => !q.set);
+    let open = all.slice(0, 3), kept = false;
+    if (pick && !(open.length && open.every(pick))) {   // (the next stones in order where they are seen: the count shows them, nothing kept)   // ── build 97 ── (the slots he may lift into, any front of the course, the nearest him first; the crane posed there; his stones kept till the count reaches them)
+      const pk = pickSlots(site, pick).sort((a, b) => Math.hypot(a.x - hero.x, a.z - hero.z) - Math.hypot(b.x - hero.x, b.z - hero.z));
+      if (pk.length) { open = pk.slice(0, 3); kept = true; }
+    }
     if (!open.length) return { ok: false, why: 'slots' };
-    try { if (site === 'har') { if (!st.harPosed) harCranePose(st); } else if (!st.posed || C.glide) poseAt(st, craneWorkPose(st, open[0], C.H)); } catch (e) { /* the pose as it is */ }
+    try { if (site === 'har') { if (!st.harPosed) harCranePose(st); } else if (!st.posed || C.glide || pick) poseAt(st, craneWorkPose(st, open[0], C.H)); } catch (e) { /* the pose as it is */ }
+    TW.keepOn = kept;
     Object.assign(TW, { on: true, site, st, slots: open, i: 0, h: 0, mark: 0.7, phase: 'lift', pt: 0, v: 0, over: false, placed: false, set: [], hy: null, hySet: null, ox: 0, oz: 0, lift: 0, inWheel: false, clearT: 0 });
     C.calm = true; C.glide = null;
     C.block.scale.set(open[0].w * 0.98, open[0].h * 0.97, open[0].d); C.block.geometry = st.def.stone === 'field' ? C.fieldBlock : C.boxBlock; C.blockMat.color.set(STONE[st.def.stone] || STONE.ash); C.blockMat.emissive.setRGB(0, 0, 0);
@@ -7482,7 +7504,7 @@ export function createStages(ctx) {
     hero.speed = clamp(hero.speed, 11, 24);
     treadFrame();
     tsLog({ id: 'tread', stage: site, kind: 'tread', at: 'begin', spot: [P.x, P.y, P.z].map((v) => Math.round(v * 10) / 10), from: [hero.x, hero.y, hero.z].map(Math.round), slots: open.length });
-    return { ok: true, at: { x: P.x, y: P.y, z: P.z } };
+    return { ok: true, at: { x: P.x, y: P.y, z: P.z }, slots: open };
   }
   /** each frame from tread.js's draw: { ang, h, v, mark, phase, pt, i, n, over, done } */
   function treadUpdate(q) {
@@ -7522,7 +7544,7 @@ export function createStages(ctx) {
     if (TW.phase === 'set') {
       const k = clamp(TW.pt / 0.45, 0, 1); hy = lerp(TW.hySet === null ? hy : TW.hySet, s.y, easeIn(k));
       if (k >= 1 && !TW.placed) {
-        TW.placed = true; TW.set.push({ x: s.x, y: s.y, z: s.z, w: s.w * 0.98, h: s.h * 0.97, d: s.d, yaw: s.yaw }); propsDirty = true;
+        TW.placed = true; TW.set.push({ x: s.x, y: s.y, z: s.z, w: s.w * 0.98, h: s.h * 0.97, d: s.d, yaw: s.yaw, g: s.stone, st: TW.st }); propsDirty = true;
         dustBurst(s.face[0], s.y - s.h * 0.4, s.face[2], 12, 3.5, 2, 1.2); sparkBurst(s.face[0], s.y + s.h * 0.6, s.face[2], 22, 4, 7);
         shake.t = 0.18; shake.amp = 0.14; TW.st.U.uF.value.x = 1; TW.st.glowBoost = 1;
       }
@@ -7534,11 +7556,12 @@ export function createStages(ctx) {
   }
   const TW_OUT = { a: 0, hy: 0, carry: true, sw: 0, yaw: 0 };
   /** the stones he seated, until the count's ripple reveals the real ones (rebuildProps) */
-  function treadProps(put) { for (const q of TW.set) put(q.x, q.y, q.z, q.w, q.h, q.d, q.yaw, STONE[TW.st && TW.st.def.stone] || STONE.ash); }
+  function treadProps(put) { for (const q of TW.set.concat(TW.keep)) put(q.x, q.y, q.z, q.w, q.h, q.d, q.yaw, STONE[q.st ? q.st.def.stone : TW.st && TW.st.def.stone] || STONE.ash); }
   function treadTick(dt) {
     caCoil(dt); caSvTick(dt); ksTick(dt); dsTick(dt); clTick(dt); gwTick(dt);   // ── crafta19 ── (the rope coiled on the drum; the survey's cord; the key stone's slot and shadow) ── /crafta19 ──
     s20Tick(dt);   // ── site20 ── (plan A: the wall's top and its ramp) ── /site20 ──
-    if (TW.clearT > 0) { TW.clearT -= dt; if (TW.clearT <= 0 && TW.set.length) { TW.set = []; propsDirty = true; } }
+    if (TW.clearT > 0) { TW.clearT -= dt; if (TW.clearT <= 0 && TW.set.length) { if (TW.keepOn) TW.keep.push(...TW.set); TW.set = []; propsDirty = true; } }
+    if (TW.keep.length) { const k0 = TW.keep.length; TW.keep = TW.keep.filter((q) => q.st && q.st.status === 'building' && q.st.lay && Math.max(0, q.st.lay.n) <= q.g); if (TW.keep.length !== k0) propsDirty = true; }   // ── build 97 ── (his stones till the count reaches them)
     if (!TW.on) { if (TW.lift > 0) TW.lift = Math.max(0, TW.lift - dt * 3); return; }
     const P = TW.at, near = !!(P && !hero.path && Math.hypot(hero.x - P.x, hero.z - P.z) < 1.6);
     TW.inWheel = near;
@@ -7861,7 +7884,7 @@ export function createStages(ctx) {
     T0.update = (M) => { const r = up0(M); if (TW.on && M && M.juice) { const P = TW.at; if (P) { caJ.x = P.x; caJ.y = P.y + 5.2; caJ.z = P.z; caActs(M, caJ, 'המנופאים'); } caLiftAt(); } return r; };
     // (the coordinator, B2: __HANDS.atW() for the lift — the midpoint of the wheel's hub and the stone, live, so the closer craft camera
     //  keeps the stone rising in view; begin hands out the one object update moves)
-    const b0 = T0.begin; T0.begin = (site) => { const r = b0(site); if (r && r.ok && r.at) { CA_AT.x = r.at.x; CA_AT.y = r.at.y + 3; CA_AT.z = r.at.z; caLiftAt(); r.at = CA_AT; } return r; };
+    const b0 = T0.begin; T0.begin = (site, o) => { const r = b0(site, o); if (r && r.ok && r.at) { CA_AT.x = r.at.x; CA_AT.y = r.at.y + 3; CA_AT.z = r.at.z; caLiftAt(); r.at = CA_AT; } return r; };
   }
   // the dyed cord (note 17): my cord model's tension drives the world's sag and colour; the snap prints the red line (jobReveal 'line')
   const CA_CORD = ['#7E5446', '#93533F', '#A84F37', '#BD4B30', '#D24829', '#E84522'];
@@ -7870,7 +7893,7 @@ export function createStages(ctx) {
   {
     const L0 = craftApi.line, up0 = L0.update, b0 = L0.begin;
     L0.raw = true;
-    L0.begin = (site) => { const r = b0(site); CR.caOn = false; CR.caTen = 0; CR.caTenS = 0; return r; };
+    L0.begin = (site, o) => { const r = b0(site, o); CR.caOn = false; CR.caTen = 0; CR.caTenS = 0; return r; };
     L0.touch = (down, M) => { if (M && typeof M.touch === 'function') M.touch(down); if (down && CR.kind === 'line' && CR.caOn) { CR.caTen = Math.max(CR.caTen, 0.08); CR.caTenS = Math.max(CR.caTenS, 0.06); } };   // (the touch-down: his grip takes up the slack at once)
     L0.act = () => true;
     L0.update = (M) => {
@@ -8831,7 +8854,7 @@ export function createStages(ctx) {
     setTools: (m) => HB.setTools(m), jobReveal, jobSpot, stoneMark, marks: () => JOBS.marks.map((m) => ({ site: m.site, course: m.course, index: m.index, x: m.x, y: m.y, z: m.z, nx: m.nx, nz: m.nz, shown: m.shown })), setOwned, jobs: JOBS,
     // ── site15 ── the tasks' scenes (bus/SITE15.md): taskScene(stage, task, { q, skip, sfx, world, n, tap, hero, safe }) → Promise ·
     // taskMarks(list) → n · taskSpot(stage, task) → { x, y, z } | null · the scene running now (tests): taskRunning()
-    treadBegin, treadUpdate, treadEnd, tread: () => ({ on: TW.on, site: TW.site, i: TW.i, h: TW.h, hy: TW.hy, phase: TW.phase, set: TW.set.length, inWheel: TW.inWheel, at: TW.at ? [TW.at.x, TW.at.y, TW.at.z] : null, block: [crane.block.position.x, crane.block.position.y, crane.block.position.z], carry: crane.block.visible }),   // ── site15 ── המנופאי
+    pickSlots, treadBegin, treadUpdate, treadEnd, tread: () => ({ on: TW.on, site: TW.site, i: TW.i, h: TW.h, hy: TW.hy, phase: TW.phase, set: TW.set.length, inWheel: TW.inWheel, at: TW.at ? [TW.at.x, TW.at.y, TW.at.z] : null, block: [crane.block.position.x, crane.block.position.y, crane.block.position.z], carry: crane.block.visible }),   // ── site15 ── המנופאי
     craft: craftApi, craftState, dustBurst, sparkBurst,   // ── site16 ── the crafts in the world: stages.craft = { tread, saw, line } (bus/SITE16.md)
     craftB,   // ── craftb19 ── (tests: my crafts' state) ── /craftb19 ──
     caTread, caCord, caSurvey, caKey, caDress, caColumn, caWork,   // ── crafta19 ── (tests; the survey's counter) ── /crafta19 ──

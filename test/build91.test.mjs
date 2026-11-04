@@ -11,7 +11,7 @@ import { LINE42 } from '../src/game/har42.js';
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const C = F91.CRANE91, win = [0.6, 0.8], pickY = -51.6, topY = F91.top91() + C.clear;
 
-test('build 91: GAME_BUILD 91', () => { assert.equal(GAME_BUILD, 92); });
+test('build 91: GAME_BUILD 91', () => { assert.equal(GAME_BUILD, 93); });
 
 test('build 91: the pole\'s angle puts its head over the place asked; leaning out over the slope, near upright over the wall', () => {
   for (const x of [C.pickX, C.slotX]) assert.ok(Math.abs(C.bx + F91.reach91(F91.angleFor91(x)) - x) < 1e-9);

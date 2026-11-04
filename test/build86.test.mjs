@@ -11,7 +11,7 @@ import { LINE42 } from '../src/game/har42.js';
 
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
-test('build 86: GAME_BUILD 86', () => { assert.equal(GAME_BUILD, 92); });
+test('build 86: GAME_BUILD 86', () => { assert.equal(GAME_BUILD, 93); });
 
 test('build 86: the slab spins either way, as hard as the swipe', () => {
   const spec = { tol: 0.1, tolZ: 0.1, tolR: 0.1, damp: 3, sway0: 0, swayZ0: 0, twist0: 0, r0: 0, vChip: 1, vBreak: 1.8, wind: 0 };

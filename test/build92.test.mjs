@@ -30,7 +30,7 @@ function careful(J, opt = {}) {
 }
 
 test('build 92: GAME_BUILD 92; the gates — two north gates and one south of Middot 1:4–5, the openings of Middot 2:3', () => {
-  assert.equal(GAME_BUILD, 92);
+  assert.equal(GAME_BUILD, 93);
   assert.deepEqual(F.GATES92.gates.map((g) => g.id), ['nitzotz', 'korban', 'mayim']);
   assert.equal(F.GATES92.W, 10); assert.equal(F.GATES92.H, 20);
   for (const g of F.GATES92.gates) assert.match(g.why, /מדות א, [דה]/);

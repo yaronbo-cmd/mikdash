@@ -38,6 +38,8 @@ import * as F84 from './soreg84.js';   // ── build 84 ── (stage 03 rebui
 import { fitRuns68, fitsAny68, armRot68, sheaveZ68 } from './crane68.js';   // ── build 70 ── (the fit rules, the arm's swing)   // ── build 68 ── (the crane station at the court wall)   // ── build 63 ── (the building loop: site → work → result → site — shlav-alef-olam-he.md §4)
 import * as F91 from './crane91.js';
 import * as F92 from './gates92.js';
+import * as F94 from './nikanor94.js';   // ── build 94 ── (stage 06 rebuilt: the leaf on the lever and wedges, hung on its pivot; the steps' key stones)
+import * as F93 from './gallery93.js';   // ── build 93 ── (stage 05 rebuilt: the log peeled on its trestle, the beam carried to its socket, the peg by the mallet)
 import { mergeGeometries as merge92g } from 'three/addons/utils/BufferGeometryUtils.js';   // ── build 92 ── (the gates' towers, cranes and leaves in a few draws)   // ── build 92 ── (stage 04 rebuilt: the lintels on two treadwheel cranes, the leaves on their pins)   // ── build 91 ── (stage 01's crane like the world's; the walk's pull)
 import * as P88w from './props88.js';   // ── build 88 ── (the hand cart and the crane's timbers in the kit's real wood)
 import { XRAY } from '../batch.js';   // ── build 46 ── (his stretch of the court wall: the model's skin there is not drawn — uHole)   // ── build 43 ── (the props' stone, rock and wood: the game's own procedural textures)
@@ -50,6 +52,8 @@ export const PARTS42 = Object.freeze(['open', 'rope', 'lift', 'corner', 'rock0',
 export const PARTS45 = Object.freeze(['open', 'line', 'pulley', 'wcourse0', 'wcourse1', 'giant', 'wcorner', 'top', 'reveal']);   // ── build 45 ── stage 02, חומת העזרה (v2 §7)
 export const PARTS46 = Object.freeze(['open', 'lattice0', 'lattice1', 'lattice2', 'warn', 'bows', 'reveal']);   // ── build 46 ── stage 03, הסורג והחיל (v2 §10 "03")
 export const PARTS47 = Object.freeze(['open', 'lintel', 'leaf', 'leaf7', 'names', 'reveal']);
+export const PARTS94 = Object.freeze(['open', 'voyage', 'lever', 'hang', 'lever2', 'hang2', 'steps', 'steps2', 'steps3', 'reveal']);   // ── build 94 ── (stage 06 rebuilt: two leaves, each lifted and hung; fifteen steps in three parts, each harder)
+export const PARTS93 = Object.freeze(['open', 'wood', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);   // ── build 93 ── (stage 05 rebuilt: three beams, each harder; two pegs)
 export const PARTS92 = Object.freeze(['open', 'lintel', 'lintel2', 'lintel3', 'leaf', 'leaf7', 'names', 'reveal']);   // ── build 92 ── (stage 04 rebuilt: a lintel at each of three gates)   // ── build 47 ── stage 04, שערי העזרה (v2 §10 "04")
 export const PARTS48 = Object.freeze(['open', 'wood', 'beams', 'pegs', 'corner', 'walk', 'reveal']);   // ── build 48 ── stage 05, עזרת הנשים (v2 §10 "05")
 export const PARTS49 = Object.freeze(['open', 'voyage', 'lever', 'hang', 'steps', 'reveal']);
@@ -162,9 +166,9 @@ export function fig53(P, T, H, tanH, tanV) {
 export const VIEW53 = Object.freeze({ trace: 0.7, rock: 0.62, course: 0.44, courseMin: 9, courseMax: 24, roll: 17 });
 // ── build 53 ── the rope (§4 nice 19): the pull off the line (amot/s of drift at each level) and the deviation that is still מהודר / כשר
 export const ROPE53 = Object.freeze({ drift: Object.freeze([0, 0.32, 0.42, 0.52, 0.6]), steer: 0.9, ok: 1.2, kasher: 2.6 });   // (from near + lead amot out: v × under — walk39's ease (tau 0.18) then has him ≤ v by near: 4.75 amot/s at most, simulated)
-const FAMOF = { rope: 'rope', light: 'inspect', tap: 'inspect', sovev: 'place', thread: 'fit', /* ── build 56 ── */ decoy: 'inspect', kevesh: 'place', sid: 'place', /* ── build 57 ── */ horns: 'fit', holes: 'lift', fire: 'place', /* ── build 58 ── */ cast: 'lift', spigots: 'lift', screw: 'fit', mukhni: 'lift', /* ── build 59 ── */ waves: 'place', courses: 'place', lintels: 'lift', fifth: 'lift', /* ── build 60 ── */ inspect: 'inspect', field: 'place', nail: 'inspect', iron: 'inspect', last: 'place', stone: 'inspect', mud: 'inspect',   /* ── build 55 ── */ compass: 'place', benches: 'place', hub: 'fit', wheel: 'lift', dome: 'place', arch: 'place', voyage: 'lift', lever: 'lift', hang: 'fit', steps: 'place', step: 'place', wood: 'inspect', log: 'inspect', beams: 'fit', beam: 'fit', pegs: 'fit', peg: 'fit', corner48: 'fit', lintel: 'lift', lintel2: 'lift', lintel3: 'lift', leaf: 'fit', leaf7: 'fit', names: 'inspect', lattice0: 'place', lattice1: 'place', lattice2: 'place', lattice: 'place', warn: 'place', line: 'place', pulley: 'lift', wcourse0: 'place', wcourse1: 'place', giant: 'place', wcorner: 'place', top: 'place', lift: 'lift', corner: 'place', rock0: 'inspect', rock1: 'inspect', rock2: 'inspect', course0: 'place', course1: 'place', roll: 'place', pave: 'place', trace: 'place' };
+const FAMOF = { rope: 'rope', light: 'inspect', tap: 'inspect', sovev: 'place', thread: 'fit', /* ── build 56 ── */ decoy: 'inspect', kevesh: 'place', sid: 'place', /* ── build 57 ── */ horns: 'fit', holes: 'lift', fire: 'place', /* ── build 58 ── */ cast: 'lift', spigots: 'lift', screw: 'fit', mukhni: 'lift', /* ── build 59 ── */ waves: 'place', courses: 'place', lintels: 'lift', fifth: 'lift', /* ── build 60 ── */ inspect: 'inspect', field: 'place', nail: 'inspect', iron: 'inspect', last: 'place', stone: 'inspect', mud: 'inspect',   /* ── build 55 ── */ compass: 'place', benches: 'place', hub: 'fit', wheel: 'lift', dome: 'place', arch: 'place', voyage: 'lift', lever: 'lift', hang: 'fit', steps: 'place', lever2: 'lift', hang2: 'fit', steps2: 'place', steps3: 'place', step: 'place', wood: 'inspect', log: 'inspect', beams: 'fit', beams2: 'fit', beams3: 'fit', beam: 'fit', pegs: 'fit', pegs2: 'fit', peg: 'fit', corner48: 'fit', lintel: 'lift', lintel2: 'lift', lintel3: 'lift', leaf: 'fit', leaf7: 'fit', names: 'inspect', lattice0: 'place', lattice1: 'place', lattice2: 'place', lattice: 'place', warn: 'place', line: 'place', pulley: 'lift', wcourse0: 'place', wcourse1: 'place', giant: 'place', wcorner: 'place', top: 'place', lift: 'lift', corner: 'place', rock0: 'inspect', rock1: 'inspect', rock2: 'inspect', course0: 'place', course1: 'place', roll: 'place', pave: 'place', trace: 'place' };
 Object.assign(FAMOF, { hammer0: 'lift', hammer1: 'lift' });   // ── build 62 ── (the hammer: the LIFT family's timing)
-const MATOF = { compass: 'compass', benches: 'benches', hub: 'hub', wheel: 'wheel', dome: 'dome', voyage: 'voyage', lever: 'lever', hang: 'leaf49', steps: 'steps', wood: 'wood', beams: 'beams', pegs: 'pegs', corner48: 'corner48', lintel: 'lintel', lintel2: 'lintel', lintel3: 'lintel', leaf: 'leaf', leaf7: 'leaf7', lattice0: 'lattice', lattice1: 'lattice', lattice2: 'lattice', warn: 'warnst', pulley: 'pulley', wcourse0: 'wstone', wcourse1: 'wstone', giant: 'giant', wcorner: 'wstone', top: 'top', lift: 'lift', rock0: 'rock', rock1: 'rock', rock2: 'rock', course0: 'stone', course1: 'stone', roll: 'roll', pave: 'pave' };
+const MATOF = { compass: 'compass', benches: 'benches', hub: 'hub', wheel: 'wheel', dome: 'dome', voyage: 'voyage', lever: 'lever', hang: 'leaf49', steps: 'steps', lever2: 'lever', hang2: 'leaf49', steps2: 'steps', steps3: 'steps', wood: 'wood', beams: 'beams', beams2: 'beams', beams3: 'beams', pegs: 'pegs', pegs2: 'pegs', corner48: 'corner48', lintel: 'lintel', lintel2: 'lintel', lintel3: 'lintel', leaf: 'leaf', leaf7: 'leaf7', lattice0: 'lattice', lattice1: 'lattice', lattice2: 'lattice', warn: 'warnst', pulley: 'pulley', wcourse0: 'wstone', wcourse1: 'wstone', giant: 'giant', wcorner: 'wstone', top: 'top', lift: 'lift', rock0: 'rock', rock1: 'rock', rock2: 'rock', course0: 'stone', course1: 'stone', roll: 'roll', pave: 'pave' };
 /** the lines (short; each with its source, or המחשה) */
 export const LINE42 = Object.freeze({   // ── build 43 ── (one short instruction; after " · " the source chip — the long explanations are on the card)
   rope: 'החזיקו — הולכים ליתד; גררו הצידה — ישר על הקו · "חמש מאות אמה" — מדות ב, א · טיוטה',   // ── build 53 ── (the rope's steer — §4 nice 19) ── /build 53 ──
@@ -355,6 +359,14 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   lintel92c: 'נטתה יותר מדי — החבל החליק, מתחילים מחדש · המחשה',
   leaf92: 'גררו את הכנף מעל הגומה, והחזיקו כשהיא תלויה ישר · ציר וגומה — המחשה',
   leaf92b: 'הניפו את הכנף לסגירה — לא חלש מדי, לא חזק מדי · שערים של זהב — מדות ב, ג; ההנפה — המחשה',
+  // ── build 93 ── stage 05 rebuilt (gallery93.js)
+  wood93: 'קלפו לאורך הקורה, גלגלו לרוחב, וגררו לערמה · "כל עץ שנמצא בו תולעת, פסול" — מדות ב, ה · טיוטה',
+  wood93b: 'נגד הסיבים הקליפה נקרעת — קלפו לאורך הקורה · המחשה',
+  beam93: 'געו בקורה כדי לכוון לשקע; הרפו — והם הולכים · "והקיפוה גזוזטרא" — מדות ב, ה; ההובלה — המחשה',
+  beam93b: 'הקורה נקשה בקיר — הנושאים נסוגים; כוונו שוב · המחשה',
+  peg93: 'משכו את הפטיש למעלה ושחררו — גבוה יותר, חזק יותר · שגם ויתד — המחשה',
+  peg93b: 'היתד נסדקה — מכה חזקה מדי; יתד חדשה · המחשה',
+  corner93: 'הפינה הדרומית כולה שלכם: הקורה, ואחריה היתד · "והקיפוה גזוזטרא" — מדות ב, ה · טיוטה',
   names: 'גררו כל שם לשער שלו · "שבעה שערים היו בעזרה" — מדות א, ד · טיוטה',
   lattice: 'בחרו חלק, סובבו או הפכו, וגררו לפרצה · הקשה מסובבת, כפולה הופכת — הדוגמה ממשיכה · סורג עשרה טפחים — מדות ב, ג · טיוטה',   // ── build 46 ── stage 03's lines
   latWrong: 'הדוגמה לא ממשיכה כך — נסו אחרת · המחשה',
@@ -381,6 +393,15 @@ export const LINE42 = Object.freeze({   // ── build 43 ── (one short ins
   bow84first: 'החליקו לאט למטה — השתחוו עם הכהנים · מדות ב, ג · טיוטה',
   bow84: 'שלוש עשרה השתחוויות, כנגד שלוש עשרה הפרצות · מדות ב, ג · טיוטה',
   bow84done: 'השתחוויתם · מדות ב, ג · טיוטה',
+  // ── build 94 ── stage 06 rebuilt
+  lever94: 'לחצו על קצה המוט למטה, הרפו, והקישו מתחת לדלת · מוט ויתדות — המחשה',
+  lever94b: 'היתד נכנסה חצי וקפצה — הרווח היה קטן מדי · המחשה',
+  lever94c: 'הדלת לא עלתה מספיק — לחצו על המוט עד הסוף · המחשה',
+  lever94d: 'הדלת שקעה לפני היתד — הקישו מהר יותר אחרי שמרפים · המחשה',
+  hang94: 'גררו את הכנף מעל הגומה והחזיקו — היתדות יוצאות · ציר וגומה — המחשה',
+  steps94: 'גררו את האבן אל הקו, ושמעו את הצליל · "מקפות כחצי גרן עגלה" — מדות ב, ה · טיוטה',
+  steps94b: 'האבן נחה, אבל הצליל מזייף — המעלה עקומה מעט · המחשה',
+  steps94c: 'לא נחה — רחוקה מהקו; גררו שוב, והאטו לפני שמרפים · המחשה',
   lever: 'גררו את המוט למטה, ארוך — הדלת עולה מעט · מוט ויתדות — המחשה',   // ── build 49 ── stage 06's lines
   leverTop: 'בשיא — הקישו: יתד נכנסת מתחת לדלת · המחשה',
   leverShort: 'קצר מדי — גררו ארוך יותר, עד למטה · המחשה',
@@ -606,9 +627,11 @@ export function createHar42(o = {}) {
   const STG = o.stage === 'wall' ? 'wall' : o.stage === 'soreg' ? 'soreg' : o.stage === 'gates' ? 'gates' : o.stage === 'nashim' ? 'nashim' : o.stage === 'nikanor' ? 'nikanor' : o.stage === 'lishka' ? 'lishka' : o.stage === 'yesod' ? 'yesod' : o.stage === 'sovev' ? 'sovev' : o.stage === 'guf' ? 'guf' : o.stage === 'karnot' ? 'karnot' : o.stage === 'kiyor' ? 'kiyor' : o.stage === 'ulam' ? 'ulam' : 'har';   // ── build 60 ── (stage 13)   // ── build 59 ── (stage 12)   // ── build 55 ── (stage 08) ── build 57 ── (stage 10) ── build 58 ── (stage 11) (stage 08) ── /build 55 ──
   const R = STG === 'ulam' ? (S.ulam && typeof S.ulam === 'object' ? S.ulam : (S.ulam = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'kiyor' ? (S.kiyor && typeof S.kiyor === 'object' ? S.kiyor : (S.kiyor = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'karnot' ? (S.karnot && typeof S.karnot === 'object' ? S.karnot : (S.karnot = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'guf' ? (S.guf && typeof S.guf === 'object' ? S.guf : (S.guf = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'sovev' ? (S.sovev && typeof S.sovev === 'object' ? S.sovev : (S.sovev = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'yesod' ? (S.yesod && typeof S.yesod === 'object' ? S.yesod : (S.yesod = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'wall' ? (S.wall && typeof S.wall === 'object' ? S.wall : (S.wall = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'soreg' ? (S.soreg && typeof S.soreg === 'object' ? S.soreg : (S.soreg = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'gates' ? (S.gates && typeof S.gates === 'object' ? S.gates : (S.gates = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'nashim' ? (S.nashim && typeof S.nashim === 'object' ? S.nashim : (S.nashim = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'nikanor' ? (S.nikanor && typeof S.nikanor === 'object' ? S.nikanor : (S.nikanor = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'lishka' ? (S.lishka && typeof S.lishka === 'object' ? S.lishka : (S.lishka = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : S;
   const ON62 = STG === 'har' && MODE === 'stage' && qs('h62') !== '0';   // ── build 62 ── (the new stage 01 on the Mount itself; ?h62=0 the build-60 one)
-  const ON92 = MODE === 'stage' && STG === 'gates' && qs('h92') !== '0';   // ── build 92 ── (stage 04 rebuilt in the world — gates92.js; ?h92=0 as in 91)
+  const ON92 = MODE === 'stage' && STG === 'gates' && qs('h92') !== '0';
+  const ON94 = MODE === 'stage' && STG === 'nikanor' && qs('h94') === '1';   // ── build 94 ── (stage 06 rebuilt in the world — nikanor94.js; ?h94=0 as in 93)
+  const ON93 = MODE === 'stage' && STG === 'nashim' && qs('h93') !== '0';   // ── build 93 ── (stage 05 rebuilt in the world — gallery93.js; ?h93=0 as in 92)   // ── build 92 ── (stage 04 rebuilt in the world — gates92.js; ?h92=0 as in 91)
   const parts0 = () => {   // (each stage's parts — build 62: stage 01's new order in front of them)
-    const PARTS = STG === 'sovev' ? PARTS56 : STG === 'yesod' ? PARTS55 : STG === 'wall' ? PARTS45 : STG === 'soreg' ? PARTS46 : STG === 'gates' ? (ON92 ? PARTS92 : PARTS47) : STG === 'nashim' ? PARTS48 : STG === 'nikanor' ? PARTS49 : STG === 'lishka' ? PARTS50 : STG === 'guf' ? PARTS57 : STG === 'karnot' ? PARTS58 : STG === 'kiyor' ? PARTS59 : STG === 'ulam' ? PARTS60 : PARTS42;
+    const PARTS = STG === 'sovev' ? PARTS56 : STG === 'yesod' ? PARTS55 : STG === 'wall' ? PARTS45 : STG === 'soreg' ? PARTS46 : STG === 'gates' ? (ON92 ? PARTS92 : PARTS47) : STG === 'nashim' ? (ON93 ? PARTS93 : PARTS48) : STG === 'nikanor' ? (ON94 ? PARTS94 : PARTS49) : STG === 'lishka' ? PARTS50 : STG === 'guf' ? PARTS57 : STG === 'karnot' ? PARTS58 : STG === 'kiyor' ? PARTS59 : STG === 'ulam' ? PARTS60 : PARTS42;
     return PARTS;
   };
   const PARTS = ON62 ? PARTS62 : parts0();
@@ -681,7 +704,7 @@ export function createHar42(o = {}) {
   const W = () => (typeof innerWidth === 'number' ? innerWidth : 844), H = () => (typeof innerHeight === 'number' ? innerHeight : 390);
   const now = () => performance.now() / 1000;
   // the places: around the Mount's work corner (the old stage's banker spot) — the rope's pegs, the wheel, the rocks, the course, the stone's run, the paving, the parapet
-  const base = (() => { const w = STG === 'wall' ? { x: -67.5, z: -100 } : STG === 'soreg' ? { x: -96, z: -100 } : STG === 'gates' ? { x: -38, z: -86 } : STG === 'nashim' ? { x: 58, z: -56 } : STG === 'nikanor' ? { x: 40, z: 0 } : STG === 'lishka' ? { x: -120, z: 40 } : STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam' ? { x: -12, z: -27 } : o.spot ? o.spot() : null, b0 = w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; return MODE === 'stage' ? b0 : { x: b0.x - 85, z: b0.z }; })();   // (build 44: the yard and the test on the finished plaza, 85 amot in from the Mount's east wall — at the old corner the wall stood between the camera and him)
+  const base = (() => { const w = STG === 'wall' ? { x: -67.5, z: -100 } : STG === 'soreg' ? { x: -96, z: -100 } : STG === 'gates' ? { x: -38, z: -86 } : STG === 'nashim' ? (ON93 ? { x: 66, z: -42 } : { x: 58, z: -56 }) : STG === 'nikanor' ? { x: 40, z: 0 } : STG === 'lishka' ? { x: -120, z: 40 } : STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam' ? { x: -12, z: -27 } : o.spot ? o.spot() : null, b0 = w && Number.isFinite(w.x) ? { x: w.x, z: w.z } : { x: -60, z: 60 }; return MODE === 'stage' ? b0 : { x: b0.x - 85, z: b0.z }; })();   // (build 44: the yard and the test on the finished plaza, 85 amot in from the Mount's east wall — at the old corner the wall stood between the camera and him)
   const P = (dx, dz) => ({ x: base.x + dx, z: base.z + dz, get y() { return gy(this.x, this.z); } });
   const INSC72 = 'לבית התקיעה';   // ── build 72 ── (the inscription's words — ב. מזר, 1968; the stone: the Israel Museum)
   const PL = { peg0: P(-14, 4), peg1: P(16, 4), wheel: P(10, -10), stone0: P(16, -10), rock: [P(-12, -14), P(-24, -6), P(-30, 8)], course: P(2, 16), roll0: P(-20, 24), roll1: P(4, 24), pave: P(18, 26), trace: P(30, 14), pulley: P(-2, -18), pstone: P(1, -18) };
@@ -748,6 +771,8 @@ export function createHar42(o = {}) {
   if (STG === 'lishka') { const F16 = (x, z) => ({ x, y: 16, z }); Object.assign(PL, { gz: F16(-81, 64), gl: F16(-140, 56), mk: F16(-160, -70.5) }); Object.assign(STAND, { compass: F16(-79.5, 62.5), benches: F16(-79.5, 62.5), hub: F16(-134, 48), wheel: F16(-134, 48), dome: F16(-150, -55) }); }
   if (STG === 'nikanor') { Object.assign(PL, { ng: { x: 10.4, y: 13.5, z: 0 }, arc: { x: 10, y: 6, z: 0 } }); Object.assign(STAND, { lever: { x: 13.6, y: 11.5, z: 8.6 }, hang: { x: 13.6, y: 11.5, z: 8.6 }, steps: { x: 26, get y() { return gy(26, 15); }, z: 15 } }); }
   if (STG === 'gates') { Object.assign(PL, { gate: { x: -38, get y() { return gy(-38, -80); }, z: -80 } }); Object.assign(STAND, { leaf: P(-11, 0.5), leaf7: P(11, 0.5), names: P(0, -2) }); }   // ── build 54 ── (the lintel's stand: the getter above — the left third — for this gate too) ── /build 54 ──
+  if (ON94) { const at = (x, z, y) => ({ x, y, z }); Object.assign(STAND, { lever2: at(13.6, -8.6, 11.5), hang2: at(13.6, -8.6, 11.5), steps2: STAND.steps, steps3: STAND.steps }); }   // ── build 94 ──
+  if (ON93) { const at = (x, z) => ({ x, z, get y() { return gy(x, z); } }); Object.assign(STAND, { wood: at(118.4, -18.6), beams: at(65.5, -52.5), beams2: at(76.5, -52.5), beams3: at(65.5, -52.5), pegs: at(57, -52.5), pegs2: at(76.5, -52.5), corner: at(54.5, 52.5) }); }   // ── build 93 ── (before the trestle; on the court before the scaffold)
   if (ON92) { const sp = (i2, dx) => { const g = F92.GATES92.gates[i2], o2 = g.face > 0 ? 1 : -1; return { x: g.x + dx * -o2, z: g.face + o2 * 3.5, get y() { return gy(this.x, this.z); } }; }; Object.assign(STAND, { lintel: sp(0, 11), lintel2: sp(1, 11), lintel3: sp(2, 11), leaf: sp(0, 12), leaf7: sp(1, 12) }); }   // ── build 92 ── (beside each gate's west crane, before its face)
   // ── build 55 ── stage 08's places: the inspection bench by the altar's north-east corner (the carts from בית כרם unload there), the
   // first course on the altar's north side, the altar itself (its top view); in the test (and the yard): the bench on the plaza ── /build 55 ──
@@ -965,6 +990,8 @@ export function createHar42(o = {}) {
     if (STG === 'wall' || MODE === 'yard' || (MODE === 'test' && o.test === 60)) props45(add);   // ── build 60 ── (and the test before chapter ד׳: its pulley)
     if (STG === 'soreg' || MODE === 'yard') props46(add);   // ── build 46 ──
     if (STG === 'gates' || MODE === 'yard') props47(add);   // ── build 47 ──
+    if (ON93) { props93(add); hole93(true); }
+    if (ON94) props94(add);   // ── build 94 ──   // ── build 93 ──
     if (ON92) { props92(add); try { if (stages.hideWorkers) stages.hideWorkers(F92.GATES92.gates.map((g) => [g.x - 16, g.x + 16, Math.min(g.face, g.face + (g.face > 0 ? 1 : -1) * 6) - 0.5, Math.max(g.face, g.face + (g.face > 0 ? 1 : -1) * 6) + 0.5])); } catch (e) { /* */ } }   // ── build 92 ── (the site's masons off the gates' scaffold: the game draws those faces — they stood in the air)
     if (STG === 'nashim' || MODE === 'yard' || MODE === 'test') props48(add);   // ── build 48 ── (build 50: and the test's — its log checks)
     if (STG === 'nikanor' || MODE === 'yard') props49(add);   // ── build 49 ──
@@ -1362,6 +1389,7 @@ export function createHar42(o = {}) {
   const cq = { p: new THREE.Vector3(), t: new THREE.Vector3() };
   let camInit = false;
   function camTo(p, t, k) {
+    if (globalThis.__CAMSNAP) k = 1;   // ── build 93 ── (a test hook: the slow test browser sees the act's own frame at once)
     if (!camInit) { cq.p.set(...p); cq.t.set(...t); camInit = true; }
     else { cq.p.x += (p[0] - cq.p.x) * k; cq.p.y += (p[1] - cq.p.y) * k; cq.p.z += (p[2] - cq.p.z) * k; cq.t.x += (t[0] - cq.t.x) * k; cq.t.y += (t[1] - cq.t.y) * k; cq.t.z += (t[2] - cq.t.z) * k; }
     try { view.camSet(cq.p.x, cq.p.y, cq.p.z, cq.t.x, cq.t.y, cq.t.z); const c = camera(); if (c) { c.lookAt(cq.t); c.updateMatrixWorld(); } } catch (e) { /* */ }   // (the matrices now: the marks and the touch ring projected this frame match the picture — without it they lagged a camera step behind)
@@ -3137,7 +3165,7 @@ export function createHar42(o = {}) {
     lift: {
       begin() { const L = famL('lift'); if (ON91 && st.props.c91) { st.job = mkLift91(L); return; } st.job = mkLift(L); line(LINE42.lift, `רמה ${L}`); },
     },
-    corner: { begin() { st.job = STG === 'nashim' && MODE === 'stage' ? mkCorner48() : mkCorner(); } },   // ── build 49 ── (one key: build 48's second 'corner' overrode stage 01's crowbar — in stage 01, the test and the yard)
+    corner: { begin() { st.job = STG === 'nashim' && MODE === 'stage' ? (ON93 ? mkCorner93() : mkCorner48()) : mkCorner(); } },   // ── build 49 ── (one key: build 48's second 'corner' overrode stage 01's crowbar — in stage 01, the test and the yard)
     lattice0: { begin() { st.job = ON84 ? mkLattice84(0) : mkLattice(0); } }, lattice1: { begin() { st.job = ON84 ? mkLattice84(1) : mkLattice(1); } }, lattice2: { begin() { st.job = ON84 ? mkLattice84(2) : mkLattice(2); } },   // ── build 46 ── stage 03's parts
     lattice: { begin() { st.job = mkLattice(Math.min(2, Math.max(0, (Lover || 1) - 1))); } },   // (the yard: the panel by the level)
     warn: { begin() { st.job = ON84 ? mkWarn84() : mkWarn(); } },
@@ -3146,9 +3174,9 @@ export function createHar42(o = {}) {
     leaf: { begin() { st.job = ON92 ? mkLeaf92(false) : mkLeaf(0, false); } },
     leaf7: { begin() { st.job = ON92 ? mkLeaf92(true) : mkLeaf(1, true); } },
     names: { begin() { st.job = mkNames(); } },
-    wood: { begin() { st.job = mkWood(); } },   // ── build 48 ── stage 05's parts
-    beams: { begin() { st.job = mkBeams('N'); } },
-    pegs: { begin() { st.job = mkPegs(3, 'N'); } },
+    wood: { begin() { st.job = ON93 ? mkWood93() : mkWood(); } },   // ── build 48 ── stage 05's parts
+    beams: { begin() { st.job = ON93 ? mkBeam93(0) : mkBeams('N'); } }, beams2: { begin() { st.job = mkBeam93(1); } }, beams3: { begin() { st.job = mkBeam93(2); } },   // ── build 93 ──
+    pegs: { begin() { st.job = ON93 ? mkPeg93(0) : mkPegs(3, 'N'); } }, pegs2: { begin() { st.job = mkPeg93(1); } },   // ── build 93 ──
     walk: { begin() { st.job = mkWalk48(); } },
     voyage: { begin() { st.job = mkVoyage49(); } },   // ── build 49 ── stage 06's parts
     compass: { begin() { st.job = mkCompass50(); } },   // ── build 50 ── stage 07's parts
@@ -3158,9 +3186,9 @@ export function createHar42(o = {}) {
     dome: { begin() { st.job = mkDome50(); } },
     arch: { begin() { st.job = mkDome50('arch'); } },   // (the yard's)
     log2: { begin() { st.job = mkWood(2); } },   // (the test's second log check)
-    lever: { begin() { st.job = mkLever49(); } },
-    hang: { begin() { st.job = mkHang49(); } },
-    steps: { begin() { st.job = mkSteps49(); } },
+    lever: { begin() { st.job = ON94 ? mkLever94(0) : mkLever49(); } }, lever2: { begin() { st.job = mkLever94(1); } },   // ── build 94 ──
+    hang: { begin() { st.job = ON94 ? mkHang94(0) : mkHang49(); } }, hang2: { begin() { st.job = mkHang94(1); } },
+    steps: { begin() { st.job = ON94 ? mkSteps94(0) : mkSteps49(); } }, steps2: { begin() { st.job = mkSteps94(1); } }, steps3: { begin() { st.job = mkSteps94(2); } },
     step: { begin() { st.job = mkSteps49(5, 'step'); } },   // (the yard's: five steps)
     log: { begin() { st.job = mkWood(3); } }, beam: { begin() { st.job = mkBeams('N', null, MODE === 'test' && o.test === 60); } },   /* ── build 60 ── (the test's: one beam) */ peg: { begin() { st.job = mkPegs(1, 'N'); } },   // (the yard's)
     line: { begin() { st.job = mkLine(); } },   // ── build 45 ── stage 02's parts
@@ -3506,7 +3534,7 @@ export function createHar42(o = {}) {
   const Y84 = () => (Array.isArray(R.y84) ? R.y84 : (R.y84 = []));
   const sum84 = () => F84.yours84(Y84());
   function chip84() {
-    if (!(ON84 || ON92) || !st.ui.root) return;
+    if (!(ON84 || ON92 || ON93 || ON94) || !st.ui.root) return;
     let c = st.ui.y84; if (!c || !c.isConnected) { c = el('h84-yours'); st.ui.root.appendChild(c); st.ui.y84 = c; }
     const t = `האבנים שלך: \u2066${F84.yoursHe84(sum84())}\u2069`;   /* (LRI…PDI: "2½" stays 2½ in the RTL line, not ½2) */ if (c.textContent !== t) { c.textContent = t; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
   }
@@ -4984,6 +5012,484 @@ export function createHar42(o = {}) {
     };
   }
   // ── /build 92 ──
+  /* ── build 93 ── STAGE 05 REBUILT AS PHYSICAL ACTS (gallery93.js; the owner, 3.11 22:12: "תמשיך ל 4-6"): the chamber of wood's log on
+   * its trestle — its bark peeled along the grain by his finger, the flaw on the log itself, the log rolled across and sent to the altar's
+   * pile or the heap; the gallery's beams carried by two of the crew along a scaffold to the court's north wall, his finger aiming the far
+   * end at its socket (they stand while he aims, walk when he lets go — the far end wanders with their steps); the peg driven by the
+   * mallet in a kohen's hand on the real joint, the higher he raises it the harder; the corner on the south wall, his alone. ── /build 93 ── */
+  const FACE93 = { N: -67.5, S: 67.5 };
+  const yaw93 = (p) => (ON93 && p && p.z < -30 ? Math.PI : 0);   // (at the north wall he faces it: the camera behind him in the court, not in the scaffold — 0 put it against the wall)   // (the court's north and south walls: their inner faces — measured in the world, 3.11)
+  function hole93(on) { try { if (on) { XRAY.uHoleN.value.set(59.5, 59.5, 59.5, 13.4); XRAY.uHoleN2.value.set(62.6, 67.42, 16.9, 22.5); } else XRAY.uHoleN.value.w = 0; } catch (e) { /* */ } }   // (the model's own gallery on his stretches not drawn: his beams and planks are it)
+  const SOCK93 = [-11, -5.5, 0, 5.5, 11], MINE93 = [0, 4, 2], BEAM93P = ['beams', 'beams2', 'beams3'], PEG93P = ['pegs', 'pegs2'], PEGAT93 = [0, 4];   // (his beams: the two corners, then the middle; the crews' the others — the second after his second, the fourth after his third; his pegs at the corner beams)
+  const wall93 = (side) => { const W2 = side === 'S' ? PL.wallS : PL.wallY, sz = side === 'S' ? -1 : 1, y0 = W2.y; return { side, x: W2.x, y0, z: (side === 'S' ? FACE93.S : FACE93.N), sz, ys: y0 + 11.5, deck: y0 + 10.1 }; };
+  function seat93() {
+    const G = st.props.g93; if (!G) return; const d = D63(), has = (p) => d.includes(p);
+    const N = G.N, Sg = G.S;
+    MINE93.forEach((i, k) => { N.beams[i].visible = has(BEAM93P[k]); });
+    N.beams[1].visible = has('beams2'); N.beams[3].visible = has('beams3');
+    N.planks.forEach((p, k) => { p.visible = has('beams3') || (has('beams') && k === 0) || (has('beams2') && k === 3); });
+    PEGAT93.forEach((i, k) => { if (N.pegs[k]) N.pegs[k].visible = has(PEG93P[k]); });
+    Sg.beams.forEach((b, i) => { b.visible = i > 0 || has('corner'); }); Sg.planks.forEach((p, k) => { p.visible = k > 0 || has('corner'); }); if (Sg.pegs[0]) Sg.pegs[0].visible = has('corner');
+  }
+  /** a canvas sign on a stake (the piles' names) */
+  function sign93(add, text, x, y, z, col) {
+    if (!doc) return null; const cv = doc.createElement('canvas'); cv.width = 256; cv.height = 96; const c = cv.getContext('2d');
+    c.fillStyle = '#E9DCC0'; c.fillRect(0, 0, 256, 96); c.strokeStyle = col; c.lineWidth = 10; c.strokeRect(5, 5, 246, 86); c.fillStyle = '#3A2A18'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.direction = 'rtl'; c.fillText(text, 128, 50);
+    const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; const g = new THREE.Group(), pl = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.64), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.9 })); pl.position.y = 1.55; g.add(pl);
+    const st2 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.4, 0.12), mat('#6E4E30', 0.9)); st2.position.y = 0.7; g.add(st2); return add(g, x, y, z);
+  }
+  /** the log's bark as a canvas (x: round the log, four faces of 256; y: along it, left end at the top): the bark, its peeled strips, the flaw */
+  function paint93(L9) {
+    const Gp = st.props.w93; if (!Gp || !Gp.cv) return; const c = Gp.cv.getContext('2d'), k = L9.state(), B = BARK48[k.species] || BARK48.fig, W9 = 1024, H9 = 512, sh = H9 / F93.LOG93.segs;
+    c.fillStyle = B[0]; c.fillRect(0, 0, W9, H9);
+    c.strokeStyle = B[1]; for (let i = 0; i < 70; i++) { const x = (i * 97.3) % W9, w = 1.5 + (i % 4); c.lineWidth = w; c.beginPath(); c.moveTo(x, 0); for (let y = 0; y <= H9; y += 32) c.lineTo(x + Math.sin(y * 0.03 + i) * (2 + B[3] * 3), y); c.stroke(); }   // (the bark's furrows along the log)
+    if (B[2] > 6) { c.fillStyle = B[1]; for (let i = 0; i < B[2] * 6; i++) { const x = (i * 151.7) % W9, y = (i * 83.1) % H9; c.fillRect(x, y, 10 + (i % 5) * 4, 3); } }   // (rough barks: their cracks across)
+    for (let f = 0; f < 4; f++) for (let s = 0; s < F93.LOG93.segs; s++) if (k.strips[f][s]) {   // the peeled strips: pale wood with its fine grain
+      c.fillStyle = '#E7CFA0'; c.fillRect(f * 256, s * sh, 256, sh + 0.5); c.strokeStyle = '#C9A874'; c.lineWidth = 1.2; for (let g = 0; g < 14; g++) { const x = f * 256 + 8 + g * 18; c.beginPath(); c.moveTo(x, s * sh); c.lineTo(x + Math.sin(g + s) * 3, (s + 1) * sh); c.stroke(); }
+      c.strokeStyle = B[1]; c.lineWidth = 3; c.beginPath(); c.moveTo(f * 256, s * sh); c.lineTo(f * 256 + 256, s * sh); c.moveTo(f * 256, (s + 1) * sh); c.lineTo(f * 256 + 256, (s + 1) * sh); c.stroke();   // (the torn bark's edges)
+    }
+    const A = k.at, T9 = L9.T, sz = A.size * 34;
+    const draw = (f) => {
+      const ax = f * 256 + A.v * 256, ay = A.u * H9, peeled = L9.visible(f);
+      if (k.type === 'holes') for (let i = 0; i < 7; i++) { const a2 = A.turn + i * 0.9, r2 = sz * (0.3 + (i % 3) * 0.35), x = ax + Math.cos(a2) * r2 * 1.6, y = ay + Math.sin(a2) * r2; c.fillStyle = 'rgba(232,214,168,.7)'; c.beginPath(); c.arc(x, y, Math.max(5, sz * 0.26), 0, 7); c.fill(); c.fillStyle = '#1E140C'; c.beginPath(); c.arc(x, y, Math.max(3, sz * 0.14), 0, 7); c.fill(); }
+      if (k.type === 'gallery') {
+        if (peeled) { c.strokeStyle = '#5B3A1C'; c.lineWidth = Math.max(4, sz * 0.22); c.lineCap = 'round'; for (let i = 0; i < 3; i++) { c.beginPath(); const x0 = ax - sz * 0.9 + i * sz * 0.9; c.moveTo(x0, ay - sz * 2); for (let t = 0; t <= 8; t++) c.lineTo(x0 + Math.sin(t * 1.3 + i) * sz * 0.35, ay - sz * 2 + t * sz * 0.5); c.stroke(); } }
+        else for (let i = 0; i < 4; i++) { const x = ax + (i - 1.5) * sz * 0.5, y = ay + Math.sin(i * 2.1) * sz * 0.6; c.fillStyle = 'rgba(232,214,168,.75)'; c.beginPath(); c.arc(x, y, Math.max(4, sz * 0.16), 0, 7); c.fill(); c.fillStyle = '#1E140C'; c.beginPath(); c.arc(x, y, Math.max(2, sz * 0.08), 0, 7); c.fill(); }   // (the worm's exit holes in the bark over its galleries: small — peel there)
+      }
+      if (k.type === 'knot') { c.fillStyle = '#4A3524'; c.beginPath(); c.ellipse(ax, ay, sz * 0.7, sz * 1.1, 0, 0, 7); c.fill(); c.strokeStyle = '#7A5C40'; c.lineWidth = 3; c.beginPath(); c.ellipse(ax, ay, sz * 0.42, sz * 0.7, 0, 0, 7); c.stroke(); c.fillStyle = '#2A1C10'; c.beginPath(); c.ellipse(ax, ay, sz * 0.2, sz * 0.3, 0, 0, 7); c.fill(); }
+      if (k.type === 'scar') { c.fillStyle = '#B9A586'; c.strokeStyle = '#8A7458'; c.lineWidth = 2; c.beginPath(); c.moveTo(ax, ay - sz * 1.8); c.quadraticCurveTo(ax + sz * 1.1, ay, ax, ay + sz * 1.8); c.quadraticCurveTo(ax - sz * 1.1, ay, ax, ay - sz * 1.8); c.fill(); c.stroke(); }
+      if (k.type === 'drop' && peeled) { c.fillStyle = '#F4F1E6'; c.strokeStyle = '#9A988C'; c.lineWidth = 2; c.beginPath(); c.ellipse(ax, ay, sz * 0.9, sz * 0.6, 0.4, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#5C5A50'; c.beginPath(); c.arc(ax + sz * 0.2, ay, sz * 0.18, 0, 7); c.fill(); }
+    };
+    if (A.face >= 0) draw(A.face);
+    if (T9.species && (k.species === 'olive' || k.species === 'vine')) { c.strokeStyle = k.species === 'olive' ? '#4E4A38' : '#3E2A18'; c.lineWidth = 3; for (let i = 0; i < 26; i++) { const x = (i * 211.3) % W9, y = (i * 61.7) % H9; c.beginPath(); c.moveTo(x, y); c.bezierCurveTo(x + 14, y + 20, x - 10, y + 40, x + 6, y + 64); c.stroke(); } }   // (the olive's twisted grain, the vine's stringy bark: on every face)
+    Gp.tex.needsUpdate = true;
+  }
+  function props93(add) {
+    const Tw = ON88 ? P88w.wood88('a', '#FFFFFF') : mat('#B08A5E', 0.88), Td = ON88 ? P88w.wood88('a', '#D8C6AE') : mat('#8E6A44', 0.9), BMt = ON88 ? P88w.wood88('a', '#F4E6D2') : mat('#A07A50', 0.85), dark = mat('#2A2018', 0.95), PG = mat('#D8C098', 0.8);
+    const box = (w, h, d, m, x, y, z) => { const b = new THREE.Mesh(ON88 && m.userData.wood88 ? P88w.grain88(new THREE.BoxGeometry(w, h, d), Math.max(w, h, d)) : new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.castShadow = true; b.receiveShadow = false; return b; };   // (not darkened by the model's own gallery, hidden on his stretch but still casting)
+    st.props.g93 = {};
+    for (const side of ['N', 'S']) {
+      const w = wall93(side), sz = w.sz, g = new THREE.Group(), Z = (dz) => w.z + sz * dz, his = side === 'N';
+      const x0 = w.x - 15.5, x1 = w.x + 15.5, xm = w.x;
+      if (his) {   // the scaffold: a deck at the sockets' foot, out 13 amot from the wall; posts, ledgers, a rail, braces, a ladder
+        for (let k = 0; k < 9; k++) g.add(box(31, 0.22, 1.24, k % 2 ? Tw : Td, xm, w.deck - 0.11, Z(1.6 + k * 1.3)));
+        for (const xx of [-15, -10, -5, 0, 5, 10, 15]) for (const dz of [1.1, 6.5, 12]) { const hh = w.deck + (dz > 11 ? 1.25 : 0) - w.y0; g.add(box(0.36, hh, 0.36, Td, xm + xx, w.y0 + hh / 2, Z(dz))); }
+        for (const dz of [1.1, 6.5, 12]) g.add(box(31, 0.34, 0.34, Td, xm, w.deck - 0.4, Z(dz)), box(31, 0.3, 0.3, Td, xm, w.y0 + 4.2, Z(dz)));
+        g.add(box(31, 0.16, 0.16, Tw, xm, w.deck + 1.15, Z(12)));
+        for (const xx of [-12.5, -2.5, 7.5]) { const a = new THREE.Vector3(xm + xx - 2.5, w.y0 + 0.3, Z(12.2)), b = new THREE.Vector3(xm + xx + 2.5, w.deck - 0.5, Z(12.2)), L = a.distanceTo(b), br = box(0.2, L, 0.2, Td, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2); br.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize()); g.add(br); }
+        for (const dx of [-0.55, 0.55]) { const r = box(0.16, w.deck - w.y0 + 1.2, 0.16, Td, x1 + 1.4 + dx, (w.deck + w.y0) / 2 + 0.6, Z(11)); r.rotation.x = sz * 0.12; g.add(r); }
+        for (let y = w.y0 + 0.8; y < w.deck; y += 0.9) g.add(box(1.1, 0.12, 0.12, Td, x1 + 1.4, y, Z(11) + sz * (y - (w.deck + w.y0) / 2) * 0.12));
+      }
+      for (let i = 0; i < 5; i++) g.add(box(1.4, 1.75, 0.25, dark, xm + SOCK93[i], w.ys, Z(0.08)));   // the sockets in the wall
+      merge92(g); g.traverse((q) => { if (q.isMesh) q.receiveShadow = false; }); add(g, 0, 0, 0);
+      const beams = SOCK93.map((sx) => { const b = box(1.1, 1.4, 6, BMt, xm + sx, w.ys, Z(4.5 - 3)); b.visible = false; add(b, b.position.x, b.position.y, b.position.z); return b; });   // (set: 1.5 in the socket, 4.5 out)
+      const planks = [0, 1, 2, 3].map((k) => { const p = box(5.5, 0.3, 5.4, Tw, xm + SOCK93[k] + 2.75, w.ys + 0.85, Z(2.8)); p.visible = false; add(p, p.position.x, p.position.y, p.position.z); return p; });
+      const pegs = (his ? PEGAT93 : [0]).map((i) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.5, 10), PG); p.visible = false; return add(p, xm + SOCK93[i] + (i === 0 ? 0.3 : -0.3), w.ys + 1.0, Z(3.4)); });
+      const carry = box(1.1, 1.4, F93.BEAM93.len, BMt, 0, 0, 0); carry.visible = false; add(carry, 0, 0, 0);
+      st.props.g93[side] = { w, beams, planks, pegs, carry, men: [] };
+    }
+    // the chamber of wood: the log on its trestle, the altar's pile on its right, the heap on its left (as the spec's rule: כשר ➡, פסול ⬅)
+    const T = PL.trestle, t0 = T.y, w93 = st.props.w93 = {};
+    if (doc) { w93.cv = doc.createElement('canvas'); w93.cv.width = 1024; w93.cv.height = 512; w93.tex = new THREE.CanvasTexture(w93.cv); w93.tex.colorSpace = THREE.SRGBColorSpace; w93.tex.anisotropy = 4; }
+    const endM = mat('#D8BC8A', 0.85), barkM = new THREE.MeshStandardMaterial({ map: w93.tex || null, color: w93.tex ? '#FFFFFF' : '#8B6D50', roughness: 0.95 });
+    w93.log = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 5.2, 48, 1), [barkM, endM, endM]); w93.log.rotation.z = Math.PI / 2; w93.log.castShadow = true; add(w93.log, T.x, t0 + 1.95, T.z);
+    if (st.props.log48) st.props.log48.visible = false;
+    const pile = (x, z, n, tidy) => { const g = new THREE.Group(); for (let i = 0; i < n; i++) { const row = tidy ? Math.floor(i / 4) : 0, l = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.45, 4.6, 10), mat(tidy ? '#8B6D50' : '#7C6650', 0.95)); l.rotation.z = Math.PI / 2; if (!tidy) l.rotation.y = (i * 0.7) % 1.2 - 0.6; l.position.set(tidy ? 0 : (i % 3) * 0.3, 0.45 + row * 0.8, tidy ? (i % 4) * 0.9 - 1.35 + (row % 2) * 0.45 : (i - n / 2) * 0.75); g.add(l); } merge92(g); return add(g, x, gy(x, z), z); };
+    w93.alt = { x: T.x + 5.2, z: T.z + 2.6 }; w93.out = { x: T.x - 5.2, z: T.z + 2.6 };
+    w93.pileA = pile(w93.alt.x, w93.alt.z, 7, true); w93.pileO = pile(w93.out.x, w93.out.z, 3, false);
+    sign93(add, 'למערכה', w93.alt.x, gy(w93.alt.x, w93.alt.z), w93.alt.z + 2.3, '#5A9646'); sign93(add, 'לא למזבח', w93.out.x, gy(w93.out.x, w93.out.z), w93.out.z + 2.3, '#AA4632');
+    seat93();
+  }
+  /** the carriers (two of the crew on the deck) and the kohen with the mallet: people88's figures */
+  function men93(Gp, n) { const F2 = figs84(); if (!F2) return false; while (Gp.men.length < n) { const m = F2.make({ tunic: Gp.men.length ? '#9C8466' : '#B49B76', cloth: '#6B4A2B' }); if (!m) return false; Gp.men.push(m); } return true; }
+  const ppa93 = (x, y, z) => { const a = proj(x, y, z), b = proj(x + 1, y, z); return a && b ? Math.max(4, Math.abs(b.x - a.x)) : 20; };
+  /** WOOD: the logs one by one on the trestle */
+  function mkWood93() {
+    const L = Math.max(1, Math.min(3, famL('inspect'))), n = F93.LOG93.n[L], B = F.createBag48(S.bag48 || null), Gp = st.props.w93, T = PL.trestle, t0 = T.y;
+    const book = S.book48 || (S.book48 = {}); const res = []; R.logSeq = R.logSeq || [];
+    let i = 0, J = null, endT = -1, wait = -1, drag = null, roll = 0, logT = 0, fly = null, seenStick = 0;
+    try { stages.hero.setPos(T.x - 0.8, T.z - 2.4, 0); } catch (e) { /* */ }   // (behind the trestle, facing it and the camera: never between)
+    const camP = () => { const asp = W() / Math.max(1, H()), d = Math.max(7.2, 3.6 / (0.47 * Math.max(0.35, asp))); return { p: [T.x, t0 + 1.95 + d * 0.55, T.z + d * 0.85], t: [T.x, t0 + 1.6, T.z + 0.6] }; };
+    const beta = () => { const v = camP(); return Math.atan2(v.p[1] - (t0 + 1.95), v.p[2] - T.z); };
+    const rollFor = (f) => (f + 0.5) * Math.PI / 2 - beta();
+    const next = () => { const t = B.draw(); S.bag48 = B.state(); R.logSeq.push(t); save42(S); J = F93.createLog93(t, Math.random, L); logT = 0; seenStick = 0; Gp.log.position.set(T.x, t0 + 1.95, T.z); Gp.log.visible = true; roll = rollFor(0); Gp.log.rotation.x = roll; paint93(J); line(LINE42.wood93, `קורה ${i + 1} מתוך ${n} · רמה ${L}`); };
+    next();
+    const ends = () => { const a = proj(T.x - 2.6, t0 + 1.95, T.z), b = proj(T.x + 2.6, t0 + 1.95, T.z); return a && b ? [a, b] : null; };
+    const onLog = (a) => { const E = ends(); if (!E) return false; const [A, B2] = E, L2 = (B2.x - A.x) ** 2 + (B2.y - A.y) ** 2 || 1, t = ((a.x - A.x) * (B2.x - A.x) + (a.y - A.y) * (B2.y - A.y)) / L2, px = A.x + t * (B2.x - A.x), py = A.y + t * (B2.y - A.y), r = ppa93(T.x, t0 + 1.95, T.z) * 1.1; return t > -0.06 && t < 1.06 && Math.hypot(a.x - px, a.y - py) < Math.max(26, r); };
+    const uAt = (a) => { const E = ends(); if (!E) return 0.5; const [A, B2] = E, L2 = (B2.x - A.x) ** 2 + (B2.y - A.y) ** 2 || 1; return Math.max(0, Math.min(1, ((a.x - A.x) * (B2.x - A.x) + (a.y - A.y) * (B2.y - A.y)) / L2)); };
+    const angOf = (dx, dy) => { const E = ends(); if (!E) return 0; const [A, B2] = E; return (Math.atan2(dx * (B2.y - A.y) - dy * (B2.x - A.x), dx * (B2.x - A.x) + dy * (B2.y - A.y)) * 180) / Math.PI; };
+    const pileAt = (a) => { for (const [k2, P] of [[true, Gp.alt], [false, Gp.out]]) { const q = proj(P.x, gy(P.x, P.z) + 1, P.z); if (q && Math.hypot(a.x - q.x, a.y - q.y) < Math.max(70, ppa93(P.x, gy(P.x, P.z) + 1, P.z) * 2.6)) return k2; } return null; };
+    const decide = (toAltar, px) => {
+      const r = J.decide(toAltar, px); if (r === 'tap' || r === 'done') return; const s2 = J.state(), T2 = F.WOOD48[s2.type]; res.push(r);
+      buzz42(r === 'ok' ? 'settle' : 'retry'); o.sound && o.sound(r === 'ok' ? (toAltar ? 'wood' : 'thud') : 'grind');
+      const isNew = !book[s2.type]; if (isNew) book[s2.type] = { t: Date.now() }; save42(S);
+      line(`${r === 'bad' ? 'הוסרה מן המערכה: ' : ''}${T2.he} — ${T2.bad ? 'לא למזבח' : 'כשר למערכה'} · ${T2.why}`, `${isNew ? '📖 עמוד חדש בספר הפגימות · ' : ''}${r === 'ok' ? 'נכון' : r === 'waste' ? 'נפסלה קורה כשרה — חצי' : 'קורה פסולה הלכה למערכה'}`);
+      o.emit && o.emit('h48log', { type: s2.type, r }); const P = toAltar ? Gp.alt : Gp.out; fly = { t: 0, a: Gp.log.position.clone(), b: new THREE.Vector3(P.x, gy(P.x, P.z) + (toAltar ? 2.2 : 1.2), P.z) }; wait = 2.4;
+    };
+    const finish = () => {
+      const q = res.reduce((a2, r) => a2 + F93.logQ93(r), 0) / Math.max(1, res.length), v = q >= 0.99 ? 1 : q >= 0.5 ? 0.5 : 0, at = proj(T.x, t0 + 3.5, T.z);
+      const bad = res.filter((r) => r === 'bad').length, waste = res.filter((r) => r === 'waste').length, extra = bad ? `${bad} פסולות הלכו למערכה` : waste ? `${waste} כשרות נפסלו` : 'כל הקורות במקומן';
+      Y84().push(['wood', 0, v]); save42(S); chip84(); toast84(rate30(q >= 0.99 ? 1 : q >= 0.5 ? 0.5 : 0), at, extra); grade('wood', q, null, true); endT = 2.2;
+    };
+    return {
+      acting: true, fullPad: true, kind: 'wood93', get J() { return J; }, n, res: () => res, ownView: () => true, view: camP, onLog, pileAt, uAt, ends, piles: () => [Gp.alt, Gp.out].map((P) => proj(P.x, gy(P.x, P.z) + 1, P.z)),
+      down(a) { if (!J || wait >= 0 || endT >= 0) return; drag = { on: onLog(a), x: a.x, y: a.y, u: uAt(a), peeled: false }; },
+      move(a) {
+        if (!drag || !drag.on || !J || wait >= 0) return; const dx = a.x - drag.x, dy = a.y - drag.y, px = Math.hypot(dx, dy); if (px < F93.DRAG93) return;
+        const ang = angOf(dx, dy), off = Math.min(Math.abs(ang) % 180, 180 - (Math.abs(ang) % 180));
+        if (off <= F93.LOG93.along && onLog(a)) { const u = uAt(a), r = J.peel(J.state().face, drag.u, u, ang, px); if (r === 'peel') { paint93(J); buzz42('tick'); o.sound && o.sound('brush'); drag.peeled = true; } drag.x = a.x; drag.y = a.y; drag.u = u; }
+      },
+      up(a) {
+        const d0 = drag; drag = null; if (!d0 || !J || wait >= 0 || endT >= 0) return; const dx = a.x - a.x0, dy = a.y - a.y0, px = Math.hypot(dx, dy);
+        if (!d0.on) return; const to = pileAt(a); if (to != null && px >= F93.DRAG93 * 3) { decide(to, px); return; }
+        if (d0.peeled || px < F93.DRAG93) return; const ang = angOf(dx, dy), r = J.peel(J.state().face, uAt({ x: a.x0, y: a.y0 }), uAt(a), ang, px);
+        if (r === 'across') { const E = ends(), down = E ? (dx * -(E[1].y - E[0].y) + dy * (E[1].x - E[0].x)) > 0 : dy > 0; J.roll(down ? 1 : -1); buzz42('tick'); o.sound && o.sound('wood'); }
+        else if (r === 'stuck') { buzz42('retry'); o.sound && o.sound('grind'); line(LINE42.wood93b, `קורה ${i + 1} מתוך ${n}`); }
+      },
+      frame(dt) {
+        logT += dt; const k = J && J.state();
+        if (fly) { fly.t += dt / 0.7; const u = Math.min(1, fly.t); Gp.log.position.lerpVectors(fly.a, fly.b, u); Gp.log.position.y += Math.sin(u * Math.PI) * 1.4; Gp.log.rotation.x += dt * 6; if (u >= 1) { fly = null; Gp.log.visible = false; } }
+        else if (J) { const want = rollFor(k.face) + (k.rolls ? 0 : 0), d = Math.atan2(Math.sin(want - Gp.log.rotation.x), Math.cos(want - Gp.log.rotation.x)); Gp.log.rotation.x += d * Math.min(1, dt * 7); }
+        objPlace(true, [{ x: T.x, y: t0 + 1.95, z: T.z, r: 2.8 }], 'h93wood');
+        svgClear();
+        if (J && wait < 0 && endT < 0) {
+          const E = ends(); if (E) { const q = proj(T.x - 2.7, t0 + 2.7, T.z); if (q) svgAdd(leafSvg(k.species, q.x - 10, q.y - 30, 1.1)); }
+          if ((L <= 1 && logT > 10) || k.decided) { const q = proj(T.x - 1.8, t0 + 2.9, T.z); if (q) svgAdd(`<text x="${q.x}" y="${q.y}" font-size="14" font-weight="800" fill="#FFF4DC" stroke="#2A1804" stroke-width="3" paint-order="stroke">${esc(F.WOOD48[k.species].he)}</text>`); }
+          if (logT > 5 && !k.strips.some((r) => r.some(Boolean)) && E) { const u = (logT * 0.5) % 1, hx = E[0].x + (E[1].x - E[0].x) * (0.15 + 0.7 * u), hy = E[0].y + (E[1].y - E[0].y) * (0.15 + 0.7 * u); svgAdd(`<text x="${hx}" y="${hy + 16}" font-size="32" text-anchor="middle">👆</text>`); }   // (the peel's hand along the log, until he has peeled)
+          if (logT > 12) for (const [P, ok] of [[Gp.alt, true], [Gp.out, false]]) { const q = proj(P.x, gy(P.x, P.z) + 1, P.z); if (q) svgAdd(`<circle cx="${q.x}" cy="${q.y}" r="34" fill="none" stroke="${ok ? '#9BE37A' : '#F0A090'}" stroke-width="3" stroke-dasharray="6 5"/>`); }
+        }
+        if (wait >= 0) { wait -= dt; if (wait < 0) { i++; if (i >= n) { J = null; finish(); } else next(); } }
+        if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (Gp && Gp.log) Gp.log.visible = true; },
+    };
+  }
+  /** THE BEAM (k: his first, second, third — at sockets 0, 4, 2 of the north wall; or the south wall's corner) */
+  function mkBeam93(k, side = 'N', onDone) {
+    const Gp = st.props.g93[side], w = Gp.w, sz = w.sz, i = side === 'S' ? 0 : MINE93[k], sx = w.x + SOCK93[i], J = F93.createBeam93(side === 'S' ? 2 : k), part = side === 'S' ? 'corner' : BEAM93P[k], B9 = Gp.carry, len = F93.BEAM93.len;
+    let endT = -1, drag = null, seen = { knocks: 0 }, inT = -1;
+    line(LINE42.beam93, side === 'S' ? 'הפינה הדרומית' : `קורה ${k + 1} מתוך 3 · רמה ${k + 1}`);
+    try { stages.hero.setPos(sx + 6, w.z + sz * 15, sz > 0 ? Math.PI : 0); } catch (e) { /* */ }
+    B9.visible = true;
+    const fz = (d) => w.z + sz * Math.max(-1.5, d);
+    const place = () => {
+      const s = J.state(), e = J.end(), fx = sx + e.x, fy = w.ys + e.y, rx = sx + s.rx, ry = w.ys + s.by * 0.3, z0 = fz(s.d), z1 = z0 + sz * len;
+      B9.position.set((fx + rx) / 2, (fy + ry) / 2, (z0 + z1) / 2); B9.lookAt(rx, ry, z1);
+      if (men93(Gp, 2)) Gp.men.forEach((m, j) => { const t = j ? 0.86 : 0.16, x = fx + (rx - fx) * t + (j ? -0.75 : 0.75), z = z0 + (z1 - z0) * t; m.root.position.set(x, w.deck, z); m.root.rotation.y = sz > 0 ? Math.PI : 0; m.root.visible = true; m.play(s.ph === 'knock' ? 'Idle' : s.w > 0.05 ? 'Walking_A' : s.ph === 'in' ? 'Push_Loop' : 'Idle', s.w > 0.05 ? Math.max(0.6, s.w / 1.2) : 1); });
+    };
+    const finish = () => {
+      const s = J.state(), at = proj(sx, w.ys + 3, w.z), extra = s.crew ? 'הצוות הכניס' : s.knocks ? `נקשה בקיר ${s.knocks}` : 'נכנסה בלי לגעת בקיר';
+      B9.visible = false; Gp.beams[i].visible = true;
+      if (onDone) { onDone(s.q, extra); return; }
+      Y84().push([part, 0, s.q >= 1 ? 1 : s.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(s.q), at, extra); grade(part, s.q, null, true); seat93(); endT = 2.2;
+      line(`הקורה בשקע — ${k === 2 ? 'הקורה האמצעית' : 'קורת פינה'} · "והקיפוה גזוזטרא" — מדות ב, ה`, extra);
+    };
+    place();
+    return {
+      acting: true, fullPad: true, J, kind: 'beam93', side, ownView: () => true,
+      view: () => { const asp = W() / Math.max(1, H()), d = Math.max(1, 1.3 / Math.max(0.45, Math.min(1.4, asp))); return { p: [sx + (SOCK93.indexOf(sx - w.x) > 2 ? -9 : 9) * d, w.ys + 4.2 * d, w.z + sz * 22 * d], t: [sx, w.ys + 0.2, w.z + sz * 4] }; },   // (from the court beyond the deck's edge, a little above the carriers: the socket, the beam and its two men)
+      down(a) { const s = J.state(); if (s.done || endT >= 0) return; drag = { x: a.x, y: a.y, tx: s.fx, ty: s.fy }; J.hold(true, s.fx, s.fy); },
+      move(a) { if (!drag) return; const p = ppa93(sx, w.ys, w.z + sz * Math.max(0, J.state().d)); J.hold(true, drag.tx + (a.x - drag.x) / p, drag.ty - (a.y - drag.y) / p); },
+      up() { drag = null; J.hold(false); },
+      frame(dt) {
+        if (endT >= 0) { endT -= dt; if (Gp.men.length) Gp.men.forEach((m) => m.update(dt)); return endT <= 0; }
+        const s = J.step(dt * (globalThis.__H93X || 1)); place(); Gp.men.forEach((m) => m.update(dt));
+        if (s.knocks > seen.knocks) { seen.knocks = s.knocks; buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.beam93b, `נקישות ${s.knocks} · רמה ${(side === 'S' ? 2 : k) + 1}`); }
+        if (s.ph === 'in' && inT < 0) { inT = 0; buzz42('deep'); o.sound && o.sound('wood'); }
+        const e = J.end(), P = J.P, ok = Math.abs(e.x) <= P.tolX && Math.abs(e.y) <= P.tolY && Math.abs(s.a) <= P.tolA;
+        objPlace(true, [{ x: sx + e.x, y: w.ys + e.y, z: fz(s.d), r: 2.2 }], 'h93beam');
+        svgClear();
+        if (s.ph === 'carry') {
+          const q = proj(sx, w.ys, w.z + sz * 0.1), f = proj(sx + e.x, w.ys + e.y, fz(s.d)), c = ok ? '#9BE37A' : '#FFD66E';
+          if (q) svgAdd(`<rect x="${q.x - 14}" y="${q.y - 17}" width="28" height="34" rx="4" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="5 4"/>`);
+          if (q && f) svgAdd(`<line x1="${f.x}" y1="${f.y}" x2="${q.x}" y2="${q.y}" stroke="${c}" stroke-width="2" stroke-dasharray="4 5" opacity=".8"/>`);
+          if (!drag && s.d >= F93.BEAM93.d0 - 0.01 && f) svgAdd(`<text x="${f.x}" y="${f.y + 40}" font-size="34" text-anchor="middle">👆</text>`);
+        }
+        if (s.done && endT < 0) finish();
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); B9.visible = false; Gp.men.forEach((m) => { m.root.visible = false; }); seat93(); },
+    };
+  }
+  /** THE PEG at the joint of a plank over a corner beam (k: his first, second; or the south corner's): the kohen raises the mallet as his
+   *  finger goes up from the peg, and lets it fall when the finger lets go */
+  function mkPeg93(k, side = 'N', onDone) {
+    const Gp = st.props.g93[side], w = Gp.w, sz = w.sz, i = side === 'S' ? 0 : PEGAT93[k], lv = side === 'S' ? 2 : k, part = side === 'S' ? 'corner' : PEG93P[k], P9 = F93.createPeg93(lv), pegM = Gp.pegs[side === 'S' ? 0 : k];
+    const jx = pegM.position.x, jy = w.ys + 0.7 + 0.3, jz = pegM.position.z;
+    let endT = -1, drag = null, s9 = 0, fall = -1, kohen = null, mal = null, seen = { splits: 0 }, hitT = 0.4, topT = 0.15, dur = 1;
+    line(LINE42.peg93, side === 'S' ? 'הפינה הדרומית' : `יתד ${k + 1} מתוך 2 · רמה ${lv + 1}`);
+    if (!Gp.planks.some((p) => p.visible)) Gp.planks.forEach((p) => { p.visible = true; });
+    Gp.planks.forEach((p, j) => { if (Math.abs(p.position.x - jx) < 3.5) p.visible = true; });
+    pegM.visible = true;
+    try { stages.hero.show(false); } catch (e) { /* */ }
+    const setup = () => {
+      if (kohen) return true; const F2 = figs84(); if (!F2) return false; kohen = F2.make({ white: true }); if (!kohen) return false;
+      kohen.root.position.set(jx - (i === 0 ? 1.25 : -1.25), w.ys + 0.85, jz + sz * 0.15);   /* (beyond the peg from the camera: he never stands between) */ kohen.root.rotation.y = Math.atan2(jx - kohen.root.position.x, jz - kohen.root.position.z) + 0.25;
+      mal = new THREE.Group(); const hd = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.36), mat('#7A5532', 0.8)), hn = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.7, 8), mat('#B08A5E', 0.8)); hn.position.y = 0.35; hd.position.y = 0.72; mal.add(hn, hd);
+      if (kohen.slot) kohen.slot.add(mal); kohen.play('2H_Melee_Attack_Chop', 0);
+      try { const clip = kohen.cur && kohen.cur.getClip(); dur = clip ? clip.duration : 1; let lo = 1e9, hi = -1e9; const v = new THREE.Vector3(); for (let q = 0; q <= 30; q++) { const t = (dur * q) / 30; kohen.cur.time = t; kohen.mixer.update(0); kohen.root.updateMatrixWorld(true); const hb = kohen.B.hand_r; if (!hb) break; hb.getWorldPosition(v); if (v.y < lo) { lo = v.y; hitT = t; } } for (let q = 0; q <= 30; q++) { const t = (hitT * q) / 30; kohen.cur.time = t; kohen.mixer.update(0); kohen.root.updateMatrixWorld(true); kohen.B.hand_r.getWorldPosition(v); if (v.y > hi) { hi = v.y; topT = t; } } } catch (e) { /* */ }
+      return true;
+    };
+    const pose = (u) => { if (!kohen || !kohen.cur) return; kohen.cur.setEffectiveTimeScale(0); kohen.cur.time = hitT + (topT - hitT) * Math.max(0, Math.min(1, u)); kohen.update(0); };
+    const place = () => { const s = P9.state(); pegM.position.y = jy + 0.3 * (1 - s.depth) * 1.6 - 0.05; pegM.material = s.locked ? (Gp.gold || (Gp.gold = mat('#E8B531', 0.6))) : pegM.material; };
+    const finish = () => {
+      const s = P9.state(), at = proj(jx, jy + 2, jz), extra = s.crew ? 'הצוות תקע' : s.splits ? `נסדקו ${s.splits}` : 'נתקעה בלי להיסדק';
+      if (onDone) { onDone(s.q, extra); return; }
+      Y84().push([part, 0, s.q >= 1 ? 1 : s.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(s.q), at, extra); grade(part, s.q, null, true); seat93(); endT = 2.2;
+    };
+    return {
+      acting: true, fullPad: true, P: P9, kind: 'peg93', side, ownView: () => true,
+      view: () => { const asp = W() / Math.max(1, H()), d = 1.75 / Math.max(0.45, Math.min(1.3, asp)), sx2 = i === 0 ? 1 : -1; return { p: [jx + sx2 * 3.6 * d, jy + 2.0 * d, jz + sz * 5.4 * d], t: [jx - sx2 * 0.55, jy + 1.35, jz] }; },   // (the peg and the whole kohen with his mallet raised)
+      down(a) { if (P9.state().done || endT >= 0 || fall >= 0) return; drag = { y: a.y }; },
+      move(a) { if (!drag) return; s9 = Math.max(0, Math.min(1, (drag.y - a.y) / Math.max(80, H() * 0.3))); pose(s9); },
+      up() { if (!drag) return; drag = null; if (s9 < 0.02) { s9 = 0; return; } fall = 0; },
+      frame(dt) {
+        setup(); P9.step(dt);
+        if (fall >= 0) { fall += dt / 0.16; pose(s9 * (1 - Math.min(1, fall))); if (fall >= 1) { fall = -1; const r = P9.blow(s9); s9 = 0;
+          if (r === 'split') { buzz42('retry'); o.sound && o.sound('crack'); line(LINE42.peg93b, `נסדקו ${P9.state().splits}`); pegM.material = Gp.planks[0].material; }
+          else if (r === 'flush') { buzz42('deep'); o.sound && o.sound('wood'); tone49(P9.pitch(), 0.3); }
+          else if (r === 'in') { buzz42('tick'); tone49(P9.pitch(), 0.22); } } }
+        place(); if (kohen && !drag && fall < 0) pose(0);
+        objPlace(true, [{ x: jx, y: jy + 0.3, z: jz, r: 1.4 }], 'h93peg');
+        svgClear();
+        if (!P9.state().done && endT < 0) {
+          const q = proj(jx, jy + 0.6, jz); if (q) { const hh = Math.max(80, H() * 0.3); svgAdd(`<rect x="${q.x + 46}" y="${q.y - hh}" width="10" height="${hh}" rx="5" fill="rgba(0,0,0,.25)" stroke="#FFF4DC" stroke-width="1.5"/><rect x="${q.x + 46}" y="${q.y - hh * s9}" width="10" height="${hh * s9}" rx="5" fill="#FFD66E"/>`);
+            if (!drag && P9.state().blows === 0) svgAdd(`<text x="${q.x + 51}" y="${q.y + 34}" font-size="30" text-anchor="middle">👆</text><text x="${q.x + 51}" y="${q.y - hh - 8}" font-size="22" text-anchor="middle" fill="#FFD66E">⬆</text>`); }
+        }
+        if (P9.state().done && endT < 0) finish();
+        if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); try { stages.hero.show(true); } catch (e) { /* */ } if (kohen && kohen.root.parent) kohen.root.parent.remove(kohen.root); },
+    };
+  }
+  /** THE CORNER on the south wall: his beam (the hardest level), then his peg on it */
+  function mkCorner93() {
+    let sub = mkBeam93(0, 'S', (q, ex) => { qs.push(q); exs.push(ex); phase = 'gap'; gapT = 1.2; }), phase = 'beam', gapT = -1, endT = -1; const qs = [], exs = [];
+    line(LINE42.corner93);
+    const fin = () => { const q = (qs[0] + qs[1]) / 2, w = st.props.g93.S.w, at = proj(w.x - 11, w.ys + 3, w.z); Y84().push(['corner', 0, q >= 1 ? 1 : q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(q), at, exs.join(' · ')); grade('corner', q, null, true); seat93(); endT = 2.2; };
+    return {
+      acting: true, fullPad: true, kind: 'corner93', ownView: () => true, sub: () => sub, phase: () => phase,
+      view: (h) => (sub && sub.view ? sub.view(h) : null),
+      down(a) { if (sub && sub.down) sub.down(a); }, move(a) { if (sub && sub.move) sub.move(a); }, up(a) { if (sub && sub.up) sub.up(a); },
+      frame(dt) {
+        if (endT >= 0) { endT -= dt; return endT <= 0; }
+        if (phase === 'gap') { gapT -= dt; if (gapT <= 0) { if (sub) sub.end(); sub = mkPeg93(0, 'S', (q, ex) => { qs.push(q); exs.push(ex); phase = 'done'; }); phase = 'peg'; } return false; }
+        if (sub) sub.frame(dt);
+        if (phase === 'done' && endT < 0) { if (sub) sub.end(); sub = null; fin(); }
+        return false;
+      },
+      end() { if (sub) sub.end(); svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); seat93(); },
+    };
+  }
+  // ── /build 93 ──
+  /* ── build 94 ── STAGE 06 REBUILT AS PHYSICAL ACTS (nikanor94.js; the owner, 3.11 22:12: "תמשיך ל 4-6"): each bronze leaf raised by his
+   * weight on the pole's end, a wedge driven under it by the kohen's mallet while the gap is open (let go and it sinks, faster the higher it
+   * stands); the leaf slid on its wedges over its socket and lowered as the crew knocks them out, then swung shut; the fifteen steps' key
+   * stones slid on their rollers to their line, five at a time, each one's note true where it lies — the Levites sing what he built. ── */
+  const SG94 = [1, -1];   // (his first leaf: the south pivot's (sgn 1); the second: the north's, heavier)
+  const leaf94 = (i) => (i ? st.props.leafN : st.props.leafS);
+  const dir94 = (x, y, z) => { const L = Math.hypot(x, y, z) || 1; return [x / L, y / L, z / L]; };
+  const look94 = (t, d, D) => ({ p: [t[0] + d[0] * D, t[1] + d[1] * D, t[2] + d[2] * D], t });
+  const asp94 = () => W() / Math.max(1, H());
+  /** screen px → amot along a world axis (ax: 'x' | 'z') at a point */
+  function along94(ax, x, y, z, dx, dy) { const a = proj(x, y, z), b = ax === 'x' ? proj(x + 1, y, z) : proj(x, y, z + 1); if (!a || !b) return 0; const ux = b.x - a.x, uy = b.y - a.y, L2 = ux * ux + uy * uy; return L2 > 1 ? (dx * ux + dy * uy) / L2 : 0; }
+  function men94(list, specs) { const F2 = figs84(); if (!F2) return false; while (list.length < specs.length) { const m = F2.make(specs[list.length]); if (!m) return false; list.push(m); } return true; }
+  function mallet94(f) { const mal = new THREE.Group(), hd = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.36), mat('#7A5532', 0.8)), hn = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.7, 8), mat('#B08A5E', 0.8)); hn.position.y = 0.35; hd.position.y = 0.72; mal.add(hn, hd); if (f.slot) f.slot.add(mal); }
+  function bye94(list) { for (const m of list) if (m.root && m.root.parent) m.root.parent.remove(m.root); list.length = 0; }
+  function props94(add) {
+    const N = PL.ng, y0 = N.y, W1 = ON88 ? P88w.wood88('a', '#F2E2CC') : mat('#A07A50', 0.85), W2 = ON88 ? P88w.wood88('a', '#D8C6AE') : mat('#8E6A44', 0.9), dark = mat('#2A2018', 0.95);
+    for (const k of ['pole49', 'fulc49', 'wedges49']) if (st.props[k]) st.props[k].visible = false;
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 12), dark), N.x, y0 + 0.04, N.z - LEAF49.pz);   // (the north pivot's socket in the sill)
+    st.props.r94 = SG94.map((s) => {
+      const zc = N.z + s * (LEAF49.pz - LEAF49.w / 2), g = { s, zc };
+      g.fulc = add(new THREE.Mesh(ON88 ? P88w.grain88(new THREE.BoxGeometry(0.9, 0.8, 0.9), 0.9) : new THREE.BoxGeometry(0.9, 0.8, 0.9), W2), N.x + 1.6, y0 + 0.4, zc);
+      const pole = new THREE.Group(), pm = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 8, 8), W1); pm.rotation.z = Math.PI / 2; pm.position.x = 2.6; pole.add(pm);
+      g.pole = add(pole, N.x + 1.6, y0 + 0.85, zc); pole.rotation.z = 0.22;
+      g.wedges = new THREE.Group(); add(g.wedges, N.x + 0.25, y0, zc); g.W = W2;
+      const hung = past63(s > 0 ? 'hang' : 'hang2'); g.pole.visible = g.fulc.visible = !hung; return g;
+    });
+    { const lN = st.props.leafN; if (lN) { lN.visible = true; lN.rotation.set(0, 0, 0); leafAt(lN, past63('hang2') ? LEAF49.seat : 0); } }
+    const laid = past63('steps3') ? 15 : past63('steps2') ? 10 : past63('steps') ? 5 : 0; steps94Base(laid);
+  }
+  const jOf94 = (k) => 14 - k, Rout94 = (j) => 6.5 + 0.5 * j, Rmid94 = (j) => 6.25 + 0.5 * j, top94 = (k) => 0.5 * (k + 1);
+  const STONE94 = [mat('#F1E7D0', 0.85), mat('#D9CBAE', 0.88)];
+  /** step k's whole half circle (the crews' stones round his key stone), x: his key stone's error (amot) — an off-key step stands out */
+  function ring94(k, x = 0) { const A = PL.arc, j = jOf94(k), R2 = Rout94(j) + x, h = top94(k) + 0.06, g = new THREE.CylinderGeometry(R2, R2, h, 48, 1, false, 0, Math.PI); g.translate(0, h / 2 - 0.06, 0); const m = new THREE.Mesh(g, STONE94[k % 2]); m.position.set(0, 0, 0); m.userData.k94 = k; return m; }
+  function steps94Base(n) { const G2 = st.props.steps49; if (!G2) return; const have = new Set(G2.children.map((m) => m.userData.k94)); const xs = (R.x94 || []); for (let k = 0; k < n; k++) if (!have.has(k)) G2.add(ring94(k, xs[k] || 0)); }
+  /** LIFT: the pole's end down — the leaf rises after it, heavy; let go and it settles; a tap on the gap under it: the mallet drives a wedge */
+  function mkLever94(i) {
+    const N = PL.ng, G = st.props.r94[i], piv = leaf94(i), J = F94.createLever94(i), n = J.state().n, part = i ? 'lever2' : 'lever', s = G.s, zc = G.zc, rise = LEAF49.rise;
+    let endT = -1, mode = null, a0 = null, u = 0, hitT = -1, pop = null; const men = [], seen = { misses: 0 };
+    leafAt(piv, 0); piv.rotation.set(0, 0, 0); piv.visible = true; G.wedges.clear(); G.wedges.visible = true; G.pole.visible = G.fulc.visible = true;
+    const nm = i ? 'הכנף הצפונית, הכבדה' : 'הכנף הדרומית';
+    line(LINE42.lever94, `${nm} · יתד 0 מתוך ${n}`);
+    try { stages.hero.show(false); } catch (e) { /* */ }
+    const endP = () => { const a = G.pole.rotation.z; return { x: G.pole.position.x + 6.6 * Math.cos(a), y: G.pole.position.y + 6.6 * Math.sin(a), z: zc }; };
+    const gapP = () => { const k = J.state(); return { x: N.x + 0.45, y: N.y + (k.notch + Math.max(0.3, k.lift) * 0.5) * rise, z: zc + s * 0.9 }; };
+    const P2 = (p) => proj(p.x, p.y, p.z);
+    const wedgeM = (k) => { const w = new THREE.Mesh(new THREE.BoxGeometry(0.7, rise * 0.96, 1.1), G.W); w.position.set(0, (k + 0.5) * rise, 0); return w; };
+    const finish = () => {
+      const k = J.state(), at = P2(gapP()), extra = k.crew ? 'הצוות הרים' : k.misses + k.shorts ? `${k.misses ? `שקעה ${k.misses}` : ''}${k.misses && k.shorts ? ' · ' : ''}${k.shorts ? `יתד קפצה ${k.shorts}` : ''}` : 'כל יתד בפעם הראשונה';
+      Y84().push([part, 0, k.q >= 1 ? 1 : k.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(k.q), at, extra); grade(part, k.q, null, true); endT = 2.2;
+      line(`${nm} עומדת על ${n} יתדות — מוכנה לציר · המחשה`, extra);
+    };
+    return {
+      acting: true, fullPad: true, J, kind: 'lever94', i, ownView: () => true, endP: () => P2(endP()), gap: () => P2(gapP()),
+      view: () => { const t = [N.x + 3.6, N.y + 1.6, zc], d = dir94(0.62, 0.34, 0.7 * s), D = Math.max(7.5 / (2 * tanV()), 10.5 / (2 * tanV() * Math.min(1.6, asp94()))); return look94(t, d, D); },
+      down(a) { if (J.state().done || endT >= 0) return; const g = P2(gapP()); a0 = { x: a.x, y: a.y }; mode = g && Math.hypot(a.x - g.x, a.y - g.y) < Math.max(64, H() * 0.09) ? 'tap' : 'pole'; if (mode === 'pole') J.press(0); },
+      move(a) { if (mode === 'pole' && a0) J.press((a.y - a0.y) / Math.max(90, H() * 0.3)); },
+      up(a) {
+        const was = mode; mode = null; if (was === 'pole') { J.letGo(); return; }
+        if (was !== 'tap' || !a0 || Math.hypot(a.x - a0.x, a.y - a0.y) > F94.DRAG94 * 2) return;
+        hitT = 0; if (men[1]) men[1].play('2H_Melee_Attack_Chop', 1.4);
+        const r = J.wedge(), k = J.state();
+        if (r === 'in' || r === 'done') { G.wedges.add(wedgeM(k.notch - 1)); buzz42('mallet'); o.sound && o.sound('wedge'); if (r === 'in') line(LINE42.lever94, `${nm} · יתד ${k.notch} מתוך ${n}`); }
+        else if (r === 'short') { buzz42('retry'); o.sound && o.sound('crack'); pop = { m: wedgeM(k.notch), t: 0 }; G.wedges.add(pop.m); line(LINE42.lever94b, `${nm} · יתד ${k.notch} מתוך ${n}`); }
+        else if (r === 'low') { buzz42('tick'); o.sound && o.sound('thud'); line(LINE42.lever94c, `${nm} · יתד ${k.notch} מתוך ${n}`); }
+      },
+      frame(dt) {
+        if (men94(men, [{ tunic: '#9C8466', cloth: '#6B4A2B' }, { white: true }]) && !men.ready) { men.ready = 1; mallet94(men[1]); }
+        if (endT >= 0) { endT -= dt; men.forEach((m) => m.update(dt)); return endT <= 0; }
+        const k = J.step(dt * (globalThis.__H94X || 1)), P = J.P;
+        if (k.misses > seen.misses) { seen.misses = k.misses; buzz42('retry'); o.sound && o.sound('thud'); line(LINE42.lever94d, `${nm} · יתד ${k.notch} מתוך ${n}`); }
+        u += ((k.notch + k.lift) * rise - u) * Math.min(1, dt * 12); leafAt(piv, u);
+        const lv = k.notch * rise; G.fulc.scale.y = 1 + lv / 0.8; G.fulc.position.y = N.y + (0.8 + lv) / 2; G.pole.position.y = N.y + 0.85 + lv; G.pole.rotation.z = 0.22 - 0.36 * Math.min(1, k.lift / P.reach);
+        if (pop) { pop.t += dt; pop.m.position.x = pop.t * 3; pop.m.position.y = (k.notch + 0.5) * rise + pop.t * 2 - pop.t * pop.t * 6; pop.m.rotation.z = pop.t * 6; if (pop.t > 0.8) { G.wedges.remove(pop.m); pop = null; } }
+        if (men.ready) {   // the crewman's weight on the pole's end; the kohen with the mallet at the gap
+          const e = endP(), a = men[0], b = men[1];
+          a.root.position.set(e.x + 0.35, N.y + lv * 0.5, zc + s * 0.75); a.root.rotation.y = -Math.PI / 2 + s * 0.5; a.play(k.held && k.press > 0.05 ? 'Push_Loop' : 'Idle', 1);
+          b.root.position.set(N.x + 1.5, N.y, zc + s * 2.1); b.root.rotation.y = Math.atan2(N.x + 0.4 - (N.x + 1.5), zc - (zc + s * 2.1));
+          if (hitT >= 0) { hitT += dt; if (hitT > 0.9) { hitT = -1; b.play('Idle', 1); } } else b.play('Idle', 1);
+          men.forEach((m) => m.update(dt));
+        }
+        objPlace(true, [{ x: N.x + 3, y: N.y + 1.5, z: zc, r: 5 }], 'h94lever');
+        svgClear();
+        if (!k.done) {
+          const g = P2(gapP()), e = P2(endP()), open = k.lift >= 1, half = k.lift >= F94.LEVER94.short;
+          if (g && (i === 0 || open)) svgAdd(`<circle cx="${g.x}" cy="${g.y}" r="${open ? 30 : 22}" fill="${open ? 'rgba(155,227,122,.25)' : 'none'}" stroke="${open ? '#9BE37A' : half && i === 0 ? '#FFD66E' : 'rgba(255,244,220,.55)'}" stroke-width="3" stroke-dasharray="${open ? '0' : '5 5'}"/>`);
+          if (g && open && i === 0) svgAdd(`<text x="${g.x}" y="${g.y - 40}" font-size="18" font-weight="900" text-anchor="middle" fill="#FFF4DC" stroke="#2A1804" stroke-width="3" paint-order="stroke">הקישו!</text>`);
+          if (e && !k.held && k.lift < 0.05 && k.notch === 0) svgAdd(`<text x="${e.x}" y="${e.y + 10}" font-size="34" text-anchor="middle">👆</text><text x="${e.x}" y="${e.y + 52}" font-size="24" text-anchor="middle" fill="#FFD66E">⬇</text>`);
+        }
+        if (k.done && endT < 0) { finish(); st.lever94 = st.lever94 || {}; st.lever94[i] = n * rise; }
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); bye94(men); try { stages.hero.show(true); } catch (e) { /* */ } if (!J.state().done) { leafAt(piv, 0); G.wedges.clear(); } },
+    };
+  }
+  /** FIT: the leaf on its wedges slid along over its socket (it follows late and leans — gates92's LEAF92); held there, the crew knocks the
+   *  wedges out one by one and the pin goes down; a knock on the rim lifts it back; seated, a flick swings it shut — not soft, not hard */
+  function mkHang94(i) {
+    const N = PL.ng, G = st.props.r94[i], piv = leaf94(i), J = F92.createLeaf92(!!i), part = i ? 'hang2' : 'hang', s = G.s, zc = G.zc, pz = N.z + s * LEAF49.pz, C = F92.LEAF92;
+    const n = F94.LEVER94.L[i].n, U0 = (st.lever94 && st.lever94[i]) || n * LEAF49.rise, nm = i ? 'הכנף הצפונית' : 'הכנף הדרומית';
+    let endT = -1, drag = null, open = 0, opening = -1, flickT0 = 0, said = 0; const seen = { knocks: 0, weak: 0 }, men = [];
+    piv.visible = true; piv.rotation.set(0, 0, 0); leafAt(piv, U0); G.pole.visible = G.fulc.visible = false;
+    if (G.wedges.children.length < n) { G.wedges.clear(); for (let k = 0; k < n; k++) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.7, LEAF49.rise * 0.96, 1.1), G.W); w.position.set(0, (k + 0.5) * LEAF49.rise, 0); G.wedges.add(w); } }
+    line(LINE42.hang94, nm); try { stages.hero.show(false); } catch (e) { /* */ }
+    const place = () => {
+      const k = J.state(), hang = k.ph === 'hang', f = hang ? Math.min(1, k.low / C.drop) : 1, y = LEAF49.seat + (U0 - LEAF49.seat) * (1 - f);
+      leafAt(piv, y); piv.position.z = pz + (hang ? -s * k.x : 0); piv.rotation.set(hang ? k.lean : 0, -s * 1.25 * (hang ? 0 : open), 0);
+      G.wedges.position.z = zc + (hang ? -s * k.x : 0); G.wedges.children.forEach((w, q) => { w.visible = hang && q < Math.ceil(n * (1 - f) - 1e-6); });
+    };
+    const finish = () => {
+      const k = J.state(), at = proj(N.x, N.y + 12, pz - s * 2.5), extra = k.slam ? 'נטרקה — חזק מדי' : k.knocks ? `נקשה בשפת הגומה ${k.knocks}` : 'נסגרה ברכות';
+      Y84().push([part, 0, k.q >= 1 ? 1 : k.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(k.q), at, extra); grade(part, k.q, null, true); endT = i ? 4.2 : 2.4;
+      line(`${nm} על צירה · "כל הפתחים שהיו שם היו להם דלתות" — מדות ב, ג · טיוטה`, extra);
+    };
+    place();
+    return {
+      acting: true, fullPad: true, J, kind: 'hang94', i, ownView: () => true, socket: () => proj(N.x, N.y + 0.05, pz), pinAt: () => proj(N.x, piv.position.y - 0.7, piv.position.z),
+      view: () => { const t = [N.x + 1.5, N.y + 4.2, pz - s * 2.2], d = dir94(0.86, 0.3, 0.42 * s), D = Math.max(12 / (2 * tanV()), 8.5 / (2 * tanV() * Math.min(1.6, asp94()))); return look94(t, d, D); },
+      down(a) { const k = J.state(); if (endT >= 0) return; if (k.ph === 'hang') { drag = { x: a.x, y: a.y, tx: k.tx }; J.hold(true); } else if (k.ph === 'swing' && opening < 0) flickT0 = now(); },
+      move(a) { const k = J.state(); if (k.ph === 'hang' && drag) J.pull(drag.tx - s * along94('z', N.x, N.y + 1, piv.position.z, a.x - drag.x, a.y - drag.y)); },
+      up(a) { const k = J.state(); J.hold(false); drag = null; if (k.ph === 'swing' && opening < 0 && open >= 0.99) { const v = Math.abs(a.x - a.x0) / Math.max(1, W()) / Math.max(0.05, now() - flickT0), r = J.flick(v); if (r === 'weak') o.sound && o.sound('creak'); } },
+      frame(dt) {
+        if (men94(men, [{ tunic: '#8E7356', cloth: '#6B4A2B' }, { tunic: '#7E6A4E', cloth: '#D9CBB0' }]) && !men.ready) men.ready = 1;
+        if (men.ready) { men.forEach((m, q) => { m.root.position.set(N.x + 1.6 + q * 0.9, N.y, zc + s * (q ? -2.6 : 2.6) - s * (J.state().ph === 'hang' ? J.state().x : 0)); m.root.rotation.y = -Math.PI / 2; m.play(J.state().ph === 'hang' && J.state().holding ? 'Fixing_Kneeling' : 'Idle', 1); m.update(dt); }); }
+        if (endT >= 0) { endT -= dt; place(); if (i && endT < 3.0 && !said) { said = 1; line(LINE42.ungilded); o.emit && o.emit('h49ungilded', {}); } return endT <= 0; }
+        const k = J.step(dt * (globalThis.__H94X || 1));
+        if (k.knocks > seen.knocks) { seen.knocks = k.knocks; buzz42('retry'); o.sound && o.sound('wedge'); line('הציר נקש בשפת הגומה — ישר יותר, מעל הגומה · המחשה', `נקישות ${k.knocks}`); }
+        if (k.ph === 'swing' && opening < 0 && open < 0.99) { opening = 0; buzz42('deep'); o.sound && o.sound('wood'); }
+        if (opening >= 0) { opening += dt; open = Math.min(1, opening / 1.6); if (open >= 1) { opening = -1; line(LINE42.leaf92b, nm); } }
+        if (k.ph === 'shut' || k.ph === 'short' || k.ph === 'back') open = k.open;
+        if (k.weak > seen.weak) { seen.weak = k.weak; line('חלש מדי — הכנף לא נסגרה; הניפו שוב, חזק יותר · המחשה', nm); }
+        place();
+        objPlace(true, [{ x: N.x, y: N.y + 6, z: pz - s * 2.4, r: 6 }], 'h94hang');
+        svgClear();
+        if (k.ph === 'hang') { const s2 = this.socket(), p2 = this.pinAt(), ok = Math.abs(k.x) <= J.P.tol && Math.abs(k.lean) <= J.P.tolLean, c = ok ? '#9BE37A' : '#FFD66E';
+          if (s2) svgAdd(`<circle cx="${s2.x}" cy="${s2.y}" r="12" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="5 4"/>`); if (s2 && p2) svgAdd(`<line x1="${p2.x}" y1="${p2.y}" x2="${s2.x}" y2="${s2.y}" stroke="${c}" stroke-width="2" stroke-dasharray="4 5"/>`); }
+        if (k.done && endT < 0) { if (k.slam) { buzz42('retry'); o.sound && o.sound('thud'); } else { buzz42('soft2'); o.sound && o.sound('settle'); } finish(); }
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); bye94(men); try { stages.hero.show(true); } catch (e) { /* */ } if (J.state().done) { G.wedges.visible = false; leafAt(piv, LEAF49.seat); piv.position.z = pz; piv.rotation.set(0, 0, 0); } },
+    };
+  }
+  /** PLACE: five steps' key stones, one by one from the bottom: grabbed in the world, slid along the radius on its rollers (heavy: it follows
+   *  late; let go while it moves and it rolls on), its note under his hand true on the line; laid, the crews close its half circle round it */
+  function mkSteps94(i) {
+    const A = PL.arc, G2 = st.props.steps49, J = F94.createSteps94(i), part = ['steps', 'steps2', 'steps3'][i], C = F94.STEPS94;
+    hole49('steps'); st.props.r94.forEach((g) => { g.pole.visible = g.fulc.visible = false; g.wedges.visible = false; }); steps94Base(5 * i);
+    const xs = R.x94 || (R.x94 = []), notes = R.n94 || (R.n94 = []);
+    let endT = -1, drag = null, humT = 0, sing = null, rock = 0; const men = [], lev = [];
+    const kNow = () => J.cur(), jNow = () => jOf94(Math.min(14, kNow()));
+    const key = new THREE.Group(), km = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 2.6), STONE94[0]); km.position.y = 0.25; key.add(km);
+    for (const dz of [-0.8, 0.8]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.0, 8), mat('#8A6440', 0.85)); r.rotation.z = Math.PI / 2; r.position.set(0, -0.05, dz); r.userData.roll = 1; key.add(r); }
+    (st.props.root || scene()).add(key);
+    const keyAt = () => { const k = kNow(), j = jNow(); return { x: A.x + Rmid94(j) + J.state().x, y: A.y + top94(k) - 0.5, z: A.z }; };
+    const place = () => { const p = keyAt(); key.position.set(p.x, p.y, p.z); km.material = STONE94[kNow() % 2]; key.rotation.z = rock > 0 ? Math.sin(rock * 18) * 0.06 * rock : 0; key.children.forEach((c) => { if (c.userData.roll) c.rotation.y = p.x * 2; }); key.visible = !J.state().done; };
+    line(LINE42.steps94, `מעלה ${kNow() + 1} מתוך 15`);
+    const phrase = (list, t0 = 0.34) => list.forEach((nt, q) => setTimeout(() => tone49(F94.freq94(nt.deg, nt.cents), 0.5, nt.cents ? 1 : 0), q * t0 * 1000));
+    const finish = () => {
+      const k = J.state(), at = proj(A.x + 8, A.y + 4, A.z), extra = k.offs ? `לא נחה ${k.offs}` : k.qs.every((q) => q >= 1) ? 'כל הצלילים נקיים' : `מזייפות ${k.qs.filter((q) => q < 1).length}`;
+      Y84().push([part, 0, k.q >= 1 ? 1 : k.q >= 0.5 ? 0.5 : 0]); save42(S); chip84(); toast84(rate30(k.q), at, extra); grade(part, k.q, null, true);
+      if (i < 2) { phrase(k.notes); endT = 2.6; line(`חמש מעלות — זה הלחן שבניתם · "חמש עשרה מעלות" — מדות ב, ה · טיוטה`, extra); }
+      else { sing = { t: -0.8, i: -1 }; line(LINE42.levites); }
+    };
+    place();
+    return {
+      acting: true, fullPad: true, J, kind: 'steps94', i, ownView: () => true, key: () => { const p = keyAt(); return proj(p.x, p.y + 0.5, p.z); }, line94: () => { const j = jNow(), y = A.y + top94(kNow()); return [proj(A.x + Rmid94(j), y, A.z - 1.6), proj(A.x + Rmid94(j), y, A.z + 1.6)]; },
+      sing: () => (sing ? { t: Math.round(sing.t * 10) / 10, i: sing.i } : null),
+      view: () => { if (sing && sing.t > 0) return { p: [A.x + 34, A.y + 6, A.z + 12], t: [A.x + 4, A.y + 5, A.z] }; const k = Math.min(14, kNow()), j = jOf94(k), t = [A.x + Rmid94(j) + 1.2, A.y + top94(k), A.z], d = dir94(0.2, 0.62, 1), D = Math.max(7 / (2 * tanV()), 8.5 / (2 * tanV() * Math.min(1.6, asp94()))); return look94(t, d, D); },
+      down(a) { if (J.state().done || endT >= 0 || sing) return; const q = this.key(); if (!q || Math.hypot(a.x - q.x, a.y - q.y) > Math.max(70, H() * 0.11)) return; if (J.grab()) { drag = { x: a.x, y: a.y, x0: J.state().x }; rock = 0; } },
+      move(a) { if (!drag) return; const p = keyAt(); J.drag(drag.x0 + along94('x', p.x, p.y, p.z, a.x - drag.x, a.y - drag.y)); },
+      up() { if (!drag) return; drag = null; J.letGo(); },
+      frame(dt) {
+        if (men94(men, [{ tunic: '#A88F6C', cloth: '#6F5B44' }, { tunic: '#6C5A44', cloth: '#E6DCC8' }]) && !men.ready) men.ready = 1;
+        if (sing) {   // the Levites on the steps he built, singing his tune — the true notes and the off ones
+          sing.t += dt; key.visible = false;
+          if (sing.t > 0 && !lev.ready && men94(lev, Array.from({ length: 9 }, () => ({ white: true })))) { lev.ready = 1; lev.forEach((f, q) => { const k = 2 + (q % 3) * 5 + Math.floor(q / 3) % 2, j = jOf94(Math.min(14, k)), ph = (Math.floor(q / 3) - 1) * 0.8, R2 = Rmid94(j); f.root.position.set(A.x + R2 * Math.cos(ph), A.y + top94(k), A.z + R2 * Math.sin(ph)); f.root.rotation.y = -Math.PI / 2 - ph; f.play('Idle', 1); }); o.emit && o.emit('h94levites', { notes: notes.slice() }); }
+          lev.forEach((f) => f.update(dt));
+          const q = Math.floor(sing.t / 0.34); if (sing.t > 0 && q !== sing.i && q < notes.length) { sing.i = q; const nt = notes[q]; if (nt) tone49(F94.freq94(nt.deg, nt.cents), 0.5, nt.cents ? 1 : 0); }
+          if (sing.t > notes.length * 0.34 + 1.6 && endT < 0) endT = 1.8;
+          if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
+          return false;
+        }
+        if (endT >= 0) { endT -= dt; men.forEach((m) => m.update(dt)); return endT <= 0; }
+        const kBefore = kNow(), r = J.step(dt * (globalThis.__H94X || 1)), k = J.state();
+        if (rock > 0) rock = Math.max(0, rock - dt * 1.5);
+        if (r === 'true' || r === 'off' || r === 'done') {
+          const nt = k.notes[k.notes.length - 1], x = k.last === 'off' || (r === 'done' && k.qs[k.qs.length - 1] < 1) ? (nt.cents / 45) * C.depth : 0;
+          xs[kBefore] = x; notes[kBefore] = nt; save42(S); G2.add(ring94(kBefore, x)); tone49(F94.freq94(nt.deg, nt.cents), 0.9, nt.cents ? 1 : 0);
+          if (nt.cents) { buzz42('tick'); line(LINE42.steps94b, `מעלה ${kBefore + 1} מתוך 15`); } else { buzz42('settle'); o.sound && o.sound('thud'); line(LINE42.steps94, `מעלה ${Math.min(15, kBefore + 2)} מתוך 15`); }
+        } else if (r === 'rock') { rock = 1; buzz42('retry'); o.sound && o.sound('grind'); line(LINE42.steps94c, `מעלה ${kBefore + 1} מתוך 15`); }
+        if (drag) { humT -= dt; if (humT <= 0) { humT = 0.22; const h = J.hum(); tone49(F94.freq94(F94.deg94(kNow()), h), 0.2, h ? 1 : 0); } }
+        place();
+        if (men.ready) { const p = keyAt(); men.forEach((m, q) => { m.root.position.set(p.x + 1.1, p.y + 0.5 - 0.5, p.z + (q ? -1.2 : 1.2)); m.root.rotation.y = -Math.PI / 2; m.play(drag ? 'Push_Loop' : 'Idle', 1); m.update(dt); }); }
+        objPlace(true, [{ x: keyAt().x, y: keyAt().y + 0.5, z: A.z, r: 2 }], 'h94steps');
+        svgClear();
+        if (!k.done) {
+          const L2 = this.line94(), ok = Math.abs(J.err()) <= J.P.tol, c = ok ? '#9BE37A' : '#FFD66E';
+          if (L2[0] && L2[1] && i < 2) { if (i === 0) svgAdd(`<line x1="${L2[0].x}" y1="${L2[0].y}" x2="${L2[1].x}" y2="${L2[1].y}" stroke="rgba(255,214,110,.25)" stroke-width="16" stroke-linecap="round"/>`); svgAdd(`<line x1="${L2[0].x}" y1="${L2[0].y}" x2="${L2[1].x}" y2="${L2[1].y}" stroke="${c}" stroke-width="3" stroke-dasharray="8 6"/>`); }
+          const q = this.key(); if (q && !drag && k.j === 0 && J.state().x === C.x0) svgAdd(`<text x="${q.x}" y="${q.y + 44}" font-size="34" text-anchor="middle">👆</text>`);
+        }
+        if (k.done && endT < 0 && !sing) finish();
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); bye94(men); if (key.parent) key.parent.remove(key); if (MODE !== 'stage') bye94(lev); else st.lev94 = lev; },
+    };
+  }
+  // ── /build 94 ──
   /** ── build 46 ── the WARNING STONES: held, he walks along the soreg (the side he holds — the way he goes); "הציבו כאן" sets a stone where he
    *  stands; after the last — the real gaps (gold) against the even ones (faint), and the grade */
   function mkWarn() {
@@ -5514,7 +6020,7 @@ export function createHar42(o = {}) {
     if (st.target && part !== 'rope') { if (!st.glide62) line(LINE42.walk, labelOf(part)); st.pending = p; }
     else { st.pending = null; p.begin && p.begin(); }
   }
-  const labelOf = (part) => (STG === 'nashim' && part === 'corner' ? 'הפינה שלכם' : part === 'corner' ? 'אבן הפינה' : part === 'free69' ? 'עוד נדבך' : null) || ({ waves: 'גלי הים', courses: 'נדבכים ופינה', lintels: 'המלתראות', fifth: 'הקורה החמישית', vine: 'גפן הזהב', cast: 'יציקת הכיור', spigots: 'שנים עשר הדדים', screw: 'הברגת הדדים', mukhni: 'המוכני', horns: 'ארבע הקרנות', holes: 'שני הנקבים', fire: 'האש הראשונה', decoy: 'מה פסול ומה רק נראה פסול', kevesh: 'הכבש', sid: 'הסיד', light: 'אור צד', tap: 'הקישו והקשיבו', sovev: 'הסובב', thread: 'חוט הסיקרא', inspect: 'הבדיקה הראשונה', field: 'אבני שדה', nail: 'מבחן הציפורן', iron: 'בלי ברזל', last: 'השורה האחרונה', stone: 'אבן עם סדק', mud: 'בוץ או סדק', compass: 'לשכת הגזית — המחוגה', benches: 'הספסלים', hub: 'לשכת הגולה — הגלגל', wheel: 'הדליים', dome: 'בית המוקד — הכיפה', arch: 'הקשת', voyage: 'מסע הדלתות', lever: 'מוט ויתדות', hang: 'הכנף על הציר', steps: 'חמש עשרה המעלות', step: 'מעלה מכוונת', wood: 'לשכת העצים', beams: 'קורות הגזוזטרא', pegs: 'השגמים והיתדות', walk: 'ההליכה על הגזוזטרא', log: 'בדיקת העצים', beam: 'קורה לשקע', peg: 'שגם ויתד', lintel: 'המשקוף', leaf: 'כנף הדלת', leaf7: 'הכנף הכבדה', names: 'שבעת השערים', lattice0: 'לוח הסריג', lattice1: 'הסריג השזור', lattice2: 'הסריג בשני גוונים', lattice: 'הסריג', warn: 'אבני האזהרה', bows: 'ההשתחוויות', line: 'החוט', pulley: 'הגלגלת', wcourse0: 'הנדבך', wcourse1: 'הנדבך הבא', giant: 'אבן הענק', wcorner: 'הפינה', top: 'הנדבך העליון', lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', hammer0: 'הפטיש בסלע הראשון', hammer1: 'הפטיש בסלע השני', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
+  const labelOf = (part) => (STG === 'nashim' && part === 'corner' ? 'הפינה שלכם' : part === 'corner' ? 'אבן הפינה' : part === 'free69' ? 'עוד נדבך' : null) || ({ waves: 'גלי הים', courses: 'נדבכים ופינה', lintels: 'המלתראות', fifth: 'הקורה החמישית', vine: 'גפן הזהב', cast: 'יציקת הכיור', spigots: 'שנים עשר הדדים', screw: 'הברגת הדדים', mukhni: 'המוכני', horns: 'ארבע הקרנות', holes: 'שני הנקבים', fire: 'האש הראשונה', decoy: 'מה פסול ומה רק נראה פסול', kevesh: 'הכבש', sid: 'הסיד', light: 'אור צד', tap: 'הקישו והקשיבו', sovev: 'הסובב', thread: 'חוט הסיקרא', inspect: 'הבדיקה הראשונה', field: 'אבני שדה', nail: 'מבחן הציפורן', iron: 'בלי ברזל', last: 'השורה האחרונה', stone: 'אבן עם סדק', mud: 'בוץ או סדק', compass: 'לשכת הגזית — המחוגה', benches: 'הספסלים', hub: 'לשכת הגולה — הגלגל', wheel: 'הדליים', dome: 'בית המוקד — הכיפה', arch: 'הקשת', voyage: 'מסע הדלתות', lever: 'מוט ויתדות', hang: 'הכנף על הציר', steps: ON94 ? 'המעלות א–ה' : 'חמש עשרה המעלות', lever2: 'מוט ויתדות — הכנף הצפונית', hang2: 'הכנף הצפונית על הציר', steps2: 'המעלות ו–י', steps3: 'המעלות יא–טו', step: 'מעלה מכוונת', wood: 'לשכת העצים', beams: 'קורות הגזוזטרא', pegs: 'השגמים והיתדות', walk: 'ההליכה על הגזוזטרא', log: 'בדיקת העצים', beam: 'קורה לשקע', peg: 'שגם ויתד', lintel: 'המשקוף', leaf: 'כנף הדלת', leaf7: 'הכנף הכבדה', names: 'שבעת השערים', lattice0: 'לוח הסריג', lattice1: 'הסריג השזור', lattice2: 'הסריג בשני גוונים', lattice: 'הסריג', warn: 'אבני האזהרה', bows: 'ההשתחוויות', line: 'החוט', pulley: 'הגלגלת', wcourse0: 'הנדבך', wcourse1: 'הנדבך הבא', giant: 'אבן הענק', wcorner: 'הפינה', top: 'הנדבך העליון', lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', hammer0: 'הפטיש בסלע הראשון', hammer1: 'הפטיש בסלע השני', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
   function endPart() { const at63 = st.obj ? { x: st.obj.x, y: st.obj.y, z: st.obj.z } : null, p = PART[st.part]; if (st.job && st.job.end) st.job.end(); if (p && p.end) p.end(); if (st.job && st.job.el) st.job.el.forEach((e) => { try { e.remove(); } catch (err) { /* */ } }); st.job = null; objPlace(false); if (MODE !== 'stage') { svgClear(); if (st.ui.pile) st.ui.pile.innerHTML = ''; line(''); st.part = 'menu'; const cb = st.onAct; st.onAct = null; Lover = 0; if (cb) setTimeout(() => cb(st.actQ, st.actRating), st.pull ? 2700 : 700); return; } if (ON63) { shot63(at63); return; } startPart(R.part + 1); }
   function finish() { st.part = 'done'; }
   function finishCard() {
@@ -5570,7 +6076,7 @@ export function createHar42(o = {}) {
     if (part === 'rock') part = `rock${L >= 3 ? 2 : L === 2 ? 1 : 0}`;
     resetFor(part); Lover = L; st.actQ = null; st.actRating = null; st.onAct = cb;
     st.part = part; st.job = null; st.pending = null; st.camLock = null; st.pull = null; svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full');
-    const p = standOf(part) || standOf('lift'); try { stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); stages.hero.drive(0, 0); } catch (e) { /* */ }
+    const p = standOf(part) || standOf('lift'); try { stages.hero.setPos(p.x, p.z, yaw93(p)); stages.hero.show(true); stages.hero.drive(0, 0); } catch (e) { /* */ }
     PART[part].begin();
     if (MODE === 'test' && o.test === 60 && (part === 'pulley' || part === 'course0')) back60t();   // ── build 60 ──
   }
@@ -5947,7 +6453,7 @@ export function createHar42(o = {}) {
   function site63() {
     drop63();
     if (ON69 && D63().includes('reveal')) { site69(); return; }   // ── build 69 ── (the stage's works and its reveal done: the wall stays open — not the reveal again)
-    const open = open63(ON92 ? 'gates92' : STG, PARTS, D63());
+    const open = open63(ON92 ? 'gates92' : ON93 ? 'nashim93' : ON94 ? 'nikanor94' : STG, PARTS, D63());
     if (!open.length) { finish(); return; }
     if (open.length === 1) { R.site63 = 0; save42(S); startPart(PARTS.indexOf(open[0])); return; }
     R.site63 = 1; save42(S);
@@ -5965,7 +6471,7 @@ export function createHar42(o = {}) {
       const bar = el('h63-site'); bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', LINE63.chips);
       for (const b of st.site63) { const k = el('h63-chip', `<b>${esc(labelOf(b.part) || b.part)}</b>`, 'button'); k.type = 'button'; k.dataset.part = b.part; k.addEventListener('pointerdown', (e) => e.stopPropagation()); k.addEventListener('click', (e) => { e.stopPropagation(); choose63(b.part, true); }); bar.appendChild(k); }
       if (ON69) bar.appendChild(el('h63-chip h69-count', `<b>${esc(`האבנים שלך: ${his69()}`)}</b>`));   // ── build 69 ── (the count in the world)
-      else if (ON84 || ON92) bar.appendChild(el('h63-chip h69-count', `<b>${esc(`האבנים שלך: \u2066${F84.yoursHe84(sum84())}\u2069`)}</b>`));   // ── build 84 ── (his stones in stage 03: each slab and stone — whole, half or none)
+      else if (ON84 || ON92 || ON93 || ON94) bar.appendChild(el('h63-chip h69-count', `<b>${esc(`האבנים שלך: \u2066${F84.yoursHe84(sum84())}\u2069`)}</b>`));   // ── build 84 ── (his stones in stage 03: each slab and stone — whole, half or none)
       st.ui.root.appendChild(bar); st.ui.site63 = bar;
     }
     o.emit && o.emit('h63site', { open });
@@ -6083,7 +6589,7 @@ export function createHar42(o = {}) {
     matChip(); save42(S);
     // where he stands at the start: by the first peg (a new stage) or at his part
     try { const a61 = MODE === 'stage' && R.part > 1 && (STG === 'wall' || ON62 || ONL73) ? at61(W61, STG) : ON63 && STG === 'wall' && R.part <= 1 && !R.open && !qs('h42at') ? on63(at61(W61, 'har')) : null, p = a61 || (R.part <= 1 ? PL.peg0 : standOf(PARTS[R.part]) || PL.peg0);   // ── build 63 ── (stage 02 begun: he stands where stage 01 left him — the wall's plan rises, and he goes to it)
-      stages.hero.setPos(p.x, p.z, 0); stages.hero.show(true); } catch (e) { /* */ }   // ── build 61 ── (stage 02: back where he stood — world61)
+      stages.hero.setPos(p.x, p.z, yaw93(p)); stages.hero.show(true); } catch (e) { /* */ }   // ── build 61 ── (stage 02: back where he stood — world61)
     // (a new stage: the flyover in full; back to it: the flyover's 3 s, then his part)
     const go = () => { if (st.voyNow) { st.voyNow = 0; startPart(R.part); return; } if (ON63 && R.site63 && R.part > 0) { st.resumeAt = 'site'; st.part = 'open'; PART.open.begin(); return; } if (R.part > 0 && R.part < PARTS.indexOf('reveal')) { st.resumeAt = R.part; st.part = 'open'; PART.open.begin(); } else startPart(R.part); };
     if (came && R.part > 0) card('בוקר טוב', [LINE42.caravan, `+${F.MAT42.daily * came} אבנים`], 'לעבודה', go); else go();
@@ -6102,6 +6608,7 @@ export function createHar42(o = {}) {
     dropUI(); dropProps();
     if (STG === 'wall' && MODE === 'stage' && !(R.stones && R.stones.length)) hole45(false);
     if (STG === 'soreg' || STG === 'gates' || STG === 'nikanor' || STG === 'lishka' || STG === 'ulam') hole46(false);
+    if (ON93) hole93(false);   // ── build 93 ──
     if (ON92) { hole92(false); try { if (stages.hideWorkers) stages.hideWorkers(null); } catch (e) { /* */ } }   // ── build 92 ──   // ── build 60 ── (and the Ulam's scaffold in front of the lintels)   // ── build 46 ── (left before the end: no gap without his stones)
     if (st.lev49) { try { if (st.lev49.parent) st.lev49.parent.remove(st.lev49); } catch (e) { /* */ } st.lev49 = null; }   // ── build 49 ──
     if (o.onExit) o.onExit(!!done, next || '');

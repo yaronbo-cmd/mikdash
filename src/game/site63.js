@@ -30,9 +30,13 @@ export const DEP63 = Object.freeze({
   // ── build 75 ── stage 05 (PARTS48): the wood's sorting and the gallery's beams side by side; the pegs in the beams; the corner after the
   // pegs; the walk on the gallery once its corner is closed
   nashim: Object.freeze({ wood: [], beams: [], pegs: ['beams'], corner: ['pegs'], walk: ['corner'] }),
+  // ── build 93 ── stage 05 rebuilt (PARTS93): the wood and the first beam side by side; each beam after the one before it (each harder);
+  // a peg once its corner beam is in; the south corner after the third beam and the second peg; the walk once the corner is closed
+  nashim93: Object.freeze({ wood: [], beams: [], beams2: ['beams'], beams3: ['beams2'], pegs: ['beams'], pegs2: ['beams2', 'pegs'], corner: ['beams3', 'pegs2'], walk: ['corner'] }),
   // ── build 76 ── stage 06 (PARTS49): one after another — the doors' voyage (the exception, at sea), the lever and pegs at the gate, the
   // leaves hung, then the fifteen steps in the opening; the loop's result shot and walk between them
   nikanor: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], steps: ['hang'] }),
+  nikanor94: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], lever2: ['hang'], hang2: ['lever2'], steps: ['hang'], steps2: ['steps'], steps3: ['steps2', 'hang2'] }),   // ── build 94 ── (the north leaf after the south's; the steps once the south leaf hangs)
   // ── build 77 ── stage 07 (PARTS50): the three chambers side by side — the hewn stone's compass, the exiles' hub, the hearth's dome; in
   // each its next work after its first (the benches after the compass, the buckets' wheel after the hub)
   lishka: Object.freeze({ compass: [], hub: [], dome: [], benches: ['compass'], wheel: ['hub'] }),

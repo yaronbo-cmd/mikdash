@@ -816,12 +816,16 @@ const GHOST_FS = `uniform vec3 uCol; uniform float uA; uniform float uY; uniform
     // faint faces, a fresnel rim, fine gold courses every 2.5 amot on the walls, and a bright drawing-in front
     float course = 1.0 - smoothstep(0.6, 1.6, abs(fract(vW.y / 2.5 + 0.5) - 0.5) * 2.5 / max(fwidth(vW.y), 1e-3));
     float band = smoothstep(uY - 2.2, uY, vW.y);
-    float a = (0.03 * uFace + 0.3 * f * f * f) * (0.35 + 0.65 * vert) + course * 0.3 * vert + band * 0.9 * uBand;
-    gl_FragColor = vec4(uCol * (1.0 + band * 1.5 * uBand), uA * a);
+    // ── build 96 ── (the owner, 4.11: "the yellow is not good — something more architectural"): a mason's drawing, not a gold glow —
+    // the courses AND the joints of the ashlar (every 5 amot, staggered course by course), drawn in a pale blueprint line; the faces faint
+    float hz = abs(n.x) > abs(n.z) ? vW.z : vW.x, off = mod(floor(vW.y / 2.5), 2.0) * 2.5;
+    float joint = 1.0 - smoothstep(0.6, 1.6, abs(fract((hz + off) / 5.0 + 0.5) - 0.5) * 5.0 / max(fwidth(hz), 1e-3));
+    float a = (0.025 * uFace + 0.16 * f * f * f) * (0.35 + 0.65 * vert) + max(course, joint * 0.8) * 0.42 * vert + band * 0.8 * uBand;
+    gl_FragColor = vec4(uCol * (1.0 + band * 0.6 * uBand), uA * a);
   }`;
 
-const GHOST_GOLD = new THREE.Color(2.0, 1.25, 0.3);   // the vision (showPlan): the full gold hologram
-const GHOST_SOFT = new THREE.Color(1.15, 0.95, 0.62);  // the chapter showcase: a paler gold, over the wide shot (the owner, 28.9)
+const GHOST_GOLD = new THREE.Color(0.62, 0.86, 1.15);   // the vision (showPlan): ── build 96 ── a mason's drawing in a pale blueprint line (was a gold hologram: "the yellow is not good", 4.11)
+const GHOST_SOFT = new THREE.Color(0.78, 0.9, 1.05);  // the chapter showcase: a paler gold, over the wide shot (the owner, 28.9)
 
 /* ───────────────────────── workers (instanced) ───────────────────────── */
 function workerGeos() {

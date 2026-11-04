@@ -30,13 +30,27 @@ export const PEOPLE88 = Object.freeze({
 });
 export const clipName88 = (n) => PEOPLE88.clip[n] || n;
 
+/** ── build 96 ── THE CYLINDERS' BUG (the owner, 4.11: "למה עדיין גלילים? אתר את הבאג"): the page carries its .glb files inline (data:
+ *  urls), and GLTFLoader.load FETCHES them — the artifact's frame forbids a fetch of a data: url (its connect-src), so on the owner's
+ *  screen the people never loaded and every act fell back to its shapes; a file:// test never saw it. Here an inline file is decoded and
+ *  parsed, never fetched; its pictures through an <img> (TextureLoader), not a fetch of a blob: url. */
+export function loadGlb96(L, url, ok, fail) {
+  try {
+    L.register((parser) => { try { parser.textureLoader = new THREE.TextureLoader(parser.options.manager); parser.textureLoader.setCrossOrigin(parser.options.crossOrigin); } catch (e) { /* */ } return { name: 'bh_img96' }; });
+    if (typeof url === 'string' && url.startsWith('data:')) {
+      const bin = atob(url.slice(url.indexOf(',') + 1)), buf = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+      L.parse(buf.buffer, '', ok, fail); return;
+    }
+    L.load(url, ok, undefined, fail);
+  } catch (e) { fail(e); }
+}
 let G = null;
 function load() {
   if (G) return G;
   G = new Promise((res) => {
     const L = new GLTFLoader(); try { L.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
-    const one = (u) => new Promise((ok) => L.load(u, ok, undefined, () => ok(null)));
-    import('./people88assets.js').then((F) => Promise.all([one(F.MAN_URL), one(F.ANIM_URL)])).then(([m, a]) => res(m && a ? { scene: m.scene, animations: a.animations } : null)).catch(() => res(null));
+    const one = (u, n) => new Promise((ok) => loadGlb96(L, u, ok, (e) => { try { console.error(`[people88] ${n} did not load: ${(e && (e.message || e.type)) || e}`); } catch (e2) { /* */ } ok(null); }));   // ── build 96 ── (the owner's device kept the cylinders: say why, for the 🐞 report)
+    import('./people88assets.js').then((F) => Promise.all([one(F.MAN_URL, 'man88'), one(F.ANIM_URL, 'anim88')])).then(([m, a]) => res(m && a ? { scene: m.scene, animations: a.animations } : null)).catch((e) => { try { console.error('[people88] ' + ((e && e.message) || e)); } catch (e2) { /* */ } res(null); });
   });
   return G;
 }

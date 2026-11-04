@@ -53,7 +53,7 @@ export const PARTS45 = Object.freeze(['open', 'line', 'pulley', 'wcourse0', 'wco
 export const PARTS46 = Object.freeze(['open', 'lattice0', 'lattice1', 'lattice2', 'warn', 'bows', 'reveal']);   // ── build 46 ── stage 03, הסורג והחיל (v2 §10 "03")
 export const PARTS47 = Object.freeze(['open', 'lintel', 'leaf', 'leaf7', 'names', 'reveal']);
 export const PARTS94 = Object.freeze(['open', 'voyage', 'lever', 'hang', 'lever2', 'hang2', 'steps', 'steps2', 'steps3', 'reveal']);   // ── build 94 ── (stage 06 rebuilt: two leaves, each lifted and hung; fifteen steps in three parts, each harder)
-export const PARTS93 = Object.freeze(['open', 'wood', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);   // ── build 93 ── (stage 05 rebuilt: three beams, each harder; two pegs)
+export const PARTS93 = Object.freeze(['open', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);   // ── build 96 ── (the wood's sorting out: Temple work, not building — the owner, 4.11)   // ── build 93 ── (stage 05 rebuilt: three beams, each harder; two pegs)
 export const PARTS92 = Object.freeze(['open', 'lintel', 'lintel2', 'lintel3', 'leaf', 'leaf7', 'names', 'reveal']);   // ── build 92 ── (stage 04 rebuilt: a lintel at each of three gates)   // ── build 47 ── stage 04, שערי העזרה (v2 §10 "04")
 export const PARTS48 = Object.freeze(['open', 'wood', 'beams', 'pegs', 'corner', 'walk', 'reveal']);   // ── build 48 ── stage 05, עזרת הנשים (v2 §10 "05")
 export const PARTS49 = Object.freeze(['open', 'voyage', 'lever', 'hang', 'steps', 'reveal']);
@@ -4284,7 +4284,7 @@ export function createHar42(o = {}) {
   /** THE VOYAGE (v2 §11): the doors' story, once — here he is Nicanor (voyage49.js); its grade is the storm's */
   function mkVoyage49() {
     const L = famL('lift');
-    return createVoyage49({ scene: scene(), camTo, line, root: st.ui.root, doc, W, H, buzz: buzz42, sound: o.sound, emit: o.emit, timeOfDay: o.timeOfDay, stages, L, seen: !!R.voySeen, figs: figs84, wood: ON88 ? P88w.wood88 : null, grain: ON88 ? P88w.grain88 : null,   // ── build 95 ── (real people, the kit's wood)
+    return createVoyage49({ scene: scene(), camTo, line, root: st.ui.root, doc, W, H, buzz: buzz42, sound: o.sound, emit: o.emit, timeOfDay: o.timeOfDay, stages, L, seen: !!R.voySeen, figs: figs84, wood: ON88 ? P88w.wood88 : null, grain: ON88 ? P88w.grain88 : null, proj, v96: qs('h96') !== '0',   // ── build 96 ── (the sail touched in the world; ?h96=0: the voyage of 95)   // ── build 95 ── (real people, the kit's wood)
      
       done(r) {
         R.voySeen = 1; R.voy = { rating: r.rating || null, crossings: r.crossings | 0, replays: r.replays | 0, skipped: !!r.skipped }; save42(S);

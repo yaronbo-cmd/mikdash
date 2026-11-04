@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { loadGlb96 } from './people88.js';
 let A = null; const assets = () => (A = A || import('./props88assets.js').catch(() => null));   // (the files: only in the page)
 
 export const PROPS88 = Object.freeze({ grainLen: 1.6 /* (one length of the wood strip per this many units of timber) */ });
@@ -14,7 +15,7 @@ export const PROPS88 = Object.freeze({ grainLen: 1.6 /* (one length of the wood 
 let W = null;
 function loadWagon() {
   if (W) return W;
-  W = assets().then((a) => new Promise((res) => { if (!a) { res(null); return; } const L = new GLTFLoader(); try { L.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ } L.load(a.WAGON_URL, (g) => res(g.scene), undefined, () => res(null)); }));
+  W = assets().then((a) => new Promise((res) => { if (!a) { res(null); return; } const L = new GLTFLoader(); try { L.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ } loadGlb96(L, a.WAGON_URL, (g) => res(g.scene), () => res(null)); }));   // ── build 96 ── (never a fetch of the inline file: the artifact's frame refuses it)
   return W;
 }
 /** the hand cart (the kit's model: 1.95 wide on x, 1.53 high, its shafts toward −z; its bed's box from about z −1.4 to +0.87): scaled k,

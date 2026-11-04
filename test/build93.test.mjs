@@ -76,12 +76,12 @@ test('build 93: the peg — the mallet\'s height is the blow; a measured hand ta
 
 test('build 93: wiring — the parts, the order, the acts in the world; lines sourced and short', async () => {
   const { GAME_BUILD } = await import('../src/avodah/shift/lobby35.js');
-  assert.equal(GAME_BUILD, 95);
+  assert.equal(GAME_BUILD, 96);
   const { LINE42, PARTS93 } = await import('../src/game/har42.js');
   const { DEP63, open63 } = await import('../src/game/site63.js');
-  assert.deepEqual([...PARTS93], ['open', 'wood', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);
-  assert.deepEqual(open63('nashim93', PARTS93, []), ['wood', 'beams']);
-  assert.deepEqual(open63('nashim93', PARTS93, ['beams']), ['wood', 'beams2', 'pegs']);
+  assert.deepEqual([...PARTS93], ['open', 'beams', 'beams2', 'beams3', 'pegs', 'pegs2', 'corner', 'walk', 'reveal']);
+  assert.deepEqual(open63('nashim93', PARTS93, []), ['beams'], 'build 96: the wood sorting is out (Temple work, not building)');
+  assert.deepEqual(open63('nashim93', PARTS93, ['beams']), ['beams2', 'pegs']);
   assert.ok(DEP63.nashim, 'the old order kept for ?h93=0');
   const h = read('src/game/har42.js');
   assert.match(h, /const ON93 = MODE === 'stage' && STG === 'nashim' && qs\('h93'\) !== '0'/);

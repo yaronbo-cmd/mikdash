@@ -40,7 +40,7 @@ test('build 94: the steps — slid to the line and let go still: five true notes
 });
 
 test('build 94: the steps — let go while it moves and it rolls on: it rocks off the line; a little off, it lies but its note is off', () => {
-  const S = F.createSteps94(1); S.grab(); S.drag(0); run(S, 0.15); S.letGo(); let r = null; for (let q = 0; q < 300 && !r; q++) r = S.step(1 / 30);
+  const S = F.createSteps94(1); S.grab(); S.drag(0); run(S, 0.1); S.letGo(); let r = null; for (let q = 0; q < 300 && !r; q++) r = S.step(1 / 30);
   assert.equal(r, 'rock'); assert.equal(S.state().offs, 1); assert.equal(S.state().j, 0, 'not laid: slide it again');
   const O = F.createSteps94(0); O.grab(); O.drag(0.4); run(O, 3); assert.notEqual(O.hum(), 0, 'off the line: the hum is off'); O.letGo(); r = null; for (let q = 0; q < 60 && !r; q++) r = O.step(1 / 30);
   assert.equal(r, 'off'); assert.ok(O.state().notes[0].cents !== 0); assert.equal(O.state().qs[0], 0.5);

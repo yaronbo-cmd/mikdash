@@ -59,7 +59,7 @@ export const STEPS94 = Object.freeze({
     Object.freeze({ tol: 0.42, off: 0.95, lag: 3.6, mu: 2.7 }),
     Object.freeze({ tol: 0.3, off: 0.75, lag: 3.0, mu: 2.1 }),
   ]),
-  per: 5, depth: 0.5, x0: 4.5, scale: Object.freeze([0, 2, 4, 7, 9]),
+  per: 5, depth: 0.5, x0: 2.6, scale: Object.freeze([0, 2, 4, 7, 9]),
 });
 /** the note of step k (0 … 14, from the bottom) in semitones over 220 Hz; the steps' tune climbs the pentatonic scale */
 export const deg94 = (k) => { const s = STEPS94.scale; return s[k % s.length] + 12 * Math.floor(k / s.length); };

@@ -628,7 +628,7 @@ export function createHar42(o = {}) {
   const R = STG === 'ulam' ? (S.ulam && typeof S.ulam === 'object' ? S.ulam : (S.ulam = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'kiyor' ? (S.kiyor && typeof S.kiyor === 'object' ? S.kiyor : (S.kiyor = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'karnot' ? (S.karnot && typeof S.karnot === 'object' ? S.karnot : (S.karnot = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'guf' ? (S.guf && typeof S.guf === 'object' ? S.guf : (S.guf = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'sovev' ? (S.sovev && typeof S.sovev === 'object' ? S.sovev : (S.sovev = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'yesod' ? (S.yesod && typeof S.yesod === 'object' ? S.yesod : (S.yesod = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'wall' ? (S.wall && typeof S.wall === 'object' ? S.wall : (S.wall = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'soreg' ? (S.soreg && typeof S.soreg === 'object' ? S.soreg : (S.soreg = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'gates' ? (S.gates && typeof S.gates === 'object' ? S.gates : (S.gates = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'nashim' ? (S.nashim && typeof S.nashim === 'object' ? S.nashim : (S.nashim = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'nikanor' ? (S.nikanor && typeof S.nikanor === 'object' ? S.nikanor : (S.nikanor = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : STG === 'lishka' ? (S.lishka && typeof S.lishka === 'object' ? S.lishka : (S.lishka = { part: 0, open: 0, grades: [], hands: 0, streak: 0 })) : S;
   const ON62 = STG === 'har' && MODE === 'stage' && qs('h62') !== '0';   // ── build 62 ── (the new stage 01 on the Mount itself; ?h62=0 the build-60 one)
   const ON92 = MODE === 'stage' && STG === 'gates' && qs('h92') !== '0';
-  const ON94 = MODE === 'stage' && STG === 'nikanor' && qs('h94') === '1';   // ── build 94 ── (stage 06 rebuilt in the world — nikanor94.js; ?h94=0 as in 93)
+  const ON94 = MODE === 'stage' && STG === 'nikanor' && qs('h94') !== '0';   // ── build 94 ── (stage 06 rebuilt in the world — nikanor94.js; ?h94=0 as in 93)
   const ON93 = MODE === 'stage' && STG === 'nashim' && qs('h93') !== '0';   // ── build 93 ── (stage 05 rebuilt in the world — gallery93.js; ?h93=0 as in 92)   // ── build 92 ── (stage 04 rebuilt in the world — gates92.js; ?h92=0 as in 91)
   const parts0 = () => {   // (each stage's parts — build 62: stage 01's new order in front of them)
     const PARTS = STG === 'sovev' ? PARTS56 : STG === 'yesod' ? PARTS55 : STG === 'wall' ? PARTS45 : STG === 'soreg' ? PARTS46 : STG === 'gates' ? (ON92 ? PARTS92 : PARTS47) : STG === 'nashim' ? (ON93 ? PARTS93 : PARTS48) : STG === 'nikanor' ? (ON94 ? PARTS94 : PARTS49) : STG === 'lishka' ? PARTS50 : STG === 'guf' ? PARTS57 : STG === 'karnot' ? PARTS58 : STG === 'kiyor' ? PARTS59 : STG === 'ulam' ? PARTS60 : PARTS42;
@@ -990,11 +990,11 @@ export function createHar42(o = {}) {
     if (STG === 'wall' || MODE === 'yard' || (MODE === 'test' && o.test === 60)) props45(add);   // ── build 60 ── (and the test before chapter ד׳: its pulley)
     if (STG === 'soreg' || MODE === 'yard') props46(add);   // ── build 46 ──
     if (STG === 'gates' || MODE === 'yard') props47(add);   // ── build 47 ──
-    if (ON93) { props93(add); hole93(true); }
-    if (ON94) props94(add);   // ── build 94 ──   // ── build 93 ──
     if (ON92) { props92(add); try { if (stages.hideWorkers) stages.hideWorkers(F92.GATES92.gates.map((g) => [g.x - 16, g.x + 16, Math.min(g.face, g.face + (g.face > 0 ? 1 : -1) * 6) - 0.5, Math.max(g.face, g.face + (g.face > 0 ? 1 : -1) * 6) + 0.5])); } catch (e) { /* */ } }   // ── build 92 ── (the site's masons off the gates' scaffold: the game draws those faces — they stood in the air)
     if (STG === 'nashim' || MODE === 'yard' || MODE === 'test') props48(add);   // ── build 48 ── (build 50: and the test's — its log checks)
+    if (ON93) { props93(add); hole93(true); }   // ── build 93 ── (build 94: after build 48's, so its log is hidden)
     if (STG === 'nikanor' || MODE === 'yard') props49(add);   // ── build 49 ──
+    if (ON94) props94(add);   // ── build 94 ── (after build 49's: its pole, fulcrum and wedges hidden, the two leaves' own)
     if (STG === 'lishka' || MODE === 'yard') props50(add);   // ── build 50 ──
     if (STG === 'yesod' || STG === 'sovev' || STG === 'guf' || MODE === 'test') props55(add);
     if (STG === 'sovev' || STG === 'guf') props56(add);
@@ -5359,8 +5359,8 @@ export function createHar42(o = {}) {
         if (pop) { pop.t += dt; pop.m.position.x = pop.t * 3; pop.m.position.y = (k.notch + 0.5) * rise + pop.t * 2 - pop.t * pop.t * 6; pop.m.rotation.z = pop.t * 6; if (pop.t > 0.8) { G.wedges.remove(pop.m); pop = null; } }
         if (men.ready) {   // the crewman's weight on the pole's end; the kohen with the mallet at the gap
           const e = endP(), a = men[0], b = men[1];
-          a.root.position.set(e.x + 0.35, N.y + lv * 0.5, zc + s * 0.75); a.root.rotation.y = -Math.PI / 2 + s * 0.5; a.play(k.held && k.press > 0.05 ? 'Push_Loop' : 'Idle', 1);
-          b.root.position.set(N.x + 1.5, N.y, zc + s * 2.1); b.root.rotation.y = Math.atan2(N.x + 0.4 - (N.x + 1.5), zc - (zc + s * 2.1));
+          a.root.position.set(e.x + 0.2, N.y + lv * 0.5, zc - s * 0.8); a.root.rotation.y = -Math.PI / 2 - s * 0.5; a.play(k.held && k.press > 0.05 ? 'Push_Loop' : 'Idle', 1);
+          b.root.position.set(N.x + 1.4, N.y, zc - s * 1.5); b.root.rotation.y = Math.atan2(-0.9, s * 2.3);   // (beyond the gap from the camera: he never hides it)
           if (hitT >= 0) { hitT += dt; if (hitT > 0.9) { hitT = -1; b.play('Idle', 1); } } else b.play('Idle', 1);
           men.forEach((m) => m.update(dt));
         }
@@ -5406,7 +5406,7 @@ export function createHar42(o = {}) {
       up(a) { const k = J.state(); J.hold(false); drag = null; if (k.ph === 'swing' && opening < 0 && open >= 0.99) { const v = Math.abs(a.x - a.x0) / Math.max(1, W()) / Math.max(0.05, now() - flickT0), r = J.flick(v); if (r === 'weak') o.sound && o.sound('creak'); } },
       frame(dt) {
         if (men94(men, [{ tunic: '#8E7356', cloth: '#6B4A2B' }, { tunic: '#7E6A4E', cloth: '#D9CBB0' }]) && !men.ready) men.ready = 1;
-        if (men.ready) { men.forEach((m, q) => { m.root.position.set(N.x + 1.6 + q * 0.9, N.y, zc + s * (q ? -2.6 : 2.6) - s * (J.state().ph === 'hang' ? J.state().x : 0)); m.root.rotation.y = -Math.PI / 2; m.play(J.state().ph === 'hang' && J.state().holding ? 'Fixing_Kneeling' : 'Idle', 1); m.update(dt); }); }
+        if (men.ready) { men.forEach((m, q) => { m.root.position.set(N.x + 1.3, N.y, pz - s * (q ? 3.7 : 1.6) - s * (J.state().ph === 'hang' ? J.state().x : 0));   /* (at the leaf's foot, off the camera's line to the socket) */ m.root.rotation.y = -Math.PI / 2; m.play(J.state().ph === 'hang' && J.state().holding ? 'Fixing_Kneeling' : 'Idle', 1); m.update(dt); }); }
         if (endT >= 0) { endT -= dt; place(); if (i && endT < 3.0 && !said) { said = 1; line(LINE42.ungilded); o.emit && o.emit('h49ungilded', {}); } return endT <= 0; }
         const k = J.step(dt * (globalThis.__H94X || 1));
         if (k.knocks > seen.knocks) { seen.knocks = k.knocks; buzz42('retry'); o.sound && o.sound('wedge'); line('הציר נקש בשפת הגומה — ישר יותר, מעל הגומה · המחשה', `נקישות ${k.knocks}`); }
@@ -5436,7 +5436,8 @@ export function createHar42(o = {}) {
     const key = new THREE.Group(), km = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 2.6), STONE94[0]); km.position.y = 0.25; key.add(km);
     for (const dz of [-0.8, 0.8]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.0, 8), mat('#8A6440', 0.85)); r.rotation.z = Math.PI / 2; r.position.set(0, -0.05, dz); r.userData.roll = 1; key.add(r); }
     (st.props.root || scene()).add(key);
-    const keyAt = () => { const k = kNow(), j = jNow(); return { x: A.x + Rmid94(j) + J.state().x, y: A.y + top94(k) - 0.5, z: A.z }; };
+    const surf = (r, kMax) => { let y = 0; for (let k = 0; k < kMax; k++) if (r <= Rout94(jOf94(k)) + (xs[k] || 0) + 0.02) y = top94(k); return y; };   // (the steps already laid under the stone: it rides down them on its rollers)
+    const keyAt = () => { const k = Math.min(14, kNow()), j = jOf94(k), x = A.x + Rmid94(j) + J.state().x; return { x, y: A.y + surf(x - A.x - 0.25, k), z: A.z }; };
     const place = () => { const p = keyAt(); key.position.set(p.x, p.y, p.z); km.material = STONE94[kNow() % 2]; key.rotation.z = rock > 0 ? Math.sin(rock * 18) * 0.06 * rock : 0; key.children.forEach((c) => { if (c.userData.roll) c.rotation.y = p.x * 2; }); key.visible = !J.state().done; };
     line(LINE42.steps94, `מעלה ${kNow() + 1} מתוך 15`);
     const phrase = (list, t0 = 0.34) => list.forEach((nt, q) => setTimeout(() => tone49(F94.freq94(nt.deg, nt.cents), 0.5, nt.cents ? 1 : 0), q * t0 * 1000));
@@ -5455,9 +5456,9 @@ export function createHar42(o = {}) {
       move(a) { if (!drag) return; const p = keyAt(); J.drag(drag.x0 + along94('x', p.x, p.y, p.z, a.x - drag.x, a.y - drag.y)); },
       up() { if (!drag) return; drag = null; J.letGo(); },
       frame(dt) {
-        if (men94(men, [{ tunic: '#A88F6C', cloth: '#6F5B44' }, { tunic: '#6C5A44', cloth: '#E6DCC8' }]) && !men.ready) men.ready = 1;
+        if (men94(men, [{ tunic: '#A88F6C', cloth: '#6F5B44' }]) && !men.ready) men.ready = 1;
         if (sing) {   // the Levites on the steps he built, singing his tune — the true notes and the off ones
-          sing.t += dt; key.visible = false;
+          sing.t += dt * (globalThis.__H94X || 1); key.visible = false;
           if (sing.t > 0 && !lev.ready && men94(lev, Array.from({ length: 9 }, () => ({ white: true })))) { lev.ready = 1; lev.forEach((f, q) => { const k = 2 + (q % 3) * 5 + Math.floor(q / 3) % 2, j = jOf94(Math.min(14, k)), ph = (Math.floor(q / 3) - 1) * 0.8, R2 = Rmid94(j); f.root.position.set(A.x + R2 * Math.cos(ph), A.y + top94(k), A.z + R2 * Math.sin(ph)); f.root.rotation.y = -Math.PI / 2 - ph; f.play('Idle', 1); }); o.emit && o.emit('h94levites', { notes: notes.slice() }); }
           lev.forEach((f) => f.update(dt));
           const q = Math.floor(sing.t / 0.34); if (sing.t > 0 && q !== sing.i && q < notes.length) { sing.i = q; const nt = notes[q]; if (nt) tone49(F94.freq94(nt.deg, nt.cents), 0.5, nt.cents ? 1 : 0); }
@@ -5475,7 +5476,7 @@ export function createHar42(o = {}) {
         } else if (r === 'rock') { rock = 1; buzz42('retry'); o.sound && o.sound('grind'); line(LINE42.steps94c, `מעלה ${kBefore + 1} מתוך 15`); }
         if (drag) { humT -= dt; if (humT <= 0) { humT = 0.22; const h = J.hum(); tone49(F94.freq94(F94.deg94(kNow()), h), 0.2, h ? 1 : 0); } }
         place();
-        if (men.ready) { const p = keyAt(); men.forEach((m, q) => { m.root.position.set(p.x + 1.1, p.y + 0.5 - 0.5, p.z + (q ? -1.2 : 1.2)); m.root.rotation.y = -Math.PI / 2; m.play(drag ? 'Push_Loop' : 'Idle', 1); m.update(dt); }); }
+        if (men.ready) { const p = keyAt(); men.forEach((m) => { m.root.position.set(p.x + 0.95, p.y, p.z - 0.85); m.root.rotation.y = -Math.PI / 2;   /* (behind the stone's far half from the camera) */ m.play(drag ? 'Push_Loop' : 'Idle', 1); m.update(dt); }); }
         objPlace(true, [{ x: keyAt().x, y: keyAt().y + 0.5, z: A.z, r: 2 }], 'h94steps');
         svgClear();
         if (!k.done) {

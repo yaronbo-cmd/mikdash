@@ -12,7 +12,7 @@ import { LINE42 } from '../src/game/har42.js';
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const seeded = (seed) => { let a = seed; return () => ((a = (a * 16807) % 2147483647) / 2147483647); };
 
-test('build 84: GAME_BUILD 84', () => { assert.equal(GAME_BUILD, 100); });
+test('build 84: GAME_BUILD 84', () => { assert.equal(GAME_BUILD, 101); });
 
 test('build 84: the carved patterns — pierced stone, rims, the right slab continues and a wrong phase does not', () => {
   const C = F84.SOREG84;

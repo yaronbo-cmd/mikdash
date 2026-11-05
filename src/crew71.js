@@ -198,12 +198,28 @@ export function createCrew71(o = {}) {
       if (f.belt) f.belt.material.color.copy(c.white ? C2.set('#E8DCC0') : c.cloth || C2.set('#2F6DB5'));
       const tk = c.tool === 'pick' || c.tool === 'hammer' || c.tool === 'mallet' || c.tool === 'staff' || (f.pf && (c.tool === 'jar' || c.tool === 'scroll' || c.tool === 'bread')) ? c.tool : null;
       if (f.tool !== tk) { f.tool = tk; if (f.toolM) { if (f.toolM.parent) f.toolM.parent.remove(f.toolM); f.toolM = null; } const hb = f.B.handslotr || f.B['handslot.r']; if (tk && hb) { f.toolM = tk === 'jar' || tk === 'scroll' || tk === 'bread' ? held101(tk) : tool(tk); f.toolM.traverse((n) => { n.userData.prop71 = 1; }); hb.add(f.toolM); } }
-      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= cfg.clear; f.m.position.set(c.x, c.y, c.z);
+      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= cfg.clear; f.m.position.set(c.x + (f.ox || 0), c.y, c.z + (f.oz || 0)); f.cx = c.x; f.cz = c.z;
       f.m.rotation.y = c.yaw; f.m.scale.setScalar(f.pf ? c.h / f.pf.H0 : (CREW71.model * c.h) / CREW71.modelH);   // ── build 73 ── (a man in the camera's lap not drawn — nor his instanced one: the warning stones' view stood among a crew) ── build 88 ── (his facing and size had fallen into that comment since 73: back in code)
       play(f, c.clip());
       f.mixer.update(dt);
     }
+    if (cfg.apart) apart101(dt);   // ── build 101 ──
     st.n = st.by.size;
+  }
+  /** ── build 101 ── two real bodies never in one another, nor in the kohen: crews.js placed its small instanced men as close as half an
+   *  amah (two diggers on one spot, a carrier in the kohen's back); the real figures, wider, stood inside each other. Each drawn figure gets
+   *  a small offset from its man's place, eased, that keeps cfg.apart between bodies and cfg.apartHero from him (drawing only). */
+  const HP = { x: 0, y: 0, z: 0 };
+  function apart101(dt) {
+    const F = [...st.by.values()].filter((f) => f.m.visible && Number.isFinite(f.cx)), D = cfg.apart, DH = cfg.apartHero || D, k = Math.min(1, dt * 4);
+    let hero = null; try { if (stages && stages.heroXYZ) { stages.heroXYZ(HP); hero = HP; } } catch (e) { hero = null; }
+    for (const f of F) { f.tx = 0; f.tz = 0; }
+    for (let i = 0; i < F.length; i++) {
+      const a = F[i];
+      for (let j = i + 1; j < F.length; j++) { const b = F[j], dx = b.cx - a.cx, dz = b.cz - a.cz, d = Math.hypot(dx, dz); if (d >= D) continue; const u = d > 1e-3 ? 1 / d : 0, nx = u ? dx * u : 1, nz = u ? dz * u : 0, p = (D - d) / 2; a.tx -= nx * p; a.tz -= nz * p; b.tx += nx * p; b.tz += nz * p; }
+      if (hero) { const dx = a.cx - hero.x, dz = a.cz - hero.z, d = Math.hypot(dx, dz); if (d < DH) { const u = d > 1e-3 ? 1 / d : 0; a.tx += (u ? dx * u : 1) * (DH - d); a.tz += (u ? dz * u : 0) * (DH - d); } }
+    }
+    for (const f of F) { const L = Math.hypot(f.tx, f.tz), m = L > 2 ? 2 / L : 1; f.ox = (f.ox || 0) + (f.tx * m - (f.ox || 0)) * k; f.oz = (f.oz || 0) + (f.tz * m - (f.oz || 0)) * k; f.m.position.x = f.cx + f.ox; f.m.position.z = f.cz + f.oz; }
   }
   function setEnabled(v) { st.on = !!v; if (!st.on) { for (const off of st.off.values()) off(false); st.off.clear(); } if (!st.on) for (const [id, f] of st.by) { if (f.set) f.set(false); f.id = null; f.m.visible = false; st.by.delete(id); } }
   /** ── build 101 ── the building stages' people: more real figures, farther, kept when the camera turns (no swapping a man between his

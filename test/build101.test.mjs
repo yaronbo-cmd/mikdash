@@ -29,6 +29,7 @@ test('build 101: crew71 draws crowd.js people too when tuned, with their held th
   assert.match(C, /if \(cfg\.hide\)/, 'no cylinder near the camera among the real people');
   assert.match(C, /cfg\.crowd && stages && stages\.crowd/);
   assert.match(C, /function held101\(kind\)/);
+  assert.match(C, /function apart101\(dt\)/, 'two real bodies never in one another, nor in the kohen');
   assert.match(C, /\(!a\.lod71 && a\.K && a\.K\.m && !a\.K\.m\.visible\)\) continue;/, 'a real man is not dropped because his dress\'s instanced mesh hid itself (the flicker)');
   const R = read('src/crowd.js');
   assert.match(R, /_people: people, get enabled\(\) \{ return enabled; \}/);

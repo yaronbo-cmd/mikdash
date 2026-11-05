@@ -333,6 +333,15 @@ export function setBuilding(m, on) {
 }
 
 // shadow-pass material for a revealing stage (discards above the cut like the colour pass)
+/** ── build 101 ── is the point (x, y, z) in a hole (the colour pass's own test, uHole/uHole2/uHole3, uHoleB, uHoleN): a man standing on a
+ *  scaffold not drawn there would stand in the air */
+export function inHole101(x, y, z) {
+  const H = XRAY.uHole.value, H2 = XRAY.uHole2.value, H3 = XRAY.uHole3.value, B = XRAY.uHoleB.value, N = XRAY.uHoleN.value, N2 = XRAY.uHoleN2.value;
+  if (H.y > H.x && x > H.x && x < H.y && z < H.w && ((z > H.z && y > H3.x && y < (x < H2.z ? H2.w : H2.y)) || (z > H2.x && z <= H.z))) return true;
+  if (N.w > 0 && Math.abs(z) > N2.x && Math.abs(z) < N2.y && y > N2.z && y < N2.w && (Math.abs(x - N.x) < N.w || Math.abs(x - N.y) < N.w || Math.abs(x - N.z) < N.w)) return true;
+  if (B.y > B.x && x > B.x && x < B.y && z > B.z && z < B.w && y < H3.y && y > H3.z) return true;
+  return false;
+}
 /** ── build 101 ── the holes' shadows (the owner, 4.11: "המדרגות עומדות באוויר"): a model's part not drawn in a hole (uHole…, uHoleB — the
  *  Nicanor steps above those laid, his wall's stretch) cast its shadow still — ghost steps on the gate's wall. A done stage's meshes cast
  *  their shadow through this depth material: the same holes, without the see-through's dither (shadows stay whole there). */

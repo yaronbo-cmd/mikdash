@@ -29,7 +29,7 @@ const PROBE = () => {
     f.seen += v ? '1' : '0';
     if (v) { const fl = floorAt(hip.x, lo + 3, hip.z); const g = fl == null ? null : lo - fl; if (g != null && Math.abs(g) > Math.abs(f.maxGap)) { f.maxGap = +g.toFixed(2); f.at = [+hip.x.toFixed(1), +lo.toFixed(2), +hip.z.toFixed(1)]; } figs.push({ id, x: hip.x, z: hip.z, y: lo }); }
   });
-  for (let i = 0; i < figs.length; i++) for (let j = i + 1; j < figs.length; j++) if (Math.hypot(figs[i].x - figs[j].x, figs[i].z - figs[j].z) < 0.35 && Math.abs(figs[i].y - figs[j].y) < 0.4) { A.dup++; if (A.dupAt.length < 6) A.dupAt.push([+figs[i].x.toFixed(1), +figs[i].z.toFixed(1)]); }
+  for (let i = 0; i < figs.length; i++) for (let j = i + 1; j < figs.length; j++) if (Math.hypot(figs[i].x - figs[j].x, figs[i].z - figs[j].z) < 0.75 && Math.abs(figs[i].y - figs[j].y) < 0.4) { A.dup++; if (A.dupAt.length < 6) A.dupAt.push([+figs[i].x.toFixed(1), +figs[i].z.toFixed(1)]); }
   // the world's instanced figures (actors.js): how many stand in view
   let act = 0; const M = new (T.camera.matrixWorld.constructor)(), q = new V();
   sc.traverse((m) => { if (m.isInstancedMesh && /^actor-/.test(m.name) && vis(m)) for (let i = 0; i < m.count; i++) { m.getMatrixAt(i, M); q.setFromMatrixPosition(M).applyMatrix4(m.matrixWorld); if (M.elements[0] !== 0 && inView(q) && true) { act++; if (figs.some((f) => Math.hypot(f.x - q.x, f.z - q.z) < 0.7)) { A.dup++; if (A.dupAt.length < 6) A.dupAt.push(['actor', +q.x.toFixed(1), +q.z.toFixed(1)]); } } } });

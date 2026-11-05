@@ -64,7 +64,7 @@ export function scale71(s, c = CREW71) { return (c.model * (c.actorH * (s || 1))
 export function createCrew71(o = {}) {
   const scene = o.scene, camera = o.camera, crews = o.crews, stages = o.stages || null;
   let cfg = CREW71;   // ── build 101 ── (the building stages: every man near the work real — tune())
-  const st = { on: o.enabled !== false, loaded: false, err: null, gltf: null, mats: [], hitT: 0.5, dur: 1, figs: [], by: new Map(), n: 0 };
+  const st = { on: o.enabled !== false, loaded: false, err: null, gltf: null, mats: [], hitT: 0.5, dur: 1, figs: [], by: new Map(), n: 0, off: new Map() };
   const root = new THREE.Group(); root.name = 'crew71'; if (scene) scene.add(root);
   const loader = new GLTFLoader(); try { loader.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
   const P88 = P88_ON && !o.url ? createPeople88({}) : null; if (P88) root.add(P88.root);   // ── build 88 ──
@@ -148,16 +148,16 @@ export function createCrew71(o = {}) {
   function gather() {
     const out = [];
     if (crews && crews.enabled !== false) for (const w of crews._people || []) {
-      const a = w.a; if (!a || w.gone || w.role === 'off' || a.vis < 0.5 || !a.alive || (a.K && a.K.m && !a.K.m.visible)) continue;
-      out.push({ id: a, x: a.x, y: a.y, z: a.z, yaw: a.yaw || 0, h: CREW71.actorH * (a.s || 1.1), tunic: w.tunic || '#E2D6BE', cloth: a.col2, white: a.variant === 'kohen', tool: w.tool, clip: () => clip71(w, a), set: (v) => { a.lod71 = v; } });
+      const a = w.a; if (!a || w.gone || w.role === 'off' || a.vis < 0.5 || !a.alive || (!a.lod71 && a.K && a.K.m && !a.K.m.visible)) continue;   // ── build 101 ── (THE FLICKER: when every man of a dress was real, its instanced mesh drew none and hid itself — so they were all dropped, drawn instanced the next frame, picked again… a man swapping between his two bodies each frame or two: the owner's "דמות כפולה שהולכת בהבהוב". A real one is kept.)
+      out.push({ id: a, x: a.x, y: a.y, z: a.z, yaw: a.yaw || 0, h: CREW71.actorH * (a.s || 1.1), tunic: w.tunic || '#E2D6BE', cloth: a.col2, white: a.variant === 'kohen', tool: w.tool, clip: () => clip71(w, a), set: (v) => { a.lod71 = v; }, off: (v) => { a.off101 = v; } });
     }
     const S = stages && stages.workers71 ? stages.workers71() : null;
     if (S && S.on) for (let i = 0; i < S.n; i++) {
-      const w = S.W[i]; if (!w || !w.st || !Number.isFinite(w.x71)) continue;
+      const w = S.W[i]; if (!w || !w.st || !Number.isFinite(w.x71) || w.hole101) continue;   /* ── build 101 ── (his scaffold not drawn: nobody there) */
       const r = w.role, tool = (r === 'mason' || r === 'dig') && !w.field71 ? (r === 'dig' ? 'pick' : 'hammer') : null;
       out.push({ id: w, x: w.x71, y: w.y71, z: w.z71, yaw: w.yaw || 0, h: CREW71.workerH, tunic: '#' + S.pal[i % S.pal.length].getHexString(), cloth: CLOTH_W, white: false, tool,
         clip: () => (w.u71 != null && !w.field71 ? { name: '2H_Melee_Attack_Chop', rate: 0, sync: w.u71 } : w.moving71 ? { name: 'Walking_A', rate: 1.1 } : r === 'winch' || r.startsWith('mk') || w.field71 ? { name: 'Interact', rate: 1 } : { name: 'Idle', rate: 1 }),
-        set: (v) => { w.lod71 = v; } });
+        set: (v) => { w.lod71 = v; }, off: (v) => { w.off101 = v; } });
     }
     // ── build 101 ── crowd.js's people (the site's scribe, overseer, water carrier, onlookers): real too when tune() asks (cfg.crowd) — one
     //   kind of man near the work, not a real crew beside instanced ghosts
@@ -166,7 +166,7 @@ export function createCrew71(o = {}) {
       if (!a || !a.alive || a.vis < 0.5) continue;
       out.push({ id: a, x: a.x, y: a.y, z: a.z, yaw: a.yaw || 0, h: CREW71.actorH * (a.s || 1.1), tunic: a.variant === 'pilgrim' || a.variant === 'woman' || a.variant === 'levite' ? '#' + a.col.getHexString() : '#D6C8A8', cloth: a.col2, white: a.variant === 'kohen', tool: a.item === 'staff' || a.item === 'jar' || a.item === 'scroll' || a.item === 'bread' ? a.item : null,
         clip: () => (a.kn > 0.5 ? { name: 'Sit_Floor_Idle', rate: 1 } : a.wk > CREW71.walkAt && a.path ? { name: 'Walking_A', rate: Math.max(0.6, Math.min(1.6, (a.speed || 2.6) * CREW71.walkRate)) } : a.gesture ? { name: 'Idle_Talking_Loop', rate: 1 } : { name: 'Idle', rate: 1 }),
-        set: (v) => { a.lod71 = v; } });
+        set: (v) => { a.lod71 = v; }, off: (v) => { a.off101 = v; } });
     }
     return out;
   }
@@ -177,6 +177,11 @@ export function createCrew71(o = {}) {
     let want = new Set();
     if (cands.length) { camera.getWorldDirection(fwd); const L = Math.hypot(fwd.x, fwd.z) || 1; want = pick71(cands, { x: camera.position.x, y: camera.position.y, z: camera.position.z, fx: fwd.x / L, fz: fwd.z / L }, new Set(st.by.keys()), cfg); }
     const byId = new Map(cands.map((c) => [c.id, c]));
+    // ── build 101 ── (cfg.hide: a man this near the camera whom no real figure stands for is not drawn — never a cylinder among the people)
+    const offNow = new Set();
+    if (cfg.hide) { const h2 = cfg.hide * cfg.hide; for (const c of cands) if (!want.has(c.id) && c.off && (c.x - camera.position.x) ** 2 + (c.z - camera.position.z) ** 2 < h2) { offNow.add(c.id); if (!st.off.has(c.id)) c.off(true); } }
+    for (const [id, off] of st.off) if (!offNow.has(id)) off(false);
+    st.off = new Map([...offNow].map((id) => [id, byId.get(id).off]));
     for (const [id, f] of st.by) if (!want.has(id)) { if (f.set) f.set(false); f.id = null; f.set = null; f.m.visible = false; st.by.delete(id); }
     for (const id of want) {
       const c = byId.get(id); if (!c) continue;
@@ -200,9 +205,9 @@ export function createCrew71(o = {}) {
     }
     st.n = st.by.size;
   }
-  function setEnabled(v) { st.on = !!v; if (!st.on) for (const [id, f] of st.by) { if (f.set) f.set(false); f.id = null; f.m.visible = false; st.by.delete(id); } }
+  function setEnabled(v) { st.on = !!v; if (!st.on) { for (const off of st.off.values()) off(false); st.off.clear(); } if (!st.on) for (const [id, f] of st.by) { if (f.set) f.set(false); f.id = null; f.m.visible = false; st.by.delete(id); } }
   /** ── build 101 ── the building stages' people: more real figures, farther, kept when the camera turns (no swapping a man between his
    *  instanced figure and his real one as the camera moves — the owner's "דמות כפולה שהולכת בהבהוב"); tune(null): back to CREW71 */
-  function tune(t) { cfg = t ? Object.freeze({ ...CREW71, ...t }) : CREW71; }
+  function tune(t) { cfg = t ? Object.freeze({ ...CREW71, ...t }) : CREW71; if (!cfg.hide) { for (const off of st.off.values()) off(false); st.off.clear(); } }
   return { update, ready, setEnabled, tune, cfg: () => cfg, root, state: () => ({ on: st.on, loaded: st.loaded, err: st.err, n: st.n, figs: st.figs.length, hitT: +st.hitT.toFixed(3), dur: +st.dur.toFixed(3), clips: [...st.by.values()].map((f) => f.curName), at: [...st.by.values()].map((f) => [f.m.position.x, f.m.position.y, f.m.position.z].map((v) => Math.round(v * 10) / 10).concat(f.m.visible ? 1 : 0)) }) };
 }

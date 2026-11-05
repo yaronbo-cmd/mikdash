@@ -4,7 +4,7 @@
 // 1 unit = 1 amah; +x east, +z south, +y up. Hot loops reuse preallocated objects (no per-frame garbage).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode, holeDepthMaterial } from './batch.js';
+import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode, holeDepthMaterial, inHole101 } from './batch.js';
 const HOLE101 = !(typeof location !== 'undefined' && /[?&]h101=0\b/.test(location.search));   // ── build 101 ──   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor } from './world.js';
@@ -2714,6 +2714,8 @@ export function createStages(ctx) {
       if (HIDEW92 && HIDEW92.some((q) => w.x >= q[0] && w.x <= q[1] && w.z >= q[2] && w.z <= q[3])) { w.x71 = NaN; tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue; }   // ── build 92 ── (a stretch the game draws itself: its scaffold's masons not there)
       // ── build 71 ── (a real figure stands for him — crew71.js: what he does, where and when, read here; his instanced body not drawn, the stone he carries still)
       w.x71 = w.x + ox; w.z71 = w.z + oz; w.y71 = w.y; w.u71 = (w.role === 'mason' || w.role === 'dig') ? ((((w.ph / 6.2832) - 0.25 + 0.66) % 1) + 1) % 1 : null; w.moving71 = w.role === 'carry' ? !(w.wait > 0) : w.role === 'tread' ? !!(crane && crane.walking) : false; w.stone71 = stone; w.field71 = !!(st && FIELD.has(st.id));
+      w.hole101 = HOLE101 && inHole101(w.x71, w.y71 - 0.2, w.z71);   // ── build 101 ── (his scaffold not drawn in a hole: he is not drawn either — no mason crouching in the air before the wall)
+      if (w.off101 || w.hole101) { tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue; }   // ── build 101 ── (crew71: near and no real figure for him — not drawn, nor his stone)
       if (w.lod71) {
         if (stone) { wmT.makeTranslation(-0.3, 3.16, 0.05); wmR.makeRotationZ(0.12); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR); wStone.setMatrixAt(ns, tmpM); wStone.setColorAt(ns, tmpC0.set(STONE[st.def.stone] || STONE.ash)); ns++; }
         tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue;

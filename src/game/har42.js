@@ -5487,7 +5487,7 @@ export function createHar42(o = {}) {
         }
         if (ph === 'seat') { crewT += dts; if (crewT > 0.9) ringDone(); }
         if (men.ready && ph !== 'crew') { const wa = winchAt(); [men[0], men[1]].forEach((m, q) => { m.root.position.set(wa.x + (q ? 0.9 : -0.9), wa.y, wa.z - 1.0); m.root.rotation.y = 0; m.play(Math.abs(payNow) > 1e-5 ? 'Push_Loop' : 'Idle', 1); m.update(dt); }); spokes.rotation.z -= payNow * 3; }
-        if (men.ready && men[2]) { const S = slot(), r = F98.Rout98(j()) + 0.8; men[2].root.position.set(A.x + r + 0.6, A.y + surf98(r + 0.6, k), S.z - 3.4); men[2].root.rotation.y = -Math.PI / 2 + 0.6; men[2].play(ph === 'hoist' ? 'Interact' : 'Idle', 1); men[2].update(dt); }
+        if (men.ready && men[2]) { const S = slot(), r = F98.Rout98(j()) + 0.8; men[2].root.position.set(A.x + r + (ON101 ? 1.3 : 0.6), A.y + surf98(r + (ON101 ? 1.3 : 0.6), k), S.z - (ON101 ? 4.9 : 3.4));   /* ── build 101 ── (he stood in the kohen's body: apart, beside him) */ men[2].root.rotation.y = -Math.PI / 2 + 0.6; men[2].play(ph === 'hoist' ? 'Interact' : 'Idle', 1); men[2].update(dt); }
         if (shake > 0) shake = Math.max(0, shake - dt);
         objPlace(true, [{ x: slot().x, y: slot().y + 0.6, z: slot().z, r: 2.4 }], 'h98steps');
         svgClear();
@@ -6416,6 +6416,7 @@ export function createHar42(o = {}) {
     }
     st.ws61 = (st.ws61 || 0) + dt; if (st.ws61 >= WORLD61.saveS) { st.ws61 = 0; stand61(W61, STG, h.x, h.z); save61(W61); if (st.turned64) { R.cam64 = { ...st.cam64 }; save42(S); } }   // ── build 64 ── (the orbit kept where he left it)
   }
+  const CROWD_OFF101 = () => STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam';   // ── build 101 ── (the stages whose crowd stays off)
   function frame(ms) {
     if (!st.on) return;
     const t = ms / 1000, dt = st.last ? Math.min(0.1, Math.max(0, t - st.last)) : 0.016; st.last = t;
@@ -6428,6 +6429,7 @@ export function createHar42(o = {}) {
     if (ON97) frame97(dt);   // ── build 97 ── (the crews' crane sets the chambers' stones while he walks and works)
     if (st.card) return;
     const part = st.part;
+    if (ON101) { const calm = part === 'site' || part === 'open' || part === 'reveal' || part === 'done' || part === 'menu' || part === 'out' || part === 'voyage'; if (st.calm101 !== calm) { st.calm101 = calm; try { if (stages.crowd && stages.crowd.setEnabled && !CROWD_OFF101()) stages.crowd.setEnabled(calm); } catch (e) { /* */ } } }   // ── build 101 ── (the site's people — the scribe at his table, the onlookers — stand behind him: in an act's frame they stood between the camera and the work; the act has its own men)
     if ((part === 'open' || part === 'reveal') && (STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam')) lifeFrame55(dt);
     if (st.fire58) fireFrame58(dt);   // ── build 58 ── (the first fire and its column of smoke burn on through the reveal)   // ── build 55 ── (the carts come in during the opening) ── /build 55 ──
     if (part === 'open' || part === 'reveal') { const p = PART[part]; if (p.frame(dt)) { if (p.end) p.end(); if (part === 'open') { const r = st.resumeAt; st.resumeAt = null; if (ON63 && (r === 'site' || r == null)) site63(); else startPart(r != null ? r : R.part + 1); } else { st.part = 'done'; if (ON69) { const D = D63(); if (!D.includes('reveal')) D.push('reveal'); save42(S); } } } return; }
@@ -6661,7 +6663,7 @@ export function createHar42(o = {}) {
     if (!st.on) return; st.on = false;
     if (ON101 || STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.setLife) stages.setLife(true); } catch (e) { /* */ } }
     if (ON101) { try { const c71 = globalThis.__T && globalThis.__T.crew71; if (c71 && c71.tune) c71.tune(null); } catch (e) { /* */ } }
-    if (ON101) { try { if (stages.crowd && stages.crowd.setFloor101) stages.crowd.setFloor101(false); } catch (e) { /* */ } }
+    if (ON101) { try { if (stages.crowd && stages.crowd.setFloor101) stages.crowd.setFloor101(false); if (stages.crowd && stages.crowd.setEnabled && !CROWD_OFF101()) stages.crowd.setEnabled(true); } catch (e) { /* */ } st.calm101 = undefined; }
     if (STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.crowd && stages.crowd.setEnabled) stages.crowd.setEnabled(true); } catch (e) { /* */ } }
     if (st.fire58) { try { if (st.fire58.parent) st.fire58.parent.remove(st.fire58); } catch (e) { /* */ } st.fire58 = null; }   // ── build 58 ──   // ── build 56 ── (the crowd back) ── /build 56 ──   // ── build 55 ── (the world's own crews back) ── /build 55 ──
     try { if (st.wet > 0 && stages.wet) stages.wet(0); STONE.color.copy(STONE0); BOSS.color.copy(BOSS0); } catch (e) { /* */ }

@@ -16,7 +16,7 @@
  * Never a Divine Name. ── /build 101 ── */
 import * as THREE from 'three';
 
-export const CREW101 = Object.freeze({ n: 36, near: 150, keep: 175, behind: -1e9, clear: 2, crowd: 1 });
+export const CREW101 = Object.freeze({ n: 36, near: 150, keep: 175, behind: -1e9, clear: 2, crowd: 1, hide: 70 });
 
 /** the working light, as main.js's TIMES and GRADE take it (an hour or two after sunrise, the sun in the south-east, warm) */
 /** ── the second light to choose from (?light101=b): build 15's — an afternoon sun in the south-west, lower and golden, the court's floor

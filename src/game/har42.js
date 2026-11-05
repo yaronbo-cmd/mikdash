@@ -5518,15 +5518,17 @@ export function createHar42(o = {}) {
   function slab105(w, m2) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, K105.thick, R105.row / Math.cos(AL105) - 0.03), m2);   // (its length along the slope: the rows meet — a gap showed each one's front face, a step)
  m.rotation.x = AL105; m.castShadow = true; m.receiveShadow = true; return m; }
   const slabY105 = (z, e = 0) => ys105(z) + e - (K105.thick / 2) / Math.cos(AL105);
+  function redLine105(g) {
+    const RED = new THREE.MeshBasicMaterial({ color: '#B0281C', transparent: true, opacity: 0.92, depthWrite: false, side: THREE.DoubleSide }), FL = B104.floor, ym = FL + F104.SIKRA104.mid;
+    for (const s of F104.SIKRA104.sides) { const dx = s.b[0] - s.a[0], dz = s.b[1] - s.a[1], L = Math.hypot(dx, dz), m = new THREE.Mesh(new THREE.PlaneGeometry(L, 0.08), RED); m.position.set((s.a[0] + s.b[0]) / 2 + s.n[0] * 0.03, ym, (s.a[1] + s.b[1]) / 2 + s.n[1] * 0.03); m.rotation.y = -Math.atan2(dz, dx); m.renderOrder = 3; g.add(m); }
+  }
   /** the world of stage 10: the body (stage 09's, whole, with its red line), the body above the sovev (three courses, raised in the kevesh
    *  act), the kevesh's walls and fill, its rows (all three lanes) */
   function world105() {
     if (st.props.w105) return st.props.w105;
     const BD = body104(); BD.courses.forEach((c) => { c.g.visible = true; c.g.scale.set(1, 1, 1); c.g.position.y = 0; if (c.his) c.his.visible = true; }); BD.inner.visible = true;
     const g = new THREE.Group(); (st.props.root || scene()).add(g);
-    // the red line round the middle (stage 09's — "חוגרו באמצע")
-    const RED = new THREE.MeshBasicMaterial({ color: '#B0281C', transparent: true, opacity: 0.92, depthWrite: false, side: THREE.DoubleSide }), FL = B104.floor, ym = FL + F104.SIKRA104.mid;
-    for (const s of F104.SIKRA104.sides) { const dx = s.b[0] - s.a[0], dz = s.b[1] - s.a[1], L = Math.hypot(dx, dz), m = new THREE.Mesh(new THREE.PlaneGeometry(L, 0.08), RED); m.position.set((s.a[0] + s.b[0]) / 2 + s.n[0] * 0.03, ym, (s.a[1] + s.b[1]) / 2 + s.n[1] * 0.03); m.rotation.y = -Math.atan2(dz, dx); m.renderOrder = 3; g.add(m); }
+    redLine105(g);   // the red line round the middle (stage 09's — "חוגרו באמצע")
     // the body above the sovev: 28 × 28, three courses (the crews')
     const guf = []; for (let c = 0; c < G105.courses; c++) { const W0 = G105.x1 - G105.x0, D0 = G105.z1 - G105.z0, cg = new THREE.Group(); g.add(cg); const m = new THREE.Mesh(new THREE.BoxGeometry(W0, 1, D0), masonry56(W0, 1, ['#F1E9D8', '#ECE3CF', '#F3ECDE'][c])); m.position.set((G105.x0 + G105.x1) / 2, G105.y0 + c + 0.5, (G105.z0 + G105.z1) / 2); m.castShadow = m.receiveShadow = true; cg.add(m); guf.push({ g: cg, y0: G105.y0 + c, m }); }
     // the kevesh: its two side walls of ashlar and the fill between them (earth and small stones), under the rows
@@ -5800,25 +5802,42 @@ export function createHar42(o = {}) {
    *  over the whole world — what he built stands where he built it, his kohen goes up to it, the camera turns slowly round it; then a small
    *  card at the screen's foot: each of his works with its grade, what the world shows of it, the sources folded away. Built for any stage
    *  (cfg); stage 10 first ── */
+  /** a walk along a few points (each [x, y, z]), by length; u 0…1 */
+  function walk105(pts) {
+    const P = pts.map((q) => new THREE.Vector3(...q)), L = []; let tot = 0; for (let k = 1; k < P.length; k++) { tot += P[k].distanceTo(P[k - 1]); L.push(tot); }
+    return (u) => { const d = Math.max(0, Math.min(1, u)) * tot; let k = 0; while (k < L.length - 1 && L[k] < d) k++; const d0 = k ? L[k - 1] : 0, f = (d - d0) / Math.max(1e-6, L[k] - d0); return P[k].clone().lerp(P[k + 1], Math.max(0, Math.min(1, f))); };
+  }
   function endCfg105() {
-    if (!ON105) return null;
-    const FL = B104.floor, zF = R105.zFoot + 5, path = (u) => { const z = zF + (R105.zTop + 0.6 - zF) * Math.min(1, u / 0.85), z2 = u > 0.85 ? R105.zTop + 0.6 - ((u - 0.85) / 0.15) * 6 : z; return new THREE.Vector3(XM105, z2 < R105.zTop + 0.6 ? G105.top : z2 > R105.zFoot ? FL : ys105(z2), z2); };
-    const roll = R.roll105 | 0, sid = R.sid105 | 0;
-    return { title: 'גוף המזבח והכבש — נבנו', tag: 'הכבש והסיד — המזבח לבן מול השמש', C: [-38, 19, 16], R0: 52, H0: 46, works: F105.PARTS105.slice(1, -1), path,
-      facts: [roll ? `הגלגלת קפצה בכבש ${roll} ${roll === 1 ? 'פעם' : 'פעמים'} — במקום שהאבן מולאה מחדש` : 'הגלגלת ירדה בכבש חלק — בלי מדרגה', sid ? `בסיד נשארו ${sid} פגמים` : 'הסיד נקי — בלי טיפות, והקו האדום אדום'],
-      src: F105.SRC105, before() { world105(); ramp105(true); whiten105(1); hideWorld105(); } };
+    if (MODE !== 'stage' || qs('end105') === '0') return null;
+    const FL = B104.floor;
+    if (ON105) {
+      const zF = R105.zFoot + 5, path = (u) => { const z = zF + (R105.zTop + 0.6 - zF) * Math.min(1, u / 0.85), z2 = u > 0.85 ? R105.zTop + 0.6 - ((u - 0.85) / 0.15) * 6 : z; return new THREE.Vector3(XM105, z2 < R105.zTop + 0.6 ? G105.top : z2 > R105.zFoot ? FL : ys105(z2), z2); };
+      const roll = R.roll105 | 0, sid = R.sid105 | 0;
+      return { title: 'גוף המזבח והכבש — נבנו', tag: 'הכבש והסיד — המזבח לבן מול השמש', C: [-38, 19, 16], R0: 52, H0: 46, works: F105.PARTS105.slice(1, -1), path,
+        facts: [roll ? `הגלגלת קפצה בכבש ${roll} ${roll === 1 ? 'פעם' : 'פעמים'} — במקום שהאבן מולאה מחדש` : 'הגלגלת ירדה בכבש חלק — בלי מדרגה', sid ? `בסיד נשארו ${sid} פגמים` : 'הסיד נקי — בלי טיפות, והקו האדום אדום'],
+        src: F105.SRC105, before() { world105(); ramp105(true); whiten105(1); hideWorld105(); } };
+    }
+    // ── build 105 ── the same end for stages 07–09 (the owner's 20:02 question was about every stage's end)
+    if (ON104) return { title: 'הסובב וחוט הסיקרא — נבנו', tag: 'חוט הסיקרא חוגר את המזבח באמצע', C: [-38, 19, -3.5], R0: 52, H0: 46, works: F104.PARTS104.slice(1, -1),
+      path: walk105([[-14, FL, 16], [-19.6, FL, 10], [-19.6, FL, -16.5], [-21.2, FL, -20.6]]), facts: [], src: F104.SRC104, hide: ['stage-sovev'],
+      before() { const BD = body104(); BD.courses.forEach((c) => { c.g.visible = true; c.g.scale.set(1, 1, 1); c.g.position.y = 0; if (c.his) c.his.visible = true; }); if (!st.props.sikra104 && !st.props.red105) { const g = new THREE.Group(); (st.props.root || scene()).add(g); redLine105(g); st.props.red105 = g; } } };
+    if (ON103) { const Y = !!st.yesod103; return { title: 'יסוד המזבח — נבנה', tag: 'היסוד — כל הצפון וכל המערב, ואמה בדרום ובמזרח', C: [-38, 17, -3.5], R0: 52, H0: 46, a0: -0.75, swing: -0.8, works: F103.PARTS103.slice(1, -1),
+      path: walk105([[-14, FL, -28], [-21, FL, -21.5], [-23, FL + 1, -19], [-50, FL + 1, -19]]), facts: [], src: F103.SRC103, hide: Y ? ['stage-yesod'] : [], before() { if (st.yesod103) st.yesod103.visible = true; } }; }
+    if (STG === 'lishka') return { title: 'הלשכות — נבנו', tag: 'בית המוקד — הכיפה נסגרה, והכהנים ישנים בו', C: [-160, 22, -60], R0: 52, H0: 46, a0: 0, swing: -0.6, works: F102.PARTS102.slice(1, -1),
+      path: walk105([[-140, FL, -44], [-160, FL, -55], [-160, FL, -66]]), facts: [], src: F102.SRC102, before() { } };
+    return null;
   }
   function revBegin105(cfg) {
     line(''); objPlace(false); svgClear(); try { if (o.complete) o.complete(); } catch (e) { /* */ }
     cfg.before(); const men = [];
-    st.rev = { t: 0, cfg, men, p0: [cq.p.x, cq.p.y, cq.p.z], t0: [cq.t.x, cq.t.y, cq.t.z], a0: Math.atan2(0.8, 0.9) };
+    st.rev = { t: 0, cfg, men, p0: [cq.p.x, cq.p.y, cq.p.z], t0: [cq.t.x, cq.t.y, cq.t.z], a0: Number.isFinite(cfg.a0) ? cfg.a0 : Math.atan2(0.8, 0.9) };
     const tg = el('h42-tag', ''); tg.hidden = true; st.ui.root.appendChild(tg); st.ui.btag = tg;
     if (doc && st.ui.root) { const b = el('h42-skip', 'דלגו', 'button'); b.type = 'button'; b.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (st.rev) st.rev.t = Math.max(st.rev.t, 10.4); }); st.ui.root.appendChild(b); st.ui.skip = b; }
     buzz42('peak');
   }
   /** the orbit: from the south-east, low, rising and turning slowly round the thing (e 0…1 how far in) */
   function orbit105(r, dt) {
-    const c = r.cfg, a = r.a0 + 0.8 * (1 - Math.cos(r.t * 0.035)), e = Math.min(1, r.t / 6), R2 = c.R0 - 5 * e, h = c.H0 - 12 * e, f = kohen102(r.men);   /* (to and fro over the south side, high: the game's lens is narrow (fov 32), so the whole altar and its kevesh need ≈ 60 amot — from above the court's walls, not through them) */
+    const c = r.cfg, a = r.a0 + (Number.isFinite(c.swing) ? c.swing : 0.8) * (1 - Math.cos(r.t * 0.035)), e = Math.min(1, r.t / 6), R2 = c.R0 - 5 * e, h = c.H0 - 12 * e, f = kohen102(r.men);   /* (to and fro over the south side, high: the game's lens is narrow (fov 32), so the whole altar and its kevesh need ≈ 60 amot — from above the court's walls, not through them) */
     const kp = f ? f.root.position : new THREE.Vector3(...c.C), p = [Math.min(c.xMax ?? 1e9, c.C[0] + Math.cos(a) * R2), c.C[1] + h, Math.min(c.zMax ?? 1e9, c.C[2] + Math.sin(a) * R2)], t = [c.C[0] + (kp.x - c.C[0]) * 0.25, c.C[1] + (kp.y + 1 - c.C[1]) * 0.25, c.C[2] + (kp.z - c.C[2]) * 0.25];
     const b = Math.min(1, r.t / 1.6), bb = b * b * (3 - 2 * b);   // (from where the last act's camera stood)
     camTo(p.map((v, i) => r.p0[i] + (v - r.p0[i]) * bb), t.map((v, i) => r.t0[i] + (v - r.t0[i]) * bb), 1);
@@ -5828,7 +5847,7 @@ export function createHar42(o = {}) {
     f.root.position.copy(p); if (u < 1) f.root.rotation.y = Math.atan2(q.x - p.x, q.z - p.z); f.play(u > 0 && u < 1 ? 'Walking_A' : 'Idle', 1); f.update(dt);
   }
   function revFrame105(dt) {
-    const r = st.rev; r.t += dt; hideWorld105(); orbit105(r, dt); kohenWalk105(r, dt);
+    const r = st.rev; r.t += dt; hide105(r.cfg); orbit105(r, dt); kohenWalk105(r, dt);
     const tg = st.ui.btag; if (tg && r.t > 6.5) { tg.hidden = false; tg.textContent = r.cfg.tag; }
     return r.t > 10.5;
   }
@@ -5845,7 +5864,8 @@ export function createHar42(o = {}) {
     const box = fc.querySelector('[role="dialog"]'), h2 = box.querySelector('h2');
     h2.insertAdjacentHTML('afterend', `<div class="h105-works">${works}</div>${cfg.facts.map((x) => `<p>${esc(x)}</p>`).join('')}<p class="h105-sum">${RATE30.icon.mehudar} ${n.mehudar} · ${RATE30.icon.kasher} ${n.kasher} · ${RATE30.icon.tikkun} ${n.tikkun} · נפתח: ${esc(o.nextName || 'השלב הבא')}</p><details class="h105-src"><summary>מקורות</summary>${cfg.src.map((x) => `<small>${esc(x)}</small>`).join('')}</details>`);
   }
-  function endFrame105(dt) { const r = st.end105; if (!r) return; r.t += dt; hideWorld105(); orbit105(r, dt); kohenWalk105(r, dt); }
+  function hide105(cfg) { if (ON105) { hideWorld105(); return; } const sc = scene(); if (!sc || !cfg || !cfg.hide) return; for (const n of cfg.hide) { const g = sc.getObjectByName(n); if (g) g.visible = false; } }
+  function endFrame105(dt) { const r = st.end105; if (!r) return; r.t += dt; hide105(r.cfg); orbit105(r, dt); kohenWalk105(r, dt); }
   function bye105() { const r = st.end105; st.end105 = null; if (r && r.men) { kohenBye102(r.men); bye94(r.men); } }
   // ── /build 105 ──
   // ── /build 102 ──
@@ -7681,7 +7701,7 @@ export function createHar42(o = {}) {
     if (ON84 || ON92) keepScrub84();   // ── build 86 ── (the court round the soreg clear in every view, the site's too — not only in an act's frame)
     if (st.wet > 0) dry45(dt);
     if (ON97) frame97(dt);   // ── build 97 ── (the crews' crane sets the chambers' stones while he walks and works)
-    if (ON105) { hideWorld105(); if (st.end105) endFrame105(dt); }   // ── build 105 ── (the world's own sovev and body/kevesh would stand in ours: world105's are the altar of this stage)
+    if (ON105) hideWorld105(); if (st.end105) endFrame105(dt);   // ── build 105 ── (the world's own sovev and body/kevesh would stand in ours: world105's are the altar of this stage)
     if (st.card) return;
     const part = st.part;
     if (STG === 'lishka' && ON101 && !st.job) {   // ── build 102 ── (לשכת הגזית and בית המוקד are solid roofed halls in the world model: while he walks to one, stands in one or the camera pulls back from his work there, it stands open from above as in its act — else the camera behind him is in its wall and he is inside a block)

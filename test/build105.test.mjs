@@ -110,11 +110,12 @@ test('wiring: stage 10 takes the new parts, each part begins its act; the old st
   assert.match(S, /guf: Object\.freeze\(\{[^}]*makevet: \[\], sidud: \['makevet'\]/);
 });
 
-test('the stage\'s new end (the owner 5.11 20:02): stage 10 ends on its own altar — the kohen up the kevesh, the slow orbit, a small card at the foot', () => {
+test('the stage\'s new end (the owner 5.11 20:02): stages 07–10 end on their own work — the kohen up the kevesh, the slow orbit, a small card at the foot', () => {
   const H = fs.readFileSync(new URL('../src/game/har42.js', import.meta.url), 'utf8');
   assert.ok(H.includes("const c105 = endCfg105(); if (c105) { revBegin105(c105); return; }"), 'the reveal takes the new end');
   assert.ok(H.includes('if (st.rev && st.rev.cfg) finishCard105(st.rev.cfg); else finishCard();'));
   assert.match(H, /\.h42-card\.h105-end\{align-items:flex-end;/);
   assert.match(H, /<details class="h105-src"><summary>מקורות<\/summary>/, 'the sources folded away');
-  assert.match(H, /function endCfg105\(\) \{\n    if \(!ON105\) return null;/, 'only stage 10 for now');
+  assert.match(H, /function endCfg105\(\) \{\n    if \(MODE !== 'stage' \|\| qs\('end105'\) === '0'\) return null;/, 'the stage mode only; ?end105=0 the old end');
+  for (const f of ['ON105', 'ON104', 'ON103', "STG === 'lishka'"]) assert.ok(H.includes(`    if (${f}`), `stage end for ${f}`);   // (stages 07–10)
 });

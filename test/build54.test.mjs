@@ -18,7 +18,7 @@ const H = read('src/game/har42.js');
 const fnOf = (name, next) => H.slice(H.indexOf(`  function ${name}(`), next ? H.indexOf(`  function ${next}(`, H.indexOf(`  function ${name}(`)) : undefined);
 
 test('build 54: GAME_BUILD 54', () => {
-  assert.equal(GAME_BUILD, 101);   // (build 63: again)
+  assert.equal(GAME_BUILD, 102);   // (build 63: again)
 });
 
 test('build 54: the rock\'s macro (01) — his stands 9 amot east of each rock and 3 south, the camera 4.5 aside away from him: out of its frame', () => {
@@ -114,17 +114,12 @@ test('build 54: the peg (05) — the joint in the world (the plank\'s tenon, the
 
 test('build 54: the compass (07) — the chamber\'s paved floor and its walls from above; him by the peg; the peg ≥ 44 px', () => {
   assert.match(H, /function room54\(on\)/); assert.match(H, /hole50\('gazit'\); room54\(true\);/);
-  assert.match(H, /compass: F16\(-79\.5, 62\.5\)/);
-  assert.match(H, /r="22" fill="rgba\(255,214,110,\.18\)" stroke="#FFD66E" stroke-width="3"\/><circle cx="\$\{c\.x\}" cy="\$\{c\.y\}" r="6"/);
+  assert.match(H, /compass: F16\(-68, 74\)/, 'build 102: by the chamber\'s door; the peg held by a worker, not a held ring');
 });
 
-test('build 54: the wheel over the pit (07) — the spokes a pile in the world, not "חישור ×8"; the spill — the bucket tips, the water on the floor', () => {
-  const hb = fnOf('mkHub50', 'mkWheel50');
-  assert.doesNotMatch(hb, /`╱ חישור ×\$\{/); assert.match(hb, /const heap = \[\];/);
-  assert.match(hb, /chip\.style\.top = `\$\{Math\.round\(Math\.max\(56, Math\.min\(H\(\) - 56, q\.y - 26\)\)\)\}px`/, 'the pile\'s handle kept on the screen');
-  const wh = fnOf('mkWheel50');
-  assert.match(wh, /bk\.rotation\.z \+= \(\(s\.spilling \? 0\.55 : 0\) - bk\.rotation\.z\)/);
-  assert.match(wh, /st\.props\.puddle54 = pm;/);
+test('build 54: the wheel over the pit (07) — superseded in build 102: the carpenters knock the spokes in; the water spills from the bucket as it sways', () => {
+  const wh = fnOf('mkWheel102', 'mkVault102');
+  assert.match(wh, /line\('הנגרים מכניסים את החישורים בפטיש · המחשה'\)/); assert.match(wh, /const on = \(k && k\.spilling\) \|\| \(hitT >= 0 && hitT < 1\.0\);/);
 });
 
 test('build 54 (the coordinator\'s touch play of 53): the bar\'s label says the way — an arrow toward the place by its side on the screen; "לצד השני" after a push away; one tefach in words', () => {

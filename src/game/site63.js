@@ -42,7 +42,7 @@ export const DEP63 = Object.freeze({
   nikanor94: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], lever2: ['hang'], hang2: ['lever2'], steps: ['hang'], steps2: ['steps'], steps3: ['steps2', 'hang2'] }),   // ── build 94 ── (the north leaf after the south's; the steps once the south leaf hangs)
   // ── build 77 ── stage 07 (PARTS50): the three chambers side by side — the hewn stone's compass, the exiles' hub, the hearth's dome; in
   // each its next work after its first (the benches after the compass, the buckets' wheel after the hub)
-  lishka: Object.freeze({ compass: [], hub: [], dome: [], benches: ['compass'], wheel: ['hub'] }),
+  lishka: Object.freeze({ compass: [], wheel: [], dome: [] }),   // ── build 102 ── (the three chambers, any order: the benches and the hub are the crews' now)
   // ── build 78 ── stage 08 (PARTS55): the first inspection first (what makes a stone unfit); then the field stones, the nail's test and
   // "no iron" side by side; the last row once the three are done
   yesod: Object.freeze({ inspect: [], field: ['inspect'], nail: ['inspect'], iron: ['inspect'], last: ['field', 'nail', 'iron'] }),

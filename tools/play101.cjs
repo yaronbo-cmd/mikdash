@@ -9,7 +9,7 @@ const { chromium } = require('playwright'); const fs = require('fs'); const path
  * sampled (the audit's probe: real figures off the floor, blinking, doubles; instanced figures in view; small props over the floor) and
  * three frames over time. Two pages at once.  node tools/play101.cjs OUT [W H] [jobs: 06:lever,06:hang …] */
 const [OUT = 'play101', VW = '1374', VH = '902', ...JOBS0] = process.argv.slice(2);
-const Q = { '01': 'h42stock=99', '02': 'h45go=1&h42stock=99', '03': 'h46go=1&h42stock=99', '04': 'h47go=1&h42stock=99', '05': 'h48go=1&h42stock=99', '06': 'h49go=1&h42stock=99' };
+const Q = { '01': 'h42stock=99', '02': 'h45go=1&h42stock=99', '03': 'h46go=1&h42stock=99', '04': 'h47go=1&h42stock=99', '05': 'h48go=1&h42stock=99', '06': 'h49go=1&h42stock=99', '07': 'h50go=1&h42stock=99', '08': 'h55go=1&h42stock=99', '09': 'h56go=1&h42stock=99', '10': 'h57go=1&h42stock=99' };
 const JOBS = JOBS0.length ? JOBS0 : ['01:rope', '01:course0', '01:rock0', '02:line', '02:wcourse0', '02:giant', '03:lattice0', '03:warn', '04:lintel', '04:leaf', '05:tread97', '05:beams', '05:pegs', '06:lever', '06:hang', '06:steps'];
 const PAGE = 'file://' + path.resolve(__dirname, '../out/index.html');
 const PROBE = () => {

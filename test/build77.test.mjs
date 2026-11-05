@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { DEP63, open63 } from '../src/game/site63.js';
-import { PARTS50 } from '../src/game/har42.js';
+import { PARTS102 as PARTS50 } from '../src/game/lish102.js';   // (build 102: stage 07's parts)
 import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
 
 const ROOT = new URL('../', import.meta.url);
@@ -16,9 +16,9 @@ const H = read('src/game/har42.js');
 test('build 77: GAME_BUILD 77; stage 07\'s order — three chambers side by side, each one\'s second work after its first, then the reveal', () => {
   assert.ok(GAME_BUILD >= 77);
   assert.deepEqual(Object.keys(DEP63.lishka).sort(), PARTS50.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
-  assert.deepEqual(open63('lishka', PARTS50, []), ['compass', 'hub', 'dome']);
-  assert.deepEqual(open63('lishka', PARTS50, ['compass']), ['benches', 'hub', 'dome']);
-  assert.deepEqual(open63('lishka', PARTS50, ['compass', 'benches', 'hub', 'wheel', 'dome']), ['reveal']);
+  assert.deepEqual(open63('lishka', PARTS50, []), ['compass', 'wheel', 'dome']);
+  assert.deepEqual(open63('lishka', PARTS50, ['compass']), ['wheel', 'dome']);
+  assert.deepEqual(open63('lishka', PARTS50, ['compass', 'wheel', 'dome']), ['reveal']);
 });
 
 test('build 77 har42: wired — ON77 among the loop\'s stages', () => {

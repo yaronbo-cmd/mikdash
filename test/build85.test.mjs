@@ -12,7 +12,7 @@ const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 const seeded = (seed) => { let a = seed; return () => ((a = (a * 16807) % 2147483647) / 2147483647); };
 const C = F84.SOREG84;
 
-test('build 85: GAME_BUILD 85', () => { assert.equal(GAME_BUILD, 101); });
+test('build 85: GAME_BUILD 85', () => { assert.equal(GAME_BUILD, 102); });
 
 test('build 85: the slab swings in both directions and keeps swinging (it takes a while to settle)', () => {
   const spec = F84.slab84(0, 1, 1, seeded(5));

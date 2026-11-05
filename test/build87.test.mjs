@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import * as F84 from '../src/game/soreg84.js';
 import { GAME_BUILD } from '../src/avodah/shift/lobby35.js';
 
-test('build 87: GAME_BUILD', () => { assert.equal(GAME_BUILD, 103); });
+test('build 87: GAME_BUILD', () => { assert.equal(GAME_BUILD, 104); });
 
 test('build 87: the finger turns it round — past the half, the dressed face out; let go, it spins on', () => {
   const H = F84.createHoist84({ tol: 0.1, tolZ: 0.1, tolR: 0.1, damp: 3, sway0: 0, swayZ0: 0, twist0: 0, r0: Math.PI, vChip: 1, vBreak: 1.8, wind: 0 });

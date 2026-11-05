@@ -13,7 +13,7 @@ const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 const seeded = (seed) => { let a = seed; return () => ((a = (a * 16807) % 2147483647) / 2147483647); };
 const C = F84.SOREG84, C9 = F84.SOREG89;
 
-test('build 89: GAME_BUILD 89', () => { assert.equal(GAME_BUILD, 103); });
+test('build 89: GAME_BUILD 89', () => { assert.equal(GAME_BUILD, 104); });
 
 test('build 89: each section its own skill — never upside down in the first, often in the second; gusts and a closing slab in the third', () => {
   let up = [0, 0, 0], gusts = [0, 0, 0], closing = [0, 0, 0];

@@ -47,7 +47,7 @@ export const DEP63 = Object.freeze({
   // "no iron" side by side; the last row once the three are done
   yesod: Object.freeze({ inspect: [], field: ['inspect'], nail: ['inspect'], iron: ['inspect'], last: ['field', 'nail', 'iron'], bench: [], course: ['bench'] }),   // ── build 103 ── (the bench, then the yesod from its stones)
   // ── build 79 ── stage 09 (PARTS56): the side light and the tap's test side by side (the stones checked); the sovev's course once both are done; the red line on it last
-  sovev: Object.freeze({ light: [], tap: [], sovev: ['light', 'tap'], thread: ['sovev'] }),
+  sovev: Object.freeze({ light: [], tap: [], sovev: ['light', 'tap'], thread: ['sovev'], plumb: [], sikra: ['plumb'] }),   // ── build 104 ── (the corner, then the red line on the body it raised)
   // ── build 80 ── stage 10 (PARTS57): the stones' check with its decoys and the ramp side by side; the lime once the body and the ramp stand
   guf: Object.freeze({ decoy: [], kevesh: [], sid: ['decoy', 'kevesh'] }),
   // ── build 81 ── stage 11 (PARTS58): the four horns and the two holes side by side; the first fire once the altar is whole

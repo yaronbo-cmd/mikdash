@@ -18,7 +18,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 57: GAME_BUILD 57; stage 10\'s parts in the spec\'s order; the Mishnah as the spec has it (מדות ג, ג; ג, ד)', () => {
-  assert.equal(GAME_BUILD, 103);   // (build 63: again)
+  assert.equal(GAME_BUILD, 104);   // (build 63: again)
   assert.deepEqual([...PARTS57], ['open', 'decoy', 'kevesh', 'sid', 'reveal']);
   for (const q of ['שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה', 'וּמְלַבְּנִים אוֹתָן פַּעֲמַיִם בַּשָּׁנָה, אַחַת בַּפֶּסַח וְאַחַת בֶּחָג', 'לֹא הָיוּ סָדִין אוֹתָן בְּכָפִיס שֶׁל בַּרְזֶל', 'מְלַבְּנִים אוֹתוֹ בְמַפָּה']) assert.ok(SRC57.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC57.some((s) => /"שְׁלֹשִׁים וּשְׁתַּיִם עַל רֹחַב שֵׁשׁ עֶשְׂרֵה" — מדות ג, ג/.test(s)));
@@ -119,7 +119,7 @@ test('build 57: §1 rule 12 — every Phase A end card on the right two-thirds, 
   const toHim = [-1, 0], x = (toHim[0] * right2[0] + toHim[1] * right2[1]) / (toHim[0] * f2[0] + toHim[1] * f2[1]);
   assert.ok(x < -0.5 && x > -0.75, `he at ${x.toFixed(2)} of the half-width — the left third`);
   assert.match(H, /const fc = card\((?:STG === 'kiyor' \? '[^']*' : )?(?:STG === 'ulam' \? '[^']*' : )?(?:STG === 'karnot' \? '[^']*' : )?STG === 'guf' \? 'גוף המזבח והכבש — נבנו' :/);
-  assert.match(H, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?(?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?STG === 'guf' \? SRC57 : STG === 'sovev' \? SRC56 :/);
+  assert.match(H, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?(?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?STG === 'guf' \? SRC57 : STG === 'sovev' \? (?:SRC56|\(ON104 \? F104\.SRC104 : SRC56\)) :/);
 });
 
 test('build 57: the wiring — after stage 09, on resume, the fixture ?h57go=1; the old flow behind ?guf57=0; the tester\'s menu keeps every stage', () => {

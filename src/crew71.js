@@ -62,6 +62,7 @@ export function scale71(s, c = CREW71) { return (c.model * (c.actorH * (s || 1))
 
 export function createCrew71(o = {}) {
   const scene = o.scene, camera = o.camera, crews = o.crews, stages = o.stages || null;
+  let cfg = CREW71;   // ── build 101 ── (the building stages: every man near the work real — tune())
   const st = { on: o.enabled !== false, loaded: false, err: null, gltf: null, mats: [], hitT: 0.5, dur: 1, figs: [], by: new Map(), n: 0 };
   const root = new THREE.Group(); root.name = 'crew71'; if (scene) scene.add(root);
   const loader = new GLTFLoader(); try { loader.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
@@ -155,13 +156,13 @@ export function createCrew71(o = {}) {
     if (!st.loaded) return;
     const cands = st.on && camera ? gather() : [];
     let want = new Set();
-    if (cands.length) { camera.getWorldDirection(fwd); const L = Math.hypot(fwd.x, fwd.z) || 1; want = pick71(cands, { x: camera.position.x, y: camera.position.y, z: camera.position.z, fx: fwd.x / L, fz: fwd.z / L }, new Set(st.by.keys())); }
+    if (cands.length) { camera.getWorldDirection(fwd); const L = Math.hypot(fwd.x, fwd.z) || 1; want = pick71(cands, { x: camera.position.x, y: camera.position.y, z: camera.position.z, fx: fwd.x / L, fz: fwd.z / L }, new Set(st.by.keys()), cfg); }
     const byId = new Map(cands.map((c) => [c.id, c]));
     for (const [id, f] of st.by) if (!want.has(id)) { if (f.set) f.set(false); f.id = null; f.set = null; f.m.visible = false; st.by.delete(id); }
     for (const id of want) {
       const c = byId.get(id); if (!c) continue;
       let f = st.by.get(id);
-      if (!f) { f = st.figs.find((q) => !q.id) || null; if (!f) { if (st.figs.length >= CREW71.n) continue; f = make(); st.figs.push(f); } f.id = id; f.set = c.set; st.by.set(id, f); c.set(true); f.curName = ''; }
+      if (!f) { f = st.figs.find((q) => !q.id) || null; if (!f) { if (st.figs.length >= cfg.n) continue; f = make(); st.figs.push(f); } f.id = id; f.set = c.set; st.by.set(id, f); c.set(true); f.curName = ''; }
       if (f.pf) {   // ── build 88 ── (a kohen is a kohen's figure: rebuilt when the man it stands for changes kind; a worker's tunic and cloth his own)
         if (f.white !== !!c.white) { const t2 = make88(!!c.white); if (t2) { if (f.m.parent) f.m.parent.remove(f.m); if (f.toolM && f.toolM.parent) f.toolM.parent.remove(f.toolM); Object.assign(f, { m: t2.m, B: t2.B, mixer: t2.mixer, pf: t2.pf, white: t2.white, cur: null, curName: '', tun: '', tool: undefined, toolM: null }); } }
         const th = String(c.tunic || '#E2D6BE'), ch = c.cloth && c.cloth.isColor ? '#' + c.cloth.getHexString() : String(c.cloth || '#2F6DB5');
@@ -173,7 +174,7 @@ export function createCrew71(o = {}) {
       if (f.belt) f.belt.material.color.copy(c.white ? C2.set('#E8DCC0') : c.cloth || C2.set('#2F6DB5'));
       const tk = c.tool === 'pick' || c.tool === 'hammer' || c.tool === 'mallet' || c.tool === 'staff' ? c.tool : null;
       if (f.tool !== tk) { f.tool = tk; if (f.toolM) { if (f.toolM.parent) f.toolM.parent.remove(f.toolM); f.toolM = null; } const hb = f.B.handslotr || f.B['handslot.r']; if (tk && hb) { f.toolM = tool(tk); f.toolM.traverse((n) => { n.userData.prop71 = 1; }); hb.add(f.toolM); } }
-      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= CREW71.clear; f.m.position.set(c.x, c.y, c.z);
+      f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= cfg.clear; f.m.position.set(c.x, c.y, c.z);
       f.m.rotation.y = c.yaw; f.m.scale.setScalar(f.pf ? c.h / f.pf.H0 : (CREW71.model * c.h) / CREW71.modelH);   // ── build 73 ── (a man in the camera's lap not drawn — nor his instanced one: the warning stones' view stood among a crew) ── build 88 ── (his facing and size had fallen into that comment since 73: back in code)
       play(f, c.clip());
       f.mixer.update(dt);
@@ -181,5 +182,8 @@ export function createCrew71(o = {}) {
     st.n = st.by.size;
   }
   function setEnabled(v) { st.on = !!v; if (!st.on) for (const [id, f] of st.by) { if (f.set) f.set(false); f.id = null; f.m.visible = false; st.by.delete(id); } }
-  return { update, ready, setEnabled, root, state: () => ({ on: st.on, loaded: st.loaded, err: st.err, n: st.n, figs: st.figs.length, hitT: +st.hitT.toFixed(3), dur: +st.dur.toFixed(3), clips: [...st.by.values()].map((f) => f.curName), at: [...st.by.values()].map((f) => [f.m.position.x, f.m.position.y, f.m.position.z].map((v) => Math.round(v * 10) / 10).concat(f.m.visible ? 1 : 0)) }) };
+  /** ── build 101 ── the building stages' people: more real figures, farther, kept when the camera turns (no swapping a man between his
+   *  instanced figure and his real one as the camera moves — the owner's "דמות כפולה שהולכת בהבהוב"); tune(null): back to CREW71 */
+  function tune(t) { cfg = t ? Object.freeze({ ...CREW71, ...t }) : CREW71; }
+  return { update, ready, setEnabled, tune, cfg: () => cfg, root, state: () => ({ on: st.on, loaded: st.loaded, err: st.err, n: st.n, figs: st.figs.length, hitT: +st.hitT.toFixed(3), dur: +st.dur.toFixed(3), clips: [...st.by.values()].map((f) => f.curName), at: [...st.by.values()].map((f) => [f.m.position.x, f.m.position.y, f.m.position.z].map((v) => Math.round(v * 10) / 10).concat(f.m.visible ? 1 : 0)) }) };
 }

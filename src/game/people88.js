@@ -17,6 +17,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { clone as skClone } from 'three/addons/utils/SkeletonUtils.js';
 
+import { blob101 } from './world101.js';   // ── build 101 ── (a contact shadow at every man's feet)
+const ON101 = (() => { try { return !(typeof location !== 'undefined' && /[?&]h101=0\b/.test(location.search)); } catch (e) { return true; } })();
 export const PEOPLE88 = Object.freeze({
   height: 1.0,                              // (the model's own height is ~1.8 m; make() scales to opt.height when given)
   linen: '#F3EEE2', sash: ['#2C4C9A', '#6A2E8C', '#B42A3C', '#EFE9DA'],
@@ -215,6 +217,7 @@ export function createPeople88(o = {}) {
     if (B.hand_r) { slot = new THREE.Object3D(); slot.name = 'slot88'; const hp = B.hand_r.getWorldPosition(new THREE.Vector3()); slot.position.set(hp.x - 0.07, hp.y - 0.02, hp.z + 0.01); slot.rotation.set(Math.PI / 2, 0, 0); slot.scale.setScalar(0.73); m.add(slot); B.hand_r.attach(slot); B.handslotr = slot; B['handslot.r'] = slot; }
     const H0 = 1.8, k = opt.height ? opt.height / H0 : (opt.scale || 1);
     m.scale.setScalar(k);
+    if (ON101) m.add(blob101(0.36, 0.42));   // ── build 101 ── (his feet on the floor, as build 15's people)
     const f = { root: m, B, mixer: new THREE.AnimationMixer(m), cur: null, name: '', k: 0, sv: null, white: !!opt.white, H0, slot };
     /** a worker's tunic and head cloth in other colours (a kohen's linen stays) */
     f.dress = (tunic, cloth) => { if (f.white) return; m.traverse((n) => { if (n.name === 'shirt88' || n.name === 'skirt88') { if (tunic) n.material = clothMat(tunic, 'wool'); } else if (n.userData.cloth88 && cloth) n.material = clothMat(cloth, 'wool'); }); };

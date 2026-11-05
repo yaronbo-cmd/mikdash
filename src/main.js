@@ -39,7 +39,8 @@ games.bindHost({ game: () => game, pause: (on) => pauseWorld(on), world: () => (
 // ── /games10 ──
 import { createSanctuary } from './sanctuary.js';   // ── sanctuary ──
 import { createCrews } from './crews.js';   // ── crews ──
-import { createCrew71 } from './crew71.js';   // ── build 71 ──
+import { createCrew71 } from './crew71.js';
+import { LIGHT101 } from './game/world101.js';   // ── build 101 ── (the building stages' working light)   // ── build 71 ──
 import { createCrowd } from './crowd.js';   // ── crowd ──
 // ── build8 ── (FLOW8B, wave 8B) true facts in rotation: FACTS8B's content/facts.json (on a lone branch build.mjs stubs it as
 // []: the game's own verified texts stand in). The loading screen shows one the save has not seen: a new one on every open.
@@ -174,6 +175,8 @@ const GRADE = {
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
   predawn: { fogN: 420, fogF: 6600, sat: 0.95, gain: [1.0, 0.98, 1.05], lift: [0.008, 0.008, 0.02], vig: 0.3 },   // ── recovered (16–26c) ──
 };
+TIMES.work = LIGHT101.time; GRADE.work = LIGHT101.grade;   // ── build 101 ── (a warm morning for the works: short shadows that meet their feet; the sky as the dawn's)
+
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
 // ── end world6 ──
 const VIEWS = {

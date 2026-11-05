@@ -8,6 +8,7 @@
  *   const K = createHero35({ THREE, scene, S, url, scale }) → K.update(dt) · K.play(name, { once, speed, fade }) · K.stop() ·
  *   K.bone(name) (a THREE.Object3D) · K.handR() / K.handL() / K.head() (world positions) · K.ready (Promise) · K.destroy() · K.state()
  * Never a Divine Name. ── /fable32 ── */
+import { blob101 } from '../../game/world101.js';   // ── build 101 ──
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -25,6 +26,7 @@ export function createHero35(o = {}) {
   const st = { loaded: false, err: null, mixer: null, clips: {}, cur: null, curName: '', locomotion: 'Idle', px: NaN, pz: NaN, sp: 0, acting: null, t: 0, n: 0, bones: {}, model: null, hidOld: false };
   const hp = { x: 0, y: 16, z: 0, yaw: 0, vis: true };
   if (scene) scene.add(root);
+  try { if (!(typeof location !== 'undefined' && /[?&]h101=0\b/.test(location.search))) root.add(blob101(0.62, 0.45)); } catch (e) { /* */ }   // ── build 101 ── (the kohen's own contact shadow)
   const loader = new GLTFLoader(); try { loader.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
   // ── build 88 ── the kohen from people88: a man's body in the כתונת, the אבנט and the מגבעת, barefoot; his bones under the old names too
   const P88 = P88_ON && !o.url ? createPeople88({}) : null;

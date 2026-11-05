@@ -5787,13 +5787,14 @@ export function createHar42(o = {}) {
         if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
         return false;
       },
-      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); kohenBye102(men); bye94(men); if (st.life53) st.life53.still = false; [deck, bucket, iron, cloth].forEach((m) => G.remove(m)); if (rise < 0 && G.parent) G.parent.remove(G); else st.props.sid105 = G; },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); if (men[0] && men[0].k102) men[0].root.position.set(B104.x1 + 2.6, B104.floor, 4);   /* (down from the deck onto the court's floor by the altar's east face: the next view starts from him standing there, not on the kevesh's wall) */ kohenBye102(men, -Math.PI / 2); bye94(men); if (st.life53) st.life53.still = false; [deck, bucket, iron, cloth].forEach((m) => G.remove(m)); if (rise < 0 && G.parent) G.parent.remove(G); else st.props.sid105 = G; },
     };
   }
   /** the crews' whitewash on the whole altar and the kevesh's walls (k 0…1) */
   function whiten105(k) {
-    const WO = st.props.w105; if (!WO) return; const wc = new THREE.Color('#FFFFFF'), one = (m) => { if (!m.material || !m.material.color) return; if (!m.userData.c0) m.userData.c0 = m.material.color.clone(); m.material.color.copy(m.userData.c0).lerp(wc, k); };
+    const WO = st.props.w105; if (!WO) return; const wc = new THREE.Color('#F6F3EA'), one = (m) => { const M = m.material; if (!M || Array.isArray(M) || !M.color || M.isMeshBasicMaterial) return; if (!m.userData.c0) m.userData.c0 = { c: M.color.clone(), map: M.map || null }; M.color.copy(m.userData.c0.c).lerp(wc, k); const mp = k > 0.5 ? null : m.userData.c0.map; if (M.map !== mp) { M.map = mp; M.needsUpdate = true; } };   /* (lime over the joints too: past half the stone's grain goes under a smooth white, as on the faces he whitened) */
     WO.BD.courses.forEach((c) => c.g.traverse(one)); WO.guf.forEach((c) => one(c.m)); WO.walls.forEach(one);
+    const SG = st.props.sid105; if (SG) SG.visible = k < 1;   /* (his three faces are now part of the one white altar: no patches over it) */
   }
   /* ── build 105 ── THE STAGE'S END, NEW (the owner 5.11 20:02: "למה מסך הסיום עדיין ישן?"): no flight to the Mount's old viewpoint and no card
    *  over the whole world — what he built stands where he built it, his kohen goes up to it, the camera turns slowly round it; then a small
@@ -5803,7 +5804,7 @@ export function createHar42(o = {}) {
     if (!ON105) return null;
     const FL = B104.floor, zF = R105.zFoot + 5, path = (u) => { const z = zF + (R105.zTop + 0.6 - zF) * Math.min(1, u / 0.85), z2 = u > 0.85 ? R105.zTop + 0.6 - ((u - 0.85) / 0.15) * 6 : z; return new THREE.Vector3(XM105, z2 < R105.zTop + 0.6 ? G105.top : z2 > R105.zFoot ? FL : ys105(z2), z2); };
     const roll = R.roll105 | 0, sid = R.sid105 | 0;
-    return { title: 'גוף המזבח והכבש — נבנו', tag: 'הכבש והסיד — המזבח לבן מול השמש', C: [-38, 20, 12], R0: 54, works: F105.PARTS105.slice(1, -1), path,
+    return { title: 'גוף המזבח והכבש — נבנו', tag: 'הכבש והסיד — המזבח לבן מול השמש', C: [-38, 19, 16], R0: 52, H0: 46, works: F105.PARTS105.slice(1, -1), path,
       facts: [roll ? `הגלגלת קפצה בכבש ${roll} ${roll === 1 ? 'פעם' : 'פעמים'} — במקום שהאבן מולאה מחדש` : 'הגלגלת ירדה בכבש חלק — בלי מדרגה', sid ? `בסיד נשארו ${sid} פגמים` : 'הסיד נקי — בלי טיפות, והקו האדום אדום'],
       src: F105.SRC105, before() { world105(); ramp105(true); whiten105(1); hideWorld105(); } };
   }
@@ -5817,8 +5818,8 @@ export function createHar42(o = {}) {
   }
   /** the orbit: from the south-east, low, rising and turning slowly round the thing (e 0…1 how far in) */
   function orbit105(r, dt) {
-    const c = r.cfg, a = r.a0 + r.t * 0.045, e = Math.min(1, r.t / 6), R2 = c.R0 - 8 * e, h = 8 + 14 * e, f = kohen102(r.men);
-    const kp = f ? f.root.position : new THREE.Vector3(...c.C), p = [c.C[0] + Math.cos(a) * R2, c.C[1] + h, c.C[2] + Math.sin(a) * R2], t = [c.C[0] + (kp.x - c.C[0]) * 0.35, c.C[1] + (kp.y + 1 - c.C[1]) * 0.35, c.C[2] + (kp.z - c.C[2]) * 0.35];
+    const c = r.cfg, a = r.a0 + 0.8 * (1 - Math.cos(r.t * 0.035)), e = Math.min(1, r.t / 6), R2 = c.R0 - 5 * e, h = c.H0 - 12 * e, f = kohen102(r.men);   /* (to and fro over the south side, high: the game's lens is narrow (fov 32), so the whole altar and its kevesh need ≈ 60 amot — from above the court's walls, not through them) */
+    const kp = f ? f.root.position : new THREE.Vector3(...c.C), p = [Math.min(c.xMax ?? 1e9, c.C[0] + Math.cos(a) * R2), c.C[1] + h, Math.min(c.zMax ?? 1e9, c.C[2] + Math.sin(a) * R2)], t = [c.C[0] + (kp.x - c.C[0]) * 0.25, c.C[1] + (kp.y + 1 - c.C[1]) * 0.25, c.C[2] + (kp.z - c.C[2]) * 0.25];
     const b = Math.min(1, r.t / 1.6), bb = b * b * (3 - 2 * b);   // (from where the last act's camera stood)
     camTo(p.map((v, i) => r.p0[i] + (v - r.p0[i]) * bb), t.map((v, i) => r.t0[i] + (v - r.t0[i]) * bb), 1);
   }

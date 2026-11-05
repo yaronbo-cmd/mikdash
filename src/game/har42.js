@@ -42,6 +42,7 @@ import * as F94 from './nikanor94.js';   // ── build 94 ── (stage 06 reb
 import * as F93 from './gallery93.js';
 import * as F101 from './world101.js';
 import * as F103 from './lish103.js';
+import * as F105 from './lish105.js';   // ── build 105 ── (stage 10 rebuilt: the kevesh under the maul, the whitewash with a cloth)
 import * as F104 from './lish104.js';   // ── build 104 ── (stage 09 rebuilt: the corner by the plumb, the red line round the altar)   // ── build 103 ── (stage 08 rebuilt: the stone on the bench with every tool, the yesod's field stones)
 import * as F102 from './lish102.js';   // ── build 102 ── (stage 07 rebuilt: the rope compass, the wheel and the bucket, the vault ring by ring)   // ── build 101 ── (the world's foundation)
 import * as F99 from './gates99.js';   // ── build 99 ── (stage 04 after the owner's notes on 96: the lintel with two hands, an end each; the leaf turned round its pivot)
@@ -178,7 +179,8 @@ export const ROPE53 = Object.freeze({ drift: Object.freeze([0, 0.32, 0.42, 0.52,
 const FAMOF = { rope: 'rope', light: 'inspect', tap: 'inspect', sovev: 'place', thread: 'fit', /* ── build 56 ── */ decoy: 'inspect', kevesh: 'place', sid: 'place', /* ── build 57 ── */ horns: 'fit', holes: 'lift', fire: 'place', /* ── build 58 ── */ cast: 'lift', spigots: 'lift', screw: 'fit', mukhni: 'lift', /* ── build 59 ── */ waves: 'place', courses: 'place', lintels: 'lift', fifth: 'lift', /* ── build 60 ── */ inspect: 'inspect', field: 'place', nail: 'inspect', iron: 'inspect', last: 'place', stone: 'inspect', mud: 'inspect',   /* ── build 55 ── */ compass: 'place', benches: 'place', hub: 'fit', wheel: 'lift', dome: 'place', arch: 'place', voyage: 'lift', lever: 'lift', hang: 'fit', steps: 'place', lever2: 'lift', hang2: 'fit', steps2: 'place', steps3: 'place', step: 'place', wood: 'inspect', log: 'inspect', beams: 'fit', beams2: 'fit', beams3: 'fit', beam: 'fit', pegs: 'fit', pegs2: 'fit', peg: 'fit', corner48: 'fit', lintel: 'lift', lintel2: 'lift', lintel3: 'lift', leaf: 'fit', leaf7: 'fit', names: 'inspect', lattice0: 'place', lattice1: 'place', lattice2: 'place', lattice: 'place', warn: 'place', line: 'place', pulley: 'lift', wcourse0: 'place', wcourse1: 'place', giant: 'place', wcorner: 'place', top: 'place', lift: 'lift', corner: 'place', rock0: 'inspect', rock1: 'inspect', rock2: 'inspect', course0: 'place', course1: 'place', roll: 'place', pave: 'place', trace: 'place' };
 Object.assign(FAMOF, { hammer0: 'lift', hammer1: 'lift' });
 Object.assign(FAMOF, { tread97: 'lift', tread97b: 'lift', line97: 'place' });
-Object.assign(FAMOF, { plumb: 'place', sikra: 'fit' });   // ── build 104 ──   // ── build 97 ──   // ── build 62 ── (the hammer: the LIFT family's timing)
+Object.assign(FAMOF, { plumb: 'place', sikra: 'fit' });
+Object.assign(FAMOF, { makevet: 'place', sidud: 'place' });   // ── build 105 ──   // ── build 104 ──   // ── build 97 ──   // ── build 62 ── (the hammer: the LIFT family's timing)
 const MATOF = { compass: 'compass', benches: 'benches', hub: 'hub', wheel: 'wheel', dome: 'dome', voyage: 'voyage', lever: 'lever', hang: 'leaf49', steps: 'steps', lever2: 'lever', hang2: 'leaf49', steps2: 'steps', steps3: 'steps', wood: 'wood', beams: 'beams', beams2: 'beams', beams3: 'beams', pegs: 'pegs', pegs2: 'pegs', corner48: 'corner48', lintel: 'lintel', lintel2: 'lintel', lintel3: 'lintel', leaf: 'leaf', leaf7: 'leaf7', lattice0: 'lattice', lattice1: 'lattice', lattice2: 'lattice', warn: 'warnst', pulley: 'pulley', wcourse0: 'wstone', wcourse1: 'wstone', giant: 'giant', wcorner: 'wstone', top: 'top', lift: 'lift', rock0: 'rock', rock1: 'rock', rock2: 'rock', course0: 'stone', course1: 'stone', roll: 'roll', pave: 'pave' };
 /** the lines (short; each with its source, or המחשה) */
 export const LINE42 = Object.freeze({   // ── build 43 ── (one short instruction; after " · " the source chip — the long explanations are on the card)
@@ -584,7 +586,8 @@ const CSS = `.h42{position:fixed;inset:0;z-index:40;pointer-events:none;directio
 body.h42-on .gm{display:none!important}
 @media (orientation:landscape){.h42-card.h57-end{direction:ltr;justify-content:flex-end;padding-right:calc(env(safe-area-inset-right,0px) + 10px);background:linear-gradient(to left,rgba(20,14,6,.7) 0,rgba(20,14,6,.55) 62%,rgba(20,14,6,0) 68%)}.h42-card.h57-end>div{direction:rtl;max-width:min(420px,calc(66.6vw - 22px))}}   /* ── build 57 ── (§1 rule 12: the end card on the right two-thirds, him seen on the left) */
 @media (max-height:340px){.h42-card>div{padding:10px 14px}.h42-card h2{font-size:18px;margin-bottom:3px}.h42-card p{font-size:13px;line-height:1.25;margin:2px 0}.h42-card small{font-size:10px;line-height:1.2}.h42-card button{margin-top:6px;min-height:44px}}   /* (build 49: the cards on a short screen — stage 06's ran off a 296-px height) */
-.h42-card button.h44-alt{margin-inline-start:8px;background:#E8DCC0}.h44-seal{font:900 18px/1.3 Heebo,system-ui,sans-serif!important;color:#9A6B12}
+.h42-card button.h44-alt{margin-inline-start:8px;background:#E8DCC0}
+.h42-card.h105-end{align-items:flex-end;background:linear-gradient(to top,rgba(20,14,6,.5) 0,rgba(20,14,6,0) 42%);pointer-events:none}.h42-card.h105-end>div{pointer-events:auto;margin-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);max-width:min(600px,94vw);max-height:48vh;padding:10px 18px 12px;background:rgba(251,243,226,.95)}.h105-works{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin:2px 0 4px}.h105-works span{font:800 16px/1.35 Heebo,system-ui,sans-serif}.h105-sum{opacity:.8}.h105-src{margin-top:4px;text-align:start}.h105-src summary{cursor:pointer;font:700 13px/1.4 Heebo,system-ui,sans-serif;opacity:.75;text-align:center}.h42-card.h105-end button{margin-top:6px}   /* ── build 105 ── (the stage's new end: a small card at the foot, the built thing seen above it) */.h44-seal{font:900 18px/1.3 Heebo,system-ui,sans-serif!important;color:#9A6B12}
 .h45-yishar,.h45-wet{font-size:26px;white-space:nowrap;animation-duration:2.2s}
 .h44-yard{position:relative;max-height:88vh;overflow:auto;max-width:min(560px,92vw)!important}.h44-yard>button[data-b="back"]{position:absolute;top:8px;left:8px;margin:0!important;min-width:88px!important;min-height:44px!important;font-size:14px!important}.h44-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}.h44-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:5px 0;padding:4px 6px;border-radius:12px;background:#F1E6CC}.h44-row b{font:800 15px/1.2 Heebo,system-ui,sans-serif}.h44-row span{display:flex;gap:4px}.h44-row button{margin:0!important;min-width:44px!important;min-height:44px!important;font-size:15px!important}
 .h44-fam{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 6px}.h44-fam i{font-style:normal;padding:2px 8px;border-radius:10px;background:#2A1804;color:#FFE6A0;font:700 12px/1.4 Heebo,system-ui,sans-serif}
@@ -663,10 +666,11 @@ export function createHar42(o = {}) {
   const ON100 = qs('h100') !== '0';   // ── build 100 ── (the oil in the socket before the pin; a dry leaf sticks and creaks — felt in the hand; ?h100=0 as in 99)   // ── build 99 ── (stage 04 after the notes on 96 — gates99.js; ?h99=0 as in 98)
   const ON98 = ON94 && qs('h98') !== '0';   // ── build 98 ── (stage 06 after the notes on 96 — nik98.js; ?h98=0 as in 97)
   const ON97 = ON93 && qs('h97') !== '0';   // ── build 97 ── (the chambers built in view; the treadwheel and the line among the works; ?h97=0 as in 96)   // ── build 93 ── (stage 05 rebuilt in the world — gallery93.js; ?h93=0 as in 92)   // ── build 92 ── (stage 04 rebuilt in the world — gates92.js; ?h92=0 as in 91)
-  const ON104 = MODE === 'stage' && STG === 'sovev' && qs('h104') !== '0';   // ── build 104 ── (stage 09 rebuilt on build 101's world — lish104.js; ?h104=0 as in 103)
+  const ON104 = MODE === 'stage' && STG === 'sovev' && qs('h104') !== '0';
+  const ON105 = MODE === 'stage' && STG === 'guf' && qs('h105') !== '0';   // ── build 105 ── (stage 10 rebuilt on build 101's world — lish105.js; ?h105=0 as in 104)   // ── build 104 ── (stage 09 rebuilt on build 101's world — lish104.js; ?h104=0 as in 103)
   const ON103 = MODE === 'stage' && STG === 'yesod' && qs('h103') !== '0';   // ── build 103 ── (stage 08 rebuilt on build 101's world — lish103.js; ?h103=0 as in 102)
   const parts0 = () => {   // (each stage's parts — build 62: stage 01's new order in front of them)
-    const PARTS = STG === 'sovev' ? (ON104 ? F104.PARTS104 : PARTS56) : STG === 'yesod' ? (ON103 ? F103.PARTS103 : PARTS55) : STG === 'wall' ? PARTS45 : STG === 'soreg' ? PARTS46 : STG === 'gates' ? (ON92 ? PARTS92 : PARTS47) : STG === 'nashim' ? (ON97 ? F97.PARTS97 : ON93 ? PARTS93 : PARTS48) : STG === 'nikanor' ? (ON94 ? PARTS94 : PARTS49) : STG === 'lishka' ? F102.PARTS102 : STG === 'guf' ? PARTS57 : STG === 'karnot' ? PARTS58 : STG === 'kiyor' ? PARTS59 : STG === 'ulam' ? PARTS60 : PARTS42;
+    const PARTS = STG === 'sovev' ? (ON104 ? F104.PARTS104 : PARTS56) : STG === 'yesod' ? (ON103 ? F103.PARTS103 : PARTS55) : STG === 'wall' ? PARTS45 : STG === 'soreg' ? PARTS46 : STG === 'gates' ? (ON92 ? PARTS92 : PARTS47) : STG === 'nashim' ? (ON97 ? F97.PARTS97 : ON93 ? PARTS93 : PARTS48) : STG === 'nikanor' ? (ON94 ? PARTS94 : PARTS49) : STG === 'lishka' ? F102.PARTS102 : STG === 'guf' ? (ON105 ? F105.PARTS105 : PARTS57) : STG === 'karnot' ? PARTS58 : STG === 'kiyor' ? PARTS59 : STG === 'ulam' ? PARTS60 : PARTS42;
     return PARTS;
   };
   const PARTS = ON62 ? PARTS62 : parts0();
@@ -819,7 +823,8 @@ export function createHar42(o = {}) {
     Object.assign(STAND, { light: A(-11.5, -18), tap: A(-11.5, -18), sovev: A(-20.5, -10), thread: A(-20.8, -21.5) });   // ── build 56 ── (the course's view and the thread's: he by the altar's east end — in the left third, not before the thing)
     Object.assign(STAND, { decoy: A(-11.5, -18), kevesh: A(-41, 48), sid: A(-11, 6) });
     Object.assign(STAND, { bench: A(-13.2, -28.4), course: A(-36.4, -21.3) });
-    Object.assign(STAND, { plumb: A(-19.6, -15.5), sikra: A(-19.6, -15.5) });   // ── build 104 ── (by the altar's north-east corner, on its east side)   // ── build 103 ── (at the bench's west end; outside the yesod's north stretch, by its start)
+    Object.assign(STAND, { plumb: A(-19.6, -15.5), sikra: A(-19.6, -15.5) });
+    Object.assign(STAND, { makevet: A(-26.5, 40), sidud: A(-19.6, -1) });   // ── build 105 ── (east of the kevesh's foot; by the altar's east face)   // ── build 104 ── (by the altar's north-east corner, on its east side)   // ── build 103 ── (at the bench's west end; outside the yesod's north stretch, by its start)
     // ── build 58 ── stage 11: on the altar's top by each corner — nine amot along its edge, out of the corner's view; the holes from the court
     // floor west of the south-west corner (out of their low view); the pyre's from the top's west of the wood (out of its view) ── /build 58 ──
     CORNERS58.forEach((c, i) => { STAND['horn' + i] = A(c.x - c.sx * 6.5, c.z - c.sz * 6.5); });   // (inside the top, behind the corner's camera)
@@ -1036,7 +1041,8 @@ export function createHar42(o = {}) {
     if (STG === 'lishka' || MODE === 'yard') props50(add);   // ── build 50 ──
     if (STG === 'yesod' || STG === 'sovev' || STG === 'guf' || MODE === 'test') props55(add);
     if (STG === 'sovev' || STG === 'guf') props56(add);
-    if (STG === 'guf') props57(add);   // ── build 57 ──
+    if (STG === 'guf' && !ON105) props57(add);   // ── build 57 ──
+    if (ON105) world105();   // ── build 105 ──
     if (STG === 'karnot') props58(add);
     if (STG === 'kiyor') props59(add);
     if (STG === 'ulam') props60(add);   // ── build 60 ──   // ── build 59 ──   // ── build 58 ──   // ── build 56 ──   // ── build 55 ── (stage 08; the test before chapter ג׳: the bench and its stone) ── /build 55 ──
@@ -1074,7 +1080,7 @@ export function createHar42(o = {}) {
     if (ON62) { st.props.plan = []; sectLines62(add); } else
     st.props.plan = C4.map((a, i) => { const b = C4[(i + 1) % 4], x0 = c0.x + a[0] * R, z0 = c0.z + a[1] * R, x1 = c0.x + b[0] * R, z1 = c0.z + b[1] * R, L = Math.hypot(x1 - x0, z1 - z0); const m = new THREE.Mesh(new THREE.BoxGeometry(L, 0.6, 2.4), gm); m.geometry.translate(L / 2, 0, 0); m.rotation.y = -Math.atan2(z1 - z0, x1 - x0); m.scale.x = 0.001; return add(m, x0, gy(x0, z0) + 2, z0); });
     }
-    if (STG === 'guf' || STG === 'karnot') life55(add);   // (build 59: not stage 12 — one of its crews stands where the laver goes: c59A)   // ── build 57 ── (build 58: and stage 11) (the court alive round the altar: build 55's crews and carts — its call above sits inside stage 01's block, so stages 08–09 never had them)
+    if ((STG === 'guf' && !ON105) || STG === 'karnot') life55(add);   // (build 59: not stage 12 — one of its crews stands where the laver goes: c59A)   // ── build 57 ── (build 58: and stage 11) (the court alive round the altar: build 55's crews and carts — its call above sits inside stage 01's block, so stages 08–09 never had them)
   }
   /** ── build 45 ── stage 02's props: the pulley's rig (a gin pole of two legs, the sheave, the rope) and its stone; the court wall's gold
    *  plan, 187 × 135 amot (מדות ה, א) round the court, rising from the ground in the opening; the morning's puddles after a night's rain */
@@ -3236,6 +3242,8 @@ export function createHar42(o = {}) {
     decoy: { begin() { st.job = mkStone55('all', F.list57(Math.random, Lover || 3), Lover || 3, 'decoy'); } },
     kevesh: { begin() { st.job = mkKevesh57(famL('place')); } },
     sid: { begin() { st.job = mkSid57(Lover || 1); } },
+    makevet: { begin() { st.job = mkMakevet105(); } },
+    sidud: { begin() { st.job = mkSidud105(); } },   // ── build 105 ──
     // ── build 56 ── stage 09's parts (§3 "09"): the raking light (level 2), the mallet and the witness (level 3), the sovev's course, the red line ── /build 56 ──
     light: { begin() { st.job = mkStone55('lamp', mix55(['hair', 'whole']).concat(['hair']), Lover || 2, 'light'); } },
     tap: { begin() { st.job = mkStone55('tap', mix55(['deep', 'whole']).concat(['deep']), Lover || 3, 'tap'); } },
@@ -3253,6 +3261,7 @@ export function createHar42(o = {}) {
       // ── build 43 ── (the coordinator's #2) the crane up from the last slab to the opening's own high viewpoint over the Mount of Olives — the
       // whole smooth platform in the late sun — and there a quick crossfade to the opening's rock (before) and back (after); 9.5 s, skippable
       begin() {
+        const c105 = endCfg105(); if (c105) { revBegin105(c105); return; }   // ── build 105 ── (the stage's new end)
         line(''); objPlace(false); svgClear();
         if (STG === 'wall' && MODE === 'stage') { try { R.stones = stones45(); R.hole = H45(); save42(S); wallStones45({ list: R.stones, hole: R.hole, scene: scene(), center: [PL.course.x + 2, PL.course.z] }); } catch (e) { /* */ } }   // ── build 46 ── his stones stay in the wall
         if (st.props.root) st.props.root.visible = false;
@@ -3273,6 +3282,7 @@ export function createHar42(o = {}) {
         buzz42('peak');
       },
       frame(dt) {
+        if (st.rev && st.rev.cfg) return revFrame105(dt);
         const r = st.rev; r.t += dt; const T = 6.5, u = Math.min(1, r.t / T), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2, V = r.V;
         const p = r.p0.map((v, i) => v + (V.p[i] - v) * e), t = r.t0.map((v, i) => v + (V.t[i] - v) * e); p[1] += Math.sin(Math.PI * e) * 40;
         camTo(p, t, 1);
@@ -3282,7 +3292,7 @@ export function createHar42(o = {}) {
         if (tg && k > 6.6) { tg.hidden = false; tg.textContent = STG === 'kiyor' ? 'הכיור — בין האולם ולמזבח, ושנים עשר דדים' : STG === 'ulam' ? 'האולם — הפתח, חמש קורות האלון, וגפן הזהב' : STG === 'karnot' ? 'הקרנות — והאש הראשונה על המזבח' : STG === 'guf' ? 'הכבש והסיד — המזבח לבן מול השמש' : STG === 'sovev' ? 'הסובב — עלה חמש וכנס אמה; וחוט הסיקרא באמצע' : STG === 'yesod' ? 'יסוד המזבח — בצפון ובמערב, ואמה בדרום ובמזרח' : STG === 'lishka' ? 'הלשכות — לשכת הגזית, לשכת הגולה ובית המוקד' : STG === 'nikanor' ? 'שער ניקנור — נחושת; וחמש עשרה מעלות כחצי גורן' : STG === 'nashim' ? 'עזרת הנשים — קל״ה על קל״ה, וארבע לשכות בלי תקרה' : STG === 'gates' ? 'שבעה שערים — עשרים אמה גובהם, עשר רוחבם' : STG === 'soreg' ? 'הסורג — עשרה טפחים; החיל — עשר אמות' : STG === 'wall' ? 'חומת העזרה — קפ״ז על קל״ה' : k < 8.6 && im ? 'לפני — הסלע של הבוקר' : 'אחרי — משטח חלק'; }   // (build 45: the court, 187 × 135 — מדות ה, א)
         return r.t > 9.5;
       },
-      end() { if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } finishCard(); },
+      end() { if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } if (st.rev && st.rev.cfg) finishCard105(st.rev.cfg); else finishCard(); },
     },
   };
   // ── build 53 ── the opening's black: a sheet over the world, its opacity k (0: gone) ── /build 53 ──
@@ -5497,6 +5507,345 @@ export function createHar42(o = {}) {
     function lineOn(i, yA, yB) { const s = S2.sides[i], dx = s.b[0] - s.a[0], dz = s.b[1] - s.a[1], L = Math.hypot(dx, dz), a = new THREE.Vector3(s.a[0] + s.n[0] * 0.03, FL + yA, s.a[1] + s.n[1] * 0.03), b = new THREE.Vector3(s.b[0] + s.n[0] * 0.03, FL + yB, s.b[1] + s.n[1] * 0.03), m = new THREE.Mesh(new THREE.PlaneGeometry(L, 0.08), new THREE.MeshBasicMaterial({ color: RED, transparent: true, opacity: 0.92, depthWrite: false, side: THREE.DoubleSide })); m.position.copy(a).add(b).multiplyScalar(0.5); m.rotation.order = 'YXZ'; m.rotation.y = Math.atan2(dz, dx) * -1; m.rotation.z = Math.atan2(yB - yA, L); m.renderOrder = 3; G.add(m); return m; }
   }
   // ── /build 104 ──
+  /* ── build 105 ── stage 10 rebuilt (lish105.js): the kevesh stone by stone under the wooden maul, the straight-edge on it, the roller down
+   *  it; the crews raise the body three amot above the sovev meanwhile. Then the whitewash with a cloth on three faces ── */
+  const R105 = F105.RAMP105, G105 = F105.GUF105, K105 = F105.KEV105, XM105 = (R105.x0 + R105.x1) / 2, SL105 = (R105.y1 - R105.y0) / (R105.zFoot - R105.zTop), AL105 = Math.atan(SL105);
+  const ys105 = (z) => R105.y0 + (R105.zFoot - z) * SL105;   // the kevesh's top (its paving's face) at z
+  const zRow105 = (i) => R105.zFoot - R105.row * i - R105.row / 2;
+  const SIDE105 = (16 - K105.w) / 2;   // (a crew lane each side of his)
+  /** a slab lying on the slope: top face at ys at its middle */
+  function slab105(w, m2) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, K105.thick, R105.row / Math.cos(AL105) - 0.03), m2);   // (its length along the slope: the rows meet — a gap showed each one's front face, a step)
+ m.rotation.x = AL105; m.castShadow = true; m.receiveShadow = true; return m; }
+  const slabY105 = (z, e = 0) => ys105(z) + e - (K105.thick / 2) / Math.cos(AL105);
+  /** the world of stage 10: the body (stage 09's, whole, with its red line), the body above the sovev (three courses, raised in the kevesh
+   *  act), the kevesh's walls and fill, its rows (all three lanes) */
+  function world105() {
+    if (st.props.w105) return st.props.w105;
+    const BD = body104(); BD.courses.forEach((c) => { c.g.visible = true; c.g.scale.set(1, 1, 1); c.g.position.y = 0; if (c.his) c.his.visible = true; }); BD.inner.visible = true;
+    const g = new THREE.Group(); (st.props.root || scene()).add(g);
+    // the red line round the middle (stage 09's — "חוגרו באמצע")
+    const RED = new THREE.MeshBasicMaterial({ color: '#B0281C', transparent: true, opacity: 0.92, depthWrite: false, side: THREE.DoubleSide }), FL = B104.floor, ym = FL + F104.SIKRA104.mid;
+    for (const s of F104.SIKRA104.sides) { const dx = s.b[0] - s.a[0], dz = s.b[1] - s.a[1], L = Math.hypot(dx, dz), m = new THREE.Mesh(new THREE.PlaneGeometry(L, 0.08), RED); m.position.set((s.a[0] + s.b[0]) / 2 + s.n[0] * 0.03, ym, (s.a[1] + s.b[1]) / 2 + s.n[1] * 0.03); m.rotation.y = -Math.atan2(dz, dx); m.renderOrder = 3; g.add(m); }
+    // the body above the sovev: 28 × 28, three courses (the crews')
+    const guf = []; for (let c = 0; c < G105.courses; c++) { const W0 = G105.x1 - G105.x0, D0 = G105.z1 - G105.z0, cg = new THREE.Group(); g.add(cg); const m = new THREE.Mesh(new THREE.BoxGeometry(W0, 1, D0), masonry56(W0, 1, ['#F1E9D8', '#ECE3CF', '#F3ECDE'][c])); m.position.set((G105.x0 + G105.x1) / 2, G105.y0 + c + 0.5, (G105.z0 + G105.z1) / 2); m.castShadow = m.receiveShadow = true; cg.add(m); guf.push({ g: cg, y0: G105.y0 + c, m }); }
+    // the kevesh: its two side walls of ashlar and the fill between them (earth and small stones), under the rows
+    const zG = R105.zFoot, sh = new THREE.Shape(); sh.moveTo(zG, R105.y0); sh.lineTo(R105.zTop, R105.y0); sh.lineTo(R105.zTop, R105.y1 - K105.thick); sh.closePath();
+    const wallG = (x0, x1, m2) => { const cg2 = new THREE.ExtrudeGeometry(sh, { depth: x1 - x0, bevelEnabled: false }); cg2.rotateY(-Math.PI / 2); const m = new THREE.Mesh(cg2, m2); m.position.set(x1, 0, 0); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+    const wallM = masonry56(32, 9, '#E6DCC6'), fillM = masonry56(10, 4, '#B8A27E');   // (the fill: earth and small stones — a grain, not a flat brown)
+    const walls = [wallG(R105.x0, R105.x0 + 1, wallM), wallG(R105.x1 - 1, R105.x1, wallM)], fill = wallG(R105.x0 + 1, R105.x1 - 1, fillM); fill.position.y = -0.02;
+    const PM = masonry56(16, 2, '#EFE7D4'), PM2 = masonry56(16, 2, '#E6DCC6'), rows = [];
+    for (let i = 0; i < R105.rows; i++) { const z = zRow105(i), y = slabY105(z), mm = i % 2 ? PM2 : PM, L = slab105(SIDE105, mm), Rr = slab105(SIDE105, mm), M = slab105(K105.w, mm); L.position.set(R105.x0 + SIDE105 / 2, y, z); Rr.position.set(R105.x1 - SIDE105 / 2, y, z); M.position.set(XM105, y, z); for (const m of [L, Rr, M]) g.add(m); rows.push({ i, L, R: Rr, M }); }
+    const W = (st.props.w105 = { g, BD, guf, rows, walls, fill });
+    ramp105(D63().includes('makevet'));
+    return W;
+  }
+  /** the world model's altar above the yesod and its kevesh (stages.js 'sovev', 'guf'): hidden under ours — every frame, as the world re-shows a
+   *  stage group when its status moves */
+  function hideWorld105() { const sc = scene(); if (!sc) return; if (!st.wo105) st.wo105 = ['stage-sovev', 'stage-guf'].map((n) => sc.getObjectByName(n)).filter(Boolean); for (const g of st.wo105) g.visible = false; }
+  /** the kevesh and the body above the sovev: as before his work (rows bare, body not raised) or done */
+  function ramp105(done) {
+    const W = st.props.w105; if (!W) return;
+    W.rows.forEach((r) => { r.L.visible = r.R.visible = r.M.visible = !!done; });
+    W.guf.forEach((c) => { c.g.visible = !!done; c.g.scale.set(1, 1, 1); c.g.position.y = 0; });
+    W.BD.inner.visible = !done;
+  }
+  function gufRise105(p) { const W = st.props.w105; if (!W) return; W.guf.forEach((c, q) => { const s = Math.max(0, Math.min(1, p - q)); c.g.visible = s > 0.01; c.g.scale.y = Math.max(0.02, s); c.g.position.y = c.y0 * (1 - c.g.scale.y); }); if (p >= 1) W.BD.inner.visible = false; }
+  /** THE KEVESH: his five stones up its middle lane, the maul and the straight-edge; the crews lay the rest; the roller at the end */
+  function mkMakevet105() {
+    const part = 'makevet', WO = world105(), men = [], qs = [], stones = [];
+    if (st.ui.pad) st.ui.pad.classList.add('full');
+    ramp105(false); gufRise105(0);
+    const G = new THREE.Group(); (st.props.root || scene()).add(G);
+    const WD = ON88 ? P88w.wood88('a', '#A07A4C') : mat('#9A7048', 0.88), STONE = masonry56(3, 2, '#F4EDDF');
+    // the sledge (a wooden sled: his stone on it, two porters), the maul, the straight-edge, the light under it, the roller
+    const sled = new THREE.Group(); { const b = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.22, 2.5), WD); b.position.y = 0.11; b.castShadow = true; sled.add(b); for (const s of [-1, 1]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.18, 2.9), WD); r.position.set(s * 1.3, 0.05, 0); sled.add(r); } } sled.rotation.x = AL105; G.add(sled);
+    const maul = new THREE.Group(); { const hd = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.62, 10), WD); hd.rotation.z = Math.PI / 2; hd.castShadow = true; maul.add(hd); const hn = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.3, 6), WD); hn.position.set(0.75, 0.25, 0); hn.rotation.z = Math.PI / 2 - 0.35; maul.add(hn); } G.add(maul);
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 6.2), mat('#C8A468', 0.8)); edge.castShadow = true; G.add(edge);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 1.6), new THREE.MeshBasicMaterial({ color: '#FFE9A0', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide })); glow.renderOrder = 4; G.add(glow);
+    const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 13, 14), WD); roller.rotation.z = Math.PI / 2; roller.castShadow = true; roller.visible = false; G.add(roller);
+    let si = 0, J = null, his = null, ph = 'crews', crewI = 0, crewT = 0, endT = -1, msgT = 0, auto = 0, drag = null, want = 0, gufP = 0, gufT = 0, vis = { e: 0, t: 0 }, fall = 0, blowT = 0, rollZ = 0, rise = -1, said = {}, knocks = [], lastRefill = 0, lastStrike = 0;
+    const row = () => K105.rows[si], zr = () => zRow105(row()), L = () => si + 1;
+    const sub = () => (ph === 'roll' || ph === 'rise' ? 'הגלגלת' : `אבן ${si + 1} מתוך ${K105.rows.length}`);
+    const say = (t, n = 3) => { line(t, sub()); msgT = n; };
+    const once = (key, t, n) => { if (said[key]) return; said[key] = 1; say(t, n); };
+    say(F105.L105.kevesh, 5);
+    function layCrew(i, all) { const r = WO.rows[i]; if (!r) return; r.L.visible = r.R.visible = true; if (all) r.M.visible = true; }
+    function startStone() {
+      J = F105.createStone105(si, Math.random); vis = { e: J.state().e, t: J.state().t };
+      his = slab105(K105.w, STONE); G.add(his); ph = 'place'; lastRefill = 0; lastStrike = 0;
+      if (L() === 3) once('heavy', F105.L105.heavy, 4.5); else if (L() === 4) once('wet', F105.L105.wet, 4.5); else if (L() === 5) once('top', F105.L105.top, 4.5); else say(F105.L105.place, 3.4);
+    }
+    function trueDone() {
+      const k = J.state(); qs.push(k.q); stones.push(k); toast84(k.q >= 1 ? 'mehudar' : k.q > 0 ? 'kasher' : 'tikkun', proj(XM105, ys105(zr()) + 1, zr()), 'שוכב');
+      o.sound && o.sound('settle'); buzz42('settle'); line(F105.L105.flat, sub());
+      G.remove(his); his = null; WO.rows[row()].M.visible = true; WO.rows[row()].M.position.y = slabY105(zr(), k.e); layCrew(row(), false);
+      gufT = Math.min(G105.courses, ((si + 1) * G105.courses) / K105.rows.length); J = null; ph = 'after'; crewT = 0;
+    }
+    const sledP = () => { const z = zr() + 3.6, x = XM105 - 4.4; return new THREE.Vector3(x, ys105(z), z); };   // (on the west lane, below: out of the line from the camera to his stone)
+    const stoneTopY = () => ys105(zr()) + (J ? vis.e : 0);
+    const stoneAt = () => { if (!his) return null; return proj(his.position.x, his.position.y + 0.3, his.position.z); };
+    const slotAt = () => proj(XM105, ys105(zr()), zr());
+    const pickR = () => Math.max(44, W() * 0.06);
+    const xOf = (a) => { const gp = onPlane49(a.x, a.y, stoneTopY()); if (!gp) return 0; return Math.max(-1, Math.min(1, (zr() - gp.z) / (K105.len / 2))); };   // (−1 its lower end, +1 its upper)
+    if (true) { crewI = 0; ph = 'crews'; }
+    return {
+      acting: true, fullPad: true, kind: 'makevet105', ownView: () => true, hj: () => J, ph: () => ph, qs: () => qs.slice(), busy: () => ph === 'crews' || ph === 'after' || ph === 'roll' || ph === 'rise',
+      dbg: () => (J ? `s${si + 1} ${J.state().ph} e${(J.state().e * 6).toFixed(2)} t${(J.state().t * 6).toFixed(2)} h${J.state().h.toFixed(2)} ${J.edge()} r${J.state().refills} n${J.state().strikes}` : `s${si + 1} ${ph} g${gufP.toFixed(2)}`),
+      stoneAt, slotAt, sledAt: () => { const p = sledP(); return proj(p.x, p.y + 0.6, p.z); },
+      view() {
+        if (ph === 'rise') { const u = Math.min(1, rise / 3); return fit102([-38, 20.5, 12], [0.85, 0.42 + 0.12 * u, 0.85], 23 + 3 * u, 11); }   // (from the south-east: the altar's body, the body above the sovev, the kevesh down from it)
+        if (ph === 'roll') { const z = Math.max(R105.zTop + 3, Math.min(R105.zFoot - 3, rollZ)); return fit102([XM105, ys105(z) + 0.5, z], [1, 0.5, 0.3], 9, 5); }
+        const i = ph === 'crews' ? Math.min(R105.rows - 1, K105.rows[si]) : row(), z = zRow105(i);
+        return fit102([XM105 - 0.5, ys105(z) + 0.4, z + 1.0], [1, 0.4, 0.55], 5.2, 3.2);   // (from the south-east, low and oblique: the slope, the edge on it and the light under it; the stone ≈ a third; his kohen beyond it, facing us)
+      },
+      down(a) {
+        drag = null; if (!J) return;
+        if (ph === 'place') { const p = stoneAt(); if (p && Math.hypot(p.x - a.x, p.y - a.y) < pickR() * 1.8) { drag = { kind: 'stone' }; buzz42('tick'); o.sound && o.sound('stone'); } return; }
+        if (ph === 'strike') { const p = stoneAt(); if (p && Math.hypot(p.x - a.x, p.y - a.y) < pickR() * 2.2) { if (J.hold(xOf(a))) drag = { kind: 'maul' }; } }
+      },
+      move(a) {
+        if (!drag) return;
+        if (drag.kind === 'stone') { const gp = onPlane49(a.x, a.y, ys105(zr()) + 0.6); if (gp) { drag.at = gp; his.position.set(gp.x, gp.z < R105.zTop ? ys105(R105.zTop) + 0.8 : ys105(Math.min(R105.zFoot, gp.z)) + 0.7, gp.z); his.rotation.x = AL105 * 0.5; } return; }
+        if (drag.kind === 'maul') J.aim(xOf(a));
+      },
+      up() {
+        const d0 = drag; drag = null; if (!d0) return;
+        if (d0.kind === 'stone') { const p = d0.at; if (p && Math.abs(p.x - XM105) < 2.2 && Math.abs(p.z - zr()) < 2.0) { J.place(); ph = 'strike'; o.sound && o.sound('thud'); buzz42('settle'); say(F105.L105.hold, 4); } else { say(F105.L105.place, 2.4); buzz42('retry'); } return; }
+        if (d0.kind === 'maul') strike();
+      },
+      frame(dt) { dt *= globalThis.__H102X || 1;
+        if (msgT > 0) { msgT -= dt; if (msgT <= 0 && J) { const ed = J.edge(); line(ph === 'place' ? F105.L105.place : ed === 'rock' ? (Math.abs(J.state().t) > K105.tolT[L()] ? F105.L105.tilt : F105.L105.rock) : ed === 'light' ? F105.L105.light : F105.L105.hold, sub()); } else if (msgT <= 0 && ph === 'crews') line(F105.L105.crews, sub()); }
+        // the crews lay the rows up to his next; the body above the sovev rises with his stones
+        if (ph === 'crews') { crewT += dt; if (crewT > 0.32) { crewT = 0; const tgt = si < K105.rows.length ? K105.rows[si] : R105.rows; if (crewI < tgt) { layCrew(crewI, true); crewI++; o.sound && o.sound('stone'); } else { crewI = tgt + 1; if (si < K105.rows.length) startStone(); else { ph = 'roll'; rollZ = R105.zTop + 0.6; roller.visible = true; say(F105.L105.roller, 5); } } } }
+        else if (ph === 'after') { crewT += dt; if (crewT > 1.6) { si++; ph = 'crews'; crewT = 0; if (si === 1) once('guf', F105.L105.guf, 4); } }
+        if (Math.abs(gufP - gufT) > 1e-3) { gufP += Math.sign(gufT - gufP) * Math.min(Math.abs(gufT - gufP), dt * 0.5); gufRise105(gufP); }
+        // the stone: the maul up while held, its fall, the stone's sink (seen a moment after the blow), the crew lifting it
+        if (J && ph === 'strike') { const r = J.step(dt), k = J.state(); if (k.refills > lastRefill) { lastRefill = k.refills; say(F105.L105.refill, 2.6); o.sound && o.sound('grind'); buzz42('retry'); }
+          if (r === 'true') trueDone(); }
+        if (fall > 0) fall = Math.max(0, fall - dt); if (blowT > 0) blowT -= dt;
+        if (J) { const k = J.state(), f = Math.min(1, dt * 9); vis.e += (k.e + (k.lift > 0 ? 0.35 * Math.sin((k.lift / K105.liftT) * Math.PI) : 0) - vis.e) * f; vis.t += (k.t - vis.t) * f; }
+        if (his && J && ph !== 'place') { his.position.set(XM105, slabY105(zr(), vis.e), zr()); his.rotation.x = AL105 + Math.atan2(vis.t, K105.len); }
+        else if (his && ph === 'place' && !drag) { const p = sledP(); his.position.set(p.x, p.y + 0.22 + K105.thick / 2, p.z); his.rotation.x = AL105; }
+        { const p = sledP(); sled.position.copy(p); sled.visible = ph !== 'roll' && ph !== 'rise'; }
+        // the maul over the stone where the finger holds it; up while held; falling at the blow
+        if (J && ph === 'strike') { const k = J.state(), z = zr() - k.x * (K105.len / 2) * 0.9, top = slabY105(zr(), vis.e) + K105.thick / 2 + 0.2, up = k.held ? 0.15 + 1.6 * k.h : fall > 0 ? 1.6 * want * (fall / 0.12) : 0.15; maul.visible = true; maul.position.set(XM105 - 0.2, top + up, z); maul.rotation.set(0, Math.PI, k.held ? -0.3 * k.h : 0); }
+        else maul.visible = false;
+        // the straight-edge: from the row below over his stone — rocking on a proud or tilted one, flat on a true one, the light under one too low
+        if (ph === 'strike' || ph === 'place') { const zc = zr() + 1.4, ed = J ? J.edge() : 'flat', k = J ? J.state() : null, ra = J ? J.rockA() : 0, tt = now();
+          const lift = ph === 'strike' ? Math.max(0, vis.e) : 0, ang = ph === 'strike' && lift > 0 ? Math.atan2(lift, 3.2) : 0, rock = ed === 'rock' && ph === 'strike' ? Math.sin(tt * 7) * 0.035 * (0.4 + ra) : 0;
+          edge.visible = true; edge.position.set(XM105 - 0.55, ys105(zc) + 0.05 + lift * 0.55, zc); edge.rotation.set(AL105 - ang + rock, 0, 0);
+          const lightOn = ph === 'strike' && ed === 'light'; glow.visible = lightOn; if (lightOn) { glow.material.opacity = 0.55 + 0.3 * Math.sin(tt * 6); glow.position.set(XM105 - 0.62, ys105(zr()) - 0.02 + Math.min(0, vis.e) * 0.5, zr()); glow.rotation.set(-Math.PI / 2 + AL105, 0, 0); glow.scale.set(1, 1, 1); } void k; }
+        else { edge.visible = false; glow.visible = false; }
+        // the roller: from the top down the kevesh; a knock ("טק") where a stone was lifted and filled again
+        if (ph === 'roll') { rollZ += dt * 4.2; const rr = F105.roller105(stones), i = Math.floor((R105.zFoot - rollZ) / R105.row), bump = rr.includes(i) ? Math.max(0, Math.sin(((R105.zFoot - rollZ) / R105.row - i) * Math.PI)) * 0.22 : 0;
+          if (rr.includes(i) && !knocks.includes(i)) { knocks.push(i); o.sound && o.sound('wood'); buzz42('retry'); toast84('kasher', proj(XM105, ys105(rollZ) + 1, rollZ), 'טק'); }
+          roller.position.set(XM105, ys105(rollZ) + 0.45 + bump, rollZ); roller.rotation.x = -rollZ / 0.45;
+          if (rollZ >= R105.zFoot - 0.8) { ph = 'rise'; rise = 0; roller.visible = false; R.roll105 = knocks.length; line(knocks.length ? F105.L105.roller : F105.L105.rollerOk, F105.L105.steps); const L5 = st.life53; if (L5) L5.still = true; } }
+        // the test's hand
+        const AU = globalThis.__H102AUTO; if (AU && J) { auto += dt; const k = J.state();
+          if (ph === 'place' && auto > 0.8) { auto = 0; J.place(); ph = 'strike'; o.sound && o.sound('thud'); }
+          else if (ph === 'strike') { if (k.held) { if (k.h >= want) { k.h = want; strike(); } }   /* (a slow frame's maul past the hand's mark: held back to it — the hand lets go on time) */ else if (auto > 0.5 && k.lift <= 0) { auto = 0; const h = AU === 'rush' && k.e > 0.15 ? { x: 0, h: 1 } : J.hint(); if (h && !h.wait) { J.hold(h.x); want = h.h; } } } }
+        // the people: his kohen kneeling at the lane's east edge with the maul; the master with the straight-edge; two porters by the sledge
+        const f = kohen102(men), ok = men94(men, [{ white: true }, { tunic: '#9C8466', cloth: '#6B4A2B' }, { tunic: '#8E7356', cloth: '#D9CBB0' }, { tunic: '#7F6A50', cloth: '#C9B79A' }]);
+        const zk = ph === 'roll' || ph === 'rise' ? R105.zFoot + 3 : zr() + 1.45;   // (on the row below, laid: never on the bare fill)
+        if (f) { const p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 2.2, B104.floor, R105.zFoot + 2.5) : new THREE.Vector3(XM105 - 2.45, ys105(zk), zk); f.root.position.copy(p); f.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.75 : Math.PI / 2; f.play(ph === 'roll' || ph === 'rise' ? 'Idle' : blowT > 0 ? 'Sword_Attack' : 'Fixing_Kneeling', 1);   // (kneeling by the lane all through: standing he filled the close frame) f.update(dt); }
+        if (ok) { const zm = zr() + 2.6, m1 = men[1]; { const p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 3.4, B104.floor, R105.zFoot + 1.2) : new THREE.Vector3(XM105 - 2.6, ys105(zm + 0.6), zm + 0.6); m1.root.position.copy(p); m1.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.7 : Math.PI / 2 - 0.5; m1.play(ph === 'roll' || ph === 'rise' ? 'Idle' : 'Fixing_Kneeling', 1); m1.update(dt); }
+          [men[2], men[3]].forEach((m2, q) => { const sp = sledP(), p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 4.4 + q, B104.floor, R105.zFoot + 2.4 + q) : new THREE.Vector3(sp.x - 2.6 - q * 0.4, ys105(sp.z + 2.2 + q * 1.4), sp.z + 2.2 + q * 1.4); m2.root.position.copy(p); m2.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.75 : Math.PI / 2; m2.play('Idle', 1); m2.update(dt); }); }
+        objPlace(true, [{ x: XM105, y: ys105(zr()), z: zr(), r: 4 }], 'h105kevesh');
+        // the overlay: the finger's hint to the sledge's stone, the slot; where the finger holds (the maul falls there); the maul's height
+        svgClear();
+        if (ph === 'place' && J && !drag) { const p = stoneAt(), q = slotAt(); if (p && q) { const u = (now() * 0.5) % 1; svgAdd(`<circle cx="${q.x}" cy="${q.y}" r="${16 + 3 * Math.sin(now() * 4)}" fill="none" stroke="#FFE6A0" stroke-width="3" stroke-dasharray="6 5"/><text x="${p.x + (q.x - p.x) * u}" y="${p.y + (q.y - p.y) * u + 30}" font-size="30" text-anchor="middle" opacity=".85">👆</text>`); } }
+        if (ph === 'strike' && J) { const k = J.state(); if (L() === 1 && !k.held) { const q = proj(XM105, ys105(zr()) + 0.02, zr()); if (q) svgAdd(`<circle cx="${q.x}" cy="${q.y}" r="5" fill="#FFD66E" opacity=".8"/>`); }
+          if (k.held) { const p = stoneAt(); if (p) svgAdd(`<rect x="${p.x + 46}" y="${p.y - 70}" width="12" height="70" rx="5" fill="rgba(40,26,10,.45)"/><rect x="${p.x + 46}" y="${p.y - 70 * k.h}" width="12" height="${70 * k.h}" rx="5" fill="${k.h < K105.h0 ? '#E0B070' : '#FFE6A0'}"/>`); }
+          else if (!st.finger && k.lift <= 0) { const p = stoneAt(); if (p) svgAdd(`<text x="${p.x}" y="${p.y + 10}" font-size="30" text-anchor="middle" opacity=".8">👆</text>`); }
+          if (k.still > 0) { const p = stoneAt(); if (p) svgAdd(`<circle cx="${p.x}" cy="${p.y - 46}" r="12" fill="none" stroke="#9BE08A" stroke-width="4" stroke-dasharray="${(k.still / K105.holdT) * 75} 99" transform="rotate(-90 ${p.x} ${p.y - 46})"/>`); } }
+        if (ph === 'rise') { rise += dt; if (rise > 3.6 && endT < 0) { const q = F105.kevQ105(qs); Y84().push([part, 0, q]); save42(S); chip84(); grade(part, q, null, true); buzz42('peak'); endT = 3.0; } }
+        if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); kohenBye102(men); bye94(men); if (st.life53) st.life53.still = false; if (G.parent) G.parent.remove(G); if (ph !== 'rise') ramp105(D63().includes('makevet')); else { ramp105(true); } },
+    };
+    function strike() {
+      const k = J.state(); want = Math.max(want, k.h); const h = k.h, r = J.release(); fall = 0.12; want = h;
+      if (r === 'bounce') { say(F105.L105.bounce, 2); o.sound && o.sound('wood'); buzz42('tick'); }
+      else if (r === 'blow') { blowT = 0.6; o.sound && o.sound('thud'); buzz42('settle'); const ed = J.edge(); if (ed === 'light') say(F105.L105.light, 2.6); else if (ed === 'rock') say(Math.abs(J.state().t) > K105.tolT[L()] ? F105.L105.tilt : F105.L105.rock, 2); }
+    }
+  }
+  /** THE WHITEWASH: three faces — the east face up to the red line, the south face above and below it, the kevesh's side in the sun */
+  function mkSidud105() {
+    const part = 'sidud', WO = world105(), men = [], qs = [], FL = B104.floor;
+    if (st.ui.pad) st.ui.pad.classList.add('full');
+    ramp105(true);
+    const FACES = [   // o: the face's foot-left corner (as seen); u: to the right; n: out of the face
+      { o: [B104.x1 + 0.04, 17.74, 2], u: [0, 0, -1], n: [1, 0, 0] },
+      { o: [-29.5, 18.733, B104.z1 + 0.04], u: [1, 0, 0], n: [0, 0, 1] },
+      { o: [R105.x1 + 0.04, 16.3, 31], u: [0, 0, -1], n: [1, 0, 0] },
+    ];
+    const G = new THREE.Group(); (st.props.root || scene()).add(G);
+    const WD = ON88 ? P88w.wood88('a', '#A07A4C') : mat('#9A7048', 0.88), C = F105.SID105.cols, RW = F105.SID105.rows;
+    // the deck (faces 1–2 are high), the bucket, the two tools, the cloth on the wall
+    const deck = new THREE.Group(); { const d = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 1.4), WD); d.castShadow = d.receiveShadow = true; deck.add(d); for (const [x, z] of [[-1, -0.6], [1, -0.6], [-1, 0.6], [1, 0.6]]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1, 6), WD); p.position.set(x, -0.5, z); p.userData.leg = 1; deck.add(p); } } G.add(deck);
+    const bucket = new THREE.Group(); { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.24, 0.5, 14), WD); b.position.y = 0.25; b.castShadow = true; bucket.add(b); const l = new THREE.Mesh(new THREE.CircleGeometry(0.27, 14), mat('#F7F4EA', 0.6)); l.rotation.x = -Math.PI / 2; l.position.y = 0.46; bucket.add(l); } G.add(bucket);
+    const iron = new THREE.Group(); { const bl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.28), mat('#8A8E94', 0.35, 0.8)); iron.add(bl); const hn = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.4, 6), WD); hn.rotation.z = Math.PI / 2; hn.position.set(0.42, 0.06, 0); iron.add(hn); } G.add(iron);
+    const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.36), new THREE.MeshStandardMaterial({ color: '#BDB4A4', roughness: 1 })); cloth.castShadow = true; G.add(cloth);
+    let fi = 0, J = null, ph = 'tool', plane = null, cv = null, ctx = null, tex = null, sm = null, sx = null, endT = -1, msgT = 0, auto = 0, drag = null, doneT = 0, rise = -1, said = {}, ap = null, lastEv = 0, dirty = true, whiten = 0;
+    const F0 = () => FACES[fi], FD = () => F105.SID105.faces[fi];
+    const V3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+    const at = (u, v, out = 0) => { const f = F0(); return V3(f.o).add(V3(f.u).multiplyScalar(u)).add(new THREE.Vector3(0, v, 0)).add(V3(f.n).multiplyScalar(out)); };
+    const sub = () => (rise >= 0 ? 'המזבח לבן' : `קיר ${fi + 1} מתוך 3 · ${FD().he}`);
+    const say = (t, n = 3) => { line(t, sub()); msgT = n; };
+    function startFace() {
+      J = F105.createSid105(fi); if (fi > 0) J.tool('cloth');
+      ph = fi === 0 ? 'tool' : 'paint'; lastEv = 0; dirty = true;
+      const fd = FD(); cv = doc.createElement('canvas'); cv.width = C * 16; cv.height = RW * 16; ctx = cv.getContext('2d'); tex = new THREE.CanvasTexture(cv);
+      sm = doc.createElement('canvas'); sm.width = C; sm.height = RW; sx = sm.getContext('2d');
+      plane = new THREE.Mesh(new THREE.PlaneGeometry(fd.w, fd.h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide })); plane.renderOrder = 4;
+      const c = at(fd.w / 2, fd.h / 2, 0.02); plane.position.copy(c); plane.lookAt(c.clone().add(V3(F0().n))); G.add(plane);
+      // the deck by the face's right edge, under the middle of its height (the face on the court's floor: none)
+      const dy = fi === 2 ? FL : F0().o[1] + 0.25, dp = at(fd.w + 1.2, 0, 1.1); deck.visible = fi !== 2; deck.position.set(dp.x, dy, dp.z); deck.rotation.y = Math.atan2(F0().n[0], F0().n[2]); deck.children.forEach((m) => { if (m.userData.leg) { m.scale.y = Math.max(0.1, dy - FL); m.position.y = -(dy - FL) / 2; } });
+      const bp = at(fd.w + 0.55, 0, 0.8); bucket.position.set(bp.x, dy + 0.06, bp.z);
+      const ip = at(fd.w + 1.7, 0, 0.5); iron.position.set(ip.x, dy + 0.1, ip.z); iron.visible = fi === 0;
+      say(fi === 0 ? F105.L105.tool : FD().he + ' · ' + (fi === 2 ? F105.L105.lap : F105.L105.wipe), 4.5);
+    }
+    const deckY = () => (fi === 2 ? FL : F0().o[1] + 0.25);
+    function draw() {
+      const { cov, pink, lap, run } = J.cells(), k = J.state(), w = 16; ctx.clearRect(0, 0, cv.width, cv.height);
+      // the lime cell by cell on a small image, drawn up smooth (a cloth's wash, not tiles); the drips sharp over it
+      const im = sx ? sx.createImageData(C, RW) : null;
+      if (im) { for (let r = 0; r < RW; r++) for (let c = 0; c < C; c++) { const j = r * C + c, q = ((RW - 1 - r) * C + c) * 4, a = Math.min(1, cov[j]);
+          if (pink[j]) { im.data[q] = 236; im.data[q + 1] = 150; im.data[q + 2] = 160; im.data[q + 3] = 240; }
+          else if (lap[j]) { im.data[q] = 178; im.data[q + 1] = 170; im.data[q + 2] = 152; im.data[q + 3] = 225; }
+          else if (a > 0) { im.data[q] = 252; im.data[q + 1] = 250; im.data[q + 2] = 244; im.data[q + 3] = Math.round(255 * (0.15 + 0.82 * Math.min(1, a / 0.9))); } }
+        sx.putImageData(im, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(sm, 0, 0, C, RW, 0, 0, cv.width, cv.height); }
+      for (const d of k.drips) { if (d.gone) continue; ctx.fillStyle = d.dry ? 'rgba(196,188,170,1)' : 'rgba(255,255,252,.98)'; const x = d.x * w, y0 = (RW - d.y0) * w; const y1 = (RW - d.y) * w; ctx.fillRect(x - 2.5, Math.min(y0, y1), 5, Math.abs(y1 - y0) + 5); ctx.beginPath(); ctx.arc(x, y1 + 4, 4.5, 0, Math.PI * 2); ctx.fill(); void run; }
+      tex.needsUpdate = true; dirty = false;
+    }
+    function faceDone() {
+      const k = J.state(); qs.push(k.q); R.sid105 = (R.sid105 | 0) + J.faults(); const fd = FD(), c = at(fd.w / 2, fd.h + 0.4, 0.3);
+      toast84(k.q >= 1 ? 'mehudar' : k.q > 0 ? 'kasher' : 'tikkun', proj(c.x, c.y, c.z), `${Math.round(J.cover() * 100)}%`); o.sound && o.sound('settle'); buzz42('settle'); line(F105.L105.faceDone, sub());
+      ph = 'after'; doneT = 0; J.up(); drag = null;
+    }
+    startFace();
+    const toCell = (a) => { const c = camera(); if (!c) return null; const nd = new THREE.Vector2((a.x / W()) * 2 - 1, -(a.y / H()) * 2 + 1), rc = new THREE.Raycaster(); rc.setFromCamera(nd, c); const f = F0(), n = V3(f.n), p0 = V3(f.o), pl = new THREE.Plane(n, -n.dot(p0)), hit = new THREE.Vector3(); if (!rc.ray.intersectPlane(pl, hit)) return null; const d = hit.sub(p0), u = d.dot(V3(f.u)), v = d.y; return { x: (u / FD().w) * C, y: (v / FD().h) * RW, inside: u >= -0.3 && u <= FD().w + 0.3 && v >= -0.3 && v <= FD().h + 0.3 }; };
+    const scr = (p) => proj(p.x, p.y, p.z);
+    const pickR = () => Math.max(44, W() * 0.06);
+    const clothRest = () => at(FD().w + 0.95, 0, 0.45).setY(deckY() + 0.12);
+    return {
+      acting: true, fullPad: true, kind: 'sidud105', ownView: () => true, hj: () => J, ph: () => (rise >= 0 ? 'rise' : ph), qs: () => qs.slice(), busy: () => ph === 'after' || rise >= 0,
+      dbg: () => (J ? `f${fi + 1} ${ph} cov${J.cover().toFixed(2)} load${J.state().load.toFixed(2)} d${J.state().drips.filter((d) => !d.dry && !d.gone).length} f${J.faults()}` : ''),
+      bucketAt: () => scr(bucket.position.clone().setY(bucket.position.y + 0.4)), clothAt: () => scr(cloth.position), ironAt: () => scr(iron.position), cellAt: (x, y) => scr(at((x / C) * FD().w, (y / RW) * FD().h, 0.05)),
+      view() {
+        if (rise >= 0) { const u = Math.min(1, rise / 3); return fit102([-38, 20.5, 8], [0.9, 0.38 + 0.1 * u, 0.75], 24 + 3 * u, 11); }
+        const fd = FD(), c = at(fd.w / 2 + 0.7, fd.h / 2, 0), n = F0().n; return fit102([c.x, c.y, c.z], [n[0] * 1 + F0().u[0] * 0.18, 0.22, n[2] * 1 + F0().u[2] * 0.18], fd.w / 2 + 1.4, fd.h / 2 + 0.6);   // (before the face, a little to its right: the face ≈ two thirds, the deck and the bucket at the right edge)
+      },
+      down(a) {
+        drag = null; if (!J || ph === 'after' || rise >= 0) return; const R2 = pickR();
+        if (ph === 'tool') { const pi = scr(iron.position), pc = scr(cloth.position); if (pi && Math.hypot(pi.x - a.x, pi.y - a.y) < R2) { J.tool('iron'); say(F105.L105.iron, 4.5); o.sound && o.sound('ring'); buzz42('retry'); return; } if (pc && Math.hypot(pc.x - a.x, pc.y - a.y) < R2 * 1.2) { J.tool('cloth'); ph = 'paint'; say(F105.L105.dip, 3.4); buzz42('tick'); } return; }
+        const pb = scr(bucket.position.clone().setY(bucket.position.y + 0.4)); if (pb && Math.hypot(pb.x - a.x, pb.y - a.y) < R2 * 1.3) { J.dip(); o.sound && o.sound('splash'); buzz42('tick'); say(F105.L105.wipe, 2.4); return; }
+        const c = toCell(a); if (c && c.inside) { if (J.state().load <= 0.02) { say(F105.L105.dry, 2.4); return; } J.down(c.x, c.y); drag = { kind: 'cloth' }; }
+      },
+      move(a) { if (!drag) return; const c = toCell(a); if (c) J.move(c.x, c.y); },
+      up() { if (!drag) return; drag = null; J.up(); },
+      frame(dt) { dt *= globalThis.__H102X || 1;
+        if (msgT > 0) { msgT -= dt; if (msgT <= 0 && J && rise < 0) line(ph === 'tool' ? F105.L105.tool : J.state().load < 0.1 ? F105.L105.dry : F105.L105.wipe, sub()); }
+        // the test's hand: the cloth (the rush first reaches for the iron), the bucket, the rows from the top round the red line
+        const AU = globalThis.__H102AUTO; if (AU && J && rise < 0 && ph !== 'after') { auto += dt;
+          if (ph === 'tool' && auto > 0.8) { auto = 0; if (AU === 'rush' && !J.state().iron) { J.tool('iron'); say(F105.L105.iron, 2); } else { J.tool('cloth'); ph = 'paint'; } }
+          else if (ph === 'paint') { const h = J.hint();
+            if (h.kind === 'dip') { J.up(); ap = null; J.dip(); o.sound && o.sound('splash'); }
+            else if (h.kind === 'to') { const tx = h.row != null ? (h.ltr ? C - 0.5 : 0.5) : h.x, ty = h.y, rowJump = h.row != null && ap && Math.abs(ap[1] - ty) > 0.01;
+              if (!ap || rowJump || (h.row == null && Math.hypot(ap[0] - h.x, ap[1] - h.y) > 1.5)) { J.up(); ap = [h.x, h.y]; J.down(ap[0], ap[1]); }
+              const sp = AU === 'rush' ? 13 : 6, dx = tx - ap[0], dy = ty - ap[1], d = Math.hypot(dx, dy), m = Math.min(d, sp * dt), pause = AU === 'rush' && Math.floor(J.state().t) % 7 === 3;
+              if (!pause && d > 0) { ap = [ap[0] + (dx / d) * m, ap[1] + (dy / d) * m]; J.move(ap[0], ap[1]); } } } }
+        // the face
+        if (J && ph === 'paint') { const r = J.step(dt), k = J.state();
+          while (lastEv < k.ev.length) { const e = k.ev[lastEv++]; if (e === 'drip') { say(F105.L105.drip, 2.4); buzz42('tick'); } else if (e === 'dried') { say(F105.L105.dried, 2.6); buzz42('retry'); } else if (e === 'pink') { say(F105.L105.pink, 2.8); buzz42('retry'); } else if (e === 'lap') { say(F105.L105.lap, 2.6); buzz42('retry'); } else if (e === 'wipe') { o.sound && o.sound('brush'); } }
+          if (r === 'done') faceDone(); }
+        if (J && (ph === 'paint' || dirty)) draw();
+        if (ph === 'after') { doneT += dt; if (doneT > 1.8) { if (plane) { plane.material.opacity = 1; } if (fi < FACES.length - 1) { fi++; startFace(); } else { ph = 'end'; rise = 0; const L5 = st.life53; if (L5) L5.still = true; line(F105.L105.done, F105.L105.sid); } } }
+        // the cloth: on the wall under the finger (whiter the more lime in it), or on the bucket's rim
+        if (J) { const k = J.state(), wl = 0.45 + 0.55 * k.load; cloth.material.color.setRGB(0.72 + 0.27 * wl, 0.69 + 0.29 * wl, 0.62 + 0.33 * wl);
+          if (k.down && k.at) { const p = at((k.at[0] / C) * FD().w, (k.at[1] / RW) * FD().h, 0.07); cloth.position.copy(p); cloth.lookAt(p.clone().add(V3(F0().n))); cloth.rotateX(Math.PI / 2); }
+          else { cloth.position.copy(clothRest()); cloth.rotation.set(0, 0, 0); } cloth.visible = rise < 0; }
+        // the end: the crews whiten the rest — the whole altar and the kevesh's walls go white
+        if (rise >= 0) { rise += dt; whiten = Math.min(1, rise / 2.4); whiten105(whiten); deck.visible = false; bucket.visible = false; iron.visible = false;
+          if (rise > 3.6 && endT < 0) { const q = F105.sidQ105(qs); Y84().push([part, 0, q]); save42(S); chip84(); grade(part, q, null, true); buzz42('peak'); endT = 3.0; } }
+        // the people: his kohen on the deck by the face's right edge; a crewman at the bucket below
+        const f = kohen102(men), ok = men94(men, [{ white: true }, { tunic: '#9C8466', cloth: '#6B4A2B' }]);
+        if (f) { const fd = FD(), p = rise >= 0 ? new THREE.Vector3(B104.x1 + 4, FL, 4) : at(fd.w + 1.0, 0, 1.15).setY(deckY() + 0.06), tw = at(fd.w - 0.4, 0, 0); f.root.position.copy(p); f.root.rotation.y = rise >= 0 ? Math.PI * 0.75 : Math.atan2(tw.x - p.x, tw.z - p.z); f.play(rise >= 0 ? 'Idle' : J && J.state().down ? 'Interact' : 'Idle', 1); f.update(dt); }
+        if (ok) { const m1 = men[1], fd = FD(), p = rise >= 0 ? new THREE.Vector3(B104.x1 + 5.2, FL, 2.4) : at(fd.w + 2.6, 0, 2.6).setY(FL); m1.root.position.copy(p); const tw = at(fd.w, 0, 0); m1.root.rotation.y = Math.atan2(tw.x - p.x, tw.z - p.z); m1.play('Idle', 1); m1.update(dt); }
+        objPlace(true, [(() => { const fd = FD(), c = at(fd.w / 2, fd.h / 2, 0); return { x: c.x, y: c.y, z: c.z, r: Math.max(fd.w, fd.h) / 2 + 1.2 }; })()], 'h105sid');
+        // the overlay: the tools to choose, the bucket's ring when the cloth is dry, a live drip's ring, the share white
+        svgClear();
+        if (rise < 0 && J) { const k = J.state(), pulse = 16 + 4 * Math.sin(now() * 4);
+          if (ph === 'tool') for (const m of [iron, cloth]) { const p = scr(m.position); if (p) svgAdd(`<circle cx="${p.x}" cy="${p.y}" r="${pulse + 8}" fill="none" stroke="#FFE6A0" stroke-width="3" stroke-dasharray="6 5"/>`); }
+          if (ph === 'paint' && k.load < 0.22 && !k.down) { const p = scr(bucket.position.clone().setY(bucket.position.y + 0.4)); if (p) svgAdd(`<circle cx="${p.x}" cy="${p.y}" r="${pulse + 4}" fill="none" stroke="#FFE6A0" stroke-width="3" stroke-dasharray="6 5"/>`); }
+          for (const d of k.drips) if (!d.dry && !d.gone) { const p = scr(at((d.x / C) * FD().w, (d.y / RW) * FD().h, 0.05)); if (p) svgAdd(`<circle cx="${p.x}" cy="${p.y}" r="${pulse}" fill="none" stroke="#FF8A6A" stroke-width="3"/><circle cx="${p.x}" cy="${p.y - pulse - 8}" r="6" fill="none" stroke="#FF8A6A" stroke-width="3" stroke-dasharray="${(1 - d.age / FD().dryDrip) * 38} 99"/>`); }
+          if (ph === 'paint' || ph === 'after') { const fd = FD(), p = scr(at(fd.w / 2, fd.h + 0.25, 0.05)), cvr = J.cover(), need = F105.SID105.need; if (p) svgAdd(`<rect x="${p.x - 60}" y="${p.y - 22}" width="120" height="10" rx="5" fill="rgba(40,26,10,.5)"/><rect x="${p.x - 60}" y="${p.y - 22}" width="${120 * Math.min(1, cvr / need)}" height="10" rx="5" fill="#FFFDF4"/>`); }
+          if (ph === 'paint' && !k.down && k.load > 0.22 && !st.finger && J.cover() < 0.05) { const fd = FD(), p = scr(at(0.6, fd.h * 0.62, 0.05)), q = scr(at(fd.w - 0.6, fd.h * 0.62, 0.05)); if (p && q) { const u = (now() * 0.45) % 1; svgAdd(`<text x="${p.x + (q.x - p.x) * u}" y="${p.y + 30}" font-size="30" text-anchor="middle" opacity=".85">👆</text>`); } } }
+        if (endT >= 0) { endT -= dt; if (endT <= 0) return true; }
+        return false;
+      },
+      end() { svgClear(); if (st.ui.pad) st.ui.pad.classList.remove('full'); kohenBye102(men); bye94(men); if (st.life53) st.life53.still = false; [deck, bucket, iron, cloth].forEach((m) => G.remove(m)); if (rise < 0 && G.parent) G.parent.remove(G); else st.props.sid105 = G; },
+    };
+  }
+  /** the crews' whitewash on the whole altar and the kevesh's walls (k 0…1) */
+  function whiten105(k) {
+    const WO = st.props.w105; if (!WO) return; const wc = new THREE.Color('#FFFFFF'), one = (m) => { if (!m.material || !m.material.color) return; if (!m.userData.c0) m.userData.c0 = m.material.color.clone(); m.material.color.copy(m.userData.c0).lerp(wc, k); };
+    WO.BD.courses.forEach((c) => c.g.traverse(one)); WO.guf.forEach((c) => one(c.m)); WO.walls.forEach(one);
+  }
+  /* ── build 105 ── THE STAGE'S END, NEW (the owner 5.11 20:02: "למה מסך הסיום עדיין ישן?"): no flight to the Mount's old viewpoint and no card
+   *  over the whole world — what he built stands where he built it, his kohen goes up to it, the camera turns slowly round it; then a small
+   *  card at the screen's foot: each of his works with its grade, what the world shows of it, the sources folded away. Built for any stage
+   *  (cfg); stage 10 first ── */
+  function endCfg105() {
+    if (!ON105) return null;
+    const FL = B104.floor, zF = R105.zFoot + 5, path = (u) => { const z = zF + (R105.zTop + 0.6 - zF) * Math.min(1, u / 0.85), z2 = u > 0.85 ? R105.zTop + 0.6 - ((u - 0.85) / 0.15) * 6 : z; return new THREE.Vector3(XM105, z2 < R105.zTop + 0.6 ? G105.top : z2 > R105.zFoot ? FL : ys105(z2), z2); };
+    const roll = R.roll105 | 0, sid = R.sid105 | 0;
+    return { title: 'גוף המזבח והכבש — נבנו', tag: 'הכבש והסיד — המזבח לבן מול השמש', C: [-38, 20, 12], R0: 54, works: F105.PARTS105.slice(1, -1), path,
+      facts: [roll ? `הגלגלת קפצה בכבש ${roll} ${roll === 1 ? 'פעם' : 'פעמים'} — במקום שהאבן מולאה מחדש` : 'הגלגלת ירדה בכבש חלק — בלי מדרגה', sid ? `בסיד נשארו ${sid} פגמים` : 'הסיד נקי — בלי טיפות, והקו האדום אדום'],
+      src: F105.SRC105, before() { world105(); ramp105(true); whiten105(1); hideWorld105(); } };
+  }
+  function revBegin105(cfg) {
+    line(''); objPlace(false); svgClear(); try { if (o.complete) o.complete(); } catch (e) { /* */ }
+    cfg.before(); const men = [];
+    st.rev = { t: 0, cfg, men, p0: [cq.p.x, cq.p.y, cq.p.z], t0: [cq.t.x, cq.t.y, cq.t.z], a0: Math.atan2(0.8, 0.9) };
+    const tg = el('h42-tag', ''); tg.hidden = true; st.ui.root.appendChild(tg); st.ui.btag = tg;
+    if (doc && st.ui.root) { const b = el('h42-skip', 'דלגו', 'button'); b.type = 'button'; b.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (st.rev) st.rev.t = Math.max(st.rev.t, 10.4); }); st.ui.root.appendChild(b); st.ui.skip = b; }
+    buzz42('peak');
+  }
+  /** the orbit: from the south-east, low, rising and turning slowly round the thing (e 0…1 how far in) */
+  function orbit105(r, dt) {
+    const c = r.cfg, a = r.a0 + r.t * 0.045, e = Math.min(1, r.t / 6), R2 = c.R0 - 8 * e, h = 8 + 14 * e, f = kohen102(r.men);
+    const kp = f ? f.root.position : new THREE.Vector3(...c.C), p = [c.C[0] + Math.cos(a) * R2, c.C[1] + h, c.C[2] + Math.sin(a) * R2], t = [c.C[0] + (kp.x - c.C[0]) * 0.35, c.C[1] + (kp.y + 1 - c.C[1]) * 0.35, c.C[2] + (kp.z - c.C[2]) * 0.35];
+    const b = Math.min(1, r.t / 1.6), bb = b * b * (3 - 2 * b);   // (from where the last act's camera stood)
+    camTo(p.map((v, i) => r.p0[i] + (v - r.p0[i]) * bb), t.map((v, i) => r.t0[i] + (v - r.t0[i]) * bb), 1);
+  }
+  function kohenWalk105(r, dt) {
+    const f = kohen102(r.men); if (!f) return; const u = Math.max(0, Math.min(1, (r.t - 0.8) / 7.5)), p = r.cfg.path(u), q = r.cfg.path(Math.min(1, u + 0.02));
+    f.root.position.copy(p); if (u < 1) f.root.rotation.y = Math.atan2(q.x - p.x, q.z - p.z); f.play(u > 0 && u < 1 ? 'Walking_A' : 'Idle', 1); f.update(dt);
+  }
+  function revFrame105(dt) {
+    const r = st.rev; r.t += dt; hideWorld105(); orbit105(r, dt); kohenWalk105(r, dt);
+    const tg = st.ui.btag; if (tg && r.t > 6.5) { tg.hidden = false; tg.textContent = r.cfg.tag; }
+    return r.t > 10.5;
+  }
+  function finishCard105(cfg) {
+    const n = { mehudar: 0, kasher: 0, tikkun: 0 }; for (const g of R.grades) n[g[1]] = (n[g[1]] || 0) + 1;
+    R.done = Date.now(); save42(S);
+    if (MODE === 'stage') { try { grow61(W61, STG, 1); save61(W61); } catch (e) { /* */ } }
+    if (st.ui.btag) st.ui.btag.hidden = true;
+    const r = st.rev || { t: 11, cfg, men: [], p0: [cq.p.x, cq.p.y, cq.p.z], t0: [cq.t.x, cq.t.y, cq.t.z], a0: 0.7 }; st.end105 = r;   // (the orbit goes on behind the card)
+    const last = (p) => { let g = null; for (const x of R.grades) if (x[0] === p) g = x; return g; };
+    const works = cfg.works.map((p) => { const g = last(p), rt = g ? g[1] : null; return `<span>${rt ? RATE30.icon[rt] : '·'} ${esc(labelOf(p))}${rt ? ` — ${esc(RATE30.he[rt])}` : ''}</span>`; }).join('');
+    const fc = card(cfg.title, [], 'המשך', () => { bye105(); stop(true); }, ...(ON69 ? ['עוד נדבך', () => { bye105(); freeBack69(); }] : []));
+    if (!fc) return; fc.classList.add('h105-end');
+    const box = fc.querySelector('[role="dialog"]'), h2 = box.querySelector('h2');
+    h2.insertAdjacentHTML('afterend', `<div class="h105-works">${works}</div>${cfg.facts.map((x) => `<p>${esc(x)}</p>`).join('')}<p class="h105-sum">${RATE30.icon.mehudar} ${n.mehudar} · ${RATE30.icon.kasher} ${n.kasher} · ${RATE30.icon.tikkun} ${n.tikkun} · נפתח: ${esc(o.nextName || 'השלב הבא')}</p><details class="h105-src"><summary>מקורות</summary>${cfg.src.map((x) => `<small>${esc(x)}</small>`).join('')}</details>`);
+  }
+  function endFrame105(dt) { const r = st.end105; if (!r) return; r.t += dt; hideWorld105(); orbit105(r, dt); kohenWalk105(r, dt); }
+  function bye105() { const r = st.end105; st.end105 = null; if (r && r.men) { kohenBye102(r.men); bye94(r.men); } }
+  // ── /build 105 ──
   // ── /build 102 ──
   /* ── build 47 ── stage 04's first acts (the lintel on a bubble level, the leaf on its pin): out in build 99 — build 92's acts take every way in ── */
   // ── build 54 ── (§2 stage 04: "from above the court is an empty purple plane — the gates don't look like gates") for the names: the court's
@@ -6979,7 +7328,7 @@ export function createHar42(o = {}) {
     if (st.target && part !== 'rope') { if (!st.glide62) line(LINE42.walk, labelOf(part)); st.pending = p; }
     else { st.pending = null; p.begin && p.begin(); }
   }
-  const labelOf = (part) => (part === 'tread97' ? 'גלגל הדריכה' : part === 'tread97b' ? 'גלגל הדריכה, אבנים כבדות' : part === 'line97' ? 'החוט הצבוע' : STG === 'nashim' && part === 'corner' ? 'הפינה שלכם' : part === 'corner' ? 'אבן הפינה' : part === 'free69' ? 'עוד נדבך' : null) || ({ waves: 'גלי הים', courses: 'נדבכים ופינה', lintels: 'המלתראות', fifth: 'הקורה החמישית', vine: 'גפן הזהב', cast: 'יציקת הכיור', spigots: 'שנים עשר הדדים', screw: 'הברגת הדדים', mukhni: 'המוכני', horns: 'ארבע הקרנות', holes: 'שני הנקבים', fire: 'האש הראשונה', decoy: 'מה פסול ומה רק נראה פסול', bench: 'אבני המזבח — על הספסל', course: 'היסוד — אבני השדה', plumb: 'הפינה — לפי האנך', sikra: 'חוט הסיקרא', kevesh: 'הכבש', sid: 'הסיד', light: 'אור צד', tap: 'הקישו והקשיבו', sovev: 'הסובב', thread: 'חוט הסיקרא', inspect: 'הבדיקה הראשונה', field: 'אבני שדה', nail: 'מבחן הציפורן', iron: 'בלי ברזל', last: 'השורה האחרונה', stone: 'אבן עם סדק', mud: 'בוץ או סדק', compass: 'לשכת הגזית — המחוגה', benches: 'הספסלים', hub: 'לשכת הגולה — הגלגל', wheel: 'לשכת הגולה — הגלגל והדלי', dome: 'בית המוקד — הכיפה', arch: 'הקשת', voyage: 'מסע הדלתות', lever: 'מוט ויתדות', hang: 'הכנף על הציר', steps: ON94 ? 'המעלות א–ה' : 'חמש עשרה המעלות', lever2: 'מוט ויתדות — הכנף הצפונית', hang2: 'הכנף הצפונית על הציר', steps2: 'המעלות ו–י', steps3: 'המעלות יא–טו', step: 'מעלה מכוונת', wood: 'לשכת העצים', beams: 'קורות הגזוזטרא', pegs: 'השגמים והיתדות', walk: 'ההליכה על הגזוזטרא', log: 'בדיקת העצים', beam: 'קורה לשקע', peg: 'שגם ויתד', lintel: 'המשקוף', leaf: 'כנף הדלת', leaf7: 'הכנף הכבדה', names: 'שבעת השערים', lattice0: 'לוח הסריג', lattice1: 'הסריג השזור', lattice2: 'הסריג בשני גוונים', lattice: 'הסריג', warn: 'אבני האזהרה', bows: 'ההשתחוויות', line: 'החוט', pulley: 'הגלגלת', wcourse0: 'הנדבך', wcourse1: 'הנדבך הבא', giant: 'אבן הענק', wcorner: 'הפינה', top: 'הנדבך העליון', lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', hammer0: 'הפטיש בסלע הראשון', hammer1: 'הפטיש בסלע השני', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
+  const labelOf = (part) => (part === 'tread97' ? 'גלגל הדריכה' : part === 'tread97b' ? 'גלגל הדריכה, אבנים כבדות' : part === 'line97' ? 'החוט הצבוע' : STG === 'nashim' && part === 'corner' ? 'הפינה שלכם' : part === 'corner' ? 'אבן הפינה' : part === 'free69' ? 'עוד נדבך' : null) || ({ waves: 'גלי הים', courses: 'נדבכים ופינה', lintels: 'המלתראות', fifth: 'הקורה החמישית', vine: 'גפן הזהב', cast: 'יציקת הכיור', spigots: 'שנים עשר הדדים', screw: 'הברגת הדדים', mukhni: 'המוכני', horns: 'ארבע הקרנות', holes: 'שני הנקבים', fire: 'האש הראשונה', decoy: 'מה פסול ומה רק נראה פסול', bench: 'אבני המזבח — על הספסל', course: 'היסוד — אבני השדה', plumb: 'הפינה — לפי האנך', sikra: 'חוט הסיקרא', makevet: 'הכבש — במקבת', sidud: 'הסיד — במטלית', kevesh: 'הכבש', sid: 'הסיד', light: 'אור צד', tap: 'הקישו והקשיבו', sovev: 'הסובב', thread: 'חוט הסיקרא', inspect: 'הבדיקה הראשונה', field: 'אבני שדה', nail: 'מבחן הציפורן', iron: 'בלי ברזל', last: 'השורה האחרונה', stone: 'אבן עם סדק', mud: 'בוץ או סדק', compass: 'לשכת הגזית — המחוגה', benches: 'הספסלים', hub: 'לשכת הגולה — הגלגל', wheel: 'לשכת הגולה — הגלגל והדלי', dome: 'בית המוקד — הכיפה', arch: 'הקשת', voyage: 'מסע הדלתות', lever: 'מוט ויתדות', hang: 'הכנף על הציר', steps: ON94 ? 'המעלות א–ה' : 'חמש עשרה המעלות', lever2: 'מוט ויתדות — הכנף הצפונית', hang2: 'הכנף הצפונית על הציר', steps2: 'המעלות ו–י', steps3: 'המעלות יא–טו', step: 'מעלה מכוונת', wood: 'לשכת העצים', beams: 'קורות הגזוזטרא', pegs: 'השגמים והיתדות', walk: 'ההליכה על הגזוזטרא', log: 'בדיקת העצים', beam: 'קורה לשקע', peg: 'שגם ויתד', lintel: 'המשקוף', leaf: 'כנף הדלת', leaf7: 'הכנף הכבדה', names: 'שבעת השערים', lattice0: 'לוח הסריג', lattice1: 'הסריג השזור', lattice2: 'הסריג בשני גוונים', lattice: 'הסריג', warn: 'אבני האזהרה', bows: 'ההשתחוויות', line: 'החוט', pulley: 'הגלגלת', wcourse0: 'הנדבך', wcourse1: 'הנדבך הבא', giant: 'אבן הענק', wcorner: 'הפינה', top: 'הנדבך העליון', lift: 'גלגל הדריכה', corner: 'אבן הפינה', rock0: 'הסלע הראשון', rock1: 'הסלע השני', rock2: 'הסלע השלישי', hammer0: 'הפטיש בסלע הראשון', hammer1: 'הפטיש בסלע השני', course0: 'הנדבך', course1: 'הנדבך הבא', roll: 'האבן הגדולה', pave: 'הריצוף', trace: 'אבן המעקה' })[part] || '';
   function endPart() { const at63 = st.obj ? { x: st.obj.x, y: st.obj.y, z: st.obj.z } : null, p = PART[st.part]; if (st.job && st.job.end) st.job.end(); if (p && p.end) p.end(); if (st.job && st.job.el) st.job.el.forEach((e) => { try { e.remove(); } catch (err) { /* */ } }); st.job = null; objPlace(false); if (MODE !== 'stage') { svgClear(); if (st.ui.pile) st.ui.pile.innerHTML = ''; line(''); st.part = 'menu'; const cb = st.onAct; st.onAct = null; Lover = 0; if (cb) setTimeout(() => cb(st.actQ, st.actRating), st.pull ? 2700 : 700); return; } if (ON63) { shot63(at63); return; } startPart(R.part + 1); }
   function finish() { st.part = 'done'; }
   function finishCard() {
@@ -6987,7 +7336,7 @@ export function createHar42(o = {}) {
     R.done = Date.now(); save42(S);
     if (MODE === 'stage') { try { grow61(W61, STG === 'soreg' ? 'sorag' : STG, 1); save61(W61); } catch (e) { /* */ } }   // ── build 61 ── (the structure stands — world61)
     cardView57(); if (st.ui.btag) st.ui.btag.hidden = true;   // ── build 57 ── (§1 rule 12: him seen in the left third, the card on the right two-thirds — the reveal's tag no longer peeking out beside it)
-    const fc = card(STG === 'kiyor' ? 'הכיור — נוצק, ובלילה ירד למים' : STG === 'ulam' ? 'האולם — נבנה, ועלה ראשון בגפן' : STG === 'karnot' ? 'הקרנות — נבנו, והאש דלקה' : STG === 'guf' ? 'גוף המזבח והכבש — נבנו' : STG === 'sovev' ? 'הסובב וחוט הסיקרא — נבנו' : STG === 'yesod' ? 'יסוד המזבח — נבנה' : STG === 'lishka' ? 'הלשכות — נבנו' : STG === 'nikanor' ? 'שער ניקנור וט״ו המעלות — נבנו' : STG === 'nashim' ? 'עזרת הנשים — נבנתה' : STG === 'gates' ? 'שערי העזרה — נבנו' : STG === 'soreg' ? 'הסורג והחיל — נבנו' : STG === 'wall' ? 'חומת העזרה — נבנתה' : 'שיטוח ההר — נבנה', [`${RATE30.icon.mehudar} מהודר ${n.mehudar} · ${RATE30.icon.kasher} כשר ${n.kasher} · ${RATE30.icon.tikkun} טעון תיקון ${n.tikkun}`, `ידיים: ${Math.round(R.hands / 60)} דק׳`, ...(STG === 'nashim' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים`] : []), ...(STG === 'soreg' ? [FIND46, `השתחוויות: ${(R.bows && R.bows.joined) | 0} יחד עם התהלוכה`] : []), ...(STG === 'lishka' ? [FIND50] : []), ...(STG === 'yesod' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים`] : []), ...(STG === 'sovev' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים · חוט הסיקרא נשטף: ${(R.wash56 | 0)} פעמים`] : []), ...(STG === 'ulam' ? [`גלי הים: ${(R.err60 | 0) ? `${R.err60 | 0} תיקונים` : 'בלי תיקון'} · המלתראות: ${(R.knock60 | 0) ? `נקשו ${R.knock60 | 0} ${(R.knock60 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'בלי לנקוש'} · עלה של זהב בגפן`] : []), ...(STG === 'kiyor' ? [`היציקה: ${(R.cast59 | 0) ? `עוד ${R.cast59 | 0} ${(R.cast59 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'בפעם הראשונה'} · התבניות: ${(R.spig59 | 0) ? `${R.spig59 | 0} יצקו שוב` : 'כולן בפעם הראשונה'} · המוכני: ${R.land59 === 'soft' ? 'בשקט' : R.land59 === 'splash' ? 'התיז' : '—'}`] : []), ...(STG === 'karnot' ? [`הנקבים: ${(R.spill58 | 0) ? `גלש ${R.spill58 | 0} ${(R.spill58 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'בלי לגלוש'} · המערכה: ${R.air58 || '—'}`] : []), ...(STG === 'guf' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים · הכבש בראשו: ${Math.abs(+R.kev57 || 0) < 0.3 ? 'ישר' : Math.max(1, Math.abs(Math.round(+R.kev57))) === 1 ? 'טפח אחד' : `${Math.abs(Math.round(+R.kev57))} טפחים`} · סיד: ${R.sid57 ? R.sid57.d + R.sid57.s : 0} טפטופים ופסים`] : []), ...(STG === 'nikanor' ? [`הסערה: ${R.voy && R.voy.rating ? `${RATE30.icon[R.voy.rating]} ${RATE30.he[R.voy.rating]}` : '—'} · גלים שחזרו: ${(R.voy && R.voy.replays) | 0}`, FIND49] : []), `נפתח: ${STG !== 'har' ? o.nextName || 'השלב הבא' : 'חומת העזרה'}`, ...(STG === 'ulam' ? SRC60 : STG === 'kiyor' ? SRC59 : STG === 'karnot' ? SRC58 : STG === 'guf' ? SRC57 : STG === 'sovev' ? (ON104 ? F104.SRC104 : SRC56) : STG === 'yesod' ? (ON103 ? F103.SRC103 : SRC55) : STG === 'lishka' ? F102.SRC102 : STG === 'nikanor' ? SRC49 : STG === 'nashim' ? SRC48 : STG === 'gates' ? SRC47 : STG === 'soreg' ? SRC46 : STG === 'wall' ? SRC45 : SRC42).map((x) => `~${x}`)], 'המשך', () => stop(true), ...(ON69 ? ['עוד נדבך', () => freeBack69()] : []));
+    const fc = card(STG === 'kiyor' ? 'הכיור — נוצק, ובלילה ירד למים' : STG === 'ulam' ? 'האולם — נבנה, ועלה ראשון בגפן' : STG === 'karnot' ? 'הקרנות — נבנו, והאש דלקה' : STG === 'guf' ? 'גוף המזבח והכבש — נבנו' : STG === 'sovev' ? 'הסובב וחוט הסיקרא — נבנו' : STG === 'yesod' ? 'יסוד המזבח — נבנה' : STG === 'lishka' ? 'הלשכות — נבנו' : STG === 'nikanor' ? 'שער ניקנור וט״ו המעלות — נבנו' : STG === 'nashim' ? 'עזרת הנשים — נבנתה' : STG === 'gates' ? 'שערי העזרה — נבנו' : STG === 'soreg' ? 'הסורג והחיל — נבנו' : STG === 'wall' ? 'חומת העזרה — נבנתה' : 'שיטוח ההר — נבנה', [`${RATE30.icon.mehudar} מהודר ${n.mehudar} · ${RATE30.icon.kasher} כשר ${n.kasher} · ${RATE30.icon.tikkun} טעון תיקון ${n.tikkun}`, `ידיים: ${Math.round(R.hands / 60)} דק׳`, ...(STG === 'nashim' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים`] : []), ...(STG === 'soreg' ? [FIND46, `השתחוויות: ${(R.bows && R.bows.joined) | 0} יחד עם התהלוכה`] : []), ...(STG === 'lishka' ? [FIND50] : []), ...(STG === 'yesod' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים`] : []), ...(STG === 'sovev' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים · חוט הסיקרא נשטף: ${(R.wash56 | 0)} פעמים`] : []), ...(STG === 'ulam' ? [`גלי הים: ${(R.err60 | 0) ? `${R.err60 | 0} תיקונים` : 'בלי תיקון'} · המלתראות: ${(R.knock60 | 0) ? `נקשו ${R.knock60 | 0} ${(R.knock60 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'בלי לנקוש'} · עלה של זהב בגפן`] : []), ...(STG === 'kiyor' ? [`היציקה: ${(R.cast59 | 0) ? `עוד ${R.cast59 | 0} ${(R.cast59 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'בפעם הראשונה'} · התבניות: ${(R.spig59 | 0) ? `${R.spig59 | 0} יצקו שוב` : 'כולן בפעם הראשונה'} · המוכני: ${R.land59 === 'soft' ? 'בשקט' : R.land59 === 'splash' ? 'התיז' : '—'}`] : []), ...(STG === 'karnot' ? [`הנקבים: ${(R.spill58 | 0) ? `גלש ${R.spill58 | 0} ${(R.spill58 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'בלי לגלוש'} · המערכה: ${R.air58 || '—'}`] : []), ...(STG === 'guf' && ON105 ? [`הכבש: ${(R.roll105 | 0) ? `הגלגלת קפצה ${R.roll105 | 0} ${(R.roll105 | 0) === 1 ? 'פעם' : 'פעמים'}` : 'חלק, בלי מדרגה'} · הסיד: ${(R.sid105 | 0) ? `${R.sid105 | 0} פגמים` : 'בלי פגם'}`] : STG === 'guf' ? [`ספר הפגימות: ${Object.keys(S.book48 || {}).length} עמודים · הכבש בראשו: ${Math.abs(+R.kev57 || 0) < 0.3 ? 'ישר' : Math.max(1, Math.abs(Math.round(+R.kev57))) === 1 ? 'טפח אחד' : `${Math.abs(Math.round(+R.kev57))} טפחים`} · סיד: ${R.sid57 ? R.sid57.d + R.sid57.s : 0} טפטופים ופסים`] : []), ...(STG === 'nikanor' ? [`הסערה: ${R.voy && R.voy.rating ? `${RATE30.icon[R.voy.rating]} ${RATE30.he[R.voy.rating]}` : '—'} · גלים שחזרו: ${(R.voy && R.voy.replays) | 0}`, FIND49] : []), `נפתח: ${STG !== 'har' ? o.nextName || 'השלב הבא' : 'חומת העזרה'}`, ...(STG === 'ulam' ? SRC60 : STG === 'kiyor' ? SRC59 : STG === 'karnot' ? SRC58 : STG === 'guf' ? (ON105 ? F105.SRC105 : SRC57) : STG === 'sovev' ? (ON104 ? F104.SRC104 : SRC56) : STG === 'yesod' ? (ON103 ? F103.SRC103 : SRC55) : STG === 'lishka' ? F102.SRC102 : STG === 'nikanor' ? SRC49 : STG === 'nashim' ? SRC48 : STG === 'gates' ? SRC47 : STG === 'soreg' ? SRC46 : STG === 'wall' ? SRC45 : SRC42).map((x) => `~${x}`)], 'המשך', () => stop(true), ...(ON69 ? ['עוד נדבך', () => freeBack69()] : []));
     if (fc) fc.classList.add('h57-end');   // ── build 57 ── (§1 rule 12)
     if (STG === 'sovev' && fc) zorek56(fc);   // ── build 56 ── the end card: the priest's sprinkling — above the red line and below it (Middot 3:1)
   }
@@ -7330,6 +7679,7 @@ export function createHar42(o = {}) {
     if (ON84 || ON92) keepScrub84();   // ── build 86 ── (the court round the soreg clear in every view, the site's too — not only in an act's frame)
     if (st.wet > 0) dry45(dt);
     if (ON97) frame97(dt);   // ── build 97 ── (the crews' crane sets the chambers' stones while he walks and works)
+    if (ON105) { hideWorld105(); if (st.end105) endFrame105(dt); }   // ── build 105 ── (the world's own sovev and body/kevesh would stand in ours: world105's are the altar of this stage)
     if (st.card) return;
     const part = st.part;
     if (STG === 'lishka' && ON101 && !st.job) {   // ── build 102 ── (לשכת הגזית and בית המוקד are solid roofed halls in the world model: while he walks to one, stands in one or the camera pulls back from his work there, it stands open from above as in its act — else the camera behind him is in its wall and he is inside a block)

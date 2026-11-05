@@ -49,7 +49,7 @@ export const DEP63 = Object.freeze({
   // ── build 79 ── stage 09 (PARTS56): the side light and the tap's test side by side (the stones checked); the sovev's course once both are done; the red line on it last
   sovev: Object.freeze({ light: [], tap: [], sovev: ['light', 'tap'], thread: ['sovev'], plumb: [], sikra: ['plumb'] }),   // ── build 104 ── (the corner, then the red line on the body it raised)
   // ── build 80 ── stage 10 (PARTS57): the stones' check with its decoys and the ramp side by side; the lime once the body and the ramp stand
-  guf: Object.freeze({ decoy: [], kevesh: [], sid: ['decoy', 'kevesh'] }),
+  guf: Object.freeze({ decoy: [], kevesh: [], sid: ['decoy', 'kevesh'], makevet: [], sidud: ['makevet'] }),   // ── build 105 ── (the kevesh, then the whitewash on the altar it reaches)
   // ── build 81 ── stage 11 (PARTS58): the four horns and the two holes side by side; the first fire once the altar is whole
   karnot: Object.freeze({ horns: [], holes: [], fire: ['horns', 'holes'] }),
   // ── build 82 ── stage 12 (spec §6 "12": יציקה, 12 דדים, הברגה, מוכני): the cast first; then the spigots and the wheel side by side; the screw after the spigots

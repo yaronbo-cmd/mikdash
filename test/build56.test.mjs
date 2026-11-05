@@ -17,7 +17,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍∙!—]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w)).length;
 
 test('build 56: GAME_BUILD 56; stage 09\'s parts in the spec\'s order; its sources (מדות ג, א; ג, ד)', () => {
-  assert.equal(GAME_BUILD, 104);   // (build 63: again)
+  assert.equal(GAME_BUILD, 105);   // (build 63: again)
   assert.deepEqual([...PARTS56], ['open', 'light', 'tap', 'sovev', 'thread', 'reveal']);
   assert.ok(SRC56.some((s) => /עלה חמש וכנס אמה, זה הסובב — מדות ג, א/.test(s)));
   assert.ok(SRC56.some((s) => /להבדיל בין דמים העליונים לדמים התחתונים — מדות ג, א/.test(s)));
@@ -92,7 +92,7 @@ test('build 56: the red line — the reed\'s middle, the level, the snap; מהו
 });
 
 test('build 56: the end card — stage 09\'s sources and the zorek (blood above the line and below it); stage 08\'s card its own sources', () => {
-  assert.match(H, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?(?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?(?:STG === 'guf' \? SRC57 : )?STG === 'sovev' \? (?:\(ON104 \? F104\.SRC104 : SRC56\)|SRC56) : STG === 'yesod' \? (?:SRC55|\(ON103 \? F103\.SRC103 : SRC55\)) : STG === 'lishka' \? (?:SRC50|F102\.SRC102)/);
+  assert.match(H, /\.\.\.\((?:STG === 'ulam' \? SRC60 : )?(?:STG === 'kiyor' \? SRC59 : )?(?:STG === 'karnot' \? SRC58 : )?(?:STG === 'guf' \? (?:SRC57|\(ON105 \? F105\.SRC105 : SRC57\)) : )?STG === 'sovev' \? (?:\(ON104 \? F104\.SRC104 : SRC56\)|SRC56) : STG === 'yesod' \? (?:SRC55|\(ON103 \? F103\.SRC103 : SRC55\)) : STG === 'lishka' \? (?:SRC50|F102\.SRC102)/);
   assert.match(H, /if \(STG === 'sovev' && fc\) zorek56\(fc\);/);
   assert.match(H, /דמים עליונים<\/text>/); assert.match(H, /דמים תחתונים<\/text>/);
   assert.ok(!SRC55.some((s) => /הר הבית|אריח|לבית התקיעה|אלף עגלות|גלגל הדריכה/.test(s)), 'stage 08\'s card: not stage 01\'s lines');

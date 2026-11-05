@@ -17,7 +17,7 @@ const head = (l) => String(l).split(' · ')[0];
 const words = (l) => head(l).replace(/[↔➡⬅⤵⟳⟲⬍⬆⬇∙!—,:]/g, ' ').split(/\s+/).filter((w) => w && !/^[←-⇿⬀-⯿]$/.test(w) && w !== '👆').length;
 
 test('build 58: GAME_BUILD 58; stage 11\'s parts; the quotes exactly as the spec verified them (מדות ג, א; ג, ב; אבות ה, ה)', () => {
-  assert.equal(GAME_BUILD, 104);   // (build 63: again)
+  assert.equal(GAME_BUILD, 105);   // (build 63: again)
   assert.deepEqual([...PARTS58], ['open', 'horns', 'holes', 'fire', 'reveal']);
   for (const q of ['מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה', 'וּבְקֶרֶן מַעֲרָבִית דְּרוֹמִית הָיוּ שְׁנֵי נְקָבִים, כְּמִין שְׁנֵי חֳטָמִין דַּקִּין', 'וְיוֹצְאִין לְנַחַל קִדְרוֹן', 'וְלֹא נָצְחָה הָרוּחַ אֶת עַמּוּד הֶעָשָׁן']) assert.ok(SRC58.some((s) => s.includes(`"${q}"`)), q);
   assert.ok(SRC58.some((s) => /"מְקוֹם הַקְּרָנוֹת אַמָּה מִזֶּה וְאַמָּה מִזֶּה" — מדות ג, א/.test(s)));
@@ -25,7 +25,7 @@ test('build 58: GAME_BUILD 58; stage 11\'s parts; the quotes exactly as the spec
   assert.ok(SRC58.every((s) => /טיוטה|המחשה/.test(s)));
   assert.ok(!/מִכָּאן/.test(H.slice(H.indexOf('export const PARTS58'), H.indexOf('export const PARTS58') + 4000)), 'not "מכאן"');
   assert.match(H, /o\.stage === 'guf' \? 'guf' : o\.stage === 'karnot' \? 'karnot' : (?:o\.stage === 'kiyor' \? 'kiyor' : )?(?:o\.stage === 'ulam' \? 'ulam' : )?'har';/);
-  assert.match(H, /STG === 'guf' \? PARTS57 : STG === 'karnot' \? PARTS58 : (?:STG === 'kiyor' \? PARTS59 : )?(?:STG === 'ulam' \? PARTS60 : )?PARTS42;/);
+  assert.match(H, /STG === 'guf' \? (?:PARTS57|\(ON105 \? F105\.PARTS105 : PARTS57\)) : STG === 'karnot' \? PARTS58 : (?:STG === 'kiyor' \? PARTS59 : )?(?:STG === 'ulam' \? PARTS60 : )?PARTS42;/);
   assert.match(H, /horns: 'fit', holes: 'lift', fire: 'place',/);
 });
 

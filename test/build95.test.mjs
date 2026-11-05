@@ -9,7 +9,7 @@ const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
 test('build 95: the voyage — people88 figures over figure49 anchors, the kit wood, the shared shapes kept at the end', async () => {
   const { GAME_BUILD } = await import('../src/avodah/shift/lobby35.js');
-  assert.equal(GAME_BUILD, 104);
+  assert.equal(GAME_BUILD, 105);
   const v = read('src/game/voyage49.js'), h = read('src/game/har42.js');
   assert.match(v, /function cast95\(dt\)/); assert.match(v, /cast95\(dt\);/);
   assert.match(v, /ctx\.figs \? ctx\.figs\(\) : null/, 'the figures come from the act (figs84), not drawn as cylinders');

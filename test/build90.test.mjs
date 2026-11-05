@@ -11,7 +11,7 @@ import { LINE42 } from '../src/game/har42.js';
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const base = { tol: 0.1, tolZ: 0.1, tolR: 0.1, damp: 0.3, sway0: 0, swayZ0: 0, twist0: 0, r0: 0, vChip: 1, vBreak: 1.8, wind: 0 };
 
-test('build 90: GAME_BUILD 90', () => { assert.equal(GAME_BUILD, 104); });
+test('build 90: GAME_BUILD 90', () => { assert.equal(GAME_BUILD, 105); });
 
 test('build 90: one big jump of the finger is not one jump of the slab — it follows over several frames, a little past, then settles', () => {
   const H = F84.createHoist84(base); H.twistBy(Math.PI / 2, 0); const r = [];

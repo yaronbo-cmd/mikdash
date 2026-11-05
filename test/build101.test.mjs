@@ -43,7 +43,7 @@ test('build 101: har42 — life layer off, crowd kept as real people on the floo
   assert.match(H, /const ON101 = qs\('h101'\) !== '0';/);
   assert.match(H, /if \(ON101 \|\| STG === 'yesod'[^)]*\) \{ try \{ if \(stages\.setLife\) stages\.setLife\(false\);/);
   assert.match(H, /c71\.tune\(F101\.CREW101\)/); assert.match(H, /stages\.crowd\.setFloor101\(true\)/);
-  assert.match(H, /o\.timeOfDay\(qs\('light101'\) === 'b' \? 'work2' : 'work'\)/);
+  assert.match(H, /o\.timeOfDay\(\(qs\('light101'\) \|\| globalThis\.__LIGHT101\) === 'b' \? 'work2' : 'work'\)/);
   assert.match(H, /if \(ON101 && qs\('cam101'\) !== 'far'\) Object\.assign\(FOLLOW, F101\.CAM101\);/);
   assert.match(H, /if \(st\.calm101 !== calm\)/, 'the site\'s people out of an act\'s frame');
   assert.match(H, /F101\.pile101\(/); assert.match(H, /F101\.jar101\(/);

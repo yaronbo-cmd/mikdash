@@ -1128,7 +1128,8 @@ function buildHero() {
   const tex = canvasTex(128, (x, s) => {
     const g = x.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
     g.addColorStop(0, 'rgba(20,14,6,.55)'); g.addColorStop(0.42, 'rgba(20,14,6,.28)'); g.addColorStop(0.6, 'rgba(20,14,6,0)');
-    g.addColorStop(0.74, 'rgba(255,214,110,0)'); g.addColorStop(0.8, 'rgba(255,220,120,.95)'); g.addColorStop(0.9, 'rgba(255,200,80,.9)'); g.addColorStop(0.97, 'rgba(255,200,80,0)');
+    if (HOLE101) { g.addColorStop(0.8, 'rgba(255,220,120,0)'); g.addColorStop(0.85, 'rgba(250,236,200,.42)'); g.addColorStop(0.9, 'rgba(250,236,200,0)'); }   // ── build 101 ── (a thin pale ring, not a gold disc's rim: fewer gold markers in the world)
+    else { g.addColorStop(0.74, 'rgba(255,214,110,0)'); g.addColorStop(0.8, 'rgba(255,220,120,.95)'); g.addColorStop(0.9, 'rgba(255,200,80,.9)'); g.addColorStop(0.97, 'rgba(255,200,80,0)'); }
     x.fillStyle = g; x.fillRect(0, 0, s, s);
   });
   const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, toneMapped: false }));
@@ -4079,7 +4080,7 @@ export function createStages(ctx) {
     const s = HERO_S * (fv < 1 ? Math.max(0.001, fv) : 1);
     H.mesh.scale.setScalar(s);
     H.ring.position.set(H.x, H.y + 0.06, H.z);
-    H.ring.material.opacity = 0.75 + 0.25 * Math.sin(time * 3.2);
+    H.ring.material.opacity = HOLE101 ? 0.9 : 0.75 + 0.25 * Math.sin(time * 3.2);   // ── build 101 ── (no pulse)
     H.ring.scale.setScalar(HERO_S * 3.1 * (fv < 1 ? fv : 1) * (1 + comboV * 0.12));
     // after dark: the lantern (hung on the banker's post while he works there, in his left hand when he walks) and a thin
     // cool rim; a combo warms the rim to gold, brightens the ring and sends up motes

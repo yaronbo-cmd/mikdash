@@ -1191,6 +1191,13 @@ export function createHar42(o = {}) {
     st.props.steps49 = new THREE.Group(); add(st.props.steps49, PL.arc.x, PL.arc.y, PL.arc.z);
     if (STG === 'nikanor') {   // (the steps' plan: the outer and inner half circles in gold, growing in the opening)
       const gm = new THREE.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.85 });
+      if (ON101) {   // ── build 101 ── (the plan as the builders drew it — build 97's way: a lime line on the court for each half circle, the peg at its centre and the cord to the outer one; not gold rings)
+        const lime = new THREE.MeshBasicMaterial({ color: '#F4F1E8' }), wd = mat('#8A6440', 0.9), cordM = mat('#6B4A2B', 0.9);
+        st.props.plan49 = [13.5, 6.5].map((R2, i) => { const m = new THREE.Mesh(new THREE.RingGeometry(R2 - 0.16, R2 + 0.16, 72, 1, -Math.PI / 2, Math.PI).rotateX(-Math.PI / 2), lime); m.position.y = 0.04;
+          const g = new THREE.Group(); g.add(m);
+          if (!i) { const pg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.1, 6), wd); pg.position.set(0, 0.55, 0); pg.castShadow = true; g.add(pg); const cd = new THREE.Mesh(new THREE.BoxGeometry(R2, 0.04, 0.04), cordM); cd.position.set(R2 / 2, 0.35, 0); cd.rotation.y = -0.5; cd.position.set((R2 / 2) * Math.cos(0.5), 0.35, (R2 / 2) * Math.sin(0.5)); g.add(cd); const pe = pg.clone(); pe.position.set(R2 * Math.cos(0.5), 0.55, R2 * Math.sin(0.5)); g.add(pe); }
+          g.scale.setScalar(0.001); return add(g, PL.arc.x, PL.arc.y, PL.arc.z); });
+      } else
       st.props.plan49 = [13.5, 6.5].map((R2) => { const m = new THREE.Mesh(new THREE.TorusGeometry(R2, 0.45, 6, 48, Math.PI), gm); m.rotation.set(-Math.PI / 2, 0, -Math.PI / 2); m.scale.setScalar(0.001); return add(m, PL.arc.x, PL.arc.y + 0.3, PL.arc.z); });
     }
   }
@@ -1425,7 +1432,8 @@ export function createHar42(o = {}) {
     else { cq.p.x += (p[0] - cq.p.x) * k; cq.p.y += (p[1] - cq.p.y) * k; cq.p.z += (p[2] - cq.p.z) * k; cq.t.x += (t[0] - cq.t.x) * k; cq.t.y += (t[1] - cq.t.y) * k; cq.t.z += (t[2] - cq.t.z) * k; }
     try { view.camSet(cq.p.x, cq.p.y, cq.p.z, cq.t.x, cq.t.y, cq.t.z); const c = camera(); if (c) { c.lookAt(cq.t); c.updateMatrixWorld(); } } catch (e) { /* */ }   // (the matrices now: the marks and the touch ring projected this frame match the picture — without it they lagged a camera step behind)
   }
-  const FOLLOW = { d: 34, el: 0.52, az: STG !== 'har' ? -0.9 : 0.9 };   // ── build 64 ── (d 17 → 34: the first stages' camera stood ≥ 35 amot off — the world round him, not his back; a pinch brings it in)   // (build 47: the gates too, from the north)   // (build 45, FOLLOW45: at the wall from the north — away from it)
+  const FOLLOW = { d: 34, el: 0.52, az: STG !== 'har' ? -0.9 : 0.9 };
+  if (ON101 && qs('cam101') !== 'far') Object.assign(FOLLOW, F101.CAM101);   // ── build 101 ── (nearer and lower, as build 15: him and the work, not the court from above)   // ── build 64 ── (d 17 → 34: the first stages' camera stood ≥ 35 amot off — the world round him, not his back; a pinch brings it in)   // (build 47: the gates too, from the north)   // (build 45, FOLLOW45: at the wall from the north — away from it)
   // ── build 43 ── (the coordinator's #1) his figure in Phase A is taller than Phase B's kohen (twin.js HERO41 3.96): pan40 stepped back for a
   // 3.96-amah figure and stopped too near — at 640 × 296 he filled 60–70 % of the height. His own height, measured once from the visible
   // figure; the distance his figure needs to stay ≤ 45 % at the field's height (0.42: a margin), for the act and the follow alike.
@@ -3174,7 +3182,7 @@ export function createHar42(o = {}) {
         if (st.props.plan) st.props.plan.forEach((m, i) => { m.scale.x = Math.max(0.001, Math.min(1, (u - 0.12) * 6 - i)); });   // (the four edges unroll one after another)
         return u >= 1;
       },
-      end() { R.open = (R.open | 0) + 1; black53(0); if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } if (st.props.plan46) st.props.plan46.forEach((m) => { m.visible = false; }); if (st.props.plan47) st.props.plan47.forEach((m) => { m.visible = false; }); if (st.props.plan48) st.props.plan48.forEach((m) => { m.visible = false; }); if (st.props.plan49) st.props.plan49.forEach((m) => { m.visible = false; }); if (st.props.plan50) st.props.plan50.forEach((m) => { m.visible = false; }); if (st.props.plan60) st.props.plan60.forEach((m) => { m.visible = false; }); if (STG === 'lishka') { try { if (stages.setStage) stages.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ } } },
+      end() { R.open = (R.open | 0) + 1; black53(0); if (st.ui.skip) { st.ui.skip.remove(); st.ui.skip = null; } if (st.props.plan46) st.props.plan46.forEach((m) => { m.visible = false; }); if (st.props.plan47) st.props.plan47.forEach((m) => { m.visible = false; }); if (st.props.plan48) st.props.plan48.forEach((m) => { m.visible = false; }); if (st.props.plan49 && !ON101) st.props.plan49.forEach((m) => { m.visible = false; }); if (st.props.plan50) st.props.plan50.forEach((m) => { m.visible = false; }); if (st.props.plan60) st.props.plan60.forEach((m) => { m.visible = false; }); if (STG === 'lishka') { try { if (stages.setStage) stages.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ } } },
     },
     rope: {
       // ── build 53 ── (the inspector's review §4 nice 19: "two holds and it's over — nothing to be precise about") the rope pulls him off the
@@ -5347,10 +5355,10 @@ export function createHar42(o = {}) {
   /** the stage's props: the core (a half drum of rough ashlar under the gate's landing), its bed at the cut, the stones' pile, the hoist */
   function props98(add) {
     const A = PL.arc, core = new THREE.Group();
-    const cm = mat('#CDBF9F', 0.92), top = mat('#D9CDB2', 0.88);
+    const cm = ON101 ? masonry56(20, 7.5, '#E2D6BC') : mat('#CDBF9F', 0.92), top = mat('#D9CDB2', 0.88);   // ── build 101 ── (the core in courses of rough ashlar, not a smooth drum ringed with lines)
     const drum = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.5, 7.5, 40, 6, false, 0, Math.PI), cm); drum.position.y = 3.75; drum.receiveShadow = true; drum.castShadow = true; core.add(drum);
     const lid = new THREE.Mesh(new THREE.CylinderGeometry(6.52, 6.52, 0.08, 40, 1, false, 0, Math.PI), top); lid.position.y = 7.5; core.add(lid);
-    for (let c = 1; c < 15; c++) { const ln = new THREE.Mesh(new THREE.CylinderGeometry(6.53, 6.53, 0.05, 40, 1, true, 0, Math.PI), mat('#B3A584', 0.95)); ln.position.y = c * 0.5; core.add(ln); }   // (its courses)
+    if (!ON101) for (let c = 1; c < 15; c++) { const ln = new THREE.Mesh(new THREE.CylinderGeometry(6.53, 6.53, 0.05, 40, 1, true, 0, Math.PI), mat('#B3A584', 0.95)); ln.position.y = c * 0.5; core.add(ln); }   // (its courses)
     st.props.core98 = add(core, A.x, A.y, A.z);
     st.props.cap98 = add(new THREE.Mesh(new THREE.RingGeometry(6.5, 13.5, 48, 1, -Math.PI / 2, Math.PI).rotateX(-Math.PI / 2), mat('#C9BC9C', 0.95)), A.x, A.y, A.z); st.props.cap98.userData.k = -1;
     const pile = ON101 ? F101.pile101({ n: 8, len: 2.1, w: 0.48, stone: STONE, wood: ON88 ? P88w.wood88('a', '#E8D8C4') : WOOD, seed: 98 }) : new THREE.Group(); if (!ON101) for (let q = 0; q < 9; q++) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.48, 2.1), STONE); s.position.set((q % 3) * 0.55, 0.24 + Math.floor(q / 3) * 0.5, 0); s.castShadow = true; pile.add(s); }   // ── build 101 ── (stones on their skids, not a crate)
@@ -6602,7 +6610,7 @@ export function createHar42(o = {}) {
     if (st.on || !doc) return false;
     st.on = true; doc.body.classList.add('h42-on'); mig63(); ui(); props();
     hero66();   // ── build 66 ──
-    if (ON101) { try { if (o.timeOfDay) o.timeOfDay('work'); } catch (e) { /* */ } }   // ── build 101 ── (every stage's works in the working light)
+    if (ON101) { try { if (o.timeOfDay) o.timeOfDay(qs('light101') === 'b' ? 'work2' : 'work'); } catch (e) { /* */ } }   // ── build 101 ── (every stage's works in the working light)
     else if (ON67 && (STG === 'har' || STG === 'wall')) { try { if (o.timeOfDay) o.timeOfDay('noon'); } catch (e) { /* */ } }   // ── build 67 ── (the works by day — the owner, 1.11: "מה זו התאורה הזו?"; the reveal's golden hour stays its own)
     if (ON65) { st.front65 = null; front65Sync(); if (STG === 'wall') { const C = crews65(); if (C && C.setFront) C.setFront('wall', null, CREW65.wall); } }   // ── build 65 ── (crews.js's people at the work from the first frame)
     st.cam64 = R.cam64 && typeof R.cam64 === 'object' ? orbit64(+R.cam64.az || FOLLOW.az, +R.cam64.el || FOLLOW.el, +R.cam64.d || FOLLOW.d) : orbit64(FOLLOW.az, FOLLOW.el, FOLLOW.d); st.turned64 = !!R.cam64; st.act64 = null; st.two64 = null; st.pinch64 = null;   // ── build 64 ── (the orbit where his thumb left it last time, else the follow's own pose)

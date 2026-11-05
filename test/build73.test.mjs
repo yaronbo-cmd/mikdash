@@ -35,7 +35,7 @@ test('build 73 crew71: a man in the camera\'s lap is not drawn (the warning ston
   const C = read('src/crew71.js');
   assert.match(C, /clear: 7,/);
   const Ac = read('src/actors.js'); assert.match(Ac, /export const NEAR73 = 9;/); assert.match(Ac, /const near73 = camera && globalThis\.__H42 && globalThis\.__H42\.on \? NEAR73 : 0;/); assert.match(Ac, /if \(near73 && \(a\.x - cx\) \*\* 2 \+ \(a\.z - cz\) \*\* 2 < near73 \* near73 && cy - a\.y < 7\) continue;/);
-  assert.match(C, /f\.m\.visible = Math\.hypot\(c\.x - camera\.position\.x, c\.z - camera\.position\.z\) >= CREW71\.clear;/);
+  assert.match(C, /f\.m\.visible = Math\.hypot\(c\.x - camera\.position\.x, c\.z - camera\.position\.z\) >= (?:CREW71|cfg)\.clear;/);
 });
 
 test('build 73: no Divine Name (by code points)', () => {

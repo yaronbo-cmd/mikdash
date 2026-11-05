@@ -108,7 +108,7 @@ test('build 53: the Mount alive — crews, carts and heaps round the work and on
   assert.match(H, /life53\(g, add\);/);
   assert.match(H, /lifeFrame53\(dt, v\);/);
   assert.doesNotMatch(H.slice(H.indexOf('const P53 = '), H.indexOf('  /** a rock: an icosphere')), /\.(png|jpg|glb|gltf|webp)/);
-  try { const sz = fs.statSync(new URL('dist/temple3d.html', ROOT)).size; assert.ok(sz <= 6 * 1024 * 1024, `${sz}`); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  try { const sz = fs.statSync(new URL('dist/temple3d.html', ROOT)).size; assert.ok(sz <= 6.5 * 1024 * 1024, `${sz}`); /* ── build 101 ── (6 → 6.5 MiB: the modeled props) */ } catch (e) { if (e.code !== 'ENOENT') throw e; }
 });
 
 test('build 53: the rock — a lamp and its beam of light raking the face; a macro on the rock', () => {

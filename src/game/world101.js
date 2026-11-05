@@ -5,7 +5,8 @@
  * plasterers and sweepers came and went through the floor; and with the sun low nothing had a shadow under it, so whatever stood on the
  * floor seemed to hang over it. Build 15 (the owner's reference) had a soft dark patch under every man.
  *   CREW101: crew71's tune for the building stages (every man near the work a real figure, kept as the camera turns; crowd.js's people too)
- *   LIGHT101: the working light — a warm morning sun, higher than the dusk's (short shadows that meet their feet), not noon's flat white
+ *   LIGHT101: the working light — a warm morning sun, higher than the dusk's (short shadows that meet their feet), not noon's flat white;
+ *   LIGHT101B the other to choose (?light101=b): build 15's golden afternoon · CAM101: the follow camera nearer and lower (?cam101=far)
  *   blob101(r, k): a soft round contact shadow (a flat disc, its own canvas gradient), r amot across its radius, k its darkness
  *   jar101({ h, clay, handles }): a clay jar turned on the wheel (a lathe of a real store jar's profile: a ring foot, the shoulder, a neck
  *     ring, a rolled rim; two handles), standing on its foot at y 0, h amot high, its contact shadow under it
@@ -18,6 +19,14 @@ import * as THREE from 'three';
 export const CREW101 = Object.freeze({ n: 36, near: 150, keep: 175, behind: -1e9, clear: 2, crowd: 1 });
 
 /** the working light, as main.js's TIMES and GRADE take it (an hour or two after sunrise, the sun in the south-east, warm) */
+/** ── the second light to choose from (?light101=b): build 15's — an afternoon sun in the south-west, lower and golden, the court's floor
+ *  warm under a warm sky (its fill from the stone, not from a blue sky) */
+export const LIGHT101B = Object.freeze({
+  time: Object.freeze({ el: 24, az: 228, sun: '#FFC583', sunI: 3.2, hs: '#E3D3B8', hg: '#C79E6E', hI: 0.62, envI: 0.4, top: '#5F86BE', hor: '#F4D3A8', bot: '#D7BA8E', fog: '#EED6B6', exp: 0.86, smoke: '#E8DCCB', fire: 95, bloom: 0.2, bloomT: 1.85, night: false }),
+  grade: Object.freeze({ fogN: 560, fogF: 7800, sat: 1.14, gain: Object.freeze([1.08, 1.0, 0.86]), lift: Object.freeze([0.014, 0.006, 0.0]), vig: 0.2 }),
+});
+/** the follow camera's orbit about the kohen (?cam101=far: build 64's 34 amot) — nearer and lower, as build 15's */
+export const CAM101 = Object.freeze({ d: 24, el: 0.42 });
 export const LIGHT101 = Object.freeze({
   time: Object.freeze({ el: 34, az: 125, sun: '#FFD9A6', sunI: 3.0, hs: '#D9D3C6', hg: '#C9A878', hI: 0.6, envI: 0.45, top: '#5683C0', hor: '#F0DCC0', bot: '#D2BE9A', fog: '#EADBC4', exp: 0.84, smoke: '#E6DFD5', fire: 90, bloom: 0.18, bloomT: 1.9, night: false }),
   grade: Object.freeze({ fogN: 600, fogF: 8000, sat: 1.12, gain: Object.freeze([1.06, 1.0, 0.9]), lift: Object.freeze([0.012, 0.006, 0.0]), vig: 0.16 }),

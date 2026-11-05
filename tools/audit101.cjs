@@ -24,7 +24,7 @@ const PROBE = () => {
     let lo = 1e9, hip = null; const p = new V(); for (const b of m.skeleton.bones) { b.getWorldPosition(p); if (/foot|toe/i.test(b.name) && p.y < lo) lo = p.y; if (/hip|pelvis/i.test(b.name) && !hip) hip = p.clone(); }
     if (!hip || lo > 1e8 || Math.abs(hip.y) > 500) return;
     let r = m; while (r.parent && r.parent !== sc && !(r.parent.name && /people88|crew71|kohen35|har42/.test(r.parent.name))) r = r.parent;
-    const id = r.uuid.slice(0, 8), v = vis(m) && inView(hip);
+    const id = r.uuid.slice(0, 8), v = vis(m) && m.layers.test(T.camera.layers) && inView(hip);   // (a body moved off the camera's layer is not drawn — the old hero under kohen35)
     const f = (A.fig[id] = A.fig[id] || { id, name: (r.name || '') + '<' + ((r.parent && r.parent.name) || ''), seen: '', maxGap: 0, at: null });
     f.seen += v ? '1' : '0';
     if (v) { const fl = floorAt(hip.x, lo + 3, hip.z); const g = fl == null ? null : lo - fl; if (g != null && Math.abs(g) > Math.abs(f.maxGap)) { f.maxGap = +g.toFixed(2); f.at = [+hip.x.toFixed(1), +lo.toFixed(2), +hip.z.toFixed(1)]; } figs.push({ id, x: hip.x, z: hip.z, y: lo }); }

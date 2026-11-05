@@ -15,6 +15,7 @@ import { clone as skClone } from 'three/addons/utils/SkeletonUtils.js';
 const KOHEN_URL = null;   // ── build 88 ── (the KayKit body is no longer in the page — people88 draws every man; ?p88=0 or a url: the shapes alone)
 import { createPeople88 } from './game/people88.js';   // ── build 88 ── (the crews' near figures: real proportions, the clothes of the time)
 import { P88_ON } from './game/fig84.js';
+import { jar101 } from './game/world101.js';   // ── build 101 ──
 
 export const CREW71 = Object.freeze({
   n: 10, near: 95, keep: 110, behind: -6,   // (at most n real figures; a new one within near amot; kept until past keep; not when this far behind the camera)
@@ -118,6 +119,15 @@ export function createCrew71(o = {}) {
     else if (kind === 'hammer' || kind === 'mallet') { const p = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.34), kind === 'mallet' ? wood : iron); p.position.y = 0.7; g.add(p); }
     TOOL[kind] = g; return g.clone();
   }
+  /** ── build 101 ── a crowd man's held thing on his real figure (the slot: +Y through the fist, forward; its −Z is up): the water jar hung
+   *  from the hand, the scroll, the loaf */
+  function held101(kind) {
+    const g = new THREE.Group();
+    if (kind === 'jar') { const j = jar101({ h: 0.6, handles: false }); j.children.filter((c) => c.userData.blob101).forEach((c) => j.remove(c)); j.rotation.x = -Math.PI / 2; j.position.z = 0.62; g.add(j); }
+    else if (kind === 'scroll') { const sc = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.42, 10), new THREE.MeshStandardMaterial({ color: '#E8DCC0', roughness: 0.95 })); g.add(sc); }
+    else if (kind === 'bread') { const b = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), new THREE.MeshStandardMaterial({ color: '#B9844A', roughness: 0.9 })); b.scale.set(1, 0.55, 1); b.position.z = -0.08; g.add(b); }
+    return g;
+  }
   /** one real figure: the body (a skinned clone), its mixer, the head cloth and the belt in his crew's colour, a tool in the right hand */
   function make() {
     if (P88) { const f = make88(false); f.m.visible = false; return f; }   // ── build 88 ──
@@ -149,6 +159,15 @@ export function createCrew71(o = {}) {
         clip: () => (w.u71 != null && !w.field71 ? { name: '2H_Melee_Attack_Chop', rate: 0, sync: w.u71 } : w.moving71 ? { name: 'Walking_A', rate: 1.1 } : r === 'winch' || r.startsWith('mk') || w.field71 ? { name: 'Interact', rate: 1 } : { name: 'Idle', rate: 1 }),
         set: (v) => { w.lod71 = v; } });
     }
+    // ── build 101 ── crowd.js's people (the site's scribe, overseer, water carrier, onlookers): real too when tune() asks (cfg.crowd) — one
+    //   kind of man near the work, not a real crew beside instanced ghosts
+    const CR = cfg.crowd && stages && stages.crowd && stages.crowd.enabled !== false ? stages.crowd._people : null;
+    if (CR) for (const a of CR) {
+      if (!a || !a.alive || a.vis < 0.5) continue;
+      out.push({ id: a, x: a.x, y: a.y, z: a.z, yaw: a.yaw || 0, h: CREW71.actorH * (a.s || 1.1), tunic: a.variant === 'pilgrim' || a.variant === 'woman' || a.variant === 'levite' ? '#' + a.col.getHexString() : '#D6C8A8', cloth: a.col2, white: a.variant === 'kohen', tool: a.item === 'staff' || a.item === 'jar' || a.item === 'scroll' || a.item === 'bread' ? a.item : null,
+        clip: () => (a.kn > 0.5 ? { name: 'Sit_Floor_Idle', rate: 1 } : a.wk > CREW71.walkAt && a.path ? { name: 'Walking_A', rate: Math.max(0.6, Math.min(1.6, (a.speed || 2.6) * CREW71.walkRate)) } : a.gesture ? { name: 'Idle_Talking_Loop', rate: 1 } : { name: 'Idle', rate: 1 }),
+        set: (v) => { a.lod71 = v; } });
+    }
     return out;
   }
   const CLOTH_W = new THREE.Color('#E4DAC4');
@@ -172,8 +191,8 @@ export function createCrew71(o = {}) {
       if (f.ti !== ti) { f.ti = ti; const mat = ti >= 0 ? st.mats[ti] : null; f.m.traverse((n) => { if (n.isMesh && !n.userData.prop71) { if (!n.userData.m0) n.userData.m0 = n.material; n.material = mat || n.userData.m0; } }); }
       if (f.cloth) { f.cloth.material.color.copy(c.cloth || C2.set('#2F6DB5')); f.cloth.visible = !c.white; }
       if (f.belt) f.belt.material.color.copy(c.white ? C2.set('#E8DCC0') : c.cloth || C2.set('#2F6DB5'));
-      const tk = c.tool === 'pick' || c.tool === 'hammer' || c.tool === 'mallet' || c.tool === 'staff' ? c.tool : null;
-      if (f.tool !== tk) { f.tool = tk; if (f.toolM) { if (f.toolM.parent) f.toolM.parent.remove(f.toolM); f.toolM = null; } const hb = f.B.handslotr || f.B['handslot.r']; if (tk && hb) { f.toolM = tool(tk); f.toolM.traverse((n) => { n.userData.prop71 = 1; }); hb.add(f.toolM); } }
+      const tk = c.tool === 'pick' || c.tool === 'hammer' || c.tool === 'mallet' || c.tool === 'staff' || (f.pf && (c.tool === 'jar' || c.tool === 'scroll' || c.tool === 'bread')) ? c.tool : null;
+      if (f.tool !== tk) { f.tool = tk; if (f.toolM) { if (f.toolM.parent) f.toolM.parent.remove(f.toolM); f.toolM = null; } const hb = f.B.handslotr || f.B['handslot.r']; if (tk && hb) { f.toolM = tk === 'jar' || tk === 'scroll' || tk === 'bread' ? held101(tk) : tool(tk); f.toolM.traverse((n) => { n.userData.prop71 = 1; }); hb.add(f.toolM); } }
       f.m.visible = Math.hypot(c.x - camera.position.x, c.z - camera.position.z) >= cfg.clear; f.m.position.set(c.x, c.y, c.z);
       f.m.rotation.y = c.yaw; f.m.scale.setScalar(f.pf ? c.h / f.pf.H0 : (CREW71.model * c.h) / CREW71.modelH);   // ── build 73 ── (a man in the camera's lap not drawn — nor his instanced one: the warning stones' view stood among a crew) ── build 88 ── (his facing and size had fallen into that comment since 73: back in code)
       play(f, c.clip());

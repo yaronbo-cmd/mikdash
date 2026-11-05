@@ -333,6 +333,24 @@ export function setBuilding(m, on) {
 }
 
 // shadow-pass material for a revealing stage (discards above the cut like the colour pass)
+/** ── build 101 ── the holes' shadows (the owner, 4.11: "המדרגות עומדות באוויר"): a model's part not drawn in a hole (uHole…, uHoleB — the
+ *  Nicanor steps above those laid, his wall's stretch) cast its shadow still — ghost steps on the gate's wall. A done stage's meshes cast
+ *  their shadow through this depth material: the same holes, without the see-through's dither (shadows stay whole there). */
+let HOLE_DEPTH = null;
+export function holeDepthMaterial() {
+  if (HOLE_DEPTH) return HOLE_DEPTH;
+  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), off = { value: new THREE.Vector4(0, 0, 0, 0) };
+  m.onBeforeCompile = (sh) => { const x = xrayCode(sh.vertexShader, sh.fragmentShader, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; sh.uniforms.uXr = off; };
+  m.customProgramCacheKey = () => 'holedepth101';
+  HOLE_DEPTH = m; return m;
+}
+/** ── build 101 ── the same holes in another pass's override material (the AO's normals: GTAOPass.normalMaterial) */
+export function holeNormal101(m) {
+  if (!m || !(typeof location === 'undefined' || !/[?&]h101=0\b/.test(location.search))) return;
+  const off = { value: new THREE.Vector4(0, 0, 0, 0) };
+  m.onBeforeCompile = (sh) => { let fs = sh.fragmentShader; if (!fs.includes('#include <common>')) fs = fs.replace('uniform float opacity;', '#include <common>\nuniform float opacity;'); const x = xrayCode(sh.vertexShader, fs, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; sh.uniforms.uXr = off; };   // (the normal material's fragment has no <common>: the holes' uniforms go after it)
+  m.customProgramCacheKey = () => 'holenormal101'; m.needsUpdate = true;
+}
 export function buildDepthMaterial(U) {
   const m = new THREE.MeshDepthMaterial();
   m.onBeforeCompile = (sh) => {

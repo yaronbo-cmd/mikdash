@@ -5253,7 +5253,7 @@ export function createHar42(o = {}) {
     const n = F94.LEVER94.L[i].n, U0 = (st.lever94 && st.lever94[i]) || n * LEAF49.rise, nm = i ? 'הכנף הצפונית' : 'הכנף הדרומית';
     let endT = -1, drag = null, open = 0, opening = -1, flickT0 = 0, said = 0; const seen = { knocks: 0, weak: 0 }, men = [];
     let SW = null, swD = null, swSg = 1, swSaid = -1;   // ── build 98 ── (the leaf on its pivot under his finger: nik98 createSwing98)
-    const OIL = ON100 && ON98 ? oil100({ x: N.x, y: N.y + 0.05, z: pz }, { x: 0.3, z: s * 2.4 }, N.y) : null, crk = {};   // ── build 100 ── (the jar beside the socket, off the leaf's side)
+    const OIL = ON100 && ON98 ? oil100({ x: N.x, y: N.y + 0.05, z: pz }, ON101 ? { x: 1.4, z: s * 0.8 } : { x: 0.3, z: s * 2.4 }, N.y) : null, crk = {};   // ── build 100 ── (the jar beside the socket, off the leaf's side)
     if (ON98) { const k0 = J.state(); k0.x = Math.abs(k0.x); k0.tx = k0.x; }   // ── build 98 ── (it comes in from the court, east of its socket — the other leaf seen beside it, not behind it)
     piv.visible = true; piv.rotation.set(0, 0, 0); leafAt(piv, U0); G.pole.visible = G.fulc.visible = false;
     if (G.wedges.children.length < n) { G.wedges.clear(); for (let k = 0; k < n; k++) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.7, LEAF49.rise * 0.96, 1.1), G.W); w.position.set(0, (k + 0.5) * LEAF49.rise, 0); G.wedges.add(w); } }
@@ -5353,7 +5353,7 @@ export function createHar42(o = {}) {
     for (let c = 1; c < 15; c++) { const ln = new THREE.Mesh(new THREE.CylinderGeometry(6.53, 6.53, 0.05, 40, 1, true, 0, Math.PI), mat('#B3A584', 0.95)); ln.position.y = c * 0.5; core.add(ln); }   // (its courses)
     st.props.core98 = add(core, A.x, A.y, A.z);
     st.props.cap98 = add(new THREE.Mesh(new THREE.RingGeometry(6.5, 13.5, 48, 1, -Math.PI / 2, Math.PI).rotateX(-Math.PI / 2), mat('#C9BC9C', 0.95)), A.x, A.y, A.z); st.props.cap98.userData.k = -1;
-    const pile = new THREE.Group(); for (let q = 0; q < 9; q++) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.48, 2.1), STONE); s.position.set((q % 3) * 0.55, 0.24 + Math.floor(q / 3) * 0.5, 0); s.castShadow = true; pile.add(s); }
+    const pile = ON101 ? F101.pile101({ n: 8, len: 2.1, w: 0.48, stone: STONE, wood: ON88 ? P88w.wood88('a', '#E8D8C4') : WOOD, seed: 98 }) : new THREE.Group(); if (!ON101) for (let q = 0; q < 9; q++) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.48, 2.1), STONE); s.position.set((q % 3) * 0.55, 0.24 + Math.floor(q / 3) * 0.5, 0); s.castShadow = true; pile.add(s); }   // ── build 101 ── (stones on their skids, not a crate)
     st.props.pile98 = add(pile, A.x + 17.5, A.y, A.z + 9); pile.rotation.y = 0.3;
     st.props.ring98 = new THREE.Group(); add(st.props.ring98, A.x, A.y, A.z);
     cut98(laidNow98());
@@ -5507,8 +5507,11 @@ export function createHar42(o = {}) {
    *  jerks free and creaks (nik98 DRY100), each creak a grating buzz in the hand (HAPTIC42.grate), and it costs half its grade. המחשה. */
   function oil100(at, off, fy) {   // (at: the socket's mouth; off: the jar's place from it; fy: the floor under the jar)
     const G = new THREE.Group(), jar = new THREE.Group(), clay = new THREE.MeshStandardMaterial({ color: '#A0623A', roughness: 0.85 }),   /* (its own material: the shared ones are cut by the stage's x-ray hole) */ oilM = new THREE.MeshStandardMaterial({ color: '#C9A13E', roughness: 0.12, metalness: 0.15, transparent: true, opacity: 0.85 });
-    const body = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.24, 0.03], [0.34, 0.3], [0.31, 0.6], [0.15, 0.8], [0.12, 0.92], [0.18, 0.97]].map(([x, y]) => new THREE.Vector2(x, y)), 14), clay); body.castShadow = true; jar.add(body);
-    const pos = { x: at.x + off.x, y: fy, z: at.z + off.z }; jar.position.set(pos.x, pos.y, pos.z); jar.scale.setScalar(2.2); G.add(jar);   // (waist-high to the figures)
+    const JS = ON101 ? 1.75 : 2.2;   // ── build 101 ── (a turned store jar, waist-high to the figures, its shadow on the floor — not a pasted shape)
+    if (ON101) { const J101 = F101.jar101({ h: 1, clay: '#A9683F' }); J101.children.filter((c) => c.userData.blob101).forEach((c) => J101.remove(c)); jar.add(J101); }
+    else { const body = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.24, 0.03], [0.34, 0.3], [0.31, 0.6], [0.15, 0.8], [0.12, 0.92], [0.18, 0.97]].map(([x, y]) => new THREE.Vector2(x, y)), 14), clay); body.castShadow = true; jar.add(body); }
+    const pos = { x: at.x + off.x, y: fy, z: at.z + off.z }; jar.position.set(pos.x, pos.y, pos.z); jar.scale.setScalar(JS); G.add(jar);   // (waist-high to the figures)
+    if (ON101) { const sh = F101.blob101(0.36 * JS, 0.5); sh.position.set(pos.x, pos.y + 0.03, pos.z); G.add(sh); }
     const stream = beam98({ x: 0, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, 0.09, oilM); stream.visible = false; G.add(stream);
     const pool = new THREE.Mesh(new THREE.CircleGeometry(0.6, 18).rotateX(-Math.PI / 2), oilM); pool.position.set(at.x, at.y + 0.01, at.z); pool.scale.setScalar(0.01); pool.visible = false; G.add(pool);
     (st.props.root || scene()).add(G);
@@ -5522,7 +5525,7 @@ export function createHar42(o = {}) {
         if (k.t < 0) return false;
         k.t += dt; const u = Math.min(1, k.t / 1.6), tip = Math.sin(Math.min(1, u * 1.4) * Math.PI) * 1.35;
         jar.rotation.set(tip, k.yaw, 0, 'YXZ');
-        const lip = new THREE.Vector3(0, 0.95 * 2.2, 0).applyEuler(jar.rotation).add(jar.position); stream.visible = u > 0.15 && u < 0.8;
+        const lip = new THREE.Vector3(0, 0.95 * JS, 0).applyEuler(jar.rotation).add(jar.position); stream.visible = u > 0.15 && u < 0.8;
         if (stream.visible) beamSet98(stream, { x: lip.x, y: lip.y, z: lip.z }, { x: at.x, y: at.y, z: at.z });
         if (u > 0.3) { pool.visible = true; pool.scale.setScalar(Math.min(1, (u - 0.3) / 0.5)); }
         if (u >= 1) { k.t = -1; k.oiled = true; jar.rotation.set(0, k.yaw, 0); stream.visible = false; return true; }
@@ -6605,7 +6608,8 @@ export function createHar42(o = {}) {
     st.cam64 = R.cam64 && typeof R.cam64 === 'object' ? orbit64(+R.cam64.az || FOLLOW.az, +R.cam64.el || FOLLOW.el, +R.cam64.d || FOLLOW.d) : orbit64(FOLLOW.az, FOLLOW.el, FOLLOW.d); st.turned64 = !!R.cam64; st.act64 = null; st.two64 = null; st.pinch64 = null;   // ── build 64 ── (the orbit where his thumb left it last time, else the follow's own pose)
     if (ON101 || STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.setLife) stages.setLife(false); } catch (e) { /* */ } }   // ── build 101 ── (every stage: the life layer's plasterers and sweepers came and went through the floor)
     if (ON101) { try { const c71 = globalThis.__T && globalThis.__T.crew71; if (c71 && c71.tune) c71.tune(F101.CREW101); } catch (e) { /* */ } }
-    if (ON101 || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.crowd && stages.crowd.setEnabled) stages.crowd.setEnabled(false); } catch (e) { /* */ } }   // ── build 56 ── (the site's crowd stations — the overseer and his man — stood before the altar's north face in the red line's view) ── /build 56 ──   // ── build 55 ── (the world's own crews at the done sites stood in the altar's north course — the chambers' crews' places: the stage's own crews and carts work round the altar instead) ── /build 55 ──
+    if (ON101) { try { if (stages.crowd && stages.crowd.setFloor101) stages.crowd.setFloor101(true); } catch (e) { /* */ } }   // ── build 101 ── (nobody on steps not yet laid)
+    if (STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.crowd && stages.crowd.setEnabled) stages.crowd.setEnabled(false); } catch (e) { /* */ } }   // ── build 56 ── (the site's crowd stations — the overseer and his man — stood before the altar's north face in the red line's view) ── /build 56 ──   // ── build 55 ── (the world's own crews at the done sites stood in the altar's north course — the chambers' crews' places: the stage's own crews and carts work round the altar instead) ── /build 55 ──
     try { if (stages.outlineThin) stages.outlineThin(0.25, 0.5); } catch (e) { /* */ }   // ── build 53 ── the gold line and the pins' beams: ¼ wide, half seen (§4 important 12) ── /build 53 ──
     try { if (view.closeCam) view.closeCam(true); } catch (e) { /* */ }
     if (MODE !== 'stage') {   // ── build 44 ── the yard and the test: by the wheel, a quiet view; their sheet
@@ -6649,7 +6653,8 @@ export function createHar42(o = {}) {
     if (!st.on) return; st.on = false;
     if (ON101 || STG === 'yesod' || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.setLife) stages.setLife(true); } catch (e) { /* */ } }
     if (ON101) { try { const c71 = globalThis.__T && globalThis.__T.crew71; if (c71 && c71.tune) c71.tune(null); } catch (e) { /* */ } }
-    if (ON101 || STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.crowd && stages.crowd.setEnabled) stages.crowd.setEnabled(true); } catch (e) { /* */ } }
+    if (ON101) { try { if (stages.crowd && stages.crowd.setFloor101) stages.crowd.setFloor101(false); } catch (e) { /* */ } }
+    if (STG === 'sovev' || STG === 'guf' || STG === 'karnot' || STG === 'kiyor' || STG === 'ulam') { try { if (stages.crowd && stages.crowd.setEnabled) stages.crowd.setEnabled(true); } catch (e) { /* */ } }
     if (st.fire58) { try { if (st.fire58.parent) st.fire58.parent.remove(st.fire58); } catch (e) { /* */ } st.fire58 = null; }   // ── build 58 ──   // ── build 56 ── (the crowd back) ── /build 56 ──   // ── build 55 ── (the world's own crews back) ── /build 55 ──
     try { if (st.wet > 0 && stages.wet) stages.wet(0); STONE.color.copy(STONE0); BOSS.color.copy(BOSS0); } catch (e) { /* */ }
     try { if (view.closeCam) view.closeCam(false); } catch (e) { /* */ }

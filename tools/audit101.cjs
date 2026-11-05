@@ -59,7 +59,12 @@ const SUM = () => { const A = globalThis.__A101; const figs = Object.values(A.fi
       await pg.goto(`${PAGE}?h63site=1&${Q[id]}`, { waitUntil: 'load', timeout: 180000 });
       await pg.waitForFunction(() => globalThis.__H42 && globalThis.__H42.on, null, { timeout: 300000, polling: 1000 });
       for (let k = 0; k < 90; k++) { await pg.evaluate(() => document.querySelectorAll('.h42-card button').forEach((x) => x.click())).catch(() => {}); if (await pg.evaluate(() => globalThis.__H42.site63 && globalThis.__H42.site63())) break; await pg.waitForTimeout(1000); }
-      for (let k = 0; k < 90; k++) { const part = await pg.evaluate(() => { [...document.querySelectorAll('.h42-skip')].filter((x) => x.offsetParent).forEach((x) => x.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))); const s = globalThis.__H42.state(); return s.part + '|' + !!globalThis.__T.flying; }); if (k > 3 && !/^open|^voy/.test(part)) break; await pg.waitForTimeout(2000); }
+      // the way a player comes in: the opening's skip, the walk's skip once its button is gone, then the stage's own view
+      await pg.waitForTimeout(20000);
+      const skip = () => pg.evaluate(() => document.querySelectorAll('.h42-skip').forEach((x) => x.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })))).catch(() => {});
+      await skip(); await pg.waitForTimeout(3000);
+      await pg.waitForFunction(() => !document.querySelector('.h42-skip') || document.querySelector('.h42-skip').offsetParent === null, null, { timeout: 60000, polling: 1000 }).catch(() => {});
+      await skip(); await pg.waitForTimeout(8000);
       await pg.waitForTimeout(5000); await pg.screenshot({ path: path.join(OUT, `${id}-a.png`), timeout: 180000 });
       for (let s = 0; s < +NS; s++) { await pg.evaluate(PROBE); await pg.waitForTimeout(450); }
       await pg.screenshot({ path: path.join(OUT, `${id}-b.png`), timeout: 180000 });

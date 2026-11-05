@@ -10,7 +10,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { Batch, groundAO } from './batch.js';
+import { Batch, groundAO, holeNormal101 } from './batch.js';
 import * as TX from './tex.js';
 import { buildTemple, buildMenorot, MENOROT } from './temple.js';
 import { buildMount, buildStreet, SQUARE } from './mount.js';
@@ -216,6 +216,7 @@ function makeComposer(fxObjs) {
     gtao.updateGtaoMaterial({ radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1, samples: 12, distanceFallOff: 1 });
     gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
     gtao.blendIntensity = 0.8;
+    try { holeNormal101(gtao.normalMaterial); } catch (e) { /* */ }   // ── build 101 ── (the AO's own render of the scene keeps the holes: no ghost steps darkened on the gate's wall)
     aoWrap = new HideDuring(gtao, fxObjs);
     composer.addPass(aoWrap);
   }

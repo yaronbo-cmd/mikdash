@@ -4,7 +4,8 @@
 // 1 unit = 1 amah; +x east, +z south, +y up. Hot loops reuse preallocated objects (no per-frame garbage).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
+import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode, holeDepthMaterial } from './batch.js';
+const HOLE101 = !(typeof location !== 'undefined' && /[?&]h101=0\b/.test(location.search));   // ── build 101 ──   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor } from './world.js';
 import { PLAT } from './mount.js';
@@ -1315,6 +1316,7 @@ export function createStages(ctx) {
       status: 'done', target: 1, disp: 1, lastY: 0, scaff: null, glowBoost: 0, seq: 0, ghost: null, tl: null,
     };
     scene.add(group);
+    if (HOLE101) for (const m of meshes) m.customDepthMaterial = holeDepthMaterial();   // ── build 101 ── (a hole casts no shadow)
     ST[id] = st; list.push(st);
   });
   // the height the masonry has reached: the laid courses + the share of the current one (wave 6: from the stones)
@@ -4287,7 +4289,7 @@ export function createStages(ctx) {
     if (building) { layout(st); st.lay.n = -1; stonesTo(st, nOf(st), true); } else if (st.lay) st.lay.n = -1;
     st.mats.forEach((m) => setBuilding(m, building));
     if (st.lc) st.lc.mats.forEach((m) => setBuilding(m, building));   // ── site13 ── (the chambers' own reveal)
-    for (const m of st.meshes) m.customDepthMaterial = building ? st.depth : undefined;
+    for (const m of st.meshes) m.customDepthMaterial = building ? st.depth : HOLE101 ? holeDepthMaterial() : undefined;   // ── build 101 ── (a hole casts no shadow)
     st.group.visible = s === 'done' || (building && st.disp >= FOUND);
     st.U.uY.value = building ? revealY(st) : 1e6;
     st.U.uGlow.value.setRGB(3.4, 2.25, 0.72).multiplyScalar(building ? 1 : 0);

@@ -1405,6 +1405,7 @@ export function createHar42(o = {}) {
   const cq = { p: new THREE.Vector3(), t: new THREE.Vector3() };
   let camInit = false;
   function camTo(p, t, k) {
+    if (!Array.prototype.every.call(p, Number.isFinite) || !Array.prototype.every.call(t, Number.isFinite)) return;   // ── build 105 ── (a view with a NaN in it is dropped: it once stuck in cq and blacked out the rest of the stage)
     if (globalThis.__CAMSNAP) k = 1;   // ── build 93 ── (a test hook: the slow test browser sees the act's own frame at once)
     if (!camInit) { cq.p.set(...p); cq.t.set(...t); camInit = true; }
     else { cq.p.x += (p[0] - cq.p.x) * k; cq.p.y += (p[1] - cq.p.y) * k; cq.p.z += (p[2] - cq.p.z) * k; cq.t.x += (t[0] - cq.t.x) * k; cq.t.y += (t[1] - cq.t.y) * k; cq.t.z += (t[2] - cq.t.z) * k; }
@@ -5595,7 +5596,7 @@ export function createHar42(o = {}) {
       view() {
         if (ph === 'rise') { const u = Math.min(1, rise / 3); return fit102([-38, 20.5, 12], [0.85, 0.42 + 0.12 * u, 0.85], 23 + 3 * u, 11); }   // (from the south-east: the altar's body, the body above the sovev, the kevesh down from it)
         if (ph === 'roll') { const z = Math.max(R105.zTop + 3, Math.min(R105.zFoot - 3, rollZ)); return fit102([XM105, ys105(z) + 0.5, z], [1, 0.5, 0.3], 9, 5); }
-        const i = ph === 'crews' ? Math.min(R105.rows - 1, K105.rows[si]) : row(), z = zRow105(i);
+        const i = ph === 'crews' ? Math.min(R105.rows - 1, si < K105.rows.length ? K105.rows[si] : crewI) : row(), z = zRow105(i);   /* (after his last stone the crews lay the top rows: K105.rows[5] is undefined — a NaN camera that never came back) */
         return fit102([XM105 - 0.5, ys105(z) + 0.4, z + 1.0], [1, 0.4, 0.55], 5.2, 3.2);   // (from the south-east, low and oblique: the slope, the edge on it and the light under it; the stone ≈ a third; his kohen beyond it, facing us)
       },
       down(a) {
@@ -5648,7 +5649,7 @@ export function createHar42(o = {}) {
         // the people: his kohen kneeling at the lane's east edge with the maul; the master with the straight-edge; two porters by the sledge
         const f = kohen102(men), ok = men94(men, [{ white: true }, { tunic: '#9C8466', cloth: '#6B4A2B' }, { tunic: '#8E7356', cloth: '#D9CBB0' }, { tunic: '#7F6A50', cloth: '#C9B79A' }]);
         const zk = ph === 'roll' || ph === 'rise' ? R105.zFoot + 3 : zr() + 1.45;   // (on the row below, laid: never on the bare fill)
-        if (f) { const p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 2.2, B104.floor, R105.zFoot + 2.5) : new THREE.Vector3(XM105 - 2.45, ys105(zk), zk); f.root.position.copy(p); f.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.75 : Math.PI / 2; f.play(ph === 'roll' || ph === 'rise' ? 'Idle' : blowT > 0 ? 'Sword_Attack' : 'Fixing_Kneeling', 1);   // (kneeling by the lane all through: standing he filled the close frame) f.update(dt); }
+        if (f) { const p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 2.2, B104.floor, R105.zFoot + 2.5) : new THREE.Vector3(XM105 - 2.45, ys105(zk), zk); f.root.position.copy(p); f.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.75 : Math.PI / 2; f.play(ph === 'roll' || ph === 'rise' ? 'Idle' : blowT > 0 ? 'Sword_Attack' : 'Fixing_Kneeling', 1); f.update(dt); }   /* (kneeling by the lane all through: standing he filled the close frame) */
         if (ok) { const zm = zr() + 2.6, m1 = men[1]; { const p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 3.4, B104.floor, R105.zFoot + 1.2) : new THREE.Vector3(XM105 - 2.6, ys105(zm + 0.6), zm + 0.6); m1.root.position.copy(p); m1.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.7 : Math.PI / 2 - 0.5; m1.play(ph === 'roll' || ph === 'rise' ? 'Idle' : 'Fixing_Kneeling', 1); m1.update(dt); }
           [men[2], men[3]].forEach((m2, q) => { const sp = sledP(), p = ph === 'roll' || ph === 'rise' ? new THREE.Vector3(R105.x1 + 4.4 + q, B104.floor, R105.zFoot + 2.4 + q) : new THREE.Vector3(sp.x - 2.6 - q * 0.4, ys105(sp.z + 2.2 + q * 1.4), sp.z + 2.2 + q * 1.4); m2.root.position.copy(p); m2.root.rotation.y = ph === 'roll' || ph === 'rise' ? -Math.PI * 0.75 : Math.PI / 2; m2.play('Idle', 1); m2.update(dt); }); }
         objPlace(true, [{ x: XM105, y: ys105(zr()), z: zr(), r: 4 }], 'h105kevesh');

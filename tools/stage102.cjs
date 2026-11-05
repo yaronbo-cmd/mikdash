@@ -17,7 +17,7 @@ const HAND = process.env.HAND || 'ok', X = +(process.env.X || 4), TICK = +(proce
   const ctx = await b.newContext({ viewport: { width: +VW, height: +VH } });
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   await ctx.addInitScript(([h, x]) => { window.__DT_MAX = 0.25; window.__CAMSNAP = 1; window.__H102AUTO = h; window.__H102X = x; window.__F102 = 0; const tk = () => { window.__F102++; requestAnimationFrame(tk); }; requestAnimationFrame(tk); try { localStorage.clear(); } catch (e) { /* */ } }, [HAND, X]);
-  const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', (e) => { errs.push(e.message); console.log(ID, 'PAGEERROR', e.message.slice(0, 200)); }); pg.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+  const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', (e) => { errs.push(e.message); console.log(ID, 'PAGEERROR', e.message.slice(0, 200)); }); pg.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text()); else if (/Context Lost|NaN/.test(m.text())) console.log(ID, 'CONSOLE', m.text().slice(0, 200)); });
   const t0 = Date.now(), lg = (m) => console.log(ID, Math.round((Date.now() - t0) / 1000) + 's', m); const log = []; let shotN = 0;
   const shot = async (tag) => { const f = `${ID}-${String(shotN++).padStart(2, '0')}-${tag}.png`; await pg.screenshot({ path: path.join(OUT, f), timeout: 180000 }).catch((e) => lg('shot fail ' + e.message.slice(0, 80))); return f; };
   try {

@@ -15,7 +15,7 @@ const H = read('src/game/har42.js');
 
 test('build 78: GAME_BUILD 78; stage 08\'s order — the inspection, then three side by side, the last row, the reveal', () => {
   assert.ok(GAME_BUILD >= 78);
-  assert.deepEqual(Object.keys(DEP63.yesod).sort(), PARTS55.filter((p) => p !== 'open' && p !== 'reveal').sort(), 'every work of the stage');
+  assert.deepEqual(Object.keys(DEP63.yesod).sort(), PARTS55.filter((p) => p !== 'open' && p !== 'reveal').concat(['bench', 'course']).sort(), 'every work of the stage (build 103: and the new stage\'s two)');
   assert.deepEqual(open63('yesod', PARTS55, []), ['inspect']);
   assert.deepEqual(open63('yesod', PARTS55, ['inspect']), ['field', 'nail', 'iron']);
   assert.deepEqual(open63('yesod', PARTS55, ['inspect', 'field', 'nail', 'iron']), ['last']);

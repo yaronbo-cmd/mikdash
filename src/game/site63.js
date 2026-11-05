@@ -45,7 +45,7 @@ export const DEP63 = Object.freeze({
   lishka: Object.freeze({ compass: [], wheel: [], dome: [] }),   // ── build 102 ── (the three chambers, any order: the benches and the hub are the crews' now)
   // ── build 78 ── stage 08 (PARTS55): the first inspection first (what makes a stone unfit); then the field stones, the nail's test and
   // "no iron" side by side; the last row once the three are done
-  yesod: Object.freeze({ inspect: [], field: ['inspect'], nail: ['inspect'], iron: ['inspect'], last: ['field', 'nail', 'iron'] }),
+  yesod: Object.freeze({ inspect: [], field: ['inspect'], nail: ['inspect'], iron: ['inspect'], last: ['field', 'nail', 'iron'], bench: [], course: ['bench'] }),   // ── build 103 ── (the bench, then the yesod from its stones)
   // ── build 79 ── stage 09 (PARTS56): the side light and the tap's test side by side (the stones checked); the sovev's course once both are done; the red line on it last
   sovev: Object.freeze({ light: [], tap: [], sovev: ['light', 'tap'], thread: ['sovev'] }),
   // ── build 80 ── stage 10 (PARTS57): the stones' check with its decoys and the ramp side by side; the lime once the body and the ramp stand

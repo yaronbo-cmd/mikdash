@@ -16,7 +16,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 68: GAME_BUILD 68; the hang — on the ground at 0, over the course at the window\'s foot (its bottom clear of the course\'s top), higher past it, never below the ground', () => {
-  assert.equal(GAME_BUILD, 102);
+  assert.equal(GAME_BUILD, 103);
   const win = PULLEY45.L[1].win, gY = 2, cy = 7.5;
   assert.ok(near(hangY68(0, gY, cy, win), gY + CRANE68.lift), 'at 0: lying on the ground');
   assert.ok(near(hangY68(win[0], gY, cy, win), cy + CRANE68.over), 'at the window\'s foot: over the course');

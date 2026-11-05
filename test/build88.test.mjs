@@ -11,7 +11,7 @@ import { grain88, PROPS88 } from '../src/game/props88.js';
 
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
-test('build 88: GAME_BUILD 88', () => { assert.equal(GAME_BUILD, 102); });
+test('build 88: GAME_BUILD 88', () => { assert.equal(GAME_BUILD, 103); });
 
 test('build 88: the old clip and bone names map onto the new body', () => {
   for (const k of ['Idle', 'Walking_A', 'Running_A', 'PickUp', 'Interact', '2H_Melee_Attack_Chop', 'Cheer', 'Sit_Floor_Idle']) assert.ok(/_/.test(clipName88(k)) || clipName88(k) === 'Interact', k);

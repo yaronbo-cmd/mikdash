@@ -32,7 +32,7 @@ const HAND = process.env.HAND || 'ok', X = +(process.env.X || 4), TICK = +(proce
         if (!j && st.part === 'site' && chips.length && !globalThis.__CH102) { const c = chips.includes(pick) ? pick : chips[0]; globalThis.__CH102 = c; document.querySelector(`.h63-chip[data-part="${c}"]`).click(); }
         if (j) globalThis.__CH102 = null;
         const r = j && j.ref, J = r && r.hj ? r.hj() : null, k = J ? J.state() : null;
-        return { fr: globalThis.__F102, part: st.part, kind: j ? j.kind : '', ph: r && r.ph ? r.ph() : '', dbg: r && r.dbg ? r.dbg() : '', qs: r && r.qs ? r.qs() : null, chips: chips.join(','), grades: st.grades, k: k ? Object.fromEntries(Object.entries(k).filter(([, v]) => typeof v !== 'object' || v === null).slice(0, 10)) : null };
+        return { fr: globalThis.__F102, cut: H.cut107 ? H.cut107() : -1, fit: H.fit107 && H.fit107() ? +H.fit107().k.toFixed(2) : 1, part: st.part, kind: j ? j.kind : '', ph: r && r.ph ? r.ph() : '', dbg: r && r.dbg ? r.dbg() : '', qs: r && r.qs ? r.qs() : null, chips: chips.join(','), grades: st.grades, k: k ? Object.fromEntries(Object.entries(k).filter(([, v]) => typeof v !== 'object' || v === null).slice(0, 10)) : null };
       }, process.env.PICK || '').catch((e) => ({ err: e.message.slice(0, 100) }));
       if (!s.kind && s.part && !['open', 'site', 'reveal', 'done', 'out'].includes(s.part)) await pg.mouse.click(+VW / 2, +VH * 0.6).catch(() => {});   // (build 103: a tap — the hero walks to the work, as a player's tap does)
       const key = `${s.part}/${s.kind}`; log.push({ t: Math.round((Date.now() - t0) / 1000), ...s });
@@ -45,7 +45,7 @@ const HAND = process.env.HAND || 'ok', X = +(process.env.X || 4), TICK = +(proce
     }
     await shot('end');
     const sum = await pg.evaluate(`(${SUM})()`).catch((e) => ({ err: e.message }));
-    fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ sum, errors: errs.slice(0, 10), log }, null, 1)); lg('SUM ' + JSON.stringify(sum).slice(0, 900)); lg('errors ' + JSON.stringify(errs.slice(0, 5)));
+    fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ sum, errors: errs.slice(0, 10), log }, null, 1)); lg('SUM ' + JSON.stringify(sum).slice(0, 900)); lg('errors ' + JSON.stringify(errs.slice(0, 5))); lg('CUT107 ' + log.filter((x) => x.cut > 0).length + '/' + log.filter((x) => x.kind).length + ' act ticks with someone cut: ' + JSON.stringify(log.filter((x) => x.cut > 0).map((x) => [x.t, x.kind, x.ph, x.cut, x.fit]).slice(0, 12)));   // ── build 107 ──
   } catch (e) { lg('FAIL ' + e.message.slice(0, 300)); fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ fail: e.message, errors: errs }, null, 1)); }
   lg('END'); await b.close();
 })();

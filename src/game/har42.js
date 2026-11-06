@@ -674,6 +674,7 @@ export function createHar42(o = {}) {
   const ON103 = MODE === 'stage' && STG === 'yesod' && qs('h103') !== '0';
   const ON106 = MODE === 'stage' && STG === 'lishka' && qs('h106') !== '0';
   const ON106y = MODE === 'stage' && STG === 'yesod' && qs('h106') !== '0';
+  const ON107 = MODE === 'stage' && qs('h107') !== '0';   // ── build 107 ── (the staging laws in the engine for every stage: the opening from over the Mount, everyone in the frame, the pull-back after each unit — docs/specs/pearim-olam-107-he.md; ?h107=0 as in 106)
   const ON106s = ON106 || ON106y;   // ── build 106 ── (the open stations: stages 07 and 08)   // ── build 106 ── (stage 08's yesod as a field-stone puzzle — yesod106.js)   // ── build 106 ── (stage 07's vault rebuilt — lish106.js; ?h106=0 as in 105)   // ── build 103 ── (stage 08 rebuilt on build 101's world — lish103.js; ?h103=0 as in 102)
   const parts0 = () => {   // (each stage's parts — build 62: stage 01's new order in front of them)
     const PARTS = STG === 'sovev' ? (ON104 ? F104.PARTS104 : PARTS56) : STG === 'yesod' ? (ON103 ? F103.PARTS103 : PARTS55) : STG === 'wall' ? PARTS45 : STG === 'soreg' ? PARTS46 : STG === 'gates' ? (ON92 ? PARTS92 : PARTS47) : STG === 'nashim' ? (ON97 ? F97.PARTS97 : ON93 ? PARTS93 : PARTS48) : STG === 'nikanor' ? (ON94 ? PARTS94 : PARTS49) : STG === 'lishka' ? F102.PARTS102 : STG === 'guf' ? (ON105 ? F105.PARTS105 : PARTS57) : STG === 'karnot' ? PARTS58 : STG === 'kiyor' ? PARTS59 : STG === 'ulam' ? PARTS60 : PARTS42;
@@ -1439,6 +1440,55 @@ export function createHar42(o = {}) {
   // ── build 64 ── the follow is the player's orbit about him (cam64: bearing, elevation and distance where his thumb left them; never nearer
   // than his figure needs), pulled in along its own line when a wall or the rough Mount cuts the line to him ── /build 64 ──
   function followView(h) { const t = [h.x, h.y + heroHeight() * 0.45, h.z], o = { ...st.cam64, d: Math.max(st.cam64.d, needD() + 1) }; return view64({ ...o, d: pull64(o, t, blocked64) }, t); }
+
+  /* ── build 107 ── (pearim-olam-107 §1.1; shlav-alef-bimui ש1) the opening of every stage, every time — the owner, 6.11: "העולם בכלל לא
+   * מבינים איפה אנחנו, אלמלא הזום אין בפתיח מצלמה מלמעלה": first the whole Mount from over the Mount of Olives (the world's own view), then
+   * down over this stage's site in a slow turn, then to him. Back to a stage: the site from above, 3 s, then him. The stage's own opening
+   * (its gold plan rising) runs beneath, unchanged */
+  const FLY107 = Object.freeze({ T: 9, back: 3.2, hi: 150, lo: 46, r0: 110, r1: 48, turn: 0.9 });
+  function site107() { const s = standOf(PARTS[Math.max(1, R.part | 0)]) || hero(); return { x: s.x, z: s.z, y: gy(s.x, s.z) }; }
+  function view107(f, u) {
+    const c = f.c107 || (f.c107 = site107()), V = (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };
+    const sm = (k) => k * k * (3 - 2 * k), lerp = (a, b, k) => a.map((x, i) => x + (b[i] - x) * k), az0 = Math.atan2(V.p[2] - c.z, V.p[0] - c.x);
+    const orb = (k) => { const a = az0 + k * FLY107.turn, Rr = FLY107.r0 + (FLY107.r1 - FLY107.r0) * k; return { p: [c.x + Math.cos(a) * Rr, c.y + FLY107.hi + (FLY107.lo - FLY107.hi) * k, c.z + Math.sin(a) * Rr], t: [c.x, c.y + 3, c.z] }; };
+    let A, B, k = 0;
+    if (f.first) { if (u < 0.36) { k = sm(u / 0.36); A = V; B = orb(0); } else if (u < 0.8) { A = B = orb(sm((u - 0.36) / 0.44)); } else { k = sm((u - 0.8) / 0.2); A = orb(1); B = followView(hero()); } }
+    else if (u < 0.7) { A = B = orb(0.4 + 0.6 * sm(u / 0.7)); } else { k = sm((u - 0.7) / 0.3); A = orb(1); B = followView(hero()); }
+    return { p: lerp(A.p, B.p, k), t: lerp(A.t, B.t, k) };
+  }
+  /* ── build 107 ── (pearim-olam-107 §1.2; bimui §1 camera law 3: "הכהן תמיד נראה") everyone in the frame — the owner, 6.11: "הכהנים חצי
+   * מחוץ למסך": the act's people (the hero; fig84's figures near the thing or near him) and the thing's box (when it is a thing and not a
+   * building), projected through the view before it is set; whoever would stand cut, the view steps back along its own ray until all stand
+   * inside. Eased, and held while a finger is down (law 1: nothing moves under the finger). An act in its macro moment (J.macro107) is let be */
+  const FIT107 = Object.freeze({ near: 30, figH: 4.0, boxMax: 14, x: 0.9, top: 0.76, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.76: the line's banner stands over the frame's top eighth; bot 0.78: the chips' row)
+  const C7 = new THREE.PerspectiveCamera(50, 1.6, 0.1, 4000), V7 = new THREE.Vector3(), P7 = [];
+  function pts107(h, O) {
+    P7.length = 0; const HH = heroHeight();
+    P7.push([h.x, h.y + 0.1, h.z], [h.x, h.y + HH, h.z]);
+    const figs = st.f84 && st.f84.figs ? st.f84.figs() : null;
+    if (figs) for (const f of figs) { const r = f.root; if (!r || !r.visible || !r.parent) continue; r.getWorldPosition(V7); if (Math.hypot(V7.x - O.x, V7.z - O.z) > FIT107.near && Math.hypot(V7.x - h.x, V7.z - h.z) > FIT107.near) continue; P7.push([V7.x, V7.y + 0.1, V7.z], [V7.x, V7.y + FIT107.figH, V7.z]); }
+    const bb = st.objBB; if (bb && bb.min && Number.isFinite(bb.min.x) && Math.max(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z) <= FIT107.boxMax) for (const x of [bb.min.x, bb.max.x]) for (const y of [bb.min.y, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) P7.push([x, y, z]);
+    return P7;
+  }
+  function inside107(p, t) {
+    const c = camera(); C7.fov = (c && c.fov) || 50; C7.zoom = (c && c.zoom) || 1; C7.aspect = Math.max(0.3, W() / Math.max(1, H())); C7.updateProjectionMatrix();
+    C7.position.set(p[0], p[1], p[2]); C7.lookAt(t[0], t[1], t[2]); C7.updateMatrixWorld(true);
+    let out = 0; for (const q of P7) { V7.set(q[0], q[1], q[2]).project(C7); if (!(V7.z < 1) || Math.abs(V7.x) > FIT107.x || V7.y > FIT107.top || V7.y < -FIT107.bot) out++; }
+    return out;
+  }
+  const ray107 = (v, s) => [v.t[0] + (v.p[0] - v.t[0]) * s, v.t[1] + (v.p[1] - v.t[1]) * s, v.t[2] + (v.p[2] - v.t[2]) * s];
+  function fit107(v, h, O, dt) {
+    const K = st.fit107 || (st.fit107 = { k: 1, want: 1, out: 0 });
+    if (!(st.finger > 0)) {
+      pts107(h, O); let want = 1;
+      if (inside107(v.p, v.t)) { let lo = 1, hi = FIT107.max; if (inside107(ray107(v, hi), v.t)) want = hi; else { for (let i = 0; i < 9; i++) { const m = (lo + hi) / 2; if (inside107(ray107(v, m), v.t)) lo = m; else hi = m; } want = hi; } }
+      K.want = want;
+    }
+    K.k += (K.want - K.k) * Math.min(1, dt * FIT107.ease);
+    return K.k <= 1.001 ? v : { p: ray107(v, K.k), t: v.t };
+  }
+  /** the test's measure: who stands cut in the frame as it is (0 = nobody) */
+  function cut107() { const h = hero(); if (!h) return 0; pts107(h, st.obj || h); return inside107([cq.p.x, cq.p.y, cq.p.z], [cq.t.x, cq.t.y, cq.t.z]); }
   /** the line from the camera p to the look point t cut: under the ground, the rough Mount (stages.occluded) or a built mass (stages.frameBlocked) */
   function blocked64(p, t) {
     try {
@@ -3071,11 +3121,16 @@ export function createHar42(o = {}) {
       begin() {
         // ── build 53 ── after the first viewing (and in a fixture, ?h42at=<part>): no flight — ~1 s from black to the world (the inspector's review §4 important 12) ── /build 53 ──
         const fix = !!qs('h42at') && qs('h42at') !== 'open', first = !R.open && !fix;
+        if (ON107 && !fix && (STG !== 'har' || !first)) { st.fly = { t: 0, T: first ? FLY107.T : FLY107.back, first, snap: false, s107: 1 }; line(''); skipBtn(first ? 3 : 1); if (!first && STG === 'lishka') { try { if (stages.setStage) stages.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ } } return; }   // ── build 107 ── (ש1 every time: the Mount, the site, him; back to a stage — the site from above, 3 s)
         if (!first) { st.fly = { t: 0, T: FADE53.T, fade: true, snap: false }; line(''); black53(1); return; }
         st.fly = { t: 0, T: STG !== 'har' ? 8 : 16, first, snap: false }; line(''); skipBtn(STG !== 'har' ? 3 : 5);
       },
       frame(dt) {
         const f = st.fly; f.t += dt; const u = Math.min(1, f.t / f.T), V = (globalThis.__T && globalThis.__T.VIEWS && globalThis.__T.VIEWS.olives) || { p: [601, 301, -215], t: [-60, 20, 0] };
+        if (f.s107) {   // ── build 107 ── (the stage's own opening runs beneath — its gold plan rising — and the camera is ש1's: the Mount, the site from above, him)
+          f.s107 = 0; f.t -= dt; let r = false; try { r = PART.open.frame(dt); } finally { f.s107 = 1; }
+          const v = view107(f, u); camTo(v.p, v.t, 1); return r;
+        }
         if (f.fade) {   // ── build 53 ── black → the world: the plans as they stand after the flight; stage 01's before-picture from the opening's viewpoint, under the black ── /build 53 ──
           const pre = STG === 'har' && f.t < FADE53.pre;
           if (pre) { camTo(V.p, V.t, 1); if (!f.snap && f.t > FADE53.pre * 0.5) { f.snap = true; try { if (o.snapshot) st.snapshot = o.snapshot(); } catch (e) { st.snapshot = null; } } } else { const fv = followView(hero()); camTo(fv.p, fv.t, 1); }
@@ -5148,7 +5203,7 @@ export function createHar42(o = {}) {
           if (easeT > 2.6) { this.creak = 0; ph = 'held'; moveT = 0; const q = k.q; qs.push(q); const n = J.G.his * 2 + 1; for (let s = 0; s < n; s++) Y84().push([part, (before + ri) * 100 + s, q]); save42(S); chip84();
             toast84(rate30(q), crownS(), k.faults ? `${k.faults} פגמים${k.lifts ? ` · הורמו ${k.lifts}` : ''}` : 'בלי פגם'); line(F106.L106.holds, sub()); buzz42(q >= 1 ? 'soft2' : 'tick'); } }
         if (ph === 'held') { moveT += dt;
-          if (ri < NR - 1 && moveT > 1.4) { const u = Math.min(1, (moveT - 1.4) / 1.6); ctrX = ringX(before + ri) + V.dx * u; ctrY = -0.45 * (1 - u); placeCtr(); placeTowers(); if (u >= 1) { ri++; crewStones.length = 0; newRing(); } }
+          if (ri < NR - 1 && moveT > 1.4) { const u = Math.min(1, (moveT - 1.4) / 1.6); ctrX = ringX(before + ri) + V.dx * u; ctrY = -0.45 * (1 - u); placeCtr(); placeTowers(); if (u >= 1) { ri++; crewStones.length = 0; newRing(); if (ON107) st.pull = { t: 0 }; } }   // ── build 107 ── (ש7: after each ring, the camera back and up — the vault so far in its house)
           else if (ri >= NR - 1 && moveT > 1.4) { ph = 'inside'; inside = 0; ctr.visible = false; crane.visible = false; rowG.visible = false; kblock.visible = false; keyMs.forEach((m) => { if (!m.userData.seated) m.visible = false; }); towers.forEach((t) => { t.g.visible = false; }); posts.forEach((q) => { q.p.visible = q.w.visible = false; });
             if (rep) R.v106 = Math.min(V.maxRep, (R.v106 | 0) + 1); save42(S); } }
         if (ph === 'inside') {   // under the vault: the elders on the ledges, the keys in their hands
@@ -5607,8 +5662,23 @@ export function createHar42(o = {}) {
         runs.forEach(([a, b]) => { const n = Math.max(1, Math.round((b - a) / 1.6)); let s = a; for (let q = 0; q < n; q++) { const l = (b - a) / n; crew.push({ k, s, l, d: Math.abs(s + l / 2 - holes.reduce((m, h) => Math.min(m, Math.abs(h[0] - s)), 99)) }); s += l; } }); }
       crew.sort((a, b) => a.d - b.d); G.userData.crew = crew;
     }
-    const crew = G.userData.crew; let ci = 0;
-    function crewLay(c, drop = true) { if (c.m) return; const P = [[-c.l / 2, -0.5], [c.l / 2, -0.5], [c.l / 2, 0.5], [-c.l / 2, 0.5]].map(([u, v], q) => [u + (q === 1 || q === 2 ? 0 : 0), v]), m = new THREE.Mesh(poly106(P, 0.96, ci), stoneM(ci++)); m.castShadow = m.receiveShadow = true; m.position.set(c.s + c.l / 2, drop ? 0.7 : 0, 0); m.userData.drop = drop ? 0.7 : 0; strips[c.k].add(m); c.m = m; }
+    const crew = G.userData.crew; let ci = 0; const DROP7 = ON107 ? 2.4 : 0.7;
+    // ── build 107 ── (pearim-olam-107 §1.4; the owner, 6.11: "במשחקים הראשונים הבנייה של המזבח הייתה עם גלגלות") the crews' shear-legs over
+    // their stretch — two poles astride the strip, a cross bar, a pulley block, the rope to the stone and the fall to the porters' hands; their
+    // stone comes down the rope onto the bed (2.4 amot in ~2.7 s), and the legs walk on to the next place. המחשה: the sources name the stones
+    // (מדות ג, ד), not the machines
+    const LEG = G.userData.legs || (() => { const g = new THREE.Group(); g.name = 'h107legs'; const pole = (x) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 7.2, 8), WD); m.position.set(x * 1.05, 3.5, 0); m.rotation.z = x * 0.29; m.castShadow = true; return m; };
+      g.add(pole(1), pole(-1)); const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.4, 8), WD); bar.rotation.z = Math.PI / 2; bar.position.y = 6.2; g.add(bar);
+      const blk = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.22), mat('#6B4A2B', 0.9)); blk.position.y = 5.85; g.add(blk); const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.09, 14), mat('#8A6440', 0.8)); wheel.rotation.x = Math.PI / 2; wheel.position.y = 5.7; g.add(wheel);
+      const ropeM = mat('#C9B48C', 0.9), rope = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1, 6), ropeM), fall = rope.clone(); g.add(rope, fall); g.userData.rope = rope; g.userData.fall = fall; g.userData.hands = null; G.userData.legs = g; return g; })();
+    const seg7 = (m, a, b) => { const d = new THREE.Vector3().subVectors(b, a), L = d.length() || 0.001; m.position.copy(a).addScaledVector(d, 0.5); m.scale.set(1, L, 1); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); };
+    function legsFrame107(dt) {
+      if (!ON107) return; const dropping = crew.find((c) => c.m && c.m.userData.drop > 0), c = dropping || crewLeft()[0]; const g = LEG;
+      if (!c) { g.visible = false; g.userData.hands = null; return; } g.visible = true; const sg = strips[c.k]; if (g.parent !== sg) { sg.add(g); g.position.set(c.s + c.l / 2, 0, 0); } else g.position.x += ((c.s + c.l / 2) - g.position.x) * Math.min(1, dt * 2); g.position.y = 0; g.position.z = 0;
+      const top = new THREE.Vector3(0, 5.7, 0); seg7(g.userData.rope, top, dropping ? new THREE.Vector3(dropping.m.position.x - g.position.x, dropping.m.userData.drop + 0.5, 0) : new THREE.Vector3(0, 0.6, 0)); seg7(g.userData.fall, top, new THREE.Vector3(2.4, 1.3, -2.1));
+      g.userData.hands = [W2(sg, g.position.x + 2.6, -2.3), W2(sg, g.position.x + 3.5, -2.8)]; g.userData.pulling = !!dropping;
+    }
+    function crewLay(c, drop = true) { if (c.m) return; const P = [[-c.l / 2, -0.5], [c.l / 2, -0.5], [c.l / 2, 0.5], [-c.l / 2, 0.5]].map(([u, v], q) => [u + (q === 1 || q === 2 ? 0 : 0), v]), m = new THREE.Mesh(poly106(P, 0.96, ci), stoneM(ci++)); m.castShadow = m.receiveShadow = true; m.position.set(c.s + c.l / 2, drop ? DROP7 : 0, 0); m.userData.drop = drop ? DROP7 : 0; strips[c.k].add(m); c.m = m; }
     if (!rep) crew.slice(0, Math.floor(crew.length * 0.4)).forEach((c) => crewLay(c, false));
     const crewLeft = () => crew.filter((c) => !c.m);
     // his stretch's pegs and cord, its lime places (the first stretch), the field stones beside it
@@ -5691,8 +5761,8 @@ export function createHar42(o = {}) {
         if (ph === 'wide') { wideT += dt; const n = stones.length, k = Math.min(n, Math.floor(Math.max(0, wideT - 1.0) / 0.25)); for (let q = 0; q < k; q++) if (!stones[q].shown) { stones[q].shown = 1; stones[q].m.visible = true; } if (wideT > 4.0 && k >= n) { ph = 'lay'; say(F106y.YL106.pick, 99); } }
         // the crews lay on while he works (slowly), and quick between his stretches
         crewT += dt; const left = crewLeft(); if (left.length && ((ph === 'crews' && crewT > 0.5) || (ph === 'lay' && crewT > 6))) { crewLay(left[0]); crewT = ph === 'crews' ? 0.25 : 0; if (ph === 'crews') o.sound && o.sound('stone'); }
-        for (const k of ['north', 'west']) strips[k].children.forEach((m) => { if (m.userData.drop > 0) { m.userData.drop = Math.max(0, m.userData.drop - dt * 2); m.position.y = m.userData.drop; } });
-        if (ph === 'crews' && (crewT > 2.6 || !left.length)) { if (si < list.length - 1) { crewT = 0; newStretch(); } else { ph = 'rise'; rise = 0; crewLeft().forEach((c) => crewLay(c, false)); kit.visible = false; say(F106y.YL106.crews, 99); } }
+        for (const k of ['north', 'west']) strips[k].children.forEach((m) => { if (m.userData.drop > 0) { m.userData.drop = Math.max(0, m.userData.drop - dt * (ON107 ? 0.9 : 2)); m.position.y = m.userData.drop; } }); legsFrame107(dt);
+        if (ph === 'crews' && (crewT > 2.6 || !left.length)) { if (si < list.length - 1) { crewT = 0; newStretch(); if (ON107) st.pull = { t: 0 }; /* ── build 107 ── (ש7: after each stretch, the camera back and up — the yesod's square so far) */ } else { ph = 'rise'; rise = 0; crewLeft().forEach((c) => crewLay(c, false)); kit.visible = false; say(F106y.YL106.crews, 99); } }
         // the stones: a wrong one slides back; a set one settles; the turn shows
         stones.forEach((s) => { if (s.back > 0) { s.back -= dt; if (s.back <= 0) { s.back = 0; s.m.position.set(s.home.s, 0, s.home.t); } } if (s.set && s.m.userData.drop > 0) { s.m.userData.drop = Math.max(0, s.m.userData.drop - dt * 1.5); s.m.position.y = s.m.userData.drop; } });
         if (hintFx) { hintFx.t -= dt; if (hintFx.t <= 0) hintFx = null; }
@@ -5704,7 +5774,7 @@ export function createHar42(o = {}) {
         if (crewF && T && g0) { const [master, p1, p2] = men, set = (m, v, ry, an, sp = 1) => { m.root.position.set(v.x, gy(v.x, v.z), v.z); m.root.rotation.y = ry; m.play(an, sp); m.update(dt); };
           const face = (v, w) => Math.atan2(w.x - v.x, w.z - v.z), ctr = W2(g0, T.at + len() / 2, 0);
           set(master, mp, face(mp, ctr), hintFx ? 'Idle_Talking_Loop' : ph === 'lay' ? 'Idle' : 'Idle', 1);
-          [p1, p2].forEach((m, i) => { const v = W2(g0, T.at - 1.2 - i * 1.3, -2.4 - i * 0.6); set(m, v, face(v, ctr), ph === 'wide' && wideT > 1 ? 'PickUp_Table' : 'Idle', 1); }); }
+          [p1, p2].forEach((m, i) => { const hd = ON107 && LEG.userData.hands; const v = hd ? hd[i] : W2(g0, T.at - 1.2 - i * 1.3, -2.4 - i * 0.6); set(m, v, hd ? Math.atan2(LEG.getWorldPosition(V7).x - v.x, V7.z - v.z) : face(v, ctr), hd && LEG.userData.pulling ? 'PickUp_Table' : ph === 'wide' && wideT > 1 ? 'PickUp_Table' : 'Idle', 1); }); }   // ── build 107 ── (the porters on the fall while a stone comes down)
         if (f && T && g0) { const s = stoneAt(sel), tgt = setFx ? W2(g0, setFx.s.m.position.x, setFx.s.m.position.z - 0.9) : s && drag ? W2(g0, s.m.position.x, s.m.position.z - 0.9) : W2(g0, T.at + len() / 2, -1.2); if (setFx) setFx.t += dt;
           const there = walk102(f, tgt.x, gy(tgt.x, tgt.z), tgt.z, 4, dt); if (there) { const cc = W2(g0, T.at + len() / 2, 0); f.root.rotation.y = Math.atan2(cc.x - f.root.position.x, cc.z - f.root.position.z); f.play(setFx && setFx.t < 1.4 ? 'Sword_Attack' : pickFx > 0 ? 'PickUp_Table' : 'Idle', 1.3); } if (setFx && setFx.t > 1.6) setFx = null; if (pickFx > 0) pickFx -= dt; f.update(dt); }
         objPlace(true, [(() => { const v = W2(g0, T.at + len() / 2, 0); return { x: v.x, y: ay, z: v.z, r: 3 }; })()], 'h106yesod');
@@ -8229,6 +8299,7 @@ export function createHar42(o = {}) {
     if (J.camK) { if (J.frame(dt)) endPart(); return; }   // ── build 49 ── (the voyage: its own camera over its own sea)
     let v = (J.view && J.view(h)) || actView(O);
     if (J.view && OBJ54.parts.includes(st.part) && !(J.ownView && J.ownView())) { if (st.finger > 0 && st.lock54) v = st.lock54; else { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), HH = heroHeight(); v = rule53({ p: v.p.slice(), t: v.t.slice() }, h, HH, tv * (W() / H()), tv); st.lock54 = v; } }   // ── build 54 ── (the object rule on their own views; held under the finger) ── /build 54 ──
+    if (ON107 && !(J.macro107 && J.macro107())) v = fit107(v, h, O, dt);   // ── build 107 ── (everyone in the frame — an act's own view too: yesod106's wide view stood the porters cut at the top)
     if (st.act64) { const o = { ...st.act64, d: pull64(st.act64, v.t, blocked64) }; v = view64(o, v.t); camTo(v.p, v.t, Math.min(1, dt * CAM64.ease)); }   // ── build 64 ── (two fingers took the act's frame: his orbit about the act's look point, pulled in when cut)
     else camTo(v.p, v.t, J.snapView && J.snapView() ? 1 : J.view ? Math.min(1, dt * 2.5) : st.finger > 0 ? 0 : Math.min(1, dt * 2));   // ── build 55 ── (snapView: a macro cut to at once — the way there passed through him) ── /build 55 ──   // (build 46: an act's own view — the lattice front-on, the walk along the soreg, the procession low)
     lifeFrame53(dt, v);   // ── build 53 ── ── /build 53 ──
@@ -8492,6 +8563,7 @@ export function createHar42(o = {}) {
     heroBox: () => { const h = hero(); return { x: h.x, y: h.y, z: h.z, h: heroHeight() }; },
     objAt: () => (st.obj ? { x: st.obj.x, y: st.obj.y, z: st.obj.z } : null), objBox: () => (st.objBB ? { bb: st.objBB } : null),   // ── build 53 ── (objBox: the thing's box — tools/cam41.js) ── /build 53 ──
     camAt: () => ({ p: [cq.p.x, cq.p.y, cq.p.z], t: [cq.t.x, cq.t.y, cq.t.z] }),   // (build 43: the camera's measure — tools/cam41.js)
+    cut107: () => (st.job ? cut107() : 0), fit107: () => (st.fit107 ? { ...st.fit107 } : null), pts107: () => { const h = hero(); pts107(h, st.obj || h); return { n: P7.length, figs: st.f84 && st.f84.figs ? st.f84.figs().length : -1, obj: st.obj, pts: P7.map((q) => q.map((v) => +v.toFixed(1))) }; },   // ── build 107 ── (the frame's measure: who stands cut; the step back)
     job: () => (st.job ? { kind: st.job.kind || '', s: st.job.J ? st.job.J.state() : null, ref: st.job } : null),
     on84: ON84, y84: () => ({ items: Y84().map((q) => q.slice()), sum: sum84(), he: F84.yoursHe84(sum84()) }), figs84: () => (st.f84 ? { loaded: st.f84.loaded, n: st.f84.figs().length } : null), scrub84: () => st.scrub84 | 0,   // ── build 84 ──   // (the tools read the act: never write)
     site63: () => (st.part === 'site' && st.site63 ? st.site63.map((b) => b.part) : null), choose63: (p) => choose63(p, true), w63: () => ({ on: ON63, done: ON63 ? D63().slice() : null, part: st.part, shot: !!st.shot63 }),   // ── build 63 ──

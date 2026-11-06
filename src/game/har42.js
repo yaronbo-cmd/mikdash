@@ -5840,7 +5840,7 @@ export function createHar42(o = {}) {
     const c = r.cfg, a = r.a0 + (Number.isFinite(c.swing) ? c.swing : 0.8) * (1 - Math.cos(r.t * 0.035)), e = Math.min(1, r.t / 6), R2 = c.R0 - 5 * e, h = c.H0 - 12 * e, f = kohen102(r.men);   /* (to and fro over the south side, high: the game's lens is narrow (fov 32), so the whole altar and its kevesh need ≈ 60 amot — from above the court's walls, not through them) */
     const kp = f ? f.root.position : new THREE.Vector3(...c.C), p = [Math.min(c.xMax ?? 1e9, c.C[0] + Math.cos(a) * R2), c.C[1] + h, Math.min(c.zMax ?? 1e9, c.C[2] + Math.sin(a) * R2)], t = [c.C[0] + (kp.x - c.C[0]) * 0.25, c.C[1] + (kp.y + 1 - c.C[1]) * 0.25, c.C[2] + (kp.z - c.C[2]) * 0.25];
     const b = Math.min(1, r.t / 1.6), bb = b * b * (3 - 2 * b);   // (from where the last act's camera stood)
-    camTo(p.map((v, i) => r.p0[i] + (v - r.p0[i]) * bb), t.map((v, i) => r.t0[i] + (v - r.t0[i]) * bb), 1);
+    camTo(p.map((v, i) => r.p0[i] + (v - r.p0[i]) * bb + (i === 1 ? Math.sin(Math.PI * bb) * 24 : 0)), t.map((v, i) => r.t0[i] + (v - r.t0[i]) * bb), 1);   /* (the way there arcs up: a straight line from the last view went through the court's walls) */
   }
   function kohenWalk105(r, dt) {
     const f = kohen102(r.men); if (!f) return; const u = Math.max(0, Math.min(1, (r.t - 0.8) / 7.5)), p = r.cfg.path(u), q = r.cfg.path(Math.min(1, u + 0.02));

@@ -1439,7 +1439,14 @@ export function createHar42(o = {}) {
   const needD = () => heroHeight() / (0.42 * 2 * tanV());
   // ── build 64 ── the follow is the player's orbit about him (cam64: bearing, elevation and distance where his thumb left them; never nearer
   // than his figure needs), pulled in along its own line when a wall or the rough Mount cuts the line to him ── /build 64 ──
-  function followView(h) { const t = [h.x, h.y + heroHeight() * 0.45, h.z], o = { ...st.cam64, d: Math.max(st.cam64.d, needD() + 1) }; return view64({ ...o, d: pull64(o, t, blocked64) }, t); }
+  function followView(h) { const t = [h.x, h.y + heroHeight() * 0.45, h.z], o = { ...st.cam64, d: Math.max(st.cam64.d, needD() + 1) }; const v = view64({ ...o, d: pull64(o, t, blocked64) }, t); return ON107 ? fitHero107(v, h) : v; }
+  /** ── build 107 ── the follow too: he stands whole — feet and head — in the player's own view (bimui law 3); back along the ray, eased */
+  function fitHero107(v, h) {
+    const K = st.fitH107 || (st.fitH107 = { k: 1, want: 1 });
+    if (!(st.finger > 0)) { P7.length = 0; const HH = heroHeight(); P7.push([h.x, h.y + 0.05, h.z], [h.x, h.y + HH, h.z]); let want = 1; if (inside107(v.p, v.t)) { let lo = 1, hi = 1.8; if (inside107(ray107(v, hi), v.t)) want = hi; else { for (let i = 0; i < 7; i++) { const m = (lo + hi) / 2; if (inside107(ray107(v, m), v.t)) lo = m; else hi = m; } want = hi; } } K.want = want; }
+    K.k += (K.want - K.k) * 0.08;
+    return K.k <= 1.001 ? v : { p: ray107(v, K.k), t: v.t };
+  }
 
   /* ── build 107 ── (pearim-olam-107 §1.1; shlav-alef-bimui ש1) the opening of every stage, every time — the owner, 6.11: "העולם בכלל לא
    * מבינים איפה אנחנו, אלמלא הזום אין בפתיח מצלמה מלמעלה": first the whole Mount from over the Mount of Olives (the world's own view), then
@@ -1454,13 +1461,14 @@ export function createHar42(o = {}) {
     let A, B, k = 0;
     if (f.first) { if (u < 0.36) { k = sm(u / 0.36); A = V; B = orb(0); } else if (u < 0.8) { A = B = orb(sm((u - 0.36) / 0.44)); } else { k = sm((u - 0.8) / 0.2); A = orb(1); B = followView(hero()); } }
     else if (u < 0.7) { A = B = orb(0.4 + 0.6 * sm(u / 0.7)); } else { k = sm((u - 0.7) / 0.3); A = orb(1); B = followView(hero()); }
-    return { p: lerp(A.p, B.p, k), t: lerp(A.t, B.t, k) };
+    const lift = f.first && u < 0.36 ? 140 * Math.sin(Math.PI * k) : 0;   // (the way in from the Mount of Olives arcs up over the east wall — straight, it passed through the wall's top)
+    return { p: lerp(A.p, B.p, k).map((x, i) => (i === 1 ? x + lift : x)), t: lerp(A.t, B.t, k) };
   }
   /* ── build 107 ── (pearim-olam-107 §1.2; bimui §1 camera law 3: "הכהן תמיד נראה") everyone in the frame — the owner, 6.11: "הכהנים חצי
    * מחוץ למסך": the act's people (the hero; fig84's figures near the thing or near him) and the thing's box (when it is a thing and not a
    * building), projected through the view before it is set; whoever would stand cut, the view steps back along its own ray until all stand
    * inside. Eased, and held while a finger is down (law 1: nothing moves under the finger). An act in its macro moment (J.macro107) is let be */
-  const FIT107 = Object.freeze({ near: 30, figH: 4.0, boxMax: 14, x: 0.9, top: 0.76, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.76: the line's banner stands over the frame's top eighth; bot 0.78: the chips' row)
+  const FIT107 = Object.freeze({ near: 14, figH: 4.0, boxMax: 14, x: 0.9, top: 0.76, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.76: the line's banner stands over the frame's top eighth; bot 0.78: the chips' row)
   const C7 = new THREE.PerspectiveCamera(50, 1.6, 0.1, 4000), V7 = new THREE.Vector3(), P7 = [];
   function pts107(h, O) {
     P7.length = 0; const HH = heroHeight();

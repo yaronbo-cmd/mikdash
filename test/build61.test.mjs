@@ -17,7 +17,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 61: GAME_BUILD 61; the spec in the repo; the walk line says how', () => {
-  assert.equal(GAME_BUILD, 105);   // (build 63: again)
+  assert.equal(GAME_BUILD, 107);   // (build 63: again)
   assert.ok(read('docs/specs/shlav-alef-olam-he.md').includes('## 9. התנועה והמצלמה'));
   assert.equal(LINE42.walk.split(' · ')[0], 'גררו כדי ללכת');
 });
@@ -66,7 +66,7 @@ test('build 61 har42: wired — the halves, the tap, the hold kept for the guide
   assert.match(H, /const sd = side61\(e\.clientX, W\(\)\)/);
   assert.match(H, /kind61\(now61\(\) - f\.t0, f\.px\) === 'tap' && !st\.job && st\.target\) st\.auto61 = true/);
   assert.match(H, /still\(f\) \|\| still\(st\.look61\) \|\| st\.auto61/);
-  assert.match(H, /return view64\(\{ \.\.\.o, d: pull64\(o, t, blocked64\) \}, t\); \}/);   // (build 64: the lift became the player's whole orbit — cam64.js)
+  assert.match(H, /const v = view64\(\{ \.\.\.o, d: pull64\(o, t, blocked64\) \}, t\); return ON107 \? fitHero107\(v, h\) : v; \}/);   // (build 64: the lift became the player's whole orbit — cam64.js)
   assert.doesNotMatch(H, /st\.lift61/);
   assert.match(H, /creep61\(W61, 'wall', from, to, dt\)/);
   assert.match(H, /grow61\(W61, 'wall', wShare63\(part\)\)/); assert.match(H, /: PARTS\.indexOf\(part\) \/ \(PARTS\.length - 2\)\);/);   // (build 63: by how many works are done; the old way behind ?h63=0)

@@ -32,12 +32,12 @@ const HAND = process.env.HAND || 'ok', X = +(process.env.X || 4), TICK = +(proce
         if (!j && st.part === 'site' && chips.length && !globalThis.__CH102) { const c = chips.includes(pick) ? pick : chips[0]; globalThis.__CH102 = c; document.querySelector(`.h63-chip[data-part="${c}"]`).click(); }
         if (j) globalThis.__CH102 = null;
         const r = j && j.ref, J = r && r.hj ? r.hj() : null, k = J ? J.state() : null;
-        return { fr: globalThis.__F102, cut: H.cut107 ? H.cut107() : -1, fit: H.fit107 && H.fit107() ? +H.fit107().k.toFixed(2) : 1, part: st.part, kind: j ? j.kind : '', ph: r && r.ph ? r.ph() : '', dbg: r && r.dbg ? r.dbg() : '', qs: r && r.qs ? r.qs() : null, chips: chips.join(','), grades: st.grades, k: k ? Object.fromEntries(Object.entries(k).filter(([, v]) => typeof v !== 'object' || v === null).slice(0, 10)) : null };
+        return { fr: globalThis.__F102, cut: H.cut107 ? H.cut107() : -1, cutd: H.cut107d && H.cut107 && H.cut107() > 0 ? H.cut107d() : undefined, fit: H.fit107 && H.fit107() ? +H.fit107().k.toFixed(2) : 1, part: st.part, kind: j ? j.kind : '', ph: r && r.ph ? r.ph() : '', dbg: r && r.dbg ? r.dbg() : '', qs: r && r.qs ? r.qs() : null, chips: chips.join(','), grades: st.grades, k: k ? Object.fromEntries(Object.entries(k).filter(([, v]) => typeof v !== 'object' || v === null).slice(0, 10)) : null };
       }, process.env.PICK || '').catch((e) => ({ err: e.message.slice(0, 100) }));
       if (!s.kind && s.part && !['open', 'site', 'reveal', 'done', 'out'].includes(s.part)) await pg.mouse.click(+VW / 2, +VH * 0.6).catch(() => {});   // (build 103: a tap — the hero walks to the work, as a player's tap does)
       const key = `${s.part}/${s.kind}`; log.push({ t: Math.round((Date.now() - t0) / 1000), ...s });
       if (key !== last) { lg('→ ' + key + ' ' + JSON.stringify(s).slice(0, 300)); last = key; await shot((s.kind || s.part || 'x').replace(/\W/g, '')); lastShot = Date.now(); }
-      else if (n % 4 === 0) lg(JSON.stringify(s).slice(0, 300));
+      else if (n % 4 === 0 || s.cut > 0) lg(JSON.stringify(s).slice(0, 700));
       if (n % 3 === 1) await pg.evaluate(`(${PROBE})()`).catch(() => {});
       if (Date.now() - lastShot > 180000) { await shot((s.kind || s.part || 'x').replace(/\W/g, '')); lastShot = Date.now(); }
       if (s.part === 'reveal' || s.part === 'done' || s.part === 'out') { if (++ended > 4) break; }

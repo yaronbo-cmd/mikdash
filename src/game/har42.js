@@ -1461,35 +1461,37 @@ export function createHar42(o = {}) {
     let A, B, k = 0;
     if (f.first) { if (u < 0.36) { k = sm(u / 0.36); A = V; B = orb(0); } else if (u < 0.8) { A = B = orb(sm((u - 0.36) / 0.44)); } else { k = sm((u - 0.8) / 0.2); A = orb(1); B = followView(hero()); } }
     else if (u < 0.7) { A = B = orb(0.4 + 0.6 * sm(u / 0.7)); } else { k = sm((u - 0.7) / 0.3); A = orb(1); B = followView(hero()); }
-    const lift = f.first && u < 0.36 ? 140 * Math.sin(Math.PI * k) : 0;   // (the way in from the Mount of Olives arcs up over the east wall — straight, it passed through the wall's top)
+    const lift = f.first && u < 0.36 ? 240 * Math.sin(Math.PI * k) : 0;   // (the way in from the Mount of Olives arcs up over the east wall — straight, it passed through the wall's top)
     return { p: lerp(A.p, B.p, k).map((x, i) => (i === 1 ? x + lift : x)), t: lerp(A.t, B.t, k) };
   }
   /* ── build 107 ── (pearim-olam-107 §1.2; bimui §1 camera law 3: "הכהן תמיד נראה") everyone in the frame — the owner, 6.11: "הכהנים חצי
    * מחוץ למסך": the act's people (the hero; fig84's figures near the thing or near him) and the thing's box (when it is a thing and not a
    * building), projected through the view before it is set; whoever would stand cut, the view steps back along its own ray until all stand
    * inside. Eased, and held while a finger is down (law 1: nothing moves under the finger). An act in its macro moment (J.macro107) is let be */
-  const FIT107 = Object.freeze({ near: 14, figH: 4.0, boxMax: 14, x: 0.9, top: 0.76, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.76: the line's banner stands over the frame's top eighth; bot 0.78: the chips' row)
-  const C7 = new THREE.PerspectiveCamera(50, 1.6, 0.1, 4000), V7 = new THREE.Vector3(), P7 = [];
+  const FIT107 = Object.freeze({ near: 9, figH: 4.0, boxMax: 14, x: 0.9, top: 0.76, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.76: the line's banner stands over the frame's top eighth; bot 0.78: the chips' row)
+  const C7 = new THREE.PerspectiveCamera(50, 1.6, 0.1, 4000), V7 = new THREE.Vector3(), P7 = [], OUT7 = [];
   function pts107(h, O) {
     P7.length = 0; const HH = heroHeight();
-    P7.push([h.x, h.y + 0.1, h.z], [h.x, h.y + HH, h.z]);
+    if (!(O && O.y - h.y > 3)) P7.push([h.x, h.y + 0.1, h.z], [h.x, h.y + HH, h.z]);   // (parked under the floor while an act's own kohen plays — kohen102: not his frame)
     const figs = st.f84 && st.f84.figs ? st.f84.figs() : null;
-    if (figs) for (const f of figs) { const r = f.root; if (!r || !r.visible || !r.parent) continue; r.getWorldPosition(V7); if (Math.hypot(V7.x - O.x, V7.z - O.z) > FIT107.near && Math.hypot(V7.x - h.x, V7.z - h.z) > FIT107.near) continue; P7.push([V7.x, V7.y + 0.1, V7.z], [V7.x, V7.y + FIT107.figH, V7.z]); }
+    if (figs) for (const f of figs) { const r = f.root; if (!r || !r.visible || !r.parent) continue; r.getWorldPosition(V7); if (Math.hypot(V7.x - O.x, V7.z - O.z) > FIT107.near || V7.y < h.y - 3) continue; P7.push([V7.x, V7.y + 0.1, V7.z], [V7.x, V7.y + FIT107.figH, V7.z]); }
     const bb = st.objBB; if (bb && bb.min && Number.isFinite(bb.min.x) && Math.max(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z) <= FIT107.boxMax) for (const x of [bb.min.x, bb.max.x]) for (const y of [bb.min.y, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) P7.push([x, y, z]);
     return P7;
   }
   function inside107(p, t) {
     const c = camera(); C7.fov = (c && c.fov) || 50; C7.zoom = (c && c.zoom) || 1; C7.aspect = Math.max(0.3, W() / Math.max(1, H())); C7.updateProjectionMatrix();
     C7.position.set(p[0], p[1], p[2]); C7.lookAt(t[0], t[1], t[2]); C7.updateMatrixWorld(true);
-    let out = 0; for (const q of P7) { V7.set(q[0], q[1], q[2]).project(C7); if (!(V7.z < 1) || Math.abs(V7.x) > FIT107.x || V7.y > FIT107.top || V7.y < -FIT107.bot) out++; }
+    let out = 0; OUT7.length = 0; for (const q of P7) { V7.set(q[0], q[1], q[2]).project(C7); if (!(V7.z < 1) || Math.abs(V7.x) > FIT107.x || V7.y > FIT107.top || V7.y < -FIT107.bot) { out++; if (OUT7.length < 12) OUT7.push([q[0], q[1], q[2], V7.x, V7.y, V7.z].map((x) => Math.round(x * 100) / 100)); } }
     return out;
   }
   const ray107 = (v, s) => [v.t[0] + (v.p[0] - v.t[0]) * s, v.t[1] + (v.p[1] - v.t[1]) * s, v.t[2] + (v.p[2] - v.t[2]) * s];
-  function fit107(v, h, O, dt) {
+  function fit107(v, h, O, dt, J) {
     const K = st.fit107 || (st.fit107 = { k: 1, want: 1, out: 0 });
     if (!(st.finger > 0)) {
       pts107(h, O); let want = 1;
       if (inside107(v.p, v.t)) { let lo = 1, hi = FIT107.max; if (inside107(ray107(v, hi), v.t)) want = hi; else { for (let i = 0; i < 9; i++) { const m = (lo + hi) / 2; if (inside107(ray107(v, m), v.t)) lo = m; else hi = m; } want = hi; } }
+      const mx = J && J.fitMax107 ? J.fitMax107 : FIT107.max; if (want > mx) want = mx;   // (an act that frames its own scene caps the step back — the vault's house is small, a step back stood in its back wall)
+      while (want > 1.001 && (() => { const q = ray107(v, want); try { const g = stages.groundAt ? stages.groundAt(q[0], q[2]) : -Infinity; return Number.isFinite(g) && q[1] < g + 1.5; } catch (e) { return false; } })()) want = Math.max(1, want - 0.1);   // (never under the ground)
       K.want = want;
     }
     K.k += (K.want - K.k) * Math.min(1, dt * FIT107.ease);
@@ -5142,7 +5144,7 @@ export function createHar42(o = {}) {
       else if (r === 'falls') { keyFx = { t: 0, kind: 'falls', K: k.keys.filter((x) => x.gone).pop() || null }; o.sound && o.sound('crack'); buzz42('retry'); line(F106.L106.falls, sub()); }
     }
     return {
-      acting: true, fullPad: true, kind: 'vault106', ownView: () => true, hj: () => J, ri: () => ri, ph: () => ph, qs: () => qs.slice(), act, rep,
+      acting: true, fullPad: true, kind: 'vault106', fitMax107: 1, ownView: () => true, hj: () => J, ri: () => ri, ph: () => ph, qs: () => qs.slice(), act, rep,
       view() {
         if (inside >= 0) { const u = Math.min(1, inside / 3); return fit102([M.x - 1, M.y + 6.5, M.z], [1, 0.1 + 0.08 * (1 - u), 0.06], 12.6, 8.2); }
         if (ph === 'intro') { const u = Math.min(1, introT / 3.2), e = u * u * (3 - 2 * u), A = fit102([M.x + 4, M.y + 9, M.z + 1], [0.62, 0.62, 0.48], 30, 20), B = workView(); return { p: A.p.map((v, i) => v + (B.p[i] - v) * Math.max(0, e * 1.6 - 0.6)), t: A.t.map((v, i) => v + (B.t[i] - v) * Math.max(0, e * 1.6 - 0.6)) }; }
@@ -8307,7 +8309,7 @@ export function createHar42(o = {}) {
     if (J.camK) { if (J.frame(dt)) endPart(); return; }   // ── build 49 ── (the voyage: its own camera over its own sea)
     let v = (J.view && J.view(h)) || actView(O);
     if (J.view && OBJ54.parts.includes(st.part) && !(J.ownView && J.ownView())) { if (st.finger > 0 && st.lock54) v = st.lock54; else { const c = camera(), tv = Math.tan((((c && c.fov) || 50) * Math.PI) / 360), HH = heroHeight(); v = rule53({ p: v.p.slice(), t: v.t.slice() }, h, HH, tv * (W() / H()), tv); st.lock54 = v; } }   // ── build 54 ── (the object rule on their own views; held under the finger) ── /build 54 ──
-    if (ON107 && !(J.macro107 && J.macro107())) v = fit107(v, h, O, dt);   // ── build 107 ── (everyone in the frame — an act's own view too: yesod106's wide view stood the porters cut at the top)
+    if (ON107 && !(J.macro107 && J.macro107())) v = fit107(v, h, O, dt, J);   // ── build 107 ── (everyone in the frame — an act's own view too: yesod106's wide view stood the porters cut at the top)
     if (st.act64) { const o = { ...st.act64, d: pull64(st.act64, v.t, blocked64) }; v = view64(o, v.t); camTo(v.p, v.t, Math.min(1, dt * CAM64.ease)); }   // ── build 64 ── (two fingers took the act's frame: his orbit about the act's look point, pulled in when cut)
     else camTo(v.p, v.t, J.snapView && J.snapView() ? 1 : J.view ? Math.min(1, dt * 2.5) : st.finger > 0 ? 0 : Math.min(1, dt * 2));   // ── build 55 ── (snapView: a macro cut to at once — the way there passed through him) ── /build 55 ──   // (build 46: an act's own view — the lattice front-on, the walk along the soreg, the procession low)
     lifeFrame53(dt, v);   // ── build 53 ── ── /build 53 ──
@@ -8571,7 +8573,7 @@ export function createHar42(o = {}) {
     heroBox: () => { const h = hero(); return { x: h.x, y: h.y, z: h.z, h: heroHeight() }; },
     objAt: () => (st.obj ? { x: st.obj.x, y: st.obj.y, z: st.obj.z } : null), objBox: () => (st.objBB ? { bb: st.objBB } : null),   // ── build 53 ── (objBox: the thing's box — tools/cam41.js) ── /build 53 ──
     camAt: () => ({ p: [cq.p.x, cq.p.y, cq.p.z], t: [cq.t.x, cq.t.y, cq.t.z] }),   // (build 43: the camera's measure — tools/cam41.js)
-    cut107: () => (st.job ? cut107() : 0), fit107: () => (st.fit107 ? { ...st.fit107 } : null), pts107: () => { const h = hero(); pts107(h, st.obj || h); return { n: P7.length, figs: st.f84 && st.f84.figs ? st.f84.figs().length : -1, obj: st.obj, pts: P7.map((q) => q.map((v) => +v.toFixed(1))) }; },   // ── build 107 ── (the frame's measure: who stands cut; the step back)
+    cut107: () => (st.job ? cut107() : 0), cut107d: () => { if (!st.job) return null; cut107(); return { out: OUT7.slice(), n: P7.length, obj: st.obj && [st.obj.x, st.obj.y, st.obj.z].map((x) => Math.round(x * 10) / 10) }; }, fit107: () => (st.fit107 ? { ...st.fit107 } : null), pts107: () => { const h = hero(); pts107(h, st.obj || h); return { n: P7.length, figs: st.f84 && st.f84.figs ? st.f84.figs().length : -1, obj: st.obj, pts: P7.map((q) => q.map((v) => +v.toFixed(1))) }; },   // ── build 107 ── (the frame's measure: who stands cut; the step back)
     job: () => (st.job ? { kind: st.job.kind || '', s: st.job.J ? st.job.J.state() : null, ref: st.job } : null),
     on84: ON84, y84: () => ({ items: Y84().map((q) => q.slice()), sum: sum84(), he: F84.yoursHe84(sum84()) }), figs84: () => (st.f84 ? { loaded: st.f84.loaded, n: st.f84.figs().length } : null), scrub84: () => st.scrub84 | 0,   // ── build 84 ──   // (the tools read the act: never write)
     site63: () => (st.part === 'site' && st.site63 ? st.site63.map((b) => b.part) : null), choose63: (p) => choose63(p, true), w63: () => ({ on: ON63, done: ON63 ? D63().slice() : null, part: st.part, shot: !!st.shot63 }),   // ── build 63 ──

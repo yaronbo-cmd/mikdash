@@ -5823,7 +5823,7 @@ export function createHar42(o = {}) {
       before() { const BD = body104(); BD.courses.forEach((c) => { c.g.visible = true; c.g.scale.set(1, 1, 1); c.g.position.y = 0; if (c.his) c.his.visible = true; }); if (!st.props.sikra104 && !st.props.red105) { const g = new THREE.Group(); (st.props.root || scene()).add(g); redLine105(g); st.props.red105 = g; } } };
     if (ON103) { const Y = !!st.yesod103; return { title: 'יסוד המזבח — נבנה', tag: 'היסוד — כל הצפון וכל המערב, ואמה בדרום ובמזרח', C: [-38, 17, -3.5], R0: 52, H0: 46, a0: -0.75, swing: -0.8, works: F103.PARTS103.slice(1, -1),
       path: walk105([[-14, FL, -28], [-21, FL, -21.5], [-23, FL + 1, -19], [-50, FL + 1, -19]]), facts: [], src: F103.SRC103, hide: Y ? ['stage-yesod'] : [], before() { if (st.yesod103) st.yesod103.visible = true; } }; }
-    if (STG === 'lishka') return { title: 'הלשכות — נבנו', tag: 'בית המוקד — הכיפה נסגרה, והכהנים ישנים בו', C: [-160, 22, -60], R0: 52, H0: 46, a0: 0, swing: -0.6, works: F102.PARTS102.slice(1, -1),
+    if (STG === 'lishka') return { title: 'הלשכות — נבנו', tag: 'בית המוקד — הכיפה נסגרה, והכהנים ישנים בו', C: [-160, 22, -62], R0: 52, H0: 62, a0: 0.25, swing: -0.7, works: F102.PARTS102.slice(1, -1),
       path: walk105([[-140, FL, -44], [-160, FL, -55], [-160, FL, -66]]), facts: [], src: F102.SRC102, before() { } };
     return null;
   }

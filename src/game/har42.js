@@ -1468,7 +1468,7 @@ export function createHar42(o = {}) {
    * מחוץ למסך": the act's people (the hero; fig84's figures near the thing or near him) and the thing's box (when it is a thing and not a
    * building), projected through the view before it is set; whoever would stand cut, the view steps back along its own ray until all stand
    * inside. Eased, and held while a finger is down (law 1: nothing moves under the finger). An act in its macro moment (J.macro107) is let be */
-  const FIT107 = Object.freeze({ near: 9, figH: 4.0, boxMax: 14, x: 0.9, top: 0.76, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.76: the line's banner stands over the frame's top eighth; bot 0.78: the chips' row)
+  const FIT107 = Object.freeze({ near: 9, figH: 4.0, boxMax: 14, x: 0.9, top: 0.82, bot: 0.78, max: 2.4, ease: 3 });   // (top 0.82: the line's banner stands over the frame's top 9 %; bot 0.78: the chips' row)
   const C7 = new THREE.PerspectiveCamera(50, 1.6, 0.1, 4000), V7 = new THREE.Vector3(), P7 = [], OUT7 = [];
   function pts107(h, O) {
     P7.length = 0; const HH = heroHeight();
@@ -1486,16 +1486,22 @@ export function createHar42(o = {}) {
   }
   const ray107 = (v, s) => [v.t[0] + (v.p[0] - v.t[0]) * s, v.t[1] + (v.p[1] - v.t[1]) * s, v.t[2] + (v.p[2] - v.t[2]) * s];
   function fit107(v, h, O, dt, J) {
-    const K = st.fit107 || (st.fit107 = { k: 1, want: 1, out: 0 });
+    const K = st.fit107 || (st.fit107 = { k: 1, want: 1, out: 0, nt: null, wt: null });
+    const mx = J && J.fitMax107 ? J.fitMax107 : FIT107.max;
+    const back = (vv) => { let want = 1; if (inside107(vv.p, vv.t)) { let lo = 1, hi = mx; if (inside107(ray107(vv, hi), vv.t)) want = hi; else { for (let i = 0; i < 9; i++) { const m = (lo + hi) / 2; if (inside107(ray107(vv, m), vv.t)) lo = m; else hi = m; } want = hi; } } return want; };
     if (!(st.finger > 0)) {
-      pts107(h, O); let want = 1;
-      if (inside107(v.p, v.t)) { let lo = 1, hi = FIT107.max; if (inside107(ray107(v, hi), v.t)) want = hi; else { for (let i = 0; i < 9; i++) { const m = (lo + hi) / 2; if (inside107(ray107(v, m), v.t)) lo = m; else hi = m; } want = hi; } }
-      const mx = J && J.fitMax107 ? J.fitMax107 : FIT107.max; if (want > mx) want = mx;   // (an act that frames its own scene caps the step back — the vault's house is small, a step back stood in its back wall)
-      while (want > 1.001 && (() => { const q = ray107(v, want); try { const g = stages.groundAt ? stages.groundAt(q[0], q[2]) : -Infinity; return Number.isFinite(g) && q[1] < g + 1.5; } catch (e) { return false; } })()) want = Math.max(1, want - 0.1);   // (never under the ground)
-      K.want = want;
+      pts107(h, O); let want = back(v), wt = null;
+      if (want > 1.001 && inside107(ray107(v, want), v.t) && P7.length > 2) {   // (a step back alone leaves them cut — they stand off the look's centre: the look turned toward them a little, then the step back)
+        const c = P7.reduce((s, q) => [s[0] + q[0], s[1] + q[1], s[2] + q[2]], [0, 0, 0]).map((x) => x / P7.length);
+        for (const a of [0.35, 0.65]) { const nt = v.t.map((x, i) => x + (c[i] - x) * a), v2 = { p: v.p, t: nt }, w2 = back(v2); if (!inside107(ray107(v2, w2), nt) || a === 0.65) { want = w2; wt = nt; break; } }
+      }
+      while (want > 1.001 && (() => { const q = ray107({ p: v.p, t: wt || v.t }, want); try { const g = stages.groundAt ? stages.groundAt(q[0], q[2]) : -Infinity; return Number.isFinite(g) && q[1] < g + 1.5; } catch (e) { return false; } })()) want = Math.max(1, want - 0.1);   // (never under the ground)
+      K.want = want; K.wt = wt;
     }
     K.k += (K.want - K.k) * Math.min(1, dt * FIT107.ease);
-    return K.k <= 1.001 ? v : { p: ray107(v, K.k), t: v.t };
+    const e = Math.min(1, dt * FIT107.ease); if (K.wt) { if (!K.nt) K.nt = v.t.slice(); K.nt = K.nt.map((x, i) => x + (K.wt[i] - x) * e); } else if (K.nt) { K.nt = K.nt.map((x, i) => x + (v.t[i] - x) * e); if (Math.hypot(K.nt[0] - v.t[0], K.nt[1] - v.t[1], K.nt[2] - v.t[2]) < 0.05) K.nt = null; }
+    const vt = K.nt || v.t, vv = { p: v.p, t: vt };
+    return K.k <= 1.001 && !K.nt ? v : { p: ray107(vv, K.k), t: vt };
   }
   /** the test's measure: who stands cut in the frame as it is (0 = nobody) */
   function cut107() { const h = hero(); if (!h) return 0; pts107(h, st.obj || h); return inside107([cq.p.x, cq.p.y, cq.p.z], [cq.t.x, cq.t.y, cq.t.z]); }

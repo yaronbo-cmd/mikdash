@@ -68,7 +68,7 @@ test('build 50: the stage — its parts and lines, no chisel in the courts, the 
   const h = read('src/game/har42.js');
   assert.match(h, /o\.stage === 'lishka' \? 'lishka' : (?:o\.stage === 'yesod' \? 'yesod' : )?(?:o\.stage === 'sovev' \? 'sovev' : )?(?:o\.stage === 'guf' \? 'guf' : )?(?:o\.stage === 'karnot' \? 'karnot' : )?(?:o\.stage === 'kiyor' \? 'kiyor' : )?(?:o\.stage === 'ulam' \? 'ulam' : )?'har';/); assert.match(h, /STG === 'lishka' \? (?:PARTS50|F102\.PARTS102) :/);
   for (const k of ['compass', 'wheel', 'dome', 'log2'])   // (build 102: the benches and the hub the crews', the yard's arch out)
-  assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = mk`), k);
+  assert.match(h, new RegExp(`\\n    ${k}: \\{ begin\\(\\) \\{ st\\.job = (ON106 \\? )?mk`), k);   // (build 106: the vault behind ON106)
   assert.match(h, /if \(STG === 'lishka' && R\.part > 0\) \{ try \{ if \(stages\.setStage\) stages\.setStage\('lishka', 'done', 1, \{ instant: true \}\); \}/, 'the chambers stand while he works: no saw or chisel in the courts');
   assert.ok(!/אזמל|מסתת|לסתת/.test(h.slice(h.indexOf('/* ── build 102 ── stage 07 rebuilt'), h.indexOf('/* ── build 47 ── stage 04\'s acts'))), 'no chisel in stage 07\'s acts');
   assert.match(h, /if \(inside >= 0\) \{ const u = Math\.min\(1, inside \/ 3\), v = fit102\(/, 'build 102: under the vault at the end');

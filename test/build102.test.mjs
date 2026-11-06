@@ -63,7 +63,7 @@ test('build 102: the vault ring — the sides must end on the keystone\'s edges;
 test('build 102: wired — stage 07\'s parts are the three acts; build 50\'s acts out; the yard no longer offers them; light B by default; sourced lines', () => {
   const H = read('src/game/har42.js');
   assert.match(H, /import \* as F102 from '\.\/lish102\.js';/); assert.match(H, /STG === 'lishka' \? F102\.PARTS102 :/);
-  for (const [p, f] of [['compass', 'mkRope102'], ['wheel', 'mkWheel102'], ['dome', 'mkVault102']]) assert.match(H, new RegExp(`\\n    ${p}: \\{ begin\\(\\) \\{ st\\.job = ${f}\\(\\); \\} \\},`));
+  for (const [p, f] of [['compass', 'mkRope102'], ['wheel', 'mkWheel102'], ['dome', 'ON106 \\? mkVault106\\(\\) : mkVault102']]) assert.match(H, new RegExp(`\\n    ${p}: \\{ begin\\(\\) \\{ st\\.job = ${f}\\(\\); \\} \\},`));   // (build 106: the vault rebuilt behind ON106)
   for (const f of ['mkCompass50', 'mkBenches50', 'mkHub50', 'mkWheel50', 'mkDome50']) assert.ok(!H.includes(`function ${f}(`), `${f} out`);
   assert.match(H, /export const OUT99 = Object\.freeze\(\['lintel', 'leaf', 'lever', 'compass', 'wheel', 'arch'\]\);/);
   assert.match(H, /globalThis\.__LIGHT101 \|\| 'b'\) === 'b' \? 'work2' : 'work'/);

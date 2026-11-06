@@ -104,7 +104,7 @@ test('build 42: the materials by day (v2 §9) — a caravan the first morning, o
   assert.ok(need <= F.MAT42.daily, `stage 01 needs ${need} of the day's ${F.MAT42.daily}`);
   assert.equal(F.enough42({ stock: 1 }, 'roll'), false);
   const h = read('src/game/har42.js');
-  assert.match(h, /if \(m && !F\.enough42\(S\.mat, m\)\) \{ st\.part = 'out';/, 'checked at the part\'s start');
+  assert.match(h, /if \(m && (!st\.rep106 && )?!F\.enough42\(S\.mat, m\)\) \{ st\.part = 'out';/, 'checked at the part\'s start');   // (build 106: a replay at an open station costs nothing)
   assert.ok(!/150 דק/.test(h), 'no time gate');
 });
 

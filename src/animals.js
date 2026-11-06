@@ -334,6 +334,15 @@ function bird({ turtle = false } = {}) {
   return { geo: merge(parts), piv: [[0, 0.26, 0], [0, 0.4, 0.2], [0.1, 0.36, 0], [-0.1, 0.36, 0], [0, 0.28, -0.2]], stride: 0.3, blob: [0.35, 0.5], neck: [0, 0.4, 0.2], r: 0.4, lod: 160, bird: true };
 }
 
+/** ── build 106 ── a bull for a plain mesh (the oxen that bring the vault's stones, har42.js): its body (head, ears, tail with it) and its four
+ *  legs, each leg's geometry about its own hip so a walk swings it; the hide in vertex colours (rigPart's 'color'), no instancing rig */
+export function bullParts() {
+  const r = bovine(), g = r.geo.index ? r.geo.toNonIndexed() : r.geo, P = g.attributes.position.array, N = g.attributes.normal.array, C = g.attributes.color.array, B = g.attributes.aBone.array;
+  const out = [[], [], [], [], []];
+  for (let v = 0; v < B.length; v += 3) { const b = Math.round(B[v]), k = b >= 2 && b <= 5 ? b - 1 : 0; for (let q = v; q < v + 3; q++) out[k].push(q); }
+  const mk = (list, piv) => { const n = list.length, pa = new Float32Array(n * 3), na = new Float32Array(n * 3), ca = new Float32Array(n * 3); list.forEach((q, i) => { pa[i * 3] = P[q * 3] - piv[0]; pa[i * 3 + 1] = P[q * 3 + 1] - piv[1]; pa[i * 3 + 2] = P[q * 3 + 2] - piv[2]; for (let c = 0; c < 3; c++) { na[i * 3 + c] = N[q * 3 + c]; ca[i * 3 + c] = C[q * 3 + c]; } }); const o = new THREE.BufferGeometry(); o.setAttribute('position', new THREE.BufferAttribute(pa, 3)); o.setAttribute('normal', new THREE.BufferAttribute(na, 3)); o.setAttribute('color', new THREE.BufferAttribute(ca, 3)); o.computeBoundingSphere(); return o; };
+  return { body: mk(out[0], [0, 0, 0]), legs: [0, 1, 2, 3].map((k) => ({ geo: mk(out[k + 1], r.piv[2 + k]), piv: r.piv[2 + k] })), stride: r.stride };
+}
 /** a lamb as one static piece (all bones 0): the lamb a kohen carries in his arms (actors.js items) */
 export function lambStatic() { const g = sheep().geo; g.attributes.aBone.array.fill(0); return g; }
 // ── recovered (build 25) ── the sheep's rig (geo, pivots, pose) for a skinned mesh of its own: pen25's lamb at the pen door

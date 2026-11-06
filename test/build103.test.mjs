@@ -81,7 +81,7 @@ test('build 103: the lines and sources — every line sourced or marked; no Divi
 });
 test('build 103: the wiring — each work of the stage has its act and its label; the site opens the bench, then the course, then the reveal', async () => {
   const H = read('src/game/har42.js'), { open63 } = await import('../src/game/site63.js');
-  for (const p of L.PARTS103.filter((q) => q !== 'open' && q !== 'reveal')) { assert.match(H, new RegExp(`\\n    ${p}: \\{ begin\\(\\) \\{ st\\.job = mk`), `${p}: its act`); assert.match(H, new RegExp(`[ {]${p}: '`), `${p}: its label`); }
+  for (const p of L.PARTS103.filter((q) => q !== 'open' && q !== 'reveal')) { assert.match(H, new RegExp(`\\n    ${p}: \\{ begin\\(\\) \\{ st\\.job = (ON106y \\? mkYesod106\\(\\) : )?mk`), `${p}: its act`); /* (build 106: the yesod's puzzle behind ON106y) */ assert.match(H, new RegExp(`[ {]${p}: '`), `${p}: its label`); }
   assert.deepEqual(open63('yesod', L.PARTS103, []), ['bench']); assert.deepEqual(open63('yesod', L.PARTS103, ['bench']), ['course']); assert.deepEqual(open63('yesod', L.PARTS103, ['bench', 'course']), ['reveal']);
   assert.match(H, /STG === 'yesod' \? \(ON103 \? F103\.PARTS103 : PARTS55\)/);
 });

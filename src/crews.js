@@ -1113,6 +1113,7 @@ export function createCrews(ctx = {}) {
       if (site20Yield(w, dt, LIFE.craft)) continue;   // ── site20 ── (the crowd before the piece) ── /site20 ──
       try { personUpdate(w, dt, cSite, cx, cy, cz); } catch (e) { warn(e); }
     }
+    try { apart97(); } catch (e) { warn(e); }   // ── build 97 ── (never two men in one place)
     try { siteTrainSync(dt); } catch (e) { warn(e); }   // ── site13 ── the building site's own cart train
     for (const rid in trains) trainUpdate(trains[rid], dt);
     try { shuttleUpdate(dt); } catch (e) { warn(e); }   // ── site8 ── the Mount's rubble cart
@@ -1125,6 +1126,35 @@ export function createCrews(ctx = {}) {
     dust.update(dt, camera, pxScale);
   }
 
+  // ── build 97 ── (the owner, 4.11 08:09: "שתי דמויות אחת על השניה שמדי פעם צצות"): never two men in one place. After every man has his
+  // place for the frame, any two nearer than SEP97 amot on the ground (and on one level) step apart, each half the overlap; stages.js's own
+  // site workers and the kohen stand fast and the crews' man steps the whole of it. (Not the men on the scaffold boards, not the drivers.)
+  const SEP97 = 1.15, sep97 = [];
+  function apart97() {
+    const L = sep97; L.length = 0;
+    for (const w of people) { const a = w.a; if (!a || w.gone || w.dead || w.up || w.role === 'driver' || w.role === 'off' || !(a.vis > 0.3)) continue; L.push(a); }
+    const n = L.length; if (!n) return;
+    const fixed = [];
+    try { if (stages && stages.workers71) { const S = stages.workers71(); if (S && S.on) for (let i = 0; i < S.n; i++) { const q = S.W[i]; if (q && q.st && Number.isFinite(q.x71)) fixed.push(q.x71, q.y71, q.z71); } } } catch (e) { /* */ }
+    try { const p = stages && stages.hero && stages.hero.position; if (p) fixed.push(p.x, p.y, p.z); } catch (e) { /* */ }
+    for (let i = 0; i < n; i++) {
+      const a = L[i];
+      for (let j = i + 1; j < n; j++) {
+        const b = L[j], dx = b.x - a.x, dz = b.z - a.z;
+        if (dx > SEP97 || dx < -SEP97 || dz > SEP97 || dz < -SEP97 || Math.abs((b.y || 0) - (a.y || 0)) > 2.5) continue;
+        let d = Math.hypot(dx, dz); if (d >= SEP97) continue;
+        let ux, uz; if (d < 1e-3) { const t = (i * 2.399 + j * 0.7) % 6.2832; ux = Math.cos(t); uz = Math.sin(t); d = 0; } else { ux = dx / d; uz = dz / d; }
+        const k = (SEP97 - d) / 2; a.x -= ux * k; a.z -= uz * k; b.x += ux * k; b.z += uz * k;
+      }
+      for (let f = 0; f < fixed.length; f += 3) {
+        const dx = a.x - fixed[f], dz = a.z - fixed[f + 2];
+        if (dx > SEP97 || dx < -SEP97 || dz > SEP97 || dz < -SEP97 || Math.abs((a.y || 0) - fixed[f + 1]) > 2.5) continue;
+        let d = Math.hypot(dx, dz); if (d >= SEP97) continue;
+        let ux, uz; if (d < 1e-3) { ux = 1; uz = 0; d = 0; } else { ux = dx / d; uz = dz / d; }
+        a.x += ux * (SEP97 - d); a.z += uz * (SEP97 - d);
+      }
+    }
+  }
   // ── site20 ── the crowd before the piece (the general work craft, fable20): the crews' and the life layer's people within 5 amot of the
   // piece he works step two paces off (to 5.4 amot) and face it — they are watching him; when the work is done they walk back to their
   // place and their own business goes on. stages.craftState gives C.wOn / C.wx / C.wz. → true while the person is held
@@ -1261,6 +1291,7 @@ export function createCrews(ctx = {}) {
     const tp = sites[w.site] && sites[w.site].tempo;   // ── build 65 ── (the stage's beat: every digger of the site on one period, in step)
     const per = tp && tp.per > 0 && role === 'digger' ? tp.per : fine ? w.per * 0.62 : role === 'digger' ? w.per * 1.25 : w.per;
     const u = tp && tp.per > 0 && role === 'digger' ? (((T - tp.t0) / per) % 1 + 1) % 1 : ((T + w.off) % per) / per;
+    w.u71 = u;   // ── build 71 ── (the stroke's phase, for his real figure's blow — crew71.js)
     let r, bow;
     const top = fine ? 2.0 : role === 'digger' ? 2.9 : R_TOP, hit = role === 'digger' ? 0.62 : w.rHit || R_HIT;
     const bh = w.bHit !== undefined && role === 'mason' ? w.bHit : 0.34;   // (── people6 ── a yard mason's solved blow)

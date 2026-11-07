@@ -18,7 +18,7 @@ const H = read('src/game/har42.js');
 const fnOf = (name, next) => H.slice(H.indexOf(`  function ${name}(`), next ? H.indexOf(`  function ${next}(`, H.indexOf(`  function ${name}(`)) : undefined);
 
 test('build 54: GAME_BUILD 54', () => {
-  assert.equal(GAME_BUILD, 68);   // (build 63: again)
+  assert.equal(GAME_BUILD, 107);   // (build 63: again)
 });
 
 test('build 54: the rock\'s macro (01) — his stands 9 amot east of each rock and 3 south, the camera 4.5 aside away from him: out of its frame', () => {
@@ -35,7 +35,7 @@ test('build 54: the object rule on 03–07\'s failing parts — rule53 (obj51, t
   for (const p of ['warn', 'leaf', 'wood', 'hub', 'wheel']) assert.ok(OBJ54.parts.includes(p), p);
   assert.match(H, /'h46bows', \[\{ x: priests\[0\]\.g\.position\.x/, 'the bows: the procession is the thing');
   assert.ok(OBJ54.gate < 1 && OBJ54.gate > 0.7);
-  assert.ok(OBJ54.leaf7 < OBJ54.gate && OBJ54.leaf7 > 0.7, 'the heavy leaf\'s lift nearer still'); assert.match(H, /if \(phase === 'lift'\) return gateView\(12, 0, OBJ54\.leaf7\);/);
+  assert.ok(OBJ54.leaf7 < OBJ54.gate && OBJ54.leaf7 > 0.7, 'the heavy leaf\'s lift nearer still');   // (build 99: the first leaf act out)
   assert.match(H, /function rule53\(v, h, HH, tanH, tanV\)/);
   assert.match(H, /if \(J\.view && OBJ54\.parts\.includes\(st\.part\) && !\(J\.ownView && J\.ownView\(\)\)\)/);
   assert.match(H, /if \(OBJ53\.stg\.includes\(STG\) \|\| OBJ54\.parts\.includes\(st\.part\)\) v = rule53\(v, h, HH, tanH, tanV\);/);
@@ -66,20 +66,13 @@ test('build 54: the lintel (04) — level 1 without drift; "הבועה ברחה 
   assert.equal(F.LINTEL47.L[1].drift, 0); assert.ok(F.LINTEL47.L[2].drift > 0);
   const N = F.createLintel47(1, { rnd: () => 0.2 }); N.hold(true); for (let i = 0; i < 400; i++) N.step(0.05);
   assert.equal(N.state().out, false, 'level 1 held still: never out'); assert.equal(N.state().phase, 'set');
-  assert.match(H, /line\(`הבועה ברחה — הזיזו \$\{s\.tilt > 0 \? '➡' : '⬅'\} · המחשה`/);
-  assert.match(H, /<animate attributeName="opacity" values="1;\.2;1" dur="0\.7s" repeatCount="indefinite"\/>/);
+  // (build 99: the bubble level's act out — the lintel is build 92's, with two hands)
   assert.ok(LINTEL54.h >= 0.25 && LINTEL54.h <= 0.3); assert.ok(LINTEL54.x > 0.33 && LINTEL54.x < 1, 'the left third');
   assert.match(H, /lintel: \{ get x\(\) \{ return lintelStand54\(\)\.x; \}/);
 });
 
-test('build 54: the leaf (04) — the pin\'s macro while it goes down; the stop seen (a jolt, "נתקעה"); a door', () => {
-  const lf = fnOf('mkLeaf', 'mkNames');
-  assert.match(lf, /ownView: \(\) => phase === 'pin',/);
-  assert.match(lf, /if \(phase === 'pin'\) \{ const tx = pivX - sx \* 0\.3; return \{ p: \[pivX - sx \* 4, g0 \+ 1\.7, G\.z \+ 5\.7\], t: \[tx, g0 \+ 1\.5, G\.z\] \}; \}/);
-  // (pure: level from 6.8 amot — the socket (0.1) and the leaf's foot (2.9) inside the frame's height)
-  { const tv = Math.tan((32 * Math.PI) / 360), d = Math.hypot(3.7, 5.7), lo = 1.5 - d * tv, hi = 1.5 + d * tv; assert.ok(lo < 0 && hi > 3.1, `${lo.toFixed(2)}..${hi.toFixed(2)}`); }
-  assert.match(lf, /נתקעה/);
-  assert.match(H, /const DOOR54 = \{/); assert.match(H, /DOOR54\[k\]\.emissive = new THREE\.Color\(e\)/, 'the door read in the shade'); assert.match(H, /new THREE\.CylinderGeometry\(0\.2, 0\.2, 0\.6, 10\), DOOR54\.bronze\); pin\.position/, 'the pin in bronze'); assert.match(H, /new THREE\.TorusGeometry\(0\.32, 0\.06, 6, 14\), DOOR54\.bronze/);
+test('build 54: the leaf (04) — out in build 99: build 92\'s leaf, turned round its pin (build 98\'s swing)', () => {
+  assert.doesNotMatch(H, /function mkLeaf\(idx, heavy\)/); assert.match(H, /leaf: \{ begin\(\) \{ st\.job = mkLeaf92\(false\); \} \}/);
 });
 
 test('build 54: the seven gates (04) — the court paved and the gatehouses (26 amot, their shadows) from above; the name beside its gate once set', () => {
@@ -121,17 +114,12 @@ test('build 54: the peg (05) — the joint in the world (the plank\'s tenon, the
 
 test('build 54: the compass (07) — the chamber\'s paved floor and its walls from above; him by the peg; the peg ≥ 44 px', () => {
   assert.match(H, /function room54\(on\)/); assert.match(H, /hole50\('gazit'\); room54\(true\);/);
-  assert.match(H, /compass: F16\(-79\.5, 62\.5\)/);
-  assert.match(H, /r="22" fill="rgba\(255,214,110,\.18\)" stroke="#FFD66E" stroke-width="3"\/><circle cx="\$\{c\.x\}" cy="\$\{c\.y\}" r="6"/);
+  assert.match(H, /compass: F16\(-68, 74\)/, 'build 102: by the chamber\'s door; the peg held by a worker, not a held ring');
 });
 
-test('build 54: the wheel over the pit (07) — the spokes a pile in the world, not "חישור ×8"; the spill — the bucket tips, the water on the floor', () => {
-  const hb = fnOf('mkHub50', 'mkWheel50');
-  assert.doesNotMatch(hb, /`╱ חישור ×\$\{/); assert.match(hb, /const heap = \[\];/);
-  assert.match(hb, /chip\.style\.top = `\$\{Math\.round\(Math\.max\(56, Math\.min\(H\(\) - 56, q\.y - 26\)\)\)\}px`/, 'the pile\'s handle kept on the screen');
-  const wh = fnOf('mkWheel50');
-  assert.match(wh, /bk\.rotation\.z \+= \(\(s\.spilling \? 0\.55 : 0\) - bk\.rotation\.z\)/);
-  assert.match(wh, /st\.props\.puddle54 = pm;/);
+test('build 54: the wheel over the pit (07) — superseded in build 102: the carpenters knock the spokes in; the water spills from the bucket as it sways', () => {
+  const wh = fnOf('mkWheel102', 'mkVault102');
+  assert.match(wh, /line\('הנגרים מכניסים את החישורים בפטיש · המחשה'\)/); assert.match(wh, /const on = \(k && k\.spilling\) \|\| \(hitT >= 0 && hitT < 1\.0\);/);
 });
 
 test('build 54 (the coordinator\'s touch play of 53): the bar\'s label says the way — an arrow toward the place by its side on the screen; "לצד השני" after a push away; one tefach in words', () => {

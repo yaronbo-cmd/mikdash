@@ -17,7 +17,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js');
 
 test('build 53: GAME_BUILD 53', () => {
-  assert.equal(GAME_BUILD, 68);   // (build 63: again)
+  assert.equal(GAME_BUILD, 107);   // (build 63: again)
 });
 
 test('build 53: the object rule in stages 01–02 — Phase B\'s obj51 on the act view (03–07 untouched: build 54); the measure per Phase A part', () => {
@@ -86,7 +86,7 @@ test('build 53: the inscription\'s macro — the stone 70 % of the width, the do
   assert.equal(VIEW53.trace, 0.7);
   // the view's distance gives the 3.4-amah stone VIEW53.trace of the width; the dots span 2.8 amot of it
   const span = (2.8 * VIEW53.trace / 3.4) * 640; assert.ok(span >= 120, `${span}`);
-  assert.match(H, /view\(\) \{ const c = camera\(\), tanV = [^;]+, tanH = tanV \* \(W\(\) \/ H\(\)\), D = 3\.4 \/ \(2 \* VIEW53\.trace \* tanH\)/);
+  assert.match(H, /const D72 = \(\) => \{ const c = camera\(\), tanV = [^;]+, tanH = tanV \* \(W\(\) \/ H\(\)\); return 3\.4 \/ \(2 \* VIEW53\.trace \* tanH\); \};/);   // (build 72: the same distance, its line the first clear one)
 });
 
 test('build 53: the course — stage 01 starts at the second course, on the crews\' course (seen whole); from the side, his stretch half the width', () => {
@@ -108,7 +108,7 @@ test('build 53: the Mount alive — crews, carts and heaps round the work and on
   assert.match(H, /life53\(g, add\);/);
   assert.match(H, /lifeFrame53\(dt, v\);/);
   assert.doesNotMatch(H.slice(H.indexOf('const P53 = '), H.indexOf('  /** a rock: an icosphere')), /\.(png|jpg|glb|gltf|webp)/);
-  try { const sz = fs.statSync(new URL('dist/temple3d.html', ROOT)).size; assert.ok(sz <= 6 * 1024 * 1024, `${sz}`); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  try { const sz = fs.statSync(new URL('dist/temple3d.html', ROOT)).size; assert.ok(sz <= 6.5 * 1024 * 1024, `${sz}`); /* ── build 101 ── (6 → 6.5 MiB: the modeled props) */ } catch (e) { if (e.code !== 'ENOENT') throw e; }
 });
 
 test('build 53: the rock — a lamp and its beam of light raking the face; a macro on the rock', () => {

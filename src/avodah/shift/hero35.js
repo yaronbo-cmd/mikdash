@@ -8,10 +8,13 @@
  *   const K = createHero35({ THREE, scene, S, url, scale }) → K.update(dt) · K.play(name, { once, speed, fade }) · K.stop() ·
  *   K.bone(name) (a THREE.Object3D) · K.handR() / K.handL() / K.head() (world positions) · K.ready (Promise) · K.destroy() · K.state()
  * Never a Divine Name. ── /fable32 ── */
+import { blob101 } from '../../game/world101.js';   // ── build 101 ──
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import KOHEN_URL from '../../../assets/kohen.glb';
+const KOHEN_URL = null;   // ── build 88 ── (the KayKit body is no longer in the page — people88 draws every man; ?p88=0 or a url: the shapes alone)
+import { createPeople88, PEOPLE88 } from '../../game/people88.js';   // ── build 88 ── (the kohen in real proportions, in his linen)
+import { P88_ON } from '../../game/fig84.js';
 import { GAIT35, gaitFor } from './gait35.js';   // ── recovered (16–26c) ── the gait, its own module now
 
 export const HERO35 = Object.freeze({ scale: 1.6, yawOff: 0, ...GAIT35 /* ── recovered (16–26c) ── (was walkAt 1.2, runAt 16, the clips, walkRate 0.9, runRate 1) */, fade: 0.18,
@@ -23,9 +26,25 @@ export function createHero35(o = {}) {
   const st = { loaded: false, err: null, mixer: null, clips: {}, cur: null, curName: '', locomotion: 'Idle', px: NaN, pz: NaN, sp: 0, acting: null, t: 0, n: 0, bones: {}, model: null, hidOld: false };
   const hp = { x: 0, y: 16, z: 0, yaw: 0, vis: true };
   if (scene) scene.add(root);
+  try { if (!(typeof location !== 'undefined' && /[?&]h101=0\b/.test(location.search))) root.add(blob101(0.62, 0.45)); } catch (e) { /* */ }   // ── build 101 ── (the kohen's own contact shadow)
   const loader = new GLTFLoader(); try { loader.setMeshoptDecoder(MeshoptDecoder); } catch (e) { /* */ }
-  const ready = new Promise((res) => {
-    loader.load(url, (g) => {
+  // ── build 88 ── the kohen from people88: a man's body in the כתונת, the אבנט and the מגבעת, barefoot; his bones under the old names too
+  const P88 = P88_ON && !o.url ? createPeople88({}) : null;
+  const ready = P88 ? P88.ready.then((ok) => {
+    try {
+      if (!ok) return false;
+      const f = P88.make({ white: true, height: 3.96 * ((o.scale || HERO35.scale) / 1.6), seed: 1 }); if (!f) return false;
+      const model = f.root; if (model.parent) model.parent.remove(model); model.rotation.y = HERO35.yawOff;
+      model.traverse((n) => { if (n.isMesh) { n.receiveShadow = false; n.frustumCulled = false; } });
+      for (const [k, b] of Object.entries(f.B)) st.bones[k] = b;
+      root.add(model); st.model = model; st.mixer = f.mixer;
+      const A = P88.clips(); for (const c of A) st.clips[c.name] = c; for (const [k, v] of Object.entries(PEOPLE88.clip)) { const c = A.find((a) => a.name === v); if (c) st.clips[k] = c; }
+      try { model.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(model); st.h = bb.max.y - bb.min.y; } catch (e) { st.h = 0; }
+      st.loaded = true; root.visible = true; play(HERO35.idleClip);
+    } catch (e) { st.err = String(e && e.message); }
+    return st.loaded;
+  }) : new Promise((res) => {
+    if (!url) { res(false); return; } loader.load(url, (g) => {
       try {
         const model = g.scene; model.scale.setScalar(o.scale || HERO35.scale); model.rotation.y = HERO35.yawOff;
         model.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = false; n.frustumCulled = false; if (n.material) { n.material.roughness = 0.85; n.material.metalness = 0; } } if (n.isBone || n.type === 'Bone' || n.name) st.bones[n.name] = n; });
@@ -68,7 +87,7 @@ export function createHero35(o = {}) {
     root.position.set(hp.x, hp.y + st.ly, hp.z); root.rotation.y = hp.yaw || 0;
     root.visible = hp.vis !== false;
     // (the box-figure under it: off while this one stands)
-    try { const m = S && S.hero && S.hero.mesh; if (m && m.visible) { m.visible = false; st.hidOld = true; } } catch (e) { /* */ }
+    try { const m = S && S.hero && S.hero.mesh; if (m && m.visible) { m.visible = false; st.hidOld = true; } if (m && !st.hidL) { m.traverse((n) => n.layers.set(31)); st.hidL = true; } } catch (e) { /* */ }   // ── build 88 ── (and off the camera's layer: the world may show it again mid-frame — it is never drawn while he stands in for it)
     // his pace → the clip (an act's one-shot clip plays out first)
     if (Number.isFinite(st.px) && dt > 0) { const d = Math.hypot(hp.x - st.px, hp.z - st.pz) / dt; st.sp = d > 60 ? st.sp : st.sp + (d - st.sp) * Math.min(1, dt * 8); }
     st.px = hp.x; st.pz = hp.z;
@@ -184,7 +203,7 @@ totalEmissiveRadiance+=vec3(.62,.95,1)*clamp(vD,0.,1.)*uG*(.25+.75*pow(.5+.5*sin
     height: () => st.h || 0, clipLen: (n) => (st.clips[n] ? st.clips[n].duration : 0),   // ── build 66 ── (for Phase A: his height, a clip's length) ── /build 66 ──
     get loaded() { return st.loaded; }, get err() { return st.err; },
     state: () => ({ loaded: st.loaded, err: st.err, clip: st.curName, acting: st.acting ? st.acting.name : null, sp: +st.sp.toFixed(1), rate: st.cur ? +st.cur.getEffectiveTimeScale().toFixed(2) : 0, slip: st.gait ? st.gait.slip : 0 /* ── recovered (16–26c) ── */, n: st.n, clips: Object.keys(st.clips).length, vis: root.visible, pos: [+root.position.x.toFixed(1), +root.position.y.toFixed(1), +root.position.z.toFixed(1)] }),
-    destroy() { try { if (scene) scene.remove(root); } catch (e) { /* */ } try { const m = S && S.hero && S.hero.mesh; if (m && st.hidOld) m.visible = !!hp.vis; } catch (e) { /* */ } st.loaded = false; },
+    destroy() { try { if (scene) scene.remove(root); } catch (e) { /* */ } try { const m = S && S.hero && S.hero.mesh; if (m && st.hidL) m.traverse((n) => n.layers.set(0)); if (m && st.hidOld) m.visible = !!hp.vis; } catch (e) { /* */ } st.loaded = false; },
   };
   try { globalThis.__HERO35 = api; } catch (e) { /* */ }
   return api;

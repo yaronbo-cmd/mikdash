@@ -16,7 +16,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 68: GAME_BUILD 68; the hang — on the ground at 0, over the course at the window\'s foot (its bottom clear of the course\'s top), higher past it, never below the ground', () => {
-  assert.equal(GAME_BUILD, 68);
+  assert.equal(GAME_BUILD, 107);
   const win = PULLEY45.L[1].win, gY = 2, cy = 7.5;
   assert.ok(near(hangY68(0, gY, cy, win), gY + CRANE68.lift), 'at 0: lying on the ground');
   assert.ok(near(hangY68(win[0], gY, cy, win), cy + CRANE68.over), 'at the window\'s foot: over the course');
@@ -29,7 +29,7 @@ test('build 68: the alignment — a drag moves the rig by the screen\'s measure 
   assert.ok(near(alignU68(3, 40, 40, 2, 1, 7), 4)); assert.ok(near(alignU68(3, 40, -40, 2, 1, 7), 2), 'the course running right-to-left on the screen: the drag the other way');
   assert.ok(near(alignU68(3, 400, 40, 2, 1, 7), 6), 'no farther than the stretch\'s end less half the stone'); assert.ok(near(alignU68(3, -400, 40, 4, 1, 7), 3), 'no nearer than its start plus half');
   assert.ok(near(alignU68(3, 50, 0.5, 2, 1, 7), 3), 'no measure: no move');
-  assert.deepEqual(PH68, ['wait', 'pick', 'hook', 'lift', 'align', 'set']);
+  assert.deepEqual(PH68, ['wait', 'pick', 'hook', 'lift', 'swing', 'align', 'back', 'set']);   // (build 70: the swing and the way back)
 });
 
 test('build 68: the pile — one stone of each size and the corner stones, in a row north of the rig; the cart\'s way in from the east, stopped at its stand; the pick within reach; the slide eased', () => {

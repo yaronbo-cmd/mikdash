@@ -26,7 +26,10 @@ export function hapticsOn() {
 const G = { nav: null, orig: null, wrapped: null, blocked: 0, passed: 0 };
 // ── fable32 (build 42) ── the pattern library (docs/specs/hishaarut-ve-retet-he.md §1.2; ms, [buzz, pause, buzz…]) next to the switch; never
 // a buzz without an act (the caller's), at most 2 s of buzz a minute (the battery and the heat), silent where the spec says so ── /fable32 ──
-export const HAPTIC42 = Object.freeze({ tick: 8, ok: 15, settle: 25, heavy: Object.freeze([30, 40, 30]), mallet: Object.freeze([12, 60, 12]), creak: 6, retry: Object.freeze([10, 50, 10]), wave: Object.freeze([40, 100, 40]), gate: 60, peak: Object.freeze([20, 60, 20, 60, 50]) });
+export const HAPTIC42 = Object.freeze({ tick: 8, ok: 15, settle: 25, heavy: Object.freeze([30, 40, 30]), mallet: Object.freeze([12, 60, 12]), creak: 6, retry: Object.freeze([10, 50, 10]), wave: Object.freeze([40, 100, 40]), gate: 60, peak: Object.freeze([20, 60, 20, 60, 50]),
+  // ── build 84 ── the vocabulary (the review of 3.11 §5): a pace's tick, a double tick, a rising buzz, a deep one, two soft = מהודר, a growing rumble (a jam), the heartbeat ── /build 84 ──
+  pace: 10, dbl: Object.freeze([10, 70, 10]), rise: Object.freeze([6, 30, 10, 30, 16, 30, 24]), deep: 40, soft2: Object.freeze([16, 110, 16]), rumble: Object.freeze([18, 15, 28, 15, 40]), beat: Object.freeze([30, 140, 45]),
+  grate: Object.freeze([14, 22, 12, 22, 16, 22, 10]) });   // ── build 100 ── (a dry pin's creak: a stutter, felt in the hand)
 const H42B = { t0: 0, ms: 0 };
 /** buzz42(name, nav?) → true when it buzzed: the switch on, a known pattern, the minute's budget not spent */
 export function buzz42(name, nav = (typeof navigator !== 'undefined' ? navigator : null)) {

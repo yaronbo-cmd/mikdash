@@ -9,6 +9,8 @@
  *  the paving once the crest is down and the fill is level; the great stone and the inscription on the level plaza. Stage 02 (PARTS45):
  *  the line first; the pulley and the first course; the course over it; the giant once the pulley stands and a course is laid; the corner
  *  over the second course; the top course last */
+import { DEP97 } from './court97.js';
+
 export const DEP63 = Object.freeze({
   har: Object.freeze({
     rope: [], lift: ['rope'], corner: ['lift'], course0: ['corner'], course1: ['course0'],
@@ -18,6 +20,42 @@ export const DEP63 = Object.freeze({
   wall: Object.freeze({
     line: [], pulley: ['line'], wcourse0: ['line'], wcourse1: ['wcourse0'], giant: ['pulley', 'wcourse0'], wcorner: ['wcourse1'], top: ['giant', 'wcorner'],
   }),
+  // ── build 73 ── stage 03 (PARTS46) in the loop: the first lattice panel and the warning stones side by side; each panel after the one
+  // beside it (the soreg closes panel by panel); the bows at the breaches once the soreg is closed and the warning stands
+  // ── build 88 ── (the owner, 3.11: "השתחוויות — למי? למה? אנחנו תוך כדי בנייה?"): the thirteen bows are not a builder's act — Middot 2:3
+  // ties them to the thirteen breaches the Greek kings made in the soreg, bowed by those who come in, not by its builders: out of the building loop
+  soreg: Object.freeze({ lattice0: [], warn: [], lattice1: ['lattice0'], lattice2: ['lattice1'] }),
+  // ── build 74 ── stage 04 (PARTS47): the lintel and the gates' names side by side; the two leaves once the lintel is up
+  gates: Object.freeze({ lintel: [], names: [], leaf: ['lintel'], leaf7: ['lintel'] }),
+  // ── build 92 ── stage 04 rebuilt (PARTS92): a lintel at each of three gates, one after another (each heavier); a gate's leaf once its lintel is up
+  gates92: Object.freeze({ lintel: [], names: [], lintel2: ['lintel'], lintel3: ['lintel2'], leaf: ['lintel'], leaf7: ['lintel2'] }),
+  // ── build 75 ── stage 05 (PARTS48): the wood's sorting and the gallery's beams side by side; the pegs in the beams; the corner after the
+  // pegs; the walk on the gallery once its corner is closed
+  nashim: Object.freeze({ wood: [], beams: [], pegs: ['beams'], corner: ['pegs'], walk: ['corner'] }),
+  // ── build 93 ── stage 05 rebuilt (PARTS93): the wood and the first beam side by side; each beam after the one before it (each harder);
+  // a peg once its corner beam is in; the south corner after the third beam and the second peg; the walk once the corner is closed
+  nashim93: Object.freeze({ beams: [], beams2: ['beams'], beams3: ['beams2'], pegs: ['beams'], pegs2: ['beams2', 'pegs'], corner: ['beams3', 'pegs2'], walk: ['corner'] }),
+  nashim97: DEP97,   // ── build 97 ── (build 15's wall jobs among the gallery's: court97.js)
+  // ── build 76 ── stage 06 (PARTS49): one after another — the doors' voyage (the exception, at sea), the lever and pegs at the gate, the
+  // leaves hung, then the fifteen steps in the opening; the loop's result shot and walk between them
+  nikanor: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], steps: ['hang'] }),
+  nikanor94: Object.freeze({ voyage: [], lever: ['voyage'], hang: ['lever'], lever2: ['hang'], hang2: ['lever2'], steps: ['hang'], steps2: ['steps'], steps3: ['steps2', 'hang2'] }),   // ── build 94 ── (the north leaf after the south's; the steps once the south leaf hangs)
+  // ── build 77 ── stage 07 (PARTS50): the three chambers side by side — the hewn stone's compass, the exiles' hub, the hearth's dome; in
+  // each its next work after its first (the benches after the compass, the buckets' wheel after the hub)
+  lishka: Object.freeze({ compass: [], wheel: [], dome: [] }),   // ── build 102 ── (the three chambers, any order: the benches and the hub are the crews' now)
+  // ── build 78 ── stage 08 (PARTS55): the first inspection first (what makes a stone unfit); then the field stones, the nail's test and
+  // "no iron" side by side; the last row once the three are done
+  yesod: Object.freeze({ inspect: [], field: ['inspect'], nail: ['inspect'], iron: ['inspect'], last: ['field', 'nail', 'iron'], bench: [], course: ['bench'] }),   // ── build 103 ── (the bench, then the yesod from its stones)
+  // ── build 79 ── stage 09 (PARTS56): the side light and the tap's test side by side (the stones checked); the sovev's course once both are done; the red line on it last
+  sovev: Object.freeze({ light: [], tap: [], sovev: ['light', 'tap'], thread: ['sovev'], plumb: [], sikra: ['plumb'] }),   // ── build 104 ── (the corner, then the red line on the body it raised)
+  // ── build 80 ── stage 10 (PARTS57): the stones' check with its decoys and the ramp side by side; the lime once the body and the ramp stand
+  guf: Object.freeze({ decoy: [], kevesh: [], sid: ['decoy', 'kevesh'], makevet: [], sidud: ['makevet'] }),   // ── build 105 ── (the kevesh, then the whitewash on the altar it reaches)
+  // ── build 81 ── stage 11 (PARTS58): the four horns and the two holes side by side; the first fire once the altar is whole
+  karnot: Object.freeze({ horns: [], holes: [], fire: ['horns', 'holes'] }),
+  // ── build 82 ── stage 12 (spec §6 "12": יציקה, 12 דדים, הברגה, מוכני): the cast first; then the spigots and the wheel side by side; the screw after the spigots
+  kiyor: Object.freeze({ cast: [], spigots: ['cast'], screw: ['spigots'], mukhni: ['cast'] }),
+  // ── build 83 ── stage 13 (spec §6 "13"): one after another as the façade rises — the waves' courses, the courses, the lintels, the fifth, the vine
+  ulam: Object.freeze({ waves: [], courses: ['waves'], lintels: ['courses'], fifth: ['lintels'], vine: ['fifth'] }),
 });
 export const SITE63 = Object.freeze({ max: 5, near: 4.5, shotT: 2.6, hold: 0.5, back: 2.4, minD: 46, up: 0.62 });
 
@@ -26,7 +64,7 @@ export function open63(stg, parts, done) {
   const D = DEP63[stg]; if (!D) return [];
   const d = new Set(done || []), out = [];
   for (const p of parts) { if (p === 'open' || p === 'reveal' || d.has(p) || !D[p]) continue; if (D[p].every((q) => d.has(q))) out.push(p); }
-  if (!out.length && parts.includes('reveal') && parts.every((p) => p === 'open' || p === 'reveal' || d.has(p))) return ['reveal'];
+  if (!out.length && parts.includes('reveal') && parts.every((p) => p === 'open' || p === 'reveal' || d.has(p) || !D[p])) return ['reveal'];   // ── build 88 ── (a part out of the loop — stage 03's bows — does not hold the reveal)
   return out.slice(0, SITE63.max);
 }
 /** the works done, from an old save (one work after another): the ones before the current */

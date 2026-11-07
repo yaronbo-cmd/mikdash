@@ -12,7 +12,7 @@ const read = (p) => fs.readFileSync(new URL(p, ROOT), 'utf8');
 const H = read('src/game/har42.js'), I = read('src/game/index.js');
 
 test('build 67: GAME_BUILD 67; the works by day — har42 asks for noon at the start of 01/02, tells the clock (day67) while a working part runs, nothing at the reveal; index.js\'s clock yields', () => {
-  assert.equal(GAME_BUILD, 68);
+  assert.equal(GAME_BUILD, 107);
   assert.match(H, /const ON67 = MODE === 'stage' && qs\('h67'\) !== '0';/);
   assert.match(H, /if \(ON67 && \(STG === 'har' \|\| STG === 'wall'\)\) \{ try \{ if \(o\.timeOfDay\) o\.timeOfDay\('noon'\); \} catch \(e\) \{ \/\* \*\/ \} \}/);
   assert.match(H, /get day67\(\) \{ return ON67 && st\.on && \(STG === 'har' \|\| STG === 'wall'\) && st\.part !== 'reveal' && st\.part !== 'done' && st\.part !== 'out' \? 'noon' : null; \}, on67: ON67,/);
@@ -42,7 +42,7 @@ test('build 67: the rock — a tapped wedge stands in its top along the line; re
 });
 
 test('build 67: the corner is a corner — the crews\' first course west and north of the stone\'s place on the Mount, once', () => {
-  assert.match(H, /if \(ON67 && STG === 'har' && st\.props\.root && !st\.props\.cornerWall67\) \{ const g = new THREE\.Group\(\); st\.props\.cornerWall67 = g; st\.props\.root\.add\(g\); for \(let k = 0; k < 3; k\+\+\) \{/);
+  assert.match(H, /if \(ON67 && (?:!ON91 && )?STG === 'har' && st\.props\.root && !st\.props\.cornerWall67\) \{ const g = new THREE\.Group\(\); st\.props\.cornerWall67 = g; st\.props\.root\.add\(g\); for \(let k = 0; k < 3; k\+\+\) \{/);
   assert.match(H, /b\.rotation\.y = Math\.PI \/ 2; b\.position\.set\(bx, gy\(bx, bz\) \+ 0\.9, bz\); g\.add\(b\);/);
 });
 

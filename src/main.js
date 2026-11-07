@@ -10,7 +10,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { Batch, groundAO } from './batch.js';
+import { Batch, groundAO, holeNormal101 } from './batch.js';
 import * as TX from './tex.js';
 import { buildTemple, buildMenorot, MENOROT } from './temple.js';
 import { buildMount, buildStreet, SQUARE } from './mount.js';
@@ -39,6 +39,8 @@ games.bindHost({ game: () => game, pause: (on) => pauseWorld(on), world: () => (
 // ── /games10 ──
 import { createSanctuary } from './sanctuary.js';   // ── sanctuary ──
 import { createCrews } from './crews.js';   // ── crews ──
+import { createCrew71 } from './crew71.js';
+import { LIGHT101, LIGHT101B } from './game/world101.js';   // ── build 101 ── (the building stages' working light)   // ── build 71 ──
 import { createCrowd } from './crowd.js';   // ── crowd ──
 // ── build8 ── (FLOW8B, wave 8B) true facts in rotation: FACTS8B's content/facts.json (on a lone branch build.mjs stubs it as
 // []: the game's own verified texts stand in). The loading screen shows one the save has not seen: a new one on every open.
@@ -173,6 +175,8 @@ const GRADE = {
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
   predawn: { fogN: 420, fogF: 6600, sat: 0.95, gain: [1.0, 0.98, 1.05], lift: [0.008, 0.008, 0.02], vig: 0.3 },   // ── recovered (16–26c) ──
 };
+TIMES.work = LIGHT101.time; GRADE.work = LIGHT101.grade; TIMES.work2 = LIGHT101B.time; GRADE.work2 = LIGHT101B.grade;   // ── build 101 ── (a warm morning for the works: short shadows that meet their feet; the sky as the dawn's)
+
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
 // ── end world6 ──
 const VIEWS = {
@@ -212,6 +216,7 @@ function makeComposer(fxObjs) {
     gtao.updateGtaoMaterial({ radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1, samples: 12, distanceFallOff: 1 });
     gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
     gtao.blendIntensity = 0.8;
+    try { holeNormal101(gtao.normalMaterial); } catch (e) { /* */ }   // ── build 101 ── (the AO's own render of the scene keeps the holes: no ghost steps darkened on the gate's wall)
     aoWrap = new HideDuring(gtao, fxObjs);
     composer.addPass(aoWrap);
   }
@@ -718,6 +723,8 @@ async function boot() {
     life.addUpdater(crews.update);
     Object.assign(stages, { setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
     window.__T.crews = crews;
+    // ── build 71 ── the crews near the camera as real people (crew71.js: the kohen's rigged body, in the crew's tunic, cloth and belt); ?h71=0 off
+    try { if (new URLSearchParams(location.search).get('h71') !== '0') { const c71 = createCrew71({ scene, camera, crews, stages }); life.addUpdater(c71.update); window.__T.crew71 = c71; } } catch (e) { console.warn('[crew71]', e); }
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;
     // ── site16 ── the life layer and the tap card (crews.lifeCount / lifeList / pickPerson)

@@ -15,7 +15,7 @@ const H = read('src/game/har42.js');
 const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 test('build 64: GAME_BUILD 64; the orbit kept in range — the horizon and the top view its ends, never nearer than dMin nor farther than dMax', () => {
-  assert.equal(GAME_BUILD, 68);
+  assert.equal(GAME_BUILD, 107);
   const o = orbit64(4, 3, 1000); assert.ok(near(o.az, 4 - 2 * Math.PI)); assert.equal(o.el, CAM64.elMax); assert.equal(o.d, CAM64.dMax);
   const q = orbit64(-4, -1, 0); assert.ok(near(q.az, -4 + 2 * Math.PI)); assert.equal(q.el, CAM64.elMin); assert.equal(q.d, CAM64.dMin);
   assert.ok(near(wrap64(3 * Math.PI), Math.PI) || near(wrap64(3 * Math.PI), -Math.PI));
@@ -59,7 +59,7 @@ test('build 64 har42: wired — the orbit from the save or the follow\'s pose; t
   assert.match(H, /if \(f\.side === 'R' && f\.px > WALK61\.dead && !st\.job\) \{ st\.cam64 = drag64\(st\.cam64, f\.x - f\.lx, f\.y - f\.ly\); st\.turned64 = 1; \}/);
   assert.match(H, /if \(sd === 'R' && st\.look61 && !st\.pinch64\) \{ st\.pinch64 = /);
   assert.match(H, /function pinchMove64\(a, b\)/);
-  assert.match(H, /function followView\(h\) \{ const t = \[h\.x, h\.y \+ heroHeight\(\) \* 0\.45, h\.z\], o = \{ \.\.\.st\.cam64, d: Math\.max\(st\.cam64\.d, needD\(\) \+ 1\) \}; return view64\(\{ \.\.\.o, d: pull64\(o, t, blocked64\) \}, t\); \}/);
+  assert.match(H, /function followView\(h\) \{ const t = \[h\.x, h\.y \+ heroHeight\(\) \* 0\.45, h\.z\], o = \{ \.\.\.st\.cam64, d: Math\.max\(st\.cam64\.d, needD\(\) \+ 1\) \}; const v = view64\(\{ \.\.\.o, d: pull64\(o, t, blocked64\) \}, t\); return ON107 \? fitHero107\(v, h\) : v; \}/);   // (build 107: he stands whole in the follow too)
   assert.match(H, /function blocked64\(p, t\)/); assert.match(H, /stages\.occluded\(t\[0\], t\[1\], t\[2\], \{ x: p\[0\], y: p\[1\], z: p\[2\] \}\)/); assert.match(H, /stages\.frameBlocked\(p\[0\], p\[1\], p\[2\], t\[0\], t\[1\], t\[2\], STG\)/);
   assert.match(H, /if \(st\.act && st\.act\.down && st\.act\.id !== e\.pointerId && !\(st\.job && st\.job\.raw\)\) \{/, 'a second finger on the thing ends the first finger\'s gesture and takes the frame');
   assert.match(H, /if \(!st\.act64\) st\.act64 = fromView64\(\{ p: \[cq\.p\.x, cq\.p\.y, cq\.p\.z\], t: \[cq\.t\.x, cq\.t\.y, cq\.t\.z\] \}\);/);

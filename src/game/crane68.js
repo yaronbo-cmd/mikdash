@@ -9,8 +9,9 @@
 
 export const CRANE68 = Object.freeze({
   legs: 1.7, legsZ: -3.4, boom: 3.4, over: 1.5, lift: 0.48, pileZ: -7.5, pileX0: -5.5, pileDx: 3.3, cartX: 11, cartZ: -10.5, cartFrom: 62, cartS: 7, hookT: 0.7, lowerT: 0.55, tapR: 72, sled: 3.9, topUp: 9,
+  swingT: 1.4, backS: 5, armS: 2.6, dim: 0.38,   // ── build 70 ── (the swing over the course s; the return's lowering amot/s; the arm's way back rad/s; a stone with no place: its opacity)
 });
-export const PH68 = Object.freeze(['wait', 'pick', 'hook', 'lift', 'align', 'set']);
+export const PH68 = Object.freeze(['wait', 'pick', 'hook', 'lift', 'swing', 'align', 'back', 'set']);   // ── build 70 ── (swing: the arm over the course; back: a stone with no place lowered to the pile)
 
 /** the hanging stone's centre y for the pulley's y (0…1.25): on the ground (sy 0) its centre c.lift over it; at the window's foot it hangs
  *  c.over over the course's centre cy (its bottom clear of the course's top — anywhere in the window it clears it); above, higher still */
@@ -37,3 +38,17 @@ export function pick68(pts, x, y, c = CRANE68) { let bi = -1, bd = c.tapR; pts.f
 
 /** the stone's slide from the pile to under the hook: its place at k (0…1, eased) between (x0, z0) and (x1, z1) */
 export function slide68(k, x0, z0, x1, z1) { const e = k <= 0 ? 0 : k >= 1 ? 1 : k * k * (3 - 2 * k); return { x: x0 + (x1 - x0) * e, z: z0 + (z1 - z0) * e }; }
+
+// ── build 70 ── the owner's play of build 69 (2.11): "אם שמתי אבן קטנה ואז הרמתי אבן גדולה ואין לה מקום היא נשארת תקועה באוויר על המנוף…
+// צריך שלא יתאפשר מלכתחילה להעלות אותה… היא לא יכולה להישאר באוויר"; "האבן מתרוממת בתוך הקיר". The rules: a stone fits the course only
+// where a run holds it without leaving a gap too small for any stone (the course's own gap rule); a stone that fits nowhere is not hooked,
+// and one that hangs with no place left comes back down to the pile. The arm: it points out (away from the wall) while the stone is
+// hooked and lifted outside the wall's face, then swings over the course for the alignment and the lowering (a derrick's swing, המחשה).
+/** the runs (as createCourse's runs(): [start, length]) a stone of len fits in: the run holds it, and what stays is nothing or at least minLen */
+export function fitRuns68(runs, len, minLen = 2) { return (runs || []).filter(([, rl]) => rl >= len && (rl === len || rl - len >= minLen)); }
+/** does the pile stone fit anywhere: a corner stone where the course wants a corner not yet laid; a plain stone in some run */
+export function fitsAny68(runs, len, dir, corner) { return dir ? !!(corner && !corner.dir) : fitRuns68(runs, len).length > 0; }
+/** the arm's turn at k (0…1, eased) of the swing: from pointing out (π) to over the course (0) */
+export function armRot68(k) { const e = k <= 0 ? 0 : k >= 1 ? 1 : k * k * (3 - 2 * k); return Math.PI * (1 - e); }
+/** the sheave's place in the rig's own frame for the arm's turn rot: z = boom·cos(rot) (out: −boom; over the course: +boom) */
+export function sheaveZ68(rot, c = CRANE68) { return c.boom * Math.cos(rot); }

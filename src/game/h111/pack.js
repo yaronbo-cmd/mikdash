@@ -9,6 +9,8 @@ import { PLAN, createH111 } from './model.js';
 import { ACTS } from './acts.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// the films' beats in the world's time when the director gives one (X.wait), else the wall clock's
+const beat = (X, ms) => (X && X.wait ? X.wait(ms / 1000) : sleep(ms));
 const FOUND = 0.15;   // stages.js: the progress under which a site is in its foundation
 
 export function makePack02(env = {}) {
@@ -47,10 +49,10 @@ export function makePack02(env = {}) {
       if (m && m.id === 'stakes' && !st.intro) {
         return (async () => {
           st.intro = 1; X.save();
-          X.shot([-60, 520, 520], [-40, 0, 0], 0.01); await sleep(300);
+          X.shot([-60, 520, 520], [-40, 0, 0], 0.01); await beat(X, 300);
           X.line('שלב 02: חומת העזרה · מאה שמונים ושבע על מאה שלושים וחמש אמה (מדות ה, א)');
-          X.shot([-95, 260, 230], [-95, 0, 0], 2.6); await sleep(3000);
-          X.shot([-30, 60, -20], [-4, 0, -64], 2.0); await sleep(2200);
+          X.shot([-95, 260, 230], [-95, 0, 0], 2.6); await beat(X, 3000);
+          X.shot([-30, 60, -20], [-4, 0, -64], 2.0); await beat(X, 2200);
           X.line('');
         })();
       }
@@ -58,16 +60,16 @@ export function makePack02(env = {}) {
       return (async () => {
         st.nights = [...(st.nights || []), m.night]; X.save();
         X.shot([-95, 120, 150], [-95, 14, 0], 1.6);
-        await sleep(600);
+        await beat(X, 600);
         call('setTime', 'night'); call('rain', true); X.play('rain');
         X.line('בלילה יורד גשם על החומה…');
-        await sleep(3200);
+        await beat(X, 3200);
         call('rain', false); call('setTime', 'dawn');
         X.line('בבוקר נושבת רוח, העננים מתפזרים והשמש זורחת (תענית כג, א)');
-        await sleep(3000);
+        await beat(X, 3000);
         call('restoreTime');
         X.line(m.night === 1 ? 'רמה 2: אבן ראש בכל קטע, ונסיגה של שתי אצבעות' : 'רמה 3: משאירים את פתחי השערים ריקים');
-        await sleep(1400);
+        await beat(X, 1400);
       })();
     },
     /** the ring closed: the crews cheer, the camera goes round the whole wall */
@@ -75,7 +77,7 @@ export function makePack02(env = {}) {
       try { X.stages.setWork('wall', { phase: 'done' }); } catch (e) { /* */ }
       try { if (X.stages.crewsCheer) X.stages.crewsCheer('wall'); } catch (e) { /* */ }
       const c = { x: -95, z: 0 }, R = 210, y = 120;
-      for (let k = 0; k <= 8; k++) { const a = Math.PI * 0.5 + (k / 8) * Math.PI * 2; X.shot([c.x + Math.cos(a) * R, y, c.z + Math.sin(a) * R * 0.8], [c.x, 14, c.z], 0.9); await sleep(650); }
+      for (let k = 0; k <= 8; k++) { const a = Math.PI * 0.5 + (k / 8) * Math.PI * 2; X.shot([c.x + Math.cos(a) * R, y, c.z + Math.sin(a) * R * 0.8], [c.x, 14, c.z], 0.9); await beat(X, 650); }
     },
   };
   return P;

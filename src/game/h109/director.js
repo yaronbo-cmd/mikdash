@@ -250,6 +250,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function goTo() { if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false; try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
 
   /* ───────── the act ───────── */
+  const WAITS = [];
   const X = {
     THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
     get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, ui, sfx: o.sfx, haptic: o.haptic,
@@ -260,6 +261,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     dust(x, y, z, n = 10, s = 4) { try { S0.dustBurst(x, y, z, n, s, s, 1.5); } catch (e) { /* */ } },
     sparks(x, y, z, n = 10) { try { S0.sparkBurst(x, y, z, n, 5, 6); } catch (e) { /* */ } },
     end: (res) => endAct(res),
+    // ── h111 ── a film's beat in the world's time (as the camera eases), not the wall clock's: on a slow frame the shot still lands ── /h111 ──
+    wait: (secs) => new Promise((r) => WAITS.push({ t: secs, r })),
     level: () => (mission ? M.levelOf(mission) : 1),
     loss: (n, at, label, stones) => loss(n, at, label, stones),   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
     save: () => save(),
@@ -376,6 +379,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   let syncT = 0;
   function frame(ms) {
     const dt = lastMs ? clamp((ms - lastMs) / 1000, 0, 0.25) : 0; lastMs = ms;
+    for (let i = WAITS.length - 1; i >= 0; i--) { const w = WAITS[i]; w.t -= dt; if (w.t <= 0) { WAITS.splice(i, 1); w.r(); } }   // ── h111 ── X.wait: the films' beats in the world's own time ── /h111 ──
     if (!started) return;
     uiFrame();
     tPhase += dt;

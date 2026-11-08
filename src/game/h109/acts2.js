@@ -159,14 +159,14 @@ export const READ = {
         }
       },
       down(p) {
-        A.p0 = { x: p.x, y: p.y }; A.th0 = A.th; A.tDown = A.t;
+        A.p0 = { x: p.x, y: p.y }; A.th0 = A.th; A.tDown = performance.now() / 1000;
         if (A.step === 'water') { A.hold = true; X.play('pour'); if (SH.jarMan) { SH.crew.setRole(SH.jarMan, 'hold', { item: 'jar' }); try { SH.crew.A.pose(SH.jarMan.a, 'pour'); } catch (e) { /* */ } } }
       },
       move(p) {
         if (A.step === 'turn' || (A.step === 'wedge' && !A.pick)) A.th = clamp(A.th0 + (A.p0.x - p.x) * 0.0045, -0.75, 0.75);
       },
       up(p) {
-        const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && A.t - A.tDown < 0.35;
+        const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && performance.now() / 1000 - A.tDown < 0.35;   // (a tap by the finger's clock, not the frames')
         if ((A.step === 'turn' || A.step === 'wedge') && tap) {
           // a tap on a shown line: its first wedge; the first tap chooses the line
           let best = null, bd = 1e9; for (const L of A.lines) { if (!L.seen) continue; const r = lineDist(L, p); if (r.d < bd) { bd = r.d; best = { L, u: r.u }; } }
@@ -333,7 +333,6 @@ export const PAVE = {
       // where it would sit: its first cell from its centre
       const p = { x: q.tx, z: q.tz }, cx = q.rot ? Math.round((p.x - G.x0) / U - 0.5) : Math.round((p.x - G.x0) / U - q.L / 2), cy = q.rot ? Math.round((p.z - G.z0) / U - q.L / 2) : Math.round((p.z - G.z0) / U - 0.5);
       if (q.broken && Math.hypot(p.x - rej.x, p.z - rej.z) < 2.4) { q.gone = true; q.ty = G.base - 1; X.bonus(20, 'reject', 'זיהית לוח שבור'); X.play('stamp'); setTimeout(() => X.props.remove(q.g), 700); return; }
-      try { (globalThis.__H109_LOG || []).push(`place L${q.L} r${q.rot} c${cx},${cy} t${q.tx.toFixed(1)},${q.tz.toFixed(1)} x0 ${G.x0.toFixed(1)} z0 ${G.z0.toFixed(1)} fit ${fits(q, cx, cy, q.rot)}`); } catch (e) { /* */ }
       if (fits(q, cx, cy, q.rot)) {
         q.at = [cx, cy]; occupy(q, true);
         const c0 = cw(cx, cy); q.tx = q.rot ? c0.x : c0.x + ((q.L - 1) * U) / 2; q.tz = q.rot ? c0.z + ((q.L - 1) * U) / 2 : c0.z; q.ty = G.base + 0.17;
@@ -370,7 +369,7 @@ export const PAVE = {
       down(p) {
         if (A.done) return;
         const q = pickAt(p); if (!q) return;
-        A.drag = { q, x0: p.x, y0: p.y, t0: A.t, moved: false };
+        A.drag = { q, x0: p.x, y0: p.y, t0: performance.now() / 1000, moved: false };
         if (q.at) { occupy(q, false); q.at = null; }
         const g = onPlane(X, p.x, p.y, G.base + 0.2); if (g) { A.drag.ox = q.g.position.x - g.x; A.drag.oz = q.g.position.z - g.z; }
         X.hand(null); X.play('tool');
@@ -381,7 +380,7 @@ export const PAVE = {
       },
       up(p) {
         const D = A.drag; if (!D) return; A.drag = null; const q = D.q;
-        if (!D.moved && A.t - D.t0 < 0.35) {
+        if (!D.moved && performance.now() / 1000 - D.t0 < 0.35) {
           // a tap turns it a quarter (in place if it still fits there; at the pile always)
           q.rot = q.rot ? 0 : 1; q.tx = q.g.position.x; q.tz = q.g.position.z; X.play('swoosh');
           if (q.home && Math.hypot(q.g.position.x - q.home.x, q.g.position.z - q.home.z) < 0.5) { q.tx = q.home.x; q.tz = q.home.z; return; }

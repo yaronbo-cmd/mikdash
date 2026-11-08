@@ -71,7 +71,7 @@ export const CORNER = {
       const gy = X.ground(pos.x, pos.z), hh = pos.y - 0.8 - gy; sh.position.set(pos.x, gy + 0.06, pos.z); const k = 1 + hh * 0.18; sh.scale.set(1.5 * k, 1.2 * k, 1); sh.material.opacity = clamp(0.5 - hh * 0.04, 0.08, 0.5);
     }
     function swipe(dt) {
-      const now = A.t, iv = now - A.lastSw; A.lastSw = now;
+      const now = performance.now() / 1000, iv = now - A.lastSw; A.lastSw = now;   // (the steps by the finger's clock)
       const rate = iv > 0 ? 1 / iv : 0;
       const grade = rate >= 2.0 && rate <= 2.6 ? 'gold' : rate >= 1.6 && rate <= 3.2 ? 'good' : 'ok';
       A.w += 1; X.play('wheel'); X.haptic && X.haptic(8);
@@ -113,7 +113,7 @@ export const CORNER = {
         A.t += dt;
         if (A.phase === 'lift') {
           // the wheel turns while the steps come; it stops on the ratchet when they stop (the stone never falls)
-          const rate = A.taps.filter((t) => A.t - t < 1.2).length / 1.2;
+          const rn = performance.now() / 1000, rate = A.taps.filter((t) => rn - t < 1.2).length / 1.2;
           const heavy = lv >= 2 && rate < 2;
           const target = heavy ? 0 : rate * 0.55;
           A.v = lerp(A.v, target, 1 - Math.exp(-dt * 4));
@@ -136,13 +136,13 @@ export const CORNER = {
         if (A.phase !== 'done') stonePos(dt);
       },
       down(p) {
-        A.p0 = { x: p.x, y: p.y, t: A.t, ax: A.ax };
+        A.p0 = { x: p.x, y: p.y, t: performance.now() / 1000, ax: A.ax };
         if (A.phase === 'lower') { A.hold = true; X.hand(null); X.play('rope'); }
       },
       move(p) { if (A.phase === 'lower' && A.p0) A.ax = clamp(A.p0.ax + (p.x - A.p0.x) * 0.012, -1.6, 1.6); },
       up(p) {
         const P0 = A.p0; A.p0 = null; A.hold = false;
-        if (A.phase === 'lift' && P0 && p.y - P0.y >= 40 && A.t - P0.t <= 0.45) { swipe(); X.hand(null); }
+        if (A.phase === 'lift' && P0 && p.y - P0.y >= 40 && performance.now() / 1000 - P0.t <= 0.45) { swipe(); X.hand(null); }
       },
       end() { X.props.remove(mark); X.props.remove(sh); C.rope.show(false); for (const w of crew) SH.crew.remove(w); if (!SH.cornerSet) X.props.remove(stone); else SH.cornerStone = stone; },
       at() { return { x: CORNER_AT.x, y: gP + 2, z: CORNER_AT.z }; },

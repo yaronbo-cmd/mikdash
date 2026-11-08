@@ -26,7 +26,7 @@ export function createH109Director(o) {
   const G = () => (typeof o.G === 'function' ? o.G() : o.G);
   const save = () => { try { o.persist && o.persist(); } catch (e) { /* the game's */ } };
   const emit = (t, d) => { try { o.emit && o.emit(t, d); } catch (e) { /* */ } };
-  const log = (...a) => { try { (globalThis.__H109_LOG || (globalThis.__H109_LOG = [])).push(a.join(' ')); } catch (e) { /* */ } };
+  const log = (...a) => { try { const L = globalThis.__H109_LOG || (globalThis.__H109_LOG = []); L.push(a.join(' ')); if (L.length > 300) L.splice(0, L.length - 300); } catch (e) { /* */ } };
   let M = null, P = null, started = false, act = null, mission = null, phase = 'off', tPhase = 0, film = null, lastMs = 0, hidden = false;
   const scene = S0.scene, camera = S0.camera;
   const ground = (x, z) => S0.groundAt(x, z);
@@ -68,6 +68,8 @@ export function createH109Director(o) {
   function scr(x, y, z) { const q = view.project(x, y, z); return { x: q.x, y: q.y, on: q.on }; }
   const hudEl = (e) => !!(e && e.closest && e.closest('.gm-top,.gm-tabs,.gm-menu,.gm-modal,button,.h109-ui'));
   function onPtr(e) {
+    // (a finger lifted after its act ended — the act's last beat, the film — still frees the touch: else every later touch is lost)
+    if ((e.type === 'pointerup' || e.type === 'pointercancel') && ptr.down && e.pointerId === ptr.id && (!act || phase !== 'act')) { ptr.down = false; return; }
     if (!act || phase !== 'act') return;
     const c = canvas();
     if (e.type === 'pointerdown') {
@@ -225,7 +227,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function beginAct() {
     const A = ACTS[mission.k]; if (!A) { M.done({ stars: 0 }); openMission(); return; }
     props().marker(null);
-    phase = 'act'; tPhase = 0; line('');
+    phase = 'act'; tPhase = 0; line(''); ptr.down = false;
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
     document.body.classList.add('h109-act');

@@ -123,6 +123,9 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   // time. The investor reel's curated behavior is on only once its "הרגע הבא ✦" was pressed in this demo save (G.story.reel);
   // a stage picked from "שלבים ▾" starts a fresh demo save without it.
   const reelOn = () => !!(G && G.demo && G.story && G.story.reel);
+  // ── h109 ── a one-minigame page (window.__H109_ONLY, or ?only= / #only=) always starts fresh and without the opening films
+  const H9_ONLY = (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
+  if (H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
   let { G, isNew } = S.load(store, keyOf(), now());
   let started = false, whole = false, dayOpen = '', tod = null;
   let opening = false;                     // ── build7 ── the opening vision is on screen (the world shows the finished House)
@@ -2518,6 +2521,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       emit('ftue', 0);
       if (landed) await openTitle;          // (the title and the plan came at the opening's swap, over the bare Mount)
       else {
+        if (H109_ON && H9_ONLY) { ui.refresh(); h9Make().start(); return; }   // ── h109 ── (a one-minigame page: straight to it)
         const plan = W.showPlan(2600 * F);
         await ui.vision(T.vision, 2200 * F);
         if (gen !== hero.gen) return;

@@ -52,7 +52,12 @@ export const READ = {
   },
   make(m, X) {
     const lv = X.level(), s = m.s, b = SH.bould[s], st = READ.stand(m, X), gy = X.ground(b[0], b[1]);
-    const nW = [3, 4, 5][lv - 1], phiH = Math.atan2(st.z - b[1], st.x - b[0]);
+    const nW = [3, 4, 5][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]);
+    // (ירון 8.11: the light hung off the rock's edge) the patch travels on the face that both the kohen and the camera see: halfway
+    // from his side toward the camera's
+    const ws0 = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.8 + 8, el: 26, side: -0.95, lift: b[2] * 0.35 });
+    const phiC = Math.atan2(ws0.p[2] - b[1], ws0.p[0] - b[0]);
+    const phiH = phiK + Math.atan2(Math.sin(phiC - phiK), Math.cos(phiC - phiK)) * 0.55;
     const T = X.THREE;
     const A = { step: 'turn', th: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { line: null, space: null, water: null }, fallen: 0, t: 0, creakT: 0, early: 0, wind: lv >= 3 };
     // the lines: one true; at L3 a second that ends inside the rock (shorter). They show only when the light crosses them.
@@ -66,27 +71,46 @@ export const READ = {
     const off = (hash(s, 3) > 0.5 ? 1 : -1) * (0.22 + hash(s, 5) * 0.18);
     A.lines.push(mkLine(phiH + off, H0, H1, true));
     if (lv >= 3) A.lines.push(mkLine(phiH - off * 0.9, H0 + 1.2, H1 * 0.62, false));
-    // the light: from the bronze mirror in his hands to a bright spot on the rock (a beam that reads as light: additive, a glow)
+    // the light (ירון 8.11: "the light is not clear, it reveals no line"): the bronze mirror in his hands throws a warm patch of sun
+    // that lies ON the rock's face (a feathered patch along the face, not a disc turned to the camera), joined to the mirror by a
+    // faint beam. Turning the mirror walks it across the face; the crack shows faintly as the patch nears it, and fully once on it.
+    if (!SH.sunTex) {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
+      const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,246,214,1)'); gr.addColorStop(0.35, 'rgba(255,226,150,0.75)'); gr.addColorStop(0.7, 'rgba(255,200,110,0.25)'); gr.addColorStop(1, 'rgba(255,190,100,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SH.sunTex = new T.CanvasTexture(cv);
+    }
     const beamG = new T.BufferGeometry(); beamG.setAttribute('position', new T.BufferAttribute(new Float32Array(9), 3));
-    const beam = new T.Mesh(beamG, X.props.M.beam); beam.frustumCulled = false; beam.renderOrder = 998; X.props.root.add(beam);
-    const glow = new T.Mesh(new T.CircleGeometry(1.1, 20), X.props.M.beam.clone()); glow.material.opacity = 0.55; glow.renderOrder = 998; X.props.root.add(glow);
-    const mirror = new T.Mesh(new T.CircleGeometry(0.32, 16), new T.MeshStandardMaterial({ color: '#C8964A', metalness: 0.9, roughness: 0.25, side: T.DoubleSide })); X.props.root.add(mirror);
+    const beamM = X.props.M.beam.clone(); beamM.opacity = 0.13;
+    const beam = new T.Mesh(beamG, beamM); beam.frustumCulled = false; beam.renderOrder = 998; X.props.root.add(beam);
+    const gR = clamp(b[2] * 0.42, 1.0, 2.8);
+    const glowM = new T.MeshBasicMaterial({ map: SH.sunTex, color: 0xFFFFFF, transparent: true, opacity: 0.9, depthWrite: false, blending: T.AdditiveBlending });
+    const glow = new T.Mesh(new T.PlaneGeometry(gR * 2, gR * 1.5), glowM); glow.renderOrder = 997; X.props.root.add(glow);
+    const mirror = new T.Mesh(new T.CircleGeometry(0.32, 16), new T.MeshStandardMaterial({ color: '#C8964A', metalness: 0.9, roughness: 0.25, emissive: '#7A5A20', emissiveIntensity: 0.6, side: T.DoubleSide })); X.props.root.add(mirror);
     const hp = {};
     const spot = {};
+    const nrm = new T.Vector3();
     function light(dt) {
       if (A.wind) A.th += Math.sin(A.t * 9) * 0.0035 + Math.sin(A.t * 23) * 0.0018;
       const phi = phiH + A.th; surf(X, b, phi, b[2] * 0.36, spot);
       X.stages.heroXYZ(hp); const mx = hp.x + Math.cos(phiH + Math.PI) * -0.9, mz = hp.z + Math.sin(phiH + Math.PI) * -0.9, my = hp.y + 2.3;
       mirror.position.set(mx, my, mz); mirror.lookAt(spot.x, spot.y, spot.z);
-      const P = beamG.attributes.position.array, px = -Math.sin(phi) * 0.7, pz = Math.cos(phi) * 0.7;
+      const P = beamG.attributes.position.array, px = -Math.sin(phi) * gR * 0.6, pz = Math.cos(phi) * gR * 0.6;
       P[0] = mx; P[1] = my; P[2] = mz; P[3] = spot.x + px; P[4] = spot.y; P[5] = spot.z + pz; P[6] = spot.x - px; P[7] = spot.y + 0.2; P[8] = spot.z - pz; beamG.attributes.position.needsUpdate = true; beamG.computeBoundingSphere();
-      glow.position.set(spot.x + Math.cos(phi) * 0.15, spot.y, spot.z + Math.sin(phi) * 0.15); glow.lookAt(X.camera.position);
+      // the patch lies on the face (along its normal, a hair off it), not a disc turned to the camera
+      nrm.set(spot.x - b[0], spot.y - (gy + b[2] * 0.15), spot.z - b[1]).normalize();
+      glow.position.set(spot.x + nrm.x * 0.3, spot.y + nrm.y * 0.3, spot.z + nrm.z * 0.3); glow.lookAt(glow.position.x + nrm.x, glow.position.y + nrm.y, glow.position.z + nrm.z);
+      glowM.opacity = 0.8 + Math.sin(A.t * 5) * 0.08;
+      let near1 = 1e9;
       for (const L of A.lines) {
-        const near = Math.abs(Math.atan2(Math.sin(phi - L.phi), Math.cos(phi - L.phi))) < 0.07;
-        if (near && !L.seen) { L.seen = true; X.play('find'); X.word({ x: L.pts[4].x, y: L.pts[8].y + 1.2, z: L.pts[4].z }, 'קו הבקיעה!'); }
-        L.shown = clamp(L.shown + dt * (L.seen ? 2.2 : -2), 0, 1); L.mesh.material.opacity = L.shown * (lv >= 2 ? 0.75 : 0.95);
+        const d = Math.abs(Math.atan2(Math.sin(phi - L.phi), Math.cos(phi - L.phi)));
+        near1 = Math.min(near1, d);
+        if (d < (lv >= 3 ? 0.07 : 0.1) && !L.seen) { L.seen = true; X.play('find'); X.word({ x: L.pts[4].x, y: L.pts[8].y + 1.2, z: L.pts[4].z }, 'קו הבקיעה!'); if (!A.pick) { X.line('הקישו על הקו · יתד'); X.hand({ x: L.pts[2].x, y: L.pts[2].y, z: L.pts[2].z }, 0, 12); } }
+        // before it is found it shows faintly as the light comes near (at L1 from farther), after — fully, and the patch sits on it
+        const prox = L.seen ? 1 : clamp(1 - d / (lv >= 2 ? 0.3 : 0.45), 0, 1) ** 2 * 0.65;
+        L.shown += (prox - L.shown) * Math.min(1, dt * 6); L.mesh.material.opacity = L.shown * (lv >= 2 ? 0.8 : 0.95);
       }
       const vis = A.step === 'turn' || A.step === 'wedge'; beam.visible = glow.visible = vis; mirror.visible = A.step !== 'done';
+      void near1;
     }
     function lineDist(L, p) {
       let best = 1e9, bu = 0; const n = L.pts.length;
@@ -142,8 +166,8 @@ export const READ = {
       begin() {
         const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.8 + 8, el: 26, side: -0.95, lift: b[2] * 0.35 });   // (from his side: he never stands on the line)
         X.shot(ws.p, ws.t, 0.9);
-        X.line('גררו: האור מגלה קו');
-        X.hand({ x: b[0], y: gy + b[2] * 0.4, z: b[1] }, 40, 0);
+        X.line('גררו הצידה · האור מחפש סדק');
+        { const q = {}; surf(X, b, phiH, b[2] * 0.36, q); X.hand({ x: q.x, y: q.y, z: q.z }, -120, 0); }
         X.stages.hero.setTool && X.hero.arm(null);
       },
       update(dt) {
@@ -163,7 +187,7 @@ export const READ = {
         if (A.step === 'water') { A.hold = true; X.play('pour'); if (SH.jarMan) { SH.crew.setRole(SH.jarMan, 'hold', { item: 'jar' }); try { SH.crew.A.pose(SH.jarMan.a, 'pour'); } catch (e) { /* */ } } }
       },
       move(p) {
-        if (A.step === 'turn' || (A.step === 'wedge' && !A.pick)) A.th = clamp(A.th0 + (A.p0.x - p.x) * 0.0045, -0.75, 0.75);
+        if (A.step === 'turn' || (A.step === 'wedge' && !A.pick)) A.th = clamp(A.th0 + (A.p0.x - p.x) * 0.0045, -0.6, 0.6);
       },
       up(p) {
         const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && performance.now() / 1000 - A.tDown < 0.35;   // (a tap by the finger's clock, not the frames')

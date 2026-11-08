@@ -28,6 +28,19 @@ export function createH109Director(o) {
   const emit = (t, d) => { try { o.emit && o.emit(t, d); } catch (e) { /* */ } };
   const log = (...a) => { try { const L = globalThis.__H109_LOG || (globalThis.__H109_LOG = []); L.push(a.join(' ')); if (L.length > 300) L.splice(0, L.length - 300); } catch (e) { /* */ } };
   let M = null, P = null, started = false, act = null, mission = null, phase = 'off', tPhase = 0, film = null, lastMs = 0, hidden = false;
+  // one minigame only (ירון 8.11: "קישור יעודי לכל אחד מהמשחקונים"): a page baked with window.__H109_ONLY = 'read' (or ?only=read / #only=read)
+  // opens straight on that minigame's first mission, and after each act goes to its next one; after the last, the page starts over
+  const ONLY = (() => {
+    try {
+      const q = globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1];
+      return q && PLAN.some((m) => m.k === q) ? q : null;
+    } catch (e) { return null; }
+  })();
+  function onlyNext() {
+    if (!ONLY || !M) return;
+    while (M.mission() && M.mission().k !== ONLY) { if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6); M.done({ stars: 2 }); }
+    if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6);
+  }
   const scene = S0.scene, camera = S0.camera;
   const ground = (x, z) => S0.groundAt(x, z);
   const hero = S0.hero;
@@ -261,7 +274,13 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
     phase = 'walk';
+    if (ONLY) {
+      onlyNext();
+      if (!M.mission()) { line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem('bh_beta2'); } catch (e) { /* */ } location.reload(); }, 2500); return; }
+      syncMount(true);
+    }
     openMission();
+    if (ONLY) setTimeout(() => goTo(), 400);
   }
   /** spec ש7: the camera rises over what was just done and the crews round it, then the follow camera takes him again */
   function pullBack(at, secs) {
@@ -346,12 +365,14 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // the crews at work from the first second (rule 4): three crews at the Mount
     try { if (S0.setCrews) S0.setCrews('har', 3, [0, 1, 2]); } catch (e) { /* */ }
     syncMount(true);
+    onlyNext();
     if (ACTS.__init) call(ACTS.__init, X);
     openMission();
+    if (ONLY) setTimeout(() => goTo(), 400);   // (straight to it)
   }
   return {
     owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end'), start, frame, marks, goal, goTo,
-    get M() { return M; },
+    get M() { return M; }, only: ONLY,
     state: () => ({ started, phase, mission: mission && mission.id, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
     act: () => act,
     X,

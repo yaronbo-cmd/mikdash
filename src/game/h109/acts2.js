@@ -155,7 +155,7 @@ export const READ = {
       for (const w of A.wedges) X.props.remove(w.w); for (const L of A.lines) X.props.remove(L.mesh);
       // every split leaves chips for the waste pile (the trimming); a crooked one more, a lost rock the whole of it
       let waste = 1;
-      if (lost) { X.word(at, 'פעמיים עקום: הסלע נפסל · הצוות גורר לפסולת'); waste = 3; }
+      if (lost) { X.word(at, 'פעמיים עקום: הסלע נפסל · הצוות גורר לפסולת'); waste = 3; try { X.loss && X.loss(20, at, 'הסלע נפסל', 1); } catch (e) { /* */ } }   // ── h111 ── (a real loss costs points, the owner 8.11: one scoring for the whole game) ── /h111 ──
       else if (crooked) { X.word(at, wrong ? 'קו לא נכון: נבקע עקום · כשר' : 'נבקע במדרגות · כשר'); waste = 2; }
       else if (g.line === 'gold' && g.space === 'gold' && g.water === 'gold') { X.bonus(150, 'great', 'מהודר · יישר כוח'); }
       if (waste) wasteAdd(X, waste, at);
@@ -331,6 +331,7 @@ export const PAVE = {
         const J = joints(y), Jb = joints(y - 1); let joj = false; for (const j of J) if (Jb.has(j)) joj = true;
         const bk = cell[y].some((c) => c && c.broken), filled = A.fill.some((f) => f.y === y);
         const mid = cw(W / 2 - 0.5, y), at = { x: mid.x, y: G.base + 1.2, z: mid.z };
+        if (bk) { try { X.loss && X.loss(20, at, 'לוח שבור נסדק בשורה', 1); } catch (e) { /* */ } }   // ── h111 ── (the broken slab laid in a row: damage) ── /h111 ──
         if (joj || bk || filled) { A.kasher[y] = true; X.word(at, bk ? 'לוח שבור נסדק · כשר' : filled ? 'הצוות מילא באבן קטנה · כשר' : 'חיבור על חיבור · כשר'); if (joj || bk) { for (const c of cell[y]) if (c) c.wob = 0.6; X.shake(0.12, 0.2); } }
         else { X.bonus(100, 'row', 'שורה סגורה'); A.sweep = { y, t: 0 }; X.play('tier'); }
       }

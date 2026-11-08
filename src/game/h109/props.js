@@ -100,6 +100,7 @@ export function createProps({ THREE, scene, ground, stages }) {
           const u = i / n, x = a.x + (b.x - a.x) * u, z = a.z + (b.z - a.z) * u; let y = a.y + (b.y - a.y) * u - sag * 4 * u * (1 - u);
           const g = ground(x, z) + rad * 1.5; if (y < g) y = g; pts[i].set(x, y, z);
         }
+        curve.updateArcLengths();   // ── h111 ── (the arc lengths were cached at the first, all-zero points: the tube collapsed to a point) ── /h111 ──
         const old = mesh.geometry; mesh.geometry = new THREE.TubeGeometry(curve, n, rad, 4, false); old.dispose();
       },
       show(v) { mesh.visible = !!v; },

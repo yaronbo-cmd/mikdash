@@ -62,7 +62,8 @@ import { createEndChain } from './hooks/endchain.js';
 import * as RD20 from './hooks/riddle.js';
 import { MISHMAROT } from '../calendar.js';
 // ── /hook20 ──
-import { createH109Director } from './h109/director.js';   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
+import { createH109Director } from './h109/director.js';
+import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
 
 const DEFAULTS = {
@@ -126,6 +127,10 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   // ── h109 ── a one-minigame page (window.__H109_ONLY, or ?only= / #only=) always starts fresh and without the opening films
   const H9_ONLY = (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
   if (H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
+  const H11_ONLY = ['stakes', 'bond', 'plumb', 'lever', 'gates', 'closing'].includes(H9_ONLY);   // ── h111 ── (a stage-02 minigame's own page)
+  // ── h111 ── the whole of stage 02 on its own page (window.__H111_FULL, or ?stage=2 / #stage=2): a fresh game with the Mount done
+  const H11_FULL = (() => { try { return !!globalThis.__H111_FULL || /[?&#]stage=2\b/.test(String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')); } catch (e) { return false; } })();
+  if (H11_FULL && !H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
   let { G, isNew } = S.load(store, keyOf(), now());
   let started = false, whole = false, dayOpen = '', tod = null;
   let opening = false;                     // ── build7 ── the opening vision is on screen (the world shows the finished House)
@@ -291,7 +296,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (type === 'course' && d && d.by !== 'crew' && !d.away) {
       const P = PROJ[d.id], sv = S.siteView(G, d.id);
       EC.request({ kind: 'course', id: d.id, stones: P ? P.P : 0, noStamp: !!(JU && TW && TW.on), name: sv ? sv.name : '' });
-    } else if (type === 'stageDone' && d && !d.skipped && d.id && !(d.id === 'har' && h9Quiet)) {   // ── h109 ── (stage 01 ends on its own film, then the next mission opens in the world: no cards)
+    } else if (type === 'stageDone' && d && !d.skipped && d.id && !((d.id === 'har' || d.id === 'wall') && h9Quiet)) {   // ── h109 ── (stage 01 ends on its own film, then the next mission opens in the world: no cards)
       const P = PROJ[d.id];
       EC.request({ kind: 'stage', id: d.id, stones: P ? P.C * P.P : 0, noStamp: !!(JU && TW && TW.on) });
     }
@@ -507,6 +512,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     addEventListener('pagehide', persist);
     emit('start', { isNew, demo: G.demo });
     if (isNew || G.ftue < 99) runFtue();
+    else if (H109_ON && S.isDone(G, 'har') && !S.isDone(G, 'wall')) setTimeout(() => { if (!h11Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h111 ── (stage 02 is the director's) ── /h111 ──
     else welcomeBack(before, rep, daily, { landed, synced: true });
     return api;
   }
@@ -526,6 +532,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /* Push the whole state to the world. snap: an earlier snapshot to show (for the offline timelapse). */
   function syncWorld(snap) {
     for (const s of STAGES) {
+      if (!snap && G.st[s.id] && G.st[s.id].dir && !G.st[s.id].done) continue;   // ── h111 ── (a site its director builds: the director sets it, below) ── /h111 ──
       const o = snap ? snap.st[s.id] : { status: S.statusOf(G, s.id), p: S.progressOf(G, s.id) };
       W.setStage(s.id, o.status, o.p, { instant: true });
       // ── build6 ── the site as it stands: phase, stones, stock — ── flow11 ── at once (the count landed: no eased ripple that
@@ -534,6 +541,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       if (!snap && o.status === 'building') { siteInfo(s.id); syncSite(s.id, true, true); if (W.has('setWork') && W.has('wallView')) W.setStage(s.id, 'building', undefined, { instant: true }); }
     }
     W.setBoulders(snap ? snap.bh : G.bh);
+    try { if (!snap && H9 && H9.resync) H9.resync(); } catch (e) { /* the director's */ }   // ── h111 ── ── /h111 ──
     if (!bOrder) readBoulderSpots();                    // ── flow9 ── the boulder field (SITE9), once the world stands
     if (S.isDone(G, 'har')) {
       // the builder waits at the site the goal points to
@@ -1796,6 +1804,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function syncSite(id, force, instant) {
     const s = G.st[id];
     if (!s || s.done) return;
+    if (s.dir) return;   // ── h111 ── (a site its director builds: the director sets the world) ── /h111 ──
     if (whole) return;   // (the whole-Temple view shows the finished House: a site's sync would strip the Mount's plaza under it — the owner, 28.9; exitWhole resyncs)
     if (!W.has('setWork')) {
       const p = S.progressOf(G, id);
@@ -2521,6 +2530,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       emit('ftue', 0);
       if (landed) await openTitle;          // (the title and the plan came at the opening's swap, over the bare Mount)
       else {
+        if (H109_ON && (H11_ONLY || H11_FULL)) { h11Only(); return; }   // ── h111 ── (a stage-02 minigame's own page: the Mount done, straight to it) ── /h111 ──
         if (H109_ON && H9_ONLY) { ui.refresh(); h9Make().start(); return; }   // ── h109 ── (a one-minigame page: straight to it)
         const plan = W.showPlan(2600 * F);
         await ui.vision(T.vision, 2200 * F);
@@ -2552,6 +2562,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   function resumeFtue() {
     if (H109_ON && !S.isDone(G, 'har')) { if (S.statusOf(G, 'har') !== 'building') S.startBuild(G, 'har'); syncSite('har', true); W.heroShow(true); ui.refresh(); h9Make().start(); return; }   // ── h109 ── ── /h109 ──
+    if (h11Begin()) return;   // ── h111 ── ── /h111 ──
     if (!S.isDone(G, 'har') && S.statusOf(G, 'har') !== 'building') { S.startBuild(G, 'har'); syncSite('har', true); W.setBoulders(G.bh); }
     const i = S.pickBoulder(G.bh, {}, bOrder);   // ── flow9 ── the field's path
     if (i >= 0 && G.ftue <= 2) { W.heroPlace({ boulder: i }); lookAtBoulder(i, 2400); }
@@ -3017,8 +3028,49 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     const r = S.recommend(G);
     if (r && r.id) { try { W.focus(r.id); } catch (e) { /* */ } }
     ui.refresh();
+    h11Begin();   // ── h111 ── (the end film, then the next stage's first mission opens in the world: the owner 8.11 00:22) ── /h111 ──
   }
   // ── /h109 ──
+  // ── h111 ── build 111: stage 02 "חומת העזרה" in the old world — the same director with stage 02's pack (h111/pack.js); it owns the
+  // courts' wall while it is built; at its end the stage is complete in the world and the next stage opens (no card)
+  function h11Make() {
+    const S0 = world && (world.stages || world);
+    if (!JU && ui.root) juiceMake();
+    try { if (H9 && H9.site !== 'wall' && H9.dispose) H9.dispose(); } catch (e) { /* */ }
+    if (H9 && H9.site === 'wall') return H9;
+    const pack = makePack02({ setTime: (k) => W.setTimeOfDay(k), rain: (on) => W.rain(on), restoreTime: () => { tod = null; syncTime(); } });
+    H9 = createH109Director({ G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), stages: S0, view, ui, sfx, haptic, juice: () => JU, score: SCR,
+      bonus: (n, why, label) => scoreBonus(n, why, label), twin: () => TW, onDone: () => h11Done(), pack });
+    return H9;
+  }
+  function h11Begin() {
+    if (!H109_ON || !S.isDone(G, 'har') || S.isDone(G, 'wall')) return false;
+    if (!S.beginDirected(G, 'wall')) return false;
+    if (G.ftue < 99) G.ftue = 99;
+    persist(); W.heroShow(true); ui.refresh();
+    h11Make().start();
+    return true;
+  }
+  function h11Done() {
+    if (S.isDone(G, 'wall')) return;
+    h9Quiet = true;
+    const c = S.completeStage(G, 'wall');
+    completeFlow(c, false);
+    persist();
+    const r = S.recommend(G);
+    if (r && r.id) { try { W.focus(r.id); } catch (e) { /* */ } }
+    ui.refresh();
+  }
+  /** a stage-02 minigame's own page: the Mount stands done (quietly), the wall's director opens straight on that minigame */
+  function h11Only() {
+    h9Quiet = true;
+    if (!S.isDone(G, 'har')) { S.completeStage(G, 'har'); G.bh = (G.bh || []).map(() => 0); }
+    G.ftue = 99;
+    try { W.setStage('har', 'done', 1, { instant: true }); W.setBoulders(G.bh); } catch (e) { /* */ }
+    ui.refresh();
+    h11Begin();
+  }
+  // ── /h111 ──
   function juiceMake() {
     JU = createJuice18({
       ui, sfx, haptic, view, stages: () => world && (world.stages || world), G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), twin: () => TW, score: () => SCR /* ── hook19 ── */,

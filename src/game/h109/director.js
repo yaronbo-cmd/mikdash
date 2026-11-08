@@ -21,7 +21,16 @@ const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const ease = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 
+// ── h111 ── (build 111) the same director plays stage 02 "חומת העזרה" (h111/pack.js): a stage is a pack — its plan, its save, its acts,
+// how the world shows its progress, what closes a unit, the night between its levels, its end film. Stage 01's pack is the default.
+const PACK01 = {
+  id: 'har', key: 'h109', PLAN, create: createH109, ACTS, crews: ['har', 3, [0, 1, 2]], icon: '⛏',
+  endTitle: 'שיטוח ההר נבנה!', endSub: 'הר הבית חמש מאות אמה על חמש מאות אמה (מדות ב, א)',
+  film: [[[60, 260, 520], [0, 0, -40], 3.0], [[330, 70, 150], [250, 10, 60], 2.6], [[-200, 60, -260], [-280, 10, -150], 2.6], [[-246, 16, 350], [-276, 2, 372], 2.4], [[180, 300, 620], [27, 0, 66], 1.4]],
+};
+// ── /h111 ──
 export function createH109Director(o) {
+  const PK = o.pack || PACK01, ACTS = PK.ACTS, PLAN = PK.PLAN;   // ── h111 ── ── /h111 ──
   const S0 = o.stages, view = o.view, ui = o.ui;
   const G = () => (typeof o.G === 'function' ? o.G() : o.G);
   const save = () => { try { o.persist && o.persist(); } catch (e) { /* the game's */ } };
@@ -123,6 +132,13 @@ export function createH109Director(o) {
 .h109-chip.pop{transform:scale(1.18)}
 .h109-qetz{left:50%;top:30%;transform:translate(-50%,-50%) scale(.6);opacity:0;font:900 44px/1 Heebo,system-ui;color:#FFD66E;text-shadow:0 0 3px #6A4204,0 0 3px #6A4204,0 4px 14px #000a;transition:opacity .15s,transform .25s cubic-bezier(.2,1.6,.4,1)}
 .h109-qetz.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.h109-loss{transform:translate(-50%,-50%) scale(.7);opacity:0;display:flex;flex-direction:column;align-items:center;gap:2px;transition:opacity .2s,transform .5s cubic-bezier(.2,1.5,.4,1);z-index:60}
+.h109-loss.on{opacity:1;transform:translate(-50%,-110%) scale(1)}
+.h109-loss b{font:900 40px/1 Heebo,system-ui;color:#FF6B57;text-shadow:0 0 3px #4A0E06,0 0 3px #4A0E06,0 4px 12px #000a}
+.h109-loss span{font:800 16px/1.2 Heebo,system-ui;color:#FFF0E8;background:rgba(74,14,6,.78);padding:4px 10px;border-radius:10px}
+.h109-loss small{font:800 13px/1 Heebo,system-ui;color:#FFD9CF;text-shadow:0 1px 3px #000}
+.gm-sc.h109-hurt{animation:h109hurt .6s ease}
+@keyframes h109hurt{0%,100%{transform:none;filter:none}20%{transform:translateX(-4px);filter:hue-rotate(-40deg) saturate(2)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
 .h109-meter{width:150px;height:14px;border-radius:8px;background:rgba(28,20,10,.55);border:2px solid rgba(255,236,190,.8);overflow:hidden;transform:translate(-50%,-50%)}
 .h109-meter b{display:block;height:100%;width:0;background:linear-gradient(90deg,#7FB5E8,#3E7FC0)}
 .h109-meter.off{display:none}
@@ -198,6 +214,15 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function openMission() {
     mission = M.mission();
     if (!mission) { finishStage(); return; }
+    // ── h111 ── between two levels the pack's own film (stage 02: rain at night, the sun in the morning; Taanit 23a) ── /h111 ──
+    if (PK.before && !ONLY) {
+      let p = null; try { p = PK.before(mission, X, M); } catch (e) { p = null; }
+      if (p && typeof p.then === 'function') {
+        phase = 'film'; tPhase = 0; act = null; props().marker(null); line('');
+        p.catch(() => {}).then(() => { CAM.on = false; phase = 'walk'; save(); openMission(); });
+        return;
+      }
+    }
     const sp = standOf(mission);
     phase = 'walk'; tPhase = 0; act = null;
     props().marker(sp ? { x: sp.mx != null ? sp.mx : sp.x, z: sp.mz != null ? sp.mz : sp.z } : null);
@@ -210,16 +235,16 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     save();
   }
   /** the director's marks for twin.js (its bubble, its edge arrow, its compass): the open mission while he walks */
-  const MK = [{ job: 'h109', icon: '⛏', label: '', site: 'har', x: 0, y: 0, z: 0 }];
+  const MK = [{ job: 'h109', icon: PK.icon || '⛏', label: '', site: PK.id, x: 0, y: 0, z: 0 }];
   const NOMK = [];
   function marks() {
     if (!owns() || phase !== 'walk' || !mission) return NOMK;
     const sp = standOf(mission); if (!sp) return NOMK;
     const A = ACTS[mission.k], m = MK[0];
-    m.icon = (A && A.icon) || '⛏'; m.label = (A && A.title) || ''; m.x = sp.mx != null ? sp.mx : sp.x; m.z = sp.mz != null ? sp.mz : sp.z; m.y = ground(m.x, m.z) + 5;
+    m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = (A && A.title) || ''; m.x = sp.mx != null ? sp.mx : sp.x; m.z = sp.mz != null ? sp.mz : sp.z; m.y = ground(m.x, m.z) + 5;
     return MK;
   }
-  const GOAL = { x: 0, y: 0, z: 0, icon: '⛏' };
+  const GOAL = { x: 0, y: 0, z: 0, icon: PK.icon || '⛏' };
   function goal() { const L = marks(); if (!L.length) return null; GOAL.x = L[0].x; GOAL.y = L[0].y; GOAL.z = L[0].z; GOAL.icon = L[0].icon; return GOAL; }
   /** the compass: he is brought to the open mission's stand */
   function goTo() { if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false; try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
@@ -236,11 +261,35 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     sparks(x, y, z, n = 10) { try { S0.sparkBurst(x, y, z, n, 5, 6); } catch (e) { /* */ } },
     end: (res) => endAct(res),
     level: () => (mission ? M.levelOf(mission) : 1),
+    loss: (n, at, label, stones) => loss(n, at, label, stones),   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
+    save: () => save(),
+    get pack() { return PK; },
   };
+  /* ───────── ── h111 ── real damage (spec "הניקוד בהפסד", approved 8.11): a cracked or broken stone −20, a great stone fallen −40;
+     stones off the stock; the gold run ends; never under 0 and at most 80 in one mission. A miss without damage costs nothing ── */
+  let lossNow = 0;
+  function loss(n, at, label = '', stones = 0) {
+    const k = Math.max(0, Math.min(n | 0, 80 - lossNow)); lossNow += k;
+    let d = 0; try { if (k && SCo && SCo.sub) d = SCo.sub(k, 'damage').n; else if (SCo && SCo.breakRun) SCo.breakRun(); } catch (e) { /* */ }
+    try { const g = G(); if (stones > 0 && g && g.res) g.res.stone = Math.max(0, (g.res.stone || 0) - stones); } catch (e) { /* */ }
+    try { if (ui && ui.refresh) ui.refresh(); } catch (e) { /* */ }
+    uiMount();
+    const q = at ? scr(at.x, at.y, at.z) : { x: innerWidth / 2, y: innerHeight * 0.4 };
+    const el = document.createElement('div'); el.className = 'h109-ui h109-loss'; el.innerHTML = `<b>${d ? '−' + d : '0'}</b>${label ? `<span>${label}</span>` : ''}${stones ? `<small>−${stones} ${stones === 1 ? 'אבן' : 'אבנים'} מהמלאי</small>` : ''}`;
+    el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('on')); setTimeout(() => el.remove(), 2600);
+    try { const tb = document.querySelector('.gm-sc'); if (tb) { tb.classList.add('h109-hurt'); setTimeout(() => tb.classList.remove('h109-hurt'), 700); } } catch (e) { /* */ }
+    X.play('crack'); try { if (o.haptic) o.haptic([30, 40, 60]); } catch (e) { /* */ }
+    chipSync(false);
+    log('loss', n, d, label, stones);
+    emit('h109loss', { n: d, stones, label });
+    return d;
+  }
+  // ── /h111 ──
   function beginAct() {
     const A = ACTS[mission.k]; if (!A) { M.done({ stars: 0 }); openMission(); return; }
     props().marker(null);
-    phase = 'act'; tPhase = 0; line(''); ptr.down = false;
+    phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
     document.body.classList.add('h109-act');
@@ -268,8 +317,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     M.done({ ...res, stars });
     syncMount(false);
     // a sector closed: its grade on the hill and the pull-back (spec ש7: the hill came down there)
-    const sec = m.k === 'pave' ? M.sectorGrade(m.s) : null;
-    if (sec) { bonus(250, 'course', `גזרה ${m.s + 1} · ${sec}`); try { if (J) J.big('course', { title: `גזרה ${m.s + 1} מתוך 9`, sub: sec }); } catch (e) { /* */ } }
+    // ── h111 ── (a pack says what closes a unit: stage 01 a sector, stage 02 a stretch of the wall) ── /h111 ──
+    const U = PK.unitEnd ? (() => { try { return PK.unitEnd(m, M); } catch (e) { return null; } })() : (m.k === 'pave' && M.sectorGrade(m.s) ? { title: `גזרה ${m.s + 1} מתוך 9`, sub: M.sectorGrade(m.s), bonus: `גזרה ${m.s + 1} · ${M.sectorGrade(m.s)}` } : null);
+    const sec = U ? U.sub : null;
+    if (U) { bonus(250, 'course', U.bonus || U.title); try { if (J) J.big('course', { title: U.title, sub: U.sub }); } catch (e) { /* */ } }
     await pullBack(at, sec ? 3.2 : 1.8);
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
@@ -299,6 +350,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const p = Math.max(0.03, M.progress() * 0.97);
     if (Math.abs(p - progShown) < 0.004 && !instant) return;
     progShown = p;
+    if (PK.sync) { try { PK.sync(M, S0, !!instant, X); } catch (e) { console.warn('[h109] sync', e && e.message); } return; }   // ── h111 ── ── /h111 ──
     try { S0.setStage('har', 'building', p, instant ? { instant: true } : {}); } catch (e) { console.warn('[h109] setStage', e && e.message); }
   }
 
@@ -309,15 +361,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     syncMount(false);
     const J = o.juice && o.juice();
     // the film (spec §13.6: "צילום ביצוע"): the leveled Mount, the east wall, the great stone, the inscription, from high
-    const shots = [
-      [[60, 260, 520], [0, 0, -40], 3.0],
-      [[330, 70, 150], [250, 10, 60], 2.6],
-      [[-200, 60, -260], [-280, 10, -150], 2.6],
-      [[-246, 16, 350], [-276, 2, 372], 2.4],
-      [[180, 300, 620], [27, 0, 66], 1.4],
-    ];
+    if (PK.finale) { try { await PK.finale(X, M); } catch (e) { console.warn('[h109] finale', e && e.message); } }   // ── h111 ── ── /h111 ──
+    const shots = PK.film;
     for (const [p, t, s] of shots) { shot(p, t, 1.6); await sleep(s * 1000); }
-    try { if (J) await J.big('stage', { title: 'שיטוח ההר נבנה!', sub: 'הר הבית חמש מאות אמה על חמש מאות אמה (מדות ב, א)' }); } catch (e) { /* */ }
+    try { if (J) await J.big('stage', { title: PK.endTitle, sub: PK.endSub }); } catch (e) { /* */ }
     CAM.on = false; phase = 'off'; started = false;
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
     UI.rot && UI.rot.classList.remove('want');
@@ -326,12 +373,14 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   /* ───────── the frame ───────── */
+  let syncT = 0;
   function frame(ms) {
     const dt = lastMs ? clamp((ms - lastMs) / 1000, 0, 0.25) : 0; lastMs = ms;
     if (!started) return;
     uiFrame();
     tPhase += dt;
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
+    if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
     if (phase === 'act' && act) { act.t += dt; call(act.update, dt); }
     if (phase === 'film' && film) { film.t += dt; if (film.t >= film.dur) { const r = film.res; film = null; CAM.on = false; r(); } }
     if (phase === 'end' || phase === 'film' || phase === 'act') camStep(dt);
@@ -356,26 +405,29 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function start() {
     if (started) return;
     const g = G(); if (!g) return;
-    if (!g.h109) g.h109 = null;
-    M = createH109(g.h109); g.h109 = M.st;
+    if (!g[PK.key]) g[PK.key] = null;
+    M = PK.create(g[PK.key]); g[PK.key] = M.st;
     started = true; uiMount(); chipSync(false);
     { const g = document.querySelector('.gm'); if (g) g.classList.add('h109-own'); }
     try { hero.workpiece(null); } catch (e) { /* the old banker is not stage 01's */ }
     props();
     // the crews at work from the first second (rule 4): three crews at the Mount
-    try { if (S0.setCrews) S0.setCrews('har', 3, [0, 1, 2]); } catch (e) { /* */ }
-    syncMount(true);
+    try { if (S0.setCrews && PK.crews) S0.setCrews(...PK.crews); } catch (e) { /* */ }
     onlyNext();
+    syncMount(true);   // ── h111 ── (after the one-minigame page's skip: the world shows its mission's stage, not the first one's) ── /h111 ──
     if (ACTS.__init) call(ACTS.__init, X);
     openMission();
     if (ONLY) setTimeout(() => goTo(), 400);   // (straight to it)
   }
   return {
     owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end'), start, frame, marks, goal, goTo,
-    get M() { return M; }, only: ONLY,
+    get M() { return M; }, only: ONLY, site: PK.id, get pack() { return PK; },
     state: () => ({ started, phase, mission: mission && mission.id, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
     act: () => act,
     X,
+    resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
+    // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──
+    dispose() { started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
     // tests: finish the open act with a result
     _end: (res) => endAct(res || { stars: 3 }),
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),

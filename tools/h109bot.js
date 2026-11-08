@@ -90,6 +90,54 @@
       let len = 0; for (let i = 1; i < st.length; i++) len += Math.hypot(st[i][0] - st[i - 1][0], st[i][1] - st[i - 1][1]);
       return { path: st, ms: Math.max(350, len * 3), wait: 250 };
     },
+    // ── build 111 ── stage 02's acts (h111/acts*.js dbg())
+    stakes(a) { if (a.done) return { wait: 300 }; return { drag: [a.stake[0], a.stake[1], a.target[0], a.target[1], 900], wait: 400 }; },
+    bond(a) {
+      if (a.done || a.closing || a.held) return { wait: 300 };
+      const laid = (a0, L, row) => a.laid.some((q) => q[0] === a0 && q[1] === L && String(q[2]) === String(row));
+      const want = [];
+      if (a.head != null) want.push({ a: a.head, L: 6, row: 'h' });
+      a.sol[0].forEach(([x, L]) => want.push({ a: x, L, row: 0 })); a.sol[1].forEach(([x, L]) => want.push({ a: x, L, row: 2 }));
+      const t = want.find((q) => !laid(q.a, q.L, q.row)); if (!t) return { wait: 400 };
+      const pile = a.piles.find((p) => p.L === t.L && p.n > 0); if (!pile) return { wait: 400, note: 'bond: no pile for ' + t.L };
+      if (t.L === 6 && !pile.rot) return { tap: pile.scr, wait: 300, note: 'bond: turn the 6 to a header' };
+      const ri = t.row === 'h' ? 2 : t.row === 0 ? 0 : 1, w = t.row === 'h' ? 2 : t.L, c = t.a + w / 2, row = a.cells[ri];
+      const p = Number.isInteger(c) ? row[c] : mid(row[Math.floor(c)], row[Math.ceil(c)]);
+      return { drag: [pile.scr[0], pile.scr[1], p[0], p[1], 700], wait: 500, note: `bond ${a.s}: ${t.L} at ${t.a} row ${t.row}` };
+    },
+    plumb(a) {
+      if (a.done || a.busy) return { wait: 300 };
+      const s = a.stones.find((q) => !q.okd); if (!s) return { wait: 300 };
+      const k = a.wet ? 1.35 : 1, hold = Math.min(0.38, Math.max(0.0, (Math.abs(s.err) / k - 0.03) / 0.8));
+      return { hold: [s.scr[0], s.scr[1], Math.round(hold * 1000)], wait: 450, note: `plumb ${a.s}: err ${s.err} → ${Math.round(hold * 1000)}ms` };
+    },
+    lever(a) {
+      if (a.done || a.busy) return { wait: 300 };
+      const k = a.wet ? 1.4 : 1, d = a.d;
+      let i = d[0] >= d[1] ? 0 : 1; if (a.last === i && a.run >= 3 && d[1 - i] > 0.12) i = 1 - i;
+      const j = 1 - i; if (d[i] <= 0.12 && d[j] <= 0.12) return { wait: 300 };
+      if (d[i] < -0.08) { const f = Math.max(0.07, (Math.abs(d[i]) / 0.7 / k - 0.12) / 0.95); const sc = i ? a.end1 : a.end0; return { drag: [sc[0], sc[1], sc[0], sc[1] + f * a.H * 0.28, 450], wait: 500, note: 'lever: pull back' }; }
+      let m = Math.min(d[i], 1.2);
+      for (let it = 0; it < 30; it++) { const di = d[i] - m, dj = d[j] - a.follow * m; if (Math.abs(di - dj) <= a.jam - 0.05 && dj >= -0.06) break; m *= 0.85; }
+      const f = Math.max(0.07, (m / k - 0.12) / 0.95), sc = i ? a.end1 : a.end0;
+      return { drag: [sc[0], sc[1], sc[0], sc[1] - f * a.H * 0.28, 450], wait: 500, note: `lever ${a.s}: end ${i} d ${d.map((v) => v.toFixed(2))} move ${m.toFixed(2)}` };
+    },
+    gates(a) {
+      if (a.done || !a.toks.length) return { wait: 300 };
+      const sl = a.slots.find((s) => s.gi >= 0 && !a.set.includes(s.gi)); if (!sl) return { wait: 300 };
+      return { drag: [a.toks[0].scr[0], a.toks[0].scr[1], sl.scr[0], sl.scr[1], 800], wait: 600, note: 'gates: frame to ' + sl.k + ' ' + sl.gi };
+    },
+    closing(a) {
+      if (a.done || a.busy) return { wait: 300 };
+      if (a.phase === 'choose') {
+        const o = a.stones.find((q) => q.ok); if (!o) return { wait: 300 };
+        if (o.rot) return { tap: o.scr, wait: 400, note: 'closing: turn it along' };
+        return { drag: [o.scr[0], o.scr[1], a.gap[0], a.gap[1], 900], wait: 800, note: 'closing: set it' };
+      }
+      const hold = Math.min(0.38, Math.max(0, (Math.abs(a.err) / 1.2 - 0.03) / 0.8));
+      return { hold: [a.set[0], a.set[1], Math.round(hold * 1000)], wait: 450, note: `closing plumb err ${a.err}` };
+    },
+    // ── /build 111 ──
   };
   B.next = () => {
     const S = H().state();

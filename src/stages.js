@@ -1528,6 +1528,20 @@ export function createStages(ctx) {
   // goes up it when he is inside the court; the band's and the ramp's edges are walls to the stick (never off the top).
   const S20 = { act: false, on: false, nx: 0, nz: 1, ux: 1, uz: 0, ax: 0, az: 0, w: 6.4, SL: 0.6, top: 0, topE: 0, base: 0, Lr: 0, t: 0, dirty: false, mesh: null, ky: '' };
   const S20_OUT = [-193, -73.5, 147, 73.5], S20_IN = [-187, -67.5, 141, 67.5], S20_THICK = 6, S20_MIN = 6.4;
+  // ── h111 ── (stage 02, the owner 8.11: the seven gates of the azara, Middot 1:4) the openings left in the courts' wall: 10 amot wide
+  // through its 6, from the terrace's level (6) to the lintel (26, the gates' 20 amot: Middot 2:3); the reveal shader drops the stones
+  // there (batch.js uBcHole), and below the lintel the top of the wall over an opening is no floor
+  const HOLES = [], HOLE_Y = [6, 26];
+  const inHole = (x, z) => { for (const h of HOLES) if (x > h[0] && x < h[2] && z > h[1] && z < h[3]) return true; return false; };
+  function wallHoles(list) {
+    HOLES.length = 0; for (const h of list || []) if (Array.isArray(h) && h.length >= 4 && HOLES.length < 8) HOLES.push(h.slice(0, 4));
+    const st = ST.wall; if (!st || !st.U) return HOLES.length;
+    const U = st.U; if (!U.uHole) return HOLES.length;
+    for (let i = 0; i < 8; i++) { const h = HOLES[i]; if (h) U.uHole.value[i].set(h[0], h[1], h[2], h[3]); else U.uHole.value[i].set(0, 0, 0, 0); }
+    U.uHoleY.value.set(HOLE_Y[0], HOLE_Y[1], HOLES.length);
+    return HOLES.length;
+  }
+  // ── /h111 ──
   function s20Band(x, z) {
     if (!(x > S20_OUT[0] && x < S20_OUT[2] && z > S20_OUT[1] && z < S20_OUT[3])) return false;
     if (x > S20_IN[0] && x < S20_IN[2] && z > S20_IN[1] && z < S20_IN[3]) return false;
@@ -1537,7 +1551,7 @@ export function createStages(ctx) {
   function s20Top(x, z) {
     if (!S20.act) return -1e9;
     let y = -1e9;
-    if (s20Band(x, z)) { const t = shownTop('wall', x, z, ST.wall.top, 0); if (t > 0.5) y = t; }
+    if (s20Band(x, z)) { const t = shownTop('wall', x, z, ST.wall.top, 0); if (t > 0.5 && !(t <= HOLE_Y[1] + 0.5 && HOLES.length && inHole(x, z))) y = t; }   // ── h111 ── (over an opening: no floor below its lintel) ── /h111 ──
     if (S20.on) {
       const dx = x - S20.ax, dz = z - S20.az, s = -(dx * S20.nx + dz * S20.nz), q = dx * S20.ux + dz * S20.uz;
       if (s >= -0.2 && s <= S20.Lr && Math.abs(q) <= S20.w / 2) y = Math.max(y, S20.base + (S20.topE - S20.base) * (1 - Math.max(0, s) / S20.Lr));
@@ -4563,8 +4577,10 @@ export function createStages(ctx) {
      started one; progress updates never move it ── */
   let cranePref = null, craneDirty = true, seqN = 0;
   function setCraneSite(id) { cranePref = id && ST[id] ? id : null; craneDirty = true; }
+  let craneHide = false;   // ── h111 ── (stage 02's closing stone: the crews' crane rests; the last stone is the kohen's) ── /h111 ──
   function craneAssign() {
     craneDirty = false;
+    if (craneHide) { if (crane.st) craneRelease(); propsDirty = true; workDirty = true; return; }
     // (site8: the Mount's treadwheel crane stands at its east face from the survey on — DESIGN8B R5, "the crane in the background")
     const ok = (st) => !!st && st.status === 'building' && (st.disp >= FOUND || st.id === 'har');
     let want = ok(ST[cranePref]) ? ST[cranePref] : null;
@@ -6571,7 +6587,9 @@ export function createStages(ctx) {
     m.geometry.attributes.position.needsUpdate = true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
     m.visible = true; S20.dirty = false;
   }
-  function s20Refresh() { const st = ST.wall; return (S20.act = !!(TWD.twin && TWD.site === 'wall' && st && st.status === 'building' && st.group.visible && st.disp >= FOUND)); }
+  function s20Refresh() { const st = ST.wall; return (S20.act = !!((S20.pin || (TWD.twin && TWD.site === 'wall')) && st && st.status === 'building' && st.group.visible && st.disp >= FOUND)); }   // ── h111 ── (S20.pin: stage 02's director holds the ramp at its station) ── /h111 ──
+  /** ── h111 ── the ramp held at (x, z) on the wall's inner face, (nx, nz) the wall's outward normal there; null: back to the working front */
+  function s20Pin(p) { S20.pin = p && Number.isFinite(+p.x) && Number.isFinite(+p.z) ? { x: +p.x, z: +p.z, nx: +p.nx || 0, nz: +p.nz || 0 } : null; S20.t = 0; return !!S20.pin; }
   /** each frame: whether plan A is on; twice a second the ramp's place and height from the working slot */
   function s20Tick(dt) {
     const st = ST.wall, was = S20.act; s20Refresh();
@@ -6579,8 +6597,12 @@ export function createStages(ctx) {
     if (!was) S20.t = 0;
     if ((S20.t -= dt) <= 0) {
       S20.t = 0.5;
-      const s = nextSlot('wall'), lv = s ? s.y - s.h / 2 : 0;
-      if (!s || lv < S20_MIN) { if (S20.on) { S20.on = false; if (S20.mesh) S20.mesh.visible = false; } }
+      const s = S20.pin ? null : nextSlot('wall'), lv = s ? s.y - s.h / 2 : 0;
+      if (S20.pin) {   // ── h111 ── the director's station: the ramp leans on the inner face there, as high as the wall shown ── /h111 ──
+        const P = S20.pin, tp = shownTop('wall', P.x + P.nx * 1.0, P.z + P.nz * 1.0, st.top, 0);
+        if (!(tp > 0.5)) { if (S20.on) { S20.on = false; if (S20.mesh) S20.mesh.visible = false; } }
+        else if (!S20.on || S20.ax !== P.x || S20.az !== P.z || S20.nx !== P.nx || S20.nz !== P.nz) { S20.ax = P.x; S20.az = P.z; S20.nx = P.nx; S20.nz = P.nz; S20.ux = -P.nz; S20.uz = P.nx; S20.on = true; S20.dirty = true; S20.fresh = true; }
+      } else if (!s || lv < S20_MIN) { if (S20.on) { S20.on = false; if (S20.mesh) S20.mesh.visible = false; } }
       else {
         const [ux, uz] = slotTangent('wall', s), nx = s.n[0], nz = s.n[1], tx = -nz, tz = nx;   // (tx, tz: the width's axis)
         const okAt = (mx, mz) => s20Band(mx + nx * 3 + tx * 3.4, mz + nz * 3 + tz * 3.4) && s20Band(mx + nx * 3 - tx * 3.4, mz + nz * 3 - tz * 3.4) && s20Band(mx + nx * 5, mz + nz * 5);
@@ -8743,6 +8765,8 @@ export function createStages(ctx) {
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
+    s20Pin, wallHoles, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
+    slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,
     // az, el, also?) → { az, el, dist, moved } | null · occluded(x, y, z, from?) → bool · heroRock() → the builder's rock (−1: none)
     boulderView, clearView, occluded, heroRock, wallView,

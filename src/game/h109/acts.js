@@ -17,6 +17,9 @@ export const SH = { X: null, B: null, crew: null, bould: [], rocks: [], stakes: 
 
 /* ───────── the world as the save has it ───────── */
 // the 500-amah square (mount.js SQUARE), inset 6 amot: the surveyors' line
+// the east working bay (stages.js harBay: x from PLAT.X1 − 46, 8 more where the terrain gives way): the old crews dig it down to the
+// fill as the retaining wall rises, so nothing of the kohen's is set there
+const BAY_X = 277 - 46 - 10;
 const SQ = { x0: -223 + 6, x1: 277 - 6, z0: -183.5 + 6, z1: 316.5 - 6 };
 // the two sides the kohen stretches (the last rope-length of each, to the north-east corner): from the crew's 450 stake to 500
 const ROPE = [
@@ -30,27 +33,32 @@ function hash(a, b) { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; re
 function sectorRocks(s) {
   const B = SH.bould, b = B[s]; if (!b) return [];
   const room = (x, z, skip) => { let d = 60; for (let j = 0; j < B.length; j++) { if (j === skip) continue; const o = B[j]; d = Math.min(d, Math.hypot(x - o[0], z - o[1]) - o[2]); } return d; };
+  // (a crowded sector — the bay to the east — looks again a little closer in, so every sector has its five)
+  for (const tight of [0, 1]) {
   const C = [];
-  for (let k = 0; k < 28; k++) for (let ri = 0; ri < 7; ri++) {
+  for (let k = 0; k < 28; k++) for (let ri = 0; ri < (tight ? 10 : 7); ri++) {
     const a = (k / 28) * TAU + s * 0.37, d = b[2] + 3.6 + ri * 1.6, x = b[0] + Math.cos(a) * d, z = b[1] + Math.sin(a) * d, r = 1.7 + hash(s * 3 + k, ri) * 0.45;
     // (inside the platform, clear of its edge trench: by the edge the hill's slope stands over the ground he walks on)
-    const edge = Math.min(x - SQ.x0, SQ.x1 - x, z - SQ.z0, SQ.z1 - z); if (edge < r + 9) continue;
-    const clr = Math.min(room(x, z, -1), d - b[2]); if (clr < r + 1.2) continue;
+    const edge = Math.min(x - SQ.x0, SQ.x1 - x, z - SQ.z0, SQ.z1 - z); if (edge < r + 9 || x > BAY_X - r) continue;
+    const clr = Math.min(room(x, z, -1), d - b[2]); if (clr < r + (tight ? 0.6 : 1.2)) continue;
     // the stand: of 8 sides, the one with most room
     let best = null, bc = -1; for (let q = 0; q < 8; q++) { const qa = (q / 8) * TAU, sx = x + Math.cos(qa) * (r * 0.75 + 3.4), sz = z + Math.sin(qa) * (r * 0.75 + 3.4), c = room(sx, sz, -1); if (c > bc) { bc = c; best = { qa, sx, sz }; } }
-    if (bc < 1.6 || Math.min(best.sx - SQ.x0, SQ.x1 - best.sx, best.sz - SQ.z0, SQ.z1 - best.sz) < 6) continue;
+    if (bc < (tight ? 1.0 : 1.6) || best.sx > BAY_X || Math.min(best.sx - SQ.x0, SQ.x1 - best.sx, best.sz - SQ.z0, SQ.z1 - best.sz) < 6) continue;
     C.push({ x, z, r, ux: Math.cos(best.qa), uz: Math.sin(best.qa), sx: best.sx, sz: best.sz, score: clr + bc * 0.5 - ri * 0.35 });
   }
   C.sort((p, q) => q.score - p.score);
   const out = [];
   for (const c of C) {
     if (out.length >= H109.ROCKS) break;
-    if (out.some((o) => Math.hypot(o.x - c.x, o.z - c.z) < 5 || Math.hypot(o.sx - c.x, o.sz - c.z) < c.r + 2 || Math.hypot(c.sx - o.x, c.sz - o.z) < o.r + 2)) continue;
+    if (out.some((o) => Math.hypot(o.x - c.x, o.z - c.z) < (tight ? 4.4 : 5) || Math.hypot(o.sx - c.x, o.sz - c.z) < c.r + 2 || Math.hypot(c.sx - o.x, c.sz - o.z) < o.r + 2)) continue;
     out.push({ ...c, i: out.length, s, q: null });
   }
+  if (out.length < H109.ROCKS && !tight) continue;
   // walk order: round the big rock
   out.sort((p, q) => Math.atan2(p.z - b[1], p.x - b[0]) - Math.atan2(q.z - b[1], q.x - b[0])); out.forEach((o, i) => { o.i = i; });
   return out;
+  }
+  return [];
 }
 function rockTarget(R, X) { const g = X.ground(R.x, R.z); return { x: R.x + R.ux * R.r * 0.72, y: g + R.r * 0.62, z: R.z + R.uz * R.r * 0.72 }; }
 
@@ -117,7 +125,7 @@ const ROPE_ACT = {
       // the shot (ש3 along the line): behind and to the side of him, the far stake in the frame
       const px = -A.uz, pz = A.ux, g = X.ground(A.ax, A.az);
       X.shot([A.ax - A.ux * 17 + px * 6.5, g + 9, A.az - A.uz * 17 + pz * 6.5], [A.ax + A.ux * 21 - px * 1.5, g + 1.5, A.az + A.uz * 21 - pz * 1.5], i > 0 ? 1.2 : 0.9);
-      X.line('החזיקו את האצבע: הפועל הולך עם החבל. שחררו על היתד הזהובה');
+      X.line('החזיקו · שחררו על היתד');
       X.hand({ x: A.ax + A.ux * 25, y: g + 3, z: A.az + A.uz * 25 }, 0, 0);
     }
     function ropeDraw() {
@@ -178,7 +186,7 @@ const ROPE_ACT = {
           w.x = tx; w.z = tz; w.yaw = Math.atan2(A.ux, A.uz);
           X.count({ x: tx, y: X.ground(tx, tz) + 4.2, z: tz }, `${Math.round(450 + A.d)} אמה`);
           // released and stopped: a short pull (under 30 amot) is a test — hold again; a real one settles
-          if (A.phase === 'slide' && A.v < 0.2) { w.path = null; if (A.d < 30) { A.phase = 'ready'; X.line('עוד — החזיקו שוב והמשיכו עד היתד'); } else { X.count(null); settle(); } }
+          if (A.phase === 'slide' && A.v < 0.2) { w.path = null; if (A.d < 30) { A.phase = 'ready'; X.line('עוד: החזיקו עד היתד'); } else { X.count(null); settle(); } }
           // too far: the far worker stops and signals back (spec: מאוחר — הפועל נעצר ומסמן "חזרה")
           if (A.d > 50 * 1.12 && A.phase === 'pull') { A.hold = false; A.phase = 'slide'; A.v = Math.min(A.v, 1); X.word({ x: tx, y: X.ground(tx, tz) + 3, z: tz }, 'עצור!'); }
         }
@@ -286,7 +294,7 @@ const ROCKS_ACT = {
     }
     return {
       close: true,
-      begin() { rock(0); X.line('הקישו על הסלע בקצב: כשהטבעת נסגרת על הזהב'); },
+      begin() { rock(0); X.line('הקישו כשהטבעת על הזהב'); },
       update(dt) {
         A.t += dt; const R = A.R;
         if (A.phase === 'walk') {

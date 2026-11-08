@@ -101,12 +101,12 @@ export const CORNER = {
     }
     function restart() {
       A.phase = 'reject'; X.line('הצוות מוריד את האבן לפסולת ומביא אחרת');
-      setTimeout(() => { A.phase = 'lift'; A.h = 0; A.drop = 0; A.ax = 0; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; X.line('שוב: החלקות למטה בקצב — הגלגל מרים'); }, 3500);
+      setTimeout(() => { A.phase = 'lift'; A.h = 0; A.drop = 0; A.ax = 0; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; X.line('שוב: החליקו למטה בקצב'); }, 3500);
     }
     return {
       begin() {
         A.drop = 0; try { X.hero.setPos(CRANE_AT.x, CRANE_AT.z, C.yaw + Math.PI / 2); } catch (e) { /* */ }
-        shotSide(); X.line('החליקו למטה בקצב (2 בשנייה): כל החלקה — צעד בגלגל, והאבן עולה');
+        shotSide(); X.line('החליקו למטה בקצב');
         X.hand({ x: CRANE_AT.x, y: X.ground(CRANE_AT.x, CRANE_AT.z) + 3, z: CRANE_AT.z }, 0, 40);
       },
       update(dt) {
@@ -124,7 +124,7 @@ export const CORNER = {
         } else if (A.phase === 'slew') {
           A.slewT += dt; C.aim(CORNER_AT.x, CORNER_AT.z, 1 - Math.exp(-dt * 2.2)); A.drop = 0;
           if (lv >= 2 && A.slewT < 0.1) A.sway.vx = 1.4;
-          if (A.slewT > 1.8) { A.phase = 'lower'; X.line('החזיקו — מורידים · שחררו — עוצרים · גררו קצת הצידה ליישור'); X.hand({ x: CORNER_AT.x, y: gP + 1, z: CORNER_AT.z }, 0, 0); }
+          if (A.slewT > 1.8) { A.phase = 'lower'; X.line('החזיקו — מורידים · שחררו — עוצרים'); X.hand({ x: CORNER_AT.x, y: gP + 1, z: CORNER_AT.z }, 0, 0); }
         } else if (A.phase === 'lower') {
           C.tipWorld(tip);
           A.v = A.hold ? Math.min(2.6, A.v + dt * 3) : Math.max(0, A.v - dt * 12);
@@ -184,7 +184,7 @@ export const COURSE = {
     function hook(L) {
       const s = stoneMesh(X, L - 0.06, CH - 0.04, CD); s.rotation.y = Math.PI / 2; s.userData.L = L;
       A.cur = { m: s, L }; A.phase = 'aim'; A.drop = 0; A.sway.x = lv >= 2 ? 0.9 : 0; A.sway.v = 0;
-      X.line('גררו ימינה ושמאלה מעל המקום · שחררו — האבן יורדת'); X.play('rope');
+      X.line('גררו מעל המקום · שחררו'); X.play('rope');
     }
     function land() {
       const L = A.cur.L, z0 = A.cur.m.position.z - K.z0 - L / 2, want = gapLeft(), left = K.gap[1] - want;
@@ -198,7 +198,7 @@ export const COURSE = {
       // a joint over a joint below: it sits, but a crack line shows and the mason marks it in chalk
       const j = want + L; const joj = j < K.gap[1] - 0.01 && K.below.some((b) => Math.abs(b - j) < 0.3);
       if (joj) { A.joj = true; X.word({ x: WALL_X, y: yB + CH + 0.5, z: K.z0 + j }, 'חיבור מעל חיבור · כשר'); const cr = new T.Mesh(new T.PlaneGeometry(0.06, CH * 2), X.props.M.seam); cr.position.set(WALL_X - CD / 2 - 0.02, yB, K.z0 + j); cr.rotation.y = -Math.PI / 2; X.props.root.add(cr); A.crack = cr; }
-      if (gapLeft() >= K.gap[1] - 0.01) close(); else { A.phase = 'choose'; X.line('עוד אבן: בחרו אורך — ובלי חיבור מעל חיבור'); }
+      if (gapLeft() >= K.gap[1] - 0.01) close(); else { A.phase = 'choose'; X.line('עוד אבן · בלי חיבור מעל חיבור'); }
     }
     function close() {
       A.phase = 'done';
@@ -209,7 +209,7 @@ export const COURSE = {
       setTimeout(() => X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at }), 1200);
     }
     return {
-      begin() { shot(); X.line('בחרו אורך מהערימה (הקשה): הרווח 7 אמות, ובלי חיבור מעל חיבור'); const s = A.stock[1]; X.hand({ x: s.position.x, y: s.position.y + 1, z: s.position.z }, 0, 12); try { X.hero.setPos(WALL_X - 9, K.z0 - 1.5, Math.PI / 2); } catch (e) { /* */ } },
+      begin() { shot(); X.line('בחרו אבן לרווח של 7 אמות'); const s = A.stock[1]; X.hand({ x: s.position.x, y: s.position.y + 1, z: s.position.z }, 0, 12); try { X.hero.setPos(WALL_X - 9, K.z0 - 1.5, Math.PI / 2); } catch (e) { /* */ } },
       update(dt) {
         A.t += dt; C.tipWorld(tip);
         if (A.cur) {
@@ -305,7 +305,7 @@ export const GREAT = {
       setTimeout(() => X.end({ q, lost, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at }), 2600);
     }
     return {
-      begin() { shot(); X.line('גליל יצא מאחור: גררו אותו אל לפני האבן, לפני שנוצר רווח'); try { X.hero.setPos(GR.x + 4.5, A.zs - GR.len / 2 - 2.5, 0); } catch (e) { /* */ } },
+      begin() { shot(); X.line('גררו גליל אל לפני האבן'); try { X.hero.setPos(GR.x + 4.5, A.zs - GR.len / 2 - 2.5, 0); } catch (e) { /* */ } },
       update(dt) {
         A.t += dt;
         if (A.phase === 'roll' || A.phase === 'crew') {
@@ -449,7 +449,7 @@ export const LETTERS = {
     draw();
     return {
       close: true,
-      begin() { shot(); X.line('גררו לאורך האות המנוקדת: האיזמל חורט איפה שהאצבע עוברת'); try { const sp = letStand(); X.hero.setPos(sp.x, sp.z, Math.atan2(LET.x - sp.x, LET.z - sp.z)); X.hero.arm('chisel', { x: sp.tx, y: gy + 1.2, z: sp.tz }); } catch (e) { /* */ } const Lt = L[0], c = toC(GLYPH[Lt.ch][0][0], Lt); const w = face.localToWorld(new T.Vector3((c[0] / cw - 0.5) * FW, (0.5 - c[1] / ch) * FH, 0.1)); X.hand(w, -30, 30); },
+      begin() { shot(); X.line('גררו על האות המנוקדת'); try { const sp = letStand(); X.hero.setPos(sp.x, sp.z, Math.atan2(LET.x - sp.x, LET.z - sp.z)); X.hero.arm('chisel', { x: sp.tx, y: gy + 1.2, z: sp.tz }); } catch (e) { /* */ } const Lt = L[0], c = toC(GLYPH[Lt.ch][0][0], Lt); const w = face.localToWorld(new T.Vector3((c[0] / cw - 0.5) * FW, (0.5 - c[1] / ch) * FH, 0.1)); X.hand(w, -30, 30); },
       update(dt) { A.t += dt; if (A.flash > 0) { A.flash = Math.max(0, A.flash - dt * 1.6); draw(); } },
       down(p) { if (A.phase === 'done') return; const c = canvasAt(p); if (!c) return; A.drag = true; A.last = c; A.acc = 0; X.hand(null); },
       move(p) {

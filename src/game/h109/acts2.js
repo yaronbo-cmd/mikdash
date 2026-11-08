@@ -142,7 +142,7 @@ export const READ = {
       begin() {
         const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.8 + 8, el: 26, side: -0.95, lift: b[2] * 0.35 });   // (from his side: he never stands on the line)
         X.shot(ws.p, ws.t, 0.9);
-        X.line('גררו ימינה ושמאלה: האור מהמראה מגלה את קו הבקיעה');
+        X.line('גררו: האור מגלה קו');
         X.hand({ x: b[0], y: gy + b[2] * 0.4, z: b[1] }, 40, 0);
         X.stages.hero.setTool && X.hero.arm(null);
       },
@@ -174,7 +174,7 @@ export const READ = {
             if (!best || bd > 34) { if (A.lines.some((L) => L.seen)) fall(p); else X.word({ x: b[0], y: gy + b[2], z: b[1] }, 'קודם מצאו את הקו באור'); return; }
             A.pick = best.L; A.step = 'wedge'; A.res.line = best.L.ok ? 'gold' : 'ok';
             if (best.L.ok) X.hit({ x: best.L.pts[8].x, y: best.L.pts[8].y + 1, z: best.L.pts[8].z }, 'gold', { text: 'קו נכון', craft: 'סתתים' });
-            X.line(`הקישו על הקו: ${nW} יתדות עץ, ברווחים שווים`); X.hand(null);
+            X.line(`${nW} יתדות על הקו, ברווח שווה`); X.hand(null);
           }
           const r = lineDist(A.pick, p);
           if (r.d > 34) { fall(p); return; }
@@ -188,7 +188,7 @@ export const READ = {
             const mid = A.pick.pts[4];
             if (A.res.space === 'ok') X.word({ x: mid.x, y: mid.y + 1.5, z: mid.z }, 'רווחים לא שווים'); else X.hit({ x: mid.x, y: mid.y + 1.5, z: mid.z }, A.res.space, { text: 'רווח שווה', craft: 'סתתים' });
             A.step = 'water'; A.water = 0;
-            X.line('החזיקו: שופכים מים על היתדות. שחררו כשהחריקה נגמרת');
+            X.line('החזיקו · שחררו כשהחריקה נגמרת');
             const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.6 + 7, el: 24, side: -0.95, lift: b[2] * 0.35 });
             X.shot(ws.p, ws.t, 0.7);
           }
@@ -213,7 +213,8 @@ export const READ = {
 };
 
 /* ───────── the waste pile (beside the east sectors) and the fill behind the east retaining wall ───────── */
-const PILE = { x: 236, z: -24 }, FILL = { x: 262, z: -44 };
+// (west of the east working bay, in the open: the heap, and the hollow it fills — Josephus, War 5.5.1 (5.185–188): the valleys round the Mount filled)
+const PILE = { x: 195, z: -105 }, FILL = { x: 214, z: -130 };
 function pileSync(X) {
   const n = Math.min(14, X.M.st.waste | 0); SH.pileM = SH.pileM || [];
   while (SH.pileM.length > n) X.props.remove(SH.pileM.pop());
@@ -350,7 +351,7 @@ export const PAVE = {
     return {
       begin() {
         { const zc = (G.z0 + pz + pileD) / 2; X.shot([G.cx + 1, G.base + 15.5 + pileD * 0.6, zc + 9.5 + pileD * 0.4], [G.cx + 1.2, G.base, zc + 0.6], 1.0); }
-        X.line('גררו לוח אל השורה · הקשה על לוח מסובבת אותו · בלי חיבור מעל חיבור');
+        X.line('גררו לוח · הקשה מסובבת');
         const q = S[0]; X.hand({ x: q.home.x, y: G.base + 0.6, z: q.home.z }, 0, -40);
         try { X.hero.setPos(G.cx - W * U / 2 - 2.5, G.cz + rows * U / 2 + 1.5, Math.PI * 0.6); } catch (e) { /* */ }
       },
@@ -397,7 +398,7 @@ export const PAVE = {
 /* ───────── 3.9 the waste: dragged to the sledge in time with the oxen, pushed to the hollow behind the east wall ───────── */
 export const WASTE = {
   icon: '🪨', title: 'פינוי הפסולת',
-  walkLine: () => 'ערימת הפסולת: מפנים אותה אל המילוי מאחורי החומה',
+  walkLine: () => 'ערימת הפסולת: מפנים אותה אל המילוי',
   stand(m, X) { return { x: PILE.x - 4.5, z: PILE.z - 3, face: [PILE.x + 4, PILE.z - 1] }; },
   prepare() {},
   make(m, X) {
@@ -440,7 +441,7 @@ export const WASTE = {
       const k = A.on.length; c.userData.on = true; c.userData.bx = -1 + (k % 3) * 1.0; c.userData.bz = -0.5 + Math.floor(k / 3) * 0.9; c.userData.by = Math.floor(k / 6) * 0.3; A.on.push(c);
       A.grades.push(grade); X.dust(sled.position.x, sled.position.y + 0.8, sled.position.z, 4, 1.2); X.play('thud');
       X.hit({ x: sled.position.x, y: sled.position.y + 2, z: sled.position.z }, grade, { text: '', craft: 'סבלים' });
-      if (A.on.length >= cap || !chunks().length) { A.phase = 'push'; X.line('החזיקו: דוחפים עם השוורים. שחררו ליד המילוי שמאחורי החומה'); X.hand({ x: FILL.x, y: X.ground(FILL.x, FILL.z) + 1, z: FILL.z }, 0, 0); X.shot([A.sx - uz * 22 - ux * 4, X.ground(A.sx, A.sz) + 13, A.sz + ux * 22 - uz * 4], [(A.sx + FILL.x) / 2, X.ground(FILL.x, FILL.z) + 1, (A.sz + FILL.z) / 2], 1.0); }
+      if (A.on.length >= cap || !chunks().length) { A.phase = 'push'; X.line('החזיקו · שחררו ליד המילוי'); X.hand({ x: FILL.x, y: X.ground(FILL.x, FILL.z) + 1, z: FILL.z }, 0, 0); X.shot([A.sx - uz * 22 - ux * 4, X.ground(A.sx, A.sz) + 13, A.sz + ux * 22 - uz * 4], [(A.sx + FILL.x) / 2, X.ground(FILL.x, FILL.z) + 1, (A.sz + FILL.z) / 2], 1.0); }
     }
     function dump() {
       const d = Math.hypot(sled.position.x - FILL.x, sled.position.z - FILL.z);
@@ -455,7 +456,7 @@ export const WASTE = {
       A.trips++;
       setTimeout(() => {
         if (!chunks().length) { X.bonus(100, 'clean', 'האתר נקי'); finish(); return; }
-        A.sx = A.s0.x; A.sz = A.s0.z; A.phase = 'load'; X.line('גררו עוד גושים אל המזחלת'); begin2();
+        A.sx = A.s0.x; A.sz = A.s0.z; A.phase = 'load'; X.line('עוד גושים למזחלת'); begin2();
       }, 1400);
     }
     function finish() {
@@ -465,7 +466,7 @@ export const WASTE = {
     }
     function begin2() { const g = X.ground(PILE.x, PILE.z); X.shot([PILE.x - 9, g + 17, PILE.z + 12], [PILE.x + 3.5, g + 0.5, PILE.z - 0.5], 0.9); }
     return {
-      begin() { pileSync(X); (SH.pileM || []).forEach((c, i) => { c.userData.id = i; c.userData.on = false; }); begin2(); X.line('גררו גוש מהערימה אל המזחלת, כשהשוורים עומדים'); const c = chunks()[0]; if (c) X.hand({ x: c.position.x, y: c.position.y + 0.5, z: c.position.z }, 40, -10); if (!chunks().length) finish(); },
+      begin() { pileSync(X); (SH.pileM || []).forEach((c, i) => { c.userData.id = i; c.userData.on = false; }); begin2(); X.line('גררו גוש כשהשוורים עומדים'); const c = chunks()[0]; if (c) X.hand({ x: c.position.x, y: c.position.y + 0.5, z: c.position.z }, 40, -10); if (!chunks().length) finish(); },
       update(dt) {
         A.t += dt;
         if (A.phase === 'push') {

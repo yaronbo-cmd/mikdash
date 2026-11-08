@@ -16,6 +16,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const pg = await ctx.newPage();
   const errs = [];
   pg.on('console', (m) => { if (m.type() === 'error' || /\[h109\]/.test(m.text())) errs.push(m.type() + ' ' + m.text().slice(0, 300)); });
+  if (process.env.PROBE_ALL) { pg.on('console', (m) => { if (/\[h1(09|11|12)\]/.test(m.text())) console.log('CONSOLE', m.type(), m.text().slice(0, 300)); }); pg.on('framenavigated', (f) => { if (f === pg.mainFrame()) console.log('NAV', f.url().slice(-60)); }); }
   pg.on('pageerror', (e) => errs.push('PAGEERR ' + e.message.slice(0, 300)));
   await pg.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const init = steps.find((s) => s.init); 

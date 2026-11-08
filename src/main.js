@@ -419,6 +419,7 @@ view.twinCam = (on) => {
 };
 view.camSet = (px, py, pz, tx, ty, tz) => { fly = null; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); };
 view.pickAt = (x, y) => { try { pickAt(x, y); } catch (e) { /* */ } };   // ── cam28 ── (twin.js: a single tap on the right half picks after the double-tap's window) ── /cam28 ──
+view.minDist = () => controls.minDistance;   // ── h112 ── (the director's camera keeps it too: h109/director.js camStep) ── /h112 ──
 view.camNow = (out) => { const o = out || {}; o.px = camera.position.x; o.py = camera.position.y; o.pz = camera.position.z; o.tx = controls.target.x; o.ty = controls.target.y; o.tz = controls.target.z; return o; };
 // ── figures24 ── the works' render scale (WAVE24 "רזולוציה כללית מדי"): while a work of Phase B is on, the pixel ratio rises to
 // min(devicePixelRatio, 2) unless the quality level is 'low' (or the frame-time guard, perf(), already brought it down: never above its
@@ -675,7 +676,7 @@ async function boot() {
   {
     const crews = createCrews({ scene, camera, life, stages, terrainH });
     life.addUpdater(crews.update);
-    Object.assign(stages, { setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
+    Object.assign(stages, { keepOut: crews.keepOut, setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
     // ── h109 ── (build 109, stage 01 in the old world) the acts' own crews and oxen are old actors.js / animals.js figures: the crews' instances
     Object.assign(stages, { crewActors: crews._actors, crewAnimals: crews._animals, scene, camera });
     // ── /h109 ──

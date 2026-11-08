@@ -78,6 +78,13 @@ export function createH109Director(o) {
     CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u);
     CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k);
     view.camSet(CAM.p.x, CAM.p.y, CAM.p.z, CAM.t.x, CAM.t.y, CAM.t.z);
+    // ── h112 ── (before each render OrbitControls keeps the camera its minDistance from the target and main.js clampCam lifts it to the
+    // Mount's floor: the same here, or a touch's ray and project() would be of another camera than the frame shown) ── /h112 ──
+    try {
+      const p = camera.position, md = view.minDist ? view.minDist() : 0, d = p.distanceTo(CAM.t);
+      if (md > 0 && d < md && d > 1e-6) p.sub(CAM.t).multiplyScalar(md / d).add(CAM.t);
+      const fl = S0.camFloor ? S0.camFloor(p.x, p.z) : null; if (Number.isFinite(fl) && p.y < fl) p.y = fl;
+    } catch (e) { /* */ }
     try { camera.lookAt(CAM.t); camera.updateMatrixWorld(); } catch (e) { /* the controls turn it at the render */ }   // (the touch's ray and project() agree in this frame)
   }
 
@@ -330,7 +337,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     phase = 'walk';
     if (ONLY) {
       onlyNext();
-      if (!M.mission()) { line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem('bh_beta2'); } catch (e) { /* */ } location.reload(); }, 2500); return; }
+      if (!M.mission()) { console.info('[h109] only page: all levels done, reload'); line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem('bh_beta2'); } catch (e) { /* */ } location.reload(); }, 2500); return; }
       syncMount(true);
     }
     openMission();

@@ -1040,6 +1040,19 @@ export function createCrews(ctx = {}) {
   const near = (x, z, d) => { const dx = x - camP.x, dz = z - camP.z; return dx * dx + dz * dz < d * d; };
   const farScale = (d2) => (d2 < 220 * 220 ? 1 : 1 + Math.min(0.35, (Math.sqrt(d2) - 220) / 950));
   let chk = 0;
+  // ── h112 ── (stage 03, the owner's rule 19: nothing between the eye and the work) rects a director's act keeps clear of the
+  // crews: a worker whose way takes him in steps out to its nearest edge (x0 z0 x1 z1)
+  let KEEP = [];
+  function keepOut(list) { KEEP = (list || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)).slice(0, 6); }
+  function keepClear(w) {
+    const a = w.a; if (!a) return;
+    for (const r of KEEP) {
+      if (a.x <= r[0] || a.x >= r[2] || a.z <= r[1] || a.z >= r[3]) continue;
+      const d = [a.x - r[0], r[2] - a.x, a.z - r[1], r[3] - a.z], m = Math.min(...d), k = d.indexOf(m);
+      if (k === 0) a.x = r[0] - 0.05; else if (k === 1) a.x = r[2] + 0.05; else if (k === 2) a.z = r[1] - 0.05; else a.z = r[3] + 0.05;
+    }
+  }
+  // ── /h112 ──
   function update(dt) {
     if (!(dt > 0)) dt = 0;
     if (dt > 0.25) dt = 0.25;
@@ -1094,6 +1107,7 @@ export function createCrews(ctx = {}) {
     try { keyCartUpdate(dt); } catch (e) { warn(e); }   // ── site9 ── the key stone's cart
     if (ownBlobs) blobs.begin();
     actors.update(dt);
+    if (KEEP.length) for (const w of people) if (!w.gone) keepClear(w);   // ── h112 ── (after their steps: a way through the frame ends at its edge) ── /h112 ──
     animals.update(dt);
     if (ownBlobs) blobs.end();
     writeCarts();
@@ -1628,7 +1642,7 @@ export function createCrews(ctx = {}) {
   }
 
   const api = {
-    setCrews, setQuarry, caravan, trainees, cheer, update, reset,
+    setCrews, setQuarry, caravan, trainees, cheer, update, reset, keepOut,
     lifeCount, lifeList, pickPerson, setLife(v) { LIFE.on = !!v; LIFE.key = ''; },   // ── site16 ── the life layer and the tap card
     setEnabled(v) { enabled = !!v; },
     setScale(s) { if (Number.isFinite(s) && s > 0) pxScale = s; },

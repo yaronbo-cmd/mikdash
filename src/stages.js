@@ -1542,6 +1542,16 @@ export function createStages(ctx) {
     return HOLES.length;
   }
   // ── /h111 ──
+  // ── h112 ── (stage 03, the owner 8.11: the kohen's runs of the soreg and his flight of steps) the openings a site's crews leave for him:
+  // its reveal drops its own stones in these rects between y0 and y1 (batch.js uBcHole, as the wall's gates); the kohen's own meshes fill them
+  function siteHoles(id, list, y0 = -1, y1 = 1e4) {
+    const st = ST[id]; if (!st || !st.U || !st.U.uHole) return 0;
+    const L = (list || []).filter((h) => Array.isArray(h) && h.length >= 4).slice(0, 8), U = st.U;
+    for (let i = 0; i < 8; i++) { const h = L[i]; if (h) U.uHole.value[i].set(h[0], h[1], h[2], h[3]); else U.uHole.value[i].set(0, 0, 0, 0); }
+    U.uHoleY.value.set(y0, y1, L.length);
+    return L.length;
+  }
+  // ── /h112 ──
   function s20Band(x, z) {
     if (!(x > S20_OUT[0] && x < S20_OUT[2] && z > S20_OUT[1] && z < S20_OUT[3])) return false;
     if (x > S20_IN[0] && x < S20_IN[2] && z > S20_IN[1] && z < S20_IN[3]) return false;
@@ -1559,7 +1569,11 @@ export function createStages(ctx) {
     return y;
   }
   // ── /site20 ──
+  // ── h112 ── a floor a director's act lays itself (the kohen's flight of steps in stage 03, its meshes not the site's): it answers
+  // first where it knows the height (a number), and leaves the rest to the site
+  let floorHook = null;
   function groundAt(x, z) {
+    if (floorHook) { let y = null; try { y = floorHook(x, z); } catch (e) { y = null; } if (Number.isFinite(y)) return y; }
     if (!isDone('har')) {
       const hs = ST.har;
       if (hs.status !== 'building') return hill.heightAt(x, z);
@@ -8765,7 +8779,7 @@ export function createStages(ctx) {
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
-    s20Pin, wallHoles, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
+    s20Pin, wallHoles, siteHoles, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,
     // az, el, also?) → { az, el, dist, moved } | null · occluded(x, y, z, from?) → bool · heroRock() → the builder's rock (−1: none)

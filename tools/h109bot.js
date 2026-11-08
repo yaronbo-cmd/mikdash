@@ -138,6 +138,58 @@
       return { hold: [a.set[0], a.set[1], Math.round(hold * 1000)], wait: 450, note: `closing plumb err ${a.err}` };
     },
     // ── /build 111 ──
+    // ── build 112 ── stage 03's acts (h112/acts*.js dbg())
+    posts(a) {
+      if (a.done || a.busy || a.cur == null || !a.scr) return { wait: 300 };
+      const dx = -a.e * a.px, x0 = W * 0.5, y0 = HH * 0.72;   // (the drag takes the post wherever it starts: not on the top bar)
+      if (Math.abs(a.e) < 0.02) return { drag: [x0, y0, x0 + (dx >= 0 ? 4 : -4), y0, 300], wait: 900, note: 'posts: set it' };
+      return { drag: [x0, y0, x0 + dx, y0, 800], wait: 900, note: `posts ${a.cur}: e ${a.e} → ${Math.round(dx)}px` };
+    },
+    slab(a) {
+      if (a.done || a.busy) return { wait: 300 };
+      if (a.held < 0) { const c = a.cands.find((q) => q.ok); return c ? { tap: c.scr, wait: 1400, note: 'slab: choose ' + a.cands.indexOf(c) } : { wait: 300 }; }
+      return B.hang(a.h, a.slab, 0.6, a.between ? 0.75 : 0.9);
+    },
+    warn(a) {
+      if (a.done || a.busy) return { wait: 300 };
+      if (a.phase === 'count') { const p = a.posts.find((q) => q.i === a.at); return p ? { tap: p.scr, wait: 1600, note: 'warn: the post ' + a.at } : { wait: 300 }; }
+      if (a.phase === 'hang') return B.hang(a.h, a.slab, 0.6, 0.7);
+      if (a.phase === 'paint' && a.strokes) { const st = a.strokes[(B.k.si = (B.k.si | 0) + 1) % a.strokes.length]; return { path: st, ms: 700, wait: 150 }; }
+      return { wait: 300 };
+    },
+    steps(a) {
+      if (a.done || a.busy || a.k == null || !a.scr) return { wait: 300 };
+      if (Math.abs(a.dx) > 0.03) { const dx = -a.dx * a.px + (a.gauge && a.dx < 0 ? 8 : 0); return { drag: [a.scr[0], a.scr[1], a.scr[0] + dx, a.scr[1], 700], wait: 600, note: `steps ${a.k}: dx ${a.dx} → ${Math.round(dx)}px` }; }
+      if (a.h > 0.012) return { tap: a.scr, wait: 450, note: `steps ${a.k}: tamp h ${a.h}` };
+      return { wait: 500 };
+    },
+    close(a) {
+      if (a.done || a.busy) return { wait: 300 };
+      if (a.phase === 'measure') return { drag: [a.tip[0], a.tip[1], a.tipTo[0], a.tipTo[1], 800], wait: 700, note: 'close: the rod to the post' };
+      if (a.phase === 'choose') {
+        const c = a.cands.find((q) => q.fits);
+        if (c) return { tap: c.scr, wait: 1400, note: `close: ${c.w} for ${a.need}` };
+        const w = a.cands.find((q) => q.w - a.need > 0.03) || a.cands[0];
+        return { drag: [w.scr[0], w.scr[1], a.bench[0], a.bench[1], 1200], wait: 1200, note: 'close: none fits, to the bench' };
+      }
+      if (a.phase === 'hang') return B.hang(a.h, a.slab, 0.6, 0.5);
+      return { wait: 400 };
+    },
+    // ── /build 112 ──
+  };
+  // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
+  B.hang = (h, at, top, vSafe) => {
+    if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };
+    at = [Math.max(60, Math.min(W - 60, at[0])), Math.max(150, Math.min(HH - 110, at[1]))];   // (the rope takes a press anywhere: never on the top bar)
+    if (h.flip) return { tap: at, wait: 1100, note: 'hang: the crew turns it over' };
+    const th = h.th, thT = h.thT;
+    if (Math.abs(th) > 0.07) {
+      const dx = (-th / (Math.PI * 2 * 0.9)) * Math.max(320, W);
+      return { drag: [at[0], at[1], at[0] + dx, at[1], 500], wait: 1300, note: `hang: turn ${th} (${Math.round(dx)}px)` };
+    }
+    if (h.gust && (h.gust.warn || h.gust.on > 0)) return { wait: 250, note: 'hang: a gust' };
+    if (h.y > h.seatY + 1.0) return { holdUntil: [at[0], at[1], C(`const h=a&&a.h;return !h||h.mode==='seated'||h.y<h.seatY+0.95||(h.gust&&(h.gust.warn||h.gust.on>0))`), 9000], wait: 500 };
+    return { hold: [at[0], at[1], vSafe < 0.8 ? 420 : 470], wait: 350 };
   };
   B.next = () => {
     const S = H().state();
@@ -145,6 +197,8 @@
       if (!B.endSeen) { B.endSeen = now(); return { wait: 2500, shot: 'stage-end', note: 'the stage is over' }; }
       return { done: true };
     }
+    // (the films between levels and the end: a frame every 2.5 s, when the probe asks for them)
+    if (window.__BOT_FILM && (S.phase === 'film' || S.phase === 'end') && now() - (B.filmT || 0) > 2500 && (B.filmN = (B.filmN || 0) + 1) < 80) { B.filmT = now(); return { wait: 200, shot: `film-${S.phase}-${S.mission || 'end'}-${B.filmN}` }; }
     if (S.phase === 'walk') {
       if (B.m !== S.mission) { B.note = `${S.i}/${S.n} → ${S.mission} · streak best ${S.best}`; B.m = S.mission; B.begun = false; B.goT = 0; return { wait: 300, note: B.note }; }
       if (now() - B.goT > 7000) { B.goT = now(); return { eval: '__T.game.h109.goTo()', wait: 300 }; }

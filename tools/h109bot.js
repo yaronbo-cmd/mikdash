@@ -25,9 +25,8 @@
     read(a) {
       if ((a.step === 'turn' || a.step === 'wedge') && !a.seen[0]) { const dx = -(a.linePhi[0] - a.th) / 0.0045; return { drag: [W * 0.5, HH * 0.62, W * 0.5 + dx, HH * 0.62, 700], note: 'read: turn the mirror ' + Math.round(dx) + 'px' }; }
       if ((a.step === 'turn' || a.step === 'wedge') && a.wedges < a.nW) {
-        const [e0, e1] = a.lineEnds[0], m = a.lineScr[0], c = [2 * m[0] - (e0[0] + e1[0]) / 2, 2 * m[1] - (e0[1] + e1[1]) / 2];
-        const u = 0.14 + (0.72 * a.wedges) / Math.max(1, a.nW - 1), v = 1 - u;
-        return { tap: [v * v * e0[0] + 2 * u * v * c[0] + u * u * e1[0], v * v * e0[1] + 2 * u * v * c[1] + u * u * e1[1]], wait: 350 };
+        const P = a.linePts[0], u = (0.14 + (0.72 * a.wedges) / Math.max(1, a.nW - 1)) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(u));
+        return { tap: mid(P[j], P[j + 1], u - j), wait: 350 };
       }
       if (a.step === 'water') return { holdUntil: [W * 0.5, HH * 0.5, C('return !a||a.step!==\'water\'||a.water>=1.04'), 7000] };
       return { wait: 250 };

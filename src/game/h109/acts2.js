@@ -140,7 +140,7 @@ export const READ = {
     }
     return {
       begin() {
-        const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.6 + 5, el: 16, side: -0.42, lift: b[2] * 0.35 });
+        const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.8 + 8, el: 26, side: -0.95, lift: b[2] * 0.35 });   // (from his side: he never stands on the line)
         X.shot(ws.p, ws.t, 0.9);
         X.line('גררו ימינה ושמאלה: האור מהמראה מגלה את קו הבקיעה');
         X.hand({ x: b[0], y: gy + b[2] * 0.4, z: b[1] }, 40, 0);
@@ -189,7 +189,7 @@ export const READ = {
             if (A.res.space === 'ok') X.word({ x: mid.x, y: mid.y + 1.5, z: mid.z }, 'רווחים לא שווים'); else X.hit({ x: mid.x, y: mid.y + 1.5, z: mid.z }, A.res.space, { text: 'רווח שווה', craft: 'סתתים' });
             A.step = 'water'; A.water = 0;
             X.line('החזיקו: שופכים מים על היתדות. שחררו כשהחריקה נגמרת');
-            const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.4 + 5, el: 20, side: -0.55, lift: b[2] * 0.35 });
+            const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.6 + 7, el: 24, side: -0.95, lift: b[2] * 0.35 });
             X.shot(ws.p, ws.t, 0.7);
           }
           return;
@@ -207,7 +207,7 @@ export const READ = {
       },
       end() { for (const o of [beam, glow, mirror]) X.props.remove(o); for (const L of A.lines) X.props.remove(L.mesh); for (const w of A.wedges) X.props.remove(w.w); for (const j of A.junk || []) X.props.remove(j); X.meter(null); X.count(null); },
       at() { return { x: b[0], y: gy + b[2], z: b[1] }; },
-      dbg() { return { step: A.step, nW, th: +A.th.toFixed(3), seen: A.lines.map((L) => L.seen), linePhi: A.lines.map((L) => +(L.phi - phiH).toFixed(3)), wedges: A.wedges.length, water: +A.water.toFixed(2), res: A.res, lineScr: A.lines.map((L) => { const q = X.scr(L.pts[4].x, L.pts[4].y, L.pts[4].z); return [Math.round(q.x), Math.round(q.y)]; }), lineEnds: A.lines.map((L) => [0, 8].map((i) => { const q = X.scr(L.pts[i].x, L.pts[i].y, L.pts[i].z); return [Math.round(q.x), Math.round(q.y)]; })) }; },
+      dbg() { return { step: A.step, nW, th: +A.th.toFixed(3), seen: A.lines.map((L) => L.seen), linePhi: A.lines.map((L) => +(L.phi - phiH).toFixed(3)), wedges: A.wedges.length, water: +A.water.toFixed(2), res: A.res, lineScr: A.lines.map((L) => { const q = X.scr(L.pts[4].x, L.pts[4].y, L.pts[4].z); return [Math.round(q.x), Math.round(q.y)]; }), linePts: A.lines.map((L) => L.pts.map((q) => { const r = X.scr(q.x, q.y, q.z); return [Math.round(r.x), Math.round(r.y)]; })), lineEnds: A.lines.map((L) => [0, 8].map((i) => { const q = X.scr(L.pts[i].x, L.pts[i].y, L.pts[i].z); return [Math.round(q.x), Math.round(q.y)]; })) }; },
     };
   },
 };

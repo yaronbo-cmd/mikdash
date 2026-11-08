@@ -127,7 +127,7 @@ export const BOND = {
     }
     // the bed of the stretch (the empty place in the course): the two face rows lit, an amah tick on their edges, the core between them
     // the crews' (spec "המגע": the child sees where the course goes and counts the amot)
-    const bed = [], bedM = new T3.MeshBasicMaterial({ color: 0xFFE3A0, transparent: true, opacity: 0.34, depthWrite: false }), tickM = new T3.MeshBasicMaterial({ color: 0x6A4A1E, transparent: true, opacity: 0.7, depthWrite: false });
+    const bed = [], bedM = new T3.MeshBasicMaterial({ color: 0xF6F0DE, transparent: true, opacity: 0.3, depthWrite: false })   /* (lime on the bed, rule 9: a real site's marks, never yellow) */, tickM = new T3.MeshBasicMaterial({ color: 0x6A4A1E, transparent: true, opacity: 0.7, depthWrite: false });
     const spans = P.open ? [[0, P.open[0]], [P.open[1], P.G]] : [[0, P.G]];
     for (const [a0, b0] of spans) for (const r of [0, 2]) {
       const pl = new T3.Mesh(PR.geo.box, bedM); const c = F.at((a0 + b0) / 2, rowOff(r), 0.03); pl.scale.set(b0 - a0 - 0.08, 0.02, H111.ROW - 0.12); pl.position.set(c.x, c.y, c.z); pl.rotation.y = F.yaw; pl.renderOrder = 990; PR.root.add(pl); bed.push(pl);

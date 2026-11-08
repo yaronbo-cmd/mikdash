@@ -228,7 +228,7 @@ export const GATES = {
     // the slots: the seven openings (chalk on the wall's top, over each) and two in the west, where there is no gate
     const slots = [...G.map((g, gi) => ({ gi, x: g.k === 'E' ? 3 : g.x, z: g.k === 'N' ? -70.5 : g.k === 'S' ? 70.5 : 0, k: g.k, n: g.n })), ...WEST.map((w) => ({ gi: -1, x: w.x, z: w.z, k: 'W', n: '' }))];
     const slotM = slots.map((s) => {
-      const mm = new T3.Mesh(new T3.PlaneGeometry(1, 1), PR.M.gold.clone()); mm.rotation.x = -Math.PI / 2;
+      const mm = new T3.Mesh(new T3.PlaneGeometry(1, 1), PR.M.chalk.clone());   // (a lime outline on the wall's top, rule 9) mm.rotation.x = -Math.PI / 2;
       const along = s.k === 'N' || s.k === 'S'; mm.scale.set(along ? 10 : 6.4, along ? 6.4 : 10, 1); mm.material.opacity = 0.55; mm.material.depthTest = false; mm.renderOrder = 997;
       let y = 16; try { const t = X.stages.wallTopAt(s.x + (along ? 6.5 : 0), s.z + (along ? 0 : 6.5)); if (Number.isFinite(t)) y = t + 0.4; } catch (e) { /* */ }
       mm.position.set(s.x, y, s.z); PR.root.add(mm); s.y = y; return mm;

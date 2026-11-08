@@ -62,6 +62,7 @@ import { createEndChain } from './hooks/endchain.js';
 import * as RD20 from './hooks/riddle.js';
 import { MISHMAROT } from '../calendar.js';
 // ── /hook20 ──
+import { createH109Director } from './h109/director.js';   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
 
 const DEFAULTS = {
@@ -125,6 +126,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   let { G, isNew } = S.load(store, keyOf(), now());
   let started = false, whole = false, dayOpen = '', tod = null;
   let opening = false;                     // ── build7 ── the opening vision is on screen (the world shows the finished House)
+  let H9 = null;   // ── h109 ── the director of stage 01 (h109/director.js): made at the Mount's start, owns the Mount while it is built ── /h109 ──
+  let h9Quiet = false;   // ── h109 ── (stage 01 finished by its director: the old end-chain cards stay away)
   let JU = null;   // ── juice18 ── (juice.js: made with the thumbs, registered at __BH_PARTS.juice) ── /juice18 ──
   let TW = null, twinMarks = [], twinMarkN = 0, twinWas = false, twinCamWas = false, twinSheet = false, twinPerfect = false, twinModeWas = 'follow', twinDir = false, twinSiteT = 0, twinDealRef = null;   // ── twin17 ── (twinSiteT: twin18) (declared before emit can run) ── /twin17 ──
   const intervals = [];
@@ -285,7 +288,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (type === 'course' && d && d.by !== 'crew' && !d.away) {
       const P = PROJ[d.id], sv = S.siteView(G, d.id);
       EC.request({ kind: 'course', id: d.id, stones: P ? P.P : 0, noStamp: !!(JU && TW && TW.on), name: sv ? sv.name : '' });
-    } else if (type === 'stageDone' && d && !d.skipped && d.id) {
+    } else if (type === 'stageDone' && d && !d.skipped && d.id && !(d.id === 'har' && h9Quiet)) {   // ── h109 ── (stage 01 ends on its own film, then the next mission opens in the world: no cards)
       const P = PROJ[d.id];
       EC.request({ kind: 'stage', id: d.id, stones: P ? P.C * P.P : 0, noStamp: !!(JU && TW && TW.on) });
     }
@@ -2525,6 +2528,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       await sleep(900 * F);
       await heroInView(2500 * F);   // ── flow11 ── (PRODUCER10 N6: "the coach says 'measure' over the vision") after the camera lands on him
       if (gen !== hero.gen) return;
+      if (H109_ON) { h9Make().start(); return; }   // ── h109 ── (stage 01 is the director's: the rope, the sectors, the stations) ── /h109 ──
       ftueTo(1);
     } else resumeFtue();
   }
@@ -2543,6 +2547,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     });
   }
   function resumeFtue() {
+    if (H109_ON && !S.isDone(G, 'har')) { if (S.statusOf(G, 'har') !== 'building') S.startBuild(G, 'har'); syncSite('har', true); W.heroShow(true); ui.refresh(); h9Make().start(); return; }   // ── h109 ── ── /h109 ──
     if (!S.isDone(G, 'har') && S.statusOf(G, 'har') !== 'building') { S.startBuild(G, 'har'); syncSite('har', true); W.setBoulders(G.bh); }
     const i = S.pickBoulder(G.bh, {}, bOrder);   // ── flow9 ── the field's path
     if (i >= 0 && G.ftue <= 2) { W.heroPlace({ boulder: i }); lookAtBoulder(i, 2400); }
@@ -2633,6 +2638,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       למדוד את ההר" over the builder into the courses */
   const SURVEY_LINE = 'הקש כדי למדוד את ההר';
   function staleCoach() {
+    if (h9Own()) return;   // ── h109 ── ── /h109 ──
     const s = G && G.st && G.st.har;
     // (── flow11 ── PRODUCER11 N62: "הקש כדי למדוד את ההר" stayed over the kiyor, the Ulam, the Heichal — the Mount done has no `p`)
     if (s && (s.done || (s.p && s.p !== 'survey')) && ui.coachText && ui.coachText.includes(SURVEY_LINE)) ui.coach(null, '');
@@ -2719,6 +2725,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   // FTUE milestones that are easier to poll than to hook
   function ftueWatch() {
+    if (h9Own()) return;   // ── h109 ── ── /h109 ──
     markSync();                                         // ── flow8 ── (the next boulder as soon as one splits)
     staleCoach();
     if (!started || G.ftue >= 99 || momentBusy) return;
@@ -2983,6 +2990,31 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   // ── juice18 ── (docs/WAVE18-BRIEF.md contracts 1 and 3) juice.js answers every touch on material (twin.js calls juice.hit) and every
   // result; its "+1" flies to the craft's points (craftxp.js, G.xp) at the top
+  // ── h109 ── build 109: stage 01 in the old world. The director plays it (h109/*); at its end the stage is complete in the world (no card,
+  // the owner 8.11: "בסוף שלב יהיה מצלמה ביצוע ואז פשוט תיפתח משימה חדשה ללכת אליה") and the next stage's plan rises on the Mount
+  const H109_ON = !(typeof location !== 'undefined' && /[?&]h109=0\b/.test(location.search || ''));
+  const h9Own = () => !!(H9 && H9.owns());
+  function h9Make() {
+    if (H9) return H9;
+    const S0 = world && (world.stages || world);
+    if (!JU && ui.root) juiceMake();
+    H9 = createH109Director({ G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), stages: S0, view, ui, sfx, haptic, juice: () => JU, score: SCR,
+      bonus: (n, why, label) => scoreBonus(n, why, label), twin: () => TW, onDone: () => h9Done() });
+    return H9;
+  }
+  function h9Done() {
+    if (S.isDone(G, 'har')) return;
+    G.bh = (G.bh || []).map(() => 0);
+    h9Quiet = true;
+    const c = S.completeStage(G, 'har');
+    if (G.ftue < 99) G.ftue = 99;
+    completeFlow(c, false);
+    persist();
+    const r = S.recommend(G);
+    if (r && r.id) { try { W.focus(r.id); } catch (e) { /* */ } }
+    ui.refresh();
+  }
+  // ── /h109 ──
   function juiceMake() {
     JU = createJuice18({
       ui, sfx, haptic, view, stages: () => world && (world.stages || world), G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), twin: () => TW, score: () => SCR /* ── hook19 ── */,
@@ -3009,11 +3041,11 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
         ui, view, stages: world && (world.stages || world), root: ui.root, emit: (t, d) => emit(t, d), sfx, haptic, settings: () => settings,
         live: () => started && !whole && !opening && !reelOn(),
         stage: () => twinStage(),   // ── twin18 ── (every stage of the building site) ── /twin18 ──
-        moment: () => !!(ui.busy || opening || whole || (ui.root && ui.root.querySelector('.gm-modal.on'))),   // (second fix round: only a card that asks something holds the thumbs) ── twin18 ── (+ any card on screen: the arrow and the markers never over it) ── /twin18 ──
+        moment: () => !!(ui.busy || opening || whole || (ui.root && ui.root.querySelector('.gm-modal.on')) || (h9Own() && H9.acting())),   // ── h109 ── (an act holds the thumbs; its own shot has the camera) ── /h109 ──   // (second fix round: only a card that asks something holds the thumbs) ── twin18 ── (+ any card on screen: the arrow and the markers never over it) ── /twin18 ──
         film: () => !!(!(globalThis.__HANDS && globalThis.__HANDS.twin) && !jobBusy && !SC && (momentBusy || overlay)),   // (a key moment's or a check's own shots take the camera)
-        work: (h) => caSpec(navWork(twinWork(h))), marks: () => twinMarks, goal: () => twinGoal(),   // ── nav19 ── (navWork: "↩ לעבודה" goes as the compass does) ── /nav19 ── ── crafta19 ── (caSpec: the survey's craft) ── /crafta19 ──
+        work: (h) => (h9Own() ? null : caSpec(navWork(twinWork(h)))), marks: () => (h9Own() ? H9.marks() : twinMarks), goal: () => (h9Own() ? H9.goal() : twinGoal()),   // ── h109 ── (no work button: the world is touched; the markers and the arrow are the open mission's) ── /h109 ──   // ── nav19 ── (navWork: "↩ לעבודה" goes as the compass does) ── /nav19 ── ── crafta19 ── (caSpec: the survey's craft) ── /crafta19 ──
         pickMark: (m) => { CA.mkJob = m.job; return { icon: m.icon, label: m.label, job: m.job, at: m, go: () => jobPick(m.site, m.job) }; },   // ── twin20 ── (the right stick chose this marker) ── /twin20 ──
-        goTo: () => twinGoTo(),   // ── nav19 ── (the compass's tap) ── /nav19 ──
+        goTo: () => (h9Own() ? H9.goTo() : twinGoTo()),   // ── nav19 ── (the compass's tap) ── /nav19 ──
         camEl: () => (Number.isFinite(s21El) ? s21El : null),   // ── stages21 ── ── /stages21 ──
         camSide: (d, el, az) => twinCamSide(d, el, az),   // ── nav19 ── (note 11: the wall's outer side while he works a high course from its foot) ── /nav19 ──
         juice: () => { const P = globalThis.__BH_PARTS; return (P && P.juice) || parts().juice || null; },   // ── twin18 ── (JUICE18's juice.hit, contract 3) ── /twin18 ──
@@ -3243,6 +3275,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function frame(ms) {
     ui.frame(ms);
     twinTick(ms);   // ── twin17 ── ── /twin17 ──
+    if (H9) { H9.frame(ms); if (H9.owns()) { lastFrameMs = ms; return; } }   // ── h109 ── (while it owns the Mount, the old flow's keepers sleep) ── /h109 ──
     { const dt = lastFrameMs ? Math.min(0.5, Math.max(0, (ms - lastFrameMs) / 1000)) : 0; lastFrameMs = ms; keepAtWork(dt); keepInFrame(ms); stepFollow(ms); if ((coachChk -= dt) <= 0) { coachChk = 0.5; staleCoach(); if (beatWait || checkWait) courseMoment(); } }   // ── director13 ── (a course end's moment that waited)
     if ((dealWant || dealOpen) && coachChk === 0.5) dealTry();   // ── fun14 ── (twice a second: a deal that waits opens once the scene is clear; a stale one closes) ── /fun14 ──
     if (!markT || hero.busy || overlay || momentBusy || opening || whole || ui.busy || ui.markOn || tNow() < camHold) { markHidT = 0; return; }
@@ -3380,6 +3413,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     get state() { return G; },
     get busy() { return ui.busy || momentBusy || opening; },
     get juice() { return JU; },   // ── juice18 ── ── /juice18 ──
+    get h109() { return H9; },   // ── h109 ── ── /h109 ──
     get hook20() { return { chain: EC, ar: AR20, rd: RD20, solve: riddleSolved20, emit: (t, d) => emit(t, d), why: () => ({ started, demo: G.demo, whole, opening, momentBusy, overlay: !!overlay, jobBusy, SC: !!SC, busy: ui.busy, cam: tNow() - camHold, js: !!(JU && JU.stats().busy), dom: !!(ui.root && ui.root.querySelector('.gm-modal.on,.gm-mo,.fx-mg.on,.m3,.gm-dn,.gm-cine.on')), hands: !!(globalThis.__HANDS && globalThis.__HANDS.twin), pend: EC && EC.pending }) }; },   // ── hook20 ── (tests)
     get score() { return SCR; },   // ── hook19 ── (add(n, why) · grade(g) · get() · list() · unseen())
     get whole() { return whole; },
@@ -3552,6 +3586,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   /** twice a second: a deal that waits opens once nothing else is on screen */
   function dealTry() {
+    if (h9Own()) return;   // ── h109 ── ── /h109 ──
     // (PRODUCER14 N98: a deal whose site left the loop — a demo jump, the crews closing the course or the stage while it waited —
     //  is a dead sheet: it closes, and a fresh deal comes for the work that waits now)
     if (dealOpen && !jobBusy && (!JB.loopOn(G, dealOpen) || !JB.curOf(G, dealOpen).deal)) { dealClose(); dealWant = 1; emit('dealStale', {}); }

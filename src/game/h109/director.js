@@ -1,0 +1,361 @@
+/* ── build 109 ── h109/director.js — stage 01 "שיטוח ההר" played INSIDE the old moving world (the owner, 7.11 16:57: "אתה לא בונה
+ * שום משחקון מחוץ לעולם הזה"; spec docs/specs/shlav-01-olam-yashan-he.md, approved 8.11 00:22).
+ *
+ * The director owns the Mount while it is built: one mission at a time opens at its place on the hill (a tall stake with a red
+ * cloth, the old markers and the compass point to it); the kohen walks there with the left thumb (or the compass brings him); near
+ * it he is drawn to its stand and the act begins IN the world — the camera takes the act's own fixed shot (never moving under the
+ * finger), the thumbs are held, the finger touches the thing itself. The act ends with its result in the world, the old flash and
+ * number for every success, the stars; the camera pulls back over what grew; the next mission opens somewhere else on the hill.
+ * The Mount comes down sector by sector (stages.setStage('har', progress)), the crews work all round the whole time.
+ *
+ *   const D = createH109Director({ G, persist, emit, stages, view, ui, sfx, haptic, juice: () => JU, score: SCR, bonus(n, why, label),
+ *     twin: () => TW, onDone(): the stage is built })
+ *   D.owns() · D.acting() · D.start() · D.frame(ms) · D.marks() (twin's markers) · D.goal() (the compass) · D.goTo() · D.state()
+ */
+import * as THREE from 'three';
+import { createH109, PLAN, PLACES, H109, starsOf, GRADE_N } from './model.js';
+import { createProps } from './props.js';
+import { ACTS } from './acts.js';
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const ease = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+
+export function createH109Director(o) {
+  const S0 = o.stages, view = o.view, ui = o.ui;
+  const G = () => (typeof o.G === 'function' ? o.G() : o.G);
+  const save = () => { try { o.persist && o.persist(); } catch (e) { /* the game's */ } };
+  const emit = (t, d) => { try { o.emit && o.emit(t, d); } catch (e) { /* */ } };
+  const log = (...a) => { try { (globalThis.__H109_LOG || (globalThis.__H109_LOG = [])).push(a.join(' ')); } catch (e) { /* */ } };
+  let M = null, P = null, started = false, act = null, mission = null, phase = 'off', tPhase = 0, film = null, lastMs = 0, hidden = false;
+  const scene = S0.scene, camera = S0.camera;
+  const ground = (x, z) => S0.groundAt(x, z);
+  const hero = S0.hero;
+  const HP = { x: 0, y: 0, z: 0 };
+  const heroAt = () => S0.heroXYZ(HP);
+
+  /* ───────── the camera: one fixed shot per act, eased; films (the opening, the pull-back) ───────── */
+  const CAM = { on: false, p: new THREE.Vector3(), t: new THREE.Vector3(), p0: new THREE.Vector3(), t0: new THREE.Vector3(), p1: new THREE.Vector3(), t1: new THREE.Vector3(), u: 1, dur: 0.8 };
+  const cq = {};
+  function shot(p, t, dur = 0.8) {
+    view.camNow(cq); CAM.p0.set(cq.px, cq.py, cq.pz); CAM.t0.set(cq.tx, cq.ty, cq.tz);
+    CAM.p1.set(p[0], p[1], p[2]); CAM.t1.set(t[0], t[1], t[2]); CAM.u = dur > 0 ? 0 : 1; CAM.dur = Math.max(0.01, dur); CAM.on = true;
+  }
+  /** a ¾ work shot (spec ש3): from the kohen's side and behind, the object to the right of the screen centre, the kohen in the left third */
+  function workShot(obj, stand, o2 = {}) {
+    const dist = o2.dist || 13, el = (o2.el || 30) * Math.PI / 180, side = o2.side == null ? -0.55 : o2.side;
+    const fx = obj.x - stand.x, fz = obj.z - stand.z, L = Math.hypot(fx, fz) || 1, ux = fx / L, uz = fz / L;
+    // the camera behind the kohen and to his right, looking at a point between him and the object (a little toward the object)
+    const mx = stand.x + fx * 0.62, mz = stand.z + fz * 0.62, my = (o2.ty != null ? o2.ty : Math.max(ground(stand.x, stand.z), ground(obj.x, obj.z)) + (o2.lift || 1.6));
+    const bx = -ux * Math.cos(side) + uz * Math.sin(side), bz = -uz * Math.cos(side) - ux * Math.sin(side);
+    const px = mx + bx * dist * Math.cos(el), pz = mz + bz * dist * Math.cos(el), py = my + dist * Math.sin(el);
+    return { p: [px, py, pz], t: [mx, my, mz] };
+  }
+  function camStep(dt) {
+    if (!CAM.on) return;
+    CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u);
+    CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k);
+    view.camSet(CAM.p.x, CAM.p.y, CAM.p.z, CAM.t.x, CAM.t.y, CAM.t.z);
+    try { camera.lookAt(CAM.t); camera.updateMatrixWorld(); } catch (e) { /* the controls turn it at the render */ }   // (the touch's ray and project() agree in this frame)
+  }
+
+  /* ───────── the touch on the world (during an act only) ───────── */
+  const canvas = () => document.getElementById('c') || document.querySelector('canvas');
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const ptr = { id: null, x: 0, y: 0, x0: 0, y0: 0, t0: 0, down: false };
+  function rayAt(x, y) { try { camera.updateMatrixWorld(); if (PROPS) PROPS.root.updateMatrixWorld(true); } catch (e) { /* */ } ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera); return ray; }
+  /** the screen point of a world point → {x, y, on} (a fresh object) */
+  function scr(x, y, z) { const q = view.project(x, y, z); return { x: q.x, y: q.y, on: q.on }; }
+  const hudEl = (e) => !!(e && e.closest && e.closest('.gm-top,.gm-tabs,.gm-menu,.gm-modal,button,.h109-ui'));
+  function onPtr(e) {
+    if (!act || phase !== 'act') return;
+    const c = canvas();
+    if (e.type === 'pointerdown') {
+      log('ptr', e.target && (e.target.id || e.target.className || e.target.tagName), Math.round(e.clientX), Math.round(e.clientY), ptr.down ? 'busy' : '');
+      if (hudEl(e.target)) return;
+      if (e.target !== c && !(e.target && e.target.classList && e.target.classList.contains('h109-touch'))) return;
+      if (ptr.down) return;
+      ptr.id = e.pointerId; ptr.down = true; ptr.x = ptr.x0 = e.clientX; ptr.y = ptr.y0 = e.clientY; ptr.t0 = performance.now();
+      e.stopImmediatePropagation(); e.preventDefault();
+      call(act.down, ptr);
+      hintSeen();
+      return;
+    }
+    if (!ptr.down || e.pointerId !== ptr.id) return;
+    e.stopImmediatePropagation();
+    if (e.type === 'pointermove') { ptr.x = e.clientX; ptr.y = e.clientY; call(act.move, ptr); return; }
+    ptr.down = false; ptr.x = e.clientX; ptr.y = e.clientY; call(act.up, ptr);
+  }
+  const call = (f, a, b) => { if (typeof f !== 'function') return undefined; try { return f(a, b); } catch (e) { console.warn('[h109]', e && e.message, e && e.stack && e.stack.split('\n')[1]); return undefined; } };
+  for (const t of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) window.addEventListener(t, onPtr, true);
+
+  /* ───────── the screen: one short line, the hand-hint, the streak chip ───────── */
+  const UI = {};
+  function uiMount() {
+    if (UI.root) return;
+    const st = document.createElement('style');
+    st.textContent = `
+.h109-ui{position:fixed;pointer-events:none;z-index:57;direction:rtl;font-family:Heebo,system-ui,sans-serif}
+.h109-line{left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(28,20,10,.84);color:#FFF6DA;font:800 17px/1.25 Heebo,system-ui;padding:9px 18px;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.35);white-space:nowrap;transition:opacity .25s}
+.h109-line.off{opacity:0}
+.h109-hand{width:54px;height:54px;margin:-8px 0 0 -14px;font-size:44px;line-height:54px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45));transition:opacity .2s;animation:h109bob .9s ease-in-out infinite alternate}
+.h109-hand.off{opacity:0;animation:none}
+@keyframes h109bob{from{transform:translate(0,0)}to{transform:translate(var(--hx,0px),var(--hy,10px))}}
+.h109-chip{display:flex;align-items:center;gap:6px;padding:4px 12px 4px 10px;border-radius:18px;background:rgba(255,248,228,.92);color:#5A3A0A;font:900 17px/1 Heebo,system-ui;box-shadow:0 2px 6px rgba(0,0,0,.18);pointer-events:none;transition:transform .15s}
+.h109-chip i{font-style:normal;font-size:18px;filter:saturate(.2) opacity(.55);transition:filter .2s,transform .2s}
+.h109-chip.hot i{filter:none;transform:scale(1.25)}
+.h109-chip small{font:700 11px/1 Heebo,system-ui;color:#8A6A3A;margin-inline-start:4px}
+.h109-chip.pop{transform:scale(1.18)}
+.h109-qetz{left:50%;top:30%;transform:translate(-50%,-50%) scale(.6);opacity:0;font:900 44px/1 Heebo,system-ui;color:#FFD66E;text-shadow:0 0 3px #6A4204,0 0 3px #6A4204,0 4px 14px #000a;transition:opacity .15s,transform .25s cubic-bezier(.2,1.6,.4,1)}
+.h109-qetz.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.h109-meter{width:150px;height:14px;border-radius:8px;background:rgba(28,20,10,.55);border:2px solid rgba(255,236,190,.8);overflow:hidden;transform:translate(-50%,-50%)}
+.h109-meter b{display:block;height:100%;width:0;background:linear-gradient(90deg,#7FB5E8,#3E7FC0)}
+.h109-meter.off{display:none}
+.h109-count{transform:translate(-50%,-50%);font:900 22px/1 Heebo,system-ui;color:#FFF6DA;text-shadow:0 0 3px #2A1804,0 0 3px #2A1804,0 3px 8px #000a;white-space:nowrap}
+.h109-count.off{display:none}
+.h109-rot{left:0;right:0;top:0;bottom:0;background:#2A2016;color:#FFF6DA;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;font:800 22px/1.3 Heebo,system-ui;pointer-events:auto;z-index:90}
+.h109-rot b{font-size:64px;animation:h109turn 1.6s ease-in-out infinite}
+@keyframes h109turn{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait){.h109-rot.want{display:flex}}
+.gm.h109-own .tw-pad{display:none!important}
+body.h109-act .gm .tw-zone{opacity:0!important}
+`;
+    document.head.appendChild(st);
+    const mk = (cls, html = '') => { const e = document.createElement('div'); e.className = 'h109-ui ' + cls; e.innerHTML = html; document.body.appendChild(e); return e; };
+    UI.root = true;
+    UI.line = mk('h109-line off');
+    UI.hand = mk('h109-hand off', '👆');
+    UI.qetz = mk('h109-qetz', 'קצב!');
+    UI.meter = mk('h109-meter off', '<b></b>');
+    UI.count = mk('h109-count off');
+    UI.rot = mk('h109-rot', '<b>📱</b><span>סובבו את הטלפון לרוחב</span>');
+    // the streak chip in the top bar, beside the score capsule (the old cubes stay as they are)
+    UI.chip = document.createElement('div'); UI.chip.className = 'h109-chip'; UI.chip.innerHTML = '<i>🔥</i><span>0</span><small></small>';
+    placeChip();
+  }
+  function placeChip() {
+    const top = document.querySelector('.gm-top'); if (!top || !UI.chip) return;
+    const sc = top.querySelector('.gm-sc'); const host = (sc && sc.parentNode) || top;
+    if (UI.chip.parentNode !== host) { if (sc && sc.nextSibling) host.insertBefore(UI.chip, sc.nextSibling); else host.appendChild(UI.chip); }
+  }
+  let lineT = 0;
+  function line(text, ms = 0) { uiMount(); if (!text) { UI.line.classList.add('off'); return; } UI.line.textContent = text; UI.line.classList.remove('off'); lineT = ms ? performance.now() + ms : 0; }
+  const HINT = { on: false, x: 0, y: 0, z: 0, dx: 0, dy: 10, shown: 0, seen: false };
+  /** the hand over a world point (null: off); dx, dy: the gesture it shows (px) */
+  function hand(at, dx = 0, dy = 12) { uiMount(); if (!at) { HINT.on = false; UI.hand.classList.add('off'); return; } HINT.on = true; HINT.x = at.x; HINT.y = at.y; HINT.z = at.z; HINT.dx = dx; HINT.dy = dy; HINT.seen = false; UI.hand.style.setProperty('--hx', dx + 'px'); UI.hand.style.setProperty('--hy', dy + 'px'); UI.hand.classList.remove('off'); }
+  function hintSeen() { if (HINT.on && act && act.hintOnce !== false) { HINT.seen = true; HINT.on = false; UI.hand.classList.add('off'); } }
+  function meter(at, k) { uiMount(); if (!at) { UI.meter.classList.add('off'); return; } UI.meter.classList.remove('off'); const q = scr(at.x, at.y, at.z); UI.meter.style.left = q.x + 'px'; UI.meter.style.top = q.y + 'px'; UI.meter.firstChild.style.width = Math.round(clamp(k, 0, 1) * 100) + '%'; }
+  function count(at, text) { uiMount(); if (!at) { UI.count.classList.add('off'); return; } UI.count.classList.remove('off'); const q = scr(at.x, at.y, at.z); UI.count.style.left = q.x + 'px'; UI.count.style.top = q.y + 'px'; UI.count.textContent = text; }
+  function uiFrame() {
+    if (!UI.root) return;
+    if (lineT && performance.now() > lineT) { lineT = 0; UI.line.classList.add('off'); }
+    if (HINT.on) { const q = scr(HINT.x, HINT.y, HINT.z); UI.hand.style.left = q.x + 'px'; UI.hand.style.top = q.y + 'px'; }
+    UI.rot.classList.toggle('want', owns());
+    placeChip();
+  }
+
+  /* ───────── the flash and the score: every success four ways at once (juice.js), the streak counted and shown ───────── */
+  const SCo = o.score;
+  let streakShown = -1;
+  function chipSync(pop) {
+    uiMount(); const n = SCo && typeof SCo.streak === 'function' ? SCo.streak() : 0; const best = M ? M.streak(n) : n;
+    if (n !== streakShown) { streakShown = n; UI.chip.querySelector('span').textContent = String(n); UI.chip.classList.toggle('hot', n >= 3); if (pop) { UI.chip.classList.add('pop'); setTimeout(() => UI.chip.classList.remove('pop'), 160); } }
+    UI.chip.querySelector('small').textContent = best >= 3 ? `שיא ${best}` : '';
+    if (pop && n === 3) { UI.qetz.classList.add('on'); setTimeout(() => UI.qetz.classList.remove('on'), 900); }
+  }
+  /** one act's answer: grade 'gold' | 'good' | 'ok'; at: the world point; text: a word (else the points alone); craft: the trade */
+  function hit(at, grade, o2 = {}) {
+    const J = o.juice && o.juice();
+    const P = grade === 'gold';
+    if (J) J.hit(o2.kind || 'craft', { at, text: o2.text != null ? o2.text : '', perfect: P, act: grade, grade: P ? 'perfect' : grade === 'good' ? 'good' : 'soft', quality: P ? 1 : grade === 'good' ? 0.8 : 0.5, craft: o2.craft || 'חוצבים' });
+    else if (SCo) { SCo.add(SCo.grade(grade), 'act'); }
+    chipSync(true);
+  }
+  /** a result in the world without points (a miss, a chip): the dust and a word, never red */
+  function word(at, text) { const J = o.juice && o.juice(); if (J) J.hit('craft', { at, text, perfect: false, grade: 'soft', quality: 0.4, pts: 0 }); }
+  function bonus(n, why, label) { try { if (o.bonus) o.bonus(n, why, label); } catch (e) { /* */ } }
+
+  /* ───────── the mission marker: a tall stake with a red cloth on the hill (the old markers and the compass point to it) ───────── */
+  let PROPS = null;
+  function props() { if (!PROPS) PROPS = createProps({ THREE, scene, ground, stages: S0 }); return PROPS; }
+
+  function standOf(m) { const A = ACTS[m.k]; return A && A.stand ? A.stand(m, X) : null; }
+  function openMission() {
+    mission = M.mission();
+    if (!mission) { finishStage(); return; }
+    const sp = standOf(mission);
+    phase = 'walk'; tPhase = 0; act = null;
+    props().marker(sp ? { x: sp.mx != null ? sp.mx : sp.x, z: sp.mz != null ? sp.mz : sp.z } : null);
+    const A = ACTS[mission.k];
+    line(A && A.walkLine ? A.walkLine(mission, X) : 'לכו אל היתד האדומה', 0);
+    // the crews take what the kohen does not: the sector's other rocks, the rest of the rope (the acts' prepare())
+    if (A && A.prepare) call(A.prepare, mission, X);
+    emit('h109mission', { id: mission.id, k: mission.k });
+    log('open', mission.id);
+    save();
+  }
+  /** the director's marks for twin.js (its bubble, its edge arrow, its compass): the open mission while he walks */
+  const MK = [{ job: 'h109', icon: '⛏', label: '', site: 'har', x: 0, y: 0, z: 0 }];
+  const NOMK = [];
+  function marks() {
+    if (!owns() || phase !== 'walk' || !mission) return NOMK;
+    const sp = standOf(mission); if (!sp) return NOMK;
+    const A = ACTS[mission.k], m = MK[0];
+    m.icon = (A && A.icon) || '⛏'; m.label = (A && A.title) || ''; m.x = sp.mx != null ? sp.mx : sp.x; m.z = sp.mz != null ? sp.mz : sp.z; m.y = ground(m.x, m.z) + 5;
+    return MK;
+  }
+  const GOAL = { x: 0, y: 0, z: 0, icon: '⛏' };
+  function goal() { const L = marks(); if (!L.length) return null; GOAL.x = L[0].x; GOAL.y = L[0].y; GOAL.z = L[0].z; GOAL.icon = L[0].icon; return GOAL; }
+  /** the compass: he is brought to the open mission's stand */
+  function goTo() { if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false; try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
+
+  /* ───────── the act ───────── */
+  const X = {
+    THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
+    get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, ui, sfx: o.sfx, haptic: o.haptic,
+    actors: () => S0.crewActors || null, PLACES, H109,
+    beat() { let b = null; try { const Mu = globalThis.__BH_MUSIC; b = Mu && typeof Mu.beat === 'function' ? Mu.beat() : null; } catch (e) { b = null; } return b && b.period > 0.2 && Number.isFinite(+b.toNext) ? b : null; },
+    play(name) { try { if (o.sfx && o.sfx.play) o.sfx.play(name); } catch (e) { /* */ } },
+    shake(t = 0.15, a = 0.3) { try { S0.twinShake(t, a); } catch (e) { /* */ } },
+    dust(x, y, z, n = 10, s = 4) { try { S0.dustBurst(x, y, z, n, s, s, 1.5); } catch (e) { /* */ } },
+    sparks(x, y, z, n = 10) { try { S0.sparkBurst(x, y, z, n, 5, 6); } catch (e) { /* */ } },
+    end: (res) => endAct(res),
+    level: () => (mission ? M.levelOf(mission) : 1),
+  };
+  function beginAct() {
+    const A = ACTS[mission.k]; if (!A) { M.done({ stars: 0 }); openMission(); return; }
+    props().marker(null);
+    phase = 'act'; tPhase = 0; line('');
+    try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
+    act.t = 0;
+    document.body.classList.add('h109-act');
+    // an act whose shot comes close (the letters on the stone) asks for it: the world camera's 35-amot floor gives way while it holds
+    try { if (act.close && view.closeCam) view.closeCam(true, 'h109'); } catch (e) { /* */ }
+    const g = document.querySelector('.gm'); if (g) g.classList.add('h109-own');
+    call(act.begin);
+    emit('h109act', { id: mission.id, on: true });
+    log('act', mission.id, 'lv', M.levelOf(mission));
+  }
+  let ending = false;
+  async function endAct(res = {}) {
+    if (!act || ending) return; ending = true;
+    const m = mission, a = act;
+    const stars = res.stars != null ? res.stars : starsOf(res.q || 0);
+    log('end', m.id, 'stars', stars, res.lost ? 'LOST' : '');
+    line(''); hand(null); meter(null); count(null);
+    // the result in the world first (the act's own last beat), then the stars and the work's end points (the old JOB_END)
+    const J = o.juice && o.juice();
+    const at = res.at || (a.at ? a.at() : null);
+    if (J && stars > 0) { try { await J.result({ stars, at }); } catch (e) { /* */ } }
+    if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
+    call(a.end, res);
+    phase = 'film'; tPhase = 0; act = null; ending = false;
+    M.done({ ...res, stars });
+    syncMount(false);
+    // a sector closed: its grade on the hill and the pull-back (spec ש7: the hill came down there)
+    const sec = m.k === 'pave' ? M.sectorGrade(m.s) : null;
+    if (sec) { bonus(250, 'course', `גזרה ${m.s + 1} · ${sec}`); try { if (J) J.big('course', { title: `גזרה ${m.s + 1} מתוך 9`, sub: sec }); } catch (e) { /* */ } }
+    await pullBack(at, sec ? 3.2 : 1.8);
+    document.body.classList.remove('h109-act');
+    try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
+    phase = 'walk';
+    openMission();
+  }
+  /** spec ש7: the camera rises over what was just done and the crews round it, then the follow camera takes him again */
+  function pullBack(at, secs) {
+    return new Promise((res) => {
+      const h = heroAt(), c = at || { x: h.x, y: h.y, z: h.z };
+      view.camNow(cq); const dx = cq.px - cq.tx, dz = cq.pz - cq.tz, L = Math.hypot(dx, dz) || 1;
+      const d = 46, el = 0.72;
+      shot([c.x + (dx / L) * d * Math.cos(el), c.y + d * Math.sin(el), c.z + (dz / L) * d * Math.cos(el)], [c.x, c.y, c.z], 1.1);
+      film = { t: 0, dur: secs, res };
+    });
+  }
+
+  /* ───────── the Mount comes down as the work is done; the crews ───────── */
+  let progShown = -1;
+  function syncMount(instant) {
+    const p = Math.max(0.03, M.progress() * 0.97);
+    if (Math.abs(p - progShown) < 0.004 && !instant) return;
+    progShown = p;
+    try { S0.setStage('har', 'building', p, instant ? { instant: true } : {}); } catch (e) { console.warn('[h109] setStage', e && e.message); }
+  }
+
+  /* ───────── the end of the stage: the film over what was built, then the next stage opens in the world ───────── */
+  async function finishStage() {
+    phase = 'end'; act = null; mission = null; props().marker(null); line('');
+    log('finish');
+    syncMount(false);
+    const J = o.juice && o.juice();
+    // the film (spec §13.6: "צילום ביצוע"): the leveled Mount, the east wall, the great stone, the inscription, from high
+    const shots = [
+      [[60, 260, 520], [0, 0, -40], 3.0],
+      [[330, 70, 150], [250, 10, 60], 2.6],
+      [[-200, 60, -260], [-280, 10, -150], 2.6],
+      [[-246, 16, 350], [-276, 2, 372], 2.4],
+      [[180, 300, 620], [27, 0, 66], 1.4],
+    ];
+    for (const [p, t, s] of shots) { shot(p, t, 1.6); await sleep(s * 1000); }
+    try { if (J) await J.big('stage', { title: 'שיטוח ההר נבנה!', sub: 'הר הבית חמש מאות אמה על חמש מאות אמה (מדות ב, א)' }); } catch (e) { /* */ }
+    CAM.on = false; phase = 'off'; started = false;
+    const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
+    UI.rot && UI.rot.classList.remove('want');
+    if (o.onDone) { try { await o.onDone(M.st); } catch (e) { console.warn('[h109] onDone', e && e.message); } }
+  }
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* ───────── the frame ───────── */
+  function frame(ms) {
+    const dt = lastMs ? clamp((ms - lastMs) / 1000, 0, 0.25) : 0; lastMs = ms;
+    if (!started) return;
+    uiFrame();
+    tPhase += dt;
+    if (ACTS.__frame) call(ACTS.__frame, dt, X);
+    if (phase === 'act' && act) { act.t += dt; call(act.update, dt); }
+    if (phase === 'film' && film) { film.t += dt; if (film.t >= film.dur) { const r = film.res; film = null; CAM.on = false; r(); } }
+    if (phase === 'end' || phase === 'film' || phase === 'act') camStep(dt);
+    if (phase === 'walk' && mission) {
+      const sp = standOf(mission), h = heroAt();
+      if (sp && h && Number.isFinite(h.x)) {
+        const d = Math.hypot(h.x - sp.x, h.z - sp.z);
+        // the magnet (spec, rule 26): within 9 amot he is drawn to the stand; there the act begins
+        const tw = o.twin && o.twin();
+        const driving = !!(hero && hero.driving);
+        if (d < 1.2) beginAct();
+        else if (d < 9 && !driving && !hero.walking && tPhase > 0.4) { try { hero.walkTo({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { /* */ } }
+        else if (d < 2.6 && !driving) beginAct();
+        void tw;
+      }
+    }
+    if (PROPS) PROPS.frame(dt, ms);
+  }
+
+  /* ───────── start ───────── */
+  function owns() { return started && phase !== 'off'; }
+  function start() {
+    if (started) return;
+    const g = G(); if (!g) return;
+    if (!g.h109) g.h109 = null;
+    M = createH109(g.h109); g.h109 = M.st;
+    started = true; uiMount(); chipSync(false);
+    { const g = document.querySelector('.gm'); if (g) g.classList.add('h109-own'); }
+    try { hero.workpiece(null); } catch (e) { /* the old banker is not stage 01's */ }
+    props();
+    // the crews at work from the first second (rule 4): three crews at the Mount
+    try { if (S0.setCrews) S0.setCrews('har', 3, [0, 1, 2]); } catch (e) { /* */ }
+    syncMount(true);
+    if (ACTS.__init) call(ACTS.__init, X);
+    openMission();
+  }
+  return {
+    owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end'), start, frame, marks, goal, goTo,
+    get M() { return M; },
+    state: () => ({ started, phase, mission: mission && mission.id, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
+    act: () => act,
+    X,
+    // tests: finish the open act with a result
+    _end: (res) => endAct(res || { stars: 3 }),
+    _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
+    _skipTo: (id) => { if (!M) return false; while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
+  };
+}

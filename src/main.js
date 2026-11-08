@@ -308,6 +308,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), hit = new THREE.Ve
 function pickAt(cx, cy) {
   // Phase B: while a mini-game or a key moment is on screen, a tap belongs to it — never open an info card under it
   if (avodah && avodah.busy) return;
+  if (document.body.classList.contains('h109-act')) return;   // ── h109 ── (an act of stage 01 owns the touch: no card under it) ── /h109 ──
   if (document.body.classList.contains('sh-on')) return;   // ── shift29 ── (in a shift a tap on the court is a miss, never a card over the round) ── /shift29 ──
   ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
@@ -675,6 +676,9 @@ async function boot() {
     const crews = createCrews({ scene, camera, life, stages, terrainH });
     life.addUpdater(crews.update);
     Object.assign(stages, { setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
+    // ── h109 ── (build 109, stage 01 in the old world) the acts' own crews and oxen are old actors.js / animals.js figures: the crews' instances
+    Object.assign(stages, { crewActors: crews._actors, crewAnimals: crews._animals, scene, camera });
+    // ── /h109 ──
     window.__T.crews = crews;
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;

@@ -7,7 +7,6 @@
  *                          day and the calendar — Sukkot is 15–21 Tishrei; a Phase A night is 'rest': nobody)
  *   crowd.scene            the scene shown now;  crowd.update(dt) every frame (main.js registers it with life)
  *   crowd.setEnabled(b), crowd.stats → { people, stations, scene }, crowd.stations (ids), crowd.view(id) → {p, t}
- *   ── build 101 ── crowd.setFloor101(b): the site's people only on the court's open floor (har42's stages)
  *   ── world12 ── crowd.setScene('chag'): the night of Chanukat HaBayit (an illustration in the manner of Simchat Beit
  *   HaShoeva, Sukkah 5:2–4): the dancers with torches, the Levites on the fifteen steps, the pilgrims of every land with
  *   their gifts, the guards' torches. crowd.setBuildup(n): the build-up to it — n groups of pilgrims from named lands
@@ -38,7 +37,6 @@
  * 1 unit = 1 amah; +x east, +z south, +y up.
  * ──────────────────────────────────────────────────────────────────────────── */
 import { createActors as defActors } from './actors.js';
-import { table101 } from './game/world101.js';   // ── build 101 ──
 
 // where things happen (world, amot): the Chuldah gates come up onto the plaza at the double and the triple gate
 const GATE_D = [-101, 316], GATE_T = [31, 316];
@@ -80,20 +78,11 @@ export function createCrowd(ctx) {
   let want = 'auto', cur = null, enabled = true, siteKey = null, T = 0;
   const people = [], props = [], acts = [];          // acts: per-person behaviours (update(dt))
   const at = { x: 0, z: 0, yaw: 0 };                  // the site scene's anchor (the builder's work spot)
-  const extra = [];                                   // ── build 101 ── (modeled things of the site scene, world101.js)
 
   /* ── helpers ── */
-  // ── build 101 ── THE FLOOR (the owner, 4.11: two men stood in the air on the Nicanor steps not yet laid): the site's people are placed
-  //   round the builder's spot whatever stands there; with setFloor101(true) a man stands only where the ground is the court's own floor
-  //   (within floorTol of the floor at the anchor — not on a wall's top, nor on steps the model has but the stage has not yet laid), and a
-  //   lap walks only if its whole path is on that floor. Off it, he is not shown.
-  let floor101 = false, floorY0 = null; const floorTol = 0.4;
-  const onFloor = (x, z) => { if (!floor101 || floorY0 == null) return true; const y = groundF(x, z); return Number.isFinite(y) && Math.abs(y - floorY0) <= floorTol; };
-  const pathOnFloor = (pts) => { for (let i = 0; i < pts.length; i++) { if (!onFloor(pts[i][0], pts[i][1])) return false; if (i) { const [x0, z0] = pts[i - 1], [x1, z1] = pts[i], n = Math.ceil(Math.hypot(x1 - x0, z1 - z0)); for (let k = 1; k < n; k++) if (!onFloor(x0 + ((x1 - x0) * k) / n, z0 + ((z1 - z0) * k) / n)) return false; } } return true; };
   function person(kind, x, z, o = {}) {
     const a = actors.add(kind, x, z, { yaw: o.yaw || 0, item: o.item, col: o.col, col2: o.col2, scale: o.scale, y: o.y, fadeIn: true, speed: o.speed, ground: o.y !== undefined ? () => o.y : undefined });
     a.vis = 0; a.visT = 1;
-    if (cur === 'site' && !onFloor(x, z)) { a.visT = 0; a.off101 = true; }   // ── build 101 ──
     people.push(a);
     return a;
   }
@@ -103,7 +92,6 @@ export function createCrowd(ctx) {
   function lap(a, pts, speed, delay, gap = 2, pre) {
     const L = { pts, speed, st: 'wait', t: pre !== undefined ? 0 : delay, gap, y: a.fixedY, pre };
     a.visT = 0; a.vis = 0;
-    if (cur === 'site' && !pathOnFloor(pts)) { a.off101 = true; return; }   // ── build 101 ── (a path over steps or a wall: he does not walk it)
     acts.push({ a, update(dt) {
       if (L.st === 'wait') {
         L.t -= dt; if (L.t > 0) return;
@@ -138,10 +126,9 @@ export function createCrowd(ctx) {
     // Phase A: round the site where the builder works (anchor: his spot, facing the site; +dx = his left, −dz = behind him)
     scribe: { scenes: ['site'], build() {
       const [tx, tz] = R(8.5, -9);
-      if (floor101) { if (onFloor(tx, tz)) { const t = table101({ top: 1.15 }); t.position.set(tx, groundF(tx, tz), tz); t.rotation.y = at.yaw + Math.PI / 2; scene.add(t); extra.push(t); } }   // ── build 101 ── (a real table; he stands at it — the seated clip floated over nothing)
-      else prop('table', tx, tz, at.yaw + Math.PI / 2);
-      const s = person('pilgrim', tx + (floor101 ? 1.25 : 1.6) * Math.sin(at.yaw + Math.PI / 2 + Math.PI), tz + (floor101 ? 1.25 : 1.6) * Math.cos(at.yaw + Math.PI / 2 + Math.PI), { item: 'scroll', col: '#E0D7C5', col2: '#556B3A' });
-      s.yaw = Math.atan2(tx - s.x, tz - s.z); if (!floor101) actors.pose(s, 'sit');
+      prop('table', tx, tz, at.yaw + Math.PI / 2);
+      const s = person('pilgrim', tx + 1.6 * Math.sin(at.yaw + Math.PI / 2 + Math.PI), tz + 1.6 * Math.cos(at.yaw + Math.PI / 2 + Math.PI), { item: 'scroll', col: '#E0D7C5', col2: '#556B3A' });
+      s.yaw = Math.atan2(tx - s.x, tz - s.z); actors.pose(s, 'sit');
       idle(s, { every: 4, look: () => [tx, tz] });
       const w = person('worker', tx + 1.9 * Math.sin(at.yaw + Math.PI / 2), tz + 1.9 * Math.cos(at.yaw + Math.PI / 2), { col: pick(WORK), col2: '#2B69B5' });
       w.yaw = Math.atan2(tx - w.x, tz - w.z);
@@ -365,7 +352,6 @@ export function createCrowd(ctx) {
     for (const a of people) actors.remove(a);
     for (const p of props) actors.unprop(p);
     people.length = 0; props.length = 0; acts.length = 0;
-    for (const e of extra) if (e.parent) e.parent.remove(e); extra.length = 0;   // ── build 101 ──
   }
   // the site scene gathers round the builder's work spot (he faces the site)
   function anchor() {
@@ -378,7 +364,7 @@ export function createCrowd(ctx) {
     clear();
     cur = kind;
     const fest = kind === 'festival', night = kind === 'night' || kind === 'chag', sk = sukkotNow() || kind === 'chag';   // (world12: the celebration's night has the Beit HaShoeva's scene)
-    if (kind === 'site') { siteKey = anchor(); floorY0 = groundF(at.x, at.z); }
+    if (kind === 'site') siteKey = anchor();
     for (const id in STATIONS) {
       const S = STATIONS[id];
       if (!S.scenes.includes(kind)) continue;
@@ -427,8 +413,6 @@ export function createCrowd(ctx) {
   };
   return {
     setScene, update, setEnabled, actors, setBuildup, get buildup() { return buildN; }, LANDS,   // (world12)
-    _people: people, get enabled() { return enabled; },
-    setFloor101(v) { v = !!v; if (v === floor101) return; floor101 = v; if (cur === 'site') build('site'); },   // ── build 101 ── (crew71 draws the near ones as real people)
     get scene() { return cur; },
     get stats() { return { people: people.length, stations: Object.keys(STATIONS).filter((id) => STATIONS[id].scenes.includes(cur)).length, scene: cur, drawn: actors.drawn }; },
     get stations() { return Object.keys(STATIONS); },

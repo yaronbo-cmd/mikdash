@@ -1,6 +1,3 @@
-import './fix56.js';   // ── build 56ב ── FIRST: the tester's chosen stage into the page's address, before any module reads it ── /build 56ב ──
-import { installTester56 } from './tester56.js';   // ── build 56ב ── the tester's stage menu ── /build 56ב ──
-import { installReport56 } from './report56.js';   // ── build 56ג ── "🐞 דווח": its error hooks from here on ── /build 56ג ──
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -10,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { Pass } from 'three/addons/postprocessing/Pass.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { Batch, groundAO, holeNormal101 } from './batch.js';
+import { Batch, groundAO } from './batch.js';
 import * as TX from './tex.js';
 import { buildTemple, buildMenorot, MENOROT } from './temple.js';
 import { buildMount, buildStreet, SQUARE } from './mount.js';
@@ -39,8 +36,6 @@ games.bindHost({ game: () => game, pause: (on) => pauseWorld(on), world: () => (
 // ── /games10 ──
 import { createSanctuary } from './sanctuary.js';   // ── sanctuary ──
 import { createCrews } from './crews.js';   // ── crews ──
-import { createCrew71 } from './crew71.js';
-import { LIGHT101, LIGHT101B } from './game/world101.js';   // ── build 101 ── (the building stages' working light)   // ── build 71 ──
 import { createCrowd } from './crowd.js';   // ── crowd ──
 // ── build8 ── (FLOW8B, wave 8B) true facts in rotation: FACTS8B's content/facts.json (on a lone branch build.mjs stubs it as
 // []: the game's own verified texts stand in). The loading screen shows one the save has not seen: a new one on every open.
@@ -161,8 +156,6 @@ const TIMES = {
   // ── polish23 ── the Temple day's night (Phase B under two thumbs): dark — the moon only a pale edge, the altar fire, the menorot and the אמרכל's torch the only lights (skyFor → 'nightd'; the Phase A / portrait night above is unchanged)
   nightd: { el: 38, az: 40, sun: '#8FA6D8', sunI: 0.1, hs: '#22345C', hg: '#1B1A24', hI: 0.1, envI: 0.08, top: '#050B1E', hor: '#16213F', bot: '#0E1118', fog: '#121B33', exp: 1.05, smoke: '#4A4846', fire: 230, menK: 0.12, bloom: 0.7, bloomT: 0.9, night: true },
   // ── /polish23 ──
-  // ── recovered (16–26c) ── before dawn (reached by mixTime from the dark night): the sun's grey-blue first light low in the east, the fire small
-  predawn: { el: 9, az: 8, sun: '#93A6D6', sunI: 0.75, hs: '#40527E', hg: '#2C2832', hI: 0.42, envI: 0.2, exp: 1.1, smoke: '#5A5652', fire: 70, menK: 0.12, bloom: 0.6, bloomT: 0.95, night: true },
 };
 // ── world6 ── per preset: the aerial perspective (fog near/far, amot; its colour is the sky's haze) and the colour grade folded
 // into the OutputPass (after ACES, linear): sat = saturation, gain = highlights' tint, lift = shadows' tint, vig = vignette
@@ -173,10 +166,7 @@ const GRADE = {
   golden: { fogN: 700, fogF: 9500, sat: 1.15, gain: [1.07, 1.0, 0.91], lift: [0.004, 0.006, 0.02], vig: 0.25 },   // ── world7 ──
   night: { fogN: 420, fogF: 6800, sat: 0.95, gain: [0.95, 0.99, 1.07], lift: [0.006, 0.01, 0.022], vig: 0.26 },   // ── world7 ── (was fogN 300, fogF 5200, lift 0/.003/.01, vig .3: the far city and hills melted into black)
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
-  predawn: { fogN: 420, fogF: 6600, sat: 0.95, gain: [1.0, 0.98, 1.05], lift: [0.008, 0.008, 0.02], vig: 0.3 },   // ── recovered (16–26c) ──
 };
-TIMES.work = LIGHT101.time; GRADE.work = LIGHT101.grade; TIMES.work2 = LIGHT101B.time; GRADE.work2 = LIGHT101B.grade;   // ── build 101 ── (a warm morning for the works: short shadows that meet their feet; the sky as the dawn's)
-
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
 // ── end world6 ──
 const VIEWS = {
@@ -216,7 +206,6 @@ function makeComposer(fxObjs) {
     gtao.updateGtaoMaterial({ radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1, samples: 12, distanceFallOff: 1 });
     gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
     gtao.blendIntensity = 0.8;
-    try { holeNormal101(gtao.normalMaterial); } catch (e) { /* */ }   // ── build 101 ── (the AO's own render of the scene keeps the holes: no ghost steps darkened on the gate's wall)
     aoWrap = new HideDuring(gtao, fxObjs);
     composer.addPass(aoWrap);
   }
@@ -270,31 +259,6 @@ function setTime(k) {
   document.querySelectorAll('[data-time]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.time === k ? 'true' : 'false'));
 }
 
-// ── recovered (16–26c) ── a time between two presets, a → b by k (0…1; k ≥ 1 is setTime(b)): the sun, the hemisphere, the
-// exposure, the sky (sky.mix), the fog and the grade, the bloom; the environment map is re-rendered at each fifth of the way
-const mixCol = new THREE.Color();
-let mixEnvK = -1;
-function mixTime(a, b, k) {
-  const A = TIMES[a], B = TIMES[b], GA = GRADE[a], GB = GRADE[b];
-  if (!A || !B || !GA || !GB) return false;
-  if (!(k < 1)) { mixEnvK = -1; setTime(b); return true; }
-  if (curTime !== a) setTime(a);
-  const at = (x, y) => x + (y - x) * k, col = (c, x, y) => c.set(x).lerp(mixCol.set(y), k), arr = (f) => GA[f].map((v, i) => at(v, GB[f][i]));
-  const el = THREE.MathUtils.degToRad(at(A.el, B.el)), az = THREE.MathUtils.degToRad(at(A.az, B.az));
-  const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
-  sun.position.copy(sun.target.position).addScaledVector(dir, 1600);
-  col(sun.color, A.sun, B.sun); sun.intensity = at(A.sunI, B.sunI);
-  col(hemi.color, A.hs, B.hs); col(hemi.groundColor, A.hg, B.hg); hemi.intensity = at(A.hI, B.hI);
-  renderer.toneMappingExposure = at(A.exp, B.exp);
-  scene.environmentIntensity = at(A.envI, B.envI);
-  sky.mix(b, k, dir);
-  scene.fog.near = at(GA.fogN, GB.fogN); scene.fog.far = at(GA.fogF, GB.fogF); scene.fog.color.copy(sky.fogColor);
-  if (grade) { grade.uSat.value = at(GA.sat, GB.sat); grade.uGain.value.set(...arr('gain')); grade.uLift.value.set(...arr('lift')); grade.uVig.value = at(GA.vig, GB.vig); }
-  if (bloom) { bloom.strength = at(A.bloom, B.bloom); bloom.threshold = at(A.bloomT, B.bloomT); }
-  if (((k * 5) | 0) !== mixEnvK) { mixEnvK = (k * 5) | 0; envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; renderer.shadowMap.needsUpdate = true; }
-  return true;
-}
-
 /* ───────── camera flights ───────── */
 let fly = null, lastInput = performance.now();
 let twinCam = false;   // ── twin17 ── the follow camera is on (src/game/twin.js writes the camera; the director's flights wait) ── /twin17 ──
@@ -323,12 +287,7 @@ function stepFly(now) {
 function clampCam() {
   const p = camera.position, onMount = p.x > -310 && p.x < 290 && p.z > -490 && p.z < 410;
   const minY = onMount ? (stages && typeof stages.camFloor === 'function' ? stages.camFloor(p.x, p.z) : 7) : terrainH(p.x, p.z) + 14;   // ── site9 ── (the Mount's walls: 8 over the ground there)
-  // ── camfix ── (the owner's playtest 29.10: on the live screen the camera stood 50 amot over his work, the capture showed it right) the
-  // Mount's works (har42: stages 01–11) are in the working bay, 45–64 amot under the platform; the floor of 7 over the platform lifted
-  // every frame of their cameras there before it was drawn (the tests' simulated world never runs this clamp). While har42 is on, the
-  // floor is the ground under the camera ── /camfix ──
-  if (globalThis.__H42 && globalThis.__H42.on && stages && typeof stages.groundAt === 'function') { const g = stages.groundAt(p.x, p.z); if (Number.isFinite(g) && p.y < g + 1.5) p.y = g + 1.5; }
-  else if (p.y < minY) p.y = minY;
+  if (p.y < minY) p.y = minY;
   const t = controls.target;
   t.x = THREE.MathUtils.clamp(t.x, -1800, 1800); t.z = THREE.MathUtils.clamp(t.z, -1800, 1800); t.y = THREE.MathUtils.clamp(t.y, -60, 160);
 }
@@ -543,12 +502,6 @@ function measureSafeArea() {
       else if (r.left < W * 0.5 && r.right > W * 0.5 && r.top > H * 0.22 && r.bottom > H - 4) goal = Math.max(0, H - r.top);
     }
   }
-  // ── build 51 ── (the inspector's review §4 item 17; the build-51 brief, item 11) Phase B's practice end card on a wide screen
-  // stands on its right two-thirds (practice31): the subject — him — to the middle of the third left of it, as for a side panel
-  if (!goal && !gx && innerWidth > innerHeight) {
-    const c = document.querySelector('.p31-end .c');
-    if (c) { const r = c.getBoundingClientRect(), W = innerWidth; if (r.left > W * 0.2 && r.height > H * 0.4) gx = Math.max(0, W - r.left + 8); }
-  }
   viewOffXGoal = gx;
   // ── end world ──
   viewOffGoal = goal;
@@ -723,8 +676,6 @@ async function boot() {
     life.addUpdater(crews.update);
     Object.assign(stages, { setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
     window.__T.crews = crews;
-    // ── build 71 ── the crews near the camera as real people (crew71.js: the kohen's rigged body, in the crew's tunic, cloth and belt); ?h71=0 off
-    try { if (new URLSearchParams(location.search).get('h71') !== '0') { const c71 = createCrew71({ scene, camera, crews, stages }); life.addUpdater(c71.update); window.__T.crew71 = c71; } } catch (e) { console.warn('[crew71]', e); }
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;
     // ── site16 ── the life layer and the tap card (crews.lifeCount / lifeList / pickPerson)
@@ -943,7 +894,7 @@ function openingSkip() { if (opening7) opening7.skip(); }
 import { createMusic } from './game/music.js';
 const musicEls = { modal: document.getElementsByClassName('gm-modal'), avModal: document.getElementsByClassName('av-modal'), coach: document.getElementsByClassName('coach-on'), mg: document.getElementsByClassName('fx-mg'), tw: document.getElementsByClassName('tw-on') /* ── land17 ── */ };
 const music = createMusic({
-  context: () => { try { return (game && game.sfx && game.sfx.context) || (avodah && avodah.sfx && avodah.sfx.context) || null; } catch (e) { return null; } },   // ── recovered (build 26c) ── (|| Phase B's: the music shares its one context)   // share the sound kit's context when it offers it
+  context: () => { try { return (game && game.sfx && game.sfx.context) || null; } catch (e) { return null; } },   // share the sound kit's context when it offers it
   watch: () => {
     const kit = avodah && avodah.sfx ? avodah.sfx : game && game.sfx ? game.sfx : null;
     return { muted: !!(kit && kit.muted), hidden: document.hidden, duck: musicEls.modal.length || musicEls.avModal.length ? 0.15 : musicEls.coach.length ? 0.6 : 1, precision: musicEls.mg.length > 0, scenes: document.body.classList.contains('sc-on'), whole: wholeView, twin: musicEls.tw.length > 0 /* ── land17 ── the walking-and-working mode: the work state's tempo (120–126) */ };
@@ -973,13 +924,7 @@ const finale = createFinale({
 { const ev = music.event; music.event = function (t, d, ph) { try { finale.event(t, d, ph); } catch (e) { /* the finale's */ } return ev.apply(this, arguments); }; }
 globalThis.__BH_FINALE = finale;
 // ── /world12 ──
-try { installTester56(); } catch (e) { /* */ }
-try { installReport56(); } catch (e) { /* */ }   // ── build 56ג ── (the report button; never breaks the game) ── /build 56ג ──   // ── build 56ב ── (five taps in the top-right corner) ── /build 56ב ──
 function startGame() {
-  // ── fable32 (build 28) ── the shipped page (__FORCE_SHIFT, tools/mkout.cjs) is the day alone: whatever the link says ('#shift=N' — the
-  // 90 s "משמרת"; '#avodah…' — the old Phase B home, the engine22 day where the player is the אמרכל) it opens the lobby, or the day itself
-  // for '#shift=day'. The plain dist keeps every link (the tests' and the tools') ── /fable32 ──
-  if (globalThis.__FORCE_SHIFT) { const f = String(globalThis.__FORCE_SHIFT); startAvodah(f === 'day' || /^#shift=day\b/.test(location.hash) ? 'shift:day' : 'shift:card'); return; }
   // a link with '#avodah' opens Phase B directly: '#avodah' = its home · '#avodah=live' · '#avodah=<segment or game id>'
   if (/^#avodah/.test(location.hash)) { startAvodah((location.hash.split('=')[1] || '').trim()); return; }
   if (/^#shift\b/.test(location.hash)) { startAvodah('shift:' + (location.hash.split('=')[1] || 'card').trim()); return; }
@@ -1008,7 +953,6 @@ function startGame() {
       },
       setAutoRotate(v) { if (!v) controls.autoRotate = false; lastInput = performance.now(); },
       enterAvodah() { startAvodah(''); },
-      enterVision() { startAvodah('shift:vision'); },   // ── fable32 (build 44) ── the one-time vision after stage 01 (the shift's runVision) ── /fable32 ──
       pauseWorld,   // ── build6 ──
       opening, openingSkip,   // ── build7 ── the opening's fallback (WORLD7's world.vision first)
       celebrate: () => finale.celebrate(),   // ── world12 ── Chanukat HaBayit's night of light (src/finale.js) ── /world12 ──
@@ -1126,7 +1070,7 @@ $('q').textContent = Q.level === 'high' ? 'איכות: גבוהה' : 'איכות
 }
 // ── /places24 ──
 window.__T = {
-  flyTo, flyToPos, setTime, mixTime /* ── recovered (16–26c) ── */, camera, controls, VIEWS, renderer, scene,
+  flyTo, flyToPos, setTime, camera, controls, VIEWS, renderer, scene,
   Raycaster: THREE.Raycaster, Vector3: THREE.Vector3,   // (not the whole namespace: that would defeat tree-shaking)
   get life() { return life; },
   jump: (k) => { const v = VIEWS[k]; fly = null; camera.position.set(...v.p); controls.target.set(...v.t); controls.update(); if (squareG) squareG.visible = k === 'top'; },
@@ -1140,7 +1084,7 @@ window.__T = {
   // ── end world ──
   // advance the simulation (construction, crowd, flights) without rendering
   step: (sec = 1, dt = 1 / 30) => { for (let t = 0; t < sec; t += dt) { life.update(dt); stages.update(dt); if (sanct) sanct.update(dt); } },
-  pause: (v) => { paused = v; }, get paused() { return paused; }, showInfo, get ready() { return !!life; },
+  pause: (v) => { paused = v; }, showInfo, get ready() { return !!life; },
   get stages() { return stages; },
   get game() { return game; },
   // tests: advance the world in real time without rendering (the loop is paused; renders come from render())

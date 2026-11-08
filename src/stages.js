@@ -4,15 +4,13 @@
 // 1 unit = 1 amah; +x east, +z south, +y up. Hot loops reuse preallocated objects (no per-frame garbage).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode, holeDepthMaterial, inHole101 } from './batch.js';
-const HOLE101 = !(typeof location !== 'undefined' && /[?&]h101=0\b/.test(location.search));   // ── build 101 ──   // ── twin18 ── (XRAY) ── /twin18 ──
+import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor } from './world.js';
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
-import { secLevel62 } from './game/har62.js';   // ── build 62 ── (the crest's sectors brought down)
 
 export const STAGE_IDS = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor', 'ulam', 'heichal', 'kodesh'];
 const FOUND = 0.15;   // progress below which the site is in its foundation phase
@@ -315,10 +313,7 @@ function makeHill(T) {
     uCrest: { value: new THREE.Vector4(1000, 1000, 0, 2.5) },
     // ── site12 ── the plaza's paving laid from the west as the last courses go up: x the paving's front (paved west of it), y on;
     // east of the front the fill lies a little over the paving's top, so the brown fill shows until it is paved
-    uPave: { value: new THREE.Vector2(1e4, 0) },
-    // ── build 62 ── the crest's sectors (har62.js SECT62): (x, z, half size, level) — the ground inside is cut down to the level (never
-    // raised); half size 0 = none; and each one's paving (0…1, laid from its east edge)
-    uSec: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, 0, 1000)) }, uSecPv: { value: new Array(8).fill(0) } };
+    uPave: { value: new THREE.Vector2(1e4, 0) } };
   // ── site12 ── (the owner's note 2, 29.9 21:01: "בשלב שיטוח ההר צריך שכשעושים זום אאוט רואים את ההתקדמות של החציבה. אני בשלב 3
   // עכשיו וזה נראה בדיוק כמו בשלב ראשון") the crest comes down in benches, COURSE BY COURSE: each of the Mount's six courses
   // cuts a new floor (uCrest.x) swept across the crest from the east over the last course's floor (uCrest.y), with a rim of
@@ -342,21 +337,15 @@ function makeHill(T) {
       vec2 d = abs(position.xz - P.xy); float k = 1.0 - smoothstep(P.z * 0.72, P.z, max(d.x, d.y));
       if (k > hPk) { hPk = k; hPl = P.w; } }
     hPk *= 1.0 - smoothstep(0.0, 0.3, uCut);
-    hY = mix(hY, hPl, hPk * 0.92);
-    float hSk = 0.0, hPv = 0.0;   // ── build 62 ── (the sectors: cut down to their level, fresh-cut rock where they are; the paving laid)
-    if (aK > 1.5 && uCut < 0.5) for (int i = 0; i < 8; i++) { vec4 S = uSec[i]; if (S.z <= 0.0) continue;
-      vec2 d = abs(position.xz - S.xy); float m = max(d.x, d.y), k = 1.0 - smoothstep(S.z * 0.55, S.z, m);
-      if (k <= 0.0) continue; float y1 = min(hY, S.w); hSk = max(hSk, k * step(S.w + 0.4, hY));
-      hY = mix(hY, y1, k);
-      if (m < S.z * 0.8 && position.x > S.x + S.z * 0.8 - 1.6 * S.z * uSecPv[i]) hPv = max(hPv, step(0.001, uSecPv[i])); }`;
+    hY = mix(hY, hPl, hPk * 0.92);`;
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(1.3, 1.3, 1.3), vertexColors: true, map: T.rock.map, normalMap: T.rock.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughness: 0.96 });
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; uniform vec4 uSec[8]; uniform float uSecPv[8]; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vSk; varying float vPv;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;')
       .replace('#include <beginnormal_vertex>', `${morph}
-    float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hSk) : uCut;
-    vPk = max(hPk, hSk); vSk = hSk; vPv = hPv;   // ── build 62 ──
+    float hFlat = aK > 1.5 ? max(step(hYc + 0.01, hYI), hPk) : uCut;
+    vPk = hPk;
     vLev = aK > 1.5 ? step(hYc + 0.01, hYI) : 0.0;
     // ── site12 ── the worked crest (its floor and benches: fresh-cut rock, lit by its facets), the floor cut this course, and
     // the spoil tipped on the slope just above the fill (the next lift); everything else keeps the hill's own colours (v21
@@ -375,7 +364,7 @@ function makeHill(T) {
       .replace('#include <begin_vertex>', 'vec3 transformed = vec3(position.x, hY, position.z);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vSk; varying float vPv;
+        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;
         float hh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float hn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hh(i), hh(i + vec2(1.0, 0.0)), f.x), mix(hh(i + vec2(0.0, 1.0)), hh(i + vec2(1.0, 1.0)), f.x), f.y); }`)
@@ -400,11 +389,7 @@ function makeHill(T) {
         { float cl = smoothstep(0.93, 1.0, abs(fract(vHXZ.x / 3.0) * 2.0 - 1.0)) * 0.5 + smoothstep(0.95, 1.0, abs(fract(vHXZ.y / 1.5 + 0.3 * hn(vHXZ / 4.0)) * 2.0 - 1.0)) * 0.35;
           // ── site8 ── the levelled patch: fresh-cut rock, paler than the weathered hill but keeping its grain, the chisel's lines
           vec3 pc = uCutCol * (0.8 + 0.1 * hn(vHXZ / 2.0)) * (1.0 - 0.16 * cl) * (0.62 + 0.45 * dot(diffuseColor.rgb, vec3(0.333)));
-          diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }
-        // ── build 62 ── a sector's paving: pale slabs, 3 × 1.5 amot in courses offset by half a slab, their joints darker
-        if (vPv > 0.5) { float row = floor(vHXZ.y / 1.5), jx = abs(fract(vHXZ.x / 3.0 + 0.5 * mod(row, 2.0)) * 2.0 - 1.0), jz = abs(fract(vHXZ.y / 1.5) * 2.0 - 1.0);
-          float j = max(smoothstep(0.9, 0.97, jx), smoothstep(0.86, 0.95, jz)), sh = 0.92 + 0.12 * hh(vec2(floor(vHXZ.x / 3.0 + 0.5 * mod(row, 2.0)), row));
-          diffuseColor.rgb = mix(vec3(0.66, 0.6, 0.5) * sh, vec3(0.36, 0.32, 0.26), j * 0.8); }`)
+          diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         normal = normalize(mix(normal, nonPerturbedNormal, vBl));
         // ── site12 ── the cut rock lit by its own facets: the benches' treads and risers, the sweep's fresh face
@@ -415,7 +400,7 @@ function makeHill(T) {
   depth.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; uniform vec4 uSec[8]; uniform float uSecPv[8];')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave;')
       .replace('#include <begin_vertex>', `${morph}\nvec3 transformed = vec3(position.x, hY, position.z);`);
   };
   depth.customProgramCacheKey = () => 'hilldepth';
@@ -426,7 +411,6 @@ function makeHill(T) {
 
   // CPU mirror of the shader (heights of the rendered triangles)
   let patchN = 0;   // ── site8 ── patches on (siteLife sets it through setPatchN)
-  let secN = 0;     // ── build 62 ── sectors on (setSectors62)
   // ── site12 ── each vertex's place in the crest's sweep (hSw in the shader), fixed
   const sw = new Float32Array(N);
   for (let k = 0; k < N; k++) sw[k] = clamp((14 - pos[k * 3] + 16 * Math.sin(pos[k * 3 + 2] / 61)) / 270, 0, 1);
@@ -446,10 +430,6 @@ function makeHill(T) {
       const px = pos[k * 3], pz = pos[k * 3 + 2]; let pk = 0, pl = 0;
       for (const P of U.uPatch.value) { if (P.z <= 0) continue; const kk2 = 1 - smooth(P.z * 0.72, P.z, Math.max(Math.abs(px - P.x), Math.abs(pz - P.y))); if (kk2 > pk) { pk = kk2; pl = P.w; } }
       if (pk > 0) y = lerp(y, pl, pk * 0.92 * (1 - smooth(0, 0.3, cut)));
-    }
-    if (secN && cut < 0.5) {   // ── build 62 ── (the sectors, as the shader cuts them)
-      const px = pos[k * 3], pz = pos[k * 3 + 2];
-      for (const S of U.uSec.value) { if (S.z <= 0) continue; const kk2 = 1 - smooth(S.z * 0.55, S.z, Math.max(Math.abs(px - S.x), Math.abs(pz - S.y))); if (kk2 > 0) y = lerp(y, Math.min(y, S.w), kk2); }
     }
     return y;
   };
@@ -494,16 +474,13 @@ function makeHill(T) {
     let ch = false;
     bushes.forEach(([x, y, z], i) => {
       const s = clamp((14 - x + 16 * Math.sin(z / 61)) / 270, 0, 1), lv = lerp(C.y, C.x, 1 - smooth(C.z - 0.012, C.z + 0.012, s));
-      let off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
-      if (!off && secN) for (const S of U.uSec.value) { if (S.z > 0 && S.w < y - 0.8 && Math.max(Math.abs(x - S.x), Math.abs(z - S.y)) < S.z) { off = 1; break; } }   // ── build 62 ── (cut away with the sector)
+      const off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
       if (off !== bushOff[i]) { bushOff[i] = off; bm.setMatrixAt(i, off ? ZM : bushM[i]); ch = true; }
     });
     if (ch) bm.instanceMatrix.needsUpdate = true;
     return ch;
   }
-  /** ── build 62 ── the natural top of a square (the highest vertex of the hill as first shaped inside it) */
-  const topIn = (x, z, half) => { let t = -1e9; for (let k = 0; k < N; k++) { if (Math.abs(pos[k * 3] - x) <= half && Math.abs(pos[k * 3 + 2] - z) <= half) t = Math.max(t, y0[k]); } return t > -1e8 ? t : 0; };
-  return { mesh, bushes: bm, U, heightAt, bushCull, setPatchN: (n) => { patchN = n; }, setSecN: (n) => { secN = n; }, topIn };
+  return { mesh, bushes: bm, U, heightAt, bushCull, setPatchN: (n) => { patchN = n; } };
 }
 
 /* ───────────────────────── boulders ───────────────────────── */
@@ -817,16 +794,12 @@ const GHOST_FS = `uniform vec3 uCol; uniform float uA; uniform float uY; uniform
     // faint faces, a fresnel rim, fine gold courses every 2.5 amot on the walls, and a bright drawing-in front
     float course = 1.0 - smoothstep(0.6, 1.6, abs(fract(vW.y / 2.5 + 0.5) - 0.5) * 2.5 / max(fwidth(vW.y), 1e-3));
     float band = smoothstep(uY - 2.2, uY, vW.y);
-    // ── build 96 ── (the owner, 4.11: "the yellow is not good — something more architectural"): a mason's drawing, not a gold glow —
-    // the courses AND the joints of the ashlar (every 5 amot, staggered course by course), drawn in a pale blueprint line; the faces faint
-    float hz = abs(n.x) > abs(n.z) ? vW.z : vW.x, off = mod(floor(vW.y / 2.5), 2.0) * 2.5;
-    float joint = 1.0 - smoothstep(0.6, 1.6, abs(fract((hz + off) / 5.0 + 0.5) - 0.5) * 5.0 / max(fwidth(hz), 1e-3));
-    float a = (0.025 * uFace + 0.16 * f * f * f) * (0.35 + 0.65 * vert) + max(course, joint * 0.8) * 0.42 * vert + band * 0.8 * uBand;
-    gl_FragColor = vec4(uCol * (1.0 + band * 0.6 * uBand), uA * a);
+    float a = (0.03 * uFace + 0.3 * f * f * f) * (0.35 + 0.65 * vert) + course * 0.3 * vert + band * 0.9 * uBand;
+    gl_FragColor = vec4(uCol * (1.0 + band * 1.5 * uBand), uA * a);
   }`;
 
-const GHOST_GOLD = new THREE.Color(0.62, 0.86, 1.15);   // the vision (showPlan): ── build 96 ── a mason's drawing in a pale blueprint line (was a gold hologram: "the yellow is not good", 4.11)
-const GHOST_SOFT = new THREE.Color(0.78, 0.9, 1.05);  // the chapter showcase: a paler gold, over the wide shot (the owner, 28.9)
+const GHOST_GOLD = new THREE.Color(2.0, 1.25, 0.3);   // the vision (showPlan): the full gold hologram
+const GHOST_SOFT = new THREE.Color(1.15, 0.95, 0.62);  // the chapter showcase: a paler gold, over the wide shot (the owner, 28.9)
 
 /* ───────────────────────── workers (instanced) ───────────────────────── */
 function workerGeos() {
@@ -1128,8 +1101,7 @@ function buildHero() {
   const tex = canvasTex(128, (x, s) => {
     const g = x.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
     g.addColorStop(0, 'rgba(20,14,6,.55)'); g.addColorStop(0.42, 'rgba(20,14,6,.28)'); g.addColorStop(0.6, 'rgba(20,14,6,0)');
-    if (HOLE101) { g.addColorStop(0.8, 'rgba(255,220,120,0)'); g.addColorStop(0.85, 'rgba(250,236,200,.42)'); g.addColorStop(0.9, 'rgba(250,236,200,0)'); }   // ── build 101 ── (a thin pale ring, not a gold disc's rim: fewer gold markers in the world)
-    else { g.addColorStop(0.74, 'rgba(255,214,110,0)'); g.addColorStop(0.8, 'rgba(255,220,120,.95)'); g.addColorStop(0.9, 'rgba(255,200,80,.9)'); g.addColorStop(0.97, 'rgba(255,200,80,0)'); }
+    g.addColorStop(0.74, 'rgba(255,214,110,0)'); g.addColorStop(0.8, 'rgba(255,220,120,.95)'); g.addColorStop(0.9, 'rgba(255,200,80,.9)'); g.addColorStop(0.97, 'rgba(255,200,80,0)');
     x.fillStyle = g; x.fillRect(0, 0, s, s);
   });
   const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, toneMapped: false }));
@@ -1317,7 +1289,6 @@ export function createStages(ctx) {
       status: 'done', target: 1, disp: 1, lastY: 0, scaff: null, glowBoost: 0, seq: 0, ghost: null, tl: null,
     };
     scene.add(group);
-    if (HOLE101) for (const m of meshes) m.customDepthMaterial = holeDepthMaterial();   // ── build 101 ── (a hole casts no shadow)
     ST[id] = st; list.push(st);
   });
   // the height the masonry has reached: the laid courses + the share of the current one (wave 6: from the stones)
@@ -1596,13 +1567,12 @@ export function createStages(ctx) {
     if (x > 6 && x < 141 && Math.abs(z) < 67.5) y = Math.max(y, shownTop('nashim', x, z, 5.9, 0));   // (the court's floor on its footing)
     if (x > -76.2 && x < -54.5 && Math.abs(z) < 50) { let n = 0; for (const xr of XR12) if (x <= xr) n++; if (n) y = Math.max(y, shownTop('ulam', x, z, 16 + 0.5 * n, 15.9)); }
     if (x > -92 && x < -76 && Math.abs(z) < 30 && (x < -81 || Math.abs(z) < 10)) y = Math.max(y, shownTop('ulam', x, z, 22, 16));   // (the Ulam's hall and its opening's sill)
-    if (x > -139 && x <= -92 && Math.abs(z) < 10) y = Math.max(y, shownTop('heichal', x, z, 22, 16));   // ── recovered (build 26) ── (the Heichal's floor: he may go in)
     // (── site13 ── N76 b) the altar as it stands — the yesod's ledge, the sovev, the top — and the kevesh (temple.js 120–137)
     if (x > -54 && x < -22 && z > -19.5 && z < 42.5) {
       if (z <= 12.5) {
-        const yes = (z <= -18.5) || (x <= -53) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);   // (build 56: the ר alone — the body's first course is the sovev's)
+        const yes = (z <= -18.5) || (x <= -53) || (x <= -23 && z <= 11.5) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);
         if (yes) y = Math.max(y, shownTop('yesod', x, z, 17, 16));
-        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 16));
+        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 17));
         if (x >= -52 && x <= -24 && z >= -17.5 && z <= 10.5) y = Math.max(y, shownTop('guf', x, z, 25, 22));
       }
       if (x > -46 && x < -30 && z >= 10.5) y = Math.max(y, shownTop('guf', x, z, 16.05 + 8.95 * clamp((42.5 - z) / 32, 0, 1), 16));
@@ -1646,7 +1616,7 @@ export function createStages(ctx) {
   function sparkBurst(x, y, z, n = 30, spread = 8, up = 10) { spark.spawn(x, y, z, n, PO(spread, spread * 0.5, spread * 0.6, up, 1.8, 0.6, 1.6, 5, 1.4, 1, true)); }
 
   /* ── footprint outlines: one mesh for all stages, per-stage intensity in a uniform array ── */
-  const OL = { I: new Float32Array(16), base: new Float32Array(16), thinW: 1 };   // ── build 53 ── (thinW: the pins' beams' width factor, with the line's — outlineThin) ── /build 53 ──
+  const OL = { I: new Float32Array(16), base: new Float32Array(16) };
   const outline = (() => {
     const P = [], N = [], S = [], I = [], D = [], V = [], HY = [], idx = [];
     // per sample: a ground ribbon (2 vertices, aV = 0) and a vertical glow curtain (2 vertices, aS = 0, aV = 0 → 1)
@@ -1677,26 +1647,26 @@ export function createStages(ctx) {
     g.setAttribute('aHY', new THREE.Float32BufferAttribute(HY, 1));
     g.setIndex(idx);
     const m = new THREE.ShaderMaterial({
-      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 }, uThin: { value: new THREE.Vector2(1, 1) } },   // ── build 53 ── (uThin: the line's width and alpha factors — Phase A's thin line, stages.outlineThin) ── /build 53 ──
-      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan; uniform vec2 uThin;
+      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 } },
+      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan;
         varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           vI = uI[int(aI + 0.5)]; vS = aS; vD = aD; vV = aV; vK = aS == 0.0 ? 1.0 : 0.0;
           vec3 base = vec3(position.x, mix(position.y, aHY, uPlan), position.z);
           float d = distance(cameraPosition, base);
           float on = vI > 0.0 ? 1.0 : 0.0;
-          float w = clamp(d * 0.0045, 0.7, 8.0) * on * uThin.x, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
+          float w = clamp(d * 0.0045, 0.7, 8.0) * on, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
           vec3 p = base + vec3(aN.x, 0.0, aN.y) * aS * w * 0.5 + vec3(0.0, aV * h, 0.0);
           gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
         }`,
-      fragmentShader: `uniform vec3 uCol; uniform float uTime; uniform vec2 uThin; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
+      fragmentShader: `uniform vec3 uCol; uniform float uTime; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           if (vI < 0.002) discard;
           float pulse = 0.62 + 0.38 * sin(uTime * 3.4);
           float f = fract(vD / 90.0 - uTime * 0.22);
           float dash = smoothstep(0.0, 0.08, f) * (1.0 - smoothstep(0.1, 0.24, f));
           float alpha = vK > 0.5 ? (1.0 - vV) * (1.0 - vV) * 0.5 : 1.0 - smoothstep(0.55, 1.0, abs(vS));
-          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0) * uThin.y);
+          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0));
         }`,
       transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
     });
@@ -2022,7 +1992,7 @@ export function createStages(ctx) {
             put(mx + nx * tw / 2, st.base + 0.085, mz + nz * tw / 2, tw * 0.62, 0.03, L, yaw, '#D4C8AA');
             put(mx + nx * tw * 0.1, st.base + 0.09, mz + nz * tw * 0.1, tw * 0.2, 0.03, L, yaw, '#3B2E22');
             put(mx + nx * tw * 0.9, st.base + 0.09, mz + nz * tw * 0.9, tw * 0.2, 0.03, L, yaw, '#4A3A2A');
-            const kb = st.id === 'nashim' && st.phase === 'courses' ? 0 : Math.max(1, Math.ceil(L / 12));   // ── build 97 ── (the women's court's chambers rise in view from their first courses: no faceted earth banks round them)
+            const kb = Math.max(1, Math.ceil(L / 12));
             // ── site11 ── (by touch, 29.9: at the wall's first course the banks stood as tall beige tents in his working frame) once
             // the courses start the trench is being filled round the first stones: its banks lie low, the tall heaps are gone
             // (and in the dig they lie lower too: by touch at the altar's dig a bank stood before him like a tent, PRODUCER11 s3-13)
@@ -2230,7 +2200,6 @@ export function createStages(ctx) {
 
   /* ── scaffolding: two instanced meshes per building stage, instances sorted by lift ── */
   const woodMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.86 });
-  woodMat.onBeforeCompile = (sh) => { const x = xrayCode(sh.vertexShader, sh.fragmentShader, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; };   // ── fable32 (build 46) ── (the scaffold too: clear in front of his stretch of the wall — batch.js uHole — and seen through near him)
   const poleGeo = new THREE.CylinderGeometry(1, 1, 1, 5, 1, true).translate(0, 0.5, 0);
   const boardGeo = new THREE.BoxGeometry(1, 1, 1);
   function makeScaffold(st) {
@@ -2654,7 +2623,6 @@ export function createStages(ctx) {
   const scaffLevel = (st, run) => { const L = st.def.scaff.lift, y0 = run[3], m = Math.floor((Math.min(revealY(st), run[4]) - y0 - 0.5) / L); return y0 + Math.max(0, m) * L + (m > 0 ? 0.21 : 0); };
   const tmpC0 = new THREE.Color();
   const wmBody = new THREE.Matrix4(), wmT = new THREE.Matrix4(), wmR = new THREE.Matrix4(), wv = new THREE.Vector3(), wq = new THREE.Quaternion(), we = new THREE.Euler();
-  let HIDEW92 = null;   // ── build 92 ── boxes [x0, x1, z0, z1] where the site workers are not shown (hideWorkers)
   function workersUpdate(dt) {
     let ns = 0, na = 0, nb = 0;
     for (let i = 0; i < nWork; i++) {
@@ -2710,17 +2678,7 @@ export function createStages(ctx) {
       }
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
-      wmBody.compose(wv, wq, ONE);
-      if (HIDEW92 && HIDEW92.some((q) => w.x >= q[0] && w.x <= q[1] && w.z >= q[2] && w.z <= q[3])) { w.x71 = NaN; tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue; }   // ── build 92 ── (a stretch the game draws itself: its scaffold's masons not there)
-      // ── build 71 ── (a real figure stands for him — crew71.js: what he does, where and when, read here; his instanced body not drawn, the stone he carries still)
-      w.x71 = w.x + ox; w.z71 = w.z + oz; w.y71 = w.y; w.u71 = (w.role === 'mason' || w.role === 'dig') ? ((((w.ph / 6.2832) - 0.25 + 0.66) % 1) + 1) % 1 : null; w.moving71 = w.role === 'carry' ? !(w.wait > 0) : w.role === 'tread' ? !!(crane && crane.walking) : false; w.stone71 = stone; w.field71 = !!(st && FIELD.has(st.id));
-      w.hole101 = HOLE101 && inHole101(w.x71, w.y71 - 0.2, w.z71);   // ── build 101 ── (his scaffold not drawn in a hole: he is not drawn either — no mason crouching in the air before the wall)
-      if (w.off101 || w.hole101) { tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue; }   // ── build 101 ── (crew71: near and no real figure for him — not drawn, nor his stone)
-      if (w.lod71) {
-        if (stone) { wmT.makeTranslation(-0.3, 3.16, 0.05); wmR.makeRotationZ(0.12); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR); wStone.setMatrixAt(ns, tmpM); wStone.setColorAt(ns, tmpC0.set(STONE[st.def.stone] || STONE.ash)); ns++; }
-        tmpM.makeScale(0, 0, 0); wBody.setMatrixAt(i, tmpM); wLeg.setMatrixAt(i * 2, tmpM); wLeg.setMatrixAt(i * 2 + 1, tmpM); continue;
-      }
-      wBody.setMatrixAt(i, wmBody);
+      wmBody.compose(wv, wq, ONE); wBody.setMatrixAt(i, wmBody);
       wmT.makeTranslation(-0.44, 2.72, 0); wmR.makeRotationX(arm); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR);
       // ── site13 ── a hammer only for a mason or a digger away from the altar; bare hands for the rest (N76 c)
       if ((w.role === 'mason' || w.role === 'dig') && !(st && FIELD.has(st.id))) { wArm.setMatrixAt(na, tmpM); wArm.setColorAt(na, WPAL[i % WPAL.length]); na++; }
@@ -2784,8 +2742,6 @@ export function createStages(ctx) {
     // (toward the laid stones: beyond him in the working frame, which looks from the unlaid side — DIRECTOR13's wall frame looks
     //  from the laid side (C4), so at the wall they stand on the unlaid side, with his crane, behind the slot)
     let [ux, uz] = slotTangent(st.id, s); if (st.id === 'wall') { ux = -ux; uz = -uz; }
-    { const dn = ux * s.n[0] + uz * s.n[1]; let px = ux - dn * s.n[0], pz = uz - dn * s.n[1], pl = Math.hypot(px, pz);   // ── build 97 ── (the tangent square to the face: at a chamber's corner the next slot lies round it and the tangent ran along the normal — the hauling pairs stood in one another)
-      if (pl < 0.3) { const sg = (-s.n[1]) * ux + s.n[0] * uz < 0 ? -1 : 1; px = -s.n[1] * sg; pz = s.n[0] * sg; pl = 1; } ux = px / pl; uz = pz / pl; }
     if (!m.ok || Math.hypot(s.face[0] - m.ax, s.face[2] - m.az) > 30 || s.n[0] * m.nx + s.n[1] * m.nz < 0.9) {
       m.ax = s.face[0]; m.az = s.face[2]; m.nx = s.n[0]; m.nz = s.n[1]; m.ux = ux; m.uz = uz; m.ok = true;
       const run = mkRun(st, m);   // (a short run: the machines close up toward the slot, the shear-legs by the corner)
@@ -3137,7 +3093,6 @@ export function createStages(ctx) {
   const TW_SOLID = ['ulam', 'heichal', 'kodesh', 'lishka', 'kiyor', 'gates'], TW_KODESH = [-176, -35, -139, 35];
   const inR = (f, x, z) => x > f[0] && x < f[2] && z > f[1] && z < f[3];
   function twinSolid(x, z, x0, z0) {
-    if (TWD.pass && TWD.pass(x, z)) return false;   // ── recovered (build 26) ── (where day33 lets him through — world22's Ulam and Heichal)
     if (inR(TW_KODESH, x, z) && !inR(TW_KODESH, x0, z0)) return true;
     for (let i = 0; i < TW_SOLID.length; i++) {
       const st = ST[TW_SOLID[i]]; if (!st || (st.status !== 'building' && st.status !== 'done') || !st.def || !st.def.foot) continue;
@@ -4082,7 +4037,7 @@ export function createStages(ctx) {
     const s = HERO_S * (fv < 1 ? Math.max(0.001, fv) : 1);
     H.mesh.scale.setScalar(s);
     H.ring.position.set(H.x, H.y + 0.06, H.z);
-    H.ring.material.opacity = HOLE101 ? 0.9 : 0.75 + 0.25 * Math.sin(time * 3.2);   // ── build 101 ── (no pulse)
+    H.ring.material.opacity = 0.75 + 0.25 * Math.sin(time * 3.2);
     H.ring.scale.setScalar(HERO_S * 3.1 * (fv < 1 ? fv : 1) * (1 + comboV * 0.12));
     // after dark: the lantern (hung on the banker's post while he works there, in his left hand when he walks) and a thin
     // cool rim; a combo warms the rim to gold, brightens the ring and sends up motes
@@ -4113,13 +4068,11 @@ export function createStages(ctx) {
   }
   // the hero's public API (stages.hero): the game (BUILD) and the hooks (FUN) call it, guarded; every promise resolves
   const heroApi = {
-    get mesh() { return hero.mesh; },   // ── build 88 ── (hero35's kohen stands in for this figure and hides it every frame: since build 66 it looked for S.hero.mesh and found nothing, so both were drawn, one inside the other)
     walkTo: heroWalkTo, swing: heroSwing, place: heroPlace, show: (v) => { hero.vis = !!v; hero.mesh.visible = hero.ring.visible = !!v; if (!v) heroCancel(); },
     twinSite: (id) => { TWD.site = id || 'har'; TWD.twin = !!id; },   // ── twin18 ── ── /twin18 ── (── nav19 ── TWD.twin: two thumbs on)
     dash: heroDash, get dashing() { return hero.dash || 0; }, navLog: () => NAV_LOG.slice(),   // ── nav19 ── ── /nav19 ──
     // ── engine22 ── Phase B's two thumbs: the Temple's own solids (xtra(x, z, x0, z0) → true = blocked) and a place by coordinates (the builder's feet)
     twinExtra: (f) => { TWD.xtra = typeof f === 'function' ? f : null; },
-    twinPass: (f) => { TWD.pass = typeof f === 'function' ? f : null; },   // ── recovered (build 26) ── (pass(x, z) → true = never solid here)
     setPos: (x, z, yaw) => { if (hero.resolve) { const r = hero.resolve; hero.resolve = null; r(false); } heroCancel(); hero.path = null; hero.door = null; hero.fade = 1; hero.x = x; hero.z = z; hero.y = groundAt(x, z); if (Number.isFinite(yaw)) hero.yaw = yaw; hero.face = null; hero.vis = true; hero.mesh.visible = hero.ring.visible = true; },
     // ── /engine22 ──
     get speedMul() { return hero.speedMul || 1; }, set speedMul(v) { hero.speedMul = v > 0 && v < 4 ? +v : 1; },   // ── shift29 ── ── /shift29 ──
@@ -4292,7 +4245,7 @@ export function createStages(ctx) {
     if (building) { layout(st); st.lay.n = -1; stonesTo(st, nOf(st), true); } else if (st.lay) st.lay.n = -1;
     st.mats.forEach((m) => setBuilding(m, building));
     if (st.lc) st.lc.mats.forEach((m) => setBuilding(m, building));   // ── site13 ── (the chambers' own reveal)
-    for (const m of st.meshes) m.customDepthMaterial = building ? st.depth : HOLE101 ? holeDepthMaterial() : undefined;   // ── build 101 ── (a hole casts no shadow)
+    for (const m of st.meshes) m.customDepthMaterial = building ? st.depth : undefined;
     st.group.visible = s === 'done' || (building && st.disp >= FOUND);
     st.U.uY.value = building ? revealY(st) : 1e6;
     st.U.uGlow.value.setRGB(3.4, 2.25, 0.72).multiplyScalar(building ? 1 : 0);
@@ -5036,9 +4989,6 @@ export function createStages(ctx) {
     vs.grown = !!(o && o.grown); vs.demo = !!(o && o.demo);
     vineSync(was && !vs.grown);
   }
-  // ── fable32 (build 60) ── where the vine's next leaf will hang (the stage-13 act hangs the player's first leaf there: the blinking point);
-  // read-only — null while the vine is not hung ── /fable32 ──
-  function vineNext() { const K = vine.kinds[0]; if (!vine.on || !K) return null; const s = K.slots[Math.min(K.cap - 1, Math.max(0, K.want))]; return s ? { x: s.x, y: s.y, z: s.z } : null; }
   const vE = new THREE.Euler();
   function vineSlot(K, i, d) {
     const s = K.slots[i], a = clamp(d - i, 0, 1), k = a <= 0 ? 0 : a >= 1 ? 1 : easeBack(a);
@@ -5096,7 +5046,6 @@ export function createStages(ctx) {
   })();
   const paves = list.map((st) => st.cache.pave).filter(Boolean).map((m) => ({ m, r: m.roughness, c: m.color.clone() }));
   function setRain(on) { rain.want = !!on; }
-  function setWet(k) { rain.wetM = Math.max(0, Math.min(1, +k || 0)); }   // ── fable32 (build 45) ── (a morning after the night's rain: the paving wet without the rain falling; it dries as the sun rises) ── /fable32 ──
   function rainUpdate(dt) {
     const want = rain.want && buildPhase() ? 1 : 0;
     rain.k += (want - rain.k) * Math.min(1, dt * (want ? 0.8 : 1.5));
@@ -5104,10 +5053,9 @@ export function createStages(ctx) {
     rain.L.visible = rain.k > 0.003;
     if (rain.L.visible) { camera.getWorldDirection(camDir); rain.U.uC.value.copy(camera.position).addScaledVector(camDir, 45); rain.U.uA.value = rain.k; }
     // wet paving: darker, and glossy enough to catch the braziers
-    const wk = Math.max(rain.k, rain.wetM || 0);   // ── fable32 (build 45) ── ── /fable32 ──
-    if (Math.abs(wk - rain.wet) > 0.02 || (wk === 0 && rain.wet !== 0)) {
-      rain.wet = wk;
-      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, wk); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * wk); }
+    if (Math.abs(rain.k - rain.wet) > 0.02 || (rain.k === 0 && rain.wet !== 0)) {
+      rain.wet = rain.k;
+      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, rain.k); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * rain.k); }
     }
   }
 
@@ -6033,7 +5981,7 @@ export function createStages(ctx) {
   }
   function harBay(dt) {
     const hs = ST.har, U = hill.U;
-    const on = !bayOff62 && hs.status === 'building' && hs.disp >= FOUND && hs.phase !== 'finish' && hs.phase !== 'done' && U.uFill.value > -999;
+    const on = hs.status === 'building' && hs.disp >= FOUND && hs.phase !== 'finish' && hs.phase !== 'done' && U.uFill.value > -999;
     if (on && crane.st === hs && !crane.lift && !hs.harPosed) harCranePose(hs);
     // (the next slot ran on along the front — the game set stones without the crane: a segment, a resume — the crane, its stock
     //  and the builder's banker go to it, so the frame keeps them together; checked twice a second)
@@ -6223,8 +6171,8 @@ export function createStages(ctx) {
   /* ── per-frame ── */
   const pv = new THREE.Vector3();
   // ── twin18 ── the see-through follows him while twin is ON (batch.js XRAY)
-  let xrOn = false, xrW = null;   // ── fable32 (build 43) ── (xrW: Phase B's guard asks the see-through for the wall between the camera and the kohen, cam28 xray) ── /fable32 ──
-  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else if (xrW) { XRAY.uXr.value.set(xrW[0], xrW[1], xrW[2], 1); XRAY.uXrC.value.copy(camera.position); } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
+  let xrOn = false;
+  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
   // ── /twin18 ──
   function update(dt) {
     xrayStep();   // ── twin18 ── ── /twin18 ──
@@ -6288,7 +6236,7 @@ export function createStages(ctx) {
       const d = pv.distanceTo(camera.position), s = clamp(d * 0.012, 1.4, 22) * (0.45 + 0.55 * w), bob = Math.sin(time * 2.4 + np) * s * 0.35;
       tmpQ.setFromAxisAngle(UP, time * 1.6); tmpV.set(pv.x, pv.y + bob, pv.z); tmpS.set(s, s, s);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5) * OL.thinW;
+      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5);
       tmpQ.identity(); tmpV.set(pv.x, gy, pv.z); tmpS.set(bw, Math.max(0.01, pv.y - gy + s * 0.5), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = pv.x; halo.pos[np * 3 + 1] = pv.y + s * 1.5 + bob; halo.pos[np * 3 + 2] = pv.z;
       halo.size[np] = s * 5.5; halo.alpha[np] = (0.55 + 0.25 * Math.sin(time * 3.4)) * w;
@@ -6300,7 +6248,7 @@ export function createStages(ctx) {
       const d = Math.hypot(m.x - camera.position.x, m.y - camera.position.y, m.z - camera.position.z), s = clamp(d * 0.0085, 0.8, 9), bob = Math.sin(time * 3 + np * 1.7) * s * 0.3;
       tmpQ.setFromAxisAngle(UP, time * 2.1 + np); tmpV.set(m.x, m.y + s * 0.4 + bob, m.z); tmpS.set(s * 0.8, s * 0.8, s * 0.8);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4) * OL.thinW;
+      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4);
       tmpQ.identity(); tmpV.set(m.x, gy, m.z); tmpS.set(bw, Math.max(0.01, m.y + s * 0.4 - gy), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = m.x; halo.pos[np * 3 + 1] = m.y + s * 1.6 + bob; halo.pos[np * 3 + 2] = m.z;
       halo.size[np] = s * 4.5; halo.alpha[np] = 0.5 + 0.25 * Math.sin(time * 3.4 + np);
@@ -6470,21 +6418,14 @@ export function createStages(ctx) {
     if (p) { ux = p.face[0] - s.face[0]; uz = p.face[2] - s.face[2]; } else if (q) { ux = s.face[0] - q.face[0]; uz = s.face[2] - q.face[2]; } else { ux = -s.n[1]; uz = s.n[0]; }
     const L = Math.hypot(ux, uz) || 1; return [ux / L, uz / L];
   }
-  function slots(id, course, all) {   // ── build 97 ── (all: every front's stones of the course — stage 05's chambers' inner faces)
+  function slots(id, course) {
     const st = ST[id]; if (!st) return null;
     const L = layout(st), c = course === undefined ? Math.min(L.cur, L.C - 1) : clamp(Math.round(+course || 0), 0, L.C - 1);
     // the working front's stones of that course (or, where its run is lower than the others, the first front that has some)
-    const F = L.cs[c].fr, fr = all ? F.flat() : F[0] && F[0].length ? F[0] : (F.find((a) => a && a.length) || []);
+    const F = L.cs[c].fr, fr = F[0] && F[0].length ? F[0] : (F.find((a) => a && a.length) || []);
     // ── flow10 ── the Mount: the east face's own stones in the bay (harSlotOk), set when shown or set ahead of the count (L.pend)
     if (id === 'har') { const P = L.pend || []; return fr.filter((bi) => harSlotOk(L, L.blocks[bi])).map((bi) => slotOf(L.blocks[bi], L.blocks[bi].g < L.n || P.some((p) => p.g === L.blocks[bi].g))); }
     return fr.map((bi) => slotOf(L.blocks[bi], L.blocks[bi].g < L.n));
-  }
-  /** ── build 97 ── the lowest course (from the count's) with free slots that pick takes, not his or the crews' kept stones: every front */
-  function pickSlots(id, pick) {
-    const st = ST[id]; if (!st) return [];
-    const L = layout(st), kq = new Set(TW.keep.map((q) => q.g)), set = new Set(TW.set.map((q) => q.g));
-    for (let c = Math.min(Math.max(0, L.cur), L.C - 1); c < L.C; c++) { const a = (slots(id, c, true) || []).filter((q) => !q.set && !kq.has(q.stone) && !set.has(q.stone) && pick(q)); if (a.length) return a; }
-    return [];
   }
   function workSpot(id, kind = 'set') {
     const st = ST[id]; if (!st && kind !== 'quarry') return null;
@@ -6693,12 +6634,6 @@ export function createStages(ctx) {
     const st = ST[id]; if (!st || st.status !== 'building') return Promise.resolve(false);
     const L = layout(st); if (L.kind !== 'cast' && st.disp < FOUND) return Promise.resolve(false);
     const i = nextWorkIdx(L); if (i < 0) return Promise.resolve(false);
-    // ── build 97 ── (o.pick: a stone the crews set where it is seen — stage 05's chambers' inner faces — ahead of the count, kept as his are)
-    if (o.pick && st.lay.kind !== 'cast') {
-      const C = crane, c = pickSlots(id, o.pick);
-      if (c.length && !c.some((q) => q.stone === i)) { const lk = TW.keep.length ? TW.keep[TW.keep.length - 1] : { x: C.bx, z: C.bz }; c.sort((a, q) => Math.hypot(a.x - lk.x, a.z - lk.z) - Math.hypot(q.x - lk.x, q.z - lk.z)); const g = c[0].stone;
-        return new Promise((resolve) => { lifts.push({ st, b: L.blocks[L.order[g]], i: g, t: 0, dur: clamp((+o.ms || 4200) / 1000, 0.3, 12), great: false, keep: true, resolve }); }); }
-    }
     const b = L.blocks[L.order[i]];
     return new Promise((resolve) => {
       lifts.push({ st, b, i, t: 0, dur: clamp((+o.ms || 4200) / 1000, 0.3, 12), great: !!o.great, resolve });
@@ -6706,7 +6641,6 @@ export function createStages(ctx) {
   }
   function liftLand(it) {
     const st = it.st, L = st.lay;
-    if (it.keep) { const s = slotOf(it.b, true); TW.keep.push({ x: s.x, y: s.y, z: s.z, w: s.w * 0.98, h: s.h * 0.97, d: s.d, yaw: s.yaw, g: it.i, st }); propsDirty = true; dustBurst(s.face[0], s.y - s.h * 0.45, s.face[2], 8, 2.4, 1.3, 0.7); st.U.uF.value.x = 1; it.resolve({ course: it.b.c, index: it.b.j, stones: Math.max(0, L.n), kept: true }); return; }   // ── build 97 ──
     // ── flow10 ── the Mount: the player's stone stays where the crane set it. The game's count is block-linear and the Mount's
     // course 0 holds every deep row, so the east face's next slot in the bay lies up to ≈ 3 stones ahead of the count: the
     // stone waits as a set stone of its own (L.pend, drawn with the site's props) until the count reveals it — no jump of the
@@ -6738,9 +6672,9 @@ export function createStages(ctx) {
     if (crane.st !== it.st) { cranePref = it.st.id; craneAssign(); }
     if (crane.st !== it.st) { lifts.shift(); liftLand(it); return; }   // (no crane there: set at once)
     // the stone may have been set meanwhile (setWork): lift the working front's next one
-    const L = it.st.lay, i = it.keep ? (it.i >= Math.max(0, L.n) ? it.i : -1) : nextWorkIdx(L);
+    const L = it.st.lay, i = nextWorkIdx(L);
     if (i < 0) { lifts.shift(); it.resolve(false); return; }
-    if (!it.keep) { it.i = i; it.b = L.blocks[L.order[i]]; }
+    it.i = i; it.b = L.blocks[L.order[i]];
     lifts.shift(); it.onCrane = true;
     craneLiftStart(it);
   }
@@ -7460,7 +7394,7 @@ export function createStages(ctx) {
   // controls (tread.js draws a meter strip when linked). treadBegin(site) → { ok, at } · treadUpdate(s) each frame from the
   // game's draw · treadEnd(r). GAMES14's model and scoring are untouched; the stones are counted by FUN14's setShare as before —
   // the three stones he seats stand as props until the count's ripple reveals the real ones (≤ 3 s).
-  const TW = { keep: [], keepOn: false, on: false, site: null, st: null, slots: [], i: 0, h: 0, mark: 0.7, phase: 'lift', pt: 0, v: 0, over: false, placed: false, set: [], hy: null, hySet: null, ox: 0, oz: 0, at: null, dy: 1.2, lift: 0, inWheel: false, clearT: 0 };
+  const TW = { on: false, site: null, st: null, slots: [], i: 0, h: 0, mark: 0.7, phase: 'lift', pt: 0, v: 0, over: false, placed: false, set: [], hy: null, hySet: null, ox: 0, oz: 0, at: null, dy: 1.2, lift: 0, inWheel: false, clearT: 0 };
   /** where he stands inside the wheel (world): on the bottom tread, facing the wheel's rolling direction (the jib's side) */
   function treadWheelPoint() {
     const C = crane, st = C.st, by = C.byFix !== null ? C.byFix : craneY(st);
@@ -7487,20 +7421,14 @@ export function createStages(ctx) {
     const f = tsFit(best, [tx, ty, tz], him, { top: 150, bottom: 330 }, also, true);
     return flyTo(f.p, f.t, 1000);
   }
-  function treadBegin(site, o) {   // ── build 97 ── (o.pick: the slots he may lift into — stage 05's chambers: their inner faces, seen; not the outer, inside the court's wall)
+  function treadBegin(site) {
     const st = ST[site], C = crane;
     if (!st || st.status !== 'building' || st.disp < FOUND || !st.lay || st.lay.kind === 'cast' || TS.run) return { ok: false, why: 'site' };
     if (C.st !== st) { cranePref = site; craneAssign(); }
     if (C.st !== st || C.lift || lifts.length) return { ok: false, why: C.lift || lifts.length ? 'lifting' : 'crane' };
-    const pick = o && typeof o.pick === 'function' ? o.pick : null, all = (slots(site) || []).filter((q) => !q.set);
-    let open = all.slice(0, 3), kept = false;
-    if (pick && !(open.length && open.every(pick))) {   // (the next stones in order where they are seen: the count shows them, nothing kept)   // ── build 97 ── (the slots he may lift into, any front of the course, the nearest him first; the crane posed there; his stones kept till the count reaches them)
-      const pk = pickSlots(site, pick).sort((a, b) => Math.hypot(a.x - hero.x, a.z - hero.z) - Math.hypot(b.x - hero.x, b.z - hero.z));
-      if (pk.length) { open = pk.slice(0, 3); kept = true; }
-    }
+    const open = (slots(site) || []).filter((q) => !q.set).slice(0, 3);
     if (!open.length) return { ok: false, why: 'slots' };
-    try { if (site === 'har') { if (!st.harPosed) harCranePose(st); } else if (!st.posed || C.glide || pick) poseAt(st, craneWorkPose(st, open[0], C.H)); } catch (e) { /* the pose as it is */ }
-    TW.keepOn = kept;
+    try { if (site === 'har') { if (!st.harPosed) harCranePose(st); } else if (!st.posed || C.glide) poseAt(st, craneWorkPose(st, open[0], C.H)); } catch (e) { /* the pose as it is */ }
     Object.assign(TW, { on: true, site, st, slots: open, i: 0, h: 0, mark: 0.7, phase: 'lift', pt: 0, v: 0, over: false, placed: false, set: [], hy: null, hySet: null, ox: 0, oz: 0, lift: 0, inWheel: false, clearT: 0 });
     C.calm = true; C.glide = null;
     C.block.scale.set(open[0].w * 0.98, open[0].h * 0.97, open[0].d); C.block.geometry = st.def.stone === 'field' ? C.fieldBlock : C.boxBlock; C.blockMat.color.set(STONE[st.def.stone] || STONE.ash); C.blockMat.emissive.setRGB(0, 0, 0);
@@ -7509,7 +7437,7 @@ export function createStages(ctx) {
     hero.speed = clamp(hero.speed, 11, 24);
     treadFrame();
     tsLog({ id: 'tread', stage: site, kind: 'tread', at: 'begin', spot: [P.x, P.y, P.z].map((v) => Math.round(v * 10) / 10), from: [hero.x, hero.y, hero.z].map(Math.round), slots: open.length });
-    return { ok: true, at: { x: P.x, y: P.y, z: P.z }, slots: open };
+    return { ok: true, at: { x: P.x, y: P.y, z: P.z } };
   }
   /** each frame from tread.js's draw: { ang, h, v, mark, phase, pt, i, n, over, done } */
   function treadUpdate(q) {
@@ -7549,7 +7477,7 @@ export function createStages(ctx) {
     if (TW.phase === 'set') {
       const k = clamp(TW.pt / 0.45, 0, 1); hy = lerp(TW.hySet === null ? hy : TW.hySet, s.y, easeIn(k));
       if (k >= 1 && !TW.placed) {
-        TW.placed = true; TW.set.push({ x: s.x, y: s.y, z: s.z, w: s.w * 0.98, h: s.h * 0.97, d: s.d, yaw: s.yaw, g: s.stone, st: TW.st }); propsDirty = true;
+        TW.placed = true; TW.set.push({ x: s.x, y: s.y, z: s.z, w: s.w * 0.98, h: s.h * 0.97, d: s.d, yaw: s.yaw }); propsDirty = true;
         dustBurst(s.face[0], s.y - s.h * 0.4, s.face[2], 12, 3.5, 2, 1.2); sparkBurst(s.face[0], s.y + s.h * 0.6, s.face[2], 22, 4, 7);
         shake.t = 0.18; shake.amp = 0.14; TW.st.U.uF.value.x = 1; TW.st.glowBoost = 1;
       }
@@ -7561,12 +7489,11 @@ export function createStages(ctx) {
   }
   const TW_OUT = { a: 0, hy: 0, carry: true, sw: 0, yaw: 0 };
   /** the stones he seated, until the count's ripple reveals the real ones (rebuildProps) */
-  function treadProps(put) { for (const q of TW.set.concat(TW.keep)) put(q.x, q.y, q.z, q.w, q.h, q.d, q.yaw, STONE[q.st ? q.st.def.stone : TW.st && TW.st.def.stone] || STONE.ash); }
+  function treadProps(put) { for (const q of TW.set) put(q.x, q.y, q.z, q.w, q.h, q.d, q.yaw, STONE[TW.st && TW.st.def.stone] || STONE.ash); }
   function treadTick(dt) {
     caCoil(dt); caSvTick(dt); ksTick(dt); dsTick(dt); clTick(dt); gwTick(dt);   // ── crafta19 ── (the rope coiled on the drum; the survey's cord; the key stone's slot and shadow) ── /crafta19 ──
     s20Tick(dt);   // ── site20 ── (plan A: the wall's top and its ramp) ── /site20 ──
-    if (TW.clearT > 0) { TW.clearT -= dt; if (TW.clearT <= 0 && TW.set.length) { if (TW.keepOn) TW.keep.push(...TW.set); TW.set = []; propsDirty = true; } }
-    if (TW.keep.length) { const k0 = TW.keep.length; TW.keep = TW.keep.filter((q) => q.st && q.st.status === 'building' && q.st.lay && Math.max(0, q.st.lay.n) <= q.g); if (TW.keep.length !== k0) propsDirty = true; }   // ── build 97 ── (his stones till the count reaches them)
+    if (TW.clearT > 0) { TW.clearT -= dt; if (TW.clearT <= 0 && TW.set.length) { TW.set = []; propsDirty = true; } }
     if (!TW.on) { if (TW.lift > 0) TW.lift = Math.max(0, TW.lift - dt * 3); return; }
     const P = TW.at, near = !!(P && !hero.path && Math.hypot(hero.x - P.x, hero.z - P.z) < 1.6);
     TW.inWheel = near;
@@ -7889,7 +7816,7 @@ export function createStages(ctx) {
     T0.update = (M) => { const r = up0(M); if (TW.on && M && M.juice) { const P = TW.at; if (P) { caJ.x = P.x; caJ.y = P.y + 5.2; caJ.z = P.z; caActs(M, caJ, 'המנופאים'); } caLiftAt(); } return r; };
     // (the coordinator, B2: __HANDS.atW() for the lift — the midpoint of the wheel's hub and the stone, live, so the closer craft camera
     //  keeps the stone rising in view; begin hands out the one object update moves)
-    const b0 = T0.begin; T0.begin = (site, o) => { const r = b0(site, o); if (r && r.ok && r.at) { CA_AT.x = r.at.x; CA_AT.y = r.at.y + 3; CA_AT.z = r.at.z; caLiftAt(); r.at = CA_AT; } return r; };
+    const b0 = T0.begin; T0.begin = (site) => { const r = b0(site); if (r && r.ok && r.at) { CA_AT.x = r.at.x; CA_AT.y = r.at.y + 3; CA_AT.z = r.at.z; caLiftAt(); r.at = CA_AT; } return r; };
   }
   // the dyed cord (note 17): my cord model's tension drives the world's sag and colour; the snap prints the red line (jobReveal 'line')
   const CA_CORD = ['#7E5446', '#93533F', '#A84F37', '#BD4B30', '#D24829', '#E84522'];
@@ -7898,7 +7825,7 @@ export function createStages(ctx) {
   {
     const L0 = craftApi.line, up0 = L0.update, b0 = L0.begin;
     L0.raw = true;
-    L0.begin = (site, o) => { const r = b0(site, o); CR.caOn = false; CR.caTen = 0; CR.caTenS = 0; return r; };
+    L0.begin = (site) => { const r = b0(site); CR.caOn = false; CR.caTen = 0; CR.caTenS = 0; return r; };
     L0.touch = (down, M) => { if (M && typeof M.touch === 'function') M.touch(down); if (down && CR.kind === 'line' && CR.caOn) { CR.caTen = Math.max(CR.caTen, 0.08); CR.caTenS = Math.max(CR.caTenS, 0.06); } };   // (the touch-down: his grip takes up the slack at once)
     L0.act = () => true;
     L0.update = (M) => {
@@ -8804,38 +8731,13 @@ export function createStages(ctx) {
     hero.vis = false; hero.mesh.visible = hero.ring.visible = false; hero.path = null;
   }
 
-  /* ── build 62 ── the crest's sectors for stage 01 (har62.js): [{ x, z, half, k, pv }] — k 0…1 brought down from its natural top to the
-     plaza (secLevel62), pv 0…1 paved; null = none. And the Mount's working bay off while the new stage 01 builds it (no bay — the spec's rule 1) */
-  const secTop62 = new Map();
-  let secKey62 = '';
-  function setSectors62(list) {
-    const U = hill.U, A = U.uSec.value, P = U.uSecPv.value; let n = 0;
-    for (let i = 0; i < 8; i++) {
-      const q = list && list[i];
-      if (!q || !(q.half > 0)) { A[i].set(0, 0, 0, 1000); P[i] = 0; continue; }
-      const key = `${q.x},${q.z},${q.half}`; if (!secTop62.has(key)) secTop62.set(key, hill.topIn(q.x, q.z, q.half));
-      A[i].set(q.x, q.z, q.half, secLevel62(secTop62.get(key), q.k || 0)); P[i] = Math.max(0, Math.min(1, q.pv || 0)); n++;
-    }
-    hill.setSecN(n);
-    const key = A.map((v) => Math.round(v.w * 2)).join(',') + '|' + P.map((v) => Math.round(v * 10)).join(',');
-    if (key !== secKey62) { secKey62 = key; requestShadow(false); propsDirty = true; try { hill.bushCull(U.uFill.value, U.uCrest.value); } catch (e) { /* */ } }
-    return n;
-  }
-  const secInfo62 = () => hill.U.uSec.value.map((v, i) => ({ x: v.x, z: v.y, half: v.z, lv: Math.round(v.w * 100) / 100, pv: hill.U.uSecPv.value[i] }));
-  let bayOff62 = false;
-
   const api = {
-    hideWorkers(boxes) { HIDEW92 = Array.isArray(boxes) && boxes.length ? boxes.map((q) => q.slice(0, 4)) : null; },   // ── build 92 ──
-    workers71: () => ({ W, n: nWork, on: wBody.visible !== false && wBody.parent != null, pal: WPAL }),   // ── build 71 ── (crew71.js: the site workers, for their real figures)
     ids: STAGE_IDS.slice(),
-    setSectors62, sectors62: secInfo62, noBay62: (on) => { bayOff62 = !!on; },   // ── build 62 ──
     setStage, setBoulders, hitBoulder,
     hero: heroApi,   // ── hero (PEOPLE) ── the hero API is built in the hero block (walkTo swing place show setTool tool position at act onImpact workpiece …)
     pick, siteCenter, siteTop, focus, celebrate, workFX, update,
     // GDD §12 world API (v2)
-    // ── build 53 ── outlineThin(w, a): the footprint line's width and alpha factors (Phase A: ¼ and ½ — the inspector's review §4 important 12; 1, 1 elsewhere) ── /build 53 ──
-    outlineThin: (w = 1, a = 1) => { try { outline.material.uniforms.uThin.value.set(+w || 1, +a || 1); OL.thinW = +w || 1; beams.material.opacity = +a || 1; } catch (e) { /* */ } },
-    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, vineNext, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
+    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, shine,
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
@@ -8859,13 +8761,12 @@ export function createStages(ctx) {
     setTools: (m) => HB.setTools(m), jobReveal, jobSpot, stoneMark, marks: () => JOBS.marks.map((m) => ({ site: m.site, course: m.course, index: m.index, x: m.x, y: m.y, z: m.z, nx: m.nx, nz: m.nz, shown: m.shown })), setOwned, jobs: JOBS,
     // ── site15 ── the tasks' scenes (bus/SITE15.md): taskScene(stage, task, { q, skip, sfx, world, n, tap, hero, safe }) → Promise ·
     // taskMarks(list) → n · taskSpot(stage, task) → { x, y, z } | null · the scene running now (tests): taskRunning()
-    pickSlots, treadBegin, treadUpdate, treadEnd, tread: () => ({ on: TW.on, site: TW.site, i: TW.i, h: TW.h, hy: TW.hy, phase: TW.phase, set: TW.set.length, inWheel: TW.inWheel, at: TW.at ? [TW.at.x, TW.at.y, TW.at.z] : null, block: [crane.block.position.x, crane.block.position.y, crane.block.position.z], carry: crane.block.visible }),   // ── site15 ── המנופאי
+    treadBegin, treadUpdate, treadEnd, tread: () => ({ on: TW.on, site: TW.site, i: TW.i, h: TW.h, hy: TW.hy, phase: TW.phase, set: TW.set.length, inWheel: TW.inWheel, at: TW.at ? [TW.at.x, TW.at.y, TW.at.z] : null, block: [crane.block.position.x, crane.block.position.y, crane.block.position.z], carry: crane.block.visible }),   // ── site15 ── המנופאי
     craft: craftApi, craftState, dustBurst, sparkBurst,   // ── site16 ── the crafts in the world: stages.craft = { tread, saw, line } (bus/SITE16.md)
     craftB,   // ── craftb19 ── (tests: my crafts' state) ── /craftb19 ──
     caTread, caCord, caSurvey, caKey, caDress, caColumn, caWork,   // ── crafta19 ── (tests; the survey's counter) ── /crafta19 ──
     // ── twin17 ── (twin.js) his feet, read every frame without a new vector; a small shake for a touch on material
-    xray: (on) => { xrOn = !!on; },
-    xrayAt: (on, x, y, z) => { xrW = on && Number.isFinite(x) ? [x, y, z] : null; },   // ── fable32 (build 43) ── ── /fable32 ──   // ── twin18 ── ── /twin18 ──
+    xray: (on) => { xrOn = !!on; },   // ── twin18 ── ── /twin18 ──
     // ── twin20 ── the right thumb's aim in the world: ONE flat arrow on the ground from (x, z) along dir (radians, from +x toward +z), len in amot
     aim: (x, z, dir, len, on, hot) => {
       let A = createStages.__aim20; if (!A || A.scene !== scene) {

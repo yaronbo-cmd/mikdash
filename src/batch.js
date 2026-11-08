@@ -11,17 +11,13 @@ export const BUILD_TIME = { value: 0 };
 // ── twin18 ── the see-through under two thumbs (PRINCIPLES §3: "קירות שמסתירים… הופך לשקוף למחצה"): what stands between the camera
 // and the kohen, above his knees, inside a cone to him, is dithered away (screen-door half-transparency; shadows stay whole).
 // uXr = his chest (xyz) and on (w); uXrC = the camera. stages.js fills them each frame while twin is ON.
-export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() },
-  // ── fable32 (build 46) ── his stretch of the court wall (har42 wallStones45): the model's outer skin there (x0…x1, z0…z1, below yTop; below
-  // gyTop west of gx1, the giant's slot) and the scaffold in front of it (zOut…z0) are not drawn — his own stones ARE the wall there
-  uHole: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole2: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole3: { value: new THREE.Vector4(-1e6, 0, -1e6, 0) }, uHoleB: { value: new THREE.Vector4(0, 0, 0, 0) },
-  uHoleN: { value: new THREE.Vector4(0, 0, 0, 0) }, uHoleN2: { value: new THREE.Vector4(0, 0, 0, 0) } };   // ── build 92 ── (stage 04: the model's gatehouses not drawn in his three openings — x of each, half its width; |z| from, to; y from, to)   // (uHoleB: stage 03 — the model's soreg where his lattice panels stand, below uHole3.y)
+export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() } };
 // ── /twin18 ──
 // ── twin18 ── the see-through's shader code (a varying for the world position, a dithered discard in a cone to him); used by every
 // patched building material here and by the cranes (stages.js)
 export function xrayCode(vs, fs, sh) {
   if (!(fs.includes('#include <clipping_planes_fragment>') && vs.includes('#include <project_vertex>'))) return { vs, fs };
-    sh.uniforms.uXr = XRAY.uXr; sh.uniforms.uXrC = XRAY.uXrC; sh.uniforms.uHole = XRAY.uHole; sh.uniforms.uHole2 = XRAY.uHole2; sh.uniforms.uHole3 = XRAY.uHole3; sh.uniforms.uHoleB = XRAY.uHoleB; sh.uniforms.uHoleN = XRAY.uHoleN; sh.uniforms.uHoleN2 = XRAY.uHoleN2;
+    sh.uniforms.uXr = XRAY.uXr; sh.uniforms.uXrC = XRAY.uXrC;
     vs = vs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW;')
       .replace('#include <project_vertex>', `#include <project_vertex>
 #ifdef USE_INSTANCING
@@ -29,11 +25,8 @@ export function xrayCode(vs, fs, sh) {
 #else
   vXrW = (modelMatrix * vec4(transformed, 1.0)).xyz;
 #endif`);
-    fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC; uniform vec4 uHole; uniform vec4 uHole2; uniform vec4 uHole3; uniform vec4 uHoleB; uniform vec4 uHoleN; uniform vec4 uHoleN2;')
+    fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC;')
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-  if (uHole.y > uHole.x && vXrW.x > uHole.x && vXrW.x < uHole.y && vXrW.z < uHole.w && ((vXrW.z > uHole.z && vXrW.y > uHole3.x && vXrW.y < (vXrW.x < uHole2.z ? uHole2.w : uHole2.y)) || (vXrW.z > uHole2.x && vXrW.z <= uHole.z))) discard;
-  if (uHoleN.w > 0.0 && abs(vXrW.z) > uHoleN2.x && abs(vXrW.z) < uHoleN2.y && vXrW.y > uHoleN2.z && vXrW.y < uHoleN2.w && (abs(vXrW.x - uHoleN.x) < uHoleN.w || abs(vXrW.x - uHoleN.y) < uHoleN.w || abs(vXrW.x - uHoleN.z) < uHoleN.w)) discard;
-  if (uHoleB.y > uHoleB.x && vXrW.x > uHoleB.x && vXrW.x < uHoleB.y && vXrW.z > uHoleB.z && vXrW.z < uHoleB.w && vXrW.y < uHole3.y && vXrW.y > uHole3.z) discard;   // (uHole3.z: its floor — build 47)
   if (uXr.w > 0.5 && vXrW.y > uXr.y - 0.9) {
     vec3 xrC = uXr.xyz - uXrC; float xrL = length(xrC); vec3 xrU = xrC / max(xrL, 0.001);
     vec3 xrP = vXrW - uXrC; float xrT = dot(xrP, xrU);
@@ -333,33 +326,6 @@ export function setBuilding(m, on) {
 }
 
 // shadow-pass material for a revealing stage (discards above the cut like the colour pass)
-/** ── build 101 ── is the point (x, y, z) in a hole (the colour pass's own test, uHole/uHole2/uHole3, uHoleB, uHoleN): a man standing on a
- *  scaffold not drawn there would stand in the air */
-export function inHole101(x, y, z) {
-  const H = XRAY.uHole.value, H2 = XRAY.uHole2.value, H3 = XRAY.uHole3.value, B = XRAY.uHoleB.value, N = XRAY.uHoleN.value, N2 = XRAY.uHoleN2.value;
-  if (H.y > H.x && x > H.x && x < H.y && z < H.w && ((z > H.z && y > H3.x && y < (x < H2.z ? H2.w : H2.y)) || (z > H2.x && z <= H.z))) return true;
-  if (N.w > 0 && Math.abs(z) > N2.x && Math.abs(z) < N2.y && y > N2.z && y < N2.w && (Math.abs(x - N.x) < N.w || Math.abs(x - N.y) < N.w || Math.abs(x - N.z) < N.w)) return true;
-  if (B.y > B.x && x > B.x && x < B.y && z > B.z && z < B.w && y < H3.y && y > H3.z) return true;
-  return false;
-}
-/** ── build 101 ── the holes' shadows (the owner, 4.11: "המדרגות עומדות באוויר"): a model's part not drawn in a hole (uHole…, uHoleB — the
- *  Nicanor steps above those laid, his wall's stretch) cast its shadow still — ghost steps on the gate's wall. A done stage's meshes cast
- *  their shadow through this depth material: the same holes, without the see-through's dither (shadows stay whole there). */
-let HOLE_DEPTH = null;
-export function holeDepthMaterial() {
-  if (HOLE_DEPTH) return HOLE_DEPTH;
-  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), off = { value: new THREE.Vector4(0, 0, 0, 0) };
-  m.onBeforeCompile = (sh) => { const x = xrayCode(sh.vertexShader, sh.fragmentShader, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; sh.uniforms.uXr = off; };
-  m.customProgramCacheKey = () => 'holedepth101';
-  HOLE_DEPTH = m; return m;
-}
-/** ── build 101 ── the same holes in another pass's override material (the AO's normals: GTAOPass.normalMaterial) */
-export function holeNormal101(m) {
-  if (!m || !(typeof location === 'undefined' || !/[?&]h101=0\b/.test(location.search))) return;
-  const off = { value: new THREE.Vector4(0, 0, 0, 0) };
-  m.onBeforeCompile = (sh) => { let fs = sh.fragmentShader; if (!fs.includes('#include <common>')) fs = fs.replace('uniform float opacity;', '#include <common>\nuniform float opacity;'); const x = xrayCode(sh.vertexShader, fs, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; sh.uniforms.uXr = off; };   // (the normal material's fragment has no <common>: the holes' uniforms go after it)
-  m.customProgramCacheKey = () => 'holenormal101'; m.needsUpdate = true;
-}
 export function buildDepthMaterial(U) {
   const m = new THREE.MeshDepthMaterial();
   m.onBeforeCompile = (sh) => {

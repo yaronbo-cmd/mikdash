@@ -87,11 +87,14 @@
       return { wait: 120 };
     },
     letters(a) {
-      if (!a.strokes) return { wait: 300 };
-      if (B.k.li !== a.i) { B.k.li = a.i; B.k.si = 0; }
-      const st = a.strokes[B.k.si % a.strokes.length]; B.k.si++;
-      let len = 0; for (let i = 1; i < st.length; i++) len += Math.hypot(st[i][0] - st[i - 1][0], st[i][1] - st[i - 1][1]);
-      return { path: st, ms: Math.max(350, len * 3), wait: 250 };
+      // (build 114: part 2 — a chisel blow on each glowing point; part 3 — aim with a drag, hold to the band's middle and let go)
+      if (a.part === 2) return a.next ? { tap: a.next, wait: 160 } : { wait: 300 };
+      if (a.part !== 3 || a.done) return { wait: 300 };
+      const mid = (a.band[0] + a.band[1]) / 2;
+      if (a.terua && a.terua.step === 1) return { tap: [W * 0.5, HH * 0.5], wait: 230 };
+      if (a.blast === 3) return { wait: 400 };
+      if (a.blast < 3 && a.want != null && Math.abs(a.want - a.aim) > 1.5) { const dx = -((a.want - a.aim) * Math.PI / 180) / 0.0032; return { drag: [W * 0.5, HH * 0.3, W * 0.5 + Math.max(-W * 0.45, Math.min(W * 0.45, dx)), HH * 0.3, 500], wait: 300, note: `letters: aim ${a.aim} → ${a.want}` }; }
+      return { holdUntil: [a.tp[0], a.tp[1], C(`return !a||a.part!==3||(a.hold&&a.breath>=${mid.toFixed(3)})`), 6000], wait: 900, note: 'letters: blow ' + a.blast };
     },
     // ── build 111 ── stage 02's acts (h111/acts*.js dbg())
     stakes(a) { if (a.done) return { wait: 300 }; return { drag: [a.stake[0], a.stake[1], a.target[0], a.target[1], 900], wait: 400 }; },

@@ -472,7 +472,7 @@ export const COURSE = {
         const q = A.cur; let tgt = null;
         if (q) { // the bot's aim: where the solution puts this stone
           let z = K.gap[0]; for (const L of K.sol) { if (L === q.L) { tgt = sc(WALL_X, yB + CH / 2, K.z0 + z + L / 2); A.ta = z; break; } z += L; } }
-        return { phase: A.phase, lv, sol: K.sol, gap: K.gap, below: K.below, set: A.set.map((s2) => [s2.a, s2.b, s2.q.L]), stock: A.stock.filter((s2) => !s2.laid).map((s2) => ({ L: s2.L, scr: sc(s2.m.position.x, s2.m.position.y + CH / 2, s2.m.position.z) })), cur: q ? q.L : 0, tgt, ta: q ? A.ta : null, gapB: q ? +(q.m.position.y - CH / 2 - yB).toFixed(2) : null, dz: q ? +(relZ(q.m.position.z) - q.L / 2).toFixed(2) : null, sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), v: +A.v.toFixed(2), joj: A.joj, lifts: A.lifts, chips: A.chips, grades: A.grades.slice() };
+        return { phase: A.phase, lv, sol: K.sol, gap: K.gap, below: K.below, set: A.set.map((s2) => [s2.a, s2.b, s2.q.L]), stock: A.stock.filter((s2) => !s2.laid).map((s2) => ({ L: s2.L, scr: sc(s2.m.position.x, s2.m.position.y + CH / 2, s2.m.position.z) })), cur: q ? q.L : 0, tgt, ta: q ? A.ta : null, gapB: q ? +(q.m.position.y - CH / 2 - yB).toFixed(2) : null, dz: q ? +(relZ(q.m.position.z) - q.L / 2).toFixed(2) : null, sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), v: +A.v.toFixed(2), joj: A.joj, lifts: A.lifts, chips: A.chips, grades: A.grades.slice(), yB: +yB.toFixed(2), gS: +X.ground(gx, zc).toFixed(2) };
       },
     };
   },
@@ -630,9 +630,18 @@ export const GREAT = {
   },
 };
 
-/* ───────── 3.8 "לבית התקיעה": the two words carved, letter by letter ───────── */
-const LET = { x: -276, z: 372 };
-// the strokes of each letter in a 100 × 140 box (y down; the lamed rises above, the qof goes below): a square script, illustration
+/* ───────── 3.8 "לבית התקיעה": the trumpeting place on the south-west corner ─────────
+ * ── h114 ── rebuilt (ירון 9.11: "אין פה משחק"; his article and two pictures). The place as in his picture: on the top of the
+ * Mount's south-west corner a parapet with its sloped coping, a niche at the very corner where the trumpeter stands (blue turban,
+ * light-blue robe, a long straight golden trumpet — illustration after the picture), the inscription on the parapet's inner face
+ * beside him. Three parts: (1) the inscription stone comes up to its place; (2) "לבית התקיעה להכ" carved stroke by stroke with
+ * the chisel, in the letters of the stone that was found (B. Mazar's excavation, 1968; the last word is broken: להכריז / להבדיל);
+ * (3) the six blasts of the Sabbath eve (שבת לה ע"ב; תוספתא סוכה ד; יוסף בן מתתיהו, מלחמות ד, ט, יב): aim the trumpet with a
+ * drag, hold to blow and let go in the band; the sound goes out over the land and changes it — the field hands lay down their
+ * tools, the shops close, the lamps are lit in the windows; a pause "כדי צליית דג קטן"; then תקיעה, תרועה, תקיעה. A weak or
+ * misaimed blast does not reach everyone: who did not hear stays as he was, and one blows again (no damage, no points off). ── /h114 ── */
+const LET = { x: -300, z: 400 };   // the corner's outer point: the west wall x −300, the south wall z +400
+const TOP = { y0: 31.6, y: 38.2 };  // the world's wall top there ≈ 32–38 (its merlons): the corner block stands to 38.2
 const GLYPH = {
   'ל': [[[22, -12], [22, 44], [80, 44], [82, 92], [48, 136]]],
   'ב': [[[10, 30], [80, 30], [88, 42], [88, 126], [6, 126]]],
@@ -641,112 +650,304 @@ const GLYPH = {
   'ה': [[[8, 30], [88, 30], [90, 132]], [[22, 70], [22, 132]]],
   'ק': [[[8, 30], [88, 30], [90, 100]], [[20, 70], [20, 170]]],
   'ע': [[[14, 30], [62, 106]], [[86, 30], [82, 96], [52, 126], [6, 130]]],
+  'כ': [[[10, 30], [72, 30], [88, 48], [88, 110], [72, 126], [10, 126]]],
 };
-const WORDS = ['לבית', 'התקיעה'];
-// the face looks north-east; the kohen stands at its right end (where the first letter is), a step in front — never between the camera and the words
-const LET_FA = Math.atan2(4.2, -3.2);
-function letStand() { const nx = Math.sin(LET_FA), nz = Math.cos(LET_FA), sx = Math.cos(LET_FA), sz = -Math.sin(LET_FA); return { x: LET.x + nx * 1.3 + sx * 4.7, z: LET.z + nz * 1.3 + sz * 4.7, tx: LET.x + nx * 0.9 + sx * 3.3, tz: LET.z + nz * 0.9 + sz * 3.3 }; }
+const WORDS = ['לבית', 'התקיעה', 'להכ'];
+const TRUMP = { x: -298.4, z: 398.4 };
+function letStand() { return { x: -281, z: 383 }; }
+let cornerT = null;
+/** the corner block, its parapet and niche (once, in the world for good) → { face, stone, blocks } */
+function trumpetCorner(X) {
+  if (cornerT) return cornerT;
+  const T = X.THREE, g = new T.Group(); g.name = 'h114-trumpet-corner'; X.props.root.add(g);
+  const mat = new T.MeshStandardMaterial({ color: '#E2D2AC', roughness: 0.93 }), dark = new T.MeshStandardMaterial({ color: '#CDBC95', roughness: 0.95 });
+  const box = (x0, x1, y0, y1, z0, z1, m = mat) => { const b = new T.Mesh(new T.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), m); b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); b.castShadow = true; b.receiveShadow = true; g.add(b); return b; };
+  // the corner block, flush with both faces of the world's walls
+  box(-300.05, -289, TOP.y0, TOP.y, 389, 400.05);
+  // the parapet: ashlar blocks along the west edge, the inscription stone and a filler along the south edge; the niche at the corner
+  for (let z = 389; z < 396.9; z += 2.65) { const b = stoneMesh(X, 1.2, 2.4, 2.6); b.position.set(-299.45, TOP.y + 1.2, z + 1.3); g.attach(b); }
+  const stone = stoneMesh(X, 7.2, 2.4, 1.2); stone.position.set(-293.2, TOP.y + 1.2, 399.45); g.attach(stone);
+  const fill = stoneMesh(X, 0.75, 2.4, 1.2); fill.position.set(-289.4, TOP.y + 1.2, 399.45); g.attach(fill);
+  // the niche: the parapet cut down to a low lip at the very corner
+  box(-300.05, -296.9, TOP.y, TOP.y + 0.9, 399.6, 400.05, dark); box(-300.05, -299.6, TOP.y, TOP.y + 0.9, 396.9, 400.05, dark);
+  // the sloped coping on the outer faces, under the parapet's top (as in the picture)
+  for (const [x, z, L, ry] of [[-294.6, 400.15, 11.4, 0], [-300.15, 394.6, 11.4, Math.PI / 2]]) { const c = new T.Mesh(new T.BoxGeometry(L, 0.75, 0.75), dark); c.position.set(x, TOP.y - 0.15, z); c.rotation.set(Math.PI / 4, ry, 0, 'YXZ'); c.castShadow = true; g.add(c); }
+  // the inscription's face: on the parapet's inner face (toward the Mount), beside the niche
+  const cw = 2048, ch = 640, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+  const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace || tex.colorSpace; tex.anisotropy = 4;
+  const FW = 7.0, FH = FW * ch / cw;
+  const face = new T.Mesh(new T.PlaneGeometry(FW, FH), new T.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.25, roughness: 0.9 }));
+  face.rotation.y = Math.PI; face.position.set(-293.2, TOP.y + 1.25, 398.83); g.add(face);
+  cornerT = { g, face, stone, cv, tex, cw, ch, FW, FH, carved: null };
+  return cornerT;
+}
 export const LETTERS = {
-  icon: '✍', title: 'לבית התקיעה',
-  walkLine: () => 'הפינה הדרומית-מערבית: חורטים "לבית התקיעה"',
+  icon: '📯', title: 'לבית התקיעה',
+  walkLine: () => 'הפינה הדרומית-מערבית: בית התקיעה',
   stand(m, X) { const p = letStand(); return { x: p.x, z: p.z, face: [LET.x, LET.z] }; },
   prepare() {},
   make(m, X) {
-    const lv = X.level(), T = X.THREE, gy = X.ground(LET.x, LET.z);
-    const cw = 2048, ch = 640, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const cx = cv.getContext('2d');
+    const lv = X.level(), T = X.THREE, K = trumpetCorner(X);
+    const { cv, tex, cw, ch, FW, FH, face } = K, cx = cv.getContext('2d');
+    // the stone's face: dressed limestone, a drafted margin; what is carved is kept in its own canvas
     const base = document.createElement('canvas'); base.width = cw; base.height = ch; const bx = base.getContext('2d');
-    // the stone's face: dressed limestone with its drafted margin
-    bx.fillStyle = '#CDBF9E'; bx.fillRect(0, 0, cw, ch); for (let i = 0; i < 2600; i++) { bx.fillStyle = `rgba(${90 + Math.random() * 60},${80 + Math.random() * 50},${60 + Math.random() * 40},${Math.random() * 0.08})`; bx.fillRect(Math.random() * cw, Math.random() * ch, 2 + Math.random() * 6, 2 + Math.random() * 6); }
+    bx.fillStyle = '#D6C6A2'; bx.fillRect(0, 0, cw, ch); for (let i = 0; i < 2600; i++) { bx.fillStyle = `rgba(${90 + Math.random() * 60},${80 + Math.random() * 50},${60 + Math.random() * 40},${Math.random() * 0.08})`; bx.fillRect(Math.random() * cw, Math.random() * ch, 2 + Math.random() * 6, 2 + Math.random() * 6); }
     bx.strokeStyle = 'rgba(80,64,40,.35)'; bx.lineWidth = 10; bx.strokeRect(36, 36, cw - 72, ch - 72);
-    const carved = document.createElement('canvas'); carved.width = cw; carved.height = ch; const kx = carved.getContext('2d');
-    const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace || tex.colorSpace; tex.anisotropy = 4;
-    const FW = 7.2, FH = FW * ch / cw;
-    const blk = stoneMesh(X, FW + 0.4, FH + 0.5, 1.6); blk.position.set(LET.x, gy + (FH + 0.5) / 2, LET.z);
-    const face = new T.Mesh(new T.PlaneGeometry(FW, FH), new T.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.3, roughness: 0.9 }));
-    // the face looks at the kohen's side (north-east)
-    const fa = LET_FA; blk.rotation.y = fa; face.rotation.y = fa; face.position.set(LET.x + Math.sin(fa) * 0.84, gy + (FH + 0.5) / 2, LET.z + Math.cos(fa) * 0.84); X.props.root.add(face);
-    // the layout: right to left, letter boxes of 100 + 22, the words apart
-    const S = 1.4, top = 205; const L = []; let x = cw - 132;
-    WORDS.forEach((w, wi) => { for (const ch2 of w) { L.push({ ch: ch2, w: wi, x0: x - 100 * S, done: false, grade: null, cov: null, path: [] }); x -= 122 * S; } x -= 80 * S; });
+    const carved = document.createElement('canvas'); carved.width = cw; carved.height = ch; const kx = carved.getContext('2d'); K.carved = carved;
+    // the layout: right to left, the words apart; each letter's strike points along its strokes (a chisel blow every ~34 units)
+    const S = 1.15, top = 230; const L = []; let x = cw - 120;
+    WORDS.forEach((w, wi) => { for (const c of w) { L.push({ ch: c, w: wi, x0: x - 100 * S, done: false, grade: null, pts: [], k: 0, dev: [] }); x -= 116 * S; } x -= 70 * S; });
     const toC = (p, Lt) => [Lt.x0 + p[0] * S, top + p[1] * S];
-    // every letter's guide: points along its strokes every 6 units
-    for (const Lt of L) { Lt.pts = []; for (const st of GLYPH[Lt.ch]) for (let i = 0; i < st.length - 1; i++) { const a = st[i], b = st[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 6); for (let k = 0; k <= n; k++) Lt.pts.push(toC([lerp(a[0], b[0], k / n), lerp(a[1], b[1], k / n)], Lt)); } Lt.cov = new Uint8Array(Lt.pts.length); }
-    const A = { i: 0, drag: false, last: null, tick: 0, flash: 0, word: 0, t: 0, dev: [], fixes: [0, 0], strokeAcc: 0 };
+    for (const Lt of L) for (const st of GLYPH[Lt.ch]) { let first = true; for (let i = 0; i < st.length - 1; i++) { const a = st[i], b = st[i + 1], n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 34)); for (let k = first ? 0 : 1; k <= n; k++) Lt.pts.push({ c: toC([lerp(a[0], b[0], k / n), lerp(a[1], b[1], k / n)], Lt), start: first && k === 0 }); first = false; } }
+    const A = { part: 1, t: 0, i: 0, flash: 0, flashI: -1, slips: 0, blast: 0, aim: -0.6, hold: false, breath: 0, p0: null, waves: [], heard: [], grades: [], tries: 0, terua: null, done: false, fish: 0 };
+    const tUp = (p) => face.localToWorld(new T.Vector3((p[0] / cw - 0.5) * FW, (0.5 - p[1] / ch) * FH, 0.08));
     function draw() {
       cx.drawImage(base, 0, 0);
-      // the dotted guide: the word being carved (L3: the second word has none)
-      for (const Lt of L) {
-        if (Lt.done || (lv >= 3 && Lt.w === 1) || Lt.w !== A.word) continue;
-        cx.save(); cx.setLineDash([3, 14]); cx.lineCap = 'round'; cx.lineWidth = L.indexOf(Lt) === A.i ? 9 : 6; cx.strokeStyle = L.indexOf(Lt) === A.i ? 'rgba(120,70,10,.9)' : 'rgba(90,60,30,.45)';
+      // the letter being carved: its strokes dotted faintly, the next blow's place glowing
+      const Lt = L[A.i];
+      if (A.part === 2 && Lt) {
+        cx.save(); cx.setLineDash([3, 16]); cx.lineCap = 'round'; cx.lineWidth = 6; cx.strokeStyle = lv >= 3 ? 'rgba(90,60,30,.18)' : 'rgba(90,60,30,.45)';
         for (const st of GLYPH[Lt.ch]) { cx.beginPath(); st.forEach((p, k) => { const c = toC(p, Lt); k ? cx.lineTo(c[0], c[1]) : cx.moveTo(c[0], c[1]); }); cx.stroke(); } cx.restore();
+        const q = Lt.pts[Lt.k]; if (q) { const r = 22 + 6 * Math.sin(A.t * 8); cx.save(); cx.strokeStyle = 'rgba(255,190,40,.95)'; cx.lineWidth = 7; cx.beginPath(); cx.arc(q.c[0], q.c[1], r, 0, TAU); cx.stroke(); cx.restore(); }
       }
       cx.drawImage(carved, 0, 0);
-      if (A.flash > 0) { const Lt = L[A.flashI]; cx.save(); cx.globalAlpha = Math.min(1, A.flash); cx.lineWidth = 22; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#FFD66E'; cx.shadowColor = '#FFB020'; cx.shadowBlur = 30; for (const st of GLYPH[Lt.ch]) { cx.beginPath(); st.forEach((p, k) => { const c = toC(p, Lt); k ? cx.lineTo(c[0], c[1]) : cx.moveTo(c[0], c[1]); }); cx.stroke(); } cx.restore(); }
+      if (A.flash > 0 && L[A.flashI]) { const F = L[A.flashI]; cx.save(); cx.globalAlpha = Math.min(1, A.flash); cx.lineWidth = 24; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#FFD66E'; cx.shadowColor = '#FFB020'; cx.shadowBlur = 30; for (const st of GLYPH[F.ch]) { cx.beginPath(); st.forEach((p, k) => { const c = toC(p, F); k ? cx.lineTo(c[0], c[1]) : cx.moveTo(c[0], c[1]); }); cx.stroke(); } cx.restore(); }
       tex.needsUpdate = true;
     }
-    function groove(a, b, w = 18) { kx.save(); kx.lineCap = 'round'; kx.lineJoin = 'round'; kx.strokeStyle = 'rgba(58,40,22,.92)'; kx.lineWidth = w; kx.beginPath(); kx.moveTo(a[0], a[1]); kx.lineTo(b[0], b[1]); kx.stroke(); kx.strokeStyle = 'rgba(255,240,210,.35)'; kx.lineWidth = 4; kx.beginPath(); kx.moveTo(a[0] + 5, a[1] + 6); kx.lineTo(b[0] + 5, b[1] + 6); kx.stroke(); kx.restore(); }
-    const ray = new T.Raycaster();
+    function groove(a, b, w = 16) { kx.save(); kx.lineCap = 'round'; kx.lineJoin = 'round'; kx.strokeStyle = 'rgba(58,40,22,.92)'; kx.lineWidth = w; kx.beginPath(); kx.moveTo(a[0], a[1]); kx.lineTo(b[0], b[1]); kx.stroke(); kx.strokeStyle = 'rgba(255,240,210,.35)'; kx.lineWidth = 4; kx.beginPath(); kx.moveTo(a[0] + 5, a[1] + 6); kx.lineTo(b[0] + 5, b[1] + 6); kx.stroke(); kx.restore(); }
     function canvasAt(p) { const hits = X.rayAt(p.x, p.y).intersectObject(face, false); if (!hits.length || !hits[0].uv) return null; const u = hits[0].uv; return [u.x * cw, (1 - u.y) * ch]; }
-    // canvas px → screen px (for the deviation in screen pixels, as the spec counts it)
     function pxScale() { const a = face.localToWorld(new T.Vector3(-FW / 2, 0, 0)), b = face.localToWorld(new T.Vector3(FW / 2, 0, 0)); const qa = X.scr(a.x, a.y, a.z), qb = X.scr(b.x, b.y, b.z); return Math.hypot(qb.x - qa.x, qb.y - qa.y) / cw; }
-    function shot() {
-      // the word in the frame: the macro shot (ש4), the letters ≥ 120 px
-      const ws = L.filter((Lt) => Lt.w === A.word), xa = ws[0].x0 + 100 * S, xb = ws[ws.length - 1].x0; const uc = ((xa + xb) / 2) / cw - 0.5, vc = 0.5 - (top + 70 * S) / ch;
-      const c = face.localToWorld(new T.Vector3(uc * FW, vc * FH, 0)); const n = new T.Vector3(Math.sin(fa), 0, Math.cos(fa));
-      const wid = (xa - xb) / cw * FW; const hf = 2 * Math.atan(Math.tan((X.camera.fov * Math.PI / 180) / 2) * X.camera.aspect); const d = (wid / 0.82) / (2 * Math.tan(hf / 2));
-      X.shot([c.x + n.x * d - Math.cos(fa) * 0.0, c.y + d * 0.18, c.z + n.z * d], [c.x, c.y, c.z], 1.0);
+    function shotFace() {
+      // the word being carved fills the frame (the camera inside the Mount, before the parapet's inner face)
+      const Lt = L[A.i] || L[L.length - 1], ws = L.filter((q) => q.w === Lt.w), xa = ws[0].x0 + 100 * S, xb = ws[ws.length - 1].x0;
+      const c = tUp([(xa + xb) / 2, top + 70 * S]), n = new T.Vector3(0, 0, -1);
+      const wid = Math.max(2.4, (xa - xb) / cw * FW), hf = 2 * Math.atan(Math.tan((X.camera.fov * Math.PI / 180) / 2) * X.camera.aspect), d = (wid / 0.7) / (2 * Math.tan(hf / 2));
+      X.shot([c.x + n.x * d, c.y + d * 0.22, c.z + n.z * d], [c.x, c.y, c.z], 1.0);
     }
-    function letterDone(Lt) {
-      const sc = pxScale(), devPx = (Lt.devSum / Math.max(1, Lt.devN)) * sc;
-      let grade = devPx <= 8 ? 'gold' : devPx <= 16 ? 'good' : devPx <= 24 ? 'ok' : 'fix';
-      Lt.done = true; const c = toC([50, 70], Lt); const w = face.localToWorld(new T.Vector3((c[0] / cw - 0.5) * FW, (0.5 - c[1] / ch) * FH, 0.1));
-      if (grade === 'fix') {
-        // the master corrects it (seen: the clean groove over the crooked one) — the letter counts 0
-        A.fixes[Lt.w]++; X.word(w, 'רב האומנים מתקן'); grade = 'ok'; Lt.grade = 'fix';
-        for (const st of GLYPH[Lt.ch]) for (let i = 0; i < st.length - 1; i++) groove(toC(st[i], Lt), toC(st[i + 1], Lt), 16);
-      } else { Lt.grade = grade; X.hit(w, grade, { text: '', craft: 'חורטים' }); for (const st of GLYPH[Lt.ch]) for (let i = 0; i < st.length - 1; i++) groove(toC(st[i], Lt), toC(st[i + 1], Lt), 12); }
-      A.dev.push(devPx); A.flash = 1.2; A.flashI = L.indexOf(Lt);
-      A.i++;
-      const nx = L[A.i];
-      if (!nx || nx.w !== Lt.w) {
-        // the word is done
-        const ok = A.fixes[Lt.w] < 2; if (ok) X.bonus(150, 'word', `"${WORDS[Lt.w]}"`); else X.word(w, 'פעמיים תיקון: המילה כשר');
-        if (nx) { A.word = nx.w; setTimeout(shot, 700); X.line(lv >= 3 ? 'המילה השנייה — בלי קו מנוקד' : 'המילה השנייה: "התקיעה"'); }
-        else finish();
+    // ── the trumpeter (illustration after ירון's picture): blue turban, light-blue robe, the long golden trumpet ──
+    const tr = SH.crew.add(TRUMP.x, TRUMP.z, { role: 'hold', item: 'trumpet', tunic: '#9CCBEA', col2: '#2C5AA6', fx: TRUMP.x - 10, fz: TRUMP.z + 10, crew: 0 });
+    if (tr && tr.a) { tr.a.fixedY = TOP.y; tr.a.y = TOP.y; }
+    const TP = { x: TRUMP.x, y: TOP.y, z: TRUMP.z };
+    // ── part 3's world: the field hands, the market's stalls, the houses' windows, out over the city below ──
+    const az0 = (a) => ({ x: TP.x + Math.sin(a) * 1, z: TP.z + Math.cos(a) * 1 });
+    const deg = Math.PI / 180;
+    const TGT = [
+      { name: 'השדות', line: 'תקיעה ראשונה: לעובדים בשדות', az: -18 * deg, d: 95, items: [] },
+      { name: 'החנויות', line: 'תקיעה שנייה: לחנויות בעיר', az: -46 * deg, d: 68, items: [] },
+      { name: 'הבתים', line: 'תקיעה שלישית: להדליק את הנרות', az: -74 * deg, d: 86, items: [] },
+    ];
+    const wood = X.props.M.wood, cloths = ['#B5482F', '#2F6E9B', '#C9962B'];
+    function at(a, d) { const x = TP.x + Math.sin(a) * d, z = TP.z + Math.cos(a) * d; return { x, z, y: X.ground(x, z) }; }
+    const world = new T.Group(); world.name = 'h114-shabbat-eve'; X.props.root.add(world);
+    TGT.forEach((G, gi) => {
+      for (let k = -1; k <= 1; k++) {
+        const a = G.az + k * 6.5 * deg, d = G.d + (k === 0 ? 0 : 6) * (gi === 1 ? -1 : 1), P = at(a, d), it = { a, d, P, heard: false, t: 0 };
+        if (gi === 0) {
+          // a strip of ploughed field and a hand at work in it with his hoe
+          const f = new T.Mesh(new T.PlaneGeometry(9, 6), new T.MeshStandardMaterial({ color: '#7C6A3E', roughness: 1 })); f.rotation.x = -Math.PI / 2; f.position.set(P.x, P.y + 0.12, P.z); world.add(f);
+          it.w = SH.crew.add(P.x, P.z, { role: 'pick', item: 'pick', fx: P.x + 2, fz: P.z + 1, crew: k + 1, dust: false });
+        } else if (gi === 1) {
+          // a stall: its counter, two posts and a cloth awning (it folds down when he has heard)
+          const st = new T.Group(); st.position.set(P.x, P.y, P.z); st.rotation.y = a + Math.PI; world.add(st);
+          const cnt = new T.Mesh(new T.BoxGeometry(4.4, 1.6, 1.6), wood); cnt.position.set(0, 0.8, 0); st.add(cnt);
+          for (const sx of [-2, 2]) { const po = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 3.6, 5), wood); po.position.set(sx, 1.8, 0.7); st.add(po); }
+          const aw = new T.Mesh(new T.BoxGeometry(4.8, 0.08, 2.4), new T.MeshStandardMaterial({ color: cloths[k + 1], roughness: 0.9 })); aw.geometry.translate(0, 0, -1.2); aw.position.set(0, 3.5, 0.8); aw.rotation.x = -0.35; st.add(aw);
+          const sh = new T.Mesh(new T.BoxGeometry(4.4, 1.7, 0.12), new T.MeshStandardMaterial({ color: '#6B4A2A', roughness: 1 })); sh.position.set(0, 0.85, -0.86); sh.scale.y = 0.01; st.add(sh);
+          for (let j = 0; j < 4; j++) { const gd = new T.Mesh(new T.SphereGeometry(0.26, 6, 4), new T.MeshStandardMaterial({ color: ['#C8432B', '#E3B23C', '#6C8E3A', '#8B4A8B'][j], roughness: 0.8 })); gd.position.set(-1.5 + j, 1.8, 0); st.add(gd); }
+          it.aw = aw; it.sh = sh; it.w = SH.crew.add(P.x + Math.sin(a + Math.PI) * 1.6, P.z + Math.cos(a + Math.PI) * 1.6, { role: 'hold', fx: P.x, fz: P.z, crew: 2 });
+        } else {
+          // a house with two windows: dark until the lamp is lit
+          const h = new T.Group(); h.position.set(P.x, P.y, P.z); h.rotation.y = a + Math.PI; world.add(h);
+          const bd = new T.Mesh(new T.BoxGeometry(5.5, 4.6, 5), new T.MeshStandardMaterial({ color: '#D9C7A0', roughness: 1 })); bd.position.y = 2.3; h.add(bd);
+          it.win = []; for (const wx of [-1.4, 1.4]) { const wm = new T.Mesh(new T.PlaneGeometry(0.9, 1.1), new T.MeshStandardMaterial({ color: '#2B2116', emissive: '#FFB347', emissiveIntensity: 0 })); wm.position.set(wx, 2.8, -2.52); wm.rotation.y = Math.PI; h.add(wm); it.win.push(wm); }
+        }
+        G.items.push(it);
+      }
+    });
+    // the aim: a faint golden fan from the corner out over the land (how far and how wide the blast will go)
+    const hw = [16, 12, 9][lv - 1] * deg, wind = lv >= 3 ? 7 * deg : 0;
+    const fan = new T.Mesh(new T.CircleGeometry(1, 24, -hw, hw * 2), new T.MeshBasicMaterial({ color: '#FFD36A', transparent: true, opacity: 0.2, depthWrite: false, depthTest: false, side: T.DoubleSide }));
+    fan.rotation.x = -Math.PI / 2; fan.renderOrder = 4; fan.visible = false; world.add(fan);
+    const flag = new T.Mesh(new T.PlaneGeometry(0.9, 0.45), new T.MeshStandardMaterial({ color: '#D9483B', side: T.DoubleSide })); flag.visible = wind > 0; world.add(flag);
+    const pole = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 3, 5), wood); pole.position.set(-299.75, TOP.y + 1.5, 396.3); pole.visible = wind > 0; world.add(pole);
+    // the breath: a bar with its band (let go inside it), on the screen under the trumpeter
+    const ui = document.createElement('div'); ui.className = 'h109-ui h114-breath';
+    ui.innerHTML = '<i class="b"></i><i class="f"></i><span></span>'; document.body.appendChild(ui);
+    const css = document.createElement('style'); css.textContent = '.h114-breath{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);width:min(64vw,420px);height:22px;border-radius:12px;background:rgba(40,28,12,.55);border:2px solid #E9C76A;overflow:hidden;display:none;z-index:40}.h114-breath .b{position:absolute;top:0;bottom:0;background:rgba(120,210,110,.55)}.h114-breath .f{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#F7E3A0,#FFC24A)}.h114-breath span{position:absolute;inset:0;font:800 13px/22px Heebo,system-ui;color:#fff;text-align:center;direction:rtl;text-shadow:0 1px 2px #000}.h114-terua{position:fixed;left:50%;bottom:122px;transform:translateX(-50%);display:none;gap:8px;z-index:40}.h114-terua i{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.35);border:2px solid #E9C76A;display:inline-block;margin:0 3px}.h114-terua i.on{background:#FFC24A}';
+    document.head.appendChild(css);
+    const band = [[0.68, 0.94], [0.72, 0.92], [0.76, 0.9]][lv - 1];
+    const tdots = document.createElement('div'); tdots.className = 'h109-ui h114-terua'; tdots.innerHTML = '<i></i>'.repeat(9); document.body.appendChild(tdots);
+    function breathUI(on, label) { ui.style.display = on ? 'block' : 'none'; if (!on) return; ui.querySelector('.b').style.left = band[0] * 100 + '%'; ui.querySelector('.b').style.width = (band[1] - band[0]) * 100 + '%'; ui.querySelector('.f').style.width = Math.min(100, A.breath * 100) + '%'; if (label != null) ui.querySelector('span').textContent = label; }
+    // (behind him and above: he stands in the lower middle of the frame, the land he blows over spread before him)
+    function shotOut() { const o = { x: -0.707, z: 0.707 }; X.shot([TP.x - o.x * 13 + 2.5, TP.y + 15, TP.z - o.z * 13 + 2.5], [TP.x + o.x * 44, TP.y - 44, TP.z + o.z * 44], 1.3); }
+    // the silver trumpet's own call (the music's 'blast' cue: Numbers 10:2), the kit's horn when the music is off
+    function horn() { let ok = false; try { const Mu = globalThis.__BH_MUSIC; if (Mu && typeof Mu.cue === 'function') { Mu.cue('blast', 1); ok = true; } } catch (e) { ok = false; } if (!ok) X.play('fanfare'); }
+    // ── part 1: the inscription stone comes up to its place ──
+    const st0 = K.stone.position.y, upRope = X.props.rope(8, 0.06);
+    function part1() {
+      X.shot([-352, 58, 456], [-296, TOP.y, 396], 1.0);
+      X.line('בראש הפינה הדרומית-מערבית של ההר · אבן הכתובת עולה למקומה');
+      K.stone.position.y = st0 + 14; face.visible = false; A.p1 = 0;
+    }
+    function part2() {
+      A.part = 2; face.visible = true; upRope.show(false); K.stone.position.y = st0;
+      kx.clearRect(0, 0, cw, ch); draw(); shotFace();
+      X.line('חורטים "לבית התקיעה" · געו בעיגול: מכת אזמל');
+    }
+    function strike(c) {
+      const Lt = L[A.i]; if (!Lt) return; const q = Lt.pts[Lt.k]; if (!q) return;
+      const sc = pxScale(), dpx = Math.hypot(c[0] - q.c[0], c[1] - q.c[1]) * sc, tol = [30, 24, 18][lv - 1];
+      const w = tUp(q.c);
+      if (dpx > tol * 1.8) { A.slips++; X.word(w, 'האזמל החליק'); X.play('thud'); kx.save(); kx.strokeStyle = 'rgba(70,50,30,.35)'; kx.lineWidth = 3; kx.beginPath(); kx.moveTo(c[0] - 8, c[1] - 4); kx.lineTo(c[0] + 8, c[1] + 4); kx.stroke(); kx.restore(); draw(); return; }
+      Lt.dev.push(dpx / tol);
+      if (!q.start && Lt.k > 0) groove(Lt.pts[Lt.k - 1].c, q.c, 16); else groove(q.c, [q.c[0] + 1, q.c[1] + 1], 18);
+      X.play('chisel'); X.dust(w.x, w.y, w.z, 2, 0.4); X.haptic && X.haptic(6);
+      Lt.k++;
+      if (Lt.k >= Lt.pts.length) {
+        const m = Lt.dev.reduce((a, b) => a + b, 0) / Lt.dev.length; Lt.grade = m <= 0.35 ? 'gold' : m <= 0.7 ? 'good' : 'ok'; Lt.done = true;
+        X.hit(tUp(toC([50, 70], Lt)), Lt.grade, { text: '', craft: 'חורטים' }); A.flash = 1.1; A.flashI = A.i; X.play('rise');
+        A.i++;
+        const nx = L[A.i];
+        if (!nx || nx.w !== Lt.w) { X.bonus(60, 'word', `"${WORDS[Lt.w]}"`); if (nx) setTimeout(shotFace, 600); }
+        if (!nx) setTimeout(() => { X.line('"לבית התקיעה להכ…" — להכריז (רוב החוקרים) או להבדיל · חפירות ב. מזר, 1968'); X.word(tUp([cw / 2, 120]), 'האבן שבורה כאן'); }, 700), setTimeout(part3, 5200);
       }
       draw();
     }
-    function finish() {
-      A.phase = 'done';
-      const N = L.length, q = L.reduce((a, Lt) => a + (Lt.grade === 'gold' ? 1 : Lt.grade === 'good' ? 0.8 : Lt.grade === 'fix' ? 0 : 0.5), 0) / N;
-      setTimeout(() => X.word({ x: LET.x, y: gy + 4, z: LET.z }, 'לבית התקיעה · חפירות ב. מזר, 1968'), 500);
-      SH.lettersDone = true;
-      const g = X.ground(LET.x, LET.z); X.shot([LET.x + 24, g + 14, LET.z - 22], [LET.x, g + 1.5, LET.z], 1.6);
-      setTimeout(() => X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at: { x: LET.x, y: g + 3, z: LET.z } }), 2400);
+    // ── part 3: the six blasts ──
+    function part3() {
+      A.part = 3; A.blast = 0; draw(); shotOut(); fan.visible = true;
+      try { if (X.hero.mesh) X.hero.mesh.visible = false; } catch (e) { /* */ }
+      nextBlast();
     }
-    function cover(Lt, c) { let hit = false; for (let k = 0; k < Lt.pts.length; k++) { const p = Lt.pts[k]; if (Math.hypot(p[0] - c[0], p[1] - c[1]) < 26) { Lt.cov[k] = 1; hit = true; } } return hit; }
-    function devOf(Lt, c) { let d = 1e9; for (const p of Lt.pts) d = Math.min(d, Math.hypot(p[0] - c[0], p[1] - c[1])); return d; }
-    draw();
+    function nextBlast() {
+      const G = TGT[A.blast];
+      if (G) { X.line(G.line + ' · גררו לכוון · החזיקו על התוקע ושחררו בפס הירוק'); A.tries = 0; breathUI(true, G.name); if (A.blast === 0) { const q = X.scr(TP.x, TP.y + 2.2, TP.z); void q; X.hand({ x: TP.x, y: TP.y + 2.4, z: TP.z }, 0, 0); } }
+      else if (A.blast === 3) { // the pause, the little fish
+        breathUI(false); A.fish = 3.2; X.line('הפסקה קצרה: "כדי צליית דג קטן"'); fan.visible = false;
+      }
+    }
+    function blowEnd() {
+      const b = A.breath; A.breath = 0; A.hold = false;
+      if (A.blast >= 4) return terua(b);
+      const G = TGT[A.blast]; if (!G) return;
+      const inBand = b >= band[0] && b <= band[1], s = inBand ? 1 : b > band[1] ? 0.45 : clamp(b / band[0], 0, 1) * 0.6;
+      const aimW = A.aim + wind, reach = 40 + 80 * s;
+      horn(); A.tries++;
+      const ring = new T.Mesh(new T.RingGeometry(0.92, 1, 40, 1, -hw, hw * 2), new T.MeshBasicMaterial({ color: '#FFE7A0', transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
+      ring.rotation.x = -Math.PI / 2; ring.rotation.z = 0; const gy = X.ground(TP.x - 30, TP.z + 30); ring.position.set(TP.x, gy + 1.5, TP.z); ring.renderOrder = 5; world.add(ring);
+      // (the ring's own frame: x along the aim's right, its centre line along the aim)
+      ring.rotation.set(-Math.PI / 2, 0, aimW - Math.PI / 2 + Math.PI, 'XYZ');
+      A.waves.push({ m: ring, r: 1, reach, t: 0 });
+      let reached = 0, miss = 0;
+      for (const it of G.items) { if (it.heard) continue; const da = Math.abs(Math.atan2(Math.sin(it.a - aimW), Math.cos(it.a - aimW))); if (da <= hw && it.d <= reach) { it.heard = true; it.t = -it.d / 70; reached++; } else miss++; }
+      const left = G.items.filter((q) => !q.heard).length;
+      const errA = Math.abs(Math.atan2(Math.sin(G.az - aimW), Math.cos(G.az - aimW)));
+      const at3 = { x: TP.x, y: TP.y + 3, z: TP.z };
+      if (!inBand) X.word(at3, b > band[1] ? 'הקול נשבר' : 'תקיעה חלשה');
+      if (left === 0) {
+        const grade = A.tries === 1 && inBand && errA <= hw * 0.35 ? 'gold' : A.tries === 1 ? 'good' : 'ok';
+        A.grades.push(grade); X.hit(at3, grade, { text: grade === 'gold' ? 'כולם שמעו' : '', craft: 'תוקעים' });
+        if (grade === 'gold') X.bonus(40, 'bul', 'כולם שמעו בתקיעה אחת');
+        A.blast++; setTimeout(nextBlast, 2600);
+      } else {
+        setTimeout(() => X.line(`${left === 3 ? 'אף אחד לא שמע' : left === 1 ? 'אחד לא שמע' : 'שניים לא שמעו'} · ${G.name}: תקעו שוב אליהם`), 1500);
+      }
+      breathUI(true, G.name);
+    }
+    // the last: תקיעה (hold), תרועה (nine quick even blows), תקיעה (hold)
+    function terua(b) {
+      const T3 = A.terua || (A.terua = { step: 0, taps: [], g: [] });
+      if (T3.step === 0 || T3.step === 2) {
+        const inBand = b >= band[0] && b <= band[1]; T3.g.push(inBand ? 1 : 0.5); horn();
+        if (!inBand) { X.word({ x: TP.x, y: TP.y + 3, z: TP.z }, b > band[1] ? 'הקול נשבר · שוב' : 'חלשה · שוב'); return; }
+        T3.step++;
+        if (T3.step === 1) { X.line('תרועה: תשע נקישות מהירות ושוות'); breathUI(false); tdots.style.display = 'flex'; for (const d of tdots.children) d.classList.remove('on'); }
+        else finale();
+      }
+    }
+    function teruaTap() {
+      const T3 = A.terua; if (!T3 || T3.step !== 1) return;
+      T3.taps.push(A.t); X.play('pop'); tdots.children[T3.taps.length - 1] && tdots.children[T3.taps.length - 1].classList.add('on');
+      if (T3.taps.length >= 9) {
+        const iv = []; for (let i = 1; i < T3.taps.length; i++) iv.push(T3.taps[i] - T3.taps[i - 1]); const mean = iv.reduce((a, b2) => a + b2, 0) / iv.length, sd = Math.sqrt(iv.reduce((a, b2) => a + (b2 - mean) ** 2, 0) / iv.length) / Math.max(0.05, mean);
+        const ok = mean <= 0.45 && sd <= [0.35, 0.28, 0.22][lv - 1];
+        if (!ok) { X.word({ x: TP.x, y: TP.y + 3, z: TP.z }, mean > 0.45 ? 'לאט מדי · שוב' : 'לא שוות · שוב'); T3.taps = []; for (const d of tdots.children) d.classList.remove('on'); return; }
+        T3.g.push(sd <= 0.15 ? 1 : 0.8); T3.step = 2; tdots.style.display = 'none'; breathUI(true, 'תקיעה'); X.line('ועוד תקיעה: החזיקו ושחררו בפס');
+      }
+    }
+    function finale() {
+      A.done = true; breathUI(false); fan.visible = false;
+      const tq = A.terua.g.reduce((a, b2) => a + b2, 0) / A.terua.g.length;
+      A.grades.push(tq >= 0.95 ? 'gold' : tq >= 0.75 ? 'good' : 'ok');
+      const q = A.grades.reduce((a, g2) => a + (g2 === 'gold' ? 1 : g2 === 'good' ? 0.8 : 0.5), 0) / A.grades.length;
+      if (A.grades.every((g2) => g2 === 'gold')) X.perfect('בול! שבת', { x: TP.x, y: TP.y + 2, z: TP.z });
+      X.bonus(150, 'shabbat', 'שש התקיעות');
+      // dusk: a warm veil over the world; the crews on the Mount lay down their tools — "ושובת"
+      const veil = document.createElement('div'); veil.className = 'h109-ui'; veil.style.cssText = 'position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,150,60,.25),rgba(60,30,80,.35));opacity:0;transition:opacity 2.5s;z-index:5'; document.body.appendChild(veil); requestAnimationFrame(() => { veil.style.opacity = '1'; }); A.veil = veil;
+      X.line('בין הערביים · "ושובת" (שבת לה ע"ב)');
+      SH.lettersDone = true;
+      setTimeout(() => X.shot([-372, 120, 470], [-150, 0, 250], 2.2), 1600);
+      setTimeout(() => X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at: { x: TP.x, y: TP.y + 2, z: TP.z } }), 7200);
+    }
     return {
       close: true,
-      begin() { shot(); X.line('גררו על האות המנוקדת'); try { const sp = letStand(); X.hero.setPos(sp.x, sp.z, Math.atan2(LET.x - sp.x, LET.z - sp.z)); X.hero.arm('chisel', { x: sp.tx, y: gy + 1.2, z: sp.tz }); } catch (e) { /* */ } const Lt = L[0], c = toC(GLYPH[Lt.ch][0][0], Lt); const w = face.localToWorld(new T.Vector3((c[0] / cw - 0.5) * FW, (0.5 - c[1] / ch) * FH, 0.1)); X.hand(w, -30, 30); },
-      update(dt) { A.t += dt; if (A.flash > 0) { A.flash = Math.max(0, A.flash - dt * 1.6); draw(); } },
-      down(p) { if (A.phase === 'done') return; const c = canvasAt(p); if (!c) return; A.drag = true; A.last = c; A.acc = 0; X.hand(null); },
+      begin() { try { X.hero.setPos(letStand().x, letStand().z, -2.4); } catch (e) { /* */ } part1(); },
+      update(dt) {
+        A.t += dt;
+        // (part 3: a hold on the trumpeter himself starts the blow; a drag anywhere else turns him)
+        if (A.part === 3 && A.p0 && A.p0.blow && !A.hold && !A.done && A.t - A.p0.t > 0.12 && A.blast !== 3 && !(A.terua && A.terua.step === 1)) { A.hold = true; A.breath = 0; }
+        if (A.part === 1) {
+          A.p1 += dt; const k = ease(clamp((A.p1 - 0.8) / 3.2, 0, 1)); K.stone.position.y = st0 + 14 * (1 - k);
+          upRope.show(k < 1); upRope.set({ x: K.stone.position.x, y: K.stone.position.y + 20, z: K.stone.position.z }, { x: K.stone.position.x, y: K.stone.position.y + 1.2, z: K.stone.position.z }, 0);
+          if (A.p1 > 4.4 && !A.p1d) { A.p1d = true; X.play('settle'); X.dust(K.stone.position.x, TOP.y + 0.3, K.stone.position.z, 12, 3); }
+          if (A.p1 > 5.6) part2();
+        }
+        if (A.part === 2 && A.flash > 0) { A.flash = Math.max(0, A.flash - dt * 1.6); }
+        if (A.part === 2) draw();
+        if (A.part === 3) {
+          // the trumpeter turns with the aim; the fan shows where the sound will go (the wind bends it at level 3)
+          if (tr) { tr.fx = TP.x + Math.sin(A.aim) * 10; tr.fz = TP.z + Math.cos(A.aim) * 10; }
+          const gy = X.ground(TP.x - 30, TP.z + 30); const aimW = A.aim + wind;
+          fan.position.set(TP.x, Math.max(gy + 1.2, TOP.y - 1.5), TP.z); fan.scale.setScalar(40 + 80 * (A.hold ? Math.min(1, A.breath / band[0]) : 1)); fan.rotation.set(-Math.PI / 2, 0, aimW - Math.PI / 2, 'XYZ');
+          if (wind) { flag.position.set(-299.75 - 0.45, TOP.y + 2.75, 396.3); flag.rotation.y = Math.PI / 2 + Math.sin(A.t * 5) * 0.2; }
+          if (A.hold && A.blast !== 3 && !(A.terua && A.terua.step === 1)) { A.breath += dt / 2.1; breathUI(true); if (A.breath >= 1.15) blowEnd(); }
+          if (A.fish > 0) { A.fish -= dt; if (A.fish <= 0) { A.blast = 4; A.terua = { step: 0, taps: [], g: [] }; fan.visible = false; breathUI(true, 'תקיעה'); X.line('תקיעה, תרועה, תקיעה · החזיקו לתקיעה ושחררו בפס'); } }
+        }
+        // the waves go out; the ones who heard do as the Sabbath asks
+        for (let i = A.waves.length - 1; i >= 0; i--) { const W = A.waves[i]; W.t += dt; W.r = Math.min(W.reach, W.t * 70); W.m.scale.setScalar(Math.max(1, W.r)); W.m.material.opacity = 0.85 * (1 - W.r / W.reach * 0.8); if (W.t > W.reach / 70 + 0.4) { world.remove(W.m); W.m.geometry.dispose(); W.m.material.dispose(); A.waves.splice(i, 1); } }
+        TGT.forEach((G, gi) => { for (const it of G.items) { if (!it.heard) continue; it.t += dt; if (it.t < 0) continue;
+          if (gi === 0 && it.w && !it.gone) { it.gone = true; SH.crew.setRole && SH.crew.setRole(it.w, 'walk', { item: null }); SH.crew.walkTo && SH.crew.walkTo(it.w, it.P.x + Math.sin(G.az) * 22, it.P.z + Math.cos(G.az) * 22, 2.2); }
+          if (gi === 1) { const k = clamp(it.t / 0.9, 0, 1); it.aw.rotation.x = lerp(-0.35, -1.45, k); it.sh.scale.y = Math.max(0.01, k); }
+          if (gi === 2) { const k = clamp(it.t / 1.2, 0, 1); for (const wm of it.win) { wm.material.emissiveIntensity = 1.8 * k * (0.9 + 0.1 * Math.sin(A.t * 9 + it.a * 40)); wm.material.color.set(k > 0.1 ? '#4A3416' : '#2B2116'); } }
+        } });
+      },
+      down(p) {
+        const tq = X.scr(TP.x, TP.y + 2.2, TP.z);
+        A.p0 = { x: p.x, y: p.y, t: A.t, aim: A.aim, moved: false, blow: Math.hypot(p.x - tq.x, p.y - tq.y) < Math.max(70, innerHeight * 0.13) };
+        if (A.part === 2) { const c = canvasAt(p); if (c) { strike(c); X.hand(null); } return; }
+        if (A.part === 3 && !A.done) { if (A.terua && A.terua.step === 1) { teruaTap(); return; } }
+      },
       move(p) {
-        if (!A.drag) return; const Lt = L[A.i]; if (!Lt) return; const c = canvasAt(p); if (!c) return;
-        const d = devOf(Lt, c); Lt.devSum = (Lt.devSum || 0) + Math.min(d, 80); Lt.devN = (Lt.devN || 0) + 1; cover(Lt, c);
-        groove(A.last, c, 14); A.acc += Math.hypot(c[0] - A.last[0], c[1] - A.last[1]); A.last = c;
-        if (A.acc > 12 / Math.max(0.05, pxScale())) { A.acc = 0; X.play('chisel'); const w = face.localToWorld(new T.Vector3((c[0] / cw - 0.5) * FW, (0.5 - c[1] / ch) * FH, 0.12)); X.dust(w.x, w.y, w.z, 1, 0.3); }
-        draw();
+        if (A.part !== 3 || !A.p0 || A.p0.blow || A.hold || A.done) return;
+        if (Math.abs(p.x - A.p0.x) > 10) A.p0.moved = true;
+        if (A.p0.moved) A.aim = clamp(A.p0.aim - (p.x - A.p0.x) * 0.0032, -125 * deg, 35 * deg);
       },
-      up() {
-        if (!A.drag) return; A.drag = false; const Lt = L[A.i]; if (!Lt) return;
-        const cv2 = Lt.cov.reduce((a, b) => a + b, 0) / Lt.cov.length;
-        if (cv2 >= 0.8) letterDone(Lt); else if (cv2 > 0) X.line(`עוד: האות ${Lt.ch} — ${Math.round(cv2 * 100)}% חרוט`);
+      up() { const P0 = A.p0; A.p0 = null; if (A.part === 3 && A.hold) blowEnd(); void P0; },
+      cancel() { A.p0 = null; if (A.hold) blowEnd(); },
+      end() {
+        breathUI(false); ui.remove(); tdots.remove(); css.remove(); if (A.veil) { const v = A.veil; v.style.opacity = '0'; setTimeout(() => v.remove(), 2600); }
+        upRope.dispose(); X.props.remove(world);
+        for (const G of TGT) for (const it of G.items) if (it.w) SH.crew.remove(it.w);
+        if (tr && !SH.lettersDone) SH.crew.remove(tr); else SH.trumpeter = tr;
+        try { if (X.hero.mesh) X.hero.mesh.visible = true; } catch (e) { /* */ }
+        face.visible = true; draw();
       },
-      end() { X.hero.arm && X.hero.arm(null); SH.letFace = face; SH.letBlk = blk; },
-      at() { return { x: LET.x, y: gy + 2, z: LET.z }; },
-      dbg() { const Lt = L[A.i]; const scr = (Lt2) => Lt2 ? GLYPH[Lt2.ch].map((st) => st.map((p) => { const c = toC(p, Lt2); const w = face.localToWorld(new T.Vector3((c[0] / cw - 0.5) * FW, (0.5 - c[1] / ch) * FH, 0.1)); const q = X.scr(w.x, w.y, w.z); return [Math.round(q.x), Math.round(q.y)]; })) : null; return { i: A.i, n: L.length, ch: Lt ? Lt.ch : null, strokes: scr(Lt), cov: Lt ? +(Lt.cov.reduce((a, b) => a + b, 0) / Lt.cov.length).toFixed(2) : null, grades: L.map((x) => x.grade), dev: A.dev.map((d) => +d.toFixed(1)), px: +pxScale().toFixed(3) }; },
+      at() { return { x: TP.x, y: TP.y + 2, z: TP.z }; },
+      dbg() {
+        const Lt = L[A.i], scr = (c) => { const w = tUp(c); const q = X.scr(w.x, w.y, w.z); return [Math.round(q.x), Math.round(q.y)]; };
+        const G = TGT[A.blast];
+        return { part: A.part, i: A.i, n: L.length, ch: Lt ? Lt.ch : null, next: Lt && Lt.pts[Lt.k] ? scr(Lt.pts[Lt.k].c) : null, slips: A.slips, grades: L.map((x2) => x2.grade), blast: A.blast, aim: +(A.aim / deg).toFixed(1), want: G ? +((G.az - wind) / deg).toFixed(1) : null, left: G ? G.items.filter((q) => !q.heard).length : null, hold: A.hold, breath: +A.breath.toFixed(2), band, fish: +A.fish.toFixed(2), terua: A.terua ? { step: A.terua.step, taps: A.terua.taps.length } : null, done: A.done, bg: A.grades.slice(), tp: (() => { const q = X.scr(TP.x, TP.y + 2.2, TP.z); return [Math.round(q.x), Math.round(q.y)]; })() };
+      },
     };
   },
 };

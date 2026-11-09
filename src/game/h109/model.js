@@ -33,7 +33,7 @@ export const PLACES = Object.freeze({
   quarry: { x: 196, z: -199 },
   greatRoad: [[200, -196], [150, -230], [40, -240], [-80, -230], [-200, -200], [-262, -150]],
   great: { x: -262, z: -150, face: [-300, -150] },
-  letters: { x: -276, z: 372, face: [-300, 400] },
+  letters: { x: -281, z: 383, face: [-300, 400] },
   fill: { x: 250, z: -40 },
 });
 

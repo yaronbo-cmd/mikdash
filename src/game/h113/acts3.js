@@ -317,7 +317,7 @@ export const LOCK = {
       const d = cut ? 0.01 : 1.0;   // (a cut through the shut gate: a flight would pass through its leaves)
       if (k === 'close') X.shot([G.c + 3, Fr.sill + 9, Fr.in(19)], [G.c, Fr.sill + 6, Fr.zp], 1.0);
       else if (k === 'shim') X.shot([G.c + 0.6, Fr.sill + 1.4, Fr.in(3.2)], [G.c, Fr.sill + 0.5, Fr.zp], 0.9);
-      else if (k === 'out') X.shot([G.c - 2, Fr.sill + 4.5, Fr.out(9)], [G.c - 2.6, Fr.sill + 1.6, Fr.zp], d);
+      else if (k === 'out') X.shot([G.c + 0.2, Fr.sill + 6.2, Fr.out(14.5)], [G.c - 1.5, Fr.sill + 2.1, Fr.zp], d);   // (the wicket, and him beside it)
       // (the key: the lock box and the chain, the bar's grip while it is locked; the bar: its whole travel, from the left jamb to the box)
       else if (k === 'key') X.shot([G.c + 3.4, yBar + 1.6, Fr.in(10)], [G.c + 2.9, yBar - 0.4, zBar], 1.0);
       else X.shot([G.c - 0.2, yBar + 2.6, Fr.in(17.5)], [G.c - 0.4, yBar - 1.0, zBar], d);

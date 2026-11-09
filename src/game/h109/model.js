@@ -2,7 +2,8 @@
  * Pure: no three.js, no DOM. The plan of the stage (the missions in order, where each one opens on the Mount), the grades, the
  * levels, the losses and the save. The director (h109/director.js) runs the missions in the world; the acts (h109/acts/*) play them.
  *
- *   const M = createH109(save?)  → M.st (the save: G.h109) · M.mission() → the open mission | null · M.done(result) → the next one
+ *   const M = createH109(save?)  → M.st (the save: G.h109) · M.open() → the works open now · M.pick(id) · M.mission() → the picked one | null
+ *   M.done(result) (the picked one done) · M.finished() · M.autoTo(want) (tests)
  *   M.grade(err, win) → 'gold' | 'good' | 'ok' · M.levelOf(mission) → 1..3 · M.progress() → 0..1 (the Mount's build, stages.setStage)
  *   M.sectorGrade(i) → 'מהודר' | 'כשר' | null
  * Every number is amot, seconds or points. The points are the old game's (score.js ACT 10/20/40, streak 50); this file only says
@@ -27,7 +28,7 @@ export const H109 = Object.freeze({
 // wall's great course, the south-west corner of the inscription, and the fill behind the east wall where the waste goes.
 export const PLACES = Object.freeze({
   rope: [{ a: [236, -150], b: [236, 350], face: [1, 0] }, { a: [-264, -150], b: [236, -150], face: [0, -1] }],
-  corner: { x: 252, z: 92, face: [277, 92] },
+  corner: { x: 258, z: -168, face: [271, -177] },
   course: [{ x: 252, z: 60, face: [277, 60] }, { x: 252, z: 124, face: [277, 124] }],
   quarry: { x: 196, z: -199 },
   greatRoad: [[200, -196], [150, -230], [40, -240], [-80, -230], [-200, -200], [-262, -150]],
@@ -66,32 +67,85 @@ export const GRADE_N = { gold: 'מהודר', good: 'כשר', ok: 'כשר' };
 
 /** a fresh save */
 export function freshH109() {
-  return { v: 1, i: 0, done: [], res: {}, rocks: Array.from({ length: H109.SECTORS }, () => Array(H109.ROCKS).fill(-1)), waste: 0, wasteIn: 0, best: 0, plays: {} };
+  return { v: 1, i: 0, done: [], res: {}, rocks: Array.from({ length: H109.SECTORS }, () => Array(H109.ROCKS).fill(-1)), waste: 0, wasteIn: 0, best: 0, plays: {}, lay: {} };
 }
 
 export function createH109(save) {
   const st = save && save.v === 1 ? save : freshH109();
   if (!Array.isArray(st.rocks) || st.rocks.length !== H109.SECTORS) st.rocks = freshH109().rocks;
+  if (!st.lay || typeof st.lay !== 'object') st.lay = {};
+  // (a save from before the free choice: its line of works done up to st.i is its done list already)
+  if (st.cur && !PLAN.some((m) => m.id === st.cur)) st.cur = null;   // ── h114 ── (each sector's paving as he laid it) ── /h114 ──
   const M = {
     st,
     get plan() { return PLAN; },
-    mission() { return st.i < PLAN.length ? PLAN[st.i] : null; },
-    finished() { return st.i >= PLAN.length; },
-    /** the level an act plays at: the mission's own, a replay one higher (max 3) */
-    levelOf(m) { const n = (st.plays[m.id] | 0); return Math.min(3, (m.lv | 0) + (n > 0 ? 1 : 0)); },
+    // ── h114 ── (ירון 9.11, rule 54: "שאני אבחר לאן ללכת ומה לעשות מתי שבא לי") the works are not a line: every work whose real
+    // prerequisite is done is open at once and he picks one by walking to it. The prerequisites are the building's own: the rope
+    // before all (the square is measured first), a sector's rocks → its reading → its paving, the corner → the first course → the
+    // second → the great course → the inscription on it, and the waste when there is a pile. The level of a work follows how many
+    // of its kind he finished (0–2 → 1, 3–5 → 2, 6+ → 3), not where it is. ── /h114 ──
+    /** the picked work (he walked to its stake) | null */
+    mission() { return st.cur ? PLAN.find((m) => m.id === st.cur) || null : null; },
+    isDone(id) { return st.done.includes(id); },
+    /** may m be done now (its prerequisites done, itself not) */
+    canDo(m) {
+      if (!m || st.done.includes(m.id)) return false;
+      const d = (id) => st.done.includes(id);
+      switch (m.k) {
+        case 'rope': return true;
+        case 'rocks': return d('rope');
+        case 'read': return d('rocks' + m.s);
+        case 'pave': return d('read' + m.s);
+        case 'corner': return d('rope');
+        case 'course': return d(m.c ? 'course0' : 'corner');
+        case 'great': return d('course1');
+        case 'letters': return d('great');
+        case 'waste': {
+          const prev = { waste1: null, waste2: 'waste1', waste3: 'waste2' }[m.id];
+          if (prev && !d(prev)) return false;
+          const others = PLAN.some((x) => x.k !== 'waste' && !d(x.id));
+          return (st.waste | 0) >= (others ? 3 : 1);
+        }
+        default: return d('rope');
+      }
+    },
+    /** the open works, in the plan's order */
+    open() { return PLAN.filter((m) => M.canDo(m)); },
+    /** he walked to a work's stake (null: he walked away from it) */
+    pick(id) { const m = id ? PLAN.find((x) => x.id === id) : null; st.cur = m && M.canDo(m) ? m.id : null; return M.mission(); },
+    finished() { return PLAN.every((m) => st.done.includes(m.id)); },
+    /** (tests, the one-minigame page) the open works not passing `want` are done by the crews in the plan's order until one that
+     *  passes is open; it is picked. → it | null */
+    autoTo(want) {
+      for (let g = 0; g < PLAN.length + 2; g++) {
+        const O = M.open(), hit = O.find(want); if (hit) return M.pick(hit.id);
+        const m = O[0]; if (!m) return null;
+        st.cur = m.id; M.done({ stars: 2 });
+      }
+      return null;
+    },
+    /** the level an act plays at: by how many of its kind he finished (the sector works) or the work's own; a replay one higher */
+    levelOf(m) {
+      const n = (st.plays[m.id] | 0);
+      let lv = m.lv | 0;
+      if (m.k === 'rocks' || m.k === 'read' || m.k === 'pave') { const c = st.done.filter((id) => id !== m.id && id.replace(/\d+$/, '') === m.k).length; lv = c < 3 ? 1 : c < 6 ? 2 : 3; }
+      return Math.min(3, lv + (n > 0 ? 1 : 0));
+    },
     /** one act graded from its timing error |err| (s) against the level's gold window */
     grade(err, lv = 1) { const a = Math.abs(err), g = H109.GOLD[Math.max(0, Math.min(2, lv - 1))]; return a <= g ? 'gold' : a <= H109.GOOD ? 'good' : 'ok'; },
-    /** a mission ends: result { stars 0..3, q 0..1, lost?: bool (counted 0), waste?: n stones to the pile }. → the next mission */
+    /** the picked work ends: result { stars 0..3, q 0..1, lost?: bool (counted 0), waste?: n stones to the pile } */
     done(res = {}) {
       const m = M.mission(); if (!m) return null;
       st.res[m.id] = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), lost: !!res.lost };
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       if (res.waste > 0) st.waste += res.waste | 0;
       if (m.k === 'waste') { st.wasteIn += st.waste; st.waste = 0; }
-      st.done.push(m.id); st.i++;
-      // a waste mission with nothing on the pile is skipped (the crews swept it)
-      while (M.mission() && M.mission().k === 'waste' && st.waste <= 0) { st.done.push(M.mission().id); st.res[M.mission().id] = { stars: 0, q: 0, skipped: true }; st.i++; }
-      return M.mission();
+      if (!st.done.includes(m.id)) st.done.push(m.id);
+      st.cur = null;
+      // the waste works left when all else is done and the pile is empty are skipped (the crews swept it)
+      if ((st.waste | 0) <= 0 && !PLAN.some((x) => x.k !== 'waste' && !st.done.includes(x.id))) for (const x of PLAN) if (x.k === 'waste' && !st.done.includes(x.id)) { st.done.push(x.id); st.res[x.id] = { stars: 0, q: 0, skipped: true }; }
+      st.i = st.done.length;
+      return null;
     },
     rockHit(s, r, grade) { const a = st.rocks[s]; if (!a) return; a[r] = Math.max(a[r], RANK[grade] ?? 0); },
     /** the sector's grade from its three works: מהודר when every one earned 3 stars, else כשר (a lost work: נכשל) */

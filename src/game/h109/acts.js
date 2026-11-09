@@ -60,7 +60,7 @@ function sectorRocks(s) {
   }
   return [];
 }
-function rockTarget(R, X) { const g = X.ground(R.x, R.z); return { x: R.x + R.ux * R.r * 0.72, y: g + R.r * 0.62, z: R.z + R.uz * R.r * 0.72 }; }
+function rockTarget(R, X) { const g = X.ground(R.x, R.z); return { x: R.x + R.ux * R.r * 0.72, y: g + R.r * 0.45, z: R.z + R.uz * R.r * 0.72 }; }
 
 function initWorld(X) {
   SH.X = X; SH.B = createBeat(X); SH.crew = createGang(X);
@@ -88,6 +88,16 @@ function initWorld(X) {
   if (!ropeDone) { C.add(SQ.x0 + 4, SQ.z1 - 120, { role: 'pull', fx: SQ.x0 + 4, fz: SQ.z1 - 170, item: 'rope' }); C.add(SQ.x0 + 4, SQ.z1 - 172, { role: 'kneel', fx: SQ.x0 + 4, fz: SQ.z1 - 120 }); }
   for (let i = 9; i < 12; i++) { const b = SH.bould[i]; if (!b || bs[i] <= 0) continue; for (let k = 0; k < 2; k++) { const a = k * 2.4 + i, x = b[0] + Math.cos(a) * (b[2] + 2.2), z = b[1] + Math.sin(a) * (b[2] + 2.2); C.add(x, z, { role: 'pick', item: 'pick', fx: b[0], fz: b[1], off: k * 0.5, crew: i }); } }
   initWorld2(X, SH); initWorld3(X, SH);
+  // ── h114 ── (ירון 9.11: "הדמות רצה לתוך סלע") the small rocks and a split rock's halves are solid to his walk: a step into one
+  // (nearer its middle than the step before) is refused, a step out always allowed ── /h114 ──
+  try {
+    X.stages.hero.twinExtra && X.stages.hero.twinExtra((x, z, x0, z0) => {
+      const inn = (cx, cz, rad) => { const d1 = Math.hypot(x - cx, z - cz); return d1 < rad && d1 < Math.hypot(x0 - cx, z0 - cz); };
+      for (const L of SH.rocks || []) for (const R of L || []) if (R.q && R.q.vis && inn(R.x, R.z, R.r * 0.85 + 0.5)) return true;
+      for (const k in SH.big || {}) { const B = SH.big[k]; if (B && inn(B.C.x, B.C.z, B.r * 1.0 + 0.4)) return true; }
+      return false;
+    });
+  } catch (e) { /* */ }
 }
 function planLine(X) {
   const T = X.THREE, pts = [];
@@ -100,64 +110,104 @@ function planLine(X) {
 }
 
 /* ───────── 3.1 the rope (מדות ב, א: "הר הבית היה חמש מאות אמה על חמש מאות אמה"; the 50-amah rope: עירובין ה, ד) ───────── */
+// ── h114 ── (ירון 9.11: "דמות עומדת והכהן שלנו צועד") the roles turned round: a crewman stands at the 450 stake holding the rope's end and
+// the kohen walks it out with the measuring rod in his hand (the rod the crewman carried in 110: "הכלי הזה טוב. תשאיר אותו"; יחזקאל מ, ג:
+// "ופתיל פשתים בידו וקנה המדה"), the camera following behind him so the rod is always seen; a stop right on 500 is "בול!" — the
+// level-up's own fanfare and stamp ── /h114 ──
+function rodProp(X) {
+  const T = X.THREE, g = new T.Group(); g.name = 'h114-rod';
+  const wood = new T.MeshStandardMaterial({ color: '#8C6A43', roughness: 0.85 }), cord = new T.MeshStandardMaterial({ color: '#D9C9A0', roughness: 1 });
+  // the rod held in his fist (the group's origin), its top leaning forward; a linen cord's coil on his wrist
+  // (a staff taller than he is, so it shows over his shoulder from behind; its amot marked in linen bands)
+  const rod = new T.Mesh(new T.CylinderGeometry(0.06, 0.07, 3.6, 7), wood); rod.rotation.x = 0.12; rod.position.set(0, 0.35, 0.02); g.add(rod);
+  for (const k of [-1.2, -0.4, 0.4, 1.2]) { const m = new T.Mesh(new T.CylinderGeometry(0.085, 0.085, 0.07, 7), cord); m.rotation.x = 0.12; m.position.set(0, 0.35 + Math.cos(0.12) * k, 0.02 + Math.sin(0.12) * k); g.add(m); }
+  const coil = new T.Mesh(new T.TorusGeometry(0.24, 0.065, 6, 14), cord); coil.position.set(0, -0.12, -0.02); coil.rotation.y = Math.PI / 2; g.add(coil);
+  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  g.scale.setScalar(1.55);   // (to his size: the hero is ~5 tall, so the staff stands a head over him)
+  X.props.root.add(g); return g;
+}
 const ROPE_ACT = {
   icon: '📏', title: 'מדידה בחבל',
   walkLine: () => 'לכו אל היתד האדומה: מותחים את החבל',
-  stand(m, X) { const R = ROPE[SH.ropeI | 0] || ROPE[0]; const dx = R.b[0] - R.a[0], dz = R.b[1] - R.a[1], L = Math.hypot(dx, dz); return { x: R.a[0] - (dx / L) * 1.6, z: R.a[1] - (dz / L) * 1.6, face: R.b, mx: R.a[0], mz: R.a[1] }; },
+  stand(m, X) { const R = ROPE[SH.ropeI | 0] || ROPE[0]; const dx = R.b[0] - R.a[0], dz = R.b[1] - R.a[1], L = Math.hypot(dx, dz); return { x: R.a[0] + (dx / L) * 1.2, z: R.a[1] + (dz / L) * 1.2, face: R.b, mx: R.a[0], mz: R.a[1] }; },
   prepare() { SH.ropeI = 0; },
   make(m, X) {
-    const lv = X.level(), vmax = [7, 8.5, 10][lv - 1], C = SH.crew;
-    const A = { side: -1, d: 0, v: 0, hold: false, phase: 'idle', res: [], walker: null, rope: null, far: null, ring: null, tStop: 0, t: 0, tries: 0 };
-    const hp = { x: 0, y: 0, z: 0 };
+    const lv = X.level(), vmax = [6, 7, 8][lv - 1], C = SH.crew, T = X.THREE;
+    const A = { side: -1, d: 0, v: 0, hold: false, phase: 'idle', res: [], holder: null, rope: null, ring: null, tStop: 0, t: 0, stuck: 0, rod: null, bob: 0 };
+    const hp = { x: 0, y: 0, z: 0 }, hand = new T.Vector3();
+    const drive = (vx, vz) => { try { X.hero.drive(vx, vz); } catch (e) { /* */ } };
+    function heroP() { const h = X.stages.heroXYZ(hp); return h && Number.isFinite(h.x) ? h : null; }
     function side(i) {
       A.side = i; SH.ropeI = i; const R = ROPE[i];
       A.ax = R.a[0]; A.az = R.a[1]; A.bx = R.b[0]; A.bz = R.b[1]; const L = Math.hypot(A.bx - A.ax, A.bz - A.az); A.ux = (A.bx - A.ax) / L; A.uz = (A.bz - A.az) / L;
-      A.d = 0; A.v = 0; A.hold = false; A.phase = 'ready'; A.tries = 0;
-      if (A.walker) C.remove(A.walker);
-      A.walker = C.add(A.ax + A.ux * 1.2, A.az + A.uz * 1.2, { role: 'walk', item: 'rope', fx: A.bx, fz: A.bz, crew: 1 });
+      A.px = -A.uz; A.pz = A.ux;
+      A.d = 1.2; A.v = 0; A.hold = false; A.phase = 'ready'; A.stuck = 0;
+      // the crewman at the 450 stake, the rope's end in his hands, leaning back on it
+      if (A.holder) C.remove(A.holder);
+      A.holder = C.add(A.ax - A.ux * 1.4 - A.px * 1.3, A.az - A.uz * 1.4 - A.pz * 1.3, { role: 'pull', item: 'rope', fx: A.bx, fz: A.bz, crew: 1 });
       if (!A.rope) A.rope = X.props.rope(28, 0.06);
-      // the far stake to land on: a gold ring round it (the anticipation: he sees it coming)
-      if (A.far) X.props.remove(A.far); A.far = null;
+      // the far stake to land on: its ghost and a gold ring round it (he sees it coming)
       if (A.ring) X.props.remove(A.ring); A.ring = X.props.ringAt(A.bx, A.bz, 1.6, 0.18, X.props.M.gold);
       if (A.ghost) X.props.remove(A.ghost); A.ghost = X.props.stake(A.bx, A.bz, 1.6, true); A.ghost.traverse((o) => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.35; } });
-      const sp = { x: A.ax - A.ux * 1.6, z: A.az - A.uz * 1.6 };
-      if (i > 0) { try { X.hero.dash({ x: sp.x, z: sp.z, face: [A.bx, A.bz] }); } catch (e) { /* */ } }
-      // the shot (ש3 along the line): behind and to the side of him, the far stake in the frame
-      const px = -A.uz, pz = A.ux, g = X.ground(A.ax, A.az);
-      X.shot([A.ax - A.ux * 17 + px * 6.5, g + 9, A.az - A.uz * 17 + pz * 6.5], [A.ax + A.ux * 21 - px * 1.5, g + 1.5, A.az + A.uz * 21 - pz * 1.5], i > 0 ? 1.2 : 0.9);
-      X.line('החזיקו · שחררו על היתד');
-      X.hand({ x: A.ax + A.ux * 25, y: g + 3, z: A.az + A.uz * 25 }, 0, 0);
+      const sp = { x: A.ax + A.ux * 1.2, z: A.az + A.uz * 1.2 };
+      if (i > 0) { try { X.hero.dash({ x: sp.x, z: sp.z, face: [A.bx, A.bz] }); } catch (e) { /* */ } A.phase = 'go'; A.tStop = 0; }
+      X.line('החזיקו: הכהן צועד עם החבל · שחררו על היתד');
+      const g = X.ground(A.ax, A.az);
+      X.hand({ x: A.ax + A.ux * 8, y: g + 3, z: A.az + A.uz * 8 }, 0, 0);
+    }
+    // the camera: behind him and a little to the side, the far stake ahead in the frame, following his walk smoothly
+    function cam(h, rate) {
+      const g = X.ground(h.x, h.z);
+      // (the stake driven: from his side, the new stake and him in one frame)
+      if (A.phase === 'driven') { X.track([h.x + A.px * 11 - A.ux * 2, g + 6, h.z + A.pz * 11 - A.uz * 2], [h.x + A.ux * 0.5, g + 1.4, h.z + A.uz * 0.5], 2.2); return; }
+      X.track([h.x - A.ux * 16 + A.px * 7, g + 9, h.z - A.uz * 16 + A.pz * 7], [h.x + A.ux * 13, g + 1.6, h.z + A.uz * 13], rate || 3);
+    }
+    function rodDraw(h, dt) {
+      if (!A.rod) A.rod = rodProp(X);
+      let yaw = 0; try { yaw = X.hero.yaw; } catch (e) { /* */ }
+      if (!Number.isFinite(yaw)) yaw = Math.atan2(A.ux, A.uz);
+      const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = -fz, rz = fx;   // (his right: −x of his facing in the world's turn)
+      A.bob += dt * (A.v > 0.3 ? 9 : 2);
+      const b = A.v > 0.3 ? Math.sin(A.bob) * 0.06 : 0;
+      // (in his very fist: the right hand's bone in the world; the figure is ~5 tall, so a bare offset from his feet sat at his knee)
+      if (A.handB === undefined) { let m = null; try { m = X.hero.mesh; } catch (e) { /* */ } A.handB = (m && m.getObjectByName && m.getObjectByName('hero-handR')) || null; }
+      if (A.handB) { A.handB.updateWorldMatrix(true, false); A.handB.getWorldPosition(hand); }
+      else hand.set(h.x + fx * 0.3 - rx * 0.75, h.y + 2.67 + b, h.z + fz * 0.3 - rz * 0.75);
+      A.rod.position.copy(hand); A.rod.rotation.set(0, yaw, 0);
     }
     function ropeDraw() {
-      if (!A.walker || !A.rope) return;
-      X.heroAt(); const h = X.stages.heroXYZ(hp);
-      const w = A.walker.a, gy = X.ground(w.x, w.z);
-      const sag = A.hold || A.phase === 'slide' ? 0.15 : clamp(0.9 - A.v * 0.1, 0.15, 0.9);
-      A.rope.set({ x: h.x + A.ux * 0.8, y: h.y + 1.6, z: h.z + A.uz * 0.8 }, { x: w.x - A.ux * 0.3, y: gy + 1.7, z: w.z - A.uz * 0.3 }, sag);
+      if (!A.holder || !A.rope) return;
+      const w = A.holder.a, gy = X.ground(w.x, w.z);
+      const sag = A.hold || A.phase === 'slide' ? 0.12 : clamp(0.9 - A.v * 0.1, 0.15, 0.9);
+      A.rope.set({ x: w.x + A.ux * 0.6, y: gy + 1.7, z: w.z + A.uz * 0.6 }, { x: hand.x, y: hand.y - 0.2, z: hand.z }, sag);
     }
     function settle() {
-      // the release: he slides on (the rope is heavy) and stops; the stake is driven where he stands
+      // the release: he slides on a step (the rope is heavy) and stops; the stake is driven where he stands
+      drive(0, 0);
       const L = 50, err = Math.abs(A.d - L) / L, lvW = [0.03, 0.025, 0.02][lv - 1];
       const grade = err <= lvW ? 'gold' : err <= 0.08 ? 'good' : 'ok';
-      const w = A.walker.a, at = { x: w.x, y: X.ground(w.x, w.z) + 1.5, z: w.z };
+      const h = heroP() || { x: A.ax + A.ux * A.d, z: A.az + A.uz * A.d }, at = { x: h.x, y: X.ground(h.x, h.z) + 1.5, z: h.z };
       const amot = Math.round(450 + A.d);
       A.res.push(grade);
       if (grade === 'ok') {
-        // too far off: the crew sets the stake right (he walks to the true place and drives it) — counted half (spec: לא נכשל במדידה)
-        X.word(at, A.d > L ? 'עבר את היתד — מתקנים' : 'קצר מדי — מתקנים');
+        // too far off: he walks to the true place and drives it there — counted half (spec: לא נכשל במדידה)
+        X.word(at, A.d > L ? 'עבר את היתד · חוזרים' : 'קצר מדי · ממשיכים');
         A.phase = 'fix';
-        C.walkTo(A.walker, A.bx - A.ux * 0.6, A.bz - A.uz * 0.6, 3).then(() => drive('ok', amot));
-      } else drive(grade, amot);
+        Promise.resolve(X.hero.walkTo({ x: A.bx - A.ux * 0.7, z: A.bz - A.uz * 0.7, face: [A.bx + A.ux, A.bz + A.uz] })).catch(() => {}).then(() => drive2('ok', amot));
+      } else drive2(grade, amot);
     }
-    function drive(grade, amot) {
-      const x = A.side >= 0 && grade !== 'ok' ? A.walker.a.x : A.bx, z = grade !== 'ok' ? A.walker.a.z : A.bz, g = X.ground(x, z);
+    function drive2(grade, amot) {
+      const h = heroP() || { x: A.bx, z: A.bz };
+      const x = grade !== 'ok' ? h.x + A.ux * 0.7 : A.bx, z = grade !== 'ok' ? h.z + A.uz * 0.7 : A.bz, g = X.ground(x, z);
       const s = X.props.stake(x, z, 1.6, true); SH.stakes.push(s); s.scale.y = 0.05;
       A.drive = { s, t: 0 };
       X.dust(x, g + 0.3, z, 8, 2.5); X.play('wedge'); X.shake(0.1, 0.18);
+      const bul = grade === 'gold' && amot === 500;
       X.hit({ x, y: g + 2, z }, grade, { text: grade === 'ok' ? `${amot} → 500` : `${amot} אמה`, craft: 'מודדים', kind: 'craft' });
+      if (bul) { X.perfect('בול! 500 אמה', { x, y: g + 1.5, z }); X.bonus(40, 'bul', 'בול על היתד'); }
       if (A.ring) { X.props.remove(A.ring); A.ring = null; } if (A.ghost) { X.props.remove(A.ghost); A.ghost = null; }
       A.phase = 'driven'; A.tStop = 0;
-      X.hand(null);
+      X.hand(null); X.count(null);
     }
     function finish() {
       A.phase = 'done';
@@ -169,36 +219,41 @@ const ROPE_ACT = {
       const g = X.ground(SQ.x1, SQ.z0);
       X.line(''); X.hand(null);
       X.shot([(SQ.x0 + SQ.x1) / 2 + 120, 360, SQ.z1 + 260], [(SQ.x0 + SQ.x1) / 2 + 10, 0, (SQ.z0 + SQ.z1) / 2 - 20], 1.6);
-      setTimeout(() => X.end({ q, stars: q >= 0.95 ? 3 : q >= 0.75 ? 2 : 1, at: { x: SQ.x1, y: g + 2, z: SQ.z0 } }), 2600);
+      setTimeout(() => X.end({ q, stars: q >= 0.95 ? 3 : q >= 0.75 ? 2 : 1, at: { x: SQ.x1, y: g + 2, z: SQ.z0 } }), 3200);
     }
     return {
-      begin() { side(0); },
+      begin() { side(0); const h = heroP(); if (h) cam(h, 3); },
       update(dt) {
         A.t += dt;
-        const w = A.walker && A.walker.a;
-        if (w && (A.phase === 'ready' || A.phase === 'pull' || A.phase === 'slide')) {
+        const h = heroP(); if (!h) return;
+        if (A.phase === 'go') { A.tStop += dt; if ((!X.hero.walking && A.tStop > 0.3) || A.tStop > 3) { A.phase = 'ready'; } }
+        if (A.phase === 'ready' || A.phase === 'pull' || A.phase === 'slide') {
           if (A.hold) A.v = lerp(A.v, vmax, 1 - Math.exp(-dt / 0.45));
           else A.v *= Math.exp(-dt / 0.24);
-          A.d += A.v * dt;
-          const tx = A.ax + A.ux * (1.2 + A.d), tz = A.az + A.uz * (1.2 + A.d);
-          if (A.v > 0.15) { w.path = [[tx + A.ux * 0.6, tz + A.uz * 0.6]]; w.pi = 0; w.speed = Math.max(0.6, A.v); }
-          else { w.path = null; }
-          w.x = tx; w.z = tz; w.yaw = Math.atan2(A.ux, A.uz);
-          X.count({ x: tx, y: X.ground(tx, tz) + 4.2, z: tz }, `${Math.round(450 + A.d)} אמה`);
+          // where he is along the side (his own feet), and back onto the line if a step took him aside
+          const d0 = A.d;
+          A.d = (h.x - A.ax) * A.ux + (h.z - A.az) * A.uz;
+          const e = (h.x - A.ax) * A.px + (h.z - A.az) * A.pz;
+          if (A.v > 0.15) drive(A.ux * A.v - A.px * e * 2, A.uz * A.v - A.pz * e * 2); else drive(0, 0);
+          // (a step refused by something underfoot: he is set on along the line, never stuck)
+          if (A.v > 1.5 && A.d - d0 < A.v * dt * 0.2) { A.stuck += dt; if (A.stuck > 0.35) { try { X.hero.setPos(h.x + A.ux * A.v * dt * 3, h.z + A.uz * A.v * dt * 3, Math.atan2(A.ux, A.uz)); } catch (er) { /* */ } } } else A.stuck = 0;
+          X.count({ x: h.x, y: X.ground(h.x, h.z) + 4.6, z: h.z }, `${Math.round(450 + A.d)} אמה`);
           // released and stopped: a short pull (under 30 amot) is a test — hold again; a real one settles
-          if (A.phase === 'slide' && A.v < 0.2) { w.path = null; if (A.d < 30) { A.phase = 'ready'; X.line('עוד: החזיקו עד היתד'); } else { X.count(null); settle(); } }
-          // too far: the far worker stops and signals back (spec: מאוחר — הפועל נעצר ומסמן "חזרה")
-          if (A.d > 50 * 1.12 && A.phase === 'pull') { A.hold = false; A.phase = 'slide'; A.v = Math.min(A.v, 1); X.word({ x: tx, y: X.ground(tx, tz) + 3, z: tz }, 'עצור!'); }
+          if (A.phase === 'slide' && A.v < 0.2) { drive(0, 0); if (A.d < 30) { A.phase = 'ready'; X.line('עוד: החזיקו עד היתד'); } else settle(); }
+          // too far: the crewman at the stake calls him back (spec: מאוחר — הפועל נעצר ומסמן "חזרה")
+          if (A.d > 50 * 1.12 && A.phase === 'pull') { A.hold = false; A.phase = 'slide'; A.v = Math.min(A.v, 1); X.word({ x: h.x, y: X.ground(h.x, h.z) + 3, z: h.z }, 'עצור!'); }
         }
         if (A.drive) { A.drive.t += dt; A.drive.s.scale.y = Math.min(1, 0.05 + A.drive.t * 6); if (A.drive.t > 0.3) A.drive = null; }
-        if (A.phase === 'driven') { A.tStop += dt; if (A.tStop > 1.3) { if (A.side + 1 < H109.ROPE_SIDES) side(A.side + 1); else finish(); } }
+        if (A.phase === 'driven') { A.tStop += dt; if (A.tStop > 1.6) { if (A.side + 1 < H109.ROPE_SIDES) side(A.side + 1); else finish(); } }
         if (A.phase === 'done' && SH.sq) { A.flash += dt; SH.sq.material.opacity = 0.32 + 0.68 * Math.max(0, Math.cos(A.flash * 7)) * Math.max(0, 1 - A.flash / 2.4); }
-        ropeDraw();
+        if (A.phase !== 'done') cam(h, A.phase === 'go' ? 2 : 3.2);
+        rodDraw(h, dt); ropeDraw();
       },
-      down() { if (A.phase === 'ready' || A.phase === 'slide') { A.hold = true; A.phase = 'pull'; X.play('rope'); } },
+      down() { if (A.phase === 'ready' || A.phase === 'slide') { A.hold = true; A.phase = 'pull'; X.play('rope'); X.hand(null); } },
       move() {},
       up() { if (A.phase === 'pull') { A.hold = false; A.phase = 'slide'; } },
-      end() { if (A.walker) { C.remove(A.walker); A.walker = null; } if (A.rope) { A.rope.dispose(); A.rope = null; } if (A.ring) X.props.remove(A.ring); if (A.ghost) X.props.remove(A.ghost); if (SH.sq) SH.sq.material.opacity = 0.32; X.count(null); },
+      cancel() { if (A.phase === 'pull') { A.hold = false; A.phase = 'slide'; } },
+      end() { drive(0, 0); if (A.holder) { C.remove(A.holder); A.holder = null; } if (A.rope) { A.rope.dispose(); A.rope = null; } if (A.rod) { X.props.remove(A.rod); A.rod = null; } if (A.ring) X.props.remove(A.ring); if (A.ghost) X.props.remove(A.ghost); if (SH.sq) SH.sq.material.opacity = 0.32; X.count(null); },
       at() { return { x: SQ.x1, y: X.ground(SQ.x1, SQ.z0) + 2, z: SQ.z0 }; },
       dbg() { return { side: A.side, d: +A.d.toFixed(2), v: +A.v.toFixed(2), phase: A.phase, res: A.res.slice() }; },
     };
@@ -247,8 +302,8 @@ const ROCKS_ACT = {
       const T = X.THREE, g = X.ground(R.x, R.z), a = Math.atan2(R.uz, R.ux) + (j ? -0.45 : 0.35);
       const m2 = new T.Mesh(new T.PlaneGeometry(0.16, R.r * 0.9), X.props.M.seam.clone());
       const x = R.x + Math.cos(a) * R.r * 0.93, z = R.z + Math.sin(a) * R.r * 0.93;
-      m2.position.set(x, g + R.r * 0.5, z); m2.lookAt(x + Math.cos(a), g + R.r * 0.5, z + Math.sin(a)); m2.rotateZ(0.25 - j * 0.5);
-      m2.renderOrder = 997; X.props.root.add(m2); m2.userData.p = { x, y: g + R.r * 0.5, z }; return m2;
+      m2.position.set(x, g + R.r * 0.38, z); m2.lookAt(x + Math.cos(a), g + R.r * 0.38, z + Math.sin(a)); m2.rotateZ(0.25 - j * 0.5);
+      m2.renderOrder = 997; X.props.root.add(m2); m2.userData.p = { x, y: g + R.r * 0.38, z }; return m2;
     }
     function strike(p) {
       if (A.phase !== 'work' || A.pend) return;
@@ -278,7 +333,7 @@ const ROCKS_ACT = {
       const best = A.hits.includes('gold') ? (ugly ? 'good' : 'gold') : A.hits.includes('good') ? 'good' : 'ok';
       X.M.rockHit(m.s, R.i, ugly ? 'ok' : best);
       X.play('split'); X.shake(0.18, 0.4); X.dust(R.x, g + 0.6, R.z, 14, 3.5);
-      if (ugly) X.word(at, 'נבקע מכוער · כשר');
+      if (ugly) X.word(at, 'נבקע עקום · כשר');
       else X.bonus(60, 'split', 'הסלע נבקע!');
       A.phase = 'split'; A.walkT = 0;
       if (A.ring) { X.props.remove(A.ring); A.ring = null; } if (A.band) { X.props.remove(A.band); A.band = null; }

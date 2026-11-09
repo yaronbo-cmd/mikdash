@@ -47,6 +47,7 @@ export function createH109Director(o) {
   })();
   function onlyNext() {
     if (!ONLY || !M) return;
+    if (M.autoTo) { if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6); if (!M.mission() || M.mission().k !== ONLY) M.autoTo((m) => m.k === ONLY); return; }   // ── h114 ── ── /h114 ──
     while (M.mission() && M.mission().k !== ONLY) { if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6); M.done({ stars: 2 }); }
     if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6);
   }
@@ -61,7 +62,13 @@ export function createH109Director(o) {
   const cq = {};
   function shot(p, t, dur = 0.8) {
     view.camNow(cq); CAM.p0.set(cq.px, cq.py, cq.pz); CAM.t0.set(cq.tx, cq.ty, cq.tz);
-    CAM.p1.set(p[0], p[1], p[2]); CAM.t1.set(t[0], t[1], t[2]); CAM.u = dur > 0 ? 0 : 1; CAM.dur = Math.max(0.01, dur); CAM.on = true;
+    CAM.p1.set(p[0], p[1], p[2]); CAM.t1.set(t[0], t[1], t[2]); CAM.u = dur > 0 ? 0 : 1; CAM.dur = Math.max(0.01, dur); CAM.on = true; CAM.chase = 0;
+  }
+  // ── h114 ── (ירון 9.11: "המסך קופץ 10 שניות") a follow shot: called every frame with where the camera should be, it never restarts the
+  // ease (a shot() every frame did, and the picture jumped); the first call eases in, then the camera chases the moving aim smoothly ── /h114 ──
+  function track(p, t, rate = 2.5, dur = 0.9) {
+    if (!CAM.on || !CAM.chase) { shot(p, t, dur); CAM.chase = rate; return; }
+    CAM.p1.set(p[0], p[1], p[2]); CAM.t1.set(t[0], t[1], t[2]); CAM.chase = rate;
   }
   /** a ¾ work shot (spec ש3): from the kohen's side and behind, the object to the right of the screen centre, the kohen in the left third */
   function workShot(obj, stand, o2 = {}) {
@@ -75,8 +82,8 @@ export function createH109Director(o) {
   }
   function camStep(dt) {
     if (!CAM.on) return;
-    CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u);
-    CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k);
+    if (CAM.chase && CAM.u >= 1) { const k = 1 - Math.exp(-dt * CAM.chase); CAM.p.lerp(CAM.p1, k); CAM.t.lerp(CAM.t1, k); }   // ── h114 ── ── /h114 ──
+    else { CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u); CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k); }
     view.camSet(CAM.p.x, CAM.p.y, CAM.p.z, CAM.t.x, CAM.t.y, CAM.t.z);
     // ── h112 ── (before each render OrbitControls keeps the camera its minDistance from the target and main.js clampCam lifts it to the
     // Mount's floor: the same here, or a touch's ray and project() would be of another camera than the frame shown) ── /h112 ──
@@ -96,7 +103,63 @@ export function createH109Director(o) {
   /** the screen point of a world point → {x, y, on} (a fresh object) */
   function scr(x, y, z) { const q = view.project(x, y, z); return { x: q.x, y: q.y, on: q.on }; }
   const hudEl = (e) => !!(e && e.closest && e.closest('.gm-top,.gm-tabs,.gm-menu,.gm-modal,button,.h109-ui'));
+  /* ───────── ── h114 ── the zoom-out (ירון 9.11: "אני כן רוצה יכולת לצאת בזום אאוט ולראות את העולם אם בא לי. בכל המשחקונים בכל
+     השלבים"): during any act, the mouse wheel back or two fingers pinching in lift the camera over the Mount; the act waits as it is
+     (nothing is lost); the world is free to turn and zoom (OrbitControls); "↩ חזרה לעבודה", the wheel forward close in, or Esc, bring
+     the camera down to the very shot he left, and the act goes on. ── ───────── */
+  const OV = { on: false, p: null, t: null, d0: 0, pins: new Map(), pd0: 0, close: false, back: 0 };
+  function ovEnter(why) {
+    if (OV.on || !act || phase !== 'act' || ending) return;
+    if (ptr.down) { ptr.down = false; if (typeof act.cancel === 'function') call(act.cancel); else call(act.up, ptr); }
+    OV.on = true; OV.back = 0;
+    view.camNow(cq); OV.p = CAM.on ? CAM.p1.clone() : new THREE.Vector3(cq.px, cq.py, cq.pz); OV.t = CAM.on ? CAM.t1.clone() : new THREE.Vector3(cq.tx, cq.ty, cq.tz);
+    // (high over the Mount, from the side he looked from, the work still in the frame)
+    const at = act.at ? act.at() : null, c = at ? new THREE.Vector3(at.x, at.y, at.z) : OV.t.clone();
+    const M0 = new THREE.Vector3(27, 0, 66), tg = c.clone().lerp(M0, 0.45); tg.y = 0;
+    const dx = cq.px - cq.tx, dz = cq.pz - cq.tz, L = Math.hypot(dx, dz) || 1;
+    const P1 = [tg.x + (dx / L) * 520, 360, tg.z + (dz / L) * 520];
+    OV.d0 = Math.hypot(P1[0] - tg.x, P1[1] - tg.y, P1[2] - tg.z);
+    OV.close = false; try { if (act.close && view.closeCam) { view.closeCam(false, 'h109'); OV.close = true; } } catch (e) { /* */ }
+    shot(P1, [tg.x, tg.y, tg.z], 1.1);
+    OV.free = performance.now() + 1150;
+    uiMount(); UI.ovb.classList.add('on'); UI.line.classList.add('h109-hide');
+    if (HINT.on) UI.hand.classList.add('off');
+    try { props().marker(at ? { x: at.x, z: at.z } : null); } catch (e) { /* */ }
+    X.play('swoosh'); log('overview', why);
+    emit('h109overview', { on: true, why });
+  }
+  function ovLeave(why) {
+    if (!OV.on) return;
+    OV.on = false; OV.free = 0;
+    try { if (OV.close && view.closeCam) view.closeCam(true, 'h109'); } catch (e) { /* */ }
+    if (OV.p && act) shot([OV.p.x, OV.p.y, OV.p.z], [OV.t.x, OV.t.y, OV.t.z], 0.9);
+    UI.ovb.classList.remove('on'); UI.line.classList.remove('h109-hide');
+    if (HINT.on) UI.hand.classList.remove('off');
+    try { props().marker(null); } catch (e) { /* */ }
+    log('overview off', why); emit('h109overview', { on: false, why });
+  }
+  function ovFrame() {
+    if (!OV.on) return;
+    // the fly out done: the world is his to turn (OrbitControls); closing in on it again brings him back to the work
+    if (OV.free && performance.now() > OV.free) { OV.free = 0; CAM.on = false; }
+    if (!CAM.on && !OV.free) { view.camNow(cq); const d = Math.hypot(cq.px - cq.tx, cq.py - cq.ty, cq.pz - cq.tz); if (d < OV.d0 * 0.3) ovLeave('zoom-in'); }
+  }
+  addEventListener('wheel', (e) => {
+    if (!act || phase !== 'act') return;
+    if (!OV.on && e.deltaY > 0) { e.preventDefault(); e.stopImmediatePropagation(); ovEnter('wheel'); }
+  }, { capture: true, passive: false });
+  addEventListener('keydown', (e) => { if (OV.on && e.key === 'Escape') ovLeave('esc'); });
   function onPtr(e) {
+    // ── h114 ── two fingers on the world during an act: a pinch in lifts to the overview ── /h114 ──
+    if (act && phase === 'act' && e.pointerType === 'touch') {
+      if (e.type === 'pointerdown' && !hudEl(e.target)) { OV.pins.set(e.pointerId, [e.clientX, e.clientY]); if (OV.pins.size === 2) { const [a, b] = [...OV.pins.values()]; OV.pd0 = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1; } }
+      else if (e.type === 'pointermove' && OV.pins.has(e.pointerId)) {
+        OV.pins.set(e.pointerId, [e.clientX, e.clientY]);
+        if (OV.pins.size === 2 && !OV.on) { const [a, b] = [...OV.pins.values()]; if (Math.hypot(a[0] - b[0], a[1] - b[1]) < OV.pd0 * 0.72) ovEnter('pinch'); }
+      } else if (e.type === 'pointerup' || e.type === 'pointercancel') OV.pins.delete(e.pointerId);
+      if (OV.pins.size >= 2 && !OV.on && ptr.down && e.pointerId !== ptr.id) return;   // (the second finger is the pinch's)
+    }
+    if (OV.on) { if (e.type === 'pointerdown') globalThis.__TW_GEST = performance.now(); return; }   // (the world's own: turn, zoom; a tap picks nothing)
     // (a finger lifted after its act ended — the act's last beat, the film — still frees the touch: else every later touch is lost)
     if ((e.type === 'pointerup' || e.type === 'pointercancel') && ptr.down && e.pointerId === ptr.id && (!act || phase !== 'act')) { ptr.down = false; return; }
     if (!act || phase !== 'act') return;
@@ -156,6 +219,11 @@ export function createH109Director(o) {
 @keyframes h109turn{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (orientation:portrait){.h109-rot.want{display:flex}}
 .gm.h109-own .tw-pad{display:none!important}
+.h109-line.h109-hide{opacity:0}
+.h109-ovb{left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) scale(.9);opacity:0;pointer-events:none;background:#FFF6DA;color:#3A2608;border:0;font:900 18px/1 Heebo,system-ui;padding:12px 22px;border-radius:22px;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:opacity .2s,transform .2s;cursor:pointer}
+.h109-ovb.on{opacity:1;pointer-events:auto;transform:translateX(-50%) scale(1)}
+.h109-ovt{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.72);color:#FFF6DA;font:800 14px/1.2 Heebo,system-ui;padding:6px 14px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
+.h109-ovb.on ~ .h109-ovt{opacity:1}
 body.h109-act .gm .tw-zone{opacity:0!important}
 `;
     document.head.appendChild(st);
@@ -167,6 +235,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     UI.meter = mk('h109-meter off', '<b></b>');
     UI.count = mk('h109-count off');
     UI.rot = mk('h109-rot', '<b>📱</b><span>סובבו את הטלפון לרוחב</span>');
+    // ── h114 ── the overview's way back (a button of the screen, not of the work: the work is touched in the world) ── /h114 ──
+    UI.ovb = document.createElement('button'); UI.ovb.type = 'button'; UI.ovb.className = 'h109-ui h109-ovb'; UI.ovb.textContent = '↩ חזרה לעבודה';
+    UI.ovb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); ovLeave('button'); }); document.body.appendChild(UI.ovb);
+    UI.ovt = mk('h109-ovt', 'מבט על · סובבו וגללו לראות את העולם');
     // the streak chip in the top bar, beside the score capsule (the old cubes stay as they are)
     UI.chip = document.createElement('div'); UI.chip.className = 'h109-chip'; UI.chip.innerHTML = '<i>🔥</i><span>0</span><small></small>';
     placeChip();
@@ -186,6 +258,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function count(at, text) { uiMount(); if (!at) { UI.count.classList.add('off'); return; } UI.count.classList.remove('off'); const q = scr(at.x, at.y, at.z); UI.count.style.left = q.x + 'px'; UI.count.style.top = q.y + 'px'; UI.count.textContent = text; }
   function uiFrame() {
     if (!UI.root) return;
+    if (UI.ovt) UI.ovt.style.opacity = OV.on ? '1' : '0';
     if (lineT && performance.now() > lineT) { lineT = 0; UI.line.classList.add('off'); }
     if (HINT.on) { const q = scr(HINT.x, HINT.y, HINT.z); UI.hand.style.left = q.x + 'px'; UI.hand.style.top = q.y + 'px'; }
     UI.rot.classList.toggle('want', owns());
@@ -217,8 +290,62 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   let PROPS = null;
   function props() { if (!PROPS) PROPS = createProps({ THREE, scene, ground, stages: S0 }); return PROPS; }
 
-  function standOf(m) { const A = ACTS[m.k]; return A && A.stand ? A.stand(m, X) : null; }
+  // ── h114 ── (a work's stand asked while another is open: the level it will play at is its own, not the open one's) ── /h114 ──
+  let lvM = null;
+  function standOf(m) { const A = ACTS[m.k]; if (!A || !A.stand) return null; lvM = m; try { return A.stand(m, X); } finally { lvM = null; } }
+  // ── h114 ── rule 54 (ירון 9.11: "שאני אבחר לאן ללכת ומה לעשות מתי שבא לי"): a pack whose model has open() lets him choose. Every open
+  // work has its stake on the hill; he walks to one (9 amot) and it is his, the crews set it up, the magnet brings him to its stand
+  // and the act begins. Walking away from it (14 amot) gives it back. The compass and the markers point to the nearest ones. ── /h114 ──
+  const FREE = () => !!(M && M.open);
+  let OPEN = [], fwT = 0, fwLine = null, byWalk = false;
+  const mkAt = (sp) => ({ x: sp.mx != null ? sp.mx : sp.x, z: sp.mz != null ? sp.mz : sp.z });
+  function openList() {
+    OPEN = M.open().map((m) => ({ m, sp: standOf(m) })).filter((q) => q.sp);
+    props().markers(OPEN.map((q) => mkAt(q.sp)));
+  }
+  function nearestOpen() {
+    const h = heroAt(); if (!h || !Number.isFinite(h.x) || !OPEN.length) return null;
+    let best = null, bd = 1e9; for (const q of OPEN) { const d = Math.hypot(h.x - q.sp.x, h.z - q.sp.z); if (d < bd) { bd = d; best = q; } }
+    return best ? { ...best, d: bd } : null;
+  }
+  function pickNow(m, walked) {
+    M.pick(m.id); mission = M.mission(); if (!mission) return false;
+    byWalk = !!walked; tPhase = 0.5;
+    showOne();
+    return true;
+  }
+  function freeWalk(dt) {
+    const q = nearestOpen();
+    fwT -= dt;
+    if (fwT <= 0) {
+      fwT = 0.4; const A = q && ACTS[q.m.k];
+      const t = q && q.d < 40 && A && A.walkLine ? A.walkLine(q.m, X) : OPEN.length > 1 ? 'בחרו עבודה ולכו אל יתד' : '';
+      if (t !== fwLine) { fwLine = t; line(t, 0); }
+    }
+    if (q && q.d < 9 && tPhase > 0.4) pickNow(q.m, true);
+  }
+  function showOne() {
+    const sp = standOf(mission);
+    props().marker(sp ? mkAt(sp) : null);
+    const A = ACTS[mission.k];
+    line(A && A.walkLine ? A.walkLine(mission, X) : 'לכו אל היתד האדומה', 0); fwLine = null;
+    if (A && A.prepare) call(A.prepare, mission, X);
+    emit('h109mission', { id: mission.id, k: mission.k });
+    log('open', mission.id);
+    save();
+  }
+  // ── /h114 ──
   function openMission() {
+    if (FREE()) {   // ── h114 ── ── /h114 ──
+      if (M.finished()) { mission = null; finishStage(); return; }
+      mission = M.mission(); phase = 'walk'; tPhase = 0; act = null; OPEN = []; fwLine = null; fwT = 0;
+      if (mission) { byWalk = false; showOne(); return; }
+      openList();
+      emit('h109open', { n: OPEN.length, ids: OPEN.map((q) => q.m.id) });
+      log('open', OPEN.map((q) => q.m.id).join(','));
+      save();
+      return;
+    }
     mission = M.mission();
     if (!mission) { finishStage(); return; }
     // ── h111 ── between two levels the pack's own film (stage 02: rain at night, the sun in the morning; Taanit 23a) ── /h111 ──
@@ -244,7 +371,15 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   /** the director's marks for twin.js (its bubble, its edge arrow, its compass): the open mission while he walks */
   const MK = [{ job: 'h109', icon: PK.icon || '⛏', label: '', site: PK.id, x: 0, y: 0, z: 0 }];
   const NOMK = [];
+  const MKF = [0, 1, 2, 3].map(() => ({ job: '', icon: '', label: '', site: PK.id, x: 0, y: 0, z: 0 }));
+  const MKL = [];
   function marks() {
+    if (owns() && phase === 'walk' && !mission && FREE()) {   // ── h114 ── (the four nearest open works) ── /h114 ──
+      const h = heroAt(); MKL.length = 0; if (!h || !OPEN.length) return NOMK;
+      const L = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => a.d - b.d).slice(0, 4);
+      L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.s != null ? ` · ${q.m.s + 1}` : ''); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });
+      return MKL;
+    }
     if (!owns() || phase !== 'walk' || !mission) return NOMK;
     const sp = standOf(mission); if (!sp) return NOMK;
     const A = ACTS[mission.k], m = MK[0];
@@ -254,12 +389,14 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   const GOAL = { x: 0, y: 0, z: 0, icon: PK.icon || '⛏' };
   function goal() { const L = marks(); if (!L.length) return null; GOAL.x = L[0].x; GOAL.y = L[0].y; GOAL.z = L[0].z; GOAL.icon = L[0].icon; return GOAL; }
   /** the compass: he is brought to the open mission's stand */
-  function goTo() { if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false; try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
+  function goTo() {
+    if (!mission && phase === 'walk' && FREE()) { const q = nearestOpen(); if (!q || !pickNow(q.m, false)) return false; }   // ── h114 ── (the compass: the nearest open work is his) ── /h114 ──
+    if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false; try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
 
   /* ───────── the act ───────── */
   const WAITS = [];
   const X = {
-    THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
+    THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, track, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
     get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, ui, sfx: o.sfx, haptic: o.haptic,
     actors: () => S0.crewActors || null, PLACES, H109,
     beat() { let b = null; try { const Mu = globalThis.__BH_MUSIC; b = Mu && typeof Mu.beat === 'function' ? Mu.beat() : null; } catch (e) { b = null; } return b && b.period > 0.2 && Number.isFinite(+b.toNext) ? b : null; },
@@ -268,9 +405,19 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     dust(x, y, z, n = 10, s = 4) { try { S0.dustBurst(x, y, z, n, s, s, 1.5); } catch (e) { /* */ } },
     sparks(x, y, z, n = 10) { try { S0.sparkBurst(x, y, z, n, 5, 6); } catch (e) { /* */ } },
     end: (res) => endAct(res),
+    // ── h114 ── (ירון 9.11: an exact stop "צריך להיות תגובה מרגשת כמו 'הסתת רמה 4' — זה דופמין מדויק") the perfect moment: the level-up's
+    // own stamp, fanfare and buzz, a fountain of sparks where it happened and a short shake ── /h114 ──
+    perfect(text, at) {
+      try { if (ui && ui.stamp) ui.stamp(text, { ms: 1600 }); } catch (e) { /* */ }
+      try { if (o.sfx && o.sfx.play) o.sfx.play(typeof o.sfx.has === 'function' && o.sfx.has('levelUp') ? 'levelUp' : 'fanfare', { level: 4 }); } catch (e) { /* */ }
+      try { if (o.haptic) o.haptic([20, 40, 30]); } catch (e) { /* */ }
+      if (at) { try { S0.sparkBurst(at.x, at.y, at.z, 34, 7, 9); S0.sparkBurst(at.x, at.y + 1.2, at.z, 18, 4, 6); } catch (e) { /* */ } }
+      try { S0.twinShake(0.22, 0.35); } catch (e) { /* */ }
+      emit('h109perfect', { text });
+    },
     // ── h111 ── a film's beat in the world's time (as the camera eases), not the wall clock's: on a slow frame the shot still lands ── /h111 ──
     wait: (secs) => new Promise((r) => WAITS.push({ t: secs, r })),
-    level: () => (mission ? M.levelOf(mission) : 1),
+    level: () => { const m = lvM || mission; return m ? M.levelOf(m) : 1; },   // ── h114 ── ── /h114 ──
     loss: (n, at, label, stones, res) => loss(n, at, label, stones, res),   // ── h113 ── (res: 'cedar' for a board or a leaf) ── /h113 ──   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
     save: () => save(),
     get pack() { return PK; },
@@ -302,6 +449,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
+    // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's
+    // own act may set its own rects in its begin() ── /h114 ──
+    try { const sp = standOf(mission), at = act.at ? act.at() : null; if (S0.keepOut && sp) { const xs = [sp.x, at ? at.x : sp.x], zs = [sp.z, at ? at.z : sp.z], m = 16; S0.keepOut([[Math.min(...xs) - m, Math.min(...zs) - m, Math.max(...xs) + m, Math.max(...zs) + m]]); } } catch (e) { /* */ }
     document.body.classList.add('h109-act');
     // an act whose shot comes close (the letters on the stone) asks for it: the world camera's 35-amot floor gives way while it holds
     try { if (act.close && view.closeCam) view.closeCam(true, 'h109'); } catch (e) { /* */ }
@@ -313,6 +463,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   let ending = false;
   async function endAct(res = {}) {
     if (!act || ending) return; ending = true;
+    if (OV.on) { OV.on = false; OV.free = 0; try { UI.ovb.classList.remove('on'); UI.line.classList.remove('h109-hide'); props().marker(null); if (OV.close && view.closeCam) view.closeCam(true, 'h109'); } catch (e) { /* */ } }   // ── h114 ── ── /h114 ──
     const m = mission, a = act;
     const stars = res.stars != null ? res.stars : starsOf(res.q || 0);
     log('end', m.id, 'stars', stars, res.lost ? 'LOST' : '');
@@ -323,6 +474,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (J && stars > 0) { try { await J.result({ stars, at }); } catch (e) { /* */ } }
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res);
+    try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
     M.done({ ...res, stars });
     syncMount(false);
@@ -332,6 +484,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const sec = U ? U.sub : null;
     if (U) { bonus(250, 'course', U.bonus || U.title); try { if (J) J.big('course', { title: U.title, sub: U.sub }); } catch (e) { /* */ } }
     await pullBack(at, sec ? 3.2 : 1.8);
+    try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
     phase = 'walk';
@@ -392,13 +545,16 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     tPhase += dt;
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
-    if (phase === 'act' && act) { act.t += dt; call(act.update, dt); }
+    if (phase === 'act' && act && !OV.on) { act.t += dt; call(act.update, dt); try { if (S0.shadowSoon) S0.shadowSoon(); } catch (e) { /* */ } }   // ── h114 ── (the shadows follow what the act moves; the act waits while he looks from above) ── /h114 ──
+    if (OV.on) ovFrame();
     if (phase === 'film' && film) { film.t += dt; if (film.t >= film.dur) { const r = film.res; film = null; CAM.on = false; r(); } }
     if (phase === 'end' || phase === 'film' || phase === 'act') camStep(dt);
+    if (phase === 'walk' && !mission && FREE()) freeWalk(dt);   // ── h114 ── ── /h114 ──
     if (phase === 'walk' && mission) {
       const sp = standOf(mission), h = heroAt();
       if (sp && h && Number.isFinite(h.x)) {
         const d = Math.hypot(h.x - sp.x, h.z - sp.z);
+        if (FREE() && byWalk && !ONLY && d > 14) { M.pick(null); mission = null; byWalk = false; openMission(); if (PROPS) PROPS.frame(dt, ms); return; }   // ── h114 ── (he walked away: the work is open again) ── /h114 ──
         // the magnet (spec, rule 26): within 9 amot he is drawn to the stand; there the act begins
         const tw = o.twin && o.twin();
         const driving = !!(hero && hero.driving);
@@ -433,15 +589,18 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   return {
     owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end'), start, frame, marks, goal, goTo,
     get M() { return M; }, only: ONLY, site: PK.id, get pack() { return PK; },
-    state: () => ({ started, phase, mission: mission && mission.id, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
+    state: () => ({ started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
     act: () => act,
+    // ── h114 ── the top pill: the stage's works done of all (the old world's pill said "מדידה" all through stage 01) ── /h114 ──
+    pill: () => { if (!FREE() || !started) return ''; const n = M.st.done.length, of = PLAN.length; return `<span class="gm-k">המטרה</span><span><b>${PK.name || 'שיטוח ההר'}</b> <span class="gm-sub">· ${n} מתוך ${of} עבודות</span></span>`; },
     X,
     resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
     // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──
-    dispose() { started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
+    dispose() { started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
     // tests: finish the open act with a result
     _end: (res) => endAct(res || { stars: 3 }),
+    overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
-    _skipTo: (id) => { if (!M) return false; while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
+    _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
   };
 }

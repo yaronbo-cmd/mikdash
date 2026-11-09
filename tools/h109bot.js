@@ -8,11 +8,6 @@
   const W = innerWidth, HH = innerHeight;
   const C = (body) => `(()=>{const a=__T.game.h109.state().act;${body}})()`;
   const mid = (p, q, u = 0.5) => [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
-  const PAVE = {
-    1: [[3, 0, 0], [3, 3, 0]],
-    2: [[3, 0, 0], [3, 3, 0], [1, 0, 1], [3, 1, 1], [1, 4, 1], [1, 5, 1]],
-    3: [[3, 0, 0], [3, 3, 0], [1, 0, 1], [3, 1, 1], [2, 4, 1], [3, 0, 2], [3, 3, 2]],
-  };
   const play = {
     rope(a) {
       if (a.phase === 'ready') return { holdUntil: [W * 0.6, HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
@@ -23,17 +18,22 @@
       return { wait: 200 };
     },
     read(a) {
-      if ((a.step === 'turn' || a.step === 'wedge') && !a.seen[0]) { const dx = -(a.linePhi[0] - a.th) / 0.0045; return { drag: [W * 0.5, HH * 0.62, W * 0.5 + dx, HH * 0.62, 700], note: 'read: turn the mirror ' + Math.round(dx) + 'px' }; }
+      // (build 114: a.aim = where the light must turn to fall on each crack; a.ok = which is the true one)
+      const k = Math.max(0, a.ok.indexOf(true));
+      if (a.busy) return { wait: 200 };
+      if ((a.step === 'turn' || a.step === 'wedge') && !a.seen[k]) { const dx = -(a.aim[k] - a.th) / 0.0045; return { drag: [W * 0.5, HH * 0.62, W * 0.5 + dx, HH * 0.62, 700], wait: 300, note: 'read: turn the mirror ' + Math.round(dx) + 'px' }; }
       if ((a.step === 'turn' || a.step === 'wedge') && a.wedges < a.nW) {
-        const P = a.linePts[0], u = (0.14 + (0.72 * a.wedges) / Math.max(1, a.nW - 1)) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(u));
-        return { tap: mid(P[j], P[j + 1], u - j), wait: 350 };
+        const P = a.linePts[k], u = (0.12 + (0.5 * a.wedges) / Math.max(1, a.nW - 1)) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(u));
+        return { tap: mid(P[j], P[j + 1], u - j), wait: 900 };
       }
       if (a.step === 'water') return { holdUntil: [W * 0.5, HH * 0.5, C('return !a||a.step!==\'water\'||a.water>=1.04'), 7000] };
       return { wait: 250 };
     },
     pave(a) {
-      const rows = a.closed.length, plan = PAVE[rows] || PAVE[1];
+      // (build 114: the act tells its true laying, a.sol: rows of lengths; the bot lays it in order)
+      const plan = []; (a.sol || []).forEach((row, cy) => { let cx = 0; for (const L of row) { plan.push([L, cx, cy]); cx += L; } });
       const bk = a.slabs.find((q) => q.broken && !q.gone && !q.at);
+      if (bk && a.rej) return { drag: [bk.scr[0], bk.scr[1], a.rej[0], a.rej[1], 700], wait: 500, note: 'pave: the cracked slab to the crate' };
       for (const [L, cx, cy] of plan) {
         if (a.grid[cy][cx] !== '0') continue;
         const q = a.slabs.find((s) => !s.at && !s.gone && !s.broken && s.L === L);
@@ -41,7 +41,6 @@
         const t = mid(a.cells[cy][cx], a.cells[cy][cx + L - 1]);
         return { drag: [q.scr[0], q.scr[1], t[0], t[1], 700], wait: 500, note: `pave L${L} → ${cx},${cy}` };
       }
-      if (bk) return { drag: [bk.scr[0], bk.scr[1], a.rej[0], a.rej[1], 700], wait: 500, note: 'pave: the broken slab to the reject ring' };
       return { wait: 400 };
     },
     waste(a) {
@@ -55,32 +54,36 @@
     corner(a) {
       if (a.phase === 'lift') {
         const since = now() - (B.k.sw || 0);
-        if (since < 300) return { wait: Math.max(10, 300 - since) };
+        if (since < 440) return { wait: Math.max(10, 440 - since) };
         B.k.sw = now();
         return { drag: [W * 0.72, HH * 0.38, W * 0.72, HH * 0.38 + 90, 120] };
       }
       if (a.phase === 'lower') {
-        if (a.gap > 1.0) return { holdUntil: [W * 0.6, HH * 0.5, C('return !a||a.phase!==\'lower\'||a.gap<0.95'), 9000] };
-        if (a.swing > 0.8) return { wait: 60 };
-        return { hold: [W * 0.6, HH * 0.5, 230], wait: 120 };
+        // (build 114: the finger on the chalk steers the stone over it while it lowers)
+        const c = a.chalk || [W * 0.6, HH * 0.5];
+        if (a.gap > 1.0) return { holdUntil: [c[0], c[1], C('return !a||a.phase!==\'lower\'||a.gap<0.95'), 9000] };
+        if (a.swing > 0.8 || a.dx > 0.04) return { hold: [c[0], c[1], 60], wait: 200 };
+        return { hold: [c[0], c[1], 230], wait: 120 };
       }
       return { wait: 250 };
     },
     course(a) {
+      // (build 114: the act tells the one order that closes the gap; the bot ties each stone in turn and lowers it on its place)
       if (a.phase === 'choose') {
-        const want = a.want, end = a.gap[1], left = end - want;
-        const ok = (L) => L <= left + 0.01 && (Math.abs(want + L - end) < 0.01 || (!a.below.some((b) => Math.abs(b - (want + L)) < 0.3) && end - (want + L) >= 2 - 0.01));
-        const L = [4, 3, 2].find(ok) || [2, 3, 4].find((l) => l <= left + 0.01) || 2;
-        return { tap: a.stock[[2, 3, 4].indexOf(L)], wait: 700, note: `course: take ${L} for ${want}..${end}` };
+        const laid = a.set.map((q) => q[2]); const next = a.sol.find((L) => !laid.includes(L));
+        const q = a.stock.find((s) => s.L === next); if (!q) return { wait: 400, note: 'course: no stone ' + next };
+        return { tap: q.scr, wait: 1500, note: `course: take ${next}` };
       }
-      if (a.phase === 'aim' && a.cur) {
-        const f = (a.want + a.cur / 2 - a.gap[0]) / (a.gap[1] - a.gap[0]), p = mid(a.gapScr[0], a.gapScr[1], f);
-        return { path: [p, [p[0] + 1, p[1]]], ms: 120, keep: 6000, release: C('return !a||(Math.abs(a.hz-a.tz)<0.05&&Math.abs(a.sx)<0.25)') };
+      if (a.phase === 'carry' && a.tgt) {
+        const t = a.tgt;
+        if (a.gapB > 1.0) return { holdUntil: [t[0], t[1], C('return !a||a.phase!==\'carry\'||a.gapB<0.9'), 14000] };
+        if (a.sway > 0.25 || Math.abs(a.dz - a.ta) > 0.08) return { hold: [t[0], t[1], 60], wait: 300 };
+        return { hold: [t[0], t[1], 230], wait: 150 };
       }
       return { wait: 250 };
     },
     great(a) {
-      if (a.phase === 'roll' && a.out.length) return { drag: [a.out[0][0], a.out[0][1], a.frontScr[0], a.frontScr[1], 600] };
+      if (a.phase === 'roll' && a.out.length) return { drag: [a.out[0][0], a.out[0][1], a.frontScr[0], a.frontScr[1], 600], note: 'great: roller ' + a.out[0] + ' → ' + a.frontScr };
       return { wait: 120 };
     },
     letters(a) {

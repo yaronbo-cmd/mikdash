@@ -4193,6 +4193,7 @@ export function createStages(ctx) {
     const b = bSt[i];
     const gy = hill.heightAt(b.x, b.z) - b.r * 0.12;
     for (let c = 0; c < 3; c++) {
+      if (b.hid) { tmpV.set(b.x, -999, b.z); tmpS.set(0.001, 0.001, 0.001); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); bMesh[c].setMatrixAt(i, tmpM); continue; }   // ── h114 ── (a minigame's own rock stands in for it) ── /h114 ──
       let sc = b.state > 0 || b.anim === 'shatter' ? 1 : 0;
       // ── site8 ── split: its three chunks lie round the patch as rubble, and go (carted off) as `rub` runs down
       if (b.state <= 0 && b.anim !== 'shatter' && b.rub > 0.001) {
@@ -8805,6 +8806,14 @@ export function createStages(ctx) {
     // deliverKeyStone(id, { what, great, ms }) → Promise<{ course, index, stones } | false>: the cart brings the hewn key stone, the
     // crane sets it (main.js `// ── site9 ──` attaches crews.keyCart as stages.keyCart)
     boulderSpots, deliverKeyStone, camFloor,
+    // ── h114 ── a split rock's chunks carted off now and its patch levelled (the paving goes on clean rock: ירון 9.11, a chunk hid a slab);
+    // the boulders' own material (the stage's small rocks are of the same rock: "האבנים של האתר") ── /h114 ──
+    boulderRest: (i) => { const b = bSt[i]; if (!b || b.state > 0) return false; b.anim = null; b.pt = 60; b.rub = 0; workDirty = true; propsDirty = true; boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; return true; },
+    boulderMat: () => BC.mat,
+    // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
+    boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
+    boulderInfo: (i) => { const b = bSt[i]; return b ? { x: b.x, z: b.z, r: b.r, sy: b.sy, yaw: b.yaw, state: b.state, hid: !!b.hid, gy: hill.heightAt(b.x, b.z) } : null; },
+    shadowSoon: () => requestShadow(false),   // ── h114 ── (a minigame moves things: the sun's shadows follow, at most every 0.3 s) ── /h114 ──
     // ── flow10 ── the course check's stand and frame at the Mount: checkView(id) → { spot, target, p, t } | null · flyTo(p, t, ms)
     checkView, flyTo,
     // ── site11 ── (N34, FLOW11's reload landing) posed(id) → bool: the site's crane, stock and banker stand at the working

@@ -700,7 +700,7 @@ export function createUI({ root, ctx }) {
      by one (FUN7 P0 1). A burst keeps its last five. */
   const TOAST_GAP = 1500, tq = [];
   let tCur = null, tPump = 0;
-  const toastHeld = () => !!rootEl && (rootEl.classList.contains('gm-cinema') || !!doc.querySelector('.fx-mg, div.m3, .gm-mo, div.g10') || !!(ctx.act.strikeRun && ctx.act.strikeRun() && !(tq[0] && tq[0].pause)));   // ── flow8 ── (DESIGN8B R6) none during a strike run — ── director13 ── (a toast that IS the pause — a course end's beat — is not held by the run: PRODUCER13 m1, "no toast נדבך 1 מתוך 6 on screen")
+  const toastHeld = () => !!rootEl && ((doc.body && doc.body.classList.contains('h109-act')) /* ── h114 ── (no toast over a stage minigame) ── /h114 ── */ || rootEl.classList.contains('gm-cinema') || !!doc.querySelector('.fx-mg, div.m3, .gm-mo, div.g10') || !!(ctx.act.strikeRun && ctx.act.strikeRun() && !(tq[0] && tq[0].pause)));   // ── flow8 ── (DESIGN8B R6) none during a strike run — ── director13 ── (a toast that IS the pause — a course end's beat — is not held by the run: PRODUCER13 m1, "no toast נדבך 1 מתוך 6 on screen")
   function toast(o = {}) {
     if (!rootEl) return;
     tq.push(o);

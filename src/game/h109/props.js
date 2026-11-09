@@ -40,10 +40,27 @@ export function createProps({ THREE, scene, ground, stages }) {
   { const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.16, 6.5, 6), M.wood); pole.position.y = 3.25; mk.add(pole);
     const clothG = new THREE.PlaneGeometry(1.7, 1.0, 6, 2); clothG.translate(0.85, 0, 0); const cloth = new THREE.Mesh(clothG, M.cloth); cloth.position.y = 5.9; mk.add(cloth); mk.userData.cloth = cloth; mk.userData.base = clothG.attributes.position.array.slice();
     const top = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.4, 6), M.woodD); top.position.y = 6.7; mk.add(top); }
-  function marker(at) { if (!at) { mk.visible = false; return; } mk.visible = true; mk.position.set(at.x, ground(at.x, at.z), at.z); }
+  function marker(at) { markers(null); if (!at) { mk.visible = false; return; } mk.visible = true; mk.position.set(at.x, ground(at.x, at.z), at.z); }
+  // ── h114 ── (rule 54, free choice: every open work has its stake at once) the first in the list is the marker itself, the others its
+  // clones (the cloth's geometry shared: they wave together) ── /h114 ──
+  const mkMore = [];
+  function markers(list) {
+    const L = list || [];
+    if (list) { if (L.length) { mk.visible = true; mk.position.set(L[0].x, ground(L[0].x, L[0].z), L[0].z); } else mk.visible = false; }
+    for (let i = 1; i < Math.max(L.length, mkMore.length + 1); i++) {
+      let c = mkMore[i - 1];
+      if (!c && i < L.length) { c = mk.clone(true); c.name = 'h109-marker' + i; root.add(c); mkMore.push(c); }
+      if (!c) continue;
+      if (i < L.length) { c.visible = true; c.position.set(L[i].x, ground(L[i].x, L[i].z), L[i].z); c.rotation.y = mk.rotation.y + i; } else c.visible = false;
+    }
+  }
 
   /* ── the small rocks of the sectors: one instanced mesh, 9 × 5 + the chunks of a split ── */
-  const NR = 64, rocks = new THREE.InstancedMesh(geo.rock, M.stone, NR); rocks.name = 'h109-rocks'; rocks.count = 0; rocks.castShadow = true; rocks.receiveShadow = true; rocks.frustumCulled = false; root.add(rocks);
+  // ── h114 ── (ירון 9.11: "האבנים זה לא האבנים של האתר… כל אבן שהדמות מפוצצת צריך לפני כן להכניס אותה לתוך ההר") the small rocks are of
+  // the Mount's own rock (the boulders' texture) and stand a third into the hill, as rock that grows out of it ── /h114 ──
+  let rockMap = null; try { const bm = stages && stages.boulderMat && stages.boulderMat(); rockMap = bm && bm.map; } catch (e) { rockMap = null; }
+  M.rock = new THREE.MeshStandardMaterial({ color: '#D9CDB2', map: rockMap, roughness: 0.93, metalness: 0, flatShading: true });
+  const NR = 64, rocks = new THREE.InstancedMesh(geo.rock, M.rock, NR); rocks.name = 'h109-rocks'; rocks.count = 0; rocks.castShadow = true; rocks.receiveShadow = true; rocks.frustumCulled = false; root.add(rocks);
   rocks.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(NR * 3).fill(1), 3);
   const R = [];   // { x, y, z, r, yaw, sy, hp, hp0, crack, jolt, gone, vis, sector, i }
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _c = new THREE.Color();
@@ -57,7 +74,7 @@ export function createProps({ THREE, scene, ground, stages }) {
     const j = q.jolt > 0 ? Math.sin(q.jolt * 60) * 0.06 * q.jolt : 0;
     const shrink = q.gone > 0 ? Math.max(0.001, 1 - q.gone) : 1;
     _e.set(0, q.yaw, j); _q.setFromEuler(_e); _s.set(q.r * shrink * (1 + q.crack * 0.04), q.r * q.sy * shrink * (1 - q.crack * 0.08), q.r * shrink * 0.92);
-    _p.set(q.x, q.y + q.r * q.sy * 0.32 - (q.gone > 0 ? q.gone * q.r * 0.5 : 0), q.z);
+    _p.set(q.x, q.y + q.r * q.sy * 0.04 - (q.gone > 0 ? q.gone * q.r * 0.5 : 0), q.z);   // ── h114 ── (a third of it in the hill) ── /h114 ──
     if (!q.vis) _s.set(0.001, 0.001, 0.001);
     _m.compose(_p, _q, _s); rocks.setMatrixAt(q.i, _m);
     const c = 1 - q.crack * 0.22; _c.setRGB(c, c * 0.98, c * 0.95); rocks.setColorAt(q.i, _c);
@@ -125,6 +142,7 @@ export function createProps({ THREE, scene, ground, stages }) {
       const cl = mk.userData.cloth, P = cl.geometry.attributes.position, B = mk.userData.base;
       for (let i = 0; i < P.count; i++) { const x = B[i * 3]; P.setZ(i, Math.sin(tt * 5 + x * 3) * 0.12 * x); }
       P.needsUpdate = true; mk.rotation.y = Math.sin(tt * 0.6) * 0.3;
+      for (let i = 0; i < mkMore.length; i++) if (mkMore[i].visible) mkMore[i].rotation.y = Math.sin(tt * 0.6 + i) * 0.3 + i;
     }
     let dirty = false;
     for (const q of R) {
@@ -134,5 +152,5 @@ export function createProps({ THREE, scene, ground, stages }) {
     chunksStep(dt);
     void dirty;
   }
-  return { root, M, geo, marker, rockAdd, rockSet, rockHit, rocks: R, chunksAt, clearRubble, rope, stake, ringAt, remove, frame, update: () => {}, mesh: { rocks, chunks, mk } };
+  return { root, M, geo, marker, rockAdd, rockSet, rockHit, rocks: R, chunksAt, clearRubble, rope, stake, ringAt, remove, frame, markers, update: () => {}, mesh: { rocks, chunks, mk } };
 }

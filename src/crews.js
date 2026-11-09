@@ -714,7 +714,7 @@ export function createCrews(ctx = {}) {
     c.wheel += moved / 1.18;
     const px = ydz, pz = -ydx, oyaw = Math.atan2(ydx, ydz);
     // hidden beyond the causeway's end (and anywhere else across the western wall's line: the gate lets the road through)
-    const hid = inWall(c.x, c.z) || offRoad(c.x) || cs < -2 || t.fading;
+    const hid = inWall(c.x, c.z) || offRoad(c.x) || cs < -2 || t.fading || (KEEP.length > 0 && inKeep(c.x, c.z, 1));   // ── h114 ── ── /h114 ──
     c.vis = instant ? (hid ? 0 : 1) : c.vis + ((hid ? 0 : 1) - c.vis) * Math.min(1, dt * 5);
     const ox = yx - ydx * OX_BACK, oz = yz - ydz * OX_BACK;
     c.anchorL.x = ox + px * OX_SIDE; c.anchorL.z = oz + pz * OX_SIDE;
@@ -722,7 +722,7 @@ export function createCrews(ctx = {}) {
     const sp = Math.max(0.2, speed) * 1.1;
     c.anchorL.speed = c.anchorR.speed = sp;
     if (c.oxL) {
-      const oh = inWall(ox, oz) || offRoad(ox) || cs + YOKE < -2 || t.fading;
+      const oh = inWall(ox, oz) || offRoad(ox) || cs + YOKE < -2 || t.fading || (KEEP.length > 0 && inKeep(ox, oz, 1));
       c.oxL.visT = c.oxR.visT = oh ? 0 : 1;
       c.oxL.speed = c.oxR.speed = moved > 1e-4 ? sp : 1.4;
       c.oxL.follow = c.anchorL; c.oxR.follow = c.anchorR;
@@ -789,7 +789,7 @@ export function createCrews(ctx = {}) {
   }
   let digOn = false;   // (harDigging() read twice a second in update's check, not every frame: no per-frame allocation)
   function shuttleUpdate(dt) {
-    const want = enabled && digOn, c = shut.carts[0];
+    const want = enabled && digOn && !KEEP.length, c = shut.carts[0];   // ── h114 ── (the Mount's rubble cart rests while a minigame is played: it drove into the paving) ── /h114 ──
     if (!want) {
       if (!shut.on) return;
       shut.fading = true; layCart(shut, c, shut.s, false, dt, 0, 0);
@@ -925,9 +925,18 @@ export function createCrews(ctx = {}) {
   }
   // a short roll-in: the train appears on the lane 30 amot before its bay (fading in) and rolls up to it
   const shortFrom = (t) => (t.short ? Math.max(0, t.len - 30) : 0);
+  // ── h114 ── (ירון 9.11: "פתאום נכנסת עגלה עם פרות" into a minigame's frame) a train never drives into a rect an act keeps clear
+  // (keepOut below): it waits at its edge with the oxen standing, and goes on when the act ends; a cart already inside fades ── /h114 ──
+  const inKeep = (x, z, m) => { for (const r of KEEP) if (x > r[0] - m && x < r[2] + m && z > r[1] - m && z < r[3] + m) return true; return false; };
+  function koAhead(t, s) { if (!KEEP.length) return false; posAt(t, s + YOKE + 7); const ax = RP.x, az = RP.z; posAt(t, s + YOKE); return !inKeep(RP.x, RP.z, 2) && inKeep(ax, az, 4); }
   function trainUpdate(t, dt) {
     if (t.status === 'none') return;
     if (t.status === 'site') { siteTrainStep(t, dt); return; }   // ── site13 ──
+    if (KEEP.length && (t.leg === 'arrive' || t.leg === 'depart' || (t.status === 'leaving' && t.leg !== 'unload')) && koAhead(t, t.s)) {
+      if (Number.isFinite(t.legT0)) t.legT0 += dt; if (t.leg === 'arrive' && Number.isFinite(t.arriveAt)) t.arriveAt += dt;
+      for (let i = 0; i < t.carts.length; i++) layCart(t, t.carts[i], t.s - i * CART_GAP, false, dt, 0, 0);
+      return;
+    }
     let s = t.s, speed = 0;
     if (t.status === 'out') {
       if (t.leg === 'depart') {
@@ -1002,6 +1011,8 @@ export function createCrews(ctx = {}) {
     if (siteTr.wait > 0) {
       siteTr.wait -= dt;
       if (!siteTr.unloaded && siteTr.wait < 5) { siteTr.unloaded = true; setTrainCargo(t, false); for (const c of t.carts) if (c.vis > 0.5) dust.puff(c.x, ground(c.x, c.z) + 0.6, c.z, 3, 2); }
+    } else if (KEEP.length && koAhead(t, s)) {
+      speed = 0;   // ── h114 ── (waits at the edge of an act's frame) ── /h114 ──
     } else {
       // ── site14 ── (her oxen from אוצר המלאכה: stages.setOwned({ oxen }) — the train comes and goes faster)
       const ox = stages && stages.jobs && stages.jobs.owned ? +stages.jobs.owned.oxen || 0 : 0;

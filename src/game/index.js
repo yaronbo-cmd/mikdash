@@ -1756,6 +1756,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function courseEnd(id, c, by = 'hero') {
     const v = S.siteView(G, id), s = G.st[id]; if (!v || !s || !(c > 0)) return;
     emit('course', { id, c, of: v.C, by });
+    if (H9 && H9.owns()) return;   // ── h114 ── (ירון 9.11: "נדבך 1 מתוך 6" over a stage minigame — the old crews' course toast is not the stage's) ── /h114 ──
     const P = PROJ[id], d = beatDone[id];
     if (d != null && d >= c && Math.floor(s.set / P.P) >= d) return;   // (this course had its moment; a site restarted by a demo pick counts again)
     beatWait = { id, c, by };
@@ -3761,6 +3762,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   act.dealClose = () => { dealClose(); emit('dealClosed', {}); };
   /** the pill in the loop: "מה נעשה עכשיו? · נדבך 2 מתוך 6 · ●●○" — or the strike card's count */
   act.jobPill = (a) => {
+    try { if (h9Own() && H9.pill) { const ph = H9.pill(); if (ph) return ph; } } catch (e) { /* */ }   // ── h114 ── (the stage's own count, not the old survey's "מדידה") ── /h114 ──
     if (SC) return `<span class="gm-k">${esc(JB.jobName('strike', SC.id))}</span><b class="gm-sc-n">${isoNum(Math.min(SC.n, SC.of))} מתוך ${isoNum(SC.of)}</b><span><span class="gm-sub">${twinOn() ? "הקישו על 'עבודה' כשהטבעת נסגרת על הזהב" /* ── crafta19 ── (the button's name under two thumbs) ── /crafta19 ── */ : 'הקש על הכהן כשהטבעת נוגעת בזהב'}</span></span>`;
     if (!loopTurn(a)) return '';
     const id = a.id, P = PROJ[id], cur = JB.curOf(G, id), Jn = JB.J(G, id, jobHas);

@@ -162,8 +162,11 @@ export function createJuice18(o = {}) {
   /** "<המקצוע> — רמה N!": the stamp, the banner, the flourish, the craftsman's hand charged (contract 1) */
   function levelUp(sh) {
     stats.ups++; call(o.persist);
+    // ── h114 ── (ירון 9.11: "הסתת רמה 4" popped mid-act with nothing to say why): inside a stage minigame the level-up waits for the
+    // act's end and says what earned it; the "יד של אומן" button is not there, so it is not announced ── /h114 ──
+    if (typeof document !== 'undefined' && document.body && document.body.classList.contains('h109-act')) { st.ups = st.ups || {}; st.ups[sh.craft] = { name: sh.name, level: Math.max(sh.level, (st.ups[sh.craft] && st.ups[sh.craft].level) || 0) }; call(o.emit, 'craftLevel', { craft: sh.craft, level: sh.level }); return; }
     call(ui.stamp, `${sh.name} — רמה ${sh.level}!`, { ms: 1300 });
-    call(ui.banner, 'יד של אומן מוכנה!', { ms: 2200 });
+    if (!(typeof document !== 'undefined' && document.querySelector('.gm.h109-own'))) call(ui.banner, 'יד של אומן מוכנה!', { ms: 2200 });
     OPT.level = sh.level; play('levelUp', 'fanfare', OPT); call(o.haptic, [20, 40, 30]);
     const T = call(o.twin); if (T && T.event) for (let i = 0; i < 3; i++) call(T.event, 'jobDone', { q: 1 });   // (twin.js: each q ≥ .9 charges a third of the hand)
     call(o.emit, 'craftLevel', { craft: sh.craft, level: sh.level });
@@ -313,6 +316,15 @@ export function createJuice18(o = {}) {
   mount();   // (the layer and the touch's clock from the start: the first touch is timed too)
   return {
     hit, result, big, fly, xp: XP,
+    // ── h114 ── the level-ups held during a minigame, said at its end with the reason (→ true when one was shown) ── /h114 ──
+    flushUps(why) {
+      const L = Object.values(st.ups || {}); st.ups = {}; if (!L.length) return false;
+      const u = L[L.length - 1];
+      call(ui.stamp, `${u.name} — רמה ${u.level}!`, { ms: 1500 });
+      call(ui.banner, why || 'עלית רמה בזכות העבודה המדויקת', { ms: 2600 });
+      OPT.level = u.level; play('levelUp', 'fanfare', OPT); call(o.haptic, [20, 40, 30]);
+      return true;
+    },
     /** the game's bus (index.js sends these only under two thumbs): a course closed at his stage, a stage done */
     event(type, d = {}) { if (type === 'course') big('course', d); else if (type === 'stageDone') big('stage', d); },
     /** tests: the timings and the counts */

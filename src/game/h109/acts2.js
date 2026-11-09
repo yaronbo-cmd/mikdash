@@ -3,6 +3,7 @@
  * behind the east retaining wall). Spec docs/specs/shlav-01-olam-yashan-he.md. Every result is seen in the world (rule 31).
  */
 import { createGang, onPlane, clamp, lerp, ease } from './kit.js';
+import { makeRock } from './rock.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -35,82 +36,141 @@ function bigStand(X, s) {
 }
 
 /* ───────── 3.3 reading the rock ───────── */
+// ── h114 ── rebuilt on ירון's notes of 9.11: "הפנס לא נראה פנס" · "לא ברור מה זה הקו שהאור מגלה" · "הכתם בכלל מחוץ לסלע" · "זה נראה אותו
+// קו בקיעה" · "הסלע נבקע בכלל במקום שונה" · "היתדות ייראו כמו יתדות" · "היתד נפלה … זה טוב? זה לא טוב?" · "השחקן עומד במקום ולא זז"
+// · "מים תכולים צריכים לזרום בתוך קו הבקיעה ולא במבחנה נפרדת". Now: the rock is its own mesh (h109/rock.js) standing in for the
+// world's boulder; its crack is a real plane through it, its own on every rock (seeded by the sector), its line found by rays at the
+// rock itself. A bronze mirror on a handle in the kohen's hand catches the sun (a ray from the sky to it, the reflected ray to the
+// rock) and lays a bright patch ON the face; dragging walks the patch along the face; near the crack the crack darkens and widens in
+// the light (a crack, not a drawn line: "סדק בסלע"). A tap on the crack: he steps to that point and drives a real wedge (a tapered
+// wooden wedge, head out) with the mallet; a tap off the crack: he drives it and it does not bite and drops, and the line says why.
+// The water is poured from the jar into the wedges' slots and runs blue DOWN the crack; the halves creak apart a hand as it fills;
+// when the crack is full the creaking stops: that is the moment to stop pouring. The rock splits along that very plane, the two halves
+// part like a book and stay on the hill until the crews drag them away for the paving. Illustration (the method: wooden wedges in a
+// line of slots, wetted, swell and split the rock — documented at Roman quarries; marked המחשה in the sources list). ── /h114 ──
+function rockMat(X) {
+  if (SH.rockMat) return SH.rockMat;
+  let map = null; try { const bm = X.stages.boulderMat && X.stages.boulderMat(); map = bm && bm.map; } catch (e) { map = null; }
+  SH.rockMat = new X.THREE.MeshStandardMaterial({ color: '#D9CDB2', map, roughness: 0.93, flatShading: true });
+  return SH.rockMat;
+}
+/** the sector's crack: azimuth offset from his side, the tilt; and the decoy's (a shallow scratch, level 3) — the same every time */
+function crackOf(s) { const sg = hash(s, 3) > 0.5 ? 1 : -1; return { off: sg * (0.2 + hash(s, 5) * 0.16), tilt: (hash(s, 7) - 0.5) * 0.55, doff: -sg * (0.26 + hash(s, 9) * 0.12), dtilt: (hash(s, 11) - 0.5) * 0.5 }; }
+/** the rock of sector s (made once, kept in SH.big[s]); split: shown parted (a reload after its reading, before the paving) */
+function bigRock(X, s, split) {
+  SH.big = SH.big || {};
+  if (SH.big[s]) return SH.big[s];
+  const b = SH.bould[s]; let inf = null; try { inf = X.stages.boulderInfo && X.stages.boulderInfo(s); } catch (e) { inf = null; }
+  const gy = inf ? inf.gy : X.ground(b[0], b[1]);
+  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : 0, seed: s * 13 + 5, mat: rockMat(X) });
+  X.props.root.add(R.group);
+  try { X.stages.boulderHide(s, true, !!split); } catch (e) { /* */ }
+  if (split) { const st = bigStand(X, s), phiK = Math.atan2(st.z - b[1], st.x - b[0]), c = crackOf(s); R.halves(R.plane(phiK + c.off, c.tilt)); R.part(1); }
+  SH.big[s] = R; return R;
+}
+/** the halves go (the crews dragged them off before the paving) */
+function bigGone(X, s) { const R = SH.big && SH.big[s]; if (!R) return; R.dispose(); SH.big[s] = null; try { X.stages.boulderHide(s, false, true); } catch (e) { /* */ } }
+/** a wooden wedge: a tapered block, its thin edge into the slot, its head out (local −z = into the rock) */
+function wedgeGeo(T) {
+  if (SH.wedgeG) return SH.wedgeG;
+  const sh = new T.Shape(); sh.moveTo(-0.24, 0); sh.lineTo(0.24, 0); sh.lineTo(0.05, 0.85); sh.lineTo(-0.05, 0.85); sh.closePath();
+  const g = new T.ExtrudeGeometry(sh, { depth: 0.3, bevelEnabled: false }); g.translate(0, 0, -0.15); g.rotateX(Math.PI / 2);
+  g.computeVertexNormals();   // (its thin edge at +z: lookAt points +z into the slot)
+  SH.wedgeG = g; return g;
+}
 export const READ = {
   icon: '🔍', title: 'קריאת הסלע',
-  walkLine: (m) => `הסלע הגדול של גזרה ${m.s + 1}: קוראים אותו לפני שבוקעים`,
+  walkLine: (m) => `הסלע הגדול של גזרה ${m.s + 1}: מוצאים בו את הסדק`,
   stand(m, X) { const b = SH.bould[m.s]; if (!b) return null; if (!SH.bigSt) SH.bigSt = {}; const p = SH.bigSt[m.s] || (SH.bigSt[m.s] = bigStand(X, m.s)); return { x: p.x, z: p.z, face: [b[0], b[1]] }; },
   prepare(m, X) {
     const b = SH.bould[m.s]; if (!b) return; const C = SH.crew, p = READ.stand(m, X);
     SH.secCrew = SH.secCrew || []; for (const w of SH.secCrew) C.remove(w); SH.secCrew = [];
-    // the mason kneels on the rock's far side holding the wedges; two with jars from the cistern
-    const fa = Math.atan2(p.z - b[1], p.x - b[0]) + Math.PI * 0.7, fx = b[0] + Math.cos(fa) * (b[2] + 1.6), fz = b[1] + Math.sin(fa) * (b[2] + 1.6);
-    SH.secCrew.push(C.add(fx, fz, { role: 'kneel', fx: b[0], fz: b[1], crew: 3 }));
-    const ja = Math.atan2(p.z - b[1], p.x - b[0]) - 0.6;
-    const jx = b[0] + Math.cos(ja) * (b[2] + 2.5), jz = b[1] + Math.sin(ja) * (b[2] + 2.5);
-    SH.secCrew.push(C.add(jx, jz, { role: 'carry', from: [jx, jz], to: [jx + 14, jz + 6], item: 'jar', crew: 1 }));
+    bigRock(X, m.s, false);
+    // the helper with the water jar stands beside him (he pours when told); a mason on the far side cuts slots with a chisel
+    const pa = Math.atan2(p.z - b[1], p.x - b[0]);
+    const jx = b[0] + Math.cos(pa - 0.5) * (b[2] + 3.2), jz = b[1] + Math.sin(pa - 0.5) * (b[2] + 3.2);
+    SH.secCrew.push(C.add(jx, jz, { role: 'hold', item: 'jar', fx: b[0], fz: b[1], crew: 1 }));
     SH.jarMan = SH.secCrew[SH.secCrew.length - 1];
+    const fa = pa + Math.PI * 0.75, fx = b[0] + Math.cos(fa) * (b[2] + 1.4), fz = b[1] + Math.sin(fa) * (b[2] + 1.4);
+    SH.secCrew.push(C.add(fx, fz, { role: 'hammer', item: 'mallet', fx: b[0], fz: b[1], crew: 3 }));
   },
   make(m, X) {
-    const lv = X.level(), s = m.s, b = SH.bould[s], st = READ.stand(m, X), gy = X.ground(b[0], b[1]);
-    const nW = [3, 4, 5][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]);
-    // (ירון 8.11: the light hung off the rock's edge) the patch travels on the face that both the kohen and the camera see: halfway
-    // from his side toward the camera's
-    const ws0 = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.8 + 8, el: 26, side: -0.95, lift: b[2] * 0.35 });
-    const phiC = Math.atan2(ws0.p[2] - b[1], ws0.p[0] - b[0]);
-    const phiH = phiK + Math.atan2(Math.sin(phiC - phiK), Math.cos(phiC - phiK)) * 0.55;
-    const T = X.THREE;
-    const A = { step: 'turn', th: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { line: null, space: null, water: null }, fallen: 0, t: 0, creakT: 0, early: 0, wind: lv >= 3 };
-    // the lines: one true; at L3 a second that ends inside the rock (shorter). They show only when the light crosses them.
-    const H0 = 0.6, H1 = b[2] * 0.62;
-    function mkLine(phi, h0, h1, ok) {
-      const pts = []; for (let i = 0; i <= 8; i++) { const h = lerp(h0, h1, i / 8), p = surf(X, b, phi + Math.sin(i * 1.7) * 0.012, h); const n = new T.Vector3(p.x - b[0], 0, p.z - b[1]).normalize(); pts.push(new T.Vector3(p.x + n.x * 0.06, p.y, p.z + n.z * 0.06)); }
-      const mat = new T.MeshBasicMaterial({ color: 0x24170C, transparent: true, opacity: 0, depthWrite: false });
-      const mesh = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 24, lv >= 2 ? 0.07 : 0.1, 4, false), mat); mesh.renderOrder = 995; X.props.root.add(mesh);
-      return { phi, pts, mesh, ok, shown: 0, seen: false };
+    const lv = X.level(), s = m.s, b = SH.bould[s], st = READ.stand(m, X), T = X.THREE;
+    const R = bigRock(X, s, false), gy = R.gy;
+    const nW = [3, 4, 5][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]), ck = crackOf(s);
+    const A = { step: 'turn', th: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { line: null, space: null, water: null }, fallen: 0, t: 0, creakT: 0, early: 0, wind: lv >= 3, busy: false };
+    // the crack (a plane through the rock) and at level 3 a shallow scratch that does not go through
+    function mkLine(psi, tilt, ok) {
+      const Pl = R.plane(psi, tilt);
+      const pts = ok ? R.crackPts(Pl, -0.3, 1.3, 18) : R.crackPts(Pl, 0.35, 0.95, 8);
+      if (pts.length < 3) return null;
+      const curve = new T.CatmullRomCurve3(pts);
+      const mat = new T.MeshBasicMaterial({ color: 0x1E140A, transparent: true, opacity: 0, depthWrite: false });
+      const mesh = new T.Mesh(new T.TubeGeometry(curve, pts.length * 3, 0.05, 5, false), mat); mesh.renderOrder = 995; X.props.root.add(mesh);
+      return { Pl, psi, pts, mesh, ok, shown: 0, seen: false, curve };
     }
-    const off = (hash(s, 3) > 0.5 ? 1 : -1) * (0.22 + hash(s, 5) * 0.18);
-    A.lines.push(mkLine(phiH + off, H0, H1, true));
-    if (lv >= 3) A.lines.push(mkLine(phiH - off * 0.9, H0 + 1.2, H1 * 0.62, false));
-    // the light (ירון 8.11: "the light is not clear, it reveals no line"): the bronze mirror in his hands throws a warm patch of sun
-    // that lies ON the rock's face (a feathered patch along the face, not a disc turned to the camera), joined to the mirror by a
-    // faint beam. Turning the mirror walks it across the face; the crack shows faintly as the patch nears it, and fully once on it.
+    // (the crack runs on the face the camera sees best: between his side and the camera's, its own place on each rock)
+    const ws0 = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
+    const phiC = Math.atan2(ws0.p[2] - b[1], ws0.p[0] - b[0]), dC = Math.atan2(Math.sin(phiC - phiK), Math.cos(phiC - phiK));
+    const psi0 = phiK + dC * 0.6;
+    { const L = mkLine(psi0 + ck.off * 0.45, ck.tilt, true); if (L) A.lines.push(L); }
+    if (lv >= 3) { const L = mkLine(psi0 + ck.doff * 0.55, ck.dtilt, false); if (L) A.lines.push(L); }
+    // (where the light must point to fall on each crack: the azimuth of its point at the patch's height)
+    const hP = clamp(R.r * R.sy * 0.32, 1.4, 3.2);
+    for (const L of A.lines) { let bp = L.pts[0], bd = 1e9; for (const q of L.pts) { const d = Math.abs(q.y - (gy + hP)); if (d < bd) { bd = d; bp = q; } } L.az = Math.atan2(bp.z - b[1], bp.x - b[0]); L.aim = Math.atan2(Math.sin(L.az - phiK), Math.cos(L.az - phiK)); }
+    // the mirror: a bronze disc with a rim and a handle, in his hand; the sun's ray to it, its ray to the rock; the patch on the face
     if (!SH.sunTex) {
       const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
-      const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,246,214,1)'); gr.addColorStop(0.35, 'rgba(255,226,150,0.75)'); gr.addColorStop(0.7, 'rgba(255,200,110,0.25)'); gr.addColorStop(1, 'rgba(255,190,100,0)');
+      const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,250,225,1)'); gr.addColorStop(0.3, 'rgba(255,232,160,0.85)'); gr.addColorStop(0.7, 'rgba(255,205,120,0.3)'); gr.addColorStop(1, 'rgba(255,190,100,0)');
       g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SH.sunTex = new T.CanvasTexture(cv);
     }
-    const beamG = new T.BufferGeometry(); beamG.setAttribute('position', new T.BufferAttribute(new Float32Array(9), 3));
-    const beamM = X.props.M.beam.clone(); beamM.opacity = 0.13;
-    const beam = new T.Mesh(beamG, beamM); beam.frustumCulled = false; beam.renderOrder = 998; X.props.root.add(beam);
-    const gR = clamp(b[2] * 0.42, 1.0, 2.8);
-    const glowM = new T.MeshBasicMaterial({ map: SH.sunTex, color: 0xFFFFFF, transparent: true, opacity: 0.9, depthWrite: false, blending: T.AdditiveBlending });
-    const glow = new T.Mesh(new T.PlaneGeometry(gR * 2, gR * 1.5), glowM); glow.renderOrder = 997; X.props.root.add(glow);
-    const mirror = new T.Mesh(new T.CircleGeometry(0.32, 16), new T.MeshStandardMaterial({ color: '#C8964A', metalness: 0.9, roughness: 0.25, emissive: '#7A5A20', emissiveIntensity: 0.6, side: T.DoubleSide })); X.props.root.add(mirror);
-    const hp = {};
-    const spot = {};
-    const nrm = new T.Vector3();
+    const mirror = new T.Group();
+    { const disc = new T.Mesh(new T.CircleGeometry(0.5, 24), new T.MeshStandardMaterial({ color: '#E8C27A', metalness: 1, roughness: 0.12, emissive: '#B08030', emissiveIntensity: 0.55, side: T.DoubleSide })); mirror.add(disc);
+      const rim = new T.Mesh(new T.TorusGeometry(0.5, 0.05, 6, 24), new T.MeshStandardMaterial({ color: '#8A5A22', metalness: 0.7, roughness: 0.4 })); mirror.add(rim);
+      const hd = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 0.6, 6), X.props.M.woodD); hd.position.set(0, -0.78, 0); mirror.add(hd); }
+    X.props.root.add(mirror);
+    const rayM = (op) => { const mm = X.props.M.beam.clone(); mm.opacity = op; return mm; };
+    const beamIn = new T.Mesh(new T.CylinderGeometry(0.08, 0.3, 1, 8, 1, true), rayM(0.16)), beamOut = new T.Mesh(new T.CylinderGeometry(0.1, 0.5, 1, 8, 1, true), rayM(0.22));
+    for (const bm of [beamIn, beamOut]) { bm.frustumCulled = false; bm.renderOrder = 998; X.props.root.add(bm); }
+    const gR = clamp(R.r * 0.3, 1.1, 2.4);
+    const glowM = new T.MeshBasicMaterial({ map: SH.sunTex, color: 0xFFFFFF, transparent: true, opacity: 0.95, depthWrite: false, blending: T.AdditiveBlending });
+    const glow = new T.Mesh(new T.CircleGeometry(gR, 24), glowM); glow.renderOrder = 997; X.props.root.add(glow);
+    const hp = {}, up = new T.Vector3(0, 1, 0), tv = new T.Vector3(), tq = new T.Quaternion();
+    const SUN = new T.Vector3(-0.35, 1, 0.45).normalize();
+    function rayBetween(mesh, a, c) { tv.subVectors(c, a); const L = tv.length(); mesh.position.copy(a).addScaledVector(tv, 0.5); tq.setFromUnitVectors(up, tv.normalize()); mesh.quaternion.copy(tq); mesh.scale.set(1, L, 1); }
+    const mp = new T.Vector3(), spotP = new T.Vector3(), sunP = new T.Vector3();
     function light(dt) {
       if (A.wind) A.th += Math.sin(A.t * 9) * 0.0035 + Math.sin(A.t * 23) * 0.0018;
-      const phi = phiH + A.th; surf(X, b, phi, b[2] * 0.36, spot);
-      X.stages.heroXYZ(hp); const mx = hp.x + Math.cos(phiH + Math.PI) * -0.9, mz = hp.z + Math.sin(phiH + Math.PI) * -0.9, my = hp.y + 2.3;
-      mirror.position.set(mx, my, mz); mirror.lookAt(spot.x, spot.y, spot.z);
-      const P = beamG.attributes.position.array, px = -Math.sin(phi) * gR * 0.6, pz = Math.cos(phi) * gR * 0.6;
-      P[0] = mx; P[1] = my; P[2] = mz; P[3] = spot.x + px; P[4] = spot.y; P[5] = spot.z + pz; P[6] = spot.x - px; P[7] = spot.y + 0.2; P[8] = spot.z - pz; beamG.attributes.position.needsUpdate = true; beamG.computeBoundingSphere();
-      // the patch lies on the face (along its normal, a hair off it), not a disc turned to the camera
-      nrm.set(spot.x - b[0], spot.y - (gy + b[2] * 0.15), spot.z - b[1]).normalize();
-      glow.position.set(spot.x + nrm.x * 0.3, spot.y + nrm.y * 0.3, spot.z + nrm.z * 0.3); glow.lookAt(glow.position.x + nrm.x, glow.position.y + nrm.y, glow.position.z + nrm.z);
-      glowM.opacity = 0.8 + Math.sin(A.t * 5) * 0.08;
-      let near1 = 1e9;
-      for (const L of A.lines) {
-        const d = Math.abs(Math.atan2(Math.sin(phi - L.phi), Math.cos(phi - L.phi)));
-        near1 = Math.min(near1, d);
-        if (d < (lv >= 3 ? 0.07 : 0.1) && !L.seen) { L.seen = true; X.play('find'); X.word({ x: L.pts[4].x, y: L.pts[8].y + 1.2, z: L.pts[4].z }, 'קו הבקיעה!'); if (!A.pick) { X.line('הקישו על הקו · יתד'); X.hand({ x: L.pts[2].x, y: L.pts[2].y, z: L.pts[2].z }, 0, 12); } }
-        // before it is found it shows faintly as the light comes near (at L1 from farther), after — fully, and the patch sits on it
-        const prox = L.seen ? 1 : clamp(1 - d / (lv >= 2 ? 0.3 : 0.45), 0, 1) ** 2 * 0.65;
-        L.shown += (prox - L.shown) * Math.min(1, dt * 6); L.mesh.material.opacity = L.shown * (lv >= 2 ? 0.8 : 0.95);
+      const az = phiK + A.th, hit = R.hitAt(az, hP);
+      X.stages.heroXYZ(hp);
+      const fx = Math.cos(phiK + Math.PI), fz = Math.sin(phiK + Math.PI);   // (toward the rock from his stand)
+      mp.set(hp.x + fx * 0.75 - fz * 0.35, hp.y + 2.25, hp.z + fz * 0.75 + fx * 0.35);
+      mirror.position.copy(mp);
+      const vis = (A.step === 'turn' || A.step === 'wedge') && !!hit;
+      if (hit) {
+        spotP.copy(hit.p);
+        // the mirror's face halfway between the sun and the rock (that is how a mirror throws the sun)
+        const toRock = tv.subVectors(spotP, mp).normalize().clone(); const nrm = toRock.add(SUN).normalize();
+        mirror.lookAt(mp.x + nrm.x, mp.y + nrm.y, mp.z + nrm.z);
+        sunP.copy(mp).addScaledVector(SUN, 14);
+        rayBetween(beamIn, sunP, mp); rayBetween(beamOut, mp, spotP);
+        glow.position.copy(hit.p).addScaledVector(hit.n, 0.08); glow.lookAt(glow.position.x + hit.n.x, glow.position.y + hit.n.y, glow.position.z + hit.n.z);
       }
-      const vis = A.step === 'turn' || A.step === 'wedge'; beam.visible = glow.visible = vis; mirror.visible = A.step !== 'done';
-      void near1;
+      beamIn.visible = beamOut.visible = glow.visible = vis; mirror.visible = A.step === 'turn' || A.step === 'wedge';
+      glowM.opacity = 0.85 + Math.sin(A.t * 5) * 0.08;
+      for (const L of A.lines) {
+        let d = 1e9; if (hit) for (const q of L.pts) d = Math.min(d, q.distanceTo(hit.p));
+        if (hit && d < gR * 0.55 && !L.seen) {
+          L.seen = true; X.play('find');
+          const top = L.pts[Math.min(L.pts.length - 1, Math.floor(L.pts.length * 0.7))];
+          X.word({ x: top.x, y: top.y + 1.2, z: top.z }, L.ok || lv < 3 ? 'סדק בסלע! כאן הוא ייבקע' : 'עוד סדק');
+          if (!A.pick) { X.line('הקישו על הסדק · תוקעים בו יתד'); const q = L.pts[2]; X.hand({ x: q.x, y: q.y, z: q.z }, 0, 12); }
+        }
+        // a crack is in the stone all along (faint), darker in the light; once found it stays
+        const base = lv === 1 ? 0.28 : lv === 2 ? 0.16 : 0.1;
+        const prox = L.seen ? 1 : base + (1 - base) * clamp(1 - d / (gR * 1.6), 0, 1) ** 2 * 0.7;
+        L.shown += (prox - L.shown) * Math.min(1, dt * 6); L.mesh.material.opacity = L.shown * 0.95;
+      }
     }
     function lineDist(L, p) {
       let best = 1e9, bu = 0; const n = L.pts.length;
@@ -121,117 +181,164 @@ export const READ = {
       }
       return { d: best, u: bu };
     }
-    function wedgeAt(L, u, grade) {
-      const n = L.pts.length - 1, i = Math.min(n - 1, Math.floor(u * n)), f = u * n - i, a = L.pts[i], c = L.pts[i + 1];
-      const x = lerp(a.x, c.x, f), y = lerp(a.y, c.y, f), z = lerp(a.z, c.z, f);
-      const w = new T.Mesh(new T.BoxGeometry(0.34, 0.5, 0.42), X.props.M.wood); w.position.set(x, y, z); w.lookAt(b[0], y, b[1]); X.props.root.add(w);
-      A.wedges.push({ u, w, grade }); X.play('wedge'); X.dust(x, y, z, 3, 1);
-      return { x, y: y + 1, z };
+    const ptAt = (L, u) => { const n = L.pts.length - 1, i = Math.min(n - 1, Math.floor(u * n)), f = u * n - i; return L.pts[i].clone().lerp(L.pts[i + 1], f); };
+    const outOf = (p) => { const v = new T.Vector3(p.x - R.C.x, 0, p.z - R.C.z).normalize(); return v; };
+    function wedgeMesh(p) {
+      const w = new T.Mesh(wedgeGeo(T), X.props.M.wood); w.castShadow = true;
+      const o = outOf(p); w.position.copy(p).addScaledVector(o, 0.75); w.lookAt(p.x - o.x * 9, p.y, p.z - o.z * 9);   // (its edge at the slot, head out)
+      X.props.root.add(w); return { w, o, p };
     }
-    function fall(p) {
-      // a wedge off the line falls: it drops at his feet
-      const q = onPlane(X, p.x, p.y, gy + 0.5) || { x: st.x, z: st.z };
-      const w = new T.Mesh(new T.BoxGeometry(0.34, 0.5, 0.42), X.props.M.wood); w.position.set(q.x, X.ground(q.x, q.z) + 0.2, q.z); w.rotation.set(1.2, hash(A.t, 1) * 3, 0.3); X.props.root.add(w);
-      A.fallen++; (A.junk = A.junk || []).push(w); X.word({ x: q.x, y: X.ground(q.x, q.z) + 1.4, z: q.z }, 'היתד נפלה'); X.play('wood');
+    /** he steps to the point and strikes: → Promise (the contact) */
+    async function strikeAt(p) {
+      A.busy = true;
+      // (he strikes from the side of the point away from the camera: never between the eye and the crack)
+      const o = outOf(p); let tx = -o.z, tz = o.x; const cq = X.view.camNow({}); if (tx * (cq.px - p.x) + tz * (cq.pz - p.z) > 0) { tx = -tx; tz = -tz; }
+      const sx = p.x + o.x * 1.5 + tx * 1.3, sz = p.z + o.z * 1.5 + tz * 1.3;
+      try { const hh = X.stages.heroXYZ({}); if (Math.hypot(hh.x - sx, hh.z - sz) > 0.6) await Promise.race([X.hero.walkTo({ x: sx, z: sz, face: [p.x, p.z] }), new Promise((r) => setTimeout(r, 1600))]); } catch (e) { /* */ }
+      const tgt = { x: p.x, y: Math.min(p.y, gy + 2.6), z: p.z };
+      try { await Promise.race([X.hero.act('split', tgt, { snap: true }), new Promise((r) => setTimeout(r, 700))]); } catch (e) { /* */ }
+      A.busy = false;
+    }
+    async function fall(p, why) {
+      // he drives it where there is no crack: it does not bite, it bounces off and drops at his feet
+      const W0 = wedgeMesh(p); await strikeAt(p);
+      X.play('wood'); X.dust(p.x, p.y, p.z, 3, 1);
+      const w = W0.w; const t0 = performance.now(); const y0 = w.position.y, g = X.ground(w.position.x + W0.o.x, w.position.z + W0.o.z);
+      const fallStep = () => { const k = Math.min(1, (performance.now() - t0) / 500); w.position.x += W0.o.x * 0.04; w.position.z += W0.o.z * 0.04; w.position.y = y0 + (g + 0.15 - y0) * k * k; w.rotation.x += 0.2; if (k < 1) requestAnimationFrame(fallStep); };
+      fallStep();
+      A.fallen++; (A.junk = A.junk || []).push(w);
+      X.word({ x: p.x, y: p.y + 1.2, z: p.z }, why || 'לא על הסדק: היתד לא נתפסה ונפלה');
     }
     function spacing() {
       const us = A.wedges.map((w) => w.u).sort((a, c) => a - c); const gaps = []; for (let i = 1; i < us.length; i++) gaps.push(us[i] - us[i - 1]);
       const mean = gaps.reduce((a, c) => a + c, 0) / (gaps.length || 1), sd = Math.sqrt(gaps.reduce((a, c) => a + (c - mean) ** 2, 0) / (gaps.length || 1));
       const cv = mean > 0 ? sd / mean : 1; return cv <= 0.22 ? 'gold' : cv <= 0.45 ? 'good' : 'ok';
     }
+    // the water: a blue thread down the chosen crack, filling from the top as he pours
+    let water = null;
+    function waterMake(L) {
+      const pts = L.pts.slice().reverse();   // (top → bottom)
+      const g = new T.TubeGeometry(new T.CatmullRomCurve3(pts), pts.length * 3, 0.085, 5, false);
+      const mm = new T.MeshStandardMaterial({ color: '#5EA8E8', emissive: '#2E6FB0', emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.92 });
+      const mesh = new T.Mesh(g, mm); mesh.renderOrder = 996; g.setDrawRange(0, 0); X.props.root.add(mesh);
+      water = { mesh, g, n: g.index ? g.index.count : g.attributes.position.count, top: pts[0] };
+    }
     async function split() {
-      A.step = 'split';
+      A.step = 'split'; X.line('');
       const g = A.res, wrong = !A.pick.ok, crooked = wrong || g.space === 'ok';
       const lost = wrong && g.space === 'ok';
-      const at = { x: b[0], y: gy + b[2] * 0.9, z: b[1] };
-      // the rock opens slowly with a groan along the line, then the halves part like a book
+      const at = { x: b[0], y: gy + R.r * R.sy * 0.9, z: b[1] };
       X.play('creak'); X.shake(0.25, 0.35);
-      const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 2.6 + 8, el: 26, side: -0.5, lift: b[2] * 0.4 });
+      const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 2.6 + 9, el: 28, side: -0.5, lift: R.r * 0.4 });
       X.shot(ws.p, ws.t, 1.2);
-      try { X.stages.hitBoulder(s, 1); } catch (e) { /* */ }
-      await new Promise((r) => setTimeout(r, 1100));
-      try { X.stages.hitBoulder(s, 0); } catch (e) { /* */ }
-      X.play('split'); X.dust(b[0], gy + 1, b[1], 26, b[2] * 0.7); X.shake(0.3, 0.6);
-      for (const w of A.wedges) X.props.remove(w.w); for (const L of A.lines) X.props.remove(L.mesh);
-      // every split leaves chips for the waste pile (the trimming); a crooked one more, a lost rock the whole of it
+      // the halves part along the very crack he read: slowly with the groan, then like a book
+      R.halves(A.pick.Pl);
+      const t0 = performance.now();
+      await new Promise((res) => { const step = () => { const k = Math.min(1, (performance.now() - t0) / 1500); R.part(0.25 + 0.75 * ease(k)); if (water) water.mesh.material.opacity = 0.92 * (1 - k); if (k < 1) requestAnimationFrame(step); else res(); }; step(); });
+      X.play('split'); X.dust(b[0], gy + 1, b[1], 26, R.r * 0.7); X.shake(0.3, 0.6);
+      for (const w of A.wedges) X.props.remove(w.w); for (const L of A.lines) X.props.remove(L.mesh); if (water) { X.props.remove(water.mesh); water = null; }
+      try { X.stages.boulderHide(s, true, true); } catch (e) { /* */ }
       let waste = 1;
-      if (lost) { X.word(at, 'פעמיים עקום: הסלע נפסל · הצוות גורר לפסולת'); waste = 3; try { X.loss && X.loss(20, at, 'הסלע נפסל', 1); } catch (e) { /* */ } }   // ── h111 ── (a real loss costs points, the owner 8.11: one scoring for the whole game) ── /h111 ──
-      else if (crooked) { X.word(at, wrong ? 'קו לא נכון: נבקע עקום · כשר' : 'נבקע במדרגות · כשר'); waste = 2; }
-      else if (g.line === 'gold' && g.space === 'gold' && g.water === 'gold') { X.bonus(150, 'great', 'מהודר · יישר כוח'); }
+      if (lost) { X.word(at, 'פעמיים עקום: הסלע נפסל · הצוות גורר לפסולת'); waste = 3; try { X.loss && X.loss(20, at, 'הסלע נפסל', 1); } catch (e) { /* */ } }
+      else if (crooked) { X.word(at, wrong ? 'הסדק הזה לא עובר בכל הסלע: נבקע עקום · כשר' : 'יתדות לא ברווח שווה: נבקע במדרגות · כשר'); waste = 2; }
+      else if (g.line === 'gold' && g.space === 'gold' && g.water === 'gold') { X.bonus(150, 'great', 'נבקע בדיוק לאורך הסדק · מהודר'); }
+      else X.word(at, 'נבקע לאורך הסדק');
       if (waste) wasteAdd(X, waste, at);
       const q = lost ? 0 : ['line', 'space', 'water'].reduce((a, k) => a + (g[k] === 'gold' ? 1 : g[k] === 'good' ? 0.8 : 0.5), 0) / 3 * (crooked ? 0.75 : 1);
       setTimeout(() => X.end({ q, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, lost, at }), 1300);
     }
     return {
       begin() {
-        const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.8 + 8, el: 26, side: -0.95, lift: b[2] * 0.35 });   // (from his side: he never stands on the line)
+        const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
         X.shot(ws.p, ws.t, 0.9);
-        X.line('גררו הצידה · האור מחפש סדק');
-        { const q = {}; surf(X, b, phiH, b[2] * 0.36, q); X.hand({ x: q.x, y: q.y, z: q.z }, -120, 0); }
-        X.stages.hero.setTool && X.hero.arm(null);
+        X.line('גררו ימינה ושמאלה · המראה מאירה את הסלע');
+        { const q = R.hitAt(phiK, hP); if (q) X.hand({ x: q.p.x, y: q.p.y, z: q.p.z }, -120, 0); }
+        try { X.hero.arm(null); } catch (e) { /* */ }
       },
       update(dt) {
         A.t += dt; light(dt);
-        if (A.step === 'water') {
+        if (A.step === 'water' && water) {
           if (A.hold) {
-            A.water += dt / 2.5;
-            for (const w of A.wedges) w.w.scale.setScalar(1 + Math.min(1, A.water) * 0.3);
-            A.creakT -= dt; if (A.water < 1 && A.creakT <= 0) { A.creakT = 0.55; X.play('creak'); }
-            X.meter({ x: b[0], y: gy + b[2] * 1.05, z: b[1] }, Math.min(1, A.water / 1.0));
+            A.water += dt / 2.6;
+            A.pourT = (A.pourT || 0) - dt; if (A.pourT <= 0 && SH.jarMan) { A.pourT = 2.3; try { SH.crew.A.pose(SH.jarMan.a, 'pour'); } catch (e) { /* */ } }
+            const k = Math.min(1, A.water);
+            water.g.setDrawRange(0, Math.floor(water.n * k / 3) * 3);
+            for (const w of A.wedges) w.w.scale.setScalar(1 + k * 0.25);
+            R.part(k * 0.25 * (R.split ? 1 : 0));
+            // the creak while the wedges swell; silent once the crack is full
+            A.creakT -= dt; if (A.water < 1 && A.creakT <= 0) { A.creakT = 0.5; X.play('creak'); X.shake(0.06, 0.1); }
+            // poured on past full: it runs over at the foot of the crack
+            if (A.water > 1) { A.spillT = (A.spillT || 0) - dt; if (A.spillT <= 0) { A.spillT = 0.2; const q = A.pick.pts[0]; X.dust(q.x, q.y + 0.1, q.z, 2, 0.6); } }
             if (A.water > 1 + [1.0, 0.55, 0.4][lv - 1] + 0.6) { A.hold = false; this.up(); }
           }
         }
       },
       down(p) {
         A.p0 = { x: p.x, y: p.y }; A.th0 = A.th; A.tDown = performance.now() / 1000;
-        if (A.step === 'water') { A.hold = true; X.play('pour'); if (SH.jarMan) { SH.crew.setRole(SH.jarMan, 'hold', { item: 'jar' }); try { SH.crew.A.pose(SH.jarMan.a, 'pour'); } catch (e) { /* */ } } }
+        if (A.step === 'water') {
+          A.hold = true; X.play('pour'); A.pourT = 0;
+        }
       },
       move(p) {
-        if (A.step === 'turn' || (A.step === 'wedge' && !A.pick)) A.th = clamp(A.th0 + (A.p0.x - p.x) * 0.0045, -0.6, 0.6);
+        if (A.step === 'turn' || (A.step === 'wedge' && !A.pick)) A.th = clamp(A.th0 + (A.p0.x - p.x) * 0.0045, -0.7, 0.7);
       },
       up(p) {
-        const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && performance.now() / 1000 - A.tDown < 0.35;   // (a tap by the finger's clock, not the frames')
+        const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && performance.now() / 1000 - A.tDown < 0.35;
         if ((A.step === 'turn' || A.step === 'wedge') && tap) {
-          // a tap on a shown line: its first wedge; the first tap chooses the line
+          if (A.busy) return;
           let best = null, bd = 1e9; for (const L of A.lines) { if (!L.seen) continue; const r = lineDist(L, p); if (r.d < bd) { bd = r.d; best = { L, u: r.u }; } }
           if (!A.pick) {
-            if (!best || bd > 34) { if (A.lines.some((L) => L.seen)) fall(p); else X.word({ x: b[0], y: gy + b[2], z: b[1] }, 'קודם מצאו את הקו באור'); return; }
+            if (!best || bd > 34) {
+              if (A.lines.some((L) => L.seen)) { const hit = R.hitAt(phiK + A.th, hP); if (hit) fall(hit.p); }
+              else X.word({ x: b[0], y: gy + R.r * R.sy, z: b[1] }, 'קודם מצאו את הסדק באור המראה');
+              return;
+            }
             A.pick = best.L; A.step = 'wedge'; A.res.line = best.L.ok ? 'gold' : 'ok';
-            if (best.L.ok) X.hit({ x: best.L.pts[8].x, y: best.L.pts[8].y + 1, z: best.L.pts[8].z }, 'gold', { text: 'קו נכון', craft: 'סתתים' });
-            X.line(`${nW} יתדות על הקו, ברווח שווה`); X.hand(null);
+            if (best.L.ok) X.hit({ x: best.L.pts[8] ? best.L.pts[8].x : b[0], y: (best.L.pts[8] ? best.L.pts[8].y : gy) + 1, z: best.L.pts[8] ? best.L.pts[8].z : b[1] }, 'gold', { text: 'הסדק הנכון', craft: 'סתתים' });
+            X.line(`תקעו ${nW} יתדות לאורך הסדק, ברווח שווה`); X.hand(null);
           }
           const r = lineDist(A.pick, p);
-          if (r.d > 34) { fall(p); return; }
-          if (A.wedges.some((w) => Math.abs(w.u - r.u) < 0.07)) { fall(p); return; }
+          if (r.d > 34) { const g0 = onPlane(X, p.x, p.y, gy + 1.2); const hit = g0 ? R.hitAt(Math.atan2(g0.z - b[1], g0.x - b[0]), 1.2) : null; fall(hit ? hit.p : ptAt(A.pick, 0.1)); return; }
+          if (A.wedges.some((w) => Math.abs(w.u - r.u) < 0.07)) { fall(ptAt(A.pick, r.u), 'צמוד מדי ליתד הקודמת: היתד לא נתפסה ונפלה'); return; }
           const grade = r.d < 12 ? 'gold' : r.d < 22 ? 'good' : 'ok';
-          const at = wedgeAt(A.pick, r.u, grade);
-          X.hit(at, grade, { text: '', craft: 'סתתים' });
-          X.count(at, `${A.wedges.length}/${nW}`);
-          if (A.wedges.length >= nW) {
-            A.res.space = spacing(); X.count(null);
-            const mid = A.pick.pts[4];
-            if (A.res.space === 'ok') X.word({ x: mid.x, y: mid.y + 1.5, z: mid.z }, 'רווחים לא שווים'); else X.hit({ x: mid.x, y: mid.y + 1.5, z: mid.z }, A.res.space, { text: 'רווח שווה', craft: 'סתתים' });
-            A.step = 'water'; A.water = 0;
-            X.line('החזיקו · שחררו כשהחריקה נגמרת');
-            const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: b[2] * 1.6 + 7, el: 24, side: -0.95, lift: b[2] * 0.35 });
-            X.shot(ws.p, ws.t, 0.7);
-          }
+          const p3 = ptAt(A.pick, r.u), W = wedgeMesh(p3); W.u = r.u; W.grade = grade; A.wedges.push(W);
+          X.count({ x: p3.x, y: p3.y + 1.4, z: p3.z }, `${A.wedges.length}/${nW}`);
+          strikeAt(p3).then(() => {
+            // driven in: the head stays out a hand, chips fly
+            W.w.position.copy(p3).addScaledVector(W.o, 0.38);
+            X.play('wedge'); X.sparks(p3.x, p3.y, p3.z, 6); X.dust(p3.x, p3.y, p3.z, 3, 1);
+            X.hit({ x: p3.x, y: p3.y + 1, z: p3.z }, grade, { text: '', craft: 'סתתים' });
+            if (A.wedges.length >= nW && A.step === 'wedge') {
+              A.res.space = spacing(); X.count(null);
+              const mid = ptAt(A.pick, 0.5);
+              if (A.res.space === 'ok') X.word({ x: mid.x, y: mid.y + 1.5, z: mid.z }, 'רווחים לא שווים'); else X.hit({ x: mid.x, y: mid.y + 1.5, z: mid.z }, A.res.space, { text: 'רווח שווה', craft: 'סתתים' });
+              A.step = 'water'; A.water = 0; waterMake(A.pick);
+              try { X.hero.walkTo({ x: st.x, z: st.z, face: [b[0], b[1]] }); } catch (e) { /* */ }   // (he steps back: the helper pours)
+              X.line('החזיקו לשפוך מים לסדק · שחררו כשהחריקה נגמרת');
+              const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 1.7 + 8, el: 22, side: -0.95, lift: R.r * 0.3 });
+              X.shot(ws.p, ws.t, 0.7);
+              X.hand({ x: water.top.x, y: water.top.y + 0.6, z: water.top.z }, 0, 0);
+            }
+          });
           return;
         }
         if (A.step === 'water' && (A.hold || A.water > 0)) {
-          A.hold = false;
-          if (SH.jarMan) SH.crew.setRole(SH.jarMan, 'hold', { item: 'jar' });
+          A.hold = false; X.hand(null);
+          if (SH.jarMan) { try { SH.crew.A.pose(SH.jarMan.a, 'stand'); } catch (e) { /* */ } }
           const over = A.water - 1, win = [1.0, 0.55, 0.4][lv - 1];
-          if (A.water < 0.85) { A.early++; X.word({ x: b[0], y: gy + b[2] * 1.1, z: b[1] }, 'עוד לא — עוד חורק'); return; }
+          if (A.water < 0.85) { A.early++; X.word({ x: b[0], y: gy + R.r * R.sy * 1.1, z: b[1] }, 'עוד לא: הסלע עוד חורק, הסדק לא מלא'); return; }
           A.res.water = over >= -0.15 && over <= win ? (over >= 0 ? 'gold' : 'good') : over <= win + 0.6 ? 'good' : 'ok';
-          X.meter(null);
-          if (A.res.water !== 'ok') X.hit({ x: b[0], y: gy + b[2], z: b[1] }, A.res.water, { text: 'בזמן', craft: 'סתתים' }); else X.word({ x: b[0], y: gy + b[2], z: b[1] }, 'יותר מדי מים');
+          if (A.res.water !== 'ok') X.hit({ x: b[0], y: gy + R.r * R.sy, z: b[1] }, A.res.water, { text: 'בזמן', craft: 'סתתים' }); else X.word({ x: b[0], y: gy + R.r * R.sy, z: b[1] }, 'יותר מדי מים: נשפך');
           split();
         }
       },
-      end() { for (const o of [beam, glow, mirror]) X.props.remove(o); for (const L of A.lines) X.props.remove(L.mesh); for (const w of A.wedges) X.props.remove(w.w); for (const j of A.junk || []) X.props.remove(j); X.meter(null); X.count(null); },
-      at() { return { x: b[0], y: gy + b[2], z: b[1] }; },
-      dbg() { return { step: A.step, nW, th: +A.th.toFixed(3), seen: A.lines.map((L) => L.seen), linePhi: A.lines.map((L) => +(L.phi - phiH).toFixed(3)), wedges: A.wedges.length, water: +A.water.toFixed(2), res: A.res, lineScr: A.lines.map((L) => { const q = X.scr(L.pts[4].x, L.pts[4].y, L.pts[4].z); return [Math.round(q.x), Math.round(q.y)]; }), linePts: A.lines.map((L) => L.pts.map((q) => { const r = X.scr(q.x, q.y, q.z); return [Math.round(r.x), Math.round(r.y)]; })), lineEnds: A.lines.map((L) => [0, 8].map((i) => { const q = X.scr(L.pts[i].x, L.pts[i].y, L.pts[i].z); return [Math.round(q.x), Math.round(q.y)]; })) }; },
+      cancel() { if (A.step === 'water') { A.hold = false; if (SH.jarMan) { try { SH.crew.A.pose(SH.jarMan.a, 'stand'); } catch (e) { /* */ } } } },   // (to the overview mid-pour: the pouring stops)
+      end() { for (const o of [beamIn, beamOut, glow, mirror]) X.props.remove(o); for (const L of A.lines) X.props.remove(L.mesh); for (const w of A.wedges) X.props.remove(w.w); for (const j of A.junk || []) X.props.remove(j); if (water) X.props.remove(water.mesh); X.meter(null); X.count(null); },
+      at() { return { x: b[0], y: gy + R.r * R.sy, z: b[1] }; },
+      dbg() {
+        const sc = (q) => { const r2 = X.scr(q.x, q.y, q.z); return [Math.round(r2.x), Math.round(r2.y)]; };
+        return { step: A.step, nW, busy: A.busy, th: +A.th.toFixed(3), aim: A.lines.map((L) => +L.aim.toFixed(3)), ok: A.lines.map((L) => L.ok), seen: A.lines.map((L) => L.seen), wedges: A.wedges.length, fallen: A.fallen, water: +A.water.toFixed(2), res: A.res, linePts: A.lines.map((L) => L.pts.map(sc)), split: R.split ? +R.split.k.toFixed(2) : 0 };
+      },
     };
   },
 };
@@ -263,65 +370,136 @@ function wasteAdd(X, n, at) {
 }
 
 /* ───────── 3.4 the paving ───────── */
+// ── h114 ── (ירון 9.11: "רק שתי אבנים של הפאזל הזה? חלש מדי צריך עוד ושאראה בנייה"; "גם הריצופים" into the Mount; the white ring
+// with no meaning; a chunk of the split rock hid a slab and the sector could not close). Now: 3 / 4 / 4 rows of six by level, the
+// pile is the slabs of one true laying (so it always closes), the crews pave the sector round his rows the whole time, the slabs
+// are bedded into the cut rock (their top a hand over it), and the sector keeps the very laying he made (save: st.lay[s]).
+// The bin for a cracked slab (level 3 only): a wooden crate with shards in it, not a ring. ── /h114 ──
 const U = 1.6, W = 6;
-const PILES = [[3, 3, 2, 2, 1, 1, 1], [3, 3, 3, 1, 1, 1], [3, 3, 3, 3, 3, 2, 1]];
+const ROWS = [3, 4, 4];
 const CREW_JOINTS = [2, 4];
+const SIDE_COLS = 3;   // the crews' paving each side of his rows (cells)
+function rnd(seed) { let t = seed >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+/** one true laying of rows × 6 over the crews' row (joints 2, 4): every row's joints off the row's below */
+function trueLaying(seed, rows) {
+  const R = rnd(seed * 7919 + rows), out = []; let below = new Set(CREW_JOINTS);
+  for (let y = 0; y < rows; y++) {
+    let row = null;
+    for (let tries = 0; tries < 200 && !row; tries++) {
+      const parts = []; let x = 0; const J = new Set();
+      while (x < W) { const L = Math.min(W - x, 1 + Math.floor(R() * 3)); x += L; parts.push(L); if (x < W) J.add(x); }
+      let ok = true; for (const j of J) if (below.has(j)) ok = false;
+      if (ok && parts.length >= 2 && parts.some((L) => L >= 2)) row = { parts, J };
+    }
+    if (!row) row = { parts: y % 2 ? [3, 3] : [1, 2, 2, 1], J: new Set() };
+    out.push(row.parts); below = row.J.size ? row.J : new Set([3]);
+  }
+  return out;
+}
 function gridOf(X, s, rows) {
   const b = SH.bould[s], x0 = b[0] - (W * U) / 2, z0 = b[1] - (rows * U) / 2;
-  let base = -1e9; for (let i = 0; i <= 6; i++) for (let j = -1; j <= rows + 3; j++) base = Math.max(base, X.ground(x0 + i * U * (W / 6), z0 + j * U));
-  return { x0, z0, base: base + 0.05, rows, cx: b[0], cz: b[1] };
+  // (the cut rock under the rows: its highest point, the slabs bedded into it so their top stands a hand over it)
+  let base = -1e9; for (let i = -SIDE_COLS; i <= W + SIDE_COLS; i++) for (let j = -1; j <= rows; j++) base = Math.max(base, X.ground(x0 + i * U, z0 + j * U));
+  return { x0, z0, base: base - 0.12, rows, cx: b[0], cz: b[1] };
 }
-function slabMesh(X, L, broken) {
-  const T = X.THREE, mat = X.props.M.stone.clone(); mat.color.offsetHSL(0, 0, (hash(L, Math.random()) - 0.5) * 0.06);
+function slabMesh(X, L, broken, crew) {
+  const T = X.THREE, mat = X.props.M.stone.clone(); mat.color.offsetHSL(0, 0, (hash(L, Math.random()) - 0.5) * 0.06 - (crew ? 0.03 : 0));
   const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(L * U * 0.96, 0.34, U * 0.94), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
   if (broken) { const c = new T.Mesh(new T.PlaneGeometry(L * U * 0.7, 0.07), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.5; c.position.y = 0.18; g.add(c); }
   X.props.root.add(g); return g;
 }
+/** the crews' paving round his rows: their row under his (y = −1), and SIDE_COLS cells each side for every row (2-slabs, offset) */
+function crewSlabs(rows) {
+  const L = [];
+  // the row under his first: joints at 2, 4 (the rule is seen)
+  { let x = 0; for (const l of [2, 2, 2]) { L.push({ x, y: -1, l }); x += l; } }
+  for (let y = -1; y <= rows; y++) for (const side of [-1, 1]) {
+    const off = (y & 1) ? 1 : 0; let x = side < 0 ? -SIDE_COLS : W;
+    const end = side < 0 ? 0 : W + SIDE_COLS;
+    if (off) { L.push({ x, y, l: 1 }); x += 1; }
+    while (x < end) { const l = Math.min(2, end - x); L.push({ x, y, l }); x += l; }
+  }
+  // and the row past his last
+  { let x = 0; for (const l of [3, 3]) { L.push({ x, y: rows, l }); x += l; } }
+  // nearest his rows first (they close in toward him)
+  return L.sort((a, b) => (Math.abs(a.y - rows / 2) + Math.min(Math.abs(a.x + a.l / 2 - 0), Math.abs(a.x + a.l / 2 - W)) * 0.3) - (Math.abs(b.y - rows / 2) + Math.min(Math.abs(b.x + b.l / 2), Math.abs(b.x + b.l / 2 - W)) * 0.3));
+}
+function placeCrew(X, G, c) { const m = slabMesh(X, c.l, false, true); m.position.set(G.x0 + (c.x + c.l / 2) * U, G.base + 0.17, G.z0 + (c.y + 0.5) * U); return m; }
 function layDone(X, s) {
-  // a paved sector (reload): the crews' row and the kohen's rows, closed
-  const G = gridOf(X, s, 2); const L = [[3, 3], [1, 3, 2], [2, 2, 2]];
-  [[2, 2, 2], ...L.slice(0, 2)].forEach((row, y) => { let x = 0; for (const l of row) { const m = slabMesh(X, l, false); m.position.set(G.x0 + (x + l / 2) * U, G.base + 0.17, G.z0 + (y - 0.5) * U); x += l; } });
+  // a paved sector (reload): the crews' paving round it and his rows exactly as he laid them
+  const st = X.M.st, lay = st.lay && st.lay[s]; const rows = (lay && lay.rows) || 3;
+  try { X.stages.boulderRest(s); } catch (e) { /* */ }
+  const G = gridOf(X, s, rows);
+  for (const c of crewSlabs(rows)) placeCrew(X, G, c);
+  if (lay) {
+    for (const [L, x, y, rot] of lay.s || []) { const m = slabMesh(X, L, false); const c0 = { x: G.x0 + (x + 0.5) * U, z: G.z0 + (y + 0.5) * U }; m.position.set(rot ? c0.x : c0.x + ((L - 1) * U) / 2, G.base + 0.17, rot ? c0.z + ((L - 1) * U) / 2 : c0.z); if (rot) m.rotation.y = Math.PI / 2; }
+    for (const [x, y] of lay.f || []) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(U * 0.42, 0.25, U * 0.42); mm.position.set(G.x0 + (x + 0.5) * U, G.base + 0.15, G.z0 + (y + 0.5) * U); X.props.root.add(mm); }
+  } else {
+    // (an older save: a laying of the right kind)
+    trueLaying(s + 1, rows).forEach((row, y) => { let x = 0; for (const l of row) { const m = slabMesh(X, l, false); m.position.set(G.x0 + (x + l / 2) * U, G.base + 0.17, G.z0 + (y + 0.5) * U); x += l; } });
+  }
 }
 export const PAVE = {
   icon: '🧱', title: 'ריצוף הגזרה',
   walkLine: (m) => `גזרה ${m.s + 1}: מרצפים את מה שיושר`,
-  stand(m, X) { const b = SH.bould[m.s]; if (!b) return null; return { x: b[0] - 3, z: b[1] + (X.level() * U) / 2 + 5.5, face: [b[0], b[1]] }; },
+  stand(m, X) { const b = SH.bould[m.s]; if (!b) return null; const rows = ROWS[X.level() - 1]; return { x: b[0] - W * U / 2 - SIDE_COLS * U - 2.2, z: b[1] + (rows * U) / 2 + 4.5, face: [b[0], b[1]] }; },
   prepare(m, X) {
     const b = SH.bould[m.s]; if (!b) return; const C = SH.crew;
+    // the split rock's halves dragged off and its patch cut level before the paving (a chunk once hid a slab)
+    bigGone(X, m.s);
+    try { X.stages.boulderRest(m.s); } catch (e) { /* */ }
+    try { X.props.clearRubble(b[0], b[1], b[2] + 12); } catch (e) { /* */ }
     SH.secCrew = SH.secCrew || []; for (const w of SH.secCrew) C.remove(w); SH.secCrew = [];
-    // two pavers set the next rows; a cart of slabs; (the boy with the broom: טיוטה)
-    SH.secCrew.push(C.add(b[0] + W * U / 2 + 1.5, b[1] - 2, { role: 'hammer', item: 'mallet', fx: b[0] + W * U / 2 - 1, fz: b[1] - 2.5, crew: 2 }));
-    SH.secCrew.push(C.add(b[0] - W * U / 2 - 6, b[1] + 5, { role: 'carry', from: [b[0] - W * U / 2 - 6, b[1] + 5], to: [b[0] - W * U / 2 - 1.5, b[1] - 2], item: 'stone', crew: 2 }));
+    // two pavers each side setting the crews' slabs (mallets), a carrier bringing slabs from the cart road
+    const rows = ROWS[X.level() - 1], xE = b[0] + W * U / 2 + SIDE_COLS * U + 1.4, xW = b[0] - W * U / 2 - SIDE_COLS * U - 1.4;
+    SH.secCrew.push(C.add(xE, b[1] - 1, { role: 'hammer', item: 'mallet', fx: xE - 2, fz: b[1] - 1, crew: 2 }));
+    SH.secCrew.push(C.add(xE, b[1] + rows * U / 2, { role: 'hammer', item: 'mallet', fx: xE - 2, fz: b[1] + rows * U / 2, off: 0.4, crew: 2 }));
+    SH.secCrew.push(C.add(xW, b[1] - rows * U / 2 - 2, { role: 'hammer', item: 'mallet', fx: xW + 2, fz: b[1] - rows * U / 2 - 1, off: 0.2, crew: 2 }));
+    SH.secCrew.push(C.add(b[0] + 2, b[1] - rows * U / 2 - 8, { role: 'carry', from: [b[0] + 2, b[1] - rows * U / 2 - 9], to: [xE - 1, b[1] - rows * U / 2 - 2.5], item: 'stone', crew: 2 }));
   },
   make(m, X) {
-    const lv = X.level(), rows = lv, G = gridOf(X, m.s, rows), T = X.THREE;
+    try { X.stages.boulderRest(m.s); } catch (e) { /* */ }
+    const lv = X.level(), rows = ROWS[lv - 1], G = gridOf(X, m.s, rows), T = X.THREE;
     const cell = []; for (let y = 0; y < rows; y++) cell.push(Array(W).fill(null));
-    const S = []; const A = { drag: null, t: 0, closed: Array(rows).fill(false), kasher: Array(rows).fill(false), fill: [], done: false, ids: 0, reject: null };
+    const S = []; const A = { drag: null, t: 0, closed: Array(rows).fill(false), kasher: Array(rows).fill(false), fill: [], done: false, ids: 0, bin: null, crewT: 0, crewI: 0 };
     const cw = (cx, cy) => ({ x: G.x0 + (cx + 0.5) * U, z: G.z0 + (cy + 0.5) * U });
-    // the crews' row under the first (its joints at 2 and 4): the rule is seen
-    const crew = []; { let x = 0; for (const l of [2, 2, 2]) { const s2 = slabMesh(X, l, false); s2.position.set(G.x0 + (x + l / 2) * U, G.base + 0.17, G.z0 - 0.5 * U); crew.push(s2); x += l; } }
-    // the empty rows: gold cells on the ground
-    const outline = []; for (let y = 0; y < rows; y++) for (let x = 0; x < W; x++) { const c = cw(x, y); const r = new T.Mesh(new T.PlaneGeometry(U * 0.9, U * 0.9), X.props.M.gold.clone()); r.material.opacity = 0.22; r.rotation.x = -Math.PI / 2; r.position.set(c.x, G.base + 0.03, c.z); X.props.root.add(r); outline.push(r); }
-    // the pile beside the rows (south)
-    const pile = PILES[lv - 1].slice(); const broken = lv >= 3;
-    // (in rows no wider than the grid: the whole pile in the shot, beside it the reject ring)
-    const pz = G.z0 + rows * U + 2.6, rowW = W * U + 0.8;
-    const all = broken ? [...pile, 2] : pile;
-    let px = G.x0, pr = 0;
+    // the crews' paving round his rows: their row under his is down already (the rule is seen); the rest they set while he works
+    const crewL = crewSlabs(rows), crewM = [];
+    for (const c of crewL) if (c.y === -1 && c.x >= 0 && c.x < W) crewM.push(placeCrew(X, G, c));
+    const crewRest = crewL.filter((c) => !(c.y === -1 && c.x >= 0 && c.x < W));
+    // the empty rows: gold cells cut in the rock
+    const outline = []; for (let y = 0; y < rows; y++) for (let x = 0; x < W; x++) { const c = cw(x, y); const r = new T.Mesh(new T.PlaneGeometry(U * 0.9, U * 0.9), X.props.M.gold.clone()); r.material.opacity = 0.22; r.rotation.x = -Math.PI / 2; r.position.set(c.x, G.base + 0.2, c.z); X.props.root.add(r); outline.push(r); }
+    // the pile beside the rows (south): the slabs of one true laying, shuffled (+ a cracked one at level 3)
+    const sol = trueLaying(m.s * 31 + lv + ((X.M.st.plays[m.id] | 0) * 101), rows);
+    const R = rnd(m.s * 17 + lv); const pile = sol.flat().sort((a, b) => b - a || R() - 0.5);
+    const broken = lv >= 3;
+    const all = broken ? [...pile.slice(0, 2), 2, ...pile.slice(2)] : pile;
+    const pz = G.z0 + rows * U + 1.6 + U, rowW = W * U + 2 * U;
+    let px = G.x0 - U, pr = 0;
     all.forEach((L, i) => {
-      const bk = broken && i === all.length - 1; const g = slabMesh(X, L, bk);
-      if (px + L * U > G.x0 + rowW) { px = G.x0; pr++; }
-      const home = { x: px + (L * U) / 2, z: pz + pr * (U + 0.35) }; px += L * U + 0.4;
-      g.position.set(home.x, G.base + 0.17, home.z);
-      S.push({ id: ++A.ids, L, rot: 0, at: null, g, home, broken: bk, y: 0.17, tx: home.x, tz: home.z, ty: G.base + 0.17, rotA: 0 });
+      const bk = broken && i === 2; const g = slabMesh(X, L, bk);
+      if (px + L * U > G.x0 - U + rowW) { px = G.x0 - U; pr++; }
+      const home = { x: px + (L * U) / 2, z: pz + pr * (U + 0.45) }; px += L * U + 0.45;
+      const gy = Math.max(G.base, X.ground(home.x, home.z) - 0.12);
+      g.position.set(home.x, gy + 0.17, home.z);
+      S.push({ id: ++A.ids, L, rot: 0, at: null, g, home, hy: gy + 0.17, broken: bk, tx: home.x, tz: home.z, ty: gy + 0.17, rotA: 0 });
     });
-    const pileD = (pr + 1) * (U + 0.35);
-    const rej = { x: G.x0 + W * U + 3.5, z: pz + 0.8 }; A.reject = X.props.ringAt(rej.x, rej.z, 1.3, 0.12, X.props.M.ring);
+    const pileD = (pr + 1) * (U + 0.45);
+    // level 3: the crate for the cracked slab, beside the pile (a few shards in it already)
+    const rej = { x: G.x0 + W * U + SIDE_COLS * U + 1.2, z: pz + 0.6 };
+    if (broken) {
+      const bin = new T.Group(); const gy = X.ground(rej.x, rej.z);
+      for (const [w, d, x, z] of [[2.6, 0.14, 0, -0.9], [2.6, 0.14, 0, 0.9], [0.14, 1.9, -1.25, 0], [0.14, 1.9, 1.25, 0]]) { const p2 = new T.Mesh(new T.BoxGeometry(w, 0.7, d), X.props.M.wood); p2.position.set(x, 0.35, z); bin.add(p2); }
+      for (let k = 0; k < 4; k++) { const sh = new T.Mesh(X.props.geo.chunk, X.props.M.stoneD); sh.scale.set(0.35, 0.18, 0.3); sh.position.set(-0.7 + k * 0.45, 0.45, (k % 2) * 0.4 - 0.2); bin.add(sh); }
+      bin.position.set(rej.x, gy, rej.z); X.props.root.add(bin); A.bin = bin;
+    }
     const fits = (sl, cx, cy, rot) => { for (let k = 0; k < sl.L; k++) { const x = rot ? cx : cx + k, y = rot ? cy + k : cy; if (x < 0 || x >= W || y < 0 || y >= rows) return false; const c = cell[y][x]; if (c && c !== sl) return false; } return true; };
     const occupy = (sl, v) => { if (!sl.at) return; for (let k = 0; k < sl.L; k++) { const x = sl.rot ? sl.at[0] : sl.at[0] + k, y = sl.rot ? sl.at[1] + k : sl.at[1]; cell[y][x] = v ? sl : null; } };
     function pickAt(p) {
       const rc = X.rayAt(p.x, p.y); const hits = rc.intersectObjects(S.filter((q) => !q.gone).map((q) => q.g.userData.body), false);
-      if (!hits.length) return null; return S.find((q) => q.g.userData.body === hits[0].object) || null;
+      if (hits.length) return S.find((q) => q.g.userData.body === hits[0].object) || null;
+      // (a finger is wide: the nearest slab within 40 px)
+      let best = null, bd = 40; for (const q of S) { if (q.gone) continue; const r2 = X.scr(q.g.position.x, q.g.position.y, q.g.position.z); const d = Math.hypot(r2.x - p.x, r2.y - p.y); if (r2.on && d < bd) { bd = d; best = q; } } return best;
     }
     function joints(y) { const J = new Set(); if (y < 0) { for (const j of CREW_JOINTS) J.add(j); return J; } for (let x = 1; x < W; x++) { const a = cell[y][x - 1], c = cell[y][x]; if (a !== c) J.add(x); } return J; }
     function checkRows() {
@@ -331,12 +509,17 @@ export const PAVE = {
         const J = joints(y), Jb = joints(y - 1); let joj = false; for (const j of J) if (Jb.has(j)) joj = true;
         const bk = cell[y].some((c) => c && c.broken), filled = A.fill.some((f) => f.y === y);
         const mid = cw(W / 2 - 0.5, y), at = { x: mid.x, y: G.base + 1.2, z: mid.z };
-        if (bk) { try { X.loss && X.loss(20, at, 'לוח שבור נסדק בשורה', 1); } catch (e) { /* */ } }   // ── h111 ── (the broken slab laid in a row: damage) ── /h111 ──
-        if (joj || bk || filled) { A.kasher[y] = true; X.word(at, bk ? 'לוח שבור נסדק · כשר' : filled ? 'הצוות מילא באבן קטנה · כשר' : 'חיבור על חיבור · כשר'); if (joj || bk) { for (const c of cell[y]) if (c) c.wob = 0.6; X.shake(0.12, 0.2); } }
-        else { X.bonus(100, 'row', 'שורה סגורה'); A.sweep = { y, t: 0 }; X.play('tier'); }
+        if (bk) { try { X.loss && X.loss(20, at, 'לוח סדוק בשורה: נשבר', 1); } catch (e) { /* */ } }
+        if (joj || bk || filled) { A.kasher[y] = true; X.word(at, bk ? 'לוח סדוק נשבר בשורה · כשר' : filled ? 'הצוות מילא באבן קטנה · כשר' : 'חיבור מעל חיבור · כשר'); if (joj || bk) { for (const c of cell[y]) if (c) c.wob = 0.6; X.shake(0.12, 0.2); } }
+        else { X.bonus(100, 'row', `שורה ${y + 1} מתוך ${rows} סגורה`); A.sweep = { y, t: 0 }; X.play('tier'); }
       }
       if (A.closed.every(Boolean) && !A.done) {
         A.done = true;
+        // his laying kept in the save: the sector shows it as he made it
+        const st = X.M.st; st.lay = st.lay || {};
+        st.lay[m.s] = { rows, s: S.filter((q) => q.at && !q.gone).map((q) => [q.L, q.at[0], q.at[1], q.rot ? 1 : 0]), f: A.fill.map((f) => [f.x, f.y]) };
+        // the crews set what is left of theirs at once
+        while (A.crewI < crewRest.length) crewM.push(placeCrew(X, G, crewRest[A.crewI++]));
         const q = A.closed.reduce((a, _, y) => a + (A.kasher[y] ? 0.6 : 1), 0) / rows;
         setTimeout(() => X.end({ q, stars: q >= 0.99 ? 3 : q >= 0.75 ? 2 : 1, at: { x: G.cx, y: G.base + 1.5, z: G.cz } }), 1200);
       }
@@ -348,7 +531,7 @@ export const PAVE = {
       return true;
     }
     function crewFill() {
-      // the pile ran out with gaps: the crew fills each with a small stone (seen)
+      // no slab left fits the gaps: the crew fills each with a small stone (seen)
       for (let y = 0; y < rows; y++) for (let x = 0; x < W; x++) if (!cell[y][x]) {
         const c = cw(x, y), mm = new T.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(U * 0.42, 0.25, U * 0.42); mm.position.set(c.x, G.base + 0.15, c.z); X.props.root.add(mm);
         const f = { y, x, mm }; A.fill.push(f); cell[y][x] = f; X.dust(c.x, G.base + 0.3, c.z, 4, 1.2);
@@ -358,30 +541,32 @@ export const PAVE = {
     function place(q) {
       // where it would sit: its first cell from its centre
       const p = { x: q.tx, z: q.tz }, cx = q.rot ? Math.round((p.x - G.x0) / U - 0.5) : Math.round((p.x - G.x0) / U - q.L / 2), cy = q.rot ? Math.round((p.z - G.z0) / U - q.L / 2) : Math.round((p.z - G.z0) / U - 0.5);
-      if (q.broken && Math.hypot(p.x - rej.x, p.z - rej.z) < 2.4) { q.gone = true; q.ty = G.base - 1; X.bonus(20, 'reject', 'זיהית לוח שבור'); X.play('stamp'); setTimeout(() => X.props.remove(q.g), 700); return; }
+      if (q.broken && broken && Math.hypot(p.x - rej.x, p.z - rej.z) < 2.6) { q.gone = true; q.tx = rej.x; q.tz = rej.z; q.ty = X.ground(rej.x, rej.z) + 0.5; X.bonus(20, 'reject', 'זיהית לוח סדוק'); X.play('stamp'); setTimeout(() => X.props.remove(q.g), 900); return; }
       if (fits(q, cx, cy, q.rot)) {
         q.at = [cx, cy]; occupy(q, true);
         const c0 = cw(cx, cy); q.tx = q.rot ? c0.x : c0.x + ((q.L - 1) * U) / 2; q.tz = q.rot ? c0.z + ((q.L - 1) * U) / 2 : c0.z; q.ty = G.base + 0.17;
-        X.dust(q.tx, G.base + 0.2, q.tz, 6, 1.6); X.play('thud');
+        X.dust(q.tx, G.base + 0.3, q.tz, 6, 1.6); X.play('thud');
         X.hit({ x: q.tx, y: G.base + 1, z: q.tz }, 'good', { text: '', craft: 'רצפים' });
         checkRows();
       } else {
         // it does not fit: it slides back to the pile
-        q.at = null; q.tx = q.home.x; q.tz = q.home.z; q.ty = G.base + 0.17;
+        q.at = null; q.tx = q.home.x; q.tz = q.home.z; q.ty = q.hy;
         if (q.rot) { q.rot = 0; }
-        X.word({ x: p.x, y: G.base + 1.2, z: p.z }, 'לא נכנס'); X.play('grind');
+        X.word({ x: p.x, y: G.base + 1.2, z: p.z }, 'לא נכנס · חזר לערימה'); X.play('grind');
       }
       if (stuck()) setTimeout(crewFill, 900);
     }
     return {
       begin() {
-        { const zc = (G.z0 + pz + pileD) / 2; X.shot([G.cx + 1, G.base + 15.5 + pileD * 0.6, zc + 9.5 + pileD * 0.4], [G.cx + 1.2, G.base, zc + 0.6], 1.0); }
-        X.line('גררו לוח · הקשה מסובבת');
+        { const zc = (G.z0 - U + pz + pileD) / 2, span = Math.max(rows * U + pileD + 4, (W + 2 * SIDE_COLS) * U * 0.62); X.shot([G.cx + 1, G.base + span * 1.18 + 4, zc + span * 0.72 + 4], [G.cx + 1.2, G.base, zc + 0.4], 1.0); }
+        X.line(broken ? 'גררו לוח לשורה · לוח סדוק לארגז' : 'גררו לוח לשורה · נגיעה מסובבת');
         const q = S[0]; X.hand({ x: q.home.x, y: G.base + 0.6, z: q.home.z }, 0, -40);
-        try { X.hero.setPos(G.cx - W * U / 2 - 2.5, G.cz + rows * U / 2 + 1.5, Math.PI * 0.6); } catch (e) { /* */ }
+        try { X.hero.setPos(G.x0 - SIDE_COLS * U - 2.2, G.z0 + rows * U + 1.2, Math.PI * 0.6); } catch (e) { /* */ }
       },
       update(dt) {
         A.t += dt;
+        // the crews set their slabs round his rows, one every ~2 s (with dust and the mallet's sound when near)
+        A.crewT += dt; if (!A.done && A.crewI < crewRest.length && A.crewT > 1.9) { A.crewT = 0; const c = crewRest[A.crewI++]; const mm = placeCrew(X, G, c); crewM.push(mm); X.dust(mm.position.x, G.base + 0.3, mm.position.z, 4, 1.2); X.play('tool'); }
         for (const q of S) {
           if (q.gone && q.g.position.y < G.base - 0.8) continue;
           const lift = A.drag && A.drag.q === q ? 0.9 : 0;
@@ -413,9 +598,11 @@ export const PAVE = {
         }
         place(q); void p;
       },
-      end() { for (const o of outline) X.props.remove(o); if (A.reject) X.props.remove(A.reject); for (const q of S) if (!q.at && !q.gone) X.props.remove(q.g); },
+      // (a pinch to the overview while a slab is held: it goes back to the pile)
+      cancel() { const D = A.drag; if (!D) return; A.drag = null; const q = D.q; q.at = null; q.rot = 0; q.tx = q.home.x; q.tz = q.home.z; q.ty = q.hy; },
+      end() { for (const o of outline) X.props.remove(o); if (A.bin) X.props.remove(A.bin); for (const q of S) if (!q.at && !q.gone) X.props.remove(q.g); },
       at() { return { x: G.cx, y: G.base + 1.5, z: G.cz }; },
-      dbg() { const sc = (q) => { const r = X.scr(q.g.position.x, q.g.position.y, q.g.position.z); return [Math.round(r.x), Math.round(r.y)]; }; return { rows, closed: A.closed, kasher: A.kasher, grid: cell.map((r) => r.map((c) => (c ? (c.L || 'f') : 0)).join('')), slabs: S.map((q) => ({ L: q.L, rot: q.rot, at: q.at, broken: q.broken, gone: !!q.gone, scr: sc(q) })), cells: cell.map((r, y) => r.map((_, x) => { const c = cw(x, y), s2 = X.scr(c.x, G.base + 0.2, c.z); return [Math.round(s2.x), Math.round(s2.y)]; })), rej: (() => { const r = X.scr(rej.x, G.base, rej.z); return [Math.round(r.x), Math.round(r.y)]; })() }; },
+      dbg() { const sc = (q) => { const r = X.scr(q.g.position.x, q.g.position.y, q.g.position.z); return [Math.round(r.x), Math.round(r.y)]; }; return { rows, sol, closed: A.closed, kasher: A.kasher, crew: A.crewI + '/' + crewRest.length, grid: cell.map((r) => r.map((c) => (c ? (c.L || 'f') : 0)).join('')), slabs: S.map((q) => ({ L: q.L, rot: q.rot, at: q.at, broken: q.broken, gone: !!q.gone, scr: sc(q) })), cells: cell.map((r, y) => r.map((_, x) => { const c = cw(x, y), s2 = X.scr(c.x, G.base + 0.2, c.z); return [Math.round(s2.x), Math.round(s2.y)]; })), rej: broken ? (() => { const r = X.scr(rej.x, X.ground(rej.x, rej.z) + 0.5, rej.z); return [Math.round(r.x), Math.round(r.y)]; })() : null }; },
     };
   },
 };
@@ -437,8 +624,9 @@ export const WASTE = {
     const an = X.stages.crewAnimals || null; const oxen = [];
     if (an) for (const s of [-0.75, 0.75]) { const h = an.add('bull', A.sx + 5, A.sz + s, { yaw: Math.PI / 2, calm: true }); if (h) oxen.push(h); }
     const drover = SH.crew.add(A.sx + 5, A.sz - 2.2, { role: 'hold', item: 'staff', fx: A.sx + 9, fz: A.sz, crew: 1 });
-    const levelers = [SH.crew.add(FILL.x + 4, FILL.z + 3, { role: 'lever', item: 'beam', fx: FILL.x, fz: FILL.z, crew: 0 }), SH.crew.add(FILL.x - 3, FILL.z + 4.5, { role: 'lever', item: 'beam', fx: FILL.x, fz: FILL.z, off: 0.5, crew: 0 })];
     const dirX = FILL.x - A.sx, dirZ = FILL.z - A.sz, dL = Math.hypot(dirX, dirZ), ux = dirX / dL, uz = dirZ / dL;
+    // the levellers spread the fill from both sides of the sledge's way, clear of the oxen's path (ירון 9.11: the sledge ran them over) ── h114 ──
+    const levelers = [-1, 1].map((sd, k) => { const x = FILL.x - uz * sd * 6 + ux * 1.5, z = FILL.z + ux * sd * 6 + uz * 1.5; return SH.crew.add(x, z, { role: 'lever', item: 'beam', fx: FILL.x + ux * 1.5, fz: FILL.z + uz * 1.5, off: k * 0.5, crew: 0 }); });
     // the chunks on the pile as things to drag (the pile's own meshes)
     const chunks = () => (SH.pileM || []).filter((c) => !c.userData.on);
     let step = 0;
@@ -525,6 +713,7 @@ export function initWorld2(X, sh) {
   const st = X.M.st;
   pileSync(X); fillSync(X);
   for (let s = 0; s < 9; s++) if (st.done.includes('pave' + s)) layDone(X, s);
+    else if (st.done.includes('read' + s)) bigRock(X, s, true);   // ── h114 ── (read, not yet paved: its two halves lie as they parted) ── /h114 ──
   void ease; void createGang;
 }
 export function frame2(dt, X, sh) { void dt; void X; void sh; }

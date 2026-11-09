@@ -84,7 +84,7 @@ export function makePack04() {
         return (async () => {
           st.gilders = 1; X.save(); near(X, true);
           const G = GATES[1], F = frameOf(G);
-          gateShot(X, G, 1.4, 18, 8); await beat(X, 1600);
+          gateShot(X, G, 1.4, 40, 11); await beat(X, 1600);   // (the whole leaf in the frame: twenty amot, the smiths at its foot)
           X.line('כל השערים שהיו שם נשתנו להיות של זהב, חוץ משערי ניקנור (מדות ב, ג)');
           const w = [];
           try {
@@ -135,7 +135,7 @@ export function makePack04() {
       ];
       try {
         for (const [G, name] of order) {
-          gateShot(X, G, 1.3, 30, 14); await beat(X, 1300);
+          gateShot(X, G, 1.3, 42, 14); await beat(X, 1300);
           const F = frameOf(G);
           X.line(`${name} (מדות א, ד)`);
           X.dust(G.c, H113.FLOOR + 0.6, F.out(0.6), 10, 3); X.play('find');

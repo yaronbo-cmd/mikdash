@@ -271,21 +271,21 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // ── h111 ── a film's beat in the world's time (as the camera eases), not the wall clock's: on a slow frame the shot still lands ── /h111 ──
     wait: (secs) => new Promise((r) => WAITS.push({ t: secs, r })),
     level: () => (mission ? M.levelOf(mission) : 1),
-    loss: (n, at, label, stones) => loss(n, at, label, stones),   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
+    loss: (n, at, label, stones, res) => loss(n, at, label, stones, res),   // ── h113 ── (res: 'cedar' for a board or a leaf) ── /h113 ──   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
     save: () => save(),
     get pack() { return PK; },
   };
   /* ───────── ── h111 ── real damage (spec "הניקוד בהפסד", approved 8.11): a cracked or broken stone −20, a great stone fallen −40;
      stones off the stock; the gold run ends; never under 0 and at most 80 in one mission. A miss without damage costs nothing ── */
   let lossNow = 0;
-  function loss(n, at, label = '', stones = 0) {
+  function loss(n, at, label = '', stones = 0, res = 'stone') {
     const k = Math.max(0, Math.min(n | 0, 80 - lossNow)); lossNow += k;
     let d = 0; try { if (k && SCo && SCo.sub) d = SCo.sub(k, 'damage').n; else if (SCo && SCo.breakRun) SCo.breakRun(); } catch (e) { /* */ }
-    try { const g = G(); if (stones > 0 && g && g.res) g.res.stone = Math.max(0, (g.res.stone || 0) - stones); } catch (e) { /* */ }
+    try { const g = G(); if (stones > 0 && g && g.res) g.res[res] = Math.max(0, (g.res[res] || 0) - stones); } catch (e) { /* */ }
     try { if (ui && ui.refresh) ui.refresh(); } catch (e) { /* */ }
     uiMount();
     const q = at ? scr(at.x, at.y, at.z) : { x: innerWidth / 2, y: innerHeight * 0.4 };
-    const el = document.createElement('div'); el.className = 'h109-ui h109-loss'; el.innerHTML = `<b>${d ? '−' + d : '0'}</b>${label ? `<span>${label}</span>` : ''}${stones ? `<small>−${stones} ${stones === 1 ? 'אבן' : 'אבנים'} מהמלאי</small>` : ''}`;
+    const el = document.createElement('div'); el.className = 'h109-ui h109-loss'; el.innerHTML = `<b>${d ? '−' + d : '0'}</b>${label ? `<span>${label}</span>` : ''}${stones ? `<small>−${stones} ${res === 'cedar' ? (stones === 1 ? 'ארז' : 'ארזים') : stones === 1 ? 'אבן' : 'אבנים'} מהמלאי</small>` : ''}`;
     el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('on')); setTimeout(() => el.remove(), 2600);
     try { const tb = document.querySelector('.gm-sc'); if (tb) { tb.classList.add('h109-hurt'); setTimeout(() => tb.classList.remove('h109-hurt'), 700); } } catch (e) { /* */ }

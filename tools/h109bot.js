@@ -176,6 +176,119 @@
       return { wait: 400 };
     },
     // ── /build 112 ──
+    // ── build 113 ── stage 04's acts (h113/acts*.js dbg())
+    socket(a) {
+      if (a.busy) return { wait: 300 };
+      const k = `${a.i}:${a.cracks}:${a.phase}`;
+      if (a.phase === 'place' && a.pin && a.snug) {
+        if (B.k.pl !== k) { B.k.pl = k; const ox = a.snug[0] + Math.sign(a.snug[0] - a.pin[0]) * 30; return { drag: [a.pin[0], a.pin[1], ox, a.snug[1], 700], wait: 700, note: 'socket: the pin to the jamb' }; }
+        return { tap: a.spot, wait: 900, note: 'socket: set the drill ' + (a.flint ? '(beside the flint)' : '') };
+      }
+      if (a.phase === 'mirror' && a.mark && a.markTo) return { drag: [a.mark[0], a.mark[1], a.markTo[0], a.markTo[1], 900], wait: 2600, note: `socket: the mirror mark ${a.mirrorOf}` };
+      if (a.phase === 'tplSill') return { tap: [W * 0.5, HH * 0.55], wait: 1400, note: 'socket: the template to the lintel' };
+      if (a.phase === 'tplLintel') { if (!a.flip) return { tap: a.tpl, wait: 900, note: 'socket: turn the plank over' }; return { tap: a.hole, wait: 1600, note: 'socket: mark through the hole' }; }
+      if (a.phase === 'drill') {
+        const x0 = W * 0.22, y0 = HH * 0.82, rem = a.target - a.depth;
+        if (a.seat < 3) return { path: [[x0, y0], [x0 + W * 0.1, y0]], ms: 260, wait: 380, note: 'socket: a short stroke' };
+        if (Math.abs(rem) <= a.tol * 0.7 || rem < 0) return { tap: a.pin, wait: 2200, note: `socket: test the pin (depth ${a.depth}/${a.target})` };
+        if (rem > 0.45) return { path: [[x0, y0], [x0 + W * 0.36, y0]], ms: 420, wait: 300, note: `socket: long ${a.depth}` };
+        return { path: [[x0, y0], [x0 + W * 0.2, y0]], ms: 320, wait: 350, note: `socket: medium ${a.depth}` };
+      }
+      return { wait: 300 };
+    },
+    lintel(a) {
+      if (a.busy) return { wait: 300 };
+      const cl = (p) => [Math.max(30, Math.min(W - 30, p[0])), Math.max(90, Math.min(HH - 60, p[1]))], L = cl(a.endL), R = cl(a.endR);
+      if (a.phase === 'lift') {
+        const up = a.yL >= 26.7 && a.yR >= 26.7;
+        if (up) return { wait: 400 };
+        if (Math.abs(a.tilt) < 1.4) return { seq: [[L, R], [L, R], [L, R], [L, R], [L, R], [L, R], [L, R], [L, R]], ms: 60, wait: 60, note: `lintel: both up ${a.yL}/${a.yR}` };
+        const lo = a.yL < a.yR ? L : R; return { seq: [[lo], [lo], [lo], [lo], [lo]], ms: 60, wait: 60, note: `lintel: the low end ${a.tilt}°` };
+      }
+      if (a.phase === 'in') { const dy = ((a.seatZ - a.z) / 9) * Math.max(300, HH); return { drag: [a.mid[0], Math.min(HH - 40, a.mid[1] + 60), a.mid[0], Math.min(HH - 40, a.mid[1] + 60) - dy, 1100], wait: 600, note: 'lintel: in over the opening' }; }
+      if (a.phase === 'lower') { const f = [[L, R]]; return { seq: Array(10).fill(f[0]), ms: 60, wait: 350, note: `lintel: down ${a.yL}/${a.yR}` }; }
+      return { wait: 300 };
+    },
+    leaf(a) {
+      if (a.busy) return { wait: 300 };
+      if (a.phase === 'pick') {
+        const need = 5 - a.sum, R = a.rack;
+        const hole = R.findIndex((r) => r.hole);
+        if (hole >= 0 && a.laid.length === 0) { B.k.wantZero = 1; return { tap: R[hole].at, wait: 1600, note: 'leaf: the board with the hole first' }; }
+        B.k.wantZero = 0;
+        const ids = R.map((r, i) => i).filter((i) => !R[i].knot);
+        let best = null; const go = (k, left, pick) => { if (best) return; if (Math.abs(left) < 1e-6) { best = pick; return; } if (left < 0 || k >= ids.length) return; go(k + 1, left - R[ids[k]].w, [...pick, ids[k]]); go(k + 1, left, pick); };
+        go(0, need, []);
+        if (!best || !best.length) return { wait: 500, note: 'leaf: no way to five from ' + JSON.stringify(R.map((r) => r.w)) };
+        return { tap: R[best[0]].at, wait: 1600, note: `leaf: take ${R[best[0]].w} (need ${need})` };
+      }
+      if (a.phase === 'turn' && a.held) {
+        const hole = !!a.rack && a.laid.length === 0 && B.k.hole;
+        let ang = a.held.ang; ang = ((ang % 360) + 540) % 360 - 180;
+        const tgt = B.k.wantZero ? 0 : (Math.abs(ang) < 90 ? 0 : (ang > 0 ? 180 : -180));
+        const d = ((tgt - ang) * Math.PI) / 180, c = a.held.at, r = 150, a0 = -Math.PI / 2, pts = [];
+        for (let i = 0; i <= 14; i++) { const t = a0 - (d * i) / 14; pts.push([c[0] + Math.cos(t) * r, c[1] + Math.sin(t) * r]); }
+        void hole; return { path: pts, ms: 1000, keep: 1100, wait: 900, note: `leaf: turn ${ang.toFixed(0)}° → ${tgt}` };
+      }
+      if (a.phase === 'peg' && a.pegAt && a.battenEnds[a.pegBi]) {
+        const [e0, e1] = a.battenEnds[a.pegBi], p = a.pegAt, far = Math.hypot(e0[0] - p[0], e0[1] - p[1]) > Math.hypot(e1[0] - p[0], e1[1] - p[1]) ? e0 : e1;
+        return { seq: [[far], [far], [far, p], [far], [far]], ms: 110, wait: 250, note: 'leaf: hold the batten, tap the peg' };
+      }
+      if (a.phase === 'pish' && a.pish) {
+        const sel = a.pish.filter((q) => q.sel).map((q) => q.w), left = a.pish.filter((q) => !q.sel);
+        const want = sel.length ? 1 - sel[0] : 0.75; const q = left.find((x) => Math.abs(x.w - want) < 1e-6) || left[0];
+        return { tap: q.at, wait: 1200, note: 'leaf: the wicket board ' + q.w };
+      }
+      return { wait: 300 };
+    },
+    hang(a) {
+      if (a.busy) return { wait: 300 };
+      const Hh = Math.max(300, HH), Ww = Math.max(320, W);
+      if (a.phase === 'tilt') { const t = (a.win[0] + a.win[1]) / 2, dy = ((t - a.thT) / 26) * Hh; return { path: [a.head, [a.head[0], a.head[1] + dy]], ms: 900, keep: 1300, wait: 400, note: `hang: tilt ${a.th} → ${t}` }; }
+      if (a.phase === 'foot') { const dx = ((a.fx - a.sockX) / 3.2) * Ww; return { path: [a.foot, [a.foot[0] + dx, a.foot[1]]], ms: 700, keep: 4000, release: C(`return !a||Math.abs(a.off)<=a.tol*0.5`), wait: 600, note: `hang: the foot ${a.off} fingers off` }; }
+      if (a.phase === 'straight') { const dy = ((a.thT + 0.4) / 26) * Hh; return { path: [a.head, [a.head[0], a.head[1] - dy]], ms: 2400, keep: 2500, release: C('return !a||a.phase!==\'straight\''), wait: 800, note: 'hang: straighten slowly' }; }
+      if (a.phase === 'sub' && a.sub) {
+        const s = a.sub, p = s.at;
+        if (s.ph === 'tilt') { const dy = ((6.5 - s.th) / 18) * Hh; return { path: [p, [p[0], p[1] + dy]], ms: 700, keep: 900, wait: 400, note: 'hang: the wicket tilt ' + s.th }; }
+        if (s.ph === 'foot') { const dx = (s.fx / 0.8) * Ww; return { path: [p, [p[0] + dx, p[1]]], ms: 600, keep: 2500, release: C('return !a||!a.sub||Math.abs(a.sub.fx)<0.012'), wait: 500, note: 'hang: the wicket foot ' + s.fx }; }
+        if (s.ph === 'straight') { const dy = ((s.th + 0.25) / 18) * Hh; return { path: [p, [p[0], p[1] - dy]], ms: 1800, keep: 1500, release: C('return !a||!a.sub||a.sub.th<=0.3'), wait: 600, note: 'hang: the wicket straight' }; }
+      }
+      if (a.phase === 'spin') { if (B.k.spun) return { wait: 500 }; B.k.spun = 1; return { drag: [a.body[0] + 120, a.body[1], a.body[0] - 180, a.body[1], 500], wait: 600, note: 'hang: push the leaf' }; }
+      return { wait: 300 };
+    },
+    lock(a) {
+      if (a.busy) return { wait: 300 };
+      const u = a.barU, ul = Math.hypot(u[0], u[1]) / 4 || 1, ux = u[0] / 4 / ul, uy = u[1] / 4 / ul;   // (screen px per amah along the bar: ul)
+      const barDrag = (from, along, ms = 900) => ({ drag: [from[0], from[1], from[0] + ux * along * ul, from[1] + uy * along * ul, ms] });
+      if (a.step === 'close') {
+        const i = a.closed[0] ? 1 : 0, p = i ? a.leafR : a.leafL, c = [W * 0.5, p[1]], dir = Math.sign(c[0] - p[0]) || 1;
+        const px = a.phi[i] > 0.35 ? 150 : 50;
+        return { drag: [p[0], p[1], p[0] + dir * px, p[1], 1100], wait: 900, note: `lock: close leaf ${i} (φ ${a.phi[i]})` };
+      }
+      if (a.step === 'shim' && a.shims) { const s = a.shims.find((q) => q.n === Math.abs(a.gap)) || a.shims[0]; return { tap: s.at, wait: 1800, note: 'lock: the shim ' + s.n }; }
+      if (a.step === 'bar' || a.step === 'relock') {
+        if (!a.ringOK && a.blockAt != null) { if (a.bar < a.blockAt - 0.25) return { ...barDrag(a.barAt, a.blockAt - 0.1 - a.bar), wait: 700, note: 'lock: the bar to the ring' }; if (a.nudge) return { tap: a.nudge, wait: 700, note: 'lock: push the leaf (the ring)' }; }
+        return { ...barDrag(a.barAt, a.SHUT - a.bar + 0.15, 1100), wait: 900, note: `lock: the bar home (${a.step})` };
+      }
+      if (a.step === 'key') return { tap: a.chain, wait: 1400, note: 'lock: a key from the chain' };
+      if (a.step === 'insert' && a.key) {
+        if (!a.key.up) { const c = a.key.at, pts = []; for (let i = 0; i <= 16; i++) { const t = (i / 16) * Math.PI * 1.15; pts.push([c[0] + Math.cos(t) * 90, c[1] + Math.sin(t) * 90]); } return { path: pts, ms: 900, wait: 400, note: 'lock: turn the key' }; }
+        const st = [W * 0.3, HH * 0.75]; return { ...barDrag(st, 1.5, 900), wait: 500, note: 'lock: push the key in' };
+      }
+      if (a.step === 'lifted' && a.key) {
+        if (B.k.tried === a.ki && a.stuck >= 0 && a.keys > 1) return { tap: a.chain, wait: 1400, note: 'lock: a pin stays down: another key' };
+        B.k.tried = a.ki;
+        const l0 = [W * 0.3, HH * 0.7], s0 = a.barAt, n = 14, fr = [];
+        for (let i = 0; i <= 5; i++) fr.push([[l0[0], l0[1] - i * 18]]);
+        for (let i = 0; i <= n; i++) { const k = (i / n) * 1.5; fr.push([[l0[0], l0[1] - 90], [s0[0] - ux * k * ul, s0[1] - uy * k * ul]]); }
+        fr.push([[l0[0], l0[1] - 90]]);
+        return { seq: fr, ms: 70, wait: 900, note: `lock: lift and slide (key ${a.ki}, ok ${a.key.ok})` };
+      }
+      if (a.step === 'pishLock') { const st = [W * 0.45, HH * 0.6]; return { ...barDrag(st, 1.9, 900), wait: 1200, note: 'lock: the wicket bar' }; }
+      if (a.step === 'reach') { const st = [W * 0.15, HH * 0.7], len = 6.3 * ul, ms = Math.max(1200, (len / 380) * 1000); return { ...barDrag(st, 6.3, ms), wait: 700, note: 'lock: the Levite reaches in slowly' }; }
+      return { wait: 300 };
+    },
+    // ── /build 113 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {

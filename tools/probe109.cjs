@@ -16,7 +16,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const pg = await ctx.newPage();
   const errs = [];
   pg.on('console', (m) => { if (m.type() === 'error' || /\[h109\]/.test(m.text())) errs.push(m.type() + ' ' + m.text().slice(0, 300)); });
-  if (process.env.PROBE_ALL) { pg.on('console', (m) => { if (/\[h1(09|11|12)\]/.test(m.text())) console.log('CONSOLE', m.type(), m.text().slice(0, 300)); }); pg.on('framenavigated', (f) => { if (f === pg.mainFrame()) console.log('NAV', f.url().slice(-60)); }); }
+  if (process.env.PROBE_ALL) { pg.on('console', (m) => { if (/\[h1(09|11|12|13)\]/.test(m.text())) console.log('CONSOLE', m.type(), m.text().slice(0, 300)); }); pg.on('framenavigated', (f) => { if (f === pg.mainFrame()) console.log('NAV', f.url().slice(-60)); }); }
   pg.on('pageerror', (e) => errs.push('PAGEERR ' + e.message.slice(0, 300)));
   await pg.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const init = steps.find((s) => s.init); 
@@ -47,6 +47,22 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     }
     if (s.script) { const code = fs.readFileSync(path.resolve(s.script), 'utf8'); const v = await pg.evaluate(code).catch((e) => 'SCRIPTERR ' + e.message); log('script', s.script, typeof v === 'string' ? v.slice(0, 200) : ''); }
     if (s.path) { const P = s.path, ms = s.ms || 600; await touch('touchStart', [P[0]]); const k = Math.max(P.length - 1, Math.round(ms / 40)); for (let i = 1; i <= k; i++) { await pg.waitForTimeout(ms / k); const f = (i / k) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[P[j][0] + (P[j + 1][0] - P[j][0]) * u, P[j][1] + (P[j + 1][1] - P[j][1]) * u]]); } if (s.keep) { const t = Date.now(); while (Date.now() - t < s.keep) { if (s.release && await pg.evaluate(s.release).catch(() => false)) break; await pg.waitForTimeout(20); } } await pg.waitForTimeout(60); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
+    // (build 113: several fingers) frames of touch points; a frame with more points presses the new ones, fewer releases the last ones
+    if (s.seq) {
+      let n0 = 0, last = []; const ms = s.ms || 50;
+      for (const fr of s.seq) {
+        const pts = fr || [];
+        if (!pts.length) { if (n0) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
+        else if (pts.length < n0) {
+          // (lift the last fingers only: a touchEnd naming the ones lifted, the rest stay down)
+          const gone = []; for (let i = pts.length; i < n0; i++) gone.push(last[i]);
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: gone.map(([x, y], j) => ({ x: Math.round(x), y: Math.round(y), id: 7 + pts.length + j })) }).catch(async () => { await touch('touchMove', pts); });
+        } else await touch(pts.length > n0 ? 'touchStart' : 'touchMove', pts);
+        if (pts.length) last = pts;
+        n0 = pts.length; await pg.waitForTimeout(ms);
+      }
+      if (n0) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    }
     if (s.when) { const t = Date.now(); while (Date.now() - t < (s.max || 4000)) { if (await pg.evaluate(s.when).catch(() => false)) break; await pg.waitForTimeout(8); } if (s.then) await run(s.then); }
     if (s.bot) {
       const t = Date.now(); let k = 0, last = '';

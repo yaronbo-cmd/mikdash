@@ -1552,6 +1552,18 @@ export function createStages(ctx) {
     return L.length;
   }
   // ── /h112 ──
+  // ── h113 ── (stage 04, the owner 9.11: the gates of the azara) a finished site's openings: its reveal shader comes back on (everything
+  // shown, uY far above) only so the holes cut it — the courts' wall keeps the seven openings while the kohen hangs the gates; off again
+  // at the stage's end, and on any status change (applyStage sets the materials anew)
+  function siteOpen(id, on) {
+    const st = ST[id]; if (!st || st.status !== 'done') return false;
+    st.U.uY.value = 1e6; st.U.uGlow.value.setRGB(0, 0, 0);
+    st.mats.forEach((m) => setBuilding(m, !!on));
+    for (const m of st.meshes) m.customDepthMaterial = on ? st.depth : undefined;
+    requestShadow(true);
+    return true;
+  }
+  // ── /h113 ──
   function s20Band(x, z) {
     if (!(x > S20_OUT[0] && x < S20_OUT[2] && z > S20_OUT[1] && z < S20_OUT[3])) return false;
     if (x > S20_IN[0] && x < S20_IN[2] && z > S20_IN[1] && z < S20_IN[3]) return false;
@@ -8779,7 +8791,7 @@ export function createStages(ctx) {
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
-    s20Pin, wallHoles, siteHoles, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
+    s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,
     // az, el, also?) → { az, el, dist, moved } | null · occluded(x, y, z, from?) → bool · heroRock() → the builder's rock (−1: none)

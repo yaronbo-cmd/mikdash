@@ -239,6 +239,8 @@ ${BC_FRONT_GLSL}
       }
     }
   }
+  // ── h113 ── a cap seen through an opening (the inside of a site still rising, seen through its own gate): no cap there ── /h113 ──
+  if (!bcFront && uBcHY.z > 0.5 && bcP.y > uBcHY.x && bcP.y < uBcHY.y) for (int i = 0; i < 8; i++) { if (float(i) > uBcHY.z - 0.5) break; vec4 Hh = uBcHole[i]; if (bcP.x > Hh.x - 0.6 && bcP.x < Hh.z + 0.6 && bcP.z > Hh.y && bcP.z < Hh.w) discard; }
 #endif`)
       .replace('#include <map_fragment>', `#ifdef BCLIP
 #ifdef USE_MAP

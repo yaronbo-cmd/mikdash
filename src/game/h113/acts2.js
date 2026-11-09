@@ -402,10 +402,12 @@ export const LEAF = {
       const hole = A.laid[0].g.userData.hole, hp = hole.getWorldPosition(new T.Vector3());
       A.pishAt = hp;
       A.pishPile = PISH_PILE.map((p, i) => { const g = box(X, M.cedarL, -0.8, 0, -p.w / 2 + 0.02, 0.8, 0.12, p.w / 2 - 0.02); g.position.set(YARD.x0 + 4.4 + i * 0.0, topY + 0.6, YARD.z - 3.5 + i * 0.0); return { p, g, home: null }; });
-      let z = YARD.z - 2.4; for (const q of A.pishPile) { q.g.position.set(hp.x + 2.6, 6.1, z); q.home = q.g.position.clone(); z -= q.p.w + 0.35; }
-      X.shot([hp.x + 2.2, topY + 5.5, hp.z - 7.5], [hp.x + 1.6, topY, hp.z - 1.6], 1.0);
+      // (the four boards side by side on the ground past the leaf's free edge, beside the hole: the near shot holds the hole and all four)
+      const bz = YARD.z - 3.6; let bx = hp.x + 2.0;
+      for (const q of A.pishPile) { const gy = (X.ground ? X.ground(bx, bz) : 6) || 6; q.g.position.set(bx, gy + 0.1, bz); q.home = q.g.position.clone(); bx += 1.9; }
+      X.shot([hp.x + 4.4, topY + 7.5, hp.z - 11.5], [hp.x + 3.4, topY - 0.9, hp.z - 3.4], 1.0);
       X.line('דלת הפשפש: שני קרשים צרים, אמה בדיוק');
-      X.hand({ x: A.pishPile[0].home.x, y: 6.3, z: A.pishPile[0].home.z }, 0, 12);
+      X.hand({ x: A.pishPile[0].home.x, y: A.pishPile[0].home.y + 0.2, z: A.pishPile[0].home.z }, 0, 12);
     }
     async function pishPick(q) {
       if (A.busy) return;

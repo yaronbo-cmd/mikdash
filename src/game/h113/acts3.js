@@ -49,7 +49,7 @@ export const HANG = {
       const bars = Math.round(clamp(A.th / drop, 0, 1) * 10);
       A.gauge.set(`${'▮'.repeat(bars)}${'▯'.repeat(10 - bars)} ${under ? (ok ? 'מתחת למשקוף ✓' : 'מסוכן!') : 'נוגע במשקוף'}`, { x: A.fx + 0.4, y: Fr.sill + H113.LEAF_H * 0.92, z: Fr.zp + Fr.s * 2.6 }, ok);
     }
-    function crewAt(x, z, o) { const w = SH4.crew.add(x, z, o); if (w) A.crew.push(w); return w; }
+    function crewAt(x, z, fx, fz, o = {}) { let w = null; try { w = SH4.crew.add(x, z, { ...o, role: o.role || 'kneel', fx, fz, crew: o.crew || 2 }); } catch (e) { w = null; } if (w) A.crew.push(w); return w; }
     function shot(k) {
       if (k === 'foot') { X.shot([sockX + 3.6, Fr.sill + 2.6, Fr.in(5.4)], [sockX + 0.6, Fr.sill + 0.3, Fr.zp], 0.9); return; }
       if (k === 'sub') { const h = holeAt(); X.shot([h.x + 2.4, h.y + 1.4, h.z + Fr.s * 4.2], [h.x, h.y + 0.6, h.z], 1.0); return; }
@@ -285,7 +285,7 @@ function cutaway(title) {
 export const LOCK = {
   icon: '🔑', title: 'המנעול',
   walkLine: (m) => (m.lv === 3 ? 'בית המוקד בערב: נועלים מבפנים' : `${GATES[m.lv].name}: בריח, פינים ומפתח`),
-  stand(m) { const G = GATES[m.lv], Fr = frameOf(G); return { x: G.c + 3.2, z: Fr.in(4.4), face: [G.c, Fr.zp] }; },
+  stand(m) { const G = GATES[m.lv], Fr = frameOf(G); return { x: G.c - 7.4, z: Fr.in(3.4), face: [G.c - 3, Fr.zp] }; },
   prepare(m, X) { for (const D of SH4.dk) D.hide(); },
   make(m, X) {
     const lv = X.level(), L = LV[lv], G = GATES[m.lv], Fr = frameOf(G), st = X.M.st, PR = X.props, T = X.THREE, M = mats(X);
@@ -307,17 +307,20 @@ export const LOCK = {
     const C = cutaway(); C.show(false);
     const ringX = (() => { const L2 = []; if (lv === 1) L2.push(G.c - 2.2, G.c + 1.2); else L2.push(G.c - 3.6, G.c - 1.4, G.c + 1.0, G.c + 2.2); return L2; })();
     const blockAt = roff ? ringX[roff.ring] : null;
-    function crewAt(x, z, o) { const w = SH4.crew.add(x, z, o); if (w) A.crew.push(w); return w; }
+    function crewAt(x, z, fx, fz, o = {}) { let w = null; try { w = SH4.crew.add(x, z, { ...o, role: o.role || 'kneel', fx, fz, crew: o.crew || 2 }); } catch (e) { w = null; } if (w) A.crew.push(w); return w; }
     function poseLeaves() {
       legs.forEach((g, i) => { const side = i ? 1 : -1; g.position.set(pivotX(G, side), Fr.sill - 0.005 - (i ? 0 : I.low * F), Fr.zp); g.rotation.set(0, leafYaw(side, Fr.s, A.phi[i]), 0); });
       if (A.gap && A.closed[0] && A.closed[1]) legs[0].position.x -= A.gap * F * 0.5;
     }
     function poseBar() { barG.position.set(A.bar, yBar, zBar); }
-    function shot(k) {
+    function shot(k, cut) {
+      const d = cut ? 0.01 : 1.0;   // (a cut through the shut gate: a flight would pass through its leaves)
       if (k === 'close') X.shot([G.c + 3, Fr.sill + 9, Fr.in(19)], [G.c, Fr.sill + 6, Fr.zp], 1.0);
       else if (k === 'shim') X.shot([G.c + 0.6, Fr.sill + 1.4, Fr.in(3.2)], [G.c, Fr.sill + 0.5, Fr.zp], 0.9);
-      else if (k === 'out') X.shot([G.c - 2, Fr.sill + 4.5, Fr.out(9)], [G.c - 2.6, Fr.sill + 1.6, Fr.zp], 1.0);
-      else X.shot([G.c + 1.2, yBar + 1.4, Fr.in(8.5)], [G.c + 0.3, yBar - 0.2, zBar], 1.0);
+      else if (k === 'out') X.shot([G.c - 2, Fr.sill + 4.5, Fr.out(9)], [G.c - 2.6, Fr.sill + 1.6, Fr.zp], d);
+      // (the key: the lock box and the chain, the bar's grip while it is locked; the bar: its whole travel, from the left jamb to the box)
+      else if (k === 'key') X.shot([G.c + 3.4, yBar + 1.6, Fr.in(10)], [G.c + 2.9, yBar - 0.4, zBar], 1.0);
+      else X.shot([G.c - 0.2, yBar + 2.6, Fr.in(17.5)], [G.c - 0.4, yBar - 1.0, zBar], d);
     }
     const pinX = (i) => G.c + 2.5 + LK.pins[i] * 1.2;   // (the pins' places in the box, over the bar's holes when locked)
     function cutDraw(text) {
@@ -400,7 +403,7 @@ export const LOCK = {
     /* the key: once open to check it works, then locked again (spec 5) */
     function keyStart() {
       A.step = 'key'; A.key = null; A.busy = false; A.stuck = -1;
-      shot('bar'); cutDraw('');
+      shot('key'); cutDraw('');
       X.line(LK.keys.length > 1 ? 'פתחו לבדיקה: הקישו על השלשלת לבחור מפתח' : 'פתחו לבדיקה: הקישו על המפתח בשלשלת');
       X.hand(chainAt, 0, 12);
     }
@@ -434,9 +437,9 @@ export const LOCK = {
     async function mokedOut() {
       A.busy = true; A.step = 'pishOut'; C.show(false);
       X.line('יוצאים דרך הפשפש');
-      shot('out'); await X.wait(0.6);
-      heroAt(X, pivotX(G, -1) + 1.2, Fr.out(1.6), G.c, Fr.zf);
-      A.levite = crewAt(G.c + 4.5, Fr.out(2.6), G.c, Fr.zf, { role: 'hold', item: 'torch', crew: 3, tunic: '#E8E0CC' });
+      shot('out', true); await X.wait(0.6);
+      heroAt(X, G.c + 2.4, Fr.out(2.2), pivotX(G, -1) + 1.2, Fr.zf);   // (beside the wicket, not before it: the small bar in sight)
+      A.levite = crewAt(G.c + 5.2, Fr.out(3.0), G.c, Fr.zf, { role: 'hold', item: 'torch', crew: 3, tunic: '#E8E0CC' });
       await X.wait(0.8);
       A.pishBar = 0; A.step = 'pishLock'; A.busy = false; A.ki = 2;
       A.lab.set('בריח הפשפש', { x: pivotX(G, -1) + 1.2, y: Fr.sill + 1.0, z: Fr.out(0.4) });
@@ -449,7 +452,7 @@ export const LOCK = {
       await X.wait(1.6);
       // the Levite's check: through the wicket, the arm in to the armpit with the long key (spec 5, level 3)
       A.step = 'reach'; A.reach = 0; A.busy = false; A.ki = 1;
-      shot('bar'); C.show(true); C.place();
+      shot('bar', true); C.show(true); C.place();
       A.key = { k: LK.keys[1], g: keys[1].g, home: keys[1].g.position.clone(), in: 0, up: 1, lift: 0, turn: 0 }; A.reachKey = 1;
       keys[1].g.visible = false;
       cutDraw('היד נכנסת · לאט');
@@ -557,7 +560,7 @@ export const LOCK = {
       begin() {
         keep(X, [gateKeep(G, 6)]); Fg.attach();
         poseLeaves(); poseBar();
-        heroAt(X, G.c + 3.2, Fr.in(4.4), G.c, Fr.zp);
+        heroAt(X, G.c - 7.4, Fr.in(3.4), G.c - 3, Fr.zp);   // (beside the left jamb: the leaves, the bar's way and the box clear)
         // a Levite stands by (the gates' keepers were Levites, Middot 1:1)
         A.levite = crewAt(G.c - 4.2, Fr.in(4.6), G.c, Fr.zp, { role: 'hold', item: 'staff', crew: 3, tunic: '#E8E0CC' });
         shot('close');

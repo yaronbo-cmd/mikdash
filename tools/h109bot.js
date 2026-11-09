@@ -259,7 +259,13 @@
     lock(a) {
       if (a.busy) return { wait: 300 };
       const u = a.barU, ul = Math.hypot(u[0], u[1]) / 4 || 1, ux = u[0] / 4 / ul, uy = u[1] / 4 / ul;   // (screen px per amah along the bar: ul)
-      const barDrag = (from, along, ms = 900) => ({ drag: [from[0], from[1], from[0] + ux * along * ul, from[1] + uy * along * ul, ms] });
+      const barDrag = (from, along, ms = 900) => {   // (the end kept on the screen, off the top bar: a drag that leaves it ends on a HUD button)
+        let ex = from[0] + ux * along * ul, ey = from[1] + uy * along * ul; const k = Math.min(1,
+          ex < 40 ? (from[0] - 40) / (from[0] - ex) : ex > W - 40 ? (W - 40 - from[0]) / (ex - from[0]) : 1,
+          ey < 140 ? (from[1] - 140) / (from[1] - ey) : ey > HH - 60 ? (HH - 60 - from[1]) / (ey - from[1]) : 1);
+        ex = from[0] + (ex - from[0]) * Math.max(0, k); ey = from[1] + (ey - from[1]) * Math.max(0, k);
+        return { drag: [from[0], from[1], ex, ey, ms] };
+      };
       if (a.step === 'close') {
         const i = a.closed[0] ? 1 : 0, p = i ? a.leafR : a.leafL, c = [W * 0.5, p[1]], dir = Math.sign(c[0] - p[0]) || 1;
         const px = a.phi[i] > 0.35 ? 150 : 50;
@@ -276,7 +282,7 @@
         const st = [W * 0.3, HH * 0.75]; return { ...barDrag(st, 1.5, 900), wait: 500, note: 'lock: push the key in' };
       }
       if (a.step === 'lifted' && a.key) {
-        if (B.k.tried === a.ki && a.stuck >= 0 && a.keys > 1) return { tap: a.chain, wait: 1400, note: 'lock: a pin stays down: another key' };
+        if (B.k.tried === a.ki && (a.stuck >= 0 || !a.key.ok) && a.keys > 1) return { tap: a.chain, wait: 1400, note: 'lock: a pin stays down: another key' };
         B.k.tried = a.ki;
         const l0 = [W * 0.3, HH * 0.7], s0 = a.barAt, n = 14, fr = [];
         for (let i = 0; i <= 5; i++) fr.push([[l0[0], l0[1] - i * 18]]);

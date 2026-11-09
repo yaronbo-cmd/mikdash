@@ -115,20 +115,20 @@ export function makePack03() {
       try {
         // up the flight from the Mount's floor, step by step (his own stones: stages.floorHook)
         X.hero.setPos(164.6, 0.6, -Math.PI / 2);
-        X.shot([170.5, 3.2, 3.4], [158, 3.5, 0], 1.2); await beat(X, 900);
+        X.shot([164, 9, 21], [160, 3, 0], 1.2); await beat(X, 900);   // (from the side: his whole figure on the flight)
         for (let k = 1; k <= 12; k++) {
           const s = stepOf(k), x0 = k === 1 ? 164.6 : stepOf(k - 1).face - 0.25, x1 = s.face - 0.25;
           for (let i = 1; i <= 5; i++) { X.hero.setPos(x0 + (x1 - x0) * (i / 5), 0.6, -Math.PI / 2); await beat(X, 45); }
-          if (k % 3 === 0) X.shot([s.face + 6.5, s.top + 2.6, 3.8], [s.face - 4, s.top + 0.8, 0], 0.7);
+          if (k % 3 === 0) X.shot([s.face + 3, s.top + 7, 20], [s.face - 1.5, s.top + 1.2, 0], 0.7);
         }
         X.hero.setPos(155.2, 0.6, -Math.PI / 2); X.play('find');
-        X.shot([162, 9.5, 6], [140, 6, 0], 1.4); await beat(X, 1700);
+        X.shot([167, 12, 10], [140, 6, 0], 1.4); await beat(X, 1700);
       } catch (e) { console.warn('[h112] finale climb', e && e.message); }
       near(X, false);
       try { X.stages.setWork('sorag', { phase: 'done' }); } catch (e) { /* */ }
       finalWorld(X);
       try { if (X.stages.crewsCheer) X.stages.crewsCheer('sorag'); } catch (e) { /* */ }
-      const c = { x: -23, z: 0 }, R = 230, y = 110;
+      const c = { x: -23, z: 0 }, R = 360, y = 210;   // (far enough for the whole ring round both courts in the frame)
       for (let k = 0; k <= 8; k++) { const a = (k / 8) * Math.PI * 2; X.shot([c.x + Math.cos(a) * R, y, c.z + Math.sin(a) * R * 0.75], [c.x, 4, c.z], 0.9); await beat(X, 650); }
     },
     dispose() { disposeChip(); },

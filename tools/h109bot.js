@@ -182,14 +182,17 @@
     if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };
     at = [Math.max(60, Math.min(W - 60, at[0])), Math.max(150, Math.min(HH - 110, at[1]))];   // (the rope takes a press anywhere: never on the top bar)
     if (h.flip) return { tap: at, wait: 1100, note: 'hang: the crew turns it over' };
-    const th = h.th, thT = h.thT;
-    if (Math.abs(th) > 0.07) {
-      const dx = (-th / (Math.PI * 2 * 0.9)) * Math.max(320, W);
-      return { drag: [at[0], at[1], at[0] + dx, at[1], 500], wait: 1300, note: `hang: turn ${th} (${Math.round(dx)}px)` };
+    // (the finger sets where the slab will settle, thT: aim that at square, then let the swing die out before lowering)
+    const wr = (a) => Math.atan2(Math.sin(a), Math.cos(a)), th = h.th, thT = wr(h.thT);
+    if (Math.abs(thT) <= 0.05 && (Math.abs(wr(th - thT)) > 0.05 || Math.abs(th) > 0.09)) return { wait: 400 };
+    if (Math.abs(thT) > 0.05) {
+      const dx = (-thT / (Math.PI * 2 * 0.9)) * Math.max(320, W);
+      return { drag: [at[0], at[1], at[0] + dx, at[1], Math.abs(dx) < 40 ? 160 : 500], wait: 1300, note: `hang: turn ${th} (${Math.round(dx)}px)` };   // (a small turn quick: a slow one under 9 px turns into a hold)
     }
     if (h.gust && (h.gust.warn || h.gust.on > 0)) return { wait: 250, note: 'hang: a gust' };
+    if (h.gust && h.gust.next < 3.4 && h.y > h.seatY + 0.6) return { wait: 250 };   // (a long lowering waits for the next gust to pass)
     if (h.y > h.seatY + 1.0) return { holdUntil: [at[0], at[1], C(`const h=a&&a.h;return !h||h.mode==='seated'||h.y<h.seatY+0.95||(h.gust&&(h.gust.warn||h.gust.on>0))`), 9000], wait: 500 };
-    return { hold: [at[0], at[1], vSafe < 0.8 ? 420 : 470], wait: 350 };
+    return { hold: [at[0], at[1], vSafe < 0.8 ? 420 : 470], wait: 350, note: `hang: short hold at ${h.y} (${h.mode}, th ${h.th})` };
   };
   B.next = () => {
     const S = H().state();
@@ -206,7 +209,7 @@
     }
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
-    if (now() - B.actT > 240000) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 300) }; }
+    if (now() - B.actT > 240000) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/\d+$/, '');
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
     try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }

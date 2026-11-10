@@ -361,9 +361,10 @@ function makeHill(T) {
     // (site9: the working bay at the Mount's working front is dug down to the fill, so the first courses are seen from the hill)
     if (aK > 1.5 && uPit.z > uPit.x) { vec2 pq = max(uPit.xy - position.xz, position.xz - uPit.zw);
       hYc = mix(hYc, min(hYc, uFill), (1.0 - smoothstep(-4.0, 4.0, max(pq.x, pq.y))) * uPitK); }
-    float hCk = 0.0;
+    float hCk = 0.0, hPv = 0.0;
     if (aK > 1.5 && aCid > -0.5) { float hCL = texelFetch(uCellT, ivec2(int(aCid + 0.5), 0), 0).r;
-      if (hCL > 1500.0) { hCk = 1.0; hYc = hCL - 2000.0; } else { hCk = step(hCL + 0.01, hYc); hYc = min(hYc, hCL); } }   // (> 1500: levelled flat at L − 2000, cut high and filled low)
+      if (hCL > 3000.0) { hCL -= 4000.0; hCk = step(hCL + 0.01, hYc); hPv = hCk; hYc = min(hYc, hCL); }   // (> 3000: cut to L − 4000 and paved where cut)
+      else if (hCL > 1500.0) { hCk = 1.0; hYc = hCL - 2000.0; } else { hCk = step(hCL + 0.01, hYc); hYc = min(hYc, hCL); } }   // (> 1500: levelled flat at L − 2000, cut high and filled low)
     float hYI = max(hYc, min(uFill, -0.4));
     if (aK > 1.5 && uPave.y > 0.5 && position.x >= uPave.x) hYI = max(hYI, 0.35);   // ── site12 ── (not yet paved)
     float hY = aK < 0.5 ? mix(hY0, aTer - 0.6, uCut) : (aK < 1.5 ? (uCut > 0.0 ? -155.0 : hY0) : hYI);
@@ -377,10 +378,11 @@ function makeHill(T) {
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vPv;')
       .replace('#include <beginnormal_vertex>', `${morph}
     float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hCk) : uCut;
     vPk = hPk;
+    vPv = hPv * (1.0 - step(hYc + 0.01, hYI));   // ── h115 ── (paved: the cut floor of a paved cell, not where the fill lies over it) ── /h115 ──
     vLev = aK > 1.5 ? step(hYc + 0.01, hYI) : 0.0;
     // ── site12 ── the worked crest (its floor and benches: fresh-cut rock, lit by its facets), the floor cut this course, and
     // the spoil tipped on the slope just above the fill (the next lift); everything else keeps the hill's own colours (v21
@@ -400,7 +402,7 @@ function makeHill(T) {
       .replace('#include <begin_vertex>', 'vec3 transformed = vec3(position.x, hY, position.z);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;
+        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vPv;
         float hh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float hn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hh(i), hh(i + vec2(1.0, 0.0)), f.x), mix(hh(i + vec2(0.0, 1.0)), hh(i + vec2(1.0, 1.0)), f.x), f.y); }`)
@@ -425,7 +427,15 @@ function makeHill(T) {
         { float cl = smoothstep(0.93, 1.0, abs(fract(vHXZ.x / 3.0) * 2.0 - 1.0)) * 0.5 + smoothstep(0.95, 1.0, abs(fract(vHXZ.y / 1.5 + 0.3 * hn(vHXZ / 4.0)) * 2.0 - 1.0)) * 0.35;
           // ── site8 ── the levelled patch: fresh-cut rock, paler than the weathered hill but keeping its grain, the chisel's lines
           vec3 pc = uCutCol * (0.8 + 0.1 * hn(vHXZ / 2.0)) * (1.0 - 0.16 * cl) * (0.62 + 0.45 * dot(diffuseColor.rgb, vec3(0.333)));
-          diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }`)
+          diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }
+        // ── h115 ── a paved cell: rows of slabs 2.5 amot deep, 1–3 units long, each row's joints off the row's below, each slab its own
+        // shade of the warm limestone, the joints dark ── /h115 ──
+        if (vPv > 0.5) { float u = 2.5, j = floor(vHXZ.y / u), off = hh(vec2(j, 3.0)) * u, xi = (vHXZ.x + off) / u, i = floor(xi);
+          float ln = 1.0 + floor(hh(vec2(floor(i / 3.0), j)) * 2.5), a = floor(i / ln) * ln, xs = (vHXZ.x + off - a * u) / (ln * u);
+          float jx = min(xs, 1.0 - xs) * ln * u, jz = min(fract(vHXZ.y / u), 1.0 - fract(vHXZ.y / u)) * u;
+          float sh = 0.86 + 0.16 * hh(vec2(a, j * 7.0 + 1.0)), gr = 0.94 + 0.06 * hn(vHXZ * 1.7);
+          vec3 sc = vec3(0.6, 0.54, 0.44) * sh * gr * (1.0 - 0.55 * (1.0 - smoothstep(0.03, 0.09, min(jx, jz))));
+          diffuseColor.rgb = sc; }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         normal = normalize(mix(normal, nonPerturbedNormal, vBl));
         // ── site12 ── the cut rock lit by its own facets: the benches' treads and risers, the sweep's fresh face
@@ -459,7 +469,7 @@ function makeHill(T) {
     let yc = bt >= 0 ? lv : bt > -3 ? lv + C.w * (Math.floor(bt) + smooth(0.72, 1, bt - Math.floor(bt))) : Y;
     // (site9: the working bay, as the shader digs it)
     { const P = U.uPit.value; if (P.z > P.x && U.uPitK.value > 0) { const px = pos[k * 3], pz = pos[k * 3 + 2], pd = Math.max(P.x - px, px - P.z, P.y - pz, pz - P.w); yc = lerp(yc, Math.min(yc, U.uFill.value), (1 - smooth(-4, 4, pd)) * U.uPitK.value); } }
-    if (kk[k] > 1.5 && cid[k] >= 0) { const L = cellH[cid[k]]; if (L > 1500) yc = L - 2000; else if (yc > L) yc = L; }   // ── h115 ── ── /h115 ──
+    if (kk[k] > 1.5 && cid[k] >= 0) { let L = cellH[cid[k]]; if (L > 3000) L -= 4000; if (L > 1500) yc = L - 2000; else if (yc > L) yc = L; }   // ── h115 ── ── /h115 ──
     let y = Math.max(yc, Math.min(U.uFill.value, -0.4));
     { const P = U.uPave.value; if (P.y > 0.5 && pos[k * 3] >= P.x) y = Math.max(y, 0.35); }   // ── site12 ── (not yet paved)
     // (site8: the levelled patches, as the shader draws them)
@@ -1539,26 +1549,8 @@ export function createStages(ctx) {
   let cellMode = false;
   const CELLS = new Map();   // id → { st: 'rock'|'cut'|'paved', a: anim | null }
   const pitFill = [];
-  let paveMesh = null; const paveIx = new Map();
-  function paveTex() {
-    const cv = document.createElement('canvas'); cv.width = cv.height = 256; const g = cv.getContext('2d');
-    g.fillStyle = '#D9CDB3'; g.fillRect(0, 0, 256, 256);
-    const r = rng(77);
-    // rows of slabs 1 amah deep, 1–3 long, every row's joints off the row's below (25 amot = 4 repeats of the texture)
-    for (let y = 0; y < 256; y += 256 / 6.25) { let x = -r() * 40; while (x < 256) { const L = (1 + Math.floor(r() * 3)) * 256 / 6.25; const c = 200 + Math.floor(r() * 26); g.fillStyle = `rgb(${c + 14},${c + 6},${c - 14})`; g.fillRect(x + 1.5, y + 1.5, L - 3, 256 / 6.25 - 3); x += L; } }
-    const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 4); t.colorSpace = THREE.SRGBColorSpace; return t;
-  }
-  function paveSync() {
-    const L = [...CELLS.entries()].filter(([, c]) => c.st === 'paved').map(([id]) => id);
-    if (!paveMesh) {
-      const g = new THREE.PlaneGeometry(CG.CELL, CG.CELL); g.rotateX(-Math.PI / 2);
-      paveMesh = new THREE.InstancedMesh(g, new THREE.MeshStandardMaterial({ map: paveTex(), roughness: 0.92 }), CG.NC); paveMesh.receiveShadow = true; paveMesh.frustumCulled = false; paveMesh.name = 'h115-paved'; scene.add(paveMesh);
-    }
-    const M = new THREE.Matrix4(); let n = 0;
-    for (const id of L) { const q = CG.kr(id); if (!q) continue; const x = CG.EAST - q.k * CG.CELL - CG.CELL / 2, z = CG.NORTH + q.r * CG.CELL + CG.CELL / 2; M.makeTranslation(x, FLOOR + 0.02, z); paveMesh.setMatrixAt(n++, M); }
-    paveMesh.count = n; paveMesh.instanceMatrix.needsUpdate = true; paveMesh.visible = cellMode && n > 0 && hill.mesh.visible;
-    requestShadow(false);
-  }
+  // (a paved cell's paving is drawn by the hill's own shader on its cut floor: cell level 4000 + L, the slabs where it was cut)
+  const lvOf = (c) => (c.st === 'paved' ? 4000 : 0) + FLOOR;
   function scrubSync() { if (hill.cells.scrub((id) => { const c = CELLS.get(id); return !!c && c.st !== 'rock'; })) requestShadow(false); }
   /** the pit's floor at fill 0..1: its rim's lowest point less its depth, rising to the rim as it fills */
   function pitLevel(i, f) { const P = CG.PITS[i]; if (!P) return 1000; const lo = Math.min(...[[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]].map(([a, b]) => hill.heightAt0 ? hill.heightAt0(P.x + a * P.w / 2, P.z + b * P.d / 2) : hillY0(P.x + a * P.w / 2, P.z + b * P.d / 2))); return lo - P.depth * (1 - clamp(f, 0, 1)) - 0.2; }
@@ -1569,7 +1561,7 @@ export function createStages(ctx) {
       cellMode = !!on;
       if (cellMode) { setBoulders([]); hill.U.uCrest.value.set(1000, 1000, 0, 2.5); }
       else { for (const id of CELLS.keys()) hill.cells.set(id, 1000); CELLS.clear(); for (let i = 0; i < CG.PITS.length; i++) hill.cells.set(CG.pitId(i), 1000); pitFill.length = 0; }
-      paveSync(); scrubSync(); propsDirty = true; requestShadow(true);
+      scrubSync(); propsDirty = true; requestShadow(true);
     },
     id: (k, r) => CG.idOf(k, r),
     /** the highest natural rock of a cell (−1e9: none of the platform's inside) */
@@ -1582,9 +1574,8 @@ export function createStages(ctx) {
       const top = hill.cells.max(id);
       if (st === 'rock') { c.a = null; hill.cells.set(id, 1000); }
       else if (c.st === 'rock' && !o.instant && top > FLOOR + 0.5) c.a = { from: top, t: 0, dur: o.dur || 6, step: -1 };
-      else { c.a = null; hill.cells.set(id, 2000 + FLOOR); }   // (levelled: the low parts filled with what was cut)
+      else { c.a = null; c.st = st; hill.cells.set(id, lvOf(c)); }   // (cut down to the platform's level where the rock stood over it)
       c.st = st; CELLS.set(id, c);
-      if (st === 'paved' || c.st === 'paved') paveSync();
       scrubSync(); requestShadow(!!o.instant);
       return true;
     },
@@ -1603,7 +1594,7 @@ export function createStages(ctx) {
           const q = CG.kr(id); if (q && k > 0) { const x0 = CG.EAST - q.k * CG.CELL - CG.CELL / 2, z0 = CG.NORTH + q.r * CG.CELL + CG.CELL / 2; for (let j = 0; j < 3; j++) dustBurst(x0 + (j - 1) * 7, L + 1, z0 + ((j * 5) % 3 - 1) * 7, 8, 5, 5, 2); }
           requestShadow(false);
         }
-        if (u >= 1) { c.a = null; hill.cells.set(id, 2000 + FLOOR); }
+        if (u >= 1) { c.a = null; hill.cells.set(id, lvOf(c)); }
       }
     },
   };
@@ -4441,7 +4432,6 @@ export function createStages(ctx) {
     }
     const hs = ST.har;
     hill.mesh.visible = hs.status !== 'done';
-    if (paveMesh) paveMesh.visible = hill.mesh.visible && cellMode && paveMesh.count > 0;   // ── h115 ── ── /h115 ──
     hill.bushes.visible = hs.status !== 'done';   // ── site12 ── (the scrub goes where the works reach it: harCut)
     if (hs.status !== 'building') { hill.U.uFill.value = -1000; harCut(0); }
     // outlines: available sites pulse, the next two locked ones show faintly, building sites keep a thin line in the foundation phase
@@ -8935,11 +8925,11 @@ export function createStages(ctx) {
     boulderSpots, deliverKeyStone, camFloor,
     // ── h114 ── a split rock's chunks carted off now and its patch levelled (the paving goes on clean rock: ירון 9.11, a chunk hid a slab);
     // the boulders' own material (the stage's small rocks are of the same rock: "האבנים של האתר") ── /h114 ──
-    boulderRest: (i) => { const b = bSt[i]; if (!b || b.state > 0) return false; b.anim = null; b.pt = 60; b.rub = 0; workDirty = true; propsDirty = true; boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; return true; },
+    boulderRest: (i) => { const b = bSt[i]; if (!b || b.state > 0 || cellMode) return false; b.anim = null; b.pt = 60; b.rub = 0; workDirty = true; propsDirty = true; boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; return true; },
     boulderMat: () => BC.mat,
     // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
-    boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
-    boulderInfo: (i) => { const b = bSt[i]; return b ? { x: b.x, z: b.z, r: b.r, sy: b.sy, yaw: b.yaw, state: b.state, hid: !!b.hid, gy: hill.heightAt(b.x, b.z) } : null; },
+    boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b || cellMode) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
+    boulderInfo: (i) => { const b = bSt[i]; return b && !cellMode ? { x: b.x, z: b.z, r: b.r, sy: b.sy, yaw: b.yaw, state: b.state, hid: !!b.hid, gy: hill.heightAt(b.x, b.z) } : null; },
     shadowSoon: () => requestShadow(false),   // ── h114 ── (a minigame moves things: the sun's shadows follow, at most every 0.3 s) ── /h114 ──
     // ── flow10 ── the course check's stand and frame at the Mount: checkView(id) → { spot, target, p, t } | null · flyTo(p, t, ms)
     checkView, flyTo,

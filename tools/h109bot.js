@@ -48,7 +48,10 @@
         const c = a.chunks[0], s = a.sled;
         return { when: C('return !a||a.phase!==\'load\'||(a.ph>0.25&&a.ph<0.38)'), max: 3000, then: { path: [c, [s[0], s[1] - 10]], ms: 450 }, wait: 0 };
       }
-      if (a.phase === 'push') return { holdUntil: [W * 0.75, HH * 0.5, C('return !a||a.phase!==\'push\'||a.dFill<3.2'), 20000] };
+      // (build 115: hold to drive, let go before the green line (they slide on ~1.2), then a drag up tips the sledge into the pit)
+      if (a.phase === 'push' && a.v < 0.1 && Math.abs(a.d - a.tgt) <= 3.5) return { drag: [a.sled[0], a.sled[1], a.sled[0], a.sled[1] - 140, 300], wait: 600, note: 'waste: tip at ' + (a.d - a.tgt).toFixed(2) };
+      if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [W * 0.75, HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };
+      if (a.phase === 'push') return { wait: 300 };
       return { wait: 300 };
     },
     corner(a) {

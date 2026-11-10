@@ -4,6 +4,7 @@
  */
 import { createGang, onPlane, clamp, lerp, ease } from './kit.js';
 import { makeRock } from './rock.js';
+import { BOOK } from '../world/grid.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -62,7 +63,7 @@ function bigRock(X, s, split) {
   if (SH.big[s]) return SH.big[s];
   const b = SH.bould[s]; let inf = null; try { inf = X.stages.boulderInfo && X.stages.boulderInfo(s); } catch (e) { inf = null; }
   const gy = inf ? inf.gy : X.ground(b[0], b[1]);
-  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : 0, seed: s * 13 + 5, mat: rockMat(X) });
+  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : hash(s, 1) * TAU, seed: s * 13 + 5, mat: rockMat(X) });
   X.props.root.add(R.group);
   try { X.stages.boulderHide(s, true, !!split); } catch (e) { /* */ }
   if (split) { const st = bigStand(X, s), phiK = Math.atan2(st.z - b[1], st.x - b[0]), c = crackOf(s); R.halves(R.plane(phiK + c.off, c.tilt)); R.part(1); }
@@ -245,7 +246,15 @@ export const READ = {
       else X.word(at, 'נבקע לאורך הסדק');
       if (waste) wasteAdd(X, waste, at);
       const q = lost ? 0 : ['line', 'space', 'water'].reduce((a, k) => a + (g[k] === 'gold' ? 1 : g[k] === 'good' ? 0.8 : 0.5), 0) / 3 * (crooked ? 0.75 : 1);
-      setTimeout(() => X.end({ q, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, lost, at }), 1300);
+      // ── h115 ── (ירון 10.11: "את שני חצאי הסלע אחרי הביקוע, צריך לפוצץ?! או שהם נעלמים לבד?") neither: the masons dress the two
+      // halves into building stones on the spot (seen: the halves shrink under their mallets, the dressed blocks stack on a sledge),
+      // the stones go to the stone yard by the east wall, and the cell is cut level where the rock stood ── /h115 ──
+      setTimeout(() => {
+        const n = lost ? 0 : crooked ? 2 : 4;
+        dressStart(X, s, n, lost);
+        X.word({ x: b[0], y: gy + R.r * R.sy + 1.5, z: b[1] }, lost ? 'הסלע נפסל · נגרר לבור הפסולת' : `שני החצאים נחצבים ל־${n} אבני בנייה · אל מחסן האבנים`);
+        setTimeout(() => X.end({ q, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, lost, at }), 3400);
+      }, 900);
     }
     return {
       begin() {
@@ -343,25 +352,28 @@ export const READ = {
   },
 };
 
-/* ───────── the waste pile (beside the east sectors) and the fill behind the east retaining wall ───────── */
-// (west of the east working bay, in the open: the heap, and the hollow it fills — Josephus, War 5.5.1 (5.185–188): the valleys round the Mount filled)
-const PILE = { x: 195, z: -105 }, FILL = { x: 214, z: -130 };
+/* ───────── the waste pile and the pits (the address book: the pile on the slope east of the kohen's cells, the pits below it) ─────────
+ * ── h115 ── (ירון 10.11: "פסולת: עדיף שתיזרק לתוך בור שיתכסה על ידי המגרפים") the waste is tipped into a pit dug down the slope; the
+ * rakers spread and cover it; five sledge loads and more fill a pit level, then the next is used. (Josephus, War 5.5.1 (5.185–188):
+ * the valleys round the Mount filled; the pits: illustration.) ── /h115 ── */
+const PILE = { x: BOOK.pile.x, z: BOOK.pile.z };
+const PIT_CAP = 15;   // (chunks that fill a pit to its rim)
 function pileSync(X) {
   const n = Math.min(14, X.M.st.waste | 0); SH.pileM = SH.pileM || [];
   while (SH.pileM.length > n) X.props.remove(SH.pileM.pop());
-  // (the bay is dug deeper as the Mount comes down: the heap sits on the ground as it is now)
   SH.pileM.forEach((mm, i) => { if (!mm.userData.on) mm.position.y = X.ground(mm.position.x, mm.position.z) + mm.scale.x * 0.4 + Math.floor(i / 5) * 0.35; });
   while (SH.pileM.length < n) {
     const i = SH.pileM.length, a = i * 2.4, r = 0.6 + (i % 5) * 0.45, x = PILE.x + Math.cos(a) * r, z = PILE.z + Math.sin(a) * r, s = 0.85 + hash(i, 2) * 0.4;
     const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
   }
 }
-function fillSync(X) {
-  const n = X.M.st.wasteIn | 0;
-  if (!SH.fillM) { const g = new X.THREE.SphereGeometry(1, 16, 8, 0, TAU, 0, Math.PI / 2); SH.fillM = new X.THREE.Mesh(g, X.props.M.stoneD); SH.fillM.position.set(FILL.x, X.ground(FILL.x, FILL.z) - 0.2, FILL.z); SH.fillM.receiveShadow = true; X.props.root.add(SH.fillM); }
-  SH.fillM.position.y = X.ground(FILL.x, FILL.z) - 0.2;
-  const k = Math.min(1, n / 18); SH.fillM.scale.set(3 + k * 7, 0.2 + k * 2.2, 3 + k * 6); SH.fillM.visible = n > 0;
+/** the pits as the save has them (st.pitIn[i]: chunks in pit i) */
+function pitSync(X, instant) {
+  const st = X.M.st; st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : [0, 0, 0];
+  for (let i = 0; i < BOOK.pits.length; i++) try { SH.cells.pit(i, Math.min(1, (st.pitIn[i] | 0) / PIT_CAP), { instant }); } catch (e) { /* */ }
 }
+/** the pit the next load goes into: the first not yet full */
+function pitNow(X) { const st = X.M.st; st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : [0, 0, 0]; for (let i = 0; i < BOOK.pits.length; i++) if ((st.pitIn[i] | 0) < PIT_CAP) return i; return BOOK.pits.length - 1; }
 /** stones to the waste pile (a crooked split, a rejected stone): a chunk flies there when it is near, the pile grows */
 function wasteAdd(X, n, at) {
   if (at && Math.hypot(at.x - PILE.x, at.z - PILE.z) < 60) X.props.chunksAt({ x: at.x, y: at.y - 1, z: at.z, r: 1.4 }, 3);
@@ -397,7 +409,7 @@ function trueLaying(seed, rows) {
   return out;
 }
 function gridOf(X, s, rows) {
-  const b = SH.bould[s], x0 = b[0] - (W * U) / 2, z0 = b[1] - (rows * U) / 2;
+  const b = SH.cellC[s], x0 = b[0] - (W * U) / 2, z0 = b[1] - (rows * U) / 2;
   // (the cut rock under the rows: its highest point, the slabs bedded into it so their top stands a hand over it)
   let base = -1e9; for (let i = -SIDE_COLS; i <= W + SIDE_COLS; i++) for (let j = -1; j <= rows; j++) base = Math.max(base, X.ground(x0 + i * U, z0 + j * U));
   return { x0, z0, base: base - 0.12, rows, cx: b[0], cz: b[1] };
@@ -442,13 +454,14 @@ function layDone(X, s) {
 export const PAVE = {
   icon: '🧱', title: 'ריצוף הגזרה',
   walkLine: (m) => `גזרה ${m.s + 1}: מרצפים את מה שיושר`,
-  stand(m, X) { const b = SH.bould[m.s]; if (!b) return null; const rows = ROWS[X.level() - 1]; return { x: b[0] - W * U / 2 - SIDE_COLS * U - 2.2, z: b[1] + (rows * U) / 2 + 4.5, face: [b[0], b[1]] }; },
+  stand(m, X) { const b = SH.cellC[m.s]; if (!b) return null; const rows = ROWS[X.level() - 1]; return { x: b[0] - W * U / 2 - SIDE_COLS * U - 2.2, z: b[1] + (rows * U) / 2 + 4.5, face: [b[0], b[1]] }; },
   prepare(m, X) {
-    const b = SH.bould[m.s]; if (!b) return; const C = SH.crew;
+    const b = SH.cellC[m.s]; if (!b) return; const C = SH.crew;
     // the split rock's halves dragged off and its patch cut level before the paving (a chunk once hid a slab)
     bigGone(X, m.s);
+    { const K = BOOK.kohen[m.s]; try { SH.cells.set(K.k, K.r, 'cut', { instant: true }); } catch (e) { /* */ } }   // ── h115 ── (level before the slabs) ── /h115 ──
     try { X.stages.boulderRest(m.s); } catch (e) { /* */ }
-    try { X.props.clearRubble(b[0], b[1], b[2] + 12); } catch (e) { /* */ }
+    try { X.props.clearRubble(b[0], b[1], 14); } catch (e) { /* */ }
     SH.secCrew = SH.secCrew || []; for (const w of SH.secCrew) C.remove(w); SH.secCrew = [];
     // two pavers each side setting the crews' slabs (mallets), a carrier bringing slabs from the cart road
     const rows = ROWS[X.level() - 1], xE = b[0] + W * U / 2 + SIDE_COLS * U + 1.4, xW = b[0] - W * U / 2 - SIDE_COLS * U - 1.4;
@@ -520,6 +533,7 @@ export const PAVE = {
         st.lay[m.s] = { rows, s: S.filter((q) => q.at && !q.gone).map((q) => [q.L, q.at[0], q.at[1], q.rot ? 1 : 0]), f: A.fill.map((f) => [f.x, f.y]) };
         // the crews set what is left of theirs at once
         while (A.crewI < crewRest.length) crewM.push(placeCrew(X, G, crewRest[A.crewI++]));
+        { const K = BOOK.kohen[m.s]; try { SH.cells.set(K.k, K.r, 'paved'); } catch (e) { /* */ } }   // ── h115 ── (the whole cell paved round his rows) ── /h115 ──
         const q = A.closed.reduce((a, _, y) => a + (A.kasher[y] ? 0.6 : 1), 0) / rows;
         setTimeout(() => X.end({ q, stars: q >= 0.99 ? 3 : q >= 0.75 ? 2 : 1, at: { x: G.cx, y: G.base + 1.5, z: G.cz } }), 1200);
       }
@@ -607,103 +621,153 @@ export const PAVE = {
   },
 };
 
-/* ───────── 3.9 the waste: dragged to the sledge in time with the oxen, pushed to the hollow behind the east wall ───────── */
+/* ───────── 3.9 the waste: loaded on the sledge when the oxen stand, driven down the track, stopped at the pit's green line, tipped ─────────
+ * ── h115 ── (114: "העגלה מתרוקנת לבד" and "רחוק מהמילוי" with two stars). Now nothing happens by itself: holding drives the oxen,
+ * letting go they slide on a little and stop; the green line on the pit's rim is where the sledge must stand; a drag UP tips it into
+ * the pit. Where it stopped is graded and said in the same words as the stars: on the line (gold), near it (good), short of it (the
+ * rakers drag the rest in: ok). Farther than 3.5 amot it does not tip at all ("עוד לא בבור"). The kohen walks the track with the
+ * oxen; two rakers at the pit spread every load. ── /h115 ── */
 export const WASTE = {
   icon: '🪨', title: 'פינוי הפסולת',
-  walkLine: () => 'ערימת הפסולת: מפנים אותה אל המילוי',
+  walkLine: () => 'ערימת הפסולת: מפנים אותה אל הבור',
   stand(m, X) { return { x: PILE.x - 4.5, z: PILE.z - 3, face: [PILE.x + 4, PILE.z - 1] }; },
   prepare() {},
   make(m, X) {
     const lv = X.level(), T = X.THREE, gyP = X.ground(PILE.x, PILE.z);
     const cap = [3, 4, 5][lv - 1];
-    const A = { phase: 'load', t: 0, drag: null, on: [], trips: 0, hold: false, sx: PILE.x + 5.5, sz: PILE.z - 1.5, s0: null, grades: [], dumped: 0 };
-    A.s0 = { x: A.sx, z: A.sz };
-    // the sledge: planks on two runners, the oxen yoked before it (animals.js bulls), the drover beside them
-    const sled = new T.Group(); { const bed = new T.Mesh(new T.BoxGeometry(3.4, 0.25, 2.2), X.props.M.wood); bed.position.y = 0.45; sled.add(bed); for (const s of [-0.9, 0.9]) { const r = new T.Mesh(new T.BoxGeometry(3.8, 0.22, 0.2), X.props.M.woodD); r.position.set(0.1, 0.15, s); sled.add(r); } const pole = new T.Mesh(new T.BoxGeometry(3.2, 0.12, 0.12), X.props.M.woodD); pole.position.set(3.1, 0.6, 0); sled.add(pole); }
+    const pi = pitNow(X), P = BOOK.pits[pi];
+    // the track: from beside the pile east along the pit's north rim (the oxen never step into it); the green line across the track
+    // over the pit's middle is where the sledge must stand; tipped there it slides off sideways into the pit
+    const s0 = { x: PILE.x + 5.5, z: P.z - P.d / 2 - 1.8 }, rimX = P.x, ux = 1, uz = 0, Tgt = P.x - s0.x, dMax = Tgt + P.w / 2 - 0.5;
+    const A = { phase: 'load', t: 0, drag: null, on: [], trips: 0, hold: false, d: 0, v: 0, grades: [], tips: [], arm: 0, p0: null, tipT: 0 };
+    const sled = new T.Group(), tilt = new T.Group(); sled.add(tilt);
+    { const bed = new T.Mesh(new T.BoxGeometry(3.4, 0.25, 2.2), X.props.M.wood); bed.position.set(0, 0.45, -1.1); tilt.add(bed); for (const sd of [-0.9, 0.9]) { const r = new T.Mesh(new T.BoxGeometry(3.8, 0.22, 0.2), X.props.M.woodD); r.position.set(0.1, 0.15, sd - 1.1); tilt.add(r); } tilt.position.z = 1.1; const pole = new T.Mesh(new T.BoxGeometry(3.2, 0.12, 0.12), X.props.M.woodD); pole.position.set(3.1, 0.6, 0); sled.add(pole); }
     X.props.root.add(sled);
+    // the green line on the rim, across the track
+    const line = new T.Mesh(new T.PlaneGeometry(0.4, 6.4), new T.MeshBasicMaterial({ color: 0x4CE07A, transparent: true, opacity: 0.9, depthWrite: false }));
+    line.rotation.x = -Math.PI / 2; line.position.set(rimX, X.ground(rimX, s0.z) + 0.1, s0.z); line.renderOrder = 997; X.props.root.add(line);
     const an = X.stages.crewAnimals || null; const oxen = [];
-    if (an) for (const s of [-0.75, 0.75]) { const h = an.add('bull', A.sx + 5, A.sz + s, { yaw: Math.PI / 2, calm: true }); if (h) oxen.push(h); }
-    const drover = SH.crew.add(A.sx + 5, A.sz - 2.2, { role: 'hold', item: 'staff', fx: A.sx + 9, fz: A.sz, crew: 1 });
-    const dirX = FILL.x - A.sx, dirZ = FILL.z - A.sz, dL = Math.hypot(dirX, dirZ), ux = dirX / dL, uz = dirZ / dL;
-    // the levellers spread the fill from both sides of the sledge's way, clear of the oxen's path (ירון 9.11: the sledge ran them over) ── h114 ──
-    const levelers = [-1, 1].map((sd, k) => { const x = FILL.x - uz * sd * 6 + ux * 1.5, z = FILL.z + ux * sd * 6 + uz * 1.5; return SH.crew.add(x, z, { role: 'lever', item: 'beam', fx: FILL.x + ux * 1.5, fz: FILL.z + uz * 1.5, off: k * 0.5, crew: 0 }); });
-    // the chunks on the pile as things to drag (the pile's own meshes)
+    if (an) for (const sd of [-0.75, 0.75]) { const h = an.add('bull', s0.x + 5, s0.z + sd, { yaw: Math.PI / 2, calm: true }); if (h) oxen.push(h); }
+    // the rakers at the pit's two sides (rakes in hand), spreading each load
+    const drover = SH.crew.add(s0.x + 6.5, s0.z - 2.2, { role: 'hold', item: 'staff', fx: s0.x + 12, fz: s0.z - 2.2, crew: 1 });
+    const rakers = [[P.x + P.w / 2 + 1.3, P.z], [P.x - 1.5, P.z + P.d / 2 + 1.3]].map(([x, z], k) => SH.crew.add(x, z, { role: 'pull', item: 'rake', fx: P.x, fz: P.z, off: k * 0.5, crew: 0 }));
     const chunks = () => (SH.pileM || []).filter((c) => !c.userData.on);
-    let step = 0;
-    function sledPos(dt) {
-      // while loading the oxen shift a step every gold beat (k = 2): the sledge jolts forward and back; still = the moment to load
-      const ph = SH.B.phase(2);
-      if (A.phase === 'load') { step = ph < 0.3 ? Math.sin((ph / 0.3) * Math.PI) * 0.35 : 0; }
-      sled.position.set(A.sx + ux * step, X.ground(A.sx, A.sz), A.sz + uz * step); sled.rotation.y = -Math.atan2(uz, ux);
-      oxen.forEach((h, i) => { const px = -uz * (i ? 0.75 : -0.75), pz = ux * (i ? 0.75 : -0.75); h.x = sled.position.x + ux * 5.2 + px; h.z = sled.position.z + uz * 5.2 + pz; h.yaw = Math.atan2(ux, uz); });
-      for (const c of A.on) { c.position.x = sled.position.x + c.userData.bx * ux - c.userData.bz * uz; c.position.z = sled.position.z + c.userData.bx * uz + c.userData.bz * ux; c.position.y = sled.position.y + 0.85 + c.userData.by; }
-      void dt;
+    const sx = () => s0.x + A.d * ux, sz = () => s0.z + A.d * uz;
+    function sledPos() {
+      let step = 0; if (A.phase === 'load') { const ph = SH.B.phase(2); step = ph < 0.3 ? Math.sin((ph / 0.3) * Math.PI) * 0.35 : 0; }
+      const x = sx() + ux * step, z = sz() + uz * step;
+      sled.position.set(x, X.ground(x, z), z); sled.rotation.y = -Math.atan2(uz, ux);
+      oxen.forEach((h, i) => { const px = -uz * (i ? 0.75 : -0.75), pz = ux * (i ? 0.75 : -0.75); h.x = x + ux * 5.2 + px; h.z = z + uz * 5.2 + pz; h.yaw = Math.atan2(ux, uz); });
+      for (const c of A.on) { if (c.userData.fall) continue; const bx = c.userData.bx, bz = c.userData.bz; c.position.x = x + bx * ux - bz * uz; c.position.z = z + bx * uz + bz * ux; c.position.y = sled.position.y + 0.85 + c.userData.by; }
     }
     function pickAt(p) {
       const L = chunks(); const hits = X.rayAt(p.x, p.y).intersectObjects(L, false); if (hits.length) return hits[0].object;
-      // (a finger is wide: the nearest chunk within 60 px)
       let best = null, bd = 60; for (const c of L) { const q = X.scr(c.position.x, c.position.y, c.position.z); const d = Math.hypot(q.x - p.x, q.y - p.y); if (q.on && d < bd) { bd = d; best = c; } } return best;
     }
+    const gP = () => X.ground(P.x, P.z);
     function load(c) {
       const ph = SH.B.phase(2), still = ph > 0.32 && ph < 0.95;
       const grade = still ? (ph > 0.45 && ph < 0.85 ? 'gold' : 'good') : 'ok';
-      if (grade === 'ok' && lv >= 2 && hash(A.t, c.id) < 0.5) {
-        // dropped on a moving sledge: it rolls off back to the pile (another round)
-        c.userData.on = false; X.word({ x: c.position.x, y: c.position.y + 1, z: c.position.z }, 'נפל מהמזחלת'); X.play('thud'); c.position.set(PILE.x + 1, X.ground(PILE.x + 1, PILE.z) + 0.4, PILE.z); return;
-      }
+      if (grade === 'ok' && lv >= 2 && hash(A.t, c.id) < 0.5) { c.userData.on = false; X.word({ x: c.position.x, y: c.position.y + 1, z: c.position.z }, 'השוורים זזו · נפל מהמזחלת'); X.play('thud'); c.position.set(PILE.x + 1, X.ground(PILE.x + 1, PILE.z) + 0.4, PILE.z); return; }
       const k = A.on.length; c.userData.on = true; c.userData.bx = -1 + (k % 3) * 1.0; c.userData.bz = -0.5 + Math.floor(k / 3) * 0.9; c.userData.by = Math.floor(k / 6) * 0.3; A.on.push(c);
       A.grades.push(grade); X.dust(sled.position.x, sled.position.y + 0.8, sled.position.z, 4, 1.2); X.play('thud');
       X.hit({ x: sled.position.x, y: sled.position.y + 2, z: sled.position.z }, grade, { text: '', craft: 'סבלים' });
-      if (A.on.length >= cap || !chunks().length) { A.phase = 'push'; X.line('החזיקו · שחררו ליד המילוי'); X.hand({ x: FILL.x, y: X.ground(FILL.x, FILL.z) + 1, z: FILL.z }, 0, 0); X.shot([A.sx - uz * 22 - ux * 4, X.ground(A.sx, A.sz) + 13, A.sz + ux * 22 - uz * 4], [(A.sx + FILL.x) / 2, X.ground(FILL.x, FILL.z) + 1, (A.sz + FILL.z) / 2], 1.0); }
+      if (A.on.length >= cap || !chunks().length) toPush();
     }
-    function dump() {
-      const d = Math.hypot(sled.position.x - FILL.x, sled.position.z - FILL.z);
-      A.phase = 'dump';
-      const n = A.on.length; const st = X.M.st;
+    function toPush() {
+      A.phase = 'push'; A.v = 0; A.arm = 0;
+      X.line('החזיקו: השוורים מושכים · שחררו כדי לעצור על הקו הירוק');
+      X.hand({ x: rimX, y: X.ground(rimX, s0.z) + 1, z: s0.z }, 0, 0);
+      const mx = P.x - 7; X.shot([mx, Math.max(gyP, gP()) + 16, P.z + 19], [mx, Math.min(gyP, gP()) + 0.5, s0.z + 2], 1.0);
+    }
+    function tip() {
+      const off = Math.abs(A.d - Tgt);
+      if (A.d < Tgt - 3.5) { X.word({ x: sled.position.x, y: sled.position.y + 2.5, z: sled.position.z }, 'עוד לא ליד הבור · החזיקו עד הקו הירוק'); return; }
+      const grade = off <= 0.7 ? 'gold' : off <= 1.6 ? 'good' : 'ok';
+      A.tips.push(grade); A.phase = 'tip'; A.tipT = 0; X.hand(null); X.line('');
+      const at = { x: sled.position.x, y: sled.position.y + 3, z: sled.position.z };
+      if (grade === 'gold') X.hit(at, 'gold', { text: 'בדיוק על הקו', craft: 'סבלים' });
+      else if (grade === 'good') X.hit(at, 'good', { text: 'קרוב לקו', craft: 'סבלים' });
+      else X.word(at, 'רחוק מהקו · הגורפים דוחפים את השאר לבור');
+      // the chunks slide off the tilted bed into the pit (each to its own spot on the pit's floor)
+      const fl = SH.cells.pitInfo(pi), fy = fl ? fl.floor : gP() - 3;
+      A.on.forEach((c, i) => { c.userData.fall = { t: -i * 0.08, x0: c.position.x, y0: c.position.y, z0: c.position.z, x1: P.x - 2 + hash(i, 5) * 4, y1: fy + 0.5, z1: P.z - 3 + hash(i, 6) * 6 }; });
+      X.play('cart');
+    }
+    function tipped() {
+      const n = A.on.length, st = X.M.st;
       for (const c of A.on) { X.props.remove(c); const i = (SH.pileM || []).indexOf(c); if (i >= 0) SH.pileM.splice(i, 1); }
-      A.on = []; A.dumped += n;
-      X.props.chunksAt({ x: FILL.x, y: X.ground(FILL.x, FILL.z) + 1.4, z: FILL.z, r: 1.2 }, Math.min(6, n + 2));
-      st.waste = Math.max(0, st.waste - n); st.wasteIn = (st.wasteIn | 0) + n;   // (the model's done() moves the rest)
-      fillSync(X); X.dust(FILL.x, X.ground(FILL.x, FILL.z) + 0.5, FILL.z, 18, 4); X.play('settle'); X.shake(0.15, 0.25);
-      if (d < 4) X.bonus(60, 'sled', 'מזחלת'); else X.word({ x: FILL.x, y: X.ground(FILL.x, FILL.z) + 2, z: FILL.z }, 'רחוק מהמילוי · הצוות משלים');
+      A.on = []; st.waste = Math.max(0, st.waste - n); st.wasteIn = (st.wasteIn | 0) + n;
+      st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : [0, 0, 0]; st.pitIn[pi] = (st.pitIn[pi] | 0) + n;
+      const f = Math.min(1, st.pitIn[pi] / PIT_CAP);
+      SH.cells.pit(pi, f);
+      X.dust(P.x, gP() + 0.5, P.z, 18, 4); X.play('settle'); X.shake(0.15, 0.25);
+      for (const w of rakers) try { SH.crew.A.pose(w.a, 'stand'); } catch (e) { /* */ }
+      X.word({ x: P.x, y: gP() + 3, z: P.z }, f >= 1 ? 'הבור מלא · הגורפים כיסו אותו' : `הגורפים מפזרים · הבור ${Math.round(f * 100)}% מלא`);
       A.trips++;
       setTimeout(() => {
         if (!chunks().length) { X.bonus(100, 'clean', 'האתר נקי'); finish(); return; }
-        A.sx = A.s0.x; A.sz = A.s0.z; A.phase = 'load'; X.line('עוד גושים למזחלת'); begin2();
-      }, 1400);
+        A.d = 0; A.v = 0; tilt.rotation.x = 0; A.hint = false; A.phase = 'load'; try { SH.crew.walkTo(drover, s0.x + 6.5, s0.z - 2.2, 3); } catch (e) { /* */ } X.line('עוד גושים למזחלת'); begin2();
+      }, 1500);
     }
     function finish() {
       A.phase = 'done';
-      const q = A.grades.length ? A.grades.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / A.grades.length : 1;
-      X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at: { x: FILL.x, y: X.ground(FILL.x, FILL.z) + 2, z: FILL.z } });
+      const avg = (L) => L.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / L.length;
+      const q = A.grades.length ? (avg(A.grades) + (A.tips.length ? avg(A.tips) : 1)) / 2 : 1;
+      const perfect = A.grades.length > 0 && A.grades.every((g) => g === 'gold') && A.tips.every((g) => g === 'gold');
+      X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, perfect, at: { x: P.x, y: gP() + 2, z: P.z } });
     }
-    function begin2() { const g = X.ground(PILE.x, PILE.z); X.shot([PILE.x - 9, g + 17, PILE.z + 12], [PILE.x + 3.5, g + 0.5, PILE.z - 0.5], 0.9); }
+    function begin2() { const g = X.ground(PILE.x, PILE.z), zc = (PILE.z + s0.z) / 2; X.shot([PILE.x - 8, g + 18, zc + 15], [PILE.x + 3.5, g + 0.5, zc], 0.9); }
     return {
-      begin() { pileSync(X); (SH.pileM || []).forEach((c, i) => { c.userData.id = i; c.userData.on = false; }); begin2(); X.line('גררו גוש כשהשוורים עומדים'); const c = chunks()[0]; if (c) X.hand({ x: c.position.x, y: c.position.y + 0.5, z: c.position.z }, 40, -10); if (!chunks().length) finish(); },
+      begin() { pileSync(X); (SH.pileM || []).forEach((c, i) => { c.userData.id = i; c.userData.on = false; c.userData.fall = null; }); begin2(); X.line('גררו גוש למזחלת כשהשוורים עומדים'); const c = chunks()[0]; if (c) X.hand({ x: c.position.x, y: c.position.y + 0.5, z: c.position.z }, 40, -10); if (!chunks().length) finish(); },
       update(dt) {
         A.t += dt;
         if (A.phase === 'push') {
-          if (A.hold) { const v = 3.2; A.sx += ux * v * dt; A.sz += uz * v * dt; for (const h of oxen) { h.path = [[h.x + ux, h.z + uz]]; h.pi = 0; h.speed = v; } }
-          else for (const h of oxen) h.path = null;
-          const d = Math.hypot(A.sx - A.s0.x, A.sz - A.s0.z); if (d > dL + 4) { A.hold = false; dump(); }
+          if (A.arm > 0) A.arm -= dt;
+          const drive = A.hold && A.arm <= 0;
+          if (drive) A.v = lerp(A.v, 3.4, 1 - Math.exp(-dt / 0.5)); else A.v *= Math.exp(-dt / 0.35);   // (let go: they slide on a little)
+          A.d += A.v * dt;
+          if (A.d >= dMax) { A.d = dMax; A.v = 0; if (!A.edge) { A.edge = true; X.word({ x: sx(), y: gP() + 3, z: sz() }, 'עצרו! סוף הבור'); } } else A.edge = false;
+          // the drover walks at the lead ox's head
+          A.drT = (A.drT || 0) - dt; if (A.v > 0.15 && A.drT <= 0) { A.drT = 0.5; try { SH.crew.walkTo(drover, sx() + 6.2 + A.v * 0.5, s0.z - 2.2, A.v + 0.4); } catch (e) { /* */ } }
+          for (const h of oxen) { if (A.v > 0.15) { h.path = [[h.x + ux, h.z + uz]]; h.pi = 0; h.speed = A.v; } else h.path = null; }
+          // stopped by the line: the drag-up hint
+          if (!A.hold && A.v < 0.1 && A.d >= Tgt - 3.5 && !A.hint) { A.hint = true; X.line('גררו למעלה · מטים את המזחלת לבור'); X.hand({ x: sled.position.x, y: sled.position.y + 1, z: sled.position.z }, 0, -60); }
+          if (A.v > 0.3) A.hint = false;
         }
-        sledPos(dt);
+        if (A.phase === 'tip') {
+          A.tipT += dt; tilt.rotation.x = Math.min(0.75, A.tipT * 1.6);
+          let all = true;
+          for (const c of A.on) { const F = c.userData.fall; if (!F) continue; F.t += dt; const k = clamp(F.t / 0.7, 0, 1); if (k < 1) all = false; c.position.set(lerp(F.x0, F.x1, k), lerp(F.y0, F.y1, k) + Math.sin(k * Math.PI) * 1.2, lerp(F.z0, F.z1, k)); c.rotation.x += dt * 6; }
+          if (all && A.tipT > 0.9) { A.phase = 'tipped'; tipped(); }
+        }
+        sledPos();
         const D = A.drag; if (D) { const k = 1 - Math.exp(-dt * 7); D.c.position.x += (D.tx - D.c.position.x) * k; D.c.position.z += (D.tz - D.c.position.z) * k; D.c.position.y += (X.ground(D.tx, D.tz) + 1.6 - D.c.position.y) * k; }
       },
       down(p) {
         if (A.phase === 'load') { const c = pickAt(p); if (!c) return; A.drag = { c, tx: c.position.x, tz: c.position.z, home: c.position.clone() }; X.hand(null); X.play('tool'); return; }
-        if (A.phase === 'push') { A.hold = true; X.hand(null); X.play('cart'); }
+        if (A.phase === 'push') {
+          A.hold = true; A.p0 = { x: p.x, y: p.y };
+          // (stopped near the line: a short wait before the oxen pull again, so a drag up is a drag, not a pull)
+          A.arm = A.v < 0.1 && A.d >= Tgt - 3.5 ? 0.3 : 0;
+          if (!A.arm) { X.hand(null); X.play('cart'); }
+        }
       },
-      move(p) { const D = A.drag; if (!D) return; const g = onPlane(X, p.x, p.y, gyP + 1.6); if (g) { D.tx = g.x; D.tz = g.z; } },
+      move(p) {
+        if (A.phase === 'push' && A.hold && A.p0) { if (A.p0.y - p.y > 45 && Math.abs(p.x - A.p0.x) < A.p0.y - p.y) { A.hold = false; A.p0 = null; if (A.v < 0.6) tip(); } return; }
+        // (the drag plane at the sledge's bed: where the finger lets go over the sledge is on it, whatever the slope between)
+        const D = A.drag; if (!D) return; const g = onPlane(X, p.x, p.y, sled.position.y + 0.9); if (g) { D.tx = g.x; D.tz = g.z; }
+      },
       up() {
-        if (A.phase === 'push' && A.hold) { A.hold = false; const d = Math.hypot(sled.position.x - FILL.x, sled.position.z - FILL.z); if (d < 4) dump(); else if (Math.hypot(A.sx - A.s0.x, A.sz - A.s0.z) > dL - 4) dump(); return; }
+        if (A.phase === 'push') { A.hold = false; A.p0 = null; return; }
         const D = A.drag; if (!D) return; A.drag = null;
         const c = D.c, d = Math.hypot(D.tx - sled.position.x, D.tz - sled.position.z);
-        if (d < 2.6) load(c); else { c.position.copy(D.home); X.word({ x: c.position.x, y: c.position.y + 1, z: c.position.z }, 'חזר לערימה'); }
+        if (d < 3.0) load(c); else { c.position.copy(D.home); X.word({ x: c.position.x, y: c.position.y + 1, z: c.position.z }, 'חזר לערימה'); }
       },
-      end() { X.props.remove(sled); for (const h of oxen) try { an.remove(h); } catch (e) { /* */ } SH.crew.remove(drover); for (const w of levelers) SH.crew.remove(w); },
-      at() { return { x: FILL.x, y: X.ground(FILL.x, FILL.z) + 2, z: FILL.z }; },
-      dbg() { const sc = (o) => { const r = X.scr(o.x, o.y, o.z); return [Math.round(r.x), Math.round(r.y)]; }; return { phase: A.phase, on: A.on.length, cap, pile: chunks().length, trips: A.trips, dFill: +Math.hypot(sled.position.x - FILL.x, sled.position.z - FILL.z).toFixed(1), sled: sc(sled.position), chunks: chunks().map((c) => sc(c.position)), fill: sc({ x: FILL.x, y: X.ground(FILL.x, FILL.z), z: FILL.z }), ph: +SH.B.phase(2).toFixed(2) }; },
+      cancel() { A.hold = false; A.p0 = null; },
+      end() { X.props.remove(sled); X.props.remove(line); for (const h of oxen) try { an.remove(h); } catch (e) { /* */ } for (const w of rakers) SH.crew.remove(w); SH.crew.remove(drover); X.hand(null); },
+      at() { return { x: P.x, y: gP() + 2, z: P.z }; },
+      dbg() { const sc = (o) => { const r = X.scr(o.x, o.y, o.z); return [Math.round(r.x), Math.round(r.y)]; }; return { phase: A.phase, on: A.on.length, cap, pile: chunks().length, trips: A.trips, pit: pi, d: +A.d.toFixed(2), tgt: +Tgt.toFixed(2), v: +A.v.toFixed(2), tips: A.tips.slice(), sled: sc({ x: sled.position.x, y: sled.position.y + 0.8, z: sled.position.z }), chunks: chunks().map((c) => sc(c.position)), line: sc({ x: rimX, y: gP(), z: P.z }), ph: +SH.B.phase(2).toFixed(2) }; },
     };
   },
 };
@@ -711,10 +775,49 @@ export const WASTE = {
 export function initWorld2(X, sh) {
   SH = sh; SH.bigSt = {};
   const st = X.M.st;
-  pileSync(X); fillSync(X);
+  SH.cells = SH.cells || X.stages.cells; pileSync(X); pitSync(X, true); yardSync(X);
+  // ── h115 ── every big rock not yet read stands in its cell from the start (its place is the book's) ── /h115 ──
+  for (let s = 0; s < 9; s++) if (!st.done.includes('read' + s)) bigRock(X, s, false);
   for (let s = 0; s < 9; s++) if (st.done.includes('pave' + s)) layDone(X, s);
-    else if (st.done.includes('read' + s)) bigRock(X, s, true);   // ── h114 ── (read, not yet paved: its two halves lie as they parted) ── /h114 ──
+    // ── h115 ── (read: the halves were dressed into stones, the cell is cut level; nothing of the rock is left) ── /h115 ──
   void ease; void createGang;
 }
-export function frame2(dt, X, sh) { void dt; void X; void sh; }
-export { PILE, FILL, wasteAdd, pileSync };
+/* ── h115 ── the dressing of a split rock's halves (READ): two masons, the halves shrinking, the blocks stacking; then the cell is cut */
+function dressStart(X, s, n, lost) {
+  const R = SH.big && SH.big[s]; if (!R) return;
+  const C = SH.crew, b = SH.bould[s], T = X.THREE, gy = R.gy;
+  const men = []; for (let k = 0; k < 2; k++) { const a = hash(s, 4) * TAU + k * Math.PI, x = b[0] + Math.cos(a) * (b[2] + 1.6), z = b[1] + Math.sin(a) * (b[2] + 1.6); men.push(C.add(x, z, { role: 'hammer', item: 'mallet', fx: b[0], fz: b[1], off: k * 0.4, crew: 3 })); }
+  // the sledge beside the rock, on the side toward the yard (east), where the dressed blocks are stacked
+  const sx = b[0] + b[2] + 3.2, sz = b[1] + 1.5, sled = new T.Group(), blocks = [];
+  { const bed = new T.Mesh(new T.BoxGeometry(3.2, 0.25, 2.2), X.props.M.wood); bed.position.y = 0.4; sled.add(bed); }
+  sled.position.set(sx, X.ground(sx, sz), sz); X.props.root.add(sled);
+  for (let i = 0; i < n; i++) { const m = new T.Mesh(new T.BoxGeometry(1.4, 0.7, 0.9), X.props.M.stone); m.castShadow = true; m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
+  const y0 = R.group.position.y;
+  SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0 });
+}
+function dressFrame(dt, X) {
+  for (const D of SH.dress || []) {
+    D.t += dt; const k = Math.min(1, D.t / 3.2), b = SH.bould[D.s];
+    if (D.R) {
+      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k);
+      D.sparkT -= dt; if (D.sparkT <= 0 && k < 1) { D.sparkT = 0.35; X.sparks(b[0] + (Math.random() - 0.5) * b[2], D.gy + 1.2, b[1] + (Math.random() - 0.5) * b[2], 5); X.play('tool'); }
+      D.blocks.forEach((m, i) => { m.visible = k > (i + 1) / (D.n + 1); });
+      if (k >= 1) { D.R.dispose(); SH.big[D.s] = null; D.R = null; if (D.lost) wasteAdd(X, 2, null); else X.M.st.yard = (X.M.st.yard | 0) + D.n; yardSync(X); }
+    }
+    // the cell is cut level where the rock stood; the blocks are hauled off to the yard
+    if (D.t > 3.6 && !D.cut) { D.cut = true; const K = BOOK.kohen[D.s]; try { SH.cells.set(K.k, K.r, 'cut', { dur: 9 }); } catch (e) { /* */ } }
+    if (D.t > 7 && !D.gone) { D.gone = true; X.props.remove(D.sled); for (const w of D.men) SH.crew.remove(w); }
+  }
+  if (SH.dress) SH.dress = SH.dress.filter((D) => !D.gone);
+}
+/** the stone yard by the east wall (BOOK.yard): the dressed building stones waiting for the wall, in rows of ten */
+function yardSync(X) {
+  const n = Math.min(60, X.M.st.yard | 0), Y = BOOK.yard; SH.yardM = SH.yardM || [];
+  while (SH.yardM.length > n) X.props.remove(SH.yardM.pop());
+  while (SH.yardM.length < n) {
+    const i = SH.yardM.length, row = Math.floor(i / 10) % 3, lay = Math.floor(i / 30), x = Y.x - 7 + (i % 10) * 1.6, z = Y.z - 2 + row * 1.2;
+    const m = new X.THREE.Mesh(new X.THREE.BoxGeometry(1.4, 0.7, 0.9), X.props.M.stone); m.position.set(x, X.ground(x, z) + 0.35 + lay * 0.72, z); m.castShadow = true; X.props.root.add(m); SH.yardM.push(m);
+  }
+}
+export function frame2(dt, X, sh) { void sh; dressFrame(dt, X); }
+export { PILE, wasteAdd, pileSync };

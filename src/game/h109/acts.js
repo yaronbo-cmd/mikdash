@@ -7,6 +7,7 @@
  * acts3.js (3.5 corner, 3.6 course, 3.7 great stone, 3.8 the inscription).
  */
 import { H109 } from './model.js';
+import { BOOK, ROCK_CELLS, rectOf } from '../world/grid.js';
 import { createBeat, createGang, onPlane, clamp, lerp, ease } from './kit.js';
 import { READ, PAVE, WASTE, initWorld2, frame2 } from './acts2.js';
 import { CORNER, COURSE, GREAT, LETTERS, initWorld3, frame3 } from './acts3.js';
@@ -17,9 +18,6 @@ export const SH = { X: null, B: null, crew: null, bould: [], rocks: [], stakes: 
 
 /* ───────── the world as the save has it ───────── */
 // the 500-amah square (mount.js SQUARE), inset 6 amot: the surveyors' line
-// the east working bay (stages.js harBay: x from PLAT.X1 − 46, 8 more where the terrain gives way): the old crews dig it down to the
-// fill as the retaining wall rises, so nothing of the kohen's is set there
-const BAY_X = 277 - 46 - 10;
 const SQ = { x0: -223 + 6, x1: 277 - 6, z0: -183.5 + 6, z1: 316.5 - 6 };
 // the two sides the kohen stretches (the last rope-length of each, to the north-east corner): from the crew's 450 stake to 500
 const ROPE = [
@@ -28,51 +26,45 @@ const ROPE = [
 ];
 function hash(a, b) { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); }
 
-/** the five small rocks round sector s's big rock (deterministic): the places with most room round it, each with a stand that is
- *  clear (the kohen at the pick's reach on the side with room), five amot apart at least */
-function sectorRocks(s) {
-  const B = SH.bould, b = B[s]; if (!b) return [];
-  const room = (x, z, skip) => { let d = 60; for (let j = 0; j < B.length; j++) { if (j === skip) continue; const o = B[j]; d = Math.min(d, Math.hypot(x - o[0], z - o[1]) - o[2]); } return d; };
-  // (a crowded sector — the bay to the east — looks again a little closer in, so every sector has its five)
-  for (const tight of [0, 1]) {
-  const C = [];
-  for (let k = 0; k < 28; k++) for (let ri = 0; ri < (tight ? 10 : 7); ri++) {
-    const a = (k / 28) * TAU + s * 0.37, d = b[2] + 3.6 + ri * 1.6, x = b[0] + Math.cos(a) * d, z = b[1] + Math.sin(a) * d, r = 1.7 + hash(s * 3 + k, ri) * 0.45;
-    // (inside the platform, clear of its edge trench: by the edge the hill's slope stands over the ground he walks on)
-    const edge = Math.min(x - SQ.x0, SQ.x1 - x, z - SQ.z0, SQ.z1 - z); if (edge < r + 9 || x > BAY_X - r) continue;
-    const clr = Math.min(room(x, z, -1), d - b[2]); if (clr < r + (tight ? 0.6 : 1.2)) continue;
-    // the stand: of 8 sides, the one with most room
-    let best = null, bc = -1; for (let q = 0; q < 8; q++) { const qa = (q / 8) * TAU, sx = x + Math.cos(qa) * (r * 0.75 + 3.4), sz = z + Math.sin(qa) * (r * 0.75 + 3.4), c = room(sx, sz, -1); if (c > bc) { bc = c; best = { qa, sx, sz }; } }
-    if (bc < (tight ? 1.0 : 1.6) || best.sx > BAY_X || Math.min(best.sx - SQ.x0, SQ.x1 - best.sx, best.sz - SQ.z0, SQ.z1 - best.sz) < 6) continue;
-    C.push({ x, z, r, ux: Math.cos(best.qa), uz: Math.sin(best.qa), sx: best.sx, sz: best.sz, score: clr + bc * 0.5 - ri * 0.35 });
-  }
-  C.sort((p, q) => q.score - p.score);
-  const out = [];
-  for (const c of C) {
-    if (out.length >= H109.ROCKS) break;
-    if (out.some((o) => Math.hypot(o.x - c.x, o.z - c.z) < (tight ? 4.4 : 5) || Math.hypot(o.sx - c.x, o.sz - c.z) < c.r + 2 || Math.hypot(c.sx - o.x, c.sz - o.z) < o.r + 2)) continue;
-    out.push({ ...c, i: out.length, s, q: null });
-  }
-  if (out.length < H109.ROCKS && !tight) continue;
-  // walk order: round the big rock
-  out.sort((p, q) => Math.atan2(p.z - b[1], p.x - b[0]) - Math.atan2(q.z - b[1], q.x - b[0])); out.forEach((o, i) => { o.i = i; });
-  return out;
-  }
-  return [];
-}
 function rockTarget(R, X) { const g = X.ground(R.x, R.z); return { x: R.x + R.ux * R.r * 0.72, y: g + R.r * 0.45, z: R.z + R.uz * R.r * 0.72 }; }
 
+/* ── h115 ── the Mount by its addresses (docs/specs/build115-brief.md): the kohen's nine cells (BOOK.kohen) with their big rock and
+ * five small rocks each, the crews' cells (every other rock cell of the square) cut from the east inward as the work goes on, the cut
+ * cells paved behind them. The grid itself is never drawn (ירון 10.11: "בתוך המשחקים אני בתוך העולם שלי. אין רשתות"). ── /h115 ── */
+const KC = BOOK.kohen;
+/** the crews' cells in their order: the east columns first, each column from the north; a cell in the kohen's rows (6..8) west of
+ *  his cells waits until his cell of that row is read */
+const CREW_CELLS = ROCK_CELLS.filter(([k, r]) => !KC.some((c) => c.k === k && c.r === r)).map(([k, r, h]) => ({ k, r, h, need: k > 13 && r >= 5 && r <= 7 ? 'read' + (6 + r - 5) : null })).sort((a, b) => a.k - b.k || a.r - b.r);
+/** how many crew cells stand cut for a save: a start (the lowest east cells), then with every work he finishes; the stage's end: all */
+function crewTarget(st, PLAN_N) {
+  const n = st.done.length, f = Math.min(1, n / Math.max(1, PLAN_N));
+  return Math.min(CREW_CELLS.length, 6 + Math.floor((CREW_CELLS.length - 6) * f) + (st.crewX | 0));
+}
+function crewCells(X, instant) {
+  const st = X.M.st, cells = X.stages.cells, done = (id) => st.done.includes(id);
+  const want = crewTarget(st, (X.M.plan || []).length || 30);
+  let cut = 0, next = null;
+  for (const c of CREW_CELLS) {
+    if (c.need && !done(c.need)) continue;
+    const s0 = cells.state(c.k, c.r);
+    if (cut < want) { cut++; if (s0 === 'rock') { if (instant) cells.set(c.k, c.r, 'paved', { instant: true }); else if (!next) next = c; } }
+  }
+  return next;
+}
 function initWorld(X) {
   SH.X = X; SH.B = createBeat(X); SH.crew = createGang(X);
-  try { SH.bould = X.stages.boulderSpots(); } catch (e) { SH.bould = []; }
   const st = X.M.st, done = (id) => st.done.includes(id);
-  // the big rocks: the sector's own until it is read; the crews' (9..11) go as the sectors before them are paved
-  const bs = []; for (let i = 0; i < 12; i++) bs.push(i < 9 ? (done('read' + i) ? 0 : 3) : (done('pave' + [2, 5, 8][i - 9]) ? 0 : 3));
-  try { X.stages.setBoulders(bs); } catch (e) { /* */ }
-  // the small rocks of every sector not yet struck
+  const cells = X.stages.cells; SH.cells = cells;
+  try { cells.enable(true); } catch (e) { /* */ }
+  SH.bould = KC.map((C) => [C.big.x, C.big.z, C.big.r]);
+  SH.cellC = KC.map((C) => [C.rect.cx, C.rect.cz]);
+  // the kohen's cells as the save has them: read → cut level, paved → paved
+  KC.forEach((C, s) => { if (done('pave' + s)) cells.set(C.k, C.r, 'paved', { instant: true }); else if (done('read' + s)) cells.set(C.k, C.r, 'cut', { instant: true }); });
+  crewCells(X, true);
+  // the small rocks of every cell not yet struck (their places are the book's)
   SH.rocks = [];
   for (let s = 0; s < 9; s++) {
-    const L = sectorRocks(s); SH.rocks[s] = L;
+    const L = KC[s].small.map((o) => ({ x: o.x, z: o.z, r: o.r, ux: o.ux, uz: o.uz, sx: o.sx, sz: o.sz, i: o.i, s, q: null })); SH.rocks[s] = L;
     if (done('rocks' + s)) continue;
     for (const R of L) { if ((st.rocks[s][R.i] | 0) >= 0) continue; R.q = X.props.rockAdd(R.x, R.z, R.r, { hp: 2, sector: s, sy: 0.8 + hash(R.x, R.z) * 0.15 }); }
   }
@@ -83,10 +75,10 @@ function initWorld(X) {
   edge(SQ.x0, SQ.z0, SQ.x1, SQ.z0); edge(SQ.x1, SQ.z1, SQ.x1, SQ.z0 + 50); edge(SQ.x0, SQ.z1, SQ.x1, SQ.z1); edge(SQ.x0, SQ.z0, SQ.x0, SQ.z1);
   // the gold plan of the square on the hill (spec 3.1: "תוכנית הזהב פרושה על הגבעה"): faint, bright when the rope closes
   SH.sq = planLine(X); SH.sq.material.opacity = ropeDone ? 0.32 : 0.55;
-  // the world's crews at work from the first second: the surveyors on the far side, the crews breaking their own big rocks
+  // the world's crews at work from the first second: the surveyors on the far side; the cutters at their next cell (ACTS.__frame)
   const C = SH.crew;
   if (!ropeDone) { C.add(SQ.x0 + 4, SQ.z1 - 120, { role: 'pull', fx: SQ.x0 + 4, fz: SQ.z1 - 170, item: 'rope' }); C.add(SQ.x0 + 4, SQ.z1 - 172, { role: 'kneel', fx: SQ.x0 + 4, fz: SQ.z1 - 120 }); }
-  for (let i = 9; i < 12; i++) { const b = SH.bould[i]; if (!b || bs[i] <= 0) continue; for (let k = 0; k < 2; k++) { const a = k * 2.4 + i, x = b[0] + Math.cos(a) * (b[2] + 2.2), z = b[1] + Math.sin(a) * (b[2] + 2.2); C.add(x, z, { role: 'pick', item: 'pick', fx: b[0], fz: b[1], off: k * 0.5, crew: i }); } }
+  SH.cutGang = []; SH.cutAt = null; SH.cutT = 0;
   initWorld2(X, SH); initWorld3(X, SH);
   // ── h114 ── (ירון 9.11: "הדמות רצה לתוך סלע") the small rocks and a split rock's halves are solid to his walk: a step into one
   // (nearer its middle than the step before) is refused, a step out always allowed ── /h114 ──
@@ -270,8 +262,8 @@ const ROCKS_ACT = {
     const b = SH.bould[m.s]; if (!b) return; const C = SH.crew;
     SH.secCrew = SH.secCrew || []; for (const w of SH.secCrew) C.remove(w); SH.secCrew = [];
     for (let k = 0; k < 2; k++) { const a = Math.PI + k * 0.9 + m.s, x = b[0] + Math.cos(a) * (b[2] + 2.1), z = b[1] + Math.sin(a) * (b[2] + 2.1); SH.secCrew.push(C.add(x, z, { role: 'pick', item: 'pick', fx: b[0], fz: b[1], off: 0, crew: 0 })); }
-    const cx = b[0] + 16, cz = b[1] + 4;
-    for (let k = 0; k < 2; k++) SH.secCrew.push(C.add(b[0] + 9, b[1] + k * 3, { role: 'carry', from: [b[0] + 8, b[1] + k * 3], to: [cx, cz + k * 2], item: 'stone', crew: 2 }));
+    // (the carriers take the chips to the waste pile on the slope east of the cells: BOOK.pile)
+    for (let k = 0; k < 2; k++) SH.secCrew.push(C.add(b[0] + 8, b[1] + k * 3, { role: 'carry', from: [b[0] + 8, b[1] + k * 3], to: [BOOK.pile.x - 3, BOOK.pile.z + k * 2], item: 'stone', crew: 2 }));
   },
   make(m, X) {
     const lv = X.level(), k = lv >= 3 ? 1 : 2, win = H109.GOLD[lv - 1], replay = (X.M.st.plays[m.id] | 0) > 0;
@@ -370,6 +362,30 @@ const ROCKS_ACT = {
   },
 };
 
+/** ── h115 ── the crews' cutting: one cell at a time, the gang at it with picks, its benches coming down (stages.cells), paved some
+ *  seconds after it is level; a little more of the Mount every two and a half minutes as well (st.crewX, up to 8 past the works) */
+function crewFrame(dt, X) {
+  const cells = SH.cells; if (!cells || !cells.on) return;
+  const st = X.M.st;
+  SH.crewClock = (SH.crewClock || 0) + dt;
+  if (SH.crewClock > 150 && (st.crewX | 0) < 8) { SH.crewClock = 0; st.crewX = (st.crewX | 0) + 1; }
+  SH.cutT -= dt;
+  const A = SH.cutAt;
+  if (A) {
+    if (!cells.cutting(A.k, A.r)) { A.wait = (A.wait || 0) + dt; if (A.wait > 8) { cells.set(A.k, A.r, 'paved'); SH.cutAt = null; SH.cutT = 3; } }
+    return;
+  }
+  if (SH.cutT > 0) return;
+  const c = crewCells(X, false);
+  for (const w of SH.cutGang) SH.crew.remove(w); SH.cutGang = [];
+  if (!c) { SH.cutT = 5; return; }
+  // the gang on the cell's low edge (east), facing into it
+  const R = rectOf(c.k, c.r);
+  for (let j = 0; j < 3; j++) { const x = R.x1 - 2.5, z = R.z0 + 6 + j * 6.5; SH.cutGang.push(SH.crew.add(x, z, { role: 'pick', item: 'pick', fx: R.cx, fz: z, off: j * 0.33, crew: 0 })); }
+  cells.set(c.k, c.r, 'cut', { dur: 16 });
+  SH.cutAt = { k: c.k, r: c.r, wait: 0 };
+}
+
 export const ACTS = {
   rope: ROPE_ACT, rocks: ROCKS_ACT, read: READ, pave: PAVE, waste: WASTE, corner: CORNER, course: COURSE, great: GREAT, letters: LETTERS,
   __init: initWorld,
@@ -379,7 +395,9 @@ export const ACTS = {
     // the ground moves under the small rocks as the Mount comes down and the fill rises: they sit on it as it is now
     SH.regT = (SH.regT || 0) + dt;
     if (SH.regT > 1.2 && SH.rocks) { SH.regT = 0; for (const L of SH.rocks) for (const R of L || []) if (R.q) { const g = X.ground(R.x, R.z); if (Math.abs(g - R.q.y) > 0.05) { R.q.y = g; X.props.rockSet(R.q); } } }
-    SH.B.step(dt); if (SH.crew) SH.crew.update(dt, SH.B); frame2(dt, X, SH); frame3(dt, X, SH); },
+    SH.B.step(dt); if (SH.crew) SH.crew.update(dt, SH.B); frame2(dt, X, SH); frame3(dt, X, SH);
+    crewFrame(dt, X);
+  },
 };
-export { SQ, ROPE, sectorRocks, rockTarget };
+export { SQ, ROPE, rockTarget, CREW_CELLS, crewTarget };
 void onPlane; void ease;

@@ -15,25 +15,30 @@ const doId = (M, id, res = { stars: 3, q: 1 }) => { assert.ok(M.pick(id), 'open:
 test('levels follow how many of a kind are finished, and rise on a replay', () => {
   const M = createH109(); doId(M, 'rope');
   const rk = (s) => PLAN.find((m) => m.id === 'rocks' + s);
-  assert.equal(M.levelOf(rk(7)), 1);
-  for (const s of [7, 2, 5]) doId(M, 'rocks' + s);
-  assert.equal(M.levelOf(rk(0)), 2);
-  for (const s of [0, 1, 3]) doId(M, 'rocks' + s);
-  assert.equal(M.levelOf(rk(8)), 3);
+  assert.equal(M.levelOf(rk(2)), 1);
+  for (const s of [2, 0, 1]) doId(M, 'rocks' + s);
+  // (build 115: a cell west of the east column opens when the cell east of it is read)
+  for (const s of [0, 1, 2]) doId(M, 'read' + s);
+  assert.equal(M.levelOf(rk(3)), 2);
+  for (const s of [3, 4, 5]) doId(M, 'rocks' + s);
+  assert.equal(M.levelOf(rk(5)), 3);
 });
 test('free choice: only the building\'s own order binds', () => {
   const M = createH109();
   assert.deepEqual(M.open().map((m) => m.id), ['rope']);
   doId(M, 'rope');
   const open = M.open().map((m) => m.id);
-  for (let s = 0; s < 9; s++) assert.ok(open.includes('rocks' + s));
+  // the rock is cut from its low east edge inward: the east column's three cells open first, the next column after each is read
+  for (let s = 0; s < 9; s++) assert.equal(open.includes('rocks' + s), s < 3, 'rocks' + s);
   assert.ok(open.includes('corner')); assert.ok(!open.includes('course0')); assert.ok(!open.includes('read0'));
   assert.equal(M.pick('course0'), null);
+  doId(M, 'rocks1'); doId(M, 'read1'); assert.ok(M.open().some((m) => m.id === 'rocks4')); assert.ok(!M.open().some((m) => m.id === 'rocks3'));
   doId(M, 'corner'); doId(M, 'course0'); doId(M, 'course1');
   assert.ok(!M.wallsDone()); doId(M, 'great'); assert.ok(M.wallsDone());
   // the inscription goes on the corner's top: only once every sector is levelled and paved
   assert.ok(!M.open().some((m) => m.id === 'letters'));
-  for (let s = 0; s < 9; s++) for (const k of ['rocks', 'read', 'pave']) doId(M, k + s);
+  doId(M, 'pave1');
+  for (let s = 0; s < 9; s++) for (const k of ['rocks', 'read', 'pave']) if (!M.st.done.includes(k + s)) doId(M, k + s);
   assert.ok(M.open().some((m) => m.id === 'letters'));
 });
 test('grades: the gold window narrows with the level', () => {

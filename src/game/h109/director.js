@@ -84,7 +84,15 @@ export function createH109Director(o) {
     if (!CAM.on) return;
     if (CAM.chase && CAM.u >= 1) { const k = 1 - Math.exp(-dt * CAM.chase); CAM.p.lerp(CAM.p1, k); CAM.t.lerp(CAM.t1, k); }   // ── h114 ── ── /h114 ──
     else { CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u); CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k); }
-    view.camSet(CAM.p.x, CAM.p.y, CAM.p.z, CAM.t.x, CAM.t.y, CAM.t.z);
+    // ── h115 ── the right thumb's look (rule 61): the act's shot turned round its aim and lifted toward the horizon ── /h115 ──
+    let lx = CAM.p.x, ly = CAM.p.y, lz = CAM.p.z;
+    if (LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3) {
+      const vx = lx - CAM.t.x, vy = ly - CAM.t.y, vz = lz - CAM.t.z, h0 = Math.hypot(vx, vz) || 1, d0 = Math.hypot(h0, vy);
+      const c = Math.cos(LOOK.yaw), s = Math.sin(LOOK.yaw), hx = (vx * c - vz * s) / h0, hz = (vx * s + vz * c) / h0;
+      const el0 = Math.atan2(vy, h0), el = el0 + (0.2 - el0) * LOOK.u, d = d0 * (1 + 3.2 * LOOK.u) + 40 * LOOK.u;
+      lx = CAM.t.x + hx * d * Math.cos(el); ly = CAM.t.y + d * Math.sin(el); lz = CAM.t.z + hz * d * Math.cos(el);
+    }
+    view.camSet(lx, ly, lz, CAM.t.x, CAM.t.y, CAM.t.z);
     // ── h112 ── (before each render OrbitControls keeps the camera its minDistance from the target and main.js clampCam lifts it to the
     // Mount's floor: the same here, or a touch's ray and project() would be of another camera than the frame shown) ── /h112 ──
     try {
@@ -94,6 +102,30 @@ export function createH109Director(o) {
     } catch (e) { /* */ }
     try { camera.lookAt(CAM.t); camera.updateMatrixWorld(); } catch (e) { /* the controls turn it at the render */ }   // (the touch's ray and project() agree in this frame)
   }
+
+  /* ───────── ── h115 ── the right thumb (spec stage 01 §camera, rule 61; ירון 10.11: "אגודל ימין ... גם בתוך הזום-אין"): during an
+     act, a drag that starts on the right side of the screen away from the work, or any drag with the right mouse button, turns the
+     camera round the work and lifts it toward the horizon: he sees where he is in the world. Let go and the camera eases back to the
+     work by itself; the act waits while he looks (nothing is lost). No grid is drawn (ירון 10.11: "אין רשתות"). ── ───────── */
+  const LOOK = { id: null, drag: false, x0: 0, y0: 0, yaw: 0, u: 0, yaw0: 0, u0: 0, rest: 0, seen: false };
+  function lookWanted(e) {
+    if (e.pointerType === 'mouse') return e.button === 2;
+    if (e.clientX < innerWidth * 0.8) return false;
+    // (the act's own word first: a work that is touched on the right side says so; else the work's own place and what is drawn for it)
+    if (act && typeof act.wants === 'function') { const w = call(act.wants, { x: e.clientX, y: e.clientY }); if (w != null) return !w; }
+    try { const at = act && act.at ? act.at() : null; if (at) { const q = scr(at.x, at.y, at.z); if (q.on && Math.hypot(q.x - e.clientX, q.y - e.clientY) < innerWidth * 0.2) return false; } } catch (e2) { /* */ }
+    if (HINT.on) { const q = scr(HINT.x, HINT.y, HINT.z); if (Math.hypot(q.x - e.clientX, q.y - e.clientY) < 120) return false; }
+    try { if (PROPS && rayAt(e.clientX, e.clientY).intersectObject(PROPS.root, true).some((h) => h.object.isMesh && h.object.visible)) return false; } catch (e2) { /* */ }
+    return true;
+  }
+  function lookFrame(dt) {
+    if (LOOK.drag) return;
+    if (LOOK.rest > 0) { LOOK.rest -= dt; return; }
+    const k = 1 - Math.exp(-dt * 2.2); LOOK.yaw -= LOOK.yaw * k; LOOK.u -= LOOK.u * k;
+    if (Math.abs(LOOK.yaw) < 1e-3 && LOOK.u < 1e-3) { LOOK.yaw = 0; LOOK.u = 0; }
+  }
+  addEventListener('contextmenu', (e) => { if (act && phase === 'act') e.preventDefault(); }, { capture: true });
+  // ── /h115 ──
 
   /* ───────── the touch on the world (during an act only) ───────── */
   const canvas = () => document.getElementById('c') || document.querySelector('canvas');
@@ -172,10 +204,22 @@ export function createH109Director(o) {
     if ((e.type === 'pointerup' || e.type === 'pointercancel') && ptr.down && e.pointerId === ptr.id && (!act || phase !== 'act')) { ptr.down = false; return; }
     if (!act || phase !== 'act') return;
     const c = canvas();
+    // ── h115 ── the right thumb's look ── /h115 ──
+    if (LOOK.id != null && e.pointerId === LOOK.id) {
+      e.stopImmediatePropagation(); e.preventDefault();
+      if (e.type === 'pointermove') { LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -2.6, 2.6); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * 1.8, 0, 1); }
+      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; LOOK.rest = 1.2; emit('h109look', { on: false }); }
+      return;
+    }
     if (e.type === 'pointerdown') {
       log('ptr', e.target && (e.target.id || e.target.className || e.target.tagName), Math.round(e.clientX), Math.round(e.clientY), ptr.down ? 'busy' : '');
       if (hudEl(e.target)) return;
       if (e.target !== c && !(e.target && e.target.classList && e.target.classList.contains('h109-touch'))) return;
+      if (!ptr.down && LOOK.id == null && !ending && lookWanted(e)) {
+        LOOK.id = e.pointerId; LOOK.drag = true; LOOK.x0 = e.clientX; LOOK.y0 = e.clientY; LOOK.yaw0 = LOOK.yaw; LOOK.u0 = LOOK.u;
+        e.stopImmediatePropagation(); e.preventDefault(); log('look'); emit('h109look', { on: true }); return;
+      }
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (ptr.down) return;
       ptr.id = e.pointerId; ptr.down = true; ptr.x = ptr.x0 = e.clientX; ptr.y = ptr.y0 = e.clientY; ptr.t0 = performance.now();
       e.stopImmediatePropagation(); e.preventDefault();
@@ -233,6 +277,17 @@ export function createH109Director(o) {
 .h109-ovt{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.72);color:#FFF6DA;font:800 14px/1.2 Heebo,system-ui;padding:6px 14px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
 .h109-ovb.on ~ .h109-ovt{opacity:1}
 body.h109-act .gm .tw-zone{opacity:0!important}
+.h109-pf{left:0;top:0;right:0;bottom:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;overflow:hidden;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 46%,rgba(255,236,160,.96) 0,rgba(255,196,64,.9) 26%,rgba(178,96,8,.88) 62%,rgba(58,28,2,.93) 100%)}
+.h109-pf.on{opacity:1}
+.h109-pf .r{position:absolute;left:50%;top:46%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(rgba(255,250,220,.34) 0 7deg,transparent 7deg 18deg);animation:h109spin 9s linear infinite}
+@keyframes h109spin{to{transform:rotate(360deg)}}
+.h109-pf b{position:relative;font:900 min(22vmin,150px)/1 Heebo,system-ui;color:#FFFBEA;text-shadow:0 0 6px #7A4A00,0 0 2px #7A4A00,0 8px 30px rgba(90,40,0,.7);transform:scale(.3);animation:h109pop .7s cubic-bezier(.2,1.6,.35,1) forwards}
+.h109-pf i{position:relative;font:normal min(11vmin,72px)/1 system-ui;letter-spacing:.12em;color:#FFE27A;text-shadow:0 0 14px #FFF2B0,0 4px 10px rgba(80,30,0,.6);opacity:0;animation:h109pop .6s .35s cubic-bezier(.2,1.6,.35,1) forwards}
+.h109-pf span{position:relative;font:800 min(5vmin,28px)/1.3 Heebo,system-ui;color:#3A2002;background:rgba(255,248,224,.86);padding:6px 18px;border-radius:16px;opacity:0;animation:h109fade .4s .6s forwards}
+.h109-pf u{position:absolute;left:50%;top:46%;width:12px;height:12px;border-radius:50%;background:#FFF6C8;box-shadow:0 0 10px #FFE070;text-decoration:none;animation:h109fly 1.5s ease-out forwards}
+@keyframes h109pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes h109fade{to{opacity:1}}
+@keyframes h109fly{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2);opacity:0}}
 `;
     document.head.appendChild(st);
     const mk = (cls, html = '') => { const e = document.createElement('div'); e.className = 'h109-ui ' + cls; e.innerHTML = html; document.body.appendChild(e); return e; };
@@ -293,6 +348,25 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   /** a result in the world without points (a miss, a chip): the dust and a word, never red */
   function word(at, text) { const J = o.juice && o.juice(); if (J) J.hit('craft', { at, text, perfect: false, grade: 'soft', quality: 0.4, pts: 0 }); }
   function bonus(n, why, label) { try { if (o.bonus) o.bonus(n, why, label); } catch (e) { /* */ } }
+
+  /** ── h115 ── (ירון 10.11: "משחקון ששוחק מושלם שיקפוץ לו פידבק דופמין ממלא מסך כזה ... בכל משחקון") the whole screen golden: the
+   *  word, three stars, what was perfect; fanfare and buzz; a tap or 2.8 s closes it. Its rule is the act's own perfect flag (else
+   *  three stars with every grade gold, q of 1) ── /h115 ── */
+  function perfectScreen(sub) {
+    return new Promise((res) => {
+      uiMount();
+      const el = document.createElement('div'); el.className = 'h109-ui h109-pf';
+      let dots = ''; for (let i = 0; i < 30; i++) { const a = (i / 30) * Math.PI * 2 + Math.random() * 0.2, r = 30 + Math.random() * 40; dots += `<u style="--dx:${(Math.cos(a) * r).toFixed(1)}vmax;--dy:${(Math.sin(a) * r).toFixed(1)}vmax;animation-delay:${(Math.random() * 0.4).toFixed(2)}s"></u>`; }
+      el.innerHTML = `<div class="r"></div>${dots}<b>מושלם!</b><i>★★★</i>${sub ? `<span>${sub}</span>` : ''}`;
+      document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+      try { if (o.sfx && o.sfx.play) o.sfx.play(typeof o.sfx.has === 'function' && o.sfx.has('levelUp') ? 'levelUp' : 'fanfare', { level: 5 }); } catch (e) { /* */ }
+      try { if (o.haptic) o.haptic([30, 50, 30, 50, 80]); } catch (e) { /* */ }
+      let done = false; const close = () => { if (done) return; done = true; el.classList.remove('on'); setTimeout(() => el.remove(), 300); res(); };
+      el.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (performance.now() - t0 > 700) close(); });
+      const t0 = performance.now(); setTimeout(close, 2800);
+      emit('h109perfectScreen', { sub }); log('perfect screen', sub);
+    });
+  }
 
   /* ───────── the mission marker: a tall stake with a red cloth on the hill (the old markers and the compass point to it) ───────── */
   let PROPS = null;
@@ -402,7 +476,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false; try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
 
   /* ───────── the act ───────── */
-  const WAITS = [];
+  const WAITS = [], KOH = { off: false };
   const X = {
     THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, track, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
     get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, get acting() { return phase === 'act'; }, ui, sfx: o.sfx, haptic: o.haptic,
@@ -413,6 +487,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     dust(x, y, z, n = 10, s = 4) { try { S0.dustBurst(x, y, z, n, s, s, 1.5); } catch (e) { /* */ } },
     sparks(x, y, z, n = 10) { try { S0.sparkBurst(x, y, z, n, 5, 6); } catch (e) { /* */ } },
     end: (res) => endAct(res),
+    // ── h115 ── (ירון 10.11: the figure out where it has no work, the brief's figure rule) the kohen hidden for this act; back at its end ── /h115 ──
+    kohen(v) { KOH.off = !v; try { S0.hero.show(!!v); } catch (e) { /* */ } },
     // ── h114 ── (ירון 9.11: an exact stop "צריך להיות תגובה מרגשת כמו 'הסתת רמה 4' — זה דופמין מדויק") the perfect moment: the level-up's
     // own stamp, fanfare and buzz, a fountain of sparks where it happened and a short shake ── /h114 ──
     perfect(text, at) {
@@ -479,9 +555,13 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // the result in the world first (the act's own last beat), then the stars and the work's end points (the old JOB_END)
     const J = o.juice && o.juice();
     const at = res.at || (a.at ? a.at() : null);
+    // ── h115 ── the perfect game fills the screen first ── /h115 ──
+    const perfect = stars >= 3 && !res.lost && (res.perfect != null ? !!res.perfect : (res.q || 0) >= 0.999);
+    if (perfect) { const A0 = ACTS[m.k]; try { await perfectScreen(((A0 && A0.title) || 'המשחקון') + ' · בלי טעות אחת'); } catch (e) { /* */ } }
     if (J && stars > 0) { try { await J.result({ stars, at }); } catch (e) { /* */ } }
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res);
+    if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ──
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
     M.done({ ...res, stars });
@@ -570,6 +650,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
     if (phase === 'act' && act && !OV.on) { act.t += dt; call(act.update, dt); try { if (S0.shadowSoon) S0.shadowSoon(); } catch (e) { /* */ } }   // ── h114 ── (the shadows follow what the act moves; the act waits while he looks from above) ── /h114 ──
     if (OV.on) ovFrame();
+    if (phase !== 'act' || OV.on) { LOOK.id = null; LOOK.drag = false; LOOK.yaw = 0; LOOK.u = 0; } else lookFrame(dt);   // ── h115 ── ── /h115 ──
     if (phase === 'film' && film) { film.t += dt; if (film.t >= film.dur) { const r = film.res; film = null; CAM.on = false; r(); } }
     if (phase === 'end' || phase === 'film' || phase === 'act') camStep(dt);
     if (phase === 'walk' && !mission && FREE()) freeWalk(dt);   // ── h114 ── ── /h114 ──

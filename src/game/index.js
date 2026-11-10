@@ -861,6 +861,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
      Key stones, payments and boards live on the pill (the coach's hand points there). → 'hero' | 'har' | {boulder} | null */
   function markTarget() {
     if (!started || opening || whole || momentBusy || overlay) return null;
+    if (h9Own()) return null;   // ── h115 ── (the old flow's ring and gold arrow pointed at the hidden banker during the director's acts: the director's own markers lead) ── /h115 ──
     // ── flow11 ── every later stage too: the ring under his banker while a stone (an event, a reset) waits for him there
     if (S.isDone(G, 'har')) {
       const id = curWork(), s = id && G.st[id], j = s && !s.ready && S.jobOf(G, id);

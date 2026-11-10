@@ -59,6 +59,17 @@ const WALL_E = 277, WALL_S = 400;   // (the two faces) ── /h115 ──
 // real corner of the Mount's wall, its earth heaped beside it, and the stone's own outline chalked on its floor; the stone sits a
 // little sunk in it for good (PIT) and the courses go on from it ── /h114 ──
 const CW = 2.4, CDp = 2.0, PIT = 1.2;
+/** ── h115 ── a green arrow on the ground from where a stone came down to where it should (rule: the placement target always shown; a
+ *  miss shows the way): it fades after 3.2 s ── /h115 ── */
+function greenArrow(X, P, Q, y) {
+  const T = X.THREE, dx = Q.x - P.x, dz = Q.z - P.z, L = Math.hypot(dx, dz); if (L < 0.05) return null;
+  const g = new T.Group(), gm = new T.MeshBasicMaterial({ color: '#4CE07A', transparent: true, opacity: 0.95, depthWrite: false, depthTest: false });
+  const len = Math.max(0.8, L - 0.6), shaft = new T.Mesh(new T.PlaneGeometry(0.22, len), gm); shaft.rotation.x = -Math.PI / 2; shaft.position.z = -len / 2; g.add(shaft);
+  const hd = new T.Shape(); hd.moveTo(0, -0.7); hd.lineTo(0.45, 0); hd.lineTo(-0.45, 0); hd.closePath(); const head = new T.Mesh(new T.ShapeGeometry(hd), gm); head.rotation.x = -Math.PI / 2; head.position.z = -len; g.add(head);
+  g.position.set(P.x, y, P.z); g.rotation.y = Math.atan2(-dx, -dz); g.renderOrder = 997; X.props.root.add(g);
+  setTimeout(() => { try { X.props.remove(g); } catch (e) { /* */ } }, 3200);
+  return g;
+}
 function cornerPit(X, chalk) {
   // ── h115 ── the foundation trench of BOTH walls, L-shaped at the corner (a corner is seen as a corner: ירון 10.11 "שיבינו שהיא האבן
   // הנמוכה ביותר בפינה הזו"), its dug earth heaped on the platform's side; a green rectangle on its floor where the stone must sit,
@@ -201,15 +212,7 @@ export const CORNER = {
     }
     // after a miss: a green arrow on the trench's floor from where it came down toward the rectangle
     let arrow = null;
-    function arrowTo(P) {
-      if (arrow) X.props.remove(arrow);
-      const dx = CORNER_AT.x - P.x, dz = CORNER_AT.z - P.z, L = Math.hypot(dx, dz); if (L < 0.05) return;
-      const g = new T.Group(), gm = new T.MeshBasicMaterial({ color: '#4CE07A', transparent: true, opacity: 0.95, depthWrite: false });
-      const len = Math.max(0.8, L - 0.6), shaft = new T.Mesh(new T.PlaneGeometry(0.22, len), gm); shaft.rotation.x = -Math.PI / 2; shaft.position.z = -len / 2; g.add(shaft);
-      const hd = new T.Shape(); hd.moveTo(0, -0.7); hd.lineTo(0.45, 0); hd.lineTo(-0.45, 0); hd.closePath(); const head = new T.Mesh(new T.ShapeGeometry(hd), gm); head.rotation.x = -Math.PI / 2; head.position.z = -len; g.add(head);
-      g.position.set(P.x, floorY + 0.12, P.z); g.rotation.y = Math.atan2(-dx, -dz); g.renderOrder = 997; X.props.root.add(g); arrow = g;
-      setTimeout(() => { if (arrow === g) { X.props.remove(g); arrow = null; } }, 3200);
-    }
+    function arrowTo(P) { if (arrow) X.props.remove(arrow); arrow = greenArrow(X, P, CORNER_AT, floorY + 0.12); }
     // ── h115 ── the opening: where the corner will stand (the gold line from the platform's level down to the trench), then down to the
     // trench's floor, then the crane (ירון 10.11: "עד שקראתי עכשיו את הטבלה אישית לא הבנתי מהמשחקון את המשמעות שלה בכלל") ── /h115 ──
     function intro() {
@@ -241,7 +244,7 @@ export const CORNER = {
         } else if (A.phase === 'slew') {
           A.slewT += dt; C.aim(A.aimP.x, A.aimP.z, 1 - Math.exp(-dt * 2.2)); A.drop = 0; A.ax = lerp(A.ax, axFor(A.aimP), 1 - Math.exp(-dt * 2));
           if (lv >= 2 && A.slewT < 0.1) A.sway.vx = 1.4;
-          if (A.slewT > 1.8) { A.phase = 'lower'; X.line('החזיקו על מלבן הגיר — האבן יורדת אליו · שחררו — עוצרת'); X.hand({ x: CORNER_AT.x, y: floorY + 0.2, z: CORNER_AT.z }, 0, 0); }
+          if (A.slewT > 1.8) { A.phase = 'lower'; X.line('החזיקו על המלבן הירוק — האבן יורדת אליו · שחררו — עוצרת'); X.hand({ x: CORNER_AT.x, y: floorY + 0.2, z: CORNER_AT.z }, 0, 0); }
         } else if (A.phase === 'lower') {
           // ── h114 ── the finger steers: the jib slews heavily toward the point under it and the hook runs in or out along the jib;
           // the stone follows on its rope, late and swinging (ירון 9.11: "כל אבן יורדת למקום אמיתי") ── /h114 ──
@@ -353,6 +356,7 @@ export const COURSE = {
     // the crews: a crewman with his bar at each side of the gap (they bar a stone over), one at the stock who ties the slings
     const crewA = [SH.crew.add(WALL_X - 1.8, K.z0 + K.gap[0] - 2.2, { role: 'hold', item: 'staff', fx: WALL_X, fz: K.z0 + K.gap[0], crew: 3 }), SH.crew.add(WALL_X - 1.8, K.z0 + K.gap[1] + 2.2, { role: 'hold', item: 'staff', fx: WALL_X, fz: K.z0 + K.gap[1], crew: 3 }), SH.crew.add(gx + 3.2, zc - 7.5, { role: 'kneel', item: 'rope', fx: gx, fz: zc - 5, crew: 1 })];
     const legs = [X.props.rope(6, 0.045), X.props.rope(6, 0.045)], tag = X.props.rope(10, 0.035);
+    const mark = new T.Mesh(new T.BoxGeometry(CD + 0.12, 0.05, 1), new T.MeshBasicMaterial({ color: '#3BD16F', transparent: true, opacity: 0.4, depthWrite: false })); mark.renderOrder = 996; mark.visible = false; X.props.root.add(mark);   // ── h115 ── ── /h115 ──
     const occ = () => { const o = [[-1e3, K.gap[0]], [K.gap[1], 1e3]]; for (const q of A.set) o.push([q.a, q.b]); return o; };
     const relZ = (z) => z - K.z0;
     // ── the camera: the gap from above first (where am I), then down in front of the work: stock, crane and gap in one frame ──
@@ -372,7 +376,8 @@ export const COURSE = {
       C.tipWorld(tip); C.rope.show(true); C.rope.set({ x: tip.x, y: tip.y, z: tip.z }, hk, 0);
       for (let k = 0; k < 2; k++) { const sg = k ? 1 : -1; legs[k].show(true); legs[k].set(hk, { x: s.position.x + ax.x * sg * q.L * 0.32, y: s.position.y + CH / 2, z: s.position.z + ax.z * sg * q.L * 0.32 }, 0); }
       // the kohen's tagline: from his hand to the stone's end
-      let hp = null; try { const b = X.hero.mesh && X.hero.mesh.getObjectByName('hero-handR'); if (b) { hp = b.getWorldPosition(new T.Vector3()); } } catch (e) { /* */ }
+      // ── h115 ── no kohen at the course (the brief's figure rule): the crew's tagline is the stock man's, not drawn ── /h115 ──
+      const hp = null;
       if (hp) { tag.show(true); tag.set({ x: s.position.x - ax.x * q.L * 0.5, y: s.position.y - CH * 0.3, z: s.position.z - ax.z * q.L * 0.5 }, hp, 0.5); } else tag.show(false);
     }
     // ── the landing: judged where it really is ──
@@ -407,7 +412,21 @@ export const COURSE = {
       A.cur = null; A.phase = 'settle'; slings(false); C.rope.show(false); tag.show(false);
       return true;
     }
-    function bounce(at, why) { A.drop = Math.max(0, A.drop - 1.6); A.v = 0; X.word(at, why); X.play('thud'); return false; }
+    function bounce(at, why) {
+      A.drop = Math.max(0, A.drop - 1.6); A.v = 0; X.word(at, why); X.play('thud'); A.misses = (A.misses | 0) + 1;
+      // ── h115 ── the way to the green place: an arrow on the course from where it came down ── /h115 ──
+      const q = A.cur, w = q && wantOf(q, q.m.position.z);
+      if (w != null) { if (A.arrow) X.props.remove(A.arrow); A.arrow = greenArrow(X, { x: q.m.position.x, z: q.m.position.z }, { x: WALL_X, z: K.z0 + w + q.L / 2 }, yB + 0.08); }
+      return false;
+    }
+    /** ── h115 ── where the stone L would butt if it came down with its middle at z: the nearer free edge of the stretch it is over
+     *  (as land() judges it); null when it does not fit the stretch ── /h115 ── */
+    function wantOf(q, z) {
+      const L = q.L, c = clamp(relZ(z), K.gap[0] + 0.01, K.gap[1] - 0.01), a = c - L / 2, O = occ();
+      let left = -1e3, right = 1e3; for (const [o0, o1] of O) { if (o1 <= c) left = Math.max(left, o1); if (o0 >= c) right = Math.min(right, o0); }
+      if (L > right - left + 0.02) return null;
+      return Math.abs(a - left) <= Math.abs(right - (a + L)) ? left : right - L;
+    }
     function chip(at, q) {
       A.chips++; A.v = 0; A.drop = Math.max(0, A.drop - 1.4); X.sparks(q.m.position.x, yB + 0.3, q.m.position.z, 12); X.play('crack'); X.shake(0.18, 0.35);
       if (q.chipped) {
@@ -445,7 +464,8 @@ export const COURSE = {
       X.line('הנדבך נסגר · ' + K.sol.join(' + ') + ' = ' + (K.gap[1] - K.gap[0]) + ' אמות');
       setTimeout(() => X.shot([WALL_X - 26, yB + 30, zc - 18], [WALL_X, yB, zc], 1.6), 1200);
       const q = A.grades.reduce((a2, g) => a2 + (g === 'gold' ? 1 : 0.8), 0) / Math.max(1, A.grades.length) * (A.lifts ? 0.85 : 1) * (A.chips ? 0.8 : 1);
-      setTimeout(() => X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at }), 5200);
+      const perfect = allGold && !A.lifts && !A.chips && !A.misses;
+      setTimeout(() => X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, perfect, at }), 5200);
     }
     function pick(p) {
       const ms = A.stock.map((q) => q.m); const hits = X.rayAt(p.x, p.y).intersectObjects(ms, true);
@@ -457,11 +477,13 @@ export const COURSE = {
         X.shot([WALL_X - 28, yB + 34, zc - 2], [WALL_X - 4, yB, zc], 1.0);
         X.line(`רווח של ${K.gap[1] - K.gap[0]} אמות בחומה · ${K.sol.length > 2 ? 'כמה' : 'שתי'} אבנים יסגרו אותו`);
         try { X.hero.setPos(WALL_X - 7, zc - 8.5, Math.PI / 2); } catch (e) { /* */ }
+        X.kohen(false);   // ── h115 ── ── /h115 ──
         setTimeout(() => { if (A.phase === 'open') { A.phase = 'choose'; camWork(); X.line('געו באבן מהשורה: הצוות קושר אותה למנוף'); const q = A.stock[2]; X.hand({ x: q.m.position.x, y: q.m.position.y + 1, z: q.m.position.z }, 0, 10); } }, 2600);
       },
       update(dt) {
         A.t += dt; C.tipWorld(tip);
         const q = A.cur;
+        if (A.phase !== 'carry' || !q) mark.visible = false;   // ── h115 ── ── /h115 ──
         for (const s2 of A.stock) { s2.tg.visible = !s2.laid; if (!s2.laid) { s2.tg.position.set(s2.m.position.x, s2.m.position.y + CH / 2 + 0.03, s2.m.position.z); s2.tg.rotation.y = s2.m.rotation.y - Math.PI / 2; } }
         if (A.phase === 'hook' && q) {
           // the jib swings over the stone, the hook comes down, the crew ties it, it rises
@@ -492,14 +514,15 @@ export const COURSE = {
           q.m.position.set(hx, bottom + CH / 2, hz);
           if (bottom <= floor + 0.01) {
             q.m.position.y = floor + CH / 2;
-            if (overWall) { const vT = A.v; land(vT); if (A.cur) { A.v = 0; } }
+            if (overWall) { const vT = A.v; land(vT); if (A.cur) { A.v = 0; } else mark.visible = false; }
             else { // put down on the ground: back in the stock where it is
               A.drop = hangB - floor; q.m.rotation.y = 0; q.home = { x: hx, z: hz }; A.cur = null; A.phase = 'choose'; slings(false); C.rope.show(false); tag.show(false); X.line('הונחה על הקרקע · געו באבן'); X.play('thud'); camWork();
             }
           }
           if (A.cur) slings(true);
           // the kohen walks with it on the tagline, beside the wall, out of the camera's way
-          try { const h = X.stages.heroXYZ({}); if (h) { const tx = Math.min(WALL_X - 2.6, hx - 1.5), tz = hz - q.L / 2 - 3.2, d = Math.hypot(tx - h.x, tz - h.z); if (d > 1.0) X.hero.drive(((tx - h.x) / d) * Math.min(5, d * 1.5), ((tz - h.z) / d) * Math.min(5, d * 1.5)); else X.hero.drive(0, 0); } } catch (e) { /* */ }
+          // ── h115 ── the green place: where it will butt, the length of the hooked stone; bright when the stone is over it ── /h115 ──
+          if (A.cur) { const w = wantOf(q, hz); if (w == null) mark.visible = false; else { mark.visible = true; mark.scale.z = q.L; mark.position.set(WALL_X, yB + 0.04, K.z0 + w + q.L / 2); const over = Math.abs(relZ(hz) - q.L / 2 - w) / q.L < 0.1 && Math.abs(hx - WALL_X) < 0.6; mark.material.opacity = over ? 0.85 : 0.38 + 0.12 * Math.sin(A.t * 5); mark.material.color.set(over ? '#7CFF9E' : '#3BD16F'); } }
           // (wide while it crosses; nearer as it comes over the wall: the gap and the stone fill the frame)
           const kc = ease(clamp((hx - (WALL_X - 9)) / 8, 0, 1)), cz = lerp(zc, hz, 0.6 * kc);
           X.track([lerp(CAMW.p[0], WALL_X - 17, kc), lerp(CAMW.p[1], yB + 8, kc), lerp(CAMW.p[2], cz - 2, kc)], [lerp(CAMW.t[0], WALL_X - 0.5, kc), lerp(CAMW.t[1], yB + 0.4, kc), lerp(CAMW.t[2], cz, kc)], 1.4);
@@ -522,6 +545,7 @@ export const COURSE = {
       cancel() { A.hold = false; A.p0 = null; },
       end() {
         for (const l of legs) l.dispose(); tag.dispose(); C.rope.show(false); for (const w of crewA.concat(A.crew)) SH.crew.remove(w); for (const t of A.marks) X.props.remove(t);
+        X.props.remove(mark); if (A.arrow) X.props.remove(A.arrow);
         try { X.hero.drive(0, 0); } catch (e) { /* */ }
         for (const q of A.stock) { X.props.remove(q.tg); if (q.laid) { W0.out.push(q.m); if (q.crack) X.props.remove(q.crack); } else X.props.remove(q.m); }
       },
@@ -531,7 +555,7 @@ export const COURSE = {
         const q = A.cur; let tgt = null;
         if (q) { // the bot's aim: where the solution puts this stone
           let z = K.gap[0]; for (const L of K.sol) { if (L === q.L) { tgt = sc(WALL_X, yB + CH / 2, K.z0 + z + L / 2); A.ta = z; break; } z += L; } }
-        return { phase: A.phase, lv, sol: K.sol, gap: K.gap, below: K.below, set: A.set.map((s2) => [s2.a, s2.b, s2.q.L]), stock: A.stock.filter((s2) => !s2.laid).map((s2) => ({ L: s2.L, scr: sc(s2.m.position.x, s2.m.position.y + CH / 2, s2.m.position.z) })), cur: q ? q.L : 0, tgt, ta: q ? A.ta : null, gapB: q ? +(q.m.position.y - CH / 2 - yB).toFixed(2) : null, dz: q ? +(relZ(q.m.position.z) - q.L / 2).toFixed(2) : null, sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), v: +A.v.toFixed(2), joj: A.joj, lifts: A.lifts, chips: A.chips, grades: A.grades.slice(), yB: +yB.toFixed(2), gS: +X.ground(gx, zc).toFixed(2) };
+        return { phase: A.phase, lv, sol: K.sol, gap: K.gap, below: K.below, set: A.set.map((s2) => [s2.a, s2.b, s2.q.L]), stock: A.stock.filter((s2) => !s2.laid).map((s2) => ({ L: s2.L, scr: sc(s2.m.position.x, s2.m.position.y + CH / 2, s2.m.position.z) })), cur: q ? q.L : 0, tgt, ta: q ? A.ta : null, gapB: q ? +(q.m.position.y - CH / 2 - yB).toFixed(2) : null, dz: q ? +(relZ(q.m.position.z) - q.L / 2).toFixed(2) : null, sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), v: +A.v.toFixed(2), joj: A.joj, lifts: A.lifts, chips: A.chips, misses: A.misses | 0, mark: mark.visible, grades: A.grades.slice(), yB: +yB.toFixed(2), gS: +X.ground(gx, zc).toFixed(2) };
       },
     };
   },

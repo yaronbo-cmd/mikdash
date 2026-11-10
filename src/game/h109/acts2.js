@@ -576,6 +576,7 @@ export const PAVE = {
         X.line(broken ? 'גררו לוח לשורה · לוח סדוק לארגז' : 'גררו לוח לשורה · נגיעה מסובבת');
         const q = S[0]; X.hand({ x: q.home.x, y: G.base + 0.6, z: q.home.z }, 0, -40);
         try { X.hero.setPos(G.x0 - SIDE_COLS * U - 2.2, G.z0 + rows * U + 1.2, Math.PI * 0.6); } catch (e) { /* */ }
+        X.kohen(false);   // ── h115 ── (the brief's figure rule: no idle kohen beside the puzzle; the layers lay the slabs) ── /h115 ──
       },
       update(dt) {
         A.t += dt;

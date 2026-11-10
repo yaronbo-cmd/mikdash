@@ -107,7 +107,7 @@ export function createH109Director(o) {
      השלבים"): during any act, the mouse wheel back or two fingers pinching in lift the camera over the Mount; the act waits as it is
      (nothing is lost); the world is free to turn and zoom (OrbitControls); "↩ חזרה לעבודה", the wheel forward close in, or Esc, bring
      the camera down to the very shot he left, and the act goes on. ── ───────── */
-  const OV = { on: false, p: null, t: null, d0: 0, pins: new Map(), pd0: 0, close: false, back: 0 };
+  const OV = { on: false, p: null, t: null, d0: 0, pins: new Map(), pin0: new Map(), pd0: 0, close: false, back: 0 };
   function ovEnter(why) {
     if (OV.on || !act || phase !== 'act' || ending) return;
     if (ptr.down) { ptr.down = false; if (typeof act.cancel === 'function') call(act.cancel); else call(act.up, ptr); }
@@ -149,14 +149,22 @@ export function createH109Director(o) {
     if (!OV.on && e.deltaY > 0) { e.preventDefault(); e.stopImmediatePropagation(); ovEnter('wheel'); }
   }, { capture: true, passive: false });
   addEventListener('keydown', (e) => { if (OV.on && e.key === 'Escape') ovLeave('esc'); });
+  function bothClose() {
+    const K = [...OV.pins.keys()]; if (K.length !== 2) return false;
+    const s = K.map((k) => OV.pin0.get(k)), c = K.map((k) => OV.pins.get(k)); if (!s[0] || !s[1]) return false;
+    for (let i = 0; i < 2; i++) { const o = s[1 - i], ux = o[0] - s[i][0], uy = o[1] - s[i][1], L = Math.hypot(ux, uy) || 1; if (((c[i][0] - s[i][0]) * ux + (c[i][1] - s[i][1]) * uy) / L < OV.pd0 * 0.1) return false; }
+    return true;
+  }
   function onPtr(e) {
     // ── h114 ── two fingers on the world during an act: a pinch in lifts to the overview ── /h114 ──
     if (act && phase === 'act' && e.pointerType === 'touch') {
-      if (e.type === 'pointerdown' && !hudEl(e.target)) { OV.pins.set(e.pointerId, [e.clientX, e.clientY]); if (OV.pins.size === 2) { const [a, b] = [...OV.pins.values()]; OV.pd0 = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1; } }
+      if (e.type === 'pointerdown' && !hudEl(e.target)) { OV.pins.set(e.pointerId, [e.clientX, e.clientY]); if (OV.pins.size === 2) { const [a, b] = [...OV.pins.values()]; OV.pd0 = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1; OV.pin0 = new Map([...OV.pins].map(([k, v]) => [k, v.slice()])); } }
       else if (e.type === 'pointermove' && OV.pins.has(e.pointerId)) {
         OV.pins.set(e.pointerId, [e.clientX, e.clientY]);
-        if (OV.pins.size === 2 && !OV.on) { const [a, b] = [...OV.pins.values()]; if (Math.hypot(a[0] - b[0], a[1] - b[1]) < OV.pd0 * 0.72) ovEnter('pinch'); }
-      } else if (e.type === 'pointerup' || e.type === 'pointercancel') OV.pins.delete(e.pointerId);
+        // (a pinch is both fingers closing on each other: a finger that holds while the other slides — the lock's key, the lintel's end, a
+        //  batten held for its peg — is the work's own two-finger move, not a pinch)
+        if (OV.pins.size === 2 && !OV.on) { const [a, b] = [...OV.pins.values()]; if (Math.hypot(a[0] - b[0], a[1] - b[1]) < OV.pd0 * 0.72 && bothClose()) ovEnter('pinch'); }
+      } else if (e.type === 'pointerup' || e.type === 'pointercancel') { OV.pins.delete(e.pointerId); OV.pin0.delete(e.pointerId); }
       if (OV.pins.size >= 2 && !OV.on && ptr.down && e.pointerId !== ptr.id) return;   // (the second finger is the pinch's)
     }
     if (OV.on) { if (e.type === 'pointerdown') globalThis.__TW_GEST = performance.now(); return; }   // (the world's own: turn, zoom; a tap picks nothing)

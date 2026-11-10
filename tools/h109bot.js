@@ -102,41 +102,6 @@
       }
       return { wait: 250 };
     },
-    corner(a) {
-      if (a.phase === 'lift') {
-        const since = now() - (B.k.sw || 0);
-        if (since < 440) return { wait: Math.max(10, 440 - since) };
-        B.k.sw = now();
-        return { drag: [W * 0.72, HH * 0.38, W * 0.72, HH * 0.38 + 90, 120] };
-      }
-      if (a.phase === 'lower') {
-        // (build 116: three grips) the jib's head over the rectangle, the rope turns it square, then short holds on the stone
-        if (a.dx > 0.06 && a.swing < 0.6) {
-          // drag the jib's head by the stone's offset on the screen (the floor point under the stone → the rectangle)
-          return { drag: [a.tipScr[0], a.tipScr[1], a.jibTo[0], a.jibTo[1], 700], wait: 2200, note: `corner: jib dx ${a.dx} off ${a.offX},${a.offZ}` };
-        }
-        if (Math.abs(a.rotE) > a.tol * 0.4) { const px = Math.max(-300, Math.min(300, (-a.rotE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1800, note: `corner: rope ${a.rotE}° → ${Math.round(px)}px` }; }
-        if (a.swing > 0.5) return { wait: 400 };
-        if (a.gap > 1.4) return { hold: [a.stoneScr[0], a.stoneScr[1], 700], wait: 250, note: 'corner: lower gap ' + a.gap };
-        return { hold: [a.stoneScr[0], a.stoneScr[1], 260], wait: 200, note: 'corner: lower gap ' + a.gap };
-      }
-      return { wait: 250 };
-    },
-    course(a) {
-      // (build 114: the act tells the one order that closes the gap; the bot ties each stone in turn and lowers it on its place)
-      if (a.phase === 'choose') {
-        const laid = a.set.map((q) => q[2]); const next = a.sol.find((L) => !laid.includes(L));
-        const q = a.stock.find((s) => s.L === next); if (!q) return { wait: 400, note: 'course: no stone ' + next };
-        return { tap: q.scr, wait: 1500, note: `course: take ${next}` };
-      }
-      if (a.phase === 'carry' && a.tgt) {
-        const t = a.tgt;
-        if (a.gapB > 1.0) return { holdUntil: [t[0], t[1], C('return !a||a.phase!==\'carry\'||a.gapB<0.9'), 14000] };
-        if (a.sway > 0.25 || Math.abs(a.dz - a.ta) > 0.08) return { hold: [t[0], t[1], 60], wait: 300 };
-        return { hold: [t[0], t[1], 230], wait: 150 };
-      }
-      return { wait: 250 };
-    },
     great(a) {
       // (build 116: down the slope) hold the stone and pull a little forward (steering to the way's middle), let go before the bends;
       // slow into the green place at the end

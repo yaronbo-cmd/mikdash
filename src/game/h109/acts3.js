@@ -451,7 +451,7 @@ export const COURSE = {
     const shG = new T.Group(), shM = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: 0x1A120A, transparent: true, opacity: 0.42, depthWrite: false })); shM.rotation.x = -Math.PI / 2; shM.renderOrder = 995; shG.add(shM); shG.visible = false; X.props.root.add(shG);
     const plG = new T.BufferGeometry(); plG.setAttribute('position', new T.Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3));
     const plumb = new T.Line(plG, new T.LineBasicMaterial({ color: 0x2A1C0E })); plumb.visible = false; plumb.frustumCulled = false; X.props.root.add(plumb);
-    const TOLR = 0.12, ALONG = Math.PI / 2;
+    const TOLR = 0.12, ALONG = Math.PI / 2, jibMid = new T.Vector3();
     /** how far the stone lies from the wall's line (a stone is the same end for end): rad, signed */
     const rotErr = (r) => Math.atan2(Math.sin(2 * (r - ALONG)), Math.cos(2 * (r - ALONG))) / 2;
     const ropeEnd = () => { const q = A.cur; if (!q) return null; const s = q.m, r = s.rotation.y; return { x: s.position.x - Math.cos(r) * q.L * 0.5, y: s.position.y - CH * 0.2, z: s.position.z + Math.sin(r) * q.L * 0.5 }; };
@@ -459,6 +459,8 @@ export const COURSE = {
     function gripOf(p) {
       if (A.phase !== 'carry' || !A.cur) return null;
       C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z); if (tq.on !== false && Math.hypot(tq.x - p.x, tq.y - p.y) < 70) return 'jib';
+      // (anywhere on the jib's beam, its outer two thirds: the head may stand near the frame's edge in the high view)
+      { const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const a = X.scr(m0.x, m0.y, m0.z), vx = tq.x - a.x, vy = tq.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 1); if (Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y) < 36) return 'jib'; }
       const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 50) return 'hold';
       const e2 = ropeEnd(), h = stkTop(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
       { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.85), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 36) return 'rope'; }
@@ -470,7 +472,7 @@ export const COURSE = {
     // ── the camera: the gap from above first (where am I), then down in front of the work: stock, crane and gap in one frame ──
     // ── h117 ── high over the Mount's side, almost straight down (≈70°): the wall runs left to right across the screen, the stock at
     // the bottom; right and left are along the wall, up and down toward and away from it ── /h117 ──
-    const yM = (yB + X.ground(gx, zc)) / 2, CAMW = { p: [WALL_X - 8.5 - 10.5, yM + 29, zc], t: [WALL_X - 8.5, yM, zc] };
+    const yM = yB - 2, CAMW = { p: [WALL_X - 7.5 - 18, yM + 50, zc + 2], t: [WALL_X - 7.5, yM, zc + 2] };   // (the course is far above the stock's ground: the frame's middle a little below the course)
     function camWork() { X.shot(CAMW.p, CAMW.t, 1.2); }
     function hookTo(q) {
       A.cur = q; A.phase = 'hook'; A.t0 = A.t; A.rise = 0; A.ax = 0; A.drop = 0; A.v = 0;
@@ -586,7 +588,7 @@ export const COURSE = {
     function steer(p) { const g = onPlane(X, p.x, p.y, yB + CH / 2); if (g && Math.hypot(g.x - C.base.x, g.z - C.base.z) < 15) A.aimP = { x: g.x, z: g.z }; }
     return {
       begin() {
-        X.shot([WALL_X - 18, yM + 40, zc], [WALL_X - 5, yM, zc], 1.0);   // ── h117 ── (the same high view as the work's, higher) ── /h117 ──
+        X.shot([WALL_X - 26, yM + 58, zc + 2], [WALL_X - 6, yM, zc + 2], 1.0);   // ── h117 ── (the same high view as the work's, higher) ── /h117 ──
         X.line(`רווח של ${K.gap[1] - K.gap[0]} אמות בחומה · ${K.sol.length > 2 ? 'כמה' : 'שתי'} אבנים יסגרו אותו`);
         try { X.hero.setPos(WALL_X - 7, zc - 8.5, Math.PI / 2); } catch (e) { /* */ }
         X.kohen(false);   // ── h115 ── ── /h115 ──

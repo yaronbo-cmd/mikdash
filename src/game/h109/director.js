@@ -397,7 +397,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   const WAITS = [];
   const X = {
     THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, track, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
-    get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, ui, sfx: o.sfx, haptic: o.haptic,
+    get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, get acting() { return phase === 'act'; }, ui, sfx: o.sfx, haptic: o.haptic,
     actors: () => S0.crewActors || null, PLACES, H109,
     beat() { let b = null; try { const Mu = globalThis.__BH_MUSIC; b = Mu && typeof Mu.beat === 'function' ? Mu.beat() : null; } catch (e) { b = null; } return b && b.period > 0.2 && Number.isFinite(+b.toNext) ? b : null; },
     play(name) { try { if (o.sfx && o.sfx.play) o.sfx.play(name); } catch (e) { /* */ } },
@@ -509,8 +509,23 @@ body.h109-act .gm .tw-zone{opacity:0!important}
 
   /* ───────── the Mount comes down as the work is done; the crews ───────── */
   let progShown = -1;
+  // ── h114 ── (the full replays, 9–10.11) the Mount's walls as the world shows them, from the stage's progress:
+  //  · whole courses only — a course half laid is a step of 2.7 amot across the sectors' ground (the platform's body is their
+  //    floor as it rises), and the step covered a paving's pile of slabs: the sector could not be closed;
+  //  · until his own wall works are done (the corner, the two courses, the great stone) never above the last course under the
+  //    platform's top: with the sectors done first the porticoes stood over the east wall's course and the great stone's place.
+  // (tests: window.__H109_CAP = courses under the platform's top the walls may reach, default 1 under) ── /h114 ──
+  function harWhole(p, under) {
+    let info = null; try { info = S0.siteInfo ? S0.siteInfo('har') : null; } catch (e) { info = null; }
+    const F = 0.15; if (!info || !info.stones || !info.perCourse || !info.perCourse.length || !(info.H > 0) || p <= F) return p;
+    const n = (p - F) / (1 - F) * info.stones, toTop = Math.floor((0 - info.y0) / info.H + 1e-6);
+    const kMax = under ? Math.max(1, toTop - (Number.isFinite(+globalThis.__H109_CAP) ? +globalThis.__H109_CAP : 1)) : info.perCourse.length;
+    let cum = 0; for (let k = 0; k < info.perCourse.length && k < kMax; k++) { if (cum + info.perCourse[k] > n + 0.5) break; cum += info.perCourse[k]; }
+    return F + (1 - F) * cum / info.stones;
+  }
   function syncMount(instant) {
-    const p = Math.max(0.03, M.progress() * 0.97);
+    let p = Math.max(0.03, M.progress() * 0.97);
+    if (!PK.sync) p = harWhole(p, !!M.wallsDone && !M.wallsDone());
     if (Math.abs(p - progShown) < 0.004 && !instant) return;
     progShown = p;
     if (PK.sync) { try { PK.sync(M, S0, !!instant, X); } catch (e) { console.warn('[h109] sync', e && e.message); } return; }   // ── h111 ── ── /h111 ──
@@ -581,6 +596,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // the crews at work from the first second (rule 4): three crews at the Mount
     try { if (S0.setCrews && PK.crews) S0.setCrews(...PK.crews); } catch (e) { /* */ }
     onlyNext();
+    // (tests: works the crews have done before the page opened — window.__H109_DONE = ['rope', 'rocks0', …])
+    try { const D0 = globalThis.__H109_DONE; if (Array.isArray(D0) && M.pick) for (const id of D0) if (M.pick(id)) M.done({ stars: 2 }); } catch (e) { /* */ }
     syncMount(true);   // ── h111 ── (after the one-minigame page's skip: the world shows its mission's stage, not the first one's) ── /h111 ──
     if (ACTS.__init) call(ACTS.__init, X);
     openMission();
@@ -601,6 +618,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
+    _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },
     _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
   };
 }

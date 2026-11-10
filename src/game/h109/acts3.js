@@ -809,7 +809,7 @@ export const LETTERS = {
         A.i++;
         const nx = L[A.i];
         if (!nx || nx.w !== Lt.w) { X.bonus(60, 'word', `"${WORDS[Lt.w]}"`); if (nx) setTimeout(shotFace, 600); }
-        if (!nx) setTimeout(() => { X.line('"לבית התקיעה להכ…" — להכריז (רוב החוקרים) או להבדיל · חפירות ב. מזר, 1968'); X.word(tUp([cw / 2, 120]), 'האבן שבורה כאן'); }, 700), setTimeout(part3, 5200);
+        if (!nx) setTimeout(() => { X.line('"לבית התקיעה להכ…" · האבן שבורה: הוצע "להכריז" או "להבדיל" · חפירות ב. מזר, 1968'); X.word(tUp([cw / 2, 120]), 'האבן שבורה כאן'); }, 700), setTimeout(part3, 5200);
       }
       draw();
     }
@@ -906,7 +906,7 @@ export const LETTERS = {
         if (A.part === 2) draw();
         if (A.part === 3) {
           // the trumpeter turns with the aim; the fan shows where the sound will go (the wind bends it at level 3)
-          if (tr) { tr.fx = TP.x + Math.sin(A.aim) * 10; tr.fz = TP.z + Math.cos(A.aim) * 10; }
+          if (tr) { tr.fx = TP.x + Math.sin(A.aim) * 10; tr.fz = TP.z + Math.cos(A.aim) * 10; if (tr.a) { tr.a.tiltT = A.hold ? 0.3 : 0.5; tr.a.playing = !!A.hold; } }   /* (the trumpet level, out over the land; a little up while he blows) */
           const gy = X.ground(TP.x - 30, TP.z + 30); const aimW = A.aim + wind;
           fan.position.set(TP.x, Math.max(gy + 1.2, TOP.y - 1.5), TP.z); fan.scale.setScalar(40 + 80 * (A.hold ? Math.min(1, A.breath / band[0]) : 1)); fan.rotation.set(-Math.PI / 2, 0, aimW - Math.PI / 2, 'XYZ');
           if (wind) { flag.position.set(-299.75 - 0.45, TOP.y + 2.75, 396.3); flag.rotation.y = Math.PI / 2 + Math.sin(A.t * 5) * 0.2; }
@@ -952,6 +952,27 @@ export const LETTERS = {
   },
 };
 
+/** one of the east wall's two courses as the save has it, on the wall's top as it stands now */
+function buildCourse(X, c) {
+  const st = X.M.st, CL = st.courseLay && st.courseLay[c], lv = CL ? CL.lv : 1, K = puzzleOf(c, lv);
+  let laid = null; if (st.done.includes('course' + c)) { if (CL && CL.laid) laid = CL.laid; else { laid = []; let z = K.gap[0]; for (const L of K.sol) { laid.push([z, z + L]); z += L; } } }
+  for (const o of (SH.courseW[c] || [])) X.props.remove(o);
+  if (SH.courseSet && SH.courseSet[c]) { for (const o of SH.courseSet[c]) X.props.remove(o); SH.courseSet[c] = null; }
+  SH.courseW[c] = courseWorld(X, c, lv, laid).out; SH.courseG[c] = X.ground(WALL_X, K.z0 + 7);
+}
+/* ── h114 ── (the full replay, 9.11: the trench, the crane and the courses stood where the ground was when the page opened) the
+ * Mount's walls and its fill rise while he works elsewhere: what stands at the walls' working edge stands on it as it is now.
+ * Checked about once a second, never during an act (an act holds its own ground). ── /h114 ── */
+function reground3(X) {
+  const st = X.M.st, near = (a, b) => Math.abs(a - b) <= 0.05;
+  const gC = X.ground(CORNER_AT.x, CORNER_AT.z);
+  if (SH.cornerPit && !near(SH.cornerPit.position.y, gC)) { SH.cornerPit.position.y = gC; if (SH.cornerStone) SH.cornerStone.position.y = gC - PIT + 0.8; }
+  const C = SH.crane; if (C) { const gy = X.ground(C.base.x, C.base.z); if (!near(C.g.position.y, gy)) C.g.position.y = gy; }
+  for (let c = 0; c < 2; c++) if (!near(SH.courseG[c], X.ground(WALL_X, COURSES[c].z0 + 7))) buildCourse(X, c);
+  for (const q of (SH.greatNext || [])) { const y = X.ground(GR.x, q.z) + GR.h / 2; if (!near(q.m.position.y, y)) q.m.position.y = y; }
+  if (st.done.includes('great') && SH.great) { const y = X.ground(GR.x, GR.zEnd) + GR.h / 2; if (!near(SH.great.position.y, y)) SH.great.position.y = y; }
+  const gR = X.ground(ROAD[2][0], ROAD[2][1]); if (SH.road && Math.abs(gR - SH.roadG) > 0.2) { X.props.remove(SH.road); SH.road = roadMesh(X); SH.roadG = gR; }
+}
 export function initWorld3(X, sh) {
   SH = sh; const st = X.M.st, done = (id) => st.done.includes(id);
   SH.crane = makeCrane(X); SH.crane.place(CRANE_AT.x, CRANE_AT.z, Math.atan2(CORNER_AT.x - CRANE_AT.x, CORNER_AT.z - CRANE_AT.z) - 0.9); SH.crane.rope.show(false);
@@ -960,17 +981,14 @@ export function initWorld3(X, sh) {
   if (done('corner')) { const s = stoneMesh(X, CW, 1.6, CDp); s.position.set(CORNER_AT.x, X.ground(CORNER_AT.x, CORNER_AT.z) - PIT + 0.8, CORNER_AT.z); SH.cornerStone = s; }
   // the east wall's courses as far as the crews and the kohen have laid them
   // ── h114 ── as he laid them (st.courseLay), the solution's order for an older save ── /h114 ──
-  SH.courseW = {};
-  for (let c = 0; c < 2; c++) {
-    const CL = st.courseLay && st.courseLay[c], lv = CL ? CL.lv : 1, K = puzzleOf(c, lv);
-    let laid = null; if (done('course' + c)) { if (CL && CL.laid) laid = CL.laid; else { laid = []; let z = K.gap[0]; for (const L of K.sol) { laid.push([z, z + L]); z += L; } } }
-    SH.courseW[c] = courseWorld(X, c, lv, laid).out;
-  }
+  SH.courseW = {}; SH.courseG = {}; SH.courseSet = {};
+  for (let c = 0; c < 2; c++) buildCourse(X, c);
   // the great stone: cut at the quarry, on its road, or in its course
   SH.road = roadMesh(X);
   SH.great = greatMesh(X, GR.len); SH.great.rotation.y = 0;
   // ── h114 ── the crews' great stones beyond its place, in the same course on the west wall's edge ── /h114 ──
-  { let z = GR.zEnd + GR.len / 2 + 0.08; for (const L of GR_NEXT) { const m = greatMesh(X, L - 0.08); m.position.set(GR.x, X.ground(GR.x, z + L / 2) + GR.h / 2, z + L / 2); z += L; } }
+  SH.greatNext = []; { let z = GR.zEnd + GR.len / 2 + 0.08; for (const L of GR_NEXT) { const m = greatMesh(X, L - 0.08); m.position.set(GR.x, X.ground(GR.x, z + L / 2) + GR.h / 2, z + L / 2); SH.greatNext.push({ m, z: z + L / 2 }); z += L; } }
+  SH.roadG = X.ground(ROAD[2][0], ROAD[2][1]);
   const iGreat = st.done.length;
   SH.greatPull = []; void iGreat;
   if (done('great')) { SH.great.position.set(GR.x, X.ground(GR.x, GR.zEnd) + GR.h / 2, GR.zEnd); SH.greatU = 1; }
@@ -978,6 +996,7 @@ export function initWorld3(X, sh) {
 }
 /** the great stone's journey while the kohen works elsewhere: at the quarry until sector 7, then the crews pull it along the road */
 export function frame3(dt, X, sh) {
+  if (SH && SH.crane && !X.acting) { SH.reg3T = (SH.reg3T || 0) + dt; if (SH.reg3T > 1.0) { SH.reg3T = 0; try { reground3(X); } catch (e) { /* the world's */ } } }
   if (!SH || !SH.great || SH.greatDone) return;
   const st = X.M.st, m = X.M.mission(); if (!m) return;
   if (m.k === 'great' && X.mission && X.mission.k === 'great' && SH.greatU >= 0.99) return;

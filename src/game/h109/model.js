@@ -99,7 +99,7 @@ export function createH109(save) {
         case 'corner': return d('rope');
         case 'course': return d(m.c ? 'course0' : 'corner');
         case 'great': return d('course1');
-        case 'letters': return d('great');
+        case 'letters': return d('great') && PLAN.every((x) => x.k === 'waste' || x.k === 'letters' || d(x.id));   /* (on the corner's top: the Mount stands) */
         case 'waste': {
           const prev = { waste1: null, waste2: 'waste1', waste3: 'waste2' }[m.id];
           if (prev && !d(prev)) return false;
@@ -114,6 +114,8 @@ export function createH109(save) {
     /** he walked to a work's stake (null: he walked away from it) */
     pick(id) { const m = id ? PLAN.find((x) => x.id === id) : null; st.cur = m && M.canDo(m) ? m.id : null; return M.mission(); },
     finished() { return PLAN.every((m) => st.done.includes(m.id)); },
+    /** his own works in the Mount's walls are done (the porticoes rise only then) */
+    wallsDone() { return ['corner', 'course0', 'course1', 'great'].every((id) => st.done.includes(id)); },
     /** (tests, the one-minigame page) the open works not passing `want` are done by the crews in the plan's order until one that
      *  passes is open; it is picked. → it | null */
     autoTo(want) {

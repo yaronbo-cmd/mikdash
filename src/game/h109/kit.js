@@ -114,3 +114,13 @@ export function createGang(X) {
   }
   return { add, remove, clear, setRole, walkTo, face, update, list: L, get A() { return A; } };
 }
+
+/** ── h115 ── a camera's view clear: the segment from the camera to its aim passes no sphere of O and stays over the ground ── /h115 ── */
+export function clearView(X, p, t, O) {
+  for (let i = 1; i < 12; i++) {
+    const u = i / 12, x = p[0] + (t[0] - p[0]) * u, y = p[1] + (t[1] - p[1]) * u, z = p[2] + (t[2] - p[2]) * u;
+    if (u < 0.92 && y < X.ground(x, z) + 0.6) return false;
+    for (const o of O) if (Math.hypot(x - o.x, y - o.y, z - o.z) < o.r) return false;
+  }
+  return true;
+}

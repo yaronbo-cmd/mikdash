@@ -8,7 +8,7 @@
  */
 import { H109 } from './model.js';
 import { BOOK, ROCK_CELLS, rectOf } from '../world/grid.js';
-import { createBeat, createGang, onPlane, clamp, lerp, ease } from './kit.js';
+import { createBeat, createGang, onPlane, clamp, lerp, ease, clearView } from './kit.js';
 import { READ, PAVE, WASTE, initWorld2, frame2 } from './acts2.js';
 import { CORNER, COURSE, GREAT, LETTERS, initWorld3, frame3 } from './acts3.js';
 
@@ -66,6 +66,8 @@ function initWorld(X) {
   // the kohen's cells as the save has them: read → cut level, paved → paved
   KC.forEach((C, s) => { if (done('pave' + s)) cells.set(C.k, C.r, 'paved', { instant: true }); else if (done('read' + s)) cells.set(C.k, C.r, 'cut', { instant: true }); });
   crewCells(X, true);
+  // ── h115 ── the kohen's cells and the ring of cells round them cleared of their scrub (the crews' work ground) ── /h115 ──
+  try { for (const C of KC) for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) cells.clearScrub(C.k + a, C.r + b); } catch (e) { /* */ }
   // the small rocks of every cell not yet struck (their places are the book's)
   SH.rocks = [];
   for (let s = 0; s < 9; s++) {
@@ -286,7 +288,9 @@ const ROCKS_ACT = {
       A.phase = 'walk'; A.walkT = 0; A.armed = false;
       try { X.hero.walkTo({ x: R.sx, z: R.sz, face: [R.x, R.z] }); } catch (e) { /* */ }
       if (R.q) { R.q.y = X.ground(R.x, R.z); X.props.rockSet(R.q); }
-      const ws = X.workShot({ x: R.x, z: R.z }, { x: R.sx, z: R.sz }, { dist: 23, el: 32, side: -1.15, lift: 1.0 });
+      // ── h115 ── (the full replay: the shot looked through the cell's big rock and the hill) the first side whose view is clear ── /h115 ──
+      const big = SH.bould[m.s], O = big ? [{ x: big[0], y: X.ground(big[0], big[1]) + big[2] * 0.45, z: big[1], r: big[2] * 0.95 }] : [];
+      let ws = null; for (const side of [-1.15, 1.15, -0.5, 0.5, -1.7, 1.7, 0]) { const w = X.workShot({ x: R.x, z: R.z }, { x: R.sx, z: R.sz }, { dist: 23, el: 32, side, lift: 1.0 }); if (!ws) ws = w; if (clearView(X, w.p, w.t, O)) { ws = w; break; } }
       X.shot(ws.p, ws.t, i === 0 ? 0.9 : 0.6);
       // the ring that closes to the gold band on the beat (≥ 110 px: it is on the ground round the rock, r × 2.6 → r)
       if (A.ring) X.props.remove(A.ring); if (A.band) X.props.remove(A.band);

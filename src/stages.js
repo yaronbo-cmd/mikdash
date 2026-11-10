@@ -1551,7 +1551,8 @@ export function createStages(ctx) {
   const pitFill = [];
   // (a paved cell's paving is drawn by the hill's own shader on its cut floor: cell level 4000 + L, the slabs where it was cut)
   const lvOf = (c) => (c.st === 'paved' ? 4000 : 0) + FLOOR;
-  function scrubSync() { if (hill.cells.scrub((id) => { const c = CELLS.get(id); return !!c && c.st !== 'rock'; })) requestShadow(false); }
+  const SCRUB_OFF = new Set();   // ── h115 ── cells cleared of their scrub while their rock stands (the kohen's work ground) ── /h115 ──
+  function scrubSync() { if (hill.cells.scrub((id) => { if (SCRUB_OFF.has(id)) return true; const c = CELLS.get(id); return !!c && c.st !== 'rock'; })) requestShadow(false); }
   /** the pit's floor at fill 0..1: its rim's lowest point less its depth, rising to the rim as it fills */
   function pitLevel(i, f) { const P = CG.PITS[i]; if (!P) return 1000; const lo = Math.min(...[[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]].map(([a, b]) => hill.heightAt0 ? hill.heightAt0(P.x + a * P.w / 2, P.z + b * P.d / 2) : hillY0(P.x + a * P.w / 2, P.z + b * P.d / 2))); return lo - P.depth * (1 - clamp(f, 0, 1)) - 0.2; }
   const cellsApi = {
@@ -1560,10 +1561,12 @@ export function createStages(ctx) {
     enable(on = true) {
       cellMode = !!on;
       if (cellMode) { setBoulders([]); hill.U.uCrest.value.set(1000, 1000, 0, 2.5); }
-      else { for (const id of CELLS.keys()) hill.cells.set(id, 1000); CELLS.clear(); for (let i = 0; i < CG.PITS.length; i++) hill.cells.set(CG.pitId(i), 1000); pitFill.length = 0; }
+      else { for (const id of CELLS.keys()) hill.cells.set(id, 1000); CELLS.clear(); SCRUB_OFF.clear(); for (let i = 0; i < CG.PITS.length; i++) hill.cells.set(CG.pitId(i), 1000); pitFill.length = 0; }
       scrubSync(); propsDirty = true; requestShadow(true);
     },
     id: (k, r) => CG.idOf(k, r),
+    /** ── h115 ── the scrub off a cell whose rock still stands (the full replay: bushes 5 amot wide stood in the kohen's works) ── /h115 ── */
+    clearScrub(k, r) { const id = CG.idOf(k, r); if (id < 0 || SCRUB_OFF.has(id)) return; SCRUB_OFF.add(id); scrubSync(); },
     /** the highest natural rock of a cell (−1e9: none of the platform's inside) */
     top: (k, r) => { const id = CG.idOf(k, r); return id >= 0 ? hill.cells.max(id) : -1e9; },
     state: (k, r) => { const c = CELLS.get(CG.idOf(k, r)); return c ? c.st : 'rock'; },

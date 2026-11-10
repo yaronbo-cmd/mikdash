@@ -2,7 +2,7 @@
  * the water), 3.4 paving the sector (the slabs puzzle: no joint over a joint), 3.9 clearing the waste (the sledge, the oxen, the fill
  * behind the east retaining wall). Spec docs/specs/shlav-01-olam-yashan-he.md. Every result is seen in the world (rule 31).
  */
-import { createGang, onPlane, clamp, lerp, ease } from './kit.js';
+import { createGang, onPlane, clamp, lerp, ease, clearView } from './kit.js';
 import { makeRock } from './rock.js';
 import { BOOK } from '../world/grid.js';
 
@@ -98,6 +98,8 @@ export const READ = {
   make(m, X) {
     const lv = X.level(), s = m.s, b = SH.bould[s], st = READ.stand(m, X), T = X.THREE;
     const R = bigRock(X, s, false), gy = R.gy;
+    // ── h115 ── (the full replay: the shot stood behind a cut cell's wall) the first side whose view of the rock is clear ── /h115 ──
+    const wShot = (o) => { let w0 = null; for (const k of [1, -1, 0.5, -0.5, 1.6, -1.6]) { const w = X.workShot({ x: b[0], z: b[1] }, st, { ...o, side: o.side * k || o.side }); if (!w0) w0 = w; if (clearView(X, w.p, w.t, [])) return w; } return w0; };
     const nW = [3, 4, 5][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]), ck = crackOf(s);
     const A = { step: 'turn', th: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { line: null, space: null, water: null }, fallen: 0, t: 0, creakT: 0, early: 0, wind: lv >= 3, busy: false };
     // the crack (a plane through the rock) and at level 3 a shallow scratch that does not go through
@@ -111,7 +113,7 @@ export const READ = {
       return { Pl, psi, pts, mesh, ok, shown: 0, seen: false, curve };
     }
     // (the crack runs on the face the camera sees best: between his side and the camera's, its own place on each rock)
-    const ws0 = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
+    const ws0 = wShot({ dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
     const phiC = Math.atan2(ws0.p[2] - b[1], ws0.p[0] - b[0]), dC = Math.atan2(Math.sin(phiC - phiK), Math.cos(phiC - phiK));
     const psi0 = phiK + dC * 0.6;
     { const L = mkLine(psi0 + ck.off * 0.45, ck.tilt, true); if (L) A.lines.push(L); }
@@ -230,7 +232,7 @@ export const READ = {
       const lost = wrong && g.space === 'ok';
       const at = { x: b[0], y: gy + R.r * R.sy * 0.9, z: b[1] };
       X.play('creak'); X.shake(0.25, 0.35);
-      const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 2.6 + 9, el: 28, side: -0.5, lift: R.r * 0.4 });
+      const ws = wShot({ dist: R.r * 2.6 + 9, el: 28, side: -0.5, lift: R.r * 0.4 });
       X.shot(ws.p, ws.t, 1.2);
       // the halves part along the very crack he read: slowly with the groan, then like a book
       R.halves(A.pick.Pl);
@@ -258,7 +260,7 @@ export const READ = {
     }
     return {
       begin() {
-        const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
+        const ws = wShot({ dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
         X.shot(ws.p, ws.t, 0.9);
         X.line('גררו ימינה ושמאלה · המראה מאירה את הסלע');
         { const q = R.hitAt(phiK, hP); if (q) X.hand({ x: q.p.x, y: q.p.y, z: q.p.z }, -120, 0); }
@@ -325,7 +327,7 @@ export const READ = {
               A.step = 'water'; A.water = 0; waterMake(A.pick);
               try { X.hero.walkTo({ x: st.x, z: st.z, face: [b[0], b[1]] }); } catch (e) { /* */ }   // (he steps back: the helper pours)
               X.line('החזיקו לשפוך מים לסדק · שחררו כשהחריקה נגמרת');
-              const ws = X.workShot({ x: b[0], z: b[1] }, st, { dist: R.r * 1.7 + 8, el: 22, side: -0.95, lift: R.r * 0.3 });
+              const ws = wShot({ dist: R.r * 1.7 + 8, el: 22, side: -0.95, lift: R.r * 0.3 });
               X.shot(ws.p, ws.t, 0.7);
               X.hand({ x: water.top.x, y: water.top.y + 0.6, z: water.top.z }, 0, 0);
             }

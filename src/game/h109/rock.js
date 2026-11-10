@@ -17,7 +17,9 @@ export function makeRock(T, o) {
   const ph = [R() * 6.28, R() * 6.28, R() * 6.28, R() * 6.28, R() * 6.28, R() * 6.28];
   // the shape: a sphere pushed in and out by a few smooth waves (the same at every shared corner: no gaps), its bottom flattened,
   // bedded a fifth of its height into the ground
-  const g0 = new T.IcosahedronGeometry(1, 3), P = g0.attributes.position, v = new T.Vector3();
+  const g0 = new T.IcosahedronGeometry(1, 4), P = g0.attributes.position, v = new T.Vector3();
+  // ── h117 ── (ירון 10.11 "פשוט נראה לא איכותי") more facets, and the rock's own layers: bands of a slightly different tone, by height
+  const COL = new Float32Array(P.count * 3);
   for (let i = 0; i < P.count; i++) {
     v.fromBufferAttribute(P, i);
     const k = 1 + 0.11 * Math.sin(3.1 * v.x + ph[0]) * Math.sin(2.3 * v.y + ph[1]) + 0.07 * Math.sin(4.7 * v.z + ph[2]) * Math.cos(3.9 * v.x + ph[3]) + 0.05 * Math.sin(6.1 * v.y + ph[4] + 2.0 * v.z) + 0.04 * Math.sin(7.3 * v.x + ph[5]);
@@ -26,11 +28,16 @@ export function makeRock(T, o) {
     // (turned by the rock's yaw)
     const c = Math.cos(yaw), s = Math.sin(yaw), X = v.x * c + v.z * s, Z = -v.x * s + v.z * c; v.x = X; v.z = Z;
     P.setXYZ(i, v.x, v.y, v.z);
+    { const hh = v.y / (r * sy), band = Math.sin(hh * 9.5 + 0.9 * Math.sin(v.x * 1.7 / r + ph[5]) + ph[2]), fl = 0.5 + 0.5 * Math.sin(v.x * 5.3 / r + v.z * 4.1 / r + ph[4]) * Math.sin(v.y * 6.7 / r + ph[1]);
+      const f = 0.86 + 0.07 * band + 0.06 * fl - 0.08 * Math.max(0, -hh - 0.25);   // (darker by the ground: soil and shade)
+      COL[i * 3] = f * 1.01; COL[i * 3 + 1] = f; COL[i * 3 + 2] = f * 0.97; }
   }
+  g0.setAttribute('color', new T.BufferAttribute(COL, 3));
   g0.computeVertexNormals();
   const cy = gy - r * sy * 0.2;   // the centre: a fifth of the height in the hill
   const group = new T.Group(); group.position.set(x, cy, z); group.name = 'h109-bigrock';
-  const mat = o.mat || new T.MeshStandardMaterial({ color: '#BDB197', roughness: 0.96, flatShading: true });
+  const mat0 = o.mat || new T.MeshStandardMaterial({ color: '#BDB197', roughness: 0.96, flatShading: true });
+  const mat = mat0.vertexColors ? mat0 : (mat0.userData.vc || (mat0.userData.vc = Object.assign(mat0.clone(), { vertexColors: true })));   // ── /h117 ──
   const whole = new T.Mesh(g0, mat); whole.castShadow = true; whole.receiveShadow = true; group.add(whole);
   const C = new T.Vector3(x, cy, z);
   const ray = new T.Raycaster();

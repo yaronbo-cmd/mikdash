@@ -329,7 +329,7 @@ export function createH109Director(o) {
 .h109-ovb.on ~ .h109-ovt{opacity:1}
 .h109-lkb{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(74px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;background:rgba(255,246,218,.94);color:#3A2608;border:0;font:900 15px/1 Heebo,system-ui;padding:10px 14px;border-radius:18px;box-shadow:0 3px 10px rgba(0,0,0,.35);transition:opacity .2s;cursor:pointer}
 .h109-lkb.on{opacity:1;pointer-events:auto}
-.h109-wait{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1.2 Heebo,system-ui;padding:7px 16px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
+.h109-wait{left:50%;top:calc(112px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1.2 Heebo,system-ui;padding:7px 16px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
 .h109-wait.on{opacity:1}
 body.h109-act .gm .tw-zone{opacity:0!important}
 .h109-pf{left:0;top:0;right:0;bottom:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;overflow:hidden;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 46%,rgba(255,236,160,.96) 0,rgba(255,196,64,.9) 26%,rgba(178,96,8,.88) 62%,rgba(58,28,2,.93) 100%)}
@@ -573,7 +573,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, get acting() { return phase === 'act'; }, ui, sfx: o.sfx, haptic: o.haptic,
     actors: () => S0.crewActors || null, PLACES, H109,
     beat() { let b = null; try { const Mu = globalThis.__BH_MUSIC; b = Mu && typeof Mu.beat === 'function' ? Mu.beat() : null; } catch (e) { b = null; } return b && b.period > 0.2 && Number.isFinite(+b.toNext) ? b : null; },
-    play(name) { try { if (o.sfx && o.sfx.play) o.sfx.play(name); } catch (e) { /* */ } },
+    play(name, opt) { try { if (o.sfx && o.sfx.play) o.sfx.play(name, opt); } catch (e) { /* */ } },
     shake(t = 0.15, a = 0.3) { try { S0.twinShake(t, a); } catch (e) { /* */ } },
     dust(x, y, z, n = 10, s = 4) { try { S0.dustBurst(x, y, z, n, s, s, 1.5); } catch (e) { /* */ } },
     sparks(x, y, z, n = 10) { try { S0.sparkBurst(x, y, z, n, 5, 6); } catch (e) { /* */ } },

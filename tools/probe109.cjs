@@ -12,7 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--mute-audio'] });
-  const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: true, isMobile: W < 1000, deviceScaleFactor: 1, locale: 'he-IL' });
+  const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !process.env.MOUSE, isMobile: !process.env.MOUSE && W < 1000, deviceScaleFactor: 1, locale: 'he-IL' });
   const pg = await ctx.newPage();
   const errs = [];
   pg.on('console', (m) => { if (m.type() === 'error' || /\[h109\]/.test(m.text())) errs.push(m.type() + ' ' + m.text().slice(0, 300)); });
@@ -25,6 +25,12 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   await pg.goto('file://' + path.join(ROOT, 'dist/test.html'));
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 });
   const cdp = await ctx.newCDPSession(pg);
+  // (MOUSE=1: the same script played with a mouse; the first finger is the mouse, a second finger is ignored)
+  if (process.env.MOUSE) { const send0 = cdp.send.bind(cdp); let down = false, last = [0, 0];
+    cdp.send = async (m, o) => { if (m !== 'Input.dispatchTouchEvent') return send0(m, o); const p = o.touchPoints && o.touchPoints[0];
+      if (o.type === 'touchStart' && p && !down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); await pg.mouse.down(); down = true; }
+      else if (o.type === 'touchMove' && p && down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); }
+      else if (o.type === 'touchEnd' && down) { await pg.mouse.up(); down = false; } }; }
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x: Math.round(x), y: Math.round(y), id: 7 + i, radiusX: 6, radiusY: 6, force: 1 })) });
   const T0 = Date.now(); let n = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);

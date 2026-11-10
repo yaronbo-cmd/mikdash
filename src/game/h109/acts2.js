@@ -6,6 +6,7 @@ import { createGang, onPlane, clamp, lerp, ease, clearView, viewBlock, rayBlocke
 import { makeRock } from './rock.js';
 import { BOOK, rectOf } from '../world/grid.js';
 import * as PV from './paving.js';
+import * as WG from './wedges.js';   // ── h117 ── ── /h117 ──
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -80,6 +81,14 @@ function wedgeGeo(T) {
   g.computeVertexNormals();   // (its thin edge at +z: lookAt points +z into the slot)
   SH.wedgeG = g; return g;
 }
+/** ── h117 ── oak with a darker grain (the wedges); the mirror's spot light, made once and kept in the scene (its count of lights never
+ *  changes, so no material is rebuilt when it is used) ── /h117 ── */
+function wedgeMat(X) { if (!SH.wedgeM) SH.wedgeM = new X.THREE.MeshStandardMaterial({ color: '#9A6A3A', roughness: 0.85, flatShading: true }); return SH.wedgeM; }
+function spotLight(X) {
+  if (SH.spotL) return SH.spotL;
+  const L = new X.THREE.SpotLight(0xFFF0C4, 0, 0, 0.3, 0.55, 2); L.castShadow = false; L.name = 'h117-mirror-light';
+  X.props.root.add(L); X.props.root.add(L.target); SH.spotL = L; return L;
+}
 export const READ = {
   icon: '🔍', title: 'קריאת הסלע',
   walkLine: (m) => (m.free ? 'סלע גדול בהר · עבודת רשות' : `הסלע הגדול של גזרה ${m.s + 1}: מוצאים בו את הסדק`),
@@ -96,23 +105,44 @@ export const READ = {
     const fa = pa + Math.PI * 0.75, fx = b[0] + Math.cos(fa) * (b[2] + 1.4), fz = b[1] + Math.sin(fa) * (b[2] + 1.4);
     SH.secCrew.push(C.add(fx, fz, { role: 'hammer', item: 'mallet', fx: b[0], fz: b[1], crew: 3 }));
   },
+  /* ── h117 ── (ירון 10.11: "רואים את הסדק לפני שהאור מונח על הסלע. האור נשבר על הסלע בלי קשר לצורתו של הסלע. הסדק עובר רק בחלק קטן
+   * של הסלע, לא מבינים מהו מנגנון הביקוע"; "כל יתד נכנסה ישר למקומה בלי ניסיון שני, אפס אתגר"; "קריאת הסלע בלי טעויות תמיד מושלם")
+   * rebuilt in three parts (docs/specs/build117-brief.md §R): (1) the mirror's light is a real spot on the rock, the finger puts it
+   * where it touches the rock; the crack, unseen without the light, is traced along with it from the ground to the top and chalked
+   * where the light has passed; it goes right round the rock (the masons chalk the far side once the near side is traced); at level 3
+   * a scratch ends in the middle of the face. (2) wedges sit only on the crack, then are struck in rounds: three blows each, evenly
+   * (h109/wedges.js); a wedge two blows ahead pulls the crack aside; from level 2 an unstruck wedge backs out. (3) the water runs round
+   * the whole crack, the wedges swell, the rock opens on the line. (The method: illustration, המחשה.) ── /h117 ── */
   make(m, X) {
     const lv = X.level(), s = m.s, b = SH.bould[s], st = READ.stand(m, X), T = X.THREE;
     const R = bigRock(X, s, false), gy = R.gy;
-    // ── h115 ── (the full replay: the shot stood behind a cut cell's wall) the first side whose view of the rock is clear ── /h115 ──
     const OB = (SH.bould || []).map((q, i) => (i === s || !q ? null : { x: q[0], y: X.ground(q[0], q[1]) + q[2] * 0.45, z: q[1], r: q[2] * 0.95 })).filter(Boolean);
     const wShot = (o) => { let best = null, bn = 1e9; for (const dk of [1, 0.75]) for (const k of [1, -1, 0.5, -0.5, 1.6, -1.6, 0]) { const w = X.workShot({ x: b[0], z: b[1] }, st, { ...o, dist: o.dist * dk, side: o.side * k }); const n = viewBlock(X, w.p, w.t, OB) + (rayBlocked(X, w.p, w.t) ? 6 : 0); if (n < bn) { bn = n; best = w; } if (!n) return w; } return best; };
-    const nW = [3, 4, 5][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]), ck = crackOf(s);
-    const A = { step: 'turn', th: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { line: null, space: null, water: null }, fallen: 0, t: 0, creakT: 0, early: 0, wind: lv >= 3, busy: false };
-    // the crack (a plane through the rock) and at level 3 a shallow scratch that does not go through
+    const nW = [3, 4, 5][lv - 1], TOL = [26, 20, 14][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]), ck = crackOf(s);
+    const A = { step: 'trace', t: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { trace: null, rounds: null, water: null }, fallen: 0, busy: 0, wind: lv >= 3, spot: null, spotN: null, round: null, early: 0, creakT: 0 };
+    const gR = clamp(R.r * 0.3, 1.1, 2.4);
+    const C0 = R.C, tv = new T.Vector3(), tv2 = new T.Vector3(), up = new T.Vector3(0, 1, 0), tq = new T.Quaternion();
+    const nrmAt = (p) => tv2.copy(p).sub(C0).normalize().clone();
+    const grooveM = new T.MeshBasicMaterial({ color: 0x160E06, transparent: true, opacity: 0.9, depthWrite: false, side: T.DoubleSide });
+    const chalkM = new T.MeshBasicMaterial({ color: 0xF7F2E4, transparent: true, opacity: 0.95, depthWrite: false, side: T.DoubleSide });
+    const crookM = new T.MeshBasicMaterial({ color: 0x8A3414, transparent: true, opacity: 0.95, depthWrite: false, side: T.DoubleSide });
+    /** a flat strip lying on the rock from a to c (width w), a hair off the surface; off: sideways shift (the chalk beside the groove) */
+    function strip(a, c, w, mat, off = 0, lift = 0.03) {
+      const na = nrmAt(a), nc = nrmAt(c), d = tv.subVectors(c, a), side = new T.Vector3().crossVectors(d, na).normalize();
+      const P = [];
+      for (const [p, n] of [[a, na], [c, nc]]) for (const sg of [-1, 1]) { const q = p.clone().addScaledVector(side, off + (sg * w) / 2).addScaledVector(n, lift); P.push(q.x, q.y, q.z); }
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setIndex([0, 1, 2, 2, 1, 3]);
+      const mm = new T.Mesh(g, mat); mm.renderOrder = 995; mm.visible = false; X.props.root.add(mm); return mm;
+    }
     function mkLine(psi, tilt, ok) {
       const Pl = R.plane(psi, tilt);
-      const pts = ok ? R.crackPts(Pl, -0.3, 1.3, 18) : R.crackPts(Pl, 0.35, 0.95, 8);
-      if (pts.length < 3) return null;
-      const curve = new T.CatmullRomCurve3(pts);
-      const mat = new T.MeshBasicMaterial({ color: 0x1E140A, transparent: true, opacity: 0, depthWrite: false });
-      const mesh = new T.Mesh(new T.TubeGeometry(curve, pts.length * 3, ok ? 0.11 : 0.07, 6, false), mat); mesh.renderOrder = 995; X.props.root.add(mesh);
-      return { Pl, psi, pts, mesh, ok, shown: 0, seen: false, curve };
+      const pts = ok ? R.crackPts(Pl, -0.3, Math.PI + 0.3, 46) : R.crackPts(Pl, -0.3, 0.72, 15);
+      if (pts.length < 4) return null;
+      let top = 0; pts.forEach((q, i) => { if (q.y > pts[top].y) top = i; });
+      const near = ok ? top : pts.length - 1;
+      const seg = [], chalk = [];
+      for (let i = 0; i < pts.length - 1; i++) { seg.push(strip(pts[i], pts[i + 1], ok ? 0.17 : 0.11, grooveM)); chalk.push(i % 2 ? null : strip(pts[i], pts[i + 1], 0.07, chalkM, ok ? 0.24 : 0.18)); }
+      return { Pl, psi, pts, ok, seg, chalk, mark: pts.map(() => false), near, dead: false, done: false };
     }
     // (the crack runs on the face the camera sees best: between his side and the camera's, its own place on each rock)
     const ws0 = wShot({ dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
@@ -120,220 +150,253 @@ export const READ = {
     const psi0 = phiK + dC * 0.6;
     { const L = mkLine(psi0 + ck.off * 0.45, ck.tilt, true); if (L) A.lines.push(L); }
     if (lv >= 3) { const L = mkLine(psi0 + ck.doff * 0.55, ck.dtilt, false); if (L) A.lines.push(L); }
-    // (where the light must point to fall on each crack: the azimuth of its point at the patch's height)
-    const hP = clamp(R.r * R.sy * 0.32, 1.4, 3.2);
-    for (const L of A.lines) { let bp = L.pts[0], bd = 1e9; for (const q of L.pts) { const d = Math.abs(q.y - (gy + hP)); if (d < bd) { bd = d; bp = q; } } L.az = Math.atan2(bp.z - b[1], bp.x - b[0]); L.aim = Math.atan2(Math.sin(L.az - phiK), Math.cos(L.az - phiK)); }
-    // the mirror: a bronze disc with a rim and a handle, in his hand; the sun's ray to it, its ray to the rock; the patch on the face
-    if (!SH.sunTex) {
-      const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
-      const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,250,225,1)'); gr.addColorStop(0.3, 'rgba(255,232,160,0.85)'); gr.addColorStop(0.7, 'rgba(255,205,120,0.3)'); gr.addColorStop(1, 'rgba(255,190,100,0)');
-      g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SH.sunTex = new T.CanvasTexture(cv);
-    }
+    const TRUE = A.lines.find((L) => L.ok) || A.lines[0];
+    function markSeg(L, i, on) { if (L.seg[i]) L.seg[i].visible = on; if (L.chalk[i]) L.chalk[i].visible = on; }
+    function reveal(L) { for (let i = 0; i < L.pts.length - 1; i++) markSeg(L, i, L.mark[i] || L.mark[i + 1]); }
+    // the mirror: a bronze disc with a rim and a handle, in his hand; a short ray of the sun to it, its ray to the rock
     const mirror = new T.Group();
     { const disc = new T.Mesh(new T.CircleGeometry(0.5, 24), new T.MeshStandardMaterial({ color: '#E8C27A', metalness: 1, roughness: 0.12, emissive: '#B08030', emissiveIntensity: 0.55, side: T.DoubleSide })); mirror.add(disc);
       const rim = new T.Mesh(new T.TorusGeometry(0.5, 0.05, 6, 24), new T.MeshStandardMaterial({ color: '#8A5A22', metalness: 0.7, roughness: 0.4 })); mirror.add(rim);
       const hd = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 0.6, 6), X.props.M.woodD); hd.position.set(0, -0.78, 0); mirror.add(hd); }
     X.props.root.add(mirror);
     const rayM = (op) => { const mm = X.props.M.beam.clone(); mm.opacity = op; return mm; };
-    const beamIn = new T.Mesh(new T.CylinderGeometry(0.08, 0.3, 1, 8, 1, true), rayM(0.16)), beamOut = new T.Mesh(new T.CylinderGeometry(0.1, 0.5, 1, 8, 1, true), rayM(0.22));
+    const beamIn = new T.Mesh(new T.CylinderGeometry(0.08, 0.2, 1, 8, 1, true), rayM(0.12)), beamOut = new T.Mesh(new T.CylinderGeometry(0.08, 0.32, 1, 8, 1, true), rayM(0.16));
     for (const bm of [beamIn, beamOut]) { bm.frustumCulled = false; bm.renderOrder = 998; X.props.root.add(bm); }
-    const gR = clamp(R.r * 0.3, 1.1, 2.4);
-    const glowM = new T.MeshBasicMaterial({ map: SH.sunTex, color: 0xFFFFFF, transparent: true, opacity: 0.95, depthWrite: false, blending: T.AdditiveBlending });
-    const glow = new T.Mesh(new T.CircleGeometry(gR, 24), glowM); glow.renderOrder = 997; X.props.root.add(glow);
-    const hp = {}, up = new T.Vector3(0, 1, 0), tv = new T.Vector3(), tq = new T.Quaternion();
+    const SPOT = spotLight(X);
     const SUN = new T.Vector3(-0.35, 1, 0.45).normalize();
     function rayBetween(mesh, a, c) { tv.subVectors(c, a); const L = tv.length(); mesh.position.copy(a).addScaledVector(tv, 0.5); tq.setFromUnitVectors(up, tv.normalize()); mesh.quaternion.copy(tq); mesh.scale.set(1, L, 1); }
-    const mp = new T.Vector3(), spotP = new T.Vector3(), sunP = new T.Vector3();
+    const mp = new T.Vector3(), sunP = new T.Vector3(), spotW = new T.Vector3(), hp = {};
+    const hP = clamp(R.r * R.sy * 0.32, 1.4, 3.2);
+    { const h0 = R.hitAt(phiK, hP * 0.6); if (h0) { A.spot = h0.p.clone(); A.spotN = h0.n.clone(); } }
     function light(dt) {
-      if (A.wind) A.th += Math.sin(A.t * 9) * 0.0035 + Math.sin(A.t * 23) * 0.0018;
-      const az = phiK + A.th, hit = R.hitAt(az, hP);
       X.stages.heroXYZ(hp);
-      const fx = Math.cos(phiK + Math.PI), fz = Math.sin(phiK + Math.PI);   // (toward the rock from his stand)
+      const fx = Math.cos(phiK + Math.PI), fz = Math.sin(phiK + Math.PI);
       mp.set(hp.x + fx * 0.75 - fz * 0.35, hp.y + 2.25, hp.z + fz * 0.75 + fx * 0.35);
       mirror.position.copy(mp);
-      const vis = (A.step === 'turn' || A.step === 'wedge') && !!hit;
-      if (hit) {
-        spotP.copy(hit.p);
-        // the mirror's face halfway between the sun and the rock (that is how a mirror throws the sun)
-        const toRock = tv.subVectors(spotP, mp).normalize().clone(); const nrm = toRock.add(SUN).normalize();
-        mirror.lookAt(mp.x + nrm.x, mp.y + nrm.y, mp.z + nrm.z);
-        sunP.copy(mp).addScaledVector(SUN, 14);
-        rayBetween(beamIn, sunP, mp); rayBetween(beamOut, mp, spotP);
-        glow.position.copy(hit.p).addScaledVector(hit.n, 0.08); glow.lookAt(glow.position.x + hit.n.x, glow.position.y + hit.n.y, glow.position.z + hit.n.z);
-      }
-      beamIn.visible = beamOut.visible = glow.visible = vis; mirror.visible = A.step === 'turn' || A.step === 'wedge';
-      glowM.opacity = 0.85 + Math.sin(A.t * 5) * 0.08;
+      const on = (A.step === 'trace' || A.step === 'wedge') && !!A.spot;
+      mirror.visible = A.step === 'trace' || A.step === 'wedge';
+      beamIn.visible = beamOut.visible = on;
+      if (!on) { SPOT.intensity = 0; return; }
+      spotW.copy(A.spot);
+      if (A.wind) { const n = A.spotN || up; const a1 = new T.Vector3().crossVectors(n, up).normalize(), a2 = new T.Vector3().crossVectors(n, a1).normalize(); spotW.addScaledVector(a1, Math.sin(A.t * 2.3) * 0.28 + Math.sin(A.t * 7.1) * 0.08).addScaledVector(a2, Math.cos(A.t * 1.7) * 0.2); }
+      const toRock = tv.subVectors(spotW, mp).normalize().clone(); const nrm = toRock.clone().add(SUN).normalize();
+      mirror.lookAt(mp.x + nrm.x, mp.y + nrm.y, mp.z + nrm.z);
+      sunP.copy(mp).addScaledVector(SUN, 3.2);
+      rayBetween(beamIn, sunP, mp); rayBetween(beamOut, mp, spotW);
+      // the real light: a spot from the mirror on the rock (it bends over the facets; nothing of it outside the rock but what it lights)
+      SPOT.position.copy(mp); SPOT.target.position.copy(spotW); SPOT.target.updateMatrixWorld(); SPOT.angle = Math.atan2(gR, mp.distanceTo(spotW)); SPOT.intensity = 80 + Math.sin(A.t * 5) * 6;
+      // what the light passes over is chalked
       for (const L of A.lines) {
-        let d = 1e9; if (hit) for (const q of L.pts) d = Math.min(d, q.distanceTo(hit.p));
-        if (hit && d < gR * 0.55 && !L.seen) {
-          L.seen = true; X.play('find');
-          const top = L.pts[Math.min(L.pts.length - 1, Math.floor(L.pts.length * 0.7))];
-          X.word({ x: top.x, y: top.y + 1.2, z: top.z }, L.ok || lv < 3 ? 'סדק בסלע! כאן הוא ייבקע' : 'עוד סדק');
-          if (!A.pick) { X.line('הקישו על הסדק · תוקעים בו יתד'); const q = L.pts[2]; X.hand({ x: q.x, y: q.y, z: q.z }, 0, 12); }
+        if (L.dead) continue; let ch = false;
+        for (let i = 0; i < L.pts.length; i++) if (!L.mark[i] && L.pts[i].distanceTo(spotW) < gR * 0.55) { L.mark[i] = true; ch = true; }
+        if (ch) {
+          reveal(L); X.play('find');
+          if (!L.ok && L.mark.every(Boolean) && !L.dead) {
+            L.dead = true; const e = L.pts[L.pts.length - 1]; X.word({ x: e.x, y: e.y + 1, z: e.z }, 'שריטה: נגמרת כאן · זה לא הסדק');
+            setTimeout(() => { for (let i = 0; i < L.pts.length - 1; i++) markSeg(L, i, false); }, 1400);
+          }
         }
-        // a crack is in the stone all along (faint), darker in the light; once found it stays
-        const base = lv === 1 ? 0.28 : lv === 2 ? 0.16 : 0.1;
-        const prox = L.seen ? 1 : base + (1 - base) * clamp(1 - d / (gR * 1.6), 0, 1) ** 2 * 0.7;
-        L.shown += (prox - L.shown) * Math.min(1, dt * 6); L.mesh.material.opacity = L.shown * 0.95;
+      }
+      if (A.step === 'trace') {
+        const L = TRUE; let n = 0; for (let i = 0; i <= L.near; i++) if (L.mark[i]) n++;
+        if (L.mark[L.near] && n >= (L.near + 1) * 0.85) traced();
       }
     }
-    function lineDist(L, p) {
-      let best = 1e9, bu = 0; const n = L.pts.length;
-      for (let i = 0; i < n - 1; i++) {
+    function traced() {
+      const L = TRUE; A.step = 'wedge'; A.res.trace = A.fallen ? 'good' : 'gold';
+      for (let i = 0; i <= L.near; i++) L.mark[i] = true;
+      reveal(L);
+      // the masons walk round and chalk the rest of it, over the top and down the far side (seen growing)
+      let k = L.near; const grow = () => { if (A.step === 'split' || k >= L.pts.length - 1) return; L.mark[++k] = true; markSeg(L, k - 1, true); setTimeout(grow, 60); }; grow();
+      const tp = L.pts[L.near]; X.hit({ x: tp.x, y: tp.y + 1.2, z: tp.z }, 'gold', { text: 'הסדק עובר בכל הסלע', craft: 'סתתים' });
+      X.line(`הקישו על הסדק · ${nW} יתדות לאורכו`);
+      const q = L.pts[Math.floor(L.near * 0.3)]; X.hand({ x: q.x, y: q.y, z: q.z }, 0, 12);
+    }
+    function nearDist(L, p) {
+      let best = 1e9, bu = 0; const n = L.near;
+      for (let i = 0; i < n; i++) {
         const a = X.scr(L.pts[i].x, L.pts[i].y, L.pts[i].z), c = X.scr(L.pts[i + 1].x, L.pts[i + 1].y, L.pts[i + 1].z);
         const vx = c.x - a.x, vy = c.y - a.y, l2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / l2, 0, 1);
-        const d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < best) { best = d; bu = (i + u) / (n - 1); }
+        const d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < best) { best = d; bu = (i + u) / Math.max(1, n); }
       }
       return { d: best, u: bu };
     }
-    const ptAt = (L, u) => { const n = L.pts.length - 1, i = Math.min(n - 1, Math.floor(u * n)), f = u * n - i; return L.pts[i].clone().lerp(L.pts[i + 1], f); };
-    const outOf = (p) => { const v = new T.Vector3(p.x - R.C.x, 0, p.z - R.C.z).normalize(); return v; };
+    const ptAt = (L, u) => { const n = L.near, f0 = clamp(u, 0, 1) * n, i = Math.min(n - 1, Math.floor(f0)), f = f0 - i; return L.pts[i].clone().lerp(L.pts[i + 1], f); };
+    const outOf = (p) => nrmAt(p);
+    const tally = (n) => { const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64; const g = cv.getContext('2d'); g.strokeStyle = 'rgba(250,246,234,.95)'; g.lineWidth = 9; g.lineCap = 'round'; for (let i = 0; i < n; i++) { g.beginPath(); g.moveTo(30 + i * 34, 10); g.lineTo(30 + i * 34, 54); g.stroke(); } const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true, depthWrite: false, depthTest: false })); sp.scale.set(0.9, 0.45, 1); sp.renderOrder = 999; return sp; };
     function wedgeMesh(p) {
-      const w = new T.Mesh(wedgeGeo(T), X.props.M.wood); w.castShadow = true;
-      const o = outOf(p); w.position.copy(p).addScaledVector(o, 0.75); w.lookAt(p.x - o.x * 9, p.y, p.z - o.z * 9);   // (its edge at the slot, head out)
-      X.props.root.add(w); return { w, o, p };
+      const g = new T.Group(); const w = new T.Mesh(wedgeGeo(T), wedgeMat(X)); w.castShadow = true; g.add(w);
+      const band = new T.Mesh(new T.BoxGeometry(0.5, 0.08, 0.34), X.props.M.iron || X.props.M.woodD); band.position.set(0, 0, 0.62); band.rotation.x = Math.PI / 2; g.add(band);
+      const o = outOf(p); g.position.copy(p).addScaledVector(o, 0.75); g.lookAt(p.x - o.x * 9, p.y - o.y * 9, p.z - o.z * 9);
+      g.rotation.z += (hash(p.x, p.z) - 0.5) * 0.3;
+      // the slot the mason cut for it: a dark notch on the crack that opens with every blow
+      const slot = new T.Mesh(new T.BoxGeometry(0.16, 0.16, 0.6), grooveM); slot.position.copy(p).addScaledVector(o, 0.02); slot.lookAt(p.x - o.x, p.y - o.y, p.z - o.z); slot.renderOrder = 994; X.props.root.add(slot);
+      X.props.root.add(g); return { w: g, o, p, slot, blows: 0, tr: 0, tag: null };
     }
-    /** he steps to the point and strikes: → Promise (the contact) */
-    async function strikeAt(p) {
-      A.busy = true;
-      // (he strikes from the side of the point away from the camera: never between the eye and the crack)
-      const o = outOf(p); let tx = -o.z, tz = o.x; const cq = X.view.camNow({}); if (tx * (cq.px - p.x) + tz * (cq.pz - p.z) > 0) { tx = -tx; tz = -tz; }
-      const sx = p.x + o.x * 1.5 + tx * 1.3, sz = p.z + o.z * 1.5 + tz * 1.3;
-      try { const hh = X.stages.heroXYZ({}); if (Math.hypot(hh.x - sx, hh.z - sz) > 0.6) await Promise.race([X.hero.walkTo({ x: sx, z: sz, face: [p.x, p.z] }), new Promise((r) => setTimeout(r, 1600))]); } catch (e) { /* */ }
-      const tgt = { x: p.x, y: Math.min(p.y, gy + 2.6), z: p.z };
-      try { await Promise.race([X.hero.act('split', tgt, { snap: true }), new Promise((r) => setTimeout(r, 700))]); } catch (e) { /* */ }
-      A.busy = false;
+    function seat(W) {
+      W.w.position.copy(W.p).addScaledVector(W.o, 0.62 - 0.14 * W.blows);
+      W.slot.scale.set(1 + W.blows * 0.9, 1, 1);
+      if (W.tag) { X.props.remove(W.tag); W.tag = null; }
+      if (W.blows) { W.tag = tally(W.blows); W.tag.position.copy(W.p).addScaledVector(W.o, 0.75).add(new T.Vector3(0, 0.5, 0)); X.props.root.add(W.tag); }
     }
-    async function fall(p, why) {
-      // he drives it where there is no crack: it does not bite, it bounces off and drops at his feet
-      const W0 = wedgeMesh(p); await strikeAt(p);
+    /** the kohen swings at a point on the rock: brought within his reach (beyond it the old world would set his own banker and stone
+     *  before him, a block with wedges that is not this rock's) */
+    function swing(p) {
+      const h = X.heroAt ? X.heroAt() : null, hx = h && Number.isFinite(h.x) ? h.x : st.x, hz = h && Number.isFinite(h.z) ? h.z : st.z;
+      const dx = p.x - hx, dz = p.z - hz, d = Math.hypot(dx, dz) || 1, k = Math.min(1, 6.4 / d);
+      const x = hx + dx * k, z = hz + dz * k, g = X.ground(x, z);
+      try { X.hero.act('split', { x, y: Math.min(Math.max(p.y, g + 0.6), g + 2.6), z }, { snap: true }); } catch (e) { /* */ }
+      try { if (X.hero.workpiece() != null) X.hero.workpiece(null); } catch (e) { /* */ }
+    }
+    function fall(p, why) {
+      // (no bite: it drops at the rock's foot)
+      const W0 = wedgeMesh(p); X.props.remove(W0.slot); const w = W0.w;
       X.play('wood'); X.dust(p.x, p.y, p.z, 3, 1);
-      const w = W0.w; const t0 = performance.now(); const y0 = w.position.y, g = X.ground(w.position.x + W0.o.x, w.position.z + W0.o.z);
+      swing(p);
+      const t0 = performance.now(), y0 = w.position.y, g = X.ground(w.position.x + W0.o.x, w.position.z + W0.o.z);
       const fallStep = () => { const k = Math.min(1, (performance.now() - t0) / 500); w.position.x += W0.o.x * 0.04; w.position.z += W0.o.z * 0.04; w.position.y = y0 + (g + 0.15 - y0) * k * k; w.rotation.x += 0.2; if (k < 1) requestAnimationFrame(fallStep); };
-      fallStep();
-      A.fallen++; (A.junk = A.junk || []).push(w);
+      fallStep(); A.fallen++; (A.junk = A.junk || []).push(w);
       X.word({ x: p.x, y: p.y + 1.2, z: p.z }, why || 'לא על הסדק: היתד לא נתפסה ונפלה');
     }
-    function spacing() {
-      const us = A.wedges.map((w) => w.u).sort((a, c) => a - c); const gaps = []; for (let i = 1; i < us.length; i++) gaps.push(us[i] - us[i - 1]);
-      const mean = gaps.reduce((a, c) => a + c, 0) / (gaps.length || 1), sd = Math.sqrt(gaps.reduce((a, c) => a + (c - mean) ** 2, 0) / (gaps.length || 1));
-      const cv = mean > 0 ? sd / mean : 1; return cv <= 0.22 ? 'gold' : cv <= 0.45 ? 'good' : 'ok';
+    function crookFrom(W) {
+      // the crack pulled aside: a crooked branch runs off the line from this wedge (on the rock's own face)
+      const L = TRUE, i = Math.round(W.u * L.near), a = L.pts[Math.max(0, i - 1)], c = L.pts[Math.min(L.pts.length - 1, i + 1)];
+      const along = tv.subVectors(c, a).normalize().clone(), side = new T.Vector3().crossVectors(along, outOf(W.p)).normalize(), sg = hash(i, s) > 0.5 ? 1 : -1;
+      const P = [W.p.clone()]; for (let k = 1; k <= 5; k++) { const q = W.p.clone().addScaledVector(side, sg * k * 0.32).addScaledVector(along, (k % 2 ? 0.12 : -0.05) - k * 0.06); const h = R.hitDir(tv.subVectors(q, C0).normalize().clone()); P.push(h ? h.p : q); }
+      const out = []; for (let k = 0; k < P.length - 1; k++) { const mm = strip(P[k], P[k + 1], 0.12, crookM); mm.visible = true; out.push(mm); }
+      (A.crooks = A.crooks || []).push(...out);
     }
-    // the water: a blue thread down the chosen crack, filling from the top as he pours
+    function strike(W, i) {
+      if (A.busy > 0) return;
+      A.busy = 0.35;
+      swing(W.p);
+      const r = WG.blow(A.round, i, A.t);
+      if (!r.ok) { if (r.full) X.word({ x: W.p.x, y: W.p.y + 1.2, z: W.p.z }, 'היתד הזאת כבר עמוק · הכו באחרות'); return; }
+      W.blows = A.round.blows[i]; seat(W);
+      X.play('wedge', { n: W.blows * 2 }); X.sparks(W.p.x, W.p.y, W.p.z, 5); X.dust(W.p.x, W.p.y, W.p.z, 2, 0.8); X.shake(0.04, 0.08);
+      if (r.crooked) { crookFrom(W); X.play('crack'); X.word({ x: W.p.x, y: W.p.y + 1.4, z: W.p.z }, 'יתד הקדימה: הסדק נמשך הצידה'); }
+      if (r.done) {
+        const R2 = A.round; A.res.rounds = R2.crooked === 0 && R2.loose === 0 ? 'gold' : R2.crooked + R2.loose <= 1 ? 'good' : 'ok';
+        const mid = ptAt(TRUE, 0.5);
+        if (A.res.rounds === 'gold') X.hit({ x: mid.x, y: mid.y + 1.5, z: mid.z }, 'gold', { text: 'מכות שוות', craft: 'סתתים' }); else X.word({ x: mid.x, y: mid.y + 1.5, z: mid.z }, R2.crooked ? 'הסדק נמשך הצידה' : 'יתד התרופפה בדרך');
+        A.step = 'water'; A.water = 0; waterMake(TRUE);
+        try { X.hero.walkTo({ x: st.x, z: st.z, face: [b[0], b[1]] }); } catch (e) { /* */ }
+        X.line('החזיקו לשפוך מים לסדק · שחררו כשהחריקה נגמרת');
+        const ws = wShot({ dist: R.r * 1.7 + 8, el: 22, side: -0.95, lift: R.r * 0.3 }); X.shot(ws.p, ws.t, 0.7);
+        X.hand({ x: water.top.x, y: water.top.y + 0.6, z: water.top.z }, 0, 0);
+      }
+    }
     let water = null;
     function waterMake(L) {
-      const pts = L.pts.slice().reverse();   // (top → bottom)
-      const g = new T.TubeGeometry(new T.CatmullRomCurve3(pts), pts.length * 3, 0.085, 5, false);
-      const mm = new T.MeshStandardMaterial({ color: '#5EA8E8', emissive: '#2E6FB0', emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.92 });
-      const mesh = new T.Mesh(g, mm); mesh.renderOrder = 996; g.setDrawRange(0, 0); X.props.root.add(mesh);
-      water = { mesh, g, n: g.index ? g.index.count : g.attributes.position.count, top: pts[0] };
+      const pts = L.pts.slice(0, L.near + 1).reverse().concat(L.pts.slice(L.near + 1));   // (from the top down both faces)
+      const mk = (P) => { const g = new T.TubeGeometry(new T.CatmullRomCurve3(P), P.length * 3, 0.09, 5, false); const mm = new T.MeshStandardMaterial({ color: '#5EA8E8', emissive: '#2E6FB0', emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.92 }); const mesh = new T.Mesh(g, mm); mesh.renderOrder = 996; g.setDrawRange(0, 0); X.props.root.add(mesh); return { mesh, g, n: g.index ? g.index.count : g.attributes.position.count }; };
+      const a = mk(L.pts.slice(0, L.near + 1).reverse()), c = L.pts.length - L.near > 2 ? mk(L.pts.slice(L.near)) : null;
+      water = { parts: [a, c].filter(Boolean), top: pts[0] };
     }
     async function split() {
-      A.step = 'split'; X.line('');
-      const g = A.res, wrong = !A.pick.ok, crooked = wrong || g.space === 'ok';
-      const lost = wrong && g.space === 'ok';
+      A.step = 'split'; X.line(''); SPOT.intensity = 0;
+      const g = A.res, R2 = A.round, crooked = R2.crooked >= 1, lost = R2.crooked >= 3 || (g.water === 'ok' && crooked);
       const at = { x: b[0], y: gy + R.r * R.sy * 0.9, z: b[1] };
       X.play('creak'); X.shake(0.25, 0.35);
-      const ws = wShot({ dist: R.r * 2.6 + 9, el: 28, side: -0.5, lift: R.r * 0.4 });
-      X.shot(ws.p, ws.t, 1.2);
-      // the halves part along the very crack he read: slowly with the groan, then like a book
-      R.halves(A.pick.Pl);
+      const ws = wShot({ dist: R.r * 2.6 + 9, el: 44, side: -0.5, lift: R.r * 0.4 }); X.shot(ws.p, ws.t, 1.2);
+      R.halves(TRUE.Pl);
       const t0 = performance.now();
-      await new Promise((res) => { const step = () => { const k = Math.min(1, (performance.now() - t0) / 1500); R.part(0.25 + 0.75 * ease(k)); if (water) water.mesh.material.opacity = 0.92 * (1 - k); if (k < 1) requestAnimationFrame(step); else res(); }; step(); });
+      await new Promise((res) => { const step = () => { const k = Math.min(1, (performance.now() - t0) / 1500); R.part(0.25 + 0.75 * ease(k)); if (water) for (const w of water.parts) w.mesh.material.opacity = 0.92 * (1 - k); if (k < 1) requestAnimationFrame(step); else res(); }; step(); });
       X.play('split'); X.dust(b[0], gy + 1, b[1], 26, R.r * 0.7); X.shake(0.3, 0.6);
-      for (const w of A.wedges) X.props.remove(w.w); for (const L of A.lines) X.props.remove(L.mesh); if (water) { X.props.remove(water.mesh); water = null; }
-      try { X.stages.boulderHide(s, true, true); } catch (e) { /* */ }
+      cleanup();
       let waste = 1;
-      if (lost) { X.word(at, 'פעמיים עקום: הסלע נפסל · הצוות גורר לפסולת'); waste = 3; try { X.loss && X.loss(20, at, 'הסלע נפסל', 1); } catch (e) { /* */ } }
-      else if (crooked) { X.word(at, wrong ? 'הסדק הזה לא עובר בכל הסלע: נבקע עקום · כשר' : 'יתדות לא ברווח שווה: נבקע במדרגות · כשר'); waste = 2; }
-      else if (g.line === 'gold' && g.space === 'gold' && g.water === 'gold') { X.bonus(150, 'great', 'נבקע בדיוק לאורך הסדק · מהודר'); }
+      if (lost) { X.word(at, 'הסדק נמשך הצידה יותר מדי: הסלע נפסל · הצוות גורר לפסולת'); waste = 3; try { X.loss && X.loss(20, at, 'הסלע נפסל', 1); } catch (e) { /* */ } }
+      else if (crooked) { X.word(at, 'נבקע במדרגות: יתד הקדימה · כשר'); waste = 2; }
+      else if (g.trace === 'gold' && g.rounds === 'gold' && g.water === 'gold') X.bonus(150, 'great', 'נבקע בדיוק לאורך הסדק · מהודר');
       else X.word(at, 'נבקע לאורך הסדק');
       if (waste) wasteAdd(X, waste, at);
-      const q = lost ? 0 : ['line', 'space', 'water'].reduce((a, k) => a + (g[k] === 'gold' ? 1 : g[k] === 'good' ? 0.8 : 0.5), 0) / 3 * (crooked ? 0.75 : 1);
-      // ── h115 ── (ירון 10.11: "את שני חצאי הסלע אחרי הביקוע, צריך לפוצץ?! או שהם נעלמים לבד?") neither: the masons dress the two
-      // halves into building stones on the spot (seen: the halves shrink under their mallets, the dressed blocks stack on a sledge),
-      // the stones go to the stone yard by the east wall, and the cell is cut level where the rock stood ── /h115 ──
+      const v = (k) => (k === 'gold' ? 1 : k === 'good' ? 0.8 : 0.5);
+      const q = lost ? 0 : ((v(g.trace) + v(g.rounds) + v(g.water)) / 3) * (crooked ? 0.75 : 1);
+      const perfect = !lost && !A.fallen && R2.crooked === 0 && R2.loose === 0 && g.water === 'gold';
       setTimeout(() => {
         const n = lost ? 0 : crooked ? 2 : 4;
         dressStart(X, s, n, lost);
         X.word({ x: b[0], y: gy + R.r * R.sy + 1.5, z: b[1] }, lost ? 'הסלע נפסל · נגרר לבור הפסולת' : `שני החצאים נחצבים ל־${n} אבני בנייה · אל מחסן האבנים`);
-        setTimeout(() => X.end({ q, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, lost, at }), 3400);
+        setTimeout(() => X.end({ q, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, lost, perfect, at }), 3400);
       }, 900);
     }
-    return {
+    function cleanup() {
+      for (const L of A.lines) { for (const mm of L.seg) X.props.remove(mm); for (const mm of L.chalk) if (mm) X.props.remove(mm); }
+      for (const W of A.wedges) { X.props.remove(W.w); X.props.remove(W.slot); if (W.tag) X.props.remove(W.tag); }
+      for (const mm of A.crooks || []) X.props.remove(mm); A.crooks = [];
+      if (water) { for (const w of water.parts) X.props.remove(w.mesh); water = null; }
+      A.lines.forEach((L) => { L.seg = []; L.chalk = []; }); A.wedges = [];
+    }
+    const api = {
       begin() {
         const ws = wShot({ dist: R.r * 1.9 + 9, el: 24, side: -0.95, lift: R.r * 0.3 });
         X.shot(ws.p, ws.t, 0.9);
-        X.line('גררו ימינה ושמאלה · המראה מאירה את הסלע');
-        { const q = R.hitAt(phiK, hP); if (q) X.hand({ x: q.p.x, y: q.p.y, z: q.p.z }, -120, 0); }
+        X.line('גררו על הסלע · המראה מאירה · עקבו אחרי הסדק מהקרקע עד הגג');
+        { const q = TRUE.pts[0]; X.hand({ x: q.x, y: q.y + 0.2, z: q.z }, 0, -70); }
         try { X.hero.arm(null); } catch (e) { /* */ }
       },
       update(dt) {
-        A.t += dt; light(dt);
+        A.t += dt; if (A.busy > 0) A.busy -= dt; light(dt);
+        if (A.step === 'strike' && A.round) {
+          for (const e of WG.tick(A.round, A.t, lv)) {
+            const W = A.wedges[e.i]; if (!W) continue;
+            if (e.tremble) { W.tr = 0.3; }
+            if (e.out) { W.blows = A.round.blows[e.i]; seat(W); X.play('wood'); X.word({ x: W.p.x, y: W.p.y + 1.2, z: W.p.z }, 'יתד התרופפה · הכו בה שוב'); }
+          }
+          for (const W of A.wedges) { if (W.tr > 0) { W.tr -= dt; W.w.rotation.z += Math.sin(A.t * 60) * 0.03; } }
+        }
         if (A.step === 'water' && water) {
           if (A.hold) {
             A.water += dt / 2.6;
             A.pourT = (A.pourT || 0) - dt; if (A.pourT <= 0 && SH.jarMan) { A.pourT = 2.3; try { SH.crew.A.pose(SH.jarMan.a, 'pour'); } catch (e) { /* */ } }
             const k = Math.min(1, A.water);
-            water.g.setDrawRange(0, Math.floor(water.n * k / 3) * 3);
-            for (const w of A.wedges) w.w.scale.setScalar(1 + k * 0.25);
-            R.part(k * 0.25 * (R.split ? 1 : 0));
-            // the creak while the wedges swell; silent once the crack is full
+            for (const w of water.parts) w.g.setDrawRange(0, Math.floor((w.n * k) / 3) * 3);
+            for (const W of A.wedges) { W.w.scale.setScalar(1 + k * 0.25); W.slot.scale.set(1 + W.blows * 0.9 + k * 1.5, 1, 1); }
+            for (const L of A.lines) if (L.ok) for (const mm of L.seg) mm.scale.setScalar(1);
             A.creakT -= dt; if (A.water < 1 && A.creakT <= 0) { A.creakT = 0.5; X.play('creak'); X.shake(0.06, 0.1); }
-            // poured on past full: it runs over at the foot of the crack
-            if (A.water > 1) { A.spillT = (A.spillT || 0) - dt; if (A.spillT <= 0) { A.spillT = 0.2; const q = A.pick.pts[0]; X.dust(q.x, q.y + 0.1, q.z, 2, 0.6); } }
-            if (A.water > 1 + [1.0, 0.55, 0.4][lv - 1] + 0.6) { A.hold = false; this.up(); }
+            if (A.water > 1) { A.spillT = (A.spillT || 0) - dt; if (A.spillT <= 0) { A.spillT = 0.2; const q = TRUE.pts[0]; X.dust(q.x, q.y + 0.1, q.z, 2, 0.6); } }
+            if (A.water > 1 + [1.0, 0.55, 0.4][lv - 1] + 0.6) { A.hold = false; api.up(); }
           }
         }
       },
-      wants() { return A.step !== 'split'; },   // ── h115 ── (the rock is turned by a drag anywhere) ── /h115 ──
+      wants() { return A.step !== 'split'; },
       down(p) {
-        A.p0 = { x: p.x, y: p.y }; A.th0 = A.th; A.tDown = performance.now() / 1000;
-        if (A.step === 'water') {
-          A.hold = true; X.play('pour'); A.pourT = 0;
-        }
+        A.p0 = { x: p.x, y: p.y }; A.tDown = performance.now() / 1000; A.moved = false;
+        if (A.step === 'water') { A.hold = true; X.play('pour'); A.pourT = 0; X.line('היתדות הרטובות מתנפחות ופותחות את הסלע'); }
+        else if (A.step === 'trace') api.move(p);
       },
       move(p) {
-        if (A.step === 'turn' || (A.step === 'wedge' && !A.pick)) A.th = clamp(A.th0 + (A.p0.x - p.x) * 0.0045, -0.7, 0.7);
+        if (A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) > 10) A.moved = true;
+        if (A.step !== 'trace' && !(A.step === 'wedge' && A.moved)) return;
+        // the light goes where the finger touches the rock
+        const h = X.rayAt(p.x, p.y).intersectObject(R.whole, false)[0];
+        if (h) { A.spot = h.point.clone(); A.spotN = h.face ? h.face.normal.clone().transformDirection(R.whole.matrixWorld) : nrmAt(h.point); X.hand(null); }
       },
       up(p) {
-        const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && performance.now() / 1000 - A.tDown < 0.35;
-        if ((A.step === 'turn' || A.step === 'wedge') && tap) {
-          if (A.busy) return;
-          let best = null, bd = 1e9; for (const L of A.lines) { if (!L.seen) continue; const r = lineDist(L, p); if (r.d < bd) { bd = r.d; best = { L, u: r.u }; } }
-          if (!A.pick) {
-            if (!best || bd > 34) {
-              if (A.lines.some((L) => L.seen)) { const hit = R.hitAt(phiK + A.th, hP); if (hit) fall(hit.p); }
-              else X.word({ x: b[0], y: gy + R.r * R.sy, z: b[1] }, 'קודם מצאו את הסדק באור המראה');
-              return;
-            }
-            A.pick = best.L; A.step = 'wedge'; A.res.line = best.L.ok ? 'gold' : 'ok';
-            if (best.L.ok) X.hit({ x: best.L.pts[8] ? best.L.pts[8].x : b[0], y: (best.L.pts[8] ? best.L.pts[8].y : gy) + 1, z: best.L.pts[8] ? best.L.pts[8].z : b[1] }, 'gold', { text: 'הסדק הנכון', craft: 'סתתים' });
-            X.line(`תקעו ${nW} יתדות לאורך הסדק, ברווח שווה`); X.hand(null);
-          }
-          const r = lineDist(A.pick, p);
-          if (r.d > 34) { const g0 = onPlane(X, p.x, p.y, gy + 1.2); const hit = g0 ? R.hitAt(Math.atan2(g0.z - b[1], g0.x - b[0]), 1.2) : null; fall(hit ? hit.p : ptAt(A.pick, 0.1)); return; }
-          if (A.wedges.some((w) => Math.abs(w.u - r.u) < 0.07)) { fall(ptAt(A.pick, r.u), 'צמוד מדי ליתד הקודמת: היתד לא נתפסה ונפלה'); return; }
-          const grade = r.d < 12 ? 'gold' : r.d < 22 ? 'good' : 'ok';
-          const p3 = ptAt(A.pick, r.u), W = wedgeMesh(p3); W.u = r.u; W.grade = grade; A.wedges.push(W);
+        const tap = p && A.p0 && Math.hypot(p.x - A.p0.x, p.y - A.p0.y) < 12 && performance.now() / 1000 - A.tDown < 0.4;
+        if (A.step === 'trace' && tap) {
+          const L = TRUE, r = nearDist(L, p);
+          if (r.d < 40) X.word({ x: L.pts[L.near].x, y: L.pts[L.near].y + 1, z: L.pts[L.near].z }, 'קודם עקבו באור אחרי כל הסדק · עד הגג');
+          return;
+        }
+        if (A.step === 'wedge' && tap) {
+          const r = nearDist(TRUE, p);
+          if (r.d > TOL) { const h = X.rayAt(p.x, p.y).intersectObject(R.whole, false)[0]; fall(h ? h.point : ptAt(TRUE, 0.1)); return; }
+          if (A.wedges.some((w) => Math.abs(w.u - r.u) < 0.07)) { fall(ptAt(TRUE, r.u), 'צמוד מדי ליתד הקודמת: היתד לא נתפסה ונפלה'); return; }
+          const p3 = ptAt(TRUE, r.u), W = wedgeMesh(p3); W.u = r.u; A.wedges.push(W);
+          swing(p3);
+          X.play('wood'); X.dust(p3.x, p3.y, p3.z, 2, 0.8); X.hand(null);
           X.count({ x: p3.x, y: p3.y + 1.4, z: p3.z }, `${A.wedges.length}/${nW}`);
-          strikeAt(p3).then(() => {
-            // driven in: the head stays out a hand, chips fly
-            W.w.position.copy(p3).addScaledVector(W.o, 0.38);
-            X.play('wedge'); X.sparks(p3.x, p3.y, p3.z, 6); X.dust(p3.x, p3.y, p3.z, 3, 1);
-            X.hit({ x: p3.x, y: p3.y + 1, z: p3.z }, grade, { text: '', craft: 'סתתים' });
-            if (A.wedges.length >= nW && A.step === 'wedge') {
-              A.res.space = spacing(); X.count(null);
-              const mid = ptAt(A.pick, 0.5);
-              if (A.res.space === 'ok') X.word({ x: mid.x, y: mid.y + 1.5, z: mid.z }, 'רווחים לא שווים'); else X.hit({ x: mid.x, y: mid.y + 1.5, z: mid.z }, A.res.space, { text: 'רווח שווה', craft: 'סתתים' });
-              A.step = 'water'; A.water = 0; waterMake(A.pick);
-              try { X.hero.walkTo({ x: st.x, z: st.z, face: [b[0], b[1]] }); } catch (e) { /* */ }   // (he steps back: the helper pours)
-              X.line('החזיקו לשפוך מים לסדק · שחררו כשהחריקה נגמרת');
-              const ws = wShot({ dist: R.r * 1.7 + 8, el: 22, side: -0.95, lift: R.r * 0.3 });
-              X.shot(ws.p, ws.t, 0.7);
-              X.hand({ x: water.top.x, y: water.top.y + 0.6, z: water.top.z }, 0, 0);
-            }
-          });
+          if (A.wedges.length >= nW) {
+            X.count(null); A.wedges.sort((a, c) => a.u - c.u); A.round = WG.newRound(nW); A.step = 'strike'; SPOT.intensity = 0;
+            X.line('מכים בסבבים · כל יתד שלוש מכות · אף יתד לא מקדימה');
+            const q = A.wedges[0].p; X.hand({ x: q.x, y: q.y + 0.3, z: q.z }, 0, 10);
+          }
+          return;
+        }
+        if (A.step === 'strike' && p) {
+          let bi = -1, bd = 46; A.wedges.forEach((W, i) => { const q = W.w.position, r = X.scr(q.x, q.y, q.z), d = Math.hypot(r.x - p.x, r.y - p.y); if (r.on !== false && d < bd) { bd = d; bi = i; } });
+          if (bi >= 0) { X.hand(null); strike(A.wedges[bi], bi); }
           return;
         }
         if (A.step === 'water' && (A.hold || A.water > 0)) {
@@ -346,14 +409,17 @@ export const READ = {
           split();
         }
       },
-      cancel() { if (A.step === 'water') { A.hold = false; if (SH.jarMan) { try { SH.crew.A.pose(SH.jarMan.a, 'stand'); } catch (e) { /* */ } } } },   // (to the overview mid-pour: the pouring stops)
-      end() { for (const o of [beamIn, beamOut, glow, mirror]) X.props.remove(o); for (const L of A.lines) X.props.remove(L.mesh); for (const w of A.wedges) X.props.remove(w.w); for (const j of A.junk || []) X.props.remove(j); if (water) X.props.remove(water.mesh); X.meter(null); X.count(null); },
+      cancel() { if (A.step === 'water') { A.hold = false; if (SH.jarMan) { try { SH.crew.A.pose(SH.jarMan.a, 'stand'); } catch (e) { /* */ } } } },
+      end() { SPOT.intensity = 0; for (const o of [beamIn, beamOut, mirror]) X.props.remove(o); cleanup(); for (const j of A.junk || []) X.props.remove(j); X.meter(null); X.count(null); },
       at() { return { x: b[0], y: gy + R.r * R.sy, z: b[1] }; },
       dbg() {
         const sc = (q) => { const r2 = X.scr(q.x, q.y, q.z); return [Math.round(r2.x), Math.round(r2.y)]; };
-        return { step: A.step, nW, busy: A.busy, th: +A.th.toFixed(3), aim: A.lines.map((L) => +L.aim.toFixed(3)), ok: A.lines.map((L) => L.ok), seen: A.lines.map((L) => L.seen), wedges: A.wedges.length, fallen: A.fallen, water: +A.water.toFixed(2), res: A.res, linePts: A.lines.map((L) => L.pts.map(sc)), split: R.split ? +R.split.k.toFixed(2) : 0 };
+        const L = TRUE;
+        return { step: A.step, lv, nW, tol: TOL, busy: A.busy > 0, near: L.pts.slice(0, L.near + 1).map(sc), marked: L.mark.slice(0, L.near + 1).map((v) => (v ? 1 : 0)).join(''), lines: A.lines.map((q) => ({ ok: q.ok, n: q.pts.length, dead: q.dead, m: q.mark.filter(Boolean).length })),
+          wedges: A.wedges.map((W) => ({ scr: sc(W.w.position), blows: W.blows, u: +W.u.toFixed(2) })), round: A.round ? { blows: A.round.blows.slice(), crooked: A.round.crooked, loose: A.round.loose } : null, fallen: A.fallen, water: +A.water.toFixed(2), res: A.res, split: R.split ? +R.split.k.toFixed(2) : 0, spot: A.spot ? sc(A.spot) : null };
       },
     };
+    return api;
   },
 };
 
@@ -372,10 +438,40 @@ function pileSync(X) {
     const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
   }
 }
-/** the pits as the save has them (st.pitIn[i]: chunks in pit i) */
+/** the pits as the save has them (st.pitIn[i]: chunks in pit i) ── h117 ── (ירון 10.11: "האבנים נופלות לבור אבל לא נערמות") an open
+ *  pit keeps its floor and the chunks tipped in lie heaped on it (heapSpots, the same heap after a reload); a full pit is covered
+ *  level by the rakers ── /h117 ── */
 function pitSync(X, instant) {
   const st = X.M.st; st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : [];
-  for (let i = 0; i < BOOK.pits.length; i++) try { SH.cells.pit(i, Math.min(1, (st.pitIn[i] | 0) / PIT_CAP), { instant }); } catch (e) { /* */ }
+  for (let i = 0; i < BOOK.pits.length; i++) try { SH.cells.pit(i, (st.pitIn[i] | 0) >= PIT_CAP ? 1 : 0, { instant }); } catch (e) { /* */ }
+  heapSync(X);
+}
+/** where the first n chunks in pit i lie: each on the lowest of a 5×5 grid of the floor, the near (tipping) side first, so a heap
+ *  grows against the rim the sledge tips from and slopes away from it. y is above the pit's open floor. */
+function heapSpots(i, n) {
+  const P = BOOK.pits[i], H = new Float32Array(25), out = [], tx = P.x - P.w * 0.1, tz = P.z - P.d / 2 + 1.0;
+  const cx = (c) => P.x - P.w / 2 + (P.w * ((c % 5) + 0.5)) / 5, cz = (c) => P.z - P.d / 2 + (P.d * (Math.floor(c / 5) + 0.5)) / 5;
+  for (let k = 0; k < n; k++) {
+    let best = 0, bs = 1e9;
+    for (let c = 0; c < 25; c++) { const sc = H[c] + 0.34 * Math.hypot(cx(c) - tx, cz(c) - tz) + hash(k, c + 40) * 0.05; if (sc < bs) { bs = sc; best = c; } }
+    const sz = 0.85 + hash(k, i + 3) * 0.4;
+    out.push({ x: cx(best) + (hash(k, 7) - 0.5) * 0.9, z: cz(best) + (hash(k, 8) - 0.5) * 0.7, y: H[best] + sz * 0.38, s: sz, rx: k * 1.3, ry: k * 2.1 });
+    H[best] += sz * 0.6;
+  }
+  return out;
+}
+function heapFloor(i) { const f = SH.cells && SH.cells.pitInfo ? SH.cells.pitInfo(i) : null; return f ? f.floor : 0; }
+function heapMesh(X) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
+function heapPlace(mm, q, fy) { mm.scale.set(q.s, q.s * 0.8, q.s); mm.position.set(q.x, fy + q.y, q.z); mm.rotation.set(q.rx, q.ry, 0); }
+function heapSync(X) {
+  const st = X.M.st; SH.heapM = SH.heapM || [];
+  for (let i = 0; i < BOOK.pits.length; i++) {
+    const n = (st.pitIn[i] | 0) >= PIT_CAP ? 0 : st.pitIn[i] | 0, L = (SH.heapM[i] = SH.heapM[i] || []);
+    while (L.length > n) X.props.remove(L.pop());
+    while (L.length < n) L.push(heapMesh(X));
+    const Q = heapSpots(i, n), fy = heapFloor(i);
+    L.forEach((mm, k) => heapPlace(mm, Q[k], fy));
+  }
 }
 /** the pit the next load goes into: the first not yet full */
 function pitNow(X) { const st = X.M.st; st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : []; for (let i = 0; i < BOOK.pits.length; i++) if ((st.pitIn[i] | 0) < PIT_CAP) return i; return BOOK.pits.length - 1; }
@@ -755,7 +851,10 @@ export const WASTE = {
     if (an) for (const sd of [-0.75, 0.75]) { const h = an.add('bull', s0.x + 5, s0.z + sd, { yaw: Math.PI / 2, calm: true }); if (h) oxen.push(h); }
     // the rakers at the pit's two sides (rakes in hand), spreading each load
     const drover = SH.crew.add(s0.x + 6.5, s0.z - 2.2, { role: 'hold', item: 'staff', fx: s0.x + 12, fz: s0.z - 2.2, crew: 1 });
-    const rakers = [[P.x + P.w / 2 + 1.3, P.z], [P.x - 1.5, P.z + P.d / 2 + 1.3]].map(([x, z], k) => SH.crew.add(x, z, { role: 'pull', item: 'rake', fx: P.x, fz: P.z, off: k * 0.5, crew: 0 }));
+    // ── h117 ── (ירון 10.11: "המגרפות נעלמו, צריכים לגרוף את שולי הבור") two rakers on the pit's rim by the track, rakes in hand; they
+    // stand ready (no loop) and really rake in what the sledge left on the rim ── /h117 ──
+    const rkHome = [[P.x - P.w / 2 - 1.4, P.z - P.d / 2 + 1.2], [P.x - P.w / 2 + 2.2, P.z - P.d / 2 - 0.9]];
+    const rakers = rkHome.map(([x, z], k) => { const w = SH.crew.add(x, z, { role: 'hold', item: 'rake', fx: P.x, fz: P.z, off: k * 0.5, crew: 0 }); if (w) w.home = [x, z]; return w; }).filter(Boolean);
     const chunks = () => (SH.pileM || []).filter((c) => !c.userData.on);
     const sx = () => s0.x + A.d * ux, sz = () => s0.z + A.d * uz;
     function sledPos() {
@@ -783,7 +882,8 @@ export const WASTE = {
       A.phase = 'push'; A.v = 0; A.arm = 0;
       X.line('החזיקו: השוורים מושכים · שחררו כדי לעצור על הקו הירוק');
       X.hand({ x: rimX, y: X.ground(rimX, s0.z) + 1, z: s0.z }, 0, 0);
-      const mx = P.x - 7; X.shot([mx, Math.max(gyP, gP()) + 16, P.z + 19], [mx, Math.min(gyP, gP()) + 0.5, s0.z + 2], 1.0);
+      // ── h117 ── (the pit's floor and its heap seen while tipping: the camera higher and over the pit's south side) ── /h117 ──
+      const mx = P.x - 8, fl = heapFloor(pi); X.shot([mx, Math.max(gyP, gP()) + 21, P.z + 15], [mx + 2, Math.min(fl + 2, gP()), P.z - 3.5], 1.0);
     }
     function tip() {
       const off = Math.abs(A.d - Tgt);
@@ -795,27 +895,79 @@ export const WASTE = {
       else if (grade === 'good') X.hit(at, 'good', { text: 'קרוב לקו', craft: 'סבלים' });
       else X.word(at, 'רחוק מהקו · הגורפים דוחפים את השאר לבור');
       // the chunks slide off the tilted bed into the pit (each to its own spot on the pit's floor)
-      const fl = SH.cells.pitInfo(pi), fy = fl ? fl.floor : gP() - 3;
-      A.on.forEach((c, i) => { c.userData.fall = { t: -i * 0.08, x0: c.position.x, y0: c.position.y, z0: c.position.z, x1: P.x - 2 + hash(i, 5) * 4, y1: fy + 0.5, z1: P.z - 3 + hash(i, 6) * 6 }; });
+      // ── h117 ── each chunk to its place on the heap; a tip off the line leaves some on the rim for the rakers (good 1, ok 3) ── /h117 ──
+      const st = X.M.st, base = (Array.isArray(st.pitIn) ? st.pitIn[pi] : 0) | 0, nLeft = Math.min(A.on.length, grade === 'gold' ? 0 : grade === 'good' ? 1 : 3), nIn = A.on.length - nLeft;
+      const Q = heapSpots(pi, base + nIn), fy = heapFloor(pi);
+      A.on.forEach((c, i) => {
+        let x1, y1, z1;
+        if (i < nIn) { const q = Q[base + i]; c.userData.q = q; c.userData.left = false; x1 = q.x; y1 = fy + q.y; z1 = q.z; }
+        else { const j = i - nIn; c.userData.q = null; c.userData.left = true; x1 = sled.position.x - 2.6 - j * 1.3; z1 = P.z - P.d / 2 - 0.55; y1 = X.ground(x1, z1) + 0.35; }
+        c.userData.fall = { t: -i * 0.08, x0: c.position.x, y0: c.position.y, z0: c.position.z, x1, y1, z1 };
+      });
       X.play('cart');
     }
     function tipped() {
       const n = A.on.length, st = X.M.st;
-      for (const c of A.on) { X.props.remove(c); const i = (SH.pileM || []).indexOf(c); if (i >= 0) SH.pileM.splice(i, 1); }
+      // ── h117 ── the chunks stay: those in the pit join its heap (saved by count, the same heap after a reload) ── /h117 ──
+      for (const c of A.on) { const i = (SH.pileM || []).indexOf(c); if (i >= 0) SH.pileM.splice(i, 1); c.userData.fall = null; c.userData.on = false; }
+      const into = A.on.filter((c) => !c.userData.left); A.left = A.on.filter((c) => c.userData.left);
       A.on = []; st.waste = Math.max(0, st.waste - n); st.wasteIn = (st.wasteIn | 0) + n;
-      st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : []; st.pitIn[pi] = (st.pitIn[pi] | 0) + n;
-      const f = Math.min(1, st.pitIn[pi] / PIT_CAP);
-      SH.cells.pit(pi, f);
-      X.dust(P.x, gP() + 0.5, P.z, 18, 4); X.play('settle'); X.shake(0.15, 0.25);
-      for (const w of rakers) try { SH.crew.A.pose(w.a, 'stand'); } catch (e) { /* */ }
-      X.word({ x: P.x, y: gP() + 3, z: P.z }, f >= 1 ? 'הבור מלא · הגורפים כיסו אותו' : `הגורפים מפזרים · הבור ${Math.round(f * 100)}% מלא`);
+      st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : []; st.pitIn[pi] = (st.pitIn[pi] | 0) + into.length;
+      SH.heapM = SH.heapM || []; const H = (SH.heapM[pi] = SH.heapM[pi] || []); for (const c of into) { heapPlace(c, c.userData.q, heapFloor(pi)); H.push(c); }
+      X.dust(P.x - 2, heapFloor(pi) + 1.5, P.z - 2, 14, 3); X.play('settle'); X.shake(0.15, 0.25);
       A.trips++;
-      setTimeout(() => {
-        if (!chunks().length) { X.bonus(100, 'clean', 'האתר נקי'); finish(); return; }
-        A.d = 0; A.v = 0; tilt.rotation.x = 0; A.hint = false; A.phase = 'load'; try { SH.crew.walkTo(drover, s0.x + 6.5, s0.z - 2.2, 3); } catch (e) { /* */ } X.line('עוד גושים למזחלת'); begin2();
-      }, 1500);
+      if (A.left.length) { X.word({ x: P.x - P.w / 2, y: gP() + 3, z: P.z - P.d / 2 }, A.left.length === 1 ? 'גוש נשאר על השפה · הגורף דוחף אותו פנימה' : 'גושים נשארו על השפה · הגורפים דוחפים אותם פנימה'); rakeNext(); }
+      else { X.word({ x: P.x, y: gP() + 3, z: P.z }, `הבור ${Math.min(100, Math.round((st.pitIn[pi] / PIT_CAP) * 100))}% מלא`); setTimeout(nextTrip, 1500); }
+    }
+    function nextTrip() {
+      if (!chunks().length) { X.bonus(100, 'clean', 'האתר נקי'); finish(); return; }
+      A.d = 0; A.v = 0; tilt.rotation.x = 0; A.hint = false; A.phase = 'load'; try { SH.crew.walkTo(drover, s0.x + 6.5, s0.z - 2.2, 3); } catch (e) { /* */ } X.line('עוד גושים למזחלת'); begin2();
+    }
+    /* ── h117 ── a raker walks to a chunk left on the rim and pushes it over the edge with the rake; it falls onto the heap ── */
+    function rakeNext() {
+      const c = A.left.shift();
+      if (!c) { for (const w of rakers) { SH.crew.setRole(w, 'hold', { fx: P.x, fz: P.z }); SH.crew.walkTo(w, w.home[0], w.home[1], 2.4); } setTimeout(nextTrip, 900); return; }
+      let w = rakers[0], bd = 1e9; for (const r of rakers) { const d = Math.hypot(r.a.x - c.position.x, r.a.z - c.position.z); if (d < bd) { bd = d; w = r; } }
+      A.phase = 'rake'; const R = (A.rk = { c, w, t: 0, st: 'walk' });
+      SH.crew.setRole(w, 'hold', { fx: c.position.x, fz: P.z });
+      const go = SH.crew.walkTo(w, c.position.x, c.position.z - 1.25, 2.6);
+      const arrive = () => { if (A.rk !== R) return; R.st = 'push'; R.t = 0; R.x0 = c.position.x; R.y0 = c.position.y; R.z0 = c.position.z; SH.crew.setRole(w, 'push', { fx: c.position.x, fz: P.z, off: 0 }); };
+      if (go && go.then) go.then(arrive); else setTimeout(arrive, 1200);
+      R.timeout = A.t + 6;   // (a raker who cannot get there: he reaches it anyway after a while)
+    }
+    function rakeStep(dt) {
+      const R = A.rk; if (!R) return; R.t += dt;
+      if (R.st === 'walk' && A.t > R.timeout) { R.st = 'push'; R.t = 0; R.x0 = R.c.position.x; R.y0 = R.c.position.y; R.z0 = R.c.position.z; }
+      if (R.st === 'push') {
+        // the rake's head behind the chunk drags it to the edge (1.2 s), the raker leaning on it; then over
+        const k = Math.min(1, R.t / 1.2), ez = P.z - P.d / 2 + 0.35;
+        R.c.position.set(R.x0, R.y0 + Math.sin(k * Math.PI * 3) * 0.04, lerp(R.z0, ez, ease(k))); R.c.rotation.x += dt * 1.5;
+        try { R.w.a.x = R.x0; R.w.a.z = R.c.position.z - 1.25; } catch (e) { /* */ }
+        if (k >= 1) { const st = X.M.st, n = st.pitIn[pi] | 0, q = heapSpots(pi, n + 1)[n]; R.q = q; R.st = 'fall'; R.t = 0; R.x0 = R.c.position.x; R.y0 = R.c.position.y; R.z0 = R.c.position.z; X.play('thud'); }
+      } else if (R.st === 'fall') {
+        const k = Math.min(1, R.t / 0.6), fy = heapFloor(pi);
+        R.c.position.set(lerp(R.x0, R.q.x, k), lerp(R.y0, fy + R.q.y, k * k) + Math.sin(k * Math.PI) * 0.6, lerp(R.z0, R.q.z, k)); R.c.rotation.x += dt * 5;
+        if (k >= 1) {
+          const st = X.M.st; st.pitIn[pi] = (st.pitIn[pi] | 0) + 1; heapPlace(R.c, R.q, fy); (SH.heapM[pi] = SH.heapM[pi] || []).push(R.c);
+          X.dust(R.c.position.x, R.c.position.y, R.c.position.z, 5, 1.2); SH.crew.setRole(R.w, 'hold', { fx: P.x, fz: P.z });
+          A.rk = null; rakeNext();
+        }
+      }
+    }
+    /** a full pit: the rakers pull the earth over it, level with the rim (2 s); its chunks sink under ── /h117 ── */
+    function cover(then) {
+      A.phase = 'cover'; A.cov = { t: 0, then, y0: (SH.heapM[pi] || []).map((c) => c.position.y) };
+      for (const w of rakers) SH.crew.setRole(w, 'push', { fx: P.x, fz: P.z });
+      X.word({ x: P.x, y: gP() + 3, z: P.z }, 'הבור מלא · הגורפים מכסים אותו'); X.play('settle');
+    }
+    function coverStep(dt) {
+      const C = A.cov; if (!C) return; const k0 = Math.min(1, C.t / 2); C.t += dt; const k = Math.min(1, C.t / 2);
+      if (Math.floor(k * 8) !== Math.floor(k0 * 8) || k >= 1) SH.cells.pit(pi, k);
+      const rise = P.depth * k; (SH.heapM[pi] || []).forEach((c, i) => { c.position.y = C.y0[i] + rise * 0.15; });
+      if (k >= 1) { A.cov = null; for (const w of rakers) SH.crew.setRole(w, 'hold', { fx: P.x, fz: P.z }); heapSync(X); X.dust(P.x, gP() + 0.3, P.z, 20, 5); X.word({ x: P.x, y: gP() + 3, z: P.z }, 'הבור כוסה · הקרקע ישרה'); setTimeout(C.then, 1200); }
     }
     function finish() {
+      const st0 = X.M.st; if (A.phase !== 'cover' && !A.covered && (st0.pitIn[pi] | 0) >= PIT_CAP) { A.covered = true; cover(finish); return; }
       A.phase = 'done';
       const avg = (L) => L.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / L.length;
       const q = A.grades.length ? (avg(A.grades) + (A.tips.length ? avg(A.tips) : 1)) / 2 : 1;
@@ -840,6 +992,8 @@ export const WASTE = {
           if (!A.hold && A.v < 0.1 && A.d >= Tgt - 3.5 && !A.hint) { A.hint = true; X.line('גררו למעלה · מטים את המזחלת לבור'); X.hand({ x: sled.position.x, y: sled.position.y + 1, z: sled.position.z }, 0, -60); }
           if (A.v > 0.3) A.hint = false;
         }
+        if (A.phase === 'rake') rakeStep(dt);
+        if (A.phase === 'cover') coverStep(dt);
         if (A.phase === 'tip') {
           A.tipT += dt; tilt.rotation.x = Math.min(0.75, A.tipT * 1.6);
           let all = true;

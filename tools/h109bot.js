@@ -18,13 +18,20 @@
       return { wait: 200 };
     },
     read(a) {
-      // (build 114: a.aim = where the light must turn to fall on each crack; a.ok = which is the true one)
-      const k = Math.max(0, a.ok.indexOf(true));
+      // (build 117: trace the crack with the light along a.near, then the wedges along it, struck in rounds, then the water)
       if (a.busy) return { wait: 200 };
-      if ((a.step === 'turn' || a.step === 'wedge') && !a.seen[k]) { const dx = -(a.aim[k] - a.th) / 0.0045; return { drag: [W * 0.5, HH * 0.62, W * 0.5 + dx, HH * 0.62, 700], wait: 300, note: 'read: turn the mirror ' + Math.round(dx) + 'px' }; }
-      if ((a.step === 'turn' || a.step === 'wedge') && a.wedges < a.nW) {
-        const P = a.linePts[k], u = (0.12 + (0.5 * a.wedges) / Math.max(1, a.nW - 1)) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(u));
-        return { tap: mid(P[j], P[j + 1], u - j), wait: 900 };
+      if (a.step === 'trace') {
+        const i = a.marked.indexOf('0'); if (i < 0) return { wait: 300 };
+        const P = a.near[Math.max(0, i - 1)], Q = a.near[Math.min(a.near.length - 1, i + 3)];
+        return { drag: [P[0], P[1], Q[0], Q[1], 900], wait: 300, note: 'read: trace ' + i + '/' + a.near.length };
+      }
+      if (a.step === 'wedge') {
+        const n = a.near.length, k = a.wedges.length, j = Math.round(2 + ((n - 4) * k) / Math.max(1, a.nW - 1));
+        return { tap: a.near[Math.min(n - 1, j)], wait: 900, note: 'read: wedge at ' + j };
+      }
+      if (a.step === 'strike') {
+        let bi = 0; a.wedges.forEach((w, i) => { if (w.blows < a.wedges[bi].blows) bi = i; });
+        return { tap: a.wedges[bi].scr, wait: 420, note: 'read: strike ' + bi + ' (' + a.wedges.map((w) => w.blows).join(',') + ')' };
       }
       if (a.step === 'water') return { holdUntil: [W * 0.5, HH * 0.5, C('return !a||a.step!==\'water\'||a.water>=1.04'), 7000] };
       return { wait: 250 };
@@ -54,6 +61,46 @@
       if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [W * 0.75, HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };
       if (a.phase === 'push') return { wait: 300 };
       return { wait: 300 };
+    },
+    corner(a) {
+      if (a.phase === 'lift') {
+        const since = now() - (B.k.sw || 0);
+        if (since < 440) return { wait: Math.max(10, 440 - since) };
+        B.k.sw = now();
+        return { drag: [W * 0.72, HH * 0.38, W * 0.72, HH * 0.38 + 90, 120] };
+      }
+      if (a.phase === 'lower') {
+        // (build 116: three grips) the jib's head over the rectangle, the rope turns it square, then short holds on the stone
+        if (a.dx > 0.06 && a.swing < 0.6) {
+          // drag the jib's head by the stone's offset on the screen (the floor point under the stone → the rectangle)
+          return { drag: [a.tipScr[0], a.tipScr[1], a.jibTo[0], a.jibTo[1], 700], wait: 2200, note: `corner: jib dx ${a.dx} off ${a.offX},${a.offZ}` };
+        }
+        if (Math.abs(a.rotE) > a.tol * 0.4) { const px = Math.max(-300, Math.min(300, (-a.rotE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1800, note: `corner: rope ${a.rotE}° → ${Math.round(px)}px` }; }
+        if (a.swing > 0.5) return { wait: 400 };
+        if (a.gap > 1.4) return { hold: [a.stoneScr[0], a.stoneScr[1], 700], wait: 250, note: 'corner: lower gap ' + a.gap };
+        return { hold: [a.stoneScr[0], a.stoneScr[1], 260], wait: 200, note: 'corner: lower gap ' + a.gap };
+      }
+      return { wait: 250 };
+    },
+    course(a) {
+      // (build 117: three grips) the jib's head moves it over its place, the guide rope turns it along the wall, a hold lowers it
+      if (a.phase === 'choose') {
+        const laid = a.set.map((q) => q[2]); const next = a.sol.find((L) => !laid.includes(L));
+        const q = a.stock.find((s) => s.L === next); if (!q) return { wait: 400, note: 'course: no stone ' + next };
+        return { tap: q.scr, wait: 1500, note: `course: take ${next}` };
+      }
+      if (a.phase === 'carry' && a.tgt && a.tipScr) {
+        const t = a.tgt, off = Math.hypot(t[0] - a.stoneScr[0], t[1] - a.stoneScr[1]);
+        if (a.sway > 0.3) return { wait: 400 };
+        if ((Math.abs(a.dz - a.ta) > 0.12 || Math.abs(a.sx - a.wallX) > 0.35) && off > 4) {
+          const k = a.gapB > 1.5 ? 0.85 : 1;
+          return { drag: [a.tipScr[0], a.tipScr[1], a.tipScr[0] + (t[0] - a.stoneScr[0]) * k, a.tipScr[1] + (t[1] - a.stoneScr[1]) * k, 700], wait: 2000, note: `course: jib dz ${a.dz}/${a.ta} x ${a.sx}` };
+        }
+        if (Math.abs(a.rotE) > a.tol * 0.4) { const px = Math.max(-300, Math.min(300, (-a.rotE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1800, note: `course: rope ${a.rotE}° → ${Math.round(px)}px` }; }
+        if (a.gapB > 1.0) return { hold: [a.stoneScr[0], a.stoneScr[1], 600], wait: 300, note: 'course: lower ' + a.gapB };
+        return { hold: [a.stoneScr[0], a.stoneScr[1], 230], wait: 200, note: 'course: lower ' + a.gapB };
+      }
+      return { wait: 250 };
     },
     corner(a) {
       if (a.phase === 'lift') {

@@ -2118,6 +2118,9 @@ export function createStages(ctx) {
     };
     for (const st of list) {
       if (st.status !== 'building') continue;
+      // ── h117 ── (ירון 10.11: "לנקות את כל השאריות") the cells' world owns the Mount: the old Mount site's working patch, its far heaps
+      // and its quarried piles (one stood as a stack of dressed blocks on the waste pile) are not drawn there ── /h117 ──
+      if (cellMode && st.id === 'har') continue;
       const found = st.disp < FOUND + 0.04, def = st.def;
       const gy = (x, z) => (st.id === 'har' ? groundAt(x, z) : st.base);
       if (found && st.id === 'har') mountProps(put, putF, putR, putA);   // ── site8 ── the working patch round the builder

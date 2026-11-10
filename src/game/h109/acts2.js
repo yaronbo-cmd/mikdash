@@ -884,8 +884,9 @@ export const WASTE = {
       X.line('החזיקו: השוורים מושכים · שחררו כדי לעצור על הקו הירוק');
       X.hand({ x: rimX, y: X.ground(rimX, s0.z) + 1, z: s0.z }, 0, 0);
       // ── h117 ── (the pit's floor and its heap seen while tipping: the camera higher and over the pit's south side) ── /h117 ──
-      const inf = SH.cells.pitInfo ? SH.cells.pitInfo(pi) : null, rim = inf ? inf.rim : gP(), mx = P.x - 7, zc2 = (s0.z + P.z) / 2;
-      X.shot([mx - 1, rim + 23, P.z + 12], [mx, rim - 1.5, zc2], 1.0);   // (the track, the green line and the pit's floor in one frame)
+      // (the frame's middle on the pit's north rim by the green line: the track just above it, the pit's floor and heap below)
+      const inf = SH.cells.pitInfo ? SH.cells.pitInfo(pi) : null, rim = inf ? inf.rim : gP(), tx = P.x - 4, tz = P.z - P.d / 2 - 0.8, ty = Math.max(rim, X.ground(tx, tz) - 0.5);
+      X.shot([tx - 6, ty + 25, tz + 15], [tx, ty, tz], 1.0);
     }
     function tip() {
       const off = Math.abs(A.d - Tgt);

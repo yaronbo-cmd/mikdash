@@ -141,8 +141,10 @@ export function rayBlocked(X, p, t) {
   const o = new T.Vector3(p[0], p[1], p[2]), d = new T.Vector3(t[0] - p[0], t[1] - p[1], t[2] - p[2]), L = d.length(); if (L < 1) return false;
   RC.set(o, d.normalize()); RC.far = L - 3; RC.camera = X.camera;
   let hits = []; try { hits = RC.intersectObject(X.scene, true); } catch (e) { hits = []; }
+  // the ground between (the hill as it is cut now), a point every amah and a half
+  { const n = Math.max(4, Math.ceil((L - 3) / 1.5)); for (let i = 1; i < n; i++) { const u = (i / n) * (L - 3) / L, x = p[0] + (t[0] - p[0]) * u, y = p[1] + (t[1] - p[1]) * u, z = p[2] + (t[2] - p[2]) * u; if (y < X.ground(x, z) - 0.15) return true; } }
   for (const h of hits) {
-    const m = h.object; if (!m.isMesh || m.isSprite || m.isInstancedMesh) continue;
+    const m = h.object; if (!m.isMesh || m.isSprite || m.isInstancedMesh || m.name === 'hill') continue;   // (the hill is cut in its shader: its ground is asked of X.ground below)
     let vis = true; for (let q = m; q; q = q.parent) if (!q.visible) { vis = false; break; } if (!vis) continue;
     const mt = Array.isArray(m.material) ? m.material[0] : m.material; if (!mt || mt.transparent || mt.depthWrite === false) continue;
     if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();

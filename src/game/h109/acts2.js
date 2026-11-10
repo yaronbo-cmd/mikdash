@@ -576,7 +576,19 @@ export const PAVE = {
     }
     return {
       begin() {
-        { const zc = (G.z0 - U + pz + pileD) / 2, span = Math.max(rows * U + pileD + 4, (W + 2 * SIDE_COLS) * U * 0.62); X.shot([G.cx + 1, G.base + span * 1.18 + 4, zc + span * 0.72 + 4], [G.cx + 1.2, G.base, zc + 0.4], 1.0); }
+        // ── h115 ── (ירון 10.11: "פאזל 2 לא נראה וחוסם התקדמות"; the review's replay: the ninth cell's puzzle lay behind its southern
+        // neighbour's rock) the shot is taken only where every square of the patch and every slab of the pile is seen: from the south as
+        // always, then steeper over the cell, then from the other sides ── /h115 ──
+        { const zc = (G.z0 - U + pz + pileD) / 2, span = Math.max(rows * U + pileD + 4, (W + 2 * SIDE_COLS) * U * 0.62);
+          const t = [G.cx + 1.2, G.base, zc + 0.4], dy = span * 1.18 + 4, dz = span * 0.72 + 4, D = Math.hypot(dy, dz), el0 = Math.atan2(dy, dz);
+          const hw = (W * U) / 2 + 1, zn = G.z0 - U, zs = pz + pileD, Q = [[G.cx - hw, zn], [G.cx + hw, zn], [G.cx - hw, zs], [G.cx + hw, zs], [G.cx, (zn + zs) / 2], [G.cx - hw, (zn + zs) / 2], [G.cx + hw, (zn + zs) / 2]].map(([x, z]) => [x, G.base + 0.4, z]);
+          let P = null;
+          for (const [az, el] of [[0, el0], [0, 1.22], [0, 1.4], [Math.PI / 2, el0], [-Math.PI / 2, el0], [Math.PI, el0], [Math.PI / 2, 1.22], [-Math.PI / 2, 1.22], [Math.PI, 1.22], [0, 1.52]]) {
+            const p = [t[0] + Math.sin(az) * Math.cos(el) * D, t[1] + Math.sin(el) * D, t[2] + Math.cos(az) * Math.cos(el) * D];
+            if (!P) P = p;
+            if (Q.every((q) => !rayBlocked(X, p, q))) { P = p; A.camAz = az; A.camEl = el; break; }
+          }
+          X.shot(P, t, 1.0); }
         X.line(broken ? 'גררו לוח לשורה · לוח סדוק לארגז' : 'גררו לוח לשורה · נגיעה מסובבת');
         const q = S[0]; X.hand({ x: q.home.x, y: G.base + 0.6, z: q.home.z }, 0, -40);
         try { X.hero.setPos(G.x0 - SIDE_COLS * U - 2.2, G.z0 + rows * U + 1.2, Math.PI * 0.6); } catch (e) { /* */ }

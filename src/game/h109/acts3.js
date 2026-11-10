@@ -368,7 +368,8 @@ export const CORNER = {
       at() { return { x: CORNER_AT.x, y: gP + 2, z: CORNER_AT.z }; },
       dbg() { C.tipWorld(tip); return { phase: A.phase, h: +A.h.toFixed(2), v: +A.v.toFixed(2), drop: +(A.drop || 0).toFixed(2), gap: +(tip.y - 1.2 - (A.drop || 0) - 0.8 - floorY).toFixed(2), swing: +Math.hypot(A.sway.vx, A.sway.vz).toFixed(2), dx: +(Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw).toFixed(3), chips: A.chips, rejects: A.rejects, grades: A.grades.slice(-6), ax: +A.ax.toFixed(2), sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), chalk: (() => { const q = X.scr(CORNER_AT.x, gP, CORNER_AT.z); return [Math.round(q.x), Math.round(q.y)]; })(),
         // ── h116 ── the grips on the screen, the turn's error and its tolerance ── /h116 ──
-        ...(() => { const r2 = (q) => [Math.round(q.x), Math.round(q.y)], h = kohHands(), e2 = ropeEnd(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z); return { tipScr: r2(X.scr(tip.x, tip.y, tip.z)), jibTo: r2(X.scr(tip.x + CORNER_AT.x - pos.x, tip.y, tip.z + CORNER_AT.z - pos.z)), ropeScr: r2({ x: (a.x * 2 + b.x) / 3, y: (a.y * 2 + b.y) / 3 }), handsScr: r2(a), stoneScr: r2(X.scr(stone.position.x, stone.position.y, stone.position.z)), floorScr: r2(X.scr(CORNER_AT.x, floorY, CORNER_AT.z)), rotE: rot == null ? 0 : +(rotErr(rot) * 180 / Math.PI).toFixed(2), tol: +(TOL * 180 / Math.PI).toFixed(2), grip: A.grip, misses: A.misses | 0, cracks: A.cracks, offX: +(pos.x - CORNER_AT.x).toFixed(2), offZ: +(pos.z - CORNER_AT.z).toFixed(2) }; })() }; },
+        ...(() => { const r2 = (q) => [Math.round(q.x), Math.round(q.y)], h = kohHands(), e2 = ropeEnd(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z); const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const ms = X.scr(m0.x, m0.y, m0.z), ts = X.scr(tip.x, tip.y, tip.z), inF = (q) => q.x > 20 && q.x < innerWidth - 20 && q.y > 110 && q.y < innerHeight - 70;
+            return { jibScr: inF(ts) ? r2(ts) : r2({ x: ms.x + (ts.x - ms.x) * 0.45, y: ms.y + (ts.y - ms.y) * 0.45 }), tipScr: r2(ts), jibTo: r2(X.scr(tip.x + CORNER_AT.x - pos.x, tip.y, tip.z + CORNER_AT.z - pos.z)), ropeScr: r2({ x: (a.x * 2 + b.x) / 3, y: (a.y * 2 + b.y) / 3 }), handsScr: r2(a), stoneScr: r2(X.scr(stone.position.x, stone.position.y, stone.position.z)), floorScr: r2(X.scr(CORNER_AT.x, floorY, CORNER_AT.z)), rotE: rot == null ? 0 : +(rotErr(rot) * 180 / Math.PI).toFixed(2), tol: +(TOL * 180 / Math.PI).toFixed(2), grip: A.grip, misses: A.misses | 0, cracks: A.cracks, offX: +(pos.x - CORNER_AT.x).toFixed(2), offZ: +(pos.z - CORNER_AT.z).toFixed(2) }; })() }; },
     };
   },
 };
@@ -609,7 +610,7 @@ export const COURSE = {
           const rl = Math.hypot(tip.x - C.base.x, tip.z - C.base.z) || 1, hx = tip.x + ((tip.x - C.base.x) / rl) * A.ax, hz = tip.z + ((tip.z - C.base.z) / rl) * A.ax;
           const over = Math.hypot(hx - q.m.position.x, hz - q.m.position.z) < 0.35 || A.t - A.t0 > 2.4;
           C.rope.show(true); C.rope.set({ x: tip.x, y: tip.y, z: tip.z }, { x: hx, y: Math.max(q.m.position.y + CH / 2 + 1.0, tip.y - 3 - A.rise * 6), z: hz }, 0);
-          if (over) { A.rise += dt * 0.9; if (A.rise >= 1) { A.phase = 'carry'; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; A.tipP = { x: tip.x, z: tip.z }; X.line(q.L + ' אמות · החזיקו מעל הרווח: המנוף מביא אותה ומוריד · שחררו: עוצרת'); X.play('rise'); } }
+          if (over) { A.rise += dt * 0.9; if (A.rise >= 1) { A.phase = 'carry'; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; A.tipP = { x: tip.x, z: tip.z }; X.line(q.L + ' אמות · גררו את ראש העגורן אל הרווח · סובבו בחבל לאורך החומה · החזיקו על האבן: יורדת'); X.play('rise'); } }
           if (over && A.rise > 0.4) { const k = clamp((A.rise - 0.4) / 0.6, 0, 1); q.m.position.y = lerp(A.from.y, hangB + CH / 2, ease(k)); slings(true); }
         } else if (A.phase === 'carry' && q) {
           // the crane after the finger, heavily; the stone on its rope, late and swinging; a hold over the wall lowers it
@@ -651,7 +652,7 @@ export const COURSE = {
           }
           // (high and wide while it crosses; nearer the gap from the same high side as it comes over the wall)
           const kc = ease(clamp((hx - (WALL_X - 9)) / 8, 0, 1)), cz = lerp(zc, hz, 0.6 * kc);
-          X.track([lerp(CAMW.p[0], WALL_X - 6, kc), lerp(CAMW.p[1], yB + 16, kc), lerp(CAMW.p[2], cz, kc)], [lerp(CAMW.t[0], WALL_X - 0.3, kc), lerp(CAMW.t[1], yB, kc), lerp(CAMW.t[2], cz, kc)], 1.4);
+          X.track([lerp(CAMW.p[0], WALL_X - 9, kc), lerp(CAMW.p[1], yB + 26, kc), lerp(CAMW.p[2], cz + 1.5, kc)], [lerp(CAMW.t[0], WALL_X - 1.2, kc), lerp(CAMW.t[1], yB + 1, kc), lerp(CAMW.t[2], cz + 1.5, kc)], 1.4);   // (high enough that the jib's head stays in the frame)
         } else if (A.phase === 'settle' && A.settle) {
           const S2 = A.settle; S2.t += dt; const k = ease(Math.min(1, S2.t / S2.dur)), s = S2.q.m;
           s.position.set(lerp(S2.from.x, S2.to.x, k), yB + CH / 2, lerp(S2.from.z, S2.to.z, k)); s.rotation.y = lerp(S2.from.r, Math.PI / 2, k);
@@ -695,7 +696,8 @@ export const COURSE = {
         return { phase: A.phase, lv, sol: K.sol, gap: K.gap, below: K.below, set: A.set.map((s2) => [s2.a, s2.b, s2.q.L]), stock: A.stock.filter((s2) => !s2.laid).map((s2) => ({ L: s2.L, scr: sc(s2.m.position.x, s2.m.position.y + CH / 2, s2.m.position.z) })), cur: q ? q.L : 0, tgt, ta: q ? A.ta : null, gapB: q ? +(q.m.position.y - CH / 2 - yB).toFixed(2) : null, dz: q ? +(relZ(q.m.position.z) - q.L / 2).toFixed(2) : null, sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), v: +A.v.toFixed(2), joj: A.joj, lifts: A.lifts, chips: A.chips, misses: A.misses | 0, mark: mark.visible, grades: A.grades.slice(), yB: +yB.toFixed(2), gS: +X.ground(gx, zc).toFixed(2),
           // ── h117 ── the grips on the screen, the turn's error (deg) and its tolerance, where the stone's middle is ── /h117 ──
           ...(() => { if (!q || A.phase !== 'carry') return {}; C.tipWorld(tip); const r2 = (o) => [Math.round(o.x), Math.round(o.y)], e2 = ropeEnd(), h = stkTop(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z); const s = q.m.position;
-            return { tipScr: r2(X.scr(tip.x, tip.y, tip.z)), ropeScr: [Math.round(a.x * 0.4 + b.x * 0.6), Math.round(a.y * 0.4 + b.y * 0.6)], stoneScr: r2(X.scr(s.x, s.y, s.z)), rotE: +(rotErr(q.m.rotation.y) * 180 / Math.PI).toFixed(1), tol: +(TOLR * 180 / Math.PI).toFixed(1), sx: +s.x.toFixed(2), sz: +s.z.toFixed(2), wallX: WALL_X, aim: [+A.aimP.x.toFixed(2), +A.aimP.z.toFixed(2)], grip: A.grip }; })() };
+            const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const ms = X.scr(m0.x, m0.y, m0.z), ts = X.scr(tip.x, tip.y, tip.z), inF = (q) => q.x > 20 && q.x < innerWidth - 20 && q.y > 110 && q.y < innerHeight - 70;
+            return { jibScr: inF(ts) ? r2(ts) : r2({ x: ms.x + (ts.x - ms.x) * 0.45, y: ms.y + (ts.y - ms.y) * 0.45 }), tipScr: r2(ts), ropeScr: [Math.round(a.x * 0.4 + b.x * 0.6), Math.round(a.y * 0.4 + b.y * 0.6)], stoneScr: r2(X.scr(s.x, s.y, s.z)), rotE: +(rotErr(q.m.rotation.y) * 180 / Math.PI).toFixed(1), tol: +(TOLR * 180 / Math.PI).toFixed(1), sx: +s.x.toFixed(2), sz: +s.z.toFixed(2), wallX: WALL_X, aim: [+A.aimP.x.toFixed(2), +A.aimP.z.toFixed(2)], grip: A.grip }; })() };
       },
     };
   },

@@ -92,9 +92,10 @@
       if (a.phase === 'carry' && a.tgt && a.tipScr) {
         const t = a.tgt, off = Math.hypot(t[0] - a.stoneScr[0], t[1] - a.stoneScr[1]);
         if (a.sway > 0.3) return { wait: 400 };
+        if (Math.abs(a.rotE) > 30 && a.gapB > 1.5) { const px = Math.max(-300, Math.min(300, (-a.rotE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1800, note: `course: rope first ${a.rotE}°` }; }
         if ((Math.abs(a.dz - a.ta) > 0.12 || Math.abs(a.sx - a.wallX) > 0.35) && off > 4) {
           const k = a.gapB > 1.5 ? 0.85 : 1;
-          return { drag: [a.tipScr[0], a.tipScr[1], a.tipScr[0] + (t[0] - a.stoneScr[0]) * k, a.tipScr[1] + (t[1] - a.stoneScr[1]) * k, 700], wait: 2000, note: `course: jib dz ${a.dz}/${a.ta} x ${a.sx}` };
+          const j = a.jibScr || a.tipScr; return { drag: [j[0], j[1], j[0] + (t[0] - a.stoneScr[0]) * k, j[1] + (t[1] - a.stoneScr[1]) * k, 700], wait: 2000, note: `course: jib dz ${a.dz}/${a.ta} x ${a.sx}` };
         }
         if (Math.abs(a.rotE) > a.tol * 0.4) { const px = Math.max(-300, Math.min(300, (-a.rotE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1800, note: `course: rope ${a.rotE}° → ${Math.round(px)}px` }; }
         if (a.gapB > 1.0) return { hold: [a.stoneScr[0], a.stoneScr[1], 600], wait: 300, note: 'course: lower ' + a.gapB };

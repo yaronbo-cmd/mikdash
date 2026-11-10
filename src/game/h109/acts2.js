@@ -443,7 +443,8 @@ function pileSync(X) {
  *  level by the rakers ── /h117 ── */
 function pitSync(X, instant) {
   const st = X.M.st; st.pitIn = Array.isArray(st.pitIn) ? st.pitIn : [];
-  for (let i = 0; i < BOOK.pits.length; i++) try { SH.cells.pit(i, (st.pitIn[i] | 0) >= PIT_CAP ? 1 : 0, { instant }); } catch (e) { /* */ }
+  // (re-asserted: the hill's cell of a pit may have been reset by the world since, while the cells' own record still says it is open)
+  for (let i = 0; i < BOOK.pits.length; i++) try { SH.cells.pit(i, null); SH.cells.pit(i, (st.pitIn[i] | 0) >= PIT_CAP ? 1 : 0, { instant }); } catch (e) { /* */ }
   heapSync(X);
 }
 /** where the first n chunks in pit i lie: each on the lowest of a 5×5 grid of the floor, the near (tipping) side first, so a heap
@@ -883,7 +884,8 @@ export const WASTE = {
       X.line('החזיקו: השוורים מושכים · שחררו כדי לעצור על הקו הירוק');
       X.hand({ x: rimX, y: X.ground(rimX, s0.z) + 1, z: s0.z }, 0, 0);
       // ── h117 ── (the pit's floor and its heap seen while tipping: the camera higher and over the pit's south side) ── /h117 ──
-      const mx = P.x - 8, fl = heapFloor(pi); X.shot([mx, Math.max(gyP, gP()) + 21, P.z + 15], [mx + 2, Math.min(fl + 2, gP()), P.z - 3.5], 1.0);
+      const inf = SH.cells.pitInfo ? SH.cells.pitInfo(pi) : null, rim = inf ? inf.rim : gP(), mx = P.x - 7, zc2 = (s0.z + P.z) / 2;
+      X.shot([mx - 1, rim + 23, P.z + 12], [mx, rim - 1.5, zc2], 1.0);   // (the track, the green line and the pit's floor in one frame)
     }
     function tip() {
       const off = Math.abs(A.d - Tgt);
@@ -976,7 +978,7 @@ export const WASTE = {
     }
     function begin2() { const g = X.ground(PILE.x, PILE.z), zc = (PILE.z + s0.z) / 2; X.shot([PILE.x - 8, g + 18, zc + 15], [PILE.x + 3.5, g + 0.5, zc], 0.9); }
     return {
-      begin() { pileSync(X); (SH.pileM || []).forEach((c, i) => { c.userData.id = i; c.userData.on = false; c.userData.fall = null; }); begin2(); X.line('גררו גוש למזחלת כשהשוורים עומדים'); const c = chunks()[0]; if (c) X.hand({ x: c.position.x, y: c.position.y + 0.5, z: c.position.z }, 40, -10); if (!chunks().length) finish(); },
+      begin() { pileSync(X); pitSync(X); (SH.pileM || []).forEach((c, i) => { c.userData.id = i; c.userData.on = false; c.userData.fall = null; }); begin2(); X.line('גררו גוש למזחלת כשהשוורים עומדים'); const c = chunks()[0]; if (c) X.hand({ x: c.position.x, y: c.position.y + 0.5, z: c.position.z }, 40, -10); if (!chunks().length) finish(); },
       update(dt) {
         A.t += dt;
         if (A.phase === 'push') {

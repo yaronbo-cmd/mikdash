@@ -11,6 +11,19 @@ import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
+// ── h115 ── the address grid (game/world/grid.js): the hill's cells by id (column × row over the whole platform), the waste pits after
+import { CELL as G_CELL, EAST as G_EAST, NORTH as G_NORTH, BOOK as G_BOOK } from './game/world/grid.js';
+const CG = (() => {
+  const K = 24, R0 = -12, R1 = 23, NR = R1 - R0 + 1, PITS = G_BOOK.pits, NC = K * NR, N = NC + PITS.length;
+  const idOf = (k, r) => (k >= 0 && k < K && r >= R0 && r <= R1 ? k * NR + (r - R0) : -1);
+  function idAt(x, z) {
+    for (let i = 0; i < PITS.length; i++) { const P = PITS[i]; if (Math.abs(x - P.x) < P.w / 2 && Math.abs(z - P.z) < P.d / 2) return NC + i; }
+    return idOf(Math.floor((G_EAST - x) / G_CELL), Math.floor((z - G_NORTH) / G_CELL));
+  }
+  const kr = (id) => (id >= 0 && id < NC ? { k: Math.floor(id / NR), r: (id % NR) + R0 } : null);
+  return { CELL: G_CELL, EAST: G_EAST, NORTH: G_NORTH, K, R0, R1, NR, NC, N, PITS, idOf, idAt, kr, pitId: (i) => NC + i };
+})();
+// ── /h115 ──
 
 export const STAGE_IDS = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor', 'ulam', 'heichal', 'kodesh'];
 const FOUND = 0.15;   // progress below which the site is in its foundation phase
@@ -251,16 +264,23 @@ function hillY0(x, z) {
 }
 
 function makeHill(T) {
-  const lines = (a0, a1, m, m1 = m) => {
+  const lines = (a0, a1, m, m1 = m, extra = []) => {
     const L = new Set();
     for (let v = a0 - m; v <= a1 + m1 + 1e-6; v += 6) L.add(+v.toFixed(3));
     const sp = [a0, a0 + 0.25, a0 + TRENCH - 0.25, a0 + TRENCH, a1 - TRENCH, a1 - TRENCH + 0.25, a1 - 0.25, a1];
+    // ── h115 ── the address grid's cell edges (and the waste pits' rims): a cut cell ends in a rock face, not a ramp ── /h115 ──
+    for (const e of extra) if (e > a0 + TRENCH + 1 && e < a1 - TRENCH - 1 && sp.every((q) => Math.abs(q - e) > 0.8)) sp.push(+(e - 0.3).toFixed(3), +(e + 0.3).toFixed(3));
     const out = [...L].filter((v) => sp.every((s) => Math.abs(v - s) > 1.2)).concat(sp);
     return Float64Array.from(out.sort((p, q) => p - q));
   };
-  const XS = lines(X0, X1, 66), ZS = lines(Z0, Z1, 150, 66), nx = XS.length, nz = ZS.length, N = nx * nz;
+  const XE = [], ZE = [];
+  for (let k = 0; k <= CG.K; k++) XE.push(CG.EAST - k * CG.CELL);
+  for (let r = CG.R0; r <= CG.R1 + 1; r++) ZE.push(CG.NORTH + r * CG.CELL);
+  for (const P of CG.PITS) { XE.push(P.x - P.w / 2, P.x + P.w / 2); ZE.push(P.z - P.d / 2, P.z + P.d / 2); }
+  const XS = lines(X0, X1, 66, 66, XE), ZS = lines(Z0, Z1, 150, 66, ZE), nx = XS.length, nz = ZS.length, N = nx * nz;
   const pos = new Float32Array(N * 3), uv = new Float32Array(N * 2), col = new Float32Array(N * 3);
   const ter = new Float32Array(N), kk = new Float32Array(N), y0 = new Float32Array(N), bl = new Float32Array(N);
+  const cid = new Float32Array(N).fill(-1), cellMax = new Float32Array(CG.N).fill(-1e9);   // ── h115 ── ── /h115 ──
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
     const k = j * nx + i, x = XS[i], z = ZS[j];
     const y = hillY0(x, z);
@@ -269,6 +289,8 @@ function makeHill(T) {
     ter[k] = terrainH(x, z);
     const out = x <= X0 || x >= X1 || z <= Z0 || z >= Z1;
     kk[k] = out ? 0 : (x < X0 + TRENCH || x > X1 - TRENCH || z < Z0 + TRENCH || z > Z1 - TRENCH) ? 1 : 2;
+    // ── h115 ── each vertex of the platform's inside: its cell of the address grid (a waste pit's own id inside a pit) ── /h115 ──
+    if (kk[k] === 2) { const id = CG.idAt(x, z); cid[k] = id; if (id >= 0 && y > cellMax[id]) cellMax[id] = y; }
   }
   const idx = [];
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1; idx.push(a, c, b, b, c, d); }
@@ -307,6 +329,7 @@ function makeHill(T) {
   g.setAttribute('aTer', new THREE.BufferAttribute(ter, 1));
   g.setAttribute('aK', new THREE.BufferAttribute(kk, 1));
   g.setAttribute('aBl', new THREE.BufferAttribute(bl, 1));
+  g.setAttribute('aCid', new THREE.BufferAttribute(cid, 1));   // ── h115 ── ── /h115 ──
   g.computeBoundingSphere();
   const U = { uCut: { value: 0 }, uFill: { value: -1000 }, uFillCol: { value: new THREE.Color('#BFA27C') }, uCutCol: { value: new THREE.Color('#E6DDCB') }, uGround: { value: T.ground.map },
     // ── site8 ── the levelled patches where the rocks stood: (x, z, half size, level); half size 0 = none (siteLife grows them)
@@ -318,7 +341,11 @@ function makeHill(T) {
     uCrest: { value: new THREE.Vector4(1000, 1000, 0, 2.5) },
     // ── site12 ── the plaza's paving laid from the west as the last courses go up: x the paving's front (paved west of it), y on;
     // east of the front the fill lies a little over the paving's top, so the brown fill shows until it is paved
-    uPave: { value: new THREE.Vector2(1e4, 0) } };
+    uPave: { value: new THREE.Vector2(1e4, 0) },
+    // ── h115 ── the address grid's cut levels: cell id → the level its rock is cut to (1000: uncut) ── /h115 ──
+    uCellT: { value: null } };
+  const cellH = new Float32Array(CG.N).fill(1000);
+  { const t = new THREE.DataTexture(cellH, CG.N, 1, THREE.RedFormat, THREE.FloatType); t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true; U.uCellT.value = t; }
   // ── site12 ── (the owner's note 2, 29.9 21:01: "בשלב שיטוח ההר צריך שכשעושים זום אאוט רואים את ההתקדמות של החציבה. אני בשלב 3
   // עכשיו וזה נראה בדיוק כמו בשלב ראשון") the crest comes down in benches, COURSE BY COURSE: each of the Mount's six courses
   // cuts a new floor (uCrest.x) swept across the crest from the east over the last course's floor (uCrest.y), with a rim of
@@ -334,6 +361,9 @@ function makeHill(T) {
     // (site9: the working bay at the Mount's working front is dug down to the fill, so the first courses are seen from the hill)
     if (aK > 1.5 && uPit.z > uPit.x) { vec2 pq = max(uPit.xy - position.xz, position.xz - uPit.zw);
       hYc = mix(hYc, min(hYc, uFill), (1.0 - smoothstep(-4.0, 4.0, max(pq.x, pq.y))) * uPitK); }
+    float hCk = 0.0;
+    if (aK > 1.5 && aCid > -0.5) { float hCL = texelFetch(uCellT, ivec2(int(aCid + 0.5), 0), 0).r;
+      if (hCL > 1500.0) { hCk = 1.0; hYc = hCL - 2000.0; } else { hCk = step(hCL + 0.01, hYc); hYc = min(hYc, hCL); } }   // (> 1500: levelled flat at L − 2000, cut high and filled low)
     float hYI = max(hYc, min(uFill, -0.4));
     if (aK > 1.5 && uPave.y > 0.5 && position.x >= uPave.x) hYI = max(hYI, 0.35);   // ── site12 ── (not yet paved)
     float hY = aK < 0.5 ? mix(hY0, aTer - 0.6, uCut) : (aK < 1.5 ? (uCut > 0.0 ? -155.0 : hY0) : hYI);
@@ -347,15 +377,16 @@ function makeHill(T) {
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk;')
       .replace('#include <beginnormal_vertex>', `${morph}
-    float hFlat = aK > 1.5 ? max(step(hYc + 0.01, hYI), hPk) : uCut;
+    float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hCk) : uCut;
     vPk = hPk;
     vLev = aK > 1.5 ? step(hYc + 0.01, hYI) : 0.0;
     // ── site12 ── the worked crest (its floor and benches: fresh-cut rock, lit by its facets), the floor cut this course, and
     // the spoil tipped on the slope just above the fill (the next lift); everything else keeps the hill's own colours (v21
     // washed it all brown by the second course: "the site is cleared soon after the works begin")
     vWk = aK > 1.5 && hBt > -3.0 ? 1.0 - vLev : 0.0;
+    vWk = max(vWk, hCk * (1.0 - vLev));   // ── h115 ── (a cut cell: fresh-cut rock) ── /h115 ──
     vNw = hLv < uCrest.y - 0.3 ? 1.0 : 0.0;
     vLv = hLv;
     vDp = aK > 1.5 && uFill > -999.0 ? (1.0 - smoothstep(uFill + 4.0, uFill + 12.0, hYc)) * (1.0 - vLev) * (1.0 - vWk) : 0.0;
@@ -405,7 +436,7 @@ function makeHill(T) {
   depth.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave;')
       .replace('#include <begin_vertex>', `${morph}\nvec3 transformed = vec3(position.x, hY, position.z);`);
   };
   depth.customProgramCacheKey = () => 'hilldepth';
@@ -428,6 +459,7 @@ function makeHill(T) {
     let yc = bt >= 0 ? lv : bt > -3 ? lv + C.w * (Math.floor(bt) + smooth(0.72, 1, bt - Math.floor(bt))) : Y;
     // (site9: the working bay, as the shader digs it)
     { const P = U.uPit.value; if (P.z > P.x && U.uPitK.value > 0) { const px = pos[k * 3], pz = pos[k * 3 + 2], pd = Math.max(P.x - px, px - P.z, P.y - pz, pz - P.w); yc = lerp(yc, Math.min(yc, U.uFill.value), (1 - smooth(-4, 4, pd)) * U.uPitK.value); } }
+    if (kk[k] > 1.5 && cid[k] >= 0) { const L = cellH[cid[k]]; if (L > 1500) yc = L - 2000; else if (yc > L) yc = L; }   // ── h115 ── ── /h115 ──
     let y = Math.max(yc, Math.min(U.uFill.value, -0.4));
     { const P = U.uPave.value; if (P.y > 0.5 && pos[k * 3] >= P.x) y = Math.max(y, 0.35); }   // ── site12 ── (not yet paved)
     // (site8: the levelled patches, as the shader draws them)
@@ -480,12 +512,25 @@ function makeHill(T) {
     bushes.forEach(([x, y, z], i) => {
       const s = clamp((14 - x + 16 * Math.sin(z / 61)) / 270, 0, 1), lv = lerp(C.y, C.x, 1 - smooth(C.z - 0.012, C.z + 0.012, s));
       const off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
+      if (bushOff[i] === 2) return;   // ── h115 ── (cleared from a cut cell) ── /h115 ──
       if (off !== bushOff[i]) { bushOff[i] = off; bm.setMatrixAt(i, off ? ZM : bushM[i]); ch = true; }
     });
     if (ch) bm.instanceMatrix.needsUpdate = true;
     return ch;
   }
-  return { mesh, bushes: bm, U, heightAt, bushCull, setPatchN: (n) => { patchN = n; } };
+  // ── h115 ── the address grid's cells: their cut levels (the shader reads cellH), the natural top of each, the scrub on them ── /h115 ──
+  const cells = {
+    max: (id) => cellMax[id],
+    level: (id) => cellH[id],
+    set(id, L) { if (!(id >= 0 && id < CG.N)) return; if (cellH[id] === L) return; cellH[id] = L; U.uCellT.value.needsUpdate = true; },
+    /** the scrub on cells cut or being worked goes (and comes back if the cell is uncut, a new game) */
+    scrub(isOff) {
+      let ch = false;
+      bushes.forEach(([x, y, z], i) => { const id = CG.idAt(x, z), off = id >= 0 && isOff(id) ? 1 : 0; if (off && !bushOff[i]) { bushOff[i] = 2; bm.setMatrixAt(i, ZM); ch = true; } else if (!off && bushOff[i] === 2) { bushOff[i] = 0; bm.setMatrixAt(i, bushM[i]); ch = true; } });
+      if (ch) bm.instanceMatrix.needsUpdate = true; return ch;
+    },
+  };
+  return { mesh, bushes: bm, U, heightAt, bushCull, cells, setPatchN: (n) => { patchN = n; } };
 }
 
 /* ───────────────────────── boulders ───────────────────────── */
@@ -1486,10 +1531,87 @@ export function createStages(ctx) {
   // crest from the east (the working side) and its fresh face moves west. harCut follows the Mount's shown progress every frame.
   const HAR_CR = [41, 30, 21, 13.5, 7.5, 3, -0.4];
   let bushAt = null;
+  /* ───────── ── h115 ── the Mount by cells (ירון 10.11: "העולם צריך להיות מחולק לנ.צ מדויקים"; docs/specs/build115-brief.md): the
+     stage-01 director switches it on; then the crest is not swept by the courses — every cell of the address grid comes down by
+     itself, where it is worked (the kohen's or the crews'), in benches to the platform's level, and stays so; a paved cell has its
+     paving; the waste pits fill. The grid itself is never drawn. ───────── */
+  const FLOOR = 0.35;
+  let cellMode = false;
+  const CELLS = new Map();   // id → { st: 'rock'|'cut'|'paved', a: anim | null }
+  const pitFill = [];
+  let paveMesh = null; const paveIx = new Map();
+  function paveTex() {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 256; const g = cv.getContext('2d');
+    g.fillStyle = '#D9CDB3'; g.fillRect(0, 0, 256, 256);
+    const r = rng(77);
+    // rows of slabs 1 amah deep, 1–3 long, every row's joints off the row's below (25 amot = 4 repeats of the texture)
+    for (let y = 0; y < 256; y += 256 / 6.25) { let x = -r() * 40; while (x < 256) { const L = (1 + Math.floor(r() * 3)) * 256 / 6.25; const c = 200 + Math.floor(r() * 26); g.fillStyle = `rgb(${c + 14},${c + 6},${c - 14})`; g.fillRect(x + 1.5, y + 1.5, L - 3, 256 / 6.25 - 3); x += L; } }
+    const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 4); t.colorSpace = THREE.SRGBColorSpace; return t;
+  }
+  function paveSync() {
+    const L = [...CELLS.entries()].filter(([, c]) => c.st === 'paved').map(([id]) => id);
+    if (!paveMesh) {
+      const g = new THREE.PlaneGeometry(CG.CELL, CG.CELL); g.rotateX(-Math.PI / 2);
+      paveMesh = new THREE.InstancedMesh(g, new THREE.MeshStandardMaterial({ map: paveTex(), roughness: 0.92 }), CG.NC); paveMesh.receiveShadow = true; paveMesh.frustumCulled = false; paveMesh.name = 'h115-paved'; scene.add(paveMesh);
+    }
+    const M = new THREE.Matrix4(); let n = 0;
+    for (const id of L) { const q = CG.kr(id); if (!q) continue; const x = CG.EAST - q.k * CG.CELL - CG.CELL / 2, z = CG.NORTH + q.r * CG.CELL + CG.CELL / 2; M.makeTranslation(x, FLOOR + 0.02, z); paveMesh.setMatrixAt(n++, M); }
+    paveMesh.count = n; paveMesh.instanceMatrix.needsUpdate = true; paveMesh.visible = cellMode && n > 0 && hill.mesh.visible;
+    requestShadow(false);
+  }
+  function scrubSync() { if (hill.cells.scrub((id) => { const c = CELLS.get(id); return !!c && c.st !== 'rock'; })) requestShadow(false); }
+  /** the pit's floor at fill 0..1: its rim's lowest point less its depth, rising to the rim as it fills */
+  function pitLevel(i, f) { const P = CG.PITS[i]; if (!P) return 1000; const lo = Math.min(...[[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]].map(([a, b]) => hill.heightAt0 ? hill.heightAt0(P.x + a * P.w / 2, P.z + b * P.d / 2) : hillY0(P.x + a * P.w / 2, P.z + b * P.d / 2))); return lo - P.depth * (1 - clamp(f, 0, 1)) - 0.2; }
+  const cellsApi = {
+    get on() { return cellMode; },
+    /** the director's world is by cells from now (a new game: off) */
+    enable(on = true) {
+      cellMode = !!on;
+      if (cellMode) { setBoulders([]); hill.U.uCrest.value.set(1000, 1000, 0, 2.5); }
+      else { for (const id of CELLS.keys()) hill.cells.set(id, 1000); CELLS.clear(); for (let i = 0; i < CG.PITS.length; i++) hill.cells.set(CG.pitId(i), 1000); pitFill.length = 0; }
+      paveSync(); scrubSync(); propsDirty = true; requestShadow(true);
+    },
+    id: (k, r) => CG.idOf(k, r),
+    /** the highest natural rock of a cell (−1e9: none of the platform's inside) */
+    top: (k, r) => { const id = CG.idOf(k, r); return id >= 0 ? hill.cells.max(id) : -1e9; },
+    state: (k, r) => { const c = CELLS.get(CG.idOf(k, r)); return c ? c.st : 'rock'; },
+    /** a cell to 'rock' | 'cut' | 'paved'; cut animates (benches with dust, `dur` s) unless instant */
+    set(k, r, st, o = {}) {
+      const id = CG.idOf(k, r); if (id < 0) return false;
+      const c = CELLS.get(id) || { st: 'rock', a: null }; if (c.st === st && !c.a) return false;
+      const top = hill.cells.max(id);
+      if (st === 'rock') { c.a = null; hill.cells.set(id, 1000); }
+      else if (c.st === 'rock' && !o.instant && top > FLOOR + 0.5) c.a = { from: top, t: 0, dur: o.dur || 6, step: -1 };
+      else { c.a = null; hill.cells.set(id, 2000 + FLOOR); }   // (levelled: the low parts filled with what was cut)
+      c.st = st; CELLS.set(id, c);
+      if (st === 'paved' || c.st === 'paved') paveSync();
+      scrubSync(); requestShadow(!!o.instant);
+      return true;
+    },
+    cutting: (k, r) => { const c = CELLS.get(CG.idOf(k, r)); return !!(c && c.a); },
+    /** a waste pit's fill 0..1 (0: dug and empty) */
+    pit(i, f, o = {}) { if (!CG.PITS[i]) return; const was = pitFill[i]; pitFill[i] = f; if (was === f) return; hill.cells.set(CG.pitId(i), f == null ? 1000 : pitLevel(i, f)); requestShadow(!!o.instant); },
+    pitInfo: (i) => { const P = CG.PITS[i]; return P ? { ...P, floor: pitLevel(i, pitFill[i] || 0), rim: pitLevel(i, 1) } : null; },
+    floor: FLOOR,
+    frame(dt) {
+      for (const [id, c] of CELLS) {
+        if (!c.a) continue;
+        const A = c.a; A.t += dt; const u = clamp(A.t / A.dur, 0, 1), span = A.from - FLOOR;
+        const n = Math.max(1, Math.ceil(span / 2.5)), k = Math.min(n, Math.floor(u * n + 1e-6));   // (bench after bench, 2.5 amot each)
+        if (k !== A.step) {
+          A.step = k; const L = k >= n ? FLOOR : A.from - (span * k) / n; hill.cells.set(id, L);
+          const q = CG.kr(id); if (q && k > 0) { const x0 = CG.EAST - q.k * CG.CELL - CG.CELL / 2, z0 = CG.NORTH + q.r * CG.CELL + CG.CELL / 2; for (let j = 0; j < 3; j++) dustBurst(x0 + (j - 1) * 7, L + 1, z0 + ((j * 5) % 3 - 1) * 7, 8, 5, 5, 2); }
+          requestShadow(false);
+        }
+        if (u >= 1) { c.a = null; hill.cells.set(id, 2000 + FLOOR); }
+      }
+    },
+  };
+  // ── /h115 ──
   function harCut(disp) {
     const U = hill.U, C = U.uCrest.value;
     U.uCut.value = disp < FOUND ? 0 : smooth(FOUND, 0.95, disp);
-    if (disp < FOUND) C.set(1000, 1000, 0, 2.5);
+    if (disp < FOUND || cellMode) C.set(1000, 1000, 0, 2.5);   // ── h115 ── (by cells: the crest is cut where it is worked) ── /h115 ──
     else { const c = clamp((disp - FOUND) / (1 - FOUND), 0, 1) * 6, k = Math.min(5, Math.floor(c)); C.set(HAR_CR[k + 1], HAR_CR[k], -0.03 + (c - k) * 1.06, 2.5); }
     // the plaza's paving (mount.js's paving, drawn once the walls pass the platform's level): laid from the west from the fourth
     // course on, up to x 180 by the last; the strip by the bay — where the finish's paving patch grows at his strokes (N40) — in
@@ -1774,6 +1896,7 @@ export function createStages(ctx) {
      at the builder's rock and the three next: picks and a lever lying ready, baskets, a water jar; the survey's pegs and cord
      from the builder's rock to the next one (the line the gangs work along) */
   function mountProps(put, putF, putR, putA) {
+    if (cellMode) return;   // ── h115 ── (the old boulder field's stakes, spoil and tools: retired with it) ── /h115 ──
     const hr = heroRock();
     surveyProps(put);
     // the Mount's first retaining course at its east face, by the crane and the cart's dump (DESIGN8B M6): the chalk line of the
@@ -4227,6 +4350,7 @@ export function createStages(ctx) {
   function boulderAll() { for (let i = 0; i < bSt.length; i++) boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; }
   let bVisible = false;
   function setBoulders(states) {
+    if (cellMode) { bSt.forEach((b) => { b.state = 0; b.crack = 0; b.anim = null; b.pt = -1; b.rub = 0; }); bVisible = false; for (const m of bMesh) m.visible = quarryOn; workDirty = true; propsDirty = true; requestShadow(true); return; }   // ── h115 ── ── /h115 ──
     bSt.forEach((b, i) => { const s = states && states[i] !== undefined ? states[i] : 0; b.state = s; b.crack = s === 1 ? 1 : 0; b.anim = null;
       if (s > 0) { b.pt = -1; b.rub = 0; } else if (b.pt < 0) { b.pt = 90; b.rub = 0; } });   // ── site8 ── (a resync: the patches levelled, the rubble gone)
     workDirty = true; propsDirty = true;
@@ -4317,6 +4441,7 @@ export function createStages(ctx) {
     }
     const hs = ST.har;
     hill.mesh.visible = hs.status !== 'done';
+    if (paveMesh) paveMesh.visible = hill.mesh.visible && cellMode && paveMesh.count > 0;   // ── h115 ── ── /h115 ──
     hill.bushes.visible = hs.status !== 'done';   // ── site12 ── (the scrub goes where the works reach it: harCut)
     if (hs.status !== 'building') { hill.U.uFill.value = -1000; harCut(0); }
     // outlines: available sites pulse, the next two locked ones show faintly, building sites keep a thin line in the foundation phase
@@ -6334,6 +6459,7 @@ export function createStages(ctx) {
       if (hs.status === 'building') { if (hs.disp < FOUND) hill.U.uFill.value = -1000; harCut(hs.disp); }   // ── site12 ── (+ the crest)
       else if (hs.status !== 'done' && (hill.U.uCut.value !== 0 || hill.U.uCrest.value.x < 999)) { hill.U.uFill.value = -1000; harCut(0); } }
     siteLife(dt);   // ── site8 ── the Mount's working patch (below)
+    if (cellMode) cellsApi.frame(dt);   // ── h115 ── ── /h115 ──
     harBay(dt);     // ── site9 ── the Mount's working bay at its walls' working front
     sitePoseUpdate(dt);   // ── site11 ── every other site's working front: the crane, its stock and his banker at the next slot
     finishCuts(dt);       // ── site13 ── the finish on the building, step by step; the Ezrat Nashim's chambers one at a time
@@ -8797,6 +8923,7 @@ export function createStages(ctx) {
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
+    cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
     s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,

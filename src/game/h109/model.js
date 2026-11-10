@@ -10,6 +10,8 @@
  * which grade an act earned and what a unit's end pays (JOB_END by its stars).
  */
 
+import { BOOK } from '../world/grid.js';
+
 export const H109 = Object.freeze({
   SECTORS: 9,
   ROCKS: 5,                 // small rocks per sector the kohen strikes (the crews strike the rest) — the owner, 8.11: "מסכים"
@@ -23,18 +25,21 @@ export const H109 = Object.freeze({
   LETTERS: 'לבית התקיעה',
 });
 
-// the Mount in world amot (+x east, +z south): the nine sectors round the old boulders (stages.js BOULDERS 0..8; the crews take
-// 9..11), the east retaining wall's corner and courses by the crane, the quarry where the great stone is cut, its road, the west
-// wall's great course, the south-west corner of the inscription, and the fill behind the east wall where the waste goes.
+// the Mount in world amot (+x east, +z south). ── h115 ── (ירון 10.11: "לכל סלע ולכל אבן יש מיקום מוגדר ומדויק נ.צ. בעולם") every
+// place is the address book's (game/world/grid.js BOOK): the nine sectors are the kohen's nine cells on the high rock (יב־6 … יד־8),
+// the waste goes down the slope into pits, the corner stone is the retaining wall's real south-east corner and the courses are the
+// east wall's beside it. (The great stone's quarry, road and course are build 114's until build 116.) ── /h115 ──
 export const PLACES = Object.freeze({
-  rope: [{ a: [236, -150], b: [236, 350], face: [1, 0] }, { a: [-264, -150], b: [236, -150], face: [0, -1] }],
-  corner: { x: 258, z: -168, face: [271, -177] },
-  course: [{ x: 252, z: 60, face: [277, 60] }, { x: 252, z: 124, face: [277, 124] }],
+  book: BOOK,
+  sectors: BOOK.kohen.map((c) => Object.freeze({ x: c.rect.cx, z: c.rect.cz, k: c.k, r: c.r, name: c.name })),
+  corner: { x: BOOK.corner.x, z: BOOK.corner.z },
+  course: BOOK.courses.map((c) => ({ x: BOOK.corner.x, z: c.z })),
   quarry: { x: 196, z: -199 },
   greatRoad: [[200, -196], [150, -230], [40, -240], [-80, -230], [-200, -200], [-262, -150]],
   great: { x: -262, z: -150, face: [-300, -150] },
   letters: { x: -281, z: 383, face: [-300, 400] },
-  fill: { x: 250, z: -40 },
+  pile: { x: BOOK.pile.x, z: BOOK.pile.z },
+  pits: BOOK.pits,
 });
 
 const MISSIONS = () => {
@@ -93,7 +98,8 @@ export function createH109(save) {
       const d = (id) => st.done.includes(id);
       switch (m.k) {
         case 'rope': return true;
-        case 'rocks': return d('rope');
+        // ── h115 ── (the rock is cut from its low east edge inward: a cell opens when the cell east of it is read) ── /h115 ──
+        case 'rocks': return d('rope') && (m.s < 3 || d('read' + (m.s - 3)));
         case 'read': return d('rocks' + m.s);
         case 'pave': return d('read' + m.s);
         case 'corner': return d('rope');

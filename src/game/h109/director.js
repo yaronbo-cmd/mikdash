@@ -313,9 +313,9 @@ export function createH109Director(o) {
 body.h109-act .gm .tw-zone{opacity:0!important}
 .h109-pf{left:0;top:0;right:0;bottom:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;overflow:hidden;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 46%,rgba(255,236,160,.96) 0,rgba(255,196,64,.9) 26%,rgba(178,96,8,.88) 62%,rgba(58,28,2,.93) 100%)}
 .h109-pf.on{opacity:1}
-.h109-pf .r{position:absolute;left:50%;top:46%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(rgba(255,250,220,.34) 0 7deg,transparent 7deg 18deg);animation:h109spin 9s linear infinite}
+.h109-pf .r{position:absolute;left:50%;top:46%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(rgba(255,250,220,.2) 0 7deg,transparent 7deg 18deg);animation:h109spin 9s linear infinite}
 @keyframes h109spin{to{transform:rotate(360deg)}}
-.h109-pf b{position:relative;font:900 min(22vmin,150px)/1 Heebo,system-ui;color:#FFFBEA;text-shadow:0 0 6px #7A4A00,0 0 2px #7A4A00,0 8px 30px rgba(90,40,0,.7);transform:scale(.3);animation:h109pop .7s cubic-bezier(.2,1.6,.35,1) forwards}
+.h109-pf b{position:relative;font:900 min(22vmin,150px)/1 Heebo,system-ui;color:#FFFBEA;-webkit-text-stroke:3px #6A3A00;paint-order:stroke fill;text-shadow:0 0 18px #7A4A00,0 8px 30px rgba(60,25,0,.8);transform:scale(.3);animation:h109pop .7s cubic-bezier(.2,1.6,.35,1) forwards}
 .h109-pf i{position:relative;font:normal min(11vmin,72px)/1 system-ui;letter-spacing:.12em;color:#FFE27A;text-shadow:0 0 14px #FFF2B0,0 4px 10px rgba(80,30,0,.6);opacity:0;animation:h109pop .6s .35s cubic-bezier(.2,1.6,.35,1) forwards}
 .h109-pf span{position:relative;font:800 min(5vmin,28px)/1.3 Heebo,system-ui;color:#3A2002;background:rgba(255,248,224,.86);padding:6px 18px;border-radius:16px;opacity:0;animation:h109fade .4s .6s forwards}
 .h109-pf u{position:absolute;left:50%;top:46%;width:12px;height:12px;border-radius:50%;background:#FFF6C8;box-shadow:0 0 10px #FFE070;text-decoration:none;animation:h109fly 1.5s ease-out forwards}
@@ -767,6 +767,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
+    _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },
     _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
   };

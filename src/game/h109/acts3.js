@@ -102,7 +102,8 @@ function cornerPit(X, chalk) {
 export const CORNER = {
   icon: '🏗', title: 'אבן הפינה',
   walkLine: () => 'הפינה הדרומית־מזרחית של ההר: מורידים את אבן הפינה',
-  stand(m, X) { return { x: CRANE_AT.x, z: CRANE_AT.z, face: [CRANE_AT.x + 1, CRANE_AT.z], mx: CRANE_AT.x - 1.5, mz: CRANE_AT.z - 3.5 }; },
+  // ── h115 ── (the full replay: he stood inside the crane's treadwheel) his stand beside the crane on the Mount's side, facing the corner ── /h115 ──
+  stand(m, X) { const x = CRANE_AT.x - 4.2, z = CRANE_AT.z - 4.8; return { x, z, face: [CORNER_AT.x, CORNER_AT.z], mx: CRANE_AT.x - 1.5, mz: CRANE_AT.z - 3.5 }; },
   prepare(m, X) { SH.crane.place(CRANE_AT.x, CRANE_AT.z, Math.atan2(CORNER_AT.x - CRANE_AT.x, CORNER_AT.z - CRANE_AT.z) - 0.9); },
   make(m, X) {
     const lv = X.level(), T = X.THREE, C = SH.crane, gP = X.ground(CORNER_AT.x, CORNER_AT.z), sw = 2.4;
@@ -224,7 +225,7 @@ export const CORNER = {
     return {
       begin() {
         { const dx = CORNER_AT.x - CRANE_AT.x, dz = CORNER_AT.z - CRANE_AT.z, L = Math.hypot(dx, dz); A.aimP = { x: CORNER_AT.x + (dx / L) * 1.8 + (-dz / L) * 0.9 * (lv >= 2 ? 1 : 0.5), z: CORNER_AT.z + (dz / L) * 1.8 + (dx / L) * 0.9 * (lv >= 2 ? 1 : 0.5) }; }
-        A.drop = 0; try { X.hero.setPos(CRANE_AT.x, CRANE_AT.z, C.yaw + Math.PI / 2); } catch (e) { /* */ }
+        A.drop = 0; try { X.hero.setPos(CRANE_AT.x - 4.2, CRANE_AT.z - 4.8, Math.atan2(CORNER_AT.x - CRANE_AT.x + 4.2, CORNER_AT.z - CRANE_AT.z + 4.8)); } catch (e) { /* */ }
         // (a replay of the one-minigame page skips the opening after the first time)
         if (SH.cornerIntro) { A.phase = 'lift'; shotSide(); X.line('החליקו למטה בקצב'); X.hand({ x: CRANE_AT.x, y: X.ground(CRANE_AT.x, CRANE_AT.z) + 3, z: CRANE_AT.z }, 0, 40); } else { SH.cornerIntro = true; intro(); }
       },

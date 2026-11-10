@@ -107,7 +107,7 @@ export const READ = {
       if (pts.length < 3) return null;
       const curve = new T.CatmullRomCurve3(pts);
       const mat = new T.MeshBasicMaterial({ color: 0x1E140A, transparent: true, opacity: 0, depthWrite: false });
-      const mesh = new T.Mesh(new T.TubeGeometry(curve, pts.length * 3, 0.05, 5, false), mat); mesh.renderOrder = 995; X.props.root.add(mesh);
+      const mesh = new T.Mesh(new T.TubeGeometry(curve, pts.length * 3, ok ? 0.11 : 0.07, 6, false), mat); mesh.renderOrder = 995; X.props.root.add(mesh);
       return { Pl, psi, pts, mesh, ok, shown: 0, seen: false, curve };
     }
     // (the crack runs on the face the camera sees best: between his side and the camera's, its own place on each rock)

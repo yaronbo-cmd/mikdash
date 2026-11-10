@@ -49,6 +49,11 @@ function crewCells(X, instant) {
     const s0 = cells.state(c.k, c.r);
     if (cut < want) { cut++; if (s0 === 'rock') { if (instant) cells.set(c.k, c.r, 'paved', { instant: true }); else if (!next) next = c; } }
   }
+  // ── h115 ── (the end film: the low rock of the hill's fringe, under 3 amot and so in no rock cell, stood through the platform's
+  // paving in brown patches) the stage done: every cell whose rock is over the floor is cut and paved, the Mount one level ── /h115 ──
+  if (!next && st.done.length >= ((X.M.plan || []).length || 1e9)) {
+    for (let k = -6; k <= 26; k++) for (let r = -6; r <= 26; r++) { let tp = -1e9; try { tp = cells.top(k, r); } catch (e) { tp = -1e9; } if (tp > 0.05 && cells.state(k, r) === 'rock') cells.set(k, r, 'paved', { instant: true }); }
+  }
   return next;
 }
 function initWorld(X) {

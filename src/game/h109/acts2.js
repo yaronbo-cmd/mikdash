@@ -282,6 +282,7 @@ export const READ = {
           }
         }
       },
+      wants() { return A.step !== 'split'; },   // ── h115 ── (the rock is turned by a drag anywhere) ── /h115 ──
       down(p) {
         A.p0 = { x: p.x, y: p.y }; A.th0 = A.th; A.tDown = performance.now() / 1000;
         if (A.step === 'water') {
@@ -592,6 +593,7 @@ export const PAVE = {
         }
         if (A.sweep) { A.sweep.t += dt; for (const c of cell[A.sweep.y]) if (c && c.g) { const b = c.g.userData.body.material; b.emissive = b.emissive || new T.Color(); b.emissive.setRGB(0.5, 0.38, 0.1).multiplyScalar(Math.max(0, 1 - A.sweep.t * 1.4)); } if (A.sweep.t > 0.8) A.sweep = null; }
       },
+      wants(p) { return !A.done && !!pickAt(p); },   // ── h115 ── ── /h115 ──
       down(p) {
         if (A.done) return;
         const q = pickAt(p); if (!q) return;
@@ -745,6 +747,7 @@ export const WASTE = {
         sledPos();
         const D = A.drag; if (D) { const k = 1 - Math.exp(-dt * 7); D.c.position.x += (D.tx - D.c.position.x) * k; D.c.position.z += (D.tz - D.c.position.z) * k; D.c.position.y += (X.ground(D.tx, D.tz) + 1.6 - D.c.position.y) * k; }
       },
+      wants(p) { return A.phase === 'push' || (A.phase === 'load' && !!pickAt(p)); },   // ── h115 ── ── /h115 ──
       down(p) {
         if (A.phase === 'load') { const c = pickAt(p); if (!c) return; A.drag = { c, tx: c.position.x, tz: c.position.z, home: c.position.clone() }; X.hand(null); X.play('tool'); return; }
         if (A.phase === 'push') {

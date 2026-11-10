@@ -241,6 +241,7 @@ const ROPE_ACT = {
         if (A.phase !== 'done') cam(h, A.phase === 'go' ? 2 : 3.2);
         rodDraw(h, dt); ropeDraw();
       },
+      wants() { return true; },   // ── h115 ── (the rope is held anywhere) ── /h115 ──
       down() { if (A.phase === 'ready' || A.phase === 'slide') { A.hold = true; A.phase = 'pull'; X.play('rope'); X.hand(null); } },
       move() {},
       up() { if (A.phase === 'pull') { A.hold = false; A.phase = 'slide'; } },
@@ -353,6 +354,7 @@ const ROCKS_ACT = {
         if (A.ring && R) { const ph = SH.B.phase(k), s = R.r * (1.35 + 2.0 * (1 - ph)); A.ring.scale.setScalar(s); A.ring.material.opacity = 0.35 + 0.6 * ph; A.band.material.opacity = ph > 0.86 || ph < 0.06 ? 1 : 0.55; }
         if (A.phase === 'work' && !A.pend && !X.hero.busy && !X.hero.armed && !X.hero.walking) { try { X.hero.arm('pick', rockTarget(R, X)); } catch (e) { /* */ } }
       },
+      wants() { return A.phase === 'work'; },   // ── h115 ── (a strike is a tap anywhere, on the beat) ── /h115 ──
       down(p) { strike(p); },
       move() {}, up() {},
       end() { if (A.ring) X.props.remove(A.ring); if (A.band) X.props.remove(A.band); for (const s of A.seam || []) X.props.remove(s); try { X.hero.arm(null); } catch (e) { /* */ } for (const o of off) o(); },

@@ -276,6 +276,7 @@ export const CORNER = {
           if (S2.t > S2.dur) A.settle = null;
         }
       },
+      wants() { return A.phase === 'lift' || A.phase === 'lower'; },   // ── h115 ── ── /h115 ──
       down(p) {
         A.p0 = { x: p.x, y: p.y, t: performance.now() / 1000, ax: A.ax };
         if (A.phase === 'lower') { A.hold = true; X.hand(null); X.play('rope'); steer(p); }
@@ -533,6 +534,7 @@ export const COURSE = {
           try { X.hero.drive(0, 0); } catch (e) { /* */ }
         }
       },
+      wants(p) { return A.phase === 'carry' || (A.phase === 'choose' && !!pick(p)); },   // ── h115 ── ── /h115 ──
       down(p) {
         A.p0 = { x: p.x, y: p.y, t: A.t };
         if (A.phase === 'carry') { A.hold = true; steer(p); X.hand(null); }
@@ -693,6 +695,7 @@ export const GREAT = {
         } else if (A.phase === 'roll') { try { X.hero.drive(0, 0); } catch (e) { /* */ } }
         for (let k = 0; k < 2; k++) { const s = k ? 1 : -1, a = { x: GR.x + s * 1.2, y: gy + 2.2, z: A.zs + GR.len / 2 }, w = pullers[6 + k] ? pullers[6 + k].a : null; if (w) ropes[k].set(a, { x: w.x, y: X.ground(w.x, w.z) + 1.6, z: w.z }, 0.2); }
       },
+      wants(p) { return A.phase === 'roll' && !!pickRoller(p); },   // ── h115 ── ── /h115 ──
       down(p) { if (A.phase !== 'roll') return; const r = pickRoller(p); if (!r) return; A.drag = { r, tz: r.z, t0: A.t }; X.hand(null); X.play('wood'); X.line('הכהן נושא את הגליל · הניחו אותו לפני האבן'); },
       move(p) { const D = A.drag; if (!D) return; const g = onPlane(X, p.x, p.y, g0(A.zs) + 1.2); if (g) D.tz = g.z; },
       up() {
@@ -1004,6 +1007,7 @@ export const LETTERS = {
           if (gi === 2) { const k = clamp(it.t / 1.2, 0, 1); for (const wm of it.win) { wm.material.emissiveIntensity = 1.8 * k * (0.9 + 0.1 * Math.sin(A.t * 9 + it.a * 40)); wm.material.color.set(k > 0.1 ? '#4A3416' : '#2B2116'); } }
         } });
       },
+      wants(p) { return A.part === 2 ? !!canvasAt(p) : A.part === 3 && !A.done; },   // ── h115 ── ── /h115 ──
       down(p) {
         const tq = X.scr(TP.x, TP.y + 2.2, TP.z);
         A.p0 = { x: p.x, y: p.y, t: A.t, aim: A.aim, moved: false, blow: Math.hypot(p.x - tq.x, p.y - tq.y) < Math.max(70, innerHeight * 0.13) };
@@ -1096,3 +1100,17 @@ export function frame3(dt, X, sh) {
   void sh; void ease;
 }
 export { makeCrane, CORNER_AT, CRANE_AT, GR, LET };
+
+/** ── h115 ── (brief: "a short victory trumpet blast is added at the end of the stage") the stage's last beat before its film: the
+ *  trumpeter on the south-west corner's top blows a tekiah twice over the levelled Mount (the music's 'blast' cue, Numbers 10:2;
+ *  the kit's fanfare when the music is off) ── /h115 ── */
+export async function finale01(X) {
+  const TP = { x: TRUMP.x, y: TOP.y, z: TRUMP.z }, o = { x: -0.707, z: 0.707 };
+  const blast = () => { let ok = false; try { const Mu = globalThis.__BH_MUSIC; if (Mu && typeof Mu.cue === 'function') { Mu.cue('blast', 1); ok = true; } } catch (e) { ok = false; } if (!ok) X.play('fanfare'); X.sparks(TP.x, TP.y + 3, TP.z, 26); };
+  X.shot([TP.x - o.x * 12 + 3, TP.y + 7, TP.z - o.z * 12 + 3], [TP.x + o.x * 20, TP.y - 6, TP.z + o.z * 20], 1.4);
+  X.line('תקיעת ניצחון · ההר שוטח');
+  await X.wait(1.5); blast();
+  await X.wait(1.7); blast();
+  await X.wait(2.0); X.line('');
+}
+

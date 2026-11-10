@@ -46,3 +46,22 @@ test('stuck: nothing of the pile fits anywhere', () => {
   assert.equal(stuck(b, [{ w: 2, h: 2 }, { w: 1, h: 1 }]), !fits(b, 1, 1));
   assert.equal(done(b), false);
 });
+
+// ── build 117: five steps of difficulty (ירון 10.11: "רמות הקושי צריכות לעלות בצורה הדרגתית") ──
+import { layoutStep, stepOf, chalkOf, STEPS } from '../src/game/h109/paving.js';
+test('five steps: 4, 5, 6–7, 8–9, 9–11 slabs; the first has a 3×3; extras only at the last', () => {
+  for (let st = 1; st <= 5; st++) for (let seed = 0; seed <= 200; seed++) {
+    const L = layoutStep(seed, st), b = newBoard();
+    L.tiles.forEach((t, i) => { assert.ok(canPlace(b, t.w, t.h, t.x, t.y), `step ${st} seed ${seed}`); place(b, i + 1, t.w, t.h, t.x, t.y); });
+    assert.ok(done(b) && legal(b));
+    const [a, c] = STEPS[st].want; assert.ok(L.tiles.length >= a && L.tiles.length <= c, `step ${st} seed ${seed} n ${L.tiles.length}`);
+    if (st === 1) assert.ok(L.tiles.some((t) => t.w === 3 && t.h === 3));
+    if (st === 2) assert.ok(L.tiles.some((t) => t.w * t.h >= 6));
+    assert.equal(L.pile.filter((p) => p.extra).length, st === 5 ? 2 : 0);
+    assert.equal(L.pile.filter((p) => p.cracked).length, st === 5 ? 1 : 0);
+    assert.equal(chalkOf(L).length, st === 1 ? L.tiles.length : st === 2 ? 2 : 0);
+  }
+});
+test('the step follows the paving works done', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 9].map(stepOf), [1, 2, 3, 3, 4, 4, 5, 5]);
+});

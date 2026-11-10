@@ -665,6 +665,7 @@ export function createActors(ctx) {
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S3 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1), D = new THREE.Vector3();
   let T = 0;
   let enabled = true;
+  let NOGO = [];   // ── h117 ── [[x0, z0, x1, z1], …] ── /h117 ──
   function update(dt) {
     T += dt;
     if (!enabled) { for (const k in meshes) rigEnd(meshes[k].m, 0); rigEnd(items, 0); return; }
@@ -763,6 +764,14 @@ export function createActors(ctx) {
     a.moving = moving;
     a.wk += ((moving ? 1 : 0) - a.wk) * Math.min(1, dt * 8);
     if (moving) a.ph += a.speed * dt / 1.15 * Math.PI;
+    // ── h117 ── (ירון 10.11: "בריצוף יש אנשים מתחת כאילו אני קובר אותם מתחת לריצוף") no figure stands where slabs are being laid or
+    // lie: inside a no-go rectangle it steps out to its nearest edge ── /h117 ──
+    if (NOGO.length && a.fixedY === undefined) for (const r of NOGO) {
+      if (a.x <= r[0] || a.x >= r[2] || a.z <= r[1] || a.z >= r[3]) continue;
+      const m = 0.6, dl = a.x - r[0], dr = r[2] - a.x, db = a.z - r[1], dt2 = r[3] - a.z, k = Math.min(dl, dr, db, dt2);
+      if (k === dl) a.x = r[0] - m; else if (k === dr) a.x = r[2] + m; else if (k === db) a.z = r[1] - m; else a.z = r[3] + m;
+      if (a.path) { const e = a.path[a.path.length - 1]; if (e[0] > r[0] && e[0] < r[2] && e[1] > r[1] && e[1] < r[3]) { a.path = null; if (a.res) { const f = a.res; a.res = null; f(false); } } }
+    }
     const gy = a.fixedY !== undefined && !a.path ? a.fixedY : (a.ground || ground)(a.x, a.z);
     a.y += (gy - a.y) * Math.min(1, dt * 14); if (Math.abs(gy - a.y) > 6) a.y = gy;
     // pose (bow / kneel) and arms
@@ -819,6 +828,8 @@ export function createActors(ctx) {
 
   return {
     add, remove, walk, face, pose, setItem, update, list, items, prop, unprop, props, ITEM_ID,
+    setNoGo(L) { NOGO = (L || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)); },   // ── h117 ── ── /h117 ──
+    get noGo() { return NOGO.slice(); },
     setEnabled(v) { enabled = !!v; },
     setCamera(c) { camera = c; },
     get drawn() { let n = items.visible ? 1 : 0; for (const k in meshes) n += meshes[k].m.visible ? 1 : 0; return n; },

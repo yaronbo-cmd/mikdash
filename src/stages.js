@@ -1546,7 +1546,7 @@ export function createStages(ctx) {
      itself, where it is worked (the kohen's or the crews'), in benches to the platform's level, and stays so; a paved cell has its
      paving; the waste pits fill. The grid itself is never drawn. ───────── */
   const FLOOR = 0.35;
-  let cellMode = false;
+  let cellMode = false, pinsOff = false;   // ── h117 ── (pinsOff: the director owns the game) ── /h117 ──
   const CELLS = new Map();   // id → { st: 'rock'|'cut'|'paved', a: anim | null }
   const pitFill = [];
   // (a paved cell's paving is drawn by the hill's own shader on its cut floor: cell level 4000 + L, the slabs where it was cut)
@@ -6395,7 +6395,10 @@ export function createStages(ctx) {
     planUpdate(dt); showUpdate(dt);
     // pins: the available sites, and any the vision or the showcase lights up
     let np = 0;
-    for (const st of list) {
+    // ── h117 ── (ירון 10.11: "הפס הצהוב שמגיע עד הרקיע" goes from every minigame) the old site pins and their light columns never
+    // show while the world is by cells or the director owns the game ── /h117 ──
+    const pinsNo = cellMode || pinsOff;
+    for (const st of pinsNo ? [] : list) {
       const w = Math.max(st.status === 'avail' ? 1 : 0, st.pinDup ? 0 : pinFx[st.idx]);
       if (w < 0.02) continue;
       pinPos(st, pv);
@@ -6409,7 +6412,7 @@ export function createStages(ctx) {
       np++;
     }
     // ── site15 ── the "!" markers over the next tasks' spots (taskMarks): the pins' own instances, smaller, a thin beam
-    for (const m of TS.marks) {
+    for (const m of pinsNo ? [] : TS.marks) {
       if (np >= 15) break;
       const d = Math.hypot(m.x - camera.position.x, m.y - camera.position.y, m.z - camera.position.z), s = clamp(d * 0.0085, 0.8, 9), bob = Math.sin(time * 3 + np * 1.7) * s * 0.3;
       tmpQ.setFromAxisAngle(UP, time * 2.1 + np); tmpV.set(m.x, m.y + s * 0.4 + bob, m.z); tmpS.set(s * 0.8, s * 0.8, s * 0.8);
@@ -8932,6 +8935,7 @@ export function createStages(ctx) {
     boulderMat: () => BC.mat,
     // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
     boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b || cellMode) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
+    pinsOff: (on) => { pinsOff = !!on; },   // ── h117 ── ── /h117 ──
     boulderInfo: (i) => { const b = bSt[i]; return b && !cellMode ? { x: b.x, z: b.z, r: b.r, sy: b.sy, yaw: b.yaw, state: b.state, hid: !!b.hid, gy: hill.heightAt(b.x, b.z) } : null; },
     shadowSoon: () => requestShadow(false),   // ── h114 ── (a minigame moves things: the sun's shadows follow, at most every 0.3 s) ── /h114 ──
     // ── flow10 ── the course check's stand and frame at the Mount: checkView(id) → { spot, target, p, t } | null · flyTo(p, t, ms)

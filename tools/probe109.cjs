@@ -31,7 +31,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   async function run(s) {
     if (s.init) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
-    if (s.eval) { const v = await pg.evaluate(s.eval).catch((e) => 'EVALERR ' + e.message); if (v !== undefined) log('eval', typeof v === 'string' ? v.slice(0, 900) : JSON.stringify(v).slice(0, 900)); }
+    if (s.eval) { const v = await pg.evaluate(s.eval).catch((e) => 'EVALERR ' + e.message); if (v !== undefined) log('eval', typeof v === 'string' ? v.slice(0, 9000) : JSON.stringify(v).slice(0, 9000)); }
     if (s.log) { const v = await pg.evaluate(s.log).catch((e) => 'ERR ' + e.message); log(typeof v === 'string' ? v.slice(0, 1500) : JSON.stringify(v).slice(0, 1500)); }
     if (s.until) { const t = Date.now(); while (Date.now() - t < (s.max || 60000)) { const ok = await pg.evaluate(s.until).catch(() => false); if (ok) break; await pg.waitForTimeout(300); } log('until', s.until.slice(0, 80), ((Date.now() - t) / 1000).toFixed(1) + 's'); }
     if (s.tap) { await touch('touchStart', [s.tap]); await pg.waitForTimeout(70); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }

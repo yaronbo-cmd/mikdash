@@ -17,6 +17,7 @@ import { createH109, PLAN, PLACES, H109, starsOf, GRADE_N } from './model.js';
 import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
+import { lookZone, WHEEL_STEP, pinchU } from './look.js';   // ── h117 ── ── /h117 ──
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -111,12 +112,15 @@ export function createH109Director(o) {
   /* ───────── ── h115 ── the right thumb (brief §camera, rule 61; ירון 10.11: "אגודל ימין ... גם בתוך הזום-אין"): during an act a
      drag that starts on the right half of the screen where the act does not want the touch (act.wants(p) false), or any drag with
      the right mouse button, turns the camera round the work and lowers it toward the horizon, pulling back: he sees the city, the
-     Mount and where he is. A beam of light stands on the work's place. The act waits while the camera is away (nothing is lost).
+     Mount and where he is. (ירון 10.11: no beam of light over the work: "הפס הצהוב שמגיע עד הרקיע" is gone.) The act waits while the camera is away (nothing is lost).
      Let go and the camera stays; the next touch brings it back to the work (0.45 s) and is not passed on. A right-half touch that
      does not move is passed to the act as a tap on release (the act did not want it held: wants() said so). Acts without wants(): the mouse only.
      No grid is drawn (ירון 10.11: "אין רשתות"). ── ───────── */
-  const LOOK = { id: null, drag: false, pend: null, x0: 0, y0: 0, yaw: 0, u: 0, yaw0: 0, u0: 0, away: false, back: 0, beam: null };
-  const lookAway = () => LOOK.drag || LOOK.away || LOOK.back > 0;
+  const LOOK = { id: null, drag: false, pend: null, x0: 0, y0: 0, yaw: 0, u: 0, yaw0: 0, u0: 0, away: false, back: 0 };
+  // ── h117 ── (ירון 10.11: play on while a little zoomed out) the act waits only when the camera is out of the play zone ── /h117 ──
+  const lookOff = () => LOOK.drag || LOOK.away || LOOK.back > 0 || !!LOOK.pinch;
+  const lookAway = () => lookOff() && lookZone(LOOK.u, LOOK.yaw) !== 'play';
+  const lookSet = () => { LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.away && !LOOK.drag && !LOOK.pinch) { LOOK.yaw = 0; LOOK.u = 0; } };
   function lookCandidate(e) {
     if (e.pointerType === 'mouse') return e.button === 2 ? 'look' : null;
     if (e.clientX < innerWidth * 0.5 || !act || typeof act.wants !== 'function') return null;
@@ -131,23 +135,13 @@ export function createH109Director(o) {
     call(act.down, ptr); hintSeen();
     if (tapUp) { ptr.down = false; ptr.x = tapUp.x; ptr.y = tapUp.y; call(act.up, ptr); }
   }
-  function lookBeam(on) {
-    if (!on) { if (LOOK.beam) LOOK.beam.visible = false; return; }
-    const at = act && act.at ? act.at() : null; if (!at) return;
-    if (!LOOK.beam) {
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 90, 20, 1, true), new THREE.MeshBasicMaterial({ color: '#FFE08A', transparent: true, opacity: 0.4, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
-      m.renderOrder = 998; m.name = 'h115-look-beam'; scene.add(m); LOOK.beam = m;
-    }
-    LOOK.beam.visible = true; LOOK.beam.position.set(at.x, at.y + 44, at.z); LOOK.beam.material.opacity = 0.18 + 0.4 * Math.min(1, LOOK.u * 2 + Math.abs(LOOK.yaw));
-  }
   function lookFrame(dt) {
     if (LOOK.back > 0) {
       LOOK.back = Math.max(0, LOOK.back - dt); const k = LOOK.back > 0 ? 1 - Math.exp(-dt * 9) : 1; LOOK.yaw -= LOOK.yaw * k; LOOK.u -= LOOK.u * k;
       if (!LOOK.back) { LOOK.yaw = 0; LOOK.u = 0; LOOK.away = false; emit('h109look', { on: false }); }
     }
-    lookBeam(lookAway() && (LOOK.u > 0.05 || Math.abs(LOOK.yaw) > 0.15));
   }
-  function lookReset() { LOOK.id = null; LOOK.drag = false; LOOK.pend = null; LOOK.away = false; LOOK.back = 0; LOOK.yaw = 0; LOOK.u = 0; lookBeam(false); }
+  function lookReset() { LOOK.id = null; LOOK.drag = false; LOOK.pend = null; LOOK.away = false; LOOK.back = 0; LOOK.yaw = 0; LOOK.u = 0; LOOK.pinch = null; }
   addEventListener('contextmenu', (e) => { if (act && phase === 'act') e.preventDefault(); }, { capture: true });
   // ── /h115 ──
 
@@ -202,13 +196,25 @@ export function createH109Director(o) {
   }
   addEventListener('wheel', (e) => {
     if (!act || phase !== 'act') return;
-    if (!OV.on && e.deltaY > 0) { e.preventDefault(); e.stopImmediatePropagation(); ovEnter('wheel'); }
+    // ── h117 ── the wheel pulls the camera back a step at a time (the act plays on inside the play zone); past the last step: the
+    // overview as before ── /h117 ──
+    if (OV.on || !e.deltaY) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (e.deltaY > 0 && LOOK.u >= 1 - 1e-6) { ovEnter('wheel'); return; }
+    LOOK.back = 0; LOOK.u = clamp(LOOK.u + Math.sign(e.deltaY) * WHEEL_STEP, 0, 1); lookSet();
   }, { capture: true, passive: false });
   addEventListener('keydown', (e) => { if (OV.on && e.key === 'Escape') ovLeave('esc'); });
   function bothClose() {
     const K = [...OV.pins.keys()]; if (K.length !== 2) return false;
     const s = K.map((k) => OV.pin0.get(k)), c = K.map((k) => OV.pins.get(k)); if (!s[0] || !s[1]) return false;
     for (let i = 0; i < 2; i++) { const o = s[1 - i], ux = o[0] - s[i][0], uy = o[1] - s[i][1], L = Math.hypot(ux, uy) || 1; if (((c[i][0] - s[i][0]) * ux + (c[i][1] - s[i][1]) * uy) / L < OV.pd0 * 0.1) return false; }
+    return true;
+  }
+  /** ── h117 ── both fingers moving away from each other (the mirror of bothClose) ── /h117 ── */
+  function bothApart() {
+    const K = [...OV.pins.keys()]; if (K.length !== 2) return false;
+    const s = K.map((k) => OV.pin0.get(k)), c = K.map((k) => OV.pins.get(k)); if (!s[0] || !s[1]) return false;
+    for (let i = 0; i < 2; i++) { const o = s[1 - i], ux = o[0] - s[i][0], uy = o[1] - s[i][1], L = Math.hypot(ux, uy) || 1; if (-((c[i][0] - s[i][0]) * ux + (c[i][1] - s[i][1]) * uy) / L < OV.pd0 * 0.06) return false; }
     return true;
   }
   function onPtr(e) {
@@ -219,9 +225,20 @@ export function createH109Director(o) {
         OV.pins.set(e.pointerId, [e.clientX, e.clientY]);
         // (a pinch is both fingers closing on each other: a finger that holds while the other slides — the lock's key, the lintel's end, a
         //  batten held for its peg — is the work's own two-finger move, not a pinch)
-        if (OV.pins.size === 2 && !OV.on) { const [a, b] = [...OV.pins.values()]; if (Math.hypot(a[0] - b[0], a[1] - b[1]) < OV.pd0 * 0.72 && bothClose()) ovEnter('pinch'); }
-      } else if (e.type === 'pointerup' || e.type === 'pointercancel') { OV.pins.delete(e.pointerId); OV.pin0.delete(e.pointerId); }
+        // ── h117 ── two fingers closing pull the camera back, opening bring it in, continuously; the act plays on inside the play zone;
+        // past the farthest: the overview ── /h117 ──
+        if (OV.pins.size === 2 && !OV.on) {
+          const [a, b] = [...OV.pins.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+          if (!LOOK.pinch && ((d < OV.pd0 * 0.88 && bothClose()) || (d > OV.pd0 * 1.14 && bothApart()))) {
+            if (ptr.down) { ptr.down = false; if (typeof act.cancel === 'function') call(act.cancel); else call(act.up, ptr); }
+            LOOK.id = null; LOOK.pend = null; LOOK.drag = false; LOOK.back = 0;
+            LOOK.pinch = { u0: LOOK.u, d0: d }; log('pinch');
+          }
+          if (LOOK.pinch) { const u = pinchU(LOOK.pinch.u0, LOOK.pinch.d0, d); if (u > 1.08) { LOOK.pinch = null; ovEnter('pinch'); } else LOOK.u = clamp(u, 0, 1); }
+        }
+      } else if (e.type === 'pointerup' || e.type === 'pointercancel') { OV.pins.delete(e.pointerId); OV.pin0.delete(e.pointerId); if (LOOK.pinch) { LOOK.pinch = null; lookSet(); LOOK.swallow = OV.pins.size ? [...OV.pins.keys()][0] : null; } }
       if (OV.pins.size >= 2 && !OV.on && ptr.down && e.pointerId !== ptr.id) return;   // (the second finger is the pinch's)
+      if (LOOK.pinch && OV.pins.has(e.pointerId)) { e.stopImmediatePropagation(); return; }   // ── h117 ── (both fingers are the pinch's) ── /h117 ──
     }
     if (OV.on) { if (e.type === 'pointerdown') globalThis.__TW_GEST = performance.now(); return; }   // (the world's own: turn, zoom; a tap picks nothing)
     // (a finger lifted after its act ended — the act's last beat, the film — still frees the touch: else every later touch is lost)
@@ -238,7 +255,7 @@ export function createH109Director(o) {
         if (!LOOK.drag) return;
       }
       if (e.type === 'pointermove') { LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -2.8, 2.8); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * 1.8, 0, 1); }
-      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.away) { LOOK.yaw = 0; LOOK.u = 0; } }
+      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); }
       return;
     }
     if (e.type === 'pointerdown') {
@@ -249,7 +266,7 @@ export function createH109Director(o) {
         const lc = lookCandidate(e);
         if (lc === 'look') { e.stopImmediatePropagation(); e.preventDefault(); lookStart(e.pointerId, e.clientX, e.clientY); return; }
         // (the camera away: this touch brings it back to the work and is not the act's)
-        if (LOOK.away && !LOOK.back) { e.stopImmediatePropagation(); e.preventDefault(); LOOK.back = 0.45; LOOK.swallow = e.pointerId; return; }
+        if (LOOK.away && !LOOK.back && lookZone(LOOK.u, LOOK.yaw) !== 'play') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.back = 0.45; LOOK.swallow = e.pointerId; return; }
         if (lc === 'pend') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.id = e.pointerId; LOOK.pend = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now() }; return; }
       }
       if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -310,6 +327,10 @@ export function createH109Director(o) {
 .h109-ovb.on{opacity:1;pointer-events:auto;transform:translateX(-50%) scale(1)}
 .h109-ovt{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.72);color:#FFF6DA;font:800 14px/1.2 Heebo,system-ui;padding:6px 14px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
 .h109-ovb.on ~ .h109-ovt{opacity:1}
+.h109-lkb{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(74px + env(safe-area-inset-bottom,0px));opacity:0;pointer-events:none;background:rgba(255,246,218,.94);color:#3A2608;border:0;font:900 15px/1 Heebo,system-ui;padding:10px 14px;border-radius:18px;box-shadow:0 3px 10px rgba(0,0,0,.35);transition:opacity .2s;cursor:pointer}
+.h109-lkb.on{opacity:1;pointer-events:auto}
+.h109-wait{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1.2 Heebo,system-ui;padding:7px 16px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
+.h109-wait.on{opacity:1}
 body.h109-act .gm .tw-zone{opacity:0!important}
 .h109-pf{left:0;top:0;right:0;bottom:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;overflow:hidden;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 46%,rgba(255,236,160,.96) 0,rgba(255,196,64,.9) 26%,rgba(178,96,8,.88) 62%,rgba(58,28,2,.93) 100%)}
 .h109-pf.on{opacity:1}
@@ -336,6 +357,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     UI.ovb = document.createElement('button'); UI.ovb.type = 'button'; UI.ovb.className = 'h109-ui h109-ovb'; UI.ovb.textContent = '↩ חזרה לעבודה';
     UI.ovb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); ovLeave('button'); }); document.body.appendChild(UI.ovb);
     UI.ovt = mk('h109-ovt', 'מבט על · סובבו וגללו לראות את העולם');
+    // ── h117 ── the way back from a look-around, and the word when the act waits ── /h117 ──
+    UI.lkb = document.createElement('button'); UI.lkb.type = 'button'; UI.lkb.className = 'h109-ui h109-lkb'; UI.lkb.textContent = '↩ מבט רגיל';
+    UI.lkb.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (lookOff() || LOOK.u || LOOK.yaw) { LOOK.drag = false; LOOK.pinch = null; LOOK.back = 0.45; } }); document.body.appendChild(UI.lkb);
+    UI.wait = mk('h109-wait', 'המשחק ממתין · התקרבו כדי להמשיך');
     // the streak chip in the top bar, beside the score capsule (the old cubes stay as they are)
     UI.chip = document.createElement('div'); UI.chip.className = 'h109-chip'; UI.chip.innerHTML = '<i>🔥</i><span>0</span><small></small>';
     placeChip();
@@ -356,6 +381,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function uiFrame() {
     if (!UI.root) return;
     if (UI.ovt) UI.ovt.style.opacity = OV.on ? '1' : '0';
+    if (UI.lkb) { const lk = phase === 'act' && !!act && !OV.on && (LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03) && !LOOK.back; UI.lkb.classList.toggle('on', lk); UI.wait.classList.toggle('on', lk && lookZone(LOOK.u, LOOK.yaw) !== 'play'); }   // ── h117 ── ── /h117 ──
     if (lineT && performance.now() > lineT) { lineT = 0; UI.line.classList.add('off'); }
     if (HINT.on) { const q = scr(HINT.x, HINT.y, HINT.z); UI.hand.style.left = q.x + 'px'; UI.hand.style.top = q.y + 'px'; }
     UI.rot.classList.toggle('want', owns());
@@ -698,6 +724,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     try { if (J) await J.big('stage', { title: PK.endTitle, sub: PK.endSub }); } catch (e) { /* */ }
     CAM.on = false; phase = 'off'; started = false;
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
+    try { if (S0.pinsOff) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ──
+    resFor(false);   // ── h117 ── ── /h117 ──
     UI.rot && UI.rot.classList.remove('want');
     if (o.onDone) { try { await o.onDone(M.st); } catch (e) { console.warn('[h109] onDone', e && e.message); } }
   }
@@ -705,6 +733,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
 
   /* ───────── the frame ───────── */
   let syncT = 0;
+  // ── h117 ── (ירון 10.11: "רזולוציה התכוונתי שפשוט נראה לא איכותי"; no camera change for it) while an act runs the renderer draws at
+  // the device's own pixel ratio (up to 2): main.js view.workRes, the mechanism Phase B's works use; back when the act ends ── /h117 ──
+  let resOn = false;
+  function resFor(on) { if (on === resOn) return; resOn = on; try { if (view.workRes) view.workRes(on); } catch (e) { /* */ } }
   function frame(ms) {
     const dt = lastMs ? clamp((ms - lastMs) / 1000, 0, 0.25) : 0; lastMs = ms;
     for (let i = WAITS.length - 1; i >= 0; i--) { const w = WAITS[i]; w.t -= dt; if (w.t <= 0) { WAITS.splice(i, 1); w.r(); } }   // ── h111 ── X.wait: the films' beats in the world's own time ── /h111 ──
@@ -713,6 +745,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     tPhase += dt;
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
+    resFor(phase === 'act' && !!act);   // ── h117 ── ("נראה לא איכותי": full sharpness while a minigame runs) ── /h117 ──
     if (phase === 'act' && act && !OV.on && !lookAway()) { act.t += dt; call(act.update, dt); try { if (S0.shadowSoon) S0.shadowSoon(); } catch (e) { /* */ } }   // ── h114 ── (the shadows follow what the act moves; the act waits while he looks from above) ── /h114 ──
     if (OV.on) ovFrame();
     if (phase !== 'act' || OV.on) { if (LOOK.id != null || LOOK.u || LOOK.yaw || LOOK.away) lookReset(); } else lookFrame(dt);   // ── h115 ── ── /h115 ──
@@ -745,6 +778,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (!g[PK.key]) g[PK.key] = null;
     M = PK.create(g[PK.key]); g[PK.key] = M.st;
     started = true; uiMount(); chipSync(false);
+    try { if (S0.pinsOff) S0.pinsOff(true); } catch (e) { /* */ }   // ── h117 ── (the old site pins' light columns never show) ── /h117 ──
     { const g = document.querySelector('.gm'); if (g) g.classList.add('h109-own'); }
     try { hero.workpiece(null); } catch (e) { /* the old banker is not stage 01's */ }
     props();
@@ -761,7 +795,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   return {
     owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end' || !!FLY), start, frame, marks, goal, goTo,
     get M() { return M; }, only: ONLY, site: PK.id, get pack() { return PK; },
-    state: () => ({ started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
+    state: () => ({ at: act && act.at ? call(act.at) : null, look: { u: +LOOK.u.toFixed(3), yaw: +LOOK.yaw.toFixed(3), play: lookZone(LOOK.u, LOOK.yaw) === 'play', away: lookAway() }, started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
     act: () => act,
     // ── h114 ── the top pill: the stage's works done of all (the old world's pill said "מדידה" all through stage 01) ── /h114 ──
     pill: () => { if (!FREE() || !started) return ''; const n = M.st.done.length, of = PLAN.length; return `<span class="gm-k">המטרה</span><span><b>${PK.name || 'שיטוח ההר'}</b> <span class="gm-sub">· ${n} מתוך ${of} עבודות</span></span>`; },
@@ -773,6 +807,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
+    _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },
     _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },

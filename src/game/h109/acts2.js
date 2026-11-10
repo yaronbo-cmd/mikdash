@@ -496,6 +496,13 @@ function quartersDone(X) {
   const st = X.M.st; SH.qMesh = SH.qMesh || {};
   for (const k of Object.keys(st.lay || {})) { const m = /^q(\d+)_(\d)$/.exec(k); if (!m || SH.qMesh[k]) continue; const Q = quarterOf(X, +m[1], +m[2]); SH.qMesh[k] = quarterMesh(X, Q, st.lay[k].t || []); }
 }
+/** ── h117 ── the places nobody stands: every laid quarter and the one being laid (with its stacks) ── /h117 ── */
+function noGoSync(X) {
+  const AC = X.actors && X.actors(); if (!AC || !AC.setNoGo) return;
+  const L = (SH.paveNoGo || []).slice();
+  for (const k of Object.keys(X.M.st.lay || {})) { const m = /^q(\d+)_(\d)$/.exec(k); if (!m) continue; const Q = quarterOf(X, +m[1], +m[2]); L.push([Q.x0 - 0.3, Q.z0 - 0.3, Q.x0 + QN * QU + 0.3, Q.z0 + QN * QU + 0.3]); }
+  AC.setNoGo(L);
+}
 export const PAVE = {
   icon: '🧱', title: 'ריצוף הגזרה',
   walkLine: (m) => (m.free ? 'ריצוף רבע תא · עבודת רשות' : `גזרה ${m.s + 1}: מרצפים רבע מהשטח שיושר`),
@@ -511,15 +518,25 @@ export const PAVE = {
   },
   make(m, X) {
     try { X.stages.boulderRest(m.s); } catch (e) { /* */ }
-    const lv = X.level(), qi = m.q | 0, Q = quarterOf(X, m.s, qi), T = X.THREE;
-    const L = PV.layout(m.s * 31 + qi * 7 + lv + ((X.M.st.plays[m.id] | 0) * 101), lv);
+    const qi = m.q | 0, Q = quarterOf(X, m.s, qi), T = X.THREE;
+    // ── h117 ── (ירון 10.11: "רמות הקושי צריכות לעלות בצורה הדרגתית") five steps by the paving works he has finished ── /h117 ──
+    const step = PV.stepOf((X.M.st.done || []).filter((id) => /^pave\d/.test(id)).length), lv = step >= 5 ? 3 : step >= 4 ? 2 : 1;
+    const L = PV.layoutStep(m.s * 31 + qi * 7 + step + ((X.M.st.plays[m.id] | 0) * 101), step);
     const board = PV.newBoard();
-    const A = { drag: null, t: 0, done: false, lifts: 0, bounces: 0, cracks: 0, laid: 0, sayT: 0, pulse: 0 };
+    const A = { drag: null, t: 0, done: false, lifts: 0, bounces: 0, cracks: 0, laid: 0, sayT: 0, pulse: 0, idle: 0, hinted: 0, gold: 0 };
     const at = (x, y) => ({ x: Q.x0 + x * QU, z: Q.z0 + y * QU });
-    // the quarter's pale outline on the cut floor (its edge only: no unit lines)
-    const outline = new T.Group(); { const M2 = new T.MeshBasicMaterial({ color: '#F4EAD0', transparent: true, opacity: 0.7, depthWrite: false }), Ls = QN * QU;
-      for (const [w, d, x, z] of [[Ls, 0.12, Ls / 2, 0], [Ls, 0.12, Ls / 2, Ls], [0.12, Ls, 0, Ls / 2], [0.12, Ls, Ls, Ls / 2]]) { const e = new T.Mesh(new T.BoxGeometry(w, 0.03, d), M2); e.position.set(Q.x0 + x, Q.base + 0.04, Q.z0 + z); outline.add(e); }
-      X.props.root.add(outline); }
+    // ── h117 ── the quarter roped off on four stakes (nobody inside while it is laid: "כאילו אני קובר אותם מתחת לריצוף") ── /h117 ──
+    const Ls = QN * QU, corners = [[Q.x0 - 0.35, Q.z0 - 0.35], [Q.x0 + Ls + 0.35, Q.z0 - 0.35], [Q.x0 + Ls + 0.35, Q.z0 + Ls + 0.35], [Q.x0 - 0.35, Q.z0 + Ls + 0.35]];
+    const stakes = corners.map(([x, z]) => X.props.stake(x, z, 1.1, false)), ropes = [];
+    for (let i = 0; i < 4; i++) { const [ax, az] = corners[i], [bx, bz] = corners[(i + 1) % 4], r = X.props.rope(16, 0.04); r.set({ x: ax, y: X.ground(ax, az) + 0.95, z: az }, { x: bx, y: X.ground(bx, bz) + 0.95, z: bz }, 0.25); ropes.push(r); }
+    // his place and the stacks' half are no place to stand (the figures step out of them; laid quarters too: noGoSync)
+    SH.paveNoGo = [[Q.x0 - 0.9, Q.z0 - 0.9, Q.x0 + Ls + 0.9, Q.z0 + Ls + 0.9], [Q.sx0 - 0.9, Q.sz0 - 0.9, Q.sx0 + 10 * QU + 0.9, Q.sz0 + 4.3 * QU + 0.9]]; noGoSync(X);
+    // the chalked places (step 1: every slab's; step 2: the two biggest)
+    const chalk = new T.Group(); { const CM = new T.MeshBasicMaterial({ color: '#FBF6E8', transparent: true, opacity: 0.85, depthWrite: false });
+      for (const t of PV.chalkOf(L)) { const x0 = Q.x0 + t.x * QU + 0.12, z0 = Q.z0 + t.y * QU + 0.12, w = t.w * QU - 0.24, d = t.h * QU - 0.24;
+        for (const [ww, dd, x, z] of [[w, 0.09, x0 + w / 2, z0], [w, 0.09, x0 + w / 2, z0 + d], [0.09, d, x0, z0 + d / 2], [0.09, d, x0 + w, z0 + d / 2]]) { const e = new T.Mesh(new T.BoxGeometry(ww, 0.02, dd), CM); e.position.set(x, Q.base + 0.03, z); e.renderOrder = 2; chalk.add(e); } }
+      X.props.root.add(chalk); }
+    const onChalk = (w, h, x, y) => PV.chalkOf(L).some((t) => t.w === w && t.h === h && t.x === x && t.y === y);
     // the green (or pale) outline where the slab in hand would lie, and the ring where four corners would meet
     const ghostM = new T.MeshBasicMaterial({ color: '#4CE07A', transparent: true, opacity: 0.55, depthWrite: false });
     const ghost = new T.Mesh(new T.BoxGeometry(1, 0.05, 1), ghostM); ghost.visible = false; ghost.renderOrder = 996; X.props.root.add(ghost);
@@ -536,11 +553,25 @@ export const PAVE = {
     const byId = (id) => S.find((q) => q.id === id);
     // level 3: the crate for the cracked slab beside the stacks (a few shards in it already)
     const crate = { x: Q.sx0 + 8.9 * QU, z: Q.sz0 + 3.8 * QU }; let bin = null;
-    if (lv >= 3) {
+    if (step >= 5) {
       bin = new T.Group(); const gy = Math.max(Q.base, X.ground(crate.x, crate.z));
       for (const [w, d, x, z] of [[2.6, 0.14, 0, -0.9], [2.6, 0.14, 0, 0.9], [0.14, 1.9, -1.25, 0], [0.14, 1.9, 1.25, 0]]) { const p2 = new T.Mesh(new T.BoxGeometry(w, 0.7, d), X.props.M.wood); p2.position.set(x, 0.35, z); bin.add(p2); }
       for (let k = 0; k < 4; k++) { const sh = new T.Mesh(X.props.geo.chunk, X.props.M.stoneD); sh.scale.set(0.35, 0.18, 0.3); sh.position.set(-0.7 + k * 0.45, 0.45, (k % 2) * 0.4 - 0.2); bin.add(sh); }
       bin.position.set(crate.x, gy, crate.z); X.props.root.add(bin);
+    }
+    function homeOf(q) { const St = stacks[q.k]; return { x: St.x + (Math.max(q.w, q.h) * QU) / 2, z: St.z + (Math.min(q.w, q.h) * QU) / 2 }; }
+    // ── h117 ── stuck 45 s with no new slab: the next slab's place of the true laying in chalk (it costs only the perfect) ── /h117 ──
+    let hintG = null;
+    function hintOff() { if (hintG) { X.props.remove(hintG); hintG = null; } }
+    function hint() {
+      hintOff(); A.hinted++;
+      const free = S.filter((q) => !q.at && !q.gone && !q.cracked && !q.extra);
+      const t = L.tiles.find((tt) => PV.canPlace(board, tt.w, tt.h, tt.x, tt.y) && free.some((q) => (q.w === tt.w && q.h === tt.h) || (q.w === tt.h && q.h === tt.w)));
+      if (!t) { X.line('הרימו לוח ונסו סדר אחר'); A.pulse = 1.6; return; }
+      hintG = new T.Group(); const CM = new T.MeshBasicMaterial({ color: '#BFF5CF', transparent: true, opacity: 0.9, depthWrite: false });
+      const x0 = Q.x0 + t.x * QU + 0.12, z0 = Q.z0 + t.y * QU + 0.12, w = t.w * QU - 0.24, d = t.h * QU - 0.24;
+      for (const [ww, dd, x, z] of [[w, 0.12, x0 + w / 2, z0], [w, 0.12, x0 + w / 2, z0 + d], [0.12, d, x0, z0 + d / 2], [0.12, d, x0 + w, z0 + d / 2]]) { const e = new T.Mesh(new T.BoxGeometry(ww, 0.02, dd), CM); e.position.set(x, Q.base + 0.04, z); hintG.add(e); }
+      X.props.root.add(hintG); X.line('רמז: המקום של הלוח הבא מסומן בגיר');
     }
     function home(q) {
       const St = stacks[q.k], i = St.ids.indexOf(q.id), w0 = q.k === '1x4' || q.k === '1x2' ? Math.max(q.w, q.h) : Math.min(q.w, q.h), h0 = q.k === '1x4' || q.k === '1x2' ? Math.min(q.w, q.h) : Math.max(q.w, q.h);
@@ -578,8 +609,10 @@ export const PAVE = {
       for (const q of S) X.props.remove(q.g); S.length = 0;
       // ── h116 ── (the cell stays cut under its quarters: the rest are free works, or the crews lay them one by one) ── /h116 ──
       X.play('tier'); X.shake(0.12, 0.2);
-      const q = Math.max(0.5, 1 - 0.1 * A.bounces - 0.1 * A.lifts - 0.3 * A.cracks);
-      const perfect = !A.bounces && !A.lifts && !A.cracks;
+      // ── h117 ── (steps 1–2 a lift costs nothing: he is learning; a hint costs only the perfect) ── /h117 ──
+      const lifts = step >= 3 ? A.lifts : 0;
+      const q = Math.max(0.5, 1 - 0.1 * A.bounces - 0.1 * lifts - 0.3 * A.cracks);
+      const perfect = !A.bounces && !lifts && !A.cracks && !A.hinted;
       const c = { x: Q.cx, y: Q.base + 1.5, z: Q.cz };
       X.bonus(100, 'row', 'הרבע מרוצף');
       A.endT = 1.2; A.res = { q, stars: q >= 0.99 ? 3 : q >= 0.75 ? 2 : 1, perfect, at: c };
@@ -599,11 +632,14 @@ export const PAVE = {
           setTimeout(() => { try { X.props.remove(q.g); } catch (e) { /* */ } }, 700);
           return;
         }
-        q.at = [cx, cy]; PV.place(board, q.id, q.w, q.h, cx, cy); A.laid++;
+        q.at = [cx, cy]; PV.place(board, q.id, q.w, q.h, cx, cy); A.laid++; A.idle = 0; hintOff();
         q.tx = c.x; q.tz = c.z; q.ty = Q.base + 0.17;
         { const St = stacks[q.k]; St.ids = St.ids.filter((id) => id !== q.id); }
         X.dust(c.x, Q.base + 0.3, c.z, 6, 1.6); X.play('thud');
-        X.hit({ x: c.x, y: Q.base + 1, z: c.z }, q.w * q.h >= 6 ? 'gold' : 'good', { text: '', craft: 'רצפים' });
+        const ch = onChalk(q.w, q.h, cx, cy);
+        X.hit({ x: c.x, y: Q.base + 1, z: c.z }, ch || q.w * q.h >= 6 ? 'gold' : 'good', { text: ch ? 'בדיוק על הגיר' : '', craft: 'רצפים' });
+        // ── h117 ── (ירון: "אפשר להזיז את הלבנים או שהן קבועות?") taught once: a laid slab can be lifted again ── /h117 ──
+        { const st = X.M.st; st.taught = st.taught || {}; if (!st.taught.paveLift && A.laid === 2 && !PV.done(board)) { st.taught.paveLift = 1; A.teach = 3.2; const h = homeOf(q); X.line('אפשר להרים כל לוח ולהניח מחדש'); X.hand({ x: q.tx, y: q.ty + 0.4, z: q.tz }, (X.scr(h.x, q.ty, h.z).x - X.scr(q.tx, q.ty, q.tz).x) * 0.8, (X.scr(h.x, q.ty, h.z).y - X.scr(q.tx, q.ty, q.tz).y) * 0.8); } }
         if (PV.done(board)) { finish(); return; }
         if (PV.stuck(board, S.filter((x) => !x.at && !x.gone && !x.cracked).map((x) => ({ w: x.w, h: x.h })))) { X.line('אין מקום: הרימו אבן ונסו סדר אחר'); A.pulse = 1.6; }
         return;
@@ -637,12 +673,14 @@ export const PAVE = {
           }
         } catch (e) { /* */ }
         X.shot(P, t, 1.0);
-        X.line(lv >= 3 ? 'גררו לוח לרבע · לוח סדוק לארגז' : 'גררו לוח לרבע · נגיעה מסובבת');
+        X.line(step >= 5 ? 'גררו לוח לרבע · נגיעה מסובבת · לוח סדוק לארגז' : step === 3 ? 'בלי ארבע פינות בנקודה אחת · נגיעה מסובבת' : step <= 2 ? 'גררו לוח למקום המסומן בגיר · נגיעה מסובבת' : 'גררו לוח לרבע · נגיעה מסובבת');
         const q = tops()[0]; if (q) X.hand({ x: q.tx, y: q.ty + 0.4, z: q.tz }, 0, -40);
         X.kohen(false);
       },
       update(dt) {
         A.t += dt;
+        if (!A.done && !A.drag) { A.idle += dt; if (A.idle > 45) { A.idle = 0; hint(); } }
+        if (A.teach > 0) { A.teach -= dt; if (A.teach <= 0) X.hand(null); }
         for (const q of S) {
           const held = A.drag && A.drag.q === q, k = 1 - Math.exp(-dt * (held ? 9 : 12));
           q.g.position.x += (q.tx - q.g.position.x) * k; q.g.position.z += (q.tz - q.g.position.z) * k; q.g.position.y += (q.ty + (held ? 0.9 : 0) - q.g.position.y) * k;
@@ -675,11 +713,11 @@ export const PAVE = {
         drop(q);
       },
       cancel() { const D = A.drag; if (!D) return; A.drag = null; const q = D.q; ghost.visible = false; ring.visible = false; const St = stacks[q.k]; St.ids = St.ids.filter((id) => id !== q.id); St.ids.push(q.id); home(q); },
-      end() { X.props.remove(outline); X.props.remove(ghost); X.props.remove(ring); if (bin) X.props.remove(bin); for (const q of S) X.props.remove(q.g); for (const w of pavers) C.remove(w); },
+      end() { for (const o of stakes) X.props.remove(o); for (const r of ropes) { try { r.dispose ? r.dispose() : X.props.remove(r.mesh); } catch (e) { /* */ } } X.props.remove(chalk); hintOff(); SH.paveNoGo = []; noGoSync(X); X.props.remove(ghost); X.props.remove(ring); if (bin) X.props.remove(bin); for (const q of S) X.props.remove(q.g); for (const w of pavers) C.remove(w); },
       at() { return { x: Q.cx, y: Q.base + 1.5, z: Q.cz }; },
       dbg() {
         const sc = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
-        return { lv, q: qi, tiles: L.tiles, crate: bin ? sc(crate.x, bin.position.y + 0.4, crate.z) : null, board: board.map((r) => r.map((v) => (v ? 1 : 0)).join('')), done: A.done, lifts: A.lifts, bounces: A.bounces, cracks: A.cracks,
+        return { lv, step, hinted: A.hinted, chalk: PV.chalkOf(L).length, q: qi, tiles: L.tiles, crate: bin ? sc(crate.x, bin.position.y + 0.4, crate.z) : null, board: board.map((r) => r.map((v) => (v ? 1 : 0)).join('')), done: A.done, lifts: A.lifts, bounces: A.bounces, cracks: A.cracks,
           cells: Array.from({ length: QN + 1 }, (_, y) => Array.from({ length: QN + 1 }, (_, x) => { const c = at(x, y); return sc(c.x, Q.base + 0.2, c.z); })),
           tops: tops().map((q) => ({ id: q.id, k: q.k, w: q.w, h: q.h, cracked: q.cracked, extra: q.extra, scr: sc(q.g.position.x, q.g.position.y + 0.2, q.g.position.z) })),
           laid: S.filter((q) => q.at).map((q) => ({ id: q.id, w: q.w, h: q.h, at: q.at, scr: sc(q.g.position.x, q.g.position.y, q.g.position.z) })) };
@@ -847,7 +885,7 @@ export function initWorld2(X, sh) {
   // ── h115 ── every big rock not yet read stands in its cell from the start (its place is the book's) ── /h115 ──
   for (let s = 0; s < 9; s++) if (!st.done.includes('read' + s)) bigRock(X, s, false);
   // ── h116 ── the quarters laid in seven sizes (st.lay['q<s>_<quarter>']); a 115 save's rows as they were ── /h116 ──
-  quartersDone(X);
+  quartersDone(X); noGoSync(X);   // ── h117 ── ── /h117 ──
   SH.bigRock = (X2, s2) => bigRock(X2, s2, false); SH.bigGone = bigGone;   // ── h116 ── (the free cells' world: acts.js ensureSector) ── /h116 ──
   for (let s = 0; s < 9; s++) if (st.done.includes('pave' + s) && !Object.keys(st.lay || {}).some((k) => k.startsWith(`q${s}_`))) layDone(X, s);
     // ── h115 ── (read: the halves were dressed into stones, the cell is cut level; nothing of the rock is left) ── /h115 ──
@@ -894,6 +932,6 @@ export function frame2(dt, X, sh) {
   void sh; dressFrame(dt, X);
   // ── h116 ── the crews' quarters (M.done lays some) appear as the save gets them ── /h116 ──
   SH.qT = (SH.qT || 0) + dt;
-  if (SH.qT > 1) { SH.qT = 0; const n = Object.keys(X.M.st.lay || {}).length; if (n !== SH.qN) { SH.qN = n; try { quartersDone(X); } catch (e) { /* */ } } }
+  if (SH.qT > 1) { SH.qT = 0; const n = Object.keys(X.M.st.lay || {}).length; if (n !== SH.qN) { SH.qN = n; try { quartersDone(X); noGoSync(X); } catch (e) { /* */ } } }   // ── h117 ── (noGoSync) ── /h117 ──
 }
 export { PILE, wasteAdd, pileSync };

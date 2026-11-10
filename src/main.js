@@ -589,6 +589,9 @@ function perf(dt) {
   const avg = ft.reduce((a, b) => a + b, 0) / ft.length; ft = [];
   if (avg > 1 / 24) {
     if (aoWrap && aoWrap.enabled) aoWrap.enabled = false;
+    // ── h117 ── (a minigame holds the sharpness: f24PR set) only a really slow frame lowers it, a quarter at a time, never under 1.5
+    // (or the device's own ratio when that is lower) ── /h117 ──
+    else if (f24PR) { const floor = Math.min(1.5, devicePixelRatio || 1); if (avg > 1 / 15 && renderer.getPixelRatio() > floor + 0.01) { renderer.setPixelRatio(Math.max(floor, renderer.getPixelRatio() - 0.25)); resize(); } }
     else if (renderer.getPixelRatio() > 1) { renderer.setPixelRatio(Math.max(1, renderer.getPixelRatio() - 0.5)); resize(); }
   }
 }

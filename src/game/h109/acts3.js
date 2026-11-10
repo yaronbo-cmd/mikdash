@@ -1,10 +1,12 @@
 /* ── build 109 ── h109/acts3.js — four acts of stage 01 in the world: 3.5 the corner stone (a real treadwheel crane: swipes walk the
  * wheel, a hold lowers, the stone sways, a hard touch chips it), 3.6 the course of the east retaining wall (choose a length, drag,
- * release with the sway: no joint over a joint), 3.7 the great stone on rollers (it comes from the quarry along a road the crews pull
- * it on; the kohen moves the rollers for the last stretch), 3.8 "לבית התקיעה" (the two words carved letter by letter).
+ * release with the sway: no joint over a joint), 3.7 the great stone down the slope (build 116: held from behind by two rope crews,
+ * he pulls it down off the rock to the west wall), 3.8 "לבית התקיעה" (the two words carved letter by letter).
  */
 import { onPlane, clamp, lerp, ease } from './kit.js';
 import { wasteAdd } from './acts2.js';
+import { BOOK, cellOf } from '../world/grid.js';
+import { makeTrack, stepStone, limitAt, restAt, SL } from './slope.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -55,6 +57,7 @@ function shadowDisk(X) { const T = X.THREE; const m = new T.Mesh(new T.CircleGeo
 // trench (the city wall's tower stands just outside the corner, so every camera looks at it from the north, the Mount's side).
 const CORNER_AT = { x: 275.5, z: 398.7 }, CRANE_AT = { x: 264, z: 392.6 }, STOCK = { x: 253.5, z: 392 };
 const WALL_E = 277, WALL_S = 400;   // (the two faces) ── /h115 ──
+const KOH_AT = { x: 268.6, z: 389.2 };   // ── h116 ── the kohen on the guide rope ── /h116 ──
 // ── h114 ── (ירון 9.11: "כל אבן יורדת למקום אמיתי בעולם האמיתי"; "העיגול הצהוב לא ברור") the corner's foundation trench, dug at the
 // real corner of the Mount's wall, its earth heaped beside it, and the stone's own outline chalked on its floor; the stone sits a
 // little sunk in it for good (PIT) and the courses go on from it ── /h114 ──
@@ -103,11 +106,20 @@ export const CORNER = {
   icon: '🏗', title: 'אבן הפינה',
   walkLine: () => 'הפינה הדרומית־מזרחית של ההר: מורידים את אבן הפינה',
   // ── h115 ── (the full replay: he stood inside the crane's treadwheel) his stand beside the crane on the Mount's side, facing the corner ── /h115 ──
-  stand(m, X) { const x = CRANE_AT.x - 4.2, z = CRANE_AT.z - 4.8; return { x, z, face: [CORNER_AT.x, CORNER_AT.z], mx: CRANE_AT.x - 1.5, mz: CRANE_AT.z - 3.5 }; },
+  // ── h116 ── (build116-brief §B) he holds the guide rope, so he stands nearer, clear of the crane and the trenches, seen whole ── /h116 ──
+  stand(m, X) { return { x: KOH_AT.x, z: KOH_AT.z, face: [CORNER_AT.x, CORNER_AT.z], mx: CRANE_AT.x - 1.5, mz: CRANE_AT.z - 3.5 }; },
   prepare(m, X) { SH.crane.place(CRANE_AT.x, CRANE_AT.z, Math.atan2(CORNER_AT.x - CRANE_AT.x, CORNER_AT.z - CRANE_AT.z) - 0.9); },
   make(m, X) {
     const lv = X.level(), T = X.THREE, C = SH.crane, gP = X.ground(CORNER_AT.x, CORNER_AT.z), sw = 2.4;
-    const A = { aimP: null, barmen: [], settle: null, phase: 'intro', h: 0, hMax: 5, w: 0, taps: [], grades: [], v: 0, hold: false, ax: 0, sway: { x: 0, z: 0, vx: 0, vz: 0 }, chips: 0, rejects: 0, t: 0, lastSw: 0, p0: null, slewT: 0 };
+    const A = { aimP: null, barmen: [], settle: null, phase: 'intro', h: 0, hMax: 5, w: 0, taps: [], grades: [], v: 0, hold: false, ax: 0, sway: { x: 0, z: 0, vx: 0, vz: 0 }, chips: 0, rejects: 0, t: 0, lastSw: 0, p0: null, slewT: 0,
+      // ── h116 ── (build116-brief §B: "the stone really turns on its rope") it hangs askew; the guide rope turns it (rotT, late: rotV);
+      // the three grips: the jib's head, the guide rope, the stone itself ── /h116 ──
+      skew: 0, rotT: null, rotV: 0, grip: null, holdT: 0, said: {}, cracks: 0, lineK: '' };
+    const TOL = [6, 4, 2.5][lv - 1] * Math.PI / 180;
+    const newSkew = () => { const d = Math.PI / 180, r = Math.random(), sg = Math.random() < 0.5 ? -1 : 1; return lv === 1 ? sg * (20 + 15 * r) * d : lv === 2 ? sg * (40 + 40 * r) * d : sg * (15 + 165 * r) * d; };
+    A.skew = newSkew();
+    // the rotation error to the corner's square (a 2:1 stone is square either way round: mod π)
+    const rotErr = (r) => { let e = ((r % Math.PI) + Math.PI) % Math.PI; if (e > Math.PI / 2) e -= Math.PI; return e; };
     const stone = stoneMesh(X, sw, 1.6, 2.0); const sh = shadowDisk(X);
     const floorY = gP - PIT;
     const pit = SH.cornerPit || (SH.cornerPit = cornerPit(X, true));
@@ -123,7 +135,7 @@ export const CORNER = {
     let rot = null;
     const tip = new T.Vector3(), pos = new T.Vector3(STOCK.x, X.ground(STOCK.x, STOCK.z) + 0.8, STOCK.z);
     // (the crew stand on the platform's side of the trenches, never in them)
-    const crew = [SH.crew.add(CRANE_AT.x - 2.2, CRANE_AT.z - 1.2, { role: 'push', fx: CRANE_AT.x, fz: CRANE_AT.z, crew: 1 }), SH.crew.add(WALL_E - 6.5, WALL_S - 8.5, { role: 'hold', item: 'mallet', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 2 }), SH.crew.add(WALL_E - 9.5, WALL_S - 6.2, { role: 'pull', item: 'rope', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 0 })];
+    const crew = [SH.crew.add(CRANE_AT.x - 2.2, CRANE_AT.z - 1.2, { role: 'push', fx: CRANE_AT.x, fz: CRANE_AT.z, crew: 1 }), SH.crew.add(WALL_E - 6.5, WALL_S - 9.5, { role: 'hold', item: 'mallet', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 2 })];
     // (the tagline: from the stone to the crewman beside the trench, who turns it square — ירון 9.11: no figure "with a lantern")
     const tag = X.props.rope(10, 0.035);
     // ── h115 ── (the city wall's tower stands just outside the corner and its wall runs west along the south side: every camera is on
@@ -141,8 +153,13 @@ export const CORNER = {
       pos.x = tip.x + S.x + along.x * A.ax; pos.z = tip.z + S.z + along.z * A.ax;
       const top = tip.y - 1.2; pos.y = A.phase === 'lift' || A.phase === 'intro' ? X.ground(STOCK.x, STOCK.z) + 0.8 + A.h : top - A.drop;
       // (it hangs square to the jib; over the corner the crewman on the tagline turns it to the chalk's square, slowly)
-      const jibRot = C.yaw + C.slew.rotation.y; if (rot === null) rot = jibRot;
-      if (A.phase === 'lower') rot += Math.atan2(Math.sin(0 - rot), Math.cos(0 - rot)) * (1 - Math.exp(-dt * 1.6)); else rot = jibRot;
+      // ── h116 ── it hangs askew from the stock on; over the corner it turns only by the guide rope, late, swinging past a little ── /h116 ──
+      const jibRot = C.yaw + C.slew.rotation.y; if (rot === null) rot = jibRot + A.skew;
+      if (A.phase === 'lift' || A.phase === 'intro' || A.phase === 'reject') { rot = jibRot + A.skew; A.rotT = rot; A.rotV = 0; }
+      else {
+        if (lv >= 3) A.rotT += S.vx * 0.05 * dt;   // (a hard swing twists it a little)
+        A.rotV += ((A.rotT - rot) * 2.6 - A.rotV * 2.0) * dt; rot += A.rotV * dt;
+      }
       stone.position.copy(pos); stone.rotation.y = rot;
       slingsAt();
       const gy = X.ground(pos.x, pos.z), hh = pos.y - 0.8 - gy; sh.position.set(pos.x, gy + 0.06, pos.z); const k = 1 + hh * 0.18; sh.scale.set(1.5 * k, 1.2 * k, 1); sh.material.opacity = clamp(0.5 - hh * 0.04, 0.08, 0.5);
@@ -158,7 +175,7 @@ export const CORNER = {
       for (let k = 0; k < 2; k++) { const s2 = k ? 1 : -1; legs[k].show(true); legs[k].set({ x: hook.x, y: hook.y, z: hook.z }, { x: stone.position.x + ax.x * s2 * sw * 0.31, y: stone.position.y + 0.84, z: stone.position.z + ax.z * s2 * sw * 0.31 }, 0); }
     }
     // (how far out along the jib the hook must run for the stone to hang over (x, z))
-    function axFor(P) { const R = Math.hypot(C.tipL.z, C.tipL.x) || 10; return clamp(Math.hypot(P.x - C.base.x, P.z - C.base.z) - R, -2.6, 2.6); }
+    function axFor(P) { const R = Math.hypot(C.tipL.z, C.tipL.x) || 10; return clamp(Math.hypot(P.x - C.base.x, P.z - C.base.z) - R, -3.6, 3.6); }   // ── h116 ── (2.6 left the corner half an amah out of reach) ── /h116 ──
     function swipe(dt) {
       const now = performance.now() / 1000, iv = now - A.lastSw; A.lastSw = now;   // (the steps by the finger's clock)
       const rate = iv > 0 ? 1 / iv : 0;
@@ -171,19 +188,24 @@ export const CORNER = {
       const gy = gP, d = Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw, at = { x: CORNER_AT.x, y: gy + 2.2, z: CORNER_AT.z };
       const swing = Math.hypot(A.sway.vx, A.sway.vz);
       if (swing > 1.2 && lv >= 2) { A.drop -= 1.2; X.word(at, 'נקישה — מרימים ומורידים שוב'); X.play('thud'); X.shake(0.1, 0.2); return false; }
-      if (vT > 1.7) {
-        A.chips++; A.drop -= 0.5; X.word(at, A.chips >= 2 ? 'פעמיים שבב: האבן נפסלת' : 'שבב! נגעו מהר מדי'); X.sparks(pos.x, gy + 0.2, pos.z, 12); X.play('crack'); X.shake(0.15, 0.3);
-        if (A.chips >= 2) { A.rejects++; A.chips = 0; X.loss(20, at, 'אבן הפינה נפסלה', 1); wasteAdd(X, 1, at); restart(); }
+      // ── h116 ── (build116-brief §B) down faster than 1.2 amot a second: it cracks (−20, a new stone, the first shot again) ── /h116 ──
+      if (vT > 1.2) {
+        A.rejects++; A.cracks++; X.word(at, 'ירדה מהר מדי: האבן נסדקה'); X.sparks(pos.x, gy + 0.2, pos.z, 16); X.shake(0.25, 0.45);
+        X.loss(20, at, 'אבן הפינה נסדקה', 1); wasteAdd(X, 1, at); restart();
         return false;
       }
+      // ── h116 ── crooked (its edges not parallel to the corner's lines): the crane lifts it again, nothing lost; a green turning
+      // arrow round it shows which way the rope must turn it ── /h116 ──
+      const e = rotErr(rot);
+      if (Math.abs(e) > TOL) { A.misses = (A.misses | 0) + 1; A.drop -= 1.4; A.v = 0; X.word(at, 'עקומה · סובבו בחבל ומורידים שוב'); X.play('thud'); X.dust(pos.x, floorY + 0.2, pos.z, 6, 2); turnArrow(e); if (d > 0.1) arrowTo(pos); return false; }
       // ── h114 ── off the chalk by more than a tenth: the crew can't bar it over — up again and down again (no damage, no points off;
       // the spec's table "יותר מ־10%") ── /h114 ──
       if (d > 0.1) { A.misses = (A.misses | 0) + 1; A.drop -= 1.4; X.word(at, 'רחוק מהמלבן הירוק · מרימים ומורידים שוב'); X.play('thud'); X.dust(pos.x, floorY + 0.2, pos.z, 6, 2); arrowTo(pos); return false; }
-      const grade = d <= 0.05 ? (A.misses ? 'good' : 'gold') : 'good';
+      const grade = d <= 0.05 && Math.abs(e) <= TOL / 2 ? (A.misses ? 'good' : 'gold') : 'good';
       A.grades.push(A.chips ? (grade === 'gold' ? 'good' : grade) : grade);
       // ── h114 ── it sits in the trench, square on its chalk; off the chalk the crewmen bar it over (seen: the push, below), and it
       // stays there for good (SH.cornerSet → initWorld3 puts it back after a reload) ── /h114 ──
-      A.settle = { from: { x: pos.x, z: pos.z, r: stone.rotation.y }, t: 0, dur: d <= 0.05 ? 0.25 : 1.4 };
+      A.settle = { from: { x: pos.x, z: pos.z, r: stone.rotation.y }, to: Math.round(stone.rotation.y / Math.PI) * Math.PI, t: 0, dur: d <= 0.05 ? 0.25 : 1.4 };
       pos.y = floorY + 0.8; stone.position.y = pos.y;
       X.play('settle'); X.dust(pos.x, floorY + 0.2, pos.z, 16, 3); X.shake(0.2, 0.35);
       X.hit(at, A.grades[A.grades.length - 1], { text: grade === 'gold' ? 'מהודר' : grade === 'good' ? 'הצוות מיישר במוטות' : 'הצוות דוחף אותה למקום', craft: 'בנאים' });
@@ -201,7 +223,7 @@ export const CORNER = {
       // (the camera low beside the corner: the stone, the bars, both trenches)
       setTimeout(() => X.shot([CORNER_AT.x - 3, gP + 9, CORNER_AT.z - 12], [CORNER_AT.x - 0.5, floorY + 0.8, CORNER_AT.z], 1.4), 1400);
       const q = A.grades.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / A.grades.length;
-      const perfect = !A.rejects && !A.chips && !A.misses && A.grades.every((g) => g === 'gold');
+      const perfect = !A.rejects && !A.chips && !A.misses && A.grades.every((g) => g === 'gold') && Math.abs(e) <= TOL / 2;
       setTimeout(() => X.end({ q: A.rejects ? Math.min(q, 0.6) : q, stars: A.rejects ? 1 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, perfect, at }), 6600);
       return true;
     }
@@ -209,11 +231,54 @@ export const CORNER = {
     function restart() {
       A.phase = 'reject'; X.line('הצוות מוריד את האבן לפסולת ומביא אחרת');
       // (back to the first shot, a new stone on the rope at the stock)
+      A.grip = null; A.v = 0; A.skew = newSkew(); rot = null;
       setTimeout(() => { A.phase = 'lift'; A.h = 0; A.drop = 0; A.ax = 0; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; shotSide(); X.line('שוב: החליקו למטה בקצב'); }, 3500);
     }
     // after a miss: a green arrow on the trench's floor from where it came down toward the rectangle
     let arrow = null;
     function arrowTo(P) { if (arrow) X.props.remove(arrow); arrow = greenArrow(X, P, CORNER_AT, floorY + 0.12); }
+    // ── h116 ── a green curved arrow round the stone's place: the way the rope must turn it (e > 0: back the other way) ── /h116 ──
+    let turnA = null;
+    function turnArrow(e) {
+      if (turnA) X.props.remove(turnA);
+      const g = new T.Group(), gm = new T.MeshBasicMaterial({ color: '#4CE07A', transparent: true, opacity: 0.95, depthWrite: false, depthTest: false, side: T.DoubleSide });
+      const R = 2.3, th = 1.5, arc = new T.Mesh(new T.RingGeometry(R - 0.13, R + 0.13, 32, 1, 0, th), gm); arc.rotation.x = -Math.PI / 2; g.add(arc);
+      const hd = new T.Shape(); hd.moveTo(R - 0.45, 0); hd.lineTo(R + 0.45, 0); hd.lineTo(R, -0.75); hd.closePath();
+      const head = new T.Mesh(new T.ShapeGeometry(hd), gm); head.rotation.x = -Math.PI / 2; g.add(head);
+      const dir = e > 0 ? -1 : 1; g.scale.x = dir; g.position.set(CORNER_AT.x, floorY + 0.14, CORNER_AT.z); g.renderOrder = 997; X.props.root.add(g); turnA = g;
+      setTimeout(() => { if (turnA === g) { X.props.remove(g); turnA = null; } }, 3200);
+    }
+    // ── h116 ── the two lines of the corner on the trench's floor (the stone's east and south edges): pale, bright green when its
+    // edges are parallel to them ── /h116 ──
+    const lineM = new T.MeshBasicMaterial({ color: '#CFE8D4', transparent: true, opacity: 0.55, depthWrite: false });
+    const Lw = [new T.Mesh(new T.BoxGeometry(0.12, 0.05, 6), lineM), new T.Mesh(new T.BoxGeometry(6, 0.05, 0.12), lineM)];
+    Lw[0].position.set(CORNER_AT.x + CW / 2 + 0.08, floorY + 0.11, CORNER_AT.z + CDp / 2 - 3); Lw[1].position.set(CORNER_AT.x + CW / 2 - 3, floorY + 0.11, CORNER_AT.z + CDp / 2 + 0.08);
+    for (const m2 of Lw) { m2.renderOrder = 996; X.props.root.add(m2); }
+    // the three grips: a soft ring of light on each while it is free (not a button: no text on it)
+    const ringM = new T.MeshBasicMaterial({ color: '#FFF1C2', transparent: true, opacity: 0.6, depthWrite: false, depthTest: false });
+    const rings = [0, 1, 2].map(() => { const m2 = new T.Mesh(new T.RingGeometry(0.85, 1, 40), ringM.clone()); m2.renderOrder = 998; m2.visible = false; X.props.root.add(m2); return m2; });
+    // the soft light over the corner (the city's tower shades the trench in the afternoon)
+    const fill = new T.PointLight('#FFF0D8', 1.2, 26, 1.2); fill.position.set(CORNER_AT.x - 3, gP + 5, CORNER_AT.z - 5); X.props.root.add(fill);
+    const kohHands = () => { const h = X.heroAt ? X.heroAt() : null; const x = h && Number.isFinite(h.x) ? h.x : KOH_AT.x, z = h && Number.isFinite(h.z) ? h.z : KOH_AT.z; return { x, y: X.ground(x, z) + 1.35, z }; };
+    const ropeEnd = () => { const c = Math.cos(stone.rotation.y), sn = Math.sin(stone.rotation.y); return { x: stone.position.x - c * sw * 0.5 + sn * 0.0, y: stone.position.y - 0.5, z: stone.position.z + sn * sw * 0.5 }; };
+    function gripOf(p) {
+      if (A.phase !== 'lower') return null;
+      C.tipWorld(tip); const q = X.scr(tip.x, tip.y, tip.z); if (q.on !== false && Math.hypot(q.x - p.x, q.y - p.y) < 70) return 'jib';
+      const h = kohHands(), e2 = ropeEnd(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
+      const st = X.scr(stone.position.x, stone.position.y, stone.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 55) return 'hold';   // ── h116 ── (the stone itself first: the rope's end lies on it) ── /h116 ──
+      { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.8), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 34 || Math.hypot(a.x - p.x, a.y - p.y) < 60) return 'rope'; }
+      if (Math.hypot(st.x - p.x, st.y - p.y) < 90) return 'hold';
+      const g = onPlane(X, p.x, p.y, floorY); if (g && Math.hypot(g.x - CORNER_AT.x, g.z - CORNER_AT.z) < 3.2) return 'hold';
+      return null;
+    }
+    // the next thing to do, said once each (then only the standing line)
+    function nextLine() {
+      if (A.grip) return; const d = Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw, e = rotErr(rot);
+      const k = d > 0.1 ? 'jib' : Math.abs(e) > TOL ? 'rope' : 'hold';
+      const T2 = { jib: 'גררו את ראש העגורן', rope: 'גררו את החבל: האבן מסתובבת', hold: 'החזיקו על האבן: היא יורדת' };
+      const want = A.said[k] ? 'מעל המלבן, ישרה, ולאט' : T2[k];   // (A.said[k]: that grip was used once)
+      if (want !== A.lineK) { A.lineK = want; X.line(want); }
+    }
     // ── h115 ── the opening: where the corner will stand (the gold line from the platform's level down to the trench), then down to the
     // trench's floor, then the crane (ירון 10.11: "עד שקראתי עכשיו את הטבלה אישית לא הבנתי מהמשחקון את המשמעות שלה בכלל") ── /h115 ──
     function intro() {
@@ -243,53 +308,67 @@ export const CORNER = {
           C.aim(STOCK.x, STOCK.z, 1 - Math.exp(-dt * 6));
           if (A.h >= A.hMax) { A.phase = 'slew'; A.slewT = 0; X.bonus(80, 'lift', 'עלייה'); X.play('rise'); X.line('הזרוע מסתובבת אל הפינה'); X.hand(null); }
         } else if (A.phase === 'slew') {
-          A.slewT += dt; C.aim(A.aimP.x, A.aimP.z, 1 - Math.exp(-dt * 2.2)); A.drop = 0; A.ax = lerp(A.ax, axFor(A.aimP), 1 - Math.exp(-dt * 2));
+          A.slewT += dt; C.aim(A.aimP.x, A.aimP.z, 1 - Math.exp(-dt * 2.2)); C.tipWorld(tip); { const d0 = Math.max(0, tip.y - 1.2 - 0.8 - floorY - 4.5); A.drop = Math.min(d0, A.slewT / 1.8 * d0); } A.ax = lerp(A.ax, axFor(A.aimP), 1 - Math.exp(-dt * 2));   // ── h116 ── (the crane pays out the rope while it turns: the stone comes to hang 4½ amot over the corner, in the frame) ── /h116 ──
           if (lv >= 2 && A.slewT < 0.1) A.sway.vx = 1.4;
-          if (A.slewT > 1.8) { A.phase = 'lower'; X.line('החזיקו על המלבן הירוק — האבן יורדת אליו · שחררו — עוצרת'); X.hand({ x: CORNER_AT.x, y: floorY + 0.2, z: CORNER_AT.z }, 0, 0); }
+          if (A.slewT > 1.8) { A.phase = 'lower'; A.lineK = ''; nextLine(); }
         } else if (A.phase === 'lower') {
           // ── h114 ── the finger steers: the jib slews heavily toward the point under it and the hook runs in or out along the jib;
           // the stone follows on its rope, late and swinging (ירון 9.11: "כל אבן יורדת למקום אמיתי") ── /h114 ──
           C.aim(A.aimP.x, A.aimP.z, 1 - Math.exp(-dt * 1.1)); A.ax = lerp(A.ax, axFor(A.aimP), 1 - Math.exp(-dt * 1.3));
           C.tipWorld(tip);
-          A.v = A.hold ? Math.min(2.6, A.v + dt * 3) : Math.max(0, A.v - dt * 12);
+          // ── h116 ── a hold on the stone lowers it: slow at first, faster the longer (0.5 → 3 amot a second in 1.5 s); let go, it stops ── /h116 ──
+          if (A.grip === 'hold') { A.holdT += dt; A.v = 0.5 + 2.5 * Math.min(1, A.holdT / 1.5); } else { A.holdT = 0; A.v = Math.max(0, A.v - dt * 12); }
+          nextLine();
+          { const ok = Math.abs(rotErr(rot)) <= TOL; lineM.color.set(ok ? '#4CE07A' : '#CFE8D4'); lineM.opacity = ok ? 1 : 0.55; }
           A.drop += A.v * dt;
           C.wheel.rotation.x += A.v * dt / C.R * 3.2;
           const bottom = tip.y - 1.2 - A.drop - 0.8;
           if (bottom <= floorY + 0.02) { A.drop = tip.y - 1.2 - 0.8 - floorY; if (!settle(A.v)) { A.v = 0; } }
         }
         if (A.phase !== 'done') stonePos(dt);
+        {
+          const on = A.phase === 'lower', P3 = [], cam = X.camera; C.tipWorld(tip);
+          if (on) { const h = kohHands(); P3.push([tip.x, tip.y, tip.z, 1.1, 'jib'], [h.x, h.y, h.z, 0.8, 'rope'], [stone.position.x, stone.position.y + 1.2, stone.position.z, 1.4, 'hold']); }
+          rings.forEach((m2, i) => { const q = P3[i]; m2.visible = !!q && A.grip !== (q && q[4]); if (!m2.visible) return; m2.position.set(q[0], q[1], q[2]); m2.quaternion.copy(cam.quaternion); m2.scale.setScalar(q[3] * (1 + 0.08 * Math.sin(A.t * 4 + i))); m2.material.opacity = 0.35 + 0.25 * (0.5 + 0.5 * Math.sin(A.t * 4 + i)); });
+        }
         if (A.phase === 'slew' || A.phase === 'lower') {
           // ── h114 ── over the corner: the stone and its trench in one frame, the camera low enough that the stone stands against the
           // hill, not lost in the city behind (ירון 9.11) ── /h114 ──
           const ty = (pos.y + floorY) / 2;
-          X.track([CORNER_AT.x - 3, gP + 9, CORNER_AT.z - 12], [CORNER_AT.x, ty, CORNER_AT.z], 2.2);   // (from the north, the Mount's side: the crane at the right, the trench of both walls in front, the city's tower behind the corner)
+          X.track([CORNER_AT.x - 19, floorY + 40, CORNER_AT.z - 2], [CORNER_AT.x - 3, floorY + 4, CORNER_AT.z - 3.5], 2.2);   // ── h116 ── (high from inside the Mount, west: the city's wall that meets the corner stands outside it at the right; the kohen on his rope, the jib's head over the stone; the stone's turn read from above against the corner's lines) ── /h116 ──   // (from the north, the Mount's side: the crane at the right, the trench of both walls in front, the city's tower behind the corner)
           // the green rectangle fills while the stone hangs over it
           if (pit.userData.fill) pit.userData.fill.material.opacity = Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw <= 0.1 ? 0.7 : 0.18 + 0.1 * Math.sin(A.t * 5);
         }
-        if (A.phase !== 'done' || A.settle) { const w = crew[2] && crew[2].a; if (w) { tag.show(true); tag.set({ x: stone.position.x - 0.9, y: stone.position.y - 0.5, z: stone.position.z - 0.7 }, { x: w.x, y: X.ground(w.x, w.z) + 1.5, z: w.z }, 0.6); } }
+        if (A.phase !== 'done') { const h = kohHands(), e2 = ropeEnd(); tag.show(true); tag.set(e2, h, A.grip === 'rope' ? 0.15 : 0.6); }
         else tag.show(false);
         if (A.phase === 'done' && A.settle) {
           // (on to the chalk: at once when it landed right; the crewmen's bars push it over the rest)
           const S2 = A.settle; S2.t += dt; const k = ease(Math.min(1, S2.t / S2.dur));
           stone.position.set(lerp(S2.from.x, CORNER_AT.x, k), floorY + 0.8, lerp(S2.from.z, CORNER_AT.z, k));
-          stone.rotation.y = S2.from.r * (1 - k);
+          stone.rotation.y = lerp(S2.from.r, S2.to, k);
           if (stone.parent && slings.parent) slingsAt(true);
           if (S2.t > S2.dur) A.settle = null;
         }
       },
-      wants() { return A.phase === 'lift' || A.phase === 'lower'; },   // ── h115 ── ── /h115 ──
+      wants(p) { return A.phase === 'lift' || A.phase === 'slew' || !!gripOf(p); },   // ── h116 ── (the three grips; elsewhere the right thumb looks) ── /h116 ──
       down(p) {
         A.p0 = { x: p.x, y: p.y, t: performance.now() / 1000, ax: A.ax };
-        if (A.phase === 'lower') { A.hold = true; X.hand(null); X.play('rope'); steer(p); }
+        if (A.phase === 'lower') { A.grip = gripOf(p); A.rx = p.x; X.hand(null); if (A.grip) { X.play('rope'); A.said[A.grip] = true; } if (A.grip === 'jib') { C.tipWorld(tip); A.jg = { y: tip.y, g0: onPlane(X, p.x, p.y, tip.y), a0: { ...(A.aimP || pos) } }; } }
       },
-      move(p) { if (A.phase === 'lower' && A.p0) steer(p); },
+      move(p) {
+        if (A.phase !== 'lower' || !A.p0) return;
+        if (A.grip === 'jib' && A.jg && A.jg.g0) { const g = onPlane(X, p.x, p.y, A.jg.y); if (g) { let x = A.jg.a0.x + (g.x - A.jg.g0.x), z = A.jg.a0.z + (g.z - A.jg.g0.z); const d = Math.hypot(x - CORNER_AT.x, z - CORNER_AT.z); if (d > 9) { x = CORNER_AT.x + (x - CORNER_AT.x) * 9 / d; z = CORNER_AT.z + (z - CORNER_AT.z) * 9 / d; } A.aimP = { x, z }; } }
+        else if (A.grip === 'rope') { A.rotT += (p.x - A.rx) * 0.011; A.rx = p.x; }
+      },
       up(p) {
-        const P0 = A.p0; A.p0 = null; A.hold = false;
+        const P0 = A.p0; A.p0 = null; A.hold = false; A.grip = null;
         if (A.phase === 'lift' && P0 && p.y - P0.y >= 40 && performance.now() / 1000 - P0.t <= 0.45) { swipe(); X.hand(null); }
       },
-      end() { if (arrow) X.props.remove(arrow); tag.dispose(); X.props.remove(sh); X.props.remove(slings); for (const l of legs) l.dispose(); C.rope.show(false); for (const w of crew.concat(A.barmen)) SH.crew.remove(w); if (!SH.cornerSet) X.props.remove(stone); else { SH.cornerStone = stone; stone.position.set(CORNER_AT.x, floorY + 0.8, CORNER_AT.z); stone.rotation.y = 0; } },
+      end() { if (arrow) X.props.remove(arrow); if (turnA) X.props.remove(turnA); for (const m2 of Lw.concat(rings)) X.props.remove(m2); X.props.root.remove(fill); tag.dispose(); X.props.remove(sh); X.props.remove(slings); for (const l of legs) l.dispose(); C.rope.show(false); for (const w of crew.concat(A.barmen)) SH.crew.remove(w); if (!SH.cornerSet) X.props.remove(stone); else { SH.cornerStone = stone; stone.position.set(CORNER_AT.x, floorY + 0.8, CORNER_AT.z); stone.rotation.y = 0; } },
       at() { return { x: CORNER_AT.x, y: gP + 2, z: CORNER_AT.z }; },
-      dbg() { C.tipWorld(tip); return { phase: A.phase, h: +A.h.toFixed(2), v: +A.v.toFixed(2), drop: +(A.drop || 0).toFixed(2), gap: +(tip.y - 1.2 - (A.drop || 0) - 0.8 - floorY).toFixed(2), swing: +Math.hypot(A.sway.vx, A.sway.vz).toFixed(2), dx: +(Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw).toFixed(3), chips: A.chips, rejects: A.rejects, grades: A.grades.slice(-6), ax: +A.ax.toFixed(2), sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), chalk: (() => { const q = X.scr(CORNER_AT.x, gP, CORNER_AT.z); return [Math.round(q.x), Math.round(q.y)]; })() }; },
+      dbg() { C.tipWorld(tip); return { phase: A.phase, h: +A.h.toFixed(2), v: +A.v.toFixed(2), drop: +(A.drop || 0).toFixed(2), gap: +(tip.y - 1.2 - (A.drop || 0) - 0.8 - floorY).toFixed(2), swing: +Math.hypot(A.sway.vx, A.sway.vz).toFixed(2), dx: +(Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw).toFixed(3), chips: A.chips, rejects: A.rejects, grades: A.grades.slice(-6), ax: +A.ax.toFixed(2), sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), chalk: (() => { const q = X.scr(CORNER_AT.x, gP, CORNER_AT.z); return [Math.round(q.x), Math.round(q.y)]; })(),
+        // ── h116 ── the grips on the screen, the turn's error and its tolerance ── /h116 ──
+        ...(() => { const r2 = (q) => [Math.round(q.x), Math.round(q.y)], h = kohHands(), e2 = ropeEnd(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z); return { tipScr: r2(X.scr(tip.x, tip.y, tip.z)), jibTo: r2(X.scr(tip.x + CORNER_AT.x - pos.x, tip.y, tip.z + CORNER_AT.z - pos.z)), ropeScr: r2({ x: (a.x * 2 + b.x) / 3, y: (a.y * 2 + b.y) / 3 }), handsScr: r2(a), stoneScr: r2(X.scr(stone.position.x, stone.position.y, stone.position.z)), floorScr: r2(X.scr(CORNER_AT.x, floorY, CORNER_AT.z)), rotE: rot == null ? 0 : +(rotErr(rot) * 180 / Math.PI).toFixed(2), tol: +(TOL * 180 / Math.PI).toFixed(2), grip: A.grip, misses: A.misses | 0, cracks: A.cracks, offX: +(pos.x - CORNER_AT.x).toFixed(2), offZ: +(pos.z - CORNER_AT.z).toFixed(2) }; })() }; },
     };
   },
 };
@@ -312,6 +391,9 @@ const COURSES = [
   { z0: 352, P: [{ gap: [3.5, 10.5], below: [6.5], sol: [4, 3] }, { gap: [3.5, 11.5], below: [5.25, 9.25], sol: [2.5, 2, 3.5] }] },
   { z0: 316, P: [{ gap: [3.5, 13.5], below: [7.25, 10], sol: [2.5, 3.5, 4] }, { gap: [3.5, 14.5], below: [5.75, 8.75, 12.25], sol: [3.5, 2.5, 2, 3] }] },
 ];
+// ── h116 ── (world flow, brief §D) the free courses 2..7: the same wall's next stretches north, every 36 amot, its two puzzles in turn
+// (they are the wall's own courses: the crews lay the rest of each stretch; his gap is the work) ── /h116 ──
+for (let c = 2; c < 8; c++) COURSES.push({ z0: 316 - 36 * (c - 1), P: COURSES[c % 2].P, free: true });
 const CH = 1.6, CD = 1.8;
 const puzzleOf = (c, lv) => { const K = COURSES[c], P = K.P[lv >= 3 ? 1 : 0]; return { z0: K.z0, gap: P.gap, sol: P.sol, below: [-8, -3, 1.5, ...P.below, P.gap[1] + 3, P.gap[1] + 8] }; };
 function courseWorld(X, c, lv, laid) {
@@ -564,12 +646,19 @@ export const COURSE = {
   },
 };
 
-/* ───────── 3.7 the great stone: from the quarry, along the road, onto the west wall's great course ───────── */
-// ── h114 ── (ירון 9.11: "האבן חייבת להיכנס לקיר ולהישאר") its course is the world's own west wall: its face flush with the wall's (x −300),
-// the crews' great stones already lying on beyond it; it slides off the rollers into the gap against them and stays ── /h114 ──
-const GR = { x: -298.1, zEnd: -150, len: 27, h: 3.4, d: 3.6, sp: 3.5 };
-const ROAD = [[200, -196], [150, -230], [40, -240], [-80, -230], [-200, -205], [-298.1, -205]];
-const GR_NEXT = [12, 10];   // the crews' stones beyond it, in the same course
+/* ───────── 3.7 the great stone "down the slope" (build 116; docs/specs/build116-brief.md §A) ─────────
+ * ── h116 ── (ירון 10.11: "האבן הגדולה נראה לי החדש ולא שניהם מה שנראה לך הכי הארד פאן - בצע") the roller game is gone. The stone
+ * lies on its rollers on the rock (BOOK.great: יט־6) and is let down west off the rock, then turned north along the west wall's top
+ * into its course. Two rope crews hold it from behind: he holds the stone and pulls forward, they pay out rope (the further the pull,
+ * the faster); a sideways pull and the lever men turn its nose; let go and they brake, and it stops slowly (weight). The fun is the
+ * weight: it answers late, it gathers speed on the steep, and the bend must be slowed for BEFORE it. Over the safe speed the ropes
+ * redden; held over it a rope snaps and it tips (−40); off the marked track a roller breaks (−20); into the wall too fast it is
+ * chipped (−20). Untouched it stands still. The physics: h109/slope.js. (Illustration of the craft, not a source claim.) ── /h116 ── */
+const GR = { x: BOOK.great.endX, zEnd: BOOK.great.endZ, len: 27, h: 3.4, d: 3.6 };
+const GR_NEXT = [12, 10];   // the crews' stones beyond it in the same course (north of it)
+const TRK = makeTrack(BOOK.great.track);
+const ST_F = [0.43, 0.67, 0.89];   // (after the first bend, before the second, on the last straight)   // the three stations (rests) along the way
+const ROLL_N = 5, ROLL_SP = GR.len / ROLL_N;
 let greatMat = null;
 function greatStoneMat(X) {
   // dressed limestone with the Herodian drafted margin: a pale band round each face and a slightly rougher, darker boss
@@ -583,136 +672,234 @@ function greatStoneMat(X) {
   const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace || tex.colorSpace; tex.anisotropy = 4;
   greatMat = new T.MeshStandardMaterial({ map: tex, roughness: 0.92 }); return greatMat;
 }
-function greatMesh(X, L) { const T = X.THREE; const m = new T.Mesh(new T.BoxGeometry(GR.d, GR.h, L), greatStoneMat(X)); m.castShadow = true; m.receiveShadow = true; X.props.root.add(m); return m; }
-function roadAt(u) {
-  // u 0..1 along ROAD then the last stretch north→south along x = −262 to the end
-  const pts = ROAD.concat([[GR.x, GR.zEnd]]); let L = 0; const seg = []; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(l); L += l; }
-  let d = clamp(u, 0, 1) * L; for (let i = 0; i < seg.length; i++) { if (d <= seg[i]) { const k = d / seg[i]; return { x: lerp(pts[i][0], pts[i + 1][0], k), z: lerp(pts[i][1], pts[i + 1][1], k), yaw: Math.atan2(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]) }; } d -= seg[i]; }
-  return { x: GR.x, z: GR.zEnd, yaw: 0 };
+function greatMesh(X, L) { const T = X.THREE; const m = new T.Mesh(new T.BoxGeometry(GR.d, GR.h, L), greatStoneMat(X)); m.castShadow = true; m.receiveShadow = true; m.rotation.order = 'YXZ'; X.props.root.add(m); return m; }
+/** the slope downhill along the track at s (+: down), from the ground 9 amot behind and before */
+function slopeAt(X, s) { const a = TRK.at(s - 9), b = TRK.at(s + 9); return clamp((X.ground(a.x, a.z) - X.ground(b.x, b.z)) / 18, -0.8, 0.8); }
+/** where the stone stands for a state: its middle, heading, height and pitch */
+function poseOf(X, S, out = {}) {
+  const p = TRK.at(S.s), x = p.x + p.nx * S.o, z = p.z + p.nz * S.o, yaw = p.yaw - S.a, fx = Math.sin(yaw), fz = Math.cos(yaw);
+  const gF = X.ground(x + fx * 9, z + fz * 9), gB = X.ground(x - fx * 9, z - fz * 9), g0 = X.ground(x, z);
+  out.x = x; out.z = z; out.yaw = yaw; out.fx = fx; out.fz = fz; out.nx = -fz; out.nz = fx; out.g = Math.max(g0, (gF + gB) / 2); out.pitch = Math.atan2(gB - gF, 18);
+  out.y = out.g + 1.1 + GR.h / 2; return out;
 }
-function roadLen() { const pts = ROAD.concat([[GR.x, GR.zEnd]]); let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; }
-function roadMesh(X) {
-  const T = X.THREE, pts = ROAD.concat([[GR.x, GR.zEnd]]), pos = [], idx = []; let n = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], L = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / L, uz = (z1 - z0) / L, px = -uz * 3.2, pz = ux * 3.2, k = Math.ceil(L / 4);
-    for (let j = 0; j <= k; j++) { const x = lerp(x0, x1, j / k), z = lerp(z0, z1, j / k); pos.push(x + px, X.ground(x + px, z + pz) + 0.08, z + pz, x - px, X.ground(x - px, z - pz) + 0.08, z - pz); if (j) idx.push(n - 2, n - 1, n, n - 1, n + 1, n); n += 2; }
-  }
-  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-  const m = new T.Mesh(g, new T.MeshStandardMaterial({ color: '#D8C79E', roughness: 1, transparent: true, opacity: 0.8, depthWrite: false })); m.renderOrder = 1; m.receiveShadow = true; X.props.root.add(m); return m;
+function setStone(m, P, roll = 0, drop = 0) { m.position.set(P.x, P.y - drop, P.z); m.rotation.set(P.pitch, P.yaw, roll, 'YXZ'); }
+/** the stone in its course at the end (on the wall's top, off its rollers) */
+function seatPose(X) { const P = poseOf(X, restAt(TRK.L)); P.y = X.ground(GR.x, GR.zEnd) + GR.h / 2; P.pitch = 0; P.x = GR.x; P.z = GR.zEnd; return P; }
+/** the marked way (for the act's level): two rows of white stones at its edges, a faint green line down its middle, the three
+ *  stations as beams across, and the green stopping place before the wall */
+function trackMarks(X, half, stations) {
+  const T = X.THREE, out = [], g = (x, z) => X.ground(x, z);
+  const edge = GR.d / 2 + half;
+  { const n = Math.floor(TRK.L / 2.6), geo = new T.IcosahedronGeometry(0.32, 0), mat = new T.MeshStandardMaterial({ color: '#F2EEE2', roughness: 0.8 });
+    const im = new T.InstancedMesh(geo, mat, n * 2), M4 = new T.Matrix4(), q = new T.Quaternion(), sc = new T.Vector3(1, 0.7, 1), v = new T.Vector3(); let k = 0;
+    for (let i = 0; i < n; i++) { const p = TRK.at(i * 2.6 + 1); for (const sd of [-1, 1]) { const x = p.x + p.nx * edge * sd, z = p.z + p.nz * edge * sd; v.set(x, g(x, z) + 0.12, z); M4.compose(v, q, sc); im.setMatrixAt(k++, M4); } }
+    im.count = k; im.instanceMatrix.needsUpdate = true; im.receiveShadow = true; X.props.root.add(im); out.push(im); }
+  const ribbon = (s0, s1, w, color, op, dy = 0.07) => {
+    const pos = [], idx = []; let n = 0; const k = Math.max(2, Math.ceil((s1 - s0) / 1.5));
+    for (let j = 0; j <= k; j++) { const p = TRK.at(s0 + (s1 - s0) * (j / k)); for (const sd of [-1, 1]) { const x = p.x + p.nx * w * sd, z = p.z + p.nz * w * sd; pos.push(x, g(x, z) + dy, z); } if (j) idx.push(n - 2, n - 1, n, n - 1, n + 1, n); n += 2; }
+    const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+    const m = new T.Mesh(geo, new T.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: T.DoubleSide })); m.renderOrder = 2; X.props.root.add(m); out.push(m); return m;
+  };
+  ribbon(0, TRK.L - 3, 0.22, '#59E07A', 0.45);
+  const end = ribbon(TRK.L - 3 - GR.len / 2, TRK.L + GR.len / 2, GR.d / 2 + 0.9, '#3BD467', 0.32, 0.09);
+  for (const s of stations) { const p = TRK.at(s), w = edge + 0.6, m = new T.Mesh(new T.BoxGeometry(w * 2, 0.35, 0.45), X.props.M.wood); m.position.set(p.x, g(p.x, p.z) + 0.18, p.z); m.rotation.y = p.yaw; m.receiveShadow = true; X.props.root.add(m); out.push(m); }
+  return { out, end };
 }
 export const GREAT = {
-  icon: '🪵', title: 'האבן הגדולה',
-  walkLine: () => 'האבן הגדולה הגיעה מהמחצבה: עזרו לגלגל אותה אל הנדבך הגדול',
-  stand(m, X) { const z0 = GR.zEnd - GREAT.travel(X) - GR.len / 2; return { x: GR.x + 4.5, z: z0 - 3, face: [GR.x, z0 + 3] }; },
-  travel(X) { return GR.sp * [6, 9, 12][X.level() - 1]; },
-  prepare(m, X) { SH.greatU = 1 - (GREAT.travel(X)) / roadLen(); },
+  icon: '🪨', title: 'האבן הגדולה',
+  walkLine: () => 'האבן הגדולה על הסלע: הורידו אותה אל החומה',
+  stand(m, X) { const P = poseOf(X, restAt(0)); const x = P.x - P.fx * (GR.len / 2 + 5) + P.nx * 5, z = P.z - P.fz * (GR.len / 2 + 5) + P.nz * 5; return { x, z, face: [P.x, P.z] }; },
+  prepare() {},
   make(m, X) {
-    const lv = X.level(), T = X.THREE, N = [6, 9, 12][lv - 1], travel = GR.sp * N;
-    const A = { zs: GR.zEnd - travel, v: 0, rollers: [], moved: 0, gaps: 0, grades: [], drag: null, halt: 0, t: 0, phase: 'roll', crewTake: 0 };
-    const S = SH.great; S.position.set(GR.x, 0, A.zs); S.rotation.y = 0;
-    const g0 = (z) => X.ground(GR.x, z);
-    // the rollers under it (7 across its length) — they roll at half its speed; one comes out behind every few seconds
-    const logG = new T.CylinderGeometry(0.55, 0.55, GR.d + 1.8, 10); logG.rotateZ(Math.PI / 2);
-    for (let i = 0; i < 8; i++) { const m2 = new T.Mesh(logG, X.props.M.wood); m2.castShadow = true; X.props.root.add(m2); A.rollers.push({ m: m2, z: A.zs - GR.len / 2 + 1 + i * GR.sp, st: 'under', vz: 0 }); }
-    // the crew: 8 pullers on two ropes in front, the drummer on the beat, porters with spare rollers
-    const pullers = []; for (let i = 0; i < 8; i++) pullers.push(SH.crew.add(GR.x + (i % 2 ? 2.2 : -2.2), A.zs + GR.len / 2 + 4 + Math.floor(i / 2) * 2.4, { role: 'pull', item: 'rope', fx: GR.x, fz: A.zs, off: (i % 4) * 0.03, crew: i % 4 }));
-    const drummer = SH.crew.add(GR.x + 6, A.zs + GR.len / 2 + 2, { role: 'hammer', item: 'mallet', k: 1, fx: GR.x + 6, fz: A.zs + 30, crew: 2 });
-    const ropes = [X.props.rope(16, 0.07), X.props.rope(16, 0.07)];
-    // ── h114 ── (ירון 9.11: "המסך קופץ"; "רואים רק את העיר") placed once, then followed smoothly: from the Mount's side, high,
-    // looking down and along — the stone, its rollers and the road ahead fill the frame, the wall's edge beside ── /h114 ──
-    function shot(first) { const zc = A.zs, p = [GR.x + 30, g0(zc) + 33, zc + 1], t = [GR.x - 3, g0(zc) - 1, zc + 2];   /* (its whole length: the free rollers come out behind, go in before) */ if (first) X.shot(p, t, 1.0); else X.track(p, t, 1.4); }
-    function front() { let f = -1e9; for (const r of A.rollers) if (r.st === 'under') f = Math.max(f, r.z); return f; }
-    function pickRoller(p) {
-      let best = null, bd = 80; for (const r of A.rollers) { if (r.st !== 'out') continue; const q = X.scr(GR.x, r.m.position.y, r.z); if (!q.on) continue; const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = r; } }
-      return best;
+    const lv = X.level(), li = lv - 1, T = X.THREE, S = SH.great, half = SL.half[li];
+    const stations = ST_F.map((f) => f * TRK.L);
+    const A = { S: restAt(0), phase: 'intro', t: 0, introT: 0, grab: null, pull: 0, side: 0, leg: { red: false, brush: false, loss: false }, grades: [], st: 0, losses: 0, strikes: 0, strain: 0, P: {}, roll: 0, said: {}, still: 0, scene: null, endT: 0, creak: 0 };
+    const MK = trackMarks(X, half, stations);
+    // the rollers under it (they move back under it at half its speed; the one freed behind is carried round to the front)
+    const logG = new T.CylinderGeometry(0.55, 0.55, GR.d + 1.6, 10); logG.rotateZ(Math.PI / 2);
+    const rollers = []; for (let i = 0; i < ROLL_N; i++) { const gp = new T.Group(), mm = new T.Mesh(logG, X.props.M.wood); mm.castShadow = true; gp.add(mm); X.props.root.add(gp); rollers.push({ g: gp, m: mm }); }
+    // the two rope crews behind it, four on each rope; two lever men at its right side; two carriers with the next roller at its left
+    const C = SH.crew, P0 = poseOf(X, A.S, A.P);
+    const crews = []; for (let j = 0; j < 2; j++) for (let i = 0; i < 4; i++) crews.push({ w: C.add(P0.x - P0.fx * (GR.len / 2 + 3 + i * 2.2), P0.z - P0.fz * (GR.len / 2 + 3 + i * 2.2), { role: 'pull', item: 'rope', fx: P0.x, fz: P0.z, crew: j, off: i * 0.07 }), j, i });
+    const levers = [0, 1].map((i) => C.add(P0.x + P0.nx * 3.6, P0.z + P0.nz * 3.6, { role: 'lever', item: 'staff', fx: P0.x, fz: P0.z, crew: 2, off: i * 0.5 }));
+    const carriers = [0, 1].map(() => C.add(P0.x - P0.nx * 4, P0.z - P0.nz * 4, { role: 'hold', item: 'log', crew: 3 }));
+    const ropes = [0, 1].map(() => { const r = X.props.rope(16, 0.09); r.mesh.material = r.mesh.material.clone(); return r; });
+    const ROPE_C = new T.Color('#C9A46A'), RED = new T.Color('#D2321E');
+    const at = () => ({ x: A.P.x, y: A.P.y + GR.h, z: A.P.z });
+    // the shots: behind and above it on the uphill side, down the way; the opening from the wall's slot up the way to it
+    const behind = () => { const P = A.P, b = 36, u = 30, sd = -9; return { p: [P.x - P.fx * b + P.nx * sd, P.g + u + Math.max(0, P.pitch) * 14, P.z - P.fz * b + P.nz * sd], t: [P.x + P.fx * 12, P.g, P.z + P.fz * 12] }; };
+    function crewFrame(dt) {
+      const P = A.P, sp = Math.max(0.6, Math.abs(A.S.v) + 1.2);
+      for (const c of crews) {
+        if (!c.w) continue; const sd = c.j ? 1 : -1, back = GR.len / 2 + 3 + c.i * 2.2 - (A.rope === c.j ? -6 : 0);
+        const x = P.x - P.fx * back + P.nx * sd * 1.4, z = P.z - P.fz * back + P.nz * sd * 1.4;
+        c.w.a.path = [[x, z]]; c.w.a.pi = 0; c.w.a.speed = sp; c.w.fx = P.x; c.w.fz = P.z; c.w.lean = A.rope === c.j ? 0.5 : -0.3 * clamp(A.strain, 0, 1.2);
+      }
+      levers.forEach((w, i) => { if (!w) return; const x = P.x + P.nx * (GR.d / 2 + 1.7) + P.fx * (i ? 6 : -6), z = P.z + P.nz * (GR.d / 2 + 1.7) + P.fz * (i ? 6 : -6); w.a.path = [[x, z]]; w.a.pi = 0; w.a.speed = sp; w.fx = P.x + P.fx * (i ? 6 : -6); w.fz = P.z + P.fz * (i ? 6 : -6); });
+      carriers.forEach((w, i) => { if (!w) return; const x = P.x - P.nx * (GR.d / 2 + 2.4) + P.fx * (i ? 1.2 : -1.2), z = P.z - P.nz * (GR.d / 2 + 2.4) + P.fz * (i ? 1.2 : -1.2); w.a.path = [[x, z]]; w.a.pi = 0; w.a.speed = sp; });
+      // the ropes from its back corners to the last man of each crew; they redden with the strain
+      const k = clamp((A.strain - SL.red) / (1 - SL.red), 0, 1);
+      ropes.forEach((r, j) => {
+        if (A.rope === j) { r.mesh.visible = false; return; } r.mesh.visible = true;
+        const sd = j ? 1 : -1, ax = P.x - P.fx * (GR.len / 2) + P.nx * sd * 1.2, az = P.z - P.fz * (GR.len / 2) + P.nz * sd * 1.2;
+        const w = crews[j * 4 + 3].w.a; r.set({ x: ax, y: P.y + 0.6, z: az }, { x: w.x, y: X.ground(w.x, w.z) + 1.5, z: w.z }, 0.25 * (1 - clamp(A.strain, 0, 1)));
+        r.mesh.material.color.copy(ROPE_C).lerp(RED, k);
+      });
+      if (k > 0.6) { A.dustT = (A.dustT || 0) - dt; if (A.dustT <= 0) { A.dustT = 0.35; const w = crews[(Math.random() * 8) | 0].w.a; X.dust(w.x, X.ground(w.x, w.z) + 0.2, w.z, 3, 1.4); } }
+      A.creak -= dt; if (k > 0.3 && A.creak <= 0) { A.creak = 0.9 - 0.5 * k; X.play('wood'); }
     }
-    function gap() {
-      // the stone ran off its front roller: it tips and slides back a roller's length, the song stops, the crew rests
-      A.gaps++; A.halt = 2; A.zs -= GR.sp * 0.8; X.play('grind'); X.shake(0.3, 0.5); X.dust(GR.x, g0(A.zs) + 0.5, A.zs + GR.len / 2, 16, 4);
-      for (const r of A.rollers) if (r.st === 'under') r.z -= GR.sp * 0.4;
-      X.word({ x: GR.x, y: g0(A.zs) + GR.h + 2, z: A.zs + GR.len / 2 }, A.gaps >= 3 ? 'שלושה רווחים: הצוות משתלט' : 'רווח! האבן החליקה אחורה');
-      if (A.gaps >= 3) { A.phase = 'crew'; X.line('הצוות משלים את הדרך במוטות'); }
+    function rollerFrame(dt) {
+      const P = A.P; A.roll += A.S.v * 0.5 * dt;
+      rollers.forEach((r, i) => {
+        let u = ((i * ROLL_SP - A.roll) % GR.len + GR.len) % GR.len - GR.len / 2;   // (along the stone, from its back −len/2 to its front)
+        const x = P.x + P.fx * u, z = P.z + P.fz * u; r.g.position.set(x, X.ground(x, z) + 0.55, z); r.g.rotation.y = P.yaw; r.m.rotation.x = A.roll * 1.8;
+        r.g.visible = A.phase !== 'seat' || A.endT < 0.3 + i * 0.15;
+      });
     }
-    function arrive(lost) {
-      // ── h114 ── (ירון 9.11: "'בתוך הבית' נגמר מיד") it comes off the rollers and slides down into its bed against the crews' stone,
-      // the dust of it; the camera stays on it five seconds, then it stays there for good ── /h114 ──
-      A.phase = 'seat'; A.seatT = 0;
-      const at = { x: GR.x, y: g0(GR.zEnd) + GR.h + 2, z: GR.zEnd };
+    function draw() { poseOf(X, A.S, A.P); setStone(S, A.P); }
+    function grade(kind) { const g = A.leg.loss ? 'ok' : A.leg.red || A.leg.brush ? 'good' : 'gold'; A.grades.push(g); A.leg = { red: false, brush: false, loss: false }; return g; }
+    function scene(kind, dur, o2 = {}) { A.phase = 'scene'; A.scene = { kind, t: 0, dur, ...o2 }; A.grab = null; A.pull = 0; A.side = 0; }
+    function lossAt(n, label, word) { A.losses++; A.leg.loss = true; X.loss(n, at(), label); X.word(at(), word); }
+    function seat() {
+      A.phase = 'seat'; A.endT = 0; A.grab = null; A.from = { ...A.P }; A.to = seatPose(X);
       X.play('grind'); X.line('הצוות שומט את הגלילים · האבן יורדת למקומה');
-      SH.greatDone = true;
-      const q = lost ? 0 : A.grades.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / Math.max(1, A.grades.length) * (A.gaps ? 0.85 : 1);
-      X.shot([GR.x + 20, g0(GR.zEnd) + 11, GR.zEnd - 30], [GR.x, g0(GR.zEnd) + 1.5, GR.zEnd + 4], 1.6);
-      A.arrive = () => {
-        X.play('settle'); X.shake(0.45, 0.8); X.dust(GR.x, g0(GR.zEnd) + 0.5, GR.zEnd, 30, 8); X.dust(GR.x, g0(GR.zEnd) + 0.5, GR.zEnd + GR.len / 2, 20, 5);
-        if (!lost) { X.bonus(300, 'great', 'האבן הגדולה במקומה'); if (!A.gaps && A.grades.every((g) => g === 'gold')) X.perfect('בול! האבן הגדולה בחומה', at); }
-        else X.word(at, 'הצוות הניח · האבן עומדת בנדבך');
-        X.line('האבן הגדולה בכותל המערבי: כ־13.6 מטר (מנהרות הכותל)');
-      };
-      setTimeout(() => X.end({ q, lost, stars: lost ? 0 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at }), 7600);
     }
+    function arrive() {
+      const P = A.to, top = { x: P.x, y: P.y + GR.h / 2 + 1.5, z: P.z };
+      X.play('settle'); X.shake(0.45, 0.8); X.dust(P.x, P.y - GR.h / 2 + 0.3, P.z, 30, 8); X.dust(P.x, P.y - GR.h / 2 + 0.3, P.z - GR.len / 2, 20, 5);
+      SH.greatDone = true;
+      const endG = A.strikes ? 'ok' : (Math.abs(A.S.a) < 0.035 && Math.abs(A.S.o) < 0.5 ? 'gold' : 'good'); A.grades.push(endG);
+      const q = (A.grades.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / A.grades.length) * Math.pow(0.85, A.losses);
+      A.res = { q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, perfect: A.grades.every((g) => g === 'gold') && !A.losses && !A.strikes, at: top };
+      X.hit(top, endG, { text: '', craft: 'בונים' });
+      X.bonus(300, 'great', 'האבן הגדולה במקומה');
+      if (A.res.perfect) X.perfect('בול! האבן הגדולה בחומה', top);
+      X.line('האבן הגדולה בכותל המערבי: כ־13.6 מטר (מנהרות הכותל)');
+    }
+    function grabAt(p) { const P = A.P, g = onPlane(X, p.x, p.y, P.g + 1.5); if (!g) return null; const dx = g.x - P.x, dz = g.z - P.z, f = dx * P.fx + dz * P.fz, n = dx * P.nx + dz * P.nz; return Math.abs(f) < GR.len / 2 + 4 && Math.abs(n) < GR.d / 2 + 4 ? { f, n } : null; }
     return {
-      begin() { shot(true); X.line('גררו גליל אל לפני האבן'); try { X.hero.setPos(GR.x + 4.5, A.zs - GR.len / 2 - 2.5, 0); } catch (e) { /* */ } },
+      begin() {
+        X.kohen(false);
+        draw(); rollerFrame(0);
+        const E = seatPose(X), Q = TRK.at(TRK.L - 30);
+        X.shot([Q.x + 26, E.y + 22, Q.z + 30], [E.x, E.y, E.z - 4], 0.6);
+        X.line('האבן יורדת מהסלע אל החומה');
+      },
       update(dt) {
-        A.t += dt;
-        if (A.phase === 'roll' || A.phase === 'crew') {
-          const speed = A.phase === 'crew' ? 2.4 : (1.3 + A.moved * 0.05) * (A.halt > 0 ? 0 : 1);
-          A.halt = Math.max(0, A.halt - dt);
-          A.v = lerp(A.v, speed, 1 - Math.exp(-dt * 2));
-          A.zs += A.v * dt;
-          for (const r of A.rollers) {
-            if (r.st === 'under') { r.z += A.v * 0.5 * dt; if (r.z < A.zs - GR.len / 2 - 0.2) { r.st = 'out'; r.vz = -A.v * 0.6; X.play('wood'); if (A.moved === 0) X.hand({ x: GR.x, y: g0(r.z) + 1, z: r.z }, 0, -50); } }
-            else if (r.st === 'out') { r.z += r.vz * dt; r.vz *= Math.exp(-dt * 1.5); if (A.phase === 'crew') { r.st = 'under'; r.z = front() + GR.sp; } }
-          }
-          // the front: no roller under the last stretch → a gap
-          const f = front(); if (A.phase === 'roll' && A.zs + GR.len / 2 - f > GR.sp * 1.6) gap();
-          if (A.zs >= GR.zEnd) { A.zs = GR.zEnd; arrive(A.phase === 'crew'); }
-          // the crew walks with the stone
-          pullers.forEach((w, i) => { const z = A.zs + GR.len / 2 + 4 + Math.floor(i / 2) * 2.4; w.a.path = [[GR.x + (i % 2 ? 2.2 : -2.2), z + 0.3]]; w.a.pi = 0; w.a.speed = Math.max(0.3, A.v); w.fz = A.zs; });
-          drummer.a.path = [[GR.x + 6, A.zs + GR.len / 2 + 2]]; drummer.a.pi = 0; drummer.a.speed = Math.max(0.3, A.v);
-          if (A.phase === 'roll' || A.phase === 'crew') shot();
+        A.t += dt; const S0 = A.S;
+        if (A.phase === 'intro') {
+          A.introT += dt;
+          if (A.introT > 1.3 && !A.introGo) { A.introGo = true; const b = behind(); X.shot(b.p, b.t, 2.6); }
+          if (A.introT > 4.1) { A.phase = 'move'; X.line('משכו את האבן במורד · שחררו לבלום'); X.hand({ x: A.P.x + A.P.fx * 4, y: A.P.y + GR.h / 2, z: A.P.z + A.P.fz * 4 }, 0, -70); }
+          crewFrame(dt); rollerFrame(0); return;
         }
-        const gy = g0(A.zs);
-        if (A.phase === 'seat') {
-          // (rollers out from under it, one by one; it settles down onto the bed)
-          A.seatT += dt; const k = ease(clamp((A.seatT - 0.6) / 1.4, 0, 1));
-          S.position.set(GR.x, gy + GR.h / 2 + 1.1 * (1 - k), A.zs);
-          for (const [i, r] of A.rollers.entries()) if (r.st === 'under' && A.seatT > 0.2 + i * 0.12) { r.st = 'gone'; r.vz = 0; }
-          for (const r of A.rollers) if (r.st === 'gone') { r.m.position.x += dt * 9; r.m.rotation.x += dt * 4; }
-          if (k >= 1 && !A.seated) { A.seated = true; A.arrive(); }
+        if (A.phase === 'scene') {
+          const Sc = A.scene; Sc.t += dt; const k = clamp(Sc.t / Sc.dur, 0, 1);
+          if (Sc.kind === 'run') {
+            // the rope gone: it runs on by itself, faster, and tips at the end of it
+            S0.v += (1.8 + Math.max(0, SL.g * slopeAt(X, S0.s))) * dt; S0.s += S0.v * dt; S0.o += S0.v * Math.sin(S0.a) * dt; draw(); rollerFrame(dt);
+            if (Sc.t >= Sc.dur) {
+              const P = A.P; X.play('settle'); X.play('crack'); X.shake(0.6, 1.0); X.dust(P.x, P.g + 0.4, P.z, 34, 8); X.dust(P.x + P.nx * 3, P.g + 0.4, P.z + P.nz * 3, 20, 6);
+              lossAt(40, 'האבן התהפכה', 'התהפכה: האטו לפני הפיתול'); S0.v = 0;
+              scene('tip', 1.0, { from: { ...A.P } });
+            }
+          } else if (Sc.kind === 'tip') {
+            setStone(S, Sc.from, ease(k) * (Math.PI / 2) * (S0.o >= 0 ? -1 : 1), ease(k) * (1.1 + (GR.h - GR.d) / 2));
+            if (Sc.t >= Sc.dur + 1.4) { X.line('הצוות מעמיד את האבן בתחנה האחרונה'); const back = A.st ? stations[A.st - 1] : 0; scene('right', 2.4, { from: { ...Sc.from }, to: poseOf(X, restAt(back)), back }); }
+          } else if (Sc.kind === 'right') {
+            const a = Sc.from, b = Sc.to, e = ease(k), P = { x: lerp(a.x, b.x, e), y: lerp(a.y - 1.1, b.y, e), z: lerp(a.z, b.z, e), yaw: lerp(a.yaw, b.yaw, e), pitch: lerp(a.pitch, b.pitch, e) };
+            setStone(S, P, (1 - e) * (Math.PI / 2) * (S0.o >= 0 ? -1 : 1)); A.P.x = P.x; A.P.z = P.z;
+            if (k >= 1) { A.S = restAt(Sc.back); A.rope = null; draw(); A.phase = 'move'; X.line('משכו את האבן במורד · שחררו לבלום'); }
+          } else if (Sc.kind === 'lever') {
+            // off the track: the lever men bring it back to the way's middle where it left
+            S0.o = lerp(Sc.o0, 0, ease(k)); S0.a = lerp(Sc.a0, 0, ease(k)); draw();
+            if (k >= 1) { A.phase = 'move'; X.line('משכו את האבן במורד · שחררו לבלום'); }
+          } else if (Sc.kind === 'pullback') {
+            S0.s = lerp(Sc.s0, Sc.s1, ease(k)); draw(); A.roll -= dt * 1.2; rollerFrame(0);
+            if (k >= 1) { A.phase = 'move'; X.line('לאט אל המלבן הירוק'); }
+          }
+          crewFrame(dt);
+          if (A.phase === 'move') { const b = behind(); X.track(b.p, b.t, 1.0); }
           return;
         }
-        S.position.set(GR.x, gy + 1.1 + GR.h / 2, A.zs);
-        for (const r of A.rollers) {
-          if (A.drag && A.drag.r === r) continue; r.m.position.set(GR.x, X.ground(GR.x, r.z) + 0.55, r.z); r.m.rotation.x = r.z * 1.6;
-          // ── h114 ── (ירון 9.11: "לא ברור מה עושים") the free roller behind glows: that is the one to take ── /h114 ──
-          if (r.st === 'out') { if (!r.glow) { r.glow = r.m.material = X.props.M.wood.clone(); r.glow.emissive = new T.Color('#FFB830'); } r.glow.emissiveIntensity = 0.35 + 0.35 * Math.sin(A.t * 6); }
-          else if (r.glow) { r.m.material = X.props.M.wood; r.glow.dispose(); r.glow = null; }
+        if (A.phase === 'seat') {
+          A.endT += dt; const k = ease(clamp((A.endT - 0.4) / 1.6, 0, 1)), a = A.from, b = A.to;
+          setStone(S, { x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), z: lerp(a.z, b.z, k), yaw: lerp(a.yaw, b.yaw, k), pitch: lerp(a.pitch, 0, k) });
+          rollerFrame(0); crewFrame(dt);
+          if (k >= 1 && !A.arrived) { A.arrived = true; arrive(); X.shot([b.x + 34, b.y + 20, b.z + 8], [b.x - 2, b.y, b.z - 4], 1.6); }
+          if (A.arrived) { A.doneT = (A.doneT || 0) + dt; if (A.doneT > 3.2 && !A.ended) { A.ended = true; X.end(A.res); } }
+          return;
         }
-        if (A.drag) {
-          // the kohen carries it in his arms along the stone and lays it down before it
-          const r = A.drag.r; r.z += (A.drag.tz - r.z) * (1 - Math.exp(-dt * 3.5));
-          let hz = r.z; try { const h = X.stages.heroXYZ({}); if (h) { const dz = r.z - h.z, dx = GR.x + GR.d / 2 + 1.6 - h.x; const d = Math.hypot(dx, dz); if (d > 0.4) X.hero.drive((dx / d) * Math.min(7, d * 3), (dz / d) * Math.min(7, d * 3)); else X.hero.drive(0, 0); hz = h.z; } } catch (e) { /* */ }
-          r.m.position.set(GR.x + GR.d / 2 + 0.7, X.ground(GR.x, r.z) + 2.4, lerp(r.z, hz, 0.5)); r.m.rotation.x = 0;
-        } else if (A.phase === 'roll') { try { X.hero.drive(0, 0); } catch (e) { /* */ } }
-        for (let k = 0; k < 2; k++) { const s = k ? 1 : -1, a = { x: GR.x + s * 1.2, y: gy + 2.2, z: A.zs + GR.len / 2 }, w = pullers[6 + k] ? pullers[6 + k].a : null; if (w) ropes[k].set(a, { x: w.x, y: X.ground(w.x, w.z) + 1.6, z: w.z }, 0.2); }
+        // ── move ──
+        const sin = slopeAt(X, S0.s), p = TRK.at(S0.s), lim = limitAt(TRK, S0.s, lv);
+        const ev = stepStone(S0, { pull: A.grab ? A.pull : 0, side: A.grab ? A.side : 0 }, { sin, k: p.k, lim, lv }, dt);
+        A.strain = ev.strain;
+        if (ev.strain > 0.92) A.leg.red = true;
+        if (Math.abs(S0.o) > half * SL.edge) { if (!A.leg.brush) { X.play('grind'); X.dust(A.P.x, A.P.g + 0.3, A.P.z, 6, 2.5); } A.leg.brush = true; }
+        draw(); rollerFrame(dt); crewFrame(dt);
+        if (ev.snap) {
+          X.play('crack'); A.rope = Math.random() < 0.5 ? 0 : 1; X.word(at(), 'החבל נקרע!');
+          scene('run', 1.3); return;
+        }
+        if (Math.abs(S0.o) > half) {
+          X.play('crack'); X.sparks(A.P.x, A.P.g + 0.6, A.P.z, 14); X.dust(A.P.x, A.P.g + 0.4, A.P.z, 18, 4);
+          lossAt(20, 'גליל נשבר', 'יצאה מהמסילה'); S0.v = 0;
+          X.line('אנשי המנופים מחזירים אותה למסילה');
+          scene('lever', 2.2, { o0: S0.o, a0: S0.a }); return;
+        }
+        // the stations
+        while (A.st < stations.length && S0.s >= stations[A.st]) {
+          const g = grade(); const q = TRK.at(stations[A.st]); X.hit({ x: q.x, y: X.ground(q.x, q.z) + GR.h + 2, z: q.z }, g, { text: '', craft: 'מורידים' });
+          A.st++; X.count({ x: A.P.x, y: A.P.y + GR.h + 2, z: A.P.z }, `${A.st}/${stations.length}`);
+        }
+        // the lines: the bend ahead (once), the end
+        if (!A.said.bend && TRK.bend(S0.s + 14) && !TRK.bend(S0.s)) { A.said.bend = true; X.line('פיתול: האטו לפני'); }
+        if (!A.said.end && S0.s > TRK.L - 24) { A.said.end = true; X.line('לאט אל המלבן הירוק'); }
+        // the wall: its crews' stone stands at the end of the way
+        if (S0.s >= TRK.L) {
+          if (S0.v > SL.strike) {
+            X.play('crack'); X.shake(0.4, 0.6); X.sparks(A.P.x + A.P.fx * GR.len / 2, A.P.y, A.P.z + A.P.fz * GR.len / 2, 20);
+            A.strikes++; lossAt(20, 'פינה נשברה', 'מהר מדי אל הקיר'); S0.v = 0;
+            X.line('הצוות מושך אותה אחורה'); scene('pullback', 1.8, { s0: TRK.L, s1: TRK.L - 6 }); return;
+          }
+          S0.s = TRK.L; S0.v = Math.min(0, S0.v);
+        }
+        // standing still in the green place: straight and in the middle, it goes in; crooked, he is told
+        if (!A.grab && Math.abs(S0.v) < 0.04 && S0.s >= TRK.L - 3) {
+          A.still += dt;
+          if (A.still > 0.5) {
+            const tolO = [1.2, 1.0, 0.8][li];
+            if (Math.abs(S0.a) < 0.07 && Math.abs(S0.o) < tolO) { seat(); return; }
+            if (!A.said.crook) { A.said.crook = true; X.line(Math.abs(S0.a) >= 0.07 ? 'ישרו את האבן: משכו הצידה' : 'לא באמצע: משכו אחורה מעט ושוב'); }
+          }
+        } else A.still = 0;
+        const b = behind(); X.track(b.p, b.t, 1.0);
       },
-      wants(p) { return A.phase === 'roll' && !!pickRoller(p); },   // ── h115 ── ── /h115 ──
-      down(p) { if (A.phase !== 'roll') return; const r = pickRoller(p); if (!r) return; A.drag = { r, tz: r.z, t0: A.t }; X.hand(null); X.play('wood'); X.line('הכהן נושא את הגליל · הניחו אותו לפני האבן'); },
-      move(p) { const D = A.drag; if (!D) return; const g = onPlane(X, p.x, p.y, g0(A.zs) + 1.2); if (g) D.tz = g.z; },
-      up() {
-        const D = A.drag; if (!D) return; A.drag = null; const r = D.r; r.z = D.tz;   /* (laid where the finger let go: he has carried it there) */
-        const fr = A.zs + GR.len / 2, f = front(), ideal = Math.max(f + GR.sp, fr - 0.5);
-        X.line('גררו את הגליל הזוהר אל לפני האבן');
-        if (r.z > fr - GR.sp * 1.2 && r.z < fr + 6) {
-          const err = Math.abs(r.z - ideal), grade = err <= 1 ? 'gold' : err <= 2.2 ? 'good' : 'ok';
-          r.z = Math.min(r.z, fr + 1); r.st = 'under'; A.moved++; A.grades.push(grade);
-          X.hit({ x: GR.x, y: g0(r.z) + 2, z: r.z }, grade, { text: '', craft: 'מושכים' }); X.play('wood');
-          X.count({ x: GR.x, y: g0(A.zs) + GR.h + 3.5, z: A.zs }, `${A.moved}/${N}`);
-        } else { r.st = 'out'; X.word({ x: GR.x, y: g0(r.z) + 1.5, z: r.z }, 'לפני האבן!'); }
+      wants(p) { return A.phase === 'intro' || (A.phase === 'move' && !!grabAt(p)); },
+      down(p) {
+        if (A.phase === 'intro') { A.introT = Math.max(A.introT, 3.6); if (!A.introGo) { A.introGo = true; const b = behind(); X.shot(b.p, b.t, 0.5); } return; }
+        if (A.phase !== 'move') return; const g = grabAt(p); if (!g) return;
+        A.grab = g; A.pull = 0; A.side = 0; A.said.crook = false; X.hand(null);
       },
-      end() { S.position.set(GR.x, g0(GR.zEnd) + GR.h / 2, GR.zEnd); for (const r of A.rollers) X.props.remove(r.m); for (const w of pullers) SH.crew.remove(w); SH.crew.remove(drummer); for (const r of ropes) r.dispose(); X.count(null); },
-      at() { return { x: GR.x, y: g0(A.zs) + GR.h + 1, z: A.zs }; },
-      dbg() { const sc = (z) => { const q = X.scr(GR.x, g0(z) + 0.6, z); return [Math.round(q.x), Math.round(q.y)]; }; return { phase: A.phase, zs: +A.zs.toFixed(1), moved: A.moved, N, gaps: A.gaps, out: A.rollers.filter((r) => r.st === 'out').map((r) => sc(r.z)), frontScr: sc(A.zs + GR.len / 2 + 1.5), front: +front().toFixed(1) }; },
+      move(p) {
+        if (!A.grab) return; const P = A.P, g = onPlane(X, p.x, p.y, P.g + 1.5); if (!g) return;
+        const gx = P.x + P.fx * A.grab.f + P.nx * A.grab.n, gz = P.z + P.fz * A.grab.f + P.nz * A.grab.n, dx = g.x - gx, dz = g.z - gz;
+        A.pull = clamp((dx * P.fx + dz * P.fz) / 14, -1, 1); A.side = clamp((dx * P.nx + dz * P.nz) / 6, -1, 1);
+      },
+      up() { A.grab = null; A.pull = 0; A.side = 0; },
+      cancel() { A.grab = null; A.pull = 0; A.side = 0; },
+      end() {
+        const E = seatPose(X); setStone(S, E);
+        for (const r of rollers) X.props.remove(r.g); for (const c of crews) C.remove(c.w); for (const w of levers) C.remove(w); for (const w of carriers) C.remove(w);
+        for (const r of ropes) r.dispose(); for (const o of MK.out) X.props.remove(o); X.count(null);
+      },
+      at() { return at(); },
+      dbg() {
+        const P = A.P, sc = (x, y, z) => { const q = X.scr(x, y, z); return [Math.round(q.x), Math.round(q.y)]; };
+        const ahead = (d) => { const q = TRK.at(A.S.s + d); return [q.x - P.x, q.z - P.z]; };
+        return { phase: A.phase, s: +A.S.s.toFixed(2), L: +TRK.L.toFixed(1), o: +A.S.o.toFixed(2), a: +A.S.a.toFixed(3), v: +A.S.v.toFixed(2), lim: limitAt(TRK, A.S.s, lv), bendAhead: [8, 14, 20].map((d) => TRK.bend(A.S.s + d)), strain: +A.strain.toFixed(2), st: A.st, stations: stations.map((s) => +s.toFixed(1)), grades: A.grades.slice(), losses: A.losses, strikes: A.strikes, half, lv, grab: !!A.grab, pull: +A.pull.toFixed(2), side: +A.side.toFixed(2),
+          stone: sc(P.x, P.y + GR.h / 2, P.z), fwd: sc(P.x + P.fx * 10, P.y + GR.h / 2, P.z + P.fz * 10), right: sc(P.x + P.nx * 5, P.y + GR.h / 2, P.z + P.nz * 5), k: +TRK.at(A.S.s).k.toFixed(4), ahead: ahead(10) };
+      },
     };
   },
 };
@@ -1056,10 +1243,9 @@ function reground3(X) {
   const gC = X.ground(CORNER_AT.x, CORNER_AT.z);
   if (SH.cornerPit && !near(SH.cornerPit.position.y, gC)) { SH.cornerPit.position.y = gC; if (SH.cornerStone) SH.cornerStone.position.y = gC - PIT + 0.8; }
   const C = SH.crane; if (C) { const gy = X.ground(C.base.x, C.base.z); if (!near(C.g.position.y, gy)) C.g.position.y = gy; }
-  for (let c = 0; c < 2; c++) if (!near(SH.courseG[c], X.ground(WALL_X, COURSES[c].z0 + 7))) buildCourse(X, c);
+  for (const c of Object.keys(SH.courseG).map(Number)) if (!near(SH.courseG[c], X.ground(WALL_X, COURSES[c].z0 + 7))) buildCourse(X, c);
   for (const q of (SH.greatNext || [])) { const y = X.ground(GR.x, q.z) + GR.h / 2; if (!near(q.m.position.y, y)) q.m.position.y = y; }
-  if (st.done.includes('great') && SH.great) { const y = X.ground(GR.x, GR.zEnd) + GR.h / 2; if (!near(SH.great.position.y, y)) SH.great.position.y = y; }
-  const gR = X.ground(ROAD[2][0], ROAD[2][1]); if (SH.road && Math.abs(gR - SH.roadG) > 0.2) { X.props.remove(SH.road); SH.road = roadMesh(X); SH.roadG = gR; }
+  if (SH.great) { const y = SH.greatDone ? X.ground(GR.x, GR.zEnd) + GR.h / 2 : poseOf(X, restAt(0)).y; if (!near(SH.great.position.y, y)) greatRest(X); }
 }
 export function initWorld3(X, sh) {
   SH = sh; const st = X.M.st, done = (id) => st.done.includes(id);
@@ -1071,36 +1257,27 @@ export function initWorld3(X, sh) {
   // ── h114 ── as he laid them (st.courseLay), the solution's order for an older save ── /h114 ──
   SH.courseW = {}; SH.courseG = {}; SH.courseSet = {};
   for (let c = 0; c < 2; c++) buildCourse(X, c);
-  // the great stone: cut at the quarry, on its road, or in its course
-  SH.road = roadMesh(X);
-  SH.great = greatMesh(X, GR.len); SH.great.rotation.y = 0;
-  // ── h114 ── the crews' great stones beyond its place, in the same course on the west wall's edge ── /h114 ──
-  SH.greatNext = []; { let z = GR.zEnd + GR.len / 2 + 0.08; for (const L of GR_NEXT) { const m = greatMesh(X, L - 0.08); m.position.set(GR.x, X.ground(GR.x, z + L / 2) + GR.h / 2, z + L / 2); SH.greatNext.push({ m, z: z + L / 2 }); z += L; } }
-  SH.roadG = X.ground(ROAD[2][0], ROAD[2][1]);
-  const iGreat = st.done.length;
-  SH.greatPull = []; void iGreat;
-  if (done('great')) { SH.great.position.set(GR.x, X.ground(GR.x, GR.zEnd) + GR.h / 2, GR.zEnd); SH.greatU = 1; }
-  else SH.greatU = SH.greatU || 0;
+  for (let c = 2; c < COURSES.length; c++) if (done('course' + c)) buildCourse(X, c);   // ── h116 ── (the free courses he laid) ── /h116 ──
+  // ── h116 ── the great stone: on its rollers on the rock (BOOK.great) until he lets it down, then in its course for good; the crews'
+  // great stones beyond it, north of it in the same course on the west wall's top ── /h116 ──
+  SH.great = greatMesh(X, GR.len);
+  SH.greatNext = []; { let z = GR.zEnd - GR.len / 2 - 0.08; for (const L of GR_NEXT) { const m = greatMesh(X, L - 0.08); m.position.set(GR.x, X.ground(GR.x, z - L / 2) + GR.h / 2, z - L / 2); SH.greatNext.push({ m, z: z - L / 2 }); z -= L; } }
+  SH.greatDone = done('great');
+  greatRest(X);
+  // its way kept clear of the scrub (the rock it starts on and every cell the way crosses)
+  try { const seen = new Set(); for (const [k, r] of BOOK.great.keep) seen.add(k + ',' + r); for (let s = 0; s <= TRK.L; s += 4) { const p = TRK.at(s); for (const d of [-6, 0, 6]) { const c = cellOf(p.x + p.nx * d, p.z + p.nz * d); seen.add(c.k + ',' + c.r); } } for (const id of seen) { const [k, r] = id.split(',').map(Number); X.stages.cells.clearScrub(k, r); } } catch (e) { /* */ }
 }
-/** the great stone's journey while the kohen works elsewhere: at the quarry until sector 7, then the crews pull it along the road */
+/** the great stone where the save has it: in its course, or at the head of its way on the rock */
+function greatRest(X) {
+  if (!SH.great) return;
+  if (SH.greatDone) setStone(SH.great, seatPose(X)); else setStone(SH.great, poseOf(X, restAt(0)));
+}
+/** every frame: the walls' working edge kept on the ground as it is now (never during an act) */
 export function frame3(dt, X, sh) {
   if (SH && SH.crane && !X.acting) { SH.reg3T = (SH.reg3T || 0) + dt; if (SH.reg3T > 1.0) { SH.reg3T = 0; try { reground3(X); } catch (e) { /* the world's */ } } }
-  if (!SH || !SH.great || SH.greatDone) return;
-  const st = X.M.st, m = X.M.mission(); if (!m) return;
-  if (m.k === 'great' && X.mission && X.mission.k === 'great' && SH.greatU >= 0.99) return;
-  const started = st.done.includes('pave5') || st.done.includes('rocks6');
-  const want = !started ? 0 : m.k === 'great' ? 1 - (GR.sp * [6, 9, 12][X.level() - 1]) / roadLen() : Math.min(0.9, (st.done.includes('pave6') ? 0.55 : 0.2) + (st.done.includes('pave7') ? 0.3 : 0));
-  SH.greatU += clamp(want - SH.greatU, -dt * 0.02, dt * 0.006);
-  const p = roadAt(SH.greatU), q = roadAt(Math.min(1, SH.greatU + 0.002));
-  SH.great.position.set(p.x, X.ground(p.x, p.z) + 1.1 + GR.h / 2, p.z); SH.great.rotation.y = Math.atan2(q.x - p.x, q.z - p.z) || p.yaw;
-  // its pullers walk with it while it moves
-  const moving = Math.abs(want - SH.greatU) > 0.002;
-  if (moving && SH.greatPull.length === 0) for (let i = 0; i < 6; i++) SH.greatPull.push(SH.crew.add(p.x, p.z, { role: 'pull', item: 'rope', crew: i % 4 }));
-  if (!moving && SH.greatPull.length) { for (const w of SH.greatPull) SH.crew.remove(w); SH.greatPull = []; }
-  SH.greatPull.forEach((w, i) => { const f = roadAt(Math.min(1, SH.greatU + (GR.len / 2 + 4 + Math.floor(i / 2) * 2.4) / roadLen())); const s = i % 2 ? 2 : -2, yaw = f.yaw; w.a.path = [[f.x + Math.cos(yaw) * s, f.z - Math.sin(yaw) * s]]; w.a.pi = 0; w.a.speed = 2; w.fx = p.x; w.fz = p.z; });
-  void sh; void ease;
+  void sh;
 }
-export { makeCrane, CORNER_AT, CRANE_AT, GR, LET };
+export { makeCrane, CORNER_AT, CRANE_AT, GR, LET, TRK as GREAT_TRACK };
 
 /** ── h115 ── (brief: "a short victory trumpet blast is added at the end of the stage") the stage's last beat before its film: the
  *  trumpeter on the south-west corner's top blows a tekiah twice over the levelled Mount (the music's 'blast' cue, Numbers 10:2;

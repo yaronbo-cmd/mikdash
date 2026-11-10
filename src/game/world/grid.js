@@ -51,9 +51,9 @@ const TAU = Math.PI * 2;
 
 /** the big rock and the five small rocks of each of the kohen's cells, and their stands: all a pure function of the cells (every
  *  rock inside its own cell, none touching another, every stand clear of every rock) */
-function kohenRocks() {
-  const out = [], all = [], stands = [];
-  KOHEN_CELLS.forEach(([k, r], s) => {
+function kohenRocks(CELLS = KOHEN_CELLS, NS = 5, s0 = 0, all = [], stands = []) {
+  const out = [];
+  CELLS.forEach(([k, r], i) => { const s = s0 + i;
     const R = rectOf(k, r), rn = rnd(k * 97 + r * 13 + 7);
     const a0 = rn() * TAU, d0 = 1 + rn() * 1.8, br = 5.6 + rn() * 1.0;
     const big = { x: +(R.cx + Math.cos(a0) * d0).toFixed(2), z: +(R.cz + Math.sin(a0) * d0).toFixed(2), r: +br.toFixed(2) };
@@ -72,7 +72,7 @@ function kohenRocks() {
     }
     cand.sort((p, q) => q.sc - p.sc);
     for (const c of cand) {
-      if (C.small.length >= 5) break;
+      if (C.small.length >= NS) break;
       if (room(c.x, c.z) < c.r + 1.4) continue;
       // the stand: of 12 sides, the one with most room, 3.4 amot out from the rock's face
       let best = null, bc = -1;
@@ -89,17 +89,28 @@ function kohenRocks() {
   return out;
 }
 
+/** ── h116 ── (build116-brief §D: every rock cell is playable) every other rock cell of the square in the crews' order (the east columns
+ *  first, each from the north), its big rock and three small rocks; the kohen's nine first and exactly as in 115 ── /h116 ── */
+const OTHER_CELLS = ROCK_CELLS.filter(([k, r]) => !KOHEN_CELLS.some(([a, b]) => a === k && b === r)).map(([k, r]) => [k, r]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+function allSectors() {
+  const all = [], stands = [];
+  const K = kohenRocks(KOHEN_CELLS, 5, 0, all, stands);
+  const O = kohenRocks(OTHER_CELLS, 3, KOHEN_CELLS.length, all, stands);
+  return K.concat(O);
+}
 const deepFreeze = (o) => { if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); for (const k of Object.keys(o)) deepFreeze(o[k]); } return o; };
 function makeBook() {
+  const SECTORS = allSectors();
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     cell: CELL,
     rockCells: ROCK_CELLS.map(([k, r, h]) => ({ k, r, h, name: nameOf(k, r) })),
-    kohen: kohenRocks(),
+    sectors: SECTORS,
+    kohen: SECTORS.slice(0, KOHEN_CELLS.length),
     // the waste: tipped into pits down the slope east of the kohen's cells (one pit for each of the three waste works); the pile
     // where the cut cells' chips are heaped, on the slope at the east edge of his cells
     pile: { name: nameOf(10, 6), x: 9, z: -21 },
-    pits: [pit(9, 6), pit(9, 5), pit(9, 7)],
+    pits: [pit(9, 6), pit(9, 5), pit(9, 7), pit(9, 4), pit(9, 8), pit(8, 6)],   // ── h116 ── (three more for the free waste works, brief §D) ── /h116 ──
     // the stone yard by the east wall, where the dressed building stones wait for the wall
     yard: { name: nameOf(2, 20), ...(({ cx, cz }) => ({ x: cx, z: cz }))(rectOf(2, 20)) },
     // the corner stone: the REAL south-east corner of the retaining wall (mount.js PLAT.X1, PLAT.Z1), the lowest ground of the
@@ -107,6 +118,14 @@ function makeBook() {
     corner: { name: nameOf(0, 23), x: 277, z: 400 },
     courses: [{ name: nameOf(0, 22), z: 383 }, { name: nameOf(0, 21), z: 358 }],
     letters: { name: nameOf(22, 22), x: -281, z: 383 },
+    // ── h116 ── the great stone "down the slope" (build116-brief §A): it lies on its rollers on the rock in יט־6 and is let down
+    // west, off the rock, then turned north along the west wall's top into its course (north of the causeway's gate, z −66…−52).
+    // The rock it starts on (the cells round its way, k 17..19 r 4..6) stays standing until it is down. ── /h116 ──
+    great: {
+      name: nameOf(18, 5), end: (({ k, r }) => nameOf(k, r))(cellOf(-298.1, -150)), x: -185.5, z: -46, endX: -298.1, endZ: -150,
+      track: [[-185.5, -46], [-200, -46], [-216, -46], [-232, -46.5], [-246, -52], [-258, -63], [-270, -76], [-282, -90], [-292, -103], [-297.3, -116], [-298.1, -130], [-298.1, -150]],
+      keep: [[17, 4], [17, 5], [17, 6], [18, 4], [18, 5], [18, 6], [19, 4], [19, 5], [19, 6]],
+    },
   });
 }
 export const BOOK = makeBook();

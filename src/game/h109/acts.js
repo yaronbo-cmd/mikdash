@@ -31,23 +31,24 @@ function rockTarget(R, X) { const g = X.ground(R.x, R.z); return { x: R.x + R.ux
 /* ── h115 ── the Mount by its addresses (docs/specs/build115-brief.md): the kohen's nine cells (BOOK.kohen) with their big rock and
  * five small rocks each, the crews' cells (every other rock cell of the square) cut from the east inward as the work goes on, the cut
  * cells paved behind them. The grid itself is never drawn (ירון 10.11: "בתוך המשחקים אני בתוך העולם שלי. אין רשתות"). ── /h115 ── */
-const KC = BOOK.kohen;
+const KC = BOOK.kohen, SECT = BOOK.sectors;
 /** the crews' cells in their order: the east columns first, each column from the north; a cell in the kohen's rows (6..8) west of
  *  his cells waits until his cell of that row is read */
-const CREW_CELLS = ROCK_CELLS.filter(([k, r]) => !KC.some((c) => c.k === k && c.r === r)).map(([k, r, h]) => ({ k, r, h, need: k > 13 && r >= 5 && r <= 7 ? 'read' + (6 + r - 5) : null })).sort((a, b) => a.k - b.k || a.r - b.r);
+// ── h116 ── (build116-brief §A) the rock under the great stone's way (BOOK.great.keep) stands until the stone is down ── /h116 ──
+const GREAT_KEEP = new Set(BOOK.great.keep.map(([k, r]) => k + ',' + r));
+const CREW_CELLS = ROCK_CELLS.filter(([k, r]) => !KC.some((c) => c.k === k && c.r === r)).map(([k, r, h]) => ({ k, r, h, need: GREAT_KEEP.has(k + ',' + r) ? 'great' : k > 13 && r >= 5 && r <= 7 ? 'read' + (6 + r - 5) : null })).sort((a, b) => a.k - b.k || a.r - b.r);
 /** how many crew cells stand cut for a save: a start (the lowest east cells), then with every work he finishes; the stage's end: all */
 function crewTarget(st, PLAN_N) {
   const n = st.done.length, f = Math.min(1, n / Math.max(1, PLAN_N));
   return Math.min(CREW_CELLS.length, 6 + Math.floor((CREW_CELLS.length - 6) * f) + (st.crewX | 0));
 }
 function crewCells(X, instant) {
-  const st = X.M.st, cells = X.stages.cells, done = (id) => st.done.includes(id);
-  const want = crewTarget(st, (X.M.plan || []).length || 30);
-  let cut = 0, next = null;
-  for (const c of CREW_CELLS) {
-    if (c.need && !done(c.need)) continue;
-    const s0 = cells.state(c.k, c.r);
-    if (cut < want) { cut++; if (s0 === 'rock') { if (instant) cells.set(c.k, c.r, 'paved', { instant: true }); else if (!next) next = c; } }
+  const st = X.M.st, cells = X.stages.cells;
+  // ── h116 ── the crews' cells are the model's (M.crewCut: his free cells and the one he walks to left out); the view cuts them ── /h116 ──
+  let next = null;
+  for (const s of (X.M.crewCut ? X.M.crewCut() : [])) {
+    const c = SECT[s]; if (cells.state(c.k, c.r) !== 'rock') continue;
+    if (instant) { cells.set(c.k, c.r, 'paved', { instant: true }); sectorGone(X, s); } else if (!next) next = { k: c.k, r: c.r, s };
   }
   // ── h115 ── (the end film: the low rock of the hill's fringe, under 3 amot and so in no rock cell, stood through the platform's
   // paving in brown patches) the stage done: every cell whose rock is over the floor is cut and paved, the Mount one level ── /h115 ──
@@ -56,25 +57,46 @@ function crewCells(X, instant) {
   }
   return next;
 }
+/** ── h116 ── a free rock cell's world, made when its work first opens: its small rocks (struck or not, as the save has them) and its
+ *  big rock; st.rocks[s] for it ── /h116 ── */
+function ensureSector(X, s) {
+  if (s < KC.length || !SECT[s]) return; const st = X.M.st, done = (id) => st.done.includes(id);
+  if (!st.rocks[s]) st.rocks[s] = Array(SECT[s].small.length).fill(-1);
+  if (!SH.rocks[s]) {
+    const L = SECT[s].small.map((o) => ({ x: o.x, z: o.z, r: o.r, ux: o.ux, uz: o.uz, sx: o.sx, sz: o.sz, i: o.i, s, q: null })); SH.rocks[s] = L;
+    if (!done('rocks' + s)) for (const R of L) { if ((st.rocks[s][R.i] | 0) >= 0) continue; R.q = X.props.rockAdd(R.x, R.z, R.r, { hp: 2, sector: s, sy: 0.8 + hash(R.x, R.z) * 0.15 }); }
+    try { X.stages.cells.clearScrub(SECT[s].k, SECT[s].r); } catch (e) { /* */ }
+  }
+  if (!done('read' + s) && SH.bigRock) SH.bigRock(X, s);
+}
+/** the crews took a cell: its free rocks (if they were made) go with it */
+function sectorGone(X, s) {
+  const L = SH.rocks && SH.rocks[s]; if (L) for (const R of L) if (R.q) { try { X.props.rockSet && (R.q.vis = false, X.props.rockSet(R.q)); } catch (e) { /* */ } }
+  if (SH.bigGone) try { SH.bigGone(X, s); } catch (e) { /* */ }
+}
 function initWorld(X) {
-  SH.X = X; SH.B = createBeat(X); SH.crew = createGang(X);
+  SH.X = X; SH.B = createBeat(X); SH.crew = createGang(X); SH.sectorGone = sectorGone;   // ── h116 ── ── /h116 ──
   const st = X.M.st, done = (id) => st.done.includes(id);
   const cells = X.stages.cells; SH.cells = cells;
   try { cells.enable(true); } catch (e) { /* */ }
-  SH.bould = KC.map((C) => [C.big.x, C.big.z, C.big.r]);
-  SH.cellC = KC.map((C) => [C.rect.cx, C.rect.cz]);
+  SH.bould = SECT.map((C) => [C.big.x, C.big.z, C.big.r]);   // ── h116 ── (every rock cell's: the free ones too) ── /h116 ──
+  SH.cellC = SECT.map((C) => [C.rect.cx, C.rect.cz]);
   // the kohen's cells as the save has them: read → cut level, paved → paved
-  KC.forEach((C, s) => { if (done('pave' + s)) cells.set(C.k, C.r, 'paved', { instant: true }); else if (done('read' + s)) cells.set(C.k, C.r, 'cut', { instant: true }); });
+  // ── h116 ── (his cells are paved quarter by quarter, by him and by the crews: their floor stays cut under the slabs; a 115 save's
+  // paved sector keeps the old paving) ── /h116 ──
+  SECT.forEach((C, s) => { const q = Object.keys(st.lay || {}).some((k2) => k2.startsWith(`q${s}_`)); if (s < KC.length && done('pave' + s) && !q) cells.set(C.k, C.r, 'paved', { instant: true }); else if (done('read' + s)) cells.set(C.k, C.r, 'cut', { instant: true }); });
   crewCells(X, true);
   // ── h115 ── the kohen's cells and the ring of cells round them cleared of their scrub (the crews' work ground) ── /h115 ──
   try { for (const C of KC) for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) cells.clearScrub(C.k + a, C.r + b); } catch (e) { /* */ }
   // the small rocks of every cell not yet struck (their places are the book's)
   SH.rocks = [];
-  for (let s = 0; s < 9; s++) {
+  for (let s = 0; s < KC.length; s++) {
     const L = KC[s].small.map((o) => ({ x: o.x, z: o.z, r: o.r, ux: o.ux, uz: o.uz, sx: o.sx, sz: o.sz, i: o.i, s, q: null })); SH.rocks[s] = L;
     if (done('rocks' + s)) continue;
     for (const R of L) { if ((st.rocks[s][R.i] | 0) >= 0) continue; R.q = X.props.rockAdd(R.x, R.z, R.r, { hp: 2, sector: s, sy: 0.8 + hash(R.x, R.z) * 0.15 }); }
   }
+  // ── h116 ── the free cells he took (struck or read) as the save has them ── /h116 ──
+  for (let s = KC.length; s < SECT.length; s++) if (done('rocks' + s) || (st.rocks[s] && st.rocks[s].some((v) => v >= 0))) ensureSector(X, s);
   // the surveyors' stakes every 50 amot round the square (the crews measured it; the kohen stretches the last of two sides)
   SH.stakes = [];
   const ropeDone = done('rope');
@@ -263,8 +285,8 @@ const ROPE_ACT = {
 /* ───────── 3.2 the strike on the beat: the small rocks of the sector, the old game's ring, the compass to the next ───────── */
 const ROCKS_ACT = {
   icon: '⛏', title: 'פיצוץ ההר',
-  walkLine: (m) => `גזרה ${m.s + 1} מתוך 9: לכו אל הסלעים`,
-  stand(m, X) { const L = SH.rocks[m.s] || [], st = X.M.st; const R = L.find((r) => (st.rocks[m.s][r.i] | 0) < 0 && r.q && r.q.vis) || L[0]; return R ? { x: R.sx, z: R.sz, face: [R.x, R.z] } : null; },
+  walkLine: (m) => (m.free ? 'סלעים בהר · עבודת רשות' : `גזרה ${m.s + 1} מתוך 9: לכו אל הסלעים`),
+  stand(m, X) { const L = SH.rocks[m.s] || [], st = X.M.st, a = st.rocks[m.s] || []; const R = L.find((r) => (a[r.i] | 0) < 0 && r.q && r.q.vis) || L[0]; return R ? { x: R.sx, z: R.sz, face: [R.x, R.z] } : null; },
   prepare(m, X) {
     // the sector's crews: two at its big rock with picks ON the beat (they teach the beat), two carriers to the cart
     const b = SH.bould[m.s]; if (!b) return; const C = SH.crew;
@@ -276,7 +298,7 @@ const ROCKS_ACT = {
   make(m, X) {
     const lv = X.level(), k = lv >= 3 ? 1 : 2, win = H109.GOLD[lv - 1], replay = (X.M.st.plays[m.id] | 0) > 0;
     const hp0 = H109.HP[lv - 1] + (replay ? 1 : 0);
-    const st = X.M.st, L = (SH.rocks[m.s] || []).filter((R) => (st.rocks[m.s][R.i] | 0) < 0);
+    const st = X.M.st; if (!st.rocks[m.s]) st.rocks[m.s] = Array((SH.rocks[m.s] || []).length || 3).fill(-1); const L = (SH.rocks[m.s] || []).filter((R) => (st.rocks[m.s][R.i] | 0) < 0);
     const A = { i: -1, R: null, phase: 'walk', hits: [], all: [], pend: null, ring: null, band: null, seam: null, t: 0, armed: false, walkT: 0, fails: 0 };
     const off = [];
     function rock(i) {
@@ -393,13 +415,14 @@ function crewFrame(dt, X) {
   // the gang on the cell's low edge (east), facing into it
   const R = rectOf(c.k, c.r);
   for (let j = 0; j < 3; j++) { const x = R.x1 - 2.5, z = R.z0 + 6 + j * 6.5; SH.cutGang.push(SH.crew.add(x, z, { role: 'pick', item: 'pick', fx: R.cx, fz: z, off: j * 0.33, crew: 0 })); }
-  cells.set(c.k, c.r, 'cut', { dur: 16 });
+  cells.set(c.k, c.r, 'cut', { dur: 16 }); sectorGone(X, c.s);
   SH.cutAt = { k: c.k, r: c.r, wait: 0 };
 }
 
 export const ACTS = {
   rope: ROPE_ACT, rocks: ROCKS_ACT, read: READ, pave: PAVE, waste: WASTE, corner: CORNER, course: COURSE, great: GREAT, letters: LETTERS,
   __init: initWorld,
+  __ensure(m, X) { if (m && (m.k === 'rocks' || m.k === 'read') && m.free) ensureSector(X, m.s); },   // ── h116 ── ── /h116 ──
   __sh: () => SH,   // (tests: the world the acts share)
   __frame(dt, X) {
     if (!SH.B) return;

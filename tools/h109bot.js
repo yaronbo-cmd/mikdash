@@ -30,16 +30,17 @@
       return { wait: 250 };
     },
     pave(a) {
-      // (build 114: the act tells its true laying, a.sol: rows of lengths; the bot lays it in order)
-      const plan = []; (a.sol || []).forEach((row, cy) => { let cx = 0; for (const L of row) { plan.push([L, cx, cy]); cx += L; } });
-      const bk = a.slabs.find((q) => q.broken && !q.gone && !q.at);
-      if (bk && a.rej) return { drag: [bk.scr[0], bk.scr[1], a.rej[0], a.rej[1], 700], wait: 500, note: 'pave: the cracked slab to the crate' };
-      for (const [L, cx, cy] of plan) {
-        if (a.grid[cy][cx] !== '0') continue;
-        const q = a.slabs.find((s) => !s.at && !s.gone && !s.broken && s.L === L);
-        if (!q) break;
-        const t = mid(a.cells[cy][cx], a.cells[cy][cx + L - 1]);
-        return { drag: [q.scr[0], q.scr[1], t[0], t[1], 700], wait: 500, note: `pave L${L} → ${cx},${cy}` };
+      // (build 116: a quarter in seven sizes) the cracked slab to the crate; then the true tiling's slabs, each turned to its lie
+      const ck = a.tops.find((q) => q.cracked);
+      if (ck && a.crate) return { drag: [ck.scr[0], ck.scr[1], a.crate[0], a.crate[1], 700], wait: 500, note: 'pave: the cracked slab to the crate' };
+      const free = (t) => { for (let y = t.y; y < t.y + t.h; y++) for (let x = t.x; x < t.x + t.w; x++) if (a.board[y][x] !== '0') return false; return true; };
+      for (const t of a.tiles) {
+        if (!free(t)) continue;
+        const k = Math.min(t.w, t.h) + 'x' + Math.max(t.w, t.h), q = a.tops.find((s) => s.k === k && !s.cracked);
+        if (!q) return { wait: 400, note: 'pave: no top ' + k };
+        if (q.w !== t.w) return { tap: q.scr, wait: 500, note: `pave: turn ${k}` };
+        const c0 = a.cells[t.y][t.x], c1 = a.cells[t.y + t.h][t.x + t.w];
+        return { drag: [q.scr[0], q.scr[1], (c0[0] + c1[0]) / 2, (c0[1] + c1[1]) / 2, 700], wait: 500, note: `pave ${t.w}x${t.h} → ${t.x},${t.y}` };
       }
       return { wait: 400 };
     },
@@ -62,11 +63,15 @@
         return { drag: [W * 0.72, HH * 0.38, W * 0.72, HH * 0.38 + 90, 120] };
       }
       if (a.phase === 'lower') {
-        // (build 114: the finger on the chalk steers the stone over it while it lowers)
-        const c = a.chalk || [W * 0.6, HH * 0.5];
-        if (a.gap > 1.0) return { holdUntil: [c[0], c[1], C('return !a||a.phase!==\'lower\'||a.gap<0.95'), 9000] };
-        if (a.swing > 0.8 || a.dx > 0.04) return { hold: [c[0], c[1], 60], wait: 200 };
-        return { hold: [c[0], c[1], 230], wait: 120 };
+        // (build 116: three grips) the jib's head over the rectangle, the rope turns it square, then short holds on the stone
+        if (a.dx > 0.06 && a.swing < 0.6) {
+          // drag the jib's head by the stone's offset on the screen (the floor point under the stone → the rectangle)
+          return { drag: [a.tipScr[0], a.tipScr[1], a.jibTo[0], a.jibTo[1], 700], wait: 2200, note: `corner: jib dx ${a.dx} off ${a.offX},${a.offZ}` };
+        }
+        if (Math.abs(a.rotE) > a.tol * 0.4) { const px = Math.max(-300, Math.min(300, (-a.rotE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1800, note: `corner: rope ${a.rotE}° → ${Math.round(px)}px` }; }
+        if (a.swing > 0.5) return { wait: 400 };
+        if (a.gap > 1.4) return { hold: [a.stoneScr[0], a.stoneScr[1], 700], wait: 250, note: 'corner: lower gap ' + a.gap };
+        return { hold: [a.stoneScr[0], a.stoneScr[1], 260], wait: 200, note: 'corner: lower gap ' + a.gap };
       }
       return { wait: 250 };
     },
@@ -86,8 +91,21 @@
       return { wait: 250 };
     },
     great(a) {
-      if (a.phase === 'roll' && a.out.length) return { drag: [a.out[0][0], a.out[0][1], a.frontScr[0], a.frontScr[1], 600], note: 'great: roller ' + a.out[0] + ' → ' + a.frontScr };
-      return { wait: 120 };
+      // (build 116: down the slope) hold the stone and pull a little forward (steering to the way's middle), let go before the bends;
+      // slow into the green place at the end
+      if (a.phase !== 'move') return { wait: 300 };
+      const bend = a.bendAhead.some(Boolean), toEnd = a.L - a.s, vb = [3, 3, 2.6][a.lv - 1];
+      const want = toEnd < 16 ? 0.9 : (bend ? vb : a.lim) * 0.62;
+      const side = Math.max(-1, Math.min(1, -a.o * 0.9 - a.a * 7));
+      if (toEnd <= 3 && Math.abs(a.v) < 0.05) {
+        if (Math.abs(a.a) < 0.06) return { wait: 600, note: 'great: in place' };
+        const k = side * 1.2; return { path: [a.stone, [a.stone[0] + (a.right[0] - a.stone[0]) * k, a.stone[1] + (a.right[1] - a.stone[1]) * k]], ms: 300, keep: 1500, release: C('return !a||a.phase!==\'move\'||Math.abs(a.a)<0.03'), note: 'great: straighten ' + a.a };
+      }
+      if (a.v >= want * 0.85) return { wait: 150 };
+      const pull = Math.min(1, (want + 0.3) / 6) * 1.4;
+      const x = a.stone[0] + (a.fwd[0] - a.stone[0]) * pull + (a.right[0] - a.stone[0]) * side * 1.2, y = a.stone[1] + (a.fwd[1] - a.stone[1]) * pull + (a.right[1] - a.stone[1]) * side * 1.2;
+      const stop = toEnd < 16 ? `a.s>=a.L-1.6` : bend ? `a.v>=${(want).toFixed(2)}` : `a.v>=${want.toFixed(2)}||a.bendAhead.some(Boolean)`;
+      return { path: [a.stone, [x, y]], ms: 250, keep: 2500, release: C(`return !a||a.phase!=='move'||${stop}`), note: `great: pull s ${a.s} v ${a.v} want ${want.toFixed(2)} o ${a.o}` };
     },
     letters(a) {
       // (build 114: part 2 — a chisel blow on each glowing point; part 3 — aim with a drag, hold to the band's middle and let go)
@@ -338,7 +356,7 @@
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
     if (now() - B.actT > 240000) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
-    const kind = S.mission.replace(/\d+$/, '');
+    const kind = S.mission.replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
     try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }
   };

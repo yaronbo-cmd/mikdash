@@ -416,12 +416,15 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   let OPEN = [], fwT = 0, fwLine = null, byWalk = false;
   const mkAt = (sp) => ({ x: sp.mx != null ? sp.mx : sp.x, z: sp.mz != null ? sp.mz : sp.z });
   function openList() {
-    OPEN = M.open().map((m) => ({ m, sp: standOf(m) })).filter((q) => q.sp);
-    props().markers(OPEN.map((q) => mkAt(q.sp)));
+    OPEN = M.open().map((m) => { if (m.free && ACTS.__ensure) { try { ACTS.__ensure(m, X); } catch (e) { /* */ } } return { m, sp: standOf(m) }; }).filter((q) => q.sp);
+    // ── h116 ── the stakes: every plan work, and the six free works nearest him (the free ones are many: rock cells, quarters) ── /h116 ──
+    const h = heroAt(), fr = OPEN.filter((q) => q.m.free);
+    if (h && Number.isFinite(h.x)) fr.sort((a, b) => Math.hypot(h.x - a.sp.x, h.z - a.sp.z) - Math.hypot(h.x - b.sp.x, h.z - b.sp.z));
+    props().markers(OPEN.filter((q) => !q.m.free).concat(fr.slice(0, 6)).map((q) => mkAt(q.sp)));
   }
-  function nearestOpen() {
+  function nearestOpen(planOnly) {
     const h = heroAt(); if (!h || !Number.isFinite(h.x) || !OPEN.length) return null;
-    let best = null, bd = 1e9; for (const q of OPEN) { const d = Math.hypot(h.x - q.sp.x, h.z - q.sp.z); if (d < bd) { bd = d; best = q; } }
+    let best = null, bd = 1e9; for (const q of OPEN) { if (planOnly && q.m.free) continue; const d = Math.hypot(h.x - q.sp.x, h.z - q.sp.z); if (d < bd) { bd = d; best = q; } }
     return best ? { ...best, d: bd } : null;
   }
   function pickNow(m, walked) {
@@ -438,7 +441,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
       const t = q && q.d < 40 && A && A.walkLine ? A.walkLine(q.m, X) : OPEN.length > 1 ? 'בחרו עבודה ולכו אל יתד' : '';
       if (t !== fwLine) { fwLine = t; line(t, 0); }
     }
-    if (q && q.d < 9 && tPhase > 0.4) pickNow(q.m, true);
+    // ── h116 ── (a free work is picked only at its very stake: walking past the hill's free rocks must not start one) ── /h116 ──
+    if (q && q.d < (q.m.free ? 3.5 : 9) && tPhase > 0.4) pickNow(q.m, true);
   }
   function showOne() {
     const sp = standOf(mission);
@@ -492,8 +496,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function marks() {
     if (owns() && phase === 'walk' && !mission && FREE()) {   // ── h114 ── (the four nearest open works) ── /h114 ──
       const h = heroAt(); MKL.length = 0; if (!h || !OPEN.length) return NOMK;
-      const L = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => a.d - b.d).slice(0, 4);
-      L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.s != null ? ` · ${q.m.s + 1}` : ''); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });
+      const all = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => a.d - b.d), L = all.slice(0, 4);
+      // ── h116 ── a plan work is always among the four (the free ones never hide the way on) ── /h116 ──
+      if (!L.some((e) => !e.q.m.free)) { const p0 = all.find((e) => !e.q.m.free); if (p0) L[L.length - 1] = p0; }
+      L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.free ? ' · רשות' : q.m.s != null ? ` · ${q.m.s + 1}` : ''); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });
       return MKL;
     }
     if (!owns() || phase !== 'walk' || !mission) return NOMK;
@@ -506,7 +512,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function goal() { const L = marks(); if (!L.length) return null; GOAL.x = L[0].x; GOAL.y = L[0].y; GOAL.z = L[0].z; GOAL.icon = L[0].icon; return GOAL; }
   /** the compass: he is brought to the open mission's stand */
   function goTo() {
-    if (!mission && phase === 'walk' && FREE()) { const q = nearestOpen(); if (!q || !pickNow(q.m, false)) return false; }   // ── h114 ── (the compass: the nearest open work is his) ── /h114 ──
+    if (!mission && phase === 'walk' && FREE()) { const q = nearestOpen(true) || nearestOpen(); if (!q || !pickNow(q.m, false)) return false; }   // ── h114 ── (the compass: the nearest open work is his) ── /h114 ──
     if (!mission || phase !== 'walk') return false; const sp = standOf(mission); if (!sp) return false;
     flyTo(sp);   // ── h115 ── ── /h115 ──
     try { hero.dash({ x: sp.x, z: sp.z, face: sp.face }); } catch (e) { return false; } return true; }
@@ -627,7 +633,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     syncMount(false);
     // a sector closed: its grade on the hill and the pull-back (spec ש7: the hill came down there)
     // ── h111 ── (a pack says what closes a unit: stage 01 a sector, stage 02 a stretch of the wall) ── /h111 ──
-    const U = PK.unitEnd ? (() => { try { return PK.unitEnd(m, M); } catch (e) { return null; } })() : (m.k === 'pave' && M.sectorGrade(m.s) ? { title: `גזרה ${m.s + 1} מתוך 9`, sub: M.sectorGrade(m.s), bonus: `גזרה ${m.s + 1} · ${M.sectorGrade(m.s)}` } : null);
+    const U = PK.unitEnd ? (() => { try { return PK.unitEnd(m, M); } catch (e) { return null; } })() : (m.k === 'pave' && !m.free && M.sectorGrade(m.s) ? { title: `גזרה ${m.s + 1} מתוך 9`, sub: M.sectorGrade(m.s), bonus: `גזרה ${m.s + 1} · ${M.sectorGrade(m.s)}` } : null);
     const sec = U ? U.sub : null;
     if (U) { bonus(250, 'course', U.bonus || U.title); try { if (J) J.big('course', { title: U.title, sub: U.sub }); } catch (e) { /* */ } }
     await pullBack(at, sec ? 3.2 : 1.8);

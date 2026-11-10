@@ -40,37 +40,62 @@ function stoneMesh(X, L, h, d) {
   const T = X.THREE, geo = (X.stages.ashlar && X.stages.ashlar.geometry) || new T.BoxGeometry(1, 1, 1);
   const m = new T.Mesh(geo, X.props.M.stone); m.scale.set(L, h, d); m.castShadow = true; m.receiveShadow = true; X.props.root.add(m); return m;
 }
+/** ── h115 ── the corner stone's gold mark: a gold square on its top at the corner's own edge (seen at the wall's foot later on) */
+function goldMark(X, x, y, z) {
+  if (SH.goldM) X.props.remove(SH.goldM);
+  const T = X.THREE, m = new T.Mesh(new T.BoxGeometry(0.7, 0.04, 0.7), new T.MeshStandardMaterial({ color: '#E8B84A', metalness: 0.8, roughness: 0.3, emissive: '#8A6214', emissiveIntensity: 0.5 }));
+  m.position.set(x + CW / 2 - 0.45, y + 0.02, z + CDp / 2 - 0.45); X.props.root.add(m); SH.goldM = m; return m;
+}
 function shadowDisk(X) { const T = X.THREE; const m = new T.Mesh(new T.CircleGeometry(1, 24), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.renderOrder = 996; X.props.root.add(m); return m; }
 
 /* ───────── 3.5 the corner stone ───────── */
-// ── h114 ── at the very corner he measured with the rope (the 500 × 500's north-east corner, where the two sides met at the stake) ── /h114 ──
-const CORNER_AT = { x: 270.6, z: -176.6 }, CRANE_AT = { x: 263.1, z: -169.6 }, STOCK = { x: 252.6, z: -166.1 };
+// ── h115 ── (build115-brief §6) the REAL south-east corner of the Mount's retaining wall (mount.js PLAT.X1 = 277, PLAT.Z1 = 400): the
+// lowest ground of the Mount, where its two walls meet; until 114 the stone stood at the measured square's corner, where no wall corner
+// exists. The stone sits square in the corner, a hand inside both faces; the crane and the stock west of it along the south wall's
+// trench (the city wall's tower stands just outside the corner, so every camera looks at it from the north, the Mount's side).
+const CORNER_AT = { x: 275.5, z: 398.7 }, CRANE_AT = { x: 264, z: 392.6 }, STOCK = { x: 253.5, z: 392 };
+const WALL_E = 277, WALL_S = 400;   // (the two faces) ── /h115 ──
 // ── h114 ── (ירון 9.11: "כל אבן יורדת למקום אמיתי בעולם האמיתי"; "העיגול הצהוב לא ברור") the corner's foundation trench, dug at the
 // real corner of the Mount's wall, its earth heaped beside it, and the stone's own outline chalked on its floor; the stone sits a
 // little sunk in it for good (PIT) and the courses go on from it ── /h114 ──
-const CW = 2.4, CDp = 2.0, PIT = 0.4;
+const CW = 2.4, CDp = 2.0, PIT = 1.2;
 function cornerPit(X, chalk) {
+  // ── h115 ── the foundation trench of BOTH walls, L-shaped at the corner (a corner is seen as a corner: ירון 10.11 "שיבינו שהיא האבן
+  // הנמוכה ביותר בפינה הזו"), its dug earth heaped on the platform's side; a green rectangle on its floor where the stone must sit,
+  // filling green while the stone hangs over it; a gold line rising from the corner to the platform's level (where the corner will
+  // stand). ── /h115 ──
   const T = X.THREE, g = new T.Group(); g.name = 'h114-corner-pit'; const gy = X.ground(CORNER_AT.x, CORNER_AT.z);
   const earth = new T.MeshStandardMaterial({ color: '#6B5236', roughness: 1 }), heap = new T.MeshStandardMaterial({ color: '#8A6E4B', roughness: 1, flatShading: true });
-  const floor = new T.Mesh(new T.BoxGeometry(CW + 1.0, 0.1, CDp + 1.0), earth); floor.position.set(0, -PIT, 0); floor.receiveShadow = true; g.add(floor);
-  // its four sides, cut straight down
-  for (const [w, d, x, z] of [[CW + 1.2, 0.12, 0, (CDp + 1.0) / 2], [CW + 1.2, 0.12, 0, -(CDp + 1.0) / 2], [0.12, CDp + 1.0, (CW + 1.0) / 2, 0], [0.12, CDp + 1.0, -(CW + 1.0) / 2, 0]]) { const m = new T.Mesh(new T.BoxGeometry(w, PIT + 0.12, d), earth); m.position.set(x, -PIT / 2 + 0.02, z); m.receiveShadow = true; g.add(m); }
-  // the dug earth, heaped on the side away from the wall
-  for (const [x, z, r] of [[-2.6, 0.6, 0.9], [-2.4, -1.0, 0.7], [-1.0, 2.2, 0.6]]) { const m = new T.Mesh(new T.SphereGeometry(r, 9, 5, 0, TAU, 0, Math.PI / 2), heap); m.scale.y = 0.55; m.position.set(x, 0, z); m.castShadow = true; m.receiveShadow = true; g.add(m); }
+  const ox = CORNER_AT.x, oz = CORNER_AT.z, TW = 4.2, LE = 16, LS = 18;   // (trench width; the east arm's and the south arm's lengths)
+  const arm = (x0, x1, z0, z1) => {
+    const f = new T.Mesh(new T.BoxGeometry(x1 - x0, 0.1, z1 - z0), earth); f.position.set((x0 + x1) / 2 - ox, -PIT, (z0 + z1) / 2 - oz); f.receiveShadow = true; g.add(f);
+    for (const [w, d, x, z] of [[x1 - x0, 0.14, (x0 + x1) / 2, z0], [x1 - x0, 0.14, (x0 + x1) / 2, z1], [0.14, z1 - z0, x0, (z0 + z1) / 2], [0.14, z1 - z0, x1, (z0 + z1) / 2]]) { const m = new T.Mesh(new T.BoxGeometry(w, PIT + 0.12, d), earth); m.position.set(x - ox, -PIT / 2 + 0.02, z - oz); m.receiveShadow = true; g.add(m); }
+  };
+  arm(WALL_E - TW, WALL_E + 0.6, WALL_S - LE, WALL_S + 0.6);    // the east wall's trench, north from the corner
+  arm(WALL_E - LS, WALL_E - TW, WALL_S - TW, WALL_S + 0.6);     // the south wall's trench, west from the corner
+  for (const [x, z, r] of [[WALL_E - TW - 2.2, WALL_S - 12, 1.1], [WALL_E - TW - 2.0, WALL_S - 7, 0.9], [WALL_E - 12, WALL_S - TW - 2.0, 1.0], [WALL_E - 16, WALL_S - TW - 2.2, 0.8]]) { const m = new T.Mesh(new T.SphereGeometry(r, 9, 5, 0, TAU, 0, Math.PI / 2), heap); m.scale.y = 0.55; m.position.set(x - ox, 0, z - oz); m.castShadow = true; m.receiveShadow = true; g.add(m); }
   if (chalk) {
-    const cm = new T.MeshBasicMaterial({ color: '#F4F0E6' }); g.userData.chalk = [];
-    for (const [w, d, x, z] of [[CW, 0.07, 0, CDp / 2], [CW, 0.07, 0, -CDp / 2], [0.07, CDp, CW / 2, 0], [0.07, CDp, -CW / 2, 0]]) { const m = new T.Mesh(new T.BoxGeometry(w, 0.02, d), cm); m.position.set(x, -PIT + 0.07, z); g.add(m); g.userData.chalk.push(m); }
+    const gm = new T.MeshBasicMaterial({ color: '#4CE07A' }); g.userData.chalk = [];
+    // (thick enough to read from the crane's distance, in the city tower's shadow too: an unlit green)
+    for (const [w, d, x, z] of [[CW + 0.25, 0.25, 0, CDp / 2], [CW + 0.25, 0.25, 0, -CDp / 2], [0.25, CDp + 0.25, CW / 2, 0], [0.25, CDp + 0.25, -CW / 2, 0]]) { const m = new T.Mesh(new T.BoxGeometry(w, 0.04, d), gm); m.position.set(x, -PIT + 0.08, z); g.add(m); g.userData.chalk.push(m); }
+    const fill = new T.Mesh(new T.PlaneGeometry(CW, CDp), new T.MeshBasicMaterial({ color: '#4CE07A', transparent: true, opacity: 0.22, depthWrite: false })); fill.rotation.x = -Math.PI / 2; fill.position.y = -PIT + 0.09; fill.renderOrder = 996; g.add(fill); g.userData.fill = fill; g.userData.chalk.push(fill);
   }
+  // the gold line of the corner to come: from the trench's floor up to the platform's level (0), and a stub of each wall's line there
+  { const gold = new T.MeshBasicMaterial({ color: '#FFD66E', transparent: true, opacity: 0.75, depthWrite: false }), H = -(gy - PIT);
+    const v = new T.Mesh(new T.CylinderGeometry(0.09, 0.09, H, 6), gold); v.position.set(WALL_E - ox, -PIT + H / 2, WALL_S - oz); g.add(v);
+    const e = new T.Mesh(new T.BoxGeometry(0.12, 0.12, 14), gold); e.position.set(WALL_E - ox, -gy, WALL_S - 7 - oz); g.add(e);
+    const w = new T.Mesh(new T.BoxGeometry(14, 0.12, 0.12), gold); w.position.set(WALL_E - 7 - ox, -gy, WALL_S - oz); g.add(w);
+    g.userData.gold = [v, e, w]; }
   g.position.set(CORNER_AT.x, gy, CORNER_AT.z); X.props.root.add(g); return g;
 }
 export const CORNER = {
   icon: '🏗', title: 'אבן הפינה',
-  walkLine: () => 'גלגל הדריכה ליד הפינה: מרימים את אבן הפינה',
-  stand(m, X) { return { x: CRANE_AT.x, z: CRANE_AT.z, face: [CRANE_AT.x + 1, CRANE_AT.z], mx: CRANE_AT.x - 1.5, mz: CRANE_AT.z + 3.5 }; },
+  walkLine: () => 'הפינה הדרומית־מזרחית של ההר: מורידים את אבן הפינה',
+  stand(m, X) { return { x: CRANE_AT.x, z: CRANE_AT.z, face: [CRANE_AT.x + 1, CRANE_AT.z], mx: CRANE_AT.x - 1.5, mz: CRANE_AT.z - 3.5 }; },
   prepare(m, X) { SH.crane.place(CRANE_AT.x, CRANE_AT.z, Math.atan2(CORNER_AT.x - CRANE_AT.x, CORNER_AT.z - CRANE_AT.z) - 0.9); },
   make(m, X) {
     const lv = X.level(), T = X.THREE, C = SH.crane, gP = X.ground(CORNER_AT.x, CORNER_AT.z), sw = 2.4;
-    const A = { aimP: null, barmen: [], settle: null, phase: 'lift', h: 0, hMax: 5, w: 0, taps: [], grades: [], v: 0, hold: false, ax: 0, sway: { x: 0, z: 0, vx: 0, vz: 0 }, chips: 0, rejects: 0, t: 0, lastSw: 0, p0: null, slewT: 0 };
+    const A = { aimP: null, barmen: [], settle: null, phase: 'intro', h: 0, hMax: 5, w: 0, taps: [], grades: [], v: 0, hold: false, ax: 0, sway: { x: 0, z: 0, vx: 0, vz: 0 }, chips: 0, rejects: 0, t: 0, lastSw: 0, p0: null, slewT: 0 };
     const stone = stoneMesh(X, sw, 1.6, 2.0); const sh = shadowDisk(X);
     const floorY = gP - PIT;
     const pit = SH.cornerPit || (SH.cornerPit = cornerPit(X, true));
@@ -85,10 +110,13 @@ export const CORNER = {
     const legs = [X.props.rope(6, 0.045), X.props.rope(6, 0.045)];
     let rot = null;
     const tip = new T.Vector3(), pos = new T.Vector3(STOCK.x, X.ground(STOCK.x, STOCK.z) + 0.8, STOCK.z);
-    const crew = [SH.crew.add(CRANE_AT.x - 2.2, CRANE_AT.z + 1.2, { role: 'push', fx: CRANE_AT.x, fz: CRANE_AT.z, crew: 1 }), SH.crew.add(CORNER_AT.x + 1.2, CORNER_AT.z + 4.6, { role: 'hold', item: 'mallet', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 2 }), SH.crew.add(CORNER_AT.x - 4.6, CORNER_AT.z - 3.4, { role: 'pull', item: 'rope', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 0 })];
+    // (the crew stand on the platform's side of the trenches, never in them)
+    const crew = [SH.crew.add(CRANE_AT.x - 2.2, CRANE_AT.z - 1.2, { role: 'push', fx: CRANE_AT.x, fz: CRANE_AT.z, crew: 1 }), SH.crew.add(WALL_E - 6.5, WALL_S - 8.5, { role: 'hold', item: 'mallet', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 2 }), SH.crew.add(WALL_E - 9.5, WALL_S - 6.2, { role: 'pull', item: 'rope', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 0 })];
     // (the tagline: from the stone to the crewman beside the trench, who turns it square — ירון 9.11: no figure "with a lantern")
     const tag = X.props.rope(10, 0.035);
-    function shotSide() { const mx = (CRANE_AT.x + CORNER_AT.x) / 2, mz = (CRANE_AT.z + CORNER_AT.z) / 2, dx = CORNER_AT.x - CRANE_AT.x, dz = CORNER_AT.z - CRANE_AT.z, L = Math.hypot(dx, dz), px = -dz / L, pz = dx / L, g = X.ground(mx, mz); X.shot([mx + px * 30 - dx * 0.3, g + 10, mz + pz * 30 - dz * 0.3], [mx + dx * 0.15, g + 6.5, mz + dz * 0.15], 1.0); }
+    // ── h115 ── (the city wall's tower stands just outside the corner and its wall runs west along the south side: every camera is on
+    // the Mount's side or over the open ground north-east of the corner, never behind the city wall) ── /h115 ──
+    function shotSide() { const mx = (STOCK.x + CORNER_AT.x) / 2, mz = (STOCK.z + CORNER_AT.z) / 2, g = X.ground(mx, mz); X.shot([mx + 2, g + 17, mz - 29], [mx + 1, g + 2.5, mz + 1], 1.0); }
     function stonePos(dt) {
       C.tipWorld(tip);
       // the pendulum (L2+): the stone swings under the tip; the wind at L3
@@ -99,7 +127,7 @@ export const CORNER = {
       // (A.ax: the hook run in or out along the jib — the trolley of the steering, below)
       const rl = Math.hypot(tip.x - C.base.x, tip.z - C.base.z) || 1, along = { x: (tip.x - C.base.x) / rl, z: (tip.z - C.base.z) / rl };
       pos.x = tip.x + S.x + along.x * A.ax; pos.z = tip.z + S.z + along.z * A.ax;
-      const top = tip.y - 1.2; pos.y = A.phase === 'lift' ? X.ground(STOCK.x, STOCK.z) + 0.8 + A.h : top - A.drop;
+      const top = tip.y - 1.2; pos.y = A.phase === 'lift' || A.phase === 'intro' ? X.ground(STOCK.x, STOCK.z) + 0.8 + A.h : top - A.drop;
       // (it hangs square to the jib; over the corner the crewman on the tagline turns it to the chalk's square, slowly)
       const jibRot = C.yaw + C.slew.rotation.y; if (rot === null) rot = jibRot;
       if (A.phase === 'lower') rot += Math.atan2(Math.sin(0 - rot), Math.cos(0 - rot)) * (1 - Math.exp(-dt * 1.6)); else rot = jibRot;
@@ -138,7 +166,7 @@ export const CORNER = {
       }
       // ── h114 ── off the chalk by more than a tenth: the crew can't bar it over — up again and down again (no damage, no points off;
       // the spec's table "יותר מ־10%") ── /h114 ──
-      if (d > 0.1) { A.misses = (A.misses | 0) + 1; A.drop -= 1.4; X.word(at, 'רחוק מהגיר · מרימים ומורידים שוב'); X.play('thud'); X.dust(pos.x, floorY + 0.2, pos.z, 6, 2); return false; }
+      if (d > 0.1) { A.misses = (A.misses | 0) + 1; A.drop -= 1.4; X.word(at, 'רחוק מהמלבן הירוק · מרימים ומורידים שוב'); X.play('thud'); X.dust(pos.x, floorY + 0.2, pos.z, 6, 2); arrowTo(pos); return false; }
       const grade = d <= 0.05 ? (A.misses ? 'good' : 'gold') : 'good';
       A.grades.push(A.chips ? (grade === 'gold' ? 'good' : grade) : grade);
       // ── h114 ── it sits in the trench, square on its chalk; off the chalk the crewmen bar it over (seen: the push, below), and it
@@ -147,32 +175,59 @@ export const CORNER = {
       pos.y = floorY + 0.8; stone.position.y = pos.y;
       X.play('settle'); X.dust(pos.x, floorY + 0.2, pos.z, 16, 3); X.shake(0.2, 0.35);
       X.hit(at, A.grades[A.grades.length - 1], { text: grade === 'gold' ? 'מהודר' : grade === 'good' ? 'הצוות מיישר במוטות' : 'הצוות דוחף אותה למקום', craft: 'בנאים' });
-      if (grade === 'gold' && !A.chips && !A.rejects) { X.perfect('בול! אבן הפינה במקומה', { x: CORNER_AT.x, y: gP + 1, z: CORNER_AT.z }); X.bonus(40, 'bul', 'בול על הגיר'); }
+      if (grade === 'gold' && !A.chips && !A.rejects) { X.perfect('בול! אבן הפינה במקומה', { x: CORNER_AT.x, y: gP + 1, z: CORNER_AT.z }); X.bonus(40, 'bul', 'בול על המלבן'); }
       if (vT < 0.8) X.bonus(20, 'soft', 'נגיעה רכה');
-      if (d > 0.05) { for (const k of [-1, 1]) A.barmen.push(SH.crew.add(pos.x - k * 2.6, pos.z + 0.4 * k, { role: 'lever', item: 'staff', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 2 })); }
+      // (the crewmen bar it over when it landed off; then — always — they try to shift it with their bars, and it does not move: the
+      // corner stone is the lowest stone of the corner and the whole corner stands on it)
+      for (const [x, z] of [[CORNER_AT.x - 3.0, CORNER_AT.z - 0.4], [CORNER_AT.x - 0.4, CORNER_AT.z - 3.0]]) A.barmen.push(SH.crew.add(x, z, { role: 'lever', item: 'staff', fx: CORNER_AT.x, fz: CORNER_AT.z, crew: 2 }));
+      setTimeout(() => { if (A.phase !== 'done') return; X.word({ x: CORNER_AT.x, y: gP + 2.6, z: CORNER_AT.z }, 'דוחפים במוטות... לא זזה!'); X.play('thud'); X.shake(0.08, 0.15); }, 2600);
+      setTimeout(() => { if (A.phase !== 'done') return; X.line('אבן הפינה לא זזה: כל הפינה תעמוד עליה'); goldMark(X, CORNER_AT.x, floorY + 1.6, CORNER_AT.z); }, 3800);
       A.phase = 'done'; SH.cornerSet = true;
       // the slings come off, the rope goes up; the verse stays long enough to read; the camera rises over the corner
       setTimeout(() => { slingsAt(true); C.rope.show(false); X.props.remove(slings); }, 1300);
       setTimeout(() => { X.line('"אבן מאסו הבונים היתה לראש פינה" (תהלים קיח, כב)'); for (const m of (pit.userData.chalk || [])) m.visible = false; }, 700);
-      setTimeout(() => X.shot([CORNER_AT.x - 16, gP + 30, CORNER_AT.z - 26], [CORNER_AT.x - 1, gP, CORNER_AT.z + 1], 1.8), 1600);
+      // (the camera low beside the corner: the stone, the bars, both trenches)
+      setTimeout(() => X.shot([CORNER_AT.x - 3, gP + 9, CORNER_AT.z - 12], [CORNER_AT.x - 0.5, floorY + 0.8, CORNER_AT.z], 1.4), 1400);
       const q = A.grades.reduce((a, g) => a + (g === 'gold' ? 1 : g === 'good' ? 0.8 : 0.5), 0) / A.grades.length;
-      setTimeout(() => X.end({ q: A.rejects ? Math.min(q, 0.6) : q, stars: A.rejects ? 1 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at }), 6200);
+      const perfect = !A.rejects && !A.chips && !A.misses && A.grades.every((g) => g === 'gold');
+      setTimeout(() => X.end({ q: A.rejects ? Math.min(q, 0.6) : q, stars: A.rejects ? 1 : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, perfect, at }), 6600);
       return true;
     }
     function steer(p) { const g = onPlane(X, p.x, p.y, gP); if (g && Math.hypot(g.x - CORNER_AT.x, g.z - CORNER_AT.z) < 9) A.aimP = { x: g.x, z: g.z }; }
     function restart() {
       A.phase = 'reject'; X.line('הצוות מוריד את האבן לפסולת ומביא אחרת');
-      setTimeout(() => { A.phase = 'lift'; A.h = 0; A.drop = 0; A.ax = 0; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; X.line('שוב: החליקו למטה בקצב'); }, 3500);
+      // (back to the first shot, a new stone on the rope at the stock)
+      setTimeout(() => { A.phase = 'lift'; A.h = 0; A.drop = 0; A.ax = 0; A.sway.x = A.sway.z = A.sway.vx = A.sway.vz = 0; shotSide(); X.line('שוב: החליקו למטה בקצב'); }, 3500);
+    }
+    // after a miss: a green arrow on the trench's floor from where it came down toward the rectangle
+    let arrow = null;
+    function arrowTo(P) {
+      if (arrow) X.props.remove(arrow);
+      const dx = CORNER_AT.x - P.x, dz = CORNER_AT.z - P.z, L = Math.hypot(dx, dz); if (L < 0.05) return;
+      const g = new T.Group(), gm = new T.MeshBasicMaterial({ color: '#4CE07A', transparent: true, opacity: 0.95, depthWrite: false });
+      const len = Math.max(0.8, L - 0.6), shaft = new T.Mesh(new T.PlaneGeometry(0.22, len), gm); shaft.rotation.x = -Math.PI / 2; shaft.position.z = -len / 2; g.add(shaft);
+      const hd = new T.Shape(); hd.moveTo(0, -0.7); hd.lineTo(0.45, 0); hd.lineTo(-0.45, 0); hd.closePath(); const head = new T.Mesh(new T.ShapeGeometry(hd), gm); head.rotation.x = -Math.PI / 2; head.position.z = -len; g.add(head);
+      g.position.set(P.x, floorY + 0.12, P.z); g.rotation.y = Math.atan2(-dx, -dz); g.renderOrder = 997; X.props.root.add(g); arrow = g;
+      setTimeout(() => { if (arrow === g) { X.props.remove(g); arrow = null; } }, 3200);
+    }
+    // ── h115 ── the opening: where the corner will stand (the gold line from the platform's level down to the trench), then down to the
+    // trench's floor, then the crane (ירון 10.11: "עד שקראתי עכשיו את הטבלה אישית לא הבנתי מהמשחקון את המשמעות שלה בכלל") ── /h115 ──
+    function intro() {
+      X.shot([WALL_E - 26, 6, WALL_S - 34], [WALL_E, 0, WALL_S], 0.01);
+      X.line('כאן תעמוד פינת ההר: 49 אמה מעל הקרקע');
+      setTimeout(() => { if (A.phase !== 'intro') return; X.shot([WALL_E - 8, gP + 7, WALL_S - 14], [CORNER_AT.x, floorY + 0.4, CORNER_AT.z], 2.6); X.line('אבן הפינה: האבן הנמוכה ביותר בפינה · כל הפינה תעמוד עליה'); }, 2000);
+      setTimeout(() => { if (A.phase !== 'intro') return; A.phase = 'lift'; shotSide(); X.line('החליקו למטה בקצב · גלגל הדריכה מרים את האבן'); X.hand({ x: CRANE_AT.x, y: X.ground(CRANE_AT.x, CRANE_AT.z) + 3, z: CRANE_AT.z }, 0, 40); }, 5600);
     }
     return {
       begin() {
         { const dx = CORNER_AT.x - CRANE_AT.x, dz = CORNER_AT.z - CRANE_AT.z, L = Math.hypot(dx, dz); A.aimP = { x: CORNER_AT.x + (dx / L) * 1.8 + (-dz / L) * 0.9 * (lv >= 2 ? 1 : 0.5), z: CORNER_AT.z + (dz / L) * 1.8 + (dx / L) * 0.9 * (lv >= 2 ? 1 : 0.5) }; }
         A.drop = 0; try { X.hero.setPos(CRANE_AT.x, CRANE_AT.z, C.yaw + Math.PI / 2); } catch (e) { /* */ }
-        shotSide(); X.line('החליקו למטה בקצב');
-        X.hand({ x: CRANE_AT.x, y: X.ground(CRANE_AT.x, CRANE_AT.z) + 3, z: CRANE_AT.z }, 0, 40);
+        // (a replay of the one-minigame page skips the opening after the first time)
+        if (SH.cornerIntro) { A.phase = 'lift'; shotSide(); X.line('החליקו למטה בקצב'); X.hand({ x: CRANE_AT.x, y: X.ground(CRANE_AT.x, CRANE_AT.z) + 3, z: CRANE_AT.z }, 0, 40); } else { SH.cornerIntro = true; intro(); }
       },
       update(dt) {
         A.t += dt;
+        if (A.phase === 'intro') C.aim(STOCK.x, STOCK.z, 1);
         if (A.phase === 'lift') {
           // the wheel turns while the steps come; it stops on the ratchet when they stop (the stone never falls)
           const rn = performance.now() / 1000, rate = A.taps.filter((t) => rn - t < 1.2).length / 1.2;
@@ -203,7 +258,9 @@ export const CORNER = {
           // ── h114 ── over the corner: the stone and its trench in one frame, the camera low enough that the stone stands against the
           // hill, not lost in the city behind (ירון 9.11) ── /h114 ──
           const ty = (pos.y + floorY) / 2;
-          X.track([CORNER_AT.x - 11, gP + 7.5, CORNER_AT.z - 13], [CORNER_AT.x, ty, CORNER_AT.z], 2.2);   // (from the south-west: the crane and its wheel behind, never in front)
+          X.track([CORNER_AT.x - 3, gP + 9, CORNER_AT.z - 12], [CORNER_AT.x, ty, CORNER_AT.z], 2.2);   // (from the north, the Mount's side: the crane at the right, the trench of both walls in front, the city's tower behind the corner)
+          // the green rectangle fills while the stone hangs over it
+          if (pit.userData.fill) pit.userData.fill.material.opacity = Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw <= 0.1 ? 0.7 : 0.18 + 0.1 * Math.sin(A.t * 5);
         }
         if (A.phase !== 'done' || A.settle) { const w = crew[2] && crew[2].a; if (w) { tag.show(true); tag.set({ x: stone.position.x - 0.9, y: stone.position.y - 0.5, z: stone.position.z - 0.7 }, { x: w.x, y: X.ground(w.x, w.z) + 1.5, z: w.z }, 0.6); } }
         else tag.show(false);
@@ -225,7 +282,7 @@ export const CORNER = {
         const P0 = A.p0; A.p0 = null; A.hold = false;
         if (A.phase === 'lift' && P0 && p.y - P0.y >= 40 && performance.now() / 1000 - P0.t <= 0.45) { swipe(); X.hand(null); }
       },
-      end() { tag.dispose(); X.props.remove(sh); X.props.remove(slings); for (const l of legs) l.dispose(); C.rope.show(false); for (const w of crew.concat(A.barmen)) SH.crew.remove(w); if (!SH.cornerSet) X.props.remove(stone); else { SH.cornerStone = stone; stone.position.set(CORNER_AT.x, floorY + 0.8, CORNER_AT.z); stone.rotation.y = 0; } },
+      end() { if (arrow) X.props.remove(arrow); tag.dispose(); X.props.remove(sh); X.props.remove(slings); for (const l of legs) l.dispose(); C.rope.show(false); for (const w of crew.concat(A.barmen)) SH.crew.remove(w); if (!SH.cornerSet) X.props.remove(stone); else { SH.cornerStone = stone; stone.position.set(CORNER_AT.x, floorY + 0.8, CORNER_AT.z); stone.rotation.y = 0; } },
       at() { return { x: CORNER_AT.x, y: gP + 2, z: CORNER_AT.z }; },
       dbg() { C.tipWorld(tip); return { phase: A.phase, h: +A.h.toFixed(2), v: +A.v.toFixed(2), drop: +(A.drop || 0).toFixed(2), gap: +(tip.y - 1.2 - (A.drop || 0) - 0.8 - floorY).toFixed(2), swing: +Math.hypot(A.sway.vx, A.sway.vz).toFixed(2), dx: +(Math.hypot(pos.x - CORNER_AT.x, pos.z - CORNER_AT.z) / sw).toFixed(3), chips: A.chips, rejects: A.rejects, grades: A.grades.slice(-6), ax: +A.ax.toFixed(2), sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2), chalk: (() => { const q = X.scr(CORNER_AT.x, gP, CORNER_AT.z); return [Math.round(q.x), Math.round(q.y)]; })() }; },
     };
@@ -245,8 +302,10 @@ const LENS = [2, 2.5, 3, 3.5, 4];
 // each course: the gap in the kohen's stretch and the joints of the course under it — one order only of the five lengths fills the
 // gap with no joint over a joint (checked by a search over every subset and order, tools: see the build notes)
 const COURSES = [
-  { z0: 54, P: [{ gap: [3.5, 10.5], below: [6.5], sol: [4, 3] }, { gap: [3.5, 11.5], below: [5.25, 9.25], sol: [2.5, 2, 3.5] }] },
-  { z0: 116, P: [{ gap: [3.5, 13.5], below: [7.25, 10], sol: [2.5, 3.5, 4] }, { gap: [3.5, 14.5], below: [5.75, 8.75, 12.25], sol: [3.5, 2.5, 2, 3] }] },
+  // ── h115 ── (build115-brief §7) two stretches of the east wall north of the corner stone (they leave the corner's trench open, so the
+  // corner stone is seen from the Mount's side) ── /h115 ──
+  { z0: 352, P: [{ gap: [3.5, 10.5], below: [6.5], sol: [4, 3] }, { gap: [3.5, 11.5], below: [5.25, 9.25], sol: [2.5, 2, 3.5] }] },
+  { z0: 316, P: [{ gap: [3.5, 13.5], below: [7.25, 10], sol: [2.5, 3.5, 4] }, { gap: [3.5, 14.5], below: [5.75, 8.75, 12.25], sol: [3.5, 2.5, 2, 3] }] },
 ];
 const CH = 1.6, CD = 1.8;
 const puzzleOf = (c, lv) => { const K = COURSES[c], P = K.P[lv >= 3 ? 1 : 0]; return { z0: K.z0, gap: P.gap, sol: P.sol, below: [-8, -3, 1.5, ...P.below, P.gap[1] + 3, P.gap[1] + 8] }; };
@@ -978,7 +1037,7 @@ export function initWorld3(X, sh) {
   SH.crane = makeCrane(X); SH.crane.place(CRANE_AT.x, CRANE_AT.z, Math.atan2(CORNER_AT.x - CRANE_AT.x, CORNER_AT.z - CRANE_AT.z) - 0.9); SH.crane.rope.show(false);
   // ── h114 ── the corner's trench is dug from the start (the crews dig it while he measures); the stone in it once it was laid ── /h114 ──
   SH.cornerPit = cornerPit(X, !done('corner'));
-  if (done('corner')) { const s = stoneMesh(X, CW, 1.6, CDp); s.position.set(CORNER_AT.x, X.ground(CORNER_AT.x, CORNER_AT.z) - PIT + 0.8, CORNER_AT.z); SH.cornerStone = s; }
+  if (done('corner')) { const s = stoneMesh(X, CW, 1.6, CDp), y = X.ground(CORNER_AT.x, CORNER_AT.z) - PIT; s.position.set(CORNER_AT.x, y + 0.8, CORNER_AT.z); SH.cornerStone = s; goldMark(X, CORNER_AT.x, y + 1.6, CORNER_AT.z); }
   // the east wall's courses as far as the crews and the kohen have laid them
   // ── h114 ── as he laid them (st.courseLay), the solution's order for an older save ── /h114 ──
   SH.courseW = {}; SH.courseG = {}; SH.courseSet = {};

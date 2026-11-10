@@ -610,6 +610,8 @@ export function createUI({ root, ctx }) {
     setTimeout(() => {
       const e = doc.createElement('div'); e.className = 'gm-sg'; e.setAttribute('aria-hidden', 'true');
       e.innerHTML = `<b>+${fmtN(n)}</b>${label ? `<span>${esc(label)}</span>` : ''}`;
+      const live = rootEl.querySelectorAll('.gm-sg').length;   // notes still showing: this one goes below them, never on top
+      if (live) e.style.marginTop = (live * 30) + 'px';
       rootEl.appendChild(e); requestAnimationFrame(() => e.classList.add('on'));
       setTimeout(() => bump('score', n), 480);   // the number ticks up as the note lifts
       setTimeout(() => e.remove(), 1700);

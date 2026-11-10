@@ -696,7 +696,7 @@ export const COURSE = {
           // ── h117 ── the grips on the screen, the turn's error (deg) and its tolerance, where the stone's middle is ── /h117 ──
           ...(() => { if (!q || A.phase !== 'carry') return {}; C.tipWorld(tip); const r2 = (o) => [Math.round(o.x), Math.round(o.y)], e2 = ropeEnd(), h = stkTop(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z); const s = q.m.position;
             const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const ms = X.scr(m0.x, m0.y, m0.z), ts = X.scr(tip.x, tip.y, tip.z), inF = (q) => q.x > 20 && q.x < innerWidth - 20 && q.y > 110 && q.y < innerHeight - 70;
-            return { jibScr: inF(ts) ? r2(ts) : r2({ x: ms.x + (ts.x - ms.x) * 0.45, y: ms.y + (ts.y - ms.y) * 0.45 }), tipScr: r2(ts), ropeScr: [Math.round(a.x * 0.4 + b.x * 0.6), Math.round(a.y * 0.4 + b.y * 0.6)], stoneScr: r2(X.scr(s.x, s.y, s.z)), rotE: +(rotErr(q.m.rotation.y) * 180 / Math.PI).toFixed(1), tol: +(TOLR * 180 / Math.PI).toFixed(1), sx: +s.x.toFixed(2), sz: +s.z.toFixed(2), wallX: WALL_X, aim: [+A.aimP.x.toFixed(2), +A.aimP.z.toFixed(2)], grip: A.grip }; })() };
+            return { jibScr: inF(ts) ? r2(ts) : r2({ x: ms.x + (ts.x - ms.x) * 0.45, y: ms.y + (ts.y - ms.y) * 0.45 }), tipScr: r2(ts), ropeScr: [Math.round(a.x * 0.65 + b.x * 0.35), Math.round(a.y * 0.65 + b.y * 0.35)], rotTE: +(rotErr(A.rotT) * 180 / Math.PI).toFixed(1), stoneScr: r2(X.scr(s.x, s.y, s.z)), rotE: +(rotErr(q.m.rotation.y) * 180 / Math.PI).toFixed(1), tol: +(TOLR * 180 / Math.PI).toFixed(1), sx: +s.x.toFixed(2), sz: +s.z.toFixed(2), wallX: WALL_X, aim: [+A.aimP.x.toFixed(2), +A.aimP.z.toFixed(2)], grip: A.grip }; })() };
       },
     };
   },

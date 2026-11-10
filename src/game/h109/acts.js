@@ -8,7 +8,7 @@
  */
 import { H109 } from './model.js';
 import { BOOK, ROCK_CELLS, rectOf } from '../world/grid.js';
-import { createBeat, createGang, onPlane, clamp, lerp, ease, clearView } from './kit.js';
+import { createBeat, createGang, onPlane, clamp, lerp, ease, clearView, rayBlocked } from './kit.js';
 import { READ, PAVE, WASTE, initWorld2, frame2 } from './acts2.js';
 import { CORNER, COURSE, GREAT, LETTERS, initWorld3, frame3 } from './acts3.js';
 
@@ -289,8 +289,8 @@ const ROCKS_ACT = {
       try { X.hero.walkTo({ x: R.sx, z: R.sz, face: [R.x, R.z] }); } catch (e) { /* */ }
       if (R.q) { R.q.y = X.ground(R.x, R.z); X.props.rockSet(R.q); }
       // ── h115 ── (the full replay: the shot looked through the cell's big rock and the hill) the first side whose view is clear ── /h115 ──
-      const big = SH.bould[m.s], O = big ? [{ x: big[0], y: X.ground(big[0], big[1]) + big[2] * 0.45, z: big[1], r: big[2] * 0.95 }] : [];
-      let ws = null; for (const side of [-1.15, 1.15, -0.5, 0.5, -1.7, 1.7, 0]) { const w = X.workShot({ x: R.x, z: R.z }, { x: R.sx, z: R.sz }, { dist: 23, el: 32, side, lift: 1.0 }); if (!ws) ws = w; if (clearView(X, w.p, w.t, O)) { ws = w; break; } }
+      const O = (SH.bould || []).filter(Boolean).map((q) => ({ x: q[0], y: X.ground(q[0], q[1]) + q[2] * 0.45, z: q[1], r: q[2] * 0.95 }));
+      let ws = null; for (const side of [-1.15, 1.15, -0.5, 0.5, -1.7, 1.7, 0]) { const w = X.workShot({ x: R.x, z: R.z }, { x: R.sx, z: R.sz }, { dist: 23, el: 32, side, lift: 1.0 }); if (!ws) ws = w; if (clearView(X, w.p, w.t, O) && !rayBlocked(X, w.p, w.t)) { ws = w; break; } }
       X.shot(ws.p, ws.t, i === 0 ? 0.9 : 0.6);
       // the ring that closes to the gold band on the beat (≥ 110 px: it is on the ground round the rock, r × 2.6 → r)
       if (A.ring) X.props.remove(A.ring); if (A.band) X.props.remove(A.band);

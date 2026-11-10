@@ -115,12 +115,39 @@ export function createGang(X) {
   return { add, remove, clear, setRole, walkTo, face, update, list: L, get A() { return A; } };
 }
 
-/** ── h115 ── a camera's view clear: the segment from the camera to its aim passes no sphere of O and stays over the ground ── /h115 ── */
-export function clearView(X, p, t, O) {
+/** ── h115 ── how blocked a camera's view is: of 12 points on the segment from the camera to its aim, those under the ground or inside
+ *  a sphere of O ({x, y, z, r}); clearView: none ── /h115 ── */
+/** where the camera really stands: the world camera keeps its distance from the aim (main.js minDist), so a near shot is pushed back */
+export function camAt(X, p, t) {
+  let md = 0; try { md = X.view && X.view.minDist ? X.view.minDist() : 0; } catch (e) { md = 0; }
+  const d = Math.hypot(p[0] - t[0], p[1] - t[1], p[2] - t[2]); if (!(md > d) || d < 1e-6) return p;
+  const k = md / d; return [t[0] + (p[0] - t[0]) * k, t[1] + (p[1] - t[1]) * k, t[2] + (p[2] - t[2]) * k];
+}
+export function viewBlock(X, p, t, O) {
+  p = camAt(X, p, t); let n = 0;
   for (let i = 1; i < 12; i++) {
     const u = i / 12, x = p[0] + (t[0] - p[0]) * u, y = p[1] + (t[1] - p[1]) * u, z = p[2] + (t[2] - p[2]) * u;
-    if (u < 0.92 && y < X.ground(x, z) + 0.6) return false;
-    for (const o of O) if (Math.hypot(x - o.x, y - o.y, z - o.z) < o.r) return false;
+    if (u < 0.92 && y < X.ground(x, z) + 0.6) { n++; continue; }
+    for (const o of O) if (Math.hypot(x - o.x, y - o.y, z - o.z) < o.r) { n++; break; }
   }
-  return true;
+  return n;
+}
+export function clearView(X, p, t, O) { return viewBlock(X, p, t, O) === 0; }
+/** ── h115 ── what really stands between a camera and its aim (a ray through the scene: the big rocks, the hill, the cut walls; small
+ *  things — figures, tools, sprites, see-through props — and the last 3 amot before the aim do not count) ── /h115 ── */
+let RC = null;
+export function rayBlocked(X, p, t) {
+  p = camAt(X, p, t); const T = X.THREE; RC = RC || new T.Raycaster();
+  const o = new T.Vector3(p[0], p[1], p[2]), d = new T.Vector3(t[0] - p[0], t[1] - p[1], t[2] - p[2]), L = d.length(); if (L < 1) return false;
+  RC.set(o, d.normalize()); RC.far = L - 3; RC.camera = X.camera;
+  let hits = []; try { hits = RC.intersectObject(X.scene, true); } catch (e) { hits = []; }
+  for (const h of hits) {
+    const m = h.object; if (!m.isMesh || m.isSprite || m.isInstancedMesh) continue;
+    let vis = true; for (let q = m; q; q = q.parent) if (!q.visible) { vis = false; break; } if (!vis) continue;
+    const mt = Array.isArray(m.material) ? m.material[0] : m.material; if (!mt || mt.transparent || mt.depthWrite === false) continue;
+    if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+    const sc = m.getWorldScale(new T.Vector3()), r = m.geometry.boundingSphere.radius * Math.max(sc.x, sc.y, sc.z); if (r < 2.5) continue;
+    return true;
+  }
+  return false;
 }

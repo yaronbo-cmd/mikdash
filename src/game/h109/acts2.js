@@ -2,7 +2,7 @@
  * the water), 3.4 paving the sector (the slabs puzzle: no joint over a joint), 3.9 clearing the waste (the sledge, the oxen, the fill
  * behind the east retaining wall). Spec docs/specs/shlav-01-olam-yashan-he.md. Every result is seen in the world (rule 31).
  */
-import { createGang, onPlane, clamp, lerp, ease, clearView } from './kit.js';
+import { createGang, onPlane, clamp, lerp, ease, clearView, viewBlock, rayBlocked } from './kit.js';
 import { makeRock } from './rock.js';
 import { BOOK } from '../world/grid.js';
 
@@ -99,7 +99,8 @@ export const READ = {
     const lv = X.level(), s = m.s, b = SH.bould[s], st = READ.stand(m, X), T = X.THREE;
     const R = bigRock(X, s, false), gy = R.gy;
     // ── h115 ── (the full replay: the shot stood behind a cut cell's wall) the first side whose view of the rock is clear ── /h115 ──
-    const wShot = (o) => { let w0 = null; for (const k of [1, -1, 0.5, -0.5, 1.6, -1.6]) { const w = X.workShot({ x: b[0], z: b[1] }, st, { ...o, side: o.side * k || o.side }); if (!w0) w0 = w; if (clearView(X, w.p, w.t, [])) return w; } return w0; };
+    const OB = (SH.bould || []).map((q, i) => (i === s || !q ? null : { x: q[0], y: X.ground(q[0], q[1]) + q[2] * 0.45, z: q[1], r: q[2] * 0.95 })).filter(Boolean);
+    const wShot = (o) => { let best = null, bn = 1e9; for (const dk of [1, 0.75]) for (const k of [1, -1, 0.5, -0.5, 1.6, -1.6, 0]) { const w = X.workShot({ x: b[0], z: b[1] }, st, { ...o, dist: o.dist * dk, side: o.side * k }); const n = viewBlock(X, w.p, w.t, OB) + (rayBlocked(X, w.p, w.t) ? 6 : 0); if (n < bn) { bn = n; best = w; } if (!n) return w; } return best; };
     const nW = [3, 4, 5][lv - 1], phiK = Math.atan2(st.z - b[1], st.x - b[0]), ck = crackOf(s);
     const A = { step: 'turn', th: 0, lines: [], pick: null, wedges: [], water: 0, hold: false, res: { line: null, space: null, water: null }, fallen: 0, t: 0, creakT: 0, early: 0, wind: lv >= 3, busy: false };
     // the crack (a plane through the rock) and at level 3 a shallow scratch that does not go through

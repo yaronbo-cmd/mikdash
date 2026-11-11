@@ -122,7 +122,7 @@ vec3 lkLook(vec3 base) {
     float f = kind > 2.5 ? 1.0 : clamp(fresh, 0.0, 1.0);
     // (3 amot to the tile, a coarser mip: the grain soft; each sampled only when it shows — f is the material's, a uniform branch)
     vec3 t = vec3(0.43), tf = vec3(0.43);
-    if (f < 0.999) t = lkTri(P, N, 1.7, s, 0.7);
+    if (f < 0.999) t = lkTri(P, N, 1.7, s, 1.1);
     if (f > 0.001) tf = lkTri(P * 1.7, N, 3.0, s + 0.5, 0.8);
     // the skin: grey-brown, darker on the up-facing facets, lichen flecks there, soft bedding lines by height (3 to the amah)
     float up = smoothstep(0.25, 0.9, wN.y);
@@ -130,9 +130,9 @@ vec3 lkLook(vec3 base) {
     skin = mix(skin, skin * vec3(0.92, 0.9, 0.88), up * 0.6);
     if (f < 0.999) {
       float li = smoothstep(0.72, 0.78, lkN3(vLkW * 2.6)) * up;
-      skin = mix(skin, vec3(0.62, 0.62, 0.55) * lkLum(skin) * 1.5, li * 0.55);
+      skin = mix(skin, vec3(0.7, 0.66, 0.5) * lkLum(skin) * 1.45, li * 0.4);   // (lichen: warm grey, not the sky's blue)
       float bed = smoothstep(0.88, 0.97, abs(fract(vLkW.y * 3.0 + 0.6 * lkN3(vLkW * 0.6)) * 2.0 - 1.0));
-      skin *= 1.0 - 0.2 * bed * (1.0 - up);
+      skin *= 1.0 - 0.2 * bed * (1.0 - up) * smoothstep(0.35, 0.6, lkN3(vLkW * 1.3 + 7.0));   // (broken bedding lines, not contours)
     }
     // the fresh break: near-white cream, clean, a sharper grain
     vec3 fr = (kind > 2.5 ? base : vec3(0.73, 0.69, 0.61)) * mix(0.8, 1.14, lkLum(tf) / 0.43) * (1.0 + (fract(s * 7.7) - 0.5) * 0.1);

@@ -7,7 +7,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor, terrainGr } from './world.js';
-import { groundPatch, groundDefines } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
+import { groundPatch, groundDefines, smoothGridNormals } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
@@ -301,24 +301,25 @@ function makeHill(T) {
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setIndex(idx);
   g.computeVertexNormals();
-  // colours: pale rock on steep ground and the crest, dry grass and scrub on the benches, dust at the rim
+  smoothGridNormals(g, nx, nz, 2);   // ── look B ── (the light follows the hill's shape, not its triangles; the positions stay) ── /look B ──
+  // colours: ── look B ── the large-scale tone only (look/ground.js draws the rock, the earth, the stones and the straw on it): dry straw
+  // earth, terra rossa in pockets, a dry-olive tint where the scrub grows, paler where the rock comes up, dust at the rim ── /look B ──
   const nor = g.attributes.normal.array, C = (h) => new THREE.Color(h);
-  const rock = C('#E4DCCB'), rockD = C('#C4B79E'), grass = C('#B9B27A'), grassB = C('#A4A767'), soil = C('#B98E68'), scrub = C('#7F8C4E'), dust = C('#D6C8A6');
+  const rock = C('#DCD2BC'), earth = C('#C4AC7E'), earthB = C('#A88F64'), soil = C('#A47554'), scrub = C('#9A9064'), dust = C('#D6C8A6');
   const c = new THREE.Color(), tc = new THREE.Color();
   for (let k = 0; k < N; k++) {
     const x = pos[k * 3], z = pos[k * 3 + 2], ny = nor[k * 3 + 1];
-    c.copy(grass).lerp(grassB, HN2(x / 70 + 5, z / 70, 3));
-    c.lerp(soil, smooth(0.55, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * 0.45);            // terra rossa between the rocks
-    c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.4);               // (site8/world8) small pockets of red earth
-    c.lerp(scrub, smooth(0.6, 0.8, HN3(x / 30, z / 30, 3)) * 0.65);
-    c.lerp(scrub, smooth(0.62, 0.8, HN1(x / 11 + 2, z / 11 + 5, 2)) * 0.5);             // (site8/world8) scrub in clumps
+    c.copy(earth).lerp(earthB, HN2(x / 70 + 5, z / 70, 3));
+    c.lerp(soil, smooth(0.5, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * 0.6);            // terra rossa between the rocks
+    c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.3);               // (site8/world8) small pockets of red earth
+    const hol = smooth(0.6, 0.8, HN3(x / 30, z / 30, 3));
+    c.lerp(scrub, hol * 0.3);
     // (site8/world8) rock: the risers only in outcrops (oc), not a pale line along each; bare slabs here and there off them
     const oc = HN3(x / 21 + 1, z / 21 + 9, 2);
     const rk = clamp(smooth(0.95, 0.8, ny) * (0.3 + 1.1 * oc) + smooth(10, 26, y0[k]) * 0.5 + smooth(0.74, 0.86, HN2(x / 13 - 5, z / 13 + 3, 2)) * 0.55, 0, 1);
-    c.lerp(rock, rk);
+    c.lerp(rock, rk * 0.5);
     // ── look B ── the ground's rock bias (the outcrops, the crest) and its hollows (where the scrub grows) ── /look B ──
-    gr[k * 2] = clamp(rk * 0.65, 0, 1); gr[k * 2 + 1] = smooth(0.6, 0.8, HN3(x / 30, z / 30, 3)) * 0.6;
-    c.lerp(rockD, smooth(0.55, 0.75, HN1(x / 18 + 3, z / 18, 2)) * 0.3 * smooth(0.97, 0.85, ny));
+    gr[k * 2] = clamp(rk * 0.65, 0, 1); gr[k * 2 + 1] = hol * 0.6;
     c.lerp(dust, smooth(-30, -46, y0[k]) * 0.4);
     // melt into the surrounding terrain along an irregular line: past it the hill takes the terrain's own colour and ground values
     // (the same ground shader draws both: look/ground.js), so where it finally sinks under the terrain nothing shows

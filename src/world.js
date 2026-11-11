@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { rng, makeNoise, smooth, lerp } from './util.js';
 import { PLAT } from './mount.js';
-import { groundMat } from './look/ground.js';   // ── look B ── ── /look B ──
+import { groundMat, smoothGridNormals } from './look/ground.js';   // ── look B ── ── /look B ──
 
 const NA = makeNoise(11), NB = makeNoise(29), NC = makeNoise(47), ND = makeNoise(83);
 function prof(xs, ys, x) {
@@ -67,13 +67,15 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // terrain vertex colour at (x, z) with height h and normal.y ny (also used to blend the natural hill into it)
 // ── world6 ── the hills as they are from spring's end to the first rains (the game's Sukkot): golden and olive-dry, greener only
 // in the valley bottoms and the orchards (was a spring green)
-const TC = { gA: new THREE.Color('#A3A064'), gB: new THREE.Color('#B9AE74'), dry: new THREE.Color('#C9B684'), rock: new THREE.Color('#D2C29D'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#7C9049'), orchard: new THREE.Color('#99A15C') };
+// ── look B ── (the owner: "a rocky Jerusalem hill, not a lawn") the tones dry straw and ochre, the valley bottoms a dry olive; the
+// rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
+const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#968F63'), orchard: new THREE.Color('#9C9866') };
 export function terrainColor(x, z, h, ny, c) {
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
-  c.lerp(TC.rock, smooth(0.10, 0.32, 1 - ny) * 0.85);
-  c.lerp(TC.lush, smooth(-95, -135, h) * 0.55);
-  if (x > 480) c.lerp(TC.orchard, 0.35 * smooth(480, 700, x));
+  c.lerp(TC.rock, smooth(0.10, 0.32, 1 - ny) * 0.6);
+  c.lerp(TC.lush, smooth(-95, -135, h) * 0.45);
+  if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x));
   c.lerp(TC.dust, cityMask(x, z) * 0.78);
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
@@ -104,6 +106,7 @@ export function buildTerrain() {
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setIndex(idx);
   g.computeVertexNormals();
+  smoothGridNormals(g, n1, n1);   // ── look B ── (the light follows the land, not its triangles) ── /look B ──
   const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3), gr = new Float32Array(n1 * n1 * 2), o = [0, 0];
   const c = new THREE.Color();
   for (let k = 0; k < n1 * n1; k++) {

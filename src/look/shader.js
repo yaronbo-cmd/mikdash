@@ -74,32 +74,43 @@ vec3 lkLook(vec3 base) {
   vec3 col = base;
   if (kind < 1.5) {
     // ── dressed limestone (0: an ashlar · 1: a paving slab) ──
-    float val = 1.0 + (fract(s * 13.7) - 0.5) * 0.06;
+    // (the albedo fitted to this sun and tone mapping: the tones' steps widened about their mean, more saturated, a little darker —
+    // measured on the screenshots: a sunlit top lands at sRGB hue 36..46, saturation 14..24 %, lightness 68..78 %)
+    { float L0 = lkLum(col), Lm = kind < 0.5 ? 0.61 : 0.49, Lx = Lm + clamp((L0 - Lm) * 2.6, -0.13, 0.16);
+      col *= Lx / max(L0, 1e-3); col = max(mix(vec3(lkLum(col)), col, kind < 0.5 ? 2.3 : 1.25), vec3(0.0)) * 0.88; }
+    float val = 1.0 + (fract(s * 13.7) - 0.5) * 0.08;
     float d = lkLum(lkTri(P, N, 2.5, s, 0.0)), amp = 1.0;
-    bool side = abs(N.z) > 0.7, top = N.y > 0.7, vert = abs(N.y) < 0.5;
+    bool side = abs(N.z) > 0.7, top = N.y > 0.85, vert = abs(N.y) < 0.5;
     float boss = 0.0, strokes = 0.0;
     if (kind < 0.5) {
       if (side && uLk2.x > 0.5) {
         vec2 e = vec2((0.5 - abs(U.x)) * S.x, (0.5 - abs(U.y)) * S.y);
-        boss = smoothstep(uLk.z - 0.02, uLk.z + 0.02, min(e.x, e.y));
-        amp = mix(1.0, 1.6, boss);
+        float em = min(e.x, e.y);
+        boss = smoothstep(uLk.z - 0.02, uLk.z + 0.02, em);
+        amp = mix(1.0, 1.8, boss);
+        // (the step between margin and boss: a thin dark line, read from the play camera)
+        col *= 1.0 - 0.32 * (1.0 - smoothstep(0.0, 0.035, abs(em - uLk.z)));
         // the drafted margin: fine diagonal chisel strokes, 14 to the amah, faint
         strokes = (1.0 - boss) * smoothstep(0.55, 1.0, 0.5 + 0.5 * sin(6.2832 * 14.0 * (P.x + P.y) * 0.7071 + 2.0 * lkN3(P * 3.0))) * smoothstep(0.3, 0.6, lkN3(P * 1.7 + 4.0));
-        col *= mix(1.03, 0.92, boss) * (1.0 - 0.05 * strokes);
+        col *= mix(1.05, 0.86, boss) * (1.0 - 0.06 * strokes);
       } else {
         // the comb chisel: parallel strokes across the top, the bottom and the ends
         float a = abs(N.x) > 0.7 ? P.z + 0.3 * P.y : P.x + 0.15 * P.z;
-        strokes = smoothstep(0.6, 1.0, 0.5 + 0.5 * sin(6.2832 * 9.0 * a + 2.5 * lkN3(P * 2.3))) * smoothstep(0.3, 0.65, lkN3(P * 1.3 + 9.0));
-        col *= 1.0 - 0.035 * strokes;
+        strokes = smoothstep(0.45, 1.0, 0.5 + 0.5 * sin(6.2832 * 6.0 * a + 2.5 * lkN3(P * 2.3))) * smoothstep(0.2, 0.6, lkN3(P * 1.3 + 9.0));
+        col *= 1.0 - 0.11 * strokes;
       }
       // the dust at its foot once it is laid (fresh stones on the pile or the rope: 4 % lighter and clean)
       if (vert) { float foot = 1.0 - smoothstep(0.0, 0.12, U.y + 0.5); col = mix(col, col * vec3(0.84, 0.78, 0.68), foot * set * 0.75); }
       col *= mix(1.04, 1.0, set);
+      // the chamfered edges catch the light; a dark contact line where it stands (its foot)
+      vec3 ed = step(vec3(0.5 - 0.065), abs(U)); if (ed.x + ed.y + ed.z > 1.5) col *= 1.12;
+      if (vert) col *= mix(0.55, 1.0, smoothstep(0.0, 0.06, (U.y + 0.5) * S.y));
     } else {
       // a paving slab: the top smooth-worn (weaker detail, fine chisel, soft clouds), the sides rough-pecked
-      if (top) { float cl = lkN3(P * 0.55 + s * 9.0), wr = lkN3(P * 2.1 + s * 3.0); amp = 0.75; col *= (0.9 + 0.18 * cl) * (0.97 + 0.06 * wr);
+      if (top) { float cl = lkN3(P * 0.55 + s * 9.0), wr = lkN3(P * 2.1 + s * 3.0); amp = 0.9; col *= (0.84 + 0.3 * cl) * (0.93 + 0.12 * wr);
         strokes = smoothstep(0.7, 1.0, 0.5 + 0.5 * sin(6.2832 * 14.0 * (P.x * 0.94 + P.z * 0.34) + 2.0 * lkN3(P * 2.0))); col *= 1.0 - 0.03 * strokes; }
-      else { amp = 1.4; col *= 0.93; }
+      else if (N.y > 0.3) { col *= 1.16; }   // (the chamfer catches the light)
+      else { amp = 1.4; col *= 0.9; }
     }
     // (a warm hair: the sky's blue fill otherwise greys the cream)
     col *= val * mix(1.0, mix(0.78, 1.16, d), amp) * vec3(1.03, 1.0, 0.93);
@@ -181,7 +192,7 @@ export function lookMat(THREE, kind, o = {}) {
     metalness: o.metal ?? (K === KIND.iron ? 0.6 : 0),
     side: o.side || THREE.FrontSide, vertexColors: !!o.vertexColors,
   });
-  m.userData.look = { kind: K, set: o.set || 0, margin: o.margin ?? 0.22, fresh: o.fresh || 0, boss: o.boss === false ? 0 : 1, flat: K === KIND.rock || K === KIND.fresh ? 1 : 0 };
+  m.userData.look = { kind: K, set: o.set || 0, margin: o.margin ?? 0.3, fresh: o.fresh || 0, boss: o.boss === false ? 0 : 1, flat: K === KIND.rock || K === KIND.fresh ? 1 : 0 };
   m.userData.lookTex = o.tex || flatTex(THREE); m.userData.lookBase = true;   // (a shared base: never disposed by a prop's removal)
   install(THREE, m);
   return m;

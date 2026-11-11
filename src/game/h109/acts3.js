@@ -411,7 +411,7 @@ function courseWorld(X, c, lv, laid) {
 }
 function chalkTag(X, text, w = 1.3, ink = 'rgba(250,247,238,.95)') {
   const T = X.THREE, cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const g = cv.getContext('2d');
-  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = 'rgba(70,52,34,.6)'; g.strokeText(text, 128, 70); g.fillStyle = ink; g.fillText(text, 128, 70);   // ── look A ── (a soft dark edge: the chalk reads on the cream stone) ── /look A ──
+  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = /^rgba?\((\d+)/.exec(ink) && +/^rgba?\((\d+)/.exec(ink)[1] < 128 ? 'rgba(250,246,234,.55)' : 'rgba(70,52,34,.6)'; g.strokeText(text, 128, 70); g.fillStyle = ink; g.fillText(text, 128, 70);   // ── look A ── (a soft edge in the other tone: the mark reads on the cream stone) ── /look A ──
   const tex = new T.CanvasTexture(cv); const m = new T.Mesh(new T.PlaneGeometry(w, w / 2), new T.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
   m.rotation.x = -Math.PI / 2; m.renderOrder = 3;
   const g2 = new T.Group(); g2.add(m); g2.rotation.y = -Math.PI / 2;   // (its top toward the wall: upright for a camera on the Mount's side)
@@ -433,7 +433,7 @@ export const COURSE = {
     LENS.forEach((L, i) => {
       const s = stoneMesh(X, L - 0.06, CH - 0.04, CD); const z = zc - 2.5 + i * 2.6, x = gx; s.position.set(x, X.ground(x, z) + CH / 2, z); s.rotation.y = 0;
       // (its length in chalk on its top, read from the Mount's side: the chalk follows the stone while it is not laid)
-      const tg = chalkTag(X, String(L).replace('.5', '½'), 1.5); X.props.root.add(tg);
+      const tg = chalkTag(X, String(L).replace('.5', '½'), 1.5, 'rgba(46,36,28,.92)'); X.props.root.add(tg);   // ── look A ── (charcoal: white chalk was lost on the cream tops) ── /look A ──
       A.stock.push({ m: s, L, home: { x, z }, laid: null, tg });
     });
     // the joints below: chalk ticks on the course under the gap (level 1–2; at 3 the joints are read from the seams alone)

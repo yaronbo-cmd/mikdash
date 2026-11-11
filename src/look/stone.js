@@ -17,16 +17,17 @@ export function hsl2hex(h, s, l) {
 }
 /** the 8 tones of the Jerusalem limestone (hue 34..46, saturation 10..22 %, lightness 76..84 %): creamy, slightly pink, slightly
  *  yellow, slightly grey */
-export const TONES = Object.freeze([[40, 18, 80], [35, 16, 79], [44, 22, 80], [40, 12, 77], [42, 17, 84], [38, 20, 78], [46, 15, 82], [36, 14, 83]]);
+export const TONES = Object.freeze([[40, 18, 80], [37, 16, 76], [44, 22, 83], [40, 12, 77], [42, 17, 84], [38, 20, 78], [46, 15, 82], [38, 14, 79]]);
 const hh = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
 export const toneIndex = (seed) => Math.floor(hh(seed * 1.618 + 0.37) * TONES.length) % TONES.length;
 /** a tone with a hair of its own (so no two stones share a colour: the shader's per-stone pattern comes from it) */
 function toneHex(i, seed, dl = 0) { const [h, s, l] = TONES[i]; return hsl2hex(h + (hh(seed * 3.3) - 0.5) * 1.6, s + (hh(seed * 5.1) - 0.5) * 1.2, clamp(l + dl + (hh(seed * 7.9) - 0.5) * 0.8, 70, 90)); }
 export function stoneTint(seed) { return toneHex(toneIndex(seed), seed); }
-/** the tone of the next stone in a row: never its neighbour's (prevIndex), returned as { hex, i } */
+/** the tone of the next stone in a row: never its neighbour's (prevIndex), and at least 3 % lighter or darker than it (the step
+ *  between two stones reads from the play camera), returned as { hex, i } */
 export function neighbourTint(prevIndex, seed) {
-  let i = toneIndex(seed); if (i === prevIndex) i = (i + 1 + Math.floor(hh(seed + 9) * (TONES.length - 1))) % TONES.length;
-  if (i === prevIndex) i = (i + 1) % TONES.length;
+  const ok = TONES.map((t, k) => k).filter((k) => prevIndex < 0 || prevIndex == null || Math.abs(TONES[k][2] - TONES[prevIndex][2]) >= 3);
+  const i = ok[Math.floor(hh(seed * 1.618 + 0.37) * ok.length) % ok.length];
   return { hex: toneHex(i, seed), i };
 }
 
@@ -69,7 +70,7 @@ export function ashOf(THREE, seed, o = {}) {
 }
 export function slabMat(THREE) { const C = cacheOf(THREE); return C.slab || (C.slab = lookMat(THREE, KIND.slab, { color: hsl2hex(40, 14, 80), tex: stoneDetail(THREE) })); }
 /** 4 tone families for the paving */
-const SLAB_T = [[39, 24, 72], [35, 21, 70], [43, 26, 73], [40, 18, 69]];   // (around the world's paving, tex.js texPaving [39, 21, 77])
+const SLAB_T = [[39, 24, 72], [36, 21, 67], [43, 26, 75], [40, 18, 69]];   // (around the world's paving, tex.js texPaving [39, 21, 77])
 export function slabTint(seed) { const [h, s, l] = SLAB_T[Math.floor(hh(seed * 2.7) * 4) % 4]; return hsl2hex(h + (hh(seed * 3.1) - 0.5) * 2, s + (hh(seed * 1.3) - 0.5) * 2, l + (hh(seed * 5.7) - 0.5) * 2); }
 export function slabOf(THREE, seed) { return lookClone(slabMat(THREE), slabTint(seed)); }
 
@@ -116,7 +117,7 @@ function chamferBox(B, h, c) {
     B.tri([sx * h[0], sy * (h[1] - c), sz * (h[2] - c)], [sx * (h[0] - c), sy * h[1], sz * (h[2] - c)], [sx * (h[0] - c), sy * (h[1] - c), sz * h[2]], [sx, 0, 0], [0, sy, 0], [0, 0, sz]);
   }
 }
-const CH = 0.035, BOSS = 0.03;
+const CH = 0.06, BOSS = 0.03;   // (the chamfer: 0.06 of the unit, a soft silhouette)
 const shared = (g) => { g.userData.lookShared = true; return g; };   // (cached: a prop's removal never disposes it)
 /** the dressed ashlar, unit size: chamfered, and on both long faces (±z) a boss raised 0.03 with its own chamfer; its margin is a fixed
  *  width in amot, set in the shader (uv.x 2 / 3 mark the boss's foot and top) — 64 triangles */
@@ -168,7 +169,7 @@ export const chipOf = (seed) => (hh(seed * 4.3 + 1.1) < 0.2 ? Math.floor(hh(seed
 export function ashGeoOf(THREE, seed) { const k = chipOf(seed); return k < 0 ? ashlarGeo(THREE) : chipGeo(THREE, k); }
 
 /** a paving slab w × h × d (amot), its top edges chamfered (c amot), the sides flat — 20 triangles */
-export function slabGeo(THREE, w = 1, h = 1, d = 1, c = 0.04) {
+export function slabGeo(THREE, w = 1, h = 1, d = 1, c = 0.07) {
   const B = builder(THREE), X = w / 2, Y = h / 2, Z = d / 2, cc = Math.min(c, X * 0.4, Z * 0.4, Y * 0.8), up = [0, 1, 0], dn = [0, -1, 0];
   B.quad([-X + cc, Y, -Z + cc], [X - cc, Y, -Z + cc], [X - cc, Y, Z - cc], [-X + cc, Y, Z - cc], up, up, up, up);
   B.quad([-X, -Y, -Z], [X, -Y, -Z], [X, -Y, Z], [-X, -Y, Z], dn, dn, dn, dn);

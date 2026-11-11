@@ -137,6 +137,9 @@
       if (a.phase === 'pull') return { tap: a.stakeScr, wait: 900, note: 'stakes: pull' };
       if (a.phase !== 'walk') return { wait: 400 };
       if (a.walking) return { wait: 300 };
+      // (tests: window.__STAKES_BAD = n drives it off the corner on purpose, n times)
+      if ((window.__STAKES_BAD | 0) > a.drives && a.taps === 0 && B.badD !== a.drives) { B.badD = a.drives; return { drag: [a.stakeScr[0], a.stakeScr[1], a.targetScr[0] + 70, a.targetScr[1] + 30, 700], wait: 1500, note: 'stakes: off on purpose' }; }
+      if ((window.__STAKES_BAD | 0) > a.drives && a.taps < 3) return { tap: a.stakeScr, wait: 800, note: 'stakes: blow (off)' };
       const off = Math.max(Math.abs(a.n - a.needN), Math.abs(a.e - a.needE));
       if (off > a.tol * 0.6 && a.taps === 0) return { drag: [a.stakeScr[0], a.stakeScr[1], a.targetScr[0], a.targetScr[1], 700], wait: 1500, note: `stakes: walk n ${a.n} e ${a.e}` };
       return { tap: a.stakeScr, wait: 800, note: `stakes: blow ${a.taps + 1}` };

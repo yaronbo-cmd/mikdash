@@ -1058,7 +1058,7 @@ function dressStart(X, s, n, lost) {
   sled.position.set(sx, X.ground(sx, sz), sz); X.props.root.add(sled);
   for (let i = 0; i < n; i++) { const m = X.props.stoneMesh(1.4, 0.7, 0.9); m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
   const y0 = R.group.position.y;
-  // ── look A ── (as the halves are worked their skin goes to the fresh stone: a clone of the rock's material, R.dispose takes it) ── /look A ──
+  // ── look A ── (as the halves are worked their skin goes to the fresh stone — the skin stays through the first half of the dressing, the split's own faces alone fresh: a clone of the rock's material, R.dispose takes it) ── /look A ──
   const m0 = R.whole.material, dm = rockClone(m0); R.group.traverse((c) => { if (c.isMesh && c.material === m0) c.material = dm; });
   SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0, dm });
 }
@@ -1066,7 +1066,7 @@ function dressFrame(dt, X) {
   for (const D of SH.dress || []) {
     D.t += dt; const k = Math.min(1, D.t / 3.2), b = SH.bould[D.s];
     if (D.R) {
-      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k); lookFresh(D.dm, k);   // ── look A ── ── /look A ──
+      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k); lookFresh(D.dm, Math.max(0, (k - 0.5) / 0.5));   // ── look A ── ── /look A ──
       D.sparkT -= dt; if (D.sparkT <= 0 && k < 1) { D.sparkT = 0.35; X.sparks(b[0] + (Math.random() - 0.5) * b[2], D.gy + 1.2, b[1] + (Math.random() - 0.5) * b[2], 5); X.play('tool'); }
       D.blocks.forEach((m, i) => { m.visible = k > (i + 1) / (D.n + 1); });
       if (k >= 1) { D.R.dispose(); SH.big[D.s] = null; D.R = null; if (D.lost) wasteAdd(X, 2, null); else X.M.st.yard = (X.M.st.yard | 0) + D.n; yardSync(X); }

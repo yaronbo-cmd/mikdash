@@ -212,9 +212,9 @@ export const BOND = {
     /* ── the camera: one high shot from the court's side (≈ 66°): gap, neighbours, reed, stock row, the crane's foot, the jib's head ── */
     const span = Math.max(P.G + 12, ext[1] - ext[0] + 4);
     const midA = (ext[0] + ext[1]) / 2;
-    const CT = F.at(midA, -1.2 + (ACRF - ACR) / 2, 0); CT.y = bedY;
+    const CT = F.at(midA, -1.2 + (ACRF - ACR) / 2, 0); CT.y = bedY + 3.2;   // (a little up: a stone hanging over the far row stays below the top pill)
     // (the lens is 32° high: the picture is about 0.72 of the distance wide; the row of the stock is the widest thing)
-    const dCam = Math.max(34, (span + 4) / 0.72), el = 56 * Math.PI / 180;
+    const dCam = Math.max(38, (span + 4) / 0.64), el = 62 * Math.PI / 180;
     const CP = { x: CT.x - F.nx * dCam * Math.cos(el), y: CT.y + dCam * Math.sin(el), z: CT.z - F.nz * dCam * Math.cos(el) };
     const camWork = (dur = 1.2) => X.shot([CP.x, CP.y, CP.z], [CT.x, CT.y, CT.z], dur);
 
@@ -245,19 +245,23 @@ export const BOND = {
       C.tipWorld(tip); C.hoist.show(true); C.hoist.set({ x: tip.x, y: tip.y, z: tip.z }, hk, 0);
       for (let k = 0; k < 2; k++) { const sg = k ? 1 : -1; legs[k].show(true); legs[k].set(hk, { x: s.m.position.x + ax.x * sg * s.L * 0.32, y: s.m.position.y + H / 2, z: s.m.position.z + ax.z * sg * s.L * 0.32 }, 0); }
     }
+    /** what the finger takes: the nearest of the jib (its head, or its arm), the guide rope, the stone, each by its own reach on the
+     *  screen (the jib comes toward the camera and its arm crosses the hanging stone and the rope: the nearest wins, not an order) */
     function gripOf(p) {
       if (A.phase !== 'carry' || !A.cur) return null;
-      C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z);
-      if (tq.on !== false && Math.hypot(tq.x - p.x, tq.y - p.y) < 70) return 'jib';
-      { C.headWorld(hd); const a = X.scr(hd.x, hd.y, hd.z), vx = tq.x - a.x, vy = tq.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0.3, 1); if (Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y) < 34) return 'jib'; }
-      // (the guide rope before the stone when the finger is nearer the rope's line than the stone's middle: a far stone is small on the
-      // screen and its rope starts inside the stone's 55 px)
-      const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z), dS = Math.hypot(st.x - p.x, st.y - p.y);
-      const e2 = ropeEnd(), h = tagHand(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
-      { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.9), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 36 && (dS >= 55 || d < dS * 0.6)) return 'rope'; }
-      if (dS < 55) return 'stone';
-      if (Math.hypot(st.x - p.x, st.y - p.y) < 90) return 'stone';
-      return null;
+      const seg = (a, b, u0, u1) => { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, u0, u1); return Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); };
+      C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z); C.headWorld(hd); const hq = X.scr(hd.x, hd.y, hd.z);
+      const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z);
+      const e2 = ropeEnd(), h = tagHand(), ra = X.scr(h.x, h.y, h.z), rb = X.scr(e2.x, e2.y, e2.z);
+      const c = [
+        ['jib', tq.on !== false ? Math.hypot(tq.x - p.x, tq.y - p.y) / 70 : 9],
+        ['jib', seg(hq, tq, 0.3, 1) / 34 + 0.15],
+        ['rope', seg(ra, rb, 0, 0.9) / 36],
+        ['stone', Math.hypot(st.x - p.x, st.y - p.y) / 55],
+      ];
+      let best = null; for (const k of c) if (k[1] < 1 && (!best || k[1] < best[1])) best = k;
+      if (best) return best[0];
+      return Math.hypot(st.x - p.x, st.y - p.y) < 90 ? 'stone' : null;
     }
     /** a still stone: the place under it, or the floor (back to its place in the row) */
     function land() {

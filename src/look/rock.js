@@ -4,7 +4,7 @@
  * cream, clean, a sharper grain. The same program as the stones (src/look/shader.js).
  *
  *   rockMat(THREE, map, o) (o.vertexColors: the big rock's bands) · freshMat(THREE, map, o) · rockTint(seed) / freshTint(seed) → '#rrggbb'
- *   cutCellPatch(sh, { pits, nc, fill }) — the hill's shader: a cut cell's walls are quarried rock mapped by world position with pick
+ *   cutCellPatch(sh, { pits, nc, fill, map }) — the hill's shader: a cut cell's walls are quarried rock mapped by world position with pick
  *   marks, its floor levelled rock with dressing strokes; an open waste pit's floor is rubble in earth, a covered one a packed-earth cap
  *   with a few stones showing, its edge blended into the ground ── /look A ── */
 import { KIND, lookMat, lookClone } from './shader.js';
@@ -39,7 +39,7 @@ export function cutCellPatch(sh, o) {
   (o.pits || []).slice(0, PIT_N).forEach((P, i) => R[i].set(P.x, P.z, P.w / 2, P.d / 2));
   sh.uniforms.uLkPitR = { value: R };
   sh.uniforms.uLkPitF = { get value() { const f = o.fill() || []; for (let i = 0; i < PIT_N; i++) F[i] = f[i] == null ? -1 : f[i]; return F; } };
-  sh.uniforms.uLkNC = { value: o.nc };
+  sh.uniforms.uLkNC = { value: o.nc }; sh.uniforms.uLkRockT = { value: o.map };   // ── look B ── (the rock's texture: the hill has no map now) ── /look B ──
   // (all the pits' box, 2.4 amot wider: the hill elsewhere skips the pits' loop)
   const B = new o.THREE.Vector4(1e9, 1e9, -1e9, -1e9);
   (o.pits || []).slice(0, PIT_N).forEach((P) => { B.x = Math.min(B.x, P.x - P.w / 2 - 2.4); B.y = Math.min(B.y, P.z - P.d / 2 - 2.4); B.z = Math.max(B.z, P.x + P.w / 2 + 2.4); B.w = Math.max(B.w, P.z + P.d / 2 + 2.4); });
@@ -49,7 +49,7 @@ export function cutCellPatch(sh, o) {
     .replace('vec3 transformed = vec3(position.x, hY, position.z);', 'vec3 transformed = vec3(position.x, hY, position.z); vLkY = hY; vLkCid = aCid;');
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', `#include <common>
-      varying float vLkY; varying float vLkCid; uniform vec4 uLkPitR[${PIT_N}]; uniform float uLkPitF[${PIT_N}]; uniform float uLkNC; uniform vec4 uLkPitB;`)
+      varying float vLkY; varying float vLkCid; uniform sampler2D uLkRockT; uniform vec4 uLkPitR[${PIT_N}]; uniform float uLkPitF[${PIT_N}]; uniform float uLkNC; uniform vec4 uLkPitB;`)
     .replace('void main() {', `
       // (rubble: a lump in each cell of a jittered grid, lit on its sun side, a dark rim; .x: inside it 0..1, .y: its shade)
       vec2 lkRubble(vec2 p, float dens) {
@@ -81,7 +81,7 @@ export function cutCellPatch(sh, o) {
         vec2 g1x = (ay ? vec2(lkWx.x, -lkWx.z) : axx ? lkWx.zy : lkWx.xy) / 7.0, g1y = (ay ? vec2(lkWy.x, -lkWy.z) : axx ? lkWy.zy : lkWy.xy) / 7.0;
         float wall = 1.0 - smoothstep(0.45, 0.8, abs(lkFn.y));
         // (the rock texture by world position, box-projected: no stretch down a wall)
-        float tl = dot(textureGrad(map, u1, g1x, g1y).rgb, vec3(0.333)) / 0.5;
+        float tl = dot(textureGrad(uLkRockT, u1, g1x, g1y).rgb, vec3(0.333)) / 0.5;
         float vn = hn(W.xz / 6.0 + W.y * 0.3);
         float along = abs(lkFn.x) > abs(lkFn.z) ? W.z : W.x;
         // (linear colours, as the hill's own) the walls: quarried rock, vertical pick marks (8 to the amah, irregular), a little darker

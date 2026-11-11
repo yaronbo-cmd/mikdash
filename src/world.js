@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { rng, makeNoise, smooth, lerp } from './util.js';
 import { PLAT } from './mount.js';
+import { groundMat } from './look/ground.js';   // ── look B ── ── /look B ──
 
 const NA = makeNoise(11), NB = makeNoise(29), NC = makeNoise(47), ND = makeNoise(83);
 function prof(xs, ys, x) {
@@ -78,33 +79,41 @@ export function terrainColor(x, z, h, ny, c) {
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
   return c;
 }
+// ── look B ── the ground's two vertex values (look/ground.js aGr): x the rock's bias (outcrops in patches of 30–80 amot, none in the
+// city), y a hollow's darker earth (the valley bottoms, where the old green was) ── /look B ──
+const NE = makeNoise(131);
+export function terrainGr(x, z, h, out) {
+  const city = cityMask(x, z);
+  out[0] = smooth(0.58, 0.78, NE(x / 55 + 4, z / 55 - 7, 3)) * 0.75 * (1 - city);
+  out[1] = Math.min(1, smooth(-95, -135, h) * 0.7 + smooth(0.6, 0.8, NE(x / 140 - 2, z / 140 + 5, 2)) * 0.3) * (1 - city);
+  return out;
+}
 
-export function buildTerrain(groundMap) {
+export function buildTerrain() {
   const N = 260, a = 910, b = 2730, n1 = N + 1;
   const xs = new Float32Array(n1);
   for (let i = 0; i <= N; i++) { const t = i / N * 2 - 1; xs[i] = a * t + b * t * t * t; }
-  const pos = new Float32Array(n1 * n1 * 3), uv = new Float32Array(n1 * n1 * 2);
+  const pos = new Float32Array(n1 * n1 * 3);
   for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) {
     const k = j * n1 + i, x = xs[i], z = xs[j];
     pos[k * 3] = x; pos[k * 3 + 1] = terrainH(x, z); pos[k * 3 + 2] = z;
-    uv[k * 2] = x / 30; uv[k * 2 + 1] = -z / 30;
   }
   const idx = [];
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a0 = j * n1 + i, b0 = a0 + 1, c0 = a0 + n1, d0 = c0 + 1; idx.push(a0, c0, b0, b0, c0, d0); }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
-  const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3);
+  const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3), gr = new Float32Array(n1 * n1 * 2), o = [0, 0];
   const c = new THREE.Color();
   for (let k = 0; k < n1 * n1; k++) {
     terrainColor(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], nor[k * 3 + 1], c);
     col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
+    terrainGr(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], o); gr[k * 2] = o[0]; gr[k * 2 + 1] = o[1];
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, map: groundMap, roughness: 1, metalness: 0 });
-  const mesh = new THREE.Mesh(g, mat);
+  g.setAttribute('aGr', new THREE.BufferAttribute(gr, 2));
+  const mesh = new THREE.Mesh(g, groundMat(THREE));   // ── look B ── (the ground's one material: look/ground.js) ── /look B ──
   mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
   return mesh;
 }

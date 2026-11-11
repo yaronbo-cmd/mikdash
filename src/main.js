@@ -87,7 +87,7 @@ function makeMats() {
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const T = {
     ash: TX.texAshlar(7), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17), marble: TX.texMarble(23),
-    plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), ground: TX.texGround(71), lattice: TX.texLattice(),
+    plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), lattice: TX.texLattice(),
     puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91),
   };
   for (const v of Object.values(T)) for (const t of (v.isTexture ? [v] : Object.values(v))) t.anisotropy = aniso;
@@ -623,7 +623,7 @@ async function boot() {
   nightG = new THREE.Group(); BN.build(nightG); nightG.visible = false; scene.add(nightG);
   for (const [x, z] of MENOROT) P('menorot', x - 3.5, 6, z - 3.5, x + 3.5, 56, z + 3.5, true);
   prog(0.62, 'שותלים זיתים בהר המשחה…'); await tick();
-  scene.add(buildTerrain(T.ground.map));
+  scene.add(buildTerrain());   // ── look B ── (its own ground material) ── /look B ──
   buildTrees(scene, city.trees, city.olives, city.courtTrees);   // ── world6 ── (+ the palace gardens' cypresses, the olive rows on the terraces)
   lamps = new THREE.Points(city.lampGeo, new THREE.PointsMaterial({ size: 3.2, sizeAttenuation: false, color: new THREE.Color(2.6, 1.5, 0.6), map: TX.texGlow(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
   lamps.visible = false; lamps.frustumCulled = false; scene.add(lamps);
@@ -695,14 +695,16 @@ async function boot() {
       const HU = stages._dbg && stages._dbg.hill && stages._dbg.hill.U;
       const ter = HU && HU.uPit && scene.children.find((o) => o.isMesh && o.geometry && o.geometry.attributes.position && o.geometry.attributes.position.count === 261 * 261 && o.material && !o.material.onBeforeCompile.toString().includes('uPit'));
       if (ter) {
-        ter.material.onBeforeCompile = (sh) => {
+        const ob = ter.material.onBeforeCompile, ok = ter.material.customProgramCacheKey();   // ── look B ── (after the ground's own patch) ── /look B ──
+        ter.material.onBeforeCompile = (sh, r) => {
+          ob(sh, r);
           sh.uniforms.uPit = HU.uPit; sh.uniforms.uPitK = HU.uPitK; sh.uniforms.uFill = HU.uFill;
           sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec4 uPit; uniform float uPitK; uniform float uFill;')
             .replace('#include <begin_vertex>', `#include <begin_vertex>
               if (uPitK > 0.0 && uPit.z > uPit.x) { vec2 pq = max(uPit.xy - 8.0 - position.xz, position.xz - uPit.zw - 8.0);
                 if (max(pq.x, pq.y) < 0.0) transformed.y = mix(transformed.y, min(transformed.y, uFill - 0.3), uPitK); }`);
         };
-        ter.material.customProgramCacheKey = () => 'terrain-site9';
+        ter.material.customProgramCacheKey = () => ok + '-site9';
         ter.material.needsUpdate = true;
       }
     } catch (e) { console.warn('[site9] terrain bay', e); }

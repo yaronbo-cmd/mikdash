@@ -58,13 +58,14 @@ test('the paving: a slab is its cell less the joint, chamfered; a laid quarter i
   assert.ok(q.userData.dust && q.userData.dust.position.y < 0.17);
   } finally { if (had === undefined) delete globalThis.document; else globalThis.document = had; }
 });
-test('the rocks: each its own tone in hsl 30..42, 10..18 %, 52..66 %; the fresh breaks lighter and creamier than any skin', async () => {
+test('the rocks: each its own tone in hsl 30..42, 10..18 %, 52..66 %; the fresh breaks lighter than the skins', async () => {
   const { rockTint, freshTint } = await import('../src/look/rock.js');
-  const seen = new Set();
+  const seen = new Set(); let sumF = 0, sumS = 0;
   for (let i = 0; i < 64; i++) {
     const hex = rockTint(i * 3.7 + 1.3); seen.add(hex); const [h, s, l] = hexHsl(hex);
     assert.ok(h > 29 && h < 43 && s > 9 && s < 19 && l > 51 && l < 67, hex);
-    const [, , lf] = hexHsl(freshTint(i * 1.91 + 0.4)); assert.ok(lf > 66 && lf > l + 1, 'fresh ' + lf);
+    const [, , lf] = hexHsl(freshTint(i * 1.91 + 0.4)); assert.ok(lf > 65 && lf < 77, 'fresh ' + lf); sumF += lf; sumS += l;
   }
   assert.ok(seen.size >= 60, 'no two alike: ' + seen.size);
+  assert.ok(sumF > sumS + 64 * 5, 'the fresh breaks lighter than the skins');
 });

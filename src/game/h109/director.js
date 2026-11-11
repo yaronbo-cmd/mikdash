@@ -627,6 +627,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's
     // own act may set its own rects in its begin() ── /h114 ──
     try { const sp = standOf(mission), at = act.at ? act.at() : null; if (S0.keepOut && sp) { const xs = [sp.x, at ? at.x : sp.x], zs = [sp.z, at ? at.z : sp.z], m = 16; S0.keepOut([[Math.min(...xs) - m, Math.min(...zs) - m, Math.max(...xs) + m, Math.max(...zs) + m]]); } } catch (e) { /* */ }
+    // ── h118 ── the Mount's onlookers (crowd.js 'site': the scribe, the overseer, the bread seller) gather round the builder's spot and stand
+    // there; inside a minigame only the crews who work are in the picture (rule: side figures build, never stand) ── /h118 ──
+    try { if (S0.crowd) S0.crowd.setEnabled(false); } catch (e) { /* */ }
     document.body.classList.add('h109-act');
     // an act whose shot comes close (the letters on the stone) asks for it: the world camera's 35-amot floor gives way while it holds
     try { if (act.close && view.closeCam) view.closeCam(true, 'h109'); } catch (e) { /* */ }
@@ -654,6 +657,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     call(a.end, res);
     if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ──
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
+    try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
     M.done({ ...res, stars });
     syncMount(false);

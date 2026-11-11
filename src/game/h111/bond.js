@@ -14,6 +14,7 @@ import { H111, starsOf, checkCourse, canFinish, misplaced, puzzleOf } from './mo
 import { SH2, frameOf, rowOff, stoneMesh, placeStone, laidFill } from './world.js';
 import { onPlane, clamp, lerp, ease } from '../h109/kit.js';
 import { chalkTag } from '../h109/acts3.js';
+import { standTop, rampFor } from './acts.js';
 
 const H = H111.H, ROW = H111.ROW, T6 = H111.T;
 const INK = 'rgba(70,44,26,.95)';   // the builders' marks in charcoal (המחשה): white chalk did not read on the pale stones
@@ -65,8 +66,10 @@ function luffCrane(X, mastH, J) {
 export const BOND = {
   icon: '🧱', title: 'הנדבך בקשר',
   walkLine: (m) => `קטע ${m.s} של החומה: הנדבך בקשר`,
-  stand(m) { const F = frameOf(m.s), p = F.at(F.G / 2 - 3, -15); const c = F.at(F.G / 2, 0); return { x: p.x, z: p.z, face: [c.x, c.z] }; },
-  prepare(m, X) { try { X.stages.s20Pin(null); } catch (e) { /* */ } try { SH2.crane.g.visible = false; } catch (e) { /* */ } },
+  // (he walks up to the wall's top by the crews' ramp, as for the plumb line: the court behind the Heichal is no way for him (stretch 4
+  // never arrived); the kohen is not in this game; the ramp stays at the stretch's start, the stock row begins after it)
+  stand(m) { return standTop(frameOf(m.s), -1.4, 0.4); },
+  prepare(m, X) { try { X.stages.s20Pin(rampFor(frameOf(m.s))); } catch (e) { /* */ } try { SH2.crane.g.visible = false; } catch (e) { /* */ } },
   make(m, X) {
     const F = frameOf(m.s), P = puzzleOf(m.s), lv = P.lv, T = X.THREE, PR = X.props;
     const A = { phase: 'open', t: 0, cur: null, stones: [], ids: 0, lifts: 0, cracks: 0, chalked: 0, drop: 0, v: 0, rise: 0, grip: null, pend: null, aimP: null, sway: { x: 0, z: 0, vx: 0, vz: 0 }, tipP: null, rotT: 0, rv: 0, misses: 0, said: {}, done: false, busy: false };
@@ -107,9 +110,10 @@ export const BOND = {
     // where each lies along the wall: one row centred on the gap; at a gate's stretch two rows, left and right of the opening (the
     // court in front of the opening is the gate's way, the frame's foot is there), the next stone to the shorter side
     const slot = (() => {
-      let x0 = P.G / 2 - tot / 2; if (!P.open) return (L) => { const c = x0 + L / 2; x0 += L + 0.6; return c; };
+      // (never before along −1.5: the crews' ramp leans on the inner face at along −8.7…−2.3, rampFor)
+      let x0 = Math.max(-1.5, P.G / 2 - tot / 2); if (!P.open) return (L) => { const c = x0 + L / 2; x0 += L + 0.6; return c; };
       let lx = P.open[0] - 0.4, rx = P.open[1] + 0.4;
-      return (L) => { if (P.open[0] - lx <= rx - P.open[1]) { const c = lx - L / 2; lx -= L + 0.6; return c; } const c = rx + L / 2; rx += L + 0.6; return c; };
+      return (L) => { if (P.open[0] - lx <= rx - P.open[1] && lx - L >= -1.5) { const c = lx - L / 2; lx -= L + 0.6; return c; } const c = rx + L / 2; rx += L + 0.6; return c; };
     })();
     const stock = P.stock.map((q) => {
       const home = F.at(slot(q.L), ACR, 0);

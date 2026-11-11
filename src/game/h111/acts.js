@@ -31,82 +31,9 @@ function stationCrew(X, F, o = {}) {
 /** the crane stands on the wall's top past the stock, its jib over the work */
 function craneAt(X, F, along) { const p = F.at(along, 0.2); SH2.crane.place(p.x, p.z, F.yaw + Math.PI / 2 * 0 + Math.atan2(-F.ux, -F.uz) - Math.atan2(F.ux, F.uz) * 0); SH2.crane.g.visible = true; SH2.craneAt = { s: F.s, along }; const c = F.at(F.G / 2, 0); SH2.crane.aim(c.x, c.z, 1); }
 
-/* ───────── 1. the line and the stakes (once, the opening) ───────── */
-// the azara 187 × 135 (Middot 5:1): its inner corners; the crews' stakes at three, the kohen's at the north-east
-const AZ = { A: [-187, -67.5], B: [-187, 67.5], C: [0, 67.5], D: [0, -67.5], N: 187, E: 135 };
-export const STAKES = {
-  icon: '📏', title: 'הקו והיתדות',
-  walkLine: () => 'פינת העזרה הצפונית-מזרחית: מותחים את הקו',
-  stand() { return { x: 3.5, z: -58.5, face: [-4.6, -64.1] }; },
-  prepare(m, X) { try { X.stages.s20Pin(null); } catch (e) { /* */ } },
-  make(m, X) {
-    const lv = X.level(), P = X.props, T = X.THREE;
-    const g = (x, z) => X.ground(x, z);
-    const st = [P.stake(AZ.A[0], AZ.A[1], 1.6, true), P.stake(AZ.B[0], AZ.B[1], 1.6, true), P.stake(AZ.C[0], AZ.C[1], 1.6, true)];
-    const D0 = { x: AZ.D[0] - 4.6, z: AZ.D[1] + 3.4 };
-    const A = { d: { ...D0 }, drag: false, done: false, t: 0, moved: false, tries: 0 };
-    const stake = P.stake(A.d.x, A.d.z, 3.2, true);
-    const rN = P.rope(28, 0.22), rE = P.rope(28, 0.22), rD = P.rope(36, 0.12);
-    const whiteM = new T.MeshBasicMaterial({ color: 0xFFF3D6 }); rD.mesh.material = whiteM;
-    // the sides the crews have staked already (west, south): chalk on the ground, so the court's shape is read from the first second
-    const chalk = [];
-    for (const [a, b] of [[AZ.A, AZ.B], [AZ.B, AZ.C]]) { const m0 = new T.Mesh(P.geo.box, P.M.chalk || P.M.ring); const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2, L = Math.hypot(b[0] - a[0], b[1] - a[1]); m0.scale.set(L, 0.05, 0.5); m0.position.set(mx, g(mx, mz) + 0.08, mz); m0.rotation.y = Math.atan2(-(b[1] - a[1]), b[0] - a[0]); P.root.add(m0); chalk.push(m0); }
-    const labN = label(X), labE = label(X), labD = label(X);
-    const goldM = new T.MeshBasicMaterial({ color: 0xFFD66E });
-    const crew = [SH2.crew.add(AZ.C[0] - 6, AZ.C[1] - 4, { role: 'hold', item: 'rope', fx: AZ.C[0], fz: AZ.C[1], crew: 2 }), SH2.crew.add(-12, -61, { role: 'point', fx: AZ.D[0], fz: AZ.D[1], crew: 0 })];
-    const len = () => ({ n: Math.hypot(A.d.x - AZ.A[0], A.d.z - AZ.A[1]), e: Math.hypot(A.d.x - AZ.C[0], A.d.z - AZ.C[1]), dg: Math.hypot(A.d.x - AZ.B[0], A.d.z - AZ.B[1]) });
-    const DG = Math.hypot(AZ.N, AZ.E);
-    function draw() {
-      const y = g(A.d.x, A.d.z) + 1.3, L = len(), ok = Math.abs(L.n - AZ.N) <= 0.25 && Math.abs(L.e - AZ.E) <= 0.25;
-      stake.position.set(A.d.x, g(A.d.x, A.d.z), A.d.z);
-      rN.set({ x: A.d.x, y, z: A.d.z }, { x: AZ.A[0], y: g(AZ.A[0], AZ.A[1]) + 1.3, z: AZ.A[1] }, 0);
-      rE.set({ x: A.d.x, y, z: A.d.z }, { x: AZ.C[0], y: g(AZ.C[0], AZ.C[1]) + 1.3, z: AZ.C[1] }, 0);
-      rD.set({ x: A.d.x, y: y - 0.3, z: A.d.z }, { x: AZ.B[0], y: g(AZ.B[0], AZ.B[1]) + 1.0, z: AZ.B[1] }, 0);
-      for (const r of [rN, rE]) r.mesh.material = ok ? goldM : whiteM;
-      // the numbers near his stake, along each rope (their far ends are off the frame)
-      const along = (bx, bz, d) => { const dx = bx - A.d.x, dz = bz - A.d.z, l = Math.hypot(dx, dz); return { x: A.d.x + (dx / l) * d, y: y + 0.6, z: A.d.z + (dz / l) * d }; };
-      labN.set(`צפון ${L.n.toFixed(1)} / 187`, along(AZ.A[0], AZ.A[1], 9)); labE.set(`מזרח ${L.e.toFixed(1)} / 135`, along(AZ.C[0], AZ.C[1], 7));
-      labD.set(Math.abs(L.dg - DG) <= 0.35 ? 'האלכסונים שווים ✓' : `אלכסון ${L.dg.toFixed(1)}`, along(AZ.B[0], AZ.B[1], 11));
-      labN.el.classList.toggle('hot', Math.abs(L.n - AZ.N) <= 0.25); labE.el.classList.toggle('hot', Math.abs(L.e - AZ.E) <= 0.25); labD.el.classList.toggle('hot', ok);
-      return ok;
-    }
-    function shot() { X.shot([-40, g(-30, -30) + 42, -22], [-14, g(-8, -60) + 0.5, -58], 1.0); }
-    async function drive() {
-      A.done = true; X.hand(null);
-      const L = len(), err = Math.max(Math.abs(L.n - AZ.N), Math.abs(L.e - AZ.E));
-      const grade = err <= 0.25 ? 'gold' : err <= 0.7 ? 'good' : 'ok';
-      try { X.hero.act('tamp', { x: A.d.x, y: g(A.d.x, A.d.z) + 1.5, z: A.d.z }, { snap: true }); } catch (e) { /* */ }
-      X.play('stamp'); X.dust(A.d.x, g(A.d.x, A.d.z) + 0.2, A.d.z, 8, 1.4);
-      const at = { x: A.d.x, y: g(A.d.x, A.d.z) + 2.5, z: A.d.z };
-      if (grade === 'ok') {
-        // a release with the sides unequal: the master moves the stake (no damage: fewer points)
-        X.word(at, 'האלכסונים לא שווים · רב האומנים מזיז את היתד');
-        const from = { ...A.d }; for (let k = 1; k <= 20; k++) { await sleep(40); const u = ease(k / 20); A.d.x = lerp(from.x, AZ.D[0], u); A.d.z = lerp(from.z, AZ.D[1], u); draw(); }
-      } else X.hit(at, grade, { text: grade === 'gold' ? 'פינה ישרה' : '', craft: 'מודדים' });
-      await sleep(700);
-      // the crews dig the trenches along the lines (the wall's plan on the ground), and the openings of the gates are kept
-      X.line('הצוותים חופרים יסודות לאורך הקווים');
-      await sleep(1600);
-      X.end({ q: grade === 'gold' ? 1 : grade === 'good' ? 0.8 : 0.5, at });
-    }
-    return {
-      begin() { shot(); draw(); X.line('גררו את היתד עד ששני הצדדים במידתם'); X.hand({ x: A.d.x, y: g(A.d.x, A.d.z) + 1.4, z: A.d.z }, 40, -20); try { X.hero.setPos(3.5, -58.5, Math.atan2(-8.1, -5.6)); } catch (e) { /* */ } },
-      update(dt) { A.t += dt; for (const L of [labN, labE, labD]) L.frame(); },
-      down(p) { if (A.done) return; const q = onPlane(X, p.x, p.y, g(A.d.x, A.d.z) + 0.8); if (q && Math.hypot(q.x - A.d.x, q.z - A.d.z) < 6) A.drag = true; },
-      move(p) {
-        if (!A.drag || A.done) return; const q = onPlane(X, p.x, p.y, g(A.d.x, A.d.z) + 0.8); if (!q) return;
-        A.d.x = clamp(q.x, AZ.D[0] - 9, AZ.D[0] + 3); A.d.z = clamp(q.z, AZ.D[1] - 3, AZ.D[1] + 9); A.moved = true; draw();
-      },
-      up() { if (A.drag && A.moved && !A.done) { A.drag = false; drive(); } A.drag = false; },
-      end() {
-        for (const o of [stake, ...st, ...chalk]) P.remove(o); for (const r of [rN, rE, rD]) r.dispose(); for (const L of [labN, labE, labD]) L.remove(); for (const w of crew) SH2.crew.remove(w);
-        holesOn(X, true);
-      },
-      at() { return { x: A.d.x, y: g(A.d.x, A.d.z) + 2, z: A.d.z }; },
-      dbg() { const L = len(), q = X.scr(A.d.x, g(A.d.x, A.d.z) + 0.8, A.d.z), t = X.scr(AZ.D[0], g(AZ.D[0], AZ.D[1]) + 0.8, AZ.D[1]); return { done: A.done, n: +L.n.toFixed(2), e: +L.e.toFixed(2), stake: [Math.round(q.x), Math.round(q.y)], target: [Math.round(t.x), Math.round(t.y)] }; },
-    };
-  },
-};
+/* ───────── 1. the line and the stakes: h111/stakes.js (build 118) ───────── */
+import { STAKES } from './stakes.js';
+export { STAKES };
 
 /* ───────── 2. the course in bond (the station that repeats, nine times) ───────── */
 export const BOND = {

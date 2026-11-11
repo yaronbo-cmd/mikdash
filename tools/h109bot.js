@@ -132,7 +132,15 @@
       return { holdUntil: [a.tp[0], a.tp[1], C(`return !a||a.part!==3||(a.hold&&a.breath>=${mid.toFixed(3)})`), 6000], wait: 900, note: 'letters: blow ' + a.blast };
     },
     // ── build 111 ── stage 02's acts (h111/acts*.js dbg())
-    stakes(a) { if (a.done) return { wait: 300 }; return { drag: [a.stake[0], a.stake[1], a.target[0], a.target[1], 900], wait: 400 }; },
+    // ── h118 ── the kohen carries the stake: drag it to the corner, wait for him, then three blows; a failed test → tap to pull ── /h118 ──
+    stakes(a) {
+      if (a.phase === 'pull') return { tap: a.stakeScr, wait: 900, note: 'stakes: pull' };
+      if (a.phase !== 'walk') return { wait: 400 };
+      if (a.walking) return { wait: 300 };
+      const off = Math.max(Math.abs(a.n - a.needN), Math.abs(a.e - a.needE));
+      if (off > a.tol * 0.6 && a.taps === 0) return { drag: [a.stakeScr[0], a.stakeScr[1], a.targetScr[0], a.targetScr[1], 700], wait: 1500, note: `stakes: walk n ${a.n} e ${a.e}` };
+      return { tap: a.stakeScr, wait: 800, note: `stakes: blow ${a.taps + 1}` };
+    },
     bond(a) {
       if (a.done || a.closing || a.held) return { wait: 300 };
       const laid = (a0, L, row) => a.laid.some((q) => q[0] === a0 && q[1] === L && String(q[2]) === String(row));

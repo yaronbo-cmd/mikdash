@@ -7,6 +7,8 @@ import { onPlane, clamp, lerp, ease } from './kit.js';
 import { wasteAdd } from './acts2.js';
 import { BOOK, cellOf } from '../world/grid.js';
 import { makeTrack, stepStone, limitAt, restAt, SL } from './slope.js';
+import { woodMat, clothMat } from '../../look/wood.js';   // ── look A ── ── /look A ──
+import { rockClone } from '../../look/rock.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -77,7 +79,8 @@ function cornerPit(X, chalk) {
   // filling green while the stone hangs over it; a gold line rising from the corner to the platform's level (where the corner will
   // stand). ── /h115 ──
   const T = X.THREE, g = new T.Group(); g.name = 'h114-corner-pit'; const gy = X.ground(CORNER_AT.x, CORNER_AT.z);
-  const earth = new T.MeshStandardMaterial({ color: '#6B5236', roughness: 1 }), heap = new T.MeshStandardMaterial({ color: '#8A6E4B', roughness: 1, flatShading: true });
+  // ── look A ── the trench dug in earth and rock, its heaps of spoil: the rock skin in earth tones (src/look/rock.js) ── /look A ──
+  const rm = X.props.M.rock, earth = rockClone(rm, '#7A5E40'), heap = rockClone(rm, '#97795A');
   const ox = CORNER_AT.x, oz = CORNER_AT.z, TW = 4.2, LE = 16, LS = 18;   // (trench width; the east arm's and the south arm's lengths)
   const arm = (x0, x1, z0, z1) => {
     const f = new T.Mesh(new T.BoxGeometry(x1 - x0, 0.1, z1 - z0), earth); f.position.set((x0 + x1) / 2 - ox, -PIT, (z0 + z1) / 2 - oz); f.receiveShadow = true; g.add(f);
@@ -1072,8 +1075,8 @@ export const LETTERS = {
           const st = new T.Group(); st.position.set(P.x, P.y, P.z); st.rotation.y = a + Math.PI; world.add(st);
           const cnt = new T.Mesh(new T.BoxGeometry(4.4, 1.6, 1.6), wood); cnt.position.set(0, 0.8, 0); st.add(cnt);
           for (const sx of [-2, 2]) { const po = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 3.6, 5), wood); po.position.set(sx, 1.8, 0.7); st.add(po); }
-          const aw = new T.Mesh(new T.BoxGeometry(4.8, 0.08, 2.4), new T.MeshStandardMaterial({ color: cloths[k + 1], roughness: 0.9 })); aw.geometry.translate(0, 0, -1.2); aw.position.set(0, 3.5, 0.8); aw.rotation.x = -0.35; st.add(aw);
-          const sh = new T.Mesh(new T.BoxGeometry(4.4, 1.7, 0.12), new T.MeshStandardMaterial({ color: '#6B4A2A', roughness: 1 })); sh.position.set(0, 0.85, -0.86); sh.scale.y = 0.01; st.add(sh);
+          const aw = new T.Mesh(new T.BoxGeometry(4.8, 0.08, 2.4), clothMat(T, cloths[k + 1]));   /* ── look A ── ── /look A ── */ aw.geometry.translate(0, 0, -1.2); aw.position.set(0, 3.5, 0.8); aw.rotation.x = -0.35; st.add(aw);
+          const sh = new T.Mesh(new T.BoxGeometry(4.4, 1.7, 0.12), woodMat(T, 'old'));   /* ── look A ── (the shutter) ── /look A ── */ sh.position.set(0, 0.85, -0.86); sh.scale.y = 0.01; st.add(sh);
           for (let j = 0; j < 4; j++) { const gd = new T.Mesh(new T.SphereGeometry(0.26, 6, 4), new T.MeshStandardMaterial({ color: ['#C8432B', '#E3B23C', '#6C8E3A', '#8B4A8B'][j], roughness: 0.8 })); gd.position.set(-1.5 + j, 1.8, 0); st.add(gd); }
           it.aw = aw; it.sh = sh; it.w = SH.crew.add(P.x + Math.sin(a + Math.PI) * 1.6, P.z + Math.cos(a + Math.PI) * 1.6, { role: 'hold', fx: P.x, fz: P.z, crew: 2 });
         } else {
@@ -1089,7 +1092,7 @@ export const LETTERS = {
     const hw = [16, 12, 9][lv - 1] * deg, wind = lv >= 3 ? 7 * deg : 0;
     const fan = new T.Mesh(new T.CircleGeometry(1, 24, -hw, hw * 2), new T.MeshBasicMaterial({ color: '#FFD36A', transparent: true, opacity: 0.2, depthWrite: false, depthTest: false, side: T.DoubleSide }));
     fan.rotation.x = -Math.PI / 2; fan.renderOrder = 4; fan.visible = false; world.add(fan);
-    const flag = new T.Mesh(new T.PlaneGeometry(0.9, 0.45), new T.MeshStandardMaterial({ color: '#D9483B', side: T.DoubleSide })); flag.visible = wind > 0; world.add(flag);
+    const flag = new T.Mesh(new T.PlaneGeometry(0.9, 0.45), clothMat(T, '#D9483B'));   /* ── look A ── ── /look A ── */ flag.visible = wind > 0; world.add(flag);
     const pole = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 3, 5), wood); pole.position.set(-299.75, TOP.y + 1.5, 396.3); pole.visible = wind > 0; world.add(pole);
     // the breath: a bar with its band (let go inside it), on the screen under the trumpeter
     const ui = document.createElement('div'); ui.className = 'h109-ui h114-breath';

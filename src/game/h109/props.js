@@ -6,8 +6,9 @@
 import { stoneMat, ashOf as ashOf0, ashlarGeo, plainGeo, ashGeoOf, neighbourTint } from '../../look/stone.js';   // ── look A ── ── /look A ──
 import { lookClone, lookSet } from '../../look/shader.js';
 import { rockMat, freshMat, rockTint, freshTint, rockClone } from '../../look/rock.js';
+import { woodMat, ropeMat, clothMat, ironMat } from '../../look/wood.js';
 
-const WOOD = '#8A6038', WOOD_D = '#6E4A28', ROPE = '#C9B27C', CLOTH = '#B8322A';
+const ROPE = '#C9B27C', CLOTH = '#B8322A';
 
 function hash(x, y, z) { const v = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719) * 43758.5453; return v - Math.floor(v); }
 
@@ -18,10 +19,12 @@ export function createProps({ THREE, scene, ground, stages }) {
     // lump: the rough lumps and waste ── /look A ──
     ash: stoneMat(THREE),
     lump: null,
-    wood: new THREE.MeshStandardMaterial({ color: WOOD, roughness: 0.85, flatShading: true }),
-    woodD: new THREE.MeshStandardMaterial({ color: WOOD_D, roughness: 0.85, flatShading: true }),
-    rope: new THREE.MeshStandardMaterial({ color: ROPE, roughness: 0.9 }),
-    cloth: new THREE.MeshStandardMaterial({ color: CLOTH, roughness: 0.8, side: THREE.DoubleSide }),
+    // ── look A ── wood with its grain (new, and weathered), the rope's strands, the cloth's weave, iron (src/look/wood.js) ── /look A ──
+    wood: woodMat(THREE, 'new'),
+    woodD: woodMat(THREE, 'old'),
+    rope: ropeMat(THREE, ROPE),
+    cloth: clothMat(THREE, CLOTH),
+    iron: ironMat(THREE),
     gold: new THREE.MeshBasicMaterial({ color: 0xFFD66E, transparent: true, opacity: 0.9, depthWrite: false }),
     ring: new THREE.MeshBasicMaterial({ color: 0xFFF2C8, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }),
     seam: new THREE.MeshBasicMaterial({ color: 0x3A2A1A, transparent: true, opacity: 0.85, depthWrite: false }),

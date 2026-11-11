@@ -10,6 +10,7 @@ import * as WG from './wedges.js';   // ── h117 ── ── /h117 ──
 import { paveSlab, paveQuarter, paveBed, JOINT } from '../../look/paving.js';   // ── look A ── the paving slabs ── /look A ──
 import { rockMat as lookRockMat, rockClone, rockTint } from '../../look/rock.js';   // ── look A ── the rocks ── /look A ──
 import { lookFresh } from '../../look/shader.js';
+import { woodMat } from '../../look/wood.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -88,7 +89,7 @@ function wedgeGeo(T) {
 }
 /** ── h117 ── oak with a darker grain (the wedges); the mirror's spot light, made once and kept in the scene (its count of lights never
  *  changes, so no material is rebuilt when it is used) ── /h117 ── */
-function wedgeMat(X) { if (!SH.wedgeM) SH.wedgeM = new X.THREE.MeshStandardMaterial({ color: '#9A6A3A', roughness: 0.85, flatShading: true }); return SH.wedgeM; }
+function wedgeMat(X) { return woodMat(X.THREE, 'fresh'); }   // ── look A ── (fresh-cut wood, lighter) ── /look A ──
 function spotLight(X) {
   if (SH.spotL) return SH.spotL;
   const L = new X.THREE.SpotLight(0xFFF0C4, 0, 0, 0.3, 0.55, 2); L.castShadow = false; L.name = 'h117-mirror-light';
@@ -231,7 +232,7 @@ export const READ = {
     const tally = (n) => { const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64; const g = cv.getContext('2d'); g.strokeStyle = 'rgba(250,246,234,.95)'; g.lineWidth = 9; g.lineCap = 'round'; for (let i = 0; i < n; i++) { g.beginPath(); g.moveTo(30 + i * 34, 10); g.lineTo(30 + i * 34, 54); g.stroke(); } const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true, depthWrite: false, depthTest: false })); sp.scale.set(0.9, 0.45, 1); sp.renderOrder = 999; return sp; };
     function wedgeMesh(p) {
       const g = new T.Group(); const w = new T.Mesh(wedgeGeo(T), wedgeMat(X)); w.castShadow = true; g.add(w);
-      const band = new T.Mesh(new T.BoxGeometry(0.5, 0.08, 0.34), X.props.M.iron || X.props.M.woodD); band.position.set(0, 0, 0.62); band.rotation.x = Math.PI / 2; g.add(band);
+      const band = new T.Mesh(new T.BoxGeometry(0.5, 0.08, 0.34), X.props.M.iron); band.position.set(0, 0, 0.62); band.rotation.x = Math.PI / 2; g.add(band);
       const o = outOf(p); g.position.copy(p).addScaledVector(o, 0.75); g.lookAt(p.x - o.x * 9, p.y - o.y * 9, p.z - o.z * 9);
       g.rotation.z += (hash(p.x, p.z) - 0.5) * 0.3;
       // the slot the mason cut for it: a dark notch on the crack that opens with every blow

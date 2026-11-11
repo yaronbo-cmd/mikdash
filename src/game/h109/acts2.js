@@ -1065,7 +1065,7 @@ function dressFrame(dt, X) {
   for (const D of SH.dress || []) {
     D.t += dt; const k = Math.min(1, D.t / 3.2), b = SH.bould[D.s];
     if (D.R) {
-      D.R.group.scale.setScalar(1 - 0.85 * k); lookFresh(D.dm, k);   // ── look A ── ── /look A ── D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k);
+      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k); lookFresh(D.dm, k);   // ── look A ── ── /look A ──
       D.sparkT -= dt; if (D.sparkT <= 0 && k < 1) { D.sparkT = 0.35; X.sparks(b[0] + (Math.random() - 0.5) * b[2], D.gy + 1.2, b[1] + (Math.random() - 0.5) * b[2], 5); X.play('tool'); }
       D.blocks.forEach((m, i) => { m.visible = k > (i + 1) / (D.n + 1); });
       if (k >= 1) { D.R.dispose(); SH.big[D.s] = null; D.R = null; if (D.lost) wasteAdd(X, 2, null); else X.M.st.yard = (X.M.st.yard | 0) + D.n; yardSync(X); }

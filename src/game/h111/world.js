@@ -28,7 +28,7 @@ export const rowOff = (row) => ROWO[row] ?? 0;
 /* ───────── meshes ───────── */
 export function stoneMesh(X, L, h, d, o = {}) {
   const T = X.THREE, A = X.stages.ashlar, geo = (A && A.geometry) || X.props.geo.box;
-  const m = new T.Mesh(geo, o.mat || X.props.ashOf(o.seed, { set: o.set })); m.scale.set(L, h, d);   // ── look A ── (its own tone) ── /look A ── m.castShadow = true; m.receiveShadow = true;
+  const m = new T.Mesh(geo, o.mat || X.props.ashOf(o.seed, { set: o.set })); m.scale.set(L, h, d); m.castShadow = true; m.receiveShadow = true;   // ── look A ── (its own tone) ── /look A ──
   X.props.root.add(m); return m;
 }
 /** a stone of a stretch, placed: a stretcher (row 0 | 2) of L cells from a, or a header (row 'h') of 2 cells across the whole wall */

@@ -786,7 +786,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     try { if (S0.setCrews && PK.crews) S0.setCrews(...PK.crews); } catch (e) { /* */ }
     onlyNext();
     // (tests: works the crews have done before the page opened — window.__H109_DONE = ['rope', 'rocks0', …])
-    try { const D0 = globalThis.__H109_DONE; if (Array.isArray(D0) && M.pick) for (const id of D0) if (M.pick(id)) M.done({ stars: 2 }); } catch (e) { /* */ }
+    try { const D0 = globalThis.__H109_DONE; if (Array.isArray(D0) && M.pick) { for (const id of D0) if (M.pick(id)) M.done({ stars: 2 }); } else if (Array.isArray(D0)) { while (M.mission() && D0.includes(M.mission().id)) M.done({ stars: 2 }); } } catch (e) { /* */ }
     syncMount(true);   // ── h111 ── (after the one-minigame page's skip: the world shows its mission's stage, not the first one's) ── /h111 ──
     if (ACTS.__init) call(ACTS.__init, X);
     openMission();
@@ -809,6 +809,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
     _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
+    _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──
     _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },
     _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
   };

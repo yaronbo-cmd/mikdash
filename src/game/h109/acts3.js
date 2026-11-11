@@ -408,9 +408,9 @@ function courseWorld(X, c, lv, laid) {
   if (laid) for (const [a, b] of laid) lay(a, b, yB);
   return { out, base: yB, K };
 }
-function chalkTag(X, text, w = 1.3) {
+function chalkTag(X, text, w = 1.3, ink = 'rgba(250,247,238,.95)') {
   const T = X.THREE, cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const g = cv.getContext('2d');
-  g.font = '900 96px Heebo, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(250,247,238,.95)'; g.fillText(text, 128, 70);
+  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = ink; g.fillText(text, 128, 70);
   const tex = new T.CanvasTexture(cv); const m = new T.Mesh(new T.PlaneGeometry(w, w / 2), new T.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
   m.rotation.x = -Math.PI / 2; m.renderOrder = 3;
   const g2 = new T.Group(); g2.add(m); g2.rotation.y = -Math.PI / 2;   // (its top toward the wall: upright for a camera on the Mount's side)
@@ -1333,7 +1333,7 @@ export function frame3(dt, X, sh) {
   if (SH && SH.crane && !X.acting) { SH.reg3T = (SH.reg3T || 0) + dt; if (SH.reg3T > 1.0) { SH.reg3T = 0; try { reground3(X); } catch (e) { /* the world's */ } } }
   void sh;
 }
-export { makeCrane, CORNER_AT, CRANE_AT, GR, LET, TRK as GREAT_TRACK };
+export { makeCrane, chalkTag, CORNER_AT, CRANE_AT, GR, LET, TRK as GREAT_TRACK };
 
 /** ── h115 ── (brief: "a short victory trumpet blast is added at the end of the stage") the stage's last beat before its film: the
  *  trumpeter on the south-west corner's top blows a tekiah twice over the levelled Mount (the music's 'blast' cue, Numbers 10:2;

@@ -141,18 +141,30 @@
       if (off > a.tol * 0.6 && a.taps === 0) return { drag: [a.stakeScr[0], a.stakeScr[1], a.targetScr[0], a.targetScr[1], 700], wait: 1500, note: `stakes: walk n ${a.n} e ${a.e}` };
       return { tap: a.stakeScr, wait: 800, note: `stakes: blow ${a.taps + 1}` };
     },
+    // ── h118 ── the bond puzzle with the crane: tap the stone of the solution in the stock row; carry: rope turns it, drag moves the jib,
+    // a still hold on the stone lowers it ── /h118 ──
     bond(a) {
-      if (a.done || a.closing || a.held) return { wait: 300 };
-      const laid = (a0, L, row) => a.laid.some((q) => q[0] === a0 && q[1] === L && String(q[2]) === String(row));
-      const want = [];
-      if (a.head != null) want.push({ a: a.head, L: 6, row: 'h' });
-      a.sol[0].forEach(([x, L]) => want.push({ a: x, L, row: 0 })); a.sol[1].forEach(([x, L]) => want.push({ a: x, L, row: 2 }));
-      const t = want.find((q) => !laid(q.a, q.L, q.row)); if (!t) return { wait: 400 };
-      const pile = a.piles.find((p) => p.L === t.L && p.n > 0); if (!pile) return { wait: 400, note: 'bond: no pile for ' + t.L };
-      if (t.L === 6 && !pile.rot) return { tap: pile.scr, wait: 300, note: 'bond: turn the 6 to a header' };
-      const ri = t.row === 'h' ? 2 : t.row === 0 ? 0 : 1, w = t.row === 'h' ? 2 : t.L, c = t.a + w / 2, row = a.cells[ri];
-      const p = Number.isInteger(c) ? row[c] : mid(row[Math.floor(c)], row[Math.ceil(c)]);
-      return { drag: [pile.scr[0], pile.scr[1], p[0], p[1], 700], wait: 500, note: `bond ${a.s}: ${t.L} at ${t.a} row ${t.row}` };
+      if (a.phase === 'choose') {
+        const key = a.laid.length + '/' + a.lifts + '/' + a.cracks; if (B.bc !== key) { B.bc = key; return { wait: 1500 }; }   // (the camera comes back first)
+        const bad = a.laid.find((q) => !q.sol); if (bad) return { tap: bad.scr, wait: 1500, note: `bond: lift the stray ${bad.L} at ${bad.a}/${bad.row}` };
+        if (!a.next) return { wait: 400, note: 'bond: nothing next' };
+        const q = a.stock.find((s) => s.id === a.next.id); if (!q) return { wait: 400, note: 'bond: no stone ' + a.next.L };
+        return { tap: q.scr, wait: 1200, note: `bond ${a.G}: take ${a.next.L} for ${a.next.a}/${a.next.row}` };
+      }
+      if (a.phase !== 'carry' || !a.stoneScr) return { wait: 300 };
+      if (!a.next || !a.held || a.held.L !== a.next.L) {   // (the wrong stone in the hook: down on the floor, it goes back to its place in the row)
+        const h = (a.stock.find((q) => a.held && q.id === a.held.id) || {}).home; if (!h) return { wait: 300 };
+        if (a.land && !a.land.off) return { drag: [a.stoneScr[0], a.stoneScr[1], h[0], h[1] + 40, 800], wait: 1800, note: 'bond: back to the row' };
+        return { holdUntil: [a.stoneScr[0], a.stoneScr[1], C("return !a||a.phase!=='carry'"), 7000], wait: 600, note: 'bond: down on the floor' };
+      }
+      if (a.sway > 0.3) return { wait: 400, note: 'bond: sway ' + a.sway };
+      if (a.lag > 0.5) return { wait: 400, note: 'bond: jib coming ' + a.lag };
+      if (Math.abs(a.rotTE) > a.tol * 0.4) { const px = Math.max(-300, Math.min(300, (-a.rotTE * Math.PI / 180) / 0.011)); return { drag: [a.ropeScr[0], a.ropeScr[1], a.ropeScr[0] + px, a.ropeScr[1], 600], wait: 1500, note: `bond: rope ${a.rotTE}` }; }
+      if (Math.abs(a.rotE) > a.tol * 0.6) return { wait: 400 };
+      const ok = a.land && !a.land.off && a.land.a === a.next.a && String(a.land.row) === String(a.next.row);
+      const t = a.tgtScr, off = t ? Math.hypot(t[0] - a.stoneScr[0], t[1] - a.stoneScr[1]) : 0;
+      if (!ok || off > 14) return { drag: [a.stoneScr[0], a.stoneScr[1], t[0], t[1], 800], wait: 1800, note: `bond: carry to ${a.next.a}/${a.next.row} (land ${a.land && a.land.a}/${a.land && a.land.row}) off ${Math.round(off)}` };
+      return { holdUntil: [a.stoneScr[0], a.stoneScr[1], C("return !a||a.phase!=='carry'||(a.land&&a.land.why)"), 7000], wait: 600, note: 'bond: lower' };
     },
     plumb(a) {
       if (a.done || a.busy) return { wait: 300 };
@@ -377,7 +389,7 @@
     }
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
-    if (now() - B.actT > 240000) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    if (now() - B.actT > (/^bond/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
     try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }

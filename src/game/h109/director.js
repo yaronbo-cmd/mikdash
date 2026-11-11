@@ -18,6 +18,7 @@ import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
 import { lookZone, WHEEL_STEP, pinchU } from './look.js';   // ── h117 ── ── /h117 ──
+import { groundWork } from '../../look/ground.js';   // ── look B ── ── /look B ──
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -453,8 +454,11 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     let best = null, bd = 1e9; for (const q of OPEN) { if (planOnly && q.m.free) continue; const d = Math.hypot(h.x - q.sp.x, h.z - q.sp.z); if (d < bd) { bd = d; best = q; } }
     return best ? { ...best, d: bd } : null;
   }
+  // ── look B ── the trodden ground round the works done and the one under way, and the paths between them (stage 01) ── /look B ──
+  function groundSync() { try { if (!PK.sync && M) { const c = M.mission(); groundWork(M.st.done.concat(c ? [c.id] : [])); } } catch (e) { /* */ } }
   function pickNow(m, walked) {
     M.pick(m.id); mission = M.mission(); if (!mission) return false;
+    groundSync();
     byWalk = !!walked; tPhase = 0.5;
     showOne();
     return true;
@@ -482,6 +486,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   }
   // ── /h114 ──
   function openMission() {
+    groundSync();
     if (FREE()) {   // ── h114 ── ── /h114 ──
       if (M.finished()) { mission = null; finishStage(); return; }
       mission = M.mission(); phase = 'walk'; tPhase = 0; act = null; OPEN = []; fwLine = null; fwT = 0;

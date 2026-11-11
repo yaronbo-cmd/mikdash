@@ -153,7 +153,7 @@ export function workMarks(ids) {
 
 function maskState(THREE) {
   const c = cache(THREE); if (c.mask) return c.mask;
-  const S = { tex: null, cv: null, ruts: Array.from({ length: NRUT }, () => new THREE.Vector4(0, 0, 0, 0)), skirts: [], ids: [], box: new THREE.Vector4(MASK.x0, MASK.z0, 1 / MASK.w, 1 / MASK.d) };
+  const S = { tex: null, cv: null, ruts: Array.from({ length: NRUT }, () => new THREE.Vector4(0, 0, 0, 0)), box: new THREE.Vector4(MASK.x0, MASK.z0, 1 / MASK.w, 1 / MASK.d) };
   if (typeof document !== 'undefined') {
     S.cv = document.createElement('canvas'); S.cv.width = S.cv.height = MASK.n;
     S.tex = new THREE.CanvasTexture(S.cv); S.tex.generateMipmaps = false; S.tex.minFilter = S.tex.magFilter = THREE.LinearFilter; S.tex.wrapS = S.tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -179,24 +179,23 @@ function draw(S) {
   };
   // the rocks' bedding: the big rock and the small ones of every sector, and the hill's bare slabs (B)
   for (const S0 of SECT) { disc(S0.big.x, S0.big.z, S0.big.r * 0.7, S0.big.r * 1.45, '0,0,255', 0.85); for (const o of S0.small) disc(o.x, o.z, o.r * 0.6, o.r * 1.6, '0,0,255', 0.7); }
-  for (const [x, z, r] of S.skirts) disc(x, z, r * 0.6, r * 1.5, '0,0,255', 0.6);
-  const M = workMarks(S.ids);
+  for (const [x, z, r] of STATE.skirts) disc(x, z, r * 0.6, r * 1.5, '0,0,255', 0.6);
+  const M = workMarks(STATE.ids);
   for (const [ax, az, bx, bz, w] of M.paths) line(ax, az, bx, bz, w, '255,0,0', 0.55);
   for (const [ax, az, bx, bz] of M.ruts) { line(ax, az, bx, bz, 3.2, '255,0,0', 0.5); line(ax, az, bx, bz, 3.2, '0,255,0', 1); }
-  for (const [x, z, r] of M.spots) disc(x, z, r * 0.35, r, '255,0,0', 0.95);
+  for (const [x, z, r] of M.spots) disc(x, z, r * 0.55, r * 1.1, '255,0,0', 1);
   for (let i = 0; i < NRUT; i++) { const R = M.ruts[i]; if (R) S.ruts[i].set(R[0], R[1], R[2], R[3]); else S.ruts[i].set(0, 0, 0, 0); }
   S.tex.needsUpdate = true;
 }
-const STATE = { THREE: null };
+const STATE = { THREE: null, ids: [], skirts: [] };
 /** the works done and the one under way, in order (the director, when a work starts or ends; a load derives it from the save) */
 export function groundWork(ids) {
-  const T = STATE.THREE; if (!T) return false;
-  const S = maskState(T), L = Array.isArray(ids) ? ids.filter((x) => typeof x === 'string') : [];
-  if (L.join() === S.ids.join()) return false;
-  S.ids = L; draw(S); return true;
+  const L = Array.isArray(ids) ? ids.filter((x) => typeof x === 'string') : [];
+  if (L.join() === STATE.ids.join()) return false;
+  STATE.ids = L; const c = STATE.THREE && cache(STATE.THREE); if (c && c.mask) draw(c.mask); return true;
 }
 /** the hill's bare slabs: [x, z, r] — the dark earth bedded round each (once, at the hill's build) */
-export function groundSkirts(list) { const T = STATE.THREE; if (!T) return; const S = maskState(T); S.skirts = (list || []).slice(); draw(S); }
+export function groundSkirts(list) { STATE.skirts = (list || []).slice(); const c = STATE.THREE && cache(STATE.THREE); if (c && c.mask) draw(c.mask); }
 
 /** an indexed grid's normals (nx × nz vertices, row-major), averaged with their 8 neighbours: the light follows the hill's shape, not
  *  its triangles (the positions stay) */
@@ -253,16 +252,16 @@ vec3 grGround(vec3 vc) {
   float rk = max(slab, steep);
   float rim = smoothstep(th - 0.09, th, rf) * (1.0 - slab) * (1.0 - steep);
   // GRAVEL: scree below the rock, the trodden ground, patches
-  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + trod * 0.6 + rim * 0.5, 0.0, 1.0);
+  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + trod * smoothstep(0.35, 0.65, d1.g + d2.a * 0.4) * 0.8 + rim * 0.5, 0.0, 1.0);
   // EARTH: mottled, dry straw in tufts, the low dark shrubs, darker in the hollows and where trodden
   float e = d1.r;
   vec3 earth = vc * (0.5 + 0.75 * mix(e, d2.r, 0.3));
-  float straw = smoothstep(0.78, 0.9, e) * (1.0 - trod) * (1.0 - 0.6 * vGrA.y);
+  float straw = smoothstep(0.78, 0.9, e) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - 0.6 * vGrA.y);
   earth = mix(earth, uGrStraw * (0.8 + 0.3 * d2.r), straw * 0.6);
-  earth = mix(earth, uGrDark * (0.7 + 0.6 * e), clamp(vGrA.y * 0.6 + trod * 0.55, 0.0, 0.85));
+  earth = mix(earth, uGrDark * (0.7 + 0.6 * e), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
   float shrub = (1.0 - smoothstep(0.12, 0.18, e)) * (1.0 - trod);
   earth = mix(earth, vec3(0.16, 0.15, 0.09) * (0.75 + 2.5 * e), shrub * 0.85);
-  vec3 grav = mix(uGrGrav, vc, 0.25) * (0.4 + 1.0 * mix(d1.g, d2.g, 0.2));
+  vec3 grav = mix(uGrGrav, vc, 0.4) * (0.4 + 1.0 * mix(d1.g, d2.g, 0.2)) * (1.0 - 0.2 * trod);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float rb = mix(d1.b, d2.b, 0.45), sw = smoothstep(0.26, 0.5, slope);
   if (sw > 0.01) rb = mix(rb, textureGrad(uGrT, us, usx, usy).b, sw);
@@ -323,6 +322,7 @@ export function groundDefines(m) {
 }
 /** the world terrain's material */
 export function groundMat(THREE) {
+  STATE.THREE = THREE;
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
   const k = groundDefines(m);
   m.onBeforeCompile = (sh) => groundPatch(sh, THREE);

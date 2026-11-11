@@ -105,18 +105,28 @@ export const BOND = {
     for (const [a, b] of spans) { const tg = chalkTag(X, `${b - a} אמות`, Math.min(4, (b - a) * 0.7), INK); const p = F.at((a + b) / 2, 0, 0.05); tg.position.set(p.x, p.y, p.z); tg.rotation.y = F.yaw - Math.PI; PR.root.add(tg); add(tg); }
 
     /* ── the stock: every stone by itself on the floor at the wall's foot, short to long, its length chalked ── */
-    const ACR = -4.7;
+    const ACR = -4.7, ROWS = [-4.7, -7.8, -10.9];
     const tot = P.stock.reduce((s, q) => s + q.L, 0) + (P.stock.length - 1) * 0.6;
-    // where each lies along the wall: one row centred on the gap; at a gate's stretch two rows, left and right of the opening (the
-    // court in front of the opening is the gate's way, the frame's foot is there), the next stone to the shorter side
-    const slot = (() => {
-      // (never before along −1.5: the crews' ramp leans on the inner face at along −8.7…−2.3, rampFor)
-      let x0 = Math.max(-1.5, P.G / 2 - tot / 2); if (!P.open) return (L) => { const c = x0 + L / 2; x0 += L + 0.6; return c; };
-      let lx = P.open[0] - 0.4, rx = P.open[1] + 0.4;
-      return (L) => { if (P.open[0] - lx <= rx - P.open[1] && lx - L >= -1.5) { const c = lx - L / 2; lx -= L + 0.6; return c; } const c = rx + L / 2; rx += L + 0.6; return c; };
+    // where each lies: rows on the court's floor at the wall's foot, kept within the stretch (never before along −1.5, where the crews'
+    // ramp leans on the inner face, rampFor; nor more than 1.5 past its end, a corner's wall may stand there); at a gate's stretch the
+    // court before the opening stays the gate's way (the frame's foot is there): a part on each side. A stone that has no room in a
+    // row goes to the next row, nearer the court. Each part is centred in its place.
+    const homes = (() => {
+      const segs = P.open ? [[-1.5, P.open[0] - 0.4], [P.open[1] + 0.4, P.G + 1.5]] : [[-1.5, P.G + 1.5]];
+      const parts = []; for (let r = 0; r < ROWS.length; r++) for (let k = 0; k < segs.length; k++) parts.push({ r, k, a: segs[k][0], b: segs[k][1], list: [], used: 0 });
+      const at = [];
+      P.stock.forEach((q, i) => {
+        const room = (pt) => pt.b - pt.a - pt.used - (pt.list.length ? 0.6 : 0);
+        let best = null; for (const pt of parts) { if (room(pt) < q.L) continue; if (!best || pt.r < best.r || (pt.r === best.r && pt.used < best.used)) best = pt; }
+        if (!best) best = parts[parts.length - 1];
+        best.used += (best.list.length ? 0.6 : 0) + q.L; best.list.push(i);
+      });
+      for (const pt of parts) { let x = (pt.a + pt.b) / 2 - pt.used / 2; for (const i of pt.list) { const L = P.stock[i].L; at[i] = { along: x + L / 2, across: ROWS[pt.r] }; x += L + 0.6; } }
+      return at;
     })();
+    const ACRF = Math.min(...homes.map((h) => h.across));
     const stock = P.stock.map((q) => {
-      const home = F.at(slot(q.L), ACR, 0);
+      const home = F.at(homes[P.stock.indexOf(q)].along, homes[P.stock.indexOf(q)].across, 0);
       const mm = stoneMesh(X, 1, 1, 1); mm.scale.set(q.L - 0.05, H - 0.02, ROW); const gy = g(home.x, home.z);
       mm.position.set(home.x, gy + H / 2, home.z); mm.rotation.y = F.yaw; add(mm);
       const tg = chalkTag(X, String(q.L), 2.2, INK); PR.root.add(tg); add(tg);
@@ -128,7 +138,7 @@ export const BOND = {
     /* ── the crane: outside the wall, behind it (the camera looks from the court; nothing stands between them) ── */
     const BA = 13, baseP = F.at(P.G / 2, BA, 0);
     const mastH = Math.max(9.5, topY - g(baseP.x, baseP.z) + 7);
-    const C = luffCrane(X, mastH, Math.max(20, Math.hypot(Math.max(P.G / 2 - ext[0], ext[1] - P.G / 2) + 1.5, BA - ACR + 1) / 0.93)); C.place(baseP.x, baseP.z);
+    const C = luffCrane(X, mastH, Math.max(20, Math.hypot(Math.max(P.G / 2 - ext[0], ext[1] - P.G / 2) + 1.5, BA - ACRF + 1) / 0.93)); C.place(baseP.x, baseP.z);
     { const c = F.at(P.G / 2, 0); C.aim(c.x, c.z, 1); }
     const tip = new T.Vector3(), hd = new T.Vector3();
     const legs = [PR.rope(4, 0.045), PR.rope(4, 0.045)], guide = PR.rope(12, 0.07);
@@ -136,7 +146,7 @@ export const BOND = {
     // the crews: the wheel man in his wheel, the tier at the stock, the tagline man on the floor
     const wP = F.at(P.G / 2, BA + 3.4, 0);
     const wheelMan = SH2.crew.add(wP.x, wP.z, { role: 'push', fx: baseP.x, fz: baseP.z, crew: 1 });
-    const tierP = F.at(ext[0] - 1.6, ACR - 1.2, 0);
+    const tierP = F.at(ext[0] - 1.6, ACRF - 1.2, 0);
     const tier = SH2.crew.add(tierP.x, tierP.z, { role: 'hold', item: 'rope', fx: baseP.x, fz: baseP.z, crew: 2 });
     const tagP = F.at(P.G / 2 + 3, -9, 0);
     const tagMan = SH2.crew.add(tagP.x, tagP.z, { role: 'pull', fx: baseP.x, fz: baseP.z, crew: 3 });
@@ -202,7 +212,7 @@ export const BOND = {
     /* ── the camera: one high shot from the court's side (≈ 66°): gap, neighbours, reed, stock row, the crane's foot, the jib's head ── */
     const span = Math.max(P.G + 12, ext[1] - ext[0] + 4);
     const midA = (ext[0] + ext[1]) / 2;
-    const CT = F.at(midA, -1.2, 0); CT.y = bedY;
+    const CT = F.at(midA, -1.2 + (ACRF - ACR) / 2, 0); CT.y = bedY;
     // (the lens is 32° high: the picture is about 0.72 of the distance wide; the row of the stock is the widest thing)
     const dCam = Math.max(34, (span + 4) / 0.72), el = 56 * Math.PI / 180;
     const CP = { x: CT.x - F.nx * dCam * Math.cos(el), y: CT.y + dCam * Math.sin(el), z: CT.z - F.nz * dCam * Math.cos(el) };
@@ -331,7 +341,7 @@ export const BOND = {
       async begin() {
         X.kohen(false);
         // the whole work's ground kept clear of the Mount's crews (the Heichal's priests stood on the stock row at the western stretches)
-        try { const pts = [F.at(ext[0] - 3, ACR - 4), F.at(ext[1] + 3, ACR - 4), F.at(ext[0] - 3, BA + 6), F.at(ext[1] + 3, BA + 6)]; const xs = pts.map((q) => q.x), zs = pts.map((q) => q.z); if (X.stages.keepOut) X.stages.keepOut([[Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)]]); } catch (e) { /* */ }
+        try { const pts = [F.at(ext[0] - 3, ACRF - 4), F.at(ext[1] + 3, ACRF - 4), F.at(ext[0] - 3, BA + 6), F.at(ext[1] + 3, BA + 6)]; const xs = pts.map((q) => q.x), zs = pts.map((q) => q.z); if (X.stages.keepOut) X.stages.keepOut([[Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)]]); } catch (e) { /* */ }
         const c = F.at(P.G / 2, 0, H);
         X.shot([c.x - F.nx * 60, c.y + 90, c.z - F.nz * 60], [c.x, c.y, c.z], 0.01);
         X.line(`קטע ${m.s}: רווח של ${P.G} אמות בנדבך${P.open ? ' עם פתח שער' : ''}`);

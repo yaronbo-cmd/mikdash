@@ -43,3 +43,18 @@ test('every triangle of the ashlar faces outward', () => {
     assert.ok(n.dot(cen) > -1e-9);
   }
 });
+test('the paving: a slab is its cell less the joint, chamfered; a laid quarter is one mesh with a tone per slab and the dust under it', async () => {
+  const { paveSlab, paveQuarter, JOINT } = await import('../src/look/paving.js');
+  // (a no-op canvas: the detail texture is drawn on one, and node has none)
+  const ctx = new Proxy({}, { get: (o, k) => (k in o ? o[k] : (k === 'createRadialGradient' || k === 'createLinearGradient' ? () => ({ addColorStop() {} }) : k === 'getImageData' ? (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }) : () => {})), set: (o, k, v) => { o[k] = v; return true; } });
+  const had = globalThis.document; globalThis.document = { createElement: () => ({ width: 0, height: 0, getContext: () => ctx }) };
+  try {
+  const s = paveSlab(THREE, 2 - JOINT, 1 - JOINT, { cracked: true }), b = s.userData.body; b.geometry.computeBoundingBox();
+  const bb = b.geometry.boundingBox; assert.ok(Math.abs(bb.max.x - bb.min.x - (2 - JOINT)) < 1e-6 && Math.abs(bb.max.z - bb.min.z - (1 - JOINT)) < 1e-6);
+  assert.equal(s.children.length, 2, 'the crack');
+  assert.ok(b.geometry.attributes.position.count / 3 <= 40);
+  const q = paveQuarter(THREE, [[0.5, 0.5, 1 - JOINT, 1 - JOINT], [1.5, 0.5, 1 - JOINT, 1 - JOINT]], { y: 0, box: [0, 0, 2], seed: 3 });
+  const C = q.geometry.attributes.color, n = C.count / 2; assert.ok(C.getX(0) !== C.getX(n) || C.getY(0) !== C.getY(n) || C.getZ(0) !== C.getZ(n), 'two tones');
+  assert.ok(q.userData.dust && q.userData.dust.position.y < 0.17);
+  } finally { if (had === undefined) delete globalThis.document; else globalThis.document = had; }
+});

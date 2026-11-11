@@ -69,7 +69,7 @@ export function ashOf(THREE, seed, o = {}) {
 }
 export function slabMat(THREE) { const C = cacheOf(THREE); return C.slab || (C.slab = lookMat(THREE, KIND.slab, { color: hsl2hex(40, 14, 80), tex: stoneDetail(THREE) })); }
 /** 4 tone families for the paving */
-const SLAB_T = [[40, 14, 80], [36, 12, 78], [44, 16, 81], [40, 9, 77]];
+const SLAB_T = [[39, 24, 72], [35, 21, 70], [43, 26, 73], [40, 18, 69]];   // (around the world's paving, tex.js texPaving [39, 21, 77])
 export function slabTint(seed) { const [h, s, l] = SLAB_T[Math.floor(hh(seed * 2.7) * 4) % 4]; return hsl2hex(h + (hh(seed * 3.1) - 0.5) * 2, s + (hh(seed * 1.3) - 0.5) * 2, l + (hh(seed * 5.7) - 0.5) * 2); }
 export function slabOf(THREE, seed) { return lookClone(slabMat(THREE), slabTint(seed)); }
 

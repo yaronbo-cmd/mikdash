@@ -7,6 +7,7 @@ import { makeRock } from './rock.js';
 import { BOOK, rectOf } from '../world/grid.js';
 import * as PV from './paving.js';
 import * as WG from './wedges.js';   // ── h117 ── ── /h117 ──
+import { paveSlab, paveQuarter, paveBed, JOINT } from '../../look/paving.js';   // ── look A ── the paving slabs ── /look A ──
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -517,9 +518,7 @@ function gridOf(X, s, rows) {
   return { x0, z0, base: base - 0.12, rows, cx: b[0], cz: b[1] };
 }
 function slabMesh(X, L, broken, crew) {
-  const T = X.THREE, mat = X.props.ashOf(null, { boss: false, set: 1 }); void crew;
-  const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(L * U * 0.96, 0.34, U * 0.94), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
-  if (broken) { const c = new T.Mesh(new T.PlaneGeometry(L * U * 0.7, 0.07), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.5; c.position.y = 0.18; g.add(c); }
+  void crew; const g = paveSlab(X.THREE, L * U - JOINT, U - JOINT, { cracked: broken, seam: X.props.M.seam });   // ── look A ── ── /look A ──
   X.props.root.add(g); return g;
 }
 /** the crews' paving round his rows: their row under his (y = −1), and SIDE_COLS cells each side for every row (2-slabs, offset) */
@@ -572,20 +571,14 @@ function quarterOf(X, s, qi) {
   return { s, qi, x0, z0, sx0, sz0, base: base - 0.12, cx: x0 + (QN * QU) / 2, cz: z0 + (QN * QU) / 2, R };
 }
 function pvSlab(X, w, h, cracked) {
-  const T = X.THREE, mat = X.props.ashOf(null, { boss: false });
-  const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(w * QU - 0.1, 0.34, h * QU - 0.1), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
-  if (cracked) { const c = new T.Mesh(new T.PlaneGeometry(Math.max(w, h) * QU * 0.8, 0.09), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.6; c.position.y = 0.18; g.add(c); }
+  const g = paveSlab(X.THREE, w * QU - JOINT, h * QU - JOINT, { cracked, seam: X.props.M.seam });   // ── look A ── ── /look A ──
   X.props.root.add(g); return g;
 }
 /** a quarter as it was laid (a reload, or the crews'): its slabs, one merged mesh */
 function quarterMesh(X, Q, tiles) {
-  const T = X.THREE, geos = [];
-  for (const [w, h, x, y] of tiles) { const gm = new T.BoxGeometry(w * QU - 0.1, 0.34, h * QU - 0.1); gm.translate(Q.x0 + (x + w / 2) * QU, Q.base + 0.17, Q.z0 + (y + h / 2) * QU); geos.push(gm.toNonIndexed()); gm.dispose(); }
-  let n = 0; for (const g of geos) n += g.attributes.position.count;
-  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3); let o = 0;
-  for (const g of geos) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; g.dispose(); }
-  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.BufferAttribute(nor, 3));
-  const m = new T.Mesh(geo, X.props.ashOf(null, { boss: false, set: 1 })); m.castShadow = true; m.receiveShadow = true; m.name = 'h116-quarter'; X.props.root.add(m); return m;
+  // ── look A ── chamfered slabs of the stone system, each its own tone, the joints' light dust under them ── /look A ──
+  const m = paveQuarter(X.THREE, tiles.map(([w, h, x, y]) => [Q.x0 + (x + w / 2) * QU, Q.z0 + (y + h / 2) * QU, w * QU - JOINT, h * QU - JOINT]), { y: Q.base + 0.17, box: [Q.x0, Q.z0, QN * QU], seed: Q.s * 4 + Q.qi + 1 });
+  m.name = 'h116-quarter'; X.props.root.add(m); return m;
 }
 const layKey = (s, qi) => `q${s}_${qi}`;
 /** the quarters he (or the crews) laid, as the save has them */
@@ -632,6 +625,7 @@ export const PAVE = {
     const chalk = new T.Group(); { const CM = new T.MeshBasicMaterial({ color: '#FBF6E8', transparent: true, opacity: 0.85, depthWrite: false });
       for (const t of PV.chalkOf(L)) { const x0 = Q.x0 + t.x * QU + 0.12, z0 = Q.z0 + t.y * QU + 0.12, w = t.w * QU - 0.24, d = t.h * QU - 0.24;
         for (const [ww, dd, x, z] of [[w, 0.09, x0 + w / 2, z0], [w, 0.09, x0 + w / 2, z0 + d], [0.09, d, x0, z0 + d / 2], [0.09, d, x0 + w, z0 + d / 2]]) { const e = new T.Mesh(new T.BoxGeometry(ww, 0.02, dd), CM); e.position.set(x, Q.base + 0.03, z); e.renderOrder = 2; chalk.add(e); } }
+      chalk.add(paveBed(T, Q.x0, Q.z0, QN * QU, Q.base + 0.012));   // ── look A ── (the earth bed: the joints read while it is laid) ── /look A ──
       X.props.root.add(chalk); }
     const onChalk = (w, h, x, y) => PV.chalkOf(L).some((t) => t.w === w && t.h === h && t.x === x && t.y === y);
     // the green (or pale) outline where the slab in hand would lie, and the ring where four corners would meet

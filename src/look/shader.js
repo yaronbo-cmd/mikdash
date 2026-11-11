@@ -88,7 +88,7 @@ vec3 lkLook(vec3 base) {
       col *= mix(1.04, 1.0, set);
     } else {
       // a paving slab: the top smooth-worn (weaker detail, fine chisel, soft clouds), the sides rough-pecked
-      if (top) { float cl = lkN3(P * 0.55 + s * 9.0); amp = 0.55; col *= 0.95 + 0.1 * cl;
+      if (top) { float cl = lkN3(P * 0.55 + s * 9.0), wr = lkN3(P * 2.1 + s * 3.0); amp = 0.75; col *= (0.9 + 0.18 * cl) * (0.97 + 0.06 * wr);
         strokes = smoothstep(0.7, 1.0, 0.5 + 0.5 * sin(6.2832 * 14.0 * (P.x * 0.94 + P.z * 0.34) + 2.0 * lkN3(P * 2.0))); col *= 1.0 - 0.03 * strokes; }
       else { amp = 1.4; col *= 0.93; }
     }

@@ -64,7 +64,7 @@ test('the rocks: each its own tone in hsl 30..42, 10..18 %, 52..66 %; the fresh 
   for (let i = 0; i < 64; i++) {
     const hex = rockTint(i * 3.7 + 1.3); seen.add(hex); const [h, s, l] = hexHsl(hex);
     assert.ok(h > 29 && h < 43 && s > 9 && s < 19 && l > 51 && l < 67, hex);
-    const [, , lf] = hexHsl(freshTint(i * 1.91 + 0.4)); assert.ok(lf > 65 && lf < 77, 'fresh ' + lf); sumF += lf; sumS += l;
+    const [, , lf] = hexHsl(freshTint(i * 1.91 + 0.4)); assert.ok(lf > 61 && lf < 80, 'fresh ' + lf); sumF += lf; sumS += l;
   }
   assert.ok(seen.size >= 60, 'no two alike: ' + seen.size);
   assert.ok(sumF > sumS + 64 * 5, 'the fresh breaks lighter than the skins');

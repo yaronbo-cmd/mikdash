@@ -435,7 +435,7 @@ function pileSync(X) {
   SH.pileM.forEach((mm, i) => { if (!mm.userData.on) mm.position.y = X.ground(mm.position.x, mm.position.z) + mm.scale.x * 0.4 + Math.floor(i / 5) * 0.35; });
   while (SH.pileM.length < n) {
     const i = SH.pileM.length, a = i * 2.4, r = 0.6 + (i % 5) * 0.45, x = PILE.x + Math.cos(a) * r, z = PILE.z + Math.sin(a) * r, s = 0.85 + hash(i, 2) * 0.4;
-    const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
+    const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.lump); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
   }
 }
 /** the pits as the save has them (st.pitIn[i]: chunks in pit i) ── h117 ── (ירון 10.11: "האבנים נופלות לבור אבל לא נערמות") an open
@@ -462,7 +462,7 @@ function heapSpots(i, n) {
   return out;
 }
 function heapFloor(i) { const f = SH.cells && SH.cells.pitInfo ? SH.cells.pitInfo(i) : null; return f ? f.floor : 0; }
-function heapMesh(X) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
+function heapMesh(X) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.lump); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
 function heapPlace(mm, q, fy) { mm.scale.set(q.s, q.s * 0.8, q.s); mm.position.set(q.x, fy + q.y, q.z); mm.rotation.set(q.rx, q.ry, 0); }
 function heapSync(X) {
   const st = X.M.st; SH.heapM = SH.heapM || [];
@@ -517,7 +517,7 @@ function gridOf(X, s, rows) {
   return { x0, z0, base: base - 0.12, rows, cx: b[0], cz: b[1] };
 }
 function slabMesh(X, L, broken, crew) {
-  const T = X.THREE, mat = X.props.M.stone.clone(); mat.color.offsetHSL(0, 0, (hash(L, Math.random()) - 0.5) * 0.06 - (crew ? 0.03 : 0));
+  const T = X.THREE, mat = X.props.ashOf(null, { boss: false, set: 1 }); void crew;
   const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(L * U * 0.96, 0.34, U * 0.94), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
   if (broken) { const c = new T.Mesh(new T.PlaneGeometry(L * U * 0.7, 0.07), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.5; c.position.y = 0.18; g.add(c); }
   X.props.root.add(g); return g;
@@ -547,7 +547,7 @@ function layDone(X, s) {
   for (const c of crewSlabs(rows)) placeCrew(X, G, c);
   if (lay) {
     for (const [L, x, y, rot] of lay.s || []) { const m = slabMesh(X, L, false); const c0 = { x: G.x0 + (x + 0.5) * U, z: G.z0 + (y + 0.5) * U }; m.position.set(rot ? c0.x : c0.x + ((L - 1) * U) / 2, G.base + 0.17, rot ? c0.z + ((L - 1) * U) / 2 : c0.z); if (rot) m.rotation.y = Math.PI / 2; }
-    for (const [x, y] of lay.f || []) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(U * 0.42, 0.25, U * 0.42); mm.position.set(G.x0 + (x + 0.5) * U, G.base + 0.15, G.z0 + (y + 0.5) * U); X.props.root.add(mm); }
+    for (const [x, y] of lay.f || []) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.lump); mm.scale.set(U * 0.42, 0.25, U * 0.42); mm.position.set(G.x0 + (x + 0.5) * U, G.base + 0.15, G.z0 + (y + 0.5) * U); X.props.root.add(mm); }
   } else {
     // (an older save: a laying of the right kind)
     trueLaying(s + 1, rows).forEach((row, y) => { let x = 0; for (const l of row) { const m = slabMesh(X, l, false); m.position.set(G.x0 + (x + l / 2) * U, G.base + 0.17, G.z0 + (y + 0.5) * U); x += l; } });
@@ -572,7 +572,7 @@ function quarterOf(X, s, qi) {
   return { s, qi, x0, z0, sx0, sz0, base: base - 0.12, cx: x0 + (QN * QU) / 2, cz: z0 + (QN * QU) / 2, R };
 }
 function pvSlab(X, w, h, cracked) {
-  const T = X.THREE, mat = X.props.M.stone.clone(); mat.color.offsetHSL(0, 0, (Math.random() - 0.5) * 0.07);
+  const T = X.THREE, mat = X.props.ashOf(null, { boss: false });
   const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(w * QU - 0.1, 0.34, h * QU - 0.1), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
   if (cracked) { const c = new T.Mesh(new T.PlaneGeometry(Math.max(w, h) * QU * 0.8, 0.09), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.6; c.position.y = 0.18; g.add(c); }
   X.props.root.add(g); return g;
@@ -585,7 +585,7 @@ function quarterMesh(X, Q, tiles) {
   const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3); let o = 0;
   for (const g of geos) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; g.dispose(); }
   const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.BufferAttribute(nor, 3));
-  const m = new T.Mesh(geo, X.props.M.stone); m.castShadow = true; m.receiveShadow = true; m.name = 'h116-quarter'; X.props.root.add(m); return m;
+  const m = new T.Mesh(geo, X.props.ashOf(null, { boss: false, set: 1 })); m.castShadow = true; m.receiveShadow = true; m.name = 'h116-quarter'; X.props.root.add(m); return m;
 }
 const layKey = (s, qi) => `q${s}_${qi}`;
 /** the quarters he (or the crews) laid, as the save has them */
@@ -653,7 +653,7 @@ export const PAVE = {
     if (step >= 5) {
       bin = new T.Group(); const gy = Math.max(Q.base, X.ground(crate.x, crate.z));
       for (const [w, d, x, z] of [[2.6, 0.14, 0, -0.9], [2.6, 0.14, 0, 0.9], [0.14, 1.9, -1.25, 0], [0.14, 1.9, 1.25, 0]]) { const p2 = new T.Mesh(new T.BoxGeometry(w, 0.7, d), X.props.M.wood); p2.position.set(x, 0.35, z); bin.add(p2); }
-      for (let k = 0; k < 4; k++) { const sh = new T.Mesh(X.props.geo.chunk, X.props.M.stoneD); sh.scale.set(0.35, 0.18, 0.3); sh.position.set(-0.7 + k * 0.45, 0.45, (k % 2) * 0.4 - 0.2); bin.add(sh); }
+      for (let k = 0; k < 4; k++) { const sh = new T.Mesh(X.props.geo.chunk, X.props.M.lump); sh.scale.set(0.35, 0.18, 0.3); sh.position.set(-0.7 + k * 0.45, 0.45, (k % 2) * 0.4 - 0.2); bin.add(sh); }
       bin.position.set(crate.x, gy, crate.z); X.props.root.add(bin);
     }
     function homeOf(q) { const St = stacks[q.k]; return { x: St.x + (Math.max(q.w, q.h) * QU) / 2, z: St.z + (Math.min(q.w, q.h) * QU) / 2 }; }
@@ -1057,7 +1057,7 @@ function dressStart(X, s, n, lost) {
   const sx = b[0] + b[2] + 3.2, sz = b[1] + 1.5, sled = new T.Group(), blocks = [];
   { const bed = new T.Mesh(new T.BoxGeometry(3.2, 0.25, 2.2), X.props.M.wood); bed.position.y = 0.4; sled.add(bed); }
   sled.position.set(sx, X.ground(sx, sz), sz); X.props.root.add(sled);
-  for (let i = 0; i < n; i++) { const m = new T.Mesh(new T.BoxGeometry(1.4, 0.7, 0.9), X.props.M.stone); m.castShadow = true; m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
+  for (let i = 0; i < n; i++) { const m = X.props.stoneMesh(1.4, 0.7, 0.9); m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
   const y0 = R.group.position.y;
   SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0 });
 }
@@ -1082,7 +1082,7 @@ function yardSync(X) {
   while (SH.yardM.length > n) X.props.remove(SH.yardM.pop());
   while (SH.yardM.length < n) {
     const i = SH.yardM.length, row = Math.floor(i / 10) % 3, lay = Math.floor(i / 30), x = Y.x - 7 + (i % 10) * 1.6, z = Y.z - 2 + row * 1.2;
-    const m = new X.THREE.Mesh(new X.THREE.BoxGeometry(1.4, 0.7, 0.9), X.props.M.stone); m.position.set(x, X.ground(x, z) + 0.35 + lay * 0.72, z); m.castShadow = true; X.props.root.add(m); SH.yardM.push(m);
+    const m = X.props.stoneMesh(1.4, 0.7, 0.9, { seed: i * 3.1 + 0.7 }); m.position.set(x, X.ground(x, z) + 0.35 + lay * 0.72, z); SH.yardM.push(m);
   }
 }
 export function frame2(dt, X, sh) {

@@ -28,7 +28,7 @@ export const rowOff = (row) => ROWO[row] ?? 0;
 /* ───────── meshes ───────── */
 export function stoneMesh(X, L, h, d, o = {}) {
   const T = X.THREE, A = X.stages.ashlar, geo = (A && A.geometry) || X.props.geo.box;
-  const m = new T.Mesh(geo, o.mat || X.props.M.ash || X.props.M.stone); m.scale.set(L, h, d); m.castShadow = true; m.receiveShadow = true;
+  const m = new T.Mesh(geo, o.mat || X.props.ashOf(o.seed, { set: o.set })); m.scale.set(L, h, d);   // ── look A ── (its own tone) ── /look A ── m.castShadow = true; m.receiveShadow = true;
   X.props.root.add(m); return m;
 }
 /** a stone of a stretch, placed: a stretcher (row 0 | 2) of L cells from a, or a header (row 'h') of 2 cells across the whole wall */
@@ -77,7 +77,7 @@ function jambsMake(X) {
   const T = X.THREE, out = [];
   for (const r of holeRects()) for (const x of [r[0], r[2]]) {
     const ins = x === r[0] ? 0.3 : -0.3;   // (a dressed jamb stone, inside the opening's edge)
-    const m = new T.Mesh(X.props.geo.ash || X.props.geo.box, X.props.M.ash || X.props.M.stone); m.scale.set(0.6, 1, 6.05); m.position.set(x + ins, 6, (r[1] + r[3]) / 2); m.castShadow = true; m.visible = false; X.props.root.add(m); out.push({ m, x, z: (r[1] + r[3]) / 2 });
+    const m = new T.Mesh(X.props.geo.ash, X.props.ashOf(null, { set: 1 })); m.scale.set(0.6, 1, 6.05); m.position.set(x + ins, 6, (r[1] + r[3]) / 2); m.castShadow = true; m.visible = false; X.props.root.add(m); out.push({ m, x, z: (r[1] + r[3]) / 2 });
   }
   return out;
 }

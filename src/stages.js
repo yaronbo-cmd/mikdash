@@ -10,6 +10,8 @@ import { terrainH, terrainColor } from './world.js';
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
+import { ashlarGeo, stoneMat, ashTone, ASH_HEX } from './look/stone.js';
+import { lookClone } from './look/shader.js';   // ── look A ── the stone system ── /look A ──
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
 // ── h115 ── the address grid (game/world/grid.js): the hill's cells by id (column × row over the whole platform), the waste pits after
 import { CELL as G_CELL, EAST as G_EAST, NORTH as G_NORTH, BOOK as G_BOOK } from './game/world/grid.js';
@@ -163,7 +165,7 @@ const DEF = {
     spot: { x: -158, z: -47, face: [-158, -35], r: 'az' }, view: { az: -62, el: 26 }, crew: [8, 6],
   },
 };
-const STONE = { ash: '#D8C9A6', marble: '#EEE8DC', field: '#D9D2C2', bronze: '#C99A5B' };
+const STONE = { ash: ASH_HEX, marble: '#EEE8DC', field: '#D9D2C2', bronze: '#C99A5B' };
 // the hot spot (a glowing stone laid on the build line, on the side the hero works from): [x, z, top, floor]
 // (nikanor: below its floor the stone sits on the fifteen steps at [x, z, bottom])
 const HOT = {
@@ -1254,14 +1256,8 @@ const JCACHE = {};
 // canvas rows (top first) → rows from the bottom of the tile (v up), each sorted
 const bottomFirst = (j) => j.edges.map((_, rb) => j.edges[j.rows - 1 - rb].slice().sort((a, b) => a - b));
 
-/* ── real stones in motion (wave 6): one low-poly Herodian ashlar (unit box: drafted margins round a raised flat boss on both
-   long faces) and one rough quarry block (a jittered box), each drawn as ONE InstancedMesh for every pile, banker and bench ── */
-function ashlarGeometry() {
-  const g = mergeGeometries([boxAt(1, 1, 0.88, 0, 0, 0), boxAt(0.76, 0.7, 0.12, 0, 0.0, 0.44), boxAt(0.76, 0.7, 0.12, 0, 0.0, -0.44),
-    boxAt(0.94, 0.06, 0.82, 0, 0.47, 0)].map(strip));   // (+ a thin top bed, so a pile's upper faces read as dressed)
-  g.computeBoundingSphere();
-  return g;
-}
+/* ── real stones in motion (wave 6): the Herodian ashlar is the stone system's (src/look/stone.js ashlarGeo: chamfered, a boss on both
+   long faces), and one rough quarry block (a jittered box), each drawn as ONE InstancedMesh for every pile, banker and bench ── */
 function roughGeometry() {
   const g = mergeVerticesSimple(new THREE.BoxGeometry(1, 1, 1, 2, 2, 2).toNonIndexed());
   const p = g.attributes.position, h = (x, y, z) => { const v = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719) * 43758.5453; return v - Math.floor(v); };
@@ -1863,9 +1859,9 @@ export function createStages(ctx) {
   props.count = 0; props.castShadow = true; props.receiveShadow = true; props.frustumCulled = false; scene.add(props);
   const field = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.7, 0), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, flatShading: true }), 1200);
   field.count = 0; field.castShadow = true; field.frustumCulled = false; scene.add(field);
-  // (wave 6) real stones: dressed/drafted ashlars and rough blocks — same materials (and programs) as props / field
-  const ashGeo = ashlarGeometry(), roughGeo = roughGeometry();
-  const ashI = new THREE.InstancedMesh(ashGeo, props.material, 900), roughI = new THREE.InstancedMesh(roughGeo, field.material, 300);
+  // (wave 6) real stones: dressed/drafted ashlars and rough blocks — the ashlars in the stone system's material (look A), the rough as field
+  const ashGeo = ashlarGeo(THREE), roughGeo = roughGeometry();
+  const ashI = new THREE.InstancedMesh(ashGeo, stoneMat(THREE), 900), roughI = new THREE.InstancedMesh(roughGeo, field.material, 300);
   for (const m of [ashI, roughI]) { m.count = 0; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; m.visible = false; scene.add(m); }
   const dirtTex = TX.texGround(97, 256).map;
   const dirtMat = new THREE.MeshStandardMaterial({ color: '#B89C74', map: dirtTex, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
@@ -2104,7 +2100,7 @@ export function createStages(ctx) {
     const putA = (x, y, z, sx, sy, sz, yaw, hex, k = 1) => {
       if (na >= 900) return;
       tmpQ.setFromEuler(tmpE.set(0, yaw, 0)); tmpV.set(x, y, z); tmpS.set(sx, sy, sz);
-      tmpM.compose(tmpV, tmpQ, tmpS); ashI.setMatrixAt(na, tmpM); ashI.setColorAt(na, tmpC.set(hex).multiplyScalar(k)); na++;
+      tmpM.compose(tmpV, tmpQ, tmpS); ashI.setMatrixAt(na, tmpM); ashI.setColorAt(na, ashTone(tmpC, hex, k, x, z)); na++;   // ── look A ── (the 8 tones) ── /look A ──
     };
     const putR = (x, y, z, sx, sy, sz, yaw, hex, k = 1, rot = 0) => {
       if (nr >= 300) return;
@@ -2451,7 +2447,7 @@ export function createStages(ctx) {
     ropes.frustumCulled = false; ropes.castShadow = false; scene.add(ropes); ropes.visible = false;
     const rc = new THREE.Color();
     ['#CDBB94', '#CDBB94', '#BFAE88', '#BFAE88', dark, '#CDBB94', '#CDBB94', dark].forEach((h, i) => ropes.setColorAt(i, rc.set(h)));
-    const blockMat = new THREE.MeshStandardMaterial({ color: '#D8C9A6', roughness: 0.85 });
+    const blockMat = lookClone(stoneMat(THREE), STONE.ash);   // ── look A ── ── /look A ──
     const block = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.0, 1.3), blockMat); block.castShadow = false; scene.add(block); block.visible = false;
     const fieldBlock = new THREE.IcosahedronGeometry(0.85, 0), boxBlock = ashGeo;   // (wave 6: a real ashlar on the hook)
     return { g, base, wheel, tilt, legs, ropes, block, blockMat, fieldBlock, boxBlock, st: null, H: 20, t: 0, aP: 0.15, aW: 0.4, wheelA: 0, ropeL: 5, walking: 0, placeX: 0, placeZ: 0, fwd: new THREE.Vector2(0, 1) };
@@ -2885,8 +2881,8 @@ export function createStages(ctx) {
     const sled = mk(mergeGeometries([boxAt(0.4, 0.4, 6.2, 1.15, 0.78, 0), boxAt(0.4, 0.4, 6.2, -1.15, 0.78, 0), ...[-2.5, -0.85, 0.85, 2.5].map((z) => boxAt(2.8, 0.2, 0.42, 0, 1.06, z)), rod([-1.1, 0.8, 3.1], [1.1, 0.8, 3.1], 0.12)].map(strip)), wood, N);
     const roll = mk(strip(new THREE.CylinderGeometry(0.29, 0.29, 3.3, 8).rotateZ(Math.PI / 2)), wood, N * 3);
     const ropes = mk(new THREE.CylinderGeometry(1, 1, 1, 5, 1).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: '#BFAE88', roughness: 0.9 }), N * 9, false);
-    const stones = mk(ashGeo, props.material, N * 3);
-    const cS = new THREE.Color(STONE.ash); for (let i = 0; i < N * 3; i++) stones.setColorAt(i, cS);
+    const stones = mk(ashGeo, stoneMat(THREE), N * 3);
+    const cS = new THREE.Color(); for (let i = 0; i < N * 3; i++) stones.setColorAt(i, ashTone(cS, STONE.ash, 0.96, i * 1.9, i * 0.7));   // ── look A ── ── /look A ──
     return { N, base, wheel, legs, shear, sled, roll, ropes, stones, all: [base, wheel, legs, shear, sled, roll, ropes, stones], sites: {}, nr: 0, ns: 0, nroll: 0, P: { lean: 0, arm: 0, legA: 0, bob: 0 } };
   })();
   const mkM = new THREE.Matrix4(), mkM2 = new THREE.Matrix4(), mkQ = new THREE.Quaternion(), mkV = new THREE.Vector3(), mkS = new THREE.Vector3(), mkE = new THREE.Euler();
@@ -8919,7 +8915,7 @@ export function createStages(ctx) {
     hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, shine,
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
-    ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
+    ashlar: { geometry: ashGeo, material: stoneMat(THREE), rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
     cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──

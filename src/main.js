@@ -49,6 +49,7 @@ const $ = (id) => document.getElementById(id);
 const canvas = $('c');
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Math.min(screen.width, screen.height) < 700;
 const Q = { level: window.__FORCE_Q || (isMobile ? 'normal' : 'high') };
+globalThis.__LOOK_Q = Q.level;   // ── look A ── (src/look/shader.js: the fine relief at 'high' only) ── /look A ──
 let paused = false;
 const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 // game mode (default): the Phase A game drives the construction layer; the whole-Temple view is visual only

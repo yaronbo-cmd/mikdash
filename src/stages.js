@@ -12,6 +12,7 @@ import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ─�
 import * as TX from './tex.js';
 import { ashlarGeo, stoneMat, ashTone, ASH_HEX } from './look/stone.js';
 import { lookClone } from './look/shader.js';   // ── look A ── the stone system ── /look A ──
+import { freshMat, cutCellPatch } from './look/rock.js';   // ── look A ── the rough blocks, the cut cells and the pits ── /look A ──
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
 // ── h115 ── the address grid (game/world/grid.js): the hill's cells by id (column × row over the whole platform), the waste pits after
 import { CELL as G_CELL, EAST as G_EAST, NORTH as G_NORTH, BOOK as G_BOOK } from './game/world/grid.js';
@@ -1545,6 +1546,8 @@ export function createStages(ctx) {
   let cellMode = false, pinsOff = false;   // ── h117 ── (pinsOff: the director owns the game) ── /h117 ──
   const CELLS = new Map();   // id → { st: 'rock'|'cut'|'paved', a: anim | null }
   const pitFill = [];
+  // ── look A ── the cut cells' quarried walls and dressed floors, the pits' rubble and earth cap (src/look/rock.js) ── /look A ──
+  { const m = hill.mesh.material, ob = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); cutCellPatch(sh, { THREE, pits: CG.PITS, nc: CG.NC, fill: () => pitFill }); }; }
   // (a paved cell's paving is drawn by the hill's own shader on its cut floor: cell level 4000 + L, the slabs where it was cut)
   const lvOf = (c) => (c.st === 'paved' ? 4000 : 0) + FLOOR;
   const SCRUB_OFF = new Set();   // ── h115 ── cells cleared of their scrub while their rock stands (the kohen's work ground) ── /h115 ──
@@ -1861,7 +1864,7 @@ export function createStages(ctx) {
   field.count = 0; field.castShadow = true; field.frustumCulled = false; scene.add(field);
   // (wave 6) real stones: dressed/drafted ashlars and rough blocks — the ashlars in the stone system's material (look A), the rough as field
   const ashGeo = ashlarGeo(THREE), roughGeo = roughGeometry();
-  const ashI = new THREE.InstancedMesh(ashGeo, stoneMat(THREE), 900), roughI = new THREE.InstancedMesh(roughGeo, field.material, 300);
+  const ashI = new THREE.InstancedMesh(ashGeo, stoneMat(THREE), 900), roughI = new THREE.InstancedMesh(roughGeo, lookClone(freshMat(THREE, T.rock.map), '#ffffff'), 300);   // ── look A ── (the rough blocks: fresh breaks, their tone per instance) ── /look A ──
   for (const m of [ashI, roughI]) { m.count = 0; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; m.visible = false; scene.add(m); }
   const dirtTex = TX.texGround(97, 256).map;
   const dirtMat = new THREE.MeshStandardMaterial({ color: '#B89C74', map: dirtTex, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });

@@ -8,6 +8,8 @@ import { BOOK, rectOf } from '../world/grid.js';
 import * as PV from './paving.js';
 import * as WG from './wedges.js';   // ── h117 ── ── /h117 ──
 import { paveSlab, paveQuarter, paveBed, JOINT } from '../../look/paving.js';   // ── look A ── the paving slabs ── /look A ──
+import { rockMat as lookRockMat, rockClone, rockTint } from '../../look/rock.js';   // ── look A ── the rocks ── /look A ──
+import { lookFresh } from '../../look/shader.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -52,11 +54,13 @@ function bigStand(X, s) {
 // when the crack is full the creaking stops: that is the moment to stop pouring. The rock splits along that very plane, the two halves
 // part like a book and stay on the hill until the crews drag them away for the paving. Illustration (the method: wooden wedges in a
 // line of slots, wetted, swell and split the rock — documented at Roman quarries; marked המחשה in the sources list). ── /h114 ──
-function rockMat(X) {
-  if (SH.rockMat) return SH.rockMat;
+// ── look A ── the big rock's weathered skin (src/look/rock.js), its layers by vertex colour, a tone of its own per sector ── /look A ──
+function rockMat(X, s) {
+  SH.rockMats = SH.rockMats || [];
+  if (SH.rockMats[s]) return SH.rockMats[s];
   let map = null; try { const bm = X.stages.boulderMat && X.stages.boulderMat(); map = bm && bm.map; } catch (e) { map = null; }
-  SH.rockMat = new X.THREE.MeshStandardMaterial({ color: '#D9CDB2', map, roughness: 0.93, flatShading: true });
-  return SH.rockMat;
+  const m = rockClone(lookRockMat(X.THREE, map, { vertexColors: true }), rockTint(s * 7.1 + 3.3)); m.userData.lookBase = true;
+  return (SH.rockMats[s] = m);
 }
 /** the sector's crack: azimuth offset from his side, the tilt; and the decoy's (a shallow scratch, level 3) — the same every time */
 function crackOf(s) { const sg = hash(s, 3) > 0.5 ? 1 : -1; return { off: sg * (0.2 + hash(s, 5) * 0.16), tilt: (hash(s, 7) - 0.5) * 0.55, doff: -sg * (0.26 + hash(s, 9) * 0.12), dtilt: (hash(s, 11) - 0.5) * 0.5 }; }
@@ -66,7 +70,7 @@ function bigRock(X, s, split) {
   if (SH.big[s]) return SH.big[s];
   const b = SH.bould[s]; let inf = null; try { inf = X.stages.boulderInfo && X.stages.boulderInfo(s); } catch (e) { inf = null; }
   const gy = inf ? inf.gy : X.ground(b[0], b[1]);
-  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : hash(s, 1) * TAU, seed: s * 13 + 5, mat: rockMat(X) });
+  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : hash(s, 1) * TAU, seed: s * 13 + 5, mat: rockMat(X, s) });
   X.props.root.add(R.group);
   try { X.stages.boulderHide(s, true, !!split); } catch (e) { /* */ }
   if (split) { const st = bigStand(X, s), phiK = Math.atan2(st.z - b[1], st.x - b[0]), c = crackOf(s); R.halves(R.plane(phiK + c.off, c.tilt)); R.part(1); }
@@ -436,7 +440,7 @@ function pileSync(X) {
   SH.pileM.forEach((mm, i) => { if (!mm.userData.on) mm.position.y = X.ground(mm.position.x, mm.position.z) + mm.scale.x * 0.4 + Math.floor(i / 5) * 0.35; });
   while (SH.pileM.length < n) {
     const i = SH.pileM.length, a = i * 2.4, r = 0.6 + (i % 5) * 0.45, x = PILE.x + Math.cos(a) * r, z = PILE.z + Math.sin(a) * r, s = 0.85 + hash(i, 2) * 0.4;
-    const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.lump); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
+    const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.lumpOf(i)); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
   }
 }
 /** the pits as the save has them (st.pitIn[i]: chunks in pit i) ── h117 ── (ירון 10.11: "האבנים נופלות לבור אבל לא נערמות") an open
@@ -463,14 +467,14 @@ function heapSpots(i, n) {
   return out;
 }
 function heapFloor(i) { const f = SH.cells && SH.cells.pitInfo ? SH.cells.pitInfo(i) : null; return f ? f.floor : 0; }
-function heapMesh(X) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.lump); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
+function heapMesh(X, k) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.lumpOf(k)); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
 function heapPlace(mm, q, fy) { mm.scale.set(q.s, q.s * 0.8, q.s); mm.position.set(q.x, fy + q.y, q.z); mm.rotation.set(q.rx, q.ry, 0); }
 function heapSync(X) {
   const st = X.M.st; SH.heapM = SH.heapM || [];
   for (let i = 0; i < BOOK.pits.length; i++) {
     const n = (st.pitIn[i] | 0) >= PIT_CAP ? 0 : st.pitIn[i] | 0, L = (SH.heapM[i] = SH.heapM[i] || []);
     while (L.length > n) X.props.remove(L.pop());
-    while (L.length < n) L.push(heapMesh(X));
+    while (L.length < n) L.push(heapMesh(X, L.length + i));
     const Q = heapSpots(i, n), fy = heapFloor(i);
     L.forEach((mm, k) => heapPlace(mm, Q[k], fy));
   }
@@ -1053,13 +1057,15 @@ function dressStart(X, s, n, lost) {
   sled.position.set(sx, X.ground(sx, sz), sz); X.props.root.add(sled);
   for (let i = 0; i < n; i++) { const m = X.props.stoneMesh(1.4, 0.7, 0.9); m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
   const y0 = R.group.position.y;
-  SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0 });
+  // ── look A ── (as the halves are worked their skin goes to the fresh stone: a clone of the rock's material, R.dispose takes it) ── /look A ──
+  const m0 = R.whole.material, dm = rockClone(m0); R.group.traverse((c) => { if (c.isMesh && c.material === m0) c.material = dm; });
+  SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0, dm });
 }
 function dressFrame(dt, X) {
   for (const D of SH.dress || []) {
     D.t += dt; const k = Math.min(1, D.t / 3.2), b = SH.bould[D.s];
     if (D.R) {
-      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k);
+      D.R.group.scale.setScalar(1 - 0.85 * k); lookFresh(D.dm, k);   // ── look A ── ── /look A ── D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k);
       D.sparkT -= dt; if (D.sparkT <= 0 && k < 1) { D.sparkT = 0.35; X.sparks(b[0] + (Math.random() - 0.5) * b[2], D.gy + 1.2, b[1] + (Math.random() - 0.5) * b[2], 5); X.play('tool'); }
       D.blocks.forEach((m, i) => { m.visible = k > (i + 1) / (D.n + 1); });
       if (k >= 1) { D.R.dispose(); SH.big[D.s] = null; D.R = null; if (D.lost) wasteAdd(X, 2, null); else X.M.st.yard = (X.M.st.yard | 0) + D.n; yardSync(X); }

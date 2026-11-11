@@ -10,6 +10,8 @@
  *   R.crackPts(P, th0, th1, n) → [Vector3] along the face (bottom → top), each a hair off the surface; R.hitAt(azimuth, h) → point+normal
  *   R.halves(P) → shows the two halves (the whole hidden) · R.part(k) 0..1 → how far apart · R.dispose()
  */
+import { freshMat } from '../../look/rock.js';   // ── look A ── ── /look A ──
+
 const rnd = (seed) => { let t = (seed * 2654435761) >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; };
 
 export function makeRock(T, o) {
@@ -84,7 +86,7 @@ export function makeRock(T, o) {
     };
     // the cut: the section's outline (rays in the plane all round), a fan of fresh-cut rock
     const ring = []; for (let i = 0; i < 40; i++) { const th = (i / 40) * Math.PI * 2, dir = Pl.u.clone().multiplyScalar(Math.cos(th)).addScaledVector(Pl.w, Math.sin(th)); const h = hitDir(dir); if (h) ring.push(h.p.sub(C)); }
-    const cutMat = new T.MeshStandardMaterial({ color: '#DCCFB4', roughness: 0.9, flatShading: true, side: T.DoubleSide });
+    const cutMat = freshMat(T, mat.userData.lookTex || null, { side: T.DoubleSide });   // ── look A ── the fresh break: near-white cream, clean ── /look A ──
     const capG = (side) => { const pos = []; for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; pos.push(0, 0, 0, a.x, a.y, a.z, b.x, b.y, b.z); } const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); const m = new T.Mesh(g, cutMat); m.position.addScaledVector(n, side * 0.01); return m; };
     const A = new T.Group(), B = new T.Group();
     A.add(mk(-1)); A.add(capG(-1)); B.add(mk(1)); B.add(capG(1));
@@ -99,6 +101,6 @@ export function makeRock(T, o) {
     H.A.position.copy(H.n).multiplyScalar(-d); H.B.position.copy(H.n).multiplyScalar(d);
     H.A.setRotationFromAxisAngle(H.u, tip); H.B.setRotationFromAxisAngle(H.u, -tip);
   }
-  function dispose() { if (group.parent) group.parent.remove(group); group.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material && c.material !== mat && c.material.dispose) c.material.dispose(); }); }
+  function dispose() { if (group.parent) group.parent.remove(group); group.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material && c.material !== mat && !c.material.userData.lookBase && c.material.dispose) c.material.dispose(); }); }
   return { group, whole, C, r, sy, gy, plane, crackPts, hitAt, hitDir, halves, part, dispose, get split() { return H; } };
 }

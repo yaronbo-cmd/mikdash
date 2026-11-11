@@ -76,7 +76,7 @@ vec3 lkLook(vec3 base) {
     // ── dressed limestone (0: an ashlar · 1: a paving slab) ──
     // (the albedo fitted to this sun and tone mapping: the tones' steps widened about their mean, more saturated, a little darker —
     // measured on the screenshots: a sunlit top lands at sRGB hue 36..46, saturation 14..24 %, lightness 68..78 %)
-    { float L0 = lkLum(col), Lm = kind < 0.5 ? 0.61 : 0.49, Lx = Lm + clamp((L0 - Lm) * 2.6, -0.13, 0.16);
+    { float L0 = lkLum(col), Lm = kind < 0.5 ? 0.61 : 0.49, Lx = Lm + clamp((L0 - Lm) * 2.6, -0.08, 0.16);
       col *= Lx / max(L0, 1e-3); col = max(mix(vec3(lkLum(col)), col, kind < 0.5 ? 2.3 : 1.25), vec3(0.0)) * 0.88; }
     float val = 1.0 + (fract(s * 13.7) - 0.5) * 0.08;
     float d = lkLum(lkTri(P, N, 2.5, s, 0.0)), amp = 1.0;

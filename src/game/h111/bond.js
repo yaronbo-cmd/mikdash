@@ -247,7 +247,7 @@ export const BOND = {
       const s = A.cur, c = s.m.position, at = { x: c.x, y: topY + 1.2, z: c.z }, L0 = landing(c.x, c.z);
       if (!L0 || L0.off) {
         // down on the floor, off the wall: the crews carry it back to its place in the row
-        s.m.position.set(s.home.x, s.home.y, s.home.z); s.m.rotation.y = F.yaw; A.cur = null; A.curS = null; A.phase = 'choose'; slings(false); X.play('thud');
+        s.m.position.set(s.home.x, s.home.y, s.home.z); s.m.rotation.y = F.yaw; A.cur = null; A.curS = null; A.phase = 'choose'; slings(false); X.play('thud'); camWork();
         X.line(L0 && L0.off ? 'מחוץ לקטע · האבן חזרה לשורה' : 'האבן חזרה לשורה · געו באבן'); return;
       }
       if (L0.why) { A.drop = Math.max(0, A.drop - 1.4); A.v = 0; A.misses++; X.word(at, L0.why); X.play('thud'); return; }
@@ -323,6 +323,8 @@ export const BOND = {
     return {
       async begin() {
         X.kohen(false);
+        // the whole work's ground kept clear of the Mount's crews (the Heichal's priests stood on the stock row at the western stretches)
+        try { const pts = [F.at(ext[0] - 3, ACR - 4), F.at(ext[1] + 3, ACR - 4), F.at(ext[0] - 3, BA + 6), F.at(ext[1] + 3, BA + 6)]; const xs = pts.map((q) => q.x), zs = pts.map((q) => q.z); if (X.stages.keepOut) X.stages.keepOut([[Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)]]); } catch (e) { /* */ }
         const c = F.at(P.G / 2, 0, H);
         X.shot([c.x - F.nx * 60, c.y + 90, c.z - F.nz * 60], [c.x, c.y, c.z], 0.01);
         X.line(`קטע ${m.s}: רווח של ${P.G} אמות בנדבך${P.open ? ' עם פתח שער' : ''}`);
@@ -433,6 +435,7 @@ export const BOND = {
         const r2 = (o) => [Math.round(o.x), Math.round(o.y)], sc = (p) => r2(X.scr(p.x, p.y, p.z));
         // the bot's aim: the next stone of the solution not yet laid
         const want = []; P.sol.forEach((row, ri) => { for (const [a, L] of row) want.push({ a, L, row: ri === 0 ? 0 : 2 }); }); if (P.head != null) want.push({ a: P.head, L: 6, row: 'h' });
+        if (Array.isArray(globalThis.__BOND_PLAN)) { want.length = 0; want.push(...globalThis.__BOND_PLAN); }   // (tests: a wrong layout on purpose)
         const nx = want.find((w) => !A.stones.some((q) => q.a === w.a && q.L === w.L && q.row === w.row));
         let next = null;
         if (nx) { const w = nx.row === 'h' ? 2 : nx.L, p = F.at(nx.a + w / 2, nx.row === 'h' ? 0 : rowOff(nx.row), H / 2); next = { ...nx, hdr: nx.row === 'h', scr: sc(p), id: (stock.find((s) => !s.laid && !s.gone && s.L === nx.L && s !== A.cur) || {}).id || null }; }

@@ -88,7 +88,7 @@ function makeMats() {
   const T = {
     ash: TX.texAshlar(7), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17), marble: TX.texMarble(23),
     plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), lattice: TX.texLattice(),
-    puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91),
+    puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91, 512, false),
   };
   for (const v of Object.values(T)) for (const t of (v.isTexture ? [v] : Object.values(v))) t.anisotropy = aniso;
   const std = (o) => new THREE.MeshStandardMaterial(o), n = (a) => new THREE.Vector2(a, a);

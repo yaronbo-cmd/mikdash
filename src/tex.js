@@ -269,7 +269,7 @@ export function texLattice(size = 256) {
 
 // Weathered limestone bedrock of the natural hill (Mount Moriah before the platform) and its boulders.
 // Pale grey-cream rock, bleached and shadowed blotches, lichen, bedding lines, cracks and solution pits. Tile ≈ 26 amot.
-export function texRock(seed = 91, size = 512) {
+export function texRock(seed = 91, size = 512, normals = true) {   // ── look B ── (normals false: the map only — the Mount's rock as round A's detail) ── /look B ──
   const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
   x.fillStyle = hsl(40, 13, 70); x.fillRect(0, 0, size, size);
   h.fillStyle = '#808080'; h.fillRect(0, 0, size, size);
@@ -333,7 +333,7 @@ export function texRock(seed = 91, size = 512) {
     });
   }
   grain(x, size, size, 0.12, seed + 1); grain(h, size, size, 0.2, seed + 2);
-  return { map: toTex(c), normalMap: toTex(normalFromHeight(hc, 2.6, 1), false) };
+  return normals ? { map: toTex(c), normalMap: toTex(normalFromHeight(hc, 2.6, 1), false) } : { map: toTex(c) };
 }
 
 export function texPuff(seed = 5, size = 128) {

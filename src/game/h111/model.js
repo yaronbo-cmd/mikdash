@@ -75,64 +75,140 @@ const WEIGHT = { stakes: 1, bond: 2, plumb: 1.5, lever: 2.5, gates: 1, closing: 
 const TOTAL = PLAN.reduce((a, m) => a + WEIGHT[m.k], 0);
 
 /* ───────── the puzzle of a stretch (deterministic): the joints of the course below, the kohen's stock ───────── */
+// ── build 118 ── a real logic puzzle (brief docs/specs/build118-brief.md §M; the owner 9.11: "חידת היגיון קשה, מלאי מדויק, סדר
+// אחד"): stretchers of 2–5 amot along one face row, the 6 a header across the whole wall (2 cells of both rows), ONE stock for both
+// rows, exact from stretch 4 with exactly one way to close the course; stretches 1–3 one extra stretcher and 2–3 ways.
 function rng(seed) { let x = (seed * 2654435761) >>> 0 || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return (x >>> 0) / 4294967296; }; }
-/** a partition of n cells into pieces of 2, 3, 4 (r: the random) */
-function partition(n, r) {
+/** a partition of n cells into pieces of lens (r: the random) */
+function partition(n, r, lens = [2, 3, 4, 5]) {
   if (n <= 0) return [];
-  for (let k = 0; k < 40; k++) {
+  const lo = Math.min(...lens);
+  for (let k = 0; k < 60; k++) {
     const out = []; let left = n;
     while (left > 0) {
-      const opts = [2, 3, 4].filter((L) => L === left || left - L >= 2);
+      const opts = lens.filter((L) => L === left || left - L >= lo);
       if (!opts.length) break;
       const L = opts[Math.floor(r() * opts.length)]; out.push(L); left -= L;
     }
     if (left === 0) return out;
   }
-  return n % 2 === 0 ? Array(n / 2).fill(2) : [3, ...Array((n - 3) / 2).fill(2)];
+  return null;
 }
+/** the table of the brief §M1: by level, what a stretch must be */
+const RULES = { 1: { exact: false, want: [2, 3], bonus: 100 }, 2: { exact: true, want: [1, 1], bonus: 200 }, 3: { exact: true, want: [1, 1], bonus: 400 } };
+/** the cells a stretch must fill: the spans of both rows outside the opening */
+const spansOf = (G, open) => (open ? [[0, open[0]], [open[1], G]] : [[0, G]]);
+/** is x an edge where no joint counts (the stretch's ends, the opening's edges)? */
+const freeEdge = (P, x) => x <= 0 || x >= P.G || (P.open && (x === P.open[0] || x === P.open[1]));
+
 /**
- * the stretch's puzzle: G cells along; rows 0 (outer face) and 2 (inner face); the core (row 1) is the crews' fill, except under a header
- *  → { G, open: [a, b] | null (the gate's opening, kept empty), head: a | null (the solution's header: cells a, a+1 of all three rows),
- *      below: [Set row 0, Set row 2] (the joints of the course below: no joint of this course may stand over one), sol: [[a, L], …] per row,
- *      stock: [{ L, n }] (lengths: 2 3 4 stretchers, 6 the header that crosses the whole wall), marks: bool (the joints below are chalked) }
+ * how many different full layouts close the stretch (≤ cap): both rows filled outside the opening, every joint off the course below,
+ * the stock used (all of it when exact, all but one stone otherwise), the stones of `laid` ({ a, L, row: 0|2|'h' }) kept where they are.
  */
-export function puzzleOf(s) {
-  const T = STRETCH[s - 1]; if (!T) return null;
-  const r = rng(1009 * s + 77), G = T.G;
+export function countSolutions(P, cap = 4, laid = []) {
+  const G = P.G, occ = [new Int8Array(G), new Int8Array(G)];
+  if (P.open) for (let r = 0; r < 2; r++) for (let x = P.open[0]; x < P.open[1]; x++) occ[r][x] = 2;
+  const cnt = {}; for (const s of P.stock) cnt[s.L] = (cnt[s.L] || 0) + 1;
+  const spanEnd = (x) => { for (const [a, b] of spansOf(G, P.open)) if (x >= a && x < b) return b; return x; };
+  const bad = (r, x) => !freeEdge(P, x) && P.below[r].has(x);
+  for (const q of laid) {
+    const hdr = q.row === 'h', w = hdr ? 2 : q.L;
+    if (!cnt[q.L]) return 0; cnt[q.L]--;
+    for (const r of hdr ? [0, 1] : [q.row === 0 ? 0 : 1]) for (let x = q.a; x < q.a + w; x++) { if (x < 0 || x >= G || occ[r][x]) return 0; occ[r][x] = 1; }
+    for (const r of hdr ? [0, 1] : [q.row === 0 ? 0 : 1]) if (bad(r, q.a) || bad(r, q.a + w)) return 0;
+  }
+  // a laid stone's neighbours must meet it at its edge: checked as the search fills up to it (a stone may not overlap it)
+  const total = Object.values(cnt).reduce((a, b) => a + b, 0), leave = P.exact ? 0 : 1;
+  let found = 0;
+  const go = (used) => {
+    if (found >= cap) return;
+    // the first empty cell, row 0 first
+    let r = -1, x = -1;
+    for (let rr = 0; rr < 2 && r < 0; rr++) for (let xx = 0; xx < G; xx++) if (!occ[rr][xx]) { r = rr; x = xx; break; }
+    if (r < 0) { if (total - used === leave) found++; return; }
+    const end = spanEnd(x);
+    // a joint at x itself (what lies left of it ended here): the course below must not have one there
+    if (bad(r, x)) return;
+    // the header: across both rows, from row 0 (row 1 is still empty there)
+    if (r === 0 && cnt[6] > 0 && x + 2 <= end && !occ[1][x] && !occ[1][x + 1] && !occ[0][x + 1] && !bad(0, x + 2) && !bad(1, x) && !bad(1, x + 2)) {
+      cnt[6]--; occ[0][x] = occ[0][x + 1] = occ[1][x] = occ[1][x + 1] = 1; go(used + 1); occ[0][x] = occ[0][x + 1] = occ[1][x] = occ[1][x + 1] = 0; cnt[6]++;
+    }
+    for (const L of [2, 3, 4, 5]) {
+      if (!(cnt[L] > 0) || x + L > end) continue;
+      let ok = true; for (let k = x; k < x + L; k++) if (occ[r][k]) { ok = false; break; }
+      if (!ok || bad(r, x + L)) continue;
+      // it must end where the next thing starts (another stone, a laid one, the span's end): an occupied cell right after is fine
+      cnt[L]--; for (let k = x; k < x + L; k++) occ[r][k] = 1; go(used + 1); for (let k = x; k < x + L; k++) occ[r][k] = 0; cnt[L]++;
+    }
+  };
+  go(0);
+  return found;
+}
+/** can the course still be closed with these stones where they lie? */
+export const canFinish = (P, laid) => countSolutions(P, 1, laid) > 0;
+/** the one laid stone the master builder chalks: removing it makes the course closable again (null: none or not needed) */
+export function misplaced(P, laid) {
+  if (canFinish(P, laid)) return null;
+  for (let i = laid.length - 1; i >= 0; i--) { const rest = laid.filter((_, j) => j !== i); if (canFinish(P, rest)) return laid[i]; }
+  return null;
+}
+
+function makePuzzle(T, seed) {
+  const r = rng(seed), G = T.G, R = RULES[T.lv];
   let open = null;
   if (T.gate != null) { const a = Math.round((G - H111.GATE_W) / 2); open = [a, a + H111.GATE_W]; }
-  // the spans the stones must fill (both sides of an opening)
-  const spans = open ? [[0, open[0]], [open[1], G]] : [[0, G]];
-  // a header at level 2 and up: two cells across the whole wall, in the longest span, ≥ 2 cells from its ends
+  const spans = spansOf(G, open);
+  // a header from level 2: two cells across the whole wall, in a span ≥ 6 cells, ≥ 2 cells from its ends
   let head = null;
   if (T.lv >= 2) {
-    const sp = spans.slice().sort((a, b) => (b[1] - b[0]) - (a[1] - a[0]))[0];
-    if (sp[1] - sp[0] >= 6) { const lo = sp[0] + 2, hi = sp[1] - 4; head = lo + Math.floor(r() * (hi - lo + 1)); }
+    const sp = spans.filter(([a, b]) => b - a >= 6); if (sp.length) { const [a, b] = sp[Math.floor(r() * sp.length)]; const lo = open ? a : a + 2, hi = open ? b - 2 : b - 4; head = lo + Math.floor(r() * (hi - lo + 1)); }
   }
   const sol = [[], []];
-  for (let row = 0; row < 2; row++) {
-    for (const [a0, b0] of spans) {
-      const parts = head != null && head >= a0 && head + 2 <= b0 ? [[a0, head], [head + 2, b0]] : [[a0, b0]];
-      for (const [a, b] of parts) { let x = a; for (const L of partition(b - a, r)) { sol[row].push([x, L]); x += L; } }
+  for (let row = 0; row < 2; row++) for (const [a0, b0] of spans) {
+    const parts = head != null && head >= a0 && head + 2 <= b0 ? [[a0, head], [head + 2, b0]] : [[a0, b0]];
+    for (const [a, b] of parts) { const pc = partition(b - a, r); if (!pc) return null; let x = a; for (const L of pc) { sol[row].push([x, L]); x += L; } }
+  }
+  // the course below: a real tiling of 2–4 stones per row, its joints never under this course's solution
+  const cuts = [new Set(), new Set()];
+  for (let row = 0; row < 2; row++) { for (const [a, L] of sol[row]) { cuts[row].add(a); cuts[row].add(a + L); } if (head != null) { cuts[row].add(head); cuts[row].add(head + 2); } }
+  const belowStones = [[], []], below = [new Set(), new Set()];
+  for (let row = 0; row < 2; row++) for (const [a0, b0] of spans) {
+    let ok = false;
+    for (let k = 0; k < 80 && !ok; k++) {
+      const pc = partition(b0 - a0, r, [2, 3, 4]); if (!pc) continue;
+      let x = a0, good = true; const xs = [];
+      for (const L of pc) { x += L; if (x < b0) { if (cuts[row].has(x)) { good = false; break; } xs.push(x); } }
+      if (!good) continue;
+      ok = true; x = a0; for (const L of pc) { belowStones[row].push([x, L]); x += L; } for (const y of xs) below[row].add(y);
     }
+    if (!ok) return null;
   }
-  // the joints of the course below: where this course's solution has none (so the solution is good), spaced, about one every 3 amot
-  const below = [new Set(), new Set()];
-  for (let row = 0; row < 2; row++) {
-    const cuts = new Set(); for (const [a, L] of sol[row]) { cuts.add(a); cuts.add(a + L); }
-    if (head != null) { cuts.add(head); cuts.add(head + 2); }
-    const cand = []; for (let x = 1; x < G; x++) if (!cuts.has(x) && !(open && x >= open[0] && x <= open[1])) cand.push(x);
-    for (const x of cand.sort(() => r() - 0.5)) { if ([...below[row]].some((y) => Math.abs(y - x) < 2)) continue; below[row].add(x); if (below[row].size >= Math.max(2, Math.round(G / 3))) break; }
+  const stock = [];
+  for (const row of sol) for (const [, L] of row) stock.push(L);
+  if (head != null) stock.push(6);
+  if (!R.exact) stock.push([2, 3, 4, 5][Math.floor(r() * 4)]);
+  stock.sort((a, b) => a - b);
+  const P = { s: T.s, G, lv: T.lv, open, head, below, belowStones, sol, stock: stock.map((L, i) => ({ id: i + 1, L })), marks: !T.bare, exact: R.exact, bonus: R.bonus };
+  P.n = countSolutions(P, 4);
+  return P;
+}
+const CACHE = {};
+/**
+ * the stretch's puzzle → { s, G, lv, open: [a, b] | null, head, below: [Set row 0, Set row 2], belowStones: [[a, L]…] per row,
+ *   sol: [[a, L]…] per row, stock: [{ id, L }] single stones short to long, marks, exact, bonus, n (its number of solutions, ≤ 4) }
+ */
+export function puzzleOf(s) {
+  if (CACHE[s]) return CACHE[s];
+  const T = STRETCH[s - 1]; if (!T) return null;
+  const R = RULES[T.lv];
+  let best = null;
+  for (let k = 0; k <= 600; k++) {
+    const P = makePuzzle(T, 1009 * s + 77 + k); if (!P || P.n < 1) continue;
+    if (P.n >= R.want[0] && P.n <= R.want[1]) { best = P; break; }
+    if (!best || Math.abs(P.n - R.want[0]) < Math.abs(best.n - R.want[0])) best = P;
   }
-  // the stock: the solution's stones, and some more (fewer at level 3: "ובמלאי פחות אפשרויות")
-  const cnt = { 2: 0, 3: 0, 4: 0, 6: 0 };
-  for (const row of sol) for (const [, L] of row) cnt[L]++;
-  if (head != null) cnt[6]++;
-  const extra = T.lv >= 3 ? 1 : 2;
-  for (let i = 0; i < extra; i++) cnt[[2, 3, 4][Math.floor(r() * 3)]]++;
-  if (T.lv >= 2 && head == null) cnt[6]++;
-  const stock = [6, 4, 3, 2].filter((L) => cnt[L] > 0).map((L) => ({ L, n: cnt[L] }));
-  return { s, G, open, head, below, sol, stock, marks: !T.bare, lv: T.lv };
+  CACHE[s] = best;
+  return best;
 }
 /** is a laid course of a stretch good? cells: per row an array of G (null | stone id); stones: { id → { a, L, row: 0|2|'h' } }
  *  → { full, joj: [{ id, row, x }], head: bool } — full: every cell of both face rows outside the opening is laid */

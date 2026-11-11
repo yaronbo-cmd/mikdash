@@ -44,7 +44,8 @@ const FRAG_COMMON = /* glsl */`
 uniform vec4 uLk; uniform vec4 uLk2; uniform sampler2D uDet;
 varying vec3 vLkP; varying vec3 vLkU; varying vec3 vLkN; varying vec3 vLkS; varying vec3 vLkW; varying vec3 vLkG; varying vec3 vLkWN;
 float lkH1(float n) { return fract(sin(n) * 43758.5453); }
-float lkH3(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+// (a hash without sin: cheap on a software renderer)
+float lkH3(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float lkN3(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(lkH3(i), lkH3(i + vec3(1, 0, 0)), f.x), mix(lkH3(i + vec3(0, 1, 0)), lkH3(i + vec3(1, 1, 0)), f.x), f.y),
              mix(mix(lkH3(i + vec3(0, 0, 1)), lkH3(i + vec3(1, 0, 1)), f.x), mix(lkH3(i + vec3(0, 1, 1)), lkH3(i + vec3(1, 1, 1)), f.x), f.y), f.z); }
@@ -54,8 +55,14 @@ vec2 lkTurn(vec2 p, float q) { return q < 0.5 ? p : q < 1.5 ? vec2(-p.y, p.x) : 
 vec3 lkTri(vec3 p, vec3 n, float tile, float s, float bias) {
   vec3 w = pow(abs(n), vec3(4.0)); w /= max(1e-4, w.x + w.y + w.z);
   vec2 o = vec2(fract(s * 7.31), fract(s * 3.17)); float q = floor(fract(s * 5.13) * 4.0);
-  vec3 a = texture(uDet, lkTurn(p.zy / tile, q) + o, bias).rgb, b = texture(uDet, lkTurn(p.xz / tile, q) + o.yx, bias).rgb, c = texture(uDet, lkTurn(p.xy / tile, q) + o * 1.7, bias).rgb;
-  return a * w.x + b * w.y + c * w.z;
+  // (only the faces that weigh: one sample on a box's face, not three; the gradients taken before the branches)
+  vec2 ua = lkTurn(p.zy / tile, q) + o, ub = lkTurn(p.xz / tile, q) + o.yx, uc = lkTurn(p.xy / tile, q) + o * 1.7, k = vec2(exp2(bias));
+  vec2 ax = dFdx(ua) * k, ay = dFdy(ua) * k, bx = dFdx(ub) * k, by = dFdy(ub) * k, cx = dFdx(uc) * k, cy = dFdy(uc) * k;
+  vec3 r = vec3(0.0);
+  if (w.x > 0.02) r += textureGrad(uDet, ua, ax, ay).rgb * w.x;
+  if (w.y > 0.02) r += textureGrad(uDet, ub, bx, by).rgb * w.y;
+  if (w.z > 0.02) r += textureGrad(uDet, uc, cx, cy).rgb * w.z;
+  return r / max(1e-4, (w.x > 0.02 ? w.x : 0.0) + (w.y > 0.02 ? w.y : 0.0) + (w.z > 0.02 ? w.z : 0.0));
 }
 float lkLum(vec3 c) { return dot(c, vec3(0.333)); }
 float lkHt = 0.5;   // (the height for the relief, 'high' only)
@@ -101,16 +108,21 @@ vec3 lkLook(vec3 base) {
     // ── rock (2: the weathered skin, lerped to the fresh break by uLk.w · 3: a fresh break) ──
     // (the world normal from the interpolated one: screen derivatives here gave a 2 × 2-pixel grain on SwiftShader)
     vec3 wN = normalize(vLkWN);
-    vec3 t = lkTri(P, N, 3.0, s, 1.6), tf = lkTri(P * 1.7, N, 3.0, s + 0.5, 0.8);   // (3 amot to the tile, a coarser mip: the grain soft)
     float f = kind > 2.5 ? 1.0 : clamp(fresh, 0.0, 1.0);
+    // (3 amot to the tile, a coarser mip: the grain soft; each sampled only when it shows — f is the material's, a uniform branch)
+    vec3 t = vec3(0.43), tf = vec3(0.43);
+    if (f < 0.999) t = lkTri(P, N, 3.0, s, 1.6);
+    if (f > 0.001) tf = lkTri(P * 1.7, N, 3.0, s + 0.5, 0.8);
     // the skin: grey-brown, darker on the up-facing facets, lichen flecks there, soft bedding lines by height (3 to the amah)
     float up = smoothstep(0.25, 0.9, wN.y);
     vec3 skin = base * mix(vec3(1.0), t / 0.43, 0.85) * mix(1.0, 0.82, up);   // (0.43: the rock texture's mean, linear)
     skin = mix(skin, skin * vec3(0.92, 0.9, 0.88), up * 0.6);
-    float li = smoothstep(0.72, 0.78, lkN3(vLkW * 2.6)) * up;
-    skin = mix(skin, vec3(0.62, 0.62, 0.55) * lkLum(skin) * 1.5, li * 0.55);
-    float bed = smoothstep(0.82, 1.0, abs(fract(vLkW.y * 3.0 + 0.6 * lkN3(vLkW * 0.6)) * 2.0 - 1.0));
-    skin *= 1.0 - 0.09 * bed * (1.0 - up);
+    if (f < 0.999) {
+      float li = smoothstep(0.72, 0.78, lkN3(vLkW * 2.6)) * up;
+      skin = mix(skin, vec3(0.62, 0.62, 0.55) * lkLum(skin) * 1.5, li * 0.55);
+      float bed = smoothstep(0.82, 1.0, abs(fract(vLkW.y * 3.0 + 0.6 * lkN3(vLkW * 0.6)) * 2.0 - 1.0));
+      skin *= 1.0 - 0.09 * bed * (1.0 - up);
+    }
     // the fresh break: near-white cream, clean, a sharper grain
     vec3 fr = (kind > 2.5 ? base : vec3(0.73, 0.69, 0.61)) * mix(0.8, 1.14, lkLum(tf) / 0.43) * (1.0 + (fract(s * 7.7) - 0.5) * 0.05);
     col = mix(skin, fr, f);

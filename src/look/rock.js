@@ -40,12 +40,16 @@ export function cutCellPatch(sh, o) {
   sh.uniforms.uLkPitR = { value: R };
   sh.uniforms.uLkPitF = { get value() { const f = o.fill() || []; for (let i = 0; i < PIT_N; i++) F[i] = f[i] == null ? -1 : f[i]; return F; } };
   sh.uniforms.uLkNC = { value: o.nc };
+  // (all the pits' box, 2.4 amot wider: the hill elsewhere skips the pits' loop)
+  const B = new o.THREE.Vector4(1e9, 1e9, -1e9, -1e9);
+  (o.pits || []).slice(0, PIT_N).forEach((P) => { B.x = Math.min(B.x, P.x - P.w / 2 - 2.4); B.y = Math.min(B.y, P.z - P.d / 2 - 2.4); B.z = Math.max(B.z, P.x + P.w / 2 + 2.4); B.w = Math.max(B.w, P.z + P.d / 2 + 2.4); });
+  sh.uniforms.uLkPitB = { value: B };
   sh.vertexShader = sh.vertexShader
     .replace('#include <common>', '#include <common>\nvarying float vLkY; varying float vLkCid;')
     .replace('vec3 transformed = vec3(position.x, hY, position.z);', 'vec3 transformed = vec3(position.x, hY, position.z); vLkY = hY; vLkCid = aCid;');
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', `#include <common>
-      varying float vLkY; varying float vLkCid; uniform vec4 uLkPitR[${PIT_N}]; uniform float uLkPitF[${PIT_N}]; uniform float uLkNC;`)
+      varying float vLkY; varying float vLkCid; uniform vec4 uLkPitR[${PIT_N}]; uniform float uLkPitF[${PIT_N}]; uniform float uLkNC; uniform vec4 uLkPitB;`)
     .replace('void main() {', `
       // (rubble: a lump in each cell of a jittered grid, lit on its sun side, a dark rim; .x: inside it 0..1, .y: its shade)
       vec2 lkRubble(vec2 p, float dens) {
@@ -63,25 +67,40 @@ export function cutCellPatch(sh, o) {
       void main() {`)
     .replace('#include <roughnessmap_fragment>', `
       // ── look A ── the cut cells and the waste pits ── /look A ──
-      { vec3 lkFn = normalize((vec4(normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition))), 0.0) * viewMatrix).xyz);
+      { vec3 W = vec3(vHXZ.x, vLkY, vHXZ.y), lkDx = dFdx(vViewPosition), lkDy = dFdy(vViewPosition), lkWx = dFdx(W), lkWy = dFdy(W);
+        // (the work only where it shows: a cut cell, or near a pit — the rest of the hill pays a few comparisons; the texture's
+        // derivatives taken here, outside the branch)
+        bool lkCell = vWk > 0.5 && vPv < 0.5 && vLkCid > -0.5 && vLkCid < uLkNC - 0.5; float lkNear = 9.0;   // (a paved cell keeps the hill's paving)
+        bool lkPits = vHXZ.x > uLkPitB.x && vHXZ.y > uLkPitB.y && vHXZ.x < uLkPitB.z && vHXZ.y < uLkPitB.w;
+        if (lkPits) for (int i = 0; i < ${PIT_N}; i++) { if (uLkPitF[i] < -0.5) continue; vec2 q = abs(vHXZ - uLkPitR[i].xy) - uLkPitR[i].zw; lkNear = min(lkNear, max(q.x, q.y)); }
+        if (lkCell || lkNear < 2.4) {
+        vec3 lkFn = normalize((vec4(normalize(cross(lkDx, lkDy)), 0.0) * viewMatrix).xyz);
+        // (one sample, from the face's own axis: x, y or z; its gradients from W's, taken outside the branch)
+        vec3 an = abs(lkFn); bool ay = an.y >= an.x && an.y >= an.z, axx = an.x >= an.z;
+        vec2 u1 = (ay ? vec2(W.x, -W.z) : axx ? W.zy : W.xy) / 7.0;
+        vec2 g1x = (ay ? vec2(lkWx.x, -lkWx.z) : axx ? lkWx.zy : lkWx.xy) / 7.0, g1y = (ay ? vec2(lkWy.x, -lkWy.z) : axx ? lkWy.zy : lkWy.xy) / 7.0;
         float wall = 1.0 - smoothstep(0.45, 0.8, abs(lkFn.y));
-        vec3 W = vec3(vHXZ.x, vLkY, vHXZ.y);
         // (the rock texture by world position, box-projected: no stretch down a wall)
-        vec3 ax = pow(abs(lkFn), vec3(4.0)); ax /= ax.x + ax.y + ax.z;
-        vec3 tr = texture2D(map, W.zy / 7.0).rgb * ax.x + texture2D(map, vec2(W.x, -W.z) / 7.0).rgb * ax.y + texture2D(map, W.xy / 7.0).rgb * ax.z;
-        float tl = dot(tr, vec3(0.333)) / 0.5;
+        float tl = dot(textureGrad(map, u1, g1x, g1y).rgb, vec3(0.333)) / 0.5;
+        float vn = hn(W.xz / 6.0 + W.y * 0.3);
         float along = abs(lkFn.x) > abs(lkFn.z) ? W.z : W.x;
         // (linear colours, as the hill's own) the walls: quarried rock, vertical pick marks (8 to the amah, irregular), a little darker
         // toward the top edge; the floor: levelled rock, faint parallel dressing strokes
-        float pk = smoothstep(0.55, 1.0, sin(6.2832 * 8.0 * (along + 0.12 * hn(vec2(along * 1.3, W.y * 2.0)))) * 0.5 + 0.5) * smoothstep(0.3, 0.7, hn(vec2(along * 3.0, W.y * 0.7)));
-        float topD = 1.0 - smoothstep(0.0, 1.6, vH0 - vLkY);
-        vec3 wc = vec3(0.5, 0.44, 0.34) * (0.8 + 0.25 * tl) * (1.0 - 0.16 * pk) * (1.0 - 0.14 * topD) * (0.92 + 0.1 * hn(W.xz / 9.0 + W.y));
-        float ds = smoothstep(0.75, 1.0, sin(6.2832 * 3.0 * (W.x + 0.25 * hn(W.xz * 0.8))) * 0.5 + 0.5);
-        vec3 fc = vec3(0.53, 0.47, 0.36) * (0.74 + 0.3 * tl) * (1.0 - 0.12 * ds) * (0.88 + 0.16 * hn(W.xz / 6.0)) * (0.95 + 0.08 * hn(W.xz * 1.7));
-        if (vWk > 0.5 && vLkCid > -0.5 && vLkCid < uLkNC - 0.5) diffuseColor.rgb = mix(diffuseColor.rgb, mix(fc, wc, wall), 0.94);
+        vec3 wc = vec3(0.5, 0.44, 0.34);
+        if (wall > 0.01) {
+          float pn = hn(vec2(along * 2.0, W.y * 1.2));
+          float pk = smoothstep(0.55, 1.0, sin(6.2832 * 8.0 * (along + 0.12 * pn)) * 0.5 + 0.5) * smoothstep(0.3, 0.7, fract(pn * 7.3));
+          float topD = 1.0 - smoothstep(0.0, 1.6, vH0 - vLkY);
+          wc *= (0.8 + 0.25 * tl) * (1.0 - 0.16 * pk) * (1.0 - 0.14 * topD) * (0.92 + 0.1 * vn);
+        }
+        if (lkCell) {
+          float dn = hn(W.xz * 0.8), ds = smoothstep(0.75, 1.0, sin(6.2832 * 3.0 * (W.x + 0.25 * dn)) * 0.5 + 0.5);
+          vec3 fc = vec3(0.53, 0.47, 0.36) * (0.74 + 0.3 * tl) * (1.0 - 0.12 * ds) * (0.86 + 0.18 * vn) * (0.96 + 0.06 * dn);
+          diffuseColor.rgb = mix(diffuseColor.rgb, mix(fc, wc, wall), 0.94);
+        }
         // the waste pits: rubble in earth while it fills (its walls dug rock); covered, a packed-earth cap in the ground's tone with a
         // few stones, its edge blended into the ground
-        for (int i = 0; i < ${PIT_N}; i++) {
+        if (lkPits) for (int i = 0; i < ${PIT_N}; i++) {
           float f = uLkPitF[i]; if (f < -0.5) continue;
           vec4 P = uLkPitR[i]; vec2 q = abs(vHXZ - P.xy) - P.zw; float out_ = max(q.x, q.y);
           if (out_ > 2.4) continue;
@@ -98,6 +117,7 @@ export function cutCellPatch(sh, o) {
             vec3 rb = wall > 0.5 ? mix(wc, earth, 0.25) : mix(earth * (0.8 + 0.2 * rb0.y), stone, rb0.x);
             diffuseColor.rgb = mix(diffuseColor.rgb, rb, inside * 0.95);
           }
+        }
         }
       }
       #include <roughnessmap_fragment>`);

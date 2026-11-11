@@ -240,9 +240,12 @@ export const BOND = {
       C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z);
       if (tq.on !== false && Math.hypot(tq.x - p.x, tq.y - p.y) < 70) return 'jib';
       { C.headWorld(hd); const a = X.scr(hd.x, hd.y, hd.z), vx = tq.x - a.x, vy = tq.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0.3, 1); if (Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y) < 34) return 'jib'; }
-      const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 55) return 'stone';
+      // (the guide rope before the stone when the finger is nearer the rope's line than the stone's middle: a far stone is small on the
+      // screen and its rope starts inside the stone's 55 px)
+      const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z), dS = Math.hypot(st.x - p.x, st.y - p.y);
       const e2 = ropeEnd(), h = tagHand(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
-      { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.9), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 36) return 'rope'; }
+      { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.9), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 36 && (dS >= 55 || d < dS * 0.6)) return 'rope'; }
+      if (dS < 55) return 'stone';
       if (Math.hypot(st.x - p.x, st.y - p.y) < 90) return 'stone';
       return null;
     }
@@ -447,7 +450,7 @@ export const BOND = {
         if (A.cur && A.phase === 'carry') {
           const s = A.cur; C.tipWorld(tip); const e2 = ropeEnd(), h = tagHand(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
           const want0 = next && next.hdr ? ACROSS : ALONG;
-          Object.assign(out, { stoneScr: sc(s.m.position), jibScr: sc(tip), ropeScr: [Math.round(a.x * 0.5 + b.x * 0.5), Math.round(a.y * 0.5 + b.y * 0.5)], rotTE: +(turnErr(A.rotT - F.yaw, want0) * 180 / Math.PI).toFixed(1), rotE: +(turnErr(s.m.rotation.y - F.yaw, want0) * 180 / Math.PI).toFixed(1), lag: +Math.hypot(tip.x - A.aimP.x, tip.z - A.aimP.z).toFixed(2), drop: +A.drop.toFixed(2), gapB: +(s.m.position.y - H / 2 - bedY).toFixed(2), sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2) });
+          Object.assign(out, { stoneScr: sc(s.m.position), jibScr: sc(tip), ropeScr: [Math.round(a.x * 0.65 + b.x * 0.35), Math.round(a.y * 0.65 + b.y * 0.35)], rotTE: +(turnErr(A.rotT - F.yaw, want0) * 180 / Math.PI).toFixed(1), rotE: +(turnErr(s.m.rotation.y - F.yaw, want0) * 180 / Math.PI).toFixed(1), lag: +Math.hypot(tip.x - A.aimP.x, tip.z - A.aimP.z).toFixed(2), drop: +A.drop.toFixed(2), gapB: +(s.m.position.y - H / 2 - bedY).toFixed(2), sway: +Math.hypot(A.sway.x, A.sway.z).toFixed(2) });
           const L0 = landing(s.m.position.x, s.m.position.z); out.land = L0 ? { a: L0.a, row: L0.row, why: L0.why || '', off: !!L0.off } : null;
           if (next) { const w = next.hdr ? 2 : next.L, p = F.at(next.a + w / 2, next.hdr ? 0 : rowOff(next.row), 0); out.tgtScr = sc({ x: p.x, y: s.m.position.y, z: p.z }); }
         }

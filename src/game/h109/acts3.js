@@ -411,7 +411,7 @@ function courseWorld(X, c, lv, laid) {
 }
 function chalkTag(X, text, w = 1.3, ink = 'rgba(250,247,238,.95)') {
   const T = X.THREE, cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const g = cv.getContext('2d');
-  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = ink; g.fillText(text, 128, 70);
+  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = 'rgba(70,52,34,.6)'; g.strokeText(text, 128, 70); g.fillStyle = ink; g.fillText(text, 128, 70);   // ── look A ── (a soft dark edge: the chalk reads on the cream stone) ── /look A ──
   const tex = new T.CanvasTexture(cv); const m = new T.Mesh(new T.PlaneGeometry(w, w / 2), new T.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
   m.rotation.x = -Math.PI / 2; m.renderOrder = 3;
   const g2 = new T.Group(); g2.add(m); g2.rotation.y = -Math.PI / 2;   // (its top toward the wall: upright for a camera on the Mount's side)

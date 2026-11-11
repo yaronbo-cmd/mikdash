@@ -60,10 +60,10 @@ export function stoneDetail(THREE) {
 
 /* ───────── materials ───────── */
 export function stoneMat(THREE) { const C = cacheOf(THREE); return C.stone || (C.stone = lookMat(THREE, KIND.stone, { color: hsl2hex(40, 16, 80), tex: stoneDetail(THREE) })); }
-/** a dressed stone's own material: a tinted clone (o.set 1: laid, dust at its foot · o.margin amot · o.light: from the light end ·
+/** a dressed stone's own material: a tinted clone (o.set 1: laid, dust at its foot · o.margin amot · o.light: from the warm, saturated end (the lightest read white at noon) ·
  *  o.boss false: a plain block) */
 export function ashOf(THREE, seed, o = {}) {
-  const m = lookClone(stoneMat(THREE), o.hex || (o.light ? toneHex([4, 6, 7][Math.floor(hh(seed) * 3)], seed, 1) : stoneTint(seed)));
+  const m = lookClone(stoneMat(THREE), o.hex || (o.light ? toneHex([2, 0, 5][Math.floor(hh(seed) * 3)], seed, 1) : stoneTint(seed)));
   if (o.set) m.userData.look.set = o.set; if (o.margin) m.userData.look.margin = o.margin; if (o.boss === false) m.userData.look.boss = 0;
   return m;
 }

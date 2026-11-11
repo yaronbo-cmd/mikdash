@@ -14,7 +14,7 @@ const hh = (n) => { const v = Math.sin(n * 91.7 + 13.1) * 43758.5453; return v -
 /** the skin's tones: hsl 30..42, 10..18 %, 52..66 % (no two rocks alike) */
 export function rockTint(seed) { return hsl2hex(30 + hh(seed) * 12, 10 + hh(seed * 1.7) * 8, 52 + hh(seed * 2.3) * 14); }
 /** the fresh break: a hair under hsl(42, 14 %, 86 %), each a hair of its own */
-export function freshTint(seed) { return hsl2hex(40 + hh(seed) * 4, 15 + hh(seed * 1.9) * 5, 68 + hh(seed * 3.1) * 6); }   // (the sun lifts it to the near-white of a fresh break)
+export function freshTint(seed) { return hsl2hex(40 + hh(seed) * 4, 18 + hh(seed * 1.9) * 5, 67.5 + hh(seed * 3.1) * 4); }   // (the sun lifts it to the near-white of a fresh break)
 
 const C = new WeakMap();
 const cache = (THREE) => { let c = C.get(THREE); if (!c) { c = {}; C.set(THREE, c); } return c; };

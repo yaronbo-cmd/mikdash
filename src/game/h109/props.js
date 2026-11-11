@@ -164,7 +164,7 @@ export function createProps({ THREE, scene, ground, stages }) {
   }
   /** a flat ring on the ground round (x, z): r, width w, the material's colour */
   function ringAt(x, z, r, w, mat) { const m = new THREE.Mesh(new THREE.RingGeometry(1 - w / 2, 1 + w / 2, 48), mat.clone()); m.rotation.x = -Math.PI / 2; m.position.set(x, ground(x, z) + 0.25, z); m.scale.setScalar(r); m.renderOrder = 997; m.material.depthTest = false; m.frustumCulled = false; root.add(m); return m; }
-  function remove(o) { if (!o) return; if (o.parent) o.parent.remove(o); o.traverse && o.traverse((c) => { if (c.geometry && !Object.values(geo).includes(c.geometry) && !c.geometry.userData.lookShared) c.geometry.dispose(); if (c.material && !Object.values(M).includes(c.material) && !c.material.userData.lookBase) c.material.dispose && c.material.dispose(); }); }
+  function remove(o) { if (!o) return; if (o.parent) o.parent.remove(o); o.traverse && o.traverse((c) => { if (c.geometry && !Object.values(geo).includes(c.geometry) && !(c.geometry.userData && c.geometry.userData.lookShared)) c.geometry.dispose(); if (c.material && !Object.values(M).includes(c.material) && !(c.material.userData && c.material.userData.lookBase)) c.material.dispose && c.material.dispose(); }); }
 
   let tt = 0;
   function frame(dt) {

@@ -101,6 +101,6 @@ export function makeRock(T, o) {
     H.A.position.copy(H.n).multiplyScalar(-d); H.B.position.copy(H.n).multiplyScalar(d);
     H.A.setRotationFromAxisAngle(H.u, tip); H.B.setRotationFromAxisAngle(H.u, -tip);
   }
-  function dispose() { if (group.parent) group.parent.remove(group); group.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material && c.material !== mat && !c.material.userData.lookBase && c.material.dispose) c.material.dispose(); }); }
+  function dispose() { if (group.parent) group.parent.remove(group); group.traverse((c) => { if (c.geometry) c.geometry.dispose(); if (c.material && c.material !== mat && !(c.material.userData && c.material.userData.lookBase) && c.material.dispose) c.material.dispose(); }); }
   return { group, whole, C, r, sy, gy, plane, crackPts, hitAt, hitDir, halves, part, dispose, get split() { return H; } };
 }

@@ -83,7 +83,7 @@ export function createProps({ THREE, scene, ground, stages }) {
   /* ── the small rocks of the sectors: one instanced mesh, 9 × 5 + the chunks of a split ── */
   // ── h114 ── (ירון 9.11: "האבנים זה לא האבנים של האתר… כל אבן שהדמות מפוצצת צריך לפני כן להכניס אותה לתוך ההר") the small rocks are of
   // the Mount's own rock (the boulders' texture) and stand a third into the hill, as rock that grows out of it ── /h114 ──
-  let rockMap = null; try { const bm = stages && stages.boulderMat && stages.boulderMat(); rockMap = bm && bm.map; } catch (e) { rockMap = null; }
+  let rockMap = null; try { rockMap = (stages && stages.rockTex && stages.rockTex()) || null; } catch (e) { rockMap = null; }
   // ── look A ── the rock's weathered skin, a tone of its own per rock (instanceColor); the lumps and waste: fresh breaks in three tones
   // (lumpOf(i)), the split's chunks one instanced mesh of fresh tones ── /look A ──
   M.rock = rockMat(THREE, rockMap); M.lump = freshMat(THREE, rockMap);

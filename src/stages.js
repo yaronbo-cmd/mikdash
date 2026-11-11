@@ -7,13 +7,13 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor, terrainGr } from './world.js';
-import { groundPatch, groundDefines, smoothGridNormals } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
+import { groundPatch, groundDefines, groundSkirts, smoothGridNormals } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
 import { ashlarGeo, stoneMat, ashTone, ASH_HEX } from './look/stone.js';
 import { lookClone } from './look/shader.js';   // ── look A ── the stone system ── /look A ──
-import { freshMat, cutCellPatch } from './look/rock.js';   // ── look A ── the rough blocks, the cut cells and the pits ── /look A ──
+import { freshMat, cutCellPatch, rockMat, rockClone, rockTint } from './look/rock.js';   // ── look A ── the rough blocks, the cut cells and the pits ── /look A ──
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
 // ── h115 ── the address grid (game/world/grid.js): the hill's cells by id (column × row over the whole platform), the waste pits after
 import { CELL as G_CELL, EAST as G_EAST, NORTH as G_NORTH, BOOK as G_BOOK } from './game/world/grid.js';
@@ -267,6 +267,29 @@ function hillY0(x, z) {
   return base + hillBump(x, z) * smooth(fade, 0, d);
 }
 
+// ── look B ── a scrub clump: a flattened, ragged dome of tilted facets (a ring of 6 at its foot, 6 above, a crown), lighter and darker
+// facets by turns, its foot dark (vertex colours × the instance's grey-green) ── /look B ──
+function clumpGeo() {
+  const R = rng(77), P = [], Cl = [], base = [], mid = [];
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.2832 + (R() - 0.5) * 0.5, rr = 0.85 + R() * 0.3; base.push([Math.cos(a) * rr, 0, Math.sin(a) * rr]); }
+  for (let i = 0; i < 6; i++) { const a = ((i + 0.5) / 6) * 6.2832 + (R() - 0.5) * 0.6, rr = 0.55 + R() * 0.3; mid.push([Math.cos(a) * rr, 0.5 + R() * 0.25, Math.sin(a) * rr]); }
+  const top = [(R() - 0.5) * 0.3, 0.9, (R() - 0.5) * 0.3];
+  const tri = (A, B, C, ca, cb, cc) => { P.push(...A, ...B, ...C); Cl.push(ca, ca, ca, cb, cb, cb, cc, cc, cc); };
+  for (let i = 0; i < 6; i++) {
+    const j = (i + 1) % 6, t = i % 2 ? 0.8 : 1;
+    tri(base[i], mid[i], base[j], 0.42, t, 0.42); tri(base[j], mid[i], mid[j], 0.42, t, t * 0.95);
+    tri(mid[i], top, mid[j], t * 0.95, i % 2 ? 1.05 : 0.88, t * 0.95);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(Cl, 3));
+  g.computeVertexNormals(); return g;
+}
+/** a rough stone: an icosahedron with its corners pushed in and out, flat facets (round A's rock material draws its skin) */
+function stoneGeo() {
+  const g = new THREE.IcosahedronGeometry(1, 0), p = g.attributes.position, R = rng(91);
+  const seen = new Map();
+  for (let i = 0; i < p.count; i++) { const key = p.getX(i).toFixed(3) + p.getY(i).toFixed(3) + p.getZ(i).toFixed(3); let k = seen.get(key); if (k === undefined) { k = 0.8 + R() * 0.35; seen.set(key, k); } p.setXYZ(i, p.getX(i) * k, Math.max(-0.45, p.getY(i)) * k, p.getZ(i) * k); }
+  g.deleteAttribute('uv'); g.computeVertexNormals(); return g;
+}
 function makeHill(T) {
   const lines = (a0, a1, m, m1 = m, extra = []) => {
     const L = new Set();
@@ -506,30 +529,57 @@ function makeHill(T) {
     if (BOULDERS.some((b) => Math.hypot(x - b[0], z - b[1]) < b[2] + 6)) continue;   // ── site9 ── (none in the boulder field's rocks)
     bushes.push([x, y, z, tree ? k * 1.7 : k, r() * 6.28, rockish ? 1 : tree ? 2 : 0]);
   }
-  const bg = new THREE.IcosahedronGeometry(1, 0);
-  const bm = new THREE.InstancedMesh(bg, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, flatShading: true }), bushes.length);
+  // ── look B ── (§B4) the scrub: low, ragged, grey-green clumps (two tones, a dark base), the wild olives the same clump taller; the bare
+  // bedrock slabs and the small stones by the outcrops (about 600, in clusters, their own rng: the scrub's places stay) are of round
+  // A's rock, bedded in the ground with the dark earth round the slabs (look/ground.js groundSkirts). Each kind its one instanced mesh;
+  // all of them go with their cell, under the fill and from the cut crest as the scrub did ── /look B ──
+  { const r2 = rng(616); let n = 0;
+    for (let t = 0; t < 4000 && n < 600; t++) {
+      const cx = X0 + 10 + r2() * (X1 - X0 - 20), cz = Z0 + 10 + r2() * (Z1 - Z0 - 20), cy = heightAt(cx, cz);
+      const oc = HN3(cx / 21 + 1, cz / 21 + 9, 2), sl = Math.abs(heightAt(cx + 5, cz) - cy) + Math.abs(heightAt(cx, cz + 5) - cy);
+      if (cy < -40 || (oc < 0.55 && sl < 2.2 && r2() > 0.15)) continue;
+      if (BOULDERS.some((b) => Math.hypot(cx - b[0], cz - b[1]) < b[2] + 4)) continue;
+      const m = 3 + Math.floor(r2() * 5);
+      for (let j = 0; j < m && n < 600; j++) {
+        const x = cx + (r2() - 0.5) * 7, z = cz + (r2() - 0.5) * 7, k = 0.22 + r2() * r2() * 0.6;
+        bushes.push([x, heightAt(x, z), z, k, r2() * 6.28, 3]); n++;
+      }
+    } }
+  const plant = (kd) => kd === 0 || kd === 2;
+  const nP = bushes.filter((b) => plant(b[5])).length, nS = bushes.length - nP;
+  const bm = new THREE.InstancedMesh(clumpGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, roughness: 0.95, flatShading: true }), nP);
+  const sm = new THREE.InstancedMesh(stoneGeo(), rockClone(rockMat(THREE, T.rock.map), '#ffffff'), nS);
+  sm.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(nS * 3).fill(1), 3);
+  const slot = [], skirts = [];
   { const M = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), cc = new THREE.Color(), e = new THREE.Euler();
-    const pal = ['#5F7040', '#6C7A45', '#56673A', '#76834B'].map((h) => new THREE.Color(h)), rk = ['#BFB6A1', '#B3A993', '#C8C0AD'].map((h) => new THREE.Color(h)), ol = new THREE.Color('#7D8A63');
+    const pal = ['#7B7F5B', '#6D7350', '#858766', '#737852'].map((h) => new THREE.Color(h)), ol = new THREE.Color('#7A8462');
+    let iP = 0, iS = 0;
     bushes.forEach(([x, y, z, k, a, kind], i) => {
-      if (kind === 1) { e.set((r() - 0.5) * 0.4, a, (r() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, y - k * 0.16, z); s.set(k * 1.7, k * 0.34, k * 1.25); cc.copy(rk[i % 3]); }
-      else if (kind === 2) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y + k * 0.75, z); s.set(k * 1.25, k * 0.8, k * 1.2); cc.copy(ol); }
-      else { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y + k * 0.3, z); s.set(k * 1.3, k * 0.75, k * 1.1); cc.copy(pal[i % 4]); }
-      M.compose(p, q, s); bm.setMatrixAt(i, M); bm.setColorAt(i, cc);
+      const P = plant(kind), mesh = P ? bm : sm, j = P ? iP++ : iS++;
+      if (kind === 1) { e.set((r() - 0.5) * 0.4, a, (r() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, y - k * 0.12, z); s.set(k * 0.95, k * 0.32, k * 0.7); cc.set(rockTint(i * 1.37 + 0.4)); skirts.push([x, z, k * 1.1]); }
+      else if (kind === 3) { e.set((r() - 0.5) * 0.5, a, (r() - 0.5) * 0.5); q.setFromEuler(e); p.set(x, y - k * 0.2, z); s.set(k, k * 0.6, k * 0.85); cc.set(rockTint(i * 0.71 + 2.2)); }
+      else if (kind === 2) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.1, z); s.set(k * 1.2, k * 1.15, k * 1.15); cc.copy(ol); }
+      else { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.08, z); s.set(k * 1.25, k * 0.62, k * 1.05); cc.copy(pal[i % 4]); }
+      M.compose(p, q, s); mesh.setMatrixAt(j, M); mesh.setColorAt(j, cc); slot.push([mesh, j, M.clone()]);
     }); }
-  bm.castShadow = true; bm.receiveShadow = true; bm.frustumCulled = false;
+  groundSkirts(skirts);
+  for (const m of [bm, sm]) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; }
+  const scrubG = new THREE.Group(); scrubG.name = 'hill-scrub'; scrubG.add(bm, sm);
   // ── site12 ── the scrub stays on the hill until the works reach it (v21 cleared it all at the first course): gone under the
   // fill and the spoil tipped just above it, and from the cut crest with its benches
-  const bushM = bushes.map((_, i) => { const M = new THREE.Matrix4(); bm.getMatrixAt(i, M); return M; }), ZM = new THREE.Matrix4().makeScale(0, 0, 0);
+  const ZM = new THREE.Matrix4().makeScale(0, 0, 0);
   const bushOff = new Uint8Array(bushes.length);
+  const put = (i, off) => { const [m, j, M] = slot[i]; m.setMatrixAt(j, off ? ZM : M); };
+  const flush = () => { bm.instanceMatrix.needsUpdate = true; sm.instanceMatrix.needsUpdate = true; };
   function bushCull(fill, C) {
     let ch = false;
     bushes.forEach(([x, y, z], i) => {
       const s = clamp((14 - x + 16 * Math.sin(z / 61)) / 270, 0, 1), lv = lerp(C.y, C.x, 1 - smooth(C.z - 0.012, C.z + 0.012, s));
       const off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
       if (bushOff[i] === 2) return;   // ── h115 ── (cleared from a cut cell) ── /h115 ──
-      if (off !== bushOff[i]) { bushOff[i] = off; bm.setMatrixAt(i, off ? ZM : bushM[i]); ch = true; }
+      if (off !== bushOff[i]) { bushOff[i] = off; put(i, off); ch = true; }
     });
-    if (ch) bm.instanceMatrix.needsUpdate = true;
+    if (ch) flush();
     return ch;
   }
   // ── h115 ── the address grid's cells: their cut levels (the shader reads cellH), the natural top of each, the scrub on them ── /h115 ──
@@ -540,11 +590,11 @@ function makeHill(T) {
     /** the scrub on cells cut or being worked goes (and comes back if the cell is uncut, a new game) */
     scrub(isOff) {
       let ch = false;
-      bushes.forEach(([x, y, z], i) => { const id = CG.idAt(x, z), off = id >= 0 && isOff(id) ? 1 : 0; if (off && !bushOff[i]) { bushOff[i] = 2; bm.setMatrixAt(i, ZM); ch = true; } else if (!off && bushOff[i] === 2) { bushOff[i] = 0; bm.setMatrixAt(i, bushM[i]); ch = true; } });
-      if (ch) bm.instanceMatrix.needsUpdate = true; return ch;
+      bushes.forEach(([x, y, z], i) => { const id = CG.idAt(x, z), off = id >= 0 && isOff(id) ? 1 : 0; if (off && !bushOff[i]) { bushOff[i] = 2; put(i, 1); ch = true; } else if (!off && bushOff[i] === 2) { bushOff[i] = 0; put(i, 0); ch = true; } });
+      if (ch) flush(); return ch;
     },
   };
-  return { mesh, bushes: bm, U, heightAt, bushCull, cells, setPatchN: (n) => { patchN = n; } };
+  return { mesh, bushes: scrubG, U, heightAt, bushCull, cells, setPatchN: (n) => { patchN = n; } };
 }
 
 /* ───────────────────────── boulders ───────────────────────── */
@@ -599,28 +649,21 @@ function makeBoulderChunks(T) {
     }
   }
   const geos = out.map((L) => {
-    const n = L.length / 4, P = new Float32Array(n * 9), Cc = new Float32Array(n * 9), UV = new Float32Array(n * 6);
+    const n = L.length / 4, P = new Float32Array(n * 9), Cc = new Float32Array(n * 9);
     for (let t = 0; t < n; t++) {
       const [A, B, C, col] = [L[t * 4], L[t * 4 + 1], L[t * 4 + 2], L[t * 4 + 3]];
       P.set(A, t * 9); P.set(B, t * 9 + 3); P.set(C, t * 9 + 6);
       for (let q = 0; q < 3; q++) { Cc[t * 9 + q * 3] = col.r; Cc[t * 9 + q * 3 + 1] = col.g; Cc[t * 9 + q * 3 + 2] = col.b; }
-      const e1 = [B[0] - A[0], B[1] - A[1], B[2] - A[2]], e2 = [C[0] - A[0], C[1] - A[1], C[2] - A[2]];
-      const nx = Math.abs(e1[1] * e2[2] - e1[2] * e2[1]), ny = Math.abs(e1[2] * e2[0] - e1[0] * e2[2]), nz = Math.abs(e1[0] * e2[1] - e1[1] * e2[0]);
-      for (let q = 0; q < 3; q++) {
-        const Pp = [A, B, C][q];
-        const u = ny >= nx && ny >= nz ? [Pp[0], Pp[2]] : nx >= nz ? [Pp[2], Pp[1]] : [Pp[0], Pp[1]];
-        UV[t * 6 + q * 2] = u[0] * 0.28; UV[t * 6 + q * 2 + 1] = u[1] * 0.28;
-      }
     }
     const G = new THREE.BufferGeometry();
     G.setAttribute('position', new THREE.BufferAttribute(P, 3));
     G.setAttribute('color', new THREE.BufferAttribute(Cc, 3));
-    G.setAttribute('uv', new THREE.BufferAttribute(UV, 2));
     G.computeVertexNormals();
     return G;
   });
   const dirs = seeds.map((s) => [Math.cos(s + 1.05), Math.sin(s + 1.05)]);
-  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(1.32, 1.32, 1.32), vertexColors: true, map: T.rock.map, roughness: 0.9, flatShading: true });
+  // ── look B ── round A's rock (its weathered skin, flat facets), the slices' fresh cuts lighter by their vertex colour ── /look B ──
+  const mat = rockClone(rockMat(THREE, T.rock.map, { vertexColors: true }), '#D9CEB8'); mat.userData.lookBase = true;
   return { geos, dirs, mat };
 }
 // (BufferGeometryUtils.mergeVertices without the attribute juggling: positions only)
@@ -8935,7 +8978,7 @@ export function createStages(ctx) {
     // ── h114 ── a split rock's chunks carted off now and its patch levelled (the paving goes on clean rock: ירון 9.11, a chunk hid a slab);
     // the boulders' own material (the stage's small rocks are of the same rock: "האבנים של האתר") ── /h114 ──
     boulderRest: (i) => { const b = bSt[i]; if (!b || b.state > 0 || cellMode) return false; b.anim = null; b.pt = 60; b.rub = 0; workDirty = true; propsDirty = true; boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; return true; },
-    boulderMat: () => BC.mat,
+    rockTex: () => T.rock.map,   // ── look B ── (the Mount's rock texture, for the acts' rocks) ── /look B ──
     // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
     boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b || cellMode) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
     pinsOff: (on) => { pinsOff = !!on; },   // ── h117 ── ── /h117 ──

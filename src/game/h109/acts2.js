@@ -59,7 +59,7 @@ function bigStand(X, s) {
 function rockMat(X, s) {
   SH.rockMats = SH.rockMats || [];
   if (SH.rockMats[s]) return SH.rockMats[s];
-  let map = null; try { const bm = X.stages.boulderMat && X.stages.boulderMat(); map = bm && bm.map; } catch (e) { map = null; }
+  let map = null; try { map = (X.stages.rockTex && X.stages.rockTex()) || null; } catch (e) { map = null; }
   const m = rockClone(lookRockMat(X.THREE, map, { vertexColors: true }), rockTint(s * 7.1 + 3.3)); m.userData.lookBase = true;
   return (SH.rockMats[s] = m);
 }

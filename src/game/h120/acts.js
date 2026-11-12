@@ -309,7 +309,7 @@ export const COL = {
           if (A.C && A.C.cradle && s.th > H120.CRADLE + 3) A.C.cradle.visible = false;
           for (const e of ev) {
             A.events.push(e); if (A.events.length > 30) A.events.shift();
-            if (e === 'creak' && A.t - A.creakT > 1.6) { A.creakT = A.t; X.play('creak'); X.line('החבל האחורי תפוס: שחרר את היתד', 2000); }
+            if (e === 'creak' && A.t - A.creakT > 1.6) { A.creakT = A.t; X.play('creak'); X.line('החבל האחורי תפוס: שחררו את היתד', 2000); }
             if (e === 'warn') { X.play('creak'); X.line('לאט! החבל חורק', 2400); }
             if (e === 'jerk') X.dust(foot().x, Y.PLINTH_TOP, foot().z, 3, 0.8);
             if (e === 'tear') { tearDrop(s.tearFrom || 40, !!s.crack && !A.cracked); if (s.crack) A.cracked = 1; return; }

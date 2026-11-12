@@ -292,7 +292,7 @@ export const MIKVEH = {
         if (stepTo(kf, s[0], s[1], dt, 5.5, p[0], p[1])) {
           A.pourTo = null; pose(kf, 1.0, 0.35, 'jar');
           const path = pourPath(p[0], p[1], 4.5, 0.2); if (path.length < 2) path.push([p[0] + 0.15, p[1]]);
-          const P = path.map((q) => [q[0], q[1], 1]), r = ribbon(X, P, { thin: 1, w: 0.14, speed: 2.4 }), w = wetTrail(X, P, { dry: 6, w: 0.3 });
+          const P = path.map((q) => [q[0], q[1], 1]), r = ribbon(X, P, { thin: 1, w: 0.18, speed: 2.4 }), w = wetTrail(X, P, { dry: 6, w: 0.42 });
           if (r) { live.add(w.mesh); live.add(r.mesh); A.pours.push({ r, w, t: 0, L: r.len, at: p }); X.play('pour'); }
           if (A.pours.length > 3) { const o = A.pours.shift(); live.remove(o.r.mesh); live.remove(o.w.mesh); }
         }
@@ -336,13 +336,13 @@ export const MIKVEH = {
       }
       const q = ptAt(Pin, Cin, A.fd); gold.position.set(q[0], floorY(q[0], q[1]) + 0.12, q[1]);
       if (!FG.n) follow(q);
-      voices.trickle(A.stood ? 0.25 : 0.85);
+      voices.trickle(A.stood ? 0.2 : 0.45 + 0.45 * Math.min(1, A.fd / 6));   // (it swells as more of the channel runs; a murmur while it stands)
       if (!r.ok && A.fd >= to - 1e-6 && !A.stood) {
         // it stands: a puddle, the marker, drops
         A.stood = 1; A.stops++; A.phase = 'stop'; ev('stop at ' + r.stop); voices.drops();
         const a = r.at || q, P = Pin, i = Math.max(1, r.stop), dir = [P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]];
         if (pud) live.remove(pud.mesh); pud = puddle(X, a[0], a[1], dir[0], dir[1]); live.add(pud.mesh); A.pudR = 0;
-        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 0.9, z: a[1] }, false);
+        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 1.7, z: a[1] }, false);
         setTimeout(() => { if (A.phase === 'stop') shot(S_IN(), 1.0); }, 1800);
         X.line(lv === 1 ? 'המים נעצרו: החזיקו אצבע על החריץ שלפני הסימן להעמיק אותו, או גררו אותו מחדש משם' : 'המים נעצרו: העמיקו, או גררו מחדש מהנקודה הזאת', 3600);
       }
@@ -376,7 +376,7 @@ export const MIKVEH = {
       if (!r.ok && A.ofd >= to - 1e-6 && !A.ostood) {
         A.ostood = 1; A.stops++; A.phase = 'over-stop'; voices.drops(); const a = r.at || q;
         if (pud) live.remove(pud.mesh); pud = puddle(X, a[0], a[1], 1, 0); live.add(pud.mesh); A.pudR = 0;
-        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 0.9, z: a[1] }, false); setTimeout(() => { if (A.phase === 'over-stop') shot(S_OV(), 1.0); }, 1800); X.line('המים נעצרו בחריץ הגלישה: העמיקו, או גררו מחדש', 3000);
+        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 1.7, z: a[1] }, false); setTimeout(() => { if (A.phase === 'over-stop') shot(S_OV(), 1.0); }, 1800); X.line('המים נעצרו בחריץ הגלישה: העמיקו, או גררו מחדש', 3000);
       }
       if (r.ok && A.ofd >= total - 1e-6) { A.out = 1; ev('out the door'); X.line('העודף יוצא מפתח הלשכה', 2200); finish(); }
     }
@@ -410,22 +410,25 @@ export const MIKVEH = {
       X.line('המים עברו דרך כלי: המקווה פסול. מרוקנים אותו בדליים', 3200);
       A.plugOut = 0; plugUp = 0; plugDraw(); fl.set(0, MIK.bottom + A.h); voices.pour(0, A.h / 3.3);
       A.drain = 1; A.drainAt = 0; A.leftIn = wNow();
+      if (kf) { kf.a.x = hol[0] + 1.6; kf.a.z = hol[1] + 1.2; pose(kf, 0.1, 0, null); }   // (the kohen back by the hollow: the bucket men's work is not his)
       // two men with jars at the rim, dipping and pouring out behind them; the level drops on the rod a jar at a time
       const bk = [[MIK.x0 - 0.9, MIK.z0 + 0.8], [MIK.x0 - 0.9, MIK.z1 - 0.8]].map((p) => onFloor(SH5.crew.add(p[0], p[1], { role: 'hold', item: 'jar', fx: MIK.x0 + 1, fz: (MIK.z0 + MIK.z1) / 2, crew: 1 })));
       for (const w of bk) if (w) { crew.push(w); coneOwn(w); }
-      shot(S_ROD(), 1.0);
+      // (the basin from the south-east, a little back: both men at its west rim, their jars, the rod and the level on it)
+      const S_BK = look([MIK.x0 - 0.1, MIK.bottom + 2.4, (MIK.z0 + MIK.z1) / 2 - 0.6], [0.45, 1], frameDist(13, 10.5), 54);
+      shot(S_BK, 1.0);
       const from = A.h, to = A.h0, n = 8;
       for (let i = 1; i <= n; i++) {
         for (const [k, w] of bk.entries()) if (w) pose(w, (i + k) % 2 ? 0.6 : 1.7, (i + k) % 2 ? 0.75 : 0.1);
         X.play('splash'); await X.wait(0.55);
         A.h = lerp(from, to, i / n); if (BW()) { BW().set(A.h); BW().drop(MIK.x0 + 0.4, (MIK.z0 + MIK.z1) / 2, 0.6); }
         A.drainAt = Math.min(Cin[Cin.length - 1] || 0, (i / n) * (Cin[Cin.length - 1] || 0) * 1.05);
-        if (i === 4) shot(S_ROD(), 1.0);
       }
       for (const w of bk) { SH5.crew.remove(w); const i = crew.indexOf(w); if (i >= 0) crew.splice(i, 1); }
       A.drain = 0; A.fd = 0; A.vPass = null; lab2.set('', null);
       // the shower: rain into the roofless chamber; the hollow fills again
-      shot(S_IN(), 1.2); X.line('גשם יורד לתוך הלשכה: הגומה מתמלאת שוב', 2800);
+      // (the shower: a lower shot over the hollow, the streaks long against the floor and the pool filling)
+      shot(look([hol[0], floorY(hol[0], hol[1]) + 1.2, hol[1] - 0.8], AZ, frameDist(12, 9), 42), 1.2); X.line('גשם יורד לתוך הלשכה: הגומה מתמלאת שוב', 2800);
       rn.set(1); voices.rain(1); for (let i = 0; i <= 40; i++) { await X.wait(0.08); hp.set(lerp(0.3, 1, i / 40)); }
       rn.set(0); voices.rain(0);
       A.phase = 'draw'; A.busy = false; A.stood = 0; recompute(true);

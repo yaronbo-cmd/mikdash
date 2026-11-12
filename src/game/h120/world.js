@@ -361,7 +361,7 @@ function chamberBuild(X) {
   // the three rock hollows (rain water standing in each until its level drained it), their clay plugs
   for (const lv of [1, 2, 3]) {
     const [hx, hz] = MIK.hollows[lv], full = !(st.mik[lv] && st.mik[lv].done), y = floorY(hx, hz);
-    const d = new T.Mesh(new T.CircleGeometry(1.3, 20), M.h5limeD); d.rotation.x = -Math.PI / 2; d.position.set(hx, y + 0.055, hz); X.props.root.add(d); all.push(d);
+    const d = new T.Mesh(new T.CircleGeometry(1.3, 20), M.h5limeD); d.rotation.x = -Math.PI / 2; d.position.set(hx, y + 0.06, hz); X.props.root.add(d); all.push(d);
     const r = new T.Mesh(new T.TorusGeometry(1.32, 0.09, 5, 20), M.h5lime); r.rotation.x = -Math.PI / 2; r.position.set(hx, y + 0.02, hz); X.props.root.add(r); all.push(r);
     if (full && live !== lv) { const w = pool(X, hx, hz); w.set(1); X.props.root.add(w.mesh); all.push(w.mesh); }
     if (live !== lv) all.push(cyl(X, M.h5plug, hx + 1.2, y, hz, 0.2, 0.17, full ? 0.32 : 0.2, 8));

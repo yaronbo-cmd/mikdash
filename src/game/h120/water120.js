@@ -310,24 +310,24 @@ export function puddle(X, x, z, dirX = 1, dirZ = 0) {
 export function pool(X, x, z) {
   const T = X.THREE, m = new T.Mesh(new T.CircleGeometry(1, 28), surfaceMat(X, { deep: '#244E58', alpha: 0.84 }));
   m.rotation.x = -Math.PI / 2; m.renderOrder = 4; const y0 = floorY(x, z);
-  return { mesh: m, set(k) { const r = 1.15 * Math.max(0, k); m.visible = r > 0.02; m.scale.set(Math.max(0.01, r), Math.max(0.01, r), 1); m.position.set(x, y0 + 0.07 - 0.05 * (1 - k), z); } };   // (over the floor's slope across the hollow, lower as it drains)
+  return { mesh: m, set(k) { const r = 1.15 * Math.max(0, k); m.visible = r > 0.02; m.scale.set(Math.max(0.01, r), Math.max(0.01, r), 1); m.position.set(x, y0 + 0.09 - 0.02 * (1 - k), z); } };   // (over the floor's slope across the hollow, lower as it drains)
 }
 
 /* ───────── a short shower into the roofless chamber (the hollow refilled): streaks falling, rings on the pool ───────── */
 export function rain(X, cx, cz, R = 7) {
   const T = X.THREE, N = 260, pos = new Float32Array(N * 6), g = new T.BufferGeometry();
   g.setAttribute('position', new T.BufferAttribute(pos, 3));
-  const m = new T.LineSegments(g, new T.LineBasicMaterial({ color: 0xDCE6EC, transparent: true, opacity: 0.55, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 7;
+  const m = new T.LineSegments(g, new T.LineBasicMaterial({ color: 0xF2F7FA, transparent: true, opacity: 0.8, depthWrite: false })); m.frustumCulled = false; m.renderOrder = 7;
   const seeds = Array.from({ length: N }, (_, i) => { const a = Math.sin(i * 12.9898) * 43758.5453, b = Math.sin(i * 78.233) * 12345.678, c = Math.sin(i * 39.425) * 9876.54; return [a - Math.floor(a), b - Math.floor(b), c - Math.floor(c)]; });
   let k = 0;
   return {
     mesh: m,
-    set(kk) { k = kk; m.visible = k > 0.01; m.material.opacity = 0.55 * Math.min(1, k); },
+    set(kk) { k = kk; m.visible = k > 0.01; m.material.opacity = 0.8 * Math.min(1, k); },
     frame() {
       if (k <= 0.01) return; const t = U.t.value;
       for (let i = 0; i < N; i++) {
         const [a, b, c] = seeds[i], x = cx + (a - 0.5) * 2 * R, z = cz + (b - 0.5) * 2 * R, y0 = floorY(x, z), H = 14, y = y0 + ((c * H - t * 22) % H + H) % H;
-        pos.set([x, y, z, x + 0.03, y + 0.55, z + 0.02], i * 6);
+        pos.set([x, y, z, x + 0.05, y + 1.3, z + 0.03], i * 6);
       }
       g.attributes.position.needsUpdate = true;
     },

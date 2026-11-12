@@ -497,6 +497,7 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), M4 = window.__H120M;
       const shots = { rod: 1800, draw: 300, run: 2600, stop: 1600, fill: 3000, over: 2000, pasul: 2600, spill: 2000, lime: 1200, end: 1500 };
       for (const [ph, ms] of Object.entries(shots)) if (a.phase === ph && !B.k['m_' + ph]) { B.k['m_' + ph] = 1; return { wait: ms, shot: `mik${a.lvP}-${ph}` }; }
+      if (a.phase === 'pasul' && B.k.m_pasul && !B.k.m_shower) { B.k.m_shower = 1; return { wait: 3000, shot: `mik${a.lvP}-shower` }; }
       if (a.phase === 'fill' && !B.k.m_fill2 && a.h > (a.h0 + (a.goal || 3)) / 2) { B.k.m_fill2 = 1; return { wait: 50, shot: `mik${a.lvP}-fill-mid` }; }
       if (a.busy || a.cut != null) return { wait: 250 };
       if (a.phase === 'rod' && a.ring) {
@@ -505,7 +506,7 @@
       }
       if (!['draw', 'stop', 'over-stop'].includes(a.phase)) return { wait: 250 };
       // (the first time: a test pour beside the hollow, for the still of its thread)
-      if (!B.k.poured && a.phase === 'draw' && M4) { B.k.poured = 1; const h = a.refIn[Math.min(a.refIn.length - 2, 5)]; return { tap: [h[0] + 70, h[1] + 20], wait: 1900, note: 'mik: a test pour' }; }   // (a few amot down the way, off it)
+      if (!B.k.poured && a.phase === 'draw' && M4) { B.k.poured = 1; const h = a.refIn[Math.min(a.refIn.length - 2, 5)]; return { tap: [h[0], h[1] + 70], wait: 3000, note: 'mik: a test pour' }; }   // (a few amot down the way, off it)
       if (B.k.poured === 1) { B.k.poured = 2; return { wait: 100, shot: `mik${a.lvP}-pour` }; }
       // (after a pasul: the vessel off the way)
       if (a.pasul && a.res && a.res.vessel && M4 && !B.k['off' + a.pasul]) {
@@ -524,6 +525,7 @@
         if (has('finger') && !B.k.cracked) { B.k.cracked = 1; return { holdUntil: [q.at[0], q.at[1], C('return !a||a.cracks>0||a.busy'), 9000], wait: 1200, note: 'mik: a fifth finger at ' + q.i }; }
         return { holdUntil: [q.at[0], q.at[1], C(`if(!a||a.busy)return true;const n=(a.${key}||[]).find(o=>o.i===${q.i});return !n||n.cur>=3.85`), 7000], wait: 350, note: `mik: deepen ${key} ${q.i} from ${q.cur} to ${q.need}` };
       };
+      if (has('stop') && !a.stops && a.phase === 'draw' && !a.plugOut) return { drag: [a.plug[0], a.plug[1], a.plug[0], a.plug[1] - 110, 600], wait: 900, note: 'mik: the plug before deepening (a stop)' };
       const d1 = deep(a.needIn, 'needIn'); if (d1) return d1;
       if (a.lvP === 3 && !a.chOv && a.outlet != null) {
         let pts = a.refOver.map((q) => [q[0], q[1]]); if (has('lime')) pts = [a.outletS, a.door];

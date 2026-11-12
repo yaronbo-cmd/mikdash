@@ -5,6 +5,7 @@
 // merged separately so a stage can be shown, hidden or revealed on its own.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { airPatch } from './look/air.js';   // ── look C ── ── /look C ──
 
 // shared animation clock for the construction shaders (gold shimmer on the cut line)
 export const BUILD_TIME = { value: 0 };
@@ -282,6 +283,7 @@ ${BC_FRONT_GLSL}
   { const x = xrayCode(vs, fs, sh); vs = x.vs; fs = x.fs; }
   // ── /twin18 ──
   sh.vertexShader = vs; sh.fragmentShader = fs;
+  airPatch(sh);   // ── look C ── (the cloud shadows on the buildings and walls) ── /look C ──
 }
 
 const gaoKey = (g) => (g ? `gao_${g.strength}_${g.range}_${g.instanced}_${g.macro}` : 'plain');

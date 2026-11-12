@@ -13,6 +13,7 @@ import { buildTemple, buildMenorot, MENOROT } from './temple.js';
 import { buildMount, buildStreet, SQUARE } from './mount.js';
 import { terrainH, buildTerrain, buildTrees } from './world.js';
 import { workPreset, createWorkLight, shadowBox } from './look/light.js';   // ── look C ── the work light of stages 01–04 ── /look C ──
+import { airTick } from './look/air.js';   // ── look C ── the clouds' shadows, the wind ── /look C ──
 import { createSky } from './sky.js';   // ── world6 ── the sky, the clouds, the far hills (one dome draw call)
 import { buildJerusalem, BEAUTY } from './city.js';   // ── world6 ── Jerusalem: walls, towers, palace, pools, stepped street, houses
 import { buildLife } from './life.js';
@@ -874,8 +875,9 @@ async function boot() {
 // ── world6 ── the sky's drift, the rain's overcast (stages' night rain), the city's smoke and far/near detail
 function worldTick(dt) {
   sky.update(dt);
-  // ── look C ── the work light's ease between works, the shadow box after the play camera
+  // ── look C ── the work light's ease between works, the shadow box after the play camera, the clouds' shadows (none at night or in rain)
   WL.tick(dt); if (SBOX.act) shadowFit(true);
+  airTick(sky, SUN_DIR, TIMES[curTime].night ? 0 : 1 - Math.min(1, sky.overcast * 2));
   // ── /look C ──
   const rk = stages && stages._dbg && stages._dbg.rain ? stages._dbg.rain.k : 0;
   if (sky.setOvercast(rk)) applyGrade();

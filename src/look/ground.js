@@ -12,6 +12,7 @@
  *   groundSkirts(list) → the hill's bare slabs and scrub [x, z, r] into the mask · smoothGridNormals(geo, nx, nz) → normals over 3 × 3 vertices
  * 'high': the detail's relief (a bump from its height); 'normal': two scales, no relief; 'low': one scale. ── /look B ── */
 import { BOOK } from '../game/world/grid.js';
+import { airPatch } from './air.js';   // ── look C ── ── /look C ──
 
 const HI = () => { try { return (globalThis.__LOOK_Q || globalThis.__FORCE_Q) === 'high'; } catch (e) { return false; } };
 const LOW = () => { try { return (globalThis.__LOOK_Q || globalThis.__FORCE_Q) === 'low'; } catch (e) { return false; } };
@@ -365,6 +366,7 @@ export function groundPatch(sh, THREE) {
     .replace('#include <common>', '#include <common>\n' + FRAG_FN + FRAG)
     .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = grGround(diffuseColor.rgb);')
     .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP);
+  airPatch(sh);   // ── look C ── (the cloud shadows on the ground: the terrain and the hill) ── /look C ──
 }
 /** the defines and the program's key for a ground material (the level picks the variant) */
 export function groundDefines(m) {

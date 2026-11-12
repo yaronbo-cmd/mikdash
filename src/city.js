@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import { rng, smooth } from './util.js';
 import { terrainH, setCityMask } from './world.js';
 import { PLAT } from './mount.js';
+import { airMat } from './look/air.js';   // ── look C ── ── /look C ──
 
 /* ───────── the plan ───────── */
 // the walls' lines (x, z); the towers of Herod on the first wall's north-western corner (world.js had them since wave 1)
@@ -586,6 +587,7 @@ function buildHouses(scene, r, tex) {
   // one instanced mesh per archetype; the material is shared (one program)
   const A = archetypes(), mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.93, vertexColors: true });
   if (tex && tex.map) { mat.map = tex.map; if (tex.normalMap) { mat.normalMap = tex.normalMap; mat.normalScale.set(0.7, 0.7); } }
+  airMat(mat, 'city');   // ── look C ── (the clouds' shadows drift over the city) ── /look C ──
   const meshes = {};
   for (const [k, list] of Object.entries(L)) {
     const m = new THREE.InstancedMesh(A[k].geo(), mat, list.length);

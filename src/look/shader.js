@@ -9,6 +9,7 @@
  *   lookClone(mat, color?) → a clone sharing the program (its own uniforms) · lookSet(mat, k) (dust at the foot 0..1) · lookFresh(mat, k)
  *   KIND = { stone, slab, rock, fresh, wood, rope, iron, cloth } · lookHi() → the fine relief on (Q.level 'high' only)
  * ── /look A ── */
+import { airPatch } from './air.js';   // ── look C ── (the cloud shadows: one chunk in this family's patch) ── /look C ──
 export const KIND = Object.freeze({ stone: 0, slab: 1, rock: 2, fresh: 3, wood: 4, rope: 5, iron: 6, cloth: 7 });
 
 /** the fine relief (bump from the detail, shader octaves) only at Q.level 'high'; 'low' and 'normal' keep colours, tints and shapes */
@@ -220,6 +221,7 @@ function install(THREE, m) {
 #ifdef LOOK_HI
   normal = lkBump(-vViewPosition, normal, lkHt, uLk.x < 1.5 ? 0.035 : uLk.x < 3.5 ? 0.05 : 0.02, faceDirection);
 #endif`);
+    airPatch(sh);   // ── look C ── ── /look C ──
   };
   m.customProgramCacheKey = () => 'look-a' + (hi ? '-hi' : '');
 }

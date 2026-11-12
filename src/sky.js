@@ -105,8 +105,10 @@ void main() {
   // the sun (or at night the moon's light) — its glow and disc
   float cs = dot(d, uSunDir);
   float g1 = pow(max(cs, 0.0), 5.0), g2 = pow(max(cs, 0.0), 48.0), g3 = pow(max(cs, 0.0), 900.0);
-  vec3 glow = uSunCol * (g1 * 0.22 + g2 * 0.55 + g3 * 1.6) * uGlow;
-  float disc = smoothstep(0.99993, 0.99996, cs) * uDisc;
+  // ── look C ── (C4) a soft halo round the disc (g4, a near-white of the sun's own colour) and the disc's edge a little softer
+  float g4 = pow(max(cs, 0.0), 260.0);
+  vec3 glow = uSunCol * (g1 * 0.22 + g2 * 0.55 + g3 * 1.6 + g4 * 0.45) * uGlow;
+  float disc = smoothstep(0.99989, 0.99996, cs) * uDisc;
   float cover = 0.0;
 #ifndef ENV
   // the Milky Way and the moon (night)
@@ -154,12 +156,13 @@ void main() {
     vec4 b1 = texture2D(uNoise, q), b2 = texture2D(uNoise, q * 2.0 + vec2(0.3, 0.1));
     float bill = b1.g * 0.55 + b2.a * 0.45;                      // cells: bright centres, dark creases
     float edge = top * (0.72 + 0.5 * bill) - (h - base);
-    float dC = smoothstep(0.0, 0.004, edge) * smoothstep(base - 0.004, base + 0.004, h) * step(0.004, top);
+    // ── look C ── (C4) a feathered top edge (was a 0.004 step: a hard white rim on a phone); the grey feet kept
+    float dC = smoothstep(-0.002, 0.011, edge) * smoothstep(base - 0.004, base + 0.004, h) * step(0.004, top);
     if (dC > 0.0) {
       float f = clamp((h - base) / max(top, 1e-3), 0.0, 1.0);
       float sh = mix(0.5, 1.0, smoothstep(0.0, 0.55, f)) * (0.62 + 0.38 * bill);
       vec3 body = mix(uCumShd, uCumLit, sh * mix(1.0, 0.72, tw * tw));   // toward the sun the heaps stand backlit
-      body += uSunCol * smoothstep(0.004, 0.0, edge) * tw * tw * 0.9 * uGlow;  // bright rims toward the sun
+      body += uSunCol * smoothstep(0.012, 0.0, edge) * tw * tw * 0.3 * uGlow;  // soft lit rims toward the sun (── look C ── 0.9 → 0.3, wider)
       body = mix(body, uFog, 0.18 + 0.45 * (1.0 - f) * (1.0 - f));
       c = mix(c, body, dC);
       cover = max(cover, dC);

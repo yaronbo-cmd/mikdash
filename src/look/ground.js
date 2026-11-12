@@ -264,14 +264,21 @@ vec3 grGround(vec3 vc) {
   float trod = clamp(wm.r * 1.2, 0.0, 1.0);
   // ROCK: bare bedrock slabs (the field thresholded: lower where the vertex's bias is rocky and on the slope; the grikes between them
   // earth), and the whole face on the steep (over ≈ 33°)
-  float rf = d2.a + (d1.a - 0.5) * 0.16, th = 0.7 - vGrA.x * 0.5 - smoothstep(0.04, 0.2, slope) * 0.25 + trod * 0.35 + vGrA.y * 0.2;
-  float slab = smoothstep(th, th + 0.035, rf);
+  // ROCK's own detail first (its pits decide where earth lies on it)
+  float rb = mix(d1.b, d2.b, 0.45), sw = smoothstep(0.26, 0.5, slope);
+#ifndef GR_LITE
+  rb = mix(rb, texture2D(uGrT, us).b, sw);
+#endif
+  // (look B review G5: no dark outline: the slab's edge ragged by the earth's mottle and its own pits, earth lying in its low spots,
+  // a pale dusty band where the two meet)
+  float rf = d2.a + (d1.a - 0.5) * 0.16 + (rb - 0.6) * 0.14 + (d1.r - 0.5) * 0.05, th = 0.7 - vGrA.x * 0.5 - smoothstep(0.04, 0.2, slope) * 0.25 + trod * 0.35 + vGrA.y * 0.2;
+  float slab = smoothstep(th, th + 0.06, rf);
   float steep = smoothstep(0.17, 0.26, slope + (d2.a - 0.5) * 0.14);
   float rk = max(slab, steep);
-  float rim = smoothstep(th - 0.09, th, rf) * (1.0 - slab) * (1.0 - steep);
+  float rim = smoothstep(th - 0.07, th + 0.01, rf) * (1.0 - slab) * (1.0 - steep);
   // GRAVEL: scree below the rock, the trodden ground, patches
   // (look B review G2: no stones packed in a mosaic: dust, and the chips over it — a few on the earth, more on the scree and where trodden)
-  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + rim * 0.5, 0.0, 1.0);
+  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + rim * 0.3, 0.0, 1.0);
   // EARTH: mottled, dry straw in tufts, the low dark shrubs, darker in the hollows and where trodden
   // (trodden: packed, smoother, darker)
   float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
@@ -285,19 +292,17 @@ vec3 grGround(vec3 vc) {
   earth = mix(earth, vec3(0.16, 0.15, 0.09) * (0.75 + 2.5 * e), shrub * 0.85);
   vec3 grav = mix(uGrGrav, vc, 0.4) * (0.82 + 0.3 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
-  float rb = mix(d1.b, d2.b, 0.45), sw = smoothstep(0.26, 0.5, slope);
-#ifndef GR_LITE
-  rb = mix(rb, texture2D(uGrT, us).b, sw);
-#endif
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
-  vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (0.8 + 0.2 * smoothstep(th + 0.02, th + 0.1, rf)) * (1.0 - 0.12 * sw);
+  vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw);
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
   col = mix(col, uGrRock * (0.62 + 0.45 * mix(d1.g, d3.g, sw3)), chip * clamp(0.3 + gv * 0.6 + trod * 0.5, 0.0, 0.9));
-  col *= 1.0 - 0.3 * rim;
+  col = mix(col, mix(col, uGrRock * 0.92, 0.45), rim * 0.6);
+  // (the slab's own edge dusted with the earth round it)
+  rock = mix(rock, mix(rock, col, 0.45), (1.0 - smoothstep(th + 0.01, th + 0.1, rf)) * (1.0 - steep));
   col = mix(col, rock, rk);
   // the dark earth bedded round the rocks; the carts' two ruts
-  col *= 1.0 - 0.38 * wm.b;
+  col *= 1.0 - 0.16 * wm.b;
 #ifndef GR_LITE
   float rut = 1.0 - smoothstep(0.1, 0.3, abs((1.0 - wm.g) * ${RUT_W.toFixed(2)} - 0.75));
   col *= 1.0 - 0.3 * rut * step(0.05, wm.g);

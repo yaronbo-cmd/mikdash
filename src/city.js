@@ -228,7 +228,7 @@ function buildWalls(B) {
         for (const off of [-(TH / 2 - MT / 2), TH / 2 - MT / 2]) merlons(P, x0, z0, x1, z1, off, top);
         run += len / n;
         if (run > 150 && !skipTower(x1, z1) && i + (k + 1) / n < L.length - 0.6) { run = 0; tower(P, x1, z1, 17, bot, top + 9, ux, uz); }
-        B.geo('ash2', P.geo(), bot + 8);   // ── look D ── ── /look D ──
+        B.geo('ash2', P.geo(), bot + 10.5);   // ── look D ── (the base 2.5 above the lowest ground: the foot's lowest courses fully dirty) ── /look D ──
       }
     }
   };

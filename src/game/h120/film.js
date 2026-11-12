@@ -163,7 +163,7 @@ function arcs(T, n, len, gtex) {
   const N = n * len, pos = new Float32Array(N * 3), al = new Float32Array(N), sz = new Float32Array(N);
   const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aA', new T.BufferAttribute(al, 1)); g.setAttribute('aS', new T.BufferAttribute(sz, 1));
   const m = new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, uniforms: { uMap: { value: gtex }, uPx: { value: 600 } },
-    vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
+    vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA * (aS > 12.0 ? 0.32 : 1.0); vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
     fragmentShader: 'uniform sampler2D uMap; varying float vA; void main(){ vec4 c = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(c.rgb * vec3(1.0, 0.86, 0.6) * vA * 1.6, c.a * vA); }' });
   const pts = new T.Points(g, m); pts.frustumCulled = false; pts.renderOrder = 8;
   const H = Array.from({ length: n }, () => []);
@@ -300,10 +300,10 @@ export function createFilm(X, opt = {}) {
     const U = P.filter((p, i) => i % Math.max(1, Math.floor(P.length / 1600)) === 0).slice(0, 1600);
     const pos = new Float32Array(U.length * 3), d = new Float32Array(U.length), al = new Float32Array(U.length), sz = new Float32Array(U.length);
     const d0 = Math.hypot(U[0].x - 73, U[0].z), d1 = Math.hypot(U[U.length - 1].x - 73, U[U.length - 1].z);
-    U.forEach((p, i) => { pos.set([p.x, p.y + 7, p.z], i * 3); d[i] = (Math.hypot(p.x - 73, p.z) - d0) / Math.max(1, d1 - d0); sz[i] = 5 + hh(i) * 7; });
+    U.forEach((p, i) => { pos.set([p.x, p.y + 7, p.z], i * 3); d[i] = (Math.hypot(p.x - 73, p.z) - d0) / Math.max(1, d1 - d0); sz[i] = (i % 5 === 0 ? 16 + hh(i) * 14 : 3.5 + hh(i) * 5); });   // most a small lamp; one in five the wider glow of a lit courtyard
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aA', new T.BufferAttribute(al, 1)); g.setAttribute('aS', new T.BufferAttribute(sz, 1));
     const m = new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, uniforms: { uMap: { value: gtex }, uPx: { value: 600 } },
-      vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
+      vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA * (aS > 12.0 ? 0.32 : 1.0); vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
       fragmentShader: 'uniform sampler2D uMap; varying float vA; void main(){ vec4 c = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(c.rgb * vec3(1.0, 0.8, 0.5) * vA * 1.3, c.a * vA); }' });
     const pts = new T.Points(g, m); pts.frustumCulled = false; group.add(pts);
     F.city = { pts, m, d, al, g, k: 0, n: U.length };
@@ -372,8 +372,8 @@ export function createFilm(X, opt = {}) {
     // 5 · from the gallery: the railing near, two shoulders at the edges, the fire and the dancers below
     await dipTo(() => { F.shot = 5; move([62.6, 21.2, 66.9], [78, 17.5, 8], [62.9, 21.1, 66.3], [80, 16.5, 8], SHOTS[4].d); snd.murmur(0.85); });
     await titleAt(SHOTS[4], 0.9); await wait(SHOTS[4].d - 0.9);
-    // 6 · Jerusalem: the camera rises over the court and looks south-west over the dark city; courtyards light up in a wave
-    await dipTo(() => { F.shot = 6; move([70, 200, 140], [10, -60, 780], [60, 260, 110], [-20, -60, 860], SHOTS[5].d); F.cityOn = F.t + 1.2; snd.murmur(1); });
+    // 6 · Jerusalem: from behind the court, over its fires, the camera rises until it looks south over the dark city; courtyards light up in a wave
+    await dipTo(() => { F.shot = 6; move([104, 48, -125], [62, -34, 280], [92, 205, -70], [30, -60, 800], SHOTS[5].d); F.cityOn = F.t + 3.2; snd.murmur(1); });
     await titleAt(SHOTS[5], 1.4); await wait(SHOTS[5].d - 1.4);
     // 7 · the glowing court from high, held; the last line, larger
     await dipTo(() => { F.shot = 7; move([140, 120, 150], [80, 6, 0], [138, 112, 146], [80, 6, 0], SHOTS[6].d + 2.5); snd.murmur(0.5); });
@@ -416,7 +416,11 @@ export function createFilm(X, opt = {}) {
       F.hid = []; for (const a of (A && A.list) || []) if (!F.figs.includes(a)) { F.hid.push([a, a.vis, a.visT]); a.vis = 0; a.visT = 0; }
       try { const c = X.stages.crowd; if (c && c.setEnabled) { c.setEnabled(false); F.crowdOff = true; } } catch (e) { /* */ }
       try { if (X.hero && X.hero.show) { X.hero.show(false); F.heroOff = true; } } catch (e) { /* */ }
+      // the day's doves and flocks sleep at night (the world's animals: hidden, restored as they were)
+      F.anim = []; try { X.scene.traverse((o) => { const dove = o.isInstancedMesh && o.parent === X.scene && o.count === 16 && o.material && o.material.type === 'MeshBasicMaterial' && o.material.vertexColors;   // (life.js's doves: unlit white, they would shine in the dark)
+        if ((/^animal-/.test(o.name || '') || dove) && o.visible) { F.anim.push(o); o.visible = false; } }); } catch (e) { /* */ }
     } else {
+      for (const o of F.anim || []) o.visible = true; F.anim = [];
       for (const [a, v, vt] of F.hid || []) { a.vis = v; a.visT = vt; } F.hid = [];
       try { if (F.crowdOff) X.stages.crowd.setEnabled(true); } catch (e) { /* */ } F.crowdOff = false;
       try { if (F.heroOff) X.hero.show(true); } catch (e) { /* */ } F.heroOff = false;

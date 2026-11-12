@@ -245,7 +245,7 @@ const FRAG = /* glsl */`
 uniform sampler2D uGrT; uniform sampler2D uGrM; uniform vec4 uGrMB;
 uniform vec3 uGrStraw; uniform vec3 uGrRock; uniform vec3 uGrGrav; uniform vec3 uGrDark;
 varying vec3 vGrW; varying vec3 vGrN; varying vec2 vGrA;
-float grDet = 1.0; float grHt = 0.5; vec3 grPack = vec3(0.3);
+float grDet = 1.0; float grHt = 0.5; float grRel = 0.0; vec3 grPack = vec3(0.3);
 vec3 grGround(vec3 vc) {
   vec3 W = vGrW, N = normalize(vGrN);
   vec2 p = W.xz;
@@ -311,7 +311,7 @@ vec3 grGround(vec3 vc) {
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
   vec3 rock = mix(uGrRock, vc, 0.2) * (0.4 + 0.84 * mix(rb, d3.b, 0.3)) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw) * vec3(0.98, 0.99, 1.015);
   // (its relief: the slab's middle a little higher and lighter than its sunken edge; no outline)
-  rock *= 0.93 + 0.1 * smoothstep(th + 0.02, th + 0.14, rf);
+  rock *= 0.88 + 0.16 * smoothstep(th + 0.02, th + 0.2, rf);
   rock *= mix(vec3(1.0), vec3(0.84, 0.83, 0.8), smoothstep(0.5, 0.68, d2.b + (d1.b - 0.6) * 0.5));   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
   col = mix(col, mix(uGrRock, vc, 0.5) * (0.6 + 0.36 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.6));
@@ -329,12 +329,18 @@ vec3 grGround(vec3 vc) {
   grPack = mix(uGrDark * (0.95 + 0.7 * mix(d1.r, d2.r, 0.4)), grav, smoothstep(0.45, 0.75, d2.g) * 0.55 + 0.1);
   grDet = lkLumGr(col) / max(0.04, lkLumGr(vc));
   grHt = mix(mix(em, 0.3, gv) + chip * 0.4, rb - bed * 0.3, rk);
+  // (look B review H1: the slab's coarse relief, lit by the sun at every level but 'low': its body a low dome over the earth)
+  grRel = (smoothstep(th - 0.03, th + 0.2, d2.a + (d1.a - 0.5) * 0.1) + (mix(d2.b, d1.b, 0.4) - 0.6) * 0.3 * slab) * (1.0 - steep) * (1.0 - smoothstep(0.1, 0.45, trod));
   return col;
 }`;
 const FRAG_FN = /* glsl */`float lkLumGr(vec3 c) { return dot(c, vec3(0.333)); }`;
 const BUMP = /* glsl */`
+#ifndef GR_LOW
+  { vec2 dH = vec2(dFdx(grRel), dFdy(grRel)) * 0.3;
 #ifdef GR_HI
-  { vec2 dH = vec2(dFdx(grHt), dFdy(grHt)) * 0.05; vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
+    dH += vec2(dFdx(grHt), dFdy(grHt)) * 0.05;
+#endif
+    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
     float det = dot(sx, r1) * faceDirection; vec3 g = sign(det) * (dH.x * r1 + dH.y * r2); normal = normalize(abs(det) * normal - g); }
 #endif`;
 

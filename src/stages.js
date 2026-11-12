@@ -465,7 +465,9 @@ function makeHill(T) {
           float jx = min(xs, 1.0 - xs) * ln * u, jz = min(fract(vHXZ.y / u), 1.0 - fract(vHXZ.y / u)) * u;
           float sh = 0.86 + 0.16 * hh(vec2(a, j * 7.0 + 1.0)), gr = 0.94 + 0.06 * hn(vHXZ * 1.7);
           vec3 sc = vec3(0.6, 0.54, 0.44) * sh * gr * (1.0 - 0.55 * (1.0 - smoothstep(0.03, 0.09, min(jx, jz))));
-          diffuseColor.rgb = sc; }`)
+          diffuseColor.rgb = sc; }
+        // ── look B review H1 ── (the natural slabs' relief only where the natural ground still shows) ── /look B ──
+        grRel *= 1.0 - clamp(vWk + vDp + vLev + smoothstep(0.35, 0.8, vPk) + step(0.5, vPv), 0.0, 1.0);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         // ── site12 ── the cut rock lit by its own facets: the benches' treads and risers, the sweep's fresh face
         if (vWk > 0.5) normal = normalize(mix(normal, normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition))), 0.85));`);

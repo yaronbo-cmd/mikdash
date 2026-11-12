@@ -7,7 +7,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor, terrainGr, cityMask } from './world.js';
-import { groundPatch, groundDefines, groundSkirts, smoothGridNormals } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
+import { groundPatch, groundDefines, groundSkirts, smoothGridNormals, groundDetailTex } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
@@ -1913,15 +1913,20 @@ export function createStages(ctx) {
   const ashGeo = ashlarGeo(THREE), roughGeo = roughGeometry();
   const ashI = new THREE.InstancedMesh(ashGeo, stoneMat(THREE), 900), roughI = new THREE.InstancedMesh(roughGeo, lookClone(freshMat(THREE, T.rock.map), '#ffffff'), 300);   // ── look A ── (the rough blocks: fresh breaks, their tone per instance) ── /look A ──
   for (const m of [ashI, roughI]) { m.count = 0; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; m.visible = false; scene.add(m); }
-  const dirtTex = TX.texGround(97, 256).map;
-  const dirtMat = new THREE.MeshStandardMaterial({ color: '#B89C74', map: dirtTex, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+  // ── look B review H5 ── a foundation's dug earth: the patch keeps its meaning (where the trench is dug), its look the new ground's:
+  // packed darker earth mottled by the ground detail (R) with its chips (G), no texture of its own ── /look B ──
+  const dirtMat = new THREE.MeshStandardMaterial({ color: '#A88B66', transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
   dirtMat.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aSize; varying vec2 vLoc; varying vec2 vSz;')
+    sh.uniforms.uGrT = { value: groundDetailTex(THREE) };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aSize; varying vec2 vLoc; varying vec2 vSz; varying vec2 vDW;')
       .replace('#include <uv_vertex>', '#include <uv_vertex>\nvLoc = uv; vSz = aSize;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n#ifdef USE_MAP\nvMapUv = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz / 11.0;\n#endif');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vLoc; varying vec2 vSz;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvDW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uGrT; varying vec2 vLoc; varying vec2 vSz; varying vec2 vDW;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        { vec2 e = min(vLoc, 1.0 - vLoc) * vSz; float a = smoothstep(0.0, 3.5, min(e.x, e.y));
+        { vec4 d = texture2D(uGrT, vDW / 10.0 + 0.13); float ch = smoothstep(0.42, 0.56, d.g);
+          diffuseColor.rgb *= 0.8 + 0.4 * clamp(d.r, 0.2, 0.75);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.78, 0.74, 0.66) * (0.7 + 0.3 * d.g), ch * 0.5);
+          vec2 e = min(vLoc, 1.0 - vLoc) * vSz; float a = smoothstep(0.0, 3.5, min(e.x, e.y));
           diffuseColor.a *= a * 0.92; }`);
   };
   dirtMat.customProgramCacheKey = () => 'dirt';

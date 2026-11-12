@@ -129,6 +129,9 @@ function detailTex(THREE) {
   return (c.det = t);
 }
 
+/** the detail texture itself (look B review H5: the foundations' dug-earth patches take their grain from it) */
+export function groundDetailTex(THREE) { return detailTex(THREE); }
+
 /* ───────── the work mask (B3) ───────── */
 // over the Mount and its margins: x −360…340, z −540…460 (the platform −300…277 × −480…400)
 export const MASK = Object.freeze({ x0: -360, z0: -540, w: 700, d: 1000, n: 512 });

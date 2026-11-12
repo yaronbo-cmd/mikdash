@@ -41,7 +41,7 @@ if (Q.get('temple') !== '0') {
     ash: std('#DCCFB4'), ashBig: std('#DCCFB4'), ash2: std('#D6C8AC'), pave: std('#E4D9C2'), marble: std('#EEE9DF'), marbleIn: std('#A89F92'),
     wmarble: std('#EDE5D6'), plaster: std('#F0EBDF'), gold: std('#E9B949', { metalness: 1, roughness: 0.3 }), bronze: std('#D9A060', { metalness: 1, roughness: 0.35 }),
     cedar: std('#B98D62'), oak: std('#B08A62'), roof: std('#B8664A'), dark: std('#2C2118'), red: std('#A3261F'), iron: std('#3D3935'),
-    water: std('#5A8BA6', { roughness: 0.1 }), lattice: std('#EFE3C8'), clay: std('#B8784C'), ashpile: std('#B9B3AA'),
+    water: std('#5A8BA6', { roughness: 0.1 }), lattice: std('#EFE3C8'), clay: std('#B8784C'),
   };
   const mats = new Proxy(base, { get: (o, k) => o[k] || o.ash });
   const B = new Batch(mats);

@@ -2,6 +2,9 @@
 import * as THREE from 'three';
 import { rng, makeNoise, smooth, lerp } from './util.js';
 import { PLAT } from './mount.js';
+import { groundMat, smoothGridNormals } from './look/ground.js';   // ── look B ── ── /look B ──
+import { windMat } from './look/air.js';   // ── look C ── ── /look C ──
+import { oliveCrownGeo, oliveTrunkGeo, cypressGeo, jitter } from './look/far.js';   // ── look D ── ── /look D ──
 
 const NA = makeNoise(11), NB = makeNoise(29), NC = makeNoise(47), ND = makeNoise(83);
 function prof(xs, ys, x) {
@@ -45,6 +48,23 @@ export const CARVE = [
   { x: -520, z: -5, hw: 40, hd: 42, pit: 3.6, rim: 3.6, m: 26 },     // the Xystus (lowers only the hill west of x −480)
 ];
 
+// ── look D ── the Mount of Olives' groves (city.js buildOlivet plants its rows where this is over −0.35; the ground under them keeps a
+// little green): a field of two waves, moved here from city.js so the terrain's colour can read it ── /look D ──
+export const oliveGrove = (x, z) => Math.sin(x * 0.011 + z * 0.004) + Math.sin(z * 0.013 - x * 0.006 + 1.7);
+// ── look D ── the height of the terrain as its mesh draws it (buildTerrain's grid: two triangles a cell, the cells wider away from the
+// Mount): what lies on the far ground (the terraces' strips, the paths) follows the drawn surface, not terrainH between the vertices.
+// The corners' heights cached (the same few hundred cells over and over) ── /look D ──
+const TG = { N: 260, a: 910, b: 2730 }, TGH = new Map();
+const gridX = (i) => { const t = i / TG.N * 2 - 1; return TG.a * t + TG.b * t * t * t; };
+const gridI = (x) => { let lo = 0, hi = TG.N; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (gridX(m) <= x) lo = m; else hi = m; } return lo; };
+const gridH = (i, j) => { const k = i * 1000 + j; let h = TGH.get(k); if (h === undefined) { h = terrainH(gridX(i), gridX(j)); TGH.set(k, h); } return h; };
+export function terrainMeshH(x, z) {
+  const i = gridI(x), j = gridI(z), x0 = gridX(i), z0 = gridX(j);
+  const u = Math.max(0, Math.min(1, (x - x0) / (gridX(i + 1) - x0))), v = Math.max(0, Math.min(1, (z - z0) / (gridX(j + 1) - z0)));
+  const ha = gridH(i, j), hb = gridH(i + 1, j), hc = gridH(i, j + 1), hd = gridH(i + 1, j + 1);
+  return u + v <= 1 ? ha + u * (hb - ha) + v * (hc - ha) : hd + (1 - u) * (hc - hd) + (1 - v) * (hb - hd);
+}
+
 const ZONES = [
   { x0: -1500, x1: -485, z0: -600, z1: 900, dens: 0.8, cell: 23 },    // Upper City
   { x0: -470, x1: -262, z0: 440, z1: 1300, dens: 0.66, cell: 22 },    // Lower City / Tyropoeon
@@ -66,45 +86,90 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // terrain vertex colour at (x, z) with height h and normal.y ny (also used to blend the natural hill into it)
 // ── world6 ── the hills as they are from spring's end to the first rains (the game's Sukkot): golden and olive-dry, greener only
 // in the valley bottoms and the orchards (was a spring green)
-const TC = { gA: new THREE.Color('#A3A064'), gB: new THREE.Color('#B9AE74'), dry: new THREE.Color('#C9B684'), rock: new THREE.Color('#D2C29D'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#7C9049'), orchard: new THREE.Color('#99A15C') };
-export function terrainColor(x, z, h, ny, c) {
+// ── look B ── (the owner: "a rocky Jerusalem hill, not a lawn") the tones dry straw and ochre, the valley bottoms a dry olive; the
+// rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
+// ── look D ── (D1: no lawn) the valley bottoms a deeper dry olive and darker (the Kidron's depth felt from the Mount), the orchards' green
+// only under the groves ── /look D ──
+const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#737650'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262'), street: new THREE.Color('#B39874') };   // ── look D ── (street) ── /look D ──
+export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── look B ── (cm: the city's mask, when the caller has it) ── /look B ──
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
-  c.lerp(TC.rock, smooth(0.10, 0.32, 1 - ny) * 0.85);
-  c.lerp(TC.lush, smooth(-95, -135, h) * 0.55);
-  if (x > 480) c.lerp(TC.orchard, 0.35 * smooth(480, 700, x));
-  c.lerp(TC.dust, cityMask(x, z) * 0.78);
+  // ── look D review K1 ── (the steeper far slopes: red earth between the limestone, the rock itself drawn by the ground's shader from
+  // aGr.x; was one pale wash) ── /look D review ──
+  c.lerp(TC.soil, smooth(0.07, 0.24, 1 - ny) * 0.4 * (1 - cm));
+  c.lerp(TC.rock, smooth(0.14, 0.36, 1 - ny) * 0.35);
+  c.lerp(TC.lush, smooth(-84, -114, h) * 0.7);   // ── look D review K1 ── (the Kidron's floor greener: 0.45 → 0.7, from higher up) ── /look D review ──
+  // ── look D ── (the valley floor in shade: darker the deeper) ── /look D ──
+  c.multiplyScalar(1 - 0.38 * smooth(-70, -115, h) * (1 - cm));
+  // ── look D ── (the orchards' tint only where the olives stand: the Mount of Olives' groves, the scattered groves beyond) ── /look D ──
+  if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x) * (x < 1250 && Math.abs(z) < 1100 ? smooth(-0.6, -0.1, oliveGrove(x, z)) : smooth(0.4, 0.5, NA(x / 300 + 7, z / 300 - 3, 3))));
+  c.lerp(TC.dust, cm * 0.78);
+  // ── look D ── (D3: the streets and the open ground between the houses trodden earth in patches, not one beige) ── /look D ──
+  if (cm > 0) c.lerp(TC.street, cm * (0.3 + 0.5 * smooth(0.36, 0.64, NC(x / 38 + 11, z / 38 - 5, 2))));
+  // ── look D review K2 ── (the lanes between the houses in their shade: darker, so the blocks separate) ── /look D review ──
+  if (cm > 0) c.multiplyScalar(1 - 0.24 * cm);
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
+  // ── look B review H3 ── the broad tone (40–120 amot) the Mount's hill has too: darker, redder earth in patches, paler dusty crowns
+  // (not in the city) ── /look B ──
+  const big = NC(x / 90 + 7, z / 90 - 3, 3), dk = smooth(0.5, 0.34, big) * (1 - cm), cr = smooth(0.54, 0.7, big) * (1 - cm);
+  c.lerp(TC.soil, dk * 0.4); c.multiplyScalar(1 - 0.16 * dk); c.lerp(TC.dust, cr * 0.4);
   return c;
 }
+// ── look B ── the ground's two vertex values (look/ground.js aGr): x the rock's bias (outcrops in patches of 30–80 amot, none in the
+// city), y a hollow's darker earth (the valley bottoms, where the old green was) ── /look B ──
+const NE = makeNoise(131);
+export function terrainGr(x, z, h, out, city = cityMask(x, z)) {
+  out[0] = smooth(0.58, 0.78, NE(x / 55 + 4, z / 55 - 7, 3)) * 0.75 * (1 - city) * (1 - 0.8 * smooth(-82, -118, h));   // ── look D ── (no bare slabs on the valley floors: their earth washed down) ── /look D ──
+  out[1] = Math.min(1, smooth(-95, -135, h) * 0.7 + smooth(0.6, 0.8, NE(x / 140 - 2, z / 140 + 5, 2)) * 0.3) * (1 - city);
+  return out;
+}
 
-export function buildTerrain(groundMap) {
+// ── look D review K1 ── the old terraces on the open slopes (look/ground.js draws them from aGr.z): none on the Mount and its margins,
+// in the city, on the valley floors, on the flat or on cliffs, nor where the Mount of Olives' groves have their own (city.js buildOlivet);
+// in broad patches, not everywhere ── /look D review ──
+export function terraceW(x, z, h, ny, cm) {
+  // (the cheap factors first: most of the grid is out on one of them, and the noise is drawn only where it counts)
+  const sl = 1 - ny, e = Math.max(Math.abs(x), Math.abs(z));
+  if (cm >= 1 || sl < 0.008 || sl > 0.45 || h < -122 || e > 3200) return 0;
+  const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0); if (dPlat < 200) return 0;
+  let w = smooth(200, 380, dPlat) * smooth(0.008, 0.04, sl) * (1 - smooth(0.3, 0.45, sl)) * (1 - cm) * (1 - smooth(-100, -122, h)) * (1 - smooth(2700, 3200, e));
+  if (x > 440 && x < 1270 && Math.abs(z) < 1120) w *= smooth(-0.2, -0.5, oliveGrove(x, z));
+  return w > 0 ? w * smooth(0.2, 0.36, NA(x / 520 - 9, z / 520 + 4, 2)) : 0;
+}
+
+export function buildTerrain() {
   const N = 260, a = 910, b = 2730, n1 = N + 1;
   const xs = new Float32Array(n1);
   for (let i = 0; i <= N; i++) { const t = i / N * 2 - 1; xs[i] = a * t + b * t * t * t; }
-  const pos = new Float32Array(n1 * n1 * 3), uv = new Float32Array(n1 * n1 * 2);
+  const pos = new Float32Array(n1 * n1 * 3);
   for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) {
     const k = j * n1 + i, x = xs[i], z = xs[j];
     pos[k * 3] = x; pos[k * 3 + 1] = terrainH(x, z); pos[k * 3 + 2] = z;
-    uv[k * 2] = x / 30; uv[k * 2 + 1] = -z / 30;
   }
   const idx = [];
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a0 = j * n1 + i, b0 = a0 + 1, c0 = a0 + n1, d0 = c0 + 1; idx.push(a0, c0, b0, b0, c0, d0); }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
-  const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3);
+  smoothGridNormals(g, n1, n1);   // ── look B ── (the light follows the land, not its triangles) ── /look B ──
+  const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3), gr = new Float32Array(n1 * n1 * 3), o = [0, 0];
   const c = new THREE.Color();
   for (let k = 0; k < n1 * n1; k++) {
-    terrainColor(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], nor[k * 3 + 1], c);
+    const cm = cityMask(pos[k * 3], pos[k * 3 + 2]);
+    terrainColor(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], nor[k * 3 + 1], c, cm);
     col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
+    const x = pos[k * 3], z = pos[k * 3 + 2], h = pos[k * 3 + 1], ny = nor[k * 3 + 1];
+    terrainGr(x, z, h, o, cm);
+    // ── look D review K1 ── (the far steep slopes: more of the rock bare, in patches; aGr.z the terraces) ── /look D review ──
+    const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0), st = smooth(0.06, 0.2, 1 - ny) * (1 - cm) * smooth(200, 400, dPlat) * (1 - smooth(-90, -115, h));
+    gr[k * 3] = st > 0 ? Math.max(o[0], st * (0.3 + 0.6 * smooth(0.4, 0.62, NE(x / 70 + 1, z / 70 - 3, 2)))) : o[0];
+    gr[k * 3 + 1] = o[1]; gr[k * 3 + 2] = terraceW(x, z, h, ny, cm);
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, map: groundMap, roughness: 1, metalness: 0 });
-  const mesh = new THREE.Mesh(g, mat);
+  g.setAttribute('aGr', new THREE.BufferAttribute(gr, 3));
+  const mesh = new THREE.Mesh(g, groundMat(THREE));   // ── look B ── (the ground's one material: look/ground.js) ── /look B ──
   mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
   return mesh;
 }
@@ -187,33 +252,58 @@ export function buildTrees(scene, extra = [], rows = null, courts = []) {   // �
   const r = rng(313), olives = [], cyp = [];
   const addOlive = (x, z, s = 1) => { if (inEx(x, z, 8) || cityMask(x, z) > 0.35) return false; olives.push([x, terrainH(x, z), z, s * (0.8 + r() * 0.5), r() * 6.28]); return true; };
   let tries = 0;
-  if (rows) for (const [x, z] of rows) if (olives.length < 1500) addOlive(x, z);   // ── world6 ──
+  // ── look D ── (D2) the rows stay rows, each tree a little off its place (up to 15 % of the 14-amot spacing) and about one in twelve
+  // left out; a left-out tree still draws its two numbers, so every other tree stands where it stood ── /look D ──
+  let gone = 0;
+  if (rows) for (const [x, z] of rows) if (olives.length + gone < 1500) {   // ── world6 ──
+    const [jx, jz, drop] = jitter(x, z, 14);
+    if (drop && !inEx(x, z, 8) && cityMask(x, z) <= 0.35) { r(); r(); gone++; continue; }
+    addOlive(x + jx, z + jz);
+  }
   for (const [x, z] of courts) olives.push([x, terrainH(x, z), z, 0.62 + r() * 0.25, r() * 6.28]);   // ── world6 ── trees in the city's courts
-  while (olives.length < 1700 && tries < 60000) { tries++; const x = 470 + r() * 1900, z = -1700 + r() * 3400; if (rows && x < 1250 && Math.abs(z) < 1100) continue; if (NA(x / 300 + 7, z / 300 - 3, 3) < 0.44) continue; addOlive(x, z); }
+  while (olives.length + gone < 1700 && tries < 60000) { tries++; const x = 470 + r() * 1900, z = -1700 + r() * 3400; if (rows && x < 1250 && Math.abs(z) < 1100) continue; if (NA(x / 300 + 7, z / 300 - 3, 3) < 0.44) continue; addOlive(x, z); }
   for (let i = 0; i < 150; i++) addOlive(440 + r() * 150, -260 + r() * 380, 1.1);          // Gethsemane
-  for (let i = 0; i < 1400 && olives.length < 2300; i++) { const x = -2600 + r() * 5200, z = -2600 + r() * 5200; if (NB(x / 200, z / 200, 2) < 0.52) continue; addOlive(x, z); }
+  for (let i = 0; i < 1400 && olives.length + gone < 2300; i++) { const x = -2600 + r() * 5200, z = -2600 + r() * 5200; if (NB(x / 200, z / 200, 2) < 0.52) continue; addOlive(x, z); }
   for (let i = 0; i < 700 && cyp.length < 230; i++) {
     const x = -1500 + r() * 1900, z = -1500 + r() * 2900;
     if (cityMask(x, z) < 0.6 || inEx(x, z, 14)) continue;
     cyp.push([x, terrainH(x, z) - 1, z, 0.8 + r() * 0.5]);
   }
   for (const [x, y, z] of extra) cyp.push([x, y - 1, z, 0.7 + r() * 0.4]);   // ── world6 ──
-  // olive canopy — irregular low-poly blob
-  const cg = new THREE.IcosahedronGeometry(1, 1);
-  { const p = cg.attributes.position, jr = rng(4); for (let i = 0; i < p.count; i++) { const k = 0.82 + jr() * 0.3; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k, p.getZ(i) * k); } cg.computeVertexNormals(); }
-  const leaf = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true });
-  const bark = new THREE.MeshStandardMaterial({ color: '#6B5942', roughness: 1 });
-  const can = new THREE.InstancedMesh(cg, leaf, olives.length), trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.6, 3.2, 5).translate(0, 1.6, 0), bark, olives.length);
+  // ── look D review K1 ── wild trees and shrub clumps (terebinth, carob, thorn: illustration) on the open slopes and along the Kidron's
+  // floor, in small loose clusters, none in rows: the olive crown's instances (no trunk: low and bushy), a darker green. Their own rng,
+  // so every other tree stands where it stood ── /look D review ──
+  const wild = [], rw = rng(5151);
+  for (let c = 0, tries2 = 0; c < 44 && tries2 < 4000; tries2++) {
+    const kid = c < 14, x = kid ? 330 + rw() * 330 : -2400 + rw() * 4800, z = kid ? -1300 + rw() * 2700 : -2400 + rw() * 4800, h = terrainH(x, z);
+    if (inEx(x, z, 30) || cityMask(x, z) > 0.02) continue;
+    if (kid ? h > -96 : (h < -100 || (x > 440 && x < 1270 && Math.abs(z) < 1120 && oliveGrove(x, z) > -0.5))) continue;
+    c++;
+    const n = 3 + Math.floor(rw() * 5);
+    for (let i = 0; i < n; i++) { const a = rw() * 6.28, d = 3 + rw() * 13, px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d; if (!inEx(px, pz, 8)) wild.push([px, terrainH(px, pz), pz, 0.45 + rw() * 0.45, rw() * 6.28]); }
+  }
+  // ── look D ── (D2) the olive: a crown of three irregular clumps in silver grey-green, two tones by the normal (look/far.js), raised so
+  // the short twisted trunk shows under it; the cypress a dark slender spindle with a ragged outline (was a smooth cone). One instanced
+  // mesh per part as before, the same counts ── /look D ──
+  const leaf = windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, vertexColors: true }));   // ── look C ── (the crowns sway in the wind) ── /look C ──
+  const bark = new THREE.MeshStandardMaterial({ color: '#5E4E3C', roughness: 1 });
+  const nO = olives.length; olives.push(...wild);   // ── look D review K1 ── (the wild ones last: crowns only) ── /look D review ──
+  const can = new THREE.InstancedMesh(oliveCrownGeo(THREE), leaf, olives.length), trunk = new THREE.InstancedMesh(oliveTrunkGeo(THREE), bark, nO);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), cc = new THREE.Color();
-  const leafPal = ['#7D8F57', '#6F824B', '#8A9A60', '#76884F', '#839552'].map((h) => new THREE.Color(h));
+  const leafPal = ['#8A9672', '#7E8A68', '#929B7A', '#859070', '#7A8565', '#8E9876', '#848E6C'].map((h) => new THREE.Color(h));
+  const wildPal = ['#7A8A52', '#84905A', '#71804C', '#8A945E'].map((h) => new THREE.Color(h));
   olives.forEach(([x, y, z, k, rot], i) => {
     q.setFromAxisAngle(up, rot);
-    p.set(x, y + 2.4 * k + 1.6, z); s.set(4.8 * k, 3.4 * k, 4.8 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
-    cc.copy(leafPal[i % leafPal.length]); can.setColorAt(i, cc);
+    if (i >= nO) {   // ── look D review K1 ── (a wild clump: low, wider than high, sunk a little into the slope) ── /look D review ──
+      p.set(x, y + 2.2 * k, z); s.set(5.4 * k, 3.4 * k, 5.4 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
+      can.setColorAt(i, cc.copy(wildPal[i % wildPal.length]).multiplyScalar(0.9 + 0.2 * ((i * 7) % 5) / 4)); return;
+    }
+    p.set(x, y + 2.3 * k + 1.7, z); s.set(5.0 * k, 3.7 * k, 5.0 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
+    cc.copy(leafPal[(i * 5 + (x | 0)) % leafPal.length]).multiplyScalar(0.94 + 0.12 * ((Math.abs(z | 0) % 7) / 6)); can.setColorAt(i, cc);
     p.set(x, y - 0.5, z); s.set(k, k * 1.2, k); M.compose(p, q, s); trunk.setMatrixAt(i, M);
   });
-  const cone = new THREE.InstancedMesh(new THREE.ConeGeometry(1.7, 12, 7).translate(0, 7, 0), new THREE.MeshStandardMaterial({ color: '#3E5C37', roughness: 0.9, flatShading: true }), cyp.length);
-  cyp.forEach(([x, y, z, k], i) => { p.set(x, y, z); s.set(k, k * (1 + (i % 3) * 0.15), k); q.identity(); M.compose(p, q, s); cone.setMatrixAt(i, M); });
+  const cone = new THREE.InstancedMesh(cypressGeo(THREE), new THREE.MeshStandardMaterial({ color: '#34502F', roughness: 0.9, flatShading: true }), cyp.length);
+  cyp.forEach(([x, y, z, k], i) => { p.set(x, y, z); s.set(k * 0.95, k * (0.92 + (i % 3) * 0.13), k * 0.95); q.setFromAxisAngle(up, (i * 2.399) % 6.283); M.compose(p, q, s); cone.setMatrixAt(i, M); });
   for (const m of [can, trunk, cone]) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; scene.add(m); }
 }
 

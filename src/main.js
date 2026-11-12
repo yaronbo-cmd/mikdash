@@ -12,6 +12,8 @@ import * as TX from './tex.js';
 import { buildTemple, buildMenorot, MENOROT } from './temple.js';
 import { buildMount, buildStreet, SQUARE } from './mount.js';
 import { terrainH, buildTerrain, buildTrees } from './world.js';
+import { workPreset, createWorkLight, shadowBox } from './look/light.js';   // ── look C ── the work light of stages 01–04 ── /look C ──
+import { airTick } from './look/air.js';   // ── look C ── the clouds' shadows, the wind ── /look C ──
 import { createSky } from './sky.js';   // ── world6 ── the sky, the clouds, the far hills (one dome draw call)
 import { buildJerusalem, BEAUTY } from './city.js';   // ── world6 ── Jerusalem: walls, towers, palace, pools, stepped street, houses
 import { buildLife } from './life.js';
@@ -49,6 +51,7 @@ const $ = (id) => document.getElementById(id);
 const canvas = $('c');
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Math.min(screen.width, screen.height) < 700;
 const Q = { level: window.__FORCE_Q || (isMobile ? 'normal' : 'high') };
+globalThis.__LOOK_Q = Q.level;   // ── look A ── (src/look/shader.js: the fine relief at 'high' only) ── /look A ──
 let paused = false;
 const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 // game mode (default): the Phase A game drives the construction layer; the whole-Temple view is visual only
@@ -86,15 +89,15 @@ function makeMats() {
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const T = {
     ash: TX.texAshlar(7), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17), marble: TX.texMarble(23),
-    plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), ground: TX.texGround(71), lattice: TX.texLattice(),
-    puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91),
+    plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), lattice: TX.texLattice(),
+    puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91, 512, false),
   };
   for (const v of Object.values(T)) for (const t of (v.isTexture ? [v] : Object.values(v))) t.anisotropy = aniso;
   const std = (o) => new THREE.MeshStandardMaterial(o), n = (a) => new THREE.Vector2(a, a);
   const mats = {
     ash: { mat: groundAO(std({ map: T.ash.map, normalMap: T.ash.normalMap, normalScale: n(1.1), roughness: 0.86 }), { macro: 0.1 }), tile: 24 },
     ashBig: { mat: groundAO(std({ map: T.ashBig.map, normalMap: T.ashBig.normalMap, normalScale: n(1.2), roughness: 0.88 }), { macro: 0.12 }), tile: 30 },
-    ash2: { mat: groundAO(std({ map: T.ash2.map, normalMap: T.ash2.normalMap, normalScale: n(1.1), roughness: 0.92 })), tile: 22 },
+    ash2: { mat: groundAO(std({ map: T.ash2.map, normalMap: T.ash2.normalMap, normalScale: n(1.1), roughness: 0.92 }), { macro: 0.1, course: true }), tile: 22 },   // ── look D ── (macro: the city walls' weathering, ash's program) ── /look D ── ── look D review K3 ── (course: the courses' tones, the foot, the cornice's shade) ── /look D review ──
     pave: { mat: groundAO(std({ map: T.pave.map, normalMap: T.pave.normalMap, normalScale: n(0.7), roughness: 0.9 }), { macro: 0.14 }), tile: 24 },
     marble: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, normalScale: n(1.35), roughness: 0.34, envMapIntensity: 0.9 })), tile: 19.2 },
     marbleIn: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, color: '#A89F92', roughness: 0.5, envMapIntensity: 0.4 })), tile: 19.2 },
@@ -111,7 +114,6 @@ function makeMats() {
     water: { mat: std({ color: '#5A8BA6', roughness: 0.06, metalness: 0.1, envMapIntensity: 1.3 }), tile: 10, cast: false },
     lattice: { mat: std({ color: '#EFE3C8', alphaMap: T.lattice, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 }), tile: 2, cast: false },
     clay: { mat: std({ color: '#B8784C', roughness: 0.8 }), tile: 10 },
-    ashpile: { mat: std({ color: '#B9B3AA', roughness: 1 }), tile: 10, cast: false },
     // ── light28 ── the תפוח: grey-brown ash, its darker rim, the dust at its foot (the owner's shot 4: a white blob) ── /light28 ──
     tapuach28: { mat: std({ color: '#8C867E', roughness: 1 }), tile: 10, cast: true }, tapuachRim28: { mat: std({ color: '#55504A', roughness: 1 }), tile: 10, cast: false }, tapuachDust28: { mat: std({ color: '#A9A49D', roughness: 1 }), tile: 10, cast: false },
   };
@@ -141,7 +143,32 @@ scene.add(sun, sun.target);
   const sc = sun.shadow.camera; sc.left = -600; sc.right = 600; sc.top = 600; sc.bottom = -600; sc.near = 100; sc.far = 3400;
   const S = Q.level === 'high' ? 4096 : 2048; sun.shadow.mapSize.set(S, S);
   sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.5;
+  // ── look C ── (C2) soft edges: three's PCF draws 5 taps on a Vogel disk of this radius (in texels) at the same cost at every radius
+  sun.shadow.radius = Q.level === 'high' ? 2.6 : Q.level === 'low' ? 1 : 1.6;   // ── /look C ──
 }
+// ── look C ── (C2) the shadow box: the whole Mount (±600 round its centre) everywhere; while a minigame runs it follows the play camera's aim
+// and tightens to about ±60 amot (wider as the player pulls the camera back within the play zone), its centre snapped to whole texels
+const SUN_DIR = new THREE.Vector3(0, 1, 0), SBOX = { wide: [-12, 0, -40], half: 600, c: [-12, 0, -40], act: false };
+function sunPlace() { sun.position.copy(sun.target.position).addScaledVector(SUN_DIR, 1600); sun.target.updateMatrixWorld(); }
+function shadowFit(act) {
+  let c = SBOX.wide, half = 600;
+  if (act) {
+    // (the aim: where the camera's line to its target meets the work's ground — an act's target often lies under the ground)
+    const p = camera.position, t0 = controls.target, y0 = SBOX.y0 != null ? SBOX.y0 : t0.y;
+    const k = p.y > y0 && t0.y < y0 ? (p.y - y0) / (p.y - t0.y) : 1;
+    const t = [p.x + (t0.x - p.x) * k, p.y + (t0.y - p.y) * k, p.z + (t0.z - p.z) * k], d = Math.hypot(t[0] - p.x, t[1] - p.y, t[2] - p.z);
+    half = Math.min(220, Math.max(60, d * 1.5));
+    if (SBOX.act && Math.abs(half - SBOX.half) < SBOX.half * 0.15 && Math.hypot(t[0] - SBOX.at[0], t[2] - SBOX.at[2]) < SBOX.half * 0.2) return false;
+    SBOX.at = t;
+    c = shadowBox(SBOX.at, [SUN_DIR.x, SUN_DIR.y, SUN_DIR.z], half, sun.shadow.mapSize.x, SBOX.c);
+  } else if (!SBOX.act) return false;
+  SBOX.act = !!act; SBOX.half = half;
+  const sc = sun.shadow.camera; sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.updateProjectionMatrix();
+  sun.target.position.set(c[0], c[1], c[2]); sunPlace();
+  renderer.shadowMap.needsUpdate = true;
+  return true;
+}
+// ── /look C ──
 // ── world6 ── the sky (src/sky.js): gradient, sun, haze, far hills and Moab, horizon cumulus, a lit cloud layer, the moon
 const sky = createSky();
 scene.add(sky.dome);
@@ -160,14 +187,16 @@ const TIMES = {
 // ── world6 ── per preset: the aerial perspective (fog near/far, amot; its colour is the sky's haze) and the colour grade folded
 // into the OutputPass (after ACES, linear): sat = saturation, gain = highlights' tint, lift = shadows' tint, vig = vignette
 const GRADE = {
-  dawn: { fogN: 480, fogF: 7400, sat: 1.08, gain: [1.035, 1.0, 0.955], lift: [0.004, 0.005, 0.011], vig: 0.2 },
-  noon: { fogN: 650, fogF: 8200, sat: 1.07, gain: [1.0, 1.0, 0.985], lift: [0.002, 0.003, 0.006], vig: 0.14 },
-  dusk: { fogN: 520, fogF: 7800, sat: 1.12, gain: [1.05, 1.0, 0.9], lift: [0.01, 0.003, 0.016], vig: 0.24 },   // ── world7 ── gain G 0.985 → 1.0: the evening stone golden rather than salmon
+  dawn: { fogN: 420, fogF: 7000, sat: 1.08, gain: [1.035, 1.0, 0.955], lift: [0.004, 0.005, 0.011], vig: 0.2 },
+  noon: { fogN: 480, fogF: 7600, sat: 1.07, gain: [1.0, 1.0, 0.985], lift: [0.002, 0.003, 0.006], vig: 0.14 },
+  dusk: { fogN: 440, fogF: 7300, sat: 1.12, gain: [1.05, 1.0, 0.9], lift: [0.01, 0.003, 0.016], vig: 0.24 },   // ── world7 ── gain G 0.985 → 1.0: the evening stone golden rather than salmon
   golden: { fogN: 700, fogF: 9500, sat: 1.15, gain: [1.07, 1.0, 0.91], lift: [0.004, 0.006, 0.02], vig: 0.25 },   // ── world7 ──
   night: { fogN: 420, fogF: 6800, sat: 0.95, gain: [0.95, 0.99, 1.07], lift: [0.006, 0.01, 0.022], vig: 0.26 },   // ── world7 ── (was fogN 300, fogF 5200, lift 0/.003/.01, vig .3: the far city and hills melted into black)
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
 };
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
+// ── look C ── (C3) dawn, noon, dusk: fog from 420–480 amot (was 480–650) to 7000–7600 (was 7400–8200): the near field (< 150 amot) untouched,
+// the city ≈ 5–10 % into the haze, the far hills ≈ 35–55 %, the far ranges on the dome paler still: three layers ── /look C ──
 // ── end world6 ──
 const VIEWS = {
   olives: { p: [601, 301, -215], t: [-60, 20, 0] },
@@ -227,7 +256,7 @@ function makeComposer(fxObjs) {
 }
 // ── world6 ── the grade and the fog of the current preset (the rain thickens both)
 function applyGrade() {
-  const G = GRADE[curTime] || GRADE.dawn, k = sky.overcast;
+  const G = (WL.on && wlL.p != null && WL_DAY(curTime) ? wlL : null) || GRADE[curTime] || GRADE.dawn, k = sky.overcast;   // ── look C ── (the work light's haze and grade) ── /look C ──
   scene.fog.near = G.fogN + (RAIN_FOG.fogN - G.fogN) * k; scene.fog.far = G.fogF + (RAIN_FOG.fogF - G.fogF) * k;
   scene.fog.color.copy(sky.fogColor);
   if (!grade) return;
@@ -239,7 +268,7 @@ function setTime(k) {
   const t = TIMES[k]; curTime = k;
   const el = THREE.MathUtils.degToRad(t.el), az = THREE.MathUtils.degToRad(t.az);
   const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
-  sun.position.copy(sun.target.position).addScaledVector(dir, 1600);
+  SUN_DIR.copy(dir); sunPlace();   // ── look C ── (one vector: the light's and the sky's sun) ── /look C ──
   sun.color.set(t.sun); sun.intensity = t.sunI;
   hemi.color.set(t.hs); hemi.groundColor.set(t.hg); hemi.intensity = t.hI;
   sky.set(k, dir); applyGrade();   // ── world6 ── the sky, its haze = the fog, the grade
@@ -257,7 +286,38 @@ function setTime(k) {
   if (bloom) { bloom.strength = t.bloom; bloom.threshold = t.bloomT; }
   renderer.shadowMap.needsUpdate = true;
   document.querySelectorAll('[data-time]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.time === k ? 'true' : 'false'));
+  if (WL.on && WL_DAY(k)) WL.again();   // ── look C ── (a directed stage's light holds over the clock's preset) ── /look C ──
 }
+// ── look C ── (C1, C5) the work light (src/look/light.js): while stages 01–04 run, by day, the ONE place their light is set — the sun's place
+// and colour by the stage's progress, the warm bounce, the sky between its dawn and noon, the haze and the grade. Night and the rain keep
+// the clock's preset (the night between stage 02's levels); off, the clock's preset comes back.
+const WL_DAY = (k) => k === 'dawn' || k === 'noon' || k === 'dusk';
+const wlL = {};
+// (review J1: the dome's broad glow stays round noon's sun, so the sky reads as noon's blue wherever the work light's sun stands)
+const NOON_DIR = (() => { const e = THREE.MathUtils.degToRad(TIMES.noon.el), a = THREE.MathUtils.degToRad(TIMES.noon.az); return new THREE.Vector3(Math.cos(e) * Math.cos(a), Math.sin(e), Math.cos(e) * Math.sin(a)); })();
+const WL = createWorkLight((p, how, S) => {
+  if (how === 'off') { wlL.p = null; shadowFit(false); aoFit(false); if (crewsHaze) crewsHaze(null); setTime(curTime); return; }
+  if (how === 'act') { shadowFit(S.act); aoFit(S.act); return; }
+  if (!WL_DAY(curTime)) return;
+  const L = workPreset(p, TIMES, GRADE, wlL);
+  const el = THREE.MathUtils.degToRad(L.el), az = THREE.MathUtils.degToRad(L.az);
+  SUN_DIR.set(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
+  if (SBOX.act) { SBOX.act = false; shadowFit(true); } else sunPlace();
+  sun.color.set(L.sun); sun.intensity = L.sunI;
+  hemi.color.set(L.hs); hemi.groundColor.set(L.hg); hemi.intensity = L.hI;
+  sky.mix('dawn', 'noon', L.sky, SUN_DIR, TIMES.noon.exp / L.exp, NOON_DIR); applyGrade();
+  renderer.toneMappingExposure = L.exp; scene.environmentIntensity = L.envI;
+  if (bloom) { bloom.strength = L.bloom; bloom.threshold = L.bloomT; }
+  if (how === 'full') { if (envRT) envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; }
+  renderer.shadowMap.needsUpdate = true;
+});
+let crewsHaze = null;   // (crews.haze, once the crews exist)
+// (C2) the contact shade ('high': GTAO) sized for amah-sized things while a minigame runs, the wide one for the world
+function aoFit(act) {
+  const g = aoWrap && aoWrap.inner; if (!g || !g.updateGtaoMaterial) return;
+  g.updateGtaoMaterial(act ? { radius: 2.4, distanceExponent: 1.2, thickness: 1.2, scale: 1.2 } : { radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1 });
+}
+// ── /look C ──
 
 /* ───────── camera flights ───────── */
 let fly = null, lastInput = performance.now();
@@ -419,6 +479,7 @@ view.twinCam = (on) => {
 };
 view.camSet = (px, py, pz, tx, ty, tz) => { fly = null; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); };
 view.pickAt = (x, y) => { try { pickAt(x, y); } catch (e) { /* */ } };   // ── cam28 ── (twin.js: a single tap on the right half picks after the double-tap's window) ── /cam28 ──
+view.workLight = (o) => { SBOX.y0 = o && o.at ? o.at[1] : null; WL.set(o); if (crewsHaze) crewsHaze(o && o.at ? o.at : null); };   // ── look C ── (the director, every frame: { p, act, at } or null) ── /look C ──
 view.minDist = () => controls.minDistance;   // ── h112 ── (the director's camera keeps it too: h109/director.js camStep) ── /h112 ──
 view.camNow = (out) => { const o = out || {}; o.px = camera.position.x; o.py = camera.position.y; o.pz = camera.position.z; o.tx = controls.target.x; o.ty = controls.target.y; o.tz = controls.target.z; return o; };
 // ── figures24 ── the works' render scale (WAVE24 "רזולוציה כללית מדי"): while a work of Phase B is on, the pixel ratio rises to
@@ -622,7 +683,7 @@ async function boot() {
   nightG = new THREE.Group(); BN.build(nightG); nightG.visible = false; scene.add(nightG);
   for (const [x, z] of MENOROT) P('menorot', x - 3.5, 6, z - 3.5, x + 3.5, 56, z + 3.5, true);
   prog(0.62, 'שותלים זיתים בהר המשחה…'); await tick();
-  scene.add(buildTerrain(T.ground.map));
+  scene.add(buildTerrain());   // ── look B ── (its own ground material) ── /look B ──
   buildTrees(scene, city.trees, city.olives, city.courtTrees);   // ── world6 ── (+ the palace gardens' cypresses, the olive rows on the terraces)
   lamps = new THREE.Points(city.lampGeo, new THREE.PointsMaterial({ size: 3.2, sizeAttenuation: false, color: new THREE.Color(2.6, 1.5, 0.6), map: TX.texGlow(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
   lamps.visible = false; lamps.frustumCulled = false; scene.add(lamps);
@@ -684,6 +745,7 @@ async function boot() {
     Object.assign(stages, { crewActors: crews._actors, crewAnimals: crews._animals, scene, camera });
     // ── /h109 ──
     window.__T.crews = crews;
+    if (crews.haze) crewsHaze = crews.haze;   // ── look C ── ── /look C ──
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;
     // ── site16 ── the life layer and the tap card (crews.lifeCount / lifeList / pickPerson)
@@ -694,14 +756,16 @@ async function boot() {
       const HU = stages._dbg && stages._dbg.hill && stages._dbg.hill.U;
       const ter = HU && HU.uPit && scene.children.find((o) => o.isMesh && o.geometry && o.geometry.attributes.position && o.geometry.attributes.position.count === 261 * 261 && o.material && !o.material.onBeforeCompile.toString().includes('uPit'));
       if (ter) {
-        ter.material.onBeforeCompile = (sh) => {
+        const ob = ter.material.onBeforeCompile, ok = ter.material.customProgramCacheKey();   // ── look B ── (after the ground's own patch) ── /look B ──
+        ter.material.onBeforeCompile = (sh, r) => {
+          ob(sh, r);
           sh.uniforms.uPit = HU.uPit; sh.uniforms.uPitK = HU.uPitK; sh.uniforms.uFill = HU.uFill;
           sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec4 uPit; uniform float uPitK; uniform float uFill;')
             .replace('#include <begin_vertex>', `#include <begin_vertex>
               if (uPitK > 0.0 && uPit.z > uPit.x) { vec2 pq = max(uPit.xy - 8.0 - position.xz, position.xz - uPit.zw - 8.0);
                 if (max(pq.x, pq.y) < 0.0) transformed.y = mix(transformed.y, min(transformed.y, uFill - 0.3), uPitK); }`);
         };
-        ter.material.customProgramCacheKey = () => 'terrain-site9';
+        ter.material.customProgramCacheKey = () => ok + '-site9';
         ter.material.needsUpdate = true;
       }
     } catch (e) { console.warn('[site9] terrain bay', e); }
@@ -814,6 +878,10 @@ async function boot() {
 // ── world6 ── the sky's drift, the rain's overcast (stages' night rain), the city's smoke and far/near detail
 function worldTick(dt) {
   sky.update(dt);
+  // ── look C ── the work light's ease between works, the shadow box after the play camera, the clouds' shadows (none at night or in rain)
+  WL.tick(dt); if (SBOX.act) shadowFit(true);
+  airTick(sky, SUN_DIR, TIMES[curTime].night ? 0 : 1 - Math.min(1, sky.overcast * 2));
+  // ── /look C ──
   const rk = stages && stages._dbg && stages._dbg.rain ? stages._dbg.rain.k : 0;
   if (sky.setOvercast(rk)) applyGrade();
   if (city) city.update(dt, camera);
@@ -1081,6 +1149,7 @@ window.__T = {
   flyTo, flyToPos, setTime, camera, controls, VIEWS, renderer, scene,
   Raycaster: THREE.Raycaster, Vector3: THREE.Vector3,   // (not the whole namespace: that would defeat tree-shaking)
   get life() { return life; },
+  workLight: { force: (p) => WL.force(p), state: () => WL.state(), box: () => ({ act: SBOX.act, half: SBOX.half, c: SBOX.c.slice() }) },   // ── look C ── (tests, shots) ── /look C ──
   jump: (k) => { const v = VIEWS[k]; fly = null; camera.position.set(...v.p); controls.target.set(...v.t); controls.update(); if (squareG) squareG.visible = k === 'top'; },
   // look from p at t (arrays), for test shots
   look: (p, t) => { fly = null; camera.position.set(...p); controls.target.set(...t); controls.update(); },

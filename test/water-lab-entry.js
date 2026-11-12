@@ -37,7 +37,7 @@ const std = (c, o = {}) => ({ mat: new THREE.MeshStandardMaterial({ color: c, ro
 const base = {
   ash: std('#DCCFB4'), pave: std('#E4D9C2'), marble: std('#EEE9DF'), wmarble: std('#EDE5D6'), plaster: std('#F0EBDF'),
   gold: std('#E9B949', { metalness: 1, roughness: 0.3 }), bronze: std('#B98A52', { metalness: 0.9, roughness: 0.35 }), silver: std('#D8D8D8', { metalness: 1, roughness: 0.25 }),
-  cedar: std('#B98D62'), oak: std('#9C7A55'), dark: std('#2C2118'), red: std('#A3261F'), water: std('#4E7F95', { roughness: 0.1 }), ashpile: std('#B9B3AA'), ember: std('#C4502A'),
+  cedar: std('#B98D62'), oak: std('#9C7A55'), dark: std('#2C2118'), red: std('#A3261F'), water: std('#4E7F95', { roughness: 0.1 }), ember: std('#C4502A'),
 };
 const mats = new Proxy(base, { get: (o, k) => o[k] || o.ash });
 const B = new Batch(mats);

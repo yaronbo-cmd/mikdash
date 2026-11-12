@@ -3,19 +3,28 @@
  * Built, not boxes (rule 9): rough rocks are jittered icosahedra with flat facets, stakes are tapered with a cut head, the rope sags.
  * One material per kind; the instanced rocks are one draw call. No allocation per frame in update(). */
 
-const STONE = '#BFB39A', STONE_D = '#9C8F76', WOOD = '#8A6038', WOOD_D = '#6E4A28', ROPE = '#C9B27C', CLOTH = '#B8322A';
+import { stoneMat, ashOf as ashOf0, ashlarGeo, plainGeo, ashGeoOf, neighbourTint } from '../../look/stone.js';   // ── look A ── ── /look A ──
+import { lookClone, lookSet } from '../../look/shader.js';
+import { rockMat, freshMat, rockTint, freshTint, rockClone } from '../../look/rock.js';
+import { woodMat, ropeMat, clothMat, ironMat } from '../../look/wood.js';
+
+const ROPE = '#C9B27C', CLOTH = '#B8322A';
 
 function hash(x, y, z) { const v = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719) * 43758.5453; return v - Math.floor(v); }
 
 export function createProps({ THREE, scene, ground, stages }) {
   const root = new THREE.Group(); root.name = 'h109'; scene.add(root);
   const M = {
-    stone: new THREE.MeshStandardMaterial({ color: STONE, roughness: 0.95, metalness: 0, flatShading: true }),
-    stoneD: new THREE.MeshStandardMaterial({ color: STONE_D, roughness: 0.95, metalness: 0, flatShading: true }),
-    wood: new THREE.MeshStandardMaterial({ color: WOOD, roughness: 0.85, flatShading: true }),
-    woodD: new THREE.MeshStandardMaterial({ color: WOOD_D, roughness: 0.85, flatShading: true }),
-    rope: new THREE.MeshStandardMaterial({ color: ROPE, roughness: 0.9 }),
-    cloth: new THREE.MeshStandardMaterial({ color: CLOTH, roughness: 0.8, side: THREE.DoubleSide }),
+    // ── look A ── every dressed stone is the stone system's (src/look/stone.js): ash the shared material, ashOf(seed) a tinted clone;
+    // lump: the rough lumps and waste ── /look A ──
+    ash: stoneMat(THREE),
+    lump: null,
+    // ── look A ── wood with its grain (new, and weathered), the rope's strands, the cloth's weave, iron (src/look/wood.js) ── /look A ──
+    wood: woodMat(THREE, 'new'),
+    woodD: woodMat(THREE, 'old'),
+    rope: ropeMat(THREE, ROPE),
+    cloth: clothMat(THREE, CLOTH),
+    iron: ironMat(THREE),
     gold: new THREE.MeshBasicMaterial({ color: 0xFFD66E, transparent: true, opacity: 0.9, depthWrite: false }),
     ring: new THREE.MeshBasicMaterial({ color: 0xFFF2C8, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }),
     seam: new THREE.MeshBasicMaterial({ color: 0x3A2A1A, transparent: true, opacity: 0.85, depthWrite: false }),
@@ -32,7 +41,23 @@ export function createProps({ THREE, scene, ground, stages }) {
     }
     const o = g.toNonIndexed(); o.computeVertexNormals(); return o;
   }
-  const geo = { rock: rockGeo(1.3), chunk: rockGeo(4.1, 0), stake: null, cyl: new THREE.CylinderGeometry(1, 1, 1, 8), box: new THREE.BoxGeometry(1, 1, 1) };
+  const geo = { rock: rockGeo(1.3), chunk: rockGeo(4.1, 0), stake: null, cyl: new THREE.CylinderGeometry(1, 1, 1, 8), box: new THREE.BoxGeometry(1, 1, 1), ash: ashlarGeo(THREE), plain: plainGeo(THREE) };
+  /* ── look A ── a dressed stone's own material and mesh: a row's stones never share their neighbour's tone; about one in five chipped
+   * (o.set 1: laid · o.light: the light end of the tones · o.margin amot · o.plain: no boss · o.chip false: never chipped) ── */
+  let toneI = -1, nS = 0;
+  function ashOf(seed, o = {}) {
+    const sd = seed ?? (++nS) * 7.31 + 0.5;
+    if (o.light || o.hex) return ashOf0(THREE, sd, o);
+    const t = neighbourTint(toneI, sd); toneI = t.i; return ashOf0(THREE, sd, { ...o, hex: t.hex });
+  }
+  function stoneMesh(L, h, d, o = {}) {
+    const sd = o.seed ?? (++nS) * 3.77 + 0.25;
+    const g = o.plain ? geo.plain : o.chip === false ? geo.ash : ashGeoOf(THREE, sd);
+    const m = new THREE.Mesh(g, ashOf(sd, { ...o, boss: o.plain ? false : o.boss })); m.scale.set(L, h, d); m.castShadow = true; m.receiveShadow = true; root.add(m); return m;
+  }
+  /** a stone laid (1: the dust at its foot) or lifted again (0) */
+  const setLaid = (m, k) => { if (m && m.material) lookSet(m.material, k ? 1 : 0); };
+  /* ── /look A ── */
   { const g = new THREE.CylinderGeometry(0.09, 0.05, 1, 6); g.translate(0, 0.5, 0); geo.stake = g; }
 
   /* ── the marker: a tall stake with a red cloth that moves in the wind (spec 3.1: "יתד גבוהה עם בד אדום") ── */
@@ -58,8 +83,13 @@ export function createProps({ THREE, scene, ground, stages }) {
   /* ── the small rocks of the sectors: one instanced mesh, 9 × 5 + the chunks of a split ── */
   // ── h114 ── (ירון 9.11: "האבנים זה לא האבנים של האתר… כל אבן שהדמות מפוצצת צריך לפני כן להכניס אותה לתוך ההר") the small rocks are of
   // the Mount's own rock (the boulders' texture) and stand a third into the hill, as rock that grows out of it ── /h114 ──
-  let rockMap = null; try { const bm = stages && stages.boulderMat && stages.boulderMat(); rockMap = bm && bm.map; } catch (e) { rockMap = null; }
-  M.rock = new THREE.MeshStandardMaterial({ color: '#D9CDB2', map: rockMap, roughness: 0.93, metalness: 0, flatShading: true });
+  let rockMap = null; try { rockMap = (stages && stages.rockTex && stages.rockTex()) || null; } catch (e) { rockMap = null; }
+  // ── look A ── the rock's weathered skin, a tone of its own per rock (instanceColor); the lumps and waste: fresh breaks in three tones
+  // (lumpOf(i)), the split's chunks one instanced mesh of fresh tones ── /look A ──
+  M.rock = rockMat(THREE, rockMap); M.lump = freshMat(THREE, rockMap);
+  const lumps = [0, 1, 2].map((k) => { const m = rockClone(M.lump, freshTint(k * 2.3 + 1)); m.userData.lookBase = true; return m; });
+  const lumpOf = (i) => lumps[Math.abs(i | 0) % 3];
+  M.chunk = rockClone(M.lump, '#ffffff');
   const NR = 64, rocks = new THREE.InstancedMesh(geo.rock, M.rock, NR); rocks.name = 'h109-rocks'; rocks.count = 0; rocks.castShadow = true; rocks.receiveShadow = true; rocks.frustumCulled = false; root.add(rocks);
   rocks.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(NR * 3).fill(1), 3);
   const R = [];   // { x, y, z, r, yaw, sy, hp, hp0, crack, jolt, gone, vis, sector, i }
@@ -77,17 +107,18 @@ export function createProps({ THREE, scene, ground, stages }) {
     _p.set(q.x, q.y + q.r * q.sy * 0.04 - (q.gone > 0 ? q.gone * q.r * 0.5 : 0), q.z);   // ── h114 ── (a third of it in the hill) ── /h114 ──
     if (!q.vis) _s.set(0.001, 0.001, 0.001);
     _m.compose(_p, _q, _s); rocks.setMatrixAt(q.i, _m);
-    const c = 1 - q.crack * 0.22; _c.setRGB(c, c * 0.98, c * 0.95); rocks.setColorAt(q.i, _c);
+    const c = 1 - q.crack * 0.22; _c.set(rockTint(q.i * 3.7 + 1.3)); _c.setRGB(_c.r * c, _c.g * c * 0.98, _c.b * c * 0.95); rocks.setColorAt(q.i, _c);   // ── look A ── (its own tone) ── /look A ──
     rocks.instanceMatrix.needsUpdate = true; rocks.instanceColor.needsUpdate = true;
   }
   function rockHit(q, dmg = 1) { q.hp = Math.max(0, q.hp - dmg); q.crack = 1 - q.hp / q.hp0; q.jolt = 1; if (q.hp <= 0) { q.gone = 0.001; chunksAt(q); } }
   /* the chunks of a split rock: they fall apart and roll a little, then lie as rubble the carriers take */
-  const NC = 96, chunks = new THREE.InstancedMesh(geo.chunk, M.stoneD, NC); chunks.name = 'h109-chunks'; chunks.count = 0; chunks.castShadow = true; chunks.frustumCulled = false; root.add(chunks);
+  const NC = 96, chunks = new THREE.InstancedMesh(geo.chunk, M.chunk, NC); chunks.name = 'h109-chunks'; chunks.count = 0; chunks.castShadow = true; chunks.frustumCulled = false; root.add(chunks);
+  { const c = new THREE.Color(); for (let i = 0; i < NC; i++) chunks.setColorAt(i, c.set(freshTint(i * 1.91 + 0.4))); }   // ── look A ── ── /look A ──
   const C = [];
   function chunksAt(q, n = 4) {
     for (let k = 0; k < n; k++) {
       const a = (k / n) * 6.28 + hash(q.x, k, 3), sp = 1.2 + hash(k, q.z, 4) * 1.6;
-      const c = { x: q.x, y: q.y + q.r * 0.4, z: q.z, vx: Math.cos(a) * sp, vz: Math.sin(a) * sp, vy: 2.5 + hash(a, k, 5) * 2, s: q.r * (0.32 + hash(k, a, 6) * 0.18), rx: 0, ry: a, t: 0, rest: false, i: -1, gone: 0 };
+      const c = { x: q.x, y: q.y + q.r * 0.4, z: q.z, vx: Math.cos(a) * sp, vz: Math.sin(a) * sp, vy: 2.5 + hash(a, k, 5) * 2, s: q.r * [0.26, 0.36, 0.5][k % 3] * (0.9 + hash(k, a, 6) * 0.2),   /* ── look A ── (three sizes) ── /look A ── */ rx: 0, ry: a, t: 0, rest: false, i: -1, gone: 0 };
       if (C.length < NC) { c.i = C.length; C.push(c); } else { const old = C.shift(); c.i = old.i; C.push(c); }
     }
     chunks.count = Math.min(NC, C.length);
@@ -133,7 +164,7 @@ export function createProps({ THREE, scene, ground, stages }) {
   }
   /** a flat ring on the ground round (x, z): r, width w, the material's colour */
   function ringAt(x, z, r, w, mat) { const m = new THREE.Mesh(new THREE.RingGeometry(1 - w / 2, 1 + w / 2, 48), mat.clone()); m.rotation.x = -Math.PI / 2; m.position.set(x, ground(x, z) + 0.25, z); m.scale.setScalar(r); m.renderOrder = 997; m.material.depthTest = false; m.frustumCulled = false; root.add(m); return m; }
-  function remove(o) { if (!o) return; if (o.parent) o.parent.remove(o); o.traverse && o.traverse((c) => { if (c.geometry && !Object.values(geo).includes(c.geometry)) c.geometry.dispose(); if (c.material && !Object.values(M).includes(c.material)) c.material.dispose && c.material.dispose(); }); }
+  function remove(o) { if (!o) return; if (o.parent) o.parent.remove(o); o.traverse && o.traverse((c) => { if (c.geometry && !Object.values(geo).includes(c.geometry) && !(c.geometry.userData && c.geometry.userData.lookShared)) c.geometry.dispose(); if (c.material && !Object.values(M).includes(c.material) && !(c.material.userData && c.material.userData.lookBase)) c.material.dispose && c.material.dispose(); }); }
 
   let tt = 0;
   function frame(dt) {
@@ -152,5 +183,5 @@ export function createProps({ THREE, scene, ground, stages }) {
     chunksStep(dt);
     void dirty;
   }
-  return { root, M, geo, marker, rockAdd, rockSet, rockHit, rocks: R, chunksAt, clearRubble, rope, stake, ringAt, remove, frame, markers, update: () => {}, mesh: { rocks, chunks, mk } };
+  return { root, M, geo, ashOf, stoneMesh, setLaid, lumpOf, marker, rockAdd, rockSet, rockHit, rocks: R, chunksAt, clearRubble, rope, stake, ringAt, remove, frame, markers, update: () => {}, mesh: { rocks, chunks, mk } };
 }

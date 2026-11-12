@@ -29,11 +29,11 @@ export function mats(X) {
   P.M.coal = new T.MeshBasicMaterial({ color: 0x1A1612, transparent: true, opacity: 0.9, depthWrite: false });
   P.M.shadowB = new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false });
   P.M.cut = new T.MeshBasicMaterial({ color: 0x2A1C10, transparent: true, opacity: 0.55, depthWrite: false, side: T.DoubleSide });
-  P.M.ash = P.M.ash || (X.stages.ashlar && X.stages.ashlar.material) || P.M.stone;
-  // (the stages' ashlar material is white: its colour is per instance; here the stone's own, the Herodian limestone of the walls)
-  P.M.ash4 = new T.MeshStandardMaterial({ color: '#D8C9A6', roughness: 0.88, flatShading: true });
-  P.M.ash4D = new T.MeshStandardMaterial({ color: '#C7B48E', roughness: 0.9, flatShading: true });
-  P.M.dress = new T.MeshStandardMaterial({ color: '#E2D5B6', roughness: 0.75, flatShading: true });
+  P.M.ash = X.props.M.ash;   // ── look A ── (the stone system's) ── /look A ──
+  // ── look A ── the tower's stones: tinted clones of the stone system's (a course's plain tone, its darker and its light) ── /look A ──
+  P.M.ash4 = X.props.ashOf(4.4, { set: 1 });
+  P.M.ash4D = X.props.ashOf(4.7, { set: 1, hex: '#BFB4A2' });
+  P.M.dress = X.props.ashOf(4.9, { set: 1, light: true });
   return P.M;
 }
 /** a box from x0..x1, y0..y1, z0..z1 (amot, world) */

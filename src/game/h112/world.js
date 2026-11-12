@@ -46,7 +46,7 @@ function mats(X) {
   P.M.hole = new T.MeshBasicMaterial({ color: 0x4A3A28, transparent: true, opacity: 0.85, depthWrite: false });
   P.M.poleR = new T.MeshStandardMaterial({ color: '#B8322A', roughness: 0.8 });
   P.M.poleW = new T.MeshStandardMaterial({ color: '#F4EEE0', roughness: 0.8 });
-  P.M.ash = P.M.ash || (X.stages.ashlar && X.stages.ashlar.material) || P.M.stone;
+  P.M.ash = X.props.M.ash;   // ── look A ── (the stone system's: src/look/stone.js) ── /look A ──
   return P.M;
 }
 
@@ -274,7 +274,7 @@ export function flightFloor(x, z) {
 }
 export function stepStone(X, k) {
   const T = X.THREE, s = stepOf(k), geo = (X.stages.ashlar && X.stages.ashlar.geometry) || X.props.geo.box;
-  const m = new T.Mesh(geo, mats(X).ash || X.props.M.stone); m.scale.set(s.D, H112.STEP, STEPS.z1 - STEPS.z0 - 0.04); m.castShadow = true; m.receiveShadow = true; X.props.root.add(m); return m;
+  mats(X); const m = new T.Mesh(geo, X.props.ashOf(k * 5.3 + 1.1, { set: 1 })); m.scale.set(s.D, H112.STEP, STEPS.z1 - STEPS.z0 - 0.04); m.castShadow = true; m.receiveShadow = true; X.props.root.add(m); return m;
 }
 
 /* ───────── the crews keep out of the act's frame (rule 19: nothing between the eye and the work; crews.js keepOut) ───────── */

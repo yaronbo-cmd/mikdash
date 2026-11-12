@@ -6,10 +6,15 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
-import { terrainH, terrainColor } from './world.js';
+import { terrainH, terrainColor, terrainGr, cityMask } from './world.js';
+import { groundPatch, groundDefines, groundSkirts, smoothGridNormals, groundDetailTex } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
+import { windMat } from './look/air.js';   // ── look C ── ── /look C ──
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
+import { ashlarGeo, stoneMat, ashTone, ASH_HEX } from './look/stone.js';
+import { lookClone } from './look/shader.js';   // ── look A ── the stone system ── /look A ──
+import { freshMat, cutCellPatch, rockMat, rockClone, rockTint } from './look/rock.js';   // ── look A ── the rough blocks, the cut cells and the pits ── /look A ──
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
 // ── h115 ── the address grid (game/world/grid.js): the hill's cells by id (column × row over the whole platform), the waste pits after
 import { CELL as G_CELL, EAST as G_EAST, NORTH as G_NORTH, BOOK as G_BOOK } from './game/world/grid.js';
@@ -163,7 +168,7 @@ const DEF = {
     spot: { x: -158, z: -47, face: [-158, -35], r: 'az' }, view: { az: -62, el: 26 }, crew: [8, 6],
   },
 };
-const STONE = { ash: '#D8C9A6', marble: '#EEE8DC', field: '#D9D2C2', bronze: '#C99A5B' };
+const STONE = { ash: ASH_HEX, marble: '#EEE8DC', field: '#D9D2C2', bronze: '#C99A5B' };
 // the hot spot (a glowing stone laid on the build line, on the side the hero works from): [x, z, top, floor]
 // (nikanor: below its floor the stone sits on the fifteen steps at [x, z, bottom])
 const HOT = {
@@ -263,6 +268,26 @@ function hillY0(x, z) {
   return base + hillBump(x, z) * smooth(fade, 0, d);
 }
 
+// ── look B ── a scrub clump: a flattened, ragged dome of tilted facets (a ring of 6 at its foot, 6 above, a crown): its flat facets turn
+// to the sun in two tones; the dark earth at its foot is the ground's (groundSkirts) ── /look B ──
+function clumpGeo() {
+  const R = rng(77), P = [], base = [], mid = [];
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.2832 + (R() - 0.5) * 0.5, rr = 0.85 + R() * 0.3; base.push([Math.cos(a) * rr, 0, Math.sin(a) * rr]); }
+  for (let i = 0; i < 6; i++) { const a = ((i + 0.5) / 6) * 6.2832 + (R() - 0.5) * 0.6, rr = 0.55 + R() * 0.3; mid.push([Math.cos(a) * rr, 0.5 + R() * 0.25, Math.sin(a) * rr]); }
+  const top = [(R() - 0.5) * 0.3, 0.9, (R() - 0.5) * 0.3];
+  const tri = (A, B, C) => P.push(...A, ...B, ...C);
+  for (let i = 0; i < 6; i++) { const j = (i + 1) % 6; tri(base[i], mid[i], base[j]); tri(base[j], mid[i], mid[j]); tri(mid[i], top, mid[j]); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(P.length).fill(1), 3));   // ── look D ── (white: the olive crowns' program, which has vertex colours now) ── /look D ──
+  g.computeVertexNormals(); return g;
+}
+/** a rough stone: an icosahedron with its corners pushed in and out, flat facets (round A's rock material draws its skin) */
+function stoneGeo() {
+  const g = new THREE.IcosahedronGeometry(1, 0), p = g.attributes.position, R = rng(91);
+  const seen = new Map();
+  for (let i = 0; i < p.count; i++) { const key = p.getX(i).toFixed(3) + p.getY(i).toFixed(3) + p.getZ(i).toFixed(3); let k = seen.get(key); if (k === undefined) { k = 0.8 + R() * 0.35; seen.set(key, k); } p.setXYZ(i, p.getX(i) * k, Math.max(-0.45, p.getY(i)) * k, p.getZ(i) * k); }
+  g.deleteAttribute('uv'); g.computeVertexNormals(); return g;
+}
 function makeHill(T) {
   const lines = (a0, a1, m, m1 = m, extra = []) => {
     const L = new Set();
@@ -278,14 +303,13 @@ function makeHill(T) {
   for (let r = CG.R0; r <= CG.R1 + 1; r++) ZE.push(CG.NORTH + r * CG.CELL);
   for (const P of CG.PITS) { XE.push(P.x - P.w / 2, P.x + P.w / 2); ZE.push(P.z - P.d / 2, P.z + P.d / 2); }
   const XS = lines(X0, X1, 66, 66, XE), ZS = lines(Z0, Z1, 150, 66, ZE), nx = XS.length, nz = ZS.length, N = nx * nz;
-  const pos = new Float32Array(N * 3), uv = new Float32Array(N * 2), col = new Float32Array(N * 3);
-  const ter = new Float32Array(N), kk = new Float32Array(N), y0 = new Float32Array(N), bl = new Float32Array(N);
+  const pos = new Float32Array(N * 3), col = new Float32Array(N * 3), gr = new Float32Array(N * 2), tg = [0, 0];
+  const ter = new Float32Array(N), kk = new Float32Array(N), y0 = new Float32Array(N);
   const cid = new Float32Array(N).fill(-1), cellMax = new Float32Array(CG.N).fill(-1e9);   // ── h115 ── ── /h115 ──
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
     const k = j * nx + i, x = XS[i], z = ZS[j];
     const y = hillY0(x, z);
     pos[k * 3] = x; pos[k * 3 + 1] = y; pos[k * 3 + 2] = z; y0[k] = y;
-    uv[k * 2] = x / 26; uv[k * 2 + 1] = -z / 26;
     ter[k] = terrainH(x, z);
     const out = x <= X0 || x >= X1 || z <= Z0 || z >= Z1;
     kk[k] = out ? 0 : (x < X0 + TRENCH || x > X1 - TRENCH || z < Z0 + TRENCH || z > Z1 - TRENCH) ? 1 : 2;
@@ -296,42 +320,52 @@ function makeHill(T) {
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1; idx.push(a, c, b, b, c, d); }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
-  // colours: pale rock on steep ground and the crest, dry grass and scrub on the benches, dust at the rim
+  smoothGridNormals(g, nx, nz, 2);   // ── look B ── (the light follows the hill's shape, not its triangles; the positions stay) ── /look B ──
+  // colours: ── look B ── the large-scale tone only (look/ground.js draws the rock, the earth, the stones and the straw on it): dry straw
+  // earth, terra rossa in pockets, a dry-olive tint where the scrub grows, paler where the rock comes up, dust at the rim ── /look B ──
   const nor = g.attributes.normal.array, C = (h) => new THREE.Color(h);
-  const rock = C('#E4DCCB'), rockD = C('#C4B79E'), grass = C('#B9B27A'), grassB = C('#A4A767'), soil = C('#B98E68'), scrub = C('#7F8C4E'), dust = C('#D6C8A6');
+  const rock = C('#DCD2BC'), earth = C('#D2AE7E'), earthB = C('#B8956A'), soil = C('#A97F5E'), scrub = C('#9A9064'), dust = C('#D6C8A6');
   const c = new THREE.Color(), tc = new THREE.Color();
   for (let k = 0; k < N; k++) {
     const x = pos[k * 3], z = pos[k * 3 + 2], ny = nor[k * 3 + 1];
-    c.copy(grass).lerp(grassB, HN2(x / 70 + 5, z / 70, 3));
-    c.lerp(soil, smooth(0.55, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * 0.45);            // terra rossa between the rocks
-    c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.4);               // (site8/world8) small pockets of red earth
-    c.lerp(scrub, smooth(0.6, 0.8, HN3(x / 30, z / 30, 3)) * 0.65);
-    c.lerp(scrub, smooth(0.62, 0.8, HN1(x / 11 + 2, z / 11 + 5, 2)) * 0.5);             // (site8/world8) scrub in clumps
+    c.copy(earth).lerp(earthB, HN2(x / 70 + 5, z / 70, 3));
+    const hol = smooth(0.6, 0.8, HN3(x / 30, z / 30, 3));
+    // ── look B review G1 ── terra rossa only a muted reddish-brown tint, mostly in the hollows (pale ochre to light brown elsewhere) ── /look B ──
+    c.lerp(soil, smooth(0.5, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * (0.15 + 0.45 * hol));            // terra rossa between the rocks
+    c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.15);               // (site8/world8) small pockets of red earth
+    c.lerp(scrub, hol * 0.3);
+    // ── look B review H3 ── the broad tone (40–120 amot): darker, redder earth in the hollows and on the dips facing north (−z), paler
+    // dusty crowns ── /look B ──
+    { const big = HN2(x / 95 + 11, z / 95 - 4, 3), mid = HN1(x / 48 + 3, z / 48 + 8, 2), north = clamp(-nor[k * 3 + 2] * 3, 0, 1);
+      const dk = clamp(hol * 0.5 + smooth(0.5, 0.36, big) * 0.7 + smooth(0.47, 0.33, mid) * 0.35 + north * 0.5, 0, 1), cr = smooth(0.52, 0.66, big) * (1 - hol);
+      c.lerp(soil, dk * 0.4); c.multiplyScalar(1 - 0.2 * dk); c.lerp(dust, cr * 0.5); c.multiplyScalar(1 + 0.07 * cr); }
     // (site8/world8) rock: the risers only in outcrops (oc), not a pale line along each; bare slabs here and there off them
     const oc = HN3(x / 21 + 1, z / 21 + 9, 2);
-    c.lerp(rock, clamp(smooth(0.95, 0.8, ny) * (0.3 + 1.1 * oc) + smooth(10, 26, y0[k]) * 0.5 + smooth(0.74, 0.86, HN2(x / 13 - 5, z / 13 + 3, 2)) * 0.55, 0, 1));
-    c.lerp(rockD, smooth(0.55, 0.75, HN1(x / 18 + 3, z / 18, 2)) * 0.3 * smooth(0.97, 0.85, ny));
+    const rk = clamp(smooth(0.95, 0.8, ny) * (0.3 + 1.1 * oc) + smooth(10, 26, y0[k]) * 0.5 + smooth(0.74, 0.86, HN2(x / 13 - 5, z / 13 + 3, 2)) * 0.55, 0, 1);
+    c.lerp(rock, rk * 0.5);
+    // ── look B ── the ground's rock bias (the outcrops, the crest) and its hollows (where the scrub grows) ── /look B ──
+    gr[k * 2] = clamp(rk * 0.65, 0, 1); gr[k * 2 + 1] = hol * 0.6;
     c.lerp(dust, smooth(-30, -46, y0[k]) * 0.4);
-    // melt into the surrounding terrain along an irregular line: past it the hill takes the terrain's own colour,
-    // texture and flat shading (aBl, see the shader), so where it finally sinks under the terrain nothing shows
+    // melt into the surrounding terrain along an irregular line: past it the hill takes the terrain's own colour and ground values
+    // (the same ground shader draws both: look/ground.js), so where it finally sinks under the terrain nothing shows
     const m = smooth(-6, 30, dOut(x, z) + (HN2(x / 48 + 9, z / 48 - 3, 2) - 0.5) * 26);
     if (m > 0) {
       const gx = terrainH(x + 2, z) - terrainH(x - 2, z), gz = terrainH(x, z + 2) - terrainH(x, z - 2);
-      c.lerp(terrainColor(x, z, ter[k], 4 / Math.hypot(gx, 4, gz), tc), m);
+      const cm = cityMask(x, z);
+      c.lerp(terrainColor(x, z, ter[k], 4 / Math.hypot(gx, 4, gz), tc, cm), m);
+      terrainGr(x, z, ter[k], tg, cm); gr[k * 2] = lerp(gr[k * 2], tg[0], m); gr[k * 2 + 1] = lerp(gr[k * 2 + 1], tg[1], m);
     }
-    bl[k] = m;
     col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.setAttribute('aTer', new THREE.BufferAttribute(ter, 1));
   g.setAttribute('aK', new THREE.BufferAttribute(kk, 1));
-  g.setAttribute('aBl', new THREE.BufferAttribute(bl, 1));
+  g.setAttribute('aGr', new THREE.BufferAttribute(gr, 2));
   g.setAttribute('aCid', new THREE.BufferAttribute(cid, 1));   // ── h115 ── ── /h115 ──
   g.computeBoundingSphere();
-  const U = { uCut: { value: 0 }, uFill: { value: -1000 }, uFillCol: { value: new THREE.Color('#BFA27C') }, uCutCol: { value: new THREE.Color('#E6DDCB') }, uGround: { value: T.ground.map },
+  const U = { uCut: { value: 0 }, uFill: { value: -1000 }, uFillCol: { value: new THREE.Color('#BFA27C') }, uCutCol: { value: new THREE.Color('#E6DDCB') },
     // ── site8 ── the levelled patches where the rocks stood: (x, z, half size, level); half size 0 = none (siteLife grows them)
     uPatch: { value: Array.from({ length: 12 }, () => new THREE.Vector4(0, 0, 0, 0)) },
     // ── site9 ── the Mount's working bay (x0, z0, x1, z1; off when x1 < x0) and how far it is dug (0…1): see harBay
@@ -374,11 +408,11 @@ function makeHill(T) {
       if (k > hPk) { hPk = k; hPl = P.w; } }
     hPk *= 1.0 - smoothstep(0.0, 0.3, uCut);
     hY = mix(hY, hPl, hPk * 0.92);`;
-  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(1.3, 1.3, 1.3), vertexColors: true, map: T.rock.map, normalMap: T.rock.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughness: 0.96 });
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96 }), grK = groundDefines(mat);   // ── look B ── (the ground's patch: groundPatch) ── /look B ──
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vPv;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vPk; varying float vPv;')
       .replace('#include <beginnormal_vertex>', `${morph}
     float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hCk) : uCut;
     vPk = hPk;
@@ -394,7 +428,6 @@ function makeHill(T) {
     vDp = aK > 1.5 && uFill > -999.0 ? (1.0 - smoothstep(uFill + 4.0, uFill + 12.0, hYc)) * (1.0 - vLev) * (1.0 - vWk) : 0.0;
     vH0 = hY0;
     vHXZ = position.xz;
-    vBl = aBl;
     vec3 objectNormal = normalize(mix(normal, vec3(0.0, 1.0, 0.0), hFlat));
     #ifdef USE_TANGENT
       vec3 objectTangent = vec3(tangent.xyz);
@@ -402,7 +435,7 @@ function makeHill(T) {
       .replace('#include <begin_vertex>', 'vec3 transformed = vec3(position.x, hY, position.z);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vPv;
+        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vPk; varying float vPv;
         float hh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float hn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hh(i), hh(i + vec2(1.0, 0.0)), f.x), mix(hh(i + vec2(0.0, 1.0)), hh(i + vec2(1.0, 1.0)), f.x), f.y); }`)
@@ -411,8 +444,8 @@ function makeHill(T) {
         // the benches), this course's new floor paler than the last course's; the spoil tipped above the fill: loose, lumpy
         { float bt = (vH0 - vLv) / uCrest.w, rz = bt < 0.0 && bt > -3.0 ? smoothstep(0.6, 0.78, fract(bt)) : 0.0;
           float cl = smoothstep(0.9, 1.0, abs(fract(vHXZ.x / 2.5 + 0.2 * hn(vHXZ / 5.0)) * 2.0 - 1.0)) * 0.6;
-          // (the rock map's own grain kept — a flat pale wash read as fog from far, PRODUCER12 N70 — and blotches of 20–50 amot)
-          float tl = clamp(dot(diffuseColor.rgb, vec3(0.333)) / max(0.05, 1.3 * dot(vColor.rgb, vec3(0.333))), 0.0, 1.4);
+          // (the ground's own grain kept — a flat pale wash read as fog from far, PRODUCER12 N70 — and blotches of 20–50 amot)
+          float tl = clamp(grDet, 0.0, 1.4);
           float bl = 0.82 + 0.1 * hn(vHXZ / 19.0) + 0.1 * hn(vHXZ / 47.0 + 3.0);
           // (linear colour: a warm limestone of sRGB ≈ #BCB09A — the r1/r2 shots' 0.8 read white under the noon sun)
           vec3 wc = vec3(0.5, 0.43, 0.32) * bl * (0.74 + 0.3 * tl) * (1.0 - 0.1 * cl) * mix(0.9, 1.08, vNw) * (1.0 - 0.3 * rz);
@@ -421,9 +454,8 @@ function makeHill(T) {
           vec3 dc = mix(uFillCol * 0.95, vec3(0.42, 0.33, 0.22), 0.3 + 0.3 * n) * (1.0 - 0.2 * lp);
           diffuseColor.rgb = mix(diffuseColor.rgb, dc, clamp(vDp, 0.0, 1.0) * 0.85); }
         { float n = hn(vHXZ / 23.0) * 0.6 + hn(vHXZ / 6.0) * 0.4, sp = step(0.83, hn(vHXZ / 2.3));
-          vec3 fc = uFillCol * (0.8 + 0.34 * n) + vec3(0.12, 0.1, 0.07) * sp;
+          vec3 fc = mix(grPack, uFillCol * (0.8 + 0.34 * n), 0.4) + vec3(0.05, 0.04, 0.03) * sp;   // ── look B ── (the ground's packed earth) ── /look B ──
           diffuseColor.rgb = mix(diffuseColor.rgb, fc, clamp(vLev, 0.0, 1.0) * 0.9); }
-        diffuseColor.rgb = mix(diffuseColor.rgb, vColor.rgb * texture2D(uGround, vec2(vHXZ.x, -vHXZ.y) / 30.0).rgb, vBl);
         { float cl = smoothstep(0.93, 1.0, abs(fract(vHXZ.x / 3.0) * 2.0 - 1.0)) * 0.5 + smoothstep(0.95, 1.0, abs(fract(vHXZ.y / 1.5 + 0.3 * hn(vHXZ / 4.0)) * 2.0 - 1.0)) * 0.35;
           // ── site8 ── the levelled patch: fresh-cut rock, paler than the weathered hill but keeping its grain, the chisel's lines
           vec3 pc = uCutCol * (0.8 + 0.1 * hn(vHXZ / 2.0)) * (1.0 - 0.16 * cl) * (0.62 + 0.45 * dot(diffuseColor.rgb, vec3(0.333)));
@@ -435,13 +467,15 @@ function makeHill(T) {
           float jx = min(xs, 1.0 - xs) * ln * u, jz = min(fract(vHXZ.y / u), 1.0 - fract(vHXZ.y / u)) * u;
           float sh = 0.86 + 0.16 * hh(vec2(a, j * 7.0 + 1.0)), gr = 0.94 + 0.06 * hn(vHXZ * 1.7);
           vec3 sc = vec3(0.6, 0.54, 0.44) * sh * gr * (1.0 - 0.55 * (1.0 - smoothstep(0.03, 0.09, min(jx, jz))));
-          diffuseColor.rgb = sc; }`)
+          diffuseColor.rgb = sc; }
+        // ── look B review H1 ── (the natural slabs' relief only where the natural ground still shows) ── /look B ──
+        grRel *= 1.0 - clamp(vWk + vDp + vLev + smoothstep(0.35, 0.8, vPk) + step(0.5, vPv), 0.0, 1.0);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        normal = normalize(mix(normal, nonPerturbedNormal, vBl));
         // ── site12 ── the cut rock lit by its own facets: the benches' treads and risers, the sweep's fresh face
         if (vWk > 0.5) normal = normalize(mix(normal, normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition))), 0.85));`);
+    groundPatch(sh, THREE);   // ── look B ── ── /look B ──
   };
-  mat.customProgramCacheKey = () => 'hill';
+  mat.customProgramCacheKey = () => 'hill' + grK;
   const depth = new THREE.MeshDepthMaterial();
   depth.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
@@ -502,30 +536,57 @@ function makeHill(T) {
     if (BOULDERS.some((b) => Math.hypot(x - b[0], z - b[1]) < b[2] + 6)) continue;   // ── site9 ── (none in the boulder field's rocks)
     bushes.push([x, y, z, tree ? k * 1.7 : k, r() * 6.28, rockish ? 1 : tree ? 2 : 0]);
   }
-  const bg = new THREE.IcosahedronGeometry(1, 0);
-  const bm = new THREE.InstancedMesh(bg, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, flatShading: true }), bushes.length);
+  // ── look B ── (§B4) the scrub: low, ragged, grey-green clumps (two tones, a dark base), the wild olives the same clump taller; the bare
+  // bedrock slabs and the small stones by the outcrops (about 600, in clusters, their own rng: the scrub's places stay) are of round
+  // A's rock, bedded in the ground with the dark earth round the slabs (look/ground.js groundSkirts). Each kind its one instanced mesh;
+  // all of them go with their cell, under the fill and from the cut crest as the scrub did ── /look B ──
+  { const r2 = rng(616); let n = 0;
+    for (let t = 0; t < 4000 && n < 600; t++) {
+      const cx = X0 + 10 + r2() * (X1 - X0 - 20), cz = Z0 + 10 + r2() * (Z1 - Z0 - 20), cy = heightAt(cx, cz);
+      const oc = HN3(cx / 21 + 1, cz / 21 + 9, 2), sl = Math.abs(heightAt(cx + 5, cz) - cy) + Math.abs(heightAt(cx, cz + 5) - cy);
+      if (cy < -40 || (oc < 0.55 && sl < 2.2 && r2() > 0.15)) continue;
+      if (BOULDERS.some((b) => Math.hypot(cx - b[0], cz - b[1]) < b[2] + 4)) continue;
+      const m = 3 + Math.floor(r2() * 5);
+      for (let j = 0; j < m && n < 600; j++) {
+        const x = cx + (r2() - 0.5) * 7, z = cz + (r2() - 0.5) * 7, k = 0.22 + r2() * r2() * 0.6;
+        bushes.push([x, heightAt(x, z), z, k, r2() * 6.28, 3]); n++;
+      }
+    } }
+  const plant = (kd) => kd === 0 || kd === 2;
+  const nP = bushes.filter((b) => plant(b[5])).length, nS = bushes.length - nP;
+  const bm = new THREE.InstancedMesh(clumpGeo(), windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, vertexColors: true })), nP);   // ── look C ── (the scrub sways: the olive crowns' program, roughness 0.95 → 0.9) ── /look C ──
+  const sm = new THREE.InstancedMesh(stoneGeo(), rockClone(rockMat(THREE, T.rock.map), '#ffffff'), nS);
+  sm.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(nS * 3).fill(1), 3);
+  const slot = [], skirts = [];
   { const M = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), cc = new THREE.Color(), e = new THREE.Euler();
-    const pal = ['#5F7040', '#6C7A45', '#56673A', '#76834B'].map((h) => new THREE.Color(h)), rk = ['#BFB6A1', '#B3A993', '#C8C0AD'].map((h) => new THREE.Color(h)), ol = new THREE.Color('#7D8A63');
+    const pal = ['#7B7F5B', '#6D7350', '#858766', '#737852'].map((h) => new THREE.Color(h)), ol = new THREE.Color('#7A8462');
+    let iP = 0, iS = 0;
     bushes.forEach(([x, y, z, k, a, kind], i) => {
-      if (kind === 1) { e.set((r() - 0.5) * 0.4, a, (r() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, y - k * 0.16, z); s.set(k * 1.7, k * 0.34, k * 1.25); cc.copy(rk[i % 3]); }
-      else if (kind === 2) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y + k * 0.75, z); s.set(k * 1.25, k * 0.8, k * 1.2); cc.copy(ol); }
-      else { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y + k * 0.3, z); s.set(k * 1.3, k * 0.75, k * 1.1); cc.copy(pal[i % 4]); }
-      M.compose(p, q, s); bm.setMatrixAt(i, M); bm.setColorAt(i, cc);
+      const P = plant(kind), mesh = P ? bm : sm, j = P ? iP++ : iS++;
+      if (kind === 1) { e.set((r() - 0.5) * 0.4, a, (r() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, y - k * 0.12, z); s.set(k * 0.95, k * 0.32, k * 0.7); cc.set(rockTint(i * 1.37 + 0.4)); skirts.push([x, z, k * 1.1]); }
+      else if (kind === 3) { e.set((r() - 0.5) * 0.5, a, (r() - 0.5) * 0.5); q.setFromEuler(e); p.set(x, y - k * 0.2, z); s.set(k, k * 0.6, k * 0.85); cc.set(rockTint(i * 0.71 + 2.2)); }
+      else if (kind === 2) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.1, z); s.set(k * 1.2, k * 1.15, k * 1.15); cc.copy(ol); skirts.push([x, z, k * 0.9]); }
+      else { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.08, z); s.set(k * 1.25, k * 0.62, k * 1.05); cc.copy(pal[i % 4]); skirts.push([x, z, k * 0.9]); }
+      M.compose(p, q, s); mesh.setMatrixAt(j, M); mesh.setColorAt(j, cc); slot.push([mesh, j, M.clone()]);
     }); }
-  bm.castShadow = true; bm.receiveShadow = true; bm.frustumCulled = false;
+  groundSkirts(skirts);
+  for (const m of [bm, sm]) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; }
+  const scrubG = new THREE.Group(); scrubG.name = 'hill-scrub'; scrubG.add(bm, sm);
   // ── site12 ── the scrub stays on the hill until the works reach it (v21 cleared it all at the first course): gone under the
   // fill and the spoil tipped just above it, and from the cut crest with its benches
-  const bushM = bushes.map((_, i) => { const M = new THREE.Matrix4(); bm.getMatrixAt(i, M); return M; }), ZM = new THREE.Matrix4().makeScale(0, 0, 0);
+  const ZM = new THREE.Matrix4().makeScale(0, 0, 0);
   const bushOff = new Uint8Array(bushes.length);
+  const put = (i, off) => { const [m, j, M] = slot[i]; m.setMatrixAt(j, off ? ZM : M); };
+  const flush = () => { bm.instanceMatrix.needsUpdate = true; sm.instanceMatrix.needsUpdate = true; };
   function bushCull(fill, C) {
     let ch = false;
     bushes.forEach(([x, y, z], i) => {
       const s = clamp((14 - x + 16 * Math.sin(z / 61)) / 270, 0, 1), lv = lerp(C.y, C.x, 1 - smooth(C.z - 0.012, C.z + 0.012, s));
       const off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
       if (bushOff[i] === 2) return;   // ── h115 ── (cleared from a cut cell) ── /h115 ──
-      if (off !== bushOff[i]) { bushOff[i] = off; bm.setMatrixAt(i, off ? ZM : bushM[i]); ch = true; }
+      if (off !== bushOff[i]) { bushOff[i] = off; put(i, off); ch = true; }
     });
-    if (ch) bm.instanceMatrix.needsUpdate = true;
+    if (ch) flush();
     return ch;
   }
   // ── h115 ── the address grid's cells: their cut levels (the shader reads cellH), the natural top of each, the scrub on them ── /h115 ──
@@ -536,11 +597,11 @@ function makeHill(T) {
     /** the scrub on cells cut or being worked goes (and comes back if the cell is uncut, a new game) */
     scrub(isOff) {
       let ch = false;
-      bushes.forEach(([x, y, z], i) => { const id = CG.idAt(x, z), off = id >= 0 && isOff(id) ? 1 : 0; if (off && !bushOff[i]) { bushOff[i] = 2; bm.setMatrixAt(i, ZM); ch = true; } else if (!off && bushOff[i] === 2) { bushOff[i] = 0; bm.setMatrixAt(i, bushM[i]); ch = true; } });
-      if (ch) bm.instanceMatrix.needsUpdate = true; return ch;
+      bushes.forEach(([x, y, z], i) => { const id = CG.idAt(x, z), off = id >= 0 && isOff(id) ? 1 : 0; if (off && !bushOff[i]) { bushOff[i] = 2; put(i, 1); ch = true; } else if (!off && bushOff[i] === 2) { bushOff[i] = 0; put(i, 0); ch = true; } });
+      if (ch) flush(); return ch;
     },
   };
-  return { mesh, bushes: bm, U, heightAt, bushCull, cells, setPatchN: (n) => { patchN = n; } };
+  return { mesh, bushes: scrubG, U, heightAt, bushCull, cells, setPatchN: (n) => { patchN = n; } };
 }
 
 /* ───────────────────────── boulders ───────────────────────── */
@@ -595,28 +656,21 @@ function makeBoulderChunks(T) {
     }
   }
   const geos = out.map((L) => {
-    const n = L.length / 4, P = new Float32Array(n * 9), Cc = new Float32Array(n * 9), UV = new Float32Array(n * 6);
+    const n = L.length / 4, P = new Float32Array(n * 9), Cc = new Float32Array(n * 9);
     for (let t = 0; t < n; t++) {
       const [A, B, C, col] = [L[t * 4], L[t * 4 + 1], L[t * 4 + 2], L[t * 4 + 3]];
       P.set(A, t * 9); P.set(B, t * 9 + 3); P.set(C, t * 9 + 6);
       for (let q = 0; q < 3; q++) { Cc[t * 9 + q * 3] = col.r; Cc[t * 9 + q * 3 + 1] = col.g; Cc[t * 9 + q * 3 + 2] = col.b; }
-      const e1 = [B[0] - A[0], B[1] - A[1], B[2] - A[2]], e2 = [C[0] - A[0], C[1] - A[1], C[2] - A[2]];
-      const nx = Math.abs(e1[1] * e2[2] - e1[2] * e2[1]), ny = Math.abs(e1[2] * e2[0] - e1[0] * e2[2]), nz = Math.abs(e1[0] * e2[1] - e1[1] * e2[0]);
-      for (let q = 0; q < 3; q++) {
-        const Pp = [A, B, C][q];
-        const u = ny >= nx && ny >= nz ? [Pp[0], Pp[2]] : nx >= nz ? [Pp[2], Pp[1]] : [Pp[0], Pp[1]];
-        UV[t * 6 + q * 2] = u[0] * 0.28; UV[t * 6 + q * 2 + 1] = u[1] * 0.28;
-      }
     }
     const G = new THREE.BufferGeometry();
     G.setAttribute('position', new THREE.BufferAttribute(P, 3));
     G.setAttribute('color', new THREE.BufferAttribute(Cc, 3));
-    G.setAttribute('uv', new THREE.BufferAttribute(UV, 2));
     G.computeVertexNormals();
     return G;
   });
   const dirs = seeds.map((s) => [Math.cos(s + 1.05), Math.sin(s + 1.05)]);
-  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(1.32, 1.32, 1.32), vertexColors: true, map: T.rock.map, roughness: 0.9, flatShading: true });
+  // ── look B ── round A's rock (its weathered skin, flat facets), the slices' fresh cuts lighter by their vertex colour ── /look B ──
+  const mat = rockClone(rockMat(THREE, T.rock.map, { vertexColors: true }), '#D9CEB8'); mat.userData.lookBase = true;
   return { geos, dirs, mat };
 }
 // (BufferGeometryUtils.mergeVertices without the attribute juggling: positions only)
@@ -1254,14 +1308,8 @@ const JCACHE = {};
 // canvas rows (top first) → rows from the bottom of the tile (v up), each sorted
 const bottomFirst = (j) => j.edges.map((_, rb) => j.edges[j.rows - 1 - rb].slice().sort((a, b) => a - b));
 
-/* ── real stones in motion (wave 6): one low-poly Herodian ashlar (unit box: drafted margins round a raised flat boss on both
-   long faces) and one rough quarry block (a jittered box), each drawn as ONE InstancedMesh for every pile, banker and bench ── */
-function ashlarGeometry() {
-  const g = mergeGeometries([boxAt(1, 1, 0.88, 0, 0, 0), boxAt(0.76, 0.7, 0.12, 0, 0.0, 0.44), boxAt(0.76, 0.7, 0.12, 0, 0.0, -0.44),
-    boxAt(0.94, 0.06, 0.82, 0, 0.47, 0)].map(strip));   // (+ a thin top bed, so a pile's upper faces read as dressed)
-  g.computeBoundingSphere();
-  return g;
-}
+/* ── real stones in motion (wave 6): the Herodian ashlar is the stone system's (src/look/stone.js ashlarGeo: chamfered, a boss on both
+   long faces), and one rough quarry block (a jittered box), each drawn as ONE InstancedMesh for every pile, banker and bench ── */
 function roughGeometry() {
   const g = mergeVerticesSimple(new THREE.BoxGeometry(1, 1, 1, 2, 2, 2).toNonIndexed());
   const p = g.attributes.position, h = (x, y, z) => { const v = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719) * 43758.5453; return v - Math.floor(v); };
@@ -1553,6 +1601,8 @@ export function createStages(ctx) {
   let cellMode = false, pinsOff = false;   // ── h117 ── (pinsOff: the director owns the game) ── /h117 ──
   const CELLS = new Map();   // id → { st: 'rock'|'cut'|'paved', a: anim | null }
   const pitFill = [];
+  // ── look A ── the cut cells' quarried walls and dressed floors, the pits' rubble and earth cap (src/look/rock.js) ── /look A ──
+  { const m = hill.mesh.material, ob = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); cutCellPatch(sh, { THREE, pits: CG.PITS, nc: CG.NC, fill: () => pitFill, map: T.rock.map }); }; }
   // (a paved cell's paving is drawn by the hill's own shader on its cut floor: cell level 4000 + L, the slabs where it was cut)
   const lvOf = (c) => (c.st === 'paved' ? 4000 : 0) + FLOOR;
   const SCRUB_OFF = new Set();   // ── h115 ── cells cleared of their scrub while their rock stands (the kohen's work ground) ── /h115 ──
@@ -1867,19 +1917,24 @@ export function createStages(ctx) {
   props.count = 0; props.castShadow = true; props.receiveShadow = true; props.frustumCulled = false; scene.add(props);
   const field = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.7, 0), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, flatShading: true }), 1200);
   field.count = 0; field.castShadow = true; field.frustumCulled = false; scene.add(field);
-  // (wave 6) real stones: dressed/drafted ashlars and rough blocks — same materials (and programs) as props / field
-  const ashGeo = ashlarGeometry(), roughGeo = roughGeometry();
-  const ashI = new THREE.InstancedMesh(ashGeo, props.material, 900), roughI = new THREE.InstancedMesh(roughGeo, field.material, 300);
+  // (wave 6) real stones: dressed/drafted ashlars and rough blocks — the ashlars in the stone system's material (look A), the rough as field
+  const ashGeo = ashlarGeo(THREE), roughGeo = roughGeometry();
+  const ashI = new THREE.InstancedMesh(ashGeo, stoneMat(THREE), 900), roughI = new THREE.InstancedMesh(roughGeo, lookClone(freshMat(THREE, T.rock.map), '#ffffff'), 300);   // ── look A ── (the rough blocks: fresh breaks, their tone per instance) ── /look A ──
   for (const m of [ashI, roughI]) { m.count = 0; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; m.visible = false; scene.add(m); }
-  const dirtTex = TX.texGround(97, 256).map;
-  const dirtMat = new THREE.MeshStandardMaterial({ color: '#B89C74', map: dirtTex, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+  // ── look B review H5 ── a foundation's dug earth: the patch keeps its meaning (where the trench is dug), its look the new ground's:
+  // packed darker earth mottled by the ground detail (R) with its chips (G), no texture of its own ── /look B ──
+  const dirtMat = new THREE.MeshStandardMaterial({ color: '#A88B66', transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
   dirtMat.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aSize; varying vec2 vLoc; varying vec2 vSz;')
+    sh.uniforms.uGrT = { value: groundDetailTex(THREE) };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aSize; varying vec2 vLoc; varying vec2 vSz; varying vec2 vDW;')
       .replace('#include <uv_vertex>', '#include <uv_vertex>\nvLoc = uv; vSz = aSize;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n#ifdef USE_MAP\nvMapUv = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz / 11.0;\n#endif');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vLoc; varying vec2 vSz;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvDW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uGrT; varying vec2 vLoc; varying vec2 vSz; varying vec2 vDW;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        { vec2 e = min(vLoc, 1.0 - vLoc) * vSz; float a = smoothstep(0.0, 3.5, min(e.x, e.y));
+        { vec4 d = texture2D(uGrT, vDW / 10.0 + 0.13); float ch = smoothstep(0.42, 0.56, d.g);
+          diffuseColor.rgb *= 0.8 + 0.4 * clamp(d.r, 0.2, 0.75);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.78, 0.74, 0.66) * (0.7 + 0.3 * d.g), ch * 0.5);
+          vec2 e = min(vLoc, 1.0 - vLoc) * vSz; float a = smoothstep(0.0, 3.5, min(e.x, e.y));
           diffuseColor.a *= a * 0.92; }`);
   };
   dirtMat.customProgramCacheKey = () => 'dirt';
@@ -2108,7 +2163,7 @@ export function createStages(ctx) {
     const putA = (x, y, z, sx, sy, sz, yaw, hex, k = 1) => {
       if (na >= 900) return;
       tmpQ.setFromEuler(tmpE.set(0, yaw, 0)); tmpV.set(x, y, z); tmpS.set(sx, sy, sz);
-      tmpM.compose(tmpV, tmpQ, tmpS); ashI.setMatrixAt(na, tmpM); ashI.setColorAt(na, tmpC.set(hex).multiplyScalar(k)); na++;
+      tmpM.compose(tmpV, tmpQ, tmpS); ashI.setMatrixAt(na, tmpM); ashI.setColorAt(na, ashTone(tmpC, hex, k, x, z)); na++;   // ── look A ── (the 8 tones) ── /look A ──
     };
     const putR = (x, y, z, sx, sy, sz, yaw, hex, k = 1, rot = 0) => {
       if (nr >= 300) return;
@@ -2455,7 +2510,7 @@ export function createStages(ctx) {
     ropes.frustumCulled = false; ropes.castShadow = false; scene.add(ropes); ropes.visible = false;
     const rc = new THREE.Color();
     ['#CDBB94', '#CDBB94', '#BFAE88', '#BFAE88', dark, '#CDBB94', '#CDBB94', dark].forEach((h, i) => ropes.setColorAt(i, rc.set(h)));
-    const blockMat = new THREE.MeshStandardMaterial({ color: '#D8C9A6', roughness: 0.85 });
+    const blockMat = lookClone(stoneMat(THREE), STONE.ash);   // ── look A ── ── /look A ──
     const block = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.0, 1.3), blockMat); block.castShadow = false; scene.add(block); block.visible = false;
     const fieldBlock = new THREE.IcosahedronGeometry(0.85, 0), boxBlock = ashGeo;   // (wave 6: a real ashlar on the hook)
     return { g, base, wheel, tilt, legs, ropes, block, blockMat, fieldBlock, boxBlock, st: null, H: 20, t: 0, aP: 0.15, aW: 0.4, wheelA: 0, ropeL: 5, walking: 0, placeX: 0, placeZ: 0, fwd: new THREE.Vector2(0, 1) };
@@ -2891,8 +2946,8 @@ export function createStages(ctx) {
     const sled = mk(mergeGeometries([boxAt(0.4, 0.4, 6.2, 1.15, 0.78, 0), boxAt(0.4, 0.4, 6.2, -1.15, 0.78, 0), ...[-2.5, -0.85, 0.85, 2.5].map((z) => boxAt(2.8, 0.2, 0.42, 0, 1.06, z)), rod([-1.1, 0.8, 3.1], [1.1, 0.8, 3.1], 0.12)].map(strip)), wood, N);
     const roll = mk(strip(new THREE.CylinderGeometry(0.29, 0.29, 3.3, 8).rotateZ(Math.PI / 2)), wood, N * 3);
     const ropes = mk(new THREE.CylinderGeometry(1, 1, 1, 5, 1).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: '#BFAE88', roughness: 0.9 }), N * 9, false);
-    const stones = mk(ashGeo, props.material, N * 3);
-    const cS = new THREE.Color(STONE.ash); for (let i = 0; i < N * 3; i++) stones.setColorAt(i, cS);
+    const stones = mk(ashGeo, stoneMat(THREE), N * 3);
+    const cS = new THREE.Color(); for (let i = 0; i < N * 3; i++) stones.setColorAt(i, ashTone(cS, STONE.ash, 0.96, i * 1.9, i * 0.7));   // ── look A ── ── /look A ──
     return { N, base, wheel, legs, shear, sled, roll, ropes, stones, all: [base, wheel, legs, shear, sled, roll, ropes, stones], sites: {}, nr: 0, ns: 0, nroll: 0, P: { lean: 0, arm: 0, legA: 0, bob: 0 } };
   })();
   const mkM = new THREE.Matrix4(), mkM2 = new THREE.Matrix4(), mkQ = new THREE.Quaternion(), mkV = new THREE.Vector3(), mkS = new THREE.Vector3(), mkE = new THREE.Euler();
@@ -8947,7 +9002,7 @@ export function createStages(ctx) {
     hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, shine,
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
-    ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
+    ashlar: { geometry: ashGeo, material: stoneMat(THREE), rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
     cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
@@ -8964,7 +9019,7 @@ export function createStages(ctx) {
     // ── h114 ── a split rock's chunks carted off now and its patch levelled (the paving goes on clean rock: ירון 9.11, a chunk hid a slab);
     // the boulders' own material (the stage's small rocks are of the same rock: "האבנים של האתר") ── /h114 ──
     boulderRest: (i) => { const b = bSt[i]; if (!b || b.state > 0 || cellMode) return false; b.anim = null; b.pt = 60; b.rub = 0; workDirty = true; propsDirty = true; boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; return true; },
-    boulderMat: () => BC.mat,
+    rockTex: () => T.rock.map,   // ── look B ── (the Mount's rock texture, for the acts' rocks) ── /look B ──
     // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
     boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b || cellMode) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
     pinsOff: (on) => { pinsOff = !!on; },   // ── h117 ── ── /h117 ──

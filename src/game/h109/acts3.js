@@ -7,6 +7,8 @@ import { onPlane, clamp, lerp, ease } from './kit.js';
 import { wasteAdd } from './acts2.js';
 import { BOOK, cellOf } from '../world/grid.js';
 import { makeTrack, stepStone, limitAt, restAt, SL } from './slope.js';
+import { woodMat, clothMat } from '../../look/wood.js';   // ── look A ── ── /look A ──
+import { rockClone } from '../../look/rock.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -38,10 +40,8 @@ function makeCrane(X) {
   C.reach = () => C.jibL + 0.0;
   return C;
 }
-function stoneMesh(X, L, h, d) {
-  const T = X.THREE, geo = (X.stages.ashlar && X.stages.ashlar.geometry) || new T.BoxGeometry(1, 1, 1);
-  const m = new T.Mesh(geo, X.props.M.stone); m.scale.set(L, h, d); m.castShadow = true; m.receiveShadow = true; X.props.root.add(m); return m;
-}
+// ── look A ── a dressed stone of the stone system (h109/props.js stoneMesh: its own tone, a chip now and then; o.set 1 when laid) ── /look A ──
+function stoneMesh(X, L, h, d, o) { return X.props.stoneMesh(L, h, d, o); }
 /** ── h115 ── the corner stone's gold mark: a gold square on its top at the corner's own edge (seen at the wall's foot later on) */
 function goldMark(X, x, y, z) {
   if (SH.goldM) X.props.remove(SH.goldM);
@@ -79,7 +79,8 @@ function cornerPit(X, chalk) {
   // filling green while the stone hangs over it; a gold line rising from the corner to the platform's level (where the corner will
   // stand). ── /h115 ──
   const T = X.THREE, g = new T.Group(); g.name = 'h114-corner-pit'; const gy = X.ground(CORNER_AT.x, CORNER_AT.z);
-  const earth = new T.MeshStandardMaterial({ color: '#6B5236', roughness: 1 }), heap = new T.MeshStandardMaterial({ color: '#8A6E4B', roughness: 1, flatShading: true });
+  // ── look A ── the trench dug in earth and rock, its heaps of spoil: the rock skin in earth tones (src/look/rock.js) ── /look A ──
+  const rm = X.props.M.rock, earth = rockClone(rm, '#7A5E40'), heap = rockClone(rm, '#97795A');
   const ox = CORNER_AT.x, oz = CORNER_AT.z, TW = 4.2, LE = 16, LS = 18;   // (trench width; the east arm's and the south arm's lengths)
   const arm = (x0, x1, z0, z1) => {
     const f = new T.Mesh(new T.BoxGeometry(x1 - x0, 0.1, z1 - z0), earth); f.position.set((x0 + x1) / 2 - ox, -PIT, (z0 + z1) / 2 - oz); f.receiveShadow = true; g.add(f);
@@ -120,7 +121,7 @@ export const CORNER = {
     A.skew = newSkew();
     // the rotation error to the corner's square (a 2:1 stone is square either way round: mod π)
     const rotErr = (r) => { let e = ((r % Math.PI) + Math.PI) % Math.PI; if (e > Math.PI / 2) e -= Math.PI; return e; };
-    const stone = stoneMesh(X, sw, 1.6, 2.0); const sh = shadowDisk(X);
+    const stone = stoneMesh(X, sw, 1.6, 2.0, { light: true, margin: 0.3, chip: false }); const sh = shadowDisk(X);
     const floorY = gP - PIT;
     const pit = SH.cornerPit || (SH.cornerPit = cornerPit(X, true));
     // (the one-minigame page plays it again: the stone of the last round goes, the chalk comes back)
@@ -399,7 +400,7 @@ const puzzleOf = (c, lv) => { const K = COURSES[c], P = K.P[lv >= 3 ? 1 : 0]; re
 function courseWorld(X, c, lv, laid) {
   // the crews' courses: the foundation (sunk) and the course under his; the crews' stones of his own course on both sides of the gap
   const K = puzzleOf(c, lv), g = X.ground(WALL_X, K.z0 + 7), out = [];
-  const lay = (a, b, y) => { const m = stoneMesh(X, b - a - 0.06, CH - 0.04, CD); m.rotation.y = Math.PI / 2; m.position.set(WALL_X, y + CH / 2, K.z0 + (a + b) / 2); out.push(m); return m; };
+  const lay = (a, b, y) => { const m = stoneMesh(X, b - a - 0.06, CH - 0.04, CD, { set: 1 }); m.rotation.y = Math.PI / 2; m.position.set(WALL_X, y + CH / 2, K.z0 + (a + b) / 2); out.push(m); return m; };
   const y0 = g - CH * 0.6, B = K.below;
   for (let i = 0; i < B.length - 1; i++) lay(B[i] + (i % 2 ? 1.1 : -0.4), B[i + 1] + (i % 2 ? 1.1 : -0.4), y0);
   for (let i = 0; i < B.length - 1; i++) lay(B[i], B[i + 1], y0 + CH);
@@ -410,9 +411,12 @@ function courseWorld(X, c, lv, laid) {
 }
 function chalkTag(X, text, w = 1.3, ink = 'rgba(250,247,238,.95)') {
   const T = X.THREE, cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const g = cv.getContext('2d');
-  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = ink; g.fillText(text, 128, 70);
-  const tex = new T.CanvasTexture(cv); const m = new T.Mesh(new T.PlaneGeometry(w, w / 2), new T.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
-  m.rotation.x = -Math.PI / 2; m.renderOrder = 3;
+  let fs = 96; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; while (fs > 30 && g.measureText(text).width > 244) { fs -= 6; g.font = `900 ${fs}px Heebo, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = /^rgba?\((\d+)/.exec(ink) && +/^rgba?\((\d+)/.exec(ink)[1] < 128 ? 'rgba(250,246,234,.55)' : 'rgba(70,52,34,.6)'; g.strokeText(text, 128, 70); g.fillStyle = ink; g.fillText(text, 128, 70);   // ── look A ── (a soft edge in the other tone: the mark reads on the cream stone) ── /look A ──
+  // ── look C ── (review J5) a charcoal mark is lit as the stone it is drawn on: unlit, its pale edge outshone the top under a low sun and
+  // the number washed out; lit, mark and top keep their ratio at every sun (white chalk stays unlit: it must read in the shade) ── /look C ──
+  const dark = /^rgba?\((\d+)/.exec(ink) && +/^rgba?\((\d+)/.exec(ink)[1] < 128;
+  const tex = new T.CanvasTexture(cv); const m = new T.Mesh(new T.PlaneGeometry(w, w / 2), new (dark ? T.MeshLambertMaterial : T.MeshBasicMaterial)({ map: tex, transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.renderOrder = 3; if (dark) m.receiveShadow = true;
   const g2 = new T.Group(); g2.add(m); g2.rotation.y = -Math.PI / 2;   // (its top toward the wall: upright for a camera on the Mount's side)
   return g2;
 }
@@ -432,7 +436,7 @@ export const COURSE = {
     LENS.forEach((L, i) => {
       const s = stoneMesh(X, L - 0.06, CH - 0.04, CD); const z = zc - 2.5 + i * 2.6, x = gx; s.position.set(x, X.ground(x, z) + CH / 2, z); s.rotation.y = 0;
       // (its length in chalk on its top, read from the Mount's side: the chalk follows the stone while it is not laid)
-      const tg = chalkTag(X, String(L).replace('.5', '½'), 1.5); X.props.root.add(tg);
+      const tg = chalkTag(X, String(L).replace('.5', '½'), 1.5, 'rgba(30,22,16,.97)'); X.props.root.add(tg);   // ── look A ── (charcoal: white chalk was lost on the cream tops) ── /look A ──
       A.stock.push({ m: s, L, home: { x, z }, laid: null, tg });
     });
     // the joints below: chalk ticks on the course under the gap (level 1–2; at 3 the joints are read from the seams alone)
@@ -478,7 +482,7 @@ export const COURSE = {
       A.cur = q; A.phase = 'hook'; A.t0 = A.t; A.rise = 0; A.ax = 0; A.drop = 0; A.v = 0;
       A.aimP = { x: q.m.position.x, z: q.m.position.z }; A.from = { y: q.m.position.y, r: q.m.rotation.y };
       A.rotT = q.m.rotation.y; A.rv = 0; A.grip = null; A.hold = false;   // ── h117 ── (it comes up as it lay: across the wall) ── /h117 ──
-      if (q.laid) { const i = A.set.indexOf(q.laid); if (i >= 0) A.set.splice(i, 1); q.laid = null; A.lifts++; X.word({ x: WALL_X, y: yB + CH + 1.5, z: q.m.position.z }, 'מרימים אותה חזרה'); clearMarksOf(q); }
+      if (q.laid) { const i = A.set.indexOf(q.laid); if (i >= 0) A.set.splice(i, 1); q.laid = null; X.props.setLaid(q.m, 0); A.lifts++; X.word({ x: WALL_X, y: yB + CH + 1.5, z: q.m.position.z }, 'מרימים אותה חזרה'); clearMarksOf(q); }
       X.line('הצוות קושר את האבן · המנוף מרים'); X.play('rope'); X.hand(null);
     }
     function clearMarksOf(q) { if (q.crack) { X.props.remove(q.crack); q.crack = null; A.joj = Math.max(0, A.joj - 1); } }
@@ -514,7 +518,7 @@ export const COURSE = {
       if (e > 0.1) return bounce(at, e === dev ? 'רחוק מהשכנה · הצוות לא יגיע · מרימים' : 'בולטת מהקו · מרימים');
       const grade = e <= 0.05 ? 'gold' : 'good';
       A.grades.push(grade);
-      const qq = { q, a: want, b: want + L }; A.set.push(qq); q.laid = qq;
+      const qq = { q, a: want, b: want + L }; A.set.push(qq); q.laid = qq; X.props.setLaid(q.m, 1);
       A.settle = { q, from: { x: s.position.x, z: s.position.z, r: s.rotation.y }, to: { x: WALL_X, z: K.z0 + want + L / 2 }, t: 0, dur: grade === 'gold' ? 0.2 : 1.3 };
       s.position.y = yB + CH / 2;
       X.play('settle'); X.dust(s.position.x, yB + 0.2, s.position.z, 10, 2.4); X.shake(0.15, 0.25);
@@ -715,20 +719,12 @@ const GR_NEXT = [12, 10];   // the crews' stones beyond it in the same course (n
 const TRK = makeTrack(BOOK.great.track);
 const ST_F = [0.43, 0.67, 0.89];   // (after the first bend, before the second, on the last straight)   // the three stations (rests) along the way
 const ROLL_N = 5, ROLL_SP = GR.len / ROLL_N;
-let greatMat = null;
-function greatStoneMat(X) {
-  // dressed limestone with the Herodian drafted margin: a pale band round each face and a slightly rougher, darker boss
-  if (greatMat) return greatMat;
-  const T = X.THREE, cv = document.createElement('canvas'); cv.width = 512; cv.height = 256; const g = cv.getContext('2d');
-  g.fillStyle = '#D9CBA8'; g.fillRect(0, 0, 512, 256);
-  for (let i = 0; i < 3800; i++) { const v = 150 + Math.random() * 70 | 0; g.fillStyle = `rgba(${v},${v - 12},${v - 34},${0.05 + Math.random() * 0.1})`; g.fillRect(Math.random() * 512, Math.random() * 256, 1 + Math.random() * 4, 1 + Math.random() * 4); }
-  g.fillStyle = 'rgba(120,100,70,.18)'; g.fillRect(22, 22, 468, 212);   // (the boss)
-  g.strokeStyle = 'rgba(90,72,48,.55)'; g.lineWidth = 3; g.strokeRect(22, 22, 468, 212);
-  g.strokeStyle = 'rgba(250,240,220,.6)'; g.lineWidth = 2; g.strokeRect(10, 10, 492, 236);
-  const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace || tex.colorSpace; tex.anisotropy = 4;
-  greatMat = new T.MeshStandardMaterial({ map: tex, roughness: 0.92 }); return greatMat;
+// ── look A ── the great stone: the stone system's ashlar (margin 0.3 amah, a tone from the light end), its long faces along the track;
+// a group turned by the act, the stone a quarter turn inside it (the ashlar's bosses are on its own ±z faces) ── /look A ──
+function greatMesh(X, L) {
+  const T = X.THREE, g = new T.Group(), m = X.props.stoneMesh(L, GR.h, GR.d, { light: true, margin: 0.3, chip: false, set: 1 });
+  m.rotation.y = Math.PI / 2; g.add(m); g.rotation.order = 'YXZ'; X.props.root.add(g); return g;
 }
-function greatMesh(X, L) { const T = X.THREE; const m = new T.Mesh(new T.BoxGeometry(GR.d, GR.h, L), greatStoneMat(X)); m.castShadow = true; m.receiveShadow = true; m.rotation.order = 'YXZ'; X.props.root.add(m); return m; }
 /** the slope downhill along the track at s (+: down), from the ground 9 amot behind and before */
 function slopeAt(X, s) { const a = TRK.at(s - 9), b = TRK.at(s + 9); return clamp((X.ground(a.x, a.z) - X.ground(b.x, b.z)) / 18, -0.8, 0.8); }
 /** where the stone stands for a state: its middle, heading, height and pitch */
@@ -990,18 +986,19 @@ let cornerT = null;
 function trumpetCorner(X) {
   if (cornerT) return cornerT;
   const T = X.THREE, g = new T.Group(); g.name = 'h114-trumpet-corner'; X.props.root.add(g);
-  const mat = new T.MeshStandardMaterial({ color: '#E2D2AC', roughness: 0.93 }), dark = new T.MeshStandardMaterial({ color: '#CDBC95', roughness: 0.95 });
-  const box = (x0, x1, y0, y1, z0, z1, m = mat) => { const b = new T.Mesh(new T.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), m); b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); b.castShadow = true; b.receiveShadow = true; g.add(b); return b; };
+  // ── look A ── the corner block and its coping: plain chamfered blocks of the stone system, laid (the coping a darker tone) ── /look A ──
+  const mat = X.props.ashOf(null, { light: true, set: 1, boss: false }), dark = X.props.ashOf(null, { hex: '#BDB3A2', set: 1, boss: false });
+  const box = (x0, x1, y0, y1, z0, z1, m = mat) => { const b = new T.Mesh(X.props.geo.plain, m); b.scale.set(x1 - x0, y1 - y0, z1 - z0); b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); b.castShadow = true; b.receiveShadow = true; g.add(b); return b; };
   // the corner block, flush with both faces of the world's walls
   box(-300.05, -289, TOP.y0, TOP.y, 389, 400.05);
   // the parapet: ashlar blocks along the west edge, the inscription stone and a filler along the south edge; the niche at the corner
-  for (let z = 389; z < 396.9; z += 2.65) { const b = stoneMesh(X, 1.2, 2.4, 2.6); b.position.set(-299.45, TOP.y + 1.2, z + 1.3); g.attach(b); }
-  const stone = stoneMesh(X, 7.2, 2.4, 1.2); stone.position.set(-293.2, TOP.y + 1.2, 399.45); g.attach(stone);
-  const fill = stoneMesh(X, 0.75, 2.4, 1.2); fill.position.set(-289.4, TOP.y + 1.2, 399.45); g.attach(fill);
+  for (let z = 389; z < 396.9; z += 2.65) { const b = stoneMesh(X, 1.2, 2.4, 2.6, { plain: true, set: 1 }); b.position.set(-299.45, TOP.y + 1.2, z + 1.3); g.attach(b); }
+  const stone = stoneMesh(X, 7.2, 2.4, 1.2, { plain: true, set: 1, light: true }); stone.position.set(-293.2, TOP.y + 1.2, 399.45); g.attach(stone);
+  const fill = stoneMesh(X, 0.75, 2.4, 1.2, { plain: true, set: 1 }); fill.position.set(-289.4, TOP.y + 1.2, 399.45); g.attach(fill);
   // the niche: the parapet cut down to a low lip at the very corner
   box(-300.05, -296.9, TOP.y, TOP.y + 0.9, 399.6, 400.05, dark); box(-300.05, -299.6, TOP.y, TOP.y + 0.9, 396.9, 400.05, dark);
   // the sloped coping on the outer faces, under the parapet's top (as in the picture)
-  for (const [x, z, L, ry] of [[-294.6, 400.15, 11.4, 0], [-300.15, 394.6, 11.4, Math.PI / 2]]) { const c = new T.Mesh(new T.BoxGeometry(L, 0.75, 0.75), dark); c.position.set(x, TOP.y - 0.15, z); c.rotation.set(Math.PI / 4, ry, 0, 'YXZ'); c.castShadow = true; g.add(c); }
+  for (const [x, z, L, ry] of [[-294.6, 400.15, 11.4, 0], [-300.15, 394.6, 11.4, Math.PI / 2]]) { const c = new T.Mesh(X.props.geo.plain, dark); c.scale.set(L, 0.75, 0.75); c.position.set(x, TOP.y - 0.15, z); c.rotation.set(Math.PI / 4, ry, 0, 'YXZ'); c.castShadow = true; g.add(c); }
   // the inscription's face: on the parapet's inner face (toward the Mount), beside the niche
   const cw = 2048, ch = 640, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
   const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace || tex.colorSpace; tex.anisotropy = 4;
@@ -1081,8 +1078,8 @@ export const LETTERS = {
           const st = new T.Group(); st.position.set(P.x, P.y, P.z); st.rotation.y = a + Math.PI; world.add(st);
           const cnt = new T.Mesh(new T.BoxGeometry(4.4, 1.6, 1.6), wood); cnt.position.set(0, 0.8, 0); st.add(cnt);
           for (const sx of [-2, 2]) { const po = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 3.6, 5), wood); po.position.set(sx, 1.8, 0.7); st.add(po); }
-          const aw = new T.Mesh(new T.BoxGeometry(4.8, 0.08, 2.4), new T.MeshStandardMaterial({ color: cloths[k + 1], roughness: 0.9 })); aw.geometry.translate(0, 0, -1.2); aw.position.set(0, 3.5, 0.8); aw.rotation.x = -0.35; st.add(aw);
-          const sh = new T.Mesh(new T.BoxGeometry(4.4, 1.7, 0.12), new T.MeshStandardMaterial({ color: '#6B4A2A', roughness: 1 })); sh.position.set(0, 0.85, -0.86); sh.scale.y = 0.01; st.add(sh);
+          const aw = new T.Mesh(new T.BoxGeometry(4.8, 0.08, 2.4), clothMat(T, cloths[k + 1]));   /* ── look A ── ── /look A ── */ aw.geometry.translate(0, 0, -1.2); aw.position.set(0, 3.5, 0.8); aw.rotation.x = -0.35; st.add(aw);
+          const sh = new T.Mesh(new T.BoxGeometry(4.4, 1.7, 0.12), woodMat(T, 'old'));   /* ── look A ── (the shutter) ── /look A ── */ sh.position.set(0, 0.85, -0.86); sh.scale.y = 0.01; st.add(sh);
           for (let j = 0; j < 4; j++) { const gd = new T.Mesh(new T.SphereGeometry(0.26, 6, 4), new T.MeshStandardMaterial({ color: ['#C8432B', '#E3B23C', '#6C8E3A', '#8B4A8B'][j], roughness: 0.8 })); gd.position.set(-1.5 + j, 1.8, 0); st.add(gd); }
           it.aw = aw; it.sh = sh; it.w = SH.crew.add(P.x + Math.sin(a + Math.PI) * 1.6, P.z + Math.cos(a + Math.PI) * 1.6, { role: 'hold', fx: P.x, fz: P.z, crew: 2 });
         } else {
@@ -1098,7 +1095,7 @@ export const LETTERS = {
     const hw = [16, 12, 9][lv - 1] * deg, wind = lv >= 3 ? 7 * deg : 0;
     const fan = new T.Mesh(new T.CircleGeometry(1, 24, -hw, hw * 2), new T.MeshBasicMaterial({ color: '#FFD36A', transparent: true, opacity: 0.2, depthWrite: false, depthTest: false, side: T.DoubleSide }));
     fan.rotation.x = -Math.PI / 2; fan.renderOrder = 4; fan.visible = false; world.add(fan);
-    const flag = new T.Mesh(new T.PlaneGeometry(0.9, 0.45), new T.MeshStandardMaterial({ color: '#D9483B', side: T.DoubleSide })); flag.visible = wind > 0; world.add(flag);
+    const flag = new T.Mesh(new T.PlaneGeometry(0.9, 0.45), clothMat(T, '#D9483B'));   /* ── look A ── ── /look A ── */ flag.visible = wind > 0; world.add(flag);
     const pole = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 3, 5), wood); pole.position.set(-299.75, TOP.y + 1.5, 396.3); pole.visible = wind > 0; world.add(pole);
     // the breath: a bar with its band (let go inside it), on the screen under the trumpeter
     const ui = document.createElement('div'); ui.className = 'h109-ui h114-breath';
@@ -1308,7 +1305,7 @@ export function initWorld3(X, sh) {
   SH.crane = makeCrane(X); SH.crane.place(CRANE_AT.x, CRANE_AT.z, Math.atan2(CORNER_AT.x - CRANE_AT.x, CORNER_AT.z - CRANE_AT.z) - 0.9); SH.crane.rope.show(false);
   // ── h114 ── the corner's trench is dug from the start (the crews dig it while he measures); the stone in it once it was laid ── /h114 ──
   SH.cornerPit = cornerPit(X, !done('corner'));
-  if (done('corner')) { const s = stoneMesh(X, CW, 1.6, CDp), y = X.ground(CORNER_AT.x, CORNER_AT.z) - PIT; s.position.set(CORNER_AT.x, y + 0.8, CORNER_AT.z); SH.cornerStone = s; goldMark(X, CORNER_AT.x, y + 1.6, CORNER_AT.z); }
+  if (done('corner')) { const s = stoneMesh(X, CW, 1.6, CDp, { light: true, margin: 0.3, chip: false, set: 1 }), y = X.ground(CORNER_AT.x, CORNER_AT.z) - PIT; s.position.set(CORNER_AT.x, y + 0.8, CORNER_AT.z); SH.cornerStone = s; goldMark(X, CORNER_AT.x, y + 1.6, CORNER_AT.z); }
   // the east wall's courses as far as the crews and the kohen have laid them
   // ── h114 ── as he laid them (st.courseLay), the solution's order for an older save ── /h114 ──
   SH.courseW = {}; SH.courseG = {}; SH.courseSet = {};

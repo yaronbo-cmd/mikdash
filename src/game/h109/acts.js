@@ -11,6 +11,7 @@ import { BOOK, ROCK_CELLS, rectOf } from '../world/grid.js';
 import { createBeat, createGang, onPlane, clamp, lerp, ease, clearView, rayBlocked } from './kit.js';
 import { READ, PAVE, WASTE, initWorld2, frame2 } from './acts2.js';
 import { CORNER, COURSE, GREAT, LETTERS, initWorld3, frame3 } from './acts3.js';
+import { woodMat, ropeMat } from '../../look/wood.js';   // ── look A ── ── /look A ──
 
 const TAU = Math.PI * 2;
 /** the shared state of the stage's world (one per director) */
@@ -137,7 +138,7 @@ function planLine(X) {
 // level-up's own fanfare and stamp ── /h114 ──
 function rodProp(X) {
   const T = X.THREE, g = new T.Group(); g.name = 'h114-rod';
-  const wood = new T.MeshStandardMaterial({ color: '#8C6A43', roughness: 0.85 }), cord = new T.MeshStandardMaterial({ color: '#D9C9A0', roughness: 1 });
+  const wood = woodMat(T, 'new'), cord = ropeMat(T, '#D9C9A0');   // ── look A ── ── /look A ──
   // the rod held in his fist (the group's origin), its top leaning forward; a linen cord's coil on his wrist
   // (a staff taller than he is, so it shows over his shoulder from behind; its amot marked in linen bands)
   const rod = new T.Mesh(new T.CylinderGeometry(0.06, 0.07, 3.6, 7), wood); rod.rotation.x = 0.12; rod.position.set(0, 0.35, 0.02); g.add(rod);

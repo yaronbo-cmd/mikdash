@@ -78,7 +78,7 @@ const RAIN = { zen: '#565D68', horA: '#8C939B', horS: '#979EA6', fog: '#8A9098',
 
 const VS = 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
 const FS = /* glsl */`
-uniform vec3 uZen, uHorA, uHorS, uFog, uBelt, uSunCol, uSunDir, uMoonDir, uCLit, uCShd, uCumLit, uCumShd, uMtn, uMoab;
+uniform vec3 uZen, uHorA, uHorS, uFog, uBelt, uSunCol, uSunDir, uSunG, uMoonDir, uCLit, uCShd, uCumLit, uCumShd, uMtn, uMoab;
 uniform float uGlow, uDisc, uSkyI, uCov, uCA, uCum, uTime, uMoon, uStar;
 uniform vec3 uMoonPh, uMoonSun;   // ── world12 ── the moon's phase: (cos of the phase angle, +1 waxing / −1 waning, the lit fraction); the sun's side
 uniform sampler2D uNoise;
@@ -105,8 +105,13 @@ void main() {
   // the sun (or at night the moon's light) — its glow and disc
   float cs = dot(d, uSunDir);
   float g1 = pow(max(cs, 0.0), 5.0), g2 = pow(max(cs, 0.0), 48.0), g3 = pow(max(cs, 0.0), 900.0);
-  vec3 glow = uSunCol * (g1 * 0.22 + g2 * 0.55 + g3 * 1.6) * uGlow;
-  float disc = smoothstep(0.99993, 0.99996, cs) * uDisc;
+  // ── look C ── (C4) a soft halo round the disc (g4, a near-white of the sun's own colour) and the disc's edge a little softer
+  float g4 = pow(max(cs, 0.0), 260.0);
+  // (the broad glow, g1, round uSunG: the sun's own direction, or under the work light noon's sun, so the zenith and the mid-sky
+  // stay noon's blue wherever the work light's sun stands — review J1; the halo and the disc follow the sun itself)
+  float gB = pow(max(dot(d, uSunG), 0.0), 5.0);
+  vec3 glow = uSunCol * (gB * 0.22 + g2 * 0.55 + g3 * 1.6 + g4 * 0.3) * uGlow;
+  float disc = smoothstep(0.99989, 0.99996, cs) * uDisc;
   float cover = 0.0;
 #ifndef ENV
   // the Milky Way and the moon (night)
@@ -154,29 +159,35 @@ void main() {
     vec4 b1 = texture2D(uNoise, q), b2 = texture2D(uNoise, q * 2.0 + vec2(0.3, 0.1));
     float bill = b1.g * 0.55 + b2.a * 0.45;                      // cells: bright centres, dark creases
     float edge = top * (0.72 + 0.5 * bill) - (h - base);
-    float dC = smoothstep(0.0, 0.004, edge) * smoothstep(base - 0.004, base + 0.004, h) * step(0.004, top);
+    // ── look C ── (C4) a feathered top edge (was a 0.004 step: a hard white rim on a phone); the grey feet kept
+    float dC = smoothstep(-0.002, 0.011, edge) * smoothstep(base - 0.004, base + 0.004, h) * step(0.004, top);
     if (dC > 0.0) {
       float f = clamp((h - base) / max(top, 1e-3), 0.0, 1.0);
       float sh = mix(0.5, 1.0, smoothstep(0.0, 0.55, f)) * (0.62 + 0.38 * bill);
       vec3 body = mix(uCumShd, uCumLit, sh * mix(1.0, 0.72, tw * tw));   // toward the sun the heaps stand backlit
-      body += uSunCol * smoothstep(0.004, 0.0, edge) * tw * tw * 0.9 * uGlow;  // bright rims toward the sun
+      body += uSunCol * smoothstep(0.012, 0.0, edge) * tw * tw * 0.3 * uGlow;  // soft lit rims toward the sun (── look C ── 0.9 → 0.3, wider)
       body = mix(body, uFog, 0.18 + 0.45 * (1.0 - f) * (1.0 - f));
       c = mix(c, body, dC);
       cover = max(cover, dC);
     }
   }
   // the far ranges: the Judean hills all round, and in the east (+x) the long wall of the mountains of Moab
-  if (h < 0.035) {
+  if (h < 0.045) {
     float east = smoothstep(0.35, 0.95, dxz.x);
     vec4 r1 = texture2D(uNoise, vec2(A * 4.0, 0.83)), r2 = texture2D(uNoise, vec2(A * 19.0, 0.47));
     float far = 0.004 + 0.009 * r1.r + 0.003 * r2.b + east * (0.012 + 0.003 * r2.r);
     float near = 0.0015 + 0.007 * r1.b * r2.r;
+    // ── look C ── (C3) two more ranges: the farthest behind the far one (palest, nearly the haze) and one between far and near — four
+    // values stepping lighter with distance
+    float last = far + 0.0025 + 0.0055 * r1.g * (1.0 - 0.5 * east), mid = near + 0.001 + 0.0045 * r2.a * r1.b;
     vec3 mt = mix(uMtn, uMoab, east * (1.0 - tw));                 // Moab lit by the sun behind the viewer (pink at dusk)
     mt = mix(mt, uMtn * 0.75, east * tw * tw);                      // …and dark against the dawn
-    float kf = smoothstep(far + 0.0015, far - 0.0005, h), kn = smoothstep(near + 0.001, near - 0.0005, h);
+    float kl = smoothstep(last + 0.0015, last - 0.0005, h), kf = smoothstep(far + 0.0015, far - 0.0005, h), km = smoothstep(mid + 0.0012, mid - 0.0005, h), kn = smoothstep(near + 0.001, near - 0.0005, h);
+    c = mix(c, mix(uFog, mt, 0.24), kl);
     c = mix(c, mix(uFog, mt, 0.42), kf);
-    c = mix(c, mix(uFog, mt * 0.92, 0.6), kn);
-    cover = max(cover, kf);
+    c = mix(c, mix(uFog, mt * 0.96, 0.52), km);
+    c = mix(c, mix(uFog, mt * 0.9, 0.64), kn);
+    cover = max(cover, kl);
   }
   if (h < 0.0) c = mix(c, uFog, smoothstep(0.0, -0.03, h));
   c = c * uSkyI + glow * (1.0 - 0.85 * cover) + uSunCol * disc * 24.0 * (1.0 - cover);
@@ -187,7 +198,7 @@ export function createSky() {
   const noise = noiseTex();
   const U = () => ({
     uZen: { value: new THREE.Color() }, uHorA: { value: new THREE.Color() }, uHorS: { value: new THREE.Color() }, uFog: { value: new THREE.Color() },
-    uBelt: { value: new THREE.Color() }, uSunCol: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uMoonDir: { value: new THREE.Vector3(1, 0.3, 0).normalize() },
+    uBelt: { value: new THREE.Color() }, uSunCol: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunG: { value: new THREE.Vector3(0, 1, 0) }, uMoonDir: { value: new THREE.Vector3(1, 0.3, 0).normalize() },
     uCLit: { value: new THREE.Color() }, uCShd: { value: new THREE.Color() }, uCumLit: { value: new THREE.Color() }, uCumShd: { value: new THREE.Color() },
     uMtn: { value: new THREE.Color() }, uMoab: { value: new THREE.Color() },
     uGlow: { value: 1 }, uDisc: { value: 1 }, uSkyI: { value: 1 }, uCov: { value: 0.4 }, uCA: { value: 1 }, uCum: { value: 0 },
@@ -214,12 +225,17 @@ export function createSky() {
   stars.renderOrder = -9; stars.frustumCulled = false; stars.visible = false;
   dome.add(stars);
 
+  // the sun's direction, and the broad glow's (gDir, or the sun's own)
+  function sunTo(dir, gDir) {
+    uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value);
+    uniforms.uSunG.value.copy(gDir || dir).normalize(); envU.uSunG.value.copy(uniforms.uSunG.value);
+  }
   const cur = {}, fog = new THREE.Color(), tmp = new THREE.Color(), tmp2 = new THREE.Color(), moonDir = new THREE.Vector3();
-  let key = 'dawn', over = 0;
+  let key = 'dawn', over = 0, mixP = null, domeK = 1;   // ── look C ── (mixP: a blend of two presets — the work light's sky; domeK: the dome's brightness against the work light's exposure) ── /look C ──
   let clearK = 0, moonLit = 1;   // ── world12 ── the night's clear sky and the moon's lit fraction (setMoon)
   const COLS = ['zen', 'horA', 'horS', 'fog', 'belt', 'cLit', 'cShd', 'cumLit', 'cumShd', 'mtn', 'moab'], NUMS = ['glow', 'disc', 'skyI', 'cov', 'cA', 'cum', 'moon', 'star'];
   function apply() {
-    const P = SKY[key] || SKY.dawn, night = !!P.moon;
+    const P = mixP || SKY[key] || SKY.dawn, night = !!P.moon;
     for (const k of COLS) {
       tmp.set(P[k]);
       if (over > 0) { tmp2.set(RAIN[k]); if (night) tmp2.multiplyScalar(0.1); tmp.lerp(tmp2, over); }
@@ -237,7 +253,7 @@ export function createSky() {
       u.uZen.value.copy(cur.zen); u.uHorA.value.copy(cur.horA); u.uHorS.value.copy(cur.horS); u.uFog.value.copy(cur.fog); u.uBelt.value.copy(cur.belt);
       u.uCLit.value.copy(cur.cLit); u.uCShd.value.copy(cur.cShd); u.uCumLit.value.copy(cur.cumLit); u.uCumShd.value.copy(cur.cumShd);
       u.uMtn.value.copy(cur.mtn); u.uMoab.value.copy(cur.moab); u.uSunCol.value.set(P.sun); u.uMoonDir.value.copy(moonDir);
-      u.uGlow.value = cur.glow * (env ? 0.5 : 1); u.uDisc.value = env ? 0 : cur.disc; u.uSkyI.value = cur.skyI; u.uCov.value = cur.cov;
+      u.uGlow.value = cur.glow * (env ? 0.5 : domeK); u.uDisc.value = env ? 0 : cur.disc; u.uSkyI.value = cur.skyI * (env ? 1 : domeK); u.uCov.value = cur.cov;
       u.uCA.value = cur.cA * (env ? 0.7 : 1); u.uCum.value = cur.cum; u.uMoon.value = cur.moon; u.uStar.value = cur.star;
     }
     // the fog (aerial perspective) is the haze the horizon melts into, as bright as the sky shows it
@@ -250,7 +266,19 @@ export function createSky() {
     /** cloud meshes drawn without depth test (sanctuary.js hides them inside the rooms): none now — the clouds are in the dome */
     clouds: [],
     /** the preset (dawn|noon|dusk|night|golden) and the sun's (at night: the moonlight's) direction */
-    set(k, dir) { key = SKY[k] ? k : 'dawn'; if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
+    set(k, dir) { key = SKY[k] ? k : 'dawn'; mixP = null; domeK = 1; if (dir) sunTo(dir, null); apply(); },
+    // ── look C ── the sky between two day presets (a → b by t; the work light's morning → noon) and the sun's direction; k: the dome's
+    // brightness (the work light passes noon's exposure over its own, so the dome stays as blue as noon's under a brighter exposure)
+    mix(a, b, t, dir, k = 1, gDir = null) {
+      domeK = k > 0 ? k : 1;
+      const A = SKY[a] || SKY.dawn, B = SKY[b] || SKY.noon, u = Math.max(0, Math.min(1, +t || 0)), P = mixP || {};
+      for (const k of [...COLS, 'sun']) (P[k] || (P[k] = new THREE.Color())).set(A[k]).lerp(tmp2.set(B[k]), u);
+      for (const k of NUMS) P[k] = A[k] + (B[k] - A[k]) * u;
+      mixP = P; key = u < 0.5 ? a : b;
+      if (dir) sunTo(dir, gDir);
+      apply();
+    },
+    // ── /look C ──
     /** 0 clear … 1 overcast (the building's night rain); true when it changed */
     setOvercast(k) { const v = Math.max(0, Math.min(1, +k || 0)); if (Math.abs(v - over) < 1e-3 && !(v === 0 && over !== 0)) return false; over = v; apply(); return true; },
     get overcast() { return over; },

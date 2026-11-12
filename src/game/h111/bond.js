@@ -17,7 +17,7 @@ import { chalkTag } from '../h109/acts3.js';
 import { standTop, rampFor } from './acts.js';
 
 const H = H111.H, ROW = H111.ROW, T6 = H111.T;
-const INK = 'rgba(70,44,26,.95)';   // the builders' marks in charcoal (המחשה): white chalk did not read on the pale stones
+const INK = 'rgba(44,28,16,.97)';   // the builders' marks in charcoal (המחשה): white chalk did not read on the pale stones (── look C ── review J4: darker, now that the mark is lit ── /look C ──)
 const ALONG = 0, ACROSS = Math.PI / 2, TOLR = 0.12;
 /** a stone's turn from the wall's line, folded (a stone is the same end for end): rad, signed */
 const turnErr = (r, want) => Math.atan2(Math.sin(2 * (r - want)), Math.cos(2 * (r - want))) / 2;
@@ -87,13 +87,13 @@ export const BOND = {
     for (let r = 0; r < 2; r++) for (const [a, L] of P.belowStones[r]) {
       const m0 = stoneMesh(X, L - 0.07, H - 0.02, ROW - 0.02); const p = F.at(a + L / 2, rowOff(r === 0 ? 0 : 2), -H / 2 + 0.01); m0.position.set(p.x, p.y, p.z); m0.rotation.y = F.yaw; add(m0);
     }
-    for (const [a, b] of spans) { const p = F.at((a + b) / 2, 0, -H / 2); const f = new T.Mesh(PR.geo.box, PR.M.fill || PR.M.stone); f.scale.set(b - a - 0.05, H - 0.1, ROW + 0.02); f.position.set(p.x, p.y, p.z); f.rotation.y = F.yaw; PR.root.add(f); add(f); }
+    for (const [a, b] of spans) { const p = F.at((a + b) / 2, 0, -H / 2); const f = new T.Mesh(PR.geo.box, PR.M.lump); f.scale.set(b - a - 0.05, H - 0.1, ROW + 0.02); f.position.set(p.x, p.y, p.z); f.rotation.y = F.yaw; PR.root.add(f); add(f); }
     // the joints chalked at each row's outer edge (not at stretch 9: read from the stones)
     if (P.marks) for (let r = 0; r < 2; r++) for (const x of P.below[r]) { const ac = r === 0 ? 2.75 : -2.75; boxAt(chalkM, F.at(x, ac, 0.02), 0.14, 0.03, 0.6); }
     // the crews' stones of this course on both sides of the gap (two faces and the fill), and two more on each side beyond them
     for (const [a0, b0] of [[-6, 0], [P.G, P.G + 6]]) {
       for (const r of [0, 2]) for (const [a, L] of (a0 < 0 ? [[a0, 3.5], [a0 + 3.5, 2.5]] : [[a0, 2.5], [a0 + 2.5, 3.5]])) { const m0 = stoneMesh(X, L - 0.07, H - 0.02, ROW + 0.04); const p = F.at(a + L / 2, rowOff(r), H / 2); m0.position.set(p.x, p.y, p.z); m0.rotation.y = F.yaw; add(m0); }
-      const p = F.at((a0 + b0) / 2, 0, H / 2 - 0.02); const f = new T.Mesh(PR.geo.box, PR.M.fill || PR.M.stone); f.scale.set(6 - 0.04, H - 0.08, ROW + 0.02); f.position.set(p.x, p.y, p.z); f.rotation.y = F.yaw; PR.root.add(f); add(f);
+      const p = F.at((a0 + b0) / 2, 0, H / 2 - 0.02); const f = new T.Mesh(PR.geo.box, PR.M.lump); f.scale.set(6 - 0.04, H - 0.08, ROW + 0.02); f.position.set(p.x, p.y, p.z); f.rotation.y = F.yaw; PR.root.add(f); add(f);
     }
     // the gate's opening (stretches 7, 8): its timber frame stands in it, nothing is laid there
     if (P.open) for (const x of P.open) { const p = F.at(x, 0, H / 2); boxAt(PR.M.wood, { x: p.x, y: p.y + 0.6, z: p.z }, 0.4, H * 1.6, T6 + 0.3); }
@@ -318,7 +318,7 @@ export const BOND = {
           await X.wait(1.0);
           PR.remove(cr); unlay(q);
           // its halves to the rubble heap at the wall's foot (they stay), a new stone of its length in its place in the row
-          const hp = F.at(P.G + 4 + rubble.length * 0.8, -5.2, 0); const hb = new T.Mesh(PR.geo.box, PR.M.ash || PR.M.stone); hb.scale.set(q.L * 0.45, 0.9, 1.4); hb.position.set(hp.x, g(hp.x, hp.z) + 0.45, hp.z); hb.rotation.y = F.yaw + 0.4 * rubble.length; PR.root.add(hb); rubble.push(hb); add(hb);
+          const hp = F.at(P.G + 4 + rubble.length * 0.8, -5.2, 0); const hb = new T.Mesh(PR.geo.box, PR.ashOf(null, { boss: false })); hb.scale.set(q.L * 0.45, 0.9, 1.4); hb.position.set(hp.x, g(hp.x, hp.z) + 0.45, hp.z); hb.rotation.y = F.yaw + 0.4 * rubble.length; PR.root.add(hb); rubble.push(hb); add(hb);
           q.s.m.position.set(q.s.home.x, q.s.home.y, q.s.home.z); q.s.m.rotation.y = F.yaw; X.dust(q.s.home.x, q.s.home.y, q.s.home.z, 8, 1.4);
         }
         X.line('רב האומנים הוציא את הסדוקה · אבן חדשה בשורה · הניחו שוב, בלי חיבור מעל חיבור');

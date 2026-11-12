@@ -7,6 +7,10 @@ import { makeRock } from './rock.js';
 import { BOOK, rectOf } from '../world/grid.js';
 import * as PV from './paving.js';
 import * as WG from './wedges.js';   // ── h117 ── ── /h117 ──
+import { paveSlab, paveQuarter, paveBed, JOINT } from '../../look/paving.js';   // ── look A ── the paving slabs ── /look A ──
+import { rockMat as lookRockMat, rockClone, rockTint } from '../../look/rock.js';   // ── look A ── the rocks ── /look A ──
+import { lookFresh } from '../../look/shader.js';
+import { woodMat } from '../../look/wood.js';
 
 let SH = null;
 const TAU = Math.PI * 2;
@@ -51,11 +55,13 @@ function bigStand(X, s) {
 // when the crack is full the creaking stops: that is the moment to stop pouring. The rock splits along that very plane, the two halves
 // part like a book and stay on the hill until the crews drag them away for the paving. Illustration (the method: wooden wedges in a
 // line of slots, wetted, swell and split the rock — documented at Roman quarries; marked המחשה in the sources list). ── /h114 ──
-function rockMat(X) {
-  if (SH.rockMat) return SH.rockMat;
-  let map = null; try { const bm = X.stages.boulderMat && X.stages.boulderMat(); map = bm && bm.map; } catch (e) { map = null; }
-  SH.rockMat = new X.THREE.MeshStandardMaterial({ color: '#D9CDB2', map, roughness: 0.93, flatShading: true });
-  return SH.rockMat;
+// ── look A ── the big rock's weathered skin (src/look/rock.js), its layers by vertex colour, a tone of its own per sector ── /look A ──
+function rockMat(X, s) {
+  SH.rockMats = SH.rockMats || [];
+  if (SH.rockMats[s]) return SH.rockMats[s];
+  let map = null; try { map = (X.stages.rockTex && X.stages.rockTex()) || null; } catch (e) { map = null; }
+  const m = rockClone(lookRockMat(X.THREE, map, { vertexColors: true }), rockTint(s * 7.1 + 3.3)); m.userData.lookBase = true;
+  return (SH.rockMats[s] = m);
 }
 /** the sector's crack: azimuth offset from his side, the tilt; and the decoy's (a shallow scratch, level 3) — the same every time */
 function crackOf(s) { const sg = hash(s, 3) > 0.5 ? 1 : -1; return { off: sg * (0.2 + hash(s, 5) * 0.16), tilt: (hash(s, 7) - 0.5) * 0.55, doff: -sg * (0.26 + hash(s, 9) * 0.12), dtilt: (hash(s, 11) - 0.5) * 0.5 }; }
@@ -65,7 +71,7 @@ function bigRock(X, s, split) {
   if (SH.big[s]) return SH.big[s];
   const b = SH.bould[s]; let inf = null; try { inf = X.stages.boulderInfo && X.stages.boulderInfo(s); } catch (e) { inf = null; }
   const gy = inf ? inf.gy : X.ground(b[0], b[1]);
-  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : hash(s, 1) * TAU, seed: s * 13 + 5, mat: rockMat(X) });
+  const R = makeRock(X.THREE, { x: b[0], z: b[1], gy, r: b[2] * 0.92, sy: inf ? Math.min(0.95, inf.sy) : 0.85, yaw: inf ? inf.yaw : hash(s, 1) * TAU, seed: s * 13 + 5, mat: rockMat(X, s) });
   X.props.root.add(R.group);
   try { X.stages.boulderHide(s, true, !!split); } catch (e) { /* */ }
   if (split) { const st = bigStand(X, s), phiK = Math.atan2(st.z - b[1], st.x - b[0]), c = crackOf(s); R.halves(R.plane(phiK + c.off, c.tilt)); R.part(1); }
@@ -83,7 +89,7 @@ function wedgeGeo(T) {
 }
 /** ── h117 ── oak with a darker grain (the wedges); the mirror's spot light, made once and kept in the scene (its count of lights never
  *  changes, so no material is rebuilt when it is used) ── /h117 ── */
-function wedgeMat(X) { if (!SH.wedgeM) SH.wedgeM = new X.THREE.MeshStandardMaterial({ color: '#9A6A3A', roughness: 0.85, flatShading: true }); return SH.wedgeM; }
+function wedgeMat(X) { return woodMat(X.THREE, 'fresh'); }   // ── look A ── (fresh-cut wood, lighter) ── /look A ──
 function spotLight(X) {
   if (SH.spotL) return SH.spotL;
   const L = new X.THREE.SpotLight(0xFFF0C4, 0, 0, 0.3, 0.55, 2); L.castShadow = false; L.name = 'h117-mirror-light';
@@ -226,7 +232,7 @@ export const READ = {
     const tally = (n) => { const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64; const g = cv.getContext('2d'); g.strokeStyle = 'rgba(250,246,234,.95)'; g.lineWidth = 9; g.lineCap = 'round'; for (let i = 0; i < n; i++) { g.beginPath(); g.moveTo(30 + i * 34, 10); g.lineTo(30 + i * 34, 54); g.stroke(); } const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true, depthWrite: false, depthTest: false })); sp.scale.set(0.9, 0.45, 1); sp.renderOrder = 999; return sp; };
     function wedgeMesh(p) {
       const g = new T.Group(); const w = new T.Mesh(wedgeGeo(T), wedgeMat(X)); w.castShadow = true; g.add(w);
-      const band = new T.Mesh(new T.BoxGeometry(0.5, 0.08, 0.34), X.props.M.iron || X.props.M.woodD); band.position.set(0, 0, 0.62); band.rotation.x = Math.PI / 2; g.add(band);
+      const band = new T.Mesh(new T.BoxGeometry(0.5, 0.08, 0.34), X.props.M.iron); band.position.set(0, 0, 0.62); band.rotation.x = Math.PI / 2; g.add(band);
       const o = outOf(p); g.position.copy(p).addScaledVector(o, 0.75); g.lookAt(p.x - o.x * 9, p.y - o.y * 9, p.z - o.z * 9);
       g.rotation.z += (hash(p.x, p.z) - 0.5) * 0.3;
       // the slot the mason cut for it: a dark notch on the crack that opens with every blow
@@ -435,7 +441,7 @@ function pileSync(X) {
   SH.pileM.forEach((mm, i) => { if (!mm.userData.on) mm.position.y = X.ground(mm.position.x, mm.position.z) + mm.scale.x * 0.4 + Math.floor(i / 5) * 0.35; });
   while (SH.pileM.length < n) {
     const i = SH.pileM.length, a = i * 2.4, r = 0.6 + (i % 5) * 0.45, x = PILE.x + Math.cos(a) * r, z = PILE.z + Math.sin(a) * r, s = 0.85 + hash(i, 2) * 0.4;
-    const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
+    const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.lumpOf(i)); mm.scale.set(s, s * 0.8, s); mm.position.set(x, X.ground(x, z) + s * 0.4 + Math.floor(i / 5) * 0.35, z); mm.rotation.set(i, i * 2, 0); mm.castShadow = true; X.props.root.add(mm); SH.pileM.push(mm);
   }
 }
 /** the pits as the save has them (st.pitIn[i]: chunks in pit i) ── h117 ── (ירון 10.11: "האבנים נופלות לבור אבל לא נערמות") an open
@@ -462,14 +468,14 @@ function heapSpots(i, n) {
   return out;
 }
 function heapFloor(i) { const f = SH.cells && SH.cells.pitInfo ? SH.cells.pitInfo(i) : null; return f ? f.floor : 0; }
-function heapMesh(X) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
+function heapMesh(X, k) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.lumpOf(k)); mm.castShadow = true; mm.receiveShadow = true; X.props.root.add(mm); return mm; }
 function heapPlace(mm, q, fy) { mm.scale.set(q.s, q.s * 0.8, q.s); mm.position.set(q.x, fy + q.y, q.z); mm.rotation.set(q.rx, q.ry, 0); }
 function heapSync(X) {
   const st = X.M.st; SH.heapM = SH.heapM || [];
   for (let i = 0; i < BOOK.pits.length; i++) {
     const n = (st.pitIn[i] | 0) >= PIT_CAP ? 0 : st.pitIn[i] | 0, L = (SH.heapM[i] = SH.heapM[i] || []);
     while (L.length > n) X.props.remove(L.pop());
-    while (L.length < n) L.push(heapMesh(X));
+    while (L.length < n) L.push(heapMesh(X, L.length + i));
     const Q = heapSpots(i, n), fy = heapFloor(i);
     L.forEach((mm, k) => heapPlace(mm, Q[k], fy));
   }
@@ -517,9 +523,7 @@ function gridOf(X, s, rows) {
   return { x0, z0, base: base - 0.12, rows, cx: b[0], cz: b[1] };
 }
 function slabMesh(X, L, broken, crew) {
-  const T = X.THREE, mat = X.props.M.stone.clone(); mat.color.offsetHSL(0, 0, (hash(L, Math.random()) - 0.5) * 0.06 - (crew ? 0.03 : 0));
-  const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(L * U * 0.96, 0.34, U * 0.94), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
-  if (broken) { const c = new T.Mesh(new T.PlaneGeometry(L * U * 0.7, 0.07), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.5; c.position.y = 0.18; g.add(c); }
+  void crew; const g = paveSlab(X.THREE, L * U - JOINT, U - JOINT, { cracked: broken, seam: X.props.M.seam });   // ── look A ── ── /look A ──
   X.props.root.add(g); return g;
 }
 /** the crews' paving round his rows: their row under his (y = −1), and SIDE_COLS cells each side for every row (2-slabs, offset) */
@@ -547,7 +551,7 @@ function layDone(X, s) {
   for (const c of crewSlabs(rows)) placeCrew(X, G, c);
   if (lay) {
     for (const [L, x, y, rot] of lay.s || []) { const m = slabMesh(X, L, false); const c0 = { x: G.x0 + (x + 0.5) * U, z: G.z0 + (y + 0.5) * U }; m.position.set(rot ? c0.x : c0.x + ((L - 1) * U) / 2, G.base + 0.17, rot ? c0.z + ((L - 1) * U) / 2 : c0.z); if (rot) m.rotation.y = Math.PI / 2; }
-    for (const [x, y] of lay.f || []) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.stoneD); mm.scale.set(U * 0.42, 0.25, U * 0.42); mm.position.set(G.x0 + (x + 0.5) * U, G.base + 0.15, G.z0 + (y + 0.5) * U); X.props.root.add(mm); }
+    for (const [x, y] of lay.f || []) { const mm = new X.THREE.Mesh(X.props.geo.chunk, X.props.M.lump); mm.scale.set(U * 0.42, 0.25, U * 0.42); mm.position.set(G.x0 + (x + 0.5) * U, G.base + 0.15, G.z0 + (y + 0.5) * U); X.props.root.add(mm); }
   } else {
     // (an older save: a laying of the right kind)
     trueLaying(s + 1, rows).forEach((row, y) => { let x = 0; for (const l of row) { const m = slabMesh(X, l, false); m.position.set(G.x0 + (x + l / 2) * U, G.base + 0.17, G.z0 + (y + 0.5) * U); x += l; } });
@@ -572,20 +576,14 @@ function quarterOf(X, s, qi) {
   return { s, qi, x0, z0, sx0, sz0, base: base - 0.12, cx: x0 + (QN * QU) / 2, cz: z0 + (QN * QU) / 2, R };
 }
 function pvSlab(X, w, h, cracked) {
-  const T = X.THREE, mat = X.props.M.stone.clone(); mat.color.offsetHSL(0, 0, (Math.random() - 0.5) * 0.07);
-  const g = new T.Group(); const m = new T.Mesh(new T.BoxGeometry(w * QU - 0.1, 0.34, h * QU - 0.1), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); g.userData.body = m;
-  if (cracked) { const c = new T.Mesh(new T.PlaneGeometry(Math.max(w, h) * QU * 0.8, 0.09), X.props.M.seam); c.rotation.x = -Math.PI / 2; c.rotation.z = 0.6; c.position.y = 0.18; g.add(c); }
+  const g = paveSlab(X.THREE, w * QU - JOINT, h * QU - JOINT, { cracked, seam: X.props.M.seam });   // ── look A ── ── /look A ──
   X.props.root.add(g); return g;
 }
 /** a quarter as it was laid (a reload, or the crews'): its slabs, one merged mesh */
 function quarterMesh(X, Q, tiles) {
-  const T = X.THREE, geos = [];
-  for (const [w, h, x, y] of tiles) { const gm = new T.BoxGeometry(w * QU - 0.1, 0.34, h * QU - 0.1); gm.translate(Q.x0 + (x + w / 2) * QU, Q.base + 0.17, Q.z0 + (y + h / 2) * QU); geos.push(gm.toNonIndexed()); gm.dispose(); }
-  let n = 0; for (const g of geos) n += g.attributes.position.count;
-  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3); let o = 0;
-  for (const g of geos) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; g.dispose(); }
-  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.BufferAttribute(nor, 3));
-  const m = new T.Mesh(geo, X.props.M.stone); m.castShadow = true; m.receiveShadow = true; m.name = 'h116-quarter'; X.props.root.add(m); return m;
+  // ── look A ── chamfered slabs of the stone system, each its own tone, the joints' light dust under them ── /look A ──
+  const m = paveQuarter(X.THREE, tiles.map(([w, h, x, y]) => [Q.x0 + (x + w / 2) * QU, Q.z0 + (y + h / 2) * QU, w * QU - JOINT, h * QU - JOINT]), { y: Q.base + 0.17, box: [Q.x0, Q.z0, QN * QU], seed: Q.s * 4 + Q.qi + 1 });
+  m.name = 'h116-quarter'; X.props.root.add(m); return m;
 }
 const layKey = (s, qi) => `q${s}_${qi}`;
 /** the quarters he (or the crews) laid, as the save has them */
@@ -632,6 +630,7 @@ export const PAVE = {
     const chalk = new T.Group(); { const CM = new T.MeshBasicMaterial({ color: '#FBF6E8', transparent: true, opacity: 0.85, depthWrite: false });
       for (const t of PV.chalkOf(L)) { const x0 = Q.x0 + t.x * QU + 0.12, z0 = Q.z0 + t.y * QU + 0.12, w = t.w * QU - 0.24, d = t.h * QU - 0.24;
         for (const [ww, dd, x, z] of [[w, 0.09, x0 + w / 2, z0], [w, 0.09, x0 + w / 2, z0 + d], [0.09, d, x0, z0 + d / 2], [0.09, d, x0 + w, z0 + d / 2]]) { const e = new T.Mesh(new T.BoxGeometry(ww, 0.02, dd), CM); e.position.set(x, Q.base + 0.03, z); e.renderOrder = 2; chalk.add(e); } }
+      chalk.add(paveBed(T, Q.x0, Q.z0, QN * QU, Q.base + 0.012));   // ── look A ── (the earth bed: the joints read while it is laid) ── /look A ──
       X.props.root.add(chalk); }
     const onChalk = (w, h, x, y) => PV.chalkOf(L).some((t) => t.w === w && t.h === h && t.x === x && t.y === y);
     // the green (or pale) outline where the slab in hand would lie, and the ring where four corners would meet
@@ -653,7 +652,7 @@ export const PAVE = {
     if (step >= 5) {
       bin = new T.Group(); const gy = Math.max(Q.base, X.ground(crate.x, crate.z));
       for (const [w, d, x, z] of [[2.6, 0.14, 0, -0.9], [2.6, 0.14, 0, 0.9], [0.14, 1.9, -1.25, 0], [0.14, 1.9, 1.25, 0]]) { const p2 = new T.Mesh(new T.BoxGeometry(w, 0.7, d), X.props.M.wood); p2.position.set(x, 0.35, z); bin.add(p2); }
-      for (let k = 0; k < 4; k++) { const sh = new T.Mesh(X.props.geo.chunk, X.props.M.stoneD); sh.scale.set(0.35, 0.18, 0.3); sh.position.set(-0.7 + k * 0.45, 0.45, (k % 2) * 0.4 - 0.2); bin.add(sh); }
+      for (let k = 0; k < 4; k++) { const sh = new T.Mesh(X.props.geo.chunk, X.props.M.lump); sh.scale.set(0.35, 0.18, 0.3); sh.position.set(-0.7 + k * 0.45, 0.45, (k % 2) * 0.4 - 0.2); bin.add(sh); }
       bin.position.set(crate.x, gy, crate.z); X.props.root.add(bin);
     }
     function homeOf(q) { const St = stacks[q.k]; return { x: St.x + (Math.max(q.w, q.h) * QU) / 2, z: St.z + (Math.min(q.w, q.h) * QU) / 2 }; }
@@ -1057,15 +1056,17 @@ function dressStart(X, s, n, lost) {
   const sx = b[0] + b[2] + 3.2, sz = b[1] + 1.5, sled = new T.Group(), blocks = [];
   { const bed = new T.Mesh(new T.BoxGeometry(3.2, 0.25, 2.2), X.props.M.wood); bed.position.y = 0.4; sled.add(bed); }
   sled.position.set(sx, X.ground(sx, sz), sz); X.props.root.add(sled);
-  for (let i = 0; i < n; i++) { const m = new T.Mesh(new T.BoxGeometry(1.4, 0.7, 0.9), X.props.M.stone); m.castShadow = true; m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
+  for (let i = 0; i < n; i++) { const m = X.props.stoneMesh(1.4, 0.7, 0.9); m.position.set((i % 2) * 1.5 - 0.75, 0.9 + Math.floor(i / 2) * 0.72, 0); m.visible = false; sled.add(m); blocks.push(m); }
   const y0 = R.group.position.y;
-  SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0 });
+  // ── look A ── (as the halves are worked their skin goes to the fresh stone — the skin stays through the first half of the dressing, the split's own faces alone fresh: a clone of the rock's material, R.dispose takes it) ── /look A ──
+  const m0 = R.whole.material, dm = rockClone(m0); R.group.traverse((c) => { if (c.isMesh && c.material === m0) c.material = dm; });
+  SH.dress = SH.dress || []; SH.dress.push({ s, t: 0, R, men, sled, blocks, n, lost, y0, gy, sparkT: 0, dm });
 }
 function dressFrame(dt, X) {
   for (const D of SH.dress || []) {
     D.t += dt; const k = Math.min(1, D.t / 3.2), b = SH.bould[D.s];
     if (D.R) {
-      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k);
+      D.R.group.scale.setScalar(1 - 0.85 * k); D.R.group.position.y = D.gy + (D.y0 - D.gy) * (1 - 0.85 * k); lookFresh(D.dm, Math.max(0, (k - 0.5) / 0.5));   // ── look A ── ── /look A ──
       D.sparkT -= dt; if (D.sparkT <= 0 && k < 1) { D.sparkT = 0.35; X.sparks(b[0] + (Math.random() - 0.5) * b[2], D.gy + 1.2, b[1] + (Math.random() - 0.5) * b[2], 5); X.play('tool'); }
       D.blocks.forEach((m, i) => { m.visible = k > (i + 1) / (D.n + 1); });
       if (k >= 1) { D.R.dispose(); SH.big[D.s] = null; D.R = null; if (D.lost) wasteAdd(X, 2, null); else X.M.st.yard = (X.M.st.yard | 0) + D.n; yardSync(X); }
@@ -1082,7 +1083,7 @@ function yardSync(X) {
   while (SH.yardM.length > n) X.props.remove(SH.yardM.pop());
   while (SH.yardM.length < n) {
     const i = SH.yardM.length, row = Math.floor(i / 10) % 3, lay = Math.floor(i / 30), x = Y.x - 7 + (i % 10) * 1.6, z = Y.z - 2 + row * 1.2;
-    const m = new X.THREE.Mesh(new X.THREE.BoxGeometry(1.4, 0.7, 0.9), X.props.M.stone); m.position.set(x, X.ground(x, z) + 0.35 + lay * 0.72, z); m.castShadow = true; X.props.root.add(m); SH.yardM.push(m);
+    const m = X.props.stoneMesh(1.4, 0.7, 0.9, { seed: i * 3.1 + 0.7 }); m.position.set(x, X.ground(x, z) + 0.35 + lay * 0.72, z); SH.yardM.push(m);
   }
 }
 export function frame2(dt, X, sh) {

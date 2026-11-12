@@ -20,12 +20,20 @@ const wallOf = (B) => (B.axis === 'x' ? [0, Math.sign(B.pa[1]) * 67.5] : [141, 0
 
 export function createLoad(X) {
   const T = X.THREE, st = X.M.st, PR = X.props, all = [], men = [];
-  const S = { lv: 0, grades: {}, t: 0, step: 'climb' };
+  const S = { lv: 0, grades: {}, t: 0, step: 'climb', fx: [] };
   try { globalThis.__H120_LOADST = S; } catch (e) { /* (the probes' eyes) */ }
   const rig = nightRig(X, 'evening');
   let live = true;
   // (the light rig every frame while it plays: the world's own grade must not win back)
-  const tick = () => { if (!live) return; rig.apply(); requestAnimationFrame(tick); };
+  // (the camera is the test's own while it plays: an eased move to each shot, then held there)
+  const CAM = { p0: null, t0: null, p1: null, t1: null, s: 0, d: 1 };
+  const camTo = (p, t, d) => { const c = X.camera, q = new T.Vector3(); c.getWorldDirection(q); CAM.p0 = CAM.p1 ? CAM.p1.slice() : [c.position.x, c.position.y, c.position.z]; CAM.t0 = CAM.t1 ? CAM.t1.slice() : [c.position.x + q.x * 20, c.position.y + q.y * 20, c.position.z + q.z * 20]; CAM.p1 = p; CAM.t1 = t; CAM.s = S.t; CAM.d = Math.max(0.01, d); };
+  // (driven by the world's own frame — h120/world.js calls SH5.film.frame(dt) — so its time is the world's, as the director's waits)
+  const hook = { frame(dt) {
+    if (!live) return; S.t += dt; rig.apply();
+    for (const f of S.fx) f(dt);
+    if (CAM.p1) { const u = ease(clamp((S.t - CAM.s) / CAM.d, 0, 1)), L = (a, b) => a.map((v, i) => v + (b[i] - v) * u); X.shot(L(CAM.p0, CAM.p1), L(CAM.t0, CAM.t1), 0.01); }
+  } };
 
   /** the bay's frame: its beam's middle, the axis along it, the direction from the beam to its wall */
   function bay(lv) {
@@ -38,7 +46,7 @@ export function createLoad(X) {
   function menOn(lv) {
     const b = bay(lv), L = [];
     for (let k = 0; k < 4; k++) {
-      const u = (k - 1.5) * 1.8 + (k % 2 ? 0.3 : -0.3), d = 1.0 + (k % 2) * 1.6;
+      const u = (k - 1.5) * 2.4, d = 1.0 + (k % 2) * 1.4;
       const x = b.mx + b.ax[0] * u + b.toWall[0] * d, z = b.mz + b.ax[1] * u + b.toWall[1] * d;
       const w = gal(SH5.crew.add(x, z, { role: 'hold', item: 'basket', crew: (k % 3) + 1 }));
       if (w) { w.fx = x - b.toWall[0] * 5; w.fz = z - b.toWall[1] * 5; L.push(w); men.push(w); }
@@ -56,14 +64,14 @@ export function createLoad(X) {
   /** the camera at a bay: from the court in front of it, a little to the side, looking up at the beam and the men on it */
   function shotAt(lv, dur) {
     const b = bay(lv), out = [-b.toWall[0], -b.toWall[1]];
-    const p = [b.mx + out[0] * 15 + b.ax[0] * 4, Y.COL_TOP - 3.5, b.mz + out[1] * 15 + b.ax[1] * 4], t = [b.mx + b.toWall[0] * 1.2, Y.COL_TOP + 0.6, b.mz + b.toWall[1] * 1.2];
-    X.shot(p, t, dur);
+    const p = [b.mx + out[0] * 21 + b.ax[0] * 5, Y.COL_TOP - 2.5, b.mz + out[1] * 21 + b.ax[1] * 5], t = [b.mx + b.toWall[0] * 1.2, Y.COL_TOP + 0.6, b.mz + b.toWall[1] * 1.2];
+    camTo(p, t, dur);
   }
   /** the gold flash along the beam: an additive bar that swells and fades */
   function flash(lv) {
     const b = bay(lv), g = new T.Mesh(new T.BoxGeometry(b.B.axis === 'x' ? b.len : 0.9, 0.9, b.B.axis === 'x' ? 0.9 : b.len), new T.MeshBasicMaterial({ color: '#FFD46A', transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false }));
     g.position.set(b.mx, (Y.COL_TOP + Y.BEAM_TOP) / 2, b.mz); PR.root.add(g); all.push(g);
-    const t0 = performance.now(); const run = () => { const u = (performance.now() - t0) / 900; if (u >= 1 || !live) { PR.remove(g); return; } g.material.opacity = Math.sin(u * Math.PI) * 0.75; const s = 1 + u * 0.15; g.scale.set(s, 1 + u * 0.6, s); requestAnimationFrame(run); }; run();
+    let u = 0; const run = (dt) => { u += dt / 0.9; if (u >= 1) { PR.remove(g); S.fx.splice(S.fx.indexOf(run), 1); return; } g.material.opacity = Math.sin(u * Math.PI) * 0.75; const s = 1 + u * 0.15; g.scale.set(s, 1 + u * 0.6, s); }; S.fx.push(run);
   }
   /** the prop: a cedar post brought lying on the court, raised under the beam's middle; then the world's own (st.props) */
   async function prop(lv) {
@@ -106,11 +114,11 @@ export function createLoad(X) {
 
   async function play() {
     try {
-      finalWorld(X); rig.on(); live = true; tick();
+      finalWorld(X); rig.on(); live = true; SH5.film = hook;
       X.line('בודקים את הגזוזטרא: כל הצוותים עולים בסולמות עם סלי אבנים', 3400);
       // the climb: four men up the south-west ladder, one after another
       const [lx, lz] = LADDERS[0];
-      X.shot([lx + 9, Y.GFLOOR - 4, lz - 13], [lx + 0.5, H120.FLOOR + 6.5, lz + 1.5], 1.2);
+      camTo([lx + 14, Y.GFLOOR - 2, lz - 20], [lx + 1, H120.FLOOR + 7, lz + 2], 1.2);
       const C = climbers(), t0 = S.t;
       for (let i = 0; i < 70; i++) {
         for (const w of C) { const u = clamp((i * 0.05 - w.k * 0.7) / 2.2, 0, 1); w.a.ground = null; w.a.y = w.a.fixedY = H120.FLOOR + u * (Y.GFLOOR - H120.FLOOR); w.a.z = lz + 0.2 + u * 2.2; w.a.armT[0] = w.a.armT[2] = 1.6 + 0.5 * Math.sin(i * 0.6 + w.k); }
@@ -125,7 +133,7 @@ export function createLoad(X) {
       else X.line(n ? `${n} מתוך 3 מפתחים בלי חריקה · הסמוכות נשארות במקומן` : 'כל המפתחים חורקים · הסמוכות נשארות במקומן', 3600);
       await X.wait(n === 3 ? 0.4 : 3.0);
     } finally {
-      live = false; drop(men.slice()); for (const o of all) PR.remove(o); rig.off(); rig.dispose();
+      live = false; if (SH5.film === hook) SH5.film = null; drop(men.slice()); for (const o of all) PR.remove(o); rig.off(); rig.dispose();
     }
   }
   return { play, get state() { return { lv: S.lv, grades: { ...S.grades } }; } };

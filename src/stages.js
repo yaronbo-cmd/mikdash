@@ -324,7 +324,7 @@ function makeHill(T) {
   // colours: ── look B ── the large-scale tone only (look/ground.js draws the rock, the earth, the stones and the straw on it): dry straw
   // earth, terra rossa in pockets, a dry-olive tint where the scrub grows, paler where the rock comes up, dust at the rim ── /look B ──
   const nor = g.attributes.normal.array, C = (h) => new THREE.Color(h);
-  const rock = C('#DCD2BC'), earth = C('#C9B793'), earthB = C('#B09D7C'), soil = C('#A68A70'), scrub = C('#9A9064'), dust = C('#D6C8A6');
+  const rock = C('#DCD2BC'), earth = C('#CCB089'), earthB = C('#B39872'), soil = C('#A8876A'), scrub = C('#9A9064'), dust = C('#D6C8A6');
   const c = new THREE.Color(), tc = new THREE.Color();
   for (let k = 0; k < N; k++) {
     const x = pos[k * 3], z = pos[k * 3 + 2], ny = nor[k * 3 + 1];

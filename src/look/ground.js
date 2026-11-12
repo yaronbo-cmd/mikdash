@@ -71,9 +71,15 @@ export function groundDetailData(n = 512) {
     stamp(cx, cy, rad, 0, (dx, dy) => { const d = Math.hypot(dx, dy * 1.3) / rad; return d > 1 ? null : (a) => a - dk * (1 - d * d); });
   }
   // the low shrubs (Poterium, thyme): dark rounded spots with a ragged edge
-  for (let i = 0; i < 18; i++) {
-    const cx = r() * n, cy = r() * n, rad = (8 + r() * 12) * q, ph = r() * 6.28;
-    stamp(cx, cy, rad * 1.2, 0, (dx, dy) => { const a = Math.atan2(dy, dx), d = Math.hypot(dx, dy) / (rad * (0.9 + 0.08 * Math.sin(a * 3 + ph) + 0.06 * Math.sin(a * 7 - ph))); return d > 1 ? null : (o) => (d > 0.8 ? Math.min(o, 0.12) : 0.04 + 0.08 * d + 0.04 * Math.sin(dx * 1.3 / q) * Math.sin(dy * 1.5 / q)); });
+  // (── look B review G6 ── fewer, and each a low dome: lit on the sun's side (up-left), dark on the far one ── /look B ──)
+  for (let i = 0; i < 14; i++) {
+    const cx = r() * n, cy = r() * n, rad = (7 + r() * 10) * q, ph = r() * 6.28;
+    stamp(cx, cy, rad * 1.2, 0, (dx, dy) => {
+      const a = Math.atan2(dy, dx), d = Math.hypot(dx, dy) / (rad * (0.9 + 0.08 * Math.sin(a * 3 + ph) + 0.06 * Math.sin(a * 7 - ph)));
+      if (d > 1) return null;
+      const lit = Math.max(0, Math.min(1, 0.5 + 0.5 * (-(dx + dy) * 0.707) / rad - 0.25 * d * d));
+      return () => 0.03 + 0.11 * lit + 0.012 * Math.sin(dx * 1.7 / q) * Math.sin(dy * 1.9 / q);
+    });
   }
   // dry straw stubble: tufts of short strokes (── look B review G4 ── half the size, fewer, sparser ── /look B ──)
   for (let t = 0; t < 80; t++) {
@@ -85,8 +91,8 @@ export function groundDetailData(n = 512) {
   }
   // gravel: ── look B review G2 ── sparse angular limestone chips of mixed sizes on dust (about 8 % cover), not a pebble mosaic: each a
   // polygon of five facets, the facets toward the sun lighter, a thin shadow on the far side ── /look B ──
-  for (let i = 0; i < 75; i++) {
-    const cx = r() * n, cy = r() * n, rad = (5 + r() * r() * 16) * q, l = 0.62 + r() * 0.3, a0 = r() * 6.28, F = [];
+  for (let i = 0; i < 70; i++) {
+    const cx = r() * n, cy = r() * n, rad = (4 + r() * r() * 14) * q, l = 0.62 + r() * 0.3, a0 = r() * 6.28, F = [];
     for (let f = 0; f < 5; f++) { const a = a0 + f * 1.2566 + (r() - 0.5) * 0.7; F.push([Math.cos(a), Math.sin(a), 0.7 + r() * 0.4]); }
     stamp(cx, cy, rad * 1.3, 1, (dx, dy) => {
       let d = 0, fk = F[0];
@@ -282,22 +288,24 @@ vec3 grGround(vec3 vc) {
   // EARTH: mottled, dry straw in tufts, the low dark shrubs, darker in the hollows and where trodden
   // (trodden: packed, smoother, darker)
   float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
-  vec3 earth = vc * (0.64 + 0.48 * mix(clamp(em, 0.2, 0.75), d2.r, 0.3));
+  vec3 earth = vc * (0.6 + 0.56 * mix(clamp(em, 0.2, 0.75), d2.r, 0.3));
   float straw = smoothstep(0.78, 0.9, e) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - 0.6 * vGrA.y);
   // (look B review G4: the straw only a little lighter and yellower than its earth, and gone close up, where it would read as lines)
   straw *= smoothstep(0.022, 0.045, length(fwidth(p)));
   earth = mix(earth, earth * vec3(1.13, 1.1, 0.98) + uGrStraw * 0.03, straw * 0.7);
   earth = mix(earth, uGrDark * (0.8 + 0.4 * clamp(em, 0.2, 0.75)), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
-  float shrub = (1.0 - smoothstep(0.12, 0.18, e)) * (1.0 - trod);
-  earth = mix(earth, vec3(0.16, 0.15, 0.09) * (0.75 + 2.5 * e), shrub * 0.85);
+  // (look B review G6: the low shrubs only in clusters, by the rock's edge and in the hollows, grey-green, lit on one side)
+  float near = smoothstep(th - 0.2, th - 0.03, rf) * (1.0 - rk);
+  float shrub = (1.0 - smoothstep(0.15, 0.17, e)) * (1.0 - trod) * clamp(near * 1.8 + vGrA.y * 1.8 + smoothstep(0.6, 0.7, d2.r) * 0.9 - 0.05, 0.0, 1.0);
+  earth = mix(earth, vec3(0.30, 0.31, 0.23) * (0.55 + 4.0 * e), shrub * 0.9);
   vec3 grav = mix(uGrGrav, vc, 0.4) * (0.82 + 0.3 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
   vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw);
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
-  col = mix(col, uGrRock * (0.62 + 0.45 * mix(d1.g, d3.g, sw3)), chip * clamp(0.3 + gv * 0.6 + trod * 0.5, 0.0, 0.9));
-  col = mix(col, mix(col, uGrRock * 0.92, 0.45), rim * 0.6);
+  col = mix(col, mix(uGrRock, vc, 0.3) * (0.62 + 0.42 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.65));
+  col = mix(col, mix(col, uGrRock * 0.92, 0.4), rim * 0.4);
   // (the slab's own edge dusted with the earth round it)
   rock = mix(rock, mix(rock, col, 0.45), (1.0 - smoothstep(th + 0.01, th + 0.1, rf)) * (1.0 - steep));
   col = mix(col, rock, rk);
@@ -326,7 +334,7 @@ function uniforms(THREE) {
   const S = maskState(THREE), col = (h) => new THREE.Color(h);
   c.U = {
     uGrT: { value: detailTex(THREE) }, uGrM: { value: S.tex }, uGrMB: { value: S.box },
-    uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#8E7C64') },
+    uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#937A5C') },
   };
   return c.U;
 }

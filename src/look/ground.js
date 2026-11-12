@@ -273,7 +273,7 @@ vec3 grGround(vec3 vc) {
   // ROCK's own detail first (its pits decide where earth lies on it)
   float rb = mix(d1.b, d2.b, 0.45), sw = smoothstep(0.26, 0.5, slope);
 #ifndef GR_LITE
-  rb = mix(rb, texture2D(uGrT, us).b, sw);
+  if (sw > 0.0) rb = mix(rb, texture2D(uGrT, us).b, sw);   // (only on the steep)
 #endif
   // (look B review G5: no dark outline: the slab's edge ragged by the earth's mottle and its own pits, earth lying in its low spots,
   // a pale dusty band where the two meet)

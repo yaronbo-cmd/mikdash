@@ -9,6 +9,7 @@ import { ACTS } from './acts.js';
 import { SH5, initWorld, finalWorld, disposeChip, colFrame, colBuild } from './world.js';
 import { createFilm } from './film.js';
 import { createLoad } from './load.js';
+import { lookPose, sightPose, LOOK05 } from './look120.js';   // (build 124)
 
 /** the page's own flag: only=film (the finished stage, the film, again on a tap), only=load (planks' result, then the load test) */
 const PAGE = (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
@@ -35,6 +36,8 @@ export function makePack05() {
     create: (save) => createH120(save, { freeKinds: ['col'] }),
     count: (M) => M.count(),
     freeFilms: true,
+    // ── build 124 ── the right thumb's look in a walled court (director.js LK5, WL5): rises over the court, the sight rule
+    look: { pose: lookPose, sightPose, walk: true, ug: LOOK05.UG },
     crews: ['nashim', 3, [0, 1, 2]],
     endTitle: 'עזרת הנשים נבנתה!',
     endSub: 'עזרת הנשים היתה ארך מאה ושלשים וחמש על רוחב מאה ושלשים וחמש (מדות ב, ה)',

@@ -114,6 +114,9 @@ export const CARRY = {
     /* ── the fingers: the first anywhere leads the front (not on the rear man); on the rear man leads the rear; two lead both ── */
     const grip = () => clamp(0.07 * Math.min(innerWidth, innerHeight), 44, 70);
     const endScr = (p) => sc(X, V3(X, p[0], FL + A.SHY, p[1]));
+    // (build 124) a screen point's distance from the segment a–b (px), and a finger on the beam's own grips (an end within reach)
+    const segPx = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy, u = L2 > 1 ? clamp(((p.x - a[0]) * dx + (p.y - a[1]) * dy) / L2, 0, 1) : 0; return Math.hypot(p.x - a[0] - dx * u, p.y - a[1] - dy * u); };
+    const near2 = (f) => { const a = endScr(s.f), b = endScr(s.r); return Math.min(Math.hypot(f.x0 - a[0], f.y0 - a[1]), Math.hypot(f.x0 - b[0], f.y0 - b[1])) < grip() * 1.5; };
     const groundOf = (f) => { const q = onY(X, f, FL + A.SHY); return q ? [q.x, q.z] : null; };
     function fDown(f) {
       f.t0 = performance.now();
@@ -575,8 +578,16 @@ export const CARRY = {
       move(p) { FG.move(p); },
       up(p) { FG.up(p); },
       cancel() { A.F1 = A.F2 = null; if (A.trim) A.trim.F = null; },
-      wants() { return !A.busy && (A.phase === 'carry' || A.phase === 'trim'); },
-      holds() { return !!(A.F1 || (A.trim && A.trim.F)); },
+      // (build 124: the right thumb is free — the act takes only a touch near the kohen and the beam on the screen, or the trim's handle;
+      //  the left half is always its own: the director asks only of the right half)
+      wants(p) {
+        if (A.busy || (A.phase !== 'carry' && A.phase !== 'trim')) return false;
+        if (!p) return true;
+        const R = 0.32 * innerHeight;
+        if (A.phase === 'trim') { if (!A.trim) return false; const a = sc(X, handleW(-1)), c = sc(X, handleW(1)); return segPx(p, a, c) < R; }
+        return segPx(p, endScr(s.f), endScr(s.r)) < R;
+      },
+      holds() { return [...FG.L.values()].filter((f) => near2(f)).length >= 2; },   // (build 124: both fingers on the beam's ends — else two fingers are a pinch)
       end() {
         FG.detach(); SH5.laneHold = null; SH5.laneYield = null;
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }

@@ -486,7 +486,7 @@
       if (m === 'r') return { path: [a.rScr, aim.pt], ms: 500, keep: 30000, release: cond, wait: 150, note: `carry: the rear to ${to.map((v) => v.toFixed(1))}` };
       // (a front leg's finger never on the rear man: that would lead the rear)
       if (Math.hypot(aim.pt[0] - a.rScr[0], aim.pt[1] - a.rScr[1]) < a.grip + 4) return { wait: 200, note: 'carry: the point is on the rear man' };
-      return { holdUntil: [aim.pt[0], aim.pt[1], cond, 30000], wait: 150, note: `carry: the front to ${to.map((v) => v.toFixed(1))}` };
+      return { path: [a.fScr, aim.pt], ms: 500, keep: 30000, release: cond, wait: 150, note: `carry: the front to ${to.map((v) => v.toFixed(1))}` };   // (build 124: the finger lands on the kohen — a right-half touch elsewhere is the look's)
     },
     // station 4, the mikveh: level 3's ring to three amot; a test pour; the reference way drawn from the hollow to the basin; each point
     // the fall asks deeper held until it is deep enough (in order); level 3's overflow from the outlet to the door; the plug pulled up;

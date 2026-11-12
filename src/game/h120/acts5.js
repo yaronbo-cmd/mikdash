@@ -127,8 +127,17 @@ export const PLANKS = {
       move(p) { FG.move(p); },
       up(p) { FG.up(p); },
       cancel() { S.drag = null; },
-      wants() { return S.phase === 'lay'; },
-      holds() { return !!S.drag; },
+      // (build 124: the right thumb is free — the act takes a right-half touch only within grab reach of the plank in hand, along its
+      //  length; the plank is one finger's: two fingers are always a pinch)
+      wants(p) {
+        if (S.phase !== 'lay') return false;
+        if (!p) return true;
+        if (!cur || S.glide) return false;
+        const z = START + WID / 2 + S.p, a = sc(X, X0, Y.GFLOOR, z), b = sc(X, X1, Y.GFLOOR, z), dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+        const u = L2 > 1 ? clamp(((p.x - a[0]) * dx + (p.y - a[1]) * dy) / L2, 0, 1) : 0;
+        return Math.hypot(p.x - a[0] - dx * u, p.y - a[1] - dy * u) < Math.max(90, 0.2 * innerHeight);
+      },
+      holds() { return false; },
       end() {
         FG.detach(); rig.off(); rig.dispose();
         for (const o of all) PR.remove(o);

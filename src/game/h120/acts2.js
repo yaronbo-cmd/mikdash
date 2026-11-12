@@ -509,8 +509,13 @@ export const SAW = {
       move(p) { FG.move(p); },
       up(p) { FG.up(p); },
       cancel() { A.endF = A.tailF = A.lineF = A.sawF = null; A.sawV = 0; },
-      wants(p) { return !!nearest(p); },
-      holds() { return !!(A.endF || A.tailF || A.lineF || A.sawF); },
+      wants(p) {
+        const k = nearest(p); if (k !== 'saw' || !p) return !!k;
+        // (build 124: the saw's stroke is taken anywhere on the left half; on the right half only near the saw — the rest is the look's)
+        const a = sc(X, handleW(-1)), b = sc(X, handleW(1)), dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy, u = L2 > 1 ? clamp(((p.x - a[0]) * dx + (p.y - a[1]) * dy) / L2, 0, 1) : 0;
+        return Math.hypot(p.x - a[0] - dx * u, p.y - a[1] - dy * u) < 0.32 * innerHeight;
+      },
+      holds() { return [A.endF, A.tailF, A.lineF, A.sawF].filter(Boolean).length >= 2; },   // (build 124: two fingers on the work's own grips; one on a grip and one free is a pinch)
       end() {
         FG.detach();
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }

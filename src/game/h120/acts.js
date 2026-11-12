@@ -365,7 +365,7 @@ export const COL = {
       up(p) { FG.up(p); },
       cancel() { if (A.pullF) A.pullF = null; if (A.postF) A.postF = null; },
       wants(p) { return !!nearest(p); },
-      holds() { return !!(A.pullF || A.postF); },
+      holds() { return !!(A.pullF && A.postF); },   // (build 124: both fingers on the ropes and the post — one finger on a grip and one free is a pinch)
       end() {
         FG.detach();
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }

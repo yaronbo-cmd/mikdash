@@ -514,8 +514,21 @@ export const MIKVEH = {
       move(p) { FG.move(p); },
       up(p) { FG.up(p); },
       cancel() { for (const f of FG.L.values()) { f.what = null; f.deep = 0; } charcoalDraw(null); },
-      wants() { return !A.busy; },
-      holds() { return [...FG.L.values()].some((f) => f.what === 'draw' || f.what === 'vessel' || f.what === 'ring' || f.deep); },
+      // (build 124: the right thumb is free — the act takes a right-half touch only near what it really takes there: the hollow, the
+      //  channels' heads and every drawn point, the plug, the rod's ring, the outlet, the vessels; a tap on bare floor still pours: the
+      //  director hands an unmoved touch to the act as a tap on release)
+      wants(p) {
+        if (A.busy) return false;
+        if (!p) return true;
+        const L = [sp(hol[0], hol[1]), sp(MIK.inlet[0], MIK.inlet[1])];
+        if (lvP === 3) L.push(sp(MIK.outlet[0], MIK.outlet[1]));
+        for (const ch of [chIn, chOv]) if (ch) for (const q of along(ch.pts, 1)) L.push(sp(q[0], q[1]));
+        if (!A.plugOut && chIn) L.push(plugScr());
+        if (ring) { const r = ringScr(); if (r) L.push(r); }
+        for (const v of vesselsOf(moved)) L.push(vesScr(v));
+        return L.some((q) => q && Math.hypot(p.x - q[0], p.y - q[1]) < 90);
+      },
+      holds() { return [...FG.L.values()].filter((f) => f.what === 'draw' || f.what === 'vessel' || f.what === 'ring' || f.deep).length >= 2; },   // (build 124: one finger on a grip and one elsewhere: a pinch)
       end() {
         FG.detach(); voices.stop();
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }

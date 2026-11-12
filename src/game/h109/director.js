@@ -92,13 +92,14 @@ export function createH109Director(o) {
     else { CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u); CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k); }
     // ── h115 ── the right thumb's look (rule 61): the act's shot turned round its aim and lifted toward the horizon ── /h115 ──
     let lx = CAM.p.x, ly = CAM.p.y, lz = CAM.p.z;
-    if (LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3) {
+    if (PK.look && lk5Step(dt)) { /* ── h120 ── (build 124: a walled site's own look shape — h120/look120.js) ── /h120 ── */ }
+    else if (LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3) {
       const vx = lx - CAM.t.x, vy = ly - CAM.t.y, vz = lz - CAM.t.z, h0 = Math.hypot(vx, vz) || 1, d0 = Math.hypot(h0, vy);
       const c = Math.cos(LOOK.yaw), s = Math.sin(LOOK.yaw), hx = (vx * c - vz * s) / h0, hz = (vx * s + vz * c) / h0;
       const el0 = Math.atan2(vy, h0), el = el0 + (0.14 - el0) * LOOK.u, d = d0 * (1 + 3.2 * LOOK.u) + 40 * LOOK.u;
       lx = CAM.t.x + hx * d * Math.cos(el); ly = CAM.t.y + d * Math.sin(el); lz = CAM.t.z + hz * d * Math.cos(el);
     }
-    view.camSet(lx, ly, lz, CAM.t.x, CAM.t.y, CAM.t.z);
+    if (!(PK.look && LK5.on)) view.camSet(lx, ly, lz, CAM.t.x, CAM.t.y, CAM.t.z);   // ── h120 ── (LK5.on: lk5Step set it) ── /h120 ──
     // ── h112 ── (before each render OrbitControls keeps the camera its minDistance from the target and main.js clampCam lifts it to the
     // Mount's floor: the same here, or a touch's ray and project() would be of another camera than the frame shown) ── /h112 ──
     try {
@@ -119,7 +120,7 @@ export function createH109Director(o) {
   const LOOK = { id: null, drag: false, pend: null, x0: 0, y0: 0, yaw: 0, u: 0, yaw0: 0, u0: 0, away: false, back: 0 };
   // ── h117 ── (ירון 10.11: play on while a little zoomed out) the act waits only when the camera is out of the play zone ── /h117 ──
   const lookOff = () => LOOK.drag || LOOK.away || LOOK.back > 0 || !!LOOK.pinch;
-  const lookAway = () => lookOff() && lookZone(LOOK.u, LOOK.yaw) !== 'play';
+  const lookAway = () => lookOff() && zone5(LOOK.u, LOOK.yaw) !== 'play';   // ── h120 ── (zone5) ── /h120 ──
   const lookSet = () => { LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.away && !LOOK.drag && !LOOK.pinch) { LOOK.yaw = 0; LOOK.u = 0; } };
   function lookCandidate(e) {
     if (e.pointerType === 'mouse') return e.button === 2 ? 'look' : null;
@@ -141,8 +142,114 @@ export function createH109Director(o) {
       if (!LOOK.back) { LOOK.yaw = 0; LOOK.u = 0; LOOK.away = false; emit('h109look', { on: false }); }
     }
   }
-  function lookReset() { LOOK.id = null; LOOK.drag = false; LOOK.pend = null; LOOK.away = false; LOOK.back = 0; LOOK.yaw = 0; LOOK.u = 0; LOOK.pinch = null; }
-  addEventListener('contextmenu', (e) => { if (act && phase === 'act') e.preventDefault(); }, { capture: true });
+  function lookReset() { LOOK.id = null; LOOK.drag = false; LOOK.pend = null; LOOK.away = false; LOOK.back = 0; LOOK.yaw = 0; LOOK.u = 0; LOOK.pinch = null; if (LK5.on) lk5Off(); }   // ── h120 ── (lk5Off: the lens back) ── /h120 ──
+  // ── h120 ── (build 124, the owner on build 120: "המצלמה לא עובדת. ביד ימין לא מראה את העולם בצורה טובה") a pack's own look shape
+  // (PK.look: stage 05's walled court, h120/look120.js): the camera pulls back and RISES over the court as u grows, its view tilting up
+  // and its lens widening a little — the work low in the frame, the court, the Mount, the city and the sky; a sight rule (the pack's
+  // boxes and the world's frameBlocked) lifts it, or turns it toward the nearest clear side, so nothing ever stands between the camera
+  // and the work. The act plays only while the work is in the frame (LK5.seen) and the look is small (lookZone).
+  const LK5 = { on: false, fov0: null, lift: 0, dy: 0, gLift: 0, gDy: 0, tq: 0, key: '', seen: true, noExtra: false, extraT: 0 };
+  const lk5Extra = (pp, a) => { try { return !!(S0.frameBlocked && S0.frameBlocked(pp[0], pp[1], pp[2], a[0], a[1], a[2], PK.id)); } catch (e) { return false; } };
+  function lk5Step(dt) {
+    const want = LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3;
+    if (!want) { if (LK5.on) lk5Off(); return false; }
+    const base = { p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: LK5.fov0 != null ? LK5.fov0 : camera.fov };
+    if (!LK5.on) { LK5.on = true; LK5.fov0 = camera.fov; base.fov = LK5.fov0; LK5.lift = LK5.dy = LK5.gLift = LK5.gDy = 0; LK5.tq = 0; LK5.noExtra = lk5Extra(base.p, base.t); }
+    // (the sight rule ten times a second, or at once when the thumb moved far: its answer eased in, never a jump)
+    LK5.tq -= dt; const key = LOOK.u.toFixed(2) + '|' + LOOK.yaw.toFixed(2) + '|' + base.t.map((v) => v.toFixed(1)).join(',');
+    if (LK5.tq <= 0 && key !== LK5.key) { LK5.tq = 0.1; LK5.key = key; try { const S5 = PK.look.sightPose(base, LOOK.u, LOOK.yaw, undefined, LK5.noExtra ? null : lk5Extra); LK5.gLift = S5.lift; LK5.gDy = S5.dyaw; } catch (e) { /* */ } }
+    const k = 1 - Math.exp(-dt * 7); LK5.lift += (LK5.gLift - LK5.lift) * k; LK5.dy += (LK5.gDy - LK5.dy) * k;
+    const q = PK.look.pose(base, LOOK.u, LOOK.yaw + LK5.dy, LK5.lift);
+    view.camSet(q.p[0], q.p[1], q.p[2], q.t[0], q.t[1], q.t[2]);
+    if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
+    // (the work in the frame: the act may play; out of it, or hidden, it waits)
+    try { const w = view.project(base.t[0], base.t[1], base.t[2]); LK5.seen = !!w.on && w.x > innerWidth * 0.04 && w.x < innerWidth * 0.96 && w.y > innerHeight * 0.08 && w.y < innerHeight * 0.94; } catch (e) { LK5.seen = true; }
+    return true;
+  }
+  function lk5Off() { LK5.on = false; LK5.seen = true; LK5.key = ''; if (LK5.fov0 != null) { camera.fov = LK5.fov0; camera.updateProjectionMatrix(); } LK5.fov0 = null; LK5.lift = LK5.dy = 0; }
+  /** the play zone: the look small (lookZone) and, with a pack's own look, the work in the frame */
+  /** the thumb's gain (u per screen height): 1.8, or the pack's own (the owner on build 120: "להרים ביד ימין בקלות את המצלמה") */
+  const UG = () => (PK.look && PK.look.ug) || 1.8;
+  const zone5 = (u, yaw) => (lookZone(u, yaw) === 'play' && (!PK.look || !LK5.on || LK5.seen) ? 'play' : 'wait');
+  // (build 124, rule 61 in the walk too) the right thumb on the free canvas while he walks (PK.look.walk): the same shape and sight
+  // rule round the kohen. twin.js keeps the camera: the look is said through its own hook (T.camOver = { el, d, az, ox, oz, oy }, the
+  // shift's), eased there; a tap, the walk zone (the left stick) or the next work bring the follow camera back (0.45 s, no cut).
+  const WL = { id: null, swallow: null, own: false, pend: false, x0: 0, y0: 0, drag: false, yaw: 0, u: 0, yaw0: 0, u0: 0, back: 0, on: false, off: null, fov0: null, m: 1, lift: 0, dy: 0, gLift: 0, gDy: 0, tq: 0, key: '', CO: null, noExtra: false };
+  const wlOk = () => !!(PK.look && PK.look.walk) && started && phase === 'walk' && !FLY && !OV.on;
+  const wlTw = () => { try { return o.twin ? o.twin() : null; } catch (e) { return null; } };
+  const wlAway = () => WL.drag || WL.u > 0.02 || Math.abs(WL.yaw) > 0.03;
+  function wl5Ptr(e) {
+    if (!wlOk()) { if (WL.id != null || WL.on) wl5Off(); return false; }
+    const mouse = e.pointerType === 'mouse';
+    if (e.type === 'pointerdown') {
+      const onC = e.target === canvas();
+      if (onC && WL.id == null && ((mouse && e.button === 2) || (!mouse && e.clientX >= innerWidth * 0.5))) {
+        // (while away the touch is the look's alone: a drag goes on looking from where it is, a tap brings the follow camera back —
+        //  never a tap on the world)
+        const own = WL.on && wlAway();
+        WL.id = e.pointerId; WL.pend = true; WL.drag = false; WL.x0 = e.clientX; WL.y0 = e.clientY; WL.yaw0 = WL.yaw; WL.u0 = WL.u; WL.back = 0; WL.own = own;
+        if (own) { e.stopImmediatePropagation(); e.preventDefault(); return true; }
+        if (mouse) { e.preventDefault(); e.stopImmediatePropagation(); WL.pend = false; WL.drag = true; return true; }   // (the right button: the look's alone)
+        return false;   // (twin.js sees it too: its pinch counts the finger)
+      }
+      if (WL.id != null && e.pointerId !== WL.id) { WL.id = null; WL.pend = false; WL.drag = false; }   // (a second finger: twin's pinch)
+      if (WL.on && wlAway() && (onC || (e.target && e.target.closest && e.target.closest('.tw-zone')))) {
+        WL.back = 0.45;
+        if (onC) { WL.swallow = e.pointerId; e.stopImmediatePropagation(); e.preventDefault(); return true; }   // (the canvas tap brings the camera back: not a pick)
+      }
+      return false;
+    }
+    if (WL.swallow != null && e.pointerId === WL.swallow) { e.stopImmediatePropagation(); if (e.type !== 'pointermove') WL.swallow = null; return true; }
+    if (WL.id == null || e.pointerId !== WL.id) return false;
+    if (e.type === 'pointermove') {
+      if (WL.pend && Math.hypot(e.clientX - WL.x0, e.clientY - WL.y0) > 12) { WL.pend = false; WL.drag = true; log('walk look'); }
+      if (WL.own && !WL.drag) e.stopImmediatePropagation();
+      if (WL.drag) { e.stopImmediatePropagation(); globalThis.__TW_GEST = performance.now(); WL.yaw = clamp(WL.yaw0 - ((e.clientX - WL.x0) / innerWidth) * 3.2, -2.8, 2.8); WL.u = clamp(WL.u0 + ((e.clientY - WL.y0) / innerHeight) * UG(), 0, 1); }
+      return WL.drag;
+    }
+    // (up: the view stays; a tap that never moved while away brings it back)
+    const was = WL.drag; WL.id = null; WL.pend = false; WL.drag = false;
+    if (was || WL.own) e.stopImmediatePropagation();
+    WL.own = false;
+    if (!was && WL.on && (WL.u > 0.02 || Math.abs(WL.yaw) > 0.03)) WL.back = 0.45;
+    if (!(WL.u > 0.02 || Math.abs(WL.yaw) > 0.03)) { WL.u = 0; WL.yaw = 0; }
+    return false;
+  }
+  function wl5Frame(dt) {
+    if (!wlOk()) { if (WL.on || WL.id != null) wl5Off(); return; }
+    if (WL.back > 0) {
+      WL.back = Math.max(0, WL.back - dt); const k = WL.back > 0 ? 1 - Math.exp(-dt * 9) : 1; WL.yaw -= WL.yaw * k; WL.u -= WL.u * k;
+      if (!WL.back) { WL.yaw = 0; WL.u = 0; }
+    }
+    const want = WL.drag || WL.u > 1e-3 || Math.abs(WL.yaw) > 1e-3;
+    const tw = wlTw(), h = heroAt();
+    if (!want || !tw || !h || !Number.isFinite(h.x)) { if (WL.on) wl5Off(); return; }
+    const aim = [h.x, h.y + 1.6, h.z];
+    if (!WL.on) {
+      view.camNow(cq); WL.off = [cq.px - cq.tx, cq.py - cq.ty, cq.pz - cq.tz]; WL.fov0 = camera.fov; WL.m = 1; WL.on = true;
+      WL.lift = WL.dy = WL.gLift = WL.gDy = 0; WL.tq = 0; WL.key = ''; WL.noExtra = lk5Extra([aim[0] + WL.off[0], aim[1] + WL.off[1], aim[2] + WL.off[2]], aim);
+      log('walk look on');
+    }
+    // (the distance twin.js draws is CO.d × its zoom and closeness factors: measured from the last frame, so u = 0 is its own shot)
+    try { const L = tw.lift && tw.lift(); if (WL.CO && L && L.d > 0 && WL.CO.d > 0 && tw.camOver === WL.CO) WL.m = clamp(L.d / WL.CO.d, 0.3, 4); } catch (e) { /* */ }
+    const base = { p: [aim[0] + WL.off[0], aim[1] + WL.off[1], aim[2] + WL.off[2]], t: aim, fov: WL.fov0 };
+    WL.tq -= dt; const key = WL.u.toFixed(2) + '|' + WL.yaw.toFixed(2) + '|' + aim.map((v) => v.toFixed(0)).join(',');
+    if (WL.tq <= 0 && key !== WL.key) { WL.tq = 0.1; WL.key = key; try { const S5 = PK.look.sightPose(base, WL.u, WL.yaw, undefined, WL.noExtra ? null : lk5Extra); WL.gLift = S5.lift; WL.gDy = S5.dyaw; } catch (e) { /* */ } }
+    const k = 1 - Math.exp(-dt * 7); WL.lift += (WL.gLift - WL.lift) * k; WL.dy += (WL.gDy - WL.dy) * k;
+    const q = PK.look.pose(base, WL.u, WL.yaw + WL.dy, WL.lift);
+    const vx = q.p[0] - q.t[0], vy = q.p[1] - q.t[1], vz = q.p[2] - q.t[2], R = Math.hypot(vx, vy, vz) || 1;
+    WL.CO = { el: Math.asin(clamp(vy / R, -1, 1)), d: R / WL.m, az: Math.atan2(vz, vx), ox: q.t[0] - aim[0], oz: q.t[2] - aim[2], oy: q.t[1] - aim[1], wl5: true };
+    tw.camOver = WL.CO;
+    if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
+  }
+  function wl5Off() {
+    const tw = wlTw(); try { if (tw && tw.camOver && tw.camOver.wl5) tw.camOver = null; } catch (e) { /* */ }
+    if (WL.fov0 != null) { camera.fov = WL.fov0; camera.updateProjectionMatrix(); }
+    if (WL.on) log('walk look off');
+    WL.on = false; WL.fov0 = null; WL.CO = null; WL.id = null; WL.pend = false; WL.drag = false; WL.u = 0; WL.yaw = 0; WL.back = 0; WL.lift = WL.dy = 0;
+  }
+  // ── /h120 ──
+  addEventListener('contextmenu', (e) => { if ((act && phase === 'act') || (PK.look && PK.look.walk && phase === 'walk' && started)) e.preventDefault(); }, { capture: true });   // ── h120 ── (the walk's right button too) ── /h120 ──
   // ── /h115 ──
 
   /* ───────── the touch on the world (during an act only) ───────── */
@@ -218,6 +325,7 @@ export function createH109Director(o) {
     return true;
   }
   function onPtr(e) {
+    if (PK.look && PK.look.walk && phase === 'walk' && wl5Ptr(e)) return;   // ── h120 ── (build 124: the right thumb's look in the walk) ── /h120 ──
     // ── h114 ── two fingers on the world during an act: a pinch in lifts to the overview ── /h114 ──
     if (act && phase === 'act' && e.pointerType === 'touch') {
       if (e.type === 'pointerdown' && !hudEl(e.target)) { OV.pins.set(e.pointerId, [e.clientX, e.clientY]); if (OV.pins.size === 2) { const [a, b] = [...OV.pins.values()]; OV.pd0 = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1; OV.pin0 = new Map([...OV.pins].map(([k, v]) => [k, v.slice()])); } }
@@ -254,7 +362,7 @@ export function createH109Director(o) {
         else if (e.type === 'pointercancel') { LOOK.pend = null; LOOK.id = null; }
         if (!LOOK.drag) return;
       }
-      if (e.type === 'pointermove') { LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -2.8, 2.8); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * 1.8, 0, 1); }
+      if (e.type === 'pointermove') { LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -2.8, 2.8); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * UG(), 0, 1); }   // ── h120 ── (UG: a pack's own gain — stage 05: a quarter of the screen lifts to the view) ── /h120 ──
       else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); }
       return;
     }
@@ -266,7 +374,7 @@ export function createH109Director(o) {
         const lc = lookCandidate(e);
         if (lc === 'look') { e.stopImmediatePropagation(); e.preventDefault(); lookStart(e.pointerId, e.clientX, e.clientY); return; }
         // (the camera away: this touch brings it back to the work and is not the act's)
-        if (LOOK.away && !LOOK.back && lookZone(LOOK.u, LOOK.yaw) !== 'play') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.back = 0.45; LOOK.swallow = e.pointerId; return; }
+        if (LOOK.away && !LOOK.back && zone5(LOOK.u, LOOK.yaw) !== 'play') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.back = 0.45; LOOK.swallow = e.pointerId; return; }   // ── h120 ── (zone5) ── /h120 ──
         if (lc === 'pend') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.id = e.pointerId; LOOK.pend = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now() }; return; }
       }
       if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -381,7 +489,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function uiFrame() {
     if (!UI.root) return;
     if (UI.ovt) UI.ovt.style.opacity = OV.on ? '1' : '0';
-    if (UI.lkb) { const lk = phase === 'act' && !!act && !OV.on && (LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03) && !LOOK.back; UI.lkb.classList.toggle('on', lk); UI.wait.classList.toggle('on', lk && lookZone(LOOK.u, LOOK.yaw) !== 'play'); }   // ── h117 ── ── /h117 ──
+    if (UI.lkb) { const lk = phase === 'act' && !!act && !OV.on && (LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03) && !LOOK.back; UI.lkb.classList.toggle('on', lk); UI.wait.classList.toggle('on', lk && zone5(LOOK.u, LOOK.yaw) !== 'play'); }   // ── h117 ── ── /h117 ──   // ── h120 ── (zone5) ── /h120 ──
     if (lineT && performance.now() > lineT) { lineT = 0; UI.line.classList.add('off'); }
     if (HINT.on) { const q = scr(HINT.x, HINT.y, HINT.z); UI.hand.style.left = q.x + 'px'; UI.hand.style.top = q.y + 'px'; }
     UI.rot.classList.toggle('want', owns());
@@ -807,6 +915,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (phase === 'end' || phase === 'film' || phase === 'act') camStep(dt);
     else if (FLY) flyFrame(dt);   // ── h115 ── ── /h115 ──
     if (phase === 'walk' && !mission && FREE()) freeWalk(dt);   // ── h114 ── ── /h114 ──
+    if (PK.look && PK.look.walk && (WL.on || WL.id != null || phase === 'walk')) wl5Frame(dt);   // ── h120 ── (build 124) ── /h120 ──
     if (phase === 'walk' && mission) {
       const sp = standOf(mission), h = heroAt();
       if (sp && h && Number.isFinite(h.x)) {
@@ -849,7 +958,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   return {
     owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end' || !!FLY), start, frame, marks, goal, goTo,
     get M() { return M; }, only: ONLY, site: PK.id, get pack() { return PK; },
-    state: () => ({ at: act && act.at ? call(act.at) : null, look: { u: +LOOK.u.toFixed(3), yaw: +LOOK.yaw.toFixed(3), play: lookZone(LOOK.u, LOOK.yaw) === 'play', away: lookAway() }, started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
+    state: () => ({ at: act && act.at ? call(act.at) : null, look: { u: +LOOK.u.toFixed(3), yaw: +LOOK.yaw.toFixed(3), play: zone5(LOOK.u, LOOK.yaw) === 'play', away: lookAway() }, wl: { on: WL.on, u: +WL.u.toFixed(3), yaw: +WL.yaw.toFixed(3), lift: +WL.lift.toFixed(3), dy: +WL.dy.toFixed(2) }, fov: +camera.fov.toFixed(1), started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),   // ── h120 ── (zone5) ── /h120 ──
     act: () => act,
     // ── h114 ── the top pill: the stage's works done of all (the old world's pill said "מדידה" all through stage 01) ── /h114 ──
     pill: () => { if (!FREE() || !started) return ''; const [n, of] = PK.count ? PK.count(M) : [M.st.done.length, PLAN.length]; return `<span class="gm-k">המטרה</span><span><b>${PK.name || 'שיטוח ההר'}</b> <span class="gm-sub">· ${n} מתוך ${of} עבודות</span></span>`; },   // ── h120 ── (PK.count: the pack's own n of m) ── /h120 ──

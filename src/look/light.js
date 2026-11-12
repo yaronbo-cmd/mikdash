@@ -23,8 +23,9 @@ export const WORK = Object.freeze({   // (tuning hook below: temporary)
   ease: 2.6,                    // seconds for the sun to reach its new place in the walk
   step: 0.2,                    // seconds between two moves of the shadows while it eases
 });
-// (C5) the acts whose work a long shadow would hide at the low sun: their sun held higher (none yet)
-export const ACT_SUN = Object.freeze({});
+// (C5) the acts whose work a long shadow would hide at the low sun (the shots at both ends of the sun's travel): their sun held higher.
+// corner: the corner tower's shadow over the setting square; great: the cut crest's shadow over the great stone's road down
+export const ACT_SUN = Object.freeze({ corner: [0.5, 1], great: [0.5, 1] });
 export function actSun(k, p) { const r = ACT_SUN[k]; return r ? Math.max(r[0], Math.min(r[1], p)) : p; }
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);

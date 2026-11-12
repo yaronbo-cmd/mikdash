@@ -49,7 +49,7 @@ export function createGang(X) {
   /** a worker at (x, z) facing (fx, fz); role: pick | hammer | pull | push | carry | kneel | pour | point | lever | hold | walk */
   function add(x, z, o = {}) {
     if (!A) return null;
-    const a = A.add('worker', x, z, { yaw: 0, col2: o.col2 || CREW[(o.crew | 0) % CREW.length], fadeIn: true });
+    const a = A.add(o.variant || 'worker', x, z, { yaw: 0, col2: o.col2 || CREW[(o.crew | 0) % CREW.length], fadeIn: true });   // ── h120 ── (o.variant: 'kohen' for a life-size kohen among the crew, in white with his turban and sash) ── /h120 ──
     try { a.col.set(o.tunic || TUNIC[Math.floor(rnd() * TUNIC.length)]); } catch (e) { /* */ }
     a.vis = 0; a.visT = 1;
     const w = { a, role: o.role || 'hold', off: o.off != null ? o.off : rnd() * 0.15, k: o.k || 2, fx: o.fx, fz: o.fz, t: 0, lastU: 0, onHit: o.onHit || null, from: o.from || null, to: o.to || null, leg: 0, wait: 0, item: o.item || null, dust: o.dust !== false, lean: o.lean || 0 };

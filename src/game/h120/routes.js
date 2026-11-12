@@ -37,6 +37,22 @@ export function laneAt(s) {
 /** where the sledge and the cart are at time t (their own clocks): in at 1.1 / 1.6 amot/s, unloading 5 s, out, then outside the gate
  *  50 / 40 s (the quarry's and the farm's way: so the court's crossing is clear now and then); the cart half a period later */
 export const LANE_OFF = Object.freeze({ sledge: 50, cart: 40 });
+/** the lane's stretch near level 3's way (lane distance, amot): a crew outside it waits at its edge while the beam comes near the
+ *  crossing, one inside it hurries out (world.js laneFrame) */
+export const LANE_Z = Object.freeze([16, 44]);
+/** the crossing itself (the stretch the beam's way crosses): clear of both crews → the beam may cross */
+export const LANE_X = Object.freeze([20, 40]);
+/** level 3's crossing point, and how near the beam's front must come for the crews to yield */
+export const LANE_CROSS = Object.freeze({ at: Object.freeze([124, -16]), r: 30 });
+/** a crew's clock one step on: while the beam comes near (yieldNow) a crew about to enter the stretch waits at its edge, one inside it
+ *  hurries (×1.7); otherwise its own pace */
+export function laneAdvance(t, which, dt, yieldNow) {
+  const inZ = (q) => !q.off && q.s > LANE_Z[0] && q.s < LANE_Z[1];
+  if (!yieldNow) return t + dt;
+  const q0 = laneState(t, which);
+  if (inZ(q0)) return t + dt * 1.7;
+  return inZ(laneState(t + dt, which)) ? t : t + dt;
+}
 export const lanePeriod = (which) => 2 * LANE_L / (which === 'sledge' ? 1.1 : 1.6) + 5 + LANE_OFF[which];
 export function laneState(t, which = 'sledge') {
   const V = which === 'sledge' ? 1.1 : 1.6, P = lanePeriod(which), u = (((t + (which === 'sledge' ? 0 : P / 2)) % P) + P) % P, tin = LANE_L / V;

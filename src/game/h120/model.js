@@ -239,7 +239,8 @@ export function sawStep(s, inp = {}, dt = 1 / 60, L = LV[1]) {
     // the carpenter's stroke: 0.55 s (level 3: 0.4 after the knot); driving against it binds the saw. His next stroke may start up to
     // 0.12 s before the carpenter's ends (in rhythm): then the carpenter's is over at once
     s.ct += dt;
-    const early = inp.down && v > SAW.V_ON && s.ct >= s.carpDur - 0.12;
+    const win = +inp.win || 0.12;
+    const early = inp.down && v > SAW.V_ON && s.ct >= s.carpDur - win;
     if (!early && inp.down && (v > SAW.V_ON || v < -SAW.V_ON) && !s.bindNow) { s.bindNow = 1; s.binds++; s.drift += 0.5; ev.push('bind'); }
     if (s.ct >= s.carpDur || early) {
       s.turn = 'his'; s.cEnd = s.t + Math.max(0, s.carpDur - s.ct); s.cn++;
@@ -255,7 +256,7 @@ export function sawStep(s, inp = {}, dt = 1 / 60, L = LV[1]) {
   if (!s.inStroke && !s.bindNow && inp.down && v > SAW.V_ON) {
     s.inStroke = 1; s.len = 0; s.peak = 0; s.wander = 0;
     const lag = s.t - s.cEnd;
-    if (s.cn > 0 && Math.abs(lag) <= 0.12) { s.rhythm++; s.run++; ev.push('rhythm'); } else if (s.cn > 0) s.run = 0;
+    if (s.cn > 0 && Math.abs(lag) <= (+inp.win || 0.12)) { s.rhythm++; s.run++; ev.push('rhythm'); } else if (s.cn > 0) s.run = 0;
   }
   if (s.inStroke) {
     if (v > 0) s.len += v * dt; s.peak = Math.max(s.peak, v);

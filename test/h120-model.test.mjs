@@ -421,3 +421,18 @@ test('station 3: the lane and the carriers keep fixed periods', () => {
   const m0 = moverAt(3, 0, 5), m1 = moverAt(3, 0, 5 + 2 * (m0.len / 1.3 + 1.5)); assert.ok(Math.abs(m0.x - m1.x) < 1e-6 && Math.abs(m0.z - m1.z) < 1e-6);
   assert.equal(moverAt(1, 0, 0), null);
 });
+
+test('level 3\'s crossing: the crews yield, so a clear crossing comes within 6 s of the beam\'s arrival and stays clear', async () => {
+  const R = await import('../src/game/h120/routes.js');
+  const clear = (ts, tc) => [['sledge', ts], ['cart', tc]].every(([w, t]) => { const q = R.laneState(t, w); return q.off || q.s <= R.LANE_X[0] || q.s >= R.LANE_X[1]; });
+  let worst = 0;
+  for (let t0 = 0; t0 < R.lanePeriod('sledge') + R.lanePeriod('cart'); t0 += 0.5) {
+    let ts = t0, tc = t0 * 0.73; const dt = 0.05;
+    // the beam's front comes within reach of the crossing 8 s before it is there (a fast player; leg 4 is 28 amot at 2.5 amot/s)
+    for (let k = 0; k < 160; k++) { ts = R.laneAdvance(ts, 'sledge', dt, true); tc = R.laneAdvance(tc, 'cart', dt, true); }
+    let w = 0; while (!clear(ts, tc) && w < 60) { ts = R.laneAdvance(ts, 'sledge', dt, true); tc = R.laneAdvance(tc, 'cart', dt, true); w += dt; }
+    worst = Math.max(worst, w);
+    for (let k = 0; k < 200; k++) { ts = R.laneAdvance(ts, 'sledge', dt, true); tc = R.laneAdvance(tc, 'cart', dt, true); assert.ok(clear(ts, tc), 'stays clear while the beam is there'); }
+  }
+  assert.ok(worst <= 6, 'worst wait ' + worst.toFixed(1));
+});

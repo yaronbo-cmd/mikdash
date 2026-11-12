@@ -431,6 +431,12 @@
       if (a.phase === 'line' && a.string) { const h = has('faint') ? 0.2 : 0.55; return { drag: [a.string[0], a.string[1], a.string[0], a.string[1] - a.reachL * h, 500], wait: 1300, note: 'saw: the string lifted ' + h }; }
       if (a.phase === 'saw') {
         if (a.propAt && !has('noprop')) return { tap: a.propAt, wait: 1200, note: 'saw: the prop at depth ' + a.depth };
+        // ('rhythm': a player in time — the finger already on the handle, the stroke begun as the carpenter's ends)
+        if (has('rhythm') && a.n >= 1 && a.turn === 'carp' && !a.inStroke && a.handle && a.axis) {
+          const inK = a.knot && a.depth >= a.knot[0] - 0.06 && a.depth <= a.knot[1], ln = inK ? 0.42 : 1.0, h = a.handle, to = [h[0] + a.axis[0] * a.strokePx * ln, h[1] + a.axis[1] * a.strokePx * ln];
+          const lead = +(window.__BOT_RHY_LEAD || 0.075);
+          return { when: C(`return !a||a.phase!=='saw'||a.turn!=='carp'||a.ct>=a.carpDur-${lead}`), max: 3000, then: { drag: [h[0], h[1], to[0], to[1], inK ? 520 : 560] }, wait: 60, note: `saw: stroke ${a.n + 1} in time (rhythm ${a.rhythm})` };
+        }
         if (a.turn !== 'his' || a.inStroke || !a.handle) return { wait: 40 };
         const inKnot = a.knot && a.depth >= a.knot[0] - 0.06 && a.depth <= a.knot[1];
         const short = a.n < 2 || inKnot, len = short ? 0.42 : 1.0, ms = short ? 520 : 560;
@@ -473,7 +479,7 @@
       const [m, x, z] = W[i], p = m === 'r' ? a.r : a.f;
       if (Math.hypot(p[0] - x, p[1] - z) < 0.12) { B.k.wi = i + 1; const sh = { 1: [3, 6], 2: [4, 6], 3: [5, 9] }[a.lvP] || []; if (sh.includes(i + 1)) return { wait: 300, shot: `carry${a.lvP}-leg${i + 1}` }; return { wait: 80, note: `carry: leg ${i + 1}/${W.length} (${m} ${x},${z}) bumps ${a.bumps} dmg ${a.dmg} ${a.events.join(',')}` }; }
       // (level 3: the lane's sledge and cart; cross only when neither is coming within reach)
-      if (a.lvP === 3 && i === 4 && !B.k.laneOk) { if (a.laneFree < 26) return { wait: 500, note: 'carry: waiting for a clear crossing (free for ' + a.laneFree + ' s) ' + JSON.stringify(a.lane) }; B.k.laneOk = 1; }
+      if (a.lvP === 3 && i === 5 && !B.k.laneOk) { if (!a.laneClear) { B.k.laneW0 = B.k.laneW0 || performance.now(); return { wait: 250, note: 'carry: waiting at the crossing ' + JSON.stringify(a.lane) }; } B.k.laneOk = 1; window.__LANE_WAIT = B.k.laneW0 ? +((performance.now() - B.k.laneW0) / 1000).toFixed(1) : 0; }
       if (!a.camOK) return { wait: 150 };   // (the camera eases toward the beam between holds: a point is taken once it is still)
       const aim = window.__H120C && window.__H120C.aim(m, x, z); if (!aim) return { wait: 200 };
       const to = aim.to, cond = C(`if(!a||a.phase!=='carry')return true;const p=${m === 'r' ? 'a.r' : 'a.f'};return Math.hypot(p[0]-(${to[0]}),p[1]-(${to[1]}))<0.1||(a.toD!=null&&a.toD<0.03)`);

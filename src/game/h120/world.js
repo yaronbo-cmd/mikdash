@@ -18,7 +18,7 @@ export const SH5 = { final: 0, X: null, B: null, crew: null, cols: {}, colKey: {
 const F = H120.FINGER, TAU = Math.PI * 2;
 
 /* ───────── fixed places (amot; rule 56): one table in routes.js, read by the world, the acts and the tests ───────── */
-import { YARD, SCAFF, PILES, LANE, LIME, LANE_L, laneAt, laneState } from './routes.js';
+import { YARD, SCAFF, PILES, LANE, LIME, LANE_L, laneAt, laneState, laneAdvance } from './routes.js';
 export { YARD, SCAFF, PILES, LANE, LIME, laneState };
 /** where a broken column's halves lie (the stone pile by the east gate) */
 const BROKE_AT = [110.5, -18.5];
@@ -372,7 +372,7 @@ function siteBuild(X) {
     for (let i = n0; i < all.length; i++) all[i].userData.scaf = si + 1;   // (a scaffold is hidden whole, its mason with it)
     // a mason on the upper lift, dressing the wall's course (he really works: a mallet and a chisel on the beat)
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, wx = x1 - x0 < z1 - z0 ? (x0 < 60 ? x0 - 1 : x1 + 1) : cx, wz = x1 - x0 < z1 - z0 ? cz : (z0 < 0 ? z0 - 1 : z1 + 1);
-    const w = SH5.crew.add(cx, cz, { role: 'hammer', item: 'chisel', fx: wx, fz: wz, crew: 1 }); if (w) { w.a.y = H120.FLOOR + 12; w.dust = false; w.scaf = si + 1; men.push(w); }
+    const w = SH5.crew.add(cx, cz, { role: 'hammer', item: 'chisel', fx: wx, fz: wz, crew: 1 }); if (w) { w.a.y = w.a.fixedY = H120.FLOOR + 12; w.dust = false; w.scaf = si + 1; men.push(w); }
   });
   for (const [x, z, n] of PILES) for (let i = 0; i < n; i++) { const r = Math.floor(i / 3), k = i % 3, a = (x * 7 + z * 3 + i) % 2 ? 0.12 : -0.08; const b = box(X, k % 2 ? M.h5lime : M.h5limeD, x - 1.6 + k * 1.05 + r * 0.5, H120.FLOOR + r * 0.62, z - 0.5, x - 0.7 + k * 1.05 + r * 0.5, H120.FLOOR + 0.6 + r * 0.62, z + 0.5); b.rotation.y = a; all.push(b); }
   // a broken column's halves (each fall) on the pile by the east gate
@@ -411,10 +411,13 @@ function laneFrame(dt) {
   const L = SH5.lane; if (!L || !L.sledge.parent) return;
   L.t += dt; const X = SH5.X;
   // (each on its own clock: a sledge or a cart whose next step would meet an act's beam (SH5.laneHold) halts until it is clear — station 3)
+  // (and while the beam comes near the crossing (SH5.laneYield, level 3 of station 3) a crew outside the crossing's stretch waits at
+  //  its edge, and one inside it hurries out: the crossing is clear within a few seconds and stays clear while the beam is there)
+  const yieldNow = !!(SH5.laneYield && SH5.laneYield());
   const hold = (which, tt) => { const q = laneState(tt + dt, which); return !!(SH5.laneHold && !q.off && SH5.laneHold(which, q.s, q.dir)); };
   L.ts = L.ts == null ? L.t : L.ts; L.tc = L.tc == null ? L.t : L.tc;
   L.holdS = hold('sledge', L.ts); L.holdC = hold('cart', L.tc);
-  if (!L.holdS) L.ts += dt; if (!L.holdC) L.tc += dt;
+  if (!L.holdS) L.ts = laneAdvance(L.ts, 'sledge', dt, yieldNow); if (!L.holdC) L.tc = laneAdvance(L.tc, 'cart', dt, yieldNow);
   // (while an act plays, the sledge and the cart go no farther along the lane than the act's view cone lets them: they unload there)
   const cap = SH5.cone ? SH5.cone.laneCap : LANE_L;
   const a = laneState(L.ts, 'sledge'); a.s = Math.min(a.s, cap); const p = laneAt(a.s), yaw = p.yaw + (a.dir < 0 ? Math.PI : 0);
@@ -439,7 +442,7 @@ function ambKeyOf(X) { const C = X.M.crew(); return JSON.stringify([C.cols.lengt
 function ambient(X) {
   for (const w of SH5.amb) SH5.crew.remove(w); SH5.amb = [];
   if (SH5.final) return;
-  const add = (x, z, o, y) => { const w = SH5.crew.add(x, z, o); if (w) { if (y != null) w.a.y = y; SH5.amb.push(w); } return w; };
+  const add = (x, z, o, y) => { const w = SH5.crew.add(x, z, o); if (w) { if (y != null) w.a.y = w.a.fixedY = y; SH5.amb.push(w); } return w; };   // (fixedY: a man on the joists stands on them, not on the floor under them)
   const C = X.M.crew(), up = new Set(C.cols.concat(X.M.his())), busyK = SH5.busy && X.mission ? X.mission.k : null;
   // the gang at the next column the crews will raise: two men levering it on its cradle, one dressing its plinth
   const next = busyK === 'col' ? null : COL_IDS.find((id) => !up.has(id) && !Object.values(BAYS).some((b) => b.col === id) && !SH5.own[id] && !SH5.rise[id]);
@@ -598,6 +601,26 @@ export function viewCone(X, shots, opt = {}) {
 /** (the director sets its own ground rect after make(): an act calls this again in its begin()) */
 export function coneKeep(X) { if (SH5.cone) keep(X, SH5.cone.rects); }
 /** an act's own figures or meshes, never hidden by its cone */
+/** a life-size kohen among the crew (white, his turban and sash): the acts' own kohen where his hands work at the crews' scale */
+export function kohenFig(x, z, o = {}) { return SH5.crew ? SH5.crew.add(x, z, { role: 'hold', crew: 2, variant: 'kohen', tunic: '#FFFFFF', col2: '#2E1E12', ...o }) : null; }
+/** a figure's two hands brought onto a grip p ({x, y, z}): the arms raised or lowered toward its height, the body stepping (inside a
+ *  leash round o.home) so the hands are on it; called every frame while he holds it. o: { home [x, z], leash, spread, rMin, rMax, face } */
+export function handsTo(X, w, p, o = {}) {
+  if (!w || !p || !w.a) return null;
+  const a = w.a, A = X.actors ? X.actors() : null; if (!A || !A.handWorld) return null;
+  let L, R; try { L = A.handWorld(a, 1, new X.THREE.Vector3()); R = A.handWorld(a, -1, new X.THREE.Vector3()); } catch (e) { return null; }
+  const mx = (L.x + R.x) / 2, my = (L.y + R.y) / 2, mz = (L.z + R.z) / 2;
+  const r = clamp((a.armT[0] || 0) + clamp((p.y - my) * 0.5, -0.09, 0.09), o.rMin != null ? o.rMin : 0.4, o.rMax != null ? o.rMax : 2.7);
+  a.arm[0] = a.armT[0] = a.arm[2] = a.armT[2] = r; a.arm[1] = a.armT[1] = a.arm[3] = a.armT[3] = o.spread != null ? o.spread : -0.24;
+  if (o.home) {
+    let nx = a.x + clamp((p.x - mx) * 0.7, -0.14, 0.14), nz = a.z + clamp((p.z - mz) * 0.7, -0.14, 0.14);
+    const dx = nx - o.home[0], dz = nz - o.home[1], d = Math.hypot(dx, dz), R0 = o.leash != null ? o.leash : 0.7;
+    if (d > R0) { nx = o.home[0] + (dx / d) * R0; nz = o.home[1] + (dz / d) * R0; }
+    a.x = nx; a.z = nz;
+  }
+  if (o.face !== false) a.yaw = Math.atan2(p.x - a.x, p.z - a.z);
+  return Math.hypot(p.x - mx, p.y - my, p.z - mz);
+}
 export function coneOwn(...objs) { if (SH5.cone) for (const o of objs) if (o) SH5.cone.skip.add(o); }
 
 /* ───────── the world as the save has it ───────── */

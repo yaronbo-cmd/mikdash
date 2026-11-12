@@ -8,8 +8,8 @@
  *   CARRY = { icon, title, walkLine, stand, prepare, make(m, X) → act }   (the registry of acts.js)
  */
 import { H120, Y, LV, BAYS, BEAM_OF, COLS, RUNS, carryStep, beamHits, fitOf, carryPts, qOf, starsOf, joistsOf } from './model.js';
-import { CARRY_PLACES, carryObs, carryStart, markOf, inMark, carryWay, moverAt, laneShape, laneState, YARD, SCAFF } from './routes.js';
-import { SH5, mats, box, label, own, viewCone, coneOwn, coneKeep, colFrame, trestle, scafShow } from './world.js';
+import { CARRY_PLACES, carryObs, carryStart, markOf, inMark, carryWay, moverAt, laneShape, laneState, LANE_X, LANE_CROSS, YARD, SCAFF } from './routes.js';
+import { SH5, mats, box, label, own, viewCone, coneOwn, coneKeep, colFrame, trestle, scafShow, kohenFig, handsTo } from './world.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
 
@@ -52,7 +52,7 @@ export const CARRY = {
     const beamG = new T.Group(); PR.root.add(beamG); all.push(beamG);
     const beamM = box(X, M.h5cedar, -cut / 2, -HB / 2, -HW, cut / 2, HB / 2, HW, beamG);
     box(X, M.h5cedarD, -cut / 2 - 0.005, -HB / 2, -HW, -cut / 2 + 0.01, HB / 2, HW, beamG); box(X, M.h5cedarD, cut / 2 - 0.01, -HB / 2, -HW, cut / 2 + 0.005, HB / 2, HW, beamG);
-    const kohen = SH5.crew.add(s.f[0], s.f[1] + 0.6, { role: 'hold', crew: 2, tunic: '#F4F1E8' }), worker = SH5.crew.add(s.r[0], s.r[1] + 0.6, { role: 'hold', crew: 2 });
+    const kohen = SH5.crew.add(s.f[0], s.f[1] + 0.6, { role: 'hold', crew: 2, variant: 'kohen', tunic: '#FFFFFF', col2: '#2E1E12' }), worker = SH5.crew.add(s.r[0], s.r[1] + 0.6, { role: 'hold', crew: 2 });
     for (const w of [kohen, worker]) if (w) { w.fx = null; crew.push(w); }
     const gm = new T.MeshBasicMaterial({ color: 0x4FC46A, transparent: true, opacity: 0.22, depthWrite: false });
     { const [x0, z0, x1, z1] = mk.rect, fill = box(X, gm, x0, FL + 0.01, z0, x1, FL + 0.02, z1); fill.renderOrder = 2; all.push(fill);
@@ -79,6 +79,7 @@ export const CARRY = {
       return o;
     }
     // the lane's sledge and cart halt while their next step would meet the beam (no deadlock: the beam may always back off)
+    SH5.laneYield = () => lvP === 3 && A.phase === 'carry' && Math.min(Math.hypot(s.f[0] - LANE_CROSS.at[0], s.f[1] - LANE_CROSS.at[1]), Math.hypot(s.r[0] - LANE_CROSS.at[0], s.r[1] - LANE_CROSS.at[1])) < LANE_CROSS.r;
     SH5.laneHold = (which, sN, dir) => A.phase !== 'end' && laneShape(which, sN, dir).some((c) => segD(c.c[0], c.c[1], s.f, s.r) < c.r + H120.BEAM_W / 2 + 0.25);
 
     /* ── the camera: high and oblique, the way running up the screen; eased toward the beam only while no finger is down ── */
@@ -536,7 +537,7 @@ export const CARRY = {
       wants() { return !A.busy && (A.phase === 'carry' || A.phase === 'trim'); },
       holds() { return !!(A.F1 || (A.trim && A.trim.F)); },
       end() {
-        FG.detach(); SH5.laneHold = null;
+        FG.detach(); SH5.laneHold = null; SH5.laneYield = null;
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }
         for (const o of all) { if (o && o.dispose && !o.isObject3D) o.dispose(); else if (o) PR.remove(o); }
         for (const w of crew) SH5.crew.remove(w); for (const l of labs) l.remove();
@@ -561,7 +562,7 @@ export const CARRY = {
           way: carryWay(lvP, cut), mark: mk.rect.map((v) => +v.toFixed(2)), inMark: r, angle: L.angle, still: +A.still.toFixed(2), tries: A.tries,
           bumps: A.bumps, dmg: A.dmg, contact: [...A.contact], passed: [...A.passed], clean: A.clean, scafDown: [...A.scafDown], jarsBroken: [...A.jarsBroken], worker: A.workerJumped, limed: A.limed, slide: A.slide,
           // (how long the lane stays clear of the sledge and the cart where the east way crosses it, s 20 … 45: a careful player's wait)
-          laneFree: (() => { const Lq = SH5.lane; if (!Lq || Lq.ts == null) return 99; for (let k = 0; k <= 120; k++) { const tt = k * 0.5; for (const [w, c] of [['sledge', Lq.ts], ['cart', Lq.tc]]) { const q = laneState(c + tt, w); if (!q.off && q.s > 20 && q.s < 45) return tt; } } return 60; })(),
+          laneClear: (() => { const Ln = SH5.lane && SH5.lane.now; if (!Ln) return true; return ['sledge', 'cart'].every((w) => { const q = Ln[w]; return !q || q.off || q.s <= LANE_X[0] || q.s >= LANE_X[1]; }); })(), laneYield: !!(SH5.laneYield && SH5.laneYield()),
           lane: Ln ? { sledge: { s: +Ln.sledge.s.toFixed(1), dir: Ln.sledge.dir, off: Ln.sledge.off || 0, hold: SH5.lane.holdS }, cart: { s: +Ln.cart.s.toFixed(1), dir: Ln.cart.dir, off: Ln.cart.off || 0, hold: SH5.lane.holdC } } : null,
           movers: movers.map((w) => (w ? [+w.a.x.toFixed(1), +w.a.z.toFixed(1), w.held ? 1 : 0] : null)),
           fit: A.fit, lost: A.lost || 0, shim: A.shim || 0, pts: A.pts || null,

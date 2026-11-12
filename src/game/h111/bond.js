@@ -17,7 +17,7 @@ import { chalkTag } from '../h109/acts3.js';
 import { standTop, rampFor } from './acts.js';
 
 const H = H111.H, ROW = H111.ROW, T6 = H111.T;
-const INK = 'rgba(70,44,26,.95)';   // the builders' marks in charcoal (המחשה): white chalk did not read on the pale stones
+const INK = 'rgba(44,28,16,.97)';   // the builders' marks in charcoal (המחשה): white chalk did not read on the pale stones (── look C ── review J4: darker, now that the mark is lit ── /look C ──)
 const ALONG = 0, ACROSS = Math.PI / 2, TOLR = 0.12;
 /** a stone's turn from the wall's line, folded (a stone is the same end for end): rad, signed */
 const turnErr = (r, want) => Math.atan2(Math.sin(2 * (r - want)), Math.cos(2 * (r - want))) / 2;

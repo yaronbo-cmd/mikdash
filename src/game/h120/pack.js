@@ -2,15 +2,30 @@
  * plan and save (free choice, rule 54: model.js), its acts, its world; how the crews' share shows (the chambers' walls rise in their
  * hands through the stage's courses, as h113 does for the gatehouses); what closes a unit (a bay, when his beam is seated); the
  * opening film (rule 3: the whole Mount from high, down to the bare court; the crews raise the first column, S1).
- * PHASE 4 (not built yet): the load test (8.2) and the film "ליל שמחת בית השואבה" (8.3); the finale below only closes the stage.
+ * The finale: the load test (h120/load.js, 8.2), then the film "ליל שמחת בית השואבה" (h120/film.js, 8.3), then morning.
  */
 import { PLAN, COLS, H120, createH120 } from './model.js';
 import { ACTS } from './acts.js';
 import { SH5, finalWorld, disposeChip, colFrame, colBuild } from './world.js';
+import { createFilm } from './film.js';
+import { createLoad } from './load.js';
+
+/** the page's own flag: only=film (the finished stage, the film, again on a tap), only=load (planks' result, then the load test) */
+const PAGE = (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const beat = (X, ms) => (X && X.wait ? X.wait(ms / 1000) : sleep(ms));
 const FOUND = 0.15;
+/** the load page's replay: a small dark pill "הקש לצפייה חוזרת" until a tap */
+function tapAgain(X) {
+  return new Promise((res) => {
+    const el = document.createElement('div'); el.className = 'h109-ui';
+    el.style.cssText = 'position:fixed;left:50%;bottom:16%;transform:translateX(-50%);padding:12px 22px;border-radius:24px;background:rgba(0,0,0,.6);color:#F4E6C8;font:700 18px/1 Heebo,system-ui;z-index:70;direction:rtl;min-height:44px;box-sizing:border-box;display:flex;align-items:center';
+    el.textContent = 'הקש לצפייה חוזרת'; document.body.appendChild(el);
+    const f = () => { removeEventListener('pointerdown', f, true); el.remove(); res(); };
+    setTimeout(() => addEventListener('pointerdown', f, true), 400); void X;
+  });
+}
 const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h120-film'); } catch (e) { /* */ } };
 
 export function makePack05() {
@@ -44,6 +59,17 @@ export function makePack05() {
     /** the opening (rule 3: where am I): the Mount from high, down to the bare court of the women; the crews raise the first column */
     before(m, X, M) {
       const st = M.st;
+      if (PAGE === 'film' || PAGE === 'load') return (async () => {
+        st.intro = 1; M.autoTo(() => false); X.save(); near(X, true); finalWorld(X);
+        try { X.stages.setWork('nashim', { phase: 'done' }); } catch (e) { /* */ }
+        X.shot([73, 30, 22], [73, 12, 64], 0.01); await beat(X, 1200);
+        // (a probe's flag: a stage with a shim on NB1 and a wedged column S2, to see the creaking bays)
+        if (globalThis.__H120_LOADBAD) { const c = st.col.S2 || (st.col.S2 = {}); c.wedges = 2; const b = st.beam.NB1 || (st.beam.NB1 = {}); b.shim = 1; b.fit = 'shim'; b.cut = (b.cut || 11) - 0.1; X.save(); }
+        for (;;) {
+          if (PAGE === 'load') { st.props = {}; X.save(); await createLoad(X).play(); await tapAgain(X); continue; }
+          await createFilm(X, { again: true }).play();
+        }
+      })();
       if (m || st.intro) return null;
       return (async () => {
         st.intro = 1; X.save(); near(X, true);
@@ -65,14 +91,15 @@ export function makePack05() {
         near(X, false);
       })();
     },
-    /** PHASE 4 (not built yet): the load test and the night film; for now the stage closes in its own world */
+    /** the stage's close: the load test in the evening, the night film, the morning card over the built court */
     async finale(X) {
-      near(X, true);
+      near(X, true); X.line('');
       finalWorld(X);
       try { X.stages.setWork('nashim', { phase: 'done' }); } catch (e) { /* */ }
-      X.line('והקיפוה כצוצרה, שהנשים רואות מלמעלן, והאנשים מלמטן (מדות ב, ה)', 3600);
-      X.shot([73, 30, 22], [73, 16, 64], 2.2); await beat(X, 3200);
-      X.line('');
+      // the load test (8.2) in the evening light: all the crews on his three bays
+      if (!X.M.st.load) { try { await createLoad(X).play(); } catch (e) { console.warn('[h120] load', e && e.message); } }
+      // the film "ליל שמחת בית השואבה" (8.3), then morning over the built court with its small card
+      try { await createFilm(X).play(); } catch (e) { console.warn('[h120] film', e && e.message); }
       near(X, false);
     },
     dispose() { disposeChip(); },

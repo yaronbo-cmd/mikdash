@@ -12,6 +12,7 @@ import { fingers, MOUSE, onY, heroAt } from '../h113/acts.js';
 import { SAW } from './acts2.js';
 import { CARRY } from './acts3.js';
 import { MIKVEH } from './acts4.js';
+import { PLANKS } from './acts5.js';
 
 /** the knowledge card after column level 1 (source checked by the reviewer, build 120 phase 3), in the game's own fact card */
 export const KNOW_COL = Object.freeze({
@@ -387,26 +388,7 @@ export const COL = {
   },
 };
 
-/* ───────── PHASE 2/3/4: not built yet — the crews do these works (each ends at once with M.done's defaults: no stars, no points) ───────── */
-function crewsDo(icon, title, walk) {
-  return {
-    icon, title, walkLine: () => walk,
-    stand(m) { const c = BAYS[m.lv] ? BAYS[m.lv] : BAYS[1], b = colFrame(c.col); return { x: b.x + b.across[0] * 6, z: b.z + b.across[1] * 6, face: [b.x, b.z] }; },
-    prepare() {},
-    make(m, X) {
-      let done = false, t = 0; const sp = this.stand(m), at = { x: sp.face[0], y: 10, z: sp.face[1] };
-      return {
-        begin() { X.line('את העבודה הזאת עושים הצוותים בינתיים', 2000); },
-        update(dt) { t += dt; if (!done && t > 1.2) { done = true; X.end({ stars: 0, q: 0, at }); } },
-        at() { return at; },
-        dbg() { return { phase: 'crews', stub: true }; },
-      };
-    },
-  };
-}
-export const PLANKS = crewsDo('🪵', 'סידור הלוחות', 'הלוחות על הקורות');                         // PHASE 4: not built yet
-
-export { SAW, CARRY, MIKVEH };
+export { SAW, CARRY, MIKVEH, PLANKS };
 export const ACTS = {
   col: COL, saw: SAW, carry: CARRY, mikveh: MIKVEH, planks: PLANKS,
   __init: initWorld,

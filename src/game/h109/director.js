@@ -644,6 +644,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     save: () => save(),
     get pack() { return PK; },
     quick: (at, text, mesh) => quick(at, text, mesh),   // ── h120 ── ── /h120 ──
+    perfectScreen: (sub) => perfectScreen(sub),   // ── h120 ── (stage 05's load test: three perfect bays, the full-screen word) ── /h120 ──
   };
   /* ───────── ── h111 ── real damage (spec "הניקוד בהפסד", approved 8.11): a cracked or broken stone −20, a great stone fallen −40;
      stones off the stock; the gold run ends; never under 0 and at most 80 in one mission. A miss without damage costs nothing ── */

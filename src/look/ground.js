@@ -280,7 +280,7 @@ vec3 grGround(vec3 vc) {
 #endif
   // (look B review G5: no dark outline: the slab's edge ragged by the earth's mottle and its own pits, earth lying in its low spots,
   // a pale dusty band where the two meet)
-  float rf = d2.a + (d1.a - 0.5) * 0.16 + (rb - 0.6) * 0.14 + (d1.r - 0.5) * 0.05, th = 0.7 - vGrA.x * 0.5 - smoothstep(0.04, 0.2, slope) * 0.25 + trod * 0.35 + vGrA.y * 0.2;
+  float rf = d2.a + (d1.a - 0.5) * 0.16 + (rb - 0.6) * 0.14 + (d1.r - 0.5) * 0.05, th = 0.62 - vGrA.x * 0.45 - smoothstep(0.04, 0.2, slope) * 0.06 + trod * 0.35 + vGrA.y * 0.2;
   // (look B review H1: a crisp but ragged edge, so the slab reads as rock at play distance; none on the work floors)
   float slab = smoothstep(th, th + 0.025, rf) * (1.0 - smoothstep(0.1, 0.45, trod));
   float steep = smoothstep(0.17, 0.26, slope + (d2.a - 0.5) * 0.14);
@@ -296,8 +296,8 @@ vec3 grGround(vec3 vc) {
   // (look B review H4: dry grass in patches with bare gaps between them, denser in the hollows, none where trodden: each clump a soft
   // straw ground under its strokes, so from the play camera it reads as a tuft, not a scribble)
   float gpatch = clamp(smoothstep(0.5, 0.64, d2.b + (d1.a - 0.5) * 0.25) + vGrA.y * 0.9, 0.0, 1.0) * clamp(1.0 - trod * 1.6, 0.0, 1.0);
-  float straw = (smoothstep(0.79, 0.83, e) * 0.55 + smoothstep(0.86, 0.96, e) * 0.45) * gpatch;
-  earth = mix(earth, earth * vec3(1.15, 1.1, 0.9) + uGrStraw * 0.04, straw * 0.8);
+  float straw = (smoothstep(0.79, 0.83, e) * 0.35 + smoothstep(0.86, 0.96, e) * 0.65) * gpatch;
+  earth = mix(earth, earth * vec3(1.16, 1.12, 0.94) + uGrStraw * 0.04, straw * 0.8);
   earth = mix(earth, uGrDark * (0.8 + 0.4 * clamp(em, 0.2, 0.75)), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
   // (look B review G6: the low shrubs only in clusters, by the rock's edge and in the hollows, grey-green, lit on one side)
   float near = smoothstep(th - 0.2, th - 0.03, rf) * (1.0 - rk);
@@ -306,10 +306,10 @@ vec3 grGround(vec3 vc) {
   vec3 grav = mix(uGrGrav, vc, 0.65) * (0.84 + 0.25 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
-  vec3 rock = mix(uGrRock, vc, 0.2) * (0.46 + 0.74 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw) * vec3(0.97, 0.99, 1.03);
+  vec3 rock = mix(uGrRock, vc, 0.2) * (0.4 + 0.84 * mix(rb, d3.b, 0.3)) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw) * vec3(0.98, 0.99, 1.015);
   // (its relief: the slab's middle a little higher and lighter than its sunken edge; no outline)
   rock *= 0.93 + 0.1 * smoothstep(th + 0.02, th + 0.14, rf);
-  rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
+  rock *= mix(vec3(1.0), vec3(0.84, 0.83, 0.8), smoothstep(0.5, 0.68, d2.b + (d1.b - 0.6) * 0.5));   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
   col = mix(col, mix(uGrRock, vc, 0.5) * (0.6 + 0.36 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.6));
   col = mix(col, mix(col, uGrRock * 0.92, 0.35), rim * 0.35);
@@ -341,7 +341,7 @@ function uniforms(THREE) {
   const S = maskState(THREE), col = (h) => new THREE.Color(h);
   c.U = {
     uGrT: { value: detailTex(THREE) }, uGrM: { value: S.tex }, uGrMB: { value: S.box },
-    uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#937A5C') },
+    uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#9A7754') },
   };
   return c.U;
 }

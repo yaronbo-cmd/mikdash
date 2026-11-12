@@ -324,7 +324,7 @@ function makeHill(T) {
   // colours: ── look B ── the large-scale tone only (look/ground.js draws the rock, the earth, the stones and the straw on it): dry straw
   // earth, terra rossa in pockets, a dry-olive tint where the scrub grows, paler where the rock comes up, dust at the rim ── /look B ──
   const nor = g.attributes.normal.array, C = (h) => new THREE.Color(h);
-  const rock = C('#DCD2BC'), earth = C('#CCB089'), earthB = C('#B39872'), soil = C('#A8876A'), scrub = C('#9A9064'), dust = C('#D6C8A6');
+  const rock = C('#DCD2BC'), earth = C('#D2AE7E'), earthB = C('#B8956A'), soil = C('#A97F5E'), scrub = C('#9A9064'), dust = C('#D6C8A6');
   const c = new THREE.Color(), tc = new THREE.Color();
   for (let k = 0; k < N; k++) {
     const x = pos[k * 3], z = pos[k * 3 + 2], ny = nor[k * 3 + 1];
@@ -334,6 +334,11 @@ function makeHill(T) {
     c.lerp(soil, smooth(0.5, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * (0.15 + 0.45 * hol));            // terra rossa between the rocks
     c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.15);               // (site8/world8) small pockets of red earth
     c.lerp(scrub, hol * 0.3);
+    // ── look B review H3 ── the broad tone (40–120 amot): darker, redder earth in the hollows and on the dips facing north (−z), paler
+    // dusty crowns ── /look B ──
+    { const big = HN2(x / 95 + 11, z / 95 - 4, 3), mid = HN1(x / 48 + 3, z / 48 + 8, 2), north = clamp(-nor[k * 3 + 2] * 3, 0, 1);
+      const dk = clamp(hol * 0.5 + smooth(0.5, 0.25, big) * 0.6 + smooth(0.45, 0.25, mid) * 0.3 + north * 0.5, 0, 1), cr = smooth(0.55, 0.8, big) * (1 - hol);
+      c.lerp(soil, dk * 0.3); c.multiplyScalar(1 - 0.09 * dk); c.lerp(dust, cr * 0.4); c.multiplyScalar(1 + 0.04 * cr); }
     // (site8/world8) rock: the risers only in outcrops (oc), not a pale line along each; bare slabs here and there off them
     const oc = HN3(x / 21 + 1, z / 21 + 9, 2);
     const rk = clamp(smooth(0.95, 0.8, ny) * (0.3 + 1.1 * oc) + smooth(10, 26, y0[k]) * 0.5 + smooth(0.74, 0.86, HN2(x / 13 - 5, z / 13 + 3, 2)) * 0.55, 0, 1);

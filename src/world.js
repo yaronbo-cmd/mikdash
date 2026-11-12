@@ -106,6 +106,8 @@ export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── 
   c.lerp(TC.dust, cm * 0.78);
   // ── look D ── (D3: the streets and the open ground between the houses trodden earth in patches, not one beige) ── /look D ──
   if (cm > 0) c.lerp(TC.street, cm * (0.3 + 0.5 * smooth(0.36, 0.64, NC(x / 38 + 11, z / 38 - 5, 2))));
+  // ── look D review K2 ── (the lanes between the houses in their shade: darker, so the blocks separate) ── /look D review ──
+  if (cm > 0) c.multiplyScalar(1 - 0.24 * cm);
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
   // ── look B review H3 ── the broad tone (40–120 amot) the Mount's hill has too: darker, redder earth in patches, paler dusty crowns

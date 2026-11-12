@@ -79,9 +79,9 @@ class Acc {
     }
   }
   // an axis-aligned box without its bottom
-  box(x0, x1, y0, y1, z0, z1, bottom = false) {
+  box(x0, x1, y0, y1, z0, z1, bottom = false, top = true) {   // ── look D review K2 ── (top: false for block()'s tray) ── /look D review ──
     const q = (a, b, c, d, n) => this.quad(a, b, c, d, ...n);
-    q([x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [0, 1, 0]);
+    if (top) q([x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [0, 1, 0]);
     q([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1]);
     q([x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [0, 0, -1]);
     q([x1, y0, z0], [x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [1, 0, 0]);
@@ -90,7 +90,9 @@ class Acc {
     return this;
   }
   // a block with a roof at yR inside a parapet (hp high, t thick): outer walls, parapet top and inner faces, roof
-  roofed(x0, x1, z0, z1, yB, yR, hp = 1.1, t = 0.5, kRoof = 0.72) {   // ── look D ── (the roof's floor darker: 0.8 → 0.72) ── /look D ──
+  // ── look D review K2 ── (each roof a tray from afar: the parapet thicker (0.5 → 0.75, the same faces), its top paler (1.06 → 1.16), its
+  // inner faces and the floor darker (0.94 → 0.78, 0.72 → 0.6)) ── /look D review ──
+  roofed(x0, x1, z0, z1, yB, yR, hp = 1.1, t = 0.75, kRoof = 0.6) {   // ── look D ── (the roof's floor darker: 0.8 → 0.72) ── /look D ──
     const yT = yR + hp, X0 = x0 + t, X1 = x1 - t, Z0 = z0 + t, Z1 = z1 - t, K = this.col;
     const q = (a, b, c, d, n) => this.quad(a, b, c, d, ...n);
     this.grad = (y) => (y <= yB + 0.01 ? 0.22 : 1.03);   // (a free "ground occlusion": 0 extra triangles)
@@ -99,10 +101,10 @@ class Acc {
     q([x1, yB, z0], [x1, yB, z1], [x1, yT, z1], [x1, yT, z0], [1, 0, 0]);
     q([x0, yB, z0], [x0, yB, z1], [x0, yT, z1], [x0, yT, z0], [-1, 0, 0]);
     this.grad = null;
-    this.k(K[0] * 1.06, K[1] * 1.06, K[2] * 1.06);
+    this.k(K[0] * 1.16, K[1] * 1.16, K[2] * 1.16);
     q([x0, yT, z0], [x1, yT, z0], [x1, yT, Z0], [x0, yT, Z0], [0, 1, 0]); q([x0, yT, Z1], [x1, yT, Z1], [x1, yT, z1], [x0, yT, z1], [0, 1, 0]);
     q([x0, yT, Z0], [X0, yT, Z0], [X0, yT, Z1], [x0, yT, Z1], [0, 1, 0]); q([X1, yT, Z0], [x1, yT, Z0], [x1, yT, Z1], [X1, yT, Z1], [0, 1, 0]);
-    this.k(K[0] * 0.94, K[1] * 0.94, K[2] * 0.94);
+    this.k(K[0] * 0.78, K[1] * 0.78, K[2] * 0.76);
     q([X0, yR, Z0], [X1, yR, Z0], [X1, yT, Z0], [X0, yT, Z0], [0, 0, 1]); q([X0, yR, Z1], [X1, yR, Z1], [X1, yT, Z1], [X0, yT, Z1], [0, 0, -1]);
     q([X0, yR, Z0], [X0, yR, Z1], [X0, yT, Z1], [X0, yT, Z0], [1, 0, 0]); q([X1, yR, Z0], [X1, yR, Z1], [X1, yT, Z1], [X1, yT, Z0], [-1, 0, 0]);
     this.k(K[0] * kRoof, K[1] * kRoof * 0.99, K[2] * kRoof * 0.96);
@@ -110,10 +112,16 @@ class Acc {
     this.col = K; return this;
   }
   // a plain block: walls and a roof a shade darker (the far houses: parapets are below a pixel there)
-  block(x0, x1, z0, z1, yB, yR, kRoof = 0.72) {   // ── look D ── ── /look D ──
-    const K = this.col; this.grad = (y) => (y <= yB + 0.01 ? 0.22 : 1.03); this.box(x0, x1, yB, yR, z0, z1); this.grad = null;
-    const n = this.c ? this.c.length : 0;
-    if (this.c) for (let i = n - 5 * 18; i < n - 4 * 18; i += 3) { this.c[i] *= kRoof; this.c[i + 1] *= kRoof * 0.99; this.c[i + 2] *= kRoof * 0.96; }
+  // ── look D review K2 ── (its roof a tray: a pale rim the parapet's width round a darker floor, flat: four more quads, so the far
+  // houses read as roofs, not dice; t 0: the old single roof, the L-house's low wing) ── /look D review ──
+  block(x0, x1, z0, z1, yB, yR, kRoof = 0.6, t = 1.2) {   // ── look D ── ── /look D ──
+    const K = this.col; this.grad = (y) => (y <= yB + 0.01 ? 0.22 : 1.03); this.box(x0, x1, yB, yR, z0, z1, false, false); this.grad = null;
+    const q = (a, b, c, d) => this.quad(a, b, c, d, 0, 1, 0), X0 = x0 + t, X1 = x1 - t, Z0 = z0 + t, Z1 = z1 - t;
+    if (!(t > 0)) { this.k(K[0] * kRoof, K[1] * kRoof * 0.99, K[2] * kRoof * 0.96); q([x0, yR, z0], [x0, yR, z1], [x1, yR, z1], [x1, yR, z0]); this.col = K; return this; }   // (t 0: one flat roof, no rim)
+    this.k(K[0] * 1.14, K[1] * 1.14, K[2] * 1.14);
+    q([x0, yR, z0], [x1, yR, z0], [x1, yR, Z0], [x0, yR, Z0]); q([x0, yR, Z1], [x1, yR, Z1], [x1, yR, z1], [x0, yR, z1]);
+    q([x0, yR, Z0], [X0, yR, Z0], [X0, yR, Z1], [x0, yR, Z1]); q([X1, yR, Z0], [x1, yR, Z0], [x1, yR, Z1], [X1, yR, Z1]);
+    this.k(K[0] * kRoof, K[1] * kRoof * 0.99, K[2] * kRoof * 0.96); q([X0, yR, Z0], [X0, yR, Z1], [X1, yR, Z1], [X1, yR, Z0]);
     this.col = K; return this;
   }
   // a dark opening (door, window) on a face: axis 'z' (face at z = w, facing sign s) or 'x'
@@ -500,7 +508,7 @@ function archetypes() {
     .hole('z', 6, 1, 3.8, 5, -4.4, -3.2).hole('z', 6, 1, -8.6, -7.4, -3.4, -2.2).hole('z', -10, -1, -1, 0.2, -4.6, -3.4);
   // far: a plain block with a parapet · an L-house round a court
   A.far = new Acc(true).k(1).block(-9.6, 9.6, -9.6, 9.6, G, 0).hole('z', 9.6, 1, -1.2, 1.2, -10, -6.6);
-  A.farL = new Acc(true).k(1).block(-9.6, 9.6, -9.6, 0, G, 0).block(-9.6, 0, 0, 9.6, G, -3.5).k(0.8, 0.78, 0.74).box(0, 9.6, G, -10.5, 0, 9.6);
+  A.farL = new Acc(true).k(1).block(-9.6, 9.6, -9.6, 0, G, 0).block(-9.6, 0, 0, 9.6, G, -3.5, 0.72, 0).k(0.8, 0.78, 0.74).box(0, 9.6, G, -10.5, 0, 9.6);
   // pergola with a vine (on roofs and in courts) · an awning of cloth over a door
   A.pergola = new Acc(true).k(0.42, 0.33, 0.24).box(-2.8, -2.4, 0, 3.4, 1.8, 2.2).box(2.4, 2.8, 0, 3.4, 1.8, 2.2).box(-3, 3, 3.4, 3.7, 1.8, 2.2)
     .k(0.36, 0.52, 0.24).box(-3.3, 3.2, 3.7, 4.3, -2.6, 2.5).k(0.3, 0.46, 0.2).box(-2.4, 1.2, 4.3, 4.8, -1.6, 1.4);
@@ -519,7 +527,9 @@ const REGIONS = [
   { id: 'bezetha', bb: [-1350, 445, -1640, -560], test: (x, z) => inPoly(TW_POLY, x, z) && !inPoly(SW_POLY, x, z) && !inPoly(FW_POLY, x, z), ang: -0.1, cell: 20, bu: 3, bv: 2, st: 7, dens: 0.55, man: 0.03, tint: 1.0 },
 ];
 // ── look D ── (D3) cream, ochre and grey: four of the browner ochres made limewash greys (the city read orange-brown) ── /look D ──
-const STONE = ['#E3D3B2', '#D8C39C', '#CDB48A', '#E9DEC6', '#C9BFAD', '#D6BD92', '#BFB6A4', '#DCC9A4', '#CFBB98', '#C2A583', '#B3A894', '#E0CBA0', '#F2EBDD', '#EFE6D4', '#D9B887', '#D2CBBB'].map((h) => new THREE.Color(h));
+// ── look D review K2 ── (wider: whitewash, cream, pale ochre, warm grey, a few dark mud-browns; lightness 47–82 %, saturation 8–32 %, so
+// neighbours differ; still sixteen, drawn as before) ── /look D review ──
+const STONE = ['#D9D4C9', '#D1CDC2', '#D0C7B9', '#D1C9B2', '#D0C1A4', '#C8BB9D', '#C4B092', '#BFA888', '#B49B7E', '#BBA681', '#A9A198', '#A09588', '#B3ACA2', '#938980', '#967E69', '#8A7866'].map((h) => new THREE.Color(h));
 const CLOTH = ['#A8452F', '#C08A3E', '#5E6C83', '#D9CBAE', '#8A5A3C', '#B8663A'].map((h) => new THREE.Color(h));
 
 const DOORS = { court: [0, -7.2, 10], block: [-2.8, -7.2, 1.5], row: [0.2, -6.4, 6], mansion: [-16.2, -8, 10] };   // the street door (local, from the roof)

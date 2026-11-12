@@ -193,24 +193,40 @@ const HOUSE_V = /* glsl */`
 #else
   vHsW = (modelMatrix * vec4(transformed, 1.0)).xyz;
 #endif
-  vHsY = position.y;`;
+  vHsY = position.y;
+  // ── look D review K2 ── (the roof marks: the local position, whether the face looks up, the house's own hash) ── /look D review ──
+  vHsL = position.xz; vHsUp = objectNormal.y;
+#ifdef USE_INSTANCING
+  vHsI = fract(sin(dot(floor(instanceMatrix[3].xz * 0.37), vec2(12.9898, 78.233))) * 43758.5453);
+#else
+  vHsI = 1.0;
+#endif`;
 const HOUSE_F = /* glsl */`
   { vec3 q = vHsW;
     // (two octaves of value noise over the wall's plane: x and z with y folded in, so walls facing x or z both get it)
     vec2 a = vec2(q.x + q.y * 0.7, q.z - q.y * 0.6);
     float n = hsN(a / 3.2) * 0.65 + hsN(a / 1.1 + 7.3) * 0.35;
     diffuseColor.rgb *= mix(1.0, 0.88, smoothstep(0.58, 0.82, n)) * mix(1.0, 1.07, smoothstep(0.32, 0.14, n));
-    // the foot: splashed and dirtier toward the street (ragged top edge)
-    float ft = smoothstep(-8.2, -11.8, vHsY + (n - 0.5) * 1.6);
-    diffuseColor.rgb *= mix(vec3(1.0), vec3(0.8, 0.75, 0.68), ft); }`;
+    // the foot: splashed and dirtier toward the street (ragged top edge) ── look D review K2 ── (higher and darker: seen from the city's
+    // camera) ── /look D review ──
+    float ft = smoothstep(-6.6, -11.4, vHsY + (n - 0.5) * 1.8);
+    diffuseColor.rgb *= mix(vec3(1.0), vec3(0.7, 0.64, 0.56), ft);
+    // ── look D review K2 ── about one roof in six: a pale drying mat (or a cloth spread out) or the dark square of a stair's hatch, on the
+    // main roof's floor (local y 0 … −5; the parapets' tops are above it) ── /look D review ──
+    if (vHsUp > 0.9 && vHsY > -5.0 && vHsY < 0.05 && vHsI < 0.17) {
+      vec2 c = vec2((fract(vHsI * 53.7) - 0.5) * 9.0, -7.0 + (fract(vHsI * 91.3) - 0.5) * 2.0);
+      if (vHsI < 0.11) { vec2 d = abs(vHsL - c) - vec2(2.6, 1.7); float m = 1.0 - smoothstep(-0.15, 0.1, max(d.x, d.y));
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.8, 0.66) * (0.93 + 0.1 * hsN(vHsL * 1.7)), m); }
+      else { vec2 d = abs(vHsL - c) - vec2(1.0); diffuseColor.rgb *= 1.0 - 0.7 * (1.0 - smoothstep(-0.1, 0.05, max(d.x, d.y))); }
+    } }`;
 const HOUSE_C = /* glsl */`
-varying vec3 vHsW; varying float vHsY;
+varying vec3 vHsW; varying float vHsY; varying vec2 vHsL; varying float vHsUp; varying float vHsI;
 float hsH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float hsN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(hsH(i), hsH(i + vec2(1.0, 0.0)), f.x), mix(hsH(i + vec2(0.0, 1.0)), hsH(i + vec2(1.0, 1.0)), f.x), f.y); }`;
 export function cityMat(m) {
   m.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vHsW; varying float vHsY;')
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vHsW; varying float vHsY; varying vec2 vHsL; varying float vHsUp; varying float vHsI;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + HOUSE_V);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + HOUSE_C)
       .replace('#include <color_fragment>', '#include <color_fragment>\n' + HOUSE_F);

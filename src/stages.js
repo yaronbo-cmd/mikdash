@@ -278,6 +278,7 @@ function clumpGeo() {
   const tri = (A, B, C) => P.push(...A, ...B, ...C);
   for (let i = 0; i < 6; i++) { const j = (i + 1) % 6; tri(base[i], mid[i], base[j]); tri(base[j], mid[i], mid[j]); tri(mid[i], top, mid[j]); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(P.length).fill(1), 3));   // ── look D ── (white: the olive crowns' program, which has vertex colours now) ── /look D ──
   g.computeVertexNormals(); return g;
 }
 /** a rough stone: an icosahedron with its corners pushed in and out, flat facets (round A's rock material draws its skin) */
@@ -553,7 +554,7 @@ function makeHill(T) {
     } }
   const plant = (kd) => kd === 0 || kd === 2;
   const nP = bushes.filter((b) => plant(b[5])).length, nS = bushes.length - nP;
-  const bm = new THREE.InstancedMesh(clumpGeo(), windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true })), nP);   // ── look C ── (the scrub sways: the olive crowns' program, roughness 0.95 → 0.9) ── /look C ──
+  const bm = new THREE.InstancedMesh(clumpGeo(), windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, vertexColors: true })), nP);   // ── look C ── (the scrub sways: the olive crowns' program, roughness 0.95 → 0.9) ── /look C ──
   const sm = new THREE.InstancedMesh(stoneGeo(), rockClone(rockMat(THREE, T.rock.map), '#ffffff'), nS);
   sm.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(nS * 3).fill(1), 3);
   const slot = [], skirts = [];

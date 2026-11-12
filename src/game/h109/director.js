@@ -229,7 +229,7 @@ export function createH109Director(o) {
         // past the farthest: the overview ── /h117 ──
         if (OV.pins.size === 2 && !OV.on) {
           const [a, b] = [...OV.pins.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
-          if (!LOOK.pinch && ((d < OV.pd0 * 0.88 && bothClose()) || (d > OV.pd0 * 1.14 && bothApart()))) {
+          if (!LOOK.pinch && !(typeof act.holds === 'function' && call(act.holds)) /* ── h120 ── (fingers on the work's own grips are never a pinch) ── /h120 ── */ && ((d < OV.pd0 * 0.88 && bothClose()) || (d > OV.pd0 * 1.14 && bothApart()))) {
             if (ptr.down) { ptr.down = false; if (typeof act.cancel === 'function') call(act.cancel); else call(act.up, ptr); }
             LOOK.id = null; LOOK.pend = null; LOOK.drag = false; LOOK.back = 0;
             LOOK.pinch = { u0: LOOK.u, d0: d }; log('pinch');
@@ -484,6 +484,12 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function openMission() {
     if (FREE()) {   // ── h114 ── ── /h114 ──
       if (M.finished()) { mission = null; finishStage(); return; }
+      // ── h120 ── a free stage's own films (stage 05's opening): PK.before(null, X, M) while no work is picked (packs that say freeFilms)
+      if (PK.freeFilms && PK.before && !ONLY && !M.mission()) {
+        let p = null; try { p = PK.before(null, X, M); } catch (e) { p = null; }
+        if (p && typeof p.then === 'function') { phase = 'film'; tPhase = 0; act = null; props().marker(null); line(''); p.catch(() => {}).then(() => { CAM.on = false; phase = 'walk'; save(); openMission(); }); return; }
+      }
+      // ── /h120 ──
       mission = M.mission(); phase = 'walk'; tPhase = 0; act = null; OPEN = []; fwLine = null; fwT = 0;
       if (mission) { byWalk = false; showOne(); return; }
       openList();
@@ -566,6 +572,47 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (FLY.t >= FLY.end || phase === 'act') { FLY = null; if (phase !== 'act') CAM.on = false; }
   }
 
+  // ── h120 ── rule 64 (the owner on approving stage 05: "דופמין מהיר לביצוע מושלם"): every perfect step answers in its own frame:
+  // a gold flash on the thing itself (or a gold glint at the point), a ting that climbs with the act's run of quick hits (8 steps
+  // at most), the word popping from the place, the streak chip pulsing and a 15 ms buzz. One a quarter second at most (later ones
+  // only ting); it never blocks, never opens a card and adds no points.
+  const QK = { run: 0, last: -1e9, css: false, tex: null };
+  function quickCss() {
+    if (QK.css) return; QK.css = true; const st = document.createElement('style');
+    st.textContent = `.h120-qk{transform:translate(-50%,-50%) scale(.6);font:900 34px/1 Heebo,system-ui;color:#FFD86A;-webkit-text-stroke:2px #4A2A00;paint-order:stroke fill;text-shadow:0 2px 8px #000a;white-space:nowrap;z-index:61;animation:h120qk .6s ease-out forwards}
+@keyframes h120qk{0%{transform:translate(-50%,-50%) scale(.6);opacity:0}25%{transform:translate(-50%,-60%) scale(1.15);opacity:1}45%{transform:translate(-50%,-65%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,calc(-50% - 40px)) scale(1);opacity:0}}`;
+    document.head.appendChild(st);
+  }
+  function quickFlash(mesh, at) {
+    const t0 = performance.now(), D = 220, gold = new THREE.Color('#FFD86A');
+    if (mesh) {
+      const L = []; mesh.traverse((m) => { if (m.isMesh && m.material && !Array.isArray(m.material) && m.material.emissive) { const o0 = m.material, c = o0.clone(); c.emissive = gold.clone(); c.emissiveIntensity = 1; m.material = c; L.push([m, o0, c]); } });
+      if (!L.length) return quickFlash(null, at);
+      const step = () => { const k = (performance.now() - t0) / D; if (k >= 1) { for (const [m, o0, c] of L) { if (m.material === c) m.material = o0; c.dispose(); } return; } for (const [, , c] of L) c.emissiveIntensity = 1 - k * k; requestAnimationFrame(step); };
+      requestAnimationFrame(step); return;
+    }
+    if (!at) return;
+    if (!QK.tex) { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,250,220,1)'); gr.addColorStop(0.35, 'rgba(255,216,106,.8)'); gr.addColorStop(1, 'rgba(255,216,106,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); QK.tex = new THREE.CanvasTexture(cv); }
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: QK.tex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, transparent: true }));
+    sp.position.set(at.x, at.y, at.z); sp.renderOrder = 999; scene.add(sp);
+    const step = () => { const k = (performance.now() - t0) / D; if (k >= 1) { scene.remove(sp); sp.material.dispose(); return; } const s = 1.2 + k * 2.2; sp.scale.set(s, s, 1); sp.material.opacity = 1 - k; requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  function quick(at, text, mesh) {
+    QK.run = Math.min(8, QK.run + 1);
+    try { if (o.sfx && o.sfx.play) o.sfx.play('perfect', { combo: QK.run - 1 }); } catch (e) { /* */ }
+    const now = performance.now(); if (now - QK.last < 250) { emit('h109quick', { text, n: QK.run, only: 'ting' }); return; }
+    QK.last = now;
+    try { quickFlash(mesh || null, at); } catch (e) { /* */ }
+    uiMount(); quickCss();
+    const q = at ? scr(at.x, at.y, at.z) : { x: innerWidth / 2, y: innerHeight * 0.4 };
+    const el = document.createElement('div'); el.className = 'h109-ui h120-qk'; el.textContent = (text || 'מושלם!') + (QK.run >= 2 ? ` ×${QK.run}` : '');
+    el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el); setTimeout(() => el.remove(), 640);
+    try { UI.chip.classList.add('pop'); setTimeout(() => UI.chip && UI.chip.classList.remove('pop'), 160); } catch (e) { /* */ }
+    try { if (o.haptic) o.haptic(15); } catch (e) { /* */ }
+    emit('h109quick', { text: text || 'מושלם!', n: QK.run }); log('quick', text || 'מושלם!', QK.run);
+  }
+  // ── /h120 ──
   /* ───────── the act ───────── */
   const WAITS = [], KOH = { off: false };
   const X = {
@@ -596,6 +643,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     loss: (n, at, label, stones, res) => loss(n, at, label, stones, res),   // ── h113 ── (res: 'cedar' for a board or a leaf) ── /h113 ──   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
     save: () => save(),
     get pack() { return PK; },
+    quick: (at, text, mesh) => quick(at, text, mesh),   // ── h120 ── ── /h120 ──
   };
   /* ───────── ── h111 ── real damage (spec "הניקוד בהפסד", approved 8.11): a cracked or broken stone −20, a great stone fallen −40;
      stones off the stock; the gold run ends; never under 0 and at most 80 in one mission. A miss without damage costs nothing ── */
@@ -622,6 +670,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const A = ACTS[mission.k]; if (!A) { M.done({ stars: 0 }); openMission(); return; }
     props().marker(null);
     phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
+    QK.run = 0;   // ── h120 ── ── /h120 ──
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
     // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's
@@ -802,7 +851,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     state: () => ({ at: act && act.at ? call(act.at) : null, look: { u: +LOOK.u.toFixed(3), yaw: +LOOK.yaw.toFixed(3), play: lookZone(LOOK.u, LOOK.yaw) === 'play', away: lookAway() }, started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),
     act: () => act,
     // ── h114 ── the top pill: the stage's works done of all (the old world's pill said "מדידה" all through stage 01) ── /h114 ──
-    pill: () => { if (!FREE() || !started) return ''; const n = M.st.done.length, of = PLAN.length; return `<span class="gm-k">המטרה</span><span><b>${PK.name || 'שיטוח ההר'}</b> <span class="gm-sub">· ${n} מתוך ${of} עבודות</span></span>`; },
+    pill: () => { if (!FREE() || !started) return ''; const [n, of] = PK.count ? PK.count(M) : [M.st.done.length, PLAN.length]; return `<span class="gm-k">המטרה</span><span><b>${PK.name || 'שיטוח ההר'}</b> <span class="gm-sub">· ${n} מתוך ${of} עבודות</span></span>`; },   // ── h120 ── (PK.count: the pack's own n of m) ── /h120 ──
     X,
     resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
     // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──

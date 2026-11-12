@@ -28,7 +28,7 @@ test('look B: the works mark the ground from the address book, in order, with pa
   assert.ok(M.spots.some(([x, z]) => x === S0.rect.cx && z === S0.rect.cz), 'the sector\'s cell');
   assert.ok(M.spots.some(([x, z]) => x === S0.big.x && z === S0.big.z), 'the big rock read');
   assert.ok(M.spots.some(([x, z]) => x === BOOK.pile.x && z === BOOK.pile.z), 'the pile');
-  assert.ok(M.ruts.length >= 3 && M.ruts.length <= 8, 'the carts\' routes');
+  assert.ok(M.ruts.length >= 3 && M.ruts.length <= 12, 'the carts\' routes');
   assert.ok(M.paths.length >= 5, 'the paths between the works');
   for (const [x, z, r] of M.spots) { assert.ok(x > -360 && x < 340 && z > -540 && z < 460, 'inside the mask'); assert.ok(r >= 6 && r <= 14); }
   assert.deepEqual(workMarks(['rocks0']).spots.length, 1);

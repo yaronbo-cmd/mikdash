@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUniforms, jointUniforms, XRAY, xrayCode } from './batch.js';   // ── twin18 ── (XRAY) ── /twin18 ──
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
-import { terrainH, terrainColor, terrainGr } from './world.js';
+import { terrainH, terrainColor, terrainGr, cityMask } from './world.js';
 import { groundPatch, groundDefines, groundSkirts, smoothGridNormals } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
@@ -267,20 +267,16 @@ function hillY0(x, z) {
   return base + hillBump(x, z) * smooth(fade, 0, d);
 }
 
-// ── look B ── a scrub clump: a flattened, ragged dome of tilted facets (a ring of 6 at its foot, 6 above, a crown), lighter and darker
-// facets by turns, its foot dark (vertex colours × the instance's grey-green) ── /look B ──
+// ── look B ── a scrub clump: a flattened, ragged dome of tilted facets (a ring of 6 at its foot, 6 above, a crown): its flat facets turn
+// to the sun in two tones; the dark earth at its foot is the ground's (groundSkirts) ── /look B ──
 function clumpGeo() {
-  const R = rng(77), P = [], Cl = [], base = [], mid = [];
+  const R = rng(77), P = [], base = [], mid = [];
   for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.2832 + (R() - 0.5) * 0.5, rr = 0.85 + R() * 0.3; base.push([Math.cos(a) * rr, 0, Math.sin(a) * rr]); }
   for (let i = 0; i < 6; i++) { const a = ((i + 0.5) / 6) * 6.2832 + (R() - 0.5) * 0.6, rr = 0.55 + R() * 0.3; mid.push([Math.cos(a) * rr, 0.5 + R() * 0.25, Math.sin(a) * rr]); }
   const top = [(R() - 0.5) * 0.3, 0.9, (R() - 0.5) * 0.3];
-  const tri = (A, B, C, ca, cb, cc) => { P.push(...A, ...B, ...C); Cl.push(ca, ca, ca, cb, cb, cb, cc, cc, cc); };
-  for (let i = 0; i < 6; i++) {
-    const j = (i + 1) % 6, t = i % 2 ? 0.8 : 1;
-    tri(base[i], mid[i], base[j], 0.42, t, 0.42); tri(base[j], mid[i], mid[j], 0.42, t, t * 0.95);
-    tri(mid[i], top, mid[j], t * 0.95, i % 2 ? 1.05 : 0.88, t * 0.95);
-  }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(Cl, 3));
+  const tri = (A, B, C) => P.push(...A, ...B, ...C);
+  for (let i = 0; i < 6; i++) { const j = (i + 1) % 6; tri(base[i], mid[i], base[j]); tri(base[j], mid[i], mid[j]); tri(mid[i], top, mid[j]); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
   g.computeVertexNormals(); return g;
 }
 /** a rough stone: an icosahedron with its corners pushed in and out, flat facets (round A's rock material draws its skin) */
@@ -349,8 +345,9 @@ function makeHill(T) {
     const m = smooth(-6, 30, dOut(x, z) + (HN2(x / 48 + 9, z / 48 - 3, 2) - 0.5) * 26);
     if (m > 0) {
       const gx = terrainH(x + 2, z) - terrainH(x - 2, z), gz = terrainH(x, z + 2) - terrainH(x, z - 2);
-      c.lerp(terrainColor(x, z, ter[k], 4 / Math.hypot(gx, 4, gz), tc), m);
-      terrainGr(x, z, ter[k], tg); gr[k * 2] = lerp(gr[k * 2], tg[0], m); gr[k * 2 + 1] = lerp(gr[k * 2 + 1], tg[1], m);
+      const cm = cityMask(x, z);
+      c.lerp(terrainColor(x, z, ter[k], 4 / Math.hypot(gx, 4, gz), tc, cm), m);
+      terrainGr(x, z, ter[k], tg, cm); gr[k * 2] = lerp(gr[k * 2], tg[0], m); gr[k * 2 + 1] = lerp(gr[k * 2 + 1], tg[1], m);
     }
     col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
   }
@@ -547,7 +544,7 @@ function makeHill(T) {
     } }
   const plant = (kd) => kd === 0 || kd === 2;
   const nP = bushes.filter((b) => plant(b[5])).length, nS = bushes.length - nP;
-  const bm = new THREE.InstancedMesh(clumpGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, roughness: 0.95, flatShading: true }), nP);
+  const bm = new THREE.InstancedMesh(clumpGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, flatShading: true }), nP);
   const sm = new THREE.InstancedMesh(stoneGeo(), rockClone(rockMat(THREE, T.rock.map), '#ffffff'), nS);
   sm.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(nS * 3).fill(1), 3);
   const slot = [], skirts = [];
@@ -558,8 +555,8 @@ function makeHill(T) {
       const P = plant(kind), mesh = P ? bm : sm, j = P ? iP++ : iS++;
       if (kind === 1) { e.set((r() - 0.5) * 0.4, a, (r() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, y - k * 0.12, z); s.set(k * 0.95, k * 0.32, k * 0.7); cc.set(rockTint(i * 1.37 + 0.4)); skirts.push([x, z, k * 1.1]); }
       else if (kind === 3) { e.set((r() - 0.5) * 0.5, a, (r() - 0.5) * 0.5); q.setFromEuler(e); p.set(x, y - k * 0.2, z); s.set(k, k * 0.6, k * 0.85); cc.set(rockTint(i * 0.71 + 2.2)); }
-      else if (kind === 2) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.1, z); s.set(k * 1.2, k * 1.15, k * 1.15); cc.copy(ol); }
-      else { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.08, z); s.set(k * 1.25, k * 0.62, k * 1.05); cc.copy(pal[i % 4]); }
+      else if (kind === 2) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.1, z); s.set(k * 1.2, k * 1.15, k * 1.15); cc.copy(ol); skirts.push([x, z, k * 0.9]); }
+      else { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); p.set(x, y - k * 0.08, z); s.set(k * 1.25, k * 0.62, k * 1.05); cc.copy(pal[i % 4]); skirts.push([x, z, k * 0.9]); }
       M.compose(p, q, s); mesh.setMatrixAt(j, M); mesh.setColorAt(j, cc); slot.push([mesh, j, M.clone()]);
     }); }
   groundSkirts(skirts);

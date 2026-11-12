@@ -70,13 +70,13 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // ── look B ── (the owner: "a rocky Jerusalem hill, not a lawn") the tones dry straw and ochre, the valley bottoms a dry olive; the
 // rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
 const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#968F63'), orchard: new THREE.Color('#9C9866') };
-export function terrainColor(x, z, h, ny, c) {
+export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── look B ── (cm: the city's mask, when the caller has it) ── /look B ──
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
   c.lerp(TC.rock, smooth(0.10, 0.32, 1 - ny) * 0.6);
   c.lerp(TC.lush, smooth(-95, -135, h) * 0.45);
   if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x));
-  c.lerp(TC.dust, cityMask(x, z) * 0.78);
+  c.lerp(TC.dust, cm * 0.78);
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
   return c;
@@ -84,8 +84,7 @@ export function terrainColor(x, z, h, ny, c) {
 // ── look B ── the ground's two vertex values (look/ground.js aGr): x the rock's bias (outcrops in patches of 30–80 amot, none in the
 // city), y a hollow's darker earth (the valley bottoms, where the old green was) ── /look B ──
 const NE = makeNoise(131);
-export function terrainGr(x, z, h, out) {
-  const city = cityMask(x, z);
+export function terrainGr(x, z, h, out, city = cityMask(x, z)) {
   out[0] = smooth(0.58, 0.78, NE(x / 55 + 4, z / 55 - 7, 3)) * 0.75 * (1 - city);
   out[1] = Math.min(1, smooth(-95, -135, h) * 0.7 + smooth(0.6, 0.8, NE(x / 140 - 2, z / 140 + 5, 2)) * 0.3) * (1 - city);
   return out;
@@ -110,9 +109,10 @@ export function buildTerrain() {
   const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3), gr = new Float32Array(n1 * n1 * 2), o = [0, 0];
   const c = new THREE.Color();
   for (let k = 0; k < n1 * n1; k++) {
-    terrainColor(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], nor[k * 3 + 1], c);
+    const cm = cityMask(pos[k * 3], pos[k * 3 + 2]);
+    terrainColor(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], nor[k * 3 + 1], c, cm);
     col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
-    terrainGr(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], o); gr[k * 2] = o[0]; gr[k * 2 + 1] = o[1];
+    terrainGr(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], o, cm); gr[k * 2] = o[0]; gr[k * 2 + 1] = o[1];
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.setAttribute('aGr', new THREE.BufferAttribute(gr, 2));

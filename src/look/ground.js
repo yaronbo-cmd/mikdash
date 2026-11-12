@@ -2,14 +2,14 @@
  * ONE patch for the world terrain (world.js buildTerrain) and the natural hill (stages.js makeHill), on a MeshStandardMaterial with
  * vertex colours (the large-scale tone) and two vertex values aGr (x: the rock's bias, outcrops; y: a hollow's darker earth).
  * Three surface kinds blended by masks in the fragment shader: ROCK (bare limestone, pale, pitted, bedded by world height on the
- * steep), EARTH (packed earth with dry straw stubble) and GRAVEL (small stones in dust). Their detail is one 512² texture computed at
- * load (R: earth, G: gravel, B: rock, A: soft blobs), sampled from above at two scales (7 and 37 amot) and from the side on the steep
+ * steep), EARTH (packed earth with dry straw stubble) and GRAVEL (small stones in dust). Their detail is one 256² texture computed at
+ * load (R: earth, G: gravel, B: rock, A: the bedrock field), sampled from above at two scales (7 and 37 amot) and from the side on the steep
  * (no stretch). The work mask (B3): a canvas over the Mount, R trodden earth round the works and on the paths, G the carts' corridors
- * (their two ruts drawn in the shader along uGrRut), B the dark earth bedded round the rocks.
+ * (G falls off linearly across each corridor: the shader reads the distance from its middle and draws the two ruts), B the dark earth bedded round the rocks.
  *
  *   groundMat(THREE) → the terrain's material · groundPatch(sh, THREE) → the hill's onBeforeCompile ends with it
  *   groundDetailData(n) → Uint8Array (pure) · workMarks(ids) → { spots, paths, ruts } (pure) · groundWork(ids) → redraw the mask
- *   groundSkirts(list) → the hill's own bare slabs [x, z, r] into the mask · smoothGridNormals(geo, nx, nz) → normals over 3 × 3 vertices
+ *   groundSkirts(list) → the hill's bare slabs and scrub [x, z, r] into the mask · smoothGridNormals(geo, nx, nz) → normals over 3 × 3 vertices
  * 'high': the detail's relief (a bump from its height); 'normal': two scales, no relief; 'low': one scale. ── /look B ── */
 import { BOOK } from '../game/world/grid.js';
 
@@ -112,15 +112,15 @@ const C = new WeakMap();
 const cache = (THREE) => { let c = C.get(THREE); if (!c) { c = {}; C.set(THREE, c); } return c; };
 function detailTex(THREE) {
   const c = cache(THREE); if (c.det) return c.det;
-  const n = LOW() ? 256 : 512, t = new THREE.DataTexture(groundDetailData(n), n, n, THREE.RGBAFormat);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.anisotropy = 4; t.needsUpdate = true;
+  const n = 256, t = new THREE.DataTexture(groundDetailData(n), n, n, THREE.RGBAFormat);   // (256²: about a texel to a screen pixel at play distance, a quarter of the load)
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.needsUpdate = true;
   return (c.det = t);
 }
 
 /* ───────── the work mask (B3) ───────── */
 // over the Mount and its margins: x −360…340, z −540…460 (the platform −300…277 × −480…400)
 export const MASK = Object.freeze({ x0: -360, z0: -540, w: 700, d: 1000, n: 512 });
-const NRUT = 8;
+const NRUT = 12, RUT_W = 2.6;   // (the carts' routes kept; a corridor's half width, amot)
 const SECT = BOOK.sectors;
 // (the courses' stretches as acts3.js COURSES lays them: z0 352, 316, then 36 amot apart northward; the wall's face x 277)
 const courseZ = (c) => (c === 0 ? 352 : c === 1 ? 316 : 316 - 36 * (c - 1));
@@ -153,7 +153,7 @@ export function workMarks(ids) {
 
 function maskState(THREE) {
   const c = cache(THREE); if (c.mask) return c.mask;
-  const S = { tex: null, cv: null, ruts: Array.from({ length: NRUT }, () => new THREE.Vector4(0, 0, 0, 0)), box: new THREE.Vector4(MASK.x0, MASK.z0, 1 / MASK.w, 1 / MASK.d) };
+  const S = { tex: null, cv: null, box: new THREE.Vector4(MASK.x0, MASK.z0, 1 / MASK.w, 1 / MASK.d) };
   if (typeof document !== 'undefined') {
     S.cv = document.createElement('canvas'); S.cv.width = S.cv.height = MASK.n;
     S.tex = new THREE.CanvasTexture(S.cv); S.tex.generateMipmaps = false; S.tex.minFilter = S.tex.magFilter = THREE.LinearFilter; S.tex.wrapS = S.tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -182,9 +182,13 @@ function draw(S) {
   for (const [x, z, r] of STATE.skirts) disc(x, z, r * 0.6, r * 1.5, '0,0,255', 0.6);
   const M = workMarks(STATE.ids);
   for (const [ax, az, bx, bz, w] of M.paths) line(ax, az, bx, bz, w, '255,0,0', 0.55);
-  for (const [ax, az, bx, bz] of M.ruts) { line(ax, az, bx, bz, 3.2, '255,0,0', 0.5); line(ax, az, bx, bz, 3.2, '0,255,0', 1); }
+  // (a corridor: G = 1 − its distance from the route / RUT_W, in 12 strokes added up; the trodden band in R)
+  for (const [ax, az, bx, bz] of M.ruts) {
+    line(ax, az, bx, bz, 3.2, '255,0,0', 0.5);
+    g.lineCap = 'butt'; g.strokeStyle = `rgba(0,${Math.round(255 / 12)},0,1)`;
+    for (let i = 1; i <= 12; i++) { g.lineWidth = 2 * RUT_W * (i / 12) * sx; g.beginPath(); g.moveTo(X(ax), Z(az)); g.lineTo(X(bx), Z(bz)); g.stroke(); }
+  }
   for (const [x, z, r] of M.spots) disc(x, z, r * 0.55, r * 1.1, '255,0,0', 1);
-  for (let i = 0; i < NRUT; i++) { const R = M.ruts[i]; if (R) S.ruts[i].set(R[0], R[1], R[2], R[3]); else S.ruts[i].set(0, 0, 0, 0); }
   S.tex.needsUpdate = true;
 }
 const STATE = { THREE: null, ids: [], skirts: [] };
@@ -194,7 +198,7 @@ export function groundWork(ids) {
   if (L.join() === STATE.ids.join()) return false;
   STATE.ids = L; const c = STATE.THREE && cache(STATE.THREE); if (c && c.mask) draw(c.mask); return true;
 }
-/** the hill's bare slabs: [x, z, r] — the dark earth bedded round each (once, at the hill's build) */
+/** the hill's bare slabs and scrub: [x, z, r] — the dark earth round each (once, at the hill's build) */
 export function groundSkirts(list) { STATE.skirts = (list || []).slice(); const c = STATE.THREE && cache(STATE.THREE); if (c && c.mask) draw(c.mask); }
 
 /** an indexed grid's normals (nx × nz vertices, row-major), averaged with their 8 neighbours: the light follows the hill's shape, not
@@ -223,16 +227,15 @@ attribute vec2 aGr; varying vec3 vGrW; varying vec3 vGrN; varying vec2 vGrA;`;
 const VERT_MAIN = /* glsl */`
   vGrW = (modelMatrix * vec4(transformed, 1.0)).xyz; vGrN = normalize(mat3(modelMatrix) * objectNormal); vGrA = aGr;`;
 const FRAG = /* glsl */`
-uniform sampler2D uGrT; uniform sampler2D uGrM; uniform vec4 uGrMB; uniform vec4 uGrRut[${NRUT}];
+uniform sampler2D uGrT; uniform sampler2D uGrM; uniform vec4 uGrMB;
 uniform vec3 uGrStraw; uniform vec3 uGrRock; uniform vec3 uGrGrav; uniform vec3 uGrDark;
 varying vec3 vGrW; varying vec3 vGrN; varying vec2 vGrA;
 float grDet = 1.0; float grHt = 0.5; vec3 grPack = vec3(0.3);
 vec3 grGround(vec3 vc) {
   vec3 W = vGrW, N = normalize(vGrN);
   vec2 p = W.xz;
-  // (the side projection's gradients, outside the branch)
-  bool gx = abs(N.x) > abs(N.z); vec2 us = (gx ? W.zy : W.xy) / 10.0;
-  vec2 usx = dFdx(us), usy = dFdy(us);
+  // (the side projection, for the steep: from x or z, whichever the face looks along)
+  vec2 us = (abs(N.x) > abs(N.z) ? W.zy : W.xy) / 10.0;
   vec4 d1 = texture2D(uGrT, p / 10.0 + 0.13);
 #ifndef GR_LOW
   vec4 d2 = texture2D(uGrT, vec2(p.x * 0.8 - p.y * 0.6, p.x * 0.6 + p.y * 0.8) / 37.0 + 0.37);
@@ -241,8 +244,11 @@ vec3 grGround(vec3 vc) {
 #endif
   float slope = 1.0 - N.y;
   // the work mask: trodden earth (r), the carts' corridors (g), the rocks' bedding (b)
-  vec4 wm = vec4(0.0); vec2 mu = (p - uGrMB.xy) * uGrMB.zw;
+  vec4 wm = vec4(0.0);
+#ifndef GR_LITE
+  vec2 mu = (p - uGrMB.xy) * uGrMB.zw;
   if (mu.x > 0.0 && mu.y > 0.0 && mu.x < 1.0 && mu.y < 1.0) wm = texture2D(uGrM, mu);
+#endif
   float trod = clamp(wm.r * 1.2, 0.0, 1.0);
   // ROCK: bare bedrock slabs (the field thresholded: lower where the vertex's bias is rocky and on the slope; the grikes between them
   // earth), and the whole face on the steep (over ≈ 33°)
@@ -264,7 +270,9 @@ vec3 grGround(vec3 vc) {
   vec3 grav = mix(uGrGrav, vc, 0.4) * (0.4 + 1.0 * mix(d1.g, d2.g, 0.2)) * (1.0 - 0.2 * trod);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float rb = mix(d1.b, d2.b, 0.45), sw = smoothstep(0.26, 0.5, slope);
-  if (sw > 0.01) rb = mix(rb, textureGrad(uGrT, us, usx, usy).b, sw);
+#ifndef GR_LITE
+  rb = mix(rb, texture2D(uGrT, us).b, sw);
+#endif
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
   vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (0.8 + 0.2 * smoothstep(th + 0.02, th + 0.1, rf)) * (1.0 - 0.12 * sw);
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
@@ -273,13 +281,10 @@ vec3 grGround(vec3 vc) {
   col = mix(col, rock, rk);
   // the dark earth bedded round the rocks; the carts' two ruts
   col *= 1.0 - 0.38 * wm.b;
-  if (wm.g > 0.05) {
-    float dm = 1e3;
-    for (int i = 0; i < ${NRUT}; i++) { vec4 R = uGrRut[i]; vec2 ab = R.zw - R.xy; float L2 = dot(ab, ab); if (L2 < 1e-3) continue;
-      vec2 ap = p - R.xy; float t = clamp(dot(ap, ab) / L2, 0.0, 1.0); dm = min(dm, length(ap - ab * t)); }
-    float rut = 1.0 - smoothstep(0.1, 0.32, abs(dm - 0.75));
-    col *= 1.0 - 0.3 * rut * wm.g;
-  }
+#ifndef GR_LITE
+  float rut = 1.0 - smoothstep(0.1, 0.3, abs((1.0 - wm.g) * ${RUT_W.toFixed(2)} - 0.75));
+  col *= 1.0 - 0.3 * rut * step(0.05, wm.g);
+#endif
   // (packed earth with small stones: the fill behind the walls, as the hill's shader lays it)
   grPack = mix(uGrDark * (0.95 + 0.7 * mix(d1.r, d2.r, 0.4)), grav, smoothstep(0.45, 0.75, d2.g) * 0.55 + 0.1);
   grDet = lkLumGr(col) / max(0.04, lkLumGr(vc));
@@ -298,7 +303,7 @@ function uniforms(THREE) {
   STATE.THREE = THREE;
   const S = maskState(THREE), col = (h) => new THREE.Color(h);
   c.U = {
-    uGrT: { value: detailTex(THREE) }, uGrM: { value: S.tex }, uGrMB: { value: S.box }, uGrRut: { value: S.ruts },
+    uGrT: { value: detailTex(THREE) }, uGrM: { value: S.tex }, uGrMB: { value: S.box },
     uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#86684C') },
   };
   return c.U;
@@ -320,12 +325,13 @@ export function groundDefines(m) {
   if (HI()) d.GR_HI = ''; else if (LOW()) d.GR_LOW = '';
   m.defines = d; return HI() ? '-hi' : LOW() ? '-low' : '';
 }
-/** the world terrain's material */
+/** the world terrain's material (GR_LITE: the Mount's mask and the side projection are the hill's: the terrain round it has neither,
+ *  a lighter program to compile) */
 export function groundMat(THREE) {
   STATE.THREE = THREE;
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
-  const k = groundDefines(m);
+  const k = groundDefines(m); m.defines.GR_LITE = '';
   m.onBeforeCompile = (sh) => groundPatch(sh, THREE);
-  m.customProgramCacheKey = () => 'ground' + k;
+  m.customProgramCacheKey = () => 'ground-lite' + k;
   return m;
 }

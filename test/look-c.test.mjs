@@ -11,13 +11,13 @@ const G = { dawn: { fogN: 420, fogF: 7000, sat: 1.08, gain: [1.035, 1, 0.955], l
 const hsl = (hex) => { const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
   const h = d === 0 ? 0 : mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4); return { h, s: d / (1 - Math.abs(mx + mn - 1) || 1), l: (mx + mn) / 2 }; };
 
-test('C5: the sun rises with the stage\'s progress, 28° to 62°, along the presets\' azimuths; the same progress, the same sun', () => {
+test('C5: the sun rises with the stage\'s progress, 34° to 62°, its azimuth from the morning\'s toward noon\'s; the same progress, the same sun', () => {
   const a = workPreset(0, T, G), b = workPreset(1, T, G), m = workPreset(0.5, T, G);
-  assert.equal(a.el, 28); assert.equal(b.el, 62); assert.ok(m.el > a.el && m.el < b.el);
+  assert.equal(a.el, 34); assert.equal(b.el, 62); assert.ok(m.el > a.el && m.el < b.el);
   assert.ok(a.az > T.dawn.az && a.az < T.noon.az); assert.equal(b.az, T.noon.az);
   assert.deepEqual(workPreset(0.37, T, G), workPreset(0.37, T, G));
-  assert.equal(workPreset(-3, T, G).el, 28); assert.equal(workPreset(9, T, G).el, 62);
-  for (let p = 0; p < 1; p += 0.1) assert.ok(workPreset(p + 0.1, T, G).el > workPreset(p, T, G).el);
+  assert.equal(workPreset(-3, T, G).el, 34); assert.equal(workPreset(9, T, G).el, 62);
+  for (let i = 0; i < 10; i++) assert.ok(workPreset((i + 1) / 10, T, G).el > workPreset(i / 10, T, G).el);
 });
 
 test('C1: one golden light, near-white cream (not yellow), a warm ground bounce', () => {

@@ -14,12 +14,13 @@
  * ── /look C ── */
 
 export const WORK = Object.freeze({
-  el: [28, 62],                 // the sun's elevation (deg) from the stage's first work to its last
+  el: [34, 62],                 // the sun's elevation (deg) from the stage's first work to its last (review J3: 28 → 34, no backlit haze)
+  az0: 85,                      // the morning sun's azimuth (deg; to noon's 100): off the zoom-out's axis, so the morning is not front-lit flat
   // the light at the stage's start (a softened morning, the sun itself near-white cream) and at its end (noon); the shade's fill: a warm
   // ground bounce (the hill's own earth tone) and a warm-neutral sky term (review J2: the blue sky term, '#C3CCDB', turned the pits and the
   // shade behind walls navy once the sun left them), a weaker environment (the sky's blue again)
-  morning: { sun: '#FFEFD8', sunI: 2.55, hs: '#DACBAE', hg: '#C4AA84', hI: 1.15, envI: 0.15, exp: 0.86 },
-  noon: { sun: '#FFF6E6', sunI: 2.7, hs: '#DCCFB6', hg: '#C6AC86', hI: 1.05, envI: 0.18, exp: 0.74 },
+  morning: { sun: '#FFEFD8', sunI: 2.55, hs: '#DACBAE', hg: '#C4AA84', hI: 1.15, envI: 0.15, exp: 0.8 },
+  noon: { sun: '#FFF6E6', sunI: 2.7, hs: '#DCCFB6', hg: '#C6AC86', hI: 1.05, envI: 0.18, exp: 0.7 },
   sky0: 1,                      // the dome's blend toward noon at the stage's start (review J1: noon's blue sky all the way; was 0.65, pale)
   ease: 2.6,                    // seconds for the sun to reach its new place in the walk
   step: 0.2,                    // seconds between two moves of the shadows while it eases
@@ -46,9 +47,9 @@ export function sunDir(el, az, out = [0, 0, 0]) {
 export function workPreset(p, T, G, out = {}) {
   const u = clamp01(+p || 0), D = T.dawn, N = T.noon, M = WORK.morning, Z = WORK.noon;
   const el = lerp(WORK.el[0], WORK.el[1], u);
-  // (the azimuth along the presets' own path: the dawn's at its elevation, the noon's at 62°)
-  const k = clamp01((el - D.el) / (N.el - D.el));
-  out.el = el; out.az = lerp(D.az, N.az, k);
+  // (the azimuth from the morning's, WORK.az0, to noon's — review J3: the dawn preset's path put the morning sun right behind the
+  // zoom-out camera, front-lit and flat)
+  out.el = el; out.az = lerp(WORK.az0, N.az, u);
   out.sun = lerpHex(M.sun, Z.sun, u); out.sunI = lerp(M.sunI, Z.sunI, u);
   out.hs = lerpHex(M.hs, Z.hs, u); out.hg = lerpHex(M.hg, Z.hg, u); out.hI = lerp(M.hI, Z.hI, u);
   out.envI = lerp(M.envI, Z.envI, u); out.exp = lerp(M.exp, Z.exp, u);

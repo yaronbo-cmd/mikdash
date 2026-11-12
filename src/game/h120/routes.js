@@ -8,14 +8,10 @@
  * Amot throughout: +x east, +z south.
  */
 import { H120, COLS, COL_IDS, BAYS, LADDERS, bayDir } from './model.js';
+import { BOOK } from '../world/grid.js';
 
 /** the carpenters' yard: brief "about (90, −24)", moved south-west (it met the crane's drop at (96, −25) and its jib) */
-export const YARD = Object.freeze({
-  his: Object.freeze({ x0: 80, x1: 92, z: -31.5 }),      // his beam's trestles (station 2)
-  saw: Object.freeze({ x0: 79, x1: 91, z: -26.6 }),      // the yard sawyers' beam
-  stock: Object.freeze({ x: 99.4, z0: -33.2, z1: -21.2 }),   // the beam stock along the wood chamber's west wall
-  offcut: Object.freeze([94.6, -34.2]), short: Object.freeze([84, -35.4]), bench: Object.freeze([95.6, -29.6]),
-});
+export const YARD = BOOK.s05.yard;   // (build 124 B: the address book's)
 /** scaffolds on the chambers' walls: [x0, z0, x1, z1] footprints (two lifts). The wood chamber's (index 1) stands west of the east
  *  wing's marking: with the lime pit it makes level 3's narrow pass of four amot (x 130.6 … 134.6) */
 export const SCAFF = Object.freeze([[46.2, -47, 48.4, -41], [126.6, -27.3, 130.6, -25.3], [107, 25.3, 113, 27.3], [46.2, 38, 48.4, 44]]);
@@ -24,7 +20,7 @@ export const PILES = Object.freeze([[64, -40, 7], [109, -14, 6], [70, 42, 6], [1
 /** the sledges' lane: from outside the east gate through it to the wood chamber's door (x 117…125, z −27.5) */
 export const LANE = Object.freeze([[156, -5.5], [139, -5.5], [128, -12], [121, -21], [121, -29.2]]);
 /** the plasterers' lime pit by the wood chamber's south wall, east of the scaffold (level 3's pass; only feet count) */
-export const LIME = Object.freeze({ x0: 134.6, z0: -27.3, x1: 137.4, z1: -23.3 });
+export const LIME = BOOK.s05.lime;   // (build 124 B: the address book's)
 
 /* ───────── the lane's timetable (the sledge and the ox cart: fixed periods, rule 56) ───────── */
 export const LANE_L = (() => { let L = 0; for (let i = 1; i < LANE.length; i++) L += Math.hypot(LANE[i][0] - LANE[i - 1][0], LANE[i][1] - LANE[i - 1][1]); return L; })();

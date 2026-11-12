@@ -25,6 +25,7 @@
  *   floorH(x, z) · flow(ch, opt) · pourPath(x, z) · refChannel(lv, kind) · mikveh arithmetic (station 4)
  */
 import { H120, Y, COLS, COL_IDS, BEAMS, BEAM_OF, MIK, CHAMBER, FINGER as F, TEFACH } from './layout.js';
+import { BOOK } from '../world/grid.js';
 export { H120, Y, COLS, COL_IDS, BEAMS, BEAM_OF, MIK, CHAMBER, RUNS, LADDERS, joistsOf } from './layout.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -388,12 +389,7 @@ export function floorH(x, z) {
   return H120.FLOOR + h;
 }
 /** the vessels on the floor (the plasterers' wooden trough, the jars), as moved: footprints */
-export const VESSELS = Object.freeze([
-  Object.freeze({ id: 'trough', kind: 'trough', at: Object.freeze([24.5, -46.9]), w: 2.6, d: 1.0 }),
-  Object.freeze({ id: 'jar1', kind: 'jar', at: Object.freeze([26.6, -44.3]), r: 0.55 }),
-  Object.freeze({ id: 'jar2', kind: 'jar', at: Object.freeze([17.2, -56.4]), r: 0.55 }),
-  Object.freeze({ id: 'jar3', kind: 'jar', at: Object.freeze([31.8, -40.6]), r: 0.55 }),
-]);
+export const VESSELS = BOOK.s05.vessels;   // (build 124 B: the address book's)
 export function vesselsOf(moved = {}) { return VESSELS.map((v) => ({ ...v, at: moved[v.id] ? moved[v.id].slice() : v.at.slice() })); }
 function inVessel(x, z, v, pad = 0.1) { if (v.kind === 'trough') return Math.abs(x - v.at[0]) < v.w / 2 + pad && Math.abs(z - v.at[1]) < v.d / 2 + pad; return Math.hypot(x - v.at[0], z - v.at[1]) < v.r + pad; }
 const inPit = (x, z) => x > MIK.pit.x0 && x < MIK.pit.x1 && z > MIK.pit.z0 && z < MIK.pit.z1;

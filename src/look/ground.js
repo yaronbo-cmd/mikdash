@@ -335,10 +335,12 @@ vec3 grGround(vec3 vc) {
   // pale band of dry-stone, under it a soft shade line (downhill), above it the terrace's floor a little browner. Filtered by the
   // contour's own screen width, so far off they thin out instead of shimmering ── /look D review ──
   if (vGrA.z > 0.01) {
-    float tq = texture2D(uGrT, p / 173.0 + 0.61).a;
-    float hy = (W.y + (tq - 0.5) * 18.0 + (d2.a - 0.5) * 2.5) / 29.0;
+    // (the warp and the breaks from a value noise in the shader, not two more lookups of the detail: a texture fetch is a lot of
+    // shader to compile on a software renderer)
+    float tq = grVN(p / 70.0 + 3.1) * 0.65 + grVN(p / 29.0 - 1.7) * 0.35;
+    float hy = (W.y + (tq - 0.5) * 20.0 + (d2.a - 0.5) * 2.5) / 29.0;
     float fw = fwidth(hy) * 0.7 + 1e-4, t = fract(hy + 0.5) - 0.5;
-    float on = vGrA.z * smoothstep(0.27, 0.34, texture2D(uGrT, p / 89.0 + 0.27).a) * (1.0 - smoothstep(0.1, 0.3, fw));
+    float on = vGrA.z * smoothstep(0.3, 0.4, grVN(p / 38.0 + 7.3)) * (1.0 - smoothstep(0.1, 0.3, fw));
     float pale = smoothstep(-fw, fw, t) - smoothstep(0.085 - fw, 0.085 + fw, t);
     float shade = (smoothstep(-0.17 - fw, -0.17 + fw, t) - smoothstep(-fw, fw, t)) * smoothstep(-0.18, -0.02, t);
     float flr = smoothstep(0.085, 0.13, t) * (1.0 - smoothstep(0.16, 0.34, t));
@@ -355,7 +357,12 @@ vec3 grGround(vec3 vc) {
   grRel = (smoothstep(th - 0.03, th + 0.2, d2.a + (d1.a - 0.5) * 0.1) + (mix(d2.b, d1.b, 0.4) - 0.6) * 0.3 * slab) * (1.0 - steep) * (1.0 - smoothstep(0.1, 0.45, trod));
   return col;
 }`;
-const FRAG_FN = /* glsl */`float lkLumGr(vec3 c) { return dot(c, vec3(0.333)); }`;
+const FRAG_FN = /* glsl */`float lkLumGr(vec3 c) { return dot(c, vec3(0.333)); }
+#ifdef GR_LITE
+float grVH(vec2 q) { return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }
+float grVN(vec2 q) { vec2 i = floor(q), f = fract(q); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(grVH(i), grVH(i + vec2(1.0, 0.0)), f.x), mix(grVH(i + vec2(0.0, 1.0)), grVH(i + vec2(1.0, 1.0)), f.x), f.y); }
+#endif`;
 const BUMP = /* glsl */`
 #ifndef GR_LOW
   { vec2 dH = vec2(dFdx(grRel), dFdy(grRel)) * 0.3;

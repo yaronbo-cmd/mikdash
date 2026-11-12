@@ -2,16 +2,17 @@
  * already exist (look A's family, the ground, the buildings' groundAO, the city): no program of its own.
  *   Cloud shadows: the dome's own cloud noise (sky.js noiseTex, the same texture), projected from the cloud layer down the sun's direction
  *   onto every lit surface, drifting with the clouds' wind; a multiply on the DIRECT light only (never below 1 − strength, at most 0.25), so
- *   the shade under a cloud is still lit by the sky. Off on 'low' (the chunk is not compiled in), off at night and under the rain.
+ *   the shade under a cloud is still lit by the sky. On 'high' only (elsewhere the chunk is not compiled in: at 'normal' its one texture
+ *   sample per lit pixel cost 1.5 to 4 % of the frame, over the round's budget), off at night and under the rain.
  *   Wind: the olive crowns and the scrub (one patch, one program for both) sway under 0.1 amah (the stake's cloth already waves: props.js).
  *
  *   airUniforms() → the shared uniforms (one object for every program) · airPatch(sh) → a MeshStandardMaterial's onBeforeCompile part
  *   airTick(sky, dir, k) every frame (sky: sky.js's object, dir: toward the sun, k: 0..1 how much cloud shadow now)
- *   airMat(mat, key) → a plain material given the chunk (the city) · windMat(mat) → swaying (olive crowns, scrub) · AIR_ON(): not 'low'
+ *   airMat(mat, key) → a plain material given the chunk (the city) · windMat(mat) → swaying (olive crowns, scrub) · AIR_ON(): 'high'
  *   CLOUD: the layer's height and scale (the dome draws its clouds as a plane ~1400 amot up: uv = xz / height × 0.28)
  * ── /look C ── */
 export const CLOUD = Object.freeze({ h: 1400, uv: 0.28, max: 0.25, drift: [0.0012, 0.0005] });
-export const AIR_ON = () => { try { return (globalThis.__LOOK_Q || globalThis.__FORCE_Q) !== 'low'; } catch (e) { return true; } };
+export const AIR_ON = () => { try { return (globalThis.__LOOK_Q || globalThis.__FORCE_Q) === 'high'; } catch (e) { return false; } };
 
 // (plain objects: the same { value } objects in every program; three.js reads .value at each draw)
 const U = {
@@ -47,6 +48,7 @@ export function airPatch(sh) {
 }
 /** a material of its own (the city) given the cloud shadows: its own program, keyed */
 export function airMat(m, key) {
+  if (!AIR_ON()) return m;   // (below 'high' the city keeps its plain shared program)
   m.onBeforeCompile = (sh) => airPatch(sh);
   m.customProgramCacheKey = () => key + (AIR_ON() ? '-air' : '');
   return m;

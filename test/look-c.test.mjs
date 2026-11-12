@@ -60,9 +60,11 @@ test('C2: the shadow box\'s centre lands on whole texels of the light\'s view (n
   }
 });
 
-test('C4: the cloud shadows are one chunk, added once, multiplying the direct light only (at most 0.25)', () => {
+test('C4: the cloud shadows (on \'high\') are one chunk, added once, multiplying the direct light only (at most 0.25)', () => {
   const sh = { uniforms: {}, vertexShader: '#include <common>\n#include <begin_vertex>', fragmentShader: '#include <common>\n#include <lights_fragment_end>' };
-  airPatch(sh); airPatch(sh);
+  const q0 = globalThis.__LOOK_Q;
+  globalThis.__LOOK_Q = 'normal'; airPatch(sh); assert.doesNotMatch(sh.fragmentShader, /airShade/, 'not at normal (the frame budget)');
+  globalThis.__LOOK_Q = 'high'; airPatch(sh); airPatch(sh); globalThis.__LOOK_Q = q0;
   assert.equal(sh.fragmentShader.split('float airShade(').length, 2);
   assert.match(sh.fragmentShader, /reflectedLight\.directDiffuse \*= airK/);
   assert.doesNotMatch(sh.fragmentShader, /indirectDiffuse \*= airK/);

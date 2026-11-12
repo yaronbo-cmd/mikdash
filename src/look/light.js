@@ -26,8 +26,10 @@ export const WORK = Object.freeze({
   step: 0.2,                    // seconds between two moves of the shadows while it eases
 });
 // (C5) the acts whose work a long shadow would hide at the low sun (the shots at both ends of the sun's travel): their sun held higher.
-// corner: the corner tower's shadow over the setting square; great: the cut crest's shadow over the great stone's road down
-export const ACT_SUN = Object.freeze({ corner: [0.5, 1], great: [0.5, 1] });
+// corner: the corner tower's shadow over the setting square; great: the cut crest's shadow over the great stone's road down; bond (stage 02,
+// review J4): the course's stones shaded the working gap under its label below 0.6. Every other act of stages 01 to 04 was shot at both ends
+// of the sun's travel: no neighbour's shadow over a label, a number or a marker
+export const ACT_SUN = Object.freeze({ corner: [0.5, 1], great: [0.5, 1], bond: [0.6, 1] });
 export function actSun(k, p) { const r = ACT_SUN[k]; return r ? Math.max(r[0], Math.min(r[1], p)) : p; }
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);

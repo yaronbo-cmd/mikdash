@@ -187,14 +187,16 @@ const TIMES = {
 // ── world6 ── per preset: the aerial perspective (fog near/far, amot; its colour is the sky's haze) and the colour grade folded
 // into the OutputPass (after ACES, linear): sat = saturation, gain = highlights' tint, lift = shadows' tint, vig = vignette
 const GRADE = {
-  dawn: { fogN: 480, fogF: 7400, sat: 1.08, gain: [1.035, 1.0, 0.955], lift: [0.004, 0.005, 0.011], vig: 0.2 },
-  noon: { fogN: 650, fogF: 8200, sat: 1.07, gain: [1.0, 1.0, 0.985], lift: [0.002, 0.003, 0.006], vig: 0.14 },
-  dusk: { fogN: 520, fogF: 7800, sat: 1.12, gain: [1.05, 1.0, 0.9], lift: [0.01, 0.003, 0.016], vig: 0.24 },   // ── world7 ── gain G 0.985 → 1.0: the evening stone golden rather than salmon
+  dawn: { fogN: 420, fogF: 7000, sat: 1.08, gain: [1.035, 1.0, 0.955], lift: [0.004, 0.005, 0.011], vig: 0.2 },
+  noon: { fogN: 480, fogF: 7600, sat: 1.07, gain: [1.0, 1.0, 0.985], lift: [0.002, 0.003, 0.006], vig: 0.14 },
+  dusk: { fogN: 440, fogF: 7300, sat: 1.12, gain: [1.05, 1.0, 0.9], lift: [0.01, 0.003, 0.016], vig: 0.24 },   // ── world7 ── gain G 0.985 → 1.0: the evening stone golden rather than salmon
   golden: { fogN: 700, fogF: 9500, sat: 1.15, gain: [1.07, 1.0, 0.91], lift: [0.004, 0.006, 0.02], vig: 0.25 },   // ── world7 ──
   night: { fogN: 420, fogF: 6800, sat: 0.95, gain: [0.95, 0.99, 1.07], lift: [0.006, 0.01, 0.022], vig: 0.26 },   // ── world7 ── (was fogN 300, fogF 5200, lift 0/.003/.01, vig .3: the far city and hills melted into black)
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
 };
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
+// ── look C ── (C3) dawn, noon, dusk: fog from 420–480 amot (was 480–650) to 7000–7600 (was 7400–8200): the near field (< 150 amot) untouched,
+// the city ≈ 5–10 % into the haze, the far hills ≈ 35–55 %, the far ranges on the dome paler still: three layers ── /look C ──
 // ── end world6 ──
 const VIEWS = {
   olives: { p: [601, 301, -215], t: [-60, 20, 0] },

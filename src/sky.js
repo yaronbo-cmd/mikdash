@@ -166,17 +166,22 @@ void main() {
     }
   }
   // the far ranges: the Judean hills all round, and in the east (+x) the long wall of the mountains of Moab
-  if (h < 0.035) {
+  if (h < 0.045) {
     float east = smoothstep(0.35, 0.95, dxz.x);
     vec4 r1 = texture2D(uNoise, vec2(A * 4.0, 0.83)), r2 = texture2D(uNoise, vec2(A * 19.0, 0.47));
     float far = 0.004 + 0.009 * r1.r + 0.003 * r2.b + east * (0.012 + 0.003 * r2.r);
     float near = 0.0015 + 0.007 * r1.b * r2.r;
+    // ── look C ── (C3) two more ranges: the farthest behind the far one (palest, nearly the haze) and one between far and near — four
+    // values stepping lighter with distance
+    float last = far + 0.0025 + 0.0055 * r1.g * (1.0 - 0.5 * east), mid = near + 0.001 + 0.0045 * r2.a * r1.b;
     vec3 mt = mix(uMtn, uMoab, east * (1.0 - tw));                 // Moab lit by the sun behind the viewer (pink at dusk)
     mt = mix(mt, uMtn * 0.75, east * tw * tw);                      // …and dark against the dawn
-    float kf = smoothstep(far + 0.0015, far - 0.0005, h), kn = smoothstep(near + 0.001, near - 0.0005, h);
+    float kl = smoothstep(last + 0.0015, last - 0.0005, h), kf = smoothstep(far + 0.0015, far - 0.0005, h), km = smoothstep(mid + 0.0012, mid - 0.0005, h), kn = smoothstep(near + 0.001, near - 0.0005, h);
+    c = mix(c, mix(uFog, mt, 0.24), kl);
     c = mix(c, mix(uFog, mt, 0.42), kf);
-    c = mix(c, mix(uFog, mt * 0.92, 0.6), kn);
-    cover = max(cover, kf);
+    c = mix(c, mix(uFog, mt * 0.96, 0.52), km);
+    c = mix(c, mix(uFog, mt * 0.9, 0.64), kn);
+    cover = max(cover, kl);
   }
   if (h < 0.0) c = mix(c, uFog, smoothstep(0.0, -0.03, h));
   c = c * uSkyI + glow * (1.0 - 0.85 * cover) + uSunCol * disc * 24.0 * (1.0 - cover);

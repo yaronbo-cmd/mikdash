@@ -359,6 +359,52 @@
       return { wait: 300 };
     },
     // ── /build 113 ──
+    // ── build 120 ── station 1, the column: pull the rope down (slowly at level 3), near the balance the post: press and turn round
+    // it to let the column down onto its plinth (touch: one finger still pulling a little, the other braking; mouse: a heave, then the
+    // post); then the plumbs: a wedge on the side it leans to, the plumb weight to accept. __BOT.bad: 'nobrake' (never the post),
+    // 'fast' (the rope paid out in a rush: a hard landing), 'sharp' (level 3: two sharp pulls above 45°)
+    col(a) {
+      const bad = B.bad || '', mouse = !!a.mouse || !!window.__BOT_MOUSE;
+      if (a.busy) return { wait: 200 };
+      if (a.phase === 'rise' && a.rope) {
+        const tol = a.tol, near = a.th >= a.BAL - tol + 0.3, circle = (c, turns, ms, r = 42) => { const n = Math.max(12, Math.round(ms / 50)), pts = []; for (let i = 0; i <= n; i++) { const t = (i / n) * turns * Math.PI * 2; pts.push([c[0] + Math.cos(t) * r, c[1] + Math.sin(t) * r]); } return pts; };
+        if (bad === 'sharp' && a.pulley && a.th > 50 && a.tears === 0 && !a.crossed) return { path: [a.rope, a.ropeTo], ms: 70, wait: 250, note: 'col: a sharp pull (' + a.sharp + ')' };
+        // (level 2: the guy crew hauls the top back against the east wind)
+        if (a.guy && Math.abs(a.sway) > 1.2 && !a.crossed && a.w < 1 && bad !== 'nobrake') return { tap: a.guy, wait: 600, note: 'col: the guy rope at sway ' + a.sway };
+        // (the big pull, eased off before it runs away; the finger eases back before it lifts, so the foot does not walk)
+        const relTh = [0, 56, 50, 37][a.lv] || 37, ease = { after: [mid(a.rope, a.ropeTo, 0.2)], afterMs: 650 };
+        if (!a.crossed && a.th < relTh) {
+          if (a.w > 1) return { wait: 100 };
+          return { path: [a.rope, a.ropeTo], ms: a.pulley ? 1100 : 700, keep: 25000, release: C(`return !a||a.phase!=='rise'||a.th>=${relTh}`), ...ease, wait: 30, note: 'col: pull at ' + a.th };
+        }
+        if (!a.crossed && !near && a.w > 1) return { wait: 80 };
+        if (!a.crossed && a.th < (a.pulley ? 64 : a.BAL - a.tol - 2.5) && !mouse) return { path: [a.rope, mid(a.rope, a.ropeTo, 0.8)], ms: a.pulley ? 900 : 500, keep: 8000, release: C(`return !a||a.phase!=='rise'||a.th>=a.BAL-a.tol-4||a.w>4`), after: [mid(a.rope, a.ropeTo, 0.25)], afterMs: 350, wait: 30, note: 'col: nudge at ' + a.th };
+        if (bad === 'nobrake') {
+          if (a.crossed || a.w > 1) return { wait: 200, note: 'col: no brake, ' + a.th };
+          return mouse ? { tap: a.rope, wait: 350, note: 'col: heave' } : { path: [a.rope, mid(a.rope, a.ropeTo, 0.95)], ms: 500, keep: 4000, release: C('return !a||a.crossed||a.phase!==\'rise\''), wait: 100 };
+        }
+        const ms = bad === 'fast' ? 1000 : 6000, turns = bad === 'fast' ? 2.6 : 3.6;
+        if (mouse) {
+          if (a.crossed) return { path: circle(a.post, turns, ms), ms, wait: 300, note: `col: brake at ${a.th} (pay ${turns} turns in ${ms} ms)` };
+          if (a.w < 0.6) return a.th < (a.pulley ? 64 : a.BAL - 8) ? { path: [a.rope, mid(a.rope, a.ropeTo, 0.92)], ms: 500, keep: 8000, release: C(`return !a||a.phase!=='rise'||a.th>=a.BAL-a.tol-2.5||a.w>5`), ...ease, wait: 30, note: 'col: nudge at ' + a.th } : { tap: a.rope, wait: 380, note: 'col: heave at ' + a.th };
+          return { wait: 60 };
+        }
+        // (two fingers: the first keeps a little pull on the rope, the second comes to the post as the column reaches the balance)
+        const P = circle(a.post, turns, ms), Rp = mid(a.rope, a.ropeTo, 0.45), fr = [[a.rope]];
+        const k = a.crossed || a.pulley ? 1 : Math.max(1, Math.min(40, Math.round(((a.BAL - 0.8 - a.th) / Math.max(a.w, 3)) / 0.05)));
+        for (let i = 1; i <= k; i++) fr.push([mid(a.rope, Rp, Math.min(1, i / 3))]);
+        for (const q of P) fr.push([Rp, q]);
+        return { seq: fr, ms: 50, wait: 300, note: `col: two fingers from ${a.th} at ${a.w}°/s, the post after ${k} frames (pay ${turns} turns in ${ms} ms)` };
+      }
+      if (a.phase === 'plumb' && a.sides && a.bobs) {
+        if (!B.k.ps) { B.k.ps = 1; return { wait: 300, shot: `col${a.lv}-plumb`, note: `col: landed at ${a.land} °/s, lean ${a.lean}, off ${a.off}` }; }
+        const L = a.lean, big = Math.abs(L[0]) >= Math.abs(L[1]) ? 0 : 1, v = L[big];
+        if (Math.abs(v) > a.leanTol && a.wedges < 3) { const k = big === 0 ? (v > 0 ? 'pa' : 'na') : (v > 0 ? 'pc' : 'nc'); return { tap: a.sides[k], wait: 1100, note: `col: a wedge at ${k} (lean ${L})` }; }
+        return { tap: a.bobs[0], wait: 1500, note: `col: accept (lean ${L}, off ${a.off}, wedges ${a.wedges}, land ${a.land})` };
+      }
+      return { wait: 250 };
+    },
+    // ── /build 120 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
@@ -393,7 +439,7 @@
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
     if (now() - B.actT > (/^bond/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
-    const kind = S.mission.replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");
+    const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
     try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }
   };

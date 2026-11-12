@@ -157,6 +157,7 @@ export function createCrews(ctx = {}) {
   const V = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), S3 = new THREE.Vector3(1, 1, 1);
   const camP = new THREE.Vector3();
   let T = 0, enabled = true, shown = true, pxScale = 600;
+  let hazeAt = null, hazeT = 0;   // ── look C ── ── /look C ──
 
   let seed = 91;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -762,7 +763,7 @@ export function createCrews(ctx = {}) {
       else if (c.vis < 0.3 && p.vis > c.vis) p.vis = c.vis;
     }
     // the wheels throw a little dust on the move
-    if (speed > 0.5 && c.vis > 0.5 && near(c.x, c.z, 320) && Math.random() < dt * 2.5) dust.puff(c.x, cy + 0.3, c.z, 2.2, 1);
+    if (speed > 0.5 && c.vis > 0.5 && near(c.x, c.z, 320) && Math.random() < dt * 4) dust.puff(c.x, cy + 0.3, c.z, 2.2, 1);   // ── look C ── (2.5 → 4 a second: a short trail behind it) ── /look C ──
   }
   /* ── site8 ── the Mount's rubble cart (SITE8B, wave 8B; DESIGN8B P0-4 / M1): while the Mount is surveyed and dug, one ox cart
      shuttles between the builder's rock and a dump at the Mount's east edge, where its retaining wall will rise — loaded with
@@ -1076,6 +1077,9 @@ export function createCrews(ctx = {}) {
       return;
     }
     if (!shown) { shown = true; actors.setEnabled(true); animals.setEnabled(true); dust.points.visible = true; }
+    // ── look C ── (C6) a faint standing haze of the same dust over the work site while a stage's work runs: wide, slow, long-lived puffs
+    if (hazeAt && dt > 0) { hazeT -= dt; if (hazeT <= 0) { hazeT = 0.5; const a = rnd() * 6.283, r = 3 + rnd() * 9, x = hazeAt[0] + Math.cos(a) * r, z = hazeAt[2] + Math.sin(a) * r; dust.haze(x, ground(x, z) + 0.6, z); } }
+    // ── /look C ──
     if (camera) { camera.updateMatrixWorld(); pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); fr.setFromProjectionMatrix(pm); camP.copy(camera.position); }
     // every half second: the hero's place, the phases, the crane
     chk -= dt;
@@ -1654,6 +1658,7 @@ export function createCrews(ctx = {}) {
 
   const api = {
     setCrews, setQuarry, caravan, trainees, cheer, update, reset, keepOut,
+    haze: (at) => { hazeAt = at && Number.isFinite(at[0] + at[2]) ? [at[0], at[1], at[2]] : null; },   // ── look C ── (main.js: the work light's site) ── /look C ──
     lifeCount, lifeList, pickPerson, setLife(v) { LIFE.on = !!v; LIFE.key = ''; },   // ── site16 ── the life layer and the tap card
     setEnabled(v) { enabled = !!v; },
     setScale(s) { if (Number.isFinite(s) && s > 0) pxScale = s; },
@@ -1734,7 +1739,7 @@ function makeDust(n) {
   x.fillStyle = g; x.fillRect(0, 0, 64, 64);
   const tex = new THREE.CanvasTexture(c);
   const pos = new Float32Array(n * 3), size = new Float32Array(n), alpha = new Float32Array(n);
-  const vel = new Float32Array(n * 3), age = new Float32Array(n).fill(99), life = new Float32Array(n).fill(1), s0 = new Float32Array(n);
+  const vel = new Float32Array(n * 3), age = new Float32Array(n).fill(99), life = new Float32Array(n).fill(1), s0 = new Float32Array(n), a0 = new Float32Array(n).fill(1);   // ── look C ── (a0: a puff's own opacity) ── /look C ──
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('size', new THREE.BufferAttribute(size, 1));
@@ -1751,8 +1756,8 @@ function makeDust(n) {
   const points = new THREE.Points(geo, mat);
   points.frustumCulled = false; points.renderOrder = 2; points.name = 'crews-dust';
   let head = 0, live = 0;
-  function spawn(x, y, z, s, sp, up, lf) {
-    const i = head; head = (head + 1) % n;
+  function spawn(x, y, z, s, sp, up, lf, op = 1) {
+    const i = head; head = (head + 1) % n; a0[i] = op;
     pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
     const a = Math.random() * 6.283;
     vel[i * 3] = Math.cos(a) * sp; vel[i * 3 + 1] = up; vel[i * 3 + 2] = Math.sin(a) * sp;
@@ -1761,6 +1766,7 @@ function makeDust(n) {
   return {
     points,
     puff(x, y, z, s = 1.5, k = 1) { for (let j = 0; j < k * 2; j++) spawn(x, y, z, s * (0.7 + Math.random() * 0.6), 0.6 + Math.random() * 0.8, 0.5 + Math.random() * 0.6, 1.1 + Math.random() * 0.7); live = 2.5; },
+    haze(x, y, z) { spawn(x, y, z, 6 + Math.random() * 5, 0.25, 0.12, 7 + Math.random() * 3, 0.16); live = Math.max(live, 3); },   // ── look C ── ── /look C ──
     burst(x, y, z, k = 10, s = 3) { for (let j = 0; j < k; j++) spawn(x + (Math.random() - 0.5) * 6, y, z + (Math.random() - 0.5) * 6, s * (0.7 + Math.random() * 0.6), 1 + Math.random() * 1.6, 0.4 + Math.random(), 1.6 + Math.random()); live = 3; },
     update(dt, camera, px) {
       if (live <= 0) { if (points.visible && alpha[0] !== 0) { alpha.fill(0); geo.attributes.alpha.needsUpdate = true; } return; }
@@ -1773,7 +1779,7 @@ function makeDust(n) {
         pos[i * 3] += vel[i * 3] * dt; pos[i * 3 + 1] += vel[i * 3 + 1] * dt; pos[i * 3 + 2] += vel[i * 3 + 2] * dt;
         vel[i * 3] *= 1 - dt * 1.5; vel[i * 3 + 2] *= 1 - dt * 1.5; vel[i * 3 + 1] *= 1 - dt * 0.8;
         size[i] = s0[i] * (0.6 + k * 1.6);
-        alpha[i] = Math.sin(Math.min(1, k * 1.4) * Math.PI) * 0.42 * (1 - k * 0.3);
+        alpha[i] = Math.sin(Math.min(1, k * 1.4) * Math.PI) * 0.42 * (1 - k * 0.3) * a0[i];
       }
       geo.attributes.position.needsUpdate = true; geo.attributes.size.needsUpdate = true; geo.attributes.alpha.needsUpdate = true;
     },

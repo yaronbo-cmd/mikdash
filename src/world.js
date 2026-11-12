@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { rng, makeNoise, smooth, lerp } from './util.js';
 import { PLAT } from './mount.js';
 import { groundMat, smoothGridNormals } from './look/ground.js';   // ── look B ── ── /look B ──
+import { windMat } from './look/air.js';   // ── look C ── ── /look C ──
 
 const NA = makeNoise(11), NB = makeNoise(29), NC = makeNoise(47), ND = makeNoise(83);
 function prof(xs, ys, x) {
@@ -217,7 +218,7 @@ export function buildTrees(scene, extra = [], rows = null, courts = []) {   // �
   // olive canopy — irregular low-poly blob
   const cg = new THREE.IcosahedronGeometry(1, 1);
   { const p = cg.attributes.position, jr = rng(4); for (let i = 0; i < p.count; i++) { const k = 0.82 + jr() * 0.3; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k, p.getZ(i) * k); } cg.computeVertexNormals(); }
-  const leaf = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true });
+  const leaf = windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true }));   // ── look C ── (the crowns sway in the wind) ── /look C ──
   const bark = new THREE.MeshStandardMaterial({ color: '#6B5942', roughness: 1 });
   const can = new THREE.InstancedMesh(cg, leaf, olives.length), trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.6, 3.2, 5).translate(0, 1.6, 0), bark, olives.length);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), cc = new THREE.Color();

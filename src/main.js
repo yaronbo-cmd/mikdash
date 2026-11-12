@@ -295,7 +295,7 @@ function setTime(k) {
 const WL_DAY = (k) => k === 'dawn' || k === 'noon' || k === 'dusk';
 const wlL = {};
 const WL = createWorkLight((p, how, S) => {
-  if (how === 'off') { wlL.p = null; shadowFit(false); aoFit(false); setTime(curTime); return; }
+  if (how === 'off') { wlL.p = null; shadowFit(false); aoFit(false); if (crewsHaze) crewsHaze(null); setTime(curTime); return; }
   if (how === 'act') { shadowFit(S.act); aoFit(S.act); return; }
   if (!WL_DAY(curTime)) return;
   const L = workPreset(p, TIMES, GRADE, wlL);
@@ -310,6 +310,7 @@ const WL = createWorkLight((p, how, S) => {
   if (how === 'full') { if (envRT) envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; }
   renderer.shadowMap.needsUpdate = true;
 });
+let crewsHaze = null;   // (crews.haze, once the crews exist)
 // (C2) the contact shade ('high': GTAO) sized for amah-sized things while a minigame runs, the wide one for the world
 function aoFit(act) {
   const g = aoWrap && aoWrap.inner; if (!g || !g.updateGtaoMaterial) return;
@@ -477,7 +478,7 @@ view.twinCam = (on) => {
 };
 view.camSet = (px, py, pz, tx, ty, tz) => { fly = null; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); };
 view.pickAt = (x, y) => { try { pickAt(x, y); } catch (e) { /* */ } };   // ── cam28 ── (twin.js: a single tap on the right half picks after the double-tap's window) ── /cam28 ──
-view.workLight = (o) => { SBOX.y0 = o && o.at ? o.at[1] : null; WL.set(o); };   // ── look C ── (the director, every frame: { p, act, at } or null) ── /look C ──
+view.workLight = (o) => { SBOX.y0 = o && o.at ? o.at[1] : null; WL.set(o); if (crewsHaze) crewsHaze(o && o.at ? o.at : null); };   // ── look C ── (the director, every frame: { p, act, at } or null) ── /look C ──
 view.minDist = () => controls.minDistance;   // ── h112 ── (the director's camera keeps it too: h109/director.js camStep) ── /h112 ──
 view.camNow = (out) => { const o = out || {}; o.px = camera.position.x; o.py = camera.position.y; o.pz = camera.position.z; o.tx = controls.target.x; o.ty = controls.target.y; o.tz = controls.target.z; return o; };
 // ── figures24 ── the works' render scale (WAVE24 "רזולוציה כללית מדי"): while a work of Phase B is on, the pixel ratio rises to
@@ -743,6 +744,7 @@ async function boot() {
     Object.assign(stages, { crewActors: crews._actors, crewAnimals: crews._animals, scene, camera });
     // ── /h109 ──
     window.__T.crews = crews;
+    if (crews.haze) crewsHaze = crews.haze;   // ── look C ── ── /look C ──
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;
     // ── site16 ── the life layer and the tap card (crews.lifeCount / lifeList / pickPerson)

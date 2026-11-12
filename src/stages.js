@@ -8,6 +8,7 @@ import { buildMaterial, setBuilding, buildDepthMaterial, BUILD_TIME, revealUnifo
 import { rng, makeNoise, smooth, lerp, clamp } from './util.js';
 import { terrainH, terrainColor, terrainGr, cityMask } from './world.js';
 import { groundPatch, groundDefines, groundSkirts, smoothGridNormals, groundDetailTex } from './look/ground.js';   // ── look B ── the ground's one material ── /look B ──
+import { windMat } from './look/air.js';   // ── look C ── ── /look C ──
 import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
@@ -552,7 +553,7 @@ function makeHill(T) {
     } }
   const plant = (kd) => kd === 0 || kd === 2;
   const nP = bushes.filter((b) => plant(b[5])).length, nS = bushes.length - nP;
-  const bm = new THREE.InstancedMesh(clumpGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, flatShading: true }), nP);
+  const bm = new THREE.InstancedMesh(clumpGeo(), windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true })), nP);   // ── look C ── (the scrub sways: the olive crowns' program, roughness 0.95 → 0.9) ── /look C ──
   const sm = new THREE.InstancedMesh(stoneGeo(), rockClone(rockMat(THREE, T.rock.map), '#ffffff'), nS);
   sm.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(nS * 3).fill(1), 3);
   const slot = [], skirts = [];

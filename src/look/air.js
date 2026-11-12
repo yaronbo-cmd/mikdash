@@ -1,12 +1,13 @@
-/* ── look C ── src/look/air.js — the air over the world (docs/specs/look/C-light-sky-air.md §C4), as ONE shared chunk in the patches that
+/* ── look C ── src/look/air.js — the air over the world (docs/specs/look/C-light-sky-air.md §C4, C6), as ONE shared chunk in the patches that
  * already exist (look A's family, the ground, the buildings' groundAO, the city): no program of its own.
  *   Cloud shadows: the dome's own cloud noise (sky.js noiseTex, the same texture), projected from the cloud layer down the sun's direction
  *   onto every lit surface, drifting with the clouds' wind; a multiply on the DIRECT light only (never below 1 − strength, at most 0.25), so
  *   the shade under a cloud is still lit by the sky. Off on 'low' (the chunk is not compiled in), off at night and under the rain.
+ *   Wind: the olive crowns and the scrub (one patch, one program for both) sway under 0.1 amah (the stake's cloth already waves: props.js).
  *
  *   airUniforms() → the shared uniforms (one object for every program) · airPatch(sh) → a MeshStandardMaterial's onBeforeCompile part
  *   airTick(sky, dir, k) every frame (sky: sky.js's object, dir: toward the sun, k: 0..1 how much cloud shadow now)
- *   airMat(mat, key) → a plain material given the chunk (the city) · AIR_ON(): not 'low'
+ *   airMat(mat, key) → a plain material given the chunk (the city) · windMat(mat) → swaying (olive crowns, scrub) · AIR_ON(): not 'low'
  *   CLOUD: the layer's height and scale (the dome draws its clouds as a plane ~1400 amot up: uv = xz / height × 0.28)
  * ── /look C ── */
 export const CLOUD = Object.freeze({ h: 1400, uv: 0.28, max: 0.25, drift: [0.0012, 0.0005] });
@@ -61,3 +62,28 @@ export function airTick(sky, dir, k) {
   U.uAirT.value = t;
 }
 
+/* ───────── the wind ───────── */
+const WIND_V = /* glsl */`
+  { // (the crown sways about its foot: the higher the vertex, the more; its phase by where the plant stands; under 0.1 amah)
+#ifdef USE_INSTANCING
+    vec2 wP = instanceMatrix[3].xz; float wS = length(instanceMatrix[0].xyz);
+#else
+    vec2 wP = vec2(0.0); float wS = 1.0;
+#endif
+    float wH = clamp(position.y, 0.0, 1.0), wPh = dot(wP, vec2(0.071, 0.053));
+    float wA = (0.075 / max(wS, 0.5)) * wH * wH;
+    transformed.x += wA * (sin(uAirT * 1.3 + wPh) + 0.35 * sin(uAirT * 2.9 + wPh * 1.7));
+    transformed.z += wA * 0.6 * sin(uAirT * 1.1 + wPh * 1.3 + 1.0); }`;
+export function windPatch(sh) {
+  sh.uniforms.uAirT = U.uAirT;
+  sh.vertexShader = sh.vertexShader
+    .replace('#include <common>', '#include <common>\nuniform float uAirT;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + WIND_V);
+  return sh;
+}
+/** a plain material (the olive crowns, the scrub: the same program) swaying in the wind, with the cloud shadows */
+export function windMat(m) {
+  m.onBeforeCompile = (sh) => { windPatch(sh); airPatch(sh); };
+  m.customProgramCacheKey = () => 'wind' + (AIR_ON() ? '-air' : '');
+  return m;
+}

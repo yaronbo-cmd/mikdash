@@ -293,7 +293,7 @@ export function sawPts(b, lv) {
   return 10;
 }
 /** the measured span: the true span, the slack cord's error (up to a tefach long at T 0.4), the end's offset from the mark (amot) */
-export function measOf(need, T, endOff = 0) { const slack = clamp((1 - T) / 0.6, 0, 1) * TEFACH; return need + slack + endOff; }
+export function measOf(need, T, endOff = 0) { const slack = clamp((0.85 - T) / 0.45, 0, 1) * TEFACH; return need + slack + endOff; }   // (taut from 0.85, where the quick says "מתוח!": no sag left to read)
 /** the red line from the string's lift height (0..1 of the window's scale): 'faint' too low · 'sharp' · 'smear' too high */
 export const lineOf = (h) => (h < 0.35 ? 'faint' : h > 0.75 ? 'smear' : 'sharp');
 

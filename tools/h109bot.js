@@ -423,7 +423,7 @@
       if (a.phase === 'end' && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 900], wait: 900, note: `saw: the end to the scratch (off ${a.off} fingers)` };
       for (const ph of ['tension', 'mark', 'line']) if (a.phase === ph && !B.k['s_' + ph]) { B.k['s_' + ph] = 1; return { wait: 700, shot: `saw${a.lv}-${ph}` }; }
       if (a.phase === 'tension' && a.tail) {
-        if (Math.abs(a.off) > 0.6 && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 700], wait: 700, note: `saw: the end finer (off ${a.off})` };
+        if (Math.abs(a.off) > 0.25 && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 700], wait: 700, note: `saw: the end finer (off ${a.off})` };
         const Tt = has('slack') ? 0.5 : 0.95;
         return { drag: [a.tail[0], a.tail[1], a.tail[0], a.tail[1] + a.reachT * Tt, 1100], wait: 900, note: `saw: the tail to T ${Tt} (off ${a.off})` };
       }

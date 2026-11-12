@@ -96,7 +96,7 @@ export const CARRY = {
     const S_BACK = () => look([midB[0] + acr[0] * 2, FL + 7, midB[1] + acr[1] * 2], [acr[0] + Bay.dir[0] * (sk + 0.25), acr[1] + Bay.dir[1] * (sk + 0.25)], frameDist(cut * 3.2, 22), 30);
     const hisP = COLS[Bay.his];
     const trimAt = () => [Bay.P1[0] + acr[0] * 3.2 - Bay.dir[0] * 0.6, Bay.P1[1] + acr[1] * 3.2 - Bay.dir[1] * 0.6];   // (his end over the trestle at the foot of the bay)
-    const S_TRIM = () => { const [x, z] = trimAt(); return look([x + Bay.dir[0] * 0.3, FL + 1.5, z], [acr[0] * 0.9 - Bay.dir[0] * 0.6, acr[1] * 0.9 - Bay.dir[1] * 0.6], frameDist(6.4, 4.2), 34); };
+    const S_TRIM = () => { const [x, z] = trimAt(); return look([x - Bay.dir[0] * 0.2, FL + 1.6, z - Bay.dir[1] * 0.2], [Bay.dir[0] * 0.9 + acr[0] * 0.45, Bay.dir[1] * 0.9 + acr[1] * 0.45], frameDist(7.6, 5.0), 38); };   // (from past his end: the slice between the two men, neither in front of it)
     const S_YARD = () => look([YARD.short[0] + 2, FL + 1.5, YARD.short[1] + 4], [0.35, 1], frameDist(18, 9), 26);
 
     /* ── the way's ground kept clear of the stage's crews (crews.js keeps six rects): the start, the way in five pieces ── */
@@ -453,6 +453,7 @@ export const CARRY = {
       { const d = Bay.dir; beamG.position.x = t.kx - d[0] * need / 2; beamG.position.z = t.kz - d[1] * need / 2; }
       if (carp) { SH5.crew.remove(carp); carp = null; }
       await X.wait(1.0); sliceG.visible = false;
+      for (const g of trimG || []) if (g) g.visible = false;   // (the trestles go back with the slice to the yard)
       if (kohen) kohen.a.visT = 0;
       // hoisted again from the trestles: it seats
       const d = Bay.dir; s.f = [beamG.position.x - d[0] * need / 2, beamG.position.z - d[1] * need / 2]; s.r = [beamG.position.x + d[0] * need / 2, beamG.position.z + d[1] * need / 2];

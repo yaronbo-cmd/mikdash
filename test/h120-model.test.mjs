@@ -228,6 +228,7 @@ test('the saw\'s grade, the measure\'s slack and the red line', () => {
   assert.equal(sawPts({ drift: 2, skew: 1.5, line: 'sharp', binds: 0 }, 1), 20);
   assert.equal(sawPts({ drift: 2, skew: 1.5, line: 'sharp', binds: 0 }, 3), 10);
   assert.ok(Math.abs(measOf(11, 0.4) - (11 + T)) < 1e-12); assert.equal(measOf(11, 1), 11);
+  assert.equal(measOf(11, 0.9), 11); assert.ok(measOf(11, 0.5) - 11 > 2.5 / 24);   // (taut wherever the quick says so; the bot's slack pull reads three fingers long)
   assert.equal(lineOf(0.2), 'faint'); assert.equal(lineOf(0.5), 'sharp'); assert.equal(lineOf(0.9), 'smear');
 });
 

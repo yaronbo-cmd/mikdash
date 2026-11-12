@@ -100,6 +100,7 @@ function patchShader(sh, gao, bc) {
   let vs = sh.vertexShader, fs = sh.fragmentShader;
   if (gao) {
     const { strength, range, macro } = gao;
+    if (macro > 0) sh.uniforms.uGaoC = { value: gao.course ? 1 : 0 };   // ── look D review K3 ── ── /look D review ──
     vs = vs
       .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;')
@@ -109,16 +110,26 @@ function patchShader(sh, gao, bc) {
     // (the reveal variant samples macro variation and occlusion at the cap point for back faces)
     const xz = bc ? `\n#ifdef BCLIP\n    vec2 gxz = bcFront ? vWXZ : bcP.xz;\n#else\n    vec2 gxz = vWXZ;\n#endif\n` : '\n    vec2 gxz = vWXZ;\n';
     fs = fs.replace('#include <common>', `#include <common>
-        varying float vAoH; varying vec2 vWXZ;
+        varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC;' : ''}
         float gh21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float gvn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }`)
       .replace('#include <map_fragment>', macro > 0 ? `#include <map_fragment>
         {${xz}    float mv = gvn(gxz / 55.0) * 0.65 + gvn(gxz / 13.0) * 0.35;
-          diffuseColor.rgb *= mix(${f3(1 - macro)}, ${f3(1 + macro * 0.35)}, mv); }` : '#include <map_fragment>')
+          diffuseColor.rgb *= mix(${f3(1 - macro)}, ${f3(1 + macro * 0.35)}, mv);
+          // ── look D review K3 ── (uGaoC: the city walls' stone) each course of the texture's eleven a tone of its own (±4 %, changing
+          // every half tile along), the foot dirtier up to about a quarter of the wall, and a soft shade under the cornice (the wall's top
+          // pieces carry their top as aBase + 1000: vAoH < −500) ── /look D review ──
+          if (uGaoC > 0.5) {
+#ifdef USE_MAP
+            diffuseColor.rgb *= 1.0 + 0.08 * (gh21(vec2(floor(vMapUv.y * 11.0), floor(vMapUv.x * 2.0)) + 0.37) - 0.5);
+#endif
+            if (vAoH < -500.0) { float yt = vAoH + 1000.0; diffuseColor.rgb *= 1.0 - 0.6 * smoothstep(-4.4, -1.0, yt) * (1.0 - smoothstep(-0.85, -0.7, yt)); }
+            else diffuseColor.rgb *= mix(vec3(0.56, 0.52, 0.46), vec3(1.0), smoothstep(0.0, 11.0, vAoH + (mv - 0.5) * 3.0));
+          } }` : '#include <map_fragment>')
       .replace('#include <aomap_fragment>', `#include <aomap_fragment>
       {
-        float gao = smoothstep(0.0, ${range.toFixed(2)}, vAoH);
+        float gao = vAoH < -500.0 ? 1.0 : smoothstep(0.0, ${range.toFixed(2)}, vAoH);   // ── look D review K3 ── ── /look D review ──
         ${bc ? 'if (!bcFront) gao = 1.0;' : ''}
         reflectedLight.indirectDiffuse *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.indirectSpecular *= mix(${f3(1 - strength)}, 1.0, gao);
@@ -288,8 +299,8 @@ ${BC_FRONT_GLSL}
 
 const gaoKey = (g) => (g ? `gao_${g.strength}_${g.range}_${g.instanced}_${g.macro}` : 'plain');
 
-export function groundAO(mat, { strength = 0.5, range = 8, instanced = false, macro = 0 } = {}) {
-  const gao = { strength, range, instanced, macro };
+export function groundAO(mat, { strength = 0.5, range = 8, instanced = false, macro = 0, course = false } = {}) {
+  const gao = { strength, range, instanced, macro, course };   // ── look D review K3 ── (course: a uniform, not in the key: the program stays shared) ── /look D review ──
   mat.userData.gao = gao;
   mat.onBeforeCompile = (sh) => patchShader(sh, gao, null);
   mat.customProgramCacheKey = () => gaoKey(gao);

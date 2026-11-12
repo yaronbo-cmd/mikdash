@@ -229,14 +229,18 @@ function buildWalls(B) {
         // ── look D ── (D3) each piece its own geometry, its ground the base of the stone's ground occlusion: a darker, dirtier foot (the
         // whole wall had none: base −999); under the merlons a cornice a little proud of both faces, its underside the shadow line (no
         // dark band: from the Mount it read as an outline) ── /look D ──
-        const P = new Acc(false);
+        const P = new Acc(false), T = new Acc(false);
         // (each piece overlaps the next by a little, so the joints close on the bends)
-        P.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH, bot, top);
-        P.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH + 0.9, top - 0.75, top);   // ── look D ── ── /look D ──
-        for (const off of [-(TH / 2 - MT / 2), TH / 2 - MT / 2]) merlons(P, x0, z0, x1, z1, off, top);
+        // ── look D review K3 ── (the top 3.2 amot, the cornice and the merlons their own geometry, its base the wall's top + 1000: the
+        // stone's shader lays a soft shade under the cornice there; 10 triangles more a piece) ── /look D review ──
+        P.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH, bot, top - 3.2);
+        T.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH, top - 3.2, top);
+        T.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH + 0.9, top - 0.75, top);   // ── look D ── ── /look D ──
+        for (const off of [-(TH / 2 - MT / 2), TH / 2 - MT / 2]) merlons(T, x0, z0, x1, z1, off, top);
+        B.geo('ash2', T.geo(), top + 1000);   // ── look D review K3 ── ── /look D review ──
         run += len / n;
         if (run > 150 && !skipTower(x1, z1) && i + (k + 1) / n < L.length - 0.6) { run = 0; tower(P, x1, z1, 17, bot, top + 9, ux, uz); }
-        B.geo('ash2', P.geo(), bot + 10.5);   // ── look D ── (the base 2.5 above the lowest ground: the foot's lowest courses fully dirty) ── /look D ──
+        B.geo('ash2', P.geo(), (g[0] + g[1] + g[2]) / 3);   // ── look D review K3 ── (the base the mean ground: the foot's dirt reaches about a quarter up the wall wherever the ground lies) ── /look D review ──
       }
     }
   };

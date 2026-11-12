@@ -174,49 +174,60 @@ export function createH109Director(o) {
   // (build 124, rule 61 in the walk too) the right thumb on the free canvas while he walks (PK.look.walk): the same shape and sight
   // rule round the kohen. twin.js keeps the camera: the look is said through its own hook (T.camOver = { el, d, az, ox, oz, oy }, the
   // shift's), eased there; a tap, the walk zone (the left stick) or the next work bring the follow camera back (0.45 s, no cut).
-  const WL = { id: null, swallow: null, own: false, pend: false, x0: 0, y0: 0, drag: false, yaw: 0, u: 0, yaw0: 0, u0: 0, back: 0, on: false, off: null, fov0: null, m: 1, lift: 0, dy: 0, gLift: 0, gDy: 0, tq: 0, key: '', CO: null, noExtra: false };
+  const WL = { id: null, pins: new Set(), own: false, pend: false, x0: 0, y0: 0, drag: false, yaw: 0, u: 0, yaw0: 0, u0: 0, back: 0, on: false, off: null, fov0: null, m: 1, lift: 0, dy: 0, gLift: 0, gDy: 0, tq: 0, key: '', CO: null, mN: 0 };
   const wlOk = () => !!(PK.look && PK.look.walk) && started && phase === 'walk' && !FLY && !OV.on;
   const wlTw = () => { try { return o.twin ? o.twin() : null; } catch (e) { return null; } };
   const wlAway = () => WL.drag || WL.u > 0.02 || Math.abs(WL.yaw) > 0.03;
   function wl5Ptr(e) {
-    if (!wlOk()) { if (WL.id != null || WL.on) wl5Off(); return false; }
-    const mouse = e.pointerType === 'mouse';
+    if (!wlOk()) { if (WL.id != null || WL.on) wl5Off(); WL.pins.clear(); return false; }
+    const mouse = e.pointerType === 'mouse', now = performance.now();
+    // (round 2: touches are never stopped here — twin.js sees every finger, so two fingers on the canvas stay its pinch (the zoom-out);
+    //  a look's tap is kept from picking on the world by __TW_GEST, main.js's own two-finger guard)
     if (e.type === 'pointerdown') {
       const onC = e.target === canvas();
+      if (!mouse && onC) WL.pins.add(e.pointerId);
+      // (a second finger on the canvas: the pinch's — a pending or running look lets go and eases back, the zoom is twin's)
+      if (!mouse && WL.pins.size >= 2) { if (WL.id != null) { WL.id = null; WL.pend = false; WL.drag = false; WL.own = false; log('walk look → pinch'); } if (WL.on) WL.back = 0.45; return false; }
       if (onC && WL.id == null && ((mouse && e.button === 2) || (!mouse && e.clientX >= innerWidth * 0.5))) {
-        // (while away the touch is the look's alone: a drag goes on looking from where it is, a tap brings the follow camera back —
-        //  never a tap on the world)
+        // (while away: a drag goes on looking from where it is, a tap brings the follow camera back — never a tap on the world)
         const own = WL.on && wlAway();
         WL.id = e.pointerId; WL.pend = true; WL.drag = false; WL.x0 = e.clientX; WL.y0 = e.clientY; WL.yaw0 = WL.yaw; WL.u0 = WL.u; WL.back = 0; WL.own = own;
-        if (own) { e.stopImmediatePropagation(); e.preventDefault(); return true; }
+        if (own) globalThis.__TW_GEST = now;
         if (mouse) { e.preventDefault(); e.stopImmediatePropagation(); WL.pend = false; WL.drag = true; return true; }   // (the right button: the look's alone)
-        return false;   // (twin.js sees it too: its pinch counts the finger)
+        return false;
       }
-      if (WL.id != null && e.pointerId !== WL.id) { WL.id = null; WL.pend = false; WL.drag = false; }   // (a second finger: twin's pinch)
-      if (WL.on && wlAway() && (onC || (e.target && e.target.closest && e.target.closest('.tw-zone')))) {
-        WL.back = 0.45;
-        if (onC) { WL.swallow = e.pointerId; e.stopImmediatePropagation(); e.preventDefault(); return true; }   // (the canvas tap brings the camera back: not a pick)
-      }
+      // (a touch on the walk zone (the left stick), or on the canvas's left half, while away: the follow camera back; the stick still walks)
+      if (WL.on && wlAway() && (onC || (e.target && e.target.closest && e.target.closest('.tw-zone')))) { WL.back = 0.45; if (onC) globalThis.__TW_GEST = now; }
       return false;
     }
-    if (WL.swallow != null && e.pointerId === WL.swallow) { e.stopImmediatePropagation(); if (e.type !== 'pointermove') WL.swallow = null; return true; }
+    if (e.type !== 'pointermove') WL.pins.delete(e.pointerId);
     if (WL.id == null || e.pointerId !== WL.id) return false;
+    if (wlPinch()) return false;
     if (e.type === 'pointermove') {
       if (WL.pend && Math.hypot(e.clientX - WL.x0, e.clientY - WL.y0) > 12) { WL.pend = false; WL.drag = true; log('walk look'); }
-      if (WL.own && !WL.drag) e.stopImmediatePropagation();
-      if (WL.drag) { e.stopImmediatePropagation(); globalThis.__TW_GEST = performance.now(); WL.yaw = clamp(WL.yaw0 - ((e.clientX - WL.x0) / innerWidth) * 3.2, -2.8, 2.8); WL.u = clamp(WL.u0 + ((e.clientY - WL.y0) / innerHeight) * UG(), 0, 1); }
-      return WL.drag;
+      if (WL.drag) { globalThis.__TW_GEST = now; WL.yaw = clamp(WL.yaw0 - ((e.clientX - WL.x0) / innerWidth) * 3.2, -2.8, 2.8); WL.u = clamp(WL.u0 + ((e.clientY - WL.y0) / innerHeight) * UG(), 0, 1); }
+      if (mouse && WL.drag) e.stopImmediatePropagation();
+      return false;
     }
     // (up: the view stays; a tap that never moved while away brings it back)
     const was = WL.drag; WL.id = null; WL.pend = false; WL.drag = false;
-    if (was || WL.own) e.stopImmediatePropagation();
+    if (was || WL.own) globalThis.__TW_GEST = now;
+    if (mouse && was) e.stopImmediatePropagation();
+    if (!was && WL.own) WL.back = 0.45;
     WL.own = false;
-    if (!was && WL.on && (WL.u > 0.02 || Math.abs(WL.yaw) > 0.03)) WL.back = 0.45;
     if (!(WL.u > 0.02 || Math.abs(WL.yaw) > 0.03)) { WL.u = 0; WL.yaw = 0; }
     return false;
   }
+  // (twin.js's own word on a pinch — its rule: two fingers on the canvas or the walk zone before the stick has moved — wins over the look:
+  //  the look's finger lets go and the follow camera eases back under the zoom)
+  function wlPinch() {
+    let p = false; try { const tw = wlTw(); p = !!(tw && tw.pinch && tw.pinch()); } catch (e) { /* */ }
+    if (p && WL.id != null) { WL.id = null; WL.pend = false; WL.drag = false; WL.own = false; log('walk look → pinch'); if (WL.on) WL.back = 0.45; }
+    return p;
+  }
   function wl5Frame(dt) {
     if (!wlOk()) { if (WL.on || WL.id != null) wl5Off(); return; }
+    wlPinch();
     if (WL.back > 0) {
       WL.back = Math.max(0, WL.back - dt); const k = WL.back > 0 ? 1 - Math.exp(-dt * 9) : 1; WL.yaw -= WL.yaw * k; WL.u -= WL.u * k;
       if (!WL.back) { WL.yaw = 0; WL.u = 0; }
@@ -226,19 +237,19 @@ export function createH109Director(o) {
     if (!want || !tw || !h || !Number.isFinite(h.x)) { if (WL.on) wl5Off(); return; }
     const aim = [h.x, h.y + 1.6, h.z];
     if (!WL.on) {
-      view.camNow(cq); WL.off = [cq.px - cq.tx, cq.py - cq.ty, cq.pz - cq.tz]; WL.fov0 = camera.fov; WL.m = 1; WL.on = true;
-      WL.lift = WL.dy = WL.gLift = WL.gDy = 0; WL.tq = 0; WL.key = ''; WL.noExtra = lk5Extra([aim[0] + WL.off[0], aim[1] + WL.off[1], aim[2] + WL.off[2]], aim);
+      view.camNow(cq); WL.off = [cq.px - cq.tx, cq.py - cq.ty, cq.pz - cq.tz]; WL.fov0 = camera.fov; WL.m = 1; WL.mN = 0; WL.on = true;
+      WL.lift = WL.dy = WL.gLift = WL.gDy = 0; WL.tq = 0; WL.key = '';
       log('walk look on');
     }
     // (the distance twin.js draws is CO.d × its zoom and closeness factors: measured from the last frame, so u = 0 is its own shot)
-    try { const L = tw.lift && tw.lift(); if (WL.CO && L && L.d > 0 && WL.CO.d > 0 && tw.camOver === WL.CO) WL.m = clamp(L.d / WL.CO.d, 0.3, 4); } catch (e) { /* */ }
+    if (WL.mN < 3) { try { const L = tw.lift && tw.lift(); if (WL.CO && L && L.d > 0 && WL.CO.d > 0 && tw.camOver === WL.CO) { WL.m = clamp(L.d / WL.CO.d, 0.3, 4); WL.mN++; } } catch (e) { /* */ } }   // (measured as the look begins, then held: a pinch's zoom during the return acts on top)
     const base = { p: [aim[0] + WL.off[0], aim[1] + WL.off[1], aim[2] + WL.off[2]], t: aim, fov: WL.fov0 };
     WL.tq -= dt; const key = WL.u.toFixed(2) + '|' + WL.yaw.toFixed(2) + '|' + aim.map((v) => v.toFixed(0)).join(',');
-    if (WL.tq <= 0 && key !== WL.key) { WL.tq = 0.1; WL.key = key; try { const S5 = PK.look.sightPose(base, WL.u, WL.yaw, undefined, WL.noExtra ? null : lk5Extra); WL.gLift = S5.lift; WL.gDy = S5.dyaw; } catch (e) { /* */ } }
+    if (WL.tq <= 0 && key !== WL.key) { WL.tq = 0.1; WL.key = key; try { const S5 = PK.look.sightPose(base, WL.u, WL.yaw, undefined, null, undefined, true); WL.gLift = S5.lift; WL.gDy = S5.dyaw; } catch (e) { /* */ } }   // (round 2: the walk's look keeps the world and the horizon — only the camera out of the walls)
     const k = 1 - Math.exp(-dt * 7); WL.lift += (WL.gLift - WL.lift) * k; WL.dy += (WL.gDy - WL.dy) * k;
     const q = PK.look.pose(base, WL.u, WL.yaw + WL.dy, WL.lift);
     const vx = q.p[0] - q.t[0], vy = q.p[1] - q.t[1], vz = q.p[2] - q.t[2], R = Math.hypot(vx, vy, vz) || 1;
-    WL.CO = { el: Math.asin(clamp(vy / R, -1, 1)), d: R / WL.m, az: Math.atan2(vz, vx), ox: q.t[0] - aim[0], oz: q.t[2] - aim[2], oy: q.t[1] - aim[1], wl5: true };
+    WL.CO = { el: Math.asin(clamp(vy / R, -1, 1)), d: R / WL.m, az: Math.atan2(vz, vx), ox: q.t[0] - aim[0], oz: q.t[2] - aim[2], oy: q.t[1] - aim[1], wl5: true, shift30: true };   // (shift30: twin.js eases to it at 12/s, not 3/s — the horizon is in the frame within a fifth of a second; its own lift stands aside)
     tw.camOver = WL.CO;
     if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
   }

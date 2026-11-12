@@ -68,3 +68,18 @@ test('the boxes: the court\'s walls, the chambers and the gallery', () => {
   assert.ok(segHits([70, 30, 100], [70, 8, 0]), 'through the south wall');
   assert.ok(LOOK05.FOV1 >= 40);
 });
+
+// build 124 round 2: the walk's look (camOnly) — the world first: from the stage's start outside the NE corner, mid-court and inside
+// the lepers' chamber, every yaw at u ≥ 0.6 keeps the horizon in the frame, and the camera is never in a wall
+test('the walk look: the horizon in the frame at u ≥ 0.6 for every yaw, the camera never in a wall', () => {
+  const WALK = [
+    { p: [152.7, 26.8, -82.7], t: [137.7, 7.6, -89.3], fov: 32 },
+    { p: [86.6, 32.2, 8.5], t: [72, 7.6, 2], fov: 32 },
+    { p: [44.6, 32.2, -31.5], t: [30, 7.6, -38], fov: 32 },
+  ];
+  for (const b of WALK) for (const u of [0.6, 0.8, 1]) for (let yaw = -2.8; yaw <= 2.8 + 1e-9; yaw += 0.4) {
+    const s = sightPose(b, u, yaw, undefined, null, undefined, true), q = lookPose(b, u, yaw + s.dyaw, s.lift), h = horizonY(q.p, q.t, q.fov);
+    assert.ok(!camInBox(q.p, BOXES05), `camera in a wall at ${q.p}`);
+    assert.ok(h > 0.03 && h < 0.5, `horizon at ${h.toFixed(3)} (u ${u}, yaw ${yaw.toFixed(1)}, lift ${s.lift})`);
+  }
+});

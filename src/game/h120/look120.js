@@ -13,6 +13,7 @@
  *                                                          a)`, the world's own test) stands between the camera and the aim, and the
  *                                                          camera is not in or just behind a wall
  *   sightPose(base, u, yaw, boxes, extra) → { lift, dyaw } the same, turning toward the nearest clear side where no elevation sees it
+ *   (…, K, camOnly)                                        the walk's rule: only the camera kept out of the walls (the world first)
  *   segHits(p, a, boxes), camInBox(p, boxes, m)            the two tests
  *   BOXES05                                                the court's walls (their measured tops), the chambers' walls, the gallery
  * Amot throughout: +x east, +z south, +y up.
@@ -80,23 +81,25 @@ export function segHits(p, a, boxes = BOXES05) {
 /** the camera in a box, or within m amot of it (just behind a wall's face) */
 export function camInBox(p, boxes = BOXES05, m = 2) { return boxes.some((b) => inBox(p, b, m)); }
 
-function clearAt(base, u, yaw, lift, boxes, extra, K) {
+function clearAt(base, u, yaw, lift, boxes, extra, K, camOnly) {
   const a = base.t, a2 = [a[0], a[1] + 1.6, a[2]], q = lookPose(base, u, yaw, lift, K);
-  if (q.p[1] < a[1] + 1.5 || camInBox(q.p, boxes) || segHits(q.p, a, boxes) || segHits(q.p, a2, boxes)) return false;
+  if (q.p[1] < a[1] + 1.5 || camInBox(q.p, boxes)) return false;
+  if (camOnly) return true;   // (the walk: the world first — only the camera kept out of the walls; a wall may hide him)
+  if (segHits(q.p, a, boxes) || segHits(q.p, a2, boxes)) return false;
   return !(extra && extra(q.p, a));
 }
 /** the least change of elevation that clears the line at this yaw: up first at each step (over the walls), then down (under a
  *  gallery, from its side); null when none does */
-export function sightLift(base, u, yaw, boxes = BOXES05, extra = null, K = LOOK05) {
+export function sightLift(base, u, yaw, boxes = BOXES05, extra = null, K = LOOK05, camOnly = false) {
   const n = Math.ceil((K.EL_MAX - K.EL_MIN) / K.STEP);
-  for (let k = 0; k <= n; k++) for (const s of k ? [1, -1] : [1]) { const lift = +(s * k * K.STEP).toFixed(3); if (clearAt(base, u, yaw, lift, boxes, extra, K)) return lift; }
+  for (let k = 0; k <= n; k++) for (const s of k ? [1, -1] : [1]) { const lift = +(s * k * K.STEP).toFixed(3); if (clearAt(base, u, yaw, lift, boxes, extra, K, camOnly)) return lift; }
   return null;
 }
 /** the look as it may be: { lift, dyaw } — the least lift at the asked yaw; where no elevation sees the work (behind a 34-amah wall,
  *  under the gallery's far side) the nearest turn that does (0.1 rad steps either way): the camera never goes behind a wall */
-export function sightPose(base, u, yaw, boxes = BOXES05, extra = null, K = LOOK05) {
+export function sightPose(base, u, yaw, boxes = BOXES05, extra = null, K = LOOK05, camOnly = false) {
   for (let k = 0; k <= 32; k++) for (const s of k ? [1, -1] : [1]) {
-    const dy = s * k * 0.1, lift = sightLift(base, u, yaw + dy, boxes, extra, K);
+    const dy = s * k * 0.1, lift = sightLift(base, u, yaw + dy, boxes, extra, K, camOnly);
     if (lift != null) return { lift, dyaw: +dy.toFixed(2) };
   }
   return { lift: 0, dyaw: -(+yaw || 0) };   // (nothing clear anywhere: the act's own shot)

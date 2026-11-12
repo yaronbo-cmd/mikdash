@@ -7,8 +7,13 @@
  *     the ground. F = { h(x, z): the drawn terrain's height, col(x, z, h, c): the terrain's vertex colour, gr(x, z, h, out): its aGr }
  *   oliveCrownGeo(THREE) / oliveTrunkGeo(THREE) → an olive: a crown of three irregular clumps (two tones by the normal: silver above and
  *     toward the sun, a deeper green under), a short trunk of four twisted segments · cypressGeo(THREE) → a slender spindle, ragged
+ *   cityMat(mat) → the houses' one material (city.js buildHouses): blotches in the plaster (lighter limewash, darker weathered patches, by
+ *     the world position: no tile repeats from house to house) and a dirtier foot (the archetypes' roof is at local y 0, the street ~11 below);
+ *     the cloud shadows of round C on 'high'. One program, as before
  *   jitter(x, z, s) → a row tree's [dx, dz, drop]: up to 15 % of the spacing s, about one tree in twelve left out (a hash: no rng drawn)
  * ── /look D ── */
+
+import { airPatch, AIR_ON } from './air.js';
 
 function rnd(seed) { let t = seed >>> 0; return () => { t = (t + 0x6D2B79F5) >>> 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
 const hash = (x, z, s) => { const v = Math.sin(x * 12.9898 + z * 78.233 + s * 37.719) * 43758.5453; return v - Math.floor(v); };
@@ -175,4 +180,38 @@ export function cypressGeo(THREE) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(outward(pos, () => [0, 0]), 3));
   g.computeVertexNormals(); g.computeBoundingSphere();
   return g;
+}
+
+/* ───────── the houses' plaster ───────── */
+const HOUSE_V = /* glsl */`
+#ifdef USE_INSTANCING
+  vHsW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+#else
+  vHsW = (modelMatrix * vec4(transformed, 1.0)).xyz;
+#endif
+  vHsY = position.y;`;
+const HOUSE_F = /* glsl */`
+  { vec3 q = vHsW;
+    // (two octaves of value noise over the wall's plane: x and z with y folded in, so walls facing x or z both get it)
+    vec2 a = vec2(q.x + q.y * 0.7, q.z - q.y * 0.6);
+    float n = hsN(a / 3.2) * 0.65 + hsN(a / 1.1 + 7.3) * 0.35;
+    diffuseColor.rgb *= mix(1.0, 0.88, smoothstep(0.58, 0.82, n)) * mix(1.0, 1.07, smoothstep(0.32, 0.14, n));
+    // the foot: splashed and dirtier toward the street (ragged top edge)
+    float ft = smoothstep(-8.2, -11.8, vHsY + (n - 0.5) * 1.6);
+    diffuseColor.rgb *= mix(vec3(1.0), vec3(0.8, 0.75, 0.68), ft); }`;
+const HOUSE_C = /* glsl */`
+varying vec3 vHsW; varying float vHsY;
+float hsH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float hsN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hsH(i), hsH(i + vec2(1.0, 0.0)), f.x), mix(hsH(i + vec2(0.0, 1.0)), hsH(i + vec2(1.0, 1.0)), f.x), f.y); }`;
+export function cityMat(m) {
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vHsW; varying float vHsY;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + HOUSE_V);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + HOUSE_C)
+      .replace('#include <color_fragment>', '#include <color_fragment>\n' + HOUSE_F);
+    airPatch(sh);
+  };
+  m.customProgramCacheKey = () => 'city-d' + (AIR_ON() ? '-air' : '');
+  return m;
 }

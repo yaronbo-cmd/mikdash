@@ -97,7 +97,7 @@ function makeMats() {
   const mats = {
     ash: { mat: groundAO(std({ map: T.ash.map, normalMap: T.ash.normalMap, normalScale: n(1.1), roughness: 0.86 }), { macro: 0.1 }), tile: 24 },
     ashBig: { mat: groundAO(std({ map: T.ashBig.map, normalMap: T.ashBig.normalMap, normalScale: n(1.2), roughness: 0.88 }), { macro: 0.12 }), tile: 30 },
-    ash2: { mat: groundAO(std({ map: T.ash2.map, normalMap: T.ash2.normalMap, normalScale: n(1.1), roughness: 0.92 })), tile: 22 },
+    ash2: { mat: groundAO(std({ map: T.ash2.map, normalMap: T.ash2.normalMap, normalScale: n(1.1), roughness: 0.92 }), { macro: 0.1 }), tile: 22 },   // ── look D ── (macro: the city walls' weathering, ash's program) ── /look D ──
     pave: { mat: groundAO(std({ map: T.pave.map, normalMap: T.pave.normalMap, normalScale: n(0.7), roughness: 0.9 }), { macro: 0.14 }), tile: 24 },
     marble: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, normalScale: n(1.35), roughness: 0.34, envMapIntensity: 0.9 })), tile: 19.2 },
     marbleIn: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, color: '#A89F92', roughness: 0.5, envMapIntensity: 0.4 })), tile: 19.2 },

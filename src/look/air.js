@@ -8,7 +8,7 @@
  *
  *   airUniforms() → the shared uniforms (one object for every program) · airPatch(sh) → a MeshStandardMaterial's onBeforeCompile part
  *   airTick(sky, dir, k) every frame (sky: sky.js's object, dir: toward the sun, k: 0..1 how much cloud shadow now)
- *   airMat(mat, key) → a plain material given the chunk (the city) · windMat(mat) → swaying (olive crowns, scrub) · AIR_ON(): 'high'
+ *   windMat(mat) → swaying (olive crowns, scrub) · AIR_ON(): 'high' (── look D ── the city's material: look/far.js cityMat ── /look D ──)
  *   CLOUD: the layer's height and scale (the dome draws its clouds as a plane ~1400 amot up: uv = xz / height × 0.28)
  * ── /look C ── */
 export const CLOUD = Object.freeze({ h: 1400, uv: 0.28, max: 0.25, drift: [0.0012, 0.0005] });
@@ -45,13 +45,6 @@ export function airPatch(sh) {
     .replace('#include <common>', '#include <common>\n' + AIR_COMMON)
     .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\n' + AIR_LIGHT);
   return sh;
-}
-/** a material of its own (the city) given the cloud shadows: its own program, keyed */
-export function airMat(m, key) {
-  if (!AIR_ON()) return m;   // (below 'high' the city keeps its plain shared program)
-  m.onBeforeCompile = (sh) => airPatch(sh);
-  m.customProgramCacheKey = () => key + (AIR_ON() ? '-air' : '');
-  return m;
 }
 
 /** every frame: the noise, the drift with the clouds' wind, the cover, the sun; k: 0..1 (night, rain, 'low' → 0) */

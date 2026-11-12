@@ -21,9 +21,8 @@ import * as THREE from 'three';
 import { rng, smooth } from './util.js';
 import { terrainH, setCityMask, oliveGrove, terrainMeshH, terrainColor, terrainGr } from './world.js';   // ── look D ── (oliveGrove … terrainGr) ── /look D ──
 import { PLAT } from './mount.js';
-import { airMat } from './look/air.js';   // ── look C ── ── /look C ──
 import { groundMat } from './look/ground.js';   // ── look D ── ── /look D ──
-import { olivetGround } from './look/far.js';   // ── look D ── ── /look D ──
+import { olivetGround, cityMat } from './look/far.js';   // ── look D ── ── /look D ──
 
 /* ───────── the plan ───────── */
 // the walls' lines (x, z); the towers of Herod on the first wall's north-western corner (world.js had them since wave 1)
@@ -91,7 +90,7 @@ class Acc {
     return this;
   }
   // a block with a roof at yR inside a parapet (hp high, t thick): outer walls, parapet top and inner faces, roof
-  roofed(x0, x1, z0, z1, yB, yR, hp = 1.1, t = 0.5, kRoof = 0.8) {
+  roofed(x0, x1, z0, z1, yB, yR, hp = 1.1, t = 0.5, kRoof = 0.72) {   // ── look D ── (the roof's floor darker: 0.8 → 0.72) ── /look D ──
     const yT = yR + hp, X0 = x0 + t, X1 = x1 - t, Z0 = z0 + t, Z1 = z1 - t, K = this.col;
     const q = (a, b, c, d, n) => this.quad(a, b, c, d, ...n);
     this.grad = (y) => (y <= yB + 0.01 ? 0.22 : 1.03);   // (a free "ground occlusion": 0 extra triangles)
@@ -111,7 +110,7 @@ class Acc {
     this.col = K; return this;
   }
   // a plain block: walls and a roof a shade darker (the far houses: parapets are below a pixel there)
-  block(x0, x1, z0, z1, yB, yR, kRoof = 0.8) {
+  block(x0, x1, z0, z1, yB, yR, kRoof = 0.72) {   // ── look D ── ── /look D ──
     const K = this.col; this.grad = (y) => (y <= yB + 0.01 ? 0.22 : 1.03); this.box(x0, x1, yB, yR, z0, z1); this.grad = null;
     const n = this.c ? this.c.length : 0;
     if (this.c) for (let i = n - 5 * 18; i < n - 4 * 18; i += 3) { this.c[i] *= kRoof; this.c[i + 1] *= kRoof * 0.99; this.c[i + 2] *= kRoof * 0.96; }
@@ -188,7 +187,7 @@ function mergePlanes(list) {
 
 /* ───────── the walls, the towers, the gates ───────── */
 function buildWalls(B) {
-  const W = new Acc(false), D = new Acc(false), BIG = new Acc(false);
+  const W = new Acc(false), D = new Acc(false);
   const H = 22, TH = 9, ML = 2.2, MG = 4.6, MH = 2.4, MT = 1.1;
   const gates = [[-1080, -18], [-1180, 1040], [-432, 1356], [-870, -560], [-760, -63], [-600, -1605], [438, -1050]];   // Gennath · Essenes · Siloam ⚑ · a north gate ⚑ · a gate by the causeway road ⚑ · two third-wall gates ⚑
   const skipTower = (x, z) => gates.some(([gx, gz]) => Math.hypot(x - gx, z - gz) < 40) || Object.values(TOWERS).some(([tx, tz]) => Math.hypot(x - tx, z - tz) < 50) || Math.hypot(x - PSEPHINUS[0], z - PSEPHINUS[1]) < 40;
@@ -219,11 +218,17 @@ function buildWalls(B) {
         const x0 = ax + (bx - ax) * k / n, z0 = az + (bz - az) * k / n, x1 = ax + (bx - ax) * (k + 1) / n, z1 = az + (bz - az) * (k + 1) / n;
         const g = [terrainH(x0, z0), terrainH(x1, z1), terrainH((x0 + x1) / 2, (z0 + z1) / 2)];
         const top = Math.ceil((Math.max(...g) + H) / 3) * 3, bot = Math.min(...g) - 8;
+        // ── look D ── (D3) each piece its own geometry, its ground the base of the stone's ground occlusion: a darker, dirtier foot (the
+        // whole wall had none: base −999); under the merlons a cornice a little proud of both faces, its underside the shadow line (no
+        // dark band: from the Mount it read as an outline) ── /look D ──
+        const P = new Acc(false);
         // (each piece overlaps the next by a little, so the joints close on the bends)
-        W.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH, bot, top);
-        for (const off of [-(TH / 2 - MT / 2), TH / 2 - MT / 2]) merlons(W, x0, z0, x1, z1, off, top);
+        P.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH, bot, top);
+        P.seg(x0 - ux * 1.2, z0 - uz * 1.2, x1 + ux * 1.2, z1 + uz * 1.2, TH + 0.9, top - 0.75, top);   // ── look D ── ── /look D ──
+        for (const off of [-(TH / 2 - MT / 2), TH / 2 - MT / 2]) merlons(P, x0, z0, x1, z1, off, top);
         run += len / n;
-        if (run > 150 && !skipTower(x1, z1) && i + (k + 1) / n < L.length - 0.6) { run = 0; tower(W, x1, z1, 17, bot, top + 9, ux, uz); }
+        if (run > 150 && !skipTower(x1, z1) && i + (k + 1) / n < L.length - 0.6) { run = 0; tower(P, x1, z1, 17, bot, top + 9, ux, uz); }
+        B.geo('ash2', P.geo(), bot + 8);   // ── look D ── ── /look D ──
       }
     }
   };
@@ -245,9 +250,10 @@ function buildWalls(B) {
   // Herod's three towers: a solid base, a storey with windows, a parapet with corner turrets (War 5.161–175)
   for (const [x, z, s, h, sol] of Object.values(TOWERS)) {
     const base = Math.min(terrainH(x - s / 2, z - s / 2), terrainH(x + s / 2, z + s / 2), terrainH(x - s / 2, z + s / 2), terrainH(x + s / 2, z - s / 2)) - 3;
-    const solid = base + sol, top = base + h;
+    const solid = base + sol, top = base + h, BIG = new Acc(false);   // ── look D ── (each tower's solid base its own piece: its ground the occlusion's base) ── /look D ──
     BIG.box(x - s / 2, x + s / 2, base, solid, z - s / 2, z + s / 2);
     BIG.box(x - s / 2 - 0.9, x + s / 2 + 0.9, solid, solid + 1.4, z - s / 2 - 0.9, z + s / 2 + 0.9);
+    B.geo('ashBig', BIG.geo(), base + 3);   // ── look D ── ── /look D ──
     W.box(x - s / 2 + 0.6, x + s / 2 - 0.6, solid + 1.4, top - 1.6, z - s / 2 + 0.6, z + s / 2 - 0.6);
     W.box(x - s / 2 - 0.8, x + s / 2 + 0.8, top - 1.6, top, z - s / 2 - 0.8, z + s / 2 + 0.8);
     for (const [cx, cz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {   // corner turrets
@@ -265,7 +271,7 @@ function buildWalls(B) {
       }
     }
   }
-  B.geo('ash2', W.geo(), -999); B.geo('ashBig', BIG.geo(), -999); B.geo('dark', D.geo(), -999);
+  B.geo('ash2', W.geo(), -999); B.geo('dark', D.geo(), -999);
 }
 
 /* ───────── Herod's palace (War 5.176–183; plan ⚑) ───────── */
@@ -296,7 +302,8 @@ function buildPalace(B, trees) {
     for (const [a, b, c, d] of [[x0 + 28, x1 - 28, zm + dz - 7, zm + dz - 5], [x0 + 28, x1 - 28, zm + dz + 5, zm + dz + 7], [x0 + 28, x0 + 30, zm + dz - 5, zm + dz + 5], [x1 - 30, x1 - 28, zm + dz - 5, zm + dz + 5]]) P.box(a, b, top - 0.3, top + 0.55, c, d);
   }
   for (let x = x0 + 26; x < x1 - 20; x += 11) for (const z of [zm - 30, zm, zm + 30]) trees.push([x + (z === zm ? 5 : 0), top, z]);
-  B.geo('ash', A.geo(), -999); B.geo('roof', R.geo(), -999); B.geo('wmarble', M.geo(), -999); B.geo('dark', Dk.geo(), -999); B.geo('pave', P.geo(), -999); B.geo('water', Wt.geo(), -999);
+  // ── look D ── (D3: the enclosure's foot on its ground darker, as the city walls') ── /look D ──
+  B.geo('ash', A.geo(), Math.min(g(x0, z0), g(x1, z1), g(x0, z1), g(x1, z0))); B.geo('roof', R.geo(), -999); B.geo('wmarble', M.geo(), -999); B.geo('dark', Dk.geo(), -999); B.geo('pave', P.geo(), -999); B.geo('water', Wt.geo(), -999);
 }
 
 /* ───────── the pools and the streets ───────── */
@@ -396,7 +403,7 @@ function buildXystus(B) {
     M.box(a + (a === x0 ? 8 : 0), b, y + 10.5, y + 11.6, c + (c === z0 && b !== x0 + 10 ? 8 : 0), d - (d === z1 && b !== x0 + 10 ? 8 : 0));
     C.box(a, b, y + 11.6, y + 12.1, c, d); R.box(a + 0.5, b - 0.5, y + 12.1, y + 13.2, c + 0.5, d - 0.5);
   }
-  B.geo('pave', P.geo(), -999); B.geo('ash', A.geo(), -999); B.geo('wmarble', M.geo(), -999); B.geo('cedar', C.geo(), -999); B.geo('roof', R.geo(), -999);
+  B.geo('pave', P.geo(), -999); B.geo('ash', A.geo(), y); B.geo('wmarble', M.geo(), -999); B.geo('cedar', C.geo(), -999); B.geo('roof', R.geo(), -999);   // ── look D ── (the retaining walls' foot on the paving darker) ── /look D ──
 }
 
 /* ───────── the Mount of Olives: terraces along the contours, olive rows on them, paths up; the Kidron's monuments ───────── */
@@ -511,7 +518,8 @@ const REGIONS = [
   { id: 'second', bb: [-1080, -300, -640, -20], test: (x, z) => inPoly(SW_POLY, x, z) && !inPoly(FW_POLY, x, z), ang: 0.2, cell: 18, bu: 3, bv: 2, st: 6, dens: 0.9, man: 0.05, tint: 0.99 },
   { id: 'bezetha', bb: [-1350, 445, -1640, -560], test: (x, z) => inPoly(TW_POLY, x, z) && !inPoly(SW_POLY, x, z) && !inPoly(FW_POLY, x, z), ang: -0.1, cell: 20, bu: 3, bv: 2, st: 7, dens: 0.55, man: 0.03, tint: 1.0 },
 ];
-const STONE = ['#E3D3B2', '#D8C39C', '#CDB48A', '#E9DEC6', '#C7A97E', '#D6BD92', '#BD9F75', '#DCC9A4', '#CFBB98', '#C2A583', '#B89A73', '#E0CBA0', '#F2EBDD', '#EFE6D4', '#D9B887', '#CFA873'].map((h) => new THREE.Color(h));
+// ── look D ── (D3) cream, ochre and grey: four of the browner ochres made limewash greys (the city read orange-brown) ── /look D ──
+const STONE = ['#E3D3B2', '#D8C39C', '#CDB48A', '#E9DEC6', '#C9BFAD', '#D6BD92', '#BFB6A4', '#DCC9A4', '#CFBB98', '#C2A583', '#B3A894', '#E0CBA0', '#F2EBDD', '#EFE6D4', '#D9B887', '#D2CBBB'].map((h) => new THREE.Color(h));
 const CLOTH = ['#A8452F', '#C08A3E', '#5E6C83', '#D9CBAE', '#8A5A3C', '#B8663A'].map((h) => new THREE.Color(h));
 
 const DOORS = { court: [0, -7.2, 10], block: [-2.8, -7.2, 1.5], row: [0.2, -6.4, 6], mansion: [-16.2, -8, 10] };   // the street door (local, from the roof)
@@ -588,7 +596,7 @@ function buildHouses(scene, r, tex) {
   // one instanced mesh per archetype; the material is shared (one program)
   const A = archetypes(), mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.93, vertexColors: true });
   if (tex && tex.map) { mat.map = tex.map; if (tex.normalMap) { mat.normalMap = tex.normalMap; mat.normalScale.set(0.7, 0.7); } }
-  airMat(mat, 'city');   // ── look C ── (the clouds' shadows drift over the city) ── /look C ──
+  cityMat(mat);   // ── look C ── (the clouds' shadows drift over the city) ── /look C ── ── look D ── (and the plaster's blotches, the dirty foot: look/far.js) ── /look D ──
   const meshes = {};
   for (const [k, list] of Object.entries(L)) {
     const m = new THREE.InstancedMesh(A[k].geo(), mat, list.length);

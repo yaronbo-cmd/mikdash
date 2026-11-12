@@ -90,7 +90,7 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
 // ── look D ── (D1: no lawn) the valley bottoms a deeper dry olive and darker (the Kidron's depth felt from the Mount), the orchards' green
 // only under the groves ── /look D ──
-const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#8C8560'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262') };
+const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#8C8560'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262'), street: new THREE.Color('#B39874') };   // ── look D ── (street) ── /look D ──
 export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── look B ── (cm: the city's mask, when the caller has it) ── /look B ──
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
@@ -101,6 +101,8 @@ export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── 
   // ── look D ── (the orchards' tint only where the olives stand: the Mount of Olives' groves, the scattered groves beyond) ── /look D ──
   if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x) * (x < 1250 && Math.abs(z) < 1100 ? smooth(-0.6, -0.1, oliveGrove(x, z)) : smooth(0.4, 0.5, NA(x / 300 + 7, z / 300 - 3, 3))));
   c.lerp(TC.dust, cm * 0.78);
+  // ── look D ── (D3: the streets and the open ground between the houses trodden earth in patches, not one beige) ── /look D ──
+  if (cm > 0) c.lerp(TC.street, cm * (0.3 + 0.5 * smooth(0.36, 0.64, NC(x / 38 + 11, z / 38 - 5, 2))));
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
   // ── look B review H3 ── the broad tone (40–120 amot) the Mount's hill has too: darker, redder earth in patches, paler dusty crowns
@@ -249,7 +251,7 @@ export function buildTrees(scene, extra = [], rows = null, courts = []) {   // �
   // the short twisted trunk shows under it; the cypress a dark slender spindle with a ragged outline (was a smooth cone). One instanced
   // mesh per part as before, the same counts ── /look D ──
   const leaf = windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, vertexColors: true }));   // ── look C ── (the crowns sway in the wind) ── /look C ──
-  const bark = new THREE.MeshStandardMaterial({ color: '#5E4E3C', roughness: 1, flatShading: true });
+  const bark = new THREE.MeshStandardMaterial({ color: '#5E4E3C', roughness: 1 });
   const can = new THREE.InstancedMesh(oliveCrownGeo(THREE), leaf, olives.length), trunk = new THREE.InstancedMesh(oliveTrunkGeo(THREE), bark, olives.length);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), cc = new THREE.Color();
   const leafPal = ['#8A9672', '#7E8A68', '#929B7A', '#859070', '#7A8565', '#8E9876', '#848E6C'].map((h) => new THREE.Color(h));

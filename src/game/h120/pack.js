@@ -6,7 +6,7 @@
  */
 import { PLAN, COLS, H120, createH120 } from './model.js';
 import { ACTS } from './acts.js';
-import { SH5, finalWorld, disposeChip, colFrame, colBuild } from './world.js';
+import { SH5, initWorld, finalWorld, disposeChip, colFrame, colBuild } from './world.js';
 import { createFilm } from './film.js';
 import { createLoad } from './load.js';
 
@@ -102,6 +102,8 @@ export function makePack05() {
       try { await createFilm(X).play(); } catch (e) { console.warn('[h120] film', e && e.message); }
       near(X, false);
     },
+    /** after a reload, the stage done: his court as he built it (his columns, wedges, shims, props, planks), the model's own gallery hidden */
+    rest(X) { initWorld(X); finalWorld(X); },
     dispose() { disposeChip(); },
   };
   void COLS; void H120;

@@ -854,6 +854,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // ── h114 ── the top pill: the stage's works done of all (the old world's pill said "מדידה" all through stage 01) ── /h114 ──
     pill: () => { if (!FREE() || !started) return ''; const [n, of] = PK.count ? PK.count(M) : [M.st.done.length, PLAN.length]; return `<span class="gm-k">המטרה</span><span><b>${PK.name || 'שיטוח ההר'}</b> <span class="gm-sub">· ${n} מתוך ${of} עבודות</span></span>`; },   // ── h120 ── (PK.count: the pack's own n of m) ── /h120 ──
     X,
+    // ── h120 ── a finished stage drawn as he built it after a reload (the pack's rest(X, M)): the save read, no UI, no film, no crews ── /h120 ──
+    rest: () => { if (started || !PK.rest) return false; const g = G(); if (!g || !g[PK.key]) return false; const m = PK.create(g[PK.key]); if (!m.finished || !m.finished()) return false; M = m; try { PK.rest(X, M); } catch (e) { console.warn('[h109] rest', e && e.message); return false; } return true; },
     resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
     // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──
     dispose() { started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },

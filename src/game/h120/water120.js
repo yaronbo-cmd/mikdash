@@ -19,9 +19,10 @@ const inBasin = (x, z) => x > MIK.x0 - 0.02 && x < MIK.stair + 0.02 && z > MIK.z
 /* ───────── the shared clock and the sky read from the scene ───────── */
 const U = { t: { value: 0 }, sky: { value: null }, skyLo: { value: null }, sun: { value: null } };
 let skyT = -9;
+/** the sky's first values, before the first beat (a material made while no beat runs, as after a reload of a finished stage, still has them) */
+function sky0(X) { const T = X.THREE; if (!U.sky.value) { U.sky.value = new T.Color('#9CC3DE'); U.skyLo.value = new T.Color('#DCE6EA'); U.sun.value = new T.Vector3(0.4, 0.8, 0.3).normalize(); } }
 function readSky(X) {
-  const T = X.THREE;
-  if (!U.sky.value) { U.sky.value = new T.Color('#9CC3DE'); U.skyLo.value = new T.Color('#DCE6EA'); U.sun.value = new T.Vector3(0.4, 0.8, 0.3).normalize(); }
+  sky0(X);
   if (U.t.value - skyT < 1) return; skyT = U.t.value;
   let hemi = null, dir = null;
   try { X.scene.traverse((o) => { if (!hemi && o.isHemisphereLight && o.visible) hemi = o; if (!dir && o.isDirectionalLight && o.visible && o.intensity > 0.05) dir = o; }); } catch (e) { /* */ }
@@ -121,6 +122,7 @@ export function grooveMesh(X, pts) {
 /* ───────── the running water ───────── */
 /** the ribbon along a channel: uniforms uFront / uTail (amot along it: the water is between them), uFlow (0…1: how full) */
 export function ribbon(X, pts, o = {}) {
+  sky0(X);
   const T = X.THREE, P = o.raw ? pts : along(pts, 0.25); if (P.length < 2) return null;
   const g = strip(T, P, o.w || 0.3, o.lift != null ? o.lift : 0.014, o);
   const mat = new T.ShaderMaterial({
@@ -187,6 +189,7 @@ export function wetTrail(X, pts, o = {}) {
 
 /* ───────── the fall into the basin: a thin stream off the inlet's lip down to the water (or the bottom), and its rings ───────── */
 export function fall(X) {
+  sky0(X);
   const T = X.THREE, g = new T.Group();
   const mat = new T.ShaderMaterial({
     transparent: true, depthWrite: false, side: T.DoubleSide,
@@ -234,6 +237,7 @@ export function fall(X) {
 
 /* ───────── a still surface: the basin's, a puddle's, the hollow's pool ───────── */
 export function surfaceMat(X, o = {}) {
+  sky0(X);
   const T = X.THREE;
   return new T.ShaderMaterial({
     transparent: true, depthWrite: false,

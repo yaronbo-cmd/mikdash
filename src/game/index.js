@@ -538,6 +538,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     else if (H109_ON && S.isDone(G, 'gates') && !S.isDone(G, 'nashim')) setTimeout(() => { if (!h20Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h120 ── (stage 05 is the director's) ── /h120 ──
     else if (H109_ON && S.isDone(G, 'sorag') && !S.isDone(G, 'gates')) setTimeout(() => { if (!h13Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h113 ── (stage 04 is the director's) ── /h113 ──   // ── h112 ── (stage 03 is the director's) ── /h112 ──   // ── h111 ── (stage 02 is the director's) ── /h111 ──
     else welcomeBack(before, rep, daily, { landed, synced: true });
+    if (H109_ON && S.isDone(G, 'nashim')) setTimeout(() => h20Rest(), 900);   // ── h120 ── (the gallery as he built it, after a reload) ── /h120 ──
     return api;
   }
   function destroy() {
@@ -3215,6 +3216,11 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     const r = S.recommend(G);
     if (r && r.id) { try { W.focus(r.id); } catch (e) { /* */ } }
     ui.refresh();
+  }
+  /** stage 05 done, the page reloaded: his gallery drawn from his save (the director's rest: no UI, no film), the finished model's own hidden */
+  function h20Rest() {
+    if (H9 && H9.site !== 'nashim') return false;   // (a later stage's director owns the page)
+    try { const d = h20Make(); return !!(d && d.rest && d.rest()); } catch (e) { console.warn('[h120] rest', e && e.message); return false; }
   }
   /** a stage-05 page: the Mount, the courts' wall, the soreg and the gates stand done (quietly), the gallery's director opens on it */
   function h20Only() {

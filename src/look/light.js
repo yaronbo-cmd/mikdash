@@ -15,10 +15,11 @@
 
 export const WORK = Object.freeze({
   el: [28, 62],                 // the sun's elevation (deg) from the stage's first work to its last
-  // the light at the stage's start (a softened morning: the dawn preset's warmth kept in the sky, the sun itself near-white cream) and at
-  // its end (noon); the shade's fill: a warm ground bounce (the hill's own earth tone), a weaker sky term and environment
-  morning: { sun: '#FFEFD8', sunI: 2.55, hs: '#C3CCDB', hg: '#C4AA84', hI: 0.78, envI: 0.34, exp: 0.86 },
-  noon: { sun: '#FFF6E6', sunI: 2.7, hs: '#C9D3E2', hg: '#C6AC86', hI: 0.78, envI: 0.36, exp: 0.74 },
+  // the light at the stage's start (a softened morning, the sun itself near-white cream) and at its end (noon); the shade's fill: a warm
+  // ground bounce (the hill's own earth tone) and a warm-neutral sky term (review J2: the blue sky term, '#C3CCDB', turned the pits and the
+  // shade behind walls navy once the sun left them), a weaker environment (the sky's blue again)
+  morning: { sun: '#FFEFD8', sunI: 2.55, hs: '#DACBAE', hg: '#C4AA84', hI: 1.15, envI: 0.15, exp: 0.86 },
+  noon: { sun: '#FFF6E6', sunI: 2.7, hs: '#DCCFB6', hg: '#C6AC86', hI: 1.05, envI: 0.18, exp: 0.74 },
   sky0: 1,                      // the dome's blend toward noon at the stage's start (review J1: noon's blue sky all the way; was 0.65, pale)
   ease: 2.6,                    // seconds for the sun to reach its new place in the walk
   step: 0.2,                    // seconds between two moves of the shadows while it eases

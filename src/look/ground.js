@@ -285,10 +285,10 @@ vec3 grGround(vec3 vc) {
   float slab = smoothstep(th, th + 0.025, rf) * (1.0 - smoothstep(0.1, 0.45, trod));
   float steep = smoothstep(0.17, 0.26, slope + (d2.a - 0.5) * 0.14);
   float rk = max(slab, steep);
-  float rim = smoothstep(th - 0.07, th + 0.01, rf) * (1.0 - slab) * (1.0 - steep);
+  float rim = smoothstep(th - 0.018, th, rf) * (1.0 - slab) * (1.0 - steep);   // (look B review H2: a thin band, no haze)
   // GRAVEL: scree below the rock, the trodden ground, patches
   // (look B review G2: no stones packed in a mosaic: dust, and the chips over it — a few on the earth, more on the scree and where trodden)
-  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + rim * 0.3, 0.0, 1.0);
+  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.35 * (1.0 - vGrA.y), 0.0, 1.0);
   // EARTH: mottled, dry straw in tufts, the low dark shrubs, darker in the hollows and where trodden
   // (trodden: packed, smoother, darker)
   float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
@@ -303,7 +303,7 @@ vec3 grGround(vec3 vc) {
   float near = smoothstep(th - 0.2, th - 0.03, rf) * (1.0 - rk);
   float shrub = (1.0 - smoothstep(0.15, 0.17, e)) * (1.0 - trod) * clamp(near * 2.0 + vGrA.y * 2.0 + smoothstep(0.5, 0.6, d2.r) * 1.0, 0.0, 1.0);
   earth = mix(earth, vec3(0.30, 0.31, 0.23) * (0.55 + 4.0 * e), shrub * 0.9);
-  vec3 grav = mix(uGrGrav, vc, 0.4) * (0.82 + 0.3 * d2.g);
+  vec3 grav = mix(uGrGrav, vc, 0.65) * (0.84 + 0.25 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
   vec3 rock = mix(uGrRock, vc, 0.2) * (0.46 + 0.74 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw) * vec3(0.97, 0.99, 1.03);
@@ -312,7 +312,7 @@ vec3 grGround(vec3 vc) {
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
   col = mix(col, mix(uGrRock, vc, 0.5) * (0.6 + 0.36 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.6));
-  col = mix(col, mix(col, uGrRock * 0.92, 0.4), rim * 0.4);
+  col = mix(col, mix(col, uGrRock * 0.92, 0.35), rim * 0.35);
   // (the slab's own edge dusted with the earth round it: a thin band)
   rock = mix(rock, mix(rock, col, 0.4), (1.0 - smoothstep(th + 0.004, th + 0.025, rf)) * (1.0 - steep));
   col = mix(col, rock, rk);

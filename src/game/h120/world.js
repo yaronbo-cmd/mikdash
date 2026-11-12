@@ -189,16 +189,36 @@ function colsSync(X, init) {
 /* ───────── the beams, the joists, the corbels, the planks, the railing, the ladders, the props ───────── */
 const seatedOf = (X) => BEAMS.filter((B) => SH5.final || (X.M && X.M.seated(B.id))).map((B) => B.id);
 function beamsKey(X) { const st = X.M.st; return JSON.stringify([seatedOf(X), BEAMS.map((B) => (st.beam[B.id] || {}).shim || 0), st.props, st.planks.done, SH5.final, SH5.own.__beam || '']); }
+/** the shim at a short beam's end on his column P1 (d: the beam's direction toward P1, gap amot): fresh pale cedar filling the gap
+ *  to the column's centre, its head over the beam (drive: 0…1 how far it is driven in; 1 = home) → the group */
+export function shimMesh(X, all, P1, d, gap, drive = 1) {
+  const T = X.THREE, g = new T.Group(), m = new T.MeshStandardMaterial({ color: '#EED7A4', roughness: 0.8, flatShading: true }), hw = H120.BEAM_W / 2, w = Math.max(0.14, gap);
+  const ex = Math.abs(d[0]) > 0.5;
+  const bx = (a0, a1, y0, y1, w0, w1) => box(X, m, ex ? a0 : w0, y0, ex ? w0 : a0, ex ? a1 : w1, y1, ex ? w1 : a1, g);
+  // (local: along the beam toward the column's centre from 0 to w; across ±)
+  bx(-w, 0, Y.COL_TOP, Y.BEAM_TOP, -hw - 0.03, hw + 0.03);
+  bx(-w - 0.08, 0.06, Y.BEAM_TOP, Y.BEAM_TOP + 0.13, -hw - 0.08, hw + 0.08);   // (the driven head)
+  g.position.set(P1[0] * (ex ? 1 : 1), (1 - drive) * 0.35, P1[1]);
+  if ((ex ? d[0] : d[1]) < 0) g.scale[ex ? 'x' : 'z'] = -1;
+  X.props.root.add(g); all.push(g); return g;
+}
 function beamsBuild(X) {
   if (SH5.beamsG) drop(X, SH5.beamsG);
   const all = (SH5.beamsG = []), M = mats(X), st = X.M.st, seated = new Set(seatedOf(X)), hw = H120.BEAM_W / 2;
   const cedar = [], corb = [], joist = [], plank = [], rail = [];
   for (const B of BEAMS) {
     if (!seated.has(B.id) || SH5.own.__beam === B.id) continue;
-    const [ax, az] = B.pa, [bx, bz] = B.pb;
+    let [ax, az] = B.pa, [bx, bz] = B.pb;
+    // his shim (כפיס): a beam short by up to a tefach ends short of his column's centre; a block of fresh pale cedar fills the gap, its
+    // driven head standing a little over the beam and its sides, so it reads from the walking camera too. It stays.
+    const b = st.beam[B.id], hb = Object.values(BAYS).find((q) => q.beam === B.id);
+    if (b && b.shim && hb) {
+      const hisA = hb.col === B.a, P1 = hisA ? B.pa : B.pb, P0 = hisA ? B.pb : B.pa, L = Math.hypot(P1[0] - P0[0], P1[1] - P0[1]), d = [(P1[0] - P0[0]) / L, (P1[1] - P0[1]) / L];
+      const gap = clamp(L - (+b.cut || L), 0, H120.TEFACH), e = [P1[0] - d[0] * gap, P1[1] - d[1] * gap];
+      if (hisA) { ax = e[0]; az = e[1]; } else { bx = e[0]; bz = e[1]; }
+      shimMesh(X, all, P1, d, gap);
+    }
     cedar.push(B.axis === 'x' ? [Math.min(ax, bx), Y.COL_TOP, az - hw, Math.max(ax, bx), Y.BEAM_TOP, az + hw] : [ax - hw, Y.COL_TOP, Math.min(az, bz), ax + hw, Y.BEAM_TOP, Math.max(az, bz)]);
-    // his shim (כפיס) under the beam's end at his column: it stays and is always seen
-    const b = st.beam[B.id], hb = Object.values(BAYS).find((q) => q.beam === B.id), c = (hb && COLS[hb.col]) || COLS[B.b] || COLS[B.a];   // (at his own column's end) if (b && b.shim && c) all.push(box(X, M.h5cedarL, c.x - 0.45, Y.COL_TOP - 0.06, c.z - 0.45, c.x + 0.45, Y.COL_TOP + 0.08, c.z + 0.45));
   }
   const planked = SH5.final || (st.planks && st.planks.done);
   for (const R of RUNS) {
@@ -531,6 +551,16 @@ function liveCone(C) {
 }
 /** a figure (foot, waist, head) or a mesh (its box's corners, centre and mid-faces) inside the cone */
 function figIn(a) { const y = a.y != null ? a.y : H120.FLOOR; return inCone(a.x, y + 0.2, a.z) || inCone(a.x, y + 1.0, a.z) || inCone(a.x, y + 1.9, a.z); }
+/** (opt.edge) a figure the frame's edge would cut — part of it on the screen and part off, or within the margin of an edge — is
+ *  taken out of the picture too, so no man stands cut by the frame's border while the camera follows the work */
+function edgeCut(x, y, z, h = 3.6) {
+  const X = SH5.X; if (!X || !X.scr) return false;
+  const W = innerWidth, H = innerHeight, m = 40, P = [X.scr(x, y, z), X.scr(x, y + h, z)];
+  let inn = 0, out = 0;
+  for (const q of P) { if (!q || !q.on) { out++; continue; } if (q.x < m || q.x > W - m || q.y < m || q.y > H - m) out++; else inn++; }
+  const mid = X.scr(x, y + h / 2, z); if (mid && mid.on && mid.x > -60 && mid.x < W + 60 && mid.y > -60 && mid.y < H + 60) inn++;
+  return out > 0 && inn > 0;
+}
 let BB = null;
 function meshIn(o) {
   const T = SH5.X.THREE; if (!o.userData.h5bb) { BB = BB || new T.Box3(); BB.setFromObject(o); o.userData.h5bb = [BB.min.x, BB.min.y, BB.min.z, BB.max.x, BB.max.y, BB.max.z]; }
@@ -555,7 +585,7 @@ export function coneApply() {
   const scafA = new Set(); for (const w of coneFigs()) if (w.scaf && scaf.has(w.scaf)) scafA.add(w.a);
   for (const a of pool) {
     if (!a || a.alive === false) continue;
-    const hit = !!C && !skipA.has(a) && (scafA.has(a) || figIn(a));
+    const hit = !!C && !skipA.has(a) && (scafA.has(a) || figIn(a) || (C.edge && edgeCut(a.x, a.y != null ? a.y : H120.FLOOR, a.z, 3.3 * (a.s || 1))));
     if (hit) { if (!a.coneHid) { a.coneHid = 1; a.coneV = a.visT; } a.visT = 0; a.vis = 0; }
     else if (a.coneHid) { a.coneHid = 0; a.visT = a.coneV != null ? a.coneV : 1; }
   }
@@ -576,12 +606,12 @@ export function viewCone(X, shots, opt = {}) {
   // (the stage's own wall scaffolds along the chambers: hidden while an act's close shots play, back for the high camera and after)
   try { if (X.stages.h120Scaff) X.stages.h120Scaff('nashim', !(shots && shots.length) || !!opt.depth); } catch (e) { /* */ }
   if (!shots || !shots.length) { SH5.cone = null; coneApply(); keep(X, opt.keep || []); if (hw) hw(null); return; }
-  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.2, z) || inCone(x, y + 2.2, z) || inCone(x, y + 3.2, z));   // the stage's own builders (at the builder's size), likewise
+  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.2, z) || inCone(x, y + 2.2, z) || inCone(x, y + 3.2, z) || (opt.edge !== false && edgeCut(x, y, z, 5.6)));   // the stage's own builders (at the builder's size), likewise
   // a crew column still rising in view finishes standing first (its gang never shares the act's ground)
   for (const id of Object.keys(SH5.rise)) { const R = SH5.rise[id]; R.rope.dispose(); R.rope2.dispose(); for (const w of R.men) SH5.crew.remove(w); for (const o of R.all) if (o !== R.C.g) X.props.remove(o); delete SH5.rise[id]; colBuild(X, id); }
   const L = shots.map(([p, t, r]) => coneOf(X, p, t, r));
   if (opt.depth) for (const c of L) c.dW = Math.min(c.dW, opt.depth);   // (opt.depth: clear only this near the lens — a high camera over the court)
-  const C = (SH5.cone = { L, skip: new Set(opt.skip || []), laneCap: LANE_L, noLive: opt.live === false });
+  const C = (SH5.cone = { L, skip: new Set(opt.skip || []), laneCap: LANE_L, noLive: opt.live === false, edge: opt.edge !== false });
   // the lane: the farthest point the sledge and the cart (and the men ahead of them) may reach outside the cone
   for (let s = 0; s <= LANE_L; s += 0.5) { const q = laneAt(s); let bad = false; for (const y of [0.5, 1.5, 2.5]) for (const k of [-2, 0, 2, 6]) { const p2 = laneAt(Math.min(LANE_L, s + k)); if (inCone(p2.x, H120.FLOOR + y, p2.z)) bad = true; } void q; if (bad) { C.laneCap = Math.max(0, s - 2); break; } }
   // the stage's crews (crews.js) kept off the cone's ground: three depth bands per shot, each its bounding rect on the floor

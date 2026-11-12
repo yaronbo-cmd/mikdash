@@ -9,7 +9,8 @@
  */
 import { H120, Y, LV, BAYS, BEAM_OF, COLS, RUNS, carryStep, beamHits, fitOf, carryPts, qOf, starsOf, joistsOf } from './model.js';
 import { CARRY_PLACES, carryObs, carryStart, markOf, inMark, carryWay, moverAt, laneShape, laneState, LANE_X, LANE_CROSS, YARD, SCAFF } from './routes.js';
-import { SH5, mats, box, label, own, viewCone, coneOwn, coneKeep, colFrame, trestle, scafShow, kohenFig, handsTo } from './world.js';
+import { SH5, mats, box, label, own, viewCone, coneOwn, coneKeep, colFrame, trestle, scafShow, kohenFig, handsTo, shimMesh } from './world.js';
+import { h120Ladder } from '../../temple.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
 
@@ -320,6 +321,14 @@ export const CARRY = {
 
     /* ── the hoist: two ropes over the supports' tops, two men pulling on the wall's side; then the truth (fitOf) ── */
     const ropes = [];
+    let guide = null, pul = [];
+    function guideUp() {
+      if (guide) return;
+      const LADH = Y.COL_TOP - 1.25 - FL, k = 0.55 + (LADH + 0.9) * 0.28, foot = [Bay.P1[0] - acr[0] * k, Bay.P1[1] - acr[1] * k];
+      for (const g of h120Ladder(foot[0], foot[1], Bay.P1[0], Bay.P1[1], FL, FL + LADH)) { const o = new T.Mesh(g, M.h5cedarD); o.castShadow = true; PR.root.add(o); all.push(o); }
+      const on = [foot[0] + (Bay.P1[0] - foot[0]) * 0.66, foot[1] + (Bay.P1[1] - foot[1]) * 0.66];
+      guide = SH5.crew.add(on[0], on[1], { role: 'hold', crew: 1 }); if (guide) { guide.a.y = guide.a.fixedY = Y.COL_TOP - 1.75; guide.a.yaw = Math.atan2(Bay.P1[0] - on[0], Bay.P1[1] - on[1]); crew.push(guide); coneOwn(guide); }
+    }
     async function hoist(again) {
       A.phase = 'hoist'; A.busy = true;
       viewCone(X, [[S_BAY().p, S_BAY().t, 4], [S_BACK().p, S_BACK().t, 5]], { keep: [[Math.min(Bay.P0[0], Bay.P1[0], mk.rect[0]) - 6, Math.min(Bay.P0[1], Bay.P1[1], mk.rect[1]) - 6, Math.max(Bay.P0[0], Bay.P1[0], mk.rect[2]) + 6, Math.max(Bay.P0[1], Bay.P1[1], mk.rect[3]) + 6]], skip: crew });
@@ -330,7 +339,9 @@ export const CARRY = {
       const fx = s.f, rx = s.r, nearP1 = Math.hypot(fx[0] - Bay.P1[0], fx[1] - Bay.P1[1]) < Math.hypot(rx[0] - Bay.P1[0], rx[1] - Bay.P1[1]);
       const e1 = nearP1 ? fx : rx, e0 = nearP1 ? rx : fx;   // (e1: the end that goes onto his column)
       const top = Y.COL_TOP + 0.05, ptop = (p) => V3(X, p[0], top + 0.55, p[1]);
-      const pul = [Bay.P0, Bay.P1].map((p) => { const w = SH5.crew.add(p[0] - acr[0] * 3.2, p[1] - acr[1] * 3.2, { role: 'pull', item: 'rope', fx: p[0], fz: p[1], crew: 1 }); if (w) { crew.push(w); coneOwn(w); } return w; });
+      guideUp();
+      for (const w of pul) SH5.crew.remove(w);
+      pul = [Bay.P0, Bay.P1].map((p) => { const w = SH5.crew.add(p[0] - acr[0] * 3.2, p[1] - acr[1] * 3.2, { role: 'pull', item: 'rope', fx: p[0], fz: p[1], crew: 1 }); if (w) { crew.push(w); coneOwn(w); } return w; });
       for (let i = 0; i < 4; i++) { const r = PR.rope(12, 0.045); ropes.push(r); all.push({ dispose: () => r.dispose() }); }
       const c = cutNow(), dirB = Bay.dir, mid0 = [(e0[0] + e1[0]) / 2, (e0[1] + e1[1]) / 2], mid1 = [(Bay.P0[0] + Bay.P1[0]) / 2 + dirB[0] * (c - Bay.B.len) / 2, (Bay.P0[1] + Bay.P1[1]) / 2 + dirB[1] * (c - Bay.B.len) / 2];
       const yaw0 = -Math.atan2(e1[1] - e0[1], e1[0] - e0[0]); let yaw1 = -Math.atan2(Bay.P1[1] - Bay.P0[1], Bay.P1[0] - Bay.P0[0]); while (yaw1 - yaw0 > Math.PI) yaw1 -= 2 * Math.PI; while (yaw1 - yaw0 < -Math.PI) yaw1 += 2 * Math.PI;
@@ -345,9 +356,11 @@ export const CARRY = {
         const ends = [-1, 1].map((sg) => V3(X, sg * c / 2 * (1 / Math.max(1e-3, beamG.scale.x)) * beamG.scale.x, HB / 2, 0).applyEuler(beamG.rotation).add(beamG.position));
         [Bay.P0, Bay.P1].forEach((p, k) => { const E = ends[k] || ends[0], tp = ptop(p), w = pul[k]; ropes[k * 2].set({ x: E.x, y: E.y, z: E.z }, { x: tp.x, y: tp.y, z: tp.z }, 0.05); const h = w ? { x: w.a.x, y: FL + 1.3, z: w.a.z } : { x: tp.x, y: FL + 1.3, z: tp.z }; ropes[k * 2 + 1].set({ x: tp.x, y: tp.y, z: tp.z }, h, 0.05); if (w) { w.a.x -= acr[0] * 0.012; w.a.z -= acr[1] * 0.012; } });
         if (i % 20 === 0) X.play('rope');
+        if (guide) handsTo(X, guide, ends[1] || ends[0], { spread: -0.2, rMax: 2.6 });
       }
       for (const r of ropes) r.show(false);
-      for (const w of pul) SH5.crew.remove(w);
+      // (the pullers ease off and coil their ropes; the guide keeps his hands on the end until it sits)
+      for (const w of pul) if (w) SH5.crew.setRole(w, 'hold');
       seat();
     }
     function beamSeat(dy = 0, tilt = 0) { const x = (Bay.P0[0] + Bay.P1[0]) / 2, z = (Bay.P0[1] + Bay.P1[1]) / 2; beamG.position.set(x + Bay.dir[0] * (cutNow() - Bay.B.len) / 2, Y.COL_TOP + HB / 2 + dy, z + Bay.dir[1] * (cutNow() - Bay.B.len) / 2); beamG.rotation.set(0, -Math.atan2(Bay.dir[1], Bay.dir[0]), 0); beamG.rotateZ(tilt); }
@@ -366,20 +379,28 @@ export const CARRY = {
         // too long: it stops on the column's edge and does not seat
         for (let i = 1; i <= 10; i++) { await X.wait(1 / 30); beamSeat(0.5 - 0.35 * ease(i / 10), 0); }
         X.play('thud'); X.line('ארוכה מדי: מנסרים פרוסה דקה', 2800); await X.wait(1.6);
+        for (const w of pul) SH5.crew.remove(w); pul = [];
         return trimStart();
       }
       if (fit === 'shim') {
         for (let i = 1; i <= 10; i++) { await X.wait(1 / 30); beamSeat(0.5 * (1 - ease(i / 10)) - 0.06); }
         X.play('thud'); X.line('קצרה, עד טפח: כשר. הכפיס נשאר', 3000);
-        await X.wait(0.8);
-        const sh = box(X, M.h5cedarL, hisP.x - 0.45, Y.COL_TOP - 0.06, hisP.z - 0.45, hisP.x + 0.45, Y.COL_TOP + 0.08, hisP.z + 0.45); all.push(sh);
-        X.play('wedge'); await X.wait(0.4); X.play('wedge'); beamSeat(0); await X.wait(1.4);
+        // the close shot: the beam's end on his column from the court, a little inside the bay; the shim of fresh cedar driven home
+        const S_SHIM = look([Bay.P1[0] - Bay.dir[0] * 0.35, Y.COL_TOP + 0.25, Bay.P1[1] - Bay.dir[1] * 0.35], [acr[0] * 0.9 - Bay.dir[0] * 0.45, acr[1] * 0.9 - Bay.dir[1] * 0.45], frameDist(4.2, 3.0), 16);
+        X.shot(S_SHIM.p, S_SHIM.t, 0.9); await X.wait(1.0);
+        const gap = Math.max(0, need - cutNow()), sm = shimMesh(X, all, Bay.P1, Bay.dir, gap, 0);
+        if (guide) { SH5.crew.setRole(guide, 'hammer', { item: 'mallet' }); guide.fx = Bay.P1[0]; guide.fz = Bay.P1[1]; }
+        for (let k = 1; k <= 3; k++) { await X.wait(0.55); X.play('wedge'); X.dust(Bay.P1[0], Y.COL_TOP + HB, Bay.P1[1], 3, 0.5); sm.position.y = (1 - k / 3) * 0.35; }
+        beamSeat(0); A.quick.shim = 1; X.quick(V3(X, Bay.P1[0], Y.COL_TOP + HB + 0.3, Bay.P1[1]), 'הכפיס בפנים', null);
+        await X.wait(1.4);
+        if (guide) SH5.crew.setRole(guide, 'hold', { item: null });
         A.shim = 1; return closeBay();
       }
       // lost: short by more than a tefach: it cannot bear. Lowered, carried to the heap of short beams; the sawyers cut a new one
       for (let i = 1; i <= 10; i++) { await X.wait(1 / 30); beamSeat(0.5 * (1 - ease(i / 10)), -0.04 * ease(i / 10)); }
       X.play('creak'); X.line('קצרה ביותר מטפח: הקורה אבודה', 3000); await X.wait(1.4);
       X.loss(20, at, 'הקורה אבודה', 1, 'cedar'); A.lost = 1;
+      for (const w of pul) SH5.crew.remove(w); pul = [];
       for (let i = 1; i <= 30; i++) { await X.wait(1 / 30); beamG.position.y = lerp(Y.COL_TOP + HB / 2, FL + HB / 2, ease(i / 30)); }
       beamG.visible = false;
       // the yard: the beam on the heap of short beams (it stays there), the two sawyers cut a new one to the true span
@@ -479,14 +500,32 @@ export const CARRY = {
       st.carry[lvP] = { done: 1, bumps: A.bumps, clean: A.clean.slice(), dmg: A.dmg, tries: A.tries };
       X.save();
       X.shot(S_BACK().p, S_BACK().t, 1.6);
+      for (const w of pul) SH5.crew.remove(w); pul = [];
+      if (guide) { SH5.crew.remove(guide); guide = null; }
       SH5.joistAt = beamId; SH5.ambKey = '';
       X.line('המפתח נסגר: הבנאים כבר מניחים את הקורות הקצרות מהזיזים אליה', 3200);
       if (R) {
         const s0 = -R.dir, out = R.line - s0 * (HW + 0.25), jw = H120.JOIST_W / 2;
+        // two men up on the gallery's level, one over the corbels and one on the seated beam, haul each joist up on two ropes from the
+        // floor under its place and lay it from the corbel to the beam
+        const wallS = R.wall - s0 * 0.7, beamS = R.line, lay = [];
+        const man = (w, y) => { const m = SH5.crew.add(R.axis === 'x' ? J[0] : w, R.axis === 'x' ? w : J[0], { role: 'pull', crew: 2 }); if (m) { m.a.y = m.a.fixedY = y; crew.push(m); coneOwn(m); } return m; };
+        const mw = man(wallS, Y.BEAM_TOP), mb = man(beamS, Y.BEAM_TOP);
+        const rp = [PR.rope(10, 0.03), PR.rope(10, 0.03)]; for (const r of rp) all.push({ dispose: () => r.dispose() });
         for (const a of J) {
-          await X.wait(0.32);
           const q = R.axis === 'x' ? [a - jw, Y.BEAM_TOP, Math.min(R.wall, out), a + jw, Y.JOIST_TOP, Math.max(R.wall, out)] : [Math.min(R.wall, out), Y.BEAM_TOP, a - jw, Math.max(R.wall, out), Y.JOIST_TOP, a + jw];
-          all.push(box(X, M.h5cedarD, q[0], q[1], q[2], q[3], q[4], q[5])); X.play('tap');
+          const j = box(X, M.h5cedarD, q[0], q[1], q[2], q[3], q[4], q[5]); all.push(j); lay.push(j);
+          const y1 = j.position.y, y0 = FL + 0.2;
+          for (const m of [mw, mb]) if (m) { const p = R.axis === 'x' ? [a + 0.9, m === mw ? wallS : beamS] : [m === mw ? wallS : beamS, a + 0.9]; m.a.x = p[0]; m.a.z = p[1]; m.a.yaw = Math.atan2((R.axis === 'x' ? a : p[0]) - p[0], (R.axis === 'x' ? p[1] : a) - p[1]); }
+          for (let i = 1; i <= 14; i++) {
+            await X.wait(1 / 30); const u = ease(i / 14); j.position.y = lerp(y0, y1 + 0.25, u); j.rotation.set(0, 0, 0);
+            const ends = R.axis === 'x' ? [[a, Math.min(R.wall, out) + 0.3], [a, Math.max(R.wall, out) - 0.3]] : [[Math.min(R.wall, out) + 0.3, a], [Math.max(R.wall, out) - 0.3, a]];
+            [mw, mb].forEach((m, k) => { if (!m) return; const e = ends[Math.abs((R.axis === 'x' ? ends[0][1] : ends[0][0]) - (m === mw ? wallS : beamS)) < Math.abs((R.axis === 'x' ? ends[1][1] : ends[1][0]) - (m === mw ? wallS : beamS)) ? 0 : 1]; const h = V3(X, m.a.x, Y.BEAM_TOP + 1.9, m.a.z); rp[k].show(true); rp[k].set({ x: e[0], y: j.position.y, z: e[1] }, h, 0.02); m.a.bow = m.a.bowT = -0.2; });
+          }
+          for (const r of rp) r.show(false);
+          j.position.y = y1; X.play('tap');
+          for (const m of [mw, mb]) if (m) { m.a.bow = m.a.bowT = 0.5; }
+          await X.wait(0.12);
         }
       }
       await X.wait(1.6);

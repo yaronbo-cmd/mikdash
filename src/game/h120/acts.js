@@ -11,6 +11,19 @@ import { SH5, mats, colMesh, colFrame, colBuild, shearLegs, own, keep, label, bo
 import { fingers, MOUSE, onY, heroAt } from '../h113/acts.js';
 import { SAW } from './acts2.js';
 import { CARRY } from './acts3.js';
+
+/** the knowledge card after column level 1 (source checked by the reviewer, build 120 phase 3), in the game's own fact card */
+export const KNOW_COL = Object.freeze({
+  title: 'העמוד שנשאר במחצבה',
+  body: 'במגרש הרוסים בירושלים שוכב עד היום עמוד אבן ענק, יותר מ־12 מטר אורכו. החוצבים מצאו בו פגם, והשאירו אותו במקומו. יש חוקרים שמשייכים אותו לבנייה של הורדוס בהר הבית, ויש שמשייכים אותו לכנסייה ביזנטית מאוחרת יותר. אין הכרעה.',
+  note: 'עמוד של עשר אמות בעזרת הנשים: המחשה',
+});
+function knowCard(X) {
+  const st = X.M && X.M.st; if (!st || st.know1) return;
+  st.know1 = 1; try { X.save(); } catch (e) { /* */ }
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  setTimeout(() => { try { if (X.ui && X.ui.toast) X.ui.toast({ icon: 'book', title: KNOW_COL.title, body: `${esc(KNOW_COL.body)}<small class="gm-fact-ref">${esc(KNOW_COL.note)}</small>`, kind: 'fact', ms: 14000 }); } catch (e) { /* */ } }, 5200);
+}
 import { clamp, lerp, ease } from '../h109/kit.js';
 
 const F = H120.FINGER, BAL = H120.BAL, D2R = Math.PI / 180;
@@ -209,6 +222,7 @@ export const COL = {
       st.col[id] = c; X.save();
       const pts = colPts(c, lv), q = qOf(pts);
       setTimeout(() => X.end({ stars: starsOf(q), q, at: A.C.at(0.5), perfect: pts >= 40 && !A.broke, lost: A.broke > 0 }), 700);
+      if (!m.free && m.lv === 1 && !A.broke) knowCard(X);
     }
 
     /* the losses in the world */

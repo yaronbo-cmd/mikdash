@@ -121,20 +121,20 @@ const merge = (THREE, list) => {
  *  its upper half). Silver-light above and toward the sun (+z, south: the work light's sun), a deeper green under */
 export function oliveCrownGeo(THREE) {
   const r = rnd(4), parts = [];
-  for (const [cx, cy, cz, rad] of [[-0.36, -0.08, 0.12, 0.66], [0.4, 0.08, -0.16, 0.6], [0.02, 0.4, 0.3, 0.5]]) {
-    const g = new THREE.IcosahedronGeometry(rad, 0).toNonIndexed(), p = g.attributes.position;
+  for (const [cx, cy, cz, rad] of [[-0.34, -0.1, 0.12, 0.68], [0.38, 0.0, -0.16, 0.64], [0.02, 0.36, 0.28, 0.56]]) {
+    const g0 = new THREE.IcosahedronGeometry(rad, 0), g = g0.index ? g0.toNonIndexed() : g0, p = g.attributes.position;
     const rot = r() * 6.28, cs = Math.cos(rot), sn = Math.sin(rot);
     // (shared corners of the icosahedron moved alike: the clump stays closed)
     const seen = new Map();
     for (let i = 0; i < p.count; i++) {
       const key = p.getX(i).toFixed(3) + p.getY(i).toFixed(3) + p.getZ(i).toFixed(3);
-      if (!seen.has(key)) seen.set(key, [0.78 + r() * 0.4, 0.7 + r() * 0.35]);
+      if (!seen.has(key)) seen.set(key, [0.8 + r() * 0.36, 0.86 + r() * 0.26]);
       const [k, ky] = seen.get(key), x = p.getX(i) * k, z = p.getZ(i) * k;
       p.setXYZ(i, cx + x * cs - z * sn, cy + p.getY(i) * k * ky, cz + x * sn + z * cs);
     }
     parts.push(faceted(THREE, g, (nx, ny, nz) => {
       const s = Math.max(0, Math.min(1, ny * 0.75 + nz * 0.35 + 0.25));
-      return [0.7 + 0.5 * s, 0.74 + 0.47 * s, 0.62 + 0.62 * s];   // (silver: the light faces lose their yellow)
+      return [0.66 + 0.38 * s, 0.7 + 0.38 * s, 0.6 + 0.46 * s];   // (silver: the light faces lose their yellow)
     }));
   }
   return merge(THREE, parts);

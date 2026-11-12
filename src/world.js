@@ -4,6 +4,7 @@ import { rng, makeNoise, smooth, lerp } from './util.js';
 import { PLAT } from './mount.js';
 import { groundMat, smoothGridNormals } from './look/ground.js';   // ── look B ── ── /look B ──
 import { windMat } from './look/air.js';   // ── look C ── ── /look C ──
+import { oliveCrownGeo, oliveTrunkGeo, cypressGeo, jitter } from './look/far.js';   // ── look D ── ── /look D ──
 
 const NA = makeNoise(11), NB = makeNoise(29), NC = makeNoise(47), ND = makeNoise(83);
 function prof(xs, ys, x) {
@@ -226,33 +227,40 @@ export function buildTrees(scene, extra = [], rows = null, courts = []) {   // �
   const r = rng(313), olives = [], cyp = [];
   const addOlive = (x, z, s = 1) => { if (inEx(x, z, 8) || cityMask(x, z) > 0.35) return false; olives.push([x, terrainH(x, z), z, s * (0.8 + r() * 0.5), r() * 6.28]); return true; };
   let tries = 0;
-  if (rows) for (const [x, z] of rows) if (olives.length < 1500) addOlive(x, z);   // ── world6 ──
+  // ── look D ── (D2) the rows stay rows, each tree a little off its place (up to 15 % of the 14-amot spacing) and about one in twelve
+  // left out; a left-out tree still draws its two numbers, so every other tree stands where it stood ── /look D ──
+  let gone = 0;
+  if (rows) for (const [x, z] of rows) if (olives.length + gone < 1500) {   // ── world6 ──
+    const [jx, jz, drop] = jitter(x, z, 14);
+    if (drop && !inEx(x, z, 8) && cityMask(x, z) <= 0.35) { r(); r(); gone++; continue; }
+    addOlive(x + jx, z + jz);
+  }
   for (const [x, z] of courts) olives.push([x, terrainH(x, z), z, 0.62 + r() * 0.25, r() * 6.28]);   // ── world6 ── trees in the city's courts
-  while (olives.length < 1700 && tries < 60000) { tries++; const x = 470 + r() * 1900, z = -1700 + r() * 3400; if (rows && x < 1250 && Math.abs(z) < 1100) continue; if (NA(x / 300 + 7, z / 300 - 3, 3) < 0.44) continue; addOlive(x, z); }
+  while (olives.length + gone < 1700 && tries < 60000) { tries++; const x = 470 + r() * 1900, z = -1700 + r() * 3400; if (rows && x < 1250 && Math.abs(z) < 1100) continue; if (NA(x / 300 + 7, z / 300 - 3, 3) < 0.44) continue; addOlive(x, z); }
   for (let i = 0; i < 150; i++) addOlive(440 + r() * 150, -260 + r() * 380, 1.1);          // Gethsemane
-  for (let i = 0; i < 1400 && olives.length < 2300; i++) { const x = -2600 + r() * 5200, z = -2600 + r() * 5200; if (NB(x / 200, z / 200, 2) < 0.52) continue; addOlive(x, z); }
+  for (let i = 0; i < 1400 && olives.length + gone < 2300; i++) { const x = -2600 + r() * 5200, z = -2600 + r() * 5200; if (NB(x / 200, z / 200, 2) < 0.52) continue; addOlive(x, z); }
   for (let i = 0; i < 700 && cyp.length < 230; i++) {
     const x = -1500 + r() * 1900, z = -1500 + r() * 2900;
     if (cityMask(x, z) < 0.6 || inEx(x, z, 14)) continue;
     cyp.push([x, terrainH(x, z) - 1, z, 0.8 + r() * 0.5]);
   }
   for (const [x, y, z] of extra) cyp.push([x, y - 1, z, 0.7 + r() * 0.4]);   // ── world6 ──
-  // olive canopy — irregular low-poly blob
-  const cg = new THREE.IcosahedronGeometry(1, 1);
-  { const p = cg.attributes.position, jr = rng(4); for (let i = 0; i < p.count; i++) { const k = 0.82 + jr() * 0.3; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k, p.getZ(i) * k); } cg.computeVertexNormals(); }
-  const leaf = windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true }));   // ── look C ── (the crowns sway in the wind) ── /look C ──
-  const bark = new THREE.MeshStandardMaterial({ color: '#6B5942', roughness: 1 });
-  const can = new THREE.InstancedMesh(cg, leaf, olives.length), trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.6, 3.2, 5).translate(0, 1.6, 0), bark, olives.length);
+  // ── look D ── (D2) the olive: a crown of three irregular clumps in silver grey-green, two tones by the normal (look/far.js), raised so
+  // the short twisted trunk shows under it; the cypress a dark slender spindle with a ragged outline (was a smooth cone). One instanced
+  // mesh per part as before, the same counts ── /look D ──
+  const leaf = windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, vertexColors: true }));   // ── look C ── (the crowns sway in the wind) ── /look C ──
+  const bark = new THREE.MeshStandardMaterial({ color: '#5E4E3C', roughness: 1, flatShading: true });
+  const can = new THREE.InstancedMesh(oliveCrownGeo(THREE), leaf, olives.length), trunk = new THREE.InstancedMesh(oliveTrunkGeo(THREE), bark, olives.length);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), cc = new THREE.Color();
-  const leafPal = ['#7D8F57', '#6F824B', '#8A9A60', '#76884F', '#839552'].map((h) => new THREE.Color(h));
+  const leafPal = ['#8A9672', '#7E8A68', '#929B7A', '#859070', '#7A8565', '#8E9876', '#848E6C'].map((h) => new THREE.Color(h));
   olives.forEach(([x, y, z, k, rot], i) => {
     q.setFromAxisAngle(up, rot);
-    p.set(x, y + 2.4 * k + 1.6, z); s.set(4.8 * k, 3.4 * k, 4.8 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
-    cc.copy(leafPal[i % leafPal.length]); can.setColorAt(i, cc);
+    p.set(x, y + 2.3 * k + 1.7, z); s.set(5.0 * k, 3.7 * k, 5.0 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
+    cc.copy(leafPal[(i * 5 + (x | 0)) % leafPal.length]).multiplyScalar(0.94 + 0.12 * ((Math.abs(z | 0) % 7) / 6)); can.setColorAt(i, cc);
     p.set(x, y - 0.5, z); s.set(k, k * 1.2, k); M.compose(p, q, s); trunk.setMatrixAt(i, M);
   });
-  const cone = new THREE.InstancedMesh(new THREE.ConeGeometry(1.7, 12, 7).translate(0, 7, 0), new THREE.MeshStandardMaterial({ color: '#3E5C37', roughness: 0.9, flatShading: true }), cyp.length);
-  cyp.forEach(([x, y, z, k], i) => { p.set(x, y, z); s.set(k, k * (1 + (i % 3) * 0.15), k); q.identity(); M.compose(p, q, s); cone.setMatrixAt(i, M); });
+  const cone = new THREE.InstancedMesh(cypressGeo(THREE), new THREE.MeshStandardMaterial({ color: '#34502F', roughness: 0.9, flatShading: true }), cyp.length);
+  cyp.forEach(([x, y, z, k], i) => { p.set(x, y, z); s.set(k * 0.95, k * (0.92 + (i % 3) * 0.13), k * 0.95); q.setFromAxisAngle(up, (i * 2.399) % 6.283); M.compose(p, q, s); cone.setMatrixAt(i, M); });
   for (const m of [can, trunk, cone]) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; scene.add(m); }
 }
 

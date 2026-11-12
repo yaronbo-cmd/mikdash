@@ -10,6 +10,7 @@
  *   createWorkLight(apply) → { set(o), tick(dt), force(p), state() }: o = { p, act, at, k } from the director every frame (k: the open work's
  *     kind: ACT_SUN holds some acts' sun higher), null when no stage
  *     runs; apply(L, how) is main.js's: how = 'move' (the sun and its colours), 'full' (and the environment), 'off' (the clock's preset back)
+ *   shadowBox(target, dir, half, mapSize, out) → the shadow camera's centre snapped to whole shadow texels (no shimmer while it follows)
  * ── /look C ── */
 
 export const WORK = Object.freeze({   // (tuning hook below: temporary)
@@ -59,6 +60,20 @@ export function workPreset(p, T, G, out = {}) {
   out.p = u;
   return out;
 }
+/** the shadow camera's centre: the target moved to the nearest whole texel of the light's view (it follows the play camera without shimmer) */
+export function shadowBox(t, d, half, size, out = [0, 0, 0]) {
+  // the light's right and up axes (d: toward the sun, unit)
+  let rx = d[2], rz = -d[0]; const rl = Math.hypot(rx, rz) || 1; rx /= rl; rz /= rl;
+  const ux = d[1] * rz - 0 * d[2], uy = d[2] * rx - d[0] * rz, uz = 0 * d[0] - d[1] * rx;   // up = d × right
+  const tex = (2 * half) / size;
+  const a = t[0] * rx + t[2] * rz, b = t[0] * ux + t[1] * uy + t[2] * uz, c = t[0] * d[0] + t[1] * d[1] + t[2] * d[2];
+  const sa = Math.round(a / tex) * tex, sb = Math.round(b / tex) * tex;
+  // back to the world from the snapped (right, up) and the unsnapped depth (the box's depth is not seen)
+  const ul = Math.hypot(ux, uy, uz) || 1;
+  for (let i = 0; i < 3; i++) out[i] = [rx, 0, rz][i] * sa + [ux, uy, uz][i] * sb / (ul * ul) + d[i] * c;
+  return out;
+}
+
 export function createWorkLight(apply) {
   const S = { on: false, want: 0, cur: 0, act: false, at: null, forced: null, acc: 0, moving: false, fresh: true };
   const go = (how) => { try { apply(S.forced != null ? actSun(S.k, S.forced) : S.cur, how, S); } catch (e) { /* the world keeps its light */ } };

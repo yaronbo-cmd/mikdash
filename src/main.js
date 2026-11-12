@@ -12,7 +12,7 @@ import * as TX from './tex.js';
 import { buildTemple, buildMenorot, MENOROT } from './temple.js';
 import { buildMount, buildStreet, SQUARE } from './mount.js';
 import { terrainH, buildTerrain, buildTrees } from './world.js';
-import { workPreset, createWorkLight } from './look/light.js';   // ── look C ── the work light of stages 01–04 ── /look C ──
+import { workPreset, createWorkLight, shadowBox } from './look/light.js';   // ── look C ── the work light of stages 01–04 ── /look C ──
 import { createSky } from './sky.js';   // ── world6 ── the sky, the clouds, the far hills (one dome draw call)
 import { buildJerusalem, BEAUTY } from './city.js';   // ── world6 ── Jerusalem: walls, towers, palace, pools, stepped street, houses
 import { buildLife } from './life.js';
@@ -143,10 +143,31 @@ scene.add(sun, sun.target);
   const sc = sun.shadow.camera; sc.left = -600; sc.right = 600; sc.top = 600; sc.bottom = -600; sc.near = 100; sc.far = 3400;
   const S = Q.level === 'high' ? 4096 : 2048; sun.shadow.mapSize.set(S, S);
   sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.5;
+  // ── look C ── (C2) soft edges: three's PCF draws 5 taps on a Vogel disk of this radius (in texels) at the same cost at every radius
+  sun.shadow.radius = Q.level === 'high' ? 2.6 : Q.level === 'low' ? 1 : 1.6;   // ── /look C ──
 }
-// ── look C ── the sun's direction: one vector for the light and the sky's sun
-const SUN_DIR = new THREE.Vector3(0, 1, 0);
+// ── look C ── (C2) the shadow box: the whole Mount (±600 round its centre) everywhere; while a minigame runs it follows the play camera's aim
+// and tightens to about ±60 amot (wider as the player pulls the camera back within the play zone), its centre snapped to whole texels
+const SUN_DIR = new THREE.Vector3(0, 1, 0), SBOX = { wide: [-12, 0, -40], half: 600, c: [-12, 0, -40], act: false };
 function sunPlace() { sun.position.copy(sun.target.position).addScaledVector(SUN_DIR, 1600); sun.target.updateMatrixWorld(); }
+function shadowFit(act) {
+  let c = SBOX.wide, half = 600;
+  if (act) {
+    // (the aim: where the camera's line to its target meets the work's ground — an act's target often lies under the ground)
+    const p = camera.position, t0 = controls.target, y0 = SBOX.y0 != null ? SBOX.y0 : t0.y;
+    const k = p.y > y0 && t0.y < y0 ? (p.y - y0) / (p.y - t0.y) : 1;
+    const t = [p.x + (t0.x - p.x) * k, p.y + (t0.y - p.y) * k, p.z + (t0.z - p.z) * k], d = Math.hypot(t[0] - p.x, t[1] - p.y, t[2] - p.z);
+    half = Math.min(220, Math.max(60, d * 1.5));
+    if (SBOX.act && Math.abs(half - SBOX.half) < SBOX.half * 0.15 && Math.hypot(t[0] - SBOX.at[0], t[2] - SBOX.at[2]) < SBOX.half * 0.2) return false;
+    SBOX.at = t;
+    c = shadowBox(SBOX.at, [SUN_DIR.x, SUN_DIR.y, SUN_DIR.z], half, sun.shadow.mapSize.x, SBOX.c);
+  } else if (!SBOX.act) return false;
+  SBOX.act = !!act; SBOX.half = half;
+  const sc = sun.shadow.camera; sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.updateProjectionMatrix();
+  sun.target.position.set(c[0], c[1], c[2]); sunPlace();
+  renderer.shadowMap.needsUpdate = true;
+  return true;
+}
 // ── /look C ──
 // ── world6 ── the sky (src/sky.js): gradient, sun, haze, far hills and Moab, horizon cumulus, a lit cloud layer, the moon
 const sky = createSky();
@@ -271,13 +292,13 @@ function setTime(k) {
 const WL_DAY = (k) => k === 'dawn' || k === 'noon' || k === 'dusk';
 const wlL = {};
 const WL = createWorkLight((p, how, S) => {
-  if (how === 'off') { wlL.p = null; setTime(curTime); return; }
-  if (how === 'act') return;
+  if (how === 'off') { wlL.p = null; shadowFit(false); aoFit(false); setTime(curTime); return; }
+  if (how === 'act') { shadowFit(S.act); aoFit(S.act); return; }
   if (!WL_DAY(curTime)) return;
   const L = workPreset(p, TIMES, GRADE, wlL);
   const el = THREE.MathUtils.degToRad(L.el), az = THREE.MathUtils.degToRad(L.az);
   SUN_DIR.set(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
-  sunPlace();
+  if (SBOX.act) { SBOX.act = false; shadowFit(true); } else sunPlace();
   sun.color.set(L.sun); sun.intensity = L.sunI;
   hemi.color.set(L.hs); hemi.groundColor.set(L.hg); hemi.intensity = L.hI;
   sky.mix('dawn', 'noon', L.sky, SUN_DIR); applyGrade();
@@ -286,6 +307,11 @@ const WL = createWorkLight((p, how, S) => {
   if (how === 'full') { if (envRT) envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; }
   renderer.shadowMap.needsUpdate = true;
 });
+// (C2) the contact shade ('high': GTAO) sized for amah-sized things while a minigame runs, the wide one for the world
+function aoFit(act) {
+  const g = aoWrap && aoWrap.inner; if (!g || !g.updateGtaoMaterial) return;
+  g.updateGtaoMaterial(act ? { radius: 2.4, distanceExponent: 1.2, thickness: 1.2, scale: 1.2 } : { radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1 });
+}
 // ── /look C ──
 
 /* ───────── camera flights ───────── */
@@ -448,7 +474,7 @@ view.twinCam = (on) => {
 };
 view.camSet = (px, py, pz, tx, ty, tz) => { fly = null; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); };
 view.pickAt = (x, y) => { try { pickAt(x, y); } catch (e) { /* */ } };   // ── cam28 ── (twin.js: a single tap on the right half picks after the double-tap's window) ── /cam28 ──
-view.workLight = (o) => { WL.set(o); };   // ── look C ── (the director, every frame: { p, act, at } or null) ── /look C ──
+view.workLight = (o) => { SBOX.y0 = o && o.at ? o.at[1] : null; WL.set(o); };   // ── look C ── (the director, every frame: { p, act, at } or null) ── /look C ──
 view.minDist = () => controls.minDistance;   // ── h112 ── (the director's camera keeps it too: h109/director.js camStep) ── /h112 ──
 view.camNow = (out) => { const o = out || {}; o.px = camera.position.x; o.py = camera.position.y; o.pz = camera.position.z; o.tx = controls.target.x; o.ty = controls.target.y; o.tz = controls.target.z; return o; };
 // ── figures24 ── the works' render scale (WAVE24 "רזולוציה כללית מדי"): while a work of Phase B is on, the pixel ratio rises to
@@ -846,7 +872,8 @@ async function boot() {
 // ── world6 ── the sky's drift, the rain's overcast (stages' night rain), the city's smoke and far/near detail
 function worldTick(dt) {
   sky.update(dt);
-  WL.tick(dt);   // ── look C ── the work light's ease between works ── /look C ──
+  // ── look C ── the work light's ease between works, the shadow box after the play camera
+  WL.tick(dt); if (SBOX.act) shadowFit(true);
   // ── /look C ──
   const rk = stages && stages._dbg && stages._dbg.rain ? stages._dbg.rain.k : 0;
   if (sky.setOvercast(rk)) applyGrade();
@@ -1115,7 +1142,7 @@ window.__T = {
   flyTo, flyToPos, setTime, camera, controls, VIEWS, renderer, scene,
   Raycaster: THREE.Raycaster, Vector3: THREE.Vector3,   // (not the whole namespace: that would defeat tree-shaking)
   get life() { return life; },
-  workLight: { force: (p) => WL.force(p), state: () => WL.state() },   // ── look C ── (tests, shots) ── /look C ──
+  workLight: { force: (p) => WL.force(p), state: () => WL.state(), box: () => ({ act: SBOX.act, half: SBOX.half, c: SBOX.c.slice() }) },   // ── look C ── (tests, shots) ── /look C ──
   jump: (k) => { const v = VIEWS[k]; fly = null; camera.position.set(...v.p); controls.target.set(...v.t); controls.update(); if (squareG) squareG.visible = k === 'top'; },
   // look from p at t (arrays), for test shots
   look: (p, t) => { fly = null; camera.position.set(...p); controls.target.set(...t); controls.update(); },

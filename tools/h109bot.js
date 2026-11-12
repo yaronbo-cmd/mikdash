@@ -451,6 +451,7 @@
     // 'jar' (the beam swept across the level's jar), 'bump' (into the stone pile once)
     carry(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
+      for (const [ph, ms] of [['hoist', 2600], ['seat', 400], ['close', 2200]]) if (a.phase === ph && !B.k['c_' + ph]) { B.k['c_' + ph] = 1; return { wait: ms, shot: `carry${a.lvP}-${ph}` }; }
       if (a.busy) return { wait: 250 };
       if (a.phase === 'trim' && a.trim) {
         const t = a.trim; if (!B.k.trimShot) { B.k.trimShot = 1; return { wait: 300, shot: `carry${a.lvP}-trim` }; }
@@ -472,7 +473,7 @@
       const [m, x, z] = W[i], p = m === 'r' ? a.r : a.f;
       if (Math.hypot(p[0] - x, p[1] - z) < 0.12) { B.k.wi = i + 1; const sh = { 1: [3, 6], 2: [4, 6], 3: [5, 9] }[a.lvP] || []; if (sh.includes(i + 1)) return { wait: 300, shot: `carry${a.lvP}-leg${i + 1}` }; return { wait: 80, note: `carry: leg ${i + 1}/${W.length} (${m} ${x},${z}) bumps ${a.bumps} dmg ${a.dmg} ${a.events.join(',')}` }; }
       // (level 3: the lane's sledge and cart; cross only when neither is coming within reach)
-      if (a.lvP === 3 && a.lane && i >= 3 && i <= 5) { const near = ['sledge', 'cart'].some((k) => { const q = a.lane[k]; return !q.off && q.s > 6 && q.s < 30; }); if (near && !B.k.laneOk) return { wait: 400, note: 'carry: waiting for a clear crossing ' + JSON.stringify(a.lane) }; B.k.laneOk = 1; }
+      if (a.lvP === 3 && i === 4 && !B.k.laneOk) { if (a.laneFree < 26) return { wait: 500, note: 'carry: waiting for a clear crossing (free for ' + a.laneFree + ' s) ' + JSON.stringify(a.lane) }; B.k.laneOk = 1; }
       if (!a.camOK) return { wait: 150 };   // (the camera eases toward the beam between holds: a point is taken once it is still)
       const aim = window.__H120C && window.__H120C.aim(m, x, z); if (!aim) return { wait: 200 };
       const to = aim.to, cond = C(`if(!a||a.phase!=='carry')return true;const p=${m === 'r' ? 'a.r' : 'a.f'};return Math.hypot(p[0]-(${to[0]}),p[1]-(${to[1]}))<0.1||(a.toD!=null&&a.toD<0.03)`);
@@ -515,7 +516,7 @@
     }
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
-    if (now() - B.actT > (/^bond/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    if (now() - B.actT > (/^(bond|carry)/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
     try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }

@@ -34,9 +34,12 @@ export function laneAt(s) {
   for (let i = 1; i < LANE.length; i++) { const [ax, az] = LANE[i - 1], [bx, bz] = LANE[i], L = Math.hypot(bx - ax, bz - az); if (s <= acc + L || i === LANE.length - 1) { const u = Math.max(0, Math.min(1, (s - acc) / L)); return { x: ax + (bx - ax) * u, z: az + (bz - az) * u, yaw: Math.atan2(bx - ax, bz - az) }; } acc += L; }
   return { x: LANE[0][0], z: LANE[0][1], yaw: 0 };
 }
-/** where the sledge and the cart are at time t (their own clocks): in at 1.1 / 1.6 amot/s, unloading 5 s, out; the cart half a period later */
+/** where the sledge and the cart are at time t (their own clocks): in at 1.1 / 1.6 amot/s, unloading 5 s, out, then outside the gate
+ *  50 / 40 s (the quarry's and the farm's way: so the court's crossing is clear now and then); the cart half a period later */
+export const LANE_OFF = Object.freeze({ sledge: 50, cart: 40 });
+export const lanePeriod = (which) => 2 * LANE_L / (which === 'sledge' ? 1.1 : 1.6) + 5 + LANE_OFF[which];
 export function laneState(t, which = 'sledge') {
-  const V = which === 'sledge' ? 1.1 : 1.6, P = 2 * LANE_L / V + 10, u = (((t + (which === 'sledge' ? 0 : P / 2)) % P) + P) % P, tin = LANE_L / V;
+  const V = which === 'sledge' ? 1.1 : 1.6, P = lanePeriod(which), u = (((t + (which === 'sledge' ? 0 : P / 2)) % P) + P) % P, tin = LANE_L / V;
   if (u < tin) return { s: u * V, dir: 1 };
   if (u < tin + 5) return { s: LANE_L, dir: 0 };
   if (u < 2 * tin + 5) return { s: LANE_L - (u - tin - 5) * V, dir: -1 };
@@ -113,7 +116,7 @@ export function moverAt(lv, k, t) {
 export function carryWay(lv, L) {
   const m = CARRY_PLACES[lv].mark.c;
   if (lv === 1) return [['f', 66, -28.8], ['f', 75, 30], ['f', 75, 46], ['f', 80, 57], ['f', 79, 59.5], ['f', 57, 59.5], ['r', 57 + L, 59.5]];
-  if (lv === 2) return [['f', 66, -28.8], ['f', 72, -40], ['f', 76.5, -50], ['f', 76.5, -66.6], ['f', 77.8 - L, -66.6], ['r', 77.2, -64.2], ['f', 57, -65.3], ['r', 57 + L, -65.2]];
+  if (lv === 2) return [['f', 66, -28.8], ['f', 72, -40], ['f', 76.5, -50], ['f', 76.5, -66.2], ['f', 77.8 - L, -66.2], ['r', 77.4, -63.9], ['f', 57, -65.3], ['r', 57 + L, -65.2]];
   return [['f', 66, -28.8], ['f', 64, -21], ['f', 70, -16], ['f', 96, -17.5], ['f', 120, -17], ['f', 131, -7], ['f', m[0], -16], ['f', m[0], -23], ['r', m[0], -11.5], ['f', m[0], -26.6], ['r', m[0], -26.6 + L]];
 }
 

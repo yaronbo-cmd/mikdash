@@ -570,6 +570,8 @@ export function coneApply() {
 }
 export function viewCone(X, shots, opt = {}) {
   const hw = X.hero && X.hero.h120Workers;
+  // (the stage's own wall scaffolds along the chambers: hidden while an act's close shots play, back for the high camera and after)
+  try { if (X.stages.h120Scaff) X.stages.h120Scaff('nashim', !(shots && shots.length) || !!opt.depth); } catch (e) { /* */ }
   if (!shots || !shots.length) { SH5.cone = null; coneApply(); keep(X, opt.keep || []); if (hw) hw(null); return; }
   if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.2, z) || inCone(x, y + 2.2, z) || inCone(x, y + 3.2, z));   // the stage's own builders (at the builder's size), likewise
   // a crew column still rising in view finishes standing first (its gang never shares the act's ground)

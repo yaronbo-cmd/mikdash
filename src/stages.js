@@ -2848,7 +2848,7 @@ export function createStages(ctx) {
       }
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
-      const h120h = !!(H120W.hide && H120W.hide(w.x + ox, w.y, w.z + oz)); if (h120h) wv.y -= 999;   // ── h120 ── a man in an act's view cone is not drawn ── /h120 ──
+      const h120h = !!(H120W.hide && H120W.hide(w.x + ox, w.y, w.z + oz)) || !!(H120W.noScaff && w.run); if (h120h) wv.y -= 999;   // ── h120 ── a man in an act's view cone is not drawn ── /h120 ──
       wmBody.compose(wv, wq, ONE); wBody.setMatrixAt(i, wmBody);
       wmT.makeTranslation(-0.44, 2.72, 0); wmR.makeRotationX(arm); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR);
       // ── site13 ── a hammer only for a mason or a digger away from the altar; bare hands for the rest (N76 c)
@@ -8952,7 +8952,7 @@ export function createStages(ctx) {
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
     cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
     nashimGallery: (on) => { if (H120GZ.g) H120GZ.g.visible = !!on; },   // ── h120 ── ── /h120 ──
-    s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
+    s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, h120Scaff: (id, on) => { const sc = ST[id] && ST[id].scaff; if (sc) sc.P.m.visible = sc.Bd.m.visible = !!on; H120W.noScaff = !on; },   // ── h120 ── (a stage's own wall scaffold hidden while an act's close shots play) ── /h120 ── wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,
     // az, el, also?) → { az, el, dist, moved } | null · occluded(x, y, z, from?) → bool · heroRock() → the builder's rock (−1: none)

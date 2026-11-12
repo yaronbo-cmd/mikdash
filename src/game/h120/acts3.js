@@ -8,7 +8,7 @@
  *   CARRY = { icon, title, walkLine, stand, prepare, make(m, X) → act }   (the registry of acts.js)
  */
 import { H120, Y, LV, BAYS, BEAM_OF, COLS, RUNS, carryStep, beamHits, fitOf, carryPts, qOf, starsOf, joistsOf } from './model.js';
-import { CARRY_PLACES, carryObs, carryStart, markOf, inMark, carryWay, moverAt, laneShape, YARD, SCAFF } from './routes.js';
+import { CARRY_PLACES, carryObs, carryStart, markOf, inMark, carryWay, moverAt, laneShape, laneState, YARD, SCAFF } from './routes.js';
 import { SH5, mats, box, label, own, viewCone, coneOwn, coneKeep, colFrame, trestle, scafShow } from './world.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
@@ -86,11 +86,14 @@ export const CARRY = {
     const look = (aim, from, dist, el) => { const l = Math.hypot(from[0], from[1]) || 1, c = Math.cos(el * D2R), sn = Math.sin(el * D2R); return { p: [aim[0] + (from[0] / l) * dist * c, aim[1] + dist * sn, aim[2] + (from[1] / l) * dist * c], t: aim }; };
     const UP = P.up, EL = 56, DIST = () => frameDist(36, 22);
     const travel = (ax, az) => look([ax, FL + 1, az], [-UP[0], -UP[1]], DIST(), EL);
-    const camTarget = () => { const mx = (s.f[0] + s.r[0]) / 2, mz = (s.f[1] + s.r[1]) / 2; return [mx + UP[0] * 4, mz + UP[1] * 4]; };
+    // (the aim leans toward the kohen's end, wherever it heads, and a little up the way: what is ahead of him is in frame)
+    const camTarget = () => { const mx = (s.f[0] + s.r[0]) / 2, mz = (s.f[1] + s.r[1]) / 2; return [mx + (s.f[0] - mx) * 0.75 + UP[0] * 2, mz + (s.f[1] - mz) * 0.75 + UP[1] * 2]; };
     // the bay's shots: from the court side, square to the beam's line (the hoist), and the pull-back
     const midB = [(Bay.P0[0] + Bay.P1[0]) / 2, (Bay.P0[1] + Bay.P1[1]) / 2], acr = Bay.across;   // (across: from the column line toward the court)
-    const S_BAY = () => look([midB[0] + acr[0] * 1.5, FL + 5.6, midB[1] + acr[1] * 1.5], [acr[0] + Bay.dir[0] * 0.25, acr[1] + Bay.dir[1] * 0.25], frameDist(cut + 6, 13), 16);
-    const S_BACK = () => look([midB[0] + acr[0] * 2, FL + 6, midB[1] + acr[1] * 2], [acr[0] + Bay.dir[0] * 0.5, acr[1] + Bay.dir[1] * 0.5], frameDist(cut * 3.2, 20), 30);
+    // (level 3 looks from the south-west, along the east wing: the wood chamber's wall and its builders' scaffolds stay behind the work)
+    const sk = lvP === 3 ? 1.0 : 0.25;
+    const S_BAY = () => look([midB[0] + acr[0] * 1.5, FL + 7.4, midB[1] + acr[1] * 1.5], [acr[0] + Bay.dir[0] * sk, acr[1] + Bay.dir[1] * sk], frameDist(cut + 6, 16), 14);
+    const S_BACK = () => look([midB[0] + acr[0] * 2, FL + 7, midB[1] + acr[1] * 2], [acr[0] + Bay.dir[0] * (sk + 0.25), acr[1] + Bay.dir[1] * (sk + 0.25)], frameDist(cut * 3.2, 22), 30);
     const hisP = COLS[Bay.his];
     const trimAt = () => [Bay.P1[0] + acr[0] * 3.2 - Bay.dir[0] * 0.6, Bay.P1[1] + acr[1] * 3.2 - Bay.dir[1] * 0.6];   // (his end over the trestle at the foot of the bay)
     const S_TRIM = () => { const [x, z] = trimAt(); return look([x + Bay.dir[0] * 0.3, FL + 1.5, z], [acr[0] * 0.9 - Bay.dir[0] * 0.6, acr[1] * 0.9 - Bay.dir[1] * 0.6], frameDist(6.4, 4.2), 34); };
@@ -556,6 +559,8 @@ export const CARRY = {
           f: s.f.map((v) => +v.toFixed(3)), r: s.r.map((v) => +v.toFixed(3)), toD: (() => { const ip = input(); if (!ip) return null; const p = ip.lead === 'rear' ? s.r : s.f; return +Math.hypot(p[0] - ip.to[0], p[1] - ip.to[1]).toFixed(3); })(), camOK: !A.camAim || Math.hypot(A.camAim[0] - camTarget()[0], A.camAim[1] - camTarget()[1]) < 0.25, fScr: endScr(s.f), rScr: endScr(s.r), grip: Math.round(grip()), lead: A.lead, nf: FG.n, SHY: +A.SHY.toFixed(2),
           way: carryWay(lvP, cut), mark: mk.rect.map((v) => +v.toFixed(2)), inMark: r, angle: L.angle, still: +A.still.toFixed(2), tries: A.tries,
           bumps: A.bumps, dmg: A.dmg, contact: [...A.contact], passed: [...A.passed], clean: A.clean, scafDown: [...A.scafDown], jarsBroken: [...A.jarsBroken], worker: A.workerJumped, limed: A.limed, slide: A.slide,
+          // (how long the lane stays clear of the sledge and the cart where the east way crosses it, s 20 … 45: a careful player's wait)
+          laneFree: (() => { const Lq = SH5.lane; if (!Lq || Lq.ts == null) return 99; for (let k = 0; k <= 120; k++) { const tt = k * 0.5; for (const [w, c] of [['sledge', Lq.ts], ['cart', Lq.tc]]) { const q = laneState(c + tt, w); if (!q.off && q.s > 20 && q.s < 45) return tt; } } return 60; })(),
           lane: Ln ? { sledge: { s: +Ln.sledge.s.toFixed(1), dir: Ln.sledge.dir, off: Ln.sledge.off || 0, hold: SH5.lane.holdS }, cart: { s: +Ln.cart.s.toFixed(1), dir: Ln.cart.dir, off: Ln.cart.off || 0, hold: SH5.lane.holdC } } : null,
           movers: movers.map((w) => (w ? [+w.a.x.toFixed(1), +w.a.z.toFixed(1), w.held ? 1 : 0] : null)),
           fit: A.fit, lost: A.lost || 0, shim: A.shim || 0, pts: A.pts || null,

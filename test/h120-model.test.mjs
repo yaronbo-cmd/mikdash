@@ -381,7 +381,7 @@ test('the column (level 2): a haul inside a gust holds the guy taut for the rest
 });
 
 // ── station 3's ways (h120/routes.js): each careful way is open end to end and lies in its marking; the narrowest passes 6 / 5 / 4
-import { carryWay, CARRY_PLACES, carryObs, carryStart, markOf, inMark, passOf, laneState, moverAt, LANE_L } from '../src/game/h120/routes.js';
+import { carryWay, CARRY_PLACES, carryObs, carryStart, markOf, inMark, passOf, laneState, lanePeriod, moverAt, LANE_L } from '../src/game/h120/routes.js';
 import { carryPts } from '../src/game/h120/model.js';
 test('station 3: the three ways are open, end inside the marking, and their narrowest passes are 6 / 5 / 4', () => {
   assert.deepEqual([1, 2, 3].map(passOf), [6, 5, 4]);
@@ -416,7 +416,7 @@ test('station 3: points 40 / 20 / 10', () => {
   assert.equal(carryPts({ bumps: 0, tries: 1, fit: 'knock', dmg: 1 }), 10);
 });
 test('station 3: the lane and the carriers keep fixed periods', () => {
-  for (const t of [0, 13.7, 99]) { const a = laneState(t), b = laneState(t + 2 * LANE_L / 1.1 + 10); assert.ok(Math.abs(a.s - b.s) < 1e-6); }
+  for (const t of [0, 13.7, 99]) { const a = laneState(t), b = laneState(t + lanePeriod('sledge')); assert.ok(Math.abs(a.s - b.s) < 1e-6); assert.ok(lanePeriod('sledge') > 2 * LANE_L / 1.1); }
   const m0 = moverAt(3, 0, 5), m1 = moverAt(3, 0, 5 + 2 * (m0.len / 1.3 + 1.5)); assert.ok(Math.abs(m0.x - m1.x) < 1e-6 && Math.abs(m0.z - m1.z) < 1e-6);
   assert.equal(moverAt(1, 0, 0), null);
 });

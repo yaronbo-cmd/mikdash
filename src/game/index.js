@@ -648,11 +648,12 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   /* ── flow8 ── the idle tips are true facts in rotation: a calm minute (no stroke for 25 s, nothing open) brings one, at most
      every 2.5 minutes, never under the tutorial's coach (G.ftue < 99) */
-  let factAt = 0;
+  let factAt = 0, factActT = 0;   // ── h120 ── (factActT) ── /h120 ──
   function idleFact(t) {
     if (!factAt) { factAt = t; return; }
     if (G.ftue < 99 || whole || momentBusy || opening || overlay || ui.busy || hero.busy || tNow() < camHold || t - factAt < 150000 * F || tNow() - hero.lastImpact < 25 * F) return;   // ── flow10 ── (camHold: never over the corner stone's delivery or a course's beat)
-    if (H9 && H9.acting && H9.acting()) return;   // ── h120 ── (never over a director's act, film or ending: it waits for the walk after it) ── /h120 ──
+    if (H9 && H9.acting && H9.acting()) { factActT = t; return; }   // ── h120 ── (never over a director's act, film or ending: it waits for the walk after it,
+    if (factActT && t - factActT < 30000) return;                    // and for the closing card and the calm half-minute after an act) ── /h120 ──
     factAt = t;
     const f = nextFact(''); if (!f) return;
     emit('fact', { id: f.id, at: 'idle' });

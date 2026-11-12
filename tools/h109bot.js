@@ -411,6 +411,39 @@
       }
       return { wait: 250 };
     },
+    // station 2, the measure and the saw: the cord's end onto the scratch (a second, finer drag in the macro), the tail drawn down to a
+    // taut cord and let go inside the window; the mark at the reading; the string lifted to the middle of its window; then the strokes,
+    // each when the carpenter's has ended: two short slow ones to start, long ones in the clear wood, short slow ones in the knot, the
+    // prop when the end sags, the last two. __BOT.bad: 'slack' (the cord let go half taut), 'short' (the mark a tefach and a half short),
+    // 'long' (the mark four fingers long), 'nominal' (the mark at the nominal eleven, unmeasured), 'noprop' (the fibres tear),
+    // 'faint' (the string barely lifted)
+    saw(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);   // (several at once: 'slack,noprop')
+      if (a.busy) return { wait: 200 };
+      if (a.phase === 'end' && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 900], wait: 900, note: `saw: the end to the scratch (off ${a.off} fingers)` };
+      for (const ph of ['tension', 'mark', 'line']) if (a.phase === ph && !B.k['s_' + ph]) { B.k['s_' + ph] = 1; return { wait: 700, shot: `saw${a.lv}-${ph}` }; }
+      if (a.phase === 'tension' && a.tail) {
+        if (Math.abs(a.off) > 0.6 && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 700], wait: 700, note: `saw: the end finer (off ${a.off})` };
+        const Tt = has('slack') ? 0.5 : 0.95;
+        return { drag: [a.tail[0], a.tail[1], a.tail[0], a.tail[1] + a.reachT * Tt, 1100], wait: 900, note: `saw: the tail to T ${Tt} (off ${a.off})` };
+      }
+      if (a.phase === 'mark' && a.tapMeas) { const p = has('short') ? a.tapShort : has('long') ? a.tapLong : has('nominal') ? a.tapNominal : a.tapMeas; return { tap: p, wait: 1200, note: `saw: the mark (${bad || 'the reading'} ${a.read})` }; }
+      if (a.phase === 'line' && a.string) { const h = has('faint') ? 0.2 : 0.55; return { drag: [a.string[0], a.string[1], a.string[0], a.string[1] - a.reachL * h, 500], wait: 1300, note: 'saw: the string lifted ' + h }; }
+      if (a.phase === 'saw') {
+        if (a.propAt && !has('noprop')) return { tap: a.propAt, wait: 1200, note: 'saw: the prop at depth ' + a.depth };
+        if (a.turn !== 'his' || a.inStroke || !a.handle) return { wait: 40 };
+        const inKnot = a.knot && a.depth >= a.knot[0] - 0.06 && a.depth <= a.knot[1];
+        const short = a.n < 2 || inKnot, len = short ? 0.42 : 1.0, ms = short ? 520 : 560;
+        const h = a.handle, to = [h[0] + a.axis[0] * a.strokePx * len, h[1] + a.axis[1] * a.strokePx * len];
+        if (!B.k.sawShot && a.depth > 0.3) { B.k.sawShot = 1; return { wait: 50, shot: `saw${a.lv}-mid` }; }
+        if (!B.k.knotShot && inKnot) { B.k.knotShot = 1; return { wait: 50, shot: `saw${a.lv}-knot` }; }
+        if (!B.k.sagShot && a.sag) { B.k.sagShot = 1; return { wait: 50, shot: `saw${a.lv}-sag` }; }
+        // (each stroke once the carpenter's has ended; under the probe the bot's own round trip is longer than the ±0.12 s rhythm window,
+        // so its strokes are rarely 'in rhythm' — a player's are)
+        return { when: C(`return !a||a.phase!=='saw'||(a.turn==='his'&&!a.inStroke)`), max: 3000, then: { drag: [h[0], h[1], to[0], to[1], ms] }, wait: 60, note: `saw: stroke ${a.n + 1} ${short ? 'short' : 'long'} at depth ${a.depth} (drift ${a.drift}, skew ${a.skew}, binds ${a.binds}, rhythm ${a.rhythm})` };
+      }
+      return { wait: 250 };
+    },
     // ── /build 120 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)

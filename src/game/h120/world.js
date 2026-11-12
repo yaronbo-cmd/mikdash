@@ -256,6 +256,11 @@ function yardBuild(X) {
   const st = X.M.st, top = H120.FLOOR + 1.6;
   for (const x of [YARD.his.x0 + 2, YARD.his.x1 - 2]) trestle(X, x, YARD.his.z, all);
   for (const x of [YARD.saw.x0 + 2, YARD.saw.x1 - 2.6]) trestle(X, x, YARD.saw.z, all);
+  // his beam (or a free one) cut and waiting on his trestles for its carry (station 3); the splinter stays if the fibres tore
+  if (!SH5.own.__yard) {
+    const W = BEAMS.find((B) => { const b = st.beam[B.id]; return b && b.done && b.by === 'k' && !X.M.seated(B.id); });
+    if (W) { const b = st.beam[W.id], x1 = YARD.his.x0 + (+b.cut || W.len); all.push(box(X, M.h5cedar, YARD.his.x0, top, YARD.his.z - 0.35, x1, top + 0.6, YARD.his.z + 0.35)); if (b.torn) { const sp = box(X, M.h5cedarL, x1 - 0.05, top, YARD.his.z - 0.05, x1 + 0.45, top + 0.06, YARD.his.z + 0.15); sp.rotation.z = -0.35; all.push(sp); } SH5.yard.wait = W.id; }
+  }
   // the stock: squared cedar beams stacked along the wall, as many as are still to be cut (6 at most drawn)
   const left = BEAMS.filter((B) => !(st.beam[B.id] && st.beam[B.id].done) && !X.M.seated(B.id)).length, n = Math.min(6, Math.max(1, Math.ceil(left / 2.5)));
   for (let i = 0; i < n; i++) { const r = Math.floor(i / 3), k = i % 3, x = YARD.stock.x - 0.9 + k * 0.62 + r * 0.31; all.push(box(X, k % 2 ? M.h5cedarL : M.h5cedar, x - 0.28, H120.FLOOR + r * 0.56, YARD.stock.z0, x + 0.28, H120.FLOOR + 0.56 + r * 0.56, YARD.stock.z1)); }
@@ -575,7 +580,7 @@ export function coneApply() {
 export function viewCone(X, shots, opt = {}) {
   const hw = X.hero && X.hero.h120Workers;
   if (!shots || !shots.length) { SH5.cone = null; coneApply(); keep(X, opt.keep || []); if (hw) hw(null); return; }
-  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.0, z) || inCone(x, y + 2.0, z));   // the stage's own builders, likewise
+  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.2, z) || inCone(x, y + 2.2, z) || inCone(x, y + 3.2, z));   // the stage's own builders (at the builder's size), likewise
   // a crew column still rising in view finishes standing first (its gang never shares the act's ground)
   for (const id of Object.keys(SH5.rise)) { const R = SH5.rise[id]; R.rope.dispose(); R.rope2.dispose(); for (const w of R.men) SH5.crew.remove(w); for (const o of R.all) if (o !== R.C.g) X.props.remove(o); delete SH5.rise[id]; colBuild(X, id); }
   const L = shots.map(([p, t, r]) => coneOf(X, p, t, r));
@@ -585,10 +590,10 @@ export function viewCone(X, shots, opt = {}) {
   // the stage's crews (crews.js) kept off the cone's ground: three depth bands per shot, each its bounding rect on the floor
   const rects = (opt.keep || []).slice();
   for (const c of L) {
-    const bands = [[], [], []];
+    const NB = L.length > 2 ? 2 : 3, bands = Array.from({ length: NB }, () => []);   // (crews.js keeps six rects: two bands a shot when there are more than two shots)
     for (let i = 0; i <= 24; i++) for (let j = -12; j <= 12; j++) {
       const d = (c.dW * i) / 24, w = (j / 12) * d * c.th * 1.15, x = c.e[0] + c.f[0] * d + c.r[0] * w, z = c.e[2] + c.f[2] * d + c.r[2] * w;
-      if ([0.2, 1, 2].some((y) => inC(c, x, H120.FLOOR + y, z))) bands[Math.min(2, Math.floor((i / 25) * 3))].push([x, z]);
+      if ([0.2, 1, 2].some((y) => inC(c, x, H120.FLOOR + y, z))) bands[Math.min(NB - 1, Math.floor((i / 25) * NB))].push([x, z]);
     }
     for (const B of bands) if (B.length) rects.push([Math.min(...B.map((p) => p[0])), Math.min(...B.map((p) => p[1])), Math.max(...B.map((p) => p[0])), Math.max(...B.map((p) => p[1]))]);
   }

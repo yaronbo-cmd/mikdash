@@ -274,7 +274,15 @@ export function createAudio({ storage, root = null, settings = null } = {}) {
       noiseHit(t + 0.06, { type: 'highpass', f: 2600, peak: 0.04, a: 0.03, dec: 0.3 });              // a breath of dust
     },
     brush(t, o) { noiseHit(t, { f: 1700 + 1500 * Math.random(), q: 0.9, peak: 0.5 * (o && o.force ? o.force : 1), a: 0.006, dec: 0.09 }); },   // (wave 7) a soft brush on earth: the dig of the day
-    grind(t) { noiseHit(t, { f: 380, f2: 520, q: 1.6, peak: 0.16, a: 0.05, dec: 0.3 }); },           // stone sliding on stone
+    grind(t) { noiseHit(t, { f: 380, f2: 520, q: 1.6, peak: 0.16, a: 0.05, dec: 0.3 }); },
+    // ── h120 ── the two-man saw: his rasp on his pull (longer stroke, longer rasp), the carpenter's answer a little higher; the bound saw's
+    // squeal; a knot under the teeth; a beam dropping into its seat with a knock ── /h120 ──
+    sawA(t, o = {}) { const L = Math.max(0.2, Math.min(1.3, +(o && o.len) || 0.8)); noiseHit(t, { f: 2300, f2: 1500, q: 2.4, peak: 0.1 + 0.08 * L, a: 0.05, dec: 0.12 + 0.22 * L }); noiseHit(t + 0.05, { f: 4200, q: 3.5, peak: 0.035, a: 0.03, dec: 0.1 + 0.1 * L }); },
+    sawB(t) { noiseHit(t, { f: 1800, f2: 2600, q: 2.4, peak: 0.12, a: 0.05, dec: 0.28 }); noiseHit(t + 0.06, { f: 3600, q: 3.5, peak: 0.03, a: 0.03, dec: 0.14 }); },
+    squeal(t) { tone(t, { type: 'sawtooth', f: 1350, f2: 1900, peak: 0.045, a: 0.02, dec: 0.4, lp: 2800 }); noiseHit(t, { f: 2900, q: 6, peak: 0.05, a: 0.02, dec: 0.3 }); },
+    knot(t) { noiseHit(t, { f: 900, f2: 700, q: 3, peak: 0.16, a: 0.01, dec: 0.12 }); tone(t, { type: 'triangle', f: 210, peak: 0.08, dec: 0.08 }); },
+    knock(t) { tone(t, { type: 'triangle', f: 190, f2: 130, peak: 0.32, a: 0.003, dec: 0.2 }); noiseHit(t, { f: 1100, q: 1.4, peak: 0.28, a: 0.002, dec: 0.07 }); tone(t + 0.09, { type: 'triangle', f: 170, f2: 120, peak: 0.14, a: 0.003, dec: 0.15 }); },
+    // ── /h120 ──           // stone sliding on stone
     plumb(t) { tone(t, { type: 'triangle', f: 520, f2: 505, peak: 0.1, dec: 0.5 }); tone(t, { f: 1600, peak: 0.02, dec: 0.05 }); },
     level(t) { tone(t, { f: 900, peak: 0.05, dec: 0.03 }); noiseHit(t + 0.02, { f: 700, q: 3, peak: 0.06, a: 0.03, dec: 0.2 }); },
     measure(t) { tone(t, { f: 640, peak: 0.07, dec: 0.04 }); noiseHit(t, { f: 1200, q: 4, peak: 0.06, dec: 0.03 }); },

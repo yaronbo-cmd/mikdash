@@ -9,6 +9,7 @@
 import { H120, Y, LV, BAYS, colFresh, colStep, leanAfter, colPts, wedge, windAt, pullShare, qOf, starsOf } from './model.js';
 import { SH5, mats, colMesh, colFrame, colBuild, shearLegs, own, keep, label, box, initWorld, frameWorld, viewCone, coneOwn, coneKeep } from './world.js';
 import { fingers, MOUSE, onY, heroAt } from '../h113/acts.js';
+import { SAW } from './acts2.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
 
 const F = H120.FINGER, BAL = H120.BAL, D2R = Math.PI / 180;
@@ -387,11 +388,11 @@ function crewsDo(icon, title, walk) {
     },
   };
 }
-export const SAW = crewsDo('🪚', 'הקו והמסור', 'מודדים בין שני העמודים, ומנסרים קורה');            // PHASE 2: not built yet
 export const CARRY = crewsDo('🪵', 'מסע הקורה', 'הקורה מוכנה: נושאים אותה אל המפתח');               // PHASE 3: not built yet
 export const MIKVEH = crewsDo('💧', 'מקווה לשכת המצורעים', 'הלשכה בלי תקרה, והגשם יורד לתוכה: מביאים את המים אל המקווה');   // PHASE 3: not built yet
 export const PLANKS = crewsDo('🪵', 'סידור הלוחות', 'הלוחות על הקורות');                         // PHASE 4: not built yet
 
+export { SAW };
 export const ACTS = {
   col: COL, saw: SAW, carry: CARRY, mikveh: MIKVEH, planks: PLANKS,
   __init: initWorld,

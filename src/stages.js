@@ -2966,6 +2966,7 @@ export function createStages(ctx) {
       m.at = (m.at || 0) - dt;
       if (m.at <= 0 || !m.ok) { m.at = 0.5; mkAnchor(m, st); }   // (the course's line, twice a second: slots() allocates)
       if (!m.ok) continue;
+      if (H120W.hide && Number.isFinite(m.bx) && [0, 6, 12, 18].some((h) => H120W.hide(m.bx + (m.fx || 0) * h * 0.4, (m.by || 0) + h, m.bz + (m.fz || 0) * h * 0.4))) continue;   // ── h120 ── a machine in an act's view cone stands down for the act ── /h120 ──
       mkSite(m, st, k, dt); k++;
     }
     if (changed) workDirty = true;
@@ -3892,7 +3893,7 @@ export function createStages(ctx) {
   }
   // ── h120 ── a rope held in both hands as long as the act holds it (stage 05's brake rope at its post): reach 0 hauled back … 1 reaching
   // forward, lean 0 upright … 1 leaning back against it; the wrists' world point for the rope's tail
-  const H120R = { on: null, hand: new THREE.Vector3() };
+  const H120R = { on: null, hand: new THREE.Vector3(), lift: 0 };
   function h120Hold(o) {
     const S = o.S, d = hA.copy(S.Cm).sub(hB.set(0, 2.1, 0.3)).normalize();
     finishBody(lerp(0.1, -0.28, o.lean), lerp(0.04, 0.2, o.lean), 0, 0, 1);
@@ -4129,7 +4130,7 @@ export function createStages(ctx) {
       for (let k = 0.45; k <= lim + 1e-6; k += 0.45) { const g2 = groundAt(H.x + ex / el * k, H.z + ez / el * k); if (Math.abs(g2 - g0) > 1.05) { edge = true; break; } g0 = g2; }
     }
     const stepD = H.px === undefined ? 0 : Math.hypot(H.x - H.px, H.z - H.pz); H.px = H.x; H.pz = H.z;
-    const gyL = gy + TW.lift;   // ── site15 ── (on the treadwheel's bottom tread: no edge there)
+    const gyL = gy + TW.lift + (H120R.lift || 0);   // ── site15 ── (on the treadwheel's bottom tread: no edge there)   // ── h120 ── (+ a ladder's rung: H120R.lift) ── /h120 ──
     if (Math.abs(gyL - H.y) > 1.05 + 2.2 * stepD && !H.door) { H.edgeT = 0.14; if (H.edgeF > 0.5) dustBurst(H.x, gy + 0.5, H.z, 6, 3, 2, 1); }
     H.edgeT = Math.max(0, (H.edgeT || 0) - dt);
     H.edgeF = clamp((H.edgeF === undefined ? 1 : H.edgeF) + ((edge || H.edgeT > 0 ? 0 : 1) - (H.edgeF === undefined ? 1 : H.edgeF)) * Math.min(1, dt * 22), 0, 1);
@@ -4255,6 +4256,7 @@ export function createStages(ctx) {
   const heroApi = {
     // ── h120 ── rope(target | null, reach, lean): both hands on a rope toward target, held until rope(null); → the hands' world point
     rope: (target, reach = 0.5, lean = 0) => { if (!target) { H120R.on = null; return null; } const o = H120R.on && H120R.on.tg === target ? H120R.on : { tg: target, S: planStroke('pull', target, {}) }; o.reach = clamp(+reach || 0, 0, 1); o.lean = clamp(+lean || 0, 0, 1); H120R.on = o; return H120R.hand; },
+    lift: (y) => { H120R.lift = Math.max(0, +y || 0); hero.y = groundAt(hero.x, hero.z) + H120R.lift; hero.edgeT = 0; hero.ring.visible = !H120R.lift; },   // (on a ladder's rung y over the floor; 0: down)
     // ── /h120 ──
     walkTo: heroWalkTo, swing: heroSwing, place: heroPlace, show: (v) => { hero.vis = !!v; hero.mesh.visible = hero.ring.visible = !!v; if (!v) heroCancel(); },
     twinSite: (id) => { TWD.site = id || 'har'; TWD.twin = !!id; },   // ── twin18 ── ── /twin18 ── (── nav19 ── TWD.twin: two thumbs on)

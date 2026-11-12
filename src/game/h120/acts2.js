@@ -75,9 +75,9 @@ export const SAW = {
     const S_MAC = look([M1[0] - dir[0] * 0.9, CT - 0.15, M1[1] - dir[1] * 0.9], [across[0] * 0.95 - dir[0] * 0.3, across[1] * 0.95 - dir[1] * 0.3], frameDist(3.4, 2.4), 22);
     // (the mark and the line: from over the beam's end, the rod running up the screen, the kohen on one side and the carpenter on the other)
     // (the yard from high on his side, 56° down: the rod or the cut at the centre, both men whole and small, the carpenter under the HUD)
-    const S_YARD = () => { const K = A.read ? Math.floor(A.read) : 11; return look([A.phase === 'line' && A.mark != null ? xm() : YB.x0 + K + 0.5, YB.top, YB.z - 0.55], [0.75, 1], frameDist(9, 9), 56); };
+    const S_YARD = () => { const K = A.read ? Math.floor(A.read) : 11; return look([A.phase === 'line' && A.mark != null ? xm() : YB.x0 + K + 0.5, YB.top + 0.9, YB.z - 0.55], [0.75, 1], frameDist(9, 9), 56); };
     const xm = () => YB.x0 + (A.mark != null ? A.mark : need);
-    const S_SAW = () => look([xm(), YB.top, YB.z - 0.55], [0.75, 1], frameDist(9, 9), 56);
+    const S_SAW = () => look([xm(), YB.top + 0.9, YB.z - 0.55], [0.75, 1], frameDist(9, 9), 56);
     const S_END = () => look([xm() + (A.s ? A.s.drift * F : 0), YB.top - 0.3, YB.z + 0.3], [1, 0.12], frameDist(2.4, 1.8), 26);
     const shot = (S, d = 0.8) => X.shot(S.p, S.t, d);
     const cone = (S, r) => [S.p, S.t, r];
@@ -106,6 +106,10 @@ export const SAW = {
     const KY = CT - 1.75;
     function kohenBay() { if (!kf) return; const a = kf.a; a.visT = 1; a.x = kOn[0]; a.z = kOn[1]; a.y = a.fixedY = KY; a.yaw = Math.atan2(P1[0] - a.x, P1[1] - a.z); }
     function kfAt(x, z, fx, fz) { if (!kf) return; const a = kf.a; a.visT = 1; a.x = x; a.z = z; a.y = H120.FLOOR; a.fixedY = undefined; a.bow = a.bowT = 0; a.yaw = Math.atan2(fx - x, fz - z); }
+    // (his hand and sleeve for the ease-in: a white linen sleeve and the hand at the cord's end or its tail)
+    const sleeve = new T.Group(), sleeveArm = new T.Mesh(new T.CylinderGeometry(0.075, 0.085, 1, 10), new T.MeshStandardMaterial({ color: '#F4F1E8', roughness: 0.9 }));
+    const sleeveHand = new T.Mesh(new T.SphereGeometry(0.075, 10, 8), new T.MeshStandardMaterial({ color: '#B98560', roughness: 0.8 })); sleeveHand.scale.set(1, 1.25, 0.8);
+    sleeve.add(sleeveArm, sleeveHand); sleeve.visible = false; PR.root.add(sleeve); all.push(sleeve);
     const cordPt = (u, out) => { const sag = A.phase === 'end' || A.phase === 'intro' ? 0.25 : clamp((1 - A.T) * 0.42, 0, 0.42), k = u / Math.max(0.5, A.u); const y = CT - sag * 4 * k * (1 - k) + (A.phase === 'tension' ? Math.sin(A.t * 23 + u) * 0.02 * clamp(1 - A.T, 0, 1) + Math.sin(A.t * 47 + u * 3) * 0.012 * clamp((A.T - 1.0) * 12, 0, 1) * Math.sin(Math.PI * k) : 0); return (out || new T.Vector3()).set(P0[0] + dir[0] * u, y, P0[1] + dir[1] * u); };
     const endW = () => cordPt(A.u);
     const tailW = () => { const e = endW(); return new T.Vector3(e.x + dir[0] * 0.38 + across[0] * 0.25, e.y - 0.55 - 0.65 * clamp(A.T, 0, 1.15), e.z + dir[1] * 0.38 + across[1] * 0.25); };
@@ -117,6 +121,11 @@ export const SAW = {
       knots.forEach((o, i) => { const u = i + 1; o.visible = u <= A.u + 1e-6; if (o.visible) cordPt(u, o.position); });
       if (helper) holdArms(helper, 1.2 + 0.25 * clamp(A.T - 0.95, 0, 0.2) * 5, -0.05 - 0.25 * clamp(A.T - 0.9, 0, 0.2) * 5);
       if (kf && (A.phase === 'end' || A.phase === 'tension' || A.phase === 'read' || A.phase === 'intro')) { handsTo(X, kf, A.phase === 'tension' ? tw : e, { spread: -0.16, rMax: 2.5 }); kf.a.bow = kf.a.bowT = A.phase === 'tension' ? -0.05 - 0.25 * clamp(A.T, 0, 1) : 0.12; }
+      // the ease-in near the mark (G1): only his hand and white sleeve come into the frame from his side, never his body
+      const mac = !!A.macro && (A.phase === 'end' || A.phase === 'tension' || A.phase === 'read');
+      if (kf) { kf.a.visT = mac ? 0 : 1; if (mac) kf.a.vis = 0; }
+      sleeve.visible = mac;
+      if (mac) { const h = A.phase === 'tension' ? tw : e, sh = new T.Vector3(kOn[0], KY + 2.45, kOn[1]), d = sh.clone().sub(h); const L = Math.min(1.3, d.length()); d.normalize(); sleeve.position.copy(h); sleeveArm.position.set(0, L / 2 + 0.05, 0); sleeveArm.scale.set(1, L, 1); sleeve.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d); }
       // (level 1: the cord itself says taut — a little paler and brighter while it is straight, before it slips)
       if (cordMat) { const k = lv === 1 && A.phase === 'tension' ? clamp((A.T - 0.78) / 0.07, 0, 1) * clamp((1.07 - A.T) / 0.03, 0, 1) : 0; cordMat.color.copy(cordC0).lerp(cordC1, k); }
     }
@@ -302,7 +311,7 @@ export const SAW = {
       A.phase = 'line'; A.h = 0;
       string = PR.rope(10, 0.012); string.mesh.material = new T.MeshBasicMaterial({ color: 0xB0302A }); all.push({ dispose: () => string.dispose() });
       if (carp) { carp.a.x = xm() - 0.1; carp.a.z = far - 0.15; SH5.crew.face(carp, xm(), zc); }
-      kfAt(xm() - 0.45, near + 0.1, xm(), zc); shot(S_YARD(), 0.6);
+      kfAt(xm() - 0.45, near + 0.45, xm(), zc); shot(S_YARD(), 0.6);
       X.line(lv === 1 ? 'הרימו את החוט באמצעו ושחררו' : 'הקו האדום', 0);
       A.busy = false;
     }

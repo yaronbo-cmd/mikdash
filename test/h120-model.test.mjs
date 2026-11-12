@@ -436,3 +436,22 @@ test('level 3\'s crossing: the crews yield, so a clear crossing comes within 6 s
   }
   assert.ok(worst <= 6, 'worst wait ' + worst.toFixed(1));
 });
+
+test('the mikveh\'s grade: 40 clean (level 3: exact and out of the door), 20 for one or two mends, 10 for more or any damage', async () => {
+  const { mikPts } = await import('../src/game/h120/model.js');
+  assert.equal(mikPts({ lv: 1, stops: 0, dmg: 0 }), 40);
+  assert.equal(mikPts({ lv: 2, stops: 2, dmg: 0 }), 20);
+  assert.equal(mikPts({ lv: 2, stops: 3, dmg: 0 }), 10);
+  assert.equal(mikPts({ lv: 1, stops: 0, dmg: 1 }), 10);
+  assert.equal(mikPts({ lv: 3, stops: 0, dmg: 0, exact: true, out: true }), 40);
+  assert.equal(mikPts({ lv: 3, stops: 0, dmg: 0, exact: false, out: true }), 20);
+  assert.equal(mikPts({ lv: 3, stops: 0, dmg: 0, exact: true, out: false }), 20);
+});
+
+
+test('a drawn channel is cut into points half an amah apart, whatever the finger left', async () => {
+  const { respace } = await import('../src/game/h120/model.js');
+  const pts = [[0, 0], [0.46, 0], [0.95, 0.2], [1.6, 0.3], [3.4, 0.3]], r = respace(pts, 0.5);
+  for (let i = 1; i < r.length - 1; i++) assert.ok(Math.abs(Math.hypot(r[i][0] - r[i - 1][0], r[i][1] - r[i - 1][1]) - 0.5) < 0.02);
+  assert.deepEqual(r[r.length - 1].slice(0, 2), [3.4, 0.3]);
+});

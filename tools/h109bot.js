@@ -488,6 +488,51 @@
       if (Math.hypot(aim.pt[0] - a.rScr[0], aim.pt[1] - a.rScr[1]) < a.grip + 4) return { wait: 200, note: 'carry: the point is on the rear man' };
       return { holdUntil: [aim.pt[0], aim.pt[1], cond, 30000], wait: 150, note: `carry: the front to ${to.map((v) => v.toFixed(1))}` };
     },
+    // station 4, the mikveh: level 3's ring to three amot; a test pour; the reference way drawn from the hollow to the basin; each point
+    // the fall asks deeper held until it is deep enough (in order); level 3's overflow from the outlet to the door; the plug pulled up;
+    // a stop mended the same way. __BOT.bad: 'trough' (level 2: the straight way, through the plasterers' trough), 'jar' (level 2: a jar
+    // dragged into the channel), 'finger' (a hold to the fifth finger), 'low' / 'high' (level 3's ring at 2.6 / 3.5 amot), 'lime'
+    // (level 3: the overflow straight downhill). After a pasul the vessel is dragged off the way.
+    mikveh(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), M4 = window.__H120M;
+      const shots = { rod: 1800, draw: 300, run: 2600, stop: 1600, fill: 3000, over: 2000, pasul: 2600, spill: 2000, lime: 1200, end: 1500 };
+      for (const [ph, ms] of Object.entries(shots)) if (a.phase === ph && !B.k['m_' + ph]) { B.k['m_' + ph] = 1; return { wait: ms, shot: `mik${a.lvP}-${ph}` }; }
+      if (a.phase === 'fill' && !B.k.m_fill2 && a.h > (a.h0 + (a.goal || 3)) / 2) { B.k.m_fill2 = 1; return { wait: 50, shot: `mik${a.lvP}-fill-mid` }; }
+      if (a.busy || a.cut != null) return { wait: 250 };
+      if (a.phase === 'rod' && a.ring) {
+        const want = has('low') ? 2.6 : has('high') ? 3.5 : 3, dy = -(want - a.ring.h) * a.ring.up;
+        return { drag: [a.ring.at[0], a.ring.at[1], a.ring.at[0], a.ring.at[1] + dy, 1100], wait: 1600, note: `mik: the ring to ${want} (${a.ring.up} px an amah)` };
+      }
+      if (!['draw', 'stop', 'over-stop'].includes(a.phase)) return { wait: 250 };
+      // (the first time: a test pour beside the hollow, for the still of its thread)
+      if (!B.k.poured && a.phase === 'draw' && M4) { B.k.poured = 1; const h = a.refIn[Math.min(a.refIn.length - 2, 5)]; return { tap: [h[0] + 70, h[1] + 20], wait: 1900, note: 'mik: a test pour' }; }   // (a few amot down the way, off it)
+      if (B.k.poured === 1) { B.k.poured = 2; return { wait: 100, shot: `mik${a.lvP}-pour` }; }
+      // (after a pasul: the vessel off the way)
+      if (a.pasul && a.res && a.res.vessel && M4 && !B.k['off' + a.pasul]) {
+        B.k['off' + a.pasul] = 1; const v = a.vessels.find((q) => q.id === a.res.vessel), to = M4.scr(...({ trough: [24.5, -58.5], jar1: [30.5, -58.5] }[v.id] || [20, -60]));
+        return { drag: [v.at[0], v.at[1], to[0], to[1], 1400], wait: 900, note: 'mik: the vessel off the way ' + v.id };
+      }
+      // the inflow
+      if (!a.chIn || !a.reaches) {
+        let pts = a.refIn.map((q) => [q[0], q[1]]);
+        if (has('trough') && a.lvP === 2) pts = [pts[0], a.inlet];
+        return { path: pts, ms: Math.max(1800, pts.length * 140), wait: 900, note: `mik: the way from the hollow (${pts.length} points${has('trough') ? ', straight' : ''})` };
+      }
+      if (has('jar') && a.lvP === 2 && !B.k.jarIn && M4) { B.k.jarIn = 1; const v = a.vessels.find((q) => q.id === 'jar1'), to = M4.scr(28, -47.45); return { drag: [v.at[0], v.at[1], to[0], to[1], 1200], wait: 900, note: 'mik: a jar into the channel' }; }
+      const deep = (L, key) => {
+        if (!L || !L.length) return null; const q = L[0];
+        if (has('finger') && !B.k.cracked) { B.k.cracked = 1; return { holdUntil: [q.at[0], q.at[1], C('return !a||a.cracks>0||a.busy'), 9000], wait: 1200, note: 'mik: a fifth finger at ' + q.i }; }
+        return { holdUntil: [q.at[0], q.at[1], C(`if(!a||a.busy)return true;const n=(a.${key}||[]).find(o=>o.i===${q.i});return !n||n.cur>=3.85`), 7000], wait: 350, note: `mik: deepen ${key} ${q.i} from ${q.cur} to ${q.need}` };
+      };
+      const d1 = deep(a.needIn, 'needIn'); if (d1) return d1;
+      if (a.lvP === 3 && !a.chOv && a.outlet != null) {
+        let pts = a.refOver.map((q) => [q[0], q[1]]); if (has('lime')) pts = [a.outletS, a.door];
+        return { path: pts, ms: Math.max(1800, pts.length * 140), wait: 900, note: `mik: the overflow (${has('lime') ? 'straight downhill' : 'round the pit'})` };
+      }
+      const d2 = a.lvP === 3 ? deep(a.needOv, 'needOv') : null; if (d2) return d2;
+      if (!a.plugOut && a.phase === 'draw') return { drag: [a.plug[0], a.plug[1], a.plug[0], a.plug[1] - 110, 600], wait: 900, note: `mik: the plug (res ${JSON.stringify(a.res)})` };
+      return { wait: 300, note: 'mik: waiting ' + a.phase + ' ' + JSON.stringify(a.res) };
+    },
     // ── /build 120 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
@@ -522,7 +567,7 @@
     }
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
-    if (now() - B.actT > (/^(bond|carry)/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    if (now() - B.actT > (/^(bond|carry|mikveh)/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
     try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }

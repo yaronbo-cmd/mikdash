@@ -407,6 +407,20 @@ export function resample(pts, step = 0.25) {
   }
   return out;
 }
+/** points evenly along the line, `step` apart by its length (the last point kept): the points a held finger deepens one by one */
+export function respace(pts, step = 0.5) {
+  const out = []; if (!pts || !pts.length) return out;
+  const d = (p) => (p[2] || 1);
+  out.push([pts[0][0], pts[0][1], d(pts[0])]); let need = step;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); let s = 0;
+    while (L - s >= need - 1e-9) { s += need; const u = s / L; out.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, d(a) + (d(b) - d(a)) * u]); need = step; }
+    need -= L - s;
+  }
+  const e = pts[pts.length - 1], l = out[out.length - 1];
+  if (Math.hypot(e[0] - l[0], e[1] - l[1]) > step * 0.3) out.push([e[0], e[1], d(e)]); else { l[0] = e[0]; l[1] = e[1]; }
+  return out;
+}
 /**
  * the water's run along a channel (the approved first version: along the channel only, not a free spill). The bed at a point is the
  * floor less its depth. The water passes on while the next bed is not higher; before a higher bed it must stand up to it, allowed
@@ -491,6 +505,18 @@ export function refChannel(lv, kind = 'in') {
 export function straightChannel(lv, kind = 'in') {
   const a = kind === 'over' ? MIK.outlet : MIK.hollows[lv], b = kind === 'over' ? [26, -29.2] : MIK.inlet;
   return { lv, kind, pts: resample([[a[0], a[1], 1], [b[0], b[1], 1]], 1).map((p) => [p[0], p[1], 1]) };
+}
+
+/** a vessel's footprint holds (x, z) (the flow's own test, for the act's drawing of where it ran through) */
+export const inVesselAt = (x, z, v, pad = 0.1) => inVessel(x, z, v, pad);
+export const inPitAt = (x, z) => inPit(x, z);
+/** the mikveh's grade (brief §7): 40 the water arrived with no stop after the plug and no damage (level 3: the marker within a finger
+ *  and the overflow out of the door); 20 one or two mends; 10 more; damage caps the work at 10 */
+export function mikPts(r) {
+  if ((r.dmg | 0) > 0) return 10;
+  const s = r.stops | 0;
+  if (s === 0 && (r.lv !== 3 || (r.exact && r.out))) return 40;
+  return s <= 2 ? 20 : 10;
 }
 
 /* ───────── the plan ───────── */

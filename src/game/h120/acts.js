@@ -11,6 +11,7 @@ import { SH5, mats, colMesh, colFrame, colBuild, shearLegs, own, keep, label, bo
 import { fingers, MOUSE, onY, heroAt } from '../h113/acts.js';
 import { SAW } from './acts2.js';
 import { CARRY } from './acts3.js';
+import { MIKVEH } from './acts4.js';
 
 /** the knowledge card after column level 1 (source checked by the reviewer, build 120 phase 3), in the game's own fact card */
 export const KNOW_COL = Object.freeze({
@@ -403,10 +404,9 @@ function crewsDo(icon, title, walk) {
     },
   };
 }
-export const MIKVEH = crewsDo('💧', 'מקווה לשכת המצורעים', 'הלשכה בלי תקרה, והגשם יורד לתוכה: מביאים את המים אל המקווה');   // PHASE 3: not built yet
 export const PLANKS = crewsDo('🪵', 'סידור הלוחות', 'הלוחות על הקורות');                         // PHASE 4: not built yet
 
-export { SAW, CARRY };
+export { SAW, CARRY, MIKVEH };
 export const ACTS = {
   col: COL, saw: SAW, carry: CARRY, mikveh: MIKVEH, planks: PLANKS,
   __init: initWorld,

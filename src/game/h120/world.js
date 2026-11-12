@@ -11,6 +11,7 @@
  */
 import { H120, Y, COLS, COL_IDS, BEAMS, BEAM_OF, RUNS, LADDERS, MIK, BAYS, bayDir, joistsOf, vesselsOf } from './model.js';
 import { h120Ladder } from '../../temple.js';
+import { floorY, floorMesh, grooveMesh, basinWater, pool, carveUnder, tick as waterTick } from './water120.js';
 import { createBeat, createGang, clamp, lerp, ease, camAt } from '../h109/kit.js';
 
 export const SH5 = { final: 0, X: null, B: null, crew: null, cols: {}, colKey: {}, own: {}, beamsG: null, beamKey: '', gal: null, galKey: '', yard: null, ch: null, chKey: '', site: null,
@@ -192,12 +193,12 @@ function beamsKey(X) { const st = X.M.st; return JSON.stringify([seatedOf(X), BE
 /** the shim at a short beam's end on his column P1 (d: the beam's direction toward P1, gap amot): fresh pale cedar filling the gap
  *  to the column's centre, its head over the beam (drive: 0…1 how far it is driven in; 1 = home) → the group */
 export function shimMesh(X, all, P1, d, gap, drive = 1) {
-  const T = X.THREE, g = new T.Group(), m = new T.MeshStandardMaterial({ color: '#EED7A4', roughness: 0.8, flatShading: true }), hw = H120.BEAM_W / 2, w = Math.max(0.14, gap);
+  const T = X.THREE, g = new T.Group(), m = new T.MeshStandardMaterial({ color: '#F6E4B6', emissive: '#4A3A1A', emissiveIntensity: 0.35, roughness: 0.8, flatShading: true }), hw = H120.BEAM_W / 2, w = Math.max(0.14, gap);
   const ex = Math.abs(d[0]) > 0.5;
   const bx = (a0, a1, y0, y1, w0, w1) => box(X, m, ex ? a0 : w0, y0, ex ? w0 : a0, ex ? a1 : w1, y1, ex ? w1 : a1, g);
   // (local: along the beam toward the column's centre from 0 to w; across ±)
   bx(-w, 0, Y.COL_TOP, Y.BEAM_TOP, -hw - 0.03, hw + 0.03);
-  bx(-w - 0.08, 0.06, Y.BEAM_TOP, Y.BEAM_TOP + 0.13, -hw - 0.08, hw + 0.08);   // (the driven head)
+  bx(-w - 0.14, 0.1, Y.BEAM_TOP, Y.BEAM_TOP + 0.18, -hw - 0.15, hw + 0.15);   // (the driven head: proud of the beam on both sides, read from the walking camera)
   g.position.set(P1[0] * (ex ? 1 : 1), (1 - drive) * 0.35, P1[1]);
   if ((ex ? d[0] : d[1]) < 0) g.scale[ex ? 'x' : 'z'] = -1;
   X.props.root.add(g); all.push(g); return g;
@@ -326,7 +327,7 @@ function sawFrame(dt) {
 }
 
 /* ───────── the lepers' chamber: the basin, the steps, the rod, the water, the hollows, the vessels, the lime pit, the plasterers ───────── */
-function chKey(X) { const st = X.M.st; return JSON.stringify([+(st.mik.water || 0).toFixed(3), st.mik.outlet, st.mik.ch.length, st.mik.moved, [1, 2, 3].map((lv) => (st.mik[lv] || {}).done || 0), SH5.final, SH5.busy && X.mission && X.mission.k === 'mikveh']); }
+function chKey(X) { const st = X.M.st; return JSON.stringify([+(st.mik.water || 0).toFixed(3), st.mik.outlet, st.mik.ch.map((c) => c.pts.length + ':' + c.pts.reduce((a, p) => a + p[2], 0).toFixed(2)), st.mik.moved, st.mik.limeSpoiled || 0, [1, 2, 3].map((lv) => (st.mik[lv] || {}).done || 0), SH5.final, SH5.busy && X.mission && X.mission.k === 'mikveh']); }
 export function basinBuild(X, all, o = {}) {
   const M = mats(X), K = MIK, y0 = K.bottom, x1 = K.stair, n = K.steps - 1, tr = (x1 - K.x1) / n, rh = K.deep / K.steps, st = X.M.st;
   const water = o.water != null ? o.water : (st.mik.water || 0), wy = y0 + water;
@@ -336,48 +337,55 @@ export function basinBuild(X, all, o = {}) {
   wall(K.x0 - 0.06, K.z0, K.x0, K.z1); wall(K.x0, K.z0 - 0.06, x1, K.z0); wall(K.x0, K.z1, x1, K.z1 + 0.06); wall(x1, K.z0, x1 + 0.06, K.z1);
   for (let i = 1; i <= n; i++) all.push(box(X, y0 + i * rh < wy ? M.h5plasterW : M.h5plaster, K.x1 + (i - 1) * tr, y0, K.z0, K.x1 + i * tr, y0 + i * rh, K.z1));
   // the rim of two tefachim, the inflow notch on the north, the outlet on the south once cut (its sill at the save's height)
-  const rw = 0.3, rt = K.rimTop, F0 = H120.FLOOR, outl = st.mik.outlet;
+  const rw = 0.3, rt = K.rimTop, F0 = H120.FLOOR, outl = o.outlet !== undefined ? o.outlet : st.mik.outlet;
   all.push(box(X, M.h5limeD, K.x0 - rw, F0, K.z0 - rw, K.inlet[0] - 0.2, rt, K.z0)); all.push(box(X, M.h5limeD, K.inlet[0] + 0.2, F0, K.z0 - rw, x1 + rw, rt, K.z0));
   if (outl != null) { all.push(box(X, M.h5limeD, K.x0 - rw, F0, K.z1, K.outlet[0] - 0.2, rt, K.z1 + rw)); all.push(box(X, M.h5limeD, K.outlet[0] + 0.2, F0, K.z1, x1 + rw, rt, K.z1 + rw)); const sy = K.bottom + outl; if (sy > F0) all.push(box(X, M.h5limeD, K.outlet[0] - 0.2, F0, K.z1, K.outlet[0] + 0.2, Math.min(rt, sy), K.z1 + rw)); }
   else all.push(box(X, M.h5limeD, K.x0 - rw, F0, K.z1, x1 + rw, rt, K.z1 + rw));
   all.push(box(X, M.h5limeD, K.x0 - rw, F0, K.z0, K.x0, rt, K.z1)); all.push(box(X, M.h5limeD, x1, F0, K.z0, x1 + rw, rt, K.z1));
-  // the rod with its two marks: forty seah (half an amah), a man's height (three amot)
+  // the rod with its two marks: forty seah (half an amah), a man's height (three amot); a notch every amah
   const [rx, rz] = K.rod; all.push(box(X, M.h5cedarL, rx - 0.05, y0, rz - 0.05, rx + 0.05, rt + 0.4, rz + 0.05));
+  for (const h of [1, 2]) all.push(box(X, M.h5dark, rx - 0.06, y0 + h - 0.012, rz - 0.06, rx + 0.06, y0 + h + 0.012, rz + 0.06));
   for (const h of [0.5, 3]) all.push(box(X, M.h5bronze, rx - 0.09, y0 + h - 0.03, rz - 0.09, rx + 0.09, y0 + h + 0.03, rz + 0.09));
-  let surf = null;
-  if (water > 0.01) { const T = X.THREE; surf = new T.Mesh(new T.PlaneGeometry(x1 - K.x0, K.z1 - K.z0, 8, 6), M.h5water); surf.rotation.x = -Math.PI / 2; surf.position.set((K.x0 + x1) / 2, wy, (K.z0 + K.z1) / 2); surf.renderOrder = 2; X.props.root.add(surf); all.push(surf); }
-  return { surf, wy };
+  // the water: the stage's own surface (h120/water120.js), its plaster darkened under it
+  carveUnder(X);   // (the slabs under the court floor would close the cut)
+  const bw = basinWater(X); X.props.root.add(bw.g); all.push(bw.g); bw.set(water);
+  return { surf: water > 0.004 ? bw.surf : null, bw, wy };
 }
 function chamberBuild(X) {
   if (SH5.ch) drop(X, SH5.ch.all);
   const all = [], M = mats(X), T = X.THREE, st = X.M.st; SH5.ch = { all };
+  // the chamber's own floor: large slabs on the field's true relief (h120/water120.js)
+  { const f = floorMesh(X); X.props.root.add(f); all.push(f); }
   SH5.ch.basin = basinBuild(X, all);
+  const live = SH5.busy && SH5.mikLv ? SH5.mikLv : 0;   // (station 4 playing level `live`: its hollow, plug, vessels and channels are the act's)
   // the three rock hollows (rain water standing in each until its level drained it), their clay plugs
   for (const lv of [1, 2, 3]) {
-    const [hx, hz] = MIK.hollows[lv], full = !(st.mik[lv] && st.mik[lv].done);
-    const d = new T.Mesh(new T.CircleGeometry(1.3, 20), M.h5limeD); d.rotation.x = -Math.PI / 2; d.position.set(hx, H120.FLOOR + 0.012, hz); X.props.root.add(d); all.push(d);
-    const r = new T.Mesh(new T.TorusGeometry(1.32, 0.09, 5, 20), M.h5lime); r.rotation.x = -Math.PI / 2; r.position.set(hx, H120.FLOOR + 0.02, hz); X.props.root.add(r); all.push(r);
-    if (full) { const w = new T.Mesh(new T.CircleGeometry(1.15, 20), M.h5water); w.rotation.x = -Math.PI / 2; w.position.set(hx, H120.FLOOR + 0.03, hz); w.renderOrder = 2; X.props.root.add(w); all.push(w); }
-    all.push(cyl(X, M.h5plug, hx + 1.2, H120.FLOOR, hz, 0.2, 0.17, full ? 0.32 : 0.2, 8));
+    const [hx, hz] = MIK.hollows[lv], full = !(st.mik[lv] && st.mik[lv].done), y = floorY(hx, hz);
+    const d = new T.Mesh(new T.CircleGeometry(1.3, 20), M.h5limeD); d.rotation.x = -Math.PI / 2; d.position.set(hx, y + 0.055, hz); X.props.root.add(d); all.push(d);
+    const r = new T.Mesh(new T.TorusGeometry(1.32, 0.09, 5, 20), M.h5lime); r.rotation.x = -Math.PI / 2; r.position.set(hx, y + 0.02, hz); X.props.root.add(r); all.push(r);
+    if (full && live !== lv) { const w = pool(X, hx, hz); w.set(1); X.props.root.add(w.mesh); all.push(w.mesh); }
+    if (live !== lv) all.push(cyl(X, M.h5plug, hx + 1.2, y, hz, 0.2, 0.17, full ? 0.32 : 0.2, 8));
   }
   // the vessels where they stand (moved or not): the plasterers' wooden trough, the jars
-  for (const v of vesselsOf(st.mik.moved)) {
-    const [x, z] = v.at;
-    if (v.kind === 'trough') { all.push(box(X, M.h5cedarD, x - v.w / 2, H120.FLOOR, z - v.d / 2, x + v.w / 2, H120.FLOOR + 0.55, z + v.d / 2)); all.push(box(X, M.h5white, x - v.w / 2 + 0.1, H120.FLOOR + 0.55, z - v.d / 2 + 0.1, x + v.w / 2 - 0.1, H120.FLOOR + 0.56, z + v.d / 2 - 0.1)); }
-    else { const g = new T.LatheGeometry([[0.001, 0], [0.32, 0.04], [0.52, 0.45], [0.55, 0.85], [0.4, 1.25], [0.2, 1.45], [0.22, 1.6], [0.001, 1.6]].map(([a, b]) => new T.Vector2(a, b)), 12); const m = new T.Mesh(g, M.h5clay); m.position.set(x, H120.FLOOR, z); m.castShadow = true; X.props.root.add(m); all.push(m); }
-  }
-  // the plasterers' lime pit (level 3's trap): white lime in a shallow pit with a low kerb
-  const P = MIK.pit; all.push(box(X, M.h5white, P.x0, H120.FLOOR - 0.2, P.z0, P.x1, H120.FLOOR + 0.04, P.z1));
-  for (const [a, b, c, d] of [[P.x0 - 0.2, P.z0 - 0.2, P.x1 + 0.2, P.z0], [P.x0 - 0.2, P.z1, P.x1 + 0.2, P.z1 + 0.2], [P.x0 - 0.2, P.z0, P.x0, P.z1], [P.x1, P.z0, P.x1 + 0.2, P.z1]]) all.push(box(X, M.h5limeD, a, H120.FLOOR, b, c, H120.FLOOR + 0.18, d));
-  // the channels as cut (station 4): a shallow dark groove along each, deeper where deepened
-  for (const ch of st.mik.ch) {
-    const L = ch.pts || [];
-    for (let i = 1; i < L.length; i++) {
-      const [ax, az, ad] = L[i - 1], [bx, bz, bd] = L[i], dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz); if (len < 1e-3) continue;
-      const m = new T.Mesh(X.props.geo.box, M.h5groove); m.scale.set(0.22 + 0.02 * ((ad + bd) / 2), 0.01, len + 0.1); m.position.set((ax + bx) / 2, H120.FLOOR + 0.008, (az + bz) / 2); m.rotation.y = Math.atan2(dx, dz); m.renderOrder = 2; X.props.root.add(m); all.push(m);
-    }
-  }
+  if (!live) for (const v of vesselsOf(st.mik.moved)) for (const o of vesselMesh(X, v)) all.push(o);
+  // the plasterers' lime pit (level 3's trap): white lime in a shallow pit with a low kerb (spoiled: grey and cracked)
+  const P = MIK.pit, py = floorY((P.x0 + P.x1) / 2, (P.z0 + P.z1) / 2) - 0.004;
+  all.push(box(X, st.mik.limeSpoiled ? M.h5limeD : M.h5white, P.x0, py - 0.2, P.z0, P.x1, py + 0.04, P.z1));
+  for (const [a, b, c, d] of [[P.x0 - 0.2, P.z0 - 0.2, P.x1 + 0.2, P.z0], [P.x0 - 0.2, P.z1, P.x1 + 0.2, P.z1 + 0.2], [P.x0 - 0.2, P.z0, P.x0, P.z1], [P.x1, P.z0, P.x1 + 0.2, P.z1]]) all.push(box(X, M.h5limeD, a, py, b, c, py + 0.18, d));
+  // the channels as cut (station 4): a groove in the slabs along each, darker where deepened
+  for (const ch of st.mik.ch) { if (live && ch.lv === live) continue; const g = grooveMesh(X, ch.pts || []); if (g) { X.props.root.add(g); all.push(g); } }
   SH5.chKey = chKey(X);
+}
+/** (station 4: the act asks the chamber drawn anew — its own work's hollow, plug, vessels and channels left to it) */
+export function chamberRedraw(X) { chamberBuild(X); }
+/** a vessel's meshes on the floor (the trough: a cedar box with lime in it; a jar) */
+export function vesselMesh(X, v, parent) {
+  const M = mats(X), T = X.THREE, [x, z] = v.at, y = floorY(x, z), out = [], root = parent || X.props.root;
+  if (v.kind === 'trough') {
+    const g = new T.Group(); g.position.set(x, y, z); root.add(g); out.push(g);
+    box(X, M.h5cedarD, -v.w / 2, 0, -v.d / 2, v.w / 2, 0.55, v.d / 2, g); box(X, M.h5white, -v.w / 2 + 0.1, 0.55, -v.d / 2 + 0.1, v.w / 2 - 0.1, 0.56, v.d / 2 - 0.1, g);
+  } else { const g = new T.LatheGeometry([[0.001, 0], [0.32, 0.04], [0.52, 0.45], [0.55, 0.85], [0.4, 1.25], [0.2, 1.45], [0.22, 1.6], [0.001, 1.6]].map(([a, b]) => new T.Vector2(a, b)), 12); const m = new T.Mesh(g, M.h5clay); m.position.set(x, y, z); m.castShadow = true; root.add(m); out.push(m); }
+  return out;
 }
 
 /* ───────── the site: scaffolds with their masons, stone piles, the sledge and the ox cart on their lane ───────── */
@@ -472,7 +480,8 @@ function ambient(X) {
   if (B) { const mx = (B.pa[0] + B.pb[0]) / 2, mz = (B.pa[1] + B.pb[1]) / 2, R = RUNS.find((r) => r.axis === B.axis && (r.axis === 'x' ? Math.abs(r.line - mz) < 0.1 : Math.abs(r.line - mx) < 0.1 && Math.sign(r.a0 + r.a1) === Math.sign(mz)));
     if (R) { const w0 = (R.wall + R.line) / 2; for (const d of [-2, 2]) { const x = R.axis === 'x' ? mx + d : w0, z = R.axis === 'x' ? w0 : mz + d; add(x, z, { role: 'hammer', item: 'mallet', fx: R.axis === 'x' ? x + 0.5 : R.line, fz: R.axis === 'x' ? R.line : z + 0.5, crew: 2 }, Y.JOIST_TOP); } } }
   // the plasterers at the basin (trowel work: a chisel and mallet on its walls) — out of the way while he works there
-  if (busyK !== 'mikveh') { add(MIK.stair + 1.0, MIK.z0 - 1.1, { role: 'hammer', item: 'chisel', fx: MIK.x1 + 1, fz: MIK.z0, crew: 3, tunic: '#E8E0CC' }); add(MIK.x0 - 1.2, (MIK.z0 + MIK.z1) / 2, { role: 'hammer', item: 'mallet', fx: MIK.x0, fz: (MIK.z0 + MIK.z1) / 2, crew: 3, tunic: '#E8E0CC' }); add(MIK.pit.x0 - 0.8, (MIK.pit.z0 + MIK.pit.z1) / 2, { role: 'lever', fx: MIK.pit.x0 + 1, fz: (MIK.pit.z0 + MIK.pit.z1) / 2, crew: 3 }); }
+  // (in the chamber every man stands on its own floor: its relief, h120/water120.js)
+  if (busyK !== 'mikveh') for (const w of [add(MIK.stair + 1.0, MIK.z0 - 1.1, { role: 'hammer', item: 'chisel', fx: MIK.x1 + 1, fz: MIK.z0, crew: 3, tunic: '#E8E0CC' }), add(MIK.x0 - 1.2, (MIK.z0 + MIK.z1) / 2, { role: 'hammer', item: 'mallet', fx: MIK.x0, fz: (MIK.z0 + MIK.z1) / 2, crew: 3, tunic: '#E8E0CC' }), add(MIK.pit.x0 - 0.8, (MIK.pit.z0 + MIK.pit.z1) / 2, { role: 'lever', fx: MIK.pit.x0 + 1, fz: (MIK.pit.z0 + MIK.pit.z1) / 2, crew: 3 })]) if (w) w.a.ground = floorY;
   // a carrier between the stock and the yard (beams on the shoulder)
   if (busyK !== 'saw' && busyK !== 'carry') add(YARD.stock.x - 2, YARD.stock.z0 + 1, { role: 'carry', item: 'beam', from: [YARD.stock.x - 2, YARD.stock.z0 + 1], to: [YARD.his.x0 - 1.5, YARD.his.z - 1.2], crew: 2 });
 }
@@ -657,7 +666,7 @@ export function coneOwn(...objs) { if (SH5.cone) for (const o of objs) if (o) SH
 function modelHide(X, hide) { try { if (X.stages.nashimGallery) X.stages.nashimGallery(!hide); } catch (e) { /* */ } }
 export function initWorld(X) {
   css(); mats(X);
-  SH5.X = X; SH5.B = createBeat(X); SH5.crew = createGang(X);
+  SH5.X = X; SH5.B = createBeat(X); SH5.crew = createGang(X); try { window.__H120_SH5 = SH5; } catch (e) { /* (the probes' eyes) */ }
   SH5.cols = {}; SH5.colKey = {}; SH5.rise = {}; SH5.own = {};
   if (X.M.finished()) SH5.final = 1;
   modelHide(X, true);
@@ -679,7 +688,7 @@ export function ensureWorld(X) {
   const st = X.M && X.M.st; if (!st) return;
   colsSync(X, false);
   if (SH5.beamKey !== beamsKey(X)) beamsBuild(X);
-  if (SH5.chKey !== chKey(X) && !(SH5.busy && X.mission && X.mission.k === 'mikveh')) chamberBuild(X);
+  if (SH5.chKey !== chKey(X) && !(SH5.busy && SH5.mikLv)) chamberBuild(X);
   if (SH5.site && SH5.siteKey !== siteKeyOf(X) && !SH5.busy) siteBuild(X);
   const k = ambKeyOf(X); if (k !== SH5.ambKey) { SH5.ambKey = k; ambient(X); yardBuild(X); if (SH5.cone) coneApply(); }
 }
@@ -689,7 +698,7 @@ export function frameWorld(dt, X) {
   SH5.t += dt;
   SH5.B.step(dt); if (SH5.crew) SH5.crew.update(dt, SH5.B);
   riseFrame(dt); sawFrame(dt); laneFrame(dt);
-  if (SH5.ch && SH5.ch.basin && SH5.ch.basin.surf) { const s = SH5.ch.basin.surf; s.position.y = SH5.ch.basin.wy + Math.sin(SH5.t * 1.3) * 0.004; }
+  waterTick(dt, X);
   jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X, true); ensureWorld(X); goalChip(X); if (SH5.cone || SH5.coneWas) { coneApply(); SH5.coneWas = !!SH5.cone; } }
   if (SH5.cone) coneHold(X);
   for (const L of SH5.labels) L.frame();

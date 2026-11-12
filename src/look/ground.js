@@ -281,7 +281,8 @@ vec3 grGround(vec3 vc) {
   // (look B review G5: no dark outline: the slab's edge ragged by the earth's mottle and its own pits, earth lying in its low spots,
   // a pale dusty band where the two meet)
   float rf = d2.a + (d1.a - 0.5) * 0.16 + (rb - 0.6) * 0.14 + (d1.r - 0.5) * 0.05, th = 0.7 - vGrA.x * 0.5 - smoothstep(0.04, 0.2, slope) * 0.25 + trod * 0.35 + vGrA.y * 0.2;
-  float slab = smoothstep(th, th + 0.06, rf);
+  // (look B review H1: a crisp but ragged edge, so the slab reads as rock at play distance; none on the work floors)
+  float slab = smoothstep(th, th + 0.025, rf) * (1.0 - smoothstep(0.1, 0.45, trod));
   float steep = smoothstep(0.17, 0.26, slope + (d2.a - 0.5) * 0.14);
   float rk = max(slab, steep);
   float rim = smoothstep(th - 0.07, th + 0.01, rf) * (1.0 - slab) * (1.0 - steep);
@@ -305,13 +306,15 @@ vec3 grGround(vec3 vc) {
   vec3 grav = mix(uGrGrav, vc, 0.4) * (0.82 + 0.3 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float bed = smoothstep(0.78, 0.95, abs(fract(W.y * 0.42 + (d2.a - 0.5) * 0.9) * 2.0 - 1.0)) * smoothstep(0.18, 0.4, slope) * smoothstep(0.25, 0.55, d1.a + 0.2);
-  vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw);
+  vec3 rock = mix(uGrRock, vc, 0.2) * (0.46 + 0.74 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw) * vec3(0.97, 0.99, 1.03);
+  // (its relief: the slab's middle a little higher and lighter than its sunken edge; no outline)
+  rock *= 0.93 + 0.1 * smoothstep(th + 0.02, th + 0.14, rf);
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
   col = mix(col, mix(uGrRock, vc, 0.5) * (0.6 + 0.36 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.6));
   col = mix(col, mix(col, uGrRock * 0.92, 0.4), rim * 0.4);
-  // (the slab's own edge dusted with the earth round it)
-  rock = mix(rock, mix(rock, col, 0.45), (1.0 - smoothstep(th + 0.01, th + 0.1, rf)) * (1.0 - steep));
+  // (the slab's own edge dusted with the earth round it: a thin band)
+  rock = mix(rock, mix(rock, col, 0.4), (1.0 - smoothstep(th + 0.004, th + 0.025, rf)) * (1.0 - steep));
   col = mix(col, rock, rk);
   // the dark earth bedded round the rocks; the carts' two ruts
   col *= 1.0 - 0.16 * wm.b;

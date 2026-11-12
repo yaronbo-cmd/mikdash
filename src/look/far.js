@@ -25,14 +25,14 @@ export function jitter(x, z, s = 14) {
 }
 
 /* ───────── the terraces and the paths on the Mount of Olives ───────── */
-const WALL = { lo: 0.7, hi: 0.95, th: 0.9, down: 2.4, up: 4.2, k: [0.84, 0.8, 0.7] };
+const WALL = { lo: 0.7, hi: 0.95, th: 0.9, down: 2.4, up: 4.2, k: [0.8, 0.7, 0.6] };   // ── look D review K4 ── (k: turned earth, browner and darker: was 0.84, 0.8, 0.7) ── /look D review ──
 export function olivetGround(THREE, mat, { terraces = [], paths = [] }, F) {
   // (typed arrays sized for the most vertices the pieces can make: no growing arrays at boot)
   let nv = 0; for (const [ax, az, bx, bz] of terraces) nv += Math.max(2, Math.round(Math.hypot(bx - ax, bz - az) / 9)) * 30;   // (five quads a piece)
   for (const pts of paths) nv += Math.max(0, pts.length - 1) * 18;
-  const P = new Float32Array(nv * 3), N = new Float32Array(nv * 3), C = new Float32Array(nv * 3), G = new Float32Array(nv * 2), e = new THREE.Color(), gr = [0, 0];
+  const P = new Float32Array(nv * 3), N = new Float32Array(nv * 3), C = new Float32Array(nv * 3), G = new Float32Array(nv * 3), e = new THREE.Color(), gr = [0, 0];
   let k3 = 0, k2 = 0;
-  const v = (p, n, col, g) => { P[k3] = p[0]; P[k3 + 1] = p[1]; P[k3 + 2] = p[2]; N[k3] = n[0]; N[k3 + 1] = n[1]; N[k3 + 2] = n[2]; C[k3] = col[0]; C[k3 + 1] = col[1]; C[k3 + 2] = col[2]; G[k2] = g[0]; G[k2 + 1] = g[1]; k3 += 3; k2 += 2; };
+  const v = (p, n, col, g) => { P[k3] = p[0]; P[k3 + 1] = p[1]; P[k3 + 2] = p[2]; N[k3] = n[0]; N[k3 + 1] = n[1]; N[k3 + 2] = n[2]; C[k3] = col[0]; C[k3 + 1] = col[1]; C[k3 + 2] = col[2]; G[k2] = g[0]; G[k2 + 1] = g[1]; G[k2 + 2] = g[2] || 0; k3 += 3; k2 += 3; };
   // (a quad a b c d, each [position, normal, colour, aGr]: its two triangles turned to face the normal's side)
   const quad = (a, b, cc, d) => {
     const A = a[0], ex = b[0][0] - A[0], ey = b[0][1] - A[1], ez = b[0][2] - A[2], fx = cc[0][0] - A[0], fy = cc[0][1] - A[1], fz = cc[0][2] - A[2];
@@ -43,7 +43,7 @@ export function olivetGround(THREE, mat, { terraces = [], paths = [] }, F) {
   const ground = (x, z) => { const h = F.h(x, z); F.col(x, z, h, e); F.gr(x, z, h, gr); return { h, col: [e.r, e.g, e.b], g: [gr[0], gr[1]] }; };
   const tone = (col, k) => [col[0] * k[0], col[1] * k[1], col[2] * k[2]];
   // the pale dry-stone (the ground shader draws it as rock: its aGr's rock bias full)
-  const STONE = [0.8, 0.76, 0.66], ROCK = [1, 0];
+  const STONE = [0.9, 0.85, 0.74], ROCK = [1, 0];
   for (const [ax, az, bx, bz] of terraces) {
     const L = Math.hypot(bx - ax, bz - az) || 1, ux = (bx - ax) / L, uz = (bz - az) / L;
     // (downhill: the side where the slope falls — the Kidron's, west, nearly always)
@@ -61,20 +61,27 @@ export function olivetGround(THREE, mat, { terraces = [], paths = [] }, F) {
     for (let i = 1; i < row.length; i++) {
       const A = row[i - 1], B = row[i], t = A.t;
       if (hash(A.x, A.z, 8) < 0.08) continue;
+      // ── look D review K4 ── (no beam: each stretch its own stones' height at either end, uneven, a gap of a hand or more at its ends,
+      // a tone of its own; the strips under and above it run on unbroken) ── /look D review ──
+      const ga = 0.12 + 0.5 * hash(A.x, A.z, 11), gb = 0.12 + 0.5 * hash(B.x, B.z, 12), Lp = Math.hypot(B.x - A.x, B.z - A.z) || 1;
+      const sA = { x: A.x + (B.x - A.x) * ga / Lp, z: A.z + (B.z - A.z) * ga / Lp }, sB = { x: B.x - (B.x - A.x) * gb / Lp, z: B.z - (B.z - A.z) * gb / Lp };
+      const tA = A.top + (hash(A.x, A.z, 13) - 0.55) * 0.7, tB = B.top + (hash(B.x, B.z, 14) - 0.55) * 0.7;
       const p = (R, k, y) => [R.x + dx * t * k, y, R.z + dz * t * k];
-      const kA = 0.94 + 0.12 * hash(A.x, A.z, 6), sc = tone(STONE, [kA, kA, kA]);
+      const kA = 0.86 + 0.24 * hash(A.x, A.z, 6), sc = tone(STONE, [kA, kA, kA * 0.98]);
       // the wall: its top, its downhill face (from a little under the ground), its uphill face
-      quad([p(A, 1, A.top), UP, sc, ROCK], [p(B, 1, B.top), UP, sc, ROCK], [p(B, -1, B.top), UP, sc, ROCK], [p(A, -1, A.top), UP, sc, ROCK]);
-      const fD = [dx, 0, dz], fU = [-dx, 0, -dz], sd = tone(sc, [0.92, 0.92, 0.92]);
-      quad([p(A, 1, A.g0.h - WALL.lo), fD, sd, ROCK], [p(B, 1, B.g0.h - WALL.lo), fD, sd, ROCK], [p(B, 1, B.top), fD, sc, ROCK], [p(A, 1, A.top), fD, sc, ROCK]);
-      quad([p(A, -1, A.g1.h - WALL.lo), fU, sd, ROCK], [p(B, -1, B.g1.h - WALL.lo), fU, sd, ROCK], [p(B, -1, B.top), fU, sc, ROCK], [p(A, -1, A.top), fU, sc, ROCK]);
+      quad([p(sA, 1, tA), UP, sc, ROCK], [p(sB, 1, tB), UP, sc, ROCK], [p(sB, -1, tB), UP, sc, ROCK], [p(sA, -1, tA), UP, sc, ROCK]);
+      const fD = [dx, 0, dz], fU = [-dx, 0, -dz], sd = tone(sc, [0.88, 0.88, 0.88]);
+      quad([p(sA, 1, A.g0.h - WALL.lo), fD, sd, ROCK], [p(sB, 1, B.g0.h - WALL.lo), fD, sd, ROCK], [p(sB, 1, tB), fD, sc, ROCK], [p(sA, 1, tA), fD, sc, ROCK]);
+      quad([p(sA, -1, A.g1.h - WALL.lo), fU, sd, ROCK], [p(sB, -1, B.g1.h - WALL.lo), fU, sd, ROCK], [p(sB, -1, tB), fU, sc, ROCK], [p(sA, -1, tA), fU, sc, ROCK]);
       // the shadow line under it: the ground at the wall's foot darker, fading out downhill
       const lift = 0.25, fo = (R, g, k) => [R.x + dx * k, g.h + lift, R.z + dz * k];
       quad([fo(A, A.g0, t), UP, tone(A.g0.col, [0.6, 0.58, 0.56]), A.g0.g], [fo(B, B.g0, t), UP, tone(B.g0.col, [0.6, 0.58, 0.56]), B.g0.g],
         [fo(B, B.gD, t + WALL.down), UP, B.gD.col, B.gD.g], [fo(A, A.gD, t + WALL.down), UP, A.gD.col, A.gD.g]);
       // the terrace's floor above it: tilled earth, a little darker and browner, no rock (fading into the slope above)
-      const soil = (g) => [g.g[0] * 0.3, g.g[1]];
-      quad([fo(A, A.g1, -t), UP, tone(A.g1.col, WALL.k), soil(A.g1)], [fo(B, B.g1, -t), UP, tone(B.g1.col, WALL.k), soil(B.g1)],
+      const soil = (g) => [g.g[0] * 0.15, g.g[1], -1];   // ── look D review K4 ── (aGr.z −1: turned earth, no straw: look/ground.js) ── /look D review ──
+      // ── look D review K4 ── (turned earth: the ground's own lightness, its colour a grey brown, not a deeper yellow) ── /look D review ──
+      const tilled = (c) => { const l = (c[0] + c[1] + c[2]) / 3; return [l * WALL.k[0], l * WALL.k[1], l * WALL.k[2]]; };
+      quad([fo(A, A.g1, -t), UP, tilled(A.g1.col), soil(A.g1)], [fo(B, B.g1, -t), UP, tilled(B.g1.col), soil(B.g1)],
         [fo(B, B.gU, -t - WALL.up), UP, B.gU.col, B.gU.g], [fo(A, A.gU, -t - WALL.up), UP, A.gU.col, A.gU.g]);
     }
   }
@@ -94,7 +101,7 @@ export function olivetGround(THREE, mat, { terraces = [], paths = [] }, F) {
   geo.setAttribute('position', new THREE.BufferAttribute(P.subarray(0, k3), 3));
   geo.setAttribute('normal', new THREE.BufferAttribute(N.subarray(0, k3), 3));
   geo.setAttribute('color', new THREE.BufferAttribute(C.subarray(0, k3), 3));
-  geo.setAttribute('aGr', new THREE.BufferAttribute(G.subarray(0, k2), 2));
+  geo.setAttribute('aGr', new THREE.BufferAttribute(G.subarray(0, k2), 3));
   geo.computeBoundingSphere();
   // (the terrain's own material: its one program; a quarter amah over the drawn surface, no depth fight from any camera)
   const m = new THREE.Mesh(geo, mat);

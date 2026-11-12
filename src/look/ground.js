@@ -300,10 +300,12 @@ vec3 grGround(vec3 vc) {
   earth = max(vec3(0.0), mix(vec3(lkLumGr(earth)), earth, 1.18));   // (look B review H3: the earth a little richer: saturation 24–30 %)
   // (look B review H4: dry grass in patches with bare gaps between them, denser in the hollows, none where trodden: each clump a soft
   // straw ground under its strokes, so from the play camera it reads as a tuft, not a scribble)
-  float gpatch = clamp(smoothstep(0.5, 0.64, d2.b + (d1.a - 0.5) * 0.25) + vGrA.y * 0.9, 0.0, 1.0) * clamp(1.0 - trod * 1.6, 0.0, 1.0);
+  float till = clamp(-vGrA.z, 0.0, 1.0);   // ── look D review K4 ── (aGr.z < 0: a terrace's turned earth: no straw, darker clods) ── /look D review ──
+  float gpatch = clamp(smoothstep(0.5, 0.64, d2.b + (d1.a - 0.5) * 0.25) + vGrA.y * 0.9, 0.0, 1.0) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - till);
   float straw = (smoothstep(0.79, 0.83, e) * 0.35 + smoothstep(0.86, 0.96, e) * 0.65) * gpatch;
   earth = mix(earth, earth * vec3(1.16, 1.12, 0.94) + uGrStraw * 0.04, straw * 0.8);
   earth = mix(earth, uGrDark * (0.8 + 0.4 * clamp(em, 0.2, 0.75)), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
+  earth = mix(earth, vec3(lkLumGr(vc)) * vec3(1.0, 0.85, 0.71) * (0.7 + 0.6 * clamp(e, 0.2, 0.75)), smoothstep(0.0, 0.6, till) * 0.95);   // ── look D review K4 ── ── /look D review ──
   // (look B review G6: the low shrubs only in clusters, by the rock's edge and in the hollows, grey-green, lit on one side)
   float near = smoothstep(th - 0.2, th - 0.03, rf) * (1.0 - rk);
   float shrub = (1.0 - smoothstep(0.15, 0.17, e)) * (1.0 - trod) * clamp(near * 2.0 + vGrA.y * 2.0 + smoothstep(0.5, 0.6, d2.r) * 1.0, 0.0, 1.0);

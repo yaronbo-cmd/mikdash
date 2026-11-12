@@ -296,6 +296,7 @@ vec3 grGround(vec3 vc) {
   // (trodden: packed, smoother, darker)
   float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
   vec3 earth = vc * (0.6 + 0.56 * mix(clamp(em, 0.2, 0.75), d2.r, 0.3));
+  earth = max(vec3(0.0), mix(vec3(lkLumGr(earth)), earth, 1.18));   // (look B review H3: the earth a little richer: saturation 24–30 %)
   // (look B review H4: dry grass in patches with bare gaps between them, denser in the hollows, none where trodden: each clump a soft
   // straw ground under its strokes, so from the play camera it reads as a tuft, not a scribble)
   float gpatch = clamp(smoothstep(0.5, 0.64, d2.b + (d1.a - 0.5) * 0.25) + vGrA.y * 0.9, 0.0, 1.0) * clamp(1.0 - trod * 1.6, 0.0, 1.0);

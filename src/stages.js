@@ -337,8 +337,8 @@ function makeHill(T) {
     // ── look B review H3 ── the broad tone (40–120 amot): darker, redder earth in the hollows and on the dips facing north (−z), paler
     // dusty crowns ── /look B ──
     { const big = HN2(x / 95 + 11, z / 95 - 4, 3), mid = HN1(x / 48 + 3, z / 48 + 8, 2), north = clamp(-nor[k * 3 + 2] * 3, 0, 1);
-      const dk = clamp(hol * 0.5 + smooth(0.5, 0.25, big) * 0.6 + smooth(0.45, 0.25, mid) * 0.3 + north * 0.5, 0, 1), cr = smooth(0.55, 0.8, big) * (1 - hol);
-      c.lerp(soil, dk * 0.3); c.multiplyScalar(1 - 0.09 * dk); c.lerp(dust, cr * 0.4); c.multiplyScalar(1 + 0.04 * cr); }
+      const dk = clamp(hol * 0.5 + smooth(0.5, 0.36, big) * 0.7 + smooth(0.47, 0.33, mid) * 0.35 + north * 0.5, 0, 1), cr = smooth(0.52, 0.66, big) * (1 - hol);
+      c.lerp(soil, dk * 0.4); c.multiplyScalar(1 - 0.2 * dk); c.lerp(dust, cr * 0.5); c.multiplyScalar(1 + 0.07 * cr); }
     // (site8/world8) rock: the risers only in outcrops (oc), not a pale line along each; bare slabs here and there off them
     const oc = HN3(x / 21 + 1, z / 21 + 9, 2);
     const rk = clamp(smooth(0.95, 0.8, ny) * (0.3 + 1.1 * oc) + smooth(10, 26, y0[k]) * 0.5 + smooth(0.74, 0.86, HN2(x / 13 - 5, z / 13 + 3, 2)) * 0.55, 0, 1);

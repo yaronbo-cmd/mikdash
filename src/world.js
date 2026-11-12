@@ -69,7 +69,7 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // in the valley bottoms and the orchards (was a spring green)
 // ── look B ── (the owner: "a rocky Jerusalem hill, not a lawn") the tones dry straw and ochre, the valley bottoms a dry olive; the
 // rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
-const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#968F63'), orchard: new THREE.Color('#9C9866') };
+const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#968F63'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262') };
 export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── look B ── (cm: the city's mask, when the caller has it) ── /look B ──
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
@@ -79,6 +79,10 @@ export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── 
   c.lerp(TC.dust, cm * 0.78);
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
+  // ── look B review H3 ── the broad tone (40–120 amot) the Mount's hill has too: darker, redder earth in patches, paler dusty crowns
+  // (not in the city) ── /look B ──
+  const big = NC(x / 90 + 7, z / 90 - 3, 3), dk = smooth(0.5, 0.34, big) * (1 - cm), cr = smooth(0.54, 0.7, big) * (1 - cm);
+  c.lerp(TC.soil, dk * 0.4); c.multiplyScalar(1 - 0.16 * dk); c.lerp(TC.dust, cr * 0.4);
   return c;
 }
 // ── look B ── the ground's two vertex values (look/ground.js aGr): x the rock's bias (outcrops in patches of 30–80 amot, none in the

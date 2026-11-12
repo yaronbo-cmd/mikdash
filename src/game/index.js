@@ -652,6 +652,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function idleFact(t) {
     if (!factAt) { factAt = t; return; }
     if (G.ftue < 99 || whole || momentBusy || opening || overlay || ui.busy || hero.busy || tNow() < camHold || t - factAt < 150000 * F || tNow() - hero.lastImpact < 25 * F) return;   // ── flow10 ── (camHold: never over the corner stone's delivery or a course's beat)
+    if (H9 && H9.acting && H9.acting()) return;   // ── h120 ── (never over a director's act, film or ending: it waits for the walk after it) ── /h120 ──
     factAt = t;
     const f = nextFact(''); if (!f) return;
     emit('fact', { id: f.id, at: 'idle' });
@@ -2403,10 +2404,26 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (c.id === 'har' && G.ftue < 99) ftueTo(6);
     // ── flow10 ── (GAMES10's hook) an in-between game's invitation after a stage's cards: at most once a day, never in the
     // first-time flow or the demo; it shows nothing when not due (resolves when its card closes)
+    // ── h120 ── (stage 05: never over the closing card or the finished court's first moments — it waits for the player's own first
+    // move after the card (a touch, a key, the wheel), then a few calm seconds, and opens only when nothing else is up) ── /h120 ──
+    if (c.id === 'nashim') { const P = parts().games; if (P && typeof P.invite === 'function' && !reelOn() && G.ftue >= 99 && !whole) h120Invite(P); }
+    else   // ── h120 ── ── /h120 ──
     { const P = parts().games; if (P && typeof P.invite === 'function' && !reelOn() && G.ftue >= 99 && !whole) { try { await P.invite(G); } catch (e) { /* GAMES10's */ } } }
     const r = S.recommend(G);
     if (r.id && !whole && !(G.demo && HD.HIGHLIGHTS.some((h) => h.id === c.id))) W.focus(r.id);   // ── hooks ── (QA P2-20) the demo keeps a highlight's own shot until the next press
   }
+  // ── h120 ──
+  function h120Invite(P) {
+    const evs = ['pointerdown', 'keydown', 'wheel'];
+    const moved = () => { for (const e of evs) removeEventListener(e, moved, true); setTimeout(calm, 3500); };
+    const calm = () => {
+      let busy = false; try { busy = !!(momentBusy || opening || overlay || ui.busy || hero.busy || whole) || !!(H9 && H9.acting && H9.acting()); } catch (e) { /* */ }
+      if (busy) { setTimeout(calm, 2000); return; }
+      Promise.resolve().then(() => P.invite(G)).catch(() => { /* GAMES10's */ });
+    };
+    setTimeout(() => { for (const e of evs) addEventListener(e, moved, true); }, 400);   // (the touch that closed the card is not his move)
+  }
+  // ── /h120 ──
   async function finale() {
     G.celeb = true; persist();
     sfx.play('fanfare'); sfx.ambience('crowd');

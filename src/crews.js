@@ -1054,15 +1054,43 @@ export function createCrews(ctx = {}) {
   // ── h112 ── (stage 03, the owner's rule 19: nothing between the eye and the work) rects a director's act keeps clear of the
   // crews: a worker whose way takes him in steps out to its nearest edge (x0 z0 x1 z1)
   let KEEP = [];
-  function keepOut(list) { KEEP = (list || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)).slice(0, 6); }
+  function keepOut(list, opt) { KEEP = (list || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)).slice(0, 6); OFF.on = !!(opt && opt.walkOff) && KEEP.length > 0; if (!OFF.on) offRelease(); }   // ── h120 ── (opt.walkOff) ── /h120 ──
   function keepClear(w) {
     const a = w.a; if (!a) return;
     for (const r of KEEP) {
       if (a.x <= r[0] || a.x >= r[2] || a.z <= r[1] || a.z >= r[3]) continue;
       const d = [a.x - r[0], r[2] - a.x, a.z - r[1], r[3] - a.z], m = Math.min(...d), k = d.indexOf(m);
       if (k === 0) a.x = r[0] - 0.05; else if (k === 1) a.x = r[2] + 0.05; else if (k === 2) a.z = r[1] - 0.05; else a.z = r[3] + 0.05;
+      if (OFF.on) offHold(w, k);   // ── h120 ── ── /h120 ──
     }
   }
+  // ── h120 ── (stage 05: a man whose way runs into an act's ground has no job there in that moment: he does not wait at its edge
+  // in a clump but walks off, to a place of his own outside it (1.2 amot and more from the others), and takes up his way again when
+  // the act ends. Only when the act asks for it (keepOut(rects, { walkOff: true })): the earlier stages keep their own rule.)
+  const OFF = { on: false, held: [] };
+  const inKeepAny = (x, z, m) => KEEP.some((r) => x > r[0] - m && x < r[2] + m && z > r[1] - m && z < r[3] + m);
+  function offHold(w, k) {
+    const a = w.a;
+    if (w.h120 && w.h120.at && !inKeepAny(w.h120.at[0], w.h120.at[1], 0.4)) return;   // (his place is set, outside: he is on his way there)
+    if (!w.h120) { const p = a.path && a.path[a.path.length - 1]; w.h120 = { to: w.leaving ? null : p ? [p[0], p[1]] : Number.isFinite(w.x) && Number.isFinite(w.z) ? [w.x, w.z] : null }; OFF.held.push(w); }   // (one leaving the site goes out this way and fades there, as he would have at his own way's end)
+    // the nearest place outside every rect that a straight walk reaches without crossing one (rects meet: their seams trap a man),
+    // out from the edge it met first, 1.3 amot and more from every man walked off before him (a fixed search: nothing random)
+    const nx = k === 0 ? -1 : k === 1 ? 1 : 0, nz = k === 2 ? -1 : k === 3 ? 1 : 0, a0 = Math.atan2(nz, nx);
+    const segOk = (x, z) => { const L = Math.hypot(x - a.x, z - a.z), n = Math.ceil(L / 0.5); for (let i = 1; i <= n; i++) { const u = i / n; if (inKeepAny(a.x + (x - a.x) * u, a.z + (z - a.z) * u, 0.1)) return false; } return true; };
+    const crowd = (x, z) => OFF.held.some((o) => o !== w && o.h120 && o.h120.at && Math.hypot(o.h120.at[0] - x, o.h120.at[1] - z) < 1.3);
+    let at = null;
+    for (let d = 3; d <= 24 && !at; d += 1.5) for (let j = 0; j < 16 && !at; j++) {
+      const t = a0 + (j % 2 ? 1 : -1) * Math.ceil(j / 2) * (Math.PI / 8), x = a.x + Math.cos(t) * d, z = a.z + Math.sin(t) * d;
+      if (!inKeepAny(x, z, 0.4) && !crowd(x, z) && segOk(x, z)) at = [x, z];
+    }
+    if (!at) { a.visT = 0; w.h120.hid = 1; if (w.leaving) a.onHide = () => { w.dead = true; }; at = [a.x, a.z]; }   // (nowhere to walk: he is not drawn standing at the edge)
+    w.h120.at = at; walkTo(w, at[0], at[1], 2.6);
+  }
+  function offRelease() {
+    for (const w of OFF.held) if (w.h120) { const t = w.h120.to; if (w.h120.hid && !w.leaving && w.a) w.a.visT = 1; w.h120 = null; if (t && !w.leaving && w.a && w.a.alive !== false) { if (w.st === 'work') w.st = 'goto'; walkTo(w, t[0], t[1], 2.6); } }
+    OFF.held.length = 0;
+  }
+  // ── /h120 ──
   // ── /h112 ──
   function update(dt) {
     if (!(dt > 0)) dt = 0;
@@ -1109,6 +1137,7 @@ export function createCrews(ctx = {}) {
     for (let i = people.length - 1; i >= 0; i--) {
       const w = people[i];
       if (w.gone) continue;
+      if (w.h120 && OFF.on && !w.leaving) { if (!w.a.path && w.h120.at) { w.a.armT[0] = w.a.armT[2] = 0.05; w.a.bowT = 0; } continue; }   // ── h120 ── (walked off an act's ground: he waits there, idle) ── /h120 ──
       if (site20Yield(w, dt, LIFE.craft)) continue;   // ── site20 ── (the crowd before the piece) ── /site20 ──
       try { personUpdate(w, dt, cSite, cx, cy, cz); } catch (e) { warn(e); }
     }

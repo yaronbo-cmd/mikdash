@@ -508,7 +508,7 @@ export function createFilm(X, opt = {}) {
 
   function frame(dt) {
     if (!F.live) return;
-    F.t += dt; rig.apply(); for (const h of F.hid || []) { h[0].vis = 0; h[0].visT = 0; }
+    F.t += dt; rig.apply(); for (const h of F.hid || []) { h[0].vis = 0; h[0].visT = 0; } for (const h of F.hidP || []) { h[0].vis = 0; h[0].visT = 0; }
     camFrame(); dance(dt);
     const px = innerHeight / (2 * Math.tan((X.camera.fov * Math.PI / 180) / 2));
     F.fl.frame(F.t, X.camera, px); F.arcs.frame(px, F.t);
@@ -547,6 +547,8 @@ export function createFilm(X, opt = {}) {
   function worldPeople(off) {
     if (off) {
       F.hid = []; for (const a of (A && A.list) || []) if (!F.figs.includes(a)) { F.hid.push([a, a.vis, a.visT]); a.vis = 0; a.visT = 0; }
+      // (and the loose things the crews set down — a stone, a chisel on it, whose bright bevel read as a pale glow on a dark block in shot 5: no fire)
+      F.hidP = []; for (const p of (A && A.props) || []) { F.hidP.push([p, p.vis, p.visT]); p.vis = 0; p.visT = 0; }
       try { const c = X.stages.crowd; if (c && c.setEnabled) { c.setEnabled(false); F.crowdOff = true; } } catch (e) { /* */ }
       try { if (X.hero && X.hero.show) { X.hero.show(false); F.heroOff = true; } } catch (e) { /* */ }
       // the day's doves and flocks sleep at night (the world's animals: hidden, restored as they were)
@@ -555,6 +557,7 @@ export function createFilm(X, opt = {}) {
     } else {
       for (const o of F.anim || []) o.visible = true; F.anim = [];
       for (const [a, v, vt] of F.hid || []) { a.vis = v; a.visT = vt; } F.hid = [];
+      for (const [p, v, vt] of F.hidP || []) { p.vis = v; p.visT = vt; } F.hidP = [];
       try { if (F.crowdOff) X.stages.crowd.setEnabled(true); } catch (e) { /* */ } F.crowdOff = false;
       try { if (F.heroOff) X.hero.show(true); } catch (e) { /* */ } F.heroOff = false;
     }
@@ -575,7 +578,9 @@ export function createFilm(X, opt = {}) {
     stop();
     F.snapAfter = lightSnap(X);
     try { globalThis.__H120_FILM = { before: F.snapBefore, after: F.snapAfter, equal: F.snapBefore === F.snapAfter, skipped: F.skip, t: +F.t.toFixed(2) }; } catch (e) { /* */ }
-    X.shot([138, 62, 96], [80, 12, 18], 0.01); X.shot([132, 58, 90], [78, 12, 16], 4.2); ov.bars(false); ov.dip(false); document.body.classList.remove('h120-film');
+    // (the wide morning shot: cut to it and let a frame show it before the slow push in — a skip ends mid-shot and the push alone eased
+    //  out of the night's camera; and again after the night's heavy teardown, so a long first frame cannot leave it half-way)
+    X.shot([138, 62, 96], [80, 12, 18], 0.01); await X.wait(0.1); X.shot([138, 62, 96], [80, 12, 18], 0.01); await X.wait(0.1); X.shot([132, 58, 90], [78, 12, 16], 4.2); ov.bars(false); ov.dip(false); document.body.classList.remove('h120-film');
     ov.end('עזרת הנשים נבנתה', 'והקיפוה כצוצרה, שהנשים רואות מלמעלן, והאנשים מלמטן (מדות ב, ה)'); await X.wait(4.2); ov.end('');
     if (opt.again) { ov.again(true); await new Promise((r) => { const f = () => { removeEventListener('pointerdown', f, true); r(); }; addEventListener('pointerdown', f, true); }); ov.again(false); }
     await X.wait(0.6); ov.remove(); ov = null;

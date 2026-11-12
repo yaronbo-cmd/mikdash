@@ -246,7 +246,9 @@ export const MIKVEH = {
       if (A.cutTo >= A.cutLen - 1e-6) { A.cutK = null; groovesDraw(); qm.forEach((w) => { if (w) w.role = 'hold'; }); idleMen(); }
     }
     /** while the water runs the quarrymen step off the frame: to the chamber's far north-east corner, apart */
-    function offMen() { qm.forEach((w, k) => { if (!w) return; w.role = 'hold'; w.a.x = CHAMBER.x1 - 1.4 - k * 1.8; w.a.z = CHAMBER.z0 + 1.3; w.a.yaw = Math.PI; pose(w, 0.1, 0); }); }
+    function offMen() { qm.forEach((w, k) => { if (!w) return; w.role = 'hold'; w.a.x = CHAMBER.x1 - 1.4 - k * 1.8; w.a.z = CHAMBER.z0 + 1.3; w.a.yaw = Math.PI; pose(w, 0.1, 0); });
+      // (and the kohen with them, a third apart: never cut by the run shot's lower edge)
+      if (kf && !A.pourTo) { kf.a.x = CHAMBER.x1 - 1.4 - qm.length * 1.8; kf.a.z = CHAMBER.z0 + 1.3; kf.a.yaw = Math.PI; pose(kf, 0.1, 0, null); } }
     function idleMen() { const sd = hol[0] - 3.6 < CHAMBER.x0 + 0.8 ? 1 : -1; qm.forEach((w, k) => { if (!w) return; const q = [hol[0] + sd * (2.3 + k * 1.5), hol[1] + 0.2 - k * 0.4];   // (beside the hollow, off the way south)
       w.role = 'hold'; w.a.x = q[0]; w.a.z = q[1]; w.a.yaw = Math.atan2(hol[0] - q[0], hol[1] - q[1]); pose(w, 0.1, 0); }); }
 

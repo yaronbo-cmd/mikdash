@@ -309,6 +309,8 @@ function sawFrame(dt) {
     const st = Math.sin(S.t * Math.PI * 2 / 1.1);   // (one stroke each way in 1.1 s: the blade travels across the beam)
     S.blade.position.z = S.z + st * 0.45; S.blade.position.y = S.top + 0.62 - d;
     for (const w of S.men) { w.a.z = S.z + Math.sign(w.a.z - S.z) * (1.75 + 0.3 * st * Math.sign(w.a.z - S.z)); }
+    // (an act's men near the saw beam (SH5.sawKeep: the carry's bearers): a sawyer within 1.5 of one steps 1.4 back along it, 1.2 amot apart at the least)
+    for (const w of S.men) { if (w.x0 == null) w.x0 = w.a.x; const K = SH5.sawKeep, near = !!K && K.some((b) => b && b.a && b.a.alive !== false && Math.hypot(b.a.x - w.x0, b.a.z - w.a.z) < 1.5); w.a.x = w.x0 - (near ? 1.4 : 0); }
     if (Math.abs(st) > 0.98 && (S.t % 1.1) < dt * 2) X.dust(S.cutX, S.top + 0.3, S.z, 2, 0.6);
     if (u >= 1) { S.phase = 'drop'; S.t = 0; S.offV = 0; X.play('thud'); }
   } else if (S.phase === 'drop') {
@@ -520,7 +522,7 @@ export function disposeChip() { try { if (SH5.chip) SH5.chip.remove(); } catch (
 /* ───────── the camera: an act's close shots (OrbitControls' far limit gives way), the crews kept out of its ground ───────── */
 export function keep(X, rects) {
   try { if (X.view && X.view.closeCam) X.view.closeCam(!!(rects && rects.length), 'h120-act'); } catch (e) { /* */ }
-  try { if (X.stages.keepOut) X.stages.keepOut(rects || []); } catch (e) { /* */ }
+  try { if (X.stages.keepOut) X.stages.keepOut(rects || [], { walkOff: true }); } catch (e) { /* */ }   // (walkOff: whoever's way runs into it walks off, no clump at its edge)
   try { if (X.stages.craneOff) X.stages.craneOff(!!(rects && rects.length)); } catch (e) { /* */ }
 }
 
@@ -588,6 +590,7 @@ function coneMeshes() { return [].concat(SH5.site ? SH5.site.all : [], SH5.yard 
 /** (each beat, and after a rebuild) walk out / hide what stands in the cone; bring back what no longer does */
 export function coneApply() {
   const C = SH5.cone, scaf = new Set();
+  if (C && C.reKeep) { C.reKeep = 0; keep(SH5.X, C.rects); }
   if (C) C.live = C.noLive ? null : liveCone(C);
   const lad = new Set(); if (C) for (const o of SH5.lad || []) if (o.userData.lad && !C.skip.has(o) && meshIn(o)) lad.add(o.userData.lad);
   if (C) for (const o of coneMeshes()) if (o.userData.scaf && !C.skip.has(o) && meshIn(o)) scaf.add(o.userData.scaf);
@@ -638,7 +641,7 @@ export function viewCone(X, shots, opt = {}) {
   }
   C.rects = rects.slice(0, 6);
   keep(X, C.rects);
-  coneApply();
+  coneApply(); C.reKeep = 1;   // (the director sets its own ground rect right after make(): the next beat sets the act's again)
 }
 /** (the director sets its own ground rect after make(): an act calls this again in its begin()) */
 export function coneKeep(X) { if (SH5.cone) keep(X, SH5.cone.rects); }

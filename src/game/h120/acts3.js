@@ -55,6 +55,8 @@ export const CARRY = {
     box(X, M.h5cedarD, -cut / 2 - 0.005, -HB / 2, -HW, -cut / 2 + 0.01, HB / 2, HW, beamG); box(X, M.h5cedarD, cut / 2 - 0.01, -HB / 2, -HW, cut / 2 + 0.005, HB / 2, HW, beamG);
     const kohen = SH5.crew.add(s.f[0], s.f[1] + 0.6, { role: 'hold', crew: 2, variant: 'kohen', tunic: '#FFFFFF', col2: '#2E1E12' }), worker = SH5.crew.add(s.r[0], s.r[1] + 0.6, { role: 'hold', crew: 2 });
     for (const w of [kohen, worker]) if (w) { w.fx = null; crew.push(w); }
+    // (the yard's sawyers keep 1.2 amot and more from the bearers: one who stands too near steps back along the saw beam for the act)
+    SH5.sawKeep = [kohen, worker];
     const gm = new T.MeshBasicMaterial({ color: 0x4FC46A, transparent: true, opacity: 0.22, depthWrite: false });
     { const [x0, z0, x1, z1] = mk.rect, fill = box(X, gm, x0, FL + 0.01, z0, x1, FL + 0.02, z1); fill.renderOrder = 2; all.push(fill);
       for (const r of [[x0, z0, x1, z0 + 0.12], [x0, z1 - 0.12, x1, z1], [x0, z0, x0 + 0.12, z1], [x1 - 0.12, z0, x1, z1]]) { const e = box(X, M.h5green, r[0], FL + 0.012, r[1], r[2], FL + 0.025, r[3]); e.renderOrder = 3; all.push(e); } }
@@ -581,7 +583,7 @@ export const CARRY = {
         for (const o of all) { if (o && o.dispose && !o.isObject3D) o.dispose(); else if (o) PR.remove(o); }
         for (const w of crew) SH5.crew.remove(w); for (const l of labs) l.remove();
         for (const si of A.scafDown) scafShow(si, true);
-        X.hand(null); viewCone(X, null); SH5.busy = 0; own('__yard', 0); SH5.ambKey = '';
+        X.hand(null); viewCone(X, null); SH5.busy = 0; own('__yard', 0); SH5.ambKey = ''; SH5.sawKeep = null;
         try { delete window.__H120C; } catch (e) { /* */ }
       },
       at() { return V3(X, (s.f[0] + s.r[0]) / 2, FL + 2, (s.f[1] + s.r[1]) / 2); },

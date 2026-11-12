@@ -48,7 +48,8 @@ export const PLANKS = {
 
     /* ── the crews on both sides: two men a bay, a plank every so often, the knock of the mallet ── */
     const gal = (w) => { if (w) { w.a.ground = () => Y.GFLOOR; w.a.y = Y.GFLOOR; w.fx = null; } return w; };
-    NEIGH.forEach(([a0, a1], b) => { for (let k = 0; k < 2; k++) { const w = gal(SH5.crew.add(a0 + 2.5 + k * 5.5, RUN.wall - 1.4 - k * 1.6, { role: 'hammer', item: 'mallet', crew: b + 1 })); if (w) { w.fx = w.a.x; w.fz = RUN.wall - 3; crew.push(w); } } });
+    // ── h120 ── (the men work the bays' far halves, wholly off the bay shot's sides (its edges about 8.3 from the middle): never cut by a frame edge) ── /h120 ──
+    NEIGH.forEach(([a0, a1], b) => { for (let k = 0; k < 2; k++) { const w = gal(SH5.crew.add(b ? a1 - 1.8 - k * 3 : a0 + 1.8 + k * 3, RUN.wall - 1.4 - k * 1.6, { role: 'hammer', item: 'mallet', crew: b + 1 })); if (w) { w.fx = w.a.x; w.fz = RUN.wall - 3; crew.push(w); } } });
     // the man below who hands each plank up (at the bay's middle, on the court under the beam's edge)
     const hander = SH5.crew.add((X0 + X1) / 2 + 3.2, OUT - 2.2, { role: 'hold', crew: 3 }); if (hander) { hander.fx = (X0 + X1) / 2; hander.fz = OUT; crew.push(hander); }
     const crewPl = [];   // [bay, row]

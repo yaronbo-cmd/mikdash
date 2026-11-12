@@ -463,8 +463,8 @@
       if (!B.k.way) {
         B.k.way = a.way.map((w) => w.slice()); B.k.wi = 0;
         // (wrong play: a detour that meets what it should not)
-        if (has('jar')) { const j = { 1: [78.5, 40.5], 2: [66.2, -53.5], 3: [116.2, -21.6] }[a.lvP]; const at = { 1: 2, 2: 2, 3: 4 }[a.lvP]; B.k.way.splice(at, 0, ['f', j[0], j[1]]); }
-        if (has('scaffold') && a.lvP === 3) B.k.way.splice(B.k.way.length - 4, 0, ['f', 128.5, -20], ['f', 128.6, -26.2], ['f', 132.6, -16.5]);
+        if (has('jar') && a.lvP === 1) B.k.way.splice(2, 0, ['f', 78.5, 41.4]);
+        if (has('scaffold') && a.lvP === 3) B.k.way.splice(7, 0, ['f', 130.6, -25.0]);
         if (has('bump') && a.lvP === 1) B.k.way.splice(2, 0, ['f', 70.5, 39.5], ['f', 74.5, 39.6]);
         return { wait: 200, shot: `carry${a.lvP}-start` };
       }

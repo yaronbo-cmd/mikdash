@@ -70,7 +70,7 @@ export const CARRY = {
 
     /* ── the obstacles now: the fixed tables, the lane's sledge and cart where they are, the carriers ── */
     let obsS = null;
-    const obsStatic = () => (obsS = carryObs(lvP, { stands: (id) => X.M.stands(id), jarsBroken: A.jarsBroken, scafDown: A.scafDown, workerAt: A.workerAt }));
+    const obsStatic = () => (obsS = carryObs(lvP, { stands: (id) => X.M.stands(id), jarsBroken: A.jarsBroken, scafDown: A.scafDown, scafHard: A.scafHit, workerAt: A.workerAt }));
     obsStatic();
     function obsNow() {
       const o = obsS.slice(), Ln = SH5.lane && SH5.lane.now;
@@ -185,7 +185,7 @@ export const CARRY = {
     }
     function warn(t) { if (A.warnT > 0) return; A.warnT = 2.5; X.line(t, 1400); X.play('tap'); }
     async function scaffoldDown(si) {
-      if (A.scafDown.has(si)) return;
+      if (A.scafDown.has(si) || A.scafHit.has(si)) return;
       A.scafDown.add(si); obsStatic(); A.dmg++;
       const [x0, z0, x1, z1] = SCAFF[si], cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, legs = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]];
       A.events.push('scaffold' + si);

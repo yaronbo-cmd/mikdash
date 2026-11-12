@@ -145,7 +145,7 @@ export function carryObs(lv, o = {}) {
     else { const a = lieAlong(id), x1 = c.x + a[0] * 10.4, z1 = c.z + a[1] * 10.4; out.push({ kind: 'hard', id: 'lie' + id, x0: Math.min(c.x, x1) - 0.8, z0: Math.min(c.z, z1) - 0.8, x1: Math.max(c.x, x1) + 0.8, z1: Math.max(c.z, z1) + 0.8 }); }
   }
   PILES.forEach(([x, z], i) => out.push({ kind: 'hard', id: 'pile' + i, x0: x - 1.7, z0: z - 0.65, x1: x + 2.0, z1: z + 0.65 }));
-  SCAFF.forEach(([x0, z0, x1, z1], si) => { if (o.scafDown && o.scafDown.has(si)) return; for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1]]) out.push({ kind: 'scaffold', id: 'sc' + si, c: [x, z], r: 0.15 }); });
+  SCAFF.forEach(([x0, z0, x1, z1], si) => { if (o.scafDown && o.scafDown.has(si)) return; for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1]]) out.push({ kind: o.scafHard && o.scafHard.has(si) ? 'hard' : 'scaffold', id: 'sc' + si, c: [x, z], r: 0.15 }); });   // (set up again after a fall: now it only stops the beam)
   LADDERS.forEach(([x, z, fx, fz], i) => { const d = Math.hypot(fx - x, fz - z) || 1, ux = (fx - x) / d, uz = (fz - z) / d; out.push({ kind: 'hard', id: 'lad' + i, c: [x + ux * 0.3, z + uz * 0.3], r: 0.45 }); });
   // the yard: his two trestles, the sawyers' two trestles and their beam, the stock along the wood chamber's wall
   for (const x of [YARD.his.x0 + 2, YARD.his.x1 - 2]) out.push({ kind: 'hard', id: 'tr' + x, x0: x - 0.5, z0: YARD.his.z - 1.1, x1: x + 0.5, z1: YARD.his.z + 1.1 });

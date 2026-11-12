@@ -38,7 +38,7 @@ export function nightRig(X, look = 'night') {
     fog: S.fog ? { c: S.fog.color.clone(), n: S.fog.near, f: S.fog.far, d: S.fog.density } : null,
     bg: S.background, envI: S.environmentIntensity, exp: R ? R.toneMappingExposure : null, dome: dome.map((d) => [d, d.visible]),
   };
-  const bg = new T.Color('#03050C'), fogC = new T.Color('#05070F');
+  const bg = new T.Color('#03050C'), fogC = new T.Color('#05070F'), fogMoon = new T.Color('#141B2C');
   const eveSun = new T.Color('#FF9E58'), eveSky = new T.Color('#A88A80'), eveGnd = new T.Color('#4A3424'), eveFog = new T.Color('#D8A07A');
   // the stars: a fixed field on a far dome (no randomness at play time)
   const N = 1400, pos = new Float32Array(N * 3);
@@ -48,6 +48,7 @@ export function nightRig(X, look = 'night') {
   stars.frustumCulled = false; stars.renderOrder = -10;
   let on = false;
   const api = {
+    moon: 0,   // (0 … 1: a faint moonlight that lets roofs and walls read as blue-black shapes far off: the city shot)
     on() { on = true; if (!EVE) S.add(stars); api.apply(); },
     apply() {
       if (!on) return;
@@ -62,11 +63,11 @@ export function nightRig(X, look = 'night') {
         return;
       }
       for (const s of saved.L) {
-        if (s.l.isDirectionalLight) { s.l.intensity = 0.06; s.l.color.set('#5468A8'); }
-        else if (s.l.isHemisphereLight) { s.l.intensity = 0.16; s.l.color.set('#1C2A58'); s.l.groundColor.set('#0A0908'); }
+        if (s.l.isDirectionalLight) { s.l.intensity = 0.06 + 0.5 * api.moon; s.l.color.set('#5468A8'); }
+        else if (s.l.isHemisphereLight) { s.l.intensity = 0.16 + 0.9 * api.moon; s.l.color.set('#1C2A58'); s.l.groundColor.set('#0A0908'); }
         else { s.l.intensity = s.i * 0.05; }
       }
-      if (S.fog) { S.fog.color.copy(fogC); if (S.fog.isFog) { S.fog.near = 90; S.fog.far = 1500; } }
+      if (S.fog) { S.fog.color.copy(fogC).lerp(fogMoon, api.moon); if (S.fog.isFog) { S.fog.near = 90 + 200 * api.moon; S.fog.far = 1500 + 1700 * api.moon; } }
       S.background = bg; S.environmentIntensity = 0.015; if (R) R.toneMappingExposure = 1.05;
       for (const [d] of saved.dome) d.visible = false;
       stars.position.copy(X.camera.position);
@@ -93,13 +94,23 @@ export function lightSnap(X) {
 /* ───────── textures ───────── */
 function canvasTex(T, w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t; }
 function flameTex(T) {
-  return canvasTex(T, 128, 256, (g, w, h) => {
-    // a soft teardrop (blurred: no hard edge reads at any size): hot white at the root, yellow, orange to a smoky tip
-    g.filter = 'blur(9px)';
-    const gr = g.createRadialGradient(w / 2, h * 0.8, 3, w / 2, h * 0.62, h * 0.52);
-    gr.addColorStop(0, 'rgba(255,250,228,1)'); gr.addColorStop(0.22, 'rgba(255,216,128,0.9)'); gr.addColorStop(0.55, 'rgba(255,132,36,0.45)'); gr.addColorStop(1, 'rgba(150,36,0,0)');
-    g.fillStyle = gr; g.beginPath(); g.moveTo(w / 2, 22);
-    g.bezierCurveTo(w * 0.72, h * 0.42, w * 0.86, h * 0.68, w / 2, h - 22); g.bezierCurveTo(w * 0.14, h * 0.68, w * 0.28, h * 0.42, w / 2, 22); g.fill();
+  return canvasTex(T, 128, 192, (g, w, h) => {
+    // a teardrop: round at the root, drawn up to a point (a light blur only: the shape reads), hot at the root, cooler to the tip
+    g.filter = 'blur(3px)';
+    const gr = g.createRadialGradient(w / 2, h * 0.78, 2, w / 2, h * 0.6, h * 0.5);
+    gr.addColorStop(0, 'rgba(255,252,236,1)'); gr.addColorStop(0.3, 'rgba(255,220,140,0.95)'); gr.addColorStop(0.7, 'rgba(255,140,40,0.55)'); gr.addColorStop(1, 'rgba(200,60,0,0)');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(w / 2, 10);
+    g.bezierCurveTo(w * 0.6, h * 0.36, w * 0.9, h * 0.62, w * 0.82, h * 0.8); g.bezierCurveTo(w * 0.74, h * 0.97, w * 0.26, h * 0.97, w * 0.18, h * 0.8);
+    g.bezierCurveTo(w * 0.1, h * 0.62, w * 0.4, h * 0.36, w / 2, 10); g.fill();
+  });
+}
+/** a licking tongue: a thin curved wisp that leaves the flame and dies */
+function tongueTex(T) {
+  return canvasTex(T, 64, 128, (g, w, h) => {
+    g.filter = 'blur(2px)';
+    const gr = g.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, 'rgba(255,230,160,1)'); gr.addColorStop(0.5, 'rgba(255,150,50,0.8)'); gr.addColorStop(1, 'rgba(220,70,0,0)');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(w * 0.55, 6);
+    g.bezierCurveTo(w * 0.85, h * 0.4, w * 0.75, h * 0.75, w * 0.62, h - 8); g.lineTo(w * 0.38, h - 8); g.bezierCurveTo(w * 0.3, h * 0.7, w * 0.45, h * 0.4, w * 0.55, 6); g.fill();
   });
 }
 function glowTex(T) { return canvasTex(T, 64, 64, (g, w) => { const gr = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(255,200,120,1)'); gr.addColorStop(0.3, 'rgba(255,150,60,0.45)'); gr.addColorStop(1, 'rgba(255,90,20,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, w); }); }
@@ -131,50 +142,97 @@ function candelabrum(T, gold, x, z) {
 }
 
 /* ───────── flames: three additive layers a bowl, each its own noise ───────── */
-function flames(T, bowls, ftex, gtex) {
+function flames(T, bowls, ftex, gtex, ttex) {
   const g = new T.Group(), L = [];
+  // (the bowl is two amot across: the flame stands at most about three, its tongues lick a little over and die)
+  const SP = 4, sparks = softPoints(T, bowls.length * SP, gtex, [1.0, 0.75, 0.4]); g.add(sparks.pts);
   bowls.forEach((p, i) => {
-    const layers = [['#FFF2C8', 0.55, 1.5], ['#FFB040', 0.95, 2.4], ['#FF6A18', 1.35, 3.1]].map(([c, w, h], k) => {
-      const s = new T.Sprite(new T.SpriteMaterial({ map: ftex, color: c, blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.9 - k * 0.2, fog: false }));
-      s.center.set(0.5, 0.06); g.add(s); return { s, w, h, k };
+    const layers = [['#FFF4D8', 0.62, 1.0], ['#FFB848', 1.05, 1.75], ['#FF7020', 1.5, 2.45]].map(([c, w, h], k) => {
+      const s = new T.Sprite(new T.SpriteMaterial({ map: ftex, color: c, blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.95 - k * 0.22, fog: false }));
+      s.center.set(0.5, 0.04); g.add(s); return { s, w, h, k };
+    });
+    const tongues = [0, 1, 2].map((j) => {
+      const s = new T.Sprite(new T.SpriteMaterial({ map: ttex, color: j === 1 ? '#FFC060' : '#FF8A30', blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0, fog: false }));
+      s.center.set(0.5, 0.0); g.add(s); return { s, per: 0.62 + hh(i * 7 + j) * 0.5, ph: hh(i * 3 + j * 5), off: (hh(i * 11 + j) - 0.5) * 0.7 };
     });
     const halo = new T.Sprite(new T.SpriteMaterial({ map: gtex, color: '#FFB866', blending: T.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.55, fog: false })); g.add(halo);
-    L.push({ p, layers, halo, ph: i * 1.618 + 0.3, on: 0 });
+    L.push({ p, i, layers, tongues, halo, ph: i * 1.618 + 0.3, on: 0 });
   });
   return {
     g, L,
-    frame(t, cam) {
+    frame(t, cam, px) {
       for (const f of L) {
-        const k = f.on; f.halo.visible = k > 0.01;
+        const k = f.on, vis = k > 0.01; f.halo.visible = vis;
         for (const y of f.layers) {
-          const n1 = noise(t * (2.1 + y.k * 0.7) + f.ph * 9 + y.k * 13), n2 = noise(t * 5.3 + f.ph * 3 + y.k * 7);
-          const h = y.h * k * (0.8 + 0.45 * n1), w = y.w * k * (0.85 + 0.3 * n2);
-          y.s.visible = k > 0.01; y.s.scale.set(Math.max(0.01, w), Math.max(0.01, h), 1);
-          y.s.position.set(f.p.x + (n2 - 0.5) * 0.18 * y.k, f.p.y - 0.05, f.p.z + (n1 - 0.5) * 0.18 * y.k);
+          // each layer its own breath; the core steadier than the outer flame
+          const n1 = noise(t * (2.6 + y.k * 0.9) + f.ph * 9 + y.k * 13), n2 = noise(t * 6.1 + f.ph * 3 + y.k * 7);
+          const h = y.h * k * (0.86 + 0.24 * n1), w = y.w * k * (0.9 + 0.16 * n2);
+          y.s.visible = vis; y.s.scale.set(Math.max(0.01, w), Math.max(0.01, h), 1);
+          y.s.position.set(f.p.x + (n2 - 0.5) * 0.12 * y.k, f.p.y - 0.05, f.p.z + (n1 - 0.5) * 0.12 * y.k);
+          y.s.material.rotation = (n2 - 0.5) * 0.12 * (1 + y.k);
         }
-        const cd = cam ? cam.position.distanceTo(f.p) : 40, near = clamp((cd - 4) / 26, 0.18, 1), hs = 6.0 * k * near * (0.9 + 0.2 * noise(t * 3 + f.ph)); f.halo.scale.set(hs, hs, 1); f.halo.material.opacity = 0.5 * near; f.halo.position.set(f.p.x, f.p.y + 1.0, f.p.z);
+        // the tongues: each leaves the flame's side, rises a little over its tip, thins and fades, then again
+        for (const q of f.tongues) {
+          const u = ((t / q.per) + q.ph) % 1, a = Math.sin(u * Math.PI);
+          q.s.visible = vis; q.s.material.opacity = vis ? a * 0.6 * k : 0;
+          q.s.scale.set(Math.max(0.01, (0.36 - 0.22 * u) * k), Math.max(0.01, (0.7 - 0.3 * u) * k), 1);
+          q.s.position.set(f.p.x + q.off * (1 - u * 0.6), f.p.y + (0.5 + u * 1.25) * k, f.p.z + q.off * 0.4);
+          q.s.material.rotation = q.off * 0.6 * (1 - u);
+        }
+        // a few sparks rising from the bowl, each on its own clock
+        for (let j = 0; j < SP; j++) {
+          const per = 1.4 + hh(f.i * 5 + j) * 1.2, u = ((t / per) + hh(f.i * 13 + j * 3)) % 1, o = f.i * SP + j;
+          sparks.set(o, f.p.x + Math.sin(u * 5 + j) * 0.35 * u + (hh(j + f.i) - 0.5) * 0.6, f.p.y + 1.2 + u * 4.2, f.p.z + Math.cos(u * 4 + j) * 0.3 * u, vis ? (1 - u) * (1 - u) * 0.9 * k : 0, 0.16);
+        }
+        const cd = cam ? cam.position.distanceTo(f.p) : 40, near = clamp((cd - 4) / 26, 0.18, 1), hs = 4.6 * k * near * (0.92 + 0.16 * noise(t * 3 + f.ph)); f.halo.scale.set(hs, hs, 1); f.halo.material.opacity = 0.45 * near; f.halo.position.set(f.p.x, f.p.y + 0.9, f.p.z);
       }
+      sparks.frame(px);
     },
   };
 }
 
-/* ───────── torches' arcs: the last points of every torch, drawn as soft points that fade along the trail ───────── */
-function arcs(T, n, len, gtex) {
-  const N = n * len, pos = new Float32Array(N * 3), al = new Float32Array(N), sz = new Float32Array(N);
+/** soft additive points whose size is in amot (a world size, so they shrink with distance): set(i, x, y, z, alpha, size) */
+function softPoints(T, n, gtex, tint = [1, 0.86, 0.6], gain = 1.6) {
+  const pos = new Float32Array(n * 3), al = new Float32Array(n), sz = new Float32Array(n);
   const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aA', new T.BufferAttribute(al, 1)); g.setAttribute('aS', new T.BufferAttribute(sz, 1));
   const m = new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, uniforms: { uMap: { value: gtex }, uPx: { value: 600 } },
-    vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA * (aS > 12.0 ? 0.32 : 1.0); vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
-    fragmentShader: 'uniform sampler2D uMap; varying float vA; void main(){ vec4 c = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(c.rgb * vec3(1.0, 0.86, 0.6) * vA * 1.6, c.a * vA); }' });
+    vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
+    fragmentShader: `uniform sampler2D uMap; varying float vA; void main(){ vec4 c = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(c.rgb * vec3(${tint.map((v) => v.toFixed(3)).join(',')}) * vA * ${gain.toFixed(2)}, c.a * vA); }` });
   const pts = new T.Points(g, m); pts.frustumCulled = false; pts.renderOrder = 8;
+  return {
+    pts, m, g, pos, al, sz, n,
+    set(i, x, y, z, a, s) { pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; al[i] = a; sz[i] = s; },
+    frame(px) { m.uniforms.uPx.value = px; g.attributes.position.needsUpdate = true; g.attributes.aA.needsUpdate = true; g.attributes.aS.needsUpdate = true; },
+  };
+}
+
+/* ───────── torches' arcs: the last points of every torch, drawn as soft points that fade along the trail ───────── */
+function arcs(T, n, len, gtex, life = 0.8) {
+  // every torch keeps the way it went over the last `life` seconds (points every few fingers, each with its time): the ribbon fades by age
+  const P = softPoints(T, n * len, gtex, [1.0, 0.86, 0.6], 1.6);
   const H = Array.from({ length: n }, () => []);
   return {
-    pts, m,
-    push(i, v) { const h = H[i]; const l = h[h.length - 1]; if (l && l.distanceToSquared(v) < 0.0025) return; if (l) { const d = l.distanceTo(v), k = Math.min(14, Math.floor(d / 0.05)); for (let j = 1; j < k; j++) h.push(l.clone().lerp(v, j / k)); } h.push(v.clone()); while (h.length > len) h.shift(); },
+    pts: P.pts, m: P.m,
+    push(i, v, t) {
+      const h = H[i]; const l = h[h.length - 1];
+      if (l && (v.x - l.x) ** 2 + (v.y - l.y) ** 2 + (v.z - l.z) ** 2 < 0.0016) return;
+      if (l && Math.hypot(v.x - l.x, v.y - l.y, v.z - l.z) < 3) { const d = Math.hypot(v.x - l.x, v.y - l.y, v.z - l.z), k = Math.min(16, Math.floor(d / 0.06)); for (let j = 1; j < k; j++) { const u = j / k; h.push({ x: lerp(l.x, v.x, u), y: lerp(l.y, v.y, u), z: lerp(l.z, v.z, u), t: lerp(l.t, t, u) }); } }
+      else if (l) h.length = 0;   // (a jump: a new ribbon)
+      h.push({ x: v.x, y: v.y, z: v.z, t });
+      while (h.length > len || (h.length && t - h[0].t > life)) h.shift();
+    },
     clear() { for (const h of H) h.length = 0; },
-    frame(px) {
-      m.uniforms.uPx.value = px;
-      for (let i = 0; i < n; i++) { const h = H[i]; for (let j = 0; j < len; j++) { const o = i * len + j, q = h[h.length - 1 - j]; if (q) { pos.set([q.x, q.y, q.z], o * 3); const u = j / len; al[o] = j === 0 ? 1 : (1 - u) * (1 - u) * 0.55; sz[o] = j === 0 ? 1.4 : 0.42 * (1 - u * 0.5); } else al[o] = 0; } }
-      g.attributes.position.needsUpdate = true; g.attributes.aA.needsUpdate = true; g.attributes.aS.needsUpdate = true;
+    frame(px, t) {
+      for (let i = 0; i < n; i++) {
+        const h = H[i]; while (h.length && t - h[0].t > life) h.shift();
+        for (let j = 0; j < len; j++) {
+          const o = i * len + j, q = h[h.length - 1 - j];
+          if (!q) { P.al[o] = 0; continue; }
+          const u = clamp((t - q.t) / life, 0, 1);
+          P.set(o, q.x, q.y, q.z, j === 0 ? 1 : Math.pow(1 - u, 1.4) * 0.7, j === 0 ? 0.8 : 0.34 * (1 - u * 0.4));
+        }
+      }
+      P.frame(px);
     },
   };
 }
@@ -187,10 +245,10 @@ function overlay() {
 .h120f .bar{position:absolute;left:0;right:0;background:#000}
 .h120f .dip{position:absolute;inset:0;background:#000;opacity:1;transition:opacity .5s ease}
 .h120f .card{position:absolute;left:0;right:0;text-align:center;color:#D9C8A6;font:400 15px/1.2 "Frank Ruhl Libre","David","Times New Roman",serif;letter-spacing:.04em;opacity:0;transition:opacity .6s ease}
-.h120f .ttl{position:absolute;left:8%;right:8%;text-align:center;color:#F4E6C8;opacity:0;transition:opacity .6s ease;text-shadow:0 1px 8px rgba(0,0,0,.85)}
-.h120f .ttl b{display:block;font:400 26px/1.35 "Frank Ruhl Libre","David","Times New Roman",serif}
-.h120f .ttl small{display:block;margin-top:6px;font:400 14px/1.2 "Frank Ruhl Libre","David","Times New Roman",serif;color:#BFAE8C}
-.h120f .ttl.big b{font-size:34px}
+.h120f .ttl{position:absolute;left:8%;right:8%;text-align:center;color:#F4E6C8;opacity:0;transition:opacity .6s ease;text-shadow:0 0 3px #000,0 1px 10px rgba(0,0,0,.95),0 0 18px rgba(0,0,0,.7)}
+.h120f .ttl b{display:block;font:400 23px/1.25 "Frank Ruhl Libre","David","Times New Roman",serif}
+.h120f .ttl small{display:block;margin-top:3px;font:400 14px/1.2 "Frank Ruhl Libre","David","Times New Roman",serif;color:#D2C29E}
+.h120f .ttl.big b{font-size:30px}
 .h120f .skip{position:absolute;left:0;right:0;text-align:center;color:rgba(230,215,185,.45);font:400 13px/1 "Frank Ruhl Libre","David",serif;opacity:0;transition:opacity 1s}
 .h120f .end{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);padding:16px 26px;border-radius:14px;background:rgba(255,248,230,.94);color:#4A3008;text-align:center;opacity:0;transition:opacity .8s;box-shadow:0 6px 24px rgba(0,0,0,.3)}
 .h120f .end b{display:block;font:900 24px/1.2 Heebo,system-ui}.h120f .end small{display:block;margin-top:8px;font:700 14px/1.3 Heebo,system-ui;color:#7A5A2A;max-width:70vw}
@@ -200,13 +258,16 @@ function overlay() {
   root.innerHTML = '<div class="bar t"></div><div class="bar b"></div><div class="dip"></div><div class="card"></div><div class="ttl"><b></b><small></small></div><div class="skip">החזק לדילוג</div><div class="end"><b></b><small></small></div><div class="again">הקש לצפייה חוזרת</div>';
   document.body.appendChild(root);
   const $ = (s) => root.querySelector(s);
-  const layout = () => { const W = innerWidth, H = innerHeight, bh = Math.max(0, (H - W / 2.35) / 2); $('.bar.t').style.cssText = `top:0;height:${bh}px`; $('.bar.b').style.cssText = `bottom:0;height:${bh}px`; $('.card').style.top = Math.max(6, bh / 2 - 9) + 'px'; $('.ttl').style.bottom = (bh + H * 0.06) + 'px'; $('.skip').style.bottom = Math.max(6, bh / 2 - 7) + 'px'; return bh; };
+  // the title: in the picture's bottom sixth (each shot keeps that band free), or, for a shot that cannot, centred in the lower bar
+  const LY = { bh: 0, H: 0, bar: false };
+  const placeTitle = () => { const e = $('.ttl'), h = e.offsetHeight || 64; e.style.bottom = (LY.bar && LY.bh > h + 4 ? Math.max(2, (LY.bh - h) / 2) : LY.bh + Math.max(4, LY.H * 0.012)) + 'px'; };
+  const layout = () => { const W = innerWidth, H = innerHeight, bh = Math.max(0, (H - W / 2.35) / 2); $('.bar.t').style.cssText = `top:0;height:${bh}px`; $('.bar.b').style.cssText = `bottom:0;height:${bh}px`; $('.card').style.top = Math.max(6, bh / 2 - 9) + 'px'; LY.bh = bh; LY.H = H; placeTitle(); $('.skip').style.bottom = Math.max(6, bh / 2 - 7) + 'px'; return bh; };
   layout(); addEventListener('resize', layout);
   return {
     root, layout,
     dip(on) { $('.dip').style.opacity = on ? '1' : '0'; },
     card(t) { $('.card').textContent = t || ''; $('.card').style.opacity = t ? '1' : '0'; },
-    title(line, src, big) { const e = $('.ttl'); if (line) { e.querySelector('b').textContent = line; e.querySelector('small').textContent = src || ''; e.classList.toggle('big', !!big); } e.style.opacity = line ? '1' : '0'; },
+    title(line, src, big, bar) { const e = $('.ttl'); if (line) { e.querySelector('b').textContent = line; e.querySelector('small').textContent = src || ''; e.classList.toggle('big', !!big); LY.bar = !!bar; placeTitle(); } e.style.opacity = line ? '1' : '0'; },
     skipHint(on) { $('.skip').style.opacity = on ? '1' : '0'; },
     bars(on) { for (const b of root.querySelectorAll('.bar')) b.style.display = on ? '' : 'none'; },
     end(t, s) { const e = $('.end'); e.querySelector('b').textContent = t || ''; e.querySelector('small').textContent = s || ''; e.style.opacity = t ? '1' : '0'; },
@@ -220,8 +281,8 @@ export const SHOTS = [
   { n: 1, d: 7.0, line: 'במוצאי יום טוב הראשון של חג ירדו לעזרת נשים ומתקנין שם תקון גדול', src: 'סוכה ה, ב' },
   { n: 2, d: 6.0, line: 'ומנורות של זהב היו שם וארבעה ספלים של זהב בראשיהן', src: 'סוכה ה, ב' },
   { n: 3, d: 7.0 },
-  { n: 4, d: 7.0, line: 'חסידים ואנשי מעשה היו מרקדים לפניהם באבוקות של אור שבידיהן', src: 'סוכה ה, ד' },
-  { n: 5, d: 6.0, line: 'שהנשים רואות מלמעלן, והאנשים מלמטן', src: 'מדות ב, ה' },
+  { n: 4, d: 7.5, line: 'חסידים ואנשי מעשה היו מרקדים לפניהם באבוקות של אור שבידיהן', src: 'סוכה ה, ד' },
+  { n: 5, d: 6.0, line: 'שהנשים רואות מלמעלן, והאנשים מלמטן', src: 'מדות ב, ה', bar: true },
   { n: 6, d: 8.0, line: 'ולא הייתה חצר בירושלים שאינה מאירה מאור בית השואבה', src: 'סוכה ה, ג' },
   { n: 7, d: 6.0, line: 'כל מי שלא ראה שמחת בית השואבה לא ראה שמחה מימיו', src: 'סוכה ה, א', big: true },
 ];
@@ -232,7 +293,7 @@ export const SHOTS = [
  */
 export function createFilm(X, opt = {}) {
   const T = X.THREE, S = X.scene, A = X.actors ? X.actors() : null;
-  const F = { t: 0, shot: 0, skip: false, holdT: null, live: false, figs: [], dancers: [], women: [], arcs: null, lights: [], menorahs: [], fl: null, city: null, tool: null };
+  const F = { t: 0, shot: 0, skip: false, holdT: null, live: false, figs: [], posed: [], dancers: [], women: [], arcs: null, lights: [], menorahs: [], fl: null, city: null, tool: null };
   let rig = null, ov = null, snd = null, group = null, gold = null, ftex = null, gtex = null;
   const V = new T.Vector3();
 
@@ -241,7 +302,7 @@ export function createFilm(X, opt = {}) {
     gold = new T.MeshStandardMaterial({ color: '#D6A43C', metalness: 0.9, roughness: 0.28, emissive: '#2A1604', emissiveIntensity: 0.6 });
     ftex = flameTex(T); gtex = glowTex(T);
     for (const [x, z] of MENORAH) { const m = candelabrum(T, gold, x, z); group.add(m.g); F.menorahs.push(m); }
-    F.fl = flames(T, F.menorahs.flatMap((m) => m.bowls), ftex, gtex); group.add(F.fl.g);
+    F.fl = flames(T, F.menorahs.flatMap((m) => m.bowls), ftex, gtex, tongueTex(T)); group.add(F.fl.g);
     // the lights: one a candelabrum (high, wide), one with the dancers' torches, one for the shot (a brand, a torch climbing)
     for (const m of F.menorahs) { const l = new T.PointLight('#FF9A48', 0, 5, 1.6); l.castShadow = false; l.position.copy(m.top).add(new T.Vector3(0, 4.0, 0)); group.add(l); F.lights.push(l); }
     F.torchL = new T.PointLight('#FF8A38', 0, 34, 1.7); F.torchL.castShadow = false; group.add(F.torchL);
@@ -253,37 +314,75 @@ export function createFilm(X, opt = {}) {
   // a figure in near-black (the crews' own figures, their colours taken for the night)
   function fig(variant, x, z, o = {}) {
     if (!A) return null;
-    const a = A.add(variant, x, z, { yaw: o.yaw || 0, col: '#0A0908', col2: '#0A0908', y: o.y, scale: o.scale });
-    a.col.set('#0B0A09'); a.col2.set('#0B0A09'); a.shade = 0.18 + (o.k || 0) * 0.04; a.vis = 1; a.visT = 1;
+    const a = A.add(variant, x, z, { yaw: o.yaw || 0, col: '#0A0908', col2: '#0A0908', y: o.y, scale: o.scale, young: o.young, ground: o.y != null ? () => o.y : undefined });
+    a.col.set('#0B0A09'); a.col2.set('#0B0A09'); a.shade = hh(F.figs.length * 1.37 + 0.2); a.vis = 1; a.visT = 1; a.lookT = 1e9;
     if (o.item) A.setItem(a, o.item);
     F.figs.push(a); return a;
   }
+  /** a figure held in its own pose: arms, bow, knees, head turn and tilt (applied every frame; the sway is added by the caller) */
+  function hold(a, P) { if (!a) return null; const H = { a, arm: P.arm, bow: P.bow || 0, kn: P.kn || 0, hy: P.hy || 0, hp: P.hp || 0, ph: P.ph || 0, sw: P.sw || 0 }; F.posed.push(H); return H; }
+  // the women's stances: hands on the railing, a hand drawn up to the head-cover, arms folded in the mantle, a hand down to a child
+  const STANCE = [
+    { arm: [1.2, -0.12, 1.25, -0.1], bow: 0.12 },
+    { arm: [0.22, 0.06, 2.45, -0.58], bow: 0.04 },
+    { arm: [0.95, -0.42, 0.98, -0.44], bow: 0.07 },
+    { arm: [0.32, 0.38, 1.18, -0.12], bow: 0.1 },
+  ];
   function people() {
     // the dancers: between the candelabra, each his own circle, tempo, phase and order of poses
     const N = 14;
     for (let i = 0; i < N; i++) {
       const cx = 80 + (hh(i * 2.3) - 0.5) * 20, cz = (hh(i * 5.1) - 0.5) * 14, r = 1.2 + hh(i * 1.7) * 2.2;
-      const a = fig(i % 3 === 1 ? 'levite' : 'pilgrim', cx, cz, { item: 'torch', k: i % 3 });
+      const a = fig(i % 3 === 1 ? 'levite' : 'pilgrim', cx, cz, { item: 'torch', k: i % 3, scale: 0.94 + hh(i * 6.1) * 0.12 });
       if (!a) continue;
       const seq = [0, 1, 2, 3, 4].sort((p, q) => hh(i * 11 + p) - hh(i * 11 + q));
-      F.dancers.push({ a, i, cx, cz, r, tempo: 0.55 + hh(i * 3.3) * 0.6, ph: hh(i * 9.1) * 10, dir: hh(i * 4.4) < 0.5 ? 1 : -1, seq, spin: 0 });
+      F.dancers.push({ a, i, cx, cz, r, cx0: cx, cz0: cz, r0: r, tempo: 0.55 + hh(i * 3.3) * 0.6, ph: hh(i * 9.1) * 10, dir: hh(i * 4.4) < 0.5 ? 1 : -1, seq, spin: hh(i * 2.9) * 6 });
     }
-    // the women on the south and north galleries: still, long garments, a slight sway
+    // the women on the south and north galleries: each her own height and build, her own stance, head turned and bowed her own way,
+    // a slow sway in her own phase; here and there a child beside his mother
     for (const side of [1, -1]) for (let k = 0; k < 16; k++) {
       const x = 49 + k * 3.2 + hh(k * 3 + side) * 1.2, z = side * (63.6 + hh(k * 5 + side) * 1.4);
-      const a = fig('woman', x, z, { y: Y.GFLOOR, yaw: side > 0 ? Math.PI : 0, k: 1 }); if (a) F.women.push({ a, ph: hh(k * 7 + side) * 6 });
+      const st = STANCE[(k * 7 + (side > 0 ? 1 : 3)) % 4], child = (side > 0 && (k === 3 || k === 10)) || (side < 0 && k === 6);
+      const a = fig('woman', x, z, { y: Y.GFLOOR, yaw: (side > 0 ? Math.PI : 0) + (hh(k * 13 + side) - 0.5) * 0.5, scale: 0.86 + hh(k * 9 + side * 3) * 0.2 });
+      if (!a) continue;
+      const H = hold(a, { arm: child ? STANCE[3].arm : st.arm, bow: child ? STANCE[3].bow : st.bow, hy: (hh(k * 17 + side) - 0.5) * 1.0, hp: 0.1 + hh(k * 19 + side) * 0.32, ph: hh(k * 7 + side) * 6, sw: 1 });
+      F.women.push({ a, H, ph: H.ph });
+      if (child) { const c = fig('pilgrim', x + 1.25, z - side * 0.2, { y: Y.GFLOOR, yaw: a.yaw + 0.3, scale: 0.52, young: true }); if (c) { F.women.push({ a: c, H: hold(c, { arm: [0.4, 0.1, 0.9, -0.2], hy: -0.5, hp: -0.15, ph: hh(k) * 5, sw: 1 }), ph: 0 }); } }
     }
-    // the planks' men on the south gallery (shot 1), the brand's man on the ladder (shot 2), the torch climbing by S2 (shot 3)
-    F.plankers = [0, 1, 2].map((k) => fig('levite', 60 + k * 3.4, 63.2 + (k % 2) * 1.2, { y: Y.GFLOOR, yaw: Math.PI * 0.5 + k, item: k === 1 ? 'log' : null }));
+    // the planks' men on the south gallery (shot 1): one kneels setting a plank, one walks with a plank on his shoulder, one stoops
+    F.plankers = [
+      fig('levite', 60.2, 64.3, { y: Y.GFLOOR, yaw: Math.PI + 0.25 }),
+      fig('levite', 67.6, 65.7, { y: Y.GFLOOR, yaw: -Math.PI / 2, item: 'log' }),
+      fig('pilgrim', 63.7, 63.5, { y: Y.GFLOOR, yaw: Math.PI * 0.62 }),
+    ];
+    hold(F.plankers[0], { arm: [1.25, 0.15, 1.3, 0.12], bow: 0.5, kn: 1, hp: 0.35 });
+    hold(F.plankers[2], { arm: [0.95, 0.12, 0.7, 0.2], bow: 0.55, kn: 0.3, hp: 0.3, hy: 0.2 });
+    if (F.plankers[1]) A.walk(F.plankers[1], [[58.5, 65.7]], 1.25);
     const m0 = F.menorahs[0]; F.lighter = fig('levite', m0.top.x + 2.6, m0.top.z + 1.1, { y: FL + MEN_H - 4.2, yaw: -Math.PI / 2 });
     F.climber = fig('levite', COLS.S2.x + 1.6, COLS.S2.z - 1.55, { y: FL, yaw: 0, item: 'torch' });
     { const dark = new T.MeshBasicMaterial({ color: 0x0A0806 }), lad = new T.Group(), L = Y.GFLOOR - FL + 0.6;
       for (const sx of [-0.42, 0.42]) { const r = new T.Mesh(new T.BoxGeometry(0.11, L, 0.11), dark); r.position.set(sx, L / 2, 0); lad.add(r); }
       for (let y = 0.7; y < L - 0.3; y += 0.9) { const r = new T.Mesh(new T.BoxGeometry(0.84, 0.07, 0.07), dark); r.position.set(0, y, 0); lad.add(r); }
       lad.position.set(COLS.S2.x + 1.6, FL, COLS.S2.z - 1.2); lad.rotation.x = 0.07; group.add(lad); }
-    // two near shoulders on the gallery for shot 5 (at the frame's edges)
-    F.near = [fig('woman', 58.4, 62.5, { y: Y.GFLOOR, yaw: Math.PI + 0.35 }), fig('woman', 67.2, 62.6, { y: Y.GFLOOR, yaw: Math.PI - 0.3 })];
+    // two near shoulders on the gallery for shot 5 (placed at the frame's edges when the shot begins)
+    F.near = [fig('woman', 58.4, 62.9, { y: Y.GFLOOR, yaw: Math.PI, scale: 1.0 }), fig('woman', 67.2, 62.9, { y: Y.GFLOOR, yaw: Math.PI, scale: 0.94 })];
+    F.nearH = [hold(F.near[0], { arm: [1.3, -0.1, 1.25, -0.1], bow: 0.1, kn: 1, hy: 0.25, hp: 0.3, ph: 1, sw: 1 }), hold(F.near[1], { arm: [1.25, -0.12, 1.3, -0.08], bow: 0.12, kn: 1, hy: -0.3, hp: 0.28, ph: 3, sw: 1 })];   // (kneeling at the railing beside the eye)
     for (const a of F.figs) if (a) a.fixedY = a.y;
+  }
+  /** every figure of the film one flat near-black shape: the figures' (and their things') shared materials darkened, restored after */
+  function darkFigures(on) {
+    if (on) {
+      F.dark = []; const seen = new Set();
+      S.traverse((o) => { if (!o.isMesh || !o.material || seen.has(o.material)) return; if (!/^actor-/.test(o.name || '') && !(o.name === 'items' && o.isInstancedMesh)) return;
+        const m = o.material; seen.add(m); F.dark.push([m, m.onBeforeCompile, m.customProgramCacheKey]);
+        // (unlit: the fragment's colour replaced by one near-black before the fog: no light, no sheen, no face, no hand)
+        const ob = m.onBeforeCompile, ok = m.customProgramCacheKey;
+        m.onBeforeCompile = (sh, r) => { if (ob) ob.call(m, sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <fog_fragment>', 'gl_FragColor.rgb = vec3(0.0016, 0.0013, 0.0012);\n#include <fog_fragment>'); };
+        m.customProgramCacheKey = () => (ok ? ok.call(m) : '') + '|h120-dark'; m.needsUpdate = true; });
+    } else {
+      for (const [m, ob, ok] of F.dark || []) { m.onBeforeCompile = ob; m.customProgramCacheKey = ok; m.needsUpdate = true; }
+      F.dark = [];
+    }
   }
   // the city: warm courtyard glows on the houses south-west of the Mount, lit in a wave from the Mount
   function cityGlow() {
@@ -295,18 +394,20 @@ export function createFilm(X, opt = {}) {
       for (let i = 0; i < o.count; i += 3) { o.getMatrixAt(i, M4); v.setFromMatrixPosition(M4).applyMatrix4(o.matrixWorld); if (v.z > 120 || v.x < -40) P.push(v.clone()); }
     });
     if (!P.length) return;
-    // a courtyard glow a house, ordered by distance from the Mount (73, 0)
+    // a courtyard a house, ordered by distance from the Mount (73, 0): its lamp (small, bright) and the patch of wall and court it lights under it
     P.sort((p, q) => Math.hypot(p.x - 73, p.z) - Math.hypot(q.x - 73, q.z));
-    const U = P.filter((p, i) => i % Math.max(1, Math.floor(P.length / 1600)) === 0).slice(0, 1600);
-    const pos = new Float32Array(U.length * 3), d = new Float32Array(U.length), al = new Float32Array(U.length), sz = new Float32Array(U.length);
-    const d0 = Math.hypot(U[0].x - 73, U[0].z), d1 = Math.hypot(U[U.length - 1].x - 73, U[U.length - 1].z);
-    U.forEach((p, i) => { pos.set([p.x, p.y + 7, p.z], i * 3); d[i] = (Math.hypot(p.x - 73, p.z) - d0) / Math.max(1, d1 - d0); sz[i] = (i % 5 === 0 ? 16 + hh(i) * 14 : 3.5 + hh(i) * 5); });   // most a small lamp; one in five the wider glow of a lit courtyard
-    const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aA', new T.BufferAttribute(al, 1)); g.setAttribute('aS', new T.BufferAttribute(sz, 1));
-    const m = new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, uniforms: { uMap: { value: gtex }, uPx: { value: 600 } },
-      vertexShader: 'attribute float aA, aS; varying float vA; uniform float uPx; void main(){ vA = aA * (aS > 12.0 ? 0.32 : 1.0); vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uPx / max(1.0, -mv.z); }',
-      fragmentShader: 'uniform sampler2D uMap; varying float vA; void main(){ vec4 c = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(c.rgb * vec3(1.0, 0.8, 0.5) * vA * 1.3, c.a * vA); }' });
-    const pts = new T.Points(g, m); pts.frustumCulled = false; group.add(pts);
-    F.city = { pts, m, d, al, g, k: 0, n: U.length };
+    const U = P.filter((p, i) => i % Math.max(1, Math.floor(P.length / 1400)) === 0).slice(0, 1400);
+    const n = U.length, d = new Float32Array(n), C = softPoints(T, n * 2, gtex, [1.0, 0.74, 0.44], 1.3);
+    const d0 = Math.hypot(U[0].x - 73, U[0].z), d1 = Math.hypot(U[n - 1].x - 73, U[n - 1].z);
+    U.forEach((p, i) => { d[i] = (Math.hypot(p.x - 73, p.z) - d0) / Math.max(1, d1 - d0); C.set(i * 2, p.x, p.y + 4.5, p.z, 0, 3.5 + hh(i) * 3); C.set(i * 2 + 1, p.x + (hh(i * 3) - 0.5) * 3, p.y + 1.2, p.z + (hh(i * 5) - 0.5) * 3, 0, 15 + hh(i * 7) * 12); });
+    group.add(C.pts);
+    // the horizon beyond the city: a little lighter than the sky above it (a far quad, shot 6 only)
+    const hg = new T.PlaneGeometry(12000, 1600, 1, 6), col = [], pa = hg.attributes.position, lo = new T.Color('#1B2338'), hi = new T.Color('#03050C');
+    for (let i = 0; i < pa.count; i++) { const u = clamp((pa.getY(i) + 800) / 1600, 0, 1), k = u < 0.35 ? u / 0.35 : Math.pow(1 - (u - 0.35) / 0.65, 2); const c = hi.clone().lerp(lo, u < 0.35 ? 0.6 + 0.4 * k : k); col.push(c.r, c.g, c.b); }
+    hg.setAttribute('color', new T.Float32BufferAttribute(col, 3));
+    const hz = new T.Mesh(hg, new T.MeshBasicMaterial({ vertexColors: true, fog: false, depthWrite: false })); hz.rotation.y = Math.PI; hz.position.set(0, 120, 3600); hz.renderOrder = -9; hz.visible = false; group.add(hz);
+    F.horizon = hz;
+    F.city = { C, d, n };
   }
 
   /* the dance: each dancer moves through his own order of five poses (torch high, turn, leap, bow, sway), blended, at his own tempo */
@@ -321,21 +422,30 @@ export function createFilm(X, opt = {}) {
     for (const D of F.dancers) {
       const a = D.a, t = F.t * D.tempo + D.ph, k = Math.floor(t), u = t - k, P0 = POSE[D.seq[k % 5]], P1 = POSE[D.seq[(k + 1) % 5]], e = ease(u);
       for (let j = 0; j < 4; j++) a.arm[j] = a.armT[j] = lerp(P0.arm[j], P1.arm[j], e) + 0.12 * Math.sin(F.t * 3.1 * D.tempo + j + D.ph);
+      // (shot 4: the torch swung in wide arcs over the head and down to the side, each man his own beat)
+      if (D.swing) { const w = F.t * (3.2 + D.tempo * 1.6) + D.ph; a.arm[2] = a.armT[2] = 1.9 + 1.05 * Math.sin(w); a.arm[3] = a.armT[3] = 0.15 + 0.75 * Math.cos(w * 0.5 + D.i); }
       a.bow = a.bowT = lerp(P0.bow, P1.bow, e); a.kn = a.knT = lerp(P0.kn, P1.kn, e);
       const lift = lerp(P0.lift, P1.lift, e) * Math.sin(u * Math.PI);
       D.spin += dt * D.dir * (0.6 + (P0.turn ? 2.4 * Math.sin(u * Math.PI) : 0)) * D.tempo;
       const ang = D.ph + F.t * 0.22 * D.dir * D.tempo;
       a.x = D.cx + Math.cos(ang) * D.r; a.z = D.cz + Math.sin(ang) * D.r; a.yaw = D.spin;
       a.y = a.fixedY = FL + Math.max(0, lift);
-      if (A.handWorld) { A.handWorld(a, -1, V); V.y += 0.85; F.arcs.push(D.i, V); }
+      if (A.handWorld) { A.handWorld(a, -1, V); V.y += 0.85; F.arcs.push(D.i, V, F.t); }
     }
     // the torches' light: in the middle of them, flickering
     if (F.dancers.length) { let x = 0, z = 0; for (const D of F.dancers) { x += D.a.x; z += D.a.z; } F.torchL.position.set(x / F.dancers.length, FL + 4, z / F.dancers.length); }
     F.torchL.intensity = F.danceOn * (55 + 25 * noise(F.t * 6.3));
-    for (const W of F.women) { const a = W.a; a.bow = a.bowT = 0.03 + 0.03 * Math.sin(F.t * 0.7 + W.ph); a.yaw += Math.sin(F.t * 0.5 + W.ph) * 0.0009; }
+    // the held poses (the women, the planks' men): each its own slow sway and a breath of the head, in its own phase
+    for (const H of F.posed) {
+      const a = H.a, w = H.sw ? Math.sin(F.t * (0.55 + 0.1 * Math.sin(H.ph)) + H.ph) : 0;
+      for (let j = 0; j < 4; j++) a.armT[j] = H.arm[j] + (H.sw ? 0.03 * Math.sin(F.t * 0.8 + H.ph + j) : 0);
+      a.bowT = H.bow + 0.035 * w; a.knT = H.kn; a.hyT = H.hy + 0.12 * w; a.hpT = H.hp + 0.04 * Math.sin(F.t * 0.4 + H.ph * 2); a.lookT = 1e9;
+    }
   }
 
   /* the camera: one eased move a shot (no orbit, no shake) */
+  /** a shot's own lens (the world's is long): set while the shot plays, the world's own value put back after */
+  function lens(f) { const c = X.camera; if (F.fov0 == null) F.fov0 = c.fov; const v = f || F.fov0; if (Math.abs(c.fov - v) > 0.001) { c.fov = v; c.updateProjectionMatrix(); } }
   function move(p0, t0, p1, t1, d) { X.shot(p0, t0, 0.01); setTimeout(() => {}, 0); F.mv = { p0, t0, p1, t1, d, s: F.t }; }
   function camFrame() {
     const m = F.mv; if (!m) return; const u = ease(clamp((F.t - m.s) / m.d, 0, 1));
@@ -345,17 +455,18 @@ export function createFilm(X, opt = {}) {
 
   async function wait(s) { const end = F.t + s; while (F.t < end && !F.skip) await X.wait(0.05); }
   async function dipTo(fn) { ov.dip(true); ov.title(''); await wait(0.5); if (F.skip) return; fn(); await wait(0.15); ov.dip(false); }
-  const titleAt = async (sh, at = 1.0) => { await wait(at); if (sh.line && !F.skip) ov.title(sh.line, sh.src, sh.big); };
+  const titleAt = async (sh, at = 1.0) => { await wait(at); if (sh.line && !F.skip) ov.title(sh.line, sh.src, sh.big, sh.bar); };
 
   async function shots() {
     // (the women come up to the gallery once the fire is lit: shots 1 and 2 show the planks and the men who laid them)
-    const womenOn = (v) => { for (const W of F.women) { W.a.vis = W.a.visT = v; } for (const a of F.near || []) if (a) a.vis = a.visT = v; };
+    const womenOn = (v) => { for (const W of F.women) { W.a.vis = W.a.visT = v; } };
+    for (const a of F.near || []) if (a) a.vis = a.visT = 0;
     womenOn(0);
     const lights = (k, range) => { F.lights.forEach((l, i) => { l.intensity = k * (110 + 40 * noise(F.t * 4 + i)); l.distance = range; }); };
     // 1 · black, the planks knock four times; then barely light: the planks laid on the south gallery against the deep sky
     ov.dip(true); ov.card('הצצה קדימה · ליל שמחת בית השואבה');
     for (let i = 0; i < 4 && !F.skip; i++) { snd.knock(); await wait(0.5); }
-    await dipTo(() => { F.shot = 1; move([73, 7.5, 30], [62, 17.4, 62.5], [70, 8.2, 36], [62, 17.6, 62.5], SHOTS[0].d); F.fl.L.forEach((f) => { f.on = 0; }); lights(0, 5); F.danceOn = 0; F.shotL.intensity = 18; F.shotL.position.set(62, Y.GFLOOR + 1.6, 63); F.shotL.distance = 14; });
+    await dipTo(() => { F.shot = 1; move([71.5, 18.4, 45.5], [63, 18.6, 64.5], [70.2, 18.9, 47.2], [62.6, 18.6, 64.5], SHOTS[0].d); F.fl.L.forEach((f) => { f.on = 0; }); lights(0, 5); F.danceOn = 0; F.shotL.intensity = 18; F.shotL.position.set(62, Y.GFLOOR + 1.6, 63); F.shotL.distance = 14; });
     ov.card(''); await titleAt(SHOTS[0], 0.8); await wait(SHOTS[0].d - 0.8);
     // 2 · close on a bowl: an arm with a brand from the ladder, the fire catches and the light grows over the stone
     const m0 = F.menorahs[0], b0 = m0.bowls[0];
@@ -363,17 +474,32 @@ export function createFilm(X, opt = {}) {
     await titleAt(SHOTS[1], 1.2); await wait(SHOTS[1].d - 1.2);
     F.brand.visible = false; F.lightUp = null; F.fl.L.forEach((f) => { f.on = 1; }); lights(1, 66); F.danceOn = 1;
     // 3 · the light finds what he built: along the south side, the firelight climbing his column S2 and his beam, the gallery full above
-    await dipTo(() => { womenOn(1); for (const a of F.plankers || []) if (a) a.vis = a.visT = 0; F.shot = 3; move([79, 8.4, 46.5], [68, 12.8, 62.5], [76.5, 10.2, 48.0], [68, 17.6, 62.5], SHOTS[2].d); F.climb = F.t; });
+    await dipTo(() => { womenOn(1); for (const a of F.plankers || []) if (a) a.vis = a.visT = 0; F.shot = 3; lens(30); move([77.5, 6.9, 18.5], [68, 13.0, 62.5], [76.3, 7.2, 21.0], [68, 13.4, 62.5], SHOTS[2].d); F.climb = F.t; });
     await wait(SHOTS[2].d);
     F.climb = null; F.shotL.intensity = 0;
     // 4 · below: the dancers between the camera and the fire, the torches drawing arcs
-    await dipTo(() => { F.shot = 4; move([77, 8.6, -36], [80, 11.5, 10], [81, 9.4, -32], [80, 15.5, 10], SHOTS[3].d); snd.murmur(0.6); });
+    // (seven of them come to the court's south side, between the camera and his columns and the south wall glowing from the fire behind)
+    await dipTo(() => {
+      F.shot = 4; lens(0); F.line = true; F.arcs.clear();
+      F.dancers.slice(0, 7).forEach((D, j) => { D.cx = 67.2 + j * 2.6 + (hh(j * 3.7) - 0.5) * 0.4; D.cz = 50 + (hh(j * 5.3) - 0.5) * 1.8; D.r = 0.3 + hh(j * 2.1) * 0.3; D.swing = 1; });
+      move([74.6, 8.5, 33.4], [75, 7.8, 50], [75.4, 8.6, 34.3], [75.2, 7.9, 50], SHOTS[3].d);
+      F.shotL.position.set(75, 10.5, 58); F.shotL.distance = 26; F.shotL.intensity = 70; snd.murmur(0.6);
+    });
     await titleAt(SHOTS[3], 1.0); await wait(SHOTS[3].d - 1.0);
+    F.line = false; F.shotL.intensity = 0; F.dancers.forEach((D) => { D.cx = D.cx0; D.cz = D.cz0; D.r = D.r0; D.swing = 0; }); F.arcs.clear();
     // 5 · from the gallery: the railing near, two shoulders at the edges, the fire and the dancers below
-    await dipTo(() => { F.shot = 5; move([62.6, 21.2, 66.9], [78, 17.5, 8], [62.9, 21.1, 66.3], [80, 16.5, 8], SHOTS[4].d); snd.murmur(0.85); });
+    const C5 = [62.5, 19.3, 63.8], T5 = [80, 6.6, 0];
+    await dipTo(() => {
+      F.shot = 5; for (const a of F.near) if (a) a.vis = a.visT = 1; lens(46); move(C5, T5, [62.6, 19.35, 63.6], [80, 6.9, 0], SHOTS[4].d); snd.murmur(0.85);
+      // the two near women at the frame's edges, just in front of the camera; the others near the camera step out of the picture
+      const fx = T5[0] - C5[0], fz = T5[2] - C5[2], fl = Math.hypot(fx, fz), ux = fx / fl, uz = fz / fl, rx = -uz, rz = ux;
+      F.near.forEach((a, k) => { if (!a) return; const sd = k ? -1 : 1; a.x = C5[0] + ux * 1.7 + rx * 1.3 * sd; a.z = C5[2] + uz * 1.7 + rz * 1.3 * sd; a.yaw = Math.atan2(ux, uz) + sd * 0.2; });
+      F.away = F.women.filter((W) => W.a.z > 0 && Math.abs(W.a.x - C5[0]) < 4.5); for (const W of F.away) W.a.vis = W.a.visT = 0;
+    });
     await titleAt(SHOTS[4], 0.9); await wait(SHOTS[4].d - 0.9);
+    for (const W of F.away || []) W.a.vis = W.a.visT = 1; F.away = null; for (const a of F.near) if (a) a.vis = a.visT = 0;
     // 6 · Jerusalem: from behind the court, over its fires, the camera rises until it looks south over the dark city; courtyards light up in a wave
-    await dipTo(() => { F.shot = 6; move([104, 48, -125], [62, -34, 280], [92, 205, -70], [30, -60, 800], SHOTS[5].d); F.cityOn = F.t + 3.2; snd.murmur(1); });
+    await dipTo(() => { F.shot = 6; lens(0); move([104, 48, -125], [62, -34, 280], [92, 205, -70], [30, -60, 800], SHOTS[5].d); F.cityOn = F.t + 3.2; snd.murmur(1); });
     await titleAt(SHOTS[5], 1.4); await wait(SHOTS[5].d - 1.4);
     // 7 · the glowing court from high, held; the last line, larger
     await dipTo(() => { F.shot = 7; move([140, 120, 150], [80, 6, 0], [138, 112, 146], [80, 6, 0], SHOTS[6].d + 2.5); snd.murmur(0.5); });
@@ -383,9 +509,9 @@ export function createFilm(X, opt = {}) {
   function frame(dt) {
     if (!F.live) return;
     F.t += dt; rig.apply(); for (const h of F.hid || []) { h[0].vis = 0; h[0].visT = 0; }
-    camFrame(); dance(dt); F.fl.frame(F.t, X.camera);
+    camFrame(); dance(dt);
     const px = innerHeight / (2 * Math.tan((X.camera.fov * Math.PI / 180) / 2));
-    F.arcs.frame(px);
+    F.fl.frame(F.t, X.camera, px); F.arcs.frame(px, F.t);
     // the brand reaching to the bowl (shot 2): the fire catches at lightUp, its light grows 5 → 140 over three seconds
     if (F.shot === 2 && F.lighter) {
       const b0 = F.menorahs[0].bowls[0], k = F.lightUp ? clamp((F.t - (F.lightUp - 1.6)) / 1.6, 0, 1) : 0, a = F.lighter;
@@ -401,7 +527,14 @@ export function createFilm(X, opt = {}) {
     // the candelabra's flicker
     if (F.shot >= 3) F.lights.forEach((l, i) => { l.intensity = 110 + 40 * noise(F.t * 4 + i * 3); });
     // the city's courtyards (shot 6 on)
-    if (F.city) { const C = F.city, w = F.cityOn != null ? clamp((F.t - F.cityOn) / 5.5, 0, 1.2) : 0; for (let i = 0; i < C.n; i++) C.al[i] = clamp((w - C.d[i]) * 6, 0, 1) * (0.75 + 0.25 * noise(F.t * 2 + i)); C.g.attributes.aA.needsUpdate = true; C.m.uniforms.uPx.value = px; }
+    if (F.city) {
+      const Q = F.city, w = F.cityOn != null ? clamp((F.t - F.cityOn) / 5.0, 0, 1.2) : 0;
+      for (let i = 0; i < Q.n; i++) { const k = clamp((w - Q.d[i]) * 6, 0, 1), fl = 0.8 + 0.2 * noise(F.t * 2 + i); Q.C.al[i * 2] = k * fl; Q.C.al[i * 2 + 1] = k * fl * 0.3; }
+      Q.C.frame(px);
+    }
+    // the moon over the city shot: roofs and walls as faint blue-black shapes, the horizon a little lighter
+    rig.moon = F.shot === 6 && F.mv ? 0.9 * ease(clamp((F.t - F.mv.s - 1.5) / 4, 0, 1)) : 0;
+    if (F.horizon) F.horizon.visible = F.shot === 6;
     // the skip: one second's hold anywhere
     if (F.holdT != null && performance.now() - F.holdT > 1000) F.skip = true;
     ov.skipHint(F.t > 3 && F.t < 9);
@@ -430,7 +563,7 @@ export function createFilm(X, opt = {}) {
     rig = nightRig(X); F.snapBefore = lightSnap(X);
     ov = overlay(); document.body.classList.add('h120-film');
     snd = createFilmSound(X.sfx);
-    build(); worldPeople(true); rig.on(); F.live = true; F.t = 0; F.skip = false;
+    build(); worldPeople(true); darkFigures(true); rig.on(); F.live = true; F.t = 0; F.skip = false;
     addEventListener('pointerdown', down, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
     SH5.film = api;
     try { snd.start(); await shots(); } catch (e) { console.warn('[h120] film', e && e.message); }
@@ -452,9 +585,9 @@ export function createFilm(X, opt = {}) {
     removeEventListener('pointerdown', down, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true);
     if (snd) { snd.stop(); snd = null; }
     for (const a of F.figs) if (a) { try { A.remove(a); } catch (e) { /* */ } }
-    F.figs.length = 0; F.dancers.length = 0; F.women.length = 0; worldPeople(false);
+    F.figs.length = 0; F.dancers.length = 0; F.women.length = 0; F.posed.length = 0; darkFigures(false); worldPeople(false);
     if (group) { S.remove(group); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); group = null; }
-    rig.off(); rig.dispose();
+    lens(0); rig.off(); rig.dispose();
     if (SH5.film === api) SH5.film = null;
   }
   const api = { play, frame, stop, get state() { return { t: +F.t.toFixed(2), shot: F.shot, skip: F.skip, live: F.live, figs: F.figs.length, lights: F.lights.length + 2, city: F.city ? F.city.n : 0 }; }, skip() { F.skip = true; } };

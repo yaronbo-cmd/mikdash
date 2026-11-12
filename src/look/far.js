@@ -27,8 +27,12 @@ export function jitter(x, z, s = 14) {
 /* ───────── the terraces and the paths on the Mount of Olives ───────── */
 const WALL = { lo: 0.7, hi: 0.95, th: 0.9, down: 2.4, up: 4.2, k: [0.84, 0.8, 0.7] };
 export function olivetGround(THREE, mat, { terraces = [], paths = [] }, F) {
-  const P = [], N = [], C = [], G = [], c = new THREE.Color(), e = new THREE.Color(), gr = [0, 0];
-  const v = (p, n, col, g) => { P.push(p[0], p[1], p[2]); N.push(n[0], n[1], n[2]); C.push(col[0], col[1], col[2]); G.push(g[0], g[1]); };
+  // (typed arrays sized for the most vertices the pieces can make: no growing arrays at boot)
+  let nv = 0; for (const [ax, az, bx, bz] of terraces) nv += Math.max(2, Math.round(Math.hypot(bx - ax, bz - az) / 9)) * 30;   // (five quads a piece)
+  for (const pts of paths) nv += Math.max(0, pts.length - 1) * 18;
+  const P = new Float32Array(nv * 3), N = new Float32Array(nv * 3), C = new Float32Array(nv * 3), G = new Float32Array(nv * 2), e = new THREE.Color(), gr = [0, 0];
+  let k3 = 0, k2 = 0;
+  const v = (p, n, col, g) => { P[k3] = p[0]; P[k3 + 1] = p[1]; P[k3 + 2] = p[2]; N[k3] = n[0]; N[k3 + 1] = n[1]; N[k3 + 2] = n[2]; C[k3] = col[0]; C[k3 + 1] = col[1]; C[k3 + 2] = col[2]; G[k2] = g[0]; G[k2 + 1] = g[1]; k3 += 3; k2 += 2; };
   // (a quad a b c d, each [position, normal, colour, aGr]: its two triangles turned to face the normal's side)
   const quad = (a, b, cc, d) => {
     const A = a[0], ex = b[0][0] - A[0], ey = b[0][1] - A[1], ez = b[0][2] - A[2], fx = cc[0][0] - A[0], fy = cc[0][1] - A[1], fz = cc[0][2] - A[2];
@@ -87,10 +91,10 @@ export function olivetGround(THREE, mat, { terraces = [], paths = [] }, F) {
     }
   }
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
-  geo.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
-  geo.setAttribute('aGr', new THREE.Float32BufferAttribute(G, 2));
+  geo.setAttribute('position', new THREE.BufferAttribute(P.subarray(0, k3), 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(N.subarray(0, k3), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(C.subarray(0, k3), 3));
+  geo.setAttribute('aGr', new THREE.BufferAttribute(G.subarray(0, k2), 2));
   geo.computeBoundingSphere();
   // (the terrain's own material: its one program; a quarter amah over the drawn surface, no depth fight from any camera)
   const m = new THREE.Mesh(geo, mat);

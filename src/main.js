@@ -294,6 +294,8 @@ function setTime(k) {
 // the clock's preset (the night between stage 02's levels); off, the clock's preset comes back.
 const WL_DAY = (k) => k === 'dawn' || k === 'noon' || k === 'dusk';
 const wlL = {};
+// (review J1: the dome's broad glow stays round noon's sun, so the sky reads as noon's blue wherever the work light's sun stands)
+const NOON_DIR = (() => { const e = THREE.MathUtils.degToRad(TIMES.noon.el), a = THREE.MathUtils.degToRad(TIMES.noon.az); return new THREE.Vector3(Math.cos(e) * Math.cos(a), Math.sin(e), Math.cos(e) * Math.sin(a)); })();
 const WL = createWorkLight((p, how, S) => {
   if (how === 'off') { wlL.p = null; shadowFit(false); aoFit(false); if (crewsHaze) crewsHaze(null); setTime(curTime); return; }
   if (how === 'act') { shadowFit(S.act); aoFit(S.act); return; }
@@ -304,7 +306,7 @@ const WL = createWorkLight((p, how, S) => {
   if (SBOX.act) { SBOX.act = false; shadowFit(true); } else sunPlace();
   sun.color.set(L.sun); sun.intensity = L.sunI;
   hemi.color.set(L.hs); hemi.groundColor.set(L.hg); hemi.intensity = L.hI;
-  sky.mix('dawn', 'noon', L.sky, SUN_DIR); applyGrade();
+  sky.mix('dawn', 'noon', L.sky, SUN_DIR, TIMES.noon.exp / L.exp, NOON_DIR); applyGrade();
   renderer.toneMappingExposure = L.exp; scene.environmentIntensity = L.envI;
   if (bloom) { bloom.strength = L.bloom; bloom.threshold = L.bloomT; }
   if (how === 'full') { if (envRT) envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; }

@@ -78,7 +78,7 @@ const RAIN = { zen: '#565D68', horA: '#8C939B', horS: '#979EA6', fog: '#8A9098',
 
 const VS = 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
 const FS = /* glsl */`
-uniform vec3 uZen, uHorA, uHorS, uFog, uBelt, uSunCol, uSunDir, uMoonDir, uCLit, uCShd, uCumLit, uCumShd, uMtn, uMoab;
+uniform vec3 uZen, uHorA, uHorS, uFog, uBelt, uSunCol, uSunDir, uSunG, uMoonDir, uCLit, uCShd, uCumLit, uCumShd, uMtn, uMoab;
 uniform float uGlow, uDisc, uSkyI, uCov, uCA, uCum, uTime, uMoon, uStar;
 uniform vec3 uMoonPh, uMoonSun;   // ── world12 ── the moon's phase: (cos of the phase angle, +1 waxing / −1 waning, the lit fraction); the sun's side
 uniform sampler2D uNoise;
@@ -107,7 +107,10 @@ void main() {
   float g1 = pow(max(cs, 0.0), 5.0), g2 = pow(max(cs, 0.0), 48.0), g3 = pow(max(cs, 0.0), 900.0);
   // ── look C ── (C4) a soft halo round the disc (g4, a near-white of the sun's own colour) and the disc's edge a little softer
   float g4 = pow(max(cs, 0.0), 260.0);
-  vec3 glow = uSunCol * (g1 * 0.22 + g2 * 0.55 + g3 * 1.6 + g4 * 0.45) * uGlow;
+  // (the broad glow, g1, round uSunG: the sun's own direction, or under the work light noon's sun, so the zenith and the mid-sky
+  // stay noon's blue wherever the work light's sun stands — review J1; the halo and the disc follow the sun itself)
+  float gB = pow(max(dot(d, uSunG), 0.0), 5.0);
+  vec3 glow = uSunCol * (gB * 0.22 + g2 * 0.55 + g3 * 1.6 + g4 * 0.3) * uGlow;
   float disc = smoothstep(0.99989, 0.99996, cs) * uDisc;
   float cover = 0.0;
 #ifndef ENV
@@ -195,7 +198,7 @@ export function createSky() {
   const noise = noiseTex();
   const U = () => ({
     uZen: { value: new THREE.Color() }, uHorA: { value: new THREE.Color() }, uHorS: { value: new THREE.Color() }, uFog: { value: new THREE.Color() },
-    uBelt: { value: new THREE.Color() }, uSunCol: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uMoonDir: { value: new THREE.Vector3(1, 0.3, 0).normalize() },
+    uBelt: { value: new THREE.Color() }, uSunCol: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunG: { value: new THREE.Vector3(0, 1, 0) }, uMoonDir: { value: new THREE.Vector3(1, 0.3, 0).normalize() },
     uCLit: { value: new THREE.Color() }, uCShd: { value: new THREE.Color() }, uCumLit: { value: new THREE.Color() }, uCumShd: { value: new THREE.Color() },
     uMtn: { value: new THREE.Color() }, uMoab: { value: new THREE.Color() },
     uGlow: { value: 1 }, uDisc: { value: 1 }, uSkyI: { value: 1 }, uCov: { value: 0.4 }, uCA: { value: 1 }, uCum: { value: 0 },
@@ -222,8 +225,13 @@ export function createSky() {
   stars.renderOrder = -9; stars.frustumCulled = false; stars.visible = false;
   dome.add(stars);
 
+  // the sun's direction, and the broad glow's (gDir, or the sun's own)
+  function sunTo(dir, gDir) {
+    uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value);
+    uniforms.uSunG.value.copy(gDir || dir).normalize(); envU.uSunG.value.copy(uniforms.uSunG.value);
+  }
   const cur = {}, fog = new THREE.Color(), tmp = new THREE.Color(), tmp2 = new THREE.Color(), moonDir = new THREE.Vector3();
-  let key = 'dawn', over = 0, mixP = null;   // ── look C ── (mixP: a blend of two presets — the work light's sky) ── /look C ──
+  let key = 'dawn', over = 0, mixP = null, domeK = 1;   // ── look C ── (mixP: a blend of two presets — the work light's sky; domeK: the dome's brightness against the work light's exposure) ── /look C ──
   let clearK = 0, moonLit = 1;   // ── world12 ── the night's clear sky and the moon's lit fraction (setMoon)
   const COLS = ['zen', 'horA', 'horS', 'fog', 'belt', 'cLit', 'cShd', 'cumLit', 'cumShd', 'mtn', 'moab'], NUMS = ['glow', 'disc', 'skyI', 'cov', 'cA', 'cum', 'moon', 'star'];
   function apply() {
@@ -245,7 +253,7 @@ export function createSky() {
       u.uZen.value.copy(cur.zen); u.uHorA.value.copy(cur.horA); u.uHorS.value.copy(cur.horS); u.uFog.value.copy(cur.fog); u.uBelt.value.copy(cur.belt);
       u.uCLit.value.copy(cur.cLit); u.uCShd.value.copy(cur.cShd); u.uCumLit.value.copy(cur.cumLit); u.uCumShd.value.copy(cur.cumShd);
       u.uMtn.value.copy(cur.mtn); u.uMoab.value.copy(cur.moab); u.uSunCol.value.set(P.sun); u.uMoonDir.value.copy(moonDir);
-      u.uGlow.value = cur.glow * (env ? 0.5 : 1); u.uDisc.value = env ? 0 : cur.disc; u.uSkyI.value = cur.skyI; u.uCov.value = cur.cov;
+      u.uGlow.value = cur.glow * (env ? 0.5 : domeK); u.uDisc.value = env ? 0 : cur.disc; u.uSkyI.value = cur.skyI * (env ? 1 : domeK); u.uCov.value = cur.cov;
       u.uCA.value = cur.cA * (env ? 0.7 : 1); u.uCum.value = cur.cum; u.uMoon.value = cur.moon; u.uStar.value = cur.star;
     }
     // the fog (aerial perspective) is the haze the horizon melts into, as bright as the sky shows it
@@ -258,14 +266,16 @@ export function createSky() {
     /** cloud meshes drawn without depth test (sanctuary.js hides them inside the rooms): none now — the clouds are in the dome */
     clouds: [],
     /** the preset (dawn|noon|dusk|night|golden) and the sun's (at night: the moonlight's) direction */
-    set(k, dir) { key = SKY[k] ? k : 'dawn'; mixP = null; if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
-    // ── look C ── the sky between two day presets (a → b by t; the work light's morning → noon) and the sun's direction
-    mix(a, b, t, dir) {
+    set(k, dir) { key = SKY[k] ? k : 'dawn'; mixP = null; domeK = 1; if (dir) sunTo(dir, null); apply(); },
+    // ── look C ── the sky between two day presets (a → b by t; the work light's morning → noon) and the sun's direction; k: the dome's
+    // brightness (the work light passes noon's exposure over its own, so the dome stays as blue as noon's under a brighter exposure)
+    mix(a, b, t, dir, k = 1, gDir = null) {
+      domeK = k > 0 ? k : 1;
       const A = SKY[a] || SKY.dawn, B = SKY[b] || SKY.noon, u = Math.max(0, Math.min(1, +t || 0)), P = mixP || {};
       for (const k of [...COLS, 'sun']) (P[k] || (P[k] = new THREE.Color())).set(A[k]).lerp(tmp2.set(B[k]), u);
       for (const k of NUMS) P[k] = A[k] + (B[k] - A[k]) * u;
       mixP = P; key = u < 0.5 ? a : b;
-      if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); }
+      if (dir) sunTo(dir, gDir);
       apply();
     },
     // ── /look C ──

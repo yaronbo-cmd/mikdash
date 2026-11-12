@@ -83,15 +83,18 @@ export function groundDetailData(n = 512) {
       for (let s2 = 0; s2 <= L; s2 += 0.8) { const x = sx + Math.cos(a) * s2, y = sy + Math.sin(a) * s2; stamp(x, y, 1.3 * q, 0, (dx, dy) => (Math.hypot(dx, dy) > 1.3 * q ? null : (o) => (o < 0.18 ? o : Math.max(o, br - 0.08 * s2 / L)))); }
     }
   }
-  // gravel: angular stones, lit on the sun's side, a dark rim
-  for (let i = 0; i < 1500; i++) {
-    const cx = r() * n, cy = r() * n, rad = (5 + r() * r() * 18) * q, l = 0.5 + r() * 0.45, an = r() * 3.14, ca = Math.cos(an), sa = Math.sin(an), sq = 0.6 + r() * 0.35;
-    stamp(cx, cy, rad * 1.2, 1, (dx, dy) => {
-      const ex = dx * ca + dy * sa, ey = (-dx * sa + dy * ca) / sq, d = Math.max(Math.hypot(ex, ey), (Math.abs(ex) + Math.abs(ey)) * 0.78) / rad;
-      if (d > 1.18) return null;
-      if (d > 1) return (a) => Math.min(a, 0.1);
-      const lit = 0.85 + 0.35 * ((-dx - dy) / (rad * 1.4));
-      return () => Math.min(1, l * lit * (1 - 0.2 * d * d));
+  // gravel: ── look B review G2 ── sparse angular limestone chips of mixed sizes on dust (about 8 % cover), not a pebble mosaic: each a
+  // polygon of five facets, the facets toward the sun lighter, a thin shadow on the far side ── /look B ──
+  for (let i = 0; i < 75; i++) {
+    const cx = r() * n, cy = r() * n, rad = (5 + r() * r() * 16) * q, l = 0.62 + r() * 0.3, a0 = r() * 6.28, F = [];
+    for (let f = 0; f < 5; f++) { const a = a0 + f * 1.2566 + (r() - 0.5) * 0.7; F.push([Math.cos(a), Math.sin(a), 0.7 + r() * 0.4]); }
+    stamp(cx, cy, rad * 1.3, 1, (dx, dy) => {
+      let d = 0, fk = F[0];
+      for (const f of F) { const v = (dx * f[0] + dy * f[1]) / (rad * f[2]); if (v > d) { d = v; fk = f; } }
+      if (d > 1.12) return null;
+      if (d > 1) return dx + dy > 0 ? (a) => Math.min(a, 0.14) : null;
+      const lit = 0.88 + 0.22 * (-(fk[0] + fk[1]) * 0.707) * Math.min(1, d * 1.6);
+      return () => Math.min(1, l * lit);
     });
   }
   // rock: solution pits, and lighter weathered patches
@@ -242,6 +245,15 @@ vec3 grGround(vec3 vc) {
 #else
   vec4 d2 = d1;
 #endif
+  // (the small things — chips, straw, shrubs — from two tilings, 10 amot and 7.3 amot turned 53°, switched by the 37-amot field:
+  // no stone or tuft shows twice on a screen)
+#if !defined(GR_LOW) && !defined(GR_LITE)
+  vec4 d3 = texture2D(uGrT, vec2(p.x * 0.6 + p.y * 0.8, p.y * 0.6 - p.x * 0.8) / 7.3 + 0.71);
+  float sw3 = smoothstep(0.42, 0.58, d2.b + (d2.r - 0.5) * 0.3);
+#else
+  vec4 d3 = d1; float sw3 = 0.0;
+#endif
+  float chip = smoothstep(0.42, 0.56, mix(d1.g, d3.g, sw3));
   float slope = 1.0 - N.y;
   // the work mask: trodden earth (r), the carts' corridors (g), the rocks' bedding (b)
   vec4 wm = vec4(0.0);
@@ -258,16 +270,18 @@ vec3 grGround(vec3 vc) {
   float rk = max(slab, steep);
   float rim = smoothstep(th - 0.09, th, rf) * (1.0 - slab) * (1.0 - steep);
   // GRAVEL: scree below the rock, the trodden ground, patches
-  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + trod * smoothstep(0.35, 0.65, d1.g + d2.a * 0.4) * 0.8 + rim * 0.5, 0.0, 1.0);
+  // (look B review G2: no stones packed in a mosaic: dust, and the chips over it — a few on the earth, more on the scree and where trodden)
+  float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + rim * 0.5, 0.0, 1.0);
   // EARTH: mottled, dry straw in tufts, the low dark shrubs, darker in the hollows and where trodden
-  float e = d1.r;
-  vec3 earth = vc * (0.64 + 0.48 * mix(e, d2.r, 0.3));
+  // (trodden: packed, smoother, darker)
+  float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
+  vec3 earth = vc * (0.64 + 0.48 * mix(clamp(em, 0.2, 0.75), d2.r, 0.3));
   float straw = smoothstep(0.78, 0.9, e) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - 0.6 * vGrA.y);
   earth = mix(earth, uGrStraw * (0.8 + 0.3 * d2.r), straw * 0.6);
-  earth = mix(earth, uGrDark * (0.7 + 0.6 * e), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
+  earth = mix(earth, uGrDark * (0.8 + 0.4 * clamp(em, 0.2, 0.75)), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
   float shrub = (1.0 - smoothstep(0.12, 0.18, e)) * (1.0 - trod);
   earth = mix(earth, vec3(0.16, 0.15, 0.09) * (0.75 + 2.5 * e), shrub * 0.85);
-  vec3 grav = mix(uGrGrav, vc, 0.4) * (0.4 + 1.0 * mix(d1.g, d2.g, 0.2)) * (1.0 - 0.2 * trod);
+  vec3 grav = mix(uGrGrav, vc, 0.4) * (0.82 + 0.3 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
   float rb = mix(d1.b, d2.b, 0.45), sw = smoothstep(0.26, 0.5, slope);
 #ifndef GR_LITE
@@ -277,6 +291,7 @@ vec3 grGround(vec3 vc) {
   vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (0.8 + 0.2 * smoothstep(th + 0.02, th + 0.1, rf)) * (1.0 - 0.12 * sw);
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
+  col = mix(col, uGrRock * (0.62 + 0.45 * mix(d1.g, d3.g, sw3)), chip * clamp(0.3 + gv * 0.6 + trod * 0.5, 0.0, 0.9));
   col *= 1.0 - 0.3 * rim;
   col = mix(col, rock, rk);
   // the dark earth bedded round the rocks; the carts' two ruts
@@ -288,7 +303,7 @@ vec3 grGround(vec3 vc) {
   // (packed earth with small stones: the fill behind the walls, as the hill's shader lays it)
   grPack = mix(uGrDark * (0.95 + 0.7 * mix(d1.r, d2.r, 0.4)), grav, smoothstep(0.45, 0.75, d2.g) * 0.55 + 0.1);
   grDet = lkLumGr(col) / max(0.04, lkLumGr(vc));
-  grHt = mix(mix(e, d1.g, gv), rb - bed * 0.3, rk);
+  grHt = mix(mix(em, 0.3, gv) + chip * 0.4, rb - bed * 0.3, rk);
   return col;
 }`;
 const FRAG_FN = /* glsl */`float lkLumGr(vec3 c) { return dot(c, vec3(0.333)); }`;

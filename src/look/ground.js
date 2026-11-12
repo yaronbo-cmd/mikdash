@@ -81,18 +81,21 @@ export function groundDetailData(n = 512) {
       return () => 0.03 + 0.11 * lit + 0.012 * Math.sin(dx * 1.7 / q) * Math.sin(dy * 1.9 / q);
     });
   }
-  // dry straw stubble: tufts of short strokes (── look B review G4 ── half the size, fewer, sparser ── /look B ──)
-  for (let t = 0; t < 80; t++) {
-    const tx = r() * n, ty = r() * n, nb = 3 + Math.floor(r() * 4);
+  // dry grass: ── look B review H4 ── clumps (about ⅓–¾ amah across) that read as dry grass from the play camera: a soft straw ground
+  // (0.82) under a tuft of short strokes fanning up and out (0.9–1.0); the shader lays them in patches ── /look B ──
+  for (let t = 0; t < 140; t++) {
+    const tx = r() * n, ty = r() * n, R = (8 + r() * 12) * q, nb = 14 + Math.floor(r() * 12);
+    stamp(tx, ty, R, 0, (dx, dy) => { const d = Math.hypot(dx, dy * 1.2) / R; return d > 1 ? null : (o) => (o < 0.18 ? o : Math.max(o, 0.8 + 0.04 * (1 - d))); });
     for (let b = 0; b < nb; b++) {
-      const a = -Math.PI / 2 + (r() - 0.5) * 2.4, L = (5 + r() * 10) * q, sx = tx + (r() - 0.5) * 8 * q, sy = ty + (r() - 0.5) * 8 * q, br = 0.86 + r() * 0.14;
-      for (let s2 = 0; s2 <= L; s2 += 0.8) { const x = sx + Math.cos(a) * s2, y = sy + Math.sin(a) * s2; stamp(x, y, 1.3 * q, 0, (dx, dy) => (Math.hypot(dx, dy) > 1.3 * q ? null : (o) => (o < 0.18 ? o : Math.max(o, br - 0.08 * s2 / L)))); }
+      const ox = (r() - 0.5) * R * 1.2, oy = (r() - 0.5) * R * 0.9, a = Math.atan2(oy, ox) * 0.5 - Math.PI / 2 + (r() - 0.5) * 1.4;
+      const L = (4 + r() * 7) * q, br = 0.88 + r() * 0.12;
+      for (let s2 = 0; s2 <= L; s2 += 0.8) { const x = tx + ox + Math.cos(a) * s2, y = ty + oy + Math.sin(a) * s2; stamp(x, y, 1.1 * q, 0, (dx, dy) => (Math.hypot(dx, dy) > 1.1 * q ? null : (o) => (o < 0.18 ? o : Math.max(o, br - 0.06 * s2 / L)))); }
     }
   }
   // gravel: ── look B review G2 ── sparse angular limestone chips of mixed sizes on dust (about 8 % cover), not a pebble mosaic: each a
   // polygon of five facets, the facets toward the sun lighter, a thin shadow on the far side ── /look B ──
-  for (let i = 0; i < 70; i++) {
-    const cx = r() * n, cy = r() * n, rad = (4 + r() * r() * 14) * q, l = 0.62 + r() * 0.3, a0 = r() * 6.28, F = [];
+  for (let i = 0; i < 200; i++) {
+    const cx = r() * n, cy = r() * n, rad = (2 + r() * r() * 7) * q, l = 0.62 + r() * 0.3, a0 = r() * 6.28, F = [];
     for (let f = 0; f < 5; f++) { const a = a0 + f * 1.2566 + (r() - 0.5) * 0.7; F.push([Math.cos(a), Math.sin(a), 0.7 + r() * 0.4]); }
     stamp(cx, cy, rad * 1.3, 1, (dx, dy) => {
       let d = 0, fk = F[0];
@@ -289,14 +292,15 @@ vec3 grGround(vec3 vc) {
   // (trodden: packed, smoother, darker)
   float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
   vec3 earth = vc * (0.6 + 0.56 * mix(clamp(em, 0.2, 0.75), d2.r, 0.3));
-  float straw = smoothstep(0.78, 0.9, e) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - 0.6 * vGrA.y);
-  // (look B review G4: the straw only a little lighter and yellower than its earth, and gone close up, where it would read as lines)
-  straw *= smoothstep(0.022, 0.045, length(fwidth(p)));
-  earth = mix(earth, earth * vec3(1.13, 1.1, 0.98) + uGrStraw * 0.03, straw * 0.7);
+  // (look B review H4: dry grass in patches with bare gaps between them, denser in the hollows, none where trodden: each clump a soft
+  // straw ground under its strokes, so from the play camera it reads as a tuft, not a scribble)
+  float gpatch = clamp(smoothstep(0.5, 0.64, d2.b + (d1.a - 0.5) * 0.25) + vGrA.y * 0.9, 0.0, 1.0) * clamp(1.0 - trod * 1.6, 0.0, 1.0);
+  float straw = (smoothstep(0.79, 0.83, e) * 0.55 + smoothstep(0.86, 0.96, e) * 0.45) * gpatch;
+  earth = mix(earth, earth * vec3(1.15, 1.1, 0.9) + uGrStraw * 0.04, straw * 0.8);
   earth = mix(earth, uGrDark * (0.8 + 0.4 * clamp(em, 0.2, 0.75)), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
   // (look B review G6: the low shrubs only in clusters, by the rock's edge and in the hollows, grey-green, lit on one side)
   float near = smoothstep(th - 0.2, th - 0.03, rf) * (1.0 - rk);
-  float shrub = (1.0 - smoothstep(0.15, 0.17, e)) * (1.0 - trod) * clamp(near * 1.8 + vGrA.y * 1.8 + smoothstep(0.6, 0.7, d2.r) * 0.9 - 0.05, 0.0, 1.0);
+  float shrub = (1.0 - smoothstep(0.15, 0.17, e)) * (1.0 - trod) * clamp(near * 2.0 + vGrA.y * 2.0 + smoothstep(0.5, 0.6, d2.r) * 1.0, 0.0, 1.0);
   earth = mix(earth, vec3(0.30, 0.31, 0.23) * (0.55 + 4.0 * e), shrub * 0.9);
   vec3 grav = mix(uGrGrav, vc, 0.4) * (0.82 + 0.3 * d2.g);
   // ROCK: pale limestone, pitted; on the steep its detail from the side and horizontal beds by height
@@ -304,7 +308,7 @@ vec3 grGround(vec3 vc) {
   vec3 rock = mix(uGrRock, vc, 0.25) * (0.52 + 0.62 * rb) * (1.0 - 0.32 * bed) * (1.0 - 0.12 * sw);
   rock *= mix(vec3(1.0), vec3(0.86, 0.84, 0.8), smoothstep(0.45, 0.7, d2.b) * 0.8);   // (weathered grey patches)
   vec3 col = mix(earth, grav, gv);
-  col = mix(col, mix(uGrRock, vc, 0.3) * (0.62 + 0.42 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.65));
+  col = mix(col, mix(uGrRock, vc, 0.5) * (0.6 + 0.36 * mix(d1.g, d3.g, sw3)), chip * clamp(0.25 + gv * 0.4 + trod * 0.3, 0.0, 0.6));
   col = mix(col, mix(col, uGrRock * 0.92, 0.4), rim * 0.4);
   // (the slab's own edge dusted with the earth round it)
   rock = mix(rock, mix(rock, col, 0.45), (1.0 - smoothstep(th + 0.01, th + 0.1, rf)) * (1.0 - steep));

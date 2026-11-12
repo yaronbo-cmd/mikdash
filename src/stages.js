@@ -1307,6 +1307,7 @@ export function createStages(ctx) {
 
   /* ── stage groups ── */
   const ST = {}, list = [];
+  const H120GZ = { g: null };   // ── h120 ── ── /h120 ──
   STAGE_IDS.forEach((id, idx) => {
     const def = DEF[id];
     const U = revealUniforms();
@@ -1327,6 +1328,9 @@ export function createStages(ctx) {
       group.add(g2);
       lc = { U: U2, group: g2, meshes: ms, mats: m2, shown: 0, label: -1, labelT: 0, lastLab: -1 };
     }
+    // ── h120 ── the gallery on its columns and the rock-cut mikveh (temple.js set 'nashim-gz'): a group of its own in the stage, so stage
+    // 05's world can hide it while it draws the player's own version (nashimGallery(false)) ── /h120 ──
+    if (id === 'nashim' && B.sets && B.sets['nashim-gz'] && Object.keys(B.sets['nashim-gz']).length) { const g3 = new THREE.Group(); g3.name = 'nashim-gallery'; for (const m of B.build(g3, 'nashim-gz', matFor)) meshes.push(m); group.add(g3); H120GZ.g = g3; }
     let colMat = null;
     if (id === 'har' && ctx.columns) for (const C of ctx.columns) {
       if (!colMat) { colMat = buildMaterial(C.mat, U, 10); matList.push(colMat); }
@@ -8923,6 +8927,7 @@ export function createStages(ctx) {
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
     cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
+    nashimGallery: (on) => { if (H120GZ.g) H120GZ.g.visible = !!on; },   // ── h120 ── ── /h120 ──
     s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,

@@ -215,11 +215,11 @@ export function createSky() {
   dome.add(stars);
 
   const cur = {}, fog = new THREE.Color(), tmp = new THREE.Color(), tmp2 = new THREE.Color(), moonDir = new THREE.Vector3();
-  let key = 'dawn', over = 0;
+  let key = 'dawn', over = 0, mixP = null;   // ── look C ── (mixP: a blend of two presets — the work light's sky) ── /look C ──
   let clearK = 0, moonLit = 1;   // ── world12 ── the night's clear sky and the moon's lit fraction (setMoon)
   const COLS = ['zen', 'horA', 'horS', 'fog', 'belt', 'cLit', 'cShd', 'cumLit', 'cumShd', 'mtn', 'moab'], NUMS = ['glow', 'disc', 'skyI', 'cov', 'cA', 'cum', 'moon', 'star'];
   function apply() {
-    const P = SKY[key] || SKY.dawn, night = !!P.moon;
+    const P = mixP || SKY[key] || SKY.dawn, night = !!P.moon;
     for (const k of COLS) {
       tmp.set(P[k]);
       if (over > 0) { tmp2.set(RAIN[k]); if (night) tmp2.multiplyScalar(0.1); tmp.lerp(tmp2, over); }
@@ -250,7 +250,17 @@ export function createSky() {
     /** cloud meshes drawn without depth test (sanctuary.js hides them inside the rooms): none now — the clouds are in the dome */
     clouds: [],
     /** the preset (dawn|noon|dusk|night|golden) and the sun's (at night: the moonlight's) direction */
-    set(k, dir) { key = SKY[k] ? k : 'dawn'; if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
+    set(k, dir) { key = SKY[k] ? k : 'dawn'; mixP = null; if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); } apply(); },
+    // ── look C ── the sky between two day presets (a → b by t; the work light's morning → noon) and the sun's direction
+    mix(a, b, t, dir) {
+      const A = SKY[a] || SKY.dawn, B = SKY[b] || SKY.noon, u = Math.max(0, Math.min(1, +t || 0)), P = mixP || {};
+      for (const k of [...COLS, 'sun']) (P[k] || (P[k] = new THREE.Color())).set(A[k]).lerp(tmp2.set(B[k]), u);
+      for (const k of NUMS) P[k] = A[k] + (B[k] - A[k]) * u;
+      mixP = P; key = u < 0.5 ? a : b;
+      if (dir) { uniforms.uSunDir.value.copy(dir).normalize(); envU.uSunDir.value.copy(uniforms.uSunDir.value); }
+      apply();
+    },
+    // ── /look C ──
     /** 0 clear … 1 overcast (the building's night rain); true when it changed */
     setOvercast(k) { const v = Math.max(0, Math.min(1, +k || 0)); if (Math.abs(v - over) < 1e-3 && !(v === 0 && over !== 0)) return false; over = v; apply(); return true; },
     get overcast() { return over; },

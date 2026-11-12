@@ -732,6 +732,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     for (const [p, t, s] of shots) { shot(p, t, 1.6); await sleep(s * 1000); }
     try { if (J) await J.big('stage', { title: PK.endTitle, sub: PK.endSub }); } catch (e) { /* */ }
     CAM.on = false; phase = 'off'; started = false;
+    try { if (view.workLight) view.workLight(null); } catch (e) { /* */ }   // ── look C ── (the clock's light again, until the next stage's) ── /look C ──
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
     try { if (S0.pinsOff) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ──
     resFor(false);   // ── h117 ── ── /h117 ──
@@ -742,6 +743,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
 
   /* ───────── the frame ───────── */
   let syncT = 0;
+  let wlM = null, wlAt = null;   // ── look C ── ── /look C ──
   // ── h117 ── (ירון 10.11: "רזולוציה התכוונתי שפשוט נראה לא איכותי"; no camera change for it) while an act runs the renderer draws at
   // the device's own pixel ratio (up to 2): main.js view.workRes, the mechanism Phase B's works use; back when the act ends ── /h117 ──
   let resOn = false;
@@ -755,6 +757,12 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
     resFor(phase === 'act' && !!act);   // ── h117 ── ("נראה לא איכותי": full sharpness while a minigame runs) ── /h117 ──
+    // ── look C ── the work light (main.js view.workLight, src/look/light.js): the sun by the stage's progress, still while the act runs and
+    // the camera is in its play zone, the dust haze over the open work's site ── /look C ──
+    if (view.workLight && M) {
+      if (wlM !== mission) { wlM = mission; let sp = null; try { sp = mission ? standOf(mission) : null; } catch (e) { sp = null; } wlAt = sp && Number.isFinite(sp.x + sp.z) ? [sp.x, ground(sp.x, sp.z), sp.z] : null; }
+      try { view.workLight({ p: M.progress(), act: phase === 'act' && !!act && !OV.on && !lookAway(), at: wlAt, k: mission ? mission.k : null }); } catch (e) { /* the world keeps its light */ }
+    }
     if (phase === 'act' && act && !OV.on && !lookAway()) { act.t += dt; call(act.update, dt); try { if (S0.shadowSoon) S0.shadowSoon(); } catch (e) { /* */ } }   // ── h114 ── (the shadows follow what the act moves; the act waits while he looks from above) ── /h114 ──
     if (OV.on) ovFrame();
     if (phase !== 'act' || OV.on) { if (LOOK.id != null || LOOK.u || LOOK.yaw || LOOK.away) lookReset(); } else lookFrame(dt);   // ── h115 ── ── /h115 ──
@@ -811,7 +819,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     X,
     resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
     // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──
-    dispose() { started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
+    dispose() { try { if (started && view.workLight) view.workLight(null); } catch (e) { /* */ } /* ── look C ── ── /look C ── */ started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
     // tests: finish the open act with a result
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──

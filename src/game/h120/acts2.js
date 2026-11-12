@@ -412,7 +412,7 @@ export const SAW = {
       if (pts >= 40) {
         // the macro: half the red line left on the edge along the whole end
         shot(S_END(), 0.7); await X.wait(0.8);
-        X.line('חתכת את הקו באמצע', 2600); X.quick(V3(X, A.cut, YB.top - 0.1, zc + YB.hw), 'על הקו!', beamM);
+        X.line('חתכתם את הקו באמצע', 2600); X.quick(V3(X, A.cut, YB.top - 0.1, zc + YB.hw), 'על הקו!', beamM);
         await X.wait(1.4);
       } else await X.wait(0.6);
       A.done = 1;

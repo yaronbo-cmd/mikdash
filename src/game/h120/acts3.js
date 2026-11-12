@@ -358,7 +358,7 @@ export const CARRY = {
       if (fit === 'knock' || A.again) {
         for (let i = 1; i <= 10; i++) { await X.wait(1 / 30); beamSeat(0.5 * (1 - ease(i / 10))); }
         X.play('knock'); X.dust(at.x, at.y, at.z, 8, 0.8);
-        if (fit === 'knock') { A.quick.knock = 1; X.quick(at, 'נכנסה בנקישה!', beamM); X.line('מדדת את מה שיש. הקורה נכנסה בדיוק', 2800); }
+        if (fit === 'knock') { A.quick.knock = 1; X.quick(at, 'נכנסה בנקישה!', beamM); X.line('מדדתם את מה שיש. הקורה נכנסה בדיוק', 2800); }
         await X.wait(1.2); return closeBay();
       }
       if (fit === 'trim') {

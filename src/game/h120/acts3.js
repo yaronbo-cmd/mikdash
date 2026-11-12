@@ -96,7 +96,7 @@ export const CARRY = {
     const S_BACK = () => look([midB[0] + acr[0] * 2, FL + 7, midB[1] + acr[1] * 2], [acr[0] + Bay.dir[0] * (sk + 0.25), acr[1] + Bay.dir[1] * (sk + 0.25)], frameDist(cut * 3.2, 22), 30);
     const hisP = COLS[Bay.his];
     const trimAt = () => [Bay.P1[0] + acr[0] * 3.2 - Bay.dir[0] * 0.6, Bay.P1[1] + acr[1] * 3.2 - Bay.dir[1] * 0.6];   // (his end over the trestle at the foot of the bay)
-    const S_TRIM = () => { const [x, z] = trimAt(); return look([x - Bay.dir[0] * 0.2, FL + 1.6, z - Bay.dir[1] * 0.2], [Bay.dir[0] * 0.9 + acr[0] * 0.45, Bay.dir[1] * 0.9 + acr[1] * 0.45], frameDist(7.6, 5.0), 38); };   // (from past his end: the slice between the two men, neither in front of it)
+    const S_TRIM = () => { const [x, z] = trimAt(); return look([x - Bay.dir[0] * 0.2, FL + 1.6, z - Bay.dir[1] * 0.2], [Bay.dir[0] * 0.9 + acr[0] * 0.45, Bay.dir[1] * 0.9 + acr[1] * 0.45], frameDist(9.4, 6.0), 42); };   // (from past his end: the slice between the two men, neither in front of it)
     const S_YARD = () => look([YARD.short[0] + 2, FL + 1.5, YARD.short[1] + 4], [0.35, 1], frameDist(18, 9), 26);
 
     /* ── the way's ground kept clear of the stage's crews (crews.js keeps six rects): the start, the way in five pieces ── */

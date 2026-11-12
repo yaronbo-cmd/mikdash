@@ -368,7 +368,8 @@ export const SAW = {
       dustP.scale.set(0.3, 0.2, 0.3);
     }
     function sawStart() {
-      A.phase = 'saw'; A.busy = false; A.s = sawFresh(lv); A.cut = xm(); A.saw = 0.35;
+      A.phase = 'saw'; A.busy = false; lab.set('', null);   // (the measure's label gone once the saw bites: the saw's own words take its place)
+      A.s = sawFresh(lv); A.cut = xm(); A.saw = 0.35;
       sawBuild(); kerf.visible = true;
       shot(S_SAW(), 0.9);
       kfAt(xm() - 0.6, zc + 2.1, xm(), zc);

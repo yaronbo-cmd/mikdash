@@ -15,7 +15,7 @@ import { floorY, floorMesh, grooveMesh, basinWater, pool, carveUnder, tick as wa
 import { createBeat, createGang, clamp, lerp, ease, camAt } from '../h109/kit.js';
 
 export const SH5 = { final: 0, X: null, B: null, crew: null, cols: {}, colKey: {}, own: {}, beamsG: null, beamKey: '', gal: null, galKey: '', yard: null, ch: null, chKey: '', site: null,
-  amb: [], ambKey: '', chip: null, labels: [], busy: 0, rise: {}, stood: null, t: 0, saw: null, lane: null, hideKey: '' };
+  amb: [], ambKey: '', chip: null, film: null, labels: [], busy: 0, rise: {}, stood: null, t: 0, saw: null, lane: null, hideKey: '' };
 const F = H120.FINGER, TAU = Math.PI * 2;
 
 /* ───────── fixed places (amot; rule 56): one table in routes.js, read by the world, the acts and the tests ───────── */
@@ -331,6 +331,7 @@ function chKey(X) { const st = X.M.st; return JSON.stringify([+(st.mik.water || 
 export function basinBuild(X, all, o = {}) {
   const M = mats(X), K = MIK, y0 = K.bottom, x1 = K.stair, n = K.steps - 1, tr = (x1 - K.x1) / n, rh = K.deep / K.steps, st = X.M.st;
   const water = o.water != null ? o.water : (st.mik.water || 0), wy = y0 + water;
+  const i0 = all.length;
   all.push(box(X, water > 0.02 ? M.h5plasterW : M.h5plaster, K.x0, y0 - 0.1, K.z0, K.x1, y0, K.z1));
   // the walls: plaster above the water, the darker plaster under it
   const wall = (x0, z0, xa, za) => { if (water > 0.02) all.push(box(X, M.h5plasterW, x0, y0, z0, xa, Math.min(wy, H120.FLOOR), za)); if (wy < H120.FLOOR) all.push(box(X, M.h5plaster, x0, Math.max(y0, wy), z0, xa, H120.FLOOR, za)); };
@@ -347,6 +348,8 @@ export function basinBuild(X, all, o = {}) {
   for (const h of [1, 2]) all.push(box(X, M.h5dark, rx - 0.06, y0 + h - 0.012, rz - 0.06, rx + 0.06, y0 + h + 0.012, rz + 0.06));
   for (const h of [0.5, 3]) all.push(box(X, M.h5bronze, rx - 0.09, y0 + h - 0.03, rz - 0.09, rx + 0.09, y0 + h + 0.03, rz + 0.09));
   // the water: the stage's own surface (h120/water120.js), its plaster darkened under it
+  // (the cut's inside takes no shadow: the shadow map's steps along the rim's edge read as a jagged band on the plaster)
+  for (let k = i0; k < all.length; k++) { const m = all[k]; if (m && m.isMesh && m.position.y < H120.FLOOR) m.receiveShadow = false; }
   carveUnder(X);   // (the slabs under the court floor would close the cut)
   const bw = basinWater(X); X.props.root.add(bw.g); all.push(bw.g); bw.set(water);
   return { surf: water > 0.004 ? bw.surf : null, bw, wy };
@@ -694,6 +697,7 @@ export function ensureWorld(X) {
 }
 let jT = 0;
 export function frameWorld(dt, X) {
+  if (SH5.film) { try { SH5.film.frame(dt); } catch (e) { console.warn('[h120] film frame', e && e.message); } }
   if (!SH5.B) return;
   SH5.t += dt;
   SH5.B.step(dt); if (SH5.crew) SH5.crew.update(dt, SH5.B);
@@ -702,6 +706,9 @@ export function frameWorld(dt, X) {
   jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X, true); ensureWorld(X); goalChip(X); if (SH5.cone || SH5.coneWas) { coneApply(); SH5.coneWas = !!SH5.cone; } }
   if (SH5.cone) coneHold(X);
   for (const L of SH5.labels) L.frame();
+  // (no two labels overlap: a later one that meets an earlier one moves up above it)
+  { const on = SH5.labels.filter((L) => L.at && L.el.style.display !== 'none' && L.el.style.opacity !== '0'); const R = [];
+    for (const L of on) { let r = L.el.getBoundingClientRect(), dy = 0; for (let k = 0; k < 4; k++) { const hit = R.find((q) => r.left < q.right && r.right > q.left && r.top - dy < q.bottom && r.bottom - dy > q.top); if (!hit) break; dy += (r.bottom - dy) - hit.top + 4; } if (dy) L.el.style.top = (parseFloat(L.el.style.top) - dy) + 'px'; R.push({ left: r.left, right: r.right, top: r.top - dy, bottom: r.bottom - dy }); } }
 }
 /** every frame: what the cone hid stays hidden though its crew shows it again (crews.js sets its men's visT as they walk and work) */
 function coneHold(X) {

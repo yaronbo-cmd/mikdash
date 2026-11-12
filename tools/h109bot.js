@@ -510,6 +510,7 @@
       if (B.k.poured === 1) { B.k.poured = 2; return { wait: 100, shot: `mik${a.lvP}-pour` }; }
       // (after a pasul: the vessel off the way)
       if (a.pasul && a.res && a.res.vessel && M4 && !B.k['off' + a.pasul]) {
+        if (a.busy || a.phase !== 'draw') return { wait: 400 };
         B.k['off' + a.pasul] = 1; const v = a.vessels.find((q) => q.id === a.res.vessel), to = M4.scr(...({ trough: [24.5, -58.5], jar1: [30.5, -58.5] }[v.id] || [20, -60]));
         return { drag: [v.at[0], v.at[1], to[0], to[1], 1400], wait: 900, note: 'mik: the vessel off the way ' + v.id };
       }
@@ -534,6 +535,15 @@
       const d2 = a.lvP === 3 ? deep(a.needOv, 'needOv') : null; if (d2) return d2;
       if (!a.plugOut && a.phase === 'draw') return { drag: [a.plug[0], a.plug[1], a.plug[0], a.plug[1] - 110, 600], wait: 900, note: `mik: the plug (res ${JSON.stringify(a.res)})` };
       return { wait: 300, note: 'mik: waiting ' + a.phase + ' ' + JSON.stringify(a.res) };
+    },
+    // the planks (8.1): a drag from the plank in hand to its place; the first one let go early (it stays), the third a short push (it glides)
+    planks(a) {
+      if (a.phase !== 'lay' || !a.from || a.glide || Math.abs(a.p - a.pT) > 0.02) return { wait: 300 };
+      if (!B.k.lay) { B.k.lay = 1; return { wait: 200, shot: 'planks-start' }; }
+      if (a.i === 0 && !B.k.early) { B.k.early = 1; const f = a.from, t = a.to, u = 0.15; return { drag: [f[0], f[1], Math.round(f[0] + (t[0] - f[0]) * u), Math.round(f[1] + (t[1] - f[1]) * u), 500], wait: 900, note: 'planks: let go early (it stays)' }; }
+      if (a.i === 3 && !B.k.mid) { B.k.mid = 1; return { wait: 300, shot: 'planks-mid' }; }
+      const u = a.i === 2 ? 0.45 : 1.05, f = a.from, t = a.to;
+      return { drag: [f[0], f[1], Math.round(f[0] + (t[0] - f[0]) * u), Math.round(f[1] + (t[1] - f[1]) * u), 700], wait: 1200, note: `planks: ${a.i + 1}/${a.n} laid ${a.laid.join(',')}` };
     },
     // ── /build 120 ──
   };

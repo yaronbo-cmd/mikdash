@@ -103,7 +103,7 @@ export const along = (pts, step = 0.25) => resample(pts, step).map((p) => [p[0],
 /** the channel as cut: a narrow groove in the slabs, its bottom darker the deeper it goes, chisel-rough edges */
 export function grooveMesh(X, pts) {
   const T = X.THREE, P = along(pts, 0.25); if (P.length < 2) return null;
-  const g = strip(T, P, (p) => 0.2 + 0.018 * (p[2] || 1), 0.004);
+  const g = strip(T, P, (p) => 0.3 + 0.02 * (p[2] || 1), 0.004);
   const m = new T.Mesh(g, new T.ShaderMaterial({
     transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
     vertexShader: 'attribute float aU, aV, aD; varying float vU, vV, vD; void main(){ vU = aU; vV = aV; vD = aD; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -122,7 +122,7 @@ export function grooveMesh(X, pts) {
 /** the ribbon along a channel: uniforms uFront / uTail (amot along it: the water is between them), uFlow (0…1: how full) */
 export function ribbon(X, pts, o = {}) {
   const T = X.THREE, P = o.raw ? pts : along(pts, 0.25); if (P.length < 2) return null;
-  const g = strip(T, P, o.w || 0.24, o.lift != null ? o.lift : 0.014, o);
+  const g = strip(T, P, o.w || 0.3, o.lift != null ? o.lift : 0.014, o);
   const mat = new T.ShaderMaterial({
     transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
     uniforms: { uT: U.t, uSky: U.sky, uSkyLo: U.skyLo, uFront: { value: 0 }, uTail: { value: -1 }, uFlow: { value: 1 }, uSpeed: { value: o.speed || 1.7 }, uThin: { value: o.thin || 0 } },
@@ -137,18 +137,25 @@ export function ribbon(X, pts, o = {}) {
         // the bend: the stream crowds to the outer bank (brighter, a little faster there)
         float outer = clamp(-vB * vV * 0.6, -1.0, 1.0);
         float sp = uSpeed * (1.0 + 0.25 * outer);
-        float w1 = n12(vec2(vU * 3.0 - uT * sp * 3.0, vV * 2.1 + 0.3 * sin(vU * 1.7)));
-        float w2 = n12(vec2(vU * 7.0 - uT * sp * 6.0, vV * 4.0 + 7.0));
-        float streak = smoothstep(0.55, 0.85, w1 * 0.65 + w2 * 0.45);
-        float spark = step(0.985, h12(vec2(floor(vU * 26.0 - uT * sp * 26.0), floor(vV * 3.0 + 3.0) + floor(uT * 9.0))));
-        vec3 deep = vec3(0.16, 0.34, 0.40), shallow = vec3(0.42, 0.58, 0.60), sky = pow(uSky, vec3(1.0 / 2.2));
-        vec3 c = mix(deep, mix(shallow, sky, 0.35), 0.35 + 0.45 * e * e);
-        c += vec3(0.85, 0.92, 0.95) * streak * 0.32 + vec3(1.0) * spark * 0.8;
+        // the streaks: lanes across the stream, each its own speed and phase; dashes of varying length that come and go
+        float body = n12(vec2(vU * 1.3 - uT * sp * 1.3, vV * 1.5 + 4.0));
+        float lv = (vV * 0.5 + 0.5) * 6.0, li = floor(lv), lf = fract(lv);
+        float lsp = sp * (0.75 + 0.6 * h12(vec2(li, 1.7)));
+        float sd = vU * 1.8 - uT * lsp * 1.8 + h12(vec2(li, 2.9)) * 17.0 + 0.4 * sin(vU * 2.3 + li);
+        float di = floor(sd), df = fract(sd), dl = 0.18 + 0.62 * h12(vec2(di, li + 5.1));
+        float dash = step(0.42, h12(vec2(di, li + 8.3))) * smoothstep(0.0, 0.1, df) * (1.0 - smoothstep(dl - 0.12, dl, df));
+        float streak = dash * (1.0 - smoothstep(0.12, 0.42, abs(lf - 0.5))) * (0.55 + 0.45 * h12(vec2(di, li + 3.7)));
+        float spark = step(0.988, h12(vec2(floor(vU * 22.0 - uT * sp * 22.0), floor(vV * 3.0 + 3.0) + floor(uT * 7.0))));
+        vec3 deep = vec3(0.13, 0.30, 0.37), shallow = vec3(0.40, 0.56, 0.60), sky = pow(uSky, vec3(1.0 / 2.2));
+        vec3 c = mix(deep, mix(shallow, sky, 0.35), 0.25 + 0.4 * e * e + 0.2 * body);
+        c += vec3(0.80, 0.90, 0.94) * streak * 0.42 + vec3(1.0) * spark * 0.7;
         c += vec3(0.6, 0.7, 0.72) * max(outer, 0.0) * 0.18;
-        // the leading front: a bright foam lip, its edge clear
-        float lip = 1.0 - smoothstep(0.0, 0.16, toF);
-        c = mix(c, vec3(0.95, 0.97, 0.96), lip * 0.75);
-        float a = (0.80 + 0.15 * streak) * (1.0 - smoothstep(0.82, 1.0, e)) * smoothstep(0.0, 0.25, toT + 0.25) * mix(0.75, 1.0, uFlow);
+        // the leading front: a bright foamy tongue, bubbles in it, its edge clear
+        float fn = n12(vec2(vV * 5.0 + uT * 3.0, vU * 6.0));
+        float lip = 1.0 - smoothstep(0.0, 0.32 + 0.12 * fn, toF);
+        float bub = smoothstep(0.45, 0.75, n12(vec2(vU * 14.0 - uT * 4.0, vV * 6.0)));
+        c = mix(c, vec3(0.97, 0.99, 0.98), lip * (0.7 + 0.3 * bub));
+        float a = (0.82 + 0.15 * streak + 0.1 * lip) * (1.0 - smoothstep(0.82, 1.0, e)) * smoothstep(0.0, 0.25, toT + 0.25) * mix(0.75, 1.0, uFlow);
         gl_FragColor = vec4(c, a); ${OUT} }`,
   });
   const m = new T.Mesh(g, mat); m.renderOrder = 4; m.frustumCulled = false;
@@ -170,9 +177,9 @@ export function wetTrail(X, pts, o = {}) {
         // it dries from the edges in: the wet patch narrows and pales over uDry seconds
         float k = 1.0 - smoothstep(uDry * 0.5, uDry, age + (1.0 - (1.0 - abs(vV))) * uDry * 0.3);
         float edge = 0.55 + 0.3 * n12(vec2(vU * 4.0, vV * 2.0 + 3.0));
-        float a = k * (1.0 - smoothstep(edge, edge + 0.25, abs(vV))) * 0.42;
+        float a = k * (1.0 - smoothstep(edge, edge + 0.25, abs(vV))) * 0.62;
         if (a < 0.004) discard;
-        gl_FragColor = vec4(vec3(0.20, 0.16, 0.11), a); ${OUT} }`,
+        gl_FragColor = vec4(vec3(0.15, 0.12, 0.085), a); ${OUT} }`,
   });
   const m = new T.Mesh(g, mat); m.renderOrder = 3; m.frustumCulled = false;
   return { mesh: m, len: g.userData.len, set(wetTo, left = -1, from = -1) { mat.uniforms.uWetTo.value = wetTo; mat.uniforms.uLeft.value = left; mat.uniforms.uFrom.value = from; }, mat };
@@ -193,8 +200,12 @@ export function fall(X) {
         gl_FragColor = vec4(c, a); ${OUT} }`,
   });
   let tube = null; const ringM = [], foamM = new T.MeshBasicMaterial({ color: 0xF4F8F6, transparent: true, opacity: 0.0, depthWrite: false });
-  const rg = new T.RingGeometry(0.8, 1.0, 28);
-  for (let i = 0; i < 4; i++) { const r = new T.Mesh(rg, new T.MeshBasicMaterial({ color: 0xF2F7F6, transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = -Math.PI / 2; r.renderOrder = 6; g.add(r); ringM.push(r); }
+  // (three soft rings at most: a blurred band that widens and fades as it spreads)
+  const rg = new T.CircleGeometry(1.0, 40);
+  const ringMat = () => new T.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uA: { value: 0 }, uW: { value: 0.18 } },
+    vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform float uA, uW; varying vec2 vP; void main(){ float r = length(vP), d = (r - 0.82) / uW; float a = exp(-d * d) * uA; if (a < 0.004) discard; gl_FragColor = vec4(vec3(0.92, 0.96, 0.96), a); ${OUT} }` });
+  for (let i = 0; i < 3; i++) { const r = new T.Mesh(rg, ringMat()); r.rotation.x = -Math.PI / 2; r.renderOrder = 6; g.add(r); ringM.push(r); }
   const foam = new T.Mesh(new T.CircleGeometry(0.16, 16), foamM); foam.rotation.x = -Math.PI / 2; foam.renderOrder = 6; g.add(foam);
   let lastY = null, on = 0;
   const lip = { x: MIK.inlet[0], y: FL + 0.01, z: MIK.z0 + 0.02 };
@@ -215,7 +226,7 @@ export function fall(X) {
     frame() {
       if (on <= 0.01 || lastY == null) return;
       const t = U.t.value, x = lip.x, z = lip.z + 0.12 + 0.1 * Math.min(1, (lip.y - lastY) / 3);
-      ringM.forEach((r, i) => { const ph = (t * 1.1 + i / ringM.length) % 1; r.visible = true; const s = 0.12 + ph * 0.75; r.scale.set(s, s, 1); r.position.set(x, lastY + 0.006, z); r.material.opacity = (1 - ph) * 0.55 * Math.min(1, on * 1.5); });
+      ringM.forEach((r, i) => { const ph = (t * 0.8 + i / ringM.length) % 1; r.visible = true; const s = 0.15 + ph * 0.8; r.scale.set(s, s, 1); r.position.set(x, lastY + 0.006, z); r.material.uniforms.uA.value = (1 - ph) * (1 - ph) * 0.3 * Math.min(1, on * 1.5); r.material.uniforms.uW.value = 0.1 + 0.25 * ph; });
       foam.visible = true; foam.position.set(x, lastY + 0.008, z); foamM.opacity = 0.55 * Math.min(1, on * 1.5); const fs = 1 + 0.15 * Math.sin(t * 17); foam.scale.set(fs, fs, 1);
     },
   };
@@ -236,7 +247,7 @@ export function surfaceMat(X, o = {}) {
         g += vec2(0.7, 0.3) * cos(dot(p, vec2(2.1, 0.9)) + uT * 1.3) * 0.05;
         g += vec2(-0.2, 0.9) * cos(dot(p, vec2(-0.6, 2.6)) + uT * 1.7) * 0.04;
         g += (vec2(n12(p * 5.0 + uT * 0.6), n12(p * 5.0 - uT * 0.5 + 9.0)) - 0.5) * 0.08;
-        if (uDrop.z > 0.0) { vec2 d = p - uDrop.xy; float r = length(d) + 1e-3; g += (d / r) * sin(r * 22.0 - uT * 9.0) * 0.09 * uDrop.z * exp(-r * 1.8); }
+        if (uDrop.z > 0.0) { vec2 d = p - uDrop.xy; float r = length(d) + 1e-3; g += (d / r) * sin(r * 14.0 - uT * 6.0) * 0.035 * uDrop.z * exp(-r * 2.2); }
         vec3 n = normalize(vec3(-g.x, 1.0, -g.y));
         vec3 v = normalize(cameraPosition - vW);
         float fr = pow(1.0 - max(dot(n, v), 0.0), 3.0);

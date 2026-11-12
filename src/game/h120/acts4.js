@@ -82,7 +82,7 @@ export const MIKVEH = {
     /* ── the figures: the kohen (white, his turban; his jug), two quarrymen with chisel and mallet; on their own floor ── */
     const onFloor = (w) => { if (w) { w.a.ground = floorY; w.a.y = floorY(w.a.x, w.a.z); } return w; };
     const kf = onFloor(kohenFig(hol[0] + 1.9, hol[1] + 0.6)); if (kf) { crew.push(kf); kf.fx = null; }
-    const qm = [0, 1].map((k) => { const w = onFloor(SH5.crew.add(hol[0] - 1.6 - k * 1.1, hol[1] - 1.2, { role: 'hold', item: k ? 'mallet' : 'chisel', crew: 3, tunic: k ? '#B9A27C' : '#A88E66' })); if (w) { crew.push(w); w.fx = null; } return w; });
+    const qm = [0, 1].map((k) => { const w = onFloor(SH5.crew.add(hol[0] - 1.6 - k * 1.7, hol[1] - 1.2 + k * 0.3, { role: 'hold', item: k ? 'mallet' : 'chisel', crew: 3, tunic: k ? '#B9A27C' : '#A88E66' })); if (w) { crew.push(w); w.fx = null; } return w; });
     viewCone(X, [cone(S_ALL(), 4), cone(S_ROD(), 1.5)], { keep: [[CHAMBER.x0 - 2, CHAMBER.z0 - 2, CHAMBER.x1 + 2, CHAMBER.z1 + 2]], skip: crew });
     /** a figure goes toward (x, z) at most v amot a second, facing where it goes, then (fx, fz) */
     function stepTo(w, x, z, dt, v = 4, fx, fz) {
@@ -132,8 +132,8 @@ export const MIKVEH = {
     function waterBuild() {
       for (const o of [rib, wet, orib, owet]) if (o) { live.remove(o.mesh); o.mesh.geometry.dispose(); }
       rib = wet = orib = owet = null;
-      if (chIn) { Pin = resample(chIn.pts, 0.25); Cin = cumOf(Pin); rib = ribbon(X, chIn.pts); wet = wetTrail(X, chIn.pts, { dry: 60 }); if (rib) { live.add(rib.mesh); live.add(wet.mesh); } }
-      if (chOv) { Pov = resample(chOv.pts, 0.25); Cov = cumOf(Pov); orib = ribbon(X, chOv.pts); owet = wetTrail(X, chOv.pts, { dry: 60 }); if (orib) { live.add(orib.mesh); live.add(owet.mesh); } }
+      if (chIn) { Pin = resample(chIn.pts, 0.25); Cin = cumOf(Pin); rib = ribbon(X, chIn.pts); wet = wetTrail(X, chIn.pts, { dry: 60, w: 0.95 }); if (rib) { live.add(rib.mesh); live.add(wet.mesh); } }
+      if (chOv) { Pov = resample(chOv.pts, 0.25); Cov = cumOf(Pov); orib = ribbon(X, chOv.pts); owet = wetTrail(X, chOv.pts, { dry: 60, w: 0.95 }); if (orib) { live.add(orib.mesh); live.add(owet.mesh); } }
       waterSet();
     }
     function waterSet() {
@@ -178,7 +178,7 @@ export const MIKVEH = {
     /* ── the fingers ── */
     function fDown(f) {
       if (A.busy) return;
-      const g = pick(f), p = floorAt(f.x, f.y); f.p0 = p; f.t0s = A.t;
+      const g = pick(f), p = floorAt(f.x, f.y); f.p0 = p; f.t0s = A.t; f.t0r = performance.now();
       A.downs.push([g || (p ? 'floor' : null), Math.round(f.x), Math.round(f.y), A.phase]); if (A.downs.length > 8) A.downs.shift();
       if (g === 'ring') { f.what = 'ring'; f.h0 = ringH(); const s0 = ringScr(), up = sc(X, { x: MIK.rod[0], y: MIK.bottom + ringH() + 1, z: MIK.rod[1] }); f.pxA = Math.max(20, s0[1] - up[1]); return; }   // (an amah's pixels taken once, as the finger lands)
       // (the nearest grip wins: the plug beside the channel's mouth, or the channel's point under the finger)
@@ -207,7 +207,7 @@ export const MIKVEH = {
       if (f.what === 'vessel') { ev('moved ' + f.vid); save(); if (A.plugOut) mend('vessel'); recompute(); return; }
       if (f.what === 'draw') return drawDone(f);
       if (f.deep) { A.held = null; lab2.set('', null); if (!A.cutK) idleMen(); return; }
-      if ((f.what === 'floor' || f.what === 'ch') && f.moved < 14 && A.t - f.t0s < 0.45 && f.p0) testPour(f.p0);
+      if ((f.what === 'floor' || f.what === 'ch') && f.moved < 14 && (A.t - f.t0s < 0.45 || performance.now() - f.t0r < 450) && f.p0) testPour(f.p0);   // (a tap: short in the game's time or the hand's)
     }
     const inside = (p) => p[0] > CHAMBER.x0 + 0.4 && p[0] < CHAMBER.x1 - 0.4 && p[1] > CHAMBER.z0 + 0.4 && p[1] < (Math.abs(p[0] - DOOR[0]) < 3.6 ? CHAMBER.z1 + 0.5 : CHAMBER.z1 - 0.4) && !(p[0] > MIK.x0 - 0.1 && p[0] < MIK.stair + 0.1 && p[1] > MIK.z0 + 0.15 && p[1] < MIK.z1 - 0.15);
     const fmtH = (h) => { const a = Math.floor(h + 1e-6), r = Math.round((h - a) * 24); return r === 0 ? `${a} אמות` : r === 24 ? `${a + 1} אמות` : `${a} אמות ו־${r} אצבעות`; };
@@ -240,12 +240,14 @@ export const MIKVEH = {
       const P = along(ch.pts, 0.25), C = cumOf(P);
       A.cutTo = Math.min(A.cutLen, A.cutTo + dt * 3.2);
       // the two men at the cut's end, on the line's far side, one a little behind the other, their chisels going
-      qm.forEach((w, k) => { if (!w) return; const d = Math.max(0, A.cutTo - k * 0.9), i = Math.min(P.length - 1, Math.round(d / 0.25)), q = farSide(P, i, 0.75); stepTo(w, q[0], q[1], dt, 5, P[i][0], P[i][1]); w.role = 'hammer'; });
+      qm.forEach((w, k) => { if (!w) return; const d = Math.max(0, A.cutTo - k * 2.4), i = Math.min(P.length - 1, Math.round(d / 0.25)), q = farSide(P, i, 0.75); stepTo(w, q[0], q[1], dt, 5, P[i][0], P[i][1]); w.role = 'hammer'; });
       if ((A.t * 3) % 1 < dt * 3) { const q = ptAt(P, C, A.cutTo); X.dust(q[0], floorY(q[0], q[1]) + 0.1, q[1], 2, 0.6); X.play('chisel'); }
       if ((A.t * 6) % 1 < dt * 6) groovesDraw();
       if (A.cutTo >= A.cutLen - 1e-6) { A.cutK = null; groovesDraw(); qm.forEach((w) => { if (w) w.role = 'hold'; }); idleMen(); }
     }
-    function idleMen() { const sd = hol[0] - 3.6 < CHAMBER.x0 + 0.8 ? 1 : -1; qm.forEach((w, k) => { if (!w) return; const q = [hol[0] + sd * (2.3 + k * 1.0), hol[1] + 0.2 - k * 0.5];   // (beside the hollow, off the way south)
+    /** while the water runs the quarrymen step off the frame: to the chamber's far north-east corner, apart */
+    function offMen() { qm.forEach((w, k) => { if (!w) return; w.role = 'hold'; w.a.x = CHAMBER.x1 - 1.4 - k * 1.8; w.a.z = CHAMBER.z0 + 1.3; w.a.yaw = Math.PI; pose(w, 0.1, 0); }); }
+    function idleMen() { const sd = hol[0] - 3.6 < CHAMBER.x0 + 0.8 ? 1 : -1; qm.forEach((w, k) => { if (!w) return; const q = [hol[0] + sd * (2.3 + k * 1.5), hol[1] + 0.2 - k * 0.4];   // (beside the hollow, off the way south)
       w.role = 'hold'; w.a.x = q[0]; w.a.z = q[1]; w.a.yaw = Math.atan2(hol[0] - q[0], hol[1] - q[1]); pose(w, 0.1, 0); }); }
 
     /* ── a hold deepens the channel: a finger of depth a second, the quarryman there; the fifth finger cracks the slab ── */
@@ -322,6 +324,7 @@ export const MIKVEH = {
       if (A.cutK) { X.line('החוצבים עוד חורצים', 1600); return; }
       A.plugOut = 1; A.phase = 'run'; A.fd = 0; A.tings = 0; A.stood = 0; A.firstRun = A.firstRun || 0; A.runStops = 0; ev('plug out');
       recompute(true); X.play('wood'); X.hand(null);
+      offMen();
       X.line(lvP === 3 ? 'המים זורמים אל המקווה' : 'המים זורמים', 1800);
     }
     function runFrame(dt) {
@@ -342,7 +345,7 @@ export const MIKVEH = {
         A.stood = 1; A.stops++; A.phase = 'stop'; ev('stop at ' + r.stop); voices.drops();
         const a = r.at || q, P = Pin, i = Math.max(1, r.stop), dir = [P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]];
         if (pud) live.remove(pud.mesh); pud = puddle(X, a[0], a[1], dir[0], dir[1]); live.add(pud.mesh); A.pudR = 0;
-        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 1.7, z: a[1] }, false);
+        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 1.2, z: a[1] - 1.8 }, false);
         setTimeout(() => { if (A.phase === 'stop') shot(S_IN(), 1.0); }, 1800);
         X.line(lv === 1 ? 'המים נעצרו: החזיקו אצבע על החריץ שלפני הסימן להעמיק אותו, או גררו אותו מחדש משם' : 'המים נעצרו: העמיקו, או גררו מחדש מהנקודה הזאת', 3600);
       }
@@ -376,7 +379,7 @@ export const MIKVEH = {
       if (!r.ok && A.ofd >= to - 1e-6 && !A.ostood) {
         A.ostood = 1; A.stops++; A.phase = 'over-stop'; voices.drops(); const a = r.at || q;
         if (pud) live.remove(pud.mesh); pud = puddle(X, a[0], a[1], 1, 0); live.add(pud.mesh); A.pudR = 0;
-        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 1.7, z: a[1] }, false); setTimeout(() => { if (A.phase === 'over-stop') shot(S_OV(), 1.0); }, 1800); X.line('המים נעצרו בחריץ הגלישה: העמיקו, או גררו מחדש', 3000);
+        lab.set('כאן המים נעצרו', { x: a[0], y: floorY(a[0], a[1]) + 1.2, z: a[1] - 1.8 }, false); setTimeout(() => { if (A.phase === 'over-stop') shot(S_OV(), 1.0); }, 1800); X.line('המים נעצרו בחריץ הגלישה: העמיקו, או גררו מחדש', 3000);
       }
       if (r.ok && A.ofd >= total - 1e-6) { A.out = 1; ev('out the door'); X.line('העודף יוצא מפתח הלשכה', 2200); finish(); }
     }
@@ -411,8 +414,8 @@ export const MIKVEH = {
       A.plugOut = 0; plugUp = 0; plugDraw(); fl.set(0, MIK.bottom + A.h); voices.pour(0, A.h / 3.3);
       A.drain = 1; A.drainAt = 0; A.leftIn = wNow();
       if (kf) { kf.a.x = hol[0] + 1.6; kf.a.z = hol[1] + 1.2; pose(kf, 0.1, 0, null); }   // (the kohen back by the hollow: the bucket men's work is not his)
-      // two men with jars at the rim, dipping and pouring out behind them; the level drops on the rod a jar at a time
-      const bk = [[MIK.x0 - 0.9, MIK.z0 + 0.8], [MIK.x0 - 0.9, MIK.z1 - 0.8]].map((p) => onFloor(SH5.crew.add(p[0], p[1], { role: 'hold', item: 'jar', fx: MIK.x0 + 1, fz: (MIK.z0 + MIK.z1) / 2, crew: 1 })));
+      // two men with jars, one at the west rim and one at the north (apart, both seen from the shot), dipping and pouring out behind them; the level drops on the rod a jar at a time
+      const bk = [[MIK.x0 - 0.9, MIK.z0 + 0.5], [MIK.x0 + 1.75, MIK.z0 - 0.95]].map((p) => onFloor(SH5.crew.add(p[0], p[1], { role: 'hold', item: 'jar', fx: MIK.x0 + 1, fz: (MIK.z0 + MIK.z1) / 2, crew: 1 })));
       for (const w of bk) if (w) { crew.push(w); coneOwn(w); }
       // (the basin from the south-east, a little back: both men at its west rim, their jars, the rod and the level on it)
       const S_BK = look([MIK.x0 - 0.1, MIK.bottom + 2.4, (MIK.z0 + MIK.z1) / 2 - 0.6], [0.45, 1], frameDist(13, 10.5), 54);

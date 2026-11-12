@@ -75,11 +75,11 @@ export function groundDetailData(n = 512) {
     const cx = r() * n, cy = r() * n, rad = (8 + r() * 12) * q, ph = r() * 6.28;
     stamp(cx, cy, rad * 1.2, 0, (dx, dy) => { const a = Math.atan2(dy, dx), d = Math.hypot(dx, dy) / (rad * (0.9 + 0.08 * Math.sin(a * 3 + ph) + 0.06 * Math.sin(a * 7 - ph))); return d > 1 ? null : (o) => (d > 0.8 ? Math.min(o, 0.12) : 0.04 + 0.08 * d + 0.04 * Math.sin(dx * 1.3 / q) * Math.sin(dy * 1.5 / q)); });
   }
-  // dry straw stubble: tufts of short bright strokes
-  for (let t = 0; t < 150; t++) {
-    const tx = r() * n, ty = r() * n, nb = 5 + Math.floor(r() * 8);
+  // dry straw stubble: tufts of short strokes (── look B review G4 ── half the size, fewer, sparser ── /look B ──)
+  for (let t = 0; t < 80; t++) {
+    const tx = r() * n, ty = r() * n, nb = 3 + Math.floor(r() * 4);
     for (let b = 0; b < nb; b++) {
-      const a = -Math.PI / 2 + (r() - 0.5) * 2.4, L = (10 + r() * 22) * q, sx = tx + (r() - 0.5) * 14 * q, sy = ty + (r() - 0.5) * 14 * q, br = 0.86 + r() * 0.14;
+      const a = -Math.PI / 2 + (r() - 0.5) * 2.4, L = (5 + r() * 10) * q, sx = tx + (r() - 0.5) * 8 * q, sy = ty + (r() - 0.5) * 8 * q, br = 0.86 + r() * 0.14;
       for (let s2 = 0; s2 <= L; s2 += 0.8) { const x = sx + Math.cos(a) * s2, y = sy + Math.sin(a) * s2; stamp(x, y, 1.3 * q, 0, (dx, dy) => (Math.hypot(dx, dy) > 1.3 * q ? null : (o) => (o < 0.18 ? o : Math.max(o, br - 0.08 * s2 / L)))); }
     }
   }
@@ -277,7 +277,9 @@ vec3 grGround(vec3 vc) {
   float e = mix(d1.r, d3.r, sw3), em = mix(e, 0.5, trod * 0.6);
   vec3 earth = vc * (0.64 + 0.48 * mix(clamp(em, 0.2, 0.75), d2.r, 0.3));
   float straw = smoothstep(0.78, 0.9, e) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - 0.6 * vGrA.y);
-  earth = mix(earth, uGrStraw * (0.8 + 0.3 * d2.r), straw * 0.6);
+  // (look B review G4: the straw only a little lighter and yellower than its earth, and gone close up, where it would read as lines)
+  straw *= smoothstep(0.022, 0.045, length(fwidth(p)));
+  earth = mix(earth, earth * vec3(1.13, 1.1, 0.98) + uGrStraw * 0.03, straw * 0.7);
   earth = mix(earth, uGrDark * (0.8 + 0.4 * clamp(em, 0.2, 0.75)), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
   float shrub = (1.0 - smoothstep(0.12, 0.18, e)) * (1.0 - trod);
   earth = mix(earth, vec3(0.16, 0.15, 0.09) * (0.75 + 2.5 * e), shrub * 0.85);

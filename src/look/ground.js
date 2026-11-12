@@ -346,6 +346,13 @@ const BUMP = /* glsl */`
     float det = dot(sx, r1) * faceDirection; vec3 g = sign(det) * (dH.x * r1 + dH.y * r2); normal = normalize(abs(det) * normal - g); }
 #endif`;
 
+// ── look D ── (D4) the far edge: the world terrain (GR_LITE) melts into the fog's own colour over its last ~450 amot, written after every
+// conversion as the sky dome writes its haze under the horizon (the same value), so where the terrain ends and the dome's hills begin there
+// is no seam and no colour jump, at any time of day ── /look D ──
+const EDGE = /* glsl */`
+#if defined(GR_LITE) && defined(USE_FOG)
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, smoothstep(3150.0, 3600.0, max(abs(vGrW.x), abs(vGrW.z))));
+#endif`;
 function uniforms(THREE) {
   const c = cache(THREE); if (c.U) return c.U;
   STATE.THREE = THREE;
@@ -365,7 +372,8 @@ export function groundPatch(sh, THREE) {
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', '#include <common>\n' + FRAG_FN + FRAG)
     .replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb = grGround(diffuseColor.rgb);')
-    .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP);
+    .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + BUMP)
+    .replace('#include <dithering_fragment>', '#include <dithering_fragment>\n' + EDGE);   // ── look D ── ── /look D ──
   airPatch(sh);   // ── look C ── (the cloud shadows on the ground: the terrain and the hill) ── /look C ──
 }
 /** the defines and the program's key for a ground material (the level picks the variant) */

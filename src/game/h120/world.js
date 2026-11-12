@@ -616,12 +616,42 @@ export function coneApply() {
     else if (o.userData.coneHid) { o.userData.coneHid = 0; o.visible = o.userData.coneVis !== false; }
   }
 }
+/** an act's start (before its first frame): every figure not the act's own that stands in the picture of its shots, inside the act's
+ *  ground or within 1.6 amot of another figure there, is hidden at once (no walk out through the shot, no shrink); back after the act.
+ *  Men clear of the ground and apart keep working as they are; one who wanders in later walks off (crews.js keepOut walkOff). */
+function startClear(C) {
+  const A = SH5.X && SH5.X.actors ? SH5.X.actors() : null, pool = (A && A.list) || [];
+  const skipA = new Set(); for (const o of C.skip) if (o) skipA.add(o.a || o);
+  const L = C.L.map((c) => ({ ...c, dW: 400 })), y0 = (a) => (a.y != null ? a.y : H120.FLOOR);
+  const seen = (a) => L.some((c) => inC(c, a.x, y0(a) + 0.2, a.z, 0.15) || inC(c, a.x, y0(a) + 1.9, a.z, 0.15));
+  const inG = (a) => (C.rects || []).some((r) => a.x > r[0] && a.x < r[2] && a.z > r[1] && a.z < r[3]);
+  const on = pool.filter((a) => a && a.alive !== false && a.visT > 0 && seen(a));
+  SH5.startHid = SH5.startHid || [];
+  for (const a of on) {
+    if (skipA.has(a)) continue;
+    const near = on.some((b) => b !== a && Math.hypot(b.x - a.x, b.z - a.z) < 1.6 && Math.abs(y0(b) - y0(a)) < 1.5);
+    if (!inG(a) && !near) continue;
+    SH5.startHid.push([a, a.visT]); a.visT = 0; a.vis = 0;
+  }
+}
+/** (the stage's own builders, stages.js) one in the picture of the act's shots standing on its ground, or within 1.6 amot of a figure
+ *  of the shared pool drawn there, is not drawn for the act (they never bunch with the act's men, nor stand on its ground) */
+function groundSeen(x, y, z) {
+  const C = SH5.cone; if (!C || !C.L) return false;
+  const L = C.far || (C.far = C.L.map((c) => ({ ...c, dW: 400 })));
+  if (!L.some((c) => inC(c, x, y + 0.3, z, 0.15) || inC(c, x, y + 2.5, z, 0.15))) return false;
+  if ((C.rects || []).some((r) => x > r[0] && x < r[2] && z > r[1] && z < r[3])) return true;
+  const A = SH5.X && SH5.X.actors ? SH5.X.actors() : null;
+  return !!A && (A.list || []).some((a) => a && a.alive !== false && a.vis > 0.01 && Math.hypot(a.x - x, a.z - z) < 1.6);
+}
+function startBack() { for (const [a, v] of SH5.startHid || []) if (a && a.alive !== false && !a.coneHid) { a.visT = v; a.vis = v; } SH5.startHid = []; }
 export function viewCone(X, shots, opt = {}) {
   const hw = X.hero && X.hero.h120Workers;
   // (the stage's own wall scaffolds along the chambers: hidden while an act's close shots play, back for the high camera and after)
   try { if (X.stages.h120Scaff) X.stages.h120Scaff('nashim', !(shots && shots.length) || !!opt.depth); } catch (e) { /* */ }
-  if (!shots || !shots.length) { SH5.cone = null; coneApply(); keep(X, opt.keep || []); if (hw) hw(null); return; }
-  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.2, z) || inCone(x, y + 2.2, z) || inCone(x, y + 3.2, z) || (opt.edge !== false && edgeCut(x, y, z, 5.6)));   // the stage's own builders (at the builder's size), likewise
+  if (!shots || !shots.length) { SH5.cone = null; coneApply(); startBack(); keep(X, opt.keep || []); if (hw) hw(null); return; }
+  const first = !SH5.cone;
+  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.2, z) || inCone(x, y + 2.2, z) || inCone(x, y + 3.2, z) || (opt.edge !== false && edgeCut(x, y, z, 5.6)) || groundSeen(x, y, z));   // the stage's own builders (at the builder's size), likewise; and any of them standing on the act's ground in its picture, or close by a figure there
   // a crew column still rising in view finishes standing first (its gang never shares the act's ground)
   for (const id of Object.keys(SH5.rise)) { const R = SH5.rise[id]; R.rope.dispose(); R.rope2.dispose(); for (const w of R.men) SH5.crew.remove(w); for (const o of R.all) if (o !== R.C.g) X.props.remove(o); delete SH5.rise[id]; colBuild(X, id); }
   const L = shots.map(([p, t, r]) => coneOf(X, p, t, r));
@@ -641,6 +671,7 @@ export function viewCone(X, shots, opt = {}) {
   }
   C.rects = rects.slice(0, 6);
   keep(X, C.rects);
+  if (first) startClear(C);   // (the act's first frame: no side figure in its ground, none bunched in its picture)
   coneApply(); C.reKeep = 1;   // (the director sets its own ground rect right after make(): the next beat sets the act's again)
 }
 /** (the director sets its own ground rect after make(): an act calls this again in its begin()) */
@@ -673,6 +704,7 @@ function modelHide(X, hide) { try { if (X.stages.nashimGallery) X.stages.nashimG
 export function initWorld(X) {
   css(); mats(X);
   SH5.X = X; SH5.B = createBeat(X); SH5.crew = createGang(X); try { window.__H120_SH5 = SH5; } catch (e) { /* (the probes' eyes) */ }
+  try { const A = X.actors && X.actors(); if (A && A.setInstantVis) A.setInstantVis(true); } catch (e) { /* (the owner's rule: no figure is drawn shrunk — shown or hidden at once) */ }
   SH5.cols = {}; SH5.colKey = {}; SH5.rise = {}; SH5.own = {};
   if (X.M.finished()) SH5.final = 1;
   modelHide(X, true);

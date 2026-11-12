@@ -675,6 +675,7 @@ export function createActors(ctx) {
     let ni = 0;
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
+      if (a.vis !== a.visT && instantVis) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }   // ── h120 ── (no figure drawn shrunk: shown or hidden at once) ── /h120 ──
       if (a.vis !== a.visT) {
         const dir = a.visT > a.vis ? 1 : -1; a.vis += dir * dt / 0.45;
         if ((dir > 0 && a.vis >= a.visT) || (dir < 0 && a.vis <= a.visT)) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }
@@ -719,6 +720,7 @@ export function createActors(ctx) {
     }
     for (let i = 0; i < props.length && ni < MAXI - 1; i++) {
       const p = props[i];
+      if (p.vis !== p.visT && instantVis) p.vis = p.visT;   // ── h120 ── ── /h120 ──
       if (p.vis !== p.visT) { const dir = p.visT > p.vis ? 1 : -1; p.vis += dir * dt / 0.35; if ((dir > 0 && p.vis >= p.visT) || (dir < 0 && p.vis <= p.visT)) p.vis = p.visT; }
       if (p.vis <= 0.001) continue;
       if (camera) { sp.center.set(p.x, p.y, p.z); sp.radius = 1.5; if (!fr.intersectsSphere(sp)) continue; }
@@ -826,11 +828,13 @@ export function createActors(ctx) {
     a.sway = (Math.sin(T * 0.55 + a.shade * 20) * 0.022 + Math.sin(T * 1.3 + a.shade * 7) * 0.006) * (1 - a.wk);
   }
 
+  let instantVis = false;   // ── h120 ── ── /h120 ──
   return {
     add, remove, walk, face, pose, setItem, update, list, items, prop, unprop, props, ITEM_ID,
     setNoGo(L) { NOGO = (L || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)); },   // ── h117 ── ── /h117 ──
     get noGo() { return NOGO.slice(); },
     setEnabled(v) { enabled = !!v; },
+    setInstantVis(v) { instantVis = !!v; },   // ── h120 ── (stage 05: a fade never shrinks a figure) ── /h120 ──
     setCamera(c) { camera = c; },
     get drawn() { let n = items.visible ? 1 : 0; for (const k in meshes) n += meshes[k].m.visible ? 1 : 0; return n; },
     handWorld(a, side, out) { armLocal(a, side, side > 0 ? HANDL : HANDR, side > 0 ? SHL : SHR, _e); toWorld(a, _e, out); return out; },

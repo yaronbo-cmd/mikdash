@@ -2414,15 +2414,28 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (r.id && !whole && !(G.demo && HD.HIGHLIGHTS.some((h) => h.id === c.id))) W.focus(r.id);   // ── hooks ── (QA P2-20) the demo keeps a highlight's own shot until the next press
   }
   // ── h120 ──
+  let h120InvHold = false, h120InvRun = false;   // (stage 05's end: the in-between game's invitation held until h120Invite lets it)
   function h120Invite(P) {
+    if (h120InvRun) return; h120InvRun = true; h120InvHold = true;
     const evs = ['pointerdown', 'keydown', 'wheel'];
-    const moved = () => { for (const e of evs) removeEventListener(e, moved, true); setTimeout(calm, 3500); };
+    // (anything up — an act, the film, the gold end title on screen or fading, a card, a sheet, a modal — is "busy"; only a move made
+    //  while nothing is up counts as his move; after it, polled each second, anything up starts the quiet over: it opens only after
+    //  six quiet seconds over the finished court)
+    const BUSY = '.jx-big.on,.jx-big.out,.gm-modal,.gm-mo,.gm-sheet.on,div.m3,.fx-mg,.kg,.g10,.av-modal,body.sc-on,.gm-card';
+    const busyNow = () => { try { return !!(momentBusy || opening || overlay || ui.busy || hero.busy || whole) || !!(H9 && H9.acting && H9.acting()) || !!document.querySelector(BUSY) || document.body.classList.contains('h120-film') || [...document.querySelectorAll('.h120f .end')].some((e) => e.style.opacity === '1'); } catch (e) { return true; } };
+    let quiet = 0;
+    const eyes = (o) => { try { globalThis.__H120_INV = o; } catch (e) { /* (the probes' eyes) */ } };
+    const moved = () => { if (busyNow()) return; eyes({ moved: 1 }); for (const e of evs) removeEventListener(e, moved, true); quiet = performance.now(); setTimeout(calm, 1000); };
     const calm = () => {
-      let busy = false; try { busy = !!(momentBusy || opening || overlay || ui.busy || hero.busy || whole) || !!(H9 && H9.acting && H9.acting()); } catch (e) { /* */ }
-      if (busy) { setTimeout(calm, 2000); return; }
+      const busy = busyNow(), now = performance.now();
+      if (busy) quiet = now;
+      eyes({ busy, quiet: Math.round(now - quiet) });
+      if (busy || now - quiet < 6000) { setTimeout(calm, 1000); return; }
+      h120InvHold = false; eyes({ open: 1 });
       Promise.resolve().then(() => P.invite(G)).catch(() => { /* GAMES10's */ });
     };
-    setTimeout(() => { for (const e of evs) addEventListener(e, moved, true); }, 400);   // (the touch that closed the card is not his move)
+    eyes({ wait: 1 });
+    for (const e of evs) addEventListener(e, moved, true);
   }
   // ── /h120 ──
   async function finale() {
@@ -3228,6 +3241,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function h20Done() {
     if (S.isDone(G, 'nashim')) return;
     h9Quiet = true;
+    h120InvRun = false; { const P = parts().games; if (P && typeof P.invite === 'function' && !reelOn() && G.ftue >= 99 && !whole) h120Invite(P); }   // ── h120 ── (the in-between game's invitation: held for the player's first calm move and six quiet seconds; the games' own watcher waits with it) ── /h120 ──
     const c = S.completeStage(G, 'nashim');
     completeFlow(c, false);
     persist();
@@ -3647,7 +3661,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   const api = {
     start, destroy, onSiteTap, onBoulderTap, onQuarryTap, frame,
     get state() { return G; },
-    get busy() { return ui.busy || momentBusy || opening; },
+    get busy() { return ui.busy || momentBusy || opening || h120InvHold; },   // ── h120 ── (h120InvHold) ── /h120 ──
     get juice() { return JU; },   // ── juice18 ── ── /juice18 ──
     get h109() { return H9; },   // ── h109 ── ── /h109 ──
     get hook20() { return { chain: EC, ar: AR20, rd: RD20, solve: riddleSolved20, emit: (t, d) => emit(t, d), why: () => ({ started, demo: G.demo, whole, opening, momentBusy, overlay: !!overlay, jobBusy, SC: !!SC, busy: ui.busy, cam: tNow() - camHold, js: !!(JU && JU.stats().busy), dom: !!(ui.root && ui.root.querySelector('.gm-modal.on,.gm-mo,.fx-mg.on,.m3,.gm-dn,.gm-cine.on')), hands: !!(globalThis.__HANDS && globalThis.__HANDS.twin), pend: EC && EC.pending }) }; },   // ── hook20 ── (tests)

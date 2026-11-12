@@ -41,7 +41,6 @@ function makeMats() {
     water: { mat: std({ color: '#5A8BA6', roughness: 0.06, metalness: 0.1 }), tile: 10, cast: false },
     lattice: { mat: std({ color: '#EFE3C8', alphaMap: T.lattice, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 }), tile: 2, cast: false },
     clay: { mat: std({ color: '#B8784C', roughness: 0.8 }), tile: 10 },
-    ashpile: { mat: std({ color: '#B9B3AA', roughness: 1 }), tile: 10, cast: false },
   };
 }
 const hemi = new THREE.HemisphereLight('#BFD6EE', '#CDB894', 1); scene.add(hemi);

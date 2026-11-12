@@ -375,10 +375,12 @@ export function groundDefines(m) {
   m.defines = d; return HI() ? '-hi' : LOW() ? '-low' : '';
 }
 /** the world terrain's material (GR_LITE: the Mount's mask and the side projection are the hill's: the terrain round it has neither,
- *  a lighter program to compile) */
+ *  a lighter program to compile) · ── look D ── ONE material: the Mount of Olives' terraces and paths (look/far.js) lie on the terrain's
+ *  own, so whatever patches the terrain's material later (main.js site9) they keep its one program ── /look D ── */
 export function groundMat(THREE) {
   STATE.THREE = THREE;
-  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
+  const c = cache(THREE); if (c.mat) return c.mat;   // ── look D ── ── /look D ──
+  const m = c.mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
   const k = groundDefines(m); m.defines.GR_LITE = '';
   m.onBeforeCompile = (sh) => groundPatch(sh, THREE);
   m.customProgramCacheKey = () => 'ground-lite' + k;

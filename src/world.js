@@ -47,6 +47,23 @@ export const CARVE = [
   { x: -520, z: -5, hw: 40, hd: 42, pit: 3.6, rim: 3.6, m: 26 },     // the Xystus (lowers only the hill west of x −480)
 ];
 
+// ── look D ── the Mount of Olives' groves (city.js buildOlivet plants its rows where this is over −0.35; the ground under them keeps a
+// little green): a field of two waves, moved here from city.js so the terrain's colour can read it ── /look D ──
+export const oliveGrove = (x, z) => Math.sin(x * 0.011 + z * 0.004) + Math.sin(z * 0.013 - x * 0.006 + 1.7);
+// ── look D ── the height of the terrain as its mesh draws it (buildTerrain's grid: two triangles a cell, the cells wider away from the
+// Mount): what lies on the far ground (the terraces' strips, the paths) follows the drawn surface, not terrainH between the vertices.
+// The corners' heights cached (the same few hundred cells over and over) ── /look D ──
+const TG = { N: 260, a: 910, b: 2730 }, TGH = new Map();
+const gridX = (i) => { const t = i / TG.N * 2 - 1; return TG.a * t + TG.b * t * t * t; };
+const gridI = (x) => { let lo = 0, hi = TG.N; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (gridX(m) <= x) lo = m; else hi = m; } return lo; };
+const gridH = (i, j) => { const k = i * 1000 + j; let h = TGH.get(k); if (h === undefined) { h = terrainH(gridX(i), gridX(j)); TGH.set(k, h); } return h; };
+export function terrainMeshH(x, z) {
+  const i = gridI(x), j = gridI(z), x0 = gridX(i), z0 = gridX(j);
+  const u = Math.max(0, Math.min(1, (x - x0) / (gridX(i + 1) - x0))), v = Math.max(0, Math.min(1, (z - z0) / (gridX(j + 1) - z0)));
+  const ha = gridH(i, j), hb = gridH(i + 1, j), hc = gridH(i, j + 1), hd = gridH(i + 1, j + 1);
+  return u + v <= 1 ? ha + u * (hb - ha) + v * (hc - ha) : hd + (1 - u) * (hc - hd) + (1 - v) * (hb - hd);
+}
+
 const ZONES = [
   { x0: -1500, x1: -485, z0: -600, z1: 900, dens: 0.8, cell: 23 },    // Upper City
   { x0: -470, x1: -262, z0: 440, z1: 1300, dens: 0.66, cell: 22 },    // Lower City / Tyropoeon
@@ -70,13 +87,18 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // in the valley bottoms and the orchards (was a spring green)
 // ── look B ── (the owner: "a rocky Jerusalem hill, not a lawn") the tones dry straw and ochre, the valley bottoms a dry olive; the
 // rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
-const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#968F63'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262') };
+// ── look D ── (D1: no lawn) the valley bottoms a deeper dry olive and darker (the Kidron's depth felt from the Mount), the orchards' green
+// only under the groves ── /look D ──
+const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#8C8560'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262') };
 export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── look B ── (cm: the city's mask, when the caller has it) ── /look B ──
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
   c.lerp(TC.rock, smooth(0.10, 0.32, 1 - ny) * 0.6);
   c.lerp(TC.lush, smooth(-95, -135, h) * 0.45);
-  if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x));
+  // ── look D ── (the valley floor in shade: darker the deeper) ── /look D ──
+  c.multiplyScalar(1 - 0.3 * smooth(-70, -125, h) * (1 - cm));
+  // ── look D ── (the orchards' tint only where the olives stand: the Mount of Olives' groves, the scattered groves beyond) ── /look D ──
+  if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x) * (x < 1250 && Math.abs(z) < 1100 ? smooth(-0.6, -0.1, oliveGrove(x, z)) : smooth(0.4, 0.5, NA(x / 300 + 7, z / 300 - 3, 3))));
   c.lerp(TC.dust, cm * 0.78);
   const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0);
   c.lerp(TC.dust, smooth(90, 5, dPlat) * 0.7);
@@ -90,7 +112,7 @@ export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── 
 // city), y a hollow's darker earth (the valley bottoms, where the old green was) ── /look B ──
 const NE = makeNoise(131);
 export function terrainGr(x, z, h, out, city = cityMask(x, z)) {
-  out[0] = smooth(0.58, 0.78, NE(x / 55 + 4, z / 55 - 7, 3)) * 0.75 * (1 - city);
+  out[0] = smooth(0.58, 0.78, NE(x / 55 + 4, z / 55 - 7, 3)) * 0.75 * (1 - city) * (1 - 0.8 * smooth(-82, -118, h));   // ── look D ── (no bare slabs on the valley floors: their earth washed down) ── /look D ──
   out[1] = Math.min(1, smooth(-95, -135, h) * 0.7 + smooth(0.6, 0.8, NE(x / 140 - 2, z / 140 + 5, 2)) * 0.3) * (1 - city);
   return out;
 }

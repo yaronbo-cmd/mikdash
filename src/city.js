@@ -19,9 +19,11 @@
 // Walls, pools and streets go into the shared Batch (existing materials: no new draw calls).
 import * as THREE from 'three';
 import { rng, smooth } from './util.js';
-import { terrainH, setCityMask } from './world.js';
+import { terrainH, setCityMask, oliveGrove, terrainMeshH, terrainColor, terrainGr } from './world.js';   // ── look D ── (oliveGrove … terrainGr) ── /look D ──
 import { PLAT } from './mount.js';
 import { airMat } from './look/air.js';   // ── look C ── ── /look C ──
+import { groundMat } from './look/ground.js';   // ── look D ── ── /look D ──
+import { olivetGround } from './look/far.js';   // ── look D ── ── /look D ──
 
 /* ───────── the plan ───────── */
 // the walls' lines (x, z); the towers of Herod on the first wall's north-western corner (world.js had them since wave 1)
@@ -399,14 +401,14 @@ function buildXystus(B) {
 
 /* ───────── the Mount of Olives: terraces along the contours, olive rows on them, paths up; the Kidron's monuments ───────── */
 // returns the olive positions for world.js buildTrees (rows on the terraces, in groves)
-function buildOlivet(B, r) {
-  const W = new Acc(false), Pv = new Acc(false), olives = [];
+function buildOlivet(B, r, scene) {
+  const olives = [], terraces = [], paths = [];   // ── look D ── (the terraces' lines and the paths' points: drawn on the ground's material, below) ── /look D ──
   const find = (L, z) => {   // the x where the western slope crosses the level L at z (the slope rises east from the Kidron)
     let x = 425, h0 = terrainH(x, z);
     for (; x < 1240; x += 10) { const h1 = terrainH(x + 10, z); if (h0 < L && h1 >= L) { let a = x, b = x + 10; for (let k = 0; k < 6; k++) { const m = (a + b) / 2; if (terrainH(m, z) < L) a = m; else b = m; } return (a + b) / 2; } h0 = h1; }
     return null;
   };
-  const grove = (x, z) => Math.sin(x * 0.011 + z * 0.004) + Math.sin(z * 0.013 - x * 0.006 + 1.7) > -0.35;
+  const grove = (x, z) => oliveGrove(x, z) > -0.35;   // ── look D ── (the field moved to world.js: the ground's colour reads it too) ── /look D ──
   for (let L = -96; L <= 136; L += 6.5) {
     let prev = null, run = 0;
     for (let z = -1320; z <= 1150; z += 28) {
@@ -414,7 +416,7 @@ function buildOlivet(B, r) {
       if (cur && prev && Math.hypot(cur[0] - prev[0], 28) < 70) {
         // terraces only under the groves (open slopes between them; a lit wall on every contour read as a stadium's rows)
         // (world.js buildTrees plants the first 1,500 rows' olives, from the lowest terrace up: no bare terraces above them)
-        if (olives.length < 1500 && grove((prev[0] + cur[0]) / 2 + 3.5, (prev[1] + cur[1]) / 2)) W.seg(prev[0], prev[1], cur[0], cur[1], 1.3, L - 2.4, L + 0.6);
+        if (olives.length < 1500 && grove((prev[0] + cur[0]) / 2 + 3.5, (prev[1] + cur[1]) / 2)) terraces.push([prev[0], prev[1], cur[0], cur[1]]);
         // a row of olives a little above the terrace wall, every ~14 amot, in groves (some terraces are fields)
         const len = Math.hypot(cur[0] - prev[0], cur[1] - prev[1]);
         for (let t = (run % 14) / len; t < 1; t += 14 / len) {
@@ -426,22 +428,21 @@ function buildOlivet(B, r) {
       prev = cur;
     }
   }
-  // paths up from the Kidron to the ridge: zigzags of packed stones
+  // paths up from the Kidron to the ridge: zigzags (── look D ── of trodden earth: look/far.js; were packed white stones ── /look D ──)
   for (const z0 of [-430, 70, 520]) {
-    let x = 432, z = z0, k = 0;
+    let x = 432, z = z0, k = 0; const pts = [[x, z]];
     while (x < 1230) {
       const nx = x + 38, nz = z0 + (k % 2 ? -26 : 26), n = 8;
-      for (let i = 0; i < n; i++) {   // a ribbon that lies on the slope (a raised box read as a chain of white blocks from afar)
-        const ax = x + (nx - x) * i / n, az = z + (nz - z) * i / n, bx = x + (nx - x) * (i + 1) / n, bz = z + (nz - z) * (i + 1) / n;
-        const L = Math.hypot(bx - ax, bz - az) || 1, px = -(bz - az) / L * 1.8, pz = (bx - ax) / L * 1.8, y = (u, v) => terrainH(u, v) + 0.35;
-        const A = [ax - px, y(ax - px, az - pz), az - pz], Bq = [bx - px, y(bx - px, bz - pz), bz - pz], C = [bx + px, y(bx + px, bz + pz), bz + pz], D = [ax + px, y(ax + px, az + pz), az + pz];
-        _a.set(Bq[0] - A[0], Bq[1] - A[1], Bq[2] - A[2]); _b.set(D[0] - A[0], D[1] - A[1], D[2] - A[2]); _n.crossVectors(_a, _b); if (_n.y < 0) _n.negate();
-        Pv.quad(A, Bq, C, D, _n.x, _n.y, _n.z);
-      }
+      for (let i = 1; i <= n; i++) pts.push([x + (nx - x) * i / n, z + (nz - z) * i / n]);
       x = nx; z = nz; k++;
     }
+    paths.push(pts);
   }
-  B.geo('ashpile', W.geo(), -999); B.geo('pave', Pv.geo(), -999);   // (the terraces: grey dry-stone, not dressed white ashlar)
+  // ── look D ── (D1) the terraces (low dry-stone walls of pale rock, a shadow line under each, the terrace's tilled earth above) and the
+  // paths, on the ground's own material and program: one draw call (were a grey 'ashpile' box per terrace and white 'pave' ribbons)
+  { const col = (x, z, h, c) => terrainColor(x, z, h, 0.95, c, 0), gr = (x, z, h, o) => terrainGr(x, z, h, o, 0);
+    if (scene) scene.add(olivetGround(THREE, groundMat(THREE), { terraces, paths }, { h: terrainMeshH, col, gr })); }
+  // ── /look D ──
   // the Kidron's monuments of the period (the names are the tradition's; ⚑ illustration): a pillar with a concave cone,
   // and a cube with a pyramid (the "Tomb of Zechariah")
   { const x = 452, z = 176, g = terrainH(x, z) - 1;
@@ -643,7 +644,7 @@ export function buildJerusalem(scene, B, P, opts = {}) {
   water.receiveShadow = true; water.matrixAutoUpdate = false; water.name = 'city-pools'; scene.add(water);
   buildStreets(B);
   buildXystus(B);
-  const olives = buildOlivet(B, r);
+  const olives = buildOlivet(B, r, scene);   // ── look D ── (scene: the terraces' mesh) ── /look D ──
   const H = buildHouses(scene, r, opts.houseTex);
   { const { x0, x1, z0, z1 } = MARKET, g = (x, z) => terrainH(x, z) + 0.45; B.slab('pave', [[x0, g(x0, z0), z0], [x0, g(x0, z1), z1], [x1, g(x1, z1), z1], [x1, g(x1, z0), z0]], 4); }
   const sm = buildSmoke(H.smoke.slice(0, 48)); scene.add(sm.pts);

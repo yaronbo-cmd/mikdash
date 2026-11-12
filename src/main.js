@@ -114,7 +114,6 @@ function makeMats() {
     water: { mat: std({ color: '#5A8BA6', roughness: 0.06, metalness: 0.1, envMapIntensity: 1.3 }), tile: 10, cast: false },
     lattice: { mat: std({ color: '#EFE3C8', alphaMap: T.lattice, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.8 }), tile: 2, cast: false },
     clay: { mat: std({ color: '#B8784C', roughness: 0.8 }), tile: 10 },
-    ashpile: { mat: std({ color: '#B9B3AA', roughness: 1 }), tile: 10, cast: false },
     // ── light28 ── the תפוח: grey-brown ash, its darker rim, the dust at its foot (the owner's shot 4: a white blob) ── /light28 ──
     tapuach28: { mat: std({ color: '#8C867E', roughness: 1 }), tile: 10, cast: true }, tapuachRim28: { mat: std({ color: '#55504A', roughness: 1 }), tile: 10, cast: false }, tapuachDust28: { mat: std({ color: '#A9A49D', roughness: 1 }), tile: 10, cast: false },
   };

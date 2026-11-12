@@ -261,7 +261,7 @@ vec3 grGround(vec3 vc) {
   float gv = clamp(smoothstep(0.55, 0.75, d2.r + (d1.a - 0.5) * 0.3) * 0.5 * (1.0 - vGrA.y) + trod * smoothstep(0.35, 0.65, d1.g + d2.a * 0.4) * 0.8 + rim * 0.5, 0.0, 1.0);
   // EARTH: mottled, dry straw in tufts, the low dark shrubs, darker in the hollows and where trodden
   float e = d1.r;
-  vec3 earth = vc * (0.5 + 0.75 * mix(e, d2.r, 0.3));
+  vec3 earth = vc * (0.64 + 0.48 * mix(e, d2.r, 0.3));
   float straw = smoothstep(0.78, 0.9, e) * clamp(1.0 - trod * 1.6, 0.0, 1.0) * (1.0 - 0.6 * vGrA.y);
   earth = mix(earth, uGrStraw * (0.8 + 0.3 * d2.r), straw * 0.6);
   earth = mix(earth, uGrDark * (0.7 + 0.6 * e), clamp(vGrA.y * 0.6 + trod * 0.8, 0.0, 0.9));
@@ -304,7 +304,7 @@ function uniforms(THREE) {
   const S = maskState(THREE), col = (h) => new THREE.Color(h);
   c.U = {
     uGrT: { value: detailTex(THREE) }, uGrM: { value: S.tex }, uGrMB: { value: S.box },
-    uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#86684C') },
+    uGrStraw: { value: col('#C9B07A') }, uGrRock: { value: col('#CFC5AF') }, uGrGrav: { value: col('#B9AC94') }, uGrDark: { value: col('#8E7C64') },
   };
   return c.U;
 }

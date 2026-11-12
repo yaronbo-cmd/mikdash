@@ -324,14 +324,15 @@ function makeHill(T) {
   // colours: ── look B ── the large-scale tone only (look/ground.js draws the rock, the earth, the stones and the straw on it): dry straw
   // earth, terra rossa in pockets, a dry-olive tint where the scrub grows, paler where the rock comes up, dust at the rim ── /look B ──
   const nor = g.attributes.normal.array, C = (h) => new THREE.Color(h);
-  const rock = C('#DCD2BC'), earth = C('#C4AC7E'), earthB = C('#A88F64'), soil = C('#A47554'), scrub = C('#9A9064'), dust = C('#D6C8A6');
+  const rock = C('#DCD2BC'), earth = C('#C9B793'), earthB = C('#B09D7C'), soil = C('#A68A70'), scrub = C('#9A9064'), dust = C('#D6C8A6');
   const c = new THREE.Color(), tc = new THREE.Color();
   for (let k = 0; k < N; k++) {
     const x = pos[k * 3], z = pos[k * 3 + 2], ny = nor[k * 3 + 1];
     c.copy(earth).lerp(earthB, HN2(x / 70 + 5, z / 70, 3));
-    c.lerp(soil, smooth(0.5, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * 0.6);            // terra rossa between the rocks
-    c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.3);               // (site8/world8) small pockets of red earth
     const hol = smooth(0.6, 0.8, HN3(x / 30, z / 30, 3));
+    // ── look B review G1 ── terra rossa only a muted reddish-brown tint, mostly in the hollows (pale ochre to light brown elsewhere) ── /look B ──
+    c.lerp(soil, smooth(0.5, 0.75, HN1(x / 45 - 7, z / 45 + 2, 3)) * (0.15 + 0.45 * hol));            // terra rossa between the rocks
+    c.lerp(soil, smooth(0.6, 0.8, HN2(x / 16 + 4, z / 16 - 1, 2)) * 0.15);               // (site8/world8) small pockets of red earth
     c.lerp(scrub, hol * 0.3);
     // (site8/world8) rock: the risers only in outcrops (oc), not a pale line along each; bare slabs here and there off them
     const oc = HN3(x / 21 + 1, z / 21 + 9, 2);

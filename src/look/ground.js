@@ -239,13 +239,13 @@ export function smoothGridNormals(geo, nx, nz, passes = 1) {
 
 /* ───────── the shader ───────── */
 const VERT = /* glsl */`
-attribute vec2 aGr; varying vec3 vGrW; varying vec3 vGrN; varying vec2 vGrA;`;
+attribute vec3 aGr; varying vec3 vGrW; varying vec3 vGrN; varying vec3 vGrA;`;
 const VERT_MAIN = /* glsl */`
   vGrW = (modelMatrix * vec4(transformed, 1.0)).xyz; vGrN = normalize(mat3(modelMatrix) * objectNormal); vGrA = aGr;`;
 const FRAG = /* glsl */`
 uniform sampler2D uGrT; uniform sampler2D uGrM; uniform vec4 uGrMB;
 uniform vec3 uGrStraw; uniform vec3 uGrRock; uniform vec3 uGrGrav; uniform vec3 uGrDark;
-varying vec3 vGrW; varying vec3 vGrN; varying vec2 vGrA;
+varying vec3 vGrW; varying vec3 vGrN; varying vec3 vGrA;
 float grDet = 1.0; float grHt = 0.5; float grRel = 0.0; vec3 grPack = vec3(0.3);
 vec3 grGround(vec3 vc) {
   vec3 W = vGrW, N = normalize(vGrN);
@@ -326,6 +326,24 @@ vec3 grGround(vec3 vc) {
 #ifndef GR_LITE
   float rut = 1.0 - smoothstep(0.1, 0.3, abs((1.0 - wm.g) * ${RUT_W.toFixed(2)} - 0.75));
   col *= 1.0 - 0.3 * rut * step(0.05, wm.g);
+#endif
+#ifdef GR_LITE
+  // ── look D review K1 ── the far hills' old terraces (aGr.z: the open slopes away from the Mount, the city and the groves' own terraces):
+  // every ~29 amot of height a step along the contour, warped by two noises so no line is ruled, broken into stretches; on each step a
+  // pale band of dry-stone, under it a soft shade line (downhill), above it the terrace's floor a little browner. Filtered by the
+  // contour's own screen width, so far off they thin out instead of shimmering ── /look D review ──
+  if (vGrA.z > 0.01) {
+    float tq = texture2D(uGrT, p / 173.0 + 0.61).a;
+    float hy = (W.y + (tq - 0.5) * 18.0 + (d2.a - 0.5) * 2.5) / 29.0;
+    float fw = fwidth(hy) * 0.7 + 1e-4, t = fract(hy + 0.5) - 0.5;
+    float on = vGrA.z * smoothstep(0.27, 0.34, texture2D(uGrT, p / 89.0 + 0.27).a) * (1.0 - smoothstep(0.1, 0.3, fw));
+    float pale = smoothstep(-fw, fw, t) - smoothstep(0.085 - fw, 0.085 + fw, t);
+    float shade = (smoothstep(-0.17 - fw, -0.17 + fw, t) - smoothstep(-fw, fw, t)) * smoothstep(-0.18, -0.02, t);
+    float flr = smoothstep(0.085, 0.13, t) * (1.0 - smoothstep(0.16, 0.34, t));
+    col = mix(col, col * vec3(0.9, 0.83, 0.76), flr * on * 0.7);
+    col *= 1.0 - 0.6 * shade * on;
+    col = mix(col, mix(uGrRock, vc, 0.2) * (0.92 + 0.16 * d1.b), pale * on);
+  }
 #endif
   // (packed earth with small stones: the fill behind the walls, as the hill's shader lays it)
   grPack = mix(uGrDark * (0.95 + 0.7 * mix(d1.r, d2.r, 0.4)), grav, smoothstep(0.45, 0.75, d2.g) * 0.55 + 0.1);

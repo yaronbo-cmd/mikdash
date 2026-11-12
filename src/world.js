@@ -90,14 +90,17 @@ const inEx = (x, z, m = 0) => EXCL.some(([a, b, c, d]) => x > a - m && x < b + m
 // rock, the earth and the stones are drawn by the ground's shader (look/ground.js) on this large-scale tone ── /look B ──
 // ── look D ── (D1: no lawn) the valley bottoms a deeper dry olive and darker (the Kidron's depth felt from the Mount), the orchards' green
 // only under the groves ── /look D ──
-const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#8C8560'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262'), street: new THREE.Color('#B39874') };   // ── look D ── (street) ── /look D ──
+const TC = { gA: new THREE.Color('#A8966C'), gB: new THREE.Color('#C4B084'), dry: new THREE.Color('#CBB68A'), rock: new THREE.Color('#D2C4A4'), dust: new THREE.Color('#D3C3A0'), lush: new THREE.Color('#737650'), orchard: new THREE.Color('#9C9866'), soil: new THREE.Color('#A98262'), street: new THREE.Color('#B39874') };   // ── look D ── (street) ── /look D ──
 export function terrainColor(x, z, h, ny, c, cm = cityMask(x, z)) {   // ── look B ── (cm: the city's mask, when the caller has it) ── /look B ──
   c.copy(TC.gA).lerp(TC.gB, NC(x / 150, z / 150, 3));
   c.lerp(TC.dry, smooth(0.45, 0.72, ND(x / 420 + 3, z / 420 - 2, 2)) * 0.8);
-  c.lerp(TC.rock, smooth(0.10, 0.32, 1 - ny) * 0.6);
-  c.lerp(TC.lush, smooth(-95, -135, h) * 0.45);
+  // ── look D review K1 ── (the steeper far slopes: red earth between the limestone, the rock itself drawn by the ground's shader from
+  // aGr.x; was one pale wash) ── /look D review ──
+  c.lerp(TC.soil, smooth(0.07, 0.24, 1 - ny) * 0.4 * (1 - cm));
+  c.lerp(TC.rock, smooth(0.14, 0.36, 1 - ny) * 0.35);
+  c.lerp(TC.lush, smooth(-84, -114, h) * 0.7);   // ── look D review K1 ── (the Kidron's floor greener: 0.45 → 0.7, from higher up) ── /look D review ──
   // ── look D ── (the valley floor in shade: darker the deeper) ── /look D ──
-  c.multiplyScalar(1 - 0.3 * smooth(-70, -125, h) * (1 - cm));
+  c.multiplyScalar(1 - 0.38 * smooth(-70, -115, h) * (1 - cm));
   // ── look D ── (the orchards' tint only where the olives stand: the Mount of Olives' groves, the scattered groves beyond) ── /look D ──
   if (x > 480) c.lerp(TC.orchard, 0.3 * smooth(480, 700, x) * (x < 1250 && Math.abs(z) < 1100 ? smooth(-0.6, -0.1, oliveGrove(x, z)) : smooth(0.4, 0.5, NA(x / 300 + 7, z / 300 - 3, 3))));
   c.lerp(TC.dust, cm * 0.78);
@@ -120,6 +123,19 @@ export function terrainGr(x, z, h, out, city = cityMask(x, z)) {
   return out;
 }
 
+// ── look D review K1 ── the old terraces on the open slopes (look/ground.js draws them from aGr.z): none on the Mount and its margins,
+// in the city, on the valley floors, on the flat or on cliffs, nor where the Mount of Olives' groves have their own (city.js buildOlivet);
+// in broad patches, not everywhere ── /look D review ──
+export function terraceW(x, z, h, ny, cm) {
+  // (the cheap factors first: most of the grid is out on one of them, and the noise is drawn only where it counts)
+  const sl = 1 - ny, e = Math.max(Math.abs(x), Math.abs(z));
+  if (cm >= 1 || sl < 0.008 || sl > 0.45 || h < -122 || e > 3200) return 0;
+  const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0); if (dPlat < 200) return 0;
+  let w = smooth(200, 380, dPlat) * smooth(0.008, 0.04, sl) * (1 - smooth(0.3, 0.45, sl)) * (1 - cm) * (1 - smooth(-100, -122, h)) * (1 - smooth(2700, 3200, e));
+  if (x > 440 && x < 1270 && Math.abs(z) < 1120) w *= smooth(-0.2, -0.5, oliveGrove(x, z));
+  return w > 0 ? w * smooth(0.2, 0.36, NA(x / 520 - 9, z / 520 + 4, 2)) : 0;
+}
+
 export function buildTerrain() {
   const N = 260, a = 910, b = 2730, n1 = N + 1;
   const xs = new Float32Array(n1);
@@ -136,16 +152,21 @@ export function buildTerrain() {
   g.setIndex(idx);
   g.computeVertexNormals();
   smoothGridNormals(g, n1, n1);   // ── look B ── (the light follows the land, not its triangles) ── /look B ──
-  const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3), gr = new Float32Array(n1 * n1 * 2), o = [0, 0];
+  const nor = g.attributes.normal.array, col = new Float32Array(n1 * n1 * 3), gr = new Float32Array(n1 * n1 * 3), o = [0, 0];
   const c = new THREE.Color();
   for (let k = 0; k < n1 * n1; k++) {
     const cm = cityMask(pos[k * 3], pos[k * 3 + 2]);
     terrainColor(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], nor[k * 3 + 1], c, cm);
     col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
-    terrainGr(pos[k * 3], pos[k * 3 + 2], pos[k * 3 + 1], o, cm); gr[k * 2] = o[0]; gr[k * 2 + 1] = o[1];
+    const x = pos[k * 3], z = pos[k * 3 + 2], h = pos[k * 3 + 1], ny = nor[k * 3 + 1];
+    terrainGr(x, z, h, o, cm);
+    // ── look D review K1 ── (the far steep slopes: more of the rock bare, in patches; aGr.z the terraces) ── /look D review ──
+    const dPlat = Math.max(PLAT.X0 - x, x - PLAT.X1, PLAT.Z0 - z, z - PLAT.Z1, 0), st = smooth(0.06, 0.2, 1 - ny) * (1 - cm) * smooth(200, 400, dPlat) * (1 - smooth(-90, -115, h));
+    gr[k * 3] = st > 0 ? Math.max(o[0], st * (0.3 + 0.6 * smooth(0.4, 0.62, NE(x / 70 + 1, z / 70 - 3, 2)))) : o[0];
+    gr[k * 3 + 1] = o[1]; gr[k * 3 + 2] = terraceW(x, z, h, ny, cm);
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  g.setAttribute('aGr', new THREE.BufferAttribute(gr, 2));
+  g.setAttribute('aGr', new THREE.BufferAttribute(gr, 3));
   const mesh = new THREE.Mesh(g, groundMat(THREE));   // ── look B ── (the ground's one material: look/ground.js) ── /look B ──
   mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
   return mesh;
@@ -247,16 +268,34 @@ export function buildTrees(scene, extra = [], rows = null, courts = []) {   // �
     cyp.push([x, terrainH(x, z) - 1, z, 0.8 + r() * 0.5]);
   }
   for (const [x, y, z] of extra) cyp.push([x, y - 1, z, 0.7 + r() * 0.4]);   // ── world6 ──
+  // ── look D review K1 ── wild trees and shrub clumps (terebinth, carob, thorn: illustration) on the open slopes and along the Kidron's
+  // floor, in small loose clusters, none in rows: the olive crown's instances (no trunk: low and bushy), a darker green. Their own rng,
+  // so every other tree stands where it stood ── /look D review ──
+  const wild = [], rw = rng(5151);
+  for (let c = 0, tries2 = 0; c < 44 && tries2 < 4000; tries2++) {
+    const kid = c < 14, x = kid ? 330 + rw() * 330 : -2400 + rw() * 4800, z = kid ? -1300 + rw() * 2700 : -2400 + rw() * 4800, h = terrainH(x, z);
+    if (inEx(x, z, 30) || cityMask(x, z) > 0.02) continue;
+    if (kid ? h > -96 : (h < -100 || (x > 440 && x < 1270 && Math.abs(z) < 1120 && oliveGrove(x, z) > -0.5))) continue;
+    c++;
+    const n = 3 + Math.floor(rw() * 5);
+    for (let i = 0; i < n; i++) { const a = rw() * 6.28, d = 3 + rw() * 13, px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d; if (!inEx(px, pz, 8)) wild.push([px, terrainH(px, pz), pz, 0.45 + rw() * 0.45, rw() * 6.28]); }
+  }
   // ── look D ── (D2) the olive: a crown of three irregular clumps in silver grey-green, two tones by the normal (look/far.js), raised so
   // the short twisted trunk shows under it; the cypress a dark slender spindle with a ragged outline (was a smooth cone). One instanced
   // mesh per part as before, the same counts ── /look D ──
   const leaf = windMat(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, vertexColors: true }));   // ── look C ── (the crowns sway in the wind) ── /look C ──
   const bark = new THREE.MeshStandardMaterial({ color: '#5E4E3C', roughness: 1 });
-  const can = new THREE.InstancedMesh(oliveCrownGeo(THREE), leaf, olives.length), trunk = new THREE.InstancedMesh(oliveTrunkGeo(THREE), bark, olives.length);
+  const nO = olives.length; olives.push(...wild);   // ── look D review K1 ── (the wild ones last: crowns only) ── /look D review ──
+  const can = new THREE.InstancedMesh(oliveCrownGeo(THREE), leaf, olives.length), trunk = new THREE.InstancedMesh(oliveTrunkGeo(THREE), bark, nO);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), cc = new THREE.Color();
   const leafPal = ['#8A9672', '#7E8A68', '#929B7A', '#859070', '#7A8565', '#8E9876', '#848E6C'].map((h) => new THREE.Color(h));
+  const wildPal = ['#7A8A52', '#84905A', '#71804C', '#8A945E'].map((h) => new THREE.Color(h));
   olives.forEach(([x, y, z, k, rot], i) => {
     q.setFromAxisAngle(up, rot);
+    if (i >= nO) {   // ── look D review K1 ── (a wild clump: low, wider than high, sunk a little into the slope) ── /look D review ──
+      p.set(x, y + 2.2 * k, z); s.set(5.4 * k, 3.4 * k, 5.4 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
+      can.setColorAt(i, cc.copy(wildPal[i % wildPal.length]).multiplyScalar(0.9 + 0.2 * ((i * 7) % 5) / 4)); return;
+    }
     p.set(x, y + 2.3 * k + 1.7, z); s.set(5.0 * k, 3.7 * k, 5.0 * k); M.compose(p, q, s); can.setMatrixAt(i, M);
     cc.copy(leafPal[(i * 5 + (x | 0)) % leafPal.length]).multiplyScalar(0.94 + 0.12 * ((Math.abs(z | 0) % 7) / 6)); can.setColorAt(i, cc);
     p.set(x, y - 0.5, z); s.set(k, k * 1.2, k); M.compose(p, q, s); trunk.setMatrixAt(i, M);

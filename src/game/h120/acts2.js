@@ -335,7 +335,8 @@ export const SAW = {
       if (!A.s || !A.s.sag || A.s.prop || A.propOn) return;
       A.propOn = 1; X.play('tap');
       const sp = propSpot();
-      propMan = SH5.crew.add(sp.x + 0.45, far + 0.35, { role: 'hammer', item: 'mallet', fx: sp.x, fz: zc, crew: 2 });   // (behind the beam: never between the camera and the cut) if (propMan) { crew.push(propMan); coneOwn(propMan); }
+      propMan = SH5.crew.add(sp.x + 0.45, far + 0.35, { role: 'hammer', item: 'mallet', fx: sp.x, fz: zc, crew: 2 });   // (behind the beam: never between the camera and the cut)
+      if (propMan) { crew.push(propMan); coneOwn(propMan); }
       if (prop) { prop.position.set(sp.x, H120.FLOOR + 0.12, zc + 0.05); prop.rotation.set(0, 0, 0); all.push(box(X, M.h5limeD, sp.x - 0.28, H120.FLOOR, zc - 0.23, sp.x + 0.28, H120.FLOOR + 0.12, zc + 0.33)); }
       propWedge = box(X, M.h5cedarL, sp.x - 0.18, YB.bot - 0.1, zc - 0.12, sp.x + 0.18, YB.bot - 0.005, zc + 0.12); all.push(propWedge);
       X.play('wedge'); await X.wait(0.45); X.play('wedge');

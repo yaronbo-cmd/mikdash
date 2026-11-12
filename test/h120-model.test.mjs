@@ -379,3 +379,44 @@ test('the column (level 2): a haul inside a gust holds the guy taut for the rest
   s = colFresh(); s.sway = 1.2; colStep(s, { haul: true }, 1 / 60, L); assert.equal(s.sway, 0);
   s = colFresh(); s.sway = -4; colStep(s, { haul: true }, 1 / 60, L); assert.ok(Math.abs(s.sway + 1) < 1e-9);
 });
+
+// ── station 3's ways (h120/routes.js): each careful way is open end to end and lies in its marking; the narrowest passes 6 / 5 / 4
+import { carryWay, CARRY_PLACES, carryObs, carryStart, markOf, inMark, passOf, laneState, moverAt, LANE_L } from '../src/game/h120/routes.js';
+import { carryPts } from '../src/game/h120/model.js';
+test('station 3: the three ways are open, end inside the marking, and their narrowest passes are 6 / 5 / 4', () => {
+  assert.deepEqual([1, 2, 3].map(passOf), [6, 5, 4]);
+  for (const lv of [1, 2, 3]) for (const L of [0, -0.3, -4 / 24, 3 / 24, 0.2].map((d) => (lv === 3 ? 11.25 : 11) + d)) {
+    const obs = carryObs(lv, { stands: () => true }), s = carryStart(lv, L);
+    for (const [m, x, z] of carryWay(lv, L)) {
+      const p = m === 'r' ? s.r : s.f; let n = 0;
+      while (Math.hypot(p[0] - x, p[1] - z) > 0.02 && n++ < 9000) {
+        carryStep(s, { lead: m === 'r' ? 'rear' : 'front', to: [x, z] }, 1 / 60);
+        const h = beamHits(s, obs).filter((q) => q.kind !== 'worker' && q.kind !== 'lime');
+        assert.equal(h.length, 0, `level ${lv} (L ${L.toFixed(3)}): ${JSON.stringify(h)} on the way to ${m} ${x},${z}`);
+      }
+    }
+    const r = inMark(s, markOf(lv, L), LV[lv].angle); assert.ok(r.ok, `level ${lv} hands over: ${JSON.stringify(r)}`);
+  }
+});
+test('station 3: a beam across a jar breaks it; across a scaffold leg brings it down; the lime pit counts feet only', () => {
+  const obs = carryObs(1, {}), j = CARRY_PLACES[1].jars[0];
+  assert.ok(beamHits({ f: [j[0], j[1] - 5], r: [j[0], j[1] + 5], L: 10 }, obs).some((h) => h.kind === 'jar'));
+  const o3 = carryObs(3, {}); assert.ok(beamHits({ f: [130.6, -30], r: [130.6, -20], L: 10 }, o3).some((h) => h.kind === 'scaffold'));
+  const lime = beamHits({ f: [136, -24], r: [125, -24], L: 11 }, o3).filter((h) => h.kind === 'lime'); assert.deepEqual(lime.map((h) => h.who), ['front']);
+  assert.ok(!carryObs(3, { scafDown: new Set([1]) }).some((o) => o.id === 'sc1'));
+});
+test('station 3: points 40 / 20 / 10', () => {
+  assert.equal(carryPts({ bumps: 0, tries: 1, fit: 'knock' }), 40);
+  assert.equal(carryPts({ bumps: 2, tries: 1, fit: 'knock' }), 20);
+  assert.equal(carryPts({ bumps: 0, tries: 2, fit: 'knock' }), 20);
+  assert.equal(carryPts({ bumps: 0, tries: 1, fit: 'trim' }), 20);
+  assert.equal(carryPts({ bumps: 3, tries: 1, fit: 'trim' }), 10);
+  assert.equal(carryPts({ bumps: 0, tries: 1, fit: 'shim' }), 10);
+  assert.equal(carryPts({ bumps: 0, tries: 1, fit: 'lost' }), 10);
+  assert.equal(carryPts({ bumps: 0, tries: 1, fit: 'knock', dmg: 1 }), 10);
+});
+test('station 3: the lane and the carriers keep fixed periods', () => {
+  for (const t of [0, 13.7, 99]) { const a = laneState(t), b = laneState(t + 2 * LANE_L / 1.1 + 10); assert.ok(Math.abs(a.s - b.s) < 1e-6); }
+  const m0 = moverAt(3, 0, 5), m1 = moverAt(3, 0, 5 + 2 * (m0.len / 1.3 + 1.5)); assert.ok(Math.abs(m0.x - m1.x) < 1e-6 && Math.abs(m0.z - m1.z) < 1e-6);
+  assert.equal(moverAt(1, 0, 0), null);
+});

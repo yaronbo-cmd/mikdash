@@ -444,6 +444,43 @@
       }
       return { wait: 250 };
     },
+    // station 3, the beam on two shoulders: the act's careful way (a.way: the leading end and its point, in order). Each leg: a finger
+    // held where the leading end should go (the camera is still under it; a point past the screen's edge is taken on the screen toward
+    // it), lifted once the end is there; a rear leg starts on the rear man and drags to its point. Level 3 waits at the lane for a clear
+    // crossing. Then the trim's three strokes when it is his turn. __BOT.bad: 'scaffold' (the way through the wood chamber's scaffold),
+    // 'jar' (the beam swept across the level's jar), 'bump' (into the stone pile once)
+    carry(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
+      if (a.busy) return { wait: 250 };
+      if (a.phase === 'trim' && a.trim) {
+        const t = a.trim; if (!B.k.trimShot) { B.k.trimShot = 1; return { wait: 300, shot: `carry${a.lvP}-trim` }; }
+        if (t.turn !== 'his') return { wait: 60 };
+        const h = t.handle, to = [h[0] + t.axis[0] * t.strokePx * 0.62, h[1] + t.axis[1] * t.strokePx * 0.62];
+        return { when: C("return !a||a.phase!=='trim'||(a.trim&&a.trim.turn==='his')"), max: 3000, then: { drag: [h[0], h[1], to[0], to[1], 520] }, wait: 200, note: `carry: trim stroke ${t.n + 1}` };
+      }
+      if (a.phase !== 'carry') return { wait: 300 };
+      if (!B.k.way) {
+        B.k.way = a.way.map((w) => w.slice()); B.k.wi = 0;
+        // (wrong play: a detour that meets what it should not)
+        if (has('jar')) { const j = { 1: [78.5, 40.5], 2: [66.2, -53.5], 3: [116.2, -21.6] }[a.lvP]; const at = { 1: 2, 2: 2, 3: 4 }[a.lvP]; B.k.way.splice(at, 0, ['f', j[0], j[1]]); }
+        if (has('scaffold') && a.lvP === 3) B.k.way.splice(B.k.way.length - 4, 0, ['f', 128.5, -20], ['f', 128.6, -26.2], ['f', 132.6, -16.5]);
+        if (has('bump') && a.lvP === 1) B.k.way.splice(2, 0, ['f', 70.5, 39.5], ['f', 74.5, 39.6]);
+        return { wait: 200, shot: `carry${a.lvP}-start` };
+      }
+      const W = B.k.way, i = B.k.wi;
+      if (i >= W.length) { if (!B.k.endShot) { B.k.endShot = 1; return { wait: 900, shot: `carry${a.lvP}-marked`, note: `carry: at the mark ${JSON.stringify(a.inMark)} bumps ${a.bumps}` }; } return { wait: 300, note: `carry: waiting for the handing over ${JSON.stringify(a.inMark)} still ${a.still}` }; }
+      const [m, x, z] = W[i], p = m === 'r' ? a.r : a.f;
+      if (Math.hypot(p[0] - x, p[1] - z) < 0.12) { B.k.wi = i + 1; const sh = { 1: [3, 6], 2: [4, 6], 3: [5, 9] }[a.lvP] || []; if (sh.includes(i + 1)) return { wait: 300, shot: `carry${a.lvP}-leg${i + 1}` }; return { wait: 80, note: `carry: leg ${i + 1}/${W.length} (${m} ${x},${z}) bumps ${a.bumps} dmg ${a.dmg} ${a.events.join(',')}` }; }
+      // (level 3: the lane's sledge and cart; cross only when neither is coming within reach)
+      if (a.lvP === 3 && a.lane && i >= 3 && i <= 5) { const near = ['sledge', 'cart'].some((k) => { const q = a.lane[k]; return !q.off && q.s > 6 && q.s < 30; }); if (near && !B.k.laneOk) return { wait: 400, note: 'carry: waiting for a clear crossing ' + JSON.stringify(a.lane) }; B.k.laneOk = 1; }
+      if (!a.camOK) return { wait: 150 };   // (the camera eases toward the beam between holds: a point is taken once it is still)
+      const aim = window.__H120C && window.__H120C.aim(m, x, z); if (!aim) return { wait: 200 };
+      const to = aim.to, cond = C(`if(!a||a.phase!=='carry')return true;const p=${m === 'r' ? 'a.r' : 'a.f'};return Math.hypot(p[0]-(${to[0]}),p[1]-(${to[1]}))<0.1||(a.toD!=null&&a.toD<0.03)`);
+      if (m === 'r') return { path: [a.rScr, aim.pt], ms: 500, keep: 30000, release: cond, wait: 150, note: `carry: the rear to ${to.map((v) => v.toFixed(1))}` };
+      // (a front leg's finger never on the rear man: that would lead the rear)
+      if (Math.hypot(aim.pt[0] - a.rScr[0], aim.pt[1] - a.rScr[1]) < a.grip + 4) return { wait: 200, note: 'carry: the point is on the rear man' };
+      return { holdUntil: [aim.pt[0], aim.pt[1], cond, 30000], wait: 150, note: `carry: the front to ${to.map((v) => v.toFixed(1))}` };
+    },
     // ── /build 120 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)

@@ -342,6 +342,15 @@ export function beamHits(s, obs, feet) {
   return out;
 }
 
+/** station 3's points (brief §6): 40 — no bump, no damage, handed over at the first try, and the beam seats with a knock; 20 — up to
+ *  two bumps (a trim never earns more); 10 — otherwise (more bumps, a scaffold or a jar, a shim, a lost beam).
+ *  r: { bumps, dmg (count of damage), tries (handings over until it lay right), fit } */
+export function carryPts(r) {
+  if (r.fit === 'shim' || r.fit === 'lost' || (r.dmg | 0) > 0) return 10;
+  if (!(r.bumps | 0) && (r.tries | 0) <= 1 && r.fit === 'knock') return 40;
+  return (r.bumps | 0) <= 2 ? 20 : 10;
+}
+
 /* ───────── station 4: the mikveh (brief §7) ───────── */
 /** 40 seah stand in 1 × 1 × 3 cubic amot (Eruvin 4:2); the basin is 2 × 3 at its bottom → seah to depth (amot) */
 export const SEAH40 = 3;

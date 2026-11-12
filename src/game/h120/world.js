@@ -17,20 +17,9 @@ export const SH5 = { final: 0, X: null, B: null, crew: null, cols: {}, colKey: {
   amb: [], ambKey: '', chip: null, labels: [], busy: 0, rise: {}, stood: null, t: 0, saw: null, lane: null, hideKey: '' };
 const F = H120.FINGER, TAU = Math.PI * 2;
 
-/* ───────── fixed places (amot; rule 56) ───────── */
-/** the carpenters' yard: brief "about (90, −24)", moved south-west (it met the crane's drop at (96, −25) and its jib) */
-export const YARD = Object.freeze({
-  his: Object.freeze({ x0: 80, x1: 92, z: -31.5 }),      // his beam's trestles (station 2)
-  saw: Object.freeze({ x0: 79, x1: 91, z: -26.6 }),      // the yard sawyers' beam
-  stock: Object.freeze({ x: 99.4, z0: -33.2, z1: -21.2 }),   // the beam stock along the wood chamber's west wall
-  offcut: Object.freeze([94.6, -34.2]), short: Object.freeze([84, -35.4]), bench: Object.freeze([95.6, -29.6]),
-});
-/** scaffolds on the chambers' walls: [x0, z0, x1, z1] footprints (two lifts) */
-export const SCAFF = Object.freeze([[46.2, -47, 48.4, -41], [127, -27.3, 133, -25.3], [107, 25.3, 113, 27.3], [46.2, 38, 48.4, 44]]);
-/** stone piles: [x, z, n] */
-export const PILES = Object.freeze([[64, -40, 7], [109, -14, 6], [70, 42, 6], [112, 40, 5]]);
-/** the sledges' lane: from outside the east gate through it to the wood chamber's door (x 117…125, z −27.5) */
-export const LANE = Object.freeze([[156, -5.5], [139, -5.5], [128, -12], [121, -21], [121, -29.2]]);
+/* ───────── fixed places (amot; rule 56): one table in routes.js, read by the world, the acts and the tests ───────── */
+import { YARD, SCAFF, PILES, LANE, LIME, LANE_L, laneAt, laneState } from './routes.js';
+export { YARD, SCAFF, PILES, LANE, LIME, laneState };
 /** where a broken column's halves lie (the stone pile by the east gate) */
 const BROKE_AT = [110.5, -18.5];
 
@@ -209,7 +198,7 @@ function beamsBuild(X) {
     const [ax, az] = B.pa, [bx, bz] = B.pb;
     cedar.push(B.axis === 'x' ? [Math.min(ax, bx), Y.COL_TOP, az - hw, Math.max(ax, bx), Y.BEAM_TOP, az + hw] : [ax - hw, Y.COL_TOP, Math.min(az, bz), ax + hw, Y.BEAM_TOP, Math.max(az, bz)]);
     // his shim (כפיס) under the beam's end at his column: it stays and is always seen
-    const b = st.beam[B.id], c = COLS[B.b] || COLS[B.a]; if (b && b.shim && c) all.push(box(X, M.h5cedarL, c.x - 0.45, Y.COL_TOP - 0.06, c.z - 0.45, c.x + 0.45, Y.COL_TOP + 0.08, c.z + 0.45));
+    const b = st.beam[B.id], hb = Object.values(BAYS).find((q) => q.beam === B.id), c = (hb && COLS[hb.col]) || COLS[B.b] || COLS[B.a];   // (at his own column's end) if (b && b.shim && c) all.push(box(X, M.h5cedarL, c.x - 0.45, Y.COL_TOP - 0.06, c.z - 0.45, c.x + 0.45, Y.COL_TOP + 0.08, c.z + 0.45));
   }
   const planked = SH5.final || (st.planks && st.planks.done);
   for (const R of RUNS) {
@@ -389,8 +378,14 @@ function siteBuild(X) {
   // a broken column's halves (each fall) on the pile by the east gate
   const broke = COL_IDS.reduce((a, id) => a + ((X.M.st.col[id] || {}).broke | 0), 0);
   for (let i = 0; i < Math.min(broke, 3); i++) for (const h of [0, 1]) { const T = X.THREE, m = new T.Mesh(new T.CylinderGeometry(0.52, 0.58, 4.8, 14), M.h5marble); m.rotation.z = Math.PI / 2; m.position.set(BROKE_AT[0] + h * 5.2 - 2.6, H120.FLOOR + 0.58 + i * 1.1, BROKE_AT[1] + (h ? 0.3 : -0.2)); m.castShadow = true; X.props.root.add(m); all.push(m); }
+  // the plasterers' lime pit by the wood chamber (station 3, level 3's pass): white lime in a shallow pit with a low kerb
+  { const P = LIME; all.push(box(X, M.h5white, P.x0, H120.FLOOR - 0.2, P.z0, P.x1, H120.FLOOR + 0.04, P.z1)); for (const [a, b, c, d] of [[P.x0 - 0.2, P.z0 - 0.2, P.x1 + 0.2, P.z0], [P.x0 - 0.2, P.z1, P.x1 + 0.2, P.z1 + 0.2], [P.x0 - 0.2, P.z0, P.x0, P.z1], [P.x1, P.z0, P.x1 + 0.2, P.z1]]) all.push(box(X, M.h5limeD, a, H120.FLOOR, b, c, H120.FLOOR + 0.18, d)); }
+  // the sherds of every jar a beam broke (station 3): they stay on the floor
+  for (const [x, z, k] of (X.M.st.sherds || [])) for (let i = 0; i < 6; i++) { const a = i * 1.7 + (k | 0), r = 0.25 + (i % 3) * 0.22, b = box(X, M.h5clay, x + Math.cos(a) * r - 0.13, H120.FLOOR, z + Math.sin(a) * r - 0.09, x + Math.cos(a) * r + 0.13, H120.FLOOR + 0.05, z + Math.sin(a) * r + 0.09); b.rotation.y = a; all.push(b); }
+  SH5.siteKey = siteKeyOf(X);
   laneBuild(X, all, men);
 }
+const siteKeyOf = (X) => JSON.stringify([(X.M.st.sherds || []).length, SH5.final]);
 /** the stone sledge (drawn by three men) and the ox cart on the lane from the east gate to the wood chamber: fixed periods (rule 56) */
 function laneBuild(X, all, men) {
   const M = mats(X), T = X.THREE;
@@ -412,35 +407,31 @@ function laneBuild(X, all, men) {
   const dr = SH5.crew.add(150, -8, { role: 'walk', item: 'staff', crew: 3 }); if (dr) men.push(dr);
   SH5.lane = { sledge, pull, cart, dr, t: 0 };
 }
-/** a point along the lane at distance s (amot from its outer end), and its heading */
-function laneAt(s) {
-  let acc = 0;
-  for (let i = 1; i < LANE.length; i++) { const [ax, az] = LANE[i - 1], [bx, bz] = LANE[i], L = Math.hypot(bx - ax, bz - az); if (s <= acc + L || i === LANE.length - 1) { const u = clamp((s - acc) / L, 0, 1); return { x: lerp(ax, bx, u), z: lerp(az, bz, u), yaw: Math.atan2(bx - ax, bz - az) }; } acc += L; }
-  return { x: LANE[0][0], z: LANE[0][1], yaw: 0 };
-}
-const LANE_L = (() => { let L = 0; for (let i = 1; i < LANE.length; i++) L += Math.hypot(LANE[i][0] - LANE[i - 1][0], LANE[i][1] - LANE[i - 1][1]); return L; })();
-/** where the sledge and the cart are at time t (a fixed timetable): in at 1.1 amot/s, unloading 4 s, out; the cart half a period later */
-export function laneState(t, which = 'sledge') {
-  const V = which === 'sledge' ? 1.1 : 1.6, P = 2 * LANE_L / V + 10, u = (((t + (which === 'sledge' ? 0 : P / 2)) % P) + P) % P, tin = LANE_L / V;
-  if (u < tin) return { s: u * V, dir: 1 };
-  if (u < tin + 5) return { s: LANE_L, dir: 0 };
-  if (u < 2 * tin + 5) return { s: LANE_L - (u - tin - 5) * V, dir: -1 };
-  return { s: 0, dir: 0, off: 1 };
-}
 function laneFrame(dt) {
   const L = SH5.lane; if (!L || !L.sledge.parent) return;
   L.t += dt; const X = SH5.X;
-  // (while he raises a column by the lane's end, the sledge and the cart unload up the lane, out of his camera)
+  // (each on its own clock: a sledge or a cart whose next step would meet an act's beam (SH5.laneHold) halts until it is clear — station 3)
+  const hold = (which, tt) => { const q = laneState(tt + dt, which); return !!(SH5.laneHold && !q.off && SH5.laneHold(which, q.s, q.dir)); };
+  L.ts = L.ts == null ? L.t : L.ts; L.tc = L.tc == null ? L.t : L.tc;
+  L.holdS = hold('sledge', L.ts); L.holdC = hold('cart', L.tc);
+  if (!L.holdS) L.ts += dt; if (!L.holdC) L.tc += dt;
   // (while an act plays, the sledge and the cart go no farther along the lane than the act's view cone lets them: they unload there)
   const cap = SH5.cone ? SH5.cone.laneCap : LANE_L;
-  const a = laneState(L.t, 'sledge'); a.s = Math.min(a.s, cap); const p = laneAt(a.s), yaw = p.yaw + (a.dir < 0 ? Math.PI : 0);
+  const a = laneState(L.ts, 'sledge'); a.s = Math.min(a.s, cap); const p = laneAt(a.s), yaw = p.yaw + (a.dir < 0 ? Math.PI : 0);
   L.sledge.position.set(p.x, H120.FLOOR, p.z); L.sledge.rotation.y = p.yaw - Math.PI / 2; L.sledge.visible = !a.off;
   L.pull.forEach((w, k) => { const q = laneAt(a.s + (a.dir >= 0 ? 3.2 + k * 1.1 : -3.2 - k * 1.1)); w.a.x = q.x + (k - 1) * 0.6 * Math.cos(p.yaw); w.a.z = q.z - (k - 1) * 0.6 * Math.sin(p.yaw); w.a.yaw = yaw; w.a.visT = a.off || w.a.coneHid ? 0 : 1; w.fx = null; });
-  const c = laneState(L.t, 'cart'); if (c.s > cap) { c.s = cap; c.dir = 0; } const q = laneAt(c.s);
+  const c = laneState(L.tc, 'cart'); if (c.s > cap) { c.s = cap; c.dir = 0; } const q = laneAt(c.s);
   L.cart.position.set(q.x, H120.FLOOR, q.z); L.cart.rotation.y = q.yaw - Math.PI / 2 + (c.dir < 0 ? Math.PI : 0); L.cart.visible = !c.off;
-  if (c.dir) L.cart.traverse((o) => { if (o.userData.leg) o.rotation.z = Math.sin(L.t * 5 + o.position.x * 3 + o.position.z * 5) * 0.35; });
+  if (c.dir && !L.holdC) L.cart.traverse((o) => { if (o.userData.leg) o.rotation.z = Math.sin(L.tc * 5 + o.position.x * 3 + o.position.z * 5) * 0.35; });
   if (L.dr) { const d = laneAt(c.s + (c.dir >= 0 ? 6.5 : -6.5)); L.dr.a.x = d.x + 1.4 * Math.cos(q.yaw); L.dr.a.z = d.z - 1.4 * Math.sin(q.yaw); L.dr.a.yaw = q.yaw + (c.dir < 0 ? Math.PI : 0); L.dr.a.visT = c.off || L.dr.a.coneHid ? 0 : 1; }
+  L.now = { sledge: a, cart: c };
   void X;
+}
+/** a scaffold brought down by a beam (station 3) and set up again by its crew: hidden whole (its mason with it), or shown */
+export function scafShow(si, on) {
+  if (!SH5.site) return;
+  for (const o of SH5.site.all) if (o.userData.scaf === si + 1) { if (o.userData.coneHid) o.userData.coneVis = !!on; else o.visible = !!on; }
+  for (const w of SH5.site.men) if (w.scaf === si + 1) { w.a.visT = on ? 1 : 0; w.a.vis = on ? w.a.vis : 0; w.down = !on; }
 }
 
 /* ───────── the crews at real work (rules 4–5): the next column's gang, the joist layers on the newest seated beam, the plasterers ───────── */
@@ -454,13 +445,13 @@ function ambient(X) {
   const next = busyK === 'col' ? null : COL_IDS.find((id) => !up.has(id) && !Object.values(BAYS).some((b) => b.col === id) && !SH5.own[id] && !SH5.rise[id]);
   if (next) { const fr = colFrame(next), px = fr.x + fr.along[0] * 5, pz = fr.z + fr.along[1] * 5; add(px + fr.across[0] * 1.6, pz + fr.across[1] * 1.6, { role: 'lever', fx: px, fz: pz, crew: 1 }); add(fr.x - fr.along[0] * 1.6 + fr.across[0] * 1.2, fr.z - fr.along[1] * 1.6 + fr.across[1] * 1.2, { role: 'hammer', item: 'chisel', fx: fr.x, fz: fr.z, crew: 1 }); }
   // the joist layers on the newest seated beam: two men on the gallery's joists with mallets
-  const seated = BEAMS.filter((B) => X.M.seated(B.id) && SH5.own.__beam !== B.id), B = seated[seated.length - 1];
+  const seated = BEAMS.filter((B) => X.M.seated(B.id) && SH5.own.__beam !== B.id), B = (SH5.joistAt && BEAM_OF[SH5.joistAt]) || seated[seated.length - 1];   // (station 3 leaves them on the beam it seated)
   if (B) { const mx = (B.pa[0] + B.pb[0]) / 2, mz = (B.pa[1] + B.pb[1]) / 2, R = RUNS.find((r) => r.axis === B.axis && (r.axis === 'x' ? Math.abs(r.line - mz) < 0.1 : Math.abs(r.line - mx) < 0.1 && Math.sign(r.a0 + r.a1) === Math.sign(mz)));
     if (R) { const w0 = (R.wall + R.line) / 2; for (const d of [-2, 2]) { const x = R.axis === 'x' ? mx + d : w0, z = R.axis === 'x' ? w0 : mz + d; add(x, z, { role: 'hammer', item: 'mallet', fx: R.axis === 'x' ? x + 0.5 : R.line, fz: R.axis === 'x' ? R.line : z + 0.5, crew: 2 }, Y.JOIST_TOP); } } }
   // the plasterers at the basin (trowel work: a chisel and mallet on its walls) — out of the way while he works there
   if (busyK !== 'mikveh') { add(MIK.stair + 1.0, MIK.z0 - 1.1, { role: 'hammer', item: 'chisel', fx: MIK.x1 + 1, fz: MIK.z0, crew: 3, tunic: '#E8E0CC' }); add(MIK.x0 - 1.2, (MIK.z0 + MIK.z1) / 2, { role: 'hammer', item: 'mallet', fx: MIK.x0, fz: (MIK.z0 + MIK.z1) / 2, crew: 3, tunic: '#E8E0CC' }); add(MIK.pit.x0 - 0.8, (MIK.pit.z0 + MIK.pit.z1) / 2, { role: 'lever', fx: MIK.pit.x0 + 1, fz: (MIK.pit.z0 + MIK.pit.z1) / 2, crew: 3 }); }
   // a carrier between the stock and the yard (beams on the shoulder)
-  if (busyK !== 'saw') add(YARD.stock.x - 2, YARD.stock.z0 + 1, { role: 'carry', item: 'beam', from: [YARD.stock.x - 2, YARD.stock.z0 + 1], to: [YARD.his.x0 - 1.5, YARD.his.z - 1.2], crew: 2 });
+  if (busyK !== 'saw' && busyK !== 'carry') add(YARD.stock.x - 2, YARD.stock.z0 + 1, { role: 'carry', item: 'beam', from: [YARD.stock.x - 2, YARD.stock.z0 + 1], to: [YARD.his.x0 - 1.5, YARD.his.z - 1.2], crew: 2 });
 }
 
 /* ───────── labels, the goal chip ───────── */
@@ -552,7 +543,7 @@ function coneMeshes() { return [].concat(SH5.site ? SH5.site.all : [], SH5.yard 
 /** (each beat, and after a rebuild) walk out / hide what stands in the cone; bring back what no longer does */
 export function coneApply() {
   const C = SH5.cone, scaf = new Set();
-  if (C) C.live = liveCone(C);
+  if (C) C.live = C.noLive ? null : liveCone(C);
   const lad = new Set(); if (C) for (const o of SH5.lad || []) if (o.userData.lad && !C.skip.has(o) && meshIn(o)) lad.add(o.userData.lad);
   if (C) for (const o of coneMeshes()) if (o.userData.scaf && !C.skip.has(o) && meshIn(o)) scaf.add(o.userData.scaf);
   // every figure of the shared pool (this stage's gangs and the stage's crews alike), but the act's own; a scaffold's mason with it
@@ -584,7 +575,8 @@ export function viewCone(X, shots, opt = {}) {
   // a crew column still rising in view finishes standing first (its gang never shares the act's ground)
   for (const id of Object.keys(SH5.rise)) { const R = SH5.rise[id]; R.rope.dispose(); R.rope2.dispose(); for (const w of R.men) SH5.crew.remove(w); for (const o of R.all) if (o !== R.C.g) X.props.remove(o); delete SH5.rise[id]; colBuild(X, id); }
   const L = shots.map(([p, t, r]) => coneOf(X, p, t, r));
-  const C = (SH5.cone = { L, skip: new Set(opt.skip || []), laneCap: LANE_L });
+  if (opt.depth) for (const c of L) c.dW = Math.min(c.dW, opt.depth);   // (opt.depth: clear only this near the lens — a high camera over the court)
+  const C = (SH5.cone = { L, skip: new Set(opt.skip || []), laneCap: LANE_L, noLive: opt.live === false });
   // the lane: the farthest point the sledge and the cart (and the men ahead of them) may reach outside the cone
   for (let s = 0; s <= LANE_L; s += 0.5) { const q = laneAt(s); let bad = false; for (const y of [0.5, 1.5, 2.5]) for (const k of [-2, 0, 2, 6]) { const p2 = laneAt(Math.min(LANE_L, s + k)); if (inCone(p2.x, H120.FLOOR + y, p2.z)) bad = true; } void q; if (bad) { C.laneCap = Math.max(0, s - 2); break; } }
   // the stage's crews (crews.js) kept off the cone's ground: three depth bands per shot, each its bounding rect on the floor
@@ -633,6 +625,7 @@ export function ensureWorld(X) {
   colsSync(X, false);
   if (SH5.beamKey !== beamsKey(X)) beamsBuild(X);
   if (SH5.chKey !== chKey(X) && !(SH5.busy && X.mission && X.mission.k === 'mikveh')) chamberBuild(X);
+  if (SH5.site && SH5.siteKey !== siteKeyOf(X) && !SH5.busy) siteBuild(X);
   const k = ambKeyOf(X); if (k !== SH5.ambKey) { SH5.ambKey = k; ambient(X); yardBuild(X); if (SH5.cone) coneApply(); }
 }
 let jT = 0;

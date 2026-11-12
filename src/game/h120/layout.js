@@ -68,7 +68,7 @@ export const RUNS = Object.freeze([
 /** the joists of a run: their positions along it (every JOIST_GAP from its start, the ends inside) */
 export function joistsOf(run) { const L = []; const n = Math.max(1, Math.round((run.a1 - run.a0) / H120.JOIST_GAP)); for (let i = 0; i <= n; i++) L.push(run.a0 + 0.3 + ((run.a1 - run.a0 - 0.6) * i) / n); return L; }
 /** the ladders up to the gallery (at the chambers' ends of each run): [x, z, facing x, facing z] */
-export const LADDERS = Object.freeze([[47.4, 60.2, 47.4, 64], [99.6, 60.2, 99.6, 64], [47.4, -60.2, 47.4, -64], [99.6, -60.2, 99.6, -64], [133.8, -26, 137, -26], [133.8, 26, 137, 26]]);
+export const LADDERS = Object.freeze([[47.4, 60.2, 47.4, 64], [99.6, 60.2, 99.6, 64], [47.4, -60.2, 47.4, -64], [99.6, -60.2, 99.6, -64], [133.8, -14.6, 137, -14.6], [133.8, 26, 137, 26]]);
 
 /* ───────── the mikveh in the lepers' chamber (brief §1, §7; grid יא־6) ───────── */
 /** the lepers' chamber's inside: x 6…44 (its east wall 44…46), z −67.5…−29.5 (its south wall −29.5…−27.5, the door the gap x 22…30) */

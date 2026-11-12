@@ -370,7 +370,10 @@
         const tol = a.tol, near = a.th >= a.BAL - tol + 0.3, circle = (c, turns, ms, r = 42) => { const n = Math.max(12, Math.round(ms / 50)), pts = []; for (let i = 0; i <= n; i++) { const t = (i / n) * turns * Math.PI * 2; pts.push([c[0] + Math.cos(t) * r, c[1] + Math.sin(t) * r]); } return pts; };
         if (bad === 'sharp' && a.pulley && a.th > 50 && a.tears === 0 && !a.crossed) return { path: [a.rope, a.ropeTo], ms: 70, wait: 250, note: 'col: a sharp pull (' + a.sharp + ')' };
         // (level 2: the guy crew hauls the top back against the east wind)
-        if (a.guy && Math.abs(a.sway) > 1.2 && !a.crossed && a.w < 1 && bad !== 'nobrake') return { tap: a.guy, wait: 600, note: 'col: the guy rope at sway ' + a.sway };
+        // (a haul inside each gust holds the guy taut through it; the crossing waits for a gust to have just passed)
+        if (a.guy && a.gust > 0.4 && !a.guyHold && bad !== 'nobrake') return { tap: a.guy, wait: 250, note: 'col: the guy rope in the gust (sway ' + a.sway + ')' };
+        if (a.guy && Math.abs(a.sway) > 0.6 && a.gust <= 0.3 && !a.crossed && bad !== 'nobrake') return { tap: a.guy, wait: 600, note: 'col: the guy rope at sway ' + a.sway + ' ' + JSON.stringify(a.downs.slice(-1)) + ' t' + a.t };
+        if (a.guy && !a.crossed && a.th >= a.BAL - a.tol - 3 && a.gustIn < 4.5 && bad !== 'nobrake') return { wait: 150 };
         // (the big pull, eased off before it runs away; the finger eases back before it lifts, so the foot does not walk)
         const relTh = [0, 56, 50, 37][a.lv] || 37, ease = { after: [mid(a.rope, a.ropeTo, 0.2)], afterMs: 650 };
         if (!a.crossed && a.th < relTh) {
@@ -383,9 +386,11 @@
           if (a.crossed || a.w > 1) return { wait: 200, note: 'col: no brake, ' + a.th };
           return mouse ? { tap: a.rope, wait: 350, note: 'col: heave' } : { path: [a.rope, mid(a.rope, a.ropeTo, 0.95)], ms: 500, keep: 4000, release: C('return !a||a.crossed||a.phase!==\'rise\''), wait: 100 };
         }
-        const ms = bad === 'fast' ? 1000 : 6000, turns = bad === 'fast' ? 2.6 : 3.6;
+        // (the brake: one turn round the post every 1.7 s, again and again until it stands; 'fast': the rope paid out in a rush, once)
+        const fast = bad === 'fast', ms = fast ? 1000 : 2200, turns = fast ? 2.6 : 1;
+        const UNTIL = C(`return !a||a.phase!=='rise'`), GUY = "(()=>{const h=__T.game.h109,a=h&&h.state().act;return a&&a.guy&&a.phase==='rise'?a.guy:null})()";
         if (mouse) {
-          if (a.crossed) return { path: circle(a.post, turns, ms), ms, wait: 300, note: `col: brake at ${a.th} (pay ${turns} turns in ${ms} ms)` };
+          if (a.crossed) return { path: circle(a.post, turns, ms), ms, ...(fast ? {} : { pathUntil: UNTIL, pathMax: 30000 }), wait: 300, note: `col: brake at ${a.th} (${fast ? 'pay 2.6 turns in 1 s' : 'a turn each 2.2 s until it stands'})` };
           if (a.w < 0.6) return a.th < (a.pulley ? 64 : a.BAL - 8) ? { path: [a.rope, mid(a.rope, a.ropeTo, 0.92)], ms: 500, keep: 8000, release: C(`return !a||a.phase!=='rise'||a.th>=a.BAL-a.tol-2.5||a.w>5`), ...ease, wait: 30, note: 'col: nudge at ' + a.th } : { tap: a.rope, wait: 380, note: 'col: heave at ' + a.th };
           return { wait: 60 };
         }
@@ -393,8 +398,10 @@
         const P = circle(a.post, turns, ms), Rp = mid(a.rope, a.ropeTo, 0.45), fr = [[a.rope]];
         const k = a.crossed || a.pulley ? 1 : Math.max(1, Math.min(40, Math.round(((a.BAL - 0.8 - a.th) / Math.max(a.w, 3)) / 0.05)));
         for (let i = 1; i <= k; i++) fr.push([mid(a.rope, Rp, Math.min(1, i / 3))]);
-        for (const q of P) fr.push([Rp, q]);
-        return { seq: fr, ms: 50, wait: 300, note: `col: two fingers from ${a.th} at ${a.w}°/s, the post after ${k} frames (pay ${turns} turns in ${ms} ms)` };
+        // (level 2: a third finger taps the guy crew now and then while the other two work: a haul inside a gust holds it)
+        const loop = fr.length + 1;
+        P.forEach((q, i) => { fr.push([Rp, q]); if (a.guy && i % 8 === 4) fr.push([Rp, q, GUY]); });
+        return { seq: fr, ms: 50, ...(fast ? {} : { seqUntil: UNTIL, seqLoop: loop, seqMax: 30000 }), wait: 300, note: `col: two fingers from ${a.th} at ${a.w}°/s, the post after ${k} frames (${fast ? 'pay 2.6 turns in 1 s' : 'a turn each 2.2 s until it stands'})` };
       }
       if (a.phase === 'plumb' && a.sides && a.bobs) {
         if (!B.k.ps) { B.k.ps = 1; return { wait: 300, shot: `col${a.lv}-plumb`, note: `col: landed at ${a.land} °/s, lean ${a.lean}, off ${a.off}` }; }

@@ -11,7 +11,7 @@
  */
 import { H120, Y, COLS, COL_IDS, BEAMS, BEAM_OF, RUNS, LADDERS, MIK, BAYS, bayDir, joistsOf, vesselsOf } from './model.js';
 import { h120Ladder } from '../../temple.js';
-import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
+import { createBeat, createGang, clamp, lerp, ease, camAt } from '../h109/kit.js';
 
 export const SH5 = { final: 0, X: null, B: null, crew: null, cols: {}, colKey: {}, own: {}, beamsG: null, beamKey: '', gal: null, galKey: '', yard: null, ch: null, chKey: '', site: null,
   amb: [], ambKey: '', chip: null, labels: [], busy: 0, rise: {}, stood: null, t: 0, saw: null, lane: null, hideKey: '' };
@@ -238,7 +238,7 @@ function beamsBuild(X) {
 }
 function laddersBuild(X, all) {
   const M = mats(X);
-  for (const [x, z, fx, fz] of LADDERS) for (const g of h120Ladder(x, z, fx, fz, H120.FLOOR, Y.GFLOOR)) { const m = new X.THREE.Mesh(g, M.h5cedarD); m.castShadow = true; X.props.root.add(m); all.push(m); }
+  LADDERS.forEach(([x, z, fx, fz], li) => { for (const g of h120Ladder(x, z, fx, fz, H120.FLOOR, Y.GFLOOR)) { const m = new X.THREE.Mesh(g, M.h5cedarD); m.castShadow = true; m.userData.lad = li + 1; X.props.root.add(m); all.push(m); } });
 }
 
 /* ───────── the carpenters' yard: trestles, the stock, the heaps, the bench; two sawyers who really cut ───────── */
@@ -371,14 +371,15 @@ function siteBuild(X) {
   if (SH5.site) { drop(X, SH5.site.all); for (const w of SH5.site.men) SH5.crew.remove(w); }
   const all = [], men = [], M = mats(X); SH5.site = { all, men };
   if (SH5.final) return;
-  for (const [x0, z0, x1, z1] of SCAFF) {
-    const posts = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]];
+  SCAFF.forEach(([x0, z0, x1, z1], si) => {
+    const posts = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]], n0 = all.length;
     for (const [x, z] of posts) all.push(cyl(X, M.h5cedarD, x, H120.FLOOR, z, 0.1, 0.09, 13.5, 6));
     for (const y of [H120.FLOOR + 6, H120.FLOOR + 12]) all.push(box(X, M.h5cedarL, x0 - 0.1, y - 0.12, z0 - 0.1, x1 + 0.1, y, z1 + 0.1));
+    for (let i = n0; i < all.length; i++) all[i].userData.scaf = si + 1;   // (a scaffold is hidden whole, its mason with it)
     // a mason on the upper lift, dressing the wall's course (he really works: a mallet and a chisel on the beat)
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, wx = x1 - x0 < z1 - z0 ? (x0 < 60 ? x0 - 1 : x1 + 1) : cx, wz = x1 - x0 < z1 - z0 ? cz : (z0 < 0 ? z0 - 1 : z1 + 1);
-    const w = SH5.crew.add(cx, cz, { role: 'hammer', item: 'chisel', fx: wx, fz: wz, crew: 1 }); if (w) { w.a.y = H120.FLOOR + 12; w.dust = false; men.push(w); }
-  }
+    const w = SH5.crew.add(cx, cz, { role: 'hammer', item: 'chisel', fx: wx, fz: wz, crew: 1 }); if (w) { w.a.y = H120.FLOOR + 12; w.dust = false; w.scaf = si + 1; men.push(w); }
+  });
   for (const [x, z, n] of PILES) for (let i = 0; i < n; i++) { const r = Math.floor(i / 3), k = i % 3, a = (x * 7 + z * 3 + i) % 2 ? 0.12 : -0.08; const b = box(X, k % 2 ? M.h5lime : M.h5limeD, x - 1.6 + k * 1.05 + r * 0.5, H120.FLOOR + r * 0.62, z - 0.5, x - 0.7 + k * 1.05 + r * 0.5, H120.FLOOR + 0.6 + r * 0.62, z + 0.5); b.rotation.y = a; all.push(b); }
   // a broken column's halves (each fall) on the pile by the east gate
   const broke = COL_IDS.reduce((a, id) => a + ((X.M.st.col[id] || {}).broke | 0), 0);
@@ -425,14 +426,15 @@ function laneFrame(dt) {
   const L = SH5.lane; if (!L || !L.sledge.parent) return;
   L.t += dt; const X = SH5.X;
   // (while he raises a column by the lane's end, the sledge and the cart unload up the lane, out of his camera)
-  const end = LANE[LANE.length - 1], cap = Object.keys(SH5.own).some((id) => { if (id.startsWith('__')) return false; const f = colFrame(id); return f && Math.hypot(f.x - end[0], f.z - end[1]) < 14; }) ? 17 : LANE_L;   // (at the first turn, by the gate)
+  // (while an act plays, the sledge and the cart go no farther along the lane than the act's view cone lets them: they unload there)
+  const cap = SH5.cone ? SH5.cone.laneCap : LANE_L;
   const a = laneState(L.t, 'sledge'); a.s = Math.min(a.s, cap); const p = laneAt(a.s), yaw = p.yaw + (a.dir < 0 ? Math.PI : 0);
   L.sledge.position.set(p.x, H120.FLOOR, p.z); L.sledge.rotation.y = p.yaw - Math.PI / 2; L.sledge.visible = !a.off;
-  L.pull.forEach((w, k) => { const q = laneAt(a.s + (a.dir >= 0 ? 3.2 + k * 1.1 : -3.2 - k * 1.1)); w.a.x = q.x + (k - 1) * 0.6 * Math.cos(p.yaw); w.a.z = q.z - (k - 1) * 0.6 * Math.sin(p.yaw); w.a.yaw = yaw; w.a.visT = a.off ? 0 : 1; w.fx = null; });
+  L.pull.forEach((w, k) => { const q = laneAt(a.s + (a.dir >= 0 ? 3.2 + k * 1.1 : -3.2 - k * 1.1)); w.a.x = q.x + (k - 1) * 0.6 * Math.cos(p.yaw); w.a.z = q.z - (k - 1) * 0.6 * Math.sin(p.yaw); w.a.yaw = yaw; w.a.visT = a.off || w.a.coneHid ? 0 : 1; w.fx = null; });
   const c = laneState(L.t, 'cart'); if (c.s > cap) { c.s = cap; c.dir = 0; } const q = laneAt(c.s);
   L.cart.position.set(q.x, H120.FLOOR, q.z); L.cart.rotation.y = q.yaw - Math.PI / 2 + (c.dir < 0 ? Math.PI : 0); L.cart.visible = !c.off;
   if (c.dir) L.cart.traverse((o) => { if (o.userData.leg) o.rotation.z = Math.sin(L.t * 5 + o.position.x * 3 + o.position.z * 5) * 0.35; });
-  if (L.dr) { const d = laneAt(c.s + (c.dir >= 0 ? 6.5 : -6.5)); L.dr.a.x = d.x + 1.4 * Math.cos(q.yaw); L.dr.a.z = d.z - 1.4 * Math.sin(q.yaw); L.dr.a.yaw = q.yaw + (c.dir < 0 ? Math.PI : 0); L.dr.a.visT = c.off ? 0 : 1; }
+  if (L.dr) { const d = laneAt(c.s + (c.dir >= 0 ? 6.5 : -6.5)); L.dr.a.x = d.x + 1.4 * Math.cos(q.yaw); L.dr.a.z = d.z - 1.4 * Math.sin(q.yaw); L.dr.a.yaw = q.yaw + (c.dir < 0 ? Math.PI : 0); L.dr.a.visT = c.off || L.dr.a.coneHid ? 0 : 1; }
   void X;
 }
 
@@ -491,6 +493,114 @@ export function keep(X, rects) {
   try { if (X.stages.craneOff) X.stages.craneOff(!!(rects && rects.length)); } catch (e) { /* */ }
 }
 
+/* ───────── an act's clear view (rule 13; build 118's hidden onlookers) ─────────
+ * viewCone(X, shots, opt): while an act runs nothing of the world stands between its camera and its work, or is cut by the frame's
+ * bottom. shots: [[eye, aim, workR]…] (every shot the act uses; eye and aim [x, y, z]; workR: how deep the work itself is round its
+ * aim). Inside any shot's frustum (with a margin past the frame's edges) and nearer than its work: the world's own figures (the
+ * gangs, the masons, the yard's sawyers, the lane's men) are walked out before the act's first frame (they vanish at once and come
+ * back after), fixed props (scaffolds, stone piles, the yard's stock and heaps) are hidden for the act and restored, the sledge and
+ * the cart stop on their lane before they would enter it, and the stage's crews (crews.js) are kept out of its ground (keepOut).
+ * opt: { keep: the act's own ground rects, skip: [figures or meshes the act owns] }. viewCone(X, null) ends it, restoring all. */
+const D2R = Math.PI / 180;
+function coneOf(X, eye, aim, workR = 3) {
+  const e = camAt(X, eye, aim), f = [aim[0] - e[0], aim[1] - e[1], aim[2] - e[2]], d = Math.hypot(...f); f[0] /= d; f[1] /= d; f[2] /= d;
+  let r = [-f[2], 0, f[0]]; const rl = Math.hypot(r[0], r[2]) || 1; r = [r[0] / rl, 0, r[2] / rl];
+  const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  const cam = X.camera, tv = Math.tan(((cam && cam.fov) || 40) * D2R / 2), th = tv * ((cam && cam.aspect) || innerWidth / innerHeight);
+  return { e, f, r, u, dW: Math.max(1, d - workR), tv, th, aim, workR };
+}
+/** is the world point in the cone c, nearer than its work (m: the margin past the frame's edges, as a share of the half-width) */
+function inC(c, x, y, z, m = 0.12) {
+  const vx = x - c.e[0], vy = y - c.e[1], vz = z - c.e[2], d = vx * c.f[0] + vy * c.f[1] + vz * c.f[2];
+  if (d < 0.8 || d > c.dW) return false;
+  const px = (vx * c.r[0] + vy * c.r[1] + vz * c.r[2]) / d, py = (vx * c.u[0] + vy * c.u[1] + vz * c.u[2]) / d;
+  return Math.abs(px) < c.th * (1 + m) && Math.abs(py) < c.tv * (1 + m);
+}
+export function inCone(x, y, z) { const C = SH5.cone; return !!C && (C.L.some((c) => inC(c, x, y, z)) || (!!C.live && inC(C.live, x, y, z))); }
+/** the cone of the camera as it stands now (the shots of a raise move on; what this one sees is cleared too), to the nearest work */
+const LV = { d: null };
+function liveCone(C) {
+  const cam = SH5.X && SH5.X.camera; if (!cam || !cam.getWorldDirection) return null;
+  const T = SH5.X.THREE; LV.d = LV.d || new T.Vector3(); cam.updateMatrixWorld(); cam.getWorldDirection(LV.d);
+  const e = [cam.position.x, cam.position.y, cam.position.z], f = [LV.d.x, LV.d.y, LV.d.z];
+  let dW = 0; for (const c of C.L) { const a = c.aim; const d = (a[0] - e[0]) * f[0] + (a[1] - e[1]) * f[1] + (a[2] - e[2]) * f[2] - c.workR; if (d > dW) dW = d; }
+  if (dW < 1 || dW > 70) return null;   // (the zoom-out over the Mount clears nothing)
+  let r = [-f[2], 0, f[0]]; const rl = Math.hypot(r[0], r[2]) || 1; r = [r[0] / rl, 0, r[2] / rl];
+  const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  const tv = Math.tan(((cam.fov) || 40) * D2R / 2);
+  return { e, f, r, u, dW, tv, th: tv * (cam.aspect || innerWidth / innerHeight) };
+}
+/** a figure (foot, waist, head) or a mesh (its box's corners, centre and mid-faces) inside the cone */
+function figIn(a) { const y = a.y != null ? a.y : H120.FLOOR; return inCone(a.x, y + 0.2, a.z) || inCone(a.x, y + 1.0, a.z) || inCone(a.x, y + 1.9, a.z); }
+let BB = null;
+function meshIn(o) {
+  const T = SH5.X.THREE; if (!o.userData.h5bb) { BB = BB || new T.Box3(); BB.setFromObject(o); o.userData.h5bb = [BB.min.x, BB.min.y, BB.min.z, BB.max.x, BB.max.y, BB.max.z]; }
+  const [x0, y0, z0, x1, y1, z1] = o.userData.h5bb, xm = (x0 + x1) / 2, ym = (y0 + y1) / 2, zm = (z0 + z1) / 2;
+  for (const x of [x0, xm, x1]) for (const y of [y0, ym, y1]) for (const z of [z0, zm, z1]) if (inCone(x, y, z)) return true;
+  return false;
+}
+function coneFigs() {
+  const L = [].concat(SH5.amb, SH5.site ? SH5.site.men : [], SH5.saw ? SH5.saw.men : [], ...Object.values(SH5.rise).map((R) => R.men));
+  return L.filter(Boolean);
+}
+function coneMeshes() { return [].concat(SH5.site ? SH5.site.all : [], SH5.yard ? SH5.yard.all : [], SH5.lad || []); }
+/** (each beat, and after a rebuild) walk out / hide what stands in the cone; bring back what no longer does */
+export function coneApply() {
+  const C = SH5.cone, scaf = new Set();
+  if (C) C.live = liveCone(C);
+  const lad = new Set(); if (C) for (const o of SH5.lad || []) if (o.userData.lad && !C.skip.has(o) && meshIn(o)) lad.add(o.userData.lad);
+  if (C) for (const o of coneMeshes()) if (o.userData.scaf && !C.skip.has(o) && meshIn(o)) scaf.add(o.userData.scaf);
+  // every figure of the shared pool (this stage's gangs and the stage's crews alike), but the act's own; a scaffold's mason with it
+  const A = SH5.X && SH5.X.actors ? SH5.X.actors() : null, pool = (A && A.list) || [];
+  const skipA = new Set(); if (C) for (const o of C.skip) if (o) skipA.add(o.a || o);
+  const scafA = new Set(); for (const w of coneFigs()) if (w.scaf && scaf.has(w.scaf)) scafA.add(w.a);
+  for (const a of pool) {
+    if (!a || a.alive === false) continue;
+    const hit = !!C && !skipA.has(a) && (scafA.has(a) || figIn(a));
+    if (hit) { if (!a.coneHid) { a.coneHid = 1; a.coneV = a.visT; } a.visT = 0; a.vis = 0; }
+    else if (a.coneHid) { a.coneHid = 0; a.visT = a.coneV != null ? a.coneV : 1; }
+  }
+  // the loose things the crews set down (stones, jars, tools on the floor) — hidden in the cone like the men
+  for (const p of (A && A.props) || []) {
+    const hit = !!C && !skipA.has(p) && inCone(p.x, p.y + 0.3, p.z);
+    if (hit) { if (!p.coneHid) { p.coneHid = 1; p.coneV = p.visT; } p.visT = 0; p.vis = 0; }
+    else if (p.coneHid) { p.coneHid = 0; p.visT = p.coneV != null ? p.coneV : 1; }
+  }
+  for (const o of coneMeshes()) {
+    const hit = !!C && !C.skip.has(o) && (o.userData.scaf ? scaf.has(o.userData.scaf) : o.userData.lad ? lad.has(o.userData.lad) : meshIn(o));
+    if (hit) { if (!o.userData.coneHid) { o.userData.coneHid = 1; o.userData.coneVis = o.visible; o.visible = false; } }
+    else if (o.userData.coneHid) { o.userData.coneHid = 0; o.visible = o.userData.coneVis !== false; }
+  }
+}
+export function viewCone(X, shots, opt = {}) {
+  const hw = X.hero && X.hero.h120Workers;
+  if (!shots || !shots.length) { SH5.cone = null; coneApply(); keep(X, opt.keep || []); if (hw) hw(null); return; }
+  if (hw) hw((x, y, z) => inCone(x, y + 0.2, z) || inCone(x, y + 1.0, z) || inCone(x, y + 2.0, z));   // the stage's own builders, likewise
+  // a crew column still rising in view finishes standing first (its gang never shares the act's ground)
+  for (const id of Object.keys(SH5.rise)) { const R = SH5.rise[id]; R.rope.dispose(); R.rope2.dispose(); for (const w of R.men) SH5.crew.remove(w); for (const o of R.all) if (o !== R.C.g) X.props.remove(o); delete SH5.rise[id]; colBuild(X, id); }
+  const L = shots.map(([p, t, r]) => coneOf(X, p, t, r));
+  const C = (SH5.cone = { L, skip: new Set(opt.skip || []), laneCap: LANE_L });
+  // the lane: the farthest point the sledge and the cart (and the men ahead of them) may reach outside the cone
+  for (let s = 0; s <= LANE_L; s += 0.5) { const q = laneAt(s); let bad = false; for (const y of [0.5, 1.5, 2.5]) for (const k of [-2, 0, 2, 6]) { const p2 = laneAt(Math.min(LANE_L, s + k)); if (inCone(p2.x, H120.FLOOR + y, p2.z)) bad = true; } void q; if (bad) { C.laneCap = Math.max(0, s - 2); break; } }
+  // the stage's crews (crews.js) kept off the cone's ground: three depth bands per shot, each its bounding rect on the floor
+  const rects = (opt.keep || []).slice();
+  for (const c of L) {
+    const bands = [[], [], []];
+    for (let i = 0; i <= 24; i++) for (let j = -12; j <= 12; j++) {
+      const d = (c.dW * i) / 24, w = (j / 12) * d * c.th * 1.15, x = c.e[0] + c.f[0] * d + c.r[0] * w, z = c.e[2] + c.f[2] * d + c.r[2] * w;
+      if ([0.2, 1, 2].some((y) => inC(c, x, H120.FLOOR + y, z))) bands[Math.min(2, Math.floor((i / 25) * 3))].push([x, z]);
+    }
+    for (const B of bands) if (B.length) rects.push([Math.min(...B.map((p) => p[0])), Math.min(...B.map((p) => p[1])), Math.max(...B.map((p) => p[0])), Math.max(...B.map((p) => p[1]))]);
+  }
+  C.rects = rects.slice(0, 6);
+  keep(X, C.rects);
+  coneApply();
+}
+/** (the director sets its own ground rect after make(): an act calls this again in its begin()) */
+export function coneKeep(X) { if (SH5.cone) keep(X, SH5.cone.rects); }
+/** an act's own figures or meshes, never hidden by its cone */
+export function coneOwn(...objs) { if (SH5.cone) for (const o of objs) if (o) SH5.cone.skip.add(o); }
+
 /* ───────── the world as the save has it ───────── */
 function modelHide(X, hide) { try { if (X.stages.nashimGallery) X.stages.nashimGallery(!hide); } catch (e) { /* */ } }
 export function initWorld(X) {
@@ -518,7 +628,7 @@ export function ensureWorld(X) {
   colsSync(X, false);
   if (SH5.beamKey !== beamsKey(X)) beamsBuild(X);
   if (SH5.chKey !== chKey(X) && !(SH5.busy && X.mission && X.mission.k === 'mikveh')) chamberBuild(X);
-  const k = ambKeyOf(X); if (k !== SH5.ambKey) { SH5.ambKey = k; ambient(X); yardBuild(X); }
+  const k = ambKeyOf(X); if (k !== SH5.ambKey) { SH5.ambKey = k; ambient(X); yardBuild(X); if (SH5.cone) coneApply(); }
 }
 let jT = 0;
 export function frameWorld(dt, X) {
@@ -527,7 +637,14 @@ export function frameWorld(dt, X) {
   SH5.B.step(dt); if (SH5.crew) SH5.crew.update(dt, SH5.B);
   riseFrame(dt); sawFrame(dt); laneFrame(dt);
   if (SH5.ch && SH5.ch.basin && SH5.ch.basin.surf) { const s = SH5.ch.basin.surf; s.position.y = SH5.ch.basin.wy + Math.sin(SH5.t * 1.3) * 0.004; }
-  jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X, true); ensureWorld(X); goalChip(X); }
+  jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X, true); ensureWorld(X); goalChip(X); if (SH5.cone || SH5.coneWas) { coneApply(); SH5.coneWas = !!SH5.cone; } }
+  if (SH5.cone) coneHold(X);
   for (const L of SH5.labels) L.frame();
+}
+/** every frame: what the cone hid stays hidden though its crew shows it again (crews.js sets its men's visT as they walk and work) */
+function coneHold(X) {
+  const A = X.actors ? X.actors() : null; if (!A) return;
+  for (const a of A.list || []) if (a && a.coneHid) { a.visT = 0; a.vis = 0; }
+  for (const p of A.props || []) if (p && p.coneHid) { p.visT = 0; p.vis = 0; }
 }
 export { clamp, lerp, ease, TAU };

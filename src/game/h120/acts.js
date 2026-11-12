@@ -7,7 +7,7 @@
  * the crews would have left (M.done's defaults), with no stars and no points.
  */
 import { H120, Y, LV, BAYS, colFresh, colStep, leanAfter, colPts, wedge, windAt, pullShare, qOf, starsOf } from './model.js';
-import { SH5, mats, colMesh, colFrame, colBuild, shearLegs, own, keep, label, box, initWorld, frameWorld } from './world.js';
+import { SH5, mats, colMesh, colFrame, colBuild, shearLegs, own, keep, label, box, initWorld, frameWorld, viewCone, coneOwn, coneKeep } from './world.js';
 import { fingers, MOUSE, onY, heroAt } from '../h113/acts.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
 
@@ -20,7 +20,7 @@ const dist2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const RIG = {
   1: { post: [81.5, 58.8] },
   2: { post: [47.6, -58.4] },
-  3: { post: [132.6, -3.5], block: [131.2, 9.5, -27.35], pull: [[127.8, -25.7], [126.5, -25.2], [125.2, -25.7], [123.9, -25.2]] },
+  3: { post: [132.6, -3.5], block: [131.2, 9.5, -27.35], pull: [[129.8, -25.4], [129.1, -24.1], [128.5, -22.7], [127.8, -21.4]], back: [-0.45, 0.89] },   // (one behind the other on the rope's line from the block, 1.5 apart, slanting off the wall so the camera sees each)
 };
 /** where his work stands: the bay's column (or a free one), its rig, the level's numbers */
 function bayOf(m, X) {
@@ -28,8 +28,9 @@ function bayOf(m, X) {
   const L = m.free ? { ...LV[3], pulley: 0 } : LV[lv];
   const R = (!m.free && RIG[m.lv]) || {};
   const post = R.post || [fr.x + fr.along[0] * 13.5 + fr.across[0] * 3.7, fr.z + fr.along[1] * 13.5 + fr.across[1] * 3.7];
-  const pullers = L.pulley && R.pull ? R.pull : [0, 1, 2, 3].map((k) => { const d = 6.5 + k * 1.1, s = k % 2 ? 0.45 : -0.45; return [fr.x - fr.along[0] * d + fr.across[0] * (1.4 + s), fr.z - fr.along[1] * d + fr.across[1] * (1.4 + s)]; });
-  return { id, fr, lv, L, post, block: L.pulley ? R.block : null, pullers };
+  // (the pullers one behind the other along the rope's line beyond the shear legs, 1.5 amot apart: never a clump, never in the legs)
+  const pullers = L.pulley && R.pull ? R.pull : [0, 1, 2, 3].map((k) => { const d = 3.8 + k * 1.6, w = k % 2 ? 0.55 : 0.1; return [fr.x - fr.along[0] * d + fr.across[0] * w, fr.z - fr.along[1] * d + fr.across[1] * w]; });
+  return { id, fr, lv, L, post, block: L.pulley ? R.block : null, pullers, back: L.pulley && R.back ? R.back : [-fr.along[0], -fr.along[1]] };
 }
 export const COL = {
   icon: '🏛', title: 'הקמת העמוד',
@@ -61,11 +62,13 @@ export const COL = {
     const ropeA = PR.rope(14, 0.055), ropeB = PR.rope(16, 0.055), ropeB2 = B.block ? PR.rope(10, 0.055) : null, brake = PR.rope(16, 0.05), tail = PR.rope(6, 0.045);
     const ropeTaut = M.h5rope, ropePale = new T.MeshStandardMaterial({ color: '#EADFC6', roughness: 0.95 }), ropeDark = new T.MeshStandardMaterial({ color: '#7A5A30', roughness: 0.9 });
     for (const r of [ropeA, ropeB, ropeB2]) if (r && L.colour) r.mesh.material = ropeDark;
-    let guy = null; if (L.wind) guy = PR.rope(14, 0.045);
+    let guy = null, guy2 = null; if (L.wind) { guy = PR.rope(14, 0.045); guy2 = PR.rope(4, 0.045); }
+    const links = [1, 2, 3].map(() => PR.rope(4, 0.05));   // (the pull rope runs on through every puller's two hands)
     // the four pullers (rope in hand, they lean and step back as the rope comes), the guy crew of two (level 2)
     const PUL = B.pullers.map((p, k) => { const w = SH5.crew.add(p[0], p[1], { role: 'pull', item: 'rope', fx: blockP ? blockP.x : head.x, fz: blockP ? blockP.z : head.z, crew: 1, off: k * 0.23 }); if (w) A.crew.push(w); return { w, x0: p[0], z0: p[1] }; });
-    const guyAt = [fr.x - fr.across[0] * 3.6 + fr.along[0] * 4, fr.z - fr.across[1] * 3.6 + fr.along[1] * 4];
-    if (L.wind) for (const k of [0, 1]) { const w = SH5.crew.add(guyAt[0] + fr.along[0] * k * 1.1, guyAt[1] + fr.along[1] * k * 1.1, { role: 'pull', item: 'rope', fx: fr.x, fz: fr.z, crew: 2, off: k * 0.4 }); if (w) { A.crew.push(w); A.guy.push(w); } }
+    const guyAt = [fr.x - fr.across[0] * 4.2 + fr.along[0] * 4.5, fr.z - fr.across[1] * 4.2 + fr.along[1] * 4.5];
+    const gd = (() => { const dx = guyAt[0] - fr.x, dz = guyAt[1] - fr.z, l = Math.hypot(dx, dz); return [dx / l, dz / l]; })();   // (the guy's way out from the foot: the second man behind the first on it)
+    if (L.wind) for (const k of [0, 1]) { const w = SH5.crew.add(guyAt[0] + gd[0] * k * 1.5, guyAt[1] + gd[1] * k * 1.5, { role: 'pull', item: 'rope', fx: fr.x, fz: fr.z, crew: 2, off: k * 0.4 }); if (w) { A.crew.push(w); A.guy.push(w); } }
     // the cloth strip on the shear head (level 2's wind is seen)
     let cloth = null; if (L.wind) { cloth = new T.Mesh(new T.PlaneGeometry(1.4, 0.22, 6, 1), new T.MeshStandardMaterial({ color: '#B8402E', side: T.DoubleSide, roughness: 0.9 })); cloth.position.copy(head).add(new T.Vector3(0, 0.1, 0)); PR.root.add(cloth); rig.push(cloth); }
     // level 1: a pale arc on the floor where the top passes the balance (the brake's place)
@@ -73,19 +76,30 @@ export const COL = {
       const arc = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: 0xFFF4C8, transparent: true, opacity: 0.55, depthWrite: false })); arc.rotation.x = -Math.PI / 2; arc.scale.set(Math.abs(fr.along[0]) * (u1 - u0) + Math.abs(fr.across[0]) * 1.6 || 1.6, Math.abs(fr.along[1]) * (u1 - u0) + Math.abs(fr.across[1]) * 1.6 || 1.6, 1);
       arc.position.set(cx, H120.FLOOR + 0.02, cz); arc.renderOrder = 3; PR.root.add(arc); rig.push(arc); }
     const lab = label(X), lab2 = label(X); A.labs.push(lab, lab2);
-    keep(X, [[Math.min(fr.x, post[0], ...B.pullers.map((p) => p[0])) - 6, Math.min(fr.z, post[1], ...B.pullers.map((p) => p[1])) - 6, Math.max(fr.x, post[0], ...B.pullers.map((p) => p[0])) + 6, Math.max(fr.z, post[1], ...B.pullers.map((p) => p[1])) + 6]]);
 
     /* the camera: from the side, square to the plane the column swings in (the whole arc, the legs, both crews, the post) */
     const ax = (u, a, y) => [fr.x + fr.along[0] * u + fr.across[0] * a, y, fr.z + fr.along[1] * u + fr.across[1] * a];
     const wide = (d = 0.9) => X.shot(ax(1.8, 55, 13), ax(1.8, 0, 9.4), d);   // (the world camera's lens is long: 55 amot off for the whole rig)
     const macro = () => X.shot(ax(2.2, 11, 8.6), ax(0.3, 0, 7.0), 0.6);
     const plumbShot = () => X.shot(ax(10, 14, 10.5), ax(0.3, 0, 7.6), 1.0);
+    // F1: the view cone of every shot of this act is cleared of the world's figures and props (and kept clear while it plays)
+    const own0 = [[Math.min(fr.x, post[0], ...B.pullers.map((p) => p[0])) - 6, Math.min(fr.z, post[1], ...B.pullers.map((p) => p[1])) - 6, Math.max(fr.x, post[0], ...B.pullers.map((p) => p[0])) + 6, Math.max(fr.z, post[1], ...B.pullers.map((p) => p[1])) + 6]];
+    viewCone(X, [[ax(1.8, 55, 13), ax(1.8, 0, 9.4), 9], [ax(2.2, 11, 8.6), ax(0.3, 0, 7.0), 2], [ax(10, 14, 10.5), ax(0.3, 0, 7.6), 3]], { keep: own0, skip: A.crew });
     wide(1.1);
     // the kohen at the post, the brake rope in his hands (rule 62: his hands work the whole rise)
     const kAt = { x: post[0] + fr.along[0] * 1.1 + fr.across[0] * 0.9, z: post[1] + fr.along[1] * 1.1 + fr.across[1] * 0.9 };
     heroAt(X, kAt.x, kAt.z, post[0], post[1]);
-    try { X.hero.act('pull', postTop, { snap: true }); } catch (e) { /* */ }
-    const handK = () => ({ x: kAt.x + (post[0] - kAt.x) * 0.32, y: H120.FLOOR + 1.25, z: kAt.z + (post[1] - kAt.z) * 0.32 });
+    // F3: his two hands on the brake rope's tail as it comes off the post: free (reaching, upright), pressed (hauled in, leaning back),
+    // paying out (his hands go and come with the turns)
+    const handFb = { x: kAt.x + (post[0] - kAt.x) * 0.32, y: H120.FLOOR + 1.25, z: kAt.z + (post[1] - kAt.z) * 0.32 };
+    let handP = null, payPh = 0;
+    function holdRope(dt) {
+      let reach = 0.75, lean = 0;
+      if (A.postF) { const paying = A.payV > 0.4; payPh += dt * (paying ? 7 : 0); reach = paying ? 0.35 + 0.25 * Math.sin(payPh) : 0.12; lean = paying ? 0.55 : 0.95; }
+      A.pose = A.postF ? (A.payV > 0.4 ? 'pay' : 'press') : 'free';
+      try { handP = X.hero.rope ? X.hero.rope(postTop, reach, lean) : null; } catch (e) { handP = null; }
+    }
+    const handK = () => (handP && Number.isFinite(handP.x) && Math.hypot(handP.x - kAt.x, handP.z - kAt.z) < 3 ? handP : handFb);
     const handW = (w, out) => { const H = X.actors && X.actors(); const v = out || new T.Vector3(); try { if (H && H.handWorld) return H.handWorld(w.a, 1, v); } catch (e) { /* */ } return v.set(w.a.x, w.a.y + 1.25, w.a.z); };
     const tmp = new T.Vector3(), tmp2 = new T.Vector3();
     const L0 = A.C.at(1).distanceTo(head);
@@ -170,15 +184,15 @@ export const COL = {
     const SIDE = { pa: [1, 0], na: [-1, 0], pc: [0, 1], nc: [0, -1] };
     function sidesScr() { const o = {}, f0 = foot(); for (const [k, [a, c]] of Object.entries(SIDE)) o[k] = sc(X, { x: f0.x + (fr.along[0] * a + fr.across[0] * c) * 0.82, y: Y.PLINTH_TOP - 0.15, z: f0.z + (fr.along[1] * a + fr.across[1] * c) * 0.82 }); return o; }
     function readPlumbs() {
-      const fmt = (v) => { const r = Math.round(v * 2) / 2; return r === 0 ? '0' : `${Math.abs(r)} אצב׳`; };
-      lab.set(`אנך ${fmt(A.lean[0])}`, { x: A.plumbs.bobs[0].x, y: A.plumbs.bobs[0].y + 1.0, z: A.plumbs.bobs[0].z }, Math.abs(A.lean[0]) <= L.lean);
-      lab2.set(`אנך ${fmt(A.lean[1])}`, { x: A.plumbs.bobs[1].x, y: A.plumbs.bobs[1].y + 1.0, z: A.plumbs.bobs[1].z }, Math.abs(A.lean[1]) <= L.lean);
+      const fmt = (v) => { const r = Math.abs(Math.round(v * 2) / 2); return r === 0 ? 'האנך באמצע' : r === 0.5 ? 'אנך: חצי אצבע' : r === 1 ? 'אנך: אצבע אחת' : `אנך: ${r} אצבעות`; };
+      lab.set(fmt(A.lean[0]), { x: A.plumbs.bobs[0].x, y: A.plumbs.bobs[0].y + 1.0, z: A.plumbs.bobs[0].z }, Math.abs(A.lean[0]) <= L.lean);
+      lab2.set(fmt(A.lean[1]), { x: A.plumbs.bobs[1].x, y: A.plumbs.bobs[1].y + 1.0, z: A.plumbs.bobs[1].z }, Math.abs(A.lean[1]) <= L.lean);
     }
     let wedgeMen = [];
     async function drive(k) {
       if (A.busy) return; A.busy = true;
       const [a, c] = SIDE[k], f0 = foot(), px = f0.x + (fr.along[0] * a + fr.across[0] * c) * 1.6, pz = f0.z + (fr.along[1] * a + fr.across[1] * c) * 1.6;
-      let w = wedgeMen[0]; if (!w) { w = SH5.crew.add(px, pz, { role: 'hammer', item: 'mallet', fx: f0.x, fz: f0.z, crew: 2 }); if (w) { wedgeMen.push(w); A.crew.push(w); } } else { w.a.x = px; w.a.z = pz; SH5.crew.face(w, f0.x, f0.z); w.fx = f0.x; w.fz = f0.z; }
+      let w = wedgeMen[0]; if (!w) { w = SH5.crew.add(px, pz, { role: 'hammer', item: 'mallet', fx: f0.x, fz: f0.z, crew: 2 }); if (w) { wedgeMen.push(w); A.crew.push(w); coneOwn(w); } } else { w.a.x = px; w.a.z = pz; SH5.crew.face(w, f0.x, f0.z); w.fx = f0.x; w.fz = f0.z; }
       await X.wait(0.45); X.play('stamp'); X.dust(f0.x + (fr.along[0] * a + fr.across[0] * c) * 0.7, Y.PLINTH_TOP, f0.z + (fr.along[1] * a + fr.across[1] * c) * 0.7, 4, 1.2);
       const cst = { lean: A.lean.slice(), wedges: A.wedges }; wedge(cst, [a, c]); A.lean = cst.lean; A.wedges = cst.wedges;
       A.C.pose(90, A.lean); rebuildCol();
@@ -246,7 +260,7 @@ export const COL = {
       // step 3: the plumbs; the kohen steps out (rule 62: his hands are not on it now), the crew's wedge man waits
       X.kohen(false);
       A.plumbs = plumbsMake(); plumbShot(); A.phase = 'plumb'; A.settleT = 0;
-      for (const r of [ropeA, ropeB, ropeB2, brake, tail, guy]) if (r) r.show(false);
+      for (const r of [ropeA, ropeB, ropeB2, brake, tail, guy, guy2, ...links]) if (r) r.show(false); try { if (X.hero.rope) X.hero.rope(null); } catch (e) { /* */ }
       await X.wait(1.3);
       readPlumbs();
       if (Math.hypot(A.lean[0], A.lean[1]) <= L.lean && A.wedges === 0) { A.plumbOk = 1; X.quick(A.plumbs.bobs[0], 'אנך!', null); }
@@ -261,7 +275,8 @@ export const COL = {
       const th = A.vth, slack = th > BAL + 4 || A.phase !== 'rise';
       const sagA = slack ? 0.7 : 0.02 + (L.wind ? Math.sin(A.t * 9) * 0.06 * Math.abs(windAt(A.t)) : 0);
       ropeA.set({ x: top.x, y: top.y, z: top.z }, { x: head.x, y: head.y, z: head.z }, sagA);
-      const h0 = PUL[PUL.length - 1] && PUL[PUL.length - 1].w ? handW(PUL[PUL.length - 1].w, tmp2) : tmp2.set(B.pullers[3][0], H120.FLOOR + 1.25, B.pullers[3][1]);
+      const h0 = PUL[0] && PUL[0].w ? handW(PUL[0].w, tmp2) : tmp2.set(B.pullers[0][0], H120.FLOOR + 1.25, B.pullers[0][1]);
+      for (let k = 1; k < PUL.length; k++) { const a = PUL[k - 1].w ? handW(PUL[k - 1].w, new T.Vector3()) : null, b = PUL[k].w ? handW(PUL[k].w, new T.Vector3()) : null; if (a && b) links[k - 1].set({ x: a.x, y: a.y, z: a.z }, { x: b.x, y: b.y, z: b.z }, slack ? 0.25 : 0.06); }
       if (blockP) { ropeB.set({ x: head.x, y: head.y, z: head.z }, { x: blockP.x, y: blockP.y, z: blockP.z }, slack ? 0.4 : 0.02); ropeB2.set({ x: blockP.x, y: blockP.y, z: blockP.z }, { x: h0.x, y: h0.y, z: h0.z }, slack ? 0.8 : 0.05); }
       else ropeB.set({ x: head.x, y: head.y, z: head.z }, { x: h0.x, y: h0.y, z: h0.z }, slack ? 1.0 : 0.05);
       // level 1–2: past the balance the pull rope goes pale (slack)
@@ -269,9 +284,9 @@ export const COL = {
       const taut = A.s.lock != null && th >= A.s.lock - 0.4 && th > BAL - 6;
       brake.set({ x: top.x, y: top.y, z: top.z }, { x: postTop.x, y: postTop.y, z: postTop.z }, taut ? 0.03 : 0.25 + 0.4 * (1 - th / 90));
       const hk = handK(); tail.set({ x: postTop.x, y: postTop.y - 0.1, z: postTop.z }, hk, taut ? 0.02 : 0.15);
-      if (guy) { const g0 = A.guy[0] ? handW(A.guy[0], tmp2) : tmp2.set(guyAt[0], 7.3, guyAt[1]); guy.set({ x: top.x, y: top.y - 0.3, z: top.z }, { x: g0.x, y: g0.y, z: g0.z }, 0.1 + 0.12 * Math.abs(Math.sin(A.t * 7))); }
+      if (guy) { const g0 = A.guy[0] ? handW(A.guy[0], tmp2) : tmp2.set(guyAt[0], 7.3, guyAt[1]); const taut = A.s.guyHold ? 0.02 : 0.1 + 0.12 * Math.abs(Math.sin(A.t * 7)); guy.set({ x: top.x, y: top.y - 0.3, z: top.z }, { x: g0.x, y: g0.y, z: g0.z }, taut); if (A.guy[1]) { const g1 = handW(A.guy[1], new T.Vector3()); guy2.set({ x: g0.x, y: g0.y, z: g0.z }, { x: g1.x, y: g1.y, z: g1.z }, 0.06); } }
       // the pullers step back as the rope comes in
-      const took = clamp((L0 - (A.C ? A.C.at(1, tmp2).distanceTo(head) : L0)) * 0.35, 0, 3), bx = blockP ? -1 : -fr.along[0], bz = blockP ? 0 : -fr.along[1];
+      const took = clamp((L0 - (A.C ? A.C.at(1, tmp2).distanceTo(head) : L0)) * 0.35, 0, 3), bx = B.back[0], bz = B.back[1];
       for (const P of PUL) if (P.w) { P.w.a.x = P.x0 + bx * took; P.w.a.z = P.z0 + bz * took; }
       if (cloth) { const g = Math.abs(windAt(A.t)); cloth.rotation.y = Math.atan2(-fr.across[0], -fr.across[1]) + Math.sin(A.t * 11) * 0.3 * g; cloth.scale.x = 0.6 + 0.4 * Math.min(1, g); }
     }
@@ -280,14 +295,14 @@ export const COL = {
     return {
       close: true,
       begin() {
-        X.kohen(true);
+        X.kohen(true); coneKeep(X);
         // (two fingers on the rope and the post are the work's own: the page never takes them for a pinch-zoom, whatever lies under them)
         try { A.ta = [document.documentElement.style.touchAction, document.body.style.touchAction]; document.documentElement.style.touchAction = 'none'; document.body.style.touchAction = 'none'; } catch (e) { /* */ }
         X.line('על עמודי הסטווים בהר הבית: וכל אחד מהם היה אבן אחת, שיש לבן (יוסף בן מתתיהו, מלחמת היהודים ה, ה, ב)', 4200);
         FG.attach();
         setTimeout(() => {
           if (A.phase !== 'intro') return; A.phase = 'rise'; A.busy = false;
-          X.line(lv === 1 ? 'משכו את החבל למטה · ליד השיווי: אצבע על היתד לבלום, וסיבוב סביבו להוריד' : lv === 2 ? 'רוח מזרחית: הקישו על אנשי החבל הצדדי' : 'החבל עובר בגלגלת: מושכים לאט');
+          X.line(lv === 1 ? 'משכו את החבל למטה' : lv === 2 ? 'רוח מזרחית: הקישו על אנשי החבל הצדדי' : 'החבל עובר בגלגלת: מושכים לאט');
           const g = gripRope(); X.hand(null); void g;
         }, 1800);
       },
@@ -298,7 +313,7 @@ export const COL = {
           let sharp = false;
           if (L.pulley && pf) { const thr = 1.6 * Math.min(innerWidth, innerHeight); if (A.sharpV > thr && !A.sharpOn) { A.sharpOn = true; sharp = true; } else if (A.sharpV < thr * 0.4) A.sharpOn = false; }
           const inp = { held: !!pf, pT: pf ? pf.p : 0, heave: A.heave, press: !!A.postF, pay: A.postF ? A.pay : 0, sharp, wind: L.wind ? windAt(A.t) : 0, haul: A.haul };
-          A.heave = 0; A.haul = 0; A.pay = 0;
+          A.payV = A.postF ? inp.pay / Math.max(1e-3, dt) : 0; A.heave = 0; A.haul = 0; A.pay = 0;
           const ev = colStep(s, inp, dt, L);
           A.vth = s.th;
           if (A.C) {
@@ -315,12 +330,16 @@ export const COL = {
             if (e === 'tear') { tearDrop(s.tearFrom || 40, !!s.crack && !A.cracked); if (s.crack) A.cracked = 1; return; }
             if (e === 'land' || e === 'chip') { landed(e); return; }
             if (e === 'fall') { fallOver(); return; }
-            if (e === 'cross' && lv === 1) X.line('עבר את השיווי: היתד!', 1600);
+            if (e === 'cross' && lv === 1) X.line('עבר את נקודת האיזון: היתד!', 1600);
           }
+          // level 1's second line, from 60°: the post (and once pressed, how to let it down)
+          if (lv === 1 && !A.hint2 && s.th >= 60) { A.hint2 = 1; X.line('כשהעמוד מתחיל ליפול לבד: אצבע על היתד'); }
+          if (lv === 1 && A.hint2 === 1 && A.postF && s.th >= BAL - 6) { A.hint2 = 2; X.line('סיבוב סביב היתד מוריד אותו לאט', 2600); }
           // the macro for the last ten degrees, then back
           if (!A.macro && s.th >= 80 && A.postF) { A.macro = 1; macro(); }
           if (L.wind && Math.abs(windAt(A.t)) > 0.8 && A.t - lastDust > 0.25) { lastDust = A.t; const k = (A.t * 7) % 1; X.dust(fr.x + fr.along[0] * (k * 12 - 4) - fr.across[0] * 2, H120.FLOOR + 0.6, fr.z + fr.along[1] * (k * 12 - 4) - fr.across[1] * 2, 2, 2.4); }
         }
+        if (A.phase === 'rise' || A.phase === 'intro' || A.phase === 'drop') holdRope(dt);
         if (A.C) ropes(dt);
       },
       down(p) { FG.down(p); },
@@ -332,19 +351,20 @@ export const COL = {
       end() {
         FG.detach();
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }
-        for (const o of rig) PR.remove(o); for (const r of [ropeA, ropeB, ropeB2, brake, tail, guy]) if (r) r.dispose();
+        for (const o of rig) PR.remove(o); for (const r of [ropeA, ropeB, ropeB2, brake, tail, guy, guy2, ...links]) if (r) r.dispose();
+        try { if (X.hero.rope) X.hero.rope(null); } catch (e) { /* */ }
         plumbsClear(); for (const w of A.crew) SH5.crew.remove(w); A.crew = []; for (const l of A.labs) l.remove();
         if (A.C) PR.remove(A.C.g);
-        keep(X, []); SH5.busy = 0; X.hand(null); own(id, false); colBuild(X, id);
+        viewCone(X, null); SH5.busy = 0; X.hand(null); own(id, false); colBuild(X, id);
       },
       at() { return A.C ? A.C.at(0.6) : { x: fr.x, y: 10, z: fr.z }; },
       dbg() {
         const s = A.s, g = A.phase === 'rise' ? gripRope() : null;
-        return { lv, id, phase: A.phase, busy: A.busy, th: +s.th.toFixed(2), w: +s.w.toFixed(2), p: +s.p.toFixed(2), pT: +s.pT.toFixed(2), lock: s.lock == null ? null : +s.lock.toFixed(2), held: s.held, crossed: s.crossed, slack: s.slack,
+        return { t: +A.t.toFixed(2), haulT: +A.haulT.toFixed(2), lv, id, phase: A.phase, busy: A.busy, th: +s.th.toFixed(2), w: +s.w.toFixed(2), p: +s.p.toFixed(2), pT: +s.pT.toFixed(2), lock: s.lock == null ? null : +s.lock.toFixed(2), held: s.held, crossed: s.crossed, slack: s.slack,
           land: +s.land.toFixed(2), off: s.off.map((v) => +v.toFixed(2)), lean: A.lean, sway: +(+s.sway || 0).toFixed(2), wedges: A.wedges, chip: s.chip, crack: s.crack, broke: A.broke, tears: s.tears, sharp: s.sharp,
           BAL, tol: L.brakeTol, land0: L.land, leanTol: L.lean, footTol: L.foot, pulley: L.pulley, wind: L.wind, bols: A.bols, soft: A.soft, plumbOk: A.plumbOk,
           rope: g ? g.at : null, ropeTo: g ? [Math.round(g.at[0] + g.dir[0] * reachPx()), Math.round(g.at[1] + g.dir[1] * reachPx())] : null, reach: Math.round(reachPx()), sharpPx: Math.round(1.6 * Math.min(innerWidth, innerHeight)),
-          post: postScr(), guy: guyScr(), sides: A.phase === 'plumb' ? sidesScr() : null, bobs: A.plumbs ? A.plumbs.bobs.map((b) => sc(X, b)) : null, mouse: MOUSE, ev: A.events.slice(-6), downs: A.downs, nf: FG.n, pay: +A.payTot.toFixed(2) };
+          post: postScr(), guy: guyScr(), sides: A.phase === 'plumb' ? sidesScr() : null, bobs: A.plumbs ? A.plumbs.bobs.map((b) => sc(X, b)) : null, mouse: MOUSE, ev: A.events.slice(-6), downs: A.downs, nf: FG.n, pay: +A.payTot.toFixed(2), pose: A.pose || 'free', guyHold: s.guyHold | 0, gust: L.wind ? +windAt(A.t).toFixed(2) : 0, gustIn: L.wind ? (() => { for (let k = 0; k < 80; k++) if (Math.abs(windAt(A.t + k * 0.1)) > 0.3) return +(k * 0.1).toFixed(1); return 8; })() : 99, hand: handP ? sc(X, handP) : null };
       },
     };
   },

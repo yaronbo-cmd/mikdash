@@ -2682,6 +2682,7 @@ export function createStages(ctx) {
   const W = [];
   for (let i = 0; i < NW; i++) { const c = WPAL[i % WPAL.length]; wBody.setColorAt(i, c); wArm.setColorAt(i, c); wArm2.setColorAt(i, c); W.push({ role: 'idle', st: null, x: 0, y: 0, z: 0, yaw: 0, ph: R() * 6.28, sp: 2.6 + R() * 0.9, ax: 0, az: 0, bx: 0, bz: 0, t: 0, dir: 1, wait: 0, carry: false, run: null, o: 0 }); }
   let nWork = 0, workDirty = true;
+  const H120W = { hide: null };   // ── h120 ── the stage's own workers kept out of an act's view cone: hide(x, y, z) → true (h120/world.js viewCone) ── /h120 ──
   function assignWorkers() {
     workDirty = false;
     let n = 0;
@@ -2847,12 +2848,13 @@ export function createStages(ctx) {
       }
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
+      const h120h = !!(H120W.hide && H120W.hide(w.x + ox, w.y, w.z + oz)); if (h120h) wv.y -= 999;   // ── h120 ── a man in an act's view cone is not drawn ── /h120 ──
       wmBody.compose(wv, wq, ONE); wBody.setMatrixAt(i, wmBody);
       wmT.makeTranslation(-0.44, 2.72, 0); wmR.makeRotationX(arm); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR);
       // ── site13 ── a hammer only for a mason or a digger away from the altar; bare hands for the rest (N76 c)
       if ((w.role === 'mason' || w.role === 'dig') && !(st && FIELD.has(st.id))) { wArm.setMatrixAt(na, tmpM); wArm.setColorAt(na, WPAL[i % WPAL.length]); na++; }
       else { wArm2.setMatrixAt(nb, tmpM); wArm2.setColorAt(nb, WPAL[i % WPAL.length]); nb++; }
-      we.set(0, w.yaw, 0); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz); tmpM2.compose(wv, wq, ONE);   // ── site20 ── (+ox, +oz) ── /site20 ──
+      we.set(0, w.yaw, 0); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz); if (h120h) wv.y -= 999; tmpM2.compose(wv, wq, ONE);   // ── site20 ── (+ox, +oz) ── /site20 ──   // ── h120 ── (if h120h) ── /h120 ──
       for (let s = 0; s < 2; s++) {
         wmT.makeTranslation(s ? -0.2 : 0.2, 1.05, 0); wmR.makeRotationX(s ? -legA : legA);
         tmpM.multiplyMatrices(tmpM2, wmT).multiply(wmR); wLeg.setMatrixAt(i * 2 + s, tmpM);
@@ -3888,6 +3890,19 @@ export function createStages(ctx) {
     finishBody(lerp(0.12, S.bow, 1 - reach), lerp(0.05, S.drop, 1 - reach), 0, 0, 1);
     PZ.FL.set(0.24, 0.13, 0.32); PZ.FR.set(-0.24, 0.13, -0.3);
   }
+  // ── h120 ── a rope held in both hands as long as the act holds it (stage 05's brake rope at its post): reach 0 hauled back … 1 reaching
+  // forward, lean 0 upright … 1 leaning back against it; the wrists' world point for the rope's tail
+  const H120R = { on: null, hand: new THREE.Vector3() };
+  function h120Hold(o) {
+    const S = o.S, d = hA.copy(S.Cm).sub(hB.set(0, 2.1, 0.3)).normalize();
+    finishBody(lerp(0.1, -0.28, o.lean), lerp(0.04, 0.2, o.lean), 0, 0, 1);
+    PZ.WR.set(-0.12, 2.0 - PZ.drop, 0.45).addScaledVector(d, 0.2 + o.reach * 0.55);
+    frameQ(hC.set(0, 1, 0).addScaledVector(d, -d.y).normalize(), d, PZ.QR);
+    PZ.WL.copy(PZ.WR).addScaledVector(d, 0.42).add(hC.set(0.1, 0, 0)); PZ.QL.copy(PZ.QR);
+    PZ.FL.set(0.24, 0.13, 0.32); PZ.FR.set(-0.24, 0.13, -0.3 - 0.12 * o.lean); PZ.look = S.Cm;
+    hD.copy(PZ.WR).add(PZ.WL).multiplyScalar(0.5); m2w(hD, H120R.hand);
+  }
+  // ── /h120 ──
   function poseCarry(S, t) {
     // bend at the knees, both hands under the stone, lift it to the chest (the beat), and set it down again
     const tC = S.K.tC, tE = S.K.tE;
@@ -4193,6 +4208,7 @@ export function createStages(ctx) {
       if (craftPosing() && !moving && !stepping && !H.gest) craftPose();   // ── site16 ── his hands on the saw / the cord
       poseEase(Math.min(1, dt * 11), Math.min(1, dt * (moving ? 30 : 14)));
     }
+    if (H120R.on && !H.stroke && !moving) h120Hold(H120R.on);   // ── h120 ── ── /h120 ──
     applyPose();
     // ── people7 ── he blinks every few seconds (the lids fold down from the top of the eyes)
     H.blinkT = (H.blinkT === undefined ? 2 : H.blinkT) - dt;
@@ -4237,6 +4253,9 @@ export function createStages(ctx) {
   }
   // the hero's public API (stages.hero): the game (BUILD) and the hooks (FUN) call it, guarded; every promise resolves
   const heroApi = {
+    // ── h120 ── rope(target | null, reach, lean): both hands on a rope toward target, held until rope(null); → the hands' world point
+    rope: (target, reach = 0.5, lean = 0) => { if (!target) { H120R.on = null; return null; } const o = H120R.on && H120R.on.tg === target ? H120R.on : { tg: target, S: planStroke('pull', target, {}) }; o.reach = clamp(+reach || 0, 0, 1); o.lean = clamp(+lean || 0, 0, 1); H120R.on = o; return H120R.hand; },
+    // ── /h120 ──
     walkTo: heroWalkTo, swing: heroSwing, place: heroPlace, show: (v) => { hero.vis = !!v; hero.mesh.visible = hero.ring.visible = !!v; if (!v) heroCancel(); },
     twinSite: (id) => { TWD.site = id || 'har'; TWD.twin = !!id; },   // ── twin18 ── ── /twin18 ── (── nav19 ── TWD.twin: two thumbs on)
     dash: heroDash, get dashing() { return hero.dash || 0; }, navLog: () => NAV_LOG.slice(),   // ── nav19 ── ── /nav19 ──
@@ -4248,6 +4267,9 @@ export function createStages(ctx) {
     drive: heroDrive, get driving() { return TWD.on; }, get twinBlocked() { return TWD.blocked; }, get twinFreed() { return TWD.freed; }, free: (x, z, x0, z0) => twinFree(x, z, x0, z0), reach: (x0, z0, x1, z1, max) => twinReach(x0, z0, x1, z1, max), line: (x0, z0, x1, z1) => twinLine(x0, z0, x1, z1),   // ── twin18 ── (line) ── /twin18 ──   // ── twin17 ── ── /twin17 ──
     get walking() { return !!hero.path; },   // ── twin17 ── ── /twin17 ──
     ks: () => (KS.on && KS.s ? { on: true, x: KS.hx, y: KS.s.y + KS.hy + KS.s.h / 2, z: KS.hz, cy: KS.s.y + KS.hy, sy: KS.s.y, landT: KS.landT, gone: KS.gone, done: KS.done } : { on: false }),   // ── site20 ── (the test's eyes) ── /site20 ──
+    // ── h120 ── the stage's own workers out of an act's view cone (fn(x, y, z) → hidden; null: all drawn)
+    h120Workers: (fn) => { H120W.hide = typeof fn === 'function' ? fn : null; },
+    // ── /h120 ──
     workersNear: (x, z, r) => { const o = []; for (let i = 0; i < nWork; i++) { const w = W[i]; const px = w.x + (w.o20x || 0), pz = w.z + (w.o20z || 0), d = Math.hypot(px - x, pz - z); if (d <= r) o.push([w.role, +px.toFixed(1), +pz.toFixed(1), +d.toFixed(1)]); } return o; },   // ── site20 ── (the test's eyes: the stage's own workers as drawn) ── /site20 ──
     s20: () => ({ act: S20.act, on: S20.on, ax: S20.ax, az: S20.az, nx: S20.nx, nz: S20.nz, ux: S20.ux, uz: S20.uz, Lr: S20.Lr, top: S20.top, topE: S20.topE, base: S20.base, topAt: (x, z) => s20Top(x, z) }),   // ── site20 ── (the wall's plan A: the test's eyes) ── /site20 ──
     twinState: () => `${TWD.on ? 'D' : ''}${hero.path ? 'P' : ''}${hero.door ? 'R' : ''}${hero.step ? 'T' : ''}${hero.stroke ? 'K' : ''}${hero.vis ? '' : 'H'} b${TWD.blocked} f${TWD.freed}`,   // ── twin17 ── (debug) ── /twin17 ──

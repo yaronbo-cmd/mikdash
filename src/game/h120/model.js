@@ -161,8 +161,12 @@ export function colStep(s, inp = {}, dt = 1 / 60, L = LV[1]) {
   if (s.lock != null && inp.pay > 0) s.lock = Math.min(s.lock + inp.pay, Math.max(s.lock, s.th + 0.25));
   const payV = s.lock != null && inp.pay > 0 ? inp.pay / dt : 0;
   if (inp.heave) s.w = Math.max(s.w, 0) + HEAVE;
-  if (inp.wind) s.sway += inp.wind * dt;
-  if (inp.haul) { const k = Math.sign(s.sway) || 1; s.sway -= k * 3; }
+  // level 2: the east wind's gusts push the top across; a haul on the guy rope takes up to 3 fingers back (never past plumb), and a haul
+  // made inside a gust keeps the guy taut for the rest of that gust: the gust no longer moves it (the careful player's whole answer)
+  const gust = Math.abs(+inp.wind || 0) > 0.3;
+  if (!gust) s.guyHold = 0;
+  if (inp.haul) { s.sway = Math.sign(s.sway) * Math.max(0, Math.abs(s.sway) - 3); if (gust) s.guyHold = 1; }
+  if (inp.wind && !(gust && s.guyHold)) s.sway += inp.wind * dt;
   const n = Math.max(1, Math.ceil(dt / (1 / 240))), h = dt / n;
   const tau = L.lag;
   for (let i = 0; i < n; i++) {

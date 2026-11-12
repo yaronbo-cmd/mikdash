@@ -185,7 +185,7 @@ test('the column\'s grade: 40 clean; 20 within twice the bounds and two wedges; 
 test('the wind of level 2: fixed gusts (the same at the same time), at most two fingers a second', () => {
   let mx = 0; for (let t = 0; t < 60; t += 0.05) { const w = windAt(t); mx = Math.max(mx, w); assert.equal(w, windAt(t)); }
   assert.ok(mx <= 2 + 1e-9 && mx > 1.5);
-  const s = colFresh(); colStep(s, { wind: 2 }, 1, LV[2]); assert.ok(Math.abs(s.sway - 2) < 1e-9); colStep(s, { haul: true }, 1 / 60, LV[2]); assert.ok(Math.abs(s.sway + 1) < 1e-9);
+  const s = colFresh(); colStep(s, { wind: 2 }, 1, LV[2]); assert.ok(Math.abs(s.sway - 2) < 1e-9); colStep(s, { haul: true }, 1 / 60, LV[2]); assert.ok(Math.abs(s.sway) < 1e-9);
 });
 
 /* ───────── the saw ───────── */
@@ -365,4 +365,17 @@ test('the save survives a reload; a bay closes with its carry (מהודר on thr
   const M2 = createH120(JSON.parse(JSON.stringify(M.st))); assert.deepEqual(M2.st.done, M.st.done); assert.ok(M2.seated('SB1'));
   assert.equal(qOf(40), 1); assert.equal(qOf(20), 0.75); assert.equal(starsOf(qOf(10)), 1); assert.equal(starsOf(1), 3);
   assert.ok(M.shown() > 0.18 && M.shown() < 1);
+});
+
+test('the column (level 2): a haul inside a gust holds the guy taut for the rest of it; between gusts the haul takes 3 fingers back, never past plumb', () => {
+  const L = LV[2];
+  // a whole gust with no haul pushes the top across
+  let s = colFresh(), t = 0; for (; t < 7.3; t += 1 / 60) colStep(s, { wind: windAt(t), held: true, pT: 0 }, 1 / 60, L);
+  const free = s.sway; assert.ok(free > 1.5, 'a gust moves it ' + free);
+  // the same gust with one haul early inside it: only the baseline breeze is left
+  s = colFresh(); let hauled = false;
+  for (t = 0; t < 7.3; t += 1 / 60) { const w = windAt(t), h = !hauled && Math.abs(w) > 0.5; if (h) hauled = true; colStep(s, { wind: w, haul: h, held: true, pT: 0 }, 1 / 60, L); }
+  assert.ok(hauled && Math.abs(s.sway) < 1.0, 'held ' + s.sway);
+  s = colFresh(); s.sway = 1.2; colStep(s, { haul: true }, 1 / 60, L); assert.equal(s.sway, 0);
+  s = colFresh(); s.sway = -4; colStep(s, { haul: true }, 1 / 60, L); assert.ok(Math.abs(s.sway + 1) < 1e-9);
 });

@@ -7,6 +7,9 @@
 import { PLAN, RUNS, H112, STEPS, stepOf, createH112 } from './model.js';
 import { ACTS } from './acts.js';
 import { SH3, finalWorld, disposeChip } from './world.js';
+import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';   // (build 125)
+import { BOOK } from '../world/grid.js';
+const LOOK_RING = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const beat = (X, ms) => (X && X.wait ? X.wait(ms / 1000) : sleep(ms));
@@ -36,6 +39,8 @@ function ringLine(X) {
 export function makePack03() {
   const P = {
     id: 'sorag', key: 'h112', PLAN, create: createH112, ACTS, icon: '▦',
+    // (build 125, rule 66: the right thumb's look over the Azarah's ring — world/look.js with the ring's walls from the address book)
+    look: LOOK_RING,
     crews: ['sorag', 3, [0, 1, 2]],
     endTitle: 'הסורג והחיל נבנו!',
     endSub: 'סורג גבוה עשרה טפחים · החיל עשר אמות · שתים עשרה מעלות, רום חצי אמה ושלח חצי אמה (מדות ב, ג)',

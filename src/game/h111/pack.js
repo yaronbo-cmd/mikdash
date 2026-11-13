@@ -7,6 +7,9 @@
  */
 import { PLAN, createH111 } from './model.js';
 import { ACTS } from './acts.js';
+import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';   // (build 125)
+import { BOOK } from '../world/grid.js';
+const LOOK_RING = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the films' beats in the world's time when the director gives one (X.wait), else the wall clock's
@@ -17,6 +20,8 @@ export function makePack02(env = {}) {
   const call = (k, ...a) => { try { if (env[k]) env[k](...a); } catch (e) { /* the world's */ } };
   const P = {
     id: 'wall', key: 'h111', PLAN, create: createH111, ACTS, icon: '🧱',
+    // (build 125, rule 66: the right thumb's look over the Azarah's ring — world/look.js with the ring's walls from the address book)
+    look: LOOK_RING,
     crews: ['wall', 3, [0, 1, 2]],
     endTitle: 'חומת העזרה נבנתה!',
     endSub: 'העזרה מאה ושמונים ושבע אמה על מאה שלושים וחמש (מדות ה, א)',

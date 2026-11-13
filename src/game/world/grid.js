@@ -145,6 +145,9 @@ const S02 = {
   side: { N: { c: -70.5, n: [0, -1] }, S: { c: 70.5, n: [0, 1] }, W: { c: -190, n: [-1, 0] }, E: { c: 144, n: [1, 0] } },
   stretch: [[1, 'N', -66, 8], [2, 'N', -128, 9], [3, 'W', -42, 10], [4, 'W', 14, 10], [5, 'S', -140, 11], [6, 'S', -80, 12], [7, 'S', -118, 22], [8, 'S', -38, 22], [9, 'S', -14, 12]],
   stakes: { A: [-187, -67.5], B: [-187, 67.5], C: [0, 67.5], D: [0, -67.5] },
+  // (build 125) the ring's thickness (h111/model.js H111.T) and its finished top as the world builds it (stages.js ST.wall: the
+  // closing stone's course, 42.5 + a course's half height, rounded up) — the look's walls (world/look.js ringBoxes)
+  ring: { T: 6, top: 44 },
   gates: [['N', -160, 'בית המוקד'], ['N', -95, 'שער הקרבן'], ['N', -38, 'שער הניצוץ'], ['S', -160, 'שער הדלק'], ['S', -118, 'שער הבכורות'], ['S', -38, 'שער המים'], ['E', 3, 'שער ניקנור']],
 };
 function s02() {
@@ -158,7 +161,7 @@ function s02() {
   for (const [k, [x, z]] of Object.entries(S02.stakes)) E.push(ent('stake' + k, 'stake', x, z, `יתד פינה ${k}`, 'מידות ה, א'));
   E.push(ent('stand:stakes', 'stand', S02.stakes.D[0] - 5.1, S02.stakes.D[1] + 3.9, 'עמדת הכהן ביתד הצפונית-מזרחית', ILL));
   S02.gates.forEach(([k, at, n], i) => E.push(ent('gate' + i, 'gate', at, k === 'E' ? 0 : S02.side[k].c, n, 'מידות א, ד', { extra: { side: k } })));
-  return { stage: 2, name: 'חומת העזרה', bounds: { x0: -200, x1: 150, z0: -80, z1: 80 }, side: S02.side, stretch: S02.stretch, stakes: S02.stakes, gates: S02.gates, entries: E };
+  return { stage: 2, name: 'חומת העזרה', bounds: { x0: -200, x1: 150, z0: -80, z1: 80 }, side: S02.side, ring: S02.ring, stretch: S02.stretch, stakes: S02.stakes, gates: S02.gates, entries: E };
 }
 
 /** stage 03, the soreg and the chel (h112/model.js RUNS, STEPS; registered): each run's posts (who sets each), the sighting's eye,

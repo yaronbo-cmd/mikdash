@@ -7,6 +7,9 @@
 import { PLAN, GATES, SOUTH, H113, createH113 } from './model.js';
 import { ACTS } from './acts.js';
 import { SH4, frameOf, finalWorld, disposeChip } from './world.js';
+import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';   // (build 125)
+import { BOOK } from '../world/grid.js';
+const LOOK_RING = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const beat = (X, ms) => (X && X.wait ? X.wait(ms / 1000) : sleep(ms));
@@ -39,6 +42,8 @@ function pillars(X) {
 export function makePack04() {
   const P = {
     id: 'gates', key: 'h113', PLAN, create: createH113, ACTS, icon: '🚪',
+    // (build 125, rule 66: the right thumb's look over the Azarah's ring — world/look.js with the ring's walls from the address book)
+    look: LOOK_RING,
     crews: ['gates', 3, [0, 1, 2]],
     endTitle: 'שערי העזרה נבנו!',
     endSub: 'פתחו עשר אמות ורומו עשרים (מדות ב, ג) · כל השערים נשתנו להיות של זהב, חוץ משערי ניקנור (שם)',

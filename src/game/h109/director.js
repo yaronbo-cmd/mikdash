@@ -18,6 +18,7 @@ import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
 import { lookZone, WHEEL_STEP, pinchU } from './look.js';   // ── h117 ── ── /h117 ──
+import { makeLook } from '../world/look.js';   // ── h125 ── (one look module for every stage) ── /h125 ──
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -33,6 +34,9 @@ const PACK01 = {
   // then rising up the wall from it; the great stone; the inscription's corner; the Mount from high again ── /h115 ──
   film: [[[60, 260, 520], [0, 0, -40], 3.0], [[60, 55, 70], [-30, -4, -21], 2.8], [[306, -36, 372], [277, -46, 399], 2.2], [[322, 14, 352], [277, -12, 398], 2.4], [[-200, 60, -260], [-280, 10, -150], 2.4], [[-352, 62, 456], [-296, 38, 396], 2.4], [[180, 300, 620], [27, 0, 66], 1.4]],
   finale: (X) => finale01(X),
+  // ── h125 ── (rule 66) stage 01's hill is open: the act keeps the director's own look (act: false), but the thumb's gain and the walk's
+  // right-thumb look are the shape's (world/look.js), as in stage 05 ── /h125 ──
+  look: makeLook({ act: false }),
 };
 // ── /h111 ──
 export function createH109Director(o) {
@@ -92,7 +96,7 @@ export function createH109Director(o) {
     else { CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u); CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k); }
     // ── h115 ── the right thumb's look (rule 61): the act's shot turned round its aim and lifted toward the horizon ── /h115 ──
     let lx = CAM.p.x, ly = CAM.p.y, lz = CAM.p.z;
-    if (PK.look && lk5Step(dt)) { /* ── h120 ── (build 124: a walled site's own look shape — h120/look120.js) ── /h120 ── */ }
+    if (PK.look && PK.look.act !== false && lk5Step(dt)) { /* ── h120 ── (build 124: a walled site's own look shape — h120/look120.js) ── /h120 ── ── h125 ── (act: false — an open site keeps the look below) ── /h125 ── */ }
     else if (LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3) {
       const vx = lx - CAM.t.x, vy = ly - CAM.t.y, vz = lz - CAM.t.z, h0 = Math.hypot(vx, vz) || 1, d0 = Math.hypot(h0, vy);
       const c = Math.cos(LOOK.yaw), s = Math.sin(LOOK.yaw), hx = (vx * c - vz * s) / h0, hz = (vx * s + vz * c) / h0;

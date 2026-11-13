@@ -71,8 +71,8 @@ export function gateFrame(X, gi) {
   box(10, 0.8, D, 0, 19.6, 0);
   for (let k = 0; k < 3; k++) box(9.2, 0.3, 0.35, 0, 4 + k * 5.5, D / 2 - 0.2, Dk);
   for (const s of [-1, 1]) box(0.3, 11.5, 0.3, 0, 12.5, s * (D / 2 - 0.2), Dk, s * 0.68);
-  if (g.k === 'N' || g.k === 'S') { gr.position.set(g.x, 6, g.k === 'N' ? -70.5 : 70.5); gr.rotation.y = 0; }
-  else { gr.position.set(3, 6, 0); gr.rotation.y = Math.PI / 2; }
+  if (g.k === 'N' || g.k === 'S') { gr.position.set(g.x, 6, BOOK.s02.side[g.k].c); gr.rotation.y = 0; }   // (build 126: the side's line is the book's)
+  else { gr.position.set(BOOK.s04.nikanor[0], 6, BOOK.s04.nikanor[1]); gr.rotation.y = Math.PI / 2; }
   X.props.root.add(gr); return gr;
 }
 function jambsMake(X) {

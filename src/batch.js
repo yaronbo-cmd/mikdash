@@ -199,7 +199,7 @@ function patchShader(sh, gao, bc) {
         reflectedLight.indirectDiffuse *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.indirectSpecular *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.directDiffuse *= mix(${f3(1 - strength * 0.4)}, 1.0, gao);${fl ? `
-        reflectedLight.indirectDiffuse *= vec3(1.24, 1.05, 0.78);   // ── look E ── the courts' warm bounce: the shade on the cream stone warm grey, not navy ── /look E ──` : macro > 0 ? `
+        { vec3 flI = reflectedLight.indirectDiffuse; reflectedLight.indirectDiffuse = vec3(dot(flI, vec3(0.3, 0.59, 0.11))) * vec3(1.32, 1.13, 0.88); }   // ── look E ── the courts' warm bounce: the sky's blue taken out of the paving's shade (the Ulam's steps in the House's shadow), warm grey, not navy ── /look E ──` : macro > 0 ? `
         if (uGaoC > 1.5) reflectedLight.indirectDiffuse *= vec3(1.16, 1.02, 0.82);   // ── look E ── ── /look E ──` : ''}
       }`);
   }

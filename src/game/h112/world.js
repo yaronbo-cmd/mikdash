@@ -8,6 +8,7 @@
 import { H112, RUNS, LINE, STEPS, stepOf, runPosts, bayWidth, halfW, warnOf } from './model.js';
 import { createBeat, createGang, clamp } from '../h109/kit.js';
 import { makeCrane } from '../h109/acts3.js';
+import { BOOK } from '../world/grid.js';   // (build 126: the podium's edge is the book's)
 
 export const SH3 = { final: 0, X: null, B: null, crew: null, crane: null, runs: {}, keys: {}, steps: null, stepKey: '', labels: [], chip: null, holeT: 0, busy: 0, cart: null };
 
@@ -257,7 +258,7 @@ export function stepsBuild(X, o = {}) {
   if (SH3.final) { SH3.steps = { all, stones, n: 0 }; SH3.stepKey = stepsKey(st); return SH3.steps; }
   // the podium's own ashlar core behind the flight (the opening is keyed half an amah into it): up to the 11th stone's bed; above it the
   // notch the coping (the 12th) fills, flush with the Chel's floor
-  { const c = new T.Mesh(X.props.geo.box, M.ash); c.scale.set(157.0 - STEPS.x0, 5.0, W - 0.02); c.position.set((STEPS.x0 + 157.0) / 2, 2.5, zc); c.receiveShadow = true; X.props.root.add(c); all.push(c); }
+  { const c = new T.Mesh(X.props.geo.box, M.ash); c.scale.set(BOOK.s03.podium - STEPS.x0, 5.0, W - 0.02); c.position.set((STEPS.x0 + BOOK.s03.podium) / 2, 2.5, zc); c.receiveShadow = true; X.props.root.add(c); all.push(c); }
   SH3.steps = { all, stones, n }; SH3.stepKey = stepsKey(st);
   return SH3.steps;
 }
@@ -267,7 +268,7 @@ export function flightFloor(x, z) {
   if (SH3.final || x < STEPS.x0 || x > STEPS.hole[2] || z < STEPS.z0 || z > STEPS.z1) return null;
   const st = SH3.X && SH3.X.M && SH3.X.M.st, S = (st && st.steps) || { n: 0, h: [] }, n = SH3.steps ? SH3.steps.n : S.n | 0;
   let y = 0;
-  if (x < 157) y = n >= 12 ? 6 : 5.0;
+  if (x < BOOK.s03.podium) y = n >= 12 ? 6 : 5.0;
   for (let k = 1; k <= n; k++) { const s = stepOf(k); if (x <= s.face + 1e-3 && x >= s.face - s.D - 1e-3) y = Math.max(y, s.top + ((S.h && S.h[k - 1]) || 0)); }
   if (n > 0 && n < 11 && x <= stepOf(n).face - stepOf(n).D) y = Math.max(y, n * H112.STEP);
   return y;

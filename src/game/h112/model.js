@@ -13,6 +13,8 @@
  * Amot throughout (an amah = 24 fingers).
  */
 
+import { BOOK } from '../world/grid.js';
+
 export const H112 = Object.freeze({
   BAY: 3,             // a bay: post centre to post centre (amot)
   POST_W: 0.44, POST_H: 1.87,          // a post (temple.js 46: 0.44 square, the lattice's 1.67 and its rail)
@@ -28,6 +30,10 @@ export const H112 = Object.freeze({
 /** the soreg's lines: their outward normal */
 export const LINE = Object.freeze({ E: [1, 0], N: [0, -1], S: [0, 1] });
 const P = (x, z, o = {}) => Object.freeze({ x, z, ...o });
+// ── build 126 ── (rule 65) the posts' places, the sightings' eyes, the openings and the flight are the book's (world/grid.js BOOK.s03);
+// this file keeps who sets each post, the tall ones, the bays and the rules
+const B3 = BOOK.s03;
+const BP = (lv, i, o) => { const [x, z] = B3.runs[lv].posts[i]; return P(x, z, o); };
 /**
  * the three runs (spec "המסלול בעולם"): the posts in order along the run, who sets each (crew | k: the kohen), the tall ones (a frame
  * for a warning slab; warn: one is already set there by the crews), the line each is on; the kohen's bays (slabs), the order he lays
@@ -36,47 +42,47 @@ const P = (x, z, o = {}) => Object.freeze({ x, z, ...o });
 export const RUNS = Object.freeze({
   1: {
     where: 'המזרח, צפונית לכניסה',
-    posts: [P(165, -31.86, { crew: 1, line: 'E', site: 1 }), P(165, -29, { crew: 1, line: 'E' }), P(165, -26, { crew: 1, line: 'E', tall: 1, warn: 1 }), P(165, -23, { crew: 1, line: 'E' }),
-      P(165, -20, { crew: 1, line: 'E' }), P(165, -17, { k: 1, line: 'E', tall: 1 }), P(165, -14, { k: 1, line: 'E' }), P(165, -11, { k: 1, line: 'E' }), P(165, -8, { crew: 1, line: 'E', site: 1 })],
+    posts: [BP(1, 0, { crew: 1, line: 'E', site: 1 }), BP(1, 1, { crew: 1, line: 'E' }), BP(1, 2, { crew: 1, line: 'E', tall: 1, warn: 1 }), BP(1, 3, { crew: 1, line: 'E' }),
+      BP(1, 4, { crew: 1, line: 'E' }), BP(1, 5, { k: 1, line: 'E', tall: 1 }), BP(1, 6, { k: 1, line: 'E' }), BP(1, 7, { k: 1, line: 'E' }), BP(1, 8, { crew: 1, line: 'E', site: 1 })],
     c0: 4, kposts: [5, 6, 7], bays: [[4, 5], [5, 6], [6, 7]], order: [0, 1, 2], close: [7, 8], warnAt: 5, warnFrom: 2, every: 3,
     crewBays: [[0, 1], [1, 2], [2, 3], [3, 4]],
-    sight: [{ posts: [5, 6, 7], eye: [165, -22.6], dir: [0, 1], near: 4, far: 8, axis: 'x' }],
-    hole: [[164.2, -31.86, 165.8, -7.55]],
+    sight: [{ posts: [5, 6, 7], eye: B3.runs[1].eye, dir: B3.runs[1].dir, near: B3.runs[1].near, far: 8, axis: 'x' }],
+    hole: B3.holes[1],
     pattern: 'diag',
   },
   2: {
     where: 'הפינה הצפונית-מזרחית',
-    posts: [P(160.98, -91.5, { crew: 1, line: 'N', tall: 1, warn: 1, site: 1 }), P(165, -91.5, { crew: 1, line: 'E', corner: 1 }), P(165, -88.5, { crew: 1, line: 'E' }),
-      P(165, -85.5, { k: 1, line: 'E' }), P(165, -82.5, { k: 1, line: 'E', tall: 1 }), P(165, -79.5, { k: 1, line: 'E', tall: 1 }), P(165, -76.5, { k: 1, line: 'E' }),
-      P(165, -73.5, { crew: 1, line: 'E' }), P(165, -71.62, { crew: 1, line: 'E', site: 1 })],
+    posts: [BP(2, 0, { crew: 1, line: 'N', tall: 1, warn: 1, site: 1 }), BP(2, 1, { crew: 1, line: 'E', corner: 1 }), BP(2, 2, { crew: 1, line: 'E' }),
+      BP(2, 3, { k: 1, line: 'E' }), BP(2, 4, { k: 1, line: 'E', tall: 1 }), BP(2, 5, { k: 1, line: 'E', tall: 1 }), BP(2, 6, { k: 1, line: 'E' }),
+      BP(2, 7, { crew: 1, line: 'E' }), BP(2, 8, { crew: 1, line: 'E', site: 1 })],
     c0: 2, kposts: [3, 4, 5, 6], bays: [[2, 3], [3, 4], [4, 5], [5, 6]], order: [0, 1, 2, 3], close: [6, 7], warnAt: 4, warnFrom: 0, every: 4,
     crewBays: [[0, 1], [1, 2], [7, 8]],
-    sight: [{ posts: [3, 4, 5, 6], eye: [165, -93.6], dir: [0, 1], near: 1, far: 7, axis: 'x' }],
-    hole: [[164.2, -92.2, 165.8, -71.4], [160.2, -92.2, 165.8, -90.8]],
+    sight: [{ posts: [3, 4, 5, 6], eye: B3.runs[2].eye, dir: B3.runs[2].dir, near: B3.runs[2].near, far: 7, axis: 'x' }],
+    hole: B3.holes[2],
     pattern: 'ring',
   },
   3: {
     where: 'המזרח, דרומית לכניסה, עד הפינה',
-    posts: [P(165, 71.62, { crew: 1, line: 'E', site: 1 }), P(165, 73.5, { crew: 1, line: 'E' }), P(165, 76.5, { crew: 1, line: 'E', tall: 1, warn: 1 }), P(165, 79.5, { crew: 1, line: 'E' }),
-      P(165, 82.5, { crew: 1, line: 'E' }), P(165, 85.5, { k: 1, line: 'E', tall: 1 }), P(165, 88.5, { k: 1, line: 'E', tall: 1 }), P(165, 91.5, { k: 1, line: 'E', corner: 1 }),
-      P(162, 91.5, { crew: 1, line: 'S' }), P(159, 91.5, { crew: 1, line: 'S' }), P(156.96, 91.5, { crew: 1, line: 'S', site: 1 })],
+    posts: [BP(3, 0, { crew: 1, line: 'E', site: 1 }), BP(3, 1, { crew: 1, line: 'E' }), BP(3, 2, { crew: 1, line: 'E', tall: 1, warn: 1 }), BP(3, 3, { crew: 1, line: 'E' }),
+      BP(3, 4, { crew: 1, line: 'E' }), BP(3, 5, { k: 1, line: 'E', tall: 1 }), BP(3, 6, { k: 1, line: 'E', tall: 1 }), BP(3, 7, { k: 1, line: 'E', corner: 1 }),
+      BP(3, 8, { crew: 1, line: 'S' }), BP(3, 9, { crew: 1, line: 'S' }), BP(3, 10, { crew: 1, line: 'S', site: 1 })],
     c0: 4, kposts: [5, 6, 7], bays: [[4, 5], [5, 6], [6, 7]], order: [0, 2, 1], close: [7, 8], warnAt: 6, warnFrom: 2, every: 4,
     crewBays: [[0, 1], [1, 2], [2, 3], [3, 4], [8, 9], [9, 10]],
     // the row turns the corner (spec 1, level 3): along the east line first, then from the south line's far end, the corner post again
-    sight: [{ posts: [5, 6, 7], eye: [165, 80.0], dir: [0, 1], near: 4, far: -1, axis: 'x' }, { posts: [7], eye: [154.6, 91.5], dir: [1, 0], near: 10, far: 8, axis: 'z' }],
-    hole: [[164.2, 71.62, 165.8, 92.2], [156.96, 90.8, 165.8, 92.2]],
+    sight: [{ posts: [5, 6, 7], eye: B3.runs[3].eye, dir: B3.runs[3].dir, near: B3.runs[3].near, far: -1, axis: 'x' }, { posts: [7], eye: B3.eye2[3], dir: [1, 0], near: 10, far: 8, axis: 'z' }],
+    hole: B3.holes[3],
     pattern: 'ring',
     wind: 1,
   },
 });
 /** the steps' place (the east axis, behind the entrance; spec 4 and open question 5): the kohen's flight of twelve */
 // (x0: the flight is keyed half an amah into the Chel's edge, where its twelfth stone, the coping, meets the floor at 6)
-export const STEPS = Object.freeze({ z0: -4, z1: 4, x0: 156.5, hole: [156.5, -4, 163.2, 4] });
+export const STEPS = Object.freeze({ z0: B3.steps.z0, z1: B3.steps.z1, x0: B3.steps.x0, hole: B3.stepsHole });   // (build 126: the book's)
 /** step k (1..12): its riser's line (x of its outer face), its top, the stone's depth; the 12th is the coping that meets the Chel's floor */
 export function stepOf(k) {
   const top = H112.STEP * k;
-  if (k >= 12) return { k, face: 157, top: 6, D: 0.5, bed: 5.5 };
-  const face = 163 - 0.5 * k;   // temple.js 39: tread k−1's box reaches 157 + 5.5 − 0.5(k−1)
+  if (k >= 12) return { k, face: B3.podium, top: 6, D: 0.5, bed: 5.5 };   // (build 126: the podium's edge is the book's)
+  const face = B3.podium + 6 - 0.5 * k;   // temple.js 39: tread k−1's box reaches 157 + 5.5 − 0.5(k−1)
   return { k, face, top, D: 1.0, bed: top - H112.STEP };
 }
 // the levels' steps (spec 4: L1 1–4 with marks; L2 5–8, the gauge plain; L3 9–12 without a gauge, the 12th meets the floor)

@@ -9,6 +9,7 @@ import { H112, RUNS, LINE, STEPS, stepOf, STEPS_OF, closingOf, fingers, halfW, s
 import { SH3, bayFrame, runBuild, stepsBuild, stepStone, latticeSlab, label, keep, bayKeep } from './world.js';
 import { createHoist } from './hoist.js';
 import { craneFor, candAt, bayShot, standBay } from './acts.js';
+import { BOOK } from '../world/grid.js';   // (build 126: the places are the book's)
 import { clamp, lerp, ease, onPlane } from '../h109/kit.js';
 import { gripR, bigR, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 
@@ -21,7 +22,7 @@ const ZC = (STEPS.z0 + STEPS.z1) / 2, ZG = 3.0;   // (the gauge stands near the 
 /** the stones of this mission: the level's four, from where the save has got to */
 function stonesOf(m, st) { const L = STEPS_OF[m.lv], n = (st.steps && st.steps.n) | 0, todo = L.filter((k) => k > n); return todo.length ? todo : L.slice(); }
 /** where the kohen stands for stone k: on the bed behind it (he pushes it out, or pulls it in), or on the Chel's floor for the top two */
-function stepStand(k) { const s = stepOf(k); const x = k >= 11 ? 155.9 : Math.max(STEPS.x0 + 0.25, s.face - s.D - (k <= 8 ? 1.05 : 0.45)); return { x, z: -2.6, face: [x + 4, -2.6] }; }
+function stepStand(k) { const s = stepOf(k), [xT, zS] = BOOK.s03.stepStand; const x = k >= 11 ? xT : Math.max(STEPS.x0 + 0.25, s.face - s.D - (k <= 8 ? 1.05 : 0.45)); return { x, z: zS, face: [x + 4, zS] }; }
 
 export const STEPS_ACT = {
   icon: '🪜', title: 'המעלות',
@@ -35,7 +36,7 @@ export const STEPS_ACT = {
     if (!st.steps) st.steps = { n: 0, h: [] };
     const A = { i: -1, K: null, done: false, busy: false, t: 0, press: null, idle: 0, hinted: 0, falls: 0, lows: 0, qs: [], crew: [], gauge: null };
     const W = STEPS.z1 - STEPS.z0;
-    keep(X, [[STEPS.x0 - 2, STEPS.z0 - 2.2, 182, STEPS.z1 + 24]]);
+    keep(X, [[STEPS.x0 - 2, STEPS.z0 - 2.2, BOOK.s03.stepsKeep, STEPS.z1 + 24]]);
     // the crew: two at the stone's ends (they slide it on its bed), one ramming the fill behind (spec "הצוותים": no idle figure)
     function crewFor(K) {
       for (const w of A.crew) SH3.crew.remove(w); A.crew = [];
@@ -146,11 +147,11 @@ export const STEPS_ACT = {
       A.done = true; X.hand(null); X.line('');
       for (const w of A.crew) SH3.crew.remove(w); A.crew = []; if (A.gauge) { PR.remove(A.gauge); A.gauge = null; }
       const top = stepOf(ks[ks.length - 1]).top;
-      X.shot([171, top + 6, 13], [159.5, top * 0.6, 0], 1.4);
+      { const [SE, ST] = BOOK.s03.cam.steps; X.shot([SE[0], top + 6, SE[1]], [ST[0], top * 0.6, ST[1]], 1.4); }
       const q = (A.qs.reduce((a, b) => a + b, 0) / Math.max(1, A.qs.length)) * Math.pow(0.7, A.falls);
       if (!A.falls && !A.lows && A.qs.every((x) => x >= 1)) X.bonus(100, 'steps', 'כל המעלות במידה');
       await X.wait(1.5);
-      X.end({ q, stars: starsOf(q), at: { x: 160, y: top + 1.5, z: 0 } });
+      X.end({ q, stars: starsOf(q), at: { x: BOOK.s03.flight[0], y: top + 1.5, z: BOOK.s03.flight[1] } });
     }
     return {
       begin() { bring(); },
@@ -199,7 +200,7 @@ export const STEPS_ACT = {
         for (const w of A.crew) SH3.crew.remove(w); if (A.gauge) PR.remove(A.gauge); if (A.K && A.K.m) PR.remove(A.K.m);
         keep(X, []); SH3.busy = 0; stepsBuild(X);
       },
-      at() { const K = A.K; return K ? { x: K.s.face, y: K.s.top + 1, z: 0 } : { x: 160, y: 3, z: 0 }; },
+      at() { const K = A.K; return K ? { x: K.s.face, y: K.s.top + 1, z: 0 } : { x: BOOK.s03.flight[0], y: 3, z: BOOK.s03.flight[1] }; },
       dbg() {
         const K = A.K;
         return { lv, done: A.done, busy: A.busy, i: A.i, ks, falls: A.falls, lows: A.lows, gauge,

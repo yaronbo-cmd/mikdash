@@ -208,6 +208,32 @@ const S03 = {
     3: { posts: [[165, 71.62, 'E'], [165, 73.5, 'E'], [165, 76.5, 'E'], [165, 79.5, 'E'], [165, 82.5, 'E'], [165, 85.5, 'E', 'k'], [165, 88.5, 'E', 'k'], [165, 91.5, 'E', 'k'], [162, 91.5, 'S'], [159, 91.5, 'S'], [156.96, 91.5, 'S']], eye: [165, 80.0], dir: [0, 1], near: 4 },
   },
   steps: { z0: -4, z1: 4, x0: 156.5 },
+  // ── h126 ── (build 126, rule 65: every other place stage 03's code used to type itself, read from here)
+  // each run's openings in the Mount's floor under its posts (h112/model.js RUNS hole: x0, z0, x1, z1), the corner run's second sighting
+  holes: { 1: [[164.2, -31.86, 165.8, -7.55]], 2: [[164.2, -92.2, 165.8, -71.4], [160.2, -92.2, 165.8, -90.8]], 3: [[164.2, 71.62, 165.8, 92.2], [156.96, 90.8, 165.8, 92.2]] },
+  eye2: { 3: [154.6, 91.5] },
+  stepsHole: [156.5, -4, 163.2, 4],   // (the flight's opening in the floor: x0, z0, x1, z1)
+  ring: [-211.5, -92, 165.5, 92],    // the soreg's ring on the Mount's floor (stages.js sorag foot): x0, z0, x1, z1
+  east: [165, 0],                    // the soreg's east line at the entrance (the posts act's view when no bay is open)
+  flight: [160, 0],                  // the flight's middle (the steps' and the closing's view)
+  podium: 157,                       // the podium's ashlar core behind the flight begins here (x; h112/world.js stepsBuild, flightFloor)
+  stepStand: [155.9, -2.6],          // the kohen's stand at the top steps (11, 12: x) and beside the flight (z) (h112/acts2.js stepStand)
+  stepsKeep: 182,                    // the steps act keeps the floor clear east to here (x)
+  // the cameras: the film [eye, target, seconds]; the opening; the walk down the east line (eye and target x and height, their z
+  // offsets, the z's); a post seen close; the north from above; the reader's walk (x's: from, at the slab, away); the finale on
+  // the flight (the hero's foot of the flight and its top, x and z; the two shots)
+  cam: {
+    film: [[[40, 260, 260], [-20, 0, 0], 3.0], [[186, 14, 10], [160, 3, 0], 2.6], [[180, 22, -110], [160, 2, -80], 2.4], [[180, 22, 110], [160, 2, 80], 2.4], [[260, 300, 300], [-20, 0, 0], 1.6]],
+    intro: [[[-40, 520, 520], [-20, 0, 0]], [[-20, 300, 260], [-20, 0, 0]], [[196, 26, 30], [165, 0, -10]]],
+    walk: { eye: [176, 7, 6], t: [165, 1.2, -8], z: [-6, -30, -55, -80] },
+    north: [[150, 60, -150], [150, 0, -80]],
+    post: [[173.5, 2.6, 4.5], [165, 1.6, 0]],
+    reader: [181, 166.9, 182],
+    foot: [164.6, 0.6], top: [155.2, 0.6],
+    side: [[164, 9, 21], [160, 3, 0]], end: [[167, 12, 10], [140, 6, 0]],
+    steps: [[171, 13], [159.5, 0]],   // the steps act's shot: eye and target x, z (their heights over the laid step)
+  },
+  // ── /h126 ──
 };
 function s03() {
   const E = [];
@@ -218,7 +244,14 @@ function s03() {
     E.push(ent('stand:posts' + lv, 'stand', R.eye[0] + n[0] * 2.4 + R.dir[0] * 0.6, R.eye[1] + n[1] * 2.4 + R.dir[1] * 0.6, `עמדת הכהן בעמודי מסלול ${lv}`, ILL));
   }
   E.push(ent('steps', 'steps', S03.steps.x0, (S03.steps.z0 + S03.steps.z1) / 2, 'שתים עשרה המעלות מן החיל', 'מידות ב, ג'));
-  return { stage: 3, name: 'הסורג והחיל', bounds: { x0: 150, x1: 175, z0: -100, z1: 100 }, runs: S03.runs, steps: S03.steps, entries: E };
+  // ── h126 ── the places moved into the book in build 126
+  for (const [lv, [x, z]] of Object.entries(S03.eye2)) E.push(ent('eye' + lv + 'b', 'eye', x, z, `נקודת הכיוון השנייה של מסלול ${lv} (מעבר לפינה)`, ILL));
+  E.push(ent('soreg:east', 'line', S03.east[0], S03.east[1], 'קו הסורג המזרחי מול הכניסה', ILL));
+  E.push(ent('flight', 'steps', S03.flight[0], S03.flight[1], 'אמצע המעלות', ILL));
+  E.push(ent('flight:foot', 'stand', S03.cam.foot[0], S03.cam.foot[1], 'רגלי המעלות: מכאן הכהן עולה', ILL));
+  E.push(ent('flight:top', 'stand', S03.cam.top[0], S03.cam.top[1], 'ראש המעלות, על החיל', ILL));
+  // ── /h126 ──
+  return { stage: 3, name: 'הסורג והחיל', bounds: { x0: 150, x1: 175, z0: -100, z1: 100 }, runs: S03.runs, steps: S03.steps, holes: S03.holes, eye2: S03.eye2, stepsHole: S03.stepsHole, ring: S03.ring, east: S03.east, flight: S03.flight, podium: S03.podium, stepStand: S03.stepStand, stepsKeep: S03.stepsKeep, cam: S03.cam, entries: E };   // ── h126 ── (holes … cam) ── /h126 ──
 }
 
 /** stage 04, the Azarah's gates (h113/model.js GATES, SOUTH, YARD; h111's Nikanor; registered): the frame's outer face at the

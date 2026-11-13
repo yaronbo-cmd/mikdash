@@ -9,6 +9,7 @@ import { ACTS } from './acts.js';
 import { SH3, finalWorld, disposeChip } from './world.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';   // (build 125)
 import { BOOK } from '../world/grid.js';
+const CAM3 = BOOK.s03.cam;   // (build 126: the stage's cameras are the book's)
 const LOOK_RING = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -19,7 +20,7 @@ const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!
 
 /** the soreg's ring (stages.js sorag foot) as a gold line on the Mount's floor: drawn round, then faded (the opening only) */
 function ringLine(X) {
-  const T = X.THREE, [x0, z0, x1, z1] = [-211.5, -92, 165.5, 92];
+  const T = X.THREE, [x0, z0, x1, z1] = BOOK.s03.ring;   // (build 126: the book's)
   const mat = new T.MeshBasicMaterial({ color: 0xE8B84A, transparent: true, opacity: 0.95, depthWrite: false });
   const P = [[x1, 0], [x1, z1], [x0, z1], [x0, z0], [x1, z0], [x1, 0]], segs = [];
   let tot = 0;
@@ -45,7 +46,7 @@ export function makePack03() {
     endTitle: 'הסורג והחיל נבנו!',
     endSub: 'סורג גבוה עשרה טפחים · החיל עשר אמות · שתים עשרה מעלות, רום חצי אמה ושלח חצי אמה (מדות ב, ג)',
     // the film: the ring from high, the east with its steps and warning slabs, the north-east corner, the south, the whole from above
-    film: [[[40, 260, 260], [-20, 0, 0], 3.0], [[186, 14, 10], [160, 3, 0], 2.6], [[180, 22, -110], [160, 2, -80], 2.4], [[180, 22, 110], [160, 2, 80], 2.4], [[260, 300, 300], [-20, 0, 0], 1.6]],
+    film: CAM3.film,
     /** the soreg and the Chel as the crews have built them while mission m is open */
     sync(M, S0, instant, X) {
       const info = S0.siteInfo('sorag'); if (!info) return;
@@ -68,13 +69,13 @@ export function makePack03() {
       if (m && m.id === 'posts1' && !st.intro) {
         return (async () => {
           st.intro = 1; X.save();
-          X.shot([-40, 520, 520], [-20, 0, 0], 0.01); await beat(X, 300);
+          X.shot(CAM3.intro[0][0], CAM3.intro[0][1], 0.01); await beat(X, 300);
           X.line('שלב 03: הסורג והחיל · סורג גבוה עשרה טפחים, החיל עשר אמות (מדות ב, ג)');
           // (from that high the lattice is a hair: a gold line draws the ring it will be round both courts, then fades)
           const ring = ringLine(X);
           for (let k = 1; k <= 24; k++) { ring.draw(k / 24); await beat(X, 60); }
-          X.shot([-20, 300, 260], [-20, 0, 0], 2.6); await beat(X, 3000);
-          X.shot([196, 26, 30], [165, 0, -10], 2.2);
+          X.shot(CAM3.intro[1][0], CAM3.intro[1][1], 2.6); await beat(X, 3000);
+          X.shot(CAM3.intro[2][0], CAM3.intro[2][1], 2.2);
           for (let k = 1; k <= 20; k++) { ring.fade(1 - k / 20); await beat(X, 110); }
           ring.dispose(); await beat(X, 200);
           X.line('');
@@ -85,9 +86,9 @@ export function makePack03() {
         return (async () => {
           st.ride = 1; X.save(); near(X, true);
           X.line('בינתיים הצוותים בנו את הסורג סביב העזרות');
-          const L = [[-6, 0.01], [-30, 1.4], [-55, 1.4], [-80, 1.4]];
-          for (const [z, d] of L) { X.shot([176, 7, z + 6], [165, 1.2, z - 8], d); await beat(X, d * 1000 + 250); }
-          X.shot([150, 60, -150], [150, 0, -80], 1.8); await beat(X, 2400);
+          const WK = CAM3.walk, L = WK.z.map((z, i) => [z, i ? 1.4 : 0.01]);
+          for (const [z, d] of L) { X.shot([WK.eye[0], WK.eye[1], z + WK.eye[2]], [WK.t[0], WK.t[1], z + WK.t[2]], d); await beat(X, d * 1000 + 250); }
+          X.shot(CAM3.north[0], CAM3.north[1], 1.8); await beat(X, 2400);
           X.line('רמה 2: הפינה הצפונית-מזרחית · ספירה של ארבעה', 2600);
           await beat(X, 1400); near(X, false);
         })();
@@ -97,14 +98,14 @@ export function makePack03() {
         return (async () => {
           st.reader = 1; X.save(); near(X, true);
           const R = RUNS[2], p = R.posts[R.warnAt];
-          X.shot([173.5, 2.6, p.z + 4.5], [165, 1.6, p.z], 1.2);
-          let w = null; try { w = SH3.crew.add(181, p.z + 6, { role: 'walk', tunic: '#5C6E8A', col2: '#2A3A5E', crew: 0 }); } catch (e) { w = null; }
+          const [PE, PT] = CAM3.post; X.shot([PE[0], PE[1], p.z + PE[2]], [PT[0], PT[1], p.z + PT[2]], 1.2);
+          let w = null; try { w = SH3.crew.add(CAM3.reader[0], p.z + 6, { role: 'walk', tunic: '#5C6E8A', col2: '#2A3A5E', crew: 0 }); } catch (e) { w = null; }
           await beat(X, 400);
           X.line('איש זר עולה מהר הבית אל הסורג…');
-          if (w) { try { await Promise.race([SH3.crew.walkTo(w, 166.9, p.z + 0.4, 2.2), beat(X, 4200)]); SH3.crew.face(w, p.x, p.z); SH3.crew.setRole(w, 'talk'); } catch (e) { /* */ } }
+          if (w) { try { await Promise.race([SH3.crew.walkTo(w, CAM3.reader[1], p.z + 0.4, 2.2), beat(X, 4200)]); SH3.crew.face(w, p.x, p.z); SH3.crew.setRole(w, 'talk'); } catch (e) { /* */ } }
           X.line('הוא קורא: NO STRANGER MAY ENTER · ונשאר בחוץ (המחשה)');
           await beat(X, 2800);
-          if (w) { try { SH3.crew.setRole(w, 'walk'); SH3.crew.walkTo(w, 182, p.z + 8, 2.2); } catch (e) { /* */ } }
+          if (w) { try { SH3.crew.setRole(w, 'walk'); SH3.crew.walkTo(w, CAM3.reader[2], p.z + 8, 2.2); } catch (e) { /* */ } }
           await beat(X, 1400);
           X.line('רמה 3: דרומית לכניסה, עד הפינה · ברוח', 2600);
           await beat(X, 1200);
@@ -119,15 +120,15 @@ export function makePack03() {
       near(X, true);
       try {
         // up the flight from the Mount's floor, step by step (his own stones: stages.floorHook)
-        X.hero.setPos(164.6, 0.6, -Math.PI / 2);
-        X.shot([164, 9, 21], [160, 3, 0], 1.2); await beat(X, 900);   // (from the side: his whole figure on the flight)
+        X.hero.setPos(CAM3.foot[0], CAM3.foot[1], -Math.PI / 2);
+        X.shot(CAM3.side[0], CAM3.side[1], 1.2); await beat(X, 900);   // (from the side: his whole figure on the flight)
         for (let k = 1; k <= 12; k++) {
-          const s = stepOf(k), x0 = k === 1 ? 164.6 : stepOf(k - 1).face - 0.25, x1 = s.face - 0.25;
-          for (let i = 1; i <= 5; i++) { X.hero.setPos(x0 + (x1 - x0) * (i / 5), 0.6, -Math.PI / 2); await beat(X, 45); }
+          const s = stepOf(k), x0 = k === 1 ? CAM3.foot[0] : stepOf(k - 1).face - 0.25, x1 = s.face - 0.25;
+          for (let i = 1; i <= 5; i++) { X.hero.setPos(x0 + (x1 - x0) * (i / 5), CAM3.foot[1], -Math.PI / 2); await beat(X, 45); }
           if (k % 3 === 0) X.shot([s.face + 3, s.top + 7, 20], [s.face - 1.5, s.top + 1.2, 0], 0.7);
         }
-        X.hero.setPos(155.2, 0.6, -Math.PI / 2); X.play('find');
-        X.shot([167, 12, 10], [140, 6, 0], 1.4); await beat(X, 1700);
+        X.hero.setPos(CAM3.top[0], CAM3.top[1], -Math.PI / 2); X.play('find');
+        X.shot(CAM3.end[0], CAM3.end[1], 1.4); await beat(X, 1700);
       } catch (e) { console.warn('[h112] finale climb', e && e.message); }
       near(X, false);
       try { X.stages.setWork('sorag', { phase: 'done' }); } catch (e) { /* */ }

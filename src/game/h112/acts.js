@@ -8,6 +8,7 @@
 import { H112, RUNS, LINE, warnOf, starsOf, driftOf, runPosts } from './model.js';
 import { SH3, bayFrame, runBuild, postMesh, poleMesh, latticeSlab, warnSlab, warnSeat, label, initWorld, frameWorld, keep, boxOf, bayKeep } from './world.js';
 import { createHoist } from './hoist.js';
+import { BOOK } from '../world/grid.js';   // (build 126: the places are the book's)
 import { clamp, lerp, ease } from '../h109/kit.js';
 import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 import { STEPS_ACT, CLOSE } from './acts2.js';
@@ -345,7 +346,7 @@ export const SLAB = {
         for (const w of A.crew) SH3.crew.remove(w); SH3.crane.g.visible = false;
         keep(X, []); SH3.busy = 0; runBuild(X, m.lv);
       },
-      at() { return A.F ? { x: A.F.cx, y: 2.5, z: A.F.cz } : { x: 165, y: 2, z: 0 }; },
+      at() { return A.F ? { x: A.F.cx, y: 2.5, z: A.F.cz } : { x: BOOK.s03.east[0], y: 2, z: BOOK.s03.east[1] }; },
       dbg() {
         const H = A.H, F = A.F;
         return { lv, bay: A.bi, done: A.done, busy: A.busy, held: A.held ? A.cands.indexOf(A.held) : -1, between: !!A.between, wrong: A.wrong, chips: A.chips, breaks: A.breaks,

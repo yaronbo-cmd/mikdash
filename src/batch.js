@@ -89,34 +89,41 @@ float bcThOf(float fi) { int i = int(fi + 0.5); vec4 t = uBcTh[i / 4]; int k = i
 // ramp's foot (smoother, paler, joints filled), and darker staining at the altar's foot and round the laver.
 const FLOOR_GLSL = `
 varying vec3 vFlW; varying vec3 vFlN;
+// (a hash without sin, and its value noise: cheap on a software renderer)
+float flH(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+float flN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(flH(i), flH(i + vec2(1.0, 0.0)), f.x), mix(flH(i + vec2(0.0, 1.0)), flH(i + vec2(1.0, 1.0)), f.x), f.y); }
 // p: (along the course, across) in amot → id of the slab, e: distance to its nearest joint
 vec2 flSlab(vec2 p, out float e) {
-  float band = floor(p.y / 5.2), f = p.y / 5.2 - band, hb = gh21(vec2(band, 7.1)), sp = 0.34 + 0.32 * gh21(vec2(band, 3.3));
+  float band = floor(p.y / 5.2), f = p.y / 5.2 - band, hb = flH(vec2(band, 7.1)), sp = 0.34 + 0.32 * flH(vec2(band, 3.3));
   float r0 = 0.0, r1 = 1.0, row = band * 2.0;
   if (hb < 0.62) { if (f < sp) r1 = sp; else { r0 = sp; row += 1.0; } }
   float ez = min(f - r0, r1 - f) * 5.2;
-  float L = 2.6 + 2.8 * gh21(vec2(row, 1.7)), u = (p.x + gh21(vec2(row, 9.2)) * 40.0) / L, c = floor(u), g = u - c;
-  float hs = gh21(vec2(row, c + 0.5)), t = 0.3 + 0.4 * gh21(vec2(c, row + 2.1)), a = 0.0, b = 1.0, sg = 0.0;
+  float L = 2.6 + 2.8 * flH(vec2(row, 1.7)), u = (p.x + flH(vec2(row, 9.2)) * 40.0) / L, c = floor(u), g = u - c;
+  float hs = flH(vec2(row, c + 0.5)), t = 0.3 + 0.4 * flH(vec2(c, row + 2.1)), a = 0.0, b = 1.0, sg = 0.0;
   if (hs < 0.45) { if (g < t) b = t; else { a = t; sg = 1.0; } }
   e = min(ez, min(g - a, b - g) * L);
   return vec2(row, c * 2.0 + sg);
 }
 float flSeg(vec2 p, vec2 a, vec2 b) { vec2 d = b - a; return length(p - a - d * clamp(dot(p - a, d) / dot(d, d), 0.0, 1.0)); }
+// (only near its box: far fragments skip the work, and neighbouring fragments agree on the branch)
+float flSegB(vec2 p, vec2 a, vec2 b, float w) { vec2 lo = min(a, b) - w - 6.0, hi = max(a, b) + w + 6.0;
+  return p.x > lo.x && p.x < hi.x && p.y > lo.y && p.y < hi.y ? flSeg(p, a, b) - w : 99.0; }
 vec3 flLook(vec3 col, float mv) {
   vec3 W = vFlW, N = normalize(vFlN);
   float e = 9.0, fw = 0.0; vec2 id = vec2(0.0);
   bool top = N.y > 0.6, side = abs(N.y) < 0.4;
   float wear = 0.0, stain = 0.0, damp = 0.0;
   if (W.y > 15.6 && W.y < 16.4 && W.x > -187.5 && W.x < -10.5 && abs(W.z) < 68.0) {
-    vec2 q = W.xz; float n1 = gvn(q * 0.35) * 0.6 + gvn(q * 1.3) * 0.4;
-    float d = flSeg(q, vec2(-11.0, 0.0), vec2(-21.0, 0.0)) - 7.0;
-    d = min(d, flSeg(q, vec2(-38.0, 44.0), vec2(-38.0, 67.5)) - 5.0);
-    d = min(d, flSeg(q, vec2(-38.0, -21.0), vec2(-38.0, -67.5)) - 4.0);
-    d = min(d, flSeg(q, vec2(-95.0, -67.5), vec2(-60.0, -24.0)) - 3.0);
-    d = min(d, flSeg(q, vec2(-118.0, 67.5), vec2(-70.0, 30.0)) - 3.0);
-    d = min(d, flSeg(q, vec2(-160.0, 67.5), vec2(-100.0, 52.0)) - 2.5);
-    d = min(d, flSeg(q, vec2(-38.0, 44.0), vec2(-63.5, 20.0)) - 3.5);
-    d = min(d, flSeg(q, vec2(-63.5, 20.0), vec2(-74.0, 0.0)) - 3.5);
+    vec2 q = W.xz; float n1 = flN(q * 0.5);
+    float d = flSegB(q, vec2(-11.0, 0.0), vec2(-21.0, 0.0), 7.0);
+    d = min(d, flSegB(q, vec2(-38.0, 44.0), vec2(-38.0, 67.5), 5.0));
+    d = min(d, flSegB(q, vec2(-38.0, -21.0), vec2(-38.0, -67.5), 4.0));
+    d = min(d, flSegB(q, vec2(-95.0, -67.5), vec2(-60.0, -24.0), 3.0));
+    d = min(d, flSegB(q, vec2(-118.0, 67.5), vec2(-70.0, 30.0), 3.0));
+    d = min(d, flSegB(q, vec2(-160.0, 67.5), vec2(-100.0, 52.0), 2.5));
+    d = min(d, flSegB(q, vec2(-38.0, 44.0), vec2(-63.5, 20.0), 3.5));
+    d = min(d, flSegB(q, vec2(-63.5, 20.0), vec2(-74.0, 0.0), 3.5));
     vec2 ab = abs(q - vec2(-38.0, -3.5)) - vec2(16.0, 16.0); float da = length(max(ab, 0.0)) + min(max(ab.x, ab.y), 0.0);
     d = min(d, da - 5.0);
     wear = (1.0 - smoothstep(-1.0, 4.0, d + (n1 - 0.5) * 5.0)) * 0.85;
@@ -128,25 +135,25 @@ vec3 flLook(vec3 col, float mv) {
   vec2 rd = W.xz - vec2(10.0, 0.0); float rr = length(rd);
   bool rnd = W.y > 5.9 && W.y < 13.6 && rd.x > -0.05 && rr > 6.3 && rr < 13.6;
   if (rnd) {
-    float ring = floor(rr * 2.0 - 0.01), arc = atan(rd.y, rd.x) * (ring * 0.5 + 0.25), L = 2.6 + 1.6 * gh21(vec2(ring, 4.4)), u = (arc + gh21(vec2(ring, 1.9)) * 30.0) / L;
+    float ring = floor(rr * 2.0 - 0.01), arc = atan(rd.y, rd.x) * (ring * 0.5 + 0.25), L = 2.6 + 1.6 * flH(vec2(ring, 4.4)), u = (arc + flH(vec2(ring, 1.9)) * 30.0) / L;
     e = min(fract(u), 1.0 - fract(u)) * L; id = vec2(ring + 40.0, floor(u)); fw = fwidth(arc);
     if (side) { float yy = fract(W.y * 2.0 + 0.002); col *= 1.0 + 0.16 * smoothstep(0.78, 0.97, yy) - 0.12 * (1.0 - smoothstep(0.0, 0.12, yy)); }
   }
   else if (top) { id = flSlab(W.xz, e); fw = fwidth(W.x) + fwidth(W.z); }
   else if (side) {
-    float al = abs(N.x) > abs(N.z) ? W.z : W.x, L = 3.4 + 2.0 * gh21(vec2(floor(W.y * 2.0), 4.4)), u = (al + gh21(vec2(floor(W.y * 2.0), 1.9)) * 30.0) / L;
+    float al = abs(N.x) > abs(N.z) ? W.z : W.x, L = 3.4 + 2.0 * flH(vec2(floor(W.y * 2.0), 4.4)), u = (al + flH(vec2(floor(W.y * 2.0), 1.9)) * 30.0) / L;
     e = min(fract(u), 1.0 - fract(u)) * L; id = vec2(floor(W.y * 2.0), floor(u)); fw = fwidth(al);
     // the nosing: the step's top edge worn round and catching the light; its foot darker
     float yy = fract(W.y * 2.0 + 0.002);
     col *= 1.0 + 0.16 * smoothstep(0.78, 0.97, yy) - 0.12 * (1.0 - smoothstep(0.0, 0.12, yy));
   }
   // each slab its own tone
-  float h1 = gh21(id + vec2(0.37, 1.91)), h2 = gh21(id * 1.31 + vec2(5.1, 2.7));
+  float h1 = flH(id + vec2(0.37, 1.91)), h2 = flH(id * 1.31 + vec2(5.1, 2.7));
   col *= (0.88 + 0.2 * h1) * (h2 < 0.33 ? vec3(1.03, 0.985, 0.95) : h2 < 0.66 ? vec3(1.0, 0.995, 0.93) : vec3(0.985, 0.985, 0.97));
   // the joint: dark, soft, a lit chamfer beside it; contrast faded where a joint is narrower than a pixel
-  // (a hair irregular: the joint's width wanders along it; from far — a joint under a third of a pixel — it all but vanishes)
+  // (a hair irregular: each slab's joints their own width; from far — a joint under a third of a pixel — it all but vanishes)
   float px = max(fw, 1e-3), vis = clamp(0.045 / px - 0.25, 0.0, 1.0) * (1.0 - 0.75 * wear);
-  float jw = 0.008 + 0.012 * gvn(W.xz * 2.3 + W.y);
+  float jw = 0.008 + 0.012 * fract(h1 * 7.3 + h2);
   float jn = 1.0 - smoothstep(jw, jw + px * 1.1 + 0.02, e);
   float ch = smoothstep(0.02, 0.05, e) * (1.0 - smoothstep(0.06, 0.12 + px, e));
   col *= (1.0 - 0.22 * jn * vis) * (1.0 + 0.045 * ch * vis);

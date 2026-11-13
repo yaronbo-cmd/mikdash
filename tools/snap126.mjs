@@ -12,7 +12,9 @@ const STAGES = {
 };
 // (numbers kept to 9 significant places: a moved constant that is the same number gives the same text; no float noise is a change)
 const num = (v) => (Number.isFinite(v) ? +v.toPrecision(9) : String(v));
+let BOOK0 = null;   // (the book itself is not a stage's place: where a stage holds it whole, the snapshot says 'BOOK')
 function plain(v, seen = new Set(), d = 0) {
+  if (BOOK0 && v === BOOK0) return 'BOOK';
   if (typeof v === 'number') return num(v);
   if (v == null || typeof v === 'string' || typeof v === 'boolean') return v;
   if (typeof v === 'function' || d > 6 || seen.has(v)) return undefined;
@@ -29,6 +31,7 @@ const stub = (st) => {
   return X;
 };
 export async function snapshot() {
+  BOOK0 = (await import(`${R}world/grid.js`)).BOOK;
   const out = {};
   for (const [sk, S] of Object.entries(STAGES)) {
     const E = {}, mods = {};

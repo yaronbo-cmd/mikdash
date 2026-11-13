@@ -25,14 +25,17 @@ export function lookPose(base, u, yaw, lift = 0, K = LOOK_K) {
   const [px, py, pz] = base.p, [tx, ty, tz] = base.t;
   const vx = px - tx, vy = py - ty, vz = pz - tz, h0 = Math.hypot(vx, vz) || 1, az = Math.atan2(vz, vx) + (+yaw || 0), e = Math.pow(smooth((+u || 0) / (K.U1 || 1)), K.PW || 1);
   const dH = h0 + (Math.max(h0, K.D1) - h0) * e, hy = vy + (Math.max(vy, K.H1) - vy) * e;
-  // (build 125, K.NEAR: a close act's play zone — up to u = K.KEEP_U0 the camera only backs away along the act's own line of sight,
-  //  at its own elevation and lens, never lower nor into what stands round the work, to (1 + NEAR) times its distance; then it eases
-  //  into the far shape by K.KEEP_U1. Without K.NEAR, build 124's shape as it was)
-  let elS = Math.atan2(hy, dH), RS = Math.hypot(dH, hy), m = 1;
+  // (build 125, K.NEAR: a close act's play zone — up to u = K.KEEP_U0 the act's own shot with a wider lens; then it eases into the far
+  //  shape by K.KEEP_U1. Without K.NEAR, build 124's shape as it was)
+  const fov0 = Number.isFinite(base.fov) ? base.fov : 40;
+  let elS = Math.atan2(hy, dH), RS = Math.hypot(dH, hy), m = 1, fovN = fov0;
   if (K.NEAR != null) {
-    const v = +u || 0, R0 = Math.hypot(h0, vy), el00 = Math.atan2(vy, h0), Rn = R0 * (1 + K.NEAR * Math.min(1, v / K.KEEP_U0));
+    // (the play zone is a wider lens on the act's own shot, not a camera moved: the same place, the same line — nothing in the world
+    //  can come between, nor the camera into a wall or the floor; the work (1 + NEAR) times smaller at u = KEEP_U0)
+    const v = +u || 0, R0 = Math.hypot(h0, vy), el00 = Math.atan2(vy, h0), k = 1 + K.NEAR * Math.min(1, v / K.KEEP_U0);
+    fovN = Math.min(100, (2 * Math.atan(k * Math.tan((fov0 * Math.PI) / 360)) * 180) / Math.PI);
     m = smooth((v - K.KEEP_U0) / (K.KEEP_U1 - K.KEEP_U0));
-    elS = el00 + (elS - el00) * m; RS = Rn + (Math.max(Rn, RS) - Rn) * m;
+    elS = el00 + (elS - el00) * m; RS = R0 + (Math.max(R0, RS) - R0) * m;
   }
   // (lift > 0 raises the camera toward overhead, lift < 0 lowers it toward the floor — under a gallery seen from its side)
   const el0 = elS, R = RS, el = Math.max(K.EL_MIN, Math.min(K.EL_MAX, el0 + (+lift || 0)));
@@ -43,8 +46,8 @@ export function lookPose(base, u, yaw, lift = 0, K = LOOK_K) {
   //  as the sight rule lifts the camera, so the work never leaves the frame)
   const f = K.F * smooth(((+u || 0) - K.S0) / K.S1) * (1 - lf);   // (none inside the play zone, u ≤ S0: the work stays near the middle, playable)
   const t = [tx - cx * f, ty, tz - cz * f];
-  const fov0 = Number.isFinite(base.fov) ? base.fov : 40;
-  return { p, t, fov: fov0 + (Math.max(fov0, K.FOV1) - fov0) * e * m, el, d: R, az };
+  const fovS = fov0 + (Math.max(fov0, K.FOV1) - fov0) * e;
+  return { p, t, fov: fovN + (fovS - fovN) * m, el, d: R, az };
 }
 
 /** does the segment p → q cross the box (the slab test; the segment's last `skip` amot before q are not judged) */

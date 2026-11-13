@@ -10,6 +10,7 @@ import { SH3, bayFrame, runBuild, stepsBuild, stepStone, latticeSlab, label, kee
 import { createHoist } from './hoist.js';
 import { craneFor, candAt, bayShot, standBay } from './acts.js';
 import { clamp, lerp, ease, onPlane } from '../h109/kit.js';
+import { gripR, bigR, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 
 const rnd = (k) => { const v = Math.sin(k * 12.9898 + 4.1) * 43758.5453; return v - Math.floor(v); };
 const sc = (X, o) => { const r = X.scr(o.x, o.y, o.z); return [Math.round(r.x), Math.round(r.y)]; };
@@ -181,6 +182,8 @@ export const STEPS_ACT = {
         A.idle = 0; X.hand(null);
       },
       move(p) { const P = A.press; if (!P) return; P.x = p.x; if (!P.moved && Math.abs(p.x - P.x0) > 9) P.moved = true; },
+      // (build 125: the step stone in the crew's hands is the act's on the right half; the rest is the look)
+      wants(p) { if (A.done || A.busy || !A.K) return false; return !!A.K.m && nearObjs(X, p, [A.K.m]); },
       up(p) {
         const P = A.press; A.press = null; if (!P || A.done || A.busy || !A.K) return;
         A.idle = 0;
@@ -397,6 +400,16 @@ export const CLOSE = {
           return;
         }
         if (A.phase === 'hang' && A.H) { A.H.down(p); X.hand(null); }
+      },
+      // (build 125: measuring and choosing, the rod along the bay and the slabs lying by it; hanging, the slab on the rope — the rest is the look)
+      wants(p) {
+        if (A.done || A.busy) return false; if (!p) return true;
+        if (A.phase === 'measure' || A.phase === 'choose') {
+          if (candAtP(p) || nearObjs(X, p, A.cands.filter((c) => c !== A.held && c.g.visible).map((c) => c.g))) return true;
+          return nearSeg(X, p, F.at(rod0, 0, H112.SILL), F.at(fb + 0.6, 0, H112.SILL), gripR());
+        }
+        if (A.phase === 'hang') return !!(A.H && A.H.g) && nearObjs(X, p, [A.H.g], bigR());
+        return false;
       },
       move(p) {
         const P = A.press;

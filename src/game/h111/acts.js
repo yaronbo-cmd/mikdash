@@ -9,6 +9,7 @@ import { H111, STRETCH, puzzleOf, checkCourse, starsOf } from './model.js';
 import { SH2, frameOf, rowOff, stoneMesh, placeStone, laidFill, label, initWorld, frameWorld, holesOn, ensureLaid } from './world.js';
 import { onPlane, clamp, lerp, ease } from '../h109/kit.js';
 import { LEVER, GATES, CLOSING } from './acts2.js';
+import { nearObjs } from '../h109/grips.js';   // (build 125)
 
 const H = H111.H;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -166,6 +167,8 @@ export const PLUMB = {
         for (const s of S) if (s.bob) s.bob.position.x += Math.sin(A.t * 2.1 + s.o.q.a) * 0.0006;
       },
       down(p) { if (A.done || A.busy) return; const s = stoneAt(p); if (s) A.press = { s, t: A.t }; },
+      // (build 125: on the right half only the stones still out of line are the act's — the rest is the right thumb's look)
+      wants(p) { if (A.done || A.busy) return false; return nearObjs(X, p, S.filter((s) => !s.okd).map((s) => s.o.m)); },
       move() {},
       up() { const pr = A.press; A.press = null; X.meter(null); if (!pr || A.done || A.busy) return; strike(pr.s, A.t - pr.t); },
       end() {

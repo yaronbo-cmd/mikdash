@@ -9,6 +9,7 @@
 import { H111, STRETCH, GIANT, starsOf } from './model.js';
 import { SH2, frameOf, stoneMesh, label, gateFrame, giantFrame, giantPose, GIANT_C } from './world.js';
 import { onPlane, clamp, lerp, ease } from '../h109/kit.js';
+import { nearObjs, nearPts, hitAny } from '../h109/grips.js';   // (build 125)
 
 const H = H111.H;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -192,6 +193,8 @@ export const LEVER = {
         X.play('rope');
       },
       move(p) { if (A.press) A.press.y = p.y; },
+      // (build 125: the stone and its two ends are the act's on the right half; the rest is the look)
+      wants(p) { if (A.done || A.busy) return false; return hitAny(X, p, [stone]) || nearPts(X, p, [F.at(0.7, GIANT_C - A.d[0] - 0.4, H * 0.7), F.at(L - 0.7, GIANT_C - A.d[1] - 0.4, H * 0.7)]); },
       up(p) {
         const pr = A.press; A.press = null; X.meter(null); if (!pr || A.done || A.busy) return;
         const dy = pr.y0 - (p && Number.isFinite(p.y) ? p.y : pr.y), f = Math.abs(dy) / (innerHeight * 0.28);
@@ -272,6 +275,7 @@ export const GATES = {
       },
       update(dt) { A.t += dt; for (const [i, s] of slots.entries()) { if (s.gi >= 0 && A.set.has(s.gi)) slotM[i].visible = false; else slotM[i].material.opacity = 0.62 + Math.sin(A.t * 3 + i) * 0.2; } },
       down(p) { if (A.done) return; const t = tokAt(p); if (t) { A.held = t; X.hand(null); X.play('rope'); } },
+      wants(p) { if (A.done) return false; return nearObjs(X, p, toks.map((t) => t.g)); },   // (build 125: the frames lying in the court)
       move(p) { if (!A.held) return; const q = onPlane(X, p.x, p.y, 14); if (!q) return; A.held.g.position.set(q.x, 14, q.z); A.held.g.rotation.y = Math.abs(q.z) > 50 ? 0 : q.x > -20 ? Math.PI / 2 : 0; },
       up() {
         const t = A.held; A.held = null; if (!t || A.done) return;
@@ -438,6 +442,8 @@ export const CLOSING = {
         if (A.phase === 'plumb') { const h = X.rayAt(p.x, p.y).intersectObject(set.m, false); if (h.length) { A.press = A.t; X.hand(null); } return; }
         const o = pick(p); A.tap0 = { x: p.x, y: p.y, o };
       },
+      // (build 125: the four stones (choosing), the stone set in the gap (its plumb) — the rest of the right half is the look)
+      wants(p) { if (A.done || A.busy) return false; if (A.phase === 'plumb') return !!set && nearObjs(X, p, [set.m]); return nearObjs(X, p, stones.map((o) => o.m)); },
       move(p) {
         if (A.phase !== 'choose' || A.done || A.busy || !A.tap0) return;
         if (!A.held && A.tap0.o && Math.hypot(p.x - A.tap0.x, p.y - A.tap0.y) > 10) { A.held = { o: A.tap0.o, g: null }; X.play('rope'); X.hand(null); }

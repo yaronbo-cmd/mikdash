@@ -9,6 +9,7 @@ import { H112, RUNS, LINE, warnOf, starsOf, driftOf, runPosts } from './model.js
 import { SH3, bayFrame, runBuild, postMesh, poleMesh, latticeSlab, warnSlab, warnSeat, label, initWorld, frameWorld, keep, boxOf, bayKeep } from './world.js';
 import { createHoist } from './hoist.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
+import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 import { STEPS_ACT, CLOSE } from './acts2.js';
 
 const rnd = (k) => { const v = Math.sin(k * 12.9898 + 4.1) * 43758.5453; return v - Math.floor(v); };
@@ -165,6 +166,13 @@ export const POSTS = {
         for (const [w] of k.crew) SH3.crew.setRole(w, 'push');
       },
       move(p) { if (A.drag) A.drag.x = p.x; },
+      // (build 125: on the right half the post in the crew's hands (along its height) and the posts already standing are the act's —
+      //  the rest is the right thumb's look)
+      wants(p) {
+        if (A.done || A.busy) return false; if (!p) return true;
+        const k = A.cur; if (k) { const q = posOf(k), g0 = X.ground(q.x, q.z); if (nearSeg(X, p, { x: q.x, y: g0, z: q.z }, { x: q.x, y: g0 + topOf(k) + 0.6, z: q.z }, gripR())) return true; }
+        return !!postAt(p);
+      },
       up(p) {
         if (A.tap && Math.hypot(p.x - A.tap.x, p.y - A.tap.y) < 12) {
           const t = A.tap; A.tap = null; if (A.drag && A.cur) { A.cur.e = A.g === 1 ? A.cur.e : A.drag.e0; if (A.g === 1) A.cur.ez = A.drag.e0; place(A.cur); } A.drag = null;
@@ -325,6 +333,8 @@ export const SLAB = {
         if (A.held && A.H) { A.H.down(p); X.hand(null); }
       },
       move(p) { if (A.H && !A.tapC) A.H.move(p); },
+      // (build 125: the slabs lying to choose from, and the slab on the rope (a large moving thing) — the rest is the look)
+      wants(p) { if (A.done || A.busy) return false; if (candAtP(p) || nearObjs(X, p, A.cands.filter((c) => c !== A.held && c.g.visible).map((c) => c.g))) return true; return !!(A.held && A.H && A.H.g) && nearObjs(X, p, [A.H.g], bigR()); },
       up(p) {
         if (A.tapC) { const t = A.tapC; A.tapC = null; if (Math.hypot(p.x - t.x, p.y - t.y) < 14) choose(t.c); return; }
         if (!A.H) return; const r = A.H.up(p);
@@ -499,6 +509,14 @@ export const WARN = {
         if (A.phase === 'paint') { X.hand(null); A.paint.last = null; stroke(p); A.painting = true; }
       },
       move(p) { if (A.phase === 'hang' && A.H) A.H.move(p); if (A.phase === 'paint' && A.painting) stroke(p); },
+      // (build 125: counting, the posts; hanging, the slab on the rope; painting, the slab's face — the rest is the look)
+      wants(p) {
+        if (A.done || A.busy) return false; if (!p) return true;
+        if (A.phase === 'count') return postAt(p) >= 0 || nearPts(X, p, ps.map((q) => ({ x: q.x, y: (q.tall ? H112.TALL_H : H112.POST_H) * 0.6, z: q.z })));
+        if (A.phase === 'hang') return !!(A.H && A.H.g) && nearObjs(X, p, [A.H.g], bigR());
+        if (A.phase === 'paint') return nearPts(X, p, [seat], bigR());
+        return false;
+      },
       up(p) {
         if (A.phase === 'count' && A.tap) {
           const t = A.tap; A.tap = null; if (Math.hypot(p.x - t.x, p.y - t.y) > 14 || t.i < 0) return;

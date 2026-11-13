@@ -1,7 +1,7 @@
 // build 124 B — the one address book (rule 65): BOOK.s02 … BOOK.s05 in src/game/world/grid.js. Every entry is finite, named by its
 // own cell, inside its stage's bounds, and alone on its spot for its kind; stage 05 reads its places from the book (the same numbers
-// in h120/layout.js, routes.js and model.js), and every act's stand there is the book's; stages 02 … 04 are registered, and the book
-// and their own models agree number for number.
+// in h120/layout.js, routes.js and model.js), and every act's stand there is the book's. Build 126: stages 02 … 04 read their places
+// from the book too — their tables are the book's own objects (the same reference), and their stands come out where the book says.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BOOK, cellOf, nameOf } from '../src/game/world/grid.js';
@@ -103,6 +103,12 @@ test('book s02: the wall stage — sides, stretches and their stands, stakes, ga
   const G = (H111 && H111.GATES) || [];
   assert.equal(G.length, S.gates.length);
   S.gates.forEach(([k, x, n], i) => { assert.deepEqual([G[i].k, G[i].x, G[i].n], [k, x, n]); assert.equal(by['gate' + i].x, x); });
+  // (build 126) read from the book, not equal to it: the same objects
+  const { GIANT } = await import('../src/game/h111/model.js');
+  assert.equal(SIDE, S.side, 'SIDE is the book\'s');
+  for (const k of ['A', 'B', 'C', 'D']) assert.equal(AZ[k], S.stakes[k], 'stake ' + k + ' is the book\'s');
+  for (const [s, [k, at]] of Object.entries(S.giant)) { assert.equal(GIANT[s].k, k); assert.equal(GIANT[s].at, at); assert.ok(by['giant' + s], 'giant entry ' + s); }
+  for (const k of ['gatesAct', 'band', 'closing', 'cam']) assert.ok(Object.isFrozen(S[k]), k);
 });
 
 test('book s03: the soreg stage — posts, sightings, the posts act\'s stands, the steps', async () => {
@@ -118,6 +124,9 @@ test('book s03: the soreg stage — posts, sightings, the posts act\'s stands, t
     assert.ok(near(s.x, b.x) && near(s.z, b.z), `posts stand ${lv}`);
   }
   for (const k of ['x0', 'z0', 'z1']) assert.equal(S.steps[k], STEPS[k]);
+  // (build 126) read from the book: the same objects
+  for (const lv of Object.keys(S.runs)) { assert.equal(RUNS[lv].sight[0].eye, S.runs[lv].eye, 'eye ' + lv); assert.equal(RUNS[lv].hole, S.holes[lv], 'holes ' + lv); }
+  assert.equal(RUNS[3].sight[1].eye, S.eye2[3]); assert.equal(STEPS.hole, S.stepsHole);
 });
 
 test('book s04: the gates stage — the six gates, Nikanor, the carpenters\' yard', async () => {
@@ -129,4 +138,7 @@ test('book s04: the gates stage — the six gates, Nikanor, the carpenters\' yar
   S.gates.forEach(([key, name, c, zf], i) => { const g = all[i]; assert.deepEqual([g.key, g.name, g.c, g.zf], [key, name, c, zf]); });
   const nik = H111.GATES.find((g) => g.k === 'E'); assert.equal(S.nikanor[0], nik.x); assert.equal(S.nikanor[1], 0);
   for (const k of ['x0', 'x1', 'z']) assert.equal(S.yard[k], YARD[k]);
+  // (build 126) read from the book: the same objects and numbers
+  assert.equal(YARD.rack, S.yardMore.rack); assert.equal(YARD.post, S.yardMore.post); assert.equal(YARD.wall, S.yardMore.wall);
+  for (const k of ['houses', 'cam', 'yardMore']) assert.ok(Object.isFrozen(S[k]), k);
 });

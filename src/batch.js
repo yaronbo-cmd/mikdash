@@ -157,6 +157,27 @@ vec3 flLook(vec3 col, float mv) {
   return col;
 }`;
 
+// ── look E ── the Temple's walls (course 'temple', uGaoC 2): a dirty foot also where they stand on the Azarah's floor (16; their
+// base is the Chel's 6), and a soft shade under the cornices of the court walls (tops 44, the Ezrat Nashim's 40, the gates' 50), the
+// gates' towers and Nikanor's gate left out of the walls' band. By world position: no geometry, no new program.
+const TEMPLE_GLSL = `
+bool tmIn(vec2 q, vec4 r) { return q.x > r.x - 0.05 && q.x < r.z + 0.05 && q.y > r.y - 0.05 && q.y < r.w + 0.05; }
+float tmBand(float y, float top) { float c = top - 1.3; return 1.0 - 0.3 * smoothstep(c - 3.4, c - 0.1, y) * (1.0 - smoothstep(c - 0.02, c + 0.05, y)); }
+vec3 tmShade(vec2 q, float y, float mv, float h) {
+  vec3 k = vec3(1.0);
+  // the foot on the Azarah's floor (inside the walls' inner faces, above the floor; only pieces based well below it — h: the height
+  // over the piece's base — the House on 16 has its own)
+  if (y > 15.95 && y - h < 11.0 && q.x > -187.1 && q.x < 0.1 && abs(q.y) < 67.6) k *= mix(vec3(0.7, 0.66, 0.6), vec3(1.0), smoothstep(0.0, 5.0, y - 16.0 + (mv - 0.5) * 2.0));
+  if (y < 30.0) return k;
+  bool gate = tmIn(q, vec4(-104.0, -78.0, -86.0, -64.0)) || tmIn(q, vec4(-47.0, -78.0, -29.0, -64.0)) || tmIn(q, vec4(-169.0, 64.0, -151.0, 78.0))
+    || tmIn(q, vec4(-127.0, 64.0, -109.0, 78.0)) || tmIn(q, vec4(-47.0, 64.0, -29.0, 78.0));
+  if (gate) return k * tmBand(y, 50.0);
+  if (tmIn(q, vec4(-193.0, -73.5, 0.0, -67.5)) || tmIn(q, vec4(-193.0, 67.5, 0.0, 73.5)) || tmIn(q, vec4(-193.0, -73.5, -187.0, 73.5))
+    || (tmIn(q, vec4(0.0, -73.5, 6.0, 73.5)) && abs(q.y) > 26.1)) return k * tmBand(y, 44.0);
+  if (tmIn(q, vec4(6.0, -73.5, 141.0, -67.5)) || tmIn(q, vec4(6.0, 67.5, 141.0, 73.5))) return k * tmBand(y, 40.0);
+  return k;
+}`;
+
 // ── site13 ── two more reveals: a finish-only material with a cut of its own (uBcJ.z; uBcJ.w 1 = a height, 2 = laid along +x:
 // the House's finish step by step, the Ezrat Nashim's cedar gallery) and a cut per footprint rect (uBcC.w < 0 rects, the cut in
 // uBcRK[i].x: the Ezrat Nashim's corner chambers rising one at a time); bcCutY is the height the glowing line follows.
@@ -178,18 +199,18 @@ function patchShader(sh, gao, bc) {
     if (macro > 0) { sh.uniforms.uGaoC = { value: gao.course === 'temple' ? 2 : gao.course ? 1 : 0 }; sh.uniforms.uGaoR = { value: gao.rows || 11 }; }   // ── look D review K3 ── ── /look D review ── ── look E ── (2: the Temple's walls, a warm bounce in their shade) ── /look E ──
     const fl = !!gao.floor;   // ── look E ── the paving's slabs, laid by world position (FLOOR_GLSL) ── /look E ──
     vs = vs
-      .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;' + (fl ? '\nvarying vec3 vFlW; varying vec3 vFlN;' : ''))
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;' + (fl ? '\nvFlW = (modelMatrix * vec4(transformed, 1.0)).xyz; vFlN = normalize(mat3(modelMatrix) * objectNormal);' : ''))
+      .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;' + (fl ? '\nvarying vec3 vFlW; varying vec3 vFlN;' : '') + (macro > 0 ? '\nvarying float vGWY;' : ''))
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;' + (macro > 0 ? '\nvGWY = (modelMatrix * vec4(transformed, 1.0)).y;' : '') + (fl ? '\nvFlW = (modelMatrix * vec4(transformed, 1.0)).xyz; vFlN = normalize(mat3(modelMatrix) * objectNormal);' : ''))
       .replace('#include <begin_vertex>', gao.instanced
         ? '#include <begin_vertex>\nvAoH = position.y + aBase;'
         : '#include <begin_vertex>\nvAoH = (modelMatrix * vec4(transformed, 1.0)).y - aBase;');
     // (the reveal variant samples macro variation and occlusion at the cap point for back faces)
     const xz = bc ? `\n#ifdef BCLIP\n    vec2 gxz = bcFront ? vWXZ : bcP.xz;\n#else\n    vec2 gxz = vWXZ;\n#endif\n` : '\n    vec2 gxz = vWXZ;\n';
     fs = fs.replace('#include <common>', `#include <common>
-        varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC; uniform float uGaoR;' : ''}
+        varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC; uniform float uGaoR; varying float vGWY;' : ''}
         float gh21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float gvn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-          return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }${fl ? FLOOR_GLSL : ''}`)
+          return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }${macro > 0 ? TEMPLE_GLSL : ''}${fl ? FLOOR_GLSL : ''}`)
       .replace('#include <map_fragment>', macro > 0 ? `#include <map_fragment>
         {${xz}    float mv = gvn(gxz / 55.0) * 0.65 + gvn(gxz / 13.0) * 0.35;
           diffuseColor.rgb *= mix(${f3(1 - macro)}, ${f3(1 + macro * 0.35)}, mv);
@@ -202,6 +223,7 @@ function patchShader(sh, gao, bc) {
 #endif
             if (vAoH < -500.0) { float yt = vAoH + 1000.0; diffuseColor.rgb *= 1.0 - 0.6 * smoothstep(-4.4, -1.0, yt) * (1.0 - smoothstep(-0.85, -0.7, yt)); }
             else diffuseColor.rgb *= mix(vec3(0.56, 0.52, 0.46), vec3(1.0), smoothstep(0.0, 11.0, vAoH + (mv - 0.5) * 3.0));
+            if (uGaoC > 1.5) diffuseColor.rgb *= tmShade(gxz, vGWY, mv, vAoH);   // ── look E ── ── /look E ──
           }${fl ? '\n          diffuseColor.rgb = flLook(diffuseColor.rgb, mv);' : ''} }` : '#include <map_fragment>')
       .replace('#include <aomap_fragment>', `#include <aomap_fragment>
       {

@@ -367,8 +367,8 @@ function extraMats(B) {
   M.ember = { mat: std({ color: BLOOD.ember, emissive: new THREE.Color(1.75, 0.72, 0.14), roughness: 0.9 }), tile: 4, cast: false };   // ── blooda25 ── orange coals (DAM25 §4.6: red is the blood's and the line's only)
   // the roofs of Beit HaMoked and Beit Avtinas, which open when the camera comes close (sanctuary.js finds this mesh by
   // its name in the lishka stage)
-  M.roofCut = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1 }), tile: 24 };
-  M.wallMoked = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1 }), tile: 24 };
+  M.roofCut = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1, course: 'temple' }), tile: 24 };   // ── look E ── (as the walls) ── /look E ──
+  M.wallMoked = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1, course: 'temple' }), tile: 24 };   // ── look E ── (as the walls) ── /look E ──
 }
 const lathe = (pts, seg = 14) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(Math.max(r, 0.001), y)), seg);
 

@@ -8,11 +8,13 @@
  * Ribbons on the rope and the diagonal test are המחשה after the builders' craft, not a Talmudic source.
  */
 import { H111 } from './model.js';
+import { BOOK } from '../world/grid.js';   // (build 126: the stakes and the cameras are the book's)
+const CAM2 = BOOK.s02.cam;
 import { SH2, label, holesOn } from './world.js';
 import { onPlane, clamp, lerp, ease } from '../h109/kit.js';
 
 // the azara 187 × 135 (Middot 5:1): its inner corners; the crews' stakes at three, the kohen's at the north-east
-export const AZ = { A: [-187, -67.5], B: [-187, 67.5], C: [0, 67.5], D: [0, -67.5], N: 187, E: 135 };
+export const AZ = { ...BOOK.s02.stakes, N: 187, E: 135 };   // (build 126: the corners are the book's; N, E the court's size)
 const AC = Math.hypot(AZ.N, AZ.E);   // the first diagonal, between two of the crews' stakes
 const HOLD = 0.7;                    // the stake in his hands, this far in front of him
 const TAIL = 4;                      // the rope past the ring, to the coil
@@ -24,6 +26,8 @@ export const STAKES = {
   prepare(m, X) { try { X.stages.s20Pin(null); } catch (e) { /* */ } },
   make(m, X) {
     const lv = X.level(), P = X.props, T = X.THREE, g = (x, z) => X.ground(x, z);
+    // (build 126) a shot from the book: [eye, target] with their heights over the ground sampled at [a] and [b]
+    const camAt = ([E0, T0, a, b], sec) => X.shot([E0[0], g(a[0], a[1]) + E0[1], E0[2]], [T0[0], g(b[0], b[1]) + T0[1], T0[2]], sec);
     const tol = lv >= 3 ? 0.1 : 0.25;
     const A = { phase: 'open', drag: false, tap0: null, taps: 0, drives: 0, pulls: 0, diff: null, q: 1, grade: null, walkT: 0, want: null, sway: 0, gust: 0, gustT: 3, t: 0, S: { x: 0, z: 0 }, fixed: null, sink: 0, held: true };
     const objs = [], ropes = [], labs = [];
@@ -122,10 +126,10 @@ export const STAKES = {
       if (first) {
         // from above the court: the rectangle in lime, three stakes with their flags and crews, the fourth corner empty; then down along
         // the north rope to the kohen
-        X.shot([-93, g(-93, 0) + 150, 150], [-93, g(-93, 0), 4], 0.01);
+        camAt(CAM2.stakesTop, 0.01);
         X.line('העזרה: 187 על 135 אמה · שלוש פינות כבר מסומנות');
         await X.wait(2.2);
-        X.shot([-120, g(-120, -67) + 40, -40], [-60, g(-60, -67), -67.5], 2.0);
+        camAt(CAM2.stakesNorth, 2.0);
         await X.wait(2.0);
       }
       X.shot([S.x + 6.5, g(S.x, S.z) + 10.5, S.z + 9.5], [S.x - 1.4, g(S.x, S.z) + 0.6, S.z + 1.4], first ? 1.6 : 1.2);
@@ -149,7 +153,7 @@ export const STAKES = {
       const S = A.fixed, BD = Math.hypot(S.x - AZ.B[0], S.z - AZ.B[1]);
       A.diff = BD - AC;
       // the camera rises; the rope from A to C, its knot at C
-      X.shot([-93, g(-93, 0) + 150, 150], [-93, g(-93, 0), 4], 2.2);
+      camAt(CAM2.stakesTop, 2.2);
       await X.wait(2.0);
       rD.show(true);
       for (let k = 1; k <= 24; k++) { const u = k / 24; rD.set({ x: AZ.A[0], y: g(AZ.A[0], AZ.A[1]) + 1.2, z: AZ.A[1] }, { x: lerp(AZ.A[0], AZ.C[0], u), y: g(AZ.C[0], AZ.C[1]) + 1.2, z: lerp(AZ.A[1], AZ.C[1], u) }, 0); await X.wait(0.04); }

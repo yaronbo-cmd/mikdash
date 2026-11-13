@@ -26,7 +26,7 @@ export function makePack02(env = {}) {
     endTitle: 'חומת העזרה נבנתה!',
     endSub: 'העזרה מאה ושמונים ושבע אמה על מאה שלושים וחמש (מדות ה, א)',
     // the film (צילום ביצוע): the ring from high, the north with its three openings, the west, the south, the court from above
-    film: [[[-95, 230, 210], [-95, 10, 0], 3.0], [[-95, 60, -150], [-95, 14, -70], 2.6], [[-260, 70, 0], [-190, 20, 0], 2.4], [[-60, 60, 160], [-95, 14, 70], 2.4], [[60, 300, 260], [-60, 0, 0], 1.6]],
+    film: BOOK.s02.cam.film,   // (build 126: the book's)
     /** the wall as the crews have built it while mission m is open */
     sync(M, S0, instant) {
       const m = M.mission(), cs = M.coursesShown(m);
@@ -54,17 +54,18 @@ export function makePack02(env = {}) {
       if (m && m.id === 'stakes' && !st.intro) {
         return (async () => {
           st.intro = 1; X.save();
-          X.shot([-60, 520, 520], [-40, 0, 0], 0.01); await beat(X, 300);
+          const [I0, I1, I2] = BOOK.s02.cam.intro;   // (build 126: the book's)
+          X.shot(I0[0], I0[1], 0.01); await beat(X, 300);
           X.line('שלב 02: חומת העזרה · מאה שמונים ושבע על מאה שלושים וחמש אמה (מדות ה, א)');
-          X.shot([-95, 260, 230], [-95, 0, 0], 2.6); await beat(X, 3000);
-          X.shot([-30, 60, -20], [-4, 0, -64], 2.0); await beat(X, 2200);
+          X.shot(I1[0], I1[1], 2.6); await beat(X, 3000);
+          X.shot(I2[0], I2[1], 2.0); await beat(X, 2200);
           X.line('');
         })();
       }
       if (!m || !m.night || (st.nights || []).includes(m.night)) return null;
       return (async () => {
         st.nights = [...(st.nights || []), m.night]; X.save();
-        X.shot([-95, 120, 150], [-95, 14, 0], 1.6);
+        X.shot(BOOK.s02.cam.night[0], BOOK.s02.cam.night[1], 1.6);   // (build 126: the book's)
         await beat(X, 600);
         call('setTime', 'night'); call('rain', true); X.play('rain');
         X.line('בלילה יורד גשם על החומה…');
@@ -81,7 +82,7 @@ export function makePack02(env = {}) {
     async finale(X) {
       try { X.stages.setWork('wall', { phase: 'done' }); } catch (e) { /* */ }
       try { if (X.stages.crewsCheer) X.stages.crewsCheer('wall'); } catch (e) { /* */ }
-      const c = { x: -95, z: 0 }, R = 210, y = 120;
+      const RD = BOOK.s02.cam.round, c = { x: RD.c[0], z: RD.c[1] }, R = RD.R, y = RD.y;   // (build 126: the book's)
       for (let k = 0; k <= 8; k++) { const a = Math.PI * 0.5 + (k / 8) * Math.PI * 2; X.shot([c.x + Math.cos(a) * R, y, c.z + Math.sin(a) * R * 0.8], [c.x, 14, c.z], 0.9); await beat(X, 650); }
     },
   };

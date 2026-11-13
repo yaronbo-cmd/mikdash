@@ -6,6 +6,7 @@
 import { H111, STRETCH, GIANT, sidePoint, puzzleOf } from './model.js';
 import { createBeat, createGang, clamp } from '../h109/kit.js';
 import { makeCrane } from '../h109/acts3.js';
+import { BOOK } from '../world/grid.js';   // (build 126)
 
 export const SH2 = { X: null, B: null, crew: null, crane: null, laid: {}, giants: {}, frames: [], jambs: [], holes: [], labels: [], craneAt: null, fill: {} };
 const H = H111.H, ROWO = { 0: 2, 1: 0, 2: -2 };   // a row's offset across the wall from its centre line (outward +)
@@ -58,7 +59,8 @@ export function laidFill(X, F, P, stones) {
 /** the openings on (once the plan is staked: the crews leave them from the first course) */
 export function holesOn(X, on) { SH2.holesOn = !!on; try { X.stages.wallHoles(on ? SH2.holes : []); } catch (e) { /* */ } }
 export function holeRects() {
-  return H111.GATES.filter((g) => g.k !== 'E').map((g) => (g.k === 'N' ? [g.x - 5, -73.6, g.x + 5, -67.4] : [g.x - 5, 67.4, g.x + 5, 73.6]));
+  const Bd = BOOK.s02.band;   // (build 126: the openings' band across the wall is the book's)
+  return H111.GATES.filter((g) => g.k !== 'E').map((g) => (g.k === 'N' ? [g.x - 5, Bd.N[0], g.x + 5, Bd.N[1]] : [g.x - 5, Bd.S[0], g.x + 5, Bd.S[1]]));
 }
 /** the timber frame (formwork) of an opening: two posts, the head, braces; 10 wide, 20 high, the wall's depth */
 export function gateFrame(X, gi) {

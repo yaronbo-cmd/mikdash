@@ -10,6 +10,8 @@ import { H111, STRETCH, GIANT, starsOf } from './model.js';
 import { SH2, frameOf, stoneMesh, label, gateFrame, giantFrame, giantPose, GIANT_C } from './world.js';
 import { onPlane, clamp, lerp, ease } from '../h109/kit.js';
 import { nearObjs, nearPts, hitAny } from '../h109/grips.js';   // (build 125)
+import { BOOK } from '../world/grid.js';   // (build 126: the gates' act and the closing stone read their places from the book)
+const GA = BOOK.s02.gatesAct;
 
 const H = H111.H;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -218,18 +220,18 @@ export const LEVER = {
 };
 
 /* ───────── 5. the gates' openings ───────── */
-const WEST = [{ x: -190, z: -30 }, { x: -190, z: 30 }];
+const WEST = GA.west.map(([x, z]) => ({ x, z }));
 export const GATES = {
   icon: '🚪', title: 'פתחי השערים',
   walkLine: () => 'אמצע העזרה: שבע תבניות של פתחים מחכות',
-  stand() { return { x: -95, z: 9, face: [-95, 0] }; },
+  stand() { return { x: GA.stand[0], z: GA.stand[1], face: [GA.mid[0], GA.mid[1]] }; },
   prepare(m, X) { try { X.stages.s20Pin(null); } catch (e) { /* */ } SH2.crane.g.visible = false; },
   make(m, X) {
     const T3 = X.THREE, PR = X.props, G = H111.GATES, st = X.M.st;
     st.gates = st.gates || [];
     const A = { held: null, set: new Set(st.gates), miss: 0, done: false, t: 0 };
     // the slots: the seven openings (chalk on the wall's top, over each) and two in the west, where there is no gate
-    const slots = [...G.map((g, gi) => ({ gi, x: g.k === 'E' ? 3 : g.x, z: g.k === 'N' ? -70.5 : g.k === 'S' ? 70.5 : 0, k: g.k, n: g.n })), ...WEST.map((w) => ({ gi: -1, x: w.x, z: w.z, k: 'W', n: '' }))];
+    const slots = [...G.map((g, gi) => ({ gi, x: g.x, z: g.k === 'N' || g.k === 'S' ? BOOK.s02.side[g.k].c : 0, k: g.k, n: g.n })), ...WEST.map((w) => ({ gi: -1, x: w.x, z: w.z, k: 'W', n: '' }))];
     const slotM = slots.map((s) => {
       const mm = new T3.Mesh(new T3.PlaneGeometry(1, 1), PR.M.chalk.clone());   // (a lime outline on the wall's top, rule 9) mm.rotation.x = -Math.PI / 2;
       const along = s.k === 'N' || s.k === 'S'; mm.scale.set(along ? 10 : 6.4, along ? 6.4 : 10, 1); mm.material.opacity = 0.55; mm.material.depthTest = false; mm.renderOrder = 997;
@@ -242,18 +244,19 @@ export const GATES = {
       if (A.set.has(i)) continue;
       const gr = new T3.Group(); const Wd = PR.M.wood;
       for (const [w, d, x, z] of [[0.8, 6, -4.6, 0], [0.8, 6, 4.6, 0], [10, 0.8, 0, -2.6], [10, 0.8, 0, 2.6], [10, 0.5, 0, 0]]) { const b = new T3.Mesh(PR.geo.box, Wd); b.scale.set(w, 0.7, d); b.position.set(x, 0.35, z); b.castShadow = true; gr.add(b); }
-      const home = { x: -126 + (i % 4) * 14 + (i >= 4 ? 7 : 0), z: -6 + Math.floor(i / 4) * 12 };
+      const home = { x: GA.yard[0] + (i % 4) * 14 + (i >= 4 ? 7 : 0), z: GA.yard[1] + Math.floor(i / 4) * 12 };
       gr.position.set(home.x, X.ground(home.x, home.z) + 0.1, home.z); PR.root.add(gr);
       toks.push({ i, g: gr, home });
     }
     const labs = { N: label(X), S: label(X), E: label(X) };
-    const crew = [SH2.crew.add(-104, 14, { role: 'carry', item: 'beam', from: [-104, 14], to: [-112, 30], crew: 1 }), SH2.crew.add(-84, -10, { role: 'point', fx: -95, fz: -40, crew: 0 })];
+    const [c0, c1] = GA.carry, cp = GA.point;
+    const crew = [SH2.crew.add(c0[0], c0[1], { role: 'carry', item: 'beam', from: [c0[0], c0[1]], to: [c1[0], c1[1]], crew: 1 }), SH2.crew.add(cp[0], cp[1], { role: 'point', fx: GA.pointAt[0], fz: GA.pointAt[1], crew: 0 })];
     function count() {
       const n = { N: 0, S: 0, E: 0 }; for (const gi of A.set) n[G[gi].k]++;
-      labs.N.set(`צפון ${n.N}/3`, { x: -125, y: 16, z: -56 }); labs.S.set(`דרום ${n.S}/3`, { x: -125, y: 16, z: 56 }); labs.E.set(`מזרח ${n.E}/1`, { x: -14, y: 16, z: 0 });
+      const TL = GA.tally; labs.N.set(`צפון ${n.N}/3`, { x: TL.N[0], y: 16, z: TL.N[1] }); labs.S.set(`דרום ${n.S}/3`, { x: TL.S[0], y: 16, z: TL.S[1] }); labs.E.set(`מזרח ${n.E}/1`, { x: TL.E[0], y: 16, z: TL.E[1] });
       for (const k of ['N', 'S', 'E']) labs[k].el.classList.toggle('hot', n[k] === (k === 'E' ? 1 : 3));
     }
-    function shot() { const k = innerWidth / Math.max(1, innerHeight) < 1.6 ? 1.18 : 1; X.shot([-95, 330 * k, 72 * k], [-95, 0, -14], 1.0); }
+    function shot() { const k = innerWidth / Math.max(1, innerHeight) < 1.6 ? 1.18 : 1, [E0, T0] = GA.shot; X.shot([E0[0], E0[1] * k, E0[2] * k], [T0[0], T0[1], T0[2]], 1.0); }
     function tokAt(p) {
       const hits = X.rayAt(p.x, p.y).intersectObjects(toks.map((t) => t.g), true); if (!hits.length) return null;
       let o = hits[0].object; while (o && !toks.find((t) => t.g === o)) o = o.parent; return toks.find((t) => t.g === o) || null;
@@ -264,7 +267,7 @@ export const GATES = {
       X.bonus(A.miss ? 0 : 100, 'gates', 'כל השערים במקומם'); X.play('tier');
       X.save(); await sleep(1600);
       const q = 7 / (7 + A.miss);
-      X.end({ q, stars: starsOf(q), at: { x: -95, y: 20, z: 0 } });
+      X.end({ q, stars: starsOf(q), at: { x: GA.mid[0], y: 20, z: GA.mid[1] } });
     }
     return {
       begin() {
@@ -296,7 +299,7 @@ export const GATES = {
         for (const o of [...slotM, ...toks.map((t) => t.g)]) PR.remove(o);
         for (const k of Object.keys(labs)) labs[k].remove(); for (const w of crew) SH2.crew.remove(w);
       },
-      at() { return { x: -95, y: 20, z: 0 }; },
+      at() { return { x: GA.mid[0], y: 20, z: GA.mid[1] }; },
       dbg() {
         const sc = (o) => { const r = X.scr(o.x, o.y, o.z); return [Math.round(r.x), Math.round(r.y)]; };
         return { done: A.done, miss: A.miss, set: [...A.set], toks: toks.map((t) => ({ i: t.i, scr: sc(t.g.position) })), slots: slots.map((s) => ({ gi: s.gi, k: s.k, scr: sc({ x: s.x, y: s.y, z: s.z }) })) };
@@ -310,7 +313,7 @@ export const GATES = {
 function closingSlot(X) {
   let N = 0; try { N = X.stages.siteInfo('wall').stones; } catch (e) { N = 0; }
   let s = null; try { s = X.stages.slotAt('wall', N - 1); } catch (e) { s = null; }
-  if (!s) s = { x: -192, y: 42.5, z: -4.8, w: 6.36, h: H, d: 1.96, n: [-1, 0], yaw: Math.atan2(-1, 0) };
+  if (!s) s = { x: BOOK.s02.closing[0], y: 42.5, z: BOOK.s02.closing[1], w: 6.36, h: H, d: 1.96, n: [-1, 0], yaw: Math.atan2(-1, 0) };
   return s;
 }
 export const CLOSING = {

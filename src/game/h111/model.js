@@ -13,24 +13,23 @@
  * are a rule of level 3; the crews raise the courses above, and the closing stone is the ring's last stone.
  */
 
+// ── build 126 ── (rule 65) every place of the stage is the book's (world/grid.js BOOK.s02): the sides, the stretches, the gates, the
+// great stones; this file keeps the rules (levels, courses, the gate a stretch crosses) and the sizes
+import { BOOK } from '../world/grid.js';
+const B2 = BOOK.s02;
+
 export const H111 = Object.freeze({
   STRETCHES: 9,
   H: 2.1818,          // a course (stages.js siteInfo('wall').H)
-  T: 6,               // the wall's thickness (amot)
+  T: B2.ring.T,       // the wall's thickness (amot; build 126: the book's)
   ROW: 2,             // a face row's depth: the outer face, the core (the crews' fill), the inner face
   // the gates of the azara (Middot 1:4; temple.js): their openings, 10 amot wide, through the wall from the terrace (6) to the lintel (26)
-  GATES: [
-    { k: 'N', x: -160, n: 'בית המוקד' }, { k: 'N', x: -95, n: 'שער הקרבן' }, { k: 'N', x: -38, n: 'שער הניצוץ' },
-    { k: 'S', x: -160, n: 'שער הדלק' }, { k: 'S', x: -118, n: 'שער הבכורות' }, { k: 'S', x: -38, n: 'שער המים' },
-    { k: 'E', x: 3, n: 'שער ניקנור' },
-  ],
+  GATES: B2.gates.map(([k, x, n]) => ({ k, x, n })),   // (build 126: the book's)
   GATE_W: 10,
 });
 
 /** the wall's sides on the azara (the ring's lines, amot; +x east, +z south): the centre line, its outward normal, the inner face */
-export const SIDE = Object.freeze({
-  N: { c: -70.5, n: [0, -1] }, S: { c: 70.5, n: [0, 1] }, W: { c: -190, n: [-1, 0] }, E: { c: 144, n: [1, 0] },
-});
+export const SIDE = B2.side;   // (build 126: the book's)
 /** a point on a side: `at` along it (x for N/S, z for W/E) → { x, z, nx, nz, ux, uz } with u the direction the stretch runs */
 export function sidePoint(k, at, dir = 1) {
   const S = SIDE[k], ns = k === 'N' || k === 'S';
@@ -42,19 +41,12 @@ export function sidePoint(k, at, dir = 1) {
 
 // the stretches (spec route: the north, the west and the start of the south, the south and the east). x/z along the side; G: the gap's
 // length; the level's rules (lv); the gate opening it crosses (L3); the course it lays (its index, 0-based: course 0 is the footing)
-export const STRETCH = Object.freeze([
-  { s: 1, k: 'N', at: -66, G: 8, lv: 1, c: 1 },
-  { s: 2, k: 'N', at: -128, G: 9, lv: 1, c: 2 },
-  { s: 3, k: 'W', at: -42, G: 10, lv: 1, c: 3 },
-  { s: 4, k: 'W', at: 14, G: 10, lv: 2, c: 4 },
-  { s: 5, k: 'S', at: -140, G: 11, lv: 2, c: 5 },
-  { s: 6, k: 'S', at: -80, G: 12, lv: 2, c: 6 },
-  { s: 7, k: 'S', at: -118, G: 22, lv: 3, c: 7, gate: 4 },
-  { s: 8, k: 'S', at: -38, G: 22, lv: 3, c: 8, gate: 5 },
-  { s: 9, k: 'S', at: -14, G: 12, lv: 3, c: 9, bare: true },
-].map((o) => Object.freeze(o)));
-// the great stones: beside the stretches 4, 6, 8 (the next course, a little along the wall from the stretch)
-export const GIANT = Object.freeze({ 4: { k: 'W', at: 38, L: 8 }, 6: { k: 'S', at: -64, L: 9 }, 8: { k: 'S', at: -66, L: 10 } });
+// (build 126: the place — side, along it, the gap's length — is the book's; the rules stay here)
+const RULE = { 1: { lv: 1, c: 1 }, 2: { lv: 1, c: 2 }, 3: { lv: 1, c: 3 }, 4: { lv: 2, c: 4 }, 5: { lv: 2, c: 5 }, 6: { lv: 2, c: 6 }, 7: { lv: 3, c: 7, gate: 4 }, 8: { lv: 3, c: 8, gate: 5 }, 9: { lv: 3, c: 9, bare: true } };
+export const STRETCH = Object.freeze(B2.stretch.map(([s, k, at, G]) => Object.freeze({ s, k, at, G, ...RULE[s] })));
+// the great stones: beside the stretches 4, 6, 8 (the next course, a little along the wall from the stretch); their places the book's
+const GIANT_L = { 4: 8, 6: 9, 8: 10 };
+export const GIANT = Object.freeze(Object.fromEntries(Object.entries(B2.giant).map(([s, [k, at]]) => [s, Object.freeze({ k, at, L: GIANT_L[s] })])));
 
 const MISSIONS = () => {
   const L = [];

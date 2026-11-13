@@ -149,6 +149,31 @@ const S02 = {
   // closing stone's course, 42.5 + a course's half height, rounded up) — the look's walls (world/look.js ringBoxes)
   ring: { T: 6, top: 44 },
   gates: [['N', -160, 'בית המוקד'], ['N', -95, 'שער הקרבן'], ['N', -38, 'שער הניצוץ'], ['S', -160, 'שער הדלק'], ['S', -118, 'שער הבכורות'], ['S', -38, 'שער המים'], ['E', 3, 'שער ניקנור']],
+  // ── h126 ── (build 126, rule 65: "הכול יושב על העולם" — every other place stage 02's code used to type itself, read from here)
+  // the great stones' places beside stretches 4, 6, 8 (side, along it; h111/model.js GIANT keeps their lengths)
+  giant: { 4: ['W', 38], 6: ['S', -64], 8: ['S', -66] },
+  // the openings' band across the wall on the north and south sides (h111/world.js holeRects: the wall's 6 and a tenth more)
+  band: { N: [-73.6, -67.4], S: [67.4, 73.6] },
+  // the gates' act (h111/acts2.js GATES): the court's middle, the kohen's stand, the two west slots where no gate is, the frames' yard
+  // (its first token; 14 apart in fours, 12 between the rows, the second row 7 in), the carrying crew's walk, the pointing crewman and
+  // where he points, the three tallies, the shot over the court (eye, target)
+  gatesAct: {
+    mid: [-95, 0], stand: [-95, 9], west: [[-190, -30], [-190, 30]], yard: [-126, -6], carry: [[-104, 14], [-112, 30]], point: [-84, -10], pointAt: [-95, -40],
+    tally: { N: [-125, -56], S: [-125, 56], E: [-14, 0] }, shot: [[-95, 330, 72], [-95, 0, -14]],
+  },
+  // the closing stone's place when the world gives none (h111/acts2.js closingSlot: the west wall's outer face, course 19, at y 42.5)
+  closing: [-192, -4.8],
+  // the cameras: the film's shots [eye, target, seconds], the stage's opening, the night, the end's round (its middle, radius, height),
+  // the stakes act's two shots ([eye with its height over the ground, target likewise, the ground's sample points])
+  cam: {
+    film: [[[-95, 230, 210], [-95, 10, 0], 3.0], [[-95, 60, -150], [-95, 14, -70], 2.6], [[-260, 70, 0], [-190, 20, 0], 2.4], [[-60, 60, 160], [-95, 14, 70], 2.4], [[60, 300, 260], [-60, 0, 0], 1.6]],
+    intro: [[[-60, 520, 520], [-40, 0, 0]], [[-95, 260, 230], [-95, 0, 0]], [[-30, 60, -20], [-4, 0, -64]]],
+    night: [[-95, 120, 150], [-95, 14, 0]],
+    round: { c: [-95, 0], R: 210, y: 120 },
+    stakesTop: [[-93, 150, 150], [-93, 0, 4], [-93, 0], [-93, 0]],
+    stakesNorth: [[-120, 40, -40], [-60, 0, -67.5], [-120, -67], [-60, -67]],
+  },
+  // ── /h126 ──
 };
 function s02() {
   const sp = (k, at) => { const S = S02.side[k], ns = k === 'N' || k === 'S'; return { x: ns ? at : S.c, z: ns ? S.c : at, nx: S.n[0], nz: S.n[1], ux: ns ? (k === 'N' ? -1 : 1) : 0, uz: ns ? 0 : (k === 'W' ? 1 : -1) }; };
@@ -161,7 +186,16 @@ function s02() {
   for (const [k, [x, z]] of Object.entries(S02.stakes)) E.push(ent('stake' + k, 'stake', x, z, `יתד פינה ${k}`, 'מידות ה, א'));
   E.push(ent('stand:stakes', 'stand', S02.stakes.D[0] - 5.1, S02.stakes.D[1] + 3.9, 'עמדת הכהן ביתד הצפונית-מזרחית', ILL));
   S02.gates.forEach(([k, at, n], i) => E.push(ent('gate' + i, 'gate', at, k === 'E' ? 0 : S02.side[k].c, n, 'מידות א, ד', { extra: { side: k } })));
-  return { stage: 2, name: 'חומת העזרה', bounds: { x0: -200, x1: 150, z0: -80, z1: 80 }, side: S02.side, ring: S02.ring, stretch: S02.stretch, stakes: S02.stakes, gates: S02.gates, entries: E };
+  // ── h126 ── the places moved into the book in build 126
+  for (const [s, [k, at]] of Object.entries(S02.giant)) { const P = sp(k, at); E.push(ent('giant' + s, 'stone', P.x, P.z, `האבן הגדולה ליד קטע ${s}`, ILL, { extra: { side: k, at } })); }
+  const GA = S02.gatesAct;
+  E.push(ent('stand:gates', 'stand', GA.stand[0], GA.stand[1], 'עמדת הכהן בתבניות הפתחים', ILL));
+  GA.west.forEach(([x, z], i) => E.push(ent('gates:west' + i, 'slot', x, z, 'מקום בלי שער בחומה המערבית', ILL)));
+  E.push(ent('gates:yard', 'yard', GA.yard[0], GA.yard[1], 'תבניות הפתחים מחכות באמצע העזרה', ILL));
+  E.push(ent('gates:point', 'crew', GA.point[0], GA.point[1], 'איש הצוות שמראה את הפתחים', ILL));
+  E.push(ent('closing', 'stone', S02.closing[0], S02.closing[1], 'אבן הסגירה בחומה המערבית', ILL, { y: 42.5 }));
+  // ── /h126 ──
+  return { stage: 2, name: 'חומת העזרה', bounds: { x0: -200, x1: 150, z0: -80, z1: 80 }, side: S02.side, ring: S02.ring, stretch: S02.stretch, stakes: S02.stakes, gates: S02.gates, giant: S02.giant, band: S02.band, gatesAct: S02.gatesAct, closing: S02.closing, cam: S02.cam, entries: E };   // ── h126 ── (giant … cam) ── /h126 ──
 }
 
 /** stage 03, the soreg and the chel (h112/model.js RUNS, STEPS; registered): each run's posts (who sets each), the sighting's eye,

@@ -164,7 +164,7 @@ function patchShader(sh, gao, bc) {
   let vs = sh.vertexShader, fs = sh.fragmentShader;
   if (gao) {
     const { strength, range, macro } = gao;
-    if (macro > 0) sh.uniforms.uGaoC = { value: gao.course === 'temple' ? 2 : gao.course ? 1 : 0 };   // ── look D review K3 ── ── /look D review ── ── look E ── (2: the Temple's walls, a warm bounce in their shade) ── /look E ──
+    if (macro > 0) { sh.uniforms.uGaoC = { value: gao.course === 'temple' ? 2 : gao.course ? 1 : 0 }; sh.uniforms.uGaoR = { value: gao.rows || 11 }; }   // ── look D review K3 ── ── /look D review ── ── look E ── (2: the Temple's walls, a warm bounce in their shade) ── /look E ──
     const fl = !!gao.floor;   // ── look E ── the paving's slabs, laid by world position (FLOOR_GLSL) ── /look E ──
     vs = vs
       .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;' + (fl ? '\nvarying vec3 vFlW; varying vec3 vFlN;' : ''))
@@ -175,7 +175,7 @@ function patchShader(sh, gao, bc) {
     // (the reveal variant samples macro variation and occlusion at the cap point for back faces)
     const xz = bc ? `\n#ifdef BCLIP\n    vec2 gxz = bcFront ? vWXZ : bcP.xz;\n#else\n    vec2 gxz = vWXZ;\n#endif\n` : '\n    vec2 gxz = vWXZ;\n';
     fs = fs.replace('#include <common>', `#include <common>
-        varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC;' : ''}
+        varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC; uniform float uGaoR;' : ''}
         float gh21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float gvn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }${fl ? FLOOR_GLSL : ''}`)
@@ -187,7 +187,7 @@ function patchShader(sh, gao, bc) {
           // pieces carry their top as aBase + 1000: vAoH < −500) ── /look D review ──
           if (uGaoC > 0.5) {
 #ifdef USE_MAP
-            diffuseColor.rgb *= 1.0 + 0.08 * (gh21(vec2(floor(vMapUv.y * 11.0), floor(vMapUv.x * 2.0)) + 0.37) - 0.5);
+            diffuseColor.rgb *= 1.0 + 0.08 * (gh21(vec2(floor(vMapUv.y * uGaoR), floor(vMapUv.x * 2.0)) + 0.37) - 0.5);   // ── look E ── (uGaoR: the texture's courses, 11 or the marble's 12) ── /look E ──
 #endif
             if (vAoH < -500.0) { float yt = vAoH + 1000.0; diffuseColor.rgb *= 1.0 - 0.6 * smoothstep(-4.4, -1.0, yt) * (1.0 - smoothstep(-0.85, -0.7, yt)); }
             else diffuseColor.rgb *= mix(vec3(0.56, 0.52, 0.46), vec3(1.0), smoothstep(0.0, 11.0, vAoH + (mv - 0.5) * 3.0));
@@ -366,8 +366,8 @@ ${BC_FRONT_GLSL}
 
 const gaoKey = (g) => (g ? `gao_${g.strength}_${g.range}_${g.instanced}_${g.macro}${g.floor ? '_floor' : ''}` : 'plain');
 
-export function groundAO(mat, { strength = 0.5, range = 8, instanced = false, macro = 0, course = false, floor = false } = {}) {
-  const gao = { strength, range, instanced, macro, course, floor };   // ── look E ── (floor: the paving's slabs; course 'temple': the Temple's walls) ── /look E ──   // ── look D review K3 ── (course: a uniform, not in the key: the program stays shared) ── /look D review ──
+export function groundAO(mat, { strength = 0.5, range = 8, instanced = false, macro = 0, course = false, floor = false, rows = 11 } = {}) {
+  const gao = { strength, range, instanced, macro, course, floor, rows };   // ── look E ── (floor: the paving's slabs; course 'temple': the Temple's walls) ── /look E ──   // ── look D review K3 ── (course: a uniform, not in the key: the program stays shared) ── /look D review ──
   mat.userData.gao = gao;
   mat.onBeforeCompile = (sh) => patchShader(sh, gao, null);
   mat.customProgramCacheKey = () => gaoKey(gao);

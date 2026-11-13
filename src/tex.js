@@ -175,6 +175,7 @@ function texLimestone(seed, size, tone) {
 // Tile = 19.2 amot, 12 courses of 1.6 amot.
 export function texMarble(seed = 23, size = 1024) {
   const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
+  const w = rng(seed * 7919 + 29);   // ── look E ── ── /look E ──
   const rows = 12, ch = size / rows, J = 1.6;
   const joints = { rows, edges: [] };   // ── world6 ── the stones' layout for SITE's reveal (as texAshlar)
   x.fillStyle = '#9aa3ac'; x.fillRect(0, 0, size, size);
@@ -187,8 +188,12 @@ export function texMarble(seed = 23, size = 1024) {
       // curtain wall); the same r() calls in the same order, so the layout and SITE's joints are unchanged
       const hu = blue ? 198 + (r() - 0.5) * 10 : 40 + (r() - 0.5) * 8;
       const sa = blue ? 8 + (r() - 0.5) * 6 : 20 + (r() - 0.5) * 8;
-      const li = blue ? 83 + (r() - 0.5) * 5 : 91 + (r() - 0.5) * 3;
+      let li = blue ? 83 + (r() - 0.5) * 5 : 91 + (r() - 0.5) * 3;
       const veins = [0, 1, 2, 3].map(() => [r(), r(), r(), r(), 0.6 + r() * 1.6]);
+      // ── look E ── each block a tone of its own (warm white to a hair grey), soft clouds and finer veins: not a flat white; the
+      // blue-grey courses a little greyer (w(), never r(): the layout and SITE's joints unchanged) ── /look E ──
+      li += (w() - 0.5) * (blue ? 4 : 6); const sa2 = blue ? -2.5 : (w() - 0.5) * 8;
+      const cl = [0, 1, 2].map(() => [w(), w(), 18 + w() * 60, w() < 0.5 ? -6 : 3]), fine = [0, 1, 2, 3, 4].map(() => [w(), w(), w(), w(), 0.4 + w() * 0.8]);
       wrap2(size, bx0, y0, bw, ch, (bx, by) => {
         const X = bx + J / 2, Y = by + J / 2, W = bw - J, H = ch - J;
         const g = x.createLinearGradient(0, Y, 0, Y + H);
@@ -196,6 +201,8 @@ export function texMarble(seed = 23, size = 1024) {
         else { g.addColorStop(0, hsl(hu, sa, li + 3)); g.addColorStop(0.15, hsl(hu, sa, li)); g.addColorStop(1, hsl(hu, sa, li - 4)); }
         x.fillStyle = g; x.fillRect(X, Y, W, H);
         x.save(); x.beginPath(); x.rect(X, Y, W, H); x.clip();
+        for (const [a, b, rad, dl] of cl) { const gx = X + a * W, gy = Y + b * H, gg = x.createRadialGradient(gx, gy, 0, gx, gy, rad); gg.addColorStop(0, hsl(hu, sa + sa2, li + dl, 0.35)); gg.addColorStop(1, hsl(hu, sa + sa2, li + dl, 0)); x.fillStyle = gg; x.fillRect(gx - rad, gy - rad, rad * 2, rad * 2); }   // ── look E ── ── /look E ──
+        for (const [a, b, c2, d, lw] of fine) { x.strokeStyle = blue ? 'rgba(70,82,96,.16)' : 'rgba(150,132,108,.2)'; x.lineWidth = lw; x.beginPath(); x.moveTo(X, Y + a * H); x.bezierCurveTo(X + W * 0.3, Y + b * H, X + W * 0.6, Y + c2 * H, X + W, Y + d * H); x.stroke(); }   // ── look E ── ── /look E ──
         for (const [a, b, c2, d, lw] of veins) {
           x.strokeStyle = blue ? 'rgba(55,75,105,.30)' : 'rgba(140,128,110,.22)'; x.lineWidth = lw;
           x.beginPath(); x.moveTo(X + a * W, Y); x.bezierCurveTo(X + b * W, Y + H * 0.3, X + c2 * W, Y + H * 0.7, X + d * W, Y + H); x.stroke();

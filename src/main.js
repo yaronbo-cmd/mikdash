@@ -88,18 +88,18 @@ const prog = (p, txt) => { const b = $('lb'), t = $('lt'); if (b) b.style.width 
 function makeMats() {
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const T = {
-    ash: TX.texAshlar(7), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17, 1024, [40, 20, 76], false), marble: TX.texMarble(23),
+    ash: TX.texAshlar(7, 1024, [39, 21, 77]), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17, 1024, [40, 20, 76], false), marble: TX.texMarble(23),
     plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), lattice: TX.texLattice(),
     puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91, 512, false),
   };
   for (const v of Object.values(T)) for (const t of (v.isTexture ? [v] : Object.values(v))) t.anisotropy = aniso;
   const std = (o) => new THREE.MeshStandardMaterial(o), n = (a) => new THREE.Vector2(a, a);
   const mats = {
-    ash: { mat: groundAO(std({ map: T.ash.map, normalMap: T.ash.normalMap, normalScale: n(1.1), roughness: 0.86 }), { macro: 0.1 }), tile: 24 },
+    ash: { mat: groundAO(std({ map: T.ash.map, normalMap: T.ash.normalMap, normalScale: n(1.1), roughness: 0.86 }), { macro: 0.1, course: 'temple' }), tile: 24 },   // ── look E ── (round A's tone range, not honey; the courses' tones, the dirty foot and a warm bounce: the Temple's walls and chambers) ── /look E ──
     ashBig: { mat: groundAO(std({ map: T.ashBig.map, normalMap: T.ashBig.normalMap, normalScale: n(1.2), roughness: 0.88 }), { macro: 0.12 }), tile: 30 },
     ash2: { mat: groundAO(std({ map: T.ash2.map, normalMap: T.ash2.normalMap, normalScale: n(1.1), roughness: 0.92 }), { macro: 0.1, course: true }), tile: 22 },   // ── look D ── (macro: the city walls' weathering, ash's program) ── /look D ── ── look D review K3 ── (course: the courses' tones, the foot, the cornice's shade) ── /look D review ──
     pave: { mat: groundAO(std({ map: T.pave.map, normalMap: T.pave.normalMap, normalScale: n(0.7), roughness: 0.9 }), { macro: 0.14, floor: true }), tile: 24 },   // ── look E ── (the surface without joints; the slabs laid by the floor shader, batch.js FLOOR_GLSL) ── /look E ──
-    marble: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, normalScale: n(1.35), roughness: 0.34, envMapIntensity: 0.9 })), tile: 19.2 },
+    marble: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, normalScale: n(1.35), roughness: 0.34, envMapIntensity: 0.9 }), { macro: 0.1, course: 'temple', rows: 12 }), tile: 19.2 },   // ── look E ── (the walls' program: weathering, each course its tone, the dirty foot, the warm bounce) ── /look E ──
     marbleIn: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, color: '#A89F92', roughness: 0.5, envMapIntensity: 0.4 })), tile: 19.2 },
     wmarble: { mat: groundAO(std({ color: '#EDE5D6', roughness: 0.42, envMapIntensity: 0.7 })), tile: 10 },
     plaster: { mat: groundAO(std({ map: T.plaster.map, normalMap: T.plaster.normalMap, normalScale: n(0.8), roughness: 0.95 })), tile: 10 },

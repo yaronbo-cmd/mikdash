@@ -143,18 +143,19 @@ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77], joints = 
 // (batch.js, gao.floor), laid in courses by world position, so nothing repeats. Tile = the material's tile (24 amot).
 function texLimestone(seed, size, tone) {
   const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
-  const around = (fn) => { for (const ox of [-size, 0, size]) for (const oy of [-size, 0, size]) fn(ox, oy); };
+  // (the copies across the tile's edges, only those that reach into it)
+  const around = (fn, X = size / 2, Y = size / 2, R = size) => { for (const ox of [-size, 0, size]) for (const oy of [-size, 0, size]) if (X + ox + R > 0 && X + ox - R < size && Y + oy + R > 0 && Y + oy - R < size) fn(ox, oy); };
   x.fillStyle = hsl(tone[0], tone[1], tone[2]); x.fillRect(0, 0, size, size);
   h.fillStyle = '#808080'; h.fillRect(0, 0, size, size);
-  for (let i = 0; i < 90; i++) {
-    const X = r() * size, Y = r() * size, R = 30 + r() * 160, dl = r() < 0.5 ? -7 : 5, a = 0.12 + r() * 0.16, hu = tone[0] + (r() - 0.5) * 8;
-    around((ox, oy) => { const g = x.createRadialGradient(X + ox, Y + oy, 0, X + ox, Y + oy, R); g.addColorStop(0, hsl(hu, tone[1] + dl * 0.6, tone[2] + dl, a)); g.addColorStop(1, hsl(hu, tone[1], tone[2], 0)); x.fillStyle = g; x.fillRect(X + ox - R, Y + oy - R, R * 2, R * 2); });
+  for (let i = 0; i < 60; i++) {
+    const X = r() * size, Y = r() * size, R = 30 + r() * 160, dl = r() < 0.5 ? -7 : 5, a = 0.14 + r() * 0.18, hu = tone[0] + (r() - 0.5) * 8;
+    around((ox, oy) => { const g = x.createRadialGradient(X + ox, Y + oy, 0, X + ox, Y + oy, R); g.addColorStop(0, hsl(hu, tone[1] + dl * 0.6, tone[2] + dl, a)); g.addColorStop(1, hsl(hu, tone[1], tone[2], 0)); x.fillStyle = g; x.fillRect(X + ox - R, Y + oy - R, R * 2, R * 2); }, X, Y, R);
   }
   for (let i = 0; i < 6; i++) {
     let X = r() * size, Y = r() * size, a = r() * 6.28; const pts = [[X, Y]];
     for (let k = 0; k < 30; k++) { a += (r() - 0.5) * 0.5; X += Math.cos(a) * 12; Y += Math.sin(a) * 12; pts.push([X, Y]); }
     const lw = 0.8 + r() * 1.4;
-    around((ox, oy) => { x.strokeStyle = hsl(tone[0] - 4, tone[1] + 4, tone[2] - 14, 0.18); x.lineWidth = lw; x.beginPath(); pts.forEach(([p, q], k) => (k ? x.lineTo(p + ox, q + oy) : x.moveTo(p + ox, q + oy))); x.stroke(); });
+    around((ox, oy) => { x.strokeStyle = hsl(tone[0] - 4, tone[1] + 4, tone[2] - 14, 0.18); x.lineWidth = lw; x.beginPath(); pts.forEach(([p, q], k) => (k ? x.lineTo(p + ox, q + oy) : x.moveTo(p + ox, q + oy))); x.stroke(); }, X, Y, 400);
   }
   for (let i = 0; i < 3600; i++) {
     const X = r() * size, Y = r() * size, R = 0.7 + r() * r() * 2.4, l = tone[2] - 12 - r() * 10;

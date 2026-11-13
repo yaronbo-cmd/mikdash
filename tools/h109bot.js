@@ -58,7 +58,7 @@
       }
       // (build 115: hold to drive, let go before the green line (they slide on ~1.2), then a drag up tips the sledge into the pit)
       if (a.phase === 'push' && a.v < 0.1 && Math.abs(a.d - a.tgt) <= 3.5) return { drag: [a.sled[0], a.sled[1], a.sled[0], a.sled[1] - 140, 300], wait: 600, note: 'waste: tip at ' + (a.d - a.tgt).toFixed(2) };
-      if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [a.line[0] > 0 && a.line[0] < W ? a.line[0] : W * 0.75, a.line[1] > 0 && a.line[1] < HH ? a.line[1] : HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };   // (build 125: on the track — the push's own grip)
+      if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [a.trk && a.trk[0] > 0 && a.trk[0] < W ? a.trk[0] : W * 0.75, a.trk && a.trk[1] > 0 && a.trk[1] < HH ? a.trk[1] : HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };   // (build 125: on the track — the push's own grip)
       if (a.phase === 'push') return { wait: 300 };
       return { wait: 300 };
     },

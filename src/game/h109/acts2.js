@@ -1033,7 +1033,7 @@ export const WASTE = {
       cancel() { A.hold = false; A.p0 = null; },
       end() { X.props.remove(sled); X.props.remove(line); for (const h of oxen) try { an.remove(h); } catch (e) { /* */ } for (const w of rakers) SH.crew.remove(w); SH.crew.remove(drover); X.hand(null); },
       at() { return { x: P.x, y: gP() + 2, z: P.z }; },
-      dbg() { const sc = (o) => { const r = X.scr(o.x, o.y, o.z); return [Math.round(r.x), Math.round(r.y)]; }; return { phase: A.phase, on: A.on.length, cap, pile: chunks().length, trips: A.trips, pit: pi, d: +A.d.toFixed(2), tgt: +Tgt.toFixed(2), v: +A.v.toFixed(2), tips: A.tips.slice(), sled: sc({ x: sled.position.x, y: sled.position.y + 0.8, z: sled.position.z }), chunks: chunks().map((c) => sc(c.position)), line: sc({ x: rimX, y: gP(), z: P.z }), ph: +SH.B.phase(2).toFixed(2) }; },
+      dbg() { const sc = (o) => { const r = X.scr(o.x, o.y, o.z); return [Math.round(r.x), Math.round(r.y)]; }; return { trk: sc({ x: rimX, y: X.ground(rimX, s0.z) + 0.5, z: s0.z }), phase: A.phase, on: A.on.length, cap, pile: chunks().length, trips: A.trips, pit: pi, d: +A.d.toFixed(2), tgt: +Tgt.toFixed(2), v: +A.v.toFixed(2), tips: A.tips.slice(), sled: sc({ x: sled.position.x, y: sled.position.y + 0.8, z: sled.position.z }), chunks: chunks().map((c) => sc(c.position)), line: sc({ x: rimX, y: gP(), z: P.z }), ph: +SH.B.phase(2).toFixed(2) }; },
     };
   },
 };

@@ -82,6 +82,70 @@ vec2 bcFrontOf(vec2 q) {
 }
 float bcThOf(float fi) { int i = int(fi + 0.5); vec4 t = uBcTh[i / 4]; int k = i - (i / 4) * 4; return k == 0 ? t.x : k == 1 ? t.y : k == 2 ? t.z : t.w; }
 `;
+// ── look E ── (docs/specs/look/E-azarah-stone-floor.md) the paving: slabs of several sizes laid in courses (east–west), drawn by world
+// position on every up-facing face, so no tile repeats: each slab its own tone (warm cream, a hair pinker, yellower or greyer), soft
+// joints with a lit chamfer (faded with distance: no moiré), and on the risers of steps (tops on the half amah) a worn, lit nosing
+// and the slabs' upright joints. In the Azarah (floor 16): worn paths on the gates' axes, round the altar and the laver and at the
+// ramp's foot (smoother, paler, joints filled), and darker staining at the altar's foot and round the laver.
+const FLOOR_GLSL = `
+varying vec3 vFlW; varying vec3 vFlN;
+// p: (along the course, across) in amot → id of the slab, e: distance to its nearest joint
+vec2 flSlab(vec2 p, out float e) {
+  float band = floor(p.y / 5.2), f = p.y / 5.2 - band, hb = gh21(vec2(band, 7.1)), sp = 0.34 + 0.32 * gh21(vec2(band, 3.3));
+  float r0 = 0.0, r1 = 1.0, row = band * 2.0;
+  if (hb < 0.62) { if (f < sp) r1 = sp; else { r0 = sp; row += 1.0; } }
+  float ez = min(f - r0, r1 - f) * 5.2;
+  float L = 2.6 + 2.8 * gh21(vec2(row, 1.7)), u = (p.x + gh21(vec2(row, 9.2)) * 40.0) / L, c = floor(u), g = u - c;
+  float hs = gh21(vec2(row, c + 0.5)), t = 0.3 + 0.4 * gh21(vec2(c, row + 2.1)), a = 0.0, b = 1.0, sg = 0.0;
+  if (hs < 0.45) { if (g < t) b = t; else { a = t; sg = 1.0; } }
+  e = min(ez, min(g - a, b - g) * L);
+  return vec2(row, c * 2.0 + sg);
+}
+float flSeg(vec2 p, vec2 a, vec2 b) { vec2 d = b - a; return length(p - a - d * clamp(dot(p - a, d) / dot(d, d), 0.0, 1.0)); }
+vec3 flLook(vec3 col, float mv) {
+  vec3 W = vFlW, N = normalize(vFlN);
+  float e = 9.0, fw = 0.0; vec2 id = vec2(0.0);
+  bool top = N.y > 0.6, side = abs(N.y) < 0.4;
+  float wear = 0.0, stain = 0.0, damp = 0.0;
+  if (W.y > 15.6 && W.y < 16.4 && W.x > -187.5 && W.x < -10.5 && abs(W.z) < 68.0) {
+    vec2 q = W.xz; float n1 = gvn(q * 0.35) * 0.6 + gvn(q * 1.3) * 0.4;
+    float d = flSeg(q, vec2(-11.0, 0.0), vec2(-21.0, 0.0)) - 7.0;
+    d = min(d, flSeg(q, vec2(-38.0, 44.0), vec2(-38.0, 67.5)) - 5.0);
+    d = min(d, flSeg(q, vec2(-38.0, -21.0), vec2(-38.0, -67.5)) - 4.0);
+    d = min(d, flSeg(q, vec2(-95.0, -67.5), vec2(-60.0, -24.0)) - 3.0);
+    d = min(d, flSeg(q, vec2(-118.0, 67.5), vec2(-70.0, 30.0)) - 3.0);
+    d = min(d, flSeg(q, vec2(-160.0, 67.5), vec2(-100.0, 52.0)) - 2.5);
+    d = min(d, flSeg(q, vec2(-38.0, 44.0), vec2(-63.5, 20.0)) - 3.5);
+    d = min(d, flSeg(q, vec2(-63.5, 20.0), vec2(-74.0, 0.0)) - 3.5);
+    vec2 ab = abs(q - vec2(-38.0, -3.5)) - vec2(16.0, 16.0); float da = length(max(ab, 0.0)) + min(max(ab.x, ab.y), 0.0);
+    d = min(d, da - 5.0);
+    wear = (1.0 - smoothstep(-1.0, 4.0, d + (n1 - 0.5) * 5.0)) * 0.85;
+    stain = (1.0 - smoothstep(0.0, 3.2, da + (n1 - 0.5) * 2.5)) * (0.55 + 0.45 * n1);
+    damp = (1.0 - smoothstep(1.5, 7.0, length(q - vec2(-63.5, 20.0)) + (n1 - 0.5) * 3.0)) * (0.5 + 0.5 * n1);
+  }
+  if (top) { id = flSlab(W.xz, e); fw = fwidth(W.x) + fwidth(W.z); }
+  else if (side) {
+    float al = abs(N.x) > abs(N.z) ? W.z : W.x, L = 3.4 + 2.0 * gh21(vec2(floor(W.y * 2.0), 4.4)), u = (al + gh21(vec2(floor(W.y * 2.0), 1.9)) * 30.0) / L;
+    e = min(fract(u), 1.0 - fract(u)) * L; id = vec2(floor(W.y * 2.0), floor(u)); fw = fwidth(al);
+    // the nosing: the step's top edge worn round and catching the light; its foot darker
+    float yy = fract(W.y * 2.0 + 0.002);
+    col *= 1.0 + 0.16 * smoothstep(0.78, 0.97, yy) - 0.12 * (1.0 - smoothstep(0.0, 0.12, yy));
+  }
+  // each slab its own tone
+  float h1 = gh21(id + vec2(0.37, 1.91)), h2 = gh21(id * 1.31 + vec2(5.1, 2.7));
+  col *= (0.9 + 0.17 * h1) * (h2 < 0.33 ? vec3(1.03, 0.985, 0.95) : h2 < 0.66 ? vec3(1.0, 0.995, 0.93) : vec3(0.985, 0.985, 0.97));
+  // the joint: dark, soft, a lit chamfer beside it; contrast faded where a joint is narrower than a pixel
+  float px = max(fw, 1e-3), vis = clamp(0.09 / px, 0.0, 1.0) * (1.0 - 0.75 * wear);
+  float jn = 1.0 - smoothstep(0.025, 0.025 + px * 1.2 + 0.03, e);
+  float ch = smoothstep(0.03, 0.07, e) * (1.0 - smoothstep(0.08, 0.16 + px, e));
+  col *= (1.0 - 0.5 * jn * vis) * (1.0 + 0.06 * ch * vis);
+  // wear (smoother and paler), staining at the altar's foot (ash and soot: brown-grey), damp round the laver
+  col = mix(col, col * 1.06 + vec3(0.012, 0.01, 0.006), wear);
+  col = mix(col, col * vec3(0.66, 0.6, 0.53), stain * 0.55);
+  col = mix(col, col * vec3(0.8, 0.79, 0.76), damp * 0.5);
+  return col;
+}`;
+
 // ── site13 ── two more reveals: a finish-only material with a cut of its own (uBcJ.z; uBcJ.w 1 = a height, 2 = laid along +x:
 // the House's finish step by step, the Ezrat Nashim's cedar gallery) and a cut per footprint rect (uBcC.w < 0 rects, the cut in
 // uBcRK[i].x: the Ezrat Nashim's corner chambers rising one at a time); bcCutY is the height the glowing line follows.
@@ -100,10 +164,11 @@ function patchShader(sh, gao, bc) {
   let vs = sh.vertexShader, fs = sh.fragmentShader;
   if (gao) {
     const { strength, range, macro } = gao;
-    if (macro > 0) sh.uniforms.uGaoC = { value: gao.course ? 1 : 0 };   // ── look D review K3 ── ── /look D review ──
+    if (macro > 0) sh.uniforms.uGaoC = { value: gao.course === 'temple' ? 2 : gao.course ? 1 : 0 };   // ── look D review K3 ── ── /look D review ── ── look E ── (2: the Temple's walls, a warm bounce in their shade) ── /look E ──
+    const fl = !!gao.floor;   // ── look E ── the paving's slabs, laid by world position (FLOOR_GLSL) ── /look E ──
     vs = vs
-      .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;')
+      .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;' + (fl ? '\nvarying vec3 vFlW; varying vec3 vFlN;' : ''))
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;' + (fl ? '\nvFlW = (modelMatrix * vec4(transformed, 1.0)).xyz; vFlN = normalize(mat3(modelMatrix) * objectNormal);' : ''))
       .replace('#include <begin_vertex>', gao.instanced
         ? '#include <begin_vertex>\nvAoH = position.y + aBase;'
         : '#include <begin_vertex>\nvAoH = (modelMatrix * vec4(transformed, 1.0)).y - aBase;');
@@ -113,7 +178,7 @@ function patchShader(sh, gao, bc) {
         varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC;' : ''}
         float gh21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float gvn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-          return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }`)
+          return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }${fl ? FLOOR_GLSL : ''}`)
       .replace('#include <map_fragment>', macro > 0 ? `#include <map_fragment>
         {${xz}    float mv = gvn(gxz / 55.0) * 0.65 + gvn(gxz / 13.0) * 0.35;
           diffuseColor.rgb *= mix(${f3(1 - macro)}, ${f3(1 + macro * 0.35)}, mv);
@@ -126,14 +191,16 @@ function patchShader(sh, gao, bc) {
 #endif
             if (vAoH < -500.0) { float yt = vAoH + 1000.0; diffuseColor.rgb *= 1.0 - 0.6 * smoothstep(-4.4, -1.0, yt) * (1.0 - smoothstep(-0.85, -0.7, yt)); }
             else diffuseColor.rgb *= mix(vec3(0.56, 0.52, 0.46), vec3(1.0), smoothstep(0.0, 11.0, vAoH + (mv - 0.5) * 3.0));
-          } }` : '#include <map_fragment>')
+          }${fl ? '\n          diffuseColor.rgb = flLook(diffuseColor.rgb, mv);' : ''} }` : '#include <map_fragment>')
       .replace('#include <aomap_fragment>', `#include <aomap_fragment>
       {
         float gao = vAoH < -500.0 ? 1.0 : smoothstep(0.0, ${range.toFixed(2)}, vAoH);   // ── look D review K3 ── ── /look D review ──
         ${bc ? 'if (!bcFront) gao = 1.0;' : ''}
         reflectedLight.indirectDiffuse *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.indirectSpecular *= mix(${f3(1 - strength)}, 1.0, gao);
-        reflectedLight.directDiffuse *= mix(${f3(1 - strength * 0.4)}, 1.0, gao);
+        reflectedLight.directDiffuse *= mix(${f3(1 - strength * 0.4)}, 1.0, gao);${fl ? `
+        reflectedLight.indirectDiffuse *= vec3(1.12, 1.0, 0.8);   // ── look E ── the courts' warm bounce: the shade on the cream stone warm grey, not navy ── /look E ──` : macro > 0 ? `
+        if (uGaoC > 1.5) reflectedLight.indirectDiffuse *= vec3(1.1, 1.0, 0.84);   // ── look E ── ── /look E ──` : ''}
       }`);
   }
   if (bc) {
@@ -297,10 +364,10 @@ ${BC_FRONT_GLSL}
   airPatch(sh);   // ── look C ── (the cloud shadows on the buildings and walls) ── /look C ──
 }
 
-const gaoKey = (g) => (g ? `gao_${g.strength}_${g.range}_${g.instanced}_${g.macro}` : 'plain');
+const gaoKey = (g) => (g ? `gao_${g.strength}_${g.range}_${g.instanced}_${g.macro}${g.floor ? '_floor' : ''}` : 'plain');
 
-export function groundAO(mat, { strength = 0.5, range = 8, instanced = false, macro = 0, course = false } = {}) {
-  const gao = { strength, range, instanced, macro, course };   // ── look D review K3 ── (course: a uniform, not in the key: the program stays shared) ── /look D review ──
+export function groundAO(mat, { strength = 0.5, range = 8, instanced = false, macro = 0, course = false, floor = false } = {}) {
+  const gao = { strength, range, instanced, macro, course, floor };   // ── look E ── (floor: the paving's slabs; course 'temple': the Temple's walls) ── /look E ──   // ── look D review K3 ── (course: a uniform, not in the key: the program stays shared) ── /look D review ──
   mat.userData.gao = gao;
   mat.onBeforeCompile = (sh) => patchShader(sh, gao, null);
   mat.customProgramCacheKey = () => gaoKey(gao);

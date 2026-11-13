@@ -108,7 +108,8 @@ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11,
 }
 
 // Large flagstone paving. Tile = 24 amot.
-export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
+export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77], joints = true) {
+  if (!joints) return texLimestone(seed, size, tone);   // ── look E ── ── /look E ──
   const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
   x.fillStyle = hsl(tone[0], tone[1], tone[2] - 20); x.fillRect(0, 0, size, size);
   h.fillStyle = '#000'; h.fillRect(0, 0, size, size);
@@ -136,6 +137,39 @@ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
   grain(x, size, size, 0.08, seed + 3); grain(h, size, size, 0.05, seed + 4);
   return { map: toTex(c), normalMap: toTex(normalFromHeight(hc, 1.6, 1), false) };
 }
+
+// ── look E ── (docs/specs/look/E-azarah-stone-floor.md) the paving's surface without joints: cream Jerusalem limestone, soft clouds,
+// pecked pits, a few soft veins, sparse fossil flecks — the slabs, their joints, tones and wear are drawn by the batch's floor shader
+// (batch.js, gao.floor), laid in courses by world position, so nothing repeats. Tile = the material's tile (24 amot).
+function texLimestone(seed, size, tone) {
+  const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
+  const around = (fn) => { for (const ox of [-size, 0, size]) for (const oy of [-size, 0, size]) fn(ox, oy); };
+  x.fillStyle = hsl(tone[0], tone[1], tone[2]); x.fillRect(0, 0, size, size);
+  h.fillStyle = '#808080'; h.fillRect(0, 0, size, size);
+  for (let i = 0; i < 90; i++) {
+    const X = r() * size, Y = r() * size, R = 30 + r() * 160, dl = r() < 0.5 ? -7 : 5, a = 0.12 + r() * 0.16, hu = tone[0] + (r() - 0.5) * 8;
+    around((ox, oy) => { const g = x.createRadialGradient(X + ox, Y + oy, 0, X + ox, Y + oy, R); g.addColorStop(0, hsl(hu, tone[1] + dl * 0.6, tone[2] + dl, a)); g.addColorStop(1, hsl(hu, tone[1], tone[2], 0)); x.fillStyle = g; x.fillRect(X + ox - R, Y + oy - R, R * 2, R * 2); });
+  }
+  for (let i = 0; i < 6; i++) {
+    let X = r() * size, Y = r() * size, a = r() * 6.28; const pts = [[X, Y]];
+    for (let k = 0; k < 30; k++) { a += (r() - 0.5) * 0.5; X += Math.cos(a) * 12; Y += Math.sin(a) * 12; pts.push([X, Y]); }
+    const lw = 0.8 + r() * 1.4;
+    around((ox, oy) => { x.strokeStyle = hsl(tone[0] - 4, tone[1] + 4, tone[2] - 14, 0.18); x.lineWidth = lw; x.beginPath(); pts.forEach(([p, q], k) => (k ? x.lineTo(p + ox, q + oy) : x.moveTo(p + ox, q + oy))); x.stroke(); });
+  }
+  for (let i = 0; i < 3600; i++) {
+    const X = r() * size, Y = r() * size, R = 0.7 + r() * r() * 2.4, l = tone[2] - 12 - r() * 10;
+    x.fillStyle = hsl(tone[0], tone[1], tone[2] + 8, 0.25); x.beginPath(); x.arc(X + 0.7, Y + 0.7, R, 0, 6.3); x.fill();
+    x.fillStyle = hsl(tone[0] - 3, tone[1] + 3, l, 0.3); x.beginPath(); x.arc(X, Y, R, 0, 6.3); x.fill();
+    h.fillStyle = 'rgba(40,40,40,0.6)'; h.beginPath(); h.arc(X, Y, R, 0, 6.3); h.fill();
+  }
+  for (let i = 0; i < 70; i++) {
+    const X = r() * size, Y = r() * size, R = 1.5 + r() * 3.5, a = r() * 6.28;
+    x.strokeStyle = hsl(tone[0], tone[1] - 6, tone[2] + 10, 0.55); x.lineWidth = 0.9; x.beginPath(); x.ellipse(X, Y, R, R * 0.55, a, 0, Math.PI * 1.5); x.stroke();
+  }
+  grain(x, size, size, 0.07, seed + 3); grain(h, size, size, 0.12, seed + 4);
+  return { map: toTex(c), normalMap: toTex(normalFromHeight(hc, 1.2, 1), false) };
+}
+// ── /look E ──
 
 // "אפיק שפה ועייל שפה" — alternating courses: white marble proud, blue-grey (כוחלא) recessed.
 // Tile = 19.2 amot, 12 courses of 1.6 amot.

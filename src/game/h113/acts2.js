@@ -7,6 +7,7 @@
 import { H113, GATES, LV, YARD, PILES, PISH_PILE, leafClosed, qOf, starsOf } from './model.js';
 import { SH4, mats, frameOf, gateBuild, lintelMesh, LINTEL_BED, label, keep, gateKeep, box, makeLeaf } from './world.js';
 import { fingers, MOUSE, sc, heroAt, nearPt, onY } from './acts.js';
+import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 import { clamp, lerp, ease } from '../h109/kit.js';
 
 const D2R = Math.PI / 180;
@@ -187,6 +188,10 @@ export const LINTEL = {
         }
         pose();
       },
+      // (build 125: on the right half the lintel (its length, a large moving thing) is the act's; both ends held is the lift's own two
+      //  fingers, never a pinch — the rest is the right thumb's look)
+      wants(p) { if (A.busy || !['in', 'lift', 'lower', 'settle'].includes(A.phase)) return false; return nearSeg(X, p, endAt(-1, 0.5), endAt(1, 0.5), bigR()); },
+      holds() { return [...F.L.values()].filter((f) => nearSeg(X, f, endAt(-1, 0.5), endAt(1, 0.5), bigR())).length >= 2; },
       down(p) { F.down(p); }, move(p) { F.move(p); }, up(p) { F.up(p); },
       end() {
         F.detach(); for (const d of D) { d.rope.show(false); d.hide(); }
@@ -468,6 +473,25 @@ export const LEAF = {
         if (H) { const acc = 30 * (H.angT - H.ang) - 9 * H.om; H.om += acc * dt; H.ang += H.om * dt; H.g.rotation.y = H.ang; }
         if (A.raised) return;
       },
+      // (build 125: on the right half only the boards (on the rack, laid), the board in hand, the battens and the peg, the wicket's boards
+      //  are the act's — the rest is the right thumb's look; a batten held and the peg tapped is the work's own two fingers)
+      wants(p) {
+        if (A.busy) return false; if (!p) return true;
+        const R = gripR();
+        if (A.phase === 'pick') {
+          for (const r of rack) if (nearSeg(X, p, { x: r.g.position.x, y: 8, z: r.g.position.z }, { x: r.g.position.x, y: 22, z: r.g.position.z }, R)) return true;
+          for (const l of A.laid) if (nearSeg(X, p, { x: YARD.x0 + 2, y: topY + 0.3, z: l.g.position.z }, { x: YARD.x1 - 2, y: topY + 0.3, z: l.g.position.z }, R)) return true;
+          return false;
+        }
+        if (A.phase === 'turn') return !!A.held && nearObjs(X, p, [A.held.g], bigR());
+        if (A.phase === 'peg') {
+          for (const b of A.battens) if (nearSeg(X, p, { x: b.position.x, y: b.position.y + 0.3, z: YARD.z - 0.4 }, { x: b.position.x, y: b.position.y + 0.3, z: YARD.post }, R)) return true;
+          const pg = A.pegs[A.peg]; return !!pg && nearPts(X, p, [{ x: pg.x, y: topY + 0.9, z: pg.z }]);
+        }
+        if (A.phase === 'pish') return nearObjs(X, p, A.pishPile.filter((q) => !A.pishSel.includes(q)).map((q) => q.g));
+        return false;
+      },
+      holds() { const L = [...F.L.values()]; return L.some((f) => f.what === 'batten') && L.some((f) => f.what !== 'batten' && nearPeg(f)); },
       down(p) { F.down(p); }, move(p) { F.move(p); }, up(p) { F.up(p); },
       end() {
         F.detach(); clearCarriers();

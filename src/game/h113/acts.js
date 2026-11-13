@@ -11,6 +11,7 @@ import { SH4, mats, frameOf, pivotX, gateBuild, label, initWorld, frameWorld, ke
 import { LINTEL, LEAF } from './acts2.js';
 import { HANG, LOCK } from './acts3.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
+import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 
 const F = H113.FINGER;
 export const MOUSE = (() => { try { return !!(globalThis.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches); } catch (e) { return false; } })();
@@ -436,6 +437,17 @@ export const SOCKET = {
         if (A.phase === 'drill' && A.pin && nearPt(X, { x: A.pin.position.x, y: surf() + 0.45, z: A.pin.position.z }, p, 52)) { f.what = 'test'; return; }
         if (A.phase === 'drill') { f.what = 'bow'; X.hand(null); return; }
         f.what = 'tap';
+      },
+      // (build 125: on the right half only the work in hand is the act's — the pin and the place round it, the mark, the bow drill, the
+      //  template; the rest is the right thumb's look)
+      wants(p) {
+        if (A.busy) return false; if (!p) return true;
+        const pinP = A.pin ? { x: A.pin.position.x, y: surf() + 0.45, z: A.pin.position.z } : null;
+        if (A.phase === 'place') return !!pinP && nearPts(X, p, [pinP], bigR());
+        if (A.phase === 'mirror') return !!A.cross && nearObjs(X, p, [A.cross], bigR());
+        if (A.phase === 'drill') return (!!A.drill && nearObjs(X, p, [A.drill], bigR())) || (!!pinP && nearPts(X, p, [pinP]));
+        if (A.phase === 'tplSill' || A.phase === 'tplLintel') return !!A.tpl && nearObjs(X, p, [A.tpl], bigR());
+        return false;
       },
       move(p) {
         const f = P.f; if (!f || A.busy) return;

@@ -9,6 +9,7 @@ import { H113, GATES, LV, PISH, inherit, lockGap, ringOff, lockOf, qOf, starsOf 
 import { SH4, mats, frameOf, pivotX, leafYaw, makeLeaf, gateBuild, label, keep, gateKeep, box, makeDerrick } from './world.js';
 import { fingers, MOUSE, sc, heroAt, nearPt } from './acts.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
+import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 
 const D2R = Math.PI / 180, F = H113.FINGER;
 
@@ -225,6 +226,14 @@ export const HANG = {
         }
         pose();
       },
+      // (build 125: on the right half the leaf on the derrick's rope (along its height, a large moving thing) and the wicket's are the
+      //  act's — the rest is the right thumb's look; two fingers on the leaf are the work's own, never a pinch)
+      wants(p) {
+        if (A.busy) return false; if (!p) return true;
+        if (A.phase === 'sub') { const h = holeAt(); return nearPts(X, p, [h], bigR()); }
+        return nearSeg(X, p, { x: A.fx + 2.4, y: Fr.sill + 1.5, z: Fr.zp }, { x: A.fx + 2.4, y: Fr.sill + 12, z: Fr.zp }, bigR());
+      },
+      holds() { const a = { x: A.fx + 2.4, y: Fr.sill + 1.5, z: Fr.zp }, b = { x: A.fx + 2.4, y: Fr.sill + 12, z: Fr.zp }; return [...Fg.L.values()].filter((f) => nearSeg(X, f, a, b, bigR())).length >= 2; },
       down(p) { Fg.down(p); }, move(p) { Fg.move(p); }, up(p) { Fg.up(p); },
       end() {
         Fg.detach(); for (const w of A.crew) SH4.crew.remove(w); D.hide();
@@ -574,6 +583,20 @@ export const LOCK = {
         if (A.step === 'lifted' && A.key) { A.key.g.position.y = yBar - 0.35 + A.key.lift * 0.12; }
         if (C.el.style.display !== 'none' && (A.t * 10 | 0) % 3 === 0) cutDraw(C.lastText || '');
       },
+      // (build 125: on the right half only the work in hand is the act's — the two leaves' edges, the bar, the key and its chain, the
+      //  latch; the rest is the right thumb's look; two fingers at the lock (lift and slide) are the work's own, never a pinch)
+      wants(p) {
+        if (A.busy) return false; if (!p) return true;
+        const R = gripR(), B = bigR(), mid = { x: G.c, y: Fr.sill + 6, z: Fr.zp };
+        if (A.step === 'close') {
+          for (const i of [0, 1]) { const side = i ? 1 : -1, px = pivotX(G, side); if (nearSeg(X, p, { x: px, y: Fr.sill + 6, z: Fr.zp }, { x: px - side * Math.cos(A.phi[i]) * 2.5, y: Fr.sill + 6, z: Fr.zp + Fr.s * Math.sin(A.phi[i]) * 2.5 }, B)) return true; }
+          return false;
+        }
+        if (A.step === 'bar' || A.step === 'relock') return nearSeg(X, p, { x: G.c - 3, y: yBar, z: zBar }, { x: G.c + 3, y: yBar, z: zBar }, B);
+        if (['key', 'insert', 'lifted'].includes(A.step)) return nearPts(X, p, [chainAt], R) || (!!(A.key && A.key.g) && nearObjs(X, p, [A.key.g], B)) || nearSeg(X, p, { x: G.c - 3, y: yBar, z: zBar }, { x: G.c + 3, y: yBar, z: zBar }, R);
+        return nearPts(X, p, [mid, chainAt], B);
+      },
+      holds() { const mid = { x: G.c, y: Fr.sill + 6, z: Fr.zp }; return [...Fg.L.values()].filter((f) => nearPts(X, f, [mid, chainAt, { x: G.c, y: yBar, z: zBar }], bigR())).length >= 2; },
       down(p) { Fg.down(p); }, move(p) { Fg.move(p); }, up(p) { Fg.up(p); },
       end() {
         Fg.detach(); for (const w of A.crew) SH4.crew.remove(w);

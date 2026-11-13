@@ -9,7 +9,10 @@
   const C = (body) => `(()=>{const a=__T.game.h109.state().act;${body}})()`;
   const mid = (p, q, u = 0.5) => [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
   // (build 125: a touch only where the world is under the finger — never on a HUD button or card: a hold on the menu opened it)
-  const onWorld = (x, y) => { if (!(x > 2 && x < W - 2 && y > 2 && y < HH - 2)) return false; const e = document.elementFromPoint(x, y); return !!e && (e.tagName === 'CANVAS' || (e.classList && e.classList.contains('h109-touch'))); };
+  // (a finger is not a point: the browser's touch adjustment takes a touch a few px from a button as the button's — so the world must be
+  //  under the whole fingertip, 28 px round)
+  const isWorld = (e) => !!e && (e.tagName === 'CANVAS' || (e.classList && e.classList.contains('h109-touch')));
+  const onWorld = (x, y) => { if (!(x > 28 && x < W - 28 && y > 28 && y < HH - 28)) return false; for (const [dx, dy] of [[0, 0], [28, 0], [-28, 0], [0, 28], [0, -28], [20, 20], [-20, 20], [20, -20], [-20, -20]]) if (!isWorld(document.elementFromPoint(x + dx, y + dy))) return false; return true; };
   const alongWorld = (p, q) => { for (let i = 0; i <= 20; i++) { const r = mid(p, q, i / 20); if (onWorld(r[0], r[1])) return r; } return null; };
   const play = {
     rope(a) {

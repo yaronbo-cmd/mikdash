@@ -10,6 +10,8 @@ const KIND = {
   stretch: 'קטע חומה', stand: 'עמדה', stake: 'יתד', gate: 'שער', post: 'עמוד סורג', eye: 'נקודת כיוון', steps: 'מעלות', yard: 'חצר',
   court: 'עזרה', column: 'עמוד', beam: 'קורה', ladder: 'סולם', chamber: 'לשכה', door: 'פתח', basin: 'מקווה', rod: 'קנה', inlet: 'כניסת מים',
   outlet: 'גלישה', pit: 'בור', hollow: 'גומת מקור', vessel: 'כלי', trestles: 'חמורים', stock: 'מלאי', heap: 'ערמה', bench: 'ספסל',
+  // (build 126) the kinds the stages' moved places brought
+  slot: 'מקום בחומה', crew: 'איש צוות', stone: 'אבן', line: 'קו', rack: 'מתלה',
 };
 const L = [
   '# ספר הכתובות — כל המקומות לפי שלב',

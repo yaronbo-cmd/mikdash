@@ -94,6 +94,7 @@ export function sightLift(base, u, yaw, boxes = [], extra = null, K = LOOK_K, ca
 /** the look as it may be: { lift, dyaw } — the least lift at the asked yaw; where no elevation sees the work (behind a 34-amah wall,
  *  under the gallery's far side) the nearest turn that does (0.1 rad steps either way): the camera never goes behind a wall */
 export function sightPose(base, u, yaw, boxes = [], extra = null, K = LOOK_K, camOnly = false) {
+  if (K.NEAR != null && (+u || 0) <= K.KEEP_U0) return { lift: 0, dyaw: 0 };   // (build 125: the play zone of a close act is its own line of sight backed away: the act's frame, nothing new in it — no lift, no turn)
   for (let k = 0; k <= 32; k++) for (const s of k ? [1, -1] : [1]) {
     const dy = s * k * 0.1, lift = sightLift(base, u, yaw + dy, boxes, extra, K, camOnly);
     if (lift != null) return { lift, dyaw: +dy.toFixed(2) };

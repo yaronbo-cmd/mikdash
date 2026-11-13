@@ -833,7 +833,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
-    M.done({ ...res, stars });
+    M.done({ ...res, stars, loss: lossNow });   // ── h125 ── (the points the act's damage cost — the score's −N — in its result too) ── /h125 ──
     syncMount(false);
     // a sector closed: its grade on the hill and the pull-back (spec ש7: the hill came down there)
     // ── h111 ── (a pack says what closes a unit: stage 01 a sector, stage 02 a stretch of the wall) ── /h111 ──

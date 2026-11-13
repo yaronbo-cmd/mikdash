@@ -202,7 +202,7 @@ export function createH109(save) {
     /** the picked work ends: result { stars 0..3, q 0..1, lost?: bool (counted 0), waste?: n stones to the pile } */
     done(res = {}) {
       const m = M.mission(); if (!m) return null;
-      st.res[m.id] = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), lost: !!res.lost };
+      st.res[m.id] = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), lost: !!res.lost, ...((res.loss | 0) > 0 ? { loss: res.loss | 0 } : {}) };   // (build 125: the points its damage cost, when it cost any)
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       if (res.waste > 0) st.waste += res.waste | 0;
       if (m.k === 'waste') { st.wasteIn += st.waste; st.waste = 0; }

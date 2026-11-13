@@ -156,7 +156,7 @@ export function createH112(save) {
     levelOf(m) { const n = (st.plays[m.id] | 0); return Math.min(3, (m.lv | 0) + (n > 0 ? 1 : 0)); },
     done(res = {}) {
       const m = M.mission(); if (!m) return null;
-      st.res[m.id] = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), lost: !!res.lost };
+      st.res[m.id] = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), lost: !!res.lost, ...((res.loss | 0) > 0 ? { loss: res.loss | 0 } : {}) };   // (build 125: the points its damage cost, when it cost any)
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       st.done.push(m.id); st.i++;
       // a mission passed without being played (a minigame's own page skips to it; tests) leaves the world as the crews would have

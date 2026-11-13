@@ -144,10 +144,12 @@ vec3 flLook(vec3 col, float mv) {
   float h1 = gh21(id + vec2(0.37, 1.91)), h2 = gh21(id * 1.31 + vec2(5.1, 2.7));
   col *= (0.88 + 0.2 * h1) * (h2 < 0.33 ? vec3(1.03, 0.985, 0.95) : h2 < 0.66 ? vec3(1.0, 0.995, 0.93) : vec3(0.985, 0.985, 0.97));
   // the joint: dark, soft, a lit chamfer beside it; contrast faded where a joint is narrower than a pixel
-  float px = max(fw, 1e-3), vis = clamp(0.09 / px, 0.0, 1.0) * (1.0 - 0.75 * wear);
-  float jn = 1.0 - smoothstep(0.015, 0.02 + px * 1.2 + 0.03, e);
-  float ch = smoothstep(0.02, 0.06, e) * (1.0 - smoothstep(0.08, 0.16 + px, e));
-  col *= (1.0 - 0.36 * jn * vis) * (1.0 + 0.07 * ch * vis);
+  // (a hair irregular: the joint's width wanders along it; from far — a joint under a third of a pixel — it all but vanishes)
+  float px = max(fw, 1e-3), vis = clamp(0.045 / px - 0.25, 0.0, 1.0) * (1.0 - 0.75 * wear);
+  float jw = 0.008 + 0.012 * gvn(W.xz * 2.3 + W.y);
+  float jn = 1.0 - smoothstep(jw, jw + px * 1.1 + 0.02, e);
+  float ch = smoothstep(0.02, 0.05, e) * (1.0 - smoothstep(0.06, 0.12 + px, e));
+  col *= (1.0 - 0.22 * jn * vis) * (1.0 + 0.045 * ch * vis);
   // wear (smoother and paler), staining at the altar's foot (ash and soot: brown-grey), damp round the laver
   col = mix(col, col * 1.06 + vec3(0.012, 0.01, 0.006), wear);
   col = mix(col, col * vec3(0.66, 0.6, 0.53), stain * 0.55);

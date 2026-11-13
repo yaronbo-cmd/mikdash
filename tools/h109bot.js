@@ -58,7 +58,7 @@
       }
       // (build 115: hold to drive, let go before the green line (they slide on ~1.2), then a drag up tips the sledge into the pit)
       if (a.phase === 'push' && a.v < 0.1 && Math.abs(a.d - a.tgt) <= 3.5) return { drag: [a.sled[0], a.sled[1], a.sled[0], a.sled[1] - 140, 300], wait: 600, note: 'waste: tip at ' + (a.d - a.tgt).toFixed(2) };
-      if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [W * 0.75, HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };
+      if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [a.line[0] > 0 && a.line[0] < W ? a.line[0] : W * 0.75, a.line[1] > 0 && a.line[1] < HH ? a.line[1] : HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };   // (build 125: on the track — the push's own grip)
       if (a.phase === 'push') return { wait: 300 };
       return { wait: 300 };
     },
@@ -128,7 +128,7 @@
       const mid = (a.band[0] + a.band[1]) / 2;
       if (a.terua && a.terua.step === 1) return { tap: [W * 0.5, HH * 0.5], wait: 230 };
       if (a.blast === 3) return { wait: 400 };
-      if (a.blast < 3 && a.want != null && Math.abs(a.want - a.aim) > 1.5) { const dx = -((a.want - a.aim) * Math.PI / 180) / 0.0032; return { drag: [W * 0.5, HH * 0.3, W * 0.5 + Math.max(-W * 0.45, Math.min(W * 0.45, dx)), HH * 0.3, 500], wait: 300, note: `letters: aim ${a.aim} → ${a.want}` }; }
+      if (a.blast < 3 && a.want != null && Math.abs(a.want - a.aim) > 1.5) { const dx = -((a.want - a.aim) * Math.PI / 180) / 0.0032; return { drag: [W * 0.3, HH * 0.3, W * 0.3 + Math.max(-W * 0.28, Math.min(W * 0.28, dx)), HH * 0.3, 500], wait: 300, note: `letters: aim ${a.aim} → ${a.want}` }; }
       return { holdUntil: [a.tp[0], a.tp[1], C(`return !a||a.part!==3||(a.hold&&a.breath>=${mid.toFixed(3)})`), 6000], wait: 900, note: 'letters: blow ' + a.blast };
     },
     // ── build 111 ── stage 02's acts (h111/acts*.js dbg())

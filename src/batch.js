@@ -123,7 +123,16 @@ vec3 flLook(vec3 col, float mv) {
     stain = (1.0 - smoothstep(0.0, 3.2, da + (n1 - 0.5) * 2.5)) * (0.55 + 0.45 * n1);
     damp = (1.0 - smoothstep(1.5, 7.0, length(q - vec2(-63.5, 20.0)) + (n1 - 0.5) * 3.0)) * (0.5 + 0.5 * n1);
   }
-  if (top) { id = flSlab(W.xz, e); fw = fwidth(W.x) + fwidth(W.z); }
+  // the fifteen round steps (temple.js: half rings about x 10, z 0, radius 6.5 … 13.5, y 6 … 13.5): their joints run radially, the
+  // slabs along the arc
+  vec2 rd = W.xz - vec2(10.0, 0.0); float rr = length(rd);
+  bool rnd = W.y > 5.9 && W.y < 13.6 && rd.x > -0.05 && rr > 6.3 && rr < 13.6;
+  if (rnd) {
+    float ring = floor(rr * 2.0 - 0.01), arc = atan(rd.y, rd.x) * (ring * 0.5 + 0.25), L = 2.6 + 1.6 * gh21(vec2(ring, 4.4)), u = (arc + gh21(vec2(ring, 1.9)) * 30.0) / L;
+    e = min(fract(u), 1.0 - fract(u)) * L; id = vec2(ring + 40.0, floor(u)); fw = fwidth(arc);
+    if (side) { float yy = fract(W.y * 2.0 + 0.002); col *= 1.0 + 0.16 * smoothstep(0.78, 0.97, yy) - 0.12 * (1.0 - smoothstep(0.0, 0.12, yy)); }
+  }
+  else if (top) { id = flSlab(W.xz, e); fw = fwidth(W.x) + fwidth(W.z); }
   else if (side) {
     float al = abs(N.x) > abs(N.z) ? W.z : W.x, L = 3.4 + 2.0 * gh21(vec2(floor(W.y * 2.0), 4.4)), u = (al + gh21(vec2(floor(W.y * 2.0), 1.9)) * 30.0) / L;
     e = min(fract(u), 1.0 - fract(u)) * L; id = vec2(floor(W.y * 2.0), floor(u)); fw = fwidth(al);

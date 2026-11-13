@@ -9,6 +9,7 @@
 import { H109 } from './model.js';
 import { BOOK, ROCK_CELLS, rectOf } from '../world/grid.js';
 import { createBeat, createGang, onPlane, clamp, lerp, ease, clearView, rayBlocked } from './kit.js';
+import { bigR, nearPts } from './grips.js';   // (build 125)
 import { READ, PAVE, WASTE, initWorld2, frame2 } from './acts2.js';
 import { CORNER, COURSE, GREAT, LETTERS, initWorld3, frame3 } from './acts3.js';
 
@@ -270,7 +271,7 @@ const ROPE_ACT = {
         if (A.phase !== 'done') cam(h, A.phase === 'go' ? 2 : 3.2);
         rodDraw(h, dt); ropeDraw();
       },
-      wants() { return true; },   // ── h115 ── (the rope is held anywhere) ── /h115 ──
+      wants(p) { if (!p) return true; const h = heroP(); return !!h && nearPts(X, p, [{ x: h.x, y: X.ground(h.x, h.z) + 1.2, z: h.z }], bigR()); },   // ── h115 ── (the rope is held anywhere) ── /h115 ── (build 125: on the right half only near him and the rope's end — the left half is always the rope's)
       down() { if (A.phase === 'ready' || A.phase === 'slide') { A.hold = true; A.phase = 'pull'; X.play('rope'); X.hand(null); } },
       move() {},
       up() { if (A.phase === 'pull') { A.hold = false; A.phase = 'slide'; } },
@@ -385,7 +386,13 @@ const ROCKS_ACT = {
         if (A.ring && R) { const ph = SH.B.phase(k), s = R.r * (1.35 + 2.0 * (1 - ph)); A.ring.scale.setScalar(s); A.ring.material.opacity = 0.35 + 0.6 * ph; A.band.material.opacity = ph > 0.86 || ph < 0.06 ? 1 : 0.55; }
         if (A.phase === 'work' && !A.pend && !X.hero.busy && !X.hero.armed && !X.hero.walking) { try { X.hero.arm('pick', rockTarget(R, X)); } catch (e) { /* */ } }
       },
-      wants() { return A.phase === 'work'; },   // ── h115 ── (a strike is a tap anywhere, on the beat) ── /h115 ──
+      wants(p) {   // ── h115 ── (a strike is a tap anywhere, on the beat) ── /h115 ──
+        // (build 125: on the right half the rock and the ring that closes round it — the ring's own reach, at least a third of the screen's
+        //  height — the left half stays the strike's everywhere, so the beat is as fair as before)
+        if (A.phase !== 'work') return false; if (!p || !A.R) return true;
+        const R = A.R, g = X.ground(R.x, R.z), c = X.scr(R.x, g + R.r * 0.5, R.z), e = X.scr(R.x + R.r * 3, g, R.z);
+        return Math.hypot(p.x - c.x, p.y - c.y) < Math.max(bigR(), Math.hypot(e.x - c.x, e.y - c.y) * 1.1);
+      },
       down(p) { strike(p); },
       move() {}, up() {},
       end() { if (A.ring) X.props.remove(A.ring); if (A.band) X.props.remove(A.band); for (const s of A.seam || []) X.props.remove(s); try { X.hero.arm(null); } catch (e) { /* */ } for (const o of off) o(); },

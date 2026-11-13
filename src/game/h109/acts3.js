@@ -4,6 +4,7 @@
  * he pulls it down off the rock to the west wall), 3.8 "לבית התקיעה" (the two words carved letter by letter).
  */
 import { onPlane, clamp, lerp, ease } from './kit.js';
+import { bigR, nearPts, nearObjs } from './grips.js';   // (build 125)
 import { wasteAdd } from './acts2.js';
 import { BOOK, cellOf } from '../world/grid.js';
 import { makeTrack, stepStone, limitAt, restAt, SL } from './slope.js';
@@ -350,7 +351,7 @@ export const CORNER = {
           if (S2.t > S2.dur) A.settle = null;
         }
       },
-      wants(p) { return A.phase === 'lift' || A.phase === 'slew' || !!gripOf(p); },   // ── h116 ── (the three grips; elsewhere the right thumb looks) ── /h116 ──
+      wants(p) { if (A.phase === 'lift') return !p || nearObjs(X, p, [C.wheel, stone], bigR()); return !!gripOf(p); },   // ── h116 ── (the three grips; elsewhere the right thumb looks) ── /h116 ── (build 125: the lift's steps are the wheel's and the stone's on the right half; the slew is the crane's own — the look's)
       down(p) {
         A.p0 = { x: p.x, y: p.y, t: performance.now() / 1000, ax: A.ax };
         if (A.phase === 'lower') { A.grip = gripOf(p); A.rx = p.x; X.hand(null); if (A.grip) { X.play('rope'); A.said[A.grip] = true; } if (A.grip === 'jib') { C.tipWorld(tip); A.jg = { y: tip.y, g0: onPlane(X, p.x, p.y, tip.y), a0: { ...(A.aimP || pos) } }; } }
@@ -1251,7 +1252,7 @@ export const LETTERS = {
           if (gi === 2) { const k = clamp(it.t / 1.2, 0, 1); for (const wm of it.win) { wm.material.emissiveIntensity = 1.8 * k * (0.9 + 0.1 * Math.sin(A.t * 9 + it.a * 40)); wm.material.color.set(k > 0.1 ? '#4A3416' : '#2B2116'); } }
         } });
       },
-      wants(p) { return A.part === 2 ? !!canvasAt(p) : A.part === 3 && !A.done; },   // ── h115 ── ── /h115 ──
+      wants(p) { return A.part === 2 ? !!canvasAt(p) : A.part === 3 && !A.done && (!p || nearPts(X, p, [{ x: TP.x, y: TP.y + 2.2, z: TP.z }], bigR())); },   // ── h115 ── ── /h115 ── (build 125: the trumpet's blow and aim start at the trumpeter on the right half; the rest is the look)
       down(p) {
         const tq = X.scr(TP.x, TP.y + 2.2, TP.z);
         A.p0 = { x: p.x, y: p.y, t: A.t, aim: A.aim, moved: false, blow: Math.hypot(p.x - tq.x, p.y - tq.y) < Math.max(70, innerHeight * 0.13) };

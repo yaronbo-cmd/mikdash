@@ -62,13 +62,13 @@ export function camInBox(p, boxes = [], m = 2) { return boxes.some((b) => inBox(
 /** the horizon's place in the frame (a fraction from the top) for a pose { p, t, fov } */
 export function horizonOf(q) { const pitch = Math.atan2(q.p[1] - q.t[1], Math.hypot(q.t[0] - q.p[0], q.t[2] - q.p[2])); return 0.5 - Math.tan(pitch) / (2 * Math.tan((q.fov * Math.PI) / 360)); }
 /** the ring sites' constants (stages 02–04): build 124's shape, the horizon kept at least 5 % into the frame */
-export const LOOK_RING_K = Object.freeze({ ...LOOK_K, HZ: 0.05 });
+export const LOOK_RING_K = Object.freeze({ ...LOOK_K, HZ: 0.05, HZ_U: 0.6 });
 function clearAt(base, u, yaw, lift, boxes, extra, K, camOnly) {
   const a = base.t, a2 = [a[0], a[1] + 1.6, a[2]], q = lookPose(base, u, yaw, lift, K);
   if (q.p[1] < a[1] + 1.5 || camInBox(q.p, boxes)) return false;
   // (build 125: K.HZ — a site whose look must keep the horizon in the frame: no lift so steep that the frame is ground only; a turn
   //  toward a clear side instead. Stage 05's K has none: its rule as in build 124)
-  if (K.HZ && horizonOf(q) < K.HZ) return false;
+  if (K.HZ && (+u || 0) >= (K.HZ_U != null ? K.HZ_U : 0.6) && horizonOf(q) < K.HZ) return false;   // (the far look only: inside the play zone the act's own frame)
   if (camOnly) return true;   // (the walk: the world first — only the camera kept out of the walls; a wall may hide him)
   if (segHits(q.p, a, boxes) || segHits(q.p, a2, boxes)) return false;
   return !(extra && extra(q.p, a));

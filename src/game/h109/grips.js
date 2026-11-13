@@ -9,7 +9,7 @@
  *   nearPts(X, p, pts, R)                   p within R of any of the world points on the screen
  *   nearSeg(X, p, a, b, R)                  p within R of the screen segment between two world points
  *   hitAny(X, p, objs)                      the touch's ray meets one of the meshes (or groups)
- *   nearObjs(X, p, objs, R)                 hitAny, or within R of one of their positions
+ *   nearObjs(X, p, objs, R)                 hitAny, or within R of one of their middles (centreOf)
  */
 export const gripR = () => Math.max(44, 0.15 * (globalThis.innerHeight || 600));
 export const bigR = () => 0.32 * (globalThis.innerHeight || 600);
@@ -34,5 +34,10 @@ export function hitAny(X, p, objs) {
 export function nearObjs(X, p, objs, R = gripR()) {
   if (!p) return true;
   const L = objs.filter((o) => o && o.visible !== false);
-  return hitAny(X, p, L) || nearPts(X, p, L.map((o) => { const v = o.getWorldPosition ? o.getWorldPosition(new o.position.constructor()) : o.position; return { x: v.x, y: v.y, z: v.z }; }), R);
+  return hitAny(X, p, L) || nearPts(X, p, L.map((o) => centreOf(X, o)), R);
+}
+/** an object's middle in the world: its bounding box's centre (a mesh whose geometry is placed in world numbers has its position at 0) */
+export function centreOf(X, o) {
+  try { if (X.THREE && X.THREE.Box3) { const b = new X.THREE.Box3().setFromObject(o); if (!b.isEmpty()) { const c = b.getCenter(new X.THREE.Vector3()); return { x: c.x, y: c.y, z: c.z }; } } } catch (e) { /* */ }
+  const v = o.getWorldPosition ? o.getWorldPosition(new o.position.constructor()) : o.position; return { x: v.x, y: v.y, z: v.z };
 }

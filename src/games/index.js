@@ -42,10 +42,10 @@ export const PAID_PER_DAY = 6;
 /* ── FUN11 (wave 11): which game fits which stage — variety with a reason. The first is the stage's own; the next ones take its
    turn when it was the last offered. The line is the invitation's (the true fact with its source comes at the game's end). ── */
 export const STAGE_GAMES = {
-  har: ['sling', 'knuckle'], wall: ['stack', 'four'], gates: ['four', 'memory'], nashim: ['levites', 'memory'], sorag: ['knuckle', 'four'],   // ── fable32 (build 48) ── (no torches by the women's court and Nikanor: "שמונה אבוקות" is שמחת בית השואבה's — the owner: it opens on its date in Phase B) ── /fable32 ──
-  nikanor: ['race', 'memory'], lishka: ['levites', 'nuts'], yesod: ['nuts', 'race'], sovev: ['race', 'four'], guf: ['race', 'memory'],
+  har: ['sling', 'knuckle'], wall: ['stack', 'four'], gates: ['four', 'memory'], nashim: ['torches', 'levites'], sorag: ['knuckle', 'four'],
+  nikanor: ['levites', 'torches'], lishka: ['levites', 'nuts'], yesod: ['nuts', 'race'], sovev: ['race', 'four'], guf: ['race', 'memory'],
   karnot: ['race', 'levites'], kiyor: ['memory', 'race'], ulam: ['stack', 'memory'], heichal: ['memory', 'levites'], kodesh: ['memory', 'stack'],
-};   // ── fable32 (build 49) ── (Nikanor: the Levites' song is now the stage's own steps — the game built there, not a board beside it) ── /fable32 ──   // (games13: נשים — the lamps of שמחת בית השואבה stood in עזרת הנשים, סוכה ה, ב · הסורג — the Mount's plaza, where the bones were found · היסוד — the Pesach's blood at the altar's base, the children's nuts that night)
+};   // (games13: נשים — the lamps of שמחת בית השואבה stood in עזרת הנשים, סוכה ה, ב · הסורג — the Mount's plaza, where the bones were found · היסוד — the Pesach's blood at the altar's base, the children's nuts that night)
 export const WHY = {
   sling: 'על ההר הזה קנה דוד את גורן ארוונה (שמואל ב כד, כד). עכשיו הקלע שלו: חמש אבנים מן הנחל.',
   stack: 'בנית נדבכים — עכשיו נדבך על נדבך: כמה נדבכים ישרים תניח זה על זה?',
@@ -102,16 +102,16 @@ function watch() {
         if (L[i].type === 'demoJump') { jumpAt = Date.now(); jumpId = (L[i].detail && L[i].detail.id) || ''; }   // ── games13 ── (the owner's testing mode: a picked stage's game, once)
       }
       if (last) logSeen = Math.max(logSeen, last.t);
-      if (chipEl && (A.busy || A.whole || (globalThis.document && document.querySelector(BUSY_SEL)))) chipOff();   // (a card, a sheet or a board: the chip steps aside)
+      if (chipEl && (A.busy || A.whole || h9Busy(A) || (globalThis.document && document.querySelector(BUSY_SEL)))) chipOff();   // (a card, a sheet or a board: the chip steps aside)
       if (chipDue && !due) {
         const G = A.state, s = G ? slot(G) : null;
         if (!G || reelOf(G) || (G.ftue | 0) < 99 || running || Date.now() - chipDue > 25000 || (s && s.chipAt && Date.now() - s.chipAt < CHIP_GAP_MS)) chipDue = 0;
-        else if (!A.busy && !A.whole && !(globalThis.document && document.querySelector(BUSY_SEL))) { if (Date.now() - chipDue > 2500) { chipDue = 0; chip(); } }
+        else if (!A.busy && !A.whole && !h9Busy(A) && !(globalThis.document && document.querySelector(BUSY_SEL))) { if (Date.now() - chipDue > 2500) { chipDue = 0; chip(); } }
       }
       // ── games13 ── in the demo a picked stage's own game is offered by the chip, once per stage, after 25 s of calm (never over a
       // card, a sheet, a board or a game; it fades by itself) — so the owner meets the games of the period where they belong
       if (jumpAt && !due && !chipDue) {
-        const G = A.state, calm = !A.busy && !A.whole && !(globalThis.document && document.querySelector(BUSY_SEL));
+        const G = A.state, calm = !A.busy && !A.whole && !h9Busy(A) && !(globalThis.document && document.querySelector(BUSY_SEL));
         if (!G || !G.demo || reelOf(G) || running || chipEl || Date.now() - jumpAt > 150000) { if (!G || !G.demo || reelOf(G) || Date.now() - jumpAt > 150000) jumpAt = 0; }
         else if (Date.now() - jumpAt > 25000 && calm) {
           const s = slot(G); if (!s.jumped || typeof s.jumped !== 'object') s.jumped = {};
@@ -124,7 +124,7 @@ function watch() {
       if (Date.now() - due > 90000) { due = 0; return; }
       const G = A.state, s = G ? slot(G) : null;
       if (!G || reelOf(G) || (G.ftue | 0) < 99 || !s || s.inv === invKey(G, lastStage(A))) { due = 0; return; }
-      const idle = !A.busy && !A.whole && !(globalThis.document && document.querySelector(BUSY_SEL));
+      const idle = !A.busy && !A.whole && !h9Busy(A) && !(globalThis.document && document.querySelector(BUSY_SEL));
       if (!idle) { idleSince = 0; return; }
       if (!idleSince) { idleSince = Date.now(); return; }
       if (Date.now() - idleSince < 4000) return;
@@ -138,6 +138,9 @@ function watch() {
 const reelOf = (G) => !!(G && G.demo && G.story && G.story.reel);
 const invKey = (G, st) => (G && G.demo ? `${dayKey()}:${st || ''}` : dayKey());
 // ── /games13 ──
+// ── h114 ── a minigame of the Mount (the h109 director's act, film or end shot) is never interrupted: no invitation, no chip
+const h9Busy = (A) => { try { const D = A && A.h109; return !!(D && typeof D.acting === 'function' && D.acting()); } catch (e) { return false; } };
+// ── /h114 ──
 const api = () => { try { const g = HOST && typeof HOST.game === 'function' ? HOST.game() : null; return g && g.state ? g : null; } catch (e) { return null; } };
 const dayKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 function slot(G) {
@@ -322,7 +325,7 @@ export function menuHTML(G) {
  *  (FUN11, wave 11) it names the ONE game that fits the stage just built, with its reason; "משחק אחר" opens the hub. */
 export async function invite(G, stage) {
   try {
-    if (running || !G || typeof G !== 'object' || reelOf(G) || (G.ftue | 0) < 99) return false;
+    if (running || !G || typeof G !== 'object' || reelOf(G) || (G.ftue | 0) < 99 || h9Busy(api())) return false;
     const s = slot(G);
     const A = api();
     if (!A || !A.ui || typeof A.ui.modal !== 'function') return false;
@@ -378,7 +381,7 @@ function tagFrame() {
   if (!W || typeof W.gameTable !== 'function' || typeof HOST.project !== 'function') { tagShow(false); return; }
   const A = api(), G = A ? A.state : null;
   const T = W.gameTable();
-  if (!G || reelOf(G) || (G.ftue | 0) < 99 || !T || !T.on || running || A.busy || A.whole) { tagShow(false); return; }
+  if (!G || reelOf(G) || (G.ftue | 0) < 99 || !T || !T.on || running || A.busy || A.whole || h9Busy(A)) { tagShow(false); return; }
   const cam = typeof HOST.camPos === 'function' ? HOST.camPos() : null;
   if (cam && Math.hypot(cam.x - T.x, cam.y - T.y, cam.z - T.z) > 320) { tagShow(false); return; }
   const p = HOST.project(T.x, T.y + 3, T.z);

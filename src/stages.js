@@ -11,7 +11,19 @@ import { PLAT } from './mount.js';
 import { sawBench as crewsSawBench } from './crews.js';   // ── site14 ── (the saw job's bench)
 import * as TX from './tex.js';
 import { PROJ } from './game/content.js';   // ── site15 ── (a task's stones are the game's logical ones, PROJ C×P: the scenes map them to the world's)
-import { secLevel62 } from './game/har62.js';   // ── build 62 ── (the crest's sectors brought down)
+// ── h115 ── the address grid (game/world/grid.js): the hill's cells by id (column × row over the whole platform), the waste pits after
+import { CELL as G_CELL, EAST as G_EAST, NORTH as G_NORTH, BOOK as G_BOOK } from './game/world/grid.js';
+const CG = (() => {
+  const K = 24, R0 = -12, R1 = 23, NR = R1 - R0 + 1, PITS = G_BOOK.pits, NC = K * NR, N = NC + PITS.length;
+  const idOf = (k, r) => (k >= 0 && k < K && r >= R0 && r <= R1 ? k * NR + (r - R0) : -1);
+  function idAt(x, z) {
+    for (let i = 0; i < PITS.length; i++) { const P = PITS[i]; if (Math.abs(x - P.x) < P.w / 2 && Math.abs(z - P.z) < P.d / 2) return NC + i; }
+    return idOf(Math.floor((G_EAST - x) / G_CELL), Math.floor((z - G_NORTH) / G_CELL));
+  }
+  const kr = (id) => (id >= 0 && id < NC ? { k: Math.floor(id / NR), r: (id % NR) + R0 } : null);
+  return { CELL: G_CELL, EAST: G_EAST, NORTH: G_NORTH, K, R0, R1, NR, NC, N, PITS, idOf, idAt, kr, pitId: (i) => NC + i };
+})();
+// ── /h115 ──
 
 export const STAGE_IDS = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor', 'ulam', 'heichal', 'kodesh'];
 const FOUND = 0.15;   // progress below which the site is in its foundation phase
@@ -58,9 +70,14 @@ const DEF = {
   },
   gates: {
     foot: [[-104, -78, -86, -64], [-47, -78, -29, -64], [-169, 64, -151, 78], [-127, 64, -109, 78], [-47, 64, -29, 78], [138, -13, 150, 13]], base: 6, stone: 'ash', bottom: 6,   // ── site14 ── (bottom: the footings below it, temple.js)
+    // (── h113 ── the gatehouses' fronts: the scaffold stands either side of the opening, its ten amot left clear — the kohen hangs
+    // the gate in it, and the camera looks through it)
     scaff: { lift: 4, gap: 4.5, rows: 2, runs: [
-      [[-104, -78], [-86, -78], [0, -1], 6, 51], [[-47, -78], [-29, -78], [0, -1], 6, 51],
-      [[-169, 78], [-151, 78], [0, 1], 6, 51], [[-127, 78], [-109, 78], [0, 1], 6, 51], [[-47, 78], [-29, 78], [0, 1], 6, 51],
+      [[-104, -78], [-100.9, -78], [0, -1], 6, 51], [[-89.1, -78], [-86, -78], [0, -1], 6, 51],
+      [[-47, -78], [-43.9, -78], [0, -1], 6, 51], [[-32.1, -78], [-29, -78], [0, -1], 6, 51],
+      [[-169, 78], [-165.9, 78], [0, 1], 6, 51], [[-154.1, 78], [-151, 78], [0, 1], 6, 51],
+      [[-127, 78], [-123.9, 78], [0, 1], 6, 51], [[-112.1, 78], [-109, 78], [0, 1], 6, 51],
+      [[-47, 78], [-43.9, 78], [0, 1], 6, 51], [[-32.1, 78], [-29, 78], [0, 1], 6, 51],
       [[150, -13], [150, 13], [1, 0], 6, 39]] },
     crane: { mode: 'top', x: 143, z: 6, dir: [1, 0], H: 22, reach: 12 },
     spot: { x: 159, z: 22, face: [150, 6], r: 'chel' }, view: { az: -30, el: 28 }, crew: [8, 6],
@@ -247,16 +264,23 @@ function hillY0(x, z) {
 }
 
 function makeHill(T) {
-  const lines = (a0, a1, m, m1 = m) => {
+  const lines = (a0, a1, m, m1 = m, extra = []) => {
     const L = new Set();
     for (let v = a0 - m; v <= a1 + m1 + 1e-6; v += 6) L.add(+v.toFixed(3));
     const sp = [a0, a0 + 0.25, a0 + TRENCH - 0.25, a0 + TRENCH, a1 - TRENCH, a1 - TRENCH + 0.25, a1 - 0.25, a1];
+    // ── h115 ── the address grid's cell edges (and the waste pits' rims): a cut cell ends in a rock face, not a ramp ── /h115 ──
+    for (const e of extra) if (e > a0 + TRENCH + 1 && e < a1 - TRENCH - 1 && sp.every((q) => Math.abs(q - e) > 0.8)) sp.push(+(e - 0.3).toFixed(3), +(e + 0.3).toFixed(3));
     const out = [...L].filter((v) => sp.every((s) => Math.abs(v - s) > 1.2)).concat(sp);
     return Float64Array.from(out.sort((p, q) => p - q));
   };
-  const XS = lines(X0, X1, 66), ZS = lines(Z0, Z1, 150, 66), nx = XS.length, nz = ZS.length, N = nx * nz;
+  const XE = [], ZE = [];
+  for (let k = 0; k <= CG.K; k++) XE.push(CG.EAST - k * CG.CELL);
+  for (let r = CG.R0; r <= CG.R1 + 1; r++) ZE.push(CG.NORTH + r * CG.CELL);
+  for (const P of CG.PITS) { XE.push(P.x - P.w / 2, P.x + P.w / 2); ZE.push(P.z - P.d / 2, P.z + P.d / 2); }
+  const XS = lines(X0, X1, 66, 66, XE), ZS = lines(Z0, Z1, 150, 66, ZE), nx = XS.length, nz = ZS.length, N = nx * nz;
   const pos = new Float32Array(N * 3), uv = new Float32Array(N * 2), col = new Float32Array(N * 3);
   const ter = new Float32Array(N), kk = new Float32Array(N), y0 = new Float32Array(N), bl = new Float32Array(N);
+  const cid = new Float32Array(N).fill(-1), cellMax = new Float32Array(CG.N).fill(-1e9);   // ── h115 ── ── /h115 ──
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
     const k = j * nx + i, x = XS[i], z = ZS[j];
     const y = hillY0(x, z);
@@ -265,6 +289,8 @@ function makeHill(T) {
     ter[k] = terrainH(x, z);
     const out = x <= X0 || x >= X1 || z <= Z0 || z >= Z1;
     kk[k] = out ? 0 : (x < X0 + TRENCH || x > X1 - TRENCH || z < Z0 + TRENCH || z > Z1 - TRENCH) ? 1 : 2;
+    // ── h115 ── each vertex of the platform's inside: its cell of the address grid (a waste pit's own id inside a pit) ── /h115 ──
+    if (kk[k] === 2) { const id = CG.idAt(x, z); cid[k] = id; if (id >= 0 && y > cellMax[id]) cellMax[id] = y; }
   }
   const idx = [];
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1; idx.push(a, c, b, b, c, d); }
@@ -303,6 +329,7 @@ function makeHill(T) {
   g.setAttribute('aTer', new THREE.BufferAttribute(ter, 1));
   g.setAttribute('aK', new THREE.BufferAttribute(kk, 1));
   g.setAttribute('aBl', new THREE.BufferAttribute(bl, 1));
+  g.setAttribute('aCid', new THREE.BufferAttribute(cid, 1));   // ── h115 ── ── /h115 ──
   g.computeBoundingSphere();
   const U = { uCut: { value: 0 }, uFill: { value: -1000 }, uFillCol: { value: new THREE.Color('#BFA27C') }, uCutCol: { value: new THREE.Color('#E6DDCB') }, uGround: { value: T.ground.map },
     // ── site8 ── the levelled patches where the rocks stood: (x, z, half size, level); half size 0 = none (siteLife grows them)
@@ -315,9 +342,10 @@ function makeHill(T) {
     // ── site12 ── the plaza's paving laid from the west as the last courses go up: x the paving's front (paved west of it), y on;
     // east of the front the fill lies a little over the paving's top, so the brown fill shows until it is paved
     uPave: { value: new THREE.Vector2(1e4, 0) },
-    // ── build 62 ── the crest's sectors (har62.js SECT62): (x, z, half size, level) — the ground inside is cut down to the level (never
-    // raised); half size 0 = none; and each one's paving (0…1, laid from its east edge)
-    uSec: { value: Array.from({ length: 8 }, () => new THREE.Vector4(0, 0, 0, 1000)) }, uSecPv: { value: new Array(8).fill(0) } };
+    // ── h115 ── the address grid's cut levels: cell id → the level its rock is cut to (1000: uncut) ── /h115 ──
+    uCellT: { value: null } };
+  const cellH = new Float32Array(CG.N).fill(1000);
+  { const t = new THREE.DataTexture(cellH, CG.N, 1, THREE.RedFormat, THREE.FloatType); t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true; U.uCellT.value = t; }
   // ── site12 ── (the owner's note 2, 29.9 21:01: "בשלב שיטוח ההר צריך שכשעושים זום אאוט רואים את ההתקדמות של החציבה. אני בשלב 3
   // עכשיו וזה נראה בדיוק כמו בשלב ראשון") the crest comes down in benches, COURSE BY COURSE: each of the Mount's six courses
   // cuts a new floor (uCrest.x) swept across the crest from the east over the last course's floor (uCrest.y), with a rim of
@@ -333,6 +361,10 @@ function makeHill(T) {
     // (site9: the working bay at the Mount's working front is dug down to the fill, so the first courses are seen from the hill)
     if (aK > 1.5 && uPit.z > uPit.x) { vec2 pq = max(uPit.xy - position.xz, position.xz - uPit.zw);
       hYc = mix(hYc, min(hYc, uFill), (1.0 - smoothstep(-4.0, 4.0, max(pq.x, pq.y))) * uPitK); }
+    float hCk = 0.0, hPv = 0.0;
+    if (aK > 1.5 && aCid > -0.5) { float hCL = texelFetch(uCellT, ivec2(int(aCid + 0.5), 0), 0).r;
+      if (hCL > 3000.0) { hCL -= 4000.0; hCk = step(hCL + 0.01, hYc); hPv = hCk; hYc = min(hYc, hCL); }   // (> 3000: cut to L − 4000 and paved where cut)
+      else if (hCL > 1500.0) { hCk = 1.0; hYc = hCL - 2000.0; } else { hCk = step(hCL + 0.01, hYc); hYc = min(hYc, hCL); } }   // (> 1500: levelled flat at L − 2000, cut high and filled low)
     float hYI = max(hYc, min(uFill, -0.4));
     if (aK > 1.5 && uPave.y > 0.5 && position.x >= uPave.x) hYI = max(hYI, 0.35);   // ── site12 ── (not yet paved)
     float hY = aK < 0.5 ? mix(hY0, aTer - 0.6, uCut) : (aK < 1.5 ? (uCut > 0.0 ? -155.0 : hY0) : hYI);
@@ -341,26 +373,22 @@ function makeHill(T) {
       vec2 d = abs(position.xz - P.xy); float k = 1.0 - smoothstep(P.z * 0.72, P.z, max(d.x, d.y));
       if (k > hPk) { hPk = k; hPl = P.w; } }
     hPk *= 1.0 - smoothstep(0.0, 0.3, uCut);
-    hY = mix(hY, hPl, hPk * 0.92);
-    float hSk = 0.0, hPv = 0.0;   // ── build 62 ── (the sectors: cut down to their level, fresh-cut rock where they are; the paving laid)
-    if (aK > 1.5 && uCut < 0.5) for (int i = 0; i < 8; i++) { vec4 S = uSec[i]; if (S.z <= 0.0) continue;
-      vec2 d = abs(position.xz - S.xy); float m = max(d.x, d.y), k = 1.0 - smoothstep(S.z * 0.55, S.z, m);
-      if (k <= 0.0) continue; float y1 = min(hY, S.w); hSk = max(hSk, k * step(S.w + 0.4, hY));
-      hY = mix(hY, y1, k);
-      if (m < S.z * 0.8 && position.x > S.x + S.z * 0.8 - 1.6 * S.z * uSecPv[i]) hPv = max(hPv, step(0.001, uSecPv[i])); }`;
+    hY = mix(hY, hPl, hPk * 0.92);`;
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(1.3, 1.3, 1.3), vertexColors: true, map: T.rock.map, normalMap: T.rock.normalMap, normalScale: new THREE.Vector2(1.1, 1.1), roughness: 0.96 });
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; uniform vec4 uSec[8]; uniform float uSecPv[8]; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vSk; varying float vPv;')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aBl; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vPv;')
       .replace('#include <beginnormal_vertex>', `${morph}
-    float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hSk) : uCut;
-    vPk = max(hPk, hSk); vSk = hSk; vPv = hPv;   // ── build 62 ──
+    float hFlat = aK > 1.5 ? max(max(step(hYc + 0.01, hYI), hPk), hCk) : uCut;
+    vPk = hPk;
+    vPv = hPv * (1.0 - step(hYc + 0.01, hYI));   // ── h115 ── (paved: the cut floor of a paved cell, not where the fill lies over it) ── /h115 ──
     vLev = aK > 1.5 ? step(hYc + 0.01, hYI) : 0.0;
     // ── site12 ── the worked crest (its floor and benches: fresh-cut rock, lit by its facets), the floor cut this course, and
     // the spoil tipped on the slope just above the fill (the next lift); everything else keeps the hill's own colours (v21
     // washed it all brown by the second course: "the site is cleared soon after the works begin")
     vWk = aK > 1.5 && hBt > -3.0 ? 1.0 - vLev : 0.0;
+    vWk = max(vWk, hCk * (1.0 - vLev));   // ── h115 ── (a cut cell: fresh-cut rock) ── /h115 ──
     vNw = hLv < uCrest.y - 0.3 ? 1.0 : 0.0;
     vLv = hLv;
     vDp = aK > 1.5 && uFill > -999.0 ? (1.0 - smoothstep(uFill + 4.0, uFill + 12.0, hYc)) * (1.0 - vLev) * (1.0 - vWk) : 0.0;
@@ -374,7 +402,7 @@ function makeHill(T) {
       .replace('#include <begin_vertex>', 'vec3 transformed = vec3(position.x, hY, position.z);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vSk; varying float vPv;
+        uniform vec3 uFillCol; uniform vec3 uCutCol; uniform sampler2D uGround; uniform vec4 uCrest; varying float vLev; varying float vWk; varying float vNw; varying float vLv; varying float vDp; varying float vH0; varying vec2 vHXZ; varying float vBl; varying float vPk; varying float vPv;
         float hh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float hn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hh(i), hh(i + vec2(1.0, 0.0)), f.x), mix(hh(i + vec2(0.0, 1.0)), hh(i + vec2(1.0, 1.0)), f.x), f.y); }`)
@@ -400,10 +428,14 @@ function makeHill(T) {
           // ── site8 ── the levelled patch: fresh-cut rock, paler than the weathered hill but keeping its grain, the chisel's lines
           vec3 pc = uCutCol * (0.8 + 0.1 * hn(vHXZ / 2.0)) * (1.0 - 0.16 * cl) * (0.62 + 0.45 * dot(diffuseColor.rgb, vec3(0.333)));
           diffuseColor.rgb = mix(diffuseColor.rgb, pc, smoothstep(0.35, 0.8, vPk) * 0.72); }
-        // ── build 62 ── a sector's paving: pale slabs, 3 × 1.5 amot in courses offset by half a slab, their joints darker
-        if (vPv > 0.5) { float row = floor(vHXZ.y / 1.5), jx = abs(fract(vHXZ.x / 3.0 + 0.5 * mod(row, 2.0)) * 2.0 - 1.0), jz = abs(fract(vHXZ.y / 1.5) * 2.0 - 1.0);
-          float j = max(smoothstep(0.9, 0.97, jx), smoothstep(0.86, 0.95, jz)), sh = 0.92 + 0.12 * hh(vec2(floor(vHXZ.x / 3.0 + 0.5 * mod(row, 2.0)), row));
-          diffuseColor.rgb = mix(vec3(0.66, 0.6, 0.5) * sh, vec3(0.36, 0.32, 0.26), j * 0.8); }`)
+        // ── h115 ── a paved cell: rows of slabs 2.5 amot deep, 1–3 units long, each row's joints off the row's below, each slab its own
+        // shade of the warm limestone, the joints dark ── /h115 ──
+        if (vPv > 0.5) { float u = 2.5, j = floor(vHXZ.y / u), off = hh(vec2(j, 3.0)) * u, xi = (vHXZ.x + off) / u, i = floor(xi);
+          float ln = 1.0 + floor(hh(vec2(floor(i / 3.0), j)) * 2.5), a = floor(i / ln) * ln, xs = (vHXZ.x + off - a * u) / (ln * u);
+          float jx = min(xs, 1.0 - xs) * ln * u, jz = min(fract(vHXZ.y / u), 1.0 - fract(vHXZ.y / u)) * u;
+          float sh = 0.86 + 0.16 * hh(vec2(a, j * 7.0 + 1.0)), gr = 0.94 + 0.06 * hn(vHXZ * 1.7);
+          vec3 sc = vec3(0.6, 0.54, 0.44) * sh * gr * (1.0 - 0.55 * (1.0 - smoothstep(0.03, 0.09, min(jx, jz))));
+          diffuseColor.rgb = sc; }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         normal = normalize(mix(normal, nonPerturbedNormal, vBl));
         // ── site12 ── the cut rock lit by its own facets: the benches' treads and risers, the sweep's fresh face
@@ -414,7 +446,7 @@ function makeHill(T) {
   depth.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave; uniform vec4 uSec[8]; uniform float uSecPv[8];')
+      .replace('#include <common>', '#include <common>\nattribute float aTer; attribute float aK; attribute float aCid; uniform sampler2D uCellT; uniform float uCut; uniform float uFill; uniform vec4 uPatch[12]; uniform vec4 uPit; uniform float uPitK; uniform vec4 uCrest; uniform vec2 uPave;')
       .replace('#include <begin_vertex>', `${morph}\nvec3 transformed = vec3(position.x, hY, position.z);`);
   };
   depth.customProgramCacheKey = () => 'hilldepth';
@@ -425,7 +457,6 @@ function makeHill(T) {
 
   // CPU mirror of the shader (heights of the rendered triangles)
   let patchN = 0;   // ── site8 ── patches on (siteLife sets it through setPatchN)
-  let secN = 0;     // ── build 62 ── sectors on (setSectors62)
   // ── site12 ── each vertex's place in the crest's sweep (hSw in the shader), fixed
   const sw = new Float32Array(N);
   for (let k = 0; k < N; k++) sw[k] = clamp((14 - pos[k * 3] + 16 * Math.sin(pos[k * 3 + 2] / 61)) / 270, 0, 1);
@@ -438,6 +469,7 @@ function makeHill(T) {
     let yc = bt >= 0 ? lv : bt > -3 ? lv + C.w * (Math.floor(bt) + smooth(0.72, 1, bt - Math.floor(bt))) : Y;
     // (site9: the working bay, as the shader digs it)
     { const P = U.uPit.value; if (P.z > P.x && U.uPitK.value > 0) { const px = pos[k * 3], pz = pos[k * 3 + 2], pd = Math.max(P.x - px, px - P.z, P.y - pz, pz - P.w); yc = lerp(yc, Math.min(yc, U.uFill.value), (1 - smooth(-4, 4, pd)) * U.uPitK.value); } }
+    if (kk[k] > 1.5 && cid[k] >= 0) { let L = cellH[cid[k]]; if (L > 3000) L -= 4000; if (L > 1500) yc = L - 2000; else if (yc > L) yc = L; }   // ── h115 ── ── /h115 ──
     let y = Math.max(yc, Math.min(U.uFill.value, -0.4));
     { const P = U.uPave.value; if (P.y > 0.5 && pos[k * 3] >= P.x) y = Math.max(y, 0.35); }   // ── site12 ── (not yet paved)
     // (site8: the levelled patches, as the shader draws them)
@@ -445,10 +477,6 @@ function makeHill(T) {
       const px = pos[k * 3], pz = pos[k * 3 + 2]; let pk = 0, pl = 0;
       for (const P of U.uPatch.value) { if (P.z <= 0) continue; const kk2 = 1 - smooth(P.z * 0.72, P.z, Math.max(Math.abs(px - P.x), Math.abs(pz - P.y))); if (kk2 > pk) { pk = kk2; pl = P.w; } }
       if (pk > 0) y = lerp(y, pl, pk * 0.92 * (1 - smooth(0, 0.3, cut)));
-    }
-    if (secN && cut < 0.5) {   // ── build 62 ── (the sectors, as the shader cuts them)
-      const px = pos[k * 3], pz = pos[k * 3 + 2];
-      for (const S of U.uSec.value) { if (S.z <= 0) continue; const kk2 = 1 - smooth(S.z * 0.55, S.z, Math.max(Math.abs(px - S.x), Math.abs(pz - S.y))); if (kk2 > 0) y = lerp(y, Math.min(y, S.w), kk2); }
     }
     return y;
   };
@@ -493,16 +521,26 @@ function makeHill(T) {
     let ch = false;
     bushes.forEach(([x, y, z], i) => {
       const s = clamp((14 - x + 16 * Math.sin(z / 61)) / 270, 0, 1), lv = lerp(C.y, C.x, 1 - smooth(C.z - 0.012, C.z + 0.012, s));
-      let off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
-      if (!off && secN) for (const S of U.uSec.value) { if (S.z > 0 && S.w < y - 0.8 && Math.max(Math.abs(x - S.x), Math.abs(z - S.y)) < S.z) { off = 1; break; } }   // ── build 62 ── (cut away with the sector)
+      const off = y < fill + 13 || y > lv - 3 * C.w - 1 ? 1 : 0;
+      if (bushOff[i] === 2) return;   // ── h115 ── (cleared from a cut cell) ── /h115 ──
       if (off !== bushOff[i]) { bushOff[i] = off; bm.setMatrixAt(i, off ? ZM : bushM[i]); ch = true; }
     });
     if (ch) bm.instanceMatrix.needsUpdate = true;
     return ch;
   }
-  /** ── build 62 ── the natural top of a square (the highest vertex of the hill as first shaped inside it) */
-  const topIn = (x, z, half) => { let t = -1e9; for (let k = 0; k < N; k++) { if (Math.abs(pos[k * 3] - x) <= half && Math.abs(pos[k * 3 + 2] - z) <= half) t = Math.max(t, y0[k]); } return t > -1e8 ? t : 0; };
-  return { mesh, bushes: bm, U, heightAt, bushCull, setPatchN: (n) => { patchN = n; }, setSecN: (n) => { secN = n; }, topIn };
+  // ── h115 ── the address grid's cells: their cut levels (the shader reads cellH), the natural top of each, the scrub on them ── /h115 ──
+  const cells = {
+    max: (id) => cellMax[id],
+    level: (id) => cellH[id],
+    set(id, L) { if (!(id >= 0 && id < CG.N)) return; if (cellH[id] === L) return; cellH[id] = L; U.uCellT.value.needsUpdate = true; },
+    /** the scrub on cells cut or being worked goes (and comes back if the cell is uncut, a new game) */
+    scrub(isOff) {
+      let ch = false;
+      bushes.forEach(([x, y, z], i) => { const id = CG.idAt(x, z), off = id >= 0 && isOff(id) ? 1 : 0; if (off && !bushOff[i]) { bushOff[i] = 2; bm.setMatrixAt(i, ZM); ch = true; } else if (!off && bushOff[i] === 2) { bushOff[i] = 0; bm.setMatrixAt(i, bushM[i]); ch = true; } });
+      if (ch) bm.instanceMatrix.needsUpdate = true; return ch;
+    },
+  };
+  return { mesh, bushes: bm, U, heightAt, bushCull, cells, setPatchN: (n) => { patchN = n; } };
 }
 
 /* ───────────────────────── boulders ───────────────────────── */
@@ -1269,6 +1307,7 @@ export function createStages(ctx) {
 
   /* ── stage groups ── */
   const ST = {}, list = [];
+  const H120GZ = { g: null };   // ── h120 ── ── /h120 ──
   STAGE_IDS.forEach((id, idx) => {
     const def = DEF[id];
     const U = revealUniforms();
@@ -1289,6 +1328,9 @@ export function createStages(ctx) {
       group.add(g2);
       lc = { U: U2, group: g2, meshes: ms, mats: m2, shown: 0, label: -1, labelT: 0, lastLab: -1 };
     }
+    // ── h120 ── the gallery on its columns and the rock-cut mikveh (temple.js set 'nashim-gz'): a group of its own in the stage, so stage
+    // 05's world can hide it while it draws the player's own version (nashimGallery(false)) ── /h120 ──
+    if (id === 'nashim' && B.sets && B.sets['nashim-gz'] && Object.keys(B.sets['nashim-gz']).length) { const g3 = new THREE.Group(); g3.name = 'nashim-gallery'; for (const m of B.build(g3, 'nashim-gz', matFor)) meshes.push(m); group.add(g3); H120GZ.g = g3; g3.visible = !H120GZ.off; }
     let colMat = null;
     if (id === 'har' && ctx.columns) for (const C of ctx.columns) {
       if (!colMat) { colMat = buildMaterial(C.mat, U, 10); matList.push(colMat); }
@@ -1503,10 +1545,71 @@ export function createStages(ctx) {
   // crest from the east (the working side) and its fresh face moves west. harCut follows the Mount's shown progress every frame.
   const HAR_CR = [41, 30, 21, 13.5, 7.5, 3, -0.4];
   let bushAt = null;
+  /* ───────── ── h115 ── the Mount by cells (ירון 10.11: "העולם צריך להיות מחולק לנ.צ מדויקים"; docs/specs/build115-brief.md): the
+     stage-01 director switches it on; then the crest is not swept by the courses — every cell of the address grid comes down by
+     itself, where it is worked (the kohen's or the crews'), in benches to the platform's level, and stays so; a paved cell has its
+     paving; the waste pits fill. The grid itself is never drawn. ───────── */
+  const FLOOR = 0.35;
+  let cellMode = false, pinsOff = false;   // ── h117 ── (pinsOff: the director owns the game) ── /h117 ──
+  const CELLS = new Map();   // id → { st: 'rock'|'cut'|'paved', a: anim | null }
+  const pitFill = [];
+  // (a paved cell's paving is drawn by the hill's own shader on its cut floor: cell level 4000 + L, the slabs where it was cut)
+  const lvOf = (c) => (c.st === 'paved' ? 4000 : 0) + FLOOR;
+  const SCRUB_OFF = new Set();   // ── h115 ── cells cleared of their scrub while their rock stands (the kohen's work ground) ── /h115 ──
+  function scrubSync() { if (hill.cells.scrub((id) => { if (SCRUB_OFF.has(id)) return true; const c = CELLS.get(id); return !!c && c.st !== 'rock'; })) requestShadow(false); }
+  /** the pit's floor at fill 0..1: its rim's lowest point less its depth, rising to the rim as it fills */
+  function pitLevel(i, f) { const P = CG.PITS[i]; if (!P) return 1000; const lo = Math.min(...[[-1, -1], [1, -1], [-1, 1], [1, 1], [0, 0]].map(([a, b]) => hill.heightAt0 ? hill.heightAt0(P.x + a * P.w / 2, P.z + b * P.d / 2) : hillY0(P.x + a * P.w / 2, P.z + b * P.d / 2))); return lo - P.depth * (1 - clamp(f, 0, 1)) - 0.2; }
+  const cellsApi = {
+    get on() { return cellMode; },
+    /** the director's world is by cells from now (a new game: off) */
+    enable(on = true) {
+      cellMode = !!on;
+      if (cellMode) { setBoulders([]); hill.U.uCrest.value.set(1000, 1000, 0, 2.5); }
+      else { for (const id of CELLS.keys()) hill.cells.set(id, 1000); CELLS.clear(); SCRUB_OFF.clear(); for (let i = 0; i < CG.PITS.length; i++) hill.cells.set(CG.pitId(i), 1000); pitFill.length = 0; }
+      scrubSync(); propsDirty = true; requestShadow(true);
+    },
+    id: (k, r) => CG.idOf(k, r),
+    /** ── h115 ── the scrub off a cell whose rock still stands (the full replay: bushes 5 amot wide stood in the kohen's works) ── /h115 ── */
+    clearScrub(k, r) { const id = CG.idOf(k, r); if (id < 0 || SCRUB_OFF.has(id)) return; SCRUB_OFF.add(id); scrubSync(); },
+    /** the highest natural rock of a cell (−1e9: none of the platform's inside) */
+    top: (k, r) => { const id = CG.idOf(k, r); return id >= 0 ? hill.cells.max(id) : -1e9; },
+    state: (k, r) => { const c = CELLS.get(CG.idOf(k, r)); return c ? c.st : 'rock'; },
+    /** a cell to 'rock' | 'cut' | 'paved'; cut animates (benches with dust, `dur` s) unless instant */
+    set(k, r, st, o = {}) {
+      const id = CG.idOf(k, r); if (id < 0) return false;
+      const c = CELLS.get(id) || { st: 'rock', a: null }; if (c.st === st && !c.a) return false;
+      const top = hill.cells.max(id);
+      if (st === 'rock') { c.a = null; hill.cells.set(id, 1000); }
+      else if (c.st === 'rock' && !o.instant && top > FLOOR + 0.5) c.a = { from: top, t: 0, dur: o.dur || 6, step: -1 };
+      else { c.a = null; c.st = st; hill.cells.set(id, lvOf(c)); }   // (cut down to the platform's level where the rock stood over it)
+      c.st = st; CELLS.set(id, c);
+      scrubSync(); requestShadow(!!o.instant);
+      return true;
+    },
+    cutting: (k, r) => { const c = CELLS.get(CG.idOf(k, r)); return !!(c && c.a); },
+    /** a waste pit's fill 0..1 (0: dug and empty) */
+    pit(i, f, o = {}) { if (!CG.PITS[i]) return; const was = pitFill[i]; pitFill[i] = f; if (was === f) return; hill.cells.set(CG.pitId(i), f == null ? 1000 : pitLevel(i, f)); requestShadow(!!o.instant); },
+    pitInfo: (i) => { const P = CG.PITS[i]; return P ? { ...P, floor: pitLevel(i, pitFill[i] || 0), rim: pitLevel(i, 1) } : null; },
+    floor: FLOOR,
+    frame(dt) {
+      for (const [id, c] of CELLS) {
+        if (!c.a) continue;
+        const A = c.a; A.t += dt; const u = clamp(A.t / A.dur, 0, 1), span = A.from - FLOOR;
+        const n = Math.max(1, Math.ceil(span / 2.5)), k = Math.min(n, Math.floor(u * n + 1e-6));   // (bench after bench, 2.5 amot each)
+        if (k !== A.step) {
+          A.step = k; const L = k >= n ? FLOOR : A.from - (span * k) / n; hill.cells.set(id, L);
+          const q = CG.kr(id); if (q && k > 0) { const x0 = CG.EAST - q.k * CG.CELL - CG.CELL / 2, z0 = CG.NORTH + q.r * CG.CELL + CG.CELL / 2; for (let j = 0; j < 3; j++) dustBurst(x0 + (j - 1) * 7, L + 1, z0 + ((j * 5) % 3 - 1) * 7, 8, 5, 5, 2); }
+          requestShadow(false);
+        }
+        if (u >= 1) { c.a = null; hill.cells.set(id, lvOf(c)); }
+      }
+    },
+  };
+  // ── /h115 ──
   function harCut(disp) {
     const U = hill.U, C = U.uCrest.value;
     U.uCut.value = disp < FOUND ? 0 : smooth(FOUND, 0.95, disp);
-    if (disp < FOUND) C.set(1000, 1000, 0, 2.5);
+    if (disp < FOUND || cellMode) C.set(1000, 1000, 0, 2.5);   // ── h115 ── (by cells: the crest is cut where it is worked) ── /h115 ──
     else { const c = clamp((disp - FOUND) / (1 - FOUND), 0, 1) * 6, k = Math.min(5, Math.floor(c)); C.set(HAR_CR[k + 1], HAR_CR[k], -0.03 + (c - k) * 1.06, 2.5); }
     // the plaza's paving (mount.js's paving, drawn once the walls pass the platform's level): laid from the west from the fourth
     // course on, up to x 180 by the last; the strip by the bay — where the finish's paving patch grows at his strokes (N40) — in
@@ -1550,6 +1653,42 @@ export function createStages(ctx) {
   // goes up it when he is inside the court; the band's and the ramp's edges are walls to the stick (never off the top).
   const S20 = { act: false, on: false, nx: 0, nz: 1, ux: 1, uz: 0, ax: 0, az: 0, w: 6.4, SL: 0.6, top: 0, topE: 0, base: 0, Lr: 0, t: 0, dirty: false, mesh: null, ky: '' };
   const S20_OUT = [-193, -73.5, 147, 73.5], S20_IN = [-187, -67.5, 141, 67.5], S20_THICK = 6, S20_MIN = 6.4;
+  // ── h111 ── (stage 02, the owner 8.11: the seven gates of the azara, Middot 1:4) the openings left in the courts' wall: 10 amot wide
+  // through its 6, from the terrace's level (6) to the lintel (26, the gates' 20 amot: Middot 2:3); the reveal shader drops the stones
+  // there (batch.js uBcHole), and below the lintel the top of the wall over an opening is no floor
+  const HOLES = [], HOLE_Y = [6, 26];
+  const inHole = (x, z) => { for (const h of HOLES) if (x > h[0] && x < h[2] && z > h[1] && z < h[3]) return true; return false; };
+  function wallHoles(list) {
+    HOLES.length = 0; for (const h of list || []) if (Array.isArray(h) && h.length >= 4 && HOLES.length < 8) HOLES.push(h.slice(0, 4));
+    const st = ST.wall; if (!st || !st.U) return HOLES.length;
+    const U = st.U; if (!U.uHole) return HOLES.length;
+    for (let i = 0; i < 8; i++) { const h = HOLES[i]; if (h) U.uHole.value[i].set(h[0], h[1], h[2], h[3]); else U.uHole.value[i].set(0, 0, 0, 0); }
+    U.uHoleY.value.set(HOLE_Y[0], HOLE_Y[1], HOLES.length);
+    return HOLES.length;
+  }
+  // ── /h111 ──
+  // ── h112 ── (stage 03, the owner 8.11: the kohen's runs of the soreg and his flight of steps) the openings a site's crews leave for him:
+  // its reveal drops its own stones in these rects between y0 and y1 (batch.js uBcHole, as the wall's gates); the kohen's own meshes fill them
+  function siteHoles(id, list, y0 = -1, y1 = 1e4) {
+    const st = ST[id]; if (!st || !st.U || !st.U.uHole) return 0;
+    const L = (list || []).filter((h) => Array.isArray(h) && h.length >= 4).slice(0, 8), U = st.U;
+    for (let i = 0; i < 8; i++) { const h = L[i]; if (h) U.uHole.value[i].set(h[0], h[1], h[2], h[3]); else U.uHole.value[i].set(0, 0, 0, 0); }
+    U.uHoleY.value.set(y0, y1, L.length);
+    return L.length;
+  }
+  // ── /h112 ──
+  // ── h113 ── (stage 04, the owner 9.11: the gates of the azara) a finished site's openings: its reveal shader comes back on (everything
+  // shown, uY far above) only so the holes cut it — the courts' wall keeps the seven openings while the kohen hangs the gates; off again
+  // at the stage's end, and on any status change (applyStage sets the materials anew)
+  function siteOpen(id, on) {
+    const st = ST[id]; if (!st || st.status !== 'done') return false;
+    st.U.uY.value = 1e6; st.U.uGlow.value.setRGB(0, 0, 0);
+    st.mats.forEach((m) => setBuilding(m, !!on));
+    for (const m of st.meshes) m.customDepthMaterial = on ? st.depth : undefined;
+    requestShadow(true);
+    return true;
+  }
+  // ── /h113 ──
   function s20Band(x, z) {
     if (!(x > S20_OUT[0] && x < S20_OUT[2] && z > S20_OUT[1] && z < S20_OUT[3])) return false;
     if (x > S20_IN[0] && x < S20_IN[2] && z > S20_IN[1] && z < S20_IN[3]) return false;
@@ -1559,7 +1698,7 @@ export function createStages(ctx) {
   function s20Top(x, z) {
     if (!S20.act) return -1e9;
     let y = -1e9;
-    if (s20Band(x, z)) { const t = shownTop('wall', x, z, ST.wall.top, 0); if (t > 0.5) y = t; }
+    if (s20Band(x, z)) { const t = shownTop('wall', x, z, ST.wall.top, 0); if (t > 0.5 && !(t <= HOLE_Y[1] + 0.5 && HOLES.length && inHole(x, z))) y = t; }   // ── h111 ── (over an opening: no floor below its lintel) ── /h111 ──
     if (S20.on) {
       const dx = x - S20.ax, dz = z - S20.az, s = -(dx * S20.nx + dz * S20.nz), q = dx * S20.ux + dz * S20.uz;
       if (s >= -0.2 && s <= S20.Lr && Math.abs(q) <= S20.w / 2) y = Math.max(y, S20.base + (S20.topE - S20.base) * (1 - Math.max(0, s) / S20.Lr));
@@ -1567,7 +1706,11 @@ export function createStages(ctx) {
     return y;
   }
   // ── /site20 ──
+  // ── h112 ── a floor a director's act lays itself (the kohen's flight of steps in stage 03, its meshes not the site's): it answers
+  // first where it knows the height (a number), and leaves the rest to the site
+  let floorHook = null;
   function groundAt(x, z) {
+    if (floorHook) { let y = null; try { y = floorHook(x, z); } catch (e) { y = null; } if (Number.isFinite(y)) return y; }
     if (!isDone('har')) {
       const hs = ST.har;
       if (hs.status !== 'building') return hill.heightAt(x, z);
@@ -1589,13 +1732,12 @@ export function createStages(ctx) {
     if (x > 6 && x < 141 && Math.abs(z) < 67.5) y = Math.max(y, shownTop('nashim', x, z, 5.9, 0));   // (the court's floor on its footing)
     if (x > -76.2 && x < -54.5 && Math.abs(z) < 50) { let n = 0; for (const xr of XR12) if (x <= xr) n++; if (n) y = Math.max(y, shownTop('ulam', x, z, 16 + 0.5 * n, 15.9)); }
     if (x > -92 && x < -76 && Math.abs(z) < 30 && (x < -81 || Math.abs(z) < 10)) y = Math.max(y, shownTop('ulam', x, z, 22, 16));   // (the Ulam's hall and its opening's sill)
-    if (x > -139 && x <= -92 && Math.abs(z) < 10) y = Math.max(y, shownTop('heichal', x, z, 22, 16));   // ── recovered (build 26) ── (the Heichal's floor: he may go in)
     // (── site13 ── N76 b) the altar as it stands — the yesod's ledge, the sovev, the top — and the kevesh (temple.js 120–137)
     if (x > -54 && x < -22 && z > -19.5 && z < 42.5) {
       if (z <= 12.5) {
-        const yes = (z <= -18.5) || (x <= -53) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);   // (build 56: the ר alone — the body's first course is the sovev's)
+        const yes = (z <= -18.5) || (x <= -53) || (x <= -23 && z <= 11.5) || (x >= -23 && z <= -17.5) || (x <= -52 && z >= 11.5);
         if (yes) y = Math.max(y, shownTop('yesod', x, z, 17, 16));
-        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 16));
+        if (x >= -53 && x <= -23 && z >= -18.5 && z <= 11.5) y = Math.max(y, shownTop('sovev', x, z, 22, 17));
         if (x >= -52 && x <= -24 && z >= -17.5 && z <= 10.5) y = Math.max(y, shownTop('guf', x, z, 25, 22));
       }
       if (x > -46 && x < -30 && z >= 10.5) y = Math.max(y, shownTop('guf', x, z, 16.05 + 8.95 * clamp((42.5 - z) / 32, 0, 1), 16));
@@ -1639,7 +1781,7 @@ export function createStages(ctx) {
   function sparkBurst(x, y, z, n = 30, spread = 8, up = 10) { spark.spawn(x, y, z, n, PO(spread, spread * 0.5, spread * 0.6, up, 1.8, 0.6, 1.6, 5, 1.4, 1, true)); }
 
   /* ── footprint outlines: one mesh for all stages, per-stage intensity in a uniform array ── */
-  const OL = { I: new Float32Array(16), base: new Float32Array(16), thinW: 1 };   // ── build 53 ── (thinW: the pins' beams' width factor, with the line's — outlineThin) ── /build 53 ──
+  const OL = { I: new Float32Array(16), base: new Float32Array(16) };
   const outline = (() => {
     const P = [], N = [], S = [], I = [], D = [], V = [], HY = [], idx = [];
     // per sample: a ground ribbon (2 vertices, aV = 0) and a vertical glow curtain (2 vertices, aS = 0, aV = 0 → 1)
@@ -1670,26 +1812,26 @@ export function createStages(ctx) {
     g.setAttribute('aHY', new THREE.Float32BufferAttribute(HY, 1));
     g.setIndex(idx);
     const m = new THREE.ShaderMaterial({
-      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 }, uThin: { value: new THREE.Vector2(1, 1) } },   // ── build 53 ── (uThin: the line's width and alpha factors — Phase A's thin line, stages.outlineThin) ── /build 53 ──
-      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan; uniform vec2 uThin;
+      uniforms: { uI: { value: OL.I }, uTime: BUILD_TIME, uCol: { value: new THREE.Color(2.3, 1.62, 0.5) }, uPlan: { value: 0 } },
+      vertexShader: `attribute vec2 aN; attribute float aS; attribute float aI; attribute float aD; attribute float aV; attribute float aHY; uniform float uI[16]; uniform float uPlan;
         varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           vI = uI[int(aI + 0.5)]; vS = aS; vD = aD; vV = aV; vK = aS == 0.0 ? 1.0 : 0.0;
           vec3 base = vec3(position.x, mix(position.y, aHY, uPlan), position.z);
           float d = distance(cameraPosition, base);
           float on = vI > 0.0 ? 1.0 : 0.0;
-          float w = clamp(d * 0.0045, 0.7, 8.0) * on * uThin.x, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
+          float w = clamp(d * 0.0045, 0.7, 8.0) * on, h = clamp(d * 0.011, 1.6, 16.0) * on * (vI > 0.5 ? 1.0 : 0.45);
           vec3 p = base + vec3(aN.x, 0.0, aN.y) * aS * w * 0.5 + vec3(0.0, aV * h, 0.0);
           gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
         }`,
-      fragmentShader: `uniform vec3 uCol; uniform float uTime; uniform vec2 uThin; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
+      fragmentShader: `uniform vec3 uCol; uniform float uTime; varying float vS; varying float vI; varying float vD; varying float vV; varying float vK;
         void main(){
           if (vI < 0.002) discard;
           float pulse = 0.62 + 0.38 * sin(uTime * 3.4);
           float f = fract(vD / 90.0 - uTime * 0.22);
           float dash = smoothstep(0.0, 0.08, f) * (1.0 - smoothstep(0.1, 0.24, f));
           float alpha = vK > 0.5 ? (1.0 - vV) * (1.0 - vV) * 0.5 : 1.0 - smoothstep(0.55, 1.0, abs(vS));
-          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0) * uThin.y);
+          gl_FragColor = vec4(uCol * (0.9 + dash * 1.6), clamp(vI * alpha * (pulse + dash * 0.8), 0.0, 1.0));
         }`,
       transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
     });
@@ -1752,6 +1894,7 @@ export function createStages(ctx) {
      at the builder's rock and the three next: picks and a lever lying ready, baskets, a water jar; the survey's pegs and cord
      from the builder's rock to the next one (the line the gangs work along) */
   function mountProps(put, putF, putR, putA) {
+    if (cellMode) return;   // ── h115 ── (the old boulder field's stakes, spoil and tools: retired with it) ── /h115 ──
     const hr = heroRock();
     surveyProps(put);
     // the Mount's first retaining course at its east face, by the crane and the cart's dump (DESIGN8B M6): the chalk line of the
@@ -1979,6 +2122,9 @@ export function createStages(ctx) {
     };
     for (const st of list) {
       if (st.status !== 'building') continue;
+      // ── h117 ── (ירון 10.11: "לנקות את כל השאריות") the cells' world owns the Mount: the old Mount site's working patch, its far heaps
+      // and its quarried piles (one stood as a stack of dressed blocks on the waste pile) are not drawn there ── /h117 ──
+      if (cellMode && st.id === 'har') continue;
       const found = st.disp < FOUND + 0.04, def = st.def;
       const gy = (x, z) => (st.id === 'har' ? groundAt(x, z) : st.base);
       if (found && st.id === 'har') mountProps(put, putF, putR, putA);   // ── site8 ── the working patch round the builder
@@ -2223,7 +2369,6 @@ export function createStages(ctx) {
 
   /* ── scaffolding: two instanced meshes per building stage, instances sorted by lift ── */
   const woodMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.86 });
-  woodMat.onBeforeCompile = (sh) => { const x = xrayCode(sh.vertexShader, sh.fragmentShader, sh); sh.vertexShader = x.vs; sh.fragmentShader = x.fs; };   // ── fable32 (build 46) ── (the scaffold too: clear in front of his stretch of the wall — batch.js uHole — and seen through near him)
   const poleGeo = new THREE.CylinderGeometry(1, 1, 1, 5, 1, true).translate(0, 0.5, 0);
   const boardGeo = new THREE.BoxGeometry(1, 1, 1);
   function makeScaffold(st) {
@@ -2537,6 +2682,7 @@ export function createStages(ctx) {
   const W = [];
   for (let i = 0; i < NW; i++) { const c = WPAL[i % WPAL.length]; wBody.setColorAt(i, c); wArm.setColorAt(i, c); wArm2.setColorAt(i, c); W.push({ role: 'idle', st: null, x: 0, y: 0, z: 0, yaw: 0, ph: R() * 6.28, sp: 2.6 + R() * 0.9, ax: 0, az: 0, bx: 0, bz: 0, t: 0, dir: 1, wait: 0, carry: false, run: null, o: 0 }); }
   let nWork = 0, workDirty = true;
+  const H120W = { hide: null };   // ── h120 ── the stage's own workers kept out of an act's view cone: hide(x, y, z) → true (h120/world.js viewCone) ── /h120 ──
   function assignWorkers() {
     workDirty = false;
     let n = 0;
@@ -2702,12 +2848,13 @@ export function createStages(ctx) {
       }
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
+      const h120h = !!(H120W.hide && H120W.hide(w.x + ox, w.y, w.z + oz)) || !!(H120W.noScaff && w.run); if (h120h) wv.y -= 999;   // ── h120 ── a man in an act's view cone is not drawn ── /h120 ──
       wmBody.compose(wv, wq, ONE); wBody.setMatrixAt(i, wmBody);
       wmT.makeTranslation(-0.44, 2.72, 0); wmR.makeRotationX(arm); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR);
       // ── site13 ── a hammer only for a mason or a digger away from the altar; bare hands for the rest (N76 c)
       if ((w.role === 'mason' || w.role === 'dig') && !(st && FIELD.has(st.id))) { wArm.setMatrixAt(na, tmpM); wArm.setColorAt(na, WPAL[i % WPAL.length]); na++; }
       else { wArm2.setMatrixAt(nb, tmpM); wArm2.setColorAt(nb, WPAL[i % WPAL.length]); nb++; }
-      we.set(0, w.yaw, 0); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz); tmpM2.compose(wv, wq, ONE);   // ── site20 ── (+ox, +oz) ── /site20 ──
+      we.set(0, w.yaw, 0); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz); if (h120h) wv.y -= 999; tmpM2.compose(wv, wq, ONE);   // ── site20 ── (+ox, +oz) ── /site20 ──   // ── h120 ── (if h120h) ── /h120 ──
       for (let s = 0; s < 2; s++) {
         wmT.makeTranslation(s ? -0.2 : 0.2, 1.05, 0); wmR.makeRotationX(s ? -legA : legA);
         tmpM.multiplyMatrices(tmpM2, wmT).multiply(wmR); wLeg.setMatrixAt(i * 2 + s, tmpM);
@@ -2819,6 +2966,7 @@ export function createStages(ctx) {
       m.at = (m.at || 0) - dt;
       if (m.at <= 0 || !m.ok) { m.at = 0.5; mkAnchor(m, st); }   // (the course's line, twice a second: slots() allocates)
       if (!m.ok) continue;
+      if (H120W.hide && Number.isFinite(m.bx) && [0, 6, 12, 18].some((h) => H120W.hide(m.bx + (m.fx || 0) * h * 0.4, (m.by || 0) + h, m.bz + (m.fz || 0) * h * 0.4))) continue;   // ── h120 ── a machine in an act's view cone stands down for the act ── /h120 ──
       mkSite(m, st, k, dt); k++;
     }
     if (changed) workDirty = true;
@@ -3117,7 +3265,6 @@ export function createStages(ctx) {
   const TW_SOLID = ['ulam', 'heichal', 'kodesh', 'lishka', 'kiyor', 'gates'], TW_KODESH = [-176, -35, -139, 35];
   const inR = (f, x, z) => x > f[0] && x < f[2] && z > f[1] && z < f[3];
   function twinSolid(x, z, x0, z0) {
-    if (TWD.pass && TWD.pass(x, z)) return false;   // ── recovered (build 26) ── (where day33 lets him through — world22's Ulam and Heichal)
     if (inR(TW_KODESH, x, z) && !inR(TW_KODESH, x0, z0)) return true;
     for (let i = 0; i < TW_SOLID.length; i++) {
       const st = ST[TW_SOLID[i]]; if (!st || (st.status !== 'building' && st.status !== 'done') || !st.def || !st.def.foot) continue;
@@ -3744,6 +3891,19 @@ export function createStages(ctx) {
     finishBody(lerp(0.12, S.bow, 1 - reach), lerp(0.05, S.drop, 1 - reach), 0, 0, 1);
     PZ.FL.set(0.24, 0.13, 0.32); PZ.FR.set(-0.24, 0.13, -0.3);
   }
+  // ── h120 ── a rope held in both hands as long as the act holds it (stage 05's brake rope at its post): reach 0 hauled back … 1 reaching
+  // forward, lean 0 upright … 1 leaning back against it; the wrists' world point for the rope's tail
+  const H120R = { on: null, hand: new THREE.Vector3(), lift: 0 };
+  function h120Hold(o) {
+    const S = o.S, d = hA.copy(S.Cm).sub(hB.set(0, 2.1, 0.3)).normalize();
+    finishBody(lerp(0.1, -0.28, o.lean), lerp(0.04, 0.2, o.lean), 0, 0, 1);
+    PZ.WR.set(-0.12, 2.0 - PZ.drop, 0.45).addScaledVector(d, 0.2 + o.reach * 0.55);
+    frameQ(hC.set(0, 1, 0).addScaledVector(d, -d.y).normalize(), d, PZ.QR);
+    PZ.WL.copy(PZ.WR).addScaledVector(d, 0.42).add(hC.set(0.1, 0, 0)); PZ.QL.copy(PZ.QR);
+    PZ.FL.set(0.24, 0.13, 0.32); PZ.FR.set(-0.24, 0.13, -0.3 - 0.12 * o.lean); PZ.look = S.Cm;
+    hD.copy(PZ.WR).add(PZ.WL).multiplyScalar(0.5); m2w(hD, H120R.hand);
+  }
+  // ── /h120 ──
   function poseCarry(S, t) {
     // bend at the knees, both hands under the stone, lift it to the chest (the beat), and set it down again
     const tC = S.K.tC, tE = S.K.tE;
@@ -3970,7 +4130,7 @@ export function createStages(ctx) {
       for (let k = 0.45; k <= lim + 1e-6; k += 0.45) { const g2 = groundAt(H.x + ex / el * k, H.z + ez / el * k); if (Math.abs(g2 - g0) > 1.05) { edge = true; break; } g0 = g2; }
     }
     const stepD = H.px === undefined ? 0 : Math.hypot(H.x - H.px, H.z - H.pz); H.px = H.x; H.pz = H.z;
-    const gyL = gy + TW.lift;   // ── site15 ── (on the treadwheel's bottom tread: no edge there)
+    const gyL = gy + TW.lift + (H120R.lift || 0);   // ── site15 ── (on the treadwheel's bottom tread: no edge there)   // ── h120 ── (+ a ladder's rung: H120R.lift) ── /h120 ──
     if (Math.abs(gyL - H.y) > 1.05 + 2.2 * stepD && !H.door) { H.edgeT = 0.14; if (H.edgeF > 0.5) dustBurst(H.x, gy + 0.5, H.z, 6, 3, 2, 1); }
     H.edgeT = Math.max(0, (H.edgeT || 0) - dt);
     H.edgeF = clamp((H.edgeF === undefined ? 1 : H.edgeF) + ((edge || H.edgeT > 0 ? 0 : 1) - (H.edgeF === undefined ? 1 : H.edgeF)) * Math.min(1, dt * 22), 0, 1);
@@ -4049,6 +4209,7 @@ export function createStages(ctx) {
       if (craftPosing() && !moving && !stepping && !H.gest) craftPose();   // ── site16 ── his hands on the saw / the cord
       poseEase(Math.min(1, dt * 11), Math.min(1, dt * (moving ? 30 : 14)));
     }
+    if (H120R.on && !H.stroke && !moving) h120Hold(H120R.on);   // ── h120 ── ── /h120 ──
     applyPose();
     // ── people7 ── he blinks every few seconds (the lids fold down from the top of the eyes)
     H.blinkT = (H.blinkT === undefined ? 2 : H.blinkT) - dt;
@@ -4093,18 +4254,24 @@ export function createStages(ctx) {
   }
   // the hero's public API (stages.hero): the game (BUILD) and the hooks (FUN) call it, guarded; every promise resolves
   const heroApi = {
+    // ── h120 ── rope(target | null, reach, lean): both hands on a rope toward target, held until rope(null); → the hands' world point
+    rope: (target, reach = 0.5, lean = 0) => { if (!target) { H120R.on = null; return null; } const o = H120R.on && H120R.on.tg === target ? H120R.on : { tg: target, S: planStroke('pull', target, {}) }; o.reach = clamp(+reach || 0, 0, 1); o.lean = clamp(+lean || 0, 0, 1); H120R.on = o; return H120R.hand; },
+    lift: (y) => { H120R.lift = Math.max(0, +y || 0); hero.y = groundAt(hero.x, hero.z) + H120R.lift; hero.edgeT = 0; hero.ring.visible = !H120R.lift; },   // (on a ladder's rung y over the floor; 0: down)
+    // ── /h120 ──
     walkTo: heroWalkTo, swing: heroSwing, place: heroPlace, show: (v) => { hero.vis = !!v; hero.mesh.visible = hero.ring.visible = !!v; if (!v) heroCancel(); },
     twinSite: (id) => { TWD.site = id || 'har'; TWD.twin = !!id; },   // ── twin18 ── ── /twin18 ── (── nav19 ── TWD.twin: two thumbs on)
     dash: heroDash, get dashing() { return hero.dash || 0; }, navLog: () => NAV_LOG.slice(),   // ── nav19 ── ── /nav19 ──
     // ── engine22 ── Phase B's two thumbs: the Temple's own solids (xtra(x, z, x0, z0) → true = blocked) and a place by coordinates (the builder's feet)
     twinExtra: (f) => { TWD.xtra = typeof f === 'function' ? f : null; },
-    twinPass: (f) => { TWD.pass = typeof f === 'function' ? f : null; },   // ── recovered (build 26) ── (pass(x, z) → true = never solid here)
     setPos: (x, z, yaw) => { if (hero.resolve) { const r = hero.resolve; hero.resolve = null; r(false); } heroCancel(); hero.path = null; hero.door = null; hero.fade = 1; hero.x = x; hero.z = z; hero.y = groundAt(x, z); if (Number.isFinite(yaw)) hero.yaw = yaw; hero.face = null; hero.vis = true; hero.mesh.visible = hero.ring.visible = true; },
     // ── /engine22 ──
     get speedMul() { return hero.speedMul || 1; }, set speedMul(v) { hero.speedMul = v > 0 && v < 4 ? +v : 1; },   // ── shift29 ── ── /shift29 ──
     drive: heroDrive, get driving() { return TWD.on; }, get twinBlocked() { return TWD.blocked; }, get twinFreed() { return TWD.freed; }, free: (x, z, x0, z0) => twinFree(x, z, x0, z0), reach: (x0, z0, x1, z1, max) => twinReach(x0, z0, x1, z1, max), line: (x0, z0, x1, z1) => twinLine(x0, z0, x1, z1),   // ── twin18 ── (line) ── /twin18 ──   // ── twin17 ── ── /twin17 ──
     get walking() { return !!hero.path; },   // ── twin17 ── ── /twin17 ──
     ks: () => (KS.on && KS.s ? { on: true, x: KS.hx, y: KS.s.y + KS.hy + KS.s.h / 2, z: KS.hz, cy: KS.s.y + KS.hy, sy: KS.s.y, landT: KS.landT, gone: KS.gone, done: KS.done } : { on: false }),   // ── site20 ── (the test's eyes) ── /site20 ──
+    // ── h120 ── the stage's own workers out of an act's view cone (fn(x, y, z) → hidden; null: all drawn)
+    h120Workers: (fn) => { H120W.hide = typeof fn === 'function' ? fn : null; },
+    // ── /h120 ──
     workersNear: (x, z, r) => { const o = []; for (let i = 0; i < nWork; i++) { const w = W[i]; const px = w.x + (w.o20x || 0), pz = w.z + (w.o20z || 0), d = Math.hypot(px - x, pz - z); if (d <= r) o.push([w.role, +px.toFixed(1), +pz.toFixed(1), +d.toFixed(1)]); } return o; },   // ── site20 ── (the test's eyes: the stage's own workers as drawn) ── /site20 ──
     s20: () => ({ act: S20.act, on: S20.on, ax: S20.ax, az: S20.az, nx: S20.nx, nz: S20.nz, ux: S20.ux, uz: S20.uz, Lr: S20.Lr, top: S20.top, topE: S20.topE, base: S20.base, topAt: (x, z) => s20Top(x, z) }),   // ── site20 ── (the wall's plan A: the test's eyes) ── /site20 ──
     twinState: () => `${TWD.on ? 'D' : ''}${hero.path ? 'P' : ''}${hero.door ? 'R' : ''}${hero.step ? 'T' : ''}${hero.stroke ? 'K' : ''}${hero.vis ? '' : 'H'} b${TWD.blocked} f${TWD.freed}`,   // ── twin17 ── (debug) ── /twin17 ──
@@ -4174,6 +4341,7 @@ export function createStages(ctx) {
     const b = bSt[i];
     const gy = hill.heightAt(b.x, b.z) - b.r * 0.12;
     for (let c = 0; c < 3; c++) {
+      if (b.hid) { tmpV.set(b.x, -999, b.z); tmpS.set(0.001, 0.001, 0.001); tmpQ.identity(); tmpM.compose(tmpV, tmpQ, tmpS); bMesh[c].setMatrixAt(i, tmpM); continue; }   // ── h114 ── (a minigame's own rock stands in for it) ── /h114 ──
       let sc = b.state > 0 || b.anim === 'shatter' ? 1 : 0;
       // ── site8 ── split: its three chunks lie round the patch as rubble, and go (carted off) as `rub` runs down
       if (b.state <= 0 && b.anim !== 'shatter' && b.rub > 0.001) {
@@ -4207,6 +4375,7 @@ export function createStages(ctx) {
   function boulderAll() { for (let i = 0; i < bSt.length; i++) boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; }
   let bVisible = false;
   function setBoulders(states) {
+    if (cellMode) { bSt.forEach((b) => { b.state = 0; b.crack = 0; b.anim = null; b.pt = -1; b.rub = 0; }); bVisible = false; for (const m of bMesh) m.visible = quarryOn; workDirty = true; propsDirty = true; requestShadow(true); return; }   // ── h115 ── ── /h115 ──
     bSt.forEach((b, i) => { const s = states && states[i] !== undefined ? states[i] : 0; b.state = s; b.crack = s === 1 ? 1 : 0; b.anim = null;
       if (s > 0) { b.pt = -1; b.rub = 0; } else if (b.pt < 0) { b.pt = 90; b.rub = 0; } });   // ── site8 ── (a resync: the patches levelled, the rubble gone)
     workDirty = true; propsDirty = true;
@@ -4589,8 +4758,10 @@ export function createStages(ctx) {
      started one; progress updates never move it ── */
   let cranePref = null, craneDirty = true, seqN = 0;
   function setCraneSite(id) { cranePref = id && ST[id] ? id : null; craneDirty = true; }
+  let craneHide = false;   // ── h111 ── (stage 02's closing stone: the crews' crane rests; the last stone is the kohen's) ── /h111 ──
   function craneAssign() {
     craneDirty = false;
+    if (craneHide) { if (crane.st) craneRelease(); propsDirty = true; workDirty = true; return; }
     // (site8: the Mount's treadwheel crane stands at its east face from the survey on — DESIGN8B R5, "the crane in the background")
     const ok = (st) => !!st && st.status === 'building' && (st.disp >= FOUND || st.id === 'har');
     let want = ok(ST[cranePref]) ? ST[cranePref] : null;
@@ -5015,9 +5186,6 @@ export function createStages(ctx) {
     vs.grown = !!(o && o.grown); vs.demo = !!(o && o.demo);
     vineSync(was && !vs.grown);
   }
-  // ── fable32 (build 60) ── where the vine's next leaf will hang (the stage-13 act hangs the player's first leaf there: the blinking point);
-  // read-only — null while the vine is not hung ── /fable32 ──
-  function vineNext() { const K = vine.kinds[0]; if (!vine.on || !K) return null; const s = K.slots[Math.min(K.cap - 1, Math.max(0, K.want))]; return s ? { x: s.x, y: s.y, z: s.z } : null; }
   const vE = new THREE.Euler();
   function vineSlot(K, i, d) {
     const s = K.slots[i], a = clamp(d - i, 0, 1), k = a <= 0 ? 0 : a >= 1 ? 1 : easeBack(a);
@@ -5075,7 +5243,6 @@ export function createStages(ctx) {
   })();
   const paves = list.map((st) => st.cache.pave).filter(Boolean).map((m) => ({ m, r: m.roughness, c: m.color.clone() }));
   function setRain(on) { rain.want = !!on; }
-  function setWet(k) { rain.wetM = Math.max(0, Math.min(1, +k || 0)); }   // ── fable32 (build 45) ── (a morning after the night's rain: the paving wet without the rain falling; it dries as the sun rises) ── /fable32 ──
   function rainUpdate(dt) {
     const want = rain.want && buildPhase() ? 1 : 0;
     rain.k += (want - rain.k) * Math.min(1, dt * (want ? 0.8 : 1.5));
@@ -5083,10 +5250,9 @@ export function createStages(ctx) {
     rain.L.visible = rain.k > 0.003;
     if (rain.L.visible) { camera.getWorldDirection(camDir); rain.U.uC.value.copy(camera.position).addScaledVector(camDir, 45); rain.U.uA.value = rain.k; }
     // wet paving: darker, and glossy enough to catch the braziers
-    const wk = Math.max(rain.k, rain.wetM || 0);   // ── fable32 (build 45) ── ── /fable32 ──
-    if (Math.abs(wk - rain.wet) > 0.02 || (wk === 0 && rain.wet !== 0)) {
-      rain.wet = wk;
-      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, wk); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * wk); }
+    if (Math.abs(rain.k - rain.wet) > 0.02 || (rain.k === 0 && rain.wet !== 0)) {
+      rain.wet = rain.k;
+      for (const p of paves) { p.m.roughness = lerp(p.r, 0.2, rain.k); p.m.color.copy(p.c).multiplyScalar(1 - 0.28 * rain.k); }
     }
   }
 
@@ -6012,7 +6178,7 @@ export function createStages(ctx) {
   }
   function harBay(dt) {
     const hs = ST.har, U = hill.U;
-    const on = !bayOff62 && hs.status === 'building' && hs.disp >= FOUND && hs.phase !== 'finish' && hs.phase !== 'done' && U.uFill.value > -999;
+    const on = hs.status === 'building' && hs.disp >= FOUND && hs.phase !== 'finish' && hs.phase !== 'done' && U.uFill.value > -999;
     if (on && crane.st === hs && !crane.lift && !hs.harPosed) harCranePose(hs);
     // (the next slot ran on along the front — the game set stones without the crane: a segment, a resume — the crane, its stock
     //  and the builder's banker go to it, so the frame keeps them together; checked twice a second)
@@ -6202,8 +6368,8 @@ export function createStages(ctx) {
   /* ── per-frame ── */
   const pv = new THREE.Vector3();
   // ── twin18 ── the see-through follows him while twin is ON (batch.js XRAY)
-  let xrOn = false, xrW = null;   // ── fable32 (build 43) ── (xrW: Phase B's guard asks the see-through for the wall between the camera and the kohen, cam28 xray) ── /fable32 ──
-  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else if (xrW) { XRAY.uXr.value.set(xrW[0], xrW[1], xrW[2], 1); XRAY.uXrC.value.copy(camera.position); } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
+  let xrOn = false;
+  function xrayStep() { if (xrOn && hero.vis) { XRAY.uXr.value.set(hero.x, hero.y + 1.8, hero.z, 1); XRAY.uXrC.value.copy(camera.position); if (cbXray(XRAY.uXr.value)) XRAY.uXr.value.w = 2; } else XRAY.uXr.value.w = 0; }   // ── craftb19 ── (cbXray: a craft's box fully clear) ── /craftb19 ──
   // ── /twin18 ──
   function update(dt) {
     xrayStep();   // ── twin18 ── ── /twin18 ──
@@ -6260,26 +6426,29 @@ export function createStages(ctx) {
     planUpdate(dt); showUpdate(dt);
     // pins: the available sites, and any the vision or the showcase lights up
     let np = 0;
-    for (const st of list) {
+    // ── h117 ── (ירון 10.11: "הפס הצהוב שמגיע עד הרקיע" goes from every minigame) the old site pins and their light columns never
+    // show while the world is by cells or the director owns the game ── /h117 ──
+    const pinsNo = cellMode || pinsOff;
+    for (const st of pinsNo ? [] : list) {
       const w = Math.max(st.status === 'avail' ? 1 : 0, st.pinDup ? 0 : pinFx[st.idx]);
       if (w < 0.02) continue;
       pinPos(st, pv);
       const d = pv.distanceTo(camera.position), s = clamp(d * 0.012, 1.4, 22) * (0.45 + 0.55 * w), bob = Math.sin(time * 2.4 + np) * s * 0.35;
       tmpQ.setFromAxisAngle(UP, time * 1.6); tmpV.set(pv.x, pv.y + bob, pv.z); tmpS.set(s, s, s);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5) * OL.thinW;
+      const gy = st.id === 'har' || !isDone('har') ? hill.heightAt(pv.x, pv.z) : st.base, bw = clamp(d * 0.0016, 0.25, 2.2) * (st.status === 'avail' ? 1 : 0.5);
       tmpQ.identity(); tmpV.set(pv.x, gy, pv.z); tmpS.set(bw, Math.max(0.01, pv.y - gy + s * 0.5), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = pv.x; halo.pos[np * 3 + 1] = pv.y + s * 1.5 + bob; halo.pos[np * 3 + 2] = pv.z;
       halo.size[np] = s * 5.5; halo.alpha[np] = (0.55 + 0.25 * Math.sin(time * 3.4)) * w;
       np++;
     }
     // ── site15 ── the "!" markers over the next tasks' spots (taskMarks): the pins' own instances, smaller, a thin beam
-    for (const m of TS.marks) {
+    for (const m of pinsNo ? [] : TS.marks) {
       if (np >= 15) break;
       const d = Math.hypot(m.x - camera.position.x, m.y - camera.position.y, m.z - camera.position.z), s = clamp(d * 0.0085, 0.8, 9), bob = Math.sin(time * 3 + np * 1.7) * s * 0.3;
       tmpQ.setFromAxisAngle(UP, time * 2.1 + np); tmpV.set(m.x, m.y + s * 0.4 + bob, m.z); tmpS.set(s * 0.8, s * 0.8, s * 0.8);
       tmpM.compose(tmpV, tmpQ, tmpS); pins.setMatrixAt(np, tmpM);
-      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4) * OL.thinW;
+      const gy = groundAt(m.x, m.z), bw = clamp(d * 0.0012, 0.18, 1.4);
       tmpQ.identity(); tmpV.set(m.x, gy, m.z); tmpS.set(bw, Math.max(0.01, m.y + s * 0.4 - gy), bw); tmpM.compose(tmpV, tmpQ, tmpS); beams.setMatrixAt(np, tmpM);
       halo.pos[np * 3] = m.x; halo.pos[np * 3 + 1] = m.y + s * 1.6 + bob; halo.pos[np * 3 + 2] = m.z;
       halo.size[np] = s * 4.5; halo.alpha[np] = 0.5 + 0.25 * Math.sin(time * 3.4 + np);
@@ -6317,6 +6486,7 @@ export function createStages(ctx) {
       if (hs.status === 'building') { if (hs.disp < FOUND) hill.U.uFill.value = -1000; harCut(hs.disp); }   // ── site12 ── (+ the crest)
       else if (hs.status !== 'done' && (hill.U.uCut.value !== 0 || hill.U.uCrest.value.x < 999)) { hill.U.uFill.value = -1000; harCut(0); } }
     siteLife(dt);   // ── site8 ── the Mount's working patch (below)
+    if (cellMode) cellsApi.frame(dt);   // ── h115 ── ── /h115 ──
     harBay(dt);     // ── site9 ── the Mount's working bay at its walls' working front
     sitePoseUpdate(dt);   // ── site11 ── every other site's working front: the crane, its stock and his banker at the next slot
     finishCuts(dt);       // ── site13 ── the finish on the building, step by step; the Ezrat Nashim's chambers one at a time
@@ -6602,7 +6772,9 @@ export function createStages(ctx) {
     m.geometry.attributes.position.needsUpdate = true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
     m.visible = true; S20.dirty = false;
   }
-  function s20Refresh() { const st = ST.wall; return (S20.act = !!(TWD.twin && TWD.site === 'wall' && st && st.status === 'building' && st.group.visible && st.disp >= FOUND)); }
+  function s20Refresh() { const st = ST.wall; return (S20.act = !!((S20.pin || (TWD.twin && TWD.site === 'wall')) && st && st.status === 'building' && st.group.visible && st.disp >= FOUND)); }   // ── h111 ── (S20.pin: stage 02's director holds the ramp at its station) ── /h111 ──
+  /** ── h111 ── the ramp held at (x, z) on the wall's inner face, (nx, nz) the wall's outward normal there; null: back to the working front */
+  function s20Pin(p) { S20.pin = p && Number.isFinite(+p.x) && Number.isFinite(+p.z) ? { x: +p.x, z: +p.z, nx: +p.nx || 0, nz: +p.nz || 0 } : null; S20.t = 0; return !!S20.pin; }
   /** each frame: whether plan A is on; twice a second the ramp's place and height from the working slot */
   function s20Tick(dt) {
     const st = ST.wall, was = S20.act; s20Refresh();
@@ -6610,8 +6782,12 @@ export function createStages(ctx) {
     if (!was) S20.t = 0;
     if ((S20.t -= dt) <= 0) {
       S20.t = 0.5;
-      const s = nextSlot('wall'), lv = s ? s.y - s.h / 2 : 0;
-      if (!s || lv < S20_MIN) { if (S20.on) { S20.on = false; if (S20.mesh) S20.mesh.visible = false; } }
+      const s = S20.pin ? null : nextSlot('wall'), lv = s ? s.y - s.h / 2 : 0;
+      if (S20.pin) {   // ── h111 ── the director's station: the ramp leans on the inner face there, as high as the wall shown ── /h111 ──
+        const P = S20.pin, tp = shownTop('wall', P.x + P.nx * 1.0, P.z + P.nz * 1.0, st.top, 0);
+        if (!(tp > 0.5)) { if (S20.on) { S20.on = false; if (S20.mesh) S20.mesh.visible = false; } }
+        else if (!S20.on || S20.ax !== P.x || S20.az !== P.z || S20.nx !== P.nx || S20.nz !== P.nz) { S20.ax = P.x; S20.az = P.z; S20.nx = P.nx; S20.nz = P.nz; S20.ux = -P.nz; S20.uz = P.nx; S20.on = true; S20.dirty = true; S20.fresh = true; }
+      } else if (!s || lv < S20_MIN) { if (S20.on) { S20.on = false; if (S20.mesh) S20.mesh.visible = false; } }
       else {
         const [ux, uz] = slotTangent('wall', s), nx = s.n[0], nz = s.n[1], tx = -nz, tz = nx;   // (tx, tz: the width's axis)
         const okAt = (mx, mz) => s20Band(mx + nx * 3 + tx * 3.4, mz + nz * 3 + tz * 3.4) && s20Band(mx + nx * 3 - tx * 3.4, mz + nz * 3 - tz * 3.4) && s20Band(mx + nx * 5, mz + nz * 5);
@@ -8762,41 +8938,22 @@ export function createStages(ctx) {
     hero.vis = false; hero.mesh.visible = hero.ring.visible = false; hero.path = null;
   }
 
-  /* ── build 62 ── the crest's sectors for stage 01 (har62.js): [{ x, z, half, k, pv }] — k 0…1 brought down from its natural top to the
-     plaza (secLevel62), pv 0…1 paved; null = none. And the Mount's working bay off while the new stage 01 builds it (no bay — the spec's rule 1) */
-  const secTop62 = new Map();
-  let secKey62 = '';
-  function setSectors62(list) {
-    const U = hill.U, A = U.uSec.value, P = U.uSecPv.value; let n = 0;
-    for (let i = 0; i < 8; i++) {
-      const q = list && list[i];
-      if (!q || !(q.half > 0)) { A[i].set(0, 0, 0, 1000); P[i] = 0; continue; }
-      const key = `${q.x},${q.z},${q.half}`; if (!secTop62.has(key)) secTop62.set(key, hill.topIn(q.x, q.z, q.half));
-      A[i].set(q.x, q.z, q.half, secLevel62(secTop62.get(key), q.k || 0)); P[i] = Math.max(0, Math.min(1, q.pv || 0)); n++;
-    }
-    hill.setSecN(n);
-    const key = A.map((v) => Math.round(v.w * 2)).join(',') + '|' + P.map((v) => Math.round(v * 10)).join(',');
-    if (key !== secKey62) { secKey62 = key; requestShadow(false); propsDirty = true; try { hill.bushCull(U.uFill.value, U.uCrest.value); } catch (e) { /* */ } }
-    return n;
-  }
-  const secInfo62 = () => hill.U.uSec.value.map((v, i) => ({ x: v.x, z: v.y, half: v.z, lv: Math.round(v.w * 100) / 100, pv: hill.U.uSecPv.value[i] }));
-  let bayOff62 = false;
-
   const api = {
     ids: STAGE_IDS.slice(),
-    setSectors62, sectors62: secInfo62, noBay62: (on) => { bayOff62 = !!on; },   // ── build 62 ──
     setStage, setBoulders, hitBoulder,
     hero: heroApi,   // ── hero (PEOPLE) ── the hero API is built in the hero block (walkTo swing place show setTool tool position at act onImpact workpiece …)
     pick, siteCenter, siteTop, focus, celebrate, workFX, update,
     // GDD §12 world API (v2)
-    // ── build 53 ── outlineThin(w, a): the footprint line's width and alpha factors (Phase A: ¼ and ½ — the inspector's review §4 important 12; 1, 1 elsewhere) ── /build 53 ──
-    outlineThin: (w = 1, a = 1) => { try { outline.material.uniforms.uThin.value.set(+w || 1, +a || 1); OL.thinW = +w || 1; beams.material.opacity = +a || 1; } catch (e) { /* */ } },
-    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, vineNext, rain: setRain, wet: setWet, shine,   // ── fable32 (build 45) ── (+ wet) ── /fable32 ──
+    hotspot, screenPos, setCraneSite, showPlan, orbit, showcase, redLine, boxes, setVine, rain: setRain, shine,
     strikeFX, setComboLevel, playTimelapse, setQuarryStock, momentFX,
     crane: craneInfo, scaffold: scaffoldInfo,   // (read-only, for src/crews.js)
     ashlar: { geometry: ashGeo, material: props.material, rough: roughGeo, roughMaterial: field.material },   // (wave 6: real stones for carts; share, don't dispose)
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
+    cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
+    nashimGallery: (on) => { H120GZ.off = !on; if (H120GZ.g) H120GZ.g.visible = !!on; },   // (sticky: a rebuilt stage keeps it hidden)   // ── h120 ── ── /h120 ──
+    s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, h120Scaff: (id, on) => { const sc = ST[id] && ST[id].scaff; if (sc) sc.P.m.visible = sc.Bd.m.visible = !!on; H120W.noScaff = !on; },   // ── h120 ── (a stage's own wall scaffold hidden while an act's close shots play) ── /h120 ── wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
+    slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──
     // ── site8 ── the Mount's close camera (wave 8B): boulderView(i, from?) → { p, t, dist, az, el, hero } · clearView(x, y, z, dist,
     // az, el, also?) → { az, el, dist, moved } | null · occluded(x, y, z, from?) → bool · heroRock() → the builder's rock (−1: none)
     boulderView, clearView, occluded, heroRock, wallView,
@@ -8804,6 +8961,15 @@ export function createStages(ctx) {
     // deliverKeyStone(id, { what, great, ms }) → Promise<{ course, index, stones } | false>: the cart brings the hewn key stone, the
     // crane sets it (main.js `// ── site9 ──` attaches crews.keyCart as stages.keyCart)
     boulderSpots, deliverKeyStone, camFloor,
+    // ── h114 ── a split rock's chunks carted off now and its patch levelled (the paving goes on clean rock: ירון 9.11, a chunk hid a slab);
+    // the boulders' own material (the stage's small rocks are of the same rock: "האבנים של האתר") ── /h114 ──
+    boulderRest: (i) => { const b = bSt[i]; if (!b || b.state > 0 || cellMode) return false; b.anim = null; b.pt = 60; b.rub = 0; workDirty = true; propsDirty = true; boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; return true; },
+    boulderMat: () => BC.mat,
+    // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
+    boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b || cellMode) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
+    pinsOff: (on) => { pinsOff = !!on; },   // ── h117 ── ── /h117 ──
+    boulderInfo: (i) => { const b = bSt[i]; return b && !cellMode ? { x: b.x, z: b.z, r: b.r, sy: b.sy, yaw: b.yaw, state: b.state, hid: !!b.hid, gy: hill.heightAt(b.x, b.z) } : null; },
+    shadowSoon: () => requestShadow(false),   // ── h114 ── (a minigame moves things: the sun's shadows follow, at most every 0.3 s) ── /h114 ──
     // ── flow10 ── the course check's stand and frame at the Mount: checkView(id) → { spot, target, p, t } | null · flyTo(p, t, ms)
     checkView, flyTo,
     // ── site11 ── (N34, FLOW11's reload landing) posed(id) → bool: the site's crane, stock and banker stand at the working
@@ -8820,8 +8986,7 @@ export function createStages(ctx) {
     craftB,   // ── craftb19 ── (tests: my crafts' state) ── /craftb19 ──
     caTread, caCord, caSurvey, caKey, caDress, caColumn, caWork,   // ── crafta19 ── (tests; the survey's counter) ── /crafta19 ──
     // ── twin17 ── (twin.js) his feet, read every frame without a new vector; a small shake for a touch on material
-    xray: (on) => { xrOn = !!on; },
-    xrayAt: (on, x, y, z) => { xrW = on && Number.isFinite(x) ? [x, y, z] : null; },   // ── fable32 (build 43) ── ── /fable32 ──   // ── twin18 ── ── /twin18 ──
+    xray: (on) => { xrOn = !!on; },   // ── twin18 ── ── /twin18 ──
     // ── twin20 ── the right thumb's aim in the world: ONE flat arrow on the ground from (x, z) along dir (radians, from +x toward +z), len in amot
     aim: (x, z, dir, len, on, hot) => {
       let A = createStages.__aim20; if (!A || A.scene !== scene) {

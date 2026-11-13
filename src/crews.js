@@ -271,27 +271,10 @@ export function createCrews(ctx = {}) {
     if (!SITES[id] && id !== 'har') return false;
     const s = siteState(id);
     s.waiting = !!(opts && opts.waiting);        // ── people6 ── (PEOPLE) the site waits (a key stone, materials, Shabbat): the crew rests
-    const want = clamp(Math.max(Math.floor(+n || 0), s.pin65 | 0), 0, 4), list = idList(want, ids), key = list.join(',');   // ── build 65 ── (pin65: never fewer than the stage asked)
+    const want = clamp(Math.floor(+n || 0), 0, 4), list = idList(want, ids), key = list.join(',');
     if (want === s.n && key === s.ids && !s.dirty) return true;
     s.n = want; s.ids = key; s.idList = list; s.dirty = true;
     return true;
-  }
-  // ── build 65 ── the stage tells the crews WHERE (a front: stand [[x, z, fx, fz]…], drop, pile, boss, enter, rope?, key) and HOW MANY (n, kept
-  // as a floor under later setCrews calls); null clears the front (the site's own layout again). beat(id, per, u0): the site's diggers strike
-  // together on one period, their phase u0 now (0…1, the blow at 0.66) — the hammer act's beat; per 0 frees them ── /build 65 ──
-  function setFront(id, L, n) {
-    if (!SITES[id] && id !== 'har') return false;
-    const s = siteState(id);
-    s.front65 = L && Array.isArray(L.stand) && L.stand.length ? L : null;
-    if (n != null) s.pin65 = clamp(Math.floor(+n || 0), 0, 4);
-    s.dirty = true; if (n != null) setCrews(id, Math.max(s.n, s.pin65), s.idList);
-    return true;
-  }
-  function beat(id, per, u0) {
-    const s = siteState(id);
-    if (!(per > 0)) { s.tempo = null; return; }
-    if (!s.tempo) s.tempo = { per: 0, t0: 0 };
-    s.tempo.per = per; s.tempo.t0 = T - (u0 || 0) * per;
   }
   // keep the crews whose ids are still wanted, dismiss the others, add the new ones (at the end)
   function rosterSync(list, want, make, dismissCrew) {
@@ -385,14 +368,6 @@ export function createCrews(ctx = {}) {
   for (let i = 0; i < 8; i++) harL.stand.push([0, 0, 0, 0]);
   let heroX = 150, heroZ = -96, heroAt = null;
   function harLayout(s) {
-    // ── build 65 ── the stage's own front (setFront): the stands round the sectors at work, the rubble's way, the foreman — as given ── /build 65 ──
-    if (s.front65) {
-      const F = s.front65, n = F.stand.length;
-      for (let i = 0; i < 8; i++) { const S = harL.stand[i], Q = F.stand[i % n], ring = Math.floor(i / n); S[0] = Q[0] + ring * 2.2; S[1] = Q[1] + ring * 1.6; S[2] = Q[2]; S[3] = Q[3]; }
-      harL.drop = F.drop; harL.pile = F.pile; harL.boss[0] = F.boss[0]; harL.boss[1] = F.boss[1]; harL.enter[0] = F.enter[0]; harL.enter[1] = F.enter[1];
-      harL.bay = false; s.bould = F.key || 'front';
-      return harL;
-    }
     // ── site9 ── (DESIGN9 16:08, R5 "the frame has no one in it but him") the Mount's walls: the crew works in the working bay
     // (stages.js harBay) — men at the dressing yard's bankers and round the stock, carriers between the stock and a banker
     try {
@@ -739,7 +714,7 @@ export function createCrews(ctx = {}) {
     c.wheel += moved / 1.18;
     const px = ydz, pz = -ydx, oyaw = Math.atan2(ydx, ydz);
     // hidden beyond the causeway's end (and anywhere else across the western wall's line: the gate lets the road through)
-    const hid = inWall(c.x, c.z) || offRoad(c.x) || cs < -2 || t.fading;
+    const hid = inWall(c.x, c.z) || offRoad(c.x) || cs < -2 || t.fading || (KEEP.length > 0 && inKeep(c.x, c.z, 1));   // ── h114 ── ── /h114 ──
     c.vis = instant ? (hid ? 0 : 1) : c.vis + ((hid ? 0 : 1) - c.vis) * Math.min(1, dt * 5);
     const ox = yx - ydx * OX_BACK, oz = yz - ydz * OX_BACK;
     c.anchorL.x = ox + px * OX_SIDE; c.anchorL.z = oz + pz * OX_SIDE;
@@ -747,7 +722,7 @@ export function createCrews(ctx = {}) {
     const sp = Math.max(0.2, speed) * 1.1;
     c.anchorL.speed = c.anchorR.speed = sp;
     if (c.oxL) {
-      const oh = inWall(ox, oz) || offRoad(ox) || cs + YOKE < -2 || t.fading;
+      const oh = inWall(ox, oz) || offRoad(ox) || cs + YOKE < -2 || t.fading || (KEEP.length > 0 && inKeep(ox, oz, 1));
       c.oxL.visT = c.oxR.visT = oh ? 0 : 1;
       c.oxL.speed = c.oxR.speed = moved > 1e-4 ? sp : 1.4;
       c.oxL.follow = c.anchorL; c.oxR.follow = c.anchorR;
@@ -814,7 +789,7 @@ export function createCrews(ctx = {}) {
   }
   let digOn = false;   // (harDigging() read twice a second in update's check, not every frame: no per-frame allocation)
   function shuttleUpdate(dt) {
-    const want = enabled && digOn, c = shut.carts[0];
+    const want = enabled && digOn && !KEEP.length, c = shut.carts[0];   // ── h114 ── (the Mount's rubble cart rests while a minigame is played: it drove into the paving) ── /h114 ──
     if (!want) {
       if (!shut.on) return;
       shut.fading = true; layCart(shut, c, shut.s, false, dt, 0, 0);
@@ -950,9 +925,18 @@ export function createCrews(ctx = {}) {
   }
   // a short roll-in: the train appears on the lane 30 amot before its bay (fading in) and rolls up to it
   const shortFrom = (t) => (t.short ? Math.max(0, t.len - 30) : 0);
+  // ── h114 ── (ירון 9.11: "פתאום נכנסת עגלה עם פרות" into a minigame's frame) a train never drives into a rect an act keeps clear
+  // (keepOut below): it waits at its edge with the oxen standing, and goes on when the act ends; a cart already inside fades ── /h114 ──
+  const inKeep = (x, z, m) => { for (const r of KEEP) if (x > r[0] - m && x < r[2] + m && z > r[1] - m && z < r[3] + m) return true; return false; };
+  function koAhead(t, s) { if (!KEEP.length) return false; posAt(t, s + YOKE + 7); const ax = RP.x, az = RP.z; posAt(t, s + YOKE); return !inKeep(RP.x, RP.z, 2) && inKeep(ax, az, 4); }
   function trainUpdate(t, dt) {
     if (t.status === 'none') return;
     if (t.status === 'site') { siteTrainStep(t, dt); return; }   // ── site13 ──
+    if (KEEP.length && (t.leg === 'arrive' || t.leg === 'depart' || (t.status === 'leaving' && t.leg !== 'unload')) && koAhead(t, t.s)) {
+      if (Number.isFinite(t.legT0)) t.legT0 += dt; if (t.leg === 'arrive' && Number.isFinite(t.arriveAt)) t.arriveAt += dt;
+      for (let i = 0; i < t.carts.length; i++) layCart(t, t.carts[i], t.s - i * CART_GAP, false, dt, 0, 0);
+      return;
+    }
     let s = t.s, speed = 0;
     if (t.status === 'out') {
       if (t.leg === 'depart') {
@@ -1027,6 +1011,8 @@ export function createCrews(ctx = {}) {
     if (siteTr.wait > 0) {
       siteTr.wait -= dt;
       if (!siteTr.unloaded && siteTr.wait < 5) { siteTr.unloaded = true; setTrainCargo(t, false); for (const c of t.carts) if (c.vis > 0.5) dust.puff(c.x, ground(c.x, c.z) + 0.6, c.z, 3, 2); }
+    } else if (KEEP.length && koAhead(t, s)) {
+      speed = 0;   // ── h114 ── (waits at the edge of an act's frame) ── /h114 ──
     } else {
       // ── site14 ── (her oxen from אוצר המלאכה: stages.setOwned({ oxen }) — the train comes and goes faster)
       const ox = stages && stages.jobs && stages.jobs.owned ? +stages.jobs.owned.oxen || 0 : 0;
@@ -1065,6 +1051,47 @@ export function createCrews(ctx = {}) {
   const near = (x, z, d) => { const dx = x - camP.x, dz = z - camP.z; return dx * dx + dz * dz < d * d; };
   const farScale = (d2) => (d2 < 220 * 220 ? 1 : 1 + Math.min(0.35, (Math.sqrt(d2) - 220) / 950));
   let chk = 0;
+  // ── h112 ── (stage 03, the owner's rule 19: nothing between the eye and the work) rects a director's act keeps clear of the
+  // crews: a worker whose way takes him in steps out to its nearest edge (x0 z0 x1 z1)
+  let KEEP = [];
+  function keepOut(list, opt) { KEEP = (list || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)).slice(0, 6); OFF.on = !!(opt && opt.walkOff) && KEEP.length > 0; if (!OFF.on) offRelease(); }   // ── h120 ── (opt.walkOff) ── /h120 ──
+  function keepClear(w) {
+    const a = w.a; if (!a) return;
+    for (const r of KEEP) {
+      if (a.x <= r[0] || a.x >= r[2] || a.z <= r[1] || a.z >= r[3]) continue;
+      const d = [a.x - r[0], r[2] - a.x, a.z - r[1], r[3] - a.z], m = Math.min(...d), k = d.indexOf(m);
+      if (k === 0) a.x = r[0] - 0.05; else if (k === 1) a.x = r[2] + 0.05; else if (k === 2) a.z = r[1] - 0.05; else a.z = r[3] + 0.05;
+      if (OFF.on) offHold(w, k);   // ── h120 ── ── /h120 ──
+    }
+  }
+  // ── h120 ── (stage 05: a man whose way runs into an act's ground has no job there in that moment: he does not wait at its edge
+  // in a clump but walks off, to a place of his own outside it (1.2 amot and more from the others), and takes up his way again when
+  // the act ends. Only when the act asks for it (keepOut(rects, { walkOff: true })): the earlier stages keep their own rule.)
+  const OFF = { on: false, held: [] };
+  const inKeepAny = (x, z, m) => KEEP.some((r) => x > r[0] - m && x < r[2] + m && z > r[1] - m && z < r[3] + m);
+  function offHold(w, k) {
+    const a = w.a;
+    if (w.h120 && w.h120.at && !inKeepAny(w.h120.at[0], w.h120.at[1], 0.4)) return;   // (his place is set, outside: he is on his way there)
+    if (!w.h120) { const p = a.path && a.path[a.path.length - 1]; w.h120 = { to: w.leaving ? null : p ? [p[0], p[1]] : Number.isFinite(w.x) && Number.isFinite(w.z) ? [w.x, w.z] : null }; OFF.held.push(w); }   // (one leaving the site goes out this way and fades there, as he would have at his own way's end)
+    // the nearest place outside every rect that a straight walk reaches without crossing one (rects meet: their seams trap a man),
+    // out from the edge it met first, 1.3 amot and more from every man walked off before him (a fixed search: nothing random)
+    const nx = k === 0 ? -1 : k === 1 ? 1 : 0, nz = k === 2 ? -1 : k === 3 ? 1 : 0, a0 = Math.atan2(nz, nx);
+    const segOk = (x, z) => { const L = Math.hypot(x - a.x, z - a.z), n = Math.ceil(L / 0.5); for (let i = 1; i <= n; i++) { const u = i / n; if (inKeepAny(a.x + (x - a.x) * u, a.z + (z - a.z) * u, 0.1)) return false; } return true; };
+    const crowd = (x, z) => OFF.held.some((o) => o !== w && o.h120 && o.h120.at && Math.hypot(o.h120.at[0] - x, o.h120.at[1] - z) < 1.3);
+    let at = null;
+    for (let d = 3; d <= 24 && !at; d += 1.5) for (let j = 0; j < 16 && !at; j++) {
+      const t = a0 + (j % 2 ? 1 : -1) * Math.ceil(j / 2) * (Math.PI / 8), x = a.x + Math.cos(t) * d, z = a.z + Math.sin(t) * d;
+      if (!inKeepAny(x, z, 0.4) && !crowd(x, z) && segOk(x, z)) at = [x, z];
+    }
+    if (!at) { a.visT = 0; w.h120.hid = 1; if (w.leaving) a.onHide = () => { w.dead = true; }; at = [a.x, a.z]; }   // (nowhere to walk: he is not drawn standing at the edge)
+    w.h120.at = at; walkTo(w, at[0], at[1], 2.6);
+  }
+  function offRelease() {
+    for (const w of OFF.held) if (w.h120) { const t = w.h120.to; if (w.h120.hid && !w.leaving && w.a) w.a.visT = 1; w.h120 = null; if (t && !w.leaving && w.a && w.a.alive !== false) { if (w.st === 'work') w.st = 'goto'; walkTo(w, t[0], t[1], 2.6); } }
+    OFF.held.length = 0;
+  }
+  // ── /h120 ──
+  // ── /h112 ──
   function update(dt) {
     if (!(dt > 0)) dt = 0;
     if (dt > 0.25) dt = 0.25;
@@ -1110,6 +1137,7 @@ export function createCrews(ctx = {}) {
     for (let i = people.length - 1; i >= 0; i--) {
       const w = people[i];
       if (w.gone) continue;
+      if (w.h120 && OFF.on && !w.leaving) { if (!w.a.path && w.h120.at) { w.a.armT[0] = w.a.armT[2] = 0.05; w.a.bowT = 0; } continue; }   // ── h120 ── (walked off an act's ground: he waits there, idle) ── /h120 ──
       if (site20Yield(w, dt, LIFE.craft)) continue;   // ── site20 ── (the crowd before the piece) ── /site20 ──
       try { personUpdate(w, dt, cSite, cx, cy, cz); } catch (e) { warn(e); }
     }
@@ -1119,6 +1147,7 @@ export function createCrews(ctx = {}) {
     try { keyCartUpdate(dt); } catch (e) { warn(e); }   // ── site9 ── the key stone's cart
     if (ownBlobs) blobs.begin();
     actors.update(dt);
+    if (KEEP.length) for (const w of people) if (!w.gone) keepClear(w);   // ── h112 ── (after their steps: a way through the frame ends at its edge) ── /h112 ──
     animals.update(dt);
     if (ownBlobs) blobs.end();
     writeCarts();
@@ -1258,9 +1287,8 @@ export function createCrews(ctx = {}) {
   function swing(w, dt, role) {
     const a = w.a;
     const fine = sites[w.site] && sites[w.site].phase === 2 && role === 'mason' && w.site !== 'quarry' && w.site !== 'yard';
-    const tp = sites[w.site] && sites[w.site].tempo;   // ── build 65 ── (the stage's beat: every digger of the site on one period, in step)
-    const per = tp && tp.per > 0 && role === 'digger' ? tp.per : fine ? w.per * 0.62 : role === 'digger' ? w.per * 1.25 : w.per;
-    const u = tp && tp.per > 0 && role === 'digger' ? (((T - tp.t0) / per) % 1 + 1) % 1 : ((T + w.off) % per) / per;
+    const per = fine ? w.per * 0.62 : role === 'digger' ? w.per * 1.25 : w.per;
+    const u = ((T + w.off) % per) / per;
     let r, bow;
     const top = fine ? 2.0 : role === 'digger' ? 2.9 : R_TOP, hit = role === 'digger' ? 0.62 : w.rHit || R_HIT;
     const bh = w.bHit !== undefined && role === 'mason' ? w.bHit : 0.34;   // (── people6 ── a yard mason's solved blow)
@@ -1654,7 +1682,7 @@ export function createCrews(ctx = {}) {
   }
 
   const api = {
-    setCrews, setQuarry, caravan, trainees, cheer, update, reset, setFront, beat,   // ── build 65 ──
+    setCrews, setQuarry, caravan, trainees, cheer, update, reset, keepOut,
     lifeCount, lifeList, pickPerson, setLife(v) { LIFE.on = !!v; LIFE.key = ''; },   // ── site16 ── the life layer and the tap card
     setEnabled(v) { enabled = !!v; },
     setScale(s) { if (Number.isFinite(s) && s > 0) pxScale = s; },

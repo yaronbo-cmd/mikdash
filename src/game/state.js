@@ -607,6 +607,18 @@ export function startBuild(G, id) {
  * A stage is finished: rewards, unlocks, crews reassigned. The caller shows it.
  * → {id, rewards, crewsNow, find, mishnayot:[], chapter: n|null, all: bool}
  */
+/** ── h111 ── a stage the director builds (stage 02 in the old world): open its site without the old survey's price, mark it the
+ *  director's (no crews' economy on it: state.step skips it) and focus it. → true when the site is the director's ── /h111 ── */
+export function beginDirected(G, id) {
+  if (isDone(G, id)) return false;
+  if (!G.st[id]) {
+    if (statusOf(G, id) === 'locked') return false;
+    G.st[id] = newSite(id);
+    const c = G.crews.find((x) => !x.at) || G.crews.find((x) => x.at === 'quarry'); if (c) c.at = id;
+  }
+  G.st[id].dir = 1; G.focus = id;
+  return true;
+}
 export function completeStage(G, id) {
   if (isDone(G, id)) return null;
   G.st[id] = { done: true };
@@ -735,6 +747,7 @@ function step(G, dtMin, t, rep) {
   const nq = Math.min(RATE.quarryMax || 2, crewsAt(G, 'quarry'));
   if (nq) { const s = RATE.quarry * (1 + UPGRADES.carts.by * (G.up.carts || 0)) * nq * dtMin; G.res.stone += s; rep.stone += s; }
   for (const id of buildingSites(G)) {
+    if (G.st[id] && G.st[id].dir) continue;   // ── h111 ── a site a stage director builds (stage 02's wall): its crews work in its acts, not here ── /h111 ──
     const n = crewsAt(G, id); if (!n) continue;
     const j = jobOf(G, id); if (!j) continue;
     const boost = G.vol && G.vol.id === id && t <= G.vol.until ? 2 : 1;

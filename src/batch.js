@@ -11,16 +11,13 @@ export const BUILD_TIME = { value: 0 };
 // ── twin18 ── the see-through under two thumbs (PRINCIPLES §3: "קירות שמסתירים… הופך לשקוף למחצה"): what stands between the camera
 // and the kohen, above his knees, inside a cone to him, is dithered away (screen-door half-transparency; shadows stay whole).
 // uXr = his chest (xyz) and on (w); uXrC = the camera. stages.js fills them each frame while twin is ON.
-export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() },
-  // ── fable32 (build 46) ── his stretch of the court wall (har42 wallStones45): the model's outer skin there (x0…x1, z0…z1, below yTop; below
-  // gyTop west of gx1, the giant's slot) and the scaffold in front of it (zOut…z0) are not drawn — his own stones ARE the wall there
-  uHole: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole2: { value: new THREE.Vector4(0, 0, 0, 0) }, uHole3: { value: new THREE.Vector4(-1e6, 0, -1e6, 0) }, uHoleB: { value: new THREE.Vector4(0, 0, 0, 0) } };   // (uHoleB: stage 03 — the model's soreg where his lattice panels stand, below uHole3.y)
+export const XRAY = { uXr: { value: new THREE.Vector4(0, 0, 0, 0) }, uXrC: { value: new THREE.Vector3() } };
 // ── /twin18 ──
 // ── twin18 ── the see-through's shader code (a varying for the world position, a dithered discard in a cone to him); used by every
 // patched building material here and by the cranes (stages.js)
 export function xrayCode(vs, fs, sh) {
   if (!(fs.includes('#include <clipping_planes_fragment>') && vs.includes('#include <project_vertex>'))) return { vs, fs };
-    sh.uniforms.uXr = XRAY.uXr; sh.uniforms.uXrC = XRAY.uXrC; sh.uniforms.uHole = XRAY.uHole; sh.uniforms.uHole2 = XRAY.uHole2; sh.uniforms.uHole3 = XRAY.uHole3; sh.uniforms.uHoleB = XRAY.uHoleB;
+    sh.uniforms.uXr = XRAY.uXr; sh.uniforms.uXrC = XRAY.uXrC;
     vs = vs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW;')
       .replace('#include <project_vertex>', `#include <project_vertex>
 #ifdef USE_INSTANCING
@@ -28,10 +25,8 @@ export function xrayCode(vs, fs, sh) {
 #else
   vXrW = (modelMatrix * vec4(transformed, 1.0)).xyz;
 #endif`);
-    fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC; uniform vec4 uHole; uniform vec4 uHole2; uniform vec4 uHole3; uniform vec4 uHoleB;')
+    fs = fs.replace('#include <common>', '#include <common>\nvarying vec3 vXrW; uniform vec4 uXr; uniform vec3 uXrC;')
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-  if (uHole.y > uHole.x && vXrW.x > uHole.x && vXrW.x < uHole.y && vXrW.z < uHole.w && ((vXrW.z > uHole.z && vXrW.y > uHole3.x && vXrW.y < (vXrW.x < uHole2.z ? uHole2.w : uHole2.y)) || (vXrW.z > uHole2.x && vXrW.z <= uHole.z))) discard;
-  if (uHoleB.y > uHoleB.x && vXrW.x > uHoleB.x && vXrW.x < uHoleB.y && vXrW.z > uHoleB.z && vXrW.z < uHoleB.w && vXrW.y < uHole3.y && vXrW.y > uHole3.z) discard;   // (uHole3.z: its floor — build 47)
   if (uXr.w > 0.5 && vXrW.y > uXr.y - 0.9) {
     vec3 xrC = uXr.xyz - uXrC; float xrL = length(xrC); vec3 xrU = xrC / max(xrL, 0.001);
     vec3 xrP = vXrW - uXrC; float xrT = dot(xrP, xrU);
@@ -65,6 +60,7 @@ export function revealUniforms() {
     uTh: { value: v4(BC_FRONTS / 4) },                          // per front: the local threshold of the current course
     uW: { value: new THREE.Vector4(0, 0, 0, -9) },            // working front: ghost threshold, fresh stone p0, p1, its course
     uF: { value: new THREE.Vector4(0, 0, 0, -1e6) },          // fresh fade, field stones (0…1), finish (0…1), finish height
+    uHole: { value: v4(8) }, uHoleY: { value: new THREE.Vector3(0, 0, 0) },   // ── h111 ── openings left in the wall (x0 z0 x1 z1) · y0, y1, count
   };
 }
 const BC_FRONT_GLSL = `
@@ -97,6 +93,7 @@ function patchShader(sh, gao, bc) {
     sh.uniforms.uBcTime = BUILD_TIME;
     sh.uniforms.uBcC = U.uC; sh.uniforms.uBcRect = U.uRect; sh.uniforms.uBcRK = U.uRK; sh.uniforms.uBcTh = U.uTh;
     sh.uniforms.uBcW = U.uW; sh.uniforms.uBcF = U.uF;
+    sh.uniforms.uBcHole = U.uHole; sh.uniforms.uBcHY = U.uHoleY;   // ── h111 ── ── /h111 ──
     sh.uniforms.uBcJ = bc.J; sh.uniforms.uBcE = bc.E;
   }
   let vs = sh.vertexShader, fs = sh.fragmentShader;
@@ -147,12 +144,15 @@ function patchShader(sh, gao, bc) {
 varying vec3 vBcW; varying vec3 vBcN; uniform float uBuildY; uniform vec3 uBcGlow; uniform float uBcTile; uniform float uBcTime;
 uniform vec4 uBcC; uniform vec4 uBcRect[${BC_RECTS}]; uniform vec4 uBcRK[${BC_RECTS}]; uniform vec4 uBcTh[${BC_FRONTS / 4}];
 uniform vec4 uBcW; uniform vec4 uBcF; uniform vec4 uBcJ; uniform vec4 uBcE[24];
+uniform vec4 uBcHole[8]; uniform vec3 uBcHY;
 ${BC_FRONT_GLSL}
 #endif`)
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
   bool bcFront = true, bcWall = false;
 #ifdef BCLIP
   bcFront = gl_FrontFacing;
+  // ── h111 ── the openings left for the gates (stage 02): no stone there below the lintel ── /h111 ──
+  if (uBcHY.z > 0.5 && vBcW.y > uBcHY.x && vBcW.y < uBcHY.y) for (int i = 0; i < 8; i++) { if (float(i) > uBcHY.z - 0.5) break; vec4 Hh = uBcHole[i]; if (vBcW.x > Hh.x && vBcW.x < Hh.z && vBcW.z > Hh.y && vBcW.z < Hh.w) discard; }
   vec3 bcP = vBcW;
   float bcGhost = 0.0, bcFresh = 0.0, bcField = 0.0; vec4 bcBk = vec4(9.0); float bcId = 0.0;
   float bcGw = clamp(1.7 * max(fwidth(vBcW.x) + fwidth(vBcW.z), fwidth(vBcW.y)), 0.035, 0.5);
@@ -239,6 +239,8 @@ ${BC_FRONT_GLSL}
       }
     }
   }
+  // ── h113 ── a cap seen through an opening (the inside of a site still rising, seen through its own gate): no cap there ── /h113 ──
+  if (!bcFront && uBcHY.z > 0.5 && bcP.y > uBcHY.x && bcP.y < uBcHY.y) for (int i = 0; i < 8; i++) { if (float(i) > uBcHY.z - 0.5) break; vec4 Hh = uBcHole[i]; if (bcP.x > Hh.x - 0.6 && bcP.x < Hh.z + 0.6 && bcP.z > Hh.y && bcP.z < Hh.w) discard; }
 #endif`)
       .replace('#include <map_fragment>', `#ifdef BCLIP
 #ifdef USE_MAP
@@ -308,7 +310,7 @@ export function buildMaterial(src, U, tile = 10, per = null) {
   const m = src.clone();
   const gao = src.userData.gao || null;
   m.userData.gao = gao;
-  if (!U.uC) { const d = revealUniforms(); for (const k of Object.keys(d)) if (!U[k]) U[k] = d[k]; }
+  if (!U.uC || !U.uHole) { const d = revealUniforms(); for (const k of Object.keys(d)) if (!U[k]) U[k] = d[k]; }   // ── h111 ── (uHole: every stage has the openings uniform) ── /h111 ──
   const pj = per || jointUniforms();
   const bc = { U, tile, J: pj.J, E: pj.E };
   m.userData.bcJ = pj;

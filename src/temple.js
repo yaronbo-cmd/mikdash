@@ -10,6 +10,8 @@ import { rng } from './util.js';
 import { mkParts, groundAO } from './batch.js';
 import * as PL from './places.js';
 import { BLOOD } from './avodah/works/blood.js';   // ── blooda25 ── (the ember's orange; the palette's one source)
+import { H120, Y as H120Y, COLS as H120COLS, BEAMS as H120BEAMS, RUNS as H120RUNS, LADDERS as H120LAD, MIK as H120MIK, joistsOf as h120Joists } from './game/h120/layout.js';   // ── h120 ── ── /h120 ──
+const H120HOLE = [H120MIK.x0, H120MIK.bottom - 0.1, H120MIK.z0, H120MIK.stair, 7, H120MIK.z1];   // ── h120 ── (the basin's cut) ── /h120 ──
 
 export const COMPLEX = { x0: -193, x1: 147, z0: -73.5, z1: 73.5 };
 // the Heichal's rear block is split here: heichal x ∈ [−139, −92], kodesh (Holy of Holies + its share) x ∈ [−176, −139]
@@ -36,8 +38,9 @@ export function buildTemple(B, P) {
   /* ───────── Chel podium + its 12 steps ───────── */
   S('sorag');
   const cx0 = -203, cx1 = 157, cz0 = -83.5, cz1 = 83.5;
-  box('ash', cx0, 0, cz0, cx1, 5.75, cz1);
-  box('pave', cx0, 5.75, cz0, cx1, 6, cz1, -999);
+  // ── h120 ── (the mikveh's basin is cut in the rock under the lepers' chamber: the podium and its paving leave its hole) ── /h120 ──
+  carve((q) => box('ash', ...q), [cx0, 0, cz0, cx1, 5.75, cz1], [H120HOLE]);
+  carve((q) => box('pave', ...q, -999), [cx0, 5.75, cz0, cx1, 6, cz1], [H120HOLE]);
   for (let i = 0; i < 11; i++) { const e = 5.5 - 0.5 * i; box('pave', cx0 - e, 0.5 * i, cz0 - e, cx1 + e, 0.5 * (i + 1), cz1 + e, -999); }
   P('chel', cx0 - 9, 0, cz0 - 9, cx1 + 9, 6, cz1 + 9);
 
@@ -131,8 +134,9 @@ export function buildTemple(B, P) {
   A(-54, 16, -18.5, -53, 17, 12.5);    // yesod — the whole west
   A(-53, 16, 11.5, -52, 17, 12.5);     // one amah into the south
   A(-23, 16, -18.5, -22, 17, -17.5);   // one amah into the east
+  A(-53, 16, -18.5, -23, 17, 11.5);    // the first course under the body
   S('sovev');
-  A(-53, 16, -18.5, -23, 22, 11.5);    // the body from the court's floor up to the sovev (build 56: its first course no longer the yesod's — the yesod is the ר alone, מדות ג, א)
+  A(-53, 17, -18.5, -23, 22, 11.5);    // up to the sovev
   box('red', -53.06, 20.85, -18.56, -22.94, 21.15, 11.56, -999);   // חוט הסיקרא
   S('guf');
   A(-52, 22, -17.5, -24, 25, 10.5);    // above the sovev
@@ -299,7 +303,7 @@ export function buildTemple(B, P) {
   const YS = 13.09;
   // ── site14 ── the court's own floor on its fill (top 5.9, under the Chel's terrace at 6 once it is laid): before the sorag, the
   // chambers, the jars, the pool and the hearth stand on it, not in the air 6 amot over the Mount (stages.js groundAt knows it)
-  box('ash', 6, 0, -67.5, 141, 5.9, 67.5, 0);
+  carve((q) => box('ash', ...q, 0), [6, 0, -67.5, 141, 5.9, 67.5], [H120HOLE]);   // ── h120 ── (the basin's hole) ── /h120 ──
   const cw = (x0, z0, x1, z1) => { box('ash', x0, 6, z0, x1, YS, z1); B.stage('nashim-lc'); box('ash', x0, YS, z0, x1, 20, z1, 6); B.stage('nashim'); };
   const LC = (fn) => { B.stage('nashim-lc'); fn(); B.stage('nashim'); };
   // SE — Nazirites
@@ -331,19 +335,13 @@ export function buildTemple(B, P) {
   // wine and oil jars (SW)
   const jar = new THREE.LatheGeometry([[0, 0], [0.5, 0.05], [0.9, 0.6], [1.05, 1.5], [0.9, 2.3], [0.45, 2.7], [0.4, 3.1], [0.55, 3.2], [0.01, 3.2]].map(([a, b]) => new THREE.Vector2(a, b)), 10);
   for (let i = 0; i < 4; i++) for (let j = 0; j < 6; j++) { const g = jar.clone(); g.translate(13 + j * 4.2, 6, 42 + i * 5); B.geo('clay', g, 6); }
-  // immersion pool (NW)
-  box('ash', 14, 6, -60, 38, 7.3, -59); box('ash', 14, 6, -45, 38, 7.3, -44); box('ash', 14, 6, -59, 15, 7.3, -45); box('ash', 37, 6, -59, 38, 7.3, -45);
-  box('water', 15, 6, -59, 37, 7.0, -45, -999);
+  // ── h120 ── (the old built pool gave way to the rock-cut basin of stage 05: h120Model below) ── /h120 ──
   B.stage('nashim');   // ── site13 ──
-  // gallery "כצוצרה" around the court
-  // (── site13 ── cedar: the finish's first step "הגזוזטרא" is paid in cedar (content.js PROJ.nashim); laid from west to east
-  //  in the finish, and not counted among the courses' stones)
-  for (const s of [-1, 1]) {
-    const zw = s * 67.5, zi = s * 62.8;
-    box('cedar', 46, 19.2, Math.min(zw, zi), 101, 20, Math.max(zw, zi), -999);
-    box('cedar', 46, 20, Math.min(zi, zi + s * 0.3), 101, 21.3, Math.max(zi, zi + s * 0.3), -999);
-    for (let x = 48.5; x <= 99; x += 5.5) box('cedar', x - 0.6, 17.4, Math.min(zw, zw - s * 3.2), x + 0.6, 19.2, Math.max(zw, zw - s * 3.2), -999);
-  }
+  // ── h120 ── the gallery (הגזוזטרא) on its ten stone columns, and the rock-cut mikveh in the lepers' chamber: stage 05's design, its
+  // numbers from one source (src/game/h120/layout.js), in their own set 'nashim-gz' so stage 05's world can hide them while it draws
+  // the player's own (his columns with their flaws, his shims, his channels and water). The old bracket gallery and pool are gone.
+  B.stage('nashim-gz'); h120Model(B, box); B.stage('nashim');
+  // ── /h120 ──
   P('ezrat-nashim', 6, 6, -67.5, 141, 14, 67.5);
   P('l-nezirim', 101, 6, 27.5, 141, 21, 67.5);
   P('l-etzim', 101, 6, -67.5, 141, 21, -27.5);
@@ -364,7 +362,6 @@ function extraMats(B) {
   // (few new materials: every material is a draw call in each build stage that uses it)
   M.silver = { mat: std({ color: '#DCE0E4', metalness: 1, roughness: 0.22 }), tile: 5 };
   M.ember = { mat: std({ color: BLOOD.ember, emissive: new THREE.Color(1.75, 0.72, 0.14), roughness: 0.9 }), tile: 4, cast: false };   // ── blooda25 ── orange coals (DAM25 §4.6: red is the blood's and the line's only)
-  M.pyre22 = { ...M.cedar };   // ── recovered (build 22) ── the great pyre's logs: cedar's look under a material of their own
   // the roofs of Beit HaMoked and Beit Avtinas, which open when the camera comes close (sanctuary.js finds this mesh by
   // its name in the lishka stage)
   M.roofCut = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1 }), tile: 24 };
@@ -504,7 +501,7 @@ function buildAltarService(B, box, S) {
   { const { x, z } = MA.great;
     for (let lay = 0; lay < 4; lay++) for (let i = 0; i < 5; i++) {
       const o = (i - 2) * 1.05 + (r() - 0.5) * 0.2, y = 25.3 + lay * 0.5;
-      log('pyre22', lay % 2 ? x + o : x, y, lay % 2 ? z : z + o, 5.2 + r() * 0.6, 0.26 + r() * 0.05, lay % 2 ? Math.PI / 2 + (r() - 0.5) * 0.1 : (r() - 0.5) * 0.1);   // ── recovered (build 22) ── 'pyre22'
+      log('cedar', lay % 2 ? x + o : x, y, lay % 2 ? z : z + o, 5.2 + r() * 0.6, 0.26 + r() * 0.05, lay % 2 ? Math.PI / 2 + (r() - 0.5) * 0.1 : (r() - 0.5) * 0.1);
     }
     for (let k = 0; k < 22; k++) { const g = new THREE.IcosahedronGeometry(0.2 + r() * 0.16, 0); g.translate(x + (r() - 0.5) * 4.4, 25.15 + r() * 0.5, z + (r() - 0.5) * 4.4); B.geo('ember', g, -999); } }
   // the second maaracha, for the coals of the ketoret: small, of fine fig wood (Tamid 2:5)
@@ -627,3 +624,62 @@ export function buildMenorot(B) {
     }
   }
 }
+
+// ── h120 ── stage 05's finished gallery and basin (the model's own; the stage's world draws the player's version from the same numbers)
+function h120Model(B, box) {
+  const C = H120, Y = H120Y;
+  for (const c of Object.values(H120COLS)) {
+    box('ash', c.x - C.PLINTH_W / 2, C.FLOOR, c.z - C.PLINTH_W / 2, c.x + C.PLINTH_W / 2, Y.PLINTH_TOP, c.z + C.PLINTH_W / 2, C.FLOOR);
+    B.cyl('wmarble', c.x, Y.PLINTH_TOP, c.z, C.R1, C.R0, C.COL_H - 0.3, 18, -999);
+    box('wmarble', c.x - 0.62, Y.COL_TOP - 0.3, c.z - 0.62, c.x + 0.62, Y.COL_TOP, c.z + 0.62, -999);
+  }
+  const hw = C.BEAM_W / 2;
+  for (const b of H120BEAMS) {
+    const [ax, az] = b.pa, [bx, bz] = b.pb;
+    if (b.axis === 'x') box('cedar', Math.min(ax, bx), Y.COL_TOP, az - hw, Math.max(ax, bx), Y.BEAM_TOP, az + hw, -999);
+    else box('cedar', ax - hw, Y.COL_TOP, Math.min(az, bz), ax + hw, Y.BEAM_TOP, Math.max(az, bz), -999);
+  }
+  for (const R of H120RUNS) {
+    const s = -R.dir, out = R.line - s * (hw + 0.25), J = h120Joists(R), jw = C.JOIST_W / 2;
+    const xz = (a, w0, w1) => (R.axis === 'x' ? [a, w0, w1] : [w0, a, w1]);
+    const span = (a0, a1, w0, w1, y0, y1, k) => { if (R.axis === 'x') box(k, Math.min(a0, a1), y0, Math.min(w0, w1), Math.max(a0, a1), y1, Math.max(w0, w1), -999); else box(k, Math.min(w0, w1), y0, Math.min(a0, a1), Math.max(w0, w1), y1, Math.max(a0, a1), -999); };
+    void xz;
+    for (const a of J) {
+      span(a - jw, a + jw, R.wall, out, Y.BEAM_TOP, Y.JOIST_TOP, 'cedar');                      // the joist, from the wall to past the main beam
+      span(a - 0.22, a + 0.22, R.wall, R.wall - s * 0.9, Y.BEAM_TOP - 0.7, Y.BEAM_TOP, 'ash');   // its corbel (זיז) in the wall
+    }
+    span(R.a0, R.a1, R.wall, out, Y.JOIST_TOP, Y.GFLOOR, 'cedar');                               // the planks
+    // the railing on the court edge: posts every joist, a top rail and a middle rail
+    const re = out + s * 0.12;
+    for (const a of J) span(a - 0.08, a + 0.08, re - 0.08, re + 0.08, Y.GFLOOR, Y.GFLOOR + C.RAIL, 'cedar');
+    span(R.a0, R.a1, re - 0.1, re + 0.1, Y.GFLOOR + C.RAIL - 0.12, Y.GFLOOR + C.RAIL, 'cedar');
+    span(R.a0, R.a1, re - 0.05, re + 0.05, Y.GFLOOR + C.RAIL * 0.5 - 0.05, Y.GFLOOR + C.RAIL * 0.5 + 0.05, 'cedar');
+  }
+  // the ladders at the chambers' ends (two rails and rungs, leaning on the gallery's edge)
+  for (const [x, z, fx, fz] of H120LAD) {
+    const g = h120Ladder(x, z, fx, fz, C.FLOOR, Y.GFLOOR); for (const q of g) B.geo('cedar', q, -999);
+  }
+  // the rock-cut basin: its plaster lining, seven steps on its east, the rim of two tefachim, the rod, full to its three amot
+  const K = H120MIK, y0 = K.bottom, x1 = K.stair, n = K.steps - 1, tr = (x1 - K.x1) / n, rh = K.deep / K.steps;
+  box('plaster', K.x0, y0 - 0.1, K.z0, K.x1, y0, K.z1, -999);
+  box('plaster', K.x0 - 0.06, y0, K.z0, K.x0, C.FLOOR, K.z1, -999);
+  box('plaster', K.x0, y0, K.z0 - 0.06, x1, C.FLOOR, K.z0, -999); box('plaster', K.x0, y0, K.z1, x1, C.FLOOR, K.z1 + 0.06, -999);
+  box('plaster', x1, y0, K.z0, x1 + 0.06, C.FLOOR, K.z1, -999);
+  for (let i = 1; i <= n; i++) box('plaster', K.x1 + (i - 1) * tr, y0, K.z0, K.x1 + i * tr, y0 + i * rh, K.z1, -999);
+  const rw = 0.3, rt = K.rimTop;
+  box('ash', K.x0 - rw, C.FLOOR, K.z0 - rw, K.inlet[0] - 0.2, rt, K.z0, C.FLOOR); box('ash', K.inlet[0] + 0.2, C.FLOOR, K.z0 - rw, x1 + rw, rt, K.z0, C.FLOOR);
+  box('ash', K.x0 - rw, C.FLOOR, K.z1, K.outlet[0] - 0.2, rt, K.z1 + rw, C.FLOOR); box('ash', K.outlet[0] + 0.2, C.FLOOR, K.z1, x1 + rw, rt, K.z1 + rw, C.FLOOR);
+  box('ash', K.x0 - rw, C.FLOOR, K.z0, K.x0, rt, K.z1, C.FLOOR); box('ash', x1, C.FLOOR, K.z0, x1 + rw, rt, K.z1, C.FLOOR);
+  box('cedar', K.rod[0] - 0.05, y0, K.rod[1] - 0.05, K.rod[0] + 0.05, rt + 0.4, K.rod[1] + 0.05, -999);
+  box('water', K.x0, y0, K.z0, x1, y0 + K.deep - 0.04, K.z1, -999);
+}
+/** a ladder's rails and rungs (BoxGeometry, world): from its foot (x, z) on y0 leaning toward (fx, fz) up to y1 */
+export function h120Ladder(x, z, fx, fz, y0, y1) {
+  const dx = fx - x, dz = fz - z, d = Math.hypot(dx, dz) || 1, ux = dx / d, uz = dz / d, H = y1 - y0 + 0.9, lean = 0.28;
+  const L = Math.hypot(H, H * lean), out = [], px = -uz, pz = ux;
+  const put = (g, cx, cy, cz) => { const m = new THREE.Matrix4().makeRotationY(Math.atan2(ux, uz)).multiply(new THREE.Matrix4().makeRotationX(Math.atan(lean))); g.applyMatrix4(m); g.translate(cx, cy, cz); out.push(g); };
+  for (const s of [-1, 1]) put(new THREE.BoxGeometry(0.12, L, 0.12), x + px * s * 0.38 + ux * H * lean / 2, y0 + H / 2, z + pz * s * 0.38 + uz * H * lean / 2);
+  for (let k = 1; k * 0.75 < H; k++) { const h = k * 0.75; put(new THREE.BoxGeometry(0.8, 0.07, 0.07), x + ux * h * lean, y0 + h, z + uz * h * lean); }
+  return out;
+}
+// ── /h120 ──

@@ -370,6 +370,11 @@ const ITEM_DEF = {
       P(rod([0, 0.15, 0], [0, -1.05, 0.03], 0.045, 0.04, 5), WOOD, 0, { rough: 0.85 }),
       P(new THREE.ConeGeometry(0.07, 0.5, 4).rotateX(Math.PI / 2).translate(0, -1.1, 0.3), IRON, 0, { metal: 0.6, rough: 0.5 }),
       P(new THREE.ConeGeometry(0.06, 0.34, 4).rotateX(-Math.PI / 2).translate(0, -1.1, -0.2), IRON, 0, { metal: 0.6, rough: 0.5 })] },
+    // ── h115 ── a rake: the rakers spread the waste in the pit and cover it (ירון 10.11: "בור שיתכסה על ידי המגרפים") ── /h115 ──
+    rake: { hold: 'two', build: () => [
+      P(rod([0, 0.2, 0], [0, -1.45, 0.06], 0.035, 0.03, 5), WOOD, 0, { rough: 0.85 }),
+      P(box(0.72, 0.08, 0.1, [0, -1.5, 0.08]), WOOD2, 0, { rough: 0.85 }),
+      ...[-0.3, -0.1, 0.1, 0.3].map((x) => P(box(0.04, 0.2, 0.04, [x, -1.62, 0.12]), WOOD2, 0, { rough: 0.85 }))] },
     saw: { hold: 'two', build: () => [
       P(box(0.02, 0.13, 2.3, [0, -0.26, 1.15]), '#B9B6AE', 0, { metal: 0.35, rough: 0.4 }),
       P(box(0.03, 0.025, 2.3, [0, -0.19, 1.15]), '#8C6A43', 0, { rough: 0.8 }),
@@ -660,6 +665,7 @@ export function createActors(ctx) {
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S3 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1), D = new THREE.Vector3();
   let T = 0;
   let enabled = true;
+  let NOGO = [];   // ── h117 ── [[x0, z0, x1, z1], …] ── /h117 ──
   function update(dt) {
     T += dt;
     if (!enabled) { for (const k in meshes) rigEnd(meshes[k].m, 0); rigEnd(items, 0); return; }
@@ -669,6 +675,7 @@ export function createActors(ctx) {
     let ni = 0;
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
+      if (a.vis !== a.visT && instantVis) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }   // ── h120 ── (no figure drawn shrunk: shown or hidden at once) ── /h120 ──
       if (a.vis !== a.visT) {
         const dir = a.visT > a.vis ? 1 : -1; a.vis += dir * dt / 0.45;
         if ((dir > 0 && a.vis >= a.visT) || (dir < 0 && a.vis <= a.visT)) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }
@@ -713,6 +720,7 @@ export function createActors(ctx) {
     }
     for (let i = 0; i < props.length && ni < MAXI - 1; i++) {
       const p = props[i];
+      if (p.vis !== p.visT && instantVis) p.vis = p.visT;   // ── h120 ── ── /h120 ──
       if (p.vis !== p.visT) { const dir = p.visT > p.vis ? 1 : -1; p.vis += dir * dt / 0.35; if ((dir > 0 && p.vis >= p.visT) || (dir < 0 && p.vis <= p.visT)) p.vis = p.visT; }
       if (p.vis <= 0.001) continue;
       if (camera) { sp.center.set(p.x, p.y, p.z); sp.radius = 1.5; if (!fr.intersectsSphere(sp)) continue; }
@@ -758,6 +766,14 @@ export function createActors(ctx) {
     a.moving = moving;
     a.wk += ((moving ? 1 : 0) - a.wk) * Math.min(1, dt * 8);
     if (moving) a.ph += a.speed * dt / 1.15 * Math.PI;
+    // ── h117 ── (ירון 10.11: "בריצוף יש אנשים מתחת כאילו אני קובר אותם מתחת לריצוף") no figure stands where slabs are being laid or
+    // lie: inside a no-go rectangle it steps out to its nearest edge ── /h117 ──
+    if (NOGO.length && a.fixedY === undefined) for (const r of NOGO) {
+      if (a.x <= r[0] || a.x >= r[2] || a.z <= r[1] || a.z >= r[3]) continue;
+      const m = 0.6, dl = a.x - r[0], dr = r[2] - a.x, db = a.z - r[1], dt2 = r[3] - a.z, k = Math.min(dl, dr, db, dt2);
+      if (k === dl) a.x = r[0] - m; else if (k === dr) a.x = r[2] + m; else if (k === db) a.z = r[1] - m; else a.z = r[3] + m;
+      if (a.path) { const e = a.path[a.path.length - 1]; if (e[0] > r[0] && e[0] < r[2] && e[1] > r[1] && e[1] < r[3]) { a.path = null; if (a.res) { const f = a.res; a.res = null; f(false); } } }
+    }
     const gy = a.fixedY !== undefined && !a.path ? a.fixedY : (a.ground || ground)(a.x, a.z);
     a.y += (gy - a.y) * Math.min(1, dt * 14); if (Math.abs(gy - a.y) > 6) a.y = gy;
     // pose (bow / kneel) and arms
@@ -812,9 +828,13 @@ export function createActors(ctx) {
     a.sway = (Math.sin(T * 0.55 + a.shade * 20) * 0.022 + Math.sin(T * 1.3 + a.shade * 7) * 0.006) * (1 - a.wk);
   }
 
+  let instantVis = false;   // ── h120 ── ── /h120 ──
   return {
     add, remove, walk, face, pose, setItem, update, list, items, prop, unprop, props, ITEM_ID,
+    setNoGo(L) { NOGO = (L || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)); },   // ── h117 ── ── /h117 ──
+    get noGo() { return NOGO.slice(); },
     setEnabled(v) { enabled = !!v; },
+    setInstantVis(v) { instantVis = !!v; },   // ── h120 ── (stage 05: a fade never shrinks a figure) ── /h120 ──
     setCamera(c) { camera = c; },
     get drawn() { let n = items.visible ? 1 : 0; for (const k in meshes) n += meshes[k].m.visible ? 1 : 0; return n; },
     handWorld(a, side, out) { armLocal(a, side, side > 0 ? HANDL : HANDR, side > 0 ? SHL : SHR, _e); toWorld(a, _e, out); return out; },

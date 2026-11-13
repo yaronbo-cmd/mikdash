@@ -263,7 +263,6 @@ export function createUI({ root, ctx }) {
       case 'demoExit': if (act.exitDemo) act.exitDemo(); else act.toggleDemo(); break;   // ── flow8 ── the demo's exit chip
       case 'whole': closeSheet(); act.enterWhole(); break;
       case 'avodah': closeSheet(); act.enterAvodah(); break;
-      case 'yard44': closeSheet(); if (act.openYard) act.openYard(); break;   // ── fable32 (build 44) ── חצר האומנים ── /fable32 ──
       case 'scenes': closeSheet(); if (window.__openScenes) window.__openScenes(d.k || 'tour'); break;   // ── scenes ──
       case 'newGame': if (!confirmNew) { confirmNew = true; renderSheet(); } else { confirmNew = false; closeSheet(); act.newGame(); } break;
       case 'newNo': confirmNew = false; renderSheet(); break;
@@ -611,6 +610,8 @@ export function createUI({ root, ctx }) {
     setTimeout(() => {
       const e = doc.createElement('div'); e.className = 'gm-sg'; e.setAttribute('aria-hidden', 'true');
       e.innerHTML = `<b>+${fmtN(n)}</b>${label ? `<span>${esc(label)}</span>` : ''}`;
+      const live = rootEl.querySelectorAll('.gm-sg').length;   // notes still showing: this one goes below them, never on top
+      if (live) e.style.marginTop = (live * 30) + 'px';
       rootEl.appendChild(e); requestAnimationFrame(() => e.classList.add('on'));
       setTimeout(() => bump('score', n), 480);   // the number ticks up as the note lifts
       setTimeout(() => e.remove(), 1700);
@@ -701,7 +702,7 @@ export function createUI({ root, ctx }) {
      by one (FUN7 P0 1). A burst keeps its last five. */
   const TOAST_GAP = 1500, tq = [];
   let tCur = null, tPump = 0;
-  const toastHeld = () => !!rootEl && (rootEl.classList.contains('gm-cinema') || !!doc.querySelector('.fx-mg, div.m3, .gm-mo, div.g10') || !!(ctx.act.strikeRun && ctx.act.strikeRun() && !(tq[0] && tq[0].pause)));   // ── flow8 ── (DESIGN8B R6) none during a strike run — ── director13 ── (a toast that IS the pause — a course end's beat — is not held by the run: PRODUCER13 m1, "no toast נדבך 1 מתוך 6 on screen")
+  const toastHeld = () => !!rootEl && ((doc.body && doc.body.classList.contains('h109-act')) /* ── h114 ── (no toast over a stage minigame) ── /h114 ── */ || rootEl.classList.contains('gm-cinema') || !!doc.querySelector('.fx-mg, div.m3, .gm-mo, div.g10') || !!(ctx.act.strikeRun && ctx.act.strikeRun() && !(tq[0] && tq[0].pause)));   // ── flow8 ── (DESIGN8B R6) none during a strike run — ── director13 ── (a toast that IS the pause — a course end's beat — is not held by the run: PRODUCER13 m1, "no toast נדבך 1 מתוך 6 on screen")
   function toast(o = {}) {
     if (!rootEl) return;
     tq.push(o);
@@ -1101,7 +1102,6 @@ export function createUI({ root, ctx }) {
     h += tg('demo', T.demoMode, T.demoNote, !!G.demo);
     // ── hooks ── the label follows the building (a preview → the altar complete → Chanukat HaBayit; hooks/avodah.js)
     const avL = ctx.act && ctx.act.canAvodah ? ((ctx.hooks && ctx.hooks() && ctx.hooks().avodahMenu) ? ctx.hooks().avodahMenu() : { t: 'העבודה בבית · שלב ב׳', sub: 'התמיד, הקטורת והנרות — לפי השעון האמיתי' }) : null;
-    if (ctx.act && ctx.act.canYard) h += `<button class="gm-btn gm-btn-block" data-a="yard44" style="width:100%;margin:6px 0 4px">${ICON.star} חצר האומנים<small style="display:block;font-weight:500;font-size:12px;opacity:.85">תרגול כל עבודה, בכל רמה שנפתחה — בלי לבנות</small></button>`;   // ── fable32 (build 44) ── ── /fable32 ──
     if (avL) h += `<button class="gm-btn gm-btn-gold gm-btn-block" data-a="avodah" style="width:100%;margin:6px 0 10px">${ICON.star} ${esc(avL.t)}<small style="display:block;font-weight:500;font-size:12px;opacity:.85">${esc(avL.sub)}</small></button>`;
     if (ctx.act && ctx.act.canAvodah) h += `<button class="gm-btn gm-btn-block" data-a="scenes" data-k="tour" style="width:100%;margin:0 0 10px">${ICON.star} סיור בבית המקדש<small style="display:block;font-weight:500;font-size:12px;opacity:.85">ההיכל, הכיור, לשכת הטלאים · איפה הארון? · יום הכיפורים</small></button>`;   // ── scenes ──
     h += `<div class="gm-btn-row"><button class="gm-btn" data-a="whole">${ICON.star} ${T.wholeView}</button><button class="gm-btn" data-a="sheet" data-k="book">${ICON.book} ${T.book}</button></div>`;

@@ -199,8 +199,8 @@ function patchShader(sh, gao, bc) {
         reflectedLight.indirectDiffuse *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.indirectSpecular *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.directDiffuse *= mix(${f3(1 - strength * 0.4)}, 1.0, gao);${fl ? `
-        reflectedLight.indirectDiffuse *= vec3(1.12, 1.0, 0.8);   // ── look E ── the courts' warm bounce: the shade on the cream stone warm grey, not navy ── /look E ──` : macro > 0 ? `
-        if (uGaoC > 1.5) reflectedLight.indirectDiffuse *= vec3(1.1, 1.0, 0.84);   // ── look E ── ── /look E ──` : ''}
+        reflectedLight.indirectDiffuse *= vec3(1.24, 1.05, 0.78);   // ── look E ── the courts' warm bounce: the shade on the cream stone warm grey, not navy ── /look E ──` : macro > 0 ? `
+        if (uGaoC > 1.5) reflectedLight.indirectDiffuse *= vec3(1.16, 1.02, 0.82);   // ── look E ── ── /look E ──` : ''}
       }`);
   }
   if (bc) {

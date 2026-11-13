@@ -187,7 +187,7 @@ export function texMarble(seed = 23, size = 1024) {
       // ── world6 ── the blue-grey courses softer and warmer (at a phone's distance the old contrast read as a glass
       // curtain wall); the same r() calls in the same order, so the layout and SITE's joints are unchanged
       const hu = blue ? 198 + (r() - 0.5) * 10 : 40 + (r() - 0.5) * 8;
-      const sa = blue ? 8 + (r() - 0.5) * 6 : 20 + (r() - 0.5) * 8;
+      const sa = blue ? 4.5 + (r() - 0.5) * 4 : 20 + (r() - 0.5) * 8;   // ── look E ── (the blue-grey 8 ± 3 → 4.5 ± 2 %: grey-blue stone, not glass) ── /look E ──
       let li = blue ? 83 + (r() - 0.5) * 5 : 91 + (r() - 0.5) * 3;
       const veins = [0, 1, 2, 3].map(() => [r(), r(), r(), r(), 0.6 + r() * 1.6]);
       // ── look E ── each block a tone of its own (warm white to a hair grey), soft clouds and finer veins: not a flat white; the

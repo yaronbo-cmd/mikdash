@@ -4,7 +4,7 @@
  * he pulls it down off the rock to the west wall), 3.8 "לבית התקיעה" (the two words carved letter by letter).
  */
 import { onPlane, clamp, lerp, ease } from './kit.js';
-import { bigR, nearPts, nearObjs } from './grips.js';   // (build 125)
+import { bigR, nearPts, nearObjs, pickGrip } from './grips.js';   // (build 125)
 import { wasteAdd } from './acts2.js';
 import { BOOK, cellOf } from '../world/grid.js';
 import { makeTrack, stepStone, limitAt, restAt, SL } from './slope.js';
@@ -265,11 +265,10 @@ export const CORNER = {
     function gripOf(p) {
       if (A.phase !== 'lower') return null;
       C.tipWorld(tip); const q = X.scr(tip.x, tip.y, tip.z);
-      { const s0 = X.scr(stone.position.x, stone.position.y, stone.position.z), ds = Math.hypot(s0.x - p.x, s0.y - p.y); if (ds < 55 && ds < Math.hypot(q.x - p.x, q.y - p.y)) return 'hold'; }   // (build 125: the nearer of the two — in the wider lens of the play zone the stone hangs close under the jib's head)
-      if (q.on !== false && Math.hypot(q.x - p.x, q.y - p.y) < 70) return 'jib';
       const h = kohHands(), e2 = ropeEnd(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
-      const st = X.scr(stone.position.x, stone.position.y, stone.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 55) return 'hold';   // ── h116 ── (the stone itself first: the rope's end lies on it) ── /h116 ──
-      { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.8), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 34 || Math.hypot(a.x - p.x, a.y - p.y) < 60) return 'rope'; }
+      const st = X.scr(stone.position.x, stone.position.y, stone.position.z);
+      // (build 125, round 3: the nearest of the three grips takes the touch — the rope's end lies on the stone, the stone under the jib's head)
+      { const k = pickGrip(p, [{ k: 'jib', at: q, on: q.on !== false, R: 70 }, { k: 'hold', at: st, R: 55 }, { k: 'rope', seg: [a, b], u1: 0.8, R: 34 }, { k: 'rope', at: a, R: 60 }]); if (k) return k; }
       if (Math.hypot(st.x - p.x, st.y - p.y) < 90) return 'hold';
       const g = onPlane(X, p.x, p.y, floorY); if (g && Math.hypot(g.x - CORNER_AT.x, g.z - CORNER_AT.z) < 3.2) return 'hold';
       return null;
@@ -462,13 +461,12 @@ export const COURSE = {
     function gripOf(p) {
       if (A.phase !== 'carry' || !A.cur) return null;
       C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z);
-      { const s0 = A.cur.m.position, q0 = X.scr(s0.x, s0.y, s0.z), ds = Math.hypot(q0.x - p.x, q0.y - p.y); if (ds < 50 && ds < Math.hypot(tq.x - p.x, tq.y - p.y)) return 'hold'; }   // (build 125: the nearer of the two — in the wider lens of the play zone the stone hangs close under the jib's head)
-      if (tq.on !== false && Math.hypot(tq.x - p.x, tq.y - p.y) < 70) return 'jib';
-      // (anywhere on the jib's beam, its outer two thirds: the head may stand near the frame's edge in the high view)
-      { const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const a = X.scr(m0.x, m0.y, m0.z), vx = tq.x - a.x, vy = tq.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 1); if (Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y) < 36) return 'jib'; }
-      const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 50) return 'hold';
+      const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const ma = X.scr(m0.x, m0.y, m0.z);
+      const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z);
       const e2 = ropeEnd(), h = stkTop(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
-      { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.85), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 36) return 'rope'; }
+      // (build 125, round 3: the nearest of the grips takes the touch — the jib's head and its beam (its outer two thirds: the head may stand
+      //  near the frame's edge in the high view), the stone, the guide rope; the rope may cross under the beam on the screen)
+      { const k = pickGrip(p, [{ k: 'jib', at: tq, on: tq.on !== false, R: 70 }, { k: 'jib', seg: [ma, tq], R: 36 }, { k: 'hold', at: st, R: 50 }, { k: 'rope', seg: [a, b], u1: 0.85, R: 36 }]); if (k) return k; }
       if (Math.hypot(st.x - p.x, st.y - p.y) < 85) return 'hold';
       return null;
     }
@@ -1265,6 +1263,7 @@ export const LETTERS = {
         if (A.part === 3 && !A.done) { if (A.terua && A.terua.step === 1) { teruaTap(); return; } }
       },
       move(p) {
+        if (A.part === 3 && A.p0 && A.p0.blow && !A.hold && !A.done && Math.abs(p.x - A.p0.x) > 10) A.p0.blow = false;   // (build 125, round 3: a drag that starts on the trumpeter aims — the trumpeter is the aim's grip too; only a still finger blows)
         if (A.part !== 3 || !A.p0 || A.p0.blow || A.hold || A.done) return;
         if (Math.abs(p.x - A.p0.x) > 10) A.p0.moved = true;
         if (A.p0.moved) A.aim = clamp(A.p0.aim - (p.x - A.p0.x) * 0.0032, -125 * deg, 35 * deg);

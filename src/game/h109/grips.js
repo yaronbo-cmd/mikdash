@@ -41,3 +41,23 @@ export function centreOf(X, o) {
   try { if (X.THREE && X.THREE.Box3) { const b = new X.THREE.Box3().setFromObject(o); if (!b.isEmpty()) { const c = b.getCenter(new X.THREE.Vector3()); return { x: c.x, y: c.y, z: c.z }; } } } catch (e) { /* */ }
   const v = o.getWorldPosition ? o.getWorldPosition(new o.position.constructor()) : o.position; return { x: v.x, y: v.y, z: v.z };
 }
+
+/* ── build 125 (round 3) ── one rule for an act with several grips close together on the screen (the crane's: the jib's head and
+ * beam, the hanging stone, the guide rope): every grip whose zone the touch is in is a candidate, and the NEAREST one takes it — never
+ * the first in a list, so a grip drawn under the finger is never stolen by a neighbour's wider zone whatever the rope's angle or the
+ * stone's place. Pure (screen points only), so the tests can sweep it.
+ *   cands: [{ k, at: {x, y} } | { k, seg: [{x, y}, {x, y}], u0?, u1? }, R ] — a point or a segment (its part from u0 to u1), radius R
+ *   pickGrip(p, cands) → the nearest candidate's k, or null */
+export function segDist(p, a, b, u0 = 0, u1 = 1) {
+  const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy, u = L2 > 1e-9 ? Math.max(u0, Math.min(u1, ((p.x - a.x) * vx + (p.y - a.y) * vy) / L2)) : u0;
+  return Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y);
+}
+export function pickGrip(p, cands) {
+  let best = null, bd = Infinity;
+  for (const c of cands) {
+    if (!c || c.on === false) continue;
+    const d = c.seg ? segDist(p, c.seg[0], c.seg[1], c.u0 || 0, c.u1 == null ? 1 : c.u1) : Math.hypot(c.at.x - p.x, c.at.y - p.y);
+    if (d < c.R && d < bd) { bd = d; best = c.k; }
+  }
+  return best;
+}

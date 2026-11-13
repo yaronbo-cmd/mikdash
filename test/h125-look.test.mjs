@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { BOOK } from '../src/game/world/grid.js';
 import { LOOK_K, LOOK_RING_K, lookPose, makeLook, ringBoxes, segHits, camInBox } from '../src/game/world/look.js';
 import { LOOK05, BOXES05, sightPose as sight05 } from '../src/game/h120/look120.js';
-import { gripR, bigR, nearPts, nearSeg } from '../src/game/h109/grips.js';
+import { gripR, bigR, nearPts, nearSeg, pickGrip } from '../src/game/h109/grips.js';
 
 const horizonY = (p, t, fov) => { const pitch = Math.atan2(p[1] - t[1], Math.hypot(t[0] - p[0], t[2] - p[2])); return 0.5 - Math.tan(pitch) / (2 * Math.tan((fov * Math.PI) / 360)); };
 const RING = ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top);
@@ -92,4 +92,35 @@ test('grips: the radii are of the screen; near a point, near a segment, far is t
   assert.ok(nearSeg(X, { x: 800, y: 330 }, { x: 600, y: 300, z: 0 }, { x: 900, y: 300, z: 0 }, 90));
   assert.ok(!nearSeg(X, { x: 800, y: 500 }, { x: 600, y: 300, z: 0 }, { x: 900, y: 300, z: 0 }, 90));
   assert.ok(nearPts(X, null, []), 'no point: the act asks for itself');
+});
+
+// ── round 3: the crane's grips. The guide rope's end lies on the stone and the stone hangs under the jib's head, so their zones overlap
+// on the screen; at some rope angles the rope crossed the jib's beam and its grip went to the jib (a drag on the rope moved the crane).
+// The nearest grip takes the touch: swept over the full turn of the rope, a range of stone places and jib heights, both halves.
+const ring = (c, r, th) => ({ x: c.x + Math.cos(th) * r, y: c.y + Math.sin(th) * r });
+const lerp2 = (a, b, u) => ({ x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u });
+test('crane grips (corner): over every rope angle the rope, the stone and the jib\'s head each take their own touch', () => {
+  let n = 0;
+  for (const S of [{ x: 300, y: 260 }, { x: 540, y: 250 }, { x: 760, y: 300 }])   // (the stone on the left half, the middle, the right half)
+    for (const up of [40, 56, 84, 140])   // (the jib's head above it: close in the play zone's wider lens, far in the work's own shot)
+      for (let deg = 0; deg < 360; deg += 5)
+        for (const w of [45, 80]) {
+          const tip = { x: S.x - 8, y: S.y - up }, hands = { x: 337, y: 492 }, end = ring(S, w, (deg * Math.PI) / 180);
+          const C = [{ k: 'jib', at: tip, R: 70 }, { k: 'hold', at: S, R: 55 }, { k: 'rope', seg: [hands, end], u1: 0.8, R: 34 }, { k: 'rope', at: hands, R: 60 }];
+          const rp = lerp2(hands, end, 1 / 3);   // (where the hand takes the rope: the bot's and the ring's point)
+          assert.equal(pickGrip(rp, C), 'rope', `rope at ${deg}° stone ${S.x} up ${up}`);
+          assert.equal(pickGrip(S, C), 'hold'); assert.equal(pickGrip(tip, C), 'jib');
+          n++;
+        }
+  assert.equal(n, 3 * 4 * 72 * 2);
+});
+test('crane grips (course): the guide rope under the jib\'s beam is still the rope, at every angle', () => {
+  for (let deg = 0; deg < 360; deg += 5) {
+    const tip = { x: 470, y: 200 }, mid = { x: 250, y: 120 }, S = { x: 472, y: 280 }, stake = { x: 330, y: 470 }, end = ring(S, 60, (deg * Math.PI) / 180);
+    const C = [{ k: 'jib', at: tip, R: 70 }, { k: 'jib', seg: [mid, tip], R: 36 }, { k: 'hold', at: S, R: 50 }, { k: 'rope', seg: [stake, end], u1: 0.85, R: 36 }];
+    assert.equal(pickGrip(lerp2(stake, end, 0.35), C), 'rope', `rope at ${deg}°`);
+    assert.equal(pickGrip(S, C), 'hold'); assert.equal(pickGrip(tip, C), 'jib'); assert.equal(pickGrip(lerp2(mid, tip, 0.5), C), 'jib');
+  }
+  assert.equal(pickGrip({ x: 900, y: 80 }, [{ k: 'jib', at: { x: 470, y: 200 }, R: 70 }]), null, 'far from every grip: the look\'s');
+  assert.equal(pickGrip({ x: 470, y: 200 }, [{ k: 'jib', at: { x: 470, y: 200 }, R: 70, on: false }]), null, 'a grip behind the camera takes nothing');
 });

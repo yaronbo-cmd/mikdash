@@ -8,6 +8,9 @@
   const W = innerWidth, HH = innerHeight;
   const C = (body) => `(()=>{const a=__T.game.h109.state().act;${body}})()`;
   const mid = (p, q, u = 0.5) => [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
+  // (build 125: a touch only where the world is under the finger — never on a HUD button or card: a hold on the menu opened it)
+  const onWorld = (x, y) => { if (!(x > 2 && x < W - 2 && y > 2 && y < HH - 2)) return false; const e = document.elementFromPoint(x, y); return !!e && (e.tagName === 'CANVAS' || (e.classList && e.classList.contains('h109-touch'))); };
+  const alongWorld = (p, q) => { for (let i = 0; i <= 20; i++) { const r = mid(p, q, i / 20); if (onWorld(r[0], r[1])) return r; } return null; };
   const play = {
     rope(a) {
       if (a.phase === 'ready') return { holdUntil: [a.hs ? a.hs[0] : W * 0.6, a.hs ? a.hs[1] : HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
@@ -58,7 +61,7 @@
       }
       // (build 115: hold to drive, let go before the green line (they slide on ~1.2), then a drag up tips the sledge into the pit)
       if (a.phase === 'push' && a.v < 0.1 && Math.abs(a.d - a.tgt) <= 3.5) return { drag: [a.sled[0], a.sled[1], a.sled[0], a.sled[1] - 140, 300], wait: 600, note: 'waste: tip at ' + (a.d - a.tgt).toFixed(2) };
-      if (a.phase === 'push' && a.v < 0.1) return { holdUntil: [a.trk && a.trk[0] > 0 && a.trk[0] < W ? a.trk[0] : W * 0.75, a.trk && a.trk[1] > 0 && a.trk[1] < HH ? a.trk[1] : HH * 0.5, C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500 };   // (build 125: on the track — the push's own grip)
+      if (a.phase === 'push' && a.v < 0.1) { const at = (a.trk && a.sled && alongWorld(a.trk, a.sled)) || [W * 0.75, HH * 0.5]; return { holdUntil: [at[0], at[1], C('return !a||a.phase!==\'push\'||a.d>=a.tgt-1.25'), 20000], wait: 1500, note: 'waste: hold the track at ' + at.map(Math.round) }; }   // (build 125: on the track — the push's own grip — where the world is under the finger)
       if (a.phase === 'push') return { wait: 300 };
       return { wait: 300 };
     },
@@ -588,7 +591,11 @@
     if (now() - B.actT > (/^(bond|carry|mikveh)/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
-    try { return f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }
+    let r; try { r = f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }
+    // (build 125: say so when a touch would start on the HUD and not on the world — a test that must see it, never a silent stall)
+    const p0 = r && (r.tap || r.hold || r.holdUntil || r.drag || r.tapWhen || (r.path && r.path[0]));
+    if (p0 && Number.isFinite(p0[0]) && Number.isFinite(p0[1]) && p0[0] > 0 && p0[0] < W && p0[1] > 0 && p0[1] < HH && !onWorld(p0[0], p0[1])) { const e = document.elementFromPoint(p0[0], p0[1]); r.note = 'HUD under the touch ' + Math.round(p0[0]) + ',' + Math.round(p0[1]) + ' ' + (e ? e.tagName + '.' + String(e.className || '').slice(0, 40) : '') + ' · ' + (r.note || ''); }
+    return r;
   };
   return 'bot ready';
 })();

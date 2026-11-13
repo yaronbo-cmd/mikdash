@@ -211,7 +211,7 @@ function patchShader(sh, gao, bc) {
         reflectedLight.indirectSpecular *= mix(${f3(1 - strength)}, 1.0, gao);
         reflectedLight.directDiffuse *= mix(${f3(1 - strength * 0.4)}, 1.0, gao);${fl ? `
         { vec3 flI = reflectedLight.indirectDiffuse; reflectedLight.indirectDiffuse = vec3(dot(flI, vec3(0.3, 0.59, 0.11))) * vec3(1.32, 1.13, 0.88); }   // ── look E ── the courts' warm bounce: the sky's blue taken out of the paving's shade (the Ulam's steps in the House's shadow), warm grey, not navy ── /look E ──` : macro > 0 ? `
-        if (uGaoC > 1.5) reflectedLight.indirectDiffuse *= vec3(1.16, 1.02, 0.82);   // ── look E ── ── /look E ──` : ''}
+        if (uGaoC > 1.5) { vec3 gI = reflectedLight.indirectDiffuse; reflectedLight.indirectDiffuse = mix(gI, vec3(dot(gI, vec3(0.3, 0.59, 0.11))), 0.7) * vec3(1.2, 1.06, 0.88); }   // (the Temple's walls and marble: most of the sky's blue out of their shade)   // ── look E ── ── /look E ──` : ''}
       }`);
   }
   if (bc) {

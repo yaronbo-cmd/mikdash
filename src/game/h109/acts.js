@@ -278,7 +278,7 @@ const ROPE_ACT = {
       cancel() { if (A.phase === 'pull') { A.hold = false; A.phase = 'slide'; } },
       end() { drive(0, 0); if (A.holder) { C.remove(A.holder); A.holder = null; } if (A.rope) { A.rope.dispose(); A.rope = null; } if (A.rod) { X.props.remove(A.rod); A.rod = null; } if (A.ring) X.props.remove(A.ring); if (A.ghost) X.props.remove(A.ghost); if (SH.sq) SH.sq.material.opacity = 0.32; X.count(null); },
       at() { return { x: SQ.x1, y: X.ground(SQ.x1, SQ.z0) + 2, z: SQ.z0 }; },
-      dbg() { return { side: A.side, d: +A.d.toFixed(2), v: +A.v.toFixed(2), phase: A.phase, res: A.res.slice() }; },
+      dbg() { const h = heroP(), r = h ? X.scr(h.x, X.ground(h.x, h.z) + 1.2, h.z) : null; return { side: A.side, d: +A.d.toFixed(2), v: +A.v.toFixed(2), phase: A.phase, res: A.res.slice(), hs: r ? [Math.round(r.x), Math.round(r.y)] : null }; },   // (build 125: hs, where he stands on the screen — the rope's grip)
     };
   },
 };

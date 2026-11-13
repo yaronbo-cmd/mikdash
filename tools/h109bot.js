@@ -10,7 +10,7 @@
   const mid = (p, q, u = 0.5) => [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
   const play = {
     rope(a) {
-      if (a.phase === 'ready') return { holdUntil: [W * 0.6, HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
+      if (a.phase === 'ready') return { holdUntil: [a.hs ? a.hs[0] : W * 0.6, a.hs ? a.hs[1] : HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
       return { wait: 250 };
     },
     rocks(a) {

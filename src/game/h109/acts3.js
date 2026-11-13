@@ -264,7 +264,9 @@ export const CORNER = {
     const ropeEnd = () => { const c = Math.cos(stone.rotation.y), sn = Math.sin(stone.rotation.y); return { x: stone.position.x - c * sw * 0.5 + sn * 0.0, y: stone.position.y - 0.5, z: stone.position.z + sn * sw * 0.5 }; };
     function gripOf(p) {
       if (A.phase !== 'lower') return null;
-      C.tipWorld(tip); const q = X.scr(tip.x, tip.y, tip.z); if (q.on !== false && Math.hypot(q.x - p.x, q.y - p.y) < 70) return 'jib';
+      C.tipWorld(tip); const q = X.scr(tip.x, tip.y, tip.z);
+      { const s0 = X.scr(stone.position.x, stone.position.y, stone.position.z), ds = Math.hypot(s0.x - p.x, s0.y - p.y); if (ds < 55 && ds < Math.hypot(q.x - p.x, q.y - p.y)) return 'hold'; }   // (build 125: the nearer of the two — in the wider lens of the play zone the stone hangs close under the jib's head)
+      if (q.on !== false && Math.hypot(q.x - p.x, q.y - p.y) < 70) return 'jib';
       const h = kohHands(), e2 = ropeEnd(), a = X.scr(h.x, h.y, h.z), b = X.scr(e2.x, e2.y, e2.z);
       const st = X.scr(stone.position.x, stone.position.y, stone.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 55) return 'hold';   // ── h116 ── (the stone itself first: the rope's end lies on it) ── /h116 ──
       { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 0.8), d = Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y); if (d < 34 || Math.hypot(a.x - p.x, a.y - p.y) < 60) return 'rope'; }
@@ -459,7 +461,9 @@ export const COURSE = {
     const stkTop = () => ({ x: STK.x, y: X.ground(STK.x, STK.z) + 1.2, z: STK.z });
     function gripOf(p) {
       if (A.phase !== 'carry' || !A.cur) return null;
-      C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z); if (tq.on !== false && Math.hypot(tq.x - p.x, tq.y - p.y) < 70) return 'jib';
+      C.tipWorld(tip); const tq = X.scr(tip.x, tip.y, tip.z);
+      { const s0 = A.cur.m.position, q0 = X.scr(s0.x, s0.y, s0.z), ds = Math.hypot(q0.x - p.x, q0.y - p.y); if (ds < 50 && ds < Math.hypot(tq.x - p.x, tq.y - p.y)) return 'hold'; }   // (build 125: the nearer of the two — in the wider lens of the play zone the stone hangs close under the jib's head)
+      if (tq.on !== false && Math.hypot(tq.x - p.x, tq.y - p.y) < 70) return 'jib';
       // (anywhere on the jib's beam, its outer two thirds: the head may stand near the frame's edge in the high view)
       { const m0 = jibMid.set(0, C.mastH + 0.9, 2.2 + C.jibL * 0.35); C.slew.localToWorld(m0); const a = X.scr(m0.x, m0.y, m0.z), vx = tq.x - a.x, vy = tq.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 1); if (Math.hypot(a.x + vx * u - p.x, a.y + vy * u - p.y) < 36) return 'jib'; }
       const s = A.cur.m, st = X.scr(s.position.x, s.position.y, s.position.z); if (Math.hypot(st.x - p.x, st.y - p.y) < 50) return 'hold';

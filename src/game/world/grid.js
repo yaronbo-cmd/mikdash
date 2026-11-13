@@ -260,12 +260,33 @@ const S04 = {
   gates: [['nitzotz', 'שער הניצוץ', -38, -78], ['korban', 'שער הקרבן', -95, -78], ['moked', 'שער בית המוקד', -160, -76], ['mayim', 'שער המים', -38, 78], ['bechorot', 'שער הבכורות', -118, 78], ['delek', 'שער הדלק', -160, 78]],
   nikanor: [3, 0],
   yard: { x0: -84.4, x1: -64.4, z: -80.2 },
+  // ── h126 ── (build 126, rule 65: every other place stage 04's code used to type itself, read from here)
+  // the carpenters' yard: its trestles' post line (z), the rack's two ends (x), the wall line behind it (z); the yard's keep (z from, to)
+  yardMore: { post: -77.6, rack: [-62.6, -47.8], wall: -73.95, keep: [-84, -73] },
+  // the gatehouses the crews keep clear round the kohen's north frames and the south three (z from, to) and the north porch's band
+  houses: { N: [-79, -63], porch: [-79.2, -75.3], S: [63, 79], inner: -64, court: -67.5, passS: [67.5, 78.2] },   // (inner: a gatehouse's inner face over the lintel; court: the court's north face, the passage's end; passS: the south passages' floor, z from, to)
+  // the cameras: the film [eye, target, seconds]; the opening; the gilding's and the third level's walks; Nikanor across the court;
+  // the end's round (middle, radius, height); the yard's two shots (eye and target: x off the yard's middle, height, z)
+  cam: {
+    film: [[[-60, 260, 260], [-80, 0, 0], 3.0], [[-66, 20, -112], [-66, 12, -78], 2.6], [[-100, 20, 112], [-100, 12, 78], 2.6], [[-60, 300, 300], [-80, 0, 0], 1.6]],
+    intro: [[[-60, 520, 520], [-80, 0, 0]], [[-80, 280, 240], [-80, 0, 0]]],
+    toKorban: [[-66, 34, -116], [-80, 8, -78]],
+    toMoked: [[-130, 40, -118], [-150, 8, -76]],
+    nikanor: [[120, 60, 90], [40, 8, 0]],
+    round: { c: [-80, 0], R: 330, y: 200 },
+    rack: [[2, 36, -110], [0, 11, -79.5]],
+    lintel: [[3, 15, -103], [0, 12, -78]],
+  },
+  // ── /h126 ──
 };
 function s04() {
   const E = S04.gates.map(([key, n, c, zf]) => ent('gate:' + key, 'gate', c, zf, n, 'מידות א, ד'));
   E.push(ent('nikanor', 'gate', S04.nikanor[0], S04.nikanor[1], 'שער ניקנור', 'מידות ב, ו'));
   E.push(ent('yard', 'yard', (S04.yard.x0 + S04.yard.x1) / 2, S04.yard.z, 'חצר הנגרים על החיל', ILL));
-  return { stage: 4, name: 'שערי העזרה', bounds: { x0: -175, x1: 10, z0: -90, z1: 90 }, gates: S04.gates, nikanor: S04.nikanor, yard: S04.yard, entries: E };
+  // ── h126 ── the places moved into the book in build 126
+  E.push(ent('yard:rack', 'rack', (S04.yardMore.rack[0] + S04.yardMore.rack[1]) / 2, S04.yard.z, 'מתלה הקרשים בחצר הנגרים', ILL));
+  // ── /h126 ──
+  return { stage: 4, name: 'שערי העזרה', bounds: { x0: -175, x1: 10, z0: -90, z1: 90 }, gates: S04.gates, nikanor: S04.nikanor, yard: S04.yard, yardMore: S04.yardMore, houses: S04.houses, cam: S04.cam, entries: E };   // ── h126 ── (yardMore … cam) ── /h126 ──
 }
 
 /** stage 05, the women's court (Middot 2:5: 135 × 135, a chamber of 40 in each corner): THE source of its places — h120/layout.js,

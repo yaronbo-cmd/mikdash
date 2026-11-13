@@ -9,6 +9,7 @@ import { ACTS } from './acts.js';
 import { SH4, frameOf, finalWorld, disposeChip } from './world.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';   // (build 125)
 import { BOOK } from '../world/grid.js';
+const CAM4 = BOOK.s04.cam;   // (build 126: the stage's cameras are the book's)
 const LOOK_RING = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -27,7 +28,7 @@ function gateShot(X, G, d = 1.6, far = 26, up = 12) {
 function pillars(X) {
   const T = X.THREE, mat = new T.MeshBasicMaterial({ color: 0xE8B84A, transparent: true, opacity: 0.9, depthWrite: false });
   const L = [];
-  const at = [...[1, 2, 3].map((lv) => [GATES[lv].c, -70.5]), ...SOUTH.map((G) => [G.c, 70.5])];
+  const at = [...[1, 2, 3].map((lv) => [GATES[lv].c, BOOK.s02.side.N.c]), ...SOUTH.map((G) => [G.c, BOOK.s02.side.S.c])];   // (build 126: the ring's sides are the book's)
   for (const [x, z] of at) {
     const m = new T.Mesh(new T.BoxGeometry(10, 1, 8), mat); m.geometry.translate(0, 0.5, 0);
     m.position.set(x, H113.FLOOR, z); m.scale.y = 0.01; X.props.root.add(m); L.push(m);
@@ -48,7 +49,7 @@ export function makePack04() {
     endTitle: 'שערי העזרה נבנו!',
     endSub: 'פתחו עשר אמות ורומו עשרים (מדות ב, ג) · כל השערים נשתנו להיות של זהב, חוץ משערי ניקנור (שם)',
     // the film: the courts from high, the north gates on the Chel, the south three, the whole from above
-    film: [[[-60, 260, 260], [-80, 0, 0], 3.0], [[-66, 20, -112], [-66, 12, -78], 2.6], [[-100, 20, 112], [-100, 12, 78], 2.6], [[-60, 300, 300], [-80, 0, 0], 1.6]],
+    film: CAM4.film,
     /** the crews' gatehouses as they stand while mission m is open (low under the lintels through the first two gates, then up) */
     sync(M, S0, instant, X) {
       const info = S0.siteInfo('gates'); if (!info) return;
@@ -71,11 +72,11 @@ export function makePack04() {
       if (m && m.id === 'socket1' && !st.intro) {
         return (async () => {
           st.intro = 1; X.save(); near(X, true);
-          X.shot([-60, 520, 520], [-80, 0, 0], 0.01); await beat(X, 300);
+          X.shot(CAM4.intro[0][0], CAM4.intro[0][1], 0.01); await beat(X, 300);
           X.line('שלב 04: שערי העזרה · שבעה שערים היו בעזרה, שלשה בצפון ושלשה בדרום ואחד במזרח (מדות א, ד)');
           const P2 = pillars(X);
           for (let k = 1; k <= 20; k++) { P2.grow(k / 20); await beat(X, 60); }
-          X.shot([-80, 280, 240], [-80, 0, 0], 2.6); await beat(X, 3000);
+          X.shot(CAM4.intro[1][0], CAM4.intro[1][1], 2.6); await beat(X, 3000);
           X.line('שלושה בצפון: עלינו · שלושה בדרום: הצוותים · שער ניקנור במזרח: בהמשך', 3000);
           gateShot(X, GATES[1], 2.4, 40, 22);
           for (let k = 1; k <= 20; k++) { P2.fade(1 - k / 20); await beat(X, 110); }
@@ -102,7 +103,7 @@ export function makePack04() {
           st.gold[1] = 1; X.save();   // (world.js ensureWorld rebuilds the gate gilded on its next beat)
           await beat(X, 900);
           X.line('הצורפים מצפים את הדלתות בזהב · ואנחנו לשער הקרבן', 2600);
-          X.shot([-66, 34, -116], [-80, 8, -78], 2.2); await beat(X, 2400);
+          X.shot(CAM4.toKorban[0], CAM4.toKorban[1], 2.2); await beat(X, 2400);
           gateShot(X, GATES[2], 1.6); await beat(X, 1800);
           for (const a of w) SH4.crew.remove(a);
           X.line('');
@@ -122,7 +123,7 @@ export function makePack04() {
           X.line('בבית הניצוץ: הכהנים שומרים מלמעלה והלוים מלמטה (מדות א, ה)');
           await beat(X, 3200);
           X.line('רמה 3: שער בית המוקד · הקשה מכולם', 2600);
-          X.shot([-130, 40, -118], [-150, 8, -76], 2.2); await beat(X, 2400);
+          X.shot(CAM4.toMoked[0], CAM4.toMoked[1], 2.2); await beat(X, 2400);
           gateShot(X, GATES[3], 1.6); await beat(X, 1600);
           if (w) SH4.crew.remove(w);
           X.line('');
@@ -147,14 +148,14 @@ export function makePack04() {
           await beat(X, 1500);
         }
         X.line('ושער ניקנור? דלתותיו עוד בדרך בים, מאלכסנדריה (יומא לח ע״א)');
-        X.shot([120, 60, 90], [40, 8, 0], 2.2); await beat(X, 3600);
+        X.shot(CAM4.nikanor[0], CAM4.nikanor[1], 2.2); await beat(X, 3600);
       } catch (e) { console.warn('[h113] finale', e && e.message); }
       X.line('');
       near(X, false);
       try { X.stages.setWork('gates', { phase: 'done' }); } catch (e) { /* */ }
       finalWorld(X);
       try { if (X.stages.crewsCheer) X.stages.crewsCheer('gates'); } catch (e) { /* */ }
-      const c = { x: -80, z: 0 }, R = 330, y = 200;
+      const RD = CAM4.round, c = { x: RD.c[0], z: RD.c[1] }, R = RD.R, y = RD.y;   // (build 126: the book's)
       for (let k = 0; k <= 8; k++) { const a = (k / 8) * Math.PI * 2; X.shot([c.x + Math.cos(a) * R, y, c.z + Math.sin(a) * R * 0.75], [c.x, 6, c.z], 0.9); await beat(X, 650); }
     },
     dispose() { disposeChip(); },

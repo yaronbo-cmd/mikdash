@@ -9,6 +9,7 @@ import { SH4, mats, frameOf, gateBuild, lintelMesh, LINTEL_BED, label, keep, gat
 import { fingers, MOUSE, sc, heroAt, nearPt, onY } from './acts.js';
 import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
 import { clamp, lerp, ease } from '../h109/kit.js';
+import { BOOK } from '../world/grid.js';   // (build 126: the yard's shots are the book's)
 
 const D2R = Math.PI / 180;
 
@@ -267,7 +268,7 @@ export const LEAF = {
     const laidZ = (k) => { let z = zEdge; for (let i = 0; i < k; i++) z -= A.laid[i].p.w; return z; };   // (the next board's far edge)
     function crewAdd(x, z, o) { const w = SH4.crew.add(x, z, o); if (w) A.crew.push(w); return w; }
     // (the yard and the rack in one frame: the leaf on its sawhorses, the boards standing on the wall beyond it)
-    function shot() { const cx = (YARD.x0 + YARD.rack[1]) / 2; X.shot([cx + 2, 36, -110], [cx, 11, -79.5], 1.1); }
+    function shot() { const cx = (YARD.x0 + YARD.rack[1]) / 2, [RE, RT] = BOOK.s04.cam.rack; X.shot([cx + RE[0], RE[1], RE[2]], [cx + RT[0], RT[1], RT[2]], 1.1); }
     function pegShot(x) { X.shot([x + 3.5, topY + 7.5, YARD.z - 8.5], [x, topY + 0.6, (YARD.post + YARD.z) / 2 - 0.6], 1.0); }
     function sumLabel() { A.sumLab.set(lv === 1 ? `${sum()} / 5 אמות` : '', { x: YARD.x1 + 0.6, y: topY + 0.4, z: laidZ(A.laid.length) }, leafClosed(A.laid.map((l) => l.p.w))); }
     async function pick(r) {
@@ -389,7 +390,7 @@ export const LEAF = {
       const g = new T.Group(); g.position.set(YARD.x0, topY, YARD.post); PR.root.add(g);
       const parts = [post, ...A.laid.map((l) => l.g), ...A.battens, ...A.pegs.map((p) => p.m), ...pins, ...(A.pishDoor ? [A.pishDoor] : [])];
       for (const o of parts) { if (!o) continue; const wp = o.getWorldPosition(new T.Vector3()); o.parent && o.parent.remove(o); g.add(o); o.position.copy(wp.sub(g.position)); }
-      X.shot([(YARD.x0 + YARD.x1) / 2 + 3, 15, -103], [(YARD.x0 + YARD.x1) / 2, 12, -78], 1.4);
+      { const [LE, LT] = BOOK.s04.cam.lintel; X.shot([(YARD.x0 + YARD.x1) / 2 + LE[0], LE[1], LE[2]], [(YARD.x0 + YARD.x1) / 2 + LT[0], LT[1], LT[2]], 1.4); }
       crewAdd(YARD.x0 + 2, YARD.z - 3.6, { role: 'lever', fx: YARD.x0 + 2, fz: YARD.z, crew: 1 }); crewAdd(YARD.x1 - 2, YARD.z - 3.6, { role: 'lever', fx: YARD.x1 - 2, fz: YARD.z, crew: 1 });
       for (let i = 1; i <= 30; i++) { await X.wait(0.04); g.rotation.x = -ease(i / 30) * (Math.PI / 2); g.position.y = topY + ease(i / 30) * 0.1; }
       X.play('thud'); X.dust((YARD.x0 + YARD.x1) / 2, 6.3, YARD.post, 20, 9);
@@ -460,7 +461,7 @@ export const LEAF = {
     return {
       close: true,
       begin() {
-        keep(X, [[YARD.x0 - 3, -84, YARD.rack[1] + 1, -73]]); F.attach();
+        keep(X, [[YARD.x0 - 3, BOOK.s04.yardMore.keep[0], YARD.rack[1] + 1, BOOK.s04.yardMore.keep[1]]]); F.attach();
         rackBuild(); A.sumLab = label(X); sumLabel();
         heroAt(X, YARD.x1 + 1.2, YARD.z - 2.9, YARD.x1 - 3, YARD.z);
         shot();

@@ -7,6 +7,7 @@
  */
 import { H113, GATES, SOUTH, YARD, socketAt, inherit, lockOf, PISH } from './model.js';
 import { createBeat, createGang, clamp } from '../h109/kit.js';
+import { BOOK } from '../world/grid.js';   // (build 126)
 
 export const SH4 = { final: 0, X: null, B: null, crew: null, gates: {}, south: {}, keys: {}, skey: '', yard: null, dk: [], labels: [], chip: null, busy: 0, camD: 0, amb: [], ambKey: '', holeT: 0 };
 const TAU = Math.PI * 2;
@@ -244,7 +245,7 @@ export function gateBuild(X, lv, skip = {}) {
   jambs(X, G, all);
   // the soffit behind the lintel inside the gatehouse (the site's holes reach the lintel's top)
   const Ld = st.lintel[lv] && st.lintel[lv].done;
-  if (G.house && Ld) all.push(box(X, mats(X).ash4, F.x0, H113.TOP, F.zi, F.x1, H113.TOP + H113.LINTEL_H, -64));
+  if (G.house && Ld) all.push(box(X, mats(X).ash4, F.x0, H113.TOP, F.zi, F.x1, H113.TOP + H113.LINTEL_H, BOOK.s04.houses.inner));
   if (!skip.lintel) {
     const g = lintelMesh(X, G, all);
     if (Ld) { g.position.set(G.c, H113.TOP, (F.zf + F.zi) / 2); g.rotation.z = (st.lintel[lv].tilt || 0) * Math.PI / 180 * 0.15; }
@@ -317,10 +318,11 @@ function southBuild(X, i, k) {
 /* ───────── the openings: the courts' wall opened again; the crews' gatehouses keep the kohen's frames clear ───────── */
 export function holeRects() {
   const w = [], g = [];
-  for (const lv of [1, 2, 3]) { const G = GATES[lv]; w.push([G.c - 5, -73.6, G.c + 5, -67.4]); }
-  for (const G of SOUTH) w.push([G.c - 5, 67.4, G.c + 5, 73.6]);
-  for (const lv of [1, 2]) { const G = GATES[lv]; g.push([G.c - 5, -79, G.c + 5, -63]); g.push([G.c - 7.2, -79.2, G.c + 7.2, -75.3]); }
-  for (const G of SOUTH) g.push([G.c - 5, 63, G.c + 5, 79]);
+  const Bd = BOOK.s02.band, Hs = BOOK.s04.houses;   // (build 126: the wall's band and the gatehouses are the book's)
+  for (const lv of [1, 2, 3]) { const G = GATES[lv]; w.push([G.c - 5, Bd.N[0], G.c + 5, Bd.N[1]]); }
+  for (const G of SOUTH) w.push([G.c - 5, Bd.S[0], G.c + 5, Bd.S[1]]);
+  for (const lv of [1, 2]) { const G = GATES[lv]; g.push([G.c - 5, Hs.N[0], G.c + 5, Hs.N[1]]); g.push([G.c - 7.2, Hs.porch[0], G.c + 7.2, Hs.porch[1]]); }
+  for (const G of SOUTH) g.push([G.c - 5, Hs.S[0], G.c + 5, Hs.S[1]]);
   return { wall: w, gates: g };
 }
 let opened = false;
@@ -334,8 +336,8 @@ function holesSync(X) {
 /** the floor in the gates' passages while they are open (the gatehouses rise round them; stages.floorHook) */
 export function passFloor(x, z) {
   if (SH4.final) return null;
-  for (const lv of [1, 2, 3]) { const G = GATES[lv]; if (x > G.c - 5 && x < G.c + 5 && z > G.zf - 0.2 && z < -67.5) return 6; }
-  for (const G of SOUTH) if (x > G.c - 5 && x < G.c + 5 && z > 67.5 && z < 78.2) return 6;
+  for (const lv of [1, 2, 3]) { const G = GATES[lv]; if (x > G.c - 5 && x < G.c + 5 && z > G.zf - 0.2 && z < BOOK.s04.houses.court) return 6; }
+  for (const G of SOUTH) if (x > G.c - 5 && x < G.c + 5 && z > BOOK.s04.houses.passS[0] && z < BOOK.s04.houses.passS[1]) return 6;
   return null;
 }
 

@@ -13,6 +13,8 @@
  * face for now. The south three rise in the crews' hands meanwhile. Amot throughout: an amah = 6 tefachim = 24 fingers.
  */
 
+import { BOOK } from '../world/grid.js';
+
 export const H113 = Object.freeze({
   FINGER: 1 / 24, TEFACH: 1 / 6,
   OPEN_W: 10, OPEN_H: 20, FLOOR: 6, TOP: 26,
@@ -25,19 +27,22 @@ export const H113 = Object.freeze({
 const F = H113.FINGER;
 
 /** the kohen's gates, one per level (spec "המסלול בעולם"); s: the inward direction along z (north: +1); zf: the frame's outer face */
+// ── build 126 ── (rule 65) the gates' places and the yard's are the book's (world/grid.js BOOK.s04); this file keeps who works each
+// gate, its direction inward and the rules. (key, name, c: the opening's middle x, zf: the frame's outer face z)
+const G4 = (i, o) => { const [key, name, c, zf] = BOOK.s04.gates[i]; return Object.freeze({ key, name, c, zf, ...o }); };
 export const GATES = Object.freeze({
-  1: Object.freeze({ key: 'nitzotz', name: 'שער הניצוץ', c: -38, zf: -78, s: 1, house: 1, yard: 1 }),
-  2: Object.freeze({ key: 'korban', name: 'שער הקרבן', c: -95, zf: -78, s: 1, house: 1, yard: 1 }),
-  3: Object.freeze({ key: 'moked', name: 'שער בית המוקד', c: -160, zf: -76, s: 1, house: 0, yard: 1 }),
+  1: G4(0, { s: 1, house: 1, yard: 1 }),
+  2: G4(1, { s: 1, house: 1, yard: 1 }),
+  3: G4(2, { s: 1, house: 0, yard: 1 }),
 });
 /** the south three: the crews' (spec "המסלול בעולם"); each done as one of the kohen's is locked */
 export const SOUTH = Object.freeze([
-  Object.freeze({ key: 'mayim', name: 'שער המים', c: -38, zf: 78, s: -1, word: 'צלוחית המים בחג' }),
-  Object.freeze({ key: 'bechorot', name: 'שער הבכורות', c: -118, zf: 78, s: -1, word: '' }),
-  Object.freeze({ key: 'delek', name: 'שער הדלק', c: -160, zf: 78, s: -1, word: 'עצים למערכה' }),
+  G4(3, { s: -1, word: 'צלוחית המים בחג' }),
+  G4(4, { s: -1, word: '' }),
+  G4(5, { s: -1, word: 'עצים למערכה' }),
 ]);
 /** the carpenters' yard (spec: "חצר הנגרים על החיל"): on the Chel between the gatehouses of the two first gates, the leaf along x */
-export const YARD = Object.freeze({ x0: -84.4, x1: -64.4, z: -80.2, top: 7.55, post: -77.6, rack: [-62.6, -47.8], wall: -73.95 });
+export const YARD = Object.freeze({ ...BOOK.s04.yard, top: 7.55, post: BOOK.s04.yardMore.post, rack: BOOK.s04.yardMore.rack, wall: BOOK.s04.yardMore.wall });
 
 /* ───────── the spec's table ("מידות וספים") ───────── */
 export const LV = Object.freeze({

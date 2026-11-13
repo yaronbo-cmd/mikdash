@@ -203,9 +203,9 @@ export function texMarble(seed = 23, size = 1024) {
         x.fillStyle = g; x.fillRect(X, Y, W, H);
         x.save(); x.beginPath(); x.rect(X, Y, W, H); x.clip();
         for (const [a, b, rad, dl] of cl) { const gx = X + a * W, gy = Y + b * H, gg = x.createRadialGradient(gx, gy, 0, gx, gy, rad); gg.addColorStop(0, hsl(hu, sa + sa2, li + dl, 0.35)); gg.addColorStop(1, hsl(hu, sa + sa2, li + dl, 0)); x.fillStyle = gg; x.fillRect(gx - rad, gy - rad, rad * 2, rad * 2); }   // ── look E ── ── /look E ──
-        for (const [a, b, c2, d, lw] of fine) { x.strokeStyle = blue ? 'rgba(70,82,96,.16)' : 'rgba(150,132,108,.2)'; x.lineWidth = lw; x.beginPath(); x.moveTo(X, Y + a * H); x.bezierCurveTo(X + W * 0.3, Y + b * H, X + W * 0.6, Y + c2 * H, X + W, Y + d * H); x.stroke(); }   // ── look E ── ── /look E ──
+        for (const [a, b, c2, d, lw] of fine) { x.strokeStyle = blue ? 'rgba(70,82,96,.1)' : 'rgba(150,132,108,.13)'; x.lineWidth = lw; x.beginPath(); x.moveTo(X, Y + a * H); x.bezierCurveTo(X + W * 0.3, Y + b * H, X + W * 0.6, Y + c2 * H, X + W, Y + d * H); x.stroke(); }   // ── look E ── ── /look E ──
         for (const [a, b, c2, d, lw] of veins) {
-          x.strokeStyle = blue ? 'rgba(55,75,105,.30)' : 'rgba(140,128,110,.22)'; x.lineWidth = lw;
+          x.strokeStyle = blue ? 'rgba(55,75,105,.17)' : 'rgba(140,128,110,.15)';   // ── look E ── (.30 / .22: up close the veins read as pen scribbles) ── /look E ── x.lineWidth = lw;
           x.beginPath(); x.moveTo(X + a * W, Y); x.bezierCurveTo(X + b * W, Y + H * 0.3, X + c2 * W, Y + H * 0.7, X + d * W, Y + H); x.stroke();
         }
         x.restore();

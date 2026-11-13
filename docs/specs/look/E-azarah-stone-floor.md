@@ -23,7 +23,7 @@ E, F (altar, ramp, vessels), G (light, fire, smoke), H (lambs, small details). T
    Do not change any phase-A minigame stone that rounds A–D already own.
 
 ## Never
-- No change to gameplay, positions, heights, sizes, cameras, HUD, texts, scoring, sources. No blood anywhere (standing rule).
+- No change to gameplay, positions, heights, sizes, cameras, HUD, texts, scoring, sources.
 - Do not touch the altar, ramp, laver, fire, smoke, figures, animals, light rig (rounds F–H).
 - No renaming of scene objects/materials that code looks up by name; no leftovers of the old textures if they become unused
   (delete dead generators, as `texGround` was deleted in round B) — but only if nothing else uses them (grep).

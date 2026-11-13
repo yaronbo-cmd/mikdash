@@ -18,7 +18,7 @@ import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
 import { lookZone, WHEEL_STEP, pinchU } from './look.js';   // ── h117 ── ── /h117 ──
-import { makeLook } from '../world/look.js';   // ── h125 ── (one look module for every stage) ── /h125 ──
+import { makeLook, LOOK_OPEN_K } from '../world/look.js';   // ── h125 ── (one look module for every stage) ── /h125 ──
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -34,9 +34,10 @@ const PACK01 = {
   // then rising up the wall from it; the great stone; the inscription's corner; the Mount from high again ── /h115 ──
   film: [[[60, 260, 520], [0, 0, -40], 3.0], [[60, 55, 70], [-30, -4, -21], 2.8], [[306, -36, 372], [277, -46, 399], 2.2], [[322, 14, 352], [277, -12, 398], 2.4], [[-200, 60, -260], [-280, 10, -150], 2.4], [[-352, 62, 456], [-296, 38, 396], 2.4], [[180, 300, 620], [27, 0, 66], 1.4]],
   finale: (X) => finale01(X),
-  // ── h125 ── (rule 66) stage 01's hill is open: the act keeps the director's own look (act: false), but the thumb's gain and the walk's
-  // right-thumb look are the shape's (world/look.js), as in stage 05 ── /h125 ──
-  look: makeLook({ act: false }),
+  // ── h125 ── (rule 66) stage 01's open hill: the shape of world/look.js with no walls — the world's own test (its rocks, the city) and
+  // the horizon rule (the sky line in the frame at u 0.7 at every stand, on the slope too); the close acts back away along their own
+  // line in the play zone. The thumb's gain and the walk's right-thumb look as in stage 05 ── /h125 ──
+  look: makeLook({ K: LOOK_OPEN_K }),
 };
 // ── /h111 ──
 export function createH109Director(o) {

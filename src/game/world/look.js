@@ -25,8 +25,17 @@ export function lookPose(base, u, yaw, lift = 0, K = LOOK_K) {
   const [px, py, pz] = base.p, [tx, ty, tz] = base.t;
   const vx = px - tx, vy = py - ty, vz = pz - tz, h0 = Math.hypot(vx, vz) || 1, az = Math.atan2(vz, vx) + (+yaw || 0), e = Math.pow(smooth((+u || 0) / (K.U1 || 1)), K.PW || 1);
   const dH = h0 + (Math.max(h0, K.D1) - h0) * e, hy = vy + (Math.max(vy, K.H1) - vy) * e;
+  // (build 125, K.NEAR: a close act's play zone — up to u = K.KEEP_U0 the camera only backs away along the act's own line of sight,
+  //  at its own elevation and lens, never lower nor into what stands round the work, to (1 + NEAR) times its distance; then it eases
+  //  into the far shape by K.KEEP_U1. Without K.NEAR, build 124's shape as it was)
+  let elS = Math.atan2(hy, dH), RS = Math.hypot(dH, hy), m = 1;
+  if (K.NEAR != null) {
+    const v = +u || 0, R0 = Math.hypot(h0, vy), el00 = Math.atan2(vy, h0), Rn = R0 * (1 + K.NEAR * Math.min(1, v / K.KEEP_U0));
+    m = smooth((v - K.KEEP_U0) / (K.KEEP_U1 - K.KEEP_U0));
+    elS = el00 + (elS - el00) * m; RS = Rn + (Math.max(Rn, RS) - Rn) * m;
+  }
   // (lift > 0 raises the camera toward overhead, lift < 0 lowers it toward the floor — under a gallery seen from its side)
-  const el0 = Math.atan2(hy, dH), R = Math.hypot(dH, hy), el = Math.max(K.EL_MIN, Math.min(K.EL_MAX, el0 + (+lift || 0)));
+  const el0 = elS, R = RS, el = Math.max(K.EL_MIN, Math.min(K.EL_MAX, el0 + (+lift || 0)));
   const room = lift >= 0 ? K.EL_MAX - el0 : el0 - K.EL_MIN, lf = room > 1e-3 ? Math.min(1, Math.abs(+lift || 0) / room) : 1;
   const cx = Math.cos(az), cz = Math.sin(az), ce = Math.cos(el);
   const p = [tx + cx * ce * R, ty + Math.sin(el) * R, tz + cz * ce * R];
@@ -35,7 +44,7 @@ export function lookPose(base, u, yaw, lift = 0, K = LOOK_K) {
   const f = K.F * smooth(((+u || 0) - K.S0) / K.S1) * (1 - lf);   // (none inside the play zone, u ≤ S0: the work stays near the middle, playable)
   const t = [tx - cx * f, ty, tz - cz * f];
   const fov0 = Number.isFinite(base.fov) ? base.fov : 40;
-  return { p, t, fov: fov0 + (Math.max(fov0, K.FOV1) - fov0) * e, el, d: R, az };
+  return { p, t, fov: fov0 + (Math.max(fov0, K.FOV1) - fov0) * e * m, el, d: R, az };
 }
 
 /** does the segment p → q cross the box (the slab test; the segment's last `skip` amot before q are not judged) */
@@ -62,7 +71,9 @@ export function camInBox(p, boxes = [], m = 2) { return boxes.some((b) => inBox(
 /** the horizon's place in the frame (a fraction from the top) for a pose { p, t, fov } */
 export function horizonOf(q) { const pitch = Math.atan2(q.p[1] - q.t[1], Math.hypot(q.t[0] - q.p[0], q.t[2] - q.p[2])); return 0.5 - Math.tan(pitch) / (2 * Math.tan((q.fov * Math.PI) / 360)); }
 /** the ring sites' constants (stages 02–04): build 124's shape, the horizon kept at least 5 % into the frame */
-export const LOOK_RING_K = Object.freeze({ ...LOOK_K, HZ: 0.05, HZ_U: 0.6 });
+export const LOOK_RING_K = Object.freeze({ ...LOOK_K, HZ: 0.05, HZ_U: 0.6, NEAR: 0.8, KEEP_U0: 0.45, KEEP_U1: 0.75, S0: 0.45, S1: 0.3 });
+/** the open hill's (stage 01): the same, no walls — the world's own test (rocks, the city) and the horizon rule */
+export const LOOK_OPEN_K = LOOK_RING_K;
 function clearAt(base, u, yaw, lift, boxes, extra, K, camOnly) {
   const a = base.t, a2 = [a[0], a[1] + 1.6, a[2]], q = lookPose(base, u, yaw, lift, K);
   if (q.p[1] < a[1] + 1.5 || camInBox(q.p, boxes)) return false;

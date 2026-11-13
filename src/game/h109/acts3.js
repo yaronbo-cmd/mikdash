@@ -932,7 +932,8 @@ export const GREAT = {
         } else A.still = 0;
         const b = behind(); X.track(b.p, b.t, 1.0);
       },
-      wants(p) { return A.phase === 'intro' || (A.phase === 'move' && !!grabAt(p)); },
+      // (build 125: the opening's tap and the move's grab are the stone's and its ropes' on the right half — the rest is the look)
+      wants(p) { if (A.phase !== 'intro' && A.phase !== 'move') return false; if (!p) return true; const P = A.P; const on = nearPts(X, p, [{ x: P.x, y: P.y + GR.h / 2, z: P.z }], bigR()); return A.phase === 'intro' ? on : on && !!grabAt(p); },
       down(p) {
         if (A.phase === 'intro') { A.introT = Math.max(A.introT, 3.6); if (!A.introGo) { A.introGo = true; const b = behind(); X.shot(b.p, b.t, 0.5); } return; }
         if (A.phase !== 'move') return; const g = grabAt(p); if (!g) return;

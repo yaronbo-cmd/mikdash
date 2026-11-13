@@ -191,7 +191,7 @@ export const LINTEL = {
       // (build 125: on the right half the lintel (its length, a large moving thing) is the act's; both ends held is the lift's own two
       //  fingers, never a pinch — the rest is the right thumb's look)
       wants(p) { if (A.busy || !['in', 'lift', 'lower', 'settle'].includes(A.phase)) return false; return nearSeg(X, p, endAt(-1, 0.5), endAt(1, 0.5), bigR()); },
-      holds() { return [...F.L.values()].filter((f) => nearSeg(X, f, endAt(-1, 0.5), endAt(1, 0.5), bigR())).length >= 2; },
+      holds() { const L = [...F.L.values()], a = endAt(-1, 0.5), b = endAt(1, 0.5), R = gripR() * 1.5; return L.some((f) => nearPts(X, f, [a], R)) && L.some((f) => nearPts(X, f, [b], R)); },   // (one finger on each end: the lift's own; else two fingers are a pinch)
       down(p) { F.down(p); }, move(p) { F.move(p); }, up(p) { F.up(p); },
       end() {
         F.detach(); for (const d of D) { d.rope.show(false); d.hide(); }

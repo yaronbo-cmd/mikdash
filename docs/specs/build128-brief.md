@@ -183,7 +183,7 @@ per frame for the sea itself; say what you measured. I look at it, then the owne
 
 Icon 🌊, title "הנחשול". The three segments are three works played in order (`sea1`, `sea2`, `sea3`); the journey
 never goes back. Opening picture (seen, not played, 6 s, can be skipped): the ship leaves Alexandria with the two
-doors on deck; the line "ניקנור הלך להביא דלתות מאלכסנדריה של מצרים (יומא לח ע"א)".
+doors on deck; the line "כשהלך ניקנור להביא דלתות מאלכסנדריא של מצרים (יומא לח ע"א)".
 
 **The rope is the gauge.** Each rope has a tension `t` (0…1.2) that only its look and sound tell:
 
@@ -509,8 +509,11 @@ The door thrown into the sea is not the player's damage.
 | the two wickets | מידות ב, ו | "שני פשפשים היו לו" |
 | the twenty men | יוסף בן מתתיהו, מלחמת היהודים ו, 293 | in our words, with "זיהויו עם שער ניקנור אינו ודאי" |
 
-"נטלו אחת מהן והטילוה לים" and "ניקנור הלך להביא דלתות מאלכסנדריה של מצרים" are from the spec's table and I have not
-checked them letter by letter: keep them as constants I can correct, and list them in the report.
+Also checked on Sefaria (יומא לח ע"א), exact wording: "כשהלך ניקנור להביא דלתות מאלכסנדריא של מצרים, בחזירתו עמד
+עליו נחשול שבים לטבעו, נטלו אחת מהן והטילוה לים, ועדיין לא נח הים מזעפו. בקשו להטיל את חברתה, עמד הוא וכרכה, אמר
+להם: הטילוני עמה." So the opening line is "כשהלך ניקנור להביא דלתות מאלכסנדריא של מצרים (יומא לח ע"א)" (spelled
+אלכסנדריא), the throw's line is "נטלו אחת מהן והטילוה לים (יומא לח ע"א)", and "עמד הוא וכרכה" is the picture of the
+hold: Nicanor wraps himself round the door (§4, `sea2`).
 
 Illustration, never claimed: how the doors were lashed and held; where the storm was; the capstan and the ramp; the
 masons' way (template, trial row, two crowbars); the wickets' lock; the salt stains; each step's note; the ship.

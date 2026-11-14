@@ -33,6 +33,7 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 const MUTE_KEY = 'bh_mute';
 const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];   // rising chime steps for combos
+export { PENTA };   // ── h128 ── (stage 06's fifteen steps sound this scale's run over three octaves) ── /h128 ──
 
 /* the stone and the tool of a stroke → the pitch and colour of the hit (Hz, bandpass Q, thump Hz) */
 const STONE = {

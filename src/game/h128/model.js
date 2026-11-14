@@ -614,7 +614,7 @@ export function boltStep(s, inp = {}, dt = 1 / 60) {
     if (s.dry.stuck) {
       if (!s.dry.back && s.a <= S - L.ROCK && s.b <= S - L.ROCK) s.dry.back = 1;
       if (s.dry.back && s.a >= S - 1 && s.b >= S - 1) { s.dry.back = 0; s.dry.rocks++; s.ev.push({ e: 'rock', n: s.dry.rocks }); if (s.dry.rocks >= L.ROCKS) { s.dry.free = 1; s.ev.push({ e: 'free' }); } }
-      if (!s.dry.free) { if (s.a + da > S) da = Math.max(0, S - s.a); if (s.b + db > S) db = Math.max(0, S - s.b); }
+      if (!s.dry.free) { if (da > 0 && s.a + da > S) da = Math.max(0, S - s.a); if (db > 0 && s.b + db > S) db = Math.max(0, S - s.b); }   // (only the way forward sticks: back it goes)
     }
   }
   // the teeth mesh only while |a − b| ≤ tol: the leading ring goes no further (it shakes, it squeals); forcing it bends a tooth

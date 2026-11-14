@@ -552,6 +552,158 @@
       return { drag: [f[0], f[1], Math.round(f[0] + (t[0] - f[0]) * u), Math.round(f[1] + (t[1] - f[1]) * u), 700], wait: 1200, note: `planks: ${a.i + 1}/${a.n} laid ${a.laid.join(',')}` };
     },
     // ── /build 120 ──
+    // ── h128 ── (build 128) stage 06's acts (h128/*.js dbg()); stage 03 has a 'close' kind too: stage 06's players are h6<kind>
+    // the capstan: round the drum (clockwise on the screen) at a speed that keeps the rope quiet (slower over a rough timber), let go
+    // before the next notch so the sledge coasts to it, tap the wedge man when it is still there; rest on the wedge until the crew
+    // is fresh. __BOT.bad 'fray': haul hard through the first rough timber until a strand parts (the run back, −20)
+    h6capstan(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
+      if (a.phase === 'hang' && a.hangT > 4.3 && !B.k.hangShot) { B.k.hangShot = 1; return { wait: 100, shot: 'capstan-hang' }; }
+      if (a.phase === 'bring' && a.bT > 2.5 && !B.k.bringShot) { B.k.bringShot = 1; return { wait: 100, shot: 'capstan-bring' }; }
+      if (a.phase === 'bring' && a.bT > 2.6) return { tap: [W * 0.5, HH * 0.45], wait: 600, note: 'capstan: skip the bring-up' };
+      if (a.phase === 'haul' && a.runs > 0 && !B.k.partShot) { B.k.partShot = 1; return { wait: 100, shot: 'capstan-part' }; }
+      if (a.phase !== 'haul' || a.mode !== 'haul') return { wait: 300, note: 'capstan: ' + a.phase + ' ' + a.mode };
+      if (!B.k.capShot) { B.k.capShot = 1; return { wait: 200, shot: 'capstan-start' }; }
+      const j = a.notchD.findIndex((nd) => Math.abs(a.d - nd) <= 0.45);
+      if (a.runs > 0) B.k.parted = 1;
+      if (a.wedge !== -1 && a.F > 0.05 && (!has('fray') || B.k.parted)) return { wait: 600, note: `capstan: rest (wedge ${a.wedge}, F ${a.F})` };
+      if (j >= 0 && a.wedge === j && a.F > 0.05 && (!has('fray') || B.k.parted)) return { wait: 600, note: `capstan: rest on notch ${j + 1} (F ${a.F})` };
+      if (j >= 0 && a.wedge !== j && Math.abs(a.v) < 0.15) { if (!B.k['cs' + j] && (j === 1 || j === 4)) { B.k['cs' + j] = 1; return { wait: 100, shot: `capstan-notch${j + 1}` }; } return { tapAt: '(()=>{const a=__T.game.h109.state().act;return a&&a.wedgeMan})()', wait: 700, note: `capstan: wedge at notch ${j + 1} (d ${a.d} v ${a.v})` }; }
+      if (j >= 0 && Math.abs(a.v) >= 0.15) return { wait: 120 };   // (in the notch's window: let it come to rest there)
+      const i = a.notchD.findIndex((nd) => nd > a.d + 0.45); if (i < 0) return { wait: 300 };
+      if (a.v > 0.05 && a.d + a.v * 0.85 >= a.notchD[i] - 0.4) return { wait: 120 };   // (it coasts into the window)
+      const nd = a.notchD[i];
+      if (a.v > 0.05 && a.turn < 0.02) return { wait: 150 };
+      const fast = has('fray') && !B.k.parted, rough = a.roughAhead > 0.05 || a.rough > 0.05;
+      const tps = fast ? 0.8 : rough ? 0.16 : 0.32, lap = 1000 / tps;
+      const lead = fast ? 99 : (rough ? 0.55 : 1.0), rem = nd - lead - a.d;
+      // (near the notch: a part of a turn only, so the sledge coasts into the notch's window; else whole turns, looked at every quarter)
+      const fr = fast || rem > 3.4 ? 1 : Math.max(0.05, Math.min(0.5, (nd - a.d - 0.3) / 3.2 - Math.max(0, a.v) * 0.25));
+      const c = a.drum, r = 80, P = []; const a0 = (B.k.ang || 0), nk = Math.max(2, Math.round(12 * fr)); for (let k = 0; k <= nk; k++) { const t = a0 + (k / nk) * Math.PI * 2 * fr; P.push([c[0] + r * Math.cos(t), c[1] + r * Math.sin(t)]); }
+      if (fr < 1) { B.k.ang = a0 + Math.PI * 2 * fr; return { path: P, ms: lap * fr, wait: 250, note: `capstan: ${fr.toFixed(2)} of a turn to notch ${i + 1} (d ${a.d} v ${a.v})` }; }
+      const stop = `return !a||a.phase!=='haul'||a.mode!=='haul'||${fast ? 'a.runs>0' : `a.d>=${(nd - lead).toFixed(2)}`}||a.F>0.92`;
+      if (fast && a.runs > 0) B.k.parted = 1;
+      return { path: P, ms: lap, pathUntil: C(stop), pathEach: 6, pathMax: 120000, wait: 100, note: `capstan: haul to notch ${i + 1} at ${tps} turns/s (d ${a.d} ten ${a.ten} ${a.band} F ${a.F} wear ${a.wear})` };
+    },
+    // the steps (a ring): the template on each stone in turn (a stone with no light under it is the ring's: mark it; ring 15: sound every
+    // stone first and leave the dull one), the row laid the one way in turn (dbg's sol: the bot knows the answer), the closing stone pushed
+    // by the two bars in small alternate steps inside tol (a jam: the leading bar back a little). __BOT.bad: 'wrong' (a stranger marked and
+    // laid: it gapes, lifted, carried back), 'crack' (the dull stone marked: it cracks through, −20), 'corner' (one bar forced: −20)
+    h6ring(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k) || bad.split(',').includes(k + a.ring), K = B.k;   // ('wrong1,corner8,crack15': one mistake per ring)
+      if (a.phase === 'intro' || a.phase === 'closing') return { wait: 300 };
+      if (a.phase === 'moment') { if (!K.allShot && a.mT > 2.6) { K.allShot = 1; return { wait: 100, shot: 'ring-all' }; } return { wait: 300 }; }
+      if (a.phase === 'tpl') {
+        if (!K.yardShot) { K.yardShot = 1; return { wait: 200, shot: 'ring-yard' }; }
+        K.fit = K.fit || {}; K.snd = K.snd || {};
+        const Y = a.yard;
+        // ring 15's class: the mallet on every stone first
+        if (a.cls === 15) { const s = Y.find((y) => y.dull == null && !K.snd[y.id] && y.id !== a.on); if (s) { K.snd[s.id] = 1; return { tap: s.at, wait: 500, note: 'steps: sound ' + s.id }; } }
+        if (a.on && K.fit[a.on] == null) { K.fit[a.on] = a.lightPx; if (a.lightPx > 0 && !K.lightShot) { K.lightShot = 1; return { wait: 100, shot: 'ring-light' }; } }
+        const cur = a.on && Y.find((y) => y.id === a.on);
+        if (cur && !cur.marked) {
+          const fits = K.fit[cur.id] === 0, dull = cur.dull === 1;
+          const want = (fits && (!dull || has('crack'))) || (has('wrong') && !fits && !K.wrongDone);
+          if (want && fits && dull && has('crack')) K.crackDone = 1;
+          if (want && !fits) K.wrongDone = 1;
+          if (want) return { tap: cur.at, wait: 700, note: `steps: mark ${cur.id} (light ${a.lightPx}${dull ? ', dull' : ''})` };
+        }
+        // (crack: the dull one marked in place of its sound twin — so the sound twin is left)
+        const skip = (y) => has('crack') && K.crackDone && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len && z.marked);
+        const nxt = Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !(has('crack') && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len)));
+        const nxt2 = nxt || Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !skip(y));
+        if (nxt2) return { drag: [a.tpl[0], a.tpl[1], nxt2.at[0], nxt2.at[1], 700], wait: 700, note: 'steps: the template onto ' + nxt2.id };
+        return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };
+      }
+      if (a.phase === 'row') {
+        if (!K.rowShot) { K.rowShot = 1; return { wait: 1700, shot: 'ring-row' }; }
+        if (a.bull) { if (!K.bullShot) { K.bullShot = 1; return { wait: 100, shot: 'ring-bull' }; } return { wait: 300 }; }
+        if (a.loose.length) return { tap: a.loose[0].at, wait: 800, note: 'steps: lift the loose stone ' + a.loose[0].id };
+        const g = a.laid.find((l) => a.gape.includes(l.id)); if (g) { if (!K.gapeShot) { K.gapeShot = 1; return { wait: 100, shot: 'ring-gape' }; } return { tap: g.at, wait: 900, note: 'steps: lift the stranger ' + g.id }; }
+        const side = a.next, k = a.row[side].length, want = a.sol[side][k];
+        const str = a.tray.find((t) => !a.sol.left.includes(t.id) && !a.sol.right.includes(t.id) && has('wrong') && !K.strLaid);
+        if (str) { K.strLaid = 1; return { drag: [str.at[0], str.at[1], ...(side === 'left' ? str.toL : str.toR).slice(0, 2), 700], wait: 900, note: 'steps: lay the stranger ' + str.id }; }
+        const t2 = a.tray.find((x) => x.id === want);
+        if (!t2) {
+          // (crack: the dull twin has the sound one's length; lay it where the sound one goes)
+          const twin = a.tray.find((x) => !a.sol.left.includes(x.id) && !a.sol.right.includes(x.id) && x.len === a.lens[want]);
+          if (twin) { const to = side === 'left' ? twin.toL : twin.toR; return { drag: [twin.at[0], twin.at[1], to[0], to[1], 700], wait: 900, note: 'steps: lay ' + twin.id + ' (the twin) ' + side }; }
+          return { wait: 500, note: 'steps: waiting for ' + want };
+        }
+        const to = side === 'left' ? t2.toL : t2.toR;
+        return { drag: [t2.at[0], t2.at[1], to[0], to[1], 700], wait: 900, note: `steps: lay ${t2.id} ${side} (rest ${a.rest})` };
+      }
+      if (a.phase === 'key') {
+        if (!K.keyShot) { K.keyShot = 1; return { wait: 1700, shot: 'ring-key' }; }
+        if (a.a >= 1 && a.b >= 1) return { wait: 300 };
+        if (a.pend) return { wait: 150 };   // (the heavy stone answers late: read it when it has)
+        const d = a.dir, L = (p, n) => [p[0], p[1], Math.round(p[0] + d[0] * n), Math.round(p[1] + d[1] * n)];
+        if (has('corner') && !a.corner) { if (!K.jam1) { K.jam1 = 1; return { drag: [...L(a.barA, a.pxf * (a.tol + 0.06)), 500], wait: 100, note: 'steps: bar A alone past tol (askew)' }; } if (!K.jamShot) { K.jamShot = 1; return { wait: 50, shot: 'ring-askew' }; } return { drag: [...L(a.barA, a.pxf * 0.6), 1800], wait: 600, note: 'steps: force bar A' }; }
+        if (a.jam) { const lead = a.a > a.b ? 'barA' : 'barB'; return { drag: [...L(a[lead], -a.pxf * a.tol * 0.5), 300], wait: 300 + a.lag * 1000, note: 'steps: jammed, the leading bar back' }; }
+        const side = a.a <= a.b ? 'barA' : 'barB', adv = a.a <= a.b ? a.a : a.b, other = a.a <= a.b ? a.b : a.a;
+        const step = Math.max(0.02, Math.min(1.02 - adv, other - adv + a.tol * 0.55));
+        return { drag: [...L(a[side], a.pxf * step), 400], wait: 250 + a.lag * 1000, note: `steps: push ${side} ${step.toFixed(2)} (a ${a.a} b ${a.b})` };
+      }
+      return { wait: 300 };
+    },
+    // the wickets: each ring round its centre in small alternate arcs inside tol (the left with the clock, the right against it); the dry
+    // bolt rocked back past 15° and forward three times; the pair brought near the end one by one, then both last turns by two fingers in
+    // the same frames (mouse: one after the other inside 1.2 s). __BOT.bad 'tooth' (wicketN: the left ring forced ahead: −20), 'alone'
+    // (wickets: the north locked alone, turned back a quarter, then both together)
+    h6wicket(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, R0 = 70;
+      if (a.phase !== 'turn') { if (a.phase === 'locked' && !K.lockShot) { K.lockShot = 1; return { wait: 300, shot: a.id + '-locked' }; } return { wait: 300 }; }
+      if (!K.startShot) { K.startShot = 1; return { wait: 200, shot: a.id + '-start' }; }
+      const arc = (key, c, d, ms) => { const a0 = K['ang' + key] || 0, n = Math.max(3, Math.ceil(Math.abs(d) / 0.35)), P = []; for (let k = 0; k <= n; k++) { const t = a0 + d * k / n; P.push([c[0] + R0 * Math.cos(t), c[1] + R0 * Math.sin(t)]); } K['ang' + key] = a0 + d; return { path: P, ms }; };
+      const rad = Math.PI / 180;
+      if (!a.pair) {
+        if (has('tooth') && a.id === 'wicketN' && !a.tooth[0] && !a.tooth[1]) { if (a.blk && !K.blkShot) { K.blkShot = 1; return { wait: 50, shot: 'wicket-blocked' }; } return { ...arc('L', a.c.L, 45 * rad, 2200), wait: 300, note: 'wicket: force the left ring ahead' }; }
+        const S = a.dryAt, stuck = a.dry && a.dry.stuck && !a.dry.free;
+        if (stuck && !K.stickShot) { K.stickShot = 1; return { wait: 100, shot: 'wicket-stuck' }; }
+        const target = stuck ? (a.dry.back ? S + 2 : S - a.rock - 3) : a.END + 3, mean = (a.a + a.b) / 2, dir = Math.sign(target - mean) || 1;
+        const useL = dir > 0 ? a.a <= a.b : a.a >= a.b, v = useL ? a.a : a.b, o = useL ? a.b : a.a;
+        const amt = Math.min(Math.abs(target - v), (o - v) * dir + a.tol * 0.6);
+        if (amt < 0.5) return { wait: 150 };
+        const d = dir * amt * rad * (useL ? 1 : -1);
+        if (a.id === 'wicketS' && a.travel > 0.6 && !K.midShot) { K.midShot = 1; return { wait: 100, shot: 'wicketS-plate' }; }
+        return { ...arc(useL ? 'L' : 'R', useL ? a.c.L : a.c.R, d, Math.max(220, amt * 9)), wait: 120, note: `wicket: ${useL ? 'L' : 'R'} ${dir > 0 ? '+' : '−'}${amt.toFixed(1)}° (a ${a.a} b ${a.b}${stuck ? ' rock' : ''})` };
+      }
+      // the pair
+      const near = [a.END[0] - 14, a.END[1] - 14];
+      if (has('alone') && !K.aloneDone) {
+        if (a.lock[0] == null && a.w[0] < a.END[0]) return { ...arc('N', a.c.N, Math.min(a.END[0] - a.w[0] + 4, 300) * rad, 1400), wait: 150, note: 'wickets: the north alone' };
+        if (a.tries === 0) return { wait: 200 };
+        if (!K.aloneShot) { K.aloneShot = 1; return { wait: 100, shot: 'wickets-alone' }; }
+        if (a.lock[0] != null) return { ...arc('N', a.c.N, -(a.back + 8) * rad, 900), wait: 200, note: 'wickets: the north back a quarter' };
+        K.aloneDone = 1;
+      }
+      for (const [k, key] of [[0, 'N'], [1, 'S']]) if (a.w[k] < near[k] - 1.5) return { ...arc(key, a.c[key], Math.min(near[k] - a.w[k], 300) * rad, 1300), wait: 120, note: `wickets: ${key} to ${near[k]} (${a.w[k]})` };
+      if (a.mouse || window.__BOT_MOUSE) { const k = a.lock[0] == null ? 0 : 1, key = k ? 'S' : 'N'; return { ...arc(key, a.c[key], (a.END[k] - a.w[k] + 3) * rad, 260), wait: 30, note: 'wickets: ' + key + ' last turn (mouse: one after the other)' }; }
+      // both last turns in the same frames: two fingers
+      const n = 16, fr = [], aN = K.angN || 0, aS = K.angS || 0, dN = (a.END[0] - a.w[0] + 26) * rad, dS = (a.END[1] - a.w[1] + 26) * rad;   // (past the end: each locks as it gets there, a touch's lost degrees or not)
+      for (let k = 0; k <= n; k++) fr.push([[a.c.N[0] + R0 * Math.cos(aN + dN * k / n), a.c.N[1] + R0 * Math.sin(aN + dN * k / n)], [a.c.S[0] + R0 * Math.cos(aS + dS * k / n), a.c.S[1] + R0 * Math.sin(aS + dS * k / n)]]);
+      fr.push([]); K.angN = aN + dN; K.angS = aS + dS;
+      return { seq: fr, ms: 45, wait: 150, note: 'wickets: both last turns together' };
+    },
+    // the closing: each leaf kept at a speed that falls as it nears the sill (heave in the lean window when slower, brake when faster), the
+    // leading leaf held back so they arrive together. __BOT.bad 'dent' (the south leaf driven fast into the sill: −40)
+    h6close(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k;
+      if (a.phase === 'met') { if (!K.metShot) { K.metShot = 1; return { wait: 400, shot: 'close-met' }; } return { wait: 300 }; }
+      if (a.phase !== 'push') return { wait: 300 };
+      if (!K.startShot) { K.startShot = 1; return { wait: 300, shot: 'close-start' }; }
+      if (!K.midShot && (a.f[0] + a.f[1]) / 2 < 45) { K.midShot = 1; return { wait: 50, shot: 'close-mid' }; }
+      const want = (i) => { const f = a.f[i], o = a.f[1 - i]; let t = f > 30 ? 4.5 : f > 8 ? Math.max(2.2, f * 0.13) : 1.9; if (f < o - 2.5) t = Math.max(0.6, t - 2); if (has('dent') && i === 0 && !a.dent[0]) t = 9; return t; };
+      const pt = (k) => { const p = a.leaf[k].slice(0, 2), left = k === a.left; p[0] = left ? Math.min(p[0], W / 2 - 50) : Math.max(p[0], W / 2 + 50); p[1] = Math.max(HH * 0.3, Math.min(HH - 120, p[1])); return p; };
+      let best = null;
+      for (let i = 0; i < 2; i++) {
+        if (a.wait[i]) continue; const k = a.keys[i], v = Math.abs(a.w[i]), t = want(i);
+        if (v > t + 1.0 && a.f[i] < 40) { const p = pt(k); best = best || { path: [p, [p[0], p[1] + 30], [p[0], p[1] + 55]], ms: 140, keep: 380, wait: 40, note: `close: brake ${k} (f ${a.f[i]} w ${a.w[i]})` }; }
+        else if (v < t - 0.7 && a.inWin[i] && a.ph[i] < 0.6) { const p = pt(k); best = { drag: [p[0], p[1], p[0], p[1] - 70, 140], wait: 40, note: `close: heave ${k} (f ${a.f[i]} w ${a.w[i]} ph ${a.ph[i]})` }; }
+      }
+      return best || { wait: 60 };
+    },
+    // ── /h128 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
@@ -591,10 +743,11 @@
     }
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
-    if (now() - B.actT > (/^(bond|carry|mikveh)/.test(S.mission) ? 600000 : 240000)) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    if (now() - B.actT > (/^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000)   /* ── h128 ── (capstan: six notches and rests) ── /h128 ── */) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
-    const f = play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };
+    const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
     let r; try { r = f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }
+    if (H().site === 'nikanor' && r && S.look && (S.look.u > 0.02 || Math.abs(S.look.yaw) > 0.03) && !window.__BOT_LOOKOK) r.note = `LOOK AWAY u ${S.look.u} yaw ${S.look.yaw} · ` + (r.note || '');   // ── h128 ── (a touch that the act should have taken turned the camera: say so) ── /h128 ──
     // (build 125: say so when a touch would start on the HUD and not on the world — a test that must see it, never a silent stall)
     const p0 = r && (r.tap || r.hold || r.holdUntil || r.drag || r.tapWhen || (r.path && r.path[0]));
     if (p0 && Number.isFinite(p0[0]) && Number.isFinite(p0[1]) && p0[0] > 0 && p0[0] < W && p0[1] > 0 && p0[1] < HH && !onWorld(p0[0], p0[1])) { const e = document.elementFromPoint(p0[0], p0[1]); r.note = 'HUD under the touch ' + Math.round(p0[0]) + ',' + Math.round(p0[1]) + ' ' + (e ? e.tagName + '.' + String(e.className || '').slice(0, 40) : '') + ' · ' + (r.note || ''); }

@@ -508,8 +508,33 @@ const S06 = {
   // the two wickets (המחשה: size 2 × 4 and place) in the gate house's west face, and the stands behind them inside the Azarah
   wicket: { N: [-4, -11, 13.5], S: [-4, 11, 13.5], standN: [-6, -11, 13.5], standS: [-6, 11, 13.5], standBoth: [-7, 0, 13.5], w: 2, h: 4 },
   close: { stand: [-6, 0, 13.5], view: [40, 0, 6] },
-  // the stage's cameras on the Mount (part 2 fills them: every shot, opening and film reads its eye and aim from here)
-  cam: {},
+  // (part 2) the gate's passage through the gate house (x from, to; z half width; the sill's y; the opening's top), the two leaves' hinges
+  // on its east end (the leaves open inward, west, each against its side of the passage), the place the doors stand waiting on the
+  // Azarah's floor before they are hung, the Levites' line in the court before dawn (המחשה)
+  gate: { x: [-4, 10], half: 5, sill: 13.5, top: 33.5, hinge: { N: [9.6, -5], S: [9.6, 5] }, leafW: 5, leafH: 20, leafT: 0.35 },
+  levites: { from: [44, -4, 6], to: [12, 0, 13.5] },
+  // the stage's cameras on the Mount ([eye], [aim]; every shot, opening and film reads its eye and aim from here)
+  cam: {
+    // the opening (rule 3: where am I): the Mount from high, the gate house with no doors, the bare slope where the steps will be
+    open: [[[170, 120, 96], [8, 12, 0]], [[46, 19, 10], [8, 21, 0]], [[36, 11, 16], [14, 7, 0]]],
+    // §5: behind and above the capstan, looking east through the open gate down the ramp; the lifted view from above; the hanging
+    capstan: [[-34, 31, 8], [36, 5, -1]], capLift: [[-14, 82, 34], [30, 7, 0]], hang: [[46, 24, 16], [9, 20, 0]],
+    // §6: per ring, the yard (the template), the row and the closing stone; the whole half threshing floor from high (ring 15's moment)
+    ring: {
+      1: { yard: [[50, 22, 0], [39, 6, -13]], row: [[38, 22, 0], [24.5, 6.2, 0]], key: [[31, 13, 2], [23.2, 6.3, 0]] },
+      8: { yard: [[50, 22, 0], [39, 6, -13]], row: [[40, 30, 0], [21.5, 9.2, 0]], key: [[27.5, 16, 2], [19.7, 9.8, 0]] },
+      15: { yard: [[50, 22, 0], [39, 6, -13]], row: [[34, 28, 0], [17.5, 12.6, 0]], key: [[23.5, 19, 2], [16.2, 13.2, 0]] },
+    },
+    ringAll: [[48, 42, 0], [14, 8, 0]],
+    // §7: close behind each wicket in the Azarah; both from further back
+    wicketN: [[-11, 17.6, -11], [-4, 15.6, -11]], wicketS: [[-11, 17.6, 11], [-4, 15.6, 11]], wickets: [[-44, 24, 0], [-4, 15.6, 0]],
+    // §8: behind and above the twenty men, looking east through the opening; the lifted view from above
+    close: [[-21, 27, 0], [9, 18, 0]], closeLift: [[-6, 62, 0], [5, 13.5, 0]],
+    // the end: the Levites on the steps before dawn, the sun on the closed doors, the north leaf near
+    endSteps: [[48, 11, 3], [15, 10, 0]], endSun: [[34, 15, 2], [10, 22, 0]], endSalt: [[15.5, 18, -6], [9.6, 19, -2.6]],
+    // the director's last shots (eye, aim, seconds): the gate and its steps from the court, then high
+    film: [[[52, 24, 18], [10, 16, 0], 3], [[120, 90, 70], [10, 10, 0], 3]],
+  },
   // ── the sea sheet ──
   sea: {
     sheet: { name: 'גיליון הים', n: 20, km: 30 },
@@ -576,6 +601,9 @@ function s06() {
   e3('stand:wickets', 'stand', W.standBoth, 'עמדת השחקן מול שני הפשפשים', ILL);
   e3('stand:close', 'stand', C.close.stand, 'עמדת הדחיפה בתוך העזרה', ILL);
   e3('close:view', 'view', C.close.view, 'נקודת המבט לזריחה בעזרת הנשים', ILL);
+  E.push(ent('gate:hingeN', 'hinge', C.gate.hinge.N[0], C.gate.hinge.N[1], 'ציר הכנף הצפונית של שער ניקנור', ILL, { y: C.gate.sill }));
+  E.push(ent('gate:hingeS', 'hinge', C.gate.hinge.S[0], C.gate.hinge.S[1], 'ציר הכנף הדרומית של שער ניקנור', ILL, { y: C.gate.sill }));
+  e3('levites:from', 'levites', C.levites.from, 'הלויים מחכים בעזרת הנשים לפני עלות השחר', ILL);
   // the sea sheet's own entries: { id, kind, cell, k, r, km [east, south of the sheet's north-east corner, the cell's middle], label, src }
   const SEA = C.sea, km = SEA.sheet.km, SL = { alexandria: ['יציאה מאלכסנדריא (רואים ולא משחקים)', 'יומא לח ע"א'], storm: ['הסערה והנחשול', ILL], akko: ['נמלה של עכו', 'יומא לח ע"א'] };
   const seaE = Object.entries(SEA.places).map(([id, [k, r]]) => ({ id, kind: 'sea', cell: seaName(k, r), k, r, km: [-(k + 0.5) * km, (r + 0.5) * km], label: SL[id][0], src: SL[id][1] }));

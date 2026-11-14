@@ -458,17 +458,6 @@ const ITEM_DEF = {
   });
 }
 // ── end crowd items ──
-// ── h128 ── (build 128) stage 06's sailors: an oar held across the body, its blade low (a sweep to fend off: illustration), and a
-// wooden bailing bucket on a rope handle. Low-poly: every item instance runs every item's vertices.
-Object.assign(ITEM_DEF, {
-  oar: { hold: 'two', build: () => [
-    P(rod([0.45, 0.35, -0.25], [-0.55, -1.25, 0.95], 0.045, 0.04, 5), '#8A6A44', 0, { rough: 0.9 }),
-    P(box(0.05, 0.9, 0.3, [-0.68, -1.5, 1.1], [0.55, 0, 0.55]), '#7A5A3A', 0, { rough: 0.9 })] },
-  bucket: { hold: 'two', y: -0.1, build: () => [
-    P(lathe([[0.001, -0.2], [0.17, -0.2], [0.21, 0.12], [0.19, 0.13], [0.15, -0.17], [0.001, -0.17]], 9), '#6E5232', 0, { rough: 0.95 }),
-    P(new THREE.TorusGeometry(0.2, 0.015, 4, 10, Math.PI).translate(0, 0.12, 0), '#9C8460', 0, { rough: 1 })] },
-});
-// ── /h128 ──
 export const ITEMS = Object.keys(ITEM_DEF);
 // bone 1: contents (blood in the mizrak, coals in the machta: shown when iA.z > 0.5) · bone 2: flame · bones 3/4: the two cymbals
 const ITEM_POSE = `

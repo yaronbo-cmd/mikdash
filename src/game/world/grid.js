@@ -532,8 +532,9 @@ const S06 = {
       tails: { portFore: [-8, -6.1], portAft: [-22, -6.1], stbdFore: [-8, 6.1], stbdAft: [-22, 6.1] },
       rail: [-12, -7.1],            // where the port door goes over the side (the throw)
       nicanor: [-26, 0],            // he stands aft of the doors, facing forward
-      // six sailors at work: [x, z, what is in his hands]
-      sailors: [[-23, -5.4, 'rope'], [-23, 5.4, 'rope'], [3, -2.2, 'bucket'], [2, 2.4, 'rope'], [-33, -4.6, 'oar'], [14, 1.2, 'rope']],
+      // six sailors at work: [x, z, his work] — two at the doors' aft lashings ('lash'), two bailing over the rail ('bail'), one at the
+      // steering oars' lashing ('steer'), one hauling the brail hand over hand ('haul')
+      sailors: [[-23, -5.4, 'lash'], [-23, 5.4, 'lash'], [4, -5.6, 'bail'], [7, 5.4, 'bail'], [-32.5, -5.6, 'steer'], [14, 1.2, 'haul']],
       hook: [-31, 6.2],             // the boat hook's rest by the starboard rail
       steer: [[-34, -7.2], [-34, 7.2]],   // the two steering oars, lashed at the stern quarters
     },

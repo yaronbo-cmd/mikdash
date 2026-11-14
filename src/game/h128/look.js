@@ -4,7 +4,7 @@
  *            the camera lifts a little before the second, as the act will)
  *   28–36 s  the cloud break: one shaft of light on the bronze
  *   36–45 s  the lifted view round the ship
- * A small frames-per-second number in a corner (this page only). The probe's eyes: window.__H128_LOOK = { seek(t), bench(sec), dbg() },
+ * A small frames-per-second number in a corner, the renderer's draw calls and triangles under it (this page only). The probe's eyes: window.__H128_LOOK = { seek(t), bench(sec), dbg() },
  * and a small window.__T (booted, game.frame, simulate, render) so tools/probe109.cjs drives this page as it drives the game.
  */
 import { createSea3d } from './sea3d.js';
@@ -53,7 +53,7 @@ export function runSeaLook({ renderer, canvas }) {
     const t0 = performance.now(); step(lt, dt); const t1 = performance.now(); S.render(); const t2 = performance.now();
     stat.frames++; stat.script += S.state.scriptMs; stat.render += t2 - t1;
     fr++; fAcc += dt; sAcc += t1 - t0;
-    if (fAcc >= 0.5) { fpsEl.textContent = `${Math.round(fr / fAcc)} fps · ${(sAcc / fr).toFixed(2)} ms`; fr = 0; fAcc = 0; sAcc = 0; }
+    if (fAcc >= 0.5) { const I = renderer.info.render; fpsEl.innerHTML = `${Math.round(fr / fAcc)} fps · ${(sAcc / fr).toFixed(2)} ms<br><span style="font-size:11px;font-weight:400">${I.calls} draw calls · ${(I.triangles / 1000).toFixed(1)}k triangles</span>`; fr = 0; fAcc = 0; sAcc = 0; }
   }
   step(0, 0); S.render(); requestAnimationFrame(frame);
 
@@ -71,7 +71,7 @@ export function runSeaLook({ renderer, canvas }) {
         res({ sec: +T.toFixed(2), frames: stat.frames, fps: +(stat.frames / T).toFixed(1), seaScriptMs: +(stat.script / n).toFixed(3), renderCallMs: +(stat.render / n).toFixed(2), from: t0, to: +lt.toFixed(1) });
       }, sec * 1000));
     },
-    dbg: () => ({ ...S.dbg(), lt: +lt.toFixed(2), paused, calls: renderer.info.render.calls, tris: renderer.info.render.triangles }),
+    dbg: () => ({ ...S.dbg(), lt: +lt.toFixed(2), paused, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, deckMargin: +S.deckMargin().toFixed(2) }),
   };
   globalThis.__H128_LOOK = look;
   // the probe's handle (tools/probe109.cjs waits for __T.booted && __T.game, renders before a shot)

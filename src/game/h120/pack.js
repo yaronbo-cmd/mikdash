@@ -10,6 +10,8 @@ import { SH5, initWorld, finalWorld, disposeChip, colFrame, colBuild } from './w
 import { createFilm } from './film.js';
 import { createLoad } from './load.js';
 import { lookPose, sightPose, LOOK05 } from './look120.js';   // (build 124)
+import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the address book's, BOOK.s05.cam)
+const CAM = BOOK.s05.cam;
 
 /** the page's own flag: only=film (the finished stage, the film, again on a tap), only=load (planks' result, then the load test) */
 const PAGE = (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
@@ -42,7 +44,7 @@ export function makePack05() {
     endTitle: 'עזרת הנשים נבנתה!',
     endSub: 'עזרת הנשים היתה ארך מאה ושלשים וחמש על רוחב מאה ושלשים וחמש (מדות ב, ה)',
     // the stage's end: the court from high, the south gallery, the north, the whole
-    film: [[[73, 220, 230], [73, 0, 0], 2.4], [[73, 24, 28], [73, 16, 64], 2.2], [[73, 24, -28], [73, 16, -64], 2.2], [[73, 260, 260], [73, 0, 0], 1.4]],
+    film: CAM.film,
     /** the chambers' walls as they stand while he works: their courses rise with his twelve works (M.shown) */
     sync(M, S0, instant, X) {
       const info = S0.siteInfo('nashim'); if (!info) return;
@@ -65,7 +67,7 @@ export function makePack05() {
       if (PAGE === 'film' || PAGE === 'load') return (async () => {
         st.intro = 1; M.autoTo(() => false); X.save(); near(X, true); finalWorld(X);
         try { X.stages.setWork('nashim', { phase: 'done' }); } catch (e) { /* */ }
-        X.shot([73, 30, 22], [73, 12, 64], 0.01); await beat(X, 1200);
+        X.shot(CAM.again[0], CAM.again[1], 0.01); await beat(X, 1200);
         // (a probe's flag: a stage with a shim on NB1 and a wedged column S2, to see the creaking bays)
         if (globalThis.__H120_LOADBAD) { const c = st.col.S2 || (st.col.S2 = {}); c.wedges = 2; const b = st.beam.NB1 || (st.beam.NB1 = {}); b.shim = 1; b.fit = 'shim'; b.cut = (b.cut || 11) - 0.1; X.save(); }
         for (;;) {
@@ -77,10 +79,10 @@ export function makePack05() {
       return (async () => {
         st.intro = 1; X.save(); near(X, true);
         SH5.introHold = 'S1'; try { colBuild(X, 'S1'); } catch (e) { /* */ }   // (S1 on its cradle: the crews raise it in view below)
-        X.shot([40, 460, 430], [73, 0, 0], 0.01); await beat(X, 300);
+        X.shot(CAM.intro[0][0], CAM.intro[0][1], 0.01); await beat(X, 300);
         X.line('שלב 05: עזרת הנשים · וחלקה היתה בראשונה (מדות ב, ה)');
-        X.shot([150, 120, 110], [73, 6, 0], 3.2); await beat(X, 3400);
-        X.shot([118, 34, 30], [70, 8, 10], 2.4); await beat(X, 2600);
+        X.shot(CAM.intro[1][0], CAM.intro[1][1], 3.2); await beat(X, 3400);
+        X.shot(CAM.intro[2][0], CAM.intro[2][1], 2.4); await beat(X, 2600);
         X.line('והתקינו שיהו נשים יושבות מלמעלה ואנשים מלמטה (סוכה נא, ב)');
         // the first column (S1) goes up in the crews' hands: the gallery begins
         const fr = colFrame('S1');
@@ -89,7 +91,7 @@ export function makePack05() {
         await beat(X, 1200);
         await beat(X, 3600);
         X.line('גזוזטרא על עמודים, בשלושה צדדים · אנחנו מקימים, מנסרים, נושאים, ומביאים מים למקווה', 3600);
-        X.shot([95, 70, 40], [75, 8, 0], 2.4); await beat(X, 3000);
+        X.shot(CAM.intro[3][0], CAM.intro[3][1], 2.4); await beat(X, 3000);
         X.line('');
         near(X, false);
       })();

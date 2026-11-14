@@ -29,12 +29,18 @@ const ALLOW = [
   ['h109/grips.js', 1, 'the grip radius\'s floor and share of the screen (44 px, 0.15) — no place'],
   ['h109/model.js', 3, 'stage 01 audit: PLACES.letters (x −281, z 383, face −300, 400) beside the book\'s letters — not moved in build 126'],
   ['h109/props.js', 1, 'a ring geometry\'s segments (2, 48) — no place'],
-  // stage 05: must not change in build 126 (its own brief); its film, routes and sounds keep their coordinates
-  ['h120/acts.js', 11, 'stage 05 unchanged'], ['h120/acts2.js', 5, 'stage 05 unchanged'], ['h120/acts3.js', 3, 'stage 05 unchanged'],
-  ['h120/acts4.js', 3, 'stage 05 unchanged'], ['h120/acts5.js', 4, 'stage 05 unchanged'], ['h120/film.js', 53, 'stage 05 unchanged'],
-  ['h120/filmsound.js', 15, 'stage 05 unchanged'], ['h120/load.js', 1, 'stage 05 unchanged'], ['h120/look120.js', 2, 'stage 05 unchanged'],
-  ['h120/model.js', 23, 'stage 05 unchanged'], ['h120/pack.js', 18, 'stage 05 unchanged'], ['h120/routes.js', 67, 'stage 05 unchanged'],
-  ['h120/sound120.js', 11, 'stage 05 unchanged'], ['h120/water120.js', 1, 'stage 05 unchanged'], ['h120/world.js', 3, 'stage 05 unchanged'],
+  // stage 05 (build 127: every place read from the book): what the scan still finds is no place
+  ['h120/acts.js', 3, 'the column act\'s wide shot and its view cone, offsets in the column\'s own frame (along 1.8, across 55, height 13) ×2; dust (count, spread)'],
+  ['h120/acts2.js', 5, 'the measuring cord\'s and the chalk line\'s rope (segments, thickness) ×2; the reach and stroke in screen px (clamp 130..260, 110..220, 120..260)'],
+  ['h120/acts3.js', 3, 'the way\'s framing size (36 × 22 amot, a size); the grip and stroke in screen px (44..70, 120..260)'],
+  ['h120/acts4.js', 3, 'the gold glow\'s canvas gradient (32, 32, 0 / 32, 32, 32) and its 64 px square'],
+  ['h120/acts5.js', 2, 'the hand\'s screen offset (0, −40 px); the drag\'s reach in px (90, 0.2 of the screen)'],
+  ['h120/film.js', 53, 'the night film: not touched in build 127 — it is being replaced by a video made in another thread'],
+  ['h120/filmsound.js', 15, 'the night film\'s sound: not touched in build 127 — it is being replaced by a video made in another thread'],
+  ['h120/look120.js', 2, 'the tops (heights, y) of the court\'s walls as the world builds them: no x or z'],
+  ['h120/routes.js', 2, 'LANE_Z and LANE_X: stretches along the lane in amot from its outer end (distances along a book place, not world x/z)'],
+  ['h120/sound120.js', 11, 'the water\'s sound: filter frequencies, Q values, the drops\' times and pitches (Hz)'],
+  ['h120/water120.js', 1, 'a ripple ring\'s geometry (radius 1.0, 40 segments)'],
 ];
 
 test('the scan finds a typed place and leaves sizes alone', () => {

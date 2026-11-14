@@ -14,11 +14,11 @@ import { BOOK } from '../world/grid.js';
 export const YARD = BOOK.s05.yard;   // (build 124 B: the address book's)
 /** scaffolds on the chambers' walls: [x0, z0, x1, z1] footprints (two lifts). The wood chamber's (index 1) stands west of the east
  *  wing's marking: with the lime pit it makes level 3's narrow pass of four amot (x 130.6 … 134.6) */
-export const SCAFF = Object.freeze([[46.2, -47, 48.4, -41], [126.6, -27.3, 130.6, -25.3], [107, 25.3, 113, 27.3], [46.2, 38, 48.4, 44]]);
+export const SCAFF = BOOK.s05.scaff;   // (build 127: the address book's)
 /** stone piles: [x, z, n] */
-export const PILES = Object.freeze([[64, -40, 7], [109, -14, 6], [70, 42, 6], [112, 40, 5]]);
+export const PILES = BOOK.s05.piles;   // (build 127: the address book's)
 /** the sledges' lane: from outside the east gate through it to the wood chamber's door (x 117…125, z −27.5) */
-export const LANE = Object.freeze([[156, -5.5], [139, -5.5], [128, -12], [121, -21], [121, -29.2]]);
+export const LANE = BOOK.s05.lane;   // (build 127: the address book's)
 /** the plasterers' lime pit by the wood chamber's south wall, east of the scaffold (level 3's pass; only feet count) */
 export const LIME = BOOK.s05.lime;   // (build 124 B: the address book's)
 
@@ -39,7 +39,7 @@ export const LANE_Z = Object.freeze([16, 44]);
 /** the crossing itself (the stretch the beam's way crosses): clear of both crews → the beam may cross */
 export const LANE_X = Object.freeze([20, 40]);
 /** level 3's crossing point, and how near the beam's front must come for the crews to yield */
-export const LANE_CROSS = Object.freeze({ at: Object.freeze([124, -16]), r: 30 });
+export const LANE_CROSS = Object.freeze({ at: BOOK.s05.laneCross, r: 30 });   // (build 127: the point is the address book's)
 /** a crew's clock one step on: while the beam comes near (yieldNow) a crew about to enter the stretch waits at its edge, one inside it
  *  hurries (×1.7); otherwise its own pace */
 export function laneAdvance(t, which, dt, yieldNow) {
@@ -72,32 +72,35 @@ export function laneShape(which, s, dir) {
  * 'front' | 'both' }; jars, worker — [x, z]; movers — the carriers' lane (level 3: firewood from the pile to the wood chamber's door).
  * The narrowest pass of each way (brief's table 6 / 5 / 4): pass { a, b, w } its two sides and its width.
  */
-export const CARRY_PLACES = Object.freeze({
-  1: Object.freeze({
-    mark: Object.freeze({ c: [62.5, 59.5], axis: 'x', across: 0.8 }),
-    jars: Object.freeze([[78.5, 42]]), worker: Object.freeze([73.5, 8]),
-    pass: Object.freeze({ a: 'the stone pile (70, 42)', b: 'the jar (78.5, 42)', w: 6 }),
-    checks: Object.freeze([Object.freeze({ id: 'turn', name: 'הסיבוב הרחב', rect: [60, 50, 86, 61], by: 'front' })]),
-    up: Object.freeze([0, 1]),                // (the way runs up the screen: the camera looks along it)
-  }),
-  2: Object.freeze({
-    mark: Object.freeze({ c: [62.5, -65], axis: 'x', across: 0.8 }),
-    jars: Object.freeze([[66.2, -55.4]]), worker: Object.freeze([73.6, -44]),
-    pass: Object.freeze({ a: 'the column line (z −62.5)', b: 'the court\'s north wall (z −67.5)', w: 5 }),
-    checks: Object.freeze([Object.freeze({ id: 'cols', name: 'בין העמודים', rect: [68.8, -63.3, 78.2, -61.7], by: 'front' }), Object.freeze({ id: 'strip', name: 'לרצועה', rect: [56, -67.5, 72, -63.4], by: 'both' })]),
-    up: Object.freeze([0, -1]),
-  }),
-  3: Object.freeze({
-    mark: Object.freeze({ c: [132.6, -21.2], axis: 'z', across: 0.8 }),
-    jars: Object.freeze([[116.2, -23.6]]), worker: Object.freeze([104.5, -18.4]),
-    pass: Object.freeze({ a: 'the scaffold\'s legs (x 130.6)', b: 'the lime pit (x 134.6)', w: 4 }),
-    checks: Object.freeze([Object.freeze({ id: 'lane', name: 'מעבר השביל', rect: [119, -24, 127, -14], by: 'mid' }), Object.freeze({ id: 'pass', name: 'המעבר הצר', rect: [130.6, -27.3, 134.6, -23.3], by: 'front' })]),
-    movers: Object.freeze([[108.6, -12.2], [114, -19.6], [119.4, -26.6]]),
-    up: Object.freeze([1, 0]),
-  }),
-});
+export const CARRY_PLACES = (() => {   // (build 127: every place of the three ways is the address book's: BOOK.s05.carry)
+  const C = BOOK.s05.carry;
+  return Object.freeze({
+    1: Object.freeze({
+      mark: Object.freeze({ c: C[1].mark, axis: 'x', across: 0.8 }),
+      jars: C[1].jars, worker: C[1].worker,
+      pass: Object.freeze({ a: 'the stone pile (70, 42)', b: 'the jar (78.5, 42)', w: 6 }),
+      checks: Object.freeze([Object.freeze({ id: 'turn', name: 'הסיבוב הרחב', rect: C[1].checks.turn, by: 'front' })]),
+      up: Object.freeze([0, 1]),                // (the way runs up the screen: the camera looks along it)
+    }),
+    2: Object.freeze({
+      mark: Object.freeze({ c: C[2].mark, axis: 'x', across: 0.8 }),
+      jars: C[2].jars, worker: C[2].worker,
+      pass: Object.freeze({ a: 'the column line (z −62.5)', b: 'the court\'s north wall (z −67.5)', w: 5 }),
+      checks: Object.freeze([Object.freeze({ id: 'cols', name: 'בין העמודים', rect: C[2].checks.cols, by: 'front' }), Object.freeze({ id: 'strip', name: 'לרצועה', rect: C[2].checks.strip, by: 'both' })]),
+      up: Object.freeze([0, -1]),
+    }),
+    3: Object.freeze({
+      mark: Object.freeze({ c: C[3].mark, axis: 'z', across: 0.8 }),
+      jars: C[3].jars, worker: C[3].worker,
+      pass: Object.freeze({ a: 'the scaffold\'s legs (x 130.6)', b: 'the lime pit (x 134.6)', w: 4 }),
+      checks: Object.freeze([Object.freeze({ id: 'lane', name: 'מעבר השביל', rect: C[3].checks.lane, by: 'mid' }), Object.freeze({ id: 'pass', name: 'המעבר הצר', rect: C[3].checks.pass, by: 'front' })]),
+      movers: C[3].movers,
+      up: Object.freeze([1, 0]),
+    }),
+  });
+})();
 /** the beam lifted off his trestles: front (the kohen) and rear (the worker) */
-export function carryStart(lv, L) { const z = -29.6, x0 = YARD.his.x0; void lv; return { f: [x0, z], r: [x0 + L, z], L }; }
+export function carryStart(lv, L) { const z = BOOK.s05.startZ, x0 = YARD.his.x0; void lv; return { f: [x0, z], r: [x0 + L, z], L }; }
 /** the marking for a beam of length L: its rect, axis and centre (the ends inside it, a little to spare) */
 export function markOf(lv, L) {
   const P = CARRY_PLACES[lv].mark, h = (L + 0.9) / 2, a = P.across, [cx, cz] = P.c;
@@ -126,21 +129,13 @@ export function moverAt(lv, k, t) {
  *  end walked to the point, the other trailing. Level 2 is the three-move turn: into the strip at the wall, back with the rear into
  *  the strip's east end, then forward along it. Each way ends with the rear set on its mark (the trailer never quite straightens). */
 export function carryWay(lv, L) {
-  const m = CARRY_PLACES[lv].mark.c;
-  if (lv === 1) return [['f', 66, -28.8], ['f', 75, 30], ['f', 75, 46], ['f', 80, 57], ['f', 79, 59.5], ['f', 57, 59.5], ['r', 57 + L, 59.5]];
-  if (lv === 2) return [['f', 66, -28.8], ['f', 72, -40], ['f', 76.5, -50], ['f', 76.5, -66.2], ['f', 77.8 - L, -66.2], ['r', 77.4, -63.9], ['f', 57, -65.3], ['r', 57 + L, -65.2]];
-  return [['f', 66, -28.8], ['f', 64, -21], ['f', 70, -16], ['f', 96, -17.5], ['f', 120, -17], ['f', 131, -7], ['f', m[0], -16], ['f', m[0], -23], ['r', m[0], -11.5], ['f', m[0], -26.6], ['r', m[0], -26.6 + L]];
+  // (build 127: the points are the address book's, BOOK.s05.way: [lead, x, z, kx, kz], x + kx·L and z + kz·L where the beam's length moves them)
+  return BOOK.s05.way[lv === 1 || lv === 2 ? lv : 3].map(([e, x, z, kx = 0, kz = 0]) => [e, kx ? x + kx * L : x, kz ? z + kz * L : z]);
 }
 
 /* ───────── the obstacles (beam half-width 0.4 in model.beamHits) ───────── */
 /** the court's walls, the four chambers' walls (their doors open), the gate house, the steps to Nikanor */
-export const WALLS = Object.freeze([
-  [0, -76, 150, -67.5], [0, 67.5, 150, 76], [-2, -76, 6, 76], [141, -76, 152, -13], [141, 13, 152, 76], [138, -13, 152, 13], [6, -14, 24, 14],
-  [101, 27.5, 103, 67.5], [101, 27.5, 117, 29.5], [125, 27.5, 141, 29.5],
-  [101, -67.5, 103, -27.5], [101, -29.5, 117, -27.5], [125, -29.5, 141, -27.5],
-  [44, -67.5, 46, -27.5], [6, -29.5, 22, -27.5], [30, -29.5, 46, -27.5],
-  [44, 27.5, 46, 67.5], [6, 27.5, 22, 29.5], [30, 27.5, 46, 29.5],
-].map((r) => Object.freeze(r)));
+export const WALLS = BOOK.s05.walls;   // (build 127: the address book's)
 /** a column lying on its cradle: which way it lies (as world.js colFrame) */
 function lieAlong(id) { for (const lv of [1, 2, 3]) if (BAYS[lv].col === id) return bayDir(lv); return COLS[id].side === 'E' ? [0, 1] : [1, 0]; }
 /**
@@ -173,7 +168,7 @@ export function carryObs(lv, o = {}) {
 /** the narrowest pass of a way as the tables have it (amot between the hard sides the beam goes through) */
 export function passOf(lv) {
   if (lv === 1) { const p = PILES[2], j = CARRY_PLACES[1].jars[0]; return +((j[0] - 0.5) - (p[0] + 2.0)).toFixed(2); }
-  if (lv === 2) return +(-62.5 - -67.5).toFixed(2);
+  if (lv === 2) return +(BOOK.s05.runs[1].line - BOOK.s05.court.z0).toFixed(2);   // (build 127: the column line and the north wall, the book's)
   return +(LIME.x0 - SCAFF[1][2]).toFixed(2);
 }
 void H120;

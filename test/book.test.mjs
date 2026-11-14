@@ -83,6 +83,35 @@ test('book s05: every act\'s stand is the book\'s (the acts\' own stand())', asy
   }
 });
 
+test('book s05 (build 127): the routes, the rig, the floor, the ways, the cameras are the book\'s own tables', async () => {
+  const R = await import('../src/game/h120/routes.js');
+  const M = await import('../src/game/h120/model.js');
+  const { makePack05 } = await import('../src/game/h120/pack.js');
+  const S = BOOK.s05, by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
+  assert.equal(R.SCAFF, S.scaff); assert.equal(R.PILES, S.piles); assert.equal(R.LANE, S.lane); assert.equal(R.WALLS, S.walls);
+  assert.equal(R.LANE_CROSS.at, S.laneCross);
+  for (const lv of [1, 2, 3]) {
+    const P = R.CARRY_PLACES[lv], B = S.carry[lv];
+    assert.equal(P.mark.c, B.mark); assert.equal(P.jars, B.jars); assert.equal(P.worker, B.worker);
+    for (const c of P.checks) assert.equal(c.rect, B.checks[c.id], `lv ${lv} check ${c.id}`);
+    if (P.movers) assert.equal(P.movers, B.movers);
+    for (const L of [10, 11.5]) {
+      const W = R.carryWay(lv, L);
+      assert.equal(W.length, S.way[lv].length);
+      S.way[lv].forEach(([e, x, z, kx = 0, kz = 0], i) => assert.deepEqual(W[i], [e, x + kx * L, z + kz * L], `way ${lv}.${i}`));
+    }
+    assert.equal(R.carryStart(lv, 11).f[1], S.startZ);
+    assert.ok(by['carry:mark' + lv] && by['carry:worker' + lv], 'carry entries ' + lv);
+  }
+  assert.equal(makePack05().film, S.cam.film);
+  // the floor's rises are the book's (a rise's crest is where floorH has its own bump)
+  assert.ok(S.floor.rises.length === 9 && S.floor.rises.every((r) => r.length === 4));
+  assert.ok(Math.abs(M.floorH(13, -47.4) - M.floorH(13, -48.6)) > 0, 'floor');
+  for (const k of ['in1', 'in2', 'in3']) { const ch = M.refChannel(+k.slice(2), 'in'); assert.ok(ch && ch.pts.length > 1, k); }
+  for (const k of ['rig', 'floor', 'mikWays', 'scaff', 'piles', 'lane', 'walls', 'carry', 'way', 'cam', 'laneCrew']) assert.ok(Object.isFrozen(S[k]), k);
+  for (const lv of [1, 2, 3]) assert.ok(by['rig:post' + lv], 'rig entry ' + lv);
+});
+
 test('book s02: the wall stage — sides, stretches and their stands, stakes, gates', async () => {
   await import('../src/game/h111/acts.js');
   const { SIDE, STRETCH, sidePoint, H111 } = await import('../src/game/h111/model.js');

@@ -17,7 +17,7 @@ const HW = H120.BEAM_W / 2, OUT = RUN.line + (HW + 0.25) * RUN.dir;   // the joi
 const N = 6, WID = (RUN.wall - OUT) / N;              // six planks across the bay, each about 0.93 wide
 const zIn = (i) => RUN.wall - (i + 1) * WID;          // a plank's court-side edge when laid (plank 0 against the wall)
 const START = OUT - WID - 0.35;                       // where each comes up: its court edge out over the court, held from below
-const NEIGH = [[46, 57], [68, 79]];                   // the crews' bays in view (SB0, SB2)
+const NEIGH = [[BEAM_OF.SB0.pa[0], BEAM_OF.SB0.pb[0]], [BEAM_OF.SB2.pa[0], BEAM_OF.SB2.pb[0]]];   // the crews' bays in view (SB0, SB2: build 127, the book's beams)
 const sc = (X, x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
 
 export const PLANKS = {

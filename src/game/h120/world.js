@@ -20,9 +20,10 @@ const F = H120.FINGER, TAU = Math.PI * 2;
 
 /* ───────── fixed places (amot; rule 56): one table in routes.js, read by the world, the acts and the tests ───────── */
 import { YARD, SCAFF, PILES, LANE, LIME, LANE_L, laneAt, laneState, laneAdvance } from './routes.js';
+import { BOOK } from '../world/grid.js';   // (build 127)
 export { YARD, SCAFF, PILES, LANE, LIME, laneState };
 /** where a broken column's halves lie (the stone pile by the east gate) */
-const BROKE_AT = [110.5, -18.5];
+const BROKE_AT = BOOK.s05.brokeAt;   // (build 127: the address book's)
 
 /* ───────── materials (the stage's own: rule "no M.stone") ───────── */
 export function mats(X) {
@@ -425,7 +426,7 @@ function laneBuild(X, all, men) {
   const sledge = new T.Group(); box(X, M.h5cedarD, -1.8, 0, -1.0, 1.8, 0.3, -0.7, sledge); box(X, M.h5cedarD, -1.8, 0, 0.7, 1.8, 0.3, 1.0, sledge); box(X, M.h5cedar, -1.5, 0.3, -1.1, 1.5, 0.5, 1.1, sledge); box(X, M.h5lime, -1.3, 0.5, -0.8, 1.3, 1.6, 0.8, sledge);
   X.props.root.add(sledge); all.push(sledge);
   const pull = [];
-  for (let k = 0; k < 3; k++) { const w = SH5.crew.add(150, -5.5, { role: 'pull', item: 'rope', crew: 0, off: k * 0.3 }); if (w) { pull.push(w); men.push(w); } }
+  for (let k = 0; k < 3; k++) { const w = SH5.crew.add(BOOK.s05.laneCrew.pull[0], BOOK.s05.laneCrew.pull[1], { role: 'pull', item: 'rope', crew: 0, off: k * 0.3 }); if (w) { pull.push(w); men.push(w); } }
   const cart = new T.Group(); box(X, M.h5cedar, -1.6, 0.9, -0.9, 1.6, 1.2, 0.9, cart); box(X, M.h5cedarD, -1.6, 1.2, -0.95, 1.6, 1.6, -0.85, cart); box(X, M.h5cedarD, -1.6, 1.2, 0.85, 1.6, 1.6, 0.95, cart);
   for (const s of [-1, 1]) { const wh = new T.Mesh(new T.CylinderGeometry(0.75, 0.75, 0.16, 12), M.h5cedarD); wh.rotation.x = Math.PI / 2; wh.position.set(0, 0.75, s * 1.05); cart.add(wh); }
   box(X, M.h5cedarD, 1.6, 0.95, -0.07, 4.2, 1.07, 0.07, cart);   // the pole to the yoke
@@ -437,7 +438,7 @@ function laneBuild(X, all, men) {
     for (const [lx, lz] of [[0.65, 0.3], [0.65, -0.3], [-0.7, 0.3], [-0.7, -0.3]]) { const l = new T.Mesh(new T.CylinderGeometry(0.1, 0.08, 0.95, 5), M.h5ox); l.position.set(lx, 0.47, lz); l.userData.leg = 1; ox.add(l); }
   }
   X.props.root.add(cart); all.push(cart);
-  const dr = SH5.crew.add(150, -8, { role: 'walk', item: 'staff', crew: 3 }); if (dr) men.push(dr);
+  const dr = SH5.crew.add(BOOK.s05.laneCrew.drover[0], BOOK.s05.laneCrew.drover[1], { role: 'walk', item: 'staff', crew: 3 }); if (dr) men.push(dr);
   SH5.lane = { sledge, pull, cart, dr, t: 0 };
 }
 function laneFrame(dt) {

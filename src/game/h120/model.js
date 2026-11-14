@@ -365,13 +365,7 @@ export function waterGoal(lv, outlet) { if (lv < 3) return MIK.goal[lv]; const h
 
 // the floor of the lepers' chamber: a fixed field (rule 56), a general fall toward the basin of about a finger per amah, low rises
 // and dips of up to 1.5 tefachim; the strip between the basin and the door falls toward the lime pit (level 3's trap)
-const RISES = [
-  [13, -47.4, 3.1, 0.55],                          // level 1: one low rise on the straight way (deepen two fingers along about 1.5 amot)
-  [31.4, -49.6, 3.4, 0.6], [18.6, -44.4, 3.2, 0.55],   // level 2: two rises
-  [10.4, -50.6, 2.4, 0.6],                          // level 3's inflow: a small one
-  [26.2, -37.7, 3.0, 0.8],                          // the shoulder east of the lime pit's hollow (the overflow's right way climbs it)
-  [33.5, -60.5, -4, 2.2], [22, -64, 3, 2.4], [38.5, -36, -3, 2.0], [8, -33, 2.5, 1.8],   // dips and humps elsewhere
-];
+const RISES = BOOK.s05.floor.rises;   // (build 127: the address book's)
 const dRect = (x, z, x0, z0, x1, z1) => Math.hypot(Math.max(x0 - x, 0, x - x1), Math.max(z0 - z, 0, z - z1));
 const smooth = (a, b, v) => { const u = clamp((v - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const PIT_C = [(MIK.pit.x0 + MIK.pit.x1) / 2, (MIK.pit.z0 + MIK.pit.z1) / 2];
@@ -381,8 +375,8 @@ export function floorH(x, z) {
   // the south-east strip: a valley from the outlet down to the lime pit, and on toward the door
   const ox = MIK.outlet[0], oz = MIK.outlet[1], ux = PIT_C[0] - ox, uz = PIT_C[1] - oz, uL = Math.hypot(ux, uz);
   const along = ((x - ox) * ux + (z - oz) * uz) / uL, perp = ((x - ox) * -uz + (z - oz) * ux) / uL;
-  const hS = -F * 0.95 * clamp(along, -2, uL + 2) + F * 0.18 * perp * perp / (1 + 0.04 * perp * perp) - F * 2.6 * Math.exp(-((x - PIT_C[0]) ** 2 + (z - PIT_C[1]) ** 2) / (2 * 2.2 * 2.2)) - F * 0.9 * clamp(z + 36, 0, 8);
-  const w = smooth(-40.6, -38.4, z) * smooth(10.5, 12.5, x);
+  const hS = -F * 0.95 * clamp(along, -2, uL + 2) + F * 0.18 * perp * perp / (1 + 0.04 * perp * perp) - F * 2.6 * Math.exp(-((x - PIT_C[0]) ** 2 + (z - PIT_C[1]) ** 2) / (2 * 2.2 * 2.2)) - F * 0.9 * clamp(z - BOOK.s05.floor.fallZ, 0, 8);
+  const FB = BOOK.s05.floor, w = smooth(FB.bandZ[0], FB.bandZ[1], z) * smooth(FB.bandX[0], FB.bandX[1], x);   // (build 127: the bands are the book's)
   let h = (1 - w) * hN + w * hS;
   h += F * (0.55 * Math.sin(x * 0.61 + 1.3) * Math.sin(z * 0.47 - 0.4) + 0.3 * Math.sin(x * 0.23 + z * 0.31));
   for (const [cx, cz, a, sg] of RISES) h += F * a * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * sg * sg));
@@ -479,11 +473,12 @@ export function deepenAt(pts, x, z, df, r = 0.6) {
 }
 // the reference ways (brief §7: "the reference solutions of the three levels must exist and be tested"): waypoints, then each point
 // deepened as little as the fall asks (a bed that never rises: the water never has to stand)
+const MW = BOOK.s05.mikWays;   // (build 127: the ways' points between their ends are the address book's)
 const WAYS = {
-  'in1': [MIK.hollows[1], [13, -49.5], [13, -45], MIK.inlet],
-  'in2': [MIK.hollows[2], [31.5, -49.7], [24.5, -45.2], [18.6, -44.4], [15, -43.2], MIK.inlet],   // (round the trough's south side, between it and the jar)
-  'in3': [MIK.hollows[3], [10.4, -50.6], [12.4, -45.5], MIK.inlet],
-  'over3': [MIK.outlet, [17.5, -38.9], [24.8, -38.7], [27.8, -36.2], [27.8, -32], [27, -29.9], [27, -29.2]],
+  'in1': [MIK.hollows[1], ...MW.in1, MIK.inlet],
+  'in2': [MIK.hollows[2], ...MW.in2, MIK.inlet],   // (round the trough's south side, between it and the jar)
+  'in3': [MIK.hollows[3], ...MW.in3, MIK.inlet],
+  'over3': [MIK.outlet, ...MW.over3],
 };
 /** a channel's depths set as the fall asks: each point as shallow as it may be (a finger at least) while its bed never rises → the
  *  channel (its pts changed in place); maxDepth (fingers) the deepest it took */

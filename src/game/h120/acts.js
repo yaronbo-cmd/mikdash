@@ -27,6 +27,7 @@ function knowCard(X) {
   setTimeout(() => { try { if (X.ui && X.ui.toast) X.ui.toast({ icon: 'book', title: KNOW_COL.title, body: `${esc(KNOW_COL.body)}<small class="gm-fact-ref">${esc(KNOW_COL.note)}</small>`, kind: 'fact', ms: 14000 }); } catch (e) { /* */ } }, 5200);
 }
 import { clamp, lerp, ease } from '../h109/kit.js';
+import { BOOK } from '../world/grid.js';   // (build 127)
 
 const F = H120.FINGER, BAL = H120.BAL, D2R = Math.PI / 180;
 const sc = (X, v) => { const r = X.scr(v.x, v.y, v.z); return [Math.round(r.x), Math.round(r.y)]; };
@@ -34,11 +35,9 @@ const dist2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
 /* ───────── station 1: the column (brief §4) ───────── */
 // the rig of each bay: the brake post (the kohen's), and for level 3 the block on the wood chamber's south wall the pull rope turns in
-const RIG = {
-  1: { post: [81.5, 58.8] },
-  2: { post: [47.6, -58.4] },
-  3: { post: [132.6, -3.5], block: [131.2, 9.5, -27.35], pull: [[129.8, -25.4], [129.1, -24.1], [128.5, -22.7], [127.8, -21.4]], back: [-0.45, 0.89] },   // (one behind the other on the rope's line from the block, 1.5 apart, slanting off the wall so the camera sees each)
-};
+// (build 127: the post, the block and the pullers' places are the address book's, BOOK.s05.rig; the pullers stand one behind the other
+// on the rope's line from the block, 1.5 apart, slanting off the wall so the camera sees each; back: the rope's way off them)
+const RIG = { 1: BOOK.s05.rig[1], 2: BOOK.s05.rig[2], 3: { ...BOOK.s05.rig[3], back: [-0.45, 0.89] } };
 /** where his work stands: the bay's column (or a free one), its rig, the level's numbers */
 function bayOf(m, X) {
   const id = m.free ? m.unit : BAYS[m.lv].col, fr = colFrame(id), lv = m.free ? 3 : X ? X.level() : m.lv;

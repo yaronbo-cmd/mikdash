@@ -11,12 +11,13 @@
 import { H120, Y, BAYS, BEAM_OF, LADDERS, bayGrade, creakWhy } from './model.js';
 import { SH5, finalWorld } from './world.js';
 import { nightRig } from './film.js';
+import { BOOK } from '../world/grid.js';   // (build 127)
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 const F = H120.FINGER;
 /** the wall face a bay's gallery hangs from, from its beam (south: z 67.5; north: −67.5; east: x 141) */
-const wallOf = (B) => (B.axis === 'x' ? [0, Math.sign(B.pa[1]) * 67.5] : [141, 0]);
+const wallOf = (B) => (B.axis === 'x' ? [0, Math.sign(B.pa[1]) * BOOK.s05.court.z1] : [BOOK.s05.court.x1, 0]);   // (build 127: the book's court)
 
 export function createLoad(X) {
   const T = X.THREE, st = X.M.st, PR = X.props, all = [], men = [];

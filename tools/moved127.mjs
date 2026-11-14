@@ -31,6 +31,9 @@ export const REUSE = [
   ['h120/load.js', '141, 0', ['s05.court.x1', null]],
   // stage 05: the crews' bays in view in the planks act are the book's beams SB0 (x 46 … 57) and SB2 (68 … 79)
   ['h120/acts5.js', '46, 57', ['s05.beams.0.3.0', 's05.beams.0.4.0']], ['h120/acts5.js', '68, 79', ['s05.beams.2.3.0', 's05.beams.2.4.0']],
+  // stage 05: `clamp(z + 36, 0, 8)` in the chamber's floor is the line z −36 the strip falls south of: the book's floor.fallZ, its
+  // sign turned (a key with a leading '-' names the book's number negated); 0 and 8 are the clamp's bounds in amot, no place
+  ['h120/model.js', '36, 0, 8', ['-s05.floor.fallZ', null, null]],
 ];
 
 export function recordBefore() { return scanDirs(ROOT, ['h109', 'h120']); }
@@ -44,7 +47,7 @@ export function bookBlocks(src = readFileSync(new URL('world/grid.js', ROOT), 'u
   return out;
 }
 const hasRun = (toks, lits) => { for (let i = 0; i + lits.length <= toks.length; i++) { let ok = true; for (let j = 0; j < lits.length; j++) if (toks[i + j] !== lits[j]) { ok = false; break; } if (ok) return true; } return false; };
-const at = (o, path) => path.split('.').reduce((v, k) => (v == null ? v : v[k]), o);
+const at = (o, path) => (path[0] === '-' ? -at(o, path.slice(1)) : path.split('.').reduce((v, k) => (v == null ? v : v[k]), o));
 
 export function checkMoved(before, BOOK) {
   const now = scanDirs(ROOT, ['h109', 'h120']), left = new Map();

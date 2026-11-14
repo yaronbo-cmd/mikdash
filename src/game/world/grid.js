@@ -542,9 +542,10 @@ const S06 = {
     // door's landing place on the quay
     quay: { edge: -8.6, top: 0.6, x: [-70, 40], derrick: { foot: [-12, -13.5], head: [-12, -7.6, 16] }, bob: [-12, -8.2], land: [-12, -18.5] },
     // the sea's cameras in the deck's frame ([eye], [aim]): the play camera behind and above Nicanor (the doors and four ropes in frame,
-    // the horizon in the upper third); the lifted one (the whole ship and the next swell: turned toward the swell's heading); the look
+    // the horizon in the upper third); the lifted one, set for a swell over the bow (the whole ship and the next swell: the act turns it round the ship to face the
+    // swell's heading); the look
     // sample's round (radius, height, aim)
-    cam: { play: [[-41, 8.6, 0], [-4, 0.6, 0]], lift: [[-78, 42, 0], [6, 0, 0]], round: { R: 82, y: 34, t: [-8, 2, 0] } },
+    cam: { play: [[-41, 11, 0], [-3, 0, 0]], lift: [[-78, 42, 0], [6, 0, 0]], round: { R: 82, y: 34, t: [-8, 2, 0] } },
   },
 };
 const seaName = (k, r) => 'ים־' + heb(k + 1) + '־' + (r + 1);

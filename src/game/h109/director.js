@@ -14,6 +14,7 @@
  */
 import * as THREE from 'three';
 import { createH109, PLAN, PLACES, H109, starsOf, GRADE_N } from './model.js';
+import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the address book's, BOOK.s01.cam)
 import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
@@ -32,7 +33,7 @@ const PACK01 = {
   // ── h115 ── the end film on the stage's own places (grid.js BOOK): the Mount from high; the kohen's nine cells cut and paved (x −73..2,
   // z −58.5..16.5) with the waste pits east of them; the corner stone at the real south-east corner, from outside the wall and low,
   // then rising up the wall from it; the great stone; the inscription's corner; the Mount from high again ── /h115 ──
-  film: [[[60, 260, 520], [0, 0, -40], 3.0], [[60, 55, 70], [-30, -4, -21], 2.8], [[306, -36, 372], [277, -46, 399], 2.2], [[322, 14, 352], [277, -12, 398], 2.4], [[-200, 60, -260], [-280, 10, -150], 2.4], [[-352, 62, 456], [-296, 38, 396], 2.4], [[180, 300, 620], [27, 0, 66], 1.4]],
+  film: BOOK.s01.cam.film,   // (build 127: the address book's)
   finale: (X) => finale01(X),
   // ── h125 ── (rule 66) stage 01's open hill: the shape of world/look.js with no walls — the world's own test (its rocks, the city) and
   // the horizon rule (the sky line in the frame at u 0.7 at every stand, on the slope too); the close acts back away along their own
@@ -288,7 +289,7 @@ export function createH109Director(o) {
     view.camNow(cq); OV.p = CAM.on ? CAM.p1.clone() : new THREE.Vector3(cq.px, cq.py, cq.pz); OV.t = CAM.on ? CAM.t1.clone() : new THREE.Vector3(cq.tx, cq.ty, cq.tz);
     // (high over the Mount, from the side he looked from, the work still in the frame)
     const at = act.at ? act.at() : null, c = at ? new THREE.Vector3(at.x, at.y, at.z) : OV.t.clone();
-    const M0 = new THREE.Vector3(27, 0, 66), tg = c.clone().lerp(M0, 0.45); tg.y = 0;
+    const M0 = new THREE.Vector3(...BOOK.s01.cam.over), tg = c.clone().lerp(M0, 0.45); tg.y = 0;
     const dx = cq.px - cq.tx, dz = cq.pz - cq.tz, L = Math.hypot(dx, dz) || 1;
     const P1 = [tg.x + (dx / L) * 520, 360, tg.z + (dz / L) * 520];
     OV.d0 = Math.hypot(P1[0] - tg.x, P1[1] - tg.y, P1[2] - tg.z);

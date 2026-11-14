@@ -21,9 +21,9 @@ export const litsOf = (text) => text.replace(/^\s*\w+\s*:\s*/, '').match(NUM) ||
 
 /** the places already in the book (rule B 1): the stage's copy deleted, the book's read. [file, text, [book key per number | null]] */
 export const REUSE = [
-  // stage 01: the Mount's 500-amah square (mount.js SQUARE) — the book's stage 01 bounds, made from the grid's own EAST and NORTH
-  ['h109/acts.js', 'x0: -223', ['s01.bounds.x0']], ['h109/acts.js', 'x1: 277', ['s01.bounds.x1']],
-  ['h109/acts.js', 'z0: -183.5', ['s01.bounds.z0']], ['h109/acts.js', 'z1: 316.5', ['s01.bounds.z1']],
+  // stage 01: the Mount's 500-amah square (mount.js SQUARE) — the book's stage 01 square, made from the grid's own EAST and NORTH
+  ['h109/acts.js', 'x0: -223', ['s01.square.x0']], ['h109/acts.js', 'x1: 277', ['s01.square.x1']],
+  ['h109/acts.js', 'z0: -183.5', ['s01.square.z0']], ['h109/acts.js', 'z1: 316.5', ['s01.square.z1']],
   // stage 01: the inscription's stand is the book's letters (x −281, z 383)
   ['h109/model.js', 'x: -281', ['letters.x']], ['h109/model.js', 'z: 383', ['letters.z']],
   ['h109/acts3.js', 'x: -281', ['letters.x']], ['h109/acts3.js', 'z: 383', ['letters.z']],
@@ -56,9 +56,9 @@ export function checkMoved(before, BOOK) {
   for (const h of before) {
     const k = h.file + '|' + h.text, lits = litsOf(h.text);
     if (left.get(k) > 0) { left.set(k, left.get(k) - 1); out.push({ ...h, how: 'stays' }); continue; }
-    if (blocks.some((b) => hasRun(b, lits))) { out.push({ ...h, how: 'book' }); continue; }
     const R = REUSE.find(([f, t]) => f === h.file && t === h.text);
-    if (R && R[2].length === lits.length && R[2].every((p, i) => p == null || at(BOOK, p) === Number(lits[i]))) { out.push({ ...h, how: 'reuse', why: R[2].filter(Boolean).join(', ') }); continue; }
+    if (R) { out.push({ ...h, how: R[2].length === lits.length && R[2].every((p, i) => p == null || at(BOOK, p) === Number(lits[i])) ? 'reuse' : 'LOST', why: R[2].filter(Boolean).join(', ') }); continue; }
+    if (blocks.some((b) => hasRun(b, lits))) { out.push({ ...h, how: 'book' }); continue; }
     out.push({ ...h, how: 'LOST' });
   }
   return out;

@@ -56,9 +56,10 @@ function shadowDisk(X) { const T = X.THREE; const m = new T.Mesh(new T.CircleGeo
 // lowest ground of the Mount, where its two walls meet; until 114 the stone stood at the measured square's corner, where no wall corner
 // exists. The stone sits square in the corner, a hand inside both faces; the crane and the stock west of it along the south wall's
 // trench (the city wall's tower stands just outside the corner, so every camera looks at it from the north, the Mount's side).
-const CORNER_AT = { x: 275.5, z: 398.7 }, CRANE_AT = { x: 264, z: 392.6 }, STOCK = { x: 253.5, z: 392 };
-const WALL_E = 277, WALL_S = 400;   // (the two faces) ── /h115 ──
-const KOH_AT = { x: 268.6, z: 389.2 };   // ── h116 ── the kohen on the guide rope ── /h116 ──
+// (build 127: every place of the act is the address book's, BOOK.s01.corner; the two faces are the book's corner)
+const CORNER_AT = BOOK.s01.corner.stone, CRANE_AT = BOOK.s01.corner.crane, STOCK = BOOK.s01.corner.stock;
+const WALL_E = BOOK.corner.x, WALL_S = BOOK.corner.z;   // (the two faces) ── /h115 ──
+const KOH_AT = BOOK.s01.corner.kohen;   // ── h116 ── the kohen on the guide rope ── /h116 ──
 // ── h114 ── (ירון 9.11: "כל אבן יורדת למקום אמיתי בעולם האמיתי"; "העיגול הצהוב לא ברור") the corner's foundation trench, dug at the
 // real corner of the Mount's wall, its earth heaped beside it, and the stone's own outline chalked on its floor; the stone sits a
 // little sunk in it for good (PIT) and the courses go on from it ── /h114 ──
@@ -383,19 +384,19 @@ export const CORNER = {
 // crew needs nothing, within a tenth they bar it over (seen), farther and it has to come up again; a fast landing on a neighbour
 // chips its corner (−20). The gap closes only in the one order whose joints all fall clear of the joints below (a solver checked
 // each puzzle: only one way works) — a wrong stone is lifted out again. ── /h114 ──
-const WALL_X = 276.1;   // ── h114 ── on the world's own east wall: the courses are its top courses, flush with its face (x 277) ── /h114 ──
+const WALL_X = BOOK.s01.courses.wallX;   // (build 127: the address book's)   // ── h114 ── on the world's own east wall: the courses are its top courses, flush with its face (x 277) ── /h114 ──
 const LENS = [2, 2.5, 3, 3.5, 4];
 // each course: the gap in the kohen's stretch and the joints of the course under it — one order only of the five lengths fills the
 // gap with no joint over a joint (checked by a search over every subset and order, tools: see the build notes)
 const COURSES = [
   // ── h115 ── (build115-brief §7) two stretches of the east wall north of the corner stone (they leave the corner's trench open, so the
   // corner stone is seen from the Mount's side) ── /h115 ──
-  { z0: 352, P: [{ gap: [3.5, 10.5], below: [6.5], sol: [4, 3] }, { gap: [3.5, 11.5], below: [5.25, 9.25], sol: [2.5, 2, 3.5] }] },
-  { z0: 316, P: [{ gap: [3.5, 13.5], below: [7.25, 10], sol: [2.5, 3.5, 4] }, { gap: [3.5, 14.5], below: [5.75, 8.75, 12.25], sol: [3.5, 2.5, 2, 3] }] },
+  { z0: BOOK.s01.courses.z0[0], P: [{ gap: [3.5, 10.5], below: [6.5], sol: [4, 3] }, { gap: [3.5, 11.5], below: [5.25, 9.25], sol: [2.5, 2, 3.5] }] },
+  { z0: BOOK.s01.courses.z0[1], P: [{ gap: [3.5, 13.5], below: [7.25, 10], sol: [2.5, 3.5, 4] }, { gap: [3.5, 14.5], below: [5.75, 8.75, 12.25], sol: [3.5, 2.5, 2, 3] }] },
 ];
 // ── h116 ── (world flow, brief §D) the free courses 2..7: the same wall's next stretches north, every 36 amot, its two puzzles in turn
 // (they are the wall's own courses: the crews lay the rest of each stretch; his gap is the work) ── /h116 ──
-for (let c = 2; c < 8; c++) COURSES.push({ z0: 316 - 36 * (c - 1), P: COURSES[c % 2].P, free: true });
+for (let c = 2; c < BOOK.s01.courses.n; c++) COURSES.push({ z0: BOOK.s01.courses.z0[1] - BOOK.s01.courses.step * (c - 1), P: COURSES[c % 2].P, free: true });   // (build 127: the book's)
 const CH = 1.6, CD = 1.8;
 const puzzleOf = (c, lv) => { const K = COURSES[c], P = K.P[lv >= 3 ? 1 : 0]; return { z0: K.z0, gap: P.gap, sol: P.sol, below: [-8, -3, 1.5, ...P.below, P.gap[1] + 3, P.gap[1] + 8] }; };
 function courseWorld(X, c, lv, laid) {
@@ -974,8 +975,9 @@ export const GREAT = {
  * drag, hold to blow and let go in the band; the sound goes out over the land and changes it — the field hands lay down their
  * tools, the shops close, the lamps are lit in the windows; a pause "כדי צליית דג קטן"; then תקיעה, תרועה, תקיעה. A weak or
  * misaimed blast does not reach everyone: who did not hear stays as he was, and one blows again (no damage, no points off). ── /h114 ── */
-const LET = { x: -300, z: 400 };   // the corner's outer point: the west wall x −300, the south wall z +400
-const TOP = { y0: 31.6, y: 38.2 };  // the world's wall top there ≈ 32–38 (its merlons): the corner block stands to 38.2
+// (build 127: every place of the trumpeting corner is the address book's, BOOK.s01.letters)
+const LET = BOOK.s01.letters.face;   // the corner's outer point: the west wall x −300, the south wall z +400
+const TOP = BOOK.s01.letters.top;  // the world's wall top there ≈ 32–38 (its merlons): the corner block stands to 38.2
 const GLYPH = {
   'ל': [[[22, -12], [22, 44], [80, 44], [82, 92], [48, 136]]],
   'ב': [[[10, 30], [80, 30], [88, 42], [88, 126], [6, 126]]],
@@ -987,8 +989,8 @@ const GLYPH = {
   'כ': [[[10, 30], [72, 30], [88, 48], [88, 110], [72, 126], [10, 126]]],
 };
 const WORDS = ['לבית', 'התקיעה', 'להכ'];
-const TRUMP = { x: -298.4, z: 398.4 };
-function letStand() { return { x: -281, z: 383 }; }
+const TRUMP = BOOK.s01.letters.trumpeter;
+function letStand() { return { x: BOOK.letters.x, z: BOOK.letters.z }; }
 let cornerT = null;
 /** the corner block, its parapet and niche (once, in the world for good) → { face, stone, blocks } */
 function trumpetCorner(X) {
@@ -997,21 +999,22 @@ function trumpetCorner(X) {
   const mat = new T.MeshStandardMaterial({ color: '#E2D2AC', roughness: 0.93 }), dark = new T.MeshStandardMaterial({ color: '#CDBC95', roughness: 0.95 });
   const box = (x0, x1, y0, y1, z0, z1, m = mat) => { const b = new T.Mesh(new T.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), m); b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); b.castShadow = true; b.receiveShadow = true; g.add(b); return b; };
   // the corner block, flush with both faces of the world's walls
-  box(-300.05, -289, TOP.y0, TOP.y, 389, 400.05);
+  const LB = BOOK.s01.letters;
+  box(LB.block[0], LB.block[1], TOP.y0, TOP.y, LB.block[2], LB.block[3]);
   // the parapet: ashlar blocks along the west edge, the inscription stone and a filler along the south edge; the niche at the corner
-  for (let z = 389; z < 396.9; z += 2.65) { const b = stoneMesh(X, 1.2, 2.4, 2.6); b.position.set(-299.45, TOP.y + 1.2, z + 1.3); g.attach(b); }
-  const stone = stoneMesh(X, 7.2, 2.4, 1.2); stone.position.set(-293.2, TOP.y + 1.2, 399.45); g.attach(stone);
-  const fill = stoneMesh(X, 0.75, 2.4, 1.2); fill.position.set(-289.4, TOP.y + 1.2, 399.45); g.attach(fill);
+  for (let z = LB.parapet.z0; z < LB.parapet.z1; z += 2.65) { const b = stoneMesh(X, 1.2, 2.4, 2.6); b.position.set(LB.parapet.x, TOP.y + 1.2, z + 1.3); g.attach(b); }
+  const stone = stoneMesh(X, 7.2, 2.4, 1.2); stone.position.set(LB.stone[0], TOP.y + LB.stone[1], LB.stone[2]); g.attach(stone);
+  const fill = stoneMesh(X, 0.75, 2.4, 1.2); fill.position.set(LB.fill[0], TOP.y + LB.fill[1], LB.fill[2]); g.attach(fill);
   // the niche: the parapet cut down to a low lip at the very corner
-  box(-300.05, -296.9, TOP.y, TOP.y + 0.9, 399.6, 400.05, dark); box(-300.05, -299.6, TOP.y, TOP.y + 0.9, 396.9, 400.05, dark);
+  for (const n of LB.niche) box(n[0], n[1], TOP.y, TOP.y + n[2], n[3], n[4], dark);
   // the sloped coping on the outer faces, under the parapet's top (as in the picture)
-  for (const [x, z, L, ry] of [[-294.6, 400.15, 11.4, 0], [-300.15, 394.6, 11.4, Math.PI / 2]]) { const c = new T.Mesh(new T.BoxGeometry(L, 0.75, 0.75), dark); c.position.set(x, TOP.y - 0.15, z); c.rotation.set(Math.PI / 4, ry, 0, 'YXZ'); c.castShadow = true; g.add(c); }
+  for (const [x, z, L, ry] of LB.coping.map((c, i) => [c[0], c[1], c[2], [0, Math.PI / 2][i]])) { const c = new T.Mesh(new T.BoxGeometry(L, 0.75, 0.75), dark); c.position.set(x, TOP.y - 0.15, z); c.rotation.set(Math.PI / 4, ry, 0, 'YXZ'); c.castShadow = true; g.add(c); }
   // the inscription's face: on the parapet's inner face (toward the Mount), beside the niche
   const cw = 2048, ch = 640, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
   const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace || tex.colorSpace; tex.anisotropy = 4;
   const FW = 7.0, FH = FW * ch / cw;
   const face = new T.Mesh(new T.PlaneGeometry(FW, FH), new T.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0.25, roughness: 0.9 }));
-  face.rotation.y = Math.PI; face.position.set(-293.2, TOP.y + 1.25, 398.83); g.add(face);
+  face.rotation.y = Math.PI; face.position.set(LB.faceAt[0], TOP.y + LB.faceAt[1], LB.faceAt[2]); g.add(face);
   cornerT = { g, face, stone, cv, tex, cw, ch, FW, FH, carved: null };
   return cornerT;
 }
@@ -1103,7 +1106,7 @@ export const LETTERS = {
     const fan = new T.Mesh(new T.CircleGeometry(1, 24, -hw, hw * 2), new T.MeshBasicMaterial({ color: '#FFD36A', transparent: true, opacity: 0.2, depthWrite: false, depthTest: false, side: T.DoubleSide }));
     fan.rotation.x = -Math.PI / 2; fan.renderOrder = 4; fan.visible = false; world.add(fan);
     const flag = new T.Mesh(new T.PlaneGeometry(0.9, 0.45), new T.MeshStandardMaterial({ color: '#D9483B', side: T.DoubleSide })); flag.visible = wind > 0; world.add(flag);
-    const pole = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 3, 5), wood); pole.position.set(-299.75, TOP.y + 1.5, 396.3); pole.visible = wind > 0; world.add(pole);
+    const pole = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 3, 5), wood); pole.position.set(BOOK.s01.letters.pole[0], TOP.y + BOOK.s01.letters.pole[1], BOOK.s01.letters.pole[2]); pole.visible = wind > 0; world.add(pole);
     // the breath: a bar with its band (let go inside it), on the screen under the trumpeter
     const ui = document.createElement('div'); ui.className = 'h109-ui h114-breath';
     ui.innerHTML = '<i class="b"></i><i class="f"></i><span></span>'; document.body.appendChild(ui);
@@ -1119,7 +1122,7 @@ export const LETTERS = {
     // ── part 1: the inscription stone comes up to its place ──
     const st0 = K.stone.position.y, upRope = X.props.rope(8, 0.06);
     function part1() {
-      X.shot([-352, 58, 456], [-296, TOP.y, 396], 1.0);
+      { const C = BOOK.s01.cam.letters; X.shot(C[0], [C[1][0], TOP.y, C[1][1]], 1.0); }
       X.line('בראש הפינה הדרומית-מערבית של ההר · אבן הכתובת עולה למקומה');
       K.stone.position.y = st0 + 14; face.visible = false; A.p1 = 0;
     }
@@ -1220,7 +1223,7 @@ export const LETTERS = {
       const veil = document.createElement('div'); veil.className = 'h109-ui'; veil.style.cssText = 'position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,150,60,.25),rgba(60,30,80,.35));opacity:0;transition:opacity 2.5s;z-index:5'; document.body.appendChild(veil); requestAnimationFrame(() => { veil.style.opacity = '1'; }); A.veil = veil;
       X.line('בין הערביים · "ושובת" (שבת לה ע"ב)');
       SH.lettersDone = true;
-      setTimeout(() => X.shot([-372, 120, 470], [-150, 0, 250], 2.2), 1600);
+      setTimeout(() => X.shot(BOOK.s01.cam.shabbat[0], BOOK.s01.cam.shabbat[1], 2.2), 1600);
       setTimeout(() => X.end({ q, stars: q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, at: { x: TP.x, y: TP.y + 2, z: TP.z } }), 7200);
     }
     return {
@@ -1243,7 +1246,7 @@ export const LETTERS = {
           if (tr) { tr.fx = TP.x + Math.sin(A.aim) * 10; tr.fz = TP.z + Math.cos(A.aim) * 10; if (tr.a) { tr.a.tiltT = A.hold ? 0.3 : 0.5; tr.a.playing = !!A.hold; } }   /* (the trumpet level, out over the land; a little up while he blows) */
           const gy = X.ground(TP.x - 30, TP.z + 30); const aimW = A.aim + wind;
           fan.position.set(TP.x, Math.max(gy + 1.2, TOP.y - 1.5), TP.z); fan.scale.setScalar(40 + 80 * (A.hold ? Math.min(1, A.breath / band[0]) : 1)); fan.rotation.set(-Math.PI / 2, 0, aimW - Math.PI / 2, 'XYZ');
-          if (wind) { flag.position.set(-299.75 - 0.45, TOP.y + 2.75, 396.3); flag.rotation.y = Math.PI / 2 + Math.sin(A.t * 5) * 0.2; }
+          if (wind) { flag.position.set(BOOK.s01.letters.flag[0] - 0.45, TOP.y + BOOK.s01.letters.flag[1], BOOK.s01.letters.flag[2]); flag.rotation.y = Math.PI / 2 + Math.sin(A.t * 5) * 0.2; }
           if (A.hold && A.blast !== 3 && !(A.terua && A.terua.step === 1)) { A.breath += dt / 2.1; breathUI(true); if (A.breath >= 1.15) blowEnd(); }
           if (A.fish > 0) { A.fish -= dt; if (A.fish <= 0) { A.blast = 4; A.terua = { step: 0, taps: [], g: [] }; fan.visible = false; breathUI(true, 'תקיעה'); X.line('תקיעה, תרועה, תקיעה · החזיקו לתקיעה ושחררו בפס'); } }
         }

@@ -12,6 +12,10 @@ const KIND = {
   outlet: 'גלישה', pit: 'בור', hollow: 'גומת מקור', vessel: 'כלי', trestles: 'חמורים', stock: 'מלאי', heap: 'ערמה', bench: 'ספסל',
   // (build 126) the kinds the stages' moved places brought
   slot: 'מקום בחומה', crew: 'איש צוות', stone: 'אבן', line: 'קו', rack: 'מתלה',
+  // ── h127 ── (build 127) the kinds stages 01 and 05's moved places brought
+  brake: 'עמוד בלם', block: 'גלגלת', scaffold: 'פיגום', pile: 'ערמת אבנים', lane: 'שביל', cross: 'מעבר', mark: 'סימון', jar: 'כד',
+  crane: 'מנוף', course: 'נדבך', corner: 'פינה',
+  // ── /h127 ──
 };
 const L = [
   '# ספר הכתובות — כל המקומות לפי שלב',
@@ -22,7 +26,7 @@ const L = [
   'הרשת לעולם אינה מצוירת במשחק. "המחשה" — מידה שאינה במקורות.',
   '',
 ];
-for (const k of ['s02', 's03', 's04', 's05']) {
+for (const k of ['s01', 's02', 's03', 's04', 's05']) {   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
   const S = BOOK[k], B = S.bounds;
   L.push(`## שלב ${String(S.stage).padStart(2, '0')} — ${S.name}`, '');
   L.push(`תחום: x ${n(B.x0)} עד ${n(B.x1)}, z ${n(B.z0)} עד ${n(B.z1)} · ${S.entries.length} כתובות`, '');

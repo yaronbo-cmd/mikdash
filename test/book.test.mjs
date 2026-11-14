@@ -112,6 +112,34 @@ test('book s05 (build 127): the routes, the rig, the floor, the ways, the camera
   for (const lv of [1, 2, 3]) assert.ok(by['rig:post' + lv], 'rig entry ' + lv);
 });
 
+test('book s01 (build 127): stage 01 reads its places from the book — the square, the corner stone, the courses, the trumpeting corner, the cameras', async () => {
+  const A1 = await import('../src/game/h109/acts.js');
+  const A3 = await import('../src/game/h109/acts3.js');
+  const { PLACES } = await import('../src/game/h109/model.js');
+  const S = BOOK.s01, by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
+  assert.equal(S.stage, 1); assert.ok(Object.isFrozen(S) && Object.isFrozen(S.entries));
+  // the square is mount.js SQUARE, made from the grid (500 × 500 from the east wall and the north edge); the rope act's line is it, 6 in
+  assert.deepEqual({ ...S.square }, { x0: -223, x1: 277, z0: -183.5, z1: 316.5 });
+  assert.deepEqual({ ...A1.SQ }, { x0: S.square.x0 + 6, x1: S.square.x1 - 6, z0: S.square.z0 + 6, z1: S.square.z1 - 6 });
+  // the acts' own objects are the book's
+  assert.equal(A3.CORNER_AT, S.corner.stone); assert.equal(A3.CRANE_AT, S.corner.crane); assert.equal(A3.LET, S.letters.face);
+  const cs = A3.CORNER.stand({ k: 'corner' }, null); assert.deepEqual([cs.x, cs.z], [S.corner.kohen.x, S.corner.kohen.z]);
+  for (let c = 0; c < S.courses.n; c++) { const s = A3.COURSE.stand({ k: 'course', c }, null); assert.equal(s.face[0], S.courses.wallX); assert.equal(s.face[1], by['course' + c].z, 'course ' + c); }
+  const ls = A3.LETTERS.stand({ k: 'letters' }, null); assert.deepEqual([ls.x, ls.z, ...ls.face], [BOOK.letters.x, BOOK.letters.z, S.letters.face.x, S.letters.face.z]);
+  assert.deepEqual(PLACES.letters.face, [S.letters.face.x, S.letters.face.z]);
+  // stage 01's old keys stay as they were (other code reads them)
+  for (const k of ['sectors', 'kohen', 'pile', 'pits', 'yard', 'corner', 'courses', 'letters', 'great']) assert.ok(BOOK[k], k);
+  for (const k of ['corner', 'courses', 'letters', 'cam', 'platform']) assert.ok(Object.isFrozen(S[k]), k);
+  // every entry inside the Mount's platform, named by its own cell, one per spot and kind
+  const seen = new Set();
+  for (const e of S.entries) {
+    const B = S.bounds, { k, r } = cellOf(e.x, e.z);
+    assert.ok(e.x >= B.x0 && e.x <= B.x1 && e.z >= B.z0 && e.z <= B.z1, e.id); assert.equal(e.cell, nameOf(k, r), e.id);
+    assert.ok(/[֐-׿]/.test(e.label) && e.src, e.id);
+    const key = `${e.kind}|${e.x}|${e.z}`; assert.ok(!seen.has(key), e.id); seen.add(key);
+  }
+});
+
 test('book s02: the wall stage — sides, stretches and their stands, stakes, gates', async () => {
   await import('../src/game/h111/acts.js');
   const { SIDE, STRETCH, sidePoint, H111 } = await import('../src/game/h111/model.js');

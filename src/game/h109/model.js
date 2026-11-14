@@ -35,7 +35,7 @@ export const PLACES = Object.freeze({
   corner: { x: BOOK.corner.x, z: BOOK.corner.z },
   course: BOOK.courses.map((c) => ({ x: BOOK.corner.x, z: c.z })),
   great: { x: BOOK.great.x, z: BOOK.great.z, end: { x: BOOK.great.endX, z: BOOK.great.endZ } },   // ── h116 ── down the slope ── /h116 ──
-  letters: { x: -281, z: 383, face: [-300, 400] },
+  letters: { x: BOOK.letters.x, z: BOOK.letters.z, face: [BOOK.s01.letters.face.x, BOOK.s01.letters.face.z] },   // (build 127: the book's)
   pile: { x: BOOK.pile.x, z: BOOK.pile.z },
   pits: BOOK.pits,
 });

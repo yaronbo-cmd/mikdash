@@ -21,13 +21,12 @@ const ALLOW = [
   ['h113/acts3.js', 13, 'the hand\'s screen offsets (±40..70 px), dust, the key\'s canvas (0.4, 420), a ring geometry (70, 0, 1)'],
   ['h113/pack.js', 4, 'the lintel\'s growth scale (0.01, 40); gateShot\'s seconds, height and distance from the gate (2.4, 40, 22) ×3'],
   ['h113/world.js', 1, 'the derrick wheel\'s torus segments (0.12, 6, 36)'],
-  // stage 01: audited in build 126, not moved (its whole-stage replay does not fit before the stop); the list is in the hand-back
-  ['h109/acts.js', 5, 'stage 01 audit: the rope\'s line, a rock shot, hand offsets — not moved in build 126'],
-  ['h109/acts2.js', 7, 'stage 01 audit: the read/pave/waste shots and stands — not moved in build 126'],
-  ['h109/acts3.js', 95, 'stage 01 audit: the corner, the courses, the great stone and the letters — places and shots; not moved in build 126'],
-  ['h109/director.js', 28, 'stage 01 audit: its pack (the film, the night, the opening) lives in the director — not moved in build 126'],
+  // stage 01 (build 127: every place read from the book): what the scan still finds is no place
+  ['h109/acts.js', 1, 'the rope act\'s closing shot: offsets from the book\'s square (+120 east, height 360; +260 south of it)'],
+  ['h109/acts2.js', 7, 'a crack\'s point count (46), the tally\'s canvas (34 px apart, 10..54 px), the hand\'s screen offsets (0, −70 | −40 | −60; 40, −10)'],
+  ['h109/acts3.js', 62, 'the inscription\'s letter strokes in the canvas\'s own units (GLYPH, 40); geometry segments (torus 0.11, 6, 36; rings 32 | 40); canvas sizes and boxes (512 × 256, 22, 468, 10, 492, the chalk tag 128, 70, the face\'s margin 36); dust (count, spread) ×2; the hand\'s screen offsets (0, 40 ×2 | 0, −70); the carving\'s tolerance px (30, 24, 18) and canvas points (50, 70; the half width cw / 2, 120); the aim\'s drag gain and limit (0.0032, −125°)'],
+  ['h109/director.js', 13, 'the overview\'s lift (520 back, 360 high, from the work: offsets); haptic patterns (ms) ×4; the lift\'s height clamp (60..180); the glow\'s canvas (32, 32, 64 px); spark counts; the loss cap (0..80 points); the stars\' bonus points (0, 50, 100, 200); the frame step clamp (s)'],
   ['h109/grips.js', 1, 'the grip radius\'s floor and share of the screen (44 px, 0.15) — no place'],
-  ['h109/model.js', 3, 'stage 01 audit: PLACES.letters (x −281, z 383, face −300, 400) beside the book\'s letters — not moved in build 126'],
   ['h109/props.js', 1, 'a ring geometry\'s segments (2, 48) — no place'],
   // stage 05 (build 127: every place read from the book): what the scan still finds is no place
   ['h120/acts.js', 3, 'the column act\'s wide shot and its view cone, offsets in the column\'s own frame (along 1.8, across 55, height 13) ×2; dust (count, spread)'],

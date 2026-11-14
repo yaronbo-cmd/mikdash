@@ -105,6 +105,7 @@ const deepFreeze = (o) => { if (o && typeof o === 'object' && !Object.isFrozen(o
 function makeBook() {
   const SECTORS = allSectors();
   const stages = { s02: s02(), s03: s03(), s04: s04(), s05: s05() };   // ── build 124 B ── ── /build 124 B ──
+  stages.s01 = s01(SECTORS);   // ── h127 ── (build 127: stage 01's section, shaped as the others; its old keys below stay as they were) ── /h127 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -407,7 +408,7 @@ function s05() {
   }
   // ── h127 ── the places moved into the book in build 127
   for (const [lv, R] of Object.entries(C.rig)) {
-    E.push(ent('rig:post' + lv, 'post', R.post[0], R.post[1], `עמוד הבלם של העמוד, רמה ${lv}`, ILL));
+    E.push(ent('rig:post' + lv, 'brake', R.post[0], R.post[1], `עמוד הבלם של העמוד, רמה ${lv}`, ILL));
     if (R.block) E.push(ent('rig:block' + lv, 'block', R.block[0], R.block[2], 'הגלגלת על קיר לשכת העצים', ILL, { y: R.block[1] }));
   }
   C.scaff.forEach(([x0, z0, x1, z1], i) => E.push(ent('scaff' + i, 'scaffold', (x0 + x1) / 2, (z0 + z1) / 2, 'פיגום על קיר הלשכה', ILL)));
@@ -426,5 +427,46 @@ function s05() {
   return { stage: 5, name: 'עזרת הנשים', bounds: { x0: -2, x1: 160, z0: -76, z1: 76 }, ...C, entries: E };
 }
 // ── /build 124 B ──
+
+/* ───────── ── h127 ── stage 01's section (build 127, rule 65: every place stage 01's code used to type itself, read from here) ───────── */
+/** stage 01, the Mount's levelling (h109): the Mount's platform (mount.js PLAT) and the 500-amah square (mount.js SQUARE, made from the
+ *  grid's own EAST and NORTH: the surveyors' rope act, h109/acts.js); the corner stone's act (the stone square in the real south-east
+ *  corner, the treadwheel crane, the stock, the kohen on the guide rope); the courses on the east wall north of it (their wall line x,
+ *  the two stretches' north ends z0, the free courses every step further north); the trumpeting place on the south-west corner (the
+ *  corner's outer point, the trumpeter, the corner block's top, its parts [x, height over the top, z] and boxes); the cameras: the end
+ *  film [eye, target, seconds], the overview's middle (the director's lift over the Mount, every stage's), the inscription's two shots */
+const S01 = {
+  platform: { x0: -300, x1: EAST, z0: -480, z1: 400 },
+  corner: { stone: { x: 275.5, z: 398.7 }, crane: { x: 264, z: 392.6 }, stock: { x: 253.5, z: 392 }, kohen: { x: 268.6, z: 389.2 } },
+  courses: { wallX: 276.1, z0: [352, 316], step: 36, n: 8 },
+  letters: {
+    face: { x: -300, z: 400 }, trumpeter: { x: -298.4, z: 398.4 }, top: { y0: 31.6, y: 38.2 },
+    block: [-300.05, -289, 389, 400.05],                 // the corner block: x0, x1, z0, z1 (from the top's y0 to its y)
+    parapet: { x: -299.45, z0: 389, z1: 396.9 },          // the parapet's blocks along the west edge (x; z from, to)
+    stone: [-293.2, 1.2, 399.45], fill: [-289.4, 1.2, 399.45], faceAt: [-293.2, 1.25, 398.83],
+    niche: [[-300.05, -296.9, 0.9, 399.6, 400.05], [-300.05, -299.6, 0.9, 396.9, 400.05]],   // [x0, x1, height, z0, z1]
+    coping: [[-294.6, 400.15, 11.4], [-300.15, 394.6, 11.4]],                              // [x, z, length]
+    pole: [-299.75, 1.5, 396.3], flag: [-299.75, 2.75, 396.3],
+  },
+  cam: {
+    film: [[[60, 260, 520], [0, 0, -40], 3.0], [[60, 55, 70], [-30, -4, -21], 2.8], [[306, -36, 372], [277, -46, 399], 2.2], [[322, 14, 352], [277, -12, 398], 2.4], [[-200, 60, -260], [-280, 10, -150], 2.4], [[-352, 62, 456], [-296, 38, 396], 2.4], [[180, 300, 620], [27, 0, 66], 1.4]],
+    over: [27, 0, 66],
+    letters: [[-352, 58, 456], [-296, 396]],   // (eye; the target's x and z, at the corner block's top)
+    shabbat: [[-372, 120, 470], [-150, 0, 250]],
+  },
+};
+function s01() {
+  const E = [], C = S01.corner, K = S01.courses, L = S01.letters;
+  E.push(ent('corner:stone', 'stone', C.stone.x, C.stone.z, 'אבן הפינה בפינה הדרומית-מזרחית של ההר', ILL));
+  E.push(ent('corner:crane', 'crane', C.crane.x, C.crane.z, 'מנוף הגלגל ליד אבן הפינה', ILL));
+  E.push(ent('corner:stock', 'stock', C.stock.x, C.stock.z, 'האבנים המחכות למנוף', ILL));
+  E.push(ent('stand:corner', 'stand', C.kohen.x, C.kohen.z, 'עמדת הכהן בחבל ההכוונה', ILL));
+  for (let c = 0; c < K.n; c++) { const z0 = c < K.z0.length ? K.z0[c] : K.z0[1] - K.step * (c - 1); E.push(ent('course' + c, 'course', K.wallX, z0 + 7, `נדבך ${c + 1} בחומה המזרחית`, ILL)); }
+  E.push(ent('letters:corner', 'corner', L.face.x, L.face.z, 'הפינה הדרומית-מערבית של ההר: בית התקיעה', 'מלחמות ד, ט, יב'));
+  E.push(ent('letters:trumpeter', 'crew', L.trumpeter.x, L.trumpeter.z, 'מקום התוקע בפינה', ILL));
+  E.push(ent('letters:stone', 'stone', L.stone[0], L.stone[2], 'אבן הכתובת "לבית התקיעה"', 'חפירות ב. מזר, 1968'));
+  return { stage: 1, name: 'שיטוח ההר', bounds: S01.platform, square: { x0: EAST - SQ_N * CELL, x1: EAST, z0: NORTH, z1: NORTH + SQ_N * CELL }, ...S01, entries: E };
+}
+// ── /h127 ──
 
 export const BOOK = makeBook();

@@ -18,8 +18,8 @@ const TAU = Math.PI * 2;
 export const SH = { X: null, B: null, crew: null, bould: [], rocks: [], stakes: [], plan: null, sq: null };
 
 /* ───────── the world as the save has it ───────── */
-// the 500-amah square (mount.js SQUARE), inset 6 amot: the surveyors' line
-const SQ = { x0: -223 + 6, x1: 277 - 6, z0: -183.5 + 6, z1: 316.5 - 6 };
+// the 500-amah square (mount.js SQUARE; build 127: the address book's, BOOK.s01.square), inset 6 amot: the surveyors' line
+const SQ = (({ x0, x1, z0, z1 }) => ({ x0: x0 + 6, x1: x1 - 6, z0: z0 + 6, z1: z1 - 6 }))(BOOK.s01.square);
 // the two sides the kohen stretches (the last rope-length of each, to the north-east corner): from the crew's 450 stake to 500
 const ROPE = [
   { a: [SQ.x1 - 50, SQ.z0], b: [SQ.x1, SQ.z0] },   // the north side, westward from the crew's stake → the corner

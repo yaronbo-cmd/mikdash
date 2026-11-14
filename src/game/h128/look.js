@@ -2,7 +2,7 @@
  *   0–8 s    the ship on a calm swell, a clear late afternoon (the opening line of Yoma 38a)
  *   8–28 s   the sky darkens, the sail is furled; three big swells pass: from port, from starboard, over the bow (seen coming from far;
  *            the camera lifts a little before the second, as the act will)
- *   28–36 s  the cloud break: one shaft of light on the bronze
+ *   28–36 s  the cloud break: the ceiling tears open far ahead under the low sun, the bright patch runs over the water to the bronze
  *   36–45 s  the lifted view round the ship
  * A small frames-per-second number in a corner, the renderer's draw calls and triangles under it (this page only). The probe's eyes: window.__H128_LOOK = { seek(t), bench(sec), dbg() },
  * and a small window.__T (booted, game.frame, simulate, render) so tools/probe109.cjs drives this page as it drives the game.
@@ -16,12 +16,12 @@ const sm = (a, b, t) => { const u = Math.min(1, Math.max(0, (t - a) / (b - a)));
 const SWELLS = [{ head: 'port', t0: 15 }, { head: 'stbd', t0: 20.5 }, { head: 'bow', t0: 26 }];
 /** the sample's script at loop time t: the weather, the camera */
 export function lookAt(t) {
-  const storm = sm(8, 12, t) * (1 - sm(28, 31, t) * 0.45), brk = sm(28, 32, t), furl = sm(9, 13, t);
+  const storm = sm(8, 12, t) * (1 - sm(28, 31, t) * 0.45), brk = sm(28, 32, t), furl = sm(9, 13, t), hole = sm(28.5, 33.5, t);
   let cam = 'play', u = 0, round = 0;
   u = sm(17, 18.5, t) * (1 - sm(19.2, 20.2, t)) * 0.6;          // lifted a little before the starboard swell, then back
   if (t >= 36) { cam = 'round'; round = -0.5 + ((t - 36) / 9) * Math.PI * 1.1; u = 0; }
   const next = SWELLS.find((w) => w.t0 > t - 1.5);
-  return { k: storm, brk, furl, cam, u, round, head: next ? next.head : null, line: t < 7.5 ? LINES.open : t >= 28.5 && t < 35.5 ? 'פרצת עננים (המחשה)' : '' };
+  return { k: storm, brk, hole, furl, cam, u, round, head: next ? next.head : null, line: t < 7.5 ? LINES.open : t >= 28.5 && t < 35.5 ? 'פרצת עננים (המחשה)' : '' };
 }
 
 export function runSeaLook({ renderer, canvas }) {
@@ -40,7 +40,7 @@ export function runSeaLook({ renderer, canvas }) {
   const stat = { frames: 0, script: 0, render: 0 };
   function step(t, dt) {
     const L = lookAt(t);
-    S.set({ k: L.k, brk: L.brk, furl: L.furl, swells: SWELLS });
+    S.set({ k: L.k, brk: L.brk, hole: L.hole, furl: L.furl, swells: SWELLS });
     S.view(L.cam, L.u, L.round, L.head);
     S.update(t, dt);
     if (cap.textContent !== L.line) cap.textContent = L.line;

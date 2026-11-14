@@ -238,5 +238,13 @@ test('book s06: the gate, the ramp, the steps, the wickets as the world draws th
   assert.equal(H.stem - H.stern, 60); assert.equal(H.beam, 16);
   for (const k of ['portFore', 'portAft', 'stbdFore', 'stbdAft']) for (const T of [D.rings, D.cleats, D.tails]) assert.ok(Math.abs(T[k][1]) < H.beam / 2 && T[k][0] > H.stern && T[k][0] < H.stem, k);
   assert.equal(D.sailors.length, 6);
+  // the rudder (build 128 sea look 2): two posts on the quarters, one each side, aft of the doors; the cross tiller between them,
+  // inside the beam; the helmsman aft of it, inside the hull, to starboard of the middle line (Nicanor stays in sight)
+  assert.equal(D.steer.length, 2); assert.ok(D.steer[0][1] < 0 && D.steer[1][1] > 0 && D.steer[0][0] === D.steer[1][0]);
+  assert.ok(D.steer[0][0] > H.stern && D.steer[0][0] < D.doors.port[0] - D.doors.L / 2 && Math.abs(D.steer[0][1]) < H.beam / 2);
+  assert.ok(D.tiller[0] > D.steer[0][0] && D.tiller[1] < 0 && D.tiller[2] > 0 && D.tiller[2] < Math.abs(D.steer[1][1]));
+  assert.ok(D.helm[0] < D.tiller[0] && D.helm[0] > D.steer[0][0] && D.helm[1] > 0.5 && D.helm[1] < D.tiller[2]);
+  assert.ok(D.helm[0] < D.nicanor[0]);
+  const LT = S.sea.light; assert.ok(LT.r > 0 && LT.hole > 0 && LT.hole < 0.5 && Math.hypot(...LT.from) > 100);
 });
 // ── /h128 ──

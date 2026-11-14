@@ -17,7 +17,7 @@ import { BOOK } from '../world/grid.js';
 import { WAVES, SWELL, H128, seaAt, headDir, swellPos } from './model.js';
 import { createActors } from '../../actors.js';
 
-const SEA = BOOK.s06.sea, HULL = SEA.hull, DECK = SEA.deck, MAST = SEA.mast, CAM = SEA.cam;
+const SEA = BOOK.s06.sea, HULL = SEA.hull, DECK = SEA.deck, MAST = SEA.mast, CAM = SEA.cam, LIGHT = SEA.light;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const mix = (a, b, u) => a + (b - a) * u;
 const DEG = Math.PI / 180, TAU = Math.PI * 2;
@@ -31,16 +31,98 @@ const DUN = 0.3;                      // the timbers the leaves lie on (their th
 const BRONZE = '#D9AF5A', BRONZE_D = '#C59E52';
 // the light (one golden light: the world's dusk sun colour; cooled and dimmed in the storm) and the skies (illustration)
 const SKY = {
-  clear: { top: '#4C74B4', hor: '#F2C893', sea: '#1B4F63', deep: '#0C2F40', sun: '#FFBA6E', sunI: 2.7, hemiS: '#B4C4DC', hemiG: '#8A7660', hemiI: 1.7, fog: '#E9C9A2', cloud: '#F4E4CE', cover: 0.28 },
-  storm: { top: '#27332F', hor: '#5E6B63', sea: '#2E5249', deep: '#0A1A16', sun: '#B8C6CC', sunI: 0.75, hemiS: '#8494A0', hemiG: '#46504B', hemiI: 1.25, fog: '#55625B', cloud: '#3E4944', cover: 0.92 },
-  brk: { top: '#3A4C58', hor: '#B9A88A', sea: '#22465A', deep: '#0E2A38', sun: '#FFC27A', sunI: 2.6, hemiS: '#9AA6AE', hemiG: '#6A6052', hemiI: 1.45, fog: '#8C8E84', cloud: '#59625E', cover: 0.7 },
+  clear: { top: '#4E78B6', hor: '#F0C690', sea: '#1D5868', deep: '#072634', scat: '#2C9A88', foam: '#F2F3EC', sun: '#FFBA6E', sunI: 2.7, hemiS: '#B4C4DC', hemiG: '#8A7660', hemiI: 1.7,
+    fog: '#EBCCA4', fogSea: '#B9AE9C', cloud: '#FFF0DC', cloudD: '#A3949A', pale: '#EBCCA4', cover: 0.46 },
+  storm: { top: '#2A3633', hor: '#56635C', sea: '#2B4F47', deep: '#06120F', scat: '#3C8C72', foam: '#D8E2DE', sun: '#B8C6CC', sunI: 0.75, hemiS: '#8494A0', hemiG: '#46504B', hemiI: 1.25,
+    fog: '#5A665F', fogSea: '#46524C', cloud: '#4C5652', cloudD: '#121816', pale: '#A9B2A6', cover: 0.5 },
+  brk: { top: '#5E86A6', hor: '#E6C28C', sea: '#22485A', deep: '#0A2230', scat: '#46A08C', foam: '#EEF0EA', sun: '#FFC27A', sunI: 2.6, hemiS: '#9AA6AE', hemiG: '#6A6052', hemiI: 1.45,
+    fog: '#9A968A', fogSea: '#6E7270', cloud: '#5C666A', cloudD: '#1C2427', pale: '#D9C6A0', cover: 0.55 },
 };
 const C = (h) => new THREE.Color(h);
-// the sun's direction (toward the sun): low ahead-left in the late afternoon; in the break it shines through the gap
+// the sun's direction (toward the sun). The light on the ship: low ahead-left in the late afternoon, through the gap at the break.
+// The sun the sky and the water show: lower (a disk with its glow near the horizon in the calm; in the break it shines through the
+// torn hole far ahead, its light a path on the water to the ship)
 const SUN_CLEAR = new THREE.Vector3(0.8, 0.3, -0.52).normalize(), SUN_BRK = new THREE.Vector3(0.8, 0.42, -0.45).normalize();
+const SKY_CLEAR = new THREE.Vector3(0.86, 0.1, -0.5).normalize(), SKY_BRK = new THREE.Vector3(0.9, 0.105, -0.42).normalize();
+const _up = new THREE.Vector3(0, 0.05, 0);   // the hole's centre stands a little above the sun it shows
 
 /* ─────────────── the sea's shaders: the model's sum (gerst + swells), the same constants ─────────────── */
 const NW = WAVES.length;
+// shared GLSL: a small value noise and its octaves (no texture: every asset inline)
+const NOISE = /* glsl */`
+  float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+  float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
+  const mat2 ROT = mat2(1.6, 1.2, -1.2, 1.6);
+  float fbm2(vec2 p) { return vn(p) * 0.67 + vn(ROT * p + 5.2) * 0.33; }
+  float fbm4(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vn(p); p = ROT * p + 1.7; a *= 0.5; } return s / 0.9375; }
+  // (the fine octaves weighed by w: toward the horizon they fade to their mean, so the far clouds do not crowd into streaks)
+  float fbm4w(vec2 p, float w) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * (i < 2 ? vn(p) : mix(0.5, vn(p), w)); p = ROT * p + 1.7; a *= 0.5; } return s / 0.9375; }`;
+// the sky's look, shared by the dome and the water's mirror: the gradient, the sun, the clouds on a plane above the sea (two layers
+// at their own speeds, lit from the sun's side), the storm's low ceiling that rolls in from port, its pale band at the horizon, and
+// the break: a hole torn in the ceiling along the sun's ray to the bright patch on the water
+const SKYFN = /* glsl */`
+  uniform vec3 uTop, uHor, uSun, uFog, uCloud, uCloudD, uPale; uniform vec3 uSkyDir; uniform float uT, uK, uBrk, uCover, uFront;
+  uniform vec3 uCam; uniform vec3 uHoleD; uniform float uHoleR;   // the hole: its direction (from the ship) and its angular radius
+  const float HC = 650.0;                  // the cloud plane's height (amot): a low ceiling
+  vec2 planeAt(vec3 d) { return uCam.xz + d.xz / max(d.y, 0.035) * HC; }
+  // the storm's share at a point of the plane: the ceiling comes in from port (−z) and closes over the ship as uFront goes by
+  float stormAt(vec2 P) { return 1.0 - smoothstep(uFront - 900.0, uFront + 900.0, P.y + (vn(P / 1700.0) - 0.5) * 2400.0); }
+  // the hole torn in the ceiling: 1 inside (clear), a ragged edge
+  float holeAt(vec3 d, float oct) { if (uBrk <= 0.0) return 0.0;
+    vec3 ax = normalize(cross(uHoleD, vec3(0.0, 1.0, 0.0))), ay = cross(ax, uHoleD);
+    vec2 q = vec2(dot(d, ax), dot(d, ay) * 1.15); float r = uHoleR * uBrk;
+    float e = oct > 2.5 ? (fbm4(q * 9.0 + vec2(uT * 0.02, 0.0)) - 0.5) * r * 1.3 + (fbm2(q * 34.0) - 0.5) * r * 0.45 : (vn(q * 9.0) - 0.5) * r;
+    return (1.0 - smoothstep(r * 0.35, r * 1.05, length(q) + e)) * step(0.0, dot(d, uHoleD)); }
+  // the clouds at a plane point: cover c and thickness th. Calm: two layers (big and slow, small and quicker); the storm: a closed
+  // ceiling stretched into rolls, its thickness in dark masses, low scud running under it
+  float cloudsAt(vec2 P, float oct, float hd, out float th, out float st) {
+    st = stormAt(P);
+    vec2 a = P / 1500.0 + uT * vec2(0.0045, 0.0012), b = P / 520.0 + uT * vec2(0.014, 0.004) + 3.7;
+    float fw = smoothstep(0.03, 0.25, hd), n1 = oct > 2.5 ? fbm4w(a, fw) : vn(a), n2 = oct > 2.5 ? fbm4w(b, fw) : vn(b);
+    float n = n1 * 0.72 + n2 * 0.38 - 0.05;
+    float calm = smoothstep(1.0 - uCover, 1.0 - uCover + 0.26, n), cth = smoothstep(1.0 - uCover + 0.06, 1.05, n);
+    vec2 r = vec2(P.x / 1700.0, P.y / 800.0) + uT * vec2(0.008, 0.02);
+    float roll = oct > 2.5 ? fbm4w(r, fw) : vn(r);
+    float scud = oct > 2.5 ? mix(0.5, fbm2(P / 300.0 + uT * vec2(0.06, 0.035)), fw) : 0.5;
+    float ceil = smoothstep(0.08, 0.38, roll + 0.12), sth = smoothstep(0.3, 0.78, roll * 0.65 + scud * 0.45);
+    th = mix(cth, sth, st);
+    return mix(calm, ceil, st);
+  }
+  vec3 skyGrad(vec3 d) {
+    float h = d.y;
+    vec3 col = mix(uHor, uTop, pow(clamp(h, 0.0, 1.0), 0.55));
+    float sd = max(dot(d, uSkyDir), 0.0), calmS = 1.0 - uK * (1.0 - uBrk);
+    col += uSun * (pow(sd, 10.0) * 0.32 + pow(sd, 160.0) * 0.7) * calmS;
+    return col;
+  }
+  // the whole sky in direction d; oct > 2.5 the dome's full detail, else the water's mirror
+  vec3 skyAt(vec3 d, float oct, float hb) {
+    float h = d.y; vec3 col = skyGrad(d);
+    float sd = max(dot(d, uSkyDir), 0.0);
+    if (oct > 2.5) col += uSun * smoothstep(0.99955, 0.9998, sd) * 3.0 * (1.0 - uK * (1.0 - uBrk)) * smoothstep(-0.005, 0.02, h);   // the sun's disk
+    if (h > 0.0) {
+      vec2 P = planeAt(d); float th, st, th2, st2;
+      float c = cloudsAt(P, oct, h, th, st);
+      // lit from the sun's side: the cover a step toward the sun; thick bases dark, the sun-ward edges bright (less under the storm)
+      vec2 toS = normalize(uSkyDir.xz + 1e-4) * 140.0;
+      float c2 = oct > 2.5 ? cloudsAt(P + toS, 1.0, h, th2, st2) : c;
+      float lit = clamp(0.5 + (c - c2) * 2.0, 0.0, 1.0), calmL = 1.0 - st * mix(uK, 0.6, uBrk);
+      vec3 cc = mix(uCloud, uCloudD, th * mix(0.75, 1.0, st)) + uSun * lit * calmL * (0.15 + 0.85 * pow(sd, 2.0)) * 0.7;
+      cc += uSun * pow(sd, 40.0) * 0.6 * (1.0 - th) * calmL;             // the sun's glow through thin cloud
+      float ho = holeAt(d, oct);
+      if (uBrk > 0.0) {   // the hole's torn rim, lit by the sun behind it
+        float rim = smoothstep(0.0, 0.45, ho) * (1.0 - smoothstep(0.55, 1.0, ho));
+        cc += uSun * uBrk * (rim * 0.9 * (1.0 - th * 0.6) + 0.3 * pow(sd, 5.0)) * (0.4 + 0.6 * c);
+      }
+      col = mix(col, cc, c * (1.0 - ho) * smoothstep(0.0, 0.1, h));
+    }
+    // the haze at the horizon: under the storm's ceiling a pale band, the light beyond the storm
+    float band = smoothstep(oct > 2.5 ? 0.055 : 0.12, 0.0, abs(hb));
+    vec3 haze = mix(uFog, uPale, uK * (1.0 - uBrk * 0.3));
+    col = mix(col, haze, band * (0.8 + 0.15 * uK) * (oct > 2.5 ? 1.0 : 0.6));
+    return col;
+  }`;
 const SEA_VS = /* glsl */`
   uniform float uT, uK, uFade0, uFade1;
   uniform vec2 uShip;
@@ -48,108 +130,191 @@ const SEA_VS = /* glsl */`
   uniform vec4 uWA[${NW}];     // (A calm, A storm, Q, 0)
   uniform vec4 uSw[3];         // (dir x, dir z, the crest's distance past the ship, H)
   uniform float uSwW[3];
-  varying vec3 vWP; varying vec3 vN; varying vec2 vLoc; varying float vSteep; varying float vSw; varying float vBack; varying float vFront; varying vec2 vSwD;
+  varying vec3 vWP; varying vec3 vN; varying vec2 vP; varying float vSteep; varying float vH; varying float vFade;
   float sech2(float v) { float c = cosh(v); return 1.0 / (c * c); }
   void main() {
     vec3 p = position;                       // the plane lies in x, z; the sea's frame: the ship at the origin
     float d = length(p.xz), fade = 1.0 - smoothstep(uFade0, uFade1, d);
     vec2 g = p.xz + uShip;                   // the waves' own frame (the ship sails through it)
-    float dx = 0.0, dz = 0.0, y = 0.0, sx = 0.0, sz = 0.0;
+    float dx = 0.0, dz = 0.0, y = 0.0, sx = 0.0, sz = 0.0, am = 0.0;
     for (int i = 0; i < ${NW}; i++) {
       vec4 W = uW[i]; vec4 WA = uWA[i];
       float A = mix(WA.x, WA.y, uK) * fade, th = W.x * dot(W.zw, g) - W.y * uT, c = cos(th), s = sin(th);
       float q = WA.z / ${NW.toFixed(1)};
-      dx += q * W.z * A * c; dz += q * W.w * A * c; y += A * s;
+      dx += q * W.z * A * c; dz += q * W.w * A * c; y += A * s; am += A;
       sx += A * W.x * W.z * c; sz += A * W.x * W.w * c;
     }
-    float sw = 0.0, back = 0.0, front = 0.0, steep0 = length(vec2(sx, sz)); vec2 sd = vec2(1.0, 0.0);
+    float hs = 0.0;
     for (int j = 0; j < 3; j++) {
       vec4 S = uSw[j]; if (S.w <= 0.0) continue;
       float u = dot(p.xz, S.xy) - S.z, k = u < 0.0 ? uSwW[j] * 1.6 : uSwW[j] * 0.7, v = u / k;
       float f = 1.0 - smoothstep(uFade0 * 1.3, uFade1, d);
       float h = S.w * sech2(v) * f, gr = -2.0 * S.w * sech2(v) * tanh(v) / k * f;
-      y += h; sx += gr * S.x; sz += gr * S.y;
-      if (h / S.w > sw) { sw = h / S.w; sd = S.xy; }
-      back = max(back, u < 0.0 ? h / S.w : 0.0); front = max(front, u >= 0.0 ? h / S.w : 0.0);
+      y += h; sx += gr * S.x; sz += gr * S.y; hs = max(hs, h / S.w);
     }
     vec3 wp = vec3(p.x + dx, y, p.z + dz);
-    vN = normalize(vec3(-sx, 1.0, -sz)); vSteep = steep0; vSw = sw; vBack = back; vFront = front; vSwD = sd; vLoc = wp.xz;
+    vN = normalize(vec3(-sx, 1.0, -sz)); vSteep = length(vec2(sx, sz)); vP = p.xz; vFade = fade;
+    vH = max(clamp(0.5 + 0.5 * (y - hs * 4.0) / max(am, 0.05), 0.0, 1.0) * fade, hs);   // the height in the waves' own range (0 trough … 1 crest)
     vec4 w4 = modelMatrix * vec4(wp, 1.0); vWP = w4.xyz;
     gl_Position = projectionMatrix * viewMatrix * w4;
   }`;
 const SEA_FS = /* glsl */`
-  uniform vec3 uSea, uDeep, uTop, uHor, uSun, uFog; uniform vec3 uSunDir; uniform float uSunI, uT, uK, uFogD, uBrk;
-  uniform vec4 uHull; uniform vec3 uPatch; uniform vec2 uShip;
-  varying vec3 vWP; varying vec3 vN; varying vec2 vLoc; varying float vSteep; varying float vSw; varying float vBack; varying float vFront; varying vec2 vSwD;
-  float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-  float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-    return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
+  ${NOISE}
+  ${SKYFN}
+  uniform vec3 uSea, uDeep, uScat, uFoam, uFogSea; uniform float uSunI, uFogD, uG, uBow, uPatchI;
+  uniform vec4 uW[${NW}]; uniform vec4 uWA[${NW}];
+  uniform vec4 uSw[3]; uniform float uSwW[3];
+  uniform vec4 uHA; uniform vec3 uPatch; uniform vec2 uShip;
+  varying vec3 vWP; varying vec3 vN; varying vec2 vP; varying float vSteep; varying float vH; varying float vFade;
+  // the hull's half beam at the waterline at x (the ship's lines: h128 hullAt)
+  float hbAt(float x) { bool fore = x > uHA.z; float t = clamp(fore ? (x - uHA.z) / (uHA.y - uHA.z) : (uHA.z - x) / (uHA.z - uHA.x), 0.0, 1.0);
+    return uHA.w * pow(max(0.0, 1.0 - pow(t, fore ? 2.0 : 2.4)), fore ? 0.62 : 0.5); }
   void main() {
-    vec2 q = vWP.xz, g = vLoc + uShip;           // g: the waves' own frame (foam and whitecaps travel with the water)
-    float dist = length(cameraPosition - vWP), near = exp(-dist / 55.0) * (0.6 + 0.8 * uK);
-    vec2 rp = vec2(sin(dot(q, vec2(0.83, 0.31)) + uT * 1.9) + sin(dot(q, vec2(-0.37, 1.13)) * 1.31 - uT * 1.4) * 0.7,
-                   sin(dot(q, vec2(0.21, -0.97)) * 1.17 + uT * 1.6) + sin(dot(q, vec2(1.41, 0.63)) * 0.93 - uT * 2.2) * 0.6);
-    vec3 n = normalize(vN + vec3(rp.x, 0.0, rp.y) * 0.035 * near);
+    vec2 P = vP, g = P + uShip;                      // P: the ship's frame; g: the water's own frame (foam stays in the water)
     vec3 V = normalize(cameraPosition - vWP);
-    float fr = 0.03 + 0.97 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
-    vec3 R = reflect(-V, n);
-    vec3 sky = mix(uHor, uTop, pow(clamp(R.y, 0.0, 1.0), 0.6));
-    // the body of the water: troughs dark, backs lit; in the storm more contrast; a big swell's face dark and tall, its back lighter
-    vec3 body = mix(uDeep, uSea, clamp(0.5 + vWP.y * mix(0.12, 0.2, uK), 0.0, 1.0));
-    float crest = smoothstep(0.93, 0.995, vSw) * smoothstep(0.0, 0.25, vFront + 0.1);
-    body = mix(body, uDeep * 0.45, vFront * (1.0 - crest) * (0.35 + 0.4 * uK));
-    body = mix(body, uSea * 1.25, vBack * 0.25 * uK);
-    vec3 col = mix(body, sky, fr * (1.0 - 0.3 * uK));
-    float sp = pow(max(dot(R, uSunDir), 0.0), mix(180.0, 60.0, uK));
-    col += uSun * sp * uSunI * 0.9;
-    // foam: steep faces of the waves (whitecaps in patches), the swell's thick crest, spray streaks blown off it, the wash round the hull
-    float br = 0.5 + 0.5 * sin(dot(q, vec2(0.13, 0.29)) + uT * 0.5) * sin(dot(q, vec2(-0.23, 0.11)) - uT * 0.3);
-    float patchN = vn(g * 0.11 + vec2(uT * 0.03, 0.0)) * 0.6 + vn(g * 0.37) * 0.4;
-    float caps = smoothstep(0.3, 0.55, vSteep) * smoothstep(0.5 - 0.15 * uK, 0.8, patchN) * (0.2 + 0.9 * uK);
-    caps += smoothstep(0.38, 0.62, vSteep) * (0.25 + 0.45 * uK) * (0.5 + 0.5 * br) * 0.6;
-    vec2 sdir = vSwD, sper = vec2(-sdir.y, sdir.x);
-    float streak = smoothstep(0.62, 0.85, vn(vec2(dot(g, sdir) * 0.25, dot(g, sper) * 2.2)) * 0.7 + vn(g * 0.6) * 0.3);
-    float spray = streak * smoothstep(0.7, 0.93, vSw) * step(0.001, vFront) * uK;
-    float crestFoam = crest * smoothstep(0.25, 0.6, patchN + 0.2 * crest);
-    vec2 hp = (vLoc - uHull.xy) / uHull.zw;
-    float hr = length(hp), wash = smoothstep(1.1, 1.0, hr) * smoothstep(0.94, 1.0, hr) * smoothstep(0.35, 0.75, vn(g * 0.7 + uT * 0.6)) * (0.12 + 0.6 * uK);
-    float foam = clamp(caps + crestFoam + spray * 0.8 + wash, 0.0, 1.0);
-    col = mix(col, vec3(0.88, 0.92, 0.9) * (0.55 + 0.45 * min(uSunI, 1.0)), foam * 0.92);
-    // the break: a bright patch on the water round the ship
-    vec2 pd = vLoc - uPatch.xy; col += uSun * uBrk * 0.45 * exp(-dot(pd, pd) / (uPatch.z * uPatch.z)) * (0.6 + 0.4 * fr);
+    float dist = length(cameraPosition - vWP);
+    // the second layer: a fine chop riding the big waves (six short waves of their own, by the same dispersion), faded with distance
+    vec2 sl = vec2(0.0); float ch = 0.0;
+    for (int i = 0; i < 6; i++) {
+      float fi = float(i), L = 1.7 + 1.5 * fi + mod(fi * 2.7, 1.9), a = fi * 2.399 + 0.6;
+      vec2 dir = vec2(cos(a), sin(a)); float k = 6.2832 / L, w = sqrt(uG * k);
+      float th = k * dot(dir, g) - w * uT + fi * 1.7, A = 0.0065 * L * (1.0 + 1.6 * uK) * exp(-dist / (L * 18.0));
+      sl += dir * (A * k * cos(th)); ch += A * sin(th);
+    }
+    vec2 nn = vec2(vn(g * 0.9 + uT * 0.35), vn(g * 0.9 - uT * 0.3 + 9.1)) - 0.5;
+    sl += nn * (0.05 + 0.05 * uK) * exp(-dist / 25.0);
+    vec3 n = normalize(vN + vec3(-sl.x, 0.0, -sl.y));
+    float nv = max(dot(n, V), 0.0);
+    float fr = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
+    vec3 R = reflect(-V, n), R2 = reflect(-V, normalize(vN)); R.y = abs(R.y) + 0.01;
+    vec3 refl = skyAt(normalize(R), 1.0, abs(R2.y) + 0.01);   // (the horizon's band read off the big waves alone: no rings or flakes from the chop)
+    // the body of the water: deep and clear looking down, lit backs, darker troughs (more so in the storm)
+    float hh = vH;
+    float lam = max(dot(n, uSkyDir), 0.0);
+    vec3 body = mix(uDeep, uSea, smoothstep(0.0, 1.0, hh) * (0.6 + 0.4 * lam));
+    body *= mix(1.0, 0.55, (1.0 - hh) * uK);
+    body *= 0.75 + 0.5 * min(uSunI, 1.0) * lam;
+    // light through the thin top of a steep crest: the sun behind the wave, and a little of the sky's light in any case
+    float back = pow(clamp(dot(-V, uSkyDir) * 0.6 + 0.4, 0.0, 1.0), 3.0);
+    float thin = smoothstep(0.55, 1.0, hh) * smoothstep(0.08, 0.5, vSteep + ch * 0.3) * exp(-dist / 260.0);
+    body += uScat * thin * (back * min(uSunI, 1.2) * 1.1 + 0.12);
+    vec3 col = mix(body, refl, fr * (1.0 - 0.3 * uK));
+    float sp = pow(max(dot(R, uSkyDir), 0.0), mix(420.0, 90.0, uK));
+    col += uSun * sp * uSunI * mix(2.6, 0.8, uK);
+    // foam. Its pattern sits in the water: lace that thins into streaks along the waves' way as it ages
+    vec2 wd = normalize(uW[0].zw + uW[1].zw * 0.5), wp2 = vec2(-wd.y, wd.x);
+    vec2 sg = vec2(dot(g, wd) * 0.22, dot(g, wp2) * 1.1);
+    float fine = exp(-dist / 70.0), lace = vn(g * 0.7) * 0.45 + vn(g * 1.9 + 3.3) * 0.27 + vn(sg * 1.7) * 0.18 + mix(0.5, vn(g * 5.3 + 7.7), fine) * 0.2;
+    float streak = vn(sg) * 0.6 + vn(sg * 2.3 + 1.1) * 0.4;
+    float fo = 0.0;
+    // the waves' crests break (some, more in the storm): white on the crest, left on its back as streaks that fade
+    for (int i = 0; i < 3; i++) {
+      vec4 W = uW[i]; float A = mix(uWA[i].x, uWA[i].y, uK) * vFade;
+      float th = W.x * dot(W.zw, g) - W.y * uT, ag = 1.5708 - th;
+      float id = floor(ag / 6.2832), age = ag / 6.2832 - id;                // age: 0 at the crest, growing behind it
+      float lat = dot(g, vec2(-W.w, W.z));
+      float gate = smoothstep(0.66 - 0.2 * uK, 0.9 - 0.2 * uK, vn(vec2(id * 3.7 + float(i) * 11.0, lat / 30.0)));
+      float brk = smoothstep(0.045, 0.11, A * W.x) * gate;                  // how hard this crest breaks (its own steepness)
+      float life = exp(-age / mix(0.05, 0.11, uK)) * smoothstep(0.0, 0.02, age);
+      float tex = mix(smoothstep(0.46, 0.72, lace), smoothstep(0.5, 0.78, streak * 0.7 + lace * 0.3) * 0.8, smoothstep(0.0, 0.08, age));
+      fo = max(fo, brk * life * tex * 0.8);
+    }
+    // the big swells: a thick breaking crest in the storm, its foam left behind on the long back
+    for (int j = 0; j < 3; j++) {
+      vec4 S = uSw[j]; if (S.w <= 0.0) continue;
+      float u = dot(P, S.xy) - S.z, w = uSwW[j]; if (u < -w * 4.6 || u > 4.0) continue;
+      float crestB = smoothstep(-6.0, -0.5, u) * smoothstep(3.5, 0.0, u);
+      float a = clamp(-u / (w * 4.5), 0.0, 1.0);
+      float trail = (1.0 - a) * (1.0 - a) * (1.0 - a) * step(u, 0.0);
+      vec2 sd = vec2(dot(g, S.xy) * 0.32, dot(g, vec2(-S.y, S.x)) * 0.62);
+      float sstr = vn(sd) * 0.6 + vn(sd * 2.2 + 4.0) * 0.4;
+      float f = max(crestB * smoothstep(0.25, 0.5, lace), trail * smoothstep(0.48, 0.72, sstr * 0.6 + lace * 0.4));
+      fo = max(fo, f * (0.25 + 0.75 * uK) * smoothstep(1.0, 3.0, S.w) * vFade);
+    }
+    // the hull: a wash along her sides, the bow's wave, the foam thrown where the bow comes down, the wake behind her
+    float hb = hbAt(P.x) * 0.86, side = abs(P.y) - hb;
+    float inLen = step(uHA.x + 3.0, P.x) * step(P.x, uHA.y - 1.0);
+    float bowS = smoothstep(uHA.z, uHA.y, P.x);
+    float wash = inLen * smoothstep(-0.2, 0.3, side) * smoothstep(1.2 + 2.5 * bowS + 2.0 * uBow * bowS, 0.2, side) * (0.35 + 0.4 * bowS + 0.25 * uK);
+    vec2 bp = P - vec2(uHA.y - 2.0, 0.0); float br = length(bp);
+    float bowF = smoothstep(4.0 + 6.0 * uBow, 1.5, br) * (0.35 + 0.65 * uBow) * step(-1.0, bp.x + 4.0);
+    float s = uHA.x + 2.0 - P.x;                                          // behind the stern
+    float wake = 0.0;
+    if (s > 0.0) {
+      float tw = 2.6 + s * 0.09, arm = s * 0.34, aw = 0.9 + s * 0.025;
+      wake = smoothstep(tw, tw * 0.3, abs(P.y)) * exp(-s / 24.0) * 0.4;
+      wake += exp(-pow((abs(P.y) - arm) / aw, 2.0)) * exp(-s / 45.0) * 0.35 * smoothstep(0.0, 6.0, s);
+    }
+    float hullF = max(max(wash, bowF), wake) * smoothstep(0.3, 0.55, lace * 0.6 + streak * 0.5);
+    fo = max(fo, hullF);
+    fo = clamp(fo, 0.0, 1.0);
+    vec3 foamC = uFoam * (0.6 + 0.4 * lam) * (0.55 + 0.45 * min(uSunI, 1.0));
+    col = mix(col, foamC, fo * 0.85);
+    // the break: the bright patch on the water where the light comes through the hole
+    vec2 pd = P - uPatch.xy; float pt = exp(-dot(pd, pd) / (uPatch.z * uPatch.z)) * uPatchI;
+    col = col * (1.0 - 0.3 * uPatchI * (1.0 - pt)) + uSun * pt * (0.18 + 0.45 * fr + 1.2 * sp);
     float fg = 1.0 - exp(-dist * uFogD);
-    col = mix(col, uFog, clamp(fg, 0.0, 1.0));
+    col = mix(col, uFogSea, clamp(fg, 0.0, 1.0));
     gl_FragColor = vec4(col, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }`;
-/* the sky: a gradient, the sun, and clouds by a small value noise (3 octaves); in the break a gap round the sun with a bright rim */
+/* the sky: the shared sky (clouds, sun, storm, break); the sun's disk with a soft glow; the light's rays under the hole */
 const SKY_VS = /* glsl */`varying vec3 vD; void main() { vD = normalize(position); vec4 p = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * p; gl_Position.z = gl_Position.w; }`;
 const SKY_FS = /* glsl */`
-  uniform vec3 uTop, uHor, uSun, uFog, uCloud; uniform vec3 uSunDir; uniform float uT, uCover, uBrk, uK;
+  ${NOISE}
+  ${SKYFN}
   varying vec3 vD;
-  float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-  float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-    return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
   void main() {
     vec3 d = normalize(vD); float h = d.y;
-    vec3 col = mix(uHor, uTop, pow(clamp(h, 0.0, 1.0), 0.5));
-    if (h < 0.0) col = mix(uHor, uFog, clamp(-h * 6.0, 0.0, 1.0));
-    float sd = max(dot(d, uSunDir), 0.0);
-    col += uSun * (pow(sd, 900.0) * 6.0 + pow(sd, 12.0) * 0.35) * (1.0 - uK * 0.85);
-    vec2 uv = d.xz / (max(h, 0.0) + 0.14) * 1.3 + vec2(uT * 0.012, uT * 0.004);
-    float n = vn(uv) * 0.55 + vn(uv * 2.3 + 3.1) * 0.3 + vn(uv * 5.1 - 1.7) * 0.15;
-    float gap = uBrk * smoothstep(0.86, 0.97, sd);
-    float cover = clamp(uCover - gap * 1.2, 0.0, 1.0);
-    float c = smoothstep(1.0 - cover, 1.0 - cover + 0.28, n) * smoothstep(-0.02, 0.12, h);
-    vec3 cc = mix(uCloud, uCloud * 0.62, smoothstep(0.5, 1.0, n));
-    cc += uSun * pow(sd, 6.0) * (0.25 + 0.9 * uBrk) * (1.0 - c * 0.5);           // lit edges toward the sun (the break's rim)
-    col = mix(col, cc, c * 0.92);
-    col = mix(col, uFog, smoothstep(0.08, -0.02, h) * 0.85);                     // the haze at the horizon
+    if (h < -0.02) { gl_FragColor = vec4(uFog, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+      return; }
+    float sd = max(dot(d, uSkyDir), 0.0);
+    vec3 col = skyAt(d, 3.0, d.y);
+    // the light's rays below the hole: they fan from the sun through the haze under the ceiling
+    if (uBrk > 0.0) {
+      vec3 sp = normalize(d - uSkyDir * dot(d, uSkyDir));
+      vec3 ax = normalize(cross(uSkyDir, vec3(0.0, 1.0, 0.0))), ay = cross(ax, uSkyDir);
+      float ang = atan(dot(sp, ay), dot(sp, ax));
+      float rays = smoothstep(0.35, 0.9, vn(vec2(ang * 9.0, uT * 0.05)) * 0.7 + vn(vec2(ang * 23.0, 2.0)) * 0.3);
+      float below = smoothstep(0.0, -0.25, dot(d - uSkyDir, vec3(0.0, 1.0, 0.0)));   // only under the sun
+      col += uSun * rays * below * uBrk * 0.22 * pow(sd, 6.0) * smoothstep(0.0, 0.05, h);
+    }
     gl_FragColor = vec4(col, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }`;
+/* the storm's spray: points blown flat off the crests (the shader places them: no per-frame JS), only where the water stands high */
+const SPRAY_VS = /* glsl */`
+  attribute vec3 aSeed;
+  uniform float uT, uK, uFade0, uFade1, uPx; uniform vec2 uShip, uWind;
+  uniform vec4 uW[${NW}]; uniform vec4 uWA[${NW}]; uniform vec4 uSw[3]; uniform float uSwW[3];
+  varying float vA;
+  float sech2(float v) { float c = cosh(v); return 1.0 / (c * c); }
+  float hs(float n) { return fract(sin(n * 91.3458) * 47453.5453); }
+  void main() {
+    float L = 1.1 + aSeed.z * 0.6, cyc = uT / L + aSeed.x, ci = floor(cyc), age = cyc - ci;
+    float r1 = hs(aSeed.y * 13.1 + ci * 1.37), r2 = hs(aSeed.x * 7.7 + ci * 2.11), r3 = hs(aSeed.z * 5.3 + ci * 0.73);
+    vec2 p = (vec2(r1, r2) - 0.5) * 300.0;
+    // a third of them start on the nearest big swell's crest line
+    if (r3 < 0.4 && uSw[0].w > 0.0) { vec4 S = uSw[0]; vec2 pr = vec2(-S.y, S.x); p = S.xy * (S.z - 1.0) + pr * (r1 - 0.5) * 300.0; }
+    vec2 g = p + uShip; float y = 0.0, am = 0.0;
+    for (int i = 0; i < ${NW}; i++) { vec4 W = uW[i]; float A = mix(uWA[i].x, uWA[i].y, uK); y += A * sin(W.x * dot(W.zw, g) - W.y * (uT - age * L)); am += A; }
+    float hi = 0.0;
+    for (int j = 0; j < 3; j++) { vec4 S = uSw[j]; if (S.w <= 0.0) continue; float u = dot(p, S.xy) - S.z; float k = u < 0.0 ? uSwW[j] * 1.6 : uSwW[j] * 0.7;
+      float h = S.w * sech2(u / k); y += h; hi = max(hi, h / S.w); }
+    float crest = max(smoothstep(0.32, 0.7, y / max(am, 0.1)), smoothstep(0.8, 0.96, hi));
+    float t = age * L;
+    vec3 wp = vec3(p.x, y + 0.5, p.y) + vec3(uWind.x, 0.0, uWind.y) * (t * 17.0) + vec3(0.0, 1.0, 0.0) * (t * 3.0 - t * t * 2.2);
+    vec4 mv = modelViewMatrix * vec4(wp, 1.0);
+    vA = crest * (1.0 - age) * smoothstep(0.0, 0.08, age) * uK * (1.0 - smoothstep(130.0, 150.0, length(p)));
+    gl_PointSize = uPx * (0.9 + age * 2.6) * (0.6 + r3) / max(-mv.z, 1.0);
+    gl_Position = projectionMatrix * mv;
+  }`;
+const SPRAY_FS = /* glsl */`uniform vec3 uFoam; varying float vA;
+  void main() { vec2 c = gl_PointCoord - 0.5; float r = dot(c, c) * 4.0; if (r > 1.0) discard; gl_FragColor = vec4(uFoam, vA * (1.0 - r) * (1.0 - r) * 0.8); }`;
 /* what the bronze reflects: a neutral sky (grey above, a bright band at the horizon, the dark sea below, a warm sun), so the
  * metal's own yellow carries its colour and its sheen slides across the leaf as she rolls */
 const ENV_FS = /* glsl */`
@@ -252,24 +417,36 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   }
   const W = WAVES.map((w) => { const k = TAU / w.L; return new THREE.Vector4(k, Math.sqrt(H128.G * k), Math.cos(w.dir * DEG), Math.sin(w.dir * DEG)); });
   const WA = WAVES.map((w) => new THREE.Vector4(w.A[0], w.A[1], w.Q, 0));
-  const hullMid = (HULL.stern + HULL.stem) / 2;
   const seaU = {
-    uT: { value: 0 }, uK: { value: 0 }, uShip: { value: new THREE.Vector2() }, uW: { value: W }, uWA: { value: WA },
+    uT: { value: 0 }, uK: { value: 0 }, uShip: { value: new THREE.Vector2() }, uW: { value: W }, uWA: { value: WA }, uG: { value: H128.G },
     uSw: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] }, uSwW: { value: [SWELL.w, SWELL.w, SWELL.w] },
     uFade0: { value: SEA_HALF * 1.2 }, uFade1: { value: SEA_HALF * 2.6 },
-    uSea: { value: C(SKY.clear.sea) }, uDeep: { value: C(SKY.clear.deep) }, uTop: { value: C(SKY.clear.top) }, uHor: { value: C(SKY.clear.hor) },
-    uSun: { value: C(SKY.clear.sun) }, uSunDir: { value: SUN_CLEAR.clone() }, uSunI: { value: 1 }, uFog: { value: C(SKY.clear.fog) }, uFogD: { value: 0.0011 },
-    // the hull's waterline as an ellipse in the sea's frame (centre x, z; half length, half beam) for the wash; the break's patch
-    uHull: { value: new THREE.Vector4(hullMid, 0, (HULL.stem - HULL.stern) / 2, HULL.beam / 2) }, uPatch: { value: new THREE.Vector3(DECK.doors.port[0], 0, 34) }, uBrk: { value: 0 },
+    uSea: { value: C(SKY.clear.sea) }, uDeep: { value: C(SKY.clear.deep) }, uScat: { value: C(SKY.clear.scat) }, uFoam: { value: C(SKY.clear.foam) },
+    uTop: { value: C(SKY.clear.top) }, uHor: { value: C(SKY.clear.hor) }, uSun: { value: C(SKY.clear.sun) }, uSkyDir: { value: SKY_CLEAR.clone() }, uSunI: { value: 1 },
+    uFog: { value: C(SKY.clear.fog) }, uFogSea: { value: C(SKY.clear.fogSea) }, uFogD: { value: 0.0011 },
+    uCloud: { value: C(SKY.clear.cloud) }, uCloudD: { value: C(SKY.clear.cloudD) }, uPale: { value: C(SKY.clear.pale) }, uCover: { value: SKY.clear.cover },
+    uFront: { value: -1e5 }, uCam: { value: new THREE.Vector3() }, uHoleD: { value: SKY_BRK.clone() }, uHoleR: { value: LIGHT.hole }, uBrk: { value: 0 },
+    // the hull's lines for the wash, the bow's wave and the wake (stern, stem, the widest station, the half beam); the bow coming down;
+    // the break's bright patch on the water (x, z, radius) and its strength
+    uHA: { value: new THREE.Vector4(HULL.stern, HULL.stem, HULL.wide, HULL.beam / 2) }, uBow: { value: 0 },
+    uPatch: { value: new THREE.Vector3(DECK.doors.port[0], 0, LIGHT.r) }, uPatchI: { value: 0 },
   };
   const seaM = keep(new THREE.ShaderMaterial({ uniforms: seaU, vertexShader: SEA_VS, fragmentShader: SEA_FS }));
-  const seaMesh = new THREE.Mesh(sg, seaM); seaMesh.frustumCulled = false; seaMesh.name = 'h128-sea'; scene.add(seaMesh);
+  const seaMesh = new THREE.Mesh(sg, seaM); seaMesh.frustumCulled = false; seaMesh.renderOrder = 5; seaMesh.name = 'h128-sea'; scene.add(seaMesh);   // (after the ship: none of its costly light is spent under her)
 
-  /* the sky */
-  const skyU = { uTop: seaU.uTop, uHor: seaU.uHor, uSun: seaU.uSun, uFog: seaU.uFog, uSunDir: seaU.uSunDir, uT: seaU.uT, uK: seaU.uK,
-    uCloud: { value: C(SKY.clear.cloud) }, uCover: { value: SKY.clear.cover }, uBrk: { value: 0 } };
-  const skyM = keep(new THREE.ShaderMaterial({ uniforms: skyU, vertexShader: SKY_VS, fragmentShader: SKY_FS, side: THREE.BackSide, depthWrite: false, fog: false }));
-  const sky = new THREE.Mesh(keep(new THREE.SphereGeometry(SKY_R, 32, 16)), skyM); sky.frustumCulled = false; sky.renderOrder = -1; sky.name = 'h128-sky'; scene.add(sky);
+  /* the sky (the same uniforms: the water mirrors this very sky) */
+  const skyM = keep(new THREE.ShaderMaterial({ uniforms: seaU, vertexShader: SKY_VS, fragmentShader: SKY_FS, side: THREE.BackSide, depthWrite: false, fog: false }));
+  const sky = new THREE.Mesh(keep(new THREE.SphereGeometry(SKY_R, 48, 24)), skyM); sky.frustumCulled = false; sky.renderOrder = 10; sky.name = 'h128-sky'; scene.add(sky);   // (drawn last of the solid things, at the far plane: only where nothing stands in front of it)
+
+  /* the storm's spray: blown flat off the crests (points the shader places) */
+  const SPN = Math.round(1400 * quality), spS = new Float32Array(SPN * 3);
+  { let s = 29; const r = () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; for (let i = 0; i < SPN * 3; i++) spS[i] = r(); }
+  const sprG = keep(new THREE.BufferGeometry()); sprG.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SPN * 3), 3)); sprG.setAttribute('aSeed', new THREE.BufferAttribute(spS, 3));
+  const wd = WAVES[0].dir * DEG;
+  const sprU = { uT: seaU.uT, uK: seaU.uK, uFade0: seaU.uFade0, uFade1: seaU.uFade1, uShip: seaU.uShip, uW: seaU.uW, uWA: seaU.uWA, uSw: seaU.uSw, uSwW: seaU.uSwW,
+    uFoam: seaU.uFoam, uPx: { value: 300 }, uWind: { value: new THREE.Vector2(Math.cos(wd), Math.sin(wd)) } };
+  const spray2 = new THREE.Points(sprG, keep(new THREE.ShaderMaterial({ uniforms: sprU, vertexShader: SPRAY_VS, fragmentShader: SPRAY_FS, transparent: true, depthWrite: false })));
+  spray2.frustumCulled = false; spray2.visible = false; spray2.name = 'h128-spray'; scene.add(spray2);
 
   /* the rain */
   const RN = Math.round(420 * quality), rp = new Float32Array(RN * 6), re = new Float32Array(RN * 2);
@@ -328,14 +505,14 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   put(woodM, at(new THREE.CylinderGeometry(0.55, 0.75, 0.6, 10), [MAST.at[0], DECK_Y + 0.3, MAST.at[1]]));   // the mast's partner at the deck
   const yardY = DECK_Y + MAST.h - 2.5;
   put(woodM, at(new THREE.CylinderGeometry(0.22, 0.3, MAST.yard, 8), [MAST.at[0] + 0.5, yardY, MAST.at[1]], [Math.PI / 2, 0, 0]));
-  // the two steering oars lashed at the stern quarters (nobody steers in play)
-  const steerLash = [];
+  // the rudder's housings: a heavy timber through the bulwark on each quarter, the post's lashing round it (the turns the sailor keeps tight)
+  const steerLash = [], HOUSE_Y = 2.0;   // the housing's height over the deck (the post passes it there)
   for (const [x, z] of DECK.steer) {
-    const s = Math.sign(z), a = [x + 3, DECK_Y + 3.4, z * 1.02], b = [x - 6.5, -3.2, z * 1.12 + s * 0.6];
-    put(woodM, tubeOf([a, b], 0.22, 2, 6));
-    put(woodM, at(new THREE.BoxGeometry(3.6, 0.2, 1.3), [b[0] + 1.2, b[1] + 1.4, b[2]], [Math.PI / 2, 0, Math.atan2(a[1] - b[1], a[0] - b[0])]));
-    put(ropeM, at(new THREE.TorusGeometry(0.4, 0.1, 5, 10), [x, DECK_Y + 1.4, z], [0, Math.PI / 2, 0]));
-    steerLash.push([x, 1.4, z]);
+    const s = Math.sign(z), hb = hullAt(x).hb, zin = s * (hb - 0.5), w = Math.abs(z - zin) + 0.9;
+    put(darkM, at(new THREE.BoxGeometry(1.9, 0.9, w), onDeck([x, HOUSE_Y, (zin + z + s * 0.9) / 2])));
+    put(darkM, at(new THREE.BoxGeometry(0.5, 1.8, 0.5), onDeck([x + 0.7, HOUSE_Y - 1.1, s * (hb + 0.15)])));   // its knee against the hull
+    for (const dy of [-0.3, 0.05, 0.4]) put(ropeM, at(new THREE.TorusGeometry(0.5, 0.09, 5, 12), onDeck([x + 0.2 * dy, HOUSE_Y + 0.6 + dy, z]), [Math.PI / 2, 0, 0]));
+    steerLash.push([x, HOUSE_Y + 0.6, z]);
   }
 
   /* the sail: cream cloth, bellied by the wind, a few sewn seams; furled to a strip under the yard in the storm */
@@ -401,6 +578,44 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   // merge the ship's static parts: one mesh per material
   for (const [mat, list] of parts) { const g = keep(mergeGeometries(list, false)); for (const x of list) x.dispose(); const m = new THREE.Mesh(g, mat); m.name = 'h128-ship-' + (mat === bronzeM ? 'bronze' : mat === bronzeD ? 'bronze2' : mat.type); ship.add(m); }
 
+  /* the rudder (illustration): two broad-bladed quarter rudders, each on its stout post through its housing, raked aft (the head leans
+   * forward, the blade trails under the quarter); their tillers joined by a cross tiller the helmsman holds. Each rudder turns on its
+   * post's axis as he leans on the bar: one instanced mesh for the two rudders, one for the three sticks (two tillers, the bar) */
+  const gearM = keep(new THREE.MeshLambertMaterial({ color: '#5C4129', map: hullM.map }));
+  const rudG = (() => {
+    const L = [at(new THREE.CylinderGeometry(0.3, 0.38, 8.4, 9), [0, -2.0, 0]),            // the post: from its head down into the blade
+      at(new THREE.CylinderGeometry(0.44, 0.44, 0.45, 9), [0, 2.25, 0]),                     // the head's cap
+      at(new THREE.CylinderGeometry(0.4, 0.4, 0.4, 9), [0, 1.75, 0]),                        // the tiller's socket collar
+      at(new THREE.BoxGeometry(0.3, 3.2, 0.5), [0, -3.6, 0])];                                // the blade's stock along the post
+    // the blade: broad and thin, in the post's own frame (y along the post, x fore and aft), its edge rounded at the foot
+    const sh = new THREE.Shape(); sh.moveTo(-0.36, 0); sh.bezierCurveTo(-1.15, -0.7, -1.3, -2.9, -1.2, -4.9); sh.quadraticCurveTo(0, -6.0, 1.2, -4.9);
+    sh.bezierCurveTo(1.3, -2.9, 1.15, -0.7, 0.36, 0); sh.lineTo(-0.36, 0);
+    const bg = new THREE.ExtrudeGeometry(sh, { depth: 0.22, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.07, bevelSegments: 1, curveSegments: 7 });
+    bg.translate(0, -4.1, -0.11);
+    const g = mergeGeometries([...L.map((x) => x.toNonIndexed()), bg.toNonIndexed()].map((x) => { x.clearGroups(); for (const k of Object.keys(x.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') x.deleteAttribute(k); return x; }), false);
+    for (const x of L) x.dispose(); bg.dispose(); return keep(g);
+  })();
+  const rudders = new THREE.InstancedMesh(rudG, gearM, 2); rudders.frustumCulled = false; rudders.name = 'h128-rudders'; deck.add(rudders);
+  const sticks = new THREE.InstancedMesh(keep(new THREE.CylinderGeometry(1, 1, 1, 7, 1)), gearM, 3); sticks.frustumCulled = false; sticks.name = 'h128-tiller'; deck.add(sticks);
+  const TIL = DECK.tiller, BAR_Y = 2.45, TIL_UP = 1.75, TIL_L = Math.hypot(TIL[0] - DECK.steer[0][0], Math.abs(DECK.steer[0][1]) - Math.abs(TIL[1]));
+  const gear = DECK.steer.map(([x, z]) => {
+    const s = Math.sign(z), axis = new THREE.Vector3(0.5, 1, -s * 0.06).normalize();
+    const q0 = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+    return { s, axis, q0, at: new THREE.Vector3(x, HOUSE_Y, z), root: new THREE.Vector3(x, HOUSE_Y, z).addScaledVector(axis, TIL_UP) };
+  });
+  const gm = new THREE.Matrix4(), gq = new THREE.Quaternion(), gv = new THREE.Vector3(), gs = new THREE.Vector3(), gy = new THREE.Vector3(0, 1, 0);
+  const barA = new THREE.Vector3(), barB = new THREE.Vector3();
+  const stick = (i, a, b, r) => { gv.subVectors(b, a); const L = gv.length(); gq.setFromUnitVectors(gy, gv.multiplyScalar(1 / L)); gm.compose(gs.addVectors(a, b).multiplyScalar(0.5), gq, _s.set(r, L, r)); sticks.setMatrixAt(i, gm); _s.set(1, 1, 1); };
+  /** the gear at bar (x, y): each rudder turned on its post so its tiller meets the bar's end */
+  function setGear(bx, by) {
+    const th = clamp((bx - TIL[0]) / TIL_L, -0.45, 0.45);
+    gear.forEach((G, i) => { gq.setFromAxisAngle(G.axis, -G.s * th).multiply(G.q0); gm.compose(G.at, gq, _s.set(1, 1, 1)); rudders.setMatrixAt(i, gm); });
+    barA.set(bx, by, TIL[1]); barB.set(bx, by, TIL[2]);
+    stick(0, gear[0].root, barA, 0.15); stick(1, gear[1].root, barB, 0.15);
+    gv.set(0, 0, 0.35); stick(2, barA.clone().sub(gv), barB.clone().add(gv), 0.17);
+    rudders.instanceMatrix.needsUpdate = true; sticks.instanceMatrix.needsUpdate = true; st.bar = bx; st.th = th;
+  }
+
   /* contact shadows: soft dark quads on the deck (one mesh): under the leaves, each figure, the mast's foot, along the rails */
   const shadowTex = keep(canvasTex(128, 64, (g) => {
     const r = g.createRadialGradient(32, 32, 2, 32, 32, 31); r.addColorStop(0, 'rgba(0,0,0,0.75)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64);
@@ -414,7 +629,7 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   };
   for (const side of ['port', 'stbd']) quad(D[side][0], D[side][1], D.L + 1.4, D.W + 1.4, true);
   quad(MAST.at[0], MAST.at[1], 3, 3, false);
-  for (const p of [DECK.nicanor, ...DECK.sailors]) quad(p[0], p[1], 2.6, 2.6, false);
+  for (const p of [DECK.nicanor, DECK.helm, ...DECK.sailors]) quad(p[0], p[1], 2.6, 2.6, false);
   for (const s of [-1, 1]) for (let x = HULL.stern + 4; x < HULL.stem - 3; x += 4) { const hb = hullAt(x).hb; quad(x, s * (hb - 0.5), 4.4, 1.6, true); }
   const shG = keep(new THREE.BufferGeometry()); shG.setAttribute('position', new THREE.Float32BufferAttribute(sq, 3)); shG.setAttribute('uv', new THREE.Float32BufferAttribute(suv, 2)); shG.setIndex(sidx);
   const shadows = new THREE.Mesh(shG, keep(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, color: '#000000', polygonOffset: true, polygonOffsetFactor: -2 })));
@@ -430,6 +645,9 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     a.yaw = Math.atan2(to[0] - x, to[2] - z); a.job = job; a.to = to; a.off = i * 0.37;
     return a;
   });
+  // the seventh sailor: the helmsman at the cross tiller, both hands on the bar, facing forward
+  const helm = actors.add('worker', DECK.helm[0], DECK.helm[1], { y: 0, yaw: Math.PI / 2, scale: 1.02, col: '#7B5A3E' });
+  helm.job = 'helm'; helm.pit = 1.15;
   // the bailers' buckets (one instanced mesh) and the water they throw (points), the lines in the working hands (one line mesh)
   const bucketG = keep(mergeGeometries([
     new THREE.LatheGeometry([[0.001, -0.45], [0.2, -0.45], [0.25, -0.05], [0.23, -0.04], [0.18, -0.42], [0.001, -0.42]].map(([a, b]) => new THREE.Vector2(a, b)), 9),
@@ -453,7 +671,8 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   } catch (e) { /* no environment: the bronze is lit by the sun and the fill only */ }
 
   /* the weather and the state */
-  const st = { t: 0, k: 0, brk: 0, furl: 0, swells: [], shipX: 0, heave: 0, pitch: 0, roll: 0, lift: 0, cam: 'play', camU: 0, round: 0, scriptMs: 0, sailH: 0, head: null };
+  const lightDir = SUN_CLEAR.clone();
+  const st = { t: 0, k: 0, brk: 0, hole: 0, furl: 0, bow: 0, bowImm: 0, push: 0, bar: 0, th: 0, swells: [], shipX: 0, heave: 0, pitch: 0, roll: 0, lift: 0, cam: 'play', camU: 0, round: 0, scriptMs: 0, sailH: 0, head: null };
   const cA = new THREE.Color(), cB = new THREE.Color();
   function blend(key, u) {
     // clear → storm by k, then toward the break's palette by brk
@@ -462,11 +681,20 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   const num = (key) => mix(mix(SKY.clear[key], SKY.storm[key], st.k), SKY.brk[key], st.brk);
   function applyWeather() {
     blend('top', seaU.uTop.value); blend('hor', seaU.uHor.value); blend('sea', seaU.uSea.value); blend('deep', seaU.uDeep.value);
-    blend('sun', seaU.uSun.value); blend('fog', seaU.uFog.value); blend('cloud', skyU.uCloud.value);
-    skyU.uCover.value = num('cover'); skyU.uBrk.value = st.brk; seaU.uBrk.value = st.brk;
-    seaU.uSunDir.value.copy(SUN_CLEAR).lerp(SUN_BRK, clamp(st.brk + st.k * 0.4, 0, 1)).normalize();
-    seaU.uSunI.value = num('sunI') / 3; seaU.uK.value = st.k;
-    sun.color.copy(seaU.uSun.value); sun.intensity = num('sunI');
+    blend('sun', seaU.uSun.value); blend('fog', seaU.uFog.value); blend('cloud', seaU.uCloud.value); blend('cloudD', seaU.uCloudD.value);
+    blend('scat', seaU.uScat.value); blend('foam', seaU.uFoam.value); blend('fogSea', seaU.uFogSea.value); blend('pale', seaU.uPale.value);
+    seaU.uCover.value = num('cover'); seaU.uBrk.value = st.brk;
+    // the storm's ceiling: its front comes in from port and passes over the ship as the storm grows (and stays closed in the break)
+    const kf = clamp(st.k + st.brk, 0, 1); seaU.uFront.value = mix(-30000, 14000, kf * kf * (3 - 2 * kf));
+    const sd = clamp(st.brk + st.k * 0.4, 0, 1);
+    lightDir.copy(SUN_CLEAR).lerp(SUN_BRK, sd).normalize(); seaU.uSkyDir.value.copy(SKY_CLEAR).lerp(SKY_BRK, sd).normalize();
+    // the break: the bright patch runs over the water from under the hole to the doors; the hole stands on the sun's ray above it
+    const u = st.hole, P = seaU.uPatch.value, sk = seaU.uSkyDir.value;
+    P.x = mix(LIGHT.from[0], DECK.doors.port[0], u); P.y = mix(LIGHT.from[1], 0, u);
+    seaU.uHoleD.value.copy(sk).add(_up).normalize(); seaU.uPatchI.value = st.brk;
+    const ox = P.x - DECK.doors.port[0], onShip = Math.exp(-(ox * ox + P.y * P.y) / (LIGHT.r * LIGHT.r * 1.4));
+    seaU.uSunI.value = num('sunI') / 3 * (st.brk > 0 ? mix(1, 0.45 + 0.55 * onShip, st.brk) : 1); seaU.uK.value = st.k;
+    sun.color.copy(seaU.uSun.value); sun.intensity = num('sunI') * (st.brk > 0 ? mix(1, 0.4 + 0.6 * onShip, st.brk) : 1);
     hemi.color.copy(blend('hemiS')); hemi.groundColor.copy(blend('hemiG')); hemi.intensity = num('hemiI');
     scene.fog.color.copy(seaU.uFog.value); scene.fog.near = mix(160, 60, st.k); scene.fog.far = mix(1600, 520, st.k * (1 - st.brk * 0.5));
     seaU.uFogD.value = mix(0.0009, 0.0042, st.k * (1 - st.brk * 0.4));
@@ -494,6 +722,10 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     let lift = 0;
     for (const p of rim) { _v.copy(p).applyMatrix4(ship.matrixWorld); lift = Math.max(lift, sample(_v.x, _v.z) + DRY - _v.y); }
     st.lift = lift > 0 ? lift : 0; if (lift > 0) { ship.position.y += lift; ship.updateMatrixWorld(); }
+    // the bow coming down: how fast her forefoot drops toward the water under it (foam thrown out where it slams)
+    _v.set(HULL.stem - 3, 0, 0).applyMatrix4(ship.matrixWorld); const imm = sample(_v.x, _v.z) - _v.y;
+    if (dt > 0) { const v = (imm - st.bowImm) / dt; st.bow = Math.max(st.bow * Math.exp(-dt / 0.7), clamp(v / 3, 0, 1) * clamp(imm + 2.5, 0, 1)); }
+    st.bowImm = imm; seaU.uBow.value = st.bow;
   }
   /* the swells in the shader: up to three, the nearest first */
   function swellsToShader() {
@@ -519,6 +751,7 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
   };
   const set4 = (A, a, b, c, d) => { A[0] = a; A[1] = b; A[2] = c; A[3] = d; };
   let nicPose = '';
+  const SIDE = { port: 1, stbd: -1, bow: 0.6, stern: -0.6 };   // which way he leans on the bar for a swell from each side
   function work(dt) {
     const T = st.t, near = (st.swells || []).reduce((m, s) => Math.max(m, Math.exp(-Math.pow(swellPos(s, T) / 30, 2))), 0), hard = Math.max(near, st.k * 0.6);
     let bi = 0, li = 0;
@@ -555,8 +788,19 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     for (let i = 0; i < NSP; i++) { if (spL[i] <= 0) continue; spL[i] -= dt; const j = i * 3; spV[j + 1] -= H128.G * dt;
       spP[j] += spV[j] * dt; spP[j + 1] += spV[j + 1] * dt; spP[j + 2] += spV[j + 2] * dt; if (spL[i] <= 0) spP[j + 1] = -999; }
     spG.attributes.position.needsUpdate = true;
+    // the helmsman: he leans on the bar against each swell (pushing as it lifts her quarter, easing back after), and with the roll
+    let push = 0.3 * Math.sin(T * 0.47 + 0.6) * (0.35 + 0.65 * st.k) + clamp(st.roll * 3, -0.4, 0.4);
+    for (const sw of st.swells || []) { const p = swellPos(sw, T) + 8, sd = SIDE[sw.head] || 0; push += sd * Math.exp(-(p * p) / 676) * (p < 0 ? 1 : -0.5); }
+    push = clamp(push, -1, 1); st.push += (push - st.push) * Math.min(1, dt * 2.5);
+    const P = st.push;
+    helm.bowT = 0.16 + 0.42 * Math.max(0, P) - 0.14 * Math.max(0, -P) + 0.08 * st.k; helm.knT = 0.22 + 0.22 * Math.abs(P) + 0.1 * st.k;
+    set4(helm.armT, helm.pit, 0.02, helm.pit, 0.02);
     const want = hard > 0.3 ? 'lean' : 'stand'; if (nicPose !== want) { nicPose = want; actors.pose(nic, want); }
     actors.update(dt);
+    // his hands hold the bar: it lies where they are (the arms find the bar's height), and the rudders turn with it
+    actors.handWorld(helm, 1, L2); actors.handWorld(helm, -1, R2); M2.copy(L2).add(R2).multiplyScalar(0.5);
+    helm.pit = clamp(helm.pit + (BAR_Y - M2.y) * (dt > 0 ? 0.9 : 0), 0.4, 1.7);
+    setGear(M2.x + 0.12, clamp(M2.y, BAR_Y - 0.3, BAR_Y + 0.3));
   }
   /* the cameras: play (behind and above Nicanor, along the deck), lift (back and up: the whole ship and the next swell), round */
   const rig = new THREE.Object3D(); scene.add(rig);
@@ -580,7 +824,7 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     camPose(st.cam, vP, vT);
     if (st.camU > 0 && st.cam !== 'lift') { camPose('lift', vP2, vT2); vP.lerp(vP2, st.camU); vT.lerp(vT2, st.camU); }
     camera.position.copy(vP); camera.lookAt(vT);
-    sky.position.copy(camera.position); rainU.uCam.value.copy(camera.position);
+    sky.position.copy(camera.position); rainU.uCam.value.copy(camera.position); seaU.uCam.value.copy(camera.position);
   }
 
   applyWeather(); setStays(0); placeCam();
@@ -590,19 +834,21 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     /** the weather and the play: k the storm (0..1), brk the cloud break (0..1), swells [{ head, t0, H?, w?, c? }] */
     set(o = {}) {
       if (o.k != null) st.k = clamp(o.k, 0, 1); if (o.brk != null) st.brk = clamp(o.brk, 0, 1); if (o.swells) st.swells = o.swells;
-      if (o.furl != null) st.furl = clamp(o.furl, 0, 1);
+      if (o.furl != null) st.furl = clamp(o.furl, 0, 1); if (o.hole != null) st.hole = clamp(o.hole, 0, 1);
       applyWeather();
     },
     view(name, u = 0, round = 0, head = null) { st.cam = name; st.camU = clamp(u, 0, 1); st.round = round; st.head = head; },
-    resize(w, h) { camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix(); },
+    resize(w, h) { camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix();
+      sprU.uPx.value = 0.55 * h * renderer.getPixelRatio() / (2 * Math.tan(camera.fov * DEG / 2)); },
     /** t: the sea's clock (s); dt: the step (s) for the ship's inertia and the figures (0: snap) */
     update(t, dt) {
       const t0 = performance.now();
       st.t = t; st.shipX = t * SAIL_V; seaU.uT.value = t; seaU.uShip.value.set(st.shipX, 0);
       swellsToShader(); pose(dt);
       const sh = mix(MAST.h * 0.6, 1.4, st.furl); if (Math.abs(sh - st.sailH) > 0.05) { st.sailH = sh; sail.scale.y = sh; setStays(sh); }
+      spray2.visible = st.k > 0.3;
       rain.visible = st.k > 0.35 && st.brk < 0.6; rainU.uK.value = clamp((st.k - 0.35) / 0.4, 0, 1) * (1 - st.brk);
-      sun.position.copy(seaU.uSunDir.value).multiplyScalar(200); sun.target.position.set(0, 0, 0);
+      sun.position.copy(lightDir).multiplyScalar(200); sun.target.position.set(0, 0, 0);
       work(dt || 0); placeCam();
       st.scriptMs = performance.now() - t0;
     },

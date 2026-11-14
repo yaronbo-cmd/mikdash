@@ -561,10 +561,16 @@ const S06 = {
       rail: [-12, -7.1],            // where the port door goes over the side (the throw)
       nicanor: [-26, 0],            // he stands aft of the doors, facing forward
       // six sailors at work: [x, z, his work] — two at the doors' aft lashings ('lash'), two bailing over the rail ('bail'), one at the
-      // steering oars' lashing ('steer'), one hauling the brail hand over hand ('haul')
-      sailors: [[-23, -5.4, 'lash'], [-23, 5.4, 'lash'], [4, -5.6, 'bail'], [7, 5.4, 'bail'], [-32.5, -5.6, 'steer'], [14, 1.2, 'haul']],
+      // port rudder's lashing in its housing ('steer': he keeps the turns tight, he does not steer), one hauling the brail hand over hand ('haul')
+      sailors: [[-23, -5.4, 'lash'], [-23, 5.4, 'lash'], [4, -5.6, 'bail'], [7, 5.4, 'bail'], [-33.6, -3.9, 'steer'], [14, 1.2, 'haul']],
       hook: [-31, 6.2],             // the boat hook's rest by the starboard rail
-      steer: [[-34, -7.2], [-34, 7.2]],   // the two steering oars, lashed at the stern quarters
+      // the ship's rudder (המחשה, build 128 sea look 2): two broad-bladed quarter rudders, each on its stout post through a housing
+      // on the quarter: the posts where they pass the housings (x, z); the cross tiller that joins the two tillers: its line across
+      // the deck (x, from z, to z); the seventh sailor, the helmsman, who holds it with both hands (x, z: aft of the bar, to starboard
+      // of the middle line so Nicanor stays in sight)
+      steer: [[-33, -6.5], [-33, 6.5]],
+      tiller: [-29.4, -4.3, 4.3],
+      helm: [-30.25, 2.2],
     },
     // Akko (sea3): the ship moored port side to the quay, in the deck's frame then. The quay's edge (z) and top (y over the deck at the
     // mast), its stretch along x; the derrick's foot and its head over the water; the place the thrown door rises under the side; the
@@ -575,6 +581,10 @@ const S06 = {
     // swell's heading); the look
     // sample's round (radius, height, aim)
     cam: { play: [[-41, 11, 0], [-3, 0, 0]], lift: [[-78, 42, 0], [6, 0, 0]], round: { R: 82, y: 34, t: [-8, 2, 0] } },
+    // the cloud break (המחשה, build 128 sea look 2), in the sea's frame: where the bright patch of light first falls on the water
+    // (far ahead, under the low sun) before it runs to the doors; the patch's radius; the torn hole's radius in the ceiling as seen
+    // from the ship (radians, round the low sun)
+    light: { from: [330, -150], r: 36, hole: 0.2 },
   },
 };
 const seaName = (k, r) => 'ים־' + heb(k + 1) + '־' + (r + 1);

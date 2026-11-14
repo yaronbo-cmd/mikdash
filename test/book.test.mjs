@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BOOK, cellOf, nameOf } from '../src/game/world/grid.js';
 
-const SEC = ['s02', 's03', 's04', 's05'];
+const SEC = ['s02', 's03', 's04', 's05', 's06'];   // ── h128 ── (+ s06) ── /h128 ──
 const near = (a, b, e = 1e-9) => Math.abs(a - b) <= e;
 
 test('book: every entry finite, its cell its own, inside its stage, frozen', () => {
@@ -199,3 +199,44 @@ test('book s04: the gates stage — the six gates, Nikanor, the carpenters\' yar
   assert.equal(YARD.rack, S.yardMore.rack); assert.equal(YARD.post, S.yardMore.post); assert.equal(YARD.wall, S.yardMore.wall);
   for (const k of ['houses', 'cam', 'yardMore']) assert.ok(Object.isFrozen(S[k]), k);
 });
+
+// ── h128 ── (build 128) stage 06's section: the rows of the brief's §1 as the world draws them, the rings, the sea sheet
+test('book s06: the gate, the ramp, the steps, the wickets as the world draws them; the sea sheet', async () => {
+  const { ringOf, seaName, parse } = await import('../src/game/world/grid.js');
+  const S = BOOK.s06, by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
+  assert.equal(S.stage, 6); assert.ok(Object.isFrozen(S.sea) && Object.isFrozen(S.sea.deck) && Object.isFrozen(S.ramp));
+  // the leaves hang on the gate house's east face (temple.js: gate('E', -4, -14, 10, 14, …): the door at x1 = 10); the stage 04 gate
+  assert.equal(S.ramp.sill[0], 10); assert.equal(S.ramp.sill[2], 13.5); assert.equal(BOOK.s04.nikanor[0], 3);
+  // the ramp: 43 along, 7.5 up (the spec), notches 7 apart, every notch and rough timber between its two ends
+  assert.equal(S.ramp.low[0] - S.ramp.sill[0], 43); assert.equal(S.ramp.sill[2] - S.ramp.low[2], 7.5);
+  S.ramp.notch.forEach((x, i) => { assert.ok(x < S.ramp.low[0] && x > S.ramp.sill[0], 'notch ' + i); if (i) assert.equal(S.ramp.notch[i - 1] - x, 7); });
+  for (const [a, b] of S.ramp.rough) assert.ok(a >= S.ramp.sill[0] && b <= S.ramp.low[0]);
+  assert.equal(S.ramp.foot[0] - S.ramp.low[0], 2); assert.equal(S.ramp.sledge.tail - S.ramp.sledge.head, S.ramp.sledge.L);
+  // (the climb ends with the tail at the last notch: the head then on the Azarah's flat floor, −8 < x < 0)
+  const head = S.ramp.notch[5] - S.ramp.sledge.L; assert.ok(head > -8 && head < 0 && head > S.capstan[0] + 2);
+  // the rings: ring i's outer radius, top and base (temple.js: the j-th half cylinder radius 6.5 + 0.5 j, top 13.5 − 0.5 j: ring 15 − j)
+  for (let i = 1; i <= 15; i++) { const r = ringOf(i), j = 15 - i; assert.equal(r.R, 6.5 + 0.5 * j); assert.equal(r.top, 13.5 - 0.5 * j); assert.equal(r.base, r.top - 0.5); }
+  for (const i of [1, 8, 15]) { const r = ringOf(i), g = S.steps.gap[i]; assert.deepEqual([...g], [S.steps.c[0] + r.mid, 0, r.base], 'gap ' + i); assert.ok(by['steps:gap' + i] && by['stand:ring' + i]); }
+  // stands on the floor the world walks (stages.js groundAt: the rings; the Azarah flat at 13.5 for −8 < x < 0; x ≤ −11 at 16)
+  const ringY = (x, z) => { const r = Math.hypot(x - 10, z); return r > 13.5 ? 6 : 13.5 - 0.5 * (r <= 6.5 ? 0 : Math.ceil((r - 6.5) / 0.5 - 1e-9)); };
+  for (const i of [1, 8, 15]) { const [x, z, y] = S.steps.stand[i]; assert.equal(ringY(x, z), y, 'stand ' + i); }
+  for (const p of [S.wicket.standN, S.wicket.standS, S.wicket.standBoth, S.close.stand]) assert.ok(p[0] > -8 && p[0] < 0 && p[2] === 13.5);
+  assert.ok(S.capstan[0] <= -11 && S.capstan[2] === 16);
+  // the wickets in the gate house's west face (x −4), inside its solid sides (z 5 … 14), one each side of the 10-wide opening
+  for (const p of [S.wicket.N, S.wicket.S]) { assert.equal(p[0], -4); assert.ok(Math.abs(p[2] - 13.5) < 1e-9 && Math.abs(p[1]) - S.wicket.w / 2 >= 5 && Math.abs(p[1]) + S.wicket.w / 2 <= 14); }
+  // the east gate's waiting place on the court's floor, west of the east gate house (x 138 … 150), between the gallery's east runs
+  assert.ok(S.eastGate[0] < 138 && S.eastGate[0] > BOOK.s05.court.x0 && Math.abs(S.eastGate[1]) < 13);
+  // the sea sheet: three places, named ים־<column>־<row>, Akko east and north of Alexandria
+  assert.deepEqual(S.sea.entries.map((e) => e.id), ['alexandria', 'storm', 'akko']);
+  assert.deepEqual(S.sea.entries.map((e) => e.cell), ['ים־יט־13', 'ים־ד־10', 'ים־ג־6']);
+  for (const e of S.sea.entries) { assert.equal(e.cell, seaName(e.k, e.r)); assert.ok(e.k >= 0 && e.k < 20 && e.r >= 0 && e.r < 20); assert.ok(/[֐-׿]/.test(e.label) && e.src); }
+  void parse;
+  // the deck: two doors 5 × 20 side by side about the mast line, every ring, cleat and tail inside the hull's beam
+  const D = S.sea.deck, H = S.sea.hull;
+  assert.equal(D.doors.L, 20); assert.equal(D.doors.W, 5); assert.equal(D.doors.T, 0.35);
+  assert.ok(D.doors.port[1] + D.doors.W / 2 < 0 && D.doors.stbd[1] - D.doors.W / 2 > 0);
+  assert.equal(H.stem - H.stern, 60); assert.equal(H.beam, 16);
+  for (const k of ['portFore', 'portAft', 'stbdFore', 'stbdAft']) for (const T of [D.rings, D.cleats, D.tails]) assert.ok(Math.abs(T[k][1]) < H.beam / 2 && T[k][0] > H.stern && T[k][0] < H.stem, k);
+  assert.equal(D.sailors.length, 6);
+});
+// ── /h128 ──

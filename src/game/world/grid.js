@@ -106,6 +106,7 @@ function makeBook() {
   const SECTORS = allSectors();
   const stages = { s02: s02(), s03: s03(), s04: s04(), s05: s05() };   // ── build 124 B ── ── /build 124 B ──
   stages.s01 = s01(SECTORS);   // ── h127 ── (build 127: stage 01's section, shaped as the others; its old keys below stay as they were) ── /h127 ──
+  stages.s06 = s06();   // ── h128 ── (build 128: stage 06's section, and its sea sheet) ── /h128 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -468,5 +469,120 @@ function s01() {
   return { stage: 1, name: 'שיטוח ההר', bounds: S01.platform, square: { x0: EAST - SQ_N * CELL, x1: EAST, z0: NORTH, z1: NORTH + SQ_N * CELL }, ...S01, entries: E };
 }
 // ── /h127 ──
+
+/* ───────── ── h128 ── stage 06's section (build 128, rule 65: the book first; docs/specs/build128-brief.md §1) ───────── */
+/** stage 06, Nicanor's gate and the fifteen steps. Every row of the brief's §1 checked against what the world draws (build 128):
+ *  · the gate house (temple.js nikanor: batch.js gate('E', −4, −14, 10, 14, …)) is one solid from x −4 to 10, z ±14; its two bronze
+ *    leaves hang on its EAST face, x 10 … 10.34, the opening z ±5 from y 13.5 to 33.5 (10 × 20, Middot 2:3). So the sill, where the
+ *    door crosses and is hung, is x 10 (the brief had x 3, inside the solid), and the wickets stand in the gate house's west face, x −4,
+ *    toward the Azarah (the brief's x 3 / stands x 0 were inside the solid);
+ *  · the Azarah's floor (stages.js groundAt) is 13.5 only for −8 < x < 0; at x ≤ −8 the duchan's half steps rise to 16 at x ≤ −11, so
+ *    the capstan at x −12 stands at y 16, and the stand facing both wickets is x −7 (x −8 is the first half step, 14.5);
+ *  · the court's east gate house (temple.js 'gates' E: x 138 … 150) is solid: the place where the doors are awaited is on the court's
+ *    floor in front of it, x 134 (the brief's x 141 was inside it), between the gallery's two east runs (z ±13);
+ *  · the ramp keeps the spec's 43 amot and 7.5 up, its head on the true sill: ramp.low x 53, the sledge's head waiting 2 before it
+ *    (x 55); the six notches keep the spec's spacing of 7 (x 49 … 14: the spec's x 7 is inside the gate house). The notches are where
+ *    the sledge's TAIL is wedged; the sledge is the door's length (20), so its tail starts at x 75 and the climb is the player's up to
+ *    the last notch (tail x 14, head x −6, on the Azarah's flat floor west of the gate house); the crew lands it from there;
+ *  · the steps (temple.js: fifteen half cylinders round (10, 0), the j-th radius 6.5 + 0.5 j, top 13.5 − 0.5 j; stages.js line 1731):
+ *    ring i (1 the lowest) has outer radius 13.5 − 0.5 (i − 1), its top y 6 + 0.5 i and its base y 5.5 + 0.5 i; ring 15's tread is
+ *    the landing r ≤ 6.5 at 13.5 — the brief's rows agree;
+ *  · the stone yard, the table, the gaps and the stands of rings 1, 8, 15, the pushing place and the sunrise view: as the brief.
+ *  The sea is outside the Mount: its own sheet (20 × 20 cells of 30 km, column from the east, row from the north, as the Mount's) and
+ *  the deck's own frame (amot from the mast foot on the deck: x forward to the bow, z to starboard, y up). */
+const S06 = {
+  eastGate: [134, 0, 6],
+  // the timber work ramp (המחשה): low end on the court's floor → the sill; the six stop notches (x of the sledge's tail, on z 0); the two
+  // rough timbers (x from, to); its width; the sledge (its length, the door's; its head's and its tail's x at the start)
+  ramp: { foot: [55, 0, 6], low: [53, 0, 6], sill: [10, 0, 13.5], notch: [49, 42, 35, 28, 21, 14], rough: [[31, 38], [10, 17]], w: 6, sledge: { L: 20, head: 55, tail: 75 } },
+  capstan: [-12, 0, 16],
+  // the fifteen steps: the half threshing floor's centre, the lowest ring's outer radius, tread and rise, the court's floor; the yard and
+  // the templates' table; the gaps and stands of the player's three rings ([x, z, y]: the gap's centre on the tread's middle at the
+  // ring's base; the stand)
+  steps: {
+    c: [10, 0], R1: 13.5, tread: 0.5, rise: 0.5, n: 15, floor: 6, ends: [[10, -13.5], [10, 13.5]],
+    yard: [40, -14, 6], table: [36, -10, 6],
+    gap: { 1: [23.25, 0, 6], 8: [19.75, 0, 9.5], 15: [16.25, 0, 13] },
+    stand: { 1: [28, 0, 6], 8: [23.5, 0, 6.5], 15: [20, 0, 10] },
+  },
+  // the two wickets (המחשה: size 2 × 4 and place) in the gate house's west face, and the stands behind them inside the Azarah
+  wicket: { N: [-4, -11, 13.5], S: [-4, 11, 13.5], standN: [-6, -11, 13.5], standS: [-6, 11, 13.5], standBoth: [-7, 0, 13.5], w: 2, h: 4 },
+  close: { stand: [-6, 0, 13.5], view: [40, 0, 6] },
+  // the stage's cameras on the Mount (part 2 fills them: every shot, opening and film reads its eye and aim from here)
+  cam: {},
+  // ── the sea sheet ──
+  sea: {
+    sheet: { name: 'גיליון הים', n: 20, km: 30 },
+    // [column index from the east (0 = א), row index from the north (0 = 1)]
+    places: { alexandria: [18, 12], storm: [3, 9], akko: [2, 5] },
+    // the ship (המחשה): a merchant ship of one mast and one square sail, in the deck's frame. hull: the stern post's and the stem's x,
+    // the beam and where it is widest, the depth from the keel to the deck at the mast, the freeboard over the water there, the sheer
+    // (how much the deck rises at each end)
+    hull: { stern: -38, stem: 22, beam: 16, wide: -14, depth: 7, free: 3.4, sheer: [2.2, 2.8] },
+    mast: { at: [0, 0], h: 34, yard: 30 },
+    deck: {
+      // the two doors (each 5 × 20 × 0.35, lying fore and aft, one each side of the mast line): centre, length along x, width along z
+      doors: { port: [-12, -3.2], stbd: [-12, 3.2], L: 20, W: 5, T: 0.35 },
+      // each door's two ring handles (x, z)
+      handles: { port: [[-16, -3.2], [-8, -3.2]], stbd: [[-16, 3.2], [-8, 3.2]] },
+      // the four lashing rings in the deck (inboard, between the doors), the four cleats at the rails, the four tails' grips (the free
+      // ends the player takes: aft of each cleat along the rail)
+      rings: { portFore: [-5, -0.35], portAft: [-19, -0.35], stbdFore: [-5, 0.35], stbdAft: [-19, 0.35] },
+      cleats: { portFore: [-5, -6.7], portAft: [-19, -6.7], stbdFore: [-5, 6.7], stbdAft: [-19, 6.7] },
+      tails: { portFore: [-8, -6.1], portAft: [-22, -6.1], stbdFore: [-8, 6.1], stbdAft: [-22, 6.1] },
+      rail: [-12, -7.1],            // where the port door goes over the side (the throw)
+      nicanor: [-26, 0],            // he stands aft of the doors, facing forward
+      // six sailors at work: [x, z, what is in his hands]
+      sailors: [[-23, -5.4, 'rope'], [-23, 5.4, 'rope'], [3, -2.2, 'bucket'], [2, 2.4, 'rope'], [-33, -4.6, 'oar'], [14, 1.2, 'rope']],
+      hook: [-31, 6.2],             // the boat hook's rest by the starboard rail
+      steer: [[-34, -7.2], [-34, 7.2]],   // the two steering oars, lashed at the stern quarters
+    },
+    // Akko (sea3): the ship moored port side to the quay, in the deck's frame then. The quay's edge (z) and top (y over the deck at the
+    // mast), its stretch along x; the derrick's foot and its head over the water; the place the thrown door rises under the side; the
+    // door's landing place on the quay
+    quay: { edge: -8.6, top: 0.6, x: [-70, 40], derrick: { foot: [-12, -13.5], head: [-12, -7.6, 16] }, bob: [-12, -8.2], land: [-12, -18.5] },
+    // the sea's cameras in the deck's frame ([eye], [aim]): the play camera behind and above Nicanor (the doors and four ropes in frame,
+    // the horizon in the upper third); the lifted one (the whole ship and the next swell: turned toward the swell's heading); the look
+    // sample's round (radius, height, aim)
+    cam: { play: [[-41, 8.6, 0], [-4, 0.6, 0]], lift: [[-78, 42, 0], [6, 0, 0]], round: { R: 82, y: 34, t: [-8, 2, 0] } },
+  },
+};
+const seaName = (k, r) => 'ים־' + heb(k + 1) + '־' + (r + 1);
+function s06() {
+  const E = [], C = S06, S = C.steps, R = C.ramp, W = C.wicket;
+  const e3 = (id, kind, p, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y: p[2], extra }));
+  e3('eastGate', 'gate', C.eastGate, 'לפני השער המזרחי של עזרת הנשים: כאן מחכים לדלתות', ILL);
+  e3('ramp:foot', 'sledge', R.foot, 'רגל כבש העבודה: הדלת על המזחלת', ILL);
+  e3('ramp:low', 'ramp', R.low, 'הקצה התחתון של כבש העבודה', ILL);
+  e3('ramp:sill', 'sill', R.sill, 'סף שער ניקנור, ראש הכבש', 'מידות ב, ג');
+  const yOn = (x) => R.low[2] + (R.sill[2] - R.low[2]) * (R.low[0] - x) / (R.low[0] - R.sill[0]);
+  R.notch.forEach((x, i) => E.push(ent('ramp:notch' + (i + 1), 'notch', x, 0, `שקע עצירה ${i + 1}`, ILL, { y: +yOn(x).toFixed(4) })));
+  R.rough.forEach(([a, b], i) => E.push(ent('ramp:rough' + (i + 1), 'rough', (a + b) / 2, 0, `קורה מחוספסת ${i + 1} בכבש`, ILL, { y: +yOn((a + b) / 2).toFixed(4) })));
+  e3('capstan', 'capstan', C.capstan, 'הכננת, על רצפת העזרה', ILL);
+  E.push(ent('steps:c', 'steps', S.c[0], S.c[1], 'מרכז חצי הגורן של חמש עשרה המעלות', 'מידות ב, ה'));
+  S.ends.forEach(([x, z], i) => E.push(ent('steps:end' + 'NS'[i], 'end', x, z, `הקצה ה${i ? 'דרומי' : 'צפוני'} של המעלה התחתונה`, 'מידות ב, ה', { y: S.floor })));
+  e3('steps:yard', 'yard', S.yard, 'מגרש האבנים של המעלות', ILL);
+  e3('steps:table', 'table', S.table, 'שולחן התבניות', ILL);
+  for (const i of [1, 8, 15]) {
+    e3('steps:gap' + i, 'gap', S.gap[i], `רווח הסגירה במעלה ${i}`, ILL);
+    e3('stand:ring' + i, 'stand', S.stand[i], `עמדת השחקן מול מעלה ${i}`, ILL);
+  }
+  e3('wicket:N', 'wicket', W.N, 'הפשפש הצפוני', 'מידות ב, ו');
+  e3('wicket:S', 'wicket', W.S, 'הפשפש הדרומי', 'מידות ב, ו');
+  e3('stand:wicketN', 'stand', W.standN, 'עמדת השחקן מאחורי הפשפש הצפוני', ILL);
+  e3('stand:wicketS', 'stand', W.standS, 'עמדת השחקן מאחורי הפשפש הדרומי', ILL);
+  e3('stand:wickets', 'stand', W.standBoth, 'עמדת השחקן מול שני הפשפשים', ILL);
+  e3('stand:close', 'stand', C.close.stand, 'עמדת הדחיפה בתוך העזרה', ILL);
+  e3('close:view', 'view', C.close.view, 'נקודת המבט לזריחה בעזרת הנשים', ILL);
+  // the sea sheet's own entries: { id, kind, cell, k, r, km [east, south of the sheet's north-east corner, the cell's middle], label, src }
+  const SEA = C.sea, km = SEA.sheet.km, SL = { alexandria: ['יציאה מאלכסנדריא (רואים ולא משחקים)', 'יומא לח ע"א'], storm: ['הסערה והנחשול', ILL], akko: ['נמלה של עכו', 'יומא לח ע"א'] };
+  const seaE = Object.entries(SEA.places).map(([id, [k, r]]) => ({ id, kind: 'sea', cell: seaName(k, r), k, r, km: [-(k + 0.5) * km, (r + 0.5) * km], label: SL[id][0], src: SL[id][1] }));
+  return { stage: 6, name: 'שער ניקנור וחמש עשרה המעלות', bounds: { x0: -20, x1: 160, z0: -30, z1: 30 }, ...C, sea: { ...SEA, entries: seaE }, entries: E };
+}
+/** a ring of the fifteen steps (i 1 … 15, 1 the lowest): its outer radius, its tread's middle radius, its base and its top (amot) */
+export function ringOf(i) { const S = S06.steps, R = S.R1 - S.tread * (i - 1); return { i, R, mid: R - S.tread / 2, base: S.floor + S.rise * (i - 1), top: S.floor + S.rise * i }; }
+/** a cell's name on the sea sheet (ים־<column>־<row>) */
+export { seaName };
+// ── /h128 ──
 
 export const BOOK = makeBook();

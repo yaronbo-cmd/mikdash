@@ -16,6 +16,10 @@ const KIND = {
   brake: 'עמוד בלם', block: 'גלגלת', scaffold: 'פיגום', pile: 'ערמת אבנים', lane: 'שביל', cross: 'מעבר', mark: 'סימון', jar: 'כד',
   crane: 'מנוף', course: 'נדבך', corner: 'פינה',
   // ── /h127 ──
+  // ── h128 ── (build 128) stage 06's kinds
+  sledge: 'מזחלת', ramp: 'כבש', sill: 'סף', notch: 'שקע עצירה', rough: 'קורה מחוספסת', capstan: 'כננת', end: 'קצה', table: 'שולחן', gap: 'רווח',
+  wicket: 'פשפש', view: 'נקודת מבט',
+  // ── /h128 ──
 };
 const L = [
   '# ספר הכתובות — כל המקומות לפי שלב',
@@ -26,7 +30,7 @@ const L = [
   'הרשת לעולם אינה מצוירת במשחק. "המחשה" — מידה שאינה במקורות.',
   '',
 ];
-for (const k of ['s01', 's02', 's03', 's04', 's05']) {   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
+for (const k of ['s01', 's02', 's03', 's04', 's05', 's06']) {   // ── h128 ── (+ s06) ── /h128 ──   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
   const S = BOOK[k], B = S.bounds;
   L.push(`## שלב ${String(S.stage).padStart(2, '0')} — ${S.name}`, '');
   L.push(`תחום: x ${n(B.x0)} עד ${n(B.x1)}, z ${n(B.z0)} עד ${n(B.z1)} · ${S.entries.length} כתובות`, '');
@@ -34,5 +38,14 @@ for (const k of ['s01', 's02', 's03', 's04', 's05']) {   // ── h127 ── (
   for (const e of S.entries) L.push(`| \`${e.id}\` | ${KIND[e.kind] || e.kind} | ${e.label} | ${n(e.x)} | ${n(e.z)} | ${e.y != null ? n(e.y) : ''} | ${e.cell} | ${e.src} |`);
   L.push('');
 }
+// ── h128 ── the sea sheet of stage 06 (outside the Mount's grid: its own cells of 30 km)
+{
+  const SEA = BOOK.s06.sea;
+  L.push(`### ${SEA.sheet.name}`, '', `${SEA.sheet.n} × ${SEA.sheet.n} משבצות של ${SEA.sheet.km} ק"מ. העמודה מן המזרח מערבה, השורה מן הצפון דרומה (כמו ברשת ההר). ק"מ: מזרחה (שלילי = מערבה) ודרומה מן הפינה הצפונית-מזרחית של הגיליון, אמצע המשבצת.`, '');
+  L.push('| מזהה | תיאור | משבצת | ק"מ | מקור |', '|---|---|---|---|---|');
+  for (const e of SEA.entries) L.push(`| \`${e.id}\` | ${e.label} | ${e.cell} | ${n(e.km[0])}, ${n(e.km[1])} | ${e.src} |`);
+  L.push('', 'על הסיפון המקומות נמדדים מרגל התורן (x קדימה אל החרטום, z ימינה אל צד ימין של הספינה): ראו `BOOK.s06.sea.deck`, `quay`, `cam` בקוד. כולם המחשה.', '');
+}
+// ── /h128 ──
 writeFileSync(out, L.join('\n'));
 console.log('wrote', out, Object.keys(BOOK).filter((k) => /^s0\d$/.test(k)).map((k) => `${k}:${BOOK[k].entries.length}`).join(' '));

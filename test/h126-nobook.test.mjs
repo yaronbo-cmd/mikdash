@@ -56,3 +56,16 @@ test('stages 01–05: no world place typed outside the book but the listed excep
   for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
   for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
 });
+
+// ── h128 ── (build 128) stage 06: its files read every place from the book (BOOK.s06); what the scan finds is no place
+const ALLOW128 = [
+  ['h128/model.js', 3, 'angles in degrees: the bolts\' turns (720, 1080), the leaves\' open angle (90, 90) and its clamp (0, 90)'],
+];
+test('stage 06: no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h128']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW128.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h128 ──

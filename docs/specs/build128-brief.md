@@ -179,6 +179,31 @@ break and the light on the bronze (8 s), then the lifted view round the ship (9 
 in a corner of this page only. It must hold 50 fps or more in the probe at 960×600 and stay under 1.5 ms of script
 per frame for the sea itself; say what you measured. I look at it, then the owner checks it on his tablet.
 
+## 3a. The owner's answer to the look sample (14.11, 21:21 UTC) — part 3 opens with this
+
+"האוניה נראית סבבה חוץ מזה שאין לה הגה. 60mbs. התנועתיות טובה סהכ. הים והשמים צריכים שיפור כאמור."
+His tablet holds 60 frames a second at 18 draw calls and 47k triangles, so there is room to spend. The ship and the
+motion are accepted. Three things to do before the sea's play, with a new sample page for him:
+
+1. **The rudder.** He saw no rudder. The two steering oars at the stern are right for the period but read as nothing.
+   Make them the ship's rudder to the eye: two broad-bladed quarter rudders, each on its own stout post through a
+   housing on the quarter, joined by a cross tiller a helmsman holds with both hands (a seventh sailor, whole, at
+   work: he leans on the tiller against each swell). In the play camera the tiller and the helmsman are in frame.
+   Nobody else steers and the player never does; the spec's "אין הגה" means there is no steering in the play.
+2. **The sea.** More life in the water at every distance: a second, finer layer of moving detail in the normals
+   (near the ship one sees small chop riding the big waves), the sky's colours mirrored in the water with a Fresnel
+   term (bright toward the horizon, deep and clear looking down), light through the thin top of a steep crest, fine
+   foam that forms on a breaking crest and is left behind as fading streaks on the back of the wave (in place of the
+   comb strokes), a wake behind the ship and foam thrown where the bow comes down. In the storm: spray blown flat off
+   the crests as particles, darker troughs.
+3. **The sky.** Real clouds: layered moving cloud shapes in the dome's shader (two or three noise layers at different
+   speeds), lit from the sun's side with darker bases; a sun disk with a soft glow low in the calm; in the storm a
+   heavy low ceiling that rolls in from one side and closes over the ship, with a pale band left at the horizon; at
+   the break the ceiling tears open over the ship and the sun's light comes through the hole (the gap is seen in the
+   sky, and its bright patch on the water moves to the ship). A clear horizon line with haze.
+Keep it at or under about 30 draw calls and 70k triangles and under 1 ms of script a frame, all assets inline. The
+sample page stays (`__H128_SEA_LOOK`) with its numbers; I send it to him again.
+
 ## 4. Station 1 — הנחשול (`sea.js`: `SEA`, three works in one journey)
 
 Icon 🌊, title "הנחשול". The three segments are three works played in order (`sea1`, `sea2`, `sea3`); the journey

@@ -139,15 +139,33 @@ export function seaAt(x, z, t, o = {}) {
 
 /* ── station 1, segments 1 and 2: the ropes through the swells ── */
 export const SEA_LV = Object.freeze({
-  sea1: Object.freeze({ D: 0.30, heads: ['port', 'bow', 'stbd', 'stern'], gap: 12, first: 14, drift: 0.012, worn: null, sky: [0, 1] }),
-  sea2: Object.freeze({ D: 0.40, heads: ['stbd', 'port', 'bow'], gap: 10, first: 12, drift: 0.016, worn: 'portAft', sky: [1, 1] }),
+  sea1: Object.freeze({ D: 0.30, heads: ['port', 'bow', 'stbd', 'stern'], gap: 12, first: 14, drift: 0.012, worn: null, sky: [0, 1], H: 3.4 }),
+  sea2: Object.freeze({ D: 0.40, heads: ['stbd', 'port', 'bow'], gap: 10, first: 12, drift: 0.016, worn: 'portAft', sky: [1, 1], H: 4.6 }),
 });
+/** (part 3) a swell's height to the eye follows its load: H (amot) per work, so the lifted view tells a big one from a small one */
+export const swellH = (id) => (SEA_LV[id] ? SEA_LV[id].H : SWELL.H);
+/** the next swell still to come (its crest not passed): { i, head, t0, in (s until its crest), H } or null */
+export function nextSwell(s) {
+  const i = s.sw.findIndex((w) => !w.crest); if (i < 0) return null;
+  const w = s.sw[i]; return { i, head: w.head, t0: w.t0, in: w.t0 - s.t, H: swellH(s.id) };
+}
+/** the swells for the sea's drawing (h128/sea3d.js set({ swells })): the model's clock + T0 is the sea's clock */
+export const swellsOf = (s, T0 = 0) => s.sw.map((w) => ({ head: w.head, t0: w.t0 + T0, H: swellH(s.id) }));
+/** what of the ropes stays from one work to the next on the same ship (the save's st.sea): a worn rope, the knots, the rings pulled
+ *  out, the ropes torn — drawn again and, for a worn rope, its limit kept */
+export function seaCarry(s, sea = {}) {
+  const o = { ring: { ...(sea.ring || {}) }, torn: { ...(sea.torn || {}) }, knot: { ...(sea.knot || {}) }, worn: { ...(sea.worn || {}) } };
+  for (const k of ROPES) { const r = s.ropes[k]; if (r.ring) o.ring[k] = (o.ring[k] | 0) + r.ring; if (r.torn) o.torn[k] = (o.torn[k] | 0) + r.torn; if (r.knot) o.knot[k] = 1; if (r.worn && !(SEA_LV[s.id].worn === k)) o.worn[k] = 1; }
+  for (const k of ROPES) { if (!o.ring[k]) delete o.ring[k]; if (!o.torn[k]) delete o.torn[k]; }
+  return o;
+}
 /** the worn rope shares its load with its partner (the same door's other rope) when the partner is set in the upper quiet band and not
  *  loaded itself in that roll: each then takes half (brief §4, sea2: "its load must be shared") */
 export const SHARE = 0.6;
-export function seaFresh(id = 'sea1') {
-  const L = SEA_LV[id], r = {};
-  for (const k of ROPES) r[k] = { t: 0.45, tgt: 0.45, worn: L.worn === k ? 1 : 0, knot: 0, torn: 0, ring: 0, fray: 0, load: 0, eff: 0.45 };
+export function seaFresh(id = 'sea1', carry = null) {
+  const L = SEA_LV[id], r = {}, C = carry || {};
+  // (carry: the save's st.sea — a rope worn in an earlier work stays worn; its knots are drawn, they count no damage here)
+  for (const k of ROPES) r[k] = { t: 0.45, tgt: 0.45, worn: L.worn === k || (C.worn && C.worn[k]) ? 1 : 0, knot: 0, knot0: C.knot && C.knot[k] ? 1 : 0, torn: 0, ring: 0, fray: 0, load: 0, eff: 0.45 };
   return {
     id, t: 0, ropes: r, sw: L.heads.map((head, i) => ({ head, t0: L.first + i * L.gap, crest: 0, back: 0, clean: 1, slide: 0 })),
     dmg: 0, flags: { 'sea.torn': 0, 'sea.ring': 0 }, ev: [], done: 0, frays: 0, quick: 0,
@@ -224,7 +242,10 @@ export function seaPts(s) { return grade(s.dmg, s.sw.every((w) => w.clean)); }
 /* ── station 1, segment 2: the hold. Both thumbs on the second door's two rings through three swells; each swell slips one hand
  *    (fixed per swell) off its ring during 1.2 s; that thumb must lift and take the ring again before the next swell. A swell that
  *    finds a hand off does not count and comes again. Mouse: the sailor holds the other ring; the slipping hand is the pointer's. ── */
-export const HOLD = Object.freeze({ N: 3, P: 5.5, SLIP: 1.2, FIRST: 2.5, order: Object.freeze(['L', 'R', 'L', 'R', 'L', 'R']) });
+export const HOLD = Object.freeze({ N: 3, P: 5.5, SLIP: 1.2, FIRST: 6, order: Object.freeze(['L', 'R', 'L', 'R', 'L', 'R']), heads: Object.freeze(['port', 'bow', 'port', 'stbd', 'port', 'bow']) });
+/** (part 3) the hold's swell now on its way: { head, t0 (the model's clock), n } — the n-th swell of the hold (a swell that came again
+ *  counts anew: it is a new wave), seen from far as the others (the first FIRST s ahead) */
+export const holdSwell = (s) => (s.started && !s.done && s.next != null ? { head: HOLD.heads[s.swells % HOLD.heads.length], t0: s.next, n: s.swells } : null);
 export function holdFresh(opt = {}) { return { t: 0, on: { L: 0, R: 0 }, prev: { L: 0, R: 0 }, slip: { L: 0, R: 0 }, off: { L: 0, R: 0 }, held: 0, swells: 0, next: null, started: 0, done: 0, mouse: !!opt.mouse, ev: [] }; }
 /** inp: { L: bool (the left thumb on its ring), R: bool } — with opt mouse, R is the sailor's and always held, the slipping hand L */
 export function holdStep(s, inp = {}, dt = 1 / 60) {

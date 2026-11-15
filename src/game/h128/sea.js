@@ -703,13 +703,13 @@ function makeSea(m, X) {
         o.mt = +s.t.toFixed(2); o.T0 = +T0.v.toFixed(2);
         o.ropes = Object.fromEntries(ROPES.map((k) => { const r = s.ropes[k]; return [k, { t: +r.t.toFixed(3), tgt: +r.tgt.toFixed(3), eff: +r.eff.toFixed(3), band: bandOf(r.t), worn: r.worn, fray: +r.fray.toFixed(2), gone: RP[k].gone }]; }));
         o.sw = s.sw.map((w) => ({ head: w.head, t0: w.t0, crest: w.crest, back: w.back, clean: w.clean })); o.next = nextSwell(s); o.D = SEA_LV[id].D; o.dmg = s.dmg; o.flags = s.flags; o.pts = seaPts(s);
-        if (S && A.phase === 'ropes') o.tails = Object.fromEntries(ROPES.map((k) => { const q = tailScr(k); return [k, [Math.round(q.x), Math.round(q.y)]]; }));
+        if (S && SS.S === S && A.phase === 'ropes') o.tails = Object.fromEntries(ROPES.map((k) => { const q = tailScr(k); return [k, [Math.round(q.x), Math.round(q.y)]]; }));
         o.low = o.next ? lowRopes(o.next.head) : null;
       }
       if (hold) { o.hold = { on: { ...hold.on }, off: { ...hold.off }, slip: { L: +hold.slip.L.toFixed(2), R: +hold.slip.R.toFixed(2) }, held: hold.held, swells: hold.swells, started: hold.started, next: hold.next != null ? +(hold.next - hold.t).toFixed(2) : null };
-        if (S && A.phase === 'hold') o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; }
+        if (S && SS.S === S && A.phase === 'hold') o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; }
       if (ak) { o.akko = { phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };
-        if (S && E && E.quay.visible) { const h = hookScr(), r = worldScr(ak3.ring), q = haulScr(); o.hook = [Math.round(h.x), Math.round(h.y)]; o.ring = [Math.round(r.x), Math.round(r.y)]; o.haul = [Math.round(q.x), Math.round(q.y)]; o.hookD = +Math.hypot(ak3.hook.x - BOB[0], ak3.hook.y - (S.waterAt(BOB[0], BOB[1]) + ringY(ak.t))).toFixed(2);
+        if (S && SS.S === S && E && E.quay.visible) { const h = hookScr(), r = worldScr(ak3.ring), q = haulScr(); o.hook = [Math.round(h.x), Math.round(h.y)]; o.ring = [Math.round(r.x), Math.round(r.y)]; o.haul = [Math.round(q.x), Math.round(q.y)]; o.hookD = +Math.hypot(ak3.hook.x - BOB[0], ak3.hook.y - (S.waterAt(BOB[0], BOB[1]) + ringY(ak.t))).toFixed(2);
           // (the screen px of one amah at the ring: the bot's hand needs it)
           const r2 = worldScr(_a.copy(ak3.ring).add(_b.set(0, 1, 0))); o.pxA = +Math.hypot(r2.x - r.x, r2.y - r.y).toFixed(1); } }
       return o;

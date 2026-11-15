@@ -604,15 +604,15 @@ const S06 = {
     cam: { play: [[-41, 11, 0], [-3, 0, 0]], lift: [[-78, 42, 0], [6, 0, 0]], round: { R: 82, y: 34, t: [-8, 2, 0] },
       // (part 3, the play) the lifted view's top (u 0.45: the ship's whole length and the next swell's way, turned toward it), the
       // throw (the door over the rail and down), the hold (from starboard across the door: its two rings side by side), the empty
-      // place, the opening picture (from ahead of her, looking aft: the shore she leaves behind her), Akko (from the quay, aft of the
-      // derrick: the gap between her side and the quay where the door rises, the hook on the right, the hauling end on the left) and
+      // place, the opening picture (from ahead of her, looking aft: the shore she leaves behind her), Akko (from the quay, far aft of the
+      // derrick, so its head, the hung door and its landing place are all in frame: the gap between her side and the quay where the door rises, the hook on the right, the hauling end on the left) and
       // its lifted view (the derrick, the door and the quay from above)
       // (the play's own deck shot: the look's play camera nine amot further aft and a little higher, so the helmsman at the cross
       //  tiller and the sailor at the port rudder stand whole in the frame's foot)
       deck: [[-50, 12.5, 0], [-3, 0, 0]],
       liftTop: { d: 96, el: 0.5, t: [-8, 0, 0] }, throw: [[-12, 10, 13], [-12, 0, -8]], hold: [[-12, 13, 24], [-12, 0.4, 1.8]],
       sorry: [[-27, 6.5, 7], [-12, 1, -3.4]], open: [[64, 22, 46], [-18, 4, 0]],
-      akko: [[-27, 11, -23], [-12, 2.5, -8.6]], akkoLift: [[-22, 44, -34], [-11, 0, -12]] },
+      akko: [[-52, 15, -36], [-12, 9, -11]], akkoLift: [[-42, 52, -52], [-12, 6, -12]] },
     // the cloud break (המחשה, build 128 sea look 2), in the sea's frame: where the bright patch of light first falls on the water
     // (far ahead, under the low sun) before it runs to the doors; the patch's radius; the torn hole's radius in the ceiling as seen
     // from the ship (radians, round the low sun)

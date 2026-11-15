@@ -530,7 +530,7 @@ const S06 = {
     },
     ringAll: [[48, 42, 0], [14, 8, 0]],
     // §7: close behind each wicket in the Azarah; both from further back
-    wicketN: [[-11, 17.6, -11], [-4, 15.6, -11]], wicketS: [[-11, 17.6, 11], [-4, 15.6, 11]], wickets: [[-38, 28, 0], [-4, 15.2, 0]],
+    wicketN: [[-11, 17.6, -11], [-4, 15.6, -11]], wicketS: [[-11, 17.6, 11], [-4, 15.6, 11]], wickets: [[-34.7, 26.8, 0], [-4, 15.2, 0]] /* (build 128 fix: as close as shows both leaves whole, about 2 amot to spare each side at 960×600) */,
     // §8: behind and above the twenty men, looking east through the opening; the lifted view from above
     close: [[-21, 27, 0], [9, 18, 0]], closeLift: [[-6, 62, 0], [5, 13.5, 0]],
     // the end: the Levites on the steps before dawn, the sun on the closed doors, the north leaf near

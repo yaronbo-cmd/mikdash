@@ -36,9 +36,19 @@ export const BOLT = {
     const A = { phase: 'intro', t: 0, ev: [], fing: {}, acc: {}, sq: 0, tickA: 0, alone: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 14) A.ev.shift(); };
     // the wickets as they stand: open (the crews opened them again for the joint test), the plate on the south one, a bent tooth kept
-    const W = {}; for (const k of sides) W[k] = wicketMesh(X, k, { plate: k === 'S' || (pair && true), tooth: st.bolts[k].tooth, locked: false });
+    const W = {}; for (const k of sides) W[k] = wicketMesh(X, k, { plate: k === 'S' || (pair && true), tooth: st.bolts[k].tooth, locked: false, bold: pair });
+    // (both wickets, the owner 15.11: in the far frame a ring is ~20 px — each wicket gets a hint arc of 1.5 amot round its ring, in the
+    //  world, turning with it, its bright end where the tooth is; the grip is the whole leaf)
+    const arcs = {};
+    if (pair) for (const k of sides) {
+      const U = W[k].userData, g = new T.Group(); g.position.copy(U.ringL.position); W[k].add(g);
+      const faint = new T.Mesh(new T.TorusGeometry(1.5, 0.03, 4, 48), new T.MeshBasicMaterial({ color: 0xFFE6A0, transparent: true, opacity: 0.28, depthWrite: false })); faint.rotation.y = Math.PI / 2; W[k].add(faint); faint.position.copy(U.ringL.position);
+      const ARC = 1.9, arc = new T.Mesh(new T.TorusGeometry(1.5, 0.06, 4, 32, ARC), new T.MeshBasicMaterial({ color: 0xFFD86A, transparent: true, opacity: 0.9, depthWrite: false })); arc.rotation.y = Math.PI / 2; g.add(arc);
+      const tooth = new T.Mesh(X.props.geo.box, new T.MeshBasicMaterial({ color: 0xFFF2C0 })); tooth.scale.set(0.12, 0.34, 0.34); tooth.position.set(0, 1.5 * Math.sin(ARC), -1.5 * Math.cos(ARC)); g.add(tooth);
+      arcs[k] = g;
+    }
     const mason = [];
-    if (pair) for (const k of sides) { const w = SH6.crew.add(WK[k][0] - 0.7, WK[k][1] + (k === 'N' ? -1.9 : 1.9), { role: 'hold', crew: 2, fx: WK[k][0], fz: WK[k][1] }); if (w) mason.push(w); }   // (beside his wicket, on its outer side: never in front of it)
+    if (pair) for (const k of sides) { const w = SH6.crew.add(WK[k][0] - 0.7, WK[k][1] + (k === 'N' ? 2.5 : -2.5), { role: 'hold', crew: 2, fx: WK[k][0], fz: WK[k][1] }); if (w) mason.push(w); }   // (beside his wicket, on its side toward the gate: never in front of it, and inside the frame — on the outer side the frame's edge cut him)
     const lift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief §0.6: both thumbs on the work: the camera a little lifted by the act itself)
     const s = pair ? pairFresh({ mouse: MOUSE }) : boltFresh(m.id);
     const L = BOLT_LV[m.id];
@@ -46,10 +56,14 @@ export const BOLT = {
     const v3 = new T.Vector3();
     const ringScr = (k, side) => sc(X, W[k].userData.ringAt(side, v3));
     const centres = () => (pair ? { N: ringScr('N', 'L'), S: ringScr('S', 'L') } : { L: ringScr(sides[0], 'L'), R: ringScr(sides[0], 'R') });
+    // (both wickets: a wicket's grip is its whole leaf on the screen, at least 44 px each way)
+    const leafBox = (k) => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const dy of [0, WK.h]) for (const dz of [-WK.w / 2 - 0.12, WK.w / 2 + 0.12]) { const r = X.scr(WK[k][0] - 0.25, WK[k][2] + dy, WK[k][1] + dz); x0 = Math.min(x0, r.x); x1 = Math.max(x1, r.x); y0 = Math.min(y0, r.y); y1 = Math.max(y1, r.y); } const gx = Math.max(6, (44 - (x1 - x0)) / 2), gy = Math.max(6, (44 - (y1 - y0)) / 2); return [x0 - gx, y0 - gy, x1 + gx, y1 + gy]; };
+    const onLeaf = (p) => { for (const k of sides) { const b = leafBox(k); if (p.x >= b[0] && p.x <= b[2] && p.y >= b[1] && p.y <= b[3]) return k; } return null; };
     const FG = fingers(X, {
       down(f) {
         if (A.phase !== 'turn') return;
         const C = centres(), keys = Object.keys(C), taken = Object.values(A.fing);
+        if (pair) { const k = onLeaf(f); if (!k || taken.includes(k)) return; A.fing[f.id] = k; f.ring = k; f.ang = Math.atan2(f.y - C[k][1], f.x - C[k][0]); return; }
         let best = null, bd = 1e9; for (const k of keys) { if (taken.includes(k)) continue; const d = Math.hypot(f.x - C[k][0], f.y - C[k][1]); if (d < bd) { bd = d; best = k; } }
         if (!best || bd > Math.max(130, gripR() * 1.5)) return; A.fing[f.id] = best; f.ring = best; f.ang = Math.atan2(f.y - C[best][1], f.x - C[best][0]);   // (only a finger on a ring: two elsewhere are a pinch)
       },
@@ -90,7 +104,13 @@ export const BOLT = {
     function both(dt) {
       const dN = A.acc.N || 0, dS = A.acc.S || 0; A.acc = {};
       pairStep(s, { dN, dS }, dt);
-      for (const k of ['N', 'S']) { const i = k === 'N' ? 0 : 1, w = s.w[i]; W[k].userData.set(w, w, w / s.END[i]); }
+      for (const k of ['N', 'S']) {
+        const i = k === 'N' ? 0 : 1, w = s.w[i]; W[k].userData.set(w, w, w / s.END[i]);
+        if (arcs[k]) arcs[k].rotation.x = w * Math.PI / 180;
+        // (the guard beside the wicket leans into the turn with its second ring: harder while it turns)
+        const g = mason[i]; if (g && g.a) { const rate = Math.abs(w - (A['w' + k] || 0)) / Math.max(dt, 1e-3); A['lean' + k] = (A['lean' + k] || 0) + (Math.min(1, rate / 90) - (A['lean' + k] || 0)) * Math.min(1, dt * 6); g.a.bowT = 0.08 + 0.42 * A['lean' + k]; g.a.armT[0] = g.a.armT[2] = 0.9 + 0.3 * A['lean' + k]; }
+        A['w' + k] = w;
+      }
       const m30 = ((s.w[0] + s.w[1]) / 30) | 0; if (m30 !== A.tickA) { A.tickA = m30; V.tick(); }
       for (const e of s.ev) {
         ev(e.e + (e.k != null ? ':' + e.k : ''));
@@ -135,7 +155,7 @@ export const BOLT = {
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
       cancel() { A.fing = {}; },
       // (rule 66: on the right a touch is the act's only near a ring; elsewhere the right thumb lifts the camera)
-      wants(p) { if (!p) return true; if (A.phase !== 'turn') return false; const C = centres(), r = Math.max(130, gripR() * 1.5); return Object.values(C).some((c) => Math.hypot(p.x - c[0], p.y - c[1]) < r); },
+      wants(p) { if (!p) return true; if (A.phase !== 'turn') return false; if (pair) return !!onLeaf(p); const C = centres(), r = Math.max(130, gripR() * 1.5); return Object.values(C).some((c) => Math.hypot(p.x - c[0], p.y - c[1]) < r); },
       holds() { return Object.keys(A.fing).length > 0; },
       end() {
         lift(0); FG.detach(); V.stop(); X.hand(null);
@@ -145,7 +165,7 @@ export const BOLT = {
       },
       at() { const k = pair ? 'N' : sides[0]; return new T.Vector3(WK[k][0], WK[k][2] + WK.h / 2, pair ? 0 : WK[k][1]); },
       dbg() {
-        const C = centres(), o = { t: +A.t.toFixed(2), phase: A.phase, id: m.id, pair, mouse: MOUSE, ev: A.ev.slice(-8), nf: FG.n, c: C };
+        const C = centres(), o = { t: +A.t.toFixed(2), phase: A.phase, id: m.id, pair, mouse: MOUSE, ev: A.ev.slice(-8), nf: FG.n, c: C, leaf: pair ? { N: leafBox('N').map(Math.round), S: leafBox('S').map(Math.round) } : null };
         if (pair) Object.assign(o, { w: s.w.map((v) => +v.toFixed(1)), END: s.END, lock: s.lock, tries: s.tries, together: s.together, first: s.first, win: s.mouse ? L.TOG_MOUSE : L.TOG, last: L.LAST, back: L.BACK, pts: pairPts(s) });
         else Object.assign(o, { a: +s.a.toFixed(2), b: +s.b.toFixed(2), END: s.END, tol: s.tol, blk: s.blk, blkT: +s.blkT.toFixed(2), blkMax: +s.blkMax.toFixed(2), tooth: s.tooth, dmg: s.dmg, dry: s.dry, dryAt: L.DRY_AT ? L.DRY_AT * s.END : null, rock: L.ROCK || null, travel: +travelOf(s).toFixed(3), pts: boltPts(s) });
         return o;

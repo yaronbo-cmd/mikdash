@@ -530,7 +530,10 @@
    "TOG": 0.3,
    "TOG_MOUSE": 1.2,
    "LAST": 10,
-   "BACK": 90
+   "BACK": 90,
+   "GUARD": 240,
+   "GUARD_K": 3,
+   "GUARD_MIN": 60
   }
  },
  "leaf": {

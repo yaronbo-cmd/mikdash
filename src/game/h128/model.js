@@ -619,7 +619,7 @@ export function ringPts(r) { return grade(r.dmg, !r.wrongCarried && r.firstLay &
 export const BOLT_LV = Object.freeze({
   wicketN: Object.freeze({ tol: 14, END: 720, dry: 0, plate: 0 }),
   wicketS: Object.freeze({ tol: 10, END: 720, dry: 1, plate: 1, DRY_AT: 0.4, ROCK: 15, ROCKS: 3 }),
-  wickets: Object.freeze({ END: [720, 1080], TOG: 0.3, TOG_MOUSE: 1.2, LAST: 10, BACK: 90 }),
+  wickets: Object.freeze({ END: [720, 1080], TOG: 0.3, TOG_MOUSE: 1.2, LAST: 10, BACK: 90, GUARD: 240, GUARD_K: 3, GUARD_MIN: 60 }),   // (GUARD*: the mouse's guard, deg/s: his most, his pull toward the pointer's ring per s, his least while behind)
 });
 export const BOLT = Object.freeze({ BREAK: 0.8, BLOCK_OK: 0.5 });
 export function boltFresh(id = 'wicketN') { const L = BOLT_LV[id]; return { id, a: 0, b: 0, tol: L.tol, END: L.END, blk: 0, blkT: 0, blkMax: 0, tooth: [0, 0], dmg: 0, dry: L.dry ? { stuck: 0, free: 0, rocks: 0, back: 0 } : null, done: 0, t: 0, ev: [] }; }
@@ -665,6 +665,17 @@ export function pairStep(s, inp = {}, dt = 1 / 60) {
   s.t += dt;
   const L = BOLT_LV.wickets, win = s.mouse ? L.TOG_MOUSE : L.TOG;
   const d = [+inp.dN || 0, +inp.dS || 0];
+  // (build 128 C2, brief §7, the mouse: one pointer turns one wicket's ring; the guard at the other wicket turns his ring in step with
+  //  it — to the same share of its own turns — at his own pace: up to GUARD deg/s, closing GUARD_K of the gap a second. An even pace
+  //  brings both bolts down together; a rushed ring leaves him behind, and the second knock comes late)
+  if (s.mouse && (d[0] !== 0) !== (d[1] !== 0)) s.lead = d[0] !== 0 ? 0 : 1;
+  if (s.mouse && s.lead != null && d[1 - s.lead] === 0) {
+    const g = 1 - s.lead;
+    if (s.lock[g] == null) {
+      const gap = (s.w[s.lead] / s.END[s.lead]) * s.END[g] - s.w[g];
+      if (Math.abs(gap) > 1e-3) { const v = Math.min(L.GUARD, Math.max(L.GUARD_MIN, Math.abs(gap) * L.GUARD_K)) * dt; d[g] = Math.sign(gap) * Math.min(Math.abs(gap), v); }
+    }
+  }
   for (let k = 0; k < 2; k++) {
     if (s.lock[k] != null) { if (d[k] < 0) { s.w[k] += d[k]; if (s.w[k] <= s.END[k] - L.BACK) { s.lock[k] = null; s.ev.push({ e: 'open', k }); } } continue; }
     s.w[k] = clamp(s.w[k] + d[k], 0, s.END[k]);
@@ -673,7 +684,9 @@ export function pairStep(s, inp = {}, dt = 1 / 60) {
   if (s.lock[0] != null && s.lock[1] != null) {
     const ok = Math.abs(s.lock[0] - s.lock[1]) <= win;
     if (ok) { s.done = 1; s.together = 1; s.ev.push({ e: 'together' }); }
-  } else if ((s.lock[0] != null || s.lock[1] != null)) {
+    // (build 128 C2: never a dead end — both down but apart: both open again, a quarter back, and he tries again; nothing breaks)
+    else { for (let k = 0; k < 2; k++) { s.lock[k] = null; s.w[k] = s.END[k] - L.BACK; } s.first = 0; s.tries += s.alone ? 0 : 1; s.alone = 0; s.ev.push({ e: 'apart' }); }
+  } else if (!s.mouse && (s.lock[0] != null || s.lock[1] != null)) {
     const k = s.lock[0] != null ? 0 : 1;
     if (s.t - s.lock[k] > win && !s.alone) { s.alone = 1; s.first = 0; s.tries++; s.ev.push({ e: 'alone', k }); }
   } else s.alone = 0;

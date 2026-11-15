@@ -675,15 +675,16 @@
       const parc = (key, d, ms) => { const c = a.c[key], r = rOf(key), n = Math.max(3, Math.ceil(Math.abs(d) / 0.35)), P = []; for (let k = 0; k <= n; k++) { const t = d * k / n; P.push([c[0] + r * Math.cos(t), c[1] + r * Math.sin(t)]); } return { path: P, ms }; };
       const near = [a.END[0] - 14, a.END[1] - 14];
       if (has('alone') && !K.aloneDone && K.backDone && a.lock[0] == null) K.aloneDone = 1;
-      if (has('alone') && !K.aloneDone) {
+      if (has('alone') && !K.aloneDone && !a.mouse) {   // (touch only: by mouse the guard keeps the second ring in step)
         if (a.lock[0] == null && a.w[0] < a.END[0]) return { ...parc('N', Math.min(a.END[0] - a.w[0] + 4, 300) * rad, 1400), wait: 150, note: 'wickets: the north alone' };
         if (a.tries === 0) return { wait: 200 };
         if (!K.aloneShot) { K.aloneShot = 1; return { wait: 100, shot: 'wickets-alone' }; }
         if (a.lock[0] != null) { K.backDone = 1; return { ...parc('N', -(a.back + 8) * rad, 900), wait: 200, note: 'wickets: the north back a quarter' }; }
         K.aloneDone = 1;
       }
+      // (mouse, build 128 C2: the pointer turns the north ring alone at an even pace, 120°/s; the guard at the south turns his with it)
+      if (a.mouse || window.__BOT_MOUSE) { if (a.lock[0] != null) return { wait: 200 }; const dd = Math.min(a.END[0] - a.w[0] + 4, 240); return { ...parc('N', dd * rad, Math.round(dd / 120 * 1000)), wait: 120, note: `wickets: the north ring ${dd.toFixed(0)}° at an even pace (N ${a.w[0]} S ${a.w[1]})` }; }
       for (const [k, key] of [[0, 'N'], [1, 'S']]) if (a.w[k] < near[k] - 1.5) return { ...parc(key, Math.min(near[k] - a.w[k], 300) * rad, 1300), wait: 120, note: `wickets: ${key} to ${near[k]} (${a.w[k]})` };
-      if (a.mouse || window.__BOT_MOUSE) { const k = a.lock[0] == null ? 0 : 1, key = k ? 'S' : 'N'; return { ...arc(key, a.c[key], (a.END[k] - a.w[k] + 3) * rad, 260), wait: 30, note: 'wickets: ' + key + ' last turn (mouse: one after the other)' }; }
       // both last turns in the same frames: two fingers
       const n = 16, fr = [], aN = 0, aS = 0, rN = rOf('N'), rS = rOf('S'), dN = (a.END[0] - a.w[0] + 26) * rad, dS = (a.END[1] - a.w[1] + 26) * rad;   // (past the end: each locks as it gets there, a touch's lost degrees or not)
       for (let k = 0; k <= n; k++) fr.push([[a.c.N[0] + rN * Math.cos(aN + dN * k / n), a.c.N[1] + rN * Math.sin(aN + dN * k / n)], [a.c.S[0] + rS * Math.cos(aS + dS * k / n), a.c.S[1] + rS * Math.sin(aS + dS * k / n)]]);

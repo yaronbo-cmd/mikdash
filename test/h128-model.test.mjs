@@ -311,6 +311,24 @@ test('both wickets: brought in together within 0.3 s (40); one alone waits, turn
   ({ s, ev } = run([3, 3])); assert.ok(ev.includes('alone')); assert.ok(ev.includes('open')); assert.ok(s.done); assert.equal(M.pairPts(s), 20);
   ({ s } = run([2.02, 3], { mouse: true })); assert.ok(s.done && s.first);
 });
+test('build 128 C2: the mouse turns one ring, the guard turns the other in step; an even pace locks both together, a rushed one comes apart and both open again', () => {
+  // an even pace on the north ring alone (120 deg/s): the guard brings the south in with it — together at the first try (40)
+  let s = M.pairFresh({ mouse: true });
+  for (let k = 0; k < 60 * 60 && !s.done; k++) M.pairStep(s, { dN: 2 }, DT);
+  assert.ok(s.done && s.together && s.first); assert.equal(M.pairPts(s), 40);
+  // a rushed ring (600 deg/s): the guard falls behind, the second knock comes late — both open a quarter back (never a dead end)
+  s = M.pairFresh({ mouse: true }); let ev = [];
+  for (let k = 0; k < 60 * 30 && !ev.includes('apart'); k++) { M.pairStep(s, { dN: 10 }, DT); ev = ev.concat(s.ev.map((e) => e.e)); }
+  assert.ok(ev.includes('apart')); assert.ok(!ev.includes('alone'));
+  assert.deepEqual(s.lock, [null, null]); assert.deepEqual(s.w, [s.END[0] - 90, s.END[1] - 90]); assert.equal(s.first, 0); assert.equal(s.tries, 1);
+  // then an even pace on the south ring: done, 20
+  for (let k = 0; k < 60 * 60 && !s.done; k++) M.pairStep(s, { dS: 2 }, DT);
+  assert.ok(s.done && s.together); assert.equal(M.pairPts(s), 20);
+  // by touch: two thumbs that lock apart are opened again as well
+  s = M.pairFresh(); ev = [];
+  for (let k = 0; k < 60 * 60 && !ev.includes('apart'); k++) { M.pairStep(s, { dN: s.lock[0] == null ? 3 : 0, dS: s.t > 6 ? 4 : 0 }, DT); ev = ev.concat(s.ev.map((e) => e.e)); }
+  assert.ok(ev.includes('alone') && ev.includes('apart')); assert.deepEqual(s.lock, [null, null]);
+});
 
 /* ───────── the closing of the gate ───────── */
 function leafBot(opt = {}) {

@@ -680,7 +680,7 @@ export function createActors(ctx) {
         const dir = a.visT > a.vis ? 1 : -1; a.vis += dir * dt / 0.45;
         if ((dir > 0 && a.vis >= a.visT) || (dir < 0 && a.vis <= a.visT)) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }
       }
-      let inView = a.vis > 0.001;
+      let inView = a.vis > 0.001 && !a.gateOff;   // ── h128 ── (gateOff: the figures gate keeps a world figure out of an act's picture; it goes on living) ── /h128 ──
       if (inView && camera) {
         const dx = a.x - cx, dy = a.y - cy, dz = a.z - cz;
         if (dx * dx + dy * dy + dz * dz > 700 * 700) inView = false;

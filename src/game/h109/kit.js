@@ -51,7 +51,7 @@ export function createGang(X) {
     if (!A) return null;
     const a = A.add(o.variant || 'worker', x, z, { yaw: 0, col2: o.col2 || CREW[(o.crew | 0) % CREW.length], fadeIn: true });   // ── h120 ── (o.variant: 'kohen' for a life-size kohen among the crew, in white with his turban and sash) ── /h120 ──
     try { a.col.set(o.tunic || TUNIC[Math.floor(rnd() * TUNIC.length)]); } catch (e) { /* */ }
-    a.vis = 0; a.visT = 1;
+    a.vis = 0; a.visT = 1; a.gang = 1;   // ── h128 ── (gang: a pack's own worker — the figures gate counts a gang's man put there during an act as the act's) ── /h128 ──
     const w = { a, role: o.role || 'hold', off: o.off != null ? o.off : rnd() * 0.15, k: o.k || 2, fx: o.fx, fz: o.fz, t: 0, lastU: 0, onHit: o.onHit || null, from: o.from || null, to: o.to || null, leg: 0, wait: 0, item: o.item || null, dust: o.dust !== false, lean: o.lean || 0 };
     if (o.fx != null) a.yaw = Math.atan2(o.fx - x, o.fz - z);
     if (o.item) A.setItem(a, o.item);

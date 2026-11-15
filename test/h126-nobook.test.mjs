@@ -63,6 +63,7 @@ const ALLOW128 = [
   ['h128/look.js', 3, 'the look sample\'s timeline in seconds (the storm eases 28..31, the break opens 28..32, its patch of light runs to the ship 28.5..33.5)'],
   ['h128/sea3d.js', 18, 'sizes, not places: the camera\'s field of view (50) and the sample point count; fog distances (120..1500, 160/60, 1600/520); the storm ceiling\'s front, from far to port to past the ship (−30000..14000 amot on the cloud plane); geometry segments (sky 48 × 24, tubes 30 × 4..5, the env sphere 100 × 32 × 16 and its near/far 0.5/400); canvas sizes and gradients in px (256, 512, 128 × 64, the shadow blob 32, 32, 2..31 and its 64 px square); the crew\'s swell reach (30 amot, squared)'],
   // (part 2)
+  ['h128/figgate.js', 1, 'sizes, not places: the test camera\'s own field of view, aspect and near plane (40, 1.6, 0.1)'],
   ['h128/capstan.js', 2, 'the sparks\' count at the hung leaf (30) and the hand hint\'s gesture in px (40, 30)'],
   ['h128/close.js', 1, 'the hand hint\'s gesture in px (0, −40: a push up the screen)'],
   ['h128/steps.js', 1, 'the hand hint\'s gesture in px (−40, 30)'],

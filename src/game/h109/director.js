@@ -13,6 +13,7 @@
  *   D.owns() · D.acting() · D.start() · D.frame(ms) · D.marks() (twin's markers) · D.goal() (the compass) · D.goTo() · D.state()
  */
 import * as THREE from 'three';
+import { createFigGate } from '../h128/figgate.js';   // ── h128 ── (the figures gate: one rule for every act) ── /h128 ──
 import { createH109, PLAN, PLACES, H109, starsOf, GRADE_N } from './model.js';
 import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the address book's, BOOK.s01.cam)
 import { createProps } from './props.js';
@@ -142,6 +143,19 @@ export function createH109Director(o) {
     call(act.down, ptr); hintSeen();
     if (tapUp) { ptr.down = false; ptr.x = tapUp.x; ptr.y = tapUp.y; call(act.up, ptr); }
   }
+  // ── h128 ── the figures gate (h128/figgate.js): the act's camera at u 0 and u 0.3, every figure tested; world figures out for the act,
+  // the act's own reported when cut by the frame or between the camera and the work ── /h128 ──
+  let FG = null;
+  function figGate() {
+    if (FG) return FG;
+    const base = () => ({ p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: LK5.fov0 != null ? LK5.fov0 : camera.fov });
+    FG = createFigGate({ THREE, camera, actors: () => S0.crewActors || null,
+      hero: { xyz: () => (KOH.off ? null : heroAt()), show: (v) => { try { S0.hero.show(!!v); } catch (e) { /* */ } } },
+      pose: (u) => { const b = base(); if (PK.look && PK.look.act !== false && PK.look.pose) { try { const q = PK.look.pose(b, u, 0, 0); return { p: q.p, t: q.t, fov: q.fov }; } catch (e) { return u ? null : b; } } return u ? null : b; } });
+    try { globalThis.__FIG = FG; } catch (e) { /* (the probes' eyes) */ }
+    return FG;
+  }
+  // ── /h128 ──
   function lookFrame(dt) {
     // ── h128 ── (X.lookLift: the act's own small lift, eased; his own look takes over) ── /h128 ──
     if (LOOK.auto != null) {
@@ -817,6 +831,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // an act whose shot comes close (the letters on the stone) asks for it: the world camera's 35-amot floor gives way while it holds
     try { if (act.close && view.closeCam) view.closeCam(true, 'h109'); } catch (e) { /* */ }
     const g = document.querySelector('.gm'); if (g) g.classList.add('h109-own');
+    try { figGate().begin(); } catch (e) { /* */ }   // ── h128 ── (the figures there before the act are the world's) ── /h128 ──
     call(act.begin);
     emit('h109act', { id: mission.id, on: true });
     log('act', mission.id, 'lv', M.levelOf(mission));
@@ -838,6 +853,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (J && stars > 0) { try { await J.result({ stars, at }); } catch (e) { /* */ } }
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res);
+    try { if (FG) FG.end(); } catch (e) { /* */ }   // ── h128 ── ── /h128 ──
     if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ──
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ──
@@ -933,6 +949,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
     resFor(phase === 'act' && !!act);   // ── h117 ── ("נראה לא איכותי": full sharpness while a minigame runs) ── /h117 ──
+    if (phase === 'act' && act && FG && CAM.u >= 1) { try { const at = act.at ? act.at() : null; FG.step(dt, at, LOOK.u.toFixed(2)); } catch (e) { /* */ } }   // ── h128 ── (the gate, once the act's camera has settled; again when the look changes) ── /h128 ──
     if (phase === 'act' && act && !OV.on && !lookAway()) { act.t += dt; call(act.update, dt); try { if (S0.shadowSoon) S0.shadowSoon(); } catch (e) { /* */ } }   // ── h114 ── (the shadows follow what the act moves; the act waits while he looks from above) ── /h114 ──
     if (OV.on) ovFrame();
     if (phase !== 'act' || OV.on) { if (LOOK.id != null || LOOK.u || LOOK.yaw || LOOK.away) lookReset(); } else lookFrame(dt);   // ── h115 ── ── /h115 ──

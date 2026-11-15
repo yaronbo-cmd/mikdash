@@ -20,3 +20,12 @@ export function card(X, html, ms = 7000) {
 export const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 export const cite = (s) => { const m = String(s).match(/^(.*)\s\(([^()]*)\)$/); return m ? `<p style="margin:10px 0">${esc(m[1])}</p><small>(${esc(m[2])})</small>` : `<p>${esc(s)}</p>`; };
 
+/** the act's lens kept while his look is at rest: the world's own eye (sanctuary.js, inside the Ulam's wings) eases the lens back to the
+ *  walk's when the camera leaves that room — after an act's begin has set its own */
+export function holdLens(X, f) {
+  try {
+    const c = X.camera, L = X.lookNow ? X.lookNow() : null; if (!c || !(f > 0)) return;
+    if (L && (L.u > 0.01 || Math.abs(L.yaw) > 0.03 || L.ov)) return;
+    if (Math.abs(c.fov - f) > 0.01) { c.fov = f; c.updateProjectionMatrix(); }
+  } catch (e) { /* */ }
+}

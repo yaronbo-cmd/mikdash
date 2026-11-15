@@ -785,10 +785,11 @@ const S07 = {
     // deep); Beit HaMoked's great vault from the hall west of ring 1, at the deck's height
     vaultN: [[1.4, 9.6, -20], [8, 10.2, -20]], vaultS: [[1.4, 9.6, 20], [8, 10.2, 20]], vaultFov: 64,
     vaultM: [[-160, 31, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
-    // (part 2) the night: the slab close from inside the hall (the fire behind the camera); the hall with the fire and the sleepers
-    night: [[-156, 21.5, -70], [-160, 16.2, -76]], nightFov: 50, nightHall: [[-147, 24, -62], [-162, 17, -73]],
+    // (part 2) the night: the slab close from inside the hall (the fire behind the camera); the hall with the fire and the sleepers, from
+    // the nave's south end (x −166 … −154: the four chambers' partitions stand east and west of it, up to 27)
+    night: [[-158, 20, -72.5], [-160.2, 16.2, -76]], nightFov: 50, nightHall: [[-160, 23.5, -61], [-160, 16.5, -73]],
     // the night's last three pictures: the fire lighting the vault from within; the water standing in the troughs; the round bench
-    end: [[[-147, 19, -62], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
+    end: [[[-160, 18.5, -61], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and

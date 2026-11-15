@@ -15,6 +15,7 @@
 import { VAULT_LV, LEG, WEDGE, QUICK, LOSS, legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts, qOf, starsOf, lossPts } from './model.js';
 import { SH7, mats7, box, crackLine, fallen, ringGeos, ringCentering, own, setBusy } from './world.js';
 import { createVoices } from './sound129.js';
+import { holdLens } from './ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { gripR } from '../h109/grips.js';
 import { BOOK } from '../world/grid.js';
@@ -120,7 +121,7 @@ export const VAULT = {
     }
     const crownAt = () => ({ x: (G.big ? G.xF : 7) - 0.1, y: G.sp + G.r1 + 0.2, z: G.zc });
     function damage(f, i, side) {
-      const p = Mo.mark(f, m.id, null, i | 0), at = crownAt();
+      const at = crownAt(), p = Mo.mark(f, m.id, [+at.x.toFixed(2), +at.z.toFixed(2)], i | 0);
       if (f === 'vault.crack') { const a = jointAt(i | 0, side === 'L' ? 1 : -1); crackLine(X, (G.big ? G.xF : 7) - 0.05, G.sp + G.r0 * Math.sin(a), G.zc - G.r0 * Math.cos(a), root, G.big); V.crack(); X.shake(0.15, 0.25); }
       else {
         const j = clamp(Math.floor((jointAt(i | 0, side === 'L' ? 1 : -1) / Math.PI) * G.n), 0, G.n - 1), s = SM[j];
@@ -268,7 +269,7 @@ export const VAULT = {
         setTimeout(() => { if (A.phase === 'intro') partA(); }, 1500);
       },
       update(dt) {
-        A.t += dt;
+        A.t += dt; holdLens(X, k === 'M' ? CAM.vaultMFov : CAM.vaultFov);
         try { V.frame(); if (A.phase === 'legs') stepA(dt); } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] vault', e && e.message); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },

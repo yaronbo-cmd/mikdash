@@ -10,14 +10,14 @@
 import { SLAB, QUICK, LOSS, LINES, slabFresh, slabStep, nightPts, qOf, starsOf } from './model.js';
 import { SH7, mats7, box, own, setBusy, vaultWhole } from './world.js';
 import { createVoices } from './sound129.js';
-import { card, cite } from './ui7.js';
+import { card, cite, holdLens } from './ui7.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
 import { gripR } from '../h109/grips.js';
 import { BOOK } from '../world/grid.js';
 
 const S7 = BOOK.s07, N7 = S7.night, CAM = S7.cam, F16 = S7.floors.azara, HS = N7.slabSize;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-const FIRE_I = 140;   // (the fire's light, in the world's units: as life.js's altar fire)
+const FIRE_I = 40;    // (the fire's light: the hall warm, the slab five amot off it readable, nothing burnt white)
 const GATES = () => N7.gates.map((id) => BOOK.s04.entries.find((e) => e.id === id)).filter(Boolean);
 
 /** the night's look: the world's clock at the dark night, the fire on the hearth (its logs, its flames, its light); apply(k) on, off() */
@@ -103,7 +103,7 @@ export const NIGHT = {
       A.phase = 'sleep'; rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
       X.line('זקני בית אב ישנים על רובדי האבן, ופרחי הכהונה איש כסתו בארץ', 3600);
       await X.wait(3.4);
-      A.phase = 'lift'; camHome(1.2); lamp.intensity = 24; lift(0.22); gauge.style.display = '';
+      A.phase = 'lift'; camHome(1.2); lamp.intensity = 6; lift(0.22); gauge.style.display = '';
       X.line(LINES.night + ' · הגיע זמן הנעילה: הגביהו את טבלת השיש בטבעת' + (MOUSE ? ' (גררו למעלה, לאט)' : ' בשני האגודלים יחד, לאט, עד הפס הירוק'), 6500);
       const r = ringAt(); X.hand({ x: r.x, y: r.y, z: r.z }, 0, -gripR() / 3);
     }
@@ -160,7 +160,7 @@ export const NIGHT = {
       close: true,
       begin() { FG.attach(); lens(CAM.nightFov); X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.6); setSlab(); setTimeout(lightFire, 1600); },
       update(dt) {
-        A.t += dt;
+        A.t += dt; holdLens(X, CAM.nightFov);
         try { V.frame(); rig.frame(dt); if (A.phase !== 'intro' && A.phase !== 'fire') V.fire(0.5); if (A.phase === 'lift' || A.phase === 'lower') stepSlab(dt); }
         catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] night', e && e.message); } }
       },

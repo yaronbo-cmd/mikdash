@@ -447,6 +447,9 @@ export const thrustOf = (S, side) => { const L = VAULT_LV[S.id], g = S[side], M 
  */
 export function legStep(S, press, dt, opt = {}) {
   const V = VAULT_LV[S.id], C = LEG; S.ev = []; if (S.done) return S;
+  // (build 129: the centering holds the arch until his thumbs are on: the crew's first stone and the legs' thrust wait for every leg that
+  //  needs a hand to be held at once — with a mouse the left one, the crew's prop has the right)
+  if (!S.go) { if (['L', 'R'].every((k) => S[k].rock || (opt.mouse && k === 'R') || (press && press[k] != null))) S.go = 1; else return S; }
   S.t += dt;
   // the crew lays a weight stone every pace seconds, the sides in turn (only where the leg needs it)
   const need = ['L', 'R'].filter((k) => !S[k].rock && V.M[k] > 0), want = Math.min(Math.floor(S.t / V.pace), need.reduce((a, k) => a + V.M[k], 0));

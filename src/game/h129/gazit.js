@@ -17,7 +17,7 @@
 import { H129, LINES, QUICK, LOSS, row0, benchState, testPlan, stoneStep, roomFor, matOf, standOf, matSeats, normalOf, endOf, corners, legalStone, walkCheck, semichaPlan, semichaFresh, semichaSend, gazitPts, qOf, starsOf } from './model.js';
 import { SH7, mats7, benchStone, matMesh, standMesh, inkStain, own, setBusy } from './world.js';
 import { createVoices } from './sound129.js';
-import { card, cite } from './ui7.js';
+import { card, cite, holdLens } from './ui7.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
 import { gripR } from '../h109/grips.js';
 import { BOOK } from '../world/grid.js';
@@ -371,7 +371,7 @@ export const GAZIT = {
         }
       },
       update(dt) {
-        A.t += dt;
+        A.t += dt; holdLens(X, CAM.gazitFov);
         try {
           V.frame();
           if (A.viewT > 0) { A.viewT -= dt; if (A.viewT <= 0) camHome(0.6); }
@@ -395,7 +395,9 @@ export const GAZIT = {
         X.props.remove(root); own('bench', 0); own('mats', 0); setBusy(X, 0);
       },
       // (the work's focus: the bench)
-      at() { const f = focus(); return new T.Vector3(f.x, f.y, f.z); },
+      // (in the rows' works the students sit between the camera and the bench's middle: the focus is the bench's far side at the judges'
+      //  heads, so the figure gate keeps the front row drawn)
+      at() { const f = focus(); if (m.id === 'gazit1') return new T.Vector3(f.x, f.y, f.z); const far = stones.reduce((b, s) => (Math.abs(s.z - camK[0][2]) > Math.abs(b.z - camK[0][2]) ? s : b), stones[0]); return new T.Vector3(f.x, F16 + SH + 1.6, far.z); },
       dbg() {
         const sp = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
         const o = { id: m.id, phase: A.phase, busy: A.busy, mouse: MOUSE, ev: A.ev.slice(-10), fails: A.fails, dmg: A.dmg, standing: A.standing, nf: FG.n, drag: A.drag.size };

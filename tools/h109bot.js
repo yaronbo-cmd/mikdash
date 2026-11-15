@@ -863,7 +863,7 @@
     h7night(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
       if (a.phase === 'fire') return { drag: [a.torch[0], a.torch[1], a.hearth[0], a.hearth[1], 900], wait: 800, note: 'night: the torch to the wood' };
-      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && !K['lk' + a.lockI] && a.lockI >= 0 && a.lockI % 3 === 0) { K['lk' + a.lockI] = 1; return { wait: 300, shot: 'night-gate' + a.lockI }; } return { wait: 300, note: 'night: ' + a.phase }; }
+      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && !K['lk' + a.lockI] && a.lockI >= 0 && a.lockI % 3 === 0) { K['lk' + a.lockI] = 1; return { wait: 1000, shot: 'night-gate' + a.lockI }; } return { wait: 300, note: 'night: ' + a.phase }; }
       if (!K[a.phase + 'Shot']) { K[a.phase + 'Shot'] = 1; return { wait: 100, shot: 'night-' + a.phase }; }
       const r = a.ring, pts = (dy) => (mouse ? [[r[0], r[1] + dy]] : [[r[0] - 22, r[1] + dy], [r[0] + 22, r[1] + dy]]);
       if (a.phase === 'lift') { const fr = []; for (let i = 0; i <= 12; i++) fr.push(pts(-a.unit * 1.05 * (i / 12))); return { seq: fr, ms: 230, seqUntil: C("return !a||a.sphase!=='lift'"), seqLoop: 12, seqMax: 12000, wait: 400, note: 'night: lift the slab (h ' + a.h + ')' }; }

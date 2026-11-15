@@ -228,6 +228,13 @@ test('the arch\'s legs: held in the window while the crew lays the weight, let g
   // the mouse: the crew's prop holds the right leg; the pointer plays the left
   const Mo = legBot('vaultN', { mouse: true }); assert.ok(Mo.done && Mo.perfect);
 });
+test('the arch\'s legs: nothing moves until his thumbs are on (the centering holds; the crew waits)', () => {
+  const S = M.legFresh('vaultM'); for (let k = 0; k < 200; k++) M.legStep(S, { L: 0.5, R: null }, DT);
+  assert.equal(S.t, 0); assert.equal(S.laid, 0); assert.equal(S.runs, 0); assert.equal(S.dmg, 0);
+  M.legStep(S, { L: 0.5, R: 0.5 }, DT); assert.ok(S.go && S.t > 0);
+  const Mo = M.legFresh('vaultN'); M.legStep(Mo, { L: 0.5, R: null }, DT, { mouse: true }); assert.ok(Mo.go, 'a mouse: the left leg starts it');
+  const R = M.legFresh('vaultS'); M.legStep(R, { L: 0.5, R: null }, DT); assert.ok(R.go, 'the rock leg needs no hand');
+});
 test('the arch\'s legs: let go early, the leg runs out (a mistake) and past the limit a joint opens (−20); pressed too hard, the crown lifts', () => {
   const E = legBot('vaultN', { early: 3 }); assert.ok(E.runs >= 1); assert.ok(E.flags['vault.crack']); assert.equal(E.dmg, 20); assert.equal(E.perfect, 0);
   const H = legBot('vaultN', { k: 1.5 }); assert.ok(H.lifts >= 1); assert.equal(H.perfect, 0);

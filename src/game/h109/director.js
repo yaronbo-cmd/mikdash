@@ -42,6 +42,17 @@ const PACK01 = {
   look: makeLook({ K: LOOK_OPEN_K }),
 };
 // ── /h111 ──
+// ── h128 ── (build 128, B1) where an act's end stands: an act may end with a SCREEN point of its own camera (res.at = { sx, sy }: the
+// sea, drawn in its own scene) — the stars stand there; the world's pull-back needs a WORLD point, so it takes the act's at() then.
+// (A screen point taken as a world point aimed the pull-back at (undefined, undefined, z): the world camera went NaN under the sea
+// and every later shot eased from that NaN — the caravan, the capstan and all after drew nothing.) ── /h128 ──
+const finite3 = (p) => !!p && Number.isFinite(+p.x) && Number.isFinite(+p.y) && Number.isFinite(+p.z);
+export function endAt(resAt, actAt) {
+  const world = finite3(resAt) ? resAt : finite3(actAt) ? actAt : null;
+  const screen = resAt && Number.isFinite(+resAt.sx) && Number.isFinite(+resAt.sy) ? { x: +resAt.sx, y: +resAt.sy } : null;
+  return { world, stars: screen || world };
+}
+// ── /h128 ──
 export function createH109Director(o) {
   const PK = o.pack || PACK01, ACTS = PK.ACTS, PLAN = PK.PLAN;   // ── h111 ── ── /h111 ──
   const S0 = o.stages, view = o.view, ui = o.ui;
@@ -74,12 +85,16 @@ export function createH109Director(o) {
   const CAM = { on: false, p: new THREE.Vector3(), t: new THREE.Vector3(), p0: new THREE.Vector3(), t0: new THREE.Vector3(), p1: new THREE.Vector3(), t1: new THREE.Vector3(), u: 1, dur: 0.8 };
   const cq = {};
   function shot(p, t, dur = 0.8) {
-    view.camNow(cq); CAM.p0.set(cq.px, cq.py, cq.pz); CAM.t0.set(cq.tx, cq.ty, cq.tz);
+    // ── h128 ── (B1: a shot that is no place is not taken; a camera that is no place — never again — is not eased from) ── /h128 ──
+    if (![p[0], p[1], p[2], t[0], t[1], t[2]].every(Number.isFinite)) { if (!CAM.badShot) { CAM.badShot = 1; console.warn('[h109] a shot that is no place', String(p), String(t)); } return; }
+    view.camNow(cq); if (![cq.px, cq.py, cq.pz, cq.tx, cq.ty, cq.tz].every(Number.isFinite)) { cq.px = p[0]; cq.py = p[1]; cq.pz = p[2]; cq.tx = t[0]; cq.ty = t[1]; cq.tz = t[2]; }
+    CAM.p0.set(cq.px, cq.py, cq.pz); CAM.t0.set(cq.tx, cq.ty, cq.tz);
     CAM.p1.set(p[0], p[1], p[2]); CAM.t1.set(t[0], t[1], t[2]); CAM.u = dur > 0 ? 0 : 1; CAM.dur = Math.max(0.01, dur); CAM.on = true; CAM.chase = 0;
   }
   // ── h114 ── (ירון 9.11: "המסך קופץ 10 שניות") a follow shot: called every frame with where the camera should be, it never restarts the
   // ease (a shot() every frame did, and the picture jumped); the first call eases in, then the camera chases the moving aim smoothly ── /h114 ──
   function track(p, t, rate = 2.5, dur = 0.9) {
+    if (![p[0], p[1], p[2], t[0], t[1], t[2]].every(Number.isFinite)) return;   // ── h128 ── (B1: no place, no shot) ── /h128 ──
     if (!CAM.on || !CAM.chase) { shot(p, t, dur); CAM.chase = rate; return; }
     CAM.p1.set(p[0], p[1], p[2]); CAM.t1.set(t[0], t[1], t[2]); CAM.chase = rate;
   }
@@ -851,11 +866,11 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     line(''); hand(null); meter(null); count(null);
     // the result in the world first (the act's own last beat), then the stars and the work's end points (the old JOB_END)
     const J = o.juice && o.juice();
-    const at = res.at || (a.at ? a.at() : null);
+    const E = endAt(res.at, (() => { try { return a.at ? a.at() : null; } catch (e) { return null; } })()), at = E.world;   // ── h128 ── (B1: the stars at the act's own point; the pull-back at a world point) ── /h128 ──
     // ── h115 ── the perfect game fills the screen first ── /h115 ──
     const perfect = stars >= 3 && !res.lost && (res.perfect != null ? !!res.perfect : (res.q || 0) >= 0.999);
     if (perfect) { const A0 = ACTS[m.k]; try { await perfectScreen(((A0 && A0.title) || 'המשחקון') + ' · בלי טעות אחת'); } catch (e) { /* */ } }
-    if (J && stars > 0) { try { await J.result({ stars, at }); } catch (e) { /* */ } }
+    if (J && stars > 0) { try { await J.result({ stars, at: E.stars }); } catch (e) { /* */ } }   // ── h128 ── (E.stars) ── /h128 ──
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res);
     try { if (FG) FG.end(); } catch (e) { /* */ }   // ── h128 ── ── /h128 ──

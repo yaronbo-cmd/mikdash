@@ -39,6 +39,7 @@ const wrapA = (a) => { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += T
 const sideOf = (k) => (k.startsWith('port') ? 'port' : 'stbd');
 const HOLD_H = SEA_LV.sea2.H;
 const COIL_R = 1.1;              // (a tail's coil on the deck: its outer radius, amot)
+const HOLD_S = 1.45;             // (B6: Nicanor's size on the door in the hold, larger than life so the figure reads at the act's lift)
 
 /* ═════════════ the sea on screen: one sea3d for the whole journey, drawn in place of the Mount ═════════════ */
 const SS = { S: null, R: null, on: false, t: 0, act: null, idle: 0, fresh: false, exp: null, calls: 0, tris: 0, drawMs: 0, ext: null, shake: 0, onResize: null };
@@ -353,7 +354,7 @@ function makeSea(m, X) {
     const ph = A.phase;
     if (ph === 'open') { const a = A.t * 0.02; const p = CM.open[0], t = CM.open[1]; S.camDeck([p[0] * Math.cos(a) - p[2] * Math.sin(a), p[1], p[0] * Math.sin(a) + p[2] * Math.cos(a)], t, 0.3, 0.6); return; }
     if (ph === 'throw') { const c = A.throwCam || CM.throw[1]; const base = CM.throw[0]; S.camDeck(base, c, 0.35, 0.7); return; }
-    if (ph === 'hold' || ph === 'turn' || ph === 'calm') { const b = CM.hold; const k = clamp(u / 0.45, 0, 1); S.camDeck([b[0][0], b[0][1] + 5 * k + (ph === 'calm' ? A.calmT * 2 : 0), b[0][2] - 2 * k - (ph === 'calm' ? A.calmT * 2 : 0)], b[1], 0.3, 0.6); return; }
+    if (ph === 'hold' || ph === 'turn' || ph === 'calm') { const b = CM.hold; const k = clamp(u / 0.45, 0, 1); S.camDeck([b[0][0], b[0][1] + 3 * k + (ph === 'calm' ? A.calmT * 2 : 0), b[0][2] - 1 * k - (ph === 'calm' ? A.calmT * 2 : 0)], b[1], 0.3, 0.6); return; }   // (B6: the act's own lift rises less: the rings 60 px and more at u 0.22)
     if (ph === 'sorry') { S.camDeck(CM.sorry[0], CM.sorry[1], 0.3, 0.6); return; }
     if (id === 'sea3') {
       const k = clamp(u / 0.45, 0, 1) + clamp((u - 0.45) / 0.55, 0, 1) * 0.6, a = CM.akko, b = CM.akkoLift;
@@ -537,16 +538,18 @@ function makeSea(m, X) {
   function turnStart() {
     X.line('', 0);
     // the sailors turn to the second door; he throws himself on it; the camera lifts a little by itself (both thumbs will be busy)
-    const c = crew(); LIFTERS.forEach((i, j) => { const a = c[i]; if (!a) return; const to = [DK.doors.stbd[0] + (j % 2 ? 4 : -4), DK.doors.stbd[1] + (j < 2 ? -3.4 : 3.4) * 0 - 3.2]; S.actors.walk(a, [to], 3); a.yaw = 0; });
-    const n = nic(); n.own128 = true; S.actors.walk(n, [[DK.hold[0] - 4.5, DK.hold[1]]], 3.6);
+    const c = crew(); LIFTERS.forEach((i, j) => { const a = c[i]; if (!a) return; S.actors.walk(a, [DK.help[j]], 3); a.yaw = Math.PI; });   // (B6: to its far side, by the starboard rail)
+    const n = nic(); n.own128 = true; S.actors.walk(n, [[DK.hold[0], DK.hold[1] - 3.4]], 3.6);
     try { if (X.lookLift) X.lookLift(0.22); } catch (e) { /* */ }
     hold = holdFresh({ mouse }); A.hold = hold; A.hsw = [];
     if (mouse) { const kp = c[1]; if (kp) { kp.own128 = true; S.actors.walk(kp, [DK.keeper], 3); } }
   }
   function turnFrame(dt) {
     A.tuT += dt; const n = nic(), c = crew();
-    LIFTERS.forEach((i) => { const a = c[i]; if (a && !a.path) { a.yaw = Math.atan2(DK.doors.stbd[0] - a.x, DK.doors.stbd[1] - a.z); a.bowT = 0.35; a.armT = [1.2, -0.3, 1.2, -0.3]; } });
-    if (!n.path) { n.x = DK.hold[0]; n.z = DK.hold[1] + 0.2; n.fixedY = P.top; n.yaw = Math.PI / 2; n.bowT = 1.35; n.knT = 1; n.armT = [1.7, 1.2, 1.7, 1.2]; }
+    LIFTERS.forEach((i) => { const a = c[i]; if (a && !a.path) { a.yaw = Math.PI; a.bowT = 0.35; a.armT = [1.2, -0.3, 1.2, -0.3]; } });   // (facing the door from beyond it)
+    // (B6) he kneels on the door's inboard half facing across it (his back to the camera), bowed over it, larger than life so he
+    // reads at the lifted camera, his arms out to the two rings (the arms drawn on from his hands to the fists: fistsFrame)
+    if (!n.path) { if (n.s0 == null) n.s0 = n.s; n.s = n.s0 * HOLD_S; n.x = DK.hold[0]; n.z = DK.hold[1] - 1.7; n.fixedY = P.top; n.yaw = 0; n.bowT = 1.2; n.knT = 1; n.armT = [0.55, 1.25, 0.55, 1.25]; }
     if (mouse) { const kp = c[1]; if (kp && !kp.path) { kp.yaw = Math.atan2(DK.handles.stbd[1][0] - kp.x, DK.handles.stbd[1][1] - kp.z); kp.bowT = 1.1; kp.knT = 0.8; kp.armT = [0.9, 0, 0.9, 0]; } }
     if (A.tuT > 2.4 && !n.path) { A.phase = 'hold'; X.line(mouse ? 'הניחו יד על הטבעת שלפניכם: המלח מחזיק את השנייה' : 'שני האגודלים על שתי הטבעות', 4200); }
   }
@@ -562,7 +565,8 @@ function makeSea(m, X) {
       if (H.off[h]) { x += (h === 'L' ? -1.1 : 1.1); z += 0.9; y = P.top + 0.1; }
       _m.compose(_a.set(x, y, z), _q.identity(), _s.set(1.1, 0.8, 0.9)); E.fist.setMatrixAt(n, _m);
       // his arm out along the door to that hand (he lies on the door between the rings, an arm to each)
-      const nn = nic(); seg(E.arm, n++, v4.set(nn.x + (h === 'L' ? -0.5 : 0.5), P.top + 0.55, nn.z + 0.15), _a.set(x, y, z), 0.17);
+      // (facing +z, his right hand is the −x one: ring L, at the lower x, is his right's)
+      const nn = nic(); S.actors.handWorld(nn, h === 'L' ? -1 : 1, v4); seg(E.arm, n++, v4, _a.set(x, y, z), 0.2);
     }
     E.fist.count = n; E.arm.count = n; E.arm.instanceMatrix.needsUpdate = true; E.fist.instanceMatrix.needsUpdate = true;
   }
@@ -573,7 +577,7 @@ function makeSea(m, X) {
     for (const e of H.ev) {
       ev('hold:' + e.e + (e.hand || ''));
       if (e.e === 'line') { bigLine(LINES.hold, 2400, true); X.line(LINES.hold, 4200); V.creak(); }
-      if (e.e === 'held') { V.creak(); SS.shake = 0.8; const q = deckScr(DK.hold[0], P.top + 1, DK.hold[1]); X.quick({ sx: q.x, sy: q.y }, 'החזקתם!'); }
+      if (e.e === 'held') { V.creak(); SS.shake = 0.8; const q = deckScr(DK.hold[0], P.top + 1, DK.hold[1] + D.W / 2 + 1.5); X.quick({ sx: q.x, sy: Math.max(innerHeight * 0.25, q.y - innerHeight * 0.06) }, 'החזקתם!'); }   // (B6: above the door's far edge, never over him, and below the top's pill as it rises)
       if (e.e === 'again') { SS.shake = 0.8; X.line('יד אחת לא הייתה על הטבעת: הגל חוזר', 2600); }
       if (e.e === 'off') { try { if (X.haptic) X.haptic(12); } catch (er) { /* */ } }
       if (e.e === 'calm') calmStart();
@@ -589,7 +593,7 @@ function makeSea(m, X) {
     A.calmT += dt;
     if (A.calmT > 4.2) {
       A.phase = 'sorry'; A.soT = 0; A.hold = null; E.fist.count = 0; E.arm.count = 0;
-      const n = nic(); delete n.fixedY; n.y = 0; n.bowT = 0.15; n.knT = 0; n.armT = [0.3, 0.05, 0.3, 0.05]; S.actors.walk(n, [DK.sorry], 1.6);
+      const n = nic(); delete n.fixedY; n.y = 0; if (n.s0 != null) { n.s = n.s0; n.s0 = null; } n.bowT = 0.15; n.knT = 0; n.armT = [0.3, 0.05, 0.3, 0.05]; S.actors.walk(n, [DK.sorry], 1.6);
       if (mouse) { const kp = crew()[1]; if (kp) kp.own128 = false; }
       LIFTERS.forEach((i) => { const a = crew()[i]; if (a) a.own128 = false; });
       X.line(LINES.sorry, 5200);
@@ -880,7 +884,7 @@ function makeSea(m, X) {
       }
       if (A.phase === 'throw' && P) { const u = (P.doors.port || {}).userData || {}; o.th = { t: +(A.thT || 0).toFixed(2), off: !!u.off, wet: !!u.wet, wetT: +(u.wetT || 0).toFixed(2), sunk: !!u.sunk }; }
       if (hold) { o.hold = { on: { ...hold.on }, off: { ...hold.off }, slip: { L: +hold.slip.L.toFixed(2), R: +hold.slip.R.toFixed(2) }, held: hold.held, swells: hold.swells, started: hold.started, next: hold.next != null ? +(hold.next - hold.t).toFixed(2) : null };
-        if (S && SS.S === S && A.phase === 'hold') o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; }
+        if (S && SS.S === S && A.phase === 'hold') { o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; o.ringPx = ringPx(); } }
       if (ak) { o.akko = { phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };
         if (S && SS.S === S && E && E.quay.visible) { const h = hookScr(), r = worldScr(ak3.ring), q = haulScr(); o.hook = [Math.round(h.x), Math.round(h.y)]; o.ring = [Math.round(r.x), Math.round(r.y)]; o.haul = [Math.round(q.x), Math.round(q.y)]; o.hookD = +Math.hypot(ak3.hook.x - BOB[0], ak3.hook.y - (S.waterAt(BOB[0], BOB[1]) + ringY(ak.t))).toFixed(2);
           // (the screen px of one amah at the ring: the bot's hand needs it)

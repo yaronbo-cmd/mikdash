@@ -596,6 +596,8 @@ const S06 = {
       coil: { portFore: [-7.5, -6.1], portAft: [-16.5, -6.1], stbdFore: [-7.5, 6.1], stbdAft: [-16.5, 6.1] },
       // the throw: the four sailors round the port door (two at its inboard edge, two at the rail) and where the door goes over the side
       lift: [[-15.5, -0.4], [-8.5, -0.4], [-19, -0.2], [-5, -0.2]],   // (B3: all four at its inboard edge: the rail side is the camera's)
+      // (B6) the hold: the four sailors on the far side of the second door, by the starboard rail (never between the camera and the rings)
+      help: [[-19.5, 6.5], [-14.5, 6.7], [-9.5, 6.7], [-4.5, 6.5]],
       // the hold: Nicanor down on the starboard door (his chest at its middle), the sailor who keeps the other ring for a mouse's
       // player (beside it, fore and inboard), and the empty place he stands before afterwards (by the port door's timbers)
       hold: [-12, 3.2], keeper: [-6.1, 4.5], sorry: [-12, 0.2],

@@ -66,7 +66,7 @@ import { createH109Director } from './h109/director.js';
 import { makePack03 } from './h112/pack.js';
 import { makePack05 } from './h120/pack.js';   // ── h120 ── (build 120: stage 05 "עזרת הנשים והגזוזטרא", the same director) ── /h120 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
-import { pageBuilt } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
+import { pageBuilt, frontier, frontLine, noPad } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack04 } from './h113/pack.js';   // ── h113 ── (build 113: stage 04 "שערי העזרה" in the old world, the same director) ── /h113 ──   // ── h112 ── (build 112: stage 03 "הסורג והחיל" in the old world, the same director) ── /h112 ──
 import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
@@ -541,6 +541,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     document.addEventListener('visibilitychange', onVisibility);
     addEventListener('pagehide', persist);
     emit('start', { isNew, demo: G.demo });
+    if (H109_ON) noPad();   // ── h128 ── (the old right pad never shows in the director's game) ── /h128 ──
     if (isNew || G.ftue < 99) runFtue();
     else if (H109_ON && S.isDone(G, 'har') && !S.isDone(G, 'wall')) setTimeout(() => { if (!h11Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);
     else if (H109_ON && S.isDone(G, 'wall') && !S.isDone(G, 'sorag')) setTimeout(() => { if (!h12Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);
@@ -738,6 +739,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   }
   /** one line for the next action (the welcome card, the pill's sub-line) */
   function nextLabel(a) {
+    if (H109_ON && frontier(G, S)) return frontLine(G, S, stageById);   // ── h128 ── (the frontier: the old game does not take the next stage over) ── /h128 ──
     if (!a || !a.id) return '';
     const n = stageById(a.id) ? stageById(a.id).n : '';
     switch (a.kind) {
@@ -790,6 +792,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   const tNow = () => performance.now() / 1000;
   function onSiteTap(id) {
     if (!started || whole || momentBusy || opening || !stageById(id)) return false;   // (build7: not under the opening)
+    if (H109_ON && frontier(G, S) && !S.isDone(G, id)) { frontCard(); return true; }   // ── h128 ── (the frontier: the old game does not take the next stage over) ── /h128 ──
     const st = S.statusOf(G, id);
     if (st === 'building') {
       if (G.st[id].ready) { runMoment(id); return true; }
@@ -1965,6 +1968,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
 
   /* ───────── building ───────── */
   function startBuild(id) {
+    if (H109_ON && frontier(G, S)) { frontCard(); return false; }   // ── h128 ── (the frontier: the old game does not take the next stage over) ── /h128 ──
     const r = S.startBuild(G, id);
     if (!r.ok) {
       if (r.lack) ui.toast({ icon: 'silver', title: T.lacking, body: Object.entries(r.lack).map(([k, v]) => `${RES[k].n} ${isoNum(v)}`).join(', ') });
@@ -2136,6 +2140,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /* The pre-step level (MATCH3's runLevel): its goal is the step's shortfall; everything gathered goes to the meter,
      and a step it made affordable is paid at once (its stones go onto the site's pile). */
   async function playLevel(a) {
+    if (H109_ON && frontier(G, S)) return;   // ── h128 ── (the frontier: the old game does not take the next stage over) ── /h128 ──
     if (!started || whole || momentBusy || overlay) return;
     const field = a.field || 'quarry', need = a.need || {};
     // ── fun12 ── the quarry's cycle (src/games/cycle.js): the board, then other games that fit the work, then the board again,
@@ -2465,6 +2470,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   /* ───────── key moments ───────── */
   let momentBusy = false;
   async function runMoment(id) {
+    if (H109_ON && frontier(G, S)) return;   // ── h128 ── (the frontier: the old game does not take the next stage over) ── /h128 ──
     const d = stageById(id);
     if (momentBusy || !d || !G.st[id] || !G.st[id].ready) return;
     momentBusy = true;
@@ -3305,9 +3311,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     const c = S.completeStage(G, 'nikanor');
     completeFlow(c, false);
     persist();
-    const r = S.recommend(G);
-    if (r && r.id) { try { W.focus(r.id); } catch (e) { /* */ } }
     ui.refresh();
+    if (frontier(G, S)) setTimeout(() => { noPad(); ui.refresh(); frontCard(); }, 1200);   // (the last stage a pack owns: the frontier's one card, the camera stays on what he built)
   }
   /** stage 06 done, the page reloaded: the gate drawn from his save (the director's rest: no UI, no film) */
   function h28Rest() {
@@ -3912,7 +3917,18 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   act.jobRedeal = () => { const id = dealOpen; if (!id) return; const d = JB.dealNow(G, id, jobHas, { re: true }); persist(); sfx.play('ui'); ui.deal(dealView(id, d)); emit('dealRe', { id, cards: d.cards.slice() }); };
   act.dealClose = () => { dealClose(); emit('dealClosed', {}); };
   /** the pill in the loop: "מה נעשה עכשיו? · נדבך 2 מתוך 6 · ●●○" — or the strike card's count */
+  // ── h128 ── (the frontier: past the last stage a pack owns, the pill and its tap say so, once a card; the old game's goal, its kings'
+  // offer and its pad do not come) ── /h128 ──
+  let frontBusy = false;
+  async function frontCard() {
+    if (frontBusy || !ui.modal) return; frontBusy = true;
+    try { const [a, b] = frontLine(G, S, stageById).split(' · '); await ui.modal(cardBody({ kick: 'בית המקדש', title: a }, esc(b || '')), { buttons: [{ label: 'להמשיך להסתובב', value: true, gold: true }] }); } catch (e) { /* */ }
+    frontBusy = false;
+  }
+  { const goal0 = act.goal, kb0 = act.kingsBest; act.goal = () => { if (H109_ON && frontier(G, S)) { frontCard(); return false; } return goal0(); }; act.kingsBest = (a) => (H109_ON && frontier(G, S) ? null : kb0(a)); }
+  // ── /h128 ──
   act.jobPill = (a) => {
+    if (H109_ON && frontier(G, S)) { const [k, b] = frontLine(G, S, stageById).split(' · '); return `<span class="gm-k">${esc(k)}</span><span><b>${esc(b || '')}</b></span>`; }   // ── h128 ── (the frontier: the old game does not take the next stage over) ── /h128 ──
     try { if (h9Own() && H9.pill) { const ph = H9.pill(); if (ph) return ph; } } catch (e) { /* */ }   // ── h114 ── (the stage's own count, not the old survey's "מדידה") ── /h114 ──
     if (SC) return `<span class="gm-k">${esc(JB.jobName('strike', SC.id))}</span><b class="gm-sc-n">${isoNum(Math.min(SC.n, SC.of))} מתוך ${isoNum(SC.of)}</b><span><span class="gm-sub">${twinOn() ? "הקישו על 'עבודה' כשהטבעת נסגרת על הזהב" /* ── crafta19 ── (the button's name under two thumbs) ── /crafta19 ── */ : 'הקש על הכהן כשהטבעת נוגעת בזהב'}</span></span>`;
     if (!loopTurn(a)) return '';

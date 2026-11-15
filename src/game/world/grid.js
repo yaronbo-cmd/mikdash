@@ -759,20 +759,32 @@ const S07 = {
     ledgeY: 17,
     levi: [-160, -83.25, 6],
   },
+  // what stands round the Golah in the built world, as the look sample draws it (the numbers are the world's own): the Azarah's south
+  // wall (temple.js wall(−187, 67.5, 0, 73.5, 6, 44)), the Delek and Bechorot gate houses (temple.js gate('S', …, 6, 50)), the House's
+  // south face west of the Ulam and the Ulam (avodah3d.js: z ±35.9 for x −176.9 … −91.2; x −92 … −76.5, z ±50.9), the Chel's terrace (6)
+  around: {
+    southWall: { z: [67.5, 73.5], y: [6, 44] },
+    gateHouses: [[-169, 64, -151, 78], [-127, 64, -109, 78]], gateTop: 50,
+    house: { x: [-176.9, -91.2], z: 35.9, top: 116 }, ulam: [-92, -50.9, -76.5, 50.9],
+    chel: 6,
+  },
   // the stage's cameras ([eye], [aim]). Part 1: the Golah's play view behind the kohen at the stand and its lifted view; the water
   // look sample's keyframes [[eye], [aim], at s]. (The other stations' cameras join in part 2.)
   cam: {
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
+    // the one golden light over the Golah (light B's colour, as stage 06's): its elevation and azimuth in degrees (the world's convention,
+    // main.js setTime: from +x toward +z), high enough to reach into the roofless room, from the south-south-west (illustration)
+    sun: { el: 60, az: 115 },
     look: [
-      [[-136.4, 22.6, 72.6], [-139, 11.5, 64.4], 0],
-      [[-136.8, 22.2, 72.4], [-139, 14.5, 64], 4],
-      [[-137.2, 21.4, 71.2], [-139, 17.2, 63.2], 7.5],
-      [[-134.6, 20.6, 66.6], [-139, 16.6, 60.4], 9.5],
-      [[-134.8, 20.4, 66.4], [-139, 16.4, 59.6], 12],
-      [[-136, 27.5, 66], [-133, 15.8, 52.5], 14],
-      [[-129.5, 21.5, 44.6], [-125, 16.2, 50.6], 16.5],
-      [[-128.8, 20.6, 45.2], [-125, 16.3, 50.4], 20],
+      [[-135.4, 25, 73.2], [-139, 11.5, 64.4], 0],
+      [[-135.6, 24.4, 72.8], [-139, 13.2, 64.2], 3.5],
+      [[-136.4, 22, 71.2], [-139, 16.6, 64], 6.8],
+      [[-133.6, 21.2, 63.6], [-139, 17.4, 62.2], 8.6],
+      [[-133, 20.8, 60.6], [-139, 16.8, 61], 11.6],
+      [[-133.6, 30.5, 62], [-132, 16, 52], 13.6],
+      [[-123, 23.5, 45.5], [-125, 15.8, 50.3], 16],
+      [[-123.4, 22, 46.4], [-125, 15.7, 50.3], 20],
     ],
   },
 };

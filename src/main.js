@@ -40,6 +40,7 @@ import { createCrowd } from './crowd.js';   // ── crowd ──
 // ── build8 ── (FLOW8B, wave 8B) true facts in rotation: FACTS8B's content/facts.json (on a lone branch build.mjs stubs it as
 // []: the game's own verified texts stand in). The loading screen shows one the save has not seen: a new one on every open.
 import { runSeaLook } from './game/h128/look.js';   // ── h128 ── (build 128) the sea's look sample ── /h128 ──
+import { runWaterLook } from './game/h129/look.js';   // ── h129 ── (build 129) the Golah's water look sample ── /h129 ──
 import FACTS from '../content/facts.json';
 import { setFacts, bootFact } from './game/facts.js';
 setFacts(FACTS);
@@ -1193,4 +1194,7 @@ Object.defineProperty(window.__T, 'visionOn', { get: () => !!vis, configurable: 
 // ── h128 ── (build 128) the sea's look sample (window.__H128_SEA_LOOK): the sea, the ship and the doors alone, in this renderer; no world boot
 if (globalThis.__H128_SEA_LOOK) { try { runSeaLook({ renderer, canvas }); } catch (e) { console.error(e); } } else
 // ── /h128 ──
+// ── h129 ── (build 129) the Golah's water look sample (window.__H129_WATER_LOOK): the chamber, the well and the channel alone; no world boot
+if (globalThis.__H129_WATER_LOOK) { try { runWaterLook({ renderer, canvas }); } catch (e) { console.error(e); } } else
+// ── /h129 ──
 boot().catch((e) => { console.error(e); const t = $('lt'); if (t) t.textContent = 'שגיאה בטעינה: ' + e.message; });

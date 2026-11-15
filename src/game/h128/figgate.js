@@ -2,7 +2,7 @@
  * One rule for every act of every stage, run by the director while an act is on (after its camera settled, and whenever the look
  * changes): every figure of the world's figure layer (actors.js, the crews' and the acts' gangs) is tested against the act's camera at
  * u 0 and at u 0.3 (the play zone's lens, look.js), and
- *   (a) a figure the act did not put there (not a pack gang's man added since the act began: the world's crews, life, the stations' men) is not drawn while
+ *   (a) a figure the act did not put there (not a pack gang's man: the world's crews and life) is not drawn while
  *       the act is on, wherever it stands — it comes back when the act ends;
  *   (b) a figure of the act's own whose box crosses the frame's edge at either u, or (c) stands between the camera and the work's focus
  *       (in front of it and over it on the screen) is drawn as it is and reported (__FIG.report()): the act's camera or its stand is
@@ -79,7 +79,7 @@ export function createFigGate(o) {
         if (off) rep.push({ who: 'kohen', cut: r.cut, between: r.blk, hidden: true });
         continue;
       }
-      const own = !G.pre.has(a) && !!a.gang;   // (the act's own: a gang's man put there since the act began)
+      const own = !!a.gang;   // (the packs' own men: a pack gang's — an act may set its men out before its first beat; the world's crews and life are not)
       if (!own) { hide(a, true); if (r.on) n.hidden++; continue; }
       hide(a, false); n.own++;
       if (r.cut) n.ownCut++; if (r.blk) n.ownBlock++;

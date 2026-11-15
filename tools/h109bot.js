@@ -821,11 +821,7 @@
       if (!a.way || !a.walkers || a.next == null) return { wait: 300 };
       if (!K['g3shot' + a.next]) { K['g3shot' + a.next] = 1; return { wait: 100, shot: 'gazit3-move' + a.next }; }
       const w = a.walkers[a.next]; let P = [w, ...a.way.slice(1)];
-      if (has('ink') && !a.dmg && (K.it | 0) < 4 && a.stands.length) {   // (along his aisle to where it passes nearest a scribe's stand, a step aside onto it, back, on: again until the ink is spilt)
-        K.it = (K.it | 0) + 1; let best = 1e9, bi = 0, st = a.stands[0];
-        for (const S of a.stands) a.way.forEach((q, j) => { const d = Math.hypot(q[0] - S[0], q[1] - S[1]); if (j && d < best) { best = d; bi = j; st = S; } });
-        P = [w, ...a.way.slice(1, bi + 1), st, a.way[bi], ...a.way.slice(bi + 1)];
-      }
+      if (has('ink') && !a.dmg && (K.it | 0) < 4 && a.inkWay) { K.it = (K.it | 0) + 1; P = [w, ...a.inkWay.slice(1)]; }   // (by the first scribe's stand on the way to his place: again until the ink is spilt)
       return { path: P, ms: 260 * P.length, wait: 1500, note: 'gazit: the semicha, move ' + a.next };
     },
     // the arches: part A each leg held by a finger that follows the leg's thrust plus its creep (re-pressed when it has crept far), let go

@@ -163,13 +163,13 @@ export const GAZIT = {
       return { stones, mats: mats.filter((_, q) => q !== mine), stands, free: SC.plan.moves.map((mv) => { const p = placeOf(mv.to); return { id: mv.to, x: p[0], z: p[1] }; }) };
     };
     /** a way on the floor from a man to his place round the mats, stones and stands (the bot's, and a hint after two misses) */
-    function wayFor(k) {
-      const a = walkerOf(k); if (!a) return null;
+    function wayFor(k, opt = {}) {   // (opt.to / opt.from: another end, [x, z] — the probe's ink detour)
+      const w0 = walkerOf(k); if (!w0) return null; const a = opt.from ? { x: opt.from[0], z: opt.from[1] } : w0;
       const L = layoutFor(k), g = 0.25, I = GZ.in, x0 = I[0] + 0.4, z0 = I[1] + 0.4, nx = Math.ceil((I[2] - 0.4 - x0) / g), nz = Math.ceil((I[3] - 0.4 - z0) / g);
-      const to = placeOf(SC.plan.moves[k].to), raw = [...L.mats, ...L.stones].map(corners), rects = [...L.mats, ...L.stones].map((q) => corners({ ...q, L: q.L + 0.6, D: q.D + 0.6 }));   // (a margin: the way keeps off their edges, but by its end)
+      const to = opt.to || placeOf(SC.plan.moves[k].to), raw = [...L.mats, ...L.stones].map(corners), rects = [...L.mats, ...L.stones].map((q) => corners({ ...q, L: q.L + 0.6, D: q.D + 0.6 }));   // (a margin: the way keeps off their edges, but by its end)
       const inR = (p, c) => { let s0 = 0; for (let i = 0; i < 4; i++) { const u = c[i], v = c[(i + 1) % 4], w = (v[0] - u[0]) * (p[1] - u[1]) - (v[1] - u[1]) * (p[0] - u[0]); if (i === 0) s0 = Math.sign(w); else if (Math.sign(w) !== s0 && w !== 0) return false; } return true; };
       const P = (i, j) => [x0 + (i + 0.5) * g, z0 + (j + 0.5) * g];
-      const free = (i, j) => { const p = P(i, j), dt = Math.hypot(p[0] - to[0], p[1] - to[1]); if (dt < 0.8 || Math.hypot(p[0] - a.x, p[1] - a.z) < 0.5) return true; if (dt < 1.4 && !raw.some((c) => inR(p, c))) return true; if (L.stands.some((s) => Math.hypot(p[0] - s.x, p[1] - s.z) < H129.WALK.INK + H129.STAND / 2 + 0.3)) return false; return !rects.some((c) => inR(p, c)); };
+      const free = (i, j) => { const p = P(i, j), dt = Math.hypot(p[0] - to[0], p[1] - to[1]); if (dt < 0.8 || Math.hypot(p[0] - a.x, p[1] - a.z) < (opt.from ? 0.8 : 0.5)) return true; if (dt < 1.4 && !raw.some((c) => inR(p, c))) return true; if (L.stands.some((s) => Math.hypot(p[0] - s.x, p[1] - s.z) < H129.WALK.INK + H129.STAND / 2 + 0.3)) return false; return !rects.some((c) => inR(p, c)); };
       const cell = (x, z) => [clamp(Math.floor((x - x0) / g), 0, nx - 1), clamp(Math.floor((z - z0) / g), 0, nz - 1)];
       const [si, sj] = cell(a.x, a.z), [ti, tj] = cell(to[0], to[1]), prev = new Int32Array(nx * nz).fill(-2), q = [sj * nx + si]; prev[q[0]] = -1;
       let hit = -1;
@@ -421,8 +421,10 @@ export const GAZIT = {
         } else if (SC) {
           o.leave = SC.plan.leave; o.k = SC.k; o.moved = SC.moved.slice(); o.free = [...SC.free];
           o.walkers = [0, 1, 2, 3].map((k) => { const a = SC.moved.includes(k) ? null : walkerOf(k); return a ? sp(a.x, F16 + 1.4, a.z) : null; });
-          const nx = [0, 1, 2, 3].find((k) => !SC.moved.includes(k)); if (nx != null) { const w = wayFor(nx); o.next = nx; o.way = w ? w.map((p) => sp(p[0], F16, p[1])) : null; o.wayW = w ? w.map((p) => [+p[0].toFixed(2), +p[1].toFixed(2)]) : null; }
-          o.stands = (stands || []).map((s) => sp(s.x + (s.x < GZ.wait[0] ? 1 : -1) * 1.0, F16, s.z + 0.9));   // (a point just by each stand, inside the ink's reach)
+          const nx = [0, 1, 2, 3].find((k) => !SC.moved.includes(k)); if (nx != null) { const w = wayFor(nx); o.next = nx; o.way = w ? w.map((p) => sp(p[0], F16, p[1])) : null;
+            if (stands && stands.length) { const S = stands[0], sx = S.x < GZ.wait[0] ? 1 : -1, q = [S.x + sx * 0.66, S.z + 0.6], w1 = wayFor(nx, { to: q }), w2 = wayFor(nx, { from: q }); o.inkWay = w1 && w2 ? [...w1, ...w2.slice(1)].map((p) => sp(p[0], F16, p[1])) : null; }
+            o.wayW = w ? w.map((p) => [+p[0].toFixed(2), +p[1].toFixed(2)]) : null; }   // (inkWay: by the first scribe's stand, then on to his place — the probe's ink)
+          o.stands = (stands || []).map((s) => sp(s.x + (s.x < GZ.wait[0] ? 1 : -1) * 0.66, F16, s.z + 0.6));   // (a point just by each stand, inside the ink's reach: 0.9 of its middle)
         }
         return o;
       },

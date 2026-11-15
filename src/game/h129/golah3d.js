@@ -15,12 +15,15 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BOOK } from '../world/grid.js';
 import { texAshlar, texPaving, texWood } from '../../tex.js';
 import { createWater } from './water.js';
+import { GOLAH } from './model.js';
 
 const S7 = BOOK.s07, GL = S7.golah, AR = S7.around, F0 = GL.floor, DEG = Math.PI / 180;
 // sizes of the scene (no places): the sky's radius, the trench's depth, the shaft's water below the floor, the bucket
 const SKY_R = 420, FOV = 50, SHADOW = 2048, FOG = { near: 160, far: 700 }, SKY_SEG = { w: 32, h: 16 }, RING_SEG = 36, TRENCH = 0.3, BUCKET = { r0: 0.4, r1: 0.5, h: 0.8, bail: 0.55 };
 export const DEPTH = GL.depth[0];
-const NONE = -99;   // (a ring that never was: its start long before the loop)
+const GOLAH_RUN = GOLAH.RUN;
+const CUT_H = 2.2;   // (the cut-away walls' height over the floor)
+const RINGS_N = 10, SEG = { well: [RING_SEG + 20, RINGS_N], head: [28, 16], basin: [RING_SEG, RINGS_N * 2] };   // (the water planes' subdivisions: they heave)
 
 /* ───────── geometry helpers: boxes and plates with world-planar UVs (the world's tiling) and a vertex colour ───────── */
 function planarUV(g, tile) {
@@ -65,12 +68,12 @@ export function createGolah3d({ renderer }) {
 
   /* ── the light: one golden light (light B's colour, as stage 06's sea) and the sky's fill; the shadows drawn once ── */
   const SUN = S7.cam.sun, sunDir = new THREE.Vector3(Math.cos(SUN.el * DEG) * Math.cos(SUN.az * DEG), Math.sin(SUN.el * DEG), Math.cos(SUN.el * DEG) * Math.sin(SUN.az * DEG)).normalize();
-  const sun = new THREE.DirectionalLight('#FFBA6E', 2.7), hemi = new THREE.HemisphereLight('#B4C4DC', '#8A7660', 1.45);
+  const sun = new THREE.DirectionalLight('#FFBA6E', 3.0), hemi = new THREE.HemisphereLight('#A9BBDA', '#8A7660', 1.25);
   const mid = new THREE.Vector3((AR.gateHouses[0][0] + AR.gateHouses[1][2]) / 2, F0, (AR.house.z + AR.southWall.z[1]) / 2);
   sun.target.position.copy(mid); sun.position.copy(mid).addScaledVector(sunDir, 260); sun.castShadow = true;
   { const c = sun.shadow.camera, h = (AR.gateHouses[1][2] - AR.gateHouses[0][0]) / 2 + 6; c.left = -h; c.right = h; c.top = h; c.bottom = -h; c.near = 60; c.far = 520; sun.shadow.mapSize.set(SHADOW, SHADOW); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04; }
   scene.add(sun, sun.target, hemi);
-  U.sun.value.copy(sunDir); U.sunCol.value.set('#FFBA6E'); U.sky.value.set('#8FB0DC'); U.skyLo.value.set('#F2CFA2');
+  U.sun.value.copy(sunDir); U.sunCol.value.set('#FFBA6E'); U.sky.value.set('#86A8D8'); U.skyLo.value.set('#F4C99A');
   scene.fog = new THREE.Fog('#EBCCA4', FOG.near, FOG.far);
 
   /* ── the sky: a gradient, the sun's glow (one mesh) ── */
@@ -96,15 +99,25 @@ export function createGolah3d({ renderer }) {
   const paveM = keep(new THREE.MeshStandardMaterial({ map: TP.map, normalMap: TP.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), roughness: 0.9, vertexColors: true, side: THREE.DoubleSide }));
   const woodM = keep(new THREE.MeshStandardMaterial({ map: TW.map, color: '#C9A27A', roughness: 0.74, vertexColors: true }));
   const ropeM = keep(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.62, vertexColors: true }));
+  // (the wet rope glistens: its roughness falls where it is wet, so the low sun catches it)
+  ropeM.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aWet; varying float vWet;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvWet = aWet;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vWet;').replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.16, vWet);');
+  };
 
   /* ── the stone: the room's walls (no roof; the door to the Azarah where the channel goes out), the south wall beside it, the gate
    *    houses, the House's face and the Ulam, the well's rim and shaft, the trough by the well, the sluice stones ── */
   const [rx0, rz0, rx1, rz1] = GL.room, T1 = GL.wallT, TOP = GL.top, [dx, dz] = GL.door, dw = GL.doorW / 2, dh = GL.doorH;
   const SW = AR.southWall, chel = AR.chel;
   const stone = [];
-  stone.push(box(rx0, chel, rz0, rx0 + T1, TOP, rz1), box(rx1 - T1, chel, rz0, rx1, TOP, rz1), box(rx0 + T1, chel, rz1 - T1, rx1 - T1, TOP, rz1));   // west, east, south
-  stone.push(box(rx0 + T1, F0 - 1, rz0, dx - dw, TOP, rz0 + T1), box(dx + dw, F0 - 1, rz0, rx1 - T1, TOP, rz0 + T1), box(dx - dw, F0 + dh, rz0, dx + dw, TOP, rz0 + T1));   // north, the door
-  stone.push(box(dx - dw - 0.25, F0 + dh, rz0 - 0.2, dx + dw + 0.25, F0 + dh + 0.6, rz0 + T1 + 0.2, 6));   // the door's lintel
+  // (a cut-away for the sample: the west wall, toward the low sun, and the north wall, toward the court and the channel, are cut down to
+  //  a low course, so the golden light reaches the well and the eye can pass over; the east and south walls stand to their height; dh
+  //  the door's height is not drawn)
+  const CUT = F0 + CUT_H; void dh;
+  stone.push(box(rx0, chel, rz0, rx0 + T1, CUT, rz1), box(rx1 - T1, chel, rz0, rx1, TOP, rz1), box(rx0 + T1, chel, rz1 - T1, rx1 - T1, TOP, rz1));   // west (cut), east, south
+  stone.push(box(rx0 + T1, F0 - 1, rz0, dx - dw, CUT, rz0 + T1), box(dx + dw, F0 - 1, rz0, rx1 - T1, CUT, rz0 + T1));   // north (cut), the door's gap
+  // (the cut's top: a coping course, so the cut reads as a cut)
+  stone.push(box(rx0 - 0.06, CUT, rz0 - 0.06, rx0 + T1 + 0.06, CUT + 0.16, rz1, 6, '#D6C9B2'), box(rx0 + T1, CUT, rz0 - 0.06, dx - dw, CUT + 0.16, rz0 + T1 + 0.06, 6, '#D6C9B2'), box(dx + dw, CUT, rz0 - 0.06, rx1 - T1, CUT + 0.16, rz0 + T1 + 0.06, 6, '#D6C9B2'));
   // the south wall of the Azarah each side of the room (cut inside it), as far as the gate houses
   stone.push(box(AR.gateHouses[0][2], SW.y[0], SW.z[0], rx0, SW.y[1], SW.z[1]), box(rx1, SW.y[0], SW.z[0], AR.gateHouses[1][0], SW.y[1], SW.z[1]));
   for (const [a, b, c, d] of AR.gateHouses) stone.push(box(a, chel, b, c, AR.gateTop, d));
@@ -126,7 +139,7 @@ export function createGolah3d({ renderer }) {
     const n = g.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, -n.getX(i), 0, -n.getZ(i));
     const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i]; ix[i] = ix[i + 2]; ix[i + 2] = t; }
     const P = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < P.count; i++) uv.setXY(i, uv.getX(i) * (2 * Math.PI * R) / 8, P.getY(i) / 8);
-    const c = new Float32Array(P.count * 3); for (let i = 0; i < P.count; i++) { const k = 0.85 * Math.exp(-(F0 - P.getY(i)) / 4.5) + 0.07; c[i * 3] = k; c[i * 3 + 1] = k * 0.96; c[i * 3 + 2] = k * 0.9; }
+    const c = new Float32Array(P.count * 3); for (let i = 0; i < P.count; i++) { const k = 0.9 * Math.exp(-(F0 - P.getY(i)) / 7) + 0.16; c[i * 3] = k; c[i * 3 + 1] = k * 0.96; c[i * 3 + 2] = k * 0.9; }
     g.setAttribute('color', new THREE.BufferAttribute(c, 3)); stone.push(clean(g));
   }
   // the trough by the well: a stone box, its outlet at the foot of its north side into the channel
@@ -188,7 +201,7 @@ export function createGolah3d({ renderer }) {
     const [a, b, c, d] = basin(k); floors.push(plate([[a, b], [c, b], [c, d], [a, d]], null, F0 - TD, 6, '#A79A82'));
     const x = GL.troughs[k][0]; floors.push(face(x - h, d, x + h, d, F0 - TD, tb, 6, '#B8AA92'));   // (the drop from the spur's bed into the basin)
   }
-  const floorMesh = new THREE.Mesh(keep(mergeGeometries(floors)), paveM); floorMesh.receiveShadow = true; floorMesh.name = 'h129-floor'; scene.add(floorMesh);
+  const floorMesh = new THREE.Mesh(keep(mergeGeometries(floors)), paveM); floorMesh.receiveShadow = true; floorMesh.castShadow = true; floorMesh.name = 'h129-floor'; scene.add(floorMesh);
 
   /* ── the timber: the frame over the well (two posts, braces, the axle) and the wheel (its own mesh: it turns) ── */
   const WH = GL.wheel, ay = F0 + WH.axle, [ax, az] = WH.at, wood = [];
@@ -217,7 +230,7 @@ export function createGolah3d({ renderer }) {
   }
   const bg = bucketGeo();
   const buckets = [0, 1].map((i) => { const m = new THREE.Mesh(bg, woodM); m.name = 'h129-bucket' + i; scene.add(m); return m; });
-  const bWater = new THREE.Mesh(keep(new THREE.CircleGeometry(BUCKET.r1 - 0.07, 20)), W.surface({ deep: '#24505C', bed: '#6E5A40', clear: 0.25, alpha: 0.92, chop: 1.6 }));
+  const bWater = new THREE.Mesh(keep(new THREE.CircleGeometry(BUCKET.r1 - 0.07, 20)), W.surface({ deep: '#1A4450', bed: '#7A6446', alpha: 0.96, chop: 1.4 }));
   bWater.rotation.x = -Math.PI / 2; bWater.renderOrder = 5; buckets[0].add(bWater);
 
   /* ── the rope: one tube over the wheel from bail to bail, rebuilt each frame (its lower parts dark with the water they were in) ── */
@@ -225,7 +238,7 @@ export function createGolah3d({ renderer }) {
   {
     const pos = new Float32Array(RN * RS * 3), nor = new Float32Array(RN * RS * 3), col = new Float32Array(RN * RS * 3), idx = [];
     for (let i = 0; i + 1 < RN; i++) for (let j = 0; j < RS; j++) { const a = i * RS + j, b = i * RS + ((j + 1) % RS), c = a + RS, d = b + RS; idx.push(a, c, b, b, c, d); }
-    ropeG.setAttribute('position', new THREE.BufferAttribute(pos, 3)); ropeG.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); ropeG.setAttribute('color', new THREE.BufferAttribute(col, 3)); ropeG.setIndex(idx);
+    ropeG.setAttribute('position', new THREE.BufferAttribute(pos, 3)); ropeG.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); ropeG.setAttribute('color', new THREE.BufferAttribute(col, 3)); ropeG.setAttribute('aWet', new THREE.BufferAttribute(new Float32Array(RN * RS), 1)); ropeG.setIndex(idx);
   }
   const rope = new THREE.Mesh(ropeG, ropeM); rope.frustumCulled = false; rope.name = 'h129-rope'; scene.add(rope);
   const _p = new THREE.Vector3(), _t = new THREE.Vector3(), _n = new THREE.Vector3(), _b = new THREE.Vector3(), _up = new THREE.Vector3(1, 0, 0);
@@ -242,7 +255,7 @@ export function createGolah3d({ renderer }) {
     for (let i = 1; i < nA; i++) { const a = a0 + (a1 - a0) * (i / nA), r = WH.R + 0.04; pts.push(new THREE.Vector3(ax, ay + r * Math.sin(a), az + r * Math.cos(a))); }
     for (let i = 0; i <= nS; i++) pts.push(new THREE.Vector3().lerpVectors(pS, emptyBail, i / nS));
     while (pts.length > RN) pts.splice(nS + 1, 1); while (pts.length < RN) pts.splice(nS + 1, 0, pts[nS + 1].clone());
-    const P = ropeG.attributes.position.array, N = ropeG.attributes.normal.array, C = ropeG.attributes.color.array;
+    const P = ropeG.attributes.position.array, N = ropeG.attributes.normal.array, C = ropeG.attributes.color.array, WT = ropeG.attributes.aWet.array;
     let s = 0; const L = []; for (let i = 0; i < RN; i++) { if (i) s += pts[i].distanceTo(pts[i - 1]); L.push(s); }
     for (let i = 0; i < RN; i++) {
       const p = pts[i]; _t.subVectors(pts[Math.min(RN - 1, i + 1)], pts[Math.max(0, i - 1)]).normalize();
@@ -255,61 +268,84 @@ export function createGolah3d({ renderer }) {
         _p.copy(p).addScaledVector(_n, cx * r).addScaledVector(_b, cy * r);
         P[k] = _p.x; P[k + 1] = _p.y; P[k + 2] = _p.z;
         N[k] = _n.x * cx + _b.x * cy; N[k + 1] = _n.y * cx + _b.y * cy; N[k + 2] = _n.z * cx + _b.z * cy;
-        const twist = 0.88 + 0.12 * Math.sin(L[i] * 22 + a * 2); C[k] = cr * twist; C[k + 1] = cg * twist; C[k + 2] = cb * twist;
+        const twist = 0.88 + 0.12 * Math.sin(L[i] * 22 + a * 2); C[k] = cr * twist; C[k + 1] = cg * twist; C[k + 2] = cb * twist; WT[k / 3] = w;
       }
     }
-    ropeG.attributes.position.needsUpdate = true; ropeG.attributes.normal.needsUpdate = true; ropeG.attributes.color.needsUpdate = true;
+    ropeG.attributes.position.needsUpdate = true; ropeG.attributes.normal.needsUpdate = true; ropeG.attributes.color.needsUpdate = true; ropeG.attributes.aWet.needsUpdate = true;
     ropeG.computeBoundingSphere();
   }
 
-  /* ── the water: the well's, the trough by the well's, the basin's; the channel's ribbon and the wet stone; the falling threads; the
-   *    drops in the air; the wet spots ── */
-  const wellM = W.surface({ deep: '#0E2229', bed: '#1C2A26', clear: 0.1, alpha: 0.95, chop: 0.8, glint: 0.6 });
-  const wellW = new THREE.Mesh(keep(new THREE.CircleGeometry(R - 0.01, 28)), wellM); wellW.rotation.x = -Math.PI / 2; wellW.position.set(wx, F0 - DEPTH, wz); wellW.renderOrder = 5; scene.add(wellW);
-  const headM = W.surface({ deep: '#24505C', bed: '#9C8A6C', clear: 0.55, alpha: 0.88, chop: 1.2 });
-  const headW = new THREE.Mesh(keep(new THREE.PlaneGeometry(hw - 2 * th - 0.01, hd - 2 * th - 0.01)), headM); headW.rotation.x = -Math.PI / 2; headW.renderOrder = 5; scene.add(headW);
-  const trM = W.surface({ deep: '#1F4A57', bed: '#9C8B6E', clear: 0.6, alpha: 0.86, chop: 1 });
-  const [tbx, tbz] = GL.troughs.B, trW = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02)), trM); trW.rotation.x = -Math.PI / 2; trW.renderOrder = 5; scene.add(trW);
-  // the way the water runs in the sample: from the outlet, out by the door to the bend, past the lowered stone (A) east to the raised one
-  // (B), into its spur and over the lip into its basin
+  /* ── the water: the well's (the shaft round it mirrored), the trough by the well's and the basin's (heaving where the stream lands,
+   *    their walls and bottoms mirrored and seen through), their water lines; the channel's running water, the wet stone of its floor,
+   *    bed and sides; the pour and the fall into the basin (sheets), the dribble off the bucket; the drops in the air; the wet spots ── */
+  const wellM = W.surface({ kind: 'well', deep: '#071418', wall: '#D9C6A6', alpha: 0.97, chop: 0.7, heave: 1, glint: 0.8 });
+  wellM.uniforms.uBox.value.set(wx, wz, R, R); wellM.uniforms.uRim.value = DEPTH + GL.rimH;
+  const wellW = new THREE.Mesh(keep(new THREE.RingGeometry(0, R - 0.01, ...SEG.well)), wellM); wellW.rotation.x = -Math.PI / 2; wellW.position.set(wx, F0 - DEPTH, wz); wellW.renderOrder = 5; wellW.name = 'h129-well-water'; scene.add(wellW);
+  const iw = hw - 2 * th, id = hd - 2 * th;
+  const headM = W.surface({ kind: 'box', deep: '#163C46', bed: '#B4A282', wall: '#E2D6C2', alpha: 0.95, chop: 0.9, heave: 1 });
+  const headW = new THREE.Mesh(keep(new THREE.PlaneGeometry(iw - 0.01, id - 0.01, ...SEG.head)), headM); headW.rotation.x = -Math.PI / 2; headW.renderOrder = 5; scene.add(headW);
+  headM.uniforms.uBox.value.set(hx, hz, iw / 2, id / 2);
+  const headLine = W.lines(hx - iw / 2, hz - id / 2, hx + iw / 2, hz + id / 2, HB, F0 + hh); scene.add(headLine.mesh);
+  const trM = W.surface({ kind: 'box', deep: '#143A46', bed: '#B09E80', wall: '#C9BA9E', alpha: 0.96, chop: 0.6, heave: 1, glint: 1.2 });
+  const [tbx, tbz] = GL.troughs.B, trW = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02, ...SEG.basin)), trM); trW.rotation.x = -Math.PI / 2; trW.renderOrder = 5; scene.add(trW);
+  trM.uniforms.uBox.value.set(tbx, tbz, TS[0] / 2, TS[1] / 2);
+  const trLine = W.lines(tbx - bx, tbz - bz, tbx + bx, tbz + bz, F0 - TD, F0); scene.add(trLine.mesh);
+  // the way the water runs in the sample: from the outlet, out by the door to the bend, where the lowered stone (A) turns it east, on to
+  // the raised one (B), where it heaps and turns into its spur, and over the lip into the basin
   const wayPts = [[m0[0], ho], [m1[0], m1[1]], [GL.sluice.B[0], m1[1]], [GL.sluice.B[0], basin('B')[3] + 0.02]];
-  const run = W.ribbon(wayPts, { w: cw * 0.86, y: () => tb + 0.13, speed: 3.4 }); scene.add(run.mesh);
-  const wet = W.wetTrail(wayPts, { w: cw + 0.62, y: () => F0 + 0.006, hole: cw / (cw + 0.62) }); scene.add(wet.mesh);
-  const wetBed = W.wetTrail(wayPts, { w: cw, y: () => tb + 0.004 }); scene.add(wetBed.mesh);
-  const thr = W.threads(3); scene.add(thr.mesh);
-  const drops = W.drips(120); scene.add(drops.mesh);
-  const spots = W.spots(180); scene.add(spots.mesh);
+  const legA = ho - m1[1], legB = legA + Math.abs(GL.sluice.B[0] - m1[0]);
+  const heap = (u) => 0.05 * (Math.exp(-(((u - legA) / 0.5) ** 2)) + Math.exp(-(((u - legB) / 0.5) ** 2)));
+  const WL = 0.2;   // (the water's height over the trench's bed)
+  const run = W.flow(wayPts, { w: cw - 0.01, y: (p, i, u) => tb + WL + heap(u), speed: GOLAH_RUN }); scene.add(run.mesh);
+  run.mat.uniforms.uPile.value.set(legA, legB, 0, 0);
+  const wet = W.wet(wayPts, { w: cw + 0.9, y: () => F0 + 0.006, hole: cw / (cw + 0.9), alpha: 0.55 }); scene.add(wet.mesh);
+  const wetBed = W.wet(wayPts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); scene.add(wetBed.mesh);
+  const wetSides = W.wetWalls(wayPts, { w: cw, y0: tb, h: TRENCH, line: WL }); scene.add(wetSides.mesh);
+  const pour = W.sheet({ nt: 40, ns: 12, brk: 0.5 }); pour.mesh.name = 'h129-pour'; scene.add(pour.mesh);
+  const inflow = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); scene.add(inflow.mesh);
+  const thr = W.threads(1); scene.add(thr.mesh);
+  const drops = W.drops(220); scene.add(drops.mesh);
+  const spots = W.spots(200); scene.add(spots.mesh);
 
   const state = { scriptMs: 0, t: 0 };
-  const zero = new THREE.Vector3();
+  const _a = new THREE.Vector3(), _v = new THREE.Vector3(), _x = new THREE.Vector3(), _fb = new THREE.Vector3(), _eb = new THREE.Vector3();
   function set(F) {
     const t0 = performance.now();
-    // the buckets and the rope
+    // the buckets and the rope; the full bucket's water to its brim, kept level as it swings and sloshing behind the swing
     const place = (m, b) => { m.position.set(b.x, b.y, b.z); m.rotation.set(b.tilt || 0, 0, b.swing || 0); };
     place(buckets[0], F.full); place(buckets[1], F.empty);
-    bWater.visible = F.full.fill > 0.02 && (F.full.tilt || 0) < 0.7;
-    bWater.position.y = -(BUCKET.h + BUCKET.r1 + 0.02) + 0.09 + (BUCKET.h - 0.16) * Math.min(1, F.full.fill);
-    bWater.rotation.x = -Math.PI / 2 - (F.full.tilt || 0); bWater.rotation.y = -(F.full.swing || 0);
+    bWater.visible = F.full.fill > 0.02 && (F.full.tilt || 0) > -0.7;
+    bWater.position.y = -(BUCKET.h + BUCKET.r1 + 0.02) + 0.09 + (BUCKET.h - 0.15) * Math.min(1, F.full.fill);
+    bWater.rotation.set(-Math.PI / 2 - (F.full.tilt || 0) * 0.85, -(F.full.swing || 0) + (F.full.slosh || 0), 0);
     wheel.rotation.x = F.wheel;
-    ropeTo(new THREE.Vector3(F.full.x, F.full.y, F.full.z), new THREE.Vector3(F.empty.x, F.empty.y, F.empty.z), 1);
-    // the trough by the well, the channel, the basin
-    headW.position.set(hx, HB + 0.02 + Math.max(0.001, F.head) * (hh - th - 0.12), hz); headW.visible = F.head > 0.01;
+    ropeTo(_fb.set(F.full.x, F.full.y, F.full.z), _eb.set(F.empty.x, F.empty.y, F.empty.z), F.ropeWet != null ? F.ropeWet : 1);
+    // the trough by the well and its line; the basin and its line
+    const hy = HB + 0.02 + Math.max(0.001, F.head) * (hh - th - 0.12);
+    headW.position.set(hx, hy, hz); headW.visible = F.head > 0.01;
+    headM.uniforms.uRim.value = F0 + hh - hy; headM.uniforms.uDepth.value = hy - HB;
+    headLine.set(F.head > 0.01 ? hy : HB - 1, F.headWet != null ? HB + 0.02 + F.headWet * (hh - th - 0.12) : hy);
+    const ty = F0 - TD + 0.03 + Math.max(0.001, F.trough) * (TD - 0.18);
+    trW.position.set(tbx, ty, tbz); trW.visible = F.trough > 0.005;
+    trM.uniforms.uRim.value = F0 - ty; trM.uniforms.uDepth.value = ty - (F0 - TD);
+    trLine.set(F.trough > 0.005 ? ty : F0 - TD - 1, ty);
+    // the channel
     run.set(F.front, F.tail == null ? -1 : F.tail, F.flow == null ? 1 : F.flow);
-    wet.set(F.wetTo != null ? F.wetTo : F.front); wetBed.set(F.wetTo != null ? F.wetTo : F.front);
-    trW.position.set(tbx, F0 - TD + 0.03 + Math.max(0.001, F.trough) * (TD - 0.18), tbz); trW.visible = F.trough > 0.005;
-    headM.uniforms.uFoam.value.set(F.pourAt ? F.pourAt[0] : 0, F.pourAt ? F.pourAt[1] : 0, 0.22, F.pourAt ? F.pourAt[2] : 0);
-    trM.uniforms.uFoam.value.set(F.inAt ? F.inAt[0] : 0, F.inAt ? F.inAt[1] : 0, 0.2, F.inAt ? F.inAt[2] : 0);
-    // the threads (the pour, the dribble off the rising bucket, the fall into the basin)
-    for (let k = 0; k < 3; k++) { const q = F.threads && F.threads[k]; if (q) thr.set(k, q[0], q[1], q[2], q[3], q[4], q[5]); else thr.off(k); }
+    run.mat.uniforms.uPile.value.z = F.pileA || 0; run.mat.uniforms.uPile.value.w = F.pileB || 0;
+    for (const w of [wet, wetBed]) { w.set(F.front, F.tail == null ? -1 : F.tail); w.mat.uniforms.uDryV.value = F.tailV || 3; }
+    wetSides.set(F.front, F.tail == null ? -1 : F.tail); wetSides.mat.uniforms.uDryV.value = F.tailV || 3;
+    headM.uniforms.uFoam.value.set(F.pourAt ? F.pourAt[0] : 0, F.pourAt ? F.pourAt[1] : 0, 0.32, F.pourAt ? F.pourAt[2] : 0);
+    trM.uniforms.uFoam.value.set(F.inAt ? F.inAt[0] : 0, F.inAt ? F.inAt[1] : 0, 0.22, F.inAt ? F.inAt[2] : 0);
+    // the sheets: the pour, the fall into the basin
+    for (const [sh, q] of [[pour, F.pour], [inflow, F.inflow]]) {
+      if (q && q.on > 0.01) { sh.mesh.visible = true; sh.set(_a.fromArray(q.p0), _v.fromArray(q.v0), _x.fromArray(q.ax), q.tt, q.w0, q.w1, q.bow, q.on); } else { sh.mesh.visible = false; sh.off(); }
+    }
+    // the dribble off the bucket as it leaves the water
+    const q = F.dribble; if (q) { thr.mesh.visible = true; thr.set(0, _a.fromArray(q[0]), _v.fromArray(q[1]), _x.fromArray(q[2]), q[3], q[4], q[5]); } else { thr.mesh.visible = false; thr.off(0); }
     // the rings on the well's, the trough's and the basin's water
-    for (const [mat, list] of [[wellM, F.wellRings], [headM, F.headRings], [trM, F.trRings]]) { const D = mat.uniforms.uDrops.value; for (let i = 0; i < 4; i++) { const r = list && list[i]; if (r) D[i].set(r[0], r[1], r[2], r[3]); else D[i].set(0, 0, NONE, 0); } }
-    // the drops in the air
-    const n = Math.min(drops.N, (F.drips || []).length);
-    for (let i = 0; i < n; i++) { const d = F.drips[i]; drops.pos[i * 3] = d[0]; drops.pos[i * 3 + 1] = d[1]; drops.pos[i * 3 + 2] = d[2]; drops.sz[i] = d[3]; }
-    drops.update(n);
-    if (F.spots && F.spots.length !== spots.mesh.count) { spots.clear(); for (const s of F.spots) spots.add(s[0], s[1], s[2], s[3]); }
+    W.rings(wellM, F.wellRings); W.rings(headM, F.headRings); W.rings(trM, F.trRings);
+    drops.set(F.drips || []);
+    if (F.spots && F.spots.length !== spots.mesh.count) { spots.clear(); for (const sp of F.spots) spots.add(sp[0], sp[1], sp[2], sp[3]); }
     state.scriptMs = performance.now() - t0;
-    void zero;
   }
   function view(eye, aim) { camera.position.set(eye[0], eye[1], eye[2]); camera.lookAt(aim[0], aim[1], aim[2]); }
   let shadowDone = false;
@@ -319,7 +355,7 @@ export function createGolah3d({ renderer }) {
     /** the clock of every water material */
     update(t) { U.t.value = t; state.t = t; },
     render() { if (!shadowDone) { renderer.shadowMap.needsUpdate = true; shadowDone = true; } renderer.render(scene, camera); },
-    resize(w, h2) { camera.aspect = w / Math.max(1, h2); camera.updateProjectionMatrix(); drops.mat.uniforms.uH.value = (h2 / 2) / Math.tan((camera.fov * DEG) / 2); },
+    resize(w, h2) { camera.aspect = w / Math.max(1, h2); camera.updateProjectionMatrix(); },
     redrawShadow() { shadowDone = false; },
     dbg: () => ({ scriptMs: +state.scriptMs.toFixed(3), cam: camera.position.toArray().map((v) => +v.toFixed(2)) }),
     dispose() { W.dispose(); for (const o of own) try { o.dispose(); } catch (e) { /* */ } },

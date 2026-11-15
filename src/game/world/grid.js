@@ -773,18 +773,22 @@ const S07 = {
   cam: {
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
-    // the one golden light over the Golah (light B's colour, as stage 06's): its elevation and azimuth in degrees (the world's convention,
-    // main.js setTime: from +x toward +z), high enough to reach into the roofless room, from the south-south-west (illustration)
-    sun: { el: 60, az: 115 },
+    // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
+    // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the
+    // north, so it runs along the court between the House and the south wall and over the cut-down west wall into the room (illustration)
+    sun: { el: 24, az: 186 },
+    // the look sample's camera: down the shaft from the lit (west) side, the pour from the side, over the cut-down north wall, up the
+    // channel from the east toward the coming water, the basin from the east with the sun's glint on it
     look: [
-      [[-135.4, 25, 73.2], [-139, 11.5, 64.4], 0],
-      [[-135.6, 24.4, 72.8], [-139, 13.2, 64.2], 3.5],
-      [[-136.4, 22, 71.2], [-139, 16.6, 64], 6.8],
-      [[-133.6, 21.2, 63.6], [-139, 17.4, 62.2], 8.6],
-      [[-133, 20.8, 60.6], [-139, 16.8, 61], 11.6],
-      [[-133.6, 30.5, 62], [-132, 16, 52], 13.6],
-      [[-123, 23.5, 45.5], [-125, 15.8, 50.3], 16],
-      [[-123.4, 22, 46.4], [-125, 15.7, 50.3], 20],
+      [[-141.2, 26, 67.6], [-138.9, 6.5, 64.7], 0],
+      [[-141.5, 25.6, 67.8], [-138.9, 8.4, 64.6], 3.5],
+      [[-143.2, 23.6, 67.4], [-139, 14.4, 64.4], 6.8],
+      [[-142.2, 22, 57.2], [-139, 18, 61], 8.6],
+      [[-141.8, 21.4, 57.3], [-139, 17.5, 60.4], 11.2],
+      [[-134.8, 20.5, 54.6], [-134, 15.8, 52.1], 12.9],
+      [[-122.4, 18.4, 52.7], [-129.5, 15.8, 52], 14.4],
+      [[-120.6, 17.6, 50.6], [-125.2, 15.3, 50], 16.4],
+      [[-120.9, 17.5, 50.2], [-125.3, 15.3, 49.9], 20],
     ],
   },
 };

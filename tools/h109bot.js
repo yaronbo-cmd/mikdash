@@ -718,6 +718,9 @@
       if (a.phase === 'open') return shotOnce('open', 'sea-open', 2600) || { tap: [Math.round(W * 0.5), Math.round(HH * 0.5)], wait: 500, note: 'sea: skip the opening' };
       if (a.phase === 'ropes') {
         if (!K.r0) { K.r0 = 1; return { wait: 900, shot: a.id + '-ropes' }; }
+        // (__BOT_FIG: the figures and the swell at u 0.3, once a work, while the first swell comes)
+        if (window.__BOT_FIG && !K.fig && a.next && a.next.in < 7.5) { K.fig = 1; return { eval: '__T.game.h109.X.lookLift(0.3)', wait: 1600, shot: a.id + '-u03', note: 'sea: the lifted view at u 0.3' }; }
+        if (K.fig === 1) { K.fig = 2; return { eval: '__T.game.h109.X.lookLift(0)', wait: 900 }; }
         { const j = a.sw.findIndex((x, i) => x.back && !(K.judged || {})[i]); if (j >= 0) { (K.judged = K.judged || {})[j] = 1; return { wait: 30, note: `sea: swell ${j + 1} (${a.sw[j].head}) ${a.sw[j].clean ? 'clean' : 'rough'} · ${a.ev.join(' ')}` }; } }
         const w = a.sw.find((x) => !x.back); if (!w) return { wait: 200 };
         const inn = w.t0 - a.mt, LOW = { port: ['stbdFore', 'stbdAft'], stbd: ['portFore', 'portAft'], bow: ['portAft', 'stbdAft'], stern: ['portFore', 'stbdFore'] };
@@ -742,7 +745,7 @@
         const dy = Math.max(-170, Math.min(170, (want[best] - R[best].tgt) * 240)), y1 = Math.max(40, Math.min(HH - 40, q[1] + dy));
         return { drag: [q[0], q[1], q[0], y1, 320], wait: 60, note: `sea: ${best} ${R[best].tgt} → ${want[best]} (swell ${w.head} in ${inn.toFixed(1)} s)` };
       }
-      if (a.phase === 'throw') return shotOnce('throw', 'sea-throw', 1800) || { wait: 300 };
+      if (a.phase === 'throw') { K.th0 = K.th0 || now(); const dt = (now() - K.th0) / 1000; for (const [t, n] of [[3.6, 'fall'], [5.0, 'splash'], [8, 'down'], [11.6, 'gone']]) if (dt > t && !K['th' + n]) { K['th' + n] = 1; return { wait: 20, shot: 'sea-throw-' + n }; } return { wait: 100 }; }
       if (a.phase === 'turn') return shotOnce('turn', 'sea-turn', 600) || { wait: 300 };
       if (a.phase === 'calm') return shotOnce('calm', 'sea-calm', 700) || { wait: 300 };
       if (a.phase === 'sorry') return shotOnce('sorry', 'sea-sorry', 1500) || { wait: 400 };
@@ -751,6 +754,7 @@
         const mouse = !!a.mouse || !!window.__BOT_MOUSE;
         if (has('slip') && !K.slipped) { const s0 = ['L', 'R'].find((q) => h.off[q]); if (s0 && !mouse) K.slipped = { h: s0, until: h.swells + 1 }; }
         const off = K.slipped && h.swells < K.slipped.until ? K.slipped.h : null;
+        if (!K.hold0) { K.hold0 = 1; return { wait: 50, shot: 'sea-hold-start' }; }
         if (h.held >= 1 && !K.holdShot) { K.holdShot = 1; return { wait: 50, shot: 'sea-hold' }; }
         const pt = (q) => C(`return a&&a.phase==='hold'&&a.rings?a.rings.${q}:null`);
         const hands = (mouse ? ['L'] : ['L', 'R']).filter((q) => q !== off);

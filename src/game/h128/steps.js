@@ -136,7 +136,7 @@ export const RING = {
       barA = bar(); barB = bar();
       // the two men at the bars, nobody else (the owner 15.11: in the close view only the two lever men, whole — the mason with the mallet
       // stood at the frame's edge, cut, and only bowed once at the end)
-      const sA = ptAt(q0 - 7, R.R + 0.9, R.base), sB = ptAt(q1 + 7, R.R + 0.9, R.base);   // (the bar men beside the stone, not in front of it)
+      const sA = ptAt(q0 - 0.6, R.R + 2.2, R.base), sB = ptAt(q1 + 3, R.R + 1.6, R.base);   // (the bar men: A at his bar's head, B a little aside — the camera looks across from A's side; each stand the one place where he is whole at u 0 and u 0.3 and not before the gap (figgate probe))
       const wA = SH6.crew.add(sA[0], sA[2], { role: 'push', crew: 1, fx: c[0], fz: c[2] }), wB = SH6.crew.add(sB[0], sB[2], { role: 'push', crew: 1, fx: c[0], fz: c[2] });
       for (const w of [wA, wB]) if (w) men.push(w);
       A.keyMen = { wA, wB };

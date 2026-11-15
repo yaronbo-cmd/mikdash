@@ -733,6 +733,9 @@
     // (the films between levels and the end: a frame every 2.5 s, when the probe asks for them)
     if (window.__BOT_FILM && (S.phase === 'film' || S.phase === 'end') && now() - (B.filmT || 0) > 2500 && (B.filmN = (B.filmN || 0) + 1) < 80) { B.filmT = now(); return { wait: 200, shot: `film-${S.phase}-${S.mission || 'end'}-${B.filmN}` }; }
     if (S.phase === 'walk') {
+      // ── h128 ── (__BOT_PLAN: the plan's works only — at a free ring he walks on toward the gate, as a player who leaves it to the crews;
+      // the close's stand, BOOK.s06.close.stand) ── /h128 ──
+      if (H().site === 'nikanor' && window.__BOT_PLAN && S.mission && /F:/.test(S.mission)) { if (now() - (B.awayT || 0) > 4000) { B.awayT = now(); return { eval: "(()=>{__T.game.h109.X.stages.hero.walkTo({x:-6,z:0});return 'away'})()", wait: 600, note: 'plan only: past the free ring ' + S.mission }; } return { wait: 300 }; }
       if (B.m !== S.mission) { B.note = `${S.i}/${S.n} → ${S.mission} · streak best ${S.best}`; B.m = S.mission; B.begun = false; B.goT = 0; return { wait: 300, note: B.note }; }
       // (build 120: __BOT_MIX — the next plan work of another kind than the last one, so the stations mix)
       if (window.__BOT_MIX && !S.mission && now() - B.goT > 7000) {

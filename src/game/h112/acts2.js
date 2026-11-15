@@ -42,7 +42,7 @@ export const STEPS_ACT = {
       for (const w of A.crew) SH3.crew.remove(w); A.crew = [];
       const s = K.s, x = s.face - s.D / 2;
       for (const z of [STEPS.z0 - 0.8, STEPS.z1 + 0.8]) A.crew.push(SH3.crew.add(x, z, { role: 'push', fx: x, fz: ZC, crew: 1 }));
-      A.crew.push(SH3.crew.add(STEPS.x0 + 1.2, STEPS.z1 + 2.6, { role: 'hammer', item: 'mallet', fx: STEPS.x0 + 1.2, fz: STEPS.z1 + 0.5, off: 0.3, crew: 3 }));
+      A.crew.push(SH3.crew.add(STEPS.x0 + 2.6, STEPS.z1 + 2.2, { role: 'hammer', item: 'mallet', fx: STEPS.x0 + 2.6, fz: STEPS.z1 + 0.5, off: 0.3, crew: 3 }));   // ── h128 ── (two steps lower, nearer the work: the top of the frame cut him) ── /h128 ──
     }
     function gaugeFor(K) {
       if (A.gauge) PR.remove(A.gauge); A.gauge = null; if (!gauge) return;

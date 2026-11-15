@@ -134,12 +134,12 @@ export const RING = {
       for (const u of [0.25, 0.75]) { const r = new T.Mesh(new T.CylinderGeometry(0.07, 0.07, STP.tread * 1.6, 8), MT.h6timber); const p = ptAt(q0 + P.C * u, R.R + 0.5, R.base + 0.07); r.position.set(...p); r.rotation.set(0, -am, Math.PI / 2); r.rotation.order = 'YXZ'; add(r); }
       const bar = () => { const b = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 2.4, 6), MT.h6bronzeD); const g2 = new T.Group(); g2.add(b); b.position.y = 1.0; b.rotation.z = 0; add(g2); return g2; };
       barA = bar(); barB = bar();
-      // the two men at the bars, the mason with the mallet
+      // the two men at the bars, nobody else (the owner 15.11: in the close view only the two lever men, whole — the mason with the mallet
+      // stood at the frame's edge, cut, and only bowed once at the end)
       const sA = ptAt(q0 - 7, R.R + 0.9, R.base), sB = ptAt(q1 + 7, R.R + 0.9, R.base);   // (the bar men beside the stone, not in front of it)
       const wA = SH6.crew.add(sA[0], sA[2], { role: 'push', crew: 1, fx: c[0], fz: c[2] }), wB = SH6.crew.add(sB[0], sB[2], { role: 'push', crew: 1, fx: c[0], fz: c[2] });
-      const wm = SH6.crew.add(...(() => { const p = ptAt(q1 + 13, R.R + 1.4, R.base); return [p[0], p[2]]; })(), { role: 'hold', item: 'mallet', crew: 2, fx: c[0], fz: c[2] });
-      for (const w of [wA, wB, wm]) if (w) men.push(w);
-      A.keyMen = { wA, wB, wm };
+      for (const w of [wA, wB]) if (w) men.push(w);
+      A.keyMen = { wA, wB };
     }
     const keyOut = (u) => 1.0 * (1 - u);   // (amot outside the gap at advance u)
     function keyPlace() {
@@ -282,7 +282,7 @@ export const RING = {
     const keyAt = () => ({ x: key.position.x, y: R.top + 0.6, z: key.position.z });
     function closed() {
       A.phase = 'closing'; V.grind(0); camLift(0);
-      const s = A.k, wm = A.keyMen && A.keyMen.wm; if (wm) { wm.a.bowT = 0.5; setTimeout(() => { if (wm.a) wm.a.bowT = 0; }, 400); }
+      const s = A.k;
       setTimeout(() => { V.mallet(false); X.sparks(key.position.x, R.top + 0.3, key.position.z, 8); }, 250);
       setTimeout(() => { V.step(i, !!(s.corner || s.crack)); if (!s.dmg) X.quick(keyAt(), QUICK.closed, key.children[0]); }, 600);
       const rec = { left: A.row.left.slice(), right: A.row.right.slice(), crack: s.crack, corner: s.corner, clean: s.dmg ? 0 : 1, by: 'p' };

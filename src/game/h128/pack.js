@@ -16,6 +16,7 @@ import { createVoices } from './sound128.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';
 import { stageById } from '../content.js';
 import { BOOK } from '../world/grid.js';
+import { filmFigs } from './figgate.js';   // ── h128 ── (the figures gate's rule in the end film: only the Levites) ── /h128 ──
 
 export const SEA_IN_PLAY = false;
 const S6 = BOOK.s06, CAM = S6.cam;
@@ -105,6 +106,7 @@ export function makePack06() {
     async finale(X) {
       near(X, true); X.line(''); finalWorld(X);
       const st = X.M.st, V = createVoices(X.sfx), rig = dawnRig(X), lev = [];
+      const figsBack = filmFigs({ scene: X.scene, keep: () => lev, workers: (fn) => { try { if (X.hero && X.hero.h128Workers) X.hero.h128Workers(fn); } catch (e) { /* */ } } });   // ── h128 ── ── /h128 ──
       try {
         rig.apply(0);
         // 1. the Levites climb the fifteen steps; each ring sounds its note as they step on it (his three as he built them)
@@ -144,6 +146,7 @@ export function makePack06() {
         await card(X, `<b style="font:900 20px Heebo,system-ui">שער ניקנור וחמש עשרה המעלות</b><p style="margin:8px 0">${done.length} עבודות · ${'★'.repeat(Math.min(3, Math.round(stars / Math.max(1, done.length))))} (${stars} כוכבים)</p><small>${dmg.length ? 'נשאר בעולם: ' + esc(dmg.join(' · ')) : 'בלי נזק אחד'}</small>`, 7000);
       } catch (e) { console.warn('[h128] finale', e && e.message); }
       for (const w of lev) try { SH6.crew.remove(w); } catch (e) { /* */ }
+      figsBack();   // ── h128 ── ── /h128 ──
       rig.off(); X.line(''); near(X, false);
       st.film = 1; X.save();
     },

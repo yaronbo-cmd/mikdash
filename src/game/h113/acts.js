@@ -416,6 +416,7 @@ export const SOCKET = {
     const P = { f: null };
     return {
       close: true,
+      kohenWorks: true,   // ── h128 ── (he tamps each socket's pin: the figures gate moves him whole into the frame) ── /h128 ──
       begin() { keep(X, [gateKeep(G)]); removeForm().then(() => openSocket()); },
       update(dt) {
         A.t += dt;

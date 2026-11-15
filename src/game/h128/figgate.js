@@ -5,21 +5,30 @@
  *   (a) a figure the act did not put there (not a pack gang's man: the world's crews and life) is not drawn while
  *       the act is on, wherever it stands — it comes back when the act ends;
  *   (b) a figure of the act's own whose box crosses the frame's edge at either u, or (c) stands between the camera and the work's focus
- *       (in front of it and over it on the screen) is drawn as it is and reported (__FIG.report()): the act's camera or its stand is
- *       what must change, not the figure;
- *   the kohen (the hero) is the act's own when the act asks for him (X.kohen), and is hidden when he fails (b) or (c).
+ *       (in front of it and over it on the screen) is not drawn while it is so ("whole or absent, never cut", the owner 15.11) and is
+ *       reported (__FIG.report()): where the man is needed for the work to read, the act's camera or his stand is what must change;
+ *   every figure layer is tested (actors.js FIGS: the crews', the crowd's, the service's, a pack's own), and the stage's own site
+ *   workers (stages.js) are out for the act (o.workers);
+ *   the kohen (the hero) is the act's own when the act asks for him (X.kohen), and is hidden when he fails (b) or (c) — unless his
+ *   hands do the act's work (act.kohenWorks): then he steps to the nearest place where he stands whole (fitHero).
  * No randomness, no timers of its own: the director calls step(dt) from its frame.
- *   createFigGate({ THREE, camera, actors: () => actors.js API, hero: { xyz(), show(v) }, pose: (u) => { p, t, fov } | null })
+ *   createFigGate({ THREE, camera, scene, actors: () => actors.js API, workers(fn | null), hero: { xyz(), show(v), keep() }, pose: (u) => { p, t, fov } | null })
  *   → { begin(focus), step(dt, focus), end(), report(), stats() } */
+import { FIGS } from '../../actors.js';
+try { globalThis.__FIGS = FIGS; } catch (e) { /* (the probes' eyes) */ }
+
 const H = 3.9, R = 0.55, U2 = 0.3, EVERY = 0.25;
 
 export function createFigGate(o) {
   const T = o.THREE;
   const cam = new T.PerspectiveCamera(40, 1.6, 0.1, 5000);
   const v = new T.Vector3();
-  const G = { on: false, pre: new Set(), off: new Set(), heroOff: false, t: 0, key: '', rep: [], n: { hidden: 0, own: 0, ownCut: 0, ownBlock: 0 } };
+  const G = { on: false, pre: new Set(), off: new Set(), heroOff: false, t: 0, key: '', rep: [], n: { hidden: 0, own: 0, ownCut: 0, ownCutHidden: 0, ownBlock: 0, ownBlockHidden: 0 } };
   const A = () => { try { return o.actors ? o.actors() : null; } catch (e) { return null; } };
-  const list = () => { const a = A(); return a && Array.isArray(a.list) ? a.list : []; };
+  // (every figure layer of the main scene: the crews' (o.actors) and whatever else drew figures — the crowd, the service, a pack's own —
+  //  found in actors.js's registry FIGS; a layer on another scene or group (the ship's deck) is not the gate's)
+  const layers = () => { const out = []; const a = A(); if (a) out.push(a); try { for (const L of FIGS) if (L !== a && (!o.scene || L.scene === o.scene)) out.push(L); } catch (e) { /* */ } return out; };
+  const list = () => { const out = []; for (const L of layers()) if (Array.isArray(L.list)) for (const f of L.list) out.push(f); return out; };
 
   function setCam(P) {
     cam.position.set(P.p[0], P.p[1], P.p[2]); cam.up.set(0, 1, 0); cam.lookAt(P.t[0], P.t[1], P.t[2]);
@@ -52,10 +61,24 @@ export function createFigGate(o) {
     if (on) { if (!a.gateOff) { a.gateOff = true; G.off.add(a); } }
     else if (a.gateOff) { a.gateOff = false; G.off.delete(a); }
   }
+  function fitHero(focus) {
+    let h = null; try { h = o.hero.xyz(); } catch (e) { h = null; } if (!h || !Number.isFinite(h.x)) return null;
+    for (let rr = 0.75; rr <= 4; rr += 0.5) for (let k = 0; k < 16; k++) {
+      const an = k * Math.PI / 8, x = h.x + Math.cos(an) * rr, z = h.z + Math.sin(an) * rr;
+      let y = h.y; try { if (o.ground) y = o.ground(x, z); } catch (e) { y = h.y; } if (!Number.isFinite(y) || Math.abs(y - (h.y || 0)) > 0.8) continue;
+      const q = probe(x, y, z, focus); if (q.on && !q.cut && !q.between) return { x, z, dx: x - h.x, dz: z - h.z };
+    }
+    return null;
+  }
+  function probe(x, y, z, focus) {
+    const r = { on: false, cut: false, between: false };
+    for (const u of [0, U2]) { const P = o.pose ? o.pose(u) : null; if (!P) continue; setCam(P); const b = box(x, y, z, 1); if (b) { r.on = r.on || b.on; r.cut = r.cut || b.cut; r.between = r.between || blocks(b, focusOf(focus)); } }
+    return r;
+  }
   function run(focus) {
     const P0 = o.pose ? o.pose(0) : null, P1 = o.pose ? o.pose(U2) : null;
     const poses = [P0, P1].filter(Boolean); if (!poses.length) return;
-    const rep = [], n = { hidden: 0, own: 0, ownCut: 0, ownBlock: 0 };
+    const rep = [], n = { hidden: 0, own: 0, ownCut: 0, ownCutHidden: 0, ownBlock: 0, ownBlockHidden: 0 };
     const L = list();
     // (per pose: the boxes; a world figure is out for the act, an own one is reported)
     const res = new Map();
@@ -74,6 +97,11 @@ export function createFigGate(o) {
     }
     for (const [a, r] of res) {
       if (a === 'hero') {
+        // (where his hands do the act's work (act.kohenWorks), the kohen is not taken out: he steps to the nearest place, within 4 amot
+        //  on his own level, where he stands whole and out of the work's way at u 0 and u 0.3; only if there is none is he hidden)
+        if ((r.cut || r.blk) && o.hero.works && o.hero.works() && o.hero.move) {
+          const p = fitHero(focus); if (p) { try { o.hero.move(p.x, p.z); } catch (e) { /* */ } rep.push({ who: 'kohen', cut: r.cut, between: r.blk, moved: [+p.dx.toFixed(1), +p.dz.toFixed(1)] }); if (G.heroOff) { G.heroOff = false; try { o.hero.show(true); } catch (e) { /* */ } } continue; }
+        }
         const off = r.cut || r.blk;
         if (off !== G.heroOff) { G.heroOff = off; try { o.hero.show(!off); } catch (e) { /* */ } }
         if (off) rep.push({ who: 'kohen', cut: r.cut, between: r.blk, hidden: true });
@@ -81,20 +109,26 @@ export function createFigGate(o) {
       }
       const own = !!a.gang;   // (the packs' own men: a pack gang's — an act may set its men out before its first beat; the world's crews and life are not)
       if (!own) { hide(a, true); if (r.on) n.hidden++; continue; }
-      hide(a, false); n.own++;
-      if (r.cut) n.ownCut++; if (r.blk) n.ownBlock++;
-      if (r.cut || r.blk) rep.push({ who: a.variant + (a.item ? ':' + a.item : ''), at: [+a.x.toFixed(1), +a.z.toFixed(1)], cut: r.cut, between: r.blk });
+      // (the owner 15.11: "whole or absent, never cut" — an own man the frame cuts at u 0 or u 0.3 is not drawn while he is cut; the
+      //  act's camera or his stand is fixed where he is needed for the work to read: the report names whom the gate took out)
+      n.own++;
+      if (r.cut || r.blk) { hide(a, true); if (r.cut) n.ownCutHidden++; else n.ownBlockHidden++; } else hide(a, false);
+      if (r.cut || r.blk) rep.push({ who: a.variant + (a.item ? ':' + a.item : ''), at: [+a.x.toFixed(1), +a.z.toFixed(1)], cut: r.cut, between: r.blk, hidden: true });
     }
     G.rep = rep; G.n = n;
   }
   return {
     begin(focus) {
       this.end();
+      try { if (o.workers) o.workers(() => true); } catch (e) { /* */ }   // (the stage's own site workers (stages.js) are the world's: out for the act)
       G.on = true; G.pre = new Set(list()); G.t = 0; G.key = ''; G.heroOff = false; G.rep = [];   // (the first test when the act's camera has settled: step)
       void focus;
     },
     step(dt, focus, key) {
       if (!G.on) return;
+      // (a hidden kohen stays hidden: an act that sets him on his place (hero.setPos, place, a walk) shows him again — each frame the gate
+      //  takes him out of the picture again, without stopping what he does)
+      if (G.heroOff && o.hero && o.hero.keep) { try { o.hero.keep(); } catch (e) { /* */ } }
       G.t -= dt; const k = String(key || '');
       if (G.t > 0 && k === G.key) return;
       G.t = EVERY; G.key = k; run(focus);
@@ -103,9 +137,28 @@ export function createFigGate(o) {
       for (const a of [...G.off]) hide(a, false);
       for (const a of list()) if (a && a.gateOff) a.gateOff = false;
       if (G.heroOff) { G.heroOff = false; try { o.hero.show(true); } catch (e) { /* */ } }
+      if (G.on) { try { if (o.workers) o.workers(null); } catch (e) { /* */ } }
       G.on = false; G.pre = new Set();
     },
     report() { return G.rep.slice(); },
+    /** (the probes' tool) a standing figure at (x, y, z) against the act's camera at u 0 and u 0.3: { on, cut, between } */
+    probe,
     stats() { return { on: G.on, ...G.n, report: G.rep.length }; },
   };
+}
+
+/** ── the same rule for a film (the owner 15.11, the stage's end: "a worker with a blue cap stands idle by the gate while the Levites
+ *  sing"): while the film plays, every figure of the main scene's figure layers that is not the film's own (keep() → its gang men) is
+ *  not drawn, nor the stage's site workers; a figure that comes into the world meanwhile is caught on the next look (every 0.3 s).
+ *  filmFigs({ scene, keep: () => [gang men], workers(fn | null) }) → restore() */
+export function filmFigs(o) {
+  const off = new Set();
+  const own = () => { const s = new Set(); try { for (const w of (o.keep ? o.keep() : []) || []) if (w && w.a) s.add(w.a); } catch (e) { /* */ } return s; };
+  const look = () => {
+    const mine = own();
+    try { for (const L of FIGS) { if (o.scene && L.scene !== o.scene) continue; for (const a of L.list || []) { if (!a || !a.alive || mine.has(a)) continue; if (!a.gateOff) { a.gateOff = true; off.add(a); } } } } catch (e) { /* */ }
+  };
+  try { if (o.workers) o.workers(() => true); } catch (e) { /* */ }
+  look(); const iv = setInterval(look, 300);
+  return () => { clearInterval(iv); for (const a of off) a.gateOff = false; off.clear(); try { if (o.workers) o.workers(null); } catch (e) { /* */ } };
 }

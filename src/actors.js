@@ -829,7 +829,7 @@ export function createActors(ctx) {
   }
 
   let instantVis = false;   // ── h120 ── ── /h120 ──
-  return {
+  const API = {   // ── h128 ── (API: registered below in FIGS, the one list of every figure layer) ── /h128 ──
     add, remove, walk, face, pose, setItem, update, list, items, prop, unprop, props, ITEM_ID,
     setNoGo(L) { NOGO = (L || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)); },   // ── h117 ── ── /h117 ──
     get noGo() { return NOGO.slice(); },
@@ -839,4 +839,10 @@ export function createActors(ctx) {
     get drawn() { let n = items.visible ? 1 : 0; for (const k in meshes) n += meshes[k].m.visible ? 1 : 0; return n; },
     handWorld(a, side, out) { armLocal(a, side, side > 0 ? HANDL : HANDR, side > 0 ? SHL : SHR, _e); toWorld(a, _e, out); return out; },
   };
+  // ── h128 ── every figure layer (the crews', the crowd's, the service's, a partner's, a pack's own) in one registry, so the figures
+  // gate (h128/figgate.js) finds a figure whoever asked for it; scene: where its meshes hang (a gate tests the main scene's only) ── /h128 ──
+  API.scene = scene; API.tag = (ctx && ctx.tag) || ''; FIGS.add(API);
+  return API;
 }
+/** ── h128 ── the registry of figure layers (createActors adds each one) ── /h128 ── */
+export const FIGS = new Set();

@@ -2682,6 +2682,7 @@ export function createStages(ctx) {
   const W = [];
   for (let i = 0; i < NW; i++) { const c = WPAL[i % WPAL.length]; wBody.setColorAt(i, c); wArm.setColorAt(i, c); wArm2.setColorAt(i, c); W.push({ role: 'idle', st: null, x: 0, y: 0, z: 0, yaw: 0, ph: R() * 6.28, sp: 2.6 + R() * 0.9, ax: 0, az: 0, bx: 0, bz: 0, t: 0, dir: 1, wait: 0, carry: false, run: null, o: 0 }); }
   let nWork = 0, workDirty = true;
+  const H128W = { hide: null };   // ── h128 ── the figures gate: the stage's own workers out of an act's picture, fn(x, y, z) → hidden (h128/figgate.js) ── /h128 ──
   const H120W = { hide: null };   // ── h120 ── the stage's own workers kept out of an act's view cone: hide(x, y, z) → true (h120/world.js viewCone) ── /h120 ──
   function assignWorkers() {
     workDirty = false;
@@ -2848,7 +2849,7 @@ export function createStages(ctx) {
       }
       // ── /site20 ──
       we.set(lean, w.yaw, 0, 'YXZ'); wq.setFromEuler(we); wv.set(w.x + ox, w.y + bob, w.z + oz);   // ── site20 ── (+ox, +oz) ── /site20 ──
-      const h120h = !!(H120W.hide && H120W.hide(w.x + ox, w.y, w.z + oz)) || !!(H120W.noScaff && w.run); if (h120h) wv.y -= 999;   // ── h120 ── a man in an act's view cone is not drawn ── /h120 ──
+      const h120h = !!(H120W.hide && H120W.hide(w.x + ox, w.y, w.z + oz)) || !!(H120W.noScaff && w.run) || !!(H128W.hide && H128W.hide(w.x + ox, w.y, w.z + oz)) /* ── h128 ── ── /h128 ── */; if (h120h) wv.y -= 999;   // ── h120 ── a man in an act's view cone is not drawn ── /h120 ──
       wmBody.compose(wv, wq, ONE); wBody.setMatrixAt(i, wmBody);
       wmT.makeTranslation(-0.44, 2.72, 0); wmR.makeRotationX(arm); tmpM.multiplyMatrices(wmBody, wmT).multiply(wmR);
       // ── site13 ── a hammer only for a mason or a digger away from the altar; bare hands for the rest (N76 c)
@@ -4271,6 +4272,7 @@ export function createStages(ctx) {
     ks: () => (KS.on && KS.s ? { on: true, x: KS.hx, y: KS.s.y + KS.hy + KS.s.h / 2, z: KS.hz, cy: KS.s.y + KS.hy, sy: KS.s.y, landT: KS.landT, gone: KS.gone, done: KS.done } : { on: false }),   // ── site20 ── (the test's eyes) ── /site20 ──
     // ── h120 ── the stage's own workers out of an act's view cone (fn(x, y, z) → hidden; null: all drawn)
     h120Workers: (fn) => { H120W.hide = typeof fn === 'function' ? fn : null; },
+    h128Workers: (fn) => { H128W.hide = typeof fn === 'function' ? fn : null; },   // ── h128 ── (the figures gate) ── /h128 ──
     // ── /h120 ──
     workersNear: (x, z, r) => { const o = []; for (let i = 0; i < nWork; i++) { const w = W[i]; const px = w.x + (w.o20x || 0), pz = w.z + (w.o20z || 0), d = Math.hypot(px - x, pz - z); if (d <= r) o.push([w.role, +px.toFixed(1), +pz.toFixed(1), +d.toFixed(1)]); } return o; },   // ── site20 ── (the test's eyes: the stage's own workers as drawn) ── /site20 ──
     s20: () => ({ act: S20.act, on: S20.on, ax: S20.ax, az: S20.az, nx: S20.nx, nz: S20.nz, ux: S20.ux, uz: S20.uz, Lr: S20.Lr, top: S20.top, topE: S20.topE, base: S20.base, topAt: (x, z) => s20Top(x, z) }),   // ── site20 ── (the wall's plan A: the test's eyes) ── /site20 ──

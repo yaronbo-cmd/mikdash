@@ -154,6 +154,7 @@ export const PLUMB = {
     }
     return {
       close: true,
+      kohenWorks: true,   // ── h128 ── (his mallet trues the stones: the figures gate moves him whole into the frame) ── /h128 ──
       begin() {
         shot(); const sp = standTop(F, -1.4, 0.4); try { X.hero.setPos(sp.x, sp.z, Math.atan2(sp.face[0] - sp.x, sp.face[1] - sp.z)); } catch (e) { /* */ }
         if (!S.length) { setTimeout(() => X.end({ q: 1, stars: 3 }), 300); return; }

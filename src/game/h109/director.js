@@ -149,8 +149,9 @@ export function createH109Director(o) {
   function figGate() {
     if (FG) return FG;
     const base = () => ({ p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: LK5.fov0 != null ? LK5.fov0 : camera.fov });
-    FG = createFigGate({ THREE, camera, actors: () => S0.crewActors || null,
-      hero: { xyz: () => (KOH.off ? null : heroAt()), show: (v) => { try { S0.hero.show(!!v); } catch (e) { /* */ } } },
+    FG = createFigGate({ THREE, camera, scene, actors: () => S0.crewActors || null, workers: (fn) => { if (S0.hero && S0.hero.h128Workers) S0.hero.h128Workers(fn); },
+      hero: { xyz: () => (KOH.off ? null : heroAt()), show: (v) => { try { S0.hero.show(!!v); } catch (e) { /* */ } }, keep: () => { const h = S0.hero, m = h && h.mesh, r = h && h.ring; if (m) m.visible = false; if (r) r.visible = false; },
+        works: () => !!(act && act.kohenWorks), move: (x, z) => { const h = S0.hero; h.setPos(x, z, h.yaw); } }, ground: (x, z) => ground(x, z),
       pose: (u) => { const b = base(); if (PK.look && PK.look.act !== false && PK.look.pose) { try { const q = PK.look.pose(b, u, 0, 0); return { p: q.p, t: q.t, fov: q.fov }; } catch (e) { return u ? null : b; } } return u ? null : b; } });
     try { globalThis.__FIG = FG; } catch (e) { /* (the probes' eyes) */ }
     return FG;
@@ -649,7 +650,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
       let p = null; try { p = PK.before(mission, X, M); } catch (e) { p = null; }
       if (p && typeof p.then === 'function') {
         phase = 'film'; tPhase = 0; act = null; props().marker(null); line('');
-        p.catch(() => {}).then(() => { CAM.on = false; phase = 'walk'; save(); openMission(); });
+        p.catch(() => {}).then(() => { if (phase === 'act' && act) return; /* ── h128 ── (an act begun meanwhile — a test's teleport to the stand — is not opened again over itself: its men were left in the world) ── /h128 ── */ CAM.on = false; phase = 'walk'; save(); openMission(); });
         return;
       }
     }

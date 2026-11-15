@@ -414,6 +414,7 @@ export const READ = {
       },
       cancel() { if (A.step === 'water') { A.hold = false; if (SH.jarMan) { try { SH.crew.A.pose(SH.jarMan.a, 'stand'); } catch (e) { /* */ } } } },
       end() { SPOT.intensity = 0; for (const o of [beamIn, beamOut, mirror]) X.props.remove(o); cleanup(); for (const j of A.junk || []) X.props.remove(j); X.meter(null); X.count(null); },
+      kohenWorks: true,   // ── h128 ── (his hands strike the wedges: the figures gate moves him whole into the frame, never hides him) ── /h128 ──
       at() { return { x: b[0], y: gy + R.r * R.sy, z: b[1] }; },
       dbg() {
         const sc = (q) => { const r2 = X.scr(q.x, q.y, q.z); return [Math.round(r2.x), Math.round(r2.y)]; };

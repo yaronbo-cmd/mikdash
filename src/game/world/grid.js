@@ -521,7 +521,7 @@ const S06 = {
     // the opening (rule 3: where am I): the Mount from high, the gate house with no doors, the bare slope where the steps will be
     open: [[[170, 120, 96], [8, 12, 0]], [[124, 92, 74], [20, 22, 0]], [[40, 21, 24], [16, 8, 0]]],
     // §5: behind and above the capstan, looking east through the open gate down the ramp; the lifted view from above; the hanging
-    capstan: [[-34, 31, 8], [36, 5, -1]], capLift: [[-14, 82, 34], [30, 7, 0]], hang: [[46, 24, 16], [9, 20, 0]],
+    capstan: [[-37, 32, 8], [34, 3, -1]] /* (build 128 fix: a step back and a little lower, the bar man nearest the lens whole at u 0) */, capLift: [[-14, 82, 34], [30, 7, 0]], hang: [[46, 24, 16], [9, 20, 0]],
     // §6: per ring, the yard (the template), the row and the closing stone; the whole half threshing floor from high (ring 15's moment)
     ring: {
       1: { yard: [[50, 22, 0], [39, 6, -13]], row: [[38, 22, 0], [24.5, 6.2, 0]], key: [[31, 13, 2], [23.2, 6.3, 0]] },

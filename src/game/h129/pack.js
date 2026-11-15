@@ -20,7 +20,9 @@ import { beat, tapOr, card, esc, cite } from './ui7.js';
 
 export const GOLAH_IN_PLAY = false;
 const S7 = BOOK.s07, CAM = S7.cam;
-const LOOK7 = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), BOOK.s06.house], K: LOOK_RING_K });
+// (the rooms' walls: four boxes each, as the Azarah's ring)
+const roomBoxes = ({ T, rooms }) => rooms.flatMap(([x0, z0, x1, z1, y0, y1]) => [[x0, y0, z0, x1, y1, z0 + T], [x0, y0, z1 - T, x1, y1, z1], [x0, y0, z0, x0 + T, y1, z1], [x1 - T, y0, z0, x1, y1, z1]]);
+const LOOK7 = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), BOOK.s06.house, ...roomBoxes(S7.lookRooms)], K: LOOK_RING_K });
 const GOLAH_IDS = ['golah1', 'golah2', 'golah3'];
 const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h129-film'); } catch (e) { /* */ } };
 export const PLINES = Object.freeze({

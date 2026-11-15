@@ -799,8 +799,9 @@
       if (a.busy || (a.phase !== 'arrange' && a.phase !== 'walk')) return { wait: 300, note: 'gazit: ' + a.phase };
       if (a.id === 'gazit1') {
         if (!K.g1shot) { K.g1shot = 1; return { wait: 100, shot: 'gazit1-arrange' }; }
-        if (has('crack') && !K.cracked) { K.cracked = 1; const s = a.stones[0]; return { path: [s.mid, [Math.max(8, s.mid[0] - 400), s.mid[1]]], ms: 300, keep: 3000, release: C("return !a||a.ev.some((e)=>/^crack/.test(e))"), wait: 900, note: 'gazit: stone 1 hard into the west wall' }; }
-        if (has('crack') && K.cracked === 1) { K.cracked = 2; return { wait: 600, shot: 'gazit1-crack' }; }
+        // (stone 1 is the bench's west end: on the screen away from the middle — the camera looks south; tried again until the crack is in)
+        if (has('crack') && !a.dmg && (K.ct | 0) < 4) { K.ct = (K.ct | 0) + 1; const s = a.stones[0]; const out = s.mid[0] > innerWidth / 2 ? 1 : -1; return { path: [s.mid, [Math.min(innerWidth - 8, Math.max(8, s.mid[0] + out * 400)), s.mid[1]]], ms: 300, keep: 3000, release: C("return !a||a.ev.some((e)=>/^crack/.test(e))"), wait: 900, note: 'gazit: stone 1 hard into the west wall, try ' + K.ct + ' ev ' + a.ev.join(' ') }; }
+        if (has('crack') && a.dmg && !K.crShot) { K.crShot = 1; return { wait: 600, shot: 'gazit1-crack' }; }
         if (a.allSee) { if (!K.allShot) { K.allShot = 1; return { wait: 100, shot: 'gazit1-arc' }; } return a.head ? { tap: a.head, wait: 1500, note: 'gazit: the head of the court: the test' } : { wait: 300 }; }
         // (the order and the pivot ends that the model lets through with no stone touching another: tools' search over the seven)
         const PLAN = [[0, 0], [1, 0], [2, 0], [3, 0], [6, 1], [5, 0], [4, 0]];
@@ -820,7 +821,11 @@
       if (!a.way || !a.walkers || a.next == null) return { wait: 300 };
       if (!K['g3shot' + a.next]) { K['g3shot' + a.next] = 1; return { wait: 100, shot: 'gazit3-move' + a.next }; }
       const w = a.walkers[a.next]; let P = [w, ...a.way.slice(1)];
-      if (has('ink') && !K.inked && a.next === 0 && a.stands.length) { K.inked = 1; P = [w, a.stands[0], w, ...a.way.slice(1)]; }
+      if (has('ink') && !a.dmg && (K.it | 0) < 4 && a.stands.length) {   // (along his aisle to where it passes nearest a scribe's stand, a step aside onto it, back, on: again until the ink is spilt)
+        K.it = (K.it | 0) + 1; let best = 1e9, bi = 0, st = a.stands[0];
+        for (const S of a.stands) a.way.forEach((q, j) => { const d = Math.hypot(q[0] - S[0], q[1] - S[1]); if (j && d < best) { best = d; bi = j; st = S; } });
+        P = [w, ...a.way.slice(1, bi + 1), st, a.way[bi], ...a.way.slice(bi + 1)];
+      }
       return { path: P, ms: 260 * P.length, wait: 1500, note: 'gazit: the semicha, move ' + a.next };
     },
     // the arches: part A each leg held by a finger that follows the leg's thrust plus its creep (re-pressed when it has crept far), let go

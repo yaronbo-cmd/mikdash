@@ -756,6 +756,8 @@ const S07 = {
   },
   night: {
     hearth: [-160, -70.5, 16], slab: [-160, -76, 16], slabSize: 1,
+    // the camera at each gate he locks: back from the gate into the court and up (amot), the kohen's lamp a little in front of it
+    gateCam: { back: 30, up: 24, lamp: 3 },
     door: { azara: [-160, -58], chel: [-160, -83] },
     // buildMoked's six stone ledges (x0, z0, x1, z1; from the floor 16 to 17)
     ledges: [[-166, -82, -163.2, -80.4], [-156.8, -82, -154, -80.4], [-166, -60.6, -163.2, -59], [-156.8, -60.6, -154, -59], [-177, -72.5, -175.4, -68.5], [-144.6, -72.5, -143, -68.5]],
@@ -771,6 +773,10 @@ const S07 = {
     house: { x: [-176.9, -91.2], z: 35.9, top: 116 }, ulam: [-92, -50.9, -76.5, 50.9],
     chel: 6,
   },
+  // (part 2) the right thumb's look (world/look.js, rule 66): the walls of the rooms the acts play in, as [x0, z0, x1, z1, bottom, top]
+  // with the walls' thickness — the Gazit (temple.js's walls to the cornice), the two instruments chambers, Beit HaMoked's hall — so a
+  // lifted camera rises over them instead of looking at their outside
+  lookRooms: { T: 1, rooms: [[-100, 58, -62, 82, 6, 28.4], [0, -26, 8, -14, 6, 32], [0, 14, 8, 26, 6, 32], [-178, -83, -142, -58, 6, 30.25]] },
   // the stage's cameras ([eye], [aim]). Part 1: the Golah's play view behind the kohen at the stand and its lifted view; the water
   // look sample's keyframes [[eye], [aim], at s]. (The other stations' cameras join in part 2.)
   cam: {
@@ -784,10 +790,10 @@ const S07 = {
     // (part 2) the instruments chambers from inside, at the stand, looking east at the arch against the day (a wide lens: the room is 6
     // deep); Beit HaMoked's great vault from the hall west of ring 1, at the deck's height
     vaultN: [[1.4, 9.6, -20], [8, 10.2, -20]], vaultS: [[1.4, 9.6, 20], [8, 10.2, 20]], vaultFov: 64,
-    vaultM: [[-160, 31, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
-    // (part 2) the night: the slab close from inside the hall (the fire behind the camera); the hall with the fire and the sleepers, from
+    vaultM: [[-163.5, 31.5, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
+    // (part 2) the night: the slab over the fire from the nave (the fire lights it); the hall with the fire and the sleepers, from
     // the nave's south end (x −166 … −154: the four chambers' partitions stand east and west of it, up to 27)
-    night: [[-158, 20, -72.5], [-160.2, 16.2, -76]], nightFov: 50, nightHall: [[-160, 23.5, -61], [-160, 16.5, -73]],
+    night: [[-159, 22.5, -65.5], [-160, 16.3, -76]], nightFov: 50, nightHall: [[-160, 23.5, -61], [-160, 16.5, -73]],
     // the night's last three pictures: the fire lighting the vault from within; the water standing in the troughs; the round bench
     end: [[[-160, 18.5, -61], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],

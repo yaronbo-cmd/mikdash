@@ -82,6 +82,7 @@ export const NIGHT = {
     const torch = new T.Group(); { const s = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 1.1, 6), MT.h7timberD); s.rotation.z = Math.PI / 2; torch.add(s); const tip = new T.Mesh(new T.SphereGeometry(0.16, 8, 6), new T.MeshBasicMaterial({ color: 0xFFB04A })); tip.position.x = 0.6; torch.add(tip); }
     const th0 = [N7.hearth[0] + 3.2, F16 + 0.6, N7.hearth[1] - 1.6]; torch.position.set(...th0); root.add(torch);
     const lamp = new T.PointLight(0xFFD9A0, 0, 10, 1.6); lamp.position.set(sl[0] + 1.2, F16 + 2.6, sl[1] + 1.6); root.add(lamp);   // (his lamp by the slab: the ring and the keys read at night)
+    const gLamp = new T.PointLight(0xFFD9A0, 0, 24, 1.6); root.add(gLamp);   // (the kohen's lamp at each gate he locks)
     const cloak = new T.Mesh(X.props.geo.box, MT.h7cloak); cloak.scale.set(HS * 1.15, 0.05, HS * 1.15); cloak.position.set(sl[0], F16 + 0.15, sl[1]); cloak.visible = false; root.add(cloak);
     // ── the slab's model
     const S = slabFresh();
@@ -112,11 +113,12 @@ export const NIGHT = {
       X.line('נעל הכהן מבפנים, ובן לוי ישן לו מבחוץ', 3000); await X.wait(1.2);
       const G = GATES();
       for (let i = 0; i < G.length; i++) {
-        const g = G[i], sg = g.z < -1 ? 1 : g.z > 1 ? -1 : 0, eye = sg ? [g.x - 6, 26, g.z + sg * 26] : [g.x - 26, 26, g.z + 6], aim = [g.x, F16 + 4, g.z];
+        const g = G[i], sg = g.z < -1 ? 1 : g.z > 1 ? -1 : 0, GC = N7.gateCam, D = GC.back, eye = sg ? [g.x - D / 4, F16 + GC.up, g.z + sg * D] : [g.x - D, F16 + GC.up, g.z + D / 4], aim = [g.x, F16 + GC.lamp, g.z];
+        gLamp.position.set(sg ? g.x : g.x - GC.lamp, F16 + GC.lamp + 2, sg ? g.z + sg * GC.lamp : g.z); gLamp.intensity = 40;
         A.lockI = i; X.shot(eye, aim, 0.9); X.line('נועל: ' + g.label, 1400); await X.wait(1.0); V.lock(i); X.quick({ x: g.x, y: F16 + 4, z: g.z }, 'ננעל!', null); await X.wait(0.5);
       }
       X.shot(N7.levi.length ? [N7.levi[0] + 6, N7.levi[2] + 6, N7.levi[1] - 6] : CAM.night[0], [N7.levi[0], N7.levi[2], N7.levi[1]], 1.0); X.line('ובן לוי ישן לו מבחוץ', 2200); await X.wait(2.2);
-      A.phase = 'lower'; camHome(1.0); keys.visible = true; lift(0.22); gauge.style.display = '';
+      A.phase = 'lower'; gLamp.intensity = 0; camHome(1.0); keys.visible = true; lift(0.22); gauge.style.display = '';
       X.line('המפתחות חזרו לשלשלת · החזירו את הטבלא למקומה: הורידו אותה לאט, שתגע ברכות', 6000);
       const r = ringAt(); X.hand({ x: r.x, y: r.y, z: r.z }, 0, gripR() / 3);
     }

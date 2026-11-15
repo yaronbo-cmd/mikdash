@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BOOK, cellOf, nameOf } from '../src/game/world/grid.js';
 
-const SEC = ['s02', 's03', 's04', 's05', 's06'];   // ── h128 ── (+ s06) ── /h128 ──
+const SEC = ['s02', 's03', 's04', 's05', 's06', 's07'];   // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──
 const near = (a, b, e = 1e-9) => Math.abs(a - b) <= e;
 
 test('book: every entry finite, its cell its own, inside its stage, frozen', () => {
@@ -248,3 +248,70 @@ test('book s06: the gate, the ramp, the steps, the wickets as the world draws th
   const LT = S.sea.light; assert.ok(LT.r > 0 && LT.hole > 0 && LT.hole < 0.5 && Math.hypot(...LT.from) > 100);
 });
 // ── /h128 ──
+
+// ── h129 ── (build 129) stage 07's section: the rows of the brief's §1 as the world draws them
+test('book s07: the Gazit, the Golah, the arches, Beit HaMoked as the world draws them; the gates read from s04', async () => {
+  const PL = await import('../src/places.js');
+  const S = BOOK.s07, by = Object.fromEntries(S.entries.map((e) => [e.id, e])), G = S.gazit, W = S.golah, V = S.vault, N = S.night;
+  assert.equal(S.stage, 7); assert.ok(Object.isFrozen(S.golah) && Object.isFrozen(S.cam) && Object.isFrozen(S.night.ledges));
+  // the Gazit: places.js GAZIT (= temple.js's box), its room inside 1-amah walls, the holy line on the south wall's mid-line
+  assert.deepEqual([...G.block], [PL.GAZIT.x0, PL.GAZIT.z0, PL.GAZIT.x1, PL.GAZIT.z1]);
+  assert.deepEqual([...G.in], [G.block[0] + 1, G.block[1] + 1, G.block[2] - 1, G.block[3] - 1]);
+  assert.equal(G.holy, (67.5 + 73.5) / 2); assert.equal(G.chol[0], G.holy); assert.equal(G.chol[1], G.in[3]); assert.equal(G.chol[1] - G.chol[0], 10.5);
+  // the opening row: seven stones 4 long edge to edge, inside the room, wholly in the chol half
+  assert.equal(G.row0.xs.length, 7); G.row0.xs.forEach((x, i) => { if (i) assert.equal(x - G.row0.xs[i - 1], G.row0.L); });
+  assert.equal(G.row0.xs[0] - G.row0.L / 2, -94.5); assert.equal(G.row0.xs[6] + G.row0.L / 2, -66.5);
+  assert.ok(G.row0.z - G.row0.D / 2 > G.holy && G.row0.z + G.row0.D / 2 < G.in[3]);
+  assert.ok(G.wait[1] < G.holy && G.wait[1] > G.in[1]); assert.ok(G.door[0] === G.in[2] && G.door[1] > G.holy && G.door[1] < G.in[3]);
+  // the Golah: between the Delek and Bechorot gate houses (temple.js gate('S', −169 … −151) and (−127 … −109)), across the south wall
+  assert.ok(W.room[0] > -151 && W.room[2] < -127); assert.ok(W.room[1] < 67.5 && W.room[3] > 73.5);
+  assert.ok(W.room[0] - -151 >= 3 && -127 - W.room[2] >= 3, 'clear of both gate houses');
+  // the well inside the room, its shaft clear of the room's walls; the head trough between the well's rim and the north wall
+  assert.ok(W.well[0] - W.shaftR - W.rimT > W.room[0] + W.wallT && W.well[0] + W.shaftR + W.rimT < W.room[2] - W.wallT);
+  assert.ok(W.well[1] - W.shaftR - W.rimT > W.head[1] + W.headSize[1] / 2 && W.head[1] - W.headSize[1] / 2 > W.room[1] + W.wallT);
+  // the wheel's two rope lines over the shaft; the posts outside the rim
+  assert.ok(W.wheel.R + 0.5 < W.shaftR && W.wheel.post > W.shaftR + W.rimT);
+  // the channel: from the head out through the door to z 52, then east; a spur and a sluice at each trough's x; the troughs on the
+  // Azarah's floor, clear of the House (south wall z 35.9) and of the court's south wall (67.5)
+  assert.deepEqual([...W.channel.main[0]], [...W.head]); assert.equal(W.channel.main[0][0], W.door[0]);
+  for (const k of ['A', 'B', 'C']) {
+    const t = W.troughs[k], s = W.sluice[k]; assert.equal(t[0], s[0]); assert.equal(s[1], W.channel.main[1][1]);
+    assert.ok(W.channel.spurs.some(([x, a, b]) => x === t[0] && a === s[1] && b === t[1]), k);
+    assert.ok(t[1] - W.troughSize[1] / 2 > 35.9 + 10 && t[1] + W.troughSize[1] / 2 < 67.5 && t[0] < -91.2 && t[0] > -176.9, k);
+    assert.ok(by['golah:trough' + k] && by['golah:sluice' + k]);
+  }
+  assert.ok(W.door[0] - W.doorW / 2 > W.room[0] + W.wallT && W.door[0] + W.doorW / 2 < W.room[2] - W.wallT && W.door[1] === W.room[1] + W.wallT / 2);
+  assert.ok(W.stand[1] > W.well[1] + W.shaftR + W.rimT && W.stand[1] < W.room[3] - W.wallT && W.stand[2] === S.floors.azara);
+  assert.deepEqual([...W.depth], [10, 20, 30]);
+  // the instruments chambers: temple.js wall(0, −26, 8, −14 …) and wall(0, 14, 8, 26 …); the arch in the east face (x 8), clear of the
+  // fifteen steps (|z| ≤ 13.5); a half circle from the springing to the crown's underside; stands inside on the women's court's floor
+  for (const k of ['N', 'S']) {
+    const A = V[k], w = A.z[1] - A.z[0];
+    assert.equal(A.at[0], A.block[2]); assert.equal(A.at[1], (A.z[0] + A.z[1]) / 2); assert.ok(A.z[0] > A.block[1] && A.z[1] < A.block[3]);
+    assert.ok(Math.min(Math.abs(A.z[0]), Math.abs(A.z[1])) > 13.5); assert.equal(A.crown - A.spring, w / 2); assert.equal(w, 6);
+    assert.ok(A.crown < A.top && A.top === S.floors.israel && A.floor === S.floors.nashim);
+    const st = V['stand' + k]; assert.ok(st[0] > A.block[0] && st[0] < A.block[2] && st[1] === A.at[1] && st[2] === A.floor);
+  }
+  assert.deepEqual([...V.N.block], [0, -26, 8, -14]); assert.deepEqual([...V.S.block], [0, 14, 8, 26]);
+  assert.equal(V.N.stones, 7); assert.equal(V.S.stones, 9); assert.equal(V.S.rock, V.S.z[1]);
+  // Beit HaMoked: places.js BEIT_HAMOKED; the hall inside 1-amah walls; the half cylinder (temple.js: radius 12.5, centre y 30.2, z −70.5,
+  // 36 long over x −178 … −142); twelve rings 3 deep fill it from the east end; ring 1 is x −145 … −142, inside the hall's span
+  const BM = PL.BEIT_HAMOKED;
+  assert.deepEqual([...V.M.hall], [BM.x0 + 1, BM.z0 + 1, BM.x1 - 1, BM.z1 - 1]);
+  assert.equal(V.M.axisZ, (BM.z0 + BM.z1) / 2); assert.equal(V.M.R * 2, BM.z1 - BM.z0); assert.equal(V.M.spring, 30.2);
+  assert.equal(V.M.east, BM.x1); assert.equal(V.M.rings * V.M.ringD, BM.x1 - BM.x0); assert.equal(by['vault:ring1'].x, V.M.east - V.M.ringD / 2);
+  assert.ok(V.deck.stand[0] < V.M.east - V.M.ringD && V.deck.stand[0] > V.M.hall[0] && V.deck.stand[1] === V.M.axisZ && V.deck.y < V.M.spring);
+  // the night: the hearth, the slab and its ring (temple.js), the two doors (GATES.moked; the north door at z −83), the six ledges
+  assert.deepEqual([N.hearth[0], N.hearth[1]], [-160, -70.5]); assert.deepEqual([N.slab[0], N.slab[1]], [-160, -76]); assert.equal(N.slabSize, 1);
+  assert.deepEqual([...N.door.azara], [PL.GATES.moked.x, PL.GATES.moked.z]); assert.equal(N.door.chel[1], BM.z0);
+  assert.ok(N.slab[1] < N.hearth[1] && N.slab[1] > N.door.chel[1], 'the slab toward the Chel door');
+  assert.equal(N.ledges.length, 6);
+  for (const [a, b, c, d] of N.ledges) assert.ok(a >= V.M.hall[0] && c <= V.M.hall[2] && b >= V.M.hall[1] && d <= V.M.hall[3]);
+  // the Levite outside: on the Chel's terrace (its flat top ends at z −83.5), north of the hall's north wall (z −83)
+  assert.ok(N.levi[1] < BM.z0 && N.levi[1] >= -83.5 && N.levi[2] === 6 && N.levi[0] === N.door.chel[0]);
+  // the gates that lock: stage 04's own entries of kind gate (six gates and Nicanor), by id
+  assert.deepEqual([...N.gates], BOOK.s04.entries.filter((e) => e.kind === 'gate').map((e) => e.id)); assert.equal(N.gates.length, 7);
+  // the cameras: the look sample's keyframes in time order, inside the stage's bounds
+  let t0 = -1; for (const [e, a, t] of S.cam.look) { assert.ok(t > t0); t0 = t; for (const p of [e, a]) assert.ok(p[0] >= S.bounds.x0 && p[0] <= S.bounds.x1 && p[2] >= S.bounds.z0 && p[2] <= S.bounds.z1); }
+});
+// ── /h129 ──

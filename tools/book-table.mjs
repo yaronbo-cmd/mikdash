@@ -20,6 +20,10 @@ const KIND = {
   sledge: 'מזחלת', ramp: 'כבש', sill: 'סף', notch: 'שקע עצירה', rough: 'קורה מחוספסת', capstan: 'כננת', end: 'קצה', table: 'שולחן', gap: 'רווח',
   wicket: 'פשפש', view: 'נקודת מבט', wagon: 'עגלה',
   // ── /h128 ──
+  // ── h129 ── (build 129) stage 07's kinds
+  well: 'בור מים', wheel: 'גלגל', trough: 'שוקת', channel: 'תעלה', sluice: 'אבן סכר', arch: 'קשת', vault: 'קמרון', ring: 'טבעת קמרון',
+  hearth: 'מדורה', slab: 'טבלה', ledge: 'רובד', levi: 'בן לוי', crowd: 'קהל',
+  // ── /h129 ──
 };
 const L = [
   '# ספר הכתובות — כל המקומות לפי שלב',
@@ -30,7 +34,7 @@ const L = [
   'הרשת לעולם אינה מצוירת במשחק. "המחשה" — מידה שאינה במקורות.',
   '',
 ];
-for (const k of ['s01', 's02', 's03', 's04', 's05', 's06']) {   // ── h128 ── (+ s06) ── /h128 ──   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
+for (const k of ['s01', 's02', 's03', 's04', 's05', 's06', 's07']) {   // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
   const S = BOOK[k], B = S.bounds;
   L.push(`## שלב ${String(S.stage).padStart(2, '0')} — ${S.name}`, '');
   L.push(`תחום: x ${n(B.x0)} עד ${n(B.x1)}, z ${n(B.z0)} עד ${n(B.z1)} · ${S.entries.length} כתובות`, '');
@@ -47,5 +51,8 @@ for (const k of ['s01', 's02', 's03', 's04', 's05', 's06']) {   // ── h128 �
   L.push('', 'על הסיפון המקומות נמדדים מרגל התורן (x קדימה אל החרטום, z ימינה אל צד ימין של הספינה): ראו `BOOK.s06.sea.deck`, `quay`, `cam` בקוד. כולם המחשה.', '');
 }
 // ── /h128 ──
+// ── h129 ── stage 07: the gates that lock at night are stage 04's entries (read, never retyped)
+L.push('### שלב 07 — השערים שננעלים בלילה', '', 'נקראים מן הספר של שלב 04: ' + BOOK.s07.night.gates.map((id) => '`' + id + '`').join(', ') + '.', '');
+// ── /h129 ──
 writeFileSync(out, L.join('\n'));
 console.log('wrote', out, Object.keys(BOOK).filter((k) => /^s0\d$/.test(k)).map((k) => `${k}:${BOOK[k].entries.length}`).join(' '));

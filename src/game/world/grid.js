@@ -107,6 +107,7 @@ function makeBook() {
   const stages = { s02: s02(), s03: s03(), s04: s04(), s05: s05() };   // ── build 124 B ── ── /build 124 B ──
   stages.s01 = s01(SECTORS);   // ── h127 ── (build 127: stage 01's section, shaped as the others; its old keys below stay as they were) ── /h127 ──
   stages.s06 = s06();   // ── h128 ── (build 128: stage 06's section, and its sea sheet) ── /h128 ──
+  stages.s07 = s07(stages.s04);   // ── h129 ── (build 129: stage 07's section; the gates that lock at night are read from s04's entries) ── /h129 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -684,5 +685,141 @@ export function ringOf(i) { const S = S06.steps, R = S.R1 - S.tread * (i - 1); r
 /** a cell's name on the sea sheet (ים־<column>־<row>) */
 export { seaName };
 // ── /h128 ──
+
+/* ───────── ── h129 ── stage 07's section (build 129, rule 65: the book first; docs/specs/build129-brief.md §1) ───────── */
+/** stage 07, the chambers (world stage id 'lishka'). Every row of the brief's §1 checked against what the world draws (build 129):
+ *  · the Gazit: temple.js box('ash', −100, 6, 58, −62, 28, 82) — one solid today; places.js GAZIT the same rectangle. Its room
+ *    inside 1-amah walls, its floor at 16 (the Azarah's), the holy line on the mid-line of the Azarah's south wall (temple.js
+ *    wall(−187, 67.5, 0, 73.5, 6, 44): z 67.5 … 73.5). That wall runs THROUGH both south chambers' rooms (6 … 44 high): the stage's
+ *    temple.js block must cut it inside them (x −99 … −63 and x −146 … −132), as it must hollow the Gazit's solid;
+ *  · the Gazit's east door (−63, 76) is in the chol half, over the Chel's terrace (6): the floor inside is 16, so outside that door
+ *    there is a drop of 10 — it is read as the door of an inner stair (המחשה); the crowd stands inside it (−65, 76);
+ *  · the Golah: x −147 … −131 is free between the Delek gate house (temple.js gate('S', −169, 64, −151, 78)) and Bechorot (−127 …
+ *    −109); it crosses the south wall as the Gazit does (its south face z 74, half an amah beyond the wall's outer face). Its walls
+ *    rise to 28 as the Gazit's (המחשה); its door to the Azarah in its north wall at x −139, where the channel goes out (המחשה, added:
+ *    the stand looks north through it to the channel and the troughs). The Azarah's walkers (stages.js AZ_WP) use a corner point
+ *    (−140, 58) on the room's north face and the aisle z 53 west of x −95, over the channel's line: the stage's world must move that
+ *    point off the room and let the walkers step over the channel (it is a groove in the floor);
+ *  · the three troughs at z 50 stand on the Azarah's floor 14 amot south of the House's south wall (avodah3d.js: the House z ±35.9
+ *    west of the Ulam, x −176.9 … −91.2; the Ulam x −92 … −76.5): free;
+ *  · the instruments chambers: temple.js wall(0, −26, 8, −14, 6, 32) and wall(0, 14, 8, 26, 6, 32), the two blocks by Nicanor; the
+ *    Nikanor wall (x 0 … 6) runs inside them: their lower storey must be cut. The ground before their east faces (x 8) is the women's
+ *    court at 6 (stages.js groundAt); the fifteen steps reach z ±13.5 only, the openings are at |z| 17 … 23: free;
+ *  · Beit HaMoked: temple.js buildMoked — walls 1 amah round x −178 … −142, z −83 … −58, floor 16, the dome one half cylinder of
+ *    radius 12.5 round the axis x (centre y 30.2, z −70.5), 36 long (x −178 … −142). Its rings, 3 deep, run from its EAST end (x −142)
+ *    west, so ring 1 is x −145 … −142 (the brief's "x −142 … −139" lay outside the hall, east of its east wall); the deck's stand
+ *    (−146, −70.5) stands just west of ring 1, under it, looking east and up;
+ *  · the Levite who sleeps outside (the brief's (−160, −86, 6)): the Chel's terrace at 6 ends at z −83.5 (stages.js groundAt: from
+ *    there its half-amah steps go down; z −86 is the step at 3.5). He lies along the north wall across the door to the Chel, on the
+ *    half amah of terrace before it: (−160, −83.25, 6);
+ *  · the hearth (−160, −70.5), the marble slab (−160.5 … −159.5, −76.5 … −75.5, its ring at (−160, −76)), the two doors and the six
+ *    ledges are buildMoked's own numbers. */
+const S07 = {
+  floors: { azara: 16, nashim: 6, israel: 13.5 },
+  gazit: {
+    block: [-100, 58, -62, 82], in: [-99, 59, -63, 81], floor: 16, holy: 70.5, chol: [70.5, 81],
+    // the opening straight row: the seven bench stones' centres (x) on z 79; a stone is 4 long, 1.5 deep, 1.2 high (המחשה)
+    row0: { z: 79, xs: [-92.5, -88.5, -84.5, -80.5, -76.5, -72.5, -68.5], L: 4, D: 1.5, H: 1.2 },
+    door: [-63, 76], crowd: [-65, 76], wait: [-81, 66], stand: [-81, 72, 16], face: 'S',
+  },
+  golah: {
+    room: [-147, 58, -131, 74], floor: 16, top: 28, wallT: 1,
+    // its door to the Azarah in the north wall (x middle, z of the wall's middle; width; height over the floor) — added in build 129
+    door: [-139, 58.5], doorW: 4, doorH: 8,
+    // the well's mouth: its centre, the shaft's radius, the rim's height and thickness; the wheel over it: its centre, the axle over the
+    // floor, along x; the wheel's radius (the two rope lines hang 0.9 either side of the shaft's axis, along z); the frame's posts (x off
+    // the centre, either side)
+    well: [-139, 65], shaftR: 2.5, rimH: 0.8, rimT: 0.6,
+    wheel: { at: [-139, 65], axle: 5, along: 'x', R: 0.9, post: 3.2 },
+    depth: [10, 20, 30],
+    // the trough by the well, the channel's head; its size (x, z, the rim over the floor)
+    head: [-139, 60], headSize: [2.2, 1.2, 0.8],
+    // the channel in the floor: the main line, and the three spurs (x; from z, to z) into the troughs; its width
+    channel: { main: [[-139, 60], [-139, 52], [-111, 52]], spurs: [[-139, 52, 50], [-125, 52, 50], [-111, 52, 50]], w: 0.5 },
+    troughs: { A: [-139, 50], B: [-125, 50], C: [-111, 50] }, troughSize: [3, 1.6, 0.9],
+    sluice: { A: [-139, 52], B: [-125, 52], C: [-111, 52] },
+    stand: [-139, 69, 16], face: 'N',
+  },
+  vault: {
+    // the small arches: the opening's middle in the block's east face (x 8); the arch from z, to z; floor, springing, the crown's
+    // underside, top (the Israel court's level); the stones in the arch; the leg on rock (z, the south one)
+    N: { at: [8, -20], z: [-23, -17], floor: 6, spring: 9.5, crown: 12.5, top: 13.5, stones: 7, block: [0, -26, 8, -14] },
+    S: { at: [8, 20], z: [17, 23], floor: 6, spring: 9.5, crown: 12.5, top: 13.5, stones: 9, rock: 23, block: [0, 14, 8, 26] },
+    standN: [3, -20, 6], standS: [3, 20, 6], face: 'E',
+    // Beit HaMoked's great vault: the hall; the barrel's axis (east–west) at z, its springing and radius; the legs' walls (z from, to);
+    // the rings: 3 deep, 12 from the east end x −142 westward; ring 1 x −145 … −142; 11 stones in a ring
+    M: { hall: [-177, -82, -143, -59], floor: 16, axisZ: -70.5, spring: 30.2, R: 12.5, legs: [[-83, -82], [-59, -58]], east: -142, ringD: 3, rings: 12, stones: 11 },
+    deck: { y: 29, stand: [-146, -70.5, 29], face: 'E' },
+  },
+  night: {
+    hearth: [-160, -70.5, 16], slab: [-160, -76, 16], slabSize: 1,
+    door: { azara: [-160, -58], chel: [-160, -83] },
+    // buildMoked's six stone ledges (x0, z0, x1, z1; from the floor 16 to 17)
+    ledges: [[-166, -82, -163.2, -80.4], [-156.8, -82, -154, -80.4], [-166, -60.6, -163.2, -59], [-156.8, -60.6, -154, -59], [-177, -72.5, -175.4, -68.5], [-144.6, -72.5, -143, -68.5]],
+    ledgeY: 17,
+    levi: [-160, -83.25, 6],
+  },
+  // the stage's cameras ([eye], [aim]). Part 1: the Golah's play view behind the kohen at the stand and its lifted view; the water
+  // look sample's keyframes [[eye], [aim], at s]. (The other stations' cameras join in part 2.)
+  cam: {
+    golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
+    golahLift: [[-139, 52, 78], [-130, 14, 52]],
+    look: [
+      [[-136.4, 22.6, 72.6], [-139, 11.5, 64.4], 0],
+      [[-136.8, 22.2, 72.4], [-139, 14.5, 64], 4],
+      [[-137.2, 21.4, 71.2], [-139, 17.2, 63.2], 7.5],
+      [[-134.6, 20.6, 66.6], [-139, 16.6, 60.4], 9.5],
+      [[-134.8, 20.4, 66.4], [-139, 16.4, 59.6], 12],
+      [[-136, 27.5, 66], [-133, 15.8, 52.5], 14],
+      [[-129.5, 21.5, 44.6], [-125, 16.2, 50.6], 16.5],
+      [[-128.8, 20.6, 45.2], [-125, 16.3, 50.4], 20],
+    ],
+  },
+};
+function s07(s04) {
+  const E = [], C = S07, G = C.gazit, W = C.golah, V = C.vault, N = C.night;
+  const e3 = (id, kind, p, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y: p[2], extra }));
+  const mid = (r) => [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2];
+  // the Gazit
+  e3('gazit', 'chamber', [...mid(G.block), G.floor], 'לשכת הגזית', 'מידות ה, ד');
+  e3('gazit:holy', 'line', [(G.in[0] + G.in[2]) / 2, G.holy, G.floor], 'קו הקודש בלשכת הגזית (מקומו המחשה)', 'יומא כה ע"א');
+  G.row0.xs.forEach((x, i) => e3('gazit:stone' + (i + 1), 'bench', [x, G.row0.z, G.floor], `אבן ספסל ${i + 1} בשורת הפתיחה`, ILL));
+  e3('gazit:door', 'door', [...G.door, G.floor], 'הפתח בקיר המזרחי של הגזית', ILL);
+  e3('gazit:crowd', 'crowd', [...G.crowd, G.floor], 'הקהל בפתח', ILL);
+  e3('gazit:wait', 'stand', [...G.wait, G.floor], 'הדיינים מחכים עומדים, בחצי הקודש', ILL);
+  e3('stand:gazit', 'stand', G.stand, 'עמדת השחקן בגזית', ILL);
+  // the Golah
+  e3('golah', 'chamber', [...mid(W.room), W.floor], 'לשכת הגולה (מקומה המחשה)', 'מידות ה, ד');
+  e3('golah:well', 'well', [...W.well, W.floor], 'פי הבור', 'מידות ה, ד');
+  e3('golah:wheel', 'wheel', [...W.wheel.at, W.floor + W.wheel.axle], 'הגלגל שעל הבור (צורתו המחשה)', 'מידות ה, ד');
+  e3('golah:door', 'door', [...W.door, W.floor], 'הפתח מלשכת הגולה אל העזרה', ILL);
+  e3('golah:head', 'trough', [...W.head, W.floor], 'השוקת שליד הבור, ראש התעלה', ILL);
+  e3('golah:bend', 'channel', [...W.channel.main[1], W.floor], 'התעלה פונה מזרחה', ILL);
+  e3('golah:end', 'channel', [...W.channel.main[2], W.floor], 'סוף התעלה', ILL);
+  for (const k of ['A', 'B', 'C']) {
+    e3('golah:trough' + k, 'trough', [...W.troughs[k], W.floor], `שוקת ${k === 'A' ? 'א' : k === 'B' ? 'ב' : 'ג'} בעזרה`, ILL);
+    e3('golah:sluice' + k, 'sluice', [...W.sluice[k], W.floor], `אבן הסכר של שוקת ${k === 'A' ? 'א' : k === 'B' ? 'ב' : 'ג'}`, ILL);
+  }
+  e3('stand:golah', 'stand', W.stand, 'עמדת השחקן בגולה', ILL);
+  // the vault
+  e3('vault:N', 'arch', [...V.N.at, V.N.floor], 'הקשת של לשכת כלי השיר הצפונית (מידותיה המחשה)', 'מידות ב, ו');
+  e3('vault:S', 'arch', [...V.S.at, V.S.floor], 'הקשת של לשכת כלי השיר הדרומית (מידותיה המחשה)', 'מידות ב, ו');
+  e3('stand:vaultN', 'stand', V.standN, 'עמדת השחקן בלשכת כלי השיר הצפונית', ILL);
+  e3('stand:vaultS', 'stand', V.standS, 'עמדת השחקן בלשכת כלי השיר הדרומית', ILL);
+  e3('vault:M', 'vault', [(V.M.hall[0] + V.M.hall[2]) / 2, V.M.axisZ, V.M.spring], 'הקמרון הגדול של בית המוקד ("כיפה", בעולם קמרון חבית: המחשה)', 'מידות א, ח');
+  e3('vault:ring1', 'ring', [V.M.east - V.M.ringD / 2, V.M.axisZ, V.M.spring], 'הטבעת הראשונה של הקמרון', ILL);
+  e3('stand:vaultM', 'stand', V.deck.stand, 'עמדת השחקן על במת הפיגום', ILL);
+  // the night
+  e3('night:hearth', 'hearth', N.hearth, 'המדורה בבית המוקד', 'שבת א, יא');
+  e3('night:slab', 'slab', N.slab, 'טבלת השיש, אמה על אמה, והטבעת', 'מידות א, ט');
+  e3('night:doorAzara', 'door', [...N.door.azara, C.floors.azara], 'הפתח מבית המוקד אל העזרה', 'מידות א, ז');
+  e3('night:doorChel', 'door', [...N.door.chel, C.floors.azara], 'הפתח מבית המוקד אל החיל', 'מידות א, ז');
+  N.ledges.forEach((b, i) => e3('night:ledge' + (i + 1), 'ledge', [...mid(b), N.ledgeY], `רובד אבן ${i + 1}`, 'מידות א, ח'));
+  e3('night:levi', 'levi', N.levi, 'בן לוי ישן לו מבחוץ', 'מידות א, ט');
+  // the gates that lock at night: stage 04's own entries (never retyped here)
+  const gates = s04.entries.filter((e) => e.kind === 'gate').map((e) => e.id);
+  return { stage: 7, name: 'הלשכות', bounds: { x0: -185, x1: 30, z0: -90, z1: 90 }, ...C, night: { ...N, gates }, entries: E };
+}
+// ── /h129 ──
 
 export const BOOK = makeBook();

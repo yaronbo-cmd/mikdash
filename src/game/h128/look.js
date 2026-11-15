@@ -37,6 +37,10 @@ export function runSeaLook({ renderer, canvas }) {
   document.body.append(fpsEl, cap, tag);
 
   let lt = 0, paused = !!globalThis.__START_PAUSED, last = performance.now(), fr = 0, fAcc = 0, sAcc = 0;
+  // the speed net: over each 2 s of play, if the average frame is above 22 ms, one step down (first the clouds mirrored in the
+  // water, then the fine chop; the foam and the swells' shape stay). Probes set the level by hand (look.level) or turn it off.
+  const NET = { ms: 22, win: 2 }, LEVELS = ['full detail', 'no clouds in the water', 'no clouds in the water, no fine chop'];
+  let netAcc = 0, netN = 0, netAuto = !globalThis.__H128_NO_DROP, warm = 0;
   const stat = { frames: 0, script: 0, render: 0 };
   function step(t, dt) {
     const L = lookAt(t);
@@ -47,13 +51,18 @@ export function runSeaLook({ renderer, canvas }) {
   }
   function frame(now) {
     requestAnimationFrame(frame);
-    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const raw = (now - last) / 1000, dt = Math.min(0.1, raw); last = now;
     if (paused) return;
+    if (raw > 0.25) { netAcc = 0; netN = 0; }   // (a stall: a hidden tab, a pause. Not a measure of the drawing: start the window again)
+    else if (netAuto && (warm += raw) > 3 && S.state.level < 2) {
+      netAcc += raw; netN++;
+      if (netAcc >= NET.win) { if ((netAcc / netN) * 1000 > NET.ms) S.quality(S.state.level + 1); netAcc = 0; netN = 0; }
+    }
     lt = (lt + dt) % LOOP;
     const t0 = performance.now(); step(lt, dt); const t1 = performance.now(); S.render(); const t2 = performance.now();
     stat.frames++; stat.script += S.state.scriptMs; stat.render += t2 - t1;
     fr++; fAcc += dt; sAcc += t1 - t0;
-    if (fAcc >= 0.5) { const I = renderer.info.render; fpsEl.innerHTML = `${Math.round(fr / fAcc)} fps · ${(sAcc / fr).toFixed(2)} ms<br><span style="font-size:11px;font-weight:400">${I.calls} draw calls · ${(I.triangles / 1000).toFixed(1)}k triangles</span>`; fr = 0; fAcc = 0; sAcc = 0; }
+    if (fAcc >= 0.5) { const I = renderer.info.render; fpsEl.innerHTML = `${Math.round(fr / fAcc)} fps · ${(sAcc / fr).toFixed(2)} ms<br><span style="font-size:11px;font-weight:400">${I.calls} draw calls · ${(I.triangles / 1000).toFixed(1)}k triangles · ${LEVELS[S.state.level]}</span>`; fr = 0; fAcc = 0; sAcc = 0; }
   }
   step(0, 0); S.render(); requestAnimationFrame(frame);
 
@@ -62,6 +71,8 @@ export function runSeaLook({ renderer, canvas }) {
     /** show loop time t (the hull's inertia settled over the 2 s before it) and stop the clock */
     seek(t) { paused = true; lt = t; for (let u = Math.max(0, t - 2); u < t; u += 1 / 30) step(u, 1 / 30); step(t, 1 / 30); S.render(); return S.dbg(); },
     play() { paused = false; last = performance.now(); },
+    /** set the speed net's level by hand (0 full … 2) and stop it stepping by itself */
+    level(n) { netAuto = false; S.quality(n); return S.state.level; },
     /** run the loop live for sec seconds from loop time t0: { fps, scriptMs (the sea's update), frameScriptMs (all of step), renderMs } */
     bench(sec = 8, t0 = 10) {
       lt = t0; Object.assign(stat, { frames: 0, script: 0, render: 0 }); paused = false; last = performance.now();
@@ -71,7 +82,7 @@ export function runSeaLook({ renderer, canvas }) {
         res({ sec: +T.toFixed(2), frames: stat.frames, fps: +(stat.frames / T).toFixed(1), seaScriptMs: +(stat.script / n).toFixed(3), renderCallMs: +(stat.render / n).toFixed(2), from: t0, to: +lt.toFixed(1) });
       }, sec * 1000));
     },
-    dbg: () => ({ ...S.dbg(), lt: +lt.toFixed(2), paused, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, deckMargin: +S.deckMargin().toFixed(2) }),
+    dbg: () => ({ ...S.dbg(), detail: LEVELS[S.state.level], net: netAuto, lt: +lt.toFixed(2), paused, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, deckMargin: +S.deckMargin().toFixed(2) }),
   };
   globalThis.__H128_LOOK = look;
   // the probe's handle (tools/probe109.cjs waits for __T.booted && __T.game, renders before a shot)

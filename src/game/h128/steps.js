@@ -84,6 +84,7 @@ export const RING = {
     const yardHit = (p) => { const q = rayY(p, yTop); if (!q) return null; let best = null, bd = 0.75; for (const s of yard) { if (s.gone) continue; const L = s.len * Q / 2, dx = Math.max(0, Math.abs(q[0] - s.x) - L), dz = Math.abs(q[1] - (s.z - 0.25)); const d = Math.hypot(dx, dz); if (d < bd) { bd = d; best = s; } } return best; };
     const tplScr = () => sc(X, tpl.position.x, tpl.position.y, tpl.position.z - 0.25);
     const nearTpl = (p) => { const q = tplScr(); return Math.hypot(p.x - q[0], p.y - q[1]) < Math.max(44, gripR() * 0.8); };
+    const camLift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief §0.6: both thumbs on the work: the camera a little lifted by the act itself)
     const needMarks = P.n + P.yard.filter((s) => s.ring === i && !s.crack && !P.sol.left.includes(s.id) && !P.sol.right.includes(s.id)).length;   // (the row's stones and the fitting decoy)
 
     /* ── the ring: the crews' stones (both ends), the laid ones, the loose ones, the closing stone, the cord, the red hairlines ── */
@@ -255,7 +256,7 @@ export const RING = {
     }
     /* ── step 3 ── */
     function toKey() {
-      if (A.phase !== 'row') return; A.phase = 'key'; A.k = keyFresh(P); keyBuild(); keyPlace();
+      if (A.phase !== 'row') return; A.phase = 'key'; camLift(0.22); A.k = keyFresh(P); keyBuild(); keyPlace();
       for (const t2 of A.tray) { PR.remove(t2.me); } A.tray = [];
       X.shot(...camOf(i, 'key'), 1.2);
       X.line(MOUSE ? 'שני מוטות: דחפו כל מוט לעבר המרכז, אחד בכל פעם, בצעדים קטנים · הבנאי מחזיק את השני' : 'שני מוטות: דחפו כל מוט באגודל אחר לעבר המרכז, יחד · נתקעה? משכו מעט אחורה את המוט המקדים', 5200);
@@ -280,7 +281,7 @@ export const RING = {
     }
     const keyAt = () => ({ x: key.position.x, y: R.top + 0.6, z: key.position.z });
     function closed() {
-      A.phase = 'closing'; V.grind(0);
+      A.phase = 'closing'; V.grind(0); camLift(0);
       const s = A.k, wm = A.keyMen && A.keyMen.wm; if (wm) { wm.a.bowT = 0.5; setTimeout(() => { if (wm.a) wm.a.bowT = 0; }, 400); }
       setTimeout(() => { V.mallet(false); X.sparks(key.position.x, R.top + 0.3, key.position.z, 8); }, 250);
       setTimeout(() => { V.step(i, !!(s.corner || s.crack)); if (!s.dmg) X.quick(keyAt(), QUICK.closed, key.children[0]); }, 600);
@@ -331,6 +332,7 @@ export const RING = {
       },
       holds() { return A.phase === 'key' && Object.keys(A.fing).length > 0; },
       end() {
+        camLift(0);
         FG.detach(); V.stop(); X.hand(null);
         for (const o of all) PR.remove(o);
         for (const w of men) if (w) SH6.crew.remove(w);

@@ -143,6 +143,11 @@ export function createH109Director(o) {
     if (tapUp) { ptr.down = false; ptr.x = tapUp.x; ptr.y = tapUp.y; call(act.up, ptr); }
   }
   function lookFrame(dt) {
+    // ── h128 ── (X.lookLift: the act's own small lift, eased; his own look takes over) ── /h128 ──
+    if (LOOK.auto != null) {
+      if (LOOK.drag || LOOK.pinch || LOOK.back > 0) LOOK.auto = null;
+      else { const k = 1 - Math.exp(-dt * 2.5); LOOK.u += (LOOK.auto - LOOK.u) * k; LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.auto && LOOK.u < 0.01) { LOOK.u = 0; LOOK.auto = null; LOOK.away = Math.abs(LOOK.yaw) > 0.03; } }
+    }
     if (LOOK.back > 0) {
       LOOK.back = Math.max(0, LOOK.back - dt); const k = LOOK.back > 0 ? 1 - Math.exp(-dt * 9) : 1; LOOK.yaw -= LOOK.yaw * k; LOOK.u -= LOOK.u * k;
       if (!LOOK.back) { LOOK.yaw = 0; LOOK.u = 0; LOOK.away = false; emit('h109look', { on: false }); }
@@ -741,6 +746,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   /* ───────── the act ───────── */
   const WAITS = [], KOH = { off: false };
   const X = {
+    // ── h128 ── (brief §0.6: before a two-thumb moment the act lifts the camera a little by itself, inside the play zone; 0 lets it down;
+    // a tap that returns the camera, a drag or a pinch of his own ends it) ── /h128 ──
+    lookLift: (u) => { const v = Math.max(0, Math.min(0.45, +u || 0)); if (!v && LOOK.auto == null) return; LOOK.auto = v; },
     THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, track, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
     get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, get acting() { return phase === 'act'; }, ui, sfx: o.sfx, haptic: o.haptic,
     actors: () => S0.crewActors || null, PLACES, H109,

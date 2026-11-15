@@ -27,6 +27,7 @@ export const CLOSE = {
     const s = leafFresh(), dent0 = (st.close && st.close.dent) || [0, 0];
     const leaf = { S: leafHung(X, 'S', { phi: 90, dent: dent0[0] }), N: leafHung(X, 'N', { phi: 90, dent: dent0[1], salt: true }) };
     const A = { phase: 'intro', t: 0, ev: [], fing: {}, fv: {}, hv: [0, 0], br: [0, 0], slipLine: 0, winWas: [0, 0], endT: 0 };
+    const lift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief §0.6: both thumbs on the work: the camera a little lifted by the act itself)
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 14) A.ev.shift(); };
     // the twenty men: per leaf two rows of five behind its free half, re-placed each frame as the leaf turns
     const men = { S: [], N: [] };
@@ -82,7 +83,7 @@ export const CLOSE = {
       }
     }
     function met(together) {
-      A.phase = 'met'; V.grind(0); for (const k of KS) leaf[k].userData.set(0);
+      A.phase = 'met'; V.grind(0); lift(0); for (const k of KS) leaf[k].userData.set(0);
       st.close = { dent: s.dent.slice() }; X.save();
       V.gong(55, false); setTimeout(() => V.knock(2.6), 500);
       if (together && !s.dmg) { X.perfect(QUICK.together, atMid()); }
@@ -101,7 +102,7 @@ export const CLOSE = {
         FG.attach(); X.shot(CAM.close[0], CAM.close[1], 1.4); place(1);
         X.line(LINES.twenty, 5200);
         setTimeout(() => { if (A.phase === 'push') X.line(MOUSE ? 'כנף אחת בכל פעם: גרירה קצרה למעלה דוחפת, משיכה למטה בולמת · דחפו כשהאנשים נשענים' : 'אגודל לכל כנף: גרירה קצרה למעלה דוחפת, משיכה למטה ומחזיקים בולמת · דחפו כשהאנשים נשענים, בקצב של הכנף', 6000); }, 5300);
-        setTimeout(() => { if (A.phase === 'intro') { A.phase = 'push'; const q = { x: GT.hinge.S[0] - 3, y: GT.sill + 3, z: 2.5 }; X.hand(q, 0, -40); } }, 1500);
+        setTimeout(() => { if (A.phase === 'intro') { A.phase = 'push'; lift(0.22); const q = { x: GT.hinge.S[0] - 3, y: GT.sill + 3, z: 2.5 }; X.hand(q, 0, -40); } }, 1500);
       },
       update(dt) {
         A.t += dt;
@@ -114,7 +115,7 @@ export const CLOSE = {
       wants(p) { if (!p) return true; return A.phase === 'push' && p.y > innerHeight * 0.22; },
       holds() { return Object.values(A.fv).some(Boolean); },   // (a thumb that has pushed or braked holds its leaf: two fingers that only slide toward each other are a pinch)
       end() {
-        FG.detach(); V.stop(); X.hand(null);
+        lift(0); FG.detach(); V.stop(); X.hand(null);
         for (const k of KS) { X.props.remove(leaf[k]); for (const w of men[k]) SH6.crew.remove(w); }
         own('leaves', 0); setBusy(X, 0);
       },

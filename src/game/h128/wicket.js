@@ -39,6 +39,7 @@ export const BOLT = {
     const W = {}; for (const k of sides) W[k] = wicketMesh(X, k, { plate: k === 'S' || (pair && true), tooth: st.bolts[k].tooth, locked: false });
     const mason = [];
     if (pair) for (const k of sides) { const w = SH6.crew.add(WK[k][0] - 0.7, WK[k][1] + (k === 'N' ? -1.9 : 1.9), { role: 'hold', crew: 2, fx: WK[k][0], fz: WK[k][1] }); if (w) mason.push(w); }   // (beside his wicket, on its outer side: never in front of it)
+    const lift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief §0.6: both thumbs on the work: the camera a little lifted by the act itself)
     const s = pair ? pairFresh({ mouse: MOUSE }) : boltFresh(m.id);
     const L = BOLT_LV[m.id];
     // the screen centres the circular drags go round: a single wicket's two rings; in the pair each wicket's left ring
@@ -100,7 +101,7 @@ export const BOLT = {
       }
     }
     function locked() {
-      A.phase = 'locked'; V.squeal(0);
+      A.phase = 'locked'; V.squeal(0); lift(0);
       if (!pair) st.bolts[sides[0]].tooth = s.tooth.slice();
       X.save();
       const at = pair ? { x: WK.N[0] - 0.6, y: WK.N[2] + WK.h * 0.6, z: 0 } : at0();
@@ -124,7 +125,7 @@ export const BOLT = {
               : 'סובבו את הטבעת השמאלית עם כיוון השעון באגודל שמאל, ואת הימנית נגדו באגודל ימין · יחד: השיניים משלבות';
         if (m.id === 'wicketN') { X.line(LINES.wickets + ' · מנגנון הבריחים: המחשה', 4200); setTimeout(() => { if (A.phase === 'turn') X.line(how, 5200); }, 4300); }
         else X.line(how, 5200);
-        setTimeout(() => { if (A.phase === 'intro') { A.phase = 'turn'; const k = sides[0]; X.hand({ x: WK[k][0] - 0.6, y: WK[k][2] + WK.h * 0.52, z: WK[k][1] - (pair ? 0 : 0.55) }, 30, 30); } }, 1300);
+        setTimeout(() => { if (A.phase === 'intro') { A.phase = 'turn'; lift(0.22); const k = sides[0]; X.hand({ x: WK[k][0] - 0.6, y: WK[k][2] + WK.h * 0.52, z: WK[k][1] - (pair ? 0 : 0.55) }, 30, 30); } }, 1300);
       },
       update(dt) {
         A.t += dt;
@@ -137,7 +138,7 @@ export const BOLT = {
       wants(p) { if (!p) return true; if (A.phase !== 'turn') return false; const C = centres(), r = Math.max(130, gripR() * 1.5); return Object.values(C).some((c) => Math.hypot(p.x - c[0], p.y - c[1]) < r); },
       holds() { return Object.keys(A.fing).length > 0; },
       end() {
-        FG.detach(); V.stop(); X.hand(null);
+        lift(0); FG.detach(); V.stop(); X.hand(null);
         for (const k of sides) { X.props.remove(W[k]); own('w' + k, 0); }
         for (const w of mason) SH6.crew.remove(w);
         setBusy(X, 0);

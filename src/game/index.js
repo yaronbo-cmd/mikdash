@@ -66,6 +66,7 @@ import { createH109Director } from './h109/director.js';
 import { makePack03 } from './h112/pack.js';
 import { makePack05 } from './h120/pack.js';   // ── h120 ── (build 120: stage 05 "עזרת הנשים והגזוזטרא", the same director) ── /h120 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
+import { pageBuilt } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack04 } from './h113/pack.js';   // ── h113 ── (build 113: stage 04 "שערי העזרה" in the old world, the same director) ── /h113 ──   // ── h112 ── (build 112: stage 03 "הסורג והחיל" in the old world, the same director) ── /h112 ──
 import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
@@ -3319,6 +3320,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (!S.isDone(G, 'har')) { S.completeStage(G, 'har'); G.bh = (G.bh || []).map(() => 0); }
     for (const id of ['wall', 'sorag', 'gates', 'nashim']) if (!S.isDone(G, id)) S.completeStage(G, id);
     G.ftue = 99;
+    pageBuilt(G, ['har', 'wall', 'sorag', 'gates', 'nashim']);   // (their stage bonus counted as paid: the builders' account must not pay it on the next load)
     try { for (const id of ['har', 'wall', 'sorag', 'gates', 'nashim']) W.setStage(id, 'done', 1, { instant: true }); W.setBoulders(G.bh); } catch (e) { /* */ }
     ui.refresh();
     h28Begin();

@@ -512,7 +512,7 @@ const S06 = {
   // on its east end (the leaves open inward, west, each against its side of the passage), the place the doors stand waiting on the
   // Azarah's floor before they are hung, the Levites' line in the court before dawn (המחשה)
   gate: { x: [-4, 10], half: 5, sill: 13.5, top: 33.5, hinge: { N: [9.6, -5], S: [9.6, 5] }, leafW: 5, leafH: 20, leafT: 0.35 },
-  levites: { from: [44, -4, 6], to: [12, 0, 13.5] },
+  levites: { from: [27, -4, 6], to: [12, 0, 13.5] },
   // the Ulam and the House as one block (avodah/day/cam28.js's own: the camera is never in the porch): the right thumb's lifted view
   // from inside the Azarah keeps out of it
   house: [-177, 15.5, -50.5, -76.7, 116, 50.5],

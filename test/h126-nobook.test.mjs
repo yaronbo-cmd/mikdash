@@ -80,3 +80,15 @@ test('stage 06: no world place typed outside the book but the listed exceptions'
   for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
 });
 // ── /h128 ──
+
+// ── h129 ── (build 129) stage 07: its files read every place from the book (BOOK.s07); the allow list holds no place
+const ALLOW129 = [
+];
+test('stage 07: no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h129']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW129.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h129 ──

@@ -733,7 +733,7 @@ function makeSea(m, X) {
       for (let w = 0; w < 2; w++) { const y = new T.Mesh(new T.BoxGeometry(0.35, 0.3, 4.2), Mx.wood); X.props.root.add(y); A.yoke.push(y); }
       X.kohen(false);   // (he is not in this picture: after it he stands near the capstan)
       // (and no one of the court's: the world's figures and the site's workers are out while the caravan passes; its own men stay)
-      try { const lf = globalThis.__T && __T.life ? __T.life() : null, K = C.clear; if (lf && lf.clearField) { lf.clearField({ x0: K[0], x1: K[1], z0: K[2], z1: K[3] }); A.lifeBack = () => lf.clearField(null); } } catch (e) { /* */ }   // (the pilgrims standing by the road too)
+      try { const L0 = globalThis.__T ? __T.life : null, lf = typeof L0 === 'function' ? L0() : L0, K = C.clear; if (lf && lf.clearField) { lf.clearField({ x0: K[0], x1: K[1], z0: K[2], z1: K[3] }); A.lifeBack = () => lf.clearField(null); } } catch (e) { /* */ }   // (the pilgrims standing by the road too)
       try { A.figsBack = filmFigs({ scene: X.scene, keep: () => A.men || [], workers: (fn) => { try { if (X.hero && X.hero.h128Workers) X.hero.h128Workers(fn); } catch (e) { /* */ } } }); } catch (e) { A.figsBack = null; }
       A.caT = 0; caravanFrame(0);
       X.line('השיירה עולה לירושלים עם הדלתות · הקישו לדלג', 5200);
@@ -867,7 +867,7 @@ function makeSea(m, X) {
       try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
       figsBack();
       for (const g of (A.wag || []).concat(A.yoke || [])) X.props.remove(g);
-      try { for (const o of A.ox || []) A.anim.remove(o); } catch (e) { /* */ }
+      try { for (const o of A.ox || []) A.anim.remove(o); if (A.anim) A.anim.update(0); A.ox = []; } catch (e) { /* */ }   // (update: the herd's meshes drawn empty, or the last oxen stay on the road)
       for (const w of A.men || []) { try { SH6.crew.remove(w); } catch (e) { /* */ } }
       for (const a of A.dcrew || []) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }
       if (SS.act === actApi) { SS.act = null; SS.idle = 0; }

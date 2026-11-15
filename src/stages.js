@@ -1308,6 +1308,7 @@ export function createStages(ctx) {
   /* ── stage groups ── */
   const ST = {}, list = [];
   const H120GZ = { g: null };   // ── h120 ── ── /h120 ──
+  const H129SUB = { g: {}, off: new Set() };   // ── h129 ── ── /h129 ──
   STAGE_IDS.forEach((id, idx) => {
     const def = DEF[id];
     const U = revealUniforms();
@@ -1331,6 +1332,10 @@ export function createStages(ctx) {
     // ── h120 ── the gallery on its columns and the rock-cut mikveh (temple.js set 'nashim-gz'): a group of its own in the stage, so stage
     // 05's world can hide it while it draws the player's own version (nashimGallery(false)) ── /h120 ──
     if (id === 'nashim' && B.sets && B.sets['nashim-gz'] && Object.keys(B.sets['nashim-gz']).length) { const g3 = new THREE.Group(); g3.name = 'nashim-gallery'; for (const m of B.build(g3, 'nashim-gz', matFor)) meshes.push(m); group.add(g3); H120GZ.g = g3; g3.visible = !H120GZ.off; }
+    // ── h129 ── (build 129) a stage's own sub-sets 'id:name' (temple.js: the pieces stage 07 takes over — the wall's parts inside the south
+    // chambers and the instruments chambers, Nikanor's lower storeys, the Gazit's and the Golah's roofs, the arches, the dome): each a group
+    // of its own in its stage, with the stage's materials and reveal, shown or hidden by subSet(name, on) (sticky) ── /h129 ──
+    if (B.sets) for (const sid of Object.keys(B.sets)) if (sid.startsWith(id + ':') && Object.keys(B.sets[sid]).length) { const g4 = new THREE.Group(); g4.name = sid; for (const m of B.build(g4, sid, matFor)) meshes.push(m); group.add(g4); H129SUB.g[sid] = g4; g4.visible = !H129SUB.off.has(sid); }
     let colMat = null;
     if (id === 'har' && ctx.columns) for (const C of ctx.columns) {
       if (!colMat) { colMat = buildMaterial(C.mat, U, 10); matList.push(colMat); }
@@ -3140,6 +3145,7 @@ export function createStages(ctx) {
       if (upOr('yesod')) B.push([-54.5, -20, -21.5, 13]);
       if (upOr('guf')) B.push([-46.5, 12, -29.5, 43]);
       if (upOr('lishka')) B.push([-54.5, -62.5, -21.5, -26.5]);
+      if (upOr('lishka')) B.push([-147.5, 57.5, -130.5, 74.5]);   // ── h129 ── (the Golah chamber, once stage 07 stands it: its corner of the aisles, (−140, 58), falls inside and drops out) ── /h129 ──
       if (upOr('kiyor')) B.push([-67, 16.5, -60, 23.5]);
     } else if (r === 'chel') B.push([-194, -74.5, 148, 74.5]);
     else if (r === 'en' && upOr('nashim')) B.push([5, -68, 47, -27], [100, -68, 142, -27], [5, 27, 47, 68], [100, 27, 142, 68]);
@@ -3265,7 +3271,9 @@ export function createStages(ctx) {
   // and the Kodesh HaKodashim's block always — the player never enters it (PROJECT.md §2.5). Inside one already: in it or out, never in.
   const TW_SOLID = ['ulam', 'heichal', 'kodesh', 'lishka', 'kiyor', 'gates'], TW_KODESH = [-176, -35, -139, 35];
   const inR = (f, x, z) => x > f[0] && x < f[2] && z > f[1] && z < f[3];
+  const TW_OPEN = [];   // ── h129 ── ── /h129 ──
   function twinSolid(x, z, x0, z0) {
+    if (TW_OPEN.length && TW_OPEN.some((r) => inR(r, x, z))) return false;   // ── h129 ── (inside an open room: its floorHook's steps decide) ── /h129 ──
     if (inR(TW_KODESH, x, z) && !inR(TW_KODESH, x0, z0)) return true;
     for (let i = 0; i < TW_SOLID.length; i++) {
       const st = ST[TW_SOLID[i]]; if (!st || (st.status !== 'building' && st.status !== 'done') || !st.def || !st.def.foot) continue;
@@ -8953,6 +8961,8 @@ export function createStages(ctx) {
     // wave 6: the construction site stone by stone (docs/SITE.md)
     siteInfo, setWork, liftStone, nextSlot, slots, workSpot, frontView,
     cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
+    subSet: (sid, on) => { if (on) H129SUB.off.delete(sid); else H129SUB.off.add(sid); const g = H129SUB.g[sid]; if (g && g.visible !== !!on) { g.visible = !!on; requestShadow(true); } return !!g; },   // ── h129 ── (a stage's sub-set shown or hidden; sticky) ── /h129 ──
+    twinOpen: (rects) => { TW_OPEN.length = 0; for (const r of rects || []) if (Array.isArray(r) && r.length >= 4) TW_OPEN.push(r.slice(0, 4)); },   // ── h129 ── (rooms a director opens to the left thumb inside a solid's footprint: their own floors and walls (floorHook) decide there) ── /h129 ──
     nashimGallery: (on) => { H120GZ.off = !on; if (H120GZ.g) H120GZ.g.visible = !!on; },   // (sticky: a rebuilt stage keeps it hidden)   // ── h120 ── ── /h120 ──
     s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, h120Scaff: (id, on) => { const sc = ST[id] && ST[id].scaff; if (sc) sc.P.m.visible = sc.Bd.m.visible = !!on; H120W.noScaff = !on; },   // ── h120 ── (a stage's own wall scaffold hidden while an act's close shots play) ── /h120 ── wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──

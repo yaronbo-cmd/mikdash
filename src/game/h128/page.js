@@ -18,7 +18,7 @@ export function pageBuilt(G, ids) {
  * built to here: one card names the next stage from the stage table (state.recommend → content.stageById), the world stays to walk,
  * and the old game does not start. The next build adds its stage's id to PACKED.
  *   PACKED · frontier(G, S) → bool · frontLine(G, S, stageById) → the card's words · noPad(doc) → the class on .gm */
-export const PACKED = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor'];
+export const PACKED = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka'];   // ── h129 ── (build 129: stage 07 is a pack's) ── /h129 ──
 export function frontier(G, S) {
   if (!G || !S) return false;
   try { return PACKED.every((id) => S.isDone(G, id)); } catch (e) { return false; }

@@ -721,6 +721,9 @@ const S07 = {
     // the opening straight row: the seven bench stones' centres (x) on z 79; a stone is 4 long, 1.5 deep, 1.2 high (המחשה)
     row0: { z: 79, xs: [-92.5, -88.5, -84.5, -80.5, -76.5, -72.5, -68.5], L: 4, D: 1.5, H: 1.2 },
     door: [-63, 76], crowd: [-65, 76], wait: [-81, 66], stand: [-81, 72, 16], face: 'S',
+    // (build 129, part 2: the room's door from the Azarah in its north wall, the holy half — temple.js h129Gazit: x −83 … −79, 16 … 24;
+    //  the judges and the kohen come in by it; המחשה)
+    doorN: [-81, 58.5], doorNW: 4, doorNH: 8,
   },
   golah: {
     room: [-147, 58, -131, 74], floor: 16, top: 28, wallT: 1,
@@ -771,6 +774,12 @@ const S07 = {
   // the stage's cameras ([eye], [aim]). Part 1: the Golah's play view behind the kohen at the stand and its lifted view; the water
   // look sample's keyframes [[eye], [aim], at s]. (The other stations' cameras join in part 2.)
   cam: {
+    // (part 2) the stage's opening: from high over the Mount, down to the two south chambers, then Beit HaMoked's hall open to the sky
+    open: [[[-40, 260, 240], [-100, 16, 20]], [[-60, 90, 10], [-110, 16, 66]], [[-128, 78, -28], [-160, 20, -70]]],
+    // (part 2) the Gazit's play view: from high over the north wall, down on the chol half (the roof is not on yet); its lens (degrees)
+    gazit: [[-81, 44, 59], [-81, 16, 75.5]], gazitFov: 40,
+    // the night's last three pictures: the fire lighting the vault from within; the water standing in the troughs; the round bench
+    end: [[[-147, 19, -62], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
@@ -801,6 +810,7 @@ function s07(s04) {
   e3('gazit:holy', 'line', [(G.in[0] + G.in[2]) / 2, G.holy, G.floor], 'קו הקודש בלשכת הגזית (מקומו המחשה)', 'יומא כה ע"א');
   G.row0.xs.forEach((x, i) => e3('gazit:stone' + (i + 1), 'bench', [x, G.row0.z, G.floor], `אבן ספסל ${i + 1} בשורת הפתיחה`, ILL));
   e3('gazit:door', 'door', [...G.door, G.floor], 'הפתח בקיר המזרחי של הגזית', ILL);
+  e3('gazit:doorN', 'door', [...G.doorN, G.floor], 'הפתח מן העזרה אל לשכת הגזית', ILL);
   e3('gazit:crowd', 'crowd', [...G.crowd, G.floor], 'הקהל בפתח', ILL);
   e3('gazit:wait', 'stand', [...G.wait, G.floor], 'הדיינים מחכים עומדים, בחצי הקודש', ILL);
   e3('stand:gazit', 'stand', G.stand, 'עמדת השחקן בגזית', ILL);

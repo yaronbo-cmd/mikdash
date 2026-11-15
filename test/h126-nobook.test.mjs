@@ -83,6 +83,8 @@ test('stage 06: no world place typed outside the book but the listed exceptions'
 
 // ── h129 ── (build 129) stage 07: its files read every place from the book (BOOK.s07); the allow list holds no place
 const ALLOW129 = [
+  // (part 2)
+  ['h129/sound129.js', 18, 'sounds, not places: filter frequencies in Hz (260 … 5200), their Q and the voices\' lengths in seconds'],
 ];
 test('stage 07: no world place typed outside the book but the listed exceptions', () => {
   const hits = scanDirs(ROOT, ['h129']), by = new Map();

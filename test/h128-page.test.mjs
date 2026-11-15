@@ -28,11 +28,11 @@ test('index.js: h28Only calls pageBuilt, and scoreLegacy still reads the same fl
 // the owner 15.11: after the last stage a pack owns, the old game does not take the next stage over; one card names the next stage
 test('the frontier: only when every packed stage is done; the card names the next stage from the stage table', () => {
   const done = new Set(PACKED.slice(0, -1));
-  const S = { isDone: (G, id) => done.has(id), recommend: () => ({ id: 'lishka' }) };
+  const S = { isDone: (G, id) => done.has(id), recommend: () => ({ id: 'yesod' }) };   // (build 129: 'lishka' is a pack's now; the next stage is the altar's base)
   assert.equal(frontier({}, S), false);
   done.add(PACKED[PACKED.length - 1]);
   assert.equal(frontier({}, S), true);
-  assert.equal(frontLine({}, S, stageById), `עד כאן בנוי המשחק · השלב הבא: ${stageById('lishka').n} (בבנייה)`);
+  assert.equal(frontLine({}, S, stageById), `עד כאן בנוי המשחק · השלב הבא: ${stageById('yesod').n} (בבנייה)`);
   assert.equal(frontLine({}, { ...S, recommend: () => ({}) }, stageById), 'עד כאן בנוי המשחק');
 });
 

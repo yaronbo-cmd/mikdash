@@ -740,10 +740,13 @@ export function createSanctuary(ctx) {
   // (one mesh for both roofs: it opens when the camera is close to either chamber)
   const ROOF_AT = [[new THREE.Vector3((PL.BEIT_HAMOKED.x0 + PL.BEIT_HAMOKED.x1) / 2, 20, (PL.BEIT_HAMOKED.z0 + PL.BEIT_HAMOKED.z1) / 2), 150],
     [new THREE.Vector3((PL.BEIT_AVTINAS.x0 + PL.BEIT_AVTINAS.x1) / 2, PL.BEIT_AVTINAS.y0, (PL.BEIT_AVTINAS.z0 + PL.BEIT_AVTINAS.z1) / 2), 120]];
-  let roofMesh, wallMesh;
+  let roofMesh, wallMesh, domeMesh;   // ── h129 ── (domeMesh) ── /h129 ──
   function roofs(p) {
     if (roofMesh === undefined) { const g = scene.getObjectByName('stage-lishka'); if (!g) return; roofMesh = g.children.find((o) => o.name === 'roofCut') || null; }
     if (roofMesh) roofMesh.visible = !!(S.roofsShut || ROOF_AT.every(([c, d]) => p.distanceTo(c) > d));
+    // ── h129 ── (the dome is a set of its own in the stage now, temple.js 'lishka:dome': cut away with the roofs) ── /h129 ──
+    if (domeMesh === undefined) { const g = scene.getObjectByName('stage-lishka'), d = g && g.getObjectByName('lishka:dome'); domeMesh = d ? d.children.find((o) => o.name === 'roofCut') || null : null; }
+    if (domeMesh) domeMesh.visible = roofMesh ? roofMesh.visible : true;
     // the piece of the azara's north wall where Beit HaMoked stands: shown until Beit HaMoked is built (temple.js)
     if (wallMesh === undefined) { const g = scene.getObjectByName('stage-wall'); if (g) wallMesh = g.children.find((o) => o.name === 'wallMoked') || null; }
     if (wallMesh) wallMesh.visible = !done('lishka');

@@ -608,6 +608,7 @@
           if (want && !fits) K.wrongDone = 1;
           if (want) return { tap: cur.at, wait: 700, note: `steps: mark ${cur.id} (light ${a.lightPx}${dull ? ', dull' : ''})` };
         }
+        if (a.marks.length >= a.need) return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };   // (all marked: the row comes)
         // (crack: the dull one marked in place of its sound twin — so the sound twin is left)
         const skip = (y) => has('crack') && K.crackDone && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len && z.marked);
         const nxt = Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !(has('crack') && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len)));

@@ -25,7 +25,7 @@ export const CLOSE = {
     const T = X.THREE, st = X.M.st, V = createVoices(X.sfx);
     own('leaves', 1); setBusy(X, 1); X.kohen(false);   // (his place is among the men: the camera looks over them)
     const s = leafFresh(), dent0 = (st.close && st.close.dent) || [0, 0];
-    const leaf = { S: leafHung(X, 'S', { phi: 90, dent: dent0[0] }), N: leafHung(X, 'N', { phi: 90, dent: dent0[1], salt: true }) };
+    let leaf = { S: leafHung(X, 'S', { phi: 90, dent: dent0[0] }), N: leafHung(X, 'N', { phi: 90, dent: dent0[1], salt: true }) };
     const A = { phase: 'intro', t: 0, ev: [], fing: {}, fv: {}, hv: [0, 0], br: [0, 0], slipLine: 0, winWas: [0, 0], endT: 0 };
     const lift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief §0.6: both thumbs on the work: the camera a little lifted by the act itself)
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 14) A.ev.shift(); };
@@ -42,7 +42,7 @@ export const CLOSE = {
         const i = KS.indexOf(k), phi = s.f[i]; leaf[k].userData.set(phi * VIS);
         const lean = inWindow(s.ph[i]) ? 1 : 0, step = s.ph[i] > LEAF.WIN[1] ? (s.ph[i] - LEAF.WIN[1]) / (1 - LEAF.WIN[1]) : 0;
         for (const w of men[k]) {
-          const u = 2.2 + w.j * 0.66, off = 0.55 + w.r * 0.7 + (lean ? -0.08 : 0.12 * (1 - step)), [x, z, lx, lz] = ptOf(k, u, off, phi);
+          const u = A.aside ? 0.6 + w.j * 0.42 : 2.2 + w.j * 0.66, off = 0.55 + w.r * 0.7 + (lean ? -0.08 : 0.12 * (1 - step)), [x, z, lx, lz] = ptOf(k, u, off, phi);
           w.a.path = null; w.a.x += (x - w.a.x) * Math.min(1, dt * 8); w.a.z += (z - w.a.z) * Math.min(1, dt * 8); w.fx = lx; w.fz = lz;
           w.lean = lean ? 0.55 : 0.15;
         }
@@ -83,7 +83,7 @@ export const CLOSE = {
       }
     }
     function met(together) {
-      A.phase = 'met'; V.grind(0); lift(0); for (const k of KS) leaf[k].userData.set(0);
+      A.phase = 'met'; V.grind(0); lift(0); if (s.dent.some(Boolean)) { A.aside = 1; KS.forEach((k, i) => { if (!s.dent[i] || dent0[i]) return; X.props.remove(leaf[k]); leaf[k] = leafHung(X, k, { phi: 0, dent: 1, salt: k === 'N' }); }); } for (const k of KS) leaf[k].userData.set(0);   // (a dent: the men step back from the meeting edge, toward the hinges, so it is seen)
       st.close = { dent: s.dent.slice() }; X.save();
       V.gong(55, false); setTimeout(() => V.knock(2.6), 500);
       if (together && !s.dmg) { X.perfect(QUICK.together, atMid()); }

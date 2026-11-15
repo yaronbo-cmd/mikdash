@@ -11,6 +11,7 @@ import { BOOK, ringOf } from '../world/grid.js';
 import { ringPlan, CAP, tailX, Q } from './model.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildMaterial, revealUniforms, setBuilding } from '../../batch.js';
 
 const S6 = BOOK.s06, RMP = S6.ramp, STP = S6.steps, GT = S6.gate, WK = S6.wicket;
 const C0 = STP.c, TAU = Math.PI * 2;
@@ -31,7 +32,14 @@ export function mats6(X) {
   P.M.h6rough = std('#5E432A', { roughness: 0.95 });
   P.M.h6stone = std('#EAE2CE', { roughness: 0.8 });
   P.M.h6shade = std('#CDBC98', { roughness: 0.85 });
-  P.M.h6core = std('#9A8B72', { roughness: 0.97 });
+  P.M.h6core = std('#BDB29C', { roughness: 1 });   // (the rough core: rubble set in mortar, grey-tan; a fixed cell pattern by world place, no texture)
+  P.M.h6core.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vW6;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvW6 = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vW6;\nfloat h6h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }').replace('#include <color_fragment>', `#include <color_fragment>
+      { vec2 q = vec2(vW6.x + vW6.z * 0.7, vW6.y * 1.6 + vW6.z * 0.3) * 1.1; vec2 c = floor(q), f = fract(q); float d1 = 9.0, d2 = 9.0, id = 0.0;
+        for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) { vec2 o = vec2(float(i), float(j)); vec2 r = o + vec2(h6h(c + o), h6h(c + o + 7.3)) * 0.8 - f; float d = dot(r, r); if (d < d1) { d2 = d1; d1 = d; id = h6h(c + o + 3.1); } else if (d < d2) d2 = d; }
+        float joint = smoothstep(0.02, 0.10, sqrt(d2) - sqrt(d1)); diffuseColor.rgb *= mix(1.08, 0.80 + id * 0.24, joint); }`);
+  };
   P.M.h6pass = std('#DCD2BC', { roughness: 0.9 });
   P.M.h6dark = new T.MeshBasicMaterial({ color: 0x2A2016 });
   P.M.h6chalk = new T.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.9, depthWrite: false });
@@ -40,10 +48,31 @@ export function mats6(X) {
   P.M.h6red = new T.MeshBasicMaterial({ color: 0xE0402A, transparent: true, opacity: 0.85, depthWrite: false });
   P.M.h6light = new T.MeshBasicMaterial({ color: 0xFFF6C8, transparent: true, opacity: 0.95, depthWrite: false });
   P.M.h6rope = P.M.rope || std('#C9A46A', { roughness: 0.95 });
-  // the salt stains (המחשה): greenish blotches, a canvas of soft rings drawn once (no randomness: fixed blots)
-  { const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
-    for (const [x, y, r, a] of [[40, 70, 34, 0.55], [78, 52, 26, 0.5], [92, 92, 20, 0.45], [30, 30, 16, 0.4], [64, 100, 22, 0.5]]) { const gr = g.createRadialGradient(x, y, r * 0.2, x, y, r); gr.addColorStop(0, `rgba(96,150,118,${a})`); gr.addColorStop(0.7, `rgba(120,170,140,${a * 0.7})`); gr.addColorStop(1, 'rgba(120,170,140,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); }
-    const tx = new T.CanvasTexture(cv); P.M.h6salt = new T.MeshStandardMaterial({ map: tx, transparent: true, depthWrite: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2 }); }
+  P.M.h6dent = new T.MeshStandardMaterial({ color: 0x2A1A08, roughness: 0.55, metalness: 0.6, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -3 });
+  P.M.h6dentRim = new T.MeshStandardMaterial({ color: 0xFFE08A, roughness: 0.25, metalness: 0.9, emissive: 0x3A2A08, side: T.DoubleSide });
+  // the salt stains (המחשה): the sea water dried on the bronze — pale, matte, crusted streaks run down from the rivets and the
+  // bands' seams, longer and heavier low on the leaf, a crust along its foot; one canvas over the whole face (no randomness: a fixed hash)
+  { const W = GT.leafW, H = GT.leafH, PX = 48, cw = Math.round(W * PX), ch = Math.round(H * PX), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d');
+    const hs = (n) => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
+    const yPx = (y) => ch - y * PX, rows = [0.4, H * 0.35, H * 0.68, H - 0.4], cols = [0, 1, 2, 3, 4, 5].map((k) => 0.5 + k * (W - 1) / 5);
+    const streak = (z0, y0, len, w0, a0, seed) => {   // (a run of small crusted flakes down the face, its width wandering, thinning at its end)
+      const n = Math.max(6, Math.round(len * PX / 3));
+      for (let i = 0; i < n; i++) {
+        const f = i / n, y = y0 - len * f, z = z0 + (hs(seed + i * 0.37) - 0.5) * 0.12 + Math.sin(f * 7 + seed) * 0.05, w = w0 * (1 - 0.65 * f) * (0.7 + 0.6 * hs(seed + i));
+        const a = a0 * (1 - 0.55 * f) * (0.6 + 0.4 * hs(seed * 3 + i));
+        g.fillStyle = `rgba(236,233,222,${a.toFixed(3)})`; g.beginPath(); g.ellipse(z * PX, yPx(y), Math.max(1, w * PX / 2), 2.2 + 2 * hs(seed + i * 1.7), 0, 0, Math.PI * 2); g.fill();
+        if (hs(seed + i * 2.3) > 0.72) { g.fillStyle = `rgba(250,248,240,${(a * 1.1).toFixed(3)})`; g.fillRect(z * PX + (hs(i + seed) - 0.5) * w * PX, yPx(y), 2, 2); }   // (a grain of crust)
+      }
+    };
+    rows.forEach((y, r) => {
+      const low = 1 - y / H;   // (low on the leaf: longer, wider, heavier)
+      cols.forEach((z, k) => { const sd = 11 + r * 17 + k * 5; if (hs(sd) < 0.3 + 0.25 * (1 - low)) return; streak(z, y - 0.12, Math.min(y - 0.05, 1.2 + 4.5 * low * (0.6 + 0.8 * hs(sd + 1))), 0.16 + 0.14 * low, 0.35 + 0.4 * low, sd); });
+      for (let q = 0; q < 3; q++) { const sd = 97 + r * 13 + q; streak(0.2 + (W - 0.4) * hs(sd), y - 0.25, Math.min(y - 0.05, 0.8 + 3 * low * hs(sd + 2)), 0.1 + 0.1 * low, 0.25 + 0.35 * low, sd); }   // (from the band's seam)
+    });
+    for (const z of [0.2, W - 0.2]) streak(z, H - 0.6, H * 0.5, 0.12, 0.3, 300 + z);   // (down the edge strips' seams)
+    for (let i = 0; i < 90; i++) { const z = W * hs(500 + i), y = 0.05 + 1.3 * Math.pow(hs(700 + i), 1.6); g.fillStyle = `rgba(238,235,224,${(0.35 + 0.35 * hs(900 + i)).toFixed(3)})`; g.beginPath(); g.ellipse(z * PX, yPx(y), 4 + 8 * hs(800 + i), 2 + 3 * hs(600 + i), 0, 0, Math.PI * 2); g.fill(); }   // (the crust along the foot)
+    const tx = new T.CanvasTexture(cv); tx.colorSpace = T.SRGBColorSpace;
+    P.M.h6salt = new T.MeshStandardMaterial({ map: tx, transparent: true, depthWrite: false, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2 }); }
   return P.M;
 }
 const box = (X, mat, x0, y0, z0, x1, y1, z1, parent) => {
@@ -113,8 +142,13 @@ export function leafSlab(X, salt, dent, xs = 1) {
   const bands = new T.Mesh(mergeGeometries(parts.map((p) => p.index ? p.toNonIndexed() : p), false), M.h6bronzeD); bands.castShadow = true; g.add(bands);
   // the ring handle on the inner face (west)
   { const r = new T.Mesh(new T.TorusGeometry(0.35, 0.06, 6, 16), M.h6bronzeD); r.rotation.y = Math.PI / 2; r.position.set(-xs * (t / 2 + 0.12), H * 0.3, W - 0.9); g.add(r); }
-  if (dent) { const d = new T.Mesh(new T.SphereGeometry(0.32, 10, 6, 0, TAU, 0, Math.PI / 2), M.h6bronzeD); d.rotation.z = -xs * Math.PI / 2; d.scale.set(0.35, 1, 1); d.position.set(xs * (t / 2 + 0.01), H * 0.42, W - 0.6); g.add(d); }
-  if (salt) for (const [y, z, s] of [[2.4, 1.5, 3.2], [5.2, 3.4, 2.6], [1.2, 3.8, 2.2], [8.5, 1.4, 2]]) { const p = new T.Mesh(new T.PlaneGeometry(s, s), M.h6salt); p.rotation.y = xs * Math.PI / 2; p.position.set(xs * (t / 2 + 0.09), y, z); g.add(p); }
+  if (dent) for (const fs of [1, -1]) {   // (the dent where the leaves met too fast: a hollow by the meeting edge, seen from both sides — a dark pit, a bright bruised rim, two scores)
+    const f = fs * xs, y = H * 0.42, z = W - 0.75, o = (t / 2 + 0.02) * f;
+    const pit = new T.Mesh(new T.CircleGeometry(0.62, 20), M.h6dent); pit.rotation.y = f * Math.PI / 2; pit.scale.set(1, 1.3, 1); pit.position.set(o, y, z); g.add(pit);
+    const rim = new T.Mesh(new T.TorusGeometry(0.66, 0.07, 6, 24), M.h6dentRim); rim.rotation.y = f * Math.PI / 2; rim.scale.set(1, 1.3, 1); rim.position.set(o + 0.02 * f, y, z); g.add(rim);
+    for (const [dy, a] of [[0.95, 0.5], [-1.0, -0.35]]) { const sc = new T.Mesh(new T.PlaneGeometry(0.06, 0.8), M.h6dentRim); sc.rotation.set(0, f * Math.PI / 2, 0); sc.rotateX(a); sc.position.set(o + 0.01 * f, y + dy, z - 0.1); g.add(sc); }
+  }
+  if (salt) { const p = new T.Mesh(new T.PlaneGeometry(W, H), M.h6salt); p.rotation.y = xs * Math.PI / 2; p.position.set(xs * (t / 2 + 0.12), H / 2, W / 2); g.add(p); }   // (one sheet over the face: the streaks run from its rivets)
   return g;
 }
 /** a hung leaf: its group at the hinge; set(phi) the opening angle (deg: 90 open against the passage's side, 0 closed) */
@@ -241,21 +275,48 @@ const HOLES = () => {
   const x0 = GT.x[0], x1 = GT.x[1], h = GT.half, R = STP.R1;
   return [[x0 - 0.1, -h, x1 + 0.9, h], [x1 + 0.9, -R - 0.1, C0[0] + R + 0.1, R + 0.1], [x1, h + 1.35, x1 + 0.9, R + 0.1], [x1, -R - 0.1, x1 + 0.9, -h - 1.35]];
 };
+/* the gate house's own ashlar on what we add to it (the passage's lining, its ceiling, the face over the rings): the site's own built
+ * material — its map, normal map and course joints (its bcJ) — with uniforms of our own (no holes cut in it), and the world-space
+ * texture coordinates the site's batch gives its walls (batch.js add: u along the face, v the height, both over the tile), so the
+ * courses run on from the stones beside them at the same heights. Without the site's mesh (a test page), the steps' stone. */
+const TILE_ASH = 24;   // (main.js mats.ash.tile: amot per texture repeat)
+function ashMat(X) {
+  if (SH6.ashM !== undefined) return SH6.ashM;
+  let src = null;
+  try { X.scene.traverse((o) => { if (src || !o.isMesh || o.name !== 'ash') return; const mm = Array.isArray(o.material) ? o.material.find((q) => q && q.map) : o.material; if (!mm || !mm.map) return; let p = o; while (p && !/^stage-nikanor$/.test(p.name || '')) p = p.parent; if (p) src = mm; }); } catch (e) { src = null; }
+  if (!src) { SH6.ashM = null; return null; }
+  const U = revealUniforms(), m = buildMaterial(src, U, TILE_ASH, src.userData.bcJ || null); setBuilding(m, true);
+  SH6.ashM = m; return m;
+}
+function ashBox(X, x0, y0, z0, x1, y1, z1, parent) {
+  const T = X.THREE, mat = ashMat(X), M = mats6(X);
+  if (!mat) return box(X, M.h6stone, x0, y0, z0, x1, y1, z1, parent);
+  const g = new T.BoxGeometry(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0)).toNonIndexed(); g.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+  const P = g.attributes.position.array, N = g.attributes.normal.array, n = P.length / 3, uv = new Float32Array(n * 2), ab = new Float32Array(n).fill(Math.min(y0, y1, GT.sill));   // (the occlusion counts from the floor it stands on: the ceiling is not a slab lying on the ground)
+  for (let i = 0; i < n; i++) {
+    const x = P[3 * i], y = P[3 * i + 1], z = P[3 * i + 2], nx = N[3 * i], ny = N[3 * i + 1], nz = N[3 * i + 2], ax = Math.abs(nx), ay = Math.abs(ny), az = Math.abs(nz);
+    let u, v; if (ay >= ax && ay >= az) { u = x; v = -z; if (ny < 0) u = -u; } else if (ax >= az) { u = nx > 0 ? -z : z; v = y; } else { u = nz > 0 ? x : -x; v = y; }
+    uv[2 * i] = u / TILE_ASH; uv[2 * i + 1] = v / TILE_ASH;
+  }
+  g.setAttribute('uv', new T.BufferAttribute(uv, 2)); g.setAttribute('aBase', new T.BufferAttribute(ab, 1));
+  const me = new T.Mesh(g, mat); me.castShadow = true; me.receiveShadow = true; (parent || X.props.root).add(me); return me;
+}
 function passageBuild(X) {
   const M = mats6(X), T = X.THREE, g = new T.Group(); X.props.root.add(g);
   const x0 = GT.x[0], x1 = GT.x[1], h = GT.half;
-  box(X, M.h6pass, x0, STP.floor, -h, x1, GT.sill, h, g);              // the passage's floor (the gate house's body under it)
-  box(X, M.h6pass, x0, GT.sill, -h - 0.6, x1, GT.top, -h, g);          // its two sides
-  box(X, M.h6pass, x0, GT.sill, h, x1, GT.top, h + 0.6, g);
+  ashBox(X, x0, STP.floor, -h, x1, GT.sill, h, g);              // the passage's floor (the gate house's body under it)
+  ashBox(X, x0, GT.sill, -h - 0.6, x1, GT.top, -h, g);          // its two sides
+  ashBox(X, x0, GT.sill, h, x1, GT.top, h + 0.6, g);
   // (the holes cut the gate house's east face 0.9 deep beside the doors, where the old steps stood, from the floor to the doors' top
   //  — stages.siteHoles takes one height for all its rectangles — and the model is hollow: this face stands again over each ring)
+  for (const sg of [1, -1]) ashBox(X, x1, GT.sill, sg > 0 ? h : -h - 0.6, x1 + 0.9, GT.top, sg > 0 ? h + 0.6 : -h, g);   // (the passage's hole runs 0.9 past its east end: its jambs there, so no slit beside the doors)
   const zA = h + 1.35, zB = STP.R1 + 0.1;
   for (let i = 1; i <= 15; i++) {
     const R = ringOf(i), zo = Math.min(zB, R.R), zi = Math.max(zA, R.R - STP.tread); if (zo <= zi) continue;
-    for (const sg of [1, -1]) box(X, M.h6stone, x1, R.top, sg > 0 ? zi : -zo, x1 + 0.9, GT.top, sg > 0 ? zo : -zi, g);
+    for (const sg of [1, -1]) ashBox(X, x1, R.top, sg > 0 ? zi : -zo, x1 + 0.9, GT.top, sg > 0 ? zo : -zi, g);
   }
-  { const R = ringOf(15), zo = Math.min(zB, R.R - STP.tread); if (zo > zA) for (const sg of [1, -1]) box(X, M.h6stone, x1, R.top, sg > 0 ? zA : -zo, x1 + 0.9, GT.top, sg > 0 ? zo : -zA, g); }
-  SH6.parts.ceil = box(X, M.h6pass, x0, GT.top, -h - 0.6, x1, GT.top + 0.6, h + 0.6, g);  // its ceiling (the closing's lifted view looks in from above: close.js hides it then)
+  { const R = ringOf(15), zo = Math.min(zB, R.R - STP.tread); if (zo > zA) for (const sg of [1, -1]) ashBox(X, x1, R.top, sg > 0 ? zA : -zo, x1 + 0.9, GT.top, sg > 0 ? zo : -zA, g); }
+  SH6.parts.ceil = ashBox(X, x0, GT.top, -h - 0.6, x1, GT.top + 0.6, h + 0.6, g);  // its ceiling (the closing's lifted view looks in from above: close.js hides it then)
   return g;
 }
 function holesSync(X, force) {

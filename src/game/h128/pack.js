@@ -55,17 +55,17 @@ function dawnRig(X) {
   const S = X.scene, T = X.THREE, R = (globalThis.__T && globalThis.__T.renderer) || null;
   const L = []; S.traverse((o) => { if (o.isDirectionalLight || o.isHemisphereLight || o.isAmbientLight) L.push(o); });
   const saved = { L: L.map((l) => ({ l, i: l.intensity, c: l.color.clone(), g: l.groundColor ? l.groundColor.clone() : null, p: l.position ? l.position.clone() : null, tp: l.target ? l.target.position.clone() : null })), fog: S.fog ? S.fog.color.clone() : null, exp: R ? R.toneMappingExposure : null, envI: S.environmentIntensity };
-  const blue = new T.Color('#3A4A78'), gold = new T.Color('#FFB868'), sky = new T.Color('#7A7090'), fogD = new T.Color('#2A3048'), fogG = new T.Color('#E8B888');
+  const blue = new T.Color('#7C90D0'), gold = new T.Color('#FFB868'), sky = new T.Color('#7A7090'), fogD = new T.Color('#4A5A88'), fogG = new T.Color('#E8B888');
   const apply = (k) => {
     for (const s of saved.L) {
       if (s.l.isDirectionalLight) {
-        s.l.intensity = s.i * (0.18 + 0.95 * k); s.l.color.copy(blue).lerp(gold, k);
+        s.l.intensity = s.i * (0.5 + 0.65 * k); s.l.color.copy(blue).lerp(gold, k);
         if (s.p && s.l.target) { const tp = s.l.target.position, d = s.p.distanceTo(s.tp || tp) || 400; s.l.position.set(tp.x + d * 0.92, tp.y + d * (0.08 + 0.25 * k), tp.z + d * 0.12); }
-      } else if (s.l.isHemisphereLight) { s.l.intensity = s.i * (0.35 + 0.45 * k); s.l.color.copy(blue).lerp(sky, k); }
-      else s.l.intensity = s.i * (0.3 + 0.5 * k);
+      } else if (s.l.isHemisphereLight) { s.l.intensity = s.i * (0.75 + 0.25 * k); s.l.color.copy(blue).lerp(sky, k); }
+      else s.l.intensity = s.i * (0.7 + 0.3 * k);
     }
     if (S.fog && saved.fog) S.fog.color.copy(fogD).lerp(fogG, k);
-    S.environmentIntensity = (saved.envI == null ? 1 : saved.envI) * (0.3 + 0.7 * k);
+    S.environmentIntensity = (saved.envI == null ? 1 : saved.envI) * (0.65 + 0.35 * k);
   };
   return {
     apply,
@@ -119,14 +119,14 @@ export function makePack06() {
           lev.forEach((w, k) => { w.a.path = [[C0[0] + r, (k % 3 - 1) * 1.6]]; w.a.pi = 0; w.a.speed = 1.6; w.a.walkT0 = undefined; });
           const rec = st.rings[i], dull = !!(rec && (rec.crack || rec.corner));
           await beat(X, i === 1 ? 2400 : 520);
-          V.step(i, dull);
+          V.step(i, dull); rig.apply(0.6 * i / 15);   // (the sun comes up while they climb: its light reaches the doors as they near the top)
         }
         removeEventListener('pointerdown', sk, true);
         lev.forEach((w) => { w.a.path = [[to[0], (w.a.z > 0 ? 1 : -1) * 2]]; w.a.pi = 0; });
         await beat(X, 900);
         // 2. the sun rises in the east; its light falls on the closed doors: the bronze turns yellow like gold
         X.line(''); X.shot(CAM.endSun[0], CAM.endSun[1], 2.4);
-        for (let k = 0; k <= 30; k++) { rig.apply(k / 30); await beat(X, 90); }
+        for (let k = 0; k <= 20; k++) { rig.apply(0.6 + 0.4 * k / 20); await beat(X, 90); }
         V.gong(98, false);
         await tapOr(X, 2600);
         // 3. near the north leaf: the salt stains (no words)

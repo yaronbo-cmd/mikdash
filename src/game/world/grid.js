@@ -519,7 +519,7 @@ const S06 = {
   // the stage's cameras on the Mount ([eye], [aim]; every shot, opening and film reads its eye and aim from here)
   cam: {
     // the opening (rule 3: where am I): the Mount from high, the gate house with no doors, the bare slope where the steps will be
-    open: [[[170, 120, 96], [8, 12, 0]], [[58, 34, 34], [8, 20, 0]], [[40, 21, 24], [16, 8, 0]]],
+    open: [[[170, 120, 96], [8, 12, 0]], [[96, 64, 58], [24, 12, 0]], [[40, 21, 24], [16, 8, 0]]],
     // §5: behind and above the capstan, looking east through the open gate down the ramp; the lifted view from above; the hanging
     capstan: [[-34, 31, 8], [36, 5, -1]], capLift: [[-14, 82, 34], [30, 7, 0]], hang: [[46, 24, 16], [9, 20, 0]],
     // §6: per ring, the yard (the template), the row and the closing stone; the whole half threshing floor from high (ring 15's moment)
@@ -530,7 +530,7 @@ const S06 = {
     },
     ringAll: [[48, 42, 0], [14, 8, 0]],
     // §7: close behind each wicket in the Azarah; both from further back
-    wicketN: [[-11, 17.6, -11], [-4, 15.6, -11]], wicketS: [[-11, 17.6, 11], [-4, 15.6, 11]], wickets: [[-38, 21, 0], [-4, 16.4, 0]],
+    wicketN: [[-11, 17.6, -11], [-4, 15.6, -11]], wicketS: [[-11, 17.6, 11], [-4, 15.6, 11]], wickets: [[-38, 28, 0], [-4, 15.2, 0]],
     // §8: behind and above the twenty men, looking east through the opening; the lifted view from above
     close: [[-21, 27, 0], [9, 18, 0]], closeLift: [[-6, 62, 0], [5, 13.5, 0]],
     // the end: the Levites on the steps before dawn, the sun on the closed doors, the north leaf near

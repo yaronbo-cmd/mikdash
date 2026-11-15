@@ -143,10 +143,11 @@ export function createH109Director(o) {
     if (tapUp) { ptr.down = false; ptr.x = tapUp.x; ptr.y = tapUp.y; call(act.up, ptr); }
   }
   function lookFrame(dt) {
+    if (LOOK.auto == null && LOOK.al) { LOOK.al *= Math.exp(-dt * 6); if (LOOK.al < 1e-3) LOOK.al = 0; }   // ── h128 ── (his own look: the act's lift eases away) ── /h128 ──
     // ── h128 ── (X.lookLift: the act's own small lift, eased; his own look takes over) ── /h128 ──
     if (LOOK.auto != null) {
       if (LOOK.drag || LOOK.pinch || LOOK.back > 0) LOOK.auto = null;
-      else { const k = 1 - Math.exp(-dt * 2.5); LOOK.u += (LOOK.auto - LOOK.u) * k; LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.auto && LOOK.u < 0.01) { LOOK.u = 0; LOOK.auto = null; LOOK.away = Math.abs(LOOK.yaw) > 0.03; } }
+      else { const k = 1 - Math.exp(-dt * 2.5); LOOK.u += (LOOK.auto - LOOK.u) * k; LOOK.al = (LOOK.al || 0) + ((LOOK.auto ? 0.16 : 0) - (LOOK.al || 0)) * k; LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.auto && LOOK.u < 0.01) { LOOK.u = 0; LOOK.auto = null; LOOK.away = Math.abs(LOOK.yaw) > 0.03; } }
     }
     if (LOOK.back > 0) {
       LOOK.back = Math.max(0, LOOK.back - dt); const k = LOOK.back > 0 ? 1 - Math.exp(-dt * 9) : 1; LOOK.yaw -= LOOK.yaw * k; LOOK.u -= LOOK.u * k;
@@ -170,7 +171,7 @@ export function createH109Director(o) {
     LK5.tq -= dt; const key = LOOK.u.toFixed(2) + '|' + LOOK.yaw.toFixed(2) + '|' + base.t.map((v) => v.toFixed(1)).join(',');
     if (LK5.tq <= 0 && key !== LK5.key) { LK5.tq = 0.1; LK5.key = key; try { const S5 = PK.look.sightPose(base, LOOK.u, LOOK.yaw, undefined, LK5.noExtra ? null : lk5Extra); LK5.gLift = S5.lift; LK5.gDy = S5.dyaw; } catch (e) { /* */ } }
     const k = 1 - Math.exp(-dt * 7); LK5.lift += (LK5.gLift - LK5.lift) * k; LK5.dy += (LK5.gDy - LK5.dy) * k;
-    const q = PK.look.pose(base, LOOK.u, LOOK.yaw + LK5.dy, LK5.lift);
+    const q = PK.look.pose(base, LOOK.u, LOOK.yaw + LK5.dy, LK5.lift + (LOOK.al || 0));   // ── h128 ── (LOOK.al: the act's own lift, the eye raised round the aim) ── /h128 ──
     view.camSet(q.p[0], q.p[1], q.p[2], q.t[0], q.t[1], q.t[2]);
     if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
     // (the work in the frame: the act may play; out of it, or hidden, it waits)

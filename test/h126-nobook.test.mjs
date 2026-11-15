@@ -68,7 +68,6 @@ const ALLOW128 = [
   ['h128/steps.js', 1, 'the hand hint\'s gesture in px (−40, 30)'],
   ['h128/wicket.js', 1, 'the hand hint\'s gesture in px (30, 30)'],
   ['h128/sound128.js', 17, 'sounds, not places: filter frequencies in Hz (120 … 4200), their Q and the voices\' lengths in seconds'],
-  ['h128/world.js', 6, 'the salt stains\' canvas: five soft blots in px on a 128 px square, and its gradient (0, 0, 128)'],
 ];
 test('stage 06: no world place typed outside the book but the listed exceptions', () => {
   const hits = scanDirs(ROOT, ['h128']), by = new Map();

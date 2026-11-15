@@ -719,8 +719,12 @@
       if (a.phase === 'ropes') {
         if (!K.r0) { K.r0 = 1; return { wait: 900, shot: a.id + '-ropes' }; }
         // (__BOT_FIG: the figures and the swell at u 0.3, once a work, while the first swell comes)
-        if (window.__BOT_FIG && !K.fig && a.next && a.next.in < 7.5) { K.fig = 1; return { eval: '__T.game.h109.X.lookLift(0.3)', wait: 1600, shot: a.id + '-u03', note: 'sea: the lifted view at u 0.3' }; }
-        if (K.fig === 1) { K.fig = 2; return { eval: '__T.game.h109.X.lookLift(0)', wait: 900 }; }
+        // (build 128 B4: the still and the frame's measure once the lift has settled — u set to 0.3 at once — then down again)
+        if (window.__BOT_FIG && !K.fig && a.next && a.next.in < 7.5) { K.fig = 1; return { eval: '__T.game.h109._look(0.3, 0)', wait: 2200, note: 'sea: the lifted view at u 0.3' }; }
+        // (the sea's camera moves only when it is drawn: the measure after the still, of the frame the still shows)
+        if (K.fig === 1) { K.fig = 2; return { shot: a.id + '-u03', wait: 30 }; }
+        if (K.fig === 2) { K.fig = 3; return { eval: 'JSON.stringify({lifted:__T.game.h109.state().act.frame})', wait: 30 }; }
+        if (K.fig === 3) { K.fig = 4; return { eval: '__T.game.h109._look(0, 0)', wait: 900 }; }
         { const j = a.sw.findIndex((x, i) => x.back && !(K.judged || {})[i]); if (j >= 0) { (K.judged = K.judged || {})[j] = 1; return { wait: 30, note: `sea: swell ${j + 1} (${a.sw[j].head}) ${a.sw[j].clean ? 'clean' : 'rough'} · ${a.ev.join(' ')}` }; } }
         const w = a.sw.find((x) => !x.back); if (!w) return { wait: 200 };
         const inn = w.t0 - a.mt, LOW = { port: ['stbdFore', 'stbdAft'], stbd: ['portFore', 'portAft'], bow: ['portAft', 'stbdAft'], stern: ['portFore', 'stbdFore'] };

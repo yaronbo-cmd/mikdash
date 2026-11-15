@@ -38,6 +38,7 @@ const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u
 const wrapA = (a) => { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; };
 const sideOf = (k) => (k.startsWith('port') ? 'port' : 'stbd');
 const HOLD_H = SEA_LV.sea2.H;
+const COIL_R = 1.1;              // (a tail's coil on the deck: its outer radius, amot)
 
 /* ═════════════ the sea on screen: one sea3d for the whole journey, drawn in place of the Mount ═════════════ */
 const SS = { S: null, R: null, on: false, t: 0, act: null, idle: 0, fresh: false, exp: null, calls: 0, tris: 0, drawMs: 0, ext: null, shake: 0, onResize: null };
@@ -89,7 +90,7 @@ function buildExtras(S) {
   E.rope = new THREE.InstancedMesh(cyl, ropeMat, E.NSEG); E.rope.frustumCulled = false; E.rope.name = 'h128-ropes'; deck.add(E.rope);
   E.rope.setColorAt(0, new THREE.Color('#DCC69C'));
   // the tails' coils on the deck (the grips): a flat ring of rope and a knot, pale hemp
-  const cg = new THREE.TorusGeometry(0.62, 0.2, 6, 14); cg.rotateX(Math.PI / 2);
+  const cg = new THREE.TorusGeometry(COIL_R - 0.25, 0.25, 6, 16); cg.rotateX(Math.PI / 2);   // (B4: 2.2 across, 44 px and more at u 0.3)
   E.coil = new THREE.InstancedMesh(keep(cg), ropeMat, 4); E.coil.frustumCulled = false; deck.add(E.coil);
   for (let i = 0; i < 4; i++) E.coil.setColorAt(i, new THREE.Color('#E2CFA6'));
   // the strands: thin fibres standing out of a fraying rope (and a few from a worn one)
@@ -240,7 +241,7 @@ function makeSea(m, X) {
       tl[0].set(R.cx, 0.42, R.cz); tl[1].set(x1, 0.12, R.cz - R.sg * 0.3); tl[2].set(lerp(x1, ex, 0.4), 0.12, lerp(R.cz - R.sg * 0.3, kz, 0.5));
       tl[3].set(lerp(x1, ex, 0.75), 0.12 + pull * 0.15, lerp(R.cz, kz, 0.9)); tl[4].set(ex - sx * 0.62, 0.14 + pull * 0.3, kz);
       for (let j = 0; j < 4; j++) seg(E.rope, i++, tl[j], tl[j + 1], 0.12);
-      _m.compose(_a.set(ex, 0.16 + pull * 0.3, kz), _q.identity(), _s.set(1, 1, 1)); E.coil.setMatrixAt(ROPES.indexOf(k), _m);
+      _m.compose(_a.set(ex, 0.22 + pull * 0.3, kz), _q.identity(), _s.set(1, 1, 1)); E.coil.setMatrixAt(ROPES.indexOf(k), _m);
       // the colour: rope; paler as it sings; a worn rope greyer and lighter
       _c.set('#DCC69C'); if (r.worn) _c.lerp(C_WORN, 0.6);
       if (band === 'sings') _c.lerp(C_PALE, 0.55 + 0.4 * (ten - 0.7) / 0.2); else if (band === 'frays') _c.lerp(C_DARK, 0.75);
@@ -304,17 +305,17 @@ function makeSea(m, X) {
 
   /* ── the camera: the play shot and the right thumb's lift (toward the next swell's way), the films' shots ── */
   const sph = (p, t) => { const dx = p[0] - t[0], dy = p[1] - t[1], dz = p[2] - t[2], d = Math.hypot(dx, dy, dz); return { d, el: Math.asin(dy / d), az: Math.atan2(dz, dx) }; };
-  // the lift: up to u 0.2 the camera rises and pulls back aft over the stern (the tiller, the helmsman and the quarter rudders come
-  // into the frame); from 0.2 to 0.45 it goes round to a three-quarter view from the side the next swell runs to, so the swell's
-  // ridge comes at the ship from beyond her
+  // the lift (B4): in the play zone (u ≤ 0.45) the camera rises and backs a little over the stern and turns a little toward the side the
+  // next swell runs to (CM.liftPlay), so the four coils stay large and apart and the play goes on; past it (the look out of the play
+  // zone) it goes on round and up to the whole ship and the swell's way (CM.liftTop)
   function lookPose(base, u, yaw, head, out) {
-    const a1 = sm(0, 0.2, u), a2 = sm(0.2, 0.32, u), extra = clamp((u - 0.45) / 0.55, 0, 1);
-    const B = sph(base[0], base[1]), L = CM.liftTop, ST = sph(CM.stern[0], CM.stern[1]);
+    const a = sm(0, 0.45, u), ex = sm(0.45, 1, u), LP = CM.liftPlay, L = CM.liftTop;
+    const B = sph(base[0], base[1]);
     const dir = head ? headDir(head) : [-1, 0], azS = Math.atan2(dir[1], dir[0]) + 0.9;
-    const az0 = lerp(B.az, ST.az, a1), az = az0 + wrapA(azS - az0) * a2 + yaw;
-    const el = lerp(lerp(B.el, ST.el, a1), L.el, a2) + 0.3 * extra, d = lerp(lerp(B.d, ST.d, a1), L.d, a2) * (1 + 0.7 * extra);
-    const t0 = [0, 1, 2].map((i) => lerp(base[1][i], CM.stern[1][i], a1)), t = t0.map((v, i) => lerp(v, L.t[i], a2));
-    out.p = [t[0] + Math.cos(az) * Math.cos(el) * d, t[1] + Math.sin(el) * d, t[2] + Math.sin(az) * Math.cos(el) * d]; out.t = t; out.f = lerp(0.6, 0.25, a1); return out;
+    const az = B.az + wrapA(azS - B.az) * (LP.turn * a + (1 - LP.turn) * ex) + yaw;
+    const el = lerp(lerp(B.el, LP.el, a), L.el, ex) + 0.3 * ex, d = lerp(lerp(B.d, LP.d, a), L.d * 1.7, ex);
+    const t = [0, 1, 2].map((i) => lerp(lerp(base[1][i], LP.t[i], a), L.t[i], ex));
+    out.p = [t[0] + Math.cos(az) * Math.cos(el) * d, t[1] + Math.sin(el) * d, t[2] + Math.sin(az) * Math.cos(el) * d]; out.t = t; out.f = lerp(0.6, 0.35, a) * (1 - ex) + 0.25 * ex; return out;
   }
   /** the coming swells' ridges (the sea's frame), sunk into the water as the real swell takes the ship */
   function ridges() {
@@ -369,6 +370,25 @@ function makeSea(m, X) {
   const ringScr = (h) => { const hd = DK.handles.stbd[h === 'L' ? 0 : 1]; return deckScr(hd[0], P.top + 0.4, hd[1] + 0.5); };
   function nearest(p, list) { let best = null, bd = 1e9; for (const [key, q] of list) { if (!q || !q.on) continue; const d = Math.hypot(p.x - q.x, p.y - q.y); if (d < bd) { bd = d; best = key; } } return bd <= GRIP ? best : null; }
   const taken = (key) => [...A.fing.values()].includes(key);
+  /** (the probe's measure of the play's frame) the ship's share of the screen's width (her deck's outline and her two ends), each
+   *  coil's size on the screen (its torus across, px) and the least distance between two coils (px) */
+  function frameNow() {
+    const H = SB.hull, xs = [];
+    for (const x of [H.stern, H.wide, 0, H.stem]) for (const z of [-H.beam / 2, 0, H.beam / 2]) { const q = deckScr(x, 0, z); if (q.on) xs.push(q.x); }
+    const coils = ROPES.map((k) => { const c = tailScr(k), R = RP[k], cx = DK.coil[k][0] - R.pull * 1.4, cz = DK.coil[k][1], y = 0.16 + R.pull * 0.3, r = COIL_R;
+      let d = 0; for (const [dx, dz] of [[1, 0], [0, 1]]) { const a = deckScr(cx + dx * r, y, cz + dz * r), b = deckScr(cx - dx * r, y, cz - dz * r); d = Math.max(d, Math.hypot(a.x - b.x, a.y - b.y)); }
+      return { k, x: Math.round(c.x), y: Math.round(c.y), px: Math.round(d) }; });
+    let mn = 1e9; for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) mn = Math.min(mn, Math.hypot(coils[i].x - coils[j].x, coils[i].y - coils[j].y));
+    const w = xs.length ? (Math.min(innerWidth, Math.max(...xs)) - Math.max(0, Math.min(...xs))) / innerWidth : 0;
+    return { u: +A.look.u.toFixed(3), shipW: +w.toFixed(3), coils, coilMin: Math.round(mn) };
+  }
+  /** (the probe's measure of the hold) each ring's size across on the screen, px */
+  function ringPx() {
+    const out = {};
+    for (const h of ['L', 'R']) { const hd = DK.handles.stbd[h === 'L' ? 0 : 1], y = P.top + 0.38, z = hd[1] + 0.5, r = 0.75;
+      const a = deckScr(hd[0] - r, y, z), b = deckScr(hd[0] + r, y, z); out[h] = Math.round(Math.hypot(a.x - b.x, a.y - b.y)); }
+    return out;
+  }
   function gripsNow() {
     const L = [];
     if (A.phase === 'ropes') for (const k of ROPES) if (!RP[k].gone && !taken(k)) L.push([k, tailScr(k)]);
@@ -856,6 +876,7 @@ function makeSea(m, X) {
         o.sw = s.sw.map((w) => ({ head: w.head, t0: w.t0, crest: w.crest, back: w.back, clean: w.clean })); o.next = nextSwell(s); o.D = SEA_LV[id].D; o.dmg = s.dmg; o.flags = s.flags; o.pts = seaPts(s);
         if (S && SS.S === S && A.phase === 'ropes') o.tails = Object.fromEntries(ROPES.map((k) => { const q = tailScr(k); return [k, [Math.round(q.x), Math.round(q.y)]]; }));
         o.low = o.next ? lowRopes(o.next.head) : null;
+        if (S && SS.S === S && A.phase === 'ropes') o.frame = frameNow();
       }
       if (A.phase === 'throw' && P) { const u = (P.doors.port || {}).userData || {}; o.th = { t: +(A.thT || 0).toFixed(2), off: !!u.off, wet: !!u.wet, wetT: +(u.wetT || 0).toFixed(2), sunk: !!u.sunk }; }
       if (hold) { o.hold = { on: { ...hold.on }, off: { ...hold.off }, slip: { L: +hold.slip.L.toFixed(2), R: +hold.slip.R.toFixed(2) }, held: hold.held, swells: hold.swells, started: hold.started, next: hold.next != null ? +(hold.next - hold.t).toFixed(2) : null };

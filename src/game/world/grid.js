@@ -627,6 +627,9 @@ const S06 = {
       //  it), so the doors and their four ropes fill the frame; lifted, it rises and pulls back over the stern)
       deck: [[-28.6, 14, 0], [-12, 0, 0]],
       liftTop: { d: 56, el: 0.55, t: [-8, 0, 0] },
+      // (B4) the lift inside the play zone, at u 0.45: distance and elevation over the aim, the aim, and how much of the way round toward
+      // the next swell's side it turns (the rest past the play zone)
+      liftPlay: { d: 28, el: 0.85, t: [-11, 0, 0], turn: 0.15 },
       // (the lift at u 0.2: risen and pulled back aft, the stern whole in the frame: its tiller, the helmsman, the quarter rudders)
       stern: [[-56, 19, 0], [-14, 0, 0]], throw: [[-5, 10, -23], [-12, 0, -9]] /* (B3: outboard of the port rail and above it, looking down at the water beside her side) */, hold: [[-12, 10.5, -3.6], [-12, 0.6, 3.4]],
       sorry: [[-27, 6.5, 7], [-12, 1, -3.4]], open: [[64, 22, 46], [-18, 4, 0]],

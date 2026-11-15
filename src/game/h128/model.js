@@ -185,6 +185,7 @@ export function seaStep(s, inp = {}, dt = 1 / 60) {
   for (const k of ROPES) {
     const r = R[k];
     if (inp.rope === k && Number.isFinite(inp.dy)) r.tgt = clamp(r.tgt + inp.dy * H128.GAIN, 0, H128.T_MAX);
+    if (inp.ropes && Number.isFinite(inp.ropes[k])) r.tgt = clamp(r.tgt + inp.ropes[k] * H128.GAIN, 0, H128.T_MAX);   // (two thumbs, two ropes)
     r.tgt = Math.max(0, r.tgt - L.drift * dt);
     r.t += (r.tgt - r.t) * a; r.t = clamp(r.t, 0, H128.T_MAX);
     r.load = 0;

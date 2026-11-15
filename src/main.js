@@ -791,9 +791,10 @@ async function boot() {
     if (view.guard) view.guard(dt);   // ── cam28 ── (Phase B: the camera never inside a solid — src/avodah/day/cam28.js) ── /cam28 ──
     if (PROF.on) { const t = PROF.t(); PROF.add('guard', t - p0); PROF.camAt(camera.position.x, camera.position.y, camera.position.z); p0 = t; }   // ── shift30 ── ── /shift30 ──
     sky.dome.position.copy(camera.position);
-    worldTick(dt);   // ── world6 ──
+    const seaOn = !!globalThis.__H128_DRAW;   // ── h128 ── (the sea on screen: the Mount's sky, city and light are not drawn, not ticked) ── /h128 ──
+    if (!seaOn) worldTick(dt);   // ── world6 ──
     if (PROF.on) { const t = PROF.t(); PROF.add('world', t - p0); p0 = t; }   // ── shift30 ── ── /shift30 ──
-    life.update(dt);
+    if (!seaOn) life.update(dt);
     if (PROF.on) { const t = PROF.t(); PROF.add('light', t - p0); p0 = t; }   // ── shift30 ── ── /shift30 ──
     stages.update(dt);
     if (sanct) sanct.update(dt);   // ── sanctuary ──
@@ -833,6 +834,8 @@ function nightSky() { try { const n = nightOf(); sky.setMoon(n.moon, !n.rain); }
 // ── /world12 ──
 // the construction layer may shake the camera a little on impacts; the offset is applied only for the render
 function renderFrame(dt) {
+  // ── h128 ── (build 128, the sea: an act that draws a scene of its own — the ship at sea — draws it in place of the Mount's) ── /h128 ──
+  if (globalThis.__H128_DRAW) { try { globalThis.__H128_DRAW(dt); return; } catch (e) { console.warn('[h128] draw', e && e.message); } }
   const o = stages && !reducedMotion ? stages.shakeOffset : null, sh = o && (o.x || o.y || o.z);
   if (sh) camera.position.add(o);
   composer.render(dt);

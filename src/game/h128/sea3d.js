@@ -480,7 +480,9 @@ function bakeNoise() {
   return { tex: t, k };
 }
 
-export function createSea3d({ renderer, quality = 1 } = {}) {
+export function createSea3d({ renderer, quality = 1, play = false } = {}) {
+  // (part 3, the play: play = true builds each door as its own movable group and leaves the four lashing ropes and their tails to the
+  //  station (h128/sea.js draws them by their tension); everything else, and the look sample (play false), is as it was)
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(50, 16 / 10, 0.5, SKY_R * 1.6);
   scene.fog = new THREE.Fog('#E9C9A2', 120, 1500);
@@ -562,6 +564,8 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     'gl_FragColor.rgb *= min(1.0, 1.25 / max(max(gl_FragColor.r, gl_FragColor.g), max(gl_FragColor.b, 1e-3)));\n#include <tonemapping_fragment>'); };
   const parts = new Map();   // material → geometries in the ship's frame, merged at the end
   const put = (mat, g) => { if (!parts.has(mat)) parts.set(mat, []); parts.get(mat).push(g); return g; };
+  const doorParts = { port: new Map(), stbd: new Map() };   // (play: each door's own parts, merged per material into its group)
+  let putDoor = put;
   const onDeck = (p) => [p[0], p[1] + DECK_Y, p[2]];
 
   /* the hull and her fittings */
@@ -629,9 +633,11 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
 
   /* the two bronze doors on their timbers, lashed with four ropes from rings in the deck to cleats */
   const D = DECK.doors, top = DUN + D.T;   // the leaf's face, over the deck
+  const put0 = put;   // (the timbers under the doors stay with the ship when a door goes)
   for (const side of ['port', 'stbd']) {
     const [cx, cz] = D[side];
-    for (const dx of [-D.L * 0.38, 0, D.L * 0.38]) put(woodM, at(new THREE.BoxGeometry(0.7, DUN, D.W + 0.6), onDeck([cx + dx, DUN / 2, cz])));   // the timbers under it
+    const put = play ? (mat, g) => { const P = doorParts[side]; if (!P.has(mat)) P.set(mat, []); P.get(mat).push(g); return g; } : putDoor;   // eslint-disable-line no-shadow
+    for (const dx of [-D.L * 0.38, 0, D.L * 0.38]) put0(woodM, at(new THREE.BoxGeometry(0.7, DUN, D.W + 0.6), onDeck([cx + dx, DUN / 2, cz])));   // the timbers under it
     put(bronzeM, at(new THREE.BoxGeometry(D.L, D.T, D.W), onDeck([cx, DUN + D.T / 2, cz])));   // the leaf: its thickness shows at the edges
     // a raised frame round the face, the three cross bands, each with a dark line where it meets the face
     const fw = 0.42, fh = 0.12;
@@ -664,11 +670,17 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     const edgeIn = s * (Math.abs(D.port[1]) - D.W / 2), edgeOut = s * (Math.abs(D.port[1]) + D.W / 2), ty = top + 0.2;
     const path = [[rx, 0.2, rz], [rx, ty, edgeIn], [rx, ty + 0.05, (edgeIn + edgeOut) / 2], [rx, ty, edgeOut], [rx, 0.45, cz - s * 0.2], [cx, 0.42, cz]];
     const tail = [[cx, 0.42, cz], [cx - 1, 0.1, cz - s * 0.2], [tx + 1, 0.08, tz], [tx, 0.08, tz], [tx - 0.6, 0.08, tz + s * 0.5]];
-    put(ropeM, tubeOf(path.map(onDeck), 0.1, 18, 5)); put(ropeM, tubeOf(tail.map(onDeck), 0.08, 12, 5));
+    if (!play) { put(ropeM, tubeOf(path.map(onDeck), 0.1, 18, 5)); put(ropeM, tubeOf(tail.map(onDeck), 0.08, 12, 5)); }
     cleatAt[k] = [cx, 0.42, cz];
   }
   // merge the ship's static parts: one mesh per material
   for (const [mat, list] of parts) { const g = keep(mergeGeometries(list, false)); for (const x of list) x.dispose(); const m = new THREE.Mesh(g, mat); m.name = 'h128-ship-' + (mat === bronzeM ? 'bronze' : mat === bronzeD ? 'bronze2' : mat.type); ship.add(m); }
+  // (play) each door a group of its own at its face's middle on the deck, its parts merged per material: the station moves it
+  const doors = {};
+  if (play) for (const side of ['port', 'stbd']) {
+    const grp = new THREE.Group(); grp.name = 'h128-door-' + side; grp.position.set(D[side][0], DECK_Y + DUN, D[side][1]); ship.add(grp); doors[side] = grp;
+    for (const [mat, list] of doorParts[side]) { const g = keep(mergeGeometries(list, false)); for (const x of list) x.dispose(); g.translate(-D[side][0], -(DECK_Y + DUN), -D[side][1]); const m = new THREE.Mesh(g, mat); grp.add(m); }
+  }
 
   /* the rudder (illustration): two broad-bladed quarter rudders, each on its stout post through its housing, raked aft (the head leans
    * forward, the blade trails under the quarter); their tillers joined by a cross tiller the helmsman holds. Each rudder turns on its
@@ -850,6 +862,7 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     const T = st.t, near = (st.swells || []).reduce((m, s) => Math.max(m, Math.exp(-Math.pow(swellPos(s, T) / 30, 2))), 0), hard = Math.max(near, st.k * 0.6);
     let bi = 0, li = 0;
     for (const a of crew) {
+      if (a.own128) continue;   // (play: a sailor the station has given a task of its own — making fast, lifting the door — is posed by it)
       if (a.job === 'lash') {
         const P = hard > 0.3 ? 1.3 : 3.6, ph = (T / P + a.off) % 1, pull = ph < 0.4 ? Math.sin((ph / 0.4) * Math.PI) : 0, f = hard > 0.3 ? 1 : 0.5;
         set4(a.armT, 1.0 + 0.35 * pull * f, -0.22, 1.05 + 0.45 * pull * f, -0.22); a.bowT = 0.3 - 0.45 * pull * f; a.knT = 0.15 + 0.2 * hard;
@@ -889,7 +902,7 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     const P = st.push;
     helm.bowT = 0.16 + 0.42 * Math.max(0, P) - 0.14 * Math.max(0, -P) + 0.08 * st.k; helm.knT = 0.22 + 0.22 * Math.abs(P) + 0.1 * st.k;
     set4(helm.armT, helm.pit, 0.02, helm.pit, 0.02);
-    const want = hard > 0.3 ? 'lean' : 'stand'; if (nicPose !== want) { nicPose = want; actors.pose(nic, want); }
+    const want = hard > 0.3 ? 'lean' : 'stand'; if (!nic.own128 && nicPose !== want) { nicPose = want; actors.pose(nic, want); }
     actors.update(dt);
     // his hands hold the bar: it lies where they are (the arms find the bar's height), and the rudders turn with it
     actors.handWorld(helm, 1, L2); actors.handWorld(helm, -1, R2); M2.copy(L2).add(R2).multiplyScalar(0.5);
@@ -905,8 +918,9 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
       const R = CAM.round, a = st.round;
       out.set(R.t[0] + Math.cos(a) * -R.R, R.y + y0 * 0.3, R.t[2] + Math.sin(a) * R.R); tgt.set(R.t[0], R.t[1] + y0 * 0.5, R.t[2]); return;
     }
-    const c = name === 'lift' ? CAM.lift : CAM.play, f = name === 'lift' ? 0.25 : 0.6;
-    rig.position.set(0, y0 * (name === 'lift' ? 0.4 : 0.85), 0); rig.rotation.set(-st.roll * f * 0.4, 0, st.pitch * f, 'YZX'); rig.updateMatrixWorld();
+    const dk = name === 'deck' ? st.deckCam : null;   // (play: the station's own shot in the deck's frame, and how much it rides the ship)
+    const c = dk ? [dk.p, dk.t] : name === 'lift' ? CAM.lift : CAM.play, f = dk ? dk.f : name === 'lift' ? 0.25 : 0.6;
+    rig.position.set(0, y0 * (dk ? dk.yk : name === 'lift' ? 0.4 : 0.85), 0); rig.rotation.set(-st.roll * f * 0.4, 0, st.pitch * f, 'YZX'); rig.updateMatrixWorld();
     out.set(...c[0]); tgt.set(...c[1]);
     if (name === 'lift' && st.head) {   // turned round the ship to the side the swell runs to, looking back at where it comes from
       const d = headDir(st.head), r = Math.atan2(d[1], d[0]) - Math.PI, cs = Math.cos(r), sn = Math.sin(r);
@@ -929,18 +943,27 @@ export function createSea3d({ renderer, quality = 1 } = {}) {
     set(o = {}) {
       if (o.k != null) st.k = clamp(o.k, 0, 1); if (o.brk != null) st.brk = clamp(o.brk, 0, 1); if (o.swells) st.swells = o.swells;
       if (o.furl != null) st.furl = clamp(o.furl, 0, 1); if (o.hole != null) st.hole = clamp(o.hole, 0, 1);
+      if (o.shipX !== undefined) st.shipXo = o.shipX;   // (play: the ship's way through the water held — moored at Akko; null sails on)
       applyWeather();
     },
     /** the speed net: 0 everything; 1 the water mirrors the sky without its clouds; 2 also without the fine chop (the foam and the
      *  swells' shape are never dropped) */
     quality(level) { st.level = clamp(level | 0, 0, 2); seaU.uMirror.value = st.level >= 1 ? 0 : 1; seaU.uChop.value = st.level >= 2 ? 0 : 1; },
     view(name, u = 0, round = 0, head = null) { st.cam = name; st.camU = clamp(u, 0, 1); st.round = round; st.head = head; },
+    /** (play) the station's shot: eye p and aim t in the deck's frame ([x, y over the deck, z]); f how much it rolls and pitches with
+     *  her, yk how much it heaves (0: fixed in the sea's frame, as at the quay) */
+    camDeck(p, t, f = 0.6, yk = 0.85) { st.cam = 'deck'; st.camU = 0; st.deckCam = { p, t, f, yk }; },
+    /** (play) the camera placed again from the last pose (the station waits: its look still moves the camera) */
+    aim() { placeCam(); },
+    /** (play) what the station builds on: the doors' groups, the deck's height over the water at rest, the leaf's face over the deck,
+     *  the hull's lines, the cleats, the materials, the helmsman */
+    play: { doors, deckY: DECK_Y, sit: SIT, top, hullAt, cleatAt, helm, mats: { rope: ropeM, dark: darkM, wood: woodM, bronze: bronzeM, bronze2: bronzeD, groove: grooveM, gear: gearM, hull: hullM }, tubeOf, canvasTex, keep },
     resize(w, h) { camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix();
       sprU.uPx.value = 0.55 * h * renderer.getPixelRatio() / (2 * Math.tan(camera.fov * DEG / 2)); },
     /** t: the sea's clock (s); dt: the step (s) for the ship's inertia and the figures (0: snap) */
     update(t, dt) {
       const t0 = performance.now();
-      st.t = t; st.shipX = t * SAIL_V; seaU.uT.value = t; seaU.uShip.value.set(st.shipX, 0);
+      st.t = t; st.shipX = st.shipXo != null ? st.shipXo : t * SAIL_V; seaU.uT.value = t; seaU.uShip.value.set(st.shipX, 0);
       swellsToShader(); pose(dt);
       const sh = mix(MAST.h * 0.6, 1.4, st.furl); if (Math.abs(sh - st.sailH) > 0.05) { st.sailH = sh; sail.scale.y = sh; setStays(sh); }
       spray2.visible = st.k > 0.3;

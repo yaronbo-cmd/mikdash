@@ -4,10 +4,10 @@
  * Levites on the fifteen steps before dawn, each ring sounding its note as they step on it (his three as he built them); the sunrise
  * on the closed doors; the north leaf near, its salt stains; the Mishnah's card (content.js `nikanor`) and a small summary card.
  *
- * The sea (station 1, part 3): SEA_IN_PLAY is false until part 3 builds it. While it is false the pack's create() gives the sea's
- * three works to the crews as skipped (st.res[id].skip, st.seaSkip; no stars, no points) so the plan opens at the capstan; the count
- * on the top pill leaves them out. The plan itself keeps all eleven works, so __H109_ONLY pages for capstan, steps, wicket and close
- * and the whole-stage page (__H128_FULL) work today; part 3 turns the flag on and a save with st.seaSkip plays the sea again.
+ * The sea (station 1, sea.js): SEA_IN_PLAY. With it off, the pack's create() gives the sea's three works to the crews as skipped
+ * (st.res[id].skip, st.seaSkip; no stars, no points) so the plan opens at the capstan; the count on the top pill leaves them out. With
+ * it on (part 3), a save made while it was off plays the sea from its start if it has not passed the capstan, and otherwise keeps
+ * everything, the crews' sea open to play again (createStage06).
  */
 import { PLAN, LINES, createH128 } from './model.js';
 import { ACTS } from './acts.js';
@@ -18,7 +18,7 @@ import { stageById } from '../content.js';
 import { BOOK } from '../world/grid.js';
 import { filmFigs } from './figgate.js';   // ── h128 ── (the figures gate's rule in the end film: only the Levites) ── /h128 ──
 
-export const SEA_IN_PLAY = false;
+export const SEA_IN_PLAY = true;
 const S6 = BOOK.s06, CAM = S6.cam;
 const LOOK6 = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), S6.house], K: LOOK_RING_K });   // (the House too: the closing's and the wickets' lifted views are from inside the Azarah)
 const SEA_IDS = ['sea1', 'sea2', 'sea3'];
@@ -31,7 +31,26 @@ export function seaSkip(M) {
   for (const id of SEA_IDS) if (!M.isDone(id)) { M.st.cur = id; M.done({ stars: 0, q: 0, pts: 0 }); M.st.res[id].skip = 1; }
   M.st.seaSkip = 1; return M;
 }
-export function createStage06(save) { const M = createH128(save); if (!SEA_IN_PLAY) seaSkip(M); return M; }
+/** the stage's model. With the sea in play, a save the crews' sea came in (st.seaSkip): one that has not passed the capstan plays the
+ *  sea from its start (the skipped works given back); one past the capstan keeps everything — the sea stays the crews' (no points)
+ *  and is open to play again, sea1 first, each next once the one before is his. */
+export function createStage06(save) {
+  const M = createH128(save), st = M.st;
+  if (!SEA_IN_PLAY) return seaSkip(M);
+  if (!st.seaSkip) return M;
+  const crews = (id) => !!(st.res[id] && st.res[id].skip);
+  if (!M.isDone('capstan')) {
+    for (const id of SEA_IDS) if (crews(id)) { delete st.res[id]; st.done = st.done.filter((x) => x !== id); }
+    delete st.seaSkip; st.i = st.done.length; if (SEA_IDS.includes(st.cur)) st.cur = null;
+    return M;
+  }
+  const can = M.canDo;
+  M.canDo = (m) => {
+    if (m && SEA_IDS.includes(m.id) && crews(m.id)) { const i = SEA_IDS.indexOf(m.id); return i === 0 || !crews(SEA_IDS[i - 1]); }
+    return can(m);
+  };
+  return M;
+}
 const skipped = (M) => PLAN.filter((m) => M.st.res[m.id] && M.st.res[m.id].skip).length;
 
 /** a tap anywhere (or `ms`) ends a part of a film */

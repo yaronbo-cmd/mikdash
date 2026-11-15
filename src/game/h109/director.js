@@ -736,7 +736,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
       const step = () => { const k = (performance.now() - t0) / D; if (k >= 1) { for (const [m, o0, c] of L) { if (m.material === c) m.material = o0; c.dispose(); } return; } for (const [, , c] of L) c.emissiveIntensity = 1 - k * k; requestAnimationFrame(step); };
       requestAnimationFrame(step); return;
     }
-    if (!at) return;
+    if (!at || at.sx != null) return;   // ── h128 ── (a screen point: no glint in the world's scene) ── /h128 ──
     if (!QK.tex) { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,250,220,1)'); gr.addColorStop(0.35, 'rgba(255,216,106,.8)'); gr.addColorStop(1, 'rgba(255,216,106,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); QK.tex = new THREE.CanvasTexture(cv); }
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: QK.tex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, transparent: true }));
     sp.position.set(at.x, at.y, at.z); sp.renderOrder = 999; scene.add(sp);
@@ -750,7 +750,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     QK.last = now;
     try { quickFlash(mesh || null, at); } catch (e) { /* */ }
     uiMount(); quickCss();
-    const q = at ? scr(at.x, at.y, at.z) : { x: innerWidth / 2, y: innerHeight * 0.4 };
+    const q = at ? (at.sx != null ? { x: at.sx, y: at.sy } : scr(at.x, at.y, at.z)) : { x: innerWidth / 2, y: innerHeight * 0.4 };   // ── h128 ── (at.sx: a screen point) ── /h128 ──
     const el = document.createElement('div'); el.className = 'h109-ui h120-qk'; el.textContent = (text || 'מושלם!') + (QK.run >= 2 ? ` ×${QK.run}` : '');
     el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el); setTimeout(() => el.remove(), 640);
     try { UI.chip.classList.add('pop'); setTimeout(() => UI.chip && UI.chip.classList.remove('pop'), 160); } catch (e) { /* */ }
@@ -764,6 +764,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // ── h128 ── (brief §0.6: before a two-thumb moment the act lifts the camera a little by itself, inside the play zone; 0 lets it down;
     // a tap that returns the camera, a drag or a pinch of his own ends it) ── /h128 ──
     lookLift: (u) => { const v = Math.max(0, Math.min(0.45, +u || 0)); if (!v && LOOK.auto == null) return; LOOK.auto = v; },
+    // ── h128 ── (part 3, the sea: an act that draws its own scene reads the right thumb's look — u, yaw, the overview — to move its own
+    // camera; its words and losses may stand at a screen point { sx, sy } of its own camera) ── /h128 ──
+    lookNow: () => ({ u: LOOK.u, yaw: LOOK.yaw, ov: OV.on, play: zone5(LOOK.u, LOOK.yaw) === 'play' }),
     THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, track, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
     get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, get acting() { return phase === 'act'; }, ui, sfx: o.sfx, haptic: o.haptic,
     actors: () => S0.crewActors || null, PLACES, H109,
@@ -803,7 +806,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     try { const g = G(); if (stones > 0 && g && g.res) g.res[res] = Math.max(0, (g.res[res] || 0) - stones); } catch (e) { /* */ }
     try { if (ui && ui.refresh) ui.refresh(); } catch (e) { /* */ }
     uiMount();
-    const q = at ? scr(at.x, at.y, at.z) : { x: innerWidth / 2, y: innerHeight * 0.4 };
+    const q = at ? (at.sx != null ? { x: at.sx, y: at.sy } : scr(at.x, at.y, at.z)) : { x: innerWidth / 2, y: innerHeight * 0.4 };   // ── h128 ── (at.sx: a screen point) ── /h128 ──
     const el = document.createElement('div'); el.className = 'h109-ui h109-loss'; el.innerHTML = `<b>${d ? '−' + d : '0'}</b>${label ? `<span>${label}</span>` : ''}${stones ? `<small>−${stones} ${res === 'cedar' ? (stones === 1 ? 'ארז' : 'ארזים') : stones === 1 ? 'אבן' : 'אבנים'} מהמלאי</small>` : ''}`;
     el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('on')); setTimeout(() => el.remove(), 2600);

@@ -705,6 +705,78 @@
       }
       return best || { wait: 60 };
     },
+    // (part 3) the sea, by touch as a player plays it: before each swell (5.5 s) the two ropes it loads set low in the quiet band, the
+    // other two high (a worn rope lower, its partner higher), each by a drag of its tail (toward him: haul); the throw and the turn are
+    // seen; the hold: both thumbs on the rings, a slipped thumb put back; Akko: the hook held over the ring's rest (it takes as the ring
+    // rises), the hoist hauled while the door swings toward the quay, the landing paid out slowly. __BOT.bad: 'snap' (one rope hauled
+    // into the frays band and held: a strand, then it tears, −20), 'ring' (the first swell's two low ropes left in the sings band: the
+    // rings come out, −20 each), 'slip' (sea2's hold: the first thumb that slips is left off through one swell: the swell comes again)
+    h6sea(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k;
+      const shotOnce = (key, name, wait = 120) => (K[key] ? null : (K[key] = 1, { wait, shot: name }));
+      if (a.phase === 'enter') return { wait: 300 };
+      if (a.phase === 'open') return shotOnce('open', 'sea-open', 2600) || { tap: [Math.round(W * 0.5), Math.round(HH * 0.5)], wait: 500, note: 'sea: skip the opening' };
+      if (a.phase === 'ropes') {
+        if (!K.r0) { K.r0 = 1; return { wait: 900, shot: a.id + '-ropes' }; }
+        { const j = a.sw.findIndex((x, i) => x.back && !(K.judged || {})[i]); if (j >= 0) { (K.judged = K.judged || {})[j] = 1; return { wait: 30, note: `sea: swell ${j + 1} (${a.sw[j].head}) ${a.sw[j].clean ? 'clean' : 'rough'} · ${a.ev.join(' ')}` }; } }
+        const w = a.sw.find((x) => !x.back); if (!w) return { wait: 200 };
+        const inn = w.t0 - a.mt, LOW = { port: ['stbdFore', 'stbdAft'], stbd: ['portFore', 'portAft'], bow: ['portAft', 'stbdAft'], stern: ['portFore', 'stbdFore'] };
+        if (inn < 0.25 && inn > -0.4) { const s0 = shotOnce('crest' + a.sw.indexOf(w), a.id + '-crest' + (a.sw.indexOf(w) + 1), 30); if (s0 && a.sw.indexOf(w) < 2) return s0; }
+        const want = {}, R = a.ropes, part = (r) => (r.endsWith('Fore') ? r.replace('Fore', 'Aft') : r.replace('Aft', 'Fore'));
+        if (inn < 5.5 && !w.crest) {
+          const crest = LOW[w.head];
+          for (const r of Object.keys(R)) {
+            if (R[r].gone) continue;
+            want[r] = crest.includes(r) ? (R[r].worn ? 0.36 : (a.D >= 0.4 ? 0.4 : 0.45)) : (R[r].worn ? 0.45 : 0.6);
+            if (crest.includes(part(r)) && !crest.includes(r) && R[part(r)].worn) want[r] = 0.63;
+          }
+        }
+        if (has('snap') && !a.flags['sea.torn'] && a.mt > 1) { want.portAft = 1.0; if (R.portAft.fray > 0 && !K.frayShot) { K.frayShot = 1; return { wait: 30, shot: 'sea-frays' }; } }
+        if (has('ring') && a.sw.indexOf(w) === 0 && !w.crest && inn < 5) { want.stbdFore = 0.8; want.stbdAft = 0.8; }
+        if (a.flags['sea.torn'] && !K.tornShot) { K.tornShot = 1; return { wait: 200, shot: 'sea-torn' }; }
+        if (a.flags['sea.ring'] && !K.ringShot) { K.ringShot = 1; return { wait: 200, shot: 'sea-ring' }; }
+        let best = null, bd = 0.02;
+        for (const r of Object.keys(want)) { const d = Math.abs(want[r] - R[r].tgt); if (d > bd) { bd = d; best = r; } }
+        if (!best) return { wait: 150 };
+        const q = a.tails[best]; if (!q) return { wait: 150 };
+        const dy = Math.max(-170, Math.min(170, (want[best] - R[best].tgt) * 240)), y1 = Math.max(40, Math.min(HH - 40, q[1] + dy));
+        return { drag: [q[0], q[1], q[0], y1, 320], wait: 60, note: `sea: ${best} ${R[best].tgt} → ${want[best]} (swell ${w.head} in ${inn.toFixed(1)} s)` };
+      }
+      if (a.phase === 'throw') return shotOnce('throw', 'sea-throw', 1800) || { wait: 300 };
+      if (a.phase === 'turn') return shotOnce('turn', 'sea-turn', 600) || { wait: 300 };
+      if (a.phase === 'calm') return shotOnce('calm', 'sea-calm', 700) || { wait: 300 };
+      if (a.phase === 'sorry') return shotOnce('sorry', 'sea-sorry', 1500) || { wait: 400 };
+      if (a.phase === 'hold') {
+        const h = a.hold; if (!h) return { wait: 200 };
+        const mouse = !!a.mouse || !!window.__BOT_MOUSE;
+        if (has('slip') && !K.slipped) { const s0 = ['L', 'R'].find((q) => h.off[q]); if (s0 && !mouse) K.slipped = { h: s0, until: h.swells + 1 }; }
+        const off = K.slipped && h.swells < K.slipped.until ? K.slipped.h : null;
+        if (h.held >= 1 && !K.holdShot) { K.holdShot = 1; return { wait: 50, shot: 'sea-hold' }; }
+        const pt = (q) => C(`return a&&a.phase==='hold'&&a.rings?a.rings.${q}:null`);
+        const hands = (mouse ? ['L'] : ['L', 'R']).filter((q) => q !== off);
+        const stop = off ? `return !a||a.phase!=='hold'||a.hold.swells>=${K.slipped.until}` : `return !a||a.phase!=='hold'||a.hold.off.L||a.hold.off.R||a.hold.slip.L>0||a.hold.slip.R>0`;
+        return { seq: [hands.map(pt), hands.map(pt)], ms: 60, seqUntil: C(stop), seqLoop: 1, seqMax: 30000, wait: 40, note: `sea: hold ${hands.join('+')} (held ${h.held}, swells ${h.swells}${off ? ', ' + off + ' left off' : ''})` };
+      }
+      if (a.phase === 'arrive') return shotOnce('arrive', 'sea-akko', 2500) || { wait: 300 };
+      if (a.phase === 'hook') {
+        if (!a.hook || !a.ring || !a.pxA) return { wait: 200 };
+        const T = `(()=>{const a=__T.game.h109.state().act;if(!a||!a.ring)return null;return [a.ring[0],a.ring[1]+a.akko.ringY*a.pxA-0.45*a.pxA]})()`;
+        window.__HK0 = a.hook.slice();
+        const fr = [0.25, 0.5, 0.75, 1].map((u) => `(()=>{const t=${T},h=window.__HK0;return t&&[h[0]+(t[0]-h[0])*${u},h[1]+(t[1]-h[1])*${u}]})()`);
+        return { seq: [[a.hook], ...fr.map((f) => [f])], ms: 70, seqUntil: C("return !a||a.phase!=='hook'"), seqLoop: 4, seqMax: 20000, wait: 100, note: `sea: the hook over the ring (tries ${a.akko.tries})` };
+      }
+      if (a.phase === 'hoist' || a.phase === 'land') {
+        if (!a.haul) return { wait: 200 };
+        if (a.phase === 'land' && !K.landShot) { K.landShot = 1; return { wait: 100, shot: 'sea-land' }; }
+        const ph = a.phase, rate = ph === 'hoist' ? `(a.akko.w>-0.05&&!a.akko.stop?96:0)` : `-(a.akko.y>1?72:28)`;
+        window.__HH = null;
+        const ex = `(()=>{const a=__T.game.h109.state().act;const n=performance.now();if(!a||a.phase!=='${ph}'||!a.haul)return null;let K=window.__HH;if(!K||K.y==null){window.__HH=K={x:a.haul[0],y:a.haul[1],t:n};return [K.x,K.y]}const dt=Math.min(0.2,(n-K.t)/1000);K.t=n;K.y+=${rate}*dt;if(K.y>innerHeight-30||K.y<30){K.y=null;return null}return [K.x,K.y]})()`;
+        return { seq: [[ex], [ex]], ms: 50, seqUntil: C(`return !a||a.phase!=='${ph}'`), seqLoop: 1, seqMax: 120000, wait: 100, note: `sea: ${ph} (lift ${a.akko.lift} th ${a.akko.th} y ${a.akko.y})` };
+      }
+      if (a.phase === 'landed' || a.phase === 'slew') return shotOnce(a.phase, 'sea-' + a.phase, 900) || { wait: 300 };
+      if (a.phase === 'caravan') return shotOnce('caravan', 'sea-caravan', 2600) || { tap: [Math.round(W * 0.5), Math.round(HH * 0.5)], wait: 600, note: 'sea: skip the caravan' };
+      return { wait: 300 };
+    },
     // ── /h128 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)

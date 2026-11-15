@@ -6,6 +6,8 @@
  *   grind(k)       a jammed corner grinding (0…1) · tick() a tooth's tick · squeal(k) a tooth forced (0…1, continuous)
  *   gong(f, dull)  a bronze or stone note at f Hz · step(i, dull) the i-th ring's note (1…15: the pentatonic run over three octaves)
  *   breath()       the crew breathing out under the load
+ *   (part 3, the sea) string(k) the ropes ringing like a string after a clean swell · sea(k, wind) the sea and the wind, continuous
+ *   (k 0 calm … 1 storm) · splash(k) a great splash · bell(f) wet bronze ringing like a bell
  *   frame() follows the mute · stop() the continuous voices off
  */
 import { PENTA } from '../audio.js';
@@ -15,7 +17,7 @@ export const STEP_BASE = 196;   // (the lowest ring's note, Hz: G3)
 export function stepHz(i) { const k = Math.max(0, Math.min(14, (i | 0) - 1)); return STEP_BASE * Math.pow(2, (PENTA[k % 5] + 12 * Math.floor(k / 5)) / 12); }
 
 export function createVoices(sfx) {
-  let ctx = null, out = null, noise = null, hm = null, sl = null, gr = null, sq = null;
+  let ctx = null, out = null, noise = null, hm = null, sl = null, gr = null, sq = null, sw = null, wd = null;
   const muted = () => { try { return !!(sfx && sfx.muted); } catch (e) { return true; } };
   function init() {
     if (ctx) return ctx.state === 'running';
@@ -58,7 +60,11 @@ export function createVoices(sfx) {
     squeal(k) { if (!init() || !out) return; if (!sq) { sq = loop(2300, 18); } set(sq.g.gain, 0.0001 + 0.06 * Math.max(0, Math.min(1, k)), 0.04); },
     gong(f, dull) { if (!ok()) return; const t = ctx.currentTime, d = dull ? 0.35 : 2.6; tone(t, f, f * 0.998, d, dull ? 0.06 : 0.09); tone(t, f * 2.76, f * 2.75, d * 0.5, dull ? 0.01 : 0.03); if (dull) burst(t, f * 2, 1.4, 0.12, 0.05); },
     step(i, dull) { this.gong(stepHz(i), dull); },
+    string(k = 1) { if (!ok()) return; const t = ctx.currentTime, f = STEP_BASE * (1 + 0.5 * Math.min(1, k)); for (const [m, a] of [[1, 0.05], [2, 0.025], [3, 0.012]]) tone(t, f * m, f * m * 0.997, 1.4, a, 'triangle'); },
+    sea(k, w = k) { if (!init() || !out) return; if (!sw) { sw = loop(320, 0.6, 'lowpass'); wd = loop(900, 2.5); } set(sw.g.gain, 0.0001 + 0.05 * (0.25 + Math.max(0, Math.min(1, k))), 0.4); set(wd.g.gain, 0.0001 + 0.03 * Math.max(0, Math.min(1, w)), 0.4); set(wd.fl.frequency, 600 + 900 * Math.max(0, Math.min(1, w)), 0.6); },
+    splash(k = 1) { if (!ok()) return; const t = ctx.currentTime; burst(t, 700, 0.7, 1.1 * k + 0.3, 0.12 * k, 'lowpass'); burst(t + 0.05, 2600, 1.2, 0.5, 0.05 * k); },
+    bell(f = 330) { if (!ok()) return; const t = ctx.currentTime; tone(t, f, f * 0.999, 3.2, 0.09); tone(t, f * 2.4, f * 2.39, 1.6, 0.035); tone(t, f * 3.9, f * 3.88, 0.9, 0.02); },
     frame() { if (!ctx || !out) return; set(out.gain, muted() ? 0 : 0.9, 0.05); },
-    stop() { if (!ctx) return; if (hm) { set(hm.g.gain, 0.0001); set(hm.og.gain, 0.0001); } for (const v of [sl, gr, sq]) if (v) set(v.g.gain, 0.0001); },
+    stop() { if (!ctx) return; if (hm) { set(hm.g.gain, 0.0001); set(hm.og.gain, 0.0001); } for (const v of [sl, gr, sq, sw, wd]) if (v) set(v.g.gain, 0.0001); },
   };
 }

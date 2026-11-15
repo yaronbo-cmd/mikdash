@@ -18,7 +18,7 @@ const KIND = {
   // ── /h127 ──
   // ── h128 ── (build 128) stage 06's kinds
   sledge: 'מזחלת', ramp: 'כבש', sill: 'סף', notch: 'שקע עצירה', rough: 'קורה מחוספסת', capstan: 'כננת', end: 'קצה', table: 'שולחן', gap: 'רווח',
-  wicket: 'פשפש', view: 'נקודת מבט',
+  wicket: 'פשפש', view: 'נקודת מבט', wagon: 'עגלה',
   // ── /h128 ──
 };
 const L = [

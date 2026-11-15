@@ -22,9 +22,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createSea3d } from './sea3d.js';
-import { SEA_LV, ROPES, lowRopes, bandOf, seaFresh, seaStep, seaPts, seaCarry, nextSwell, swellsOf, headDir, holdFresh, holdStep, holdSwell, HOLD,
+import { SEA_LV, ROPES, lowRopes, bandOf, seaFresh, seaStep, seaPts, seaCarry, nextSwell, swellsOf, headDir, swellPos, holdFresh, holdStep, holdSwell, HOLD,
   akkoFresh, akkoStep, akkoPts, AKKO, ringY, LINES, QUICK, LOSS, H128, qOf, starsOf } from './model.js';
 import { createVoices } from './sound128.js';
+import { createAnimals } from '../../animals.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { SH6, leafSlab, clamp, lerp, ease, TAU } from './world.js';
 import { BOOK } from '../world/grid.js';
@@ -45,7 +46,7 @@ function seaUp() {
   if (!SS.on) {
     SS.on = true; SS.exp = R.toneMappingExposure; SS.idle = 0;
     SS.onResize = () => { try { SS.S.resize(innerWidth, innerHeight); } catch (e) { /* */ } }; addEventListener('resize', SS.onResize); SS.onResize();
-    globalThis.__H128_DRAW = draw; globalThis.__H128_SEA = SS;   // (the probe reads the sea through it)
+    globalThis.__H128_DRAW = draw; if (globalThis.__H128_PROBE) globalThis.__H128_SEA = SS;   // (a probe page's flag: the probe reads the sea through it)
   }
   return SS.S;
 }
@@ -84,7 +85,11 @@ function buildExtras(S) {
   const ropeMat = keep(new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#000000' }));
   E.NSEG = 4 * 16 + 2 * 1;
   E.rope = new THREE.InstancedMesh(cyl, ropeMat, E.NSEG); E.rope.frustumCulled = false; E.rope.name = 'h128-ropes'; deck.add(E.rope);
-  E.rope.setColorAt(0, new THREE.Color('#A88A5C'));
+  E.rope.setColorAt(0, new THREE.Color('#DCC69C'));
+  // the tails' coils on the deck (the grips): a flat ring of rope and a knot, pale hemp
+  const cg = new THREE.TorusGeometry(0.62, 0.2, 6, 14); cg.rotateX(Math.PI / 2);
+  E.coil = new THREE.InstancedMesh(keep(cg), ropeMat, 4); E.coil.frustumCulled = false; deck.add(E.coil);
+  for (let i = 0; i < 4; i++) E.coil.setColorAt(i, new THREE.Color('#E2CFA6'));
   // the strands: thin fibres standing out of a fraying rope (and a few from a worn one)
   const fib = keep(new THREE.BoxGeometry(1, 1, 1)); fib.translate(0, 0.5, 0);
   E.NF = 4 * 12; E.fib = new THREE.InstancedMesh(fib, keep(new THREE.MeshLambertMaterial({ color: '#D9C9A0' })), E.NF); E.fib.frustumCulled = false; deck.add(E.fib);
@@ -96,6 +101,7 @@ function buildExtras(S) {
   const scarG = keep(mergeGeometries([hole.toNonIndexed(), bent.toNonIndexed()].map((g) => { for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); return g; }), false)); hole.dispose(); bent.dispose();
   E.scar = new THREE.InstancedMesh(scarG, keep(new THREE.MeshLambertMaterial({ color: '#17110C' })), 8); E.scar.count = 0; E.scar.frustumCulled = false; deck.add(E.scar);
   // his hands on the second door's rings (the hold): two fists
+  E.arm = new THREE.InstancedMesh(cyl, keep(new THREE.MeshLambertMaterial({ color: '#5E3E26' })), 2); E.arm.count = 0; E.arm.frustumCulled = false; deck.add(E.arm);
   E.fist = new THREE.InstancedMesh(keep(new THREE.SphereGeometry(0.2, 8, 6)), keep(new THREE.MeshLambertMaterial({ color: '#B98A62' })), 2); E.fist.count = 0; E.fist.frustumCulled = false; deck.add(E.fist);
   // the splash (points thrown up where the door hits the water; in the sea's frame)
   const NS = 160, sp = new Float32Array(NS * 3).fill(-999);
@@ -109,6 +115,7 @@ function buildExtras(S) {
   const Y0 = P.deckY - P.sit, q = new THREE.Group(); q.visible = false; q.name = 'h128-quay'; S.scene.add(q); E.quay = q; E.Y0 = Y0;
   const qTop = Y0 + QY.top, qx0 = QY.x[0], qx1 = QY.x[1];
   const stone = keep(new THREE.MeshLambertMaterial({ map: P.canvasTex(256, 128, (g, w, h) => { g.fillStyle = '#9C8E78'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(40,30,20,0.35)'; for (let r = 0; r < 4; r++) { g.fillRect(0, r * h / 4, w, 2); for (let k = 0; k < 6; k++) g.fillRect(((k * 53 + r * 29) % 100) / 100 * w, r * h / 4, 2, h / 4); } }), color: '#ffffff' }));
+  stone.map.wrapS = stone.map.wrapT = THREE.RepeatWrapping; stone.map.repeat.set(Math.round((qx1 - qx0) / 5), 3); stone.color.set('#E4DCCB');
   const qb = new THREE.Mesh(keep(new THREE.BoxGeometry(qx1 - qx0, qTop + 6, QY.w)), stone); qb.position.set((qx0 + qx1) / 2, (qTop - 6) / 2, QY.edge - QY.w / 2); q.add(qb);
   const wood = P.mats.gear, D0 = QY.derrick, fy = qTop;
   const post = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.35, 0.5, 1, 8)), wood); q.add(post); E.post = post;
@@ -121,8 +128,44 @@ function buildExtras(S) {
   E.hook = new THREE.Mesh(keep(hk), P.mats.dark); E.hook.name = 'h128-hook'; q.add(E.hook);
   // the quay's lines for the hoist and the hook (two segments of the same rope look, its own small mesh in the sea's frame)
   E.qrope = new THREE.InstancedMesh(cyl, ropeMat, 3); E.qrope.frustumCulled = false; q.add(E.qrope);
+  // the harbour round it (illustration, no claim): two bollards on the edge, the windlass between the derrick's men, a low harbour
+  // wall behind the quay and a few flat-roofed houses beyond it — one mesh, coloured by vertex
+  {
+    const G = [], put = (g, col, x, y, z) => { g.translate(x, y, z); const c = new THREE.Color(col), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) a.set([c.r, c.g, c.b], i * 3); g.setAttribute('color', new THREE.BufferAttribute(a, 3)); for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(k)) g.deleteAttribute(k); G.push(g.index ? g.toNonIndexed() : g); };
+    const zb = QY.edge - QY.w;
+    for (const x of QY.bollards) put(new THREE.CylinderGeometry(0.45, 0.55, 1.2, 8), '#4A4038', x, qTop + 0.6, QY.edge - 0.8);
+    { const w = new THREE.CylinderGeometry(0.55, 0.55, 3.2, 10); w.rotateX(Math.PI / 2); put(w, '#6E5232', QY.windlass[0], qTop + 1.1, QY.windlass[1]); }
+    for (const dz of [-1.7, 1.7]) put(new THREE.BoxGeometry(0.3, 1.4, 0.3), '#5A4430', QY.windlass[0], qTop + 0.7, QY.windlass[1] + dz);
+    put(new THREE.BoxGeometry(qx1 - qx0, 4.5, 1.6), '#A89C84', (qx0 + qx1) / 2, qTop + 2.25, zb + 0.8);
+    QY.houses.forEach(([x, z, w, d, h], i) => { put(new THREE.BoxGeometry(w, h, d), i % 2 ? '#D8CDB4' : '#C9BC9E', x, qTop + h / 2, z); put(new THREE.BoxGeometry(w + 0.6, 0.4, d + 0.6), '#8C7A60', x, qTop + h + 0.2, z); });
+    const hb = new THREE.Mesh(keep(mergeGeometries(G, false)), keep(new THREE.MeshLambertMaterial({ vertexColors: true }))); hb.name = 'h128-harbour'; q.add(hb);
+    // the two timbers the door is laid on
+    E.timber = new THREE.InstancedMesh(keep(new THREE.BoxGeometry(0.8, 0.5, 6)), wood, 2); E.timber.count = 0; E.timber.frustumCulled = false; S.scene.add(E.timber);
+  }
+  // the coming swells as the lifted view reads them: a long dark ridge with a foam cap, from its heading (two at most). Its height
+  // over the water: sea1's crest stays under the rail, sea2's stands over it (illustration of D 0.30 / 0.40)
+  {
+    const L = 160, Wd = 12, pos = [], col = [], cb = new THREE.Color('#1E4A50'), cf = new THREE.Color('#F4F6F0');
+    const prof = [[-Wd * 0.65, 0, cb], [-Wd * 0.1, 0.86, cb], [0, 1, cf], [Wd * 0.1, 0.9, cf], [Wd * 0.35, 0, cb]];
+    for (let i = 0; i < prof.length - 1; i++) {
+      const [x0, y0, c0] = prof[i], [x1, y1, c1] = prof[i + 1];
+      for (const [x, y, z, c] of [[x0, y0, -L / 2, c0], [x1, y1, -L / 2, c1], [x1, y1, L / 2, c1], [x0, y0, -L / 2, c0], [x1, y1, L / 2, c1], [x0, y0, L / 2, c0]]) { pos.push(x, y, z); col.push(c.r, c.g, c.b); }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+    E.ridge = new THREE.InstancedMesh(keep(g), keep(new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })), 2); E.ridge.count = 0; E.ridge.frustumCulled = false; S.scene.add(E.ridge);
+  }
+  // the swell washing over the deck in the hold: a sheet of water and foam (the deck's frame)
+  {
+    const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64; const g = cv.getContext('2d');
+    g.fillStyle = 'rgba(40,110,110,0.55)'; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = 'rgba(245,250,245,0.9)';
+    for (let i = 0; i < 90; i++) { const x = (i * 37) % 128, y = (i * 23) % 64; g.beginPath(); g.ellipse(x, y, 3 + (i % 5) * 2, 1.5 + (i % 3), 0, 0, TAU); g.fill(); }
+    const tx = keep(new THREE.CanvasTexture(cv)); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(3, 1);
+    E.wash = new THREE.Mesh(keep(new THREE.PlaneGeometry(26, 9)), keep(new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0, depthWrite: false })));
+    E.wash.rotation.x = -Math.PI / 2; E.wash.visible = false; E.wash.renderOrder = 3; deck.add(E.wash); E.washTex = tx;
+  }
   return E;
 }
+const C_WORN = new THREE.Color('#B9B2A2'), C_PALE = new THREE.Color('#FBF6E8'), C_DARK = new THREE.Color('#6A5232');
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0), _c = new THREE.Color();
 /** segment i of an instanced rope mesh from a to b with radius r */
 function seg(mesh, i, a, b, r) {
@@ -168,37 +211,42 @@ function makeSea(m, X) {
     let i = 0, f = 0;
     for (const k of ROPES) {
       const R = RP[k], r = s ? s.ropes[k] : { t: 0.5, worn: 0 }, ten = r.t, band = bandOf(ten);
-      if (R.gone) { for (let j = 0; j < 16; j++) hide(E.rope, i++); for (let j = 0; j < 12; j++) hide(E.fib, f++); continue; }
-      const slack = ten < H128.BAND.slack ? (H128.BAND.slack - ten) / H128.BAND.slack * 0.8 + 0.12 : 0;
-      const shiver = band === 'sings' || band === 'frays' ? 0.02 + 0.05 * clamp((ten - 0.7) / 0.3, 0, 1) : 0;
+      if (R.gone) { for (let j = 0; j < 16; j++) hide(E.rope, i++); for (let j = 0; j < 12; j++) hide(E.fib, f++); hide(E.coil, ROPES.indexOf(k)); continue; }
+      // the bands told apart at a glance: slack hangs in a curve (at least half an amah) and sways; quiet is straight and still;
+      // sings is straight, paler, and shivers; frays shivers, darkens and shows its strands
+      const slack = ten < H128.BAND.slack ? 0.55 + (H128.BAND.slack - ten) / H128.BAND.slack * 0.6 : 0;
+      const shiver = band === 'sings' || band === 'frays' ? 0.07 + 0.06 * clamp((ten - 0.7) / 0.3, 0, 1) : 0;
       const ax = anchorX(k), ty = top + 0.16, dz = R.slide;
       // 0 the anchor, 1..4 over the door (an arch when slack), 5..10 the outer span down to the cleat (a sag when slack), 11 the cleat
       const span = [[ax, 0.2, R.rz]];
       for (let j = 0; j <= 4; j++) { const u = j / 4, z = lerp(R.edgeIn, R.edgeOut, u) + dz; span.push([R.rx, ty + Math.sin(u * Math.PI) * slack * 0.45, z]); }
-      for (let j = 1; j <= 5; j++) { const u = j / 6, y = lerp(ty, 0.42, u) - Math.sin(u * Math.PI) * slack * 1.1; span.push([lerp(R.rx, R.cx, u * u), Math.max(0.06, y), lerp(R.edgeOut + dz, R.cz - R.sg * 0.2, u)]); }
+      for (let j = 1; j <= 5; j++) { const u = j / 6, y = lerp(ty, 0.42, u) - Math.sin(u * Math.PI) * slack; span.push([lerp(R.rx, R.cx, u * u), Math.max(0.06, y), lerp(R.edgeOut + dz, R.cz - R.sg * 0.2, u)]); }
       span.push([R.cx, 0.42, R.cz]);
       for (let j = 0; j < span.length; j++) {
         const p = pts[j].set(...span[j]);
         if (j > 0 && j < span.length - 1) {
-          const sw = slack * (0.25 * Math.sin(T * 1.3 + j * 0.6 + R.cz) + 2.5 * roll);   // (slack: it sways with the roll)
-          p.x += sw; if (shiver) { p.x += Math.sin(T * 97 + j * 2.3) * shiver; p.y += Math.cos(T * 89 + j * 1.7) * shiver * 0.5; }
+          const sw = slack * (0.35 * Math.sin(T * 1.3 + j * 0.6 + R.cz) + 3 * roll);   // (slack: it sways with the roll)
+          p.x += sw; if (shiver) { const zz = (j % 2 ? 1 : -1) * shiver; p.x += Math.sin(T * 97 + j * 2.3) * shiver + zz; p.y += Math.cos(T * 89 + j * 1.7) * shiver * 0.6 + zz * 0.5; }
         }
       }
-      const rad = 0.12;
-      for (let j = 0; j < span.length - 1; j++) seg(E.rope, i++, pts[j], pts[j + 1], rad);
+      const rad = 0.15;   // (6 px and more at the play camera's far end)
+      for (let j = 0; j < span.length - 1; j++) seg(E.rope, i++, pts[j], pts[j + 1], r.worn && j > 1 && j < 8 ? rad * 0.68 : rad);
       // the tail: from the cleat aft along the rail to its free end, drawn toward the player while a finger hauls it
       const pull = R.pull;
-      tl[0].set(R.cx, 0.42, R.cz); tl[1].set(R.cx - 0.9, 0.12, R.cz - R.sg * 0.25); tl[2].set(lerp(R.cx - 1.2, R.tx + 0.8, 0.5), 0.1, lerp(R.cz, R.tz, 0.6));
-      tl[3].set(R.tx + 0.6 - pull, 0.09 + pull * 0.15, R.tz); tl[4].set(R.tx - 0.5 - pull * 1.4, 0.09 + pull * 0.3, R.tz + R.sg * 0.4);
-      for (let j = 0; j < 4; j++) seg(E.rope, i++, tl[j], tl[j + 1], 0.085);
+      const [kx, kz] = DK.coil[k], ex = kx - pull * 1.4;
+      const sx = Math.sign(ex - R.cx) || -1, x1 = R.cx + sx * 0.6;
+      tl[0].set(R.cx, 0.42, R.cz); tl[1].set(x1, 0.12, R.cz - R.sg * 0.3); tl[2].set(lerp(x1, ex, 0.4), 0.12, lerp(R.cz - R.sg * 0.3, kz, 0.5));
+      tl[3].set(lerp(x1, ex, 0.75), 0.12 + pull * 0.15, lerp(R.cz, kz, 0.9)); tl[4].set(ex - sx * 0.62, 0.14 + pull * 0.3, kz);
+      for (let j = 0; j < 4; j++) seg(E.rope, i++, tl[j], tl[j + 1], 0.12);
+      _m.compose(_a.set(ex, 0.16 + pull * 0.3, kz), _q.identity(), _s.set(1, 1, 1)); E.coil.setMatrixAt(ROPES.indexOf(k), _m);
       // the colour: rope; paler as it sings; a worn rope greyer and lighter
-      _c.set('#A88A5C'); if (r.worn) _c.lerp(new THREE.Color('#B4AA90'), 0.55);
-      const pale = band === 'sings' ? 0.45 + 0.4 * (ten - 0.7) / 0.2 : band === 'frays' ? 0.9 : 0; if (pale) _c.lerp(new THREE.Color('#F2E8CC'), pale);
+      _c.set('#DCC69C'); if (r.worn) _c.lerp(C_WORN, 0.6);
+      if (band === 'sings') _c.lerp(C_PALE, 0.55 + 0.4 * (ten - 0.7) / 0.2); else if (band === 'frays') _c.lerp(C_DARK, 0.75);
       for (let j = i - 15; j < i; j++) E.rope.setColorAt(j, _c);
       // the strands: out along the rope over the door and down the span (frays: many and long; a worn rope: three short ones)
       const fk = band === 'frays' ? 1 : 0, wk = r.worn ? 1 : 0;
       for (let j = 0; j < 12; j++) {
-        const show = fk || (wk && j % 4 === 1);
+        const show = fk || (wk && j % 2 === 1);
         if (!show) { hide(E.fib, f++); continue; }
         const a = pts[1 + (j % 9)], b = pts[2 + (j % 9)], u = ((j * 37) % 10) / 10, len = fk ? 0.26 + 0.12 * ((j * 13) % 5) / 5 : 0.16;
         _a.lerpVectors(a, b, u); const ang = j * 2.4 + (fk ? Math.sin(T * 30 + j) * 0.25 : 0);
@@ -207,6 +255,7 @@ function makeSea(m, X) {
       }
     }
     while (i < E.NSEG) hide(E.rope, i++);
+    E.coil.instanceMatrix.needsUpdate = true;
     E.rope.instanceMatrix.needsUpdate = true; if (E.rope.instanceColor) E.rope.instanceColor.needsUpdate = true; E.fib.instanceMatrix.needsUpdate = true;
     // a door that slid when its slack rope snatched: out half an amah toward the low side and back as the rope takes it
     for (const side of ['port', 'stbd']) {
@@ -253,14 +302,40 @@ function makeSea(m, X) {
 
   /* ── the camera: the play shot and the right thumb's lift (toward the next swell's way), the films' shots ── */
   const sph = (p, t) => { const dx = p[0] - t[0], dy = p[1] - t[1], dz = p[2] - t[2], d = Math.hypot(dx, dy, dz); return { d, el: Math.asin(dy / d), az: Math.atan2(dz, dx) }; };
+  // the lift: up to u 0.2 the camera rises and pulls back aft over the stern (the tiller, the helmsman and the quarter rudders come
+  // into the frame); from 0.2 to 0.45 it goes round to a three-quarter view from the side the next swell runs to, so the swell's
+  // ridge comes at the ship from beyond her
   function lookPose(base, u, yaw, head, out) {
-    const s0 = clamp(u / 0.45, 0, 1), k = s0 * s0 * (3 - 2 * s0), extra = clamp((u - 0.45) / 0.55, 0, 1);
-    const B = sph(base[0], base[1]), L = CM.liftTop;
-    const az1 = head ? Math.atan2(headDir(head)[1], headDir(head)[0]) : B.az;
-    const az = B.az + wrapA(az1 - B.az) * sm(0.15, 0.9, s0) + yaw;
-    const el = lerp(B.el, L.el, k) + 0.3 * extra, d = lerp(B.d, L.d, k) * (1 + 0.7 * extra);
-    const t = [lerp(base[1][0], L.t[0], k), lerp(base[1][1], L.t[1], k), lerp(base[1][2], L.t[2], k)];
-    out.p = [t[0] + Math.cos(az) * Math.cos(el) * d, t[1] + Math.sin(el) * d, t[2] + Math.sin(az) * Math.cos(el) * d]; out.t = t; out.f = lerp(0.6, 0.25, k); return out;
+    const a1 = sm(0, 0.2, u), a2 = sm(0.2, 0.32, u), extra = clamp((u - 0.45) / 0.55, 0, 1);
+    const B = sph(base[0], base[1]), L = CM.liftTop, ST = sph(CM.stern[0], CM.stern[1]);
+    const dir = head ? headDir(head) : [-1, 0], azS = Math.atan2(dir[1], dir[0]) + 0.9;
+    const az0 = lerp(B.az, ST.az, a1), az = az0 + wrapA(azS - az0) * a2 + yaw;
+    const el = lerp(lerp(B.el, ST.el, a1), L.el, a2) + 0.3 * extra, d = lerp(lerp(B.d, ST.d, a1), L.d, a2) * (1 + 0.7 * extra);
+    const t0 = [0, 1, 2].map((i) => lerp(base[1][i], CM.stern[1][i], a1)), t = t0.map((v, i) => lerp(v, L.t[i], a2));
+    out.p = [t[0] + Math.cos(az) * Math.cos(el) * d, t[1] + Math.sin(el) * d, t[2] + Math.sin(az) * Math.cos(el) * d]; out.t = t; out.f = lerp(0.6, 0.25, a1); return out;
+  }
+  /** the coming swells' ridges (the sea's frame), sunk into the water as the real swell takes the ship */
+  function ridges() {
+    if (!E.ridge) return;
+    const L = (A.phase === 'ropes' && s ? swellsOf(s, T0.v) : []).concat(A.phase === 'hold' && A.hsw ? A.hsw : []);
+    let n = 0; const hx = S.state.shipX || 0;
+    for (const w of L) {
+      const p = swellPos({ t0: w.t0 }, SS.t); if (p < -150 || p > -4 || n > 1) continue;
+      const dir = headDir(w.head), hv = (w.H || 3.4) > 4 ? 5.8 : 2.6, sink = sm(-24, -6, p);
+      _m.compose(_a.set(hx + dir[0] * p, -0.9 - sink * (hv + 1.5), dir[1] * p), _q.setFromAxisAngle(_y, -Math.atan2(dir[1], dir[0])), _s.set(1, hv + 0.9, 1));
+      E.ridge.setMatrixAt(n++, _m);
+    }
+    E.ridge.count = n; E.ridge.instanceMatrix.needsUpdate = true;
+  }
+  /** the hold's swell washing over the deck and the door: a sheet of water and foam from its heading (1.6 s) */
+  function washFrame() {
+    if (!E.wash) return;
+    let on = 0;
+    if (A.phase === 'hold' && A.hsw) for (const w of A.hsw) { const p = swellPos({ t0: w.t0 }, SS.t); if (p > -8 && p < 22) {
+      const dir = headDir(w.head), u = (p + 8) / 30; on = 1;
+      E.wash.position.set(DK.hold[0] + dir[0] * lerp(-14, 14, u), P.top + 0.25, DK.hold[1] + dir[1] * lerp(-9, 9, u));
+      E.wash.rotation.z = Math.atan2(dir[1], dir[0]); E.wash.material.opacity = Math.sin(u * Math.PI) * 0.95; E.washTex.offset.x = SS.t * 0.4; } }
+    E.wash.visible = !!on;
   }
   const POSE = {};
   function look(dt) {
@@ -275,7 +350,7 @@ function makeSea(m, X) {
     const ph = A.phase;
     if (ph === 'open') { const a = A.t * 0.02; const p = CM.open[0], t = CM.open[1]; S.camDeck([p[0] * Math.cos(a) - p[2] * Math.sin(a), p[1], p[0] * Math.sin(a) + p[2] * Math.cos(a)], t, 0.3, 0.6); return; }
     if (ph === 'throw') { const c = A.throwCam || CM.throw[1]; const base = CM.throw[0]; S.camDeck(base, c, 0.35, 0.7); return; }
-    if (ph === 'hold' || ph === 'turn' || ph === 'calm') { const b = CM.hold; const k = clamp(u / 0.45, 0, 1); S.camDeck([b[0][0] - 6 * k, b[0][1] + 16 * k, b[0][2] + 14 * k + (ph === 'calm' ? A.calmT * 1.5 : 0)], b[1], 0.35, 0.7); return; }
+    if (ph === 'hold' || ph === 'turn' || ph === 'calm') { const b = CM.hold; const k = clamp(u / 0.45, 0, 1); S.camDeck([b[0][0], b[0][1] + 5 * k + (ph === 'calm' ? A.calmT * 2 : 0), b[0][2] - 2 * k - (ph === 'calm' ? A.calmT * 2 : 0)], b[1], 0.3, 0.6); return; }
     if (ph === 'sorry') { S.camDeck(CM.sorry[0], CM.sorry[1], 0.3, 0.6); return; }
     if (id === 'sea3') {
       const k = clamp(u / 0.45, 0, 1) + clamp((u - 0.45) / 0.55, 0, 1) * 0.6, a = CM.akko, b = CM.akkoLift;
@@ -288,7 +363,7 @@ function makeSea(m, X) {
   A.look = { u: 0, yaw: 0, ov: false };
 
   /* ── the fingers ── */
-  const tailScr = (k) => { const R = RP[k]; return deckScr(R.tx - 0.2 - R.pull * 1.2, 0.12 + R.pull * 0.2, R.tz); };
+  const tailScr = (k) => { const R = RP[k], c = DK.coil[k]; return deckScr(c[0] - R.pull * 1.4, 0.16 + R.pull * 0.3, c[1]); };
   const ringScr = (h) => { const hd = DK.handles.stbd[h === 'L' ? 0 : 1]; return deckScr(hd[0], P.top + 0.4, hd[1] + 0.5); };
   function nearest(p, list) { let best = null, bd = 1e9; for (const [key, q] of list) { if (!q || !q.on) continue; const d = Math.hypot(p.x - q.x, p.y - q.y); if (d < bd) { bd = d; best = key; } } return bd <= GRIP ? best : null; }
   const taken = (key) => [...A.fing.values()].includes(key);
@@ -328,13 +403,14 @@ function makeSea(m, X) {
     if (!A.fadeEl) { const el = document.createElement('div'); el.className = 'h109-ui'; el.style.cssText = 'position:fixed;inset:0;background:#0B1418;opacity:0;transition:opacity .45s;z-index:56;pointer-events:none'; document.body.appendChild(el); A.fadeEl = el; }
     A.fadeEl.style.transitionDuration = ms + 'ms'; requestAnimationFrame(() => { if (A.fadeEl) A.fadeEl.style.opacity = on ? '1' : '0'; });
   }
-  function bigLine(text, ms = 3200) {   // (the calm: the whole screen lights and the line stands large)
+  function bigLine(text, ms = 3200, rise = false) {   // (the calm: the whole screen lights and the line stands large)
     const el = document.createElement('div'); el.className = 'h109-ui';
     el.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:60;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,236,170,.85),rgba(255,214,120,.35) 45%,rgba(255,200,90,0) 75%);opacity:0;transition:opacity .25s';
-    el.innerHTML = `<b style="font:900 34px/1.25 Heebo,system-ui;color:#4A2A00;text-shadow:0 0 18px #fff8;direction:rtl;text-align:center;padding:0 24px">${text}</b>`;
-    document.body.appendChild(el); requestAnimationFrame(() => { el.style.opacity = '1'; });
+    el.innerHTML = `<b style="font:900 34px/1.25 Heebo,system-ui;color:#4A2A00;text-shadow:0 0 18px #fff8;direction:rtl;text-align:center;padding:0 24px;transition:transform 2.2s ease-out">${text}</b>`;
+    if (rise) { el.style.background = 'none'; el.firstChild.style.color = '#FFF6DC'; el.firstChild.style.textShadow = '0 2px 12px #000c'; el.firstChild.style.transform = 'translateY(60px)'; }   // (his words rise over the hold)
+    document.body.appendChild(el); requestAnimationFrame(() => { el.style.opacity = '1'; if (rise) el.firstChild.style.transform = 'translateY(-90px)'; });
     setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, ms);
-    try { if (X.haptic) X.haptic([30, 50, 30, 50, 80]); } catch (e) { /* */ }
+    if (!rise) try { if (X.haptic) X.haptic([30, 50, 30, 50, 80]); } catch (e) { /* */ }
   }
 
   /* ── the weather of each work ── */
@@ -436,13 +512,13 @@ function makeSea(m, X) {
   function turnFrame(dt) {
     A.tuT += dt; const n = nic(), c = crew();
     LIFTERS.forEach((i) => { const a = c[i]; if (a && !a.path) { a.yaw = Math.atan2(DK.doors.stbd[0] - a.x, DK.doors.stbd[1] - a.z); a.bowT = 0.35; a.armT = [1.2, -0.3, 1.2, -0.3]; } });
-    if (!n.path) { n.x = DK.hold[0]; n.z = DK.hold[1] - 0.2; n.y = P.top; n.yaw = Math.PI / 2; n.bowT = 1.3; n.knT = 1; n.armT = [1.55, 0.95, 1.55, 0.95]; }
+    if (!n.path) { n.x = DK.hold[0]; n.z = DK.hold[1] + 0.2; n.fixedY = P.top; n.yaw = Math.PI / 2; n.bowT = 1.35; n.knT = 1; n.armT = [1.7, 1.2, 1.7, 1.2]; }
     if (mouse) { const kp = c[1]; if (kp && !kp.path) { kp.yaw = Math.atan2(DK.handles.stbd[1][0] - kp.x, DK.handles.stbd[1][1] - kp.z); kp.bowT = 1.1; kp.knT = 0.8; kp.armT = [0.9, 0, 0.9, 0]; } }
     if (A.tuT > 2.4 && !n.path) { A.phase = 'hold'; X.line(mouse ? 'הניחו יד על הטבעת שלפניכם: המלח מחזיק את השנייה' : 'שני האגודלים על שתי הטבעות', 4200); }
   }
   // the fists: on the rings while held; a slipping hand slides along its ring (1.2 s) and comes off beside it
   function fistsFrame() {
-    const H = A.hold; if (!H) { E.fist.count = 0; return; }
+    const H = A.hold; if (!H) { E.fist.count = 0; E.arm.count = 0; return; }
     let n = 0;
     for (const h of ['L', 'R']) {
       const hd = DK.handles.stbd[h === 'L' ? 0 : 1], on = H.on[h] || (mouse && h === 'R'), sl = H.slip[h] > 0 ? 1 - H.slip[h] / HOLD.SLIP : 0;
@@ -450,9 +526,11 @@ function makeSea(m, X) {
       let x = hd[0], y = P.top + 0.42, z = hd[1] + 0.5;
       if (sl) { const a = sl * 2.2; x += Math.sin(a) * 0.62 * (h === 'L' ? -1 : 1); z += (Math.cos(a) - 1) * 0.62; }
       if (H.off[h]) { x += (h === 'L' ? -1.1 : 1.1); z += 0.9; y = P.top + 0.1; }
-      _m.compose(_a.set(x, y, z), _q.identity(), _s.set(1.1, 0.8, 0.9)); E.fist.setMatrixAt(n++, _m);
+      _m.compose(_a.set(x, y, z), _q.identity(), _s.set(1.1, 0.8, 0.9)); E.fist.setMatrixAt(n, _m);
+      // his arm out along the door to that hand (he lies on the door between the rings, an arm to each)
+      const nn = nic(); seg(E.arm, n++, v4.set(nn.x + (h === 'L' ? -0.5 : 0.5), P.top + 0.55, nn.z + 0.15), _a.set(x, y, z), 0.17);
     }
-    E.fist.count = n; E.fist.instanceMatrix.needsUpdate = true;
+    E.fist.count = n; E.arm.count = n; E.arm.instanceMatrix.needsUpdate = true; E.fist.instanceMatrix.needsUpdate = true;
   }
   function holdStep1(dt) {
     const H = hold;
@@ -460,7 +538,7 @@ function makeSea(m, X) {
     const w = holdSwell(H); if (w && !A.hsw.some((q) => q.n === w.n)) A.hsw.push({ head: w.head, t0: w.t0 + T0.v, H: HOLD_H, n: w.n });
     for (const e of H.ev) {
       ev('hold:' + e.e + (e.hand || ''));
-      if (e.e === 'line') { X.line(LINES.hold, 4200); V.creak(); }
+      if (e.e === 'line') { bigLine(LINES.hold, 2400, true); X.line(LINES.hold, 4200); V.creak(); }
       if (e.e === 'held') { V.creak(); SS.shake = 0.8; const q = deckScr(DK.hold[0], P.top + 1, DK.hold[1]); X.quick({ sx: q.x, sy: q.y }, 'החזקתם!'); }
       if (e.e === 'again') { SS.shake = 0.8; X.line('יד אחת לא הייתה על הטבעת: הגל חוזר', 2600); }
       if (e.e === 'off') { try { if (X.haptic) X.haptic(12); } catch (er) { /* */ } }
@@ -476,8 +554,8 @@ function makeSea(m, X) {
   function calmFrame(dt) {
     A.calmT += dt;
     if (A.calmT > 4.2) {
-      A.phase = 'sorry'; A.soT = 0; A.hold = null; E.fist.count = 0;
-      const n = nic(); n.y = 0; n.bowT = 0.15; n.knT = 0; n.armT = [0.3, 0.05, 0.3, 0.05]; S.actors.walk(n, [DK.sorry], 1.6);
+      A.phase = 'sorry'; A.soT = 0; A.hold = null; E.fist.count = 0; E.arm.count = 0;
+      const n = nic(); delete n.fixedY; n.y = 0; n.bowT = 0.15; n.knT = 0; n.armT = [0.3, 0.05, 0.3, 0.05]; S.actors.walk(n, [DK.sorry], 1.6);
       if (mouse) { const kp = crew()[1]; if (kp) kp.own128 = false; }
       LIFTERS.forEach((i) => { const a = crew()[i]; if (a) a.own128 = false; });
       X.line(LINES.sorry, 5200);
@@ -531,6 +609,14 @@ function makeSea(m, X) {
     _a.set(hd, D.T + 0.38, 0).applyEuler(g.rotation); g.position.copy(ring).sub(_a);
     ak3.ring.copy(ring);
     if (a.phase !== 'hook') ak3.hook.copy(ring).add(_b.set(0, 0.35, 0));
+    // the landing: its lower edge on the quay, then the crew tips it down flat onto two timbers (about 2 s)
+    if (a.phase === 'land' || A.phase === 'landed') {
+      const L2 = D.L / 2;
+      if (!A.p0 || A.phase !== 'landed') A.p0 = [g.position.x, qTop(), g.position.z];
+      const p0 = A.p0, k = A.phase === 'landed' ? ease(clamp((A.laT - 0.4) / 2, 0, 1)) : 0;
+      E.timber.count = 2; for (const j of [0, 1]) { _m.compose(_a.set(p0[0] + L2 + (j ? 5 : -5), p0[1] + 0.25, p0[2]), _q.identity(), _s.set(1, 1, 1)); E.timber.setMatrixAt(j, _m); } E.timber.instanceMatrix.needsUpdate = true;
+      if (A.phase === 'landed') { const r = Math.PI / 2 * (1 - k); g.rotation.set(0, 0, r); g.position.set(p0[0] + Math.cos(r) * L2, p0[1] + Math.sin(r) * L2 + k * 0.5, p0[2]); }
+    }
   }
   function akkoQuay() {
     const f = E.derrickFoot, h = ak3.head;
@@ -586,13 +672,16 @@ function makeSea(m, X) {
         const g = new T.Group(); X.props.root.add(g);
         const bed = new T.Mesh(new T.BoxGeometry(21, 0.5, 5.8), Mx.wood); bed.position.y = 1.5; g.add(bed);
         for (const [x, z] of [[-8, -3], [8, -3], [-8, 3], [8, 3]]) { const wh = new T.Mesh(new T.CylinderGeometry(1.2, 1.2, 0.35, 14), Mx.dark); wh.rotation.x = Math.PI / 2; wh.position.set(x, 1.2, z); g.add(wh); }
-        const lf = leafSlab(X, w === 1, false); lf.rotation.z = -Math.PI / 2; lf.position.set(-10, 1.75 + 0.2, -2.5); g.add(lf);
+        const lf = leafSlab(X, w === 1, false); lf.rotation.z = -Math.PI / 2; lf.position.set(-10, 1.75 + 0.45, -2.5); g.add(lf);   // (lying flat, its face up)
         g.position.set(C.from[0] + w * C.gap, C.from[2], C.from[1]); A.wag.push(g);
       }
       A.men = [];
-      try { for (let j = 0; j < 4; j++) { const w = SH6.crew.add(C.from[0] - 11.5, C.from[1] + (j % 2 ? 1.6 : -1.6) + (j > 1 ? 0 : 0), { role: 'hold', crew: 1 + (j % 3) }); if (w) A.men.push(w); } } catch (e) { /* */ }
+      try { for (let j = 0; j < 4; j++) { const w = SH6.crew.add(C.from[0] + (j > 1 ? C.gap : 0), C.from[1] + (j % 2 ? 4.2 : -4.2), { role: 'hold', crew: 1 + (j % 3) }); if (w) A.men.push(w); } } catch (e) { /* */ }
+      // two yoke of oxen draw each wagon (the old world's bulls)
+      A.ox = [];
+      try { A.anim = createAnimals({ scene: X.scene, camera: X.camera, ground: (x, z) => { try { return X.ground(x, z); } catch (e) { return C.from[2]; } } }); for (let j = 0; j < 4; j++) { const o = A.anim.add('bull', C.from[0], C.from[1], { yaw: -Math.PI / 2, calm: true, scale: 0.9 }); if (o) A.ox.push(o); } } catch (e) { console.warn('[h128] oxen', e && e.message); }
       X.kohen(true);
-      X.shot(S6.cam.caravan[0], S6.cam.caravan[1], 0.01);
+      caravanFrame(0);
       X.line('השיירה עולה לירושלים עם הדלתות · הקישו לדלג', 5200);
       fade(false, 500);
       A.caOn = 1;
@@ -600,9 +689,13 @@ function makeSea(m, X) {
   }
   function caravanFrame(dt) {
     A.caT += dt; if (!A.caOn) return;
-    const C = S6.caravan, u = ease(clamp((A.caT - 0.45) / 5, 0, 1)), x0 = C.from[0], x1 = C.to[0];
-    (A.wag || []).forEach((g, w) => { g.position.x = lerp(x0, x1, u) + w * C.gap; });
-    (A.men || []).forEach((w, j) => { const x = lerp(x0, x1, u) - 11.5 - (j > 1 ? 2.2 : 0); w.a.path = [[x, C.from[1] + (j % 2 ? 1.6 : -1.6)]]; w.a.pi = 0; w.a.speed = 6; w.a.walkT0 = undefined; });
+    const C = S6.caravan, u = clamp((A.caT - 0.2) / 5.2, 0, 1), x0 = C.from[0], x1 = C.to[0], xu = lerp(x0, x1, u), gy = (x) => { try { const v = X.ground(x, C.from[1]); return Number.isFinite(v) ? v : C.from[2]; } catch (e) { return C.from[2]; } };
+    (A.wag || []).forEach((g, w) => { g.position.x = xu + w * C.gap; g.position.y = Math.max(gy(g.position.x - 9), gy(g.position.x + 9)); for (const wh of g.children) if (wh.geometry && wh.geometry.type === 'CylinderGeometry') wh.rotation.y = -u * 4; });
+    (A.men || []).forEach((w, j) => { const x = xu + (j > 1 ? C.gap : 0) - 2 - (j % 2) * 3; w.a.path = [[x - 1.5, C.from[1] + (j % 2 ? 4.2 : -4.2)]]; w.a.pi = 0; w.a.speed = 6; w.a.walkT0 = undefined; });
+    (A.ox || []).forEach((o, j) => { o.x = xu + (j > 1 ? C.gap : 0) - 14 - (j % 2 ? 0 : 0.2); o.z = C.from[1] + (j % 2 ? 1.3 : -1.3); o.yaw = -Math.PI / 2; });
+    try { if (A.anim) { A.anim.walk && A.ox.forEach((o) => { o.moving = u < 1; }); A.anim.update(dt); } } catch (e) { /* */ }
+    // the camera goes with them from the side
+    const xm = xu + C.gap * 0.3; X.shot([xm - 6, gy(xm) + 9, C.from[1] + 24], [xm, gy(xm) + 1.5, C.from[1]], 0.01);
     if (A.caT > 5.6 || (A.skip && A.caT > 1)) { A.skip = 0; end1(); }
   }
   function mats(X2) {
@@ -631,7 +724,7 @@ function makeSea(m, X) {
     if (A.phase === 'calm') calmFrame(dt);
     if (A.phase === 'sorry') sorryFrame(dt);
     if (ak && ['hook', 'hoist', 'slew', 'land'].includes(A.phase)) akkoStep1(dt);
-    if (A.phase === 'landed') { A.laT += dt; if (A.laT > 2.2) caravanStart(); }
+    if (A.phase === 'landed') { A.laT += dt; if (A.laT > 3.4) caravanStart(); }
     if (A.phase === 'end') { A.endT += dt; if (A.endT > 1.2) end1(); }
     if (A.phase === 'open') { if (A.t > 6 || A.skip) { A.skip = 0; X.line('', 0); playStart(); } }
     if (A.phase === 'caravan') { caravanFrame(dt); return; }
@@ -639,6 +732,7 @@ function makeSea(m, X) {
     weather();
     tasksFrame(dt); splashFrame(dt);
     if (ak) { akkoQuay(); akkoDoor(dt); }
+    ridges(); washFrame();
     S.update(SS.t, dt);
     if (s) drawRopes(dt); fistsFrame();
     look(dt); S.aim();
@@ -691,13 +785,14 @@ function makeSea(m, X) {
       try { if (A.fadeEl) A.fadeEl.remove(); } catch (e) { /* */ }
       try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
       for (const g of A.wag || []) X.props.remove(g);
+      try { for (const o of A.ox || []) A.anim.remove(o); } catch (e) { /* */ }
       for (const w of A.men || []) { try { SH6.crew.remove(w); } catch (e) { /* */ } }
       for (const a of A.dcrew || []) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }
       if (SS.act === actApi) { SS.act = null; SS.idle = 0; }
     },
     at() { return { x: S6.eastGate[0], y: S6.eastGate[2] + 2, z: S6.eastGate[1] }; },
     dbg() {
-      const o = { id, phase: A.phase, t: +A.t.toFixed(2), seaT: +SS.t.toFixed(2), look: { u: +A.look.u.toFixed(3), yaw: +A.look.yaw.toFixed(2), ov: !!A.look.ov }, calls: SS.calls, tris: SS.tris, drawMs: +SS.drawMs.toFixed(2), mouse, ev: A.ev.slice(-10), downs: A.downs, nf: FG.n, fing: [...A.fing.values()], grip: GRIP };
+      const o = { id, phase: A.phase, ox: (A.ox || []).length, t: +A.t.toFixed(2), seaT: +SS.t.toFixed(2), look: { u: +A.look.u.toFixed(3), yaw: +A.look.yaw.toFixed(2), ov: !!A.look.ov }, calls: SS.calls, tris: SS.tris, drawMs: +SS.drawMs.toFixed(2), mouse, ev: A.ev.slice(-10), downs: A.downs, nf: FG.n, fing: [...A.fing.values()], grip: GRIP };
       if (S) { const d = S.dbg(); o.k = d.k; o.brk = d.brk; o.roll = d.roll; o.scriptMs = d.scriptMs; }
       if (s) {
         o.mt = +s.t.toFixed(2); o.T0 = +T0.v.toFixed(2);

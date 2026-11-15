@@ -807,7 +807,8 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     try { if (ui && ui.refresh) ui.refresh(); } catch (e) { /* */ }
     uiMount();
     const q = at ? (at.sx != null ? { x: at.sx, y: at.sy } : scr(at.x, at.y, at.z)) : { x: innerWidth / 2, y: innerHeight * 0.4 };   // ── h128 ── (at.sx: a screen point) ── /h128 ──
-    const el = document.createElement('div'); el.className = 'h109-ui h109-loss'; el.innerHTML = `<b>${d ? '−' + d : '0'}</b>${label ? `<span>${label}</span>` : ''}${stones ? `<small>−${stones} ${res === 'cedar' ? (stones === 1 ? 'ארז' : 'ארזים') : stones === 1 ? 'אבן' : 'אבנים'} מהמלאי</small>` : ''}`;
+    // ── h128 ── (a cut of 0 with words: the damage's words only, no red 0) ── /h128 ──
+    const el = document.createElement('div'); el.className = 'h109-ui h109-loss'; el.innerHTML = `${d || !label ? `<b>${d ? '−' + d : '0'}</b>` : ''}${label ? `<span>${label}</span>` : ''}${stones ? `<small>−${stones} ${res === 'cedar' ? (stones === 1 ? 'ארז' : 'ארזים') : stones === 1 ? 'אבן' : 'אבנים'} מהמלאי</small>` : ''}`;
     el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el);
     requestAnimationFrame(() => el.classList.add('on')); setTimeout(() => el.remove(), 2600);
     try { const tb = document.querySelector('.gm-sc'); if (tb) { tb.classList.add('h109-hurt'); setTimeout(() => tb.classList.remove('h109-hurt'), 700); } } catch (e) { /* */ }

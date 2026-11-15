@@ -515,7 +515,7 @@ const S06 = {
   levites: { from: [27, -4, 6], to: [12, 0, 13.5] },
   // (part 3) the caravan from Akko: the two wagons with the doors come in through the court's east gate house (from outside it to the
   // place the doors are awaited; המחשה)
-  caravan: { from: [150, 0, 6], to: [126, 0, 6], gap: 23 },
+  caravan: { from: [190, 0, 6], to: [146, 0, 6], gap: 23 },   // (part 3: the stage's bounds reach x 200 for the caravan's approach)
   // the Ulam and the House as one block (avodah/day/cam28.js's own: the camera is never in the porch): the right thumb's lifted view
   // from inside the Azarah keeps out of it
   house: [-177, 15.5, -50.5, -76.7, 116, 50.5],
@@ -578,9 +578,13 @@ const S06 = {
       helm: [-30.25, 2.2],
       // (part 3, the play; המחשה) where a sailor stands to make each rope fast on its cleat (forward of it and inboard: never between the
       // play camera and a rope); the two lashers' own places in the play are the aft ones
-      fast: { portFore: [-3.4, -5.1], portAft: [-17.4, -5.1], stbdFore: [-3.4, 5.1], stbdAft: [-17.4, 5.1] },
+      fast: { portFore: [-3.6, -6.4], portAft: [-14.5, -6.4], stbdFore: [-3.6, 6.4], stbdAft: [-14.5, 6.4] },
       // a ring pulled out of the deck: the next ring the rope is tied to (amot along x from the old one: aft for a fore ring, fore for an aft one)
       next: 1.6,
+      // (part 3, the play) each tail's end coiled on the deck toward the player: the grip (x, z), two to port and two to starboard,
+      // forward of the play camera and clear of every figure (the aft pair laid forward along the rail: aft of their cleats the deck
+      // is under the frame's foot)
+      coil: { portFore: [-7.5, -6.1], portAft: [-16.5, -6.1], stbdFore: [-7.5, 6.1], stbdAft: [-16.5, 6.1] },
       // the throw: the four sailors round the port door (two at its inboard edge, two at the rail) and where the door goes over the side
       lift: [[-15.5, -0.4], [-8.5, -0.4], [-15.5, -6.3], [-8.5, -6.3]],
       // the hold: Nicanor down on the starboard door (his chest at its middle), the sailor who keeps the other ring for a mouse's
@@ -594,7 +598,10 @@ const S06 = {
       // (part 3) the hoisting rope's hauling end on the quay (where the derrick's crew and the player's thumb haul: x, z), the hook's rest
       // over the water before it is taken (x, z, y over the deck), the quay's width inland, the derrick's crew (x, z). (The derrick's
       // head was 16 over the deck in part 1; a leaf 20 long hung by its ring must clear the quay: 27.)
-      haul: [-4.5, -13.6], hookRest: [-17.5, -8.4, 5], w: 26, crew: [[-6.5, -14.6], [-3, -12.8]] },
+      haul: [-4.5, -13.6], hookRest: [-17.5, -8.4, 5], w: 26, crew: [[-6.5, -14.6], [-3, -12.8], [-4.8, -16.2]],
+      // (part 3, illustration) the windlass between the derrick's men (x, z), the bollards on the edge (x), the houses beyond the
+      // harbour wall, where Akko's camera sees them past the quay's end ([x, z, width, depth, height])
+      windlass: [-4.8, -14.4], bollards: [-30, 12], houses: [[46, -14, 9, 7, 6], [50, -26, 7, 8, 8], [58, -38, 10, 6, 5], [30, -40, 8, 8, 7], [12, -42, 9, 7, 6]] },
     // (part 3) the opening picture: Alexandria's low shore astern as the ship leaves (המחשה: its x behind the stern, its length)
     coast: { x: -420, w: 1400, h: 7 },
     // the sea's cameras in the deck's frame ([eye], [aim]): the play camera behind and above Nicanor (the doors and four ropes in frame,
@@ -607,10 +614,12 @@ const S06 = {
       // place, the opening picture (from ahead of her, looking aft: the shore she leaves behind her), Akko (from the quay, far aft of the
       // derrick, so its head, the hung door and its landing place are all in frame: the gap between her side and the quay where the door rises, the hook on the right, the hauling end on the left) and
       // its lifted view (the derrick, the door and the quay from above)
-      // (the play's own deck shot: the look's play camera nine amot further aft and a little higher, so the helmsman at the cross
-      //  tiller and the sailor at the port rudder stand whole in the frame's foot)
-      deck: [[-50, 12.5, 0], [-3, 0, 0]],
-      liftTop: { d: 96, el: 0.5, t: [-8, 0, 0] }, throw: [[-12, 10, 13], [-12, 0, -8]], hold: [[-12, 13, 24], [-12, 0.4, 1.8]],
+      // (the play's own deck shot: low and close over the two doors from aft, forward of the helmsman and the tiller (they are behind
+      //  it), so the doors and their four ropes fill the frame; lifted, it rises and pulls back over the stern)
+      deck: [[-28.6, 14, 0], [-12, 0, 0]],
+      liftTop: { d: 56, el: 0.55, t: [-8, 0, 0] },
+      // (the lift at u 0.2: risen and pulled back aft, the stern whole in the frame: its tiller, the helmsman, the quarter rudders)
+      stern: [[-56, 19, 0], [-14, 0, 0]], throw: [[-12, 10, 13], [-12, 0, -8]], hold: [[-12, 10.5, -3.6], [-12, 0.6, 3.4]],
       sorry: [[-27, 6.5, 7], [-12, 1, -3.4]], open: [[64, 22, 46], [-18, 4, 0]],
       akko: [[-52, 15, -36], [-12, 9, -11]], akkoLift: [[-42, 52, -52], [-12, 6, -12]] },
     // the cloud break (המחשה, build 128 sea look 2), in the sea's frame: where the bright patch of light first falls on the water
@@ -650,11 +659,11 @@ function s06() {
   E.push(ent('gate:hingeS', 'hinge', C.gate.hinge.S[0], C.gate.hinge.S[1], 'ציר הכנף הדרומית של שער ניקנור', ILL, { y: C.gate.sill }));
   e3('levites:from', 'levites', C.levites.from, 'הלויים מחכים בעזרת הנשים לפני עלות השחר', ILL);
   e3('caravan:from', 'wagon', C.caravan.from, 'השיירה מעכו: העגלות עם הדלתות מחוץ לשער המזרחי', ILL);
-  e3('caravan:to', 'wagon', C.caravan.to, 'העגלות עם הדלתות בעזרת הנשים, במקום שמחכים בו לדלתות', ILL);
+  e3('caravan:to', 'wagon', C.caravan.to, 'העגלות עם הדלתות נכנסות בשער המזרחי', ILL);
   // the sea sheet's own entries: { id, kind, cell, k, r, km [east, south of the sheet's north-east corner, the cell's middle], label, src }
   const SEA = C.sea, km = SEA.sheet.km, SL = { alexandria: ['יציאה מאלכסנדריא (רואים ולא משחקים)', 'יומא לח ע"א'], storm: ['הסערה והנחשול', ILL], akko: ['נמלה של עכו', 'יומא לח ע"א'] };
   const seaE = Object.entries(SEA.places).map(([id, [k, r]]) => ({ id, kind: 'sea', cell: seaName(k, r), k, r, km: [-(k + 0.5) * km, (r + 0.5) * km], label: SL[id][0], src: SL[id][1] }));
-  return { stage: 6, name: 'שער ניקנור וחמש עשרה המעלות', bounds: { x0: -20, x1: 160, z0: -30, z1: 30 }, ...C, sea: { ...SEA, entries: seaE }, entries: E };
+  return { stage: 6, name: 'שער ניקנור וחמש עשרה המעלות', bounds: { x0: -20, x1: 200, z0: -30, z1: 30 }, ...C, sea: { ...SEA, entries: seaE }, entries: E };
 }
 /** a ring of the fifteen steps (i 1 … 15, 1 the lowest): its outer radius, its tread's middle radius, its base and its top (amot) */
 export function ringOf(i) { const S = S06.steps, R = S.R1 - S.tread * (i - 1); return { i, R, mid: R - S.tread / 2, base: S.floor + S.rise * (i - 1), top: S.floor + S.rise * i }; }

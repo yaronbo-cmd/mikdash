@@ -669,7 +669,9 @@ function makeSea(m, X) {
     seg(E.qrope, 2, _a.set(f.x, f.y + 1.2, f.z), v4.set(QY.haul[0], qTop() + 1, QY.haul[1]), 0.07);
     E.qrope.instanceMatrix.needsUpdate = true;
     for (const [j, w] of (A.dcrew || []).entries()) {   // (hand over hand while the rope is hauled; braced when it is eased)
-      const q = QY.crew[j]; w.x = q[0]; w.z = q[1]; w.y = 0; w.yaw = Math.atan2(f.x - q[0], f.z - q[1]);
+      // (they are figures of the deck's layer: their place on the quay's top, which is the sea's frame, put into the deck's frame each
+      //  frame — the ship rises and falls at the quay, the quay does not)
+      const q = QY.crew[j]; v3.set(q[0], qTop(), q[1]); S.deck.worldToLocal(v3); w.x = v3.x; w.z = v3.z; w.y = w.fixedY = v3.y; w.yaw = Math.atan2(f.x - q[0], f.z - q[1]);
       const hv = Math.sin(SS.t * 7 + j) * clamp((A.haulV || 0) + (A.easeV || 0), 0, 1);
       w.bowT = 0.35 + 0.15 * hv; w.knT = 0.2; w.armT = [1.3 + 0.5 * hv, -0.15, 1.3 - 0.5 * hv, -0.15];
     }

@@ -309,7 +309,7 @@ function passageBuild(X) {
   ashBox(X, x0, GT.sill, h, x1, GT.top, h + 0.6, g);
   // (the holes cut the gate house's east face 0.9 deep beside the doors, where the old steps stood, from the floor to the doors' top
   //  — stages.siteHoles takes one height for all its rectangles — and the model is hollow: this face stands again over each ring)
-  for (const sg of [1, -1]) ashBox(X, x1, GT.sill, sg > 0 ? h : -h - 0.6, x1 + 0.9, GT.top, sg > 0 ? h + 0.6 : -h, g);   // (the passage's hole runs 0.9 past its east end: its jambs there, so no slit beside the doors)
+  for (const sg of [1, -1]) ashBox(X, x1, GT.sill, sg > 0 ? h : -h - 1.35, x1 + 0.9, GT.top, sg > 0 ? h + 1.35 : -h, g);   // (the passage's hole runs 0.9 past its east end: its jambs there, out to where the faces over the rings begin (h + 1.35), so no slit beside the doors)
   const zA = h + 1.35, zB = STP.R1 + 0.1;
   for (let i = 1; i <= 15; i++) {
     const R = ringOf(i), zo = Math.min(zB, R.R), zi = Math.max(zA, R.R - STP.tread); if (zo <= zi) continue;

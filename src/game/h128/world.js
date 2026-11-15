@@ -247,6 +247,14 @@ function passageBuild(X) {
   box(X, M.h6pass, x0, STP.floor, -h, x1, GT.sill, h, g);              // the passage's floor (the gate house's body under it)
   box(X, M.h6pass, x0, GT.sill, -h - 0.6, x1, GT.top, -h, g);          // its two sides
   box(X, M.h6pass, x0, GT.sill, h, x1, GT.top, h + 0.6, g);
+  // (the holes cut the gate house's east face 0.9 deep beside the doors, where the old steps stood, from the floor to the doors' top
+  //  — stages.siteHoles takes one height for all its rectangles — and the model is hollow: this face stands again over each ring)
+  const zA = h + 1.35, zB = STP.R1 + 0.1;
+  for (let i = 1; i <= 15; i++) {
+    const R = ringOf(i), zo = Math.min(zB, R.R), zi = Math.max(zA, R.R - STP.tread); if (zo <= zi) continue;
+    for (const sg of [1, -1]) box(X, M.h6stone, x1, R.top, sg > 0 ? zi : -zo, x1 + 0.9, GT.top, sg > 0 ? zo : -zi, g);
+  }
+  { const R = ringOf(15), zo = Math.min(zB, R.R - STP.tread); if (zo > zA) for (const sg of [1, -1]) box(X, M.h6stone, x1, R.top, sg > 0 ? zA : -zo, x1 + 0.9, GT.top, sg > 0 ? zo : -zA, g); }
   SH6.parts.ceil = box(X, M.h6pass, x0, GT.top, -h - 0.6, x1, GT.top + 0.6, h + 0.6, g);  // its ceiling (the closing's lifted view looks in from above: close.js hides it then)
   return g;
 }

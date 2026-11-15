@@ -128,6 +128,7 @@ export const CLOSE = {
       wants(p) { if (!p) return true; return A.phase === 'push' && p.y > innerHeight * 0.22; },
       holds() { return Object.values(A.fv).some(Boolean); },   // (a thumb that has pushed or braked holds its leaf: two fingers that only slide toward each other are a pinch)
       end() {
+        A.phase = 'done';   // (the opening's timed hint and line do not come after the act has ended)
         lift(0); FG.detach(); V.stop(); X.hand(null);
         for (const k of KS) { try { X.props.remove(leaf[k]); } catch (e) { /* */ } for (const w of men[k]) SH6.crew.remove(w); }
         kill(X);

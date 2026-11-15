@@ -110,7 +110,7 @@ export function makePack06() {
       try {
         rig.apply(0);
         // 1. the Levites climb the fifteen steps; each ring sounds its note as they step on it (his three as he built them)
-        X.shot(CAM.endSteps[0], CAM.endSteps[1], 1.2);
+        X.shot(CAM.endSteps[0], CAM.endSteps[1], 0.01);   // ── h128 ── (a cut, not a flight: from inside the Azarah the flight went through the closed leaves, a frame of dark bronze underside) ── /h128 ──
         X.line(LINES.levites, 0);
         const fr = S6.levites.from, to = S6.levites.to, crew = SH6.crew;
         for (let k = 0; k < 6; k++) { const w = crew && crew.add(fr[0] + (k % 3) * 1.6, fr[1] + Math.floor(k / 3) * 2.4 - 1.2, { variant: 'levite', item: k % 2 ? 'kinor' : 'nevel', crew: 0, tunic: '#F4F1E8' }); if (w) { w.a.playing = true; lev.push(w); } }

@@ -745,7 +745,9 @@
         const dy = Math.max(-170, Math.min(170, (want[best] - R[best].tgt) * 240)), y1 = Math.max(40, Math.min(HH - 40, q[1] + dy));
         return { drag: [q[0], q[1], q[0], y1, 320], wait: 60, note: `sea: ${best} ${R[best].tgt} → ${want[best]} (swell ${w.head} in ${inn.toFixed(1)} s)` };
       }
-      if (a.phase === 'throw') { K.th0 = K.th0 || now(); const dt = (now() - K.th0) / 1000; for (const [t, n] of [[3.6, 'fall'], [5.0, 'splash'], [8, 'down'], [11.6, 'gone']]) if (dt > t && !K['th' + n]) { K['th' + n] = 1; return { wait: 20, shot: 'sea-throw-' + n }; } return { wait: 100 }; }
+      // (build 128 B3: the throw's stills by the door's own moments — over the rail and falling, the splash, going down, gone)
+      if (a.phase === 'throw') { const t = a.th || {}; for (const [ok, n] of [[t.off && !t.wet, 'fall'], [t.wet && t.wetT > 0.15, 'splash'], [t.wet && t.wetT > 2.2, 'down'], [t.sunk, 'gone']]) if (ok && !K['th' + n]) { K['th' + n] = 1; return { wait: 10, shot: 'sea-throw-' + n }; } return { wait: 60 }; }
+      if (a.phase === 'turn' && !K.thgone) { K.thgone = 1; return { wait: 10, shot: 'sea-throw-gone' }; }
       if (a.phase === 'turn') return shotOnce('turn', 'sea-turn', 600) || { wait: 300 };
       if (a.phase === 'calm') return shotOnce('calm', 'sea-calm', 700) || { wait: 300 };
       if (a.phase === 'sorry') return shotOnce('sorry', 'sea-sorry', 1500) || { wait: 400 };

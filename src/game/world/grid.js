@@ -595,7 +595,7 @@ const S06 = {
       // is under the frame's foot)
       coil: { portFore: [-7.5, -6.1], portAft: [-16.5, -6.1], stbdFore: [-7.5, 6.1], stbdAft: [-16.5, 6.1] },
       // the throw: the four sailors round the port door (two at its inboard edge, two at the rail) and where the door goes over the side
-      lift: [[-15.5, -0.4], [-8.5, -0.4], [-15.5, -6.3], [-8.5, -6.3]],
+      lift: [[-15.5, -0.4], [-8.5, -0.4], [-19, -0.2], [-5, -0.2]],   // (B3: all four at its inboard edge: the rail side is the camera's)
       // the hold: Nicanor down on the starboard door (his chest at its middle), the sailor who keeps the other ring for a mouse's
       // player (beside it, fore and inboard), and the empty place he stands before afterwards (by the port door's timbers)
       hold: [-12, 3.2], keeper: [-6.1, 4.5], sorry: [-12, 0.2],
@@ -628,7 +628,7 @@ const S06 = {
       deck: [[-28.6, 14, 0], [-12, 0, 0]],
       liftTop: { d: 56, el: 0.55, t: [-8, 0, 0] },
       // (the lift at u 0.2: risen and pulled back aft, the stern whole in the frame: its tiller, the helmsman, the quarter rudders)
-      stern: [[-56, 19, 0], [-14, 0, 0]], throw: [[-12, 10, 13], [-12, 0, -8]], hold: [[-12, 10.5, -3.6], [-12, 0.6, 3.4]],
+      stern: [[-56, 19, 0], [-14, 0, 0]], throw: [[-5, 10, -23], [-12, 0, -9]] /* (B3: outboard of the port rail and above it, looking down at the water beside her side) */, hold: [[-12, 10.5, -3.6], [-12, 0.6, 3.4]],
       sorry: [[-27, 6.5, 7], [-12, 1, -3.4]], open: [[64, 22, 46], [-18, 4, 0]],
       akko: [[-52, 15, -36], [-12, 9, -11]], akkoLift: [[-42, 52, -52], [-12, 6, -12]] },
     // the cloud break (המחשה, build 128 sea look 2), in the sea's frame: where the bright patch of light first falls on the water

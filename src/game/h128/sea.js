@@ -472,7 +472,7 @@ function makeSea(m, X) {
   function throwFrame(dt) {
     A.thT += dt; const t = A.thT, g = door(), c = crew();
     // the sailors: at the door, bent to its edge (0–2 s), lifting (2–3.6 s), heaving it over the rail (3.6–4.4 s), then they turn
-    LIFTERS.forEach((i, j) => { const a = c[i]; if (!a || a.path) return; const lf = DK.lift[j]; a.yaw = Math.atan2(D.port[0] - lf[0], D.port[1] - lf[1]) * 0 + (j < 2 ? Math.PI : 0);
+    LIFTERS.forEach((i, j) => { const a = c[i]; if (!a || a.path) return; a.yaw = Math.PI;   // (all four at its inboard edge, facing the rail)
       const up = sm(2, 3.4, t); a.bowT = lerp(1.0, 0.1, up); a.knT = lerp(0.5, 0, up); a.armT = [lerp(0.4, 2.3, up), -0.2, lerp(0.4, 2.3, up), -0.2]; });
     if (!g.userData.off) {
       // the leaf rises on its outboard edge, tips over the rail, then leaves the ship
@@ -486,12 +486,24 @@ function makeSea(m, X) {
       const u = g.userData, wy = S.waterAt(g.position.x, g.position.z);
       if (!u.wet) { u.v.y -= H128.G * dt; g.position.addScaledVector(u.v, dt); g.rotateX(u.spin * dt);
         if (g.position.y < wy + 0.5) { u.wet = 1; splash(g.position.x, wy, g.position.z); V.splash(1); u.v.set(0, -0.5, 0); u.wetT = 0; } }
-      else { u.wetT += dt; g.position.y -= (0.6 + u.wetT * 0.5) * dt; g.rotateX(-0.25 * dt); if (u.wetT > 4.5) { u.sunk = 1; g.visible = false; } }
+      else {
+        // (B3) it lies a moment on the water face up, then its far end dips, the near end rises out of the water and the bronze slides
+        // under, down until nothing of it is above the surface
+        u.wetT += dt; const w = u.wetT;
+        if (!u.q0) { u.q0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.08, 0, 0)); u.x0 = g.position.x; u.z0 = g.position.z; }
+        const tip = sm(0.5, 2.2, w) * 0.85, dn = sm(0.4, 3.8, w) * 7.5;
+        g.quaternion.copy(u.q0).multiply(_q.setFromAxisAngle(v4.set(0, 0, 1), tip));
+        g.position.set(u.x0 - tip * 2.2, wy - 0.12 - dn + Math.sin(w * 2.1) * 0.1 * (1 - sm(0.4, 1.2, w)), u.z0);
+        // gone when its highest corner is under the water
+        let top = -1e9; for (const ex of [-10, 10]) { v4.set(ex, 0.4, 0).applyQuaternion(g.quaternion).add(g.position); top = Math.max(top, v4.y - S.waterAt(v4.x, v4.z)); }
+        if (top < -0.35 || w > 7) { u.sunk = 1; g.visible = false; }
+      }
       // the camera stays on the door: its aim follows it down (in the deck's frame, near enough: the ship's own small turn left out)
       v3.copy(g.position); S.deck.worldToLocal(v3); A.throwCam = [v3.x, Math.max(-3, v3.y), v3.z];
     }
     if (t > 2.5 && !A.thLine) { A.thLine = 1; X.line(LINES.throw, 5200); }
-    if (g.userData.sunk || t > 13) { A.phase = 'turn'; A.tuT = 0; turnStart(); }
+    if (g.userData.sunk) A.goneT = (A.goneT || 0) + dt;   // (the camera stays a moment on the water where it went down)
+    if (A.goneT > 1.6 || t > 14) { A.phase = 'turn'; A.tuT = 0; turnStart(); }
   }
   function splash(x, y, z) {
     const sp = E.sp; E.splash.visible = true;
@@ -845,6 +857,7 @@ function makeSea(m, X) {
         if (S && SS.S === S && A.phase === 'ropes') o.tails = Object.fromEntries(ROPES.map((k) => { const q = tailScr(k); return [k, [Math.round(q.x), Math.round(q.y)]]; }));
         o.low = o.next ? lowRopes(o.next.head) : null;
       }
+      if (A.phase === 'throw' && P) { const u = (P.doors.port || {}).userData || {}; o.th = { t: +(A.thT || 0).toFixed(2), off: !!u.off, wet: !!u.wet, wetT: +(u.wetT || 0).toFixed(2), sunk: !!u.sunk }; }
       if (hold) { o.hold = { on: { ...hold.on }, off: { ...hold.off }, slip: { L: +hold.slip.L.toFixed(2), R: +hold.slip.R.toFixed(2) }, held: hold.held, swells: hold.swells, started: hold.started, next: hold.next != null ? +(hold.next - hold.t).toFixed(2) : null };
         if (S && SS.S === S && A.phase === 'hold') o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; }
       if (ak) { o.akko = { phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };

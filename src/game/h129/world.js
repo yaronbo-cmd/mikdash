@@ -239,7 +239,7 @@ export function ringCentering(X, i, parent) {
 }
 
 /* ───────── the sets the stage takes over in the model (stages.subSet) ───────── */
-const ALWAYS_OFF = ['wall:gz', 'wall:gl', 'wall:vN', 'wall:vS', 'nikanor:vN', 'nikanor:vS', 'lishka:dome'];
+const ALWAYS_OFF = ['wall:whole', 'nikanor:whole', 'lishka:dome'], ALWAYS_ON = ['wall:cut', 'nikanor:cut'];
 const ROOFS = ['lishka:gzroof', 'lishka:glroof', 'wall:gzt', 'wall:glt'];
 function subSync(X, force) {
   const S0 = X.stages; SH7.subT -= 1;
@@ -248,6 +248,7 @@ function subSync(X, force) {
   try { const info = S0.siteInfo ? S0.siteInfo('lishka') : null; if (!info || info.status !== 'done') S0.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ }
   if (!S0.subSet) return;
   for (const k of ALWAYS_OFF) S0.subSet(k, false);
+  for (const k of ALWAYS_ON) S0.subSet(k, true);
   const roofs = !!(SH7.final || (SH7.state && SH7.state.fin)) && !SH7.open;
   for (const k of ROOFS) S0.subSet(k, roofs);
 }

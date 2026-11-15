@@ -1308,7 +1308,7 @@ export function createStages(ctx) {
   /* ── stage groups ── */
   const ST = {}, list = [];
   const H120GZ = { g: null };   // ── h120 ── ── /h120 ──
-  const H129SUB = { g: {}, off: new Set() };   // ── h129 ── ── /h129 ──
+  const H129SUB = { g: {}, off: new Set(['wall:cut', 'wall:gzt', 'wall:glt', 'nikanor:cut']) };   // ── h129 ── (round 2: the cut versions hidden until stage 07's world shows them; before it the wall and Nikanor's chambers stand whole, as build 128 drew them) ── /h129 ──
   STAGE_IDS.forEach((id, idx) => {
     const def = DEF[id];
     const U = revealUniforms();

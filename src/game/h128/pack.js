@@ -19,7 +19,7 @@ import { BOOK } from '../world/grid.js';
 
 export const SEA_IN_PLAY = false;
 const S6 = BOOK.s06, CAM = S6.cam;
-const LOOK6 = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
+const LOOK6 = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), S6.house], K: LOOK_RING_K });   // (the House too: the closing's and the wickets' lifted views are from inside the Azarah)
 const SEA_IDS = ['sea1', 'sea2', 'sea3'];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const beat = (X, ms) => (X && X.wait ? X.wait(ms / 1000) : sleep(ms));

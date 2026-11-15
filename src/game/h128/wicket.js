@@ -50,7 +50,7 @@ export const BOLT = {
         if (A.phase !== 'turn') return;
         const C = centres(), keys = Object.keys(C), taken = Object.values(A.fing);
         let best = null, bd = 1e9; for (const k of keys) { if (taken.includes(k)) continue; const d = Math.hypot(f.x - C[k][0], f.y - C[k][1]); if (d < bd) { bd = d; best = k; } }
-        if (!best) return; A.fing[f.id] = best; f.ring = best; f.ang = Math.atan2(f.y - C[best][1], f.x - C[best][0]);
+        if (!best || bd > Math.max(130, gripR() * 1.5)) return; A.fing[f.id] = best; f.ring = best; f.ang = Math.atan2(f.y - C[best][1], f.x - C[best][0]);   // (only a finger on a ring: two elsewhere are a pinch)
       },
       move(f) {
         if (!f.ring) return; const c = centres()[f.ring]; if (!c) return;
@@ -63,7 +63,12 @@ export const BOLT = {
     const at0 = () => { const k = sides[0]; return { x: WK[k][0] - 0.6, y: WK[k][2] + WK.h * 0.6, z: WK[k][1] }; };
     function single(dt) {
       // left ring with the clock (+), right ring against it (− on the screen is +)
-      const da = A.acc.L || 0, db = -(A.acc.R || 0); A.acc = {};
+      let da = A.acc.L || 0, db = -(A.acc.R || 0); A.acc = {};
+      // (a finger still pressing its ring the way it was going counts as forcing between its move events: the touch's events come
+      //  slower than the frames, and a block must be felt as long as he pushes)
+      const held = (k) => Object.values(A.fing).includes(k);
+      if (da > 0) A.lastL = A.t; else if (!da && held('L') && A.t - (A.lastL || -9) < 0.15) da = 1e-4;
+      if (db > 0) A.lastR = A.t; else if (!db && held('R') && A.t - (A.lastR || -9) < 0.15) db = 1e-4;
       boltStep(s, { da, db }, dt);
       const k = sides[0], U = W[k].userData, lead = s.blk ? (s.a > s.b ? 'L' : 'R') : null;
       U.set(s.a, s.b, travelOf(s));

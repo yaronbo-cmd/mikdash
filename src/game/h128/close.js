@@ -26,7 +26,7 @@ export const CLOSE = {
     own('leaves', 1); setBusy(X, 1); X.kohen(false);   // (his place is among the men: the camera looks over them)
     const s = leafFresh(), dent0 = (st.close && st.close.dent) || [0, 0];
     const leaf = { S: leafHung(X, 'S', { phi: 90, dent: dent0[0] }), N: leafHung(X, 'N', { phi: 90, dent: dent0[1], salt: true }) };
-    const A = { phase: 'intro', t: 0, ev: [], fing: {}, hv: [0, 0], br: [0, 0], slipLine: 0, winWas: [0, 0], endT: 0 };
+    const A = { phase: 'intro', t: 0, ev: [], fing: {}, fv: {}, hv: [0, 0], br: [0, 0], slipLine: 0, winWas: [0, 0], endT: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 14) A.ev.shift(); };
     // the twenty men: per leaf two rows of five behind its free half, re-placed each frame as the leaf turns
     const men = { S: [], N: [] };
@@ -55,14 +55,15 @@ export const CLOSE = {
         const lk = leftKey(), want = f.x < innerWidth / 2 ? lk : (lk === 'S' ? 'N' : 'S');
         const taken = Object.values(A.fing); const k = taken.includes(want) ? (want === 'S' ? 'N' : 'S') : want;
         if (taken.includes(k)) return;
-        A.fing[f.id] = k; f.leaf = k; f.t0 = A.t; f.heaved = 0;
+        A.fing[f.id] = k; f.leaf = k; f.t0 = A.t; f.heaved = 0; A.fv[f.id] = 0;
       },
       move(f) {
         if (!f.leaf) return; const i = KS.indexOf(f.leaf), dy = f.y - f.y0;
+        if (Math.abs(dy) >= 12 && Math.abs(dy) > Math.abs(f.x - f.x0)) A.fv[f.id] = 1;   // (up or down: the men's work; sideways, two fingers closing, is the pinch's)
         if (!f.heaved && dy <= -28 && A.t - f.t0 <= 0.7) { f.heaved = 1; A.hv[i] = 1; }
         A.br[i] = dy >= 22 && !f.heaved ? 1 : 0;
       },
-      up(f) { if (!f.leaf) return; A.br[KS.indexOf(f.leaf)] = 0; delete A.fing[f.id]; },
+      up(f) { if (!f.leaf) return; A.br[KS.indexOf(f.leaf)] = 0; delete A.fing[f.id]; delete A.fv[f.id]; },
     });
     const atMid = () => ({ x: GT.hinge.S[0] - 0.4, y: GT.sill + 10, z: 0 });
     function frame(dt) {
@@ -108,10 +109,10 @@ export const CLOSE = {
         catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h128] close', e && e.message); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
-      cancel() { A.fing = {}; A.br = [0, 0]; },
+      cancel() { A.fing = {}; A.fv = {}; A.br = [0, 0]; },
       // (rule 66: the right thumb drives the right leaf; it lifts the camera only from the screen's top band, away from the work)
       wants(p) { if (!p) return true; return A.phase === 'push' && p.y > innerHeight * 0.22; },
-      holds() { return Object.keys(A.fing).length > 0; },
+      holds() { return Object.values(A.fv).some(Boolean); },   // (a thumb that has pushed or braked holds its leaf: two fingers that only slide toward each other are a pinch)
       end() {
         FG.detach(); V.stop(); X.hand(null);
         for (const k of KS) { X.props.remove(leaf[k]); for (const w of men[k]) SH6.crew.remove(w); }

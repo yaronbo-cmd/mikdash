@@ -157,18 +157,20 @@ export function wicketMesh(X, k, o = {}) {
   const up = box(X, M.h6bronzeD, f - 0.42, h * 0.55, -0.12, f - 0.26, h - 0.2, 0.12, g), lo = box(X, M.h6bronzeD, f - 0.42, 0.2, -0.12, f - 0.26, h * 0.45, 0.12, g);
   const lintel = box(X, M.h6pass, f - 0.5, h + 0.12, -0.5, f, h + 0.5, 0.5, g); void lintel;
   // the gear between them (its teeth: a toothed wheel), and its cover plate
-  const gear = new T.Mesh(new T.CylinderGeometry(0.28, 0.28, 0.12, 12), M.h6bronzeD); gear.rotation.z = Math.PI / 2; gear.position.set(f - 0.34, h / 2, 0); g.add(gear);
-  const teeth = []; for (let i = 0; i < 10; i++) { const t2 = box(X, M.h6bronzeD, -0.03, 0.27, -0.04, 0.03, 0.36, 0.04, gear); t2.rotation.x = 0; const a = i * TAU / 10; t2.position.set(0, Math.cos(a) * 0.31, Math.sin(a) * 0.31); t2.rotation.x = a; teeth.push(t2); }
-  const plate = box(X, M.h6bronze, f - 0.5, h / 2 - 0.55, -0.42, f - 0.44, h / 2 + 0.55, 0.42, g); plate.visible = !!o.plate;
+  // (its axle across the door: a group turned so the wheel's own axis is the world's x; the wheel turns about it, its ten teeth round it)
+  const gearG = new T.Group(); gearG.position.set(f - 0.34, h / 2, 0); gearG.rotation.z = Math.PI / 2; g.add(gearG);
+  const gear = new T.Mesh(new T.CylinderGeometry(0.28, 0.28, 0.12, 12), M.h6bronzeD); gearG.add(gear);
+  const teeth = []; for (let i = 0; i < 10; i++) { const a = i * TAU / 10, t2 = new T.Mesh(X.props.geo.box, M.h6bronzeD); t2.scale.set(0.1, 0.1, 0.07); t2.position.set(Math.cos(a) * 0.32, 0, Math.sin(a) * 0.32); t2.rotation.y = -a; gear.add(t2); teeth.push(t2); }
+  const plate = box(X, M.h6bronzeD, f - 0.5, h / 2 - 0.55, -0.42, f - 0.44, h / 2 + 0.55, 0.42, g); plate.visible = !!o.plate;
   // the two ring handles (left = north side seen from the Azarah: the camera faces east, so the left is −z)
   const ringL = new T.Mesh(new T.TorusGeometry(0.3, 0.05, 6, 18), M.h6bronze); ringL.rotation.y = Math.PI / 2; ringL.position.set(f - 0.55, h * 0.52, -0.55); g.add(ringL);
   const ringR = new T.Mesh(new T.TorusGeometry(0.3, 0.05, 6, 18), M.h6bronze); ringR.rotation.y = Math.PI / 2; ringR.position.set(f - 0.55, h * 0.52, 0.55); g.add(ringR);
   for (const r of [ringL, ringR]) { const sp = box(X, M.h6bronzeD, -0.03, -0.03, -0.03, 0.03, 0.03, 0.31, r); sp.position.set(0, 0, 0); }
   // a bent tooth (from the save): a tooth of the gear bent askew, dark
   const bent = [o.tooth && o.tooth[0], o.tooth && o.tooth[1]];
-  if (bent[0] || bent[1]) { teeth[2].rotation.z = 0.7; teeth[2].material = M.h6dark; }
+  if (bent[0] || bent[1]) { teeth[2].rotation.z = 0.7; teeth[2].scale.set(0.13, 0.1, 0.07); teeth[2].material = M.h6dark; }
   g.userData = { up, lo, gear, plate, ringL, ringR, h, k,
-    set(a, b, tr) { ringL.rotation.x = (a || 0) * Math.PI / 180; ringR.rotation.x = -(b || 0) * Math.PI / 180; gear.rotation.x = Math.min(a || 0, b || 0) * Math.PI / 180 * 0.5; const u = clamp(tr || 0, 0, 1); up.position.y = h * 0.775 - 0.05 + u * 0.32; lo.position.y = h * 0.225 + 0.1 - u * 0.32; },
+    set(a, b, tr) { ringL.rotation.x = (a || 0) * Math.PI / 180; ringR.rotation.x = -(b || 0) * Math.PI / 180; gear.rotation.y = Math.min(a || 0, b || 0) * Math.PI / 180 * 0.5; const u = clamp(tr || 0, 0, 1); up.position.y = h * 0.775 - 0.05 + u * 0.32; lo.position.y = h * 0.225 + 0.1 - u * 0.32; },
     ringAt(side, out) { const r = side === 'L' ? ringL : ringR; r.updateMatrixWorld(true); return r.getWorldPosition(out); } };
   g.userData.set(0, 0, o.locked ? 1 : 0);
   return g;
@@ -245,7 +247,7 @@ function passageBuild(X) {
   box(X, M.h6pass, x0, STP.floor, -h, x1, GT.sill, h, g);              // the passage's floor (the gate house's body under it)
   box(X, M.h6pass, x0, GT.sill, -h - 0.6, x1, GT.top, -h, g);          // its two sides
   box(X, M.h6pass, x0, GT.sill, h, x1, GT.top, h + 0.6, g);
-  box(X, M.h6pass, x0, GT.top, -h - 0.6, x1, GT.top + 0.6, h + 0.6, g);  // its ceiling
+  SH6.parts.ceil = box(X, M.h6pass, x0, GT.top, -h - 0.6, x1, GT.top + 0.6, h + 0.6, g);  // its ceiling (the closing's lifted view looks in from above: close.js hides it then)
   return g;
 }
 function holesSync(X, force) {
@@ -352,6 +354,8 @@ export function frameWorld(dt, X) {
   if (SH6.film) { try { SH6.film.frame(dt); } catch (e) { console.warn('[h128] film frame', e && e.message); } }
   if (!SH6.B) return;
   SH6.t += dt; SH6.B.step(dt); if (SH6.crew) SH6.crew.update(dt, SH6.B);
+  // (the closing's lifted view — the act waits then — sees the twenty men from above: the passage's ceiling left out while the camera is high)
+  const ce = SH6.parts.ceil; if (ce) { let hi = false; if (SH6.own.leaves && X.view && X.view.camNow) { const q = {}; try { X.view.camNow(q); hi = q.py > GT.top + 8; } catch (e) { /* */ } } ce.visible = !hi; }
   jT -= dt; if (jT <= 0) { jT = 0.5; try { rebuild(X); holesSync(X); } catch (e) { console.warn('[h128] world', e && e.message); } }
   hookT -= dt; if (hookT <= 0) { hookT = 2; try { if (X.stages.floorHook) X.stages.floorHook(floorAt); } catch (e) { /* */ } }
 }

@@ -670,11 +670,12 @@
       }
       // the pair
       const near = [a.END[0] - 14, a.END[1] - 14];
+      if (has('alone') && !K.aloneDone && K.backDone && a.lock[0] == null) K.aloneDone = 1;
       if (has('alone') && !K.aloneDone) {
         if (a.lock[0] == null && a.w[0] < a.END[0]) return { ...arc('N', a.c.N, Math.min(a.END[0] - a.w[0] + 4, 300) * rad, 1400), wait: 150, note: 'wickets: the north alone' };
         if (a.tries === 0) return { wait: 200 };
         if (!K.aloneShot) { K.aloneShot = 1; return { wait: 100, shot: 'wickets-alone' }; }
-        if (a.lock[0] != null) return { ...arc('N', a.c.N, -(a.back + 8) * rad, 900), wait: 200, note: 'wickets: the north back a quarter' };
+        if (a.lock[0] != null) { K.backDone = 1; return { ...arc('N', a.c.N, -(a.back + 8) * rad, 900), wait: 200, note: 'wickets: the north back a quarter' }; }
         K.aloneDone = 1;
       }
       for (const [k, key] of [[0, 'N'], [1, 'S']]) if (a.w[k] < near[k] - 1.5) return { ...arc(key, a.c[key], Math.min(near[k] - a.w[k], 300) * rad, 1300), wait: 120, note: `wickets: ${key} to ${near[k]} (${a.w[k]})` };
@@ -747,7 +748,7 @@
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
     let r; try { r = f(S.act); } catch (e) { return { wait: 500, note: 'bot error ' + kind + ' ' + e.message }; }
-    if (H().site === 'nikanor' && r && S.look && (S.look.u > 0.02 || Math.abs(S.look.yaw) > 0.03) && !window.__BOT_LOOKOK) r.note = `LOOK AWAY u ${S.look.u} yaw ${S.look.yaw} · ` + (r.note || '');   // ── h128 ── (a touch that the act should have taken turned the camera: say so) ── /h128 ──
+    if (H().site === 'nikanor' && r && S.look && (S.look.u > 0.02 || Math.abs(S.look.yaw) > 0.03) && !window.__BOT_LOOKOK) { if (!r.wait) r.wait = 0; r.note = `LOOK AWAY u ${S.look.u} yaw ${S.look.yaw} · ` + (r.note || ''); if ((S.look.away || S.look.u > 0.35 || Math.abs(S.look.yaw) > 0.3) && !(r.seq || r.path)) return { tap: [Math.round(W * 0.9), Math.round(HH * 0.28)], wait: 300, note: r.note + ' · a tap returns the camera' }; }   // ── h128 ── (a touch that the act should have taken turned the camera: say so, and a tap brings it back as a player would) ── /h128 ──
     // (build 125: say so when a touch would start on the HUD and not on the world — a test that must see it, never a silent stall)
     const p0 = r && (r.tap || r.hold || r.holdUntil || r.drag || r.tapWhen || (r.path && r.path[0]));
     if (p0 && Number.isFinite(p0[0]) && Number.isFinite(p0[1]) && p0[0] > 0 && p0[0] < W && p0[1] > 0 && p0[1] < HH && !onWorld(p0[0], p0[1])) { const e = document.elementFromPoint(p0[0], p0[1]); r.note = 'HUD under the touch ' + Math.round(p0[0]) + ',' + Math.round(p0[1]) + ' ' + (e ? e.tagName + '.' + String(e.className || '').slice(0, 40) : '') + ' · ' + (r.note || ''); }

@@ -98,7 +98,8 @@ export const RING = {
     // (a joint's mark: a thin radial bar across the tread)
     const jointBar = (q, mat, h = 0.03) => { const a = qAng(q), me = new T.Mesh(PR.geo.box, mat); me.scale.set(STP.tread + 0.1, h, 0.035); const p = ptAt(q, R.R - STP.tread / 2, rTop + 0.02); me.position.set(...p); me.rotation.y = HL - a; laidG.add(me); return me; };
     // the tray: the marked stones carried to the ring, lying outside it at the gap
-    const trayPos = (k) => { const col = k % 2, row = (k / 2) | 0, x = C0[0] + R.R + 2.2 + col * 4.4, z = -1.5 + row * 1.5, y = (floorAt(x, z) ?? STP.floor); return [x, y, z]; };
+    const trayPos = (k) => { const sd = k % 2 ? 1 : -1, row = (k / 2) | 0, x = C0[0] + R.R + 2.4, z = sd * (1.4 + row * 1.5),   // (one line across the gap's front, both sides of its middle: all in the row's view)
+       y = (floorAt(x, z) ?? STP.floor); return [x, y, z]; };
     function trayLay() {
       A.tray.forEach((t2, k) => { const [x, y, z] = trayPos(k); t2.home = [x, y, z]; if (!t2.drag) { t2.me.position.set(x, y, z); t2.me.rotation.set(0, 0, 0); } });   // (lying across the rings, chalk-marked: the carried stones stand out from the laid ones)
     }
@@ -261,7 +262,12 @@ export const RING = {
     }
     function keyFrame(dt) {
       const s = A.k, cracked = [...A.row.left, ...A.row.right].some((id) => byId(id).crack);
-      keyStep(s, { da: A.push.a, db: A.push.b }, dt, { cracked }); A.push.a = 0; A.push.b = 0;
+      let da = A.push.a, db = A.push.b; A.push.a = 0; A.push.b = 0;
+      // (a bar still pressed the way it was going counts as pushing between the touch's move events: a jam is felt as long as he pushes)
+      const held = (w) => Object.values(A.fing).includes(w);
+      if (da > 0) A.lastA = A.t; else if (!da && held('a') && A.t - (A.lastA || -9) < 0.15) da = 1e-4;
+      if (db > 0) A.lastB = A.t; else if (!db && held('b') && A.t - (A.lastB || -9) < 0.15) db = 1e-4;
+      keyStep(s, { da, db }, dt, { cracked });
       V.grind(s.jam ? 1 : 0);
       for (const e of s.ev) {
         ev('key:' + e.e);
@@ -287,7 +293,7 @@ export const RING = {
       for (const o of [barA, barB, cord]) if (o) o.visible = false;
       for (const w of [A.keyMen && A.keyMen.wA, A.keyMen && A.keyMen.wB]) if (w) SH6.crew.remove(w);
       X.shot(CAM.ringAll[0], CAM.ringAll[1], 2.6);
-      X.line('חמש עשרה מעלות, אחת על גבי חברתה: חצי גורן עגולה', 4200);
+      X.line('חמש עשרה המעלות · ' + LINES.steps, 4200);   // (the source's own words: מידות ב, ה)
     }
     function end1() {
       if (A.phase === 'done') return; A.phase = 'done';

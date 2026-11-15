@@ -834,7 +834,11 @@
     }
     if (S.phase !== 'act' || !S.act) return { wait: 300 };
     if (!B.begun || B.m !== S.mission) { B.m = S.mission; B.begun = true; B.k = {}; B.actT = now(); return { wait: 1600, shot: S.mission, note: 'act ' + S.mission }; }
-    if (now() - B.actT > (/^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000)   /* ── h128 ── (capstan: six notches and rests) ── /h128 ── */) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    // ── h128 ── (capstan: six notches and rests) (build 128 C3: on stage 06 the limit is the act's own clock where it has one, not the
+    // wall's: at 1600×900 the software renderer runs the page about four times slower than its clock, and a whole ring by mouse took the
+    // wall's 240 s while the act was 62 s in and still going; the wall's limit stays, three times over, for an act that never ticks) ── /h128 ──
+    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = H().site === 'nikanor' && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
     // ── h128 ── (the camera turned away by a touch the act did not take — a drag decided a moment before the act's phase changed: a tap

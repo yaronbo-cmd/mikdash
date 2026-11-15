@@ -49,8 +49,9 @@ export function createStage07(save) {
 }
 const skipped = (M) => PLAN.filter((m) => M.st.res[m.id] && M.st.res[m.id].skip).length;
 
-export function makePack07() {
+export function makePack07(env = {}) {
   const P = {
+    time: env,   // (the world's clock: setTime(k), restoreTime() — the night's dark and the morning after)
     id: 'lishka', key: 'h129', name: 'הלשכות', PLAN, ACTS, icon: '🏛',
     create: (save) => createStage07(save),
     count: (M) => { const k = skipped(M); return [M.nDone() - k, PLAN.length - k]; },

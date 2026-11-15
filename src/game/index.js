@@ -3352,7 +3352,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (!JU && ui.root) juiceMake();
     try { if (H9 && H9.site !== 'lishka' && H9.dispose) H9.dispose(); } catch (e) { /* */ }
     if (H9 && H9.site === 'lishka') return H9;
-    const pack = makePack07();
+    const pack = makePack07({ setTime: (k) => W.setTimeOfDay(k), restoreTime: () => { tod = null; syncTime(); } });   // ── h129 ── (the night: the world's clock) ── /h129 ──
     H9 = createH109Director({ G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), stages: S0, view, ui, sfx, haptic, juice: () => JU, score: SCR,
       bonus: (n, why, label) => scoreBonus(n, why, label), twin: () => TW, onDone: () => h29Done(), pack });
     return H9;

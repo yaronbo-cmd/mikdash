@@ -50,29 +50,43 @@ export function mats6(X) {
   P.M.h6rope = P.M.rope || std('#C9A46A', { roughness: 0.95 });
   P.M.h6dent = new T.MeshStandardMaterial({ color: 0x2A1A08, roughness: 0.55, metalness: 0.6, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -3 });
   P.M.h6dentRim = new T.MeshStandardMaterial({ color: 0xFFE08A, roughness: 0.25, metalness: 0.9, emissive: 0x3A2A08, side: T.DoubleSide });
-  // the salt stains (המחשה): the sea water dried on the bronze — pale, matte, crusted streaks run down from the rivets and the
-  // bands' seams, longer and heavier low on the leaf, a crust along its foot; one canvas over the whole face (no randomness: a fixed hash)
-  { const W = GT.leafW, H = GT.leafH, PX = 48, cw = Math.round(W * PX), ch = Math.round(H * PX), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d');
+  // the salt stains (המחשה): the sea water dried on the bronze — the owner 15.11 ("puffy cotton ropes"): flat, thin, broken crusted runs
+  // (0.03–0.06 amot wide), faint, down from the rivets and the bands' seams, longer low on the leaf; fine speckle along the seams and the
+  // rivet lines and a sparse grain along the foot; no round blobs, no thickness (one flat canvas over the face; a fixed hash, no randomness)
+  { const W = GT.leafW, H = GT.leafH, PX = 96, cw = Math.round(W * PX), ch = Math.round(H * PX), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d');
     const hs = (n) => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
     const yPx = (y) => ch - y * PX, rows = [0.4, H * 0.35, H * 0.68, H - 0.4], cols = [0, 1, 2, 3, 4, 5].map((k) => 0.5 + k * (W - 1) / 5);
-    const streak = (z0, y0, len, w0, a0, seed) => {   // (a run of small crusted flakes down the face, its width wandering, thinning at its end)
-      const n = Math.max(6, Math.round(len * PX / 3));
-      for (let i = 0; i < n; i++) {
-        const f = i / n, y = y0 - len * f, z = z0 + (hs(seed + i * 0.37) - 0.5) * 0.12 + Math.sin(f * 7 + seed) * 0.05, w = w0 * (1 - 0.65 * f) * (0.7 + 0.6 * hs(seed + i));
-        const a = a0 * (1 - 0.55 * f) * (0.6 + 0.4 * hs(seed * 3 + i));
-        g.fillStyle = `rgba(236,233,222,${a.toFixed(3)})`; g.beginPath(); g.ellipse(z * PX, yPx(y), Math.max(1, w * PX / 2), 2.2 + 2 * hs(seed + i * 1.7), 0, 0, Math.PI * 2); g.fill();
-        if (hs(seed + i * 2.3) > 0.72) { g.fillStyle = `rgba(250,248,240,${(a * 1.1).toFixed(3)})`; g.fillRect(z * PX + (hs(i + seed) - 0.5) * w * PX, yPx(y), 2, 2); }   // (a grain of crust)
+    const col = (a) => `rgba(232,230,220,${a.toFixed(3)})`;
+    g.lineCap = 'butt';
+    const speck = (z, y, a) => { g.fillStyle = col(a); g.fillRect(Math.round(z * PX), Math.round(yPx(y)), 1 + (hs(z * 31 + y) > 0.7 ? 1 : 0), 1); };
+    const run = (z0, y0, len, w0, a0, seed) => {   // (a broken run down the face: short dashes, the gaps wider toward its end, its width 0.03–0.06)
+      let y = y0, i = 0, z = z0;
+      while (y > y0 - len && y > 0.05) {
+        const f = (y0 - y) / len, h1 = hs(seed + i * 1.3), h2 = hs(seed + i * 2.1);
+        const seg = 0.05 + 0.4 * h1 * h1 * (1 - 0.5 * f) + 0.08 * hs(seed + i * 5.3), gap = 0.02 + 0.5 * h2 * h2 * (0.4 + f);
+        // (each dash a crusted crawl: three short pieces of wandering width and strength, crystals beside it now and then)
+        let zz = z, yy = y;
+        for (let q = 0; q < 3; q++) {
+          const sub = seg / 3, z1 = zz + (hs(seed + i * 0.37 + q * 0.11) - 0.5) * 0.035;
+          const w = Math.max(0.03, Math.min(0.06, w0 * (1 - 0.4 * f) * (0.6 + 0.7 * hs(seed + i * 0.7 + q * 0.29)))), a = a0 * (1 - 0.5 * f) * (0.45 + 0.55 * hs(seed + i * 3.1 + q * 0.53));
+          g.strokeStyle = col(a); g.lineWidth = w * PX; g.beginPath(); g.moveTo(zz * PX, yPx(yy)); g.lineTo(z1 * PX, yPx(yy - sub)); g.stroke();
+          zz = z1; yy -= sub;
+        }
+        for (let q = 0; q < 3; q++) if (hs(seed + i * 7.7 + q) > 0.55) speck(zz + (hs(seed + i * 8.1 + q) - 0.5) * 0.14, y - seg * hs(seed + i * 9.3 + q), a0 * (0.6 + 0.6 * hs(seed + q + i)));
+        z = zz; y -= seg + gap; i++;
       }
     };
     rows.forEach((y, r) => {
-      const low = 1 - y / H;   // (low on the leaf: longer, wider, heavier)
-      cols.forEach((z, k) => { const sd = 11 + r * 17 + k * 5; if (hs(sd) < 0.3 + 0.25 * (1 - low)) return; streak(z, y - 0.12, Math.min(y - 0.05, 1.2 + 4.5 * low * (0.6 + 0.8 * hs(sd + 1))), 0.16 + 0.14 * low, 0.35 + 0.4 * low, sd); });
-      for (let q = 0; q < 3; q++) { const sd = 97 + r * 13 + q; streak(0.2 + (W - 0.4) * hs(sd), y - 0.25, Math.min(y - 0.05, 0.8 + 3 * low * hs(sd + 2)), 0.1 + 0.1 * low, 0.25 + 0.35 * low, sd); }   // (from the band's seam)
+      const low = 1 - y / H;   // (low on the leaf: longer and a little heavier)
+      cols.forEach((z, k) => { const sd = 11 + r * 17 + k * 5; if (hs(sd) < 0.3 + 0.25 * (1 - low)) return; run(z + 0.02, y - 0.1, Math.min(y - 0.05, 1.0 + 3.8 * low * (0.6 + 0.8 * hs(sd + 1))), 0.045, 0.18 + 0.12 * low, sd); });
+      for (let q = 0; q < 3; q++) { const sd = 97 + r * 13 + q; run(0.2 + (W - 0.4) * hs(sd), y - 0.24, Math.min(y - 0.05, 0.6 + 2.4 * low * hs(sd + 2)), 0.035, 0.16 + 0.12 * low, sd); }   // (from the band's seam)
+      for (let i = 0; i < 140; i++) { const sd = 2000 + r * 211 + i; speck(W * hs(sd), y + (hs(sd + 1) > 0.5 ? 0.23 : -0.23) + (hs(sd + 2) - 0.5) * 0.04, 0.22 + 0.2 * hs(sd + 3)); }   // (along the band's two seams)
+      for (const z of cols) for (let i = 0; i < 14; i++) { const sd = 3000 + r * 97 + z * 13 + i; speck(z + (hs(sd) - 0.5) * 0.22, y + (hs(sd + 1) - 0.5) * 0.22, 0.2 + 0.2 * hs(sd + 2)); }   // (round the rivets)
     });
-    for (const z of [0.2, W - 0.2]) streak(z, H - 0.6, H * 0.5, 0.12, 0.3, 300 + z);   // (down the edge strips' seams)
-    for (let i = 0; i < 90; i++) { const z = W * hs(500 + i), y = 0.05 + 1.3 * Math.pow(hs(700 + i), 1.6); g.fillStyle = `rgba(238,235,224,${(0.35 + 0.35 * hs(900 + i)).toFixed(3)})`; g.beginPath(); g.ellipse(z * PX, yPx(y), 4 + 8 * hs(800 + i), 2 + 3 * hs(600 + i), 0, 0, Math.PI * 2); g.fill(); }   // (the crust along the foot)
+    for (const z of [0.2, W - 0.2]) run(z, H - 0.6, H * 0.45, 0.035, 0.16, 300 + z);   // (down the edge strips' seams)
+    for (let i = 0; i < 700; i++) { const z = W * hs(500 + i), y = 0.04 + 1.1 * Math.pow(hs(700 + i), 2.2); speck(z, y, 0.16 + 0.22 * hs(900 + i)); }   // (a sparse grain along the foot)
     const tx = new T.CanvasTexture(cv); tx.colorSpace = T.SRGBColorSpace;
-    P.M.h6salt = new T.MeshStandardMaterial({ map: tx, transparent: true, depthWrite: false, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2 }); }
+    tx.anisotropy = 4; P.M.h6salt = new T.MeshStandardMaterial({ map: tx, transparent: true, depthWrite: false, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2 }); }
   return P.M;
 }
 const box = (X, mat, x0, y0, z0, x1, y1, z1, parent) => {
@@ -188,7 +202,10 @@ export function wicketMesh(X, k, o = {}) {
   box(X, M.h6bronze, f - 0.2, 0.02, -w / 2, f - 0.02, h, w / 2, g);
   for (const y of [0.5, h / 2, h - 0.5]) box(X, M.h6bronzeD, f - 0.26, y - 0.08, -w / 2 + 0.06, f - 0.2, y + 0.08, w / 2 - 0.06, g);
   // the bolts: the upper rises into the lintel, the lower drops into the sill (their travel: 0 open … 1 locked)
-  const up = box(X, M.h6bronzeD, f - 0.42, h * 0.55, -0.12, f - 0.26, h - 0.2, 0.12, g), lo = box(X, M.h6bronzeD, f - 0.42, 0.2, -0.12, f - 0.26, h * 0.45, 0.12, g);
+  // (o.bold, both wickets in one far frame: the bolt bars thick and bright, so their slide reads at that size — the owner 15.11)
+  if (o.bold && !M.h6boltB) M.h6boltB = new T.MeshStandardMaterial({ color: 0xFFD27A, emissive: 0x8A5A10, emissiveIntensity: 0.7, roughness: 0.3, metalness: 0.6 });
+  const bz = o.bold ? 0.26 : 0.12, bx0 = o.bold ? f - 0.5 : f - 0.42, bm = o.bold ? M.h6boltB : M.h6bronzeD;
+  const up = box(X, bm, bx0, h * 0.55, -bz, f - 0.26, h - 0.2, bz, g), lo = box(X, bm, bx0, 0.2, -bz, f - 0.26, h * 0.45, bz, g);
   const lintel = box(X, M.h6pass, f - 0.5, h + 0.12, -0.5, f, h + 0.5, 0.5, g); void lintel;
   // the gear between them (its teeth: a toothed wheel), and its cover plate
   // (its axle across the door: a group turned so the wheel's own axis is the world's x; the wheel turns about it, its ten teeth round it)

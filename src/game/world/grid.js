@@ -515,7 +515,16 @@ const S06 = {
   levites: { from: [27, -4, 6], to: [12, 0, 13.5] },
   // (part 3) the caravan from Akko: the two wagons with the doors come in through the court's east gate house (from outside it to the
   // place the doors are awaited; המחשה)
-  caravan: { from: [190, 0, 6], to: [146, 0, 6], gap: 23 },   // (part 3: the stage's bounds reach x 200 for the caravan's approach)
+  // (build 128, B2: one side shot that goes with them) from: the lead wagon's middle when the film starts; to: where it is when the 5 s
+  // end (v amot a second, the oxen's walk); gap: from the lead wagon's middle to the second's; the wagon: its bed's length and width,
+  // its wheels' radius and the two axles' x (front first: they go west, −x); the oxen: their middle's x from the wagon's middle, half
+  // the yoke's spread, their size, the yoke before their middle and its height over the road; the men beside it: how far out on the
+  // near (south) side, their x from the wagon's middle, the hand on the rail (arm raise, spread); after: where the kohen stands when
+  // it is over (near the capstan, outside its pull: its walk line shows). (The road east of the court's gate: the floor 6 to x 155, down
+  // to 0 by x 165, flat beyond: the film keeps to the flat, x 160 and more)
+  caravan: { from: [198, 0, 0], to: [185.5, 0, 0], gap: 28, v: 2.4, len: 21, w: 5.8, wheel: 1.2, axles: [-8, 8], ox: -13.6, oxZ: 1.0, oxS: 1.25, yokeX: 1.2, yokeY: 2.5,
+    side: 4.0, men: [-5, 5], hand: [0.35, 0.9], after: [-28, 4],   // (part 3: the stage's bounds reach x 200 for the caravan's approach)
+    clear: [120, 300, -260, 120] },   // (clear: x0, x1, z0, z1 round the road in the film's frame, where the standing pilgrims step out while it plays)
   // the Ulam and the House as one block (avodah/day/cam28.js's own: the camera is never in the porch): the right thumb's lifted view
   // from inside the Azarah keeps out of it
   house: [-177, 15.5, -50.5, -76.7, 116, 50.5],
@@ -539,7 +548,7 @@ const S06 = {
     // the end: the Levites on the steps before dawn, the sun on the closed doors, the north leaf near
     endSteps: [[48, 11, 3], [15, 10, 0]],
     // (part 3) the camera's short flight out to the sea from the court's east gate, and the caravan coming in through it
-    toSea: [[150, 70, 24], [420, 40, 0]], caravan: [[104, 15, 14], [140, 7, 0]], endSun: [[34, 15, 2], [10, 22, 0]], endSalt: [[15.5, 18, -6], [9.6, 19, -2.6]],
+    toSea: [[150, 70, 24], [420, 40, 0]], caravan: [[209, 22, 66], [209, 2.5, 0]] /* (B2: eye and aim at the film's start; their y over the road under the aim; both move west with the lead wagon) */, endSun: [[34, 15, 2], [10, 22, 0]], endSalt: [[15.5, 18, -6], [9.6, 19, -2.6]],
     // the director's last shots (eye, aim, seconds): the gate and its steps from the court, then high
     film: [[[52, 24, 18], [10, 16, 0], 3], [[120, 90, 70], [10, 10, 0], 3]],
   },

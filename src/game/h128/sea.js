@@ -26,11 +26,13 @@ import { SEA_LV, ROPES, lowRopes, bandOf, seaFresh, seaStep, seaPts, seaCarry, n
   akkoFresh, akkoStep, akkoPts, AKKO, ringY, LINES, QUICK, LOSS, H128, qOf, starsOf } from './model.js';
 import { createVoices } from './sound128.js';
 import { createAnimals } from '../../animals.js';
+import { CAPSTAN } from './capstan.js';
+import { filmFigs } from './figgate.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { SH6, leafSlab, clamp, lerp, ease, TAU } from './world.js';
 import { BOOK } from '../world/grid.js';
 
-const S6 = BOOK.s06, SB = S6.sea, DK = SB.deck, QY = SB.quay, CM = SB.cam;
+const S6 = BOOK.s06, SB = S6.sea, DK = SB.deck, QY = SB.quay, CM = SB.cam, CM6 = S6.cam;
 const GRIP = 46;                 // (a tail's, a ring's, the hook's touch radius on the screen, px: at least 44, the nearest wins)
 const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const wrapA = (a) => { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; };
@@ -666,22 +668,36 @@ function makeSea(m, X) {
     fade(true, 400);
     setTimeout(() => {
       seaDown(true); SS.act = null;
-      // on the Mount: the two wagons with the doors come in through the court's east gate (המחשה), the crews with them
+      // on the Mount: the two wagons with the doors, one after the other along the road to the court's east gate (המחשה). One side
+      // shot that goes with them: each wagon whole, its bronze door lying flat on its bed, a yoke of oxen walking before it (the old
+      // world's walk cycle: animals.js), its wheels on the ground and turning, two men walking beside it with a hand on it; nobody else
       const C = S6.caravan, T = X.THREE, Mx = mats(X); A.wag = [];
       for (let w = 0; w < 2; w++) {
         const g = new T.Group(); X.props.root.add(g);
-        const bed = new T.Mesh(new T.BoxGeometry(21, 0.5, 5.8), Mx.wood); bed.position.y = 1.5; g.add(bed);
-        for (const [x, z] of [[-8, -3], [8, -3], [-8, 3], [8, 3]]) { const wh = new T.Mesh(new T.CylinderGeometry(1.2, 1.2, 0.35, 14), Mx.dark); wh.rotation.x = Math.PI / 2; wh.position.set(x, 1.2, z); g.add(wh); }
-        const lf = leafSlab(X, w === 1, false); lf.rotation.z = -Math.PI / 2; lf.position.set(-10, 1.75 + 0.45, -2.5); g.add(lf);   // (lying flat, its face up)
-        g.position.set(C.from[0] + w * C.gap, C.from[2], C.from[1]); A.wag.push(g);
+        const bed = new T.Mesh(new T.BoxGeometry(C.len, 0.5, C.w), Mx.wood); bed.position.y = C.wheel + 0.3; g.add(bed);
+        for (const s of [-1, 1]) { const r = new T.Mesh(new T.BoxGeometry(C.len, 0.35, 0.22), Mx.dark); r.position.set(0, C.wheel + 0.65, s * (C.w / 2 - 0.11)); g.add(r); }   // (the bed's side rails)
+        // the pole from the bed's front to the yoke between the oxen
+        const pl = -C.len / 2 - (C.ox - C.yokeX), ph = C.yokeY - C.wheel, pn = Math.hypot(pl, ph);
+        const pole = new T.Mesh(new T.CylinderGeometry(0.13, 0.13, pn, 6), Mx.wood); pole.rotation.z = Math.atan2(pl, ph); pole.position.set(-C.len / 2 - pl / 2, C.wheel + ph / 2, 0); g.add(pole);
+        const wheels = [];
+        for (const ax of C.axles) for (const s of [-1, 1]) { const wh = wheelOf(T, Mx, C.wheel); wh.position.set(ax, C.wheel, s * (C.w / 2 + 0.25)); g.add(wh); wheels.push(wh); }
+        g.userData.wheels = wheels;
+        const lf = leafSlab(X, w === 1, false); lf.rotation.z = -Math.PI / 2; lf.position.set(-C.len / 2 + 0.5, C.wheel + 0.55 + 0.35, -2.5); g.add(lf);   // (lying flat, its face up)
+        A.wag.push(g);
       }
+      // the men: two by each wagon on the near side, walking with a hand on its rail (gang men: the figures gate leaves them be)
       A.men = [];
-      try { for (let j = 0; j < 4; j++) { const w = SH6.crew.add(C.from[0] + (j > 1 ? C.gap : 0), C.from[1] + (j % 2 ? 4.2 : -4.2), { role: 'hold', crew: 1 + (j % 3) }); if (w) A.men.push(w); } } catch (e) { /* */ }
-      // two yoke of oxen draw each wagon (the old world's bulls)
+      try { for (let j = 0; j < 4; j++) { const w = SH6.crew.add(C.from[0], C.from[1] + C.side, { role: 'walk', crew: 1 + (j % 3) }); if (w) { w.j = j; A.men.push(w); } } } catch (e) { /* */ }
+      // a yoke of oxen draws each wagon (the old world's bulls, walking by their own cycle)
       A.ox = [];
-      try { A.anim = createAnimals({ scene: X.scene, camera: X.camera, ground: (x, z) => { try { return X.ground(x, z); } catch (e) { return C.from[2]; } } }); for (let j = 0; j < 4; j++) { const o = A.anim.add('bull', C.from[0], C.from[1], { yaw: -Math.PI / 2, calm: true, scale: 0.9 }); if (o) A.ox.push(o); } } catch (e) { console.warn('[h128] oxen', e && e.message); }
-      X.kohen(true);
-      caravanFrame(0);
+      try { A.anim = createAnimals({ scene: X.scene, camera: X.camera, ground: (x, z) => { try { return X.ground(x, z); } catch (e) { return C.from[2]; } } }); for (let j = 0; j < 4; j++) { const o = A.anim.add('bull', C.from[0], C.from[1], { yaw: -Math.PI / 2, calm: true, scale: C.oxS }); if (o) A.ox.push(o); } } catch (e) { console.warn('[h128] oxen', e && e.message); }
+      A.yoke = [];
+      for (let w = 0; w < 2; w++) { const y = new T.Mesh(new T.BoxGeometry(0.35, 0.3, 4.2), Mx.wood); X.props.root.add(y); A.yoke.push(y); }
+      X.kohen(false);   // (he is not in this picture: after it he stands near the capstan)
+      // (and no one of the court's: the world's figures and the site's workers are out while the caravan passes; its own men stay)
+      try { const lf = globalThis.__T && __T.life ? __T.life() : null, K = C.clear; if (lf && lf.clearField) { lf.clearField({ x0: K[0], x1: K[1], z0: K[2], z1: K[3] }); A.lifeBack = () => lf.clearField(null); } } catch (e) { /* */ }   // (the pilgrims standing by the road too)
+      try { A.figsBack = filmFigs({ scene: X.scene, keep: () => A.men || [], workers: (fn) => { try { if (X.hero && X.hero.h128Workers) X.hero.h128Workers(fn); } catch (e) { /* */ } } }); } catch (e) { A.figsBack = null; }
+      A.caT = 0; caravanFrame(0);
       X.line('השיירה עולה לירושלים עם הדלתות · הקישו לדלג', 5200);
       fade(false, 500);
       A.caOn = 1;
@@ -689,14 +705,40 @@ function makeSea(m, X) {
   }
   function caravanFrame(dt) {
     A.caT += dt; if (!A.caOn) return;
-    const C = S6.caravan, u = clamp((A.caT - 0.2) / 5.2, 0, 1), x0 = C.from[0], x1 = C.to[0], xu = lerp(x0, x1, u), gy = (x) => { try { const v = X.ground(x, C.from[1]); return Number.isFinite(v) ? v : C.from[2]; } catch (e) { return C.from[2]; } };
-    (A.wag || []).forEach((g, w) => { g.position.x = xu + w * C.gap; g.position.y = Math.max(gy(g.position.x - 9), gy(g.position.x + 9)); for (const wh of g.children) if (wh.geometry && wh.geometry.type === 'CylinderGeometry') wh.rotation.y = -u * 4; });
-    (A.men || []).forEach((w, j) => { const x = xu + (j > 1 ? C.gap : 0) - 2 - (j % 2) * 3; w.a.path = [[x - 1.5, C.from[1] + (j % 2 ? 4.2 : -4.2)]]; w.a.pi = 0; w.a.speed = 6; w.a.walkT0 = undefined; });
-    (A.ox || []).forEach((o, j) => { o.x = xu + (j > 1 ? C.gap : 0) - 14 - (j % 2 ? 0 : 0.2); o.z = C.from[1] + (j % 2 ? 1.3 : -1.3); o.yaw = -Math.PI / 2; });
-    try { if (A.anim) { A.anim.walk && A.ox.forEach((o) => { o.moving = u < 1; }); A.anim.update(dt); } } catch (e) { /* */ }
-    // the camera goes with them from the side
-    const xm = xu + C.gap * 0.3; X.shot([xm - 6, gy(xm) + 9, C.from[1] + 24], [xm, gy(xm) + 1.5, C.from[1]], 0.01);
-    if (A.caT > 5.6 || (A.skip && A.caT > 1)) { A.skip = 0; end1(); }
+    // the road west toward the gate (−x), at the oxen's own pace; the lead wagon's middle at xu, the second C.gap behind it
+    const C = S6.caravan, z0 = C.from[1], go = C.v * A.caT, xu = C.from[0] - go;
+    const gy = (x, z = z0) => { try { const v = X.ground(x, z); return Number.isFinite(v) ? v : C.from[2]; } catch (e) { return C.from[2]; } };
+    (A.wag || []).forEach((g, w) => {
+      // each axle on the ground under it: the bed pitched between them, the wheels turning by the way gone (no slip)
+      const xc = xu + w * C.gap, xf = xc + C.axles[0], xr = xc + C.axles[1], yf = gy(xf), yr = gy(xr);
+      g.position.set(xc, (yf + yr) / 2, z0); g.rotation.z = Math.asin(clamp((yf - yr) / (C.axles[0] - C.axles[1]), -0.3, 0.3));
+      for (const wh of g.userData.wheels) wh.rotation.z = go / C.wheel;
+    });
+    // the oxen: a yoke to each wagon, walking (a path a step ahead at the caravan's pace, so their legs and heads move by their own cycle)
+    (A.ox || []).forEach((o, j) => {
+      const w = j > 1 ? 1 : 0, x = xu + w * C.gap + C.ox, z = z0 + (j % 2 ? 1 : -1) * C.oxZ;
+      o.x = x; o.z = z; o.yaw = -Math.PI / 2; o.path = [[x - 8, z]]; o.pi = 0; o.speed = C.v; o.walkT0 = undefined; o.res = null;
+    });
+    try { if (A.anim) A.anim.update(dt); } catch (e) { /* */ }
+    (A.yoke || []).forEach((y, w) => { const x = xu + w * C.gap + C.ox - C.yokeX; y.position.set(x, gy(x) + C.yokeY, z0); });
+    // the men beside the wagons (the near side): walking at the same pace, the hand nearer the wagon on its rail
+    (A.men || []).forEach((m) => {
+      const w = m.j > 1 ? 1 : 0, x = xu + w * C.gap + C.men[m.j % 2], z = z0 + C.side, a = m.a;
+      a.x = x; a.z = z; a.yaw = -Math.PI / 2; a.path = [[x - 8, z]]; a.pi = 0; a.speed = C.v; a.walkT0 = undefined; a.hold = 'R';   // ('R': the swing is the free arm's only)
+      a.armT[0] = 0.15; a.armT[1] = 0.05; a.armT[2] = C.hand[0]; a.armT[3] = C.hand[1]; a.bowT = 0.08;
+    });
+    // the camera goes with them: one side shot from the book, moved along the road with the lead wagon
+    const P = CM6.caravan; X.shot([P[0][0] - go, gy(P[1][0] - go) + P[0][1], P[0][2]], [P[1][0] - go, gy(P[1][0] - go) + P[1][1], P[1][2]], 0.01);
+    if (A.caT > 5.2 || (A.skip && A.caT > 1)) { A.skip = 0; end1(); }
+  }
+  /** a wagon wheel (axis along z): a rim, six spokes and a hub, so its turning is seen */
+  function figsBack() { for (const k of ['figsBack', 'lifeBack']) { const f = A[k]; A[k] = null; if (f) { try { f(); } catch (e) { /* */ } } } }
+  function wheelOf(T, Mx, R) {
+    const g = new T.Group();
+    const rim = new T.Mesh(new T.TorusGeometry(R - 0.12, 0.13, 6, 18), Mx.dark); g.add(rim);
+    for (let k = 0; k < 3; k++) { const sp = new T.Mesh(new T.BoxGeometry(0.12, 2 * R - 0.2, 0.1), Mx.wood); sp.rotation.z = k * Math.PI / 3; g.add(sp); }
+    const hub = new T.Mesh(new T.CylinderGeometry(0.25, 0.25, 0.4, 10), Mx.dark); hub.rotation.x = Math.PI / 2; g.add(hub);
+    return g;
   }
   function mats(X2) {
     if (!SS.cm) SS.cm = { wood: new X2.THREE.MeshLambertMaterial({ color: '#7A5A3C' }), dark: new X2.THREE.MeshLambertMaterial({ color: '#3B2A1C' }) };
@@ -709,7 +751,8 @@ function makeSea(m, X) {
     let pts, flags;
     if (id === 'sea3') { pts = akkoPts(ak); flags = { tries: ak.tries, maxSw: +ak.maxSw.toFixed(1), soft: ak.land ? ak.land.soft : 0, v: ak.land ? ak.land.v : null }; }
     else { pts = seaPts(s); flags = { 'sea.torn': s.flags['sea.torn'], 'sea.ring': s.flags['sea.ring'], clean: s.sw.map((w) => w.clean) }; }
-    const q = qOf(pts); X.save();
+    const q = qOf(pts); X.save(); figsBack();
+    if (id === 'sea3') { try { const [hx, hz] = S6.caravan.after, sp = CAPSTAN.stand(); X.hero.setPos(hx, hz, Math.atan2(sp.x - hx, sp.z - hz)); } catch (e) { /* */ } X.kohen(true); }   // (after the caravan he stands near the capstan)
     X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags, at: id === 'sea3' ? null : (() => { const c = deckScr(-12, 1, 0); return { sx: c.x, sy: c.y }; })() });
   }
 
@@ -784,7 +827,8 @@ function makeSea(m, X) {
       FG.detach(); V.stop(); X.line('', 0);
       try { if (A.fadeEl) A.fadeEl.remove(); } catch (e) { /* */ }
       try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
-      for (const g of A.wag || []) X.props.remove(g);
+      figsBack();
+      for (const g of (A.wag || []).concat(A.yoke || [])) X.props.remove(g);
       try { for (const o of A.ox || []) A.anim.remove(o); } catch (e) { /* */ }
       for (const w of A.men || []) { try { SH6.crew.remove(w); } catch (e) { /* */ } }
       for (const a of A.dcrew || []) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }

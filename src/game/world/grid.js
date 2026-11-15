@@ -778,6 +778,15 @@ const S07 = {
     open: [[[-40, 260, 240], [-100, 16, 20]], [[-60, 90, 10], [-110, 16, 66]], [[-128, 78, -28], [-160, 20, -70]]],
     // (part 2) the Gazit's play view: from high over the north wall, down on the chol half (the roof is not on yet); its lens (degrees)
     gazit: [[-81, 44, 59], [-81, 16, 75.5]], gazitFov: 40,
+    // (the rows: nearly overhead, the holy half's strip by the line in the frame where the mats wait; from so high a kneeling student
+    //  covers only his own place, never the bench behind him)
+    gazitRows: [[-81, 50, 64], [-81, 16, 74.5]],
+    // (part 2) the instruments chambers from inside, at the stand, looking east at the arch against the day (a wide lens: the room is 6
+    // deep); Beit HaMoked's great vault from the hall west of ring 1, at the deck's height
+    vaultN: [[1.4, 9.6, -20], [8, 10.2, -20]], vaultS: [[1.4, 9.6, 20], [8, 10.2, 20]], vaultFov: 64,
+    vaultM: [[-160, 31, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
+    // (part 2) the night: the slab close from inside the hall (the fire behind the camera); the hall with the fire and the sleepers
+    night: [[-156, 21.5, -70], [-160, 16.2, -76]], nightFov: 50, nightHall: [[-147, 24, -62], [-162, 17, -73]],
     // the night's last three pictures: the fire lighting the vault from within; the water standing in the troughs; the round bench
     end: [[[-147, 19, -62], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],

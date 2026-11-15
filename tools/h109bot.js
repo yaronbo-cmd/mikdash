@@ -792,6 +792,85 @@
       return { wait: 300 };
     },
     // ── /h128 ──
+    // ── h129 ── (build 129) stage 07's acts (h129/*.js dbg()): its players are h7<kind>. __BOT.bad: 'crack' (gazit1: stone 1 driven hard
+    // into the west wall: a cracked corner, −20), 'ink' (gazit3: the first man led past a scribe's stand: the ink spilt, −20)
+    h7gazit(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k;
+      if (a.busy || (a.phase !== 'arrange' && a.phase !== 'walk')) return { wait: 300, note: 'gazit: ' + a.phase };
+      if (a.id === 'gazit1') {
+        if (!K.g1shot) { K.g1shot = 1; return { wait: 100, shot: 'gazit1-arrange' }; }
+        if (has('crack') && !K.cracked) { K.cracked = 1; const s = a.stones[0]; return { path: [s.mid, [Math.max(8, s.mid[0] - 400), s.mid[1]]], ms: 300, keep: 3000, release: C("return !a||a.ev.some((e)=>/^crack/.test(e))"), wait: 900, note: 'gazit: stone 1 hard into the west wall' }; }
+        if (has('crack') && K.cracked === 1) { K.cracked = 2; return { wait: 600, shot: 'gazit1-crack' }; }
+        if (a.allSee) { if (!K.allShot) { K.allShot = 1; return { wait: 100, shot: 'gazit1-arc' }; } return a.head ? { tap: a.head, wait: 1500, note: 'gazit: the head of the court: the test' } : { wait: 300 }; }
+        // (the order and the pivot ends that the model lets through with no stone touching another: tools' search over the seven)
+        const PLAN = [[0, 0], [1, 0], [2, 0], [3, 0], [6, 1], [5, 0], [4, 0]];
+        for (const [i, pv] of PLAN) {
+          const s = a.stones[i], free = pv ? 0 : 1;
+          if (s.err < 0.15 && s.ae < 0.03) continue;
+          if (s.pe[pv] > 0.12) return { path: [s.mid, s.to[pv]], ms: 500, keep: 6000, release: C(`const s=a&&a.stones[${i}];return !s||s.pe[${pv}]<0.06`), wait: 300, note: `gazit: stone ${i + 1} moved (pivot ${pv ? '+' : '−'})` };
+          return { path: [s.e[free], s.ge[free]], ms: 500, keep: 6000, release: C(`const s=a&&a.stones[${i}];return !s||s.ae<0.015`), wait: 300, note: `gazit: stone ${i + 1} turned` };
+        }
+        return { wait: 400, note: 'gazit: all placed, not all see?' };
+      }
+      if (a.id === 'gazit2') {
+        if (!K.g2shot) { K.g2shot = 1; return { wait: 100, shot: 'gazit2-start' }; }
+        const it = a.items.find((q) => q.err > 0.15); if (!it) return { wait: 400 };
+        return { path: [it.mid, it.gs], ms: 700, keep: 8000, release: C(`const q=a&&a.items&&a.items[${it.i}];return !q||q.err<0.08`), wait: 300, note: 'gazit: item ' + it.i };
+      }
+      if (!a.way || !a.walkers || a.next == null) return { wait: 300 };
+      if (!K['g3shot' + a.next]) { K['g3shot' + a.next] = 1; return { wait: 100, shot: 'gazit3-move' + a.next }; }
+      const w = a.walkers[a.next]; let P = [w, ...a.way.slice(1)];
+      if (has('ink') && !K.inked && a.next === 0 && a.stands.length) { K.inked = 1; P = [w, a.stands[0], w, ...a.way.slice(1)]; }
+      return { path: P, ms: 260 * P.length, wait: 1500, note: 'gazit: the semicha, move ' + a.next };
+    },
+    // the arches: part A each leg held by a finger that follows the leg's thrust plus its creep (re-pressed when it has crept far), let go
+    // slowly when the weights are on; part B the wedge that keeps the joints closest, a short drag each (a shoulder tapped when no wedge
+    // can). __BOT.bad 'vcrack' (vaultN: both legs let go for three seconds: a leg runs out, a joint opens, −20), 'vstone' (vaultS: the
+    // left wedges drawn out with no care: light, a crack, a stone falls)
+    h7vault(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k;
+      if (a.phase === 'legs' && a.A) {
+        if (!K.legShot && a.A.laid >= 2) { K.legShot = 1; return { wait: 50, shot: a.id + '-legs' }; }
+        if (has('vcrack') && a.id === 'vaultN' && !K.vc && a.A.laid >= 2) { K.vc = 1; return { wait: 3200, note: 'vault: both legs let go (the mistake)' }; }
+        const legs = a.legs, pt = (q, u) => `(()=>{const a=__T.game.h109.state().act;if(!a||!a.A)return null;const L=a.A.${q},k=${u == null ? '(L.T+L.g+0.03)' : `(L.g+${u}*L.T)`};return [L.grip[0]+L.dir[0]*a.unit*k,L.grip[1]+L.dir[1]*a.unit*k]})()`;
+        const grips = legs.map((q) => a.A[q].grip);
+        if (a.rel) {
+          const fr = [1, 0.85, 0.7, 0.55, 0.4, 0.25, 0.1, 0].map((u) => legs.map((q) => pt(q, u)));
+          return { seq: [grips, ...fr], ms: 220, wait: 600, note: 'vault: the slow letting go' };
+        }
+        const stop = `return !a||a.phase!=='legs'||!a.A||a.rel||${JSON.stringify(legs)}.some((q)=>a.A[q].g>0.8)`;
+        return { seq: [grips, legs.map((q) => pt(q))], ms: 50, seqUntil: C(stop), seqLoop: 1, seqMax: 60000, wait: 40, note: `vault: hold ${legs.join('+')} (laid ${a.A.laid})` };
+      }
+      if (a.phase !== 'wedges' || !a.B) return { wait: 300, note: 'vault: ' + a.phase };
+      if (!K.wShot) { K.wShot = 1; return { wait: 50, shot: a.id + '-wedges' }; }
+      const P = a.B.pairs, step = a.B.stepPx * 0.9;
+      const drag = (id) => { const w = a.B.w[id], l = Math.hypot(w.out[0], w.out[1]) || 1; return { drag: [w.at[0], w.at[1], Math.round(w.at[0] + (w.out[0] / l) * step), Math.round(w.at[1] + (w.out[1] / l) * step), 300], wait: 450, note: 'vault: wedge ' + id }; };
+      if (has('vstone') && a.id === 'vaultS' && !(a.ev || []).some((e) => /vault.stone/.test(e))) { const id = P[0].L < 1 ? '1L' : '2L'; return drag(id); }
+      if (has('vstone') && a.id === 'vaultS' && !K.vsShot) { K.vsShot = 1; return { wait: 1700, shot: 'vaultS-stone' }; }
+      let best = null;
+      P.forEach((p, i) => ['L', 'R'].forEach((sd) => {
+        if (p[sd] >= 1) return; const id = (i + 1) + sd, free = a.B.loads[id] === 'free', d = Math.min(0.18, 1 - p[sd]) * (free ? 1 : 0.4);
+        const imb = p.L - p.R + p.bias + (sd === 'L' ? d : -d), sc = Math.abs(imb) + (free ? 0 : 0.2);
+        if (!best || sc < best.sc) best = { id, sc, imb };
+      }));
+      if (!best) return { wait: 400 };
+      if (best.sc > 0.3) { const wi = P.reduce((b, p, i) => (Math.abs(p.L - p.R + p.bias) > Math.abs(P[b].L - P[b].R + P[b].bias) ? i : b), 0), im = P[wi].L - P[wi].R + P[wi].bias; if (Math.abs(im) > 0.12) return { tap: a.B.sh[im > 0 ? 'L' : 'R'], wait: 500, note: 'vault: a weight on the shoulder ' + (im > 0 ? 'L' : 'R') }; }
+      return drag(best.id);
+    },
+    // the night: the torch to the wood; the slab lifted slowly by its ring (two fingers on a phone, one with a mouse) past the prop's
+    // mark; the keys and the gates are the act's; lowered to exactly its place. __BOT.bad 'slab' (pressed on down past the floor: it
+    // touches down fast, a corner cracks, −20)
+    h7night(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
+      if (a.phase === 'fire') return { drag: [a.torch[0], a.torch[1], a.hearth[0], a.hearth[1], 900], wait: 800, note: 'night: the torch to the wood' };
+      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && !K['lk' + a.lockI] && a.lockI >= 0 && a.lockI % 3 === 0) { K['lk' + a.lockI] = 1; return { wait: 300, shot: 'night-gate' + a.lockI }; } return { wait: 300, note: 'night: ' + a.phase }; }
+      if (!K[a.phase + 'Shot']) { K[a.phase + 'Shot'] = 1; return { wait: 100, shot: 'night-' + a.phase }; }
+      const r = a.ring, pts = (dy) => (mouse ? [[r[0], r[1] + dy]] : [[r[0] - 22, r[1] + dy], [r[0] + 22, r[1] + dy]]);
+      if (a.phase === 'lift') { const fr = []; for (let i = 0; i <= 12; i++) fr.push(pts(-a.unit * 1.05 * (i / 12))); return { seq: fr, ms: 230, seqUntil: C("return !a||a.sphase!=='lift'"), seqLoop: 12, seqMax: 12000, wait: 400, note: 'night: lift the slab (h ' + a.h + ')' }; }
+      const far = has('slab') ? 1.8 : 0.8, fr = []; for (let i = 0; i <= 14; i++) fr.push(pts(a.unit * far * (i / 14)));
+      return { seq: fr, ms: has('slab') ? 60 : 260, seqUntil: C("return !a||a.phase!=='lower'"), seqLoop: 14, seqMax: 15000, wait: 600, note: 'night: lower the slab' + (has('slab') ? ' (pressed past the floor)' : '') };
+    },
+    // ── /h129 ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
@@ -840,7 +919,7 @@
     const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = H().site === 'nikanor' && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
-    const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
+    const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
     // ── h128 ── (the camera turned away by a touch the act did not take — a drag decided a moment before the act's phase changed: a tap
     // brings it back as a player would, before the player decides anything) ── /h128 ──
     if (H().site === 'nikanor' && S.look && !window.__BOT_LOOKOK && (S.look.away && (S.look.u > 0.35 || Math.abs(S.look.yaw) > 0.3))) return { tap: [Math.round(W * 0.9), Math.round(HH * 0.28)], wait: 300, note: `LOOK AWAY u ${S.look.u} yaw ${S.look.yaw} · a tap returns the camera` };

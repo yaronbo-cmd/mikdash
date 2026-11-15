@@ -108,7 +108,7 @@ export function buildTemple(B, P) {
   // its north wall (the holy half) and, in the east wall's inner face, the door of an inner stair (המחשה: outside that wall is the Chel's
   // terrace, 10 below); its roof a set of its own (stage 07 raises it in its finish). From outside it looks as it did ── /h129 ──
   h129Gazit(B, box);
-  cornice(-100, 58, -62, 82, 28, 0.4);
+  h129Cornice(box, -100, 58, -62, 82, 28, 0.4);   // ── h129 ── (a ring round the walls' tops: the room under it open) ── /h129 ──
   B.stage('lishka:gzroof');   // ── h129 ── ── /h129 ──
   B.slab('cedar', [[-101.5, 27.7, 56.5], [-101.5, 36.5, 70], [-60.5, 36.5, 70], [-60.5, 27.7, 56.5]], 0.6, { down: [0, -1] });
   B.slab('roof', [[-101.5, 28.1, 56.5], [-101.5, 36.9, 70], [-60.5, 36.9, 70], [-60.5, 28.1, 56.5]], 0.4, { down: [0, -1] });
@@ -737,6 +737,12 @@ function h129Gazit(B, box) {
   box('dark', -62.62, 16, 75, -62.58, 21, 77, -999);
   box('ash', -99, 6, 59, -63, 15.75, 81, 6); box('pave', -99, 15.75, 59, -63, 16, 81, -999);      // the floor
 }
+/** a cornice as a ring round a room's 1-amah walls (batch.js cornice() is a solid cap over the whole footprint: a lid on an open room) */
+function h129Cornice(box, x0, z0, x1, z1, y, o) {
+  const y0 = y - 1.3, y1 = y + 0.25, w = 1 + o;
+  box('ash', x0 - o, y0, z0 - o, x1 + o, y1, z0 - o + w, -999); box('ash', x0 - o, y0, z1 + o - w, x1 + o, y1, z1 + o, -999);
+  box('ash', x0 - o, y0, z0 - o + w, x0 - o + w, y1, z1 + o - w, -999); box('ash', x1 + o - w, y0, z0 - o + w, x1 + o, y1, z1 + o - w, -999);
+}
 /** the Golah chamber: x −147 … −131, z 58 … 74, its walls to 28 (as the Gazit's), its floor 16 with the well's mouth open (x −141.5 …
  *  −136.5, z 62.5 … 67.5), its door to the Azarah in the north wall (x −141 … −137, 16 … 24); its roof the set 'lishka:glroof' */
 function h129Golah(B, box, cornice) {
@@ -745,7 +751,7 @@ function h129Golah(B, box, cornice) {
   box('ash', -147, 6, 73, -131, 28, 74, 6); box('ash', -147, 6, 59, -146, 28, 73, 6); box('ash', -132, 6, 59, -131, 28, 73, 6);
   carve((q) => box('ash', ...q, 6), [-146, 6, 59, -132, 15.75, 73], [well]);
   carve((q) => box('pave', ...q, -999), [-146, 15.75, 59, -132, 16, 73], [well]);
-  cornice(-147, 58, -131, 74, 28, 0.4);
+  h129Cornice(box, -147, 58, -131, 74, 28, 0.4); void cornice;
   B.stage('lishka:glroof'); box('cedar', -147.4, 27.7, 57.6, -130.6, 28.3, 74.4, -999); box('roof', -147.6, 28.3, 57.4, -130.4, 28.7, 74.6, -999); B.stage('lishka');
 }
 /** the instruments chambers under the Israel court (the lower storeys of the blocks by Nicanor, x 0 … 8): the room x 1 … 7 between

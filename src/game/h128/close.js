@@ -15,6 +15,10 @@ import { BOOK } from '../world/grid.js';
 const S6 = BOOK.s06, GT = S6.gate, CAM = S6.cam, CL = S6.close;
 const sc = (X, x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y), r.on !== false]; };
 const KS = ['S', 'N'];   // (the model's leaves: 0 the south, 1 the north)
+// (the owner 15.11, "a worker with a blue cap stands idle by the gate while the Levites sing": a second start of this act over a running
+//  one left the first one's men in the world for good. LIVE: the leaves and men of the act now on; a new start and every end clear it)
+let LIVE = null;
+const kill = (X) => { if (!LIVE) return; const L = LIVE; LIVE = null; for (const o of L.leaves) try { X.props.remove(o); } catch (e) { /* */ } for (const w of L.men) try { SH6.crew.remove(w); } catch (e) { /* */ } };
 
 export const CLOSE = {
   icon: '🚪', title: 'סגירת השער',
@@ -23,15 +27,22 @@ export const CLOSE = {
   prepare() {},
   make(m, X) {
     const T = X.THREE, st = X.M.st, V = createVoices(X.sfx);
+    kill(X);
     own('leaves', 1); setBusy(X, 1); X.kohen(false);   // (his place is among the men: the camera looks over them)
     const s = leafFresh(), dent0 = (st.close && st.close.dent) || [0, 0];
     let leaf = { S: leafHung(X, 'S', { phi: 90, dent: dent0[0] }), N: leafHung(X, 'N', { phi: 90, dent: dent0[1], salt: true }) };
     const A = { phase: 'intro', t: 0, ev: [], fing: {}, fv: {}, hv: [0, 0], br: [0, 0], slipLine: 0, winWas: [0, 0], endT: 0 };
     const lift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief §0.6: both thumbs on the work: the camera a little lifted by the act itself)
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 14) A.ev.shift(); };
-    // the twenty men: per leaf two rows of five behind its free half, re-placed each frame as the leaf turns
+    // the men at the leaves (the owner 15.11: "the pushers overlap into one blob"): only as many as stand shoulder to shoulder in one row
+    // on a leaf's width, centres 1.1 amot apart, hands on the bronze — and with room between the open leaf and the passage's wall for each
+    // (the open leaf stands at 67.5°: a man nearer the hinge than PUSH.u[last] would stand in the wall). The rest of the twenty are not drawn.
+    // Each man is set on his place on the leaf every frame (no lag behind it, so none ever passes through the bronze or another man);
+    // the N and S men at the meeting edge are 2 × (leafW − u0) apart when the leaves meet.
+    const PUSH = { u: [GT.leafW - 0.6, GT.leafW - 1.7], off: 0.7, aside: 2.5 };
     const men = { S: [], N: [] };
-    for (const k of KS) for (let r = 0; r < 2; r++) for (let j = 0; j < 5; j++) { const w = SH6.crew.add(GT.x[0] + 2, 0, { role: 'push', crew: 1 + ((r + j) % 3) }); if (w) { w.r = r; w.j = j; men[k].push(w); } }
+    for (const k of KS) PUSH.u.forEach((u, j) => { const w = SH6.crew.add(GT.x[0] + 2, 0, { role: 'push', crew: 1 + (j % 3) }); if (w) { w.j = j; w.u = u; w.ua = u; men[k].push(w); } });
+    LIVE = { leaves: [], men: [...men.S, ...men.N] }; const live = () => { if (LIVE) LIVE.leaves = [leaf.S, leaf.N]; }; live();
     const ptOf = (k, u, off, phi) => {
       const ps = (phi * VIS * Math.PI) / 180, h = GT.hinge[k], sz = k === 'N' ? 1 : -1;
       const x = h[0] - u * Math.sin(ps), z = h[1] + sz * u * Math.cos(ps), nx = -Math.cos(ps), nz = -sz * Math.sin(ps);
@@ -42,8 +53,10 @@ export const CLOSE = {
         const i = KS.indexOf(k), phi = s.f[i]; leaf[k].userData.set(phi * VIS);
         const lean = inWindow(s.ph[i]) ? 1 : 0, step = s.ph[i] > LEAF.WIN[1] ? (s.ph[i] - LEAF.WIN[1]) / (1 - LEAF.WIN[1]) : 0;
         for (const w of men[k]) {
-          const u = A.aside ? 0.6 + w.j * 0.42 : 2.2 + w.j * 0.66, off = 0.55 + w.r * 0.7 + (lean ? -0.08 : 0.12 * (1 - step)), [x, z, lx, lz] = ptOf(k, u, off, phi);
-          w.a.path = null; w.a.x += (x - w.a.x) * Math.min(1, dt * 8); w.a.z += (z - w.a.z) * Math.min(1, dt * 8); w.fx = lx; w.fz = lz;
+          // (a dent: after the meeting the two step together toward the hinge, in order, so the dent at the meeting edge is seen)
+          if (A.aside) w.ua = Math.max(w.u - PUSH.aside, w.ua - dt * 1.2);
+          const off = PUSH.off + (lean ? -0.08 : 0.1 * (1 - step)), [x, z, lx, lz] = ptOf(k, w.ua, off, phi);
+          w.a.path = null; w.a.x = x; w.a.z = z; w.fx = lx; w.fz = lz;
           w.lean = lean ? 0.55 : 0.15;
         }
       }
@@ -83,7 +96,7 @@ export const CLOSE = {
       }
     }
     function met(together) {
-      A.phase = 'met'; V.grind(0); lift(0); if (s.dent.some(Boolean)) { A.aside = 1; KS.forEach((k, i) => { if (!s.dent[i] || dent0[i]) return; X.props.remove(leaf[k]); leaf[k] = leafHung(X, k, { phi: 0, dent: 1, salt: k === 'N' }); }); } for (const k of KS) leaf[k].userData.set(0);   // (a dent: the men step back from the meeting edge, toward the hinges, so it is seen)
+      A.phase = 'met'; V.grind(0); lift(0); if (s.dent.some(Boolean)) { A.aside = 1; KS.forEach((k, i) => { if (!s.dent[i] || dent0[i]) return; X.props.remove(leaf[k]); leaf[k] = leafHung(X, k, { phi: 0, dent: 1, salt: k === 'N' }); }); live(); } for (const k of KS) leaf[k].userData.set(0);   // (a dent: the men step back from the meeting edge, toward the hinges, so it is seen)
       st.close = { dent: s.dent.slice() }; X.save();
       V.gong(55, false); setTimeout(() => V.knock(2.6), 500);
       if (together && !s.dmg) { X.perfect(QUICK.together, atMid()); }
@@ -116,7 +129,8 @@ export const CLOSE = {
       holds() { return Object.values(A.fv).some(Boolean); },   // (a thumb that has pushed or braked holds its leaf: two fingers that only slide toward each other are a pinch)
       end() {
         lift(0); FG.detach(); V.stop(); X.hand(null);
-        for (const k of KS) { X.props.remove(leaf[k]); for (const w of men[k]) SH6.crew.remove(w); }
+        for (const k of KS) { try { X.props.remove(leaf[k]); } catch (e) { /* */ } for (const w of men[k]) SH6.crew.remove(w); }
+        kill(X);
         own('leaves', 0); setBusy(X, 0);
       },
       at() { return new T.Vector3(GT.hinge.S[0] - 2, GT.sill + 8, 0); },

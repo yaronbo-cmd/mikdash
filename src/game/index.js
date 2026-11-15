@@ -66,7 +66,7 @@ import { createH109Director } from './h109/director.js';
 import { makePack03 } from './h112/pack.js';
 import { makePack05 } from './h120/pack.js';   // ── h120 ── (build 120: stage 05 "עזרת הנשים והגזוזטרא", the same director) ── /h120 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
-import { pageBuilt, frontier, frontLine, noPad } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
+import { pageBuilt, frontier, frontLine, noPad, PACKED } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack04 } from './h113/pack.js';   // ── h113 ── (build 113: stage 04 "שערי העזרה" in the old world, the same director) ── /h113 ──   // ── h112 ── (build 112: stage 03 "הסורג והחיל" in the old world, the same director) ── /h112 ──
 import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
@@ -3392,7 +3392,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   const nearXZ = (h, x, z, r) => Math.hypot(h.x - x, h.z - z) <= r;
   // ── twin18 ── the stage he works at, for two thumbs: the Mount while it is built (its survey and rocks too), then the building
   // site in focus (workSite: never null for a moment while a later stage is built, unlike curWork's last-tap rule)
-  function twinStage() { try { if (!S.isDone(G, 'har')) return S.statusOf(G, 'har') === 'building' ? 'har' : null; return workSite() || null; } catch (e) { return null; } }
+  function twinStage() { try { if (H109_ON && frontier(G, S)) return PACKED[PACKED.length - 1];   /* ── h128 ── (the frontier: no stage is built any more, and the two thumbs stay — the left one walks the world he built; the right pad stays hidden) ── /h128 ── */ if (!S.isDone(G, 'har')) return S.statusOf(G, 'har') === 'building' ? 'har' : null; return workSite() || null; } catch (e) { return null; } }
   // ── /twin18 ──
   /** (fix round) a precision game the game opens by itself (the first-time flow's key stones, a segment's quick lift) under two thumbs:
       played in the world by the work button, as the deal's jobs are (hands.js input 'twin'; no sheet) */

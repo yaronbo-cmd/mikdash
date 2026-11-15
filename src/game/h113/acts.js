@@ -149,7 +149,7 @@ export const SOCKET = {
         shotAt(tx, y, Fr.zp, side);
         // (he stands on the sill beside the socket, at its depth; his helper kneels further in: neither between the camera and it)
         heroAt(X, tx - side * 1.7, Fr.zp + Fr.s * 2.3, tx, Fr.zp);
-        crewAt(tx - side * 3.6, Fr.in(2.8), tx, Fr.zp, { role: 'kneel', item: null });
+        // ── h128 ── (the owner 15.11, "figures only when they are needed": the helper only knelt, beside the camera, and came into the frame's edge at the first small lift; out) ── /h128 ──
         X.line(A.i === 0 ? 'גררו את הפין עד המזוזה' : 'עכשיו הצד השני, כמראה');
         X.hand({ x: A.pin.position.x, y: y + 0.6, z: Fr.zp }, side * 40, 0);
         A.busy = false;

@@ -809,7 +809,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     act.t = 0;
     // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's
     // own act may set its own rects in its begin() ── /h114 ──
-    try { const sp = standOf(mission), at = act.at ? act.at() : null; if (S0.keepOut && sp) { const xs = [sp.x, at ? at.x : sp.x], zs = [sp.z, at ? at.z : sp.z], m = 16; S0.keepOut([[Math.min(...xs) - m, Math.min(...zs) - m, Math.max(...xs) + m, Math.max(...zs) + m]]); } } catch (e) { /* */ }
+    try { const sp = standOf(mission), at = act.at ? act.at() : null; if (S0.keepOut && sp) { const xs = [sp.x, at ? at.x : sp.x], zs = [sp.z, at ? at.z : sp.z], m = 16; S0.keepOut([[Math.min(...xs) - m, Math.min(...zs) - m, Math.max(...xs) + m, Math.max(...zs) + m]], { walkOff: true }) /* ── h128 ── (the owner 15.11, "figures only when they are needed": a man whose way runs into the act's ground walks off to a place of his own, no clump at its edge — stage 05's rule for every stage) ── /h128 ── */; } } catch (e) { /* */ }
     // ── h118 ── the Mount's onlookers (crowd.js 'site': the scribe, the overseer, the bread seller) gather round the builder's spot and stand
     // there; inside a minigame only the crews who work are in the picture (rule: side figures build, never stand) ── /h118 ──
     try { if (S0.crowd) S0.crowd.setEnabled(false); } catch (e) { /* */ }

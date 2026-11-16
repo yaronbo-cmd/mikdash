@@ -434,8 +434,10 @@ function buildMoked(B, box, cornice, door) {
   // "וראשי פספסין מבדילין בין קדש לחל" — a line of tiles across the hall where the azara begins (z −67.5)
   box('wmarble', -166, 16, -67.7, -154, 16.03, -67.3, -999);
   // the place of the keys: "אמה על אמה, וטבלא של שיש, וטבעת היתה קבועה בה" (Middot 1:9)
+  B.stage('lishka:slab');   // ── h129 ── (its own set: the night's act lifts its own slab and ring, and these step aside) ── /h129 ──
   box('wmarble', -160.5, 16, -76.5, -159.5, 16.04, -75.5, -999);
   { const g = new THREE.TorusGeometry(0.22, 0.05, 6, 14); g.rotateX(Math.PI / 2); g.translate(-160, 16.07, -76); B.geo('iron', g, -999); }
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   // a hearth in the hall (the name "בית המוקד"; illustration)
   for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; box('ash', -160 + Math.cos(a) * 1.3 - 0.3, 16, -70.5 + Math.sin(a) * 1.3 - 0.3, -160 + Math.cos(a) * 1.3 + 0.3, 16.5, -70.5 + Math.sin(a) * 1.3 + 0.3, -999); }
   for (let k = 0; k < 5; k++) { const g = new THREE.CylinderGeometry(0.14, 0.14, 1.8, 6); g.rotateZ(Math.PI / 2); g.rotateY(k * 1.2); g.translate(-160, 16.25 + (k % 2) * 0.12, -70.5); B.geo('dark', g, -999); }
@@ -767,7 +769,11 @@ function h129Instruments(B, box) {
   for (const [k, zc, n] of [['N', -20, 7], ['S', 20, 9]]) {
     const z0 = zc - 6, z1 = zc + 6, sp = 9.5, r0 = 3, r1 = 4;
     box('ash', 0, 6, z0, 1, 13.5, z1, 6); box('ash', 1, 6, z0, 7, 13.5, z0 + 1, 6); box('ash', 1, 6, z1 - 1, 7, 13.5, z1, 6);
+    // (round 2: the legs and the spandrels sets of their own, 'lishka:legN|S' and 'lishka:spandN|S': the vault act draws its own while it
+    //  plays — the legs that give, the spandrels built up stone by stone as the shoulders' weight)
+    B.stage('lishka:leg' + k);
     box('ash', 7, 6, z0, 8, sp, zc - r0, 6); box('ash', 7, 6, zc + r0, 8, sp, z1, 6);
+    B.stage('lishka:spand' + k);
     for (const s of [-1, 1]) {   // the two spandrels over the springing, their curved side the extrados
       const sh = new THREE.Shape(), N = 10, zEnd = s < 0 ? z0 : z1;
       sh.moveTo(-zEnd, sp); sh.lineTo(-(zc + s * r1), sp);
@@ -776,6 +782,7 @@ function h129Instruments(B, box) {
       const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false, curveSegments: 1 }); g.rotateY(Math.PI / 2); g.translate(7, 0, 0);
       B.geo('ash', g, 6);
     }
+    B.stage('lishka');
     box('ash', 1, 13.2, z0 + 1, 7, 13.5, z1 - 1, -999);   // the ceiling's underside (the upper storey's floor)
     box('pave', 1, 5.99, z0 + 1, 7, 6.02, z1 - 1, -999);
     B.stage('lishka:arch' + k);

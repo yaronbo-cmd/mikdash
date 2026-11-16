@@ -825,7 +825,7 @@ const S07 = {
     nightSleep: [[-153.8, 19.6, -71.8], [-160, 16.4, -76.2]],
     // the night's last three pictures: the fire lighting the vault from within (round 3: from the hall's west arm, low, along the
     // barrel's axis — the fire in the lower frame, the vault receding over it); the water standing in the troughs; the round bench
-    end: [[[-173.5, 16.9, -70.5], [-155, 26, -70.5]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
+    end: [[[-175, 19.5, -66.5], [-146, 34, -72]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and

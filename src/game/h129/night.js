@@ -96,10 +96,15 @@ export function nightRig(X) {
 /** a man of the game's own figures laid down to sleep (h129: the rig laid on its back or its side, a.lie), his garment over him from the
  *  feet to the chest, on a garment of his own spread on the floor when asked. o: { mid: [x, z], y, head: [hx, hz] (unit: toward his head),
  *  side (0 on his back, ±1 on a side), variant, young, col2 (hair, beard: an elder's white), scale, cover (colour), under } */
+/** the night's own figures (h129 round 3): kept here so that a second make, or one that never reached its end, cannot leave a figure
+ *  of the last night standing in the hall (a kneeling kohen left beside the sleeping one) */
+const NIGHTA = { set: new Set(), makes: 0 };
+const nightOwn = (a) => { if (a) NIGHTA.set.add(a); return a; };
+function nightClear(AC) { if (AC) for (const a of NIGHTA.set) { try { AC.remove(a); } catch (e) { /* */ } } NIGHTA.set.clear(); }
 function sleeperA(X, AC, MT, parent, o) {
   const T = X.THREE, s = o.scale || 1, [hx, hz] = o.head, half = 1.75 * s, fx = o.mid[0] - hx * half, fz = o.mid[1] - hz * half, yU = o.under ? 0.05 : 0, sd = o.side || 0;
   const yaw = !sd ? Math.atan2(-hx, -hz) : sd > 0 ? Math.atan2(hz, -hx) : Math.atan2(-hz, hx), lie = !sd ? [-Math.PI / 2, 0] : [0, (sd * Math.PI) / 2];
-  const a = AC ? AC.add(o.variant || 'kohen', fx, fz, { y: o.y + yU + (sd ? 0.42 : 0.34) * s, yaw, scale: s, young: !!o.young, col2: o.col2, fadeIn: false }) : null;
+  const a = AC ? nightOwn(AC.add(o.variant || 'kohen', fx, fz, { y: o.y + yU + (sd ? 0.42 : 0.34) * s, yaw, scale: s, young: !!o.young, col2: o.col2, fadeIn: false })) : null;
   if (a) { a.vis = a.visT = 1; a.gang = 1; a.lie = lie; a.lieAt = [o.mid[0], o.mid[1]]; a.yaw = yaw; a.arm = [0.08, 0.1, 0.08, 0.1]; a.armT = a.arm.slice(); if (sd) { a.kn = a.knT = o.knees || 0; } }
   const along = Math.atan2(hx, hz), parts = [];
   if (o.under) { const u = new T.Mesh(X.props.geo.box, MT.h7cloak); u.scale.set(1.5 * s, 0.05, 4.1 * s); u.position.set(o.mid[0], o.y + 0.025, o.mid[1]); u.rotation.y = along; u.receiveShadow = true; parent.add(u); parts.push(u); }
@@ -141,6 +146,7 @@ export const NIGHT = {
   prepare() {},
   make(m, X) {
     const T = X.THREE, Mo = X.M, st = Mo.st, V = createVoices(X.sfx), MT = mats7(X), AC = X.actors ? X.actors() : null;
+    nightClear(AC);
     const A = { phase: 'intro', t: 0, ev: [], fing: new Map(), base: 0, lockI: -1, tw: [], rattleT: 0, stay: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     own('slab', 1); setBusy(X, 1); X.kohen(false); vaultWhole(X);
@@ -169,7 +175,7 @@ export const NIGHT = {
     //    toward the ring, his hands forward); the figures gate measures him at his kneeling height. After the lowering he lies on it
     let kohen = null;
     const KN = [sx + N7.kneel[0], sz + N7.kneel[1]];
-    if (AC) { kohen = AC.add('kohen', KN[0], KN[1], { y: F16, yaw: Math.atan2(sx - KN[0], sz - KN[1]), scale: 1, young: false, col2: '#3A2A1E', fadeIn: false }); kohen.vis = kohen.visT = 1; kohen.gang = 1; kohen.gateH = 2.7; AC.pose(kohen, 'sit'); kohen.bowT = 0.42; kohen.armT = [1.15, -0.18, 1.15, -0.18]; }
+    if (AC) { kohen = nightOwn(AC.add('kohen', KN[0], KN[1], { y: F16, yaw: Math.atan2(sx - KN[0], sz - KN[1]), scale: 1, young: false, col2: '#3A2A1E', fadeIn: false })); NIGHTA.makes++; kohen.vis = kohen.visT = 1; kohen.gang = 1; kohen.gateH = 2.7; AC.pose(kohen, 'sit'); kohen.bowT = 0.42; kohen.armT = [1.15, -0.18, 1.15, -0.18]; }
     const kohenShow = (v) => { if (kohen) { kohen.vis = kohen.visT = v ? 1 : 0; } };
     // ── the slab: lifted flat by its ring (the pit, the chain and the keys under it seen through the gap), the stay hinged at the pit's
     //    east edge; the ring's two sides the two grips, a thin gold ring round each
@@ -316,7 +322,8 @@ export const NIGHT = {
       await X.wait(1.3);
       A.sleepS = 'cloak'; cloak.visible = true; V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
       await X.wait(1.4);
-      if (kohen && AC) { try { AC.remove(kohen); } catch (e) { /* */ } kohen = null; }
+      if (AC) for (const q of [...NIGHTA.set]) if (q === kohen || q.poseName === 'sit') { try { AC.remove(q); } catch (e) { /* */ } NIGHTA.set.delete(q); }
+      kohen = null;
       const me = sleeperA(X, AC, MT, root, { mid: [sx, sz], y: F16 + 0.17, head: [-1, 0], side: 0, young: false, col2: '#3A2A1E', cover: null });
       kohen = me.a; A.sleepS = 'asleep'; X.line('ישן לו', 2600);
       await X.wait(2.6);
@@ -390,7 +397,7 @@ export const NIGHT = {
         const G = gripsPx(), tq = scr(torch.position), hq = scr({ x: N7.hearth[0], y: F16 + 0.6, z: N7.hearth[1] }), c0 = scr({ x: sx - HS / 2, y: F16 + 0.12, z: sz }), c1 = scr({ x: sx + HS / 2, y: F16 + 0.12, z: sz });
         return { id: m.id, phase: A.phase, mouse: MOUSE, ev: A.ev.slice(-10), nf: FG.n, n: A.fing.size, need: need(), h: +S.h.toFixed(3), v: +S.v.toFixed(3), sphase: S.phase, bangs: S.bangs, dmg: S.dmg,
           grips: G.map((q) => [Math.round(q.x), Math.round(q.y)]), ring: [Math.round((G[0].x + G[1].x) / 2), Math.round((G[0].y + G[1].y) / 2)], gripHit: Math.round(gripHit()), slabPx: Math.round(Math.hypot(c1.x - c0.x, c1.y - c0.y)),
-          torch: [Math.round(tq.x), Math.round(tq.y)], hearth: [Math.round(hq.x), Math.round(hq.y)], unit: Math.round(unit()), open: SLAB.OPEN, soft: SLAB.SOFT, lockI: A.lockI, nLocks: LOCKS().length, lockS: A.lockS || '', gbox: G1.frame && gate.visible ? (() => { const bx = new T.Box3().setFromObject(G1.frame); return [bx.min.toArray().map((v) => +v.toFixed(2)), bx.max.toArray().map((v) => +v.toFixed(2))]; })() : null, frameAt: G1.frame ? G1.frame.position.toArray().map((v) => +v.toFixed(2)) : null, frameRy: G1.frame ? +G1.frame.rotation.y.toFixed(2) : null, flash: +(A.flashT || 0).toFixed(2), sleepS: A.sleepS || '', kohen: kohen ? { vis: kohen.vis, off: !!kohen.gateOff, lie: !!kohen.lie } : null, sleepers: sleepers.map((q) => (q.a ? (q.a.gateOff ? 'off' : 'on') : '-')).join('') };
+          torch: [Math.round(tq.x), Math.round(tq.y)], hearth: [Math.round(hq.x), Math.round(hq.y)], unit: Math.round(unit()), open: SLAB.OPEN, soft: SLAB.SOFT, lockI: A.lockI, nLocks: LOCKS().length, lockS: A.lockS || '', gbox: G1.frame && gate.visible ? (() => { const bx = new T.Box3().setFromObject(G1.frame); return [bx.min.toArray().map((v) => +v.toFixed(2)), bx.max.toArray().map((v) => +v.toFixed(2))]; })() : null, frameAt: G1.frame ? G1.frame.position.toArray().map((v) => +v.toFixed(2)) : null, frameRy: G1.frame ? +G1.frame.rotation.y.toFixed(2) : null, flash: +(A.flashT || 0).toFixed(2), sleepS: A.sleepS || '', kohen: kohen ? { vis: kohen.vis, off: !!kohen.gateOff, lie: !!kohen.lie, near: AC && AC.list ? (Array.isArray(AC.list) ? AC.list : AC.list()).filter((q) => Math.hypot(q.x - sx, q.z - sz) < 4).map((q) => q.poseName + (q.lie ? 'L' : '') + (q.gateOff ? 'o' : '') + (q === kohen ? '*' : '') + (q.alive ? '' : 'x') + (q.gang ? 'g' : '') + (NIGHTA.set.has(q) ? 'n' : '')).join(' ') + ' m' + NIGHTA.makes : '' } : null, sleepers: sleepers.map((q) => (q.a ? (q.a.gateOff ? 'off' : 'on') : '-')).join('') };
       },
     };
   },

@@ -21,7 +21,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   pg.on('crash', () => console.log('PAGE CRASHED'));
   await pg.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const init = steps.find((s) => s.init); 
-  await pg.addInitScript((code) => { window.__FORCE_Q = 'normal'; window.__FORCE_TIME = 'noon'; window.__GAME_LOG = []; window.__START_PAUSED = true; window.__DT_MAX = 0.6; try { localStorage.clear(); } catch (e) { /* */ } if (code) { try { (0, eval)(code); } catch (e) { console.error('init', e.message); } } }, init ? init.init : '');
+  await pg.addInitScript((code) => { window.__FORCE_Q = 'normal'; window.__FORCE_TIME = 'noon'; window.__GAME_LOG = []; window.__START_PAUSED = true; window.__DT_MAX = 0.6; try { if (+sessionStorage.getItem('__keep') > Date.now()) { code = sessionStorage.getItem('__init2') || ''; } else localStorage.clear(); } catch (e) { /* */ } if (code) { try { (0, eval)(code); } catch (e) { console.error('init', e.message); } } }, init ? init.init : '');
   await pg.goto('file://' + path.join(ROOT, 'dist/test.html'));
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 });
   const cdp = await ctx.newCDPSession(pg);
@@ -37,6 +37,8 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   async function run(s) {
     if (s.init) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
+    // (build 129: {reload: code} — the page reloaded with its save kept (localStorage), the init code replaced by this one)
+    if (s.reload != null) { await pg.evaluate((c) => { sessionStorage.setItem('__keep', String(Date.now() + 60000)); sessionStorage.setItem('__init2', c); }, String(s.reload)); await pg.reload(); await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 }); await pg.evaluate(() => { try { __T.simulate(true); } catch (e) { /* */ } }); log('reloaded'); }
     if (s.eval) { const v = await pg.evaluate(s.eval).catch((e) => 'EVALERR ' + e.message); if (v !== undefined) log('eval', typeof v === 'string' ? v.slice(0, 9000) : JSON.stringify(v).slice(0, 9000)); }
     if (s.log) { const v = await pg.evaluate(s.log).catch((e) => 'ERR ' + e.message); log(typeof v === 'string' ? v.slice(0, 1500) : JSON.stringify(v).slice(0, 1500)); }
     if (s.until) { const t = Date.now(); while (Date.now() - t < (s.max || 60000)) { const ok = await pg.evaluate(s.until).catch(() => false); if (ok) break; await pg.waitForTimeout(300); } log('until', s.until.slice(0, 80), ((Date.now() - t) / 1000).toFixed(1) + 's'); }

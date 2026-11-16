@@ -684,7 +684,7 @@ export function createActors(ctx) {
       if (inView && camera) {
         const dx = a.x - cx, dy = a.y - cy, dz = a.z - cz;
         if (dx * dx + dy * dy + dz * dz > 700 * 700) inView = false;
-        else { sp.center.set(a.x, a.y + 2, a.z); sp.radius = 3.5; inView = fr.intersectsSphere(sp); }
+        else { sp.center.set(a.x, a.y + (a.lie ? 0.5 : 2), a.z); sp.radius = a.lie ? 4.2 : 3.5; inView = fr.intersectsSphere(sp); }
       }
       if (!inView && !a.path && !a.face && !a.gesture && !a.poseRes && !a.rope) continue;
       step(a, dt);
@@ -695,7 +695,7 @@ export function createActors(ctx) {
       B[0] = a.arm[0]; B[1] = a.arm[1]; B[2] = a.arm[2]; B[3] = a.arm[3];
       C[0] = a.hy; C[1] = a.hp; C[2] = a.shade; C[3] = a.sway;
       const sc = a.s * (a.vis < 1 ? Math.max(0.001, a.vis) : 1);
-      rigWrite(K.m, K.n++, a.x, a.y + Math.abs(Math.cos(a.ph)) * 0.06 * a.wk, a.z, a.yaw, sc, a.col, A, B, C, a.col2);
+      rigWrite(K.m, K.n++, a.x, a.y + Math.abs(Math.cos(a.ph)) * 0.06 * a.wk, a.z, a.yaw, sc, a.col, A, B, C, a.col2, a.lie || null);   // ── h129 ── (a.lie: laid down, h129/night.js) ── /h129 ──
       if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw);
       // the held item
       if (a.item && ni < MAXI - 1) {
@@ -823,6 +823,7 @@ export function createActors(ctx) {
     if (a.look) { const w = Math.atan2(a.look[0] - a.x, a.look[1] - a.z) - a.yaw; hyT = Math.max(-1, Math.min(1, Math.atan2(Math.sin(w), Math.cos(w)))); hpT = 0.15; }
     if (a.poseName === 'bless') { hyT = 0; hpT = -0.12; }
     if (a.poseName === 'kneel') { hyT = 0; hpT = 0.3; }
+    if (a.lie) { hyT = 0; hpT = a.lieHp || 0; }   // ── h129 ── (a figure laid down sleeps: his head still; lieHp lifts it, h129/night.js) ── /h129 ──
     a.hy += (hyT - a.hy) * Math.min(1, dt * 3); a.hp += (hpT - a.hp) * Math.min(1, dt * 3);
     // ── people6 ── weight shifts: a slow lean from one foot to the other, now and then
     a.sway = (Math.sin(T * 0.55 + a.shade * 20) * 0.022 + Math.sin(T * 1.3 + a.shade * 7) * 0.006) * (1 - a.wk);

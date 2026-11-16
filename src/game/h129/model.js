@@ -551,25 +551,34 @@ export const vaultPts = (A, B) => grade((A ? A.dmg : 0) + (B ? B.dmg : 0), !(A &
 /** the slab's lift h (0 down … 1 open against its prop); the thumbs' target; at most VMAX per second toward it (late), with FOLLOW
  *  gain; let go below OPEN while lifting: it falls back with a bang (no damage; an elder lifts his head); lowering, it touches down
  *  faster than SOFT: a corner cracks (night.slab). A slab let go above the floor falls at FALL per second², hard. */
-export const SLAB = Object.freeze({ VMAX: 0.5, FOLLOW: 6, OPEN: 0.8, SOFT: 0.35, FALL: 6, TOUCH: 0.01 });
+export const SLAB = Object.freeze({ VMAX: 0.5, FOLLOW: 6, OPEN: 0.8, SOFT: 0.35, FALL: 6, TOUCH: 0.03 });   // (TOUCH: the seat's last finger-width: within it the slab sits)
 export function slabFresh() { return { h: 0, v: 0, phase: 'lift', bangs: 0, keys: 0, dmg: 0, flags: {}, done: 0, ev: [] }; }
 /** dt s; lift: the thumbs' target (may go below 0 when pressed down; null: let go) */
 export function slabStep(S, lift, dt) {
+  // (build 129 round 2: in sub-steps of at most 1/60 s — a long frame (a busy phone, the probe's 0.6 s) once threw a slab let go a
+  //  hair above its seat down at many times its real speed: a cracked corner for a careful player)
   S.ev = []; if (S.done) return S;
-  if (S.phase === 'open') { if (lift != null && lift < SLAB.OPEN) S.phase = 'lower'; else return S; }
+  const n = Math.max(1, Math.ceil((+dt || 0) / (1 / 60) - 1e-9)), h = (+dt || 0) / n;
+  // (the thumbs moved through the frame, not in one jump at its end: the target is drawn along from where it was)
+  const L0 = lift != null && S.lt != null ? S.lt : lift;
+  for (let i = 0; i < n && !S.done; i++) { slabSub(S, lift == null ? null : L0 + ((lift - L0) * (i + 1)) / n, h); if (S.ev.some((e) => e.e === 'keys')) break; }
+  S.lt = lift;
+  return S;
+}
+function slabSub(S, lift, dt) {
+  if (S.phase === 'open') { if (lift != null && lift < SLAB.OPEN) S.phase = 'lower'; else return; }
   const held = lift != null;
   if (held) { const want = clamp((lift - S.h) * SLAB.FOLLOW, -SLAB.VMAX, SLAB.VMAX); S.v = want; }
   else if (S.h > 0) S.v -= SLAB.FALL * dt; else S.v = 0;
   const h0 = S.h; S.h += S.v * dt;
-  if (S.phase === 'lift' && S.h >= SLAB.OPEN) { S.h = Math.max(S.h, SLAB.OPEN); S.phase = 'open'; S.keys = 1; S.v = 0; S.ev.push({ e: 'keys' }); return S; }
+  if (S.phase === 'lift' && S.h >= SLAB.OPEN) { S.h = Math.max(S.h, SLAB.OPEN); S.phase = 'open'; S.keys = 1; S.v = 0; S.ev.push({ e: 'keys' }); return; }
   if (S.v <= 0 && S.h <= SLAB.TOUCH) {
     S.h = 0; const sp = -S.v; S.v = 0;
     if (h0 > SLAB.TOUCH) {
       if (S.phase === 'lift') { if (!held) { S.bangs++; S.ev.push({ e: 'bang' }); } }
       else { if (sp > SLAB.SOFT && !S.flags['night.slab']) { S.dmg += lossPts('night.slab', 'night'); S.flags['night.slab'] = [1]; S.ev.push({ e: 'loss', f: 'night.slab' }); } S.done = 1; S.ev.push({ e: 'down', soft: sp <= SLAB.SOFT }); }
-    }
+    } else if (S.phase === 'lower' && !held) { S.done = 1; S.ev.push({ e: 'down', soft: true }); }   // (let go in its seat: it settles)
   }
-  return S;
 }
 export const nightPts = (S) => grade(S.dmg, !S.bangs);
 

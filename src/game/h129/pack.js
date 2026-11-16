@@ -22,7 +22,13 @@ export const GOLAH_IN_PLAY = false;
 const S7 = BOOK.s07, CAM = S7.cam;
 // (the rooms' walls: four boxes each, as the Azarah's ring)
 const roomBoxes = ({ T, rooms }) => rooms.flatMap(([x0, z0, x1, z1, y0, y1]) => [[x0, y0, z0, x1, y1, z0 + T], [x0, y0, z1 - T, x1, y1, z1], [x0, y0, z0, x0 + T, y1, z1], [x1 - T, y0, z0, x1, y1, z1]]);
-const LOOK7 = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), BOOK.s06.house, ...roomBoxes(S7.lookRooms)], K: LOOK_RING_K });
+const LOOK7a = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), BOOK.s06.house, ...roomBoxes(S7.lookRooms)], K: LOOK_RING_K });
+// (round 2, brief F5: an act that plays inside a closed room — the instruments chambers, Beit HaMoked's hall — gives its own look shape,
+//  SH7.lookFn(base, u, yaw) → { p, t, fov } or null: the camera rises inside the room or out of its open top, never back through a wall)
+const ownLook = (base, u, yaw) => { try { return SH7.lookFn ? SH7.lookFn(base, u, yaw) : null; } catch (e) { return null; } };
+const LOOK7 = Object.freeze({ ...LOOK7a,
+  pose: (base, u, yaw, lift = 0) => ownLook(base, u, yaw) || LOOK7a.pose(base, u, yaw, lift),
+  sightPose: (base, u, yaw, ...more) => (ownLook(base, u, yaw) ? { lift: 0, dyaw: 0 } : LOOK7a.sightPose(base, u, yaw, ...more)) });
 const GOLAH_IDS = ['golah1', 'golah2', 'golah3'];
 const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h129-film'); } catch (e) { /* */ } };
 export const PLINES = Object.freeze({
@@ -89,7 +95,7 @@ export function makePack07(env = {}) {
       try {
         vaultWhole(X); roofsOpen(X, true); rig.apply(1);
         const pics = [[CAM.end[0], PLINES.end1], [CAM.end[1], PLINES.end2], [CAM.end[2], PLINES.end3]];
-        for (const [c, line] of pics) { X.shot(c[0], c[1], 1.8); X.line(line, 0); await tapOr(X, 4200); }
+        for (const [c, line] of pics) { try { rig.moon(c !== CAM.end[0]); } catch (e) { /* */ } X.shot(c[0], c[1], 1.8); X.line(line, 0); await tapOr(X, 4200); }   // (round 3: outside the hall, the moon)
         X.line('');
         await card(X, `<b style="font:900 20px Heebo,system-ui">בית המוקד</b>${cite(LINES.middot19)}`, 10000);
         const done = PLAN.filter((m2) => !(st.res[m2.id] && st.res[m2.id].skip)), stars = done.reduce((a, m2) => a + ((st.res[m2.id] && st.res[m2.id].stars) | 0), 0);

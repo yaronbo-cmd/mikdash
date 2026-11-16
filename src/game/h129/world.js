@@ -13,7 +13,7 @@
  * (stages.twinOpen). Every place is the book's (BOOK.s07); every size a size.
  */
 import { BOOK } from '../world/grid.js';
-import { row0, corners, H129, matSeats } from './model.js';
+import { row0, corners, H129, matSeats, VAULT_LV } from './model.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
 
 const S7 = BOOK.s07, GZ = S7.gazit, GL = S7.golah, V = S7.vault, N7 = S7.night, F16 = S7.floors.azara, F6 = S7.floors.nashim;
@@ -107,13 +107,40 @@ export function gazitLayout(st) {
 }
 
 /* ───────── the arches ───────── */
-/** a small arch's timber centering under its opening: a half disc of boards on two posts, its wedges on the floor posts */
+/** a beam (box) from p0 to p1 in the plane x = const (points [z, y]), width w (in that plane) and depth d (along x) from x0 */
+function zyBeam(X, mat, x0, d, p0, p1, w, parent) {
+  const m = new X.THREE.Mesh(X.props.geo.box, mat), dz = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dz, dy);
+  m.scale.set(d, L, w); m.position.set(x0 + d / 2, (p0[1] + p1[1]) / 2, (p0[0] + p1[0]) / 2); m.rotation.x = -Math.atan2(dz, dy); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
+}
+/** a small arch's timber centering under its opening (build 129 round 2, as the great vault's): in each of the face's two planes a curved
+ *  rib, a tie beam, a king post and two struts; lagging boards across the two ribs under the stones; a bearer under the tie beams; open
+ *  between the timbers, so the court is seen through it. It stands on its wedge pairs on posts from the floor (a post under each pair).
+ *  g.userData.top is the part that comes down when the wedges are drawn */
 export function centering(X, k, o = {}) {
-  const M = mats7(X), T = X.THREE, A = V[k], g = new T.Group(), zc = A.at[1], r0 = A.crown - A.spring, xF = A.at[0];
-  const sh = new T.Shape(); sh.moveTo(-r0, 0); sh.absarc(0, 0, r0 - 0.04, Math.PI, 0, true); sh.lineTo(r0, -0.35); sh.lineTo(-r0, -0.35); sh.lineTo(-r0, 0);
-  const geo = new T.ExtrudeGeometry(sh, { depth: 0.8, bevelEnabled: false, curveSegments: 18 }); geo.rotateY(Math.PI / 2);
-  const c = new T.Mesh(geo, M.h7timber); c.position.set(xF - 0.9, A.spring, zc); c.castShadow = true; g.add(c); g.userData.c = c;
-  for (const s of [-1, 1]) { const p = box(X, M.h7timberD, xF - 0.8, A.floor, zc + s * (r0 - 0.6) - 0.15, xF - 0.2, A.spring - 0.75, zc + s * (r0 - 0.6) + 0.15, g); void p; }
+  const M = mats7(X), T = X.THREE, A = V[k], g = new T.Group(), zc = A.at[1], r0 = A.crown - A.spring, sp = A.spring, x0 = A.at[0] - 1;
+  const top = new T.Group(); g.add(top); g.userData.top = top;
+  const ro = r0 - 0.08, ri = r0 - 0.36, D = 0.16, pairs = o.pairs || 1;
+  for (const rx of [x0 + 0.08, x0 + 1 - 0.08 - D]) {
+    const sh = new T.Shape(); sh.moveTo(-ro, 0); sh.absarc(0, 0, ro, Math.PI, 0, true); sh.lineTo(ri, 0); sh.absarc(0, 0, ri, 0, Math.PI, false); sh.lineTo(-ro, 0);
+    const ge = new T.ExtrudeGeometry(sh, { depth: D, bevelEnabled: false, curveSegments: 18 }); ge.rotateY(Math.PI / 2);
+    const rib = new T.Mesh(ge, M.h7timber); rib.position.set(rx, sp, zc); rib.castShadow = true; top.add(rib);
+    box(X, M.h7timberD, rx, sp - 0.1, zc - ri - 0.05, rx + D, sp + 0.12, zc + ri + 0.05, top);                  // the tie beam
+    box(X, M.h7timberD, rx, sp + 0.12, zc - 0.08, rx + D, sp + ri, zc + 0.08, top);                             // the king post
+    for (const sg of [-1, 1]) { const a = Math.PI / 4; zyBeam(X, M.h7timberD, rx, D, [zc + sg * 0.08, sp + 0.5], [zc + sg * ri * Math.cos(a), sp + ri * Math.sin(a)], 0.13, top); }
+  }
+  // the lagging boards across the ribs, under the stones (gaps between them: the court's light comes through)
+  const NL = Math.round(r0 * 3.2);
+  for (let j = 0; j < NL; j++) {
+    const a = (Math.PI * (j + 0.5)) / NL, r = r0 - 0.05, b = new T.Mesh(X.props.geo.box, M.h7timber);
+    b.scale.set(0.96, 0.06, 0.26); b.position.set(x0 + 0.5, sp + r * Math.sin(a), zc + r * Math.cos(a)); b.rotation.x = Math.PI / 2 - a; b.castShadow = true; top.add(b);
+  }
+  box(X, M.h7timberD, x0 + 0.06, sp - 0.32, zc - ri, x0 + 0.94, sp - 0.1, zc + ri, top);                      // the bearer under the tie beams
+  // the posts from the floor, a sill on each (the wedges sit between the sill and the bearer)
+  for (let i = 0; i < pairs; i++) for (const sg of [-1, 1]) {
+    const z = zc + sg * (r0 - 0.6 - 0.45 * i);
+    box(X, M.h7timberD, x0 + 0.22, A.floor, z - 0.15, x0 + 0.78, sp - 0.66, z + 0.15, g);
+    box(X, M.h7timber, x0 + 0.12, sp - 0.66, z - 0.22, x0 + 0.88, sp - 0.58, z + 0.22, g);
+  }
   (o.parent || X.props.root).add(g); return g;
 }
 /** the great vault's ring i (1 …): its stones between R and R + 1 round the axis, x from the east end westward */
@@ -191,22 +218,30 @@ export function rebuild(X, force) {
   }
   // the Golah (the crews' version until part 3 plays it)
   if (!own.golah) golahBuild(X, S, grp('golah'));
+  try { X.stages.subSet('lishka:slab', !own.slab); } catch (e) { /* */ }   // (the hall's slab and ring: the night's act lifts its own)
   // the instruments chambers: the centering until the arch is freed; then the model's stones, a crack, a fallen stone and its shade
   for (const kk of ['N', 'S']) {
     const done = kk === 'N' ? S.vN : S.vS;
-    try { X.stages.subSet('lishka:arch' + kk, done && !own['v' + kk]); } catch (e) { /* */ }
+    try { X.stages.subSet('lishka:arch' + kk, done && !own['v' + kk]); X.stages.subSet('lishka:leg' + kk, !own['v' + kk]); X.stages.subSet('lishka:spand' + kk, !own['v' + kk]); } catch (e) { /* */ }
     if (own['v' + kk]) continue;
     const g = grp('v' + kk), A = V[kk];
-    if (!done) { centering(X, kk, { parent: g }); continue; }
-    if (S.vcrack[kk]) crackLine(X, A.at[0] + 0.02, A.crown + 0.5, A.at[1] + 0.4, g);
-    if (S.vstone[kk]) fallen(X, A.at[0] - 1.4, A.floor, A.at[1] + (A.z[1] - A.at[1]) + 0.2, g, kk === 'N' ? 1 : -1);
+    if (!done) { centering(X, kk, { parent: g, pairs: VAULT_LV['vault' + kk].pairs }); continue; }
+    // (seen from inside the room: the crack up the arch's inner face from the crown's joint and on along the ceiling; the fallen
+    //  stone broken on the floor by the jamb, and in the arch its replacement of another shade)
+    const xF = A.at[0] - 1, y1 = A.top - 0.3;
+    if (S.vcrack[kk]) { crackRun(X, [[xF - 0.03, A.crown, A.at[1] + 0.12], [xF - 0.03, A.crown + 0.35, A.at[1] + 0.3], [xF - 0.03, y1 - 0.02, A.at[1] + 0.2], [xF - 1.0, y1 - 0.02, A.at[1] + 0.45], [xF - 2.2, y1 - 0.02, A.at[1] + 0.25]], g); }
+    if (S.vstone[kk]) { fallen(X, xF - 0.6, A.floor, A.z[1] + 1.0, g, kk === 'N' ? 1 : -1); shadeStone(X, A, Math.floor(A.stones / 2) - 1, g); }
   }
   // the great vault: its rings as built (ring 1 the player's, the rest the crews'); the centering under the next ring; the damage
   if (!own.vM) {
     const g = grp('vM'), A = V.M;
-    for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : M.h7stone); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
+    for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : vaultIn(M, T)); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
     if (S.rings < A.rings) ringCentering(X, S.rings ? S.rings + 1 : 1, g);
-    if (S.vcrack.M) crackLine(X, A.east - 1.5, A.spring + A.R - 0.05, A.axisZ + 2, g, true);
+    if (S.vcrack.M) {   // (up the ring's west face from the crown's joint, and across its soffit)
+      const xw = A.east - A.ringD - 0.05, yc = A.spring + A.R, z0 = A.axisZ + 0.6;
+      crackRun(X, [[xw, yc, z0], [xw, yc + 0.5, z0 + 0.35], [xw, yc + 1.0, z0 + 0.15]], g, 0.14);
+      crackRun(X, [[xw, yc - 0.03, z0], [xw + 1.0, yc - 0.04, z0 + 0.5], [xw + 2.0, yc - 0.04, z0 + 0.2], [A.east, yc - 0.04, z0 + 0.55]], g, 0.14);
+    }
     if (S.vstone.M) fallen(X, A.east - 3, A.floor, A.legs[0][1] + 1.2, g, 1);
   }
   // the marble slab's cracked corner
@@ -220,6 +255,26 @@ export function crackLine(X, x, y, z, parent, up) {
   const pts = [[0, 0], [0.3, 0.12], [0.55, -0.05], [0.9, 0.1], [1.2, -0.02]];
   for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); const m = new T.Mesh(X.props.geo.box, M.h7crack); m.scale.set(up ? L : 0.06, up ? 0.04 : L, up ? 0.06 : 0.06); m.position.set(up ? (a[0] + b[0]) / 2 : 0, up ? 0 : (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); m.rotation.set(up ? 0 : Math.atan2(b[1] - a[1], b[0] - a[0]), up ? -Math.atan2(b[1] - a[1], b[0] - a[0]) : 0, 0); g.add(m); }
   g.position.set(x, y, z); (parent || X.props.root).add(g); return g;
+}
+/** the great vault's stone seen from both sides (from the hall under it the intrados reads lit by the fire, round 3) */
+const vaultIn = (M, T) => M.h7stone2 || (M.h7stone2 = Object.assign(M.h7stone.clone(), { side: T.DoubleSide }));
+/** a crack along a run of points (a dark jagged line on a face or a ceiling) */
+export function crackRun(X, P, parent, t = 0.045) {
+  const M = mats7(X), T = X.THREE, g = new T.Group();
+  for (let i = 0; i + 1 < P.length; i++) {
+    const a = new T.Vector3(...P[i]), b = new T.Vector3(...P[i + 1]), d = b.clone().sub(a), L = d.length();
+    const m = new T.Mesh(X.props.geo.box, M.h7crack); m.scale.set(t, L + t * 0.7, t); m.position.copy(a.clone().add(b).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); g.add(m);
+  }
+  (parent || X.props.root).add(g); return g;
+}
+/** a small arch's stone j laid again in another shade (over the model's stone: its face and soffit a little proud) */
+export function shadeStone(X, A, j, parent) {
+  const M = mats7(X), T = X.THREE, r0 = A.crown - A.spring - 0.012, r1 = A.crown - A.spring + 1 + 0.012, zc = A.at[1], sh = new T.Shape(), N = 4;
+  const a0 = Math.PI - (j / A.stones) * Math.PI, a1 = Math.PI - ((j + 1) / A.stones) * Math.PI;
+  for (let q = 0; q <= N; q++) { const a = a0 + ((a1 - a0) * q) / N, p = [-(zc + r1 * Math.cos(a)), A.spring + r1 * Math.sin(a)]; if (q) sh.lineTo(...p); else sh.moveTo(...p); }
+  for (let q = N; q >= 0; q--) { const a = a0 + ((a1 - a0) * q) / N; sh.lineTo(-(zc + r0 * Math.cos(a)), A.spring + r0 * Math.sin(a)); }
+  const ge = new T.ExtrudeGeometry(sh, { depth: 1.024, bevelEnabled: false, curveSegments: 1 }); ge.rotateY(Math.PI / 2); ge.translate(A.at[0] - 1 - 0.012, 0, 0);
+  const m = new T.Mesh(ge, M.h7shade); m.castShadow = m.receiveShadow = true; (parent || X.props.root).add(m); return m;
 }
 /** a fallen arch stone broken on the floor by the wall */
 export function fallen(X, x, y, z, parent, s = 1) {
@@ -239,7 +294,7 @@ export function ringCentering(X, i, parent) {
 }
 
 /* ───────── the sets the stage takes over in the model (stages.subSet) ───────── */
-const ALWAYS_OFF = ['wall:gz', 'wall:gl', 'wall:vN', 'wall:vS', 'nikanor:vN', 'nikanor:vS', 'lishka:dome'];
+const ALWAYS_OFF = ['wall:whole', 'nikanor:whole', 'lishka:dome'], ALWAYS_ON = ['wall:cut', 'nikanor:cut'];
 const ROOFS = ['lishka:gzroof', 'lishka:glroof', 'wall:gzt', 'wall:glt'];
 function subSync(X, force) {
   const S0 = X.stages; SH7.subT -= 1;
@@ -248,6 +303,7 @@ function subSync(X, force) {
   try { const info = S0.siteInfo ? S0.siteInfo('lishka') : null; if (!info || info.status !== 'done') S0.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ }
   if (!S0.subSet) return;
   for (const k of ALWAYS_OFF) S0.subSet(k, false);
+  for (const k of ALWAYS_ON) S0.subSet(k, true);
   const roofs = !!(SH7.final || (SH7.state && SH7.state.fin)) && !SH7.open;
   for (const k of ROOFS) S0.subSet(k, roofs);
 }

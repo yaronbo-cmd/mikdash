@@ -71,7 +71,7 @@ export function buildTemple(B, P) {
   // instruments chambers by the gate: those pieces are sets of the wall's own stage (stages.js h129: a group of their own in it, the same
   // materials and reveal), which stage 07's world hides once it plays there (the Gazit's and the Golah's rooms are open to the sky
   // while it plays: the wall's piece over each room comes back with its roof). Before stage 07 every piece shows: the wall as it was.
-  h129Walls(B, box, WT);
+  h129Walls(B, box, WT, wall);
   // ── /h129 ──
   wall(6, -73.5, 141, -67.5, 6, 40); wall(6, 67.5, 141, 73.5, 6, 40);   // Ezrat Nashim N/S
   wall(141, -73.5, 147, -13, 6, 22); wall(141, 13, 147, 73.5, 6, 22);   // low eastern wall (Middot 2:4)
@@ -294,7 +294,10 @@ export function buildTemple(B, P) {
   gate('E', -4, -14, 10, 14, 6, 50, 0, 10, 13.5, 33.5, 'bronze');
   // ── h129 ── (its two chambers: the lower storey of each a set of this stage's own, which stage 07's world hides when it opens the
   // instruments chamber there; together the same box and cornice as before) ── /h129 ──
-  for (const [z0, z1, k] of [[-26, -14, 'N'], [14, 26, 'S']]) { B.stage('nikanor:v' + k); box('ash', 0, 6, z0, 8, 13.5, z1, 6); B.stage('nikanor'); box('ash', 0, 13.5, z0, 8, 32, z1, 6); cornice(0, z0, 8, z1, 32, 0.5, 'ash'); }
+  // (round 2: whole, as build 128 drew them, in 'nikanor:whole' until stage 07 plays; then 'nikanor:cut', the upper storey alone)
+  B.stage('nikanor:whole'); wall(0, -26, 8, -14, 6, 32); wall(0, 14, 8, 26, 6, 32);
+  B.stage('nikanor:cut'); for (const [z0, z1] of [[-26, -14], [14, 26]]) { box('ash', 0, 13.5, z0, 8, 32, z1, 6); cornice(0, z0, 8, z1, 32, 0.5, 'ash'); }
+  B.stage('nikanor');
   // ── /h129 ──
   box('ash', -4, 0, -26, 10, 6, 26, 0);   // ── site14 ── (its footing, as the gates'; the steps' below)
   P('nikanor', -4, 6, -26, 11, 51, 26);
@@ -431,12 +434,16 @@ function buildMoked(B, box, cornice, door) {
   // "וראשי פספסין מבדילין בין קדש לחל" — a line of tiles across the hall where the azara begins (z −67.5)
   box('wmarble', -166, 16, -67.7, -154, 16.03, -67.3, -999);
   // the place of the keys: "אמה על אמה, וטבלא של שיש, וטבעת היתה קבועה בה" (Middot 1:9)
+  B.stage('lishka:slab');   // ── h129 ── (its own set: the night's act lifts its own slab and ring, and these step aside) ── /h129 ──
   box('wmarble', -160.5, 16, -76.5, -159.5, 16.04, -75.5, -999);
   { const g = new THREE.TorusGeometry(0.22, 0.05, 6, 14); g.rotateX(Math.PI / 2); g.translate(-160, 16.07, -76); B.geo('iron', g, -999); }
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   // a hearth in the hall (the name "בית המוקד"; illustration)
+  B.stage('lishka:hearth');   // ── h129 ── (its own set: stage 07's night lays its own fire of long logs here, and this steps aside) ── /h129 ──
   for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; box('ash', -160 + Math.cos(a) * 1.3 - 0.3, 16, -70.5 + Math.sin(a) * 1.3 - 0.3, -160 + Math.cos(a) * 1.3 + 0.3, 16.5, -70.5 + Math.sin(a) * 1.3 + 0.3, -999); }
   for (let k = 0; k < 5; k++) { const g = new THREE.CylinderGeometry(0.14, 0.14, 1.8, 6); g.rotateZ(Math.PI / 2); g.rotateY(k * 1.2); g.translate(-160, 16.25 + (k % 2) * 0.12, -70.5); B.geo('dark', g, -999); }
   for (let k = 0; k < 9; k++) { const g = new THREE.IcosahedronGeometry(0.16 + r() * 0.1, 0); g.translate(-160 + (r() - 0.5) * 1.4, 16.2, -70.5 + (r() - 0.5) * 1.4); B.geo('ember', g, -999); }   // ── blooda25 ── (was 'red': the coals of בית המוקד are the ember's orange)
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   // SW — the lambs' chamber: a manger along the west wall, two stall rails, hay in the corners; the middle of the floor
   // (y = 16) stays clear for the lambs (the Life agent places six there)
   { const L = C.lambs;
@@ -707,25 +714,28 @@ export function h120Ladder(x, z, fx, fz, y0, y1) {
 // ── /h120 ──
 
 // ── h129 ── build 129, stage 07 "הלשכות": the built world's own pieces (BOOK.s07 reads its places from here, rule 65) ──────────────
-// the Azarah's south wall (x −187 … 0, z 67.5 … 73.5, to 44, its cornice) with the parts inside the two south chambers' rooms as sets
-// of the wall's stage: 'wall:gz' and 'wall:gl' below each room's roof line (hidden once stage 07 plays there), 'wall:gzt' and 'wall:glt'
-// above it (hidden while the room is open to the sky); the Nikanor wall's lower piece inside each instruments chamber, 'wall:vN|S'
+// the Azarah's south wall (x −187 … 0, z 67.5 … 73.5, to 44, its cornice) cut round the two south chambers' rooms ('wall:gzt' and
+// 'wall:glt' its pieces above each room's roof line, shown with the roofs), and the Nikanor wall cut round the instruments chambers
 const H129_SW = [-187, 6, 67.5, 0, 44, 73.5], H129_SWC = [-187.5, 42.7, 67, 0.5, 44.25, 74];
 const H129_CUTS = { 'wall:gz': [-99, 6, 67, -63, 34.8, 74.1], 'wall:gzt': [-99, 34.8, 67, -63, 44.3, 74.1], 'wall:gl': [-146, 6, 67, -132, 28.6, 74.1], 'wall:glt': [-146, 28.6, 67, -132, 44.3, 74.1] };
 const H129_NW = { N: [[0, 6, -73.5, 6, 44, -14], [0, 6, -26, 6, 13.5, -14]], S: [[0, 6, 14, 6, 44, 73.5], [0, 6, 14, 6, 13.5, 26]] };
 const inter = (a, b) => [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2]), Math.min(a[3], b[3]), Math.min(a[4], b[4]), Math.min(a[5], b[5])];
-function h129Walls(B, box, WT) {
+// (build 129, round 2: the pieces cut apart left faint seams in stage 06's pictures — so the wall stands whole, as build 128 drew it, in
+//  the set 'wall:whole' until stage 07 plays; the cut version is the set 'wall:cut' (and 'wall:gzt|glt' over the rooms' roof lines),
+//  hidden until then: stages.js H129SUB's default-off list; stage 07's world swaps them)
+function h129Walls(B, box, WT, wall) {
+  B.stage('wall:whole');
+  wall(-187, 67.5, 0, 73.5, 6, WT);                                  // south
+  wall(0, -73.5, 6, -14, 6, WT); wall(0, 14, 6, 73.5, 6, WT);        // Nikanor wall
+  B.stage('wall:cut');
   const H = Object.values(H129_CUTS);
   carve((q) => box('ash', ...q, 6), [H129_SW[0], H129_SW[1], H129_SW[2], H129_SW[3], WT, H129_SW[5]], H);
   carve((q) => box('ash', ...q, -999), H129_SWC, H);
-  for (const [k, c] of Object.entries(H129_CUTS)) { B.stage(k); box('ash', ...inter(H129_SW, c), 6); const cc = inter(H129_SWC, c); if (cc[4] > cc[1]) box('ash', ...cc, -999); }
+  for (const k of ['wall:gzt', 'wall:glt']) { const c = H129_CUTS[k]; B.stage(k); box('ash', ...inter(H129_SW, c), 6); const cc = inter(H129_SWC, c); if (cc[4] > cc[1]) box('ash', ...cc, -999); }
+  // the Nikanor wall (x 0 … 6, its cornice) north and south of the gate, cut round each instruments chamber's lower storey
+  B.stage('wall:cut');
+  for (const k of ['N', 'S']) { const [W, cut] = H129_NW[k]; carve((q) => box('ash', ...q, 6), W, [cut]); box('ash', W[0] - 0.5, W[4] - 1.3, W[2] - 0.5, W[3] + 0.5, W[4] + 0.25, W[5] + 0.5, -999); }
   B.stage('wall');
-  // the Nikanor wall (x 0 … 6, its cornice) north and south of the gate, its lower piece in each instruments chamber a set
-  for (const k of ['N', 'S']) {
-    const [W, cut] = H129_NW[k];
-    carve((q) => box('ash', ...q, 6), W, [cut]); box('ash', W[0] - 0.5, W[4] - 1.3, W[2] - 0.5, W[3] + 0.5, W[4] + 0.25, W[5] + 0.5, -999);
-    B.stage('wall:v' + k); box('ash', ...cut, 6); B.stage('wall');
-  }
 }
 /** the Gazit as a shell: outer x −100 … −62, z 58 … 82, to 28; the room inside 1-amah walls, its floor at 16; the north door (x −83 …
  *  −79, 16 … 24) from the Azarah; the inner stair's door (z 75 … 77, 16 … 21) a dark niche in the east wall's inner face */
@@ -761,7 +771,11 @@ function h129Instruments(B, box) {
   for (const [k, zc, n] of [['N', -20, 7], ['S', 20, 9]]) {
     const z0 = zc - 6, z1 = zc + 6, sp = 9.5, r0 = 3, r1 = 4;
     box('ash', 0, 6, z0, 1, 13.5, z1, 6); box('ash', 1, 6, z0, 7, 13.5, z0 + 1, 6); box('ash', 1, 6, z1 - 1, 7, 13.5, z1, 6);
+    // (round 2: the legs and the spandrels sets of their own, 'lishka:legN|S' and 'lishka:spandN|S': the vault act draws its own while it
+    //  plays — the legs that give, the spandrels built up stone by stone as the shoulders' weight)
+    B.stage('lishka:leg' + k);
     box('ash', 7, 6, z0, 8, sp, zc - r0, 6); box('ash', 7, 6, zc + r0, 8, sp, z1, 6);
+    B.stage('lishka:spand' + k);
     for (const s of [-1, 1]) {   // the two spandrels over the springing, their curved side the extrados
       const sh = new THREE.Shape(), N = 10, zEnd = s < 0 ? z0 : z1;
       sh.moveTo(-zEnd, sp); sh.lineTo(-(zc + s * r1), sp);
@@ -770,6 +784,7 @@ function h129Instruments(B, box) {
       const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false, curveSegments: 1 }); g.rotateY(Math.PI / 2); g.translate(7, 0, 0);
       B.geo('ash', g, 6);
     }
+    B.stage('lishka');
     box('ash', 1, 13.2, z0 + 1, 7, 13.5, z1 - 1, -999);   // the ceiling's underside (the upper storey's floor)
     box('pave', 1, 5.99, z0 + 1, 7, 6.02, z1 - 1, -999);
     B.stage('lishka:arch' + k);

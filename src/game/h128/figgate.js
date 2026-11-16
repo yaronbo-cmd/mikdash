@@ -35,9 +35,10 @@ export function createFigGate(o) {
     cam.fov = P.fov || o.camera.fov; cam.aspect = o.camera.aspect || 1.6; cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
   }
   /** the screen box of a standing figure at (x, y, z), scale s: { in, cut, x0, x1, y0, y1, d } in NDC, or null behind the camera */
-  function box(x, y, z, s) {
+  function box(x, y, z, s, lie) {
     let x0 = 9, x1 = -9, y0 = 9, y1 = -9, inN = 0, outN = 0, n = 0;
-    for (const dy of [0, H * s]) for (const dx of [-R, R]) for (const dz of [-R, R]) {
+    const hh = lie === true ? 0.9 : Number.isFinite(lie) ? lie : H, rr = lie === true ? 2.1 : R;   // ── h129 ── (a figure laid down (a.lie, lie true): low and long; a kneeling one (a.gateH, lie its height): his own height) ── /h129 ──
+    for (const dy of [0, hh * s]) for (const dx of [-rr, rr]) for (const dz of [-rr, rr]) {
       v.set(x + dx * s, y + dy, z + dz * s).applyMatrix4(cam.matrixWorldInverse);
       if (v.z > -0.05) { outN++; continue; }
       v.applyMatrix4(cam.projectionMatrix); n++;
@@ -46,7 +47,7 @@ export function createFigGate(o) {
     }
     if (!n) return null;
     const ov = x1 >= -1 && x0 <= 1 && y1 >= -1 && y0 <= 1;   // (some of it on the screen)
-    const d = Math.hypot(x - cam.position.x, y + H * s / 2 - cam.position.y, z - cam.position.z);
+    const d = Math.hypot(x - cam.position.x, y + hh * s / 2 - cam.position.y, z - cam.position.z);
     return { on: ov, cut: ov && outN > 0, x0, x1, y0, y1, d };
   }
   function focusOf(f) {
@@ -86,7 +87,8 @@ export function createFigGate(o) {
       setCam(P); const F = focusOf(focus);
       for (const a of L) {
         if (!a || !a.alive) continue;
-        const b = box(a.x, a.y, a.z, a.s / 1.1); const r = res.get(a) || { on: false, cut: false, blk: false };
+        const b = a.lieAt ? box(a.lieAt[0], a.y, a.lieAt[1], a.s / 1.1, true) : box(a.x, a.y, a.z, a.s / 1.1, a.lie ? true : a.gateH || false);   // ── h129 ── (lieAt: a laid figure's middle; gateH: a kneeling figure's height) ── /h129 ──
+        const r = res.get(a) || { on: false, cut: false, blk: false };
         if (b) { r.on = r.on || b.on; r.cut = r.cut || b.cut; r.blk = r.blk || blocks(b, F); }
         res.set(a, r);
       }

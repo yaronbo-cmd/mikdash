@@ -7,7 +7,7 @@
  *   CLOSE = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
 import { LEAF, leafFresh, leafStep, leafPts, inWindow, LINES, QUICK, LOSS, qOf, starsOf } from './model.js';
-import { SH6, leafHung, own, setBusy, rust, clamp, VIS } from './world.js';
+import { SH6, leafHung, own, setBusy, rust, rustInfo, clamp, VIS } from './world.js';
 import { createVoices } from './sound128.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { BOOK } from '../world/grid.js';
@@ -39,7 +39,7 @@ export const CLOSE = {
     // (the open leaf stands at 67.5°: a man nearer the hinge than PUSH.u[last] would stand in the wall). The rest of the twenty are not drawn.
     // Each man is set on his place on the leaf every frame (no lag behind it, so none ever passes through the bronze or another man);
     // the N and S men at the meeting edge are 2 × (leafW − u0) apart when the leaves meet.
-    const PUSH = { u: [GT.leafW - 0.6, GT.leafW - 1.7], off: 0.7, aside: 2.5 };
+    const PUSH = { u: [GT.leafW - 0.6, GT.leafW - 1.7], off: 1.0, aside: 2.5 };   // (V5: a step off the leaf face, so its edge never hides them)
     const men = { S: [], N: [] };
     for (const k of KS) PUSH.u.forEach((u, j) => { const w = SH6.crew.add(GT.x[0] + 2, 0, { role: 'push', crew: 1 + (j % 3) }); if (w) { w.j = j; w.u = u; w.ua = u; men[k].push(w); } });
     LIVE = { leaves: [], men: [...men.S, ...men.N] }; const live = () => { if (LIVE) LIVE.leaves = [leaf.S, leaf.N]; }; live();
@@ -60,7 +60,10 @@ export const CLOSE = {
           // (build 128 tuning T7) the stiff north hinge's ten lean lower and strain (a small shudder while their leaf moves); the free
           // south hinge's men stand easier and walk it round
           const mv = clamp(Math.abs(s.w[i]) / 2, 0, 1);
-          w.lean = k === 'N' ? (lean ? 0.72 : 0.32) + 0.04 * mv * Math.sin(A.t * 31 + w.j) : (lean ? 0.4 : 0.05);
+          // (build 128 visual round V5: one glance tells them apart) north: bent deep, knees bent and feet braced, short slow steps; south:
+          // upright (the push pose's own 0.45 lean taken back), walking the leaf round at an easy pace
+          if (k === 'N') { w.lean = (lean ? 0.95 : 0.6) + 0.05 * mv * Math.sin(A.t * 31 + w.j); w.kn = 0.45; w.stride = mv > 0.05 ? 0.45 : 0; w.rate = 0.55; }
+          else { w.lean = lean ? -0.22 : -0.4; w.kn = 0; w.stride = mv > 0.05 ? 1 : 0; w.rate = 1.5; }
         }
       }
     }
@@ -91,7 +94,7 @@ export const CLOSE = {
       // (T7, T2: each leaf's speed heard) the stiff north hinge groans low while its leaf moves, louder and a little higher the faster,
       // and sheds a little rust; the free south hinge only hushes
       for (let i = 0; i < 2; i++) { const v = Math.abs(s.w[i]); V.hinge(v > 0.15 ? clamp(v / (i ? 1.6 : 2.5), 0.25, 1) : 0, i, v); }
-      if (Math.abs(s.w[1]) > 0.3) { A.rustT = (A.rustT || 0) - dt; if (A.rustT <= 0) { A.rustT = 0.6; const h = GT.hinge.N; for (const y of [2.5, GT.leafH * 0.5, GT.leafH - 2.5]) rust(X, h[0] - 0.2, GT.sill + y, h[1] + 0.25, 3, 0.25); ev('rust:N'); } }
+      if (Math.abs(s.w[1]) > 0.3) { A.rustT = (A.rustT || 0) - dt; if (A.rustT <= 0) { A.rustT = 0.6; const h = GT.hinge.N; for (const y of [1.3, 2.1]) rust(X, h[0] - 0.2, GT.sill + y, h[1] + 0.25, 14, 0.6, GT.sill, 2.6, 1.3); /* (V2: from the lower pivot, where it grinds, down to the sill) */ ev('rust:N'); } }
       for (const e of s.ev) {
         const k = e.k != null ? KS[e.k] : null; ev(e.e + (k ? ':' + k : ''));
         if (e.e === 'heave') V.knock(0.45);
@@ -143,7 +146,7 @@ export const CLOSE = {
       },
       at() { return new T.Vector3(GT.hinge.S[0] - 2, GT.sill + 8, 0); },
       dbg() {
-        return { t: +A.t.toFixed(2), phase: A.phase, f: s.f.map((v) => +v.toFixed(2)), w: s.w.map((v) => +v.toFixed(2)), ph: s.ph.map((v) => +v.toFixed(3)), inWin: s.ph.map(inWindow), win: LEAF.WIN, soft: LEAF.SOFT, dentV: LEAF.DENT, meet: LEAF.MEET,
+        return { rust: rustInfo(), t: +A.t.toFixed(2), phase: A.phase, f: s.f.map((v) => +v.toFixed(2)), w: s.w.map((v) => +v.toFixed(2)), ph: s.ph.map((v) => +v.toFixed(3)), inWin: s.ph.map(inWindow), win: LEAF.WIN, soft: LEAF.SOFT, dentV: LEAF.DENT, meet: LEAF.MEET,
           heaves: s.heaves, slips: s.slips, bounces: s.bounces, dent: s.dent, dmg: s.dmg, wait: s.wait, br: A.br.slice(), leaf: { S: leafScr('S'), N: leafScr('N') }, left: leftKey(), keys: KS, mouse: MOUSE, ev: A.ev.slice(-8), nf: FG.n, pts: leafPts(s) };
       },
     };

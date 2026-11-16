@@ -226,15 +226,22 @@ export function rebuild(X, force) {
     if (own['v' + kk]) continue;
     const g = grp('v' + kk), A = V[kk];
     if (!done) { centering(X, kk, { parent: g, pairs: VAULT_LV['vault' + kk].pairs }); continue; }
-    if (S.vcrack[kk]) crackLine(X, A.at[0] + 0.02, A.crown + 0.5, A.at[1] + 0.4, g);
-    if (S.vstone[kk]) fallen(X, A.at[0] - 1.4, A.floor, A.at[1] + (A.z[1] - A.at[1]) + 0.2, g, kk === 'N' ? 1 : -1);
+    // (seen from inside the room: the crack up the arch's inner face from the crown's joint and on along the ceiling; the fallen
+    //  stone broken on the floor by the jamb, and in the arch its replacement of another shade)
+    const xF = A.at[0] - 1, y1 = A.top - 0.3;
+    if (S.vcrack[kk]) { crackRun(X, [[xF - 0.03, A.crown, A.at[1] + 0.12], [xF - 0.03, A.crown + 0.35, A.at[1] + 0.3], [xF - 0.03, y1 - 0.02, A.at[1] + 0.2], [xF - 1.0, y1 - 0.02, A.at[1] + 0.45], [xF - 2.2, y1 - 0.02, A.at[1] + 0.25]], g); }
+    if (S.vstone[kk]) { fallen(X, xF - 0.6, A.floor, A.z[1] + 1.0, g, kk === 'N' ? 1 : -1); shadeStone(X, A, Math.floor(A.stones / 2) - 1, g); }
   }
   // the great vault: its rings as built (ring 1 the player's, the rest the crews'); the centering under the next ring; the damage
   if (!own.vM) {
     const g = grp('vM'), A = V.M;
     for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : M.h7stone); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
     if (S.rings < A.rings) ringCentering(X, S.rings ? S.rings + 1 : 1, g);
-    if (S.vcrack.M) crackLine(X, A.east - 1.5, A.spring + A.R - 0.05, A.axisZ + 2, g, true);
+    if (S.vcrack.M) {   // (up the ring's west face from the crown's joint, and across its soffit)
+      const xw = A.east - A.ringD - 0.05, yc = A.spring + A.R, z0 = A.axisZ + 0.6;
+      crackRun(X, [[xw, yc, z0], [xw, yc + 0.5, z0 + 0.35], [xw, yc + 1.0, z0 + 0.15]], g, 0.14);
+      crackRun(X, [[xw, yc - 0.03, z0], [xw + 1.0, yc - 0.04, z0 + 0.5], [xw + 2.0, yc - 0.04, z0 + 0.2], [A.east, yc - 0.04, z0 + 0.55]], g, 0.14);
+    }
     if (S.vstone.M) fallen(X, A.east - 3, A.floor, A.legs[0][1] + 1.2, g, 1);
   }
   // the marble slab's cracked corner
@@ -248,6 +255,24 @@ export function crackLine(X, x, y, z, parent, up) {
   const pts = [[0, 0], [0.3, 0.12], [0.55, -0.05], [0.9, 0.1], [1.2, -0.02]];
   for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); const m = new T.Mesh(X.props.geo.box, M.h7crack); m.scale.set(up ? L : 0.06, up ? 0.04 : L, up ? 0.06 : 0.06); m.position.set(up ? (a[0] + b[0]) / 2 : 0, up ? 0 : (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); m.rotation.set(up ? 0 : Math.atan2(b[1] - a[1], b[0] - a[0]), up ? -Math.atan2(b[1] - a[1], b[0] - a[0]) : 0, 0); g.add(m); }
   g.position.set(x, y, z); (parent || X.props.root).add(g); return g;
+}
+/** a crack along a run of points (a dark jagged line on a face or a ceiling) */
+export function crackRun(X, P, parent, t = 0.045) {
+  const M = mats7(X), T = X.THREE, g = new T.Group();
+  for (let i = 0; i + 1 < P.length; i++) {
+    const a = new T.Vector3(...P[i]), b = new T.Vector3(...P[i + 1]), d = b.clone().sub(a), L = d.length();
+    const m = new T.Mesh(X.props.geo.box, M.h7crack); m.scale.set(t, L + t * 0.7, t); m.position.copy(a.clone().add(b).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); g.add(m);
+  }
+  (parent || X.props.root).add(g); return g;
+}
+/** a small arch's stone j laid again in another shade (over the model's stone: its face and soffit a little proud) */
+export function shadeStone(X, A, j, parent) {
+  const M = mats7(X), T = X.THREE, r0 = A.crown - A.spring - 0.012, r1 = A.crown - A.spring + 1 + 0.012, zc = A.at[1], sh = new T.Shape(), N = 4;
+  const a0 = Math.PI - (j / A.stones) * Math.PI, a1 = Math.PI - ((j + 1) / A.stones) * Math.PI;
+  for (let q = 0; q <= N; q++) { const a = a0 + ((a1 - a0) * q) / N, p = [-(zc + r1 * Math.cos(a)), A.spring + r1 * Math.sin(a)]; if (q) sh.lineTo(...p); else sh.moveTo(...p); }
+  for (let q = N; q >= 0; q--) { const a = a0 + ((a1 - a0) * q) / N; sh.lineTo(-(zc + r0 * Math.cos(a)), A.spring + r0 * Math.sin(a)); }
+  const ge = new T.ExtrudeGeometry(sh, { depth: 1.024, bevelEnabled: false, curveSegments: 1 }); ge.rotateY(Math.PI / 2); ge.translate(A.at[0] - 1 - 0.012, 0, 0);
+  const m = new T.Mesh(ge, M.h7shade); m.castShadow = m.receiveShadow = true; (parent || X.props.root).add(m); return m;
 }
 /** a fallen arch stone broken on the floor by the wall */
 export function fallen(X, x, y, z, parent, s = 1) {

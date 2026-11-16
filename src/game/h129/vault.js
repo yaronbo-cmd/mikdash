@@ -77,6 +77,7 @@ export const VAULT = {
     const sgOf = (side) => (side === 'L' ? -1 : 1);
     const inStone = MT.h7stoneIn || (MT.h7stoneIn = new T.MeshStandardMaterial({ color: '#B4A68C', roughness: 0.85, flatShading: true }));
     const stoneM = G.big ? MT.h7stone : inStone;
+    const weightM = MT.h7weight || (MT.h7weight = new T.MeshStandardMaterial({ color: '#EBCB92', roughness: 0.8, flatShading: true }));   // (the weight stones: warmer and lighter than the walls, so they are counted)
     const goldM = new T.MeshBasicMaterial({ color: 0xFFD86A, transparent: true, opacity: 0.9, depthWrite: false });
     const goldF = new T.MeshBasicMaterial({ color: 0xFFE6A0, transparent: true, opacity: 0.3, depthWrite: false });
     const lightM = new T.MeshBasicMaterial({ color: 0xFFF6D0, side: T.DoubleSide });
@@ -121,7 +122,7 @@ export const VAULT = {
     const mortar = [];
     for (let j = 1; j < G.n; j++) {
       const a = jointA(j), r = (G.r0 + G.r1) / 2, q = new T.Mesh(new T.PlaneGeometry(G.big ? 0.12 : 0.05, G.r1 - G.r0), MT.h7crack);
-      q.rotation.y = -Math.PI / 2; q.rotation.x = -(Math.PI / 2 - a); q.position.set(G.xF - 0.02, G.sp + r * Math.sin(a), G.zc + r * Math.cos(a)); q.userData.base = q.position.clone(); q.renderOrder = 3; arch.add(q); mortar.push(q);
+      q.rotation.y = -Math.PI / 2; q.rotation.x = Math.PI / 2 - a; q.position.set(G.xF - 0.02, G.sp + r * Math.sin(a), G.zc + r * Math.cos(a)); q.userData.base = q.position.clone(); q.renderOrder = 3; arch.add(q); mortar.push(q);
     }
     // (the arch stones' drawn shift: the legs carry the side stones out, the crown sinks with a run and rises with an over-press)
     function archShape(dL, dR) {
@@ -221,26 +222,25 @@ export const VAULT = {
       if (G.big) {
         const q = weightPlace(s, n); mesh = new T.Mesh(X.props.geo.box, MT.h7stone); mesh.scale.set(G.xB - G.xF - 0.5, 0.95, 1.0); mesh.rotation.x = q.rx; mesh.castShadow = mesh.receiveShadow = true;
         to = q.p; from = [to[0], to[1] + 9, to[2]];
-      } else if (n < NCO(s)) {
-        mesh = new T.Mesh(courseGeo(s, n, NCO(s)), stoneM); mesh.castShadow = mesh.receiveShadow = true; to = [0, 0, 0]; from = [1.7, 3.2, 0];
-      } else {   // (the spandrel full: a block laid against its face inside, on the springing)
-        const e = P.extra++, sg = P.g ? sgOf(s) : 1, y = G.sp + 0.25 + e * 0.45; mesh = box(X, stoneM, G.xF - 0.5, y, Math.min(G.zc + sg * (G.r1 + 0.2), G.zc + sg * (G.half - 1.05)), G.xF, y + 0.42, Math.max(G.zc + sg * (G.r1 + 0.2), G.zc + sg * (G.half - 1.05)), P.g);
-        mesh.position.y += 2.5; tween(0.8, (u) => { mesh.position.y = y + 0.21 + 2.5 * (1 - sm(u)); }, () => V.knock(1.1)); P.courses.push(mesh); return;
+      } else {   // (a small chamber: a block of a warm, light stone laid on the haunch, one above the other up the extrados — counted)
+        const sg = sgOf(s), k = Math.min(n, 5), a = 0.3 + k * 0.21, rr = G.r1 + 0.27 + 0.52 * Math.max(0, n - 5);   // (past six, a second layer)
+        mesh = new T.Mesh(X.props.geo.box, weightM); mesh.scale.set(G.xB - G.xF - 0.1, 0.5, 0.78); mesh.rotation.x = Math.atan2(sg * Math.cos(a), Math.sin(a)); mesh.castShadow = mesh.receiveShadow = true;
+        to = [(G.xF + G.xB) / 2, G.sp + rr * Math.sin(a), G.zc + sg * rr * Math.cos(a)]; from = [to[0], to[1] + 6, to[2]];
       }
       P.g.add(mesh); P.courses.push(mesh);
       const rope = [cord(G.big ? 0.04 : 0.018, ropeM), cord(G.big ? 0.04 : 0.018, ropeM)];
-      const at = (u) => (G.big ? [0, 1, 2].map((i) => from[i] + (to[i] - from[i]) * sm(u)) : u < 0.7 ? [from[0], from[1] * (1 - sm(u / 0.7)), 0] : [from[0] * (1 - sm((u - 0.7) / 0.3)), 0, 0]);
-      const ropes = (p) => { const c = G.big ? p : [G.xF + 0.5 + p[0], G.sp + (G.top - G.sp) * (n + 0.5) / NCO(s) + p[1], G.zc + sgOf(s) * (G.r1 + G.half) / 2]; rope.forEach((r, i) => { const o = (i ? 1 : -1) * (G.big ? 0.5 : 0.25); r.userData.set([c[0] + o, c[1] + 0.3, c[2]], [c[0] + o * 0.3, c[1] + (G.big ? 14 : 7), c[2]]); }); };
-      const place = (p) => { mesh.position.set(...p); ropes(G.big ? p : p); };
+      const at = (u) => [0, 1, 2].map((i) => from[i] + (to[i] - from[i]) * sm(u));
+      const ropes = (c) => rope.forEach((r, i) => { const o = (i ? 1 : -1) * (G.big ? 0.5 : 0.3); r.userData.set([c[0] + o, c[1] + 0.2, c[2]], [c[0] + o * 0.3, c[1] + (G.big ? 14 : 7), c[2]]); });
+      const place = (p) => { mesh.position.set(...p); ropes(p); };
       if (instant) { place(to); rope.forEach((r) => root.remove(r)); return; }
       place(from);
-      tween(G.big ? 1.1 : 1.3, (u) => place(at(u)), () => { place(to); rope.forEach((r) => root.remove(r)); V.knock(G.big ? 0.7 : 1.1); });
+      tween(G.big ? 1.1 : 1.6, (u) => place(at(u)), () => { place(to); setTimeout(() => rope.forEach((r) => root.remove(r)), 450); V.knock(G.big ? 0.7 : 1.1); });   // (the sling stays a moment on the landed stone)
     }
     if (!G.big && L.rock) { const s = L.rock, m2 = new T.Mesh(courseGeo(s, 0, 1), stoneM); m2.castShadow = m2.receiveShadow = true; side[s].g.add(m2); }
     // ── the light through an open joint (from inside, the day through it), the cracks, a fallen stone
     const lights = [];
     const lightQuad = (a, w) => {
-      const r0 = G.r0, r1 = G.r1, q = new T.Mesh(new T.PlaneGeometry(w, r1 - r0), lightM); q.rotation.y = -Math.PI / 2; q.rotation.x = -(Math.PI / 2 - a);
+      const r0 = G.r0, r1 = G.r1, q = new T.Mesh(new T.PlaneGeometry(w, r1 - r0), lightM); q.rotation.y = -Math.PI / 2; q.rotation.x = Math.PI / 2 - a;
       q.position.set(G.xF - 0.03, G.sp + ((r0 + r1) / 2) * Math.sin(a), G.zc + ((r0 + r1) / 2) * Math.cos(a)); q.renderOrder = 4; root.add(q); return q;
     };
     const jointOfPair = (i, s) => clamp(s > 0 ? Math.floor(G.n / 2) - i : Math.ceil(G.n / 2) + i, 1, G.n - 1);   // (pair i's light: s > 0 the left side's joint i off the crown, else the right's)

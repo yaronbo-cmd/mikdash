@@ -18,8 +18,8 @@
  */
 import * as THREE from 'three';
 import { LINES, QUICK, LOSS, GOLAH, GOLAH_LV, CHANNEL, H129, golahFresh, fillStep, pullStep, golahStep, pourStep, sluiceSet, emptyY, periodNow, channelWater, golahPts, lossPts, qOf, starsOf } from './model.js';
-import { createGolah3d } from './golah3d.js';
-import { setBusy } from './world.js';
+import { golahInWorld, LINE_D } from './golah3d.js';
+import { setBusy, own, rebuild } from './world.js';
 import { createVoices } from './sound129.js';
 import { card, cite } from './ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -36,57 +36,42 @@ const SWING_K = 1.8, SWING_MAX = GL.shaftR - B_R - 0.02;   // (the model's swing
 const OVER = [HX, F0 + 3.0, HZ + 1.0], TILT = 1.85;          // (the bucket's body over the trough by the well; its full tip, radians)
 const MAIN_U0 = GL.headSize[1] / 2;                          // (the channel's drawn line starts at the trough's outlet: the model's d − this)
 const DRY_V = 4.2;
+const DEG = Math.PI / 180;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
 const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const L3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const NAME = { A: 'א', B: 'ב', C: 'ג' };
+const KNEEL = { bow: 1.15, arms: [1.4, -0.12, 1.4, -0.12] };   // (the kohen at the moment: knees down, the body bent, the arms down into the water)
 export const GLINES = Object.freeze({
   fill: 'החזיקו את החבל של הדלי שבמים: הדלי מתמלא',
   pull: MOUSE ? 'גררו את החבל כלפי מטה, שוב ושוב · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד' : 'משכו את החבל כלפי מטה, יד אחר יד: אגודל שמאל ואגודל ימין לסירוגין · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד',
   meet: 'הדליים עומדים להיפגש: חכו שהנדנוד ישכך',
   rim: 'גררו את הדלי אל השוקת שליד הבור, והמשיכו לגרור כדי להטות אותו',
   share: 'אבני הסכר: גררו אבן למעלה לפתוח, למטה לסגור · כל שוקת מקבלת את המים שעוברים בה',
+  back: 'נגיעה במקום ריק חוזרת אל הבור',
   golah1: 'מלאו את שוקת א', golah2: 'מלאו את שוקת א ואת שוקת ג, כל אחת כמידתה', golah3: 'מלאו את שלוש השקתות, כל אחת כמידתה',
   wash: 'השקתות מלאות: הכהן נוטל ידיו',
 });
 
-/* ═════════════ the scene on screen: one golah3d (play) for the station, drawn in place of the Mount while a work plays ═════════════ */
-const GS = { S: null, R: null, on: false, exp: null, act: null, fresh: false, t: 0, onResize: null, calls: 0, tris: 0 };
-const renderer = () => { try { return globalThis.__T && globalThis.__T.renderer; } catch (e) { return null; } };
-function golahUp() {
-  const R = renderer(); if (!R) return null;
-  if (!GS.S) { GS.S = createGolah3d({ renderer: R, play: true }); GS.R = R; }
-  if (!GS.on) {
-    GS.on = true; GS.exp = R.toneMappingExposure; R.toneMappingExposure = 0.95; GS.S.redrawShadow();
-    GS.onResize = () => { try { GS.S.resize(innerWidth, innerHeight); } catch (e) { /* */ } }; addEventListener('resize', GS.onResize); GS.onResize();
-    globalThis.__H128_DRAW = draw;
-  }
-  return GS.S;
+/* ═════════════ the station in the world (build 129 G5): golah3d's things in the built world's scene at their book places (golah3d
+ * golahInWorld) — the Azarah's floor, walls and gate houses, the House, the Mount and the sky round it at every lift; the world's
+ * camera, the director's look and overview ═════════════ */
+const GS = { S: null, X: null, act: null };
+function golahUp(X) {
+  const S = golahInWorld(X); if (!S) return null;
+  GS.S = S; GS.X = X; own('golah', 1); try { rebuild(X, true); } catch (e) { /* */ } S.scene.visible = true;
+  return S;
 }
-function golahDown() {
-  if (!GS.on) return;
-  GS.on = false; if (globalThis.__H128_DRAW === draw) globalThis.__H128_DRAW = null;
-  if (GS.onResize) removeEventListener('resize', GS.onResize);
-  try { if (GS.R && GS.exp != null) GS.R.toneMappingExposure = GS.exp; } catch (e) { /* */ }
-}
-function draw(dt) {
-  const S = GS.S; if (!S) return;
-  const a = GS.act;
-  // (the frame's own time: a page that draws through render0 passes a fixed 0.016 however long the frame took — the camera's ease
-  //  while the act waits goes by the clock)
-  const now = performance.now() / 1000, wdt = GS.lastW ? Math.min(0.25, Math.max(dt, now - GS.lastW)) : dt; GS.lastW = now;
-  if (!GS.fresh) { GS.t += dt; S.update(GS.t); if (a) { try { a.idle(wdt); } catch (e) { /* */ } } }   // (the act waits — the look away — the water and the camera go on)
-  GS.fresh = false;
-  // (our own shadow map, drawn once: the world's pending redraw kept for when the Mount comes back)
-  const R = GS.R, sm0 = R.shadowMap.needsUpdate; R.shadowMap.needsUpdate = false;
-  try { R.setRenderTarget(null); } catch (e) { /* */ }
-  S.render();
-  R.shadowMap.needsUpdate = sm0;
-  const I = R.info.render; GS.calls = I.calls; GS.tris = I.triangles;
-}
+function golahDown(X) { own('golah', 0); try { rebuild(X, true); } catch (e) { /* */ } }
 const v4 = new THREE.Vector3();
-function scrOf(x, y, z) { const c = GS.S.camera; v4.set(x, y, z).project(c); return { x: (v4.x + 1) / 2 * innerWidth, y: (1 - v4.y) / 2 * innerHeight, on: v4.z < 1 && v4.z > -1 }; }
+function scrOf(x, y, z) { const c = GS.X.camera; c.updateMatrixWorld(); v4.set(x, y, z).project(c); return { x: (v4.x + 1) / 2 * innerWidth, y: (1 - v4.y) / 2 * innerHeight, on: v4.z < 1 && v4.z > -1 }; }
+/** a short fade over the whole frame (a cut between two views that no camera move joins) */
+function fadeEl() {
+  let d = document.getElementById('h129-fade');
+  if (!d) { d = document.createElement('div'); d.id = 'h129-fade'; d.style.cssText = 'position:fixed;inset:0;background:#120D08;opacity:0;pointer-events:none;z-index:40'; document.body.appendChild(d); }
+  return d;
+}
 
 export const GOLAH_ACT = {
   icon: '🪣', title: 'לשכת הגולה',
@@ -95,7 +80,7 @@ export const GOLAH_ACT = {
   prepare() {},
   make(m, X) {
     const Mo = X.M, st = Mo.st, V = createVoices(X.sfx), id = m.id, LV = GOLAH_LV[id], KS = Object.keys(LV.troughs);
-    const S = golahUp(); if (!S) throw new Error('no renderer');
+    const S = golahUp(X); if (!S) throw new Error('no renderer');
     const P = S.play, Q = P.P, AC = Q.actors;
     st.golah = st.golah || { troughs: {} };
     // ── the model: a fresh level, or the one saved in the middle of it (the troughs' water, the bucket whose turn it is)
@@ -116,7 +101,7 @@ export const GOLAH_ACT = {
     for (const q of Mo.marksOf('golah.flood')) if (GL.troughs[q.n]) P.puddle(q.n);
     // ── the act's own state
     const A = {
-      ph: 'intro', t: 0, ev: [], fresh: true, vk: 0, vkT: 0, cam: null, look: { u: 0, yaw: 0, ov: false },
+      ph: 'intro', t: 0, ev: [], view: null, fading: null, share: false, look: { u: 0, yaw: 0, ov: false },
       bot: [null, null], wheel: 0, lastBot: null, f0: 0, carry: 0, tilt: 0, tiltT: 0, back: 0, drops: [], rings: { well: [], head: [], tr: {} },
       main: { wetTo: 0, wetTail: -1 }, spur: {}, sl: {}, pullT: -9, dribT: -9, lastSide: 1, haul: [0, 0], lines: {}, meetSaid: -1, busy: 0, errT: -9,
     };
@@ -127,6 +112,7 @@ export const GOLAH_ACT = {
     const crew = GL.crew.map((p, i) => { const a = AC.add('pilgrim', p[0], p[1], { col: i ? '#6E7A5A' : '#8C6E4A', col2: '#E8E0CC', fadeIn: false, y: F0 + GL.rimH + GL.plank.h }); a.vis = a.visT = 1; a.fixedY = F0 + GL.rimH + GL.plank.h; return a; });
     const ropeM = new THREE.MeshStandardMaterial({ color: '#8C6A43', roughness: 0.7 }), ropeG = new THREE.CylinderGeometry(0.035, 0.035, 1, 5); ropeG.translate(0, 0.5, 0);
     const tails = crew.map(() => { const r = new THREE.Mesh(ropeG, ropeM); r.frustumCulled = false; S.scene.add(r); return r; });
+    AC.setCamera(X.camera);
     let kohen = null;
     // ── the buckets' places
     const wellY = F0 - s.depth;
@@ -162,63 +148,70 @@ export const GOLAH_ACT = {
       return { d, at };
     }
     const RG = () => Math.max(40, gripR() * 0.5);   // (the rope's band, either side: 80 px and more across)
-    // (in the far view the ropes are short and thin: the well's mouth, where they go down, is a grip of its own)
-    const mouthNear = (p) => { if (!A.share || A.vk < 0.5) return false; const q = scrOf(WX, F0 + GL.rimH, WZ); return q.on && Math.hypot(p.x - q.x, p.y - q.y) < Math.max(48, gripR() * 0.6); };
-    const onRope = (p) => s.phase !== 'rim' && A.ph === 'play' && (Math.min(ropeDist(p, 0).d, ropeDist(p, 1).d) < RG() || mouthNear(p));
+    const ropeD = (p) => Math.min(ropeDist(p, 0).d, ropeDist(p, 1).d);
+    const onRope = (p) => s.phase !== 'rim' && A.ph === 'play' && A.view === 'shaft' && ropeD(p) < RG();
     const bucketScr = () => { const b = bodyOf(s.b); return scrOf(b.mid[0], b.mid[1], b.mid[2]); };
     const onBucket = (p) => { if (s.phase !== 'rim' || A.ph !== 'play' || s.f <= 0) return false; const q = bucketScr(); return q.on && Math.hypot(p.x - q.x, p.y - q.y) < Math.max(48, gripR() * 0.6); };
     const slAt = (k) => { const [x, z] = GL.sluice[k], h = A.sl[k]; return scrOf(x, F0 + 0.35 + h * 0.85, z - CW / 2 - 0.1); };
-    const onSluice = (p) => { if (A.ph !== 'play') return null; let best = null; for (const k of KS) { const q = slAt(k); if (!q.on || q.x < 0 || q.y < 0 || q.x > innerWidth || q.y > innerHeight) continue; const d = Math.hypot(p.x - q.x, p.y - q.y); if (d < Math.max(36, gripR() * 0.42) && (!best || d < best.d)) best = { k, d }; } return best ? best.k : null; };
-    // ── the camera: the shaft (over the mouth on the full bucket's side, aimed at it, a lens that frames span amot round it), the rim and
-    //    the channel, the lift, the overview, the moment
+    const slNear = (p) => { if (A.ph !== 'play') return null; let best = null; for (const k of KS) { const q = slAt(k); if (!q.on || q.x < 0 || q.y < 0 || q.x > innerWidth || q.y > innerHeight) continue; const d = Math.hypot(p.x - q.x, p.y - q.y); if (d < Math.max(36, gripR() * 0.42) && (!best || d < best.d)) best = { k, d }; } return best; };
+    const onSluice = (p) => { const b = slNear(p); return b ? b.k : null; };
+    // ── the camera: the world's (X.track; the director's look lifts it from here, its overview flies over the Mount). The shaft from the
+    //    kohen's stand, tilted down into it (the wheel at the top, the rope down to the bucket); the pour through the door, the trough by
+    //    the well and trough A beyond; the troughs from the court, as close as they all go in; the moment. Between the far view and the
+    //    others no camera move joins them (a wall, the floor): a cut with a short fade
     const shaftView = () => {
-      const o = CAM.golahShaft.off, side = s.b ? 1 : -1, full = bodyOf(s.b);
-      const eye = [WX + o[0], F0 + o[1], WZ + side * o[2]], aim = [WX, Math.min(full.mid[1], F0 - 0.5), LINE_Z[s.b]];
-      const d = Math.hypot(eye[0] - aim[0], eye[1] - aim[1], eye[2] - aim[2]), fov = clamp((2 * Math.atan(CAM.golahShaft.span / 2 / d) * 180) / Math.PI, 9, CAM.golahShaft.fov);
-      return { eye, aim, fov };
+      const c = CAM.golahShaft, E = c.eye, by = bodyOf(s.b).mid[1], rimY = F0 + GL.rimH, H = E[1] - rimY, D = Math.max(0.5, rimY - by);
+      // (the eye comes in over the mouth as the bucket is deeper, so the line to it passes inside the rim)
+      const ox = E[0] - WX, oz = E[2] - WZ, o = Math.hypot(ox, oz), k = clamp((c.mouth * (D + H)) / (D * o), 0.35, 1);
+      return { eye: [WX + ox * k, E[1], WZ + oz * k], aim: [WX + c.aim[0], Math.max(lerp(by, AXLE, c.aim[1]), F0 - c.aim[2]), lerp(WZ, LINE_Z[s.b], 0.5)] };
     };
-    const rimView = () => ({ eye: CAM.golahRim[0], aim: CAM.golahRim[1], fov: CAM.golahFov });
     const shareView = () => {
-      const c = CAM.golahShare, xs = KS.map((k) => GL.troughs[k][0]), x0 = Math.min(...xs), x1 = Math.max(...xs), d = c.d0 + c.k * Math.max(c.s0, x1 - x0), aim = [(x0 + x1) / 2, F0, c.z];
-      return { eye: [aim[0] + c.dir[0] * d, aim[1] + c.dir[1] * d, aim[2] + c.dir[2] * d], aim, fov: CAM.golahFov };
+      const c = CAM.golahShare, xs = KS.map((k) => GL.troughs[k][0]), x0 = Math.min(...xs), x1 = Math.max(...xs), as = innerWidth / Math.max(1, innerHeight);
+      const hw = (x1 - x0) / 2 + TS[0] / 2 + c.m, d = Math.max(c.dmin, hw / (as * Math.tan((CAM.golahFov / 2) * DEG))), el = c.el * DEG, aim = [(x0 + x1) / 2, F0 + c.y, c.z];
+      return { eye: [aim[0], aim[1] + d * Math.sin(el), aim[2] - d * Math.cos(el)], aim };
     };
-    function camWant() {
-      const L = A.look;
-      if (L.ov) { const c = CAM.golahOver, a = GS.t * 0.05, dx = c[0][0] - c[1][0], dz = c[0][2] - c[1][2]; return { eye: [c[1][0] + dx * Math.cos(a) - dz * Math.sin(a), c[0][1], c[1][2] + dx * Math.sin(a) + dz * Math.cos(a)], aim: c[1], fov: CAM.golahFov }; }
-      if (A.ph === 'moment' || A.ph === 'done') { if (A.t - A.momT < 1.8) return shareView(); const c = CAM.golahWash; return { eye: c[0], aim: c[1], fov: CAM.golahFov }; }
-      const a = shaftView(), b = A.share ? shareView() : rimView(), k = sm(0, 1, A.vk);
-      let eye = L3(a.eye, b.eye, k), aim = L3(a.aim, b.aim, k), fov = lerp(a.fov, b.fov, k);
-      // (the lift: in the play zone the view backs off along its own line and the lens widens — the work stays in the middle; past it the
-      //  camera goes up and back to the whole room, the channel and the three troughs)
-      const u = L.u || 0, k1 = clamp(u / 0.45, 0, 1), k2 = sm(0.45, 0.7, u);   /* (a quarter of the screen's drag already shows the whole channel and the three troughs) */
-      eye = L3(aim, eye, 1 + 0.6 * k1); fov = Math.min(CAM.golahFov + 8, fov * (1 + 0.35 * k1));
-      if (k2 > 0) { const l = CAM.golahLift; eye = L3(eye, l[0], k2); aim = L3(aim, l[1], k2); fov = lerp(fov, CAM.golahFov, k2); eye[1] += 18 * sm(0.8, 1, u); }
-      if (L.yaw) { const dx = eye[0] - aim[0], dz = eye[2] - aim[2], c = Math.cos(L.yaw), sn = Math.sin(L.yaw); eye = [aim[0] + dx * c - dz * sn, eye[1], aim[2] + dx * sn + dz * c]; }
-      return { eye, aim, fov };
+    const VIEWS = { shaft: shaftView, pour: () => ({ eye: CAM.golahPour[0], aim: CAM.golahPour[1] }), far: shareView, wash: () => ({ eye: CAM.golahWash[0], aim: CAM.golahWash[1] }) };
+    function viewNow() {
+      if (A.ph === 'moment' || A.ph === 'done') return A.t - A.momT < 1.6 ? 'far' : 'wash';
+      if (s.phase === 'rim' || A.back > 0) return 'pour';
+      return A.share ? 'far' : 'shaft';
     }
+    const cuts = (a, b) => a !== b && (a === 'far' || b === 'far' || b === 'wash');
+    function snapTo(v) { const w = VIEWS[v](); try { X.shot(w.eye, w.aim, 0.01); } catch (e) { /* */ } }
     function camStep(dt, snap) {
       try { if (X.lookNow) A.look = X.lookNow(); } catch (e) { /* */ }
-      const w = camWant();
-      if (!A.cam || snap) A.cam = { eye: w.eye.slice(), aim: w.aim.slice(), fov: w.fov };
-      else { const k = 1 - Math.exp(-dt * 5); A.cam.eye = L3(A.cam.eye, w.eye, k); A.cam.aim = L3(A.cam.aim, w.aim, k); A.cam.fov = lerp(A.cam.fov, w.fov, k); }
-      const c = S.camera; S.view(A.cam.eye, A.cam.aim); if (Math.abs(c.fov - A.cam.fov) > 1e-3) { c.fov = A.cam.fov; c.updateProjectionMatrix(); } c.updateMatrixWorld();
+      const want = viewNow();
+      if (!A.view || snap) { A.view = want; A.fading = null; snapTo(want); return; }
+      if (want !== A.view && A.fading !== want) {
+        if (cuts(A.view, want)) {
+          // (the fade: dark in 0.16 s, the camera put there, light again in 0.22 s — by the page's clock, so it ends while the act waits)
+          A.fading = want; const d = fadeEl(); d.style.transition = 'opacity 0.16s linear'; d.style.opacity = '1'; A.fades = (A.fades || 0) + 1;
+          clearTimeout(A.fadeTo); A.fadeTo = setTimeout(() => { if (A.fading) { A.view = A.fading; A.fading = null; snapTo(A.view); } d.style.transition = 'opacity 0.22s linear'; d.style.opacity = '0'; }, 170);
+        } else A.view = want;
+      }
+      const w = VIEWS[A.view](); try { X.track(w.eye, w.aim, 3); } catch (e) { /* */ }
     }
     // ── the fingers: on the rope (a hold fills, a stroke down pulls), on the bucket at the rim (carry and tip), on a sluice stone (up / down)
     const strokePx = () => Math.max(24, innerHeight * 0.045);
     const FG = fingers(X, {
       down(f) {
-        A.dn = [Math.round(f.x), Math.round(f.y), A.ph, s.phase];   // (the last press, for dbg)
         if (A.ph !== 'play') return;
-        const k = onSluice(f); if (k) { f.sl = k; f.y1 = f.y; X.hand(null); return; }
+        // (the nearest grip takes the press: a stone's grip never shadows the rope beside it — build 129 G5, the rope answers always)
+        const sl = slNear(f), rd = onRope(f) ? ropeD(f) : 1e9;
+        if (sl && sl.d <= rd) { f.sl = sl.k; f.y1 = f.y; X.hand(null); return; }
         if (onBucket(f)) { f.carry = 1; const q = bucketScr(); f.off = [q.x - f.x, q.y - f.y]; f.c0 = A.carry; X.hand(null); return; }
-        if (onRope(f)) { f.rope = 1; f.yA = f.y; f.side = MOUSE ? (A.lastSide = -A.lastSide) : (f.x < ropeX() ? -1 : 1); X.hand(null); }
+        if (rd < 1e9) { f.rope = 1; f.yA = f.y; f.side = MOUSE ? (A.lastSide = -A.lastSide) : (f.x < ropeX() ? -1 : 1); X.hand(null); }
       },
       move(f) {
         if (f.sl) { const dy = f.y - f.y1; if (Math.abs(dy) > Math.max(18, innerHeight * 0.03)) { const open = dy < 0; if (!!s.sluice[f.sl] !== open) { sluiceSet(s, f.sl, open); V.thud(); ev((open ? 'open:' : 'shut:') + f.sl); saveRun(); } f.y1 = f.y; } return; }
         if (f.carry) { carryTo(f); return; }
         if (f.rope && !f.pulled && f.y - f.yA > strokePx()) { f.pulled = 1; pull(f.side); }
       },
-      up(f) { if (f.carry) { A.tiltT = 0; A.tiltTo = 0; } },
+      up(f) {
+        if (f.carry) { A.tiltT = 0; A.tiltTo = 0; }
+        // (the far view: a tap where no stone is goes back to the well)
+        if (A.ph === 'play' && A.view === 'far' && A.share && !f.sl && !f.carry && !f.rope && (f.moved || 0) < 14) { A.shareOff = s.trip; ev('back'); }
+      },
     });
     const ropeX = () => { const R = ropePts(s.b).filter((q) => q.on); return R.length ? R[R.length - 1].x : innerWidth / 2; };
     /** the bucket at the rim follows the finger toward the trough by the well; past it the finger's way on is the tilt */
@@ -250,7 +243,7 @@ export const GOLAH_ACT = {
         else if (e.e === 'passed') { X.quick(ropeScr(), QUICK.passed); ev('passed'); }
         else if (e.e === 'dry') { X.quick(ropeScr(), QUICK.dry); ev('dry'); }
         else if (e.e === 'rim') { ev('rim'); say('rim', 6000); }
-        else if (e.e === 'poured') { ev('poured'); A.back = 1; A.tiltBack = A.tilt; A.carry = 0; A.tilt = 0; A.tiltT = 0; A.tiltTo = 0; saveRun(); if (!A.lines.share) say('share', 7000); }
+        else if (e.e === 'poured') { ev('poured'); A.back = 1; A.tiltBack = A.tilt; A.carry = 0; A.tilt = 0; A.tiltT = 0; A.tiltTo = 0; saveRun(); }
         else if (e.e === 'full') { X.quick(troughScr(e.k), QUICK.full); ev('full:' + e.k); saveRun(); }
         else if (e.e === 'done') { ev('done'); moment(); }
         else if (e.e === 'loss') lossOf(e);
@@ -278,6 +271,8 @@ export const GOLAH_ACT = {
       for (const k of KS) st.golah.troughs[k] = +clamp(s.troughs[k].v / s.troughs[k].size, 0, 1.05).toFixed(3);
       delete st.golah.run; X.save();
       const w = GL.wash; kohen = AC.add('kohen', w[0], w[1], { yaw: Math.PI, fadeIn: false }); kohen.vis = kohen.visT = 1; AC.pose(kohen, 'wash');
+      // (kneeling at the trough's edge, bent over it, both hands down in its water — Tamid 1:4's washing, from the first trough)
+      kohen.knT = 1; kohen.bowT = KNEEL.bow; kohen.armT = KNEEL.arms.slice();
       X.line(GLINES.wash, 4200);
       await X.wait(4.2);
       if (id === 'golah3') await card(X, `<b style="font:900 20px Heebo,system-ui">ומשם מספיקים מים לכל העזרה</b>${cite(LINES.golah)}`, 9000);
@@ -298,14 +293,13 @@ export const GOLAH_ACT = {
         if (s.phase === 'fill' && !A.lines.fill && A.t > 7) say('fill', 6000);
         if (s.phase === 'pull' && !s.met && A.meetSaid !== s.trip && Math.abs(s.y - s.depth / 2) < 2.6 && s.A * 1.5 > GOLAH.CLASH * 0.85) { A.meetSaid = s.trip; X.line(GLINES.meet, 3200); }
       }
-      // (the camera's view: the rim's while a bucket is at the rim or the water still runs; the shaft's while a bucket comes up)
+      // (the view: the pour's while a bucket is at the rim; after a pour the far view, the troughs and their stones, while the water runs
+      //  and the bucket below waits empty — till a tap where no stone is takes him back to the well; the shaft's while a bucket comes up)
       const water = s.head > 1e-3 || s.parcels.length > 0 || s.pool > 1e-3;
-      if (A.water && !water && A.ph === 'play') saveRun(); A.water = water;   // (the water has landed: the troughs' new levels are kept)   // (standing in the channel, every stone shut: the far view stays till one opens)
-      // (and while the bucket below waits empty: the stones are set for the next pour from here — the rope is in this view too)
-      const share = s.phase === 'fill' && (water || s.f < 1e-3) && s.trip > 0 && A.back <= 0;
-      A.vkT = s.phase === 'rim' || A.back > 0 || share || (s.phase === 'pull' && s.y < 3.2) ? 1 : 0;
-      if (share !== A.share) { if (A.vk <= 0.02 || A.vkT === 1) A.share = share; }   // (the far view while the water runs; the near one at the rim)
-      A.vk = clamp(A.vk + Math.sign(A.vkT - A.vk) * dt / 0.9, 0, 1);
+      if (A.water && !water && A.ph === 'play') saveRun(); A.water = water;   // (the water has landed: the troughs' new levels are kept)
+      const share = s.phase === 'fill' && (water || s.f < 1e-3) && s.trip > 0 && A.back <= 0 && A.shareOff !== s.trip;
+      if (share && !A.share && A.ph === 'play' && !A.lines.back) { A.lines.back = 1; X.line(GLINES.share + ' · ' + GLINES.back, 7000); }
+      A.share = share;
       if (A.back > 0) A.back = Math.max(0, A.back - dt / 0.9);
     }
     /** the picture of the state now (golah3d's play frame) */
@@ -327,7 +321,7 @@ export const GOLAH_ACT = {
         const lip = local(full.mid, full.tilt, 0, -B_RIM + 0.02, -B_R + 0.04), v0 = [0, -0.25 - 0.3 * pk, -0.55 - 0.9 * pk], h = Math.max(0.05, lip[1] - headY), tt = (v0[1] + Math.sqrt(v0[1] * v0[1] + 2 * G * h)) / G;
         const land = [lip[0], headY, lip[2] + v0[2] * tt];
         F.pour = { p0: lip, v0, ax: [1, 0, 0], tt, w0: 0.2 + 0.5 * pk, w1: 0.12 + 0.22 * pk, bow: 0.55, on: Math.min(1, pk * 1.6) }; F.pourAt = [land[0], land[2], Math.min(1, pk * 1.3)];
-        if (GS.t - (A.hrT || 0) > 0.35) { A.hrT = GS.t; ring(A.rings.head, land[0] + (Math.random() - 0.5) * 0.3, land[2] + (Math.random() - 0.5) * 0.15, 0.8); }
+        if (S.clock() - (A.hrT || 0) > 0.35) { A.hrT = S.clock(); ring(A.rings.head, land[0] + (Math.random() - 0.5) * 0.3, land[2] + (Math.random() - 0.5) * 0.15, 0.8); }
       }
       // the dribble off the bucket as it leaves the water; the drops off it all the way up (more from a cracked one); their rings
       const dk = sm(0, 0.25, A.t - A.dribT) * (1 - sm(1.2, 2.4, A.t - A.dribT));
@@ -368,26 +362,28 @@ export const GOLAH_ACT = {
         const q = sp[k], W2 = A.spur[k], len = Q.spur[k].len, on = q.f >= 0;
         wet(W2, on ? q.f : -1, on ? q.t : 1e9);
         F.spur[k] = { front: on ? q.f : -1, tail: on ? Math.max(-0.2, q.t - 0.3) : -1, wetTo: W2.wetTo, wetTail: W2.wetTail };
-        const T2 = s.troughs[k], level = T2 ? clamp(T2.v / T2.size, 0, 1.06) * 0.95 : 0;
+        // (the level to the mason's line, its measure; over it the water climbs toward the rim as the flood comes near)
+        const T2 = s.troughs[k], level = T2 ? clamp(T2.v / T2.size, 0, 1) : 0, over = T2 ? clamp((T2.v - T2.size) / GOLAH.OVER, 0, 1) : 0;
         // (the fall over the basin's lip while its spur runs)
         const ik = on && q.f >= len - 0.05 ? 1 : 0;
         A.ik = A.ik || {}; A.ik[k] = clamp((A.ik[k] || 0) + (ik ? dt * 4 : -dt * 2.5), 0, 1);
-        const x = GL.troughs[k][0], lipZ = GL.troughs[k][1] + TS[1] / 2, lipY = F0 - 0.3 + 0.2, by = F0 - TS[2] + 0.03 + level * (TS[2] - 0.18);
+        const x = GL.troughs[k][0], lipZ = GL.troughs[k][1] + TS[1] / 2, lipY = F0 - 0.3 + 0.2, yL = F0 - LINE_D, by = F0 - TS[2] + 0.03 + level * (yL - (F0 - TS[2] + 0.03)) + over * (F0 - 0.025 - yL);
         if (A.ik[k] > 0.01) {
           const v0 = [0, -0.1, -1.1], hh = Math.max(0.05, lipY - by), tt = (v0[1] + Math.sqrt(v0[1] * v0[1] + 2 * G * hh)) / G;
           F.inflow[k] = { p0: [x, lipY, lipZ - 0.01], v0, ax: [1, 0, 0], tt, w0: 0.42, w1: 0.36, bow: 0.25, on: A.ik[k] }; F.inAt[k] = [x, lipZ - 0.01 + v0[2] * tt, A.ik[k]];
-          if (GS.t - (A['trT' + k] || 0) > 0.6) { A['trT' + k] = GS.t; ring(A.rings.tr[k], x + (Math.random() - 0.5) * 0.5, F.inAt[k][1] - 0.05 - Math.random() * 0.15, 0.55 * A.ik[k]); }
+          if (S.clock() - (A['trT' + k] || 0) > 0.6) { A['trT' + k] = S.clock(); ring(A.rings.tr[k], x + (Math.random() - 0.5) * 0.5, F.inAt[k][1] - 0.05 - Math.random() * 0.15, 0.55 * A.ik[k]); }
         }
-        A.trWet = A.trWet || {}; A.trWet[k] = Math.max(level, A.trWet[k] || 0);
-        F.tr[k] = { level, wet: A.trWet[k], rings: A.rings.tr[k] };
+        A.trWet = A.trWet || {}; A.trWet[k] = Math.max(level, A.trWet[k] || 0); A.trOver = A.trOver || {}; A.trOver[k] = Math.max(over, A.trOver[k] || 0);
+        F.tr[k] = { level, over, wet: A.trWet[k], wetOver: A.trOver[k], rings: A.rings.tr[k] };
         A.sl[k] += ((s.sluice[k] ? 1 : 0) - A.sl[k]) * Math.min(1, dt * 7); F.sluice[k] = A.sl[k];
       }
-      if (kohen && A.ph !== 'play') { const [x, z] = GL.wash; if (GS.t - (A.wT || 0) > 0.7) { A.wT = GS.t; ring(A.rings.tr[KS[0]], x + (Math.random() - 0.5) * 0.4, GL.troughs[KS[0]][1] + 0.3, 0.5); } void z; }
+      // (the moment: rings spread from the kohen's two hands in the water)
+      if (kohen && A.ph !== 'play' && S.clock() - (A.wT || 0) > 0.4) { A.wT = S.clock(); for (const sd of [1, -1]) { AC.handWorld(kohen, sd, _h[0]); ring(A.rings.tr[KS[0]], _h[0].x, _h[0].z, 0.45); } }
       F.wellRings = A.rings.well; F.headRings = A.rings.head;
       P.set(F);
       haulers(dt);
     }
-    function ring(L, x, z, amp) { L.unshift([x, z, GS.t, amp]); if (L.length > 8) L.length = 8; }
+    function ring(L, x, z, amp) { L.unshift([x, z, S.clock(), amp]); if (L.length > 8) L.length = 8; }
     /** the two haulers: each faces the line that goes down and holds it (a short length of rope from his hands to it); a pull is his
      *  stroke (both hands high, then down to the chest, a bow), the other holds */
     const _h = [new THREE.Vector3(), new THREE.Vector3()], _d = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
@@ -423,19 +419,19 @@ export const GOLAH_ACT = {
       const F = figs(); crew.forEach((a, i) => { const v = F[i].st === 'whole' ? 1 : 0;   /* (out: head and feet past the frame, an arm may still show at its edge) */ a.vis = a.visT = v; tails[i].visible = tails[i].visible && !!v; });
     }
     const api = {
+      close: true,   // (its shots come close — the shaft from the stand, the pour through the door: the world camera's 35-amot floor gives way)
       begin() {
         GS.act = api; A.ph = 'intro'; setBusy(X, 1); X.kohen(false);
-        try { X.shot(CAM.golah[0], CAM.golah[1], 0.01); } catch (e) { /* (the world's camera kept on the Golah: the act plays while it looks there) */ }
-        FG.attach(); A.vk = A.vkT = 0; picture(0); camStep(0, true);
+        // (the lens: the station's, 50°, the director's look widens it from there; the world's back at the end)
+        A.fov0 = X.camera.fov; try { if (!(A.look && A.look.u > 1e-3)) { X.camera.fov = CAM.golahFov; X.camera.updateProjectionMatrix(); } } catch (e) { /* */ }
+        FG.attach(); picture(0); camStep(0, true);
         X.line(id === 'golah1' && !run ? LINES.golah : GLINES[id] + ' · ' + GLINES.share, 6500);
         setTimeout(() => { if (A.ph === 'intro') A.ph = 'play'; if (id === 'golah1' && !run) setTimeout(() => { A.lines.fill = 1; X.line(GLINES.golah1 + ' · ' + GLINES.fill, 6000); }, 4500); }, 1200);
       },
       update(dt) {
-        A.t += dt; GS.t += dt; S.update(GS.t); GS.fresh = true;
+        A.t += dt;
         try { stepModel(dt); picture(dt); camStep(dt); guardFigs(); V.frame(); } catch (e) { if (A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] golah', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
       },
-      /** (the draw's: the act waits — the look away, the overview — the picture and the camera go on) */
-      idle(dt) { picture(0); camStep(dt); guardFigs(); AC.update(dt); },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
       cancel() { for (const f of FG.L.values()) if (f.carry) { A.tiltT = 0; A.tiltTo = 0; } },
       // (rule 66: on the right a touch is the act's only on the rope, on the bucket at the rim, or on a sluice stone)
@@ -446,7 +442,9 @@ export const GOLAH_ACT = {
         for (const a of [...crew, kohen]) if (a) { try { AC.remove(a); } catch (e) { /* */ } }
         for (const r of tails) S.scene.remove(r);
         ropeG.dispose(); ropeM.dispose();
-        if (GS.act === api) GS.act = null; golahDown(); setBusy(X, 0);
+        clearTimeout(A.fadeTo); try { fadeEl().style.opacity = '0'; } catch (e) { /* */ }
+        try { if (A.fov0) { X.camera.fov = A.fov0; X.camera.updateProjectionMatrix(); } } catch (e) { /* */ }
+        if (GS.act === api) GS.act = null; golahDown(X); setBusy(X, 0);
       },
       at() { return new THREE.Vector3(WX, F0 + GL.rimH, WZ); },
       dbg() {
@@ -454,17 +452,19 @@ export const GOLAH_ACT = {
         const pt = (q) => (q && q.on ? [Math.round(q.x), Math.round(q.y)] : null);
         const o = { id, phase: A.ph, mph: s.phase, b: s.b, f: +s.f.toFixed(3), y: +s.y.toFixed(2), depth: s.depth, A: +s.A.toFixed(3), T: +T.toFixed(3), toMid: +toMid.toFixed(3), toEnd: +toEnd.toFixed(3), met: s.met, trip: s.trip,
           knocks: s.knocks, clashes: s.clashes, perfect: s.perfect, stops: s.stops, dmg: s.dmg, flags: s.flags, head: +s.head.toFixed(3), cw: +channelWater(s).toFixed(3), pool: +s.pool.toFixed(3),
-          tr: Object.fromEntries(KS.map((k) => [k, [+s.troughs[k].v.toFixed(3), s.troughs[k].size]])), sl: { ...s.sluice }, ks: KS, carry: +A.carry.toFixed(2), tilt: +A.tilt.toFixed(2), vk: +A.vk.toFixed(2),
-          ev: A.ev.slice(-10), mouse: MOUSE, look: A.look, nf: FG.n, calls: GS.calls, tris: GS.tris };
+          tr: Object.fromEntries(KS.map((k) => [k, [+s.troughs[k].v.toFixed(3), s.troughs[k].size]])), sl: { ...s.sluice }, ks: KS, carry: +A.carry.toFixed(2), tilt: +A.tilt.toFixed(2), view: A.view, fading: A.fading, fades: A.fades || 0,
+          ev: A.ev.slice(-10), mouse: MOUSE, look: A.look, nf: FG.n };
         if (GS.S) {
           const r = ropeDist({ x: innerWidth / 2, y: innerHeight / 2 }, s.b), R = ropePts(s.b).filter((q) => q.on && q.x > 0 && q.x < innerWidth && q.y > 110 && q.y < innerHeight - 40);   // (below the top bar)
-          o.rope = A.share && A.vk >= 0.5 ? pt(scrOf(WX, F0 + GL.rimH, WZ)) : R.length ? pt(R[Math.floor(R.length * 0.55)]) : null; void r;   // (the far view: the mouth — the rope's deep part shows through the floor there, over the stones)
+          o.rope = A.view === 'shaft' && R.length ? pt(R[Math.floor(R.length * 0.55)]) : null; void r;
+          // (the far view: a place to tap that is no stone — back to the well)
+          if (A.view === 'far' && A.share) { const c = [[0.4, 0.86], [0.2, 0.86], [0.3, 0.6], [0.8, 0.86]].map(([u, v]) => ({ x: Math.round(innerWidth * u), y: Math.round(innerHeight * v) })).find((q) => !slNear(q)); o.back = c ? [c.x, c.y] : null; }
           o.ropeE = (() => { const R2 = ropePts(1 - s.b).filter((q) => q.on && q.x > 0 && q.x < innerWidth && q.y > 40 && q.y < innerHeight - 40); return R2.length ? pt(R2[Math.floor(R2.length * 0.55)]) : null; })();
           if (s.phase === 'rim') { o.bucket = pt(bucketScr()); const p1 = scrOf(...OVER), hang = scrOf(lineX(s.b), BOT1 + B_BOT - B_MID, LINE_Z[s.b]); o.over = pt(p1); const dx = p1.x - hang.x, dy = p1.y - hang.y, L = Math.hypot(dx, dy) || 1; o.tiltTo = [Math.round(p1.x + (dx / L) * innerHeight * 0.24), Math.round(p1.y + (dy / L) * innerHeight * 0.24)]; }
-          o.dn = A.dn || null; o.ropeHit = o.rope ? onRope({ x: o.rope[0], y: o.rope[1] }) : null;
           o.sluice = Object.fromEntries(KS.map((k) => [k, pt(slAt(k))]));
           o.figs = figs();
-          o.cam = A.cam ? { eye: A.cam.eye.map((v) => +v.toFixed(2)), aim: A.cam.aim.map((v) => +v.toFixed(2)), fov: +A.cam.fov.toFixed(1) } : null;
+          if (kohen) { const h = [1, -1].map((sd) => { AC.handWorld(kohen, sd, _h[0]); return [+_h[0].x.toFixed(2), +_h[0].y.toFixed(2), +_h[0].z.toFixed(2)]; }); o.kohen = { at: [+kohen.x.toFixed(2), +kohen.z.toFixed(2)], hands: h, water: +(F0 - LINE_D).toFixed(2) }; }
+          { const c = X.camera; o.cam = { eye: c.position.toArray().map((v) => +v.toFixed(2)), fov: +c.fov.toFixed(1) }; }
         }
         return o;
       },

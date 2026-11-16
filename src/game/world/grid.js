@@ -745,7 +745,7 @@ const S07 = {
     // (build 129, part 3) the plank laid over the well's mouth along the axle, between the two ropes (length, width, thickness), the two
     // crew men who haul standing on it either side of the ropes; where a flood's puddle lies beside its basin (offset from its centre);
     // where the kohen kneels to wash his hands in the first trough's water (facing north) — all המחשה
-    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-137.9, 51.35],
+    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-137.9, 51.05],
   },
   vault: {
     // the small arches: the opening's middle in the block's east face (x 8); the arch from z, to z; floor, springing, the crown's
@@ -801,14 +801,18 @@ const S07 = {
     // the night's last three pictures: the fire lighting the vault from within; the water standing in the troughs; the round bench
     end: [[[-160, 18.5, -61], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
-    golahLift: [[-139, 52, 78], [-130, 14, 52]],
-    // (build 129, part 3) the Golah's play: down the shaft from over the mouth on the full bucket's side (off the well's axis: x, the height
-    // over the floor, out from the axis on that rope's side), aimed at the bucket as it rises, the lens framing `span` amot round it, no wider than `fov` (low over the mouth: the haulers on the plank and the empty bucket stay out of the frame); the
-    // pour, from the north-east over the cut-down north wall: the bucket, the trough by the well, the channel to the first stone; the overview
-    golahShaft: { off: [0.4, 7, 2.4], span: 9, fov: 30 }, golahRim: [[-130.5, 25.5, 51.5], [-139.4, 16.3, 57.5]], golahOver: [[-104, 118, 118], [-128, 16, 58]],
-    // (the sharing: from the north-east and high over the troughs in use (the camera's way out from their middle on the channel's line,
-    //  its length d0 + k × their span, at least s0: one trough's view keeps the well's mouth clear of the top bar); the moment: the kohen at the first trough, close)
-    golahShare: { dir: [0.62, 0.6, -0.5], d0: 12, k: 0.9, z: 52, s0: 10 }, golahWash: [[-135.2, 20.2, 45.4], [-138.4, 17, 51]],
+    // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
+    // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye
+    // comes in over the mouth (to `mouth` amot of the axis at the rim for each amah below) as the bucket is deeper; the aim on the axis
+    // (x off aim[0]) between the bucket and the axle (aim[1] of the way up), never deeper than aim[2] under the floor
+    golahShaft: { eye: [-141.2, 26, 67.6], mouth: 1.9, aim: [0.1, 0.25, 9.5] },
+    // the pour: high by the room's south wall, west of the wheel's plane, looking north and down under the frame's cap and through the
+    // door: the bucket at the rim, the trough by the well, the channel out by the door, trough A beyond it in the court
+    golahPour: [[-140.8, 31, 69.2], [-139.3, 16, 57.5]],
+    // (the sharing: from the north over the troughs in use, as close as they all fit the frame's width (margin m amot each side, at
+    //  least dmin), el degrees down; the aim on their row at z, y over the floor); the moment: the kohen at the first trough, from the
+    //  north-east, a three-quarter front
+    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-134.6, 19.2, 47.2], [-138.1, 16.3, 51]],
     golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
     // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the

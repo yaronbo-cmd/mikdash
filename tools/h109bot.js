@@ -878,7 +878,7 @@
     // cracks), 'grim' (golah2: the last pulls fed and not waited for: a rim stone breaks), 'gflood' (golah2: two full buckets into A, 1.5)
     h7golah(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
-      if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase }; }
+      if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase + (a.kohen ? ' kohen ' + JSON.stringify(a.kohen) : '') }; }
       // (each trip is progress: the wall's limit counts from the last one — at 1600×900 the page runs slower than its clock and golah3's
       //  five or six trips by mouse take longer than the wall's 240 s)
       if (K.trip !== a.trip || K.ph !== a.phase) { K.trip = a.trip; K.ph = a.phase; B.actT = now(); }
@@ -902,7 +902,14 @@
         if (!K['pour' + a.trip]) { K['pour' + a.trip] = 1; K.pshot = 1; return { path: [a.bucket, a.over, a.tiltTo], ms: 900, keep: 1500, wait: 0, note: 'golah: carry and tip (a still while it pours)' }; }
         return { path: [a.bucket, a.over, a.tiltTo], ms: 900, keep: 9000, release: C("return !a||a.mph!=='rim'"), wait: 400, note: `golah: carry and tip (trip ${a.trip})` };
       }
-      const rope = a.rope; if (!rope) return { wait: 300, note: 'golah: no rope on the screen' };
+      // (G5: the far view after a pour — the stones are set above; a tap where no stone is goes back to the well once the water on its
+      //  way has landed where it should)
+      if (a.view === 'far' && a.back && a.mph === 'fill') {
+        if (moving > 1e-3 && need(K.tg) < 0.08) return { wait: 300, note: 'golah: the water on its way fills ' + K.tg + ' (far view)' };
+        if (!K['far' + a.trip]) { K['far' + a.trip] = 1; return { wait: 200, shot: `${a.id}-far${a.trip}` }; }
+        return { tap: a.back, wait: 700, note: 'golah: back to the well' };
+      }
+      const rope = a.rope; if (!rope) return { wait: 300, note: 'golah: no rope on the screen (' + a.view + ')' };
       // (the stroke starts where the rope is at that moment: the rope moves on the screen as the camera follows the bucket)
       const stroke = (cond, why) => ({ when: C(`return !a||a.phase!=='play'||(${cond})`), max: 4000, then: { dragAt: C("const r=a&&a.rope;return r?[r[0],r[1],r[0],r[1]+70,80]:null") }, wait: 120, note: why });
       if (a.mph === 'fill') {

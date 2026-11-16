@@ -15,6 +15,7 @@
 import { BOOK } from '../world/grid.js';
 import { row0, corners, H129, matSeats } from './model.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
+import { golahInWorld, golahWorldNow } from './golah3d.js';   // (build 129 G5: the Golah's own things in the world)
 
 const S7 = BOOK.s07, GZ = S7.gazit, GL = S7.golah, V = S7.vault, N7 = S7.night, F16 = S7.floors.azara, F6 = S7.floors.nashim;
 const TAU = Math.PI * 2;
@@ -173,7 +174,7 @@ function stateOf(X) {
   const vM = d('vaultM'), rings = vM ? clamp(1 + Math.floor((st.vault.ringsT || 0) / RING_T), 1, V.M.rings) : 0;
   return {
     g1: d('gazit1'), g2: d('gazit2'), g3: d('gazit3'), L, cracks: mk('gazit.crack').map((q) => q.n), inks: mk('gazit.ink').map((q) => q.at),
-    gl: glDone, troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
+    gl: glDone, glDepth: GL.depth[d('golah3') ? 2 : d('golah2') ? 1 : 0], troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
     vN: d('vaultN'), vS: d('vaultS'), vM, rings, vcrack: { N: mk('vault.crack', 'vaultN').length, S: mk('vault.crack', 'vaultS').length, M: mk('vault.crack', 'vaultM').length },
     vstone: { N: mk('vault.stone', 'vaultN').length, S: mk('vault.stone', 'vaultS').length, M: mk('vault.stone', 'vaultM').length },
     night: d('night'), slab: mk('night.slab').length, fin: M.finished(),
@@ -195,8 +196,13 @@ export function rebuild(X, force) {
     if (!own.mats && S.g2 && S.L.stands) for (const s of S.L.stands) standMesh(X, s, { parent: g });
     for (const a of S.inks) if (a) inkStain(X, a[0], a[1], g);
   }
-  // the Golah (the crews' version until part 3 plays it)
-  if (!own.golah) golahBuild(X, S, grp('golah'));
+  // the Golah (the crews' version until part 3 plays it; once a work of it is his, the play's own things as the save leaves them —
+  // golah3d in the world: the well, the wheel, the channel and the troughs cut in the floor, their water, each mark)
+  if (!own.golah) {
+    const G = S.gl ? golahInWorld(X) : golahWorldNow();
+    if (S.gl && G) { G.scene.visible = true; try { G.play.still({ tr: S.troughs, rim: S.rimBroken, cracked: S.bCracked, puddles: S.puddles, depth: S.glDepth }); } catch (e) { console.warn('[h129] golah still', e && e.message); } }
+    else { if (G) G.scene.visible = false; golahBuild(X, S, grp('golah')); }
+  }
   // the instruments chambers: the centering until the arch is freed; then the model's stones, a crack, a fallen stone and its shade
   for (const kk of ['N', 'S']) {
     const done = kk === 'N' ? S.vN : S.vS;

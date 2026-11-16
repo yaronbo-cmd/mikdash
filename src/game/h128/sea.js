@@ -23,7 +23,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createSea3d } from './sea3d.js';
 import { SEA_LV, ROPES, lowRopes, bandOf, seaFresh, seaStep, seaPts, seaCarry, nextSwell, swellsOf, headDir, swellPos, holdFresh, holdStep, holdSwell, HOLD,
-  akkoFresh, akkoStep, akkoPts, AKKO, ringY, LINES, QUICK, LOSS, H128, qOf, starsOf } from './model.js';
+  akkoFresh, akkoStep, akkoPts, AKKO, ringY, LINES, QUICK, LOSS, H128, SORRY_S, qOf, starsOf } from './model.js';
 import { createVoices } from './sound128.js';
 import { createAnimals } from '../../animals.js';
 import { CAPSTAN } from './capstan.js';
@@ -40,6 +40,7 @@ const sideOf = (k) => (k.startsWith('port') ? 'port' : 'stbd');
 const HOLD_H = SEA_LV.sea2.H;
 const COIL_R = 1.1;              // (a tail's coil on the deck: its outer radius, amot)
 const HOLD_S = 1.45;             // (B6: Nicanor's size on the door in the hold, larger than life so the figure reads at the act's lift)
+const CUT_PH = ['turn', 'hold', 'calm', 'sorry'];   // (T6: the phases the thrown door's cut lashings are seen swinging on the deck)
 
 /* ═════════════ the sea on screen: one sea3d for the whole journey, drawn in place of the Mount ═════════════ */
 const SS = { S: null, R: null, on: false, t: 0, act: null, idle: 0, fresh: false, exp: null, calls: 0, tris: 0, drawMs: 0, ext: null, shake: 0, onResize: null };
@@ -215,7 +216,20 @@ function makeSea(m, X) {
     let i = 0, f = 0;
     for (const k of ROPES) {
       const R = RP[k], r = s ? s.ropes[k] : { t: 0.5, worn: 0 }, ten = r.t, band = bandOf(ten);
-      if (R.gone) { for (let j = 0; j < 16; j++) hide(E.rope, i++); for (let j = 0; j < 12; j++) hide(E.fib, f++); hide(E.coil, ROPES.indexOf(k)); continue; }
+      if (R.gone) {
+        // (build 128 tuning T6) the thrown door's lashings were cut: from the turn to the quiet after the storm each cut end still lies
+        // on its ring by the empty place and swings to and fro on the deck with the ship's roll, its frayed end lifting at each turn
+        if (id === 'sea2' && CUT_PH.includes(A.phase)) {
+          const ax = anchorX(k), ph = R.fore ? 0 : 1.9, sw = 0.42 * Math.sin(T * 1.45 + ph) + 2.5 * roll, a0 = R.fore ? -0.35 : 0.35;
+          let x = ax, z = R.rz, y = 0.2; pts[0].set(x, y, z);
+          for (let j = 1; j <= 5; j++) { const u = j / 5, a = a0 + sw * u * u, L = 0.5; x += Math.sin(a) * L; z -= Math.cos(a) * L; y = 0.12 + Math.abs(sw) * 0.35 * u * u; pts[j].set(x, y, z); seg(E.rope, i++, pts[j - 1], pts[j], 0.13); }
+          for (let j = 5; j < 16; j++) hide(E.rope, i++);
+          _c.set('#DCC69C'); for (let j = i - 16; j < i - 11; j++) E.rope.setColorAt(j, _c);
+          for (let j = 0; j < 12; j++) { if (j > 3) { hide(E.fib, f++); continue; } const ang = j * 1.6 + sw; _b.set(Math.cos(ang) * 0.7, 0.5, Math.sin(ang) * 0.7).normalize(); _q.setFromUnitVectors(_y, _b); _m.compose(pts[5], _q, _s.set(0.025, 0.3, 0.025)); E.fib.setMatrixAt(f++, _m); }
+          hide(E.coil, ROPES.indexOf(k)); continue;
+        }
+        for (let j = 0; j < 16; j++) hide(E.rope, i++); for (let j = 0; j < 12; j++) hide(E.fib, f++); hide(E.coil, ROPES.indexOf(k)); continue;
+      }
       // the bands told apart at a glance: slack hangs in a curve (at least half an amah) and sways; quiet is straight and still;
       // sings is straight, paler, and shivers; frays shivers, darkens and shows its strands
       const slack = ten < H128.BAND.slack ? 0.55 + (H128.BAND.slack - ten) / H128.BAND.slack * 0.6 : 0;
@@ -613,13 +627,13 @@ function makeSea(m, X) {
       const n = nic(); delete n.fixedY; n.y = 0; if (n.s0 != null) { n.s = n.s0; n.s0 = null; } n.bowT = 0.15; n.knT = 0; n.armT = [0.3, 0.05, 0.3, 0.05]; S.actors.walk(n, [DK.sorry], 1.6);
       if (mouse) { const kp = crew()[1]; if (kp) kp.own128 = false; }
       LIFTERS.forEach((i) => { const a = crew()[i]; if (a) a.own128 = false; });
-      X.line(LINES.sorry, 5200);
+      X.line(LINES.sorry, SORRY_S * 1000);
     }
   }
   function sorryFrame(dt) {
     A.soT += dt; const n = nic();
     if (!n.path) { n.yaw = Math.PI; n.bowT = 0.22; }
-    if (A.soT > 5.2 || (A.skip && A.soT > 1.2)) { A.skip = 0; end1(); }
+    if (A.soT > SORRY_S || (A.skip && A.soT > 1.2)) { A.skip = 0; end1(); }
   }
 
   /* ═══ sea3: Akko — the hook, the hoist, the landing; the caravan ═══ */

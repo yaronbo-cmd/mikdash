@@ -69,6 +69,9 @@ export const LINES = Object.freeze({
   stage: 'שער ניקנור עומד בלי דלתות. הדלתות בדרך מאלכסנדריא',
   capWalk: 'הדלת על המזחלת: מעלים אותה אל הסף',
 });
+/** the quiet after the storm (sea2's phase 'sorry', "והיה מצטער על חברתה"): how long he stands before the empty place, s. The spec's
+ *  moment (shlav-06 §1: five seconds and its line); its length is the owner's call — this one number sets it (the line stays as long) */
+export const SORRY_S = 5.2;
 /** the quick words (rule 64) */
 export const QUICK = Object.freeze({ rope: 'החבל שר!', hook: 'נתפס!', soft: 'נחיתה רכה!', quiet: 'חבל שקט!', wedge: 'טריז!', noLight: 'בלי קו אור!', bull: 'בול!', closed: 'נסגר!', locked: 'ננעל!', together: 'יחד!' });
 /** the loss table (brief §11): label and points */

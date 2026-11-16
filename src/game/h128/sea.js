@@ -169,7 +169,7 @@ function buildExtras(S) {
   }
   return E;
 }
-const C_WORN = new THREE.Color('#B9B2A2'), C_PALE = new THREE.Color('#FBF6E8'), C_DARK = new THREE.Color('#6A5232');
+const C_WORN = new THREE.Color('#B9B2A2'), C_PALE = new THREE.Color('#FBF6E8'), C_DARK = new THREE.Color('#6A5232'), C_BLEACH = new THREE.Color('#F2EEE4');
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0), _c = new THREE.Color();
 /** segment i of an instanced rope mesh from a to b with radius r */
 function seg(mesh, i, a, b, r) {
@@ -247,12 +247,15 @@ function makeSea(m, X) {
       _c.set('#DCC69C'); if (r.worn) _c.lerp(C_WORN, 0.6);
       if (band === 'sings') _c.lerp(C_PALE, 0.55 + 0.4 * (ten - 0.7) / 0.2); else if (band === 'frays') _c.lerp(C_DARK, 0.75);
       for (let j = i - 15; j < i; j++) E.rope.setColorAt(j, _c);
+      // (build 128 tuning T2: the worn rope read at a glance before it matters) over the door its length is blotched: bleached stretches
+      // and dark frayed ones in turn, where a sound rope is one even colour
+      if (r.worn && (band === 'slack' || band === 'quiet')) for (let j = i - 14; j < i - 7; j++) E.rope.setColorAt(j, (j - i) % 2 ? C_BLEACH : C_DARK);
       // the strands: out along the rope over the door and down the span (frays: many and long; a worn rope: three short ones)
-      const fk = band === 'frays' ? 1 : 0, wk = r.worn ? 1 : 0;
+      const fk = band === 'frays' ? 1 : 0, wk = r.worn ? 1 : 0, wl = r.worn && r.eff > 0.6 ? 1 : 0;   // (T2: a worn rope near its limit: its strands stand out long)
       for (let j = 0; j < 12; j++) {
         const show = fk || (wk && j % 2 === 1);
         if (!show) { hide(E.fib, f++); continue; }
-        const a = pts[1 + (j % 9)], b = pts[2 + (j % 9)], u = ((j * 37) % 10) / 10, len = fk ? 0.26 + 0.12 * ((j * 13) % 5) / 5 : 0.16;
+        const a = pts[1 + (j % 9)], b = pts[2 + (j % 9)], u = ((j * 37) % 10) / 10, len = fk ? 0.26 + 0.12 * ((j * 13) % 5) / 5 : wl ? 0.3 : 0.16;
         _a.lerpVectors(a, b, u); const ang = j * 2.4 + (fk ? Math.sin(T * 30 + j) * 0.25 : 0);
         _b.set(Math.cos(ang) * 0.6, 0.8, Math.sin(ang) * 0.6).normalize();
         _q.setFromUnitVectors(_y, _b); _m.compose(_a, _q, _s.set(0.018, len, 0.018)); E.fib.setMatrixAt(f++, _m);
@@ -469,8 +472,19 @@ function makeSea(m, X) {
     }
     // the voice of the ropes: a hum that rises with the highest tension in the singing band, creaking in the frays band
     let hi = 0; for (const k of ROPES) hi = Math.max(hi, s.ropes[k].eff);
-    V.hum(hi > H128.BAND.quiet ? 1 : 0, Math.min(1.2, hi));
+    // (build 128 tuning T2: every band heard) quiet: a low steady hum; sings: the hum rises and loudens; frays: creaking
+    V.hum(hi > H128.BAND.quiet ? 1 : hi >= H128.BAND.slack ? 0.35 : 0, Math.min(1.2, hi));
     if (hi > H128.BAND.sings && ((SS.t * 2) | 0) !== A.cr) { A.cr = (SS.t * 2) | 0; V.creak(); }
+    // slack: the loose rope slaps the bronze each time its sway turns (the sway drawRopes shows: sin(T·1.3 + …)); a worn rope loaded
+    // toward its limit: its fibres pop (and its strands stand out longer, drawRopes)
+    A.slapW = A.slapW || {};
+    for (const k of ROPES) {
+      const r = s.ropes[k], R = RP[k]; if (R.gone) continue;
+      const ph = Math.sin(SS.t * 1.3 + R.cz);
+      if (r.t < H128.BAND.slack && A.slapW[k] != null && A.slapW[k] < 0 && ph >= 0) V.slap();
+      A.slapW[k] = ph;
+      if (r.worn && r.eff > 0.6 && ((SS.t * 2.5) | 0) !== A['wc' + k]) { A['wc' + k] = (SS.t * 2.5) | 0; V.crackle(); }
+    }
     if (s.done) ropesDone();
   }
   function ropesDone() {
@@ -574,12 +588,15 @@ function makeSea(m, X) {
     const H = hold;
     holdStep(H, { L: held('ringL'), R: mouse ? true : held('ringR') }, dt);
     const w = holdSwell(H); if (w && !A.hsw.some((q) => q.n === w.n)) A.hsw.push({ head: w.head, t0: w.t0 + T0.v, H: HOLD_H, n: w.n });
+    // (build 128 tuning T2) a hand that starts to slip: heard as it slides along the wet bronze (its side), as well as seen
+    A.slipWas = A.slipWas || { L: 0, R: 0 };
+    for (const h of ['L', 'R']) { const sl = H.slip[h] > 0 ? 1 : 0; if (sl && !A.slipWas[h]) V.scrape(h); A.slipWas[h] = sl; }
     for (const e of H.ev) {
       ev('hold:' + e.e + (e.hand || ''));
       if (e.e === 'line') { bigLine(LINES.hold, 2400, true); X.line(LINES.hold, 4200); V.creak(); }
       if (e.e === 'held') { V.creak(); SS.shake = 0.8; const q = deckScr(DK.hold[0], P.top + 1, DK.hold[1] + D.W / 2 + 1.5); X.quick({ sx: q.x, sy: Math.max(innerHeight * 0.25, q.y - innerHeight * 0.06) }, 'החזקתם!'); }   // (B6: above the door's far edge, never over him, and below the top's pill as it rises)
       if (e.e === 'again') { SS.shake = 0.8; X.line('יד אחת לא הייתה על הטבעת: הגל חוזר', 2600); }
-      if (e.e === 'off') { try { if (X.haptic) X.haptic(12); } catch (er) { /* */ } }
+      if (e.e === 'off') { V.clack(); try { if (X.haptic) X.haptic(12); } catch (er) { /* */ } }
       if (e.e === 'calm') calmStart();
     }
   }

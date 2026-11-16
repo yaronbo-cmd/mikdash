@@ -270,6 +270,11 @@ export const RING = {
       if (db > 0) A.lastB = A.t; else if (!db && held('b') && A.t - (A.lastB || -9) < 0.15) db = 1e-4;
       keyStep(s, { da, db }, dt, { cracked });
       V.grind(s.jam ? 1 : 0);
+      // (build 128 tuning T2) the stone askew before it jams: seen as it turns on its rollers; heard as it drags, louder and higher the
+      // more one side leads, from the leading bar's side of the screen
+      { const lead = s.a - s.b, k = Math.min(1, Math.abs(lead) / s.tol), moving = (da > 0 || db > 0) && !s.jam;
+        const q = barScr(lead >= 0 ? barA : barB), pan = q ? Math.max(-0.8, Math.min(0.8, (q[0] / innerWidth - 0.5) * 2)) : 0;
+        V.strain(moving && k > 0.2 ? k : 0, pan); }
       for (const e of s.ev) {
         ev('key:' + e.e);
         if (e.e === 'jam' && !A.jamLine) { A.jamLine = 1; X.line('הפינה נתקעה: משכו מעט אחורה את המוט המקדים', 3000); }
@@ -281,7 +286,7 @@ export const RING = {
     }
     const keyAt = () => ({ x: key.position.x, y: R.top + 0.6, z: key.position.z });
     function closed() {
-      A.phase = 'closing'; V.grind(0); camLift(0);
+      A.phase = 'closing'; V.grind(0); V.strain(0); camLift(0);
       const s = A.k;
       setTimeout(() => { V.mallet(false); X.sparks(key.position.x, R.top + 0.3, key.position.z, 8); }, 250);
       setTimeout(() => { V.step(i, !!(s.corner || s.crack)); if (!s.dmg) X.quick(keyAt(), QUICK.closed, key.children[0]); }, 600);

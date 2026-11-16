@@ -378,6 +378,13 @@ const S05 = {
     open130: [[[40, 420, 400], [73, 0, 0]], [[150, 110, 100], [73, 6, 0]], [[110, 40, 34], [73, 8, 0]]],
     wood: [[112, 14, -36], [122, 7.6, -46]],
     light: { 1: [[90, 22, 46], [99.6, 12, 62]], 2: [[56, 30, 2], [73.5, 30, 24]], 3: [[50, 34, -6], [73.5, 34, 24]], measures: [[30, 12, 22], [26, 7, 31.5]], wicks: [[34, 11, 17], [30, 7, 24]] },
+    // level 3's raising (build 120's COL shots, kept): [eye, aim] in the column's own frame — [along from the foot, across toward the
+    // court, height] — the whole rig from the side, the macro of the last degrees, the plumb lines
+    // the opening of gal1 (the crowd's showing): the whole court from over its south-east corner, the gate in it; the kohen's look up
+    // to the north wall ("ואם נעלה קומה?")
+    open1: [[128, 80, 72], [86, 6, 0]],
+    galUp: [[76, 9.5, -40], [73.5, 24, -67.5]],
+    raise: { wide: [[1.8, 55, 13], [1.8, 0, 9.4]], macro: [[2.2, 11, 8.6], [0.3, 0, 7.0]], plumb: [[10, 14, 10.5], [0.3, 0, 7.6]] },
     // ── /h130 ──
   },
   // ── /h127 ──

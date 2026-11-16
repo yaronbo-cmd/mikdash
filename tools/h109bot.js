@@ -580,6 +580,35 @@
       return { drag: [f[0], f[1], Math.round(f[0] + (t[0] - f[0]) * u), Math.round(f[1] + (t[1] - f[1]) * u), 700], wait: 1200, note: `planks: ${a.i + 1}/${a.n} laid ${a.laid.join(',')}` };
     },
     // ── /build 120 ──
+    // ── h130 ── (build 130) the new stage 05's gallery (h130/gallery.js dbg()): the opening (a drag on the left half draws the line, a
+    // tap turns the crowd over), the puzzle (each column from its sledge to a place of the solver's layout, a.sol; a column on any other
+    // place is moved to a free one), the torch bearer's tap, level 3's raising (the column player: a.sub 'raise'). __BOT.bad: 'crack'
+    // (the last column left on its sledge: the warning, the test tapped again, gal.beam −20), 'hide' (the first test with one column on
+    // a spectator's line, a.hide: it blinks; then it goes back to its place and the test runs again)
+    gal(a) {
+      if (a.sub === 'raise') return play.col(a);
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
+      if (a.phase === 'open-draw') { if (!B.k.od) { B.k.od = 1; return { wait: 400, shot: a.id + '-open' }; } const y = Math.round(HH * 0.62); return { drag: [Math.round(W * 0.1), y, Math.round(W * 0.42), y - 50, 600], wait: 150, note: 'gal: draw the line ' + a.draw }; }
+      if (a.phase === 'open-flip') { if (!B.k.of) { B.k.of = 1; return { wait: 200, shot: a.id + '-crowd' }; } return { tap: [Math.round(W * 0.22), Math.round(HH * 0.62)], wait: 1500, note: 'gal: turn it over' }; }
+      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}-${a.view.ti}`; if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) }; } }
+      if (a.busy || a.phase !== 'puzzle') return { wait: 300, note: 'gal: ' + a.phase };
+      if (!B.k['ps' + a.tries]) { B.k['ps' + a.tries] = 1; return { wait: 400, shot: `${a.id}-puzzle${a.tries}` }; }
+      let spots = (a.sol || []).map((s) => ({ ...s }));
+      if (has('crack') && a.id === 'gal1') spots = spots.slice(0, -1);
+      if (has('hide') && !a.tries && a.hide) spots[a.hide.j] = { a: a.hide.a, scr: a.hide.scr };
+      const on = (c, s) => c.a != null && Math.abs(c.a - s.a) < 0.3;
+      const free = spots.filter((s) => !a.cols.some((c) => on(c, s)));
+      if (free.length) {
+        const wrong = a.cols.find((c) => c.a != null && !spots.some((s) => on(c, s))) || a.cols.find((c) => c.a == null && !c.drag);
+        if (!wrong) return { wait: 300 };
+        return { path: [wrong.grip, mid(wrong.grip, free[0].scr, 0.5), free[0].scr], ms: 1100, wait: 1100, note: `gal: column ${wrong.i} (${wrong.a}) → ${free[0].a.toFixed(2)}` };
+      }
+      if (!B.k['pl' + a.tries]) { B.k['pl' + a.tries] = 1; return { wait: 600, shot: `${a.id}-plan${a.tries}` }; }
+      // (the figures check: the plan again with the camera lifted 0.3 by the right thumb, then back)
+      if (!a.tries && (B.k.lift | 0) < 3) { B.k.lift = (B.k.lift | 0) + 1; return B.k.lift === 1 ? { eval: '__T.game.h109._look(0.3,0)', wait: 100 } : B.k.lift === 2 ? { wait: 1200, shot: `${a.id}-plan-lift03` } : { eval: '__T.game.h109._look(0,0)', wait: 900 }; }
+      return { tap: a.bearer, wait: 2200, note: 'gal: the torch bearer, the test (layout ' + a.layout.join(',') + ')' };
+    },
+    // ── /h130 ──
     // ── h128 ── (build 128) stage 06's acts (h128/*.js dbg()); stage 03 has a 'close' kind too: stage 06's players are h6<kind>
     // the capstan: round the drum (clockwise on the screen) at a speed that keeps the rope quiet (slower over a rough timber), let go
     // before the next notch so the sledge coasts to it, tap the wedge man when it is still there; rest on the wedge until the crew

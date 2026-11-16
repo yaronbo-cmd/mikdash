@@ -849,10 +849,12 @@ const S07 = {
     // (the sharing: from the north over the troughs in use, as close as they all fit the frame's width (margin m amot each side, at
     //  least dmin), el degrees down; the aim on their row at z, y over the floor); the moment (G11): the kohen standing at the first
     //  trough's east end, from the north-north-west at his chest's height, three-quarter from his side — his arms out over the trough,
-    //  the whole figure, the trough's water beside him; the film after a work (G13): the Golah as it stands, from high over the court north of the chamber — the wheel and the
-    //  well's mouth over the north wall, the channel out by the door, the troughs with their water
+    //  the whole figure, the trough's water beside him; the film after a work (G13, G15): the Golah as it stands, in two pictures
+    //  cut one after the other — the court from the north-west at a three-quarter height (about 33° down): the three troughs in a row
+    //  with their water, the channel along them and out of the chamber's door; then from high over the court north of the chamber (its
+    //  walls are 12 amot: only from this steep can the eye see over them) the wheel and the well's mouth, the channel, the troughs below
     golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-141.5, 18.8, 42.1], [-138.1, 17.8, 50]],
-    golahFilm: [[-126, 70, 44], [-127, 16, 58]],
+    golahFilm: [[[-157, 37, 42], [-127, 16, 53]], [[-126, 70, 44], [-127, 16, 58]]],
     golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
     // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the

@@ -292,7 +292,7 @@ export const GOLAH_ACT = {
       if (id === 'golah3') await card(X, `<b style="font:900 20px Heebo,system-ui">ומשם מספיקים מים לכל העזרה</b>${cite(LINES.golah)}`, 9000);
       A.ph = 'done';
       const pts = golahPts(s), q = qOf(pts), F = CAM.golahFilm;
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { knocks: s.knocks, clashes: s.clashes, perfect: s.perfect, stops: s.stops, 'golah.bucket': (s.flags['golah.bucket'] || []).length, 'golah.rim': (s.flags['golah.rim'] || []).length, 'golah.flood': (s.flags['golah.flood'] || []).length }, at: troughScr(KS[0]), film: { eye: F[0], aim: F[1], secs: 3.2, ease: 0.01 } });
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { knocks: s.knocks, clashes: s.clashes, perfect: s.perfect, stops: s.stops, 'golah.bucket': (s.flags['golah.bucket'] || []).length, 'golah.rim': (s.flags['golah.rim'] || []).length, 'golah.flood': (s.flags['golah.flood'] || []).length }, at: troughScr(KS[0]), film: { shots: F.map((q) => [q[0], q[1], 2.4]) } });
     }
     // ── the frame: the model, then the picture
     function stepModel(dt) {

@@ -1008,6 +1008,64 @@
       return stroke('a.toMid<0.05', 'golah: pull in the middle');
     },
     // ── /h129 Golah ──
+    // ── h130 light ── (build 130, station 3 "חמישים אמה של אור": the player of kind 'light', h130/light.js dbg()). The wick: the left
+    // thumb holds the garment, the right pulls a strip off its edge at 0.7 amah a second (a mouse: the strip alone); the oil: hin, hin,
+    // half a hin; the ladder: each hand lifted as the jar passes the middle going away from it (or when it is still), drawn up to the
+    // next rung — by mouse the right hand with the right button; the pour: the jar tilted slowly to 0.6; the wick to the bowl; the
+    // taper to the wick. __BOT.bad: 'tear' (the first strip pulled fast: torn, no loss), 'over' (three hins: over thirty, no loss),
+    // 'jar' (light2: each hand lifted as the jar swings toward it until the jar falls: light.jar, −20). __BOT_LIFT3: a still and the
+    // figures' report at the camera's lift 0.3 once per phase.
+    light(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
+      const figs = () => { try { return JSON.stringify(window.__FIG && __FIG.report ? __FIG.report() : null); } catch (e) { return 'ERR'; } };
+      const once = (key, r) => { if (K[key]) return null; K[key] = 1; return r; };
+      // (a still per phase at lift 0, then at lift 0.3 with the figures' report)
+      if (['wick', 'oil', 'climb', 'pour', 'lay', 'light'].includes(a.phase)) {
+        const s0 = once('s0' + a.phase, { wait: 300, shot: `${a.id}-${a.phase}`, note: `light: ${a.phase} · figs u0 ${figs()}` }); if (s0) return s0;
+        if (window.__BOT_LIFT3) {
+          const s1 = once('s1' + a.phase, { eval: '__T.game.h109.X.lookLift(0.3)', wait: 1600, note: 'light: lift 0.3' }); if (s1) return s1;
+          const s2 = once('s2' + a.phase, { wait: 100, shot: `${a.id}-${a.phase}-lift03`, note: `light: figs at lift 0.3 ${figs()}` }); if (s2) return s2;
+          const s3 = once('s3' + a.phase, { eval: `__T.game.h109.X.lookLift(${a.phase === 'climb' && !mouse ? 0.22 : 0})`, wait: 1200 }); if (s3) return s3;
+        }
+      }
+      if (a.look && !a.look.play && (a.look.u > 0.02 || Math.abs(a.look.yaw) > 0.03) && !window.__BOT_LOOKOK) return { tap: [Math.round(W - 30), Math.round(HH * 0.55)], wait: 500, note: 'light: LOOK AWAY u ' + a.look.u + ' · a tap returns the camera' };
+      if (a.phase === 'wick' && a.edge && a.pull) {
+        if (a.wicks.length >= a.need) return { wait: 300 };
+        const us = [0.5, 0.15, 0.85, 0.5], u = us[a.wicks.length % 4], e = [a.edge[0][0] + (a.edge[1][0] - a.edge[0][0]) * u, a.edge[0][1] + (a.edge[1][1] - a.edge[0][1]) * u];
+        const fast = has('tear') && !a.tears, sp = fast ? 2.6 : 0.7, L = 1.12 * a.pull.px, ms = Math.round((1.12 / sp) * 1000), n = Math.max(6, Math.round(ms / 50));
+        const fr = []; const pt = (i) => [e[0] + a.pull.ux * L * (i / n), e[1] + a.pull.uy * L * (i / n)];
+        if (!mouse) fr.push([a.hold]);
+        for (let i = 0; i <= n; i++) fr.push(mouse ? [pt(i)] : [a.hold, pt(i)]);
+        return { seq: fr, ms: 50, wait: 700, note: `light: strip ${a.wicks.length + 1}/${a.need} at ${u} (${fast ? 'FAST: the tear' : sp + ' amah/s'}, ${a.pull.px} px/amah)` };
+      }
+      if (a.phase === 'oilcard') { if (!K.card) { K.card = 1; return { wait: 1800, shot: `${a.id}-card`, note: 'light: the card of Beit Shemanya' }; } return { tap: [Math.round(W / 2), Math.round(HH / 2)], wait: 900, note: 'light: a tap on the card closes it' }; }
+      if (a.phase === 'oil' && a.cups && a.jar) {
+        const plan = has('over') && !K.overDone ? ['hin', 'hin', 'hin'] : ['hin', 'hin', 'half'];
+        if (has('over') && a.pours.length === 3 && a.total > 30) K.overDone = 1;
+        if (a.cups.some((c) => c.busy)) return { wait: 300 };
+        if (a.total > 30) return { wait: 400, note: 'light: over thirty — it is emptied back' };
+        const id = plan[a.pours.length]; if (!id) return { wait: 400 };
+        const c = a.cups.find((q) => q.id === id);
+        return { drag: [c.at[0], c.at[1], a.jar[0], a.jar[1] - 20, 800], wait: 1900, note: `light: pour ${id} (${a.total} so far)` };
+      }
+      if (a.phase === 'climb' && a.climb) {
+        if (K.rung !== a.climb.rung) { K.rung = a.climb.rung; B.actT = now(); }   // (each rung is progress: the wall's limit counts from it)
+        const c = a.climb, h = c.up || (c.L <= c.R ? 'L' : 'R'), sg = h === 'R' ? 1 : -1, pump = has('jar') && a.id === 'light2' && !a.drops;
+        const cond = pump ? `const c=a&&a.climb;return !c||a.phase!=='climb'||(Math.abs(c.phi)<0.1&&${sg}*c.w>0)`
+          : `const c=a&&a.climb;return !c||a.phase!=='climb'||c.up||(Math.abs(c.phi)<0.1&&${-sg}*c.w>0)||(Math.abs(c.phi)<0.03&&Math.abs(c.w)<0.15)`;
+        const get = C(`const c=a&&a.climb;if(!c)return null;const h=c.up||'${h}',p=c.hands[h],q=c.next[h];return [p[0],p[1],q[0]+(q[0]-p[0])*0.15,q[1]+(q[1]-p[1])*0.15,220${mouse ? ",h==='R'?'right':'left'" : ''}]`);
+        if (c.up) return mouse ? { mouseDragAt: get, wait: 60 } : { dragAt: get, wait: 60, note: 'light: the lifted hand up' };
+        return { when: C(cond), max: 4000, then: mouse ? { mouseDragAt: get } : { dragAt: get }, wait: 40, note: `light: rung ${c.rung}/${c.top} ${h} (phi ${c.phi}, oil ${c.oil})${pump ? ' PUMP' : ''}` };
+      }
+      if (a.phase === 'pour' && a.pour) {
+        const P = a.pour, [ux, uy, d] = P.dir, den = Math.max(90, Math.min(d * 1.4, 0.32 * HH)), D = 0.62 * den;
+        return { path: [P.jar, [P.jar[0] + ux * D, P.jar[1] + uy * D]], ms: 1100, keep: 15000, release: C("return !a||a.phase!=='pour'"), wait: 500, note: `light: pour (oil ${P.oil})` };
+      }
+      if (a.phase === 'lay' && a.wick && a.aim) return { drag: [a.wick[0], a.wick[1], a.aim[0], a.aim[1], 700], wait: 900, note: 'light: the wick into the bowl' };
+      if (a.phase === 'light' && a.taper && a.aim) return { drag: [a.taper[0], a.taper[1], a.aim[0], a.aim[1], 900], wait: 900, note: 'light: the taper to the wick' };
+      return { wait: 300, note: 'light: ' + a.phase };
+    },
+    // ── /h130 light ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {

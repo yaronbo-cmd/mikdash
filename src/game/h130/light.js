@@ -454,7 +454,7 @@ export const LIGHT = {
         if (k === 'cup') { f.cup.drag = 0; cupDrop(f.cup, f); return; }
         if (k === 'L' || k === 'R') { if (A.phase === 'climb' && S && S.up === k && hands[k].p >= 0.55) { hands[k].p = 0; climbEvents(climbStep(S, { h: k, a: 'place' }, 0)); ev('place:' + k); } return; }
         if (k === 'jar') { A.tiltT = 0; return; }
-        if (k === 'wick' && A.phase === 'lay') { const a = scr(wickM.position.toArray()), b = scr(bowlTop); if (Math.hypot(a[0] - b[0], a[1] - b[1]) < Math.max(60, gripPx() * 0.8)) laid(); else wickM.position.set(...wickHome()); return; }
+        if (k === 'wick' && A.phase === 'lay') { const a = wickM.position; if (Math.hypot(a.x - bowlTop[0], a.z - bowlTop[2]) < 0.45) laid(); else wickM.position.set(...wickHome()); return; }
         if (k === 'taper' && taper) taper.position.set(...taperHome());
       },
     });
@@ -523,8 +523,8 @@ export const LIGHT = {
         if (A.phase === 'oil' || A.phase === 'oilcard') { o.cups = cups.map((c) => ({ id: c.id, log: c.log, at: scr([c.g.position.x, c.g.position.y + c.g.userData.s * 0.8, c.g.position.z]), busy: !!c.busy })); o.jar = jarB ? scr(jarMouth()) : null; o.pours = A.pours.slice(); o.total = OS.total || 0; o.min = minPours(30); }
         if (S) { o.climb = { rung: S.rung, top: S.top, L: S.L, R: S.R, up: S.up, phi: +S.phi.toFixed(3), w: +S.w.toFixed(3), oil: +S.oil.toFixed(2), spilled: +S.spilled.toFixed(3), quiet: climbQuiet(S), hands: { L: scr(hpt('L')), R: scr(hpt('R')) }, next: { L: scr(handPt('L', LD, handBase('L') + 1)), R: scr(handPt('R', LD, handBase('R') + 1)) }, p: { L: +hands.L.p.toFixed(2), R: +hands.R.p.toFixed(2) }, MID: CLIMB.MID, SPILL: CLIMB.SPILL }; }
         if (P) { o.pour = { oil: +P.oil.toFixed(2), bowl: +P.bowl.toFixed(2), out: +P.out.toFixed(3), tilt: +A.tilt.toFixed(2), jar: scr(jarHold()), bowlAt: scr(bowlTop), dir: tiltDir().map((v) => +v.toFixed(3)) }; }
-        if (A.phase === 'lay' && wickM) { o.wick = scr(wickM.position.toArray()); o.bowl = scr(bowlTop); }
-        if (A.phase === 'light' && taper) { o.taper = scr(taper.position.toArray()); o.tip = scr(taperTip()); o.wickTip = scr(wickTip()); }
+        if (A.phase === 'lay' && wickM) { o.wick = scr(wickM.position.toArray()); o.bowl = scr(bowlTop); o.aim = scr([bowlTop[0], wickHome()[1], bowlTop[2]]); }
+        if (A.phase === 'light' && taper) { o.taper = scr(taper.position.toArray()); o.tip = scr(taperTip()); o.wickTip = scr(wickTip()); const wt = wickTip(); o.aim = scr([wt[0], taperHome()[1], wt[2]]); }
         if (others.length) o.others = others.map((B) => ({ k: B.k, rung: B.S.rung, top: B.S.top, oil: +B.S.oil.toFixed(2), poured: B.poured, lit: B.lit }));
         return o;
       },

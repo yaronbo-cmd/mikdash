@@ -866,7 +866,10 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
       if (a.phase === 'fire') return { drag: [a.torch[0], a.torch[1], a.hearth[0], a.hearth[1], 900], wait: 800, note: 'night: the torch to the wood' };
       // (every gate shot as its leaves swing: the frame from inside the court, the torch on the leaves)
-      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && a.lockI >= 0 && !K['lk' + a.lockI]) { K['lk' + a.lockI] = 1; return { wait: 1700, shot: 'night-gate' + a.lockI + 'a' }; } if (a.phase === 'lock' && a.lockI >= 0 && !K['lkb' + a.lockI]) { K['lkb' + a.lockI] = 1; return { wait: 1000, shot: 'night-gate' + a.lockI + 'b' }; } if (a.phase === 'levi' && !K.leviShot) { K.leviShot = 1; return { wait: 1600, shot: 'night-levi' }; } return { wait: 200, note: 'night: ' + a.phase }; }
+      // (round 3: the 'b' shot once its leaves are shut, its bolt home and its flash gone (lockS 'shut'); the fire lit; his garment, his sleep)
+      if (a.phase === 'sleep' && !K.sleepShot) { K.sleepShot = 1; return { wait: 1800, shot: 'night-fire' }; }
+      if (a.phase === 'done' && a.sleepS && !K['sl' + a.sleepS]) { K['sl' + a.sleepS] = 1; return { wait: a.sleepS === 'asleep' ? 900 : 500, shot: 'night-' + a.sleepS, note: 'night: ' + a.sleepS + ' kohen ' + JSON.stringify(a.kohen) + ' sleepers ' + a.sleepers }; }
+      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && a.lockI >= 0 && !K['lk' + a.lockI]) { K['lk' + a.lockI] = 1; return { wait: 1700, shot: 'night-gate' + a.lockI + 'a' }; } if (a.phase === 'lock' && a.lockI >= 0 && a.lockS === 'shut' && !K['lkb' + a.lockI]) { K['lkb' + a.lockI] = 1; return { wait: 50, shot: 'night-gate' + a.lockI + 'b' }; } if (a.phase === 'levi' && !K.leviShot) { K.leviShot = 1; return { wait: 1600, shot: 'night-levi' }; } return { wait: 200, note: 'night: ' + a.phase }; }
       if (!K[a.phase + 'Shot']) { K[a.phase + 'Shot'] = 1; return { wait: 100, shot: 'night-' + a.phase }; }
       // (two thumbs, one on each of the ring's grips; a mouse: the one nearer the middle)
       const G = a.grips, pts = (dy) => (mouse ? [[G[0][0], G[0][1] + dy]] : G.map((q) => [q[0], q[1] + dy]));

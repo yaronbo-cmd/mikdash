@@ -775,6 +775,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   // ── /h120 ──
   /* ───────── the act ───────── */
   const WAITS = [], KOH = { off: false };
+  const TESTHOLD = { on: false };   // ── h129 ── (_hold) ── /h129 ──
   const X = {
     // ── h128 ── (brief §0.6: before a two-thumb moment the act lifts the camera a little by itself, inside the play zone; 0 lets it down;
     // a tap that returns the camera, a drag or a pinch of his own ends it) ── /h128 ──
@@ -1034,6 +1035,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
+    // ── h129 ── (tests: the camera held on a picture in the walk — the stage's damage seen in the world, after the act and after a reload;
+    // _hold(null) gives the walk back) ── /h129 ──
+    _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; phase = 'film'; shot(p, t, 0.01); return true; },
     _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──

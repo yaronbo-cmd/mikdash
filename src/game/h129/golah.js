@@ -42,7 +42,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const L3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const NAME = { A: 'א', B: 'ב', C: 'ג' };
-const KNEEL = { bow: 1.8, arms: [1.8, -0.12, 1.8, -0.12] };   // (the kohen at the moment: knees down, bent past the level over the sunk trough, the arms straight down into its water — G7: at 1.15 the hands stayed 0.6 above the line)
+const KNEEL = { bow: 1.45, kn: 1.45, arms: [1.55, -0.12, 1.55, -0.12] };   // (the kohen at the moment: down on his heels at the sunk trough's edge, bent over it, the arms straight down into its water — G7: kneeling upright (kn 1) the rig's hands stop 0.6 above the line, and a deeper bow puts the head in the trough)
 export const GLINES = Object.freeze({
   fill: 'החזיקו את החבל של הדלי שבמים: הדלי מתמלא',
   pull: MOUSE ? 'גררו את החבל כלפי מטה, שוב ושוב · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד' : 'משכו את החבל כלפי מטה, יד אחר יד: אגודל שמאל ואגודל ימין לסירוגין · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד',
@@ -272,7 +272,7 @@ export const GOLAH_ACT = {
       delete st.golah.run; X.save();
       const w = GL.wash; kohen = AC.add('kohen', w[0], w[1], { yaw: Math.PI, fadeIn: false }); kohen.vis = kohen.visT = 1; AC.pose(kohen, 'wash');
       // (kneeling at the trough's edge, bent over it, both hands down in its water — Tamid 1:4's washing, from the first trough)
-      kohen.knT = 1; kohen.bowT = KNEEL.bow; kohen.armT = KNEEL.arms.slice();
+      kohen.knT = KNEEL.kn; kohen.bowT = KNEEL.bow; kohen.armT = KNEEL.arms.slice();
       X.line(GLINES.wash, 4200);
       await X.wait(4.2);
       if (id === 'golah3') await card(X, `<b style="font:900 20px Heebo,system-ui">ומשם מספיקים מים לכל העזרה</b>${cite(LINES.golah)}`, 9000);

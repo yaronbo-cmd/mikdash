@@ -74,7 +74,8 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     if (s.shot) {
       const ts = Date.now();
       await pg.evaluate(() => { __T.simulate(false); __T.render(); __T.render(); __T.game.frame(performance.now()); window.__HUD_HOLD = true; });
-      const f = path.join(OUT, `${String(++n).padStart(2, '0')}-${String(s.shot).replace(/[:*?"<>|\\/]/g, '_')}.png`);   // (a name like ringF:3 is no file name on Windows) await pg.screenshot({ path: f, timeout: 240000 }); log('shot', path.basename(f));
+      const f = path.join(OUT, `${String(++n).padStart(2, '0')}-${String(s.shot).replace(/[:*?"<>|\\/]/g, '_')}.png`);   // (a name like ringF:3 is no file name on Windows)
+      await pg.screenshot({ path: f, timeout: 240000 }); log('shot', path.basename(f));   // ── h130 ── (build 130: the screenshot had slipped into the comment above at 17d3e2c — no still was taken) ── /h130 ──
       await pg.evaluate(() => { window.__HUD_HOLD = false; __T.simulate(true); }); shotMs += Date.now() - ts;
     }
     if (s.script) { const code = fs.readFileSync(path.resolve(s.script), 'utf8'); const v = await pg.evaluate(code).catch((e) => 'SCRIPTERR ' + e.message); log('script', s.script, typeof v === 'string' ? v.slice(0, 200) : ''); }

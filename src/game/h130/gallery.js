@@ -26,7 +26,7 @@ import { BOOK } from '../world/grid.js';
 const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
 const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 // (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
-const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150;   // (HPX: the hint hand's gesture at most, px)
+const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4;   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
   puzzle: 'גררו עמוד מהמזחלת אל הקו המסומן · כשמרוצים: הקישו על נושא האבוקה',
@@ -162,7 +162,7 @@ export const GALLERY = {
       if (P.what === 'draw') { A.draw = Math.min(1, A.draw + Math.hypot(dx, dy) / (Math.min(innerWidth, innerHeight) * 1.6)); return; }
       if (!P.rec) return;
       const q = onY(X, p, GEO.FLOOR); if (!q) return;
-      const r = P.rec, ac = across(q.x, q.z), al = clamp(along(q.x, q.z), R.a0, R.a1);
+      const r = P.rec, ac = across(q.x, q.z), al = clamp(Math.round(along(q.x, q.z) * STEP) / STEP, R.a0, R.a1);   // (a place on the quarter amah: the masons' marks)
       if (Math.abs(ac - R.line) < SNAP) {
         const a = placeOk(R, al, colsNow());
         A.preview = a; if (a != null) { const f = footAt(a); r.tgt = { x: f.x, z: f.z }; ring.position.set(f.x, GEO.FLOOR + 0.03, f.z); ring.visible = true; }

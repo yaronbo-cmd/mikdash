@@ -590,7 +590,8 @@
     // the steps (a ring): the template on each stone in turn (a stone with no light under it is the ring's: mark it; ring 15: sound every
     // stone first and leave the dull one), the row laid the one way in turn (dbg's sol: the bot knows the answer), the closing stone pushed
     // by the two bars in small alternate steps inside tol (a jam: the leading bar back a little). __BOT.bad: 'wrong' (a stranger marked and
-    // laid: it gapes, lifted, carried back), 'crack' (the dull stone marked: it cracks through, −20), 'corner' (one bar forced: −20)
+    // laid: it gapes, lifted, carried back), 'crack' (the dull stone marked: it cracks through, −20), 'twin' (every fitting stone marked, the dull twin first: the second
+    // twin fills nothing, the bot marks on; the sound twin laid), 'corner' (one bar forced: −20)
     h6ring(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k) || bad.split(',').includes(k + a.ring), K = B.k;   // ('wrong1,corner8,crack15': one mistake per ring)
       if (a.phase === 'intro' || a.phase === 'closing') return { wait: 300 };
@@ -608,26 +609,32 @@
         if (!K.dullShot && Y.some((y) => y.dull === 1)) { K.dullShot = 1; return { wait: 10, shot: 'ring-dull', note: 'steps: the dull stone ' + Y.find((y) => y.dull === 1).id }; }
         // ── /h128 ──
         // ring 15's class (and a free ring with a problem stone): the mallet on every stone first
-        if (a.cls === 15 || a.rule === 'stone') { const s = Y.find((y) => y.dull == null && !K.snd[y.id] && y.id !== a.on); if (s) { K.snd[s.id] = 1; return { tap: s.at, wait: K.dullShot ? 500 : 120, note: 'steps: sound ' + s.id }; } }
+        // (build 128: a tap can land on a neighbour on screen — a stone not heard yet is sounded again, up to three times; the stone under
+        // the template is never tapped, as that tap would mark it)
+        const crackRing = a.cls === 15 || a.rule === 'stone';
+        if (crackRing) { const s = Y.find((y) => y.dull == null && (K.snd[y.id] || 0) < 3 && y.id !== a.on); if (s) { K.snd[s.id] = (K.snd[s.id] || 0) + 1; return { tap: s.at, wait: K.dullShot ? 500 : 120, note: 'steps: sound ' + s.id }; } }
         // (build 128 tuning T4: a still at the drop — a fit's gold edge, a misfit's rocking and its line — once each, with their measure)
         if (a.on && a.rock > 0 && !K.misShot) { K.misShot = 1; return { wait: 10, shot: 'ring-misfit', note: `steps: misfit ${a.on} (model ${a.lightPx} px, drawn ${a.linePx} px, rock ${a.rock})` }; }
         if (a.on && a.gold > 0 && !K.fitShot) { K.fitShot = 1; return { wait: 10, shot: 'ring-fit', note: `steps: fit ${a.on} (gold ${a.gold})` }; }
         if (a.on && K.fit[a.on] == null) { K.fit[a.on] = a.lightPx; if (a.lightPx > 0 && !K.lightShot) { K.lightShot = 1; return { wait: 100, shot: 'ring-light' }; } }
         const cur = a.on && Y.find((y) => y.id === a.on);
         if (cur && !cur.marked) {
-          const fits = K.fit[cur.id] === 0, dull = cur.dull === 1;
-          const want = (fits && (!dull || has('crack'))) || (has('wrong') && !fits && !K.wrongDone);
+          // (build 128: a stone once heard dull is never marked, nor one not heard at all on a cracked ring — unless __BOT.bad 'crack'
+          // (the dull one in place of its twin) or 'twin' (the player's bad order: every stone that fits, the cracked twin first))
+          const fits = K.fit[cur.id] === 0, dull = cur.dull === 1, heard = !crackRing || cur.dull === 0 || (K.snd[cur.id] || 0) >= 3;
+          const want = (fits && ((!dull && heard) || has('crack') || has('twin'))) || (has('wrong') && !fits && !K.wrongDone);
           if (want && fits && dull && has('crack')) K.crackDone = 1;
           if (want && !fits) K.wrongDone = 1;
           if (want) return { tap: cur.at, wait: 700, note: `steps: mark ${cur.id} (light ${a.lightPx}${dull ? ', dull' : ''})` };
         }
-        if (a.marks.length >= a.need) return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };   // (all marked: the row comes)
+        const cov = a.cover != null ? a.cover : a.marks.length;   // (build 128: the marks count by what the row needs)
+        if (cov >= a.need) return { wait: 400, note: 'steps: marks ' + cov + '/' + a.need };   // (all marked: the row comes)
         // (crack: the dull one marked in place of its sound twin — so the sound twin is left)
         const skip = (y) => has('crack') && K.crackDone && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len && z.marked);
-        const nxt = Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !(has('crack') && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len)));
+        const nxt = (has('twin') && Y.find((y) => !y.marked && y.dull === 1 && K.fit[y.id] == null && y.id !== a.on)) || Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !(has('crack') && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len)));
         const nxt2 = nxt || Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !skip(y));
         if (nxt2) return { drag: [a.tpl[0], a.tpl[1], nxt2.at[0], nxt2.at[1], 700], wait: K.misShot && K.fitShot ? 700 : 120, note: 'steps: the template onto ' + nxt2.id };
-        return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };
+        return { wait: 400, note: 'steps: marks ' + cov + '/' + a.need };
       }
       if (a.phase === 'row') {
         if (!K.rowShot) { K.rowShot = 1; return { wait: 1700, shot: 'ring-row', note: `steps: the row (rule ${a.rule || '-'}${a.rule === 'odd' ? ' off ' + a.off : ''}${a.order ? ' first ' + a.order + ', hoist ' + a.hoist : ''})` }; }

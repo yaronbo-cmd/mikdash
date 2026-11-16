@@ -407,3 +407,41 @@ test('the leaves: heaved in their rhythm and braked before the meeting they clos
 test('the leaves and the hoist share the door\'s weight: their time constants are close', () => {
   const coast = 1 / M.LEAF.C[0]; assert.ok(M.AKKO.TAU > 0.5 && M.AKKO.TAU < 1.2 && M.CAP.TAU_V === M.AKKO.TAU); assert.ok(coast > 4);
 });
+
+// ── h128 ── (build 128: a touch run stuck in free ring 14 — both twins marked, the third stone never in hand) no order of marks may
+// end in a row that cannot be closed: every free ring and ring 15, the bad orders (every fitting stone in yard order with the cracked
+// twin first; and a stranger first, carried back) still give a tray that closes the row on the one way
+const closable = (P, ids) => {
+  const by = (id) => P.yard.find((y) => y.id === id), used = new Set();
+  const pick = (id) => { const l = by(id).len, t = ids.map(by).filter((s) => s.ring === P.i && s.len === l && !used.has(s.id)).sort((a, b) => (b.crack || 0) - (a.crack || 0))[0]; if (!t) return null; used.add(t.id); return t.id; };
+  const left = P.sol.left.map(pick), right = P.sol.right.map(pick);
+  if (left.includes(null) || right.includes(null)) return false;
+  return M.rowFit(P, { left, right, dressed: P.yard.map((y) => y.id) }).bull;
+};
+const RINGS = [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
+test('h128 rings: the bad order of marks (the cracked twin first, then every fitting stone) always leaves a closable row', () => {
+  for (const i of RINGS) {
+    const P = M.ringPlan(i), need = M.needOf(P).length, fit = P.yard.filter((s) => M.tplLight(P, s) === 0).sort((a, b) => (b.crack || 0) - (a.crack || 0));
+    const marks = []; for (const s of fit) { if (M.marksCover(P, marks) >= need) break; marks.push(s.id); }
+    assert.ok(M.marksCover(P, marks) >= need, `ring ${i}: the marks reach the need (${marks})`);
+    assert.ok(closable(P, marks), `ring ${i}: the tray ${marks} closes the row ${JSON.stringify(P.sol)}`);
+    if (P.yard.some((s) => s.crack)) assert.ok(marks.some((id) => P.yard.find((y) => y.id === id).crack), `ring ${i}: the cracked twin was marked`);
+  }
+});
+test('h128 rings: a stranger marked first, then the cracked twin and every fitting stone: carried back, the missing stone comes, the row closes', () => {
+  for (const i of RINGS) {
+    const P = M.ringPlan(i), need = M.needOf(P).length, st = P.yard.find((s) => s.ring !== i);
+    const fit = P.yard.filter((s) => M.tplLight(P, s) === 0).sort((a, b) => (b.crack || 0) - (a.crack || 0));
+    const marks = [st.id]; for (const s of fit) { if (M.marksCover(P, marks) >= need) break; marks.push(s.id); }
+    assert.ok(M.marksCover(P, marks) >= need, `ring ${i}: reached`);
+    const tray = marks.filter((id) => id !== st.id), fresh = M.missingStone(P, tray);
+    if (fresh) tray.push(fresh.id);
+    assert.ok(closable(P, tray), `ring ${i}: after the stranger went back the tray ${tray} closes the row`);
+  }
+});
+test('h128 rings: both twins marked fill one place (the stuck run of ring 14)', () => {
+  const P = M.ringPlan(14), c = P.yard.find((s) => s.crack), tw = P.yard.find((s) => !s.crack && s.ring === 14 && s.len === c.len);
+  assert.ok(c && tw);
+  assert.equal(M.marksCover(P, [c.id, tw.id]), 1);
+});
+// ── /h128 ──

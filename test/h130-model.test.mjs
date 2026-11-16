@@ -180,6 +180,17 @@ test('wood: the decision and the cut — wood.worm for a worm in the pile or a c
   assert.equal(M.woodPts({}), 40); assert.equal(M.woodPts({ waste: 1 }), 20); assert.equal(M.woodPts({ dmg: 1 }), 10);
 });
 
+test('wood (W): a bad end thrown out whole wastes the good wood; the best cut is right; the pieces of a cut', () => {
+  const end = M.LOGS[3][0], other = M.LOGS[3][2], good = M.LOGS[3][1];
+  assert.ok(M.endBad(end) && M.endBad(other) && !M.endBad(good) && !M.endBad(M.LOGS[2][1]));
+  assert.deepEqual(M.decide(end, 'out'), { ok: true, flag: null, waste: 1 });
+  assert.deepEqual(M.decide(M.LOGS[2][1], 'out'), { ok: true, flag: null, waste: 0 });
+  for (const l of M.LOGS[3]) if (M.endBad(l)) { const s = M.bestCut(l); assert.equal(M.cutAt(l, s).res, 'right', l.id); assert.equal(M.decide(l, 'clean', M.cutAt(l, s)).flag, null); }
+  assert.equal(M.bestCut(good), null);
+  assert.deepEqual(M.piecesOf(end, 2.35), { keep: [2.35, end.L], out: [0, 2.35] });
+  assert.deepEqual(M.piecesOf(other, 3.55), { keep: [0, 3.55], out: [3.55, other.L] });
+});
+
 /* ───────── the light ───────── */
 test('light: the wick — a sharp pull tears it (no loss, a new strip), a steady one makes it; the width is the choice', () => {
   const S = M.wickFresh(0.2);

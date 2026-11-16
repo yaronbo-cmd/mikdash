@@ -612,6 +612,9 @@ const S06 = {
       haul: [-4.5, -13.6], hookRest: [-17.5, -8.4, 5], w: 26, crew: [[-6.5, -14.6], [-3, -12.8], [-4.8, -16.2]],
       // (part 3, illustration) the windlass between the derrick's men (x, z), the bollards on the edge (x), the houses beyond the
       // harbour wall, where Akko's camera sees them past the quay's end ([x, z, width, depth, height])
+      // (build 128 tuning T5, illustration) the quay hand by the edge, aft of the door's swing and clear of its landing place (x, z): he
+      // reaches out his arms as the hung door swings toward the quay and drops them as it swings back
+      reach: [-22, -9.8],
       windlass: [-4.8, -14.4], bollards: [-30, 12], houses: [[46, -14, 9, 7, 6], [50, -26, 7, 8, 8], [58, -38, 10, 6, 5], [30, -40, 8, 8, 7], [12, -42, 9, 7, 6]] },
     // (part 3) the opening picture: Alexandria's low shore astern as the ship leaves (המחשה: its x behind the stern, its length)
     coast: { x: -420, w: 1400, h: 7 },

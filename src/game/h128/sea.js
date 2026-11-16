@@ -643,6 +643,8 @@ function makeSea(m, X) {
     // the derrick's crew on the quay, with the hauling end of the rope in their hands (they stand on the quay's top: the sea's frame)
     A.dcrew = [];
     for (const [x, z] of QY.crew) { const a = S.actors.add('worker', x, z, { y: 0, scale: 1.0, col: '#7A6046' }); if (a) { a.own128 = true; A.dcrew.push(a); } }
+    // (build 128 tuning T5) the quay hand by the edge, who reaches out his arms as the hung door swings toward the quay
+    { const a = S.actors.add('worker', QY.reach[0], QY.reach[1], { y: 0, scale: 1.0, col: '#6A5A44' }); if (a) { a.own128 = true; A.reach = a; A.reachK = 0; } }
     for (const k of ['portFore', 'portAft']) RP[k].gone = 1;
   }
   function akkoDoor(dt) {
@@ -692,6 +694,14 @@ function makeSea(m, X) {
       const hv = Math.sin(SS.t * 7 + j) * clamp((A.haulV || 0) + (A.easeV || 0), 0, 1);
       w.bowT = 0.35 + 0.15 * hv; w.knT = 0.2; w.armT = [1.3 + 0.5 * hv, -0.15, 1.3 - 0.5 * hv, -0.15];
     }
+    // (T5) the quay hand: facing the hung door; while it swings toward the quay (ω > 0, the haul's time) his arms go out to it, highest
+    // at its fastest; as it swings back they drop. Before the hook takes, and after, he stands and watches it
+    if (A.reach) {
+      const w = A.reach, q = QY.reach; v3.set(q[0], qTop(), q[1]); S.deck.worldToLocal(v3); w.x = v3.x; w.z = v3.z; w.y = w.fixedY = v3.y;
+      w.yaw = Math.atan2(ak3.ring.x - q[0], ak3.ring.z - q[1]);
+      const want = ak && ak.phase === 'hoist' ? clamp(ak.w / 0.18, 0, 1) : 0; A.reachK += (want - A.reachK) * 0.2;
+      const k = A.reachK; w.bowT = 0.08 + 0.3 * k; w.knT = 0.1 * k; w.armT = [0.1 + 1.55 * k, 0.05 - 0.3 * k, 0.1 + 1.55 * k, 0.05 - 0.3 * k];
+    }
   }
   function akkoStep1(dt) {
     const a = ak;
@@ -702,6 +712,9 @@ function makeSea(m, X) {
     const wy = S.waterAt(BOB[0], BOB[1]);
     const inp = a.phase === 'hook' ? { hx: ak3.hook.x - BOB[0], hy: ak3.hook.y - wy } : a.phase === 'hoist' ? { haul: A.haulV } : a.phase === 'land' ? { ease: A.easeV } : {};
     akkoStep(a, inp, dt);
+    // (build 128 tuning T5) the derrick's block creaks with the swing: its pitch rising while the door swings toward the quay (ω > 0, the
+    // time to haul), falling while it swings back; faster as it swings faster
+    if (a.phase === 'hoist' && Math.abs(a.w) > 0.03) { A.swT = (A.swT || 0) - dt; if (A.swT <= 0) { const k = clamp(Math.abs(a.w) / 0.25, 0, 1); A.swT = lerp(0.5, 0.2, k); V.swing(a.w > 0, k); } }
     if (a.phase === 'slew') ak3.phi = Math.PI * ease(clamp(a.slew / AKKO.SLEW, 0, 1));
     for (const e of a.ev) {
       ev('akko:' + e.e);
@@ -886,7 +899,7 @@ function makeSea(m, X) {
       for (const g of (A.wag || []).concat(A.yoke || [])) X.props.remove(g);
       try { for (const o of A.ox || []) A.anim.remove(o); if (A.anim) A.anim.update(0); A.ox = []; } catch (e) { /* */ }   // (update: the herd's meshes drawn empty, or the last oxen stay on the road)
       for (const w of A.men || []) { try { SH6.crew.remove(w); } catch (e) { /* */ } }
-      for (const a of A.dcrew || []) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }
+      for (const a of (A.dcrew || []).concat(A.reach ? [A.reach] : [])) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }
       if (SS.act === actApi) { SS.act = null; SS.idle = 0; }
     },
     at() { return { x: S6.eastGate[0], y: S6.eastGate[2] + 2, z: S6.eastGate[1] }; },
@@ -904,7 +917,7 @@ function makeSea(m, X) {
       if (A.phase === 'throw' && P) { const u = (P.doors.port || {}).userData || {}; o.th = { t: +(A.thT || 0).toFixed(2), off: !!u.off, wet: !!u.wet, wetT: +(u.wetT || 0).toFixed(2), sunk: !!u.sunk }; }
       if (hold) { o.hold = { on: { ...hold.on }, off: { ...hold.off }, slip: { L: +hold.slip.L.toFixed(2), R: +hold.slip.R.toFixed(2) }, held: hold.held, swells: hold.swells, started: hold.started, next: hold.next != null ? +(hold.next - hold.t).toFixed(2) : null };
         if (S && SS.S === S && A.phase === 'hold') { o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; o.ringPx = ringPx(); } }
-      if (ak) { o.akko = { phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };
+      if (ak) { o.akko = { reachK: +(A.reachK || 0).toFixed(2), phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };
         if (S && SS.S === S && E && E.quay.visible) { const h = hookScr(), r = worldScr(ak3.ring), q = haulScr(); o.hook = [Math.round(h.x), Math.round(h.y)]; o.ring = [Math.round(r.x), Math.round(r.y)]; o.haul = [Math.round(q.x), Math.round(q.y)]; o.hookD = +Math.hypot(ak3.hook.x - BOB[0], ak3.hook.y - (S.waterAt(BOB[0], BOB[1]) + ringY(ak.t))).toFixed(2);
           // (the screen px of one amah at the ring: the bot's hand needs it)
           const r2 = worldScr(_a.copy(ak3.ring).add(_b.set(0, 1, 0))); o.pxA = +Math.hypot(r2.x - r.x, r2.y - r.y).toFixed(1); } }

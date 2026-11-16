@@ -1,6 +1,6 @@
 // ── build 129 (part 2) ── stage 07's acts, what can be checked without a page: the Gazit's own solution (the bot's and the ONLY page's
 // bench when gazit1 was the crews') passes the sight test and leaves room for the rows and both scribes, with room between the stones;
-// the semicha's walkers can reach their places round it; the pack gives the Golah's three works to the crews.
+// the semicha's walkers can reach their places round it; the pack opens the Golah (part 3) and takes back the crews' Golah of an old save.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { solvedArc, solvedRows } from '../src/game/h129/gazit.js';
@@ -20,10 +20,15 @@ test('the semicha round the solution: every row end and the bench reachable from
   const A = aisles({ stones: S, mats: R.mats, stands: R.stands, free });
   for (const k of ['row2:end']) assert.ok(A.ids.includes(k), k + ' from the crowd');
 });
-test('the pack: with the Golah not in play its three works are the crews\' (no points)', () => {
-  assert.equal(GOLAH_IN_PLAY, false);
+test('the pack (part 3): the Golah in play — a fresh save opens golah1; a save from the crews\' time keeps its other works and opens the Golah from its start', () => {
+  assert.equal(GOLAH_IN_PLAY, true);
   const M = createStage07(null);
-  for (const id of ['golah1', 'golah2', 'golah3']) { assert.ok(M.isDone(id)); assert.equal(M.st.res[id].skip, 1); assert.equal(M.st.res[id].pts, 0); }
-  assert.ok(M.canDo(M.plan.find((m) => m.id === 'gazit1')));
-  assert.ok(!M.canDo(M.plan.find((m) => m.id === 'night')));
+  assert.ok(M.canDo(M.plan.find((m) => m.id === 'golah1'))); assert.ok(!M.isDone('golah1')); assert.ok(!M.canDo(M.plan.find((m) => m.id === 'golah2')));
+  // (the crews' save: the Golah's three skipped, gazit1 played)
+  const old = createStage07(null); for (const id of ['golah1', 'golah2', 'golah3']) { old.st.cur = id; old.done({ stars: 0 }); old.st.res[id].skip = 1; } old.st.golahCrews = 1;
+  old.st.cur = 'gazit1'; old.done({ stars: 3, pts: 40 });
+  const N = createStage07(JSON.parse(JSON.stringify(old.st)));
+  assert.ok(N.isDone('gazit1')); for (const id of ['golah1', 'golah2', 'golah3']) assert.ok(!N.isDone(id), id);
+  assert.ok(N.canDo(N.plan.find((m) => m.id === 'golah1'))); assert.ok(!N.st.golahCrews);
+  assert.ok(!N.canDo(N.plan.find((m) => m.id === 'night')));
 });

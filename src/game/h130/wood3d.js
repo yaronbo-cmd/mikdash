@@ -11,7 +11,7 @@ import { LOGS } from './model.js';
 
 const S5 = BOOK.s05, W5 = S5.wood, F = S5.court.floor;
 /** the sizes (illustration): the trestle's height under the log, its beam's span; the piles' stacking */
-export const WD = Object.freeze({ TH: 1.05, SPAN: 1.3, TW: 1.1, GAP: 0.06, ROW: 4 });
+export const WD = Object.freeze({ TH: 1.05, SPAN: 1.3, TW: 1.1, GAP: 0.06, ROW: 5, NEXT: 6.6 });
 /** the log's centre height when it lies on the trestles */
 export const logY = (r) => F + WD.TH + r;
 const SH = { root: null, key: '', X: null };
@@ -147,9 +147,11 @@ export function splitHalves(X, e) {
  *  floor, z] round the pile's book place; the rejects lie a little askew */
 export function pileSpot(side, n, r = 0.4) {
   const at = side === 'clean' ? W5.clean : W5.out;
-  let row = 0, k = n, w = WD.ROW; while (k >= w && w > 1) { k -= w; row++; w--; }
+  const cap = (WD.ROW * (WD.ROW + 1)) / 2, pyr = Math.floor(n / cap);
+  let row = 0, k = n % cap, w = WD.ROW; while (k >= w && w > 1) { k -= w; row++; w--; }
   const d = 2 * r + WD.GAP, z = at[1] + (k - (w - 1) / 2) * d, y = r + row * d * 0.86;
-  return { x: at[0] + (side === 'out' ? ((n * 7) % 5 - 2) * 0.12 : 0), y, z, yaw: side === 'out' ? ((n * 3) % 5 - 2) * 0.06 : 0, row };
+  // (a full pyramid: the next one beside it — the clean pile's toward the east wall, the rejects' toward the room's middle)
+  return { x: at[0] + (side === 'out' ? ((n * 7) % 5 - 2) * 0.12 : pyr * WD.NEXT), y, z: z + (side === 'out' ? pyr * WD.NEXT : 0), yaw: side === 'out' ? ((n * 3) % 5 - 2) * 0.06 : 0, row };
 }
 /** a log of the save (e) lying at a pile place: its piece and its plain bark */
 export function restLog(X, e, at, parent) {

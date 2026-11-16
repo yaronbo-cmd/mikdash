@@ -837,9 +837,12 @@ const S07 = {
     end: [[[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], [[-150, 21, 56], [-118, 16.4, 49]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
     // (round 3) each picture's lens: the hall's barrel whole over the fire; along the troughs; the round bench whole
     endFov: [74, 60, 64],
-    // ── h129 round 4 ── the stage's last picture, held under the frontier card: the court and the chambers from high in the south-east
-    // (the Gazit near, the House in the middle, Beit HaMoked far in the north-west) — never the Gazit's inside with its roof on ── /h129 ──
-    after: [[-30, 120, 150], [-115, 16, 0]],
+    // ── h129 round 4 ── the stage's last picture, held under the frontier card: the court and the chambers from high — never the
+    // Gazit's inside with its roof on, nor the follow camera against a wall ── /h129 ──
+    after: [[-60, 90, 10], [-110, 16, 66]],   // (round 4: the opening's second picture, the chambers of the south from high over the court)
+    // ── h129 round 4 ── each work's picture after it (the director's pull-back): a small arch from the women's court through its opening
+    // (the chamber is under the Israel court: from above it is stone); the great vault and the night from the hall's floor ── /h129 ──
+    done: { vaultN: [[30, 12.5, -22.5], [8, 10.5, -20]], vaultS: [[30, 12.5, 22.5], [8, 10.5, 20]], vaultM: [[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], night: [[-159, 22.5, -65.5], [-160, 16.3, -76]] },
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye

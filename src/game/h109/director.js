@@ -886,7 +886,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const U = PK.unitEnd ? (() => { try { return PK.unitEnd(m, M); } catch (e) { return null; } })() : (m.k === 'pave' && !m.free && M.sectorGrade(m.s) ? { title: `גזרה ${m.s + 1} מתוך 9`, sub: M.sectorGrade(m.s), bonus: `גזרה ${m.s + 1} · ${M.sectorGrade(m.s)}` } : null);
     const sec = U ? U.sub : null;
     if (U) { bonus(250, 'course', U.bonus || U.title); try { if (J) J.big('course', { title: U.title, sub: U.sub }); } catch (e) { /* */ } }
-    await pullBack(at, sec ? 3.2 : 1.8);
+    // ── h129 ── (a pack may compose the pull-back itself: a work inside a building — the instruments chambers under the Israel court,
+    // Beit HaMoked's hall — is seen from where it shows, not from 46 amot up and back through the stone) ── /h129 ──
+    const PV = PK.pullView ? (() => { try { return PK.pullView(m, M); } catch (e) { return null; } })() : null;
+    await pullBack(at, sec ? 3.2 : 1.8, PV);
     try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
@@ -900,8 +903,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (ONLY) setTimeout(() => goTo(), 400);
   }
   /** spec ש7: the camera rises over what was just done and the crews round it, then the follow camera takes him again */
-  function pullBack(at, secs) {
+  function pullBack(at, secs, pv) {
     return new Promise((res) => {
+      if (pv && pv[0] && pv[1]) { shot(pv[0], pv[1], 1.1); film = { t: 0, dur: secs + 0.6, res }; return; }
       const h = heroAt(), c = at || { x: h.x, y: h.y, z: h.z };
       view.camNow(cq); const dx = cq.px - cq.tx, dz = cq.pz - cq.tz, L = Math.hypot(dx, dz) || 1;
       const d = 46, el = 0.72;

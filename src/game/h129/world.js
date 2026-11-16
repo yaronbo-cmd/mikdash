@@ -16,6 +16,7 @@ import { BOOK } from '../world/grid.js';
 import { row0, corners, H129, matSeats, VAULT_LV } from './model.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
 import { golahInWorld, golahWorldNow } from './golah3d.js';   // (build 129 G5: the Golah's own things in the world)
+import { mokedGateGone } from '../h113/world.js';   // (round 4: stage 04's gate:moked pieces go with the hall)
 
 const S7 = BOOK.s07, GZ = S7.gazit, GL = S7.golah, V = S7.vault, N7 = S7.night, F16 = S7.floors.azara, F6 = S7.floors.nashim;
 const TAU = Math.PI * 2;
@@ -354,6 +355,7 @@ function subSync(X, force) {
   try { const info = S0.siteInfo ? S0.siteInfo('lishka') : null; if (!info || info.status !== 'done') S0.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ }
   if (!S0.subSet) return;
   for (const k of ALWAYS_OFF) S0.subSet(k, false);
+  try { mokedGateGone(); } catch (e) { /* */ }   // (round 4: stage 04's gate:moked pieces, left in the hall by a played stage 04, go with the hall)
   for (const k of ALWAYS_ON) S0.subSet(k, true);
   const roofs = !!(SH7.final || (SH7.state && SH7.state.fin)) && !SH7.open;
   for (const k of ROOFS) S0.subSet(k, roofs);

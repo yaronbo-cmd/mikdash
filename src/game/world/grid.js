@@ -823,9 +823,12 @@ const S07 = {
     nightLevi: [[-155.5, 10.5, -92.5], [-160, 7.2, -84.5]],
     // (round 3) where he sleeps on the slab: from the south-east, the fire beside the camera lighting him
     nightSleep: [[-153.8, 19.6, -71.8], [-160, 16.4, -76.2]],
-    // the night's last three pictures: the fire lighting the vault from within (round 3: from the hall's west arm, low, along the
-    // barrel's axis — the fire in the lower frame, the vault receding over it); the water standing in the troughs; the round bench
-    end: [[[-175, 19.5, -66.5], [-146, 34, -72]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
+    // the night's last three pictures (round 3): from the hall's floor at its west end looking east and up — the fire in the lower
+    // third with the sleepers round it, the barrel over it; low over the first trough along the channel — the water, the other
+    // troughs behind, the Azarah's wall and the House beyond; inside the Gazit at eye height from its north side — the round bench whole
+    end: [[[-171, 21.5, -70.5], [-137.7, 28.6, -70.5]], [[-141.6, 17.45, 51.3], [-110, 16.9, 47]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
+    // (round 3) each picture's lens: the hall's barrel whole over the fire; along the troughs; the round bench whole
+    endFov: [74, 56, 64],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and

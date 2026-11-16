@@ -12,7 +12,7 @@
  * The model: model.js (slabFresh, slabStep, nightPts, SLAB). Places: BOOK.s07.night (its locks read from stage 04's gate entries).
  */
 import { SLAB, QUICK, LOSS, LINES, slabFresh, slabStep, nightPts, qOf, starsOf } from './model.js';
-import { SH7, mats7, box, own, setBusy, vaultWhole } from './world.js';
+import { SH7, mats7, box, own, setBusy, vaultWhole, slabDamage, walkHide } from './world.js';
 import { createVoices } from './sound129.js';
 import { card, cite, holdLens } from './ui7.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
@@ -69,6 +69,7 @@ export function nightRig(X) {
     f.userData = { H, W, pace: 0.7 + 0.8 * FL[(i * 3 + 1) % 32], k: i }; g.add(f); flames.push(f);
   }
   const light = new T.PointLight(0xFF9A4A, 0, N7.fireLight.dist, N7.fireLight.decay); light.position.set(...at(0, 2.6, 0)); g.add(light);
+  const glow = new T.PointLight(0xFFA050, 0, N7.fireLight.dist + 12, 1.1); glow.position.set(...at(0, 9, 0)); g.add(glow);   // (round 3: the finale's first picture, the barrel warm over the fire)
   const moon = new T.Group(); { const hm = new T.HemisphereLight(0x8AA4E8, 0x141A2A, 0.9), md = new T.DirectionalLight(0x9DB6FF, 0.9); md.position.set(...N7.moon.at); md.target.position.set(...N7.moon.aim); moon.add(hm, md, md.target); }
   let fire = 0, dim = 1;
   const R = {
@@ -76,6 +77,7 @@ export function nightRig(X) {
     /** the fire's light only (0 … 1): while the gates are locked far off, the court's own night stays the moon's */
     dim: (k) => { dim = clamp(+k, 0, 1); },
     /** the moon over the courts (the finale's pictures outside the hall: the water in the troughs, the Gazit's bench) */
+    glow: (k) => { glow.intensity = FIRE_I * 0.8 * clamp(+k || 0, 0, 1); },
     moon: (v) => { if (v && !moon.parent) g.add(moon); if (!v && moon.parent) g.remove(moon); },
     apply(k = 1) {
       if (!on) { on = true; X.props.root.add(g); try { X.stages.subSet('lishka:hearth', false); } catch (e) { /* */ } try { const E = X.pack && X.pack.time; if (E && E.setTime) E.setTime('night'); } catch (e) { /* */ } }
@@ -93,6 +95,32 @@ export function nightRig(X) {
   return R;
 }
 
+/** (round 3) a garment over a sleeper, as one draped sheet: from the feet (z 0, its hem hanging a little past them) to the chest (z L),
+ *  its cross-section a flat low dome (a superellipse) whose sides reach the floor, wide at the shoulders and narrower to the feet, the
+ *  feet's bump near the end, a fold or two along it. sd: on a side (±1, facing local ±x) → taller and narrower, the hip high and the
+ *  drawn-up knees pushing it forward */
+function drapeGeo(T, L, s, sd, kn) {
+  const NU = 18, NZ = 26, pos = [], idx = [], P = 2.2;
+  for (let iz = 0; iz <= NZ; iz++) {
+    const t = iz / NZ, z = -0.2 * s + t * (L + 0.2 * s), q = Math.max(0, Math.min(1, z / L)), hem = Math.min(1, (z + 0.2 * s) / (0.3 * s));
+    let w, h, ox = 0;
+    if (!sd) {   // (on his back: chest and belly the highest, thighs lower, the shins low, the feet's bump at the end)
+      w = (0.9 + 0.7 * Math.pow(q, 0.7)) * s;
+      h = (0.3 + 0.3 * Math.pow(q, 0.6) + 0.2 * Math.exp(-(((q - 0.08) / 0.06) ** 2)) + 0.025 * Math.sin(q * 23)) * s;
+    } else {     // (on his side: the hip high, the drawn-up knees pushing it forward)
+      const knee = Math.exp(-(((q - 0.4) / 0.14) ** 2)) * (0.2 + kn * 0.35);
+      w = (0.85 + 0.3 * q + knee * 0.55) * s; h = (0.5 + 0.32 * Math.exp(-(((q - 0.62) / 0.2) ** 2)) + 0.1 * q + 0.03 * Math.sin(q * 17)) * s; ox = sd * knee * 0.45 * s;
+    }
+    h *= 0.2 + 0.8 * hem;   // (the hem past the feet comes down to the floor)
+    for (let iu = 0; iu <= NU; iu++) {
+      const u = -1.3 + (2.6 * iu) / NU, au = Math.abs(u), fold = 1 + 0.07 * Math.sin(u * 6.3 + q * 9) * (1 - au * 0.5);
+      const y = au >= 1 ? Math.max(0, 0.06 * (1.3 - au)) * s : h * fold * Math.pow(1 - Math.pow(au, P), 1 / P);
+      pos.push(ox + (u * w) / 2 * (au > 1 ? 1.0 : 1), y + 0.012, z);
+    }
+  }
+  for (let iz = 0; iz < NZ; iz++) for (let iu = 0; iu < NU; iu++) { const a = iz * (NU + 1) + iu, b = a + NU + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
 /** a man of the game's own figures laid down to sleep (h129: the rig laid on its back or its side, a.lie), his garment over him from the
  *  feet to the chest, on a garment of his own spread on the floor when asked. o: { mid: [x, z], y, head: [hx, hz] (unit: toward his head),
  *  side (0 on his back, ±1 on a side), variant, young, col2 (hair, beard: an elder's white), scale, cover (colour), under } */
@@ -105,16 +133,22 @@ function sleeperA(X, AC, MT, parent, o) {
   const T = X.THREE, s = o.scale || 1, [hx, hz] = o.head, half = 1.75 * s, fx = o.mid[0] - hx * half, fz = o.mid[1] - hz * half, yU = o.under ? 0.05 : 0, sd = o.side || 0;
   const yaw = !sd ? Math.atan2(-hx, -hz) : sd > 0 ? Math.atan2(hz, -hx) : Math.atan2(-hz, hx), lie = !sd ? [-Math.PI / 2, 0] : [0, (sd * Math.PI) / 2];
   const a = AC ? nightOwn(AC.add(o.variant || 'kohen', fx, fz, { y: o.y + yU + (sd ? 0.42 : 0.34) * s, yaw, scale: s, young: !!o.young, col2: o.col2, fadeIn: false })) : null;
-  if (a) { a.vis = a.visT = 1; a.gang = 1; a.lie = lie; a.lieAt = [o.mid[0], o.mid[1]]; a.yaw = yaw; a.arm = [0.08, 0.1, 0.08, 0.1]; a.armT = a.arm.slice(); if (sd) { a.kn = a.knT = o.knees || 0; } }
+  if (a) { a.vis = a.visT = 1; a.gang = 1; a.lie = lie; a.lieAt = [o.mid[0], o.mid[1]]; a.yaw = yaw; a.arm = sd ? [0.5, 0.1, 0.25, 0.05] : [0.12, 0.62, 0.08, 0.1]; a.armT = a.arm.slice(); if (sd) { a.kn = a.knT = o.knees || 0; } }
   const along = Math.atan2(hx, hz), parts = [];
   if (o.under) { const u = new T.Mesh(X.props.geo.box, MT.h7cloak); u.scale.set(1.5 * s, 0.05, 4.1 * s); u.position.set(o.mid[0], o.y + 0.025, o.mid[1]); u.rotation.y = along; u.receiveShadow = true; parent.add(u); parts.push(u); }
-  if (o.cover) {
-    const L = 2.45 * s, r = 0.6 * s, cg = new T.CylinderGeometry(r, r, L, 12, 1, false, Math.PI / 2, Math.PI); cg.rotateX(Math.PI / 2);
-    const c = new T.Mesh(cg, o.cover); c.scale.set(sd ? 0.95 : 1.15, sd ? 1.5 : 1.15, 1); c.rotation.y = along; c.position.set(fx + hx * (L / 2 - 0.12), o.y + yU, fz + hz * (L / 2 - 0.12)); c.castShadow = true; c.receiveShadow = true; parent.add(c); parts.push(c);
+  if (o.cover) {   // (round 3: a garment laid over him from the chest down, flat and low, wide at the shoulders, narrower to the feet, the feet's bump at its end)
+    const L = 2.5 * s, c = new T.Mesh(drapeGeo(T, L, s, sd, o.knees || 0), o.cover); c.rotation.y = along; c.position.set(fx - hx * 0.14 * s, o.y + yU, fz - hz * 0.14 * s); c.castShadow = true; c.receiveShadow = true; parent.add(c); parts.push(c);
   }
   return { a, parts, head: [o.mid[0] + hx * half * 0.8, o.mid[1] + hz * half * 0.8] };
 }
 
+/** (round 3) the finale is done with the night's sleepers: take them away */
+export function nightRelease(X) {
+  const K = SH7.nightKeep; if (!K) return; SH7.nightKeep = null;
+  const AC = X.actors ? X.actors() : null;
+  if (AC) for (const a of K.actors) { try { AC.remove(a); } catch (e) { /* */ } NIGHTA.set.delete(a); }
+  try { X.props.remove(K.g); } catch (e) { /* */ }
+}
 /** stage 04's gold, for the night: the goldsmiths' leaf metal with less metalness (by torch and moon it reads as gold, not as black) */
 function nightGold(X) { const M4 = mats4(X); return M4.goldN || (M4.goldN = Object.assign(M4.goldL.clone(), { metalness: 0.35, roughness: 0.45 })); }
 /** a gateway's two leaves, stage 04's own (h113 makeLeaf: planks, battens on the back, the pins), built to the gateway's width w and
@@ -146,31 +180,32 @@ export const NIGHT = {
   prepare() {},
   make(m, X) {
     const T = X.THREE, Mo = X.M, st = Mo.st, V = createVoices(X.sfx), MT = mats7(X), AC = X.actors ? X.actors() : null;
-    nightClear(AC);
+    nightRelease(X); nightClear(AC);
     const A = { phase: 'intro', t: 0, ev: [], fing: new Map(), base: 0, lockI: -1, tw: [], rattleT: 0, stay: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     own('slab', 1); setBusy(X, 1); X.kohen(false); vaultWhole(X);
     const cam0 = X.camera, fov0 = cam0.fov, lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
     const rig = SH7.rig || nightRig(X); SH7.rig = rig; rig.autoLit = false; rig.apply(1); rig.lit(0);
     const root = new T.Group(); root.name = 'h129-night-act'; X.props.root.add(root);
+    const sleepG = new T.Group(); sleepG.name = 'h129-night-sleepers'; X.props.root.add(sleepG);   // (round 3: the sleepers stay for the finale's first picture)
     const tween = (dur, fn, done) => { A.tw.push({ t: 0, dur, fn, done }); };
     const sl = N7.slab, sx = sl[0], sz = sl[1];
     // ── the sleepers, the game's own figures laid down (true size: a man 3½–4 amot beside the amah slab): the elders of the father's
     //    house, white-bearded, on the stone ledges — the two by the Azarah's door on their sides (the ledge shorter than a man: his knees
     //    drawn up), the two in the hall's arms on their backs — each under his garment; the young kohanim on the floor, each on his
     //    garment, their feet to the fire. None by the door to the Chel (the gate he locks) and none on the slab's way
-    const coverM = ['#5E5A70', '#6A5E4E', '#4E5E6A', '#6B5A48'].map((c) => new T.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
-    const youngM = new T.MeshStandardMaterial({ color: '#D9CDB2', roughness: 1, flatShading: true });
+    const coverM = ['#8A7F98', '#9A8668', '#7A8C96', '#A08466'].map((c) => new T.MeshStandardMaterial({ color: c, roughness: 1, side: T.DoubleSide }));   // (round 3: wool, soft-shaded)
+    const youngM = new T.MeshStandardMaterial({ color: '#D9CDB2', roughness: 1, side: T.DoubleSide });
     const sleepers = [], elders = [];
     N7.ledges.forEach((b, i) => {
       if (!N7.elderOn.includes(i)) return;
       const lx = b[2] - b[0], lz = b[3] - b[1], alongX = lx >= lz, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, hd = alongX ? [cx < sx ? 1 : -1, 0] : [0, 1], side = Math.max(lx, lz) < 3.6;
       const sg = hd[1] * (sx - cx) - hd[0] * (sz - cz) > 0 ? 1 : -1;   // (on his side facing into the hall: side +1 faces (hz, −hx), −1 the other way)
-      const e = sleeperA(X, AC, MT, root, { mid: [cx, cz], y: N7.ledgeY, head: hd, side: side ? sg : 0, knees: side ? 0.55 : 0, scale: side ? 0.94 : 1, young: false, col2: '#EDEDE8', cover: coverM[i % 4] });
+      const e = sleeperA(X, AC, MT, sleepG, { mid: [cx, cz], y: N7.ledgeY, head: hd, side: side ? sg : 0, knees: side ? 0.55 : 0, scale: side ? 0.94 : 1, young: false, col2: '#EDEDE8', cover: coverM[i % 4] });
       elders.push(e); sleepers.push(e);
     });
     const H0 = N7.hearth;
-    N7.youngAt.forEach(([ang, r0], i) => { const c = Math.cos(ang * Math.PI), sn = Math.sin(ang * Math.PI), half = 1.75 * 0.96; sleepers.push(sleeperA(X, AC, MT, root, { mid: [H0[0] + c * (r0 + half), H0[1] + sn * (r0 + half)], y: F16, head: [c, sn], side: i % 3 === 1 ? (i % 2 ? 1 : -1) : 0, knees: 0.25, scale: 0.96, young: true, col2: ['#2E2218', '#4A3424', '#1E1A16'][i % 3], cover: youngM, under: true })); });
+    N7.youngAt.forEach(([ang, r0], i) => { const c = Math.cos(ang * Math.PI), sn = Math.sin(ang * Math.PI), half = 1.75 * 0.96; sleepers.push(sleeperA(X, AC, MT, sleepG, { mid: [H0[0] + c * (r0 + half), H0[1] + sn * (r0 + half)], y: F16, head: [c, sn], side: i % 3 === 1 ? (i % 2 ? 1 : -1) : 0, knees: i % 3 === 1 ? 0.6 : 0.25, scale: 0.96, young: true, col2: ['#2E2218', '#4A3424', '#1E1A16'][i % 3], cover: youngM, under: true })); });
     // ── the kohen kneels by the slab, beyond it from the camera, facing it: the game's kohen figure (upright on his heels, bent a little
     //    toward the ring, his hands forward); the figures gate measures him at his kneeling height. After the lowering he lies on it
     let kohen = null;
@@ -313,7 +348,7 @@ export const NIGHT = {
       const r = gripAt(-1); X.hand({ x: r.x, y: r.y, z: r.z }, 0, gripR() / 3);
     }
     async function finish(soft) {
-      A.phase = 'done'; lift(0); X.hand(null); halos.forEach((h) => { h.visible = false; });
+      A.phase = 'done'; lift(0); X.hand(null); halos.forEach((h) => { h.visible = false; }); walkHide(true);   // (round 3: no walk hint from here to the stage's summary)
       if (soft) X.quick({ x: sx, y: F16 + 0.5, z: sz }, 'במקומה!', marble);
       st.night = { bangs: S.bangs, dmg: S.dmg }; X.save();
       await X.wait(1.0);
@@ -324,7 +359,7 @@ export const NIGHT = {
       await X.wait(1.4);
       if (AC) for (const q of [...NIGHTA.set]) if (q === kohen || q.poseName === 'sit') { try { AC.remove(q); } catch (e) { /* */ } NIGHTA.set.delete(q); }
       kohen = null;
-      const me = sleeperA(X, AC, MT, root, { mid: [sx, sz], y: F16 + 0.17, head: [-1, 0], side: 0, young: false, col2: '#3A2A1E', cover: null });
+      const me = sleeperA(X, AC, MT, sleepG, { mid: [sx, sz], y: F16 + 0.17, head: [-1, 0], side: 0, young: false, col2: '#3A2A1E', cover: coverM[0] });
       kohen = me.a; A.sleepS = 'asleep'; X.line('ישן לו', 2600);
       await X.wait(2.6);
       await card(X, `<b style="font:900 20px Heebo,system-ui">טבלת השיש</b>${cite(LINES.middot19)}`, 9000);
@@ -340,7 +375,7 @@ export const NIGHT = {
         ev(e.e);
         if (e.e === 'bang') { V.thud(); X.shake(0.12, 0.2); bangT = 1.6; X.dust(sx, F16 + 0.1, sz, 6, 0.6); X.line('הטבלה נפלה חזרה בקול · זקן הרים את ראשו · הגביהו שוב, עד שהסמוכה נכנסת תחתיה', 3600); }
         if (e.e === 'keys') { A.stay = 1; A.fing.clear(); lockGates(); }
-        if (e.e === 'loss') { const p = Mo.mark('night.slab', m.id, [sx, sz]); const c = box(X, MT.h7crack, sx + HS / 2 - 0.4, F16 + 0.125, sz + HS / 2 - 0.3, sx + HS / 2 - 0.02, F16 + 0.14, sz + HS / 2 - 0.27, root); c.rotation.y = 0.6; V.crack(); X.loss(p, { x: sx, y: F16 + 0.4, z: sz }, LOSS['night.slab'][0]); }
+        if (e.e === 'loss') { const p = Mo.mark('night.slab', m.id, [sx, sz]); slabDamage(X, plate, 0, 0, 0.12, HS / 2, null); slabDamage(X, root, sx, sz, null, HS / 2, F16); V.crack(); X.loss(p, { x: sx, y: F16 + 0.4, z: sz }, LOSS['night.slab'][0]); }
         if (e.e === 'down') finish(e.soft);
       }
       if (bangT > 0) { bangT -= dt; for (const e of elders) if (e.a) e.a.lieHp = bangT > 0 ? 0.7 : 0; }   // (an elder lifts his head at the bang)
@@ -387,7 +422,12 @@ export const NIGHT = {
       holds() { return A.fing.size > 0; },
       end() {
         lift(0); FG.detach(); V.stop(); X.hand(null); fadeEl.remove(); lens(fov0); moonOn(false); if (SH7.lookFn) SH7.lookFn = null;
-        if (AC) for (const a of [kohen, levi, ...sleepers.map((q) => q.a)]) { if (a) { try { AC.remove(a); } catch (e) { /* */ } } }
+        // (round 3: a night that reached its end leaves its sleepers, the kohen on his garment on the slab among them, to the finale's
+        //  first picture — the pack's finale lets them go (nightRelease); any other end takes them now)
+        const keep = A.phase === 'done';
+        if (keep) { try { sleepG.attach(cloak); } catch (e) { /* */ } SH7.nightKeep = { g: sleepG, actors: [kohen, ...sleepers.map((q) => q.a)].filter(Boolean) }; }
+        if (AC) for (const a of [kohen, levi, ...sleepers.map((q) => q.a)]) { if (a && !(keep && a !== levi)) { try { AC.remove(a); } catch (e) { /* */ } } }
+        if (!keep) { X.props.remove(sleepG); walkHide(false); }
         X.props.remove(root);
         own('slab', 0); setBusy(X, 0);
         // (the night stays for the pack's finale, which turns it off)

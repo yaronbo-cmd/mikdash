@@ -26,7 +26,7 @@ export function mats7(X) {
   if (P.M.h7stone) return P.M;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...o });
   P.M.h7stone = std('#E6DCC4', { roughness: 0.8 });   // (the bench's dressed stone, the arch's)
-  P.M.h7shade = std('#C9B48E', { roughness: 0.85 });   // (a replacement stone of another shade)
+  P.M.h7shade = std('#958978', { roughness: 0.85 });   // (a replacement stone of another shade: round 3, darker and cooler than the wall and than the weight stones, read at once)
   P.M.h7holy = std('#4C4640', { roughness: 0.7 });     // (the holy line's dark stones)
   P.M.h7timber = std('#9C7448', { roughness: 0.82 });
   P.M.h7timberD = std('#7A5634', { roughness: 0.9 });
@@ -195,13 +195,18 @@ function stateOf(X) {
   return {
     g1: d('gazit1'), g2: d('gazit2'), g3: d('gazit3'), L, cracks: mk('gazit.crack').map((q) => q.n), inks: mk('gazit.ink').map((q) => q.at),
     gl: glDone, troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').length,
-    vN: d('vaultN'), vS: d('vaultS'), vM, rings, vcrack: { N: mk('vault.crack', 'vaultN').length, S: mk('vault.crack', 'vaultS').length, M: mk('vault.crack', 'vaultM').length },
+    vN: d('vaultN'), vS: d('vaultS'), vM, rings, vcrack: { N: mk('vault.crack', 'vaultN').length, S: mk('vault.crack', 'vaultS').length, M: mk('vault.crack', 'vaultM').length }, vcrackJ: { N: jointOf(mk('vault.crack', 'vaultN')), S: jointOf(mk('vault.crack', 'vaultS')), M: jointOf(mk('vault.crack', 'vaultM')) },
     vstone: { N: mk('vault.stone', 'vaultN').length, S: mk('vault.stone', 'vaultS').length, M: mk('vault.stone', 'vaultM').length },
     night: d('night'), slab: mk('night.slab').length, fin: M.finished(),
   };
 }
 export const RING_T = 4;   // (the crews build one ring of the great vault in this many seconds of the world's time)
-const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.gl, S.troughs, S.puddles, S.rimBroken, S.vN, S.vS, S.vM, S.rings, S.vcrack, S.vstone, S.night, S.slab, S.fin, SH7.final, SH7.own]);
+const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.gl, S.troughs, S.puddles, S.rimBroken, S.vN, S.vS, S.vM, S.rings, S.vcrack, S.vcrackJ, S.vstone, S.night, S.slab, S.fin, SH7.final, SH7.own]);
+/** (round 3) the joint a vault.crack mark opened (its n: the joint's index from the springing, 1 … stones−1; an old mark without one:
+ *  the crown's joint) and that joint's angle in an arch of n stones */
+const SLAB_TOP = 0.04;   // (temple.js 'lishka:slab': the hall's marble slab is 0.04 high)
+const jointOf = (L) => (L.length && L[0].n > 0 ? L[0].n | 0 : -1);
+const jointAng = (j, n) => Math.PI - ((j > 0 && j < n ? j : Math.floor(n / 2)) / n) * Math.PI;
 export function rebuild(X, force) {
   const S = stateOf(X); SH7.state = S;
   const k = keyOf(S); if (!force && k === SH7.key.all) return;
@@ -226,10 +231,10 @@ export function rebuild(X, force) {
     if (own['v' + kk]) continue;
     const g = grp('v' + kk), A = V[kk];
     if (!done) { centering(X, kk, { parent: g, pairs: VAULT_LV['vault' + kk].pairs }); continue; }
-    // (seen from inside the room: the crack up the arch's inner face from the crown's joint and on along the ceiling; the fallen
-    //  stone broken on the floor by the jamb, and in the arch its replacement of another shade)
-    const xF = A.at[0] - 1, y1 = A.top - 0.3;
-    if (S.vcrack[kk]) { crackRun(X, [[xF - 0.03, A.crown, A.at[1] + 0.12], [xF - 0.03, A.crown + 0.35, A.at[1] + 0.3], [xF - 0.03, y1 - 0.02, A.at[1] + 0.2], [xF - 1.0, y1 - 0.02, A.at[1] + 0.45], [xF - 2.2, y1 - 0.02, A.at[1] + 0.25]], g); }
+    // (round 3: the crack down the arch's own face along the joint that opened, on both faces (the room's, the act's frame, and the
+    //  court's, through the opening); the fallen stone broken on the floor by the jamb, and in the arch its replacement of another shade)
+    const xF = A.at[0] - 1;
+    if (S.vcrack[kk]) { const a = jointAng(S.vcrackJ[kk], A.stones) - (0.45 * Math.PI) / A.stones, r0 = A.crown - A.spring; for (const x of [xF - 0.035, A.at[0] + 0.035]) faceCrack(X, x, A.spring, r0, r0 + 1, A.at[1], a, g, 0.12); }
     if (S.vstone[kk]) { fallen(X, xF - 0.6, A.floor, A.z[1] + 1.0, g, kk === 'N' ? 1 : -1); shadeStone(X, A, Math.floor(A.stones / 2) - 1, g); }
   }
   // the great vault: its rings as built (ring 1 the player's, the rest the crews'); the centering under the next ring; the damage
@@ -237,15 +242,11 @@ export function rebuild(X, force) {
     const g = grp('vM'), A = V.M;
     for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : vaultIn(M, T)); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
     if (S.rings < A.rings) ringCentering(X, S.rings ? S.rings + 1 : 1, g);
-    if (S.vcrack.M) {   // (up the ring's west face from the crown's joint, and across its soffit)
-      const xw = A.east - A.ringD - 0.05, yc = A.spring + A.R, z0 = A.axisZ + 0.6;
-      crackRun(X, [[xw, yc, z0], [xw, yc + 0.5, z0 + 0.35], [xw, yc + 1.0, z0 + 0.15]], g, 0.14);
-      crackRun(X, [[xw, yc - 0.03, z0], [xw + 1.0, yc - 0.04, z0 + 0.5], [xw + 2.0, yc - 0.04, z0 + 0.2], [A.east, yc - 0.04, z0 + 0.55]], g, 0.14);
-    }
+    if (S.vcrack.M) faceCrack(X, A.east - A.ringD + 0.05 - 0.04, A.spring, A.R, A.R + 1, A.axisZ, jointAng(S.vcrackJ.M, A.stones) - (0.45 * Math.PI) / A.stones, g, 0.24);   // (round 3: down ring 1's west face, seen from the hall)
     if (S.vstone.M) fallen(X, A.east - 3, A.floor, A.legs[0][1] + 1.2, g, 1);
   }
   // the marble slab's cracked corner
-  if (S.slab && !own.slab) { const s = N7.slab, h = N7.slabSize / 2; const c = box(X, M.h7crack, s[0] + h - 0.4, s[2] + 0.045, s[1] + h - 0.3, s[0] + h - 0.02, s[2] + 0.06, s[1] + h - 0.27); c.rotation.y = 0.6; P.slab = c; }
+  if (S.slab && !own.slab) { const s = N7.slab, h = N7.slabSize / 2; P.slab = slabDamage(X, null, s[0], s[1], s[2] + SLAB_TOP, h, s[2]); }   // (round 3: seen)
   menSync(X, S);
   subSync(X, true);
 }
@@ -258,6 +259,41 @@ export function crackLine(X, x, y, z, parent, up) {
 }
 /** the great vault's stone seen from both sides (from the hall under it the intrados reads lit by the fire, round 3) */
 const vaultIn = (M, T) => M.h7stone2 || (M.h7stone2 = Object.assign(M.h7stone.clone(), { side: T.DoubleSide }));
+/** (round 3) a crack down an arch's own face, where the player sees it: along the joint at angle a, from the extrados to the intrados,
+ *  jagged a little to either side, with one short branch; x the face's plane (just proud of it), sp the springing, r0/r1 the intrados
+ *  and extrados radii, zc the arch's middle; t its width (a finger at 960×600 from the act's frame) */
+export function faceCrack(X, x, sp, r0, r1, zc, a, parent, t) {
+  const at = (r, da) => [x, sp + r * Math.sin(a + da / r), zc + r * Math.cos(a + da / r)], w = r1 - r0, k = w;
+  const P = [at(r1 + 0.02, 0.0), at(r1 - 0.22 * w, 0.1 * k), at(r1 - 0.45 * w, -0.06 * k), at(r1 - 0.7 * w, 0.12 * k), at(r0 + 0.12 * w, 0.02 * k), at(r0 - 0.02, 0.08 * k)];
+  const g = crackRun(X, P, parent, t);
+  crackRun(X, [P[2], at(r1 - 0.62 * w, -0.3 * k)], g, t * 0.7);
+  return g;
+}
+/** (round 3) the marble slab's cracked corner as the player sees it: the corner broken off (the break's rough dark faces on the top and
+ *  the two sides), a dark crack running in from it across the top, and the chip's two pieces on the floor by it. (cx, cz) the slab's
+ *  middle, top its top, h its half size, floor the floor's height; the +x +z corner */
+export function slabDamage(X, parent, cx, cz, top, h, floor) {
+  const T = X.THREE, M = mats7(X), g = new T.Group(), c = 0.3, d = 0.09, x1 = cx + h + 0.004, z1 = cz + h + 0.004, y1 = (top || 0) + 0.004;
+  if (top != null) {   // (top null: the chip's pieces alone; floor null: the break and the crack alone — the act lays them on its slab)
+  const v = [x1, y1, z1, x1 - c, y1, z1, x1, y1, z1 - c,   x1, y1, z1, x1, y1, z1 - c, x1, y1 - d, z1,   x1, y1, z1, x1, y1 - d, z1, x1 - c, y1, z1];
+  const ge = new T.BufferGeometry(); ge.setAttribute('position', new T.Float32BufferAttribute(v, 3)); ge.computeVertexNormals();
+  const brk = M.h7break || (M.h7break = new T.MeshStandardMaterial({ color: '#6F665B', roughness: 1, side: T.DoubleSide, flatShading: true, polygonOffset: true, polygonOffsetFactor: -2 }));
+  g.add(new T.Mesh(ge, brk));
+  const yC = (top || 0) + 0.006, k = (q, w) => [x1 - c * q - w * 0.6, yC, z1 - c * (1 - q) - w];
+  crackRun(X, [k(0.5, 0), [cx + h - 0.42, yC, cz + h - 0.36], [cx + h - 0.55, yC, cz + h - 0.62], [cx + h - 0.78, yC, cz + h - 0.7]], g, 0.045);
+  }
+  const marble = M.h7marble || (M.h7marble = new T.MeshStandardMaterial({ color: '#E6DFD2', roughness: 0.7, flatShading: true }));
+  if (floor != null) for (const [dx, dz, s0, ry] of [[0.35, 0.12, 0.13, 0.5], [0.18, 0.4, 0.09, 1.7]]) { const m = new T.Mesh(new T.TetrahedronGeometry(s0, 0), marble); m.position.set(cx + h + dx, floor + s0 * 0.45, cz + h + dz); m.rotation.set(0.4, ry, 0.2); m.castShadow = true; g.add(m); }
+  (parent || X.props.root).add(g); return g;
+}
+/** (round 3) the walk's hint and stick hidden (from the slab laid back to the stage's summary closed): a class on the game's root */
+export function walkHide(on) {
+  try {
+    const d = document;
+    if (!d.getElementById('h129-nowalk')) { const st = d.createElement('style'); st.id = 'h129-nowalk'; st.textContent = ['.tw-zone', '.tw-pad', '.tw-mk', '.tw-goal', '.tw-me', '.tw-aim', '.tw-tip'].map((c) => `.gm.h129-nowalk ${c}`).join(',') + '{display:none!important}'; d.head.appendChild(st); }
+    d.querySelectorAll('.gm').forEach((e) => e.classList.toggle('h129-nowalk', !!on));
+  } catch (e) { /* (no document: the tests) */ }
+}
 /** a crack along a run of points (a dark jagged line on a face or a ceiling) */
 export function crackRun(X, P, parent, t = 0.045) {
   const M = mats7(X), T = X.THREE, g = new T.Group();

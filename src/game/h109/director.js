@@ -114,14 +114,14 @@ export function createH109Director(o) {
     else { CAM.u = Math.min(1, CAM.u + dt / CAM.dur); const k = ease(CAM.u); CAM.p.lerpVectors(CAM.p0, CAM.p1, k); CAM.t.lerpVectors(CAM.t0, CAM.t1, k); }
     // ── h115 ── the right thumb's look (rule 61): the act's shot turned round its aim and lifted toward the horizon ── /h115 ──
     let lx = CAM.p.x, ly = CAM.p.y, lz = CAM.p.z;
-    if (PK.look && PK.look.act !== false && lk5Step(dt)) { /* ── h120 ── (build 124: a walled site's own look shape — h120/look120.js) ── /h120 ── ── h125 ── (act: false — an open site keeps the look below) ── /h125 ── */ }
+    if (!TESTHOLD.on && PK.look && PK.look.act !== false && lk5Step(dt)) { /* ── h120 ── (build 124: a walled site's own look shape — h120/look120.js) ── /h120 ── ── h125 ── (act: false — an open site keeps the look below) ── /h125 ── */ }
     else if (LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3) {
       const vx = lx - CAM.t.x, vy = ly - CAM.t.y, vz = lz - CAM.t.z, h0 = Math.hypot(vx, vz) || 1, d0 = Math.hypot(h0, vy);
       const c = Math.cos(LOOK.yaw), s = Math.sin(LOOK.yaw), hx = (vx * c - vz * s) / h0, hz = (vx * s + vz * c) / h0;
       const el0 = Math.atan2(vy, h0), el = el0 + (0.14 - el0) * LOOK.u, d = d0 * (1 + 3.2 * LOOK.u) + 40 * LOOK.u;
       lx = CAM.t.x + hx * d * Math.cos(el); ly = CAM.t.y + d * Math.sin(el); lz = CAM.t.z + hz * d * Math.cos(el);
     }
-    if (!(PK.look && LK5.on)) view.camSet(lx, ly, lz, CAM.t.x, CAM.t.y, CAM.t.z);   // ── h120 ── (LK5.on: lk5Step set it) ── /h120 ──
+    if (!(PK.look && LK5.on && !TESTHOLD.on)) view.camSet(lx, ly, lz, CAM.t.x, CAM.t.y, CAM.t.z);   // ── h120 ── (LK5.on: lk5Step set it) ── /h120 ──
     // ── h112 ── (before each render OrbitControls keeps the camera its minDistance from the target and main.js clampCam lifts it to the
     // Mount's floor: the same here, or a touch's ray and project() would be of another camera than the frame shown) ── /h112 ──
     try {
@@ -1037,7 +1037,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
     // ── h129 ── (tests: the camera held on a picture in the walk — the stage's damage seen in the world, after the act and after a reload;
     // _hold(null) gives the walk back) ── /h129 ──
-    _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; phase = 'film'; shot(p, t, 0.01); return true; },
+    _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; if (LK5.on) lk5Off(); phase = 'film'; shot(p, t, 0.01); return true; },
     _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──

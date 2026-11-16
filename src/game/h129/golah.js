@@ -218,6 +218,8 @@ export const GOLAH_ACT = {
         if (f.carry) { A.tiltT = 0; A.tiltTo = 0; }
         // (the far view: a tap where no stone is goes back to the well)
         if (A.ph === 'play' && A.view === 'far' && A.share && !f.sl && !f.carry && !f.rope && (f.moved || 0) < 14) { A.shareOff = s.trip; ev('back'); }
+        // (G16, rule 66: the camera lifted a little by the right thumb, the work goes on; a tap where nothing is brings it home)
+        else if (A.ph === 'play' && !f.sl && !f.carry && !f.rope && (f.moved || 0) < 14 && A.look && (A.look.u > 0.02 || Math.abs(A.look.yaw) > 0.03)) { try { if (X.lookHome && X.lookHome()) ev('home'); } catch (e) { /* */ } }
       },
     });
     const ropeX = () => { const R = ropePts(s.b).filter((q) => q.on); return R.length ? R[R.length - 1].x : innerWidth / 2; };

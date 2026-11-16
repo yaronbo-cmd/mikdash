@@ -211,6 +211,9 @@ const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.
 /** (round 3) the joint a vault.crack mark opened (its n: the joint's index from the springing, 1 … stones−1; an old mark without one:
  *  the crown's joint) and that joint's angle in an arch of n stones */
 const SLAB_TOP = 0.04;   // (temple.js 'lishka:slab': the hall's marble slab is 0.04 high)
+/** (round 3) where a crack is drawn: on the opened joint's side of the arch, across the stone at the haunch (about 57° up from the
+ *  springing) — the face seen whole in the act's frame and from the walk, clear of the crown under the HUD and of the centering */
+export const crackAng = (a) => (Math.cos(a) <= 0 ? Math.PI - 1.0 : 1.0);
 const jointOf = (L) => (L.length && L[0].n > 0 ? L[0].n | 0 : -1);
 const jointAng = (j, n) => Math.PI - ((j > 0 && j < n ? j : Math.floor(n / 2)) / n) * Math.PI;
 export function rebuild(X, force) {
@@ -240,7 +243,7 @@ export function rebuild(X, force) {
     // (round 3: the crack down the arch's own face along the joint that opened, on both faces (the room's, the act's frame, and the
     //  court's, through the opening); the fallen stone broken on the floor by the jamb, and in the arch its replacement of another shade)
     const xF = A.at[0] - 1;
-    if (S.vcrack[kk]) { const a = jointAng(S.vcrackJ[kk], A.stones) - (0.45 * Math.PI) / A.stones, r0 = A.crown - A.spring; for (const x of [xF - 0.035, A.at[0] + 0.035]) faceCrack(X, x, A.spring, r0, r0 + 1, A.at[1], a, g, 0.12); }
+    if (S.vcrack[kk]) { const a = crackAng(jointAng(S.vcrackJ[kk], A.stones)), r0 = A.crown - A.spring; for (const x of [xF - 0.035, A.at[0] + 0.035]) faceCrack(X, x, A.spring, r0, r0 + 1, A.at[1], a, g, 0.12); }
     if (S.vstone[kk]) { fallen(X, xF - 0.6, A.floor, A.z[1] + 1.0, g, kk === 'N' ? 1 : -1); shadeStone(X, A, Math.floor(A.stones / 2) - 1, g); }
   }
   // the great vault: its rings as built (ring 1 the player's, the rest the crews'); the centering under the next ring; the damage
@@ -248,7 +251,7 @@ export function rebuild(X, force) {
     const g = grp('vM'), A = V.M;
     for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : vaultIn(M, T)); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
     if (S.rings < A.rings) ringCentering(X, S.rings ? S.rings + 1 : 1, g);
-    if (S.vcrack.M) faceCrack(X, A.east - A.ringD + 0.05 - 0.04, A.spring, A.R, A.R + 1, A.axisZ, jointAng(S.vcrackJ.M, A.stones) - (0.45 * Math.PI) / A.stones, g, 0.24);   // (round 3: down ring 1's west face, seen from the hall)
+    if (S.vcrack.M) faceCrack(X, A.east - A.ringD + 0.05 - 0.04, A.spring, A.R, A.R + 1, A.axisZ, crackAng(jointAng(S.vcrackJ.M, A.stones)), g, 0.24);   // (round 3: down ring 1's west face, seen from the hall)
     if (S.vstone.M) fallen(X, A.east - 3, A.floor, A.legs[0][1] + 1.2, g, 1);
   }
   // the marble slab's cracked corner

@@ -1037,7 +1037,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     _sh: () => (ACTS.__sh ? ACTS.__sh() : null),
     // ── h129 ── (tests: the camera held on a picture in the walk — the stage's damage seen in the world, after the act and after a reload;
     // _hold(null) gives the walk back) ── /h129 ──
-    _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; if (LK5.on) lk5Off(); phase = 'film'; shot(p, t, 0.01); return true; },
+    _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } if (TESTHOLD.on) { try { if (view.closeCam) view.closeCam(false, 'h129-hold'); } catch (e) { /* */ } } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; if (LK5.on) lk5Off(); try { if (view.closeCam) view.closeCam(true, 'h129-hold'); } catch (e) { /* (the near plane close, as an act's: a room's arch six amot off) */ } phase = 'film'; shot(p, t, 0.01); return true; },
     _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──

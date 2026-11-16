@@ -867,8 +867,11 @@
       if (a.phase === 'legs' && a.A) {
         if (!K.legShot && a.A.laid >= 2) { K.legShot = 1; return { wait: 50, shot: a.id + '-legs' }; }
         if (has('vcrack') && a.id === 'vaultN' && !K.vc && a.A.laid >= 2) { K.vc = 1; return { wait: 3200, note: 'vault: both legs let go (the mistake)' }; }
-        const legs = a.legs, pt = (q, u) => `(()=>{const a=__T.game.h109.state().act;if(!a||!a.A)return null;const L=a.A.${q},k=${u == null ? '(L.T+L.g+0.03)' : `(L.g+${u}*L.T)`};return [L.grip[0]+L.dir[0]*a.unit*k,L.grip[1]+L.dir[1]*a.unit*k]})()`;
-        const grips = legs.map((q) => a.A[q].grip);
+        // (round 3: the press is measured from where the thumb went down — the act's reach is the finger's own travel — so the bot keeps that
+        //  point (__VG) and does not re-aim from the grip's screen place, which the camera's lift for two thumbs and the shore's push move:
+        //  re-aiming from it had overpressed vaultN's legs by touch into two lifts)
+        const legs = a.legs, pt = (q, u) => `(()=>{const a=__T.game.h109.state().act;if(!a||!a.A)return null;const L=a.A.${q},G=(window.__VG||{})['${q}']||L.grip,k=${u == null ? '(L.T+L.g+0.03)' : `(L.g+${u}*L.T)`};return [G[0]+L.dir[0]*a.unit*k,G[1]+L.dir[1]*a.unit*k]})()`;
+        const grips = legs.map((q) => `(()=>{const a=__T.game.h109.state().act;if(!a||!a.A)return null;const g=a.A.${q}.grip;(window.__VG=window.__VG||{})['${q}']=g;return g})()`);
         if (a.rel) {
           const fr = [1, 0.85, 0.7, 0.55, 0.4, 0.25, 0.1, 0].map((u) => legs.map((q) => pt(q, u)));
           return { seq: [grips, ...fr], ms: 220, wait: 600, note: 'vault: the slow letting go' };

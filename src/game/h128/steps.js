@@ -68,17 +68,39 @@ export const RING = {
     const tplHome = [TB[0], TB[2] + 1.16, TB[1]]; tpl.position.set(...tplHome);
     const TP = { on: null, drag: false };
     const light = add(new T.Mesh(PR.geo.box, new T.MeshBasicMaterial({ color: 0xFFC21A })));   // (the line of light: a bright warm yellow, it must be seen on pale stone) light.visible = false;
+    // (build 128 tuning T4) its bright core, so the line reads on a small tablet; and the gold edge a fitting stone shows for a moment
+    const core = new T.Mesh(PR.geo.box, new T.MeshBasicMaterial({ color: 0xFFF4B0 })); light.add(core); core.scale.set(1, 1.2, 0.45); core.position.y = 0.1;
+    light.visible = false;
+    const edgeMat = new T.MeshBasicMaterial({ color: 0xFFD040, transparent: true, opacity: 0, depthWrite: false }), edge = add(new T.Mesh(PR.geo.box, edgeMat)), edgeTop = add(new T.Mesh(PR.geo.box, edgeMat)); edge.visible = edgeTop.visible = false;
+    const TPL = { drop: 0, rock: 0, fitT: 0 };
     const mason = SH6.crew.add(Y[0], Y[1] - 5.4, { role: 'hold', item: 'mallet', crew: 2, fx: Y[0], fz: Y[1] }); const men = [mason];   // (the mason beyond the yard: never between the camera and the stones)
     const chalkOn = (s) => { if (s.chalk) return; const c = new T.Mesh(PR.geo.box, MT.h6chalk); c.scale.set(0.5, 0.02, 0.12); c.position.set(s.x, yTop + 0.012, s.z - 0.2); c.rotation.y = 0.5; add(c); s.chalk = c; };
     const chalkOff = (s) => { if (!s.chalk) return; PR.remove(s.chalk); s.chalk = null; };
     // the line of light on the stone under the template: its width in px at this camera (tplLight), drawn as amot at the stone
     const pxPerAmah = (x, y, z) => { const a = X.scr(x, y, z), b = X.scr(x + 1, y, z), c = X.scr(x, y, z + 1); return Math.max(4, Math.hypot(b.x - a.x, b.y - a.y), Math.hypot(c.x - a.x, c.y - a.y)); };
-    function tplSet(s) {
-      TP.on = s ? s.id : null;
-      if (!s) { tpl.position.set(...tplHome); light.visible = false; return; }
-      tpl.position.set(s.x, yTop + 0.01, s.z);
+    /** the line's width on the screen: the model's (2 … 6 px, how far the stone's ring is) raised so the least is 4 px at 960×600 and
+     *  wider on a larger screen (build 128 tuning T4: it must read on a small tablet) */
+    const linePx = (px) => (px + 2) * Math.max(1, Math.min(innerWidth / 960, innerHeight / 600));
+    function tplSet(s, dropped) {
+      TP.on = s ? s.id : null; TPL.rock = 0; TPL.drop = 0;
+      if (!s) { tpl.position.set(...tplHome); tpl.rotation.set(0, 0, 0); light.visible = false; return; }
+      tpl.position.set(s.x, yTop + 0.01, s.z); tpl.rotation.set(0, 0, 0);
       const px = tplLight(P, s); light.visible = px > 0;
-      if (px > 0) { const w = px / pxPerAmah(s.x, yTop, s.z), L = s.len * Q; light.scale.set(L * 0.98, 0.09, w); light.position.set(s.x, yTop + 0.03, s.z + w / 2 + 0.005); }
+      if (px > 0) { const w = linePx(px) / pxPerAmah(s.x, yTop, s.z), L = s.len * Q; light.scale.set(L * 0.98, 0.09, w); light.position.set(s.x, yTop + 0.03, s.z + w / 2 + 0.005); }
+      if (!dropped) return;
+      // (T4) a fit: the template drops the last of the way home with a knock of wood on stone, the stone's edge glows gold a moment,
+      // the quick word; a misfit: the template rocks on the stone (it has no seat) and sounds hollow, the line of light stands out
+      if (px === 0) {
+        TPL.drop = 0.16; tpl.position.y = yTop + 0.25; V.thud(); ev('fit:' + s.id);
+        const L = s.len * Q; edge.scale.set(L * 1.02, STP.rise * 1.04, 0.07); edge.position.set(s.x, Y[2] + STP.rise / 2, s.z + 0.04); edgeTop.scale.set(L * 1.02, 0.04, 0.22); edgeTop.position.set(s.x, yTop + 0.02, s.z + 0.08);
+        edge.visible = edgeTop.visible = true; edgeMat.opacity = 1; TPL.fitT = 0.9;
+        X.quick({ x: s.x, y: yTop + 0.4, z: s.z }, QUICK.noLight, s.me);
+      } else { TPL.rock = 1.1; V.hollow(); ev('misfit:' + s.id + ':' + px); }
+    }
+    function tplFrame(dt) {
+      if (TPL.drop > 0) { TPL.drop = Math.max(0, TPL.drop - dt); tpl.position.y = yTop + 0.01 + 0.24 * (TPL.drop / 0.16) ** 2; }
+      if (TPL.rock > 0) { TPL.rock = Math.max(0, TPL.rock - dt); const u = 1.1 - TPL.rock; tpl.rotation.x = 0.07 * Math.sin(u * 17) * Math.exp(-u * 2.2); tpl.position.y = yTop + 0.01 + 0.03 * Math.abs(Math.sin(u * 17)) * Math.exp(-u * 2.2); }
+      if (TPL.fitT > 0) { TPL.fitT = Math.max(0, TPL.fitT - dt); edgeMat.opacity = Math.min(1, TPL.fitT / 0.45); if (!TPL.fitT) edge.visible = edgeTop.visible = false; }
     }
     const rayY = (p, h) => { const rc = X.rayAt(p.x, p.y), r = rc && (rc.ray || rc); if (!r || !r.origin || Math.abs(r.direction.y) < 1e-4) return null; const t = (h - r.origin.y) / r.direction.y; if (t < 0) return null; return [r.origin.x + r.direction.x * t, r.origin.z + r.direction.z * t]; };
     const yardHit = (p) => { const q = rayY(p, yTop); if (!q) return null; let best = null, bd = 0.75; for (const s of yard) { if (s.gone) continue; const L = s.len * Q / 2, dx = Math.max(0, Math.abs(q[0] - s.x) - L), dz = Math.abs(q[1] - (s.z - 0.25)); const d = Math.hypot(dx, dz); if (d < bd) { bd = d; best = s; } } return best; };
@@ -184,7 +206,7 @@ export const RING = {
       },
       up(f) {
         if (f.what === 'tpl' && !TP.drag) { if (f.prev && f.moved < 16) markToggle(yard.find((y) => y.id === f.prev)); return; }
-        if (f.what === 'tpl') { TP.drag = false; const s = yardHit(f); tplSet(s && Math.hypot(tpl.position.x - s.x, tpl.position.z - s.z) < 2.6 ? s : null); if (TP.on && !A.hintMark) { A.hintMark = 1; X.line(cls === 15 ? 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר · הקשה על אבן אחרת: הבנאי מקיש בה בפטיש' : 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר', 4200); } ev('tpl:' + (TP.on || '-')); return; }
+        if (f.what === 'tpl') { TP.drag = false; const s = yardHit(f); tplSet(s && Math.hypot(tpl.position.x - s.x, tpl.position.z - s.z) < 2.6 ? s : null, true); if (TP.on && !A.hintMark) { A.hintMark = 1; X.line(cls === 15 ? 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר · הקשה על אבן אחרת: הבנאי מקיש בה בפטיש' : 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר', 4200); } ev('tpl:' + (TP.on || '-')); return; }
         if (f.what === 'stone' && f.moved < 16) { if (TP.on === f.s.id) markToggle(f.s); else sound(f.s); return; }
         if (f.what === 'tray' && f.t) { f.t.drag = false; if (f.moved < 16) { if (f.t.ring !== i) carryBack(f.t); else trayLay(); return; } dropStone(f.t, f); return; }
         if (f.what === 'laid' && f.moved < 16) { lift(f.l); return; }
@@ -203,7 +225,7 @@ export const RING = {
       if (s.marked) { s.marked = 0; chalkOff(s); A.marks = A.marks.filter((id) => id !== s.id); ev('unmark:' + s.id); return; }
       s.marked = 1; chalkOn(s); A.marks.push(s.id); ev('mark:' + s.id); V.tick();
       const fits = s.ring === i; if (!fits) { A.wrongMarks++; A.quickRun = 0; }
-      if (fits && A.quickRun) X.quick({ x: s.x, y: yTop + 0.4, z: s.z }, QUICK.noLight, s.me);
+      // (the quick word for a fit comes when the template drops home on it: tplSet)
       if (A.marks.length >= needMarks) setTimeout(() => toRow(), 700);
     }
     function toRow() {
@@ -270,6 +292,11 @@ export const RING = {
       if (db > 0) A.lastB = A.t; else if (!db && held('b') && A.t - (A.lastB || -9) < 0.15) db = 1e-4;
       keyStep(s, { da, db }, dt, { cracked });
       V.grind(s.jam ? 1 : 0);
+      // (build 128 tuning T2) the stone askew before it jams: seen as it turns on its rollers; heard as it drags, louder and higher the
+      // more one side leads, from the leading bar's side of the screen
+      { const lead = s.a - s.b, k = Math.min(1, Math.abs(lead) / s.tol), moving = (da > 0 || db > 0) && !s.jam;
+        const q = barScr(lead >= 0 ? barA : barB), pan = q ? Math.max(-0.8, Math.min(0.8, (q[0] / innerWidth - 0.5) * 2)) : 0;
+        V.strain(moving && k > 0.2 ? k : 0, pan); }
       for (const e of s.ev) {
         ev('key:' + e.e);
         if (e.e === 'jam' && !A.jamLine) { A.jamLine = 1; X.line('הפינה נתקעה: משכו מעט אחורה את המוט המקדים', 3000); }
@@ -281,7 +308,7 @@ export const RING = {
     }
     const keyAt = () => ({ x: key.position.x, y: R.top + 0.6, z: key.position.z });
     function closed() {
-      A.phase = 'closing'; V.grind(0); camLift(0);
+      A.phase = 'closing'; V.grind(0); V.strain(0); camLift(0);
       const s = A.k;
       setTimeout(() => { V.mallet(false); X.sparks(key.position.x, R.top + 0.3, key.position.z, 8); }, 250);
       setTimeout(() => { V.step(i, !!(s.corner || s.crack)); if (!s.dmg) X.quick(keyAt(), QUICK.closed, key.children[0]); }, 600);
@@ -317,6 +344,7 @@ export const RING = {
         try {
           V.frame();
           if (A.phase === 'tpl' && TP.drag) X.hand(null);
+          if (A.phase === 'tpl' || A.phase === 'row') tplFrame(dt);
           if (A.phase === 'key') keyFrame(dt);
           if (A.phase === 'moment') { A.mT += dt; if (A.mT > 4.6 || (A.skip && A.mT > 1)) end1(); }
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h128] steps', e && e.message); } }
@@ -343,7 +371,7 @@ export const RING = {
       dbg() {
         const F = A.fit || rowFit(P, A.row), o = { t: +A.t.toFixed(2), phase: A.phase, ring: i, cls, free: !!m.free, G: P.G, C: P.C, need: needMarks, marks: A.marks.slice(), wrongMarks: A.wrongMarks, wrongCarried: A.wrongCarried, lifts: A.lifts, firstLay: A.firstLay, mouse: MOUSE, ev: A.ev.slice(-8), sol: P.sol, lens: Object.fromEntries(P.yard.map((y) => [y.id, y.len])), nf: FG.n };
         if (A.phase === 'tpl' || A.phase === 'intro') {
-          o.tpl = tplScr(); o.on = TP.on; o.lightPx = TP.on ? tplLight(P, byId(TP.on)) : null;
+          o.tpl = tplScr(); o.on = TP.on; o.lightPx = TP.on ? tplLight(P, byId(TP.on)) : null; o.linePx = o.lightPx ? +linePx(o.lightPx).toFixed(1) : null; o.rock = +TPL.rock.toFixed(2); o.gold = +edgeMat.opacity.toFixed(2);
           o.yard = yard.filter((s) => !s.gone).map((s) => ({ id: s.id, len: s.len, at: sc(X, s.x, yTop, s.z - 0.25), marked: s.marked, dull: s.dull }));
         }
         if (A.phase === 'row') {

@@ -23,7 +23,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createSea3d } from './sea3d.js';
 import { SEA_LV, ROPES, lowRopes, bandOf, seaFresh, seaStep, seaPts, seaCarry, nextSwell, swellsOf, headDir, swellPos, holdFresh, holdStep, holdSwell, HOLD,
-  akkoFresh, akkoStep, akkoPts, AKKO, ringY, LINES, QUICK, LOSS, H128, qOf, starsOf } from './model.js';
+  akkoFresh, akkoStep, akkoPts, AKKO, ringY, LINES, QUICK, LOSS, H128, SORRY_S, qOf, starsOf } from './model.js';
 import { createVoices } from './sound128.js';
 import { createAnimals } from '../../animals.js';
 import { CAPSTAN } from './capstan.js';
@@ -40,6 +40,7 @@ const sideOf = (k) => (k.startsWith('port') ? 'port' : 'stbd');
 const HOLD_H = SEA_LV.sea2.H;
 const COIL_R = 1.1;              // (a tail's coil on the deck: its outer radius, amot)
 const HOLD_S = 1.45;             // (B6: Nicanor's size on the door in the hold, larger than life so the figure reads at the act's lift)
+const CUT_PH = ['turn', 'hold', 'calm', 'sorry'];   // (T6: the phases the thrown door's cut lashings are seen swinging on the deck)
 
 /* ═════════════ the sea on screen: one sea3d for the whole journey, drawn in place of the Mount ═════════════ */
 const SS = { S: null, R: null, on: false, t: 0, act: null, idle: 0, fresh: false, exp: null, calls: 0, tris: 0, drawMs: 0, ext: null, shake: 0, onResize: null };
@@ -169,7 +170,7 @@ function buildExtras(S) {
   }
   return E;
 }
-const C_WORN = new THREE.Color('#B9B2A2'), C_PALE = new THREE.Color('#FBF6E8'), C_DARK = new THREE.Color('#6A5232');
+const C_WORN = new THREE.Color('#B9B2A2'), C_PALE = new THREE.Color('#FBF6E8'), C_DARK = new THREE.Color('#6A5232'), C_BLEACH = new THREE.Color('#F2EEE4');
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0), _c = new THREE.Color();
 /** segment i of an instanced rope mesh from a to b with radius r */
 function seg(mesh, i, a, b, r) {
@@ -215,7 +216,20 @@ function makeSea(m, X) {
     let i = 0, f = 0;
     for (const k of ROPES) {
       const R = RP[k], r = s ? s.ropes[k] : { t: 0.5, worn: 0 }, ten = r.t, band = bandOf(ten);
-      if (R.gone) { for (let j = 0; j < 16; j++) hide(E.rope, i++); for (let j = 0; j < 12; j++) hide(E.fib, f++); hide(E.coil, ROPES.indexOf(k)); continue; }
+      if (R.gone) {
+        // (build 128 tuning T6) the thrown door's lashings were cut: from the turn to the quiet after the storm each cut end still lies
+        // on its ring by the empty place and swings to and fro on the deck with the ship's roll, its frayed end lifting at each turn
+        if (id === 'sea2' && CUT_PH.includes(A.phase)) {
+          const ax = anchorX(k), ph = R.fore ? 0 : 1.9, sw = 0.42 * Math.sin(T * 1.45 + ph) + 2.5 * roll, a0 = R.fore ? -0.35 : 0.35;
+          let x = ax, z = R.rz, y = 0.2; pts[0].set(x, y, z);
+          for (let j = 1; j <= 5; j++) { const u = j / 5, a = a0 + sw * u * u, L = 0.5; x += Math.sin(a) * L; z -= Math.cos(a) * L; y = 0.12 + Math.abs(sw) * 0.35 * u * u; pts[j].set(x, y, z); seg(E.rope, i++, pts[j - 1], pts[j], 0.13); }
+          for (let j = 5; j < 16; j++) hide(E.rope, i++);
+          _c.set('#DCC69C'); for (let j = i - 16; j < i - 11; j++) E.rope.setColorAt(j, _c);
+          for (let j = 0; j < 12; j++) { if (j > 3) { hide(E.fib, f++); continue; } const ang = j * 1.6 + sw; _b.set(Math.cos(ang) * 0.7, 0.5, Math.sin(ang) * 0.7).normalize(); _q.setFromUnitVectors(_y, _b); _m.compose(pts[5], _q, _s.set(0.025, 0.3, 0.025)); E.fib.setMatrixAt(f++, _m); }
+          hide(E.coil, ROPES.indexOf(k)); continue;
+        }
+        for (let j = 0; j < 16; j++) hide(E.rope, i++); for (let j = 0; j < 12; j++) hide(E.fib, f++); hide(E.coil, ROPES.indexOf(k)); continue;
+      }
       // the bands told apart at a glance: slack hangs in a curve (at least half an amah) and sways; quiet is straight and still;
       // sings is straight, paler, and shivers; frays shivers, darkens and shows its strands
       const slack = ten < H128.BAND.slack ? 0.55 + (H128.BAND.slack - ten) / H128.BAND.slack * 0.6 : 0;
@@ -247,12 +261,15 @@ function makeSea(m, X) {
       _c.set('#DCC69C'); if (r.worn) _c.lerp(C_WORN, 0.6);
       if (band === 'sings') _c.lerp(C_PALE, 0.55 + 0.4 * (ten - 0.7) / 0.2); else if (band === 'frays') _c.lerp(C_DARK, 0.75);
       for (let j = i - 15; j < i; j++) E.rope.setColorAt(j, _c);
+      // (build 128 tuning T2: the worn rope read at a glance before it matters) over the door its length is blotched: bleached stretches
+      // and dark frayed ones in turn, where a sound rope is one even colour
+      if (r.worn && (band === 'slack' || band === 'quiet')) for (let j = i - 14; j < i - 7; j++) E.rope.setColorAt(j, (j - i) % 2 ? C_BLEACH : C_DARK);
       // the strands: out along the rope over the door and down the span (frays: many and long; a worn rope: three short ones)
-      const fk = band === 'frays' ? 1 : 0, wk = r.worn ? 1 : 0;
+      const fk = band === 'frays' ? 1 : 0, wk = r.worn ? 1 : 0, wl = r.worn && r.eff > 0.6 ? 1 : 0;   // (T2: a worn rope near its limit: its strands stand out long)
       for (let j = 0; j < 12; j++) {
         const show = fk || (wk && j % 2 === 1);
         if (!show) { hide(E.fib, f++); continue; }
-        const a = pts[1 + (j % 9)], b = pts[2 + (j % 9)], u = ((j * 37) % 10) / 10, len = fk ? 0.26 + 0.12 * ((j * 13) % 5) / 5 : 0.16;
+        const a = pts[1 + (j % 9)], b = pts[2 + (j % 9)], u = ((j * 37) % 10) / 10, len = fk ? 0.26 + 0.12 * ((j * 13) % 5) / 5 : wl ? 0.3 : 0.16;
         _a.lerpVectors(a, b, u); const ang = j * 2.4 + (fk ? Math.sin(T * 30 + j) * 0.25 : 0);
         _b.set(Math.cos(ang) * 0.6, 0.8, Math.sin(ang) * 0.6).normalize();
         _q.setFromUnitVectors(_y, _b); _m.compose(_a, _q, _s.set(0.018, len, 0.018)); E.fib.setMatrixAt(f++, _m);
@@ -469,8 +486,19 @@ function makeSea(m, X) {
     }
     // the voice of the ropes: a hum that rises with the highest tension in the singing band, creaking in the frays band
     let hi = 0; for (const k of ROPES) hi = Math.max(hi, s.ropes[k].eff);
-    V.hum(hi > H128.BAND.quiet ? 1 : 0, Math.min(1.2, hi));
+    // (build 128 tuning T2: every band heard) quiet: a low steady hum; sings: the hum rises and loudens; frays: creaking
+    V.hum(hi > H128.BAND.quiet ? 1 : hi >= H128.BAND.slack ? 0.35 : 0, Math.min(1.2, hi));
     if (hi > H128.BAND.sings && ((SS.t * 2) | 0) !== A.cr) { A.cr = (SS.t * 2) | 0; V.creak(); }
+    // slack: the loose rope slaps the bronze each time its sway turns (the sway drawRopes shows: sin(T·1.3 + …)); a worn rope loaded
+    // toward its limit: its fibres pop (and its strands stand out longer, drawRopes)
+    A.slapW = A.slapW || {};
+    for (const k of ROPES) {
+      const r = s.ropes[k], R = RP[k]; if (R.gone) continue;
+      const ph = Math.sin(SS.t * 1.3 + R.cz);
+      if (r.t < H128.BAND.slack && A.slapW[k] != null && A.slapW[k] < 0 && ph >= 0) V.slap();
+      A.slapW[k] = ph;
+      if (r.worn && r.eff > 0.6 && ((SS.t * 2.5) | 0) !== A['wc' + k]) { A['wc' + k] = (SS.t * 2.5) | 0; V.crackle(); }
+    }
     if (s.done) ropesDone();
   }
   function ropesDone() {
@@ -574,12 +602,15 @@ function makeSea(m, X) {
     const H = hold;
     holdStep(H, { L: held('ringL'), R: mouse ? true : held('ringR') }, dt);
     const w = holdSwell(H); if (w && !A.hsw.some((q) => q.n === w.n)) A.hsw.push({ head: w.head, t0: w.t0 + T0.v, H: HOLD_H, n: w.n });
+    // (build 128 tuning T2) a hand that starts to slip: heard as it slides along the wet bronze (its side), as well as seen
+    A.slipWas = A.slipWas || { L: 0, R: 0 };
+    for (const h of ['L', 'R']) { const sl = H.slip[h] > 0 ? 1 : 0; if (sl && !A.slipWas[h]) V.scrape(h); A.slipWas[h] = sl; }
     for (const e of H.ev) {
       ev('hold:' + e.e + (e.hand || ''));
       if (e.e === 'line') { bigLine(LINES.hold, 2400, true); X.line(LINES.hold, 4200); V.creak(); }
       if (e.e === 'held') { V.creak(); SS.shake = 0.8; const q = deckScr(DK.hold[0], P.top + 1, DK.hold[1] + D.W / 2 + 1.5); X.quick({ sx: q.x, sy: Math.max(innerHeight * 0.25, q.y - innerHeight * 0.06) }, 'החזקתם!'); }   // (B6: above the door's far edge, never over him, and below the top's pill as it rises)
       if (e.e === 'again') { SS.shake = 0.8; X.line('יד אחת לא הייתה על הטבעת: הגל חוזר', 2600); }
-      if (e.e === 'off') { try { if (X.haptic) X.haptic(12); } catch (er) { /* */ } }
+      if (e.e === 'off') { V.clack(); try { if (X.haptic) X.haptic(12); } catch (er) { /* */ } }
       if (e.e === 'calm') calmStart();
     }
   }
@@ -596,13 +627,13 @@ function makeSea(m, X) {
       const n = nic(); delete n.fixedY; n.y = 0; if (n.s0 != null) { n.s = n.s0; n.s0 = null; } n.bowT = 0.15; n.knT = 0; n.armT = [0.3, 0.05, 0.3, 0.05]; S.actors.walk(n, [DK.sorry], 1.6);
       if (mouse) { const kp = crew()[1]; if (kp) kp.own128 = false; }
       LIFTERS.forEach((i) => { const a = crew()[i]; if (a) a.own128 = false; });
-      X.line(LINES.sorry, 5200);
+      X.line(LINES.sorry, SORRY_S * 1000);
     }
   }
   function sorryFrame(dt) {
     A.soT += dt; const n = nic();
     if (!n.path) { n.yaw = Math.PI; n.bowT = 0.22; }
-    if (A.soT > 5.2 || (A.skip && A.soT > 1.2)) { A.skip = 0; end1(); }
+    if (A.soT > SORRY_S || (A.skip && A.soT > 1.2)) { A.skip = 0; end1(); }
   }
 
   /* ═══ sea3: Akko — the hook, the hoist, the landing; the caravan ═══ */
@@ -626,6 +657,8 @@ function makeSea(m, X) {
     // the derrick's crew on the quay, with the hauling end of the rope in their hands (they stand on the quay's top: the sea's frame)
     A.dcrew = [];
     for (const [x, z] of QY.crew) { const a = S.actors.add('worker', x, z, { y: 0, scale: 1.0, col: '#7A6046' }); if (a) { a.own128 = true; A.dcrew.push(a); } }
+    // (build 128 tuning T5) the quay hand by the edge, who reaches out his arms as the hung door swings toward the quay
+    { const a = S.actors.add('worker', QY.reach[0], QY.reach[1], { y: 0, scale: 1.0, col: '#6A5A44' }); if (a) { a.own128 = true; A.reach = a; A.reachK = 0; } }
     for (const k of ['portFore', 'portAft']) RP[k].gone = 1;
   }
   function akkoDoor(dt) {
@@ -675,6 +708,14 @@ function makeSea(m, X) {
       const hv = Math.sin(SS.t * 7 + j) * clamp((A.haulV || 0) + (A.easeV || 0), 0, 1);
       w.bowT = 0.35 + 0.15 * hv; w.knT = 0.2; w.armT = [1.3 + 0.5 * hv, -0.15, 1.3 - 0.5 * hv, -0.15];
     }
+    // (T5) the quay hand: facing the hung door; while it swings toward the quay (ω > 0, the haul's time) his arms go out to it, highest
+    // at its fastest; as it swings back they drop. Before the hook takes, and after, he stands and watches it
+    if (A.reach) {
+      const w = A.reach, q = QY.reach; v3.set(q[0], qTop(), q[1]); S.deck.worldToLocal(v3); w.x = v3.x; w.z = v3.z; w.y = w.fixedY = v3.y;
+      w.yaw = Math.atan2(ak3.ring.x - q[0], ak3.ring.z - q[1]);
+      const want = ak && ak.phase === 'hoist' ? clamp(ak.w / 0.18, 0, 1) : 0; A.reachK += (want - A.reachK) * 0.2;
+      const k = A.reachK; w.bowT = 0.08 + 0.3 * k; w.knT = 0.1 * k; w.armT = [0.1 + 1.55 * k, 0.05 - 0.3 * k, 0.1 + 1.55 * k, 0.05 - 0.3 * k];
+    }
   }
   function akkoStep1(dt) {
     const a = ak;
@@ -685,6 +726,9 @@ function makeSea(m, X) {
     const wy = S.waterAt(BOB[0], BOB[1]);
     const inp = a.phase === 'hook' ? { hx: ak3.hook.x - BOB[0], hy: ak3.hook.y - wy } : a.phase === 'hoist' ? { haul: A.haulV } : a.phase === 'land' ? { ease: A.easeV } : {};
     akkoStep(a, inp, dt);
+    // (build 128 tuning T5) the derrick's block creaks with the swing: its pitch rising while the door swings toward the quay (ω > 0, the
+    // time to haul), falling while it swings back; faster as it swings faster
+    if (a.phase === 'hoist' && Math.abs(a.w) > 0.03) { A.swT = (A.swT || 0) - dt; if (A.swT <= 0) { const k = clamp(Math.abs(a.w) / 0.25, 0, 1); A.swT = lerp(0.5, 0.2, k); V.swing(a.w > 0, k); } }
     if (a.phase === 'slew') ak3.phi = Math.PI * ease(clamp(a.slew / AKKO.SLEW, 0, 1));
     for (const e of a.ev) {
       ev('akko:' + e.e);
@@ -869,7 +913,7 @@ function makeSea(m, X) {
       for (const g of (A.wag || []).concat(A.yoke || [])) X.props.remove(g);
       try { for (const o of A.ox || []) A.anim.remove(o); if (A.anim) A.anim.update(0); A.ox = []; } catch (e) { /* */ }   // (update: the herd's meshes drawn empty, or the last oxen stay on the road)
       for (const w of A.men || []) { try { SH6.crew.remove(w); } catch (e) { /* */ } }
-      for (const a of A.dcrew || []) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }
+      for (const a of (A.dcrew || []).concat(A.reach ? [A.reach] : [])) { try { S.actors.remove ? S.actors.remove(a) : (a.alive = false); } catch (e) { /* */ } }
       if (SS.act === actApi) { SS.act = null; SS.idle = 0; }
     },
     at() { return { x: S6.eastGate[0], y: S6.eastGate[2] + 2, z: S6.eastGate[1] }; },
@@ -887,7 +931,7 @@ function makeSea(m, X) {
       if (A.phase === 'throw' && P) { const u = (P.doors.port || {}).userData || {}; o.th = { t: +(A.thT || 0).toFixed(2), off: !!u.off, wet: !!u.wet, wetT: +(u.wetT || 0).toFixed(2), sunk: !!u.sunk }; }
       if (hold) { o.hold = { on: { ...hold.on }, off: { ...hold.off }, slip: { L: +hold.slip.L.toFixed(2), R: +hold.slip.R.toFixed(2) }, held: hold.held, swells: hold.swells, started: hold.started, next: hold.next != null ? +(hold.next - hold.t).toFixed(2) : null };
         if (S && SS.S === S && A.phase === 'hold') { o.rings = { L: (() => { const q = ringScr('L'); return [Math.round(q.x), Math.round(q.y)]; })(), R: (() => { const q = ringScr('R'); return [Math.round(q.x), Math.round(q.y)]; })() }; o.ringPx = ringPx(); } }
-      if (ak) { o.akko = { phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };
+      if (ak) { o.akko = { reachK: +(A.reachK || 0).toFixed(2), phase: ak.phase, tries: ak.tries, th: +(ak.th * 180 / Math.PI).toFixed(1), w: +ak.w.toFixed(3), lift: +ak.lift.toFixed(2), maxSw: +ak.maxSw.toFixed(1), stop: ak.stop, y: +ak.y.toFixed(2), v: +ak.v.toFixed(3), land: ak.land, ringY: +ringY(ak.t).toFixed(3), pts: akkoPts(ak), haulV: +(A.haulV || 0).toFixed(2), easeV: +(A.easeV || 0).toFixed(2) };
         if (S && SS.S === S && E && E.quay.visible) { const h = hookScr(), r = worldScr(ak3.ring), q = haulScr(); o.hook = [Math.round(h.x), Math.round(h.y)]; o.ring = [Math.round(r.x), Math.round(r.y)]; o.haul = [Math.round(q.x), Math.round(q.y)]; o.hookD = +Math.hypot(ak3.hook.x - BOB[0], ak3.hook.y - (S.waterAt(BOB[0], BOB[1]) + ringY(ak.t))).toFixed(2);
           // (the screen px of one amah at the ring: the bot's hand needs it)
           const r2 = worldScr(_a.copy(ak3.ring).add(_b.set(0, 1, 0))); o.pxA = +Math.hypot(r2.x - r.x, r2.y - r.y).toFixed(1); } }

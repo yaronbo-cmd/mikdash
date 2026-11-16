@@ -568,11 +568,13 @@
       if (a.runs > 0) B.k.parted = 1;
       if (a.wedge !== -1 && a.F > 0.05 && (!has('fray') || B.k.parted)) return { wait: 600, note: `capstan: rest (wedge ${a.wedge}, F ${a.F})` };
       if (j >= 0 && a.wedge === j && a.F > 0.05 && (!has('fray') || B.k.parted)) return { wait: 600, note: `capstan: rest on notch ${j + 1} (F ${a.F})` };
-      if (j >= 0 && a.wedge !== j && Math.abs(a.v) < 0.15) { if (!B.k['cs' + j] && (j === 1 || j === 4)) { B.k['cs' + j] = 1; return { wait: 100, shot: `capstan-notch${j + 1}` }; } return { tapAt: '(()=>{const a=__T.game.h109.state().act;return a&&a.wedgeMan})()', wait: 700, note: `capstan: wedge at notch ${j + 1} (d ${a.d} v ${a.v})` }; }
+      if (j >= 0 && a.wedge !== j && Math.abs(a.v) < 0.15) { if (!B.k['cs' + j] && (j === 1 || j === 4)) { B.k['cs' + j] = 1; return { wait: 100, shot: `capstan-notch${j + 1}`, note: `capstan: at notch ${j + 1} (d ${a.d}, near ${a.near}, mallet ${a.mallet}, glow ${JSON.stringify(a.glow)})` }; } return { tapAt: '(()=>{const a=__T.game.h109.state().act;return a&&a.wedgeMan})()', wait: 700, note: `capstan: wedge at notch ${j + 1} (d ${a.d} v ${a.v})` }; }
       if (j >= 0 && Math.abs(a.v) >= 0.15) return { wait: 120 };   // (in the notch's window: let it come to rest there)
       const i = a.notchD.findIndex((nd) => nd > a.d + 0.45); if (i < 0) return { wait: 300 };
       if (a.v > 0.05 && a.d + a.v * 0.85 >= a.notchD[i] - 0.4) return { wait: 120 };   // (it coasts into the window)
       const nd = a.notchD[i];
+      // (build 128 tuning T1: a still of the cue before notches 2 and 5 — the mallet rising, the notch's lug brightening — with its measure)
+      if (!B.k['cn' + i] && (i === 1 || i === 4) && nd - a.d < 1.9 && nd - a.d > 0.4) { B.k['cn' + i] = 1; return { wait: 60, shot: `capstan-near${i + 1}`, note: `capstan: near notch ${i + 1} (to ${(nd - a.d).toFixed(2)}, near ${a.near}, mallet ${a.mallet}, glow ${JSON.stringify(a.glow)})` }; }
       if (a.v > 0.05 && a.turn < 0.02) return { wait: 150 };
       const fast = has('fray') && !B.k.parted, rough = a.roughAhead > 0.05 || a.rough > 0.05;
       const tps = fast ? 0.8 : rough ? 0.16 : 0.32, lap = 1000 / tps;
@@ -599,6 +601,9 @@
         const Y = a.yard;
         // ring 15's class: the mallet on every stone first
         if (a.cls === 15) { const s = Y.find((y) => y.dull == null && !K.snd[y.id] && y.id !== a.on); if (s) { K.snd[s.id] = 1; return { tap: s.at, wait: 500, note: 'steps: sound ' + s.id }; } }
+        // (build 128 tuning T4: a still at the drop — a fit's gold edge, a misfit's rocking and its line — once each, with their measure)
+        if (a.on && a.rock > 0 && !K.misShot) { K.misShot = 1; return { wait: 10, shot: 'ring-misfit', note: `steps: misfit ${a.on} (model ${a.lightPx} px, drawn ${a.linePx} px, rock ${a.rock})` }; }
+        if (a.on && a.gold > 0 && !K.fitShot) { K.fitShot = 1; return { wait: 10, shot: 'ring-fit', note: `steps: fit ${a.on} (gold ${a.gold})` }; }
         if (a.on && K.fit[a.on] == null) { K.fit[a.on] = a.lightPx; if (a.lightPx > 0 && !K.lightShot) { K.lightShot = 1; return { wait: 100, shot: 'ring-light' }; } }
         const cur = a.on && Y.find((y) => y.id === a.on);
         if (cur && !cur.marked) {
@@ -613,7 +618,7 @@
         const skip = (y) => has('crack') && K.crackDone && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len && z.marked);
         const nxt = Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !(has('crack') && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len)));
         const nxt2 = nxt || Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !skip(y));
-        if (nxt2) return { drag: [a.tpl[0], a.tpl[1], nxt2.at[0], nxt2.at[1], 700], wait: 700, note: 'steps: the template onto ' + nxt2.id };
+        if (nxt2) return { drag: [a.tpl[0], a.tpl[1], nxt2.at[0], nxt2.at[1], 700], wait: K.misShot && K.fitShot ? 700 : 120, note: 'steps: the template onto ' + nxt2.id };
         return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };
       }
       if (a.phase === 'row') {
@@ -659,8 +664,17 @@
       const rad = Math.PI / 180;
       if (!a.pair) {
         if (has('tooth') && a.id === 'wicketN' && !a.tooth[0] && !a.tooth[1]) { if (a.blk && !K.blkShot) { K.blkShot = 1; return { wait: 50, shot: 'wicket-blocked' }; } return { ...arc('L', a.c.L, 45 * rad, 2200), wait: 300, note: 'wicket: force the left ring ahead' }; }
+        // (build 128 tuning T3: __BOT.bad 'skew' — on the south wicket, before the dry bolt, the left ring run ahead past tol for a moment
+        //  (well under the 0.8 s that bends a tooth): a still while it trembles, then on as before)
+        if (has('skew') && a.id === 'wicketS' && !K.skewDone && a.travel > 0.12 && !a.blk) {
+          K.skewDone = 1; const c = a.c.L, a0 = K.angL || 0, over = (a.b - a.a) + a.tol + 8, n = 14, fr = [];
+          for (let k = 0; k <= n; k++) { const t = a0 + over * rad * k / n; fr.push([[c[0] + R0 * Math.cos(t), c[1] + R0 * Math.sin(t)]]); }
+          K.angL = a0 + over * rad; fr.push([]);
+          return { seq: fr, ms: 30, seqShot: [Math.min(n, Math.ceil(n * ((a.b - a.a) + a.tol + 4) / over)), 'wicketS-skew'], wait: 400, note: `wicket: the left ring ahead ${over.toFixed(1)}° (a ${a.a} b ${a.b} tol ${a.tol})` };
+        }
         const S = a.dryAt, stuck = a.dry && a.dry.stuck && !a.dry.free;
         if (stuck && !K.stickShot) { K.stickShot = 1; return { wait: 100, shot: 'wicket-stuck' }; }
+        if (stuck && !K.stuck2 && a.ev && a.ev.includes('rust')) { K.stuck2 = 1; return { wait: 250, shot: 'wicket-rust' }; }
         const target = stuck ? (a.dry.back ? S + 2 : S - a.rock - 3) : a.END + 3, mean = (a.a + a.b) / 2, dir = Math.sign(target - mean) || 1;
         const useL = dir > 0 ? a.a <= a.b : a.a >= a.b, v = useL ? a.a : a.b, o = useL ? a.b : a.a;
         const amt = Math.min(Math.abs(target - v), (o - v) * dir + a.tol * 0.6);

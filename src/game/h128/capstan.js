@@ -42,7 +42,16 @@ export const CAPSTAN = {
     const wedgeAt = (i) => { const x = RMP.notch[i] + 0.35, y = rampY(x) + 0.42; const w = box(X, M.h6rough, x - 0.2, y - 0.14, -1.4, x + 0.2, y + 0.18, 1.4); all.push(w); wedges.push(w); return w; };
     // the four men at the bars, the wedge man beside the sledge
     for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + 0.3, w = SH6.crew.add(CPS[0] + Math.cos(a) * BAR_R, CPS[1] + Math.sin(a) * BAR_R, { role: 'push', crew: 1 + (k % 2) }); if (w) { w.k0 = k; men.push(w); } }
-    const wm = SH6.crew.add(tailX(0) + 1.5, RMP.w / 2 + 1.1, { role: 'hold', item: 'mallet', crew: 3 }); if (wm) men.push(wm); A.wedgeM = wm;
+    // (build 128 tuning T1: he walks on the ramp behind the sledge's tail, a little to its north — the camera sees him through the gate
+    //  over the tail; beside the ramp on its south side the passage's jamb hid him from the play camera)
+    const WZ = -RMP.w / 4;
+    const wm = SH6.crew.add(tailX(0) + 1.5, WZ, { role: 'hold', item: 'mallet', crew: 3 }); if (wm) men.push(wm); A.wedgeM = wm;
+    // (T1) each notch's block catches the light as the tail nears it: its own material, its glow set by the nearness
+    let glow = [];
+    const glowUp = () => { for (const m0 of glow) m0.dispose(); glow = (ramp.userData.notch || []).map((me) => { const g0 = M.h6timber.clone(); g0.emissive = new T.Color('#FFC85A'); g0.emissiveIntensity = 0; me.material = g0; return g0; }); };
+    glowUp();
+    /** how near the tail is to a notch (0 two amot or more away … 1 over it) and which notch */
+    const nearN = (d) => { let n = 0, at = -1; NOTCH_D.forEach((nd, i) => { const k = clamp(1 - Math.abs(d - nd) / 2, 0, 1); if (k > n) { n = k; at = i; } }); return { n, at }; };
     X.kohen(false);
     const ropeAt = new T.Vector3(), roll = new T.Vector3(GT.x[1] + 0.3, GT.sill + 0.65, 0);
 
@@ -84,7 +93,7 @@ export const CAPSTAN = {
         w.lean = 0.15 + 0.45 * s.F;
       }
       // the wedge man keeps beside the sledge's tail
-      if (wm) { const tx = P.t + 1.2, z0 = RMP.w / 2 + 1.1;   // (on the camera's side of the sledge: he is seen)
+      if (wm) { const tx = P.t + 1.2, z0 = WZ;   // (behind the tail, on the ramp: he is seen)
         if (Math.hypot(wm.a.x - tx, wm.a.z - z0) > 0.4) { wm.a.path = [[tx, z0]]; wm.a.pi = 0; wm.a.speed = Math.max(1.5, Math.abs(s.v) * 1.3 + 0.8); wm.a.walkT0 = undefined; } wm.fx = P.t; wm.fz = 0; }
       // the rope: from the drum to the roller on the sill, then down to the sledge's head; its sag the tension's (slack sags), its colour the wear
       cap.userData.ropeAt(ropeAt);
@@ -93,6 +102,14 @@ export const CAPSTAN = {
       if (P.h > roll.x + 0.5) rope2.set({ x: roll.x, y: roll.y, z: roll.z }, head, sag + buzz); else rope2.set({ x: roll.x, y: roll.y, z: 0 }, { x: roll.x - 0.01, y: roll.y, z: 0 }, 0);
       ropeMat.color.setRGB(lerp(0.79, 0.93, s.wear), lerp(0.64, 0.86, s.wear), lerp(0.42, 0.7, s.wear));
       knot.visible = A.splice > 0; if (knot.visible) knot.position.set(lerp(roll.x, head.x, 0.35), lerp(roll.y, head.y, 0.35) - sag * 0.6, 0);
+      // (T1) the cue before each notch: the wedge man raises his mallet as the tail comes within two amot of a notch, highest over it
+      // (the strike after a wedge brings it down); the notch's block brightens with the same nearness. While wedged, run back or let
+      // down: no cue
+      const N = A.phase === 'haul' && s.mode === 'haul' && s.wedge === -1 ? nearN(s.d) : { n: 0, at: -1 };
+      A.near = N.n; A.nearAt = N.at;
+      A.strikeT = Math.max(0, (A.strikeT || 0) - dt);
+      if (wm && wm.a) { wm.a.armT[2] = A.strikeT > 0 ? 0.45 : lerp(0.62, 2.65, ease(N.n)); wm.a.armT[3] = lerp(-0.05, -0.3, N.n); wm.a.bowT = A.strikeT > 0 ? 0.6 : 0.12 * N.n; }
+      glow.forEach((g0, i) => { const k = i === N.at ? N.n : 0; g0.emissiveIntensity += (k * k * 1.6 - g0.emissiveIntensity) * Math.min(1, dt * 12 + (dt === 0 ? 1 : 0)); });
     }
     const atS = () => { const P = sledgeAt(A.s.d); return { x: P.mx, y: P.my + 1, z: 0 }; };
     function step(dt) {
@@ -104,13 +121,13 @@ export const CAPSTAN = {
       capStep(s, { turn: A.turn, tap: A.tapQ }, dt); A.tapQ = 0;
       for (const e of s.ev) {
         ev(e.e);
-        if (e.e === 'wedge') { wedgeAt(e.notch); V.knock(1); X.play('tap'); const at = { x: RMP.notch[e.notch], y: rampY(RMP.notch[e.notch]) + 0.6, z: 0 }; X.quick(at, QUICK.wedge); X.sparks(at.x, at.y, at.z, 10); if (wm) { wm.a.bowT = 0.6; setTimeout(() => { if (wm.a) wm.a.bowT = 0; }, 400); } }
+        if (e.e === 'wedge') { wedgeAt(e.notch); V.knock(1); X.play('tap'); const at = { x: RMP.notch[e.notch], y: rampY(RMP.notch[e.notch]) + 0.6, z: 0 }; X.quick(at, QUICK.wedge); X.sparks(at.x, at.y, at.z, 10); A.strikeT = 0.45; }
         if (e.e === 'clack') V.clack();
         if (e.e === 'quiet') { const nx = RMP.notch[e.notch]; X.quick({ x: nx, y: rampY(nx) + 1.2, z: 0 }, QUICK.quiet, rope2.mesh); }
         if (e.e === 'part') {
           V.creak(); X.play('crack'); X.shake(0.3, 0.4); A.splice = 1;
           X.loss(LOSS['cap.timber'][1], atS(), LOSS['cap.timber'][0]);
-          setTimeout(() => { try { PR.remove(ramp); const i = all.indexOf(ramp); ramp = rampBuild(X, s.timber); if (i >= 0) all[i] = ramp; else all.push(ramp); } catch (er) { /* */ } }, 900);
+          setTimeout(() => { try { PR.remove(ramp); const i = all.indexOf(ramp); ramp = rampBuild(X, s.timber); if (i >= 0) all[i] = ramp; else all.push(ramp); glowUp(); } catch (er) { /* */ } }, 900);
           X.line('חוט נקרע: המזחלת החליקה לאחור · הצוות שוזר את החבל', 3600);
         }
         if (e.e === 'letdown') { X.line('הצוות עייף: מורידים את המזחלת לאט אל הטריז האחרון', 3200); V.breath(); }
@@ -120,7 +137,10 @@ export const CAPSTAN = {
       // the rope's voice and the crew's breath
       V.hum(A.s.mode === 'haul' && s.wedge === -1 ? 1 : 0.2, s.ten); V.frame();
       if (A.turn > 0.05 && ((A.rot / (TAU / 12)) | 0) !== A.pawl) { A.pawl = (A.rot / (TAU / 12)) | 0; V.pawl(); }
-      A.breathT -= dt; if (s.F > 0.6 && A.breathT <= 0) { A.breathT = 2.4 - s.F; V.breath(); }
+      // (T1) the runner ticks over the ramp's timbers as the tail nears a notch: quicker and higher the nearer, quickest over it
+      if (A.near > 0.02) { A.rnT = (A.rnT || 0) - dt; if (A.rnT <= 0) { A.rnT = lerp(0.5, 0.08, A.near); V.runner(A.near); } } else A.rnT = 0;
+      // (T2) the crew tiring: heard from the middle of their strength on (their breath, quicker as they tire), seen in their lean
+      A.breathT -= dt; if (s.F > 0.4 && A.breathT <= 0) { A.breathT = 2.8 - 1.8 * s.F; V.breath(); }
       if (bandOf(s.ten) === 'frays' && s.wedge === -1 && ((A.t * 4) | 0) !== A.fr) { A.fr = (A.t * 4) | 0; const P = sledgeAt(s.d); X.dust(lerp(roll.x, P.h, 0.4), lerp(roll.y, P.yh, 0.4), 0, 2, 0.5); }
       // the second line, once: the wedge
       if (!A.hint2 && s.d > NOTCH_D[0] - 2.5) { A.hint2 = 1; X.line('כשהזנב מעל שקע והמזחלת כמעט עומדת: הקישו על האיש עם הטריז', 4200); }
@@ -187,14 +207,14 @@ export const CAPSTAN = {
       holds() { return false; },
       end() {
         FG.detach(); V.stop();
-        for (const o of all) PR.remove(o); rope1.dispose(); rope2.dispose();
+        for (const o of all) PR.remove(o); rope1.dispose(); rope2.dispose(); for (const m0 of glow) m0.dispose(); glow = [];
         for (const w of men) SH6.crew.remove(w);
         own('ramp', 0); own('sledge', 0); own('capstan', 0); setBusy(X, 0); X.hand(null);
       },
       at() { const P = sledgeAt(A.s.d); return new T.Vector3(P.mx, P.my, 0); },
       dbg() {
         const s = A.s, nx = NOTCH_D.findIndex((nd) => nd > s.d + 0.3);
-        return { t: +A.t.toFixed(2), phase: A.phase, hangT: +A.hangT.toFixed(2), bT: +(A.bT || 0).toFixed(2), d: +s.d.toFixed(3), v: +s.v.toFixed(3), u: +s.u.toFixed(3), turn: +A.turn.toFixed(3), ten: +s.ten.toFixed(3), band: bandOf(s.ten), wear: +s.wear.toFixed(3), F: +s.F.toFixed(3),
+        return { near: +(A.near || 0).toFixed(3), nearAt: A.nearAt, glow: glow.map((g0) => +g0.emissiveIntensity.toFixed(2)), mallet: wm && wm.a ? +wm.a.arm[2].toFixed(2) : null, t: +A.t.toFixed(2), phase: A.phase, hangT: +A.hangT.toFixed(2), bT: +(A.bT || 0).toFixed(2), d: +s.d.toFixed(3), v: +s.v.toFixed(3), u: +s.u.toFixed(3), turn: +A.turn.toFixed(3), ten: +s.ten.toFixed(3), band: bandOf(s.ten), wear: +s.wear.toFixed(3), F: +s.F.toFixed(3),
           wedge: s.wedge, lastWedge: s.lastWedge, rests: s.rests.slice(), mode: s.mode, runs: s.runs, backs: s.backs, frayed: s.frayed, dmg: s.dmg, timber: s.timber.slice(), grace: +s.grace.toFixed(2),
           notchD: NOTCH_D, next: nx, toNext: nx >= 0 ? +(NOTCH_D[nx] - s.d).toFixed(3) : null, end: NOTCH_D[NOTCH_D.length - 1], drum: drumC(), drumR: Math.round(drumR()), wedgeMan: wedgeScr(), grip: Math.round(Math.max(44, gripR())), mouse: MOUSE, ev: A.events.slice(-8), downs: A.downs, nf: FG.n, pts: capPts(s), rough: +rampAt(s.d).rough.toFixed(2), roughAhead: +Math.max(...[0, 1, 2, 3, 4].map((k) => rampAt(s.d + k).rough)).toFixed(2), slope: +rampAt(s.d).slope.toFixed(2) };
       },

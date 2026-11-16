@@ -125,8 +125,9 @@ export function rampBuild(X, broken = []) {
     const m = along(x - 0.43, x + 0.43, DECK / 2 - 0.1, -w / 2, w / 2, 0.22, r ? M.h6rough : M.h6timberL);
     if (r) { m.rotation.x = ((x * 7.3) % 1 - 0.5) * 0.06; m.position.y += ((x * 3.1) % 1) * 0.06; }
   }
-  // the notches: a cross block on the deck at each (the wedge drops behind it)
-  RMP.notch.forEach((x) => { along(x - 0.18, x + 0.18, DECK + 0.08, -w / 2 + 0.2, w / 2 - 0.2, 0.3, M.h6timber); });
+  // the notches: a cross block on the deck at each (the wedge drops behind it); (build 128 tuning T1) its ends run out through the
+  // stringers as lugs past the ramp's edges, so a notch is seen beside the sledge while the sledge covers its middle
+  g.userData.notch = RMP.notch.map((x) => along(x - 0.18, x + 0.18, DECK + 0.08, -w / 2 - 0.7, w / 2 + 0.7, 0.3, M.h6timber));
   // the posts under it (pairs, every four amot), down to the court's floor
   for (let x = L1[0] + 3; x < L0[0] - 1; x += 4) for (const s of [-1, 1]) box(X, M.h6timber, x - 0.22, L0[2], s * (w / 2 - 0.35) - 0.22, x + 0.22, rampY(x) - 0.55, s * (w / 2 - 0.35) + 0.22, g);
   // the roller on the sill the rope runs over
@@ -440,10 +441,38 @@ export function frameWorld(dt, X) {
   if (SH6.film) { try { SH6.film.frame(dt); } catch (e) { console.warn('[h128] film frame', e && e.message); } }
   if (!SH6.B) return;
   SH6.t += dt; SH6.B.step(dt); if (SH6.crew) SH6.crew.update(dt, SH6.B);
+  rustFrame(dt);
   // (the closing's lifted view — the act waits then — sees the twenty men from above: the passage's ceiling left out while the camera is high)
   const ce = SH6.parts.ceil; if (ce) { let hi = false; if (SH6.own.leaves && X.view && X.view.camNow) { const q = {}; try { X.view.camNow(q); hi = q.py > GT.top + 8; } catch (e) { /* */ } } ce.visible = !hi; }
   jT -= dt; if (jT <= 0) { jT = 0.5; try { rebuild(X); holesSync(X); } catch (e) { console.warn('[h128] world', e && e.message); } }
   hookT -= dt; if (hookT <= 0) { hookT = 2; try { if (X.stages.floorHook) X.stages.floorHook(floorAt); } catch (e) { /* */ } }
+}
+/* ───────── (build 128 tuning) rust flakes: a dry bolt, a stiff hinge shed a little rust dust when they are worked ───────── */
+const RU = { mesh: null, p: [], N: 72, i: 0 };
+/** n flakes of rust from (x, y, z), falling and tumbling to the ground in about a second (spread: amot across) */
+export function rust(X, x, y, z, n = 6, spread = 0.3) {
+  const T = X.THREE;
+  if (!RU.mesh || !RU.mesh.parent) {
+    RU.mesh = new T.InstancedMesh(X.props.geo.box, new T.MeshBasicMaterial({ color: 0x9A4A1C }), RU.N); RU.mesh.frustumCulled = false; RU.mesh.count = RU.N; X.props.root.add(RU.mesh);
+    RU.p = [...Array(RU.N)].map(() => ({ life: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, s: 0.1 })); RU.m = new T.Matrix4(); RU.q = new T.Quaternion(); RU.e = new T.Euler(); RU.v = new T.Vector3(); RU.sc = new T.Vector3();
+    for (let i = 0; i < RU.N; i++) { RU.m.makeScale(0, 0, 0); RU.mesh.setMatrixAt(i, RU.m); }
+  }
+  for (let k = 0; k < n; k++) {
+    const P = RU.p[RU.i = (RU.i + 1) % RU.N], h = ((RU.i * 37 + k * 11) % 17) / 17, h2 = ((RU.i * 53 + k * 7) % 13) / 13;   // (a fixed spread: no randomness)
+    Object.assign(P, { life: 1.1 + 0.4 * h, x: x + (h - 0.5) * spread, y, z: z + (h2 - 0.5) * spread, vx: (h2 - 0.5) * 0.6, vy: 0.2 + 0.3 * h, vz: (h - 0.5) * 0.6, r: h * 6, s: 0.09 + 0.08 * h2 });
+  }
+}
+function rustFrame(dt) {
+  if (!RU.mesh || !RU.mesh.parent) return;
+  let live = 0;
+  RU.p.forEach((P, i) => {
+    if (P.life <= 0) return; P.life -= dt; live++;
+    P.vy -= 9 * dt; P.x += P.vx * dt; P.y += P.vy * dt; P.z += P.vz * dt; P.r += dt * 9;
+    if (P.life <= 0) RU.m.makeScale(0, 0, 0);
+    else { RU.q.setFromEuler(RU.e.set(P.r, P.r * 0.7, 0)); RU.m.compose(RU.v.set(P.x, P.y, P.z), RU.q, RU.sc.set(P.s, P.s * 0.4, P.s)); }
+    RU.mesh.setMatrixAt(i, RU.m);
+  });
+  RU.mesh.instanceMatrix.needsUpdate = true; RU.live = live;
 }
 export function setBusy(X, v) { SH6.busy = v ? 1 : 0; try { menSync(X, SH6.state || stateOf(X)); } catch (e) { /* */ } }
 export { floorAt, HOLES, clamp, lerp, ease, TAU };

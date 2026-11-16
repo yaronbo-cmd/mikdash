@@ -69,6 +69,10 @@ export const LINES = Object.freeze({
   stage: 'שער ניקנור עומד בלי דלתות. הדלתות בדרך מאלכסנדריא',
   capWalk: 'הדלת על המזחלת: מעלים אותה אל הסף',
 });
+/** the quiet after the storm (sea2's phase 'sorry', "והיה מצטער על חברתה"): how long he stands before the empty place, s, its line on
+ *  screen the whole time and the cut rope still swinging; a tap skips it after 1.2 s. The spec said five seconds; the owner set it to
+ *  three (16.11.2026, after the outside review: five is too long for a child) */
+export const SORRY_S = 3;
 /** the quick words (rule 64) */
 export const QUICK = Object.freeze({ rope: 'החבל שר!', hook: 'נתפס!', soft: 'נחיתה רכה!', quiet: 'חבל שקט!', wedge: 'טריז!', noLight: 'בלי קו אור!', bull: 'בול!', closed: 'נסגר!', locked: 'ננעל!', together: 'יחד!' });
 /** the loss table (brief §11): label and points */

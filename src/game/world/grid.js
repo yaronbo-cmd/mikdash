@@ -745,7 +745,7 @@ const S07 = {
     // (build 129, part 3) the plank laid over the well's mouth along the axle, between the two ropes (length, width, thickness), the two
     // crew men who haul standing on it either side of the ropes; where a flood's puddle lies beside its basin (offset from its centre);
     // where the kohen kneels to wash his hands in the first trough's water (facing north) — all המחשה
-    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-137.9, 51.05],
+    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-138.3, 51.05],
   },
   vault: {
     // the small arches: the opening's middle in the block's east face (x 8); the arch from z, to z; floor, springing, the crown's

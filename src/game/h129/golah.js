@@ -42,7 +42,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const L3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const NAME = { A: 'א', B: 'ב', C: 'ג' };
-const KNEEL = { bow: 1.15, arms: [1.4, -0.12, 1.4, -0.12] };   // (the kohen at the moment: knees down, the body bent, the arms down into the water)
+const KNEEL = { bow: 1.8, arms: [1.8, -0.12, 1.8, -0.12] };   // (the kohen at the moment: knees down, bent past the level over the sunk trough, the arms straight down into its water — G7: at 1.15 the hands stayed 0.6 above the line)
 export const GLINES = Object.freeze({
   fill: 'החזיקו את החבל של הדלי שבמים: הדלי מתמלא',
   pull: MOUSE ? 'גררו את החבל כלפי מטה, שוב ושוב · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד' : 'משכו את החבל כלפי מטה, יד אחר יד: אגודל שמאל ואגודל ימין לסירוגין · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד',
@@ -409,7 +409,8 @@ export const GOLAH_ACT = {
       const out = [], L = [...crew, ...(kohen ? [kohen] : [])];
       for (const a of L) {
         const pts = [[a.x, a.y + 0.05, a.z], [a.x, a.y + 3.9 * (a.s / 1.1) * (1 - 0.25 * (a.kn || 0)), a.z]].map((p) => scrOf(...p));
-        const inF = (q) => q.on && q.x >= 0 && q.x <= innerWidth && q.y >= 0 && q.y <= innerHeight, n = pts.filter(inF).length;
+        // (the top band is the HUD's: a head under the counters and the goal is as cut as one past the edge)
+        const inF = (q) => q.on && q.x >= 0 && q.x <= innerWidth && q.y >= Math.max(96, innerHeight * 0.16) && q.y <= innerHeight, n = pts.filter(inF).length;
         out.push({ v: a.variant, drawn: a.visT > 0, st: n === pts.length ? 'whole' : n ? 'cut' : 'out', pts: pts.map((q) => [Math.round(q.x), Math.round(q.y)]) });
       }
       return out;

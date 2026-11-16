@@ -906,7 +906,9 @@
       //  way has landed where it should)
       if (a.view === 'far' && a.back && a.mph === 'fill') {
         if (moving > 1e-3 && need(K.tg) < 0.08) return { wait: 300, note: 'golah: the water on its way fills ' + K.tg + ' (far view)' };
-        if (!K['far' + a.trip]) { K['far' + a.trip] = 1; return { wait: 200, shot: `${a.id}-far${a.trip}` }; }
+        // (the still waits for the fade to clear: a shot is taken before its step's wait)
+        if (!K['far' + a.trip]) { K['far' + a.trip] = 1; return { wait: 900, note: 'golah: the far view (the fade clears)' }; }
+        if (K['far' + a.trip] === 1) { K['far' + a.trip] = 2; return { wait: 300, shot: `${a.id}-far${a.trip}` }; }
         return { tap: a.back, wait: 700, note: 'golah: back to the well' };
       }
       const rope = a.rope; if (!rope) return { wait: 300, note: 'golah: no rope on the screen (' + a.view + ')' };

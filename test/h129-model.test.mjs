@@ -292,6 +292,21 @@ test('the great vault\'s wedges: loaded until what holds them is out; three righ
 });
 
 /* ───────── the night ───────── */
+// ── build 129 round 2 ── a careful lowering never cracks the slab: the thumbs come down slower than the soft speed all the way
+// (past the seat a little, and frames as long as a busy phone's or the probe's 0.6 s), then let go; only a real slam cracks it
+test('the slab: lowered under the soft speed all the way — at any frame length, past the seat, then let go — never cracks', () => {
+  for (const rate of [0.1, 0.22, 0.3, 0.34]) for (const far of [0, 0.02, 0.08, 0.3]) for (const dts of [[1 / 60], [0.05, 0.016, 0.3], [0.6], [0.6, 0.016, 0.1]]) {
+    const S = M.slabFresh(); while (S.phase !== 'open') M.slabStep(S, 1, 1 / 60);
+    let f = S.h, k = 0, maxV = 0;
+    while (!S.done && k < 4000) { const dt = dts[k++ % dts.length]; f = Math.max(-far, f - rate * dt); const h0 = S.h; M.slabStep(S, f, dt); maxV = Math.max(maxV, (h0 - S.h) / dt); if (f <= -far && k > 3000) break; }
+    if (!S.done) M.slabStep(S, null, 0.6);   // (let go where it is)
+    for (let q = 0; q < 200 && !S.done; q++) M.slabStep(S, null, 0.6);
+    assert.ok(S.done, `down (${rate}, ${far})`); assert.equal(S.dmg, 0, `no crack at ${rate}/s, ${far} past the seat, frames ${dts}`); assert.ok(!S.flags['night.slab']);
+  }
+  // a real slam: the thumbs pressed down fast (faster than the slab may move) — the corner cracks, at any frame length
+  for (const dt of [1 / 60, 0.3]) { const D = M.slabFresh(); while (D.phase !== 'open') M.slabStep(D, 1, 1 / 60); for (let k = 0; k < 400 && !D.done; k++) M.slabStep(D, -0.5, dt); assert.equal(D.dmg, 20); }
+});
+// ── /build 129 round 2 ──
 test('the slab: lifted slowly it opens at 0.8 (the keys); let go half way it falls with a bang (no damage); lowered hard a corner cracks', () => {
   const S = M.slabFresh(); let t = 0;
   while (S.phase === 'lift' && t < 10) { M.slabStep(S, 1, DT); t += DT; } assert.equal(S.phase, 'open'); assert.equal(S.keys, 1); assert.ok(t >= 0.8 / 0.5 - 0.05, 'late: at most 0.5 per second');

@@ -125,8 +125,9 @@ export function rampBuild(X, broken = []) {
     const m = along(x - 0.43, x + 0.43, DECK / 2 - 0.1, -w / 2, w / 2, 0.22, r ? M.h6rough : M.h6timberL);
     if (r) { m.rotation.x = ((x * 7.3) % 1 - 0.5) * 0.06; m.position.y += ((x * 3.1) % 1) * 0.06; }
   }
-  // the notches: a cross block on the deck at each (the wedge drops behind it)
-  RMP.notch.forEach((x) => { along(x - 0.18, x + 0.18, DECK + 0.08, -w / 2 + 0.2, w / 2 - 0.2, 0.3, M.h6timber); });
+  // the notches: a cross block on the deck at each (the wedge drops behind it); (build 128 tuning T1) its ends run out through the
+  // stringers as lugs past the ramp's edges, so a notch is seen beside the sledge while the sledge covers its middle
+  g.userData.notch = RMP.notch.map((x) => along(x - 0.18, x + 0.18, DECK + 0.08, -w / 2 - 0.7, w / 2 + 0.7, 0.3, M.h6timber));
   // the posts under it (pairs, every four amot), down to the court's floor
   for (let x = L1[0] + 3; x < L0[0] - 1; x += 4) for (const s of [-1, 1]) box(X, M.h6timber, x - 0.22, L0[2], s * (w / 2 - 0.35) - 0.22, x + 0.22, rampY(x) - 0.55, s * (w / 2 - 0.35) + 0.22, g);
   // the roller on the sill the rope runs over

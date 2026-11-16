@@ -568,11 +568,13 @@
       if (a.runs > 0) B.k.parted = 1;
       if (a.wedge !== -1 && a.F > 0.05 && (!has('fray') || B.k.parted)) return { wait: 600, note: `capstan: rest (wedge ${a.wedge}, F ${a.F})` };
       if (j >= 0 && a.wedge === j && a.F > 0.05 && (!has('fray') || B.k.parted)) return { wait: 600, note: `capstan: rest on notch ${j + 1} (F ${a.F})` };
-      if (j >= 0 && a.wedge !== j && Math.abs(a.v) < 0.15) { if (!B.k['cs' + j] && (j === 1 || j === 4)) { B.k['cs' + j] = 1; return { wait: 100, shot: `capstan-notch${j + 1}` }; } return { tapAt: '(()=>{const a=__T.game.h109.state().act;return a&&a.wedgeMan})()', wait: 700, note: `capstan: wedge at notch ${j + 1} (d ${a.d} v ${a.v})` }; }
+      if (j >= 0 && a.wedge !== j && Math.abs(a.v) < 0.15) { if (!B.k['cs' + j] && (j === 1 || j === 4)) { B.k['cs' + j] = 1; return { wait: 100, shot: `capstan-notch${j + 1}`, note: `capstan: at notch ${j + 1} (d ${a.d}, near ${a.near}, mallet ${a.mallet}, glow ${JSON.stringify(a.glow)})` }; } return { tapAt: '(()=>{const a=__T.game.h109.state().act;return a&&a.wedgeMan})()', wait: 700, note: `capstan: wedge at notch ${j + 1} (d ${a.d} v ${a.v})` }; }
       if (j >= 0 && Math.abs(a.v) >= 0.15) return { wait: 120 };   // (in the notch's window: let it come to rest there)
       const i = a.notchD.findIndex((nd) => nd > a.d + 0.45); if (i < 0) return { wait: 300 };
       if (a.v > 0.05 && a.d + a.v * 0.85 >= a.notchD[i] - 0.4) return { wait: 120 };   // (it coasts into the window)
       const nd = a.notchD[i];
+      // (build 128 tuning T1: a still of the cue before notches 2 and 5 — the mallet rising, the notch's lug brightening — with its measure)
+      if (!B.k['cn' + i] && (i === 1 || i === 4) && nd - a.d < 1.9 && nd - a.d > 0.4) { B.k['cn' + i] = 1; return { wait: 60, shot: `capstan-near${i + 1}`, note: `capstan: near notch ${i + 1} (to ${(nd - a.d).toFixed(2)}, near ${a.near}, mallet ${a.mallet}, glow ${JSON.stringify(a.glow)})` }; }
       if (a.v > 0.05 && a.turn < 0.02) return { wait: 150 };
       const fast = has('fray') && !B.k.parted, rough = a.roughAhead > 0.05 || a.rough > 0.05;
       const tps = fast ? 0.8 : rough ? 0.16 : 0.32, lap = 1000 / tps;

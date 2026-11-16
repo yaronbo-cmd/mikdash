@@ -1027,7 +1027,7 @@
         const q = [Math.max(30, Math.min(innerWidth - 30, p[0] + d * 300)), p[1]];
         return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>1.7`), wait: 1500, note: `wood: ${a.log} → ${to}`, ...(shots && !K['shotC' + a.id] ? (K['shotC' + a.id] = 1, {}) : {}) };
       };
-      const wantWorm = has('worm') && !K.wormDone && a.wormy && !a.endBad;
+      const wantWorm = has('worm') && !K.wormDone && a.wormy && !a.cuttable;
       if (L.n === 0 && wantWorm) { K.wormDone = 1; L.n = 99; return carry('clean'); }
       if (a.lv === 1) {
         if (a.turned < 365 && L.n < 3) { L.n++; const p = body(a.keep[0] + 0.3 * (a.keep[1] - a.keep[0])), d = L.n % 2 ? 1 : -1; return { path: [p, [p[0] + d * ux * 320, p[1] + d * uy * 320]], ms: 900, wait: 500, note: 'wood: roll ' + a.log }; }

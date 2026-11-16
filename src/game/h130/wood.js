@@ -30,7 +30,7 @@ const DOOR = (() => { const c = S5.chambers.find((q) => q.id === 'wood'); return
 const D2R = Math.PI / 180, U = AX.U, NRM = AX.N, YAW = AX.yaw, DIR = AX.dir;
 /** the act's numbers: the roll's gain (degrees per px of a drag along), a tap's most travel (px), how far the log must be carried to go
  *  (amot), the lens; the camera's place round the trestles (offsets: behind and above, its aim a little past the log's middle) */
-const K = Object.freeze({ ROLL: 1.25, TAP: 12, GO: 1.3, FOV: 46, HAND: 70, D: 12.5, EL: 22, AIM: [1.2, 2.0, 0.3], BAND: 0.42 });
+const K = Object.freeze({ ROLL: 1.25, TAP: 12, GO: 1.3, FOV: 46, HAND: 70, D: 14, EL: 18, AIM: [1.0, 2.6, 0.3], BAND: 0.42 });
 /** the second kohen's own log: beside his place (offsets from it), lying across the room */
 const OWN = Object.freeze({ dx: 1.7, dz: 0 });
 /** where the next logs wait: behind the trestles (away from the camera) and a little to the left, in the log's own frame (amot) */
@@ -335,7 +335,7 @@ export const WOOD_ACT = {
           pts: woodPts({ dmg: WK.dmg, wrong: WK.wrong, waste: WK.waste }), piles: { clean: WS.clean.length, out: WS.out.length, split: WS.split.length } };
         if (log) {
           const [s0, s1] = A.keep || [0, log.L], y = yL();
-          Object.assign(o, { log: log.id, L: log.L, wormy: wormy(log), endBad: endBad(log), hollow: log.hollow ? [log.hollow.s0, log.hollow.s1] : null, best: bestCut(log), cut: A.cut ? A.cut.res : null, keep: [s0, s1],
+          Object.assign(o, { log: log.id, L: log.L, wormy: wormy(log), cuttable: endBad(log), hollow: log.hollow ? [log.hollow.s0, log.hollow.s1] : null, best: bestCut(log), cut: A.cut ? A.cut.res : null, keep: [s0, s1],
             rot: +S.rot.toFixed(1), turned: +(S.rotMax - S.rotMin).toFixed(0), seen: seenHoles(S).length, holes: log.holes.map((h) => [h.s, h.ang]), peeled: S.peeled.length, taps: A.taps.length, off: +A.off.toFixed(2),
             a: sp(xOf(s0), y, zOf(s0)), b: sp(xOf(s1), y, zOf(s1)), mid: sp(xOf((s0 + s1) / 2), y, zOf((s0 + s1) / 2)), ppa: +(Math.hypot(...[0, 1].map((k) => sp(xOf(s1), y, zOf(s1))[k] - sp(xOf(s0), y, zOf(s0))[k])) / Math.max(0.1, s1 - s0)).toFixed(1),
             sAt: (s) => sp(xOf(s), y, zOf(s)) });

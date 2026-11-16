@@ -430,6 +430,11 @@ export const ACTS = {
   rope: ROPE_ACT, rocks: ROCKS_ACT, read: READ, pave: PAVE, waste: WASTE, corner: CORNER, course: COURSE, great: GREAT, letters: LETTERS,
   __init: initWorld,
   __ensure(m, X) { if (m && (m.k === 'rocks' || m.k === 'read') && m.free) ensureSector(X, m.s); },   // ── h116 ── ── /h116 ──
+  // ── h129 ── (the stage done: every rock still standing goes with the crews before the end film. A free cell's rocks were made when its
+  // work first opened (ensureSector) and went only when the crews cut that cell; the cells the crews had not reached when he finished
+  // were paved by the stage's end with their big rock left at the old hill's height — later it hung over the courts' floor, in the
+  // Beit HaMoked's hall (יח־5) and before the wood gate (יח־10) at stage 07's night) ── /h129 ──
+  __clear(X) { const n = Math.max((SH.rocks || []).length, SECT.length); for (let s = 0; s < n; s++) { if ((SH.big && SH.big[s]) || (SH.rocks && SH.rocks[s] && SH.rocks[s].some((R) => R.q))) sectorGone(X, s); } },
   __sh: () => SH,   // (tests: the world the acts share)
   __frame(dt, X) {
     if (!SH.B) return;

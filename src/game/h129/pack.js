@@ -67,7 +67,7 @@ export function makePack07(env = {}) {
     look: LOOK7,
     endTitle: 'הלשכות נבנו!',
     endSub: 'לשכת הגזית, שם היתה סנהדרי גדולה של ישראל יושבת (מידות ה, ד)',
-    film: [],
+    film: CAM.after ? [[CAM.after[0], CAM.after[1], 2.4]] : [],   // (round 4: after the summary, the camera set on the whole before the frontier card; it stays there)
     /** the world as the save has it (world.js rebuilds on a key); the stage's end: the roofs raised */
     sync(M, S0, instant, X) { if (!X || !SH7.X) return; if (M.finished() && !SH7.final && !SH7.rig) finalWorld(X); },
     unitEnd: () => null,

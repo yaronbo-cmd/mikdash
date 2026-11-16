@@ -35,7 +35,7 @@ const PACK01 = {
   // z −58.5..16.5) with the waste pits east of them; the corner stone at the real south-east corner, from outside the wall and low,
   // then rising up the wall from it; the great stone; the inscription's corner; the Mount from high again ── /h115 ──
   film: BOOK.s01.cam.film,   // (build 127: the address book's)
-  finale: (X) => finale01(X),
+  finale: (X) => { if (ACTS.__clear) ACTS.__clear(X); return finale01(X); },   // ── h129 ── (no rock of the hill left standing over its paved floor) ── /h129 ──
   // ── h125 ── (rule 66) stage 01's open hill: the shape of world/look.js with no walls — the world's own test (its rocks, the city) and
   // the horizon rule (the sky line in the frame at u 0.7 at every stand, on the slope too); the close acts back away along their own
   // line in the play zone. The thumb's gain and the walk's right-thumb look as in stage 05 ── /h125 ──
@@ -936,7 +936,11 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   }
 
   /* ───────── the end of the stage: the film over what was built, then the next stage opens in the world ───────── */
+  let closing = false;   // ── h129 ── (the stage's close runs once: an opening film's promise that resolves after the stage was finished
+  // — a test's skip during stage 05's intro — opened it a second time, and the first finale's night film was left stranded on the screen,
+  // its letterbox, its caption and its night lights kept into the next stages) ── /h129 ──
   async function finishStage() {
+    if (closing) return; closing = true;
     phase = 'end'; act = null; mission = null; props().marker(null); line('');
     log('finish');
     syncMount(false);

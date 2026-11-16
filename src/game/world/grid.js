@@ -833,9 +833,13 @@ const S07 = {
     // the night's last three pictures (round 3): from the hall's floor at its west end looking east and up — the fire in the lower
     // third with the sleepers round it, the barrel over it; low over the first trough along the channel — the water, the other
     // troughs behind, the Azarah's wall and the House beyond; inside the Gazit at eye height from its north side — the round bench whole
-    end: [[[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], [[-141.6, 17.45, 51.3], [-110, 16.9, 47]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
+    // (round 4: the trough picture from five amot up and west of the first trough, so all three troughs lie in the frame's lower half)
+    end: [[[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], [[-150, 21, 56], [-118, 16.4, 49]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
     // (round 3) each picture's lens: the hall's barrel whole over the fire; along the troughs; the round bench whole
-    endFov: [74, 56, 64],
+    endFov: [74, 60, 64],
+    // ── h129 round 4 ── the stage's last picture, held under the frontier card: the court and the chambers from high in the south-east
+    // (the Gazit near, the House in the middle, Beit HaMoked far in the north-west) — never the Gazit's inside with its roof on ── /h129 ──
+    after: [[-30, 120, 150], [-115, 16, 0]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye

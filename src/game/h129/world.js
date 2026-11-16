@@ -27,7 +27,7 @@ export function mats7(X) {
   if (P.M.h7stone) return P.M;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...o });
   P.M.h7stone = std('#E6DCC4', { roughness: 0.8 });   // (the bench's dressed stone, the arch's)
-  P.M.h7shade = std('#958978', { roughness: 0.85 });   // (a replacement stone of another shade: round 3, darker and cooler than the wall and than the weight stones, read at once)
+  P.M.h7shade = std('#A8774E', { roughness: 0.85, side: T.DoubleSide });   // (a replacement stone of another shade: round 4, another quarry's warm ochre — darker and redder than the pale arch, so it reads at once in the act's light and the walk's; both faces, as the arch's own)
   P.M.h7holy = std('#4C4640', { roughness: 0.7 });     // (the holy line's dark stones)
   P.M.h7timber = std('#9C7448', { roughness: 0.82 });
   P.M.h7timberD = std('#7A5634', { roughness: 0.9 });

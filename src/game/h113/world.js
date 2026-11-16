@@ -362,7 +362,8 @@ function ambient(X) {
   for (const lv of [1, 2, 3]) {
     const G = GATES[lv], F = frameOf(G);
     if (st.lock[lv] && st.lock[lv].done && !(SH4.busy && X.mission && X.mission.lv === lv)) {
-      add(G.c + 7.8, F.out(1.6), { role: 'hold', item: 'staff', fx: G.c, fz: F.zf, crew: 3, tunic: '#E8E0CC' });
+      // (build 04m: not while the yard's leaf is on and he would stand at its edge: the battens' shot cut him, the figures gate reported him)
+      if (!(busyYard && G.c + 7.8 > YARD.x0 - 3 && G.c + 7.8 < YARD.x1)) add(G.c + 7.8, F.out(1.6), { role: 'hold', item: 'staff', fx: G.c, fz: F.zf, crew: 3, tunic: '#E8E0CC' });
       if (!st.gold[lv]) add(G.c - 2.2, F.in(3.6), { role: 'hammer', item: 'mallet', fx: G.c - 2.2, fz: F.zf, crew: 3, tunic: '#C9A64A' });
     }
   }

@@ -4,7 +4,7 @@
  *   3 the leaf's widths puzzle in the carpenters' yard: boards of different widths that must make exactly five amot, each turned to lie
  *     along the leaf, then the battens pegged with two fingers (one holds, one taps).
  */
-import { H113, GATES, LV, YARD, PILES, PISH_PILE, leafClosed, qOf, starsOf } from './model.js';
+import { H113, GATES, LV, YARD, PILES, PISH_PILE, leafClosed, qOf, starsOf, holderBatten } from './model.js';
 import { SH4, mats, frameOf, gateBuild, lintelMesh, LINTEL_BED, label, keep, gateKeep, box, makeLeaf } from './world.js';
 import { fingers, MOUSE, sc, heroAt, nearPt, onY } from './acts.js';
 import { gripR, bigR, nearPts, nearSeg, nearObjs } from '../h109/grips.js';   // (build 125)
@@ -343,11 +343,20 @@ export const LEAF = {
       }
       for (const pg of A.pegs) { const c = new T.Mesh(new T.CylinderGeometry(0.1, 0.12, 0.5, 8), M.cedarL); c.position.set(pg.x, topY + 0.85, pg.z); PR.root.add(c); pg.m = c; }
       A.peg = 0; A.phase = 'peg'; A.busy = false; pegShot(xs[0]);
-      if (MOUSE) crewAdd(xs[0] - 1.4, YARD.z - 3.2, { role: 'hold', fx: xs[0], fz: YARD.z, crew: 2 });
-      X.line(MOUSE ? 'הפועל מחזיק את הקורה · הקישו על היתד' : 'אצבע מחזיקה את הקורה, השנייה מקישה על היתד');
+      holderTo(0);
+      X.line(MOUSE ? 'הנגר מחזיק את הקורה · לחצו על היתד' : 'אצבע מחזיקה את הקורה, השנייה מקישה על היתד');
       const pg = A.pegs[0]; X.hand({ x: pg.x, y: topY + 1.2, z: pg.z }, 0, 12);
     }
-    const holding = (bi) => MOUSE || [...F.L.values()].some((f) => f.what === 'batten' && f.bi === bi);
+    /** (mouse) the carpenter who holds the batten of the peg in hand: he stands at its free end and leans on it with both hands; he goes
+     *  to the other batten when its pegs come, and away when the battens come off or the leaf is done (build 04m: never idle in the yard) */
+    function holderTo(bi) {
+      if (!MOUSE) return;
+      if (A.holder) { SH4.crew.remove(A.holder); const i = A.crew.indexOf(A.holder); if (i >= 0) A.crew.splice(i, 1); A.holder = null; }
+      A.holderBi = -1;
+      const b = bi >= 0 ? A.battens[bi] : null; if (!b) return;
+      A.holder = crewAdd(b.position.x - 1.4, YARD.z - 3.2, { role: 'brace', fx: b.position.x, fz: YARD.z, crew: 2 }); A.holderBi = bi;
+    }
+    const holding = (bi) => (MOUSE && A.holderBi === bi) || [...F.L.values()].some((f) => f.what === 'batten' && f.bi === bi);
     async function pegTap(f) {
       const pg = A.pegs[A.peg]; if (!pg || A.busy) return;
       A.why = holding(pg.bi) ? (f.moved > 42 ? 'hard' : 'ok') : 'nohold';
@@ -366,7 +375,7 @@ export const LEAF = {
         X.hit({ x: pg.x, y: topY + 1.4, z: pg.z }, 'gold', { text: '', craft: 'נגרים' });
         A.peg++;
         if (A.peg >= A.pegs.length) { await finishLeaf(); return; }
-        const n = A.pegs[A.peg]; if (n.bi !== pg.bi) pegShot(n.x); X.hand({ x: n.x, y: topY + 1.2, z: n.z }, 0, 12);
+        const n = A.pegs[A.peg]; if (n.bi !== pg.bi) { pegShot(n.x); holderTo(holderBatten(A.pegs, A.peg)); } X.hand({ x: n.x, y: topY + 1.2, z: n.z }, 0, 12);
       }
     }
     async function split(pg, text) {
@@ -375,6 +384,7 @@ export const LEAF = {
       X.loss(20, at, text, 1, 'cedar'); X.play('crack'); X.dust(pg.x, topY + 0.5, pg.z, 14, 3);
       l.g.rotation.z = 0.04; await X.wait(0.9);
       // the board goes (a cedar off the stock), the pegs and battens come off; the knot's board does not come back
+      holderTo(-1);
       for (const pg2 of A.pegs) PR.remove(pg2.m); A.pegs = []; for (const b of A.battens) PR.remove(b); A.battens = [];
       PR.remove(l.g); A.laid.splice(pg.k, 1);
       if (!l.p.knot) { pile.push({ ...l.p, i: 99 }); }
@@ -383,7 +393,7 @@ export const LEAF = {
       X.line(l.p.knot ? 'בחרו דרך אחרת לחמש אמות' : 'הצוות מביא קרש אחר · בחרו שוב');
     }
     async function finishLeaf() {
-      A.busy = true; A.phase = 'wait';
+      A.busy = true; A.phase = 'wait'; holderTo(-1);
       if (m.lv === 3 && !A.pishDone) { await pishStart(); return; }
       X.line('היתד האחרונה נכנסה');
       // the crew raises the whole leaf on its side: its real size, twenty amot, three times the kohen (spec 3)
@@ -507,7 +517,7 @@ export const LEAF = {
       at() { return { x: (YARD.x0 + YARD.x1) / 2, y: 10, z: YARD.post }; },
       dbg() {
         const H = A.held;
-        return { downs: A.downs, why: A.why, fingers: [...F.L.values()].map((f) => f.what), lv, phase: A.phase, busy: A.busy, sum: sum(), laid: A.laid.map((l) => l.p.w), pts: A.pts, gap: +A.gap.toFixed(2), splits: A.splits, refused: A.refused, peg: A.peg, pegs: A.pegs.length,
+        return { mouse: MOUSE, holder: A.holder ? A.holderBi : -1, downs: A.downs, why: A.why, fingers: [...F.L.values()].map((f) => f.what), lv, phase: A.phase, busy: A.busy, sum: sum(), laid: A.laid.map((l) => l.p.w), pts: A.pts, gap: +A.gap.toFixed(2), splits: A.splits, refused: A.refused, peg: A.peg, pegs: A.pegs.length,
           rack: rack.map((r) => ({ w: r.p.w, knot: !!r.p.knot, hole: !!r.p.hole, at: sc(X, { x: r.g.position.x, y: 14, z: r.g.position.z }) })),
           held: H ? { w: H.p.w, ang: +((H.ang / D2R) % 360).toFixed(1), at: sc(X, H.g.position) } : null,
           pegAt: A.pegs[A.peg] ? sc(X, { x: A.pegs[A.peg].x, y: topY + 0.9, z: A.pegs[A.peg].z }) : null,

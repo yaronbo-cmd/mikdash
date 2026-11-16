@@ -137,6 +137,17 @@ export function lockOf(lv) {
   return { pins, keys };
 }
 
+/* ───────── one pointer (the owner's rule: every act finishable by a mouse) ───────── */
+/** the lock's lift and slide by mouse (build 04m): a click lifts the key in hand and it stays up (the key's own latch, as before), every
+ *  press after that slides the bar. The latch is the key's, never the act's: a key from the chain (or the
+ *  Levite's long key) comes unlifted, so a pin of a new key is never left down under a press that can only slide (the old latch on the
+ *  act made a wrong key's successor unliftable: the bar stuck, a pin sheared, again and again). → 'mtap' (a click that lifts) | 'slide' */
+export function mousePress(key) { return key && !key.mLift && !(key.lift >= 0.5) ? 'mtap' : 'slide'; }
+/** a click (moved under 14 px) on the lift latches it: lift 1 until this key goes back to the chain → true when it latched */
+export function mouseLatch(key, moved) { if (!key || !(moved < 14)) return false; key.mLift = 1; key.lift = 1; return true; }
+/** the leaf's battens by mouse: the carpenter holds the batten of the peg in hand (its index), −1 when no peg is left */
+export function holderBatten(pegs, peg) { const p = pegs && pegs[peg]; return p ? p.bi : -1; }
+
 /* ───────── the plan ───────── */
 const MISSIONS = () => {
   const L = [];

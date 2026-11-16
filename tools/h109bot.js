@@ -846,8 +846,9 @@
       if (!K.wShot) { K.wShot = 1; return { wait: 50, shot: a.id + '-wedges' }; }
       const P = a.B.pairs, step = a.B.stepPx * 0.9;
       const drag = (id) => { const w = a.B.w[id], l = Math.hypot(w.out[0], w.out[1]) || 1; return { drag: [w.at[0], w.at[1], Math.round(w.at[0] + (w.out[0] / l) * step), Math.round(w.at[1] + (w.out[1] / l) * step), 300], wait: 450, note: 'vault: wedge ' + id }; };
-      if (has('vstone') && a.id === 'vaultS' && !(a.ev || []).some((e) => /vault.stone/.test(e))) { const id = P[0].L < 1 ? '1L' : '2L'; return drag(id); }
-      if (has('vstone') && a.id === 'vaultS' && !K.vsShot) { K.vsShot = 1; return { wait: 1700, shot: 'vaultS-stone' }; }
+      const vs = has('vstone') && (a.id === 'vaultS' || (has('vstoneM') && a.id === 'vaultM'));   // ('vstoneM': the great vault's too)
+      if (vs && !a.B.stones) { const id = P[0].L < 1 ? '1L' : P[1] && P[1].L < 1 ? '2L' : '3L'; return drag(id); }
+      if (vs && !K['vs' + a.id]) { K['vs' + a.id] = 1; return { wait: 1700, shot: a.id + '-stone' }; }
       let best = null;
       P.forEach((p, i) => ['L', 'R'].forEach((sd) => {
         if (p[sd] >= 1) return; const id = (i + 1) + sd, free = a.B.loads[id] === 'free', d = Math.min(0.18, 1 - p[sd]) * (free ? 1 : 0.4);
@@ -864,11 +865,14 @@
     h7night(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
       if (a.phase === 'fire') return { drag: [a.torch[0], a.torch[1], a.hearth[0], a.hearth[1], 900], wait: 800, note: 'night: the torch to the wood' };
-      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && !K['lk' + a.lockI] && a.lockI >= 0 && a.lockI % 3 === 0) { K['lk' + a.lockI] = 1; return { wait: 1000, shot: 'night-gate' + a.lockI }; } return { wait: 300, note: 'night: ' + a.phase }; }
+      // (every gate shot as its leaves swing: the frame from inside the court, the torch on the leaves)
+      if (a.phase !== 'lift' && a.phase !== 'lower') { if (a.phase === 'lock' && a.lockI >= 0 && !K['lk' + a.lockI]) { K['lk' + a.lockI] = 1; return { wait: 1700, shot: 'night-gate' + a.lockI + 'a' }; } if (a.phase === 'lock' && a.lockI >= 0 && !K['lkb' + a.lockI]) { K['lkb' + a.lockI] = 1; return { wait: 1000, shot: 'night-gate' + a.lockI + 'b' }; } if (a.phase === 'levi' && !K.leviShot) { K.leviShot = 1; return { wait: 1600, shot: 'night-levi' }; } return { wait: 200, note: 'night: ' + a.phase }; }
       if (!K[a.phase + 'Shot']) { K[a.phase + 'Shot'] = 1; return { wait: 100, shot: 'night-' + a.phase }; }
-      const r = a.ring, pts = (dy) => (mouse ? [[r[0], r[1] + dy]] : [[r[0] - 22, r[1] + dy], [r[0] + 22, r[1] + dy]]);
+      // (two thumbs, one on each of the ring's grips; a mouse: the one nearer the middle)
+      const G = a.grips, pts = (dy) => (mouse ? [[G[0][0], G[0][1] + dy]] : G.map((q) => [q[0], q[1] + dy]));
       if (a.phase === 'lift') { const fr = []; for (let i = 0; i <= 12; i++) fr.push(pts(-a.unit * 1.05 * (i / 12))); return { seq: fr, ms: 230, seqUntil: C("return !a||a.sphase!=='lift'"), seqLoop: 12, seqMax: 12000, wait: 400, note: 'night: lift the slab (h ' + a.h + ')' }; }
-      const far = has('slab') ? 1.8 : 0.8, fr = []; for (let i = 0; i <= 14; i++) fr.push(pts(a.unit * far * (i / 14)));
+      // (past the floor a little: held there, the slab settles on its seat)
+      const far = has('slab') ? 1.8 : a.h + 0.08, fr = []; for (let i = 0; i <= 14; i++) fr.push(pts(a.unit * far * (i / 14)));
       return { seq: fr, ms: has('slab') ? 60 : 260, seqUntil: C("return !a||a.phase!=='lower'"), seqLoop: 14, seqMax: 15000, wait: 600, note: 'night: lower the slab' + (has('slab') ? ' (pressed past the floor)' : '') };
     },
     // ── /h129 ──
@@ -917,7 +921,8 @@
     // ── h128 ── (capstan: six notches and rests) (build 128 C3: on stage 06 the limit is the act's own clock where it has one, not the
     // wall's: at 1600×900 the software renderer runs the page about four times slower than its clock, and a whole ring by mouse took the
     // wall's 240 s while the act was 62 s in and still going; the wall's limit stays, three times over, for an act that never ticks) ── /h128 ──
-    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = H().site === 'nikanor' && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
+    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──

@@ -100,7 +100,10 @@ export function createGang(X) {
         const ph = B ? B.phase(w.k || 2) : (tt / 0.97) % 1, s = Math.sin((ph + w.off) * TAU);
         const lean = w.role === 'pull' ? -0.22 - 0.16 * Math.max(0, s) : 0.45 + 0.15 * Math.max(0, s);
         a.arm[0] = a.armT[0] = 1.15; a.arm[2] = a.armT[2] = 1.15; a.arm[1] = a.armT[1] = -0.3; a.arm[3] = a.armT[3] = -0.3;
-        a.bow = a.bowT = lean + (w.lean || 0); a.kn = a.knT = 0.15 + 0.1 * Math.max(0, s);
+        a.bow = a.bowT = lean + (w.lean || 0); a.kn = a.knT = 0.15 + 0.1 * Math.max(0, s) + (w.kn || 0);
+        // ── h128 ── (build 128 visual round V5) w.kn: knees bent deeper (feet braced); w.stride 0 … 1 at w.rate steps a second: the legs
+        // walk while the act sets the man on his place itself (no path) ── /h128 ──
+        if (w.stride) { a.wk = Math.max(a.wk || 0, w.stride); a.ph = (a.ph || 0) + dt * Math.PI * (w.rate || 1.2); }
       } else if (w.role === 'lever') {
         const ph = B ? B.phase(w.k || 2) : (tt / 0.97) % 1, k = 0.5 - 0.5 * Math.cos((ph + w.off) * TAU), r = 1.2 - 0.35 * k;
         a.arm[0] = a.armT[0] = r; a.arm[2] = a.armT[2] = r; a.arm[1] = a.armT[1] = -0.2; a.arm[3] = a.armT[3] = -0.2;

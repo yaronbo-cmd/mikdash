@@ -50,6 +50,11 @@ export const CAPSTAN = {
     let glow = [];
     const glowUp = () => { for (const m0 of glow) m0.dispose(); glow = (ramp.userData.notch || []).map((me) => { const g0 = M.h6timber.clone(); g0.emissive = new T.Color('#FFC85A'); g0.emissiveIntensity = 0; me.material = g0; return g0; }); };
     glowUp();
+    // (build 128 visual round V1) a real glint as the tail nears a notch: the sun caught on the notch's bronze shoes, a warm pool of light
+    // on the ramp timber round it, growing with the nearness (one light, moved to the notch the tail is nearing; dark when none)
+    const glint = new T.PointLight('#FFC870', 0, 14, 1.1); glint.castShadow = false; X.props.root.add(glint); all.push(glint);
+    const shoeMat = new T.MeshBasicMaterial({ color: new T.Color('#6A4A1E') }), shoes = new T.Group(); X.props.root.add(shoes); all.push(shoes);
+    for (let k = 0; k < 3; k++) { const me = new T.Mesh(X.props.geo.box, shoeMat); if (k < 2) me.scale.set(1.0, 0.75, 1.0); else me.scale.set(0.45, 0.16, RMP.w + 0.4); shoes.add(me); }   // (two lugs beside the ramp and the bronze strip across its notch)
     /** how near the tail is to a notch (0 two amot or more away … 1 over it) and which notch */
     const nearN = (d) => { let n = 0, at = -1; NOTCH_D.forEach((nd, i) => { const k = clamp(1 - Math.abs(d - nd) / 2, 0, 1); if (k > n) { n = k; at = i; } }); return { n, at }; };
     X.kohen(false);
@@ -108,8 +113,13 @@ export const CAPSTAN = {
       const N = A.phase === 'haul' && s.mode === 'haul' && s.wedge === -1 ? nearN(s.d) : { n: 0, at: -1 };
       A.near = N.n; A.nearAt = N.at;
       A.strikeT = Math.max(0, (A.strikeT || 0) - dt);
-      if (wm && wm.a) { wm.a.armT[2] = A.strikeT > 0 ? 0.45 : lerp(0.62, 2.65, ease(N.n)); wm.a.armT[3] = lerp(-0.05, -0.3, N.n); wm.a.bowT = A.strikeT > 0 ? 0.6 : 0.12 * N.n; }
-      glow.forEach((g0, i) => { const k = i === N.at ? N.n : 0; g0.emissiveIntensity += (k * k * 1.6 - g0.emissiveIntensity) * Math.min(1, dt * 12 + (dt === 0 ? 1 : 0)); });
+      // (V1) a big gesture: both arms right up over his head, the mallet high, the body stretched back; the strike brings it down
+      if (wm && wm.a) { const e = ease(N.n), up = A.strikeT > 0 ? 0 : e; wm.a.armT[2] = A.strikeT > 0 ? 0.45 : lerp(0.62, 3.05, up); wm.a.armT[0] = A.strikeT > 0 ? 0.45 : lerp(0.05, 2.95, up); wm.a.armT[1] = lerp(0.05, -0.12, up); wm.a.armT[3] = lerp(-0.05, -0.12, up); wm.a.bowT = A.strikeT > 0 ? 0.6 : -0.14 * up; }
+      glow.forEach((g0, i) => { const k = i === N.at ? N.n : 0; g0.emissiveIntensity += (k * k * 2.6 - g0.emissiveIntensity) * Math.min(1, dt * 12 + (dt === 0 ? 1 : 0)); });
+      { const k = N.at >= 0 ? N.n * N.n : 0, nm = N.at >= 0 && ramp.userData.notch ? ramp.userData.notch[N.at] : null;
+        A.glint = A.glint == null ? 0 : A.glint; A.glint += (k - A.glint) * Math.min(1, dt * 10 + (dt === 0 ? 1 : 0));
+        if (nm) { nm.updateMatrixWorld(true); const q = nm.getWorldPosition(new T.Vector3()); glint.position.set(q.x, q.y + 1.6, q.z); const W = RMP.w / 2 + 0.5; shoes.children[0].position.set(q.x, q.y + 0.12, q.z - W); shoes.children[1].position.set(q.x, q.y + 0.12, q.z + W); shoes.children[2].position.set(q.x, q.y + 0.1, q.z); }
+        glint.intensity = 60 * A.glint; shoes.visible = A.glint > 0.02; shoeMat.color.setRGB(lerp(0.42, 1, A.glint), lerp(0.29, 0.93, A.glint), lerp(0.12, 0.62, A.glint)); }
     }
     const atS = () => { const P = sledgeAt(A.s.d); return { x: P.mx, y: P.my + 1, z: 0 }; };
     function step(dt) {
@@ -214,7 +224,7 @@ export const CAPSTAN = {
       at() { const P = sledgeAt(A.s.d); return new T.Vector3(P.mx, P.my, 0); },
       dbg() {
         const s = A.s, nx = NOTCH_D.findIndex((nd) => nd > s.d + 0.3);
-        return { near: +(A.near || 0).toFixed(3), nearAt: A.nearAt, glow: glow.map((g0) => +g0.emissiveIntensity.toFixed(2)), mallet: wm && wm.a ? +wm.a.arm[2].toFixed(2) : null, t: +A.t.toFixed(2), phase: A.phase, hangT: +A.hangT.toFixed(2), bT: +(A.bT || 0).toFixed(2), d: +s.d.toFixed(3), v: +s.v.toFixed(3), u: +s.u.toFixed(3), turn: +A.turn.toFixed(3), ten: +s.ten.toFixed(3), band: bandOf(s.ten), wear: +s.wear.toFixed(3), F: +s.F.toFixed(3),
+        return { near: +(A.near || 0).toFixed(3), nearAt: A.nearAt, glow: glow.map((g0) => +g0.emissiveIntensity.toFixed(2)), glint: +(A.glint || 0).toFixed(2), mallet: wm && wm.a ? +wm.a.arm[2].toFixed(2) : null, t: +A.t.toFixed(2), phase: A.phase, hangT: +A.hangT.toFixed(2), bT: +(A.bT || 0).toFixed(2), d: +s.d.toFixed(3), v: +s.v.toFixed(3), u: +s.u.toFixed(3), turn: +A.turn.toFixed(3), ten: +s.ten.toFixed(3), band: bandOf(s.ten), wear: +s.wear.toFixed(3), F: +s.F.toFixed(3),
           wedge: s.wedge, lastWedge: s.lastWedge, rests: s.rests.slice(), mode: s.mode, runs: s.runs, backs: s.backs, frayed: s.frayed, dmg: s.dmg, timber: s.timber.slice(), grace: +s.grace.toFixed(2),
           notchD: NOTCH_D, next: nx, toNext: nx >= 0 ? +(NOTCH_D[nx] - s.d).toFixed(3) : null, end: NOTCH_D[NOTCH_D.length - 1], drum: drumC(), drumR: Math.round(drumR()), wedgeMan: wedgeScr(), grip: Math.round(Math.max(44, gripR())), mouse: MOUSE, ev: A.events.slice(-8), downs: A.downs, nf: FG.n, pts: capPts(s), rough: +rampAt(s.d).rough.toFixed(2), roughAhead: +Math.max(...[0, 1, 2, 3, 4].map((k) => rampAt(s.d + k).rough)).toFixed(2), slope: +rampAt(s.d).slope.toFixed(2) };
       },

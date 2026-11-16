@@ -611,6 +611,31 @@ const deepFreeze = (o) => { if (o && typeof o === 'object' && !Object.isFrozen(o
 export const tplLight = (P, stone) => { const d = Math.abs(stone.ring - P.i); return d === 0 ? 0 : clamp(2 * (d - 1), 2, 6); };
 /** the mallet's sound on a stone */
 export const stoneSound = (stone) => (stone.crack ? 'dull' : 'clear');
+// ── h128 ── (build 128, the stuck touch run in ring 14) the marks count by what the row needs, not by how many: a cracked twin stands for
+// its sound twin (same length: it closes the row and cracks through under the bars, −20, ring 15's rule), so the second of two twins
+// marked fills nothing and the player marks on until every stone the row needs is in hand; a stranger counts as one (it is carried back
+// and the mason brings the stone still missing). No order of marks can end in a row that cannot be closed.
+/** the stones the marks must cover: the row's (sol) and a fitting decoy (ring 8) */
+export const needOf = (P) => P.yard.filter((s) => s.ring === P.i && !s.crack);
+const lenShort = (P, ids) => {
+  const by = (id) => P.yard.find((y) => y.id === id), have = new Map();
+  for (const id of ids) { const s = by(id); if (s && s.ring === P.i) have.set(s.len, (have.get(s.len) || 0) + 1); }
+  return { have, by };
+};
+/** how many of the needed stones the marks cover (ring i's stones by length, the cracked twin for its twin), plus one per stranger */
+export function marksCover(P, marks) {
+  const { have, by } = lenShort(P, marks), need = new Map();
+  for (const s of needOf(P)) need.set(s.len, (need.get(s.len) || 0) + 1);
+  let n = 0; for (const [l, k] of need) n += Math.min(k, have.get(l) || 0);
+  return n + marks.filter((id) => { const s = by(id); return s && s.ring !== P.i; }).length;
+}
+/** the row's stone still missing from `ids` (tray, row and loose stones), by length — the one the mason brings for a stranger */
+export function missingStone(P, ids) {
+  const { have } = lenShort(P, ids), left = new Map(have);
+  for (const id of [...P.sol.left, ...P.sol.right]) { const s = P.yard.find((y) => y.id === id), k = left.get(s.len) || 0; if (k > 0) left.set(s.len, k - 1); else return s; }
+  return null;
+}
+// ── /h128 ──
 /** step 2, the row: { left: [ids], right: [ids], loose: [{ id, side }] } → { rest (q, the hole left), sL, sR, mid (the hole on the
  *  middle mark), turn (laid in turn), bull (rest = C on the mark, every joint clear, every stone the ring's), over [joint q over a
  *  joint below], gape [ids of strangers in the row], joints, cracked } */

@@ -13,7 +13,7 @@
  * slidesHome, tplLight, stoneSound, keyFresh/keyStep, ringPts.
  *   RING = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
-import { ringPlan, rowFit, slidesHome, tplLight, stoneSound, keyFresh, keyStep, ringPts, ringCls, nextSide, Q, LINES, QUICK, LOSS, qOf, starsOf, LONG } from './model.js';
+import { ringPlan, rowFit, slidesHome, tplLight, stoneSound, keyFresh, keyStep, ringPts, ringCls, nextSide, marksCover, missingStone, Q, LINES, QUICK, LOSS, qOf, starsOf, LONG } from './model.js';
 import { SH6, mats6, box, sectorGeo, angOf, ringStones, own, setBusy, floorAt, clamp, lerp } from './world.js';
 import { createVoices } from './sound128.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -55,7 +55,7 @@ export const RING = {
       long: 'לאבן אחת בליטה בקצה, והיא ארוכה מעט · הקישו על הבנאי, והוא יסתת אותה',
       order: 'המנוף עומד בקצה אחד של הרווח: מלאו קודם את כל הצד השני, והצוות יפנה אותו',
     };
-    const isLong = (s) => !!(s && s.long && !A.dressed.includes(s.id)), bossMat = new T.MeshStandardMaterial({ color: 0x6E5E40, roughness: 1 });
+    const isLong = (s) => !!(s && s.long && !A.dressed.includes(s.id)), bossMat = new T.MeshStandardMaterial({ color: 0xA89A7E, roughness: 1, flatShading: true });
     const hasLong = P.yard.some((y) => y.long), hasCrack = P.yard.some((y) => y.crack);
     // ── /h128 ──
 
@@ -68,7 +68,14 @@ export const RING = {
     const stoneMesh = (s, mat) => {
       const me = new T.Mesh(stoneGeo(s.ring, s.len + (isLong(s) ? LONG : 0)), mat || MT.h6stone); me.castShadow = true; me.receiveShadow = true;
       // ── h128 ── (T8) a stone a hair too long: a rough boss left on its end (the mason's chisel takes it off) ── /h128 ──
-      if (isLong(s)) { const L = (s.len + LONG) * Q, b = new T.Group(); for (const [dy, ry, k] of [[0.45, 0.25, 1], [0.85, -0.35, 0.75], [1.1, 0.6, 0.5]]) { const c = new T.Mesh(PR.geo.box, bossMat); c.scale.set(0.34 * k, STP.rise * 0.42, STP.tread * 0.7 * k); c.position.set(-0.1, STP.rise * dy, 0); c.rotation.y = ry; c.castShadow = true; b.add(c); } b.position.set(L / 2, 0, -STP.tread / 2); me.add(b); me.userData.boss = b; }
+      // (build 128 visual round V3) the stone's own rough end, never dressed: the full section of the stone carried on past its length,
+      // a darker unhewn stone with knobs on its face (it reads as the same stone, longer than the stones beside it)
+      if (isLong(s)) {
+        const L = (s.len + LONG) * Q, b = new T.Group(), E = 0.6;
+        const core = new T.Mesh(PR.geo.box, bossMat); core.scale.set(E, STP.rise * 0.97, STP.tread * 0.97); core.position.set(E / 2 - 0.03, STP.rise * 0.485, 0); core.castShadow = true; b.add(core);
+        for (const [dy, dz, sz, ry] of [[0.25, -0.3, 0.2, 0.4], [0.7, 0.15, 0.24, -0.5], [0.45, 0.32, 0.16, 0.9], [0.8, -0.18, 0.15, 0.2]]) { const k0 = new T.Mesh(PR.geo.box, bossMat); k0.scale.set(sz * 1.4, sz * 1.1, sz * 1.4); k0.position.set(E + sz * 0.3, STP.rise * dy, dz * STP.tread); k0.rotation.set(ry, ry * 1.3, ry * 0.6); k0.castShadow = true; b.add(k0); }
+        b.position.set(L / 2, 0, -STP.tread / 2); me.add(b); me.userData.boss = b;
+      }
       return me;
     };
 
@@ -111,7 +118,7 @@ export const RING = {
         const L = s.len * Q; edge.scale.set(L * 1.02, STP.rise * 1.04, 0.07); edge.position.set(s.x, Y[2] + STP.rise / 2, s.z + 0.04); edgeTop.scale.set(L * 1.02, 0.04, 0.22); edgeTop.position.set(s.x, yTop + 0.02, s.z + 0.08);
         edge.visible = edgeTop.visible = true; edgeMat.opacity = 1; TPL.fitT = 0.9;
         X.quick({ x: s.x, y: yTop + 0.4, z: s.z }, QUICK.noLight, s.me);
-      } else { TPL.rock = 1.1; V.hollow(); ev('misfit:' + s.id + ':' + px); }
+      } else { TPL.rock = 1.1; V.hollow(); ev('misfit:' + s.id + ':' + px + 'px'); }   // (the light's px after the id: 'misfit:s14.4:6px')
     }
     function tplFrame(dt) {
       if (TPL.drop > 0) { TPL.drop = Math.max(0, TPL.drop - dt); tpl.position.y = yTop + 0.01 + 0.24 * (TPL.drop / 0.16) ** 2; }
@@ -268,14 +275,15 @@ export const RING = {
       const k = stoneSound(s); s.dull = k === 'dull' ? 1 : 0; V.mallet(k === 'dull'); ev('sound:' + s.id + ':' + k);
       if (isLong(s)) { setTimeout(() => V.scrape('R'), 120); ev('rough:' + s.id); }   // ── h128 ── (T8: the boss rasps under the mallet) ── /h128 ──
       if (mason) { mason.a.bowT = 0.4; setTimeout(() => { if (mason.a) mason.a.bowT = 0; }, 300); }
-      if (k === 'dull') { const h = new T.Mesh(PR.geo.box, MT.h6dark); h.scale.set(0.03, 0.02, 0.4); h.position.set(s.x + 0.2, yTop + 0.012, s.z - 0.25); h.rotation.y = 0.4; add(h); setTimeout(() => PR.remove(h), 500); }
+      // (build 128 visual round V4) the dull tap opens the crack to the eye: a dark jagged line across most of the stone's top, and it stays
+      if (k === 'dull' && !s.crackLine) { const L = s.len * Q * 0.84, zc = s.z - STP.tread / 2, P0 = [[-0.5, 0], [-0.28, 0.16], [-0.06, -0.1], [0.16, 0.13], [0.34, -0.06], [0.5, 0.08]]; const g = new T.Group(); for (let n = 0; n < P0.length - 1; n++) { const a0 = P0[n], a1 = P0[n + 1], x0 = s.x + a0[0] * L, x1 = s.x + a1[0] * L, z0 = zc + a0[1] * STP.tread, z1 = zc + a1[1] * STP.tread, d = Math.hypot(x1 - x0, z1 - z0), c = new T.Mesh(PR.geo.box, MT.h6dark); c.scale.set(d + 0.03, 0.02, 0.055); c.position.set((x0 + x1) / 2, yTop + 0.012, (z0 + z1) / 2); c.rotation.y = -Math.atan2(z1 - z0, x1 - x0); g.add(c); } add(g); s.crackLine = g; }
     }
     function markToggle(s) {
       if (s.marked) { s.marked = 0; chalkOff(s); A.marks = A.marks.filter((id) => id !== s.id); ev('unmark:' + s.id); return; }
       s.marked = 1; chalkOn(s); A.marks.push(s.id); ev('mark:' + s.id); V.tick();
       const fits = s.ring === i; if (!fits) { A.wrongMarks++; A.quickRun = 0; }
       // (the quick word for a fit comes when the template drops home on it: tplSet)
-      if (A.marks.length >= needMarks) marksDone();
+      if (marksCover(P, A.marks) >= needMarks) marksDone();   // (the marks count by what the row needs: model's marksCover)
     }
     // ── h128 ── (T8) the marks are all made: on to the row, unless a marked stone is still a hair too long (the mason must dress it first)
     function marksDone() {
@@ -292,22 +300,28 @@ export const RING = {
       A.dressing = { id: s.id, hits: 0 }; ev('dress:' + s.id); X.play('tap');
       SH6.crew.walkTo(mason, ex + 1.15, ez - 1.0, 2.6).then(() => { if (!A.dressing || !mason.a || !mason.a.alive) return; SH6.crew.setRole(mason, 'hammer', { fx: ex, fz: ez, k: 2, onHit: () => blow(s) }); });
     }
+    /** (V3) stone chips knocked off the rough end: they lie on the ground beside it a while (fixed places, no randomness) */
+    function chips(s, n) {
+      const L = (s.len + LONG) * Q, x0 = s.x + L / 2 + 0.5, z0 = s.z - STP.tread / 2;
+      for (let k = 0; k < n; k++) { const c = new T.Mesh(PR.geo.box, bossMat), j = (A.chipN = (A.chipN || 0) + 1), a = j * 2.39996, r = 0.3 + 0.14 * (j % 5), sz = 0.13 + 0.05 * (j % 3); c.scale.set(sz, sz * 0.6, sz * 1.2); c.position.set(x0 + Math.cos(a) * r, Y[2] + sz * 0.3, z0 + Math.sin(a) * r * 0.9); c.rotation.set(0, a, 0.3); add(c); setTimeout(() => { if (c.parent) PR.remove(c); }, 20000); }
+    }
     function blow(s) {
       const D = A.dressing; if (!D || A.phase === 'done') return;
-      D.hits++; V.mallet(false); V.scrape('R'); ev('blow:' + s.id + ':' + D.hits);
-      const b = s.me.userData.boss; if (b) b.scale.set(1 - 0.3 * D.hits, 1, 1);
+      D.hits++; V.mallet(false); V.scrape('R'); chips(s, 3); ev('blow:' + s.id + ':' + D.hits);
+      const b = s.me.userData.boss; if (b) b.scale.set(1 - 0.28 * D.hits, 1 - 0.1 * D.hits, 1);
       if (D.hits < 3) return;
+      chips(s, 9);
       A.dressed.push(s.id); A.dressing = null; ev('dressed:' + s.id);
       const g = s.me.geometry; s.me.geometry = stoneGeo(s.ring, s.len); g.dispose(); if (b) { s.me.remove(b); s.me.userData.boss = null; }
       V.thud();
       SH6.crew.setRole(mason, 'hold', { fx: Y[0], fz: Y[1] }); SH6.crew.walkTo(mason, MH[0], MH[1], 2.4);
       if (TP.on === s.id) tplSet(s, false);
-      if (A.marks.length >= needMarks) marksDone();
+      if (marksCover(P, A.marks) >= needMarks) marksDone();   // (the marks count by what the row needs: model's marksCover)
     }
     // ── /h128 ──
     function toRow() {
       if (A.phase !== 'tpl') return; A.phase = 'row'; tplSet(null); tpl.visible = false; light.visible = false;
-      for (const id of A.marks) { const s = yard.find((y) => y.id === id); s.gone = 1; s.me.visible = false; chalkOff(s); trayAdd(byId(id)); }
+      for (const id of A.marks) { const s = yard.find((y) => y.id === id); s.gone = 1; s.me.visible = false; if (s.crackLine) s.crackLine.visible = false; chalkOff(s); trayAdd(byId(id)); }
       X.shot(...camOf(i, 'row'), 1.4); rowDraw();
       // ── h128 ── (T8) on a ring with a hoist there are no turns: its line instead of the row's; an odd gap's line after the row's ── /h128 ──
       if (HB) { A.hoistLine = 1; X.line(LINE8.order, 5200); hoistMen(); }
@@ -344,14 +358,15 @@ export const RING = {
       if (l.side === 'loose') A.loose = A.loose.filter((L) => L.id !== l.id);
       else { const L = A.row[l.side], k = L.indexOf(l.id); A.row[l.side] = L.slice(0, k); for (const id of L.slice(k + 1)) trayAdd(byId(id)); }   // (the stones laid after it on that side come up too)
       const s = byId(l.id);
-      if (s.ring !== i) { A.wrongCarried = 1; ev('carried:' + s.id); const fresh = P.yard.find((y) => y.ring === i && !y.crack && !A.tray.some((t2) => t2.id === y.id) && ![...A.row.left, ...A.row.right].includes(y.id) && !A.loose.some((L) => L.id === y.id) && (P.sol.left.includes(y.id) || P.sol.right.includes(y.id))); if (fresh) setTimeout(() => { trayAdd(fresh); ev('brought:' + fresh.id); }, 600); }
+      if (s.ring !== i) { A.wrongCarried = 1; ev('carried:' + s.id); const fresh = missingStone(P, inHand()); if (fresh) setTimeout(() => { trayAdd(fresh); ev('brought:' + fresh.id); }, 600); }
       else trayAdd(s);
       ev('lift:' + l.id); rowDraw();
     }
+    const inHand = () => [...A.tray.map((t2) => t2.id), ...A.row.left, ...A.row.right, ...A.loose.map((L) => L.id)];
     /** a tap on a stranger in the tray: the mason carries it back to the yard and brings a stone of the ring */
     function carryBack(t2) {
       A.tray.splice(A.tray.indexOf(t2), 1); PR.remove(t2.me); A.wrongCarried = 1; ev('carried:' + t2.id);
-      const fresh = P.yard.find((y) => y.ring === i && !y.crack && !A.tray.some((x) => x.id === y.id) && ![...A.row.left, ...A.row.right].includes(y.id) && !A.loose.some((L) => L.id === y.id) && (P.sol.left.includes(y.id) || P.sol.right.includes(y.id)));
+      const fresh = missingStone(P, inHand());   // (by length: a cracked twin in hand stands for its twin)
       trayLay(); if (fresh) setTimeout(() => { trayAdd(fresh); ev('brought:' + fresh.id); }, 600);
     }
     function afterRow() {
@@ -454,7 +469,7 @@ export const RING = {
       },
       at() { const p = ptAt(P.g0 + P.G / 2, R.R, R.top); return new T.Vector3(p[0], p[1], p[2]); },
       dbg() {
-        const F = A.fit || rowFit(P, { ...A.row, dressed: A.dressed }), o = { t: +A.t.toFixed(2), phase: A.phase, ring: i, cls, free: !!m.free, G: P.G, C: P.C, need: needMarks, marks: A.marks.slice(), wrongMarks: A.wrongMarks, wrongCarried: A.wrongCarried, lifts: A.lifts, firstLay: A.firstLay, mouse: MOUSE, ev: A.ev.slice(-8), sol: P.sol, lens: Object.fromEntries(P.yard.map((y) => [y.id, y.len])), nf: FG.n };
+        const F = A.fit || rowFit(P, { ...A.row, dressed: A.dressed }), o = { t: +A.t.toFixed(2), phase: A.phase, ring: i, cls, free: !!m.free, G: P.G, C: P.C, need: needMarks, cover: marksCover(P, A.marks), marks: A.marks.slice(), wrongMarks: A.wrongMarks, wrongCarried: A.wrongCarried, lifts: A.lifts, firstLay: A.firstLay, mouse: MOUSE, ev: A.ev.slice(-8), sol: P.sol, lens: Object.fromEntries(P.yard.map((y) => [y.id, y.len])), nf: FG.n };
         if (A.phase === 'tpl' || A.phase === 'intro') {
           o.tpl = tplScr(); o.on = TP.on; o.lightPx = TP.on ? tplLight(P, byId(TP.on)) : null; o.linePx = o.lightPx ? +linePx(o.lightPx).toFixed(1) : null; o.rock = +TPL.rock.toFixed(2); o.gold = +edgeMat.opacity.toFixed(2);
           o.yard = yard.filter((s) => !s.gone).map((s) => ({ id: s.id, len: s.len, at: sc(X, s.x, yTop, s.z - 0.25), marked: s.marked, dull: s.dull }));

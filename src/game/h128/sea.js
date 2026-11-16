@@ -711,10 +711,14 @@ function makeSea(m, X) {
     // (T5) the quay hand: facing the hung door; while it swings toward the quay (ω > 0, the haul's time) his arms go out to it, highest
     // at its fastest; as it swings back they drop. Before the hook takes, and after, he stands and watches it
     if (A.reach) {
-      const w = A.reach, q = QY.reach; v3.set(q[0], qTop(), q[1]); S.deck.worldToLocal(v3); w.x = v3.x; w.z = v3.z; w.y = w.fixedY = v3.y;
-      w.yaw = Math.atan2(ak3.ring.x - q[0], ak3.ring.z - q[1]);
-      const want = ak && ak.phase === 'hoist' ? clamp(ak.w / 0.18, 0, 1) : 0; A.reachK += (want - A.reachK) * 0.2;
-      const k = A.reachK; w.bowT = 0.08 + 0.3 * k; w.knT = 0.1 * k; w.armT = [0.1 + 1.55 * k, 0.05 - 0.3 * k, 0.1 + 1.55 * k, 0.05 - 0.3 * k];
+      const w = A.reach, q = QY.reach, yw = Math.atan2(ak3.ring.x - q[0], ak3.ring.z - q[1]);
+      const want = ak && ak.phase === 'hoist' ? clamp(ak.w / 0.12, 0, 1) : 0; A.reachK += (want - A.reachK) * 0.2;
+      const st = 1.1 * ease(A.reachK); v3.set(q[0] + Math.sin(yw) * st, qTop(), q[1] + Math.cos(yw) * st); S.deck.worldToLocal(v3); w.x = v3.x; w.z = v3.z; w.y = w.fixedY = v3.y;
+      w.yaw = yw;
+      // (build 128 visual round V6) a whole-body gesture that reads small: a long step toward the door, the body leaning into it, both
+      // arms straight out and spread toward it, the knees bent as he braces to take it
+      const k = A.reachK;   // (the step: st above, taken along the world line to the door)
+      w.bowT = 0.08 + 0.42 * k; w.knT = 0.3 * k; w.armT = [0.1 + 1.75 * k, 0.05 - 0.55 * k, 0.1 + 1.75 * k, 0.05 - 0.55 * k];
     }
   }
   function akkoStep1(dt) {

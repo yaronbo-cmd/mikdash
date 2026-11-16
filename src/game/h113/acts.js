@@ -515,7 +515,7 @@ export const SOCKET = {
           spot: A.d && A.d.side ? sc(X, { x: pivotX(G, A.d.side) + (d.flint ? 0 : 0), y, z: Fr.zp + (d.flint ? Fr.s * 0.08 : 0) }) : null,
           drill: A.drill ? sc(X, { x: A.sx, y: y + 0.9, z: A.sz }) : null, hole: hole ? sc(X, hole) : null, tpl: A.tpl ? sc(X, A.tpl.position) : null,
           mark: A.cross ? sc(X, A.cross.position) : null, mirrorOf: A.mirrorOf, mshift: A.mshift,
-          markTo: A.phase === 'mirror' ? sc(X, { x: A.sx, y: Fr.sill, z: Fr.zp + Fr.s * (A.mirrorOf || 0) }) : null, thin: !!(A.d && A.d.thin), where: d.where,
+          markTo: A.phase === 'mirror' ? sc(X, { x: A.sx, y: Fr.sill, z: Fr.zp + Fr.s * (A.mirrorOf || 0) }) : null, thin: !!(A.d && A.d.thin),
           flint: A.flint ? sc(X, A.flint.position) : null };
       },
     };

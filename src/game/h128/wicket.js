@@ -9,7 +9,7 @@
  *   BOLT = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
 import { BOLT_LV, boltFresh, boltStep, boltPts, pairFresh, pairStep, pairPts, travelOf, LINES, QUICK, LOSS, qOf, starsOf } from './model.js';
-import { SH6, wicketMesh, own, setBusy, rust, clamp, TAU } from './world.js';
+import { SH6, wicketMesh, own, setBusy, rust, rustInfo, clamp, TAU } from './world.js';
 import { createVoices } from './sound128.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { gripR } from '../h109/grips.js';
@@ -84,7 +84,7 @@ export const BOLT = {
     });
     const at0 = () => { const k = sides[0]; return { x: WK[k][0] - 0.6, y: WK[k][2] + WK.h * 0.6, z: WK[k][1] }; };
     /** (T3) rust dust from the dry lower bolt's foot, where it enters the sill */
-    const dust = () => { const U = W[sides[0]].userData; U.lo.updateMatrixWorld(true); const p = U.lo.getWorldPosition(v3); rust(X, p.x - 0.05, p.y - (U.h * 0.45 - 0.2) / 2 + 0.05, p.z, 7, 0.35); ev('rust'); };
+    const dust = () => { const G = W[sides[0]], U = G.userData; U.lo.updateMatrixWorld(true); G.updateMatrixWorld(true); const p = U.lo.getWorldPosition(v3), fy = G.getWorldPosition(new X.THREE.Vector3()).y; rust(X, p.x - 0.05, p.y, p.z, 12, 0.35, fy); ev('rust'); };   // (V2: from along the dry bolt down to the sill under it)
     /** (T3) a wicket's tick in the pair: its own pitch and side, its ring (and the bright tooth of its arc) pulsing once */
     const pls = { N: 0, S: 0 };
     const pulse = (k) => { V.tickAt(VOICE[k].f, VOICE[k].pan); pls[k] = 1; };
@@ -198,7 +198,7 @@ export const BOLT = {
       },
       at() { const k = pair ? 'N' : sides[0]; return new T.Vector3(WK[k][0], WK[k][2] + WK.h / 2, pair ? 0 : WK[k][1]); },
       dbg() {
-        const C = centres(), o = { pulse: { ...pls }, t: +A.t.toFixed(2), phase: A.phase, id: m.id, pair, mouse: MOUSE, ev: A.ev.slice(-8), nf: FG.n, c: C, leaf: pair ? { N: leafBox('N').map(Math.round), S: leafBox('S').map(Math.round) } : null };
+        const C = centres(), o = { rust: rustInfo(), pulse: { ...pls }, t: +A.t.toFixed(2), phase: A.phase, id: m.id, pair, mouse: MOUSE, ev: A.ev.slice(-8), nf: FG.n, c: C, leaf: pair ? { N: leafBox('N').map(Math.round), S: leafBox('S').map(Math.round) } : null };
         if (pair) Object.assign(o, { w: s.w.map((v) => +v.toFixed(1)), END: s.END, lock: s.lock, tries: s.tries, together: s.together, first: s.first, win: s.mouse ? L.TOG_MOUSE : L.TOG, last: L.LAST, back: L.BACK, pts: pairPts(s) });
         else Object.assign(o, { a: +s.a.toFixed(2), b: +s.b.toFixed(2), END: s.END, tol: s.tol, blk: s.blk, blkT: +s.blkT.toFixed(2), blkMax: +s.blkMax.toFixed(2), tooth: s.tooth, dmg: s.dmg, dry: s.dry, dryAt: L.DRY_AT ? L.DRY_AT * s.END : null, rock: L.ROCK || null, travel: +travelOf(s).toFixed(3), pts: boltPts(s) });
         return o;

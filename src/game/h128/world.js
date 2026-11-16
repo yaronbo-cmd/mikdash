@@ -447,31 +447,41 @@ export function frameWorld(dt, X) {
   jT -= dt; if (jT <= 0) { jT = 0.5; try { rebuild(X); holesSync(X); } catch (e) { console.warn('[h128] world', e && e.message); } }
   hookT -= dt; if (hookT <= 0) { hookT = 2; try { if (X.stages.floorHook) X.stages.floorHook(floorAt); } catch (e) { /* */ } }
 }
-/* ───────── (build 128 tuning) rust flakes: a dry bolt, a stiff hinge shed a little rust dust when they are worked ───────── */
-const RU = { mesh: null, p: [], N: 72, i: 0 };
-/** n flakes of rust from (x, y, z), falling and tumbling to the ground in about a second (spread: amot across) */
-export function rust(X, x, y, z, n = 6, spread = 0.3) {
+/* ───────── (build 128 tuning) rust dust: a dry bolt, a stiff hinge shed rust when they are worked ───────── */
+// (build 128 visual round V2) the grains were flat flakes (a quarter as thick as wide) that lay edge-on to a level camera, small and a
+// pale brown on gold, half of them inside the leaf's own thickness: nothing was seen. Now: chunky grains, dark red-brown, a few more,
+// started a hand's breadth out of the bolt or hinge toward the camera; they drift down in about a second and lie on the floor or the
+// sill some three seconds, a small red heap
+const RU = { mesh: null, p: [], N: 300, i: 0, live: 0, made: 0 };
+/** n grains of rust from (x, y, z) (spread: amot across); floorY: where they come to rest (else the floor under them, else 1.2 below) */
+export function rust(X, x, y, z, n = 10, spread = 0.3, floorY = null, big = 1, out = 0.35) {   // (big: the grains' size for a far camera; out: how far toward the lens they start)
   const T = X.THREE;
   if (!RU.mesh || !RU.mesh.parent) {
-    RU.mesh = new T.InstancedMesh(X.props.geo.box, new T.MeshBasicMaterial({ color: 0x9A4A1C }), RU.N); RU.mesh.frustumCulled = false; RU.mesh.count = RU.N; X.props.root.add(RU.mesh);
-    RU.p = [...Array(RU.N)].map(() => ({ life: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, s: 0.1 })); RU.m = new T.Matrix4(); RU.q = new T.Quaternion(); RU.e = new T.Euler(); RU.v = new T.Vector3(); RU.sc = new T.Vector3();
+    RU.mesh = new T.InstancedMesh(X.props.geo.box, new T.MeshBasicMaterial({ color: 0x5C2410 }), RU.N); RU.mesh.frustumCulled = false; RU.mesh.count = RU.N; RU.mesh.renderOrder = 2; X.props.root.add(RU.mesh);
+    RU.p = [...Array(RU.N)].map(() => ({ life: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, s: 0.1, fy: 0 })); RU.m = new T.Matrix4(); RU.q = new T.Quaternion(); RU.e = new T.Euler(); RU.v = new T.Vector3(); RU.sc = new T.Vector3();
     for (let i = 0; i < RU.N; i++) { RU.m.makeScale(0, 0, 0); RU.mesh.setMatrixAt(i, RU.m); }
+    RU.mesh.instanceMatrix.needsUpdate = true;
   }
+  // (out of the metal toward the camera, so no grain starts inside the leaf)
+  let ox = 0, oz = 0; try { const q = {}; X.view.camNow(q); const dx = q.px - x, dz = q.pz - z, d = Math.hypot(dx, dz) || 1; ox = (dx / d) * out; oz = (dz / d) * out; } catch (e) { /* */ }
   for (let k = 0; k < n; k++) {
     const P = RU.p[RU.i = (RU.i + 1) % RU.N], h = ((RU.i * 37 + k * 11) % 17) / 17, h2 = ((RU.i * 53 + k * 7) % 13) / 13;   // (a fixed spread: no randomness)
-    const px = x + (h - 0.5) * spread, pz = z + (h2 - 0.5) * spread, fy = floorAt(px, pz);
-    // (it falls slowly, as dust, and lies on the floor a while: a short heap of red where the bolt or the hinge grinds)
-    Object.assign(P, { life: 3.2 + 0.6 * h, x: px, y, z: pz, fy: Number.isFinite(fy) && fy < y ? fy + 0.02 : y - 1.2, vx: (h2 - 0.5) * 0.4, vy: 0.15 + 0.2 * h, vz: (h - 0.5) * 0.4, r: h * 6, s: 0.1 + 0.08 * h2 });
+    const px = x + ox + (h - 0.5) * spread, pz = z + oz + (h2 - 0.5) * spread, f0 = floorY != null ? floorY : floorAt(px, pz), fy = Number.isFinite(f0) && f0 < y ? f0 + 0.03 : y - 1.2;
+    Object.assign(P, { life: 4.2 + 0.8 * h, x: px, y: y + (h2 - 0.5) * 0.15, z: pz, fy, vx: (h2 - 0.5) * 0.5, vy: 0.3 + 0.4 * h, vz: (h - 0.5) * 0.5, r: h * 6, s: (0.11 + 0.09 * h2) * big });
   }
+  RU.made += n;
 }
+/** (tests and the act's dbg) how many grains are alive, and where the newest one is */
+export const rustInfo = () => { const P = RU.p[RU.i]; return { live: RU.live | 0, made: RU.made, on: !!(RU.mesh && RU.mesh.parent && RU.mesh.visible), at: P ? [+P.x.toFixed(2), +P.y.toFixed(2), +P.z.toFixed(2)] : null }; };
 function rustFrame(dt) {
   if (!RU.mesh || !RU.mesh.parent) return;
   let live = 0;
   RU.p.forEach((P, i) => {
     if (P.life <= 0) return; P.life -= dt; live++;
-    if (P.y > P.fy) { P.vy -= 4 * dt; P.x += P.vx * dt; P.y = Math.max(P.fy, P.y + P.vy * dt); P.z += P.vz * dt; P.r += dt * 6; }
+    // (dust drifts: it falls no faster than about 1.6 amot a second)
+    if (P.y > P.fy) { P.vy = Math.max(-1.6, P.vy - 5 * dt); P.x += P.vx * dt; P.y = Math.max(P.fy, P.y + P.vy * dt); P.z += P.vz * dt; P.r += dt * 5; }
     if (P.life <= 0) RU.m.makeScale(0, 0, 0);
-    else { RU.q.setFromEuler(RU.e.set(P.r, P.r * 0.7, 0)); RU.m.compose(RU.v.set(P.x, P.y, P.z), RU.q, RU.sc.set(P.s, P.s * 0.4, P.s)); }
+    else { const sh = P.life < 0.5 ? P.life / 0.5 : 1; RU.q.setFromEuler(RU.e.set(P.r, P.r * 0.7, 0)); RU.m.compose(RU.v.set(P.x, P.y, P.z), RU.q, RU.sc.set(P.s * sh, P.s * 0.75 * sh, P.s * 0.9 * sh)); }
     RU.mesh.setMatrixAt(i, RU.m);
   });
   RU.mesh.instanceMatrix.needsUpdate = true; RU.live = live;

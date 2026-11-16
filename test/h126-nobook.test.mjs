@@ -94,3 +94,17 @@ test('stage 07: no world place typed outside the book but the listed exceptions'
   for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
 });
 // ── /h129 ──
+
+// ── h130 ── (build 130) the new stage 05: its files read every place from the book (BOOK.s05 gal, wood, light, eve, cam); the allow
+// list holds no place
+const ALLOW130 = [
+  ['h130/model.js', 27, 'no places: the logs\' tables in their own frame — a worm hole\'s angle round the log (degrees) and its place along it (amot from the log\'s end), a bark patch\'s stretch and angles'],
+];
+test('stage 05 (build 130): no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h130']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW130.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h130 ──

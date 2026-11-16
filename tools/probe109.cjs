@@ -74,6 +74,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
         } else await touch(pts.length > n0 ? 'touchStart' : 'touchMove', pts);
         if (pts.length) last = pts;
         n0 = pts.length; await pg.waitForTimeout(ms);
+        if (s.seqShot && fi === s.seqShot[0] && !s.seqShotDone) { s.seqShotDone = 1; await run({ shot: s.seqShot[1] }); }   /* ── h128 ── (tuning: a still at a frame of the sequence, the fingers still down) ── /h128 ── */
       }
       if (n0) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     }

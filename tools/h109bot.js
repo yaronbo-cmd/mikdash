@@ -661,8 +661,17 @@
       const rad = Math.PI / 180;
       if (!a.pair) {
         if (has('tooth') && a.id === 'wicketN' && !a.tooth[0] && !a.tooth[1]) { if (a.blk && !K.blkShot) { K.blkShot = 1; return { wait: 50, shot: 'wicket-blocked' }; } return { ...arc('L', a.c.L, 45 * rad, 2200), wait: 300, note: 'wicket: force the left ring ahead' }; }
+        // (build 128 tuning T3: __BOT.bad 'skew' — on the south wicket, before the dry bolt, the left ring run ahead past tol for a moment
+        //  (well under the 0.8 s that bends a tooth): a still while it trembles, then on as before)
+        if (has('skew') && a.id === 'wicketS' && !K.skewDone && a.travel > 0.12 && !a.blk) {
+          K.skewDone = 1; const c = a.c.L, a0 = K.angL || 0, over = (a.b - a.a) + a.tol + 8, n = 14, fr = [];
+          for (let k = 0; k <= n; k++) { const t = a0 + over * rad * k / n; fr.push([[c[0] + R0 * Math.cos(t), c[1] + R0 * Math.sin(t)]]); }
+          K.angL = a0 + over * rad; fr.push([]);
+          return { seq: fr, ms: 30, seqShot: [Math.min(n, Math.ceil(n * ((a.b - a.a) + a.tol + 4) / over)), 'wicketS-skew'], wait: 400, note: `wicket: the left ring ahead ${over.toFixed(1)}° (a ${a.a} b ${a.b} tol ${a.tol})` };
+        }
         const S = a.dryAt, stuck = a.dry && a.dry.stuck && !a.dry.free;
         if (stuck && !K.stickShot) { K.stickShot = 1; return { wait: 100, shot: 'wicket-stuck' }; }
+        if (stuck && !K.stuck2 && a.ev && a.ev.includes('rust')) { K.stuck2 = 1; return { wait: 250, shot: 'wicket-rust' }; }
         const target = stuck ? (a.dry.back ? S + 2 : S - a.rock - 3) : a.END + 3, mean = (a.a + a.b) / 2, dir = Math.sign(target - mean) || 1;
         const useL = dir > 0 ? a.a <= a.b : a.a >= a.b, v = useL ? a.a : a.b, o = useL ? a.b : a.a;
         const amt = Math.min(Math.abs(target - v), (o - v) * dir + a.tol * 0.6);

@@ -315,3 +315,41 @@ test('book s07: the Gazit, the Golah, the arches, Beit HaMoked as the world draw
   let t0 = -1; for (const [e, a, t] of S.cam.look) { assert.ok(t > t0); t0 = t; for (const p of [e, a]) assert.ok(p[0] >= S.bounds.x0 && p[0] <= S.bounds.x1 && p[2] >= S.bounds.z0 && p[2] <= S.bounds.z1); }
 });
 // ── /h129 ──
+
+// ── h130 ── (build 130) the new stage 05's rows (build130-brief §1) as the built world has them
+test('book s05 (build 130): the new stage\'s rows — the runs, the passage, the stands, the torch, the sleds, the seats, wood, light, the site off the wood chamber', () => {
+  const S = BOOK.s05, G = S.gal, by = Object.fromEntries(S.entries.map((e) => [e.id, e])), C = S.court;
+  // the runs are the built ones (the old runs' lines and ends), the passage is the gate house's cut
+  for (const side of ['N', 'S']) { const R = G.runs[side], O = S.runs.find((r) => r.side === side); assert.equal(R.line, O.line); assert.equal(R.a0, O.a0); assert.equal(R.a1, O.a1); assert.equal(R.wall, O.wall); }
+  assert.deepEqual([G.runs.E.line, G.runs.E.a0, G.runs.E.a1], [136, -27.5, 27.5]); assert.deepEqual([...G.runs.E.cut], [G.passage.z0, G.passage.z1]);
+  assert.ok(S.walls.some((w) => w[0] === G.passage.x0 && w[1] === G.passage.z0 && w[3] === G.passage.z1), 'the passage is the east gate house\'s');
+  // the spec's new places, exactly
+  assert.deepEqual(G.stand, { N: [73.5, -52], S: [73.5, 52], E: [126, 0] });
+  assert.deepEqual(G.torch, [[73.5, 0], [40, 0], [107, 0]]);
+  assert.deepEqual(S.wood, { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] });
+  assert.deepEqual(S.light.menorah, [73.5, 24]); assert.equal(S.light.h, 50);
+  assert.deepEqual(S.light.measures, [26, 31.5]); assert.deepEqual(S.light.wicks, [30, 24]); assert.deepEqual(S.light.practice.ladder, [99.6, 60.2]);
+  // the menorah's ladders 6 amot off to the four corners; the menorah off the court's axis (stage 06's sledge lane)
+  for (const [x, z] of S.light.ladders) { assert.ok(near(Math.hypot(x - 73.5, z - 24), 6, 1e-3)); assert.ok(Math.abs(x - 73.5) > 4 && Math.abs(z - 24) > 4); }
+  assert.ok(Math.abs(S.light.menorah[1]) > 20);
+  // everything on the court's floor, off the walls; the sleds four amot toward the court from their stand
+  const inWall = (x, z) => S.walls.some(([x0, z0, x1, z1]) => x > x0 && x < x1 && z > z0 && z < z1);
+  for (const e of S.entries.filter((q) => /^n:(stand|bearer|torch|sled|watch|ring|wood|menorah|mladder|measures|wicks)/.test(q.id))) {
+    assert.ok(e.x > C.x0 && e.x < C.x1 && e.z > C.z0 && e.z < C.z1, e.id + ' in the court'); assert.ok(!inWall(e.x, e.z), e.id + ' in a wall');
+  }
+  for (const s of ['N', 'S', 'E']) { const st = G.stand[s]; for (const [x, z] of G.sleds[s]) { const d = s === 'E' ? st[0] - x : Math.abs(z) < Math.abs(st[1]) ? Math.abs(st[1]) - Math.abs(z) : -1; assert.ok(near(d, 4), s + ' sled ' + [x, z]); } }
+  // the seats on the gallery's floor between the line and the wall
+  for (const s of ['N', 'S']) assert.ok(Math.abs(G.seat[s][1]) > Math.abs(G.runs[s].line) && Math.abs(G.seat[s][1]) < Math.abs(G.runs[s].wall));
+  assert.ok(G.seat.E[0] > G.runs.E.line && G.seat.E[0] < G.runs.E.wall);
+  // the wood chamber's places inside it; the site's crews off it and its door
+  const W = S.chambers.find((c) => c.id === 'wood'), inW = ([x, z], m = 0) => x > W.x0 - m && x < W.x1 + m && z > W.z0 - m && z < W.z1 + m;
+  for (const p of Object.values(S.wood)) assert.ok(inW(p));
+  const door = [(W.door[0] + W.door[1]) / 2, W.doorZ];
+  for (const [x0, z0, x1, z1] of S.crewSite.scaff) assert.ok(!inW([(x0 + x1) / 2, (z0 + z1) / 2], 3) && Math.hypot((x0 + x1) / 2 - door[0], (z0 + z1) / 2 - door[1]) > 12);
+  for (const [x, z] of S.crewSite.piles) assert.ok(!inW([x, z], 3) && Math.hypot(x - door[0], z - door[1]) > 12);
+  const end = S.crewSite.lane[S.crewSite.lane.length - 1]; assert.ok(Math.hypot(end[0] - door[0], end[1] - door[1]) > 20);
+  // the entries carry the new rows
+  for (const id of ['n:stand:galN', 'n:torch1', 'n:sled:E4', 'n:watch2.2', 'n:seat:E', 'n:wood:clean', 'n:menorah', 'n:mladder3', 'n:measures', 'n:wicks', 'n:passage']) assert.ok(by[id], id);
+  assert.ok(Object.isFrozen(G.lv) && Object.isFrozen(S.cam.gal) && Object.isFrozen(S.crewSite));
+});
+// ── /h130 ──

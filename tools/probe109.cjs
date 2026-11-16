@@ -4,14 +4,23 @@
 //          { "script": "file.js" } (evaluated in the page) · { "path": [[x,y],...], ms, hold, release:"js" } · { "when": "js", max, then: step }
 //          { "bot": "js → a step (or {done:true})", max } (the page's player: it returns the next step until done)
 //          { "hold": [x, y, ms] } · { "holdUntil": [x, y, "js", maxMs] } · { "until": "js", "max": ms } · { "log": "js" }
+// PROBE_EXE=path: the Chromium to launch (default: /opt/pw-browsers/chromium where that file exists — the cloud — else Playwright's own
+//   installed Chromium). PROBE_GPU=1: the machine's real graphics card instead of SwiftShader (on Windows ANGLE over Direct3D 11;
+//   without PROBE_EXE, Playwright's full Chromium in its new headless mode, which can use the GPU). PROBE_HEADED=1: a visible window,
+//   the fallback where headless still falls back to software. The first line logs the WebGL renderer (SwiftShader or the card), the
+//   last lines the run's wall time and the page's frame times when it exposes them (__S30PROF, started by a script). Defaults: as before.
 const { chromium } = require('playwright');
-const path = require('path'), fs = require('fs');
+const path = require('path'), fs = require('fs'), { pathToFileURL } = require('url');
 const [SCRIPT, OUT, W0, H0] = process.argv.slice(2);
 const W = +(W0 || 960), H = +(H0 || 600), ROOT = path.join(__dirname, '..');
 fs.mkdirSync(OUT, { recursive: true });
 const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
 (async () => {
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--mute-audio'] });
+  const TW = Date.now(), GPU = !!process.env.PROBE_GPU;
+  const EXE = process.env.PROBE_EXE || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
+  const ANGLE = process.platform === 'win32' ? 'd3d11' : process.platform === 'darwin' ? 'metal' : 'gl';
+  const args = GPU ? [`--use-angle=${ANGLE}`, '--enable-gpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--mute-audio'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--mute-audio'];
+  const b = await chromium.launch({ executablePath: EXE, ...(GPU && !EXE ? { channel: 'chromium' } : {}), headless: !process.env.PROBE_HEADED, args });
   const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !process.env.MOUSE, isMobile: !process.env.MOUSE && W < 1000, deviceScaleFactor: +(process.env.DSF || 1), locale: 'he-IL' });
   const pg = await ctx.newPage();
   const errs = [];
@@ -22,9 +31,10 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   await pg.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const init = steps.find((s) => s.init); 
   await pg.addInitScript((code) => { window.__FORCE_Q = 'normal'; window.__FORCE_TIME = 'noon'; window.__GAME_LOG = []; window.__START_PAUSED = true; window.__DT_MAX = 0.6; try { if (+sessionStorage.getItem('__keep') > Date.now()) { code = sessionStorage.getItem('__init2') || ''; } else localStorage.clear(); } catch (e) { /* */ } if (code) { try { (0, eval)(code); } catch (e) { console.error('init', e.message); } } }, init ? init.init : '');
-  await pg.goto('file://' + path.join(ROOT, 'dist/test.html'));
+  await pg.goto(pathToFileURL(path.join(ROOT, 'dist', 'test.html')).href);
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 });
   const cdp = await ctx.newCDPSession(pg);
+  console.log('webgl:', await pg.evaluate(() => { try { const r = window.__T && window.__T.renderer; const gl = r && r.getContext ? r.getContext() : document.createElement('canvas').getContext('webgl2'); const x = gl.getExtension('WEBGL_debug_renderer_info'); return x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); } catch (e) { return 'unknown (' + e.message + ')'; } }), GPU ? '(PROBE_GPU)' : '');
   // (MOUSE=1: the same script played with a mouse; the first finger is the mouse, a second finger is ignored)
   if (process.env.MOUSE) { const send0 = cdp.send.bind(cdp); let down = false, last = [0, 0];
     cdp.send = async (m, o) => { if (m !== 'Input.dispatchTouchEvent') return send0(m, o); const p = o.touchPoints && o.touchPoints[0];
@@ -93,6 +103,8 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     }
   }
   for (const s of steps) await run(s);
+  const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
+  console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));
   console.log(errs.length ? 'ERRORS:\n' + errs.slice(0, 30).join('\n') : 'no errors');
   await b.close();
 })().catch((e) => { console.error('probe failed', e); process.exit(1); });

@@ -43,8 +43,8 @@ const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u
 const L3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const NAME = { A: 'א', B: 'ב', C: 'ג' };
 // (the kohen at the moment, G11: standing on the pavement at the trough's end, bent a little from the waist, both arms forward and in
-//  so the hands meet over its water — 1.05 amot before his feet, 1.75 over the floor; they rub as the water runs off them into it)
-const WASH = { bow: 0.5, pitch: 1.0, spread: -0.3, rub: 0.07, far: 1.7, hold: 2.8 };   // (far: the troughs glinting before the cut to him; hold: his picture clear before any card)
+//  so the hands meet over its water — 1.05 amot before his feet, 1.55 over the floor; they rub as the water runs off them into it)
+const WASH = { bow: 0.7, pitch: 0.95, spread: -0.3, rub: 0.07, far: 1.7, hold: 2.8 };   // (far: the troughs glinting before the cut to him; hold: his picture clear before any card)
 export const GLINES = Object.freeze({
   fill: 'החזיקו את החבל של הדלי שבמים: הדלי מתמלא',
   pull: MOUSE ? 'גררו את החבל כלפי מטה, שוב ושוב · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד' : 'משכו את החבל כלפי מטה, יד אחר יד: אגודל שמאל ואגודל ימין לסירוגין · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד',
@@ -444,7 +444,7 @@ export const GOLAH_ACT = {
     }
     /** (rule: no figure cut by the frame) a hauler the frame would cut is not drawn in that view; whole again, he is back */
     function guardFigs() {
-      const F = figs(); crew.forEach((a, i) => { const v = F[i].st === 'whole' ? 1 : 0;   /* (out: head and feet past the frame, an arm may still show at its edge) */ a.vis = a.visT = v; tails[i].visible = tails[i].visible && !!v; });
+      const F = figs(); crew.forEach((a, i) => { const v = F[i].st === 'whole' && !A.washOn ? 1 : 0;   /* (the moment's picture is the kohen's: the haulers, at rest by then, are not in it) */   /* (out: head and feet past the frame, an arm may still show at its edge) */ a.vis = a.visT = v; tails[i].visible = tails[i].visible && !!v; });
     }
     const api = {
       close: true,   // (its shots come close — the shaft from the stand, the pour through the door: the world camera's 35-amot floor gives way)

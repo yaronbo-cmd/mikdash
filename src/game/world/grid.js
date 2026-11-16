@@ -848,10 +848,10 @@ const S07 = {
     golahPour: [[-140.8, 31, 69.2], [-139.3, 16, 57.5]],
     // (the sharing: from the north over the troughs in use, as close as they all fit the frame's width (margin m amot each side, at
     //  least dmin), el degrees down; the aim on their row at z, y over the floor); the moment (G11): the kohen standing at the first
-    //  trough's east end, from the north-west at his chest's height, a three-quarter front — the whole figure, the trough's water before
-    //  him; the film after a work (G13): the Golah as it stands, from high over the court north of the chamber — the wheel and the
+    //  trough's east end, from the north-north-west at his chest's height, three-quarter from his side — his arms out over the trough,
+    //  the whole figure, the trough's water beside him; the film after a work (G13): the Golah as it stands, from high over the court north of the chamber — the wheel and the
     //  well's mouth over the north wall, the channel out by the door, the troughs with their water
-    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-144.6, 18.7, 44.6], [-138.3, 17.4, 50]],
+    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-141.5, 18.8, 42.1], [-138.1, 17.8, 50]],
     golahFilm: [[-126, 70, 44], [-127, 16, 58]],
     golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and

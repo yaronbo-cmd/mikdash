@@ -903,6 +903,8 @@
       // (the stroke starts where the rope is at that moment: the rope moves on the screen as the camera follows the bucket)
       const stroke = (cond, why) => ({ when: C(`return !a||a.phase!=='play'||(${cond})`), max: 4000, then: { dragAt: C("const r=a&&a.rope;return r?[r[0],r[1],r[0],r[1]+70,80]:null") }, wait: 120, note: why });
       if (a.mph === 'fill') {
+        // (what is on its way fills the target: wait for it to land, then the next trough and its stone)
+        if (moving > 1e-3 && need(K.tg) < 0.08) return { wait: 300, note: 'golah: the water on its way fills ' + K.tg };
         let ft = Math.min(1, Math.max(0.1, need(K.tg) + 0.02)); if (gf && K.tg === 'A') ft = 1;
         if (a.f < ft - 0.03) return { holdUntil: [rope[0], rope[1], C(`return !a||a.f>=${(ft - 0.02).toFixed(3)}`), 5000], wait: 150, note: `golah: fill to ${ft.toFixed(2)} for ${K.tg}` };
         if (!K['fill' + a.trip]) { K['fill' + a.trip] = 1; return { wait: 100, shot: `${a.id}-full${a.trip}` }; }

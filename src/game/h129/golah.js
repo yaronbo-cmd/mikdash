@@ -158,7 +158,9 @@ export const GOLAH_ACT = {
       return { d, at };
     }
     const RG = () => Math.max(40, gripR() * 0.5);   // (the rope's band, either side: 80 px and more across)
-    const onRope = (p) => s.phase !== 'rim' && A.ph === 'play' && Math.min(ropeDist(p, 0).d, ropeDist(p, 1).d) < RG();
+    // (in the far view the ropes are short and thin: the well's mouth, where they go down, is a grip of its own)
+    const mouthNear = (p) => { if (!A.share || A.vk < 0.5) return false; const q = scrOf(WX, F0 + GL.rimH, WZ); return q.on && Math.hypot(p.x - q.x, p.y - q.y) < Math.max(48, gripR() * 0.6); };
+    const onRope = (p) => s.phase !== 'rim' && A.ph === 'play' && (Math.min(ropeDist(p, 0).d, ropeDist(p, 1).d) < RG() || mouthNear(p));
     const bucketScr = () => { const b = bodyOf(s.b); return scrOf(b.mid[0], b.mid[1], b.mid[2]); };
     const onBucket = (p) => { if (s.phase !== 'rim' || A.ph !== 'play' || s.f <= 0) return false; const q = bucketScr(); return q.on && Math.hypot(p.x - q.x, p.y - q.y) < Math.max(48, gripR() * 0.6); };
     const slAt = (k) => { const [x, z] = GL.sluice[k], h = A.sl[k]; return scrOf(x, F0 + 0.35 + h * 0.85, z - CW / 2 - 0.1); };
@@ -292,8 +294,9 @@ export const GOLAH_ACT = {
         if (s.phase === 'pull' && !s.met && A.meetSaid !== s.trip && Math.abs(s.y - s.depth / 2) < 2.6 && s.A * 1.5 > GOLAH.CLASH * 0.85) { A.meetSaid = s.trip; X.line(GLINES.meet, 3200); }
       }
       // (the camera's view: the rim's while a bucket is at the rim or the water still runs; the shaft's while a bucket comes up)
-      const water = s.head > 1e-3 || s.parcels.length > 0;
-      const share = s.phase === 'fill' && water && s.trip > 0 && A.back <= 0;
+      const water = s.head > 1e-3 || s.parcels.length > 0 || s.pool > 1e-3;   // (standing in the channel, every stone shut: the far view stays till one opens)
+      // (and while the bucket below waits empty: the stones are set for the next pour from here — the rope is in this view too)
+      const share = s.phase === 'fill' && (water || s.f < 1e-3) && s.trip > 0 && A.back <= 0;
       A.vkT = s.phase === 'rim' || A.back > 0 || share || (s.phase === 'pull' && s.y < 3.2) ? 1 : 0;
       if (share !== A.share) { if (A.vk <= 0.02 || A.vkT === 1) A.share = share; }   // (the far view while the water runs; the near one at the rim)
       A.vk = clamp(A.vk + Math.sign(A.vkT - A.vk) * dt / 0.9, 0, 1);
@@ -405,9 +408,13 @@ export const GOLAH_ACT = {
       for (const a of L) {
         const pts = [[a.x, a.y + 0.05, a.z], [a.x, a.y + 3.9 * (a.s / 1.1) * (1 - 0.25 * (a.kn || 0)), a.z]].map((p) => scrOf(...p));
         const inF = (q) => q.on && q.x >= 0 && q.x <= innerWidth && q.y >= 0 && q.y <= innerHeight, n = pts.filter(inF).length;
-        out.push({ v: a.variant, st: n === pts.length ? 'whole' : n ? 'cut' : 'out', pts: pts.map((q) => [Math.round(q.x), Math.round(q.y)]) });
+        out.push({ v: a.variant, drawn: a.visT > 0, st: n === pts.length ? 'whole' : n ? 'cut' : 'out', pts: pts.map((q) => [Math.round(q.x), Math.round(q.y)]) });
       }
       return out;
+    }
+    /** (rule: no figure cut by the frame) a hauler the frame would cut is not drawn in that view; whole again, he is back */
+    function guardFigs() {
+      const F = figs(); crew.forEach((a, i) => { const v = F[i].st === 'cut' ? 0 : 1; a.vis = a.visT = v; tails[i].visible = tails[i].visible && !!v; });
     }
     const api = {
       begin() {
@@ -419,10 +426,10 @@ export const GOLAH_ACT = {
       },
       update(dt) {
         A.t += dt; GS.t += dt; S.update(GS.t); GS.fresh = true;
-        try { stepModel(dt); picture(dt); camStep(dt); V.frame(); } catch (e) { if (A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] golah', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
+        try { stepModel(dt); picture(dt); camStep(dt); guardFigs(); V.frame(); } catch (e) { if (A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] golah', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
       },
       /** (the draw's: the act waits — the look away, the overview — the picture and the camera go on) */
-      idle(dt) { picture(0); camStep(dt); AC.update(dt); void dt; },
+      idle(dt) { picture(0); camStep(dt); guardFigs(); AC.update(dt); },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
       cancel() { for (const f of FG.L.values()) if (f.carry) { A.tiltT = 0; A.tiltTo = 0; } },
       // (rule 66: on the right a touch is the act's only on the rope, on the bucket at the rim, or on a sluice stone)
@@ -444,8 +451,8 @@ export const GOLAH_ACT = {
           tr: Object.fromEntries(KS.map((k) => [k, [+s.troughs[k].v.toFixed(3), s.troughs[k].size]])), sl: { ...s.sluice }, ks: KS, carry: +A.carry.toFixed(2), tilt: +A.tilt.toFixed(2), vk: +A.vk.toFixed(2),
           ev: A.ev.slice(-10), mouse: MOUSE, look: A.look, nf: FG.n, calls: GS.calls, tris: GS.tris };
         if (GS.S) {
-          const r = ropeDist({ x: innerWidth / 2, y: innerHeight / 2 }, s.b), R = ropePts(s.b).filter((q) => q.on && q.x > 0 && q.x < innerWidth && q.y > 40 && q.y < innerHeight - 40);
-          o.rope = R.length ? pt(R[Math.floor(R.length * 0.55)]) : null; void r;
+          const r = ropeDist({ x: innerWidth / 2, y: innerHeight / 2 }, s.b), R = ropePts(s.b).filter((q) => q.on && q.x > 0 && q.x < innerWidth && q.y > 110 && q.y < innerHeight - 40);   // (below the top bar)
+          o.rope = A.share && A.vk >= 0.5 ? pt(scrOf(WX, F0 + GL.rimH, WZ)) : R.length ? pt(R[Math.floor(R.length * 0.55)]) : null; void r;   // (the far view: the mouth — the rope's deep part shows through the floor there, over the stones)
           o.ropeE = (() => { const R2 = ropePts(1 - s.b).filter((q) => q.on && q.x > 0 && q.x < innerWidth && q.y > 40 && q.y < innerHeight - 40); return R2.length ? pt(R2[Math.floor(R2.length * 0.55)]) : null; })();
           if (s.phase === 'rim') { o.bucket = pt(bucketScr()); const p1 = scrOf(...OVER), hang = scrOf(lineX(s.b), BOT1 + B_BOT - B_MID, LINE_Z[s.b]); o.over = pt(p1); const dx = p1.x - hang.x, dy = p1.y - hang.y, L = Math.hypot(dx, dy) || 1; o.tiltTo = [Math.round(p1.x + (dx / L) * innerHeight * 0.24), Math.round(p1.y + (dy / L) * innerHeight * 0.24)]; }
           o.sluice = Object.fromEntries(KS.map((k) => [k, pt(slAt(k))]));

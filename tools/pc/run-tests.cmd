@@ -1,6 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
+if not exist build.mjs cd /d "%~dp0..\.."
 echo.
 echo  Mikdash tests: the game plays itself. Do not close this window.
 echo  הבדיקה רצה. לא לסגור את החלון הזה עד שכתוב DONE.

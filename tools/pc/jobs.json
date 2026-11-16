@@ -1,0 +1,8 @@
+{
+  "id": "2026-11-17 a: stages 06 and 07 whole, touch and mouse",
+  "lanes": 2,
+  "jobs": [
+    { "name": "s0607-touch", "script": "tools/probes/s06-stage-touch.json", "w": 960, "h": 600, "maxMin": 120 },
+    { "name": "s0607-mouse", "script": "tools/probes/s06-stage-mouse.json", "mouse": true, "w": 1600, "h": 900, "maxMin": 120 }
+  ]
+}

@@ -22,7 +22,7 @@
  * The model: model.js (legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts). Places: BOOK.s07.
  */
 import { VAULT_LV, LEG, WEDGE, QUICK, LOSS, legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts, qOf, starsOf, lossPts } from './model.js';
-import { SH7, mats7, box, crackLine, fallen, ringGeos, ringCentering, centering, own, setBusy } from './world.js';
+import { SH7, mats7, box, faceCrack, fallen, ringGeos, ringCentering, centering, own, setBusy } from './world.js';
 import { createVoices } from './sound129.js';
 import { holdLens } from './ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -253,9 +253,9 @@ export const VAULT = {
     const topJ = G.n % 2 ? [(G.n - 1) / 2, (G.n + 1) / 2] : [G.n / 2], topL = topJ.map((j) => { const q = lightQuad(jointA(j), 1); q.visible = false; return q; });
     const crownAt = () => ({ x: G.xF - 0.1, y: G.sp + G.r1 + 0.2, z: G.zc });
     function damage(f, i, s) {
-      const at = crownAt(), p = Mo.mark(f, m.id, [+at.x.toFixed(2), +at.z.toFixed(2)], i | 0);
       const jj = jointOfPair(i | 0, s === 'L' ? 1 : -1), a = jointA(jj);
-      if (f === 'vault.crack') { crackLine(X, G.xF - 0.05, G.sp + G.r0 * Math.sin(a), G.zc + G.r0 * Math.cos(a), root, G.big); V.crack(); X.shake(0.15, 0.25); }
+      const at = crownAt(), p = Mo.mark(f, m.id, [+at.x.toFixed(2), +at.z.toFixed(2)], f === 'vault.crack' ? jj : i | 0);   // (round 3: a crack's mark keeps its joint, the world draws it there)
+      if (f === 'vault.crack') { faceCrack(X, G.xF + (G.big ? 0.05 : 0) - 0.04, G.sp, G.r0, G.r1, G.zc, a - (0.45 * Math.PI) / G.n, root, G.big ? 0.24 : 0.12); V.crack(); X.shake(0.15, 0.25); }   // (round 3: down the face the frame shows)
       else {
         const j = clamp(jj - (Math.cos(a) < 0 ? 1 : 0), 0, G.n - 1), s2 = SM[j];
         if (s2) { s2.visible = false; V.thud(); X.shake(0.25, 0.4); fallen(X, G.xF - 1.5, G.big ? G.deck : G.floor, G.zc + (j < G.n / 2 ? -1 : 1) * 1.2, root, 1); setTimeout(() => { try { s2.material = MT.h7shade; s2.visible = true; V.knock(1.4); } catch (e) { /* */ } }, 1600); }

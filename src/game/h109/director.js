@@ -35,7 +35,7 @@ const PACK01 = {
   // z −58.5..16.5) with the waste pits east of them; the corner stone at the real south-east corner, from outside the wall and low,
   // then rising up the wall from it; the great stone; the inscription's corner; the Mount from high again ── /h115 ──
   film: BOOK.s01.cam.film,   // (build 127: the address book's)
-  finale: (X) => finale01(X),
+  finale: (X) => { if (ACTS.__clear) ACTS.__clear(X); return finale01(X); },   // ── h129 ── (no rock of the hill left standing over its paved floor) ── /h129 ──
   // ── h125 ── (rule 66) stage 01's open hill: the shape of world/look.js with no walls — the world's own test (its rocks, the city) and
   // the horizon rule (the sky line in the frame at u 0.7 at every stand, on the slope too); the close acts back away along their own
   // line in the play zone. The thumb's gain and the walk's right-thumb look as in stage 05 ── /h125 ──
@@ -887,7 +887,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const U = PK.unitEnd ? (() => { try { return PK.unitEnd(m, M); } catch (e) { return null; } })() : (m.k === 'pave' && !m.free && M.sectorGrade(m.s) ? { title: `גזרה ${m.s + 1} מתוך 9`, sub: M.sectorGrade(m.s), bonus: `גזרה ${m.s + 1} · ${M.sectorGrade(m.s)}` } : null);
     const sec = U ? U.sub : null;
     if (U) { bonus(250, 'course', U.bonus || U.title); try { if (J) J.big('course', { title: U.title, sub: U.sub }); } catch (e) { /* */ } }
-    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, res.film);   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }) ── /h129 ──
+    // ── h129 ── (a pack may compose the pull-back itself: a work inside a building — the instruments chambers under the Israel court,
+    // Beit HaMoked's hall — is seen from where it shows, not from 46 amot up and back through the stone) ── /h129 ──
+    const PV = PK.pullView ? (() => { try { return PK.pullView(m, M); } catch (e) { return null; } })() : null;
+    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, res.film || (PV && PV[0] && PV[1] ? { eye: PV[0], aim: PV[1], add: 0.6 } : null));   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }; else the pack's pullView) ── /h129 ──
     try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
@@ -905,7 +908,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     return new Promise((res) => {
       // ── h129 ── (an act's own film: one view { eye, aim }, or pictures cut one after another { shots: [[eye, aim, secs]…] }) ── /h129 ──
       if (F && Array.isArray(F.shots) && F.shots.length) { let i = 0; const go = () => { const q = F.shots[i++]; if (!q) { res(); return; } shot(q[0], q[1], 0.01); film = { t: 0, dur: q[2] > 0 ? q[2] : 2, res: go }; }; go(); return; }
-      if (F && Array.isArray(F.eye) && Array.isArray(F.aim)) { shot(F.eye, F.aim, Number.isFinite(F.ease) ? F.ease : 1.1); film = { t: 0, dur: secs, res }; return; }   // ── h129 ── ── /h129 ──
+      if (F && Array.isArray(F.eye) && Array.isArray(F.aim)) { shot(F.eye, F.aim, Number.isFinite(F.ease) ? F.ease : 1.1); film = { t: 0, dur: secs + (+F.add || 0), res }; return; }   // ── h129 ── ── /h129 ──
       const h = heroAt(), c = at || { x: h.x, y: h.y, z: h.z };
       view.camNow(cq); const dx = cq.px - cq.tx, dz = cq.pz - cq.tz, L = Math.hypot(dx, dz) || 1;
       const d = 46, el = 0.72;
@@ -940,7 +943,11 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   }
 
   /* ───────── the end of the stage: the film over what was built, then the next stage opens in the world ───────── */
+  let closing = false;   // ── h129 ── (the stage's close runs once: an opening film's promise that resolves after the stage was finished
+  // — a test's skip during stage 05's intro — opened it a second time, and the first finale's night film was left stranded on the screen,
+  // its letterbox, its caption and its night lights kept into the next stages) ── /h129 ──
   async function finishStage() {
+    if (closing) return; closing = true;
     phase = 'end'; act = null; mission = null; props().marker(null); line('');
     log('finish');
     syncMount(false);

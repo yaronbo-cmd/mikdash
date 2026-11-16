@@ -155,6 +155,11 @@ export function makeDerrick(X, o = {}) {
 
 /* ───────── the kohen's gates as the save has them ───────── */
 function gateClear(lv) { const R = SH4.gates[lv]; if (!R) return; for (const o of R.all) SH4.X.props.remove(o); SH4.gates[lv] = null; }
+/** ── h129 ── Beit HaMoked's house is stage 07's: the kohen's third gate (gate:moked, its sill, jambs, lintel and cedar leaves at the
+ *  hall's middle, z −76) goes when the chambers' stage builds the hall over it. The check below in this stage's own sync ran only while
+ *  stage 04's director lived, so in a game played from stage 01 the leaves stood on in the hall through stage 07's night (the black gate
+ *  picture, the dark leaf across the sleepers). Stage 07's world calls this; the gate is not built again after it. ── /h129 ── */
+export function mokedGateGone() { SH4.gone3 = 1; if (SH4.gates[3] && SH4.X) gateClear(3); }
 function gateKey(lv, st) { return JSON.stringify([st.form[lv] || 0, st.sock[lv] || 0, st.lintel[lv] || 0, st.leaf[lv] || 0, st.hang[lv] || 0, st.lock[lv] || 0, st.gold[lv] || 0, SH4.final]); }
 /** the formwork of stage 02 in an opening (the kohen's timber frame): two posts, a head, braces */
 function formwork(X, G, all) {
@@ -232,6 +237,7 @@ export function lockBox(X, G, all) {
 
 export function gateBuild(X, lv, skip = {}) {
   gateClear(lv);
+  if (lv === 3 && SH4.gone3) return { all: [], leaves: [], lintel: null, sill: null, bar: null };   // ── h129 ── (the hall stands there) ── /h129 ──
   const st = X.M.st, G = GATES[lv], F = frameOf(G), all = [], out = { all, leaves: [], lintel: null, sill: null, bar: null };
   if (SH4.final && G.house) { SH4.gates[lv] = out; SH4.keys[lv] = gateKey(lv, st); return out; }   // (the site's own gatehouse and doors)
   if (!st.form[lv] && !skip.form) { formwork(X, G, all); }

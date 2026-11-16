@@ -16,6 +16,7 @@ import { BOOK } from '../world/grid.js';
 import { row0, corners, H129, matSeats, VAULT_LV } from './model.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
 import { golahInWorld, golahWorldNow } from './golah3d.js';   // (build 129 G5: the Golah's own things in the world)
+import { mokedGateGone } from '../h113/world.js';   // (round 4: stage 04's gate:moked pieces go with the hall)
 
 const S7 = BOOK.s07, GZ = S7.gazit, GL = S7.golah, V = S7.vault, N7 = S7.night, F16 = S7.floors.azara, F6 = S7.floors.nashim;
 const TAU = Math.PI * 2;
@@ -27,7 +28,7 @@ export function mats7(X) {
   if (P.M.h7stone) return P.M;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...o });
   P.M.h7stone = std('#E6DCC4', { roughness: 0.8 });   // (the bench's dressed stone, the arch's)
-  P.M.h7shade = std('#958978', { roughness: 0.85 });   // (a replacement stone of another shade: round 3, darker and cooler than the wall and than the weight stones, read at once)
+  P.M.h7shade = std('#A8774E', { roughness: 0.85, side: T.DoubleSide });   // (a replacement stone of another shade: round 4, another quarry's warm ochre — darker and redder than the pale arch, so it reads at once in the act's light and the walk's; both faces, as the arch's own)
   P.M.h7holy = std('#4C4640', { roughness: 0.7 });     // (the holy line's dark stones)
   P.M.h7timber = std('#9C7448', { roughness: 0.82 });
   P.M.h7timberD = std('#7A5634', { roughness: 0.9 });
@@ -357,6 +358,7 @@ function subSync(X, force) {
   try { const info = S0.siteInfo ? S0.siteInfo('lishka') : null; if (!info || info.status !== 'done') S0.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ }
   if (!S0.subSet) return;
   for (const k of ALWAYS_OFF) S0.subSet(k, false);
+  try { mokedGateGone(); } catch (e) { /* */ }   // (round 4: stage 04's gate:moked pieces, left in the hall by a played stage 04, go with the hall)
   for (const k of ALWAYS_ON) S0.subSet(k, true);
   const roofs = !!(SH7.final || (SH7.state && SH7.state.fin)) && !SH7.open;
   for (const k of ROOFS) S0.subSet(k, roofs);

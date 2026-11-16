@@ -65,6 +65,7 @@ import { MISHMAROT } from '../calendar.js';
 import { createH109Director } from './h109/director.js';
 import { makePack03 } from './h112/pack.js';
 import { makePack05 } from './h120/pack.js';   // ── h120 ── (build 120: stage 05 "עזרת הנשים והגזוזטרא", the same director) ── /h120 ──
+import { makeWoodPack } from './h130/woodpack.js';   // ── h130 W-wire (TEMPORARY: the wood station's page until part 1's pack is merged) ── /h130 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
 import { pageBuilt, frontier, frontLine, noPad, PACKED } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack07 } from './h129/pack.js';   // ── h129 ── (build 129: stage 07 "הלשכות", the same director) ── /h129 ──
@@ -155,6 +156,9 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   const H20_FULL = (() => { try { return !!globalThis.__H120_FULL || /[?&#]stage=5\b/.test(String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')); } catch (e) { return false; } })();
   if (H20_FULL && !H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
   // ── /h120 ──
+  // ── h130 W-wire ── (TEMPORARY) the wood station's page: __H109_ONLY = 'wood' with __H130_FULL — the new stage 05 in the old one's place
+  const H130_W = H9_ONLY === 'wood' && (() => { try { return !!globalThis.__H130_FULL; } catch (e) { return false; } })();
+  // ── /h130 W-wire ──
   // ── h128 ── a stage-06 minigame's own page, and the whole of stage 06 on its own page (window.__H128_FULL, or ?stage=6 / #stage=6):
   // a fresh game with stages 01–05 done. (Stage 03 has works of the kinds 'steps' and 'close' too: stage 06's pages of those two kinds
   // carry the stage-06 mark as well — __H109_ONLY = 'steps' with __H128_FULL; 'capstan', 'wicket' and 'sea' are stage 06's alone)
@@ -2616,6 +2620,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       else {
         if (H109_ON && (H29_ONLY || (H29_FULL && !H9_ONLY))) { h29Only(); return; }   // ── h129 ── (a stage-07 page: stages 01–06 done) ── /h129 ──
         if (H109_ON && (H28_ONLY || (H28_FULL && !H9_ONLY))) { h28Only(); return; }   // ── h128 ── (a stage-06 page: stages 01–05 done) ── /h128 ──
+        if (H109_ON && H130_W) { h20Only(); return; }   // ── h130 W-wire (TEMPORARY) ── ── /h130 W-wire ──
         if (H109_ON && (H20_ONLY || H20_FULL)) { h20Only(); return; }   // ── h120 ── (a stage-05 page: the Mount, the wall, the soreg and the gates done) ── /h120 ──
         if (H109_ON && (H13_ONLY || H13_FULL)) { h13Only(); return; }   // ── h113 ── (a stage-04 page: the Mount, the wall and the soreg done) ── /h113 ──
         if (H109_ON && (H12_ONLY || H12_FULL)) { h12Only(); return; }   // ── h112 ── (a stage-03 page: the Mount and the wall done, straight to it) ── /h112 ──
@@ -3255,7 +3260,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (!JU && ui.root) juiceMake();
     try { if (H9 && H9.site !== 'nashim' && H9.dispose) H9.dispose(); } catch (e) { /* */ }
     if (H9 && H9.site === 'nashim') return H9;
-    const pack = makePack05();
+    const pack = H130_W ? makeWoodPack() : makePack05();   // ── h130 W-wire (TEMPORARY) ── ── /h130 W-wire ──
     H9 = createH109Director({ G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), stages: S0, view, ui, sfx, haptic, juice: () => JU, score: SCR,
       bonus: (n, why, label) => scoreBonus(n, why, label), twin: () => TW, onDone: () => h20Done(), pack });
     return H9;

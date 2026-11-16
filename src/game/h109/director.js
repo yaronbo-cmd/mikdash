@@ -779,6 +779,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   const X = {
     // ── h128 ── (brief §0.6: before a two-thumb moment the act lifts the camera a little by itself, inside the play zone; 0 lets it down;
     // a tap that returns the camera, a drag or a pinch of his own ends it) ── /h128 ──
+    lookHome: () => { if (LOOK.drag || LOOK.pinch) return false; if (LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03) { LOOK.auto = null; LOOK.back = 0.45; return true; } return false; },   // ── h129 ── (G16: an act's tap where nothing is brings a lifted look home, as a tap does out of the play zone) ── /h129 ──
     lookLift: (u) => { const v = Math.max(0, Math.min(0.45, +u || 0)); if (!v && LOOK.auto == null) return; LOOK.auto = v; },
     // ── h128 ── (part 3, the sea: an act that draws its own scene reads the right thumb's look — u, yaw, the overview — to move its own
     // camera; its words and losses may stand at a screen point { sx, sy } of its own camera) ── /h128 ──
@@ -886,7 +887,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const U = PK.unitEnd ? (() => { try { return PK.unitEnd(m, M); } catch (e) { return null; } })() : (m.k === 'pave' && !m.free && M.sectorGrade(m.s) ? { title: `גזרה ${m.s + 1} מתוך 9`, sub: M.sectorGrade(m.s), bonus: `גזרה ${m.s + 1} · ${M.sectorGrade(m.s)}` } : null);
     const sec = U ? U.sub : null;
     if (U) { bonus(250, 'course', U.bonus || U.title); try { if (J) J.big('course', { title: U.title, sub: U.sub }); } catch (e) { /* */ } }
-    await pullBack(at, sec ? 3.2 : 1.8);
+    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, res.film);   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }) ── /h129 ──
     try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
@@ -900,8 +901,11 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (ONLY) setTimeout(() => goTo(), 400);
   }
   /** spec ש7: the camera rises over what was just done and the crews round it, then the follow camera takes him again */
-  function pullBack(at, secs) {
+  function pullBack(at, secs, F) {
     return new Promise((res) => {
+      // ── h129 ── (an act's own film: one view { eye, aim }, or pictures cut one after another { shots: [[eye, aim, secs]…] }) ── /h129 ──
+      if (F && Array.isArray(F.shots) && F.shots.length) { let i = 0; const go = () => { const q = F.shots[i++]; if (!q) { res(); return; } shot(q[0], q[1], 0.01); film = { t: 0, dur: q[2] > 0 ? q[2] : 2, res: go }; }; go(); return; }
+      if (F && Array.isArray(F.eye) && Array.isArray(F.aim)) { shot(F.eye, F.aim, Number.isFinite(F.ease) ? F.ease : 1.1); film = { t: 0, dur: secs, res }; return; }   // ── h129 ── ── /h129 ──
       const h = heroAt(), c = at || { x: h.x, y: h.y, z: h.z };
       view.camNow(cq); const dx = cq.px - cq.tx, dz = cq.pz - cq.tz, L = Math.hypot(dx, dz) || 1;
       const d = 46, el = 0.72;

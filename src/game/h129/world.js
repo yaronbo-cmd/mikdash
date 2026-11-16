@@ -196,12 +196,15 @@ function golahBuild(X, S, g) {
 function stateOf(X) {
   const M = X.M, st = M.st, d = (id) => M.isDone(id), mk = (f, w) => st.marks.filter((q) => q.f === f && (!w || q.work === w));
   const L = gazitLayout(st);
-  const glDone = d('golah1') || d('golah2') || d('golah3');
+  // (G13: a Golah work whose troughs are full is the world's from its moment on — at the act's end, before the director marks it done,
+  //  the world drew the crews' Golah for half a second: the dark channel boxes, the black T in the film's first frame)
+  const glPlayed = !!(st.golah && st.golah.troughs && Object.keys(st.golah.troughs).length);
+  const glDone = d('golah1') || d('golah2') || d('golah3') || glPlayed;
   const tr = {}; if (glDone) for (const k of ['A', 'B', 'C']) { const v = st.golah && st.golah.troughs && st.golah.troughs[k]; if (v != null) tr[k] = v; else if (st.golahCrews) tr[k] = 1; }
   const vM = d('vaultM'), rings = vM ? clamp(1 + Math.floor((st.vault.ringsT || 0) / RING_T), 1, V.M.rings) : 0;
   return {
     g1: d('gazit1'), g2: d('gazit2'), g3: d('gazit3'), L, cracks: mk('gazit.crack').map((q) => q.n), inks: mk('gazit.ink').map((q) => q.at),
-    gl: glDone, glDepth: GL.depth[d('golah3') ? 2 : d('golah2') ? 1 : 0], troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
+    gl: glDone, glDepth: Math.max(GL.depth[d('golah3') ? 2 : d('golah2') ? 1 : 0], (st.golah && +st.golah.depth) || 0), troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
     vN: d('vaultN'), vS: d('vaultS'), vM, rings, vcrack: { N: mk('vault.crack', 'vaultN').length, S: mk('vault.crack', 'vaultS').length, M: mk('vault.crack', 'vaultM').length }, vcrackJ: { N: jointOf(mk('vault.crack', 'vaultN')), S: jointOf(mk('vault.crack', 'vaultS')), M: jointOf(mk('vault.crack', 'vaultM')) },
     vstone: { N: mk('vault.stone', 'vaultN').length, S: mk('vault.stone', 'vaultS').length, M: mk('vault.stone', 'vaultM').length },
     night: d('night'), slab: mk('night.slab').length, fin: M.finished(),

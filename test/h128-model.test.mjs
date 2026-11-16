@@ -212,10 +212,10 @@ test('the capstan: no stuck state — after careless hauling the clean player st
 test('every ring\'s row has exactly one way; without the course below more than one would close; the plans are fixed for 1, 8, 15', () => {
   for (let i = 1; i <= 15; i++) {
     const P = M.ringPlan(i), sound = P.yard.filter((y) => y.ring === i && !y.crack);
-    const S = M.rowSolutions(P.G, P.C, P.below, sound, { joint: P.joint });
+    const S = M.rowSolutions(P.G, P.C, P.below, sound, M.rowOpt(P));
     assert.equal(S.length, 1, 'ring ' + i); assert.deepEqual(S[0], { left: [...P.sol.left], right: [...P.sol.right] });
-    assert.ok(M.rowSolutions(P.G, P.C, [], sound, { joint: P.joint }).length >= 2, 'ring ' + i + ': the joints decide');
-    assert.ok(M.rowFit(P, P.sol).bull, 'ring ' + i);
+    assert.ok(M.rowSolutions(P.G, P.C, [], sound, M.rowOpt(P)).length >= 2, 'ring ' + i + ': the joints decide');
+    assert.ok(M.rowFit(P, { ...P.sol, dressed: P.yard.filter((y) => y.long).map((y) => y.id) }).bull, 'ring ' + i);
     assert.equal(P.R, BOOK.s06.steps.R1 - 0.5 * (i - 1));
     assert.ok(P.G < P.arc * 0.6, 'the gap inside the half arc, the crews\' stones each side');
     assert.ok(Object.isFrozen(P) && Object.isFrozen(P.yard));
@@ -232,6 +232,51 @@ test('every ring\'s row has exactly one way; without the course below more than 
   // the same every load
   assert.deepEqual(JSON.parse(JSON.stringify(M.ringPlan(8))), JSON.parse(JSON.stringify(T(8))));
 });
+// ── h128 ── (build 128 tuning T8) the free rings' own rules
+test('T8: every free ring has one rule of its own (fixed, never the same on two neighbours, each kind 4 times) and is solved under it', () => {
+  const free = [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14], kinds = free.map((i) => M.FREE_RULE[i].kind);
+  for (let k = 1; k < free.length; k++) assert.notEqual(kinds[k], kinds[k - 1], 'rings ' + free[k - 1] + ', ' + free[k]);
+  for (const kd of ['odd', 'stone', 'order']) assert.ok(kinds.filter((x) => x === kd).length >= 4, kd);
+  for (const i of [1, 8, 15]) { assert.equal(M.FREE_RULE[i], undefined); const P = M.ringPlan(i); assert.equal(P.rule, null); assert.equal(P.off, 0); assert.equal(P.order, null); assert.ok(!P.yard.some((y) => y.long)); }
+  const lens = (P, ids) => ids.map((id) => P.yard.find((y) => y.id === id).len).reduce((a, b) => a + b, 0);
+  for (const i of free) {
+    const P = M.ringPlan(i), R = M.FREE_RULE[i], half = (P.G - P.C) / 2, sound = P.yard.filter((y) => y.ring === i && !y.crack);
+    // the solver: the one way under the ring's own rule, laid stone by stone as the player must, the bull at the end
+    const S = M.rowSolutions(P.G, P.C, P.below, sound, M.rowOpt(P)); assert.equal(S.length, 1, 'ring ' + i);
+    const dressed = P.yard.filter((y) => y.long).map((y) => y.id), row = { left: [], right: [], dressed }, L = [...S[0].left], Rt = [...S[0].right];
+    while (L.length || Rt.length) { const sd = M.nextSide(row, P); const from = sd === 'left' ? L : Rt; assert.ok(from.length, 'ring ' + i + ': the next side has its stone'); row[sd].push(from.shift()); }
+    const F = M.rowFit(P, row); assert.ok(F.bull, 'ring ' + i);
+    if (R.kind === 'odd') {
+      assert.equal(P.off, R.off); assert.ok(P.off !== 0);
+      assert.equal(lens(P, P.sol.left), half + P.off, 'ring ' + i); assert.equal(lens(P, P.sol.right), half - P.off);
+      // the same stones swapped to the other sides would leave the hole on the middle mark: not the mark of this ring
+      assert.ok(!M.rowFit(P, { left: P.sol.right, right: P.sol.left }).bull);
+    }
+    if (R.kind === 'order') {
+      assert.ok(P.order === 'left' || P.order === 'right');
+      const first = P.order, other = first === 'left' ? 'right' : 'left';
+      assert.equal(M.nextSide({ left: [], right: [] }, P), first, 'ring ' + i + ': the hoist end waits');
+      // a stone on the hoist's end before the first side is whole is out of turn
+      const o = { left: [], right: [] }; o[other] = [P.sol[other][0]]; assert.ok(!M.rowFit(P, o).turn);
+    }
+    if (R.kind === 'stone') {
+      if (M.RING_LV[M.ringCls(i)].crack) {
+        // a ring with its crack already (12–14): one of its row's stones a hair too long; laid undressed the hole is short, dressed it closes
+        const lg = P.yard.filter((y) => y.long); assert.equal(lg.length, 1); assert.equal(lg[0].long, M.LONG); assert.ok([...P.sol.left, ...P.sol.right].includes(lg[0].id));
+        const u = M.rowFit(P, { ...P.sol }); assert.ok(!u.bull && u.rest === P.C - M.LONG && u.proud.includes(lg[0].id));
+      }
+      // one cracked twin of a sound stone: its sound is dull, and with it in the row the ring closes but the stone cracks (the loss)
+      const cr = P.yard.filter((y) => y.crack); assert.equal(cr.length, 1); assert.equal(M.stoneSound(cr[0]), 'dull');
+      const tw = P.yard.find((y) => y.ring === i && !y.crack && y.len === cr[0].len && [...P.sol.left, ...P.sol.right].includes(y.id));
+      assert.ok(tw, 'ring ' + i + ': the crack is the twin of a row stone');
+      const sw = (ids) => ids.map((id) => (id === tw.id ? cr[0].id : id)), G = M.rowFit(P, { left: sw(P.sol.left), right: sw(P.sol.right), dressed });
+      assert.ok(G.bull && G.cracked);
+    }
+  }
+  // the class-1 and class-8 rings with 'stone' have a crack they did not have; the others have none beyond their class
+  for (const i of free) if (M.RING_LV[M.ringCls(i)].crack === 0) assert.equal(M.ringPlan(i).yard.filter((y) => y.crack).length, M.FREE_RULE[i].kind === 'stone' ? 1 : 0);
+});
+// ── /h128 ──
 test('the row: a wrong order puts a joint over a joint below (the red hairline), a stranger gapes, a wrong length misses the mark', () => {
   const P = M.ringPlan(8), L = [...P.sol.left], R = [...P.sol.right];
   const swapped = { left: [L[1], L[0], L[2]], right: R }, f = M.rowFit(P, swapped);

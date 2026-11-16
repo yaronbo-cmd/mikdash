@@ -599,8 +599,16 @@
         if (!K.yardShot) { K.yardShot = 1; return { wait: 200, shot: 'ring-yard' }; }
         K.fit = K.fit || {}; K.snd = K.snd || {};
         const Y = a.yard;
-        // ring 15's class: the mallet on every stone first
-        if (a.cls === 15) { const s = Y.find((y) => y.dull == null && !K.snd[y.id] && y.id !== a.on); if (s) { K.snd[s.id] = 1; return { tap: s.at, wait: 500, note: 'steps: sound ' + s.id }; } }
+        // ── h128 ── (build 128 tuning T8) a long stone: tap the mason, a still while he dresses it, wait till it is done
+        if (a.long && a.long.length && !a.dressing && a.mason && !K.dressAsk) { K.dressAsk = 1; return { tap: a.mason, wait: 600, note: 'steps: tap the mason (long ' + a.long.join() + ')' }; }
+        if (a.dressing) { if (a.dressing.hits >= 1 && !K.dressShot) { K.dressShot = 1; return { wait: 10, shot: 'ring-mason-dress', note: 'steps: the mason dresses ' + a.dressing.id + ' (blow ' + a.dressing.hits + ')' }; } return { wait: 250 }; }
+        if (K.dressAsk && a.long && a.long.length) { K.dressAsk = 0; }   // (his walk was cut short: ask again)
+        if (a.dressed && a.dressed.length && !K.dressedShot) { K.dressedShot = 1; return { wait: 10, shot: 'ring-dressed', note: 'steps: dressed ' + a.dressed.join() }; }
+        // a still of the dull stone's hairline (it lasts half a second)
+        if (!K.dullShot && Y.some((y) => y.dull === 1)) { K.dullShot = 1; return { wait: 10, shot: 'ring-dull', note: 'steps: the dull stone ' + Y.find((y) => y.dull === 1).id }; }
+        // ── /h128 ──
+        // ring 15's class (and a free ring with a problem stone): the mallet on every stone first
+        if (a.cls === 15 || a.rule === 'stone') { const s = Y.find((y) => y.dull == null && !K.snd[y.id] && y.id !== a.on); if (s) { K.snd[s.id] = 1; return { tap: s.at, wait: K.dullShot ? 500 : 120, note: 'steps: sound ' + s.id }; } }
         // (build 128 tuning T4: a still at the drop — a fit's gold edge, a misfit's rocking and its line — once each, with their measure)
         if (a.on && a.rock > 0 && !K.misShot) { K.misShot = 1; return { wait: 10, shot: 'ring-misfit', note: `steps: misfit ${a.on} (model ${a.lightPx} px, drawn ${a.linePx} px, rock ${a.rock})` }; }
         if (a.on && a.gold > 0 && !K.fitShot) { K.fitShot = 1; return { wait: 10, shot: 'ring-fit', note: `steps: fit ${a.on} (gold ${a.gold})` }; }
@@ -622,7 +630,12 @@
         return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };
       }
       if (a.phase === 'row') {
-        if (!K.rowShot) { K.rowShot = 1; return { wait: 1700, shot: 'ring-row' }; }
+        if (!K.rowShot) { K.rowShot = 1; return { wait: 1700, shot: 'ring-row', note: `steps: the row (rule ${a.rule || '-'}${a.rule === 'odd' ? ' off ' + a.off : ''}${a.order ? ' first ' + a.order + ', hoist ' + a.hoist : ''})` }; }
+        // ── h128 ── (T8: the hoist — __BOT.bad 'hoist': one stone first onto its end (it knocks the leg and goes back); stills as it goes)
+        if (a.hoist === 'up' && has('hoist') && !K.hoistTry) { const other = a.order === 'left' ? 'right' : 'left', t = a.tray.find((x) => a.sol[other].includes(x.id)); if (t) { K.hoistTry = 1; return { drag: [t.at[0], t.at[1], ...(other === 'left' ? t.toL : t.toR).slice(0, 2), 700], wait: 150, note: 'steps: a stone onto the hoist end ' + other }; } }
+        if (K.hoistTry === 1 && a.hoist === 'up') { K.hoistTry = 2; return { wait: 10, shot: 'ring-hoist-block', note: 'steps: ev ' + a.ev.slice(-2).join(' ') }; }
+        if (a.hoist === 'going' && !K.goShot) { K.goShot = 1; return { wait: 10, shot: 'ring-hoist-going' }; }
+        // ── /h128 ──
         if (a.bull) { if (!K.bullShot) { K.bullShot = 1; return { wait: 100, shot: 'ring-bull' }; } return { wait: 300 }; }
         if (a.loose.length) return { tap: a.loose[0].at, wait: 800, note: 'steps: lift the loose stone ' + a.loose[0].id };
         const g = a.laid.find((l) => a.gape.includes(l.id)); if (g) { if (!K.gapeShot) { K.gapeShot = 1; return { wait: 100, shot: 'ring-gape' }; } return { tap: g.at, wait: 900, note: 'steps: lift the stranger ' + g.id }; }

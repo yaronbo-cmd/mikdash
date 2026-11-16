@@ -13,7 +13,7 @@
  * slidesHome, tplLight, stoneSound, keyFresh/keyStep, ringPts.
  *   RING = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
-import { ringPlan, rowFit, slidesHome, tplLight, stoneSound, keyFresh, keyStep, ringPts, ringCls, nextSide, Q, LINES, QUICK, LOSS, qOf, starsOf } from './model.js';
+import { ringPlan, rowFit, slidesHome, tplLight, stoneSound, keyFresh, keyStep, ringPts, ringCls, nextSide, Q, LINES, QUICK, LOSS, qOf, starsOf, LONG } from './model.js';
 import { SH6, mats6, box, sectorGeo, angOf, ringStones, own, setBusy, floorAt, clamp, lerp } from './world.js';
 import { createVoices } from './sound128.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -41,12 +41,23 @@ export const RING = {
     const T = X.THREE, PR = X.props, MT = mats6(X), st = X.M.st, V = createVoices(X.sfx);
     const i = m.ring || 1, P = ringPlan(i), R = ringOf(i), cls = clsOf(i);
     own('ring', i); setBusy(X, 1);
-    const all = [], A = { phase: 'intro', t: 0, marks: [], wrongMarks: 0, wrongCarried: 0, lifts: 0, loose: [], row: { left: [], right: [] }, tray: [], firstLay: 1, ev: [], quickRun: 1, bullT: 0, k: null, keyT: 0, fing: {}, soundT: 0, hair: null, dn: 0 };
+    const all = [], A = { phase: 'intro', t: 0, marks: [], wrongMarks: 0, wrongCarried: 0, lifts: 0, loose: [], row: { left: [], right: [] }, tray: [], firstLay: 1, ev: [], quickRun: 1, bullT: 0, k: null, keyT: 0, fing: {}, soundT: 0, hair: null, dn: 0, dressed: [], dressing: null };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 14) A.ev.shift(); };
     own('yard', 1);   // (the world's own yard stones step aside for the ring's; the table stays)
     X.kohen(false);   // (his place is at the ring's stand: between the camera and the work)
     const add = (o) => { PR.root.add(o); all.push(o); return o; };
     const byId = (id) => P.yard.find((y) => y.id === id);
+    // ── h128 ── (build 128 tuning T8) the free ring's own rule (model FREE_RULE): its one hint line the first time each kind is met
+    const T8 = st.t8 || (st.t8 = {});
+    const hint8 = (k, text, delay = 0) => { if (T8[k]) return; T8[k] = 1; X.save(); setTimeout(() => { if (A.phase !== 'done') X.line(text, 4400); }, delay); };
+    const LINE8 = {
+      odd: 'הרווח הזה אינו באמצע: החבל מסמן את מקום אבן הסגירה, ולכל צד סכום משלו',
+      long: 'לאבן אחת בליטה בקצה, והיא ארוכה מעט · הקישו על הבנאי, והוא יסתת אותה',
+      order: 'המנוף עומד בקצה אחד של הרווח: מלאו קודם את כל הצד השני, והצוות יפנה אותו',
+    };
+    const isLong = (s) => !!(s && s.long && !A.dressed.includes(s.id)), bossMat = new T.MeshStandardMaterial({ color: 0x6E5E40, roughness: 1 });
+    const hasLong = P.yard.some((y) => y.long), hasCrack = P.yard.some((y) => y.crack);
+    // ── /h128 ──
 
     /* ── the stones' shapes: an arc stone of ring r, len q long, its outer edge's middle at the origin, its length along local x, its
      *    outer (convex) face toward +z ── */
@@ -54,7 +65,12 @@ export const RING = {
       const Rr = ringOf(r).R, sp = (len * Q) / Rr, g = sectorGeo(T, Rr - w, Rr, HL - sp / 2, HL + sp / 2, 0, h);
       g.translate(-(C0[0] + Rr), 0, -C0[1]); g.rotateY(-Math.PI / 2); return g;
     };
-    const stoneMesh = (s, mat) => { const me = new T.Mesh(stoneGeo(s.ring, s.len), mat || MT.h6stone); me.castShadow = true; me.receiveShadow = true; return me; };
+    const stoneMesh = (s, mat) => {
+      const me = new T.Mesh(stoneGeo(s.ring, s.len + (isLong(s) ? LONG : 0)), mat || MT.h6stone); me.castShadow = true; me.receiveShadow = true;
+      // ── h128 ── (T8) a stone a hair too long: a rough boss left on its end (the mason's chisel takes it off) ── /h128 ──
+      if (isLong(s)) { const L = (s.len + LONG) * Q, b = new T.Group(); for (const [dy, ry, k] of [[0.45, 0.25, 1], [0.85, -0.35, 0.75], [1.1, 0.6, 0.5]]) { const c = new T.Mesh(PR.geo.box, bossMat); c.scale.set(0.34 * k, STP.rise * 0.42, STP.tread * 0.7 * k); c.position.set(-0.1, STP.rise * dy, 0); c.rotation.y = ry; c.castShadow = true; b.add(c); } b.position.set(L / 2, 0, -STP.tread / 2); me.add(b); me.userData.boss = b; }
+      return me;
+    };
 
     /* ── the yard: the stones on the ground in two columns, the table with the template ── */
     const Y = STP.yard, TB = STP.table, yTop = Y[2] + STP.rise;
@@ -73,7 +89,7 @@ export const RING = {
     light.visible = false;
     const edgeMat = new T.MeshBasicMaterial({ color: 0xFFD040, transparent: true, opacity: 0, depthWrite: false }), edge = add(new T.Mesh(PR.geo.box, edgeMat)), edgeTop = add(new T.Mesh(PR.geo.box, edgeMat)); edge.visible = edgeTop.visible = false;
     const TPL = { drop: 0, rock: 0, fitT: 0 };
-    const mason = SH6.crew.add(Y[0], Y[1] - 5.4, { role: 'hold', item: 'mallet', crew: 2, fx: Y[0], fz: Y[1] }); const men = [mason];   // (the mason beyond the yard: never between the camera and the stones)
+    const MH = [Y[0], Y[1] - 5.4], mason = SH6.crew.add(MH[0], MH[1], { role: 'hold', item: 'mallet', crew: 2, fx: Y[0], fz: Y[1] }); const men = [mason];   // (the mason beyond the yard: never between the camera and the stones)
     const chalkOn = (s) => { if (s.chalk) return; const c = new T.Mesh(PR.geo.box, MT.h6chalk); c.scale.set(0.5, 0.02, 0.12); c.position.set(s.x, yTop + 0.012, s.z - 0.2); c.rotation.y = 0.5; add(c); s.chalk = c; };
     const chalkOff = (s) => { if (!s.chalk) return; PR.remove(s.chalk); s.chalk = null; };
     // the line of light on the stone under the template: its width in px at this camera (tplLight), drawn as amot at the stone
@@ -117,7 +133,36 @@ export const RING = {
     const qAng = (q) => angOf(P, q);
     const ptAt = (q, r = R.R - STP.tread / 2, y = rTop) => { const a = qAng(q); return [C0[0] + r * Math.sin(a), y, C0[1] - r * Math.cos(a)]; };
     const cord = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 1, 6), MT.h6rope); add(cord);
-    { const qm = P.g0 + P.G / 2, a0 = ptAt(qm - P.C / 2, R.R + 0.35, R.base + 0.04), a1 = ptAt(qm + P.C / 2, R.R + 0.35, R.base + 0.04), d = Math.hypot(a1[0] - a0[0], a1[2] - a0[2]); cord.scale.set(1, d, 1); cord.position.set((a0[0] + a1[0]) / 2, a0[1], (a0[2] + a1[2]) / 2); cord.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(a1[0] - a0[0], 0, a1[2] - a0[2]).normalize()); }
+    { const qm = P.g0 + (P.G - P.C) / 2 + (P.off || 0) + P.C / 2, a0 = ptAt(qm - P.C / 2, R.R + 0.35, R.base + 0.04), a1 = ptAt(qm + P.C / 2, R.R + 0.35, R.base + 0.04), d = Math.hypot(a1[0] - a0[0], a1[2] - a0[2]); cord.scale.set(1, d, 1); cord.position.set((a0[0] + a1[0]) / 2, a0[1], (a0[2] + a1[2]) / 2); cord.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(a1[0] - a0[0], 0, a1[2] - a0[2]).normalize()); }
+    // ── h128 ── (T8 'order') the crew's hoist on one end of the gap: two legs astride the tread a little inside the gap, the fall rope with
+    // its block, two men on the fall; that end takes no stone until the other side is whole, then they carry it away
+    const HB = P.order ? (P.order === 'left' ? 'right' : 'left') : null, H = { state: HB ? 'up' : null, t: 0, shake: 0, g: null, men: [], base: null, out: null };
+    if (HB) {
+      const qE = HB === 'left' ? P.g0 + 3 : P.g0 + P.G - 3, a = qAng(qE), timber = (p0, p1, r) => { const d = new T.Vector3(p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]), me = new T.Mesh(new T.CylinderGeometry(r, r, d.length(), 7), MT.h6timber); me.position.set((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2, (p0[2] + p1[2]) / 2); me.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); me.castShadow = true; return me; };
+      const top = ptAt(qE, R.R - STP.tread / 2, R.top + 3.1), g = new T.Group(); H.g = g; add(g);
+      for (const dq of [-1.6, 1.6]) { g.add(timber(ptAt(qE + dq, R.R - STP.tread - 0.35, R.base), top, 0.075)); g.add(timber(ptAt(qE + dq, R.R + 0.4, R.base), top, 0.075)); }
+      g.add(timber(ptAt(qE, R.R - STP.tread - 0.1, R.base + 1.5), ptAt(qE, R.R + 0.15, R.base + 1.5), 0.05));
+      const blk = ptAt(qE, R.R - STP.tread / 2, R.top + 1.1); g.add(timber(top, blk, 0.025)); { const b = new T.Mesh(PR.geo.box, MT.h6timber); b.scale.set(0.3, 0.38, 0.2); b.position.set(blk[0], blk[1], blk[2]); g.add(b); }
+      for (const m of g.children) if (m.geometry !== PR.geo.box) m.material = MT.h6timber;
+      { const r0 = ptAt(qE, R.R - STP.tread / 2, R.top + 2.9), r1 = ptAt(qE + (HB === 'left' ? -5 : 5), R.R + 2.2, R.base + 1.25); const fr = timber(r0, r1, 0.022); fr.material = MT.h6rope; g.add(fr); }
+      H.out = [Math.sin(a), -Math.cos(a)];
+      // (its two men come on to the fall with the row's view: in the yard's view the nearer would stand cut at the frame's edge)
+      H.sp = [ptAt(qE + (HB === 'left' ? -5 : 5), R.R + 2.5, R.base), ptAt(qE + (HB === 'left' ? -9 : 9), R.R + 2.9, R.base)]; H.top = top;
+    }
+    function hoistMen() { if (H.state !== 'up' || H.men.length) return; for (const q of H.sp) { const w = SH6.crew.add(q[0], q[2], { role: 'pull', crew: 3, fx: H.top[0], fz: H.top[2] }); if (w) { H.men.push(w); men.push(w); } } }
+    function hoistAway() {
+      if (H.state !== 'up') return; H.state = 'going'; H.t = 0; V.creak(); ev('hoist-away');
+      for (const w of H.men) { SH6.crew.setRole(w, 'carry', { from: null, to: null }); SH6.crew.walkTo(w, w.a.x + H.out[0] * 5, w.a.z + H.out[1] * 5, 1.8); }
+    }
+    function hoistFrame(dt) {
+      if (!H.g) return;
+      if (H.state === 'up' && H.shake > 0) { H.shake = Math.max(0, H.shake - dt); H.g.position.set(Math.sin(A.t * 47) * 0.03 * H.shake, 0, 0); }
+      if (H.state !== 'going') return;
+      H.t += dt; const u = Math.min(1, H.t / 2.2), e = u * u * (3 - 2 * u);
+      H.g.position.set(H.out[0] * 5 * e, 0.25 * Math.sin(Math.PI * u), H.out[1] * 5 * e);
+      if (u >= 1) { H.state = 'gone'; PR.remove(H.g); H.g.visible = false; V.thud(); ev('hoist-gone'); for (const w of H.men) { SH6.crew.remove(w); const k = men.indexOf(w); if (k >= 0) men.splice(k, 1); } H.men = []; }
+    }
+    // ── /h128 ──
     // (a joint's mark: a thin radial bar across the tread)
     const jointBar = (q, mat, h = 0.03) => { const a = qAng(q), me = new T.Mesh(PR.geo.box, mat); me.scale.set(STP.tread + 0.1, h, 0.035); const p = ptAt(q, R.R - STP.tread / 2, rTop + 0.02); me.position.set(...p); me.rotation.y = HL - a; laidG.add(me); return me; };
     // the tray: the marked stones carried to the ring, lying outside it at the gap
@@ -133,11 +178,12 @@ export const RING = {
       let q = P.g0; for (const id of A.row.left) { const s = byId(id); laidG.add(laidMesh(s, q, q + s.len)); q += s.len; }
       let q2 = P.g0 + P.G; for (const id of A.row.right) { const s = byId(id); laidG.add(laidMesh(s, q2 - s.len, q2)); q2 -= s.len; }
       for (const L of A.loose) { const s = byId(L.id); laidG.add(laidMesh(s, L.q - s.len / 2, L.q + s.len / 2, 0.18)); }
-      const F = rowFit(P, { ...A.row, loose: A.loose });
+      const F = rowFit(P, { ...A.row, loose: A.loose, dressed: A.dressed });
       for (const j of F.over) jointBar(j, MT.h6red, 0.04);
       cord.material = F.rest === P.C && F.mid ? MT.h6light : MT.h6rope;
       { const q0 = P.g0 + F.sL, q1 = P.g0 + P.G - F.sR; if (q1 - q0 > 0.2) { const me = new T.Mesh(sectorGeo(T, R.R - STP.tread, R.R, qAng(q0), qAng(q1), R.base, R.base + 0.04), F.rest === P.C && F.mid ? MT.h6green : MT.h6gold); laidG.add(me); } }   // (the hole still open: lit gold, green when it is the closing stone's)
       A.fit = F;
+      if (H.state === 'up' && (P.order === 'left' ? F.sL >= F.hL : F.sR >= F.hR)) hoistAway();   // ── h128 ── (T8) ── /h128 ──
     }
     function laidMesh(s, q0, q1, lift = 0) {
       const gape = s.ring !== i, J = 0.004, a0 = qAng(q0) + J, a1 = qAng(q1) - J, Rr = R.R + (gape ? 0.14 : 0);
@@ -183,6 +229,7 @@ export const RING = {
         A.dn++;
         if (A.phase === 'tpl') {
           if (nearTpl(f)) { f.what = 'tpl'; f.prev = TP.on; return; }   // (a drag carries the template; a tap on it, on a stone, marks that stone)
+          if (hasLong && nearMason(f)) { f.what = 'mason'; return; }   // ── h128 ── (T8: a tap on the mason: he dresses the long stone) ── /h128 ──
           const s = yardHit(f); if (s) { f.what = 'stone'; f.s = s; }
           return;
         }
@@ -206,8 +253,9 @@ export const RING = {
       },
       up(f) {
         if (f.what === 'tpl' && !TP.drag) { if (f.prev && f.moved < 16) markToggle(yard.find((y) => y.id === f.prev)); return; }
-        if (f.what === 'tpl') { TP.drag = false; const s = yardHit(f); tplSet(s && Math.hypot(tpl.position.x - s.x, tpl.position.z - s.z) < 2.6 ? s : null, true); if (TP.on && !A.hintMark) { A.hintMark = 1; X.line(cls === 15 ? 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר · הקשה על אבן אחרת: הבנאי מקיש בה בפטיש' : 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר', 4200); } ev('tpl:' + (TP.on || '-')); return; }
+        if (f.what === 'tpl') { TP.drag = false; const s = yardHit(f); tplSet(s && Math.hypot(tpl.position.x - s.x, tpl.position.z - s.z) < 2.6 ? s : null, true); if (TP.on && !A.hintMark) { A.hintMark = 1; X.line(cls === 15 || hasCrack ? 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר · הקשה על אבן אחרת: הבנאי מקיש בה בפטיש' : 'הקישו על האבן שמתחת לתבנית כדי לסמן אותה בגיר', 4200); } ev('tpl:' + (TP.on || '-')); return; }
         if (f.what === 'stone' && f.moved < 16) { if (TP.on === f.s.id) markToggle(f.s); else sound(f.s); return; }
+        if (f.what === 'mason' && f.moved < 16) { dress(); return; }   // ── h128 ── (T8) ── /h128 ──
         if (f.what === 'tray' && f.t) { f.t.drag = false; if (f.moved < 16) { if (f.t.ring !== i) carryBack(f.t); else trayLay(); return; } dropStone(f.t, f); return; }
         if (f.what === 'laid' && f.moved < 16) { lift(f.l); return; }
         if (f.what === 'bar') delete A.fing[f.id];
@@ -218,6 +266,7 @@ export const RING = {
     /* ── step 1 ── */
     function sound(s) {
       const k = stoneSound(s); s.dull = k === 'dull' ? 1 : 0; V.mallet(k === 'dull'); ev('sound:' + s.id + ':' + k);
+      if (isLong(s)) { setTimeout(() => V.scrape('R'), 120); ev('rough:' + s.id); }   // ── h128 ── (T8: the boss rasps under the mallet) ── /h128 ──
       if (mason) { mason.a.bowT = 0.4; setTimeout(() => { if (mason.a) mason.a.bowT = 0; }, 300); }
       if (k === 'dull') { const h = new T.Mesh(PR.geo.box, MT.h6dark); h.scale.set(0.03, 0.02, 0.4); h.position.set(s.x + 0.2, yTop + 0.012, s.z - 0.25); h.rotation.y = 0.4; add(h); setTimeout(() => PR.remove(h), 500); }
     }
@@ -226,13 +275,44 @@ export const RING = {
       s.marked = 1; chalkOn(s); A.marks.push(s.id); ev('mark:' + s.id); V.tick();
       const fits = s.ring === i; if (!fits) { A.wrongMarks++; A.quickRun = 0; }
       // (the quick word for a fit comes when the template drops home on it: tplSet)
-      if (A.marks.length >= needMarks) setTimeout(() => toRow(), 700);
+      if (A.marks.length >= needMarks) marksDone();
     }
+    // ── h128 ── (T8) the marks are all made: on to the row, unless a marked stone is still a hair too long (the mason must dress it first)
+    function marksDone() {
+      if (A.marks.some((id) => isLong(byId(id)))) { if (!A.longWait) { A.longWait = 1; X.line(LINE8.long, 4200); } ev('wait:long'); return; }
+      setTimeout(() => toRow(), 700);
+    }
+    const masonScr = () => (mason && mason.a ? sc(X, mason.a.x, Y[2] + 1.5, mason.a.z) : null);
+    const nearMason = (p) => { const q = masonScr(); return !!q && Math.hypot(p.x - q[0], p.y - q[1]) < Math.max(48, gripR() * 0.9); };
+    /** a tap on the mason: he walks to the long stone's end and dresses it, three blows of the mallet on the chisel; then it fits */
+    function dress() {
+      const s = yard.find((y) => isLong(y) && !y.gone);
+      if (!s || A.dressing) { if (mason && mason.a) { mason.a.bowT = 0.4; setTimeout(() => { if (mason.a) mason.a.bowT = 0; }, 300); } return; }
+      const L = (s.len + LONG) * Q, ex = s.x + L / 2 + 0.1, ez = s.z - STP.tread / 2;
+      A.dressing = { id: s.id, hits: 0 }; ev('dress:' + s.id); X.play('tap');
+      SH6.crew.walkTo(mason, ex + 1.15, ez - 1.0, 2.6).then(() => { if (!A.dressing || !mason.a || !mason.a.alive) return; SH6.crew.setRole(mason, 'hammer', { fx: ex, fz: ez, k: 2, onHit: () => blow(s) }); });
+    }
+    function blow(s) {
+      const D = A.dressing; if (!D || A.phase === 'done') return;
+      D.hits++; V.mallet(false); V.scrape('R'); ev('blow:' + s.id + ':' + D.hits);
+      const b = s.me.userData.boss; if (b) b.scale.set(1 - 0.3 * D.hits, 1, 1);
+      if (D.hits < 3) return;
+      A.dressed.push(s.id); A.dressing = null; ev('dressed:' + s.id);
+      const g = s.me.geometry; s.me.geometry = stoneGeo(s.ring, s.len); g.dispose(); if (b) { s.me.remove(b); s.me.userData.boss = null; }
+      V.thud();
+      SH6.crew.setRole(mason, 'hold', { fx: Y[0], fz: Y[1] }); SH6.crew.walkTo(mason, MH[0], MH[1], 2.4);
+      if (TP.on === s.id) tplSet(s, false);
+      if (A.marks.length >= needMarks) marksDone();
+    }
+    // ── /h128 ──
     function toRow() {
       if (A.phase !== 'tpl') return; A.phase = 'row'; tplSet(null); tpl.visible = false; light.visible = false;
       for (const id of A.marks) { const s = yard.find((y) => y.id === id); s.gone = 1; s.me.visible = false; chalkOff(s); trayAdd(byId(id)); }
       X.shot(...camOf(i, 'row'), 1.4); rowDraw();
-      X.line('גררו אבן מסומנת אל הרווח, לסירוגין משני צדיו · כשהחבל ליד הרווח נדלק, מה שנשאר הוא בדיוק אבן הסגירה', 5200);
+      // ── h128 ── (T8) on a ring with a hoist there are no turns: its line instead of the row's; an odd gap's line after the row's ── /h128 ──
+      if (HB) { A.hoistLine = 1; X.line(LINE8.order, 5200); hoistMen(); }
+      else X.line('גררו אבן מסומנת אל הרווח, לסירוגין משני צדיו · כשהחבל ליד הרווח נדלק, מה שנשאר הוא בדיוק אבן הסגירה', 5200);
+      if (P.rule === 'odd') hint8('odd', LINE8.odd, 5400);
     }
     /* ── step 2 ── */
     const trayHit = (p) => { let best = null, bd = Math.max(44, gripR() * 0.8); for (const t2 of A.tray) { const q = sc(X, t2.me.position.x, t2.me.position.y + 0.25, t2.me.position.z); const d = Math.hypot(p.x - q[0], p.y - q[1]); if (d < bd) { bd = d; best = t2; } } return best; };
@@ -244,14 +324,16 @@ export const RING = {
       for (const L of A.loose) { const l = byId(L.id).len; if (Math.abs(q - L.q) <= l / 2 + 0.5) return { side: 'loose', id: L.id }; }
       return null;
     }
-    function targetQ(len, side) { const F = rowFit(P, A.row); return side === 'left' ? P.g0 + F.sL + len / 2 : P.g0 + P.G - F.sR - len / 2; }
+    function targetQ(len, side) { const F = rowFit(P, { ...A.row, dressed: A.dressed }); return side === 'left' ? P.g0 + F.sL + len / 2 : P.g0 + P.G - F.sR - len / 2; }
     function dropStone(t2, f) {
       const xz = rayY(f, rTop + 0.15); const back = () => { trayLay(); ev('back:' + t2.id); };
       if (!xz) return back();
       const [q, r] = qOfPt(xz[0], xz[1]);
       if (Math.abs(r - (R.R - STP.tread / 2)) > 1.4 || q < P.g0 - 1 || q > P.g0 + P.G + 1) return back();
       const tl = targetQ(t2.len, 'left'), tr = targetQ(t2.len, 'right'), side = Math.abs(q - tl) <= Math.abs(q - tr) ? 'left' : 'right', off = q - (side === 'left' ? tl : tr);
-      const F = rowFit(P, A.row), room = P.G - F.sL - F.sR - A.loose.reduce((a2, L) => a2 + byId(L.id).len, 0);
+      // ── h128 ── (T8) the hoist stands on that end: the stone knocks its leg and goes back to the tray ── /h128 ──
+      if (H.state === 'up' && side === HB) { V.clack(); setTimeout(() => V.creak(), 90); H.shake = 0.7; ev('hoist:' + t2.id); if (!A.hoistLine) { A.hoistLine = 1; X.line(LINE8.order, 4200); } return back(); }
+      const F = rowFit(P, { ...A.row, dressed: A.dressed }), room = P.G - F.sL - F.sR - A.loose.reduce((a2, L) => a2 + byId(L.id).len, 0);
       A.tray.splice(A.tray.indexOf(t2), 1); PR.remove(t2.me); all.splice(all.indexOf(t2.me), 1);
       if (slidesHome(off) && t2.len <= room + 1e-9) { A.row[side].push(t2.id); V.slide(0.8); setTimeout(() => V.slide(0), 260); X.play('tap'); ev(`lay:${t2.id}:${side}:${off.toFixed(2)}`); if (t2.ring !== i) { A.firstLay = 0; X.line('האבן אינה יושבת: התפר פעור · הקישו עליה כדי להרים אותה, והבנאי ישיב אותה למגרש', 3600); } }
       else { A.loose.push({ id: t2.id, q: clamp(q, P.g0 + t2.len / 2, P.g0 + P.G - t2.len / 2) }); A.firstLay = 0; ev(`loose:${t2.id}:${off.toFixed(2)}`); X.play('tap'); }
@@ -337,6 +419,7 @@ export const RING = {
         const first = !st.stepsLine; st.stepsLine = 1;
         X.line(first ? LINES.steps : `מעלה ${i}: גררו את התבנית מהשולחן אל אבן · קו אור ביניהן: האבן ממעלה אחרת`, first ? 4200 : 4600);
         if (first) setTimeout(() => { if (A.phase === 'tpl') X.line('גררו את התבנית מהשולחן אל אבן · קו אור ביניהן: האבן ממעלה אחרת', 4600); }, 4300);
+        if (hasLong) hint8('long', LINE8.long, first ? 9000 : 4800);   // ── h128 ── (T8) ── /h128 ──
         setTimeout(() => { if (A.phase === 'intro') { A.phase = 'tpl'; X.hand({ x: tpl.position.x, y: tpl.position.y + 0.2, z: tpl.position.z }, -40, 30); } }, 1300);
       },
       update(dt) {
@@ -345,6 +428,7 @@ export const RING = {
           V.frame();
           if (A.phase === 'tpl' && TP.drag) X.hand(null);
           if (A.phase === 'tpl' || A.phase === 'row') tplFrame(dt);
+          hoistFrame(dt);   // ── h128 ── (T8) ── /h128 ──
           if (A.phase === 'key') keyFrame(dt);
           if (A.phase === 'moment') { A.mT += dt; if (A.mT > 4.6 || (A.skip && A.mT > 1)) end1(); }
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h128] steps', e && e.message); } }
@@ -353,7 +437,7 @@ export const RING = {
       cancel() { A.fing = {}; },
       wants(p) {
         if (!p) return true;
-        if (A.phase === 'tpl') return nearTpl(p) || !!yardHit(p);
+        if (A.phase === 'tpl') return nearTpl(p) || !!yardHit(p) || (hasLong && nearMason(p));
         if (A.phase === 'row') return !!trayHit(p) || !!laidHit(p);
         if (A.phase === 'key') { const a = barScr(barA), b = barScr(barB); return [a, b].some((q) => q && Math.hypot(p.x - q[0], p.y - q[1]) < Math.max(160, gripR() * 1.6)); }
         return A.phase === 'moment';
@@ -364,18 +448,19 @@ export const RING = {
         FG.detach(); V.stop(); X.hand(null);
         for (const o of all) PR.remove(o);
         for (const w of men) if (w) SH6.crew.remove(w);
+        bossMat.dispose();   // ── h128 ── (T8) ── /h128 ──
         own('yard', 0);
         own('ring', 0); setBusy(X, 0);
       },
       at() { const p = ptAt(P.g0 + P.G / 2, R.R, R.top); return new T.Vector3(p[0], p[1], p[2]); },
       dbg() {
-        const F = A.fit || rowFit(P, A.row), o = { t: +A.t.toFixed(2), phase: A.phase, ring: i, cls, free: !!m.free, G: P.G, C: P.C, need: needMarks, marks: A.marks.slice(), wrongMarks: A.wrongMarks, wrongCarried: A.wrongCarried, lifts: A.lifts, firstLay: A.firstLay, mouse: MOUSE, ev: A.ev.slice(-8), sol: P.sol, lens: Object.fromEntries(P.yard.map((y) => [y.id, y.len])), nf: FG.n };
+        const F = A.fit || rowFit(P, { ...A.row, dressed: A.dressed }), o = { t: +A.t.toFixed(2), phase: A.phase, ring: i, cls, free: !!m.free, G: P.G, C: P.C, need: needMarks, marks: A.marks.slice(), wrongMarks: A.wrongMarks, wrongCarried: A.wrongCarried, lifts: A.lifts, firstLay: A.firstLay, mouse: MOUSE, ev: A.ev.slice(-8), sol: P.sol, lens: Object.fromEntries(P.yard.map((y) => [y.id, y.len])), nf: FG.n };
         if (A.phase === 'tpl' || A.phase === 'intro') {
           o.tpl = tplScr(); o.on = TP.on; o.lightPx = TP.on ? tplLight(P, byId(TP.on)) : null; o.linePx = o.lightPx ? +linePx(o.lightPx).toFixed(1) : null; o.rock = +TPL.rock.toFixed(2); o.gold = +edgeMat.opacity.toFixed(2);
           o.yard = yard.filter((s) => !s.gone).map((s) => ({ id: s.id, len: s.len, at: sc(X, s.x, yTop, s.z - 0.25), marked: s.marked, dull: s.dull }));
         }
         if (A.phase === 'row') {
-          o.row = { left: A.row.left.slice(), right: A.row.right.slice() }; o.loose = A.loose.map((L) => { const p = ptAt(L.q, R.R - STP.tread / 2, rTop + 0.18); return { id: L.id, at: sc(X, p[0], p[1], p[2]) }; }); o.next = nextSide(A.row);
+          o.row = { left: A.row.left.slice(), right: A.row.right.slice() }; o.loose = A.loose.map((L) => { const p = ptAt(L.q, R.R - STP.tread / 2, rTop + 0.18); return { id: L.id, at: sc(X, p[0], p[1], p[2]) }; }); o.next = nextSide({ ...A.row, dressed: A.dressed }, P);
           o.rest = F.rest; o.mid = F.mid; o.bull = F.bull; o.over = F.over; o.gape = F.gape; o.sL = F.sL; o.sR = F.sR;
           o.tray = A.tray.map((t2) => { const pL = ptAt(targetQ(t2.len, 'left')), pR = ptAt(targetQ(t2.len, 'right')); return { id: t2.id, len: t2.len, at: sc(X, t2.me.position.x, t2.me.position.y + 0.25, t2.me.position.z), toL: sc(X, pL[0], pL[1] + 0.15, pL[2]), toR: sc(X, pR[0], pR[1] + 0.15, pR[2]) }; });
           o.laid = [...A.row.left.map((id) => ['left', id]), ...A.row.right.map((id) => ['right', id])].map(([sd, id]) => { let q = sd === 'left' ? P.g0 : P.g0 + P.G; const L = A.row[sd]; for (const x of L) { if (x === id) break; q += (sd === 'left' ? 1 : -1) * byId(x).len; } const qc = q + (sd === 'left' ? 1 : -1) * byId(id).len / 2, p = ptAt(qc); return { id, side: sd, at: sc(X, p[0], p[1], p[2]) }; });
@@ -383,6 +468,11 @@ export const RING = {
         }
         if (A.k) { const s = A.k; Object.assign(o, { a: +s.a.toFixed(3), b: +s.b.toFixed(3), tol: s.tol, lag: s.lag, jam: s.jam, jamT: +s.jamT.toFixed(2), jams: s.jams, pend: s.q.some((e) => e[1] || e[2]) || Object.keys(A.fing).length > 0, corner: s.corner, crack: s.crack, dmg: s.dmg, barA: barScr(barA), barB: barScr(barB), dir: pushDir().map((v) => +v.toFixed(3)), pxf: PXF }); }
         if (A.phase === 'moment') o.mT = +A.mT.toFixed(2);
+        // ── h128 ── (T8) the ring's own rule, as the bot and the stills read it
+        o.rule = P.rule; o.off = P.off; o.order = P.order; o.hoist = H.state; o.dressed = A.dressed.slice(); o.dressing = A.dressing ? { ...A.dressing } : null;
+        o.long = P.yard.filter((y) => isLong(y)).map((y) => y.id); o.mason = masonScr(); o.cordQ = +(cord.position.x).toFixed(2);
+        if (H.g && H.state !== 'gone') { const q = ptAt(HB === 'left' ? P.g0 + 3 : P.g0 + P.G - 3, R.R - STP.tread / 2, R.top + 3.1); o.hoistAt = sc(X, q[0] + H.g.position.x, q[1], q[2] + H.g.position.z); }
+        // ── /h128 ──
         o.pts = ringPts({ dmg: A.k ? A.k.dmg : 0, wrongCarried: A.wrongCarried, firstLay: A.firstLay, jams: A.k ? A.k.jams : 0 });
         return o;
       },

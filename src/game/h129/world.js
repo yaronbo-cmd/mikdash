@@ -235,7 +235,7 @@ export function rebuild(X, force) {
   // the great vault: its rings as built (ring 1 the player's, the rest the crews'); the centering under the next ring; the damage
   if (!own.vM) {
     const g = grp('vM'), A = V.M;
-    for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : M.h7stone); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
+    for (let i = 1; i <= S.rings; i++) { const geos = ringGeos(X, i); geos.forEach((ge, j) => { const m = new T.Mesh(ge, i === 1 && S.vstone.M && j === 3 ? M.h7shade : vaultIn(M, T)); m.castShadow = true; m.receiveShadow = true; g.add(m); }); }
     if (S.rings < A.rings) ringCentering(X, S.rings ? S.rings + 1 : 1, g);
     if (S.vcrack.M) {   // (up the ring's west face from the crown's joint, and across its soffit)
       const xw = A.east - A.ringD - 0.05, yc = A.spring + A.R, z0 = A.axisZ + 0.6;
@@ -256,6 +256,8 @@ export function crackLine(X, x, y, z, parent, up) {
   for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); const m = new T.Mesh(X.props.geo.box, M.h7crack); m.scale.set(up ? L : 0.06, up ? 0.04 : L, up ? 0.06 : 0.06); m.position.set(up ? (a[0] + b[0]) / 2 : 0, up ? 0 : (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); m.rotation.set(up ? 0 : Math.atan2(b[1] - a[1], b[0] - a[0]), up ? -Math.atan2(b[1] - a[1], b[0] - a[0]) : 0, 0); g.add(m); }
   g.position.set(x, y, z); (parent || X.props.root).add(g); return g;
 }
+/** the great vault's stone seen from both sides (from the hall under it the intrados reads lit by the fire, round 3) */
+const vaultIn = (M, T) => M.h7stone2 || (M.h7stone2 = Object.assign(M.h7stone.clone(), { side: T.DoubleSide }));
 /** a crack along a run of points (a dark jagged line on a face or a ceiling) */
 export function crackRun(X, P, parent, t = 0.045) {
   const M = mats7(X), T = X.THREE, g = new T.Group();

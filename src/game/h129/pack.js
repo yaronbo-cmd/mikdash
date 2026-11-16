@@ -95,7 +95,7 @@ export function makePack07(env = {}) {
       try {
         vaultWhole(X); roofsOpen(X, true); rig.apply(1);
         const pics = [[CAM.end[0], PLINES.end1], [CAM.end[1], PLINES.end2], [CAM.end[2], PLINES.end3]];
-        for (const [c, line] of pics) { X.shot(c[0], c[1], 1.8); X.line(line, 0); await tapOr(X, 4200); }
+        for (const [c, line] of pics) { try { rig.moon(c !== CAM.end[0]); } catch (e) { /* */ } X.shot(c[0], c[1], 1.8); X.line(line, 0); await tapOr(X, 4200); }   // (round 3: outside the hall, the moon)
         X.line('');
         await card(X, `<b style="font:900 20px Heebo,system-ui">בית המוקד</b>${cite(LINES.middot19)}`, 10000);
         const done = PLAN.filter((m2) => !(st.res[m2.id] && st.res[m2.id].skip)), stars = done.reduce((a, m2) => a + ((st.res[m2.id] && st.res[m2.id].stars) | 0), 0);

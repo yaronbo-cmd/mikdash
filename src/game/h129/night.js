@@ -18,6 +18,8 @@ import { card, cite, holdLens } from './ui7.js';
 import { fingers, MOUSE, onY } from '../h113/acts.js';
 import { gripR } from '../h109/grips.js';
 import { BOOK } from '../world/grid.js';
+import { makeLeaf, mats as mats4 } from '../h113/world.js';
+import { H113 } from '../h113/model.js';
 
 const S7 = BOOK.s07, N7 = S7.night, CAM = S7.cam, F16 = S7.floors.azara, HS = N7.slabSize;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -29,61 +31,107 @@ const FL = Array.from({ length: 32 }, (_, i) => { const v = Math.sin(i * 12.9898
 const flick = (t, i) => { const f = t * 9 + i * 5.3, a = Math.floor(f), u = f - a; return FL[a % 32] * (1 - u) + FL[(a + 1) % 32] * u; };
 const LOCKS = () => N7.gates.map((id) => { const e = BOOK.s04.entries.find((q) => q.id === id), L = N7.locks[id]; return e && L ? { id, label: e.label, ...L } : null; }).filter(Boolean);
 
-/** the night's look: the world's clock at the dark night, the fire on the hearth (its logs, its flames, its embers, its light); apply(k)
- *  on, off() */
+/** the night's look: the world's clock at the dark night, the fire on the hearth — a מדורה of long logs (3–4 amot) laid crosswise in
+ *  three layers, embers glowing between them, many flames of different heights flickering by the fixed table, its ring of hearth
+ *  stones; its light. The world's own small hearth (temple.js set 'lishka:hearth') steps aside while it burns. apply(k) on, off() */
 export function nightRig(X) {
   const T = X.THREE, M = mats7(X), g = new T.Group(); g.name = 'h129-night'; let on = false, t = 0;
-  const h = N7.hearth;
-  const logM = M.h7log || (M.h7log = new T.MeshStandardMaterial({ color: '#2E2016', roughness: 1, flatShading: true }));
-  // the logs laid crosswise, two layers of three
-  for (let L = 0; L < 2; L++) for (let i = -1; i <= 1; i++) {
-    const l = new T.Mesh(new T.CylinderGeometry(0.12, 0.14, 1.5, 7), logM); l.rotation.z = Math.PI / 2; if (L) l.rotation.y = Math.PI / 2;
-    l.position.set(h[0] + (L ? i * 0.36 : 0), F16 + 0.14 + L * 0.24, h[1] + (L ? 0 : i * 0.36)); l.castShadow = true; g.add(l);
-  }
-  const ring = new T.Mesh(new T.TorusGeometry(1, 0.18, 6, 16), M.h7holy); ring.rotation.x = Math.PI / 2; ring.position.set(h[0], F16 + 0.1, h[1]); g.add(ring);
-  // the embers under the logs
-  const emberM = new T.MeshBasicMaterial({ color: 0xC2410C }), emberH = new T.MeshBasicMaterial({ color: 0xFF7A26 });
-  const bed = new T.Mesh(new T.CircleGeometry(0.75, 14), emberM); bed.rotation.x = -Math.PI / 2; bed.position.set(h[0], F16 + 0.02, h[1]); g.add(bed);
-  const embers = []; for (let i = 0; i < 9; i++) { const a = i * 2.39, r = 0.25 + 0.4 * FL[i]; const e = new T.Mesh(X.props.geo.box, emberH); e.scale.setScalar(0.07 + 0.05 * FL[i + 9]); e.position.set(h[0] + Math.cos(a) * r, F16 + 0.05, h[1] + Math.sin(a) * r); g.add(e); embers.push(e); }
-  // the flames: orange outer cones, yellow inner ones (no light added on light: nothing burns white on the screen)
-  const outM = new T.MeshBasicMaterial({ color: 0xF26A1B, transparent: true, opacity: 0.78, depthWrite: false }), inM = new T.MeshBasicMaterial({ color: 0xFFB43C, transparent: true, opacity: 0.85, depthWrite: false });
+  const h = N7.hearth, F = N7.fire, at = (x, y, z) => [h[0] + x, F16 + y, h[1] + z];
+  const logM = M.h7log || (M.h7log = new T.MeshStandardMaterial({ color: '#3A2A1C', roughness: 1, flatShading: true }));
+  const charM = M.h7char || (M.h7char = new T.MeshStandardMaterial({ color: '#1E1712', roughness: 1, flatShading: true }));
+  const hsM = M.h7hearth || (M.h7hearth = new T.MeshStandardMaterial({ color: '#8A7E70', roughness: 1, flatShading: true }));
+  // the hearth's ring of rough stones (rounded, never cubes) and its bed of ash
+  const stoneG = new T.IcosahedronGeometry(1, 1);
+  for (let i = 0; i < F.ringN; i++) { const a = (i / F.ringN) * Math.PI * 2 + FL[i] * 0.2, q = new T.Mesh(stoneG, hsM); q.scale.set(0.3 + 0.08 * FL[i + 3], 0.18 + 0.06 * FL[i + 7], 0.26 + 0.07 * FL[i + 11]); q.rotation.y = a + FL[i + 5]; q.position.set(...at(Math.cos(a) * F.ringR, 0.12, Math.sin(a) * F.ringR)); q.castShadow = true; q.receiveShadow = true; g.add(q); }
+  const ash = new T.Mesh(new T.CircleGeometry(F.ringR - 0.2, 24), new T.MeshStandardMaterial({ color: '#2A2420', roughness: 1 })); ash.rotation.x = -Math.PI / 2; ash.position.set(...at(0, 0.012, 0)); g.add(ash);
+  // the logs: three layers crosswise (along x, along z, along x), each a long round log with its charred ends
+  const logs = [];
+  F.layers.forEach((L, li) => L.forEach((off, i) => {
+    const k = li * 3 + i, len = F.len[0] + (F.len[1] - F.len[0]) * FL[k + 13], r = F.r * (0.85 + 0.3 * FL[k + 2]), lg = new T.Group();
+    const body = new T.Mesh(new T.CylinderGeometry(r, r * 1.06, len, 9), logM); body.rotation.z = Math.PI / 2; body.castShadow = true; lg.add(body);
+    for (const e of [-1, 1]) { const c = new T.Mesh(new T.CircleGeometry(r * 0.98, 9), charM); c.rotation.y = (e * Math.PI) / 2; c.position.x = (e * len) / 2 + e * 0.002; lg.add(c); }
+    const y = F.r + li * 2 * F.r * 0.9, along = li % 2 ? Math.PI / 2 : 0;
+    lg.rotation.y = along + (FL[k + 21] - 0.5) * 0.14; lg.position.set(...(li % 2 ? at(off, y, 0) : at(0, y, off))); g.add(lg); logs.push(lg);
+  }));
+  // the embers: a glowing bed under the logs and coals between the layers (three shades, swapped by the table)
+  const emberMs = [0x7A1E06, 0xC2410C, 0xFF8A2A].map((c) => new T.MeshBasicMaterial({ color: c }));
+  const bed = new T.Mesh(new T.CircleGeometry(F.ringR - 0.7, 20), emberMs[0]); bed.rotation.x = -Math.PI / 2; bed.position.set(...at(0, 0.02, 0)); g.add(bed);
+  const coalG = new T.SphereGeometry(1, 7, 5), embers = [];
+  for (let i = 0; i < F.embers; i++) { const a = i * 2.39996, r = (F.ringR - 0.8) * Math.sqrt((i + 0.5) / F.embers), lay = i % 3, e = new T.Mesh(coalG, emberMs[1 + (i % 2)]); e.scale.set(0.09 + 0.07 * FL[i % 32], 0.05 + 0.03 * FL[(i + 9) % 32], 0.08 + 0.06 * FL[(i + 4) % 32]); e.position.set(...at(Math.cos(a) * r, 0.04 + lay * 2 * F.r * 0.9, Math.sin(a) * r)); g.add(e); embers.push(e); }
+  // the flames: many, each its own height and width and pace (a teardrop turned on a lathe: no cones, no boxes); orange round, yellow inside
+  const tear = new T.LatheGeometry([[0, 0], [0.55, 0.06], [0.82, 0.2], [0.78, 0.36], [0.55, 0.58], [0.3, 0.8], [0.1, 0.95], [0, 1]].map(([x, y]) => new T.Vector2(x, y)), 10);
+  const fM = [0xD9480F, 0xF26A1B, 0xFFB43C].map((c, i) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: [0.7, 0.8, 0.88][i], depthWrite: false }));
   const flames = [];
-  for (let i = 0; i < 7; i++) {
-    const inner = i >= 4, f = new T.Mesh(new T.ConeGeometry(inner ? 0.15 : 0.27, inner ? 0.75 : 1.25, 7), inner ? inM : outM), a = i * 1.7, r = inner ? 0.12 : 0.3;
-    f.position.set(h[0] + Math.cos(a) * r, F16 + 0.45 + (inner ? 0.35 : 0.6) * 0.5, h[1] + Math.sin(a) * r); f.userData.y0 = f.position.y; f.userData.h = inner ? 0.75 : 1.25; f.renderOrder = inner ? 6 : 5; g.add(f); flames.push(f);
+  for (let i = 0; i < F.flames; i++) {
+    const a = i * 2.39996 + 0.7, r = F.flameR * Math.sqrt((i + 0.5) / F.flames), mid = 1 - r / F.flameR, kind = i % 4 === 0 ? 2 : i % 3 === 0 ? 0 : 1;
+    const H = (F.flameH[0] + (F.flameH[1] - F.flameH[0]) * FL[(i * 7) % 32]) * (0.55 + 0.6 * mid) * (kind === 2 ? 0.6 : 1), W = (0.16 + 0.16 * FL[(i * 5 + 3) % 32]) * (kind === 2 ? 0.7 : 1);
+    const f = new T.Mesh(tear, fM[kind]); f.scale.set(W, H, W); f.position.set(...at(Math.cos(a) * r, 0.3 + 0.5 * FL[(i + 17) % 32] + (kind === 2 ? 0.15 : 0), Math.sin(a) * r)); f.renderOrder = 5 + kind;
+    f.userData = { H, W, pace: 0.7 + 0.8 * FL[(i * 3 + 1) % 32], k: i }; g.add(f); flames.push(f);
   }
-  const light = new T.PointLight(0xFF9A4A, 0, N7.fireLight.dist, N7.fireLight.decay); light.position.set(h[0], F16 + 2.6, h[1]); g.add(light);
-  let fire = 0;
+  const light = new T.PointLight(0xFF9A4A, 0, N7.fireLight.dist, N7.fireLight.decay); light.position.set(...at(0, 2.6, 0)); g.add(light);
+  const moon = new T.Group(); { const hm = new T.HemisphereLight(0x8AA4E8, 0x141A2A, 0.9), md = new T.DirectionalLight(0x9DB6FF, 0.9); md.position.set(...N7.moon.at); md.target.position.set(...N7.moon.aim); moon.add(hm, md, md.target); }
+  let fire = 0, dim = 1;
   const R = {
-    lit: (v) => { fire = v ? 1 : 0; light.intensity = v ? FIRE_I : 0; for (const f of flames) f.visible = !!v; for (const e of embers) e.visible = !!v; bed.visible = !!v; },
+    lit: (v) => { fire = v ? 1 : 0; light.intensity = v ? FIRE_I * dim : 0; for (const f of flames) f.visible = !!v; for (const e of embers) e.visible = !!v; bed.material = v ? emberMs[1] : emberMs[0]; },
+    /** the fire's light only (0 … 1): while the gates are locked far off, the court's own night stays the moon's */
+    dim: (k) => { dim = clamp(+k, 0, 1); },
+    /** the moon over the courts (the finale's pictures outside the hall: the water in the troughs, the Gazit's bench) */
+    moon: (v) => { if (v && !moon.parent) g.add(moon); if (!v && moon.parent) g.remove(moon); },
     apply(k = 1) {
-      if (!on) { on = true; X.props.root.add(g); try { const E = X.pack && X.pack.time; if (E && E.setTime) E.setTime('night'); } catch (e) { /* */ } }
+      if (!on) { on = true; X.props.root.add(g); try { X.stages.subSet('lishka:hearth', false); } catch (e) { /* */ } try { const E = X.pack && X.pack.time; if (E && E.setTime) E.setTime('night'); } catch (e) { /* */ } }
       if (k && fire === 0 && R.autoLit !== false) R.lit(1);
     },
     frame(dt) {
       t += dt; const k = fire ? 1 : 0;
-      light.intensity = k * FIRE_I * (0.88 + 0.24 * flick(t, 0));
-      flames.forEach((f, i) => { const s = 0.75 + 0.5 * flick(t, i + 1); f.scale.set(1, s, 1); f.position.y = f.userData.y0 + (f.userData.h * (s - 1)) / 2; f.rotation.y = i + 0.4 * flick(t * 0.5, i + 3); });
-      embers.forEach((e, i) => { e.material = flick(t * 0.7, i + 7) > 0.55 ? emberH : emberM; });
+      light.intensity = k * dim * FIRE_I * (0.88 + 0.24 * flick(t, 0));
+      for (const f of flames) { const u = f.userData, s = 0.65 + 0.7 * flick(t * u.pace, u.k + 1), w = 0.85 + 0.3 * flick(t * u.pace * 0.7, u.k + 9); f.scale.set(u.W * w, u.H * s, u.W * w); f.rotation.y = u.k + 0.6 * flick(t * 0.4, u.k + 3); }
+      embers.forEach((e, i) => { e.material = emberMs[flick(t * 0.6, i % 32) > 0.62 ? 2 : flick(t * 0.6, i % 32) > 0.3 ? 1 : 0]; });
     },
-    off() { if (!on) return; on = false; X.props.remove(g); try { const E = X.pack && X.pack.time; if (E && E.restoreTime) E.restoreTime(); } catch (e) { /* */ } },
+    off() { if (!on) return; on = false; X.props.remove(g); try { X.stages.subSet('lishka:hearth', true); } catch (e) { /* */ } try { const E = X.pack && X.pack.time; if (E && E.restoreTime) E.restoreTime(); } catch (e) { /* */ } },
   };
-  R.lit(0);
+  void logs; R.lit(0);
   return R;
 }
 
-/** a sleeper: a body under a cloak, a head, the feet — lying along +x of its group (head at +x), on his garment when asked */
-function sleeper(X, x, y, z, a, col, parent, o = {}) {
-  const T = X.THREE, M = mats7(X), g = new T.Group();
-  const cl = new T.MeshStandardMaterial({ color: col, roughness: 1, flatShading: true });
-  if (o.garment) { const gm = new T.Mesh(X.props.geo.box, M.h7cloak); gm.scale.set(2.25, 0.04, 1.0); gm.position.set(0, 0.02, 0); gm.receiveShadow = true; g.add(gm); }
-  const by = o.garment ? 0.04 : 0;
-  const body = new T.Mesh(new T.CylinderGeometry(0.3, 0.26, 1.55, 9), cl); body.rotation.z = Math.PI / 2; body.scale.set(1, 1, 0.75); body.position.set(-0.12, by + 0.24, 0); body.castShadow = true; g.add(body);
-  const feet = new T.Mesh(new T.SphereGeometry(0.2, 8, 6), cl); feet.scale.set(1.2, 0.9, 1.1); feet.position.set(-0.92, by + 0.2, 0); g.add(feet);
-  const head = new T.Mesh(new T.SphereGeometry(0.2, 10, 8), new T.MeshStandardMaterial({ color: '#B98E6A', roughness: 0.9 })); head.position.set(0.86, by + 0.24, 0); g.add(head);
-  const cap = new T.Mesh(new T.SphereGeometry(0.215, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), M.h7cloak); cap.position.copy(head.position); cap.rotation.z = Math.PI / 2; g.add(cap);
-  g.position.set(x, y, z); g.rotation.y = -a; parent.add(g); g.userData.head = [head, cap];
-  return g;
+/** a man of the game's own figures laid down to sleep (h129: the rig laid on its back or its side, a.lie), his garment over him from the
+ *  feet to the chest, on a garment of his own spread on the floor when asked. o: { mid: [x, z], y, head: [hx, hz] (unit: toward his head),
+ *  side (0 on his back, ±1 on a side), variant, young, col2 (hair, beard: an elder's white), scale, cover (colour), under } */
+function sleeperA(X, AC, MT, parent, o) {
+  const T = X.THREE, s = o.scale || 1, [hx, hz] = o.head, half = 1.75 * s, fx = o.mid[0] - hx * half, fz = o.mid[1] - hz * half, yU = o.under ? 0.05 : 0, sd = o.side || 0;
+  const yaw = !sd ? Math.atan2(-hx, -hz) : sd > 0 ? Math.atan2(hz, -hx) : Math.atan2(-hz, hx), lie = !sd ? [-Math.PI / 2, 0] : [0, (sd * Math.PI) / 2];
+  const a = AC ? AC.add(o.variant || 'kohen', fx, fz, { y: o.y + yU + (sd ? 0.42 : 0.34) * s, yaw, scale: s, young: !!o.young, col2: o.col2, fadeIn: false }) : null;
+  if (a) { a.vis = a.visT = 1; a.gang = 1; a.lie = lie; a.lieAt = [o.mid[0], o.mid[1]]; a.yaw = yaw; a.arm = [0.08, 0.1, 0.08, 0.1]; a.armT = a.arm.slice(); if (sd) { a.kn = a.knT = o.knees || 0; } }
+  const along = Math.atan2(hx, hz), parts = [];
+  if (o.under) { const u = new T.Mesh(X.props.geo.box, MT.h7cloak); u.scale.set(1.5 * s, 0.05, 4.1 * s); u.position.set(o.mid[0], o.y + 0.025, o.mid[1]); u.rotation.y = along; u.receiveShadow = true; parent.add(u); parts.push(u); }
+  if (o.cover) {
+    const L = 2.45 * s, r = 0.6 * s, cg = new T.CylinderGeometry(r, r, L, 12, 1, false, Math.PI / 2, Math.PI); cg.rotateX(Math.PI / 2);
+    const c = new T.Mesh(cg, o.cover); c.scale.set(sd ? 0.95 : 1.15, sd ? 1.5 : 1.15, 1); c.rotation.y = along; c.position.set(fx + hx * (L / 2 - 0.12), o.y + yU, fz + hz * (L / 2 - 0.12)); c.castShadow = true; c.receiveShadow = true; parent.add(c); parts.push(c);
+  }
+  return { a, parts, head: [o.mid[0] + hx * half * 0.8, o.mid[1] + hz * half * 0.8] };
+}
+
+/** stage 04's gold, for the night: the goldsmiths' leaf metal with less metalness (by torch and moon it reads as gold, not as black) */
+function nightGold(X) { const M4 = mats4(X); return M4.goldN || (M4.goldN = Object.assign(M4.goldL.clone(), { metalness: 0.35, roughness: 0.45 })); }
+/** a gateway's two leaves, stage 04's own (h113 makeLeaf: planks, battens on the back, the pins), built to the gateway's width w and
+ *  height h, in a group whose x runs along the face and whose −z is the court (the leaves' backs); userData.set(k) swings them (0 open
+ *  into the court, 1 shut), userData.bolt(b) slides the cedar bolt in its bronze brackets (0 drawn back on the left leaf, 1 across the
+ *  joint into the right leaf's brackets) */
+function leavesPair(X, w, h, gold) {
+  const T = X.THREE, M4 = mats4(X), fr = new T.Group(), hs = h / (H113.LEAF_H + 0.5), t = H113.LEAF_T, W = w / 2, yB = 7.2, zB = -(t / 2 + 0.36), Lb = Math.min(4, w * 0.45);
+  const lv = [-1, 1].map((side) => {
+    const g = makeLeaf(X, { side, s: -1, gold: true, rings: 0, width: W - 0.2 });
+    fr.add(g); g.position.set(side * W, 0, 0); g.scale.set(1, hs, 1);
+    g.traverse((m) => { if (m.isMesh && m.material === M4.goldL) m.material = gold; });
+    return g;
+  });
+  // the bronze brackets: two on each leaf's back by the joint (a staple standing off the back, the bolt through it)
+  const brk = (g, x) => { for (const dy of [-0.32, 0.32]) box(X, M4.bronze, x - 0.12, yB + dy - 0.05, zB - 0.22, x + 0.12, yB + dy + 0.05, -t / 2, g); box(X, M4.bronze, x - 0.12, yB - 0.37, zB - 0.27, x + 0.12, yB + 0.37, zB - 0.17, g); };
+  brk(lv[0], W - 0.35 - Lb * 0.8); brk(lv[0], W - 0.55); brk(lv[1], -W + Lb * 0.25); brk(lv[1], -W + Lb * 0.45);
+  const bolt = box(X, M4.cedarD, -Lb / 2, yB - 0.2, zB - 0.16, Lb / 2, yB + 0.2, zB + 0.16, lv[0]);
+  fr.userData.set = (k) => lv.forEach((g, i) => { const side = i ? 1 : -1; g.rotation.y = -side * 1.35 * (1 - clamp(k, 0, 1)); });
+  fr.userData.bolt = (b) => { bolt.position.x = W - 0.35 - Lb / 2 + (Lb * 0.55 + 0.35) * clamp(b, 0, 1); };
+  fr.userData.set(0); fr.userData.bolt(0);
+  return fr;
 }
 
 export const NIGHT = {
@@ -101,24 +149,28 @@ export const NIGHT = {
     const root = new T.Group(); root.name = 'h129-night-act'; X.props.root.add(root);
     const tween = (dur, fn, done) => { A.tw.push({ t: 0, dur, fn, done }); };
     const sl = N7.slab, sx = sl[0], sz = sl[1];
-    // ── the sleepers: elders on the ledges (the two by the north wall drawn toward the slab's side, inside the slab's frame), the young
-    //    kohanim on the floor on their garments — two beyond the slab, four round the fire; none on the slab's way
-    const elders = N7.ledges.map((b, i) => { const lx = b[2] - b[0], lz = b[3] - b[1], along = lx >= lz ? 0 : Math.PI / 2, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, pull = i < 2 ? Math.sign(sx - cx) * Math.max(0, (lx - 2.25) / 2) : 0; return sleeper(X, cx + pull, N7.ledgeY, cz, along + (cx < sx ? Math.PI : 0), ['#5E5A70', '#6A5E4E', '#4E5E6A'][i % 3], root); });
-    const young = [];
-    for (const sg of [-1, 1]) young.push(sleeper(X, sx + sg * 1.9, F16, sz - 2.9, Math.PI / 2, '#E2DAC6', root, { garment: true }));
-    for (let i = 0; i < 4; i++) { const a = Math.PI * (0.2 + (i / 3) * 0.6), r = 4.6; young.push(sleeper(X, N7.hearth[0] + Math.cos(a) * r * 1.35, F16, N7.hearth[1] + Math.sin(a) * r, a + Math.PI / 2, '#E2DAC6', root, { garment: true })); }
-    // ── the kohen kneels beyond the slab (the camera's far side), facing it (his hands at its ring's height); his lamp on the floor by him
-    let kohen = null, kneel = null;   // (the act's kneeling kohen is drawn below; after the lowering he lies on the slab)
-    // (drawn here, not one of the world's figures: a kneeling man in white, his sash and turban, his hands forward toward the ring)
-    { const kx = sx, kz = sz - 1.4, g = new T.Group(), white = new T.MeshStandardMaterial({ color: '#F1ECE0', roughness: 0.9, flatShading: true }), skin = new T.MeshStandardMaterial({ color: '#B98E6A', roughness: 0.9 });
-      const part = (geo, mat, x, y, z, rz = 0, sc = null) => { const q = new T.Mesh(geo, mat); q.position.set(x, y, z); q.rotation.z = rz; if (sc) q.scale.set(...sc); q.castShadow = true; g.add(q); return q; };
-      part(X.props.geo.box, white, -0.12, 0.13, 0, 0, [0.62, 0.26, 0.5]);                                  // (shins and feet under him)
-      part(new T.CylinderGeometry(0.17, 0.24, 0.62, 12), white, -0.12, 0.56, 0, -0.08);                        // (the body, leaning in)
-      part(new T.CylinderGeometry(0.235, 0.235, 0.07, 12), new T.MeshStandardMaterial({ color: '#8A3A4A', roughness: 0.8 }), -0.13, 0.42, 0, -0.08);         // (the sash)
-      part(new T.SphereGeometry(0.13, 10, 8), skin, 0.0, 0.98, 0);                                            // (the head)
-      part(new T.SphereGeometry(0.15, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), white, 0.0, 1.0, 0, 0, [1, 1.1, 1]);   // (the turban)
-      for (const sz2 of [-0.17, 0.17]) part(new T.CylinderGeometry(0.05, 0.045, 0.5, 6), white, 0.1, 0.62, sz2, -1.25);   // (the arms, toward the ring)
-      g.position.set(kx, F16, kz); g.rotation.y = -Math.PI / 2; g.scale.setScalar(1.2); root.add(g); kneel = g; }   // (beyond the slab, facing the camera: never between it and the ring)
+    // ── the sleepers, the game's own figures laid down (true size: a man 3½–4 amot beside the amah slab): the elders of the father's
+    //    house, white-bearded, on the stone ledges — the two by the Azarah's door on their sides (the ledge shorter than a man: his knees
+    //    drawn up), the two in the hall's arms on their backs — each under his garment; the young kohanim on the floor, each on his
+    //    garment, their feet to the fire. None by the door to the Chel (the gate he locks) and none on the slab's way
+    const coverM = ['#5E5A70', '#6A5E4E', '#4E5E6A', '#6B5A48'].map((c) => new T.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+    const youngM = new T.MeshStandardMaterial({ color: '#D9CDB2', roughness: 1, flatShading: true });
+    const sleepers = [], elders = [];
+    N7.ledges.forEach((b, i) => {
+      if (!N7.elderOn.includes(i)) return;
+      const lx = b[2] - b[0], lz = b[3] - b[1], alongX = lx >= lz, cx = (b[0] + b[2]) / 2, cz = (b[1] + b[3]) / 2, hd = alongX ? [cx < sx ? 1 : -1, 0] : [0, 1], side = Math.max(lx, lz) < 3.6;
+      const sg = hd[1] * (sx - cx) - hd[0] * (sz - cz) > 0 ? 1 : -1;   // (on his side facing into the hall: side +1 faces (hz, −hx), −1 the other way)
+      const e = sleeperA(X, AC, MT, root, { mid: [cx, cz], y: N7.ledgeY, head: hd, side: side ? sg : 0, knees: side ? 0.55 : 0, scale: side ? 0.94 : 1, young: false, col2: '#EDEDE8', cover: coverM[i % 4] });
+      elders.push(e); sleepers.push(e);
+    });
+    const H0 = N7.hearth;
+    N7.youngAt.forEach(([ang, r0], i) => { const c = Math.cos(ang * Math.PI), sn = Math.sin(ang * Math.PI), half = 1.75 * 0.96; sleepers.push(sleeperA(X, AC, MT, root, { mid: [H0[0] + c * (r0 + half), H0[1] + sn * (r0 + half)], y: F16, head: [c, sn], side: i % 3 === 1 ? (i % 2 ? 1 : -1) : 0, knees: 0.25, scale: 0.96, young: true, col2: ['#2E2218', '#4A3424', '#1E1A16'][i % 3], cover: youngM, under: true })); });
+    // ── the kohen kneels by the slab, beyond it from the camera, facing it: the game's kohen figure (upright on his heels, bent a little
+    //    toward the ring, his hands forward); the figures gate measures him at his kneeling height. After the lowering he lies on it
+    let kohen = null;
+    const KN = [sx + N7.kneel[0], sz + N7.kneel[1]];
+    if (AC) { kohen = AC.add('kohen', KN[0], KN[1], { y: F16, yaw: Math.atan2(sx - KN[0], sz - KN[1]), scale: 1, young: false, col2: '#3A2A1E', fadeIn: false }); kohen.vis = kohen.visT = 1; kohen.gang = 1; kohen.gateH = 2.7; AC.pose(kohen, 'sit'); kohen.bowT = 0.42; kohen.armT = [1.15, -0.18, 1.15, -0.18]; }
+    const kohenShow = (v) => { if (kohen) { kohen.vis = kohen.visT = v ? 1 : 0; } };
     // ── the slab: lifted flat by its ring (the pit, the chain and the keys under it seen through the gap), the stay hinged at the pit's
     //    east edge; the ring's two sides the two grips, a thin gold ring round each
     const slab = new T.Group(); slab.position.set(sx, F16, sz); root.add(slab);
@@ -142,33 +194,49 @@ export const NIGHT = {
     staySet(0);
     const torch = new T.Group(); { const s = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 1.1, 6), MT.h7timberD); s.rotation.z = Math.PI / 2; torch.add(s); const tip = new T.Mesh(new T.ConeGeometry(0.13, 0.35, 7), new T.MeshBasicMaterial({ color: 0xFF9A3A })); tip.rotation.z = -Math.PI / 2; tip.position.x = 0.7; torch.add(tip); }
     const th0 = [N7.hearth[0] + 3.2, F16 + 0.6, N7.hearth[1] - 1.6]; torch.position.set(...th0); root.add(torch);
-    const lamp = new T.PointLight(0xFFD9A0, 0, 9, 1.6); lamp.position.set(sx + 0.9, F16 + 2.2, sz - 1.6); root.add(lamp);   // (his lamp by the slab: the ring, the pit and the keys read at night)
-    const lampM = new T.Mesh(new T.SphereGeometry(0.08, 8, 6), new T.MeshBasicMaterial({ color: 0xFFC060 })); lampM.position.set(sx + 0.9, F16 + 0.12, sz - 1.6); root.add(lampM); box(X, MT.h7stone, sx + 0.8, F16, sz - 1.7, sx + 1.0, F16 + 0.06, sz - 1.5, root);
-    const cloak = new T.Mesh(X.props.geo.box, MT.h7cloak); cloak.scale.set(HS * 1.15, 0.05, HS * 1.15); cloak.position.set(sx, F16 + 0.15, sz); cloak.visible = false; root.add(cloak);
-    // ── the gates' own pieces while they are locked: the gateway's dark passage, two leaves (open into the court), the bar, a torch
+    const LP = [sx + 1.0, sz + 1.5];   // (his lamp on the floor beside him, by the slab: the ring, the pit and the keys read at night)
+    const lamp = new T.PointLight(0xFFD9A0, 0, 9, 1.6); lamp.position.set(LP[0], F16 + 2.2, LP[1]); root.add(lamp);
+    const lampM = new T.Mesh(new T.SphereGeometry(0.08, 8, 6), new T.MeshBasicMaterial({ color: 0xFFC060 })); lampM.position.set(LP[0], F16 + 0.14, LP[1]); root.add(lampM);
+    { const bowl = new T.Mesh(new T.CylinderGeometry(0.12, 0.08, 0.08, 10), MT.h7stone); bowl.position.set(LP[0], F16 + 0.04, LP[1]); root.add(bowl); }
+    // (his garment, spread over the slab when it is down: he sleeps on it)
+    const cloak = new T.Mesh(X.props.geo.box, MT.h7cloak); cloak.scale.set(4.0, 0.05, 1.5); cloak.position.set(sx, F16 + 0.145, sz); cloak.visible = false; root.add(cloak);
+    // ── the gates' own pieces while they are locked: the gateway's dark passage, its two leaves — stage 04's own leaves (h113 makeLeaf:
+    //    the cedar planks, battens, pins and rings, gold-plated as the goldsmiths left them) — opening into the court, the bolt of cedar
+    //    sliding in its bronze brackets across the joint, the torch beside the gateway
     const gate = new T.Group(); gate.visible = false; root.add(gate);
-    const leafM = MT.h7leaf || (MT.h7leaf = new T.MeshStandardMaterial({ color: '#C99A3C', roughness: 0.6, metalness: 0.15, emissive: '#2A1C08', flatShading: true }));   // (bronze-clad leaves: little metalness, so the torch reads on them at night)
-    const G1 = { pass: box(X, MT.h7dark, -0.5, 0, -0.04, 0.5, 1, 0.04, gate), hinge: [new T.Group(), new T.Group()], leaf: [], bar: box(X, MT.h7iron, -0.5, -0.15, -0.15, 0.5, 0.15, 0.15, gate), lit: new T.PointLight(0xFFB060, 0, 26, 1.5), fl: null };
-    for (const hg of G1.hinge) { gate.add(hg); const pv = new T.Group(); hg.add(pv); const lf = new T.Mesh(X.props.geo.box, leafM); lf.castShadow = true; pv.add(lf); G1.leaf.push(lf); }   // (hinge: the gate's yaw; its pivot: the leaf's swing)
+    const G1 = { pass: box(X, MT.h7dark, -0.5, 0, -0.04, 0.5, 1, 0.04, gate), frame: null, lit: new T.PointLight(0xFFB060, 0, 26, 1.5), fl: null, key: '' };
     gate.add(G1.lit); G1.fl = new T.Mesh(new T.ConeGeometry(0.22, 0.6, 7), new T.MeshBasicMaterial({ color: 0xFFA040 })); gate.add(G1.fl);
     const brk = box(X, MT.h7timberD, -0.06, -0.5, -0.06, 0.06, 0.5, 0.06, gate);
-    /** the gate L's pieces placed in the world: the frame (u along the face, n into the court) */
+    const gold = nightGold(X);
+    /** the gate L's pieces placed in the world (u along the face, n into the court): its leaves built to its size */
     function gatePlace(L) {
       const [ax, ay, az] = L.at, n = L.n, u = [-n[1], n[0]], w = L.w, h = L.h, P = (a, y, b) => [ax + u[0] * a + n[0] * b, ay + y, az + u[1] * a + n[1] * b], yaw = Math.atan2(u[1], u[0]);
-      const pass = P(0, h / 2, 0.02); G1.pass.position.set(...pass); G1.pass.scale.set(w, h, 0.1); G1.pass.rotation.y = -yaw;
-      G1.hinge.forEach((hg, i) => { const sg = i ? 1 : -1, p = P(sg * w / 2, 0, 0.18); hg.position.set(...p); hg.rotation.y = -yaw; hg.userData.sg = sg; const lf = G1.leaf[i]; lf.scale.set(w / 2 - 0.05, h - 0.1, 0.22); lf.position.set(-sg * (w / 4), h / 2, 0); });
-      G1.bar.scale.set(w + 1.2, 1, 1); G1.bar.rotation.y = -yaw; G1.barP = (k) => P((w + 3) * (1 - k), h * 0.45, 0.45);
-      const tp = P(w / 2 + 1.4, S7.night.gateCam.torch, 0.5); brk.position.set(tp[0], tp[1] - 0.5, tp[2]); G1.fl.position.set(tp[0], tp[1] + 0.3, tp[2]); G1.lit.position.set(tp[0] + n[0] * 1.5, tp[1] + 0.8, tp[2] + n[1] * 1.5);
+      const pass = P(0, h / 2, 0.06); G1.pass.position.set(...pass); G1.pass.scale.set(w, h, 0.1); G1.pass.rotation.y = -yaw;
+      const key = w + 'x' + h;
+      if (G1.key !== key) { if (G1.frame) { gate.remove(G1.frame); } G1.frame = leavesPair(X, w, h, gold); gate.add(G1.frame); G1.key = key; }
+      G1.frame.position.set(...P(0, 0, 0.5)); G1.frame.rotation.y = Math.atan2(-u[1], u[0]);   // (in the court just before the gateway's face: the wall never swallows the closed leaves)
+      const tp = P(w / 2 + 1.4, Math.min(S7.night.gateCam.torch, h * 0.7), 0.5); brk.position.set(tp[0], tp[1] - 0.5, tp[2]); G1.fl.position.set(tp[0], tp[1] + 0.3, tp[2]); G1.lit.position.set(tp[0] + n[0] * 3, tp[1] + 1.2, tp[2] + n[1] * 3);
       G1.n = n; G1.u = u;
     }
-    /** the leaves at k (0 open into the court, 1 shut) */
-    const leavesSet = (k) => G1.hinge.forEach((hg) => { const sg = hg.userData.sg; hg.children[0].rotation.y = sg * (Math.PI / 2) * (1 - k) * 0.95; });
+    /** the leaves at k (0 open into the court, 1 shut); the bolt at b (0 drawn back in its leaf's brackets, 1 across the joint) */
+    const leavesSet = (k) => G1.frame && G1.frame.userData.set(k);
+    const boltSet = (b) => G1.frame && G1.frame.userData.bolt(b);
     // ── the moon while the gates are locked: a cool light over the court, strong enough to read walls and gates
     const moon = new T.Group(); const hemi = new T.HemisphereLight(0x8AA4E8, 0x141A2A, 1.0), mdir = new T.DirectionalLight(0x9DB6FF, 0.95); mdir.position.set(...N7.moon.at); mdir.target.position.set(...N7.moon.aim); moon.add(hemi, mdir, mdir.target);
     const moonOn = (v) => { if (v) X.props.root.add(moon); else X.props.root.remove(moon); };
-    // ── the Levite outside: he stands at the hall's north door, then lies down across it
-    const leviP = new T.Group(); leviP.position.set(N7.levi[0] - 1.1, N7.levi[2], N7.levi[1]); root.add(leviP); leviP.visible = false;
-    sleeper(X, 1.1, 0, 0, 0, '#DCCDAE', leviP, { garment: true });
+    // ── the Levite outside the hall's door to the Chel: the game's Levite figure lying across the threshold on his garment, his small
+    //    lamp by his head; behind him the door's two leaves shut (stage 04's leaves, as at the gates)
+    const leviG = new T.Group(); leviG.visible = false; root.add(leviG);
+    const LV = N7.levi, LD = N7.leviDoor;
+    let levi = null;
+    { const fr = leavesPair(X, LD.w, LD.h, gold); fr.userData.set(1); fr.userData.bolt(1); fr.position.set(LV[0], LV[2], N7.door.chel[1] - LD.out); fr.rotation.y = Math.PI; leviG.add(fr);
+      const lp = [LV[0] + 2.3, LV[1] - 0.4]; const lm = new T.Mesh(new T.SphereGeometry(0.09, 8, 6), new T.MeshBasicMaterial({ color: 0xFFC060 })); lm.position.set(lp[0], LV[2] + 0.16, lp[1]); leviG.add(lm);
+      const lb = new T.Mesh(new T.CylinderGeometry(0.14, 0.09, 0.09, 10), MT.h7stone); lb.position.set(lp[0], LV[2] + 0.05, lp[1]); leviG.add(lb);
+      const ll = new T.PointLight(0xFFC070, 2.5, 8, 1.6); ll.position.set(lp[0], LV[2] + 1.2, lp[1] - 1.8); leviG.add(ll); }
+    const leviOn = (v) => {
+      if (v && !levi && AC) { const L = sleeperA(X, AC, MT, leviG, { variant: 'levite', mid: [LV[0], LV[1] - 1.3], y: LV[2], head: [1, 0], side: 0, young: false, col2: '#3A2A1E', cover: coverM[1], under: true }); levi = L.a; }
+      if (!v && levi && AC) { try { AC.remove(levi); } catch (e) { /* */ } levi = null; }
+    };
     // ── a fade, for the cuts (never a flight through walls)
     const fadeEl = document.createElement('div'); fadeEl.className = 'h109-ui'; fadeEl.style.cssText = 'position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:55;transition:opacity .35s'; document.body.appendChild(fadeEl);
     const fade = async (eye, aim, fov) => { fadeEl.style.opacity = '1'; await X.wait(0.4); X.shot(eye, aim, 0.01); if (fov) lens(fov); await X.wait(0.15); fadeEl.style.opacity = '0'; await X.wait(0.3); };
@@ -185,7 +253,7 @@ export const NIGHT = {
     // (the right thumb's look in the hall: up under the vault, never out through its walls; at the gates the court's own look)
     SH7.lookFn = (base, u, yaw) => {
       if (A.phase === 'lock' || A.phase === 'levi') return null;
-      const e = Math.pow(sm((+u || 0) / 0.75), 1.7), P1 = [sx, F16 + 8.5, sz + 6.5], T1 = [sx, F16 + 0.4, sz - 1.5], fv = Number.isFinite(base.fov) ? base.fov : 50, yw = clamp(+yaw || 0, -0.8, 0.8);
+      const e = Math.pow(sm((+u || 0) / 0.75), 1.7), P1 = [sx, F16 + 8.5, sz - 5.0], T1 = [sx, F16 + 0.4, sz + 1.5], fv = Number.isFinite(base.fov) ? base.fov : 50, yw = clamp(+yaw || 0, -0.8, 0.8);
       const p = base.p.map((v, i) => v + (P1[i] - v) * e), t = base.t.map((v, i) => v + (T1[i] - v) * e);
       if (Math.abs(yw) > 1e-3) { const dx = p[0] - t[0], dz = p[2] - t[2], c = Math.cos(yw), s = Math.sin(yw); p[0] = t[0] + dx * c - dz * s; p[2] = t[2] + dx * s + dz * c; }
       const H = S7.vault.M.hall; p[0] = clamp(p[0], H[0] + 1, H[2] - 1); p[2] = clamp(p[2], H[1] + 1, H[3] - 1);
@@ -208,44 +276,50 @@ export const NIGHT = {
       // (the stay swings up under it with a click; the kohen takes the keys from the chain)
       tween(0.35, (u) => staySet(sm(u)), () => { V.knock(2.2); X.quick(gripAt(0), QUICK.holds, plate); });
       await X.wait(0.9);
-      tween(0.6, (u) => { keys.position.y = KEY0[1] + 0.9 * sm(u); keys.position.z = KEY0[2] - 1.0 * sm(u); }, () => { keys.visible = false; });
-      V.lock(0); X.quick({ x: sx, y: F16 + 1.2, z: sz - 0.8 }, 'המפתחות!', null);
+      tween(0.6, (u) => { keys.position.y = KEY0[1] + 0.9 * sm(u); keys.position.z = KEY0[2] + 1.6 * sm(u); }, () => { keys.visible = false; });
+      V.lock(0); X.quick({ x: sx, y: F16 + 1.2, z: sz + 0.6 }, 'המפתחות!', null);
       X.line('נטל את המפתחות מן השלשלת · נעל הכהן מבפנים', 2600); await X.wait(1.6);
-      A.phase = 'lock'; moonOn(true); gate.visible = true;
-      const Ls = LOCKS(), GC = N7.gateCam;
+      // (he goes to lock: away from the slab; each gate seen from inside the court by the moon and its own torch alone — the hall's fire
+      //  does not reach there, and at the hall's own door it is let down too, so every gate's night is the same)
+      A.phase = 'lock'; kohenShow(false); moonOn(true); rig.dim(0); gate.visible = true;
+      const Ls = LOCKS(), GC = N7.gateCam, tn = Math.tan((GC.fov * Math.PI) / 360);
       for (let i = 0; i < Ls.length; i++) {
-        const L = Ls[i], eye = [L.at[0] + L.n[0] * GC.back, L.at[1] + GC.up, L.at[2] + L.n[1] * GC.back], aim = [L.at[0], L.at[1] + Math.min(L.h * 0.42, 8), L.at[2]];
-        gatePlace(L); leavesSet(0); G1.bar.position.set(...G1.barP(0)); G1.lit.intensity = 28;
-        A.lockI = i; await fade(eye, aim, CAM.nightFov); X.line('נועל: ' + L.label, 1800);
+        // (the whole gateway in the frame, its top not cut: back from its inner face so far that its height and a margin fill the lens)
+        const L = Ls[i], back = (L.h * GC.fill) / (2 * tn), yc = L.at[1] + L.h * GC.mid, eye = [L.at[0] + L.n[0] * back, yc + GC.up, L.at[2] + L.n[1] * back], aim = [L.at[0], yc, L.at[2]];
+        gatePlace(L); leavesSet(0); boltSet(0); G1.lit.intensity = GC.lamp * Math.min(1, L.w / 10); A.lockS = 'open';
+        A.lockI = i; A.fov = GC.fov; await fade(eye, aim, GC.fov); X.line('נועל: ' + L.label, 1800);
         await X.wait(0.4);
-        await new Promise((res) => tween(1.2, (u) => leavesSet(sm(u)), res));
+        A.lockS = 'swing'; await new Promise((res) => tween(1.2, (u) => leavesSet(sm(u)), res));
         V.knock(0.8);
-        await new Promise((res) => tween(0.45, (u) => G1.bar.position.set(...G1.barP(sm(u))), res));
-        V.lock(i); X.quick({ x: L.at[0] + L.n[0] * 1.5, y: L.at[1] + Math.min(L.h * 0.55, 6), z: L.at[2] + L.n[1] * 1.5 }, 'ננעל!', null); await X.wait(0.9);
+        A.lockS = 'bolt'; await new Promise((res) => tween(0.45, (u) => boltSet(sm(u)), res));
+        // (the closed leaves flash gold once, gone within 0.4 s of the act's clock; the word on the screen, no glow in the world)
+        V.lock(i); A.flashT = 0.4; const q = scr({ x: L.at[0] + L.n[0] * 1.5, y: L.at[1] + L.h * 0.6, z: L.at[2] + L.n[1] * 1.5 }); X.quick({ sx: q.x, sy: q.y }, 'ננעל!', null);
+        await X.wait(0.5); A.lockS = 'shut'; await X.wait(0.9);
       }
-      gate.visible = false; G1.lit.intensity = 0;
-      A.phase = 'levi'; await fade(CAM.nightLevi[0], CAM.nightLevi[1], CAM.nightFov); leviP.visible = true; leviP.rotation.z = Math.PI / 2;
-      X.line('ובן לוי ישן לו מבחוץ', 2600);
-      await new Promise((res) => tween(1.2, (u) => { leviP.rotation.z = (Math.PI / 2) * (1 - sm(u)); }, res));
-      await X.wait(1.4);
-      moonOn(false); keys.visible = true; keys.position.set(...KEY0);
-      await fade(CAM.nightSlab[0], CAM.nightSlab[1], CAM.nightSlabFov);
+      gate.visible = false; G1.lit.intensity = 0; A.lockS = '';
+      A.phase = 'levi'; A.fov = CAM.nightFov; leviG.visible = true; leviOn(true); await fade(CAM.nightLevi[0], CAM.nightLevi[1], CAM.nightFov);
+      X.line('ובן לוי ישן לו מבחוץ', 3000);
+      await X.wait(2.8);
+      moonOn(false); rig.dim(1); keys.visible = true; keys.position.set(...KEY0); kohenShow(true);
+      await fade(CAM.nightSlab[0], CAM.nightSlab[1], CAM.nightSlabFov); leviG.visible = false; leviOn(false); A.fov = CAM.nightSlabFov;
       A.phase = 'lower'; lift(0.22); halos.forEach((h) => { h.visible = true; });
       X.line('המפתחות חזרו לשלשלת · הורידו את הטבלה לאט: שלשלת שמקשקשת ואבק שעף — מהר מדי', 6000);
       const r = gripAt(-1); X.hand({ x: r.x, y: r.y, z: r.z }, 0, gripR() / 3);
     }
     async function finish(soft) {
       A.phase = 'done'; lift(0); X.hand(null); halos.forEach((h) => { h.visible = false; });
-      cloak.visible = true; V.cloak();
-      if (soft) X.quick({ x: sx, y: F16 + 0.5, z: sz }, 'במקומה!', cloak);
+      if (soft) X.quick({ x: sx, y: F16 + 0.5, z: sz }, 'במקומה!', marble);
       st.night = { bangs: S.bangs, dmg: S.dmg }; X.save();
       await X.wait(1.0);
-      // (he spreads his garment over it and sleeps there)
-      if (kohen) { try { AC.remove(kohen); } catch (e) { /* */ } kohen = null; }
-      if (kneel) kneel.visible = false;
-      sleeper(X, sx, F16 + 0.12, sz, Math.PI / 2, '#EFE9DC', root);
-      X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.6); lens(CAM.nightFov); X.line('נתן כסותו עליה, ישן לו', 2600);
-      await X.wait(2.4);
+      // (he spreads his garment over the slab and lies down on it to sleep: the same figure, laid on his back across it)
+      X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); lens(CAM.nightFov); A.fov = CAM.nightFov;
+      await X.wait(1.3);
+      A.sleepS = 'cloak'; cloak.visible = true; V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
+      await X.wait(1.4);
+      if (kohen && AC) { try { AC.remove(kohen); } catch (e) { /* */ } kohen = null; }
+      const me = sleeperA(X, AC, MT, root, { mid: [sx, sz], y: F16 + 0.17, head: [-1, 0], side: 0, young: false, col2: '#3A2A1E', cover: null });
+      kohen = me.a; A.sleepS = 'asleep'; X.line('ישן לו', 2600);
+      await X.wait(2.6);
       await card(X, `<b style="font:900 20px Heebo,system-ui">טבלת השיש</b>${cite(LINES.middot19)}`, 9000);
       const pts = nightPts(S), q = qOf(pts);
       X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { bangs: S.bangs, 'night.slab': S.dmg ? 1 : 0 }, at: { x: sx, y: F16 + 0.5, z: sz } });
@@ -262,7 +336,7 @@ export const NIGHT = {
         if (e.e === 'loss') { const p = Mo.mark('night.slab', m.id, [sx, sz]); const c = box(X, MT.h7crack, sx + HS / 2 - 0.4, F16 + 0.125, sz + HS / 2 - 0.3, sx + HS / 2 - 0.02, F16 + 0.14, sz + HS / 2 - 0.27, root); c.rotation.y = 0.6; V.crack(); X.loss(p, { x: sx, y: F16 + 0.4, z: sz }, LOSS['night.slab'][0]); }
         if (e.e === 'down') finish(e.soft);
       }
-      if (bangT > 0) { bangT -= dt; const hd = elders[0].userData.head; for (const q of hd) q.position.y = 0.24 + (bangT > 0 ? 0.25 : 0); }
+      if (bangT > 0) { bangT -= dt; for (const e of elders) if (e.a) e.a.lieHp = bangT > 0 ? 0.7 : 0; }   // (an elder lifts his head at the bang)
       // (the stone grinds in its seat, its pitch rising with the speed; lowered faster than soft its chain rattles and dust puffs at the
       //  pit's edge — the warning, before the corner cracks)
       const v = Math.abs(S.h - h0) / Math.max(dt, 1e-3);
@@ -296,6 +370,7 @@ export const NIGHT = {
           for (const tw of A.tw.slice()) { tw.t += dt; const u = clamp(tw.t / tw.dur, 0, 1); tw.fn(u); if (u >= 1) { A.tw.splice(A.tw.indexOf(tw), 1); if (tw.done) tw.done(); } }
           if (A.phase !== 'intro' && A.phase !== 'fire') V.fire(A.phase === 'lock' || A.phase === 'levi' ? 0.1 : 0.5);
           if (G1.fl && gate.visible) G1.fl.scale.y = 0.8 + 0.4 * flick(A.t, 2);
+          if (A.flashT > 0) { A.flashT = Math.max(0, A.flashT - dt); const k = A.flashT / 0.4; gold.emissiveIntensity = 0.25 + 1.1 * k * k; }   // (the leaves' gold flash: 0.4 s)
           if (A.phase === 'lift' || A.phase === 'lower') stepSlab(dt);
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] night', e && e.message); } }
       },
@@ -305,8 +380,8 @@ export const NIGHT = {
       holds() { return A.fing.size > 0; },
       end() {
         lift(0); FG.detach(); V.stop(); X.hand(null); fadeEl.remove(); lens(fov0); moonOn(false); if (SH7.lookFn) SH7.lookFn = null;
-        if (kohen) { try { AC.remove(kohen); } catch (e) { /* */ } }
-        X.props.remove(root); void young;
+        if (AC) for (const a of [kohen, levi, ...sleepers.map((q) => q.a)]) { if (a) { try { AC.remove(a); } catch (e) { /* */ } } }
+        X.props.remove(root);
         own('slab', 0); setBusy(X, 0);
         // (the night stays for the pack's finale, which turns it off)
       },
@@ -315,7 +390,7 @@ export const NIGHT = {
         const G = gripsPx(), tq = scr(torch.position), hq = scr({ x: N7.hearth[0], y: F16 + 0.6, z: N7.hearth[1] }), c0 = scr({ x: sx - HS / 2, y: F16 + 0.12, z: sz }), c1 = scr({ x: sx + HS / 2, y: F16 + 0.12, z: sz });
         return { id: m.id, phase: A.phase, mouse: MOUSE, ev: A.ev.slice(-10), nf: FG.n, n: A.fing.size, need: need(), h: +S.h.toFixed(3), v: +S.v.toFixed(3), sphase: S.phase, bangs: S.bangs, dmg: S.dmg,
           grips: G.map((q) => [Math.round(q.x), Math.round(q.y)]), ring: [Math.round((G[0].x + G[1].x) / 2), Math.round((G[0].y + G[1].y) / 2)], gripHit: Math.round(gripHit()), slabPx: Math.round(Math.hypot(c1.x - c0.x, c1.y - c0.y)),
-          torch: [Math.round(tq.x), Math.round(tq.y)], hearth: [Math.round(hq.x), Math.round(hq.y)], unit: Math.round(unit()), open: SLAB.OPEN, soft: SLAB.SOFT, lockI: A.lockI, nLocks: LOCKS().length };
+          torch: [Math.round(tq.x), Math.round(tq.y)], hearth: [Math.round(hq.x), Math.round(hq.y)], unit: Math.round(unit()), open: SLAB.OPEN, soft: SLAB.SOFT, lockI: A.lockI, nLocks: LOCKS().length, lockS: A.lockS || '', gbox: G1.frame && gate.visible ? (() => { const bx = new T.Box3().setFromObject(G1.frame); return [bx.min.toArray().map((v) => +v.toFixed(2)), bx.max.toArray().map((v) => +v.toFixed(2))]; })() : null, frameAt: G1.frame ? G1.frame.position.toArray().map((v) => +v.toFixed(2)) : null, frameRy: G1.frame ? +G1.frame.rotation.y.toFixed(2) : null, flash: +(A.flashT || 0).toFixed(2), sleepS: A.sleepS || '', kohen: kohen ? { vis: kohen.vis, off: !!kohen.gateOff, lie: !!kohen.lie } : null, sleepers: sleepers.map((q) => (q.a ? (q.a.gateOff ? 'off' : 'on') : '-')).join('') };
       },
     };
   },

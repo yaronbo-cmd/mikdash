@@ -761,7 +761,21 @@ const S07 = {
     // high, ten wide); the gate houses' depth (temple.js gate(): 14, its outer face the entry's z); Nikanor's half depth and the Israel
     // court's floor; Beit HaMoked's door to the Chel from inside the hall (its wall 1 amah, the hall's floor 16; temple.js door('N', −83 …):
     // 6 wide inside, between the two north ledges)
-    gateCam: { back: 15, up: 8, torch: 6.5 },
+    // (round 3) the whole gateway in the frame, its top not cut: the lens (degrees), the share of the frame's height the gateway's height
+    // takes (back from its face as far as that needs), the aim's height on the gateway (share of its height), the eye over the aim, the
+    // torch's light (the full-size gates; a smaller gateway less) and the torch's height
+    gateCam: { fov: 60, fill: 1.5, mid: 0.55, up: 1.5, lamp: 18, torch: 6.5 },
+    // (round 3) the מדורה: long logs (3–4 amot) crosswise in three layers (offsets across each layer), their radius; the ring of hearth
+    // stones; the coals between; the flames (how many, within what radius of the middle, their heights)
+    fire: { layers: [[-0.85, 0, 0.85], [-0.85, 0, 0.85], [-0.45, 0.45]], len: [3.1, 3.9], r: 0.2, ringN: 13, ringR: 2.4, embers: 40, flames: 24, flameR: 1.25, flameH: [0.8, 2.5] },
+    // (round 3) who sleeps where: the elders on ledges 3–6 (the two by the Azarah's door, the two in the hall's arms; none by the door to
+    // the Chel, the gate he locks); the young on the floor round the fire, their feet to it ([angle in half-turns from east toward the
+    // south, the feet's distance from the hearth's middle]); the kohen kneels at the slab's south-west corner, toward
+    // the fire (whole in the hall's frame, off the fire's line and off the sleep picture's line)
+    elderOn: [2, 3, 4, 5], youngAt: [[0, 3.1], [0.2, 3.1], [0.4, 3.1], [0.6, 3.1], [0.8, 3.1], [1, 3.1]], kneel: [-1.4, 1.4],
+    // (round 3) the door the Levite sleeps outside: temple.js door('N', −83, −160, 10, 6, 24): its width and height, its leaves set out
+    // from its face
+    leviDoor: { w: 10, h: 18, out: 0.6 },
     fireLight: { dist: 34, decay: 1.6 }, moon: { at: [-60, 120, 70], aim: [-80, 16, 0] },
     gateIn: { w: 10, h: 20, depth: 14, nikHalf: 7, mokedWall: 1, mokedW: 6, mokedH: 8 },
     door: { azara: [-160, -58], chel: [-160, -83] },
@@ -799,14 +813,19 @@ const S07 = {
     vaultM: [[-163.5, 31.5, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
     // (part 2) the night: the slab over the fire from the nave (the fire lights it); the hall with the fire and the sleepers, from
     // the nave's south end (x −166 … −154: the four chambers' partitions stand east and west of it, up to 27)
-    night: [[-159, 22.5, -65.5], [-160, 16.3, -76]], nightFov: 50, nightHall: [[-160, 23.5, -61], [-160, 16.5, -73]],
+    night: [[-159, 22.5, -65.5], [-160, 16.3, -76]], nightFov: 50, nightHall: [[-160, 23, -81], [-160, 16.5, -67]],
     // (round 2) the slab close: from 2.5 south of it and 1.6 over the floor, the slab a quarter of the frame and its ring for two thumbs,
     // the two ledges by the north wall with their elders, the young kohanim on the floor beyond it; its lens. The Levite outside, from
     // the Chel's terrace before the hall's north door
-    nightSlab: [[-160, 17.6, -73.5], [-160, 16.2, -77.6]], nightSlabFov: 52,
-    nightLevi: [[-152, 11, -97], [-160, 7.5, -83.5]],
-    // the night's last three pictures: the fire lighting the vault from within; the water standing in the troughs; the round bench
-    end: [[[-160, 18.5, -61], [-160, 27, -73]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
+    // (round 3: from the north of the slab looking south, so the gate he locks in the hall's north wall has no sleepers at its foot: over
+    // the slab the kohen kneeling beyond it, the fire and the young round it, the elders on the ledges by the Azarah's door)
+    nightSlab: [[-160, 17.7, -78.6], [-160, 16.2, -74.6]], nightSlabFov: 52,
+    nightLevi: [[-155.5, 10.5, -92.5], [-160, 7.2, -84.5]],
+    // (round 3) where he sleeps on the slab: from the south-east, the fire beside the camera lighting him
+    nightSleep: [[-153.8, 19.6, -71.8], [-160, 16.4, -76.2]],
+    // the night's last three pictures: the fire lighting the vault from within (round 3: from the hall's west arm, low, along the
+    // barrel's axis — the fire in the lower frame, the vault receding over it); the water standing in the troughs; the round bench
+    end: [[[-173.5, 16.9, -70.5], [-155, 26, -70.5]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and

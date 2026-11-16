@@ -439,9 +439,11 @@ function buildMoked(B, box, cornice, door) {
   { const g = new THREE.TorusGeometry(0.22, 0.05, 6, 14); g.rotateX(Math.PI / 2); g.translate(-160, 16.07, -76); B.geo('iron', g, -999); }
   B.stage('lishka');   // ── h129 ── ── /h129 ──
   // a hearth in the hall (the name "בית המוקד"; illustration)
+  B.stage('lishka:hearth');   // ── h129 ── (its own set: stage 07's night lays its own fire of long logs here, and this steps aside) ── /h129 ──
   for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; box('ash', -160 + Math.cos(a) * 1.3 - 0.3, 16, -70.5 + Math.sin(a) * 1.3 - 0.3, -160 + Math.cos(a) * 1.3 + 0.3, 16.5, -70.5 + Math.sin(a) * 1.3 + 0.3, -999); }
   for (let k = 0; k < 5; k++) { const g = new THREE.CylinderGeometry(0.14, 0.14, 1.8, 6); g.rotateZ(Math.PI / 2); g.rotateY(k * 1.2); g.translate(-160, 16.25 + (k % 2) * 0.12, -70.5); B.geo('dark', g, -999); }
   for (let k = 0; k < 9; k++) { const g = new THREE.IcosahedronGeometry(0.16 + r() * 0.1, 0); g.translate(-160 + (r() - 0.5) * 1.4, 16.2, -70.5 + (r() - 0.5) * 1.4); B.geo('ember', g, -999); }   // ── blooda25 ── (was 'red': the coals of בית המוקד are the ember's orange)
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   // SW — the lambs' chamber: a manger along the west wall, two stall rails, hay in the corners; the middle of the floor
   // (y = 16) stays clear for the lambs (the Life agent places six there)
   { const L = C.lambs;

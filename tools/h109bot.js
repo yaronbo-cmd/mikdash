@@ -1021,11 +1021,12 @@
       const once = (key, r) => { if (K[key]) return null; K[key] = 1; return r; };
       // (a still per phase at lift 0, then at lift 0.3 with the figures' report)
       if (['wick', 'oil', 'climb', 'pour', 'lay', 'light'].includes(a.phase)) {
+        const w0 = once('w0' + a.phase, { wait: 1500 }); if (w0) return w0;   // (the shot settles first)
         const s0 = once('s0' + a.phase, { wait: 300, shot: `${a.id}-${a.phase}`, note: `light: ${a.phase} · figs u0 ${figs()}` }); if (s0) return s0;
         if (window.__BOT_LIFT3) {
           const s1 = once('s1' + a.phase, { eval: '__T.game.h109.X.lookLift(0.3)', wait: 1600, note: 'light: lift 0.3' }); if (s1) return s1;
           const s2 = once('s2' + a.phase, { wait: 100, shot: `${a.id}-${a.phase}-lift03`, note: `light: figs at lift 0.3 ${figs()}` }); if (s2) return s2;
-          const s3 = once('s3' + a.phase, { eval: `__T.game.h109.X.lookLift(${a.phase === 'climb' && !mouse ? 0.22 : 0})`, wait: 1200 }); if (s3) return s3;
+          const s3 = once('s3' + a.phase, { eval: `__T.game.h109.X.lookLift(${a.phase === 'climb' && !mouse ? 0.22 : 0})`, wait: 2600 }); if (s3) return s3;   // (the lift eases back before the bot acts: px per amah settles)
         }
       }
       if (a.look && !a.look.play && (a.look.u > 0.02 || Math.abs(a.look.yaw) > 0.03) && !window.__BOT_LOOKOK) return { tap: [Math.round(W - 30), Math.round(HH * 0.55)], wait: 500, note: 'light: LOOK AWAY u ' + a.look.u + ' · a tap returns the camera' };

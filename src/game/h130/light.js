@@ -159,7 +159,7 @@ export const LIGHT = {
       faceTo(boy, ML.jar[0], ML.jar[2]);
       // he goes to the door of Beit Shemanya; the card says what the chamber was, and the seven measures
       if (boy) { boy.x = ML.jar[0] + 1.3; boy.z = ML.jar[2] - 0.2; boy.y = FLOOR; faceTo(boy, ML.jar[0], ML.jar[2]); boy.armT = [0.9, -0.2, 0.9, -0.2]; }
-      closeShot([ML.jar[0] - 1.2, FLOOR + 0.8, ML.jar[2] + 0.9], CAM.measures[0], 5.6, 0.6, 1.6);
+      closeShot([ML.jar[0] - 1.0, FLOOR + 0.9, ML.jar[2] + 1.0], CAM.measures[0], 7.8, 1.2, 1.6);   // (all seven cups, the jar and the vat whole)
       jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
       // (the act's own seven cups over the world's: the world's hide while it plays)
       try { SL.cups && SL.cups.forEach((c) => { c.visible = false; }); } catch (e) { /* */ }
@@ -254,8 +254,9 @@ export const LIGHT = {
     }
     /** the camera behind him on the ladder, a little to his right (he stands in the left of the frame; the rungs to come above) */
     function camOf(feetY) {
-      const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 2.4 : 3.0, D = lv === 1 ? 6.2 : 7.2;
-      return { p: [c[0] + LD.out[0] * D + R[0] * 2.4, feetY + up + 1.5, c[2] + LD.out[1] * D + R[1] * 2.4], t: [c[0] + R[0] * 0.9 - LD.out[0] * 0.4, feetY + 3.1, c[2] + R[1] * 0.9 - LD.out[1] * 0.4] };
+      // (higher and farther than his head, looking down a little: his feet in the frame, the rungs to come above him)
+      const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 4.6 : 5.4, D = lv === 1 ? 7.4 : 8.6;
+      return { p: [c[0] + LD.out[0] * D + R[0] * 2.2, feetY + up, c[2] + LD.out[1] * D + R[1] * 2.2], t: [c[0] + R[0] * 0.7 + LD.out[0] * 0.3, feetY + 1.9, c[2] + R[1] * 0.7 + LD.out[1] * 0.3] };
     }
     const follow = (d) => { const q = camOf(LD.y(S ? S.rung : 0)); X.track(q.p, q.t, 2.2, d || 0.9); };
     function climbEvents(e) {
@@ -330,7 +331,8 @@ export const LIGHT = {
       A.phase = 'pour'; P = pourFresh(S.oil, 30); A.tilt = 0; A.tiltT = 0;
       bowlOil = oilDisc(X, { x: bowlTop[0], y: bowlTop[1], z: bowlTop[2] }, lv === 1 ? 0.25 : 0.4, lv === 1 ? 0.42 : 0.72, lv === 1 ? 0.3 : 0.5, root);
       const R = [-LD.left[0], -LD.left[1]];
-      shot([bowlTop[0] + LD.out[0] * 4.2 + R[0] * 1.6, bowlTop[1] + 2.4, bowlTop[2] + LD.out[1] * 4.2 + R[1] * 1.6], [bowlTop[0] + LD.out[0] * 0.6, bowlTop[1] + 0.1, bowlTop[2] + LD.out[1] * 0.6], 1.2);
+      const oD = lv === 1 ? 4.2 : 3.4, oU = lv === 1 ? 2.4 : 4.2;   // (at the menorah's head: from higher, looking down into the bowl over its rim)
+      shot([bowlTop[0] + LD.out[0] * oD + R[0] * 1.6, bowlTop[1] + oU, bowlTop[2] + LD.out[1] * oD + R[1] * 1.6], [bowlTop[0] + LD.out[0] * 0.4, bowlTop[1] + 0.1, bowlTop[2] + LD.out[1] * 0.4], 1.2);
       const p0 = jar.position.clone(), h = jarHold();
       jar.quaternion.identity();
       tween(0.7, (u) => jar.position.set(p0.x + (h[0] - p0.x) * sm(u), p0.y + (h[1] - p0.y) * sm(u), p0.z + (h[2] - p0.z) * sm(u)));
@@ -473,7 +475,7 @@ export const LIGHT = {
       begin() {
         FG.attach();
         // which way the strip comes off: toward the screen's right
-        closeShot([W.cloth[0] - 0.2, W.cloth[1], W.cloth[2]], CAM.wicks[0], 4.6, 0.4, 1.3);
+        closeShot([W.cloth[0] + 0.7, W.cloth[1] - 0.1, W.cloth[2] - 0.1], CAM.wicks[0], 6.6, 0.5, 1.3);   // (the boy in the frame's left third, whole)
         later(0.05, () => { const a = X.scr(cx, cy, cz), b = X.scr(cx - 1, cy, cz); pullDir = b.x > a.x ? [-1, 0] : [1, 0]; clothDraw(); });
         X.line(LIGHT_LINES['w' + lv], 2400);
         later(1.6, wickStart);

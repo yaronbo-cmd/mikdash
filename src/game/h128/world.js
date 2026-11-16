@@ -459,7 +459,9 @@ export function rust(X, x, y, z, n = 6, spread = 0.3) {
   }
   for (let k = 0; k < n; k++) {
     const P = RU.p[RU.i = (RU.i + 1) % RU.N], h = ((RU.i * 37 + k * 11) % 17) / 17, h2 = ((RU.i * 53 + k * 7) % 13) / 13;   // (a fixed spread: no randomness)
-    Object.assign(P, { life: 1.1 + 0.4 * h, x: x + (h - 0.5) * spread, y, z: z + (h2 - 0.5) * spread, vx: (h2 - 0.5) * 0.6, vy: 0.2 + 0.3 * h, vz: (h - 0.5) * 0.6, r: h * 6, s: 0.09 + 0.08 * h2 });
+    const px = x + (h - 0.5) * spread, pz = z + (h2 - 0.5) * spread, fy = floorAt(px, pz);
+    // (it falls slowly, as dust, and lies on the floor a while: a short heap of red where the bolt or the hinge grinds)
+    Object.assign(P, { life: 3.2 + 0.6 * h, x: px, y, z: pz, fy: Number.isFinite(fy) && fy < y ? fy + 0.02 : y - 1.2, vx: (h2 - 0.5) * 0.4, vy: 0.15 + 0.2 * h, vz: (h - 0.5) * 0.4, r: h * 6, s: 0.1 + 0.08 * h2 });
   }
 }
 function rustFrame(dt) {
@@ -467,7 +469,7 @@ function rustFrame(dt) {
   let live = 0;
   RU.p.forEach((P, i) => {
     if (P.life <= 0) return; P.life -= dt; live++;
-    P.vy -= 9 * dt; P.x += P.vx * dt; P.y += P.vy * dt; P.z += P.vz * dt; P.r += dt * 9;
+    if (P.y > P.fy) { P.vy -= 4 * dt; P.x += P.vx * dt; P.y = Math.max(P.fy, P.y + P.vy * dt); P.z += P.vz * dt; P.r += dt * 6; }
     if (P.life <= 0) RU.m.makeScale(0, 0, 0);
     else { RU.q.setFromEuler(RU.e.set(P.r, P.r * 0.7, 0)); RU.m.compose(RU.v.set(P.x, P.y, P.z), RU.q, RU.sc.set(P.s, P.s * 0.4, P.s)); }
     RU.mesh.setMatrixAt(i, RU.m);

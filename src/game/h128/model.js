@@ -452,6 +452,23 @@ const FIXED = {
   8: { G: 61, C: 13, left: [7, 12, 5], right: [9, 15], decoy: [14], crackOf: null, strangers: [[11, 6], [10, 12]] },
   15: { G: 44, C: 14, left: [8, 7], right: [15], decoy: [], crackOf: 2, strangers: [[7, 11], [15, 13], [16, 13]] },
 };
+// ── h128 ── (build 128 tuning T8, the owner 16.11) every free ring has one small rule of its own that changes the thinking (fixed, by the
+// ring's number; never the same on two neighbours; each kind four times): 'odd' the closing stone's place off the middle mark by off q
+// (the cord lies there from the start: the two sides need different sums); 'stone' one fitting stone is a problem: a cracked twin (its
+// dull sound under the mallet, as ring 15's) or, on a ring that has its crack already (rings 12–14), one of the row's stones a hair too
+// long (LONG q: a boss on its end; the mason dresses it); 'order' the crew's hoist stands on one end of the row: the side `first` is laid
+// whole before the hoist's end (its crew carries the hoist away when that side is full). Rings 1, 8, 15 have none. salt: another seed for
+// the ring's table search (found once so that every ring above still has its one way: ring 12's first table left ring 13 none)
+export const LONG = 1;
+export const FREE_RULE = Object.freeze({
+  2: Object.freeze({ kind: 'odd', off: 4 }), 3: Object.freeze({ kind: 'order', first: 'right' }), 4: Object.freeze({ kind: 'stone' }),
+  5: Object.freeze({ kind: 'odd', off: 3 }), 6: Object.freeze({ kind: 'order', first: 'left' }), 7: Object.freeze({ kind: 'stone' }),
+  9: Object.freeze({ kind: 'odd', off: 4 }), 10: Object.freeze({ kind: 'order', first: 'right' }), 11: Object.freeze({ kind: 'stone' }),
+  12: Object.freeze({ kind: 'odd', off: 3, salt: 2 }), 13: Object.freeze({ kind: 'order', first: 'left' }), 14: Object.freeze({ kind: 'stone' }),
+});
+/** the row's rules of a plan as rowSolutions takes them */
+export const rowOpt = (P) => ({ joint: P.joint, off: P.off || 0, order: P.order || null });
+// ── /h128 ──
 const PLAN_CACHE = new Map();
 /** the joints (q from the gap's left edge) of an arrangement: each side's stones from its edge; a side's last joint is the hole's edge */
 export function jointsOf(G, C, left, right) {
@@ -477,14 +494,18 @@ export function rowSolutions(G, C, below, stones, opt = {}) {
     };
     left([], 0); return out;
   }
-  if (half !== Math.floor(half)) return out;
+  // ── h128 ── (build 128 tuning T8) opt.off: the hole's place off the middle mark (q toward the right edge: the left side sums half + off,
+  // the right half − off); opt.order 'left' | 'right': that whole side is laid first (the hoist stands on the other end), no turns
+  const off = opt.off || 0, hL = half + off, hR = half - off, first = opt.order || null;
+  if (hL !== Math.floor(hL)) return out;
   const rec = (L, R, sL, sR) => {
-    if (sL === half && sR === half && L.length + R.length && (L.length === R.length || L.length === R.length + 1)) { out.push({ left: L.map((i) => stones[i].id), right: R.map((i) => stones[i].id) }); return; }
-    const toLeft = L.length === R.length;
+    if (sL === hL && sR === hR && L.length + R.length && (first || L.length === R.length || L.length === R.length + 1)) { out.push({ left: L.map((i) => stones[i].id), right: R.map((i) => stones[i].id) }); return; }
+    const toLeft = first === 'left' ? sL < hL : first === 'right' ? sR === hR : L.length === R.length;
+    // ── /h128 ──
     for (let i = 0; i < n; i++) {
       if (used[i]) continue; const l = stones[i].len;
-      if (toLeft) { if (sL + l > half || !clr([sL + l])) continue; used[i] = true; rec([...L, i], R, sL + l, sR); used[i] = false; }
-      else { if (sR + l > half || !clr([G - sR - l])) continue; used[i] = true; rec(L, [...R, i], sL, sR + l); used[i] = false; }
+      if (toLeft) { if (sL + l > hL || !clr([sL + l])) continue; used[i] = true; rec([...L, i], R, sL + l, sR); used[i] = false; }
+      else { if (sR + l > hR || !clr([G - sR - l])) continue; used[i] = true; rec(L, [...R, i], sL, sR + l); used[i] = false; }
     }
   };
   rec([], [], 0, 0);
@@ -505,9 +526,9 @@ function ringJointsAbs(P) {
   return out.map((q) => (q * Q) / R);
 }
 /** the joints of the course below ring i in ring i's gap frame (q from its gap's left edge) */
-function belowOf(i, G) {
+function belowOf(i, G, P = null) {
   if (i === 1) return FOOT.filter((q) => q > 0 && q < G);
-  const P = ringPlan(i - 1), R = ringOf(i).R, g0 = (arcQ(i) - G) / 2;
+  P = P || ringPlan(i - 1); const R = ringOf(i).R, g0 = (arcQ(i) - G) / 2;
   return ringJointsAbs(P).map((a) => (a * R) / Q - g0).filter((q) => q > 0 && q < G).map((q) => +q.toFixed(3));
 }
 function build(i, T) {
@@ -518,34 +539,54 @@ function build(i, T) {
   for (const l of T.right) { const o = { id: id(), len: l, ring: i }; yard.push(o); sol.right.push(o.id); }
   for (const l of T.decoy) yard.push({ id: id(), len: l, ring: i });
   if (T.crackOf != null) { const tw = yard[T.crackOf]; yard.push({ id: id(), len: tw.len, ring: i, crack: 1 }); }
+  if (T.long != null) yard[T.long].long = LONG;   // ── h128 ── (T8: its len is the dressed length; it lies LONG q longer until the mason dresses it) ── /h128 ──
   for (const [l, r] of T.strangers) yard.push({ id: id(), len: l, ring: r });
   // the yard's order on the ground: a fixed shuffle of the ring's own address
   const rn = rngOf(i * 977 + 3); for (let k = yard.length - 1; k > 0; k--) { const j = Math.floor(rn() * (k + 1)); const t = yard[k]; yard[k] = yard[j]; yard[j] = t; }
-  return { i, cls: ringCls(i), joint: L.joint, R: ringOf(i).R, G: T.G, C: T.C, n: T.left.length + T.right.length, yard, sol, tol: L.tol, lag: L.lag, hard: L.hard };
+  const FR = FREE_RULE[i] || null;   // ── h128 ── (T8) ── /h128 ──
+  return { i, cls: ringCls(i), joint: L.joint, R: ringOf(i).R, G: T.G, C: T.C, n: T.left.length + T.right.length, yard, sol, tol: L.tol, lag: L.lag, hard: L.hard,
+    rule: FR ? FR.kind : null, off: FR && FR.kind === 'odd' ? FR.off : 0, order: FR && FR.kind === 'order' ? FR.first : null };
 }
 /** the generated table of a crew ring or a free one (seeded by i; tried until its row has exactly one way and the joints decide it) */
 export function genTable(i, opt = {}) {
   const L = RING_LV[ringCls(i)], LEN = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-  for (let at = 0; at < 20000; at++) {
-    const rn = rngOf(i * 7919 + at * 104729 + 11), pick = () => LEN[Math.floor(rn() * LEN.length)];
+  // ── h128 ── (T8) the free ring's own rule: the hole off the mark, the side laid first, the problem stone
+  const FR = FREE_RULE[i] || {}, off = FR.kind === 'odd' ? FR.off : 0, order = FR.kind === 'order' ? FR.first : null;
+  const crack = L.crack || FR.kind === 'stone', long = FR.kind === 'stone' && L.crack;
+  // ── /h128 ──
+  for (let at = 0; at < 40000; at++) {
+    const rn = rngOf(i * 7919 + at * 104729 + 11 + (FR.salt | 0) * 7727), pick = () => LEN[Math.floor(rn() * LEN.length)];
     const C = 4 + Math.floor(rn() * 11), kL = Math.ceil(L.n / 2), kR = L.n - kL;
     const half = Math.min(16 * kR, Math.max(5 * kL, Math.round(L.n / 2 * 8.5 + (rn() - 0.5) * 6))), G = 2 * half + C;
+    const hL = half + off, hR = half - off;   // ── h128 ── (T8) ── /h128 ──
+    if (hL < 5 * kL || hR < 5 * kR) continue;
     const below = belowOf(i, G), ok = (j) => below.every((k) => Math.abs(j - k) >= L.joint);
-    // (every way each side can reach the middle mark with its joints clear; one pair of them, with no length used twice, is the row)
-    const seqs = (k, from, dir) => { const out = []; const rec = (L, p) => { if (L.length === k) { if (p === half) out.push(L.slice()); return; } for (const l of LEN) { if (L.includes(l) || p + l > half || (L.length < k - 1 && half - p - l < 5)) continue; if (!ok(from + dir * (p + l))) continue; L.push(l); rec(L, p + l); L.pop(); } }; rec([], 0); return out; };
-    const SL = seqs(kL, 0, 1), SR = seqs(kR, G, -1), pairs = [];
-    for (const x of SL) for (const y of SR) if (!y.some((l) => x.includes(l))) pairs.push([x, y]);
+    // (every way each side can reach its mark with its joints clear; one pair of them, with no length used twice, is the row)
+    const seqs = (k, from, dir, hh) => { const out = []; const rec = (L, p) => { if (L.length === k) { if (p === hh) out.push(L.slice()); return; } for (const l of LEN) { if (L.includes(l) || p + l > hh || (L.length < k - 1 && hh - p - l < 5)) continue; if (!ok(from + dir * (p + l))) continue; L.push(l); rec(L, p + l); L.pop(); } }; rec([], 0); return out; };
+    const pairs = [];
+    for (const k of order ? [...Array(L.n - 1).keys()].map((j) => j + 1) : [kL]) {   // ── h128 ── (T8: with a hoist there are no turns, so any split) ── /h128 ──
+      const SL = seqs(k, 0, 1, hL), SR = seqs(L.n - k, G, -1, hR);
+      for (const x of SL) for (const y of SR) if (!y.some((l) => x.includes(l))) pairs.push([x, y]);
+    }
     if (!pairs.length) continue;
     const [left, right] = pairs[Math.floor(rn() * pairs.length)], used = [...left, ...right];
-    const T = { G, C, left, right, decoy: [], crackOf: L.crack ? Math.floor(rn() * L.n) : null, strangers: [] };
+    const T = { G, C, left, right, decoy: [], crackOf: crack ? Math.floor(rn() * L.n) : null, strangers: [] };
+    if (long) T.long = Math.floor(rn() * L.n);   // ── h128 ── (T8) ── /h128 ──
     for (let d = 0; d < L.decoy; d++) { const c = LEN.filter((l) => !used.includes(l)); const l = c[Math.floor(rn() * c.length)]; used.push(l); T.decoy.push(l); }
     const others = [-4, -3, -2, 2, 3, 4].map((o) => i + o).filter((r) => r >= 1 && r <= 15);
     for (let d = 0; d < L.strangers; d++) T.strangers.push([pick(), others[Math.floor(rn() * others.length)]]);
     const P = build(i, T), sound = P.yard.filter((y) => y.ring === i && !y.crack);
-    const S = rowSolutions(G, C, below, sound, { joint: L.joint });
+    const S = rowSolutions(G, C, below, sound, rowOpt(P));
     if (S.length !== 1 || S[0].left.join() !== P.sol.left.join() || S[0].right.join() !== P.sol.right.join()) continue;
     // (the joints decide it: without the course below more than one way would close)
-    if (opt.jointsDecide && rowSolutions(G, C, [], sound, { joint: L.joint }).length < 2) continue;
+    if (opt.jointsDecide && rowSolutions(G, C, [], sound, rowOpt(P)).length < 2) continue;
+    // ── h128 ── (T8) under a player's fixed ring (8, 15) this ring's joints must leave that ring's one way as it is
+    if (FIXED[i + 1]) {
+      P.crew = crewSides(i, G); const U = FIXED[i + 1], Pu = build(i + 1, U), bu = belowOf(i + 1, U.G, P), su = Pu.yard.filter((y) => y.ring === i + 1 && !y.crack);
+      const Su = rowSolutions(U.G, U.C, bu, su, rowOpt(Pu));
+      if (Su.length !== 1 || Su[0].left.join() !== Pu.sol.left.join() || Su[0].right.join() !== Pu.sol.right.join()) continue;
+    }
+    // ── /h128 ──
     return T;
   }
   throw new Error('ringPlan: no unique table for ring ' + i);
@@ -574,17 +615,25 @@ export const stoneSound = (stone) => (stone.crack ? 'dull' : 'clear');
  *  middle mark), turn (laid in turn), bull (rest = C on the mark, every joint clear, every stone the ring's), over [joint q over a
  *  joint below], gape [ids of strangers in the row], joints, cracked } */
 export function rowFit(P, row) {
-  const by = (id) => P.yard.find((y) => y.id === id);
+  const by = (id) => P.yard.find((y) => y.id === id), dressed = row.dressed || [];
+  const len = (s) => s.len + (s.long && !dressed.includes(s.id) ? s.long : 0);   // ── h128 ── (T8: an undressed long stone) ── /h128 ──
   const L = (row.left || []).map(by).filter(Boolean), R = (row.right || []).map(by).filter(Boolean);
-  const sL = L.reduce((a, s) => a + s.len, 0), sR = R.reduce((a, s) => a + s.len, 0), rest = P.G - sL - sR;
-  const J = jointsOf(P.G, P.C, L.map((s) => s.len), R.map((s) => s.len));
+  const sL = L.reduce((a, s) => a + len(s), 0), sR = R.reduce((a, s) => a + len(s), 0), rest = P.G - sL - sR;
+  const J = jointsOf(P.G, P.C, L.map(len), R.map(len));
   const over = J.filter((j) => P.below.some((k) => Math.abs(j - k) < P.joint));
   const gape = [...L, ...R].filter((s) => s.ring !== P.i).map((s) => s.id);
-  const half = (P.G - P.C) / 2, mid = sL === half && sR === half, turn = L.length === R.length || L.length === R.length + 1;
-  return { rest, sL, sR, mid, turn, bull: rest === P.C && mid && turn && !over.length && !gape.length && !(row.loose && row.loose.length), over, gape, joints: J, cracked: [...L, ...R].some((s) => s.crack) };
+  // ── h128 ── (T8) the hole's mark off the middle (P.off); a ring with a hoist: its first side whole before the other, no turns
+  const half = (P.G - P.C) / 2, hL = half + (P.off || 0), hR = half - (P.off || 0), mid = sL === hL && sR === hR;
+  const turn = P.order === 'left' ? !R.length || sL === hL : P.order === 'right' ? !L.length || sR === hR : L.length === R.length || L.length === R.length + 1;
+  const proud = [...L, ...R].filter((s) => s.long && !dressed.includes(s.id)).map((s) => s.id);
+  // ── /h128 ──
+  return { rest, sL, sR, hL, hR, mid, turn, bull: rest === P.C && mid && turn && !over.length && !gape.length && !(row.loose && row.loose.length), over, gape, proud, joints: J, cracked: [...L, ...R].some((s) => s.crack) };
 }
-/** the side the next stone goes to (in turn, the first at the left: north)*/
-export const nextSide = (row) => ((row.left || []).length === (row.right || []).length ? 'left' : 'right');
+/** the side the next stone goes to (in turn, the first at the left: north; on a ring with a hoist, its first side until that is whole) */
+export const nextSide = (row, P = null) => {
+  if (P && P.order) { const F = rowFit(P, row), full = P.order === 'left' ? F.sL >= F.hL : F.sR >= F.hR; return full ? (P.order === 'left' ? 'right' : 'left') : P.order; }
+  return (row.left || []).length === (row.right || []).length ? 'left' : 'right';
+};
 /** a stone let go `off` q from its place against its neighbour: home within a quarter amah (1 q), else it stays loose */
 export const slidesHome = (off) => Math.abs(off) <= 1;
 

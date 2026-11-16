@@ -188,6 +188,20 @@ test('Golah mistakes: pulls that feed the swing knock the wall (spill), crack th
     assert.equal(j.met, 1); assert.equal(j.clashes, A > 0.6 ? 1 : 0, 'A ' + A);
   }
 });
+test('(G5) the last pull on a bucket left to go still never breaks the rim, whenever it comes; one that feeds a live swing does', () => {
+  // (the clean bot's rim stone in golah3: it waited for the swing to die, A < 0.15, and its last stroke came late, at the swing's end:
+  //  the rule fed the dead swing by 0.45 × (0.3 + f) = 0.585 and the bucket arrived at A 0.68 > RIM 0.5)
+  const at = (A, where) => {
+    const s = M.golahFresh('golah3'); s.f = 1; M.pullStep(s); s.y = 1; s.A = A;
+    const T = M.periodNow(s), w = (2 * Math.PI) / T; s.ph = where === 'end' ? Math.PI / 2 : 0; void w;
+    const kind = M.pullStep(s); return { kind, s };
+  };
+  for (const A of [0.05, 0.1, 0.15, 0.19]) for (const where of ['end', 'mid']) {
+    const { kind, s } = at(A, where);
+    assert.equal(s.phase, 'rim'); assert.ok(!s.flags['golah.rim'], `A ${A} at the ${where}: ${kind}`); assert.notEqual(kind, 'feed');
+  }
+  const { kind, s } = at(0.3, 'end'); assert.equal(kind, 'feed'); assert.ok(s.flags['golah.rim'] && s.flags['golah.rim'].length === 1, 'a live swing fed at its end');
+});
 test('the channel: an open sluice takes all the water, a closed one sends it on; all closed it stands, nothing lost; a trough overflows once', () => {
   const s = M.golahFresh('golah3');
   s.head = 1; M.sluiceSet(s, 'B', true); for (let k = 0; k < 600; k++) M.flow(s, DT);

@@ -15,7 +15,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BOOK } from '../world/grid.js';
 import { texAshlar, texPaving, texWood } from '../../tex.js';
 import { createWater } from './water.js';
-import { GOLAH } from './model.js';
+import { GOLAH, H129 } from './model.js';
 import { createActors } from '../../actors.js';
 
 const S7 = BOOK.s07, GL = S7.golah, AR = S7.around, F0 = GL.floor, DEG = Math.PI / 180;
@@ -23,8 +23,10 @@ const S7 = BOOK.s07, GL = S7.golah, AR = S7.around, F0 = GL.floor, DEG = Math.PI
 const SKY_R = 420, FOV = 50, SHADOW = 2048, FOG = { near: 160, far: 700 }, SKY_SEG = { w: 32, h: 16 }, RING_SEG = 36, TRENCH = 0.3, BUCKET = { r0: 0.4, r1: 0.5, h: 0.8, bail: 0.55 };
 export const DEPTH = GL.depth[0];
 const GOLAH_RUN = GOLAH.RUN;
-const CUT_H = 2.2;   // (the cut-away walls' height over the floor)
-const RINGS_N = 10, SEG = { well: [RING_SEG + 20, RINGS_N], head: [28, 16], basin: [RING_SEG, RINGS_N * 2] };   // (the water planes' subdivisions: they heave)
+const CUT_H = 2.2;
+export const LINE_D = 0.34;   // (play: the mason's line in each trough, its measure, this far under the floor; above it the water climbs to the rim)   // (the cut-away walls' height over the floor)
+const MOUTH_CUT = { margin: 0.02, seg: 40 };   // (world: the mask over the well's mouth — a hair wider than the shaft, its circle's segments)
+const RINGS_N = 10, SEG ={ well: [RING_SEG + 20, RINGS_N], head: [28, 16], basin: [RING_SEG, RINGS_N * 2] };   // (the water planes' subdivisions: they heave)
 
 /* ───────── geometry helpers: boxes and plates with world-planar UVs (the world's tiling) and a vertex colour ───────── */
 function planarUV(g, tile) {
@@ -62,9 +64,12 @@ function face(x0, z0, x1, z1, a, b, tile = 24, c = '#ffffff') {
 }
 const circle = (cx, cz, r, n = 28) => Array.from({ length: n }, (_, i) => { const a = (-i / n) * Math.PI * 2; return [cx + r * Math.cos(a), cz + r * Math.sin(a)]; });
 
-export function createGolah3d({ renderer, play = false }) {
-  const scene = new THREE.Scene(), own = [], keep = (o) => { own.push(o); return o; };
-  const camera = new THREE.PerspectiveCamera(FOV, 16 / 10, 0.1, SKY_R * 1.5);
+export function createGolah3d({ renderer, play = false, world = false, camera: cam0 = null }) {
+  // (build 129 G5, world: the station's things only — a Group the built world's scene holds at their book places: no sky, no light,
+  //  no fog, no walls or court of its own; the trench and the basins cut into the world's floor by a depth mask)
+  const scene = world ? new THREE.Group() : new THREE.Scene(), own = [], keep = (o) => { own.push(o); return o; };
+  if (world) scene.name = 'h129-golah';
+  const camera = cam0 || new THREE.PerspectiveCamera(FOV, 16 / 10, 0.1, SKY_R * 1.5);
   const W = createWater(THREE), U = W.U;
 
   /* ── the light: one golden light (light B's colour, as stage 06's sea) and the sky's fill; the shadows drawn once ── */
@@ -73,9 +78,9 @@ export function createGolah3d({ renderer, play = false }) {
   const mid = new THREE.Vector3((AR.gateHouses[0][0] + AR.gateHouses[1][2]) / 2, F0, (AR.house.z + AR.southWall.z[1]) / 2);
   sun.target.position.copy(mid); sun.position.copy(mid).addScaledVector(sunDir, 260); sun.castShadow = true;
   { const c = sun.shadow.camera, h = (AR.gateHouses[1][2] - AR.gateHouses[0][0]) / 2 + 6; c.left = -h; c.right = h; c.top = h; c.bottom = -h; c.near = 60; c.far = 520; sun.shadow.mapSize.set(SHADOW, SHADOW); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04; }
-  scene.add(sun, sun.target, hemi);
+  if (!world) scene.add(sun, sun.target, hemi);
   U.sun.value.copy(sunDir); U.sunCol.value.set('#FFBA6E'); U.sky.value.set('#86A8D8'); U.skyLo.value.set('#F4C99A');
-  scene.fog = new THREE.Fog('#EBCCA4', FOG.near, FOG.far);
+  if (!world) scene.fog = new THREE.Fog('#EBCCA4', FOG.near, FOG.far);
 
   /* ── the sky: a gradient, the sun's glow (one mesh) ── */
   const skyM = keep(new THREE.ShaderMaterial({
@@ -91,7 +96,7 @@ export function createGolah3d({ renderer, play = false }) {
         #include <colorspace_fragment>
       }`,
   }));
-  const sky = new THREE.Mesh(keep(new THREE.SphereGeometry(SKY_R, SKY_SEG.w, SKY_SEG.h)), skyM); sky.frustumCulled = false; sky.renderOrder = -1; sky.name = 'h129-sky'; scene.add(sky);
+  const sky = new THREE.Mesh(keep(new THREE.SphereGeometry(SKY_R, SKY_SEG.w, SKY_SEG.h)), skyM); sky.frustumCulled = false; sky.renderOrder = -1; sky.name = 'h129-sky'; if (!world) scene.add(sky);
 
   /* ── materials: the world's ashlar, paving and wood (its own procedural textures, tex.js), vertex colours for the shaft's dark ── */
   const TA = texAshlar(7), TP = texPaving(17), TW = texWood(61);
@@ -115,6 +120,7 @@ export function createGolah3d({ renderer, play = false }) {
   //  a low course, so the golden light reaches the well and the eye can pass over; the east and south walls stand to their height; dh
   //  the door's height is not drawn)
   const CUT = F0 + CUT_H; void dh;
+  if (!world) {
   stone.push(box(rx0, chel, rz0, rx0 + T1, CUT, rz1), box(rx1 - T1, chel, rz0, rx1, TOP, rz1), box(rx0 + T1, chel, rz1 - T1, rx1 - T1, TOP, rz1));   // west (cut), east, south
   stone.push(box(rx0 + T1, F0 - 1, rz0, dx - dw, CUT, rz0 + T1), box(dx + dw, F0 - 1, rz0, rx1 - T1, CUT, rz0 + T1));   // north (cut), the door's gap
   // (the cut's top: a coping course, so the cut reads as a cut)
@@ -124,6 +130,7 @@ export function createGolah3d({ renderer, play = false }) {
   for (const [a, b, c, d] of AR.gateHouses) stone.push(box(a, chel, b, c, AR.gateTop, d));
   stone.push(box(AR.house.x[0], F0, AR.house.z - 4, AR.house.x[1], AR.house.top, AR.house.z, 30, '#F1E6D2'));
   { const [a, b, c, d] = AR.ulam; stone.push(box(a, F0, b, c, AR.house.top, d, 30, '#F1E6D2')); }
+  }   // (world: the room's walls, the south wall, the gate houses and the House are the world's own)
   // the well: its rim of twelve stones, its shaft down to the water and below (darker as it goes down)
   const [wx, wz] = GL.well, R = GL.shaftR;
   // (play: the rim is a mesh of its own, rebuilt when a stone of it breaks — golah.rim)
@@ -197,12 +204,14 @@ export function createGolah3d({ renderer, play = false }) {
   }
   const AZ = { x0: AR.gateHouses[0][0] + 2, x1: AR.gateHouses[1][2] + 2, z0: AR.house.z, z1: SW.z[0] };
   const floors = [];
+  const ho = hz - hd / 2;
+  if (!world) {
   floors.push(plate([[AZ.x0, AZ.z0], [AZ.x1, AZ.z0], [AZ.x1, rz0], ...notch.slice().reverse(), [AZ.x0, rz0]], null, F0));
   floors.push(plate([[AZ.x0, rz0], [rx0, rz0], [rx0, AZ.z1], [AZ.x0, AZ.z1]], null, F0), plate([[rx1, rz0], [AZ.x1, rz0], [AZ.x1, AZ.z1], [rx1, AZ.z1]], null, F0));
   floors.push(plate([[dx - dw, rz0], [m0[0] - h, rz0], [m0[0] - h, rz0 + T1], [dx - dw, rz0 + T1]], null, F0), plate([[m0[0] + h, rz0], [dx + dw, rz0], [dx + dw, rz0 + T1], [m0[0] + h, rz0 + T1]], null, F0));
   // the room: its floor round the well's mouth; the channel's first short leg from the trough's outlet to the door
-  const ho = hz - hd / 2;
   floors.push(plate([[rx0 + T1, rz0 + T1], [m0[0] - h, rz0 + T1], [m0[0] - h, ho], [m0[0] + h, ho], [m0[0] + h, rz0 + T1], [rx1 - T1, rz0 + T1], [rx1 - T1, rz1 - T1], [rx0 + T1, rz1 - T1]], [circle(wx, wz, R)], F0));
+  }
   // the trench: its bottom and its sides (the outline's edges, down TRENCH); the basins: their bottoms and walls (down TD)
   const tb = F0 - TRENCH;
   floors.push(plate([[m0[0] - h, ho], [m0[0] + h, ho], [m0[0] + h, m1[1] + h], [m0[0] - h, m1[1] + h]], null, tb));
@@ -219,7 +228,26 @@ export function createGolah3d({ renderer, play = false }) {
     const [a, b, c, d] = basin(k); floors.push(plate([[a, b], [c, b], [c, d], [a, d]], null, F0 - TD, 6, '#A79A82'));
     const x = GL.troughs[k][0]; floors.push(face(x - h, d, x + h, d, F0 - TD, tb, 6, '#B8AA92'));   // (the drop from the spur's bed into the basin)
   }
-  const floorMesh = new THREE.Mesh(keep(mergeGeometries(floors)), paveM); floorMesh.receiveShadow = true; floorMesh.castShadow = true; floorMesh.name = 'h129-floor'; scene.add(floorMesh);
+  const floorMesh = new THREE.Mesh(keep(mergeGeometries(floors)), paveM); floorMesh.receiveShadow = !world; floorMesh.castShadow = !world; floorMesh.name = 'h129-floor'; scene.add(floorMesh);
+  // (world) the cut in the world's floor: the trench and the basins are drawn first (CAV), then their opening writes the depth of a
+  // floor a hair above the world's (MASK: no colour) — the world's own floor, drawn after it, fails there and the cut shows. The room's
+  // square hole round the mouth (temple.js h129Golah) closed by a plate to the circle of the shaft.
+  const CAV = -7.5, MASK = -5;   // (after the world's sky dome, -10, and its stars, -9: they are drawn without a depth test)
+  if (world) {
+    floorMesh.renderOrder = CAV;
+    const ring0 = [[m0[0] - h, ho], ...notch.slice(1, -1), [m0[0] + h, ho]];
+    const maskM = keep(new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6 }));
+    const mask = new THREE.Mesh(keep(plate(ring0, null, F0)), maskM); mask.renderOrder = MASK; mask.name = 'h129-cut'; scene.add(mask);
+    // (the well's mouth the same: the world's room floor is whole over it — the shaft, its water, the buckets and the rope are drawn
+    //  before the mask)
+    const mouth = new THREE.Mesh(keep(plate(circle(wx, wz, R + MOUTH_CUT.margin, MOUTH_CUT.seg), null, F0)), maskM); mouth.renderOrder = MASK; mouth.name = 'h129-mouth-cut'; scene.add(mouth);
+  }
+  /** (world) a transparent thing in the cut: drawn with the cut, before the mask (the opaque list, its blending kept) */
+  const inCut = (m, k = 0) => {
+    if (!world || !m) return m;
+    const M = m.material; M.transparent = false; M.blending = THREE.CustomBlending; M.blendSrc = THREE.SrcAlphaFactor; M.blendDst = THREE.OneMinusSrcAlphaFactor; M.blendEquation = THREE.AddEquation;
+    m.renderOrder = CAV + 0.5 + 0.2 * k; return m;
+  };
 
   /* ── the timber: the frame over the well (two posts, braces, the axle) and the wheel (its own mesh: it turns) ── */
   const WH = GL.wheel, ay = F0 + WH.axle, [ax, az] = WH.at, wood = [];
@@ -305,26 +333,31 @@ export function createGolah3d({ renderer, play = false }) {
   headM.uniforms.uBox.value.set(hx, hz, iw / 2, id / 2);
   const headLine = W.lines(hx - iw / 2, hz - id / 2, hx + iw / 2, hz + id / 2, HB, F0 + hh); scene.add(headLine.mesh);
   const trM = W.surface({ kind: 'box', deep: '#143A46', bed: '#B09E80', wall: '#C9BA9E', alpha: 0.96, chop: 0.6, heave: 1, glint: 1.2 });
-  const [tbx, tbz] = GL.troughs.B, trW = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02, ...SEG.basin)), trM); trW.rotation.x = -Math.PI / 2; trW.renderOrder = 5; scene.add(trW);
+  const [tbx, tbz] = GL.troughs.B, trW = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02, ...SEG.basin)), trM); trW.rotation.x = -Math.PI / 2; trW.renderOrder = 5; scene.add(inCut(trW, 3));
   trM.uniforms.uBox.value.set(tbx, tbz, TS[0] / 2, TS[1] / 2);
-  const trLine = W.lines(tbx - bx, tbz - bz, tbx + bx, tbz + bz, F0 - TD, F0); scene.add(trLine.mesh);
+  const trLine = W.lines(tbx - bx, tbz - bz, tbx + bx, tbz + bz, F0 - TD, F0); scene.add(inCut(trLine.mesh, 1));
   // the way the water runs in the sample: from the outlet, out by the door to the bend, where the lowered stone (A) turns it east, on to
   // the raised one (B), where it heaps and turns into its spur, and over the lip into the basin
   const wayPts = play ? [[m0[0], ho], [m1[0], m1[1]], [m2[0], m1[1]]] : [[m0[0], ho], [m1[0], m1[1]], [GL.sluice.B[0], m1[1]], [GL.sluice.B[0], basin('B')[3] + 0.02]];   // (play: the main line, to its east end; the spurs are their own)
   const legA = ho - m1[1], legB = legA + Math.abs(GL.sluice.B[0] - m1[0]);
   const heap = (u) => (play ? 0 : 0.05 * (Math.exp(-(((u - legA) / 0.5) ** 2)) + Math.exp(-(((u - legB) / 0.5) ** 2))));
   const WL = 0.2;   // (the water's height over the trench's bed)
-  const run = W.flow(wayPts, { w: cw - 0.01, y: (p, i, u) => tb + WL + heap(u), speed: GOLAH_RUN }); scene.add(run.mesh);
+  const run = W.flow(wayPts, { w: cw - 0.01, y: (p, i, u) => tb + WL + heap(u), speed: GOLAH_RUN }); scene.add(inCut(run.mesh, 2));
   run.mat.uniforms.uPile.value.set(legA, legB, 0, 0);
   const wet = W.wet(wayPts, { w: cw + 0.9, y: () => F0 + 0.006, hole: cw / (cw + 0.9), alpha: 0.55 }); scene.add(wet.mesh);
-  const wetBed = W.wet(wayPts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); scene.add(wetBed.mesh);
-  const wetSides = W.wetWalls(wayPts, { w: cw, y0: tb, h: TRENCH, line: WL }); scene.add(wetSides.mesh);
+  const wetBed = W.wet(wayPts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); scene.add(inCut(wetBed.mesh, 0));
+  const wetSides = W.wetWalls(wayPts, { w: cw, y0: tb, h: TRENCH, line: WL }); scene.add(inCut(wetSides.mesh, 0));
   const pour = W.sheet({ nt: 40, ns: 12, brk: 0.5 }); pour.mesh.name = 'h129-pour'; scene.add(pour.mesh);
   const inflow = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); scene.add(inflow.mesh); if (play) inflow.mesh.visible = false;
   const thr = W.threads(1); scene.add(thr.mesh);
   const drops = W.drops(220); scene.add(drops.mesh);
   const spots = W.spots(200); scene.add(spots.mesh);
   const P = play ? playParts() : null;
+  // (world) what goes down the well's mouth is drawn with the cut, before the mask
+  if (world) {
+    stoneMesh.renderOrder = CAV; rope.renderOrder = CAV + 0.05; for (const b of buckets) b.renderOrder = CAV + 0.05;
+    inCut(wellW, 3); inCut(bWater, 3); inCut(drops.mesh, 4); inCut(thr.mesh, 4);
+  }
 
   /* ── play (golah.js): the three troughs' water, each spur's running water and wet bed, each basin's inflow; the plank over the
    *    mouth the crew stand on, the crew and the kohen (their own figures in this scene), the puddles and stains a flood leaves, the
@@ -335,17 +368,26 @@ export function createGolah3d({ renderer, play = false }) {
       const [x, z] = GL.troughs[k];
       if (k === 'B') { Q.tr.B = { W: trW, M: trM, line: trLine }; continue; }
       const M2 = W.surface({ kind: 'box', deep: '#143A46', bed: '#B09E80', wall: '#C9BA9E', alpha: 0.96, chop: 0.6, heave: 1, glint: 1.2 });
-      const W2 = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02, ...SEG.basin)), M2); W2.rotation.x = -Math.PI / 2; W2.renderOrder = 5; W2.visible = false; scene.add(W2);
+      const W2 = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02, ...SEG.basin)), M2); W2.rotation.x = -Math.PI / 2; W2.renderOrder = 5; W2.visible = false; scene.add(inCut(W2, 3));
       M2.uniforms.uBox.value.set(x, z, TS[0] / 2, TS[1] / 2);
-      const L2 = W.lines(x - bx, z - bz, x + bx, z + bz, F0 - TD, F0); scene.add(L2.mesh);
+      const L2 = W.lines(x - bx, z - bz, x + bx, z + bz, F0 - TD, F0); scene.add(inCut(L2.mesh, 1));
       Q.tr[k] = { W: W2, M: M2, line: L2 };
     }
     trW.visible = false;
+    // the mason's line in each trough at its measure ("כמידתה"): a dark cord round its four walls, two pegs at its ends
+    const cordM = keep(new THREE.MeshStandardMaterial({ color: '#2A1D12', roughness: 0.8 }));
+    for (const k of Object.keys(GL.troughs)) {
+      const [x, z] = GL.troughs[k], y = F0 - LINE_D, e = 0.022, r = 0.02, g = [];
+      g.push(box(x - bx, y - r, z - bz, x + bx, y + r, z - bz + e, 2), box(x - bx, y - r, z + bz - e, x + bx, y + r, z + bz, 2), box(x - bx, y - r, z - bz, x - bx + e, y + r, z + bz, 2), box(x + bx - e, y - r, z - bz, x + bx, y + r, z + bz, 2));
+      for (const s of [-1, 1]) g.push(box(x + s * (bx - 0.05) - 0.04, y - 0.05, z - bz - 0.06, x + s * (bx - 0.05) + 0.04, F0 + 0.12, z - bz + 0.03, 2, '#8A6A48'));
+      const m = new THREE.Mesh(keep(mergeGeometries(g)), cordM); m.visible = false; m.name = 'h129-measure' + k; m.renderOrder = CAV + 0.1; m.castShadow = false; scene.add(m);
+      Q.tr[k].mark = m;
+    }
     for (const k of Object.keys(GL.sluice)) {
       const x = GL.sluice[k][0], pts = [[x, m1[1]], [x, basin(k)[3] + 0.02]];
-      const f = W.flow(pts, { w: cw - 0.01, y: () => tb + WL, speed: GOLAH_RUN }); f.mesh.visible = false; scene.add(f.mesh);
-      const b2 = W.wet(pts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); b2.mesh.visible = false; scene.add(b2.mesh);
-      const sh = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); sh.mesh.visible = false; scene.add(sh.mesh);
+      const f = W.flow(pts, { w: cw - 0.01, y: () => tb + WL, speed: GOLAH_RUN }); f.mesh.visible = false; scene.add(inCut(f.mesh, 2));
+      const b2 = W.wet(pts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); b2.mesh.visible = false; scene.add(inCut(b2.mesh, 0));
+      const sh = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); sh.mesh.visible = false; scene.add(inCut(sh.mesh, 4));
       Q.spur[k] = { flow: f, wet: b2, len: f.len }; Q.inflow[k] = sh;
     }
     // the plank laid over the mouth along the wheel's axle, between the two ropes: the crew stand on it to haul (illustration)
@@ -372,6 +414,9 @@ export function createGolah3d({ renderer, play = false }) {
   }
 
   const state = { scriptMs: 0, t: 0 };
+  // (world: the water's clock is the page's — it runs while the act waits, the look away or the overview)
+  const T0 = performance.now() / 1000, clock = () => performance.now() / 1000 - T0;
+  if (world) rope.onBeforeRender = () => { const t = clock(); U.t.value = t; state.t = t; };
   const _a = new THREE.Vector3(), _v = new THREE.Vector3(), _x = new THREE.Vector3(), _fb = new THREE.Vector3(), _eb = new THREE.Vector3();
   function set(F) {
     const t0 = performance.now();
@@ -433,12 +478,17 @@ export function createGolah3d({ renderer, play = false }) {
     headLine.set(F.head > 0.01 ? hy : HB - 1, HB + 0.02 + (F.headWet || 0) * (hh - th - 0.12));
     headM.uniforms.uFoam.value.set(F.pourAt ? F.pourAt[0] : 0, F.pourAt ? F.pourAt[1] : 0, 0.32, F.pourAt ? F.pourAt[2] : 0);
     // the basins
+    // (the level: 0 … 1 the bottom to the mason's line, its measure; over: 0 … 1 the line to the rim — the flood's risk, seen)
+    const yB = F0 - TD + 0.03, yL = F0 - LINE_D, yR = F0 - 0.025, yOf = (l, o) => yB + Math.max(0.001, Math.min(1, l)) * (yL - yB) + Math.max(0, Math.min(1, o || 0)) * (yR - yL);
     for (const k of Object.keys(P.tr)) {
       const T = P.tr[k], q = (F.tr && F.tr[k]) || { level: 0, wet: 0 }, [x, z] = GL.troughs[k];
-      const ty = F0 - TD + 0.03 + Math.max(0.001, q.level) * (TD - 0.18);
+      const ty = yOf(q.level, q.over);
       T.W.position.set(x, ty, z); T.W.visible = q.level > 0.005;
+      if (T.mark) T.mark.visible = !!(F.tr && F.tr[k]);
       T.M.uniforms.uRim.value = F0 - ty; T.M.uniforms.uDepth.value = ty - (F0 - TD);
-      T.line.set(q.level > 0.005 ? ty : F0 - TD - 1, F0 - TD + 0.03 + Math.max(q.level, q.wet || 0) * (TD - 0.18));
+      // (at the line the surface brims: the glints of the low sun come up on it)
+      const brim = Math.max(0, Math.min(1, (q.level - 0.96) / 0.04)); T.M.uniforms.uGlint.value = 1.2 + 3.2 * brim + 1.5 * Math.min(1, q.over || 0);
+      T.line.set(q.level > 0.005 ? ty : F0 - TD - 1, yOf(Math.max(q.level, q.wet || 0), Math.max(q.over || 0, q.wetOver || 0)));
       const ia = F.inAt && F.inAt[k]; T.M.uniforms.uFoam.value.set(ia ? ia[0] : 0, ia ? ia[1] : 0, 0.22, ia ? ia[2] : 0);
       W.rings(T.M, q.rings);
     }
@@ -464,13 +514,24 @@ export function createGolah3d({ renderer, play = false }) {
     drops.set(F.drips || []);
     state.scriptMs = performance.now() - t0;
   }
+  /** (play) the station as the save leaves it, in the world between the works: the troughs' water (st.tr: each its measure's
+   *  fraction), the broken rim stones, the cracked buckets, the puddles; one bucket up at the rim, the other in the water */
+  function still(st) {
+    if (!P) return;
+    rimBuild(st.rim || []); for (const i of st.cracked || []) crack(i); for (const k of st.puddles || []) if (GL.troughs[k]) puddle(k);
+    const d = st.depth || GL.depth[0], oz = H129.ROPE_OFF, bot = 1.32;
+    const F = { b: [{ x: wx, y: F0 + GL.rimH + 0.35 + bot, z: wz - oz }, { x: wx, y: F0 - d - 0.15 + bot, z: wz + oz }], full: -1, fill: 0, wheel: 0, ropeWet: 0.5, depth: d,
+      head: 0, headWet: 0, main: { front: -1, tail: -1, wetTo: 0, wetTail: -1 }, spur: {}, inflow: {}, inAt: {}, tr: {}, sluice: {}, drips: [] };
+    for (const k of Object.keys(st.tr || {})) { const v = +st.tr[k] || 0; F.tr[k] = { level: Math.min(1, v), over: Math.max(0, Math.min(1, (v - 1) / 0.05)), wet: Math.min(1, v) }; }
+    playSet(F);
+  }
   function view(eye, aim) { camera.position.set(eye[0], eye[1], eye[2]); camera.lookAt(aim[0], aim[1], aim[2]); }
   let shadowDone = false;
   return {
-    scene, camera, state, W,
+    scene, camera, state, W, clock,
     set, view,
     /** (play) the station's own: its frame, the parts golah.js drives, the marks that stay */
-    play: P ? { set: playSet, P, rim: rimBuild, puddle, crack, spot: (x, y, z, r) => spots.add(x, y, z, r), buckets, bWater, sluiceM, wheel, camera, BUCKET, wellY: (d) => F0 - d } : null,
+    play: P ? { set: playSet, still, P, rim: rimBuild, puddle, crack, spot: (x, y, z, r) => spots.add(x, y, z, r), buckets, bWater, sluiceM, wheel, camera, BUCKET, wellY: (d) => F0 - d } : null,
     /** the clock of every water material */
     update(t) { U.t.value = t; state.t = t; },
     render() { if (!shadowDone) { renderer.shadowMap.needsUpdate = true; shadowDone = true; } renderer.render(scene, camera); },
@@ -480,3 +541,16 @@ export function createGolah3d({ renderer, play = false }) {
     dispose() { W.dispose(); for (const o of own) try { o.dispose(); } catch (e) { /* */ } },
   };
 }
+
+/* ───────── (build 129 G5) the station's things in the built world: one, kept in the world's scene — the act plays it, the world shows
+ * it as the save leaves it (world.js's Golah) ───────── */
+let GW = null;
+export function golahInWorld(X) {
+  try {
+    if (!X || !X.scene) return null;
+    if (!GW) { const R = globalThis.__T && globalThis.__T.renderer; if (!R) return null; GW = createGolah3d({ renderer: R, play: true, world: true, camera: X.camera }); GW.scene.visible = false; }
+    if (GW.scene.parent !== X.scene) X.scene.add(GW.scene);
+    return GW;
+  } catch (e) { console.warn('[h129] golah in the world', e && e.message); return null; }
+}
+export const golahWorldNow = () => GW;

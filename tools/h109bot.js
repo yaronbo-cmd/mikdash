@@ -922,7 +922,7 @@
     // cracks), 'grim' (golah2: the last pulls fed and not waited for: a rim stone breaks), 'gflood' (golah2: two full buckets into A, 1.5)
     h7golah(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
-      if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase }; }
+      if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase + (a.kohen ? ' kohen ' + JSON.stringify(a.kohen) : '') }; }
       // (each trip is progress: the wall's limit counts from the last one — at 1600×900 the page runs slower than its clock and golah3's
       //  five or six trips by mouse take longer than the wall's 240 s)
       if (K.trip !== a.trip || K.ph !== a.phase) { K.trip = a.trip; K.ph = a.phase; B.actT = now(); }
@@ -946,7 +946,16 @@
         if (!K['pour' + a.trip]) { K['pour' + a.trip] = 1; K.pshot = 1; return { path: [a.bucket, a.over, a.tiltTo], ms: 900, keep: 1500, wait: 0, note: 'golah: carry and tip (a still while it pours)' }; }
         return { path: [a.bucket, a.over, a.tiltTo], ms: 900, keep: 9000, release: C("return !a||a.mph!=='rim'"), wait: 400, note: `golah: carry and tip (trip ${a.trip})` };
       }
-      const rope = a.rope; if (!rope) return { wait: 300, note: 'golah: no rope on the screen' };
+      // (G5: the far view after a pour — the stones are set above; a tap where no stone is goes back to the well once the water on its
+      //  way has landed where it should)
+      if (a.view === 'far' && a.back && a.mph === 'fill') {
+        if (moving > 1e-3 && need(K.tg) < 0.08) return { wait: 300, note: 'golah: the water on its way fills ' + K.tg + ' (far view)' };
+        // (the still waits for the fade to clear: a shot is taken before its step's wait)
+        if (!K['far' + a.trip]) { K['far' + a.trip] = 1; return { wait: 900, note: 'golah: the far view (the fade clears)' }; }
+        if (K['far' + a.trip] === 1) { K['far' + a.trip] = 2; return { wait: 300, shot: `${a.id}-far${a.trip}` }; }
+        return { tap: a.back, wait: 700, note: 'golah: back to the well' };
+      }
+      const rope = a.rope; if (!rope) return { wait: 300, note: 'golah: no rope on the screen (' + a.view + ')' };
       // (the stroke starts where the rope is at that moment: the rope moves on the screen as the camera follows the bucket)
       const stroke = (cond, why) => ({ when: C(`return !a||a.phase!=='play'||(${cond})`), max: 4000, then: { dragAt: C("const r=a&&a.rope;return r?[r[0],r[1],r[0],r[1]+70,80]:null") }, wait: 120, note: why });
       if (a.mph === 'fill') {
@@ -961,9 +970,12 @@
       if (!K['sw' + a.trip] && a.y < a.depth * 0.75) { K['sw' + a.trip] = 1; return { wait: 50, shot: `${a.id}-swing${a.trip}` }; }
       if (!K['meet' + a.trip] && Math.abs(a.y - a.depth / 2) < 1.3) { K['meet' + a.trip] = 1; return { wait: 50, shot: `${a.id}-meet${a.trip}` }; }
       if (gb) return stroke('a.toEnd<0.04', 'golah: a pull at the swing\'s end (the mistake)');
-      if (gr && a.y < 4) return stroke(a.A > 0.6 ? 'true' : 'a.toEnd<0.04', 'golah: the last pulls fed, no waiting (the mistake)');
       const lift = 1.5 - 0.5 * a.f;
-      if (!a.met && a.y - lift <= a.depth / 2 + 0.5 && a.A > 0.3) return { wait: 250, note: 'golah: the meeting comes: wait for the swing to die (A ' + a.A + ')' };
+      // (grim, G8: a swing under STOP can no longer be fed, so the mistake keeps it alive the whole way — fed at an end while it is under
+      //  0.45 (a full feed is +0.585: under the wall's 1.1), left to swing above that; at the meeting it waits to 0.4 and pulls in the
+      //  middle (no clash), then feeds again: the model's run of this (p3h/tools/grim.mjs) breaks the rim in golah2 at A 0.95)
+      if (!a.met && a.y - lift <= a.depth / 2 + 0.5 && a.A > (gr ? 0.4 : 0.3)) return { wait: 250, note: 'golah: the meeting comes: wait for the swing to die (A ' + a.A + ')' };
+      if (gr && (a.met || a.y - lift > a.depth / 2 + 0.5)) return a.A >= 0.45 ? { wait: 150 } : stroke('a.toEnd<0.04', 'golah: the swing fed up to the rim (the mistake, A ' + a.A + ')');
       if (a.y <= lift + 0.05 && a.A > 0.15) return { wait: 250, note: 'golah: the last pull: wait for the swing (A ' + a.A + ')' };
       return stroke('a.toMid<0.05', 'golah: pull in the middle');
     },

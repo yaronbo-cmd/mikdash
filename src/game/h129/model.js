@@ -332,7 +332,9 @@ export function pullStep(s) {
   const m = (((s.ph % Math.PI) + Math.PI) % Math.PI) / w, dMid = Math.min(m, T / 2 - m), dEnd = Math.abs(T / 4 - dMid);
   let kind = 'plain';
   if (dMid <= GOLAH.CALM * T && s.A > 0) { kind = dMid <= GOLAH.PERFECT * T ? 'perfect' : 'calm'; s.A *= GOLAH.CALM_K; }
-  else if (dEnd <= GOLAH.FEED * T) { kind = 'feed'; s.A += GOLAH.FEED_K * weightOf(s); if (s.A > GOLAH.KNOCK) knock(s); }   // (fed at the end: thrown into the wall now)
+  // (build 129 G5: a swing that has died — under STOP — has no end to feed: a pull on a still bucket is plain. Before, a last pull that
+  //  came a moment late on a bucket left to go still fed it from nothing, +0.585 at a full bucket, and the rim stone broke: unfair)
+  else if (dEnd <= GOLAH.FEED * T && s.A >= GOLAH.STOP) { kind = 'feed'; s.A += GOLAH.FEED_K * weightOf(s); if (s.A > GOLAH.KNOCK) knock(s); }   // (fed at the end: thrown into the wall now)
   if (kind === 'perfect') { s.perfect++; s.streak++; } else s.streak = 0;
   const y0 = s.y; s.y = Math.max(0, s.y - (GOLAH.LIFT - GOLAH.LIFT_F * s.f));
   // (build 129, part 3: a pull lifts the bucket a whole step at once, so it may jump over the meeting's window: a pull that carries the

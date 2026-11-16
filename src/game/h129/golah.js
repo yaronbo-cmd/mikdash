@@ -21,7 +21,7 @@ import { LINES, QUICK, LOSS, GOLAH, GOLAH_LV, CHANNEL, H129, golahFresh, fillSte
 import { golahInWorld, LINE_D } from './golah3d.js';
 import { setBusy, own, rebuild } from './world.js';
 import { createVoices } from './sound129.js';
-import { card, cite } from './ui7.js';
+import { card, cite, holdLens } from './ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { gripR } from '../h109/grips.js';
 import { BOOK } from '../world/grid.js';
@@ -180,6 +180,8 @@ export const GOLAH_ACT = {
     function snapTo(v) { const w = VIEWS[v](); try { X.shot(w.eye, w.aim, 0.01); } catch (e) { /* */ } }
     function camStep(dt, snap) {
       try { if (X.lookNow) A.look = X.lookNow(); } catch (e) { /* */ }
+      // (the lens held every frame, as the other stations hold theirs: set once at the start, x1's run after a reload found it at 32° in the pour view, the bucket below the frame)
+      holdLens(X, CAM.golahFov);
       const want = viewNow();
       if (!A.view || snap) { A.view = want; A.fading = null; snapTo(want); return; }
       if (want !== A.view && A.fading !== want) {

@@ -812,7 +812,7 @@ const S07 = {
     // (the sharing: from the north over the troughs in use, as close as they all fit the frame's width (margin m amot each side, at
     //  least dmin), el degrees down; the aim on their row at z, y over the floor); the moment: the kohen at the first trough, from the
     //  north-east, a three-quarter front
-    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-134.6, 19.2, 47.2], [-138.1, 16.3, 51]],
+    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-134.8, 18.8, 48.8], [-138.3, 16.1, 50.4]],
     golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
     // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the

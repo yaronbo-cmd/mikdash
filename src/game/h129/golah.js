@@ -195,9 +195,11 @@ export const GOLAH_ACT = {
     }
     // ── the fingers: on the rope (a hold fills, a stroke down pulls), on the bucket at the rim (carry and tip), on a sluice stone (up / down)
     const strokePx = () => Math.max(24, innerHeight * 0.045);
+    // (the look away — the director's wait: no work is done then, and a second finger, which comes from the window, takes no grip)
+    const away = () => { try { const L = X.lookNow && X.lookNow(); return !!(L && (L.play === false || L.ov)); } catch (e) { return false; } };
     const FG = fingers(X, {
       down(f) {
-        if (A.ph !== 'play') return;
+        if (A.ph !== 'play' || away()) return;
         // (the nearest grip takes the press: a stone's grip never shadows the rope beside it — build 129 G5, the rope answers always)
         const sl = slNear(f), rd = onRope(f) ? ropeD(f) : 1e9;
         if (sl && sl.d <= rd) { f.sl = sl.k; f.y1 = f.y; X.hand(null); return; }
@@ -205,6 +207,7 @@ export const GOLAH_ACT = {
         if (rd < 1e9) { f.rope = 1; f.yA = f.y; f.side = MOUSE ? (A.lastSide = -A.lastSide) : (f.x < ropeX() ? -1 : 1); X.hand(null); }
       },
       move(f) {
+        if (away()) return;
         if (f.sl) { const dy = f.y - f.y1; if (Math.abs(dy) > Math.max(18, innerHeight * 0.03)) { const open = dy < 0; if (!!s.sluice[f.sl] !== open) { sluiceSet(s, f.sl, open); V.thud(); ev((open ? 'open:' : 'shut:') + f.sl); saveRun(); } f.y1 = f.y; } return; }
         if (f.carry) { carryTo(f); return; }
         if (f.rope && !f.pulled && f.y - f.yA > strokePx()) { f.pulled = 1; pull(f.side); }

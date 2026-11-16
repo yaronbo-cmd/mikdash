@@ -54,3 +54,22 @@ test('the save: done() runs the plan to the end; the six gates; a lock closes a 
   const u = createH113(); for (let i = 0; i < 5; i++) u.done({ stars: 3, q: 1 });
   const unit = u.unitEnd(PLAN[4]); assert.ok(unit && /נעול/.test(unit.title));
 });
+
+// ── build 04m ── one pointer (the owner's rule: every act finishable by a mouse)
+import { mousePress, mouseLatch, holderBatten } from '../src/game/h113/model.js';
+test('build 04m: the lock by mouse — a click lifts the key and it stays up, then presses slide; the latch is the key\'s, so a new key comes unlifted', () => {
+  const k1 = { lift: 0 };
+  assert.equal(mousePress(k1), 'mtap');
+  assert.equal(mouseLatch(k1, 30), false); assert.equal(k1.lift, 0);   // (a drag is not a click: nothing latched)
+  assert.equal(mouseLatch(k1, 3), true); assert.equal(k1.lift, 1);
+  assert.equal(mousePress(k1), 'slide'); assert.equal(mousePress(k1), 'slide');
+  // a wrong key goes back to the chain: the next key is a fresh object, and its first click lifts it again (never a slide on its pins)
+  const k2 = { lift: 0 };
+  assert.equal(mousePress(k2), 'mtap');
+  assert.equal(mousePress(null), 'slide'); assert.equal(mouseLatch(null, 0), false);
+});
+test('build 04m: the leaf by mouse — the carpenter holds the batten of the peg in hand; none when the pegs are done', () => {
+  const pegs = [{ bi: 0 }, { bi: 0 }, { bi: 1 }, { bi: 1 }];
+  assert.deepEqual([0, 1, 2, 3, 4].map((i) => holderBatten(pegs, i)), [0, 0, 1, 1, -1]);
+  assert.equal(holderBatten([], 0), -1);
+});

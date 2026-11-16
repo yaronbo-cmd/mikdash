@@ -46,7 +46,8 @@ export function createGang(X) {
   const L = [];
   let tt = 0, seed = 7;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-  /** a worker at (x, z) facing (fx, fz); role: pick | hammer | pull | push | carry | kneel | pour | point | lever | hold | walk */
+  /** a worker at (x, z) facing (fx, fz); role: pick | hammer | pull | push | carry | kneel | pour | point | lever | hold | brace | walk
+   *  (brace, build 04m: bent over a timber at his waist, both hands on it, holding it still: the mouse's second hand on stage 04's batten) */
   function add(x, z, o = {}) {
     if (!A) return null;
     const a = A.add(o.variant || 'worker', x, z, { yaw: 0, col2: o.col2 || CREW[(o.crew | 0) % CREW.length], fadeIn: true });   // ── h120 ── (o.variant: 'kohen' for a life-size kohen among the crew, in white with his turban and sash) ── /h120 ──
@@ -76,7 +77,7 @@ export function createGang(X) {
     tt += dt;
     for (const w of L) {
       const a = w.a; if (!a.alive) continue;
-      if (w.fx != null && !a.path && (w.role === 'pick' || w.role === 'hammer' || w.role === 'pull' || w.role === 'push' || w.role === 'lever' || w.role === 'hold')) a.yaw = Math.atan2(w.fx - a.x, w.fz - a.z);
+      if (w.fx != null && !a.path && (w.role === 'pick' || w.role === 'hammer' || w.role === 'pull' || w.role === 'push' || w.role === 'lever' || w.role === 'hold' || w.role === 'brace')) a.yaw = Math.atan2(w.fx - a.x, w.fz - a.z);
       if (w.role === 'pick' || w.role === 'hammer') {
         // the swing: up slowly, the fall fast, the contact ON the beat (crews.js's digger), so the crew teaches the beat without words
         const k = w.k || 2, ph = B ? B.phase(k) : (tt / 0.97) % 1;
@@ -108,6 +109,10 @@ export function createGang(X) {
         const ph = B ? B.phase(w.k || 2) : (tt / 0.97) % 1, k = 0.5 - 0.5 * Math.cos((ph + w.off) * TAU), r = 1.2 - 0.35 * k;
         a.arm[0] = a.armT[0] = r; a.arm[2] = a.armT[2] = r; a.arm[1] = a.armT[1] = -0.2; a.arm[3] = a.armT[3] = -0.2;
         a.bow = a.bowT = 0.25 + 0.35 * k; a.tilt = a.tiltT = -r + 1.9;
+      } else if (w.role === 'brace') {
+        // (both hands down on the timber before him, the weight on them: still, no beat — a held thing does not move)
+        a.arm[0] = a.armT[0] = 0.95; a.arm[2] = a.armT[2] = 0.95; a.arm[1] = a.armT[1] = -0.15; a.arm[3] = a.armT[3] = -0.15;
+        a.bow = a.bowT = 0.5; a.kn = a.knT = 0.2;
       } else if (w.role === 'carry') {
         if (!a.path) { w.wait -= dt; if (w.wait <= 0 && w.from && w.to) { w.wait = 1e9; go(w); } }
         if (a.path) { a.arm[0] = a.armT[0] = 1.2; a.arm[2] = a.armT[2] = 1.2; a.arm[1] = a.armT[1] = -0.3; a.arm[3] = a.armT[3] = -0.3; }

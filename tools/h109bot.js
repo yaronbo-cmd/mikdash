@@ -13,6 +13,10 @@
   //  under the whole fingertip, 28 px round)
   const isWorld = (e) => !!e && (e.tagName === 'CANVAS' || (e.classList && e.classList.contains('h109-touch')));
   const onWorld = (x, y) => { if (!(x > 28 && x < W - 28 && y > 28 && y < HH - 28)) return false; for (const [dx, dy] of [[0, 0], [28, 0], [-28, 0], [0, 28], [0, -28], [20, 20], [-20, 20], [20, -20], [-20, -20]]) if (!isWorld(document.elementFromPoint(x + dx, y + dy))) return false; return true; };
+  // (build 04m: one pointer — the page's own test (src/game/h113/acts.js MOUSE), or __BOT_MOUSE: the probe's MOUSE=1 plays with a mouse)
+  const MOUSE_P = !!window.__BOT_MOUSE || (() => { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; } })();
+  // (build 04m: a still and the figures gate's report once per work where a mouse used to stall — __BOT_SHOTS04 only)
+  const stall04 = (key, r) => { if (!MOUSE_P || B.k['st_' + key]) return r; B.k['st_' + key] = 1; let fg = null; try { fg = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { fg = 'ERR ' + e.message; } return { wait: 400, shot: window.__BOT_SHOTS04 ? `${B.m}-mouse-${key}` : undefined, note: `figs at ${B.m} ${key}: ${JSON.stringify(fg)} · line "${(document.querySelector('.h109-line') || {}).textContent || ''}"` }; };
   const alongWorld = (p, q) => { for (let i = 0; i <= 20; i++) { const r = mid(p, q, i / 20); if (onWorld(r[0], r[1])) return r; } return null; };
   const play = {
     rope(a) {
@@ -276,6 +280,15 @@
         const lo = a.yL < a.yR ? L : R; return { seq: [[lo], [lo], [lo], [lo], [lo]], ms: 60, wait: 60, note: `lintel: the low end ${a.tilt}°` };
       }
       if (a.phase === 'in') { const dy = ((a.seatZ - a.z) / 9) * Math.max(300, HH); return { drag: [a.mid[0], Math.min(HH - 40, a.mid[1] + 60), a.mid[0], Math.min(HH - 40, a.mid[1] + 60) - dy, 1100], wait: 600, note: 'lintel: in over the opening' }; }
+      // (build 04m, mouse: one end then the other, in turns — the higher end that is not yet down, a short hold each, so the stone stays
+      //  level (under tiltOk) and lands slowly; the old seq held [L, R] and the mouse took L alone: L seated, R never pressed — a stall)
+      if (a.phase === 'lower' && (a.mouse || MOUSE_P)) {
+        const dn = (y) => y <= 26.005, sL = dn(a.yL), sR = dn(a.yR);
+        if (sL && sR) return { wait: 300 };
+        if (sL || sR) { const s0 = stall04('lower1', null); if (s0) return s0; }
+        const right = sL ? true : sR ? false : a.yR > a.yL + 0.02, p = right ? R : L;
+        return { hold: [p[0], p[1], 600], wait: 300, note: `lintel: down by mouse, the ${right ? 'right' : 'left'} end ${a.yL.toFixed(1)}/${a.yR.toFixed(1)}` };
+      }
       if (a.phase === 'lower') { const f = [[L, R]]; return { seq: Array(10).fill(f[0]), ms: 60, wait: 350, note: `lintel: down ${a.yL}/${a.yR}` }; }
       return { wait: 300 };
     },
@@ -299,6 +312,12 @@
         const d = ((tgt - ang) * Math.PI) / 180, c = a.held.at, r = 150, a0 = -Math.PI / 2, pts = [];
         for (let i = 0; i <= 14; i++) { const t = a0 - (d * i) / 14; pts.push([c[0] + Math.cos(t) * r, c[1] + Math.sin(t) * r]); }
         void hole; return { path: pts, ms: 1000, keep: 1100, wait: 900, note: `leaf: turn ${ang.toFixed(0)}° → ${tgt}` };
+      }
+      // (build 04m, mouse: the carpenter holds the batten — a click on the peg; the old seq pressed the batten and the mouse never reached
+      //  the peg, which two fingers do at once)
+      if (a.phase === 'peg' && a.pegAt && (a.mouse || MOUSE_P)) {
+        if (a.holder >= 0) { const s0 = stall04('peg', null); if (s0) return s0; }
+        return { tap: a.pegAt, wait: 350, note: `leaf: the carpenter holds batten ${a.holder}, a click on the peg (${a.peg}/${a.pegs})` };
       }
       if (a.phase === 'peg' && a.pegAt && a.battenEnds[a.pegBi]) {
         const [e0, e1] = a.battenEnds[a.pegBi], p = a.pegAt, far = Math.hypot(e0[0] - p[0], e0[1] - p[1]) > Math.hypot(e1[0] - p[0], e1[1] - p[1]) ? e0 : e1;
@@ -350,6 +369,15 @@
       if (a.step === 'insert' && a.key) {
         if (!a.key.up) { const c = a.key.at, pts = []; for (let i = 0; i <= 16; i++) { const t = (i / 16) * Math.PI * 1.15; pts.push([c[0] + Math.cos(t) * 90, c[1] + Math.sin(t) * 90]); } return { path: pts, ms: 900, wait: 400, note: 'lock: turn the key' }; }
         const st = [W * 0.3, HH * 0.75]; return { ...barDrag(st, 1.5, 900), wait: 500, note: 'lock: push the key in' };
+      }
+      // (build 04m, mouse: a click lifts the key and it stays up, then a drag slides the bar out; a wrong key (a pin stays down) goes back
+      //  for another. The old seq's lift was a drag (no click: nothing latched) and its slide was the second finger, which a mouse lacks)
+      if (a.step === 'lifted' && a.key && (a.mouse || MOUSE_P)) {
+        const l0 = [W * 0.3, HH * 0.7];
+        if (a.key.lift < 0.5) return { tap: l0, wait: 700, note: `lock: a click lifts the key (key ${a.ki}, ok ${a.key.ok})` };
+        { const s0 = stall04('lifted', null); if (s0) return s0; }
+        if (B.k.slid === a.ki && (a.stuck >= 0 || !a.key.ok) && a.keys > 1 && !a.reach) return { tap: a.chain, wait: 1400, note: 'lock: a pin stays down: another key (mouse)' };
+        B.k.slid = a.ki; return { ...barDrag(a.barAt, -1.5, 600), wait: 900, note: `lock: the key held up, the bar slid out (key ${a.ki}, ok ${a.key.ok}, bar ${a.bar})` };
       }
       if (a.step === 'lifted' && a.key) {
         if (B.k.tried === a.ki && (a.stuck >= 0 || !a.key.ok) && a.keys > 1) return { tap: a.chain, wait: 1400, note: 'lock: a pin stays down: another key' };
@@ -998,8 +1026,26 @@
     if (h.y > h.seatY + 1.0) return { holdUntil: [at[0], at[1], C(`const h=a&&a.h;return !h||h.mode==='seated'||h.y<h.seatY+0.95||(h.gust&&(h.gust.warn||h.gust.on>0))`), 9000], wait: 500 };
     return { hold: [at[0], at[1], vSafe < 0.8 ? 420 : 470], wait: 350, note: `hang: short hold at ${h.y} (${h.mode}, th ${h.th})` };
   };
+  // (build 04m: one log line when each work ends, every stage — `end <work id> stars N pts P flags {...}` — from the director's own 'end'
+  //  entry (h109/director.js log) and the act's last state the bot saw; a whole-game run's results are reset per stage, this line is not)
+  if (!B.endHook) {
+    B.endHook = 1; B.endQ = []; B.lossN = 0; B.lossL = [];
+    const LG = window.__H109_LOG || (window.__H109_LOG = []), p0 = LG.push;
+    LG.push = function (...xs) { for (const x of xs) { const t = String(x); if (/^end /.test(t)) B.endQ.push({ t, act: B.lastAct, loss: B.lossN, losses: B.lossL.slice() }); else if (/^loss /.test(t)) { B.lossN += +t.split(' ')[1] || 0; B.lossL.push(t.slice(5, 60)); } else if (/^act /.test(t)) { B.lossN = 0; B.lossL = []; } } return p0.apply(this, xs); };
+  }
+  const FLAG = /fall|chip|knock|oneEnd|split|refus|slam|tear|shear|wrong|lost|miss|spill|dent|crack|brok|slip|drop|fail|late|early|bad|hard|stuck|gap/i;
+  const endLine = (e) => {
+    const [, id, , stars, lost] = e.t.split(' '), a = e.act || {}, fl = {};
+    for (const [k, v] of Object.entries(a)) if (FLAG.test(k) && ((typeof v === 'number' && v > 0 && k !== 'stuck') || v === true)) fl[k] = v;
+    if (e.loss) fl.loss = e.loss; if (e.losses.length) fl.losses = e.losses; if (lost) fl.LOST = 1;
+    let pts = Number.isFinite(+a.pts) && a.pts !== null && a.pts !== undefined ? a.pts : null;
+    if (pts == null) { try { const r = H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r && r.q != null) pts = 'q' + r.q; } catch (er) { /* */ } }
+    return `end ${id} stars ${stars} pts ${pts == null ? '-' : pts} flags ${JSON.stringify(fl)}`;
+  };
   B.next = () => {
+    if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };
     const S = H().state();
+    if (S && S.act) B.lastAct = S.act;
     if (!S.started && S.phase === 'off') {
       if (!B.endSeen) { B.endSeen = now(); return { wait: 2500, shot: 'stage-end', note: 'the stage is over' }; }
       return { done: true };

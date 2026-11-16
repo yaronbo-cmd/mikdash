@@ -5,7 +5,7 @@
  *     illustration), and the key from the chain: turned pegs up, pushed to its shoulder, lifted with one finger while another slides
  *     the bar. Level 3 is Beit HaMoked at evening: locked from inside, out by the wicket, and the Levite's check with the second key.
  */
-import { H113, GATES, LV, PISH, inherit, lockGap, ringOff, lockOf, qOf, starsOf } from './model.js';
+import { H113, GATES, LV, PISH, inherit, lockGap, ringOff, lockOf, qOf, starsOf, mousePress, mouseLatch } from './model.js';
 import { SH4, mats, frameOf, pivotX, leafYaw, makeLeaf, gateBuild, label, keep, gateKeep, box, makeDerrick } from './world.js';
 import { fingers, MOUSE, sc, heroAt, nearPt } from './acts.js';
 import { clamp, lerp, ease } from '../h109/kit.js';
@@ -491,7 +491,7 @@ export const LOCK = {
           if (A.step === 'lifted') {
             // the first finger lifts (up), the second slides the bar (sideways); with a mouse a tap latches the lift
             const lifting = [...Fg.L.values()].some((g) => g !== f && g.what === 'lift');
-            if (MOUSE) { if (A.key.lift < 0.5 && !A.mLift) { f.what = 'mtap'; return; } f.what = 'slide'; f.bar0 = A.bar; return; }
+            if (MOUSE) { f.what = mousePress(A.key); f.bar0 = A.bar; return; }   // (build 04m: the latch is the key's own — a new key comes unlifted)
             f.what = lifting ? 'slide' : 'lift'; f.bar0 = A.bar; f.l0 = A.key.lift; return;
           }
         }
@@ -512,7 +512,7 @@ export const LOCK = {
         const along = ((f.x - f.x0) * ux + (f.y - f.y0) * uy) / (per * per);
         if (f.what === 'bar') { A.barT = clamp(f.bar0 + along, OPEN, SHUT + 0.3); return; }
         if (f.what === 'turn' && A.key) { const ang = Math.atan2(f.y - f.cy, f.x - f.cx); let d = ang - f.a0; d = Math.atan2(Math.sin(d), Math.cos(d)); f.a0 = ang; A.key.turn += d; A.key.g.rotation.x = A.key.turn; if (Math.abs(A.key.turn) > 2.6) { A.key.up = 1; A.key.turn = 0; A.key.g.rotation.x = 0; X.play('tap'); cutDraw('היתדות למעלה'); X.line('דחפו פנימה עד הכתף'); f.what = null; } return; }
-        if (f.what === 'in' && A.key) { A.key.in = clamp(f.in0 + along / 1.3, 0.05, 1); A.key.g.position.x = BOX - 1.3 + A.key.in * 1.0; if (A.key.in >= 1 && A.step === 'insert') { A.step = 'lifted'; X.play('thud'); cutDraw('הכתף עצרה'); X.line(MOUSE ? 'הקישו להרים, וגררו את הבריח החוצה' : 'אצבע מרימה את המפתח, השנייה גוררת את הבריח'); } cutDraw(''); return; }
+        if (f.what === 'in' && A.key) { A.key.in = clamp(f.in0 + along / 1.3, 0.05, 1); A.key.g.position.x = BOX - 1.3 + A.key.in * 1.0; if (A.key.in >= 1 && A.step === 'insert') { A.step = 'lifted'; X.play('thud'); cutDraw('הכתף עצרה'); X.line(MOUSE ? 'לחצו פעם להרים את המפתח, ואז גררו את הבריח החוצה' : 'אצבע מרימה את המפתח, השנייה גוררת את הבריח'); } cutDraw(''); return; }
         if (f.what === 'lift' && A.key) { A.key.lift = clamp(f.l0 + (f.y0 - f.y) / 70, 0, 1); A.pins = pinsUp(); cutDraw(A.key.lift >= 0.85 ? 'הפינים למעלה' : ''); return; }
         if (f.what === 'slide' && A.key) {
           const want = clamp(f.bar0 + along, OPEN, SHUT);
@@ -532,7 +532,7 @@ export const LOCK = {
           const sp = Math.abs(dx) / dt;
           if (sp > 900) { if (!A.fastSaid) { A.fastSaid = 1; X.word({ x: G.c - 2, y: yBar + 1, z: zBar }, 'לאט! היד נתפסת'); } return; }
           A.reach = clamp(f.r0 + Math.abs(along) / 6, 0, 1); A.key.in = A.reach; cutDraw(A.reach >= 1 ? 'עד הכתף' : 'היד נכנסת');
-          if (A.reach >= 1) { A.step = 'lifted'; X.play('thud'); X.line(MOUSE ? 'הקישו להרים, וגררו את הבריח' : 'הרימו וגררו את הבריח הגדול'); f.what = null; }
+          if (A.reach >= 1) { A.step = 'lifted'; X.play('thud'); X.line(MOUSE ? 'לחצו פעם להרים את המפתח, ואז גררו את הבריח' : 'הרימו וגררו את הבריח הגדול'); f.what = null; }
           return;
         }
         if (f.what === 'pbar') { A.pishBar = clamp(f.p0 + Math.abs(along) / 1.6, 0, 1); A.lab.set(`בריח הפשפש ${Math.round(A.pishBar * 100)}%`, A.lab.at, A.pishBar >= 1); if (A.pishBar >= 1) { f.what = null; pishLocked(); } }
@@ -543,7 +543,7 @@ export const LOCK = {
         if (f.what === 'nudge') { A.ringOK = 1; A.blockSaid = 0; X.play('thud'); X.word({ x: blockAt, y: yBar + 0.8, z: zBar }, 'הטבעות בקו'); A.push++; return; }
         if (f.what === 'chain' && f.moved < 14) { keyFetch(); return; }
         if (f.what === 'lift' && A.key) { if (A.key.lift < 0.85 && A.bar < SHUT - 0.05) { A.pins = A.pins.map(() => 0); X.play('thud'); X.word({ x: BOX, y: yBar + 0.8, z: zBar }, 'ההרמה נשמטה · הבריח נעצר'); } A.key.lift = 0; A.pins = pinsUp(); cutDraw(''); return; }
-        if (f.what === 'mtap' && A.key && f.moved < 14) { A.mLift = 1; A.key.lift = 1; A.pins = pinsUp(); cutDraw('הפינים למעלה'); return; }
+        if (f.what === 'mtap' && A.key && mouseLatch(A.key, f.moved)) { A.pins = pinsUp(); cutDraw('הפינים למעלה'); return; }
         if (f.what === 'shim' && A.shims && f.moved < 14) { let best = null, bd = 80; for (const s of A.shims) { const q = X.scr(s.g.position.x, s.g.position.y + 0.1, s.g.position.z), d = Math.hypot(q.x - f.x, q.y - f.y); if (d < bd) { bd = d; best = s; } } if (best) shimPick(best); return; }
         if (f.what === 'leaf') return;
       },
@@ -608,7 +608,7 @@ export const LOCK = {
       dbg() {
         const a = X.scr(G.c - 2, yBar, zBar), b = X.scr(G.c + 2, yBar, zBar);
         return { lv, step: A.step, busy: A.busy, phi: A.phi.map((v) => +v.toFixed(2)), closed: A.closed, gap: A.gap, bar: +A.bar.toFixed(2), OPEN, SHUT, blockAt, ringOK: A.ringOK, locked: A.locked, pins: A.pins.map((v) => +v.toFixed(2)), pts: A.pts,
-          key: A.key ? { ok: A.key.k.ok, up: A.key.up, in: +A.key.in.toFixed(2), lift: +A.key.lift.toFixed(2), at: sc(X, A.key.g.position) } : null, keys: LK.keys.length, ki: A.ki, reach: A.reach, pishBar: A.pishBar, stuck: A.stuck,
+          mouse: MOUSE, key: A.key ? { ok: A.key.k.ok, up: A.key.up, mLift: A.key.mLift | 0, in: +A.key.in.toFixed(2), lift: +A.key.lift.toFixed(2), at: sc(X, A.key.g.position) } : null, keys: LK.keys.length, ki: A.ki, reach: A.reach, pishBar: A.pishBar, stuck: A.stuck,
           leafL: sc(X, { x: pivotX(G, -1) + Math.cos(A.phi[0]) * 2.5, y: Fr.sill + 6, z: Fr.zp + Fr.s * Math.sin(A.phi[0]) * 2.5 }), leafR: sc(X, { x: pivotX(G, 1) - Math.cos(A.phi[1]) * 2.5, y: Fr.sill + 6, z: Fr.zp + Fr.s * Math.sin(A.phi[1]) * 2.5 }),
           barAt: sc(X, { x: A.bar - 1, y: yBar, z: zBar }), barU: [b.x - a.x, b.y - a.y], chain: sc(X, chainAt), nudge: blockAt != null ? sc(X, { x: blockAt + 0.4, y: yBar - 1.6, z: Fr.zp }) : null,
           shims: A.shims ? A.shims.map((s) => ({ n: s.n, at: sc(X, s.g.position) })) : null, slams: A.slams, tears: A.tears, shears: A.shears };

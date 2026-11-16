@@ -601,6 +601,9 @@
         const Y = a.yard;
         // ring 15's class: the mallet on every stone first
         if (a.cls === 15) { const s = Y.find((y) => y.dull == null && !K.snd[y.id] && y.id !== a.on); if (s) { K.snd[s.id] = 1; return { tap: s.at, wait: 500, note: 'steps: sound ' + s.id }; } }
+        // (build 128 tuning T4: a still at the drop — a fit's gold edge, a misfit's rocking and its line — once each, with their measure)
+        if (a.on && a.rock > 0 && !K.misShot) { K.misShot = 1; return { wait: 10, shot: 'ring-misfit', note: `steps: misfit ${a.on} (model ${a.lightPx} px, drawn ${a.linePx} px, rock ${a.rock})` }; }
+        if (a.on && a.gold > 0 && !K.fitShot) { K.fitShot = 1; return { wait: 10, shot: 'ring-fit', note: `steps: fit ${a.on} (gold ${a.gold})` }; }
         if (a.on && K.fit[a.on] == null) { K.fit[a.on] = a.lightPx; if (a.lightPx > 0 && !K.lightShot) { K.lightShot = 1; return { wait: 100, shot: 'ring-light' }; } }
         const cur = a.on && Y.find((y) => y.id === a.on);
         if (cur && !cur.marked) {
@@ -615,7 +618,7 @@
         const skip = (y) => has('crack') && K.crackDone && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len && z.marked);
         const nxt = Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !(has('crack') && y.dull === 0 && Y.some((z) => z.dull === 1 && z.len === y.len)));
         const nxt2 = nxt || Y.find((y) => !y.marked && K.fit[y.id] == null && y.id !== a.on && !skip(y));
-        if (nxt2) return { drag: [a.tpl[0], a.tpl[1], nxt2.at[0], nxt2.at[1], 700], wait: 700, note: 'steps: the template onto ' + nxt2.id };
+        if (nxt2) return { drag: [a.tpl[0], a.tpl[1], nxt2.at[0], nxt2.at[1], 700], wait: K.misShot && K.fitShot ? 700 : 120, note: 'steps: the template onto ' + nxt2.id };
         return { wait: 400, note: 'steps: marks ' + a.marks.length + '/' + a.need };
       }
       if (a.phase === 'row') {

@@ -1008,6 +1008,49 @@
       return stroke('a.toMid<0.05', 'golah: pull in the middle');
     },
     // ── /h129 Golah ──
+    // ── h130 wood ── (build 130, station 2: the wood chamber, h130/wood.js dbg()). Plays each log as a careful player: level 1 rolls it a
+    // whole turn and looks; level 2 taps along it, and where it rings hollow turns the hole to the eye and peels a strip there; level 3
+    // taps along it and draws the chalk line across at the best cut; then it takes the log by an end and carries it right (clean) or
+    // left (out). __BOT.bad 'worm': the first wormy log is carried into the clean pile (wood.worm, −20; the pile comes back to be checked).
+    // Stills (__BOT_SHOTS130): the first look of each level, a hollow tap, a peel, the chalk line, a carry held at the green mark.
+    wood(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS130;
+      if (a.busy || a.phase !== 'look' || !a.a || !a.b) return { wait: 300, note: 'wood: ' + a.phase };
+      const key = a.id + ':' + a.log + ':' + a.left + ':' + (a.cut || '') + ':' + a.piles.clean, L = K[key] || (K[key] = { n: 0 });
+      const ax = a.b[0] - a.a[0], ay = a.b[1] - a.a[1], len = Math.hypot(ax, ay) || 1, ux = ax / len, uy = ay / len;
+      if (shots && !K['shot' + a.id]) { K['shot' + a.id] = 1; return { wait: 200, shot: a.id + '-look' }; }
+      const body = (s) => { const k = (s - a.keep[0]) / (a.keep[1] - a.keep[0]); return [a.a[0] + ax * k, a.a[1] + ay * k]; };
+      const across = (p, cond) => ({ path: [[p[0] + uy * -18, p[1] - ux * -18], [p[0] - uy * 60, p[1] + ux * 60]], ms: 450, wait: 700 });
+      // (the decision: by the end band, carried past the green mark, let go there)
+      const carry = (to) => {
+        const e = to === 'clean' ? a.b : a.a, o = to === 'clean' ? a.a : a.b, k = 0.18 / (a.keep[1] - a.keep[0]), p = [e[0] + (o[0] - e[0]) * k, e[1] + (o[1] - e[1]) * k], d = to === 'clean' ? 1 : -1;
+        const q = [Math.max(30, Math.min(innerWidth - 30, p[0] + d * 300)), p[1]];
+        return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>1.7`), wait: 1500, note: `wood: ${a.log} → ${to}`, ...(shots && !K['shotC' + a.id] ? (K['shotC' + a.id] = 1, {}) : {}) };
+      };
+      const wantWorm = has('worm') && !K.wormDone && a.wormy && !a.endBad;
+      if (L.n === 0 && wantWorm) { K.wormDone = 1; L.n = 99; return carry('clean'); }
+      if (a.lv === 1) {
+        if (a.turned < 365 && L.n < 3) { L.n++; const p = body(a.keep[0] + 0.3 * (a.keep[1] - a.keep[0])), d = L.n % 2 ? 1 : -1; return { path: [p, [p[0] + d * ux * 320, p[1] + d * uy * 320]], ms: 900, wait: 500, note: 'wood: roll ' + a.log }; }
+        return carry(a.wormy ? 'out' : 'clean');
+      }
+      // (level 2 and 3: taps along the log, every half amah, until the hollow is heard or the log is done)
+      const S = Object.keys(a.pt).map(Number).filter((s) => s > a.keep[0] + 0.45 && s < a.keep[1] - 0.45);
+      L.t = L.t || 0;
+      if (L.t < S.length && !(L.heard && L.t >= 3)) { const s = S[L.t++]; const r = { tap: a.pt[s], wait: 650, note: 'wood: tap ' + a.log + ' at ' + s }; if (shots && a.hollow && s >= a.hollow[0] && s <= a.hollow[1] && !K['shotH' + a.id]) { K['shotH' + a.id] = 1; r.then = undefined; r.shot = a.id + '-hollow-tap'; } if (a.hollow && s >= a.hollow[0] && s <= a.hollow[1]) L.heard = 1; return r; }
+      if (a.lv === 2) {
+        if (a.wormy && a.holeAt && !L.peeled) {
+          const want = -a.holeAng, d = (((want - a.rot) % 360) + 540) % 360 - 180;
+          if (Math.abs(d) > 8 && (L.r | 0) < 4) { L.r = (L.r | 0) + 1; const p = body(a.keep[0] + 0.25 * (a.keep[1] - a.keep[0])), px = d / 1.25; return { path: [p, [p[0] + ux * px, p[1] + uy * px]], ms: 600, wait: 400, note: 'wood: turn the hole to the eye ' + d.toFixed(0) }; }
+          L.peeled = 1; const r = across(body(a.holeS)); r.note = 'wood: peel at ' + a.holeS; if (shots && !K.shotP) { K.shotP = 1; r.wait = 900; r.then = undefined; } return r;
+        }
+        if (L.peeled === 1 && shots && !K.shotP2) { K.shotP2 = 1; return { wait: 200, shot: a.id + '-peeled' }; }
+        return carry(a.wormy ? 'out' : 'clean');
+      }
+      if (a.best != null && !a.cut) { if (L.c) return { wait: 500 }; L.c = 1; const r = across(body(a.best)); r.note = 'wood: the chalk line at ' + a.best; r.wait = 600; return r; }
+      if (a.cut && shots && !K['shotX' + a.log]) { K['shotX' + a.log] = 1; return { wait: 200, shot: a.id + '-cut-' + a.log }; }
+      return carry(a.cut === 'near' ? 'out' : 'clean');
+    },
+    // ── /h130 wood ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {

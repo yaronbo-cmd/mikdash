@@ -1,6 +1,7 @@
 // Unit tests of the engagement layer (src/game/hooks/*, docs/HOOKS.md). Run: node --test test/hooks.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 import * as S from '../src/game/state.js';
 const V5_ONLY = (S.SAVE_VERSION | 0) >= 6 ? 'v5 only: the caravan loop was replaced by the v6 building game (BUILD); the new loop is tested in hooks-loop.test.mjs' : false;
 import { STAGES, stageById, ROUTES, START_RES } from '../src/game/content.js';
@@ -191,7 +192,7 @@ test('festival card: sourced, no Divine Name, and Sukkot uses the verified Middo
 
 test('pacing guard: the regular player still takes 8–16 days (the long arc stays)', async () => {
   const { execFileSync } = await import('node:child_process');
-  const out = execFileSync(process.execPath, ['test/game-sim.mjs', '--check'], { cwd: new URL('..', import.meta.url).pathname, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const out = execFileSync(process.execPath, ['test/game-sim.mjs', '--check'], { cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   assert.match(out, /pacing OK/);
 });
 

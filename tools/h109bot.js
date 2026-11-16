@@ -1036,7 +1036,7 @@
   const FLAG = /fall|chip|knock|oneEnd|split|refus|slam|tear|shear|wrong|lost|miss|spill|dent|crack|brok|slip|drop|fail|late|early|bad|hard|stuck|gap/i;
   const endLine = (e) => {
     const [, id, , stars, lost] = e.t.split(' '), a = e.act || {}, fl = {};
-    for (const [k, v] of Object.entries(a)) if (FLAG.test(k) && ((typeof v === 'number' && v > 0 && k !== 'stuck') || v === true)) fl[k] = v;
+    for (const [k, v] of Object.entries(a)) if (FLAG.test(k) && ((typeof v === 'number' && v > 0 && !/^(stuck|slip|tiltOk|sway|chipV)$/.test(k)) || v === true)) fl[k] = v;
     if (e.loss) fl.loss = e.loss; if (e.losses.length) fl.losses = e.losses; if (lost) fl.LOST = 1;
     let pts = Number.isFinite(+a.pts) && a.pts !== null && a.pts !== undefined ? a.pts : null;
     if (pts == null) { try { const r = H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r && r.q != null) pts = 'q' + r.q; } catch (er) { /* */ } }

@@ -611,7 +611,7 @@ export const LOCK = {
           mouse: MOUSE, key: A.key ? { ok: A.key.k.ok, up: A.key.up, mLift: A.key.mLift | 0, in: +A.key.in.toFixed(2), lift: +A.key.lift.toFixed(2), at: sc(X, A.key.g.position) } : null, keys: LK.keys.length, ki: A.ki, reach: A.reach, pishBar: A.pishBar, stuck: A.stuck,
           leafL: sc(X, { x: pivotX(G, -1) + Math.cos(A.phi[0]) * 2.5, y: Fr.sill + 6, z: Fr.zp + Fr.s * Math.sin(A.phi[0]) * 2.5 }), leafR: sc(X, { x: pivotX(G, 1) - Math.cos(A.phi[1]) * 2.5, y: Fr.sill + 6, z: Fr.zp + Fr.s * Math.sin(A.phi[1]) * 2.5 }),
           barAt: sc(X, { x: A.bar - 1, y: yBar, z: zBar }), barU: [b.x - a.x, b.y - a.y], chain: sc(X, chainAt), nudge: blockAt != null ? sc(X, { x: blockAt + 0.4, y: yBar - 1.6, z: Fr.zp }) : null,
-          shims: A.shims ? A.shims.map((s) => ({ n: s.n, at: sc(X, s.g.position) })) : null, slams: A.slams, tears: A.tears, shears: A.shears };
+          shims: A.shims ? A.shims.map((s) => ({ n: s.n, at: sc(X, s.g.position) })) : null, slams: A.slams, tears: A.tears, shears: A.shears, wrongKey: A.wrongKey };
       },
     };
   },

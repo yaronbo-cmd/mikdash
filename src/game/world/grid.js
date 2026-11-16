@@ -840,7 +840,9 @@ const S07 = {
     endFov: [74, 60, 64],
     // ── h129 round 4 ── the stage's last picture, held under the frontier card: the court and the chambers from high — never the
     // Gazit's inside with its roof on, nor the follow camera against a wall ── /h129 ──
-    after: [[-60, 90, 10], [-110, 16, 66]],   // (round 4: the opening's second picture, the chambers of the south from high over the court)
+    // (round 5: far and high from the south over the Gazit and the Golah, the House in the middle, Beit HaMoked at the far north-west:
+    //  the whole court of this stage in the world's 32° lens around the card at 960×600)
+    after: [[-150, 210, 230], [-125, 16, 0]],
     // ── h129 round 4 ── each work's picture after it (the director's pull-back): a small arch from the women's court through its opening
     // (the chamber is under the Israel court: from above it is stone); the great vault and the night from the hall's floor ── /h129 ──
     done: { vaultN: [[30, 12.5, -22.5], [8, 10.5, -20]], vaultS: [[30, 12.5, 22.5], [8, 10.5, 20]], vaultM: [[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], night: [[-159, 22.5, -65.5], [-160, 16.3, -76]] },

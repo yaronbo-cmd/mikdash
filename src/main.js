@@ -52,16 +52,20 @@ const canvas = $('c');
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Math.min(screen.width, screen.height) < 700;
 const Q = { level: window.__FORCE_Q || (isMobile ? 'normal' : 'high') };
 let paused = false;
+// (tools/probe109.cjs FAST=1 only: window.__PROBE_FAST, set by the probe before load, for logic runs: the canvas drawn at pixel ratio 0.5
+//  and kept there, no shadows, no bloom, no multisampling. The viewport, layout, touch geometry, clock and acts are untouched. A player
+//  never has it.)
+const FAST = !!window.__PROBE_FAST;
 const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 // game mode (default): the Phase A game drives the construction layer; the whole-Temple view is visual only
 let game = null, wholeView = false;
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, Q.level === 'high' ? 2 : 1.5));
+renderer.setPixelRatio(FAST ? 0.5 : Math.min(devicePixelRatio || 1, Q.level === 'high' ? 2 : 1.5));
 renderer.setSize(innerWidth, innerHeight, false);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1;
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !FAST;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.shadowMap.autoUpdate = false;
 
@@ -136,12 +140,12 @@ function columnGeo() {
 const hemi = new THREE.HemisphereLight('#BFD6EE', '#CDB894', 1.0);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight('#ffffff', 3);
-sun.castShadow = true;
+sun.castShadow = !FAST;
 sun.target.position.set(-12, 0, -40);
 scene.add(sun, sun.target);
 {
   const sc = sun.shadow.camera; sc.left = -600; sc.right = 600; sc.top = 600; sc.bottom = -600; sc.near = 100; sc.far = 3400;
-  const S = Q.level === 'high' ? 4096 : 2048; sun.shadow.mapSize.set(S, S);
+  const S = FAST ? 256 : Q.level === 'high' ? 4096 : 2048; sun.shadow.mapSize.set(S, S);
   sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.5;
 }
 // ── world6 ── the sky (src/sky.js): gradient, sun, haze, far hills and Moab, horizon cumulus, a lit cloud layer, the moon
@@ -199,11 +203,11 @@ class HideDuring extends Pass {
 
 function makeComposer(fxObjs) {
   const w = innerWidth, h = innerHeight, pr = renderer.getPixelRatio();
-  const rt = new THREE.WebGLRenderTarget(w * pr, h * pr, { type: THREE.HalfFloatType, samples: Q.level === 'high' ? 4 : 2 });
+  const rt = new THREE.WebGLRenderTarget(w * pr, h * pr, { type: THREE.HalfFloatType, samples: FAST ? 0 : Q.level === 'high' ? 4 : 2 });
   composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(pr); composer.setSize(w, h);
   composer.addPass(new RenderPass(scene, camera));
-  if (Q.level === 'high') {
+  if (Q.level === 'high' && !FAST) {
     const gtao = new GTAOPass(scene, camera, w, h);
     gtao.updateGtaoMaterial({ radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1, samples: 12, distanceFallOff: 1 });
     gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
@@ -213,6 +217,7 @@ function makeComposer(fxObjs) {
   }
   bloom = new UnrealBloomPass(new THREE.Vector2(w, h), TIMES[curTime].bloom, 0.45, TIMES[curTime].bloomT);
   composer.addPass(bloom);
+  if (FAST) bloom.enabled = false;   // (the probe's fast mode: the OutputPass stays — it tone-maps and grades — the bloom goes)
   // ── world6 ── the colour grade, folded into the OutputPass (no extra pass): saturation, split toning, a soft vignette
   const out = new OutputPass();
   grade = { uSat: { value: 1 }, uGain: { value: new THREE.Vector3(1, 1, 1) }, uLift: { value: new THREE.Vector3() }, uVig: { value: 0 } };
@@ -430,7 +435,7 @@ let f24PR = 0;
 view.workRes = (on) => {
   view.workResLog = (view.workResLog || []).slice(-9).concat([on ? 1 : 0]);   // (tests)
   if (on) {
-    if (f24PR || Q.level === 'low') return renderer.getPixelRatio();
+    if (f24PR || Q.level === 'low' || FAST) return renderer.getPixelRatio();
     const want = Math.min(devicePixelRatio || 1, 2); f24PR = renderer.getPixelRatio();
     if (want > f24PR + 0.01) { renderer.setPixelRatio(want); resize(); }
   } else if (f24PR) {
@@ -1066,7 +1071,7 @@ $('about').addEventListener('click', () => showInfo('about'));
 $('cx').addEventListener('click', hideInfo);
 $('q').addEventListener('click', () => {
   if (aoWrap) { aoWrap.enabled = !aoWrap.enabled; $('q').textContent = aoWrap.enabled ? 'איכות: גבוהה' : 'איכות: רגילה'; }
-  else { renderer.setPixelRatio(renderer.getPixelRatio() > 1 ? 1 : Math.min(devicePixelRatio || 1, 2)); resize(); $('q').textContent = renderer.getPixelRatio() > 1 ? 'איכות: גבוהה' : 'איכות: רגילה'; }
+  else if (!FAST) { renderer.setPixelRatio(renderer.getPixelRatio() > 1 ? 1 : Math.min(devicePixelRatio || 1, 2)); resize(); $('q').textContent = renderer.getPixelRatio() > 1 ? 'איכות: גבוהה' : 'איכות: רגילה'; }
 });
 $('q').textContent = Q.level === 'high' ? 'איכות: גבוהה' : 'איכות: רגילה';
 

@@ -4,6 +4,13 @@
 //          { "script": "file.js" } (evaluated in the page) · { "path": [[x,y],...], ms, hold, release:"js" } · { "when": "js", max, then: step }
 //          { "bot": "js → a step (or {done:true})", max } (the page's player: it returns the next step until done)
 //          { "hold": [x, y, ms] } · { "holdUntil": [x, y, "js", maxMs] } · { "until": "js", "max": ms } · { "log": "js" }
+// FAST=1 (environment): a logic run. The init script sets window.__PROBE_FAST = 1 before the game loads, and src/main.js then draws
+//   cheaply: pixel ratio 0.5 (kept there: the works' render scale and the frame-time guard do not raise it), no shadow map, no bloom,
+//   no multisampled target (the OutputPass stays: it tone-maps). The viewport, the layout, the touch geometry (X.scr, grips in CSS px),
+//   the game clock, the acts and the bot are as in a normal run. Use it for runs that check logic only (a work played to its end:
+//   stars, points, flags, no stuck, the save). Its stills are blurred and flat: any still a person or a reviewer judges must come
+//   from a normal run (without FAST). Note the probe is paced by the game's own clock (the world simulated in real time, the bot's
+//   waits), so FAST shortens the boot and each still, not the play between them; the last lines log where the time went.
 // PROBE_EXE=path: the Chromium to launch (default: /opt/pw-browsers/chromium where that file exists — the cloud — else Playwright's own
 //   installed Chromium). PROBE_GPU=1: the machine's real graphics card instead of SwiftShader (on Windows ANGLE over Direct3D 11;
 //   without PROBE_EXE, Playwright's full Chromium in its new headless mode, which can use the GPU). PROBE_HEADED=1: a visible window,
@@ -16,6 +23,7 @@ const W = +(W0 || 960), H = +(H0 || 600), ROOT = path.join(__dirname, '..');
 fs.mkdirSync(OUT, { recursive: true });
 const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
 (async () => {
+  const TB = Date.now();
   const TW = Date.now(), GPU = !!process.env.PROBE_GPU;
   const EXE = process.env.PROBE_EXE || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
   const ANGLE = process.platform === 'win32' ? 'd3d11' : process.platform === 'darwin' ? 'metal' : 'gl';
@@ -30,11 +38,12 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   pg.on('crash', () => console.log('PAGE CRASHED'));
   await pg.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const init = steps.find((s) => s.init); 
-  await pg.addInitScript((code) => { window.__FORCE_Q = 'normal'; window.__FORCE_TIME = 'noon'; window.__GAME_LOG = []; window.__START_PAUSED = true; window.__DT_MAX = 0.6; try { if (+sessionStorage.getItem('__keep') > Date.now()) { code = sessionStorage.getItem('__init2') || ''; } else localStorage.clear(); } catch (e) { /* */ } if (code) { try { (0, eval)(code); } catch (e) { console.error('init', e.message); } } }, init ? init.init : '');
+  await pg.addInitScript(([code, fast]) => { window.__FORCE_Q = 'normal'; window.__FORCE_TIME = 'noon'; window.__GAME_LOG = []; window.__START_PAUSED = true; window.__DT_MAX = 0.6; if (fast) window.__PROBE_FAST = 1; try { if (+sessionStorage.getItem('__keep') > Date.now()) { code = sessionStorage.getItem('__init2') || ''; } else localStorage.clear(); } catch (e) { /* */ } if (code) { try { (0, eval)(code); } catch (e) { console.error('init', e.message); } } }, [init ? init.init : '', !!process.env.FAST]);
   await pg.goto(pathToFileURL(path.join(ROOT, 'dist', 'test.html')).href);
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 });
   const cdp = await ctx.newCDPSession(pg);
   console.log('webgl:', await pg.evaluate(() => { try { const r = window.__T && window.__T.renderer; const gl = r && r.getContext ? r.getContext() : document.createElement('canvas').getContext('webgl2'); const x = gl.getExtension('WEBGL_debug_renderer_info'); return x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); } catch (e) { return 'unknown (' + e.message + ')'; } }), GPU ? '(PROBE_GPU)' : '');
+  const bootS = ((Date.now() - TB) / 1000).toFixed(1);
   // (MOUSE=1: the same script played with a mouse; the first finger is the mouse, a second finger is ignored)
   if (process.env.MOUSE) { const send0 = cdp.send.bind(cdp); let down = false, last = [0, 0];
     cdp.send = async (m, o) => { if (m !== 'Input.dispatchTouchEvent') return send0(m, o); const p = o.touchPoints && o.touchPoints[0];
@@ -42,7 +51,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
       else if (o.type === 'touchMove' && p && down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); }
       else if (o.type === 'touchEnd' && down) { await pg.mouse.up(); down = false; } }; }
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x: Math.round(x), y: Math.round(y), id: 7 + i, radiusX: 6, radiusY: 6, force: 1 })) });
-  const T0 = Date.now(); let n = 0;
+  const T0 = Date.now(); let n = 0, shotMs = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);
   async function run(s) {
     if (s.init) return;
@@ -63,9 +72,10 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     if (s.holdUntil) { const [x, y, cond, max = 20000] = s.holdUntil; await touch('touchStart', [[x, y]]); const t = Date.now(); while (Date.now() - t < max) { if (await pg.evaluate(cond).catch(() => false)) break; await pg.waitForTimeout(25); } await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); log('holdUntil', ((Date.now() - t) / 1000).toFixed(2) + 's'); }
     if (s.drag) { const [x0, y0, x1, y1, ms = 400] = s.drag; const k = Math.max(4, Math.round(ms / 40)); await touch('touchStart', [[x0, y0]]); for (let i = 1; i <= k; i++) { await pg.waitForTimeout(ms / k); await touch('touchMove', [[x0 + ((x1 - x0) * i) / k, y0 + ((y1 - y0) * i) / k]]); } await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
     if (s.shot) {
+      const ts = Date.now();
       await pg.evaluate(() => { __T.simulate(false); __T.render(); __T.render(); __T.game.frame(performance.now()); window.__HUD_HOLD = true; });
       const f = path.join(OUT, `${String(++n).padStart(2, '0')}-${s.shot}.png`); await pg.screenshot({ path: f, timeout: 240000 }); log('shot', path.basename(f));
-      await pg.evaluate(() => { window.__HUD_HOLD = false; __T.simulate(true); });
+      await pg.evaluate(() => { window.__HUD_HOLD = false; __T.simulate(true); }); shotMs += Date.now() - ts;
     }
     if (s.script) { const code = fs.readFileSync(path.resolve(s.script), 'utf8'); const v = await pg.evaluate(code).catch((e) => 'SCRIPTERR ' + e.message); log('script', s.script, typeof v === 'string' ? v.slice(0, 200) : ''); }
     if (s.path) { const P = s.path, ms = s.ms || 600; await touch('touchStart', [P[0]]); const k = Math.max(P.length - 1, Math.round(ms / 40)); for (let i = 1; i <= k; i++) { await pg.waitForTimeout(ms / k); const f = (i / k) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[P[j][0] + (P[j + 1][0] - P[j][0]) * u, P[j][1] + (P[j + 1][1] - P[j][1]) * u]]); } if (s.pathUntil) { const t1 = Date.now(); while (Date.now() - t1 < (s.pathMax || 20000) && !(await pg.evaluate(s.pathUntil).catch(() => true))) { for (let i = 1; i <= k; i++) { if (s.pathEach && i % s.pathEach === 0 && await pg.evaluate(s.pathUntil).catch(() => true)) break; /* ── h128 ── (pathEach: the condition looked at every n moves, not once a lap) ── /h128 ── */ await pg.waitForTimeout(ms / k); const f = (i / k) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[P[j][0] + (P[j + 1][0] - P[j][0]) * u, P[j][1] + (P[j + 1][1] - P[j][1]) * u]]); } } }   /* (build 120: the path again until the expression holds) */ if (s.keep) { const t = Date.now(); while (Date.now() - t < s.keep) { if (s.release && await pg.evaluate(s.release).catch(() => false)) break; await pg.waitForTimeout(20); } } if (s.after) { const A = [P[P.length - 1], ...s.after], m2 = s.afterMs || 400, k2 = Math.max(4, Math.round(m2 / 40)); for (let i = 1; i <= k2; i++) { await pg.waitForTimeout(m2 / k2); const f = (i / k2) * (A.length - 1), j = Math.min(A.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[A[j][0] + (A[j + 1][0] - A[j][0]) * u, A[j][1] + (A[j + 1][1] - A[j][1]) * u]]); } } await pg.waitForTimeout(60);   /* (build 120: after the keep, the finger eases back along `after` before it lifts) */ await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
@@ -103,6 +113,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     }
   }
   for (const s of steps) await run(s);
+  console.log(`probe time${process.env.FAST ? ' (FAST)' : ''}: boot ${bootS}s, ${n} shots ${(shotMs / 1000).toFixed(1)}s, steps ${((Date.now() - T0) / 1000).toFixed(1)}s`);
   const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
   console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));
   console.log(errs.length ? 'ERRORS:\n' + errs.slice(0, 30).join('\n') : 'no errors');

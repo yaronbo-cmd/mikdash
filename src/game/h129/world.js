@@ -181,7 +181,7 @@ function stateOf(X) {
   };
 }
 export const RING_T = 4;   // (the crews build one ring of the great vault in this many seconds of the world's time)
-const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.gl, S.troughs, S.puddles, S.rimBroken, S.bCracked, S.vN, S.vS, S.vM, S.rings, S.vcrack, S.vstone, S.night, S.slab, S.fin, SH7.final, SH7.own]);
+const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.gl, S.glDepth, S.troughs, S.puddles, S.rimBroken, S.bCracked, S.vN, S.vS, S.vM, S.rings, S.vcrack, S.vstone, S.night, S.slab, S.fin, SH7.final, SH7.own]);
 export function rebuild(X, force) {
   const S = stateOf(X); SH7.state = S;
   const k = keyOf(S); if (!force && k === SH7.key.all) return;

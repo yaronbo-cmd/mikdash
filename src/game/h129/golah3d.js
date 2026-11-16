@@ -25,7 +25,8 @@ export const DEPTH = GL.depth[0];
 const GOLAH_RUN = GOLAH.RUN;
 const CUT_H = 2.2;
 export const LINE_D = 0.34;   // (play: the mason's line in each trough, its measure, this far under the floor; above it the water climbs to the rim)   // (the cut-away walls' height over the floor)
-const RINGS_N = 10, SEG = { well: [RING_SEG + 20, RINGS_N], head: [28, 16], basin: [RING_SEG, RINGS_N * 2] };   // (the water planes' subdivisions: they heave)
+const MOUTH_CUT = { margin: 0.02, seg: 40 };   // (world: the mask over the well's mouth — a hair wider than the shaft, its circle's segments)
+const RINGS_N = 10, SEG ={ well: [RING_SEG + 20, RINGS_N], head: [28, 16], basin: [RING_SEG, RINGS_N * 2] };   // (the water planes' subdivisions: they heave)
 
 /* ───────── geometry helpers: boxes and plates with world-planar UVs (the world's tiling) and a vertex colour ───────── */
 function planarUV(g, tile) {
@@ -239,7 +240,7 @@ export function createGolah3d({ renderer, play = false, world = false, camera: c
     const mask = new THREE.Mesh(keep(plate(ring0, null, F0)), maskM); mask.renderOrder = MASK; mask.name = 'h129-cut'; scene.add(mask);
     // (the well's mouth the same: the world's room floor is whole over it — the shaft, its water, the buckets and the rope are drawn
     //  before the mask)
-    const mouth = new THREE.Mesh(keep(plate(circle(wx, wz, R + 0.02, 40), null, F0)), maskM); mouth.renderOrder = MASK; mouth.name = 'h129-mouth-cut'; scene.add(mouth);
+    const mouth = new THREE.Mesh(keep(plate(circle(wx, wz, R + MOUTH_CUT.margin, MOUTH_CUT.seg), null, F0)), maskM); mouth.renderOrder = MASK; mouth.name = 'h129-mouth-cut'; scene.add(mouth);
   }
   /** (world) a transparent thing in the cut: drawn with the cut, before the mask (the opaque list, its blending kept) */
   const inCut = (m, k = 0) => {

@@ -922,7 +922,13 @@
     // cracks), 'grim' (golah2: the last pulls fed and not waited for: a rim stone breaks), 'gflood' (golah2: two full buckets into A, 1.5)
     h7golah(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
-      if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase + (a.kohen ? ' kohen ' + JSON.stringify(a.kohen) : '') }; }
+      // (G11: the moment's stills by the act's own clock — the troughs from the court before the cut, the kohen washing once his picture
+      //  has stood a while and before any card; the figures' report with each)
+      if (a.phase !== 'play') {
+        if (a.phase === 'moment' && !K.momShot && a.view === 'far' && a.mom >= 0.9) { K.momShot = 1; return { wait: 0, shot: a.id + '-moment', note: 'golah: the moment figs ' + JSON.stringify(a.figs) }; }
+        if (a.phase === 'moment' && !K.momShot2 && a.view === 'wash' && a.washFor >= 1.6) { K.momShot2 = 1; return { wait: 0, shot: a.id + '-wash', note: 'golah: the wash figs ' + JSON.stringify(a.figs) + ' kohen ' + JSON.stringify(a.kohen) + ' gate ' + JSON.stringify(window.__FIG && __FIG.report && __FIG.report()) }; }
+        return { wait: 100, note: 'golah: ' + a.phase + ' ' + a.view };
+      }
       // (each trip is progress: the wall's limit counts from the last one — at 1600×900 the page runs slower than its clock and golah3's
       //  five or six trips by mouse take longer than the wall's 240 s)
       if (K.trip !== a.trip || K.ph !== a.phase) { K.trip = a.trip; K.ph = a.phase; B.actT = now(); }
@@ -1000,6 +1006,9 @@
   };
   B.next = () => {
     const S = H().state();
+    // ── h129 ── (G12: the work's end line — its act seconds, and a Golah work's trips — once its act has ended) ── /h129 ──
+    if (B.actInfo && (S.phase !== 'act' || !S.act || B.actInfo.m !== S.mission)) { const I = B.actInfo; B.actInfo = null; let r = null; try { r = H().M.st.res[I.m]; } catch (e) { r = null; } return { wait: 50, note: `END ${I.m} · act ${I.t.toFixed(1)} s` + (I.trip != null ? ` · trips ${I.trip}` : '') + ` · stars ${r ? r.stars : '?'}` + (r && r.flags ? ' · flags ' + JSON.stringify(r.flags) : '') }; }
+    if (S.phase === 'act' && S.act && S.mission) B.actInfo = { m: S.mission, t: +S.act.t || 0, trip: /^golah/.test(S.mission) && S.act.trip != null ? S.act.trip : null };
     if (!S.started && S.phase === 'off') {
       if (!B.endSeen) { B.endSeen = now(); return { wait: 2500, shot: 'stage-end', note: 'the stage is over' }; }
       return { done: true };
@@ -1026,7 +1035,8 @@
     // wall's: at 1600×900 the software renderer runs the page about four times slower than its clock, and a whole ring by mouse took the
     // wall's 240 s while the act was 62 s in and still going; the wall's limit stays, three times over, for an act that never ticks) ── /h128 ──
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
-    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    // ── h129 ── (G12: the Golah's works too — a clean golah3 needs more than 240 s of its own clock) ── /h129 ──
+    const LIM = /^(bond|carry|mikveh|capstan|golah)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──

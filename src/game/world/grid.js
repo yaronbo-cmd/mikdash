@@ -807,8 +807,8 @@ const S07 = {
     // pour, from the north-east over the cut-down north wall: the bucket, the trough by the well, the channel to the first stone; the overview
     golahShaft: { off: [0.4, 7, 2.4], span: 9, fov: 30 }, golahRim: [[-130.5, 25.5, 51.5], [-139.4, 16.3, 57.5]], golahOver: [[-104, 118, 118], [-128, 16, 58]],
     // (the sharing: from the north-east and high over the troughs in use (the camera's way out from their middle on the channel's line,
-    //  its length d0 + k × their span); the moment: the kohen at the first trough, close)
-    golahShare: { dir: [0.62, 0.6, -0.5], d0: 12, k: 0.9, z: 52 }, golahWash: [[-135.2, 20.2, 45.4], [-138.4, 17, 51]],
+    //  its length d0 + k × their span, at least s0: one trough's view keeps the well's mouth clear of the top bar); the moment: the kohen at the first trough, close)
+    golahShare: { dir: [0.62, 0.6, -0.5], d0: 12, k: 0.9, z: 52, s0: 10 }, golahWash: [[-135.2, 20.2, 45.4], [-138.4, 17, 51]],
     golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
     // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the

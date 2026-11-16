@@ -879,6 +879,9 @@
     h7golah(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
       if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase }; }
+      // (each trip is progress: the wall's limit counts from the last one — at 1600×900 the page runs slower than its clock and golah3's
+      //  five or six trips by mouse take longer than the wall's 240 s)
+      if (K.trip !== a.trip || K.ph !== a.phase) { K.trip = a.trip; K.ph = a.phase; B.actT = now(); }
       const fl = (f) => (a.flags[f] || []).length;
       const gb = has('gbucket') && a.id === 'golah1' && !fl('golah.bucket'), gr = has('grim') && a.id === 'golah2' && !fl('golah.rim'), gf = has('gflood') && a.id === 'golah2' && !fl('golah.flood');
       // (a touch the act did not take lifted the camera: a tap brings it back, as a player would)

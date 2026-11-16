@@ -70,7 +70,7 @@ const ALLOW128 = [
   ['h128/wicket.js', 1, 'the hand hint\'s gesture in px (30, 30)'],
   // (part 3)
   ['h128/sea.js', 3, 'sizes, not places: the quay stone\'s canvas in px (256 × 128) and the torn rope\'s haptic pattern in ms (30, 50, 30, 50, 80)'],
-  ['h128/sound128.js', 21, 'sounds, not places: filter frequencies in Hz (120 … 4200), their Q and the voices\' lengths in seconds (part 3 adds the rope\'s string, the sea, the splash and the bell)'],
+  ['h128/sound128.js', 39, 'sounds, not places: filter frequencies in Hz (62 … 4200), their Q and the voices\' lengths in seconds (part 3 adds the rope\'s string, the sea, the splash and the bell; the tuning round the runner, slap, crackle, scrape, rattle, groan, thud, hollow, swing, hinge and strain)'],
 ];
 test('stage 06: no world place typed outside the book but the listed exceptions', () => {
   const hits = scanDirs(ROOT, ['h128']), by = new Map();

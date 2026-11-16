@@ -16,6 +16,7 @@ import { BOOK } from '../world/grid.js';
 import { texAshlar, texPaving, texWood } from '../../tex.js';
 import { createWater } from './water.js';
 import { GOLAH } from './model.js';
+import { createActors } from '../../actors.js';
 
 const S7 = BOOK.s07, GL = S7.golah, AR = S7.around, F0 = GL.floor, DEG = Math.PI / 180;
 // sizes of the scene (no places): the sky's radius, the trench's depth, the shaft's water below the floor, the bucket
@@ -61,7 +62,7 @@ function face(x0, z0, x1, z1, a, b, tile = 24, c = '#ffffff') {
 }
 const circle = (cx, cz, r, n = 28) => Array.from({ length: n }, (_, i) => { const a = (-i / n) * Math.PI * 2; return [cx + r * Math.cos(a), cz + r * Math.sin(a)]; });
 
-export function createGolah3d({ renderer }) {
+export function createGolah3d({ renderer, play = false }) {
   const scene = new THREE.Scene(), own = [], keep = (o) => { own.push(o); return o; };
   const camera = new THREE.PerspectiveCamera(FOV, 16 / 10, 0.1, SKY_R * 1.5);
   const W = createWater(THREE), U = W.U;
@@ -125,17 +126,20 @@ export function createGolah3d({ renderer }) {
   { const [a, b, c, d] = AR.ulam; stone.push(box(a, F0, b, c, AR.house.top, d, 30, '#F1E6D2')); }
   // the well: its rim of twelve stones, its shaft down to the water and below (darker as it goes down)
   const [wx, wz] = GL.well, R = GL.shaftR;
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2, a1 = ((i + 1) / 12) * Math.PI * 2, r0 = R, r1 = R + GL.rimT, h = GL.rimH, g = new THREE.BufferGeometry();
+  // (play: the rim is a mesh of its own, rebuilt when a stone of it breaks — golah.rim)
+  const rimStone = (i, broken) => {
+    const a = (i / 12) * Math.PI * 2, a1 = ((i + 1) / 12) * Math.PI * 2, r0 = R, r1 = R + GL.rimT, h = broken ? GL.rimH * 0.45 : GL.rimH, g = new THREE.BufferGeometry();
     const P = (r, aa, y) => [wx + r * Math.cos(aa), F0 + y, wz + r * Math.sin(aa)], gap = 0.012;
     const A0 = a + gap, A1 = a1 - gap, q = [P(r0, A0, 0), P(r1, A0, 0), P(r1, A1, 0), P(r0, A1, 0), P(r0, A0, h), P(r1, A0, h), P(r1, A1, h), P(r0, A1, h)];
     const tri = [[4, 5, 6], [4, 6, 7], [1, 2, 6], [1, 6, 5], [0, 4, 7], [0, 7, 3], [0, 1, 5], [0, 5, 4], [3, 7, 6], [3, 6, 2]], pos = [];
     for (const t of tri) for (const k of [t[0], t[2], t[1]]) pos.push(...q[k]);
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
-    stone.push(clean(tint(planarUV(g, 6), i % 3 ? '#E8DDCC' : '#D9CDBA')));
-  }
+    return clean(tint(planarUV(g, 6), broken ? '#BFB09A' : i % 3 ? '#E8DDCC' : '#D9CDBA'));
+  };
+  if (!play) for (let i = 0; i < 12; i++) stone.push(rimStone(i, false));
   {
-    const g = new THREE.CylinderGeometry(R, R, DEPTH + 2, 28, 6, true); g.translate(wx, F0 - (DEPTH + 2) / 2, wz);
+    const SH = play ? Math.max(...GL.depth) + 2 : DEPTH + 2;   // (play: down to the deepest level's water)
+    const g = new THREE.CylinderGeometry(R, R, SH, 28, play ? 16 : 6, true); g.translate(wx, F0 - SH / 2, wz);
     const n = g.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, -n.getX(i), 0, -n.getZ(i));
     const ix = g.index.array; for (let i = 0; i < ix.length; i += 3) { const t = ix[i]; ix[i] = ix[i + 2]; ix[i + 2] = t; }
     const P = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < P.count; i++) uv.setXY(i, uv.getX(i) * (2 * Math.PI * R) / 8, P.getY(i) / 8);
@@ -148,13 +152,27 @@ export function createGolah3d({ renderer }) {
   stone.push(box(hx - hw / 2, F0, hz + hd / 2 - th, hx + hw / 2, F0 + hh, hz + hd / 2, 6, '#E2D6C2'), box(hx - hw / 2, F0, hz - hd / 2 + th, hx - hw / 2 + th, F0 + hh, hz + hd / 2 - th, 6, '#E2D6C2'), box(hx + hw / 2 - th, F0, hz - hd / 2 + th, hx + hw / 2, F0 + hh, hz + hd / 2 - th, 6, '#E2D6C2'));
   stone.push(box(hx - hw / 2, F0, hz - hd / 2, hx - out, F0 + hh, hz - hd / 2 + th, 6, '#E2D6C2'), box(hx + out, F0, hz - hd / 2, hx + hw / 2, F0 + hh, hz - hd / 2 + th, 6, '#E2D6C2'), box(hx - out, HB + 0.18, hz - hd / 2, hx + out, F0 + hh, hz - hd / 2 + th, 6, '#E2D6C2'));
   // the sluice stones in their guide posts: the first (A) lowered across its spur's mouth, the second (B) raised, the third (C) lowered
-  const cw = GL.channel.w, sl = (k, up) => {
+  const slabs = {}, cw = GL.channel.w, sl = (k, up) => {
     const [x, z] = GL.sluice[k], zz = z - cw / 2 - 0.1, b = up ? F0 + 0.55 : F0 - TRENCH;
-    stone.push(box(x - cw / 2 - 0.12, b, zz - 0.08, x + cw / 2 + 0.12, b + 0.95, zz + 0.08, 4, '#D8CCB6'));
+    if (play) slabs[k] = box(x - cw / 2 - 0.12, 0, zz - 0.08, x + cw / 2 + 0.12, 0.95, zz + 0.08, 4, '#D8CCB6');   // (play: each stone its own mesh, it rises and falls)
+    else stone.push(box(x - cw / 2 - 0.12, b, zz - 0.08, x + cw / 2 + 0.12, b + 0.95, zz + 0.08, 4, '#D8CCB6'));
     for (const s of [-1, 1]) stone.push(box(x + s * (cw / 2 + 0.17) - 0.07, F0 - TRENCH, zz - 0.13, x + s * (cw / 2 + 0.17) + 0.07, F0 + 1.6, zz + 0.13, 4, '#CDBFA6'));
   };
   sl('A', false); sl('B', true); sl('C', false);
   const stoneMesh = new THREE.Mesh(keep(mergeGeometries(stone)), stoneM); stoneMesh.castShadow = true; stoneMesh.receiveShadow = true; stoneMesh.name = 'h129-stone'; scene.add(stoneMesh);
+  // (play) the sluice stones, each a mesh that rises (open) and falls (closed); the rim, its broken stones lower and darker
+  const sluiceM = {};
+  for (const k of Object.keys(slabs)) { const m = new THREE.Mesh(keep(slabs[k]), stoneM); m.castShadow = false; m.receiveShadow = true; m.name = 'h129-sluice' + k; scene.add(m); sluiceM[k] = m; }
+  let rimMesh = null;
+  function rimBuild(broken = []) {
+    if (!play) return;
+    if (rimMesh) { scene.remove(rimMesh); rimMesh.geometry.dispose(); }
+    const parts = []; for (let i = 0; i < 12; i++) parts.push(rimStone(i, broken.includes(i)));
+    // a broken stone's pieces lie on the floor outside the rim
+    for (const i of broken) { const a = ((i + 0.5) / 12) * Math.PI * 2, r = R + GL.rimT + 0.45, x = wx + r * Math.cos(a), z = wz + r * Math.sin(a); parts.push(box(x - 0.2, F0, z - 0.16, x + 0.18, F0 + 0.26, z + 0.17, 4, '#CFC2AC'), box(x + 0.25, F0, z + 0.1, x + 0.47, F0 + 0.15, z + 0.3, 4, '#C6B8A0')); }
+    rimMesh = new THREE.Mesh(mergeGeometries(parts), stoneM); rimMesh.castShadow = true; rimMesh.receiveShadow = true; rimMesh.name = 'h129-rim'; scene.add(rimMesh);
+  }
+  rimBuild();
 
   /* ── the floors: the Azarah's (the channel and the troughs cut in it), the room's (the well's mouth open), the door's sill; the
    *    trench's sides and bottom and the troughs' basins, all in the paving ── */
@@ -292,9 +310,9 @@ export function createGolah3d({ renderer }) {
   const trLine = W.lines(tbx - bx, tbz - bz, tbx + bx, tbz + bz, F0 - TD, F0); scene.add(trLine.mesh);
   // the way the water runs in the sample: from the outlet, out by the door to the bend, where the lowered stone (A) turns it east, on to
   // the raised one (B), where it heaps and turns into its spur, and over the lip into the basin
-  const wayPts = [[m0[0], ho], [m1[0], m1[1]], [GL.sluice.B[0], m1[1]], [GL.sluice.B[0], basin('B')[3] + 0.02]];
+  const wayPts = play ? [[m0[0], ho], [m1[0], m1[1]], [m2[0], m1[1]]] : [[m0[0], ho], [m1[0], m1[1]], [GL.sluice.B[0], m1[1]], [GL.sluice.B[0], basin('B')[3] + 0.02]];   // (play: the main line, to its east end; the spurs are their own)
   const legA = ho - m1[1], legB = legA + Math.abs(GL.sluice.B[0] - m1[0]);
-  const heap = (u) => 0.05 * (Math.exp(-(((u - legA) / 0.5) ** 2)) + Math.exp(-(((u - legB) / 0.5) ** 2)));
+  const heap = (u) => (play ? 0 : 0.05 * (Math.exp(-(((u - legA) / 0.5) ** 2)) + Math.exp(-(((u - legB) / 0.5) ** 2))));
   const WL = 0.2;   // (the water's height over the trench's bed)
   const run = W.flow(wayPts, { w: cw - 0.01, y: (p, i, u) => tb + WL + heap(u), speed: GOLAH_RUN }); scene.add(run.mesh);
   run.mat.uniforms.uPile.value.set(legA, legB, 0, 0);
@@ -302,10 +320,56 @@ export function createGolah3d({ renderer }) {
   const wetBed = W.wet(wayPts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); scene.add(wetBed.mesh);
   const wetSides = W.wetWalls(wayPts, { w: cw, y0: tb, h: TRENCH, line: WL }); scene.add(wetSides.mesh);
   const pour = W.sheet({ nt: 40, ns: 12, brk: 0.5 }); pour.mesh.name = 'h129-pour'; scene.add(pour.mesh);
-  const inflow = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); scene.add(inflow.mesh);
+  const inflow = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); scene.add(inflow.mesh); if (play) inflow.mesh.visible = false;
   const thr = W.threads(1); scene.add(thr.mesh);
   const drops = W.drops(220); scene.add(drops.mesh);
   const spots = W.spots(200); scene.add(spots.mesh);
+  const P = play ? playParts() : null;
+
+  /* ── play (golah.js): the three troughs' water, each spur's running water and wet bed, each basin's inflow; the plank over the
+   *    mouth the crew stand on, the crew and the kohen (their own figures in this scene), the puddles and stains a flood leaves, the
+   *    crack of a bucket ── */
+  function playParts() {
+    const Q = { tr: {}, spur: {}, inflow: {}, puddle: {}, crack: [null, null] };
+    for (const k of Object.keys(GL.troughs)) {
+      const [x, z] = GL.troughs[k];
+      if (k === 'B') { Q.tr.B = { W: trW, M: trM, line: trLine }; continue; }
+      const M2 = W.surface({ kind: 'box', deep: '#143A46', bed: '#B09E80', wall: '#C9BA9E', alpha: 0.96, chop: 0.6, heave: 1, glint: 1.2 });
+      const W2 = new THREE.Mesh(keep(new THREE.PlaneGeometry(TS[0] - 0.02, TS[1] - 0.02, ...SEG.basin)), M2); W2.rotation.x = -Math.PI / 2; W2.renderOrder = 5; W2.visible = false; scene.add(W2);
+      M2.uniforms.uBox.value.set(x, z, TS[0] / 2, TS[1] / 2);
+      const L2 = W.lines(x - bx, z - bz, x + bx, z + bz, F0 - TD, F0); scene.add(L2.mesh);
+      Q.tr[k] = { W: W2, M: M2, line: L2 };
+    }
+    trW.visible = false;
+    for (const k of Object.keys(GL.sluice)) {
+      const x = GL.sluice[k][0], pts = [[x, m1[1]], [x, basin(k)[3] + 0.02]];
+      const f = W.flow(pts, { w: cw - 0.01, y: () => tb + WL, speed: GOLAH_RUN }); f.mesh.visible = false; scene.add(f.mesh);
+      const b2 = W.wet(pts, { w: cw, y: () => tb + 0.004, alpha: 0.6 }); b2.mesh.visible = false; scene.add(b2.mesh);
+      const sh = W.sheet({ nt: 16, ns: 8, brk: 0.7 }); sh.mesh.visible = false; scene.add(sh.mesh);
+      Q.spur[k] = { flow: f, wet: b2, len: f.len }; Q.inflow[k] = sh;
+    }
+    // the plank laid over the mouth along the wheel's axle, between the two ropes: the crew stand on it to haul (illustration)
+    const pk = GL.plank, pg = box(wx - pk.L / 2, F0 + GL.rimH, wz - pk.w / 2, wx + pk.L / 2, F0 + GL.rimH + pk.h, wz + pk.w / 2, 3, '#CDA982');
+    Q.plank = new THREE.Mesh(keep(pg), woodM); Q.plank.castShadow = true; Q.plank.receiveShadow = true; Q.plank.name = 'h129-plank'; scene.add(Q.plank);
+    Q.actors = createActors({ scene, ground: () => F0, max: 6, maxItems: 6 });
+    Q.actors.setCamera(camera); Q.actors.setInstantVis(true);
+    // a flood's puddle on the court's floor beside the basin (its water a standing surface) and the wet stain round it
+    Q.puddleAt = (k) => { const [x, z] = GL.troughs[k], o = GL.puddle; return [x + o[0], z + o[1]]; };
+    return Q;
+  }
+  function puddle(k) {
+    if (!P || P.puddle[k]) return;
+    const [x, z] = P.puddleAt(k), m = W.surface({ deep: '#2E4A50', bed: '#8E7E62', alpha: 0.8, chop: 0.5, glint: 1.4 });
+    const g = keep(new THREE.CircleGeometry(1, 18)); g.scale(1.3, 0.8, 1);
+    const q = new THREE.Mesh(g, m); q.rotation.x = -Math.PI / 2; q.position.set(x, F0 + 0.012, z); q.renderOrder = 5; scene.add(q); P.puddle[k] = q;
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2, r = 1.2 + 0.35 * ((i * 0.618) % 1); spots.add(x + Math.cos(a) * r * 1.2, F0 + 0.011, z + Math.sin(a) * r * 0.8, 0.35 + 0.2 * ((i * 0.37) % 1)); }
+  }
+  function crack(i) {
+    if (!P || P.crack[i]) return;
+    const g = new THREE.Group(), m = keep(new THREE.MeshBasicMaterial({ color: '#1A120A' }));
+    for (const [y, a, l] of [[-1.05, 0.5, 0.34], [-0.86, -0.4, 0.24], [-0.7, 0.3, 0.2]]) { const c = new THREE.Mesh(keep(new THREE.BoxGeometry(0.035, l, 0.02)), m); c.position.set(0.12, y, BUCKET.r1 - 0.02); c.rotation.z = a; g.add(c); }
+    buckets[i].add(g); P.crack[i] = g;
+  }
 
   const state = { scriptMs: 0, t: 0 };
   const _a = new THREE.Vector3(), _v = new THREE.Vector3(), _x = new THREE.Vector3(), _fb = new THREE.Vector3(), _eb = new THREE.Vector3();
@@ -347,11 +411,66 @@ export function createGolah3d({ renderer }) {
     if (F.spots && F.spots.length !== spots.mesh.count) { spots.clear(); for (const sp of F.spots) spots.add(sp[0], sp[1], sp[2], sp[3]); }
     state.scriptMs = performance.now() - t0;
   }
+  /** (play) a frame of the station: F = { b: [two buckets {x, y, z, tilt, swing}], full (the bucket with water, or −1), fill, slosh,
+   *  wheel, ropeWet, depth, head, headWet, pour, pourAt, headRings, wellRings, drips, dribble,
+   *  main: { front, tail, wetTo, wetTail, pile }, spur: { k: { front, tail, wetTo, wetTail } }, inflow: { k: sheet }, inAt: { k },
+   *  tr: { k: { level, wet, rings } }, sluice: { k: 0 … 1 } } */
+  function playSet(F) {
+    const t0 = performance.now();
+    for (let i = 0; i < 2; i++) { const q = F.b[i]; buckets[i].position.set(q.x, q.y, q.z); buckets[i].rotation.set(q.tilt || 0, 0, q.swing || 0); }
+    if (F.full >= 0 && bWater.parent !== buckets[F.full]) buckets[F.full].add(bWater);
+    const fq = F.full >= 0 ? F.b[F.full] : null;
+    bWater.visible = !!fq && F.fill > 0.02 && (fq.tilt || 0) > -0.7;
+    if (fq) { bWater.position.y = -(BUCKET.h + BUCKET.r1 + 0.02) + 0.09 + (BUCKET.h - 0.15) * Math.min(1, F.fill); bWater.rotation.set(-Math.PI / 2 - (fq.tilt || 0) * 0.85, -(fq.swing || 0) + (F.slosh || 0), 0); }
+    wheel.rotation.x = F.wheel;
+    ropeTo(_fb.set(F.b[0].x, F.b[0].y, F.b[0].z), _eb.set(F.b[1].x, F.b[1].y, F.b[1].z), F.ropeWet != null ? F.ropeWet : 1);
+    // the well's water at the level's depth
+    wellW.position.y = F0 - F.depth; wellM.uniforms.uRim.value = F.depth + GL.rimH;
+    // the trough by the well
+    const hy = HB + 0.02 + Math.max(0.001, F.head) * (hh - th - 0.12);
+    headW.position.set(hx, hy, hz); headW.visible = F.head > 0.01;
+    headM.uniforms.uRim.value = F0 + hh - hy; headM.uniforms.uDepth.value = hy - HB;
+    headLine.set(F.head > 0.01 ? hy : HB - 1, HB + 0.02 + (F.headWet || 0) * (hh - th - 0.12));
+    headM.uniforms.uFoam.value.set(F.pourAt ? F.pourAt[0] : 0, F.pourAt ? F.pourAt[1] : 0, 0.32, F.pourAt ? F.pourAt[2] : 0);
+    // the basins
+    for (const k of Object.keys(P.tr)) {
+      const T = P.tr[k], q = (F.tr && F.tr[k]) || { level: 0, wet: 0 }, [x, z] = GL.troughs[k];
+      const ty = F0 - TD + 0.03 + Math.max(0.001, q.level) * (TD - 0.18);
+      T.W.position.set(x, ty, z); T.W.visible = q.level > 0.005;
+      T.M.uniforms.uRim.value = F0 - ty; T.M.uniforms.uDepth.value = ty - (F0 - TD);
+      T.line.set(q.level > 0.005 ? ty : F0 - TD - 1, F0 - TD + 0.03 + Math.max(q.level, q.wet || 0) * (TD - 0.18));
+      const ia = F.inAt && F.inAt[k]; T.M.uniforms.uFoam.value.set(ia ? ia[0] : 0, ia ? ia[1] : 0, 0.22, ia ? ia[2] : 0);
+      W.rings(T.M, q.rings);
+    }
+    // the channel: the main line and the spurs, the wet stone
+    const mn = F.main || {};
+    run.set(mn.front == null ? -1 : mn.front, mn.tail == null ? -1 : mn.tail, mn.flow == null ? 1 : mn.flow);
+    run.mesh.visible = mn.front > mn.tail;
+    run.mat.uniforms.uPile.value.set(mn.pile ? mn.pile[0] : -9, -9, mn.pile ? mn.pile[1] : 0, 0);
+    for (const w of [wet, wetBed]) { w.set(mn.wetTo == null ? 0 : mn.wetTo, mn.wetTail == null ? -1 : mn.wetTail); w.mat.uniforms.uDryV.value = 4.2; }
+    wetSides.set(mn.wetTo == null ? 0 : mn.wetTo, mn.wetTail == null ? -1 : mn.wetTail); wetSides.mat.uniforms.uDryV.value = 4.2;
+    for (const k of Object.keys(P.spur)) {
+      const S2 = P.spur[k], q = (F.spur && F.spur[k]) || null;
+      S2.flow.mesh.visible = !!q && q.front > q.tail; S2.wet.mesh.visible = !!q && q.wetTo > 0;
+      if (q) { S2.flow.set(q.front, q.tail, 1); S2.wet.set(q.wetTo, q.wetTail); S2.wet.mat.uniforms.uDryV.value = 4.2; }
+      const sh = P.inflow[k], iq = F.inflow && F.inflow[k];
+      if (iq && iq.on > 0.01) { sh.mesh.visible = true; sh.set(_a.fromArray(iq.p0), _v.fromArray(iq.v0), _x.fromArray(iq.ax), iq.tt, iq.w0, iq.w1, iq.bow, iq.on); } else { sh.mesh.visible = false; sh.off(); }
+    }
+    for (const k of Object.keys(sluiceM)) { const h = F.sluice ? F.sluice[k] || 0 : 0; sluiceM[k].position.y = (F0 - TRENCH) + h * (0.55 + TRENCH); }
+    // the pour, the dribble, the drops, the rings
+    const q = F.pour; if (q && q.on > 0.01) { pour.mesh.visible = true; pour.set(_a.fromArray(q.p0), _v.fromArray(q.v0), _x.fromArray(q.ax), q.tt, q.w0, q.w1, q.bow, q.on); } else { pour.mesh.visible = false; pour.off(); }
+    const d = F.dribble; if (d) { thr.mesh.visible = true; thr.set(0, _a.fromArray(d[0]), _v.fromArray(d[1]), _x.fromArray(d[2]), d[3], d[4], d[5]); } else { thr.mesh.visible = false; thr.off(0); }
+    W.rings(wellM, F.wellRings); W.rings(headM, F.headRings);
+    drops.set(F.drips || []);
+    state.scriptMs = performance.now() - t0;
+  }
   function view(eye, aim) { camera.position.set(eye[0], eye[1], eye[2]); camera.lookAt(aim[0], aim[1], aim[2]); }
   let shadowDone = false;
   return {
     scene, camera, state, W,
     set, view,
+    /** (play) the station's own: its frame, the parts golah.js drives, the marks that stay */
+    play: P ? { set: playSet, P, rim: rimBuild, puddle, crack, spot: (x, y, z, r) => spots.add(x, y, z, r), buckets, bWater, sluiceM, wheel, camera, BUCKET, wellY: (d) => F0 - d } : null,
     /** the clock of every water material */
     update(t) { U.t.value = t; state.t = t; },
     render() { if (!shadowDone) { renderer.shadowMap.needsUpdate = true; shadowDone = true; } renderer.render(scene, camera); },

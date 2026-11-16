@@ -879,6 +879,58 @@
       return { seq: fr, ms: has('slab') ? 60 : 260, seqUntil: C("return !a||a.phase!=='lower'"), seqLoop: 14, seqMax: 15000, wait: 600, note: 'night: lower the slab' + (has('slab') ? ' (pressed past the floor)' : '') };
     },
     // ── /h129 ──
+    // ── h129 Golah ── (build 129, part 3: the Golah's player, h129/golah.js dbg()). Fill to what the trough still needs, pull as the bucket
+    // passes the middle, wait for the swing to die before the meeting and the last pull, carry and tip at the rim, open only the trough
+    // that is being filled (switched when the channel is empty). __BOT.bad: 'gbucket' (golah1: pulls at the swing's ends until a bucket
+    // cracks), 'grim' (golah2: the last pulls fed and not waited for: a rim stone breaks), 'gflood' (golah2: two full buckets into A, 1.5)
+    h7golah(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
+      if (a.phase !== 'play') { if (a.phase === 'moment' && !K.momShot) { K.momShot = 1; return { wait: 2600, shot: a.id + '-moment' }; } if (a.phase === 'moment' && !K.momShot2) { K.momShot2 = 1; return { wait: 1500, shot: a.id + '-wash' }; } return { wait: 300, note: 'golah: ' + a.phase }; }
+      // (each trip is progress: the wall's limit counts from the last one — at 1600×900 the page runs slower than its clock and golah3's
+      //  five or six trips by mouse take longer than the wall's 240 s)
+      if (K.trip !== a.trip || K.ph !== a.phase) { K.trip = a.trip; K.ph = a.phase; B.actT = now(); }
+      const fl = (f) => (a.flags[f] || []).length;
+      const gb = has('gbucket') && a.id === 'golah1' && !fl('golah.bucket'), gr = has('grim') && a.id === 'golah2' && !fl('golah.rim'), gf = has('gflood') && a.id === 'golah2' && !fl('golah.flood');
+      // (a touch the act did not take lifted the camera: a tap brings it back, as a player would)
+      if (a.look && !a.look.play && (a.look.u > 0.02 || Math.abs(a.look.yaw) > 0.03) && !window.__BOT_LOOKOK) return { tap: [Math.round(innerWidth - 30), Math.round(innerHeight * 0.55)], wait: 500, note: 'golah: LOOK AWAY u ' + a.look.u + ' · a tap returns the camera' };
+      // the target trough: chosen when nothing is on its way (the first not yet full), kept until that water has landed
+      const moving = a.head + a.cw + (a.mph === 'fill' ? 0 : a.f);
+      if (!K.tg || (a.mph === 'fill' && a.head < 1e-3 && a.cw < 1e-3)) K.tg = (gf && a.tr.A[0] < 1.7) ? 'A' : a.ks.find((k) => a.tr[k][1] - a.tr[k][0] > 0.06) || a.ks[0];
+      const need = (k) => a.tr[k][1] - a.tr[k][0] - (k === K.tg ? moving : 0);
+      // the sluices: only the target's open (on the screen: the rim's view)
+      for (const k of a.ks) {
+        const want = k === K.tg ? 1 : 0, q = a.sluice[k];
+        if (a.sl[k] !== want && q && q[0] > 20 && q[0] < innerWidth - 20 && q[1] > 60 && q[1] < innerHeight - 20) return { drag: [q[0], q[1], q[0], q[1] + (want ? -70 : 70), 260], wait: 300, note: `golah: sluice ${k} ${want ? 'open' : 'shut'}` };
+      }
+      if (K.pshot) { K.pshot = 0; return { wait: 0, shot: `${a.id}-pour${a.trip}` }; }
+      if (a.mph === 'rim') {
+        if (!K['rim' + a.trip]) { K['rim' + a.trip] = 1; return { wait: 300, shot: `${a.id}-rim${a.trip}` }; }
+        if (!a.bucket || !a.over || !a.tiltTo) return { wait: 300 };
+        if (!K['pour' + a.trip]) { K['pour' + a.trip] = 1; K.pshot = 1; return { path: [a.bucket, a.over, a.tiltTo], ms: 900, keep: 1500, wait: 0, note: 'golah: carry and tip (a still while it pours)' }; }
+        return { path: [a.bucket, a.over, a.tiltTo], ms: 900, keep: 9000, release: C("return !a||a.mph!=='rim'"), wait: 400, note: `golah: carry and tip (trip ${a.trip})` };
+      }
+      const rope = a.rope; if (!rope) return { wait: 300, note: 'golah: no rope on the screen' };
+      // (the stroke starts where the rope is at that moment: the rope moves on the screen as the camera follows the bucket)
+      const stroke = (cond, why) => ({ when: C(`return !a||a.phase!=='play'||(${cond})`), max: 4000, then: { dragAt: C("const r=a&&a.rope;return r?[r[0],r[1],r[0],r[1]+70,80]:null") }, wait: 120, note: why });
+      if (a.mph === 'fill') {
+        // (what is on its way fills the target: wait for it to land, then the next trough and its stone)
+        if (moving > 1e-3 && need(K.tg) < 0.08) return { wait: 300, note: 'golah: the water on its way fills ' + K.tg };
+        let ft = Math.min(1, Math.max(0.1, need(K.tg) + 0.02)); if (gf && K.tg === 'A') ft = 1;
+        if (a.f < ft - 0.03) return { holdUntil: [rope[0], rope[1], C(`return !a||a.f>=${(ft - 0.02).toFixed(3)}`), 5000], wait: 150, note: `golah: fill to ${ft.toFixed(2)} for ${K.tg}` };
+        if (!K['fill' + a.trip]) { K['fill' + a.trip] = 1; return { wait: 100, shot: `${a.id}-full${a.trip}` }; }
+        return stroke('a.toMid<0.05', 'golah: the first pull');
+      }
+      // (pull) the stills: the swing, the meeting
+      if (!K['sw' + a.trip] && a.y < a.depth * 0.75) { K['sw' + a.trip] = 1; return { wait: 50, shot: `${a.id}-swing${a.trip}` }; }
+      if (!K['meet' + a.trip] && Math.abs(a.y - a.depth / 2) < 1.3) { K['meet' + a.trip] = 1; return { wait: 50, shot: `${a.id}-meet${a.trip}` }; }
+      if (gb) return stroke('a.toEnd<0.04', 'golah: a pull at the swing\'s end (the mistake)');
+      if (gr && a.y < 4) return stroke(a.A > 0.6 ? 'true' : 'a.toEnd<0.04', 'golah: the last pulls fed, no waiting (the mistake)');
+      const lift = 1.5 - 0.5 * a.f;
+      if (!a.met && a.y - lift <= a.depth / 2 + 0.5 && a.A > 0.3) return { wait: 250, note: 'golah: the meeting comes: wait for the swing to die (A ' + a.A + ')' };
+      if (a.y <= lift + 0.05 && a.A > 0.15) return { wait: 250, note: 'golah: the last pull: wait for the swing (A ' + a.A + ')' };
+      return stroke('a.toMid<0.05', 'golah: pull in the middle');
+    },
+    // ── /h129 Golah ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {

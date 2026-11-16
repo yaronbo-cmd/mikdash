@@ -742,6 +742,10 @@ const S07 = {
     troughs: { A: [-139, 50], B: [-125, 50], C: [-111, 50] }, troughSize: [3, 1.6, 0.9],
     sluice: { A: [-139, 52], B: [-125, 52], C: [-111, 52] },
     stand: [-139, 69, 16], face: 'N',
+    // (build 129, part 3) the plank laid over the well's mouth along the axle, between the two ropes (length, width, thickness), the two
+    // crew men who haul standing on it either side of the ropes; where a flood's puddle lies beside its basin (offset from its centre);
+    // where the kohen kneels to wash his hands in the first trough's water (facing north) — all המחשה
+    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-137.9, 51.35],
   },
   vault: {
     // the small arches: the opening's middle in the block's east face (x 8); the arch from z, to z; floor, springing, the crown's
@@ -828,6 +832,14 @@ const S07 = {
     end: [[[-175, 19.5, -66.5], [-146, 34, -72]], [[-125, 24, 40], [-125, 16, 50]], [[-81, 30, 62], [-81, 16, 77]]],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     golahLift: [[-139, 52, 78], [-130, 14, 52]],
+    // (build 129, part 3) the Golah's play: down the shaft from over the mouth on the full bucket's side (off the well's axis: x, the height
+    // over the floor, out from the axis on that rope's side), aimed at the bucket as it rises, the lens framing `span` amot round it, no wider than `fov` (low over the mouth: the haulers on the plank and the empty bucket stay out of the frame); the
+    // pour, from the north-east over the cut-down north wall: the bucket, the trough by the well, the channel to the first stone; the overview
+    golahShaft: { off: [0.4, 7, 2.4], span: 9, fov: 30 }, golahRim: [[-130.5, 25.5, 51.5], [-139.4, 16.3, 57.5]], golahOver: [[-104, 118, 118], [-128, 16, 58]],
+    // (the sharing: from the north-east and high over the troughs in use (the camera's way out from their middle on the channel's line,
+    //  its length d0 + k × their span, at least s0: one trough's view keeps the well's mouth clear of the top bar); the moment: the kohen at the first trough, close)
+    golahShare: { dir: [0.62, 0.6, -0.5], d0: 12, k: 0.9, z: 52, s0: 10 }, golahWash: [[-135.2, 20.2, 45.4], [-138.4, 17, 51]],
+    golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
     // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the
     // north, so it runs along the court between the House and the south wall and over the cut-down west wall into the room (illustration)
@@ -873,6 +885,8 @@ function s07(s04) {
     e3('golah:sluice' + k, 'sluice', [...W.sluice[k], W.floor], `אבן הסכר של שוקת ${k === 'A' ? 'א' : k === 'B' ? 'ב' : 'ג'}`, ILL);
   }
   e3('stand:golah', 'stand', W.stand, 'עמדת השחקן בגולה', ILL);
+  W.crew.forEach((p, i) => e3('golah:crew' + (i + 1), 'crew', [...p, W.floor + W.rimH + W.plank.h], `מושך בחבל ${i + 1}, על הקרש שעל פי הבור`, ILL));
+  e3('golah:wash', 'kohen', [...W.wash, W.floor], 'הכהן נוטל ידיו מן השוקת הראשונה', ILL);
   // the vault
   e3('vault:N', 'arch', [...V.N.at, V.N.floor], 'הקשת של לשכת כלי השיר הצפונית (מידותיה המחשה)', 'מידות ב, ו');
   e3('vault:S', 'arch', [...V.S.at, V.S.floor], 'הקשת של לשכת כלי השיר הדרומית (מידותיה המחשה)', 'מידות ב, ו');

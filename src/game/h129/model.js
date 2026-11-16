@@ -326,7 +326,7 @@ export const emptyY = (s) => s.depth - s.y;
  * is perfect: "בקצב!"); within FEED·T of an end it feeds it (+ FEED_K × weight). → 'perfect' | 'calm' | 'feed' | 'plain'
  */
 export function pullStep(s) {
-  if (s.phase === 'fill') { if (s.f <= 0) return null; s.phase = 'pull'; s.A = GOLAH.A0 + GOLAH.A_F * s.f; s.ph = 0; s.spilled = 0; s.met = 0; s.trip++; }
+  if (s.phase === 'fill') { if (s.f <= 0) return null; s.phase = 'pull'; s.A = GOLAH.A0 + GOLAH.A_F * s.f; s.ph = 0; s.spilled = 0; s.met = 0; s.meetDue = 0; s.trip++; }
   if (s.phase !== 'pull') return null;
   const T = periodOf(s.y), w = (2 * Math.PI) / T;
   const m = (((s.ph % Math.PI) + Math.PI) % Math.PI) / w, dMid = Math.min(m, T / 2 - m), dEnd = Math.abs(T / 4 - dMid);
@@ -334,7 +334,10 @@ export function pullStep(s) {
   if (dMid <= GOLAH.CALM * T && s.A > 0) { kind = dMid <= GOLAH.PERFECT * T ? 'perfect' : 'calm'; s.A *= GOLAH.CALM_K; }
   else if (dEnd <= GOLAH.FEED * T) { kind = 'feed'; s.A += GOLAH.FEED_K * weightOf(s); if (s.A > GOLAH.KNOCK) knock(s); }   // (fed at the end: thrown into the wall now)
   if (kind === 'perfect') { s.perfect++; s.streak++; } else s.streak = 0;
-  s.y = Math.max(0, s.y - (GOLAH.LIFT - GOLAH.LIFT_F * s.f));
+  const y0 = s.y; s.y = Math.max(0, s.y - (GOLAH.LIFT - GOLAH.LIFT_F * s.f));
+  // (build 129, part 3: a pull lifts the bucket a whole step at once, so it may jump over the meeting's window: a pull that carries the
+  //  full bucket past the empty one is the meeting, judged at the next moment of the swing)
+  if (!s.met && (y0 - s.depth / 2) * (s.y - s.depth / 2) <= 0) s.meetDue = 1;
   s.ev.push({ e: 'pull', kind });
   if (s.y <= 0) arrive(s);
   return kind;
@@ -353,8 +356,8 @@ export function golahStep(s, dt) {
     const T = periodOf(s.y), c0 = Math.cos(s.ph); s.ph += (2 * Math.PI * dt) / T; s.A *= Math.exp(-dt / GOLAH.TAU);
     if (s.phase === 'pull') {
       if (s.A > GOLAH.KNOCK && c0 * Math.cos(s.ph) <= 0) knock(s);   // (at an end of the swing)
-      if (!s.met && Math.abs(s.y - emptyY(s)) < GOLAH.MEET) {
-        s.met = 1; const sum = s.A * 1.5;   // (the full one's swing and the empty one's, half as far)
+      if (!s.met && (s.meetDue || Math.abs(s.y - emptyY(s)) < GOLAH.MEET)) {
+        s.met = 1; s.meetDue = 0; const sum = s.A * 1.5;   // (the full one's swing and the empty one's, half as far)
         if (sum > GOLAH.CLASH) {
           s.clashes++; spill(s, GOLAH.CLASH_SPILL); s.A *= GOLAH.CLASH_K;
           if (sum > GOLAH.CLASH_CRACK && !s.cracked[s.b]) { s.cracked[s.b] = 1; flag(s, 'golah.bucket', s.b); }

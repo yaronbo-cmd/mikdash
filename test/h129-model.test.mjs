@@ -172,7 +172,7 @@ test('the Golah played clean, each level: every trough full, nothing spilled, no
 });
 test('Golah mistakes: pulls that feed the swing knock the wall (spill), crack the bucket (−20, it drips), break a rim stone (−20, once per level)', () => {
   const s = M.golahFresh('golah2'); s.f = 1; M.pullStep(s); let ph = s.ph; const ev = [];
-  for (let k = 0; k < 60 * 120 && s.phase === 'pull'; k++) { if (Math.abs(Math.cos(s.ph)) < 0.04 && Math.floor(s.ph / Math.PI * 2) !== Math.floor(ph / Math.PI * 2)) M.pullStep(s); ph = s.ph; M.golahStep(s, DT); ev.push(...s.ev); s.ev = []; }
+  for (let k = 0; k < 60 * 120 && s.phase === 'pull'; k++) { if (Math.floor(s.ph / Math.PI - 0.5) !== Math.floor(ph / Math.PI - 0.5)) M.pullStep(s); /* (at each end of the swing) */ ph = s.ph; M.golahStep(s, DT); ev.push(...s.ev); s.ev = []; }
   assert.ok(s.knocks > 0); assert.ok(ev.some((e) => e.e === 'knock')); assert.ok(s.flags['golah.bucket'], 'a crack'); assert.equal(s.cracked[s.b], 1);
   assert.ok(s.flags['golah.rim'] && s.flags['golah.rim'].length === 1); assert.equal(M.golahPts(s), 10);
   // the cracked bucket drips while it hangs full: 0.02 per second
@@ -180,6 +180,13 @@ test('Golah mistakes: pulls that feed the swing knock the wall (spill), crack th
   // a clash at the meeting: the two buckets near the same height swinging hard
   const c = M.golahFresh('golah1'); c.f = 1; M.pullStep(c); c.A = 0.7; c.y = c.depth / 2 + 0.2; M.golahStep(c, DT);
   assert.equal(c.clashes, 1); assert.ok(c.spilled > 0); assert.ok(!c.flags['golah.bucket'], 'under 1.2 together: no crack');
+  // (build 129, part 3) a pull that jumps the full bucket over the empty one's height is the meeting all the same
+  for (const A of [0.7, 0.2]) {
+    const j = M.golahFresh('golah1'); j.f = 0.7; M.pullStep(j); j.y = j.depth / 2 + 0.55; M.golahStep(j, DT);
+    assert.equal(j.met, 0, 'not yet: outside the window');
+    M.pullStep(j); assert.ok(j.y < j.depth / 2 - M.GOLAH.MEET, 'jumped over: ' + j.y); j.A = A; M.golahStep(j, DT);
+    assert.equal(j.met, 1); assert.equal(j.clashes, A > 0.6 ? 1 : 0, 'A ' + A);
+  }
 });
 test('the channel: an open sluice takes all the water, a closed one sends it on; all closed it stands, nothing lost; a trough overflows once', () => {
   const s = M.golahFresh('golah3');

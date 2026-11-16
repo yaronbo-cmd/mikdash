@@ -18,7 +18,7 @@ import { BOOK } from '../world/grid.js';
 import { filmFigs } from '../h128/figgate.js';
 import { beat, tapOr, card, esc, cite } from './ui7.js';
 
-export const GOLAH_IN_PLAY = false;
+export const GOLAH_IN_PLAY = true;   // (build 129, part 3: golah.js)
 const S7 = BOOK.s07, CAM = S7.cam;
 // (the rooms' walls: four boxes each, as the Azarah's ring)
 const roomBoxes = ({ T, rooms }) => rooms.flatMap(([x0, z0, x1, z1, y0, y1]) => [[x0, y0, z0, x1, y1, z0 + T], [x0, y0, z1 - T, x1, y1, z1], [x0, y0, z0, x0 + T, y1, z1], [x1 - T, y0, z0, x1, y1, z1]]);

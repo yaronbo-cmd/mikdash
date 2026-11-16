@@ -161,7 +161,7 @@ function golahBuild(X, S, g) {
   // the shaft's lining down to the water (the first level's depth: the crews' water stands there) and the rim of stones
   const sh = new T.Mesh(new T.CylinderGeometry(R, R, GL.depth[0], 20, 1, true), M.h7holy); sh.material.side = T.DoubleSide; sh.position.set(w[0], F16 - GL.depth[0] / 2, w[1]); g.add(sh);
   const wat = new T.Mesh(new T.CircleGeometry(R - 0.05, 20), M.h7water); wat.rotation.x = -Math.PI / 2; wat.position.set(w[0], F16 - GL.depth[0] + 0.3, w[1]); g.add(wat);
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; obox(X, i === (S.rimBroken | 0) - 1 ? M.h7shade : M.h7stone, w[0] + Math.cos(a) * (R + GL.rimT / 2), F16 + GL.rimH / 2, w[1] + Math.sin(a) * (R + GL.rimT / 2), (TAU * (R + GL.rimT / 2)) / 12 - 0.05, GL.rimH, GL.rimT, -a + Math.PI / 2, g); }
+  for (let i = 0; i < 12; i++) { const a = ((i + 0.5) / 12) * TAU, br = (S.rimBroken || []).includes(i); obox(X, br ? M.h7shade : M.h7stone, w[0] + Math.cos(a) * (R + GL.rimT / 2), F16 + (br ? GL.rimH * 0.45 : GL.rimH) / 2, w[1] + Math.sin(a) * (R + GL.rimT / 2), (TAU * (R + GL.rimT / 2)) / 12 - 0.05, br ? GL.rimH * 0.45 : GL.rimH, GL.rimT, -a + Math.PI / 2, g); }   // (part 3: a broken stone, golah.rim, lower and dark where it broke)
   // the wheel's frame (two posts and a cap either side of the shaft, along x), its axle and wheel; the two ropes
   const W = GL.wheel, ay = F16 + W.axle;
   for (const s of [-1, 1]) { box(X, M.h7timberD, W.at[0] + s * W.post - 0.2, F16, W.at[1] - 0.2, W.at[0] + s * W.post + 0.2, ay + 0.4, W.at[1] + 0.2, g); }
@@ -169,6 +169,12 @@ function golahBuild(X, S, g) {
   const ax = new T.Mesh(new T.CylinderGeometry(0.12, 0.12, 2 * W.post, 8), M.h7timberD); ax.rotation.z = Math.PI / 2; ax.position.set(W.at[0], ay, W.at[1]); g.add(ax);
   const wh = new T.Mesh(new T.TorusGeometry(W.R, 0.12, 6, 20), M.h7timber); wh.position.set(W.at[0], ay, W.at[1]); wh.rotation.y = Math.PI / 2; g.add(wh);
   for (const s of [-1, 1]) { const r = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, W.axle + 1.5, 5), M.h7rope); r.position.set(W.at[0], ay - (W.axle + 1.5) / 2, W.at[1] + s * H129.ROPE_OFF); g.add(r); }
+  // (part 3) the two buckets as the last trip left them: one up by the rim on its line, one down in the water; a cracked one dark-streaked
+  if (S.gl) for (const i of [0, 1]) {
+    const z = W.at[1] + (i ? 1 : -1) * H129.ROPE_OFF, y = i ? F16 + GL.rimH + 0.35 : F16 - GL.depth[0] - 0.2, b = new T.Mesh(new T.CylinderGeometry(H129.BUCKET_R, H129.BUCKET_R * 0.8, 0.8, 12), M.h7timber);
+    b.position.set(W.at[0], y + 0.4, z); g.add(b);
+    if ((S.bCracked || []).includes(i)) { const c = new T.Mesh(X.props.geo.box, M.h7crack); c.scale.set(0.05, 0.6, 0.04); c.position.set(W.at[0] + 0.15, y + 0.4, z + (i ? 1 : -1) * H129.BUCKET_R * 0.95); c.rotation.z = 0.4; g.add(c); }
+  }
   // the head trough and the channel to the three troughs; the water in each as the crews left it
   const hs = GL.headSize; box(X, M.h7stone, GL.head[0] - hs[0] / 2, F16, GL.head[1] - hs[1] / 2, GL.head[0] + hs[0] / 2, F16 + hs[2], GL.head[1] + hs[1] / 2, g);
   const cw = GL.channel.w, seg = (a, b) => box(X, M.h7dark, Math.min(a[0], b[0]) - cw / 2, F16 + 0.005, Math.min(a[1], b[1]) - cw / 2, Math.max(a[0], b[0]) + cw / 2, F16 + 0.02, Math.max(a[1], b[1]) + cw / 2, g);
@@ -182,7 +188,7 @@ function golahBuild(X, S, g) {
     box(X, M.h7stone, x0, F16, z0, x1, F16 + 0.15, z1, g);
     const f = clamp(S.troughs[k], 0, 1); if (f > 0.02) { const wm = new T.Mesh(X.props.geo.box, M.h7water); wm.scale.set(ts[0] - 0.4, 0.04, ts[1] - 0.4); wm.position.set(t[0], F16 + 0.15 + (h - 0.25) * f, t[1]); g.add(wm); }
   }
-  for (const k of S.puddles || []) { const t = GL.troughs[k]; if (t) { const p = new T.Mesh(new T.CircleGeometry(1.4, 16), M.h7ink); p.material = M.h7water; p.rotation.x = -Math.PI / 2; p.position.set(t[0] + 1.2, F16 + 0.02, t[1] - 1.4); g.add(p); } }
+  for (const k of S.puddles || []) { const t = GL.troughs[k]; if (t) { const p = new T.Mesh(new T.CircleGeometry(1.4, 16), M.h7water); p.scale.set(1, 0.62, 1); p.rotation.x = -Math.PI / 2; p.position.set(t[0] + GL.puddle[0], F16 + 0.02, t[1] + GL.puddle[1]); g.add(p); } }   // (part 3: where the play's puddle lies, the book's)
 }
 
 /* ───────── the world from the save ───────── */
@@ -194,14 +200,14 @@ function stateOf(X) {
   const vM = d('vaultM'), rings = vM ? clamp(1 + Math.floor((st.vault.ringsT || 0) / RING_T), 1, V.M.rings) : 0;
   return {
     g1: d('gazit1'), g2: d('gazit2'), g3: d('gazit3'), L, cracks: mk('gazit.crack').map((q) => q.n), inks: mk('gazit.ink').map((q) => q.at),
-    gl: glDone, troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').length,
+    gl: glDone, troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
     vN: d('vaultN'), vS: d('vaultS'), vM, rings, vcrack: { N: mk('vault.crack', 'vaultN').length, S: mk('vault.crack', 'vaultS').length, M: mk('vault.crack', 'vaultM').length },
     vstone: { N: mk('vault.stone', 'vaultN').length, S: mk('vault.stone', 'vaultS').length, M: mk('vault.stone', 'vaultM').length },
     night: d('night'), slab: mk('night.slab').length, fin: M.finished(),
   };
 }
 export const RING_T = 4;   // (the crews build one ring of the great vault in this many seconds of the world's time)
-const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.gl, S.troughs, S.puddles, S.rimBroken, S.vN, S.vS, S.vM, S.rings, S.vcrack, S.vstone, S.night, S.slab, S.fin, SH7.final, SH7.own]);
+const keyOf = (S) => JSON.stringify([S.g1, S.g2, S.g3, S.L, S.cracks, S.inks, S.gl, S.troughs, S.puddles, S.rimBroken, S.bCracked, S.vN, S.vS, S.vM, S.rings, S.vcrack, S.vstone, S.night, S.slab, S.fin, SH7.final, SH7.own]);
 export function rebuild(X, force) {
   const S = stateOf(X); SH7.state = S;
   const k = keyOf(S); if (!force && k === SH7.key.all) return;

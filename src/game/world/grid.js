@@ -833,7 +833,7 @@ const S07 = {
     // the night's last three pictures (round 3): from the hall's floor at its west end looking east and up — the fire in the lower
     // third with the sleepers round it, the barrel over it; low over the first trough along the channel — the water, the other
     // troughs behind, the Azarah's wall and the House beyond; inside the Gazit at eye height from its north side — the round bench whole
-    end: [[[-171, 21.5, -70.5], [-137.7, 28.6, -70.5]], [[-141.6, 17.45, 51.3], [-110, 16.9, 47]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
+    end: [[[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], [[-141.6, 17.45, 51.3], [-110, 16.9, 47]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
     // (round 3) each picture's lens: the hall's barrel whole over the fire; along the troughs; the round bench whole
     endFov: [74, 56, 64],
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],

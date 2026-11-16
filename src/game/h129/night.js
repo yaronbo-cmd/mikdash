@@ -100,16 +100,16 @@ export function nightRig(X) {
  *  feet's bump near the end, a fold or two along it. sd: on a side (±1, facing local ±x) → taller and narrower, the hip high and the
  *  drawn-up knees pushing it forward */
 function drapeGeo(T, L, s, sd, kn) {
-  const NU = 18, NZ = 26, pos = [], idx = [], P = 2.2;
+  const NU = 20, NZ = 26, pos = [], idx = [], P = 3.4;
   for (let iz = 0; iz <= NZ; iz++) {
     const t = iz / NZ, z = -0.2 * s + t * (L + 0.2 * s), q = Math.max(0, Math.min(1, z / L)), hem = Math.min(1, (z + 0.2 * s) / (0.3 * s));
     let w, h, ox = 0;
     if (!sd) {   // (on his back: chest and belly the highest, thighs lower, the shins low, the feet's bump at the end)
-      w = (0.9 + 0.7 * Math.pow(q, 0.7)) * s;
-      h = (0.3 + 0.3 * Math.pow(q, 0.6) + 0.2 * Math.exp(-(((q - 0.08) / 0.06) ** 2)) + 0.025 * Math.sin(q * 23)) * s;
+      w = (1.25 + 0.6 * Math.pow(q, 0.7)) * s;   // (round 3b: high enough over the figure everywhere — the rig's robe is about 0.7 high lying — and flat on top, its sides falling to the floor)
+      h = (0.74 + 0.06 * q + 0.12 * Math.exp(-(((q - 0.07) / 0.06) ** 2)) + 0.03 * Math.sin(q * 23)) * s;
     } else {     // (on his side: the hip high, the drawn-up knees pushing it forward)
       const knee = Math.exp(-(((q - 0.4) / 0.14) ** 2)) * (0.2 + kn * 0.35);
-      w = (0.85 + 0.3 * q + knee * 0.55) * s; h = (0.5 + 0.32 * Math.exp(-(((q - 0.62) / 0.2) ** 2)) + 0.1 * q + 0.03 * Math.sin(q * 17)) * s; ox = sd * knee * 0.45 * s;
+      w = (1.05 + 0.3 * q + knee * 0.55) * s; h = (0.95 + 0.2 * Math.exp(-(((q - 0.62) / 0.2) ** 2)) + 0.05 * q + 0.03 * Math.sin(q * 17)) * s; ox = sd * knee * 0.45 * s;
     }
     h *= 0.2 + 0.8 * hem;   // (the hem past the feet comes down to the floor)
     for (let iu = 0; iu <= NU; iu++) {

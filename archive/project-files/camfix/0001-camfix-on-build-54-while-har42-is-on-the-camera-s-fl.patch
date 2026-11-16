@@ -1,0 +1,38 @@
+From 6fbc0ff5d9e708bf31708622b1cd5fe1ef28a0b6 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 30 Oct 2026 00:53:31 +0000
+Subject: [PATCH] camfix (on build 54): while har42 is on, the camera's floor
+ is the ground under it, not 7 over the platform
+
+The owner's desktop playtest (29.10, build 58): on the live screen every Mount work's camera stood ~50 amot over the bay
+(an empty slope, no kohen, no rock), while the report's capture (a fresh render without clampCam) showed it right.
+main.js clampCam lifted every frame to stages.camFloor = 7 (har status 'avail' in the har42 flow) before the draw; the
+tests' simulated world never runs clampCam, so no test saw it.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2DL78nxJAwLYd4JG5M
+---
+ src/main.js | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/main.js b/src/main.js
+index 8d4a9bb..0008c16 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -315,7 +315,12 @@ function stepFly(now) {
+ function clampCam() {
+   const p = camera.position, onMount = p.x > -310 && p.x < 290 && p.z > -490 && p.z < 410;
+   const minY = onMount ? (stages && typeof stages.camFloor === 'function' ? stages.camFloor(p.x, p.z) : 7) : terrainH(p.x, p.z) + 14;   // ── site9 ── (the Mount's walls: 8 over the ground there)
+-  if (p.y < minY) p.y = minY;
++  // ── camfix ── (the owner's playtest 29.10: on the live screen the camera stood 50 amot over his work, the capture showed it right) the
++  // Mount's works (har42: stages 01–11) are in the working bay, 45–64 amot under the platform; the floor of 7 over the platform lifted
++  // every frame of their cameras there before it was drawn (the tests' simulated world never runs this clamp). While har42 is on, the
++  // floor is the ground under the camera ── /camfix ──
++  if (globalThis.__H42 && globalThis.__H42.on && stages && typeof stages.groundAt === 'function') { const g = stages.groundAt(p.x, p.z); if (Number.isFinite(g) && p.y < g + 1.5) p.y = g + 1.5; }
++  else if (p.y < minY) p.y = minY;
+   const t = controls.target;
+   t.x = THREE.MathUtils.clamp(t.x, -1800, 1800); t.z = THREE.MathUtils.clamp(t.z, -1800, 1800); t.y = THREE.MathUtils.clamp(t.y, -60, 160);
+ }
+-- 
+2.43.0
+

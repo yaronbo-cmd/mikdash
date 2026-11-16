@@ -422,9 +422,12 @@ export function measure(pours, target = 30) {
  * later, toward that hand's side. Lifting a hand while the jar leans to that hand's side spills oil in proportion to the lean (past
  * SPILL); a lean past DROP drops the jar (light.jar). The boy never falls. A hand lifted as the jar passes the middle going away from it
  * is the perfect step. With both hands holding the boy steadies the jar (more damping); quiet: the right hand is free for the camera.
+ * (build 130 L1: PUSH 0.55 → 0.22 — at 0.55 one lift a fifth of a second late after the jar passed the middle dropped it: no hand can
+ *  play that. At 0.22 a careful player late by half a second never drops it; lifting each hand as the jar swings toward it — feeding
+ *  the swing — drops it within a few rungs, and a hurried climb spills a little: test/h130-light.test.mjs)
  * φ > 0 leans to the right hand's side.
  */
-export const CLIMB = Object.freeze({ PERIOD: 1.4, LATE: 0.18, PUSH: 0.55, DAMP: 0.25, HOLD_DAMP: 0.9, SPILL: 0.12, SPILL_K: 1.6, DROP: 0.62, MID: 0.08, QUIET: 0.05 });
+export const CLIMB = Object.freeze({ PERIOD: 1.4, LATE: 0.18, PUSH: 0.22, DAMP: 0.25, HOLD_DAMP: 0.9, SPILL: 0.12, SPILL_K: 1.6, DROP: 0.62, MID: 0.08, QUIET: 0.05 });
 const W0 = (2 * Math.PI) / CLIMB.PERIOD;
 export function climbFresh(top = 12, oil = 30) { return { top, rung: 0, L: 0, R: 0, up: null, phi: 0, w: 0, oil, oil0: oil, spilled: 0, dropped: 0, perfect: 0, steps: 0, push: [], t: 0 }; }
 /** the jar quiet and both hands holding: the right hand may lift the camera */

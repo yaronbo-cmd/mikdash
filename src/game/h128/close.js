@@ -7,7 +7,7 @@
  *   CLOSE = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
 import { LEAF, leafFresh, leafStep, leafPts, inWindow, LINES, QUICK, LOSS, qOf, starsOf } from './model.js';
-import { SH6, leafHung, own, setBusy, clamp, VIS } from './world.js';
+import { SH6, leafHung, own, setBusy, rust, clamp, VIS } from './world.js';
 import { createVoices } from './sound128.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { BOOK } from '../world/grid.js';
@@ -57,7 +57,10 @@ export const CLOSE = {
           if (A.aside) w.ua = Math.max(w.u - PUSH.aside, w.ua - dt * 1.2);
           const off = PUSH.off + (lean ? -0.08 : 0.1 * (1 - step)), [x, z, lx, lz] = ptOf(k, w.ua, off, phi);
           w.a.path = null; w.a.x = x; w.a.z = z; w.fx = lx; w.fz = lz;
-          w.lean = lean ? 0.55 : 0.15;
+          // (build 128 tuning T7) the stiff north hinge's ten lean lower and strain (a small shudder while their leaf moves); the free
+          // south hinge's men stand easier and walk it round
+          const mv = clamp(Math.abs(s.w[i]) / 2, 0, 1);
+          w.lean = k === 'N' ? (lean ? 0.72 : 0.32) + 0.04 * mv * Math.sin(A.t * 31 + w.j) : (lean ? 0.4 : 0.05);
         }
       }
     }
@@ -85,6 +88,10 @@ export const CLOSE = {
       leafStep(s, { heave: hv.map(Boolean), brake: A.br.map(Boolean) }, dt);
       for (let i = 0; i < 2; i++) { const w = inWindow(s.ph[i]); if (w && !A.winWas[i]) V.tick(); A.winWas[i] = w; }
       V.grind(A.br.some(Boolean) && (Math.abs(s.w[0]) + Math.abs(s.w[1])) > 0.3 ? 0.4 : 0);
+      // (T7, T2: each leaf's speed heard) the stiff north hinge groans low while its leaf moves, louder and a little higher the faster,
+      // and sheds a little rust; the free south hinge only hushes
+      for (let i = 0; i < 2; i++) { const v = Math.abs(s.w[i]); V.hinge(v > 0.15 ? clamp(v / (i ? 1.6 : 2.5), 0.25, 1) : 0, i, v); }
+      if (Math.abs(s.w[1]) > 0.3) { A.rustT = (A.rustT || 0) - dt; if (A.rustT <= 0) { A.rustT = 0.6; const h = GT.hinge.N; for (const y of [2.5, GT.leafH * 0.5, GT.leafH - 2.5]) rust(X, h[0] - 0.2, GT.sill + y, h[1] + 0.25, 3, 0.25); ev('rust:N'); } }
       for (const e of s.ev) {
         const k = e.k != null ? KS[e.k] : null; ev(e.e + (k ? ':' + k : ''));
         if (e.e === 'heave') V.knock(0.45);
@@ -96,7 +103,7 @@ export const CLOSE = {
       }
     }
     function met(together) {
-      A.phase = 'met'; V.grind(0); lift(0); if (s.dent.some(Boolean)) { A.aside = 1; KS.forEach((k, i) => { if (!s.dent[i] || dent0[i]) return; X.props.remove(leaf[k]); leaf[k] = leafHung(X, k, { phi: 0, dent: 1, salt: k === 'N' }); }); live(); } for (const k of KS) leaf[k].userData.set(0);   // (a dent: the men step back from the meeting edge, toward the hinges, so it is seen)
+      A.phase = 'met'; V.grind(0); V.hinge(0, 0); V.hinge(0, 1); lift(0); if (s.dent.some(Boolean)) { A.aside = 1; KS.forEach((k, i) => { if (!s.dent[i] || dent0[i]) return; X.props.remove(leaf[k]); leaf[k] = leafHung(X, k, { phi: 0, dent: 1, salt: k === 'N' }); }); live(); } for (const k of KS) leaf[k].userData.set(0);   // (a dent: the men step back from the meeting edge, toward the hinges, so it is seen)
       st.close = { dent: s.dent.slice() }; X.save();
       V.gong(55, false); setTimeout(() => V.knock(2.6), 500);
       if (together && !s.dmg) { X.perfect(QUICK.together, atMid()); }

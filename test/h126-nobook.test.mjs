@@ -98,6 +98,7 @@ test('stage 07: no world place typed outside the book but the listed exceptions'
 // ── h130 ── (build 130) the new stage 05: its files read every place from the book (BOOK.s05 gal, wood, light, eve, cam); the allow
 // list holds no place
 const ALLOW130 = [
+  ['h130/light.js', 6, 'the hand hint\'s gesture in px (±40..60, 0..±50), six times — no place'],   // (build 130 L)
   ['h130/model.js', 27, 'no places: the logs\' tables in their own frame — a worm hole\'s angle round the log (degrees) and its place along it (amot from the log\'s end), a bark patch\'s stretch and angles'],
 ];
 test('stage 05 (build 130): no world place typed outside the book but the listed exceptions', () => {

@@ -11,7 +11,11 @@ import { LOGS } from './model.js';
 
 const S5 = BOOK.s05, W5 = S5.wood, F = S5.court.floor;
 /** the sizes (illustration): the trestle's height under the log, its beam's span; the piles' stacking */
-export const WD = Object.freeze({ TH: 1.05, SPAN: 1.3, TW: 1.1, GAP: 0.06, ROW: 5, NEXT: 6.6 });
+export const WD = Object.freeze({ TH: 1.05, SPAN: 1.3, TW: 1.1, GAP: 0.06, ROW: 5, NEXT: 6.6, DIR: Object.freeze([-0.3, -0.95]) });
+/** the checking log's axis on the trestles: across the act's view, which looks along DIR (toward the chamber's north-west corner: the
+ *  kohen's stand then lies left of the log and no nearer the camera, the clean pile to the right) → { dir, U (the log's axis), N (its
+ *  horizontal normal), yaw (the group's turn that lays its local x along U) } */
+export const AX = (() => { const L = Math.hypot(WD.DIR[0], WD.DIR[1]), d = [WD.DIR[0] / L, WD.DIR[1] / L], U = [-d[1], d[0]]; return Object.freeze({ dir: d, U, N: [-U[1], U[0]], yaw: Math.atan2(-U[1], U[0]) }); })();
 /** the log's centre height when it lies on the trestles */
 export const logY = (r) => F + WD.TH + r;
 const SH = { root: null, key: '', X: null };
@@ -42,10 +46,10 @@ const bx = (X, mat, cx, cy, cz, sx, sy, sz, parent, ry = 0, rz = 0) => {
   m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
 };
 /** a trestle (a sawhorse): its beam across the log's line (along z) at the trestles' height, two splayed legs each side */
-export function trestle(X, x, z, w = WD.TW, parent) {
-  const M = mats(X), g = new X.THREE.Group();
-  bx(X, M.w5trestle, x, F + WD.TH - 0.07, z, 0.16, 0.14, w, g);
-  for (const e of [-1, 1]) for (const k of [-1, 1]) bx(X, M.w5trestle, x + k * 0.18, F + (WD.TH - 0.1) / 2, z + e * (w / 2 - 0.12), 0.09, WD.TH - 0.08, 0.09, g, 0, -k * 0.32);
+export function trestle(X, x, z, w = WD.TW, parent, yaw = 0) {
+  const M = mats(X), g = new X.THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw;
+  bx(X, M.w5trestle, 0, F + WD.TH - 0.07, 0, 0.16, 0.14, w, g);
+  for (const e of [-1, 1]) for (const k of [-1, 1]) bx(X, M.w5trestle, k * 0.18, F + (WD.TH - 0.1) / 2, e * (w / 2 - 0.12), 0.09, WD.TH - 0.08, 0.09, g, 0, -k * 0.32);
   parent.add(g); return g;
 }
 
@@ -70,7 +74,8 @@ export function logSkin(X, S, o = {}) {
     // the outer skin: weathered wood with a thin bark, its grain along the log
     g.fillStyle = '#8C6A46'; g.fillRect(0, 0, CW, CH);
     for (let k = 0; k < 90; k++) { const y = R() * CH, x = R() * CW, w = 40 + R() * 160; g.fillStyle = R() < 0.5 ? 'rgba(60,40,22,0.35)' : 'rgba(170,135,95,0.3)'; g.fillRect(x, y, w, 1 + R() * 2.5); }
-    for (let k = 0; k < 26; k++) { const x = R() * CW, y = R() * CH; g.fillStyle = 'rgba(50,34,18,0.5)'; g.beginPath(); g.ellipse(x, y, 4 + R() * 6, 2 + R() * 3, 0, 0, Math.PI * 2); g.fill(); }
+    // (knots: long, soft and brown along the grain — never a dark round dot, which is the worm's)
+    for (let k = 0; k < 18; k++) { const x = R() * CW, y = R() * CH; g.fillStyle = 'rgba(105,74,44,0.55)'; g.beginPath(); g.ellipse(x, y, 10 + R() * 12, 2 + R() * 2, 0, 0, Math.PI * 2); g.fill(); }
     // the thick bark plates (level 2: what hides the worm)
     for (const b of log.bark) for (const [a0, a1] of rows(b.a0, b.a1)) {
       const x0 = sx(b.s0), x1 = sx(b.s1), y0 = ay(a0), y1 = a1 === 360 ? CH : ay(a1);
@@ -88,9 +93,9 @@ export function logSkin(X, S, o = {}) {
     for (const h of log.holes) {
       if (covered(h)) continue;
       const x = sx(h.s), y = ay(h.ang);
-      g.fillStyle = 'rgba(240,220,170,0.85)'; g.beginPath(); g.ellipse(x, y, 13, 9, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#140C05'; g.beginPath(); g.ellipse(x, y, 5, 4, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#140C05'; g.beginPath(); g.ellipse(x + 9, y - 4, 2.4, 2, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(246,230,186,0.92)'; g.beginPath(); g.ellipse(x, y, 20, 14, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#0E0803'; g.beginPath(); g.ellipse(x, y, 7, 6, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#0E0803'; g.beginPath(); g.ellipse(x + 12, y - 5, 3.5, 3, 0, 0, Math.PI * 2); g.fill();
     }
     // the taps: a pale smudge of dust where it rang hollow, a small dent where it was deep
     for (const t of o.taps || []) {
@@ -170,7 +175,7 @@ function build(X) {
   if (SH.root) X.props.remove(SH.root);
   const T = X.THREE, g = new T.Group(); g.name = 'h130-wood'; X.props.root.add(g); SH.root = g; SH.key = key;
   const t = W5.trestles;
-  for (const e of [-1, 1]) trestle(X, t[0] + e * WD.SPAN, t[1], WD.TW, g);
+  for (const e of [-1, 1]) trestle(X, t[0] + AX.U[0] * e * WD.SPAN, t[1] + AX.U[1] * e * WD.SPAN, WD.TW, g, AX.yaw);
   const R = (e) => (LOGS[e.lv] && LOGS[e.lv][e.i] ? LOGS[e.lv][e.i].r : 0.4);
   const rmax = (L) => L.reduce((a, e) => Math.max(a, R(e)), 0.36);
   W.clean.forEach((e, n) => restLog(X, e, pileSpot('clean', n, rmax(W.clean)), g));

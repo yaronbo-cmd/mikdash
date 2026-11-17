@@ -35,7 +35,7 @@ export const NK = Object.freeze({
   GRIP: 110, GRIPM: 60, OUT: 34, CLOTH: 6, TILT: 110, ON: 0.3,
   // (b131 look round) the lens; the pullers on the ropes (how many, the first one's distance from the timber's end, the gap between
   // them, amot); how far the pull's shot follows the timber out (amot)
-  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 12,
+  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 12, SLIDE: 2.2,
 });
 /** the act's words (what to do: at most five words) */
 export const NLINES = Object.freeze({
@@ -91,9 +91,25 @@ export const FINALE_ACT = {
       for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const q = X.scr(FIN.X0 + (c % FIN.NX) + 0.5, Y1, FIN.Z0 + Math.floor(c / FIN.NX) + 0.5); if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100) return true; }
       return false;
     }
+    // ── b131 look round 2 (F7): the rows of the court's rings north of the altar — black marks behind every finale picture — hidden
+    // while the finale runs (small low meshes in the book's box, not the act's own or a figure's); back when it ends
+    const ringHid = [];
+    function ringsShow(on) {
+      if (on) { for (const o of ringHid) o.visible = true; ringHid.length = 0; return; }
+      let top = X.props.root; while (top.parent) top = top.parent;
+      const bs = new T.Sphere(), Z = W8.cam.rings;
+      top.traverse((o) => {
+        if (!o.isMesh || !o.visible || o.isInstancedMesh || !o.geometry || ringHid.includes(o)) return;
+        for (let q = o; q; q = q.parent) if (q === X.props.root || /^actor/.test(q.name || '')) return;
+        if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); if (!o.geometry.boundingSphere) return;
+        bs.copy(o.geometry.boundingSphere).applyMatrix4(o.matrixWorld); const c = bs.center;
+        if (bs.radius < 1.4 && c.x > Z[0] && c.x < Z[2] && c.z > Z[1] && c.z < Z[3] && c.y < F + 1.2 && c.y > F - 0.6) { o.visible = false; ringHid.push(o); }
+      });
+    }
+    const visS = (Tm) => (Tm.free ? Tm.s : Tm.s * NK.SLIDE);
     /** the pull's shot follows the timber out (from the side, behind its pullers) */
     function pullCam(k) {
-      const C = NK.PULL[k], D = TIMBER[k], s = Math.min(NK.FOLLOW, tim[k].s) * 0.6, o = [D.dir[0] * s, 0, D.dir[1] * s];
+      const C = NK.PULL[k], D = TIMBER[k], s = Math.min(NK.FOLLOW, visS(tim[k])) * 0.6, o = [D.dir[0] * s, 0, D.dir[1] * s];
       X.track(C[0].map((v, i) => v + o[i]), C[1].map((v, i) => v + o[i]));
     }
     const B = createBeat(X), gang = createGang(X);
@@ -164,7 +180,9 @@ export const FINALE_ACT = {
       wtex.needsUpdate = true;
     }
     // the stream from the jar's mouth to the yesod
-    const stream = new T.Mesh(new T.CylinderGeometry(0.12, 0.2, 1, 8, 1, true), Mt.y8water); stream.visible = false; root.add(stream);
+    // (b131 look round 2: a stream to be seen — thick, light, a little lit)
+    const streamM = new T.MeshStandardMaterial({ color: '#9CCBEA', emissive: '#2E5A78', emissiveIntensity: 0.35, roughness: 0.1, transparent: true, opacity: 0.92 });
+    const stream = new T.Mesh(new T.CylinderGeometry(0.2, 0.32, 1, 10, 1, true), streamM); stream.visible = false; root.add(stream);
     // ── the figures: the frame men (down), the pullers at the timber's end and the man at its other side (mouse), the man with the
     // cloth, the kohen with the jar
     const crew = [];
@@ -190,13 +208,13 @@ export const FINALE_ACT = {
       return [end[0] + D.dir[0] * d + D.dir[1] * o, end[1] + D.dir[1] * d + D.dir[0] * o, end[0] + D.dir[0] * s, end[1] + D.dir[1] * s];
     }
     // the ropes: from each puller's hands to the timber's end
-    const ropeM = new T.MeshStandardMaterial({ color: '#B39A6B', roughness: 0.95 });
-    const ropes = []; for (let i = 0; i < NK.PULLN; i++) { const r = new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 1, 5), ropeM); r.visible = false; root.add(r); ropes.push(r); }
+    const ropeM = new T.MeshStandardMaterial({ color: '#7A5A32', roughness: 0.95 });
+    const ropes = []; for (let i = 0; i < NK.PULLN; i++) { const r = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 1, 6), ropeM); r.visible = false; root.add(r); ropes.push(r); }
     const UPV = new T.Vector3(0, 1, 0), RV = new T.Vector3(), RA = new T.Vector3(), RB = new T.Vector3();
     function ropeStep(dt) {
       for (const w of crew) {
         if (w.rope == null || !w.a) continue; const r = ropes[w.rope], Tm = tim[w.tk]; if (!r || !Tm) continue;
-        const p = puller(w.tk, w.rope, Tm.s), kk = 1 - Math.exp(-dt * 6);
+        const p = puller(w.tk, w.rope, visS(Tm)), kk = 1 - Math.exp(-dt * 6);
         const was = Math.hypot(p[0] - w.a.x, p[1] - w.a.z); w.a.x += (p[0] - w.a.x) * kk; w.a.z += (p[1] - w.a.z) * kk; w.fx = p[2]; w.fz = p[3];
         w.stride = was > 0.08 ? 1 : 0;
         RA.set(w.a.x, F + 1.25, w.a.z); RB.set(p[2], Y1 - 0.45, p[3]);
@@ -254,7 +272,8 @@ export const FINALE_ACT = {
         if (Tm.gone) continue;
         if (!fs.length && !Tm.free) Tm.sT = 0;
         Tm.s += (Tm.sT - Tm.s) * (1 - Math.exp(-dt * (Tm.free ? 3 : 2.2)));
-        const D = TIMBER[k]; Tm.g.position.set(D.dir[0] * Tm.s, 0, D.dir[1] * Tm.s);
+        // (b131 look round 2: before it gives way the timber is seen sliding — drawn at twice the model's give, its pullers with it)
+        const D = TIMBER[k], vs = visS(Tm); Tm.g.position.set(D.dir[0] * vs, 0, D.dir[1] * vs);
         if (!Tm.free && Tm.s > 0.01) Tm.g.position.x += Math.sin(A.t * 45) * 0.02 * Math.min(1, Tm.s * 10);
       }
       // the pullers lean back while the hands pull
@@ -263,7 +282,7 @@ export const FINALE_ACT = {
       for (const k of ['S', 'E']) if (!tim[k].gone && tim[k].s > 0.05) { pullCam(k); break; }
     }
     async function giveWay(k) {
-      const Tm = tim[k]; Tm.free = 1; Fs.n++;
+      const Tm = tim[k]; Tm.s = Tm.sT = Tm.s * NK.SLIDE; Tm.free = 1; Fs.n++;
       V.thud(); V.groan(); X.shake(0.28, 0.42); try { if (X.haptic) X.haptic(BUZZ); } catch (e) { /* */ }
       const at = { x: GRIP_AT[0], y: Y1 + 0.5, z: GRIP_AT[1] }; X.dust(at.x, F + 0.6, at.z, 14, 3);
       X.quick(at, 'יוצאת!', Tm.g.children[0]); ev('free:' + k);
@@ -381,16 +400,18 @@ export const FINALE_ACT = {
     async function rise() {
       A.busy = 1; try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
       try { X.kohen(true); } catch (e) { /* */ }
-      // (the kohen steps back east, by the timbers' pile, facing the altar: never between the rising look and the altar's middle)
-      try { const kx = W8.logs[0] - 3, kz = W8.logs[1]; X.hero.setPos(kx, kz, Math.atan2(MID[0] - kx, MID[1] - kz)); } catch (e) { /* */ }
+      // (b131 look round 2: the last picture — the kohen on the east side and the crew along the empty south strip and by the east one,
+      //  facing the white yesod, readable beside it; the kohen never between the rising look and the altar's middle)
+      try { const [kx, kz] = W8.cam.riseKohen; X.hero.setPos(kx, kz, Math.atan2(MID[0] - kx, MID[1] - kz)); } catch (e) { /* */ }
       water.visible = false; stream.visible = false; gang.clear(); crew.length = 0;
+      W8.cam.riseMen.forEach(([x, z], i) => { const w = gang.add(x, z, { role: 'hold', fx: MID[0], fz: MID[1], crew: i }); if (w) { w.a.vis = 1; crew.push(w); } });
       // (b131 look round: the camera truly rises — over the whole white yesod from the south-east, its empty south and east strips
       //  nearest: the shape plain, the yesod on the north and the west only)
       const E = NK.RISE;
       X.shot(E[0].slice(), E[1].slice(), 3.6); X.line(LINES.iron, 6000);
       await X.wait(4.4);
       const R = finResult(); A.done = 1;
-      X.end({ stars: R.stars, q: R.q, pts: R.pts, perfect: R.perfect, flags: { out: 2 }, at: { x: MID[0], y: Y1, z: MID[1] }, film: { eye: E[0].slice(), aim: E[1].slice(), secs: 2.2, own: () => [] } });
+      X.end({ stars: R.stars, q: R.q, pts: R.pts, perfect: R.perfect, flags: { out: 2 }, at: { x: MID[0], y: Y1, z: MID[1] }, film: { eye: E[0].slice(), aim: E[1].slice(), secs: 2.2, own: () => crew.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }
     // ── the hint hand
     function hintNext(force) {
@@ -403,7 +424,7 @@ export const FINALE_ACT = {
     return {
       close: true,
       begin() {
-        FG.attach(); lens(NK.FOV); siteTidy(X, true);
+        FG.attach(); lens(NK.FOV); siteTidy(X, true); try { ringsShow(false); } catch (e) { /* */ }
         hideWorld();
         if (Fs.step !== 'down') { frameHold('finale', true); for (const bd of boards) bd.mb.visible = false; }
         for (const k of ['S', 'E']) if (Fs.out[k]) { tim[k].gone = 1; tim[k].g.visible = false; }
@@ -433,7 +454,8 @@ export const FINALE_ACT = {
       holds() { return A.fl != null || [...FG.L.values()].some((f) => f.w); },
       end() {
         FG.detach(); V.stop(); X.hand(null); lens(fov0);
-        gang.clear(); X.props.remove(root); siteTidy(X, false);
+        if (!A.done) gang.clear();   // (the rise's crew stays for the film, which clears it)
+        X.props.remove(root); siteTidy(X, false); try { ringsShow(true); } catch (e) { /* */ }
         if (!Mo.isDone('finale') && !A.done) for (const o of hid) o.visible = true;
         frameHold('finale', false);
         try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
@@ -441,7 +463,7 @@ export const FINALE_ACT = {
       at() { return new T.Vector3(MID[0], Y1, MID[1]); },
       dbg() {
         const s2 = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
-        const o = { id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
+        const o = { rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
         o.grip = s2(GRIP_AT[0], Y1, GRIP_AT[1]);
         for (const k of ['S', 'E']) { const g = pxAmah(k); o['dir' + k] = [+g.ux.toFixed(2), +g.uy.toFixed(2), +g.ppa.toFixed(1)]; o['s' + k] = +tim[k].s.toFixed(2); }
         o.jar = s2(jar.position.x, jar.position.y + 0.8, jar.position.z);

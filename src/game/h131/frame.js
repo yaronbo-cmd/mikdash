@@ -189,11 +189,16 @@ export const FRAME_ACT = {
       if (A.busy || A.done) return null;
       // the diagonal: stuck on the frame, or on its rest (once the frame is set, or any time: he may try it early)
       if (S.diag === 2) { const a = sp(DG.sa[0], F + 1.3, DG.sa[1]), b = sp(DG.sb[0], F + 1.3, DG.sb[1]); if (segD(f, a, b).d < FK.BEAM + 8) return { k: 'stuck' }; }
-      if (!S.diag && !DG.carry) { const a = sp(DR[0], F + 0.5, DR[1]), b = sp(DR[2], F + 0.5, DR[3]); if (segD(f, a, b).d < FK.BEAM) return { k: 'diag' }; }
+      // (b131: the nearer of the two wins — from the low whole-frame view the diagonal's rest lies just beyond the north corners on the
+      //  screen, and a press on the NE corner (its peg, level 3) took the diagonal: the corner could not be reached)
+      let dd = 1e9;
+      if (!S.diag && !DG.carry) { const a = sp(DR[0], F + 0.5, DR[1]), b = sp(DR[2], F + 0.5, DR[3]); dd = segD(f, a, b).d; }
       if (S.diag) return null;
       // a corner (a joint's ends are one: the first of them)
       let best = null, bd = R();
       S.P.forEach((p, i) => { const q = sp(p.x, F + 0.6, p.z); if (q.on === false) return; const d = Math.hypot(f.x - q.x, f.y - q.y); if (d < bd) { bd = d; best = { k: 'pt', i }; } });
+      if (best && (bd <= dd || square(S) === false)) return best;
+      if (dd < FK.BEAM) return { k: 'diag' };
       if (best) return best;
       // a board: level 2 the whole board; else the nearest corner (a stiff frame slides whole; a linked one follows its corner)
       for (const e of S.E.filter((q) => q.beam)) {

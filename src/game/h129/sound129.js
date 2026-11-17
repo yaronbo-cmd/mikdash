@@ -7,6 +7,7 @@
  *   quill()        a reed pen scratching (the scribes) · cloak() cloth set down
  *   harp()         one note of the nevel that rings under the arch (המחשה)
  *   fire(k)        the fire crackling (0…1, continuous) · lock(i) a gate's bolt shot home (i: its order, a falling step)
+ *   rope(inBeat)   the Golah's rope at a pull: round in the beat, rough against it
  *   frame() follows the mute · stop() the continuous voices off
  */
 export function createVoices(sfx) {
@@ -39,6 +40,9 @@ export function createVoices(sfx) {
     scrape(k) { if (!init() || !out) return; if (!sc) sc = loop(420, 1.4); set(sc.g.gain, 0.0001 + 0.06 * k01(k)); set(sc.fl.frequency, 300 + 400 * k01(k), 0.2); },
     knock(deep = 1) { if (!ok()) return; const t = ctx.currentTime; tone(t, 170 / deep, 70 / deep, 0.3, 0.13); burst(t, 900, 1.5, 0.08, 0.05); },
     thud() { if (!ok()) return; const t = ctx.currentTime; tone(t, 92, 46, 0.7, 0.18); burst(t, 260, 0.9, 0.4, 0.06, 'lowpass'); },
+    // ── build 129 R3b ── (the Golah's rope, one per pull: in the beat — a pull at the swing's middle — a round, warm tone; against it
+    //  a rough, scratchy rasp of fibre on the wheel)
+    rope(inBeat) { if (!ok()) return; const t = ctx.currentTime; if (inBeat) { tone(t, 196, 174, 0.32, 0.07); tone(t, 392, 349, 0.22, 0.025); burst(t, 380, 2.5, 0.12, 0.02); } else { tone(t, 120, 96, 0.22, 0.05, 'sawtooth'); burst(t, 1700, 0.8, 0.18, 0.07); burst(t + 0.05, 2600, 1.1, 0.1, 0.05); } },
     bump() { if (!ok()) return; const t = ctx.currentTime; tone(t, 210, 150, 0.14, 0.08); burst(t, 600, 1.2, 0.06, 0.05); },
     creak(k) { if (!init() || !out) return; if (!cr) { cr = loop(240, 9); const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 90; const og = ctx.createGain(); og.gain.value = 0.0001; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500; o.connect(lp); lp.connect(og); og.connect(out); o.start(); cr.o = o; cr.og = og; } const v = k01(Math.abs(k)); set(cr.g.gain, 0.0001 + 0.04 * v, 0.06); set(cr.og.gain, 0.0001 + 0.018 * v, 0.06); set(cr.fl.frequency, 160 + 520 * v, 0.1); set(cr.o.frequency, 60 + 120 * v, 0.1); },
     groan() { if (!ok()) return; const t = ctx.currentTime; tone(t, 190, 130, 0.6, 0.05, 'sawtooth'); burst(t, 520, 7, 0.5, 0.03); },

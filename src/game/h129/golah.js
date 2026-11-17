@@ -238,6 +238,7 @@ export const GOLAH_ACT = {
       A.pullT = A.t; A.lastSide = side; const k = side < 0 ? 0 : 1; A.haul[k] = 1;
       ev('pull:' + r);
       V.creak(0.6); setTimeout(() => V.creak(0), 260);
+      try { V.rope && V.rope(r === 'perfect' || r === 'calm'); } catch (e) { /* */ }   // (build 129 R3b: the rope's sound follows the rhythm)
     }
     // ── the run's save: the troughs' water, whose turn it is (a reload goes on from the next fill)
     function saveRun() { const tr = {}; for (const k of KS) tr[k] = +s.troughs[k].v.toFixed(4); st.golah.run = { id, tr, w: +(s.head + channelWater(s)).toFixed(4), sl: { ...s.sluice }, trip: s.trip, b: s.b, knocks: s.knocks, clashes: s.clashes, perfect: s.perfect }; X.save(); }   // (w: the water on its way, back in the head trough on a reload)

@@ -169,6 +169,14 @@ export const LIGHT = {
       } catch (e) { /* */ }
     }
     const kept = (() => { const k = st.light && st.light.step; return k && k.id === m.id && (k.at === 'oil' || k.at === 'ladder') ? k : null; })();
+    /** the oil's view (OILCAM, proven clear: no ray from the eye to the seven cups or the jar meets anything); d: the glide, secs */
+    function oilShot(d) {
+      const A0 = [ML.bench[0], FLOOR + 1, ML.bench[2] - 0.5], az = OILCAM.AZ * D2R, el = OILCAM.EL * D2R, h = OILCAM.D * Math.cos(el);
+      const E = [A0[0] + Math.sin(az) * h, A0[1] + OILCAM.D * Math.sin(el), A0[2] - Math.cos(az) * h];
+      // (SHIFT: the aim moved toward the screen's right, amot — 0: the cups in the middle)
+      const fx = A0[0] - E[0], fz = A0[2] - E[2], fl = Math.hypot(fx, fz) || 1, rx = -fz / fl, rz = fx / fl;
+      shot(E, [A0[0] + rx * OILCAM.SHIFT, A0[1], A0[2] + rz * OILCAM.SHIFT], d);
+    }
     function oilStart() {
       A.phase = 'oilcard'; keepStep('oil');
       // he goes to the door of Beit Shemanya; the card says what the chamber was, and the seven measures
@@ -176,11 +184,7 @@ export const LIGHT = {
       //  oil phase: d 2.7), which filled the frame; now 30° east of the door's axis, 8 amot off and 50° down, over the stone's edge and
       //  into the door: no ray from the eye to the seven cups or the jar meets anything (a low eye under it, 20° down, saw them too; this
       //  one shows the row of cups whole from above, as the book's old view meant to)
-      { const A0 = [ML.bench[0], FLOOR + 1, ML.bench[2] - 0.5], az = OILCAM.AZ * D2R, el = OILCAM.EL * D2R, h = OILCAM.D * Math.cos(el);
-        const E = [A0[0] + Math.sin(az) * h, A0[1] + OILCAM.D * Math.sin(el), A0[2] - Math.cos(az) * h];
-        // (SHIFT: the aim moved toward the screen's right, amot — 0: the cups in the middle)
-        const fx = A0[0] - E[0], fz = A0[2] - E[2], fl = Math.hypot(fx, fz) || 1, rx = -fz / fl, rz = fx / fl;
-        shot(E, [A0[0] + rx * OILCAM.SHIFT, A0[1], A0[2] + rz * OILCAM.SHIFT], 1.6); }   // (all seven cups, the jar and the vat whole)
+      oilShot(1.6);   // (all seven cups, the jar and the vat whole)
       jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
       // (the act's own seven cups over the world's: the world's hide while it plays)
       try { SL.cups && SL.cups.forEach((c) => { c.visible = false; }); } catch (e) { /* */ }
@@ -230,13 +234,15 @@ export const LIGHT = {
       const L2 = (st.light && st.light.light2) || {}, w = (L2.wicks && L2.wicks[0]) || WICK.MID;
       A.wicks = [w, w, w, w]; A.pours = (L2.pours || ['hin', 'hin', 'half']).slice(); A.mehudar = L2.mehudar !== false; A.phase = 'prep';
       say('prep', 3000); ev('prep:' + w);
-      closeShot([W.cloth[0] + 0.3, W.cloth[1], W.cloth[2]], CAM.wicks[0], 6.6, 0.5, 0.6);
+      // (build 130, the PC run: a 0.6 s glide from the world's camera into these short views went through the walls, and the book's
+      //  measures view met the stone before the door; now a cut to light1/2's wick view, then the oil's own proven view)
+      closeShot([W.cloth[0] + 0.7, W.cloth[1] - 0.1, W.cloth[2] - 0.1], CAM.wicks[0], 6.6, 1.3, 0.01);
       for (let k = 0; k < 4; k++) later(0.25 + 0.3 * k, () => {
         const r = new T.Mesh(new T.TorusGeometry(0.07 + w * 0.3, Math.max(0.012, w * 0.12), 6, 14), MT.l30linen); r.rotation.x = -Math.PI / 2;
         r.position.set(W.basket[0] + (k % 2) * 0.12 - 0.06, W.basket[1] + 0.06 + k * 0.025, W.basket[2] + ((k / 2) | 0) * 0.1 - 0.05); root.add(r); made.push(r);
       });
       later(1.5, () => {
-        closeShot([ML.jar[0], FLOOR + 0.9, ML.jar[2]], CAM.measures[0], 6.5, 1.0, 0.5);
+        oilShot(0.01);
         jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
         tween(1.0, (u) => jarB.userData.fill(sm(u)), () => later(0.3, goLadder));
       });

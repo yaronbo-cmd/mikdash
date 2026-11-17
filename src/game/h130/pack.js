@@ -7,6 +7,7 @@
  */
 import { PLAN, LINES, createH130, fromOld } from './model.js';
 import { playFilm } from './film130.js';
+import { cardWorld } from './eve.js';
 import { ACTS } from './acts.js';
 import { SH130, initWorld, finalWorld, restWorld, Y, GEO } from './world.js';
 import { makeLook, LOOK_RING_K } from '../world/look.js';
@@ -91,7 +92,7 @@ export function makePack130(env = {}) {
     },
     /** the stage's close: the world as he built it, then the film of Simchat Beit HaShoeva (v3, full screen, a tap skips it; a film that
      *  cannot load or play is skipped in silence), then the director's end card */
-    async finale(X) { finalWorld(X); try { await playFilm(X); } catch (e) { console.warn('[h130] film', e && e.message); } },
+    async finale(X) { finalWorld(X); try { await playFilm(X); } catch (e) { console.warn('[h130] film', e && e.message); } try { cardWorld(X); } catch (e) { console.warn('[h130] card world', e && e.message); } },
     /** after a reload, the stage done: his galleries as he built them, the model's own hidden, no crews of the stage */
     rest(X, M) { restWorld(X, M); },
     dispose() {},

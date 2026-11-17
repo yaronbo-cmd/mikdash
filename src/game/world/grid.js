@@ -1091,6 +1091,20 @@ const S08 = {
   // the player's three sections (המחשה); level 3 with the south-west corner's amah to z 12.5 (x −54 … −52: the west strip and the south amah)
   sections: { 1: [-43, -19.5, -33, -9], 2: [-43, -9, -33, 1.5], 3: [-54, 1.5, -43, 11.5], corner3: [-54, 11.5, -52, 12.5] },
   fire: [-32, -31.5], pile: [-44, -31.5],
+  // ── h131 frame ── the frame's three works and the finale (all המחשה): level 1 the joined frame as the crew set it down — its shift
+  // [dx, dz] and turn (degrees) from the stakes; level 2 the four loose beams as the crew laid them inside the place — each its middle
+  // and its turn (0 along x, 90 along z); level 3 the frame pegged at three corners, the one pegged off its stake turned about NW;
+  // the diagonal beam's rest north of the frame ([x0, z0, x1, z1]); the frame men's place out from each corner (amot along the
+  // diagonal); the finale: the lime trough, the water jar's place on the yesod (the kohen pours there), the pile of the pulled timbers
+  // and the frame's boards (east of the altar, on the kevesh's free ground)
+  work: {
+    frame1: { shift: [7, -2], turn: -12 },
+    frame2: { N: [[-37, -14.5], 4], E: [[-27, -3], 95], S: [[-39.5, 7.5], -3], W: [[-48.5, -2.5], 86] },
+    frame3: { pegs: ['NW', 'NE', 'SW'], wrong: 'NE', turn: 4.5 },
+    diag: [-54, -25.5, -22, -25.5], men: 2.2,
+    lime: [-44, 15.2], jar: [-47, 13.6], water: [-47, 9.5], logs: [-12, 18],
+  },
+  // ── /h131 frame ──
   stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },
   // the stage's cameras on the Mount ([eye], [aim]): the opening from high down to the altar's site (rule 3); the site from the frame's
   // stand; the end: high over the altar's middle, the whole Azarah round it
@@ -1143,6 +1157,13 @@ function s08() {
   e2('section3:corner', 'section', mid(C.sections.corner3), 'אמת הקרן שבמקטע של רמה 3', ILL);
   e2('fire', 'hearth', C.fire, 'האש והקדרה', ILL);
   e2('pile', 'pile', C.pile, 'ערימת האבנים מהבור', ILL);
+  // ── h131 frame ── ── /h131 frame ──
+  const W8 = C.work;
+  e2('diag', 'beam', mid(W8.diag), 'קורת האלכסון, מונחת עד שהמסגרת רבועה', ILL);
+  e2('lime', 'trough', W8.lime, 'ערבת הסיד והמפה (הליבון במפה, לא בכף ברזל)', 'מידות ג, ד (בזמן הבנייה המחשה)');
+  e2('jar', 'jar', W8.jar, 'כד המים בסיום', ILL);
+  e2('water', 'pour', W8.water, 'כאן נשפכים המים על היסוד', ILL);
+  e2('logs', 'pile', W8.logs, 'ערימת קורות העץ שנשלפו', ILL);
   const SL = { frame: 'עמדת השחקן במלבן', witness: 'עמדת העד', pour: 'עמדת השחקן ביציקה, רמות 1 ו-2', south: 'עמדת השחקן ביציקה, רמה 3 ובסיום', pit: 'כאן יוצאים אל הבור בבית כרם (קפיצת מצלמה)' };
   for (const [k, p] of Object.entries(C.stand)) e2('stand:' + k, 'stand', p, SL[k], ILL, { extra: { face: p[2] } });
   // the pit's sheet: its own entries { id, kind, lx, lz (on the sheet), x, z (in the world), cell (the sheet's), label, src }

@@ -786,7 +786,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // camera; its words and losses may stand at a screen point { sx, sy } of its own camera) ── /h128 ──
     lookNow: () => ({ u: LOOK.u, yaw: LOOK.yaw, ov: OV.on, play: zone5(LOOK.u, LOOK.yaw) === 'play' }),
     THREE, scene, camera, view, stages: S0, hero, ground, heroAt, shot, track, workShot, rayAt, scr, line, hand, meter, count, hit, word, bonus,
-    get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, get acting() { return phase === 'act'; }, ui, sfx: o.sfx, haptic: o.haptic,
+    get props() { return props(); }, get M() { return M; }, get mission() { return mission; }, ui, sfx: o.sfx, haptic: o.haptic,
     actors: () => S0.crewActors || null, PLACES, H109,
     beat() { let b = null; try { const Mu = globalThis.__BH_MUSIC; b = Mu && typeof Mu.beat === 'function' ? Mu.beat() : null; } catch (e) { b = null; } return b && b.period > 0.2 && Number.isFinite(+b.toNext) ? b : null; },
     play(name, opt) { try { if (o.sfx && o.sfx.play) o.sfx.play(name, opt); } catch (e) { /* */ } },

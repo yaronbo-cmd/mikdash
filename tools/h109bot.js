@@ -933,6 +933,8 @@
     wood(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS130;
       if (shots && a.busy && a.figs && a.figs.saw && !K['shotS' + a.log]) { K['shotS' + a.log] = 1; return { wait: 100, shot: a.id + '-saw-' + a.log }; }
+      // ── h130 ── (build 130 part 3: a still of the crew man rolling a log onto the trestles, once a level) ── /h130 ──
+      if (shots && a.phase === 'arrive' && a.roll > 0.45 && !K['shotR' + a.id]) { K['shotR' + a.id] = 1; return { shot: a.id + '-roll-in', note: 'wood: rolled in by ' + JSON.stringify(a.figs) }; }
       if (a.busy || a.phase !== 'look' || !a.a || !a.b) return { wait: 300, note: 'wood: ' + a.phase };
       const key = a.id + ':' + a.log + ':' + a.left + ':' + (a.cut || '') + ':' + a.piles.clean, L = K[key] || (K[key] = { n: 0 });
       const ax = a.b[0] - a.a[0], ay = a.b[1] - a.a[1], len = Math.hypot(ax, ay) || 1, ux = ax / len, uy = ay / len;
@@ -943,7 +945,10 @@
       const carry = (to) => {
         const e = to === 'clean' ? a.b : a.a, o = to === 'clean' ? a.a : a.b, k = 0.18 / (a.keep[1] - a.keep[0]), p = [e[0] + (o[0] - e[0]) * k, e[1] + (o[1] - e[1]) * k], d = to === 'clean' ? 1 : -1;
         const q = [Math.max(30, Math.min(innerWidth - 30, p[0] + d * 300)), p[1]];
-        return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>1.7`), wait: 1500, note: `wood: ${a.log} → ${to}`, ...(shots && !K['shotC' + a.id] ? (K['shotC' + a.id] = 1, {}) : {}) };
+        // ── h130 ── (build 130 part 3: the first carry each way of a level held 1.6 s at its end, a still with the finger down — the shot the
+        // carry eased to: the rejects' pile on the left, the clean one on the right) ── /h130 ──
+        if (shots && !K['shotC' + a.id + to]) { K['shotC' + a.id + to] = 1; const fr = []; for (let i = 1; i <= 18; i++) fr.push([[p[0] + (q[0] - p[0]) * i / 18, p[1]]]); for (let i = 0; i < 40; i++) fr.push([q]); return { seq: fr, ms: 40, seqShot: [56, a.id + '-carry-' + to], wait: 1500, note: `wood: ${a.log} → ${to} (held)` }; }
+        return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>1.7`), wait: 1500, note: `wood: ${a.log} → ${to}` };
       };
       const wantWorm = has('worm') && !K.wormDone && a.wormy && !a.cuttable;
       if (L.n === 0 && wantWorm) { K.wormDone = 1; L.n = 99; return carry('clean'); }

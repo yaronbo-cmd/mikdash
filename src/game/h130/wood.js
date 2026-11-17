@@ -398,6 +398,7 @@ export const WOOD_ACT = {
         }
         o.cleanAt = sp(W5.clean[0], F + 0.5, W5.clean[1]); o.outAt = sp(W5.out[0], F + 0.5, W5.out[1]);
         o.figs = { second: second && second.a ? sp(second.a.x, F + 1, second.a.z) : null, saw: saw.length, roller: roller && roller.a ? sp(roller.a.x, F + 1, roller.a.z) : null };
+        o.roll = A.tw && A.tw.k === 'arrive' ? +(A.tw.t / A.tw.d).toFixed(2) : null;
         const cp = cam0.position; o.shot = shotK; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)); o.fov = +cam0.fov.toFixed(1);
         try { const h = X.hero, hp = h && h.mesh ? h.mesh.position : null; if (hp) { o.kohen = [sp(hp.x, hp.y, hp.z), sp(hp.x, hp.y + 3.9, hp.z)]; } } catch (e) { /* */ }
         return o;

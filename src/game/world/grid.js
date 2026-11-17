@@ -889,7 +889,9 @@ const S07 = {
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye
     // comes in over the mouth (to `mouth` amot of the axis at the rim for each amah below) as the bucket is deeper; the aim on the axis
     // (x off aim[0]) between the bucket and the axle (aim[1] of the way up), never deeper than aim[2] under the floor
-    golahShaft: { eye: [-141.2, 26, 67.6], mouth: 1.9, aim: [0.1, 0.25, 9.5] },
+    // (closing round 2: the eye on the well's own x, south of the mouth — the two haulers on the plank (x ∓1.35) at the picture's two
+    //  sides, the mouth, the ropes and the bucket between them clear; from x −141.2 the west hauler stood over the mouth)
+    golahShaft: { eye: [-139, 26, 68.2], mouth: 1.9, aim: [0, 0.25, 9.5] },
     // the pour: high by the room's south wall, west of the wheel's plane, looking north and down under the frame's cap and through the
     // door: the bucket at the rim, the trough by the well, the channel out by the door, trough A beyond it in the court
     golahPour: [[-140.8, 31, 69.2], [-139.3, 16, 57.5]],

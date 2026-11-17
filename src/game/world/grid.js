@@ -783,9 +783,9 @@ const S07 = {
     gateCam: { fov: 60, fill: 1.5, mid: 0.55, up: 1.5, lamp: 18, torch: 6.5 },
     // (closing round, F3: a gate whose foot a built thing hides from that eye gets its own: back from the gate's face, the eye over the
     //  aim. The gate of the spark: the eight dwarf pillars with their cedar beam north of the altar (temple.js, Middot 3:5: z −60.4 …
-    //  −59.6, the beam's top 20.5) stand 3.5 amot before its inner face across its whole width — from 16 back and 15 over the aim the
-    //  line to the gateway's foot passes over the beam)
-    gateEye: { 'gate:nitzotz': { back: 16, up: 15 } },
+    //  −59.6, the beam's top 20.5) stand 3.5 amot before its inner face across its whole width — from 12 back and 17 over the aim (55° down; the director keeps an eye
+    //  35 from its aim back along the same line — main.js minDistance — and from either the line to the gateway's foot passes over the beam)
+    gateEye: { 'gate:nitzotz': { back: 12, up: 17 } },
     // (round 3) the מדורה: long logs (3–4 amot) crosswise in three layers (offsets across each layer), their radius; the ring of hearth
     // stones; the coals between; the flames (how many, within what radius of the middle, their heights)
     fire: { layers: [[-0.85, 0, 0.85], [-0.85, 0, 0.85], [-0.45, 0.45]], len: [3.1, 3.9], r: 0.2, ringN: 13, ringR: 2.4, embers: 40, flames: 24, flameR: 1.25, flameH: [0.8, 2.5] },

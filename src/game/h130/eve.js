@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, OPEN: 0.9,
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, OPEN: 1.15,
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',

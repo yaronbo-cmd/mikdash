@@ -372,6 +372,60 @@ export const GALLERY = {
       }
       return false;
     }
+    /** ── build 130, the PC run (960×600) ── a thing right before the eye that no ray meets (an instanced prop, a held item) filled a view:
+     *  every visible mesh, an InstancedMesh per instance, by its world box — whatever box lies within `r` amot of the eye and inside the
+     *  view's cone toward `aim` (the floor, the world's huge pieces, the gallery's columns, and the spectator's own figure standing at the
+     *  eye left out) → [names] */
+    const _bx = { B: null, M: null, P: null, C: null };
+    function nearBoxes(e, aim, r = SEE.VIEW_NEAR) {
+      const out = [];
+      try {
+        if (!_bx.B) { _bx.B = new T.Box3(); _bx.M = new T.Matrix4(); _bx.P = new T.Vector3(); _bx.C = new T.Vector3(); }
+        const B = _bx.B, Mx = _bx.M, P = _bx.P.set(e[0], e[1], e[2]), C = _bx.C;
+        const d = new T.Vector3(aim[0] - e[0], aim[1] - e[1], aim[2] - e[2]).normalize();
+        const half = Math.atan(Math.tan(((X.camera.fov || 40) * Math.PI) / 360) * Math.max(1, X.camera.aspect || 1.6)) + 0.12;
+        const rec = SH130.gal[side], colSet = new Set(); if (rec) for (const Cm of rec.cols) Cm.g.traverse((q) => colSet.add(q));
+        const test = (o, name) => {
+          if (B.isEmpty()) return;
+          const sx = B.max.x - B.min.x, sy = B.max.y - B.min.y, sz = B.max.z - B.min.z;
+          if (sx > 40 || sz > 40 || sy > 40) return;                                         // (the world's ground, walls, the city)
+          if (B.max.y < GEO.FLOOR + 0.25) return;                                            // (the floor and what lies flat on it)
+          B.getCenter(C); if (Math.hypot(C.x - e[0], C.z - e[2]) < 0.8 && sx < 1.6 && sz < 1.6) return;   // (his own figure at the eye)
+          if (B.distanceToPoint(P) > r) return;
+          B.clampPoint(P.clone().addScaledVector(d, r * 0.5), C);
+          const v = C.clone().sub(P), L = v.length(); if (L < 1e-3 || Math.acos(Math.max(-1, Math.min(1, v.dot(d) / L))) < half) out.push(name);
+        };
+        X.scene.traverseVisible((o) => {
+          if (!o.isMesh || colSet.has(o) || !o.geometry) return;
+          if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+          const gb = o.geometry.boundingBox, nm = o.name || o.type;
+          if (o.isInstancedMesh) { for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, Mx); Mx.premultiply(o.matrixWorld); B.copy(gb).applyMatrix4(Mx); test(o, `${nm}#${i}`); } }
+          else { B.copy(gb).applyMatrix4(o.matrixWorld); test(o, nm); }
+        });
+      } catch (err) { /* */ }
+      return out;
+    }
+    /** ── build 130, the PC run ── what no ray meets (an InstancedMesh's instances moved since its bounds were taken: the crews' carts and
+     *  wheels, the oxen, the figures): each instance's world box against the segments from the eye to the bearer's middle and to the
+     *  torch, between NEAR and the bearer → the first thing found ('' if none) */
+    function instBlock(e, tp) {
+      try {
+        if (!_bx.B) nearBoxes(e, tp, 0);
+        const B = _bx.B, Mx = _bx.M, ray = new T.Ray(), hit = new T.Vector3(), a = new T.Vector3(e[0], e[1], e[2]);
+        const segs = [GEO.FLOOR + SEE.MID, GEO.FLOOR + TORCH_H].map((y) => { const d = new T.Vector3(tp[0] - e[0], y - e[1], tp[2] - e[2]), L = d.length(); return { d: d.normalize(), far: L - SEE.NEAR - 1.5 }; });
+        let found = '';
+        X.scene.traverseVisible((o) => {
+          if (found || !o.isInstancedMesh || !o.geometry) return;
+          if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+          for (let i = 0; i < o.count && !found; i++) {
+            o.getMatrixAt(i, Mx); Mx.premultiply(o.matrixWorld); B.copy(o.geometry.boundingBox).applyMatrix4(Mx);
+            if (B.max.y < GEO.FLOOR + 0.25 || B.max.x - B.min.x > 40 || B.max.z - B.min.z > 40) continue;
+            for (const sg of segs) { ray.set(a, sg.d); if (ray.intersectBox(B, hit)) { const t = hit.distanceTo(a); if (t >= SEE.NEAR && t <= sg.far) { found = `${o.name || 'inst'}#${i} d${t.toFixed(1)}`; break; } } }
+          }
+        });
+        return found;
+      } catch (err) { return ''; }
+    }
     /** the view's own check (the bot fails a view that breaks it): the bearer's middle inside the frame, and nothing but a column he
      *  placed within 3 amot of the eye on the frame's centre ray → { inFrame: 0|1, near: '' or what stands there } */
     function viewCheck() {
@@ -386,16 +440,19 @@ export const GALLERY = {
         const hits = []; for (const o of list) { try { o.raycast(rc, hits); } catch (e) { /* */ } }
         const h = hits.filter((q) => q.distance <= SEE.VIEW_NEAR).sort((p, q) => p.distance - q.distance)[0];
         if (h) out.near = `${h.object.name || h.object.type} d${h.distance.toFixed(1)}`;
+        if (!h) { const ib = instBlock([X.camera.position.x, X.camera.position.y, X.camera.position.z], [bearer.a.x, GEO.FLOOR + TORCH_H, bearer.a.z]); if (ib) out.near = 'inst ' + ib; }
+        if (!h && !out.near) { const nb = nearBoxes([X.camera.position.x, X.camera.position.y, X.camera.position.z], [bearer.a.x, GEO.FLOOR + SEE.MID, bearer.a.z]); if (nb.length) out.near = 'box ' + nb.slice(0, 3).join(','); }
       } catch (e) { /* */ }
       return out;
     }
     function sightEye(eye, tp, cols) {
-      if (!sightBlocked(eye, tp)) return eye;
+      const aimP = [tp[0], GEO.FLOOR + SEE.MID, tp[2]], bad = (c) => { if (sightBlocked(c, tp)) return true; const ib = instBlock(c, tp); if (ib) { A.sightBy = 'inst ' + ib; return true; } const nb = nearBoxes(c, aimP); if (nb.length) { A.sightBy = 'box ' + nb.slice(0, 3).join(','); return true; } return false; };
+      if (!bad(eye)) return eye;
       const by = A.sightBy || '';
       const ax = R.axis === 'x' ? 0 : 2;
       for (let k = 1; k <= SEE.STEPS; k++) for (const sg of [1, -1]) {
         const e = eye.slice(); e[ax] += sg * k * SEE.STEP; const c = clearEye(e, cols);
-        if (!sightBlocked(c, tp)) { ev(`sight ${sg * k * SEE.STEP} (${by})`); return c; }
+        if (!bad(c)) { ev(`sight ${sg * k * SEE.STEP} (${by})`); return c; }
       }
       return eye;
     }

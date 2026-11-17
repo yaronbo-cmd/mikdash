@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35], PULL: 0.05, CARD_MAX: 600,
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35], PULL: 0.05, CARD_MAX: 600, CARD_IN: 0.28, CARD_UP: 2,
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',
@@ -91,11 +91,17 @@ export function cardWorld(X) {
   // (the menorah's gold glows as at the evening: its metal mirrored the night and the column read black behind the card)
   let g0 = null; try { const G = matsL(X).l30gold; if (G) { g0 = { e: G.emissive.getHex(), i: G.emissiveIntensity, m: G.metalness, r: G.roughness }; G.emissive.setHex(EK.GOLD[0]); G.emissiveIntensity = EK.GOLD[1]; G.metalness = EK.GOLD[2]; G.roughness = 0.45; G.needsUpdate = true; } } catch (e) { g0 = null; }
   try { X.kohen(false); } catch (e) { /* */ }
-  X.shot(C.down[0], C.down[1], 0.01);
+  // (build 130, the PC run: from the descent's own eye a wall top in shade and a slab filled the frame's foot — the card's eye is
+  //  CARD_IN of the way in toward the aim and CARD_UP higher, the court whole below it)
+  const e0 = C.down[0], a0 = C.down[1], eye = [a0[0] + (e0[0] - a0[0]) * (1 - EK.CARD_IN), e0[1] + EK.CARD_UP, a0[2] + (e0[2] - a0[2]) * (1 - EK.CARD_IN)];
+  X.shot(eye, a0, 0.01);
+  // (the walk's hint "גררו כאן כדי ללכת" stood on the card: hidden while it is up)
+  try { if (!document.getElementById('h130-card-css')) { const c = document.createElement('style'); c.id = 'h130-card-css'; c.textContent = 'body.h130-card .tw-zone{visibility:hidden!important}'; document.head.appendChild(c); } document.body.classList.add('h130-card'); } catch (e) { /* */ }
   let gone = false;
   const done = () => {
     if (gone) return; gone = true;
     try { if (lamp.parent) lamp.parent.remove(lamp); } catch (e) { /* */ }
+    try { document.body.classList.remove('h130-card'); } catch (e) { /* */ }
     try { const G = matsL(X).l30gold; if (G && g0) { G.emissive.setHex(g0.e); G.emissiveIntensity = g0.i; G.metalness = g0.m; G.roughness = g0.r; G.needsUpdate = true; } } catch (e) { /* */ }
     try { if (E && E.restoreTime) E.restoreTime(); } catch (e) { /* */ }
     try { X.kohen(true); } catch (e) { /* */ }

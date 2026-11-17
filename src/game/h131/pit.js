@@ -362,7 +362,7 @@ function pitAct(m, X) {
     await X.wait(1.6);
     // (to the rejects' heap: the core draws one more stone there for the mark; the camera shows it there)
     X.props.remove(C.ring); X.props.remove(C.g); SG.delete(C.i); A.check = null;
-    const rj = P.rejects; X.shot(A3(rj[0] - 4.6, 3.6, rj[1] + 2.2), A3(rj[0] + 0.8, 0.3, rj[1] - 0.4), 0.8); shotK = 'rejects';
+    const rj = P.rejects; X.shot(A3(rj[0] - 4.2, 2.1, rj[1] + 2.0), A3(rj[0] + 3.0, 0.9, rj[1] - 1.4), 0.8); shotK = 'rejects';
     await X.wait(1.0); const rp = W3(rj[0], 0.8, rj[1]); X.dust(rp.x, rp.y, rp.z, 12, 1.8); V.knock(1.6);
     await X.wait(1.2);
     // (the crew bares another in its place)

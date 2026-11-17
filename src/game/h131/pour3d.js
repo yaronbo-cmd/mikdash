@@ -187,7 +187,7 @@ export function createPourView(X, lv, sim, o = {}) {
   const fireL = (() => { const [x, z] = S8.fire, f = F; return [(x - f.cx) * f.s, (z - f.cz) * f.s]; })();
   const FIRE = new THREE.Vector3(fireL[0], 0, fireL[1]);
   const fireNear = Math.hypot(fireL[0], fireL[1] - RIG_Z) < 20;   // (a far hearth: the crew walk toward it out of the picture and come back)
-  const SWAP_TO = fireNear ? new THREE.Vector3(FIRE.x + 2.2, 0, FIRE.z + 0.2) : (() => { const dx = fireL[0], dz = fireL[1] - RIG_Z, d = Math.hypot(dx, dz) || 1; return new THREE.Vector3((dx / d) * 11, 0, RIG_Z + (dz / d) * 11); })();
+  const SWAP_TO = fireNear ? new THREE.Vector3(FIRE.x + 2.2, 0, FIRE.z + 0.2) : new THREE.Vector3((fireL[0] < 0 ? -1 : 1) * 11, 0, RIG_Z + 1.2);   // (a far hearth: out along the near board, never across the segment)
   const clayHex = 0xa4573a;
   const cauldronRadiusAt = (y) => { const prof = [[-1.0, 0.0], [-0.99, 0.3], [-0.9, 0.52], [-0.68, 0.68], [-0.42, 0.72], [-0.15, 0.66], [0.02, 0.52], [0.08, 0.5]]; for (let j = 0; j < prof.length - 1; j++) if (y <= prof[j + 1][0]) { const f = (y - prof[j][0]) / (prof[j + 1][0] - prof[j][0]); return prof[j][1] + (prof[j + 1][1] - prof[j][1]) * f; } return 0.5; };
   const cauldronGeo = (() => { const pts = [[0.0, -1.0], [0.3, -0.99], [0.52, -0.9], [0.68, -0.68], [0.72, -0.42], [0.66, -0.15], [0.52, 0.02], [0.5, 0.08], [0.57, 0.12], [0.55, 0.16], [0.47, 0.13], [0.45, 0.04]].map(([r, y]) => new THREE.Vector2(r, y)); const mg = new Merger(), w = col(0xffffff); mg.add(new THREE.LatheGeometry(pts, 14), w); const hg = new THREE.TorusGeometry(0.13, 0.04, 5, 8); for (const s of [-1, 1]) mg.add(hg, w, [s * 0.55, 0.02, 0], [0, Math.PI / 2, 0]); return mg.build(); })();
@@ -484,8 +484,10 @@ export function createPourView(X, lv, sim, o = {}) {
 const W8 = { g: null, key: '' };
 function marksDraw(X, M) {
   if (!M || !X || !X.THREE) return;
-  const marks = M.marksOf().filter((k) => k.f === 'pour.hollow' || k.f === 'pour.spill');
-  const key = marks.map((k) => k.f + (k.at ? k.at.x + ',' + k.at.z : '')).join('|') + '|' + (M.isDone('finale') ? 1 : 0); if (key === W8.key && W8.g) return; W8.key = key;
+  // (a patch in the section being poured is not drawn: the act's own segment shows it, and a flat disc over its stones would not)
+  const live = POUR3D.act && S8.sections[POUR3D.act], inLive = (at) => live && at.x >= live[0] && at.x <= live[2] && at.z >= live[1] && at.z <= live[3];
+  const marks = M.marksOf().filter((k) => (k.f === 'pour.hollow' && !(k.at && inLive(k.at))) || k.f === 'pour.spill');
+  const key = marks.map((k) => k.f + (k.at ? k.at.x + ',' + k.at.z : '')).join('|') + '|' + (M.isDone('finale') ? 1 : 0) + '|' + (POUR3D.act || 0); if (key === W8.key && W8.g) return; W8.key = key;
   const T = X.THREE; if (W8.g) { X.props.root.remove(W8.g); W8.g = null; }
   if (!marks.length) return;
   const g = new T.Group(); g.name = 'h131-pour-marks'; X.props.root.add(g); W8.g = g;

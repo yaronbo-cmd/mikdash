@@ -57,8 +57,8 @@ const K = Object.freeze({ TAP: 14, TIP: 64, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
 /** the shots (sheet amot round the stone in hand): work — from the south-east above and behind, the kohen whole in the left third, the
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
-  work: { back: 9.5, up: 8.2, turn: -0.62, mid: 0.38, aimY: 0.9, fov: 46, k3: 1.18 },
-  lever: { D: 8.6, H: 6.6, fov: 44 },
+  work: { back: 6.8, up: 12.5, turn: -0.62, mid: 0.36, aimY: 0.6, fov: 50, k3: 1.15 },
+  lever: { D: 7.2, H: 11, fov: 50 },
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -294,7 +294,7 @@ function pitAct(m, X) {
     const y0 = g.position.y, hy = g.userData.hy;
     const from = g.position.clone(), a = W3(foot[0], F + hy * 0.62, foot[1]), b = W3(top[0], hy * 0.62 + 1.4, top[1]), cc = W3(c[0], 0.48 + hy * 0.62, c[1]);
     // (the camera: the cradle and the rim's crew in the frame, the stone coming up the wall)
-    const cs = A3(c[0] + 5.5, 7.2, c[1] + 9.5), ca = A3(c[0] + 3.2, -0.6, c[1] - 0.8); X.shot(cs, ca, 1.0); fovT = 46; shotK = 'hoist';
+    const cs = A3(c[0] + 6.5, 12, c[1] + 11), ca = A3(c[0] + 3.4, -1.2, c[1] - 0.6); X.shot(cs, ca, 1.0); fovT = 46; shotK = 'hoist';
     for (const w of carr) gang.setRole(w, 'pull', { fx: from.x, fz: from.z, k: 2 });
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];
     for (const [p, q, d] of legs) await tween(g, p, q, d, s);
@@ -403,7 +403,7 @@ function pitAct(m, X) {
    *  Mount; the camera high over the pit looking east-north-east, down the valley to the hills on the horizon */
   function filmOf() {
     const c = P.cradle, R = P.road[P.road.length - 1];
-    const eye = A3(c[0] - 13, 13, c[1] + 17), aim = A3(R[0] * 0.5, 2, R[1] * 0.5 - 4);
+    const eye = A3(c[0] - 10, 26, c[1] + 30), aim = A3(R[0] * 0.3, -2, R[1] * 0.3 + 4);
     return { eye, aim, secs: 6.5, own: () => [...carr].filter(Boolean).map((w) => w.a), after: () => clearAll() };
   }
   let cleared = false;

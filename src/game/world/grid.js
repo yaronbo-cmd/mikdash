@@ -1125,7 +1125,7 @@ const S08 = {
     // the opening view: facing the Mount on the horizon (it lies east-north-east: 14,770 east and 2,310 north) — (build 131, the pit
     // lane: composed from the south-west of the pit, so the pit and its crew stand in the lower half, the valley opens beyond them toward
     // the north-east where its hills are lowest, and their skyline and the sky are clear of the top bar) [eye, aim], [lx, y, lz]
-    cam: { open: [[-17, 6.5, 13.5], [30, 3.5, -27]], play: [[0, 11, 21], [0, -1, 0]] },
+    cam: { open: [[-18, 7.5, 15], [30, 1.5, -27]], play: [[0, 11, 21], [0, -1, 0]] },
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);

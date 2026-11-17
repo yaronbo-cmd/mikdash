@@ -93,12 +93,14 @@ function makeEve(m, X) {
   A.reach = +reach.toFixed(3);
   let city = null, light = null;
   function figures() {
+    // (gang: the act's own men for the figures gate — a figure it does not own it takes out of the act's frame, and the evening's crowd
+    //  was never seen; build 130 part 3)
     const AC = X.actors && X.actors(); if (!AC) return;
     const [mx, mz] = LT.menorah;
     // the men below, round the menorah with torches (a ring, its open side toward the camera's descent)
     for (let i = 0; i < EK.MEN; i++) {
       const a = (i / EK.MEN) * Math.PI * 2, r = 13 + (i % 3) * 2.5, x = mx + Math.cos(a) * r, z = mz + Math.sin(a) * r;
-      const f = AC.add('pilgrim', x, z, { yaw: Math.atan2(mx - x, mz - z), item: 'torch', fadeIn: false }); if (f) own.push(f);
+      const f = AC.add('pilgrim', x, z, { yaw: Math.atan2(mx - x, mz - z), item: 'torch', fadeIn: false }); if (f) { f.gang = 1; own.push(f); }
     }
     // the women above, along the galleries he built (on the floor, behind the railing)
     for (const side of ['N', 'S', 'E']) {
@@ -107,7 +109,7 @@ function makeEve(m, X) {
       for (let i = 0; i < EK.WOMEN; i++) {
         const al = R.a0 + ((i + 0.5) / EK.WOMEN) * (R.a1 - R.a0); if (R.cut && al > R.cut[0] - 1 && al < R.cut[1] + 1) continue;
         const x = R.axis === 'x' ? al : across, z = R.axis === 'x' ? across : al;
-        const f = AC.add('woman', x, z, { y: Y.GFLOOR, yaw: Math.atan2(mx - x, mz - z), fadeIn: false }); if (f) { f.y = f.fixedY = Y.GFLOOR; own.push(f); }
+        const f = AC.add('woman', x, z, { y: Y.GFLOOR, yaw: Math.atan2(mx - x, mz - z), fadeIn: false }); if (f) { f.y = f.fixedY = Y.GFLOOR; f.gang = 1; own.push(f); }
       }
     }
     A.figs = own.length;

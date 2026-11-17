@@ -1015,6 +1015,7 @@
     // Stills (__BOT_SHOTS130): the first look of each level, a hollow tap, a peel, the chalk line, a carry held at the green mark.
     wood(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS130;
+      if (shots && a.busy && a.figs && a.figs.saw && !K['shotS' + a.log]) { K['shotS' + a.log] = 1; return { wait: 100, shot: a.id + '-saw-' + a.log }; }
       if (a.busy || a.phase !== 'look' || !a.a || !a.b) return { wait: 300, note: 'wood: ' + a.phase };
       const key = a.id + ':' + a.log + ':' + a.left + ':' + (a.cut || '') + ':' + a.piles.clean, L = K[key] || (K[key] = { n: 0 });
       const ax = a.b[0] - a.a[0], ay = a.b[1] - a.a[1], len = Math.hypot(ax, ay) || 1, ux = ax / len, uy = ay / len;

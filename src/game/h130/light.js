@@ -84,11 +84,10 @@ export const LIGHT = {
 
     // ── the boy (a young kohen: the player's own figure in this station) ──
     const boyAdd = (x, z, y = FLOOR) => { if (!AC) return null; const a = AC.add('kohen', x, z, { young: true, scale: 0.8, y, fadeIn: false }); if (a) { a.vis = a.visT = 1; a.gang = 1; } return a; };
-    const W = wicksLayout(), sp = LIGHT.stand();
-    const boy = boyAdd(sp.x, sp.z);
-    const faceTo = (a, x, z) => { if (a) a.yaw = Math.atan2(x - a.x, z - a.z); };
-    faceTo(boy, W.table[0], W.table[2]);
-    if (boy) boy.armT = [1.1, -0.2, 1.1, -0.2];
+    const W = wicksLayout();
+    // (he is drawn only on the ladder: at the wicks table, the measures and the bowl the hands are the player's own, and a figure the
+    //  close shots would cut is not put there at all — "whole or absent")
+    let boy = null;
     const others = [];
 
     /* ═══ 1. the wick ═══ */
@@ -156,9 +155,7 @@ export const LIGHT = {
     let jarB = null, cups = [], labels = [], OS = { total: 0 };
     function oilStart() {
       A.phase = 'oilcard';
-      faceTo(boy, ML.jar[0], ML.jar[2]);
       // he goes to the door of Beit Shemanya; the card says what the chamber was, and the seven measures
-      if (boy) { boy.x = ML.jar[0] + 1.3; boy.z = ML.jar[2] - 0.2; boy.y = FLOOR; faceTo(boy, ML.jar[0], ML.jar[2]); boy.armT = [0.9, -0.2, 0.9, -0.2]; }
       closeShot([ML.jar[0] - 1.0, FLOOR + 0.9, ML.jar[2] + 1.0], CAM.measures[0], 7.8, 1.2, 1.6);   // (all seven cups, the jar and the vat whole)
       jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
       // (the act's own seven cups over the world's: the world's hide while it plays)
@@ -233,6 +230,7 @@ export const LIGHT = {
       S = climbFresh(topR, oil0); A.phase = 'climb'; hands.L.p = hands.R.p = 0;
       if (!jar) { jar = jarMesh(X, { parent: root, s: lv === 1 ? 0.75 : 0.9 }); }
       jar.visible = true; jar.userData.fill(S.oil / 30);
+      if (!boy) boy = boyAdd(LD.foot[0], LD.foot[2]);
       if (boy) { boy.visT = boy.vis = 1; poseClimber(boy, LD, LD.y(0), handBase('L'), handBase('R'), 0, jar); }
       if (!MOUSE) X.lookLift(0.22);   // (both thumbs will be busy: the camera a little lifted by itself)
       if (!again) {
@@ -256,7 +254,8 @@ export const LIGHT = {
     function camOf(feetY) {
       // (higher and farther than his head, looking down a little: his feet in the frame, the rungs to come above him)
       const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 4.6 : 5.4, D = lv === 1 ? 7.4 : 8.6;
-      return { p: [c[0] + LD.out[0] * D + R[0] * 2.2, feetY + up, c[2] + LD.out[1] * D + R[1] * 2.2], t: [c[0] + R[0] * 0.7 + LD.out[0] * 0.3, feetY + 1.9, c[2] + R[1] * 0.7 + LD.out[1] * 0.3] };
+      const side = lv === 3 ? 0.6 : 2.2;   // (light3: nearly square behind him, so the two boys on the side ladders stay whole in the frame)
+      return { p: [c[0] + LD.out[0] * D + R[0] * side, feetY + up, c[2] + LD.out[1] * D + R[1] * side], t: [c[0] + R[0] * 0.7 + LD.out[0] * 0.3, feetY + 1.9, c[2] + R[1] * 0.7 + LD.out[1] * 0.3] };
     }
     const follow = (d) => { const q = camOf(LD.y(S ? S.rung : 0)); X.track(q.p, q.t, 2.2, d || 0.9); };
     function climbEvents(e) {
@@ -294,6 +293,7 @@ export const LIGHT = {
     function topReached() {
       A.phase = 'top'; X.hand(null); X.lookLift(0);
       const p = hpt(S.L >= S.R ? 'L' : 'R');
+      later(1.4, () => { if (boy && AC) { AC.remove(boy); boy = null; } });   // (at the bowl the hands are the player's: the close shot would cut him)
       try { X.perfect(LIGHT_LINES.top, { x: p[0], y: p[1], z: p[2] }); } catch (e) { /* */ }
       rise(23); ev('top');
       later(1.6, pourStart);
@@ -316,8 +316,9 @@ export const LIGHT = {
     const BOWLS = lv === 1 ? null : bowlsOf();
     function othersFrame(dt) {
       for (const B of others) {
-        if (B.S.rung < B.S.top) { stepBoy(B, dt); poseBoy(B); continue; }
-        if (!B.poured) { B.poured = 1; const Bw = BOWLS[B.k]; B.bowl = B.S.oil; B.jar.visible = false; B.oilD = oilDisc(X, Bw, 0.4, 0.7, 0.5, root); B.oilD.userData.set(B.bowl / 30); ev('boy' + B.k + ':top'); }
+        // (they climb beside him, never more than a rung over his: the shot behind him keeps them whole)
+        if (B.S.rung < B.S.top) { if (!S || B.S.rung <= S.rung + 1 || A.phase !== 'climb') stepBoy(B, dt); poseBoy(B); continue; }
+        if (!B.poured) { B.poured = 1; if (B.a && AC) { AC.remove(B.a); B.a = null; } const Bw = BOWLS[B.k]; B.bowl = B.S.oil; B.jar.visible = false; B.oilD = oilDisc(X, Bw, 0.4, 0.7, 0.5, root); B.oilD.userData.set(B.bowl / 30); ev('boy' + B.k + ':top'); }
       }
     }
 

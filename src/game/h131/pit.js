@@ -58,7 +58,7 @@ const K = Object.freeze({ TAP: 14, TIP: 48, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
   work: { back: 11, up: 13, turn: -0.85, mid: 0.45, aimY: 0.6, fov: 46, k3: 1.1 },   // (look round 131: nearer and lower — the men a fifth of the frame)
-  lever: { D: 12.5, H: 10, fov: 48, mid: 2.1, aimY: 1.0 },   // (look round 131: at 20/18.5 the men fell to a tenth; the near rim still clear of the floor)   // (b131 part 3: farther back — at 13.5/16.5 the kohen stood large at the right; the mid a little toward him)
+  lever: { D: 13.5, H: 10, fov: 48, mid: 3.2, aimY: 1.0 },   // (look round 131: at 20/18.5 the men fell to a tenth; the near rim still clear of the floor)   // (b131 part 3: farther back — at 13.5/16.5 the kohen stood large at the right; the mid a little toward him)
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-4, 6, 16], aim: [-9.5, 0.5, 0], fov: 50 },
@@ -198,7 +198,7 @@ function pitAct(m, X) {
     const turnOf = (t) => { const ca = Math.cos(t), sa = Math.sin(t); return [bx * ca - bz * sa, bx * sa + bz * ca]; };
     const far = (e) => Math.hypot(mid[0] + e[0] * S.back * k - P.cradle[0], mid[1] + e[1] * S.back * k - P.cradle[1]);
     let [ex, ez] = turnOf(S.turn); { const o = turnOf(-S.turn); if (far(o) > far([ex, ez]) + 2) [ex, ez] = o; }
-    X.shot(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
+    lookOff(); X.shot(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
     fovT = S.fov; shotK = 'work'; carriersFit(d + 0.2);
   }
   // ── the carriers whole in the work's frame (b131 part 3; the figures gate, "whole or absent, never cut"): once a work or lever shot
@@ -254,10 +254,10 @@ function pitAct(m, X) {
     let px = -dd[1], pz = dd[0]; if (pz < 0 || (Math.abs(pz) < 0.2 && px > 0)) { px = -px; pz = -pz; }
     // (look round 131: from the side away from the cradle — nearer, the cradle and its carriers stood cut in the foreground)
     { const c = P.cradle, e1 = Math.hypot(mid[0] + px * S.D - c[0], mid[1] + pz * S.D - c[1]), e2 = Math.hypot(mid[0] - px * S.D - c[0], mid[1] - pz * S.D - c[1]); if (e2 > e1 + 2) { px = -px; pz = -pz; } }
-    X.shot(A3(mid[0] + px * S.D, F + S.H, mid[1] + pz * S.D), A3(mid[0], F + S.aimY, mid[1]), d);
+    lookOff(); X.shot(A3(mid[0] + px * S.D, F + S.H, mid[1] + pz * S.D), A3(mid[0], F + S.aimY, mid[1]), d);
     fovT = S.fov; shotK = 'lever'; carriersFit(d + 0.2);
   }
-  function checkShot(d = 1.0) { const c = P.cradle, S = SHOT.check; X.shot(A3(c[0] + S.eye[0], S.eye[1], c[1] + S.eye[2]), A3(c[0] + S.aim[0], S.aim[1], c[1] + S.aim[2]), d); fovT = S.fov; shotK = 'check'; }
+  function checkShot(d = 1.0) { const c = P.cradle, S = SHOT.check; lookOff(); X.shot(A3(c[0] + S.eye[0], S.eye[1], c[1] + S.eye[2]), A3(c[0] + S.aim[0], S.aim[1], c[1] + S.aim[2]), d); fovT = S.fov; shotK = 'check'; }
   /** a feedback word's place on the screen: at the thing, but never on the kohen — over his head when it would fall on him; inside the
    *  frame, clear of the top bar (look round 131: the combo word sat on him) */
   function qAt(w) {
@@ -269,6 +269,9 @@ function pitAct(m, X) {
     y = Math.max(130, Math.min(H - 110, y)); x = Math.max(90, Math.min(Wd - 90, x));
     return { sx: x, sy: y };
   }
+  /** (look round 131 #2: a look lifted earlier — the right thumb's, kept across the act's shots — turned the lever and hoist shots into
+   *  straight top-downs over his turban: each composed shot of the act starts level with its own eye) */
+  const lookOff = () => { try { if (X.lookZero) X.lookZero(); } catch (e) { /* */ } };
   // ── the fingers
   const scrPt = (w) => { const r = X.scr(w.x, w.y, w.z); return r; };
   function floorAt(p) { const r = X.rayAt(p.x, p.y).ray, d = r.direction, o = r.origin, y = W3(0, F + 0.1, 0).y; if (Math.abs(d.y) < 1e-4) return null; const t = (y - o.y) / d.y; if (t < 0) return null; const q = L2(o.x + d.x * t, o.z + d.z * t); return Math.hypot(q[0] - P.hole.at[0], q[1] - P.hole.at[1]) <= PD.R0 + 0.2 ? q : null; }
@@ -386,7 +389,7 @@ function pitAct(m, X) {
     const from = g.position.clone(), a = W3(foot[0], F + hy * 0.62, foot[1]), b = W3(top[0], hy * 0.62 + 1.4, top[1]), cc = W3(c[0], 0.48 + hy * 0.62, c[1]);
     // (the camera: the cradle and the rim's crew in the frame, the stone coming up the wall)
     await carriersHome();
-    const HS = SHOT.hoist, cs = A3(c[0] + HS.eye[0], HS.eye[1], c[1] + HS.eye[2]), ca = A3(c[0] + HS.aim[0], HS.aim[1], c[1] + HS.aim[2]); X.shot(cs, ca, 1.0); fovT = HS.fov; shotK = 'hoist';
+    const HS = SHOT.hoist, cs = A3(c[0] + HS.eye[0], HS.eye[1], c[1] + HS.eye[2]), ca = A3(c[0] + HS.aim[0], HS.aim[1], c[1] + HS.aim[2]); lookOff(); X.shot(cs, ca, 1.0); fovT = HS.fov; shotK = 'hoist';
     for (const w of carr) gang.setRole(w, 'pull', { fx: from.x, fz: from.z, k: 2 });
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];
     for (const [p, q, d] of legs) await tween(g, p, q, d, s);
@@ -490,7 +493,7 @@ function pitAct(m, X) {
     // (the work's last picture before its film: the opening's composition — the pit, the kohen in it, the crew at the cradle, the row)
     // (he climbs out to the north-west rim, where the film keeps him; the eye from the south: the cradle, the row, the carriers, him beyond)
     { try { if (X.hero.rope) X.hero.rope(null); const st = W3(KOH_FILM[0], 0, KOH_FILM[1]), c = W3(P.cradle[0], 0, P.cradle[1]); X.hero.setPos(st.x, st.z, Math.atan2(c.x - st.x, c.z - st.z)); } catch (e) { /* */ }
-      const D = SHOT.done; X.shot(A3(...D.eye), A3(...D.aim), 0.9); fovT = D.fov; shotK = 'done'; for (const r of ropes) r.show(false); root.remove(lever); }
+      const D = SHOT.done; lookOff(); X.shot(A3(...D.eye), A3(...D.aim), 0.9); fovT = D.fov; shotK = 'done'; for (const r of ropes) r.show(false); root.remove(lever); }
     const pts = pitPts(W), q = qOf(pts), clean = pitClean(W), s0 = W.stones.filter((s) => s.out);
     const res = { stars: starsOf(q), q, pts, perfect: clean, flags: { 'pit.chip': W.dmg, slip: W.mis, out: s0.length },
       at: (() => { const c = W3(P.cradle[0], 1.2, P.cradle[1]); return c; })(), film: filmOf() };
@@ -529,7 +532,7 @@ function pitAct(m, X) {
     if (A.ended) return;
     if (lv === 1 && A.fresh && !Mo.st.pit.betula) {
       // (the layered wall in the frame: the dark mixed top, the pale clean virgin soil under it)
-      const s = W.stones[0], a = s.at; X.shot(A3(a[0] + 9, F + 6.5, a[1] + 2.5), A3(a[0] - 4, F + 1.6, a[1] - 1), 1.2); fovT = 48;
+      const s = W.stones[0], a = s.at; lookOff(); X.shot(A3(a[0] + 14, F + 9.5, a[1] + 5), A3(a[0] - 4, F + 1.6, a[1] - 1), 1.2);   // (from outside the east rim: inside it the eye stood over his turban) fovT = 48;
       await X.wait(1.2); if (A.ended) return;
       X.line('', 0);
       await card(X, `<b style="font:900 20px Heebo,system-ui">${PLINES.title}</b>${cite(LINES.middot34)}<p style="margin:8px 0">${LINES.betula}</p><small style="display:block;margin-top:6px">${PLINES.seen} ${LINES.ill}</small>`, 11000);
@@ -597,6 +600,8 @@ function pitAct(m, X) {
       // (look round 131: at the book's stand on the south rim he stood before the film's eye, cut; on the north-west rim he is whole in
       //  the done frame and out of the carriers' shots)
       try { const st = W3(KOH_FILM[0], 0, KOH_FILM[1]), c = W3(P.cradle[0], 0, P.cradle[1]); X.hero.setPos(st.x, st.z, Math.atan2(c.x - st.x, c.z - st.z)); } catch (e) { /* */ }
+      // (look round 131 #2: the stones already in the row stood large and cut in the film's foreground; the film is the carriers and the one they carry)
+      for (const [, i] of outs) { const g = meshOf(i); if (g && g !== last) g.visible = false; }
       if (cr) showFilm(X, { gang, men: carr.filter(Boolean), stone: last, cradle: cr });
     },
     at() { const s = A.phase === 'check' && A.check ? null : cur(); const g = s ? meshOf(W.stones.indexOf(s)) : null; if (g) return stoneTop(g, new T.Vector3()); const c = W3(P.cradle[0], 1, P.cradle[1]); return new T.Vector3(c.x, c.y, c.z); },

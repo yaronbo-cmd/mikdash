@@ -1051,7 +1051,7 @@
       const needs = [0, 1, 2, 3].filter((k) => free(k) && s.cover[k] > 0.12);
       const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
       if (a.lever === 'seat' && a.li === s.i && a.side === SD[side]) {
-        if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
+        if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1; return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
         const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1;
         return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
       }

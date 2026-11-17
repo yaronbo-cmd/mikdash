@@ -1102,10 +1102,9 @@ const S08 = {
   // ── the pit at Beit Kerem (מידות ג, ד: "ממקום שחופרין למטה מהבתולה"): the sheet on the one world grid ──
   pit: {
     // the pit's middle in the world (amot: x east, z south, the Mount's origin): Ein Kerem — "זיהוי מוצע, לא ודאי" (the owner,
-    // 17.11). From the coordinates of Ein Kerem's village (31.768 N, 35.1605 E) and the Dome of the Rock (31.778 N, 35.2354 E):
-    // 7.09 km west, 1.11 km south, an amah 0.48 m. The coordinates are as known, not fetched (no map service reachable here): check
-    // against OpenStreetMap. The spec's first estimate was (−13,900, +2,200).
-    origin: { x: -14770, z: 2310, y: 0, place: 'עין כרם', status: 'זיהוי מוצע, לא ודאי' },
+    // 17.11). Exactly the spec's centre (shlav-08-he.md, "הכתובת העולמית של אמצע הבור": about −13,900, +2,200 — about 7 km west and
+    // 1 km south of the Mount); the sheet is derived from it. Not yet checked against OpenStreetMap (no map service reachable here).
+    origin: { x: -13900, z: 2200, y: 0, place: 'עין כרם', status: 'זיהוי מוצע, לא ודאי' },
     sheet: { name: 'גיליון הבקעה', n: 4, cell: 25 },
     // the pit: its middle, diameter, depth, the dark top layer's depth (below it the virgin soil)
     hole: { at: [0, 0], d: 16, depth: 4, dark: 2 },

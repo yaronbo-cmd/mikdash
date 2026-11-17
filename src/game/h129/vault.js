@@ -427,7 +427,7 @@ export const VAULT = {
       await X.wait(2.6);
       A.film = !!SV;
       X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps, 'vault.crack': (SA.flags['vault.crack'] ? 1 : 0) + (SB.flags['vault.crack'] || []).length, 'vault.stone': (SB.flags['vault.stone'] || []).length }, at: crownAt(),
-        film: SV ? { shots: [[SV[0], SV[1], 3.2]], kohen: !G.big, after: teardown } : null });
+        film: SV ? { shots: [[SV[0], SV[1], 3.2]], kohen: !G.big, after: teardown, own: () => [levi, man && man.a] } : null });
     }
     // ── the fingers
     const FG = fingers(X, {

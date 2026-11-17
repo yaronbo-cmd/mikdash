@@ -341,7 +341,7 @@ export const GAZIT = {
       if (SV && GZ.filmKohen) { try { X.hero.setPos(GZ.filmKohen[0], GZ.filmKohen[1], Math.atan2(GZ.wait[0] - GZ.filmKohen[0], GZ.holy + 4 - GZ.filmKohen[1])); } catch (e) { /* */ } }
       A.film = !!SV; if (SV) { crewOff(); A.lensF = SV[2]; lens(SV[2]); }
       X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { fails: A.fails, standing: A.standing, 'gazit.crack': (A.cracks || []).length, 'gazit.ink': A.dmg && m.id === 'gazit3' ? 1 : 0 }, at: focus(),
-        film: SV ? { shots: [[SV[0], SV[1], 3.4]], after: teardown } : null });
+        film: SV ? { shots: [[SV[0], SV[1], 3.4]], after: teardown, own: () => [...J, ...rows.flat(), ...scribes, ...Object.values(walkers)] } : null });
     }
     // ── the frame
     const stepDrag = (dt) => {

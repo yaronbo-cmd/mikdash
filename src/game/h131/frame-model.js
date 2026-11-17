@@ -189,7 +189,7 @@ export function seatAll(S) {
       if (p.seat || p.peg && S.lv !== 3) return;
       if (p.peg) return;
       const st = STAKE[p.k]; if (Math.hypot(p.x - st[0], p.z - st[1]) > FR.SEAT) return;
-      if (S.lv === 1) { if (stiffSeat(S, i)) { for (const q of S.P) if (q.seat && !seated.includes(q.k)) { seated.push(q.k); S.n++; } any = true; } return; }
+      if (S.lv === 1) { const was = new Set(S.P.filter((q) => q.seat).map((q) => q.k)); if (stiffSeat(S, i)) { for (const q of S.P) if (q.seat && !was.has(q.k) && !seated.includes(q.k)) { seated.push(q.k); S.n++; } any = true; } return; }
       // (a stiff frame, or one held elsewhere: it sits only if the rest can follow — tried, and kept if every length holds)
       const keep = S.P.map((q) => [q.x, q.z]);
       for (const j of group(S, i)) { S.P[j].x = st[0]; S.P[j].z = st[1]; S.P[j].seat = 1; }

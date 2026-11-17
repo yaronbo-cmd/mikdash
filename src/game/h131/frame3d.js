@@ -9,16 +9,18 @@
  *   SHF · fmats(X) · beamMesh(X, mat, parent) · setBeam(mesh, a, b, c, y0, y1) · ringMesh(X, mat, r, parent) · pegMesh(X, parent)
  */
 import { BOOK } from '../world/grid.js';
-import { mats } from './world.js';
 import { crackSide, SIDES, STAKE } from './frame-model.js';
 
 const S8 = BOOK.s08, F = S8.floor, T8 = S8.frame.T;
 export const SHF = { X: null, g: null, key: '', act: false, finale: false };
 
+// (its own materials beside the core's in the props' table — world.js mats() — never importing world.js: it imports this file)
 export function fmats(X) {
-  const M = mats(X), T = X.THREE;
+  const M = X.props.M, T = X.THREE;
   if (M.y8woodR) return M;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.86, flatShading: true, ...o });
+  if (!M.y8wood) M.y8wood = std('#9A6E42', { roughness: 0.85 });
+  if (!M.y8woodD) M.y8woodD = std('#6E4A2A', { roughness: 0.88 });
   M.y8frame = std('#A57848');                 // the frame's boards (fresh-cut, a little paler than the timbers)
   M.y8woodR = std('#DCC9A4');                 // a cracked board replaced: another shade, for good
   M.y8crack = new T.MeshBasicMaterial({ color: 0x2A1A0C });

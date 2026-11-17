@@ -1099,7 +1099,7 @@ const S08 = {
   // and the frame's boards (east of the altar, on the kevesh's free ground)
   work: {
     frame1: { shift: [7, -2], turn: -12 },
-    frame2: { N: [[-37, -14.5], 4], E: [[-27, -3], 95], S: [[-39.5, 7.5], -3], W: [[-48.5, -2.5], 86] },
+    frame2: { N: [[-37, -14.5], 4], E: [[-27, -3], 95], S: [[-38, 7.5], -3], W: [[-48.5, -2.5], 86] },
     frame3: { pegs: ['NW', 'NE', 'SW'], wrong: 'NE', turn: 4.5 },
     diag: [-54, -25.5, -22, -25.5], men: 2.2,
     lime: [-44, 15.2], jar: [-47, 13.6], water: [-47, 9.5], logs: [-12, 18],

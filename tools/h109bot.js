@@ -1132,6 +1132,36 @@
       return { wait: 300 };
     },
     // ── /h131 frame ──
+    // ── h131 finale ── (build 131, stage 08 part 4 "הסיום": h131/finale.js dbg()). The timbers: two fingers at the grip (the south-east
+    // corner) pulled along the south timber (east), then along the east one (south) — by mouse one drag; __BOT.bad 'east' grabs the
+    // east one first (held: no loss). The cloth: rows across the yesod, west to east and back, until the crew wipes the rest. The jar:
+    // a drag up on it, held until the water is down. Stills (__BOT_SHOTS131): the first pull, the cloth half way, the water running.
+    h8finale(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
+      if (!a || a.done) return { wait: 300 };
+      if (a.step === 'rise') { if (shots && !K.shotR) { K.shotR = 1; return { wait: 2600, shot: a.id + '-rise' }; } return { wait: 300 }; }
+      if (a.busy) { if (shots && a.step === 'water' && !K.shotW) { K.shotW = 1; return { wait: 200, shot: a.id + '-water-down' }; } return { wait: 250 }; }
+      if (a.step === 'pull') {
+        let k = a.out.S ? 'E' : 'S'; if (has('east') && !K.east) { K.east = 1; k = 'E'; }
+        const d = a['dir' + k], g = a.grip, n = [-d[1] * 22, d[0] * 22], f1 = [g[0] + n[0], g[1] + n[1]], f2 = [g[0] - n[0], g[1] - n[1]];
+        if (MOUSE_P) return { path: [g, [g[0] + d[0] * 170, g[1] + d[1] * 170]], ms: 1400, keep: 1200, wait: 1500, note: 'finale: pull ' + k + ' (mouse)' };
+        const fr = []; for (let i = 0; i < 4; i++) fr.push([f1, f2]); for (let i = 1; i <= 28; i++) fr.push([[f1[0] + d[0] * 6 * i, f1[1] + d[1] * 6 * i], [f2[0] + d[0] * 6 * i, f2[1] + d[1] * 6 * i]]); for (let i = 0; i < 16; i++) fr.push(fr[fr.length - 1]);
+        const r = { seq: fr, ms: 50, wait: 1500, note: 'finale: two thumbs pull ' + k };
+        if (shots && !K['shotP' + k]) { K['shotP' + k] = 1; r.seqShot = [24, a.id + '-pull-' + k]; }
+        return r;
+      }
+      if (a.step === 'white') {
+        if (shots && a.cover > 0.4 && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
+        const P = []; a.rows.forEach((r, i) => { const [p, q] = i % 2 ? [r[1], r[0]] : r; P.push(p, q); });
+        return { path: P, ms: 7000, wait: 600, note: 'finale: the cloth over the yesod (cover ' + a.cover + ')' };
+      }
+      if (a.step === 'water') {
+        if (shots && a.front > 0.4 && !K.shotF) { K.shotF = 1; return { wait: 50, shot: a.id + '-water' }; }
+        return { path: [a.jar, [a.jar[0], a.jar[1] - 140]], ms: 600, keep: 14000, release: C(`return !a||a.step!=='water'||a.busy${shots ? "||(a.front>0.45&&!__BOT.k.shotF)" : ''}`), wait: 400, note: 'finale: tilt the jar' };
+      }
+      return { wait: 300 };
+    },
+    // ── /h131 finale ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {

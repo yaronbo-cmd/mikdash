@@ -39,7 +39,7 @@ export function mats(X) {
   P0.M.y8earth = std('#FFFFFF', { vertexColors: true, flatShading: false });   // (the colour is the vertices': the valley's)
   P0.M.y8dark = std('#5E4630');            // the top layer: dark, mixed, worked
   P0.M.y8virgin = std('#D8C49C');          // the virgin soil under it: pale, clean
-  P0.M.y8spoil = std('#7A5E40');           // dug earth on the rim
+  P0.M.y8spoil = std('#9A7C56');           // dug earth on the rim
   P0.M.y8field = std('#C9BFA6');           // the field stones (whole, damp)
   P0.M.y8fieldD = std('#A99E86');
   P0.M.y8wood = std('#9A6E42', { roughness: 0.85 });
@@ -101,7 +101,7 @@ function pitBuild(X) {
   wall(-H.dark, 0, M.y8dark); wall(-H.depth, -H.dark, M.y8virgin);
   const fl = new T.Mesh(new T.CircleGeometry(R0, SEG), M.y8virgin); fl.rotation.x = -Math.PI / 2; fl.position.set(cx, O.y - H.depth + 0.01, cz); fl.receiveShadow = true; g.add(fl);
   // the dug earth heaped on the rim (north and east: the stand and the cradle are south and west)
-  for (let i = 0; i < 9; i++) { const a = -Math.PI * 0.9 + i * 0.16, r = R0 + 2.2; const [x, , z] = pitXYZ(H.at[0] + Math.cos(a) * r, 0, H.at[1] + Math.sin(a) * r); rock(X, M.y8spoil, x, O.y + 0.2, z, 1.6 + 0.3 * Math.sin(i * 2.3), i, g); }
+  for (let i = 0; i < 9; i++) { const a = -Math.PI * 0.9 + i * 0.16, r = R0 + 2.2; const [x, , z] = pitXYZ(H.at[0] + Math.cos(a) * r, 0, H.at[1] + Math.sin(a) * r); rock(X, M.y8spoil, x, O.y + 0.1, z, 1.1 + 0.25 * Math.sin(i * 2.3), i, g); }
   // the stones where the book lays them, half in the virgin soil (the pit lane takes them over: SH8.pit.stones)
   const stones = {};
   for (const [lv, L] of Object.entries(P.stones)) stones[lv] = L.map(([lx, lz], i) => { const [x, , z] = pitXYZ(lx, 0, lz); return rock(X, i % 2 ? M.y8fieldD : M.y8field, x, O.y - H.depth + 0.25, z, lv === '3' ? 0.75 : 0.9, +lv * 3 + i, g); });

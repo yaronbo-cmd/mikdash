@@ -467,7 +467,9 @@ export const LIGHT = {
       A.phase = 'lit'; X.hand(null); A.lit = 1; ev('lit');
       const t = wickTip(), wk = clamp((A.wicks[0] || WICK.MID) / WICK.MID, 0.55, 1.6); flame = flameMesh(X, [t[0], t[1] + 0.02, t[2]], root, (lv === 1 ? 0.7 : 1.3) * wk);   // (the wick's width seen in the flame) flame.userData.k = 0.05;
       tween(1.2, (u) => { flame.userData.k = 0.05 + 0.95 * sm(u); }, () => { X.quick({ x: t[0], y: t[1] + 0.6, z: t[2] }, QUICK.lit, null); });
-      later(0.4, () => { if (taper) { root.remove(taper); taper = null; } });
+      // (build 130, the PC run's mouse lane: the button that lit the wick was still pressed when the taper was put away, and its moves
+      //  went on to set a null taper's position. The fingers on it let go of it first)
+      later(0.4, () => { if (taper) { FG.letGo('taper'); for (const id of Object.keys(A.fing)) if (A.fing[id] === 'taper') delete A.fing[id]; root.remove(taper); taper = null; } });
       // (light3: the other three bowls lit in turn from his)
       others.forEach((B, i) => later(1.2 + 0.7 * i, () => { const Bw = BOWLS[B.k]; B.flame = flameMesh(X, [Bw.x + Bw.dir[0] * 0.25, Bw.y + 0.05, Bw.z + Bw.dir[1] * 0.25], root, 1.3); B.flame.userData.k = 0.05; tween(1, (u) => { B.flame.userData.k = 0.05 + 0.95 * sm(u); }); B.lit = 1; }));
       later(1.6 + 0.7 * others.length, finish);

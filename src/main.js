@@ -445,6 +445,14 @@ view.workRes = (on) => {
   return renderer.getPixelRatio();
 };
 view.pixelRatio = () => renderer.getPixelRatio();
+// ── h131 ── (stage 08: the pit at Beit Kerem lies 7 km west of the Mount, outside the sun's shadow box round the Mount — the shadow box
+// follows the work there and comes back after; null brings it home) ── /h131 ──
+const SUN_HOME = [-12, 0, -40];
+view.shadowAt = (x, z) => {
+  const p = Number.isFinite(x) && Number.isFinite(z) ? [x, 0, z] : SUN_HOME;
+  sun.target.position.set(p[0], p[1], p[2]); sun.target.updateMatrixWorld(); setTime(curTime);
+  return p;
+};
 // (the close-up, closeup.js: OrbitControls keeps the camera 35 amot from its target and the near plane is at 4 — both give way while a
 // close-up holds the camera; closeCam(true) → the distance the follow camera keeps, to blend from it)
 let f24Cam = null;

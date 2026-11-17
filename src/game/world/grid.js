@@ -108,6 +108,7 @@ function makeBook() {
   stages.s01 = s01(SECTORS);   // ── h127 ── (build 127: stage 01's section, shaped as the others; its old keys below stay as they were) ── /h127 ──
   stages.s06 = s06();   // ── h128 ── (build 128: stage 06's section, and its sea sheet) ── /h128 ──
   stages.s07 = s07(stages.s04);   // ── h129 ── (build 129: stage 07's section; the gates that lock at night are read from s04's entries) ── /h129 ──
+  stages.s08 = s08();   // ── h131 ── (build 131: stage 08's section, and the pit's sheet at Beit Kerem) ── /h131 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1050,5 +1051,113 @@ function s07(s04) {
   return { stage: 7, name: 'הלשכות', bounds: { x0: -185, x1: 30, z0: -90, z1: 90 }, ...C, night: { ...N, gates, locks }, entries: E };
 }
 // ── /h129 ──
+
+/* ───────── ── h131 ── stage 08's section (build 131, rule 65: the book first; docs/specs/shlav-08-he.md "טבלת הכתובות") ───────── */
+/** stage 08, the altar's foundation (world stage id 'yesod'). Every row of the spec's table checked against what the world draws:
+ *  · the altar (temple.js 'The Altar'): x −54 … −22, z −19.5 … 12.5 on the Azarah's floor 16 — as the spec;
+ *  · the yesod as the world builds it (temple.js S('yesod') and stages.js groundAt's `yes`): the whole north (x −54 … −22, z −19.5 …
+ *    −18.5), the whole west (x −54 … −53, z −18.5 … 12.5), ONE MORE AMAH into the south beyond the west strip (x −53 … −52, z 11.5 …
+ *    12.5) and one more into the east beyond the north strip (x −23 … −22, z −18.5 … −17.5), and the first course under the body (x −53
+ *    … −23, z −18.5 … 11.5). The spec read "אוכל בדרום/במזרח אמה" as the corner cells of the strips themselves; the built world reads
+ *    it as one amah past them. The world decides (the spec: "אם העולם הבנוי אומר אחרת, הוא קובע"), so: the east timber starts at z
+ *    −17.5 (spec −18.5) and the south timber at x −52 (spec −53); each is 30 / 29 long (spec 31). The south timber takes the south-east
+ *    corner cell (x −23 … −22, z 11.5 … 12.5) and the east one butts on it there: the joint the player fixes is that cell's middle
+ *    (−22.5, 12), as the spec;
+ *  · the two holes (מידות ג, ב): the world draws them at (−53.55, 12) and (−52.5, 12) (places.js LIBATION_BOWLS.holes, shown with the
+ *    altar's body, set 'guf'): the reeds stand there (spec (−53.7, 12), (−53.3, 12)); both on the yesod (the west strip's last cell
+ *    and the south amah), clear of the south timber;
+ *  · north of the altar the slaughter place's floor rings (temple.js 'North of the altar': x −47, −41, −35, −29; z −29.5 … −49.5 every
+ *    4): the spec's fire (−30, −32) stood on the rings at (−29, −29.5) and (−29, −33.5); it moves to the open square between them
+ *    (−32, −31.5); the pile from the pit (−46, −32) likewise to (−44, −31.5). Between the altar's north face and the first ring row
+ *    (z −19.5 … −29.5) the floor is free: the stands and the witness are there;
+ *  · the Ulam's twelve steps begin at x −55 (temple.js xr[0]): one amah west of the frame's west face. The frame's west timber lies
+ *    against the altar's edge (x −54.5 … −54); a man at a west corner stands on the first tread (y 16.5) — the frame coder places them;
+ *  · the south stand (−48, 17): west of the kevesh (x −46 … −30, set 'guf', not built yet) and east of the ring slab (−54.3, 14.2): free.
+ *  The pit at Beit Kerem has its own small sheet (4 × 4 cells of 25, its middle the pit's middle) set on the one world grid: its middle
+ *  is written ONCE here (pit.origin) and every place of the sheet is local to it (lx east, lz south). */
+const S08 = {
+  floor: 16, top: 17,
+  altar: [-54, -19.5, -22, 12.5], mid: [-38, -3.5],
+  // the yesod as the world builds it ([x0, z0, x1, z1]) — מידות ג, א; רמב"ם בית הבחירה ב, י
+  yesod: { N: [-54, -19.5, -22, -18.5], W: [-54, -18.5, -53, 12.5], S1: [-53, 11.5, -52, 12.5], E1: [-23, -18.5, -22, -17.5], body: [-53, -18.5, -23, 11.5] },
+  // the witness's four stakes at the frame's corners (illustration of רמב"ם ב, א–ד)
+  stakes: { NW: [-54, -19.5], NE: [-22, -19.5], SE: [-22, 12.5], SW: [-54, 12.5] },
+  // the frame (רש"י זבחים נד ע"א: "דפוס מרובע עשוי מארבע קרשים, וכל אחת ארוכה ל"ב"): four timbers of 32 round the altar's edge, their
+  // thickness (המחשה) outside it, an amah high (16 … 17)
+  frame: { L: 32, T: 0.5, y0: 16, y1: 17 },
+  // the two timbers that keep the place with no yesod empty (רמב"ם ב, טז: "גוף של עץ או אבן"; their length המחשה, see above)
+  wood: { E: [-23, -17.5, -22, 11.5], S: [-52, 11.5, -22, 12.5], joint: [-22.5, 12] },
+  reeds: [[-53.55, 12], [-52.5, 12]],
+  // the player's three sections (המחשה); level 3 with the south-west corner's amah to z 12.5 (x −54 … −52: the west strip and the south amah)
+  sections: { 1: [-43, -19.5, -33, -9], 2: [-43, -9, -33, 1.5], 3: [-54, 1.5, -43, 11.5], corner3: [-54, 11.5, -52, 12.5] },
+  fire: [-32, -31.5], pile: [-44, -31.5],
+  stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },
+  // the stage's cameras on the Mount ([eye], [aim]): the opening from high down to the altar's site (rule 3); the site from the frame's
+  // stand; the end: high over the altar's middle, the whole Azarah round it
+  cam: {
+    open: [[[150, 260, -260], [-38, 16, -3.5]], [[-6, 70, -70], [-38, 16, -3.5]]],
+    site: [[-38, 40, -46], [-38, 16, -6]],
+    end: [[-38, 190, 70], [-38, 16, -3.5]],
+  },
+  // ── the pit at Beit Kerem (מידות ג, ד: "ממקום שחופרין למטה מהבתולה"): the sheet on the one world grid ──
+  pit: {
+    // the pit's middle in the world (amot: x east, z south, the Mount's origin): Ein Kerem — "זיהוי מוצע, לא ודאי" (the owner,
+    // 17.11). From the coordinates of Ein Kerem's village (31.768 N, 35.1605 E) and the Dome of the Rock (31.778 N, 35.2354 E):
+    // 7.09 km west, 1.11 km south, an amah 0.48 m. The coordinates are as known, not fetched (no map service reachable here): check
+    // against OpenStreetMap. The spec's first estimate was (−13,900, +2,200).
+    origin: { x: -14770, z: 2310, y: 0, place: 'עין כרם', status: 'זיהוי מוצע, לא ודאי' },
+    sheet: { name: 'גיליון הבקעה', n: 4, cell: 25 },
+    // the pit: its middle, diameter, depth, the dark top layer's depth (below it the virgin soil)
+    hole: { at: [0, 0], d: 16, depth: 4, dark: 2 },
+    stones: { 1: [[-3, -2]], 2: [[3, -1]], 3: [[-1.3, 3], [0, 3.5], [1.3, 3]] },
+    cradle: [-10, 4], rejects: [12, 6], stand: [0, 9, 'N'],
+    // the ground round the pit (המחשה): the valley's floor patch drawn round the sheet — its radius, the flat floor's radius round the
+    // pit, how far out the hillsides rise and how high (the valley lies about 140 m under the Mount: the hills round it rise that much)
+    ground: { R: 3000, flat: 60, rise: 1400, top: 260 },
+    // the opening view: above (0, 30), facing the Mount on the horizon (it lies east-north-east: 14,770 east and 2,310 north)
+    cam: { open: [[-12, 13, 34], [6, 2, -16]], play: [[0, 11, 21], [0, -1, 0]] },
+  },
+};
+const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);
+/** a place of the pit's sheet (lx east, lz south of the pit's middle) in the world, and its sheet cell */
+export function pitWorld(lx, lz) { const O = S08.pit.origin; return { x: O.x + lx, z: O.z + lz, y: O.y }; }
+export function pitCell(lx, lz) { const c = S08.pit.sheet.cell, h = (S08.pit.sheet.n * c) / 2; const k = Math.floor((h - lx) / c), r = Math.floor((lz + h) / c); return { k, r, name: pitName(k, r) }; }
+function s08() {
+  const E = [], C = S08, mid = (b) => [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2], y = C.floor;
+  const e2 = (id, kind, p, label, src, more) => E.push(ent(id, kind, p[0], p[1], label, src, { y, ...(more || {}) }));
+  e2('altar', 'altar', C.mid, 'תחום המזבח, 32 על 32', 'רמב"ם בית הבחירה ב, ז');
+  const SIDE = { NW: 'הצפונית מערבית', NE: 'הצפונית מזרחית', SE: 'הדרומית מזרחית', SW: 'הדרומית מערבית' };
+  for (const [k, p] of Object.entries(C.stakes)) e2('stake:' + k, 'stake', p, `יתד העד בפינה ${SIDE[k]}`, 'רמב"ם ב, א–ד (היתד המחשה)');
+  const A = C.altar, t = C.frame.T / 2;
+  e2('frame:N', 'beam', [(A[0] + A[2]) / 2, A[1] - t], 'קורת המסגרת הצפונית, 32', 'רש"י זבחים נד ע"א');
+  e2('frame:S', 'beam', [(A[0] + A[2]) / 2, A[3] + t], 'קורת המסגרת הדרומית, 32', 'רש"י זבחים נד ע"א');
+  e2('frame:W', 'beam', [A[0] - t, (A[1] + A[3]) / 2], 'קורת המסגרת המערבית, 32', 'רש"י זבחים נד ע"א');
+  e2('frame:E', 'beam', [A[2] + t, (A[1] + A[3]) / 2], 'קורת המסגרת המזרחית, 32', 'רש"י זבחים נד ע"א');
+  const YL = { N: ['היסוד בצפון, כל הצפון', 'רמב"ם ב, י'], W: ['היסוד במערב, כל המערב', 'רמב"ם ב, י'], S1: ['היסוד אוכל בדרום אמה אחת', 'רמב"ם ב, י; מידות ג, א'], E1: ['היסוד אוכל במזרח אמה אחת', 'רמב"ם ב, י; מידות ג, א'], body: ['האזור שנוצק תחת גוף המזבח', 'זבחים נד ע"א'] };
+  for (const [k, b] of Object.entries(C.yesod)) e2('yesod:' + k, 'yesod', mid(b), YL[k][0], YL[k][1]);
+  e2('wood:E', 'timber', mid(C.wood.E), 'קורת העץ המזרחית (שם אין יסוד)', 'רמב"ם ב, טז (אורכה המחשה)');
+  e2('wood:S', 'timber', mid(C.wood.S), 'קורת העץ הדרומית (שם אין יסוד)', 'רמב"ם ב, טז (אורכה המחשה)');
+  e2('wood:joint', 'joint', C.wood.joint, 'המפגש של שתי הקורות בקרן הדרומית מזרחית', ILL);
+  C.reeds.forEach((p, i) => e2('reed' + (i + 1), 'reed', p, `הקנה ${i ? 'השני' : 'הראשון'}: כאן יישאר נקב`, 'מידות ג, ב (המקום המדויק המחשה)'));
+  for (const k of ['1', '2', '3']) e2('section' + k, 'section', mid(C.sections[k]), `מקטע היציקה של רמה ${k}`, ILL);
+  e2('section3:corner', 'section', mid(C.sections.corner3), 'אמת הקרן שבמקטע של רמה 3', ILL);
+  e2('fire', 'hearth', C.fire, 'האש והקדרה', ILL);
+  e2('pile', 'pile', C.pile, 'ערימת האבנים מהבור', ILL);
+  const SL = { frame: 'עמדת השחקן במלבן', witness: 'עמדת העד', pour: 'עמדת השחקן ביציקה, רמות 1 ו-2', south: 'עמדת השחקן ביציקה, רמה 3 ובסיום', pit: 'כאן יוצאים אל הבור בבית כרם (קפיצת מצלמה)' };
+  for (const [k, p] of Object.entries(C.stand)) e2('stand:' + k, 'stand', p, SL[k], ILL, { extra: { face: p[2] } });
+  // the pit's sheet: its own entries { id, kind, lx, lz (on the sheet), x, z (in the world), cell (the sheet's), label, src }
+  const P = C.pit, pe = [];
+  const pp = (id, kind, [lx, lz], label, src) => { const w = pitWorld(lx, lz); pe.push({ id, kind, lx, lz, x: w.x, z: w.z, cell: pitCell(lx, lz).name, label, src }); };
+  pp('pit', 'pit', P.hole.at, `הבור: קוטר ${P.hole.d}, עומק ${P.hole.depth}, שכבה כהה עד ${P.hole.dark} ומתחתיה הבתולה`, 'מידות ג, ד (המידות המחשה)');
+  pp('stone1', 'stone', P.stones[1][0], 'אבן רמה 1, כמעט גלויה', ILL);
+  pp('stone2', 'stone', P.stones[2][0], 'אבן רמה 2, באלכסון', ILL);
+  P.stones[3].forEach((p, i) => pp('stone3.' + (i + 1), 'stone', p, `אבן ${i + 1} מהשלוש של רמה 3, נשענות זו על זו`, ILL));
+  pp('cradle', 'cradle', P.cradle, 'עריסת העץ: כאן בדיקת הציפורן', 'חולין יח ע"א (העריסה המחשה)');
+  pp('rejects', 'heap', P.rejects, 'ערימת הפסולות, נשארת לתמיד', ILL);
+  pp('stand', 'stand', P.stand, 'עמדת השחקן בבור', ILL);
+  return { stage: 8, name: 'יסוד המזבח', bounds: { x0: -60, x1: 0, z0: -40, z1: 25 }, ...C, pit: { ...P, entries: pe }, entries: E };
+}
+export { pitName };
+// ── /h131 ──
 
 export const BOOK = makeBook();

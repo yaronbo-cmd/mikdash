@@ -1308,6 +1308,7 @@ export function createStages(ctx) {
   /* ── stage groups ── */
   const ST = {}, list = [];
   const H120GZ = { g: null };   // ── h120 ── ── /h120 ──
+  const H131OWN = new Set();   // ── h131 ── (stages whose model a director hides while it draws its own: stage 08's yesod, h131/world.js) ── /h131 ──
   const H129SUB = { g: {}, off: new Set(['wall:cut', 'wall:gzt', 'wall:glt', 'nikanor:cut']) };   // ── h129 ── (round 2: the cut versions hidden until stage 07's world shows them; before it the wall and Nikanor's chambers stand whole, as build 128 drew them) ── /h129 ──
   STAGE_IDS.forEach((id, idx) => {
     const def = DEF[id];
@@ -4451,7 +4452,7 @@ export function createStages(ctx) {
     st.mats.forEach((m) => setBuilding(m, building));
     if (st.lc) st.lc.mats.forEach((m) => setBuilding(m, building));   // ── site13 ── (the chambers' own reveal)
     for (const m of st.meshes) m.customDepthMaterial = building ? st.depth : undefined;
-    st.group.visible = s === 'done' || (building && st.disp >= FOUND);
+    st.group.visible = !H131OWN.has(st.id) && (s === 'done' || (building && st.disp >= FOUND));   // ── h131 ── (a stage a director draws itself: its model stays hidden) ── /h131 ──
     st.U.uY.value = building ? revealY(st) : 1e6;
     st.U.uGlow.value.setRGB(3.4, 2.25, 0.72).multiplyScalar(building ? 1 : 0);
     if (building && !st.scaff) { st.scaff = makeScaffold(st); if (st.scaff) st.scaff.shown = -1; }
@@ -6399,7 +6400,7 @@ export function createStages(ctx) {
         const step = d * (1 - Math.exp(-dt * 3.2));
         st.disp = Math.abs(d) <= Math.max(1e-4, floor) ? st.target : st.disp + (Math.abs(step) < floor ? Math.sign(d) * floor : step);
       }
-      if ((was < FOUND) !== (st.disp < FOUND)) { st.group.visible = st.disp >= FOUND; propsDirty = true; workDirty = true; dirtyGlobal = true; craneDirty = true; }
+      if ((was < FOUND) !== (st.disp < FOUND)) { st.group.visible = !H131OWN.has(st.id) && st.disp >= FOUND;   /* ── h131 ── ── /h131 ── */ propsDirty = true; workDirty = true; dirtyGlobal = true; craneDirty = true; }
       if (st.lay) {   // wave 6: the stones follow the eased progress one by one (a jump ripples in along the fronts)
         const n = nOf(st), p0 = st.lay.n;
         if (n !== p0) { stonesTo(st, n); stoneFX(st, p0, st.lay.n); }
@@ -8963,6 +8964,8 @@ export function createStages(ctx) {
     cells: cellsApi,   // ── h115 ── the Mount by the address grid's cells ── /h115 ──
     subSet: (sid, on) => { if (on) H129SUB.off.delete(sid); else H129SUB.off.add(sid); const g = H129SUB.g[sid]; if (g && g.visible !== !!on) { g.visible = !!on; requestShadow(true); } return !!g; },   // ── h129 ── (a stage's sub-set shown or hidden; sticky) ── /h129 ──
     twinOpen: (rects) => { TW_OPEN.length = 0; for (const r of rects || []) if (Array.isArray(r) && r.length >= 4) TW_OPEN.push(r.slice(0, 4)); },   // ── h129 ── (rooms a director opens to the left thumb inside a solid's footprint: their own floors and walls (floorHook) decide there) ── /h129 ──
+    stageOwn: (id, on) => { if (on) H131OWN.add(id); else H131OWN.delete(id); const st = ST[id]; if (st && on && st.group.visible) { st.group.visible = false; requestShadow(true); } else if (st && !on) applyStage(st, st.status); return !!st; },   // ── h131 ── (sticky: the stage's model hidden while a director draws its own) ── /h131 ──
+    floorHookOf: () => floorHook,   // ── h131 ── (the floor a director laid before: the next one keeps it where it does not know the height) ── /h131 ──
     nashimGallery: (on) => { H120GZ.off = !on; if (H120GZ.g) H120GZ.g.visible = !!on; },   // (sticky: a rebuilt stage keeps it hidden)   // ── h120 ── ── /h120 ──
     s20Pin, wallHoles, siteHoles, siteOpen, floorHook: (fn) => { floorHook = typeof fn === 'function' ? fn : null; }, craneOff: (on) => { craneHide = !!on; craneDirty = true; }, h120Scaff: (id, on) => { const sc = ST[id] && ST[id].scaff; if (sc) sc.P.m.visible = sc.Bd.m.visible = !!on; H120W.noScaff = !on; },   // ── h120 ── (a stage's own wall scaffold hidden while an act's close shots play) ── /h120 ── wallTopAt: (x, z) => shownTop('wall', x, z, ST.wall.top, 0),
     slotAt: (id, n) => { const st = ST[id]; if (!st) return null; const L = layout(st); if (!L.N) return null; const n0 = L.n, c0 = L.nwc; L.n = clamp(Math.round(+n || 0), 0, L.N); L.nwc = null; try { return nextSlot(id); } finally { L.n = n0; L.nwc = c0; } },   // ── h111 ── (stage 02: the ramp at the station, the gates' openings, the top as laid) ── /h111 ──

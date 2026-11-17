@@ -24,6 +24,9 @@ const KIND = {
   well: 'בור מים', wheel: 'גלגל', trough: 'שוקת', channel: 'תעלה', sluice: 'אבן סכר', arch: 'קשת', vault: 'קמרון', ring: 'טבעת קמרון',
   hearth: 'מדורה', slab: 'טבלה', ledge: 'רובד', levi: 'בן לוי', crowd: 'קהל',
   // ── /h129 ──
+  // ── h131 ── (build 131) stage 08's kinds
+  altar: 'מזבח', yesod: 'יסוד', timber: 'קורת עץ', joint: 'מפגש', reed: 'קנה', section: 'מקטע יציקה', stone2: 'אבן', cradle: 'עריסה',
+  // ── /h131 ──
 };
 const L = [
   '# ספר הכתובות — כל המקומות לפי שלב',
@@ -34,7 +37,8 @@ const L = [
   'הרשת לעולם אינה מצוירת במשחק. "המחשה" — מידה שאינה במקורות.',
   '',
 ];
-for (const k of ['s01', 's02', 's03', 's04', 's05', 's06', 's07']) {   // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
+for (const k of ['s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08']) {   // ── h131 ── (+ s08) ── /h131 ──
+    // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
   const S = BOOK[k], B = S.bounds;
   L.push(`## שלב ${String(S.stage).padStart(2, '0')} — ${S.name}`, '');
   L.push(`תחום: x ${n(B.x0)} עד ${n(B.x1)}, z ${n(B.z0)} עד ${n(B.z1)} · ${S.entries.length} כתובות`, '');
@@ -54,5 +58,14 @@ for (const k of ['s01', 's02', 's03', 's04', 's05', 's06', 's07']) {   // ──
 // ── h129 ── stage 07: the gates that lock at night are stage 04's entries (read, never retyped)
 L.push('### שלב 07 — השערים שננעלים בלילה', '', 'נקראים מן הספר של שלב 04: ' + BOOK.s07.night.gates.map((id) => '`' + id + '`').join(', ') + '.', '');
 // ── /h129 ──
+// ── h131 ── stage 08: the pit's sheet at Beit Kerem (on the one world grid: its middle written once, every place local to it)
+{
+  const P = BOOK.s08.pit, O = P.origin;
+  L.push(`### ${P.sheet.name}`, '', `${P.sheet.n} × ${P.sheet.n} משבצות של ${P.sheet.cell} אמה, האמצע אמצע הבור. אמצע הבור בעולם: x ${n(O.x)}, z ${n(O.z)} (${O.place}: ${O.status}). lx מזרחה, lz דרומה מאמצע הבור.`, '');
+  L.push('| מזהה | סוג | תיאור | lx | lz | x בעולם | z בעולם | משבצת | מקור |', '|---|---|---|---|---|---|---|---|---|');
+  for (const e of P.entries) L.push(`| \`${e.id}\` | ${KIND[e.kind] || e.kind} | ${e.label} | ${n(e.lx)} | ${n(e.lz)} | ${n(e.x)} | ${n(e.z)} | ${e.cell} | ${e.src} |`);
+  L.push('');
+}
+// ── /h131 ──
 writeFileSync(out, L.join('\n'));
 console.log('wrote', out, Object.keys(BOOK).filter((k) => /^s0\d$/.test(k)).map((k) => `${k}:${BOOK[k].entries.length}`).join(' '));

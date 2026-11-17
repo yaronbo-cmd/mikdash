@@ -131,7 +131,8 @@ function siteBuild(X) {
   // the witness's stakes (tapered, a cut head: the props' stake)
   for (const [, [x, z]] of Object.entries(S8.stakes)) { const s = new T.Mesh(X.props.geo.stake, M.y8wood); s.scale.set(1.6, 1.4, 1.6); s.position.set(x, F, z); s.castShadow = true; g.add(s); }
   // the hearth by the frame: a ring of stones and the dead ash (the fire is the pour's)
-  { const [x, z] = S8.fire; for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; rock(X, M.y8hearth, x + Math.cos(a) * 1.1, F + 0.15, z + Math.sin(a) * 1.1, 0.32, i, g); }
+  // (b131 look round 2: none when the pour keeps its hearth by the section — BOOK.s08.pourAt: this one was a leftover at the opening)
+  if (!S8.pourAt) { const [x, z] = S8.fire; for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; rock(X, M.y8hearth, x + Math.cos(a) * 1.1, F + 0.15, z + Math.sin(a) * 1.1, 0.32, i, g); }
     const ash = new T.Mesh(new T.CircleGeometry(0.85, 16), M.y8ash); ash.rotation.x = -Math.PI / 2; ash.position.set(x, F + 0.02, z); g.add(ash); }
   const pile = new T.Group(); pile.name = 'h131-pile'; g.add(pile);
   const drawn = new T.Group(); drawn.name = 'h131-yesod'; g.add(drawn);

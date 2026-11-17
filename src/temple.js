@@ -170,10 +170,13 @@ export function buildTemple(B, P) {
   P('kevesh', -46, 16, 12.5, -30, 24, 42.5);
 
   /* ───────── North of the altar: rings, pillars with cedar, marble tables (Middot 3:5) ───────── */
-  S('lishka');
+  // (b131 look round 2: the slaughter rings serve the altar — they come with it (its horns' stage), not with the chambers: on the
+  //  altar's empty place in stage 08 they read as stray black rings on the floor)
+  S('karnot');
   for (let k = 0; k < 6; k++) for (const x of [-47, -41, -35, -29]) {
     const g = new THREE.TorusGeometry(0.45, 0.09, 6, 12); g.rotateX(Math.PI / 2); g.translate(x, 16.1, -29.5 - 4 * k); B.geo('iron', g, -999);
   }
+  S('lishka');
   for (let k = 0; k < 8; k++) { const x = -52 + 4 * k; box('wmarble', x - 0.4, 16, -60.4, x + 0.4, 19.6, -59.6, 16); }
   box('cedar', -52.6, 19.6, -60.45, -23.4, 20.5, -59.55, -999);
   for (let k = 0; k < 8; k++) for (let q = 0; q < 3; q++) { const x = -52.9 + 4 * k + q * 0.9; box('iron', x - 0.06, 18.8, -60.02, x + 0.06, 19.6, -59.98, -999); }

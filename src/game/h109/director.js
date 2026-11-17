@@ -201,6 +201,9 @@ export function createH109Director(o) {
     if (LK5.tq <= 0 && key !== LK5.key) { LK5.tq = 0.1; LK5.key = key; try { const S5 = PK.look.sightPose(base, LOOK.u, LOOK.yaw, undefined, LK5.noExtra ? null : lk5Extra); LK5.gLift = S5.lift; LK5.gDy = S5.dyaw; } catch (e) { /* */ } }
     const k = 1 - Math.exp(-dt * 7); LK5.lift += (LK5.gLift - LK5.lift) * k; LK5.dy += (LK5.gDy - LK5.dy) * k;
     const q = PK.look.pose(base, LOOK.u, LOOK.yaw + LK5.dy, LK5.lift);
+    // ── build 130 ── (an act may keep the lifted eye out of its own structure — the gallery's views from below: never into its beams and
+    //  deck, never through a column; the thumb still lifts and turns) ── /build 130 ──
+    try { if (act && act.camClamp) { const c = act.camClamp(q.p, q.t); if (c) q.p = c; } } catch (e) { /* */ }
     view.camSet(q.p[0], q.p[1], q.p[2], q.t[0], q.t[1], q.t[2]);
     if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
     // (the work in the frame: the act may play; out of it, or hidden, it waits)
@@ -655,7 +658,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
         if (p && typeof p.then === 'function') { phase = 'film'; tPhase = 0; act = null; props().marker(null); line(''); p.catch(() => {}).then(() => { if (phase === 'act' && act) return; /* ── h129 ── (closing round: as h128's below — an act begun while the free stage's opening film ran (the probes' skip to vaultN) is not dropped by the film's end: dropped, its centering, stone and masons stayed in the arch's picture under a second one) ── /h129 ── */ CAM.on = false; phase = 'walk'; save(); openMission(); }); return; }
       }
       // ── /h120 ──
-      if (act) { const a0 = act; act = null; log('act dropped', mission && mission.id); call(a0.end, {}); }   // ── h129 ── (an act still on is ended, never only forgotten) ── /h129 ──
+      if (act) { const a0 = act; act = null; log('act dropped', mission && mission.id); call(a0.end, {}); polarUp(false); }   // ── h129 ── (an act still on is ended, never only forgotten) ── /h129 ──
       mission = M.mission(); phase = 'walk'; tPhase = 0; act = null; OPEN = []; fwLine = null; fwT = 0;
       if (mission) { byWalk = false; showOne(); return; }
       openList();
@@ -782,9 +785,16 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   /* ───────── the act ───────── */
   const WAITS = [], KOH = { off: false };
   const TESTHOLD = { on: false };   // ── h129 ── (_hold) ── /h129 ──
+  // ── build 130 ── the world controls force every camera to look down past maxPolarAngle (1.46: 6.3° at least) — a level eye far from
+  // its aim was lifted by them each frame. An act's level views raise the limit for their time; it comes back when they end, and on
+  // every end of the act (the view's own end, a cancel, a drop) ── /build 130 ──
+  let polarSaved = null;
+  function polarUp(on) { try { if (!view.polar) return; if (on) { if (polarSaved == null) polarSaved = view.polar(); view.polar(1.8); } else if (polarSaved != null) { view.polar(polarSaved); polarSaved = null; } } catch (e) { /* */ } }
   const X = {
     // ── h128 ── (brief §0.6: before a two-thumb moment the act lifts the camera a little by itself, inside the play zone; 0 lets it down;
     // a tap that returns the camera, a drag or a pinch of his own ends it) ── /h128 ──
+    polarUp: (on) => polarUp(on),   // ── build 130 ── (a level eye for an act's fixed views: the world controls' polar limit, saved and restored) ── /build 130 ──
+    lookZero: () => { if (LOOK.drag || LOOK.pinch) return false; lookReset(); return true; },   // ── build 130 ── (an act's own fixed eye — the gallery's views from below: the look and its sight rule off at once) ── /build 130 ──
     lookHome: () => { if (LOOK.drag || LOOK.pinch) return false; if (LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03) { LOOK.auto = null; LOOK.back = 0.45; return true; } return false; },   // ── h129 ── (G16: an act's tap where nothing is brings a lifted look home, as a tap does out of the play zone) ── /h129 ──
     lookLift: (u) => { const v = Math.max(0, Math.min(0.45, +u || 0)); if (!v && LOOK.auto == null) return; LOOK.auto = v; },
     // ── h128 ── (part 3, the sea: an act that draws its own scene reads the right thumb's look — u, yaw, the overview — to move its own
@@ -848,7 +858,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     props().marker(null);
     phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
     QK.run = 0;   // ── h120 ── ── /h120 ──
-    if (act) { const a0 = act; act = null; log('act again', mission.id); call(a0.end, {}); }   // ── h129 ── (closing round: an act begun again over one still on — the probes' vaultN, the first act after a skip during the stage's opening — left the first one's centering, stone and masons standing in the arch's picture: the old one ends first) ── /h129 ──
+    if (act) { const a0 = act; act = null; log('act again', mission.id); call(a0.end, {}); polarUp(false); }   // ── h129 ── (closing round: an act begun again over one still on — the probes' vaultN, the first act after a skip during the stage's opening — left the first one's centering, stone and masons standing in the arch's picture: the old one ends first) ── /h129 ──
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
     // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's
@@ -882,7 +892,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (perfect) { const A0 = ACTS[m.k]; try { await perfectScreen(((A0 && A0.title) || 'המשחקון') + ' · בלי טעות אחת'); } catch (e) { /* */ } }
     if (J && stars > 0) { try { await J.result({ stars, at: E.stars }); } catch (e) { /* */ } }   // ── h128 ── (E.stars) ── /h128 ──
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
-    call(a.end, res);
+    call(a.end, res); polarUp(false);
     try { if (FG) FG.end(); } catch (e) { /* */ }   // ── h128 ── ── /h128 ──
     // ── h129 ── (closing round: a film that names its own men — res.film.own() — shows them alone, as the stage's end film does: the
     // world's figures and the site workers out until it ends) ── /h129 ──

@@ -590,7 +590,7 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
       if (a.phase === 'open-draw') { if (!B.k.od) { B.k.od = 1; return { wait: 400, shot: a.id + '-open' }; } const y = Math.round(HH * 0.62); return { drag: [Math.round(W * 0.1), y, Math.round(W * 0.42), y - 50, 600], wait: 150, note: 'gal: draw the line ' + a.draw }; }
       if (a.phase === 'open-flip') { if (!B.k.of) { B.k.of = 1; return { wait: 200, shot: a.id + '-crowd' }; } return { tap: [Math.round(W * 0.22), Math.round(HH * 0.62)], wait: 1500, note: 'gal: turn it over' }; }
-      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}-${a.view.ti}`; if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) }; } }
+      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov }; } }
       if (a.phase === 'test' && !a.view && !B.k['cr' + a.tries]) { B.k['cr' + a.tries] = 1; return { wait: 500, shot: `${a.id}-crew${a.tries}` }; }
       if (a.phase === 'test' && a.ev.some((e) => /^above/.test(e)) && !B.k.ab) { B.k.ab = 1; return { wait: 200, shot: `${a.id}-above`, note: 'gal: ' + a.ev.slice(-1)[0] }; }
       if (a.busy || a.phase !== 'puzzle') return { wait: 300, note: 'gal: ' + a.phase };
@@ -1103,7 +1103,7 @@
     // wall's: at 1600×900 the software renderer runs the page about four times slower than its clock, and a whole ring by mouse took the
     // wall's 240 s while the act was 62 s in and still going; the wall's limit stays, three times over, for an act that never ticks) ── /h128 ──
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
-    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || /* ── h130 ── */ (H().site === 'nashim' && /^gal/.test(S.mission)) /* ── /h130 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──

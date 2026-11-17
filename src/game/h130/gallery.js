@@ -199,7 +199,8 @@ export const GALLERY = {
     }
 
     /* the live test */
-    const wait = (s) => X.wait(s);
+    // (an act ended from outside — the director's test hook, a reload — stops its test where it is: nothing runs on into the next work)
+    const wait = async (s) => { await X.wait(s); if (A.ended) throw new Error('h130 ended'); };
     function spectators(on) {
       for (const w of A.spect) SH130.crew.remove(w); A.spect = [];
       if (!on || !SH130.crew) return;
@@ -239,7 +240,8 @@ export const GALLERY = {
         X.line(GLINES.prop, 2600); await wait(1.2);
       }
     }
-    async function test() {
+    function test() { return runTest().catch((e) => { if (!A.ended) console.warn('[h130] test', e && e.message); }); }
+    async function runTest() {
       const cols = colsNow();
       if (!cols.length) { X.line(GLINES.none, 2400); return; }
       const k = keyOf(cols), G = spans(R, cols);
@@ -471,7 +473,7 @@ export const GALLERY = {
       dbg() {
         if (A.sub) return { ...A.sub.dbg(), id: m.id, lv: 3, sub: 'raise', t: +A.t.toFixed(2), ev: A.ev.slice(-8) };
         const s2 = (x, y, z) => { const q = X.scr(x, y, z); return [Math.round(q.x), Math.round(q.y)]; };
-        const o = { id: m.id, lv, side, phase: A.phase, busy: A.busy, t: +A.t.toFixed(2), ev: A.ev.slice(-10), mouse: MOUSE, dmg: A.dmg, cracks: A.cracks, broke: A.broke, tries: A.tries, lost: A.lost, cut: A.cut, draw: +A.draw.toFixed(2), view: A.view || null,
+        const cp = X.camera.position, o = { cam: [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)), fov: +X.camera.fov.toFixed(1), id: m.id, lv, side, phase: A.phase, busy: A.busy, t: +A.t.toFixed(2), ev: A.ev.slice(-10), mouse: MOUSE, dmg: A.dmg, cracks: A.cracks, broke: A.broke, tries: A.tries, lost: A.lost, cut: A.cut, draw: +A.draw.toFixed(2), view: A.view || null,
           cols: C.map((r) => { const p = r.g.position, vis = r.g.visible; const g = vis ? s2(p.x + court[0] * 5, GEO.FLOOR + 0.9, p.z + court[1] * 5) : (() => { const f = footAt(r.a); return s2(f.x, (Y.PLINTH_TOP + Y.COL_TOP) / 2, f.z); })(); return { i: r.i, a: r.a == null ? null : +r.a.toFixed(2), grip: g, drag: r.drag }; }),
           bearer: bearer ? s2(bearer.a.x, GEO.FLOOR + 2.2, bearer.a.z) : null, layout: colsNow().map((v) => +v.toFixed(2)) };
         if (A.phase === 'open-draw') { const p = GB.ring[0], q = GB.ring[2]; o.drawFrom = s2(p[0], GEO.FLOOR, p[1]); o.drawTo = s2(q[0], GEO.FLOOR, q[1]); }

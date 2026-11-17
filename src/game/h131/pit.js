@@ -58,7 +58,7 @@ const K = Object.freeze({ TAP: 14, TIP: 64, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
   work: { back: 11.5, up: 17, turn: -0.85, mid: 0.45, aimY: 0.4, fov: 46, k3: 1.12 },
-  lever: { D: 11, H: 15, fov: 46 },
+  lever: { D: 13.5, H: 16.5, fov: 46 },
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */

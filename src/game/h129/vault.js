@@ -351,9 +351,9 @@ export const VAULT = {
     function upB(f) {
       if (f.wedge) {
         const { i, side: s } = f.wedge, px = wedgeOut(f); W[i + s].drag = 0;
-        if (Math.abs(px) < 8) return;
-        const dx = (px / (0.1 * innerHeight)) * WEDGE.STEP;   // (a STEP of its way per a tenth of the screen's height)
-        wedgeStep(SB, i, s, dx); eventsB(); return;
+        if (Math.abs(px) < 8 && !(f.sh && f.moved < 20)) return;
+        if (Math.abs(px) >= 8) { const dx = (px / (0.1 * innerHeight)) * WEDGE.STEP;   // (a STEP of its way per a tenth of the screen's height)
+        wedgeStep(SB, i, s, dx); eventsB(); return; }
       }
       if (f.sh && f.moved < 20) {
         const s = f.sh, sg = s === 'L' ? 1 : -1; let bi = -1, bv = 0;
@@ -472,7 +472,7 @@ export const VAULT = {
           A.fing[f.id] = best; f.leg = best; f.dir = inward(best); press[best] = { reach: 0 }; X.hand(null); return;
         }
         if (A.phase === 'wedges') {
-          const w = wedgeUnder(f);
+          const w = wedgeUnder(f), s0 = shoulderUnder(f); if (s0) f.sh = s0;   // (closing round: a wedge drawn out lies by its shoulder — a tap there that does not drag the wedge is the shoulder's)
           if (w) { f.wedge = w; X.hand(null); if (wedgeLoads(SB)[(w.i + 1) + w.side] === 'loaded') { V.groan(); const ww = W[w.i + w.side]; ww.jit = 0.25; X.dust(ww.g.position.x, ww.g.position.y + 0.2, ww.g.position.z, G.big ? 3 : 2, G.big ? 0.6 : 0.2); } return; }
           const s = shoulderUnder(f); if (s) f.sh = s;
         }

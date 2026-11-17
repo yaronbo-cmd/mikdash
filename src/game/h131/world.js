@@ -19,6 +19,7 @@
  *   initWorld(X) · frameWorld(dt, X) · restWorld(X, M) · finalWorld(X) · goPit(X) · backFromPit(X) · pitFloor(lx, lz)
  */
 import { BOOK, pitWorld } from '../world/grid.js';
+import { makeNoise } from '../../util.js';
 import { PIT3D } from './pit3d.js';
 import { FRAME3D } from './frame3d.js';
 import { POUR3D } from './pour3d.js';
@@ -35,7 +36,7 @@ export function mats(X) {
   const P0 = X.props, T = X.THREE;
   if (P0.M.y8earth) return P0.M;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.92, flatShading: true, ...o });
-  P0.M.y8earth = std('#B49A72', { vertexColors: true, flatShading: false });
+  P0.M.y8earth = std('#FFFFFF', { vertexColors: true, flatShading: false });   // (the colour is the vertices': the valley's)
   P0.M.y8dark = std('#5E4630');            // the top layer: dark, mixed, worked
   P0.M.y8virgin = std('#D8C49C');          // the virgin soil under it: pale, clean
   P0.M.y8spoil = std('#7A5E40');           // dug earth on the rim
@@ -62,7 +63,7 @@ export function rock(X, mat, x, y, z, r, seed = 1, parent) {
 const drop = (X, all) => { for (const o of all) { try { X.props.remove(o); } catch (e) { try { o.parent && o.parent.remove(o); } catch (e2) { /* */ } } } all.length = 0; };
 
 /* ───────── the pit's site at Beit Kerem ───────── */
-const H = P.hole, R0 = H.d / 2, SEG = 40, GR = P.ground;
+const H = P.hole, R0 = H.d / 2, SEG = 40, GR = P.ground, NSA = 90, NSB = 300;   // (the colour noise: its two scales in amot)
 /** the ground's height on the sheet (amot over the valley's floor): the pit's floor inside it, the valley round it rising to the hills
  *  (illustration: a broad valley of terraced slopes) */
 export function pitFloor(lx, lz) {
@@ -80,13 +81,17 @@ function pitBuild(X) {
   const T = X.THREE, M = mats(X), all = [], g = new T.Group(); g.name = 'h131-pit'; X.props.root.add(g); all.push(g);
   // the valley: rings from the pit's rim out to the patch's edge (no ground over the pit)
   const NA = 72, rs = []; for (let r = R0; r < P.ground.R; r = r < 40 ? r + 2 : r * 1.12) rs.push(r); rs.push(P.ground.R);
-  const pos = [], col = [], idx = [], c0 = new T.Color('#B9A27A'), c1 = new T.Color('#8E8A5A'), c2 = new T.Color('#C7B48C'), c = new T.Color();
+  // the colours as the Mount's own hills (world.js TC: dry gold and olive at Sukkot), greener in the valley's bottom, the dug rim pale
+  const pos = [], col = [], idx = [], c = new T.Color(), N1 = makeNoise(131), N2 = makeNoise(813);
+  const gA = new T.Color('#A3A064'), gB = new T.Color('#B9AE74'), dry = new T.Color('#C9B684'), lush = new T.Color('#86934E'), dug = new T.Color('#C2AA80'), edge = new T.Color('#9C8E66');
   rs.forEach((r, i) => { for (let j = 0; j < NA; j++) {
     const a = (j / NA) * Math.PI * 2, lx = H.at[0] + Math.cos(a) * r, lz = H.at[1] + Math.sin(a) * r, y = hillAt(lx, lz);
     const [x, , z] = pitXYZ(lx, 0, lz); pos.push(x, O.y + y, z);
-    const k = Math.min(1, r / 700), t = 0.5 + 0.5 * Math.sin(lx * 0.05 + lz * 0.03);
-    c.copy(c0).lerp(c1, k * 0.6 * t).lerp(c2, (1 - k) * 0.25); col.push(c.r, c.g, c.b);
-    if (i) { const a0 = (i - 1) * NA + j, a1 = (i - 1) * NA + (j + 1) % NA, b0 = i * NA + j, b1 = i * NA + (j + 1) % NA; idx.push(a0, b0, a1, a1, b0, b1); }
+    c.copy(gA).lerp(gB, N1(lx / NSA, lz / NSA, 3)).lerp(dry, Math.max(0, N2(lx / NSB + 3, lz / NSB - 2, 2) * 1.6 - 0.6));
+    c.lerp(lush, Math.max(0, 1 - r / GR.flat) * 0.55);                        // (the valley's floor: wetter, greener)
+    if (y > 2 && Math.abs(y / 6 - Math.round(y / 6)) < 0.12) c.lerp(edge, 0.5);  // (the terraces' stone edges)
+    c.lerp(dug, Math.max(0, 1 - (r - R0) / 9) * 0.8); col.push(c.r, c.g, c.b);   // (the earth trodden and dug round the pit)
+    if (i) { const a0 = (i - 1) * NA + j, a1 = (i - 1) * NA + (j + 1) % NA, b0 = i * NA + j, b1 = i * NA + (j + 1) % NA; idx.push(a0, a1, b0, a1, b1, b0); /* (wound to face up) */ }
   } });
   const gg = new T.BufferGeometry(); gg.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); gg.setAttribute('color', new T.Float32BufferAttribute(col, 3)); gg.setIndex(idx); gg.computeVertexNormals();
   const ground = new T.Mesh(gg, M.y8earth); ground.receiveShadow = true; ground.name = 'h131-valley'; g.add(ground);

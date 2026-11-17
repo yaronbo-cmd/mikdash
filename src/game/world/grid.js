@@ -1115,7 +1115,7 @@ const S08 = {
     // pit, how far out the hillsides rise and how high (the valley lies about 140 m under the Mount: the hills round it rise that much)
     ground: { R: 3000, flat: 60, rise: 1400, top: 260 },
     // the opening view: above (0, 30), facing the Mount on the horizon (it lies east-north-east: 14,770 east and 2,310 north)
-    cam: { open: [[0, 16, 30], [30, 4, -6]], play: [[0, 11, 21], [0, -1, 0]] },
+    cam: { open: [[-12, 13, 34], [6, 2, -16]], play: [[0, 11, 21], [0, -1, 0]] },
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);

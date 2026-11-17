@@ -1055,7 +1055,12 @@
       const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
       if (a.lever === 'seat' && a.li === s.i && (a.side === SD[side] || (a.lv !== 2 && free(SD.indexOf(a.side))))) {   // (b131: seated under a free side of the stone is a seat to press, whatever lip lies lowest on the screen after the lever shot)
         if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1; return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
+        // (the press where the stone is once the camera has come to rest: a press read off a moving frame landed on the bare floor)
+        if (!K.lastC || Math.hypot(s.c[0] - K.lastC[0], s.c[1] - K.lastC[1]) > 3) { K.lastC = s.c.slice(); return { wait: 250, note: 'pit: the camera settles' }; }
         const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1;
+        // (a press that never takes must not loop unseen: the same stone pressed a fifth time with nothing out is stuck)
+        const pk = 'pressN' + a.id + s.i; K[pk] = (K[pk] || 0) + 1;
+        if (K[pk] > 4) return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + a.id + ' (stone ' + s.i + ' pressed ' + (K[pk] - 1) + ' times, nothing out) ' + JSON.stringify(a).slice(0, 1400) };
         return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
       }
       if (needs.length && !(a.lv === 2 && wantBad)) {

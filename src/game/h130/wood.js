@@ -21,7 +21,7 @@ import { LINES, QUICK, LOSS, LOGS, WOOD, logFresh, wormy, rollStep, seenHoles, t
 import { WD, AX, woodSave, woodWorld, logPiece, logSkin, splitHalves, pileSpot, logY, trestle } from './wood3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { card, cite } from '../h129/ui7.js';
-import { fingers, MOUSE, onY } from '../h113/acts.js';
+import { fingers, MOUSE } from '../h113/acts.js';
 import { createGang, createBeat, clamp, lerp, ease } from '../h109/kit.js';
 import { BOOK } from '../world/grid.js';
 
@@ -29,12 +29,25 @@ const S5 = BOOK.s05, W5 = S5.wood, F = S5.court.floor;
 const DOOR = (() => { const c = S5.chambers.find((q) => q.id === 'wood'); return [(c.door[0] + c.door[1]) / 2, c.doorZ]; })();
 const D2R = Math.PI / 180, U = AX.U, NRM = AX.N, YAW = AX.yaw, DIR = AX.dir;
 /** the act's numbers: the roll's gain (degrees per px of a drag along), a tap's most travel (px), how far the log must be carried to go
- *  (amot), the lens; the camera's place round the trestles (offsets: behind and above, its aim a little past the log's middle) */
-const K = Object.freeze({ ROLL: 1.25, TAP: 12, GO: 1.3, FOV: 46, HAND: 70, D: 14, EL: 18, AIM: [1.0, 2.6, 0.3], BAND: 0.42 });
+ *  (amot), the hint hand's size, the end bands' length (amot) */
+const K = Object.freeze({ ROLL: 1.25, TAP: 12, GO: 1.3, HAND: 70, BAND: 0.42 });
+/** ── build 130 part 3 ── the act's three shots, each { D: distance from its aim, EL: elevation (degrees), FOV, AIM: [along the log's
+ *  axis U, along the view DIR (+ away from the camera), height over the floor], SIDE: the eye moved along U } (amot):
+ *  · near — the work: the log a third of the screen's width and more at 960×600, the kohen whole in the left third (he stands behind
+ *    the log's left end: BOOK.s05.wood.stand), the second kohen whole on the right;
+ *  · out  — while a log is carried left and on its way to the rejects: the eye moved right, so the rejects' pile is clear of the kohen;
+ *  · wide — while a log is carried right (the clean pile), the crew's sawing and the end of the work: the room round the trestles */
+const SHOTS = Object.freeze({
+  near: Object.freeze({ D: 13, EL: 6, FOV: 30, AIM: Object.freeze([-0.25, -0.6, 3.9]), SIDE: 0 }),
+  out: Object.freeze({ D: 15, EL: 22, FOV: 46, AIM: Object.freeze([-1, 4, 2]), SIDE: 3 }),
+  wide: Object.freeze({ D: 14, EL: 18, FOV: 46, AIM: Object.freeze([0.86, -0.59, 2.6]), SIDE: 0 }),
+});
 /** the second kohen's own log: beside his place (offsets from it), lying across the room */
 const OWN = Object.freeze({ dx: 1.7, dz: 0 });
-/** where the next logs wait: behind the trestles (away from the camera) and a little to the left, in the log's own frame (amot) */
-const STACK = Object.freeze({ back: 3.3, side: -1.4 });
+/** where the next logs wait: well behind the trestles (away from the camera), in the log's own frame (amot); the crew man who rolls
+ *  each onto the trestles waits beside it (ROLLER: his place from the stack's middle; behind the log he pushes, at the log's r + PUSH) */
+const STACK = Object.freeze({ back: 7, side: -0.5 });
+const ROLLER = Object.freeze({ side: 2.8, back: 0.3, PUSH: 0.75, D: 2.4 });
 /** the words (instructions carry "(המחשה)": how wood was checked is not in the sources) */
 export const WLINES = Object.freeze({
   l1: 'גלגלו את הבול: יש נקבים? (המחשה)',
@@ -68,19 +81,25 @@ export const WOOD_ACT = {
     if (!WS.w || WS.w.id !== m.id) WS.w = { id: m.id, order: LOGS[lv].map((_, i) => i), now: [], wrong: 0, waste: 0, dmg: 0 };
     const WK = WS.w;
     X.save();
-    // ── the camera: behind the kohen and above, the log big in the middle, the kohen in the left third
+    // ── the camera: the near shot for the work (SHOTS), the out shot while a log is carried left, the wide one for the rest
     const cam0 = X.camera, fov0 = cam0.fov;
     const lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
-    // (it looks along WD.DIR — toward the chamber's north-west — so the kohen at his stand is in the left third and no nearer than the log,
-    //  the clean pile to the right and the rejects beyond on the left; the log lies across the view, along U)
-    const aim = [tx + K.AIM[0], F + K.AIM[1], tz + K.AIM[2]], ce = Math.cos(K.EL * D2R) * K.D;
-    const eye = [aim[0] - DIR[0] * ce, aim[1] + Math.sin(K.EL * D2R) * K.D, aim[2] - DIR[1] * ce];
-    const camHome = (d = 1.2) => X.shot(eye, aim, d);
-    const holdLens = () => { try { const L = X.lookNow ? X.lookNow() : null; if (L && (L.u > 0.01 || Math.abs(L.yaw) > 0.03 || L.ov)) return; if (Math.abs(cam0.fov - K.FOV) > 0.01) lens(K.FOV); } catch (e) { /* */ } };
+    // (every shot looks along WD.DIR — toward the chamber's north-west; the log lies across the view, along U. __W130_CAM: a probe's
+    //  trial of the near shot's numbers)
+    const SH = { ...SHOTS, near: { ...SHOTS.near, ...((typeof globalThis !== 'undefined' && globalThis.__W130_CAM) || {}) } };
+    const camOf = (c) => {
+      const aim = [tx + U[0] * c.AIM[0] + DIR[0] * c.AIM[1], F + c.AIM[2], tz + U[1] * c.AIM[0] + DIR[1] * c.AIM[1]], ce = Math.cos(c.EL * D2R) * c.D;
+      return { aim, eye: [aim[0] - DIR[0] * ce + U[0] * (c.SIDE || 0), aim[1] + Math.sin(c.EL * D2R) * c.D, aim[2] - DIR[1] * ce + U[1] * (c.SIDE || 0)], fov: c.FOV };
+    };
+    let shotK = 'near', fovT = SH.near.FOV;
+    const camTo = (k, d = 0.8) => { const c = camOf(SH[k]); shotK = k; fovT = c.fov; X.shot(c.eye, c.aim, d); };
+    const camHome = (d = 1.2) => camTo('near', d);
+    // (the lens eases to the shot's own; while the right thumb has the camera, the look's own lens is left alone)
+    const lensStep = (dt) => { try { const L = X.lookNow ? X.lookNow() : null; if (L && (L.u > 0.01 || Math.abs(L.yaw) > 0.03 || L.ov)) return; const f = cam0.fov; if (Math.abs(f - fovT) > 0.01) lens(Math.abs(f - fovT) < 0.05 ? fovT : f + (fovT - f) * (1 - Math.exp(-dt * 4))); } catch (e) { /* */ } };
+    const eye = camOf(SH.near).eye;
     // the log's frame: its angle 0 faces the camera (the model's "facing the eye")
     const LZ = [Math.sin(YAW), Math.cos(YAW)], alpha = Math.atan2((eye[0] - tx) * LZ[0] + (eye[2] - tz) * LZ[1], eye[1] - logY(0.4));
     const orient = (g, roll) => { g.rotation.order = 'YXZ'; g.rotation.set(roll, YAW, 0); };
-    const alongOf = (q) => (q.x - tx) * U[0] + (q.z - tz) * U[1];
     // ── the figures: the kohen with his mallet; the second kohen checking a log of his own (a mallet, on the beat); level 3's sawyers
     try { X.kohen(true); if (X.hero && X.hero.setTool) X.hero.setTool('wood'); } catch (e) { /* */ }
     const B = createBeat(X), gang = createGang(X);
@@ -89,15 +108,20 @@ export const WOOD_ACT = {
     { const ol = LOGS[2][6], g = logPiece(X, ol, 0, 2.4, null); g.position.set(ownAt[0], logY(ol.r), ownAt[1]); g.rotation.x = 1.1; ownG.add(g); for (const e of [-1, 1]) trestle(X, ownAt[0] + e * 0.75, ownAt[1], 0.9, ownG); }
     let second = gang.add(sec[0], sec[1], { variant: 'kohen', tunic: '#F2EEE4', role: 'hammer', item: 'mallet', fx: ownAt[0], fz: ownAt[1], k: 3, crew: 1 });
     const saw = [];
+    // (the crew man with a staff who rolls each waiting log onto the trestles; he waits beside the stack)
+    const stackC = [tx + DIR[0] * STACK.back + U[0] * STACK.side, tz + DIR[1] * STACK.back + U[1] * STACK.side];
+    const rollWait = [stackC[0] + U[0] * ROLLER.side + DIR[0] * ROLLER.back, stackC[1] + U[1] * ROLLER.side + DIR[1] * ROLLER.back];
+    const roller = gang.add(rollWait[0], rollWait[1], { role: 'hold', item: 'staff', fx: tx, fz: tz, crew: 1 });
     // ── the green marks on the piles (rule 59: where to bring it), shown while the log is carried
     const ringG = new T.RingGeometry(1.15, 1.45, 28), greens = {};
     for (const [k, p] of [['clean', W5.clean], ['out', W5.out]]) { const r = new T.Mesh(ringG, X.props.M.w5green); r.rotation.x = -Math.PI / 2; r.position.set(p[0], F + 0.04, p[1]); r.visible = false; r.renderOrder = 5; root.add(r); greens[k] = r; }
     // ── the waiting logs (the ones not checked yet), a small stack behind the trestles
     const stackG = new T.Group(); root.add(stackG);
+    // (place 0 is the front of the stack — the next log's, where the crew man takes it from; the rest lie behind it, a second row on top)
+    const stackAt = (n, r) => { const row = n < 4 ? 0 : 1, k = row ? n - 4 : n, o = (k - 1.5 + row * 0.5) * (2 * r + 0.05); return [stackC[0] + DIR[0] * o, F + r + row * r * 1.7, stackC[1] + DIR[1] * o]; };
     function stackSync() {
       for (const c of stackG.children.slice()) X.props.remove(c);
-      const c = [tx + DIR[0] * STACK.back + U[0] * STACK.side, tz + DIR[1] * STACK.back + U[1] * STACK.side];
-      WK.order.slice(1).forEach((i, n) => { const log = LOGS[lv][i], g = logPiece(X, log, 0, log.L, null); const row = n < 4 ? 0 : 1, k = row ? n - 4 : n, o = (k - 1.5 + row * 0.5) * (2 * log.r + 0.05); g.position.set(c[0] + DIR[0] * o, F + log.r + row * log.r * 1.7, c[1] + DIR[1] * o); orient(g, n * 0.9); stackG.add(g); });
+      WK.order.slice(1).forEach((i, n) => { const log = LOGS[lv][i], g = logPiece(X, log, 0, log.L, null), p = stackAt(n + 1, log.r); g.position.set(p[0], p[1], p[2]); orient(g, n * 0.9); stackG.add(g); });
     }
     // ── the log in hand
     let S = null, log = null, piece = null, skin = null, cur = -1;
@@ -116,10 +140,22 @@ export const WOOD_ACT = {
     function nextLog() {
       if (!WK.order.length) return finish();
       cur = WK.order[0]; S = logFresh(lv, cur); log = S.log; A.taps = []; A.chalk = null; A.cut = null; A.keep = null; A.off = 0; A.offT = 0; A.seenQ = 0; A.peelQ = 0;
-      skin = logSkin(X, S, { taps: A.taps, chalk: null }); pieceMesh(); stackSync();
-      // (it comes from the waiting stack onto the trestles, rolling)
-      A.phase = 'arrive'; A.busy = 1; A.tw = { t: 0, d: 0.9, from: [tx + DIR[0] * STACK.back + U[0] * STACK.side, F + log.r, tz + DIR[1] * STACK.back + U[1] * STACK.side], k: 'arrive' };
-      ev('log:' + log.id); X.save();
+      skin = logSkin(X, S, { taps: A.taps, chalk: null }); stackSync();
+      // (it does not come by itself: the crew man walks to the front of the stack and rolls it, his staff behind it, onto the trestles)
+      A.phase = 'arrive'; A.busy = 1; camTo('near', 1.0);
+      const from = stackAt(0, log.r); pieceMesh(); piece.position.set(from[0], from[1], from[2]); orient(piece, alpha);
+      ev('log:' + log.id); X.save(); rollIn(from);
+    }
+    async function rollIn(from) {
+      const id = cur, r = log.r, bx = from[0] + DIR[0] * (r + ROLLER.PUSH), bz = from[2] + DIR[1] * (r + ROLLER.PUSH);
+      if (roller) { gang.setRole(roller, 'walk'); await Promise.race([gang.walkTo(roller, bx, bz, 3), X.wait(2.6)]); }
+      if (cur !== id || A.phase !== 'arrive') return;
+      if (roller) { roller.a.path = null; gang.setRole(roller, 'push', { fx: tx, fz: tz, stride: 1, rate: 1.6 }); }
+      A.tw = { t: 0, d: ROLLER.D, from, k: 'arrive' };
+    }
+    function rollerBack() {
+      if (!roller) return; gang.setRole(roller, 'walk', { stride: 0 });
+      Promise.race([gang.walkTo(roller, rollWait[0], rollWait[1], 2.6), X.wait(3.5)]).then(() => { if (roller && A.phase !== 'arrive') gang.setRole(roller, 'hold', { fx: tx, fz: tz }); });
     }
     const skinDraw = () => { if (skin) skin.draw(); };
     // ── where a finger is on the log: s along it (in the piece), how far off its axis on the screen, on one of its end bands
@@ -148,11 +184,11 @@ export const WOOD_ACT = {
         if (!w.mode && f.moved > K.TAP) {
           if (Math.abs(al) >= Math.abs(ac)) w.mode = w.band ? 'carry' : 'roll';
           else w.mode = lv === 3 ? 'chalk' : 'peel';
-          if (w.mode === 'carry') { const q = onY(X, f, yL()); w.gx = q ? alongOf(q) : w.s - log.L / 2 + A.off; A.carry = 1; greens.clean.visible = greens.out.visible = true; V.scrape(0.4); }
+          if (w.mode === 'carry') { w.px = f.x0; w.py = f.y0; A.carry = 1; greens.clean.visible = greens.out.visible = true; V.scrape(0.4); }
           ev('mode:' + w.mode);
         }
         if (w.mode === 'roll') { const d = w.rot0 + al * K.ROLL - S.rot; const r = rollStep(S, d); V.scrape(Math.min(1, Math.abs(d) / 6)); seenCheck(r.seen); }
-        else if (w.mode === 'carry') { const q = onY(X, f, yL()); if (q) A.offT = clamp(alongOf(q) - w.gx, -6, 6); }
+        else if (w.mode === 'carry') carryMove(f, w);
         else if (w.mode === 'peel' && !w.peeled && Math.abs(ac) > 34) { w.peeled = 1; peel(w.s); }
         else if (w.mode === 'chalk' && !w.peeled && Math.abs(ac) > 34) { w.peeled = 1; chalk(w.s); }
       },
@@ -162,10 +198,18 @@ export const WOOD_ACT = {
         if (w.mode === 'carry') {
           A.carry = 0; greens.clean.visible = greens.out.visible = false;
           if (Math.abs(A.off) >= K.GO) decideNow(A.off > 0 ? 'clean' : 'out');
-          else { A.offT = 0; if (Math.abs(A.off) > 0.3) X.line(WLINES.back, 1800); ev('back'); }
+          else { A.offT = 0; camTo('near', 0.8); if (Math.abs(A.off) > 0.3) X.line(WLINES.back, 1800); ev('back'); }
         }
       },
     });
+    // ── the carry: the log follows the finger along its own axis on the screen (amot per px read from the frame now, so it stays under
+    //    the finger while the camera eases out); left, the out shot (the rejects' pile in the frame); right, the wide one (the clean pile)
+    function carryMove(f, w) {
+      const a = X.scr(xOf(0), yL(), zOf(0)), b = X.scr(xOf(log.L), yL(), zOf(log.L)), vx = b.x - a.x, vy = b.y - a.y, len = Math.hypot(vx, vy);
+      if (len > 4) { const d = ((f.x - w.px) * vx + (f.y - w.py) * vy) / len / (len / log.L); A.offT = clamp(A.offT + d, -6, 6); }
+      w.px = f.x; w.py = f.y;
+      const want = A.offT < -0.3 ? 'out' : A.offT > 0.3 ? 'wide' : null; if (want && want !== shotK) { camTo(want, 0.7); ev('shot:' + want); }
+    }
     // ── the tap: the kohen's mallet on the log at s; hollow — it trembles there and wood dust falls; deep — it hardly moves
     function tap(s) {
       const r = tapAt(log, s), ang = -S.rot, p = atS(s);
@@ -196,7 +240,7 @@ export const WOOD_ACT = {
       if (!A.sawPend) { A.sawPend = 1; sawSeq(); }
     }
     async function sawSeq() {
-      X.line(WLINES.sawyers, 2600);
+      X.line(WLINES.sawyers, 2600); camTo('wide', 0.9);   // (the sawyers stand on both sides of the log: the near shot would have one in front)
       // (the two sawyers come in from the door's side, one each side of the log at the line)
       const at = () => [xOf(A.chalk), zOf(A.chalk)];
       for (const e of [-1, 1]) { const w = gang.add(at()[0] + NRM[0] * e * 2.4 + U[0] * 1.6, at()[1] + NRM[1] * e * 2.4 + U[1] * 1.6, { role: 'push', item: 'saw', fx: at()[0], fz: at()[1], crew: 2 }); if (w) saw.push(w); }
@@ -221,7 +265,7 @@ export const WOOD_ACT = {
       X.save();
       // (the sawyers go)
       for (const w of saw.splice(0)) { gang.walkTo(w, xOf(log.L) + U[0] * 3 + NRM[0] * 3.5, zOf(log.L) + U[1] * 3 + NRM[1] * 3.5, 2.6); X.wait(1.4).then(() => gang.remove(w)); }
-      A.sawing = 0; A.sawPend = 0; A.busy = 0; A.phase = 'look'; hintNext(true);
+      A.sawing = 0; A.sawPend = 0; A.busy = 0; A.phase = 'look'; camTo('near', 0.9); hintNext(true);
     }
     // ── a log moved along a path to a place, rolling (its roll ends where it lies)
     function tween(g, to, d = 1.0, turns = 1.5) {
@@ -274,7 +318,7 @@ export const WOOD_ACT = {
       if (A.phase === 'done') return; A.phase = 'done'; A.busy = 1; X.hand(null);
       const res = { dmg: WK.dmg, wrong: WK.wrong, waste: WK.waste }, pts = woodPts(res), q = qOf(pts), clean = !WK.dmg && !WK.wrong && !WK.waste;
       delete WS.w; X.save();
-      camHome(0.8);
+      camTo('wide', 0.8);
       if (clean && second) {
         // the kohen in charge takes the clean wood toward the altar's pile (the chamber's door, on the way to the altar)
         const top = pileSpot('clean', Math.max(0, WS.clean.length - 1), 0.52);
@@ -292,9 +336,16 @@ export const WOOD_ACT = {
       const tw = A.tw;
       if (tw) {
         tw.t += dt; const u = Math.min(1, tw.t / tw.d), k = ease(u);
-        if (tw.k === 'arrive') { const to = [xOf(log.L / 2), yL(), zOf(log.L / 2)]; piece.position.set(lerp(tw.from[0], to[0], k), lerp(tw.from[1], to[1], k) + Math.sin(u * Math.PI) * 0.5, lerp(tw.from[2], to[2], k)); orient(piece, alpha + (S.rot + (1 - k) * 300) * D2R); }
+        if (tw.k === 'arrive') {
+          // (rolled along the floor, then the last stretch lifted onto the trestles; the crew man behind it, his staff on it)
+          const to = [xOf(log.L / 2), yL(), zOf(log.L / 2)], kh = Math.min(1, u / 0.8), kr = ease(kh), lift = ease(clamp((u - 0.7) / 0.3, 0, 1));
+          const x = lerp(tw.from[0], to[0], kr), z = lerp(tw.from[2], to[2], kr), y = lerp(tw.from[1], to[1], lift) + Math.sin(lift * Math.PI) * 0.25;
+          piece.position.set(x, y, z); const dist = Math.hypot(to[0] - tw.from[0], to[2] - tw.from[2]);
+          orient(piece, alpha + S.rot * D2R - (1 - kr) * dist / log.r);
+          if (roller && roller.a) { roller.a.x = x + DIR[0] * (log.r + ROLLER.PUSH); roller.a.z = z + DIR[1] * (log.r + ROLLER.PUSH); roller.stride = u < 0.8 ? 1 : 0; if (u >= 0.7 && roller.role !== 'lever') gang.setRole(roller, 'lever', { fx: x, fz: z }); }
+        }
         else { const g = tw.g; g.position.set(lerp(tw.from[0], tw.to[0], k), lerp(tw.from[1], tw.to[1], k) + Math.sin(u * Math.PI) * 0.6, lerp(tw.from[2], tw.to[2], k)); g.rotation.x = tw.rx0 + k * tw.turns * Math.PI * 2; g.rotation.y = lerp(tw.ry0, tw.to[3] || 0, k); }
-        if (u >= 1) { A.tw = null; if (tw.k === 'arrive') { A.phase = 'look'; A.busy = 0; place(); A.hintK = null; A.hintN = -1; lineFor(); hintNext(true); } else if (tw.res) tw.res(); }
+        if (u >= 1) { A.tw = null; if (tw.k === 'arrive') { A.phase = 'look'; A.busy = 0; place(); rollerBack(); A.hintK = null; A.hintN = -1; lineFor(); hintNext(true); } else if (tw.res) tw.res(); }
         return;
       }
       if (!piece) return;
@@ -311,16 +362,16 @@ export const WOOD_ACT = {
     return {
       close: true, kohenWorks: true,
       begin() {
-        FG.attach(); lens(K.FOV); camHome(1.2);
+        FG.attach(); lens(SH.near.FOV); camHome(1.2);
         // (the trestles stand in the world; the act draws the log on them)
         nextLog();
       },
       update(dt) {
-        A.t += dt; holdLens();
+        A.t += dt; lensStep(dt);
         try { V.frame(); B.step(dt); gang.update(dt, B); animate(dt); } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h130] wood', e && e.message); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
-      cancel() { A.fl = null; A.carry = 0; A.offT = 0; greens.clean.visible = greens.out.visible = false; V.scrape(0); },
+      cancel() { A.fl = null; A.carry = 0; A.offT = 0; greens.clean.visible = greens.out.visible = false; V.scrape(0); if (A.phase === 'look' && shotK !== 'near') camTo('near', 0.8); },
       // (rule 66: on the right half a touch is the act's only where it lands on the log itself; anywhere else it lifts the camera)
       wants(p) { if (!p) return true; if (A.busy || A.phase !== 'look') return false; return !!pick(p); },
       holds() { return A.fl != null; },
@@ -346,7 +397,9 @@ export const WOOD_ACT = {
           delete o.sAt;
         }
         o.cleanAt = sp(W5.clean[0], F + 0.5, W5.clean[1]); o.outAt = sp(W5.out[0], F + 0.5, W5.out[1]);
-        o.figs = { second: second && second.a ? sp(second.a.x, F + 1, second.a.z) : null, saw: saw.length };
+        o.figs = { second: second && second.a ? sp(second.a.x, F + 1, second.a.z) : null, saw: saw.length, roller: roller && roller.a ? sp(roller.a.x, F + 1, roller.a.z) : null };
+        const cp = cam0.position; o.shot = shotK; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)); o.fov = +cam0.fov.toFixed(1);
+        try { const h = X.hero, hp = h && h.mesh ? h.mesh.position : null; if (hp) { o.kohen = [sp(hp.x, hp.y, hp.z), sp(hp.x, hp.y + 3.9, hp.z)]; } } catch (e) { /* */ }
         return o;
       },
     };

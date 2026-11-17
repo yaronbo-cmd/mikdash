@@ -288,7 +288,7 @@ test('book s05 (build 130): the new stage\'s rows — the runs, the passage, the
   // the spec's new places, exactly
   assert.deepEqual(G.stand, { N: [73.5, -52], S: [73.5, 52], E: [126, 0] });
   assert.deepEqual(G.torch, [[73.5, 0], [40, 0], [107, 0]]);
-  assert.deepEqual(S.wood, { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] });
+  assert.deepEqual(S.wood, { trestles: [121, -46], stand: [117.2, -46.4], second: [124, -50], clean: [128, -44], out: [112, -58] });
   assert.deepEqual(S.light.menorah, [73.5, 24]); assert.equal(S.light.h, 50);
   assert.deepEqual(S.light.measures, [26, 31.5]); assert.deepEqual(S.light.wicks, [30, 24]); assert.deepEqual(S.light.practice.ladder, [99.6, 60.2]);
   // the menorah's ladders 6 amot off to the four corners; the menorah off the court's axis (stage 06's sledge lane)

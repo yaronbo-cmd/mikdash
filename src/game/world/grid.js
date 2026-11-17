@@ -407,7 +407,9 @@ const S05 = {
     // the tops of the court's walls as the world builds them (heights for the look's boxes; the order of walls above)
     wallTops: [40.3, 44.3, 6, 22.3, 38.3, 38.3, 6, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4],
   },
-  wood: { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] },
+  // (the wood chamber: the kohen's stand behind the log's left end, no nearer the camera than the log — build 130 part 3: the log a
+  //  third of the screen with the kohen whole beside it)
+  wood: { trestles: [121, -46], stand: [117.2, -46.4], second: [124, -50], clean: [128, -44], out: [112, -58] },
   light: {
     // the golden menorah (its place: המחשה), 50 amot high, four bowls at its head; its four ladders' feet 6 amot from it to the NE, NW,
     // SE and SW (6 / √2 = 4.243 on each axis), each leaning toward it

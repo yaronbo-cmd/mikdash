@@ -148,22 +148,24 @@ export function splitHalves(X, e) {
   }
   return g;
 }
-/** where the n-th log of a pile lies (side 'clean' or 'out'): rows of ROW along z, each row one up and half a log in; [x, y over the
- *  floor, z] round the pile's book place; the rejects lie a little askew */
+/** where the n-th log of a pile lies (side 'clean' or 'out'): rows of ROW, each row one up and half a log in; [x, y over the floor, z]
+ *  round the pile's book place. The clean pile's logs lie pointing away from the chamber's view, their rows running east from the book
+ *  place (a growing pile stays a narrow stack at the right of the screen, never across the second kohen); the rejects lie a little
+ *  askew, their rows running back toward the north wall */
 export function pileSpot(side, n, r = 0.4) {
   const at = side === 'clean' ? W5.clean : W5.out;
   const cap = (WD.ROW * (WD.ROW + 1)) / 2, pyr = Math.floor(n / cap);
   let row = 0, k = n % cap, w = WD.ROW; while (k >= w && w > 1) { k -= w; row++; w--; }
-  // (the rows run from the book place back toward the north wall, away from the chamber's view: a growing pile never fills the screen)
-  const d = 2 * r + WD.GAP, z = at[1] - (k + (WD.ROW - w) / 2) * d, y = r + row * d * 0.86;
-  // (a full pyramid: the next one beside it — the clean pile's toward the east wall, the rejects' toward the room's middle)
-  return { x: at[0] + (side === 'out' ? ((n * 7) % 5 - 2) * 0.12 : pyr * WD.NEXT), y, z: z + (side === 'out' ? pyr * WD.NEXT : 0), yaw: side === 'out' ? ((n * 3) % 5 - 2) * 0.06 : 0, row };
+  const d = 2 * r + WD.GAP, off = (k + (WD.ROW - w) / 2) * d, y = r + row * d * 0.86;
+  // (a full pyramid: the next one behind it, back toward the north wall — the rejects' toward the room's middle)
+  if (side === 'clean') return { x: at[0] + off, y, z: at[1] - pyr * WD.NEXT, yaw: Math.PI / 2, row };
+  return { x: at[0] + ((n * 7) % 5 - 2) * 0.12, y, z: at[1] - off + pyr * WD.NEXT, yaw: ((n * 3) % 5 - 2) * 0.06, row };
 }
 /** a log of the save (e) lying at a pile place: its piece and its plain bark */
 export function restLog(X, e, at, parent) {
   const log = LOGS[e.lv] && LOGS[e.lv][e.i]; if (!log) return null;
   const s0 = e.s0 || 0, s1 = e.s1 != null ? e.s1 : log.L, g = logPiece(X, log, s0, s1, null);
-  g.position.set(at.x, F + at.y, at.z); g.rotation.y = at.yaw || 0; g.rotation.x = ((e.i * 47 + e.lv * 13) % 360) * Math.PI / 180;
+  g.position.set(at.x, F + at.y, at.z); g.rotation.order = 'YXZ'; g.rotation.y = at.yaw || 0; g.rotation.x = ((e.i * 47 + e.lv * 13) % 360) * Math.PI / 180;
   parent.add(g); return g;
 }
 

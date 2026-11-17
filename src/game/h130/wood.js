@@ -210,7 +210,7 @@ export const WOOD_ACT = {
       if (out[1] - out[0] > 0.05) {
         const g = logPiece(X, log, out[0], out[1], skin); root.add(g); g.position.set(xOf((out[0] + out[1]) / 2), yL(), zOf((out[0] + out[1]) / 2)); orient(g, alpha + S.rot * D2R);
         const n = WS.out.length, sp = pileSpot('out', n, 0.52);
-        await tween(g, [sp.x, F + sp.y, sp.z], 1.0, 2.5);
+        await tween(g, [sp.x, F + sp.y, sp.z, sp.yaw], 1.0, 2.5);
         X.props.remove(g); WS.out.push({ lv, i: cur, s0: out[0], s1: out[1], end: 1 }); woodWorld(X);
       }
       A.keep = keep; A.chalk = null; skinDraw(); pieceMesh();
@@ -237,7 +237,7 @@ export const WOOD_ACT = {
       else if (to === 'out' && r.ok && !r.waste) { X.quick(pAt, QUICK.found, piece); V.knock(1.3); }
       else if (to === 'out') { WK.waste++; if (!wormy(log)) WK.wrong++; X.line(wormy(log) ? WLINES.wholeOut : WLINES.goodOut, 3400); }
       const side = to === 'clean' ? 'clean' : 'out', list = to === 'clean' ? WS.clean : WS.out, sp = pileSpot(side, list.length, 0.52);
-      await tween(piece, [sp.x, F + sp.y, sp.z], 1.0, 2);
+      await tween(piece, [sp.x, F + sp.y, sp.z, sp.yaw], 1.0, 2);
       X.props.remove(piece); piece = null;
       list.push(e); WK.order.shift(); if (to === 'clean') WK.now.push(e); woodWorld(X); X.save();
       if (to === 'clean' && r.flag === 'wood.worm') await wormFound(e);
@@ -246,7 +246,7 @@ export const WOOD_ACT = {
     // ── a worm in the clean pile: the second kohen splits it, the worm is seen (−20); the split log by the rejects; the pile back
     async function wormFound(e) {
       const n = WS.clean.indexOf(e), sp = pileSpot('clean', Math.max(0, n), 0.52), at = { x: sp.x, y: F + sp.y + 0.5, z: sp.z };
-      if (second) { gang.setRole(second, 'walk'); await Promise.race([gang.walkTo(second, sp.x - 1.4, sp.z + 1.1, 3), X.wait(3)]); gang.setRole(second, 'hammer', { fx: sp.x, fz: sp.z }); }
+      if (second) { gang.setRole(second, 'walk'); await Promise.race([gang.walkTo(second, W5.clean[0] - 1.4, sp.z, 3), X.wait(3)]); gang.setRole(second, 'hammer', { fx: sp.x, fz: sp.z }); }
       await X.wait(1.0);
       V.crack(); X.shake(0.12, 0.2); X.dust(at.x, at.y, at.z, 16, 3);
       const p = Mo.mark('wood.worm', m.id, [+sp.x.toFixed(2), +sp.z.toFixed(2)], WS.split.length); WK.dmg++;
@@ -278,7 +278,7 @@ export const WOOD_ACT = {
       if (clean && second) {
         // the kohen in charge takes the clean wood toward the altar's pile (the chamber's door, on the way to the altar)
         const top = pileSpot('clean', Math.max(0, WS.clean.length - 1), 0.52);
-        gang.setRole(second, 'walk'); await Promise.race([gang.walkTo(second, top.x - 1.2, top.z + 1.0, 3), X.wait(2.6)]);
+        gang.setRole(second, 'walk'); await Promise.race([gang.walkTo(second, W5.clean[0] - 1.2, top.z + 1.0, 3), X.wait(2.6)]);
         try { const AC = X.actors(); AC.setItem(second.a, 'log'); AC.pose(second.a, 'carry'); } catch (e) { /* */ }
         X.line(WLINES.carry, 3600);
         gang.walkTo(second, DOOR[0], DOOR[1] - 1.5, 2.2);
@@ -293,7 +293,7 @@ export const WOOD_ACT = {
       if (tw) {
         tw.t += dt; const u = Math.min(1, tw.t / tw.d), k = ease(u);
         if (tw.k === 'arrive') { const to = [xOf(log.L / 2), yL(), zOf(log.L / 2)]; piece.position.set(lerp(tw.from[0], to[0], k), lerp(tw.from[1], to[1], k) + Math.sin(u * Math.PI) * 0.5, lerp(tw.from[2], to[2], k)); orient(piece, alpha + (S.rot + (1 - k) * 300) * D2R); }
-        else { const g = tw.g; g.position.set(lerp(tw.from[0], tw.to[0], k), lerp(tw.from[1], tw.to[1], k) + Math.sin(u * Math.PI) * 0.6, lerp(tw.from[2], tw.to[2], k)); g.rotation.x = tw.rx0 + k * tw.turns * Math.PI * 2; g.rotation.y = lerp(tw.ry0, 0, k); }
+        else { const g = tw.g; g.position.set(lerp(tw.from[0], tw.to[0], k), lerp(tw.from[1], tw.to[1], k) + Math.sin(u * Math.PI) * 0.6, lerp(tw.from[2], tw.to[2], k)); g.rotation.x = tw.rx0 + k * tw.turns * Math.PI * 2; g.rotation.y = lerp(tw.ry0, tw.to[3] || 0, k); }
         if (u >= 1) { A.tw = null; if (tw.k === 'arrive') { A.phase = 'look'; A.busy = 0; place(); A.hintK = null; A.hintN = -1; lineFor(); hintNext(true); } else if (tw.res) tw.res(); }
         return;
       }

@@ -16,7 +16,7 @@ test('book s08: every row of the spec\'s table is there, frozen, named by its ow
   assert.equal(S.stage, 8); assert.equal(S.name, 'יסוד המזבח');
   assert.ok(Object.isFrozen(S) && Object.isFrozen(S.pit) && Object.isFrozen(S.entries) && Object.isFrozen(S.pit.entries));
   for (const id of ['altar', 'stake:NW', 'stake:NE', 'stake:SE', 'stake:SW', 'frame:N', 'frame:S', 'frame:W', 'frame:E', 'yesod:N', 'yesod:W', 'yesod:S1', 'yesod:E1', 'yesod:body',
-    'wood:E', 'wood:S', 'wood:joint', 'reed1', 'reed2', 'section1', 'section2', 'section3', 'section3:corner', 'fire', 'pile', 'stand:frame', 'stand:witness', 'stand:pour', 'stand:south', 'stand:pit']) assert.ok(by[id], id);
+    'wood:E', 'wood:S', 'wood:joint', 'reed1', 'reed2', 'section1', 'section2', 'section3', 'fire', 'pile', 'stand:frame', 'stand:witness', 'stand:pour', 'stand:south', 'stand:pit']) assert.ok(by[id], id);
   for (const e of S.entries) { const { k, r } = cellOf(e.x, e.z); assert.equal(e.cell, nameOf(k, r), e.id); assert.equal(e.y, 16, e.id); }
   // the spec's cells where its numbers stand as the world has them
   assert.equal(by.altar.cell, 'יג־8'); assert.equal(by['stake:NW'].cell, 'יד־7'); assert.equal(by['stake:NE'].cell, 'יב־7'); assert.equal(by['stake:SE'].cell, 'יב־8'); assert.equal(by['stake:SW'].cell, 'יד־8');
@@ -50,15 +50,24 @@ test('book s08: the timbers meet in the south-east corner; the reeds stand on th
   assert.ok(inside(S.wood.joint, S.wood.S) && Math.abs(S.wood.joint[0] - S.wood.E[0]) <= 1 && Math.abs(S.wood.joint[1] - S.wood.E[3]) <= 1);
   assert.deepEqual([...S.wood.joint], [-22.5, 12]);
   assert.deepEqual(S.reeds.map((r) => [...r]), LIBATION_BOWLS.holes.map(([x, , z]) => [x, z]));
-  for (const r of S.reeds) { assert.ok(inside(r, S.yesod.W) || inside(r, S.yesod.S1)); assert.ok(!inside(r, S.wood.S)); assert.ok(inside(r, [S.sections[3][0], S.sections[3][1], S.sections.corner3[2], S.sections.corner3[3]])); }
+  for (const r of S.reeds) { assert.ok(inside(r, S.yesod.W) || inside(r, S.yesod.S1)); assert.ok(!inside(r, S.wood.S)); assert.ok(inside(r, S.sections[3])); }
 });
 
-test('book s08: the sections inside the poured area, apart; level 3 along the south timber with the corner amah', () => {
-  const Y = Object.values(S.yesod), inYes = (b) => { for (let x = b[0] + 0.25; x < b[2]; x += 0.5) for (let z = b[1] + 0.25; z < b[3]; z += 0.5) if (!Y.some((a) => inside([x, z], a))) return false; return true; };
-  for (const k of ['1', '2', '3', 'corner3']) assert.ok(inYes(S.sections[k]), k);
-  assert.equal(overlap(S.sections[1], S.sections[2]), 0); assert.equal(overlap(S.sections[2], S.sections[3]), 0);
-  assert.equal(S.sections[3][3], S.wood.S[1]);   // (its south edge against the south timber)
-  assert.equal(S.sections[1][1], S.altar[1]);    // (level 1 in the north, from the altar's north edge)
+test('book s08: the sections are the pour sample\'s segment (12 × 8) in the poured area, apart; level 3 holds the reeds and the south timber', async () => {
+  const { W, D } = await import('../src/game/h131/sim.js');
+  const Y = Object.values(S.yesod), wood = [S.wood.E, S.wood.S];
+  const cells = (b, f) => { for (let x = b[0] + 0.25; x < b[2]; x += 0.5) for (let z = b[1] + 0.25; z < b[3]; z += 0.5) if (!f([x, z])) return false; return true; };
+  for (const k of ['1', '2', '3']) {
+    const b = S.sections[k]; assert.equal(b[2] - b[0], W, k); assert.equal(b[3] - b[1], D, k);
+    assert.ok(cells(b, (p) => Y.some((a) => inside(p, a)) || (k === '3' && inside(p, S.wood.S))), k);   // (yesod; in 3 also the timber)
+    assert.ok(cells(b, (p) => !inside(p, S.wood.E)), k);
+  }
+  assert.equal(overlap(S.sections[1], S.sections[2]), 0); assert.equal(overlap(S.sections[2], S.sections[3]), 0); assert.equal(overlap(S.sections[1], S.sections[3]), 0);
+  assert.equal(S.sections[1][1], S.altar[1]); assert.equal(S.near[1], 'N');    // (level 1 in the north: its near board the frame's north timber)
+  assert.equal(S.sections[2][1], S.sections[1][3]); assert.equal(S.near[2], 'N');   // (level 2 behind it, in the middle)
+  assert.equal(S.sections[3][3], S.altar[3]); assert.equal(S.sections[3][0], S.altar[0]); assert.equal(S.near[3], 'S');   // (the south-west corner)
+  assert.ok(overlap(S.sections[3], S.wood.S) > 0);
+  void wood;
 });
 
 test('book s08: the fire, the pile and the stands are on the free floor — off the altar, off the slaughter place\'s rings, off the Ulam\'s steps', () => {
@@ -77,7 +86,7 @@ test('book s08: the fire, the pile and the stands are on the free floor — off 
 test('book s08: the pit\'s sheet sits on the one world grid at Ein Kerem, written once; its places local to it', () => {
   const P = S.pit, O = P.origin;
   assert.equal(O.place, 'עין כרם'); assert.equal(O.status, 'זיהוי מוצע, לא ודאי');
-  assert.ok(O.x < -12000 && O.x > -16000 && O.z > 1500 && O.z < 3500, 'about 7 km west and 1 km south of the Mount');
+  assert.deepEqual([O.x, O.z], [-13900, 2200], 'exactly the spec\'s centre of the pit (shlav-08-he.md)');
   const ids = P.entries.map((e) => e.id);
   for (const id of ['pit', 'stone1', 'stone2', 'stone3.1', 'stone3.2', 'stone3.3', 'cradle', 'rejects', 'stand']) assert.ok(ids.includes(id), id);
   for (const e of P.entries) {

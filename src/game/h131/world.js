@@ -48,6 +48,7 @@ export function mats(X) {
   P0.M.y8white = std('#FFFFFF', { roughness: 0.6, emissive: '#3A3730' });     // the yesod whitened
   P0.M.y8hearth = std('#7C7268');
   P0.M.y8ash = std('#4A4440');
+  P0.M.y8reed = std('#B7A76A', { roughness: 0.7 });   // (a reed: the hole's keeper)
   return P0.M;
 }
 /** a box from x0..x1, y0..y1, z0..z1 */
@@ -139,7 +140,7 @@ function siteBuild(X) {
 function siteSync(X, M) {
   const S = SH8.site; if (!S || !M) return;
   const st = M.st, has = (id) => M.isDone(id);
-  const key = [st.done.join(','), st.crews, st.marks.length].join('|'); if (key === S.key) return; S.key = key;
+  const key = [st.done.join(','), st.crews, st.marks.length, st.pour && st.pour.prep, POUR3D.act].join('|'); if (key === S.key) return; S.key = key;
   const T = X.THREE, Mt = mats(X), F = S8.floor, Y1 = S8.top;
   for (const g of [S.pile, S.drawn]) while (g.children.length) g.remove(g.children[0]);
   // the pile from the pit: the stones he brought up (1, 1, 3) until the pour takes them into the frame
@@ -154,8 +155,15 @@ function siteSync(X, M) {
     box(X, Mt.y8wood, A[0] - t, F, A[1], A[0], S8.frame.y1, A[3], S.drawn);
     box(X, Mt.y8wood, A[2], F, A[1], A[2] + t, S8.frame.y1, A[3], S.drawn);
   }
-  // the timbers that keep the place with no yesod empty: from the pour on, until the finale pulls them
-  if ((has('pour1') || has('frame3')) && !finale) for (const k of ['E', 'S']) { const b = S8.wood[k]; box(X, Mt.y8woodD, b[0], F, b[1], b[2], Y1, b[3], S.drawn); }
+  // the timbers that keep the place with no yesod empty, their joint's peg and the two reeds: from the pour's preparation (pour1's first
+  // step: st.pour.prep) on, until the finale pulls the timbers; the reeds stay as the holes (the pour act draws its own reeds while it
+  // plays level 3: POUR3D.act)
+  const prep = has('pour1') || (st.pour && st.pour.prep) || st.crews;
+  if (prep && !finale) {
+    for (const k of ['E', 'S']) { const b = S8.wood[k]; box(X, Mt.y8woodD, b[0], F, b[1], b[2], Y1, b[3], S.drawn); }
+    const J = S8.wood.joint, pg = new T.Mesh(new T.CylinderGeometry(0.16, 0.2, 0.9, 8), Mt.y8wood); pg.position.set(J[0], Y1 + 0.05, J[1]); pg.castShadow = true; S.drawn.add(pg);
+  }
+  if (prep && POUR3D.act !== 3) for (const [x, z] of S8.reeds) { const r = new T.Mesh(new T.CylinderGeometry(0.16, 0.16, 1.7, 10), Mt.y8reed); r.position.set(x, F + 0.85, z); r.castShadow = true; S.drawn.add(r); }
   // the mix: his sections, then the crews' rest (after the third), white after the finale (the pour lane draws its own while it plays)
   const mat = finale ? Mt.y8white : Mt.y8mix;
   const whole = has('pour3') || st.crews;

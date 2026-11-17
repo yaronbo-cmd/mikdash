@@ -1088,8 +1088,14 @@ const S08 = {
   // the two timbers that keep the place with no yesod empty (רמב"ם ב, טז: "גוף של עץ או אבן"; their length המחשה, see above)
   wood: { E: [-23, -17.5, -22, 11.5], S: [-52, 11.5, -22, 12.5], joint: [-22.5, 12] },
   reeds: [[-53.55, 12], [-52.5, 12]],
-  // the player's three sections (המחשה); level 3 with the south-west corner's amah to z 12.5 (x −54 … −52: the west strip and the south amah)
-  sections: { 1: [-43, -19.5, -33, -9], 2: [-43, -9, -33, 1.5], 3: [-54, 1.5, -43, 11.5], corner3: [-54, 11.5, -52, 12.5] },
+  // the player's three sections (המחשה). Each is the approved pour sample's segment as it is — 12 × 8 amot inside its boards
+  // (samples/yetzika/sim.js: its grid and its tuning are kept, so the section takes its size; the spec's 10 × 10.5 / 11 × 10 were
+  // illustration) — set where the spec puts it: 1 in the north's middle, its near board the frame's north timber; 2 south of it, in
+  // the middle; 3 in the south-west corner, its near board the frame's south timber, with the south amah (z 11.5 … 12.5) inside it: the
+  // two reeds in its west end (x −54 … −52) and the south timber along the rest (x −52 … −42). `near`: the side of the near board, where
+  // the cauldron's crew stand and the spout comes over (N: the player north of it, facing south; S: south of it, facing north)
+  sections: { 1: [-44, -19.5, -32, -11.5], 2: [-44, -11.5, -32, -3.5], 3: [-54, 4.5, -42, 12.5] },
+  near: { 1: 'N', 2: 'N', 3: 'S' },
   fire: [-32, -31.5], pile: [-44, -31.5],
   stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },
   // the stage's cameras on the Mount ([eye], [aim]): the opening from high down to the altar's site (rule 3); the site from the frame's
@@ -1102,10 +1108,9 @@ const S08 = {
   // ── the pit at Beit Kerem (מידות ג, ד: "ממקום שחופרין למטה מהבתולה"): the sheet on the one world grid ──
   pit: {
     // the pit's middle in the world (amot: x east, z south, the Mount's origin): Ein Kerem — "זיהוי מוצע, לא ודאי" (the owner,
-    // 17.11). From the coordinates of Ein Kerem's village (31.768 N, 35.1605 E) and the Dome of the Rock (31.778 N, 35.2354 E):
-    // 7.09 km west, 1.11 km south, an amah 0.48 m. The coordinates are as known, not fetched (no map service reachable here): check
-    // against OpenStreetMap. The spec's first estimate was (−13,900, +2,200).
-    origin: { x: -14770, z: 2310, y: 0, place: 'עין כרם', status: 'זיהוי מוצע, לא ודאי' },
+    // 17.11). Exactly the spec's centre (shlav-08-he.md, "הכתובת העולמית של אמצע הבור": about −13,900, +2,200 — about 7 km west and
+    // 1 km south of the Mount); the sheet is derived from it. Not yet checked against OpenStreetMap (no map service reachable here).
+    origin: { x: -13900, z: 2200, y: 0, place: 'עין כרם', status: 'זיהוי מוצע, לא ודאי' },
     sheet: { name: 'גיליון הבקעה', n: 4, cell: 25 },
     // the pit: its middle, diameter, depth, the dark top layer's depth (below it the virgin soil)
     hole: { at: [0, 0], d: 16, depth: 4, dark: 2 },
@@ -1114,7 +1119,7 @@ const S08 = {
     // the ground round the pit (המחשה): the valley's floor patch drawn round the sheet — its radius, the flat floor's radius round the
     // pit, how far out the hillsides rise and how high (the valley lies about 140 m under the Mount: the hills round it rise that much)
     ground: { R: 3000, flat: 60, rise: 1400, top: 260 },
-    // the opening view: above (0, 30), facing the Mount on the horizon (it lies east-north-east: 14,770 east and 2,310 north)
+    // the opening view: above (0, 34), facing the Mount on the horizon (it lies east-north-east: 13,900 east and 2,200 north)
     cam: { open: [[-12, 13, 34], [6, 2, -16]], play: [[0, 11, 21], [0, -1, 0]] },
   },
 };
@@ -1139,8 +1144,7 @@ function s08() {
   e2('wood:S', 'timber', mid(C.wood.S), 'קורת העץ הדרומית (שם אין יסוד)', 'רמב"ם ב, טז (אורכה המחשה)');
   e2('wood:joint', 'joint', C.wood.joint, 'המפגש של שתי הקורות בקרן הדרומית מזרחית', ILL);
   C.reeds.forEach((p, i) => e2('reed' + (i + 1), 'reed', p, `הקנה ${i ? 'השני' : 'הראשון'}: כאן יישאר נקב`, 'מידות ג, ב (המקום המדויק המחשה)'));
-  for (const k of ['1', '2', '3']) e2('section' + k, 'section', mid(C.sections[k]), `מקטע היציקה של רמה ${k}`, ILL);
-  e2('section3:corner', 'section', mid(C.sections.corner3), 'אמת הקרן שבמקטע של רמה 3', ILL);
+  for (const k of ['1', '2', '3']) e2('section' + k, 'section', mid(C.sections[k]), `מקטע היציקה של רמה ${k}` + (k === '3' ? ', עם הקנים וקורת העץ הדרומית' : ''), ILL, { extra: { near: C.near[k] } });
   e2('fire', 'hearth', C.fire, 'האש והקדרה', ILL);
   e2('pile', 'pile', C.pile, 'ערימת האבנים מהבור', ILL);
   const SL = { frame: 'עמדת השחקן במלבן', witness: 'עמדת העד', pour: 'עמדת השחקן ביציקה, רמות 1 ו-2', south: 'עמדת השחקן ביציקה, רמה 3 ובסיום', pit: 'כאן יוצאים אל הבור בבית כרם (קפיצת מצלמה)' };

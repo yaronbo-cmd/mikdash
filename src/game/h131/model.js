@@ -6,7 +6,7 @@
  *   PLAN · KINDS · freshH131 · createH131(save) · fromOld(oldDone)   the free-choice face of the director (as h129's and h130's):
  *     the pit and the frame free between them, each in order; the pour after both, in order; the finale after the pour.
  *   The save (G.h131): { v, cur, done, res, plays, best, i, intro, film, crews, marks: [{ f, work, at, n }],
- *     pit: { work, out: [] }, frame: { work }, pour: { work, sections: {} }, finale: { work } }
+ *     pit: { work, out: [] }, frame: { work }, pour: { work, sections: {}, prep }, finale: { work } }
  *     · `<kind>.work` is the act's own blob while a work is open (M.keep(kind, blob) after every real step; M.workOf(kind) on begin): a
  *       reload in the middle of a work begins it again at the step reached, with what was placed still placed. The director clears it
  *       when the work ends (M.done).
@@ -85,7 +85,7 @@ export const NEEDS = Object.freeze({
 });
 export function freshH131() {
   return { v: 1, cur: null, done: [], res: {}, plays: {}, best: 0, i: 0, intro: 0, film: 0, crews: 0,
-    marks: [], pit: { work: null, out: [] }, frame: { work: null }, pour: { work: null, sections: {} }, finale: { work: null } };
+    marks: [], pit: { work: null, out: [] }, frame: { work: null }, pour: { work: null, sections: {}, prep: 0 }, finale: { work: null } };
 }
 export function createH131(save) {
   const st = save && save.v === 1 ? save : freshH131();

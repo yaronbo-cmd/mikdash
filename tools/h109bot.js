@@ -36,7 +36,8 @@
   // instanced and merged meshes whose own raycast is off or stale are named here too) ── /h130 ──
   function galBoxes() {
     try {
-      const T = window.__T, cam = T.camera, R = new T.Raycaster(), out = [], B = new T.Box3(), P = new T.Vector3();
+      const T = window.__T, cam = T.camera, R = new T.Raycaster(), out = [], P = cam.position.clone();
+      let B = null; T.scene.traverse((o) => { if (!B && o.isMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); B = new o.geometry.boundingBox.constructor(); } });
       const shown = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
       const rays = [-0.2, -0.5, -0.8].map((ny) => { R.setFromCamera({ x: 0, y: ny }, cam); return R.ray.clone(); });
       T.scene.traverse((o) => {

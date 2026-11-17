@@ -1,8 +1,9 @@
 {
-  "id": "2026-11-17 b: stage 07 alone from its opening to its end card, touch and mouse (build 129)",
+  "id": "2026-11-17 c: stage 07 by mouse (build 129's final code) and the new stage 05 by touch and by mouse (build 130)",
   "lanes": 2,
   "jobs": [
-    { "name": "s07-touch", "script": "tools/probes/s07-stage.json", "w": 960, "h": 600, "maxMin": 120 },
-    { "name": "s07-mouse", "script": "tools/probes/s07-stage.json", "mouse": true, "w": 1600, "h": 900, "maxMin": 120 }
+    { "name": "s07-mouse", "script": "tools/probes/s07-stage.json", "mouse": true, "w": 1600, "h": 900, "maxMin": 90 },
+    { "name": "s05-touch", "script": "tools/probes/s05-stage.json", "w": 960, "h": 600, "maxMin": 90 },
+    { "name": "s05-mouse", "script": "tools/probes/s05-stage.json", "mouse": true, "w": 1600, "h": 900, "maxMin": 90 }
   ]
 }

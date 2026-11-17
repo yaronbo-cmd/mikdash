@@ -136,7 +136,7 @@ export const FINALE_ACT = {
       wtex.needsUpdate = true;
     }
     // the stream from the jar's mouth to the yesod
-    const stream = new T.Mesh(new T.CylinderGeometry(0.07, 0.11, 1, 6, 1, true), Mt.y8water); stream.visible = false; root.add(stream);
+    const stream = new T.Mesh(new T.CylinderGeometry(0.12, 0.2, 1, 8, 1, true), Mt.y8water); stream.visible = false; root.add(stream);
     // ── the figures: the frame men (down), the pullers at the timber's end and the man at its other side (mouse), the man with the
     // cloth, the kohen with the jar
     const crew = [];

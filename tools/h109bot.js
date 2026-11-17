@@ -1336,8 +1336,15 @@
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
     // ── h129 ── (G12: the Golah's works too — a clean golah3 needs more than 240 s of its own clock) ── /h129 ──
     // ── h130 ── (the new stage 05 the same, every work of it: the gallery's tests, the wood and the light with stills ran past the wall's) ── /h130 ──
-    const LIM = H().site === 'yesod' ? 150000 /* ── h131 ── (a stuck work of stage 08 costs 150 s, not 600) ── /h131 ── */ : /^(bond|capstan|golah|pour)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim' || H().site === 'yesod' /* ── h131 ── ── /h131 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
-    if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    const LIM = /^(bond|capstan|golah|pour)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim' || H().site === 'yesod' /* ── h131 ── ── /h131 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    // ── h131 ── (stage 08: stuck means no new event and no change of the work's state for 90 s — not the work's total time: on the PC a
+    // clean pit3 runs past 150 s and was cut in its last hoist) ── /h131 ──
+    if (H().site === 'yesod' && S.act) {
+      const a8 = S.act, r2 = (v) => (v == null ? '' : (+v).toFixed(2));
+      const sig = [S.mission, (a8.ev || []).join(','), a8.phase, a8.step, a8.shot, a8.busy, a8.out, a8.left, a8.lever, a8.stonesIn, r2(a8.filled), r2(a8.cover), a8.taps, a8.result].join('|');
+      if (sig !== B.sig8) { B.sig8 = sig; B.sig8T = now(); }
+      if (now() - (B.sig8T || now()) > 90000) { B.sig8T = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' (no change for 90 s) ' + JSON.stringify(S.act).slice(0, 1400) }; }
+    } else if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     // ── h131 ── (stage 08: a stand-in act of a part not yet coded finishes by itself; the lanes' players are play.h8pit, h8frame, h8pour,
     // h8finale — each lane adds its own) ── /h131 ──

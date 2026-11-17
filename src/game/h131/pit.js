@@ -59,8 +59,9 @@ const K = Object.freeze({ TAP: 14, TIP: 48, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
 const SHOT = Object.freeze({
   work: { back: 11, up: 13, turn: -0.85, mid: 0.45, aimY: 0.6, fov: 46, k3: 1.1 },   // (look round 131: nearer and lower — the men a fifth of the frame)
   lever: { D: 12.5, H: 10, fov: 48, mid: 2.1, aimY: 1.0 },   // (look round 131: at 20/18.5 the men fell to a tenth; the near rim still clear of the floor)   // (b131 part 3: farther back — at 13.5/16.5 the kohen stood large at the right; the mid a little toward him)
-  rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
+  rejects: { back: 9, up: 2.6, on: 12, aimY: 1.2, fov: 40, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
+  done: { eye: [-4, 6, 16], aim: [-9.5, 0.5, 0], fov: 50 },
   hoist: { eye: [8, 10.5, 13], aim: [3, -0.2, -0.8], fov: 50 },   // (b131 part 3: from farther back along the opening's look, toward the low hills to the north-east: the heap in the lower frame, the skyline above)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
@@ -192,8 +193,11 @@ function pitAct(m, X) {
     const c = lv === 3 ? clusterC() : s.at, kp = KOH(s), S = SHOT.work, k = lv === 3 ? S.k3 : 1;
     // (from behind him: back along the line from the stone to him, turned toward the south so he stands left of the stone)
     let bx = kp[0] - c[0], bz = kp[1] - c[1]; const n = Math.hypot(bx, bz) || 1; bx /= n; bz /= n;
-    const ca = Math.cos(S.turn), sa = Math.sin(S.turn), ex = bx * ca - bz * sa, ez = bx * sa + bz * ca;
     const mid = [c[0] + (kp[0] - c[0]) * S.mid, c[1] + (kp[1] - c[1]) * S.mid];
+    // (look round 131: the turn toward the side away from the cradle — nearer, its carriers stood cut at the frame's edge)
+    const turnOf = (t) => { const ca = Math.cos(t), sa = Math.sin(t); return [bx * ca - bz * sa, bx * sa + bz * ca]; };
+    const far = (e) => Math.hypot(mid[0] + e[0] * S.back * k - P.cradle[0], mid[1] + e[1] * S.back * k - P.cradle[1]);
+    let [ex, ez] = turnOf(S.turn); { const o = turnOf(-S.turn); if (far(o) > far([ex, ez]) + 2) [ex, ez] = o; }
     X.shot(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
     fovT = S.fov; shotK = 'work'; carriersFit(d + 0.2);
   }
@@ -484,7 +488,9 @@ function pitAct(m, X) {
   function finish() {
     if (A.phase === 'done') return; A.phase = 'done'; A.busy = 1; X.hand(null);
     // (the work's last picture before its film: the opening's composition — the pit, the kohen in it, the crew at the cradle, the row)
-    { const C = P.cam.open; X.shot(A3(...C[0]), A3(...C[1]), 0.9); fovT = SHOT.open.fov; shotK = 'done'; for (const r of ropes) r.show(false); }
+    // (he climbs out to the north-west rim, where the film keeps him; the eye from the south: the cradle, the row, the carriers, him beyond)
+    { try { if (X.hero.rope) X.hero.rope(null); const st = W3(KOH_FILM[0], 0, KOH_FILM[1]), c = W3(P.cradle[0], 0, P.cradle[1]); X.hero.setPos(st.x, st.z, Math.atan2(c.x - st.x, c.z - st.z)); } catch (e) { /* */ }
+      const D = SHOT.done; X.shot(A3(...D.eye), A3(...D.aim), 0.9); fovT = D.fov; shotK = 'done'; for (const r of ropes) r.show(false); root.remove(lever); }
     const pts = pitPts(W), q = qOf(pts), clean = pitClean(W), s0 = W.stones.filter((s) => s.out);
     const res = { stars: starsOf(q), q, pts, perfect: clean, flags: { 'pit.chip': W.dmg, slip: W.mis, out: s0.length },
       at: (() => { const c = W3(P.cradle[0], 1.2, P.cradle[1]); return c; })(), film: filmOf() };
@@ -499,7 +505,7 @@ function pitAct(m, X) {
     const c = P.cradle, r1 = P.road[1], r2 = P.road[2];
     const shots = [
       [A3(c[0] - 7.5, 5.5, c[1] + 3.5), A3(c[0] + 0.5, 0.9, c[1] + 2.5), 3.0],
-      [A3(r1[0] - 6, 5, r1[1] + 5.5), A3(r1[0] + 2, 0.9, r1[1] - 0.5), 3.6],
+      [A3(r1[0] - 6, 5, r1[1] + 5.5), A3(r1[0] + 4, 0.9, r1[1] + 1), 3.6],
     ];
     return { shots, secs: 6.6, own: () => [...carr].filter(Boolean).map((w) => w.a), after: () => clearAll() };
   }
@@ -557,10 +563,10 @@ function pitAct(m, X) {
         tweenStep(dt); carriersWork();
         if (A.phase === 'work' && !A.busy) liftStep(dt);
         else if (A.phase === 'work') pitStep(W, dt, null, false);
-        kohenStep(dt);
+        if (A.phase !== 'done') kohenStep(dt);
         W.stones.forEach((s, i) => { const g = meshOf(i); if (g && !s.out && !g.userData.moving && !s.gone) stonePose(X, g, s, L.st === 'seat' && L.i === i ? L.side : null); });
         if (L.st === 'lie' && A.fl == null) { const t = restTip(cur()); L.tip[0] += (t[0] - L.tip[0]) * Math.min(1, dt * 4); L.tip[1] += (t[1] - L.tip[1]) * Math.min(1, dt * 4); }
-        leverDraw();
+        if (A.phase !== 'done') leverDraw();
       } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h131] pit', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
     },
     down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },

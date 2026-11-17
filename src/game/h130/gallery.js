@@ -29,7 +29,7 @@ const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 /** the opening's own beats, seconds (build 130 review: about 12 in all, besides his line and his tap): the first look, the crowd in
  *  (at most), the mix, the same again, the look up to the wall */
 const OPEN = Object.freeze({ LOOK: 1.0, IN: 2.5, MIX: 1.8, SAME: 1.6, UP: 2.6 });
-const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6 });   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6, VIEW_NEAR: 3, KEEP: 8 });   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
@@ -295,9 +295,12 @@ export const GALLERY = {
             const hidHere = below.lost.some((q) => q.w === wi && q.t === ti), eyeV = hidHere ? sideEye(eye0, torchP(ti), below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => cols[q.col])) : sightEye(eye, torchP(ti), cols);
             if (j > 0) { const d = Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]); X.shot(eyeV, eyeAim(eyeV, torchP(ti)), d / 14); await Promise.race([SH130.crew.walkTo(bearer, t[0], t[1], 14), wait(d / 14 + 1)]); }
             else { X.shot(eyeV, eyeAim(eyeV, torchP(ti)), j === 0 && wi === 0 ? 0.01 : 0.6); await wait(0.7); }
+            // (build 130, the PC run: his walk to a far stop is cut by its wait, and the next spectator's first view then looked at an empty
+            //  stop — on the long lens the far wall's shaded back filled the frame. Wherever the walk did not bring him, he stands there now)
+            if (Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]) > 0.6) { const a = bearer.a; a.path = null; if (a.res) { const r = a.res; a.res = null; r(true); } bearerAt(t[0], t[1], w[0], w[1]); }
             SH130.crew.face(bearer, w[0], w[1]);
             const hid = below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => q.col);
-            A.view = { wi, ti, hid }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
+            A.view = { wi, ti, hid, ...viewCheck() }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
             if (hidHere) { X.shot(eye0, eyeAim(eye0, torchP(ti)), SEE.GLIDE); await wait(SEE.GLIDE + 0.2); }
             if (hid.length) { X.play('creak'); X.line(GLINES.gone, 1800); await blinkFor(hid, 1.8); } else await wait(0.9);
           }
@@ -369,6 +372,23 @@ export const GALLERY = {
       }
       return false;
     }
+    /** the view's own check (the bot fails a view that breaks it): the bearer's middle inside the frame, and nothing but a column he
+     *  placed within 3 amot of the eye on the frame's centre ray → { inFrame: 0|1, near: '' or what stands there } */
+    function viewCheck() {
+      const out = { inFrame: 0, near: '' };
+      try {
+        X.camera.updateMatrixWorld();
+        const v = new T.Vector3(bearer.a.x, GEO.FLOOR + SEE.MID, bearer.a.z).project(X.camera);
+        out.inFrame = Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1 ? 1 : 0;
+        const rc = new T.Raycaster(); rc.setFromCamera({ x: 0, y: 0 }, X.camera); rc.camera = X.camera; rc.near = 0; rc.far = SEE.VIEW_NEAR;
+        const rec = SH130.gal[side], colSet = new Set(); if (rec) for (const C of rec.cols) C.g.traverse((q) => colSet.add(q));
+        const list = []; X.scene.traverseVisible((o) => { if (o.isMesh && !o.isSkinnedMesh && !colSet.has(o) && shownMesh(o, new Set())) list.push(o); });
+        const hits = []; for (const o of list) { try { o.raycast(rc, hits); } catch (e) { /* */ } }
+        const h = hits.filter((q) => q.distance <= SEE.VIEW_NEAR).sort((p, q) => p.distance - q.distance)[0];
+        if (h) out.near = `${h.object.name || h.object.type} d${h.distance.toFixed(1)}`;
+      } catch (e) { /* */ }
+      return out;
+    }
     function sightEye(eye, tp, cols) {
       if (!sightBlocked(eye, tp)) return eye;
       const by = A.sightBy || '';
@@ -378,6 +398,13 @@ export const GALLERY = {
         if (!sightBlocked(c, tp)) { ev(`sight ${sg * k * SEE.STEP} (${by})`); return c; }
       }
       return eye;
+    }
+    /** the ground the carts keep out of: the stand's (as the director's, 16 amot round) and the box of all spectators and torch stops */
+    function keepRects() {
+      const sp = standOf(m), r = [[sp.x - 16, sp.z - 16, sp.x + 16, sp.z + 16]];
+      const pts = L.watch.concat(L.torch), xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
+      r.push([Math.min(...xs) - SEE.KEEP, Math.min(...zs) - SEE.KEEP, Math.max(...xs) + SEE.KEEP, Math.max(...zs) + SEE.KEEP]);
+      return r;
     }
     /** the eye moved across his line to the torch (along the wall), away from the hiding columns, until the line clears them by SIDE */
     function sideEye(eye, tp, as) {
@@ -535,6 +562,10 @@ export const GALLERY = {
         X.kohen(true);
         try { A.ta = [document.documentElement.style.touchAction, document.body.style.touchAction]; document.documentElement.style.touchAction = 'none'; document.body.style.touchAction = 'none'; } catch (e) { /* */ }
         home(0.01);
+        // (build 130, the PC run: an ox cart with its stone drove along the wall past a spectator's eye and filled his view from below —
+        //  the carts and the passing crews keep out of the stand's ground and of every spectator's lines to the torch, as the director
+        //  keeps them off an act's ground; a cart already inside fades)
+        try { if (X.stages && X.stages.keepOut) X.stages.keepOut(keepRects(), { walkOff: true }); } catch (e) { /* */ }
         begin2();
       },
       update(dt) {

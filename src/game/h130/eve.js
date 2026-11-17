@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35], PULL: 0.05,
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35], PULL: 0.05, CARD_MAX: 600,
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',
@@ -76,6 +76,34 @@ function cityPoints(X) {
   const pts = new T.Points(geo, new T.PointsMaterial({ size: 9, sizeAttenuation: false, map: glowTex(T), transparent: true, depthWrite: false, blending: T.AdditiveBlending, color: 0xFFC27A, fog: false }));
   pts.name = 'h130-eve-city'; pts.frustumCulled = false; pts.renderOrder = 4;
   return { pts, dists: U.map((p) => p[3]) };
+}
+
+/**
+ * ── build 130 ── the stage's end card, after the film: the court at night, readable — the menorah's four flames light it (the evening's
+ * own lamp at its head) — seen from the evening's descent (eve.cam.down), the player's kohen out of the frame (on the walk's camera he
+ * stood cut by the frame's foot over a dark flat court). All of it goes when the card does (its .jx-big leaves; ten minutes at most).
+ */
+export function cardWorld(X) {
+  const T = X.THREE, [mx, mz] = LT.menorah, C = EV.cam;
+  let E = null; try { E = X.pack && X.pack.time; if (E && E.setTime) E.setTime('night'); } catch (e) { E = null; }
+  const lamp = new T.PointLight(0xFFB060, EK.LAMP_I, EK.LAMP_D, EK.LAMP_K); lamp.position.set(mx, FLOOR + 51, mz); X.props.root.add(lamp);
+  try { lightSync(X, X.M && X.M.st); } catch (e) { /* */ }
+  // (the menorah's gold glows as at the evening: its metal mirrored the night and the column read black behind the card)
+  let g0 = null; try { const G = matsL(X).l30gold; if (G) { g0 = { e: G.emissive.getHex(), i: G.emissiveIntensity, m: G.metalness, r: G.roughness }; G.emissive.setHex(EK.GOLD[0]); G.emissiveIntensity = EK.GOLD[1]; G.metalness = EK.GOLD[2]; G.roughness = 0.45; G.needsUpdate = true; } } catch (e) { g0 = null; }
+  try { X.kohen(false); } catch (e) { /* */ }
+  X.shot(C.down[0], C.down[1], 0.01);
+  let gone = false;
+  const done = () => {
+    if (gone) return; gone = true;
+    try { if (lamp.parent) lamp.parent.remove(lamp); } catch (e) { /* */ }
+    try { const G = matsL(X).l30gold; if (G && g0) { G.emissive.setHex(g0.e); G.emissiveIntensity = g0.i; G.metalness = g0.m; G.roughness = g0.r; G.needsUpdate = true; } } catch (e) { /* */ }
+    try { if (E && E.restoreTime) E.restoreTime(); } catch (e) { /* */ }
+    try { X.kohen(true); } catch (e) { /* */ }
+  };
+  let seen = false; const t0 = Date.now();
+  const poll = () => { const on = !!document.querySelector('.jx-big.on'); if (on) seen = true; if ((seen && !on) || Date.now() - t0 > EK.CARD_MAX * 1000) { done(); return; } setTimeout(poll, 250); };
+  setTimeout(poll, 250);
+  return done;
 }
 
 export const EVE = {

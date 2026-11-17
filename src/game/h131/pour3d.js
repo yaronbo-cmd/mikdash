@@ -357,8 +357,17 @@ export function createPourView(X, lv, sim, o = {}) {
     aSPos.needsUpdate = true; aSCol.needsUpdate = true;
   }
   /** S: { phase, phaseT, seals, knockX, taps, teardownT, td (chunks), crewOn } from the act */
+  // rule 59: where the stream will land, always in sight (green; amber over the timber or a reed); rule 34: level 1's goals as faint
+  // shadows until the mix reaches them
+  const aimM = keep(new THREE.MeshBasicMaterial({ color: 0x4cd964, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }));
+  const aim = new THREE.Mesh(keep(new THREE.RingGeometry(0.26, 0.4, 28)), aimM); aim.rotation.x = -Math.PI / 2; aim.renderOrder = 6; aim.visible = false; G.add(aim);
+  const goalM = keep(new THREE.MeshBasicMaterial({ color: 0xfff2c8, transparent: true, opacity: 0.4, depthWrite: false, side: THREE.DoubleSide }));
+  const goals = lv === 1 ? L.targets.map((tg) => { const m = new THREE.Mesh(keep(new THREE.RingGeometry(tg.r * 0.75, tg.r, 32)), goalM); m.rotation.x = -Math.PI / 2; m.renderOrder = 5; m.visible = false; G.add(m); return { m, tg }; }) : [];
   function frame(dt, S) {
     V.time += dt; const time = V.time, ca = sim.cauldron, sp = sim.spout;
+    { const on = S.phase === 'pour' && !(ca.swapping > 0) && Number.isFinite(sp.lx); aim.visible = on;
+      if (on) { aim.position.set(sp.lx, surfaceAt(sp.lx, sp.lz) + 0.05, sp.lz); aimM.color.setHex(S.aimBad ? 0xffb020 : 0x4cd964); aimM.opacity = sp.q > 0.001 ? 0.45 : 0.85 + 0.12 * Math.sin(time * 5); }
+      for (let j = 0; j < goals.length; j++) { const g = goals[j], vis = (S.phase === 'pour' || S.phase === 'stones') && !(S.reached && S.reached[j]); g.m.visible = vis; if (vis) g.m.position.set(g.tg.x, surfaceAt(g.tg.x, g.tg.z) + 0.04, g.tg.z); } }
     // the seals' visuals (fade)
     FX.pulseT += dt; FX.pocketPulse = FX.pulseT < 1.7 ? Math.sin(Math.PI * FX.pulseT / 1.7) : 0;
     if (FX.glowOn) { let any = false; const d = dt / 1.4; for (let c = 0; c < N; c++) if (sealGlow[c] > 0) { sealGlow[c] = Math.max(0, sealGlow[c] - d); any = true; } FX.glowOn = any; }

@@ -150,7 +150,7 @@ export const FINALE_ACT = {
         if (MOUSE) { const far = k === 'S' ? [b[0] - 1.6, (b[1] + b[3]) / 2 + 1.2] : [(b[0] + b[2]) / 2 + 1.4, b[1] + 1.6]; const w = gang.add(far[0], far[1], { role: 'brace', fx: k === 'S' ? b[0] : (b[0] + b[2]) / 2, fz: k === 'S' ? (b[1] + b[3]) / 2 : b[1], crew: 2 }); if (w) { w.far = 1; crew.push(w); } }
       }
       if (step === 'white') { const w = gang.add(CL.x + 1.2, CL.z + 1.4, { role: 'kneel', fx: CL.x, fz: CL.z, crew: 1 }); if (w) crew.push(w); }
-      if (step === 'water') { try { X.hero.setPos(W8.jar[0], W8.jar[1] + 1.25, Math.PI); } catch (e) { /* */ } }
+      if (step === 'water') { try { const kx = W8.jar[0] + 1.2, kz = W8.jar[1] + 0.8; X.hero.setPos(kx, kz, Math.atan2(W8.jar[0] - kx, W8.jar[1] - 0.3 - kz)); } catch (e) { /* (the kohen beside the jar, at the picture's side: the water's run is the subject) */ } }
     }
     // ── the steps
     async function down() {

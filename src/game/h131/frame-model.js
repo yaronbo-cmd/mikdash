@@ -125,7 +125,7 @@ export function step(S, dt) {
             const far = chain.sort((a, b) => Math.hypot(S.P[b].x - p.x, S.P[b].z - p.z) - Math.hypot(S.P[a].x - p.x, S.P[a].z - p.z))[0];
             const g = group(S, far); for (const j of g) S.P[j].seat = 0;
             const joined = g.length > 1;
-            if (S.lv === 2 && joined) S.wrong++;
+            if (S.lv === 2 && joined && !d.popped) { S.wrong++; d.popped = 1; }   // (one pull is one mistake, however many corners give way)
             out.pop = [S.P[far].k]; out.joined = joined; S.popT = 0; S.n++;
           }
         }

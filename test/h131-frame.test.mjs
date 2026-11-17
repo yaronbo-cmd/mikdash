@@ -58,7 +58,7 @@ test('frame level 2: four loose boards, each end to its stake, two ends on a sta
   const T = FM.fresh(2); for (const [i, k] of order.slice(0, 4)) play(T, i, at(k));
   assert.equal(T.J.length, 1);
   const r = play(T, 3, [-22, 30], 4); // (the east board's south end pulled 18 amot past its stake: NE is dragged off)
-  assert.ok(r.out.some((q) => q.pop && q.joined), 'a joined corner gave way'); assert.ok(T.wrong >= 1);
+  assert.ok(r.out.some((q) => q.pop && q.joined), 'a joined corner gave way'); assert.equal(T.wrong, 1, 'one pull, one mistake');
   assert.ok(FM.offBy(T, 'NE') > 0.5, 'the joined corner is off its stake (seen)');
   assert.equal(FM.result(T).pts, 20);
 });

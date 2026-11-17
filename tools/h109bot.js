@@ -1097,9 +1097,10 @@
     // frame is square, then pushed: frame.crack, −20), 'peg' (level 3: a right peg pulled first: a mistake), 'pop' (level 2: a joined
     // end pulled past its board's length). __BOT_SHOTS131: a still at the first look, a stuck diagonal, the square.
     h8frame(a) {
+      B.fig8(a);
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
       if (!a || a.done) { if (shots && a && !K.shotSq) { K.shotSq = 1; return { wait: 250, shot: a.id + '-square' }; } return { wait: 300 }; }
-      if (a.busy) return { wait: 200 };
+      if (a.busy || a.settled === false) return { wait: 250 };
       if (shots && !K.shot0) { K.shot0 = 1; return { wait: 300, shot: a.id + '-look', note: 'frame: ' + JSON.stringify(a.figs) }; }
       const hold = (i, to, note) => ({ path: [a.P[i].at, to], ms: 900, keep: 7000, release: C(`return !a||!a.P||a.P[${i}].off<0.42`), wait: 700, note });
       if (a.diag === 2) {
@@ -1109,7 +1110,8 @@
       }
       const lower = () => ({ path: [a.diagAt, [a.diagAt[0], a.diagAt[1] - 20], a.mid], ms: 1100, keep: 1500, wait: 2200, note: 'frame: the diagonal lowered' });
       if (a.square) return lower();
-      if (has('crack') && !K.early && a.dmg === 0) { K.early = 1; return lower(); }
+      if (has('crack') && !K.early && a.dmg === 0) { if (a.focus !== 'wide') { if (!K.lifted) { K.lifted = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (the whole frame)' }; } return { wait: 300 }; } K.early = 1; return lower(); }
+      if (K.lifted === 1 && a.dmg) { K.lifted = 2; return { eval: '__T.game.h109._look(0,0)', wait: 1600, note: 'frame: the look home' }; }
       if (a.lv === 1) {
         const NW = a.P[0];
         if (!NW.seat) return hold(0, NW.to, 'frame: the NW corner to its stake (off ' + NW.off + ')');
@@ -1137,6 +1139,7 @@
     // east one first (held: no loss). The cloth: rows across the yesod, west to east and back, until the crew wipes the rest. The jar:
     // a drag up on it, held until the water is down. Stills (__BOT_SHOTS131): the first pull, the cloth half way, the water running.
     h8finale(a) {
+      B.fig8(a);
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
       if (!a || a.done) return { wait: 300 };
       if (a.step === 'rise') { if (shots && !K.shotR) { K.shotR = 1; return { wait: 2600, shot: a.id + '-rise' }; } return { wait: 300 }; }
@@ -1153,6 +1156,8 @@
       if (a.step === 'white') {
         if (shots && a.cover > 0.4 && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
         const P = []; a.rows.forEach((r, i) => { const [p, q] = i % 2 ? [r[1], r[0]] : r; P.push(p, q); });
+        if (window.__BOT_HALF && !K.half) { K.half = 1; return { path: P.slice(0, Math.ceil(P.length / 2)), ms: 3500, wait: 600, note: 'finale: half the cloth (a reload follows)' }; }
+        if (window.__BOT_HALF && K.half) return { wait: 400, note: 'finale: waiting for the reload' };
         return { path: P, ms: 7000, wait: 600, note: 'finale: the cloth over the yesod (cover ' + a.cover + ')' };
       }
       if (a.step === 'water') {
@@ -1163,6 +1168,8 @@
     },
     // ── /h131 finale ──
   };
+  // ── h131 ── (build 131: the figures gate's report read at every step of stage 08's frame and finale; whatever it names is kept) ── /h131 ──
+  B.fig8 = (a) => { let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; if (r && r.length) B.figBad.push({ id: a && a.id, step: a && (a.step || a.focus), r: JSON.stringify(r).slice(0, 300) }); };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
     if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };

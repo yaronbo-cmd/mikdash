@@ -280,7 +280,12 @@ export const FINALE_ACT = {
       X.line(NLINES.crew, 2600);
       // the crew wipes the last of it, in rows from the north
       const left = []; for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) left.push(c);
-      for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) { for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) Fs.mask[left[j]] = 1; paint(false); V.cloak(); await X.wait(0.12); }
+      // (rule 5: the crew man is seen doing it — the cloth's place, which he follows, goes along each row as it whitens)
+      for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) {
+        let sx = 0, sz = 0, n = 0; for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) { Fs.mask[left[j]] = 1; sx += FIN.X0 + (left[j] % FIN.NX) + 0.5; sz += FIN.Z0 + Math.floor(left[j] / FIN.NX) + 0.5; n++; }
+        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; }
+        paint(false); V.cloak(); await X.wait(0.35);
+      }
       whiteAll(Fs); paint(false);
       X.quick({ x: MID[0], y: Y1 + 1, z: MID[1] }, QUICK.white, white); X.shake(0.12, 0.2); try { if (X.haptic) X.haptic(20); } catch (e) { /* */ }
       cloth.position.set(W8.lime[0], F + 0.6, W8.lime[1]);

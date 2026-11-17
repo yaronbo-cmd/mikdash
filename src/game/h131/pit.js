@@ -58,7 +58,8 @@ const K = Object.freeze({ TAP: 14, TIP: 48, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
   work: { back: 11.5, up: 17, turn: -0.85, mid: 0.45, aimY: 0.4, fov: 46, k3: 1.12 },
-  lever: { D: 13.5, H: 16.5, fov: 46 },
+  lever: { D: 17, H: 15, fov: 48, mid: 1.9, aimY: 1.1 },   // (b131 part 3: back and lower — at 13.5/16.5 the kohen stood large at the right edge at 960×600)
+  rejects: { back: 7, up: 3.4, on: 7, aimY: 1.4, fov: 58 },   // (b131 part 3: along the opening's look, toward the low hills to the north-east: the skyline in the frame)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -173,16 +174,51 @@ function pitAct(m, X) {
     const ca = Math.cos(S.turn), sa = Math.sin(S.turn), ex = bx * ca - bz * sa, ez = bx * sa + bz * ca;
     const mid = [c[0] + (kp[0] - c[0]) * S.mid, c[1] + (kp[1] - c[1]) * S.mid];
     X.shot(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
-    fovT = S.fov; shotK = 'work';
+    fovT = S.fov; shotK = 'work'; carriersFit(d + 0.2);
+  }
+  // ── the carriers whole in the work's frame (b131 part 3; the figures gate, "whole or absent, never cut"): once a work or lever shot
+  // has settled, a carrier the frame cuts walks to the nearest place on the rim where he stands whole (the gate's own probe), clear of
+  // the spoil, the cradle and the rejects; before a hoist they walk back to their places round the cradle
+  const carrHome = P.carriers.map((p) => W3(p[0], 0, p[1]));
+  let fitTok = 0;
+  const SPOT_OK = (lx, lz) => { const an = Math.atan2(lz, lx); if (an > -Math.PI * 0.95 && an < -Math.PI * 0.45) return false; for (const q of [P.cradle, P.rejects]) if (Math.hypot(lx - q[0], lz - q[1]) < 3.2) return false; for (const q of P.row) if (Math.hypot(lx - q[0], lz - q[1]) < 1.6) return false; return true; };
+  function carriersFit(delay) {
+    const tok = ++fitTok, k0 = shotK;
+    X.wait(delay).then(() => {
+      if (tok !== fitTok || A.ended || shotK !== k0) return;
+      const FGp = globalThis.__FIG; if (!FGp || !FGp.probe) return;
+      const s = cur(), f = s ? W3(s.at[0], F + 0.6, s.at[1]) : null, taken = [];
+      const free = (x, z) => taken.every((t) => Math.hypot(t[0] - x, t[1] - z) > 1.4);
+      const whole = (x, y, z) => { try { const q = FGp.probe(x, y, z, f); return q.on && !q.cut && !q.between; } catch (e) { return false; } };
+      carr.forEach((w, k) => {
+        if (!w || !w.a.alive) return;
+        if (free(w.a.x, w.a.z) && whole(w.a.x, w.a.y, w.a.z)) { taken.push([w.a.x, w.a.z]); return; }
+        let best = null;
+        for (const r of [PD.R0 + 1.4, PD.R0 + 2.6, PD.R0 + 4]) for (let j = 0; j < 48; j++) {
+          const an = j * Math.PI / 24, lx = P.hole.at[0] + Math.cos(an) * r, lz = P.hole.at[1] + Math.sin(an) * r; if (!SPOT_OK(lx, lz)) continue;
+          const q = W3(lx, 0, lz), d = Math.hypot(q.x - carrHome[k].x, q.z - carrHome[k].z); if (best && d >= best.d) continue;
+          if (!free(q.x, q.z) || !whole(q.x, q.y, q.z)) continue; best = { x: q.x, z: q.z, d };
+        }
+        if (!best) return;   // (none whole: the gate keeps him out of the picture)
+        taken.push([best.x, best.z]);
+        gang.setRole(w, 'walk', { fx: null }); gang.walkTo(w, best.x, best.z, 2.8).then(() => { if (!A.ended && tok === fitTok) gang.setRole(w, 'hold', { fx: f ? f.x : cr0.x, fz: f ? f.z : cr0.z }); });
+      });
+    });
+  }
+  async function carriersHome() {
+    fitTok++;
+    const away = carr.map((w, k) => (w && w.a.alive && Math.hypot(w.a.x - carrHome[k].x, w.a.z - carrHome[k].z) > 0.3 ? [w, k] : null)).filter(Boolean);
+    if (!away.length) return;
+    await Promise.race([Promise.all(away.map(([w, k]) => { gang.setRole(w, 'walk', { fx: null }); return gang.walkTo(w, carrHome[k].x, carrHome[k].z, 3.4); })), X.wait(2.4)]);
+    for (const [w, k] of away) { if (Math.hypot(w.a.x - carrHome[k].x, w.a.z - carrHome[k].z) > 0.3) { w.a.path = null; w.a.x = carrHome[k].x; w.a.z = carrHome[k].z; } }
   }
   function clusterC() { const L0 = W.stones.filter((s) => !s.gone); const n = L0.filter((s) => !s.out); const Q = n.length ? n : L0; return [Q.reduce((a, s) => a + s.at[0], 0) / Q.length, Q.reduce((a, s) => a + s.at[1], 0) / Q.length]; }
   /** square to the lever's line, from the camera's (south) side: the kohen at one end, the stone at the other, neither before the other */
   function leverShot(d = 0.9) {
-    const s = W.stones[L.i]; const dd = sideDir(L.side, s.yaw), mid = [s.at[0] + dd[0] * 1.6, s.at[1] + dd[1] * 1.6];
+    const S = SHOT.lever, s = W.stones[L.i]; const dd = sideDir(L.side, s.yaw), mid = [s.at[0] + dd[0] * S.mid, s.at[1] + dd[1] * S.mid];
     let px = -dd[1], pz = dd[0]; if (pz < 0 || (Math.abs(pz) < 0.2 && px > 0)) { px = -px; pz = -pz; }
-    const S = SHOT.lever;
-    X.shot(A3(mid[0] + px * S.D, F + S.H, mid[1] + pz * S.D), A3(mid[0], F + 0.9, mid[1]), d);
-    fovT = S.fov; shotK = 'lever';
+    X.shot(A3(mid[0] + px * S.D, F + S.H, mid[1] + pz * S.D), A3(mid[0], F + S.aimY, mid[1]), d);
+    fovT = S.fov; shotK = 'lever'; carriersFit(d + 0.2);
   }
   function checkShot(d = 1.0) { const c = P.cradle, S = SHOT.check; X.shot(A3(c[0] + S.eye[0], S.eye[1], c[1] + S.eye[2]), A3(c[0] + S.aim[0], S.aim[1], c[1] + S.aim[2]), d); fovT = S.fov; shotK = 'check'; }
   // ── the fingers
@@ -299,6 +335,7 @@ function pitAct(m, X) {
     const from = g.position.clone(), a = W3(foot[0], F + hy * 0.62, foot[1]), b = W3(top[0], hy * 0.62 + 1.4, top[1]), cc = W3(c[0], 0.48 + hy * 0.62, c[1]);
     // (the camera: the cradle and the rim's crew in the frame, the stone coming up the wall)
     const cs = A3(c[0] + 6.5, 12, c[1] + 11), ca = A3(c[0] + 3.4, -1.2, c[1] - 0.6); X.shot(cs, ca, 1.0); fovT = 46; shotK = 'hoist';
+    await carriersHome();
     for (const w of carr) gang.setRole(w, 'pull', { fx: from.x, fz: from.z, k: 2 });
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];
     for (const [p, q, d] of legs) await tween(g, p, q, d, s);
@@ -362,7 +399,9 @@ function pitAct(m, X) {
     await X.wait(1.6);
     // (to the rejects' heap: the core draws one more stone there for the mark; the camera shows it there)
     X.props.remove(C.ring); X.props.remove(C.g); SG.delete(C.i); A.check = null;
-    const rj = P.rejects; X.shot(A3(rj[0] - 4.2, 2.1, rj[1] + 2.0), A3(rj[0] + 3.0, 0.9, rj[1] - 1.4), 0.8); shotK = 'rejects';
+    // (along the opening's look — toward the low hills to the north-east (P.cam.open) — gently down onto the heap: the skyline and the sky in the frame)
+    const rj = P.rejects, RS = SHOT.rejects, O0 = P.cam.open, ox = O0[1][0] - O0[0][0], oz = O0[1][2] - O0[0][2], on = Math.hypot(ox, oz) || 1, ux = ox / on, uz = oz / on;
+    X.shot(A3(rj[0] - ux * RS.back, RS.up, rj[1] - uz * RS.back), A3(rj[0] + ux * RS.on, RS.aimY, rj[1] + uz * RS.on), 0.8); fovT = RS.fov; shotK = 'rejects';
     await X.wait(1.0); const rp = W3(rj[0], 0.8, rj[1]); X.dust(rp.x, rp.y, rp.z, 12, 1.8); V.knock(1.6);
     await X.wait(1.2);
     // (the crew bares another in its place)

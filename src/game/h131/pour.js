@@ -186,7 +186,8 @@ export const POUR_ACT = {
     }
     function loss(flag, atM, at) {
       A8.dmg++; A8.cleanFirst = false; A8.losses.push(flag);
-      const n = Mo.mark(flag, m.id, atM); X.loss(n, at, LOSS[flag] ? LOSS[flag][0] : '');
+      // (the mark's place as the finale reads it, [x, z]; the region's radius in its n, in tenths of an amah)
+      const n = Mo.mark(flag, m.id, [+atM.x.toFixed(2), +atM.z.toFixed(2)], Math.round((atM.r || 1) * 10)); X.loss(n, at, LOSS[flag] ? LOSS[flag][0] : '');
       X.save(); ev('loss:' + flag);
     }
     function startKnock() {

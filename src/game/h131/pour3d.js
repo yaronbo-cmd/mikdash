@@ -488,12 +488,18 @@ function patchGeo(T, r, seed) {
   for (let i = 1; i < p.count; i++) { const a = Math.atan2(p.getY(i), p.getX(i)), k = 0.82 + 0.1 * Math.sin(a * 3 + seed) + 0.08 * Math.sin(a * 7 + seed * 1.7); p.setXY(i, p.getX(i) * k, p.getY(i) * k); }
   return g;
 }
+/** a pour mark's place: [x, z] with the radius in n (tenths of an amah); a save from before build 131's part 3 kept {x, z, r} */
+export function markAt(k) {
+  const a = k && k.at; if (!a) return null;
+  if (Array.isArray(a)) return Number.isFinite(+a[0]) && Number.isFinite(+a[1]) ? { f: k.f, x: +a[0], z: +a[1], r: k.n > 0 ? k.n / 10 : null } : null;
+  return Number.isFinite(+a.x) && Number.isFinite(+a.z) ? { f: k.f, x: +a.x, z: +a.z, r: +a.r || null } : null;
+}
 function marksDraw(X, M) {
   if (!M || !X || !X.THREE) return;
   // (a patch in the section being poured is not drawn: the act's own segment shows it, and a flat disc over its stones would not)
   const live = POUR3D.act && S8.sections[POUR3D.act], inLive = (at) => live && at.x >= live[0] && at.x <= live[2] && at.z >= live[1] && at.z <= live[3];
-  const marks = M.marksOf().filter((k) => (k.f === 'pour.hollow' && !(k.at && inLive(k.at))) || k.f === 'pour.spill');
-  const key = marks.map((k) => k.f + (k.at ? k.at.x + ',' + k.at.z : '')).join('|') + '|' + (M.isDone('finale') ? 1 : 0) + '|' + (POUR3D.act || 0); if (key === W8.key && W8.g) return; W8.key = key;
+  const marks = M.marksOf().filter((k) => k.f === 'pour.hollow' || k.f === 'pour.spill').map(markAt).filter((k) => k && !(k.f === 'pour.hollow' && inLive(k)));
+  const key = marks.map((k) => k.f + k.x + ',' + k.z).join('|') + '|' + (M.isDone('finale') ? 1 : 0) + '|' + (POUR3D.act || 0); if (key === W8.key && W8.g) return; W8.key = key;
   const T = X.THREE; if (W8.g) { X.props.root.remove(W8.g); W8.g = null; }
   if (!marks.length) return;
   const g = new T.Group(); g.name = 'h131-pour-marks'; X.props.root.add(g); W8.g = g;
@@ -501,9 +507,8 @@ function marksDraw(X, M) {
   const patchM = new T.MeshStandardMaterial({ color: white ? 0xDCD3C2 : 0x9a8f80, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });   // (a fresher mix, a shade off the set one)
   const stainM = new T.MeshStandardMaterial({ color: 0x4a3a2c, roughness: 0.9, transparent: true, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2 });
   for (const k of marks) {
-    if (!k.at) continue;
-    if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, Math.min(1.7, Math.max(0.8, k.at.r || 1.4)), k.at.x * 7.1 + k.at.z), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.at.x, S8.top + 0.012, k.at.z); g.add(m); }
-    else { const m = new T.Mesh(new T.CircleGeometry(1, 20), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.at.r || 1) * 1.4, Math.max(0.6, k.at.r || 1), 1); m.position.set(k.at.x, S8.floor + 0.015, k.at.z); g.add(m); }
+    if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, Math.min(1.7, Math.max(0.8, k.r || 1.4)), k.x * 7.1 + k.z), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.x, S8.top + 0.012, k.z); g.add(m); }
+    else { const m = new T.Mesh(new T.CircleGeometry(1, 20), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
   }
 }
 export const POUR3D = {

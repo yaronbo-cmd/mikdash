@@ -79,3 +79,11 @@ test('stage 08: the end chain counts the stones he raised from the pit, not the 
   assert.equal(stonesOf({ done: ['pit1', 'pit2', 'pit3', 'frame1'] }), 5);
   assert.equal(stonesOf(null), 0);
 });
+
+test('the pour\'s marks: their place as [x, z] (the finale reads it so), a save that kept {x, z, r} is read the same', async () => {
+  const st = freshH131(); st.marks.push({ f: 'pour.hollow', work: 'pour2', at: { x: -40.5, z: -8.25, r: 1.3 }, n: 0 }, { f: 'frame.crack', work: 'frame2', at: null, n: 2 });
+  const M = createH131(st), h = M.marksOf('pour.hollow')[0];
+  assert.deepEqual(h.at, [-40.5, -8.25]); assert.equal(h.n, 13); assert.equal(M.marksOf('frame.crack')[0].n, 2);
+  const src = readFileSync(new URL('../src/game/h131/pour.js', import.meta.url), 'utf8');
+  assert.match(src, /Mo\.mark\(flag, m\.id, \[\+atM\.x\.toFixed\(2\), \+atM\.z\.toFixed\(2\)\]/, 'the pour marks its place as [x, z]');
+});

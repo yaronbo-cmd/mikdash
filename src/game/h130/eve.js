@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, OPEN: 1.15,
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7,
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',
@@ -100,10 +100,11 @@ function makeEve(m, X) {
     const AC = X.actors && X.actors(); if (!AC) return;
     const [mx, mz] = LT.menorah;
     // the men below, round the menorah with torches (a ring, its open side toward the camera's descent)
-    // (the ring is open toward the descent's camera, EK.OPEN radians each way: men there stood at the frame's foot and were cut — build 130 part 3)
-    const e = EV.cam.down[0], a0 = Math.atan2(e[2] - mz, e[0] - mx);
+    // (the men stand in an arc on the menorah's far side from the descent's camera, EK.ARC radians each way: a ring's near side stood
+    //  at the frame's foot, its flanks at the frame's edges, and they were cut once the camera settled — build 130 closing)
+    const e = EV.cam.down[0], a0 = Math.atan2(e[2] - mz, e[0] - mx) + Math.PI;
     for (let i = 0; i < EK.MEN; i++) {
-      const a = a0 + EK.OPEN + ((i + 0.5) / EK.MEN) * (Math.PI * 2 - 2 * EK.OPEN), r = 13 + (i % 3) * 2.5, x = mx + Math.cos(a) * r, z = mz + Math.sin(a) * r;
+      const a = a0 + ((i + 0.5) / EK.MEN - 0.5) * 2 * EK.ARC, r = 11 + (i % 3) * 2.5, x = mx + Math.cos(a) * r, z = mz + Math.sin(a) * r;
       const f = AC.add('pilgrim', x, z, { yaw: Math.atan2(mx - x, mz - z), item: 'torch', fadeIn: false }); if (f) { f.gang = 1; own.push(f); }
     }
     // the women above, along the galleries he built (on the floor, behind the railing)

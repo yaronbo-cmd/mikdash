@@ -5,7 +5,7 @@
  * load or play (its error event, or no `canplay` within FILM.WAIT) is skipped in silence: never a stuck screen. Its sound follows the
  * game's mute.
  */
-export const FILM = Object.freeze({ FILE: 'sbh-film-v3-small.mp4', WAIT: 4000, FADE: 400 });
+export const FILM = Object.freeze({ FILE: 'sbh-film-v3-small.mp4', TYPE: 'video/mp4; codecs="avc1.42E01E"', WAIT: 4000, FADE: 400 });
 
 /** which film to play: { kind: 'inline' | 'relative' | 'skip', src }. env = { inline (window.__SBH_FILM), protocol (location.protocol),
  *  file (FILM.FILE), off (a page that plays no film) } */
@@ -26,24 +26,29 @@ export function playFilm(X, o = {}) {
   const pick = filmSrc({ ...env, ...o });
   try { globalThis.__SBH_FILM_STATE = { kind: pick.kind, state: pick.kind === 'skip' ? 'none' : 'loading' }; } catch (e) { /* (the probes' eyes) */ }
   if (pick.kind === 'skip' || typeof document === 'undefined') return Promise.resolve('none');
+  // (build 130 closing: a browser that cannot decode the film's H.264 says so at once — no black frame, no wait, straight to the end card)
+  try {
+    const t = document.createElement('video');
+    if (t.canPlayType && !t.canPlayType(FILM.TYPE)) { globalThis.__SBH_FILM_STATE = { kind: pick.kind, state: 'failed', why: 'type', t: 0 }; return Promise.resolve('failed'); }
+  } catch (e) { /* */ }
   return new Promise((res) => {
     const box = document.createElement('div'); box.className = 'h109-ui h130-film';
-    box.style.cssText = `position:fixed;inset:0;z-index:95;background:#000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity ${FILM.FADE}ms`;
+    // (the black box shows only once the film can play: while it loads, or if it never does, the world stays in view — no black frame held)
+    box.style.cssText = `position:fixed;inset:0;z-index:95;background:#000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity ${FILM.FADE}ms`;
     const v = document.createElement('video');
     v.setAttribute('playsinline', ''); v.playsInline = true; v.preload = 'auto'; v.controls = false;
     v.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000';
     let muted = true; try { muted = !!(X && X.sfx && X.sfx.muted); } catch (e) { /* */ }
     v.muted = muted;
     box.appendChild(v); document.body.appendChild(box); document.body.classList.add('h130-film-on');
-    requestAnimationFrame(() => { box.style.opacity = '1'; });
     let done = false, ready = false;
     const state = (s) => { try { globalThis.__SBH_FILM_STATE = { kind: pick.kind, state: s, t: +(v.currentTime || 0).toFixed(1) }; } catch (e) { /* */ } };
     const finish = (why) => {
       if (done) return; done = true; clearTimeout(tm); state(why);
       try { v.pause(); } catch (e) { /* */ }
       box.removeEventListener('pointerdown', tap, true); removeEventListener('keydown', key, true);
-      box.style.opacity = '0';
-      setTimeout(() => { try { v.removeAttribute('src'); v.load(); } catch (e) { /* */ } box.remove(); document.body.classList.remove('h130-film-on'); res(why); }, FILM.FADE);
+      const shown = ready; box.style.opacity = '0';
+      setTimeout(() => { try { v.removeAttribute('src'); v.load(); } catch (e) { /* */ } box.remove(); document.body.classList.remove('h130-film-on'); res(why); }, shown ? FILM.FADE : 0);
     };
     const tap = (e) => { e.stopPropagation(); e.preventDefault(); finish('skipped'); };
     const key = (e) => { if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') { e.stopPropagation(); finish('skipped'); } };
@@ -51,7 +56,7 @@ export function playFilm(X, o = {}) {
     v.addEventListener('error', () => finish('failed'));
     v.addEventListener('ended', () => finish('ended'));
     v.addEventListener('canplay', () => {
-      if (ready || done) return; ready = true; state('playing');
+      if (ready || done) return; ready = true; state('playing'); box.style.opacity = '1'; box.style.pointerEvents = 'auto';
       const p = v.play(); if (p && p.catch) p.catch(() => {
         // (a browser that will not start sound without a gesture: the film plays muted rather than not at all)
         if (!v.muted) { v.muted = true; v.play().catch(() => finish('failed')); } else finish('failed');

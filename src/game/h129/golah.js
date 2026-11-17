@@ -8,7 +8,7 @@
  * waits for the swing to die ("חלפו!"), or they clash. It comes up swinging hard: a rim stone breaks (golah.rim); still: "בלי טיפה!".
  * At the rim the bucket is dragged over the trough by the well and tipped (the drag past it is the tilt); the water runs down the
  * channel, and the sluice stones (drag up: open, down: closed) share it among the troughs; one filled past its brim floods
- * (golah.flood: a puddle stays). Each full: "מלאה!". All full together: a kohen kneels and washes his hands in the first.
+ * (golah.flood: a puddle stays). Each full: "מלאה!". All full together: a kohen stands at the first and washes his hands over it.
  * No gauge, no bar, no timer, no fail: the troughs' own water lines are the measure.
  *
  * It plays inside the water look's own scene (golah3d.js, play mode: the approved water, its sample's stage), drawn in place of the
@@ -42,7 +42,9 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const sm = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const L3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 const NAME = { A: 'א', B: 'ב', C: 'ג' };
-const KNEEL = { bow: 1.45, kn: 1.45, arms: [1.55, -0.12, 1.55, -0.12] };   // (the kohen at the moment: down on his heels at the sunk trough's edge, bent over it, the arms straight down into its water — G7: kneeling upright (kn 1) the rig's hands stop 0.6 above the line, and a deeper bow puts the head in the trough)
+// (the kohen at the moment, G11: standing on the pavement at the trough's end, bent a little from the waist, both arms forward and in
+//  so the hands meet over its water — 1.05 amot before his feet, 1.55 over the floor; they rub as the water runs off them into it)
+const WASH = { bow: 0.7, pitch: 0.95, spread: -0.3, rub: 0.07, far: 1.7, hold: 2.8 };   // (far: the troughs glinting before the cut to him; hold: his picture clear before any card)
 export const GLINES = Object.freeze({
   fill: 'החזיקו את החבל של הדלי שבמים: הדלי מתמלא',
   pull: MOUSE ? 'גררו את החבל כלפי מטה, שוב ושוב · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד' : 'משכו את החבל כלפי מטה, יד אחר יד: אגודל שמאל ואגודל ימין לסירוגין · משיכה כשהדלי עובר באמצע מרגיעה את הנדנוד',
@@ -172,7 +174,7 @@ export const GOLAH_ACT = {
     };
     const VIEWS = { shaft: shaftView, pour: () => ({ eye: CAM.golahPour[0], aim: CAM.golahPour[1] }), far: shareView, wash: () => ({ eye: CAM.golahWash[0], aim: CAM.golahWash[1] }) };
     function viewNow() {
-      if (A.ph === 'moment' || A.ph === 'done') return A.t - A.momT < 1.6 ? 'far' : 'wash';
+      if (A.ph === 'moment' || A.ph === 'done') return A.washOn ? 'wash' : 'far';
       if (s.phase === 'rim' || A.back > 0) return 'pour';
       return A.share ? 'far' : 'shaft';
     }
@@ -216,6 +218,8 @@ export const GOLAH_ACT = {
         if (f.carry) { A.tiltT = 0; A.tiltTo = 0; }
         // (the far view: a tap where no stone is goes back to the well)
         if (A.ph === 'play' && A.view === 'far' && A.share && !f.sl && !f.carry && !f.rope && (f.moved || 0) < 14) { A.shareOff = s.trip; ev('back'); }
+        // (G16, rule 66: the camera lifted a little by the right thumb, the work goes on; a tap where nothing is brings it home)
+        else if (A.ph === 'play' && !f.sl && !f.carry && !f.rope && (f.moved || 0) < 14 && A.look && (A.look.u > 0.02 || Math.abs(A.look.yaw) > 0.03)) { try { if (X.lookHome && X.lookHome()) ev('home'); } catch (e) { /* */ } }
       },
     });
     const ropeX = () => { const R = ropePts(s.b).filter((q) => q.on); return R.length ? R[R.length - 1].x : innerWidth / 2; };
@@ -270,20 +274,27 @@ export const GOLAH_ACT = {
       }
       saveRun();
     }
-    // ── the moment: every trough full together — the kohen kneels at the first and washes his hands in its water
+    // ── the moment: every trough full together — the troughs glint a moment from the court, then a cut to the kohen who stands at the
+    //    first and washes his hands over its water (Tamid 1:4's washing; here from the trough: המחשה). His picture is held clear before
+    //    any card comes (G11); the film after the work is the Golah as it stands (G13: res.film, the director's pull-back)
+    function addKohen() {
+      const w = GL.wash, t = GL.troughs[KS[0]];
+      kohen = AC.add('kohen', w[0], w[1], { yaw: Math.atan2(t[0] - w[0], t[1] - w[1]), fadeIn: false, scale: 1 }); kohen.vis = kohen.visT = 1; AC.pose(kohen, 'wash');
+      kohen.knT = kohen.kn = 0; kohen.bowT = WASH.bow; kohen.armT = [WASH.pitch, WASH.spread, WASH.pitch, WASH.spread];
+      A.washT = A.t; X.line(GLINES.wash, (WASH.hold + 1.6) * 1000);
+    }
     async function moment() {
       if (A.ph !== 'play') return; A.ph = 'moment'; A.momT = A.t; X.hand(null);
       for (const k of KS) st.golah.troughs[k] = +clamp(s.troughs[k].v / s.troughs[k].size, 0, 1.05).toFixed(3);
+      st.golah.depth = Math.max(st.golah.depth || 0, s.depth);
       delete st.golah.run; X.save();
-      const w = GL.wash; kohen = AC.add('kohen', w[0], w[1], { yaw: Math.PI, fadeIn: false }); kohen.vis = kohen.visT = 1; AC.pose(kohen, 'wash');
-      // (kneeling at the trough's edge, bent over it, both hands down in its water — Tamid 1:4's washing, from the first trough)
-      kohen.knT = KNEEL.kn; kohen.bowT = KNEEL.bow; kohen.armT = KNEEL.arms.slice();
-      X.line(GLINES.wash, 4200);
-      await X.wait(4.2);
+      await X.wait(WASH.far);
+      A.washOn = 1;   // (the cut: the kohen is put at his place while the frame is dark — addKohen, from the frame's update)
+      await X.wait(0.45 + WASH.hold);
       if (id === 'golah3') await card(X, `<b style="font:900 20px Heebo,system-ui">ומשם מספיקים מים לכל העזרה</b>${cite(LINES.golah)}`, 9000);
       A.ph = 'done';
-      const pts = golahPts(s), q = qOf(pts);
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { knocks: s.knocks, clashes: s.clashes, perfect: s.perfect, stops: s.stops, 'golah.bucket': (s.flags['golah.bucket'] || []).length, 'golah.rim': (s.flags['golah.rim'] || []).length, 'golah.flood': (s.flags['golah.flood'] || []).length }, at: troughScr(KS[0]) });
+      const pts = golahPts(s), q = qOf(pts), F = CAM.golahFilm;
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { knocks: s.knocks, clashes: s.clashes, perfect: s.perfect, stops: s.stops, 'golah.bucket': (s.flags['golah.bucket'] || []).length, 'golah.rim': (s.flags['golah.rim'] || []).length, 'golah.flood': (s.flags['golah.flood'] || []).length }, at: troughScr(KS[0]), film: { shots: F.map((q) => [q[0], q[1], 2.4]) } });
     }
     // ── the frame: the model, then the picture
     function stepModel(dt) {
@@ -342,6 +353,8 @@ export const GOLAH_ACT = {
         d.vy -= G * dt; d.y += d.vy * dt; d.x += (d.vx || 0) * dt; d.z += (d.vz || 0) * dt;
         const rr = Math.hypot(d.x - WX, d.z - WZ);
         if (rr < GL.shaftR - 0.05 && d.y < wellY) { ring(A.rings.well, d.x, d.z, 0.45); return false; }
+        const bk = KS.find((k) => Math.abs(d.x - GL.troughs[k][0]) < TS[0] / 2 && Math.abs(d.z - GL.troughs[k][1]) < TS[1] / 2);
+        if (bk) { if (d.y < F0 - LINE_D) { ring(A.rings.tr[bk], d.x, d.z, 0.3); return false; } drips.push([d.x, d.y, d.z, d.s, d.vx || 0, d.vy, d.vz || 0]); return true; }
         if (rr >= GL.shaftR - 0.05 && d.y < F0 + (rr < GL.shaftR + GL.rimT ? GL.rimH : 0)) return false;
         drips.push([d.x, d.y, d.z, d.s, d.vx || 0, d.vy, d.vz || 0]); return true;
       });
@@ -382,8 +395,19 @@ export const GOLAH_ACT = {
         F.tr[k] = { level, over, wet: A.trWet[k], wetOver: A.trOver[k], rings: A.rings.tr[k] };
         A.sl[k] += ((s.sluice[k] ? 1 : 0) - A.sl[k]) * Math.min(1, dt * 7); F.sluice[k] = A.sl[k];
       }
-      // (the moment: rings spread from the kohen's two hands in the water)
-      if (kohen && A.ph !== 'play' && S.clock() - (A.wT || 0) > 0.4) { A.wT = S.clock(); for (const sd of [1, -1]) { AC.handWorld(kohen, sd, _h[0]); ring(A.rings.tr[KS[0]], _h[0].x, _h[0].z, 0.45); } }
+      // (the moment: the water runs off the kohen's two hands into the trough — a thin stream from between them, drops off each, rings
+      //  where they fall; the hands rub)
+      if (kohen && A.ph !== 'play') {
+        const tt = A.t - (A.washT || 0), r = WASH.rub;
+        kohen.armT = [WASH.pitch + 0.8 * r * Math.sin(tt * 4.2), WASH.spread + r * Math.sin(tt * 5.3), WASH.pitch + 0.8 * r * Math.sin(tt * 4.2 + Math.PI), WASH.spread + r * Math.sin(tt * 5.3 + Math.PI)];
+        AC.handWorld(kohen, 1, _h[0]); AC.handWorld(kohen, -1, _h[1]);
+        const T1 = s.troughs[KS[0]], lv = clamp(T1.v / T1.size, 0, 1), ov = clamp((T1.v - T1.size) / GOLAH.OVER, 0, 1), yB = F0 - TS[2] + 0.03, yL = F0 - LINE_D, wy = yB + lv * (yL - yB) + ov * (F0 - 0.025 - yL);
+        const hx = (_h[0].x + _h[1].x) / 2, hy = Math.min(_h[0].y, _h[1].y) - 0.06, hz = (_h[0].z + _h[1].z) / 2, on = sm(0.2, 0.8, tt);
+        if (on > 0.01) F.dribble = [[hx, hy, hz], [hx - 0.03, (hy + wy) / 2, hz], [hx - 0.05, wy, hz], 0.07 * on + 0.02, 0.035, on];
+        A.wDrop = (A.wDrop || 0) + dt * 6 * on;
+        while (A.wDrop >= 1 && A.drops.length < 48) { A.wDrop -= 1; const h = _h[Math.random() < 0.5 ? 0 : 1]; A.drops.push({ x: h.x + (Math.random() - 0.5) * 0.1, y: h.y - 0.05, z: h.z + (Math.random() - 0.5) * 0.1, vy: 0, s: 0.03 + 0.015 * Math.random() }); }
+        if (on > 0.01 && S.clock() - (A.wT || 0) > 0.45) { A.wT = S.clock(); ring(A.rings.tr[KS[0]], hx - 0.05, hz, 0.5 * on); }
+      }
       F.wellRings = A.rings.well; F.headRings = A.rings.head;
       P.set(F);
       haulers(dt);
@@ -422,7 +446,7 @@ export const GOLAH_ACT = {
     }
     /** (rule: no figure cut by the frame) a hauler the frame would cut is not drawn in that view; whole again, he is back */
     function guardFigs() {
-      const F = figs(); crew.forEach((a, i) => { const v = F[i].st === 'whole' ? 1 : 0;   /* (out: head and feet past the frame, an arm may still show at its edge) */ a.vis = a.visT = v; tails[i].visible = tails[i].visible && !!v; });
+      const F = figs(); crew.forEach((a, i) => { const v = F[i].st === 'whole' && !A.washOn ? 1 : 0;   /* (the moment's picture is the kohen's: the haulers, at rest by then, are not in it) */   /* (out: head and feet past the frame, an arm may still show at its edge) */ a.vis = a.visT = v; tails[i].visible = tails[i].visible && !!v; });
     }
     const api = {
       close: true,   // (its shots come close — the shaft from the stand, the pour through the door: the world camera's 35-amot floor gives way)
@@ -436,7 +460,7 @@ export const GOLAH_ACT = {
       },
       update(dt) {
         A.t += dt;
-        try { stepModel(dt); picture(dt); camStep(dt); guardFigs(); V.frame(); } catch (e) { if (A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] golah', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
+        try { stepModel(dt); if (A.view === 'wash' && !kohen) addKohen(); picture(dt); camStep(dt); guardFigs(); V.frame(); } catch (e) { if (A.t - A.errT > 5) { A.errT = A.t; console.error('[h129] golah', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
       cancel() { for (const f of FG.L.values()) if (f.carry) { A.tiltT = 0; A.tiltTo = 0; } },
@@ -446,6 +470,8 @@ export const GOLAH_ACT = {
       end() {
         FG.detach(); V.stop(); X.hand(null);
         for (const a of [...crew, kohen]) if (a) { try { AC.remove(a); } catch (e) { /* */ } }
+        try { AC.update(0); } catch (e) { /* */ }   // (G13: the layer's instances emptied now — no one updates it between the works, and the last frame's men stayed drawn in the world: the kohen lying in the film)
+        kohen = null;
         for (const r of tails) S.scene.remove(r);
         ropeG.dispose(); ropeM.dispose();
         clearTimeout(A.fadeTo); try { fadeEl().style.opacity = '0'; } catch (e) { /* */ }
@@ -459,7 +485,7 @@ export const GOLAH_ACT = {
         const o = { id, phase: A.ph, mph: s.phase, b: s.b, f: +s.f.toFixed(3), y: +s.y.toFixed(2), depth: s.depth, A: +s.A.toFixed(3), T: +T.toFixed(3), toMid: +toMid.toFixed(3), toEnd: +toEnd.toFixed(3), met: s.met, trip: s.trip,
           knocks: s.knocks, clashes: s.clashes, perfect: s.perfect, stops: s.stops, dmg: s.dmg, flags: s.flags, head: +s.head.toFixed(3), cw: +channelWater(s).toFixed(3), pool: +s.pool.toFixed(3),
           tr: Object.fromEntries(KS.map((k) => [k, [+s.troughs[k].v.toFixed(3), s.troughs[k].size]])), sl: { ...s.sluice }, ks: KS, carry: +A.carry.toFixed(2), tilt: +A.tilt.toFixed(2), view: A.view, fading: A.fading, fades: A.fades || 0,
-          ev: A.ev.slice(-10), mouse: MOUSE, look: A.look, nf: FG.n };
+          ev: A.ev.slice(-10), mouse: MOUSE, look: A.look, nf: FG.n, mom: A.momT != null ? +(A.t - A.momT).toFixed(2) : null, washFor: A.washT != null ? +(A.t - A.washT).toFixed(2) : null };
         if (GS.S) {
           const r = ropeDist({ x: innerWidth / 2, y: innerHeight / 2 }, s.b), R = ropePts(s.b).filter((q) => q.on && q.x > 0 && q.x < innerWidth && q.y > 110 && q.y < innerHeight - 40);   // (below the top bar)
           o.rope = A.view === 'shaft' && R.length ? pt(R[Math.floor(R.length * 0.55)]) : null; void r;

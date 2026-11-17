@@ -880,8 +880,9 @@ const S07 = {
     stand: [-139, 69, 16], face: 'N',
     // (build 129, part 3) the plank laid over the well's mouth along the axle, between the two ropes (length, width, thickness), the two
     // crew men who haul standing on it either side of the ropes; where a flood's puddle lies beside its basin (offset from its centre);
-    // where the kohen kneels to wash his hands in the first trough's water (facing north) — all המחשה
-    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-138.3, 51.05],
+    // where the kohen stands to wash his hands over the first trough's water (build 129 G11: on the court's pavement by its east end,
+    // facing west over it; the trough's middle is what he faces) — all המחשה
+    plank: { L: 5.9, w: 0.5, h: 0.14 }, crew: [[-140.35, 65], [-137.65, 65]], puddle: [1.9, -2.1], wash: [-136.9, 50],
   },
   vault: {
     // the small arches: the opening's middle in the block's east face (x 8); the arch from z, to z; floor, springing, the crown's
@@ -966,9 +967,18 @@ const S07 = {
     // the night's last three pictures (round 3): from the hall's floor at its west end looking east and up — the fire in the lower
     // third with the sleepers round it, the barrel over it; low over the first trough along the channel — the water, the other
     // troughs behind, the Azarah's wall and the House beyond; inside the Gazit at eye height from its north side — the round bench whole
-    end: [[[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], [[-141.6, 17.45, 51.3], [-110, 16.9, 47]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
+    // (round 4: the trough picture from five amot up and west of the first trough, so all three troughs lie in the frame's lower half)
+    end: [[[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], [[-150, 21, 56], [-118, 16.4, 49]], [[-80.5, 19.6, 61.2], [-80.5, 16.8, 79]]],
     // (round 3) each picture's lens: the hall's barrel whole over the fire; along the troughs; the round bench whole
-    endFov: [74, 56, 64],
+    endFov: [74, 60, 64],
+    // ── h129 round 4 ── the stage's last picture, held under the frontier card: the court and the chambers from high — never the
+    // Gazit's inside with its roof on, nor the follow camera against a wall ── /h129 ──
+    // (round 5: far and high from the south over the Gazit and the Golah, the House in the middle, Beit HaMoked at the far north-west:
+    //  the whole court of this stage in the world's 32° lens around the card at 960×600)
+    after: [[-150, 210, 230], [-125, 16, 0]],
+    // ── h129 round 4 ── each work's picture after it (the director's pull-back): a small arch from the women's court through its opening
+    // (the chamber is under the Israel court: from above it is stone); the great vault and the night from the hall's floor ── /h129 ──
+    done: { vaultN: [[30, 12.5, -22.5], [8, 10.5, -20]], vaultS: [[30, 12.5, 22.5], [8, 10.5, 20]], vaultM: [[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], night: [[-159, 22.5, -65.5], [-160, 16.3, -76]] },
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye
@@ -979,9 +989,14 @@ const S07 = {
     // door: the bucket at the rim, the trough by the well, the channel out by the door, trough A beyond it in the court
     golahPour: [[-140.8, 31, 69.2], [-139.3, 16, 57.5]],
     // (the sharing: from the north over the troughs in use, as close as they all fit the frame's width (margin m amot each side, at
-    //  least dmin), el degrees down; the aim on their row at z, y over the floor); the moment: the kohen at the first trough, from the
-    //  north-east, a three-quarter front
-    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-134.8, 18.8, 48.8], [-138.3, 16.1, 50.4]],
+    //  least dmin), el degrees down; the aim on their row at z, y over the floor); the moment (G11): the kohen standing at the first
+    //  trough's east end, from the north-north-west at his chest's height, three-quarter from his side — his arms out over the trough,
+    //  the whole figure, the trough's water beside him; the film after a work (G13, G15): the Golah as it stands, in two pictures
+    //  cut one after the other — the court from the north-west at a three-quarter height (about 33° down): the three troughs in a row
+    //  with their water, the channel along them and out of the chamber's door; then from high over the court north of the chamber (its
+    //  walls are 12 amot: only from this steep can the eye see over them) the wheel and the well's mouth, the channel, the troughs below
+    golahShare: { el: 52, dmin: 8.5, m: 0.8, z: 50.6, y: 0.2 }, golahWash: [[-141.5, 18.8, 42.1], [-138.1, 17.8, 50]],
+    golahFilm: [[[-157, 37, 42], [-127, 16, 53]], [[-126, 70, 44], [-127, 16, 58]]],
     golahFov: 50,
     // the one golden light over the Golah: light B (main.js TIMES.dusk: its colour #FFBA6E, low from the west), its elevation and
     // azimuth in degrees (the world's convention, main.js setTime: from +x toward +z): low and golden, from the west a little to the

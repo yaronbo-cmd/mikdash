@@ -775,11 +775,13 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function wageToast(d) { ui.toast({ icon: 'silver', title: `${T.wage} · ${T.streak(d.streak)}`, body: Object.entries(d.wage).map(([k, v]) => `${isoNum(v, true)} ${RES[k].n}`).join(' · '), ms: 5200 }); ui.flashRes(Object.keys(d.wage)); }
 
   /* ───────── the real clock: time of day, rain at night (Ta'anit 23a) ───────── */
+  let endHold = false;   // ── h129 ── ── /h129 ──
   function syncTime() {
     const h = new Date(now()).getHours();
     // options.fixedTime: a time-of-day key the host pinned (tests, screenshots); the world is not changed then
     let k = typeof opt.fixedTime === 'string' ? opt.fixedTime : h >= 5 && h < 9 ? 'dawn' : h >= 9 && h < 16 ? 'noon' : h >= 16 && h < 19 ? 'dusk' : 'night';
     if (k === 'night' && (G.ftue < 99 || (G.demo && typeof opt.fixedTime !== 'string'))) k = 'dusk';   // the first minutes, and the investor demo on the real clock, stay readable (dusk light, no rain); the real night comes after (a host-pinned time is kept)
+    if (endHold) return;   // ── h129 ── (the stage's last picture keeps its morning under the frontier card) ── /h129 ──
     if (k === tod || whole || opening) return;   // (build7: the opening keeps its golden hour until its swap)
     tod = k;
     if (!opt.fixedTime) W.setTimeOfDay(k);
@@ -3377,10 +3379,16 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function h29Done() {
     if (S.isDone(G, 'lishka')) return;
     const c = S.completeStage(G, 'lishka');
+    // (round 4: the stage's last picture is the whole he built, the book's place (BOOK.s07.cam.after, the pack's endView) — set as the
+    //  director lets the camera go, and again under the frontier card; never the follow camera against a wall)
+    const ev = H9 && H9.pack && H9.pack.endView, endView = (ms) => { try { if (ev) W.flyTo(ev[0], ev[1], ms); } catch (e) { /* */ } };
+    endView(1400);
     completeFlow(c, false);
     persist();
     ui.refresh();
-    if (frontier(G, S)) setTimeout(() => { noPad(); ui.refresh(); frontCard(); }, 1200);   // (the last stage a pack owns: the frontier's one card)
+    // (the follow camera has the world until a card is on screen: the view is set once the frontier card holds the thumbs, so nothing moves it)
+    // (and in the morning after the night — the place read by touch and by mouse alike, whatever the clock says — until the card is closed)
+    if (frontier(G, S)) setTimeout(() => { noPad(); ui.refresh(); endHold = true; try { W.setTimeOfDay('dawn'); tod = 'dawn'; } catch (e) { /* */ } Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; syncTime(); }); setTimeout(() => endView(1600), 60); }, 1200);   // (the last stage a pack owns: the frontier's one card)
   }
   /** stage 07 done, the page reloaded: the chambers drawn from his save (the director's rest: no UI, no film) */
   function h29Rest() {

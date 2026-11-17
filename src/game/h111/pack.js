@@ -7,6 +7,7 @@
  */
 import { PLAN, createH111 } from './model.js';
 import { ACTS } from './acts.js';
+import { SH2 } from './world.js';   // ── h129 ── ── /h129 ──
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';   // (build 125)
 import { BOOK } from '../world/grid.js';
 const LOOK_RING = makeLook({ boxes: ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), K: LOOK_RING_K });
@@ -38,6 +39,7 @@ export function makePack02(env = {}) {
       // replay of the site can have set it back)
       const want = cs === 'done' ? 'done' : cs === -1 ? 'survey' : n > 0 ? 'courses' : 'foundation';
       const there = cs === 'done' ? info.status === 'done' : info.phase === want && (cs === -1 || info.set === n);
+      if (cs === 'done') { try { if (SH2.crane && SH2.crane.g) SH2.crane.g.visible = false; } catch (e) { /* */ } }   // ── h129 ── (the wall done: the crews' crane is gone from it, whatever act placed it last) ── /h129 ──
       if (there && !instant) return;
       if (cs !== 'done' && info.phase !== want) instant = true;   // (a replay or a reset of the site in the world: set it at once)
       if (cs === 'done') { S0.setWork('wall', { phase: 'done' }); return; }

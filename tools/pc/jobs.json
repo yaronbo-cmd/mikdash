@@ -1,8 +1,8 @@
 {
-  "id": "2026-11-17 a: the game from stage 04 to the frontier card, touch and mouse (the stage 04 mouse fix)",
+  "id": "2026-11-17 b: stage 07 alone from its opening to its end card, touch and mouse (build 129)",
   "lanes": 2,
   "jobs": [
-    { "name": "g04-touch", "script": "tools/probes/game-from-04.json", "w": 960, "h": 600, "maxMin": 200 },
-    { "name": "g04-mouse", "script": "tools/probes/game-from-04.json", "mouse": true, "w": 1600, "h": 900, "maxMin": 200 }
+    { "name": "s07-touch", "script": "tools/probes/s07-stage.json", "w": 960, "h": 600, "maxMin": 120 },
+    { "name": "s07-mouse", "script": "tools/probes/s07-stage.json", "mouse": true, "w": 1600, "h": 900, "maxMin": 120 }
   ]
 }

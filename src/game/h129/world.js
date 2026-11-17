@@ -16,6 +16,8 @@ import { BOOK } from '../world/grid.js';
 import { row0, corners, H129, matSeats, VAULT_LV } from './model.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
 import { golahInWorld, golahWorldNow } from './golah3d.js';   // (build 129 G5: the Golah's own things in the world)
+import { mokedGateGone } from '../h113/world.js';
+import { framesGoneIn } from '../h111/world.js';   // (round 5: stage 02's frame in the hall goes with it)   // (round 4: stage 04's gate:moked pieces go with the hall)
 
 const S7 = BOOK.s07, GZ = S7.gazit, GL = S7.golah, V = S7.vault, N7 = S7.night, F16 = S7.floors.azara, F6 = S7.floors.nashim;
 const TAU = Math.PI * 2;
@@ -27,7 +29,7 @@ export function mats7(X) {
   if (P.M.h7stone) return P.M;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true, ...o });
   P.M.h7stone = std('#E6DCC4', { roughness: 0.8 });   // (the bench's dressed stone, the arch's)
-  P.M.h7shade = std('#958978', { roughness: 0.85 });   // (a replacement stone of another shade: round 3, darker and cooler than the wall and than the weight stones, read at once)
+  P.M.h7shade = std('#A8774E', { roughness: 0.85, side: T.DoubleSide });   // (a replacement stone of another shade: round 4, another quarry's warm ochre — darker and redder than the pale arch, so it reads at once in the act's light and the walk's; both faces, as the arch's own)
   P.M.h7holy = std('#4C4640', { roughness: 0.7 });     // (the holy line's dark stones)
   P.M.h7timber = std('#9C7448', { roughness: 0.82 });
   P.M.h7timberD = std('#7A5634', { roughness: 0.9 });
@@ -196,12 +198,15 @@ function golahBuild(X, S, g) {
 function stateOf(X) {
   const M = X.M, st = M.st, d = (id) => M.isDone(id), mk = (f, w) => st.marks.filter((q) => q.f === f && (!w || q.work === w));
   const L = gazitLayout(st);
-  const glDone = d('golah1') || d('golah2') || d('golah3');
+  // (G13: a Golah work whose troughs are full is the world's from its moment on — at the act's end, before the director marks it done,
+  //  the world drew the crews' Golah for half a second: the dark channel boxes, the black T in the film's first frame)
+  const glPlayed = !!(st.golah && st.golah.troughs && Object.keys(st.golah.troughs).length);
+  const glDone = d('golah1') || d('golah2') || d('golah3') || glPlayed;
   const tr = {}; if (glDone) for (const k of ['A', 'B', 'C']) { const v = st.golah && st.golah.troughs && st.golah.troughs[k]; if (v != null) tr[k] = v; else if (st.golahCrews) tr[k] = 1; }
   const vM = d('vaultM'), rings = vM ? clamp(1 + Math.floor((st.vault.ringsT || 0) / RING_T), 1, V.M.rings) : 0;
   return {
     g1: d('gazit1'), g2: d('gazit2'), g3: d('gazit3'), L, cracks: mk('gazit.crack').map((q) => q.n), inks: mk('gazit.ink').map((q) => q.at),
-    gl: glDone, glDepth: GL.depth[d('golah3') ? 2 : d('golah2') ? 1 : 0], troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
+    gl: glDone, glDepth: Math.max(GL.depth[d('golah3') ? 2 : d('golah2') ? 1 : 0], (st.golah && +st.golah.depth) || 0), troughs: tr, puddles: mk('golah.flood').map((q) => q.n), rimBroken: mk('golah.rim').map((q) => q.n), bCracked: mk('golah.bucket').map((q) => q.n),
     vN: d('vaultN'), vS: d('vaultS'), vM, rings, vcrack: { N: mk('vault.crack', 'vaultN').length, S: mk('vault.crack', 'vaultS').length, M: mk('vault.crack', 'vaultM').length }, vcrackJ: { N: jointOf(mk('vault.crack', 'vaultN')), S: jointOf(mk('vault.crack', 'vaultS')), M: jointOf(mk('vault.crack', 'vaultM')) },
     vstone: { N: mk('vault.stone', 'vaultN').length, S: mk('vault.stone', 'vaultS').length, M: mk('vault.stone', 'vaultM').length },
     night: d('night'), slab: mk('night.slab').length, fin: M.finished(),
@@ -354,6 +359,7 @@ function subSync(X, force) {
   try { const info = S0.siteInfo ? S0.siteInfo('lishka') : null; if (!info || info.status !== 'done') S0.setStage('lishka', 'done', 1, { instant: true }); } catch (e) { /* */ }
   if (!S0.subSet) return;
   for (const k of ALWAYS_OFF) S0.subSet(k, false);
+  try { mokedGateGone(); framesGoneIn(X, V.M.hall); } catch (e) { /* */ }   // (round 5: and stage 02's timber frame of the north wall's opening there)   // (round 4: stage 04's gate:moked pieces, left in the hall by a played stage 04, go with the hall)
   for (const k of ALWAYS_ON) S0.subSet(k, true);
   const roofs = !!(SH7.final || (SH7.state && SH7.state.fin)) && !SH7.open;
   for (const k of ROOFS) S0.subSet(k, roofs);

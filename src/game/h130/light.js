@@ -32,7 +32,7 @@ const sm = (u) => { const v = clamp(u, 0, 1); return v * v * (3 - 2 * v); };
 const GRIP_MIN = 64;
 const D2R = Math.PI / 180;
 /** the oil's camera (build 130 closing): degrees east of the door's axis, amot from the bench, degrees down — tested clear by raycasts */
-const OILCAM = Object.freeze({ AZ: 30, D: 8, EL: 20 });
+const OILCAM = Object.freeze({ AZ: 30, D: 8, EL: 20, SHIFT: 3 });
 const HAND_UP = 2;   // (his hands hold two rungs above his feet: model rung r → his hands on rung r + 2)
 /** the strip's speed: the finger's px per amah of strip (the table's own scale on the screen) */
 export const LIGHT_LINES = Object.freeze({
@@ -173,7 +173,10 @@ export const LIGHT = {
       //  lintel, which filled the frame (a raycast at the oil phase: a flat stone at y 10.2 at d 2.7); 30° east of the door's axis,
       //  8 amot off, 20° down, no ray from the eye to the seven cups or the jar meets anything)
       { const A0 = [ML.bench[0], FLOOR + 1, ML.bench[2] - 0.5], az = OILCAM.AZ * D2R, el = OILCAM.EL * D2R, h = OILCAM.D * Math.cos(el);
-        shot([A0[0] + Math.sin(az) * h, A0[1] + OILCAM.D * Math.sin(el), A0[2] - Math.cos(az) * h], A0, 1.6); }   // (all seven cups, the jar and the vat whole)
+        const E = [A0[0] + Math.sin(az) * h, A0[1] + OILCAM.D * Math.sin(el), A0[2] - Math.cos(az) * h];
+        // (the aim moved to the screen's right: the cups in the left half, the left hand's — a right-half touch is the camera's thumb)
+        const fx = A0[0] - E[0], fz = A0[2] - E[2], fl = Math.hypot(fx, fz) || 1, rx = -fz / fl, rz = fx / fl;
+        shot(E, [A0[0] + rx * OILCAM.SHIFT, A0[1], A0[2] + rz * OILCAM.SHIFT], 1.6); }   // (all seven cups, the jar and the vat whole)
       jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
       // (the act's own seven cups over the world's: the world's hide while it plays)
       try { SL.cups && SL.cups.forEach((c) => { c.visible = false; }); } catch (e) { /* */ }

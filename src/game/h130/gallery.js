@@ -29,7 +29,7 @@ const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 /** the opening's own beats, seconds (build 130 review: about 12 in all, besides his line and his tap): the first look, the crowd in
  *  (at most), the mix, the same again, the look up to the wall */
 const OPEN = Object.freeze({ LOOK: 1.0, IN: 2.5, MIX: 1.8, SAME: 1.6, UP: 2.6 });
-const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6, VIEW_NEAR: 3, KEEP: 8, FLAT: 0.4, UNDER: 0.8, FOOT: 1.5, COL_R: 1.2 });   // (UNDER/FOOT/COL_R: the lifted eye under the column tops over the gallery's footprint, and off the columns)   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 4.8, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6, VIEW_NEAR: 3, KEEP: 8, FLAT: 0.4, UNDER: 0.8, FOOT: 1.5, COL_R: 1.2 });   // (UNDER/FOOT/COL_R: the lifted eye under the column tops over the gallery's footprint, and off the columns)   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
@@ -283,6 +283,10 @@ export const GALLERY = {
         //  pose lifted each spectator's eye — at w1-t2 to y 16.7, inside the gallery's beams and deck: a flat brown frame. The views
         //  from below are the spectators' own eyes: the look goes home first, and again before each view)
         lookHome();
+        // (build 130, the root of w1-t2's brown: the world controls force every camera to look down by 6.3° at least (main.js
+        //  maxPolarAngle 1.46), so a level eye 64 amot from the bearer was lifted ~7 amot each frame, into the deck. The views from
+        //  below raise that limit while they are up (director X.polarUp), and give it back when they end)
+        polar(true);
         X.kohen(false); A.below = true; if (bearer && bearer.a) bearer.a.gateKeep = 1; spectators(true); X.line(GLINES.below, 0);
         let order = L.torch.map((_, i) => i);
         { const t = L.torch[order[0]]; bearerAt(t[0], t[1], L.watch[0][0], L.watch[0][1]); }
@@ -305,13 +309,13 @@ export const GALLERY = {
             SH130.crew.face(bearer, w[0], w[1]);
             const hid = below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => q.col);
             const fs = hidHere ? 0 : await frameGuard(wi, ti, eyeV, torchP(ti), cols);   // (the frame as drawn, before the view counts as shown)
-            A.view = { wi, ti, hid, ...viewCheck(), flat: +fs.toFixed(2) }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
+            A.view = { wi, ti, hid, ...viewCheck(eyeV), flat: +fs.toFixed(2) }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
             if (hidHere) { X.shot(eye0, eyeAim(eye0, torchP(ti)), SEE.GLIDE); await wait(SEE.GLIDE + 0.2); }
             if (hid.length) { X.play('creak'); X.line(GLINES.gone, 1800); await blinkFor(hid, 1.8); } else await wait(0.9);
           }
           order = order.slice().reverse();
         }
-        A.view = null; A.below = false; if (bearer && bearer.a) bearer.a.gateKeep = 0; lensF = FOV; lens(lensF);
+        A.view = null; A.below = false; polar(false); if (bearer && bearer.a) bearer.a.gateKeep = 0; lensF = FOV; lens(lensF);
         if (!below.ok) {
           A.lostAt = k; A.lost = 1;
           spectators(false); X.kohen(true); bearerAt(bw[0], bw[1], SP.face[0], SP.face[1]);
@@ -472,10 +476,13 @@ export const GALLERY = {
     }
     /** the view's own check (the bot fails a view that breaks it): the bearer's middle inside the frame, and nothing but a column he
      *  placed within 3 amot of the eye on the frame's centre ray → { inFrame: 0|1, near: '' or what stands there } */
-    function viewCheck() {
-      const out = { inFrame: 0, near: '' };
+    function viewCheck(eyeV) {
+      const out = { inFrame: 0, near: '', camY: 0, dy: 0 };
       try {
         X.camera.updateMatrixWorld();
+        // (build 130: the camera stands at the chosen eye's height — off by more than 0.3 with no thumb lift held is a bad view)
+        out.camY = +X.camera.position.y.toFixed(2);
+        const lk = X.lookNow ? X.lookNow() : { u: 0 }; if (eyeV && !(lk.u > 1e-3)) out.dy = +(X.camera.position.y - eyeV[1]).toFixed(2);
         const v = new T.Vector3(bearer.a.x, GEO.FLOOR + SEE.MID, bearer.a.z).project(X.camera);
         out.inFrame = Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1 && !bearer.a.gateOff && bearer.a.vis > 0.5 ? 1 : 0;   // (in the frame and drawn: not taken out by the figures gate)
         const rc = new T.Raycaster(); rc.setFromCamera({ x: 0, y: 0 }, X.camera); rc.camera = X.camera; rc.near = 0; rc.far = SEE.VIEW_NEAR;
@@ -504,6 +511,7 @@ export const GALLERY = {
       }
       return moved ? q : null;
     }
+    function polar(on) { try { if (X.polarUp) X.polarUp(on); } catch (e) { /* */ } }
     function lookHome() { try { if (X.lookZero) X.lookZero(); else if (X.lookHome) X.lookHome(); } catch (e) { /* */ } }
     function sightEye(eye, tp, cols) {
       const aimP = [tp[0], GEO.FLOOR + SEE.MID, tp[2]], bad = (c) => { if (sightBlocked(c, tp)) return true; const ib = instBlock(c, tp); if (ib) { A.sightBy = 'inst ' + ib; return true; } const nb = nearBoxes(c, aimP); if (nb.length) { A.sightBy = 'box ' + nb.slice(0, 3).join(','); return true; } return false; };
@@ -721,7 +729,7 @@ export const GALLERY = {
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }
         if (A.sub) { try { A.sub.end(); } catch (e) { /* */ } A.sub = null; }
         crowdDrop(A.crowd); A.crowd = null;
-        blinkCols([], false); spectators(false); A.below = false; if (bearer && bearer.a) bearer.a.gateKeep = 0;
+        blinkCols([], false); spectators(false); A.below = false; polar(false); if (bearer && bearer.a) bearer.a.gateKeep = 0;
         if (bearer) SH130.crew.remove(bearer);
         for (const o of all) PR.remove(o);
         srcTag.remove(); illTag.remove(); lensSet(false);

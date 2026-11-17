@@ -426,6 +426,7 @@ view.twinCam = (on) => {
 };
 view.camSet = (px, py, pz, tx, ty, tz) => { fly = null; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); };
 view.pickAt = (x, y) => { try { pickAt(x, y); } catch (e) { /* */ } };   // ── cam28 ── (twin.js: a single tap on the right half picks after the double-tap's window) ── /cam28 ──
+view.polar = (v) => { const o = controls.maxPolarAngle; if (v != null) controls.maxPolarAngle = v; return o; };   // ── build 130 ── (the gallery's views from below: a level eye; the director saves and restores it) ── /build 130 ──
 view.minDist = () => controls.minDistance;   // ── h112 ── (the director's camera keeps it too: h109/director.js camStep) ── /h112 ──
 view.camNow = (out) => { const o = out || {}; o.px = camera.position.x; o.py = camera.position.y; o.pz = camera.position.z; o.tx = controls.target.x; o.ty = controls.target.y; o.tz = controls.target.z; return o; };
 // ── figures24 ── the works' render scale (WAVE24 "רזולוציה כללית מדי"): while a work of Phase B is on, the pixel ratio rises to

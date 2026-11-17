@@ -36,16 +36,19 @@
   // instanced and merged meshes whose own raycast is off or stale are named here too) ── /h130 ──
   function galBoxes() {
     try {
-      const T = window.__T, cam = T.camera, R = new T.Raycaster(), out = [], P = cam.position.clone();
+      const T = window.__T, cam = T.camera, out = [], P = cam.position, H = window.__T.game.h109;
       let B = null; T.scene.traverse((o) => { if (!B && o.isMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); B = new o.geometry.boundingBox.constructor(); } });
       const shown = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
-      const rays = [-0.2, -0.5, -0.8].map((ny) => { R.setFromCamera({ x: 0, y: ny }, cam); return R.ray.clone(); });
+      out.push('cam ' + [P.x, P.y, P.z].map((v) => v.toFixed(1)) + ' same ' + (H && H.X && H.X.camera === cam) + ' near ' + cam.near.toFixed(2) + ' fov ' + cam.fov.toFixed(1));
       T.scene.traverse((o) => {
-        if (!o.isMesh || !shown(o)) return;
-        try { if (o.isInstancedMesh && o.computeBoundingBox) { o.computeBoundingBox(); B.copy(o.boundingBox).applyMatrix4(o.matrixWorld); } else B.setFromObject(o); } catch (e) { return; }
-        for (let i = 0; i < rays.length; i++) { const h = rays[i].intersectBox(B, P); if (h) { const d = h.distanceTo(cam.position); if (d < 14) { const names = []; for (let q = o; q && names.length < 4; q = q.parent) names.push(q.name || q.type); const c = o.material && o.material.color ? o.material.color.getHexString() : '?'; out.push(i + ':' + names.join('<') + ' #' + c + ' d' + d.toFixed(1) + ' y' + B.min.y.toFixed(1) + '..' + B.max.y.toFixed(1)); } } }
+        if (!o.isInstancedMesh || !shown(o)) return;
+        try { o.computeBoundingBox(); B.copy(o.boundingBox).applyMatrix4(o.matrixWorld); } catch (e) { return; }
+        if (P.x < B.min.x - 6 || P.x > B.max.x + 6 || P.z < B.min.z - 6 || P.z > B.max.z + 6) return;
+        const names = []; for (let q = o; q && names.length < 3; q = q.parent) names.push(q.name || q.type);
+        const c = o.material && o.material.color ? o.material.color.getHexString() : '?';
+        out.push(names.join('<') + ' #' + c + ' n' + o.count + ' x' + B.min.x.toFixed(0) + '..' + B.max.x.toFixed(0) + ' y' + B.min.y.toFixed(1) + '..' + B.max.y.toFixed(1) + ' z' + B.min.z.toFixed(0) + '..' + B.max.z.toFixed(0));
       });
-      return out.slice(0, 14).join(' | ');
+      return out.slice(0, 16).join(' | ');
     } catch (e) { return 'err ' + e.message; }
   }
   const play = {

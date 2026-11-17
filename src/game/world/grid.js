@@ -1153,7 +1153,9 @@ const S08 = {
     // the opening view: facing the Mount on the horizon (it lies east-north-east: 13,900 east and 2,200 north) — (build 131, the pit
     // lane: composed from the south-west of the pit, so the pit and its crew stand in the lower half, the valley opens beyond them toward
     // the north-east where its hills are lowest, and their skyline and the sky are clear of the top bar) [eye, aim], [lx, y, lz]
-    cam: { open: [[-11, 5, 11], [19, 0.5, -15.5]], play: [[0, 11, 21], [0, -1, 0]] },   // (b131 fix round 1: the opening nearer and lower, from behind the kohen: the pit, the kohen and the crew fill the frame, the hills behind)
+    // (look round 131: from the east rim, a little above it, down and west across the pit — the kohen whole on its floor before the far
+    //  wall, the cradle and its crew on the far rim, the hills only a band at the top; the rejects' shot keeps the look toward the Mount)
+    cam: { open: [[9, 5.5, 4.5], [-6, -2.4, 0]], play: [[0, 11, 21], [0, -1, 0]] },   // (b131 fix round 1: the opening nearer and lower, from behind the kohen: the pit, the kohen and the crew fill the frame, the hills behind)
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);

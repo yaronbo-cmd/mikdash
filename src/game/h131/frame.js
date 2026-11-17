@@ -298,7 +298,6 @@ export const FRAME_ACT = {
     function focusWant() {
       if (A.done || S.diag || DG.carry || square(S)) return null;
       try { const L = X.lookNow ? X.lookNow() : null; if (L && (L.u > 0.06 || L.ov)) return null; } catch (e) { /* */ }
-      if (A.t < FK.SETTLE * 1.6) return null;
       if (lv === 1) { const free = CORNERS.filter((q) => !S.P[CORNERS.indexOf(q)].seat); if (free.length === 4) return 'NW'; return free.sort((a, b) => offBy(S, b) - offBy(S, a))[0] || null; }
       if (lv === 2) { const p = S.P.find((q) => !q.seat); return p ? p.k : null; }
       const bent = S.P.find((q) => q.peg && offBy(S, q.k) > FR.TOL); if (bent) return A.stuckSaid3 ? bent.k : 'SE';
@@ -326,7 +325,9 @@ export const FRAME_ACT = {
       begin() {
         frameHold('act', true);
         try { X.kohen(false); } catch (e) { /* */ }
-        FG.attach(); lens(FK.FOV); camHome(1.2); cast(null); A.focus = null; A.shotT = 0;
+        // (b131 fix round 1: the first frame is the close shot behind the corner the work begins at — the men large, not dots in the wide one;
+        //  the wide beat stays for the diagonal and the square)
+        FG.attach(); { const k0 = focusWant(); if (k0) { shotTo(k0); A.fp = focusPt(k0); } else { lens(FK.FOV); camHome(1.2); cast(null); A.focus = null; } } A.shotT = 0;
         draw(0);
         const L0 = lv === 1 ? FLINES.l1 : lv === 2 ? FLINES.l2 : FLINES.l3;
         if (!resumed && lv === 1) { X.line(LINES.rashi, 6000); X.wait(6.2).then(() => { if (!A.done && !A.fl) X.line(L0, 5000); }); }

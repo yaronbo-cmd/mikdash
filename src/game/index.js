@@ -3450,7 +3450,15 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     completeFlow(c, false);
     persist();
     ui.refresh();
-    if (frontier(G, S)) setTimeout(() => { noPad(); ui.refresh(); endHold = true; Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; }); setTimeout(() => endView(1600), 60); }, 1200);   // (the last stage a pack owns: the frontier's one card)
+    // (b131 fix round 1: the card on the white yesod, near (BOOK.s08.cam.end) and in the day's light — at night the PC run showed it on a
+    //  dim Mount — and the walk's hint hidden under it, as build 130's)
+    if (frontier(G, S)) setTimeout(() => {
+      noPad(); ui.refresh(); endHold = true;
+      try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
+      try { if (!document.getElementById('h131-card-css')) { const c = document.createElement('style'); c.id = 'h131-card-css'; c.textContent = 'body.h131-card .tw-zone{visibility:hidden!important}'; document.head.appendChild(c); } document.body.classList.add('h131-card'); } catch (e) { /* */ }
+      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; try { document.body.classList.remove('h131-card'); } catch (e) { /* */ } syncTime(); });
+      setTimeout(() => endView(1600), 60);
+    }, 1200);   // (the last stage a pack owns: the frontier's one card)
   }
   /** stage 08 done, the page reloaded: the yesod drawn from his save (the director's rest: no UI, no film); an old save whose old stage
    *  08 was done gets the crews' (migrate08, once) */

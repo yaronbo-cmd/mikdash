@@ -857,6 +857,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const A = ACTS[mission.k]; if (!A) { M.done({ stars: 0 }); openMission(); return; }
     props().marker(null);
     phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
+    // ── b131 ── (fix round 1: every act begins with no finger of another's — a finger kept from the last act's pinch map or look (its
+    //  lift came after that act ended) made a new touch the half of a pinch, or the look's, and the act never had it) ── /b131 ──
+    try { OV.pins.clear(); OV.pin0 = new Map(); LOOK.swallow = null; lookReset(); } catch (e) { /* */ }
     QK.run = 0;   // ── h120 ── ── /h120 ──
     if (act) { const a0 = act; act = null; log('act again', mission.id); call(a0.end, {}); polarUp(false); }   // ── h129 ── (closing round: an act begun again over one still on — the probes' vaultN, the first act after a skip during the stage's opening — left the first one's centering, stone and masons standing in the arch's picture: the old one ends first) ── /h129 ──
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }

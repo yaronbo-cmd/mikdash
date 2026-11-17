@@ -1053,7 +1053,7 @@
       else { let by = -1; for (let k = 0; k < 4; k++) if (free(k) && s.lips[k][1] > by) { by = s.lips[k][1]; side = k; } }
       const needs = [0, 1, 2, 3].filter((k) => free(k) && s.cover[k] > 0.12);
       const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
-      if (a.lever === 'seat' && a.li === s.i && a.side === SD[side]) {
+      if (a.lever === 'seat' && a.li === s.i && (a.side === SD[side] || (a.lv !== 2 && free(SD.indexOf(a.side))))) {   // (b131: seated under a free side of the stone is a seat to press, whatever lip lies lowest on the screen after the lever shot)
         if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1; return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
         const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1;
         return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
@@ -1336,7 +1336,7 @@
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
     // ── h129 ── (G12: the Golah's works too — a clean golah3 needs more than 240 s of its own clock) ── /h129 ──
     // ── h130 ── (the new stage 05 the same, every work of it: the gallery's tests, the wood and the light with stills ran past the wall's) ── /h130 ──
-    const LIM = /^(bond|capstan|golah|pour)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim' || H().site === 'yesod' /* ── h131 ── ── /h131 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    const LIM = H().site === 'yesod' ? 150000 /* ── h131 ── (a stuck work of stage 08 costs 150 s, not 600) ── /h131 ── */ : /^(bond|capstan|golah|pour)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim' || H().site === 'yesod' /* ── h131 ── ── /h131 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     // ── h131 ── (stage 08: a stand-in act of a part not yet coded finishes by itself; the lanes' players are play.h8pit, h8frame, h8pour,

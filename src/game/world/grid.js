@@ -1120,7 +1120,7 @@ const S08 = {
   cam: {
     open: [[[150, 260, -260], [-38, 16, -3.5]], [[-6, 70, -70], [-38, 16, -3.5]]],
     site: [[-38, 40, -46], [-38, 16, -6]],
-    end: [[-38, 190, 70], [-38, 16, -3.5]],
+    end: [[-22, 41, 30], [-38, 16.5, -4]],   // (b131 fix round 1: the end card on the white yesod, near and lit — not the dim top view of the Mount)
   },
   // ── the pit at Beit Kerem (מידות ג, ד: "ממקום שחופרין למטה מהבתולה"): the sheet on the one world grid ──
   pit: {
@@ -1147,7 +1147,7 @@ const S08 = {
     // the opening view: facing the Mount on the horizon (it lies east-north-east: 13,900 east and 2,200 north) — (build 131, the pit
     // lane: composed from the south-west of the pit, so the pit and its crew stand in the lower half, the valley opens beyond them toward
     // the north-east where its hills are lowest, and their skyline and the sky are clear of the top bar) [eye, aim], [lx, y, lz]
-    cam: { open: [[-18, 7.5, 15], [30, 1.5, -27]], play: [[0, 11, 21], [0, -1, 0]] },
+    cam: { open: [[-11, 5, 11], [19, 0.5, -15.5]], play: [[0, 11, 21], [0, -1, 0]] },   // (b131 fix round 1: the opening nearer and lower, from behind the kohen: the pit, the kohen and the crew fill the frame, the hills behind)
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);

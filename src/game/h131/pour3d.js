@@ -16,7 +16,7 @@ import { BOOK } from '../world/grid.js';
 
 const S8 = BOOK.s08;
 const BT = 0.36;                       // (the sample's board thickness)
-const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [7.6, 5.6];
+const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [6.9, 4.7];   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
 const RELIEF = 1.2, MOUND_VIS = 0.42, LUT_N = 64, STREAM_SEG = 18, MAXB = 48, MAXD = 48;
 
 export function createPourView(X, lv, sim, o = {}) {

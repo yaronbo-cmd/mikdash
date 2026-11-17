@@ -77,7 +77,7 @@ test('book s08: the fire, the pile and the stands are on the free floor — off 
 test('book s08: the pit\'s sheet sits on the one world grid at Ein Kerem, written once; its places local to it', () => {
   const P = S.pit, O = P.origin;
   assert.equal(O.place, 'עין כרם'); assert.equal(O.status, 'זיהוי מוצע, לא ודאי');
-  assert.ok(O.x < -12000 && O.x > -16000 && O.z > 1500 && O.z < 3500, 'about 7 km west and 1 km south of the Mount');
+  assert.deepEqual([O.x, O.z], [-13900, 2200], 'exactly the spec\'s centre of the pit (shlav-08-he.md)');
   const ids = P.entries.map((e) => e.id);
   for (const id of ['pit', 'stone1', 'stone2', 'stone3.1', 'stone3.2', 'stone3.3', 'cradle', 'rejects', 'stand']) assert.ok(ids.includes(id), id);
   for (const e of P.entries) {

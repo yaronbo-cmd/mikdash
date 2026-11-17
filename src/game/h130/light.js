@@ -30,6 +30,9 @@ const S5 = BOOK.s05, LT = S5.light, CAM = S5.cam.light, FLOOR = S5.court.floor;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sm = (u) => { const v = clamp(u, 0, 1); return v * v * (3 - 2 * v); };
 const GRIP_MIN = 64;
+const D2R = Math.PI / 180;
+/** the oil's camera (build 130 closing): degrees east of the door's axis, amot from the bench, degrees down — tested clear by raycasts */
+const OILCAM = Object.freeze({ AZ: 30, D: 8, EL: 20 });
 const HAND_UP = 2;   // (his hands hold two rungs above his feet: model rung r → his hands on rung r + 2)
 /** the strip's speed: the finger's px per amah of strip (the table's own scale on the screen) */
 export const LIGHT_LINES = Object.freeze({
@@ -166,7 +169,11 @@ export const LIGHT = {
     function oilStart() {
       A.phase = 'oilcard'; keepStep('oil');
       // he goes to the door of Beit Shemanya; the card says what the chamber was, and the seven measures
-      closeShot([ML.jar[0] - 1.0, FLOOR + 0.9, ML.jar[2] + 1.0], CAM.measures[0], 7.8, 1.2, 1.6);   // (all seven cups, the jar and the vat whole)
+      // (build 130 closing: from the court, low, through the door — the book's side and height put the eye 1.5 over the door's
+      //  lintel, which filled the frame (a raycast at the oil phase: a flat stone at y 10.2 at d 2.7); 30° east of the door's axis,
+      //  8 amot off, 20° down, no ray from the eye to the seven cups or the jar meets anything)
+      { const A0 = [ML.bench[0], FLOOR + 1, ML.bench[2] - 0.5], az = OILCAM.AZ * D2R, el = OILCAM.EL * D2R, h = OILCAM.D * Math.cos(el);
+        shot([A0[0] + Math.sin(az) * h, A0[1] + OILCAM.D * Math.sin(el), A0[2] - Math.cos(az) * h], A0, 1.6); }   // (all seven cups, the jar and the vat whole)
       jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
       // (the act's own seven cups over the world's: the world's hide while it plays)
       try { SL.cups && SL.cups.forEach((c) => { c.visible = false; }); } catch (e) { /* */ }

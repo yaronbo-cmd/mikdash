@@ -240,7 +240,14 @@ export const NIGHT = {
     const lampM = new T.Mesh(new T.SphereGeometry(0.08, 8, 6), new T.MeshBasicMaterial({ color: 0xFFC060 })); lampM.position.set(LP[0], F16 + 0.14, LP[1]); root.add(lampM);
     { const bowl = new T.Mesh(new T.CylinderGeometry(0.12, 0.08, 0.08, 10), MT.h7stone); bowl.position.set(LP[0], F16 + 0.04, LP[1]); root.add(bowl); }
     // (his garment, spread over the slab when it is down: he sleeps on it)
-    const cloak = new T.Mesh(X.props.geo.box, MT.h7cloak); cloak.scale.set(4.0, 0.05, 1.5); cloak.position.set(sx, F16 + 0.145, sz); cloak.visible = false; root.add(cloak);
+    // (closing round 2: a garment seen as one — a darker wool than the floor, laid over the ring (the ring hidden under it), its two
+    //  ends falling from the slab's edges to the floor, a fold across it; it was a pale sheet at the ring's height before and read as
+    //  the bare slab)
+    const cloak = new T.Group(); cloak.position.set(sx, F16, sz); cloak.visible = false; root.add(cloak);
+    { const cM = new T.MeshStandardMaterial({ color: '#8C5E3C', roughness: 1 }), W = HS + 0.25, top = 0.215, run = 1.2, L = Math.hypot(run, top), a = Math.atan2(top, run);
+      const mid = new T.Mesh(X.props.geo.box, cM); mid.scale.set(HS + 0.04, 0.04, W); mid.position.set(0, top, 0); mid.castShadow = true; mid.receiveShadow = true; cloak.add(mid);
+      for (const sg of [-1, 1]) { const e = new T.Mesh(X.props.geo.box, cM); e.scale.set(L, 0.04, W * 0.96); e.position.set(sg * (HS / 2 + run / 2), top / 2, 0); e.rotation.z = -sg * a; e.receiveShadow = true; cloak.add(e); }
+      const fold = new T.Mesh(X.props.geo.box, new T.MeshStandardMaterial({ color: '#6E472C', roughness: 1 })); fold.scale.set(0.06, 0.03, W * 0.98); fold.position.set(0.18, top + 0.03, 0); cloak.add(fold); }
     // ── the gates' own pieces while they are locked: the gateway's dark passage, its two leaves — stage 04's own leaves (h113 makeLeaf:
     //    the cedar planks, battens, pins and rings, gold-plated as the goldsmiths left them) — opening into the court, the bolt of cedar
     //    sliding in its bronze brackets across the joint, the torch beside the gateway
@@ -275,7 +282,12 @@ export const NIGHT = {
       const lb = new T.Mesh(new T.CylinderGeometry(0.14, 0.09, 0.09, 10), MT.h7stone); lb.position.set(lp[0], LV[2] + 0.05, lp[1]); leviG.add(lb);
       const ll = new T.PointLight(0xFFC070, 2.5, 8, 1.6); ll.position.set(lp[0], LV[2] + 1.2, lp[1] - 1.8); leviG.add(ll); }
     const leviOn = (v) => {
-      if (v && !levi && AC) { const L = sleeperA(X, AC, MT, leviG, { variant: 'levite', mid: [LV[0], LV[1] - 1.3], y: LV[2], head: [1, 0], side: 0, young: false, col2: '#3A2A1E', cover: coverM[1], under: true }); levi = L.a; }
+      // (closing round 2: the Chel's terrace before the door is half an amah deep (the BOOK's note on night.levi) and below it are its
+      //  half-amah steps — laid down there he lay across their edges. He sits on the landing instead, his back to the wall east of the
+      //  door, on his garment, his head bowed in sleep: whole, on the flat)
+      if (v && !levi && AC) { const SE = N7.leviSeat; levi = nightOwn(AC.add('levite', SE[0], SE[1], { y: SE[2], yaw: Math.PI, scale: 1, young: false, col2: '#3A2A1E', fadeIn: false }));
+        if (levi) { levi.vis = levi.visT = 1; levi.gang = 1; levi.gateH = 2.7; AC.pose(levi, 'sit'); levi.bowT = 0.6; levi.armT = [0.35, 0.1, 0.35, 0.1]; }
+        const g = new T.Mesh(X.props.geo.box, coverM[1]); g.scale.set(1.3, 0.04, 0.48); g.position.set(SE[0], SE[2] + 0.02, SE[1] - 0.24); g.receiveShadow = true; leviG.add(g); }
       if (!v && levi && AC) { try { AC.remove(levi); } catch (e) { /* */ } levi = null; }
     };
     // ── a fade, for the cuts (never a flight through walls)
@@ -365,7 +377,7 @@ export const NIGHT = {
       // (he spreads his garment over the slab and lies down on it to sleep: the same figure, laid on his back across it)
       X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); const fS = CAM.nightSleepFov || CAM.nightFov; lens(fS); A.fov = fS;
       await X.wait(1.3);
-      A.sleepS = 'cloak'; cloak.visible = true; V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
+      A.sleepS = 'cloak'; cloak.visible = true; ringM.visible = false; halos.forEach((h) => { h.visible = false; }); V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
       await X.wait(1.4);
       if (AC) for (const q of [...NIGHTA.set]) if (q === kohen || q.poseName === 'sit') { try { AC.remove(q); } catch (e) { /* */ } NIGHTA.set.delete(q); }
       kohen = null;

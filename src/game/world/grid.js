@@ -804,6 +804,9 @@ const S07 = {
     ledges: [[-166, -82, -163.2, -80.4], [-156.8, -82, -154, -80.4], [-166, -60.6, -163.2, -59], [-156.8, -60.6, -154, -59], [-177, -72.5, -175.4, -68.5], [-144.6, -72.5, -143, -68.5]],
     ledgeY: 17,
     levi: [-160, -83.25, 6],
+    // (closing round 2) where he sits: on that half amah, his back to the wall east of the door (the door 10 wide on x −160: its jamb at
+    // −155), clear of the lamp before the door; the landing's flat ends at z −83.5, he takes −83 … −83.5
+    leviSeat: [-153.6, -83.2, 6],
   },
   // what stands round the Golah in the built world, as the look sample draws it (the numbers are the world's own): the Azarah's south
   // wall (temple.js wall(−187, 67.5, 0, 73.5, 6, 44)), the Delek and Bechorot gate houses (temple.js gate('S', …, 6, 50)), the House's
@@ -841,7 +844,9 @@ const S07 = {
     // (round 3: from the north of the slab looking south, so the gate he locks in the hall's north wall has no sleepers at its foot: over
     // the slab the kohen kneeling beyond it, the fire and the young round it, the elders on the ledges by the Azarah's door)
     nightSlab: [[-160, 17.7, -78.6], [-160, 16.2, -74.6]], nightSlabFov: 52,
-    nightLevi: [[-155.5, 10.5, -92.5], [-160, 7.2, -84.5]],
+    // (closing round 2: back and a little east, so the Levite seated east of the door (leviSeat) is whole in the frame's left part and
+    //  the shut door with its lamp in the middle)
+    nightLevi: [[-156.5, 11, -95], [-159.5, 7.5, -84]],
     // (round 3) where he sleeps on the slab: from the south-east, the fire beside the camera lighting him
     // (closing round: from (−153.8, 19.6, −71.8) the frame's edge cut the young sleeper east of the fire, the one west of it and the
     //  elder on the west ledge, and the figures gate took them out and reported them. From the north, between the two north ledges and

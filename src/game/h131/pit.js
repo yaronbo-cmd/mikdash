@@ -236,13 +236,16 @@ function pitAct(m, X) {
   function floorAt(p) { const r = X.rayAt(p.x, p.y).ray, d = r.direction, o = r.origin, y = W3(0, F + 0.1, 0).y; if (Math.abs(d.y) < 1e-4) return null; const t = (y - o.y) / d.y; if (t < 0) return null; const q = L2(o.x + d.x * t, o.z + d.z * t); return Math.hypot(q[0] - P.hole.at[0], q[1] - P.hole.at[1]) <= PD.R0 + 0.2 ? q : null; }
   const nearTip = (p) => { const q = scrPt(tipW()); return q.on !== false && Math.hypot(q.x - p.x, q.y - p.y) < K.TIP; };
   function onStone(p, i) { const g = meshOf(i); if (!g) return false; const c = scrPt(stoneTop(g, new T.Vector3())), s = W.stones[i], e = scrPt(W3(s.at[0] + halfOf(s)[0], F + 0.6, s.at[1])); const r = Math.max(40, Math.hypot(e.x - c.x, e.y - c.y) * 1.25); return Math.hypot(c.x - p.x, c.y - p.y) < r; }
+  function tipNearer(p, i) { const g = meshOf(i); if (!g) return true; const c = scrPt(stoneTop(g, new T.Vector3())), q = scrPt(tipW()); return Math.hypot(q.x - p.x, q.y - p.y) < Math.hypot(c.x - p.x, c.y - p.y); }
   function onLever(p) { const a = scrPt(tipW()), b = scrPt(handP || handFb()); const vx = b.x - a.x, vy = b.y - a.y, L0 = vx * vx + vy * vy || 1; const u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L0, 0, 1.2); return Math.hypot(p.x - (a.x + vx * u), p.y - (a.y + vy * u)) < 44; }
   const FG = fingers(X, {
     down(f) {
       if (A.fl != null || A.busy) return;
       if (A.phase === 'check') { A.fl = f.id; f.w = { mode: 'nail', ang: thumbAng(f) }; X.hand(null); return; }
       if (A.phase !== 'work') return;
-      if (L.st === 'seat' && (onStone(f, L.i) || onLever(f)) && !nearTip(f)) { A.fl = f.id; f.w = { mode: 'press' }; A.press = true; X.hand(null); ev('press'); return; }
+      // (seated: a touch on the stone or the bar presses; it takes the tip only when it is nearer the tip than the stone's middle — at the
+      //  lever shot's distance a level 3 stone is small on the screen, and its middle lay inside the tip's reach: a press became a drag)
+      if (L.st === 'seat' && (onStone(f, L.i) || onLever(f)) && !(nearTip(f) && tipNearer(f, L.i))) { A.fl = f.id; f.w = { mode: 'press' }; A.press = true; X.hand(null); ev('press'); return; }
       if (nearTip(f)) { A.fl = f.id; f.w = { mode: 'lever', last: floorAt(f) }; if (L.st === 'seat') unseat(true); L.st = 'held'; greensShow(true); X.hand(null); V.scrape(0.2); ev('lever'); return; }
       const q = floorAt(f); if (!q) return;
       A.fl = f.id; f.w = { mode: 'scrape', last: q }; if (L.st === 'seat') unseat(true); L.st = 'held'; L.tip = q.slice(); X.hand(null); ev('scrape');

@@ -189,6 +189,18 @@ export const GALLERY = {
         feel(r);
       } else { r.a = null; r.tgt = { ...r.sled }; X.play('thud'); }
       A.preview = null; A.why = null; ghost(true); ev('drop ' + r.i + ' ' + (r.a == null ? '-' : r.a.toFixed(2)));
+      keepWip();
+    }
+    /** ── build 130 ── progress stays: the columns he placed and the losses so far are kept in the save (st.galWip), and a reload
+     *  mid-work stands them where he put them */
+    function keepWip() {
+      try { st.galWip = { id: m.id, cols: C.map((r) => r.a), dmg: A.dmg, cracks: A.cracks, broke: A.broke, charged: [...A.charged], tries: A.tries }; X.save(); } catch (e) { /* */ }
+    }
+    function restoreWip() {
+      const W = st.galWip; if (!W || W.id !== m.id || !Array.isArray(W.cols)) return false;
+      W.cols.forEach((a, i) => { const r = C[i]; if (!r || a == null) return; r.a = a; const f = footAt(a); r.pos = { ...f }; r.tgt = { ...f }; r.g.position.set(f.x, GEO.FLOOR, f.z); });
+      A.dmg = W.dmg | 0; A.cracks = W.cracks | 0; A.broke = W.broke | 0; A.tries = W.tries | 0; A.charged = new Set(W.charged || []);
+      ev('kept ' + placed().length); return true;
     }
     /** the beams beside a column just placed: straight is "במקום!", a sag creaks, a crack (one he could close) sounds */
     function feel(r) {
@@ -239,6 +251,7 @@ export const GALLERY = {
         X.play('crack'); X.shake(0.25, 0.35); X.dust(f.x, Y.COL_TOP, f.z, 18, 3);
         X.loss(20, { x: f.x, y: Y.COL_TOP, z: f.z }, LOSS['gal.beam'][0], 0); A.dmg++; A.cracks++;
         try { Mo.mark('gal.beam', m.id, [+f.x.toFixed(2), +f.z.toFixed(2)]); X.save(); } catch (e) { /* */ }
+        keepWip();
         X.line(GLINES.prop, 2600); await wait(1.2);
       }
     }
@@ -341,7 +354,7 @@ export const GALLERY = {
       return new Promise((res) => {
         A.phase = 'raise'; X.line(GLINES.raise, 2600); lensSet(false);
         const f = footAt(rz.a), fr = { x: f.x, z: f.z, along: [runDir[0], runDir[1]], across: [court[0], court[1]] };
-        const sub = raiseAct(X, { fr, id: m.id, onEnd: (r) => { A.raiseRes = r; A.raised = r.c; A.raisedRec = rz; A.broke = r.c.broke | 0; A.dmg += A.broke; try { sub.end(); } catch (e) { /* */ } A.sub = null; X.kohen(true); heroAt(X, SP.x, SP.z, SP.face[0], SP.face[1]); A.phase = 'test'; lensSet(true); home(0.8); res(); } });
+        const sub = raiseAct(X, { fr, id: m.id, onEnd: (r) => { A.raiseRes = r; A.raised = r.c; A.raisedRec = rz; A.broke = r.c.broke | 0; A.dmg += A.broke; keepWip(); try { sub.end(); } catch (e) { /* */ } A.sub = null; X.kohen(true); heroAt(X, SP.x, SP.z, SP.face[0], SP.face[1]); A.phase = 'test'; lensSet(true); home(0.8); res(); } });
         A.sub = sub; A.busy = false; sub.begin();
       });
     }
@@ -351,7 +364,9 @@ export const GALLERY = {
       const lay = layoutNow(true), chk = galCheck(lay.cols, lv);
       st.gal[side] = { cols: lay.cols.slice().sort((a, b) => a - b), props: lay.props, raised: lay.raised, raisedAt: lay.raisedAt };
       X.save();
-      let pts = galPts(chk, A.broke);
+      // (a beam that cracked in a test is a loss that stays, even if a later layout spans it whole — build 130: the reload rule)
+      let pts = galPts(chk, A.broke + Math.max(0, A.cracks - (chk.cracks | 0)));
+      if (st.galWip && st.galWip.id === m.id) delete st.galWip;
       if (A.raiseRes) pts = Math.min(pts, A.raiseRes.pts);
       const q = qOf(pts), perfect = pts >= 40 && !A.dmg && !A.cut;
       ev('end ' + pts);
@@ -447,6 +462,7 @@ export const GALLERY = {
     async function begin2() {
       if (lv === 1 && !st.open1) { try { await opening(); } catch (e) { console.warn('[h130] opening', e && e.message); } if (A.ended) return; }
       A.phase = 'puzzle'; A.busy = false;
+      if (restoreWip()) ghost(true);
       lensSet(true); home(1.0); src(LINES.middot25, 7);
       X.line(lv === 3 ? GLINES.puzzle3 : GLINES.puzzle, 0);
       ghost(true);

@@ -12,5 +12,6 @@ export function h131Card(on) {
     if (typeof document === 'undefined') return;
     if (!document.getElementById('h131-card-css')) { const c2 = document.createElement('style'); c2.id = 'h131-card-css'; c2.textContent = CARD_CSS; document.head.appendChild(c2); }
     document.body.classList.toggle('h131-card', !!on);
+    globalThis.__HERO_RING_OFF = !!on;   // (look round 2: no gold ring at the kohen's feet under the cards)
   } catch (e) { /* */ }
 }

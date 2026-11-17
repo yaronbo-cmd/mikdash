@@ -81,7 +81,7 @@ export function makePack08(env = {}) {
       })();
     },
     /** the stage's close: the world as he built it (the finale's own film is the finale lane's; build 131 part 3) */
-    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); },   // (b131 look round: the big card that follows in large type, no walk hint)
+    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); try { X.kohen(false); } catch (e) { /* */ } },   // (look round 2: the kohen out of the cards' foreground; index.js shows him again when the end card closes)   // (b131 look round: the big card that follows in large type, no walk hint)
     /** after a reload, the stage done: the yesod as he built it */
     rest(X, M) { restWorld(X, M); },
     dispose() {},

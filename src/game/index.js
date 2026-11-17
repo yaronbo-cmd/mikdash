@@ -3456,7 +3456,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     //  white yesod — and the end card after it high, large and on a light veil, the yesod whole below it)
     const cardOn = h131Card;
     cardOn(true); try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
-    if (!frontier(G, S)) setTimeout(() => { if (!endHold) { cardOn(false); tod = null; syncTime(); } }, 7000);
+    if (!frontier(G, S)) setTimeout(() => { if (!endHold) { cardOn(false); tod = null; syncTime(); try { W.heroShow(true); } catch (e) { /* */ } } }, 7000);
     endView(1400);
     completeFlow(c, false);
     persist();
@@ -3467,7 +3467,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       noPad(); ui.refresh(); endHold = true;
       try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
       cardOn(true);
-      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; cardOn(false); syncTime(); });
+      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; cardOn(false); syncTime(); try { W.heroShow(true); } catch (e) { /* */ } });
       setTimeout(() => endView(1600), 60);
     }, 1200);   // (the last stage a pack owns: the frontier's one card)
   }

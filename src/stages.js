@@ -1165,6 +1165,9 @@ function buildHero() {
     x.fillStyle = g; x.fillRect(0, 0, s, s);
   });
   const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, toneMapped: false }));
+  // ── b131 ── (the blob without the gold ring: a stage may hide the player's marker during its works, films and cards —
+  //  globalThis.__HERO_RING_OFF; his shadow stays) ── /b131 ──
+  ring.userData.tex = tex; ring.userData.texB = canvasTex(128, (x, s) => { const g = x.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); g.addColorStop(0, 'rgba(20,14,6,.55)'); g.addColorStop(0.42, 'rgba(20,14,6,.28)'); g.addColorStop(0.6, 'rgba(20,14,6,0)'); x.fillStyle = g; x.fillRect(0, 0, s, s); });
   ring.renderOrder = 2; ring.frustumCulled = false;
   const bn = {}; for (const k in B) bn[k] = bones[B[k]];
   // ── people7 ── the outline: the same skinned geometry and skeleton, back faces pushed out along the normal in screen
@@ -4234,6 +4237,7 @@ export function createStages(ctx) {
     H.mesh.scale.setScalar(s);
     H.ring.position.set(H.x, H.y + 0.06, H.z);
     H.ring.material.opacity = 0.75 + 0.25 * Math.sin(time * 3.2);
+    { const U = H.ring.userData, want = globalThis.__HERO_RING_OFF && U.texB ? U.texB : U.tex; if (want && H.ring.material.map !== want) { H.ring.material.map = want; H.ring.material.needsUpdate = true; } if (want === U.texB) H.ring.material.opacity = 1; }   // ── b131 ── ── /b131 ──
     H.ring.scale.setScalar(HERO_S * 3.1 * (fv < 1 ? fv : 1) * (1 + comboV * 0.12));
     // after dark: the lantern (hung on the banker's post while he works there, in his left hand when he walks) and a thin
     // cool rim; a combo warms the rim to gold, brightens the ring and sends up motes

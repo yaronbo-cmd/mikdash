@@ -16,6 +16,8 @@ import { BOOK } from '../world/grid.js';
 
 const S8 = BOOK.s08;
 const BT = 0.36;                       // (the sample's board thickness)
+/** b131 look round 2: what went over the timber is a stain on the floor and a loss from this much on (pour.js SPILL_MARK): the spec's table */
+export const SPILL_SEEN = 0.05;
 const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [6.9, 4.7];   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
 const RELIEF = 1.2, MOUND_VIS = 0.42, LUT_N = 64, STREAM_SEG = 18, MAXB = 48, MAXD = 48;
 
@@ -72,8 +74,8 @@ export function createPourView(X, lv, sim, o = {}) {
       const P = [], C = [], I = [], base = s.tint ? tintPal : pal[Math.floor(rnd() * pal.length)], c = Math.cos(s.rot), sn = Math.sin(s.rot);
       for (let r = 0; r < US.length; r++) for (let t = 0; t < NT; t++) {
         const th = (t / NT) * Math.PI * 2, u = Math.min(US[r], 1.0), rs = stoneRadiusScale(s, th), ex = u * rs * Math.cos(th), ez = u * rs * Math.sin(th), lx = ex * s.rx, lz = ez * s.rz;
-        const wx = s.x + lx * c - lz * sn, wz = s.z + lx * sn + lz * c;
-        let y = US[r] >= 1 ? -0.03 : stoneHeightAt(s, wx, wz); if (y > 0.9) y = 0.9 + (y - 0.9) * 1.4; if (r > 0 && r < 4) y += (rnd() - 0.5) * 0.04 * s.h;
+        const wx = Math.max(-5.95, Math.min(5.95, s.x + lx * c - lz * sn)), wz = Math.max(-3.95, Math.min(3.95, s.z + lx * sn + lz * c));   // (inside the boards: none crosses a beam)
+        let y = US[r] >= 1 ? -0.03 : stoneHeightAt(s, wx, wz); y = y * Math.min(1, 0.72 / Math.max(0.1, s.h));   // (b131 look round 2: a stone two men carry, its top under the mix — the sim keeps its own heights) if (r > 0 && r < 4) y += (rnd() - 0.5) * 0.04 * s.h;
         P.push(wx - s.x, y, wz - s.z); const shade = 0.88 + rnd() * 0.16 + (y / s.h) * 0.08; C.push(base.r * shade, base.g * shade, base.b * shade);
       }
       for (let r = 0; r < US.length - 1; r++) for (let t = 0; t < NT; t++) { const a = r * NT + t, b = r * NT + (t + 1) % NT, c2 = (r + 1) * NT + t, d = (r + 1) * NT + (t + 1) % NT; I.push(a, b, c2, b, d, c2); }
@@ -255,7 +257,7 @@ export function createPourView(X, lv, sim, o = {}) {
   { const cm = keep(new THREE.MeshStandardMaterial({ color: 0x7b6d5f, roughness: 0.95, flatShading: true })), cg = keep(new THREE.DodecahedronGeometry(1, 0)); for (let j = 0; j < 8; j++) { const m = new THREE.Mesh(cg, cm); m.visible = false; m.castShadow = true; G.add(m); chunks.push({ m }); } }
   // the spill's stain on the floor beyond the timber (level 3): a dark flat patch that grows with what went over
   let stain = null;
-  if (L.timber) { stain = new THREE.Mesh(keep(new THREE.CircleGeometry(1, 20)), keep(new THREE.MeshStandardMaterial({ color: 0x4a3a2c, roughness: 0.9, transparent: true, opacity: 0.85, polygonOffset: true, polygonOffsetFactor: -2 }))); stain.rotation.x = -Math.PI / 2; stain.position.set(0, 0.02, D / 2 + BT + 0.9); stain.scale.set(0.01, 0.01, 1); stain.visible = false; G.add(stain); }
+  if (L.timber) { stain = new THREE.Mesh(keep(patchGeo(THREE, 1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: 0x8c8172, roughness: 0.95, transparent: true, opacity: 0.95, polygonOffset: true, polygonOffsetFactor: -2 }))); stain.rotation.x = -Math.PI / 2; stain.position.set(0, 0.02, D / 2 + BT + 0.9); stain.scale.set(0.01, 0.01, 1); stain.visible = false; G.add(stain); }
 
   /* ── the sounds (the sample's, synthesized; through the game's audio context and its mute) ── */
   let actx = null, master = null, noiseBuf = null, pourGain = null, pourFilt = null, pourGain2 = null, fireGain = null;
@@ -393,7 +395,7 @@ export function createPourView(X, lv, sim, o = {}) {
       V.walkPhase += dt * (6 + 6 * walking) * (walking ? 1 : 0); poseWalk(crewL, V.walkPhase, walking); poseWalk(crewR, V.walkPhase + Math.PI, walking);
       const tiltAng = ca.swapping > 0 ? 0 : sp.tilt * 1.15; tiltGroup.rotation.x = -tiltAng;
       for (const f of [crewL, crewR]) { const lean = 0.85 + sp.tilt * 0.35; f.armL.rotation.x = -lean; f.armR.rotation.x = -lean; f.body.rotation.x = sp.tilt * 0.12; }
-      const amountFrac = ca.swapping > 0 ? (V.swapAnim ? 1 : ca.amount / ca.cap) : ca.amount / ca.cap, heatShown = ca.swapping > 0 && V.swapAnim ? 1 : ca.heat;
+      const amountFrac = ca.swapping > 0 ? (V.swapAnim ? 1 : ca.amount / ca.cap) : ca.amount / ca.cap, heatShown = Math.max(0.65, ca.swapping > 0 && V.swapAnim ? 1 : ca.heat);   // (b131 look round 2: the mix straight from the fire reads hot — a pale disc in a red pot read as a button)
       setCauldronLook(potA, amountFrac, heatShown); potA.mix.rotation.x = -Math.PI / 2 + tiltAng;
       setCauldronLook(nextCauldron, ca.swapping > 0 && V.swapAnim ? 0.15 : 0.9, 1);
     } else teardownFrame(dt, S);
@@ -405,7 +407,7 @@ export function createPourView(X, lv, sim, o = {}) {
     if (pouring) { const topW = tmpV2.set(sx, B0 + topY + 0.05, topZ - 0.2); lipStream.position.copy(lip); const len = Math.max(0.05, lip.distanceTo(topW)); lipStream.scale.set(0.6 + sp.tilt, len, 0.6 + sp.tilt); tmpV3.subVectors(topW, lip).normalize(); lipStream.quaternion.setFromUnitVectors(tmpV.set(0, -1, 0), tmpV3); }
     if (spilling) { const lz = D / 2 + BT + 0.5; updateStream(true, ca.heat, time, sp.lx, lz, -(o.base || 0) + 0.02); }
     else updateStream(sp.q > 0.001, ca.heat, time, sp.lx, sp.lz, surfaceAt(sp.lx, sp.lz) + 0.01);
-    if (stain) { const k = Math.min(2.2, Math.sqrt(S.spilled || 0) * 2.4); stain.visible = k > 0.05; stain.scale.set(k * 1.4, k, 1); if (S.stainX != null) stain.position.x = S.stainX; }
+    if (stain) { const k = Math.min(2.2, Math.sqrt(S.spilled || 0) * 2.4); stain.visible = (S.spilled || 0) >= SPILL_SEEN; stain.scale.set(k * 1.4, k, 1); if (S.stainX != null) stain.position.x = S.stainX; }
     // drops at the landing, bubbles from the sealed entrances
     if (sp.q > 0.001 && R() < sp.q * dt * 14) spawnDrop(sp.lx, surfaceAt(sp.lx, sp.lz) + 0.03, sp.lz);
     let n = 0;
@@ -425,7 +427,7 @@ export function createPourView(X, lv, sim, o = {}) {
   function knockerFrame(dt, S) {
     const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = -2.3; k.g.position.y = B0;
     const at = S.phase === 'knock' || S.phase === 'hollow' || S.phase === 'full';
-    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 2.9) tx = rx + (tx >= rx ? 2.9 : -2.9); }   // (b131 look round: never inside the cauldron's crew)
+    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 4.4) tx = rx + (tx >= rx ? 4.4 : -4.4); tx = Math.max(-6.2, Math.min(6.2, tx)); if (Math.abs(tx - rx) < 4.4) tx = rx + (rx > 0 ? -4.4 : 4.4); }   // (b131 look round: never inside the cauldron's crew)
     const dx = tx - k.g.position.x, dz = tz - k.g.position.z, dist = Math.hypot(dx, dz); let walking = 0;
     if (dist > 0.03) { const m = Math.min(dist, 4.2 * dt); k.g.position.x += dx / dist * m; k.g.position.z += dz / dist * m; k.g.rotation.y += angDiff(Math.atan2(dx, dz), k.g.rotation.y) * Math.min(1, dt * 8); walking = 1; }
     else k.g.rotation.y += angDiff(face, k.g.rotation.y) * Math.min(1, dt * 6);
@@ -516,10 +518,10 @@ function marksDraw(X, M) {
   const g = new T.Group(); g.name = 'h131-pour-marks'; X.props.root.add(g); W8.g = g;
   const white = M.isDone('finale');
   const patchM = new T.MeshStandardMaterial({ color: white ? 0xDCD3C2 : 0x9a8f80, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });   // (a fresher mix, a shade off the set one)
-  const stainM = new T.MeshStandardMaterial({ color: 0x4a3a2c, roughness: 0.9, transparent: true, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2 });
+  const stainM = new T.MeshStandardMaterial({ color: 0x8c8172, roughness: 0.95, transparent: true, opacity: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
   for (const k of marks) {
     if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, patchR(k.r * 10), patchSeed(k.x, k.z)), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.x, S8.top + 0.012, k.z); g.add(m); }
-    else { const m = new T.Mesh(new T.CircleGeometry(1, 20), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
+    else { const m = new T.Mesh(patchGeo(T, 1, patchSeed(k.x, k.z)), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
   }
 }
 export const POUR3D = {

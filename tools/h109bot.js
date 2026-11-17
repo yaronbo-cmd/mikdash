@@ -1156,6 +1156,8 @@
       B.fig8(a);
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
       if (!a || a.done) { if (shots && a && !K.shotSq) { K.shotSq = 1; return { wait: 250, shot: a.id + '-square' }; } return { wait: 300 }; }
+      // (a still of the wooden mallet's blows, taken while the shot rests on them)
+      if (shots && a.mallet && !K.shotM) { K.shotM = 1; return { wait: 100, shot: a.id + '-mallet' }; }
       if (a.busy || a.settled === false) return { wait: 250 };
       if (shots && !K.shot0) { K.shot0 = 1; return { wait: 300, shot: a.id + '-look', note: 'frame: ' + JSON.stringify(a.figs) }; }
       const hold = (i, to, note) => ({ path: [a.P[i].at, to], ms: 900, keep: 7000, release: C(`return !a||!a.P||a.P[${i}].off<0.42`), wait: 700, note });
@@ -1171,7 +1173,8 @@
       if (a.lv === 1) {
         const NW = a.P[0];
         if (!NW.seat) return hold(0, NW.to, 'frame: the NW corner to its stake (off ' + NW.off + ')');
-        const far = a.P.filter((p) => !p.seat).sort((p, q) => q.off - p.off)[0];
+        // (the corner the game's close shot shows: on a tie of distances the bot's own pick could be one off the picture)
+        const far = a.P.find((p) => p.k === a.focus && !p.seat) || a.P.filter((p) => !p.seat).sort((p, q) => q.off - p.off)[0];
         if (far) return hold(far.i, far.to, 'frame: turn about NW: ' + far.k + ' (off ' + far.off + ')');
         return { wait: 300 };
       }
@@ -1185,7 +1188,7 @@
       const bent = a.P.find((q) => q.peg && q.off > 0.05);
       // (the corner to move is an unpegged one: the bent peg's corner is unseated too, at the same distance, and a drag of it — off the
       //  close shot's picture — grabbed nothing)
-      const free = a.P.filter((q) => !q.seat && !q.peg).sort((p, q) => q.off - p.off)[0];
+      const free = a.P.find((q) => q.k === a.focus && !q.seat && !q.peg) || a.P.filter((q) => !q.seat && !q.peg).sort((p, q) => q.off - p.off)[0];
       // (the close shot shows only the corner worked at: as a player, try the crooked corner first; it will not come, and the shot
       // goes to the bent peg. The right peg pulled by mistake is seen from the lifted look)
       if (bent && a.focus !== bent.k && a.focus !== 'wide' && free && (K.tries3 | 0) < 3) { K.tries3 = (K.tries3 | 0) + 1; return { path: [free.at, [free.at[0] + (free.to[0] - free.at[0]) * 1.8, free.at[1] + (free.to[1] - free.at[1]) * 1.8]], ms: 900, keep: 2200, wait: 900, note: 'frame: the crooked corner ' + free.k + ' tried (it will not come)' }; }
@@ -1209,6 +1212,8 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
       if (!a || a.done) return { wait: 300 };
       if (a.step === 'rise') { if (shots && !K.shotR) { K.shotR = 1; return { wait: 2600, shot: a.id + '-rise' }; } return { wait: 300 }; }
+      // (a still of the timber coming out on its ropes, the shot at rest — it follows only the first amot)
+      if (a.busy && shots && a.step === 'pull') { for (const k of ['S', 'E']) { const v = a['s' + k]; if (v > 7 && v < 16 && !K['shotO' + k]) { K['shotO' + k] = 1; return { wait: 50, shot: a.id + '-out-' + k }; } } }
       if (a.busy) { if (shots && a.step === 'water' && !K.shotW) { K.shotW = 1; return { wait: 200, shot: a.id + '-water-down' }; } return { wait: 250 }; }
       if (a.step === 'pull') {
         let k = a.out.S ? 'E' : 'S'; if (has('east') && !K.east) { K.east = 1; k = 'E'; }

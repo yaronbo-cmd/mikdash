@@ -966,7 +966,10 @@
       if (a.look && !a.look.play && (a.look.u > 0.02 || Math.abs(a.look.yaw) > 0.03) && !window.__BOT_LOOKOK) return { tap: [Math.round(innerWidth - 30), Math.round(innerHeight * 0.55)], wait: 500, note: 'golah: LOOK AWAY u ' + a.look.u + ' · a tap returns the camera' };
       // the target trough: chosen when nothing is on its way (the first not yet full), kept until that water has landed
       const moving = a.head + a.cw + (a.mph === 'fill' ? 0 : a.f);
-      if (!K.tg || (a.mph === 'fill' && a.head < 1e-3 && a.cw < 1e-3)) K.tg = (gf && a.tr.A[0] < 1.7) ? 'A' : a.ks.find((k) => a.tr[k][1] - a.tr[k][0] > 0.06) || a.ks[0];
+      // (build 129 R1: golah3 in four ascents — the big trough first with a full bucket, then the one a full bucket fills, then the small
+      //  one, and last the big one's top-up, filled by the water it already holds: B, A, C, B)
+      const gap = (k) => a.tr[k][1] - a.tr[k][0], open3 = a.id === 'golah3' ? a.ks.filter((k) => gap(k) > 0.06).sort((p, q) => (gap(q) >= 0.95) - (gap(p) >= 0.95) || gap(q) - gap(p)) : null;
+      if (!K.tg || (a.mph === 'fill' && a.head < 1e-3 && a.cw < 1e-3)) K.tg = (gf && a.tr.A[0] < 1.7) ? 'A' : open3 ? open3[0] || a.ks[0] : a.ks.find((k) => gap(k) > 0.06) || a.ks[0];
       const need = (k) => a.tr[k][1] - a.tr[k][0] - (k === K.tg ? moving : 0);
       // the sluices: only the target's open (on the screen: the rim's view)
       for (const k of a.ks) {

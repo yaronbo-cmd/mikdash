@@ -271,7 +271,9 @@ export const gazitPts = (r) => grade(r.dmg, !r.fails && !r.standing);
 export const GOLAH_LV = Object.freeze({
   golah1: Object.freeze({ depth: GL.depth[0], troughs: Object.freeze({ A: 2.0 }) }),
   golah2: Object.freeze({ depth: GL.depth[1], troughs: Object.freeze({ A: 1.5, C: 2.5 }) }),
-  golah3: Object.freeze({ depth: GL.depth[2], troughs: Object.freeze({ A: 1.0, B: 2.0, C: 1.5 }) }),
+  // (build 129 R1: golah3 in four ascents — B the big one takes two (a nearly full bucket, then a top-up judged by the water seen in it,
+  //  0.53 … 0.8), A one full bucket, C one bucket filled to 0.72 … 0.9; DONE × 3.5 = 3.15 > three buckets, so three can never do)
+  golah3: Object.freeze({ depth: GL.depth[2], troughs: Object.freeze({ A: 1.0, B: 1.7, C: 0.8 }) }),
 });
 /** the swing and the water (the brief's start values; CALM/PERFECT/FEED tuned so the two windows do not overlap: a pull is judged by
  *  the nearer of the swing's middle and its end) */

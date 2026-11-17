@@ -26,7 +26,7 @@ import { BOOK } from '../world/grid.js';
 const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
 const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 // (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
-const SEE = Object.freeze({ AIM_D: 8, DOWN: 9, FOV: 40, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ AIM_D: 8, DOWN: 4, FOV: 26, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({

@@ -883,7 +883,7 @@ const S07 = {
     // wall's end, temple.js wall(−142, −73.5, 0, −67.5, 6, 44), stands on the vault's axis: it is the court's wall, not a stray); the
     // Gazit three-quarter from high over its north-west corner (over the north wall's top, 28.4): the bench, the rows, the scribes and
     // the kohen in the holy half in the left third ── /h129 ──
-    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18.6], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-174, 22, -70.5], [-143.5, 32, -70.5], 60], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
+    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18.6], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-174, 22, -70.5], [-143.5, 35.5, -70.5], 60], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye

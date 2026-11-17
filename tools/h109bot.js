@@ -1025,7 +1025,7 @@
     // ── h130 light ── (build 130, station 3 "חמישים אמה של אור": the player of kind 'light', h130/light.js dbg()). The wick: the left
     // thumb holds the garment, the right pulls a strip off its edge at 0.7 amah a second (a mouse: the strip alone); the oil: hin, hin,
     // half a hin; the ladder: each hand lifted as the jar passes the middle going away from it (or when it is still), drawn up to the
-    // next rung — by mouse the right hand with the right button; the pour: the jar tilted slowly to 0.6; the wick to the bowl; the
+    // next rung — by mouse with the one (left) button on that hand; the pour: the jar tilted slowly to 0.6; the wick to the bowl; the
     // taper to the wick. __BOT.bad: 'tear' (the first strip pulled fast: torn, no loss), 'over' (three hins: over thirty, no loss),
     // 'jar' (light2: each hand lifted as the jar swings toward it until the jar falls: light.jar, −20). __BOT_LIFT3: a still and the
     // figures' report at the camera's lift 0.3 once per phase.
@@ -1033,6 +1033,8 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
       const figs = () => { try { return JSON.stringify(window.__FIG && __FIG.report ? __FIG.report() : null); } catch (e) { return 'ERR'; } };
       const once = (key, r) => { if (K[key]) return null; K[key] = 1; return r; };
+      // (light3: the other boys' wicks and oil, watched — a still of each, then the bot waits)
+      if (a.phase === 'prep') { const p0 = once('p0', { wait: 700, shot: `${a.id}-prep-wicks`, note: 'light: the boys prepare' }); if (p0) return p0; const p1 = once('p1', { wait: 1300, shot: `${a.id}-prep-oil` }); if (p1) return p1; return { wait: 200 }; }
       // (a still per phase at lift 0, then at lift 0.3 with the figures' report)
       if (['wick', 'oil', 'climb', 'pour', 'lay', 'light'].includes(a.phase)) {
         const w0 = once('w0' + a.phase, { wait: 1500 }); if (w0) return w0;   // (the shot settles first)
@@ -1068,7 +1070,7 @@
         const c = a.climb, h = c.up || (c.L <= c.R ? 'L' : 'R'), sg = h === 'R' ? 1 : -1, pump = has('jar') && a.id === 'light2' && !a.drops;
         const cond = pump ? `const c=a&&a.climb;return !c||a.phase!=='climb'||(Math.abs(c.phi)<0.1&&${sg}*c.w>0)`
           : `const c=a&&a.climb;return !c||a.phase!=='climb'||c.up||(Math.abs(c.phi)<0.1&&${-sg}*c.w>0)||(Math.abs(c.phi)<0.03&&Math.abs(c.w)<0.15)`;
-        const get = C(`const c=a&&a.climb;if(!c)return null;const h=c.up||'${h}',p=c.hands[h],q=c.next[h];return [p[0],p[1],q[0]+(q[0]-p[0])*0.15,q[1]+(q[1]-p[1])*0.15,220${mouse ? ",h==='R'?'right':'left'" : ''}]`);
+        const get = C(`const c=a&&a.climb;if(!c)return null;const h=c.up||'${h}',p=c.hands[h],q=c.next[h];return [p[0],p[1],q[0]+(q[0]-p[0])*0.15,q[1]+(q[1]-p[1])*0.15,220${mouse ? ",'left'" : ''}]`);   // (build 130 review: one mouse button — the side of the ladder is the hand)
         if (c.up) return mouse ? { mouseDragAt: get, wait: 60 } : { dragAt: get, wait: 60, note: 'light: the lifted hand up' };
         return { when: C(cond), max: 4000, then: mouse ? { mouseDragAt: get } : { dragAt: get }, wait: 40, note: `light: rung ${c.rung}/${c.top} ${h} (phi ${c.phi}, oil ${c.oil})${pump ? ' PUMP' : ''}` };
       }

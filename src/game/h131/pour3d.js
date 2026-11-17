@@ -197,7 +197,7 @@ export function createPourView(X, lv, sim, o = {}) {
   function makeCauldron() {
     const mat = keep(new THREE.MeshStandardMaterial({ color: clayHex, roughness: 0.85, flatShading: true, side: THREE.DoubleSide, emissive: 0xff4a10, emissiveIntensity: 0 }));
     const pot = new THREE.Mesh(cauldronGeo, mat); pot.castShadow = true;
-    const mixMat = keep(new THREE.MeshStandardMaterial({ color: 0xffa040, emissive: 0xff7a18, emissiveIntensity: 1, roughness: 0.25 }));
+    const mixMat = keep(new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false }));   // (b131 look round 3: the approved sample's mix in the pot — orange, never washed to white by the game's grading)
     const mix = new THREE.Mesh(keep(new THREE.CircleGeometry(1, 16)), mixMat); mix.rotation.x = -Math.PI / 2;
     const g = new THREE.Group(); g.add(pot, mix); return { g, pot, mat, mix, mixMat };
   }
@@ -205,8 +205,8 @@ export function createPourView(X, lv, sim, o = {}) {
     const y = -0.95 + 0.97 * Math.max(0, Math.min(1, amountFrac)); cd.mix.visible = amountFrac > 0.01; cd.mix.position.y = y;
     const r = cauldronRadiusAt(y) - 0.02; cd.mix.scale.set(r, r, 1);
     const j2 = Math.max(0, Math.min(LUT_N - 1, Math.round(heat * 0.82 * (LUT_N - 1)))) * 3;
-    cd.mixMat.color.setRGB(liqLUT[j2], liqLUT[j2 + 1], liqLUT[j2 + 2]); cd.mixMat.emissive.setRGB(liqLUT[j2], liqLUT[j2 + 1], liqLUT[j2 + 2]);
-    const e = Math.max(0, (heat - 0.3) / 0.7); cd.mixMat.emissiveIntensity = e * e * 0.3; cd.mat.emissiveIntensity = e * e * 0.35;
+    cd.mixMat.color.setRGB(liqLUT[j2], liqLUT[j2 + 1], liqLUT[j2 + 2]);
+    const e = Math.max(0, (heat - 0.3) / 0.7); cd.mat.emissiveIntensity = e * e * 0.35;
   }
   const flames = [];
   const fireG = new THREE.Group(); fireG.position.copy(FIRE); G.add(fireG);
@@ -399,7 +399,7 @@ export function createPourView(X, lv, sim, o = {}) {
       V.walkPhase += dt * (6 + 6 * walking) * (walking ? 1 : 0); poseWalk(crewL, V.walkPhase, walking); poseWalk(crewR, V.walkPhase + Math.PI, walking);
       const tiltAng = ca.swapping > 0 ? 0 : sp.tilt * 1.15; tiltGroup.rotation.x = -tiltAng;
       for (const f of [crewL, crewR]) { const lean = 0.85 + sp.tilt * 0.35; f.armL.rotation.x = -lean; f.armR.rotation.x = -lean; f.body.rotation.x = sp.tilt * 0.12; }
-      const amountFrac = ca.swapping > 0 ? (V.swapAnim ? 1 : ca.amount / ca.cap) : ca.amount / ca.cap, heatShown = Math.max(0.6, Math.min(0.78, ca.swapping > 0 && V.swapAnim ? 1 : ca.heat));   // (b131 look round 2: the mix in the pot reads orange — at full heat its glow washed out to a pale disc in a red pot, read as a button)
+      const amountFrac = ca.swapping > 0 ? (V.swapAnim ? 1 : ca.amount / ca.cap) : ca.amount / ca.cap, heatShown = Math.max(0.6, Math.min(0.92, ca.swapping > 0 && V.swapAnim ? 1 : ca.heat));   // (b131 look round 2: the mix in the pot reads orange — at full heat its glow washed out to a pale disc in a red pot, read as a button)
       setCauldronLook(potA, amountFrac, heatShown); potA.mix.rotation.x = -Math.PI / 2 + tiltAng;
       setCauldronLook(nextCauldron, ca.swapping > 0 && V.swapAnim ? 0.15 : 0.9, 1);
     } else teardownFrame(dt, S);

@@ -408,8 +408,12 @@ export const VAULT = {
       await X.wait(0.7);
       if (SV) { SH7.lookFn = null; A.lensF = SV[2]; lens(SV[2]); X.shot(SV[0], SV[1], 0.01); }
       // (the centering is let down and carried out — the crew with it — the stones stay in the air)
-      const cy = cen.position.y; tween(1.6, (u) => { cen.position.y = cy - 0.6 * sm(u / 0.4); cen.position.x = (G.big ? -6 : 3.5) * sm((u - 0.4) / 0.6); }, () => { cen.visible = false; for (const w of crew) SH7.crew.remove(w); crew.length = 0; if (A.dress) A.dress.visible = false; if (A.poles) A.poles.visible = false; });
-      await X.wait(1.8);
+      //  (stepped on the director's clock, X.wait — not the act's tweens: the act's update waits while the look is away, and the probe saw
+      //  the centering and the masons stay in vaultN's picture)
+      const cy = cen.position.y;
+      for (let i = 1; i <= 16; i++) { const u = i / 16; cen.position.y = cy - 0.6 * sm(u / 0.4); cen.position.x = (G.big ? -6 : 3.5) * sm((u - 0.4) / 0.6); await X.wait(0.1); }
+      cen.visible = false; for (const w of crew) SH7.crew.remove(w); crew.length = 0; if (A.dress) A.dress.visible = false; if (A.poles) A.poles.visible = false;
+      await X.wait(0.2);
       if (!G.big && AC && AF) {
         const a = AC.add('levite', AF.levi[0], AF.levi[1], { fadeIn: false });
         if (a) { a.vis = a.visT = 1; a.gang = 1; AC.setItem(a, 'nevel'); a.yaw = SV ? Math.atan2(SV[0][0] - a.x, SV[0][2] - a.z) : Math.atan2(G.xF - a.x, G.zc - a.z); levi = a; }

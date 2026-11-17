@@ -4,6 +4,7 @@
  * the opening (rule 3: the Mount from high, down to the altar's place; a tap skips it); the end (the white step in the middle of the
  * great court, from high: BOOK.s08.cam.end — the game holds it under the end card, which names the next stage, NEXT_STAGE).
  */
+import { h131Card } from './card.js';
 import { PLAN, LINES, NEXT_STAGE, createH131, fromOld } from './model.js';
 import { ACTS } from './acts.js';
 import { SH8, initWorld, finalWorld, restWorld } from './world.js';
@@ -37,6 +38,7 @@ export function makePack08(env = {}) {
     create: (save) => createH131(save),
     count: (M) => M.count(),
     freeFilms: true,
+    quiet: true,   // (b131 look round: no walk hint, pad or markers during a work, a film or the close: h109/director.js)
     byPlan: true,   // (the spec: the pit is part 1, the frame part 2, in free order — the compass names the pit first; h109/director.js nearestOpen)
     look: LOOK8,
     endTitle: 'יסוד המזבח נבנה!',
@@ -65,7 +67,7 @@ export function makePack08(env = {}) {
       })();
     },
     /** the stage's close: the world as he built it (the finale's own film is the finale lane's; build 131 part 3) */
-    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); },
+    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); },   // (b131 look round: the big card that follows in large type, no walk hint)
     /** after a reload, the stage done: the yesod as he built it */
     rest(X, M) { restWorld(X, M); },
     dispose() {},

@@ -1097,6 +1097,10 @@ const S08 = {
   sections: { 1: [-44, -19.5, -32, -11.5], 2: [-44, -11.5, -32, -3.5], 3: [-54, 4.5, -42, 12.5] },
   near: { 1: 'N', 2: 'N', 3: 'S' },
   fire: [-32, -31.5], pile: [-44, -31.5],
+  // (b131 look round, המחשה) the pour's work places in each section's own frame (lx across, lz toward the near board; pourlv.js toWorld):
+  // the hearth with the next cauldron left of the near board (the approved sample's place), the stones' heap right of it, where two
+  // pairs of porters take each stone and carry it in
+  pourAt: { hearth: [-9.5, 5.5], heap: [8.7, 1.9] },
   // ── h131 frame ── the frame's three works and the finale (all המחשה): level 1 the joined frame as the crew set it down — its shift
   // [dx, dz] and turn (degrees) from the stakes; level 2 the four loose beams as the crew laid them inside the place — each its middle
   // and its turn (0 along x, 90 along z); level 3 the frame pegged at three corners, the one pegged off its stake turned about NW;
@@ -1109,18 +1113,24 @@ const S08 = {
     frame3: { pegs: ['NW', 'NE', 'SW'], wrong: 'NE', turn: 4.5 },
     diag: [-54, -25.5, -22, -25.5], men: 2.2,
     lime: [-49, 15.2], jar: [-42, 13.6], water: [-43, 9.5], logs: [-12, 18],
-    // the works' cameras ([eye], [aim]): the frame from the stand's side, high; the finale's pull from the south-east, its cloth from the
-    // south over the whole yesod, its water by the south-west corner
-    cam: { frame: [[-38, 50, -49], [-38, 16, -3]], pull: [[-17, 31, 37], [-29, 16, 4]], white: [[-38, 50, 40], [-38, 16, -4]], water: [[-52, 24, 30], [-50, 16, 9.5]] },
+    // the works' cameras ([eye], [aim]; b131 look round: close and low, the men a fifth of the frame where they work): the frame's whole
+    // (the diagonal's beat) low and oblique from the south-east (the court's rings on the north far behind it, not underfoot); the finale: its opening behind the crew taking the frame down, the kohen
+    // at the left; the south timber pulled east and the east one pulled south, each seen from the side behind its pullers; the cloth
+    // (eye = where it works + whiteOff); the white when the crew finishes; the jar and the south-west corner's two holes; the rise over
+    // the whole white yesod from the south-east (its empty south and east strips nearest)
+    cam: { frame: [[-26, 28, 40], [-38, 16, -2]], down: [[-36, 23, 31], [-40, 16.6, 11]], pullS: [[-16, 22.5, 30], [-24, 16.5, 11]], pullE: [[-4, 22.5, 22], [-23, 16.5, 9]],
+      whiteOff: [0, 10, 12], white: [[-38, 34, 34], [-38, 16.5, -2]], water: [[-58, 23, 26], [-47, 17, 10.5]], rise: [[-16, 50, 36], [-38, 16.5, 1]] },
   },
   // ── /h131 frame ──
   stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },
   // the stage's cameras on the Mount ([eye], [aim]): the opening from high down to the altar's site (rule 3); the site from the frame's
   // stand; the end: high over the altar's middle, the whole Azarah round it
   cam: {
-    open: [[[150, 260, -260], [-38, 16, -3.5]], [[-6, 70, -70], [-38, 16, -3.5]]],
+    // (b131 look round: no bird's-eye — a short low oblique beat over the court onto the altar's place, then close and low behind the
+    //  men at the north stand, the place of the yesod before them in the day's light)
+    open: [[[-4, 37, -60], [-38, 16, -6]], [[-29, 21.5, -37], [-38, 16.4, -17]]],
     site: [[-38, 40, -46], [-38, 16, -6]],
-    end: [[-22, 41, 30], [-38, 16.5, -4]],   // (b131 fix round 1: the end card on the white yesod, near and lit — not the dim top view of the Mount)
+    end: [[-10, 44, 38], [-38, 16.5, -3.5]],   // (b131 look round: farther — the white yesod whole under the card)   // (b131 fix round 1: the end card on the white yesod, near and lit — not the dim top view of the Mount)
   },
   // ── the pit at Beit Kerem (מידות ג, ד: "ממקום שחופרין למטה מהבתולה"): the sheet on the one world grid ──
   pit: {
@@ -1147,7 +1157,9 @@ const S08 = {
     // the opening view: facing the Mount on the horizon (it lies east-north-east: 13,900 east and 2,200 north) — (build 131, the pit
     // lane: composed from the south-west of the pit, so the pit and its crew stand in the lower half, the valley opens beyond them toward
     // the north-east where its hills are lowest, and their skyline and the sky are clear of the top bar) [eye, aim], [lx, y, lz]
-    cam: { open: [[-11, 5, 11], [19, 0.5, -15.5]], play: [[0, 11, 21], [0, -1, 0]] },   // (b131 fix round 1: the opening nearer and lower, from behind the kohen: the pit, the kohen and the crew fill the frame, the hills behind)
+    // (look round 131: from the east rim, a little above it, down and west across the pit — the kohen whole on its floor before the far
+    //  wall, the cradle and its crew on the far rim, the hills only a band at the top; the rejects' shot keeps the look toward the Mount)
+    cam: { open: [[9, 5.5, 4.5], [-6, -2.4, 0]], play: [[0, 11, 21], [0, -1, 0]] },   // (b131 fix round 1: the opening nearer and lower, from behind the kohen: the pit, the kohen and the crew fill the frame, the hills behind)
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);

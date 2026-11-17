@@ -497,6 +497,7 @@ export function createH109Director(o) {
 .h109-wait{left:50%;top:calc(112px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(28,20,10,.78);color:#FFF6DA;font:800 15px/1.2 Heebo,system-ui;padding:7px 16px;border-radius:12px;opacity:0;transition:opacity .2s;white-space:nowrap}
 .h109-wait.on{opacity:1}
 body.h109-act .gm .tw-zone{opacity:0!important}
+body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-aim,body.h109-quiet.h109-film .gm .tw-pad,body.h131-card .gm .tw-pad,body.h131-card .gm .tw-mk{visibility:hidden!important}
 .h109-pf{left:0;top:0;right:0;bottom:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;overflow:hidden;opacity:0;transition:opacity .25s;background:radial-gradient(circle at 50% 46%,rgba(255,236,160,.96) 0,rgba(255,196,64,.9) 26%,rgba(178,96,8,.88) 62%,rgba(58,28,2,.93) 100%)}
 .h109-pf.on{opacity:1}
 .h109-pf .r{position:absolute;left:50%;top:46%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(rgba(255,250,220,.2) 0 7deg,transparent 7deg 18deg);animation:h109spin 9s linear infinite}
@@ -987,6 +988,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     for (const [p, t, s] of shots) { shot(p, t, 1.6); await sleep(s * 1000); }
     try { if (J) await J.big('stage', { title: PK.endTitle, sub: PK.endSub }); } catch (e) { /* */ }
     CAM.on = false; phase = 'off'; started = false;
+    if (quietOn) { quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } }   // ── b131 ── ── /b131 ──
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
     try { if (S0.pinsOff) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ──
     resFor(false);   // ── h117 ── ── /h117 ──
@@ -1001,12 +1003,15 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   // the device's own pixel ratio (up to 2): main.js view.workRes, the mechanism Phase B's works use; back when the act ends ── /h117 ──
   let resOn = false;
   function resFor(on) { if (on === resOn) return; resOn = on; try { if (view.workRes) view.workRes(on); } catch (e) { /* */ } }
+  let quietOn = false;
   function frame(ms) {
     const dt = lastMs ? clamp((ms - lastMs) / 1000, 0, 0.25) : 0; lastMs = ms;
     for (let i = WAITS.length - 1; i >= 0; i--) { const w = WAITS[i]; w.t -= dt; if (w.t <= 0) { WAITS.splice(i, 1); w.r(); } }   // ── h111 ── X.wait: the films' beats in the world's own time ── /h111 ──
     if (!started) return;
     uiFrame();
     tPhase += dt;
+    // ── b131 ── (a pack's quiet: no walk hint, no walk pad, no markers during a work, a film or the close — stage 08's look round) ── /b131 ──
+    if (PK.quiet) { const q = phase === 'act' || phase === 'film' || phase === 'end'; if (q !== quietOn) { quietOn = q; try { document.body.classList.toggle('h109-quiet', q); } catch (e) { /* */ } } try { document.body.classList.toggle('h109-film', q && phase !== 'act'); } catch (e) { /* */ } }
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
     resFor(phase === 'act' && !!act);   // ── h117 ── ("נראה לא איכותי": full sharpness while a minigame runs) ── /h117 ──
@@ -1070,7 +1075,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     rest: () => { if (started || !PK.rest) return false; const g = G(); if (!g || !g[PK.key]) return false; const m = PK.create(g[PK.key]); if (!m.finished || !m.finished()) return false; M = m; try { PK.rest(X, M); } catch (e) { console.warn('[h109] rest', e && e.message); return false; } return true; },
     resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
     // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──
-    dispose() { started = false; phase = 'off'; for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
+    dispose() { started = false; phase = 'off'; quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
     // tests: finish the open act with a result
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──

@@ -29,7 +29,7 @@ function digest(name) {
 /** the job's stills on contact sheets: a local page of 16 of them (4 columns, the file name under each), its screenshot a jpeg →
  *  <dir>/sheet-NN.jpg; returns the sheets' paths (relative to out/pc's parent). Playwright is the probe's own: no new package */
 async function sheets(dir) {
-  const stills = fs.readdirSync(dir).filter((f) => /\.(png|jpe?g)$/i.test(f) && !/^sheet-\d+\.jpg$/.test(f)).sort();
+  const stills = fs.readdirSync(dir).filter((f) => /\.(png|jpe?g)$/i.test(f) && !/^sheet-\d+\.jpg$/.test(f)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   for (const f of fs.readdirSync(dir)) if (/^sheet-\d+\.jpg$/.test(f)) fs.rmSync(path.join(dir, f));
   if (!stills.length) return [];
   const { chromium } = require('playwright');

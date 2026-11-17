@@ -184,7 +184,7 @@ export function createPourView(X, lv, sim, o = {}) {
   const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
 
   /* ── the fire with the next cauldron (the book's hearth: S8.fire, in the section's frame), the rig, the spout, the knocker ── */
-  const fireL = (() => { const [x, z] = S8.fire, f = F; return [(x - f.cx) * f.s, (z - f.cz) * f.s]; })();
+  const fireL = S8.pourAt ? S8.pourAt.hearth.slice() : (() => { const [x, z] = S8.fire, f = F; return [(x - f.cx) * f.s, (z - f.cz) * f.s]; })();   // (b131 look round: the hearth by the near board, as the approved sample: the cauldron over its fire in the picture)
   const FIRE = new THREE.Vector3(fireL[0], 0, fireL[1]);
   const fireNear = Math.hypot(fireL[0], fireL[1] - RIG_Z) < 20;   // (a far hearth: the crew walk toward it out of the picture and come back)
   const SWAP_TO = fireNear ? new THREE.Vector3(FIRE.x + 2.2, 0, FIRE.z + 0.2) : new THREE.Vector3((fireL[0] < 0 ? -1 : 1) * 11, 0, RIG_Z + 1.2);   // (a far hearth: out along the near board, never across the segment)
@@ -376,6 +376,7 @@ export function createPourView(X, lv, sim, o = {}) {
     updateFluidMesh(V.sink, S.phase === 'hollow');
     // stones falling in
     for (const st of stones) {
+      if (st.carry) continue;   // (b131 look round: a stone in the porters' hands is the act's)
       if (st.fall < 0) { st.m.visible = S.stonesIn == null || S.stonesIn > stones.indexOf(st); if (!st.m.visible) continue; st.m.position.y = 0; continue; }
       st.fall += dt; const u = Math.min(1, st.fall / 0.45); st.m.visible = true; st.m.position.y = st.y0 * (1 - u * u); if (u >= 1) st.fall = -1;
     }
@@ -424,7 +425,7 @@ export function createPourView(X, lv, sim, o = {}) {
   function knockerFrame(dt, S) {
     const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = -2.3; k.g.position.y = B0;
     const at = S.phase === 'knock' || S.phase === 'hollow' || S.phase === 'full';
-    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; }
+    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 2.9) tx = rx + (tx >= rx ? 2.9 : -2.9); }   // (b131 look round: never inside the cauldron's crew)
     const dx = tx - k.g.position.x, dz = tz - k.g.position.z, dist = Math.hypot(dx, dz); let walking = 0;
     if (dist > 0.03) { const m = Math.min(dist, 4.2 * dt); k.g.position.x += dx / dist * m; k.g.position.z += dz / dist * m; k.g.rotation.y += angDiff(Math.atan2(dx, dz), k.g.rotation.y) * Math.min(1, dt * 8); walking = 1; }
     else k.g.rotation.y += angDiff(face, k.g.rotation.y) * Math.min(1, dt * 6);

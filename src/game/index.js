@@ -23,6 +23,7 @@
  *   (a camera flight) · dist(x, y, z) (camera distance, for "too far to work on").
  * hooks: { enterWhole(), exitWhole(), setAutoRotate(bool) } whole-Temple view (main.js owns the camera UI).
  * ──────────────────────────────────────────────────────────────────────────── */
+import { h131Card } from './h131/card.js';
 import {
   STAGES, SIDX, stageById, RES, T, RHYTHM, MOMENTS, STORY, ROUTES, RIDX, TRAIN, BOULDERS, RATE, DEMO_SPEED,
   PROJ, EVENTS, PH_N, FIELD_N, UPGRADES, DEMO_LEVEL, SEG, FIELD_OF, m3Pay, keyWords, keyOf,
@@ -3446,6 +3447,11 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     // (the stage's last picture: the white step in the middle of the great court from high — BOOK.s08.cam.end, the pack's endView — held
     //  under the end card, which names the next stage: h128/page.js frontLine)
     const ev = H9 && H9.pack && H9.pack.endView, endView = (ms) => { try { if (ev) W.flyTo(ev[0], ev[1], ms); } catch (e) { /* */ } };
+    // (b131 look round: from the big card on — its title large, clear of the goal pill; the walk's hint gone; the day's light on the
+    //  white yesod — and the end card after it high, large and on a light veil, the yesod whole below it)
+    const cardOn = h131Card;
+    cardOn(true); try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
+    if (!frontier(G, S)) setTimeout(() => { if (!endHold) { cardOn(false); tod = null; syncTime(); } }, 7000);
     endView(1400);
     completeFlow(c, false);
     persist();
@@ -3455,8 +3461,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (frontier(G, S)) setTimeout(() => {
       noPad(); ui.refresh(); endHold = true;
       try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
-      try { if (!document.getElementById('h131-card-css')) { const c = document.createElement('style'); c.id = 'h131-card-css'; c.textContent = 'body.h131-card .tw-zone{visibility:hidden!important}'; document.head.appendChild(c); } document.body.classList.add('h131-card'); } catch (e) { /* */ }
-      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; try { document.body.classList.remove('h131-card'); } catch (e) { /* */ } syncTime(); });
+      cardOn(true);
+      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; cardOn(false); syncTime(); });
       setTimeout(() => endView(1600), 60);
     }, 1200);   // (the last stage a pack owns: the frontier's one card)
   }

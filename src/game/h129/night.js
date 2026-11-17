@@ -235,6 +235,11 @@ export const NIGHT = {
     staySet(0);
     const torch = new T.Group(); { const s = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 1.1, 6), MT.h7timberD); s.rotation.z = Math.PI / 2; torch.add(s); const tip = new T.Mesh(new T.ConeGeometry(0.13, 0.35, 7), new T.MeshBasicMaterial({ color: 0xFF9A3A })); tip.rotation.z = -Math.PI / 2; tip.position.x = 0.7; torch.add(tip); }
     const th0 = [N7.hearth[0] + 3.2, F16 + 0.6, N7.hearth[1] - 1.6]; torch.position.set(...th0); root.add(torch);
+    // (closing round 2: the night's first frame, before the fire, was all but black — the torch now lights the hall round it (the
+    //  brightest thing in the frame), and a low cool fill shows the hall's walls, the wood and the sleepers; both go when the fire is lit,
+    //  so the frames after keep their light)
+    const torchL = new T.PointLight(0xFFB060, 9, 20, 1.3); torchL.position.set(0.75, 0.35, 0); torch.add(torchL);
+    const fill = new T.HemisphereLight(0x8C9CC8, 0x3A2A20, 0.55); fill.visible = false; root.add(fill);
     const LP = [sx + 1.0, sz + 1.5];   // (his lamp on the floor beside him, by the slab: the ring, the pit and the keys read at night)
     const lamp = new T.PointLight(0xFFD9A0, 0, 9, 1.6); lamp.position.set(LP[0], F16 + 2.2, LP[1]); root.add(lamp);
     const lampM = new T.Mesh(new T.SphereGeometry(0.08, 8, 6), new T.MeshBasicMaterial({ color: 0xFFC060 })); lampM.position.set(LP[0], F16 + 0.14, LP[1]); root.add(lampM);
@@ -324,9 +329,9 @@ export const NIGHT = {
     };
     // ── the steps
     const LINE_LIFT = MOUSE ? 'הגיע זמן הנעילה: אחזו בטבעת והגביהו לאט, עד שהסמוכה נכנסת תחתיה' : 'הגיע זמן הנעילה: שני אגודלים על שני צדי הטבעת, הגביהו לאט, עד שהסמוכה נכנסת תחתיה';
-    async function lightFire() { A.phase = 'fire'; X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.4); X.line('הלילה בבית המוקד · הדליקו את המדורה: גררו את הלפיד אל העצים', 6000); X.hand({ x: th0[0], y: th0[1], z: th0[2] }, -gripR() / 2, 0); }
+    async function lightFire() { A.phase = 'fire'; fill.visible = true; X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.4); X.line('הלילה בבית המוקד · הדליקו את המדורה: גררו את הלפיד אל העצים', 6000); X.hand({ x: th0[0], y: th0[1], z: th0[2] }, -gripR() / 2, 0); }
     async function fireLit() {
-      A.phase = 'sleep'; rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
+      A.phase = 'sleep'; fill.visible = false; torchL.visible = false; rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
       X.line('זקני בית אב ישנים על רובדי האבן, ופרחי הכהונה איש כסתו בארץ', 3600);
       await X.wait(3.0);
       camSlab(1.4); lamp.intensity = 3; await X.wait(1.5);

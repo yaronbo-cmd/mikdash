@@ -329,9 +329,9 @@ export const NIGHT = {
     };
     // ── the steps
     const LINE_LIFT = MOUSE ? 'הגיע זמן הנעילה: אחזו בטבעת והגביהו לאט, עד שהסמוכה נכנסת תחתיה' : 'הגיע זמן הנעילה: שני אגודלים על שני צדי הטבעת, הגביהו לאט, עד שהסמוכה נכנסת תחתיה';
-    async function lightFire() { A.phase = 'fire'; fill.visible = true; X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.4); X.line('הלילה בבית המוקד · הדליקו את המדורה: גררו את הלפיד אל העצים', 6000); X.hand({ x: th0[0], y: th0[1], z: th0[2] }, -gripR() / 2, 0); }
+    async function lightFire() { A.phase = 'fire'; fill.visible = true; kohenShow(false);   /* (closing round 2: lit, the first frame showed the kneeling kohen's head in its foreground, between the eye and the fire: he kneels once the fire takes) */ X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.4); X.line('הלילה בבית המוקד · הדליקו את המדורה: גררו את הלפיד אל העצים', 6000); X.hand({ x: th0[0], y: th0[1], z: th0[2] }, -gripR() / 2, 0); }
     async function fireLit() {
-      A.phase = 'sleep'; fill.visible = false; torchL.visible = false; rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
+      A.phase = 'sleep'; fill.visible = false; torchL.visible = false; kohenShow(true); rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
       X.line('זקני בית אב ישנים על רובדי האבן, ופרחי הכהונה איש כסתו בארץ', 3600);
       await X.wait(3.0);
       camSlab(1.4); lamp.intensity = 3; await X.wait(1.5);

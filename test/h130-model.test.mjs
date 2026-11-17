@@ -125,8 +125,8 @@ test('the raising: build 120\'s column on the ropes, kept as it is (pull past th
 });
 
 /* ───────── the wood ───────── */
-test('wood: the level tables — six, eight, six big; level 2 hides every worm under bark; level 3 has bad ends', () => {
-  assert.equal(M.LOGS[1].length, 6); assert.equal(M.LOGS[2].length, 8); assert.equal(M.LOGS[3].length, 6);
+test('wood: the level tables — six, six, six big; level 2 hides every worm under bark; level 3 has bad ends', () => {
+  assert.equal(M.LOGS[1].length, 6); assert.equal(M.LOGS[2].length, 6); assert.equal(M.LOGS[3].length, 6);
   assert.ok(M.LOGS[1].some(M.wormy) && M.LOGS[1].some((l) => !M.wormy(l)));
   for (const l of M.LOGS[1]) assert.equal(l.bark.length, 0);
   for (const l of M.LOGS[2]) for (const h of l.holes) assert.ok(l.bark.some((b) => h.s >= b.s0 && h.s <= b.s1), l.id + ' a hole outside the bark');
@@ -147,7 +147,7 @@ test('wood: rolling turns it a whole turn both ways and shows the holes that fac
 
 test('wood: the tap — deep and still, hollow where the worm ate (trembling to the eye), less just past its end', () => {
   const L = M.LOGS[2][1];
-  assert.deepEqual(M.tapAt(L, 1.0), { sound: 'deep', tremble: 0.05, dust: false });
+  assert.deepEqual(M.tapAt(L, 1.0), { sound: 'deep', tremble: 0.05, dust: false, at: null });
   const h = M.tapAt(L, 2.4); assert.equal(h.sound, 'hollow'); assert.equal(h.tremble, 1); assert.equal(h.dust, true);
   const e = M.tapAt(L, L.hollow.s1 + 0.1); assert.ok(e.tremble > 0.05 && e.tremble < 1);
   assert.equal(M.tapAt(M.LOGS[1][0], 2).sound, 'deep');
@@ -185,7 +185,7 @@ test('wood (W): a bad end thrown out whole wastes the good wood; the best cut is
   assert.ok(M.endBad(end) && M.endBad(other) && !M.endBad(good) && !M.endBad(M.LOGS[2][1]));
   assert.deepEqual(M.decide(end, 'out'), { ok: true, flag: null, waste: 1 });
   assert.deepEqual(M.decide(M.LOGS[2][1], 'out'), { ok: true, flag: null, waste: 0 });
-  for (const l of M.LOGS[3]) if (M.endBad(l)) { const s = M.bestCut(l); assert.equal(M.cutAt(l, s).res, 'right', l.id); assert.equal(M.decide(l, 'clean', M.cutAt(l, s)).flag, null); }
+  for (const l of M.LOGS[3]) if (M.endBad(l) && !l.also) { const s = M.bestCut(l); assert.equal(M.cutAt(l, s).res, 'right', l.id); assert.equal(M.decide(l, 'clean', M.cutAt(l, s)).flag, null); }
   assert.equal(M.bestCut(good), null);
   assert.deepEqual(M.piecesOf(end, 2.35), { keep: [2.35, end.L], out: [0, 2.35] });
   assert.deepEqual(M.piecesOf(other, 3.55), { keep: [0, 3.55], out: [3.55, other.L] });
@@ -280,4 +280,39 @@ test('an old save (build 120\'s stage 05): finished → built by the crews, ever
   assert.deepEqual(C.open().map((m) => m.id), ['gal1', 'wood1', 'light1']);
   const Mid = M.createH130(M.fromOld({ v: 1, done: ['col1'] }, false));
   assert.equal(Mid.st.crews, 0); assert.deepEqual(Mid.open().map((m) => m.id), ['gal1', 'wood1']); assert.equal(Mid.galOf('N'), null);
+});
+
+test('wood (review): varied cases, one new kind a level — a suspicious clean log, the worm under bark only, the worm in two places', () => {
+  const kinds = (lv) => {
+    const k = new Set();
+    for (const l of M.LOGS[lv]) {
+      if (l.knots.length && !M.wormy(l)) k.add('suspicious');
+      else if (l.also) k.add('two');
+      else if (l.holes.length && l.bark.length) k.add('bark');
+      else if (l.hollow && M.endBad(l) && lv === 3) k.add('end');
+      else if (l.holes.length) k.add('holes');
+      else k.add('clean');
+    }
+    return k;
+  };
+  const k1 = kinds(1), k2 = kinds(2), k3 = kinds(3);
+  assert.deepEqual([...k1].sort(), ['clean', 'holes', 'suspicious']);
+  assert.deepEqual([...k2].sort(), ['bark', 'clean']);
+  for (const l of M.LOGS[2]) assert.ok(!M.endBad(l), l.id + ': a bad end is level 3\'s (thrown out whole on level 2 it would count as waste)');
+  assert.deepEqual([...k3].sort(), ['clean', 'end', 'two']);
+  // level 1: holes at one end and in the middle
+  const at = M.LOGS[1].filter((l) => l.holes.length).map((l) => l.holes.map((h) => h.s / l.L));
+  assert.ok(at.some((a) => a.every((u) => u < 0.25 || u > 0.75)) && at.some((a) => a.every((u) => u > 0.25 && u < 0.75)));
+  // the suspicious log: no hole, every tap deep, rolled a whole turn it shows nothing
+  const S = M.logFresh(1, 2); assert.equal(S.log.id, '1c'); for (let s = 0.25; s < S.log.L; s += 0.25) assert.equal(M.tapAt(S.log, s).sound, 'deep');
+  for (let a = 0; a < 360; a += 10) { S.rot = a; assert.deepEqual(M.seenHoles(S), []); }
+  assert.deepEqual(M.decide(S.log, 'clean'), { ok: true, flag: null, waste: 0 });
+  // the worm in two places: both stretches ring hollow; no cut saves it; out whole is right with no waste; cut at its end then into the
+  // clean pile is wood.worm; cut and the rest thrown out is right too
+  const two = M.LOGS[3].find((l) => l.also);
+  assert.equal(M.tapAt(two, 0.7).sound, 'hollow'); assert.equal(M.tapAt(two, 3.5).sound, 'hollow'); assert.equal(M.tapAt(two, 3.5).at, 1); assert.equal(M.tapAt(two, 2.4).sound, 'deep');
+  assert.equal(M.bestCut(two), null);
+  assert.deepEqual(M.decide(two, 'out'), { ok: true, flag: null, waste: 0 });
+  const c = M.cutAt(two, two.hollow.s1 + 0.75); assert.equal(c.res, 'more'); assert.equal(c.flag, 'wood.worm');
+  assert.equal(M.decide(two, 'clean', c).flag, 'wood.worm'); assert.equal(M.decide(two, 'out', c).ok, true);
 });

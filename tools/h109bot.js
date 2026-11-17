@@ -977,6 +977,7 @@
     // whole turn and looks; level 2 taps along it, and where it rings hollow turns the hole to the eye and peels a strip there; level 3
     // taps along it and draws the chalk line across at the best cut; then it takes the log by an end and carries it right (clean) or
     // left (out). __BOT.bad 'worm': the first wormy log is carried into the clean pile (wood.worm, −20; the pile comes back to be checked).
+    // __BOT.early: each carry let go at 0.95 amot, a little before the mark (build 130 review: it must still land).
     // Stills (__BOT_SHOTS130): the first look of each level, a hollow tap, a peel, the chalk line, a carry held at the green mark.
     wood(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS130;
@@ -987,6 +988,7 @@
       const key = a.id + ':' + a.log + ':' + a.left + ':' + (a.cut || '') + ':' + a.piles.clean, L = K[key] || (K[key] = { n: 0 });
       const ax = a.b[0] - a.a[0], ay = a.b[1] - a.a[1], len = Math.hypot(ax, ay) || 1, ux = ax / len, uy = ay / len;
       if (shots && !K['shot' + a.id]) { K['shot' + a.id] = 1; return { wait: 200, shot: a.id + '-look' }; }
+      if (shots && (window.__BOT_SHOTLOG || []).includes(a.log) && !K['shotL' + a.log]) { K['shotL' + a.log] = 1; return { wait: 200, shot: a.id + '-log-' + a.log }; }   // (build 130 review: a still of a chosen log as it arrives)
       const body = (s) => { const k = (s - a.keep[0]) / (a.keep[1] - a.keep[0]); return [a.a[0] + ax * k, a.a[1] + ay * k]; };
       const across = (p, cond) => ({ path: [[p[0] + uy * -18, p[1] - ux * -18], [p[0] - uy * 60, p[1] + ux * 60]], ms: 450, wait: 700 });
       // (the decision: by the end band, carried past the green mark, let go there)
@@ -996,7 +998,7 @@
         // ── h130 ── (build 130 part 3: the first carry each way of a level held 1.6 s at its end, a still with the finger down — the shot the
         // carry eased to: the rejects' pile on the left, the clean one on the right) ── /h130 ──
         if (shots && !K['shotC' + a.id + to]) { K['shotC' + a.id + to] = 1; const fr = []; for (let i = 1; i <= 18; i++) fr.push([[p[0] + (q[0] - p[0]) * i / 18, p[1]]]); for (let i = 0; i < 40; i++) fr.push([q]); return { seq: fr, ms: 40, seqShot: [56, a.id + '-carry-' + to], wait: 1500, note: `wood: ${a.log} → ${to} (held)` }; }
-        return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>1.7`), wait: 1500, note: `wood: ${a.log} → ${to}` };
+        return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>${B.early ? 0.95 : 1.7}`), wait: 1500, note: `wood: ${a.log} → ${to}` };
       };
       const wantWorm = has('worm') && !K.wormDone && a.wormy && !a.cuttable;
       if (L.n === 0 && wantWorm) { K.wormDone = 1; L.n = 99; return carry('clean'); }
@@ -1019,7 +1021,7 @@
       }
       if (a.best != null && !a.cut) { if (L.c) return { wait: 500 }; L.c = 1; const r = across(body(a.best)); r.note = 'wood: the chalk line at ' + a.best; r.wait = 600; return r; }
       if (a.cut && shots && !K['shotX' + a.log]) { K['shotX' + a.log] = 1; return { wait: 200, shot: a.id + '-cut-' + a.log }; }
-      return carry(a.cut === 'near' ? 'out' : 'clean');
+      return carry(a.cut === 'near' || a.cut === 'more' || (!a.cut && a.wormy && a.best == null) ? 'out' : 'clean');   // (the worm in two places: no cut saves it)
     },
     // ── /h130 wood ──
     // ── h130 light ── (build 130, station 3 "חמישים אמה של אור": the player of kind 'light', h130/light.js dbg()). The wick: the left

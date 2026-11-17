@@ -76,6 +76,9 @@ export function logSkin(X, S, o = {}) {
     for (let k = 0; k < 90; k++) { const y = R() * CH, x = R() * CW, w = 40 + R() * 160; g.fillStyle = R() < 0.5 ? 'rgba(60,40,22,0.35)' : 'rgba(170,135,95,0.3)'; g.fillRect(x, y, w, 1 + R() * 2.5); }
     // (knots: long, soft and brown along the grain — never a dark round dot, which is the worm's)
     for (let k = 0; k < 18; k++) { const x = R() * CW, y = R() * CH; g.fillStyle = 'rgba(105,74,44,0.55)'; g.beginPath(); g.ellipse(x, y, 10 + R() * 12, 2 + R() * 2, 0, 0, Math.PI * 2); g.fill(); }
+    // (a clean log that looks suspicious, level 1's new case: dark round knots — but no ring of pale wood dust round them, which the worm's
+    //  holes have)
+    for (const k of log.knots || []) { const x = sx(k.s), y = ay(k.ang); g.fillStyle = 'rgba(120,86,52,0.9)'; g.beginPath(); g.ellipse(x, y, 13, 10, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#2A1A0C'; g.beginPath(); g.ellipse(x, y, 7, 5.5, 0, 0, Math.PI * 2); g.fill(); }
     // the thick bark plates (level 2: what hides the worm)
     for (const b of log.bark) for (const [a0, a1] of rows(b.a0, b.a1)) {
       const x0 = sx(b.s0), x1 = sx(b.s1), y0 = ay(a0), y1 = a1 === 360 ? CH : ay(a1);
@@ -100,7 +103,8 @@ export function logSkin(X, S, o = {}) {
     // the taps: a pale smudge of dust where it rang hollow, a small dent where it was deep
     for (const t of o.taps || []) {
       const x = sx(t.s), y = ay(t.ang);
-      if (t.hollow) { g.fillStyle = 'rgba(245,232,200,0.75)'; g.beginPath(); g.ellipse(x, y, 11, 16, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(245,232,200,0.5)'; g.fillRect(x - 2, y, 4, 28); }
+      // (build 130 review: the hollow's mark plain to the eye — a big pale spot of knocked-out dust with a light rim, its trail running down)
+      if (t.hollow) { g.fillStyle = 'rgba(250,240,212,0.88)'; g.beginPath(); g.ellipse(x, y, 17, 24, 0, 0, Math.PI * 2); g.fill(); g.strokeStyle = 'rgba(255,250,232,0.95)'; g.lineWidth = 3; g.stroke(); g.fillStyle = 'rgba(245,232,200,0.6)'; g.fillRect(x - 3, y, 6, 28); }
       else { g.fillStyle = 'rgba(40,26,12,0.55)'; g.beginPath(); g.ellipse(x, y, 4, 6, 0, 0, Math.PI * 2); g.fill(); }
     }
     // the chalk line (level 3): all round the log at s

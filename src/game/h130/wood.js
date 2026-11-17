@@ -1,13 +1,14 @@
 /* ── build 130 ── h130/wood.js — station 2, "לשכת העצים" (spec docs/specs/shlav-05-hadash-he.md "תחנה 2"; brief §4). Three works:
- *   wood1  six logs: the holes are seen in the eye once the log is rolled round
- *   wood2  eight logs: the worm under the bark; only the tap tells where to peel
+ *   wood1  six logs: the holes are seen in the eye once the log is rolled round (at one end, in the middle); new: a clean log with dark knots
+ *   wood2  six logs: new — the worm under the bark only; the tap tells where to peel (a hollow found: dust puffs out, a pale mark stays,
+ *          the quick word)
  *   wood3  six big logs, some with one bad end: taps find where the hollow ends, a chalk line across the log, the crew saws there; the
- *          end goes out and the rest is saved
+ *          end goes out and the rest is saved; new: the worm in two places (no cut saves it: out whole)
  * The log lies big in the middle of the screen on the two trestles. All with the left hand, on the log itself:
  *   a drag ALONG the log rolls it (a whole turn and more, both ways) · a short touch taps it (deep and still, or hollow: the log trembles
  *   there and wood dust falls — the game is played without sound) · a drag ACROSS peels a strip of bark (levels 1–2) or, on level 3,
  *   draws the chalk line the crew saws on · a log taken by one of its two ends (the gold bands) and dragged right goes to the clean pile,
- *   left goes out (it follows late, heavy; let go short of the green mark and it slides back onto the trestles).
+ *   left goes out (it follows late, heavy; let go clearly short of the green mark and it slides back onto the trestles; a little short still lands).
  * The right hand is the camera: a touch on the right half is the act's only where it lands on the log itself; anywhere else it lifts
  * the camera (rule 66); play goes on while it is lifted a little. In the picture: the kohen (a mallet in his hand: he taps the log) and
  * the second kohen who checks a log of his own beside him; on level 3 the two sawyers come in only to saw, and go.
@@ -30,7 +31,9 @@ const DOOR = (() => { const c = S5.chambers.find((q) => q.id === 'wood'); return
 const D2R = Math.PI / 180, U = AX.U, NRM = AX.N, YAW = AX.yaw, DIR = AX.dir;
 /** the act's numbers: the roll's gain (degrees per px of a drag along), a tap's most travel (px), how far the log must be carried to go
  *  (amot), the hint hand's size, the end bands' length (amot) */
-const K = Object.freeze({ ROLL: 1.25, TAP: 12, GO: 1.3, HAND: 70, BAND: 0.42 });
+const K = Object.freeze({ ROLL: 1.25, TAP: 12, GO: 1.3, HAND: 70, BAND: 0.42, LAND: 0.85 });
+/** (build 130 review: a carry let go a little before GO still lands — the window opens at LAND, about 35% sooner, read on where the log
+ *  is (it follows late) or where the finger took it; below LAND it is clearly early and slides back) */
 /** ── build 130 part 3 ── the act's three shots, each { D: distance from its aim, EL: elevation (degrees), FOV, AIM: [along the log's
  *  axis U, along the view DIR (+ away from the camera), height over the floor], SIDE: the eye moved along U } (amot):
  *  · near — the work: the log a third of the screen's width and more at 960×600, the kohen whole in the left third (he stands behind
@@ -66,7 +69,10 @@ export const WLINES = Object.freeze({
   waste: 'הבול היה שלם · החיתוך מיותר',
   carry: 'העצים הנקיים אל המערכה',
   sawyers: 'הצוות מנסר על הקו',
+  more: 'באמצע עוד תולעת · הבול כולו החוצה',
 });
+/** the quick word when a tap finds a hollow (build 130 review) */
+const HOLLOW = 'חלול!';
 
 export const WOOD_ACT = {
   icon: '🪵', title: 'לשכת העצים',
@@ -76,7 +82,7 @@ export const WOOD_ACT = {
   make(m, X) {
     const T = X.THREE, Mo = X.M, st = Mo.st, lv = m.lv | 0 || 1, V = createVoices(X.sfx), WS = woodSave(st);
     const tx = W5.trestles[0], tz = W5.trestles[1];
-    const A = { phase: 'arrive', t: 0, ev: [], busy: 1, fl: null, tw: null, trem: null, off: 0, offT: 0, carry: null, seenQ: 0, hint: 0, taps: [], chalk: null, cut: null, keep: null, hintT: 0 };
+    const A = { phase: 'arrive', t: 0, ev: [], busy: 1, hK: [], fl: null, tw: null, trem: null, off: 0, offT: 0, carry: null, seenQ: 0, hint: 0, taps: [], chalk: null, cut: null, keep: null, hintT: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     const root = new T.Group(); root.name = 'h130-wood-act'; X.props.root.add(root);
     // ── the work in hand: a fresh one, or the one a reload broke off (rule 55: the piles stay; the logs not yet decided come back)
@@ -107,7 +113,7 @@ export const WOOD_ACT = {
     const B = createBeat(X), gang = createGang(X);
     const sec = W5.second, ownAt = [sec[0] + OWN.dx, sec[1] + OWN.dz];
     const ownG = new T.Group(); root.add(ownG);
-    { const ol = LOGS[2][6], g = logPiece(X, ol, 0, 2.4, null); g.position.set(ownAt[0], logY(ol.r), ownAt[1]); g.rotation.x = 1.1; ownG.add(g); for (const e of [-1, 1]) trestle(X, ownAt[0] + e * 0.75, ownAt[1], 0.9, ownG); }
+    { const ol = LOGS[1][4], g = logPiece(X, ol, 0, 2.4, null); g.position.set(ownAt[0], logY(ol.r), ownAt[1]); g.rotation.x = 1.1; ownG.add(g); for (const e of [-1, 1]) trestle(X, ownAt[0] + e * 0.75, ownAt[1], 0.9, ownG); }
     let second = gang.add(sec[0], sec[1], { variant: 'kohen', tunic: '#F2EEE4', role: 'hammer', item: 'mallet', fx: ownAt[0], fz: ownAt[1], k: 3, crew: 1 });
     const saw = [];
     // (the crew man with a staff who rolls each waiting log onto the trestles; he waits beside the stack)
@@ -141,7 +147,7 @@ export const WOOD_ACT = {
     }
     function nextLog() {
       if (!WK.order.length) return finish();
-      cur = WK.order[0]; S = logFresh(lv, cur); log = S.log; A.taps = []; A.chalk = null; A.cut = null; A.keep = null; A.off = 0; A.offT = 0; A.seenQ = 0; A.peelQ = 0;
+      cur = WK.order[0]; S = logFresh(lv, cur); log = S.log; A.taps = []; A.hK = []; A.chalk = null; A.cut = null; A.keep = null; A.off = 0; A.offT = 0; A.seenQ = 0; A.peelQ = 0;
       skin = logSkin(X, S, { taps: A.taps, chalk: null }); stackSync();
       // (it does not come by itself: the crew man walks to the front of the stack and rolls it, his staff behind it, onto the trestles)
       A.phase = 'arrive'; A.busy = 1; camTo('near', 1.0);
@@ -199,7 +205,8 @@ export const WOOD_ACT = {
         if (!w.mode && f.moved <= K.TAP) { tap(w.s); return; }
         if (w.mode === 'carry') {
           A.carry = 0; greens.clean.visible = greens.out.visible = false;
-          if (Math.abs(A.off) >= K.GO) decideNow(A.off > 0 ? 'clean' : 'out');
+          const o = Math.abs(A.off) >= K.LAND ? A.off : Math.abs(A.offT) >= K.GO ? A.offT : 0;
+          if (o) { ev('land:' + A.off.toFixed(2)); decideNow(o > 0 ? 'clean' : 'out'); }
           else { A.offT = 0; camTo('near', 0.8); if (Math.abs(A.off) > 0.3) X.line(WLINES.back, 1800); ev('back'); }
         }
       },
@@ -218,6 +225,9 @@ export const WOOD_ACT = {
       A.taps.push({ s, ang, hollow: r.sound === 'hollow' }); skinDraw();
       A.trem = { t: 0, k: r.tremble, s };
       if (r.dust) { X.dust(p.x, p.y, p.z, Math.round(8 + 14 * r.tremble), 3); V.dust(); }
+      // (build 130 review: the moment a hollow is found — a puff of wood dust out of the spot, a pale mark that stays on the bark (the
+      //  skin's tap mark), the quick flash and its word; once for each stretch the worm ate, read with the eye alone)
+      if (r.sound === 'hollow' && r.at != null && !A.hK.includes(r.at)) { A.hK.push(r.at); X.dust(p.x, p.y + log.r * 0.4, p.z, 26, 1.4); X.quick(p, HOLLOW, piece); ev('hollow:' + r.at); }
       V.knock(r.sound === 'hollow' ? 0.55 : 1.6);
       try { X.hero.act('tamp', { x: p.x, y: p.y, z: p.z }, { snap: true }); } catch (e) { /* */ }
       ev('tap:' + s.toFixed(2) + ':' + r.sound);
@@ -263,6 +273,7 @@ export const WOOD_ACT = {
       if (cr.res === 'right') X.quick(atS((keep[0] + keep[1]) / 2), QUICK.cut, piece);
       else if (cr.res === 'far') { WK.waste++; X.line(WLINES.far, 3000); }
       else if (cr.res === 'waste') { WK.waste++; X.line(WLINES.waste, 3000); }
+      else if (cr.res === 'more') X.line(WLINES.more, 3400);
       else X.line(WLINES.near, 3000);
       X.save();
       // (the sawyers go)

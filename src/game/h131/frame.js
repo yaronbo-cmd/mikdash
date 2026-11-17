@@ -337,7 +337,7 @@ export const FRAME_ACT = {
       return [(p.x + st[0]) / 2, (p.z + st[1]) / 2];
     }
     // (an ease from far — the pit's valley, the walk — cuts: eased, the camera passed under the ground and the first frame was blank)
-    function easeTo(p) { const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > FK.CUT ? 0 : FK.EASE; }
+    function easeTo(p) { if (A.cut) { A.cut = 0; return 0; } const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > FK.CUT ? 0 : FK.EASE; }
     function shotTo(k) {
       A.focus = k; A.shotT = A.t;
       if (!k) { lens(FK.FOV); X.shot(FK.EYE.slice(), FK.AIM.slice(), easeTo(FK.EYE)); cast(null); ev('shot:wide'); return; }
@@ -357,7 +357,7 @@ export const FRAME_ACT = {
         try { X.kohen(false); } catch (e) { /* */ }
         // (b131 fix round 1: the first frame is the close shot behind the corner the work begins at — the men large, not dots in the wide one;
         //  the wide beat stays for the diagonal and the square)
-        FG.attach(); { const k0 = focusWant(); if (k0) { shotTo(k0); A.fp = focusPt(k0); } else { lens(FK.FOV); camHome(1.2); cast(null); A.focus = null; } } A.shotT = 0;
+        FG.attach(); A.cut = 1; { const k0 = focusWant(); if (k0) { shotTo(k0); A.fp = focusPt(k0); } else { A.cut = 0; lens(FK.FOV); camHome(0); cast(null); A.focus = null; } } A.shotT = 0;
         draw(0);
         const L0 = lv === 1 ? FLINES.l1 : lv === 2 ? FLINES.l2 : FLINES.l3;
         if (!resumed && lv === 1) { X.line(LINES.rashi, 6000); X.wait(6.2).then(() => { if (!A.done && !A.fl) X.line(L0, 5000); }); }

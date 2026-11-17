@@ -10,7 +10,7 @@ import { rng } from './util.js';
 import { mkParts, groundAO } from './batch.js';
 import * as PL from './places.js';
 import { BLOOD } from './avodah/works/blood.js';   // ── blooda25 ── (the ember's orange; the palette's one source)
-import { H120, Y as H120Y, COLS as H120COLS, BEAMS as H120BEAMS, RUNS as H120RUNS, LADDERS as H120LAD, MIK as H120MIK, joistsOf as h120Joists } from './game/h120/layout.js';   // ── h120 ── ── /h120 ──
+import { H120, Y as H120Y, COLS as H120COLS, BEAMS as H120BEAMS, RUNS as H120RUNS, LADDERS as H120LAD, MIK as H120MIK, joistsOf as h120Joists } from './game/world/layout05.js';   // ── h120 ── ── /h120 ──
 const H120HOLE = [H120MIK.x0, H120MIK.bottom - 0.1, H120MIK.z0, H120MIK.stair, 7, H120MIK.z1];   // ── h120 ── (the basin's cut) ── /h120 ──
 
 export const COMPLEX = { x0: -193, x1: 147, z0: -73.5, z1: 73.5 };
@@ -688,7 +688,9 @@ function h120Model(B, box) {
   for (const [x, z, fx, fz] of H120LAD) {
     const g = h120Ladder(x, z, fx, fz, C.FLOOR, Y.GFLOOR); for (const q of g) B.geo('cedar', q, -999);
   }
-  // the rock-cut basin: its plaster lining, seven steps on its east, the rim of two tefachim, the rod, full to its three amot
+  // the rock-cut basin: its plaster lining, seven steps on its east, the rim of two tefachim, the rod, full to its three amot — a built
+  // thing of the stage's own set (build 130: the new stage hides only the gallery, set 'nashim-gz'; the basin stays with its water)
+  B.stage('nashim');
   const K = H120MIK, y0 = K.bottom, x1 = K.stair, n = K.steps - 1, tr = (x1 - K.x1) / n, rh = K.deep / K.steps;
   box('plaster', K.x0, y0 - 0.1, K.z0, K.x1, y0, K.z1, -999);
   box('plaster', K.x0 - 0.06, y0, K.z0, K.x0, C.FLOOR, K.z1, -999);
@@ -701,6 +703,7 @@ function h120Model(B, box) {
   box('ash', K.x0 - rw, C.FLOOR, K.z0, K.x0, rt, K.z1, C.FLOOR); box('ash', x1, C.FLOOR, K.z0, x1 + rw, rt, K.z1, C.FLOOR);
   box('cedar', K.rod[0] - 0.05, y0, K.rod[1] - 0.05, K.rod[0] + 0.05, rt + 0.4, K.rod[1] + 0.05, -999);
   box('water', K.x0, y0, K.z0, x1, y0 + K.deep - 0.04, K.z1, -999);
+  B.stage('nashim-gz');
 }
 /** a ladder's rails and rungs (BoxGeometry, world): from its foot (x, z) on y0 leaning toward (fx, fz) up to y1 */
 export function h120Ladder(x, z, fx, fz, y0, y1) {

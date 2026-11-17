@@ -18,6 +18,20 @@
   // (build 04m: a still and the figures gate's report once per work where a mouse used to stall — __BOT_SHOTS04 only)
   const stall04 = (key, r) => { if (!MOUSE_P || B.k['st_' + key]) return r; B.k['st_' + key] = 1; let fg = null; try { fg = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { fg = 'ERR ' + e.message; } return { wait: 400, shot: window.__BOT_SHOTS04 ? `${B.m}-mouse-${key}` : undefined, note: `figs at ${B.m} ${key}: ${JSON.stringify(fg)} · line "${(document.querySelector('.h109-line') || {}).textContent || ''}"` }; };
   const alongWorld = (p, q) => { for (let i = 0; i <= 20; i++) { const r = mid(p, q, i / 20); if (onWorld(r[0], r[1])) return r; } return null; };
+  // ── h130 ── (the probe's eyes: what the camera's centre column of rays meets first — an object's name chain, colour and box) ── /h130 ──
+  function galHits() {
+    try {
+      const T = window.__T, R = new T.Raycaster(), cam = T.camera, out = [];
+      for (const ny of [0.6, 0.2, -0.2, -0.6]) {
+        R.setFromCamera({ x: 0, y: ny }, cam); const h = R.intersectObjects(T.scene.children, true).find((q) => q.object.visible !== false && q.distance > 0.2);
+        if (!h) { out.push(ny + ':-'); continue; }
+        const names = []; for (let o = h.object; o && names.length < 4; o = o.parent) names.push(o.name || o.type);
+        const c = h.object.material && h.object.material.color ? h.object.material.color.getHexString() : '?';
+        out.push(ny + ':' + names.join('<') + ' #' + c + ' d' + h.distance.toFixed(1) + ' y' + h.point.y.toFixed(1));
+      }
+      return out.join(' | ');
+    } catch (e) { return 'err ' + e.message; }
+  }
   const play = {
     rope(a) {
       if (a.phase === 'ready') return { holdUntil: [a.hs ? a.hs[0] : W * 0.6, a.hs ? a.hs[1] : HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
@@ -393,7 +407,7 @@
       return { wait: 300 };
     },
     // ── /build 113 ──
-    // ── build 120 ── station 1, the column: pull the rope down (slowly at level 3), near the balance the post: press and turn round
+    // ── build 120 ── (build 130: the old stage 05's other players went with it; the column's stays, for the gallery's raising) the column: pull the rope down (slowly at level 3), near the balance the post: press and turn round
     // it to let the column down onto its plinth (touch: one finger still pulling a little, the other braking; mouse: a heave, then the
     // post); then the plumbs: a wedge on the side it leans to, the plumb weight to accept. __BOT.bad: 'nobrake' (never the post),
     // 'fast' (the rope paid out in a rush: a hard landing), 'sharp' (level 3: two sharp pulls above 45°)
@@ -445,141 +459,38 @@
       }
       return { wait: 250 };
     },
-    // station 2, the measure and the saw: the cord's end onto the scratch (a second, finer drag in the macro), the tail drawn down to a
-    // taut cord and let go inside the window; the mark at the reading; the string lifted to the middle of its window; then the strokes,
-    // each when the carpenter's has ended: two short slow ones to start, long ones in the clear wood, short slow ones in the knot, the
-    // prop when the end sags, the last two. __BOT.bad: 'slack' (the cord let go half taut), 'short' (the mark a tefach and a half short),
-    // 'long' (the mark four fingers long), 'nominal' (the mark at the nominal eleven, unmeasured), 'noprop' (the fibres tear),
-    // 'faint' (the string barely lifted)
-    saw(a) {
-      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);   // (several at once: 'slack,noprop')
-      if (a.busy) return { wait: 200 };
-      if (a.phase === 'end' && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 900], wait: 900, note: `saw: the end to the scratch (off ${a.off} fingers)` };
-      for (const ph of ['tension', 'mark', 'line']) if (a.phase === ph && !B.k['s_' + ph]) { B.k['s_' + ph] = 1; return { wait: 700, shot: `saw${a.lv}-${ph}` }; }
-      if (a.phase === 'tension' && a.tail) {
-        if (Math.abs(a.off) > 0.25 && a.end && a.markAt) return { drag: [a.end[0], a.end[1], a.markAt[0], a.markAt[1], 700], wait: 700, note: `saw: the end finer (off ${a.off})` };
-        const Tt = has('slack') ? 0.5 : 0.95;
-        return { drag: [a.tail[0], a.tail[1], a.tail[0], a.tail[1] + a.reachT * Tt, 1100], wait: 900, note: `saw: the tail to T ${Tt} (off ${a.off})` };
-      }
-      if (a.phase === 'mark' && a.tapMeas) { const p = has('short') ? a.tapShort : has('long') ? a.tapLong : has('nominal') ? a.tapNominal : a.tapMeas; return { tap: p, wait: 1200, note: `saw: the mark (${bad || 'the reading'} ${a.read})` }; }
-      if (a.phase === 'line' && a.string) { const h = has('faint') ? 0.2 : 0.55; return { drag: [a.string[0], a.string[1], a.string[0], a.string[1] - a.reachL * h, 500], wait: 1300, note: 'saw: the string lifted ' + h }; }
-      if (a.phase === 'saw') {
-        if (a.propAt && !has('noprop')) return { tap: a.propAt, wait: 1200, note: 'saw: the prop at depth ' + a.depth };
-        // ('rhythm': a player in time — the finger already on the handle, the stroke begun as the carpenter's ends)
-        if (has('rhythm') && a.n >= 1 && a.turn === 'carp' && !a.inStroke && a.handle && a.axis) {
-          const inK = a.knot && a.depth >= a.knot[0] - 0.06 && a.depth <= a.knot[1], ln = inK ? 0.42 : 1.0, h = a.handle, to = [h[0] + a.axis[0] * a.strokePx * ln, h[1] + a.axis[1] * a.strokePx * ln];
-          const lead = +(window.__BOT_RHY_LEAD || 0.075);
-          return { when: C(`return !a||a.phase!=='saw'||a.turn!=='carp'||a.ct>=a.carpDur-${lead}`), max: 3000, then: { drag: [h[0], h[1], to[0], to[1], inK ? 520 : 560] }, wait: 60, note: `saw: stroke ${a.n + 1} in time (rhythm ${a.rhythm})` };
-        }
-        if (a.turn !== 'his' || a.inStroke || !a.handle) return { wait: 40 };
-        const inKnot = a.knot && a.depth >= a.knot[0] - 0.06 && a.depth <= a.knot[1];
-        const short = a.n < 2 || inKnot, len = short ? 0.42 : 1.0, ms = short ? 520 : 560;
-        const h = a.handle, to = [h[0] + a.axis[0] * a.strokePx * len, h[1] + a.axis[1] * a.strokePx * len];
-        if (!B.k.sawShot && a.depth > 0.3) { B.k.sawShot = 1; return { wait: 50, shot: `saw${a.lv}-mid` }; }
-        if (!B.k.knotShot && inKnot) { B.k.knotShot = 1; return { wait: 50, shot: `saw${a.lv}-knot` }; }
-        if (!B.k.sagShot && a.sag) { B.k.sagShot = 1; return { wait: 50, shot: `saw${a.lv}-sag` }; }
-        // (each stroke once the carpenter's has ended; under the probe the bot's own round trip is longer than the ±0.12 s rhythm window,
-        // so its strokes are rarely 'in rhythm' — a player's are)
-        return { when: C(`return !a||a.phase!=='saw'||(a.turn==='his'&&!a.inStroke)`), max: 3000, then: { drag: [h[0], h[1], to[0], to[1], ms] }, wait: 60, note: `saw: stroke ${a.n + 1} ${short ? 'short' : 'long'} at depth ${a.depth} (drift ${a.drift}, skew ${a.skew}, binds ${a.binds}, rhythm ${a.rhythm})` };
-      }
-      return { wait: 250 };
-    },
-    // station 3, the beam on two shoulders: the act's careful way (a.way: the leading end and its point, in order). Each leg: a finger
-    // held where the leading end should go (the camera is still under it; a point past the screen's edge is taken on the screen toward
-    // it), lifted once the end is there; a rear leg starts on the rear man and drags to its point. Level 3 waits at the lane for a clear
-    // crossing. Then the trim's three strokes when it is his turn. __BOT.bad: 'scaffold' (the way through the wood chamber's scaffold),
-    // 'jar' (the beam swept across the level's jar), 'bump' (into the stone pile once)
-    carry(a) {
-      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
-      for (const [ph, ms] of [['hoist', 2600], ['seat', 400], ['close', 2200]]) if (a.phase === ph && !B.k['c_' + ph]) { B.k['c_' + ph] = 1; return { wait: ms, shot: `carry${a.lvP}-${ph}` }; }
-      if (a.busy) return { wait: 250 };
-      if (a.phase === 'trim' && a.trim) {
-        const t = a.trim; if (!B.k.trimShot) { B.k.trimShot = 1; return { wait: 300, shot: `carry${a.lvP}-trim` }; }
-        if (t.turn !== 'his') return { wait: 60 };
-        const h = t.handle, to = [h[0] + t.axis[0] * t.strokePx * 0.62, h[1] + t.axis[1] * t.strokePx * 0.62];
-        return { when: C("return !a||a.phase!=='trim'||(a.trim&&a.trim.turn==='his')"), max: 3000, then: { drag: [h[0], h[1], to[0], to[1], 520] }, wait: 200, note: `carry: trim stroke ${t.n + 1}` };
-      }
-      if (a.phase !== 'carry') return { wait: 300 };
-      if (!B.k.way) {
-        B.k.way = a.way.map((w) => w.slice()); B.k.wi = 0;
-        // (wrong play: a detour that meets what it should not)
-        if (has('jar') && a.lvP === 1) B.k.way.splice(2, 0, ['f', 78.5, 41.4]);
-        if (has('scaffold') && a.lvP === 3) B.k.way.splice(7, 0, ['f', 130.6, -25.0]);
-        if (has('bump') && a.lvP === 1) B.k.way.splice(2, 0, ['f', 70.5, 39.5], ['f', 74.5, 39.6]);
-        return { wait: 200, shot: `carry${a.lvP}-start` };
-      }
-      const W = B.k.way, i = B.k.wi;
-      if (i >= W.length) { if (!B.k.endShot) { B.k.endShot = 1; return { wait: 900, shot: `carry${a.lvP}-marked`, note: `carry: at the mark ${JSON.stringify(a.inMark)} bumps ${a.bumps}` }; } return { wait: 300, note: `carry: waiting for the handing over ${JSON.stringify(a.inMark)} still ${a.still}` }; }
-      const [m, x, z] = W[i], p = m === 'r' ? a.r : a.f;
-      if (Math.hypot(p[0] - x, p[1] - z) < 0.12) { B.k.wi = i + 1; const sh = { 1: [3, 6], 2: [4, 6], 3: [5, 9] }[a.lvP] || []; if (sh.includes(i + 1)) return { wait: 300, shot: `carry${a.lvP}-leg${i + 1}` }; return { wait: 80, note: `carry: leg ${i + 1}/${W.length} (${m} ${x},${z}) bumps ${a.bumps} dmg ${a.dmg} ${a.events.join(',')}` }; }
-      // (level 3: the lane's sledge and cart; cross only when neither is coming within reach)
-      if (a.lvP === 3 && i === 5 && !B.k.laneOk) { if (!a.laneClear) { B.k.laneW0 = B.k.laneW0 || performance.now(); return { wait: 250, note: 'carry: waiting at the crossing ' + JSON.stringify(a.lane) }; } B.k.laneOk = 1; window.__LANE_WAIT = B.k.laneW0 ? +((performance.now() - B.k.laneW0) / 1000).toFixed(1) : 0; }
-      if (!a.camOK) return { wait: 150 };   // (the camera eases toward the beam between holds: a point is taken once it is still)
-      const aim = window.__H120C && window.__H120C.aim(m, x, z); if (!aim) return { wait: 200 };
-      const to = aim.to, cond = C(`if(!a||a.phase!=='carry')return true;const p=${m === 'r' ? 'a.r' : 'a.f'};return Math.hypot(p[0]-(${to[0]}),p[1]-(${to[1]}))<0.1||(a.toD!=null&&a.toD<0.03)`);
-      if (m === 'r') return { path: [a.rScr, aim.pt], ms: 500, keep: 30000, release: cond, wait: 150, note: `carry: the rear to ${to.map((v) => v.toFixed(1))}` };
-      // (a front leg's finger never on the rear man: that would lead the rear)
-      if (Math.hypot(aim.pt[0] - a.rScr[0], aim.pt[1] - a.rScr[1]) < a.grip + 4) return { wait: 200, note: 'carry: the point is on the rear man' };
-      return { path: [a.fScr, aim.pt], ms: 500, keep: 30000, release: cond, wait: 150, note: `carry: the front to ${to.map((v) => v.toFixed(1))}` };   // (build 124: the finger lands on the kohen — a right-half touch elsewhere is the look's)
-    },
-    // station 4, the mikveh: level 3's ring to three amot; a test pour; the reference way drawn from the hollow to the basin; each point
-    // the fall asks deeper held until it is deep enough (in order); level 3's overflow from the outlet to the door; the plug pulled up;
-    // a stop mended the same way. __BOT.bad: 'trough' (level 2: the straight way, through the plasterers' trough), 'jar' (level 2: a jar
-    // dragged into the channel), 'finger' (a hold to the fifth finger), 'low' / 'high' (level 3's ring at 2.6 / 3.5 amot), 'lime'
-    // (level 3: the overflow straight downhill). After a pasul the vessel is dragged off the way.
-    mikveh(a) {
-      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), M4 = window.__H120M;
-      const shots = { rod: 1800, draw: 300, run: 2600, stop: 1600, fill: 3000, over: 2000, pasul: 2600, spill: 2000, lime: 1200, end: 1500 };
-      for (const [ph, ms] of Object.entries(shots)) if (a.phase === ph && !B.k['m_' + ph]) { B.k['m_' + ph] = 1; return { wait: ms, shot: `mik${a.lvP}-${ph}` }; }
-      if (a.phase === 'pasul' && B.k.m_pasul && !B.k.m_shower) { B.k.m_shower = 1; return { wait: 3000, shot: `mik${a.lvP}-shower` }; }
-      if (a.phase === 'fill' && !B.k.m_fill2 && a.h > (a.h0 + (a.goal || 3)) / 2) { B.k.m_fill2 = 1; return { wait: 50, shot: `mik${a.lvP}-fill-mid` }; }
-      if (a.busy || a.cut != null) return { wait: 250 };
-      if (a.phase === 'rod' && a.ring) {
-        const want = has('low') ? 2.6 : has('high') ? 3.5 : 3, dy = -(want - a.ring.h) * a.ring.up;
-        return { drag: [a.ring.at[0], a.ring.at[1], a.ring.at[0], a.ring.at[1] + dy, 1100], wait: 1600, note: `mik: the ring to ${want} (${a.ring.up} px an amah)` };
-      }
-      if (!['draw', 'stop', 'over-stop'].includes(a.phase)) return { wait: 250 };
-      // (the first time: a test pour beside the hollow, for the still of its thread)
-      if (!B.k.poured && a.phase === 'draw' && M4) { B.k.poured = 1; const h = a.refIn[Math.min(a.refIn.length - 2, 5)]; return { tap: [h[0], h[1] + 70], wait: 3000, note: 'mik: a test pour' }; }   // (a few amot down the way, off it)
-      if (B.k.poured === 1) { B.k.poured = 2; return { wait: 100, shot: `mik${a.lvP}-pour` }; }
-      // (after a pasul: the vessel off the way)
-      if (a.pasul && a.res && a.res.vessel && M4 && !B.k['off' + a.pasul]) {
-        if (a.busy || a.phase !== 'draw') return { wait: 400 };
-        B.k['off' + a.pasul] = 1; const v = a.vessels.find((q) => q.id === a.res.vessel), to = M4.scr(...({ trough: [24.5, -58.5], jar1: [30.5, -58.5] }[v.id] || [20, -60]));
-        return { drag: [v.at[0], v.at[1], to[0], to[1], 1400], wait: 900, note: 'mik: the vessel off the way ' + v.id };
-      }
-      // the inflow
-      if (!a.chIn || !a.reaches) {
-        let pts = a.refIn.map((q) => [q[0], q[1]]);
-        if (has('trough') && a.lvP === 2) pts = [pts[0], a.inlet];
-        return { path: pts, ms: Math.max(1800, pts.length * 140), wait: 900, note: `mik: the way from the hollow (${pts.length} points${has('trough') ? ', straight' : ''})` };
-      }
-      if (has('jar') && a.lvP === 2 && !B.k.jarIn && M4) { B.k.jarIn = 1; const v = a.vessels.find((q) => q.id === 'jar1'), to = M4.scr(28, -47.45); return { drag: [v.at[0], v.at[1], to[0], to[1], 1200], wait: 900, note: 'mik: a jar into the channel' }; }
-      const deep = (L, key) => {
-        if (!L || !L.length) return null; const q = L[0];
-        if (has('finger') && !B.k.cracked) { B.k.cracked = 1; return { holdUntil: [q.at[0], q.at[1], C('return !a||a.cracks>0||a.busy'), 9000], wait: 1200, note: 'mik: a fifth finger at ' + q.i }; }
-        return { holdUntil: [q.at[0], q.at[1], C(`if(!a||a.busy)return true;const n=(a.${key}||[]).find(o=>o.i===${q.i});return !n||n.cur>=3.85`), 7000], wait: 350, note: `mik: deepen ${key} ${q.i} from ${q.cur} to ${q.need}` };
-      };
-      if (has('stop') && !a.stops && a.phase === 'draw' && !a.plugOut) return { drag: [a.plug[0], a.plug[1], a.plug[0], a.plug[1] - 110, 600], wait: 900, note: 'mik: the plug before deepening (a stop)' };
-      const d1 = deep(a.needIn, 'needIn'); if (d1) return d1;
-      if (a.lvP === 3 && !a.chOv && a.outlet != null) {
-        let pts = a.refOver.map((q) => [q[0], q[1]]); if (has('lime')) pts = [a.outletS, a.door];
-        return { path: pts, ms: Math.max(1800, pts.length * 140), wait: 900, note: `mik: the overflow (${has('lime') ? 'straight downhill' : 'round the pit'})` };
-      }
-      const d2 = a.lvP === 3 ? deep(a.needOv, 'needOv') : null; if (d2) return d2;
-      if (!a.plugOut && a.phase === 'draw') return { drag: [a.plug[0], a.plug[1], a.plug[0], a.plug[1] - 110, 600], wait: 900, note: `mik: the plug (res ${JSON.stringify(a.res)})` };
-      return { wait: 300, note: 'mik: waiting ' + a.phase + ' ' + JSON.stringify(a.res) };
-    },
-    // the planks (8.1): a drag from the plank in hand to its place; the first one let go early (it stays), the third a short push (it glides)
-    planks(a) {
-      if (a.phase !== 'lay' || !a.from || a.glide || Math.abs(a.p - a.pT) > 0.02) return { wait: 300 };
-      if (!B.k.lay) { B.k.lay = 1; return { wait: 200, shot: 'planks-start' }; }
-      if (a.i === 0 && !B.k.early) { B.k.early = 1; const f = a.from, t = a.to, u = 0.15; return { drag: [f[0], f[1], Math.round(f[0] + (t[0] - f[0]) * u), Math.round(f[1] + (t[1] - f[1]) * u), 500], wait: 900, note: 'planks: let go early (it stays)' }; }
-      if (a.i === 3 && !B.k.mid) { B.k.mid = 1; return { wait: 300, shot: 'planks-mid' }; }
-      const u = a.i === 2 ? 0.45 : 1.05, f = a.from, t = a.to;
-      return { drag: [f[0], f[1], Math.round(f[0] + (t[0] - f[0]) * u), Math.round(f[1] + (t[1] - f[1]) * u), 700], wait: 1200, note: `planks: ${a.i + 1}/${a.n} laid ${a.laid.join(',')}` };
-    },
     // ── /build 120 ──
+    // ── h130 ── (build 130) the new stage 05's gallery (h130/gallery.js dbg()): the opening (a drag on the left half draws the line, a
+    // tap turns the crowd over), the puzzle (each column from its sledge to a place of the solver's layout, a.sol; a column on any other
+    // place is moved to a free one), the torch bearer's tap, level 3's raising (the column player: a.sub 'raise'). __BOT.bad: 'crack'
+    // (the last column left on its sledge: the warning, the test tapped again, gal.beam −20), 'hide' (the first test with one column on
+    // a spectator's line, a.hide: it blinks; then it goes back to its place and the test runs again)
+    gal(a) {
+      if (a.sub === 'raise') return play.col(a);
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
+      if (a.phase === 'open-draw') { if (!B.k.od) { B.k.od = 1; return { wait: 400, shot: a.id + '-open' }; } const y = Math.round(HH * 0.62); return { drag: [Math.round(W * 0.1), y, Math.round(W * 0.42), y - 50, 600], wait: 150, note: 'gal: draw the line ' + a.draw }; }
+      if (a.phase === 'open-flip') { if (!B.k.of) { B.k.of = 1; return { wait: 200, shot: a.id + '-crowd' }; } return { tap: [Math.round(W * 0.22), Math.round(HH * 0.62)], wait: 1500, note: 'gal: turn it over' }; }
+      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov + ' hits ' + galHits() }; } }
+      if (a.phase === 'test' && !a.view && !B.k['cr' + a.tries]) { B.k['cr' + a.tries] = 1; return { wait: 500, shot: `${a.id}-crew${a.tries}` }; }
+      if (a.phase === 'test' && a.ev.some((e) => /^above/.test(e)) && !B.k.ab) { B.k.ab = 1; return { wait: 200, shot: `${a.id}-above`, note: 'gal: ' + a.ev.slice(-1)[0] }; }
+      if (a.busy || a.phase !== 'puzzle') return { wait: 300, note: 'gal: ' + a.phase };
+      if (!B.k['ps' + a.tries]) { B.k['ps' + a.tries] = 1; return { wait: 400, shot: `${a.id}-puzzle${a.tries}` }; }
+      let spots = (a.sol || []).map((s) => ({ ...s }));
+      if (has('crack') && a.id === 'gal1') spots = spots.slice(0, -1);
+      if (has('hide') && !a.tries && a.hide) spots[a.hide.j] = { a: a.hide.a, scr: a.hide.scr };
+      const on = (c, s) => c.a != null && Math.abs(c.a - s.a) < 0.3;
+      const free = spots.filter((s) => !a.cols.some((c) => on(c, s)));
+      if (free.length) {
+        const wrong = a.cols.find((c) => c.a != null && !spots.some((s) => on(c, s))) || a.cols.find((c) => c.a == null && !c.drag);
+        if (!wrong) return { wait: 300 };
+        return { path: [wrong.grip, mid(wrong.grip, free[0].scr, 0.5), free[0].scr], ms: 1100, wait: 1100, note: `gal: column ${wrong.i} (${wrong.a}) → ${free[0].a.toFixed(2)}` };
+      }
+      if (!B.k['pl' + a.tries]) { B.k['pl' + a.tries] = 1; return { wait: 600, shot: `${a.id}-plan${a.tries}` }; }
+      // (the figures check: the plan again with the camera lifted 0.3 by the right thumb, then back)
+      if (!a.tries && (B.k.lift | 0) < 3) { B.k.lift = (B.k.lift | 0) + 1; return B.k.lift === 1 ? { eval: '__T.game.h109._look(0.3,0)', wait: 100 } : B.k.lift === 2 ? { wait: 1200, shot: `${a.id}-plan-lift03` } : { eval: '__T.game.h109._look(0,0)', wait: 900 }; }
+      return { tap: a.bearer, wait: 2200, note: 'gal: the torch bearer, the test (layout ' + a.layout.join(',') + ')' };
+    },
+    // ── /h130 ──
     // ── h128 ── (build 128) stage 06's acts (h128/*.js dbg()); stage 03 has a 'close' kind too: stage 06's players are h6<kind>
     // the capstan: round the drum (clockwise on the screen) at a speed that keeps the rope quiet (slower over a rough timber), let go
     // before the next notch so the sledge coasts to it, tap the wedge man when it is still there; rest on the wedge until the crew
@@ -1014,6 +925,118 @@
       return stroke('a.toMid<0.05', 'golah: pull in the middle');
     },
     // ── /h129 Golah ──
+    // ── h130 wood ── (build 130, station 2: the wood chamber, h130/wood.js dbg()). Plays each log as a careful player: level 1 rolls it a
+    // whole turn and looks; level 2 taps along it, and where it rings hollow turns the hole to the eye and peels a strip there; level 3
+    // taps along it and draws the chalk line across at the best cut; then it takes the log by an end and carries it right (clean) or
+    // left (out). __BOT.bad 'worm': the first wormy log is carried into the clean pile (wood.worm, −20; the pile comes back to be checked).
+    // Stills (__BOT_SHOTS130): the first look of each level, a hollow tap, a peel, the chalk line, a carry held at the green mark.
+    wood(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS130;
+      if (shots && a.busy && a.figs && a.figs.saw && !K['shotS' + a.log]) { K['shotS' + a.log] = 1; return { wait: 100, shot: a.id + '-saw-' + a.log }; }
+      if (a.busy || a.phase !== 'look' || !a.a || !a.b) return { wait: 300, note: 'wood: ' + a.phase };
+      const key = a.id + ':' + a.log + ':' + a.left + ':' + (a.cut || '') + ':' + a.piles.clean, L = K[key] || (K[key] = { n: 0 });
+      const ax = a.b[0] - a.a[0], ay = a.b[1] - a.a[1], len = Math.hypot(ax, ay) || 1, ux = ax / len, uy = ay / len;
+      if (shots && !K['shot' + a.id]) { K['shot' + a.id] = 1; return { wait: 200, shot: a.id + '-look' }; }
+      const body = (s) => { const k = (s - a.keep[0]) / (a.keep[1] - a.keep[0]); return [a.a[0] + ax * k, a.a[1] + ay * k]; };
+      const across = (p, cond) => ({ path: [[p[0] + uy * -18, p[1] - ux * -18], [p[0] - uy * 60, p[1] + ux * 60]], ms: 450, wait: 700 });
+      // (the decision: by the end band, carried past the green mark, let go there)
+      const carry = (to) => {
+        const e = to === 'clean' ? a.b : a.a, o = to === 'clean' ? a.a : a.b, k = 0.18 / (a.keep[1] - a.keep[0]), p = [e[0] + (o[0] - e[0]) * k, e[1] + (o[1] - e[1]) * k], d = to === 'clean' ? 1 : -1;
+        const q = [Math.max(30, Math.min(innerWidth - 30, p[0] + d * 300)), p[1]];
+        return { path: [p, q], ms: 700, keep: 6000, release: C(`return !a||a.phase!=='look'||Math.abs(a.off)>1.7`), wait: 1500, note: `wood: ${a.log} → ${to}`, ...(shots && !K['shotC' + a.id] ? (K['shotC' + a.id] = 1, {}) : {}) };
+      };
+      const wantWorm = has('worm') && !K.wormDone && a.wormy && !a.cuttable;
+      if (L.n === 0 && wantWorm) { K.wormDone = 1; L.n = 99; return carry('clean'); }
+      if (a.lv === 1) {
+        if (a.turned < 365 && L.n < 3) { L.n++; const p = body(a.keep[0] + 0.3 * (a.keep[1] - a.keep[0])), d = L.n % 2 ? 1 : -1; return { path: [p, [p[0] + d * ux * 320, p[1] + d * uy * 320]], ms: 900, wait: 500, note: 'wood: roll ' + a.log }; }
+        return carry(a.wormy ? 'out' : 'clean');
+      }
+      // (level 2 and 3: taps along the log, every half amah, until the hollow is heard or the log is done)
+      const S = Object.keys(a.pt).map(Number).filter((s) => s > a.keep[0] + 0.45 && s < a.keep[1] - 0.45);
+      L.t = L.t || 0;
+      if (L.t < S.length && !(L.heard && L.t >= 3)) { const s = S[L.t++]; const r = { tap: a.pt[s], wait: 650, note: 'wood: tap ' + a.log + ' at ' + s }; if (shots && a.hollow && s >= a.hollow[0] && s <= a.hollow[1] && !K['shotH' + a.id]) { K['shotH' + a.id] = 1; r.then = undefined; r.shot = a.id + '-hollow-tap'; } if (a.hollow && s >= a.hollow[0] && s <= a.hollow[1]) L.heard = 1; return r; }
+      if (a.lv === 2) {
+        if (a.wormy && a.holeAt && !L.peeled) {
+          const want = -a.holeAng, d = (((want - a.rot) % 360) + 540) % 360 - 180;
+          if (Math.abs(d) > 8 && (L.r | 0) < 4) { L.r = (L.r | 0) + 1; const p = body(a.keep[0] + 0.25 * (a.keep[1] - a.keep[0])), px = d / 1.25; return { path: [p, [p[0] + ux * px, p[1] + uy * px]], ms: 600, wait: 400, note: 'wood: turn the hole to the eye ' + d.toFixed(0) }; }
+          L.peeled = 1; const r = across(body(a.holeS)); r.note = 'wood: peel at ' + a.holeS; if (shots && !K.shotP) { K.shotP = 1; r.wait = 900; r.then = undefined; } return r;
+        }
+        if (L.peeled === 1 && shots && !K.shotP2) { K.shotP2 = 1; return { wait: 200, shot: a.id + '-peeled' }; }
+        return carry(a.wormy ? 'out' : 'clean');
+      }
+      if (a.best != null && !a.cut) { if (L.c) return { wait: 500 }; L.c = 1; const r = across(body(a.best)); r.note = 'wood: the chalk line at ' + a.best; r.wait = 600; return r; }
+      if (a.cut && shots && !K['shotX' + a.log]) { K['shotX' + a.log] = 1; return { wait: 200, shot: a.id + '-cut-' + a.log }; }
+      return carry(a.cut === 'near' ? 'out' : 'clean');
+    },
+    // ── /h130 wood ──
+    // ── h130 light ── (build 130, station 3 "חמישים אמה של אור": the player of kind 'light', h130/light.js dbg()). The wick: the left
+    // thumb holds the garment, the right pulls a strip off its edge at 0.7 amah a second (a mouse: the strip alone); the oil: hin, hin,
+    // half a hin; the ladder: each hand lifted as the jar passes the middle going away from it (or when it is still), drawn up to the
+    // next rung — by mouse the right hand with the right button; the pour: the jar tilted slowly to 0.6; the wick to the bowl; the
+    // taper to the wick. __BOT.bad: 'tear' (the first strip pulled fast: torn, no loss), 'over' (three hins: over thirty, no loss),
+    // 'jar' (light2: each hand lifted as the jar swings toward it until the jar falls: light.jar, −20). __BOT_LIFT3: a still and the
+    // figures' report at the camera's lift 0.3 once per phase.
+    light(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, mouse = !!a.mouse || !!window.__BOT_MOUSE;
+      const figs = () => { try { return JSON.stringify(window.__FIG && __FIG.report ? __FIG.report() : null); } catch (e) { return 'ERR'; } };
+      const once = (key, r) => { if (K[key]) return null; K[key] = 1; return r; };
+      // (a still per phase at lift 0, then at lift 0.3 with the figures' report)
+      if (['wick', 'oil', 'climb', 'pour', 'lay', 'light'].includes(a.phase)) {
+        const w0 = once('w0' + a.phase, { wait: 1500 }); if (w0) return w0;   // (the shot settles first)
+        const s0 = once('s0' + a.phase, { wait: 300, shot: `${a.id}-${a.phase}`, note: `light: ${a.phase} · figs u0 ${figs()}` }); if (s0) return s0;
+        if (window.__BOT_LIFT3) {
+          const s1 = once('s1' + a.phase, { eval: '__T.game.h109.X.lookLift(0.3)', wait: 1600, note: 'light: lift 0.3' }); if (s1) return s1;
+          const s2 = once('s2' + a.phase, { wait: 100, shot: `${a.id}-${a.phase}-lift03`, note: `light: figs at lift 0.3 ${figs()}` }); if (s2) return s2;
+          const s3 = once('s3' + a.phase, { eval: `__T.game.h109.X.lookLift(${a.phase === 'climb' && !mouse ? 0.22 : 0})`, wait: 2600 }); if (s3) return s3;   // (the lift eases back before the bot acts: px per amah settles)
+        }
+      }
+      if (a.look && !a.look.play && (a.look.u > 0.02 || Math.abs(a.look.yaw) > 0.03) && !window.__BOT_LOOKOK) return { tap: [Math.round(W - 30), Math.round(HH * 0.55)], wait: 500, note: 'light: LOOK AWAY u ' + a.look.u + ' · a tap returns the camera' };
+      if (a.phase === 'wick' && a.edge && a.pull) {
+        if (a.wicks.length >= a.need) return { wait: 300 };
+        const us = [0.5, 0.15, 0.85, 0.5], u = us[a.wicks.length % 4], e = [a.edge[0][0] + (a.edge[1][0] - a.edge[0][0]) * u, a.edge[0][1] + (a.edge[1][1] - a.edge[0][1]) * u];
+        const fast = has('tear') && !a.tears, sp = fast ? 2.6 : 0.7, L = 1.12 * a.pull.px, ms = Math.round((1.12 / sp) * 1000), n = Math.max(6, Math.round(ms / 50));
+        const fr = []; const pt = (i) => [e[0] + a.pull.ux * L * (i / n), e[1] + a.pull.uy * L * (i / n)];
+        if (!mouse) fr.push([a.hold]);
+        for (let i = 0; i <= n; i++) fr.push(mouse ? [pt(i)] : [a.hold, pt(i)]);
+        return { seq: fr, ms: 50, wait: 700, note: `light: strip ${a.wicks.length + 1}/${a.need} at ${u} (${fast ? 'FAST: the tear' : sp + ' amah/s'}, ${a.pull.px} px/amah)` };
+      }
+      if (a.phase === 'oilcard') { if (!K.card) { K.card = 1; return { wait: 1800, shot: `${a.id}-card`, note: 'light: the card of Beit Shemanya' }; } return { tap: [Math.round(W / 2), Math.round(HH / 2)], wait: 900, note: 'light: a tap on the card closes it' }; }
+      if (a.phase === 'oil' && a.cups && a.jar) {
+        const plan = has('over') && !K.overDone ? ['hin', 'hin', 'hin'] : ['hin', 'hin', 'half'];
+        if (has('over') && a.pours.length === 3 && a.total > 30) K.overDone = 1;
+        if (a.cups.some((c) => c.busy)) return { wait: 300 };
+        if (a.total > 30) return { wait: 400, note: 'light: over thirty — it is emptied back' };
+        const id = plan[a.pours.length]; if (!id) return { wait: 400 };
+        const c = a.cups.find((q) => q.id === id);
+        return { drag: [c.at[0], c.at[1], a.jar[0], a.jar[1] - 20, 800], wait: 1900, note: `light: pour ${id} (${a.total} so far)` };
+      }
+      if (a.phase === 'climb' && a.climb) {
+        if (K.rung !== a.climb.rung) { K.rung = a.climb.rung; B.actT = now(); }   // (each rung is progress: the wall's limit counts from it)
+        const c = a.climb, h = c.up || (c.L <= c.R ? 'L' : 'R'), sg = h === 'R' ? 1 : -1, pump = has('jar') && a.id === 'light2' && !a.drops;
+        const cond = pump ? `const c=a&&a.climb;return !c||a.phase!=='climb'||(Math.abs(c.phi)<0.1&&${sg}*c.w>0)`
+          : `const c=a&&a.climb;return !c||a.phase!=='climb'||c.up||(Math.abs(c.phi)<0.1&&${-sg}*c.w>0)||(Math.abs(c.phi)<0.03&&Math.abs(c.w)<0.15)`;
+        const get = C(`const c=a&&a.climb;if(!c)return null;const h=c.up||'${h}',p=c.hands[h],q=c.next[h];return [p[0],p[1],q[0]+(q[0]-p[0])*0.15,q[1]+(q[1]-p[1])*0.15,220${mouse ? ",h==='R'?'right':'left'" : ''}]`);
+        if (c.up) return mouse ? { mouseDragAt: get, wait: 60 } : { dragAt: get, wait: 60, note: 'light: the lifted hand up' };
+        return { when: C(cond), max: 4000, then: mouse ? { mouseDragAt: get } : { dragAt: get }, wait: 40, note: `light: rung ${c.rung}/${c.top} ${h} (phi ${c.phi}, oil ${c.oil})${pump ? ' PUMP' : ''}` };
+      }
+      if (a.phase === 'pour' && a.pour) {
+        const P = a.pour, [ux, uy, d] = P.dir, den = Math.max(90, Math.min(d * 1.4, 0.32 * HH)), D = 0.62 * den;
+        return { path: [P.jar, [P.jar[0] + ux * D, P.jar[1] + uy * D]], ms: 1100, keep: 15000, release: C("return !a||a.phase!=='pour'"), wait: 500, note: `light: pour (oil ${P.oil})` };
+      }
+      if (a.phase === 'lay' && a.wick && a.aim) return { drag: [a.wick[0], a.wick[1], a.aim[0], a.aim[1], 700], wait: 900, note: 'light: the wick into the bowl' };
+      if (a.phase === 'light' && a.taper && a.aim) return { drag: [a.taper[0], a.taper[1], a.aim[0], a.aim[1], 900], wait: 900, note: 'light: the taper to the wick' };
+      return { wait: 300, note: 'light: ' + a.phase };
+    },
+    // ── /h130 light ──
+    // ── h130 eve ── (build 130 part 3: the evening, h130/eve.js dbg()): it plays itself; a still at each beat (dusk, rise, city, down,
+    // card) with its numbers, then a tap closes the card
+    eve(a) {
+      const K = B.k;
+      if (!K['e' + a.phase]) { K['e' + a.phase] = 1; return { wait: a.phase === 'dusk' ? 1200 : 2200, shot: `eve-${a.phase}`, note: `eve: ${a.phase} lit ${a.lit}/${a.of} reach ${a.reach} figs ${a.figs} shadows ${a.shadows}` }; }
+      if (a.phase === 'card' && !K.cardTap) { K.cardTap = 1; return { tap: [Math.round(W / 2), Math.round(HH / 2)], wait: 1200, note: 'eve: a tap closes the card' }; }
+      return { wait: 400 };
+    },
+    // ── /h130 eve ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
@@ -1082,7 +1105,8 @@
     // wall's 240 s while the act was 62 s in and still going; the wall's limit stays, three times over, for an act that never ticks) ── /h128 ──
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
     // ── h129 ── (G12: the Golah's works too — a clean golah3 needs more than 240 s of its own clock) ── /h129 ──
-    const LIM = /^(bond|carry|mikveh|capstan|golah)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    // ── h130 ── (the new stage 05 the same, every work of it: the gallery's tests, the wood and the light with stills ran past the wall's) ── /h130 ──
+    const LIM = /^(bond|capstan|golah)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──

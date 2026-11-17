@@ -1,6 +1,6 @@
 // build 124 B — the one address book (rule 65): BOOK.s02 … BOOK.s05 in src/game/world/grid.js. Every entry is finite, named by its
-// own cell, inside its stage's bounds, and alone on its spot for its kind; stage 05 reads its places from the book (the same numbers
-// in h120/layout.js, routes.js and model.js), and every act's stand there is the book's. Build 126: stages 02 … 04 read their places
+// own cell, inside its stage's bounds, and alone on its spot for its kind; stage 05's House model reads its places from the book (the
+// same numbers in world/layout05.js; build 130's new stage below). Build 126: stages 02 … 04 read their places
 // from the book too — their tables are the book's own objects (the same reference), and their stands come out where the book says.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -44,10 +44,8 @@ test('book: the same on every load (pure)', async () => {
   assert.deepEqual(JSON.parse(JSON.stringify(again.BOOK.s05)), JSON.parse(JSON.stringify(BOOK.s05)));
 });
 
-test('book s05: stage 05 reads its places from the book', async () => {
-  const L = await import('../src/game/h120/layout.js');
-  const R = await import('../src/game/h120/routes.js');
-  const M = await import('../src/game/h120/model.js');
+test('book s05: the House\'s model reads the gallery and the basin from the book (world/layout05.js); the raising keeps its stand and rig', async () => {
+  const L = await import('../src/game/world/layout05.js');
   const S = BOOK.s05;
   for (const [id, [x, z, side, axis]] of Object.entries(S.cols)) assert.deepEqual({ ...L.COLS[id] }, { id, x, z, side, axis });
   assert.deepEqual(L.COL_IDS, Object.keys(S.cols));
@@ -57,59 +55,23 @@ test('book s05: stage 05 reads its places from the book', async () => {
   assert.deepEqual(L.LADDERS, S.ladders.map((l) => [...l]));
   const lep = S.chambers.find((c) => c.id === 'lepers');
   for (const k of ['x0', 'x1', 'z0', 'z1', 'doorZ']) assert.equal(L.CHAMBER[k], lep[k]);
-  assert.deepEqual([...L.CHAMBER.door], [...lep.door]);
   for (const k of ['x0', 'x1', 'z0', 'z1', 'stair']) assert.equal(L.MIK[k], S.mik[k]);
   assert.equal(L.MIK.rod, S.mik.rod); assert.equal(L.MIK.inlet, S.mik.inlet); assert.equal(L.MIK.outlet, S.mik.outlet);
-  assert.equal(L.MIK.pit, S.mik.pit); assert.equal(L.MIK.hollows, S.mik.hollows);
-  assert.equal(R.YARD, S.yard); assert.equal(R.LIME, S.lime); assert.equal(M.VESSELS, S.vessels);
   // (the court and its chambers: Middot 2:5 — 135 × 135, a chamber of 40 in each corner)
   assert.equal(S.court.x1 - S.court.x0, 135); assert.equal(S.court.z1 - S.court.z0, 135);
-  // the book's entries name the tables' own numbers
   const by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
   for (const [id, [x, z]] of Object.entries(S.cols)) assert.deepEqual([by['col:' + id].x, by['col:' + id].z], [x, z]);
-  for (const [lv, [x, z]] of Object.entries(S.mik.hollows)) assert.deepEqual([by['mik:hollow' + lv].x, by['mik:hollow' + lv].z], [x, z]);
+  // the raising (build 120's level 3, h130/raise.js): its stand and rig, and their entries
+  assert.deepEqual(Object.keys(S.stands), ['col3']); assert.deepEqual(Object.keys(S.rig), ['3']);
+  assert.ok(by['stand:col3'] && by['rig:post3'] && by['rig:block3'] && by.broke);
 });
 
-test('book s05: every act\'s stand is the book\'s (the acts\' own stand())', async () => {
-  const { ACTS } = await import('../src/game/h120/acts.js');
-  const { PLAN } = await import('../src/game/h120/model.js');
-  const S = BOOK.s05, stands = S.entries.filter((e) => e.kind === 'stand');
-  for (const m of PLAN) {
-    const a = ACTS[m.k]; assert.ok(a && a.stand, m.id);
-    const s = a.stand(m), b = S.stands[m.id];
-    assert.ok(b, `book has ${m.id}`);
-    assert.ok(near(s.x, b[0]) && near(s.z, b[1]) && near(s.face[0], b[2]) && near(s.face[1], b[3]), `${m.id}: ${JSON.stringify(s)} vs ${b}`);
-    assert.ok(stands.some((e) => e.acts.includes(m.id) && e.x === b[0] && e.z === b[1]), `${m.id} entry`);
-  }
-});
-
-test('book s05 (build 127): the routes, the rig, the floor, the ways, the cameras are the book\'s own tables', async () => {
-  const R = await import('../src/game/h120/routes.js');
-  const M = await import('../src/game/h120/model.js');
-  const { makePack05 } = await import('../src/game/h120/pack.js');
-  const S = BOOK.s05, by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
-  assert.equal(R.SCAFF, S.scaff); assert.equal(R.PILES, S.piles); assert.equal(R.LANE, S.lane); assert.equal(R.WALLS, S.walls);
-  assert.equal(R.LANE_CROSS.at, S.laneCross);
-  for (const lv of [1, 2, 3]) {
-    const P = R.CARRY_PLACES[lv], B = S.carry[lv];
-    assert.equal(P.mark.c, B.mark); assert.equal(P.jars, B.jars); assert.equal(P.worker, B.worker);
-    for (const c of P.checks) assert.equal(c.rect, B.checks[c.id], `lv ${lv} check ${c.id}`);
-    if (P.movers) assert.equal(P.movers, B.movers);
-    for (const L of [10, 11.5]) {
-      const W = R.carryWay(lv, L);
-      assert.equal(W.length, S.way[lv].length);
-      S.way[lv].forEach(([e, x, z, kx = 0, kz = 0], i) => assert.deepEqual(W[i], [e, x + kx * L, z + kz * L], `way ${lv}.${i}`));
-    }
-    assert.equal(R.carryStart(lv, 11).f[1], S.startZ);
-    assert.ok(by['carry:mark' + lv] && by['carry:worker' + lv], 'carry entries ' + lv);
-  }
-  assert.equal(makePack05().film, S.cam.film);
-  // the floor's rises are the book's (a rise's crest is where floorH has its own bump)
-  assert.ok(S.floor.rises.length === 9 && S.floor.rises.every((r) => r.length === 4));
-  assert.ok(Math.abs(M.floorH(13, -47.4) - M.floorH(13, -48.6)) > 0, 'floor');
-  for (const k of ['in1', 'in2', 'in3']) { const ch = M.refChannel(+k.slice(2), 'in'); assert.ok(ch && ch.pts.length > 1, k); }
-  for (const k of ['rig', 'floor', 'mikWays', 'scaff', 'piles', 'lane', 'walls', 'carry', 'way', 'cam', 'laneCrew']) assert.ok(Object.isFrozen(S[k]), k);
-  for (const lv of [1, 2, 3]) assert.ok(by['rig:post' + lv], 'rig entry ' + lv);
+test('book s05 (build 130 part 3): the old stage\'s rows are out of the book, with their entries', () => {
+  const S = BOOK.s05;
+  for (const k of ['yard', 'carry', 'way', 'startZ', 'lime', 'vessels', 'mikWays', 'floor', 'scaff', 'piles', 'lane', 'laneCross', 'laneCrew']) assert.equal(S[k], undefined, k);
+  for (const k of ['pit', 'hollows']) assert.equal(S.mik[k], undefined, 'mik.' + k);
+  for (const k of ['film', 'again', 'intro']) assert.equal(S.cam[k], undefined, 'cam.' + k);
+  for (const e of S.entries) assert.ok(!/^(yard:|carry:|lime$|vessel:|mik:(pit|hollow)|lane:|scaff\d|pile\d|stand:(col[12]|saw|carry|mikveh|planks)|rig:(post|block)[12]$)/.test(e.id), e.id);
 });
 
 test('book s01 (build 127): stage 01 reads its places from the book — the square, the corner stone, the courses, the trumpeting corner, the cameras', async () => {
@@ -315,3 +277,41 @@ test('book s07: the Gazit, the Golah, the arches, Beit HaMoked as the world draw
   let t0 = -1; for (const [e, a, t] of S.cam.look) { assert.ok(t > t0); t0 = t; for (const p of [e, a]) assert.ok(p[0] >= S.bounds.x0 && p[0] <= S.bounds.x1 && p[2] >= S.bounds.z0 && p[2] <= S.bounds.z1); }
 });
 // ── /h129 ──
+
+// ── h130 ── (build 130) the new stage 05's rows (build130-brief §1) as the built world has them
+test('book s05 (build 130): the new stage\'s rows — the runs, the passage, the stands, the torch, the sleds, the seats, wood, light, the site off the wood chamber', () => {
+  const S = BOOK.s05, G = S.gal, by = Object.fromEntries(S.entries.map((e) => [e.id, e])), C = S.court;
+  // the runs are the built ones (the old runs' lines and ends), the passage is the gate house's cut
+  for (const side of ['N', 'S']) { const R = G.runs[side], O = S.runs.find((r) => r.side === side); assert.equal(R.line, O.line); assert.equal(R.a0, O.a0); assert.equal(R.a1, O.a1); assert.equal(R.wall, O.wall); }
+  assert.deepEqual([G.runs.E.line, G.runs.E.a0, G.runs.E.a1], [136, -27.5, 27.5]); assert.deepEqual([...G.runs.E.cut], [G.passage.z0, G.passage.z1]);
+  assert.ok(S.walls.some((w) => w[0] === G.passage.x0 && w[1] === G.passage.z0 && w[3] === G.passage.z1), 'the passage is the east gate house\'s');
+  // the spec's new places, exactly
+  assert.deepEqual(G.stand, { N: [73.5, -52], S: [73.5, 52], E: [126, 0] });
+  assert.deepEqual(G.torch, [[73.5, 0], [40, 0], [107, 0]]);
+  assert.deepEqual(S.wood, { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] });
+  assert.deepEqual(S.light.menorah, [73.5, 24]); assert.equal(S.light.h, 50);
+  assert.deepEqual(S.light.measures, [26, 31.5]); assert.deepEqual(S.light.wicks, [30, 24]); assert.deepEqual(S.light.practice.ladder, [99.6, 60.2]);
+  // the menorah's ladders 6 amot off to the four corners; the menorah off the court's axis (stage 06's sledge lane)
+  for (const [x, z] of S.light.ladders) { assert.ok(near(Math.hypot(x - 73.5, z - 24), 6, 1e-3)); assert.ok(Math.abs(x - 73.5) > 4 && Math.abs(z - 24) > 4); }
+  assert.ok(Math.abs(S.light.menorah[1]) > 20);
+  // everything on the court's floor, off the walls; the sleds four amot toward the court from their stand
+  const inWall = (x, z) => S.walls.some(([x0, z0, x1, z1]) => x > x0 && x < x1 && z > z0 && z < z1);
+  for (const e of S.entries.filter((q) => /^n:(stand|bearer|torch|sled|watch|ring|wood|menorah|mladder|measures|wicks)/.test(q.id))) {
+    assert.ok(e.x > C.x0 && e.x < C.x1 && e.z > C.z0 && e.z < C.z1, e.id + ' in the court'); assert.ok(!inWall(e.x, e.z), e.id + ' in a wall');
+  }
+  for (const s of ['N', 'S', 'E']) { const st = G.stand[s]; for (const [x, z] of G.sleds[s]) { const d = s === 'E' ? st[0] - x : Math.abs(z) < Math.abs(st[1]) ? Math.abs(st[1]) - Math.abs(z) : -1; assert.ok(near(d, 4), s + ' sled ' + [x, z]); } }
+  // the seats on the gallery's floor between the line and the wall
+  for (const s of ['N', 'S']) assert.ok(Math.abs(G.seat[s][1]) > Math.abs(G.runs[s].line) && Math.abs(G.seat[s][1]) < Math.abs(G.runs[s].wall));
+  assert.ok(G.seat.E[0] > G.runs.E.line && G.seat.E[0] < G.runs.E.wall);
+  // the wood chamber's places inside it; the site's crews off it and its door
+  const W = S.chambers.find((c) => c.id === 'wood'), inW = ([x, z], m = 0) => x > W.x0 - m && x < W.x1 + m && z > W.z0 - m && z < W.z1 + m;
+  for (const p of Object.values(S.wood)) assert.ok(inW(p));
+  const door = [(W.door[0] + W.door[1]) / 2, W.doorZ];
+  for (const [x0, z0, x1, z1] of S.crewSite.scaff) assert.ok(!inW([(x0 + x1) / 2, (z0 + z1) / 2], 3) && Math.hypot((x0 + x1) / 2 - door[0], (z0 + z1) / 2 - door[1]) > 12);
+  for (const [x, z] of S.crewSite.piles) assert.ok(!inW([x, z], 3) && Math.hypot(x - door[0], z - door[1]) > 12);
+  const end = S.crewSite.lane[S.crewSite.lane.length - 1]; assert.ok(Math.hypot(end[0] - door[0], end[1] - door[1]) > 20);
+  // the entries carry the new rows
+  for (const id of ['n:stand:galN', 'n:torch1', 'n:sled:E4', 'n:watch2.2', 'n:seat:E', 'n:wood:clean', 'n:menorah', 'n:mladder3', 'n:measures', 'n:wicks', 'n:passage']) assert.ok(by[id], id);
+  assert.ok(Object.isFrozen(G.lv) && Object.isFrozen(S.cam.gal) && Object.isFrozen(S.crewSite));
+});
+// ── /h130 ──

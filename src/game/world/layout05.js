@@ -1,12 +1,12 @@
-/* ── build 120 ── h120/layout.js — the one geometry source of stage 05's gallery and basin (pure: no three.js, no DOM). The stage's
- * model (h120/model.js), its world (h120/world.js) and the finished model of the House (src/temple.js, its `h120` block) all read their
- * numbers from here, so the gallery the player built and the House's own gallery are one design (brief §1, §9).
+/* ── build 120 ── world/layout05.js (build 130: moved out of h120/, the old stage's folder) — the one geometry source of stage 05's gallery and basin (pure: no three.js, no DOM). The stage's
+ * finished model of the House (src/temple.js, its `h120` block: the gallery the new stage hides while it draws the player's, and the
+ * basin, a built thing with its water) reads its numbers from here.
  *
  * Amot throughout: +x east, +z south, +y up; an amah = 6 tefachim = 24 fingers. The court of the women: x 6…141, z −67.5…67.5, floor
  * y 6 (Middot 2:5). Every size of the gallery is illustration (not in the sources).
  */
 
-import { BOOK } from '../world/grid.js';   // (build 124 B, rule 65: the places are the address book's — BOOK.s05 — and no second copy)
+import { BOOK } from './grid.js';   // (build 124 B, rule 65: the places are the address book's — BOOK.s05 — and no second copy)
 const S5 = BOOK.s05;
 
 export const FINGER = 1 / 24, TEFACH = 1 / 6;
@@ -60,7 +60,4 @@ export const MIK = Object.freeze({
   bottom: H120.FLOOR - 3, rimTop: H120.FLOOR + 2 * TEFACH,
   rod: S5.mik.rod,
   inlet: S5.mik.inlet, outlet: S5.mik.outlet,
-  pit: S5.mik.pit,   // the plasterers' lime pit (level 3's trap)
-  hollows: S5.mik.hollows,
-  goal: Object.freeze({ 1: 0.5, 2: 1.5, 3: 3 }),               // the water over the bottom each level fills to (amot)
 });

@@ -311,37 +311,16 @@ const S05 = {
     { id: 'oils', label: 'לשכת בית שמניה', x0: 6, x1: 44, z0: 29.5, z1: 67.5, door: [22, 30], doorZ: 29.5 },
     { id: 'nazirites', label: 'לשכת הנזירים', x0: 103, x1: 141, z0: 29.5, z1: 67.5, door: [117, 125], doorZ: 29.5 },
   ],
-  mik: { x0: 12, x1: 14, z0: -42, z1: -39, stair: 18, rod: [12.35, -40.5], inlet: [13, -42.25], outlet: [13.4, -38.75], pit: { x0: 19.5, x1: 23.5, z0: -36.5, z1: -32.5 }, hollows: { 1: [13, -52.5], 2: [36, -51.5], 3: [8.6, -56.6] } },
-  vessels: [{ id: 'trough', kind: 'trough', at: [24.5, -46.9], w: 2.6, d: 1.0 }, { id: 'jar1', kind: 'jar', at: [26.6, -44.3], r: 0.55 }, { id: 'jar2', kind: 'jar', at: [17.2, -56.4], r: 0.55 }, { id: 'jar3', kind: 'jar', at: [31.8, -40.6], r: 0.55 }],
-  yard: { his: { x0: 80, x1: 92, z: -31.5 }, saw: { x0: 79, x1: 91, z: -26.6 }, stock: { x: 99.4, z0: -33.2, z1: -21.2 }, offcut: [94.6, -34.2], short: [84, -35.4], bench: [95.6, -29.6] },
-  lime: { x0: 134.6, z0: -27.3, x1: 137.4, z1: -23.3 },
-  // every act's stand at each level, as its act makes it ({ x, z, face }); the free works' stands are the same acts' on their own units
-  stands: { col1: [82.6, 57.9, 81.5, 58.8], col2: [46.5, -57.5, 47.6, -58.4], col3: [131.7, -2.4, 132.6, -3.5], saw1: [68, 58.9, 68, 62.5], saw2: [57, -58.9, 57, -62.5], saw3: [132.4, -16.25, 136, -16.25],
-    carry1: [78.5, -29.1, 83, -31.5], carry2: [78.5, -29.1, 83, -31.5], carry3: [78.5, -29.1, 83, -31.5], mikveh1: [14.8, -51.1, 13, -52.5], mikveh2: [37.8, -50.1, 36, -51.5], mikveh3: [10.4, -55.2, 8.6, -56.6], planks: [62.5, 53.5, 62.5, 62.5] },
+  // (build 130: the basin as a built thing — the old mikveh station's pit and source hollows went with it)
+  mik: { x0: 12, x1: 14, z0: -42, z1: -39, stair: 18, rod: [12.35, -40.5], inlet: [13, -42.25], outlet: [13.4, -38.75] },
+  // the raising's stand (build 120's level 3, kept for the gallery's level 3: h130/raise.js) ({ x, z, face }); build 130: the old
+  // stage's other stands went with it
+  stands: { col3: [131.7, -2.4, 132.6, -3.5] },
   // ── h127 ── (build 127, rule 65: every other place stage 05's code used to type itself, read from here)
-  // the column act's rig at each bay (h120/acts.js RIG): the brake post; at level 3 the block on the wood chamber's south wall the pull
-  // rope turns in ([x, y, z]) and the four pullers on the rope's line
-  rig: { 1: { post: [81.5, 58.8] }, 2: { post: [47.6, -58.4] }, 3: { post: [132.6, -3.5], block: [131.2, 9.5, -27.35], pull: [[129.8, -25.4], [129.1, -24.1], [128.5, -22.7], [127.8, -21.4]] } },
-  // the lepers' chamber's floor (h120/model.js floorH): its rises and dips [x, z, height in fingers, spread]; the bands where the north
-  // fall gives way to the south-east strip's valley (z from, to; x from, to); the line the strip falls on south of (z)
-  floor: {
-    rises: [[13, -47.4, 3.1, 0.55], [31.4, -49.6, 3.4, 0.6], [18.6, -44.4, 3.2, 0.55], [10.4, -50.6, 2.4, 0.6], [26.2, -37.7, 3.0, 0.8],
-      [33.5, -60.5, -4, 2.2], [22, -64, 3, 2.4], [38.5, -36, -3, 2.0], [8, -33, 2.5, 1.8]],
-    bandZ: [-40.6, -38.4], bandX: [10.5, 12.5], fallZ: -36,
-  },
-  // the mikveh's reference ways between their ends (h120/model.js WAYS: from the source hollow to the inlet; the overflow from the
-  // outlet to the door)
-  mikWays: {
-    in1: [[13, -49.5], [13, -45]], in2: [[31.5, -49.7], [24.5, -45.2], [18.6, -44.4], [15, -43.2]], in3: [[10.4, -50.6], [12.4, -45.5]],
-    over3: [[17.5, -38.9], [24.8, -38.7], [27.8, -36.2], [27.8, -32], [27, -29.9], [27, -29.2]],
-  },
-  // the site (h120/routes.js): the scaffolds on the chambers' walls [x0, z0, x1, z1], the stone piles [x, z, stones], the sledges' lane
-  // from outside the east gate to the wood chamber's door, its crossing with level 3's way, the court's walls and the chambers' as
-  // obstacles [x0, z0, x1, z1]
-  scaff: [[46.2, -47, 48.4, -41], [126.6, -27.3, 130.6, -25.3], [107, 25.3, 113, 27.3], [46.2, 38, 48.4, 44]],
-  piles: [[64, -40, 7], [109, -14, 6], [70, 42, 6], [112, 40, 5]],
-  lane: [[156, -5.5], [139, -5.5], [128, -12], [121, -21], [121, -29.2]],
-  laneCross: [124, -16],
+  // the raising's rig (build 120's level 3, h130/raise.js): the brake post, the block on the wood chamber's south wall the pull rope turns
+  // in ([x, y, z]) and the four pullers on the rope's line
+  rig: { 3: { post: [132.6, -3.5], block: [131.2, 9.5, -27.35], pull: [[129.8, -25.4], [129.1, -24.1], [128.5, -22.7], [127.8, -21.4]] } },
+  // the court's walls and the chambers' [x0, z0, x1, z1] (the look's boxes, the sight rules)
   walls: [
     [0, -76, 150, -67.5], [0, 67.5, 150, 76], [-2, -76, 6, 76], [141, -76, 152, -13], [141, 13, 152, 76], [138, -13, 152, 13], [6, -14, 24, 14],
     [101, 27.5, 103, 67.5], [101, 27.5, 117, 29.5], [125, 27.5, 141, 29.5],
@@ -349,31 +328,108 @@ const S05 = {
     [44, -67.5, 46, -27.5], [6, -29.5, 22, -27.5], [30, -29.5, 46, -27.5],
     [44, 27.5, 46, 67.5], [6, 27.5, 22, 29.5], [30, 27.5, 46, 29.5],
   ],
-  // station 3's ways (h120/routes.js CARRY_PLACES, carryWay): the beam lifted off his trestles at z startZ; per bay the marking's
-  // centre, the jars, the worker in the way, the checkpoints' rects, level 3's carriers' lane; a careful player's way [lead, x, z,
-  // kx, kz] (x + kx·L, z + kz·L: the points the beam's length L moves)
-  startZ: -29.6,
-  carry: {
-    1: { mark: [62.5, 59.5], jars: [[78.5, 42]], worker: [73.5, 8], checks: { turn: [60, 50, 86, 61] } },
-    2: { mark: [62.5, -65], jars: [[66.2, -55.4]], worker: [73.6, -44], checks: { cols: [68.8, -63.3, 78.2, -61.7], strip: [56, -67.5, 72, -63.4] } },
-    3: { mark: [132.6, -21.2], jars: [[116.2, -23.6]], worker: [104.5, -18.4], checks: { lane: [119, -24, 127, -14], pass: [130.6, -27.3, 134.6, -23.3] }, movers: [[108.6, -12.2], [114, -19.6], [119.4, -26.6]] },
-  },
-  way: {
-    1: [['f', 66, -28.8], ['f', 75, 30], ['f', 75, 46], ['f', 80, 57], ['f', 79, 59.5], ['f', 57, 59.5], ['r', 57, 59.5, 1, 0]],
-    2: [['f', 66, -28.8], ['f', 72, -40], ['f', 76.5, -50], ['f', 76.5, -66.2], ['f', 77.8, -66.2, -1, 0], ['r', 77.4, -63.9], ['f', 57, -65.3], ['r', 57, -65.2, 1, 0]],
-    3: [['f', 66, -28.8], ['f', 64, -21], ['f', 70, -16], ['f', 96, -17.5], ['f', 120, -17], ['f', 131, -7], ['f', 132.6, -16], ['f', 132.6, -23], ['r', 132.6, -11.5], ['f', 132.6, -26.6], ['r', 132.6, -26.6, 0, 1]],
-  },
-  // where a broken column's halves lie (the stone pile by the east gate: h120/world.js), and the lane's crew outside the east gate:
-  // the sledge's three pullers and the cart's drover (h120/world.js)
+  // where a broken column's halves lie (the stone pile by the east gate: h130/world.js, gal.column)
   brokeAt: [110.5, -18.5],
-  laneCrew: { pull: [150, -5.5], drover: [150, -8] },
-  // the cameras (h120/pack.js): the end film [eye, target, seconds]; the film page's first view; the opening [eye, target]
+  // the cameras (build 130: the old stage's film and opening went with it)
   cam: {
-    film: [[[73, 220, 230], [73, 0, 0], 2.4], [[73, 24, 28], [73, 16, 64], 2.2], [[73, 24, -28], [73, 16, -64], 2.2], [[73, 260, 260], [73, 0, 0], 1.4]],
-    again: [[73, 30, 22], [73, 12, 64]],
-    intro: [[[40, 460, 430], [73, 0, 0]], [[150, 120, 110], [73, 6, 0]], [[118, 34, 30], [70, 8, 10]], [[95, 70, 40], [75, 8, 0]]],
+    // ── h130 ── the new stage's cameras [eye, aim]: each stand's view (the lifted view is the look's shape over it; the test's views are
+    // the spectators' and the seat's own eyes), the stage's opening; the wood and light stations' stand views
+    // (build 130, after its first still: seen through the act's own wider lens — gallery.js FOV — the whole run, the sledges and the
+    //  kohen in the left third)
+    gal: { N: [[80, 30, -8], [82, 6, -55]], S: [[67, 30, 8], [65, 6, 55]], E: [[84, 30, 6], [130, 6, 8]] },
+    open130: [[[40, 420, 400], [73, 0, 0]], [[150, 110, 100], [73, 6, 0]], [[110, 40, 34], [73, 8, 0]]],
+    wood: [[112, 14, -36], [122, 7.6, -46]],
+    light: { 1: [[90, 22, 46], [99.6, 12, 62]], 2: [[56, 30, 2], [73.5, 30, 24]], 3: [[50, 34, -6], [73.5, 34, 24]], measures: [[30, 12, 22], [26, 7, 31.5]], wicks: [[34, 11, 17], [30, 7, 24]] },
+    // level 3's raising (build 120's COL shots, kept): [eye, aim] in the column's own frame — [along from the foot, across toward the
+    // court, height] — the whole rig from the side, the macro of the last degrees, the plumb lines
+    // the opening of gal1 (the crowd's showing): the whole court from over its south-east corner, the gate in it; the kohen's look up
+    // to the north wall ("ואם נעלה קומה?")
+    open1: [[128, 80, 72], [86, 6, 0]],
+    galUp: [[76, 9.5, -40], [73.5, 24, -67.5]],
+    raise: { wide: [[1.8, 55, 13], [1.8, 0, 9.4]], macro: [[2.2, 11, 8.6], [0.3, 0, 7.0]], plumb: [[10, 14, 10.5], [0.3, 0, 7.6]] },
+    // ── /h130 ──
   },
   // ── /h127 ──
+  // ── h130 ── (build 130: the NEW stage 05, docs/specs/shlav-05-hadash-he.md "כתובות על העולם", docs/specs/build130-brief.md §1). Every
+  // place the new stage's code reads; the rows the spec marks "קיים" are the built world's own (court, runs, ladders, walls, chambers,
+  // mik, rig.3, stands.col3, brokeAt, above), the rows it marks "חדש" are checked here against the built world:
+  //  · the column lines run on the line itself (z ∓62.5, x 136); a ladder's foot (z ∓60.2, x 133.8) lies 2.3 off the line on the court's
+  //    side and the ladder leans across it to the gallery's floor: so "within 1.5 of a ladder's foot" is measured ALONG the line (the
+  //    ladder's own x, or its z on the east), where the ladder crosses it;
+  //  · the east line is one line z −27.5 … 27.5 with the gate's passage (z −13 … 13: the east gate house, walls [138, −13, 152, 13])
+  //    cut out of it: the beams of its two segments bear on the gate's jambs, and no column may stand in it;
+  //  · the spectators below stand between the column line and the wall (z ∓65; on the east x 139), each level's own fixed table (lv):
+  //    tuned so that the even spacing fails, the least number of columns has a solution with 1.5 … 3 amot of room, one more column makes
+  //    it easy, and no spectator-to-torch line passes within 2 of the menorah (h130/model.js; test/h130-model.test.mjs holds them);
+  //  · the menorah stands at (73.5, 24), not on the court's axis: z 0 is stage 06's sledge lane (the spec's correction of 15.11);
+  //  · the site's crews (crewSite) are re-planned off the wood chamber and its door: the scaffold that stood on the wood chamber's
+  //    south wall by its door goes to the lepers' chamber's south wall (x 32 … 38), the pile at (70, 42) (on the south sleds' way and by
+  //    the menorah) goes to the Nazirites' chamber's west wall (99, 46), and the sledges' lane ends at the Nazirites' door (121, 29.2),
+  //    not the wood chamber's. (Build 130 part 3: the old keys scaff, piles, lane, laneCrew went with the old stage.)
+  gal: {
+    // the run of each side: axis, the column line, its two ends (the walls the beams bear on), the wall the gallery hangs from, the
+    // passage cut out of it (the east), the gallery's direction from the line toward the wall (+1 / −1 in the line's normal)
+    runs: {
+      N: { axis: 'x', line: -62.5, a0: 46, a1: 101, wall: -67.5, cut: null },
+      S: { axis: 'x', line: 62.5, a0: 46, a1: 101, wall: 67.5, cut: null },
+      E: { axis: 'z', line: 136, a0: -27.5, a1: 27.5, wall: 141, cut: [-13, 13] },
+    },
+    // the gate's passage (מעבר השער המזרחי: x 138 … 152, z −13 … 13)
+    passage: { x0: 138, x1: 152, z0: -13, z1: 13 },
+    // the kohen's stand in the puzzle, and where the torch bearer waits in the picture until he is tapped
+    stand: { N: [73.5, -52], S: [73.5, 52], E: [126, 0] },
+    bearer: { N: [80.5, -50.5], S: [66.5, 50.5], E: [127.5, 7] },
+    // the spectators below stand by the wall: z −65 (N), z 65 (S), x 139 (E); the other coordinate is each level's own (lv.watch)
+    watch: { N: -65, S: 65, E: 139 },
+    // the torch bearer's three stops (the court's floor)
+    torch: [[73.5, 0], [40, 0], [107, 0]],
+    // the sledges the columns wait on: five per stand (four and one spare), four amot toward the court from the stand, side by side
+    // along the run (the column lying across the run, its foot toward the line)
+    sleds: {
+      N: [[67.5, -48], [70.5, -48], [73.5, -48], [76.5, -48], [79.5, -48]],
+      S: [[67.5, 48], [70.5, 48], [73.5, 48], [76.5, 48], [79.5, 48]],
+      E: [[122, -4.5], [122, -1.5], [122, 1.5], [122, 4.5], [122, 7.5]],
+    },
+    // the levels (the spec's "הרמות"): the side, the columns in stock (the least that can solve it) and the spare, the spectators below
+    // (by the wall), the torch's stops (indices into torch), and level 3's raised column (the north segment's: the rig is rig.3's)
+    lv: {
+      1: { side: 'N', stock: 4, spare: 1, watch: [[57.5, -65], [84, -65]], torch: [0] },
+      2: { side: 'S', stock: 4, spare: 1, watch: [[52, 65], [64, 65], [82, 65]], torch: [0, 1, 2] },
+      3: { side: 'E', stock: 2, spare: 1, watch: [[139, -22], [139, 21.5]], torch: [0, 2], raise: 'N' },
+    },
+    // the camera's seat for the test from above: the last seat of each run, on the gallery's floor by the wall
+    seat: { N: [99.5, -66], S: [99.5, 66], E: [140, 26.5] },
+    // the gallery the crews built for an old save whose stage 05 was finished (brief §8): the old default columns, along each run
+    crewCols: { N: [57, 68, 79, 90], S: [57, 68, 79, 90], E: [-16.25, 16.25] },
+    // the opening's drawn line (the left hand draws it on the court's floor: inside and outside) and the crowd's gate
+    ring: [[34, -40], [113, -40], [113, 40], [34, 40]],
+    gate: [140, 0],
+    // the tops of the court's walls as the world builds them (heights for the look's boxes; the order of walls above)
+    wallTops: [40.3, 44.3, 6, 22.3, 38.3, 38.3, 6, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4],
+  },
+  wood: { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] },
+  light: {
+    // the golden menorah (its place: המחשה), 50 amot high, four bowls at its head; its four ladders' feet 6 amot from it to the NE, NW,
+    // SE and SW (6 / √2 = 4.243 on each axis), each leaning toward it
+    menorah: [73.5, 24], h: 50,
+    ladders: [[77.743, 19.757], [69.257, 19.757], [77.743, 28.243], [69.257, 28.243]],
+    // level 1: the south gallery's east ladder and a clay bowl on the gallery's floor above it
+    practice: { ladder: [99.6, 60.2], bowl: [99.6, 65] },
+    measures: [26, 31.5], wicks: [30, 24],
+  },
+  eve: {
+    // the ending's cameras [eye, aim]: the rise with the flames over the wall, the look over the city, the descent to the court
+    cam: { rise: [[73.5, 70, 70], [73.5, 52, 24]], city: [[73.5, 150, 160], [-120, 20, -60]], down: [[118, 30, 30], [70, 12, 30]] },
+  },
+  // the world's site crews, re-planned off the wood chamber (see above): scaffolds [x0, z0, x1, z1], stone piles [x, z, stones], the
+  // sledges' lane from outside the east gate to the Nazirites' door, its crew outside the gate
+  crewSite: {
+    scaff: [[46.2, -47, 48.4, -41], [32, -27.3, 38, -25.3], [107, 25.3, 113, 27.3], [46.2, 38, 48.4, 44]],
+    piles: [[64, -40, 7], [109, -14, 6], [99, 46, 6], [112, 40, 5]],
+    lane: [[156, 5.5], [139, 5.5], [128, 12], [121, 21], [121, 29.2]],
+    laneCrew: { pull: [150, 5.5], drover: [150, 8] },
+  },
+  // ── /h130 ──
 };
 function s05() {
   const E = [], C = S05;
@@ -390,42 +446,48 @@ function s05() {
   E.push(ent('mik:rod', 'rod', M.rod[0], M.rod[1], 'הקנה עם סימני הגובה', ILL));
   E.push(ent('mik:inlet', 'inlet', M.inlet[0], M.inlet[1], 'פתח הכניסה של המים', ILL));
   E.push(ent('mik:outlet', 'outlet', M.outlet[0], M.outlet[1], 'פתח הגלישה', ILL));
-  E.push(ent('mik:pit', 'pit', (M.pit.x0 + M.pit.x1) / 2, (M.pit.z0 + M.pit.z1) / 2, 'בור הסיד של הטייחים', ILL));
-  for (const [lv, [x, z]] of Object.entries(M.hollows)) E.push(ent('mik:hollow' + lv, 'hollow', x, z, `גומת המקור, רמה ${lv}`, ILL));
-  for (const v of C.vessels) E.push(ent('vessel:' + v.id, 'vessel', v.at[0], v.at[1], v.kind === 'trough' ? 'שוקת הטייחים' : 'כד', ILL));
-  const Y = C.yard;
-  E.push(ent('yard:his', 'trestles', (Y.his.x0 + Y.his.x1) / 2, Y.his.z, 'החמורים של הקורה שלו בחצר הנגרים', ILL));
-  E.push(ent('yard:saw', 'trestles', (Y.saw.x0 + Y.saw.x1) / 2, Y.saw.z, 'החמורים של הנסרים', ILL));
-  E.push(ent('yard:stock', 'stock', Y.stock.x, (Y.stock.z0 + Y.stock.z1) / 2, 'מלאי הקורות', ILL));
-  E.push(ent('yard:offcut', 'heap', Y.offcut[0], Y.offcut[1], 'ערמת הנסורת', ILL));
-  E.push(ent('yard:short', 'heap', Y.short[0], Y.short[1], 'הקורות הקצרות', ILL));
-  E.push(ent('yard:bench', 'bench', Y.bench[0], Y.bench[1], 'ספסל הנגרים', ILL));
-  E.push(ent('lime', 'pit', (C.lime.x0 + C.lime.x1) / 2, (C.lime.z0 + C.lime.z1) / 2, 'בור הסיד ליד לשכת העצים', ILL));
-  // (one entry for each spot: the carry's three levels share one stand, named by all of them)
-  const ACT = { col: 'הקמת העמוד', saw: 'ניסור הקורה', carry: 'נשיאת הקורה', mikveh: 'מילוי המקווה', planks: 'הנחת הנסרים' }, spot = new Map();
-  for (const [id, [x, z]] of Object.entries(C.stands)) { const k = x + ',' + z; if (spot.has(k)) spot.get(k).ids.push(id); else spot.set(k, { x, z, ids: [id] }); }
-  for (const { x, z, ids } of spot.values()) {
-    const a = ids[0].replace(/\d+$/, ''), lv = ids.map((i) => i.slice(a.length)).filter(Boolean);
-    E.push(ent('stand:' + ids.join('+'), 'stand', x, z, `עמדת הכהן ב${ACT[a]}` + (lv.length ? (lv.length > 1 ? `, רמות ${lv.join(', ')}` : `, רמה ${lv[0]}`) : ''), ILL, { extra: { acts: ids } }));
-  }
-  // ── h127 ── the places moved into the book in build 127
-  for (const [lv, R] of Object.entries(C.rig)) {
-    E.push(ent('rig:post' + lv, 'brake', R.post[0], R.post[1], `עמוד הבלם של העמוד, רמה ${lv}`, ILL));
-    if (R.block) E.push(ent('rig:block' + lv, 'block', R.block[0], R.block[2], 'הגלגלת על קיר לשכת העצים', ILL, { y: R.block[1] }));
-  }
-  C.scaff.forEach(([x0, z0, x1, z1], i) => E.push(ent('scaff' + i, 'scaffold', (x0 + x1) / 2, (z0 + z1) / 2, 'פיגום על קיר הלשכה', ILL)));
-  C.piles.forEach(([x, z], i) => E.push(ent('pile' + i, 'pile', x, z, 'ערמת אבנים', ILL)));
-  E.push(ent('lane:gate', 'lane', C.lane[0][0], C.lane[0][1], 'שביל המזחלות: מחוץ לשער המזרחי', ILL));
-  E.push(ent('lane:door', 'lane', C.lane[C.lane.length - 1][0], C.lane[C.lane.length - 1][1], 'שביל המזחלות: פתח לשכת העצים', ILL));
-  E.push(ent('lane:cross', 'cross', C.laneCross[0], C.laneCross[1], 'מעבר השביל בדרך הקורה, רמה 3', ILL));
-  for (const [lv, P] of Object.entries(C.carry)) {
-    E.push(ent('carry:mark' + lv, 'mark', P.mark[0], P.mark[1], `הסימון הירוק להנחת הקורה, רמה ${lv}`, ILL));
-    P.jars.forEach(([x, z], i) => E.push(ent(`carry:jar${lv}.${i}`, 'jar', x, z, `כד בדרך הקורה, רמה ${lv}`, ILL)));
-    E.push(ent('carry:worker' + lv, 'crew', P.worker[0], P.worker[1], `פועל בדרך הקורה, רמה ${lv}`, ILL));
-  }
+  // ── h127 ── the places moved into the book in build 127 (build 130: the raising's stand and rig of level 3 stay; the rest went with the
+  // old stage 05)
+  { const [x, z] = C.stands.col3; E.push(ent('stand:col3', 'stand', x, z, 'עמדת הכהן בהרמת העמוד בחבלים', ILL, { extra: { acts: ['gal3'] } })); }
+  { const R = C.rig[3]; E.push(ent('rig:post3', 'brake', R.post[0], R.post[1], 'עמוד הבלם של העמוד המורם', ILL)); E.push(ent('rig:block3', 'block', R.block[0], R.block[2], 'הגלגלת על קיר לשכת העצים', ILL, { y: R.block[1] })); }
   E.push(ent('broke', 'heap', C.brokeAt[0], C.brokeAt[1], 'מקום חצאי עמוד שנשבר, ליד ערמת האבנים', ILL));
-  E.push(ent('lane:crew', 'crew', C.laneCrew.pull[0], C.laneCrew.pull[1], 'מושכי המזחלת מחוץ לשער המזרחי', ILL));
   // ── /h127 ──
+  // ── h130 ── the new stage's places (ids prefixed 'n:')
+  const G = C.gal, SIDE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
+  for (const [s, R] of Object.entries(G.runs)) {
+    const p = (a) => (R.axis === 'x' ? [a, R.line] : [R.line, a]);
+    E.push(ent('n:run:' + s + '0', 'run', ...p(R.a0), `קצה קו העמודים ${SIDE[s]}`, ILL));
+    E.push(ent('n:run:' + s + '1', 'run', ...p(R.a1), `קצה קו העמודים ${SIDE[s]}`, ILL));
+  }
+  E.push(ent('n:passage', 'passage', (G.passage.x0 + G.passage.x1) / 2, (G.passage.z0 + G.passage.z1) / 2, 'מעבר השער המזרחי', ILL));
+  for (const [s, [x, z]] of Object.entries(G.stand)) E.push(ent('n:stand:gal' + s, 'stand', x, z, `עמדת הכהן בחידת העמודים ${SIDE[s]}`, ILL));
+  for (const [s, [x, z]] of Object.entries(G.bearer)) E.push(ent('n:bearer:' + s, 'crew', x, z, `נושא האבוקה מחכה ${SIDE[s]}`, ILL));
+  G.torch.forEach(([x, z], i) => E.push(ent('n:torch' + i, 'torch', x, z, `עצירה ${i + 1} של נושא האבוקה`, ILL)));
+  for (const [s, L] of Object.entries(G.sleds)) L.forEach(([x, z], i) => E.push(ent(`n:sled:${s}${i}`, 'sled', x, z, `מזחלת עמוד ${i + 1} ${SIDE[s]}`, ILL)));
+  for (const [lv, V] of Object.entries(G.lv)) V.watch.forEach(([x, z], i) => E.push(ent(`n:watch${lv}.${i}`, 'watch', x, z, `צופה ${i + 1} למטה, רמה ${lv}`, ILL)));
+  for (const [s, [x, z]] of Object.entries(G.seat)) E.push(ent('n:seat:' + s, 'seat', x, z, `המושב האחרון בגזוזטרא ${SIDE[s]}`, ILL, { y: 17.4 }));
+  G.ring.forEach(([x, z], i) => E.push(ent('n:ring' + i, 'mark', x, z, 'פינת הקו של הפתיחה (פנים וחוץ)', ILL)));
+  E.push(ent('n:crowdGate', 'gate', G.gate[0], G.gate[1], 'הקהל המצויר נכנס בשער', ILL));
+  const W = C.wood;
+  E.push(ent('n:wood:trestles', 'trestles', W.trestles[0], W.trestles[1], 'חמורי העץ של הבדיקה', ILL));
+  E.push(ent('n:wood:stand', 'stand', W.stand[0], W.stand[1], 'עמדת הכהן בלשכת העצים', ILL));
+  E.push(ent('n:wood:second', 'crew', W.second[0], W.second[1], 'הכהן השני שבודק בול משלו', ILL));
+  E.push(ent('n:wood:clean', 'heap', W.clean[0], W.clean[1], 'הערימה הנקייה', ILL));
+  E.push(ent('n:wood:out', 'heap', W.out[0], W.out[1], 'ערימת הפסולים', ILL));
+  const Lt = C.light;
+  E.push(ent('n:menorah', 'menorah', Lt.menorah[0], Lt.menorah[1], 'מנורת הזהב, גובה חמישים אמה', 'סוכה נב ע"ב (מקומה: המחשה)'));
+  Lt.ladders.forEach(([x, z], i) => E.push(ent('n:mladder' + i, 'ladder', x, z, `סולם ${i + 1} של המנורה`, 'סוכה ה, ב (מקומו: המחשה)')));
+  E.push(ent('n:practice', 'practice', Lt.practice.ladder[0], Lt.practice.ladder[1], 'סולם האימון (סולם הגזוזטרא)', ILL));
+  E.push(ent('n:bowl', 'bowl', Lt.practice.bowl[0], Lt.practice.bowl[1], 'קערת החרס על הגזוזטרא', ILL, { y: 17.4 }));
+  E.push(ent('n:measures', 'measures', Lt.measures[0], Lt.measures[1], 'כלי המידה בפתח בית שמניה', 'מנחות ט, ב (מקומם: המחשה)'));
+  E.push(ent('n:wicks', 'table', Lt.wicks[0], Lt.wicks[1], 'שולחן הפתילות', ILL));
+  const CS = C.crewSite;
+  CS.scaff.forEach(([x0, z0, x1, z1], i) => { E.push(ent('n:scaff' + i, 'scaffold', (x0 + x1) / 2, (z0 + z1) / 2, 'פיגום על קיר הלשכה', ILL)); });
+  CS.piles.forEach(([x, z, n], i) => { E.push(ent('n:pile' + i, 'pile', x, z, 'ערמת אבנים', ILL)); });
+  E.push(ent('n:lane:gate', 'lane', CS.lane[0][0], CS.lane[0][1], 'שביל המזחלות: מחוץ לשער המזרחי', ILL));
+  E.push(ent('n:lane:crew', 'crew', CS.laneCrew.pull[0], CS.laneCrew.pull[1], 'מושכי המזחלת מחוץ לשער המזרחי', ILL));
+  E.push(ent('n:lane:door', 'lane', CS.lane[CS.lane.length - 1][0], CS.lane[CS.lane.length - 1][1], 'שביל המזחלות: פתח לשכת הנזירים', ILL));
+  // ── /h130 ──
   return { stage: 5, name: 'עזרת הנשים', bounds: { x0: -2, x1: 160, z0: -76, z1: 76 }, ...C, entries: E };
 }
 // ── /build 124 B ──

@@ -53,11 +53,15 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x: Math.round(x), y: Math.round(y), id: 7 + i, radiusX: 6, radiusY: 6, force: 1 })) });
   const T0 = Date.now(); let n = 0, shotMs = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);
+  let RN = 0;   // (the reloads so far: each one's init script)
   async function run(s) {
     if (s.init) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
     // (build 129: {reload: code} — the page reloaded with its save kept (localStorage), the init code replaced by this one)
-    if (s.reload != null) { await pg.evaluate((c) => { sessionStorage.setItem('__keep', String(Date.now() + 60000)); sessionStorage.setItem('__init2', c); try { const L = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); L[k] = localStorage.getItem(k); } sessionStorage.setItem('__ls', JSON.stringify(L)); } catch (e) { /* */ } }, String(s.reload)); await pg.reload(); await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 }); await pg.evaluate(() => { try { __T.simulate(true); } catch (e) { /* */ } }); log('reloaded'); }
+    // ── h131 ── (the snapshot of the save and the new init code are carried by the probe itself, not by sessionStorage: the game's page came
+    // back with sessionStorage empty, so the first step's init ran again and a __H131_FULL page wiped the save. Each reload adds an init
+    // script; they all run in order and the newest, the last, restores the whole snapshot and runs its code) ── /h131 ──
+    if (s.reload != null) { const L = await pg.evaluate(() => { const L = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); L[k] = localStorage.getItem(k); } } catch (e) { /* */ } return L; }); RN++; await pg.addInitScript(([L, c, n]) => { try { localStorage.clear(); for (const k of Object.keys(L)) localStorage.setItem(k, L[k]); } catch (e) { /* */ } window.__RELOAD_N = n; if (c) { try { (0, eval)(c); } catch (e) { console.error('reload init', e.message); } } }, [L, String(s.reload), RN]); await pg.reload(); await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 }); await pg.evaluate(() => { try { __T.simulate(true); } catch (e) { /* */ } }); log('reloaded'); }
     if (s.eval) { const v = await pg.evaluate(s.eval).catch((e) => 'EVALERR ' + e.message); if (v !== undefined) log('eval', typeof v === 'string' ? v.slice(0, 9000) : JSON.stringify(v).slice(0, 9000)); }
     if (s.log) { const v = await pg.evaluate(s.log).catch((e) => 'ERR ' + e.message); log(typeof v === 'string' ? v.slice(0, 1500) : JSON.stringify(v).slice(0, 1500)); }
     if (s.until) { const t = Date.now(); while (Date.now() - t < (s.max || 60000)) { const ok = await pg.evaluate(s.until).catch(() => false); if (ok) break; await pg.waitForTimeout(300); } log('until', s.until.slice(0, 80), ((Date.now() - t) / 1000).toFixed(1) + 's'); }

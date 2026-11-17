@@ -207,7 +207,7 @@ function makeEve(m, X) {
       if (city && A.phase === 'city' && A.cityT != null) { const u = Math.min(1, (A.t - A.cityT) / EK.CITY); A.lit = cityLit(city.dists, reach, u); city.pts.geometry.setDrawRange(0, A.lit); }
       if (light) light.intensity = 820 + 160 * Math.sin(A.t * 7.3) * Math.sin(A.t * 2.9);
     },
-    down() { if (A.phase === 'rise' || A.phase === 'city' || A.phase === 'down') A.beat++; },
+    down() { if (A.phase === 'dusk' || A.phase === 'rise' || A.phase === 'city' || A.phase === 'down') A.beat++; },   // (a touch: the next beat, from the dusk on)
     move() {}, up() {}, wants: () => false, holds: () => false, cancel() {},
     at() { return { x: LT.menorah[0], y: FLOOR + 2, z: LT.menorah[1] }; },
     end() {

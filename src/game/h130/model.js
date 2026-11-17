@@ -313,7 +313,7 @@ const lg = (id, L, r, holes = [], bark = [], hollow = null, o = {}) => Object.fr
  *  looks suspicious — and each level brings ONE new kind (build 130 review):
  *  · level 1 (six): the worm's holes seen after rolling, at one end or in the middle; new — a clean log with dark knots that look like
  *    holes (1c, `knots`: no ring of wood dust round them, the worm's mark);
- *  · level 2 (six): new — the worm under the bark only: no hole shows, the tap tells where to peel (in the middle, near an end, at an end);
+ *  · level 2 (six): new — the worm under the bark only: no hole shows, the tap tells where to peel (in the middle, near one end, near the other — never from the end itself, which is level 3's to cut);
  *  · level 3 (six big): a bad end (a hollow from that end) to cut off; new — the worm in two places (3e: its end AND a second stretch in
  *    the middle, `also`, its holes in sight): no cut saves it, the whole log goes out */
 export const LOGS = Object.freeze({
@@ -324,7 +324,7 @@ export const LOGS = Object.freeze({
   2: Object.freeze([
     lg('2a', 4, 0.35, [], [[0.5, 1.5, 100, 220]]), lg('2b', 4.2, 0.36, [[150, 2.3], [170, 2.5]], [[1.8, 3.0, 120, 200]], [2.0, 2.8]),
     lg('2c', 3.9, 0.33, [], [[2.2, 3.4, 300, 30]]), lg('2d', 4, 0.34, [[350, 1.0], [10, 1.2]], [[0.6, 1.6, 320, 40]], [0.7, 1.5]),
-    lg('2e', 4, 0.36, [[80, 3.6], [95, 3.8]], [[3.2, 4.0, 60, 120]], [3.3, 4.0]), lg('2f', 3.8, 0.33, [], [[0.3, 1.0, 200, 260]]),
+    lg('2e', 4, 0.36, [[80, 3.5], [95, 3.7]], [[3.1, 3.95, 60, 120]], [3.2, 3.85]), lg('2f', 3.8, 0.33, [], [[0.3, 1.0, 200, 260]]),
   ]),
   3: Object.freeze([
     lg('3a', 6, 0.5, [[30, 0.5], [45, 0.8]], [], [0, 1.6]), lg('3b', 6.2, 0.52), lg('3c', 6, 0.5, [[210, 5.5], [190, 5.2]], [], [4.3, 6]),

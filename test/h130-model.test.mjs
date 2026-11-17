@@ -298,6 +298,7 @@ test('wood (review): varied cases, one new kind a level — a suspicious clean l
   const k1 = kinds(1), k2 = kinds(2), k3 = kinds(3);
   assert.deepEqual([...k1].sort(), ['clean', 'holes', 'suspicious']);
   assert.deepEqual([...k2].sort(), ['bark', 'clean']);
+  for (const l of M.LOGS[2]) assert.ok(!M.endBad(l), l.id + ': a bad end is level 3\'s (thrown out whole on level 2 it would count as waste)');
   assert.deepEqual([...k3].sort(), ['clean', 'end', 'two']);
   // level 1: holes at one end and in the middle
   const at = M.LOGS[1].filter((l) => l.holes.length).map((l) => l.holes.map((h) => h.s / l.L));

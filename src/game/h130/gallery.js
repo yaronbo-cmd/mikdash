@@ -29,7 +29,7 @@ const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 /** the opening's own beats, seconds (build 130 review: about 12 in all, besides his line and his tap): the first look, the crowd in
  *  (at most), the mix, the same again, the look up to the wall */
 const OPEN = Object.freeze({ LOOK: 1.0, IN: 2.5, MIX: 1.8, SAME: 1.6, UP: 2.6 });
-const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4 });   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
@@ -290,12 +290,15 @@ export const GALLERY = {
             const ti = order[j], t = L.torch[ti];
             seeLens(torchP(ti));
             // (a view where a column hides the torch is seen from his very eye, so the torch truly goes behind that column)
-            const hidHere = below.lost.some((q) => q.w === wi && q.t === ti), eyeV = hidHere ? eye0 : eye;
+            //  (build 130, n130-gh: his eye stands a few amot before that column, which then filled the frame — so the view starts
+            //  beside it, the torch in sight, and glides on the same lens into his eye as the torch slides behind the column)
+            const hidHere = below.lost.some((q) => q.w === wi && q.t === ti), eyeV = hidHere ? sideEye(eye0, torchP(ti), below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => cols[q.col])) : eye;
             if (j > 0) { const d = Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]); X.shot(eyeV, eyeAim(eyeV, torchP(ti)), d / 14); await Promise.race([SH130.crew.walkTo(bearer, t[0], t[1], 14), wait(d / 14 + 1)]); }
             else { X.shot(eyeV, eyeAim(eyeV, torchP(ti)), j === 0 && wi === 0 ? 0.01 : 0.6); await wait(0.7); }
             SH130.crew.face(bearer, w[0], w[1]);
             const hid = below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => q.col);
             A.view = { wi, ti, hid }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
+            if (hidHere) { X.shot(eye0, eyeAim(eye0, torchP(ti)), SEE.GLIDE); await wait(SEE.GLIDE + 0.2); }
             if (hid.length) { X.play('creak'); X.line(GLINES.gone, 1800); await blinkFor(hid, 1.8); } else await wait(0.9);
           }
           order = order.slice().reverse();
@@ -345,6 +348,14 @@ export const GALLERY = {
         }
       }
       return e;
+    }
+    /** the eye moved across his line to the torch (along the wall), away from the hiding columns, until the line clears them by SIDE */
+    function sideEye(eye, tp, as) {
+      const dx = tp[0] - eye[0], dz = tp[2] - eye[2], L0 = Math.hypot(dx, dz) || 1, px = -dz / L0, pz = dx / L0;
+      const offs = as.map((a) => { const [cx, cz] = colXZ(R, a); return (cx - eye[0]) * px + (cz - eye[2]) * pz; });
+      const mean = offs.reduce((s, o) => s + o, 0) / Math.max(1, offs.length), sgn = mean > 0 ? -1 : 1;
+      const need = Math.max(0, ...offs.map((o) => GAL.HIDE + SEE.SIDE + sgn * o));
+      return [eye[0] + sgn * px * need, eye[1], eye[2] + sgn * pz * need];
     }
     function eyeAim(eye, tp) {
       // (build 130: at the bearer's middle, SEE.MID over the floor — under the eye, so never past the polar limit — and the lens set

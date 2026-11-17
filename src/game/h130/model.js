@@ -306,29 +306,35 @@ export function wedge(c, side) { c.lean = [+(c.lean[0] - side[0]).toFixed(2), +(
  *  hollow (trembles 1), just past its end trembles less over EDGE amot; a peeled strip is PEEL_W long and PEEL_A degrees round; the cut
  *  is right RIGHT[0] … RIGHT[1] past the hollow's end */
 export const WOOD = Object.freeze({ SEE: 50, EDGE: 0.3, PEEL_W: 0.6, PEEL_A: 30, RIGHT: Object.freeze([0.3, 1.2]), TURN: 360 });
-const lg = (id, L, r, holes = [], bark = [], hollow = null) => Object.freeze({ id, L, r, holes: Object.freeze(holes.map(([ang, s]) => Object.freeze({ ang, s }))), bark: Object.freeze(bark.map(([s0, s1, a0, a1]) => Object.freeze({ s0, s1, a0, a1 }))), hollow: hollow ? Object.freeze({ s0: hollow[0], s1: hollow[1] }) : null });
-/** the level tables (fixed): level 1 six logs, the holes seen after rolling; level 2 eight logs, the worm under the bark, only the tap
- *  tells where to peel; level 3 six big logs, some with one bad end (a hollow from that end) */
+const fz = (a) => Object.freeze(a.map(([ang, s]) => Object.freeze({ ang, s })));
+const lg = (id, L, r, holes = [], bark = [], hollow = null, o = {}) => Object.freeze({ id, L, r, holes: fz(holes), bark: Object.freeze(bark.map(([s0, s1, a0, a1]) => Object.freeze({ s0, s1, a0, a1 }))), hollow: hollow ? Object.freeze({ s0: hollow[0], s1: hollow[1] }) : null,
+  also: o.also ? Object.freeze({ s0: o.also[0], s1: o.also[1] }) : null, knots: fz(o.knots || []) });
+/** the level tables (fixed). The cases vary — the worm at one end, in the middle, in two places, under the bark only, a clean log that
+ *  looks suspicious — and each level brings ONE new kind (build 130 review):
+ *  · level 1 (six): the worm's holes seen after rolling, at one end or in the middle; new — a clean log with dark knots that look like
+ *    holes (1c, `knots`: no ring of wood dust round them, the worm's mark);
+ *  · level 2 (six): new — the worm under the bark only: no hole shows, the tap tells where to peel (in the middle, near an end, at an end);
+ *  · level 3 (six big): a bad end (a hollow from that end) to cut off; new — the worm in two places (3e: its end AND a second stretch in
+ *    the middle, `also`, its holes in sight): no cut saves it, the whole log goes out */
 export const LOGS = Object.freeze({
   1: Object.freeze([
-    lg('1a', 4, 0.35), lg('1b', 4, 0.32, [[200, 1.4], [215, 1.6], [190, 2.0]]), lg('1c', 4.2, 0.36),
-    lg('1d', 3.8, 0.33, [[40, 2.6], [55, 2.9]]), lg('1e', 4, 0.34), lg('1f', 4.1, 0.35, [[300, 0.9], [310, 1.1], [290, 1.3], [305, 3.2]]),
+    lg('1a', 4, 0.35), lg('1b', 4, 0.32, [[200, 1.4], [215, 1.6], [190, 2.0]]), lg('1c', 4.2, 0.36, [], [], null, { knots: [[10, 1.1], [130, 2.4], [250, 3.2]] }),
+    lg('1d', 3.8, 0.33, [[40, 3.25], [55, 3.5]]), lg('1e', 4, 0.34), lg('1f', 4.1, 0.35, [[300, 0.3], [310, 0.5], [290, 0.7]]),
   ]),
   2: Object.freeze([
     lg('2a', 4, 0.35, [], [[0.5, 1.5, 100, 220]]), lg('2b', 4.2, 0.36, [[150, 2.3], [170, 2.5]], [[1.8, 3.0, 120, 200]], [2.0, 2.8]),
     lg('2c', 3.9, 0.33, [], [[2.2, 3.4, 300, 30]]), lg('2d', 4, 0.34, [[350, 1.0], [10, 1.2]], [[0.6, 1.6, 320, 40]], [0.7, 1.5]),
-    lg('2e', 4.1, 0.35, [], [[1.0, 2.0, 60, 140]]), lg('2f', 4, 0.36, [[80, 3.1], [95, 3.3]], [[2.8, 3.8, 60, 120]], [2.9, 3.6]),
-    lg('2g', 4.2, 0.34), lg('2h', 3.8, 0.33, [], [[0.3, 1.0, 200, 260]]),
+    lg('2e', 4, 0.36, [[80, 3.6], [95, 3.8]], [[3.2, 4.0, 60, 120]], [3.3, 4.0]), lg('2f', 3.8, 0.33, [], [[0.3, 1.0, 200, 260]]),
   ]),
   3: Object.freeze([
     lg('3a', 6, 0.5, [[30, 0.5], [45, 0.8]], [], [0, 1.6]), lg('3b', 6.2, 0.52), lg('3c', 6, 0.5, [[210, 5.5], [190, 5.2]], [], [4.3, 6]),
-    lg('3d', 5.8, 0.48), lg('3e', 6.1, 0.51, [[120, 0.3]], [], [0, 2.2]), lg('3f', 6, 0.5, [[300, 5.7]], [], [5.0, 6]),
+    lg('3d', 5.8, 0.48), lg('3e', 6.1, 0.51, [[120, 0.3], [60, 3.3], [75, 3.6]], [], [0, 1.4], { also: [3.1, 3.9] }), lg('3f', 6, 0.5, [[300, 5.7]], [], [5.0, 6]),
   ]),
 });
 /** a log in the act's hands: rolled (rot, degrees, and the most it was turned each way), the strips peeled, the taps, the cut */
 export function logFresh(lv, i) { const log = LOGS[lv][i]; return { lv, i, log, rot: 0, rotMin: 0, rotMax: 0, peeled: [], taps: [], cut: null, decided: null }; }
 /** a log has a worm: holes, or a hollow stretch */
-export const wormy = (log) => !!(log.holes.length || log.hollow);
+export const wormy = (log) => !!(log.holes.length || log.hollow || log.also);
 const angIn = (a, a0, a1) => { const n = (x) => ((x % 360) + 360) % 360, A = n(a), s = n(a0), e = n(a1); return s <= e ? A >= s && A <= e : A >= s || A <= e; };
 const angDiff = (a, b) => { const d = (((a - b) % 360) + 540) % 360 - 180; return Math.abs(d); };
 const barkOver = (S, h) => S.log.bark.some((b) => h.s >= b.s0 && h.s <= b.s1 && angIn(h.ang, b.a0, b.a1)) && !S.peeled.some((p) => h.s >= p.s0 && h.s <= p.s1 && angIn(h.ang, p.a0, p.a1));
@@ -342,11 +348,11 @@ export function rollStep(S, d) {
 /** a tap at s along the log: 'deep' and still, or 'hollow' (the log trembles there, dust falls); just past the hollow's end it
  *  trembles less (the act shows the tremble, so the game is played without sound) → { sound, tremble 0…1, dust } */
 export function tapAt(log, s) {
-  const H = log.hollow;
-  if (H && s >= H.s0 - EPS && s <= H.s1 + EPS) return { sound: 'hollow', tremble: 1, dust: true };
-  const d = H ? Math.min(Math.abs(s - H.s0), Math.abs(s - H.s1)) : 99;
-  const t = H && d < WOOD.EDGE ? +(0.6 * (1 - d / WOOD.EDGE)).toFixed(3) : 0.05;
-  return { sound: t > 0.3 ? 'hollow' : 'deep', tremble: t, dust: t > 0.3 };
+  const HS = [log.hollow, log.also].filter(Boolean);
+  for (const [k, H] of HS.entries()) if (s >= H.s0 - EPS && s <= H.s1 + EPS) return { sound: 'hollow', tremble: 1, dust: true, at: k };
+  let d = 99, at = null; for (const [k, H] of HS.entries()) { const e = Math.min(Math.abs(s - H.s0), Math.abs(s - H.s1)); if (e < d) { d = e; at = k; } }
+  const t = d < WOOD.EDGE ? +(0.6 * (1 - d / WOOD.EDGE)).toFixed(3) : 0.05;
+  return { sound: t > 0.3 ? 'hollow' : 'deep', tremble: t, dust: t > 0.3, at: t > 0.3 ? at : null };
 }
 /** a strip of bark peeled at s, round the angle that faces the viewer (degrees in the log's own frame) → { strip, found: hole indices
  *  under it } */
@@ -362,17 +368,17 @@ export function peelAt(S, s, angle) {
  * is left of it → { ok, flag, waste }
  */
 export function decide(log, to, cut = null) {
-  const bad = cut ? cut.res === 'near' : wormy(log);
+  const bad = cut ? cut.res === 'near' || cut.res === 'more' : wormy(log);
   if (to === 'clean') return bad ? { ok: false, flag: 'wood.worm', waste: 0 } : { ok: true, flag: null, waste: 0 };
   // (build 130 W: a log with one bad end thrown out whole, uncut: no worm in the pile, but the good wood is lost with it)
-  if (bad && !cut && endBad(log)) return { ok: true, flag: null, waste: 1 };
+  if (bad && !cut && endBad(log) && !log.also) return { ok: true, flag: null, waste: 1 };
   return bad ? { ok: true, flag: null, waste: 0 } : { ok: false, flag: null, waste: 1 };
 }
 /** a log whose hollow runs from one of its ends (level 3: cut that end off, the rest is saved) */
 export const endBad = (log) => !!(log.hollow && (log.hollow.s0 <= EPS || log.hollow.s1 >= log.L - EPS));
 /** the cut that saves the most good wood with no worm left: the middle of the right band past the hollow's end (the bot's, the hint's) */
 export function bestCut(log) {
-  if (!endBad(log)) return null;
+  if (!endBad(log) || log.also) return null;   // (the worm in two places: no cut saves it)
   const m = (WOOD.RIGHT[0] + WOOD.RIGHT[1]) / 2;
   return log.hollow.s0 <= EPS ? +(log.hollow.s1 + m).toFixed(3) : +(log.hollow.s0 - m).toFixed(3);
 }
@@ -384,13 +390,16 @@ export function piecesOf(log, s) {
 /**
  * level 3: a cut at s across a log with one bad end. Right: RIGHT[0] … RIGHT[1] past the hollow's end, toward the good wood. Nearer
  * leaves the worm (wood.worm, −20); farther wastes good wood (fewer points: `lost` amot). A log with no bad end: any cut wastes it.
- * → { res: 'right' | 'near' | 'far' | 'waste', past, lost, flag }
+ * The worm in two places (log.also): a cut that leaves the second stretch in the piece kept is 'more' (wood.worm into the clean pile).
+ * → { res: 'right' | 'near' | 'more' | 'far' | 'waste', past, lost, flag }
  */
 export function cutAt(log, s) {
   const H = log.hollow;
   if (!H || (H.s0 > EPS && H.s1 < log.L - EPS)) return { res: 'waste', past: 0, lost: +Math.min(s, log.L - s).toFixed(3), flag: null };
   const fromA = H.s0 <= EPS, past = fromA ? s - H.s1 : H.s0 - s;
   if (past < WOOD.RIGHT[0] - EPS) return { res: 'near', past: +past.toFixed(3), lost: 0, flag: 'wood.worm' };
+  // (the worm in two places: the piece kept still holds the second stretch — 'more': into the clean pile it is wood.worm)
+  if (log.also) { const k = piecesOf(log, s).keep; if (log.also.s1 > k[0] + EPS && log.also.s0 < k[1] - EPS) return { res: 'more', past: +past.toFixed(3), lost: 0, flag: 'wood.worm' }; }
   if (past > WOOD.RIGHT[1] + EPS) return { res: 'far', past: +past.toFixed(3), lost: +(past - WOOD.RIGHT[1]).toFixed(3), flag: null };
   return { res: 'right', past: +past.toFixed(3), lost: 0, flag: null };
 }

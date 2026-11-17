@@ -38,7 +38,7 @@ test('the save: a work\'s own blob kept while it is open, cleared when it ends; 
   assert.ok(M3.isDone('pit1')); assert.equal(M3.st.res.pit1.pts, 10);
   // an older save without a part's object, or with a stale current work, is mended
   const old = freshH131(); delete old.pour; old.cur = 'nowhere';
-  const M4 = createH131(old); assert.equal(M4.mission(), null); assert.deepEqual(M4.st.pour, { work: null, sections: {} });
+  const M4 = createH131(old); assert.equal(M4.mission(), null); assert.deepEqual(M4.st.pour, { work: null, sections: {}, prep: 0 });
 });
 
 test('the loss table of the spec: −20, −20, −20, −20, −40; never below zero; the one grading 10 / 20 / 40', () => {

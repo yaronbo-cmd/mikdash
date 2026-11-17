@@ -229,7 +229,9 @@ function siteBuild(X) {
     for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1]]) all.push(box(X, M.n5cedarD, x - 0.1, GEO.FLOOR, z - 0.1, x + 0.1, top + 1.2, z + 0.1));
     all.push(box(X, M.n5cedarL, x0, top, z0, x1, top + 0.15, z1));
     const w = SH130.crew ? SH130.crew.add((x0 + x1) / 2, (z0 + z1) / 2, { role: 'hammer', item: 'mallet', fx: (x0 + x1) / 2 + (Math.abs(x1 - x0) < 3 ? -1 : 0), fz: (z0 + z1) / 2 + (Math.abs(x1 - x0) >= 3 ? -1 : 0), crew: 1 }) : null;
-    if (w) { w.a.y = w.a.fixedY = top + 0.15; men.push(w); }
+    // (build 130 part 3: the site's masons are the world's crews, not an act's men — the figures gate takes them out of an act's frame
+    //  quietly instead of reporting them cut)
+    if (w) { w.a.y = w.a.fixedY = top + 0.15; w.a.gang = 0; men.push(w); }
   }
   for (const [x, z, n] of CS.piles) for (let i = 0; i < n; i++) { const r = Math.floor(i / 3), c = i % 3; all.push(box(X, M.n5lime, x + (c - 1) * 1.1 - 0.5, GEO.FLOOR + r * 0.7, z - 0.4 + r * 0.2, x + (c - 1) * 1.1 + 0.5, GEO.FLOOR + r * 0.7 + 0.65, z + 0.4 + r * 0.2)); }
   SH130.site = { all, men };

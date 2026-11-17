@@ -102,7 +102,12 @@ test('frame act: the stand is the book\'s, facing the altar; the words short, no
   const s = FRAME_ACT.stand(); assert.deepEqual([s.x, s.z], S8.stand.frame.slice(0, 2)); assert.deepEqual(s.face, S8.mid);
   for (const lv of [1, 2, 3]) assert.match(FRAME_ACT.walkLine({ lv }), /^המלבן/);
   for (const [k, t] of Object.entries(FLINES)) { assert.ok(t.replace(/\(המחשה\)/, '').trim().split(/\s+/).length <= 6, k + ': ' + t); assert.doesNotMatch(t, /["״]/, k); }
-  assert.ok(FK.EYE[2] < S8.altar[1] && FK.EYE[1] > S8.floor + 20, 'the camera from the stand\'s side, high');
+  // (b131 look round: the whole frame's beat low and oblique from the stand's side, not from high above; the close shot low behind)
+  const out = FK.EYE[0] < S8.altar[0] || FK.EYE[0] > S8.altar[2] || FK.EYE[2] < S8.altar[1] || FK.EYE[2] > S8.altar[3];
+  assert.ok(out && FK.EYE[1] > S8.floor + 8 && FK.EYE[1] < S8.floor + 16, 'the whole frame from outside it, low and oblique');
+  assert.ok(FK.NEAR[0] < FK.NEAR[1], 'the close shot lower than it is far back');
   const src = (await import('node:fs')).readFileSync(new URL('../src/game/h131/frame.js', import.meta.url), 'utf8');
-  assert.doesNotMatch(src, /\.play\('(strike|chisel|tool|wedge|clang|anvil)'/, 'no iron sound'); assert.doesNotMatch(src, /'hammer'|'pick'|item: 'saw'/, 'no iron tool in a hand');
+  assert.doesNotMatch(src, /\.play\('(strike|chisel|tool|wedge|clang|anvil)'/, 'no iron sound'); assert.doesNotMatch(src, /item: '(hammer|pick|saw|chisel)'/, 'no iron tool in a hand');
+  // (the peg is knocked loose with the wooden mallet: the swing's role, and the mallet in his hand)
+  for (const m of src.matchAll(/'hammer'[^)]*\)/g)) assert.match(m[0], /item: 'mallet'/, 'a swing is the wooden mallet\'s');
 });

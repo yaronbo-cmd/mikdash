@@ -1214,10 +1214,12 @@
       }
       if (a.step === 'white') {
         if (shots && a.cover > 0.4 && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
-        const P = []; a.rows.forEach((r, i) => { const [p, q] = i % 2 ? [r[1], r[0]] : r; P.push(p, q); });
-        if (window.__BOT_HALF && !K.half) { K.half = 1; return { path: P.slice(0, Math.ceil(P.length / 2)), ms: 3500, wait: 600, note: 'finale: half the cloth (a reload follows)' }; }
+        // (the cloth's shot is close: wipe the grey in the picture, row by row; the shot moves on to the next grey when the hand lifts)
+        const P = a.wipe && a.wipe.length ? a.wipe.slice() : []; if (P.length === 1) P.push([P[0][0] + 40, P[0][1]]);
+        if (!P.length) return { wait: 500, note: 'finale: no grey in the picture yet (the shot moves on)' };
+        if (window.__BOT_HALF && !K.half && a.cover > 0.12) { K.half = 1; return { wait: 400, note: 'finale: half the cloth done (a reload follows)' }; }
         if (window.__BOT_HALF && K.half) return { wait: 400, note: 'finale: waiting for the reload' };
-        return { path: P, ms: 7000, wait: 600, note: 'finale: the cloth over the yesod (cover ' + a.cover + ')' };
+        return { path: P, ms: Math.max(1500, P.length * 260), wait: 1200, note: 'finale: the cloth over the grey in the picture (cover ' + a.cover + ')' };
       }
       if (a.step === 'water') {
         if (shots && a.front > 0.4 && !K.shotF) { K.shotF = 1; return { wait: 50, shot: a.id + '-water' }; }

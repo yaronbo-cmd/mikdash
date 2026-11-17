@@ -76,3 +76,16 @@ export const FRAME3D = {
 };
 /** the act's hold on the world's frame: on while a frame work draws its own, or the finale has taken it down */
 export function frameHold(k, on) { SHF[k] = !!on; SHF.key = ''; if (SHF.X) build(SHF.X, SHF.X.M); }
+/** ── b131 look round ── (rule 7: nothing but the work's own things in a work's frames) while a frame work or the finale runs, the
+ *  site's pile of the pit's stones and the cold hearth stand out of the picture (world.js's 'h131-site'); back when it ends */
+export function siteTidy(X, on) {
+  let site = null; try { site = X.props.root.getObjectByName('h131-site'); } catch (e) { site = null; } if (!site) return 0;
+  const fire = S8.fire; let n = 0;
+  for (const o of site.children) {
+    const out = o.name === 'h131-pile' || (fire && Math.hypot(o.position.x - fire[0], o.position.z - fire[1]) < 2.2);
+    if (!out) continue;
+    if (on) { if (o.visible) { o.visible = false; o.userData.tidy131 = 1; } n++; }
+    else if (o.userData.tidy131) { o.visible = true; delete o.userData.tidy131; }
+  }
+  return n;
+}

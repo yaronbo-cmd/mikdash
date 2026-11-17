@@ -1113,9 +1113,13 @@ const S08 = {
     frame3: { pegs: ['NW', 'NE', 'SW'], wrong: 'NE', turn: 4.5 },
     diag: [-54, -25.5, -22, -25.5], men: 2.2,
     lime: [-49, 15.2], jar: [-42, 13.6], water: [-43, 9.5], logs: [-12, 18],
-    // the works' cameras ([eye], [aim]): the frame from the stand's side, high; the finale's pull from the south-east, its cloth from the
-    // south over the whole yesod, its water by the south-west corner
-    cam: { frame: [[-38, 50, -49], [-38, 16, -3]], pull: [[-17, 31, 37], [-29, 16, 4]], white: [[-38, 50, 40], [-38, 16, -4]], water: [[-52, 24, 30], [-50, 16, 9.5]] },
+    // the works' cameras ([eye], [aim]; b131 look round: close and low, the men a fifth of the frame where they work): the frame's whole
+    // (the diagonal's beat) low and oblique from the south-east (the court's rings on the north far behind it, not underfoot); the finale: its opening behind the crew taking the frame down, the kohen
+    // at the left; the south timber pulled east and the east one pulled south, each seen from the side behind its pullers; the cloth
+    // (eye = where it works + whiteOff); the white when the crew finishes; the jar and the south-west corner's two holes; the rise over
+    // the whole white yesod from the south-east (its empty south and east strips nearest)
+    cam: { frame: [[-26, 28, 40], [-38, 16, -2]], down: [[-36, 23, 31], [-40, 16.6, 11]], pullS: [[-16, 22.5, 30], [-24, 16.5, 11]], pullE: [[-4, 22.5, 22], [-23, 16.5, 9]],
+      whiteOff: [0, 10, 12], white: [[-38, 34, 34], [-38, 16.5, -2]], water: [[-58, 23, 26], [-47, 17, 10.5]], rise: [[-16, 50, 36], [-38, 16.5, 1]] },
   },
   // ── /h131 frame ──
   stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },

@@ -153,8 +153,18 @@ export const LIGHT = {
     /* ═══ 2. the oil ═══ */
     const ML = measuresLayout();
     let jarB = null, cups = [], labels = [], OS = { total: 0 };
+    /** ── build 130 closing ── the step he reached is kept in the save (rule: progress stays): a reload mid-work brings him back to the
+     *  oil or the ladder with his wicks (and his oil) made, not to the wick table again */
+    function keepStep(at) {
+      try {
+        const L = st.light || (st.light = {});
+        L.step = { id: m.id, at, wicks: A.wicks.slice(), tears: A.tears, pours: A.pours.slice(), over: A.over, mehudar: !!A.mehudar, dmg: A.dmg, drops: A.drops, spilled: A.spilled };
+        X.save();
+      } catch (e) { /* */ }
+    }
+    const kept = (() => { const k = st.light && st.light.step; return k && k.id === m.id && (k.at === 'oil' || k.at === 'ladder') ? k : null; })();
     function oilStart() {
-      A.phase = 'oilcard';
+      A.phase = 'oilcard'; keepStep('oil');
       // he goes to the door of Beit Shemanya; the card says what the chamber was, and the seven measures
       closeShot([ML.jar[0] - 1.0, FLOOR + 0.9, ML.jar[2] + 1.0], CAM.measures[0], 7.8, 1.2, 1.6);   // (all seven cups, the jar and the vat whole)
       jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
@@ -256,7 +266,7 @@ export const LIGHT = {
       A.said.ill = 1; say('climbIll', 3500); ev('ill');
     }
     function goLadder() {
-      A.phase = 'go'; X.hand(null); labelsOff(); try { SL.cups && SL.cups.forEach((c) => { c.visible = true; }); } catch (e) { /* */ }
+      A.phase = 'go'; X.hand(null); keepStep('ladder'); labelsOff(); try { SL.cups && SL.cups.forEach((c) => { c.visible = true; }); } catch (e) { /* */ }
       for (const c of cups) root.remove(c.g); cups = []; if (jarB) { root.remove(jarB); jarB = null; }
       if (boy) boy.visT = boy.vis = 0;
       if (lv >= 2) X.line(LINES.sukkah52b + ' · ' + LIGHT_LINES.place, 5000);
@@ -306,6 +316,9 @@ export const LIGHT = {
     }
     function topReached() {
       A.phase = 'top'; X.hand(null); X.lookLift(0);
+      // (build 130 closing: the bowl's shot starts at the top, not 1.6 s later — the climb's shot, its lift dropped, cut him at the top
+      //  and the gate took him out till the pour's shot settled: the pour's first frames reported him cut)
+      bowlShot(1.5);
       const p = hpt(S.L >= S.R ? 'L' : 'R');
       // (build 130 part 3: he stays on the ladder's top, whole in the bowl's shot, the jar in his two hands — never a jar alone in the air;
       //  light3's three boys reach their bowls with him: none is left half in the frame)
@@ -430,6 +443,7 @@ export const LIGHT = {
       if (lv >= 2) { bowls[myK] = +P.bowl.toFixed(2); wicks[myK] = A.wicks[0]; }
       others.forEach((B, i) => { L.lit['b' + B.k] = 1; bowls[B.k] = +B.bowl.toFixed(2); wicks[B.k] = A.wicks[i + 1] || A.wicks[0]; });
       const spilled = +(A.spilled + (S ? S.spilled : 0)).toFixed(3), out = P ? +P.out.toFixed(3) : 0;
+      if (L.step && L.step.id === m.id) delete L.step;
       L[m.id] = { wicks: A.wicks.slice(), pours: A.pours.slice(), mehudar: !!A.mehudar, spilled, out, bowl: P ? +P.bowl.toFixed(2) : 0, drops: A.drops, tears: A.tears };
       if (lv === 3) { L.bowls = bowls; L.wicks = wicks; L.reach = lightOf(bowls, wicks).reach; }
       X.save();
@@ -502,6 +516,14 @@ export const LIGHT = {
       begin() {
         FG.attach();
         // which way the strip comes off: toward the screen's right
+        if (kept) {
+          // (back to the step he had reached: his wicks in the basket, his oil as he measured it)
+          A.wicks = kept.wicks.slice(); A.tears = kept.tears | 0; A.dmg = kept.dmg | 0; A.drops = kept.drops | 0; A.spilled = +kept.spilled || 0;
+          if (kept.at === 'ladder') { A.pours = kept.pours.slice(); A.over = kept.over | 0; A.mehudar = !!kept.mehudar; }
+          ev('kept:' + kept.at);
+          if (kept.at === 'oil') oilStart(); else goLadder();
+          return;
+        }
         closeShot([W.cloth[0] + 0.7, W.cloth[1] - 0.1, W.cloth[2] - 0.1], CAM.wicks[0], 6.6, 0.5, 1.3);   // (the boy in the frame's left third, whole)
         later(0.05, () => { const a = X.scr(cx, cy, cz), b = X.scr(cx - 1, cy, cz); pullDir = b.x > a.x ? [-1, 0] : [1, 0]; clothDraw(); });
         X.line(LIGHT_LINES['w' + lv], 2400);

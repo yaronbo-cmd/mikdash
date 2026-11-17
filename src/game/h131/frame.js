@@ -38,7 +38,7 @@ export const FK = Object.freeze({
   NEAR: Object.freeze([10.5, 14.5]), NFOV: 46, HELP: 4.5, EASE: 0.9, SETTLE: 1.1,
   // (b131 look round) the carriers: a man's place off the board's line (amot) and in from its end; a shot farther than CUT amot from
   // where the camera is cuts there (an ease from the pit's valley ran under the ground: a blank first frame); the mallet's blows (s)
-  SIDE: 0.7, END: 0.8, IN: 1.3, CUT: 60, MALLET: 1.3,
+  SIDE: 0.7, END: 1.0, IN: 1.6, CUT: 60, MALLET: 1.8,
 });
 /** the act's words (instructions: what to do, at most five words; the frame's way of setting is המחשה) */
 export const FLINES = Object.freeze({
@@ -111,10 +111,9 @@ export const FRAME_ACT = {
       const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
       let nx = -uz, nz = ux;
       if (side === 'N' || side === 'S') { if (nz < 0) { nx = -nx; nz = -nz; } } else if ((side === 'E') !== (nx > 0)) { nx = -nx; nz = -nz; }
-      // (b131 look round 2: the first man holds the board's very end, a step past it on its line — the end in his hands; the second
-      //  along it on its far side, close enough that his hands are on it)
-      if (!j) return [a.x - ux * FK.END, a.z - uz * FK.END, a.x, a.z];
-      const d = FK.IN + FK.HELP, bx = a.x + ux * d, bz = a.z + uz * d;
+      // (b131 look round 2: both men at the board's end on its far side, their hands on it — off its line, and clear of the board that
+      //  meets or crosses it at the corner; the end man a hand's width in from the corner, the second beside him)
+      const d = j ? FK.END + FK.IN : FK.END, bx = a.x + ux * d, bz = a.z + uz * d;
       return [bx + nx * FK.SIDE, bz + nz * FK.SIDE, bx, bz];
     }
     /** the second man: along the board from the corner handled */
@@ -258,6 +257,7 @@ export const FRAME_ACT = {
     }
     /** a man's blows with the wooden mallet at (x, z): he turns to it, swings on the beat a moment, then takes the board again */
     function mallet(w, x, z) {
+      A.holdT = A.t + FK.MALLET;   // (the shot stays on the blows: the next corner's shot waits until the mallet is down)
       try { if (!w || !w.a) return; w.mallet = 1; gang.setRole(w, 'hammer', { item: 'mallet', fx: x, fz: z, stride: 0 }); X.wait(FK.MALLET).then(() => { w.mallet = 0; gang.setRole(w, 'brace', { item: null, fx: x, fz: z }); }); } catch (e) { /* */ }
     }
     function peg(k) {
@@ -366,7 +366,7 @@ export const FRAME_ACT = {
       lens(FK.NFOV); X.shot(eye, aim, easeTo(eye)); cast(k); ev('shot:' + k);
     }
     function shotStep() {
-      if (A.fl != null || S.drag || DG.carry || DG.fall || A.busy) return;
+      if (A.fl != null || S.drag || DG.carry || DG.fall || A.busy || A.t < (A.holdT || 0)) return;
       const k = focusWant(); if (k !== A.focus || (k && A.t - A.shotT > 0.5 && Math.hypot(...focusPt(k).map((v, i) => v - A.fp[i])) > 2.5)) { shotTo(k); A.fp = k ? focusPt(k) : [0, 0]; hintNext(true); }
     }
     A.focus = undefined; A.shotT = -9; A.fp = [0, 0];
@@ -419,7 +419,7 @@ export const FRAME_ACT = {
         o.P = S.P.map((p, i) => ({ i, k: p.k, seat: p.seat, peg: p.peg, off: +Math.hypot(p.x - STAKE[p.k][0], p.z - STAKE[p.k][1]).toFixed(2), at: s2(p.x, F + 0.6, p.z), to: s2(STAKE[p.k][0], F + 0.6, STAKE[p.k][1]), side: p.side || null, joined: S.J.some(([a, b]) => a === i || b === i) }));
         o.diagAt = s2((DR[0] + DR[2]) / 2, F + 0.5, (DR[1] + DR[3]) / 2); o.mid = s2(MID[0], F + 0.6, MID[1]);
         if (S.diag === 2 && DG.sa) o.stuckAt = s2((DG.sa[0] + DG.sb[0]) / 2, F + 1.3, (DG.sa[1] + DG.sb[1]) / 2);
-        o.focus = A.focus || 'wide'; o.settled = A.t - A.shotT > FK.SETTLE;
+        o.focus = A.focus || 'wide'; o.mallet = gang.list.some((w) => w.mallet); o.settled = A.t - A.shotT > FK.SETTLE && A.t >= (A.holdT || 0);
         o.menPx = gang.list.filter((w) => w.a && w.a.alive).map((w) => { const a = X.scr(w.a.x, F, w.a.z), b = X.scr(w.a.x, F + 3.9, w.a.z); return Math.round(Math.abs(a.y - b.y)); });
         o.worst = worst(S); o.figs = { wit: wit && wit.a ? s2(wit.a.x, F + 1, wit.a.z) : null, men: CORNERS.map((k) => (men[k] && men[k].a ? s2(men[k].a.x, F + 1, men[k].a.z) : null)) };
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)); o.fov = +cam0.fov.toFixed(1);

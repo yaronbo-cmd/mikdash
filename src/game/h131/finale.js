@@ -35,7 +35,7 @@ export const NK = Object.freeze({
   GRIP: 110, GRIPM: 60, OUT: 34, CLOTH: 6, TILT: 110, ON: 0.3,
   // (b131 look round) the lens; the pullers on the ropes (how many, the first one's distance from the timber's end, the gap between
   // them, amot); how far the pull's shot follows the timber out (amot)
-  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 12, SLIDE: 2.2,
+  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 4, SLIDE: 2.2,
 });
 /** the act's words (what to do: at most five words) */
 export const NLINES = Object.freeze({

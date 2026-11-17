@@ -45,7 +45,7 @@ export function mats(X) {
   P0.M.y8wood = std('#9A6E42', { roughness: 0.85 });
   P0.M.y8woodD = std('#6E4A2A', { roughness: 0.88 });
   P0.M.y8mix = std('#A89C88', { roughness: 0.8 });       // the mix, set (illustration: its make is not fixed — "תערובת")
-  P0.M.y8white = std('#F2EEE4', { roughness: 0.7 });     // the yesod whitened
+  P0.M.y8white = std('#FFFFFF', { roughness: 0.6, emissive: '#3A3730' });     // the yesod whitened
   P0.M.y8hearth = std('#7C7268');
   P0.M.y8ash = std('#4A4440');
   return P0.M;

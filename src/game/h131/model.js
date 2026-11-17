@@ -136,6 +136,11 @@ export function createH131(save) {
 }
 /** a save whose old stage 08 (the game before build 131: the old yesod site) was finished: the new stage "built by the crews" (no
  *  points, every work open to play again as free work: st.crews); else a fresh one. Other stages' progress is never touched here. */
+/** the stones he raised whole from the pit (the book's per level), for the stage's end chain — not the old stage's 64 */
+export function stonesOf(save) {
+  const d = (save && save.done) || [], P = BOOK.s08.pit.stones;
+  return ['1', '2', '3'].reduce((n, lv) => n + (d.includes('pit' + lv) ? (P[lv] || []).length : 0), 0);
+}
 export function fromOld(oldDone) {
   const st = freshH131();
   if (oldDone) st.crews = 1;

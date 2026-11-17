@@ -68,7 +68,8 @@ import { makePack130, migrate05 } from './h130/pack.js';   // ── h130 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
 import { pageBuilt, frontier, frontLine, noPad, PACKED } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack07 } from './h129/pack.js';   // ── h129 ── (build 129: stage 07 "הלשכות", the same director) ── /h129 ──
-import { makePack08, migrate08 } from './h131/pack.js';   // ── h131 ── (build 131: stage 08 "יסוד המזבח", the same director) ── /h131 ──
+import { makePack08, migrate08 } from './h131/pack.js';
+import { stonesOf as stones08 } from './h131/model.js';   // ── h131 ── (build 131: stage 08 "יסוד המזבח", the same director) ── /h131 ──
 import { makePack04 } from './h113/pack.js';   // ── h113 ── (build 113: stage 04 "שערי העזרה" in the old world, the same director) ── /h113 ──   // ── h112 ── (build 112: stage 03 "הסורג והחיל" in the old world, the same director) ── /h112 ──
 import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
@@ -348,7 +349,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       EC.request({ kind: 'course', id: d.id, stones: P ? P.P : 0, noStamp: !!(JU && TW && TW.on), name: sv ? sv.name : '' });
     } else if (type === 'stageDone' && d && !d.skipped && d.id && !((d.id === 'har' || d.id === 'wall' || d.id === 'sorag' || d.id === 'gates' /* ── h120 ── (stage 05 opens in the world) ── /h120 ── */ || d.id === 'nashim' /* ── h128 ── (stage 06 opens in the world) ── /h128 ── */ || d.id === 'nikanor' /* ── h129 ── (stage 07 opens in the world) ── /h129 ── */ || d.id === 'lishka' /* ── h131 ── (stage 08 opens in the world) ── /h131 ── */) && h9Quiet)) {   // ── h109 ── (stage 01 ends on its own film, then the next mission opens in the world: no cards)
       const P = PROJ[d.id];
-      EC.request({ kind: 'stage', id: d.id, stones: P ? P.C * P.P : 0, noStamp: !!(JU && TW && TW.on) });
+      EC.request({ kind: 'stage', id: d.id, stones: d.id === 'yesod' ? stones08(G.h131) /* ── h131 ── (the stones he raised whole) */ : P ? P.C * P.P : 0, noStamp: !!(JU && TW && TW.on) });
     }
   }
   /** the daily riddle was solved: one dinar's worth of points, once a day, and the fact kept in the book */

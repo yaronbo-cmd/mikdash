@@ -72,3 +72,10 @@ test('the game: stage 08 is a pack after stage 07, its page flags and kinds, its
   const kinds = [...src.matchAll(/const H\w+_ONLY = \[([^\]]*)\]/g)].filter((m) => !/H131/.test(m[0])).flatMap((m) => m[1].match(/'(\w+)'/g) || []);
   for (const k of ['pit', 'frame', 'pour', 'finale']) assert.ok(!kinds.includes(`'${k}'`), k);
 });
+
+test('stage 08: the end chain counts the stones he raised from the pit, not the old stage\'s', async () => {
+  const { stonesOf } = await import('../src/game/h131/model.js');
+  assert.equal(stonesOf({ done: [] }), 0);
+  assert.equal(stonesOf({ done: ['pit1', 'pit2', 'pit3', 'frame1'] }), 5);
+  assert.equal(stonesOf(null), 0);
+});

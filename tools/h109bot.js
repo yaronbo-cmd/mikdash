@@ -1056,7 +1056,7 @@
     // card) with its numbers, then a tap closes the card
     eve(a) {
       const K = B.k;
-      if (!K['e' + a.phase]) { K['e' + a.phase] = 1; return { wait: a.phase === 'dusk' ? 1200 : 2200, shot: `eve-${a.phase}`, note: `eve: ${a.phase} lit ${a.lit}/${a.of} reach ${a.reach} figs ${a.figs} shadows ${a.shadows}` }; }
+      if (!K['e' + a.phase]) { K['e' + a.phase] = 1; return { wait: ({ dusk: 1200, rise: 3200, city: 5200, down: 4600, card: 1500 })[a.phase] || 2200, shot: `eve-${a.phase}`, note: `eve: ${a.phase} lit ${a.lit}/${a.of} reach ${a.reach} figs ${a.figs} shadows ${a.shadows}` }; }
       if (a.phase === 'card' && !K.cardTap) { K.cardTap = 1; return { tap: [Math.round(W / 2), Math.round(HH / 2)], wait: 1200, note: 'eve: a tap closes the card' }; }
       return { wait: 400 };
     },

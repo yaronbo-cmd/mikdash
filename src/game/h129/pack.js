@@ -16,7 +16,7 @@ import { nightRig, nightRelease } from './night.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';
 import { BOOK } from '../world/grid.js';
 import { filmFigs } from '../h128/figgate.js';
-import { beat, tapOr, card, esc, cite } from './ui7.js';
+import { tapOr, card, esc, cite } from './ui7.js';
 
 export const GOLAH_IN_PLAY = true;   // (build 129, part 3: golah.js)
 const S7 = BOOK.s07, CAM = S7.cam;
@@ -82,14 +82,19 @@ export function makePack07(env = {}) {
         // (closing round: an act begun while the opening runs — the probes' skip — keeps its own camera: the opening stops there)
         const acting = () => { try { return !!(X.acting && X.acting()); } catch (e) { return false; } };
         if (acting()) { near(X, false); return; }
-        X.shot(CAM.open[0][0], CAM.open[0][1], 0.01); await beat(X, 200);
-        if (acting()) { near(X, false); return; }
-        X.line(PLINES.stage, 0);
-        X.shot(CAM.open[1][0], CAM.open[1][1], 2.6);
-        if (await tapOr(X, 3400) || acting()) { if (!acting()) X.line(''); near(X, false); return; }
-        X.shot(CAM.open[2][0], CAM.open[2][1], 2.2);
-        if (st.golahCrews && !GOLAH_IN_PLAY) X.line(PLINES.crews, 0);
-        await tapOr(X, 3600);
+        // (closing round 2: four cuts, each a built thing of this stage whole in the 32° lens — the instruments chambers by Nicanor, the
+        //  Gazit, the Golah's well house, Beit HaMoked — never a flight over the bare pavement between them)
+        const cam = X.camera, fov0 = cam ? cam.fov : 0, lens = (f) => { try { cam.fov = f; cam.updateProjectionMatrix(); } catch (e) { /* */ } };
+        lens(CAM.openFov || 32); X.line(PLINES.stage, 0);
+        let cut = false;
+        for (let i = 0; i < CAM.open.length; i++) {
+          if (acting()) { cut = true; break; }
+          X.shot(CAM.open[i][0], CAM.open[i][1], 0.01);
+          if (i === 2 && st.golahCrews && !GOLAH_IN_PLAY) X.line(PLINES.crews, 0);
+          if (await tapOr(X, i ? 1700 : 2300)) break;
+        }
+        if (!acting() && fov0) lens(fov0);
+        if (cut || acting()) { near(X, false); return; }
         if (!acting()) X.line(''); near(X, false);
       })();
     },

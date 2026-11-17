@@ -235,12 +235,24 @@ export const NIGHT = {
     staySet(0);
     const torch = new T.Group(); { const s = new T.Mesh(new T.CylinderGeometry(0.05, 0.06, 1.1, 6), MT.h7timberD); s.rotation.z = Math.PI / 2; torch.add(s); const tip = new T.Mesh(new T.ConeGeometry(0.13, 0.35, 7), new T.MeshBasicMaterial({ color: 0xFF9A3A })); tip.rotation.z = -Math.PI / 2; tip.position.x = 0.7; torch.add(tip); }
     const th0 = [N7.hearth[0] + 3.2, F16 + 0.6, N7.hearth[1] - 1.6]; torch.position.set(...th0); root.add(torch);
+    // (closing round 2: the night's first frame, before the fire, was all but black — the torch now lights the hall round it (the
+    //  brightest thing in the frame), and a low cool fill shows the hall's walls, the wood and the sleepers; both go when the fire is lit,
+    //  so the frames after keep their light)
+    const torchL = new T.PointLight(0xFFB060, 9, 20, 1.3); torchL.position.set(0.75, 0.35, 0); torch.add(torchL);
+    const fill = new T.HemisphereLight(0x8C9CC8, 0x3A2A20, 0.55); fill.visible = false; root.add(fill);
     const LP = [sx + 1.0, sz + 1.5];   // (his lamp on the floor beside him, by the slab: the ring, the pit and the keys read at night)
     const lamp = new T.PointLight(0xFFD9A0, 0, 9, 1.6); lamp.position.set(LP[0], F16 + 2.2, LP[1]); root.add(lamp);
     const lampM = new T.Mesh(new T.SphereGeometry(0.08, 8, 6), new T.MeshBasicMaterial({ color: 0xFFC060 })); lampM.position.set(LP[0], F16 + 0.14, LP[1]); root.add(lampM);
     { const bowl = new T.Mesh(new T.CylinderGeometry(0.12, 0.08, 0.08, 10), MT.h7stone); bowl.position.set(LP[0], F16 + 0.04, LP[1]); root.add(bowl); }
     // (his garment, spread over the slab when it is down: he sleeps on it)
-    const cloak = new T.Mesh(X.props.geo.box, MT.h7cloak); cloak.scale.set(4.0, 0.05, 1.5); cloak.position.set(sx, F16 + 0.145, sz); cloak.visible = false; root.add(cloak);
+    // (closing round 2: a garment seen as one — a darker wool than the floor, laid over the ring (the ring hidden under it), its two
+    //  ends falling from the slab's edges to the floor, a fold across it; it was a pale sheet at the ring's height before and read as
+    //  the bare slab)
+    const cloak = new T.Group(); cloak.position.set(sx, F16, sz); cloak.visible = false; root.add(cloak);
+    { const cM = new T.MeshStandardMaterial({ color: '#8C5E3C', roughness: 1 }), W = HS + 0.25, top = 0.215, run = 1.2, L = Math.hypot(run, top), a = Math.atan2(top, run);
+      const mid = new T.Mesh(X.props.geo.box, cM); mid.scale.set(HS + 0.04, 0.04, W); mid.position.set(0, top, 0); mid.castShadow = true; mid.receiveShadow = true; cloak.add(mid);
+      for (const sg of [-1, 1]) { const e = new T.Mesh(X.props.geo.box, cM); e.scale.set(L, 0.04, W * 0.96); e.position.set(sg * (HS / 2 + run / 2), top / 2, 0); e.rotation.z = -sg * a; e.receiveShadow = true; cloak.add(e); }
+      const fold = new T.Mesh(X.props.geo.box, new T.MeshStandardMaterial({ color: '#6E472C', roughness: 1 })); fold.scale.set(0.06, 0.03, W * 0.98); fold.position.set(0.18, top + 0.03, 0); cloak.add(fold); }
     // ── the gates' own pieces while they are locked: the gateway's dark passage, its two leaves — stage 04's own leaves (h113 makeLeaf:
     //    the cedar planks, battens, pins and rings, gold-plated as the goldsmiths left them) — opening into the court, the bolt of cedar
     //    sliding in its bronze brackets across the joint, the torch beside the gateway
@@ -275,7 +287,12 @@ export const NIGHT = {
       const lb = new T.Mesh(new T.CylinderGeometry(0.14, 0.09, 0.09, 10), MT.h7stone); lb.position.set(lp[0], LV[2] + 0.05, lp[1]); leviG.add(lb);
       const ll = new T.PointLight(0xFFC070, 2.5, 8, 1.6); ll.position.set(lp[0], LV[2] + 1.2, lp[1] - 1.8); leviG.add(ll); }
     const leviOn = (v) => {
-      if (v && !levi && AC) { const L = sleeperA(X, AC, MT, leviG, { variant: 'levite', mid: [LV[0], LV[1] - 1.3], y: LV[2], head: [1, 0], side: 0, young: false, col2: '#3A2A1E', cover: coverM[1], under: true }); levi = L.a; }
+      // (closing round 2: the Chel's terrace before the door is half an amah deep (the BOOK's note on night.levi) and below it are its
+      //  half-amah steps — laid down there he lay across their edges. He sits on the landing instead, his back to the wall east of the
+      //  door, on his garment, his head bowed in sleep: whole, on the flat)
+      if (v && !levi && AC) { const SE = N7.leviSeat; levi = nightOwn(AC.add('levite', SE[0], SE[1], { y: SE[2], yaw: Math.PI, scale: 1, young: false, col2: '#3A2A1E', fadeIn: false }));
+        if (levi) { levi.vis = levi.visT = 1; levi.gang = 1; levi.gateH = 2.7; AC.pose(levi, 'sit'); levi.bowT = 0.6; levi.armT = [0.35, 0.1, 0.35, 0.1]; }
+        const g = new T.Mesh(X.props.geo.box, coverM[1]); g.scale.set(1.3, 0.04, 0.48); g.position.set(SE[0], SE[2] + 0.02, SE[1] - 0.24); g.receiveShadow = true; leviG.add(g); }
       if (!v && levi && AC) { try { AC.remove(levi); } catch (e) { /* */ } levi = null; }
     };
     // ── a fade, for the cuts (never a flight through walls)
@@ -312,9 +329,9 @@ export const NIGHT = {
     };
     // ── the steps
     const LINE_LIFT = MOUSE ? 'הגיע זמן הנעילה: אחזו בטבעת והגביהו לאט, עד שהסמוכה נכנסת תחתיה' : 'הגיע זמן הנעילה: שני אגודלים על שני צדי הטבעת, הגביהו לאט, עד שהסמוכה נכנסת תחתיה';
-    async function lightFire() { A.phase = 'fire'; X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.4); X.line('הלילה בבית המוקד · הדליקו את המדורה: גררו את הלפיד אל העצים', 6000); X.hand({ x: th0[0], y: th0[1], z: th0[2] }, -gripR() / 2, 0); }
+    async function lightFire() { A.phase = 'fire'; fill.visible = true; kohenShow(false);   /* (closing round 2: lit, the first frame showed the kneeling kohen's head in its foreground, between the eye and the fire: he kneels once the fire takes) */ X.shot(CAM.nightHall[0], CAM.nightHall[1], 1.4); X.line('הלילה בבית המוקד · הדליקו את המדורה: גררו את הלפיד אל העצים', 6000); X.hand({ x: th0[0], y: th0[1], z: th0[2] }, -gripR() / 2, 0); }
     async function fireLit() {
-      A.phase = 'sleep'; rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
+      A.phase = 'sleep'; fill.visible = false; torchL.visible = false; kohenShow(true); rig.lit(1); V.fire(0.6); X.quick({ x: N7.hearth[0], y: F16 + 1.4, z: N7.hearth[1] }, 'דולקת!', null); torch.visible = false; ev('fire');
       X.line('זקני בית אב ישנים על רובדי האבן, ופרחי הכהונה איש כסתו בארץ', 3600);
       await X.wait(3.0);
       camSlab(1.4); lamp.intensity = 3; await X.wait(1.5);
@@ -365,7 +382,7 @@ export const NIGHT = {
       // (he spreads his garment over the slab and lies down on it to sleep: the same figure, laid on his back across it)
       X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); const fS = CAM.nightSleepFov || CAM.nightFov; lens(fS); A.fov = fS;
       await X.wait(1.3);
-      A.sleepS = 'cloak'; cloak.visible = true; V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
+      A.sleepS = 'cloak'; cloak.visible = true; ringM.visible = false; halos.forEach((h) => { h.visible = false; }); V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
       await X.wait(1.4);
       if (AC) for (const q of [...NIGHTA.set]) if (q === kohen || q.poseName === 'sit') { try { AC.remove(q); } catch (e) { /* */ } NIGHTA.set.delete(q); }
       kohen = null;

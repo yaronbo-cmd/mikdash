@@ -836,7 +836,7 @@ const S07 = {
     //  women's court beside the arch's jamb, never before it; the arch is the face of the upper storey's wall, which rises flush over
     //  it (temple.js nikanor:cut), so no man can stand on it there. On the great vault's ring a crew man stands on its crown (its
     //  extrados, the spring + R + 1); the kohen is out of that picture (from the hall's west end he could not stand whole in it))
-    after: { N: { kohen: [9.9, -13.6], levi: [7.6, -18.6] }, S: { kohen: [11.2, 24.6], levi: [7.6, 18.6] }, M: { man: [-143.5, -70.5, 43.7] } },
+    after: { N: { kohen: [9.9, -13.6], levi: [7.6, -18.6] }, S: { kohen: [11.2, 24.6], levi: [7.6, 18.6] }, M: { man: [-143.5, -65.9, 42.9] } },   // (closing round 2: the vault's man on the ring's south shoulder, 20° off the crown, clear of the north wall's band z −73.5 … −67.5: from the low after-eye the sky is behind him)
   },
   night: {
     hearth: [-160, -70.5, 16], slab: [-160, -76, 16], slabSize: 1,
@@ -872,6 +872,9 @@ const S07 = {
     ledges: [[-166, -82, -163.2, -80.4], [-156.8, -82, -154, -80.4], [-166, -60.6, -163.2, -59], [-156.8, -60.6, -154, -59], [-177, -72.5, -175.4, -68.5], [-144.6, -72.5, -143, -68.5]],
     ledgeY: 17,
     levi: [-160, -83.25, 6],
+    // (closing round 2) where he sits: on that half amah, his back to the wall east of the door (the door 10 wide on x −160: its jamb at
+    // −155), clear of the lamp before the door; the landing's flat ends at z −83.5, he takes −83 … −83.5
+    leviSeat: [-153.6, -83.2, 6],
   },
   // what stands round the Golah in the built world, as the look sample draws it (the numbers are the world's own): the Azarah's south
   // wall (temple.js wall(−187, 67.5, 0, 73.5, 6, 44)), the Delek and Bechorot gate houses (temple.js gate('S', …, 6, 50)), the House's
@@ -890,7 +893,11 @@ const S07 = {
   // look sample's keyframes [[eye], [aim], at s]. (The other stations' cameras join in part 2.)
   cam: {
     // (part 2) the stage's opening: from high over the Mount, down to the two south chambers, then Beit HaMoked's hall open to the sky
-    open: [[[-40, 260, 240], [-100, 16, 20]], [[-60, 90, 10], [-110, 16, 66]], [[-128, 78, -28], [-160, 20, -70]]],
+    // (closing round 2: four cuts, each one built thing of this stage whole, from high outside (a probe at 32° showed the instruments
+    //  chambers and the Golah cut at the frame's edges: the lens 44°)
+    //  the House: the instruments chambers by Nicanor, the Gazit, the Golah's well house (steep, over the Azarah's south wall), Beit
+    //  HaMoked from the north)
+    open: [[[70.2, 103.2, 54.1], [4, 19, 0]], [[-52.8, 112.6, 2.3], [-81, 28, 70]], [[-125.9, 84.2, 73.9], [-139, 22, 66]], [[-127.9, 108.7, -124], [-160, 23, -70.5]]], openFov: 44,
     // (part 2) the Gazit's play view: from high over the north wall, down on the chol half (the roof is not on yet); its lens (degrees)
     gazit: [[-81, 44, 59], [-81, 16, 75.5]], gazitFov: 40,
     // (the rows: nearly overhead, the holy half's strip by the line in the frame where the mats wait; from so high a kneeling student
@@ -899,7 +906,10 @@ const S07 = {
     // (part 2) the instruments chambers from inside, at the stand, looking east at the arch against the day (a wide lens: the room is 6
     // deep); Beit HaMoked's great vault from the hall west of ring 1, at the deck's height
     vaultN: [[1.4, 9.6, -20], [8, 10.2, -20]], vaultS: [[1.4, 9.6, 20], [8, 10.2, 20]], vaultFov: 64,
-    vaultM: [[-163.5, 31.5, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
+    // (closing round 2: the great vault's ring is the subject — from the hall's west end at the deck's height, the whole ring and both
+    //  masons on the deck in the frame. The Azarah's north wall runs east from the ring's own east face (temple.js wall(−142, −73.5,
+    //  0, −67.5, 6, 44)): from any eye inside the hall its end stands behind the ring's middle; from here its top is level with the crown)
+    vaultM: [[-174, 29.5, -70.5], [-143.5, 31, -70.5]], vaultMFov: 60,
     // (part 2) the night: the slab over the fire from the nave (the fire lights it); the hall with the fire and the sleepers, from
     // the nave's south end (x −166 … −154: the four chambers' partitions stand east and west of it, up to 27)
     night: [[-159, 22.5, -65.5], [-160, 16.3, -76]], nightFov: 50, nightHall: [[-160, 23, -81], [-160, 16.5, -67]],
@@ -909,7 +919,9 @@ const S07 = {
     // (round 3: from the north of the slab looking south, so the gate he locks in the hall's north wall has no sleepers at its foot: over
     // the slab the kohen kneeling beyond it, the fire and the young round it, the elders on the ledges by the Azarah's door)
     nightSlab: [[-160, 17.7, -78.6], [-160, 16.2, -74.6]], nightSlabFov: 52,
-    nightLevi: [[-155.5, 10.5, -92.5], [-160, 7.2, -84.5]],
+    // (closing round 2: back and a little east, so the Levite seated east of the door (leviSeat) is whole in the frame's left part and
+    //  the shut door with its lamp in the middle)
+    nightLevi: [[-156.5, 11, -95], [-159.5, 7.5, -84]],
     // (round 3) where he sleeps on the slab: from the south-east, the fire beside the camera lighting him
     // (closing round: from (−153.8, 19.6, −71.8) the frame's edge cut the young sleeper east of the fire, the one west of it and the
     //  elder on the west ledge, and the figures gate took them out and reported them. From the north, between the two north ledges and
@@ -940,13 +952,15 @@ const S07 = {
     // wall's end, temple.js wall(−142, −73.5, 0, −67.5, 6, 44), stands on the vault's axis: it is the court's wall, not a stray); the
     // Gazit three-quarter from high over its north-west corner (over the north wall's top, 28.4): the bench, the rows, the scribes and
     // the kohen in the holy half in the left third ── /h129 ──
-    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18.6], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-176, 28.2, -65], [-145, 36.5, -70.5], 46], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
+    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18.6], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-174, 22, -70.5], [-143.5, 35.5, -70.5], 60], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye
     // comes in over the mouth (to `mouth` amot of the axis at the rim for each amah below) as the bucket is deeper; the aim on the axis
     // (x off aim[0]) between the bucket and the axle (aim[1] of the way up), never deeper than aim[2] under the floor
-    golahShaft: { eye: [-141.2, 26, 67.6], mouth: 1.9, aim: [0.1, 0.25, 9.5] },
+    // (closing round 2: the eye on the well's own x, south of the mouth — the two haulers on the plank (x ∓1.35) at the picture's two
+    //  sides, the mouth, the ropes and the bucket between them clear; from x −141.2 the west hauler stood over the mouth)
+    golahShaft: { eye: [-139, 26, 68.2], mouth: 1.9, aim: [0, 0.25, 9.5] },
     // the pour: high by the room's south wall, west of the wheel's plane, looking north and down under the frame's cap and through the
     // door: the bucket at the rim, the trough by the well, the channel out by the door, trough A beyond it in the court
     golahPour: [[-140.8, 31, 69.2], [-139.3, 16, 57.5]],

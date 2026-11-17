@@ -149,8 +149,10 @@ export const POUR_ACT = {
 
     /* ── the stones: two pairs of porters carry each one in from the heap and set it down (b131 look round: by their hands, not from the air) ── */
     const PORT = { pairs: [], jobs: [] };
-    const PILE = [[0, 0.4], [1.5, 1.3], [0.3, -1.6], [1.6, -0.9], [0.8, -3.4]];
-    const HOME = [[[HEAP[0] - 0.6, HEAP[1] - 5.6], [HEAP[0] + 1.2, HEAP[1] - 5.8]], [[HEAP[0] - 0.4, HEAP[1] + 2.9], [HEAP[0] + 1.4, HEAP[1] + 3.1]]];
+    // (b131 look round 3: the heap the next two, the porters waiting behind it on the far side, two rows clear of the biggest stone —
+    //  standing beside it at the frame's edge they stood in it)
+    const PILE = [[0, 1.0], [0.5, -1.9]];
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] - 5.8], [HEAP[0] + 0.9, HEAP[1] - 5.9]], [[HEAP[0] - 0.9, HEAP[1] - 7.6], [HEAP[0] + 0.9, HEAP[1] - 7.7]]];
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
@@ -197,7 +199,7 @@ export const POUR_ACT = {
           if (m2) m2.position.set(S.s.x, 0, S.s.z); S.carry = false; S.fall = -1;
           const s = sim.shapes[J2.i], at = wpt(s.x, 0.6, s.z);
           V.sfx.thud(); X.shake(0.06 + 0.04 * s.h, 0.12 + 0.06 * s.h); X.dust(at.x, S8.floor + 0.2, at.z, 6, 1.5);
-          if (s.tint) X.quick(wpt(s.x, 3.4, s.z - 1.4), 'מהבור שלך!', m2); ev('set' + J2.i);
+          if (s.tint) X.quick(wpt(s.x, 0.7, s.z + 0.3), 'מהבור שלך!', m2); /* (look round 3: on the stone set down, low — high over the far row it landed on the goal pill) */ ev('set' + J2.i);
           A8.busy = 0; keepWork();
           P.job = { kind: 'back', t: 0, T: 1.0, p0: P.men.map((w) => w.pos.slice()) };
           P.men.forEach((w) => { gang.setRole(w, 'hold'); w.rate = 2.4; });
@@ -244,7 +246,7 @@ export const POUR_ACT = {
         let hit = false; for (let k = k0; k <= k1 && !hit; k++) for (let i = i0; i <= i1; i++) { const c = k * NX + i; if (sim.floor[c] && sim.vol[c] + sim.solid[c] > 0.1) { hit = true; break; } }
         if (!hit) return;
         A8.reached[j] = true; const y = V.surfaceAt(tg.x, tg.z) + 0.3;
-        V.ring(tg.x, y, tg.z, 0.9, 0); V.sfx.reach(j); X.quick(wpt(tg.x, y + 0.4, tg.z), tg.word || QUICK.reached); ev('reach:' + tg.name);
+        V.ring(tg.x, y, tg.z, 0.9, 0); V.sfx.reach(j); X.quick(wpt(tg.x, 0.6, tg.z + 1.2), tg.word || QUICK.reached);   /* (look round 3: low and a little nearer — a far corner's word stood on the goal pill) */ ev('reach:' + tg.name);
       });
     }
     function onSeal(e) {

@@ -18,6 +18,7 @@ const S8 = BOOK.s08;
 const BT = 0.36;                       // (the sample's board thickness)
 /** b131 look round 2: what went over the timber is a stain on the floor and a loss from this much on (pour.js SPILL_MARK): the spec's table */
 export const SPILL_SEEN = 0.05;
+const STAIN_HEX = 0xc9bba2, STAIN_RIM = 0x857660;   // (the set mix's light warm grey, its crust darker)
 const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [6.9, 4.7];   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
 const RELIEF = 1.2, MOUND_VIS = 0.42, LUT_N = 64, STREAM_SEG = 18, MAXB = 48, MAXD = 48;
 
@@ -257,7 +258,10 @@ export function createPourView(X, lv, sim, o = {}) {
   { const cm = keep(new THREE.MeshStandardMaterial({ color: 0x7b6d5f, roughness: 0.95, flatShading: true })), cg = keep(new THREE.DodecahedronGeometry(1, 0)); for (let j = 0; j < 8; j++) { const m = new THREE.Mesh(cg, cm); m.visible = false; m.castShadow = true; G.add(m); chunks.push({ m }); } }
   // the spill's stain on the floor beyond the timber (level 3): a dark flat patch that grows with what went over
   let stain = null;
-  if (L.timber) { stain = new THREE.Mesh(keep(patchGeo(THREE, 1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: 0x8c8172, roughness: 0.95, transparent: true, opacity: 0.95, polygonOffset: true, polygonOffsetFactor: -2 }))); stain.rotation.x = -Math.PI / 2; stain.position.set(0, 0.02, D / 2 + BT + 0.9); stain.scale.set(0.01, 0.01, 1); stain.visible = false; G.add(stain); }
+  // (b131 look round 3: the stain is set mix on the floor — the section's own light warm grey with a darker crust at its edge; a dull
+  //  grey patch read as a shadow under the crew)
+  if (L.timber) { stain = new THREE.Mesh(keep(patchGeo(THREE, 1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: STAIN_HEX, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -3 }))); stain.rotation.x = -Math.PI / 2; stain.position.set(0, 0.03, D / 2 + BT + 0.9); stain.scale.set(0.01, 0.01, 1); stain.visible = false; G.add(stain);
+    const rim = new THREE.Mesh(keep(patchGeo(THREE, 1.1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: STAIN_RIM, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 }))); rim.position.z = -0.01; stain.add(rim); }
 
   /* ── the sounds (the sample's, synthesized; through the game's audio context and its mute) ── */
   let actx = null, master = null, noiseBuf = null, pourGain = null, pourFilt = null, pourGain2 = null, fireGain = null;
@@ -520,10 +524,10 @@ function marksDraw(X, M) {
   const g = new T.Group(); g.name = 'h131-pour-marks'; X.props.root.add(g); W8.g = g;
   const white = M.isDone('finale');
   const patchM = new T.MeshStandardMaterial({ color: white ? 0xDCD3C2 : 0x9a8f80, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });   // (a fresher mix, a shade off the set one)
-  const stainM = new T.MeshStandardMaterial({ color: 0x8c8172, roughness: 0.95, transparent: true, opacity: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
+  const stainM = new T.MeshStandardMaterial({ color: STAIN_HEX, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -3 }), rimM = new T.MeshStandardMaterial({ color: STAIN_RIM, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
   for (const k of marks) {
     if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, patchR(k.r * 10), patchSeed(k.x, k.z)), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.x, S8.top + 0.012, k.z); g.add(m); }
-    else { const m = new T.Mesh(patchGeo(T, 1, patchSeed(k.x, k.z)), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
+    else { const m = new T.Mesh(patchGeo(T, 1, patchSeed(k.x, k.z)), stainM); const rm = new T.Mesh(patchGeo(T, 1.1, patchSeed(k.x, k.z)), rimM); rm.position.z = -0.01; m.add(rm); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
   }
 }
 export const POUR3D = {

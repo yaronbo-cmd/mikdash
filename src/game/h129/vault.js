@@ -179,8 +179,9 @@ export const VAULT = {
     for (const s of ['L', 'R']) {
       const sg = sgOf(s), x = G.xF - (G.big ? 0.25 : 0.12), z = G.zc + sg * (G.r0 - (G.big ? 0.12 : 0.06)), top = G.big ? G.deck + 6 : G.room.y1, bot = G.big ? G.sp + 0.35 : G.floor + 1.1;
       if (G.big) {   // (a pole on a plank at the deck's edge, its arm out over the leg)
-        const zp = z - sg * 1.4; box(X, MT.h7timber, x - 0.3, G.deck, zp - 0.3, G.xF + 0.5, G.deck + 0.12, zp + 0.3, root);
-        box(X, MT.h7timberD, x - 0.12, G.deck, zp - 0.12, x + 0.12, top + 0.2, zp + 0.12, root); box(X, MT.h7timberD, x - 0.08, top, Math.min(z, zp) - 0.08, x + 0.08, top + 0.16, Math.max(z, zp) + 0.08, root);
+        const zp = z - sg * 1.4, pg = A.poles || (A.poles = new T.Group()); if (!pg.parent) root.add(pg);   // (closing round: in a group of their own — carried out with the centering)
+        box(X, MT.h7timber, x - 0.3, G.deck, zp - 0.3, G.xF + 0.5, G.deck + 0.12, zp + 0.3, pg);
+        box(X, MT.h7timberD, x - 0.12, G.deck, zp - 0.12, x + 0.12, top + 0.2, zp + 0.12, pg); box(X, MT.h7timberD, x - 0.08, top, Math.min(z, zp) - 0.08, x + 0.08, top + 0.16, Math.max(z, zp) + 0.08, pg);
       }
       else box(X, MT.h7timberD, x - 0.08, top - 0.18, z - 0.08, x + 0.08, top, z + 0.08, root);
       const c = cord(G.big ? 0.025 : 0.01, ropeM), bob = new T.Mesh(new T.ConeGeometry(G.big ? 0.16 : 0.07, G.big ? 0.4 : 0.18, 10), bronze); bob.rotation.x = Math.PI; root.add(bob);
@@ -198,7 +199,7 @@ export const VAULT = {
     const crewAdd = (x, z, o) => { if (!SH7.crew) return null; const w = SH7.crew.add(x, z, o); if (w) crew.push(w); return w; };
     if (G.big) { for (const sg of [-1, 1]) { const w = crewAdd(G.xF + 1.5, G.zc + sg * 5.2, { role: 'hammer', item: 'mallet', fx: G.xF + 1.5, fz: G.zc + sg * 7.5, crew: 3 }); if (w && w.a) w.a.fixedY = G.deck; } }
     else {
-      const cx = G.xB + 3.2; box(X, MT.h7stone, cx - 0.5, G.floor, G.zc - 0.45, cx + 0.5, G.floor + 0.8, G.zc + 0.45, root);
+      const cx = G.xB + 3.2; A.dress = box(X, MT.h7stone, cx - 0.5, G.floor, G.zc - 0.45, cx + 0.5, G.floor + 0.8, G.zc + 0.45, root);
       crewAdd(cx, G.zc - 1.25, { role: 'hammer', item: 'chisel', fx: cx, fz: G.zc, crew: 2 }); crewAdd(cx, G.zc + 1.25, { role: 'hammer', item: 'mallet', fx: cx, fz: G.zc, crew: 2 });
     }
     // ── the shoulders' weight: in a small chamber the spandrel itself, course by course (on the rock leg it stands from the start); in
@@ -384,19 +385,45 @@ export const VAULT = {
       }
     }
     // ── the end: the arch stands; under the small arches a Levite plays the nevel (illustration)
-    let levi = null;
+    // (closing round, F1–F2: the moment is played in the work's composed picture — BOOK.s07.cam.stands — a cut to it first; the
+    //  centering comes down and the crew carries it out, the stones stay in the air; in a small chamber the Levite stands with his nevel
+    //  in the low door and the kohen beside the arch; on the great ring a crew man stands on its crown. The film after the work opens on
+    //  the same picture (res.film: a cut) and what stands in it goes when the film ends (res.film.after))
+    let levi = null, man = null, gone = false;
+    const SV = CAM.stands && CAM.stands[m.id], AF = VB.after && VB.after[k];
+    function teardown() {
+      if (gone) return; gone = true;
+      for (const w of crew) SH7.crew.remove(w); crew.length = 0;
+      if (man) { SH7.crew.remove(man); man = null; }
+      if (levi) { try { AC.remove(levi); } catch (e) { /* */ } levi = null; }
+      X.props.remove(root); own('v' + k, 0); setBusy(X, 0); lens(fov0);
+    }
     async function finish() {
-      if (A.phase === 'done') return; A.phase = 'done'; X.hand(null);
-      // (the centering is carried out, the stones stay in the air)
-      const cy = cen.position.y; tween(1.6, (u) => { cen.position.y = cy - 0.6 * sm(u / 0.4); cen.position.x = (G.big ? -6 : 3.5) * sm((u - 0.4) / 0.6); }, () => { cen.visible = false; });
+      if (A.phase === 'done' || A.phase === 'stands') return; A.phase = 'done'; X.hand(null);
       for (const w of Object.values(W)) w.g.visible = false; lightSet([]);
+      for (const P of Object.values(plumbs)) { try { P.c.visible = false; P.bob.visible = false; } catch (e) { /* */ } }
       st.vault = st.vault || {}; st.vault[m.id] = { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps }; X.save();
       const pts = vaultPts(SA, SB), q = qOf(pts);
       X.quick(crownAt(), QUICK.stands, arch); V.thud();
-      if (!G.big && AC) { const a = AC.add('levite', G.xB + 2.2, G.zc + 0.9, { fadeIn: false }); if (a) { a.vis = a.visT = 1; a.gang = 1; AC.setItem(a, 'nevel'); a.yaw = Math.atan2(G.xF - a.x, G.zc - a.z); levi = a; } await X.wait(0.6); V.harp(k === 'S' ? 330 : 294); setTimeout(() => V.harp(k === 'S' ? 440 : 392), 650); X.line('לוי מנגן בנבל תחת הקשת: היא עומדת (המחשה)', 3000); }
-      else X.line('הטבעת הראשונה עומדת · הצוותות יבנו את שאר הטבעות, אחת אחרי השנייה', 3200);
+      await X.wait(0.7);
+      if (SV) { SH7.lookFn = null; A.lensF = SV[2]; lens(SV[2]); X.shot(SV[0], SV[1], 0.01); }
+      // (the centering is let down and carried out — the crew with it — the stones stay in the air)
+      const cy = cen.position.y; tween(1.6, (u) => { cen.position.y = cy - 0.6 * sm(u / 0.4); cen.position.x = (G.big ? -6 : 3.5) * sm((u - 0.4) / 0.6); }, () => { cen.visible = false; for (const w of crew) SH7.crew.remove(w); crew.length = 0; if (A.dress) A.dress.visible = false; if (A.poles) A.poles.visible = false; });
+      await X.wait(1.8);
+      if (!G.big && AC && AF) {
+        const a = AC.add('levite', AF.levi[0], AF.levi[1], { fadeIn: false });
+        if (a) { a.vis = a.visT = 1; a.gang = 1; AC.setItem(a, 'nevel'); a.yaw = SV ? Math.atan2(SV[0][0] - a.x, SV[0][2] - a.z) : Math.atan2(G.xF - a.x, G.zc - a.z); levi = a; }
+        try { X.hero.setPos(AF.kohen[0], AF.kohen[1], Math.atan2(G.xB - AF.kohen[0], G.zc - AF.kohen[1])); X.hero.show(true); } catch (e) { /* */ }
+        await X.wait(0.6); V.harp(k === 'S' ? 330 : 294); setTimeout(() => V.harp(k === 'S' ? 440 : 392), 650); X.line('לוי מנגן בנבל תחת הקשת: היא עומדת (המחשה)', 3000);
+      } else {
+        if (AF && AF.man && SH7.crew) { man = SH7.crew.add(AF.man[0], AF.man[1], { role: 'point', fx: AF.man[0] - 20, fz: AF.man[1] }); if (man && man.a) man.a.fixedY = AF.man[2]; }
+        X.line('הטבעת הראשונה עומדת · הצוותות יבנו את שאר הטבעות, אחת אחרי השנייה', 3200);
+      }
+      A.phase = 'stands';
       await X.wait(2.6);
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps, 'vault.crack': (SA.flags['vault.crack'] ? 1 : 0) + (SB.flags['vault.crack'] || []).length, 'vault.stone': (SB.flags['vault.stone'] || []).length }, at: crownAt() });
+      A.film = !!SV;
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps, 'vault.crack': (SA.flags['vault.crack'] ? 1 : 0) + (SB.flags['vault.crack'] || []).length, 'vault.stone': (SB.flags['vault.stone'] || []).length }, at: crownAt(),
+        film: SV ? { shots: [[SV[0], SV[1], 3.2]], kohen: !G.big, after: teardown } : null });
     }
     // ── the fingers
     const FG = fingers(X, {
@@ -432,7 +459,7 @@ export const VAULT = {
         setTimeout(() => { if (A.phase === 'intro') partA(); }, 1500);
       },
       update(dt) {
-        A.t += dt; holdLens(X, k === 'M' ? CAM.vaultMFov : CAM.vaultFov);
+        A.t += dt; holdLens(X, A.lensF || (k === 'M' ? CAM.vaultMFov : CAM.vaultFov));
         try {
           V.frame();
           for (const tw of A.tw.slice()) { tw.t += dt; const u = clamp(tw.t / tw.dur, 0, 1); tw.fn(u); if (u >= 1) { A.tw.splice(A.tw.indexOf(tw), 1); if (tw.done) tw.done(); } }
@@ -452,10 +479,8 @@ export const VAULT = {
       },
       holds() { return Object.keys(A.fing).length > 0; },
       end() {
-        lift(0); FG.detach(); V.stop(); X.hand(null); lens(fov0); if (SH7.lookFn) SH7.lookFn = null;
-        for (const w of crew) SH7.crew.remove(w);
-        if (levi) { try { AC.remove(levi); } catch (e) { /* */ } }
-        X.props.remove(root); own('v' + k, 0); setBusy(X, 0);
+        lift(0); FG.detach(); V.stop(); X.hand(null); if (SH7.lookFn) SH7.lookFn = null;
+        if (!A.film) teardown();   // (closing round: with a film, what stands in its picture goes when the film ends — res.film.after)
       },
       at() { const c = crownAt(); return new T.Vector3(c.x, c.y, c.z); },
       dbg() {

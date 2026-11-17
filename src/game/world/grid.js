@@ -727,6 +727,8 @@ const S07 = {
     // (build 129, part 2: the room's door from the Azarah in its north wall, the holy half — temple.js h129Gazit: x −83 … −79, 16 … 24;
     //  the judges and the kohen come in by it; המחשה)
     doorN: [-81, 58.5], doorNW: 4, doorNH: 8,
+    // (closing round, F5: where the kohen stands while the film after a Gazit work looks at the court at work — the holy half's east part)
+    filmKohen: [-69, 67.5],
   },
   golah: {
     room: [-147, 58, -131, 74], floor: 16, top: 28, wallT: 1,
@@ -761,6 +763,12 @@ const S07 = {
     // the rings: 3 deep, 12 from the east end x −142 westward; ring 1 x −145 … −142; 11 stones in a ring
     M: { hall: [-177, -82, -143, -59], floor: 16, axisZ: -70.5, spring: 30.2, R: 12.5, legs: [[-83, -82], [-59, -58]], east: -142, ringD: 3, rings: 12, stones: 11 },
     deck: { y: 29, stand: [-146, -70.5, 29], face: 'E' },
+    // (closing round, F1–F2: the work's moment as it stands, "עשיתי את זה" (the brief): the centering carried out, the stones in the air.
+    //  In a small chamber the Levite stands with his nevel in the low door (the arch's opening, beside its middle) and the kohen in the
+    //  women's court beside the arch's jamb, never before it; the arch is the face of the upper storey's wall, which rises flush over
+    //  it (temple.js nikanor:cut), so no man can stand on it there. On the great vault's ring a crew man stands on its crown (its
+    //  extrados, the spring + R + 1); the kohen is out of that picture (from the hall's west end he could not stand whole in it))
+    after: { N: { kohen: [9.6, -14.2], levi: [7.6, -18.6] }, S: { kohen: [11.2, 24.6], levi: [7.6, 18.6] }, M: { man: [-143.5, -70.5, 43.7] } },
   },
   night: {
     hearth: [-160, -70.5, 16], slab: [-160, -76, 16], slabSize: 1,
@@ -850,7 +858,17 @@ const S07 = {
     after: [[-150, 210, 230], [-125, 16, 0]],
     // ── h129 round 4 ── each work's picture after it (the director's pull-back): a small arch from the women's court through its opening
     // (the chamber is under the Israel court: from above it is stone); the great vault and the night from the hall's floor ── /h129 ──
-    done: { vaultN: [[30, 12.5, -22.5], [8, 10.5, -20]], vaultS: [[30, 12.5, 22.5], [8, 10.5, 20]], vaultM: [[-174.5, 25, -70.5], [-140.5, 23.8, -70.5]], night: [[-159, 22.5, -65.5], [-160, 16.3, -76]] },
+    done: { night: [[-159, 22.5, -65.5], [-160, 16.3, -76]] },
+    // ── h129 closing round ── (F1, F2, F4) each work's composed picture, [eye, aim, lens]: the moment as it stands is played in it
+    // (vault.js finish: a cut, the bot's still '<id>-stands') and the film after the work opens on the same picture (a cut, no swing
+    // through the hero). A small arch three-quarter from the women's court on the side of the Levites' steps (beyond the arch the lepers'
+    // chamber's wall stands at z ∓27.5: no eye there), the eye outside the steps' half circle (radius 13.5 round (10, 0)), the arch
+    // whole and large in the middle, the kohen whole in the left third; the great vault's ring from the hall's west end over the four
+    // chambers' partitions (27.6), the ring whole and the man on its crown against the sky (behind the ring's middle the Azarah's north
+    // wall's end, temple.js wall(−142, −73.5, 0, −67.5, 6, 44), stands on the vault's axis: it is the court's wall, not a stray); the
+    // Gazit three-quarter from high over its north-west corner (over the north wall's top, 28.4): the bench, the rows, the scribes and
+    // the kohen in the holy half in the left third ── /h129 ──
+    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-176, 28.2, -65], [-145, 36.5, -70.5], 46], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye

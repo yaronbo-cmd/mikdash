@@ -892,6 +892,7 @@
     // left wedges drawn out with no care: light, a crack, a stone falls)
     h7vault(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k;
+      if (a.phase === 'stands' && !K.stShot) { K.stShot = 1; return { wait: 700, shot: a.id + '-stands' }; }   // (closing round: the moment as it stands, in its composed picture)
       if (a.phase === 'legs' && a.A) {
         if (!K.legShot && a.A.laid >= 2) { K.legShot = 1; return { wait: 50, shot: a.id + '-legs' }; }
         if (has('vcrack') && a.id === 'vaultN' && !K.vc && a.A.laid >= 2) { K.vc = 1; return { wait: 3200, note: 'vault: both legs let go (the mistake)' }; }

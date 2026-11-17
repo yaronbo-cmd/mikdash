@@ -876,7 +876,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res);
     try { if (FG) FG.end(); } catch (e) { /* */ }   // ── h128 ── ── /h128 ──
-    if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ──
+    if (KOH.off && !(res.film && res.film.kohen === false)) X.kohen(true);   // ── h115 ── ── /h115 ── ── h129 ── (closing round: a film without him — the great vault's ring from the hall — shows him when it ends) ── /h129 ──
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
@@ -890,7 +890,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // ── h129 ── (a pack may compose the pull-back itself: a work inside a building — the instruments chambers under the Israel court,
     // Beit HaMoked's hall — is seen from where it shows, not from 46 amot up and back through the stone) ── /h129 ──
     const PV = PK.pullView ? (() => { try { return PK.pullView(m, M); } catch (e) { return null; } })() : null;
-    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, res.film || (PV && PV[0] && PV[1] ? { eye: PV[0], aim: PV[1], add: 0.6 } : null));   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }; else the pack's pullView) ── /h129 ──
+    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, res.film || (PV && PV[0] && PV[1] ? { eye: PV[0], aim: PV[1], add: 0.6, ease: 0.01 } : null));   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }; else the pack's pullView) ── /h129 ──
+    if (res.film && typeof res.film.after === 'function') { try { res.film.after(); } catch (e) { console.warn('[h109] film after', e && e.message); } }
+    if (KOH.off) X.kohen(true);   // ── h129 ── ── /h129 ──   // ── h129 ── (closing round: what an act left standing for its film — the court seated, the Levite in the door — goes when the film ends) ── /h129 ──
     try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }

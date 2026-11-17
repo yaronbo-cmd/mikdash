@@ -155,7 +155,8 @@ export const POUR_ACT = {
       let k = 0;
       V.stones.forEach((S, i) => {
         if (i < A8.stonesIn) { S.carry = false; return; }
-        const r = k ? 1.15 * Math.sqrt(k) : 0, an = k * 2.4; S.carry = true; S.m.visible = true; S.m.position.set(HEAP[0] + Math.cos(an) * r, 0, HEAP[1] + Math.sin(an) * r * 0.8); k++;
+        // (a heap in two rows beside the section's side, running away from the near board: each stone apart, clear of the knocker)
+        S.carry = true; S.m.visible = true; S.m.position.set(HEAP[0] + (k % 2) * 2.3 + (Math.floor(k / 2) % 2) * 0.5, 0, HEAP[1] - Math.floor(k / 2) * 2.1); k++;
       });
     }
     function portersMake() {

@@ -23,6 +23,7 @@
  *   (a camera flight) · dist(x, y, z) (camera distance, for "too far to work on").
  * hooks: { enterWhole(), exitWhole(), setAutoRotate(bool) } whole-Temple view (main.js owns the camera UI).
  * ──────────────────────────────────────────────────────────────────────────── */
+import { h131Card } from './h131/card.js';
 import {
   STAGES, SIDX, stageById, RES, T, RHYTHM, MOMENTS, STORY, ROUTES, RIDX, TRAIN, BOULDERS, RATE, DEMO_SPEED,
   PROJ, EVENTS, PH_N, FIELD_N, UPGRADES, DEMO_LEVEL, SEG, FIELD_OF, m3Pay, keyWords, keyOf,
@@ -3448,13 +3449,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     const ev = H9 && H9.pack && H9.pack.endView, endView = (ms) => { try { if (ev) W.flyTo(ev[0], ev[1], ms); } catch (e) { /* */ } };
     // (b131 look round: from the big card on — its title large, clear of the goal pill; the walk's hint gone; the day's light on the
     //  white yesod — and the end card after it high, large and on a light veil, the yesod whole below it)
-    const CARD_CSS = 'body.h131-card .tw-zone{visibility:hidden!important}'
-      + 'body.h131-card .jx>.jx-big{padding-top:calc(env(safe-area-inset-top,0px) + 19vh);gap:10px}'
-      + 'body.h131-card .jx-bt{font-size:clamp(44px,7.4vw,84px)}body.h131-card .jx-bs{font-size:clamp(19px,2.5vw,28px)}'
-      + 'body.h131-card .gm-modal{place-items:start center;padding-top:calc(env(safe-area-inset-top,0px) + 70px);background:linear-gradient(180deg,rgba(14,10,4,.5),rgba(14,10,4,.12) 55%,rgba(14,10,4,0))}'
-      + 'body.h131-card .gm-card{width:min(100%,540px);padding:20px 24px 18px}'
-      + 'body.h131-card .gm-card .gm-kick{font-size:14px}body.h131-card .gm-card h2{font-size:clamp(30px,4.4vw,44px);margin:8px 0 10px}body.h131-card .gm-card p{font-size:clamp(16px,2vw,20px)}';
-    const cardOn = (on) => { try { if (!document.getElementById('h131-card-css')) { const c2 = document.createElement('style'); c2.id = 'h131-card-css'; c2.textContent = CARD_CSS; document.head.appendChild(c2); } document.body.classList.toggle('h131-card', on); } catch (e) { /* */ } };
+    const cardOn = h131Card;
     cardOn(true); try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
     if (!frontier(G, S)) setTimeout(() => { if (!endHold) { cardOn(false); tod = null; syncTime(); } }, 7000);
     endView(1400);

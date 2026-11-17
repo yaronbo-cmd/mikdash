@@ -154,7 +154,7 @@ export const POUR_ACT = {
     const PILE = [[0, 1.0], [0.5, -1.9]];
     // (look round 3, the run: on the heap's far side they stood out of the picture — the first pair waits at the heap's two ends along the
     //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
-    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] - 1.0, HEAP[1] - 4.3]], [[HEAP[0] + 4.6, HEAP[1] - 1.2], [HEAP[0] + 4.6, HEAP[1] + 1.4]]];
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] - 0.3, HEAP[1] - 5.9]], [[HEAP[0] + 4.6, HEAP[1] - 1.2], [HEAP[0] + 4.6, HEAP[1] + 1.4]]];
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;

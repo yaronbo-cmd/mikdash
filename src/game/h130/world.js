@@ -41,8 +41,10 @@ export function mats(X) {
   P.M.n5green = new T.MeshBasicMaterial({ color: 0x4FC46A, transparent: true, opacity: 0.85, depthWrite: false });
   P.M.n5chalk = new T.MeshBasicMaterial({ color: 0xF4EEDC, transparent: true, opacity: 0.9, depthWrite: false });
   P.M.n5ghost = new T.MeshStandardMaterial({ color: '#E8C890', roughness: 0.8, transparent: true, opacity: 0.38, depthWrite: false });
-  P.M.n5ghostSag = new T.MeshStandardMaterial({ color: '#F0A040', roughness: 0.8, transparent: true, opacity: 0.55, depthWrite: false });
-  P.M.n5ghostCrack = new T.MeshStandardMaterial({ color: '#D8402A', emissive: '#601008', roughness: 0.8, transparent: true, opacity: 0.7, depthWrite: false });
+  // (build 130 review: while he places, only a faint hint — a slight warm tint over a long gap, more over a too long one; the beam's
+  //  truth is shown in the live test)
+  P.M.n5ghostSag = new T.MeshStandardMaterial({ color: '#EABB7E', roughness: 0.8, transparent: true, opacity: 0.42, depthWrite: false });
+  P.M.n5ghostCrack = new T.MeshStandardMaterial({ color: '#E6A47A', roughness: 0.8, transparent: true, opacity: 0.46, depthWrite: false });
   P.M.n5rope = P.M.rope || std('#C9A46A', { roughness: 0.95 });
   return P.M;
 }
@@ -146,7 +148,7 @@ export function galDraw(X, side, layout, o = {}) {
   const G = spans(R, layout.cols), beams = [];
   for (const g of o.beams === false ? [] : G) {
     const mat = ghost ? (g.kind === 'straight' ? M.n5ghost : g.kind === 'sag' ? M.n5ghostSag : M.n5ghostCrack) : M.n5cedar;
-    const mid = (g.a0 + g.a1) / 2, dip = g.kind === 'crack' ? 0.35 : g.sag;
+    const mid = (g.a0 + g.a1) / 2, dip = ghost ? 0 : g.kind === 'crack' ? 0.35 : g.sag;   // (a ghost lies straight: the sag is the test's)
     if (!dip) { const b = box(X, mat, ...along(0, wl - hw, wl + hw, Y.COL_TOP, Y.BEAM_TOP, g.a0, g.a1)); all.push(b); beams.push(b); continue; }
     // two halves, each from its support down to the middle
     for (const [p0, p1] of [[g.a0, mid], [mid, g.a1]]) {

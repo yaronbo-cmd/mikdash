@@ -26,6 +26,9 @@ import { BOOK } from '../world/grid.js';
 const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
 const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 // (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
+/** the opening's own beats, seconds (build 130 review: about 12 in all, besides his line and his tap): the first look, the crowd in
+ *  (at most), the mix, the same again, the look up to the wall */
+const OPEN = Object.freeze({ LOOK: 1.0, IN: 2.5, MIX: 1.8, SAME: 1.6, UP: 2.6 });
 const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
@@ -150,6 +153,7 @@ export const GALLERY = {
       if (A.sub) { A.sub.down(p); return; }
       const P = { id: p.id, x0: p.x, y0: p.y, x: p.x, y: p.y, t0: performance.now(), moved: 0, what: null };
       A.ptr = P;
+      if (A.phase === 'open-crowd' || A.phase === 'open-up') { A.skipOpen = 1; return; }   // (a touch in the opening's own beats: on to the puzzle)
       if (A.phase === 'open-draw') { P.what = 'draw'; return; }
       if (A.phase === 'open-flip') { P.what = 'flip'; return; }
       if (A.phase !== 'puzzle' || A.busy) return;
@@ -206,10 +210,10 @@ export const GALLERY = {
     function feel(r) {
       const G = spans(R, colsNow()), near = G.filter((g) => Math.abs(g.a0 - r.a) < 1e-6 || Math.abs(g.a1 - r.a) < 1e-6);
       const bad = near.find((g) => g.kind === 'crack' && g.len <= 2 * GAL.SAG), sag = near.find((g) => g.kind === 'sag');
-      const f = footAt(r.a);
-      if (bad) { X.play('crack'); X.shake(0.08, 0.15); ev('crack-ghost'); }
-      else if (sag) { X.play('creak'); ev('sag-ghost'); }
-      else { X.play('stamp'); X.quick({ x: f.x, y: Y.COL_TOP * 0.6 + GEO.FLOOR * 0.4, z: f.z }, QUICK.place, null); ev('place'); }
+      // (build 130 review: while placing only a faint hint — the same stamp for every place, the beams barely tinted; the truth,
+      //  straight, sagging or cracking, is the live test's, when the crew lays them)
+      X.play('stamp');
+      ev(bad ? 'crack-ghost' : sag ? 'sag-ghost' : 'place');
     }
 
     /* the live test */
@@ -260,7 +264,7 @@ export const GALLERY = {
       const cols = colsNow();
       if (!cols.length) { X.line(GLINES.none, 2400); return; }
       const k = keyOf(cols), G = spans(R, cols);
-      if (G.some((g) => g.kind === 'crack') && A.warned !== k) { A.warned = k; X.play('creak'); X.line(GLINES.crackWarn, 4200); ev('warn'); return; }
+      void G;
       A.busy = true; A.phase = 'test'; A.tries++; X.hand(null); ring.visible = false; ev('test ' + k);
       const again = A.tested === k; A.tested = k;
       // the crew stands them and lays the beams (level 3: the south column; the north one is raised on the ropes, once)
@@ -279,14 +283,16 @@ export const GALLERY = {
         let order = L.torch.map((_, i) => i);
         { const t = L.torch[order[0]]; bearerAt(t[0], t[1], L.watch[0][0], L.watch[0][1]); }
         for (let wi = 0; wi < L.watch.length; wi++) {
-          const w = L.watch[wi], eye = clearEye([w[0], GEO.FLOOR + EYE, w[1]], cols);
+          const w = L.watch[wi], eye0 = [w[0], GEO.FLOOR + EYE, w[1]], eye = clearEye(eye0, cols);
           const seeLens = (tp) => { const d = Math.hypot(tp[0] - eye[0], tp[2] - eye[2]); lensF = clamp((2 * Math.atan((SEE.MAN * SEE.PART) / 2 / Math.max(1, d)) * 180) / Math.PI, SEE.FMIN, SEE.FOV); lens(lensF); };
           A.spect.forEach((s, i) => { s.a.vis = s.a.visT = i === wi ? 0 : 1; });
           for (let j = 0; j < order.length; j++) {
             const ti = order[j], t = L.torch[ti];
             seeLens(torchP(ti));
-            if (j > 0) { const d = Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]); X.shot(eye, eyeAim(eye, torchP(ti)), d / 14); await Promise.race([SH130.crew.walkTo(bearer, t[0], t[1], 14), wait(d / 14 + 1)]); }
-            else { X.shot(eye, eyeAim(eye, torchP(ti)), j === 0 && wi === 0 ? 0.01 : 0.6); await wait(0.7); }
+            // (a view where a column hides the torch is seen from his very eye, so the torch truly goes behind that column)
+            const hidHere = below.lost.some((q) => q.w === wi && q.t === ti), eyeV = hidHere ? eye0 : eye;
+            if (j > 0) { const d = Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]); X.shot(eyeV, eyeAim(eyeV, torchP(ti)), d / 14); await Promise.race([SH130.crew.walkTo(bearer, t[0], t[1], 14), wait(d / 14 + 1)]); }
+            else { X.shot(eyeV, eyeAim(eyeV, torchP(ti)), j === 0 && wi === 0 ? 0.01 : 0.6); await wait(0.7); }
             SH130.crew.face(bearer, w[0], w[1]);
             const hid = below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => q.col);
             A.view = { wi, ti, hid }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
@@ -430,12 +436,22 @@ export const GALLERY = {
       }
       return D;
     }
+    /** the opening's own beats wait in OPEN seconds (about 12 in all) and end at a touch (A.skipOpen) */
+    const owait = async (sec) => { const t0 = A.t; while (A.t - t0 < sec && !A.skipOpen) { await wait(0.05); } };
     async function opening() {
+      A.skipOpen = 0;
+      try { await openingBeats(); } finally {
+        if (A.crowd) { crowdDrop(A.crowd); A.crowd = null; }
+        try { (A.dash || []).forEach((d) => { d.visible = false; }); } catch (e) { /* */ }
+        X.hand(null); illTag.set(''); st.open1 = 1; X.save(); if (A.skipOpen) ev('open skipped');
+      }
+    }
+    async function openingBeats() {
       A.phase = 'open-draw'; A.busy = false;
-      const OC = CAM.open1, dash = ringDashes();
+      const OC = CAM.open1, dash = ringDashes(); A.dash = dash;
       X.kohen(true); X.shot(OC[0], OC[1], 1.2);
       illTag.set(LINES.ill); X.line(LINES.where, 0);
-      await wait(1.4);
+      await wait(OPEN.LOOK);
       X.line(LINES.where + ' · ' + GLINES.draw, 0);
       { const p = GB.ring[0], q = GB.ring[1]; const a = X.scr(p[0], GEO.FLOOR, p[1]), b = X.scr(q[0], GEO.FLOOR, q[1]); X.hand({ x: p[0], y: GEO.FLOOR, z: p[1] }, Math.round(clamp(b.x - a.x, -HPX, HPX)), Math.round(clamp(b.y - a.y, -HPX, HPX))); }
       while (A.draw < 1) { const n = Math.round(A.draw * dash.length); dash.forEach((d, i) => { d.visible = i < n; }); await wait(0.05); if (A.ended) return; }
@@ -445,20 +461,18 @@ export const GALLERY = {
       const CR = crowdMake(); A.crowd = CR;
       src(LINES.sukkah51a, 8);
       const d1 = crowdGo(CR, (grp) => grp === 0);
-      await wait(Math.min(d1 * 0.5, 5)); X.line(GLINES.mix, 0); await wait(Math.max(1.5, d1 * 0.5 + 0.5));
+      await owait(Math.min(d1 * 0.5, OPEN.IN)); if (A.skipOpen) return; X.line(GLINES.mix, 0); await owait(OPEN.MIX); if (A.skipOpen) return;
       A.phase = 'open-flip'; A.busy = false; A.flipTap = 0; X.line(GLINES.flip, 0);
       X.hand({ x: (GB.ring[0][0] + GB.ring[1][0]) / 2, y: GEO.FLOOR, z: 0 }, 0, 0);
       while (!A.flipTap) { await wait(0.1); if (A.ended) return; }
       X.hand(null); A.phase = 'open-crowd'; A.busy = true;
       const d2 = crowdGo(CR, (grp) => grp === 1, 0.08, false);
-      await wait(Math.min(d2, 6)); X.line(GLINES.same, 2600); await wait(2.4);
+      await owait(Math.min(d2, OPEN.IN)); if (A.skipOpen) return; X.line(GLINES.same, 2600); await owait(OPEN.SAME); if (A.skipOpen) return;
       // the kohen lifts his head to the wall
-      const UP = CAM.galUp;
+      const UP = CAM.galUp; A.phase = 'open-up';
       X.shot(UP[0], UP[1], 1.6); X.line(LINES.up, 0); src(LINES.sukkah51b, 6);
       for (const f of CR.F) { f.from = [f.g.position.x, f.g.position.z]; f.via = null; f.to = [GB.gate[0] + 10, GB.gate[1] + ((f.i % 5) - 2) * 1.4]; f.t0 = A.t + f.i * 0.03; f.dur = Math.hypot(f.to[0] - f.from[0], f.to[1] - f.from[1]) / 22; }
-      await wait(4.2);
-      crowdDrop(CR); A.crowd = null; dash.forEach((d) => { d.visible = false; });
-      illTag.set(''); st.open1 = 1; X.save();
+      await owait(OPEN.UP);
     }
 
     async function begin2() {

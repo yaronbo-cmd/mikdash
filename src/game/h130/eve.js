@@ -13,7 +13,7 @@
  */
 import { LINES, RUNS, spans, colXZ, qOf, starsOf, lightOf } from './model.js';
 import { SH130, GEO, Y } from './world.js';
-import { lightWorld, lightSync, SL } from './light3d.js';
+import { lightWorld, lightSync, SL, matsL } from './light3d.js';
 import { card, esc } from '../h129/ui7.js';
 import { BOOK } from '../world/grid.js';
 
@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7,
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35],
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',
@@ -145,6 +145,16 @@ function makeEve(m, X) {
     const b = B.reduce((m, q) => (q[3] > m[3] ? q : m));
     return [b[0] / b[3], b[1] / b[3], b[2] / b[3]];
   }
+  /** ── build 130 ── the menorah's gold at night: its metal mirrored the dark sky and the column read almost black under its own
+   *  flames; for the evening it glows warm (EK.GOLD: the emissive's colour and strength, the metal's share) — the brightest in the court */
+  let gold0 = null;
+  function goldGlow(on) {
+    try {
+      const G = matsL(X).l30gold; if (!G) return;
+      if (on && !gold0) { gold0 = { e: G.emissive.getHex(), i: G.emissiveIntensity, m: G.metalness, r: G.roughness }; G.emissive.setHex(EK.GOLD[0]); G.emissiveIntensity = EK.GOLD[1]; G.metalness = EK.GOLD[2]; G.roughness = 0.45; G.needsUpdate = true; }
+      else if (!on && gold0) { G.emissive.setHex(gold0.e); G.emissiveIntensity = gold0.i; G.metalness = gold0.m; G.roughness = gold0.r; G.needsUpdate = true; gold0 = null; }
+    } catch (e) { /* */ }
+  }
   function score() {
     const r = st.res || {}, pts = Object.values(r).reduce((a, q) => a + (q.pts | 0), 0), stars = Object.values(r).reduce((a, q) => a + (q.stars | 0), 0);
     const loss = (st.marks || []).length;
@@ -159,6 +169,7 @@ function makeEve(m, X) {
     X.shot([mx + 26, FLOOR + 14, mz + 34], head, 0.01); await wait(EK.DUSK);
     try { const E = time(); if (E && E.setTime) E.setTime('night'); } catch (e) { /* */ }
     light = new T.PointLight(0xFFB060, EK.LAMP_I, EK.LAMP_D, EK.LAMP_K); light.position.set(mx, FLOOR + 51, mz); root.add(light);
+    goldGlow(true);
     // rise with the flames over the wall
     A.phase = 'rise'; A.beat++;
     X.shot(C.rise[0], C.rise[1], EK.RISE); await wait(EK.RISE + 0.6);
@@ -198,7 +209,7 @@ function makeEve(m, X) {
     move() {}, up() {}, wants: () => false, holds: () => false, cancel() {},
     at() { return { x: LT.menorah[0], y: FLOOR + 2, z: LT.menorah[1] }; },
     end() {
-      A.ended = true;
+      A.ended = true; goldGlow(false);
       const AC = X.actors && X.actors(); for (const f of own) { try { AC.remove(f); } catch (e) { /* */ } }
       // (the city's courtyards and the court's glow belong to the evening; the menorah's own glow stays with the light's world)
       try { X.props.remove(root); } catch (e) { try { root.parent && root.parent.remove(root); } catch (e2) { /* */ } }

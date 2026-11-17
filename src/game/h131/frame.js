@@ -340,10 +340,17 @@ export const FRAME_ACT = {
     function focusWant() {
       if (A.done || S.diag || DG.carry || square(S)) return null;
       try { const L = X.lookNow ? X.lookNow() : null; if (L && (L.u > 0.06 || L.ov)) return null; } catch (e) { /* */ }
-      if (lv === 1) { const free = CORNERS.filter((q) => !S.P[CORNERS.indexOf(q)].seat); if (free.length === 4) return 'NW'; return free.sort((a, b) => offBy(S, b) - offBy(S, a))[0] || null; }
+      if (lv === 1) { const free = CORNERS.filter((q) => !S.P[CORNERS.indexOf(q)].seat); if (free.length === 4) return 'NW'; return farthest(free); }
       if (lv === 2) { const p = S.P.find((q) => !q.seat); return p ? p.k : null; }
       const bent = S.P.find((q) => q.peg && offBy(S, q.k) > FR.TOL); if (bent) return A.stuckSaid3 ? bent.k : 'SE';
-      const free = S.P.filter((q) => !q.seat).sort((a, b) => offBy(S, b.k) - offBy(S, a.k))[0]; return free ? free.k : null;
+      return farthest(S.P.filter((q) => !q.seat).map((q) => q.k));
+    }
+    // (the corner farthest from its stake; on a near tie the one the shot is on stays — two corners equally off made the choice turn
+    //  on a rounding, and the shot could go to one while the work was read at the other)
+    function farthest(ks) {
+      if (!ks.length) return null; const mx = Math.max(...ks.map((k) => offBy(S, k)));
+      if (A.focus && ks.includes(A.focus) && offBy(S, A.focus) >= mx - 0.1) return A.focus;
+      return ks.find((k) => offBy(S, k) >= mx - 0.1);
     }
     function focusPt(k) {
       const st = STAKE[k];

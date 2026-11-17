@@ -1057,10 +1057,8 @@
       }
       if (needs.length && !(a.lv === 2 && wantBad)) {
         const k = needs.sort((x, y) => s.cover[y] - s.cover[x])[0], p = s.lips[k], q = s.out2[k];
-        const far = (r) => Math.hypot(r[0] - a.tip[0], r[1] - a.tip[1]) > 72;
-        const st = far(q) ? q : far(p) ? p : [Math.round((p[0] + q[0]) / 2 + 40), Math.round((p[1] + q[1]) / 2 + 40)];
-        const en = st === q ? p : q;
-        return { path: [st, en, st, en], ms: 900, wait: 350, note: `pit: scrape stone ${s.i} side ${SD[k]} (cover ${s.cover[k]})` };
+        // (along the side, out and back: a stroke that starts on the lever's tip sweeps too)
+        return { path: [q, p, q], ms: 900, wait: 350, note: `pit: scrape stone ${s.i} side ${SD[k]} (cover ${s.cover[k]})` };
       }
       if (side < 0) return { wait: 400, note: 'pit: no side for the lever' };
       if (!s.seen[side]) return { wait: 300, note: 'pit: the lip not bared yet' };

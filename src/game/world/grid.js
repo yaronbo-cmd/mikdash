@@ -825,7 +825,10 @@ const S07 = {
   // look sample's keyframes [[eye], [aim], at s]. (The other stations' cameras join in part 2.)
   cam: {
     // (part 2) the stage's opening: from high over the Mount, down to the two south chambers, then Beit HaMoked's hall open to the sky
-    open: [[[-40, 260, 240], [-100, 16, 20]], [[-60, 90, 10], [-110, 16, 66]], [[-128, 78, -28], [-160, 20, -70]]],
+    // (closing round 2: four cuts, each one built thing of this stage whole in the 32° lens at 960×600 and 1600×900, from high outside
+    //  the House: the instruments chambers by Nicanor, the Gazit, the Golah's well house (steep, over the Azarah's south wall), Beit
+    //  HaMoked from the north)
+    open: [[[70.2, 103.2, 54.1], [4, 19, 0]], [[-52.8, 112.6, 2.3], [-81, 28, 70]], [[-125.9, 84.2, 73.9], [-139, 22, 66]], [[-127.9, 108.7, -124], [-160, 23, -70.5]]], openFov: 32,
     // (part 2) the Gazit's play view: from high over the north wall, down on the chol half (the roof is not on yet); its lens (degrees)
     gazit: [[-81, 44, 59], [-81, 16, 75.5]], gazitFov: 40,
     // (the rows: nearly overhead, the holy half's strip by the line in the frame where the mats wait; from so high a kneeling student

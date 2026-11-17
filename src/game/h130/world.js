@@ -185,7 +185,10 @@ export function galDraw(X, side, layout, o = {}) {
       }
       const re = out + s * 0.12;
       rail.push(along(0, re - 0.1, re + 0.1, Y.GFLOOR + GEO.RAIL - 0.12, Y.GFLOOR + GEO.RAIL, s0, s1));
-      rail.push(along(0, re - 0.04, re + 0.04, Y.GFLOOR + 0.3, Y.GFLOOR + GEO.RAIL - 0.12, s0, s1));   // (the balustrade's boards: what sinks under the top rail is cut)
+      // (build 130 part 3: the balustrade open — thin balusters under the top rail, not a board — so from the seats above the men and the
+      //  torch below show between them; the top rail is what judges the sight)
+      rail.push(along(0, re - 0.05, re + 0.05, Y.GFLOOR + 0.25, Y.GFLOOR + 0.35, s0, s1));
+      { const nb = Math.max(1, Math.round((s1 - s0) / 0.6)); for (let i = 1; i < nb; i++) { const a = s0 + ((s1 - s0) * i) / nb; rail.push(along(0, re - 0.035, re + 0.035, Y.GFLOOR + 0.35, Y.GFLOOR + GEO.RAIL - 0.12, a - 0.035, a + 0.035)); } }
       for (const a of J) if (a >= s0 && a <= s1) rail.push(along(0, re - 0.08, re + 0.08, Y.GFLOOR, Y.GFLOOR + GEO.RAIL, a - 0.08, a + 0.08));
     }
     inst(X, M.n5limeD, corb, all); inst(X, M.n5cedarD, joist, all); inst(X, M.n5cedarL, plank, all); inst(X, M.n5cedarD, rail, all); seatM = inst(X, M.n5cedar, seat, all);

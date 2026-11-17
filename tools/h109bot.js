@@ -32,6 +32,21 @@
       return out.join(' | ');
     } catch (e) { return 'err ' + e.message; }
   }
+  // ── h130 ── (the boxes the rays may miss: every drawn mesh whose world box a ray of the lower centre column passes within 14 amot —
+  // instanced and merged meshes whose own raycast is off or stale are named here too) ── /h130 ──
+  function galBoxes() {
+    try {
+      const T = window.__T, cam = T.camera, R = new T.Raycaster(), out = [], B = new T.Box3(), P = new T.Vector3();
+      const shown = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
+      const rays = [-0.2, -0.5, -0.8].map((ny) => { R.setFromCamera({ x: 0, y: ny }, cam); return R.ray.clone(); });
+      T.scene.traverse((o) => {
+        if (!o.isMesh || !shown(o)) return;
+        try { if (o.isInstancedMesh && o.computeBoundingBox) { o.computeBoundingBox(); B.copy(o.boundingBox).applyMatrix4(o.matrixWorld); } else B.setFromObject(o); } catch (e) { return; }
+        for (let i = 0; i < rays.length; i++) { const h = rays[i].intersectBox(B, P); if (h) { const d = h.distanceTo(cam.position); if (d < 14) { const names = []; for (let q = o; q && names.length < 4; q = q.parent) names.push(q.name || q.type); const c = o.material && o.material.color ? o.material.color.getHexString() : '?'; out.push(i + ':' + names.join('<') + ' #' + c + ' d' + d.toFixed(1) + ' y' + B.min.y.toFixed(1) + '..' + B.max.y.toFixed(1)); } } }
+      });
+      return out.slice(0, 14).join(' | ');
+    } catch (e) { return 'err ' + e.message; }
+  }
   const play = {
     rope(a) {
       if (a.phase === 'ready') return { holdUntil: [a.hs ? a.hs[0] : W * 0.6, a.hs ? a.hs[1] : HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
@@ -470,7 +485,7 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
       if (a.phase === 'open-draw') { if (!B.k.od) { B.k.od = 1; return { wait: 400, shot: a.id + '-open' }; } const y = Math.round(HH * 0.62); return { drag: [Math.round(W * 0.1), y, Math.round(W * 0.42), y - 50, 600], wait: 150, note: 'gal: draw the line ' + a.draw }; }
       if (a.phase === 'open-flip') { if (!B.k.of) { B.k.of = 1; return { wait: 200, shot: a.id + '-crowd' }; } return { tap: [Math.round(W * 0.22), Math.round(HH * 0.62)], wait: 1500, note: 'gal: turn it over' }; }
-      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov + ' hits ' + galHits() }; } }
+      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov + ' hits ' + galHits() + ' boxes ' + galBoxes() }; } }
       if (a.phase === 'test' && !a.view && !B.k['cr' + a.tries]) { B.k['cr' + a.tries] = 1; return { wait: 500, shot: `${a.id}-crew${a.tries}` }; }
       if (a.phase === 'test' && a.ev.some((e) => /^above/.test(e)) && !B.k.ab) { B.k.ab = 1; return { wait: 200, shot: `${a.id}-above`, note: 'gal: ' + a.ev.slice(-1)[0] }; }
       if (a.busy || a.phase !== 'puzzle') return { wait: 300, note: 'gal: ' + a.phase };

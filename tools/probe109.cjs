@@ -70,6 +70,11 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     if (s.holdShotAt) { const [js, ms, name] = s.holdShotAt; const v = await pg.evaluate(js).catch(() => null); if (v) await run({ holdShot: [v[0], v[1], ms, name] }); log('holdShotAt', JSON.stringify(v)); }
     if (s.holdShot) { const [x, y, ms, name] = s.holdShot; await touch('touchStart', [[x, y]]); await pg.waitForTimeout(ms); await run({ shot: name }); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
     if (s.holdUntil) { const [x, y, cond, max = 20000] = s.holdUntil; await touch('touchStart', [[x, y]]); const t = Date.now(); while (Date.now() - t < max) { if (await pg.evaluate(cond).catch(() => false)) break; await pg.waitForTimeout(25); } await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); log('holdUntil', ((Date.now() - t) / 1000).toFixed(2) + 's'); }
+    // ── h130 ── (build 130, the light's ladder by mouse: the right button is the boy's right hand) { mouseDrag: [x0, y0, x1, y1, ms, 'left'|'right'] }, or
+    // { mouseDragAt: "js → [x0, y0, x1, y1, ms, button]" }: a drag with that mouse button (a page with MOUSE=1)
+    if (s.mouseDragAt) { const v = await pg.evaluate(s.mouseDragAt).catch(() => null); if (v) await run({ mouseDrag: v }); log('mouseDragAt', JSON.stringify(v)); }
+    if (s.mouseDrag) { const [x0, y0, x1, y1, ms = 300, bt = 'left'] = s.mouseDrag; const k = Math.max(4, Math.round(ms / 40)); await pg.mouse.move(x0, y0); await pg.mouse.down({ button: bt }); for (let i = 1; i <= k; i++) { await pg.waitForTimeout(ms / k); await pg.mouse.move(x0 + ((x1 - x0) * i) / k, y0 + ((y1 - y0) * i) / k); } await pg.waitForTimeout(40); await pg.mouse.up({ button: bt }); }
+    // ── /h130 ──
     if (s.drag) { const [x0, y0, x1, y1, ms = 400] = s.drag; const k = Math.max(4, Math.round(ms / 40)); await touch('touchStart', [[x0, y0]]); for (let i = 1; i <= k; i++) { await pg.waitForTimeout(ms / k); await touch('touchMove', [[x0 + ((x1 - x0) * i) / k, y0 + ((y1 - y0) * i) / k]]); } await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
     if (s.shot) {
       const ts = Date.now();

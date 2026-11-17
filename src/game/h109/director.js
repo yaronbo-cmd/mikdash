@@ -145,7 +145,7 @@ export function createH109Director(o) {
   const lookAway = () => lookOff() && zone5(LOOK.u, LOOK.yaw) !== 'play';   // ── h120 ── (zone5) ── /h120 ──
   const lookSet = () => { LOOK.away = LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03; if (!LOOK.away && !LOOK.drag && !LOOK.pinch) { LOOK.yaw = 0; LOOK.u = 0; } };
   function lookCandidate(e) {
-    if (e.pointerType === 'mouse') return e.button === 2 ? 'look' : null;
+    if (e.pointerType === 'mouse') return e.button === 2 ? (act && typeof act.mouseRight === 'function' && call(act.mouseRight, { x: e.clientX, y: e.clientY }) ? 'act2' : 'look') : null;   // ── h130 ── (act2: an act that takes the right button where it says so — the ladder's right hand) ── /h130 ──
     if (e.clientX < innerWidth * 0.5 || !act || typeof act.wants !== 'function') return null;
     return call(act.wants, { x: e.clientX, y: e.clientY }) ? null : 'pend';
   }
@@ -419,18 +419,20 @@ export function createH109Director(o) {
       return;
     }
     if (e.type === 'pointerdown') {
+      ptr.btn2 = false;   // ── h130 ── ── /h130 ──
       log('ptr', e.target && (e.target.id || e.target.className || e.target.tagName), Math.round(e.clientX), Math.round(e.clientY), ptr.down ? 'busy' : '');
       if (hudEl(e.target)) return;
       if (e.target !== c && !(e.target && e.target.classList && e.target.classList.contains('h109-touch'))) return;
       if (!ptr.down && LOOK.id == null && !ending) {
-        const lc = lookCandidate(e);
+        const lc = lookCandidate(e); ptr.btn2 = lc === 'act2';   // ── h130 ── ── /h130 ──
         if (lc === 'look') { e.stopImmediatePropagation(); e.preventDefault(); lookStart(e.pointerId, e.clientX, e.clientY); return; }
         // (the camera away: this touch brings it back to the work and is not the act's)
         if (LOOK.away && !LOOK.back && zone5(LOOK.u, LOOK.yaw) !== 'play') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.back = 0.45; LOOK.swallow = e.pointerId; return; }   // ── h120 ── (zone5) ── /h120 ──
         if (lc === 'pend') { e.stopImmediatePropagation(); e.preventDefault(); LOOK.id = e.pointerId; LOOK.pend = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now() }; return; }
       }
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.pointerType === 'mouse' && e.button !== 0 && !(e.button === 2 && ptr.btn2)) return;   // ── h130 ── (btn2) ── /h130 ──
       if (ptr.down) return;
+      ptr.button = e.pointerType === 'mouse' ? e.button : 0;   // ── h130 ── (which mouse button the act's pointer is) ── /h130 ──
       ptr.id = e.pointerId; ptr.down = true; ptr.x = ptr.x0 = e.clientX; ptr.y = ptr.y0 = e.clientY; ptr.t0 = performance.now();
       e.stopImmediatePropagation(); e.preventDefault();
       call(act.down, ptr);

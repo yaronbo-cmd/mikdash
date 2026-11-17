@@ -768,7 +768,7 @@ const S07 = {
     //  women's court beside the arch's jamb, never before it; the arch is the face of the upper storey's wall, which rises flush over
     //  it (temple.js nikanor:cut), so no man can stand on it there. On the great vault's ring a crew man stands on its crown (its
     //  extrados, the spring + R + 1); the kohen is out of that picture (from the hall's west end he could not stand whole in it))
-    after: { N: { kohen: [9.9, -13.6], levi: [7.6, -18.6] }, S: { kohen: [11.2, 24.6], levi: [7.6, 18.6] }, M: { man: [-143.5, -70.5, 43.7] } },
+    after: { N: { kohen: [9.9, -13.6], levi: [7.6, -18.6] }, S: { kohen: [11.2, 24.6], levi: [7.6, 18.6] }, M: { man: [-143.5, -65.9, 42.9] } },   // (closing round 2: the vault's man on the ring's south shoulder, 20° off the crown, clear of the north wall's band z −73.5 … −67.5: from the low after-eye the sky is behind him)
   },
   night: {
     hearth: [-160, -70.5, 16], slab: [-160, -76, 16], slabSize: 1,
@@ -834,7 +834,10 @@ const S07 = {
     // (part 2) the instruments chambers from inside, at the stand, looking east at the arch against the day (a wide lens: the room is 6
     // deep); Beit HaMoked's great vault from the hall west of ring 1, at the deck's height
     vaultN: [[1.4, 9.6, -20], [8, 10.2, -20]], vaultS: [[1.4, 9.6, 20], [8, 10.2, 20]], vaultFov: 64,
-    vaultM: [[-163.5, 31.5, -70.5], [-143.5, 34.5, -70.5]], vaultMFov: 66,
+    // (closing round 2: the great vault's ring is the subject — from the hall's west end at the deck's height, the whole ring and both
+    //  masons on the deck in the frame. The Azarah's north wall runs east from the ring's own east face (temple.js wall(−142, −73.5,
+    //  0, −67.5, 6, 44)): from any eye inside the hall its end stands behind the ring's middle; from here its top is level with the crown)
+    vaultM: [[-174, 29.5, -70.5], [-143.5, 31, -70.5]], vaultMFov: 60,
     // (part 2) the night: the slab over the fire from the nave (the fire lights it); the hall with the fire and the sleepers, from
     // the nave's south end (x −166 … −154: the four chambers' partitions stand east and west of it, up to 27)
     night: [[-159, 22.5, -65.5], [-160, 16.3, -76]], nightFov: 50, nightHall: [[-160, 23, -81], [-160, 16.5, -67]],
@@ -877,7 +880,7 @@ const S07 = {
     // wall's end, temple.js wall(−142, −73.5, 0, −67.5, 6, 44), stands on the vault's axis: it is the court's wall, not a stray); the
     // Gazit three-quarter from high over its north-west corner (over the north wall's top, 28.4): the bench, the rows, the scribes and
     // the kohen in the holy half in the left third ── /h129 ──
-    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18.6], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-176, 28.2, -65], [-145, 36.5, -70.5], 46], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
+    stands: { vaultN: [[24, 11, -8], [9.5, 9.8, -18.6], 32], vaultS: [[24, 11, 8], [9.5, 9.8, 19], 32], vaultM: [[-174, 22, -70.5], [-143.5, 32, -70.5], 60], gazit: [[-100, 40, 52], [-80, 17, 73], 44] },
     golah: [[-139, 21.6, 73.2], [-139, 15.4, 61]],
     // (build 129, part 3, G5: the play in the built world, its walls whole) the shaft from the kohen's stand, as the water look's first
     // frame (cam.look[0]): the eye over the stand, tilted down into the well — the wheel at the top, the rope down to the bucket; the eye

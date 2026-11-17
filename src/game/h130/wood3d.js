@@ -11,7 +11,7 @@ import { LOGS } from './model.js';
 
 const S5 = BOOK.s05, W5 = S5.wood, F = S5.court.floor;
 /** the sizes (illustration): the trestle's height under the log, its beam's span; the piles' stacking */
-export const WD = Object.freeze({ TH: 1.05, SPAN: 1.3, TW: 1.1, GAP: 0.06, ROW: 5, NEXT: 6.6, DIR: Object.freeze([-0.3, -0.95]) });
+export const WD = Object.freeze({ TH: 1.05, SPAN: 1.3, TW: 1.1, GAP: 0.06, ROW: 5, NEXT: 6.6, BACK: 3.5, DIR: Object.freeze([-0.3, -0.95]) });
 /** the checking log's axis on the trestles: across the act's view, which looks along DIR (toward the chamber's north-west corner: the
  *  kohen's stand then lies left of the log and no nearer the camera, the clean pile to the right) → { dir, U (the log's axis), N (its
  *  horizontal normal), yaw (the group's turn that lays its local x along U) } */
@@ -150,7 +150,7 @@ export function splitHalves(X, e) {
 }
 /** where the n-th log of a pile lies (side 'clean' or 'out'): rows of ROW, each row one up and half a log in; [x, y over the floor, z]
  *  round the pile's book place. The clean pile's logs lie pointing away from the chamber's view, their rows running east from the book
- *  place (a growing pile stays a narrow stack at the right of the screen, never across the second kohen); the rejects lie a little
+ *  place and BACK behind it (a growing pile stays a narrow stack at the right of the screen, whole in it, never across the second kohen); the rejects lie a little
  *  askew, their rows running back toward the north wall */
 export function pileSpot(side, n, r = 0.4) {
   const at = side === 'clean' ? W5.clean : W5.out;
@@ -158,7 +158,7 @@ export function pileSpot(side, n, r = 0.4) {
   let row = 0, k = n % cap, w = WD.ROW; while (k >= w && w > 1) { k -= w; row++; w--; }
   const d = 2 * r + WD.GAP, off = (k + (WD.ROW - w) / 2) * d, y = r + row * d * 0.86;
   // (a full pyramid: the next one behind it, back toward the north wall — the rejects' toward the room's middle)
-  if (side === 'clean') return { x: at[0] + off, y, z: at[1] - pyr * WD.NEXT, yaw: Math.PI / 2, row };
+  if (side === 'clean') return { x: at[0] + off, y, z: at[1] - WD.BACK - pyr * WD.NEXT, yaw: Math.PI / 2, row };
   return { x: at[0] + ((n * 7) % 5 - 2) * 0.12, y, z: at[1] - off + pyr * WD.NEXT, yaw: ((n * 3) % 5 - 2) * 0.06, row };
 }
 /** a log of the save (e) lying at a pile place: its piece and its plain bark */
@@ -183,8 +183,9 @@ function build(X) {
   const rmax = (L) => L.reduce((a, e) => Math.max(a, R(e)), 0.36);
   W.clean.forEach((e, n) => restLog(X, e, pileSpot('clean', n, rmax(W.clean)), g));
   W.out.forEach((e, n) => restLog(X, e, pileSpot('out', n, rmax(W.out)), g));
-  // the split wormy logs lie open beside the rejects, toward the chamber's middle
-  W.split.forEach((e, n) => { const h = splitHalves(X, e); h.position.set(W5.out[0] + 2.4 + n * 0.3, F + 0.12, W5.out[1] + 2.2 + n * 1.3); h.rotation.y = 0.2; g.add(h); });
+  // the split wormy logs lie open on the floor before the trestles, between them and the clean pile, in the chamber's view (rule 55:
+  // the damage kept to the eye; the next work's check passes them)
+  W.split.forEach((e, n) => { const h = splitHalves(X, e); h.position.set(t[0] + 3.4 + n * 0.3, F + 0.12, t[1] + 3.6 + n * 1.3); h.rotation.y = AX.yaw; g.add(h); });
 }
 /** the world hook: the wood's things drawn now (call from the stage's initWorld, and after a reload) */
 export function woodWorld(X) { SH.X = X; SH.key = ''; build(X); }

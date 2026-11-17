@@ -11,7 +11,7 @@
  * The right hand is the camera: a touch on the right half is the act's only where it lands on the log itself; anywhere else it lifts
  * the camera (rule 66); play goes on while it is lifted a little. In the picture: the kohen (a mallet in his hand: he taps the log) and
  * the second kohen who checks a log of his own beside him; on level 3 the two sawyers come in only to saw, and go.
- * A wormy log let into the clean pile is found when it is split: wood.worm (−20), the split log stays in the world by the rejects, and
+ * A wormy log let into the clean pile is found when it is split: wood.worm (−20), the split log stays in the world, open on the floor before the trestles, and
  * the logs this work had put in the pile come back to be checked. A level with no mistake: the full screen, and the kohen in charge
  * carries the clean wood toward the altar's pile.
  * The model: model.js (LOGS, logFresh, rollStep, seenHoles, tapAt, peelAt, decide, cutAt, endBad, bestCut, piecesOf, woodPts). Every

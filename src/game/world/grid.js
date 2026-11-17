@@ -428,6 +428,10 @@ const S05 = {
     piles: [[64, -40, 7], [109, -14, 6], [99, 46, 6], [112, 40, 5]],
     lane: [[156, 5.5], [139, 5.5], [128, 12], [121, 21], [121, 29.2]],
     laneCrew: { pull: [150, 5.5], drover: [150, 8] },
+    // the world's crews in the court while the stage builds (crews.js SITES.nashim.stand: [x, z, face x, face z]): the north ones as they
+    // stood; the three that stood at and round the menorah (73.5, 24) moved to the lepers' chamber's south wall (outside it, facing it),
+    // every one at least 12 amot from the menorah and out of every station's own frame (build 130 part 3)
+    stand: [[68, -20, 69, -26], [75, -24, 77, -30], [10, -24.5, 10, -28.5], [16, -24.5, 16, -28.5], [57, -24, 55, -30], [41, -24.5, 41, -28.5]],
   },
   // ── /h130 ──
 };

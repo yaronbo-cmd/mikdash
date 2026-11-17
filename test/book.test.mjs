@@ -313,5 +313,11 @@ test('book s05 (build 130): the new stage\'s rows — the runs, the passage, the
   // the entries carry the new rows
   for (const id of ['n:stand:galN', 'n:torch1', 'n:sled:E4', 'n:watch2.2', 'n:seat:E', 'n:wood:clean', 'n:menorah', 'n:mladder3', 'n:measures', 'n:wicks', 'n:passage']) assert.ok(by[id], id);
   assert.ok(Object.isFrozen(G.lv) && Object.isFrozen(S.cam.gal) && Object.isFrozen(S.crewSite));
+  // (part 3) the world's court crews stand at least 12 amot from the menorah and from each of its ladders' feet, never inside a chamber
+  for (const [x, z] of S.crewSite.stand) {
+    assert.ok(Math.hypot(x - S.light.menorah[0], z - S.light.menorah[1]) >= 12, `crew ${x},${z} by the menorah`);
+    for (const [lx, lz] of S.light.ladders) assert.ok(Math.hypot(x - lx, z - lz) >= 12);
+    assert.ok(!S.chambers.some((c) => x > c.x0 && x < c.x1 && z > c.z0 && z < c.z1) && !inWall(x, z), `crew ${x},${z}`);
+  }
 });
 // ── /h130 ──

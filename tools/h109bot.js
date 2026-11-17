@@ -32,6 +32,25 @@
       return out.join(' | ');
     } catch (e) { return 'err ' + e.message; }
   }
+  // ── h130 ── (the boxes the rays may miss: every drawn mesh whose world box a ray of the lower centre column passes within 14 amot —
+  // instanced and merged meshes whose own raycast is off or stale are named here too) ── /h130 ──
+  function galBoxes() {
+    try {
+      const T = window.__T, cam = T.camera, out = [], P = cam.position, H = window.__T.game.h109;
+      let B = null; T.scene.traverse((o) => { if (!B && o.isMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); B = new o.geometry.boundingBox.constructor(); } });
+      const shown = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
+      out.push('cam ' + [P.x, P.y, P.z].map((v) => v.toFixed(1)) + ' same ' + (H && H.X && H.X.camera === cam) + ' near ' + cam.near.toFixed(2) + ' fov ' + cam.fov.toFixed(1));
+      T.scene.traverse((o) => {
+        if (!o.isInstancedMesh || !shown(o)) return;
+        try { o.computeBoundingBox(); B.copy(o.boundingBox).applyMatrix4(o.matrixWorld); } catch (e) { return; }
+        if (P.x < B.min.x - 6 || P.x > B.max.x + 6 || P.z < B.min.z - 6 || P.z > B.max.z + 6) return;
+        const names = []; for (let q = o; q && names.length < 3; q = q.parent) names.push(q.name || q.type);
+        const c = o.material && o.material.color ? o.material.color.getHexString() : '?';
+        out.push(names.join('<') + ' #' + c + ' n' + o.count + ' x' + B.min.x.toFixed(0) + '..' + B.max.x.toFixed(0) + ' y' + B.min.y.toFixed(1) + '..' + B.max.y.toFixed(1) + ' z' + B.min.z.toFixed(0) + '..' + B.max.z.toFixed(0));
+      });
+      return out.slice(0, 16).join(' | ');
+    } catch (e) { return 'err ' + e.message; }
+  }
   const play = {
     rope(a) {
       if (a.phase === 'ready') return { holdUntil: [a.hs ? a.hs[0] : W * 0.6, a.hs ? a.hs[1] : HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
@@ -470,7 +489,7 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
       if (a.phase === 'open-draw') { if (!B.k.od) { B.k.od = 1; return { wait: 400, shot: a.id + '-open' }; } const y = Math.round(HH * 0.62); return { drag: [Math.round(W * 0.1), y, Math.round(W * 0.42), y - 50, 600], wait: 150, note: 'gal: draw the line ' + a.draw }; }
       if (a.phase === 'open-flip') { if (!B.k.of) { B.k.of = 1; return { wait: 200, shot: a.id + '-crowd' }; } return { tap: [Math.round(W * 0.22), Math.round(HH * 0.62)], wait: 1500, note: 'gal: turn it over' }; }
-      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov + ' hits ' + galHits() }; } }
+      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov + ' hits ' + galHits() + ' boxes ' + galBoxes() }; } }
       if (a.phase === 'test' && !a.view && !B.k['cr' + a.tries]) { B.k['cr' + a.tries] = 1; return { wait: 500, shot: `${a.id}-crew${a.tries}` }; }
       if (a.phase === 'test' && a.ev.some((e) => /^above/.test(e)) && !B.k.ab) { B.k.ab = 1; return { wait: 200, shot: `${a.id}-above`, note: 'gal: ' + a.ev.slice(-1)[0] }; }
       if (a.busy || a.phase !== 'puzzle') return { wait: 300, note: 'gal: ' + a.phase };
@@ -1037,7 +1056,7 @@
     // card) with its numbers, then a tap closes the card
     eve(a) {
       const K = B.k;
-      if (!K['e' + a.phase]) { K['e' + a.phase] = 1; return { wait: a.phase === 'dusk' ? 1200 : 2200, shot: `eve-${a.phase}`, note: `eve: ${a.phase} lit ${a.lit}/${a.of} reach ${a.reach} figs ${a.figs} shadows ${a.shadows}` }; }
+      if (!K['e' + a.phase]) { K['e' + a.phase] = 1; return { wait: ({ dusk: 1200, rise: 3200, city: 5200, down: 4600, card: 1500 })[a.phase] || 2200, shot: `eve-${a.phase}`, note: `eve: ${a.phase} lit ${a.lit}/${a.of} reach ${a.reach} figs ${a.figs} shadows ${a.shadows}` }; }
       if (a.phase === 'card' && !K.cardTap) { K.cardTap = 1; return { tap: [Math.round(W / 2), Math.round(HH / 2)], wait: 1200, note: 'eve: a tap closes the card' }; }
       return { wait: 400 };
     },

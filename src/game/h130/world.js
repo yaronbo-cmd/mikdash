@@ -185,7 +185,10 @@ export function galDraw(X, side, layout, o = {}) {
       }
       const re = out + s * 0.12;
       rail.push(along(0, re - 0.1, re + 0.1, Y.GFLOOR + GEO.RAIL - 0.12, Y.GFLOOR + GEO.RAIL, s0, s1));
-      rail.push(along(0, re - 0.04, re + 0.04, Y.GFLOOR + 0.3, Y.GFLOOR + GEO.RAIL - 0.12, s0, s1));   // (the balustrade's boards: what sinks under the top rail is cut)
+      // (build 130 part 3: the balustrade open — thin balusters under the top rail, not a board — so from the seats above the men and the
+      //  torch below show between them; the top rail is what judges the sight)
+      rail.push(along(0, re - 0.05, re + 0.05, Y.GFLOOR + 0.25, Y.GFLOOR + 0.35, s0, s1));
+      { const nb = Math.max(1, Math.round((s1 - s0) / 0.6)); for (let i = 1; i < nb; i++) { const a = s0 + ((s1 - s0) * i) / nb; rail.push(along(0, re - 0.035, re + 0.035, Y.GFLOOR + 0.35, Y.GFLOOR + GEO.RAIL - 0.12, a - 0.035, a + 0.035)); } }
       for (const a of J) if (a >= s0 && a <= s1) rail.push(along(0, re - 0.08, re + 0.08, Y.GFLOOR, Y.GFLOOR + GEO.RAIL, a - 0.08, a + 0.08));
     }
     inst(X, M.n5limeD, corb, all); inst(X, M.n5cedarD, joist, all); inst(X, M.n5cedarL, plank, all); inst(X, M.n5cedarD, rail, all); seatM = inst(X, M.n5cedar, seat, all);
@@ -226,7 +229,9 @@ function siteBuild(X) {
     for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1]]) all.push(box(X, M.n5cedarD, x - 0.1, GEO.FLOOR, z - 0.1, x + 0.1, top + 1.2, z + 0.1));
     all.push(box(X, M.n5cedarL, x0, top, z0, x1, top + 0.15, z1));
     const w = SH130.crew ? SH130.crew.add((x0 + x1) / 2, (z0 + z1) / 2, { role: 'hammer', item: 'mallet', fx: (x0 + x1) / 2 + (Math.abs(x1 - x0) < 3 ? -1 : 0), fz: (z0 + z1) / 2 + (Math.abs(x1 - x0) >= 3 ? -1 : 0), crew: 1 }) : null;
-    if (w) { w.a.y = w.a.fixedY = top + 0.15; men.push(w); }
+    // (build 130 part 3: the site's masons are the world's crews, not an act's men — the figures gate takes them out of an act's frame
+    //  quietly instead of reporting them cut)
+    if (w) { w.a.y = w.a.fixedY = top + 0.15; w.a.gang = 0; men.push(w); }
   }
   for (const [x, z, n] of CS.piles) for (let i = 0; i < n; i++) { const r = Math.floor(i / 3), c = i % 3; all.push(box(X, M.n5lime, x + (c - 1) * 1.1 - 0.5, GEO.FLOOR + r * 0.7, z - 0.4 + r * 0.2, x + (c - 1) * 1.1 + 0.5, GEO.FLOOR + r * 0.7 + 0.65, z + 0.4 + r * 0.2)); }
   SH130.site = { all, men };

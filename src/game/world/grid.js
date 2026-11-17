@@ -1100,7 +1100,7 @@ const S08 = {
   // (b131 look round, המחשה) the pour's work places in each section's own frame (lx across, lz toward the near board; pourlv.js toWorld):
   // the hearth with the next cauldron left of the near board (the approved sample's place), the stones' heap right of it, where two
   // pairs of porters take each stone and carry it in
-  pourAt: { hearth: [-9.5, 5.5], heap: [9.2, 2.4] },
+  pourAt: { hearth: [-9.5, 5.5], heap: [8.7, 1.9] },
   // ── h131 frame ── the frame's three works and the finale (all המחשה): level 1 the joined frame as the crew set it down — its shift
   // [dx, dz] and turn (degrees) from the stakes; level 2 the four loose beams as the crew laid them inside the place — each its middle
   // and its turn (0 along x, 90 along z); level 3 the frame pegged at three corners, the one pegged off its stake turned about NW;

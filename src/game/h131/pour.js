@@ -75,7 +75,7 @@ export const POUR_ACT = {
     //  little toward the near board, so the cauldron's crew stand above the instruction line, large at the near edge)
     const FOV = 31, AIM_Z = 1.9;
     function camOf() {
-      const aspect = innerWidth / Math.max(1, innerHeight), p = 50 * Math.PI / 180; let dist = 21.5 + (50 - 35) / 45 * 3.5; if (aspect < 1.75) dist *= Math.pow(1.75 / aspect, 0.85);
+      const aspect = innerWidth / Math.max(1, innerHeight), p = 50 * Math.PI / 180; let dist = 21.5 + (50 - 35) / 45 * 3.5; if (aspect < 1.75) dist *= Math.pow(1.75 / aspect, 0.85); dist *= 1.08;   // (a little farther than the sample: the hearth at its left and the stones' heap at its right whole in the frame)
       const e = toWorld(lv, 0, 0.15 + Math.sin(p) * dist, AIM_Z + Math.cos(p) * dist), t = toWorld(lv, 0, 0.15, AIM_Z);
       return { p: e, t };
     }

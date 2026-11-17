@@ -157,7 +157,8 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   if (H20_FULL && !H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
   // ── /h120 ──
   // ── h130 W-wire ── (TEMPORARY) the wood station's page: __H109_ONLY = 'wood' with __H130_FULL — the new stage 05 in the old one's place
-  const H130_W = H9_ONLY === 'wood' && (() => { try { return !!globalThis.__H130_FULL; } catch (e) { return false; } })();
+  // (__H130_WOOD alone: the same pack on a page that keeps its save — a reload in mid-work resumes it, as the real stage page will)
+  const H130_W = (() => { try { return (H9_ONLY === 'wood' && !!globalThis.__H130_FULL) || !!globalThis.__H130_WOOD; } catch (e) { return false; } })();
   // ── /h130 W-wire ──
   // ── h128 ── a stage-06 minigame's own page, and the whole of stage 06 on its own page (window.__H128_FULL, or ?stage=6 / #stage=6):
   // a fresh game with stages 01–05 done. (Stage 03 has works of the kinds 'steps' and 'close' too: stage 06's pages of those two kinds

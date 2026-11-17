@@ -841,6 +841,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     props().marker(null);
     phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
     QK.run = 0;   // ── h120 ── ── /h120 ──
+    if (act) { const a0 = act; act = null; log('act again', mission.id); call(a0.end, {}); }   // ── h129 ── (closing round: an act begun again over one still on — the probes' vaultN, the first act after a skip during the stage's opening — left the first one's centering, stone and masons standing in the arch's picture: the old one ends first) ── /h129 ──
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
     // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's

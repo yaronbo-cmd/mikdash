@@ -21,7 +21,7 @@
  * hall and looks down on the ring.
  * The model: model.js (legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts). Places: BOOK.s07.
  */
-import { VAULT_LV, LEG, WEDGE, QUICK, LOSS, legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts, qOf, starsOf, lossPts } from './model.js';
+import { VAULT_LV, LEG, WEDGE, QUICK, LOSS, legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, wedgePreview, jointState, joints, shoulder, vaultPts, qOf, starsOf, lossPts } from './model.js';
 import { SH7, mats7, box, faceCrack, crackAng, fallen, ringGeos, ringCentering, centering, own, setBusy } from './world.js';
 import { createVoices } from './sound129.js';
 import { holdLens } from './ui7.js';
@@ -248,7 +248,8 @@ export const VAULT = {
     function lightSet(list) {
       for (const l of lights.splice(0)) root.remove(l);
       mortar.forEach((q) => { q.visible = true; });
-      list.forEach((j, i) => { if (j.see !== 'light') return; const jj = jointOfPair(i, Math.sign(j.imb) || 1); lights.push(lightQuad(jointA(jj), G.big ? 0.3 : 0.1)); if (mortar[jj - 1]) mortar[jj - 1].visible = false; });
+      // (R2: a hair of light while the joint starts to open, the full strip when it is dangerous and after)
+      list.forEach((j, i) => { const stt = j.state || (j.see === 'light' ? 'danger' : 'steady'); if (stt === 'steady') return; const jj = jointOfPair(i, Math.sign(j.imb) || 1); lights.push(lightQuad(jointA(jj), (G.big ? 0.3 : 0.1) * (stt === 'opening' ? 0.3 : 1))); if (mortar[jj - 1]) mortar[jj - 1].visible = false; });
     }
     // (part A's light: the crown's top joints when the press lifts it)
     const topJ = G.n % 2 ? [(G.n - 1) / 2, (G.n + 1) / 2] : [G.n / 2], topL = topJ.map((j) => { const q = lightQuad(jointA(j), 1); q.visible = false; return q; });
@@ -336,7 +337,7 @@ export const VAULT = {
     const wedgeTo = (i, s) => { const w = W[i + s], sg = sgOf(s); return [w.p[0], w.p[1], w.p[2] + sg * w.o * (G.big ? 1.8 : 0.6)]; };
     function syncB() {
       for (let i = 0; i < L.pairs; i++) for (const s of ['L', 'R']) W[i + s].o = SB.pairs[i][s];
-      lightSet(joints(SB));
+      lightSet(joints(SB)); WS.key = '';
       const avg = SB.pairs.reduce((a, p) => a + p.L + p.R, 0) / (2 * L.pairs); cenTop.position.y = -avg * (G.big ? 0.5 : 0.25);
     }
     function wedgeUnder(p) {
@@ -373,7 +374,38 @@ export const VAULT = {
       }
       syncB();
     }
+    // ── R2 (the review, rule 67): the joint warns in the world before it opens, as the drag goes — each pair's state the drag in hand
+    //    would leave (wedgePreview): steady (dark, quiet), opening (a hair of light, a little dust, a short creak, the centering shifts a
+    //    finger's width toward it), danger (the light widens, more dust, a long creak); the crack and the fallen stone come only on the
+    //    release, by today's rules
+    const WS = { key: '', dust: [], cz: 0, worst: 'steady' };
+    function warnB(dt) {
+      const st = SB.pairs.map((p, i) => {
+        let imb = p.L - p.R + p.bias;
+        for (const sd of ['L', 'R']) { const w = W[i + sd]; if (w && w.drag) imb = wedgePreview(SB, i, sd, w.drag); }
+        return { imb, state: jointState(imb) };
+      });
+      const rank = (q) => ['steady', 'opening', 'danger', 'crack', 'stone'].indexOf(q);
+      const key = st.map((q) => q.state + (q.imb > 0 ? '+' : '-')).join(',');
+      if (key !== WS.key) {
+        const was = WS.key ? WS.key.split(',').map((q) => q.slice(0, -1)) : [];
+        st.forEach((q, i) => { const r0 = rank(was[i] || 'steady'), r1 = rank(q.state); if (r1 > r0 && q.state === 'opening') { V.groan(); ev('warn:open:' + i); } if (r1 > r0 && rank(q.state) >= 2) ev('warn:danger:' + i); });
+        WS.key = key; lightSet(st);
+      }
+      // (the dust from each joint that warns, the long creak while one is dangerous)
+      let worst = 0, sgW = 0;
+      st.forEach((q, i) => {
+        const r = rank(q.state); if (r > worst) { worst = r; sgW = Math.sign(q.imb); }
+        if (r < 1) { WS.dust[i] = 0; return; }
+        WS.dust[i] = (WS.dust[i] || 0) - dt;
+        if (WS.dust[i] <= 0) { WS.dust[i] = r >= 2 ? 0.35 : 0.9; const a = jointA(jointOfPair(i, Math.sign(q.imb) || 1)), rr = G.r0; X.dust(G.xF - 0.1, G.sp + rr * Math.sin(a), G.zc + rr * Math.cos(a), r >= 2 ? 3 : 1, G.big ? (r >= 2 ? 0.6 : 0.3) : (r >= 2 ? 0.25 : 0.12)); if (r >= 2) V.dust(); }
+      });
+      WS.worst = ['steady', 'opening', 'danger', 'crack', 'stone'][worst];
+      V.creak(worst >= 2 ? 0.75 : 0);
+      const cz = worst >= 1 ? -sgW * (G.big ? 0.12 : 0.04) : 0; WS.cz += (cz - WS.cz) * (1 - Math.exp(-dt * 8)); cenTop.position.z = WS.cz;
+    }
     function drawB(dt) {
+      warnB(dt);
       // (each wedge eases to its place: a free one slides, a loaded one jerks a little; under the finger it follows the drag)
       const ld = wedgeLoads(SB);
       for (let i = 0; i < L.pairs; i++) for (const s of ['L', 'R']) {
@@ -496,7 +528,7 @@ export const VAULT = {
         }
         if (SB) {
           const ld = wedgeLoads(SB);
-          o.B = { lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
+          o.B = { warn: WS.worst, states: WS.key, lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
             w: Object.fromEntries(Object.entries(W).map(([id, w]) => { const q = scr(w.g.position.toArray()), d = scr([w.g.position.x, w.g.position.y, w.g.position.z + (id[1] === 'L' ? -1 : 1)]); return [(+id[0] + 1) + id[1], { at: q, out: [d[0] - q[0], d[1] - q[1]] }]; })),
             sh: { L: scr(shoulderPt('L')), R: scr(shoulderPt('R')) }, stepPx: Math.round(0.1 * innerHeight) };
         }

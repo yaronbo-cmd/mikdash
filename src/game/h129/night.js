@@ -326,7 +326,7 @@ export const NIGHT = {
       const Ls = LOCKS(), GC = N7.gateCam, tn = Math.tan((GC.fov * Math.PI) / 360);
       for (let i = 0; i < Ls.length; i++) {
         // (the whole gateway in the frame, its top not cut: back from its inner face so far that its height and a margin fill the lens)
-        const L = Ls[i], back = (L.h * GC.fill) / (2 * tn), yc = L.at[1] + L.h * GC.mid, eye = [L.at[0] + L.n[0] * back, yc + GC.up, L.at[2] + L.n[1] * back], aim = [L.at[0], yc, L.at[2]];
+        const L = Ls[i], GE = (N7.gateEye || {})[L.id], back = GE ? GE.back : (L.h * GC.fill) / (2 * tn), yc = L.at[1] + L.h * GC.mid, eye = [L.at[0] + L.n[0] * back, yc + (GE ? GE.up : GC.up), L.at[2] + L.n[1] * back], aim = [L.at[0], yc, L.at[2]];   // (F3: a gate's own eye — BOOK.s07.night.gateEye)
         gatePlace(L); leavesSet(0); boltSet(0); G1.lit.intensity = GC.lamp * Math.min(1, L.w / 10); A.lockS = 'open';
         A.lockI = i; A.fov = GC.fov; await fade(eye, aim, GC.fov); X.line('נועל: ' + L.label, 1800);
         await X.wait(0.4);

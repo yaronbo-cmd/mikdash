@@ -330,7 +330,7 @@ export const POUR_ACT = {
       for (const w of men) filmMen.add(w);
       const FE = toWorld(lv, 7.5, 6.2, 16.5), FT = toWorld(lv, 0.5, 0.8, 1.2);
       X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40 && !three, at, flags: { patches: A8.patches, spilled: +A8.spilled.toFixed(2), losses: A8.losses.slice(), used: sim.cauldron.used, seals: A8.seals.length },
-        film: { eye: FE, aim: FT, secs: 2.0, own: () => men.map((w) => w.a), after: () => { for (const w of men) { filmMen.delete(w); gang.remove(w); } } } });
+        film: { eye: FE, aim: FT, secs: 2.0, kohen: false, own: () => men.map((w) => w.a), after: () => { for (const w of men) { filmMen.delete(w); gang.remove(w); } } } });
     }
     /** the pour in the save: what stands in the segment (set), the stones in, the losses so far (a reload resumes it) */
     function keepWork() {

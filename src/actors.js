@@ -375,6 +375,10 @@ const ITEM_DEF = {
       P(rod([0, 0.2, 0], [0, -1.45, 0.06], 0.035, 0.03, 5), WOOD, 0, { rough: 0.85 }),
       P(box(0.72, 0.08, 0.1, [0, -1.5, 0.08]), WOOD2, 0, { rough: 0.85 }),
       ...[-0.3, -0.1, 0.1, 0.3].map((x) => P(box(0.04, 0.2, 0.04, [x, -1.62, 0.12]), WOOD2, 0, { rough: 0.85 }))] },
+    // ── h131 ── a wooden spade, all wood (the pit at Beit Kerem: the diggers throw the scraped earth away; no iron near the altar's stones) ── /h131 ──
+    spade: { hold: 'two', build: () => [
+      P(rod([0, 0.2, 0], [0, -1.3, 0.05], 0.035, 0.032, 5), WOOD, 0, { rough: 0.85 }),
+      P(box(0.34, 0.05, 0.46, [0, -1.48, 0.16], [0.35, 0, 0]), WOOD2, 0, { rough: 0.85 })] },
     saw: { hold: 'two', build: () => [
       P(box(0.02, 0.13, 2.3, [0, -0.26, 1.15]), '#B9B6AE', 0, { metal: 0.35, rough: 0.4 }),
       P(box(0.03, 0.025, 2.3, [0, -0.19, 1.15]), '#8C6A43', 0, { rough: 0.8 }),

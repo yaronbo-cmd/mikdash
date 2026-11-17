@@ -1025,6 +1025,49 @@
       return carry(a.cut === 'near' || a.cut === 'more' || (!a.cut && a.wormy && a.best == null) ? 'out' : 'clean');   // (the worm in two places: no cut saves it)
     },
     // ── /h130 wood ──
+    // ── h131 pit ── (build 131, stage 08 part 1: the pit at Beit Kerem, h131/pit.js dbg()). Plays a stone as a careful player: scrapes
+    // the earth off every side that still holds it (a stroke out from the lip and back), then carries the lever's tip under the right
+    // lip (level 2: the deep side; level 3: the free stone first, the one nobody rests on) and holds a press on the stone until it is
+    // out. The nail check: the thumb round the rim, slowly. __BOT.bad 'chip': level 2's lever under the shallow side, pressed until it
+    // knocks (pit.chip −20); 'order': level 3's holder lifted first, until its neighbour knocks. Stills: __BOT_SHOTS131.
+    h8pit(a) {
+      const K = B.k, bad = B.bad || '', has = (k) => bad.split(',').includes(k), shots = !!window.__BOT_SHOTS131, SD = ['N', 'E', 'S', 'W'];
+      if (!a || a.busy) { if (shots && a && a.shot === 'hoist' && !K['shotH' + a.id]) { K['shotH' + a.id] = 1; return { wait: 50, shot: a.id + '-hoist' }; } return { wait: 300, note: 'pit: ' + (a ? a.phase + ' ' + a.shot : '-') }; }
+      if (a.phase === 'check') {
+        if (!a.ring) return { wait: 300 };
+        if (shots && !K['shotN' + a.id]) { K['shotN' + a.id] = 1; return { wait: 100, shot: a.id + '-nail' }; }
+        return { path: a.ring.slice(0, 22), ms: 5200, pathUntil: C(`return !a||a.phase!=='check'||a.busy`), pathMax: 30000, wait: 600, note: 'pit: the thumb round the rim, slowly (at ' + a.thumb + ')' };
+      }
+      if (a.phase !== 'work' || !a.stones) return { wait: 300, note: 'pit: ' + a.phase };
+      if (shots && !K['shotW' + a.id]) { K['shotW' + a.id] = 1; return { wait: 100, shot: a.id + '-work' }; }
+      const S = a.stones.filter((s) => !s.gone && !s.out && !s.knock && s.c);
+      if (!S.length) return { wait: 400, note: 'pit: no stone in the ground' };
+      let s = S.find((q) => !q.holds) || S[0];
+      const wantBad = (a.lv === 3 && has('order') && !window.__BOT_PITBAD) || (a.lv === 2 && has('chip') && !window.__BOT_PITBAD);
+      if (a.lv === 3 && wantBad) { const h = S.find((q) => q.holds && S.some((r) => r.lean === q.i)); if (h) s = h; }
+      const free = (k) => !s.block.includes(SD[k]);
+      // (the side for the lever: level 2 the deep one — or with 'chip' the shallow one, at once; else the open side nearest the eye)
+      let side = -1;
+      if (a.lv === 2 && wantBad) side = s.wrong.findIndex((w, k) => w && s.seen[k]);
+      else if (s.deep) side = SD.indexOf(s.deep);
+      else { let by = -1; for (let k = 0; k < 4; k++) if (free(k) && s.lips[k][1] > by) { by = s.lips[k][1]; side = k; } }
+      const needs = [0, 1, 2, 3].filter((k) => free(k) && s.cover[k] > 0.12);
+      const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
+      if (a.lever === 'seat' && a.li === s.i && a.side === SD[side]) {
+        if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1; return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
+        const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1;
+        return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
+      }
+      if (needs.length && !(a.lv === 2 && wantBad)) {
+        const k = needs.sort((x, y) => s.cover[y] - s.cover[x])[0], p = s.lips[k], q = s.out2[k];
+        // (along the side, out and back: a stroke that starts on the lever's tip sweeps too)
+        return { path: [q, p, q], ms: 900, wait: 350, note: `pit: scrape stone ${s.i} side ${SD[k]} (cover ${s.cover[k]})` };
+      }
+      if (side < 0) return { wait: 400, note: 'pit: no side for the lever' };
+      if (!s.seen[side]) return { wait: 300, note: 'pit: the lip not bared yet' };
+      return { path: [a.tip, s.lips[side]], ms: 900, wait: 900, note: `pit: the lever under stone ${s.i} side ${SD[side]}${a.lever === 'seat' ? ' (moved from ' + a.li + a.side + ')' : ''}` };
+    },
+    // ── /h131 pit ──
     // ── h130 light ── (build 130, station 3 "חמישים אמה של אור": the player of kind 'light', h130/light.js dbg()). The wick: the left
     // thumb holds the garment, the right pulls a strip off its edge at 0.7 amah a second (a mouse: the strip alone); the oil: hin, hin,
     // half a hin; the ladder: each hand lifted as the jar passes the middle going away from it (or when it is still), drawn up to the
@@ -1098,7 +1141,94 @@
       return { wait: 400 };
     },
     // ── /h130 eve ──
+    // ── h131 frame ── (build 131, stage 08 part 2 "המלבן": h131/frame.js dbg()). A careful player: level 1 drags the NW corner onto its
+    // stake, then the farthest corner round it; level 2 each loose end to its own stake in order; level 3 taps the peg of the corner off
+    // its stake, then drags the crooked corner home; then the diagonal off its rest onto the frame. Each drag is held until the corner
+    // is within half an amah of its stake (the frame follows late) and let go there. __BOT.bad: 'crack' (the diagonal lowered before the
+    // frame is square, then pushed: frame.crack, −20), 'peg' (level 3: a right peg pulled first: a mistake), 'pop' (level 2: a joined
+    // end pulled past its board's length). __BOT_SHOTS131: a still at the first look, a stuck diagonal, the square.
+    h8frame(a) {
+      B.fig8(a);
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
+      if (!a || a.done) { if (shots && a && !K.shotSq) { K.shotSq = 1; return { wait: 250, shot: a.id + '-square' }; } return { wait: 300 }; }
+      if (a.busy || a.settled === false) return { wait: 250 };
+      if (shots && !K.shot0) { K.shot0 = 1; return { wait: 300, shot: a.id + '-look', note: 'frame: ' + JSON.stringify(a.figs) }; }
+      const hold = (i, to, note) => ({ path: [a.P[i].at, to], ms: 900, keep: 7000, release: C(`return !a||!a.P||a.P[${i}].off<0.42`), wait: 700, note });
+      if (a.diag === 2) {
+        if (shots && !K.shotSt) { K.shotSt = 1; return { wait: 300, shot: a.id + '-stuck', note: 'frame: the diagonal stuck at ' + a.worst }; }
+        if (has('crack') && !K.cracked) { K.cracked = 1; const p = a.stuckAt; return { path: [p, [p[0], p[1] + 50]], ms: 500, wait: 1600, note: 'frame: the stuck diagonal pushed by force' }; }
+        return { tap: a.stuckAt, wait: 1200, note: 'frame: lift the stuck diagonal' };
+      }
+      const lower = () => ({ path: [a.diagAt, [a.diagAt[0], a.diagAt[1] - 20], a.mid], ms: 1100, keep: 1500, wait: 2200, note: 'frame: the diagonal lowered' });
+      if (a.square) return lower();
+      if (has('crack') && !K.early && a.dmg === 0) { if (a.focus !== 'wide') { if (!K.lifted) { K.lifted = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (the whole frame)' }; } return { wait: 300 }; } K.early = 1; return lower(); }
+      if (K.lifted === 1 && a.dmg) { K.lifted = 2; return { eval: '__T.game.h109._look(0,0)', wait: 1600, note: 'frame: the look home' }; }
+      if (a.lv === 1) {
+        const NW = a.P[0];
+        if (!NW.seat) return hold(0, NW.to, 'frame: the NW corner to its stake (off ' + NW.off + ')');
+        const far = a.P.filter((p) => !p.seat).sort((p, q) => q.off - p.off)[0];
+        if (far) return hold(far.i, far.to, 'frame: turn about NW: ' + far.k + ' (off ' + far.off + ')');
+        return { wait: 300 };
+      }
+      if (a.lv === 2) {
+        if (has('pop') && !K.popped && a.J >= 2) { const p = a.P.find((q) => q.seat && q.joined && q.side === 'S') || a.P.find((q) => q.seat && !q.joined); if (p) { K.popped = 1; const o = a.P.find((q) => q.side === p.side && q.i !== p.i); return { path: [o.at, [o.at[0] + (o.at[0] - p.at[0]) * 0.6, o.at[1] + (o.at[1] - p.at[1]) * 0.6]], ms: 1200, keep: 2500, wait: 900, note: 'frame: a board pulled past its length (the mistake)' }; } }
+        const p = a.P.find((q) => !q.seat);
+        if (p) return hold(p.i, p.to, 'frame: end ' + p.k + ' of ' + p.side + ' (off ' + p.off + ')');
+        return { wait: 300 };
+      }
+      // level 3
+      const bent = a.P.find((q) => q.peg && q.off > 0.05);
+      const free = a.P.filter((q) => !q.seat).sort((p, q) => q.off - p.off)[0];
+      // (the close shot shows only the corner worked at: as a player, try the crooked corner first; it will not come, and the shot
+      // goes to the bent peg. The right peg pulled by mistake is seen from the lifted look)
+      if (bent && a.focus !== bent.k && a.focus !== 'wide' && free && (K.tries3 | 0) < 3) { K.tries3 = (K.tries3 | 0) + 1; return { path: [free.at, [free.at[0] + (free.to[0] - free.at[0]) * 1.8, free.at[1] + (free.to[1] - free.at[1]) * 1.8]], ms: 900, keep: 2200, wait: 900, note: 'frame: the crooked corner ' + free.k + ' tried (it will not come)' }; }
+      if (has('peg') && !K.wrongPeg) {
+        if (a.focus !== 'wide') { if (!K.pegLift) { K.pegLift = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (to see the pegs)' }; } return { wait: 300 }; }
+        K.wrongPeg = 1; return { tap: a.P[0].at, wait: 900, note: 'frame: a right peg pulled (the mistake)' };
+      }
+      if (bent && a.focus !== bent.k && a.focus !== 'wide') { if (!K.pegLift) { K.pegLift = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (the bent peg not shown)' }; } return { wait: 300 }; }
+      if (bent) return { tap: bent.at, wait: 900, note: 'frame: pull the peg of ' + bent.k };
+      if (K.pegLift === 1) { K.pegLift = 2; return { eval: '__T.game.h109._look(0,0)', wait: 1600, note: 'frame: the look home' }; }
+      if (free) return hold(free.i, free.to, 'frame: the crooked corner ' + free.k + ' home (off ' + free.off + ')');
+      return { wait: 300 };
+    },
+    // ── /h131 frame ──
+    // ── h131 finale ── (build 131, stage 08 part 4 "הסיום": h131/finale.js dbg()). The timbers: two fingers at the grip (the south-east
+    // corner) pulled along the south timber (east), then along the east one (south) — by mouse one drag; __BOT.bad 'east' grabs the
+    // east one first (held: no loss). The cloth: rows across the yesod, west to east and back, until the crew wipes the rest. The jar:
+    // a drag up on it, held until the water is down. Stills (__BOT_SHOTS131): the first pull, the cloth half way, the water running.
+    h8finale(a) {
+      B.fig8(a);
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
+      if (!a || a.done) return { wait: 300 };
+      if (a.step === 'rise') { if (shots && !K.shotR) { K.shotR = 1; return { wait: 2600, shot: a.id + '-rise' }; } return { wait: 300 }; }
+      if (a.busy) { if (shots && a.step === 'water' && !K.shotW) { K.shotW = 1; return { wait: 200, shot: a.id + '-water-down' }; } return { wait: 250 }; }
+      if (a.step === 'pull') {
+        let k = a.out.S ? 'E' : 'S'; if (has('east') && !K.east) { K.east = 1; k = 'E'; }
+        const d = a['dir' + k], g = a.grip, n = [-d[1] * 22, d[0] * 22], f1 = [g[0] + n[0], g[1] + n[1]], f2 = [g[0] - n[0], g[1] - n[1]];
+        if (MOUSE_P) return { path: [g, [g[0] + d[0] * 170, g[1] + d[1] * 170]], ms: 1400, keep: 1200, wait: 1500, note: 'finale: pull ' + k + ' (mouse)' };
+        const fr = []; for (let i = 0; i < 4; i++) fr.push([f1, f2]); for (let i = 1; i <= 28; i++) fr.push([[f1[0] + d[0] * 6 * i, f1[1] + d[1] * 6 * i], [f2[0] + d[0] * 6 * i, f2[1] + d[1] * 6 * i]]); for (let i = 0; i < 16; i++) fr.push(fr[fr.length - 1]);
+        const r = { seq: fr, ms: 50, wait: 1500, note: 'finale: two thumbs pull ' + k };
+        if (shots && !K['shotP' + k]) { K['shotP' + k] = 1; r.seqShot = [24, a.id + '-pull-' + k]; }
+        return r;
+      }
+      if (a.step === 'white') {
+        if (shots && a.cover > 0.4 && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
+        const P = []; a.rows.forEach((r, i) => { const [p, q] = i % 2 ? [r[1], r[0]] : r; P.push(p, q); });
+        if (window.__BOT_HALF && !K.half) { K.half = 1; return { path: P.slice(0, Math.ceil(P.length / 2)), ms: 3500, wait: 600, note: 'finale: half the cloth (a reload follows)' }; }
+        if (window.__BOT_HALF && K.half) return { wait: 400, note: 'finale: waiting for the reload' };
+        return { path: P, ms: 7000, wait: 600, note: 'finale: the cloth over the yesod (cover ' + a.cover + ')' };
+      }
+      if (a.step === 'water') {
+        if (shots && a.front > 0.4 && !K.shotF) { K.shotF = 1; return { wait: 50, shot: a.id + '-water' }; }
+        return { path: [a.jar, [a.jar[0], a.jar[1] - 140]], ms: 600, keep: 14000, release: C(`return !a||a.step!=='water'||a.busy${shots ? "||(a.front>0.45&&!__BOT.k.shotF)" : ''}`), wait: 400, note: 'finale: tilt the jar' };
+      }
+      return { wait: 300 };
+    },
+    // ── /h131 finale ──
   };
+  // ── h131 ── (build 131: the figures gate's report read at every step of stage 08's frame and finale; whatever it names is kept) ── /h131 ──
+  B.fig8 = (a) => { let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; if (r && r.length) B.figBad.push({ id: a && a.id, step: a && (a.step || a.focus), r: JSON.stringify(r).slice(0, 300) }); };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
     if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };
@@ -1137,7 +1267,7 @@
   // enough to keep the stream off the timber and off the reeds' corner. The finger is one held touch (or the mouse's left button) that
   // the page moves every 100 ms: __BOT8.f() gives its point from the act's grab (the drag is relative to where it landed). __BOT8_BAD:
   // the first pour of the run at one spot only, until the act sets it (as the test: a hollow; then the re-pour played well). ── /h131 ──
-  const P8 = { 1: { order: [], tilt: 0.85 }, 2: { order: [-3.65, 3.85, 0], tilt: 0.9 }, 3: { order: [-4.6, -0.95, 2.9], tilt: 0.9 } };
+  const P8 = { 1: { order: [], tilt: 0.85, bad: [-4, 0.7] }, 2: { order: [-3.65, 3.85, 0], tilt: 0.9, bad: [-4, 0.7] }, 3: { order: [-4.6, -0.95, 2.9], tilt: 0.9, bad: [0, 1.0] } };   // (bad: the test's one spot and tilt)
   const tOf8 = (x) => (x + 6 - 0.4) / 11.2;
   const B8 = (window.__BOT8 = window.__BOT8 || { ph: 0, since: 0, still: 0, rest: null, until: 0, key: '', bad: !!window.__BOT8_BAD });
   B8.f = () => {
@@ -1151,13 +1281,13 @@
     if (window.__BOT8_STOP && a.filled > window.__BOT8_STOP) return null;   // (a probe's reload in the middle of a pour)
     if (a.setting) return null;
     let x;
-    if (B8.badRun) x = -4;
+    if (B8.badRun) x = P.bad[0];
     else {
       if (B8.ph < P.order.length && (B8.still > 2 || now8 - B8.since > 16)) { B8.ph++; B8.since = now8; B8.still = 0; }
       x = P.order[B8.ph];
       if (B8.ph >= P.order.length) { if (B8.rest == null || now8 > B8.until || B8.still > 2) { B8.rest = a.view ? a.view.lowX : 0; B8.until = now8 + 4; B8.still = 0; } x = B8.rest; }
     }
-    const tilt = B8.badRun ? 0.7 : P.tilt, tw = Math.max(0, Math.min(1, tOf8(x)));
+    const tilt = B8.badRun ? P.bad[1] : P.tilt, tw = Math.max(0, Math.min(1, tOf8(x)));
     if (!a.grab) return [Math.round(W * 0.25), Math.round(HH * 0.86)];
     const g = a.grab; return [Math.round(Math.max(8, Math.min(W - 8, g.sx + (tw - g.t0) * 0.42 * W))), Math.round(Math.max(8, Math.min(HH - 8, g.sy - tilt * 0.3 * HH)))];
   };

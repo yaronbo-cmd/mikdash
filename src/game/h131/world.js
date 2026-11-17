@@ -49,6 +49,7 @@ export function mats(X) {
   P0.M.y8hearth = std('#7C7268');
   P0.M.y8ash = std('#4A4440');
   P0.M.y8reed = std('#B7A76A', { roughness: 0.7 });   // (a reed: the hole's keeper)
+  P0.M.y8hole = new T.MeshBasicMaterial({ color: '#1D140C' });   // (a reed's open hole, cut at the yesod's top)
   return P0.M;
 }
 /** a box from x0..x1, y0..y1, z0..z1 */
@@ -159,11 +160,19 @@ function siteSync(X, M) {
   // step: st.pour.prep) on, until the finale pulls the timbers; the reeds stay as the holes (the pour act draws its own reeds while it
   // plays level 3: POUR3D.act)
   const prep = has('pour1') || (st.pour && st.pour.prep) || st.crews;
+  // (once the third section is poured the mix holds the joint: the peg is gone, and the reeds are cut at the yesod's top — their open
+  // holes, where the finale's water goes down; nothing of the pour stands above the top)
+  const set3 = has('pour3') || st.crews;
   if (prep && !finale) {
     for (const k of ['E', 'S']) { const b = S8.wood[k]; box(X, Mt.y8woodD, b[0], F, b[1], b[2], Y1, b[3], S.drawn); }
-    const J = S8.wood.joint, pg = new T.Mesh(new T.CylinderGeometry(0.16, 0.2, 0.9, 8), Mt.y8wood); pg.position.set(J[0], Y1 + 0.05, J[1]); pg.castShadow = true; S.drawn.add(pg);
+    if (!set3) { const J = S8.wood.joint, pg = new T.Mesh(new T.CylinderGeometry(0.16, 0.2, 0.9, 8), Mt.y8wood); pg.position.set(J[0], Y1 + 0.05, J[1]); pg.castShadow = true; S.drawn.add(pg); }
   }
-  if (prep && POUR3D.act !== 3) for (const [x, z] of S8.reeds) { const r = new T.Mesh(new T.CylinderGeometry(0.16, 0.16, 1.7, 10), Mt.y8reed); r.position.set(x, F + 0.85, z); r.castShadow = true; S.drawn.add(r); }
+  if (prep && POUR3D.act !== 3) for (const [x, z] of S8.reeds) {
+    if (set3) {
+      const r = new T.Mesh(new T.RingGeometry(0.115, 0.17, 14), Mt.y8reed); r.rotation.x = -Math.PI / 2; r.position.set(x, Y1 + 0.012, z); S.drawn.add(r);
+      const h = new T.Mesh(new T.CircleGeometry(0.12, 12), Mt.y8hole); h.rotation.x = -Math.PI / 2; h.position.set(x, Y1 + 0.014, z); S.drawn.add(h);
+    } else { const r = new T.Mesh(new T.CylinderGeometry(0.16, 0.16, 1.7, 10), Mt.y8reed); r.position.set(x, F + 0.85, z); r.castShadow = true; S.drawn.add(r); }
+  }
   // the mix: his sections, then the crews' rest (after the third), white after the finale (the pour lane draws its own while it plays)
   const mat = finale ? Mt.y8white : Mt.y8mix;
   const whole = has('pour3') || st.crews;

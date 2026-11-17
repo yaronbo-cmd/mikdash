@@ -26,8 +26,8 @@ const STEP = 1 / 60;
 /** the pour's words (rule 64: short; the spec's own where it has them) */
 export const POUR_LINES = Object.freeze({
   w1: 'היציקה: מקטע בצפון', w2: 'היציקה: מקטע באמצע', w3: 'היציקה: הקרן הדרומית מערבית, עם הקנים',
-  prep: 'קודם מכינים את מה שיישאר ריק', joint: 'קבעו את מפגש הקורות', reeds: 'תקעו את שני הקנים', reed2: 'עוד קנה',
-  stones: 'הפילו את האבנים פנימה', pour: 'שמאל: הזיזו והטו את המרזב · ימין: המצלמה', mouse: 'גררו: הזיזו והטו את המרזב',
+  prep: 'מכינים את המקום הריק', joint: 'קבעו את מפגש הקורות', reeds: 'תקעו את שני הקנים', reed2: 'עוד קנה',
+  stones: 'הפילו את האבנים פנימה', pour: 'הזיזו והטו את המרזב', mouse: 'גררו: הזיזו והטו את המרזב',
   l1: 'החומר זורם למקום הנמוך ומתקשה', l2: 'מעברים צרים: הסדר קובע אם יישאר חלל', l3: 'צמוד לקורה בלי לגלוש, וסביב הקנים בלי לסתום',
   knock: 'המקיש בודק בפטיש עץ', full: 'צליל מלא!', hollow: 'צליל חלול: יש בפנים כיס אוויר', apart: 'הצוות מפרק את המקטע. יוצקים שוב',
   spill: 'גלש מעל הקורה!', reed: 'הקנה נסתם! מחליפים קנה', cauldron: 'קדרה חמה חדשה', three: 'שלושה מקטעים בלי חלל',
@@ -186,7 +186,8 @@ export const POUR_ACT = {
     }
     function loss(flag, atM, at) {
       A8.dmg++; A8.cleanFirst = false; A8.losses.push(flag);
-      const n = Mo.mark(flag, m.id, atM); X.loss(n, at, LOSS[flag] ? LOSS[flag][0] : '');
+      // (the mark's place as the finale reads it, [x, z]; the region's radius in its n, in tenths of an amah)
+      const n = Mo.mark(flag, m.id, [+atM.x.toFixed(2), +atM.z.toFixed(2)], Math.round((atM.r || 1) * 10)); X.loss(n, at, LOSS[flag] ? LOSS[flag][0] : '');
       X.save(); ev('loss:' + flag);
     }
     function startKnock() {
@@ -275,6 +276,7 @@ export const POUR_ACT = {
       else if (A8.phase === 'full') { V.fluidU.uGleamPos.value = -9 + A8.phaseT * 9; V.fluidU.uGleam.value = A8.phaseT < 2.4 ? 1.2 : Math.max(0, 1.2 - (A8.phaseT - 2.4)); if (A8.phaseT > 3.2) { A8.phase = 'done'; finish(); } }
       const S = { phase: A8.phase === 'done' ? 'full' : A8.phase, phaseT: A8.phaseT, seals: A8.seals, knockX: A8.knockX, swingT: A8.swingT, stonesIn: A8.phase === 'prep' || A8.phase === 'intro' ? 0 : null, spillQ: A8.spillQ, spilled: A8.spilled, stainX: A8.stainX, crewOn: A8.phase !== 'prep' && A8.phase !== 'intro' };
       if (A8.phase === 'stones') S.stonesIn = A8.stonesIn;
+      S.reached = A8.reached; if (L.timber && A8.phase === 'pour') S.aimBad = !!landing({ spout: { ...sim.spout, q: 1 } }, lv, C);
       V.frame(dt, S); A8.knockerThere = S.knockerThere;
       // (the probes' frame time: the act's own work each frame — the simulation and the look — and the frame's interval)
       const ms = performance.now() - f0; A8.frames.push(ms); if (A8.frames.length > 240) A8.frames.shift();

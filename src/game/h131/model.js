@@ -93,6 +93,8 @@ export function createH131(save) {
   for (const [k, v] of Object.entries(F)) if (st[k] === undefined) st[k] = v;
   for (const k of KINDS) { if (!st[k] || typeof st[k] !== 'object') st[k] = F[k]; for (const [q, v] of Object.entries(F[k])) if (st[k][q] === undefined) st[k][q] = v; }
   if (st.cur && !PLAN.some((m) => m.id === st.cur)) st.cur = null;
+  // (a pour mark kept before part 3 has its place as {x, z, r}: as [x, z], its radius in n (tenths of an amah), as the finale reads it)
+  if (Array.isArray(st.marks)) for (const k of st.marks) if (k && /^pour\./.test(k.f) && k.at && !Array.isArray(k.at) && Number.isFinite(+k.at.x) && Number.isFinite(+k.at.z)) { if (!(k.n > 0) && +k.at.r > 0) k.n = Math.round(+k.at.r * 10); k.at = [+k.at.x, +k.at.z]; }
   const d = (id) => st.done.includes(id);
   const M = {
     st,

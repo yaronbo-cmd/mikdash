@@ -1097,6 +1097,23 @@ const S08 = {
   sections: { 1: [-44, -19.5, -32, -11.5], 2: [-44, -11.5, -32, -3.5], 3: [-54, 4.5, -42, 12.5] },
   near: { 1: 'N', 2: 'N', 3: 'S' },
   fire: [-32, -31.5], pile: [-44, -31.5],
+  // ── h131 frame ── the frame's three works and the finale (all המחשה): level 1 the joined frame as the crew set it down — its shift
+  // [dx, dz] and turn (degrees) from the stakes; level 2 the four loose beams as the crew laid them inside the place — each its middle
+  // and its turn (0 along x, 90 along z); level 3 the frame pegged at three corners, the one pegged off its stake turned about NW;
+  // the diagonal beam's rest north of the frame ([x0, z0, x1, z1]); the frame men's place out from each corner (amot along the
+  // diagonal); the finale: the lime trough, the water jar's place on the yesod (the kohen pours there), the pile of the pulled timbers
+  // and the frame's boards (east of the altar, on the kevesh's free ground)
+  work: {
+    frame1: { shift: [7, -2], turn: -12 },
+    frame2: { N: [[-37, -14.5], 4], E: [[-27, -3], 95], S: [[-38, 7.5], -3], W: [[-48.5, -2.5], 86] },
+    frame3: { pegs: ['NW', 'NE', 'SW'], wrong: 'NE', turn: 4.5 },
+    diag: [-54, -25.5, -22, -25.5], men: 2.2,
+    lime: [-49, 15.2], jar: [-42, 13.6], water: [-43, 9.5], logs: [-12, 18],
+    // the works' cameras ([eye], [aim]): the frame from the stand's side, high; the finale's pull from the south-east, its cloth from the
+    // south over the whole yesod, its water by the south-west corner
+    cam: { frame: [[-38, 50, -49], [-38, 16, -3]], pull: [[-17, 31, 37], [-29, 16, 4]], white: [[-38, 50, 40], [-38, 16, -4]], water: [[-52, 24, 30], [-50, 16, 9.5]] },
+  },
+  // ── /h131 frame ──
   stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },
   // the stage's cameras on the Mount ([eye], [aim]): the opening from high down to the altar's site (rule 3); the site from the frame's
   // stand; the end: high over the altar's middle, the whole Azarah round it
@@ -1116,11 +1133,21 @@ const S08 = {
     hole: { at: [0, 0], d: 16, depth: 4, dark: 2 },
     stones: { 1: [[-3, -2]], 2: [[3, -1]], 3: [[-1.3, 3], [0, 3.5], [1.3, 3]] },
     cradle: [-10, 4], rejects: [12, 6], stand: [0, 9, 'N'],
+    // (build 131, the pit lane: the work round the pit, המחשה) the places beside the cradle where the stones raised whole wait (one per
+    // stone of a level); the four carriers' places on the rim round the cradle (they hoist with ropes, and carry the cradle by its
+    // poles); the two diggers' places in the pit (they throw the scraped earth onto the spoil on the north rim); the road the carriers
+    // take toward the Mount (round the pit's south and on east-north-east, where the valley opens)
+    row: [[-10.6, 7.8], [-13.4, 6.4], [-13.4, 1.8]],
+    carriers: [[-8.7, 1.4], [-8.7, 6.6], [-11.3, 1.4], [-11.3, 6.6]],
+    diggers: [[-4.5, -5], [5.5, -4.2]],
+    road: [[-10, 4], [-8, 12.5], [4, 14], [22, 10], [48, 0]],
     // the ground round the pit (המחשה): the valley's floor patch drawn round the sheet — its radius, the flat floor's radius round the
     // pit, how far out the hillsides rise and how high (the valley lies about 140 m under the Mount: the hills round it rise that much)
     ground: { R: 3000, flat: 60, rise: 1400, top: 260 },
-    // the opening view: above (0, 34), facing the Mount on the horizon (it lies east-north-east: 13,900 east and 2,200 north)
-    cam: { open: [[-12, 13, 34], [6, 2, -16]], play: [[0, 11, 21], [0, -1, 0]] },
+    // the opening view: facing the Mount on the horizon (it lies east-north-east: 13,900 east and 2,200 north) — (build 131, the pit
+    // lane: composed from the south-west of the pit, so the pit and its crew stand in the lower half, the valley opens beyond them toward
+    // the north-east where its hills are lowest, and their skyline and the sky are clear of the top bar) [eye, aim], [lx, y, lz]
+    cam: { open: [[-18, 7.5, 15], [30, 1.5, -27]], play: [[0, 11, 21], [0, -1, 0]] },
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);
@@ -1147,6 +1174,13 @@ function s08() {
   for (const k of ['1', '2', '3']) e2('section' + k, 'section', mid(C.sections[k]), `מקטע היציקה של רמה ${k}` + (k === '3' ? ', עם הקנים וקורת העץ הדרומית' : ''), ILL, { extra: { near: C.near[k] } });
   e2('fire', 'hearth', C.fire, 'האש והקדרה', ILL);
   e2('pile', 'pile', C.pile, 'ערימת האבנים מהבור', ILL);
+  // ── h131 frame ── ── /h131 frame ──
+  const W8 = C.work;
+  e2('diag', 'beam', mid(W8.diag), 'קורת האלכסון, מונחת עד שהמסגרת רבועה', ILL);
+  e2('lime', 'trough', W8.lime, 'ערבת הסיד והמפה (הליבון במפה, לא בכף ברזל)', 'מידות ג, ד (בזמן הבנייה המחשה)');
+  e2('jar', 'jar', W8.jar, 'כד המים בסיום', ILL);
+  e2('water', 'pour', W8.water, 'כאן נשפכים המים על היסוד', ILL);
+  e2('logs', 'pile', W8.logs, 'ערימת קורות העץ שנשלפו', ILL);
   const SL = { frame: 'עמדת השחקן במלבן', witness: 'עמדת העד', pour: 'עמדת השחקן ביציקה, רמות 1 ו-2', south: 'עמדת השחקן ביציקה, רמה 3 ובסיום', pit: 'כאן יוצאים אל הבור בבית כרם (קפיצת מצלמה)' };
   for (const [k, p] of Object.entries(C.stand)) e2('stand:' + k, 'stand', p, SL[k], ILL, { extra: { face: p[2] } });
   // the pit's sheet: its own entries { id, kind, lx, lz (on the sheet), x, z (in the world), cell (the sheet's), label, src }

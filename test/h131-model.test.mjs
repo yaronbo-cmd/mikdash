@@ -79,3 +79,19 @@ test('stage 08: the end chain counts the stones he raised from the pit, not the 
   assert.equal(stonesOf({ done: ['pit1', 'pit2', 'pit3', 'frame1'] }), 5);
   assert.equal(stonesOf(null), 0);
 });
+
+test('the pour\'s marks: their place as [x, z] (the finale reads it so), a save that kept {x, z, r} is read the same', async () => {
+  const st = freshH131(); st.marks.push({ f: 'pour.hollow', work: 'pour2', at: { x: -40.5, z: -8.25, r: 1.3 }, n: 0 }, { f: 'frame.crack', work: 'frame2', at: null, n: 2 });
+  const M = createH131(st), h = M.marksOf('pour.hollow')[0];
+  assert.deepEqual(h.at, [-40.5, -8.25]); assert.equal(h.n, 13); assert.equal(M.marksOf('frame.crack')[0].n, 2);
+  const src = readFileSync(new URL('../src/game/h131/pour.js', import.meta.url), 'utf8');
+  assert.match(src, /Mo\.mark\(flag, m\.id, \[\+atM\.x\.toFixed\(2\), \+atM\.z\.toFixed\(2\)\]/, 'the pour marks its place as [x, z]');
+});
+
+test('the works\' order as the spec: the pit (part 1) and the frame (part 2) free between them, the compass naming the pit first', async () => {
+  assert.deepEqual(PLAN.slice(0, 6).map((m) => m.id), ['pit1', 'pit2', 'pit3', 'frame1', 'frame2', 'frame3']);
+  const M = createH131(freshH131()); assert.deepEqual(M.open().map((m) => m.id), ['pit1', 'frame1']);
+  const { makePack08 } = await import('../src/game/h131/pack.js'); assert.equal(makePack08().byPlan, true);
+  const dir = readFileSync(new URL('../src/game/h109/director.js', import.meta.url), 'utf8');
+  assert.match(dir, /if \(planOnly && PK\.byPlan\)/); assert.match(dir, /PK\.byPlan && !a\.q\.m\.free && !b\.q\.m\.free \? \(a\.q\.m\.n \| 0\) - \(b\.q\.m\.n \| 0\)/);
+});

@@ -616,6 +616,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function nearestOpen(planOnly) {
     const h = heroAt(); if (!h || !Number.isFinite(h.x) || !OPEN.length) return null;
     let best = null, bd = 1e9; for (const q of OPEN) { if (planOnly && q.m.free) continue; const d = Math.hypot(h.x - q.sp.x, h.z - q.sp.z); if (d < bd) { bd = d; best = q; } }
+    // ── h131 ── (a pack that says byPlan — stage 08, its spec: the pit is part 1, the frame part 2, in free order — has the compass and
+    // goTo name the open work first in its plan, not the nearest; the player still walks to any of them) ── /h131 ──
+    if (planOnly && PK.byPlan) { let first = null; for (const q of OPEN) if (!q.m.free && (!first || (q.m.n | 0) < (first.m.n | 0))) first = q; if (first) { best = first; bd = Math.hypot(h.x - first.sp.x, h.z - first.sp.z); } }
     return best ? { ...best, d: bd } : null;
   }
   function pickNow(m, walked) {
@@ -694,7 +697,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function marks() {
     if (owns() && phase === 'walk' && !mission && FREE()) {   // ── h114 ── (the four nearest open works) ── /h114 ──
       const h = heroAt(); MKL.length = 0; if (!h || !OPEN.length) return NOMK;
-      const all = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => a.d - b.d), L = all.slice(0, 4);
+      const all = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => (PK.byPlan && !a.q.m.free && !b.q.m.free ? (a.q.m.n | 0) - (b.q.m.n | 0) : a.d - b.d)), L = all.slice(0, 4);   // ── h131 ── (byPlan: the compass's first is the plan's first open work) ── /h131 ──
       // ── h116 ── a plan work is always among the four (the free ones never hide the way on) ── /h116 ──
       if (!L.some((e) => !e.q.m.free)) { const p0 = all.find((e) => !e.q.m.free); if (p0) L[L.length - 1] = p0; }
       L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.free ? ' · רשות' : q.m.s != null ? ` · ${q.m.s + 1}` : ''); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });
@@ -897,7 +900,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (res.film && typeof res.film.own === 'function') { try { filmBack = filmFigs({ scene, keep: () => (res.film.own() || []).filter(Boolean).map((a) => ({ a })), workers: (fn) => { if (S0.hero && S0.hero.h128Workers) S0.hero.h128Workers(fn); } }); } catch (e) { filmBack = null; } }
     if (res.film && res.film.kohen === false) X.kohen(false); else if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ── ── h129 ── (closing round: a film without him — the great vault's ring from the hall — shows him when it ends) ── /h129 ──
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
-    try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ──
+    // ── b131 ── (the onlookers come back when the film ends, not before it: the scribe's table stood in the pit's after-film) ── /b131 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
     M.done({ ...res, stars, loss: lossNow });   // ── h125 ── (the points the act's damage cost — the score's −N — in its result too) ── /h125 ──
     syncMount(false);
@@ -911,6 +914,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     const PV = PK.pullView ? (() => { try { return PK.pullView(m, M); } catch (e) { return null; } })() : null;
     await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, (res.film && (res.film.shots || res.film.eye) ? res.film : null) || (PV && PV[0] && PV[1] ? { eye: PV[0], aim: PV[1], add: 0.6, ease: 0.01 } : null));   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }; else the pack's pullView) ── /h129 ──
     if (filmBack) { try { filmBack(); } catch (e) { /* */ } }   // ── h129 ── ── /h129 ──
+    try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ── ── b131 ── (after the film) ── /b131 ──
     if (res.film && typeof res.film.after === 'function') { try { res.film.after(); } catch (e) { console.warn('[h109] film after', e && e.message); } }
     if (KOH.off) X.kohen(true);   // ── h129 ── ── /h129 ──   // ── h129 ── (closing round: what an act left standing for its film — the court seated, the Levite in the door — goes when the film ends) ── /h129 ──
     try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──

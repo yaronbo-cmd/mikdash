@@ -892,6 +892,7 @@
     // left wedges drawn out with no care: light, a crack, a stone falls)
     h7vault(a) {
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k;
+      if (a.phase === 'stands' && !K.stShot) { K.stShot = 1; return { wait: 700, shot: a.id + '-stands' }; }   // (closing round: the moment as it stands, in its composed picture)
       if (a.phase === 'legs' && a.A) {
         if (!K.legShot && a.A.laid >= 2) { K.legShot = 1; return { wait: 50, shot: a.id + '-legs' }; }
         if (has('vcrack') && a.id === 'vaultN' && !K.vc && a.A.laid >= 2) { K.vc = 1; return { wait: 3200, note: 'vault: both legs let go (the mistake)' }; }
@@ -910,6 +911,22 @@
       if (a.phase !== 'wedges' || !a.B) return { wait: 300, note: 'vault: ' + a.phase };
       if (!K.wShot) { K.wShot = 1; return { wait: 50, shot: a.id + '-wedges' }; }
       const P = a.B.pairs, step = a.B.stepPx * 0.9;
+      // (R2's proof, __BOT.bad 'vwarn': in the great vault, before the clean play, its three warning states in turn — the first wedge
+      //  (1L, free) drawn out a hair at a time until its joint starts to open, then until it is dangerous, each state's still; then pushed
+      //  back in until the joint is steady again)
+      if (has('vwarn') && a.id === 'vaultM' && !K.vwDone) {
+        const st0 = String(a.B.states || '').split(',')[0] || '', w = a.B.w['1L'], l = Math.hypot(w.out[0], w.out[1]) || 1, hair = step * 0.25;
+        const pull = (sg) => ({ drag: [w.at[0], w.at[1], Math.round(w.at[0] + (sg * w.out[0] / l) * hair), Math.round(w.at[1] + (sg * w.out[1] / l) * hair), 400], wait: 700, note: 'vault R2: 1L ' + (sg > 0 ? 'out' : 'in') + ' a hair · ' + st0 });
+        if (!K.vw0) { K.vw0 = 1; return { wait: 300, shot: 'vaultM-warn-steady', note: 'vault R2: ' + st0 }; }
+        if (!K.vwDanger) {
+          if (/^opening/.test(st0) && !K.vwOpen) { K.vwOpen = 1; return { wait: 600, shot: 'vaultM-warn-opening', note: 'vault R2: ' + a.B.states }; }
+          if (/^danger/.test(st0)) { K.vwDanger = 1; return { wait: 600, shot: 'vaultM-warn-danger', note: 'vault R2: ' + a.B.states }; }
+          K.vwPull = (K.vwPull || 0) + 1; if (K.vwPull > 24) { K.vwDanger = 1; return { wait: 300, note: 'vault R2: no danger after 24 hairs · ' + st0 }; }
+          return pull(1);
+        }
+        if (!/^steady/.test(st0) && (K.vwBack = (K.vwBack || 0) + 1) <= 24) return pull(-1);
+        K.vwDone = 1; return { wait: 400, shot: 'vaultM-warn-back', note: 'vault R2: back to ' + st0 };
+      }
       const drag = (id) => { const w = a.B.w[id], l = Math.hypot(w.out[0], w.out[1]) || 1; return { drag: [w.at[0], w.at[1], Math.round(w.at[0] + (w.out[0] / l) * step), Math.round(w.at[1] + (w.out[1] / l) * step), 300], wait: 450, note: 'vault: wedge ' + id }; };
       const vs = has('vstone') && (a.id === 'vaultS' || (has('vstoneM') && a.id === 'vaultM'));   // ('vstoneM': the great vault's too)
       if (vs && !a.B.stones) { const id = P[0].L < 1 ? '1L' : P[1] && P[1].L < 1 ? '2L' : '3L'; return drag(id); }
@@ -938,6 +955,15 @@
       if (!K[a.phase + 'Shot']) { K[a.phase + 'Shot'] = 1; return { wait: 100, shot: 'night-' + a.phase }; }
       // (two thumbs, one on each of the ring's grips; a mouse: the one nearer the middle)
       const G = a.grips, pts = (dy) => (mouse ? [[G[0][0], G[0][1] + dy]] : G.map((q) => [q[0], q[1] + dy]));
+      // (R4's proof, __BOT.bad 'tilt': the first lift uneven — touch: the left thumb ahead of the right; mouse: the pointer drifting
+      //  sideways — stopped once the slab leans past its knock, the lean's still; let go there it drops back with the bang, then the
+      //  clean lift)
+      if (a.phase === 'lift' && has('tilt') && !K.tiltDone) {
+        if (K.tiltGo) { K.tiltDone = 1; return { wait: 0, shot: 'night-lean', note: 'night R4: the slab leans · tilt ' + a.tilt + ' h ' + a.h }; }
+        K.tiltGo = 1; const fr = [];
+        for (let i = 0; i <= 12; i++) { const u = i / 12; fr.push(mouse ? [[G[0][0] + a.unit * 0.3 * u, G[0][1] - a.unit * 0.75 * u]] : [[G[0][0], G[0][1] - a.unit * 0.8 * u], [G[1][0], G[1][1] - a.unit * 0.5 * u]]); }
+        return { seq: fr, ms: 230, seqUntil: C("return !a||a.sphase!=='lift'||Math.abs(a.tilt)>0.2"), wait: 0, note: 'night R4: an uneven lift' };
+      }
       if (a.phase === 'lift') { const fr = []; for (let i = 0; i <= 12; i++) fr.push(pts(-a.unit * 1.05 * (i / 12))); return { seq: fr, ms: 230, seqUntil: C("return !a||a.sphase!=='lift'"), seqLoop: 12, seqMax: 12000, wait: 400, note: 'night: lift the slab (h ' + a.h + ')' }; }
       // (past the floor a little: held there, the slab settles on its seat)
       const far = has('slab') ? 1.8 : a.h + 0.08, fr = []; for (let i = 0; i <= 14; i++) fr.push(pts(a.unit * far * (i / 14)));

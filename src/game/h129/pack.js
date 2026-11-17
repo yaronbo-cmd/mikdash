@@ -67,7 +67,7 @@ export function makePack07(env = {}) {
     look: LOOK7,
     endTitle: 'הלשכות נבנו!',
     endSub: 'לשכת הגזית, שם היתה סנהדרי גדולה של ישראל יושבת (מידות ה, ד)',
-    pullView: (m) => (m && CAM.done && CAM.done[m.id]) || null,   // (round 4: the after-work picture of a work inside a building — director pullBack)
+    pullView: (m) => (m && CAM.done && CAM.done[m.id]) || null,   // (round 4: the after-work picture of a work inside a building — director pullBack; closing round: the night's alone, the vaults and the Gazit give their own res.film)
     endView: CAM.after || null,   // (round 4: the game holds it under the frontier card — index.js h29Done)
     film: CAM.after ? [[CAM.after[0], CAM.after[1], 2.4]] : [],   // (round 4: after the summary, the camera set on the whole before the frontier card; it stays there)
     /** the world as the save has it (world.js rebuilds on a key); the stage's end: the roofs raised */
@@ -79,14 +79,18 @@ export function makePack07(env = {}) {
       if (m || st.intro) return null;
       return (async () => {
         st.intro = 1; X.save(); near(X, true);
+        // (closing round: an act begun while the opening runs — the probes' skip — keeps its own camera: the opening stops there)
+        const acting = () => { try { return !!(X.acting && X.acting()); } catch (e) { return false; } };
+        if (acting()) { near(X, false); return; }
         X.shot(CAM.open[0][0], CAM.open[0][1], 0.01); await beat(X, 200);
+        if (acting()) { near(X, false); return; }
         X.line(PLINES.stage, 0);
         X.shot(CAM.open[1][0], CAM.open[1][1], 2.6);
-        if (await tapOr(X, 3400)) { X.line(''); near(X, false); return; }
+        if (await tapOr(X, 3400) || acting()) { if (!acting()) X.line(''); near(X, false); return; }
         X.shot(CAM.open[2][0], CAM.open[2][1], 2.2);
         if (st.golahCrews && !GOLAH_IN_PLAY) X.line(PLINES.crews, 0);
         await tapOr(X, 3600);
-        X.line(''); near(X, false);
+        if (!acting()) X.line(''); near(X, false);
       })();
     },
     /** after the night: its last three pictures (in the night's light), the Mishnah's words, the summary; the roofs raised after */

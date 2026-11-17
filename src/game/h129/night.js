@@ -11,7 +11,7 @@
  * The night's look (nightRig: the world's dark and the fire's light) serves the pack's finale too.
  * The model: model.js (slabFresh, slabStep, nightPts, SLAB). Places: BOOK.s07.night (its locks read from stage 04's gate entries).
  */
-import { SLAB, QUICK, LOSS, LINES, slabFresh, slabStep, nightPts, qOf, starsOf } from './model.js';
+import { SLAB, TILT, QUICK, LOSS, LINES, slabFresh, slabStep, slabTilt, nightPts, qOf, starsOf } from './model.js';
 import { SH7, mats7, box, own, setBusy, vaultWhole, slabDamage, walkHide } from './world.js';
 import { createVoices } from './sound129.js';
 import { card, cite, holdLens } from './ui7.js';
@@ -283,13 +283,23 @@ export const NIGHT = {
     const fade = async (eye, aim, fov) => { fadeEl.style.opacity = '1'; await X.wait(0.4); X.shot(eye, aim, 0.01); if (fov) lens(fov); await X.wait(0.15); fadeEl.style.opacity = '0'; await X.wait(0.3); };
     // ── the slab's model
     const S = slabFresh();
-    const setSlab = () => { plate.position.y = S.h * 1.0; };   // (lifted flat: h 1 = an amah)
+    // (R4: the slab leans after the hands — the side lifted ahead rises, the other stays low; on its seat it lies flat)
+    const setSlab = () => { plate.position.y = S.h * 1.0; plate.rotation.z = -(S.tilt || 0) * 0.55 * clamp(S.h / 0.12, 0, 1); };   // (lifted flat: h 1 = an amah)
     const gripAt = (sg) => { const v = new T.Vector3(sg * RR, 0.16, 0); plate.localToWorld(v); return v; };
     const scr = (v) => { const r = X.scr(v.x, v.y, v.z); return { x: r.x, y: r.y }; };
     const unit = () => 0.3 * innerHeight;   // (the slab's whole lift: this far up on the screen)
     const lift = (u) => { try { if (X.lookLift && !MOUSE) X.lookLift(u); } catch (e) { /* */ } };   // (brief F5: both thumbs on the ring — a small lift by the act, under the vault)
     const need = () => (MOUSE ? 1 : 2);
     const target = () => { if (A.fing.size < need()) return null; let v = Infinity; for (const f of A.fing.values()) v = Math.min(v, A.base + (f.y0 - f.y) / unit()); return v; };
+    // (R4: the tilt the hands ask for — two thumbs: the ring's two sides' own lifts; a mouse: its drift sideways and its pull ahead)
+    const tiltNow = () => {
+      if (A.fing.size < need()) return 0;
+      const fs = [...A.fing.values()], tg = target();
+      if (MOUSE || fs.length < 2) { const f = fs[0]; return slabTilt({ two: false, dx: (f.x - f.x0) / unit(), target: tg, h: S.h }); }
+      const t = (f) => A.base + (f.y0 - f.y) / unit(), a = fs.find((f) => f.side === 0) || fs[0], b = fs.find((f) => f !== a) || fs[1];
+      return slabTilt({ two: true, tL: t(a), tR: t(b) });
+    };
+    const rebase = () => { for (const f of A.fing.values()) { f.y0 = f.y; f.x0 = f.x; } A.base = S.h; };
     const camSlab = (d = 1) => { X.shot(CAM.nightSlab[0], CAM.nightSlab[1], d); lens(CAM.nightSlabFov); A.fov = CAM.nightSlabFov; };
     // (the right thumb's look in the hall: up under the vault, never out through its walls; at the gates the court's own look)
     SH7.lookFn = (base, u, yaw) => {
@@ -326,7 +336,7 @@ export const NIGHT = {
       const Ls = LOCKS(), GC = N7.gateCam, tn = Math.tan((GC.fov * Math.PI) / 360);
       for (let i = 0; i < Ls.length; i++) {
         // (the whole gateway in the frame, its top not cut: back from its inner face so far that its height and a margin fill the lens)
-        const L = Ls[i], back = (L.h * GC.fill) / (2 * tn), yc = L.at[1] + L.h * GC.mid, eye = [L.at[0] + L.n[0] * back, yc + GC.up, L.at[2] + L.n[1] * back], aim = [L.at[0], yc, L.at[2]];
+        const L = Ls[i], GE = (N7.gateEye || {})[L.id], back = GE ? GE.back : (L.h * GC.fill) / (2 * tn), yc = L.at[1] + L.h * GC.mid, eye = [L.at[0] + L.n[0] * back, yc + (GE ? GE.up : GC.up), L.at[2] + L.n[1] * back], aim = [L.at[0], yc, L.at[2]];   // (F3: a gate's own eye — BOOK.s07.night.gateEye)
         gatePlace(L); leavesSet(0); boltSet(0); G1.lit.intensity = GC.lamp * Math.min(1, L.w / 10); A.lockS = 'open';
         A.lockI = i; A.fov = GC.fov; await fade(eye, aim, GC.fov); X.line('נועל: ' + L.label, 1800);
         await X.wait(0.4);
@@ -353,7 +363,7 @@ export const NIGHT = {
       st.night = { bangs: S.bangs, dmg: S.dmg }; X.save();
       await X.wait(1.0);
       // (he spreads his garment over the slab and lies down on it to sleep: the same figure, laid on his back across it)
-      X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); lens(CAM.nightFov); A.fov = CAM.nightFov;
+      X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); const fS = CAM.nightSleepFov || CAM.nightFov; lens(fS); A.fov = fS;
       await X.wait(1.3);
       A.sleepS = 'cloak'; cloak.visible = true; V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
       await X.wait(1.4);
@@ -364,16 +374,20 @@ export const NIGHT = {
       await X.wait(2.6);
       await card(X, `<b style="font:900 20px Heebo,system-ui">טבלת השיש</b>${cite(LINES.middot19)}`, 9000);
       const pts = nightPts(S), q = qOf(pts);
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { bangs: S.bangs, 'night.slab': S.dmg ? 1 : 0 }, at: { x: sx, y: F16 + 0.5, z: sz } });
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { bangs: S.bangs, 'night.slab': S.dmg ? 1 : 0 }, at: { x: sx, y: F16 + 0.5, z: sz }, film: { kohen: false } });   // (closing round: he sleeps on the slab — the walking kohen is not in the hall's picture after it; the picture is the pack's pull view)
     }
     let bangT = 0;
     function stepSlab(dt) {
       if (A.phase === 'lower' && A.stay > 0 && A.fing.size >= need()) { A.stay = 0; tween(0.3, (u) => staySet(1 - sm(u))); }   // (his thumbs on it: the stay folds away)
-      const h0 = S.h; slabStep(S, target(), dt); setSlab();
+      const h0 = S.h; slabStep(S, target(), dt, tiltNow()); setSlab();
       if (A.phase === 'lift' && S.h > 0.05 && S.h < SLAB.OPEN) { /* (rising: the pit, its chain and keys come into sight under it) */ }
       for (const e of S.ev) {
         ev(e.e);
-        if (e.e === 'bang') { V.thud(); X.shake(0.12, 0.2); bangT = 1.6; X.dust(sx, F16 + 0.1, sz, 6, 0.6); X.line('הטבלה נפלה חזרה בקול · זקן הרים את ראשו · הגביהו שוב, עד שהסמוכה נכנסת תחתיה', 3600); }
+        if (e.e === 'bang') { V.thud(); X.shake(0.12, 0.2); bangT = 1.6; X.dust(sx, F16 + 0.1, sz, 6, 0.6); rebase(); X.line(A.tipped ? 'הטבלה נטתה ונפלה בקול · זקן הרים את ראשו · הרימו את שני הצדדים יחד, בשווה' : 'הטבלה נפלה חזרה בקול · זקן הרים את ראשו · הגביהו שוב, עד שהסמוכה נכנסת תחתיה', 3600); A.tipped = 0; }
+        // (R4: leaning, it knocks on its frame — more often as it leans; just before it would fall it creaks; past that it tips)
+        if (e.e === 'knock') { V.knock(1.5 + e.k * 3); const sg = S.tilt > 0 ? 1 : -1; X.dust(sx + sg * HS * 0.5, F16 + 0.05, sz, 2, 0.25); }
+        if (e.e === 'tiltCreak') { V.groan(); X.line('הטבלה נוטה וחורקת: השוו את שני הצדדים', 2200); }
+        if (e.e === 'tip') A.tipped = 1;
         if (e.e === 'keys') { A.stay = 1; A.fing.clear(); lockGates(); }
         if (e.e === 'loss') { const p = Mo.mark('night.slab', m.id, [sx, sz]); slabDamage(X, plate, 0, 0, 0.12, HS / 2, null); slabDamage(X, root, sx, sz, null, HS / 2, F16); V.crack(); X.loss(p, { x: sx, y: F16 + 0.4, z: sz }, LOSS['night.slab'][0]); }
         if (e.e === 'down') finish(e.soft);
@@ -397,10 +411,10 @@ export const NIGHT = {
     const FG = fingers(X, {
       down(f) {
         if (A.phase === 'fire' && nearTorch(f)) { f.torch = 1; X.hand(null); return; }
-        if ((A.phase === 'lift' || A.phase === 'lower') && A.fing.size < 2 && nearGrip(f) >= 0) { if (!A.fing.size) A.base = S.h; A.fing.set(f.id, f); X.hand(null); }
+        if ((A.phase === 'lift' || A.phase === 'lower') && A.fing.size < 2 && nearGrip(f) >= 0) { f.side = nearGrip(f); if (A.fing.size) rebase(); else A.base = S.h; A.fing.set(f.id, f); X.hand(null); }
       },
       move(f) { if (f.torch) { const q = onY(X, f, F16 + 0.6); if (q) { torch.position.set(q.x, F16 + 0.6, q.z); if (Math.hypot(q.x - N7.hearth[0], q.z - N7.hearth[1]) < 1.3) { f.torch = 0; fireLit(); } } } },
-      up(f) { if (f.torch) { f.torch = 0; torch.position.set(...th0); return; } if (A.fing.has(f.id)) { A.fing.delete(f.id); if (A.fing.size) A.base = S.h; } },
+      up(f) { if (f.torch) { f.torch = 0; torch.position.set(...th0); return; } if (A.fing.has(f.id)) { A.fing.delete(f.id); if (A.fing.size) rebase(); } },
     });
     return {
       close: true,
@@ -435,7 +449,7 @@ export const NIGHT = {
       at() { return new T.Vector3(sx, F16 + 0.5, sz); },
       dbg() {
         const G = gripsPx(), tq = scr(torch.position), hq = scr({ x: N7.hearth[0], y: F16 + 0.6, z: N7.hearth[1] }), c0 = scr({ x: sx - HS / 2, y: F16 + 0.12, z: sz }), c1 = scr({ x: sx + HS / 2, y: F16 + 0.12, z: sz });
-        return { id: m.id, phase: A.phase, mouse: MOUSE, ev: A.ev.slice(-10), nf: FG.n, n: A.fing.size, need: need(), h: +S.h.toFixed(3), v: +S.v.toFixed(3), sphase: S.phase, bangs: S.bangs, dmg: S.dmg,
+        return { id: m.id, phase: A.phase, mouse: MOUSE, ev: A.ev.slice(-10), nf: FG.n, n: A.fing.size, need: need(), h: +S.h.toFixed(3), v: +S.v.toFixed(3), sphase: S.phase, bangs: S.bangs, dmg: S.dmg, tilt: +(S.tilt || 0).toFixed(3), tilts: S.tilts | 0, drop: S.drop | 0,
           grips: G.map((q) => [Math.round(q.x), Math.round(q.y)]), ring: [Math.round((G[0].x + G[1].x) / 2), Math.round((G[0].y + G[1].y) / 2)], gripHit: Math.round(gripHit()), slabPx: Math.round(Math.hypot(c1.x - c0.x, c1.y - c0.y)),
           torch: [Math.round(tq.x), Math.round(tq.y)], hearth: [Math.round(hq.x), Math.round(hq.y)], unit: Math.round(unit()), open: SLAB.OPEN, soft: SLAB.SOFT, lockI: A.lockI, nLocks: LOCKS().length, lockS: A.lockS || '', gbox: G1.frame && gate.visible ? (() => { const bx = new T.Box3().setFromObject(G1.frame); return [bx.min.toArray().map((v) => +v.toFixed(2)), bx.max.toArray().map((v) => +v.toFixed(2))]; })() : null, frameAt: G1.frame ? G1.frame.position.toArray().map((v) => +v.toFixed(2)) : null, frameRy: G1.frame ? +G1.frame.rotation.y.toFixed(2) : null, flash: +(A.flashT || 0).toFixed(2), sleepS: A.sleepS || '', kohen: kohen ? { vis: kohen.vis, off: !!kohen.gateOff, lie: !!kohen.lie, near: AC && AC.list ? (Array.isArray(AC.list) ? AC.list : AC.list()).filter((q) => Math.hypot(q.x - sx, q.z - sz) < 4).map((q) => q.poseName + (q.lie ? 'L' : '') + (q.gateOff ? 'o' : '') + (q === kohen ? '*' : '') + (q.alive ? '' : 'x') + (q.gang ? 'g' : '') + (NIGHTA.set.has(q) ? 'n' : '')).join(' ') + ' m' + NIGHTA.makes : '' } : null, sleepers: sleepers.map((q) => (q.a ? (q.a.gateOff ? 'off' : 'on') : '-')).join('') };
       },

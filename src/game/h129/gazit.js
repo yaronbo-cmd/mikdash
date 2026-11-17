@@ -333,6 +333,12 @@ export const GAZIT = {
       A.goal = to;
     }
     // ── the end
+    let gone = false;
+    function teardown() {
+      if (gone) return; gone = true; lens(fov0);
+      for (const a of [...J, ...rows.flat(), ...scribes, ...Object.values(walkers)]) if (a) { try { AC.remove(a); } catch (e) { /* */ } }
+      X.props.remove(root); own('bench', 0); own('mats', 0); setBusy(X, 0);
+    }
     async function finish() {
       if (A.phase === 'done') return; A.phase = 'done'; A.busy = 1; X.hand(null);
       st.gazit = st.gazit || {};
@@ -344,7 +350,14 @@ export const GAZIT = {
       const pts = gazitPts({ dmg: A.dmg, fails: A.fails, standing: A.standing }), q = qOf(pts);
       await X.wait(0.9);
       if (m.id === 'gazit1' || m.id === 'gazit3') { const L = m.id === 'gazit1' ? LINES.sanh3 : LINES.sanh4; await card(X, `<b style="font:900 20px Heebo,system-ui">${m.id === 'gazit1' ? 'כחצי גורן עגולה' : 'כל אחד מכיר את מקומו'}</b>${cite(L)}`, 9000); }
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { fails: A.fails, standing: A.standing, 'gazit.crack': (A.cracks || []).length, 'gazit.ink': A.dmg && m.id === 'gazit3' ? 1 : 0 }, at: focus() });
+      // (closing round, F4–F5: the film after the work opens on its composed picture — BOOK.s07.cam.stands.gazit, a cut — the court at
+      //  work in it: the judges on the bench, from the rows' work the students and the two scribes, all seated through the film and gone
+      //  when it ends (res.film.after); the kohen in the holy half, in the picture's left third)
+      const SV = CAM.stands && CAM.stands.gazit;
+      if (SV && GZ.filmKohen) { try { X.hero.setPos(GZ.filmKohen[0], GZ.filmKohen[1], Math.atan2(GZ.wait[0] - GZ.filmKohen[0], GZ.holy + 4 - GZ.filmKohen[1])); } catch (e) { /* */ } }
+      A.film = !!SV; if (SV) { crewOff(); A.lensF = SV[2]; lens(SV[2]); }
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { fails: A.fails, standing: A.standing, 'gazit.crack': (A.cracks || []).length, 'gazit.ink': A.dmg && m.id === 'gazit3' ? 1 : 0 }, at: focus(),
+        film: SV ? { shots: [[SV[0], SV[1], 3.4]], after: teardown, own: () => [...J, ...rows.flat(), ...scribes, ...Object.values(walkers)] } : null });
     }
     // ── the frame
     const stepDrag = (dt) => {
@@ -387,7 +400,7 @@ export const GAZIT = {
         }
       },
       update(dt) {
-        A.t += dt; holdLens(X, CAM.gazitFov);
+        A.t += dt; holdLens(X, A.lensF || CAM.gazitFov);
         try {
           V.frame();
           if (A.viewT > 0) { A.viewT -= dt; if (A.viewT <= 0) camHome(0.6); }
@@ -406,9 +419,8 @@ export const GAZIT = {
       },
       holds() { return A.drag.size > 0 || !!path; },
       end() {
-        FG.detach(); V.stop(); X.hand(null); crewOff(); lens(fov0);
-        for (const a of [...J, ...rows.flat(), ...scribes, ...Object.values(walkers)]) if (a) { try { AC.remove(a); } catch (e) { /* */ } }
-        X.props.remove(root); own('bench', 0); own('mats', 0); setBusy(X, 0);
+        FG.detach(); V.stop(); X.hand(null); crewOff();
+        if (!A.film) teardown();   // (closing round: with a film, the court stays seated in its picture until the film ends — res.film.after)
       },
       // (the work's focus: the bench)
       // (in the rows' works the students sit between the camera and the bench's middle: the focus is the bench's far side at the judges'

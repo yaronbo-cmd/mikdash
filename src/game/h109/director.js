@@ -13,7 +13,7 @@
  *   D.owns() · D.acting() · D.start() · D.frame(ms) · D.marks() (twin's markers) · D.goal() (the compass) · D.goTo() · D.state()
  */
 import * as THREE from 'three';
-import { createFigGate } from '../h128/figgate.js';   // ── h128 ── (the figures gate: one rule for every act) ── /h128 ──
+import { createFigGate, filmFigs } from '../h128/figgate.js';   // ── h128 ── (the figures gate: one rule for every act) ── /h128 ──
 import { createH109, PLAN, PLACES, H109, starsOf, GRADE_N } from './model.js';
 import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the address book's, BOOK.s01.cam)
 import { createProps } from './props.js';
@@ -647,9 +647,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
       // ── h120 ── a free stage's own films (stage 05's opening): PK.before(null, X, M) while no work is picked (packs that say freeFilms)
       if (PK.freeFilms && PK.before && !ONLY && !M.mission()) {
         let p = null; try { p = PK.before(null, X, M); } catch (e) { p = null; }
-        if (p && typeof p.then === 'function') { phase = 'film'; tPhase = 0; act = null; props().marker(null); line(''); p.catch(() => {}).then(() => { CAM.on = false; phase = 'walk'; save(); openMission(); }); return; }
+        if (p && typeof p.then === 'function') { phase = 'film'; tPhase = 0; act = null; props().marker(null); line(''); p.catch(() => {}).then(() => { if (phase === 'act' && act) return; /* ── h129 ── (closing round: as h128's below — an act begun while the free stage's opening film ran (the probes' skip to vaultN) is not dropped by the film's end: dropped, its centering, stone and masons stayed in the arch's picture under a second one) ── /h129 ── */ CAM.on = false; phase = 'walk'; save(); openMission(); }); return; }
       }
       // ── /h120 ──
+      if (act) { const a0 = act; act = null; log('act dropped', mission && mission.id); call(a0.end, {}); }   // ── h129 ── (an act still on is ended, never only forgotten) ── /h129 ──
       mission = M.mission(); phase = 'walk'; tPhase = 0; act = null; OPEN = []; fwLine = null; fwT = 0;
       if (mission) { byWalk = false; showOne(); return; }
       openList();
@@ -810,6 +811,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     level: () => { const m = lvM || mission; return m ? M.levelOf(m) : 1; },   // ── h114 ── ── /h114 ──
     loss: (n, at, label, stones, res) => loss(n, at, label, stones, res),   // ── h113 ── (res: 'cedar' for a board or a leaf) ── /h113 ──   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
     save: () => save(),
+    acting: () => phase === 'act' && !!act,   // ── h129 ── (closing round: a film that runs on while an act has begun — a test's skip — gives the act its camera) ── /h129 ──
     get pack() { return PK; },
     quick: (at, text, mesh) => quick(at, text, mesh),   // ── h120 ── ── /h120 ──
     perfectScreen: (sub) => perfectScreen(sub),   // ── h120 ── (stage 05's load test: three perfect bays, the full-screen word) ── /h120 ──
@@ -841,6 +843,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     props().marker(null);
     phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
     QK.run = 0;   // ── h120 ── ── /h120 ──
+    if (act) { const a0 = act; act = null; log('act again', mission.id); call(a0.end, {}); }   // ── h129 ── (closing round: an act begun again over one still on — the probes' vaultN, the first act after a skip during the stage's opening — left the first one's centering, stone and masons standing in the arch's picture: the old one ends first) ── /h129 ──
     try { act = A.make(mission, X) || {}; } catch (e) { console.warn('[h109] make', mission.id, e && e.message, e && e.stack && e.stack.split('\n')[1]); act = null; phase = 'walk'; M.done({ stars: 1 }); syncMount(false); openMission(); return; }
     act.t = 0;
     // ── h114 ── the act's ground kept clear of the carts and the passing crews (ירון 9.11: an ox cart drove into the paving); a pack's
@@ -876,7 +879,11 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res);
     try { if (FG) FG.end(); } catch (e) { /* */ }   // ── h128 ── ── /h128 ──
-    if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ──
+    // ── h129 ── (closing round: a film that names its own men — res.film.own() — shows them alone, as the stage's end film does: the
+    // world's figures and the site workers out until it ends) ── /h129 ──
+    let filmBack = null;
+    if (res.film && typeof res.film.own === 'function') { try { filmBack = filmFigs({ scene, keep: () => (res.film.own() || []).filter(Boolean).map((a) => ({ a })), workers: (fn) => { if (S0.hero && S0.hero.h128Workers) S0.hero.h128Workers(fn); } }); } catch (e) { filmBack = null; } }
+    if (res.film && res.film.kohen === false) X.kohen(false); else if (KOH.off) X.kohen(true);   // ── h115 ── ── /h115 ── ── h129 ── (closing round: a film without him — the great vault's ring from the hall — shows him when it ends) ── /h129 ──
     try { if (S0.keepOut) S0.keepOut([]); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ──
     phase = 'film'; tPhase = 0; act = null; ending = false;
@@ -890,7 +897,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     // ── h129 ── (a pack may compose the pull-back itself: a work inside a building — the instruments chambers under the Israel court,
     // Beit HaMoked's hall — is seen from where it shows, not from 46 amot up and back through the stone) ── /h129 ──
     const PV = PK.pullView ? (() => { try { return PK.pullView(m, M); } catch (e) { return null; } })() : null;
-    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, res.film || (PV && PV[0] && PV[1] ? { eye: PV[0], aim: PV[1], add: 0.6 } : null));   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }; else the pack's pullView) ── /h129 ──
+    await pullBack(at, res.film && res.film.secs > 0 ? res.film.secs : sec ? 3.2 : 1.8, (res.film && (res.film.shots || res.film.eye) ? res.film : null) || (PV && PV[0] && PV[1] ? { eye: PV[0], aim: PV[1], add: 0.6, ease: 0.01 } : null));   // ── h129 ── (G13: an act may name its film's composed view, res.film { eye, aim, secs } or { shots }; else the pack's pullView) ── /h129 ──
+    if (filmBack) { try { filmBack(); } catch (e) { /* */ } }   // ── h129 ── ── /h129 ──
+    if (res.film && typeof res.film.after === 'function') { try { res.film.after(); } catch (e) { console.warn('[h109] film after', e && e.message); } }
+    if (KOH.off) X.kohen(true);   // ── h129 ── ── /h129 ──   // ── h129 ── (closing round: what an act left standing for its film — the court seated, the Levite in the door — goes when the film ends) ── /h129 ──
     try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }

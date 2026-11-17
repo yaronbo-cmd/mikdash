@@ -37,6 +37,7 @@ export function makePack08(env = {}) {
     create: (save) => createH131(save),
     count: (M) => M.count(),
     freeFilms: true,
+    byPlan: true,   // (the spec: the pit is part 1, the frame part 2, in free order — the compass names the pit first; h109/director.js nearestOpen)
     look: LOOK8,
     endTitle: 'יסוד המזבח נבנה!',
     endSub: 'עלה אמה וכנס אמה, זה היסוד (מידות ג, א)',

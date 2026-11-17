@@ -613,6 +613,9 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function nearestOpen(planOnly) {
     const h = heroAt(); if (!h || !Number.isFinite(h.x) || !OPEN.length) return null;
     let best = null, bd = 1e9; for (const q of OPEN) { if (planOnly && q.m.free) continue; const d = Math.hypot(h.x - q.sp.x, h.z - q.sp.z); if (d < bd) { bd = d; best = q; } }
+    // ── h131 ── (a pack that says byPlan — stage 08, its spec: the pit is part 1, the frame part 2, in free order — has the compass and
+    // goTo name the open work first in its plan, not the nearest; the player still walks to any of them) ── /h131 ──
+    if (planOnly && PK.byPlan) { let first = null; for (const q of OPEN) if (!q.m.free && (!first || (q.m.n | 0) < (first.m.n | 0))) first = q; if (first) { best = first; bd = Math.hypot(h.x - first.sp.x, h.z - first.sp.z); } }
     return best ? { ...best, d: bd } : null;
   }
   function pickNow(m, walked) {
@@ -691,7 +694,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   function marks() {
     if (owns() && phase === 'walk' && !mission && FREE()) {   // ── h114 ── (the four nearest open works) ── /h114 ──
       const h = heroAt(); MKL.length = 0; if (!h || !OPEN.length) return NOMK;
-      const all = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => a.d - b.d), L = all.slice(0, 4);
+      const all = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => (PK.byPlan && !a.q.m.free && !b.q.m.free ? (a.q.m.n | 0) - (b.q.m.n | 0) : a.d - b.d)), L = all.slice(0, 4);   // ── h131 ── (byPlan: the compass's first is the plan's first open work) ── /h131 ──
       // ── h116 ── a plan work is always among the four (the free ones never hide the way on) ── /h116 ──
       if (!L.some((e) => !e.q.m.free)) { const p0 = all.find((e) => !e.q.m.free); if (p0) L[L.length - 1] = p0; }
       L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.free ? ' · רשות' : q.m.s != null ? ` · ${q.m.s + 1}` : ''); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });

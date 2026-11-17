@@ -152,7 +152,9 @@ export const POUR_ACT = {
     // (b131 look round 3: the heap the next two, the porters waiting behind it on the far side, two rows clear of the biggest stone —
     //  standing beside it at the frame's edge they stood in it)
     const PILE = [[0, 1.0], [0.5, -1.9]];
-    const HOME = [[[HEAP[0] - 0.9, HEAP[1] - 5.8], [HEAP[0] + 0.9, HEAP[1] - 5.9]], [[HEAP[0] - 0.9, HEAP[1] - 7.6], [HEAP[0] + 0.9, HEAP[1] - 7.7]]];
+    // (look round 3, the run: on the heap's far side they stood out of the picture — the first pair waits at the heap's two ends along the
+    //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] - 1.0, HEAP[1] - 4.3]], [[HEAP[0] + 4.6, HEAP[1] - 1.2], [HEAP[0] + 4.6, HEAP[1] + 1.4]]];
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
@@ -185,7 +187,7 @@ export const POUR_ACT = {
           if (J2.t >= J2.T) { P.job = null; P.men.forEach((w) => { w.stride = 0; gang.setRole(w, 'hold'); }); }
           continue;
         }
-        const [ax, az] = J2.from, [bx, bz] = J2.to, T0 = 0.35, T1 = 0.55, T2 = T1 + J2.T, T3 = T2 + 0.25;
+        const [ax, az] = J2.from, [bx, bz] = J2.to, T0 = J2.T0 || 0.35, T1 = T0 + 0.2, T2 = T1 + J2.T, T3 = T2 + 0.25;
         const v = J2.t < T1 ? 0 : sm((J2.t - T1) / J2.T), cx = ax + (bx - ax) * v, cz = az + (bz - az) * v;
         const y = J2.t < T0 ? 0 : J2.t < T1 ? 0.55 * sm((J2.t - T0) / (T1 - T0)) : J2.t < T2 ? 0.55 + 0.05 * Math.sin(J2.t * 9) : 0.55 * (1 - sm((J2.t - T2) / (T3 - T2)));
         if (m2) m2.position.set(cx, y, cz);
@@ -227,7 +229,8 @@ export const POUR_ACT = {
       const from = [S.m.position.x, S.m.position.z], to = [S.s.x, S.s.z], dx = to[0] - from[0], dz = to[1] - from[1], d = Math.hypot(dx, dz) || 1;
       const p0 = P.men.map((w) => { const L2 = toLocal(lv, w.a.x, w.a.z); return [L2[0], L2[1]]; });
       P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; w.rate = 2.6; });
-      P.job = { kind: 'carry', i, t: 0, T: clamp(d / 8, 0.8, 1.5), from, to, n: [-dz / d, dx / d], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
+      const reach = Math.max(...p0.map((q) => Math.hypot(q[0] - from[0], q[1] - from[1])));
+      P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(d / 8, 0.8, 1.5), from, to, n: [-dz / d, dx / d], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
       V.sfx.thud();
     }
 

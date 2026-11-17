@@ -19,7 +19,8 @@ const BT = 0.36;                       // (the sample's board thickness)
 /** b131 look round 2: what went over the timber is a stain on the floor and a loss from this much on (pour.js SPILL_MARK): the spec's table */
 export const SPILL_SEEN = 0.05;
 const STAIN_HEX = 0xc9bba2, STAIN_RIM = 0x857660;   // (the set mix's light warm grey, its crust darker)
-const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [6.9, 4.7];   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
+const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [-4.2, 4.9];   // (look round 3: left, between the hearth's swap path and the near board — on the right he stood in the stones' heap)
+//   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
 const RELIEF = 1.2, MOUND_VIS = 0.42, LUT_N = 64, STREAM_SEG = 18, MAXB = 48, MAXD = 48;
 
 export function createPourView(X, lv, sim, o = {}) {
@@ -237,7 +238,7 @@ export function createPourView(X, lv, sim, o = {}) {
   }
   const troughMixMat = keep(new THREE.MeshBasicMaterial({ color: 0xffa040 }));
   const troughMix = new THREE.Mesh(keep(new THREE.BoxGeometry(0.3, 0.02, TROUGH_LEN - 0.1)), troughMixMat); troughMix.position.set(0, 0.04, -TROUGH_LEN / 2); trough.add(troughMix);
-  const knocker = makeFigure(0xb9a27a, 0x6f8450, 0x5d7a4a); knocker.g.position.set(KNOCK_HOME[0], B0, KNOCK_HOME[1]); knocker.g.rotation.y = -2.3; G.add(knocker.g);
+  const knocker = makeFigure(0xb9a27a, 0x6f8450, 0x5d7a4a); knocker.g.position.set(KNOCK_HOME[0], B0, KNOCK_HOME[1]); knocker.g.rotation.y = 2.2; G.add(knocker.g);
   { const mallet = new THREE.Group(), mm = new THREE.Mesh(new Merger().add(new THREE.CylinderGeometry(0.045, 0.05, 1.5, 6), col(0x8c5f34), [0, -0.75, 0]).add(new THREE.CylinderGeometry(0.2, 0.2, 0.55, 8), col(0x6e4a2a), [0, -1.5, 0], [0, 0, Math.PI / 2]).build(), figMat); mm.castShadow = true; mallet.add(mm); mallet.position.set(0, -1.05, 0.05); knocker.armR.add(mallet); }
   knocker.armR.rotation.x = -0.25;
   // the stream ribbon, the short stream from the lip, the spill's stream over the timber
@@ -429,9 +430,9 @@ export function createPourView(X, lv, sim, o = {}) {
   }
   // the knocker: home, then to the place of the air (or the middle) and three taps of his wooden mallet
   function knockerFrame(dt, S) {
-    const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = -2.3; k.g.position.y = B0;
+    const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = 2.2; k.g.position.y = B0;
     const at = S.phase === 'knock' || S.phase === 'hollow' || S.phase === 'full';
-    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 4.4) tx = rx + (tx >= rx ? 4.4 : -4.4); tx = Math.max(-6.2, Math.min(6.2, tx)); if (Math.abs(tx - rx) < 4.4) tx = rx + (rx > 0 ? -4.4 : 4.4); }   // (b131 look round: never inside the cauldron's crew)
+    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 5) tx = rx + (tx >= rx ? 5 : -5); tx = Math.max(-6.2, Math.min(6.2, tx)); if (Math.abs(tx - rx) < 5) tx = rx + (rx > 0 ? -5 : 5); }   // (b131 look round: never inside the cauldron's crew)
     // (b131 look round 2: never across the cauldron's crew — a knocker on the other side of the rig is already at his place)
     if (at && Math.sign(tx - rig.position.x) !== Math.sign(k.g.position.x - rig.position.x)) { k.g.position.x = tx; k.g.position.z = tz; }
     const dx = tx - k.g.position.x, dz = tz - k.g.position.z, dist = Math.hypot(dx, dz); let walking = 0;

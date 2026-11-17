@@ -46,9 +46,10 @@ const SHOTS = Object.freeze({
 const OWN = Object.freeze({ dx: 1.7, dz: 0 });
 /** where the next logs wait: well behind the trestles (away from the camera), in the log's own frame (amot); the crew man who rolls
  *  each onto the trestles waits beside it (ROLLER: his place from the stack's middle; he walks the log in at its right end, END past it,
- *  his staff on it; D: the roll's seconds) */
+ *  his staff on it, and lets it go at LET of the way — the last push rolls it on, he stays back, whole in the frame at u 0 and 0.3;
+ *  D: the roll's seconds) */
 const STACK = Object.freeze({ back: 7, side: -0.5 });
-const ROLLER = Object.freeze({ side: 2.8, back: 0.3, END: 0.65, D: 2.4 });
+const ROLLER = Object.freeze({ side: 2.8, back: 0.3, END: 0.65, D: 2.4, LET: 0.62 });
 /** the words (instructions carry "(המחשה)": how wood was checked is not in the sources) */
 export const WLINES = Object.freeze({
   l1: 'גלגלו את הבול: יש נקבים? (המחשה)',
@@ -343,7 +344,8 @@ export const WOOD_ACT = {
           const x = lerp(tw.from[0], to[0], kr), z = lerp(tw.from[2], to[2], kr), y = lerp(tw.from[1], to[1], lift) + Math.sin(lift * Math.PI) * 0.25;
           piece.position.set(x, y, z); const dist = Math.hypot(to[0] - tw.from[0], to[2] - tw.from[2]);
           orient(piece, alpha + S.rot * D2R - (1 - kr) * dist / log.r);
-          if (roller && roller.a) { const e = log.L / 2 + ROLLER.END; roller.a.x = x + U[0] * e; roller.a.z = z + U[1] * e; roller.fx = x + U[0] * log.L / 2; roller.fz = z + U[1] * log.L / 2; roller.stride = u < 0.8 ? 1 : 0; if (u >= 0.7 && roller.role !== 'lever') gang.setRole(roller, 'lever', { fx: roller.fx, fz: roller.fz }); }
+          if (roller && roller.a && kr < ROLLER.LET) { const e = log.L / 2 + ROLLER.END; roller.a.x = x + U[0] * e; roller.a.z = z + U[1] * e; roller.fx = x + U[0] * log.L / 2; roller.fz = z + U[1] * log.L / 2; roller.stride = 1; }
+          else if (roller && roller.role === 'push') gang.setRole(roller, 'lever', { fx: roller.fx, fz: roller.fz, stride: 0 });   // (the last push: his staff still out toward it)
         }
         else { const g = tw.g; g.position.set(lerp(tw.from[0], tw.to[0], k), lerp(tw.from[1], tw.to[1], k) + Math.sin(u * Math.PI) * 0.6, lerp(tw.from[2], tw.to[2], k)); g.rotation.x = tw.rx0 + k * tw.turns * Math.PI * 2; g.rotation.y = lerp(tw.ry0, tw.to[3] || 0, k); }
         if (u >= 1) { A.tw = null; if (tw.k === 'arrive') { A.phase = 'look'; A.busy = 0; place(); rollerBack(); A.hintK = null; A.hintN = -1; lineFor(); hintNext(true); } else if (tw.res) tw.res(); }

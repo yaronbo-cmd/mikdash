@@ -428,6 +428,8 @@ export function createPourView(X, lv, sim, o = {}) {
     const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = -2.3; k.g.position.y = B0;
     const at = S.phase === 'knock' || S.phase === 'hollow' || S.phase === 'full';
     if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 4.4) tx = rx + (tx >= rx ? 4.4 : -4.4); tx = Math.max(-6.2, Math.min(6.2, tx)); if (Math.abs(tx - rx) < 4.4) tx = rx + (rx > 0 ? -4.4 : 4.4); }   // (b131 look round: never inside the cauldron's crew)
+    // (b131 look round 2: never across the cauldron's crew — a knocker on the other side of the rig is already at his place)
+    if (at && Math.sign(tx - rig.position.x) !== Math.sign(k.g.position.x - rig.position.x)) { k.g.position.x = tx; k.g.position.z = tz; }
     const dx = tx - k.g.position.x, dz = tz - k.g.position.z, dist = Math.hypot(dx, dz); let walking = 0;
     if (dist > 0.03) { const m = Math.min(dist, 4.2 * dt); k.g.position.x += dx / dist * m; k.g.position.z += dz / dist * m; k.g.rotation.y += angDiff(Math.atan2(dx, dz), k.g.rotation.y) * Math.min(1, dt * 8); walking = 1; }
     else k.g.rotation.y += angDiff(face, k.g.rotation.y) * Math.min(1, dt * 6);

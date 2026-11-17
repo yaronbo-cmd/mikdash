@@ -378,13 +378,14 @@ export const VAULT = {
     //    would leave (wedgePreview): steady (dark, quiet), opening (a hair of light, a little dust, a short creak, the centering shifts a
     //    finger's width toward it), danger (the light widens, more dust, a long creak); the crack and the fallen stone come only on the
     //    release, by today's rules
-    const WS = { key: '', dust: [], cz: 0, worst: 'steady' };
+    const WS = { key: '', st: [], dust: [], cz: 0, worst: 'steady' };
     function warnB(dt) {
       const st = SB.pairs.map((p, i) => {
         let imb = p.L - p.R + p.bias;
         for (const sd of ['L', 'R']) { const w = W[i + sd]; if (w && w.drag) imb = wedgePreview(SB, i, sd, w.drag); }
         return { imb, state: jointState(imb) };
       });
+      WS.st = st.map((q) => q.state);
       const rank = (q) => ['steady', 'opening', 'danger', 'crack', 'stone'].indexOf(q);
       const key = st.map((q) => q.state + (q.imb > 0 ? '+' : '-')).join(',');
       if (key !== WS.key) {
@@ -528,7 +529,7 @@ export const VAULT = {
         }
         if (SB) {
           const ld = wedgeLoads(SB);
-          o.B = { warn: WS.worst, states: WS.key, lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
+          o.B = { warn: WS.worst, states: WS.st.join(','), lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
             w: Object.fromEntries(Object.entries(W).map(([id, w]) => { const q = scr(w.g.position.toArray()), d = scr([w.g.position.x, w.g.position.y, w.g.position.z + (id[1] === 'L' ? -1 : 1)]); return [(+id[0] + 1) + id[1], { at: q, out: [d[0] - q[0], d[1] - q[1]] }]; })),
             sh: { L: scr(shoulderPt('L')), R: scr(shoulderPt('R')) }, stepPx: Math.round(0.1 * innerHeight) };
         }

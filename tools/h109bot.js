@@ -921,9 +921,10 @@
         if (!K.vwDanger) {
           if (/^opening/.test(st0) && !K.vwOpen) { K.vwOpen = 1; return { wait: 600, shot: 'vaultM-warn-opening', note: 'vault R2: ' + a.B.states }; }
           if (/^danger/.test(st0)) { K.vwDanger = 1; return { wait: 600, shot: 'vaultM-warn-danger', note: 'vault R2: ' + a.B.states }; }
+          K.vwPull = (K.vwPull || 0) + 1; if (K.vwPull > 24) { K.vwDanger = 1; return { wait: 300, note: 'vault R2: no danger after 24 hairs · ' + st0 }; }
           return pull(1);
         }
-        if (!/^steady/.test(st0)) return pull(-1);
+        if (!/^steady/.test(st0) && (K.vwBack = (K.vwBack || 0) + 1) <= 24) return pull(-1);
         K.vwDone = 1; return { wait: 400, shot: 'vaultM-warn-back', note: 'vault R2: back to ' + st0 };
       }
       const drag = (id) => { const w = a.B.w[id], l = Math.hypot(w.out[0], w.out[1]) || 1; return { drag: [w.at[0], w.at[1], Math.round(w.at[0] + (w.out[0] / l) * step), Math.round(w.at[1] + (w.out[1] / l) * step), 300], wait: 450, note: 'vault: wedge ' + id }; };

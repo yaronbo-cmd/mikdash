@@ -1022,6 +1022,51 @@
       return carry(a.cut === 'near' ? 'out' : 'clean');
     },
     // ── /h130 wood ──
+    // ── h131 pit ── (build 131, stage 08 part 1: the pit at Beit Kerem, h131/pit.js dbg()). Plays a stone as a careful player: scrapes
+    // the earth off every side that still holds it (a stroke out from the lip and back), then carries the lever's tip under the right
+    // lip (level 2: the deep side; level 3: the free stone first, the one nobody rests on) and holds a press on the stone until it is
+    // out. The nail check: the thumb round the rim, slowly. __BOT.bad 'chip': level 2's lever under the shallow side, pressed until it
+    // knocks (pit.chip −20); 'order': level 3's holder lifted first, until its neighbour knocks. Stills: __BOT_SHOTS131.
+    h8pit(a) {
+      const K = B.k, bad = B.bad || '', has = (k) => bad.split(',').includes(k), shots = !!window.__BOT_SHOTS131, SD = ['N', 'E', 'S', 'W'];
+      if (!a || a.busy) { if (shots && a && a.shot === 'hoist' && !K['shotH' + a.id]) { K['shotH' + a.id] = 1; return { wait: 50, shot: a.id + '-hoist' }; } return { wait: 300, note: 'pit: ' + (a ? a.phase + ' ' + a.shot : '-') }; }
+      if (a.phase === 'check') {
+        if (!a.ring) return { wait: 300 };
+        if (shots && !K['shotN' + a.id]) { K['shotN' + a.id] = 1; return { wait: 100, shot: a.id + '-nail' }; }
+        return { path: a.ring.slice(0, 22), ms: 5200, pathUntil: C(`return !a||a.phase!=='check'||a.busy`), pathMax: 30000, wait: 600, note: 'pit: the thumb round the rim, slowly (at ' + a.thumb + ')' };
+      }
+      if (a.phase !== 'work' || !a.stones) return { wait: 300, note: 'pit: ' + a.phase };
+      if (shots && !K['shotW' + a.id]) { K['shotW' + a.id] = 1; return { wait: 100, shot: a.id + '-work' }; }
+      const S = a.stones.filter((s) => !s.gone && !s.out && !s.knock && s.c);
+      if (!S.length) return { wait: 400, note: 'pit: no stone in the ground' };
+      let s = S.find((q) => !q.holds) || S[0];
+      const wantBad = (a.lv === 3 && has('order') && !K.badDone) || (a.lv === 2 && has('chip') && !K.badDone);
+      if (a.lv === 3 && wantBad) { const h = S.find((q) => q.holds && S.some((r) => r.lean === q.i)); if (h) s = h; }
+      const free = (k) => !s.block.includes(SD[k]);
+      // (the side for the lever: level 2 the deep one — or with 'chip' the shallow one, at once; else the open side nearest the eye)
+      let side = -1;
+      if (a.lv === 2 && wantBad) side = s.wrong.findIndex((w, k) => w && s.seen[k]);
+      else if (s.deep) side = SD.indexOf(s.deep);
+      else { let by = -1; for (let k = 0; k < 4; k++) if (free(k) && s.lips[k][1] > by) { by = s.lips[k][1]; side = k; } }
+      const needs = [0, 1, 2, 3].filter((k) => free(k) && s.cover[k] > 0.12);
+      const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
+      if (a.lever === 'seat' && a.li === s.i && a.side === SD[side]) {
+        if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
+        const p = pressAt(); if (wantBad) K.badDone = 1;
+        return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
+      }
+      if (needs.length && !(a.lv === 2 && wantBad)) {
+        const k = needs.sort((x, y) => s.cover[y] - s.cover[x])[0], p = s.lips[k], q = s.out2[k];
+        const far = (r) => Math.hypot(r[0] - a.tip[0], r[1] - a.tip[1]) > 72;
+        const st = far(q) ? q : far(p) ? p : [Math.round((p[0] + q[0]) / 2 + 40), Math.round((p[1] + q[1]) / 2 + 40)];
+        const en = st === q ? p : q;
+        return { path: [st, en, st, en], ms: 900, wait: 350, note: `pit: scrape stone ${s.i} side ${SD[k]} (cover ${s.cover[k]})` };
+      }
+      if (side < 0) return { wait: 400, note: 'pit: no side for the lever' };
+      if (!s.seen[side]) return { wait: 300, note: 'pit: the lip not bared yet' };
+      return { path: [a.tip, s.lips[side]], ms: 900, wait: 900, note: `pit: the lever under stone ${s.i} side ${SD[side]}${a.lever === 'seat' ? ' (moved from ' + a.li + a.side + ')' : ''}` };
+    },
+    // ── /h131 pit ──
     // ── h130 light ── (build 130, station 3 "חמישים אמה של אור": the player of kind 'light', h130/light.js dbg()). The wick: the left
     // thumb holds the garment, the right pulls a strip off its edge at 0.7 amah a second (a mouse: the strip alone); the oil: hin, hin,
     // half a hin; the ladder: each hand lifted as the jar passes the middle going away from it (or when it is still), drawn up to the

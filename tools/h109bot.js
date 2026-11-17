@@ -1116,7 +1116,7 @@
     // wall's: at 1600×900 the software renderer runs the page about four times slower than its clock, and a whole ring by mouse took the
     // wall's 240 s while the act was 62 s in and still going; the wall's limit stays, three times over, for an act that never ticks) ── /h128 ──
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
-    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka') && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    const LIM = /^(bond|carry|mikveh|capstan)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || /^wood/.test(S.mission) /* ── h130 ── (the wood's level 3 by mouse with its stills: 92 s of its clock past the wall's 240 s) ── /h130 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     if (actClock != null ? (actClock > LIM || now() - B.actT > 3 * LIM) : now() - B.actT > LIM) { B.actT = now(); return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' ' + JSON.stringify(S.act).slice(0, 1400) }; }
     const kind = S.mission.replace(/F:.*$/, '').replace(/\d+(q\d)?$/, "").replace(/^(course|waste|rocks|read|pave)\d*/, "$1");   // (build 120: a free work 'colF:S3' is a 'col')
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──

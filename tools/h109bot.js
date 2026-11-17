@@ -18,6 +18,20 @@
   // (build 04m: a still and the figures gate's report once per work where a mouse used to stall — __BOT_SHOTS04 only)
   const stall04 = (key, r) => { if (!MOUSE_P || B.k['st_' + key]) return r; B.k['st_' + key] = 1; let fg = null; try { fg = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { fg = 'ERR ' + e.message; } return { wait: 400, shot: window.__BOT_SHOTS04 ? `${B.m}-mouse-${key}` : undefined, note: `figs at ${B.m} ${key}: ${JSON.stringify(fg)} · line "${(document.querySelector('.h109-line') || {}).textContent || ''}"` }; };
   const alongWorld = (p, q) => { for (let i = 0; i <= 20; i++) { const r = mid(p, q, i / 20); if (onWorld(r[0], r[1])) return r; } return null; };
+  // ── h130 ── (the probe's eyes: what the camera's centre column of rays meets first — an object's name chain, colour and box) ── /h130 ──
+  function galHits() {
+    try {
+      const T = window.__T, R = new T.Raycaster(), cam = T.camera, out = [];
+      for (const ny of [0.6, 0.2, -0.2, -0.6]) {
+        R.setFromCamera({ x: 0, y: ny }, cam); const h = R.intersectObjects(T.scene.children, true).find((q) => q.object.visible !== false && q.distance > 0.2);
+        if (!h) { out.push(ny + ':-'); continue; }
+        const names = []; for (let o = h.object; o && names.length < 4; o = o.parent) names.push(o.name || o.type);
+        const c = h.object.material && h.object.material.color ? h.object.material.color.getHexString() : '?';
+        out.push(ny + ':' + names.join('<') + ' #' + c + ' d' + h.distance.toFixed(1) + ' y' + h.point.y.toFixed(1));
+      }
+      return out.join(' | ');
+    } catch (e) { return 'err ' + e.message; }
+  }
   const play = {
     rope(a) {
       if (a.phase === 'ready') return { holdUntil: [a.hs ? a.hs[0] : W * 0.6, a.hs ? a.hs[1] : HH * 0.55, C(`return !a||a.side!==${a.side}||a.d>47.6||(a.phase!=='ready'&&a.phase!=='pull')`), 20000] };
@@ -590,7 +604,7 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k);
       if (a.phase === 'open-draw') { if (!B.k.od) { B.k.od = 1; return { wait: 400, shot: a.id + '-open' }; } const y = Math.round(HH * 0.62); return { drag: [Math.round(W * 0.1), y, Math.round(W * 0.42), y - 50, 600], wait: 150, note: 'gal: draw the line ' + a.draw }; }
       if (a.phase === 'open-flip') { if (!B.k.of) { B.k.of = 1; return { wait: 200, shot: a.id + '-crowd' }; } return { tap: [Math.round(W * 0.22), Math.round(HH * 0.62)], wait: 1500, note: 'gal: turn it over' }; }
-      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov }; } }
+      if (a.phase === 'test' && a.view) { const k = `v${a.tries}-${a.view.wi}` + (a.view.hid.length ? '-' + a.view.ti : ''); if (!B.k[k]) { B.k[k] = 1; return { wait: 250, shot: `${a.id}-see${a.tries}-w${a.view.wi}-t${a.view.ti}`, note: 'gal: seen ' + JSON.stringify(a.view) + ' cam ' + a.cam + ' fov ' + a.fov + ' hits ' + galHits() }; } }
       if (a.phase === 'test' && !a.view && !B.k['cr' + a.tries]) { B.k['cr' + a.tries] = 1; return { wait: 500, shot: `${a.id}-crew${a.tries}` }; }
       if (a.phase === 'test' && a.ev.some((e) => /^above/.test(e)) && !B.k.ab) { B.k.ab = 1; return { wait: 200, shot: `${a.id}-above`, note: 'gal: ' + a.ev.slice(-1)[0] }; }
       if (a.busy || a.phase !== 'puzzle') return { wait: 300, note: 'gal: ' + a.phase };

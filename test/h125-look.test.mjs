@@ -1,24 +1,15 @@
-// build 125 (rule 66): the right thumb in stages 01–04. world/look.js is the one look module (stage 05 keeps its own boxes through
-// h120/look120.js, unchanged); stages 02–04 look over the Azarah's ring from the address book; h109/grips.js decides what of the
+// build 125 (rule 66): the right thumb in stages 01–04. world/look.js is the one look module (build 130: stage 05's own boxes are
+// h130/pack.js BOXES130; the old stage's look120.js went with it); stages 02–04 look over the Azarah's ring from the address book; h109/grips.js decides what of the
 // right half is an act's own grip. Per act, wants() is checked in the browser by the gesture probes (every grip on the right half in
 // each act's own debug points, a free point far from them); here the pure parts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { BOOK } from '../src/game/world/grid.js';
 import { LOOK_K, LOOK_RING_K, lookPose, makeLook, ringBoxes, segHits, camInBox } from '../src/game/world/look.js';
-import { LOOK05, BOXES05, sightPose as sight05 } from '../src/game/h120/look120.js';
 import { gripR, bigR, nearPts, nearSeg, pickGrip } from '../src/game/h109/grips.js';
 
 const horizonY = (p, t, fov) => { const pitch = Math.atan2(p[1] - t[1], Math.hypot(t[0] - p[0], t[2] - p[2])); return 0.5 - Math.tan(pitch) / (2 * Math.tan((fov * Math.PI) / 360)); };
 const RING = ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top);
-
-test('stage 05 keeps build 124\'s shape and boxes (the same constants, the same answers)', () => {
-  assert.deepEqual({ ...LOOK05 }, { UG: 2.8, PW: 2.5, S0: 0.4, S1: 0.35, U1: 0.8, D1: 110, H1: 70, F: 120, FOV1: 58, EL_MAX: 1.45, EL_MIN: 0.06, STEP: 0.05 });
-  assert.equal(LOOK05, LOOK_K);
-  const b = { p: [68, 20, 48], t: [68, 12, 62.5], fov: 22 };
-  const a = sight05(b, 0.7, 0.4), L = makeLook({ boxes: BOXES05 }), c = L.sightPose(b, 0.7, 0.4);
-  assert.deepEqual(a, c);
-});
 
 test('the ring of the Azarah from the book: four walls on its sides, as thick as the model\'s', async () => {
   await import('../src/game/h111/acts.js');

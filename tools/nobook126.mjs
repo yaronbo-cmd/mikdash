@@ -2,7 +2,7 @@
 // place is two or three numeric literals in a row (an [x, z] / [x, y, z] / (x, z) argument list) with one of them 30 or more from the
 // origin, or an { x: …, z: … } with such a literal — the stages' sites all lie 30 and more from the Mount's centre on some axis, while
 // the sizes, offsets and tolerances the stages may keep are small. Comments and strings are skipped. test/h126-nobook.test.mjs runs it
-// over h109, h111, h112, h113 and h120 against a short, explained allow list.
+// over h109, h111, h112, h113 and h130 (h120 went in build 130) against a short, explained allow list.
 import { readFileSync, readdirSync } from 'node:fs';
 const strip = (src) => src
   .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
@@ -26,7 +26,7 @@ export function scanDirs(root, dirs) {
   return out;
 }
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const hits = scanDirs(new URL('../src/game/', import.meta.url), process.argv.slice(2).length ? process.argv.slice(2) : ['h109', 'h111', 'h112', 'h113', 'h120']);
+  const hits = scanDirs(new URL('../src/game/', import.meta.url), process.argv.slice(2).length ? process.argv.slice(2) : ['h109', 'h111', 'h112', 'h113', 'h130']);
   for (const h of hits) console.log(`${h.file}:${h.line}  ${h.text}`);
   console.error(hits.length + ' hits');
 }

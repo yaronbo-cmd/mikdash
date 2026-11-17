@@ -2452,7 +2452,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     //  while nothing is up counts as his move; after it, polled each second, anything up starts the quiet over: it opens only after
     //  six quiet seconds over the finished court)
     const BUSY = '.jx-big.on,.jx-big.out,.gm-modal,.gm-mo,.gm-sheet.on,div.m3,.fx-mg,.kg,.g10,.av-modal,body.sc-on,.gm-card';
-    const busyNow = () => { try { return !!(momentBusy || opening || overlay || ui.busy || hero.busy || whole) || !!(H9 && H9.acting && H9.acting()) || !!document.querySelector(BUSY) || document.body.classList.contains('h120-film') || [...document.querySelectorAll('.h120f .end')].some((e) => e.style.opacity === '1'); } catch (e) { return true; } };
+    const busyNow = () => { try { return !!(momentBusy || opening || overlay || ui.busy || hero.busy || whole) || !!(H9 && H9.acting && H9.acting()) || !!document.querySelector(BUSY) || document.body.classList.contains('h130-film-on') || [...document.querySelectorAll('.h120f .end')].some((e) => e.style.opacity === '1'); } catch (e) { return true; } };
     let quiet = 0;
     const eyes = (o) => { try { globalThis.__H120_INV = o; } catch (e) { /* (the probes' eyes) */ } };
     const moved = () => { if (busyNow()) return; eyes({ moved: 1 }); for (const e of evs) removeEventListener(e, moved, true); quiet = performance.now(); setTimeout(calm, 1000); };

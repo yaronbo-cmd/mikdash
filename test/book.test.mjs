@@ -1,6 +1,6 @@
 // build 124 B — the one address book (rule 65): BOOK.s02 … BOOK.s05 in src/game/world/grid.js. Every entry is finite, named by its
-// own cell, inside its stage's bounds, and alone on its spot for its kind; stage 05 reads its places from the book (the same numbers
-// in h120/layout.js, routes.js and model.js), and every act's stand there is the book's. Build 126: stages 02 … 04 read their places
+// own cell, inside its stage's bounds, and alone on its spot for its kind; stage 05's House model reads its places from the book (the
+// same numbers in world/layout05.js; build 130's new stage below). Build 126: stages 02 … 04 read their places
 // from the book too — their tables are the book's own objects (the same reference), and their stands come out where the book says.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -44,10 +44,8 @@ test('book: the same on every load (pure)', async () => {
   assert.deepEqual(JSON.parse(JSON.stringify(again.BOOK.s05)), JSON.parse(JSON.stringify(BOOK.s05)));
 });
 
-test('book s05: stage 05 reads its places from the book', async () => {
-  const L = await import('../src/game/h120/layout.js');
-  const R = await import('../src/game/h120/routes.js');
-  const M = await import('../src/game/h120/model.js');
+test('book s05: the House\'s model reads the gallery and the basin from the book (world/layout05.js); the raising keeps its stand and rig', async () => {
+  const L = await import('../src/game/world/layout05.js');
   const S = BOOK.s05;
   for (const [id, [x, z, side, axis]] of Object.entries(S.cols)) assert.deepEqual({ ...L.COLS[id] }, { id, x, z, side, axis });
   assert.deepEqual(L.COL_IDS, Object.keys(S.cols));
@@ -57,59 +55,23 @@ test('book s05: stage 05 reads its places from the book', async () => {
   assert.deepEqual(L.LADDERS, S.ladders.map((l) => [...l]));
   const lep = S.chambers.find((c) => c.id === 'lepers');
   for (const k of ['x0', 'x1', 'z0', 'z1', 'doorZ']) assert.equal(L.CHAMBER[k], lep[k]);
-  assert.deepEqual([...L.CHAMBER.door], [...lep.door]);
   for (const k of ['x0', 'x1', 'z0', 'z1', 'stair']) assert.equal(L.MIK[k], S.mik[k]);
   assert.equal(L.MIK.rod, S.mik.rod); assert.equal(L.MIK.inlet, S.mik.inlet); assert.equal(L.MIK.outlet, S.mik.outlet);
-  assert.equal(L.MIK.pit, S.mik.pit); assert.equal(L.MIK.hollows, S.mik.hollows);
-  assert.equal(R.YARD, S.yard); assert.equal(R.LIME, S.lime); assert.equal(M.VESSELS, S.vessels);
   // (the court and its chambers: Middot 2:5 — 135 × 135, a chamber of 40 in each corner)
   assert.equal(S.court.x1 - S.court.x0, 135); assert.equal(S.court.z1 - S.court.z0, 135);
-  // the book's entries name the tables' own numbers
   const by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
   for (const [id, [x, z]] of Object.entries(S.cols)) assert.deepEqual([by['col:' + id].x, by['col:' + id].z], [x, z]);
-  for (const [lv, [x, z]] of Object.entries(S.mik.hollows)) assert.deepEqual([by['mik:hollow' + lv].x, by['mik:hollow' + lv].z], [x, z]);
+  // the raising (build 120's level 3, h130/raise.js): its stand and rig, and their entries
+  assert.deepEqual(Object.keys(S.stands), ['col3']); assert.deepEqual(Object.keys(S.rig), ['3']);
+  assert.ok(by['stand:col3'] && by['rig:post3'] && by['rig:block3'] && by.broke);
 });
 
-test('book s05: every act\'s stand is the book\'s (the acts\' own stand())', async () => {
-  const { ACTS } = await import('../src/game/h120/acts.js');
-  const { PLAN } = await import('../src/game/h120/model.js');
-  const S = BOOK.s05, stands = S.entries.filter((e) => e.kind === 'stand');
-  for (const m of PLAN) {
-    const a = ACTS[m.k]; assert.ok(a && a.stand, m.id);
-    const s = a.stand(m), b = S.stands[m.id];
-    assert.ok(b, `book has ${m.id}`);
-    assert.ok(near(s.x, b[0]) && near(s.z, b[1]) && near(s.face[0], b[2]) && near(s.face[1], b[3]), `${m.id}: ${JSON.stringify(s)} vs ${b}`);
-    assert.ok(stands.some((e) => e.acts.includes(m.id) && e.x === b[0] && e.z === b[1]), `${m.id} entry`);
-  }
-});
-
-test('book s05 (build 127): the routes, the rig, the floor, the ways, the cameras are the book\'s own tables', async () => {
-  const R = await import('../src/game/h120/routes.js');
-  const M = await import('../src/game/h120/model.js');
-  const { makePack05 } = await import('../src/game/h120/pack.js');
-  const S = BOOK.s05, by = Object.fromEntries(S.entries.map((e) => [e.id, e]));
-  assert.equal(R.SCAFF, S.scaff); assert.equal(R.PILES, S.piles); assert.equal(R.LANE, S.lane); assert.equal(R.WALLS, S.walls);
-  assert.equal(R.LANE_CROSS.at, S.laneCross);
-  for (const lv of [1, 2, 3]) {
-    const P = R.CARRY_PLACES[lv], B = S.carry[lv];
-    assert.equal(P.mark.c, B.mark); assert.equal(P.jars, B.jars); assert.equal(P.worker, B.worker);
-    for (const c of P.checks) assert.equal(c.rect, B.checks[c.id], `lv ${lv} check ${c.id}`);
-    if (P.movers) assert.equal(P.movers, B.movers);
-    for (const L of [10, 11.5]) {
-      const W = R.carryWay(lv, L);
-      assert.equal(W.length, S.way[lv].length);
-      S.way[lv].forEach(([e, x, z, kx = 0, kz = 0], i) => assert.deepEqual(W[i], [e, x + kx * L, z + kz * L], `way ${lv}.${i}`));
-    }
-    assert.equal(R.carryStart(lv, 11).f[1], S.startZ);
-    assert.ok(by['carry:mark' + lv] && by['carry:worker' + lv], 'carry entries ' + lv);
-  }
-  assert.equal(makePack05().film, S.cam.film);
-  // the floor's rises are the book's (a rise's crest is where floorH has its own bump)
-  assert.ok(S.floor.rises.length === 9 && S.floor.rises.every((r) => r.length === 4));
-  assert.ok(Math.abs(M.floorH(13, -47.4) - M.floorH(13, -48.6)) > 0, 'floor');
-  for (const k of ['in1', 'in2', 'in3']) { const ch = M.refChannel(+k.slice(2), 'in'); assert.ok(ch && ch.pts.length > 1, k); }
-  for (const k of ['rig', 'floor', 'mikWays', 'scaff', 'piles', 'lane', 'walls', 'carry', 'way', 'cam', 'laneCrew']) assert.ok(Object.isFrozen(S[k]), k);
-  for (const lv of [1, 2, 3]) assert.ok(by['rig:post' + lv], 'rig entry ' + lv);
+test('book s05 (build 130 part 3): the old stage\'s rows are out of the book, with their entries', () => {
+  const S = BOOK.s05;
+  for (const k of ['yard', 'carry', 'way', 'startZ', 'lime', 'vessels', 'mikWays', 'floor', 'scaff', 'piles', 'lane', 'laneCross', 'laneCrew']) assert.equal(S[k], undefined, k);
+  for (const k of ['pit', 'hollows']) assert.equal(S.mik[k], undefined, 'mik.' + k);
+  for (const k of ['film', 'again', 'intro']) assert.equal(S.cam[k], undefined, 'cam.' + k);
+  for (const e of S.entries) assert.ok(!/^(yard:|carry:|lime$|vessel:|mik:(pit|hollow)|lane:|scaff\d|pile\d|stand:(col[12]|saw|carry|mikveh|planks)|rig:(post|block)[12]$)/.test(e.id), e.id);
 });
 
 test('book s01 (build 127): stage 01 reads its places from the book — the square, the corner stone, the courses, the trumpeting corner, the cameras', async () => {

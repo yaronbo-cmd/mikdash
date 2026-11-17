@@ -50,7 +50,7 @@ const hasRun = (toks, lits) => { for (let i = 0; i + lits.length <= toks.length;
 const at = (o, path) => (path[0] === '-' ? -at(o, path.slice(1)) : path.split('.').reduce((v, k) => (v == null ? v : v[k]), o));
 
 export function checkMoved(before, BOOK) {
-  const now = scanDirs(ROOT, ['h109', 'h120']), left = new Map();
+  const now = scanDirs(ROOT, ['h109']), left = new Map();   // (build 130: h120 went whole)
   for (const h of now) { const k = h.file + '|' + h.text; left.set(k, (left.get(k) || 0) + 1); }
   const blocks = bookBlocks(), out = [];
   for (const h of before) {

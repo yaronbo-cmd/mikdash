@@ -16,10 +16,9 @@ test('the before-list is the scan of h109 and h120 at fb94fd8 (360 hits)', () =>
 });
 
 test('every tuple of the before-list stays, is in an h127 block of the book with the same literals, or is a place the book held', () => {
-  const r = checkMoved(before, BOOK), lost = r.filter((h) => h.how === 'LOST');
+  // (build 130: the old stage 05, h120, went whole — its files and their places with it; the stage-01 hits are held as before)
+  const r = checkMoved(before.filter((h) => !/^h120\//.test(h.file)), BOOK), lost = r.filter((h) => h.how === 'LOST');
   assert.deepEqual(lost.map((h) => `${h.file}:${h.line} ${h.text}`), []);
-  // the film and its sound are not touched at all
-  for (const h of r) if (/h120\/film(sound)?\.js$/.test(h.file)) assert.equal(h.how, 'stays', `${h.file}:${h.line}`);
 });
 
 test('every REUSE line names a hit of the before-list', () => {

@@ -1,5 +1,5 @@
 /* ── build 125 ── world/look.js — the right thumb's look shape over a walled site, one module for every stage (rule 66; build 124's
- * h120/look120.js made general: stage 05 keeps its own boxes and constants there, the other stages give theirs here). Pure: no
+ * h120/look120.js made general; build 130: the old stage 05 and its look120.js are gone, the new stage gives its boxes here, h130/pack.js BOXES130). Pure: no
  * three.js, no DOM.
  *
  * As u grows the camera pulls back and RISES over the site, its view tilts up, the lens widens a little: the work low in the frame, the

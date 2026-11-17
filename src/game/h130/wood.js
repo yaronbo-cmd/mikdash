@@ -113,7 +113,7 @@ export const WOOD_ACT = {
     const B = createBeat(X), gang = createGang(X);
     const sec = W5.second, ownAt = [sec[0] + OWN.dx, sec[1] + OWN.dz];
     const ownG = new T.Group(); root.add(ownG);
-    { const ol = LOGS[2][6], g = logPiece(X, ol, 0, 2.4, null); g.position.set(ownAt[0], logY(ol.r), ownAt[1]); g.rotation.x = 1.1; ownG.add(g); for (const e of [-1, 1]) trestle(X, ownAt[0] + e * 0.75, ownAt[1], 0.9, ownG); }
+    { const ol = LOGS[1][4], g = logPiece(X, ol, 0, 2.4, null); g.position.set(ownAt[0], logY(ol.r), ownAt[1]); g.rotation.x = 1.1; ownG.add(g); for (const e of [-1, 1]) trestle(X, ownAt[0] + e * 0.75, ownAt[1], 0.9, ownG); }
     let second = gang.add(sec[0], sec[1], { variant: 'kohen', tunic: '#F2EEE4', role: 'hammer', item: 'mallet', fx: ownAt[0], fz: ownAt[1], k: 3, crew: 1 });
     const saw = [];
     // (the crew man with a staff who rolls each waiting log onto the trestles; he waits beside the stack)

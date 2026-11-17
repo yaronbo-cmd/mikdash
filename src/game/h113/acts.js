@@ -53,6 +53,9 @@ export function fingers(X, h) {
     down(p) { primary = p.id; add(p.id, p.x, p.y, MOUSE ? 'mouse' : 'touch'); },
     move(p) { const f = L.get(p.id); if (!f) return; f.moved = Math.max(f.moved, Math.hypot(p.x - f.x0, p.y - f.y0)); f.x = p.x; f.y = p.y; if (h.move) h.move(f); },
     up(p) { const f = L.get(p.id); if (primary === p.id) primary = null; if (!f) return; L.delete(p.id); f.x = p.x; f.y = p.y; if (h.up) h.up(f); },
+    /** build 130: a thing a finger holds is gone (the taper, put away once the wick is lit) — every finger on it lets go of it, so its
+     *  later moves (a mouse still pressed through the closing film) never reach the dead thing → how many let go */
+    letGo(k) { let n = 0; for (const f of L.values()) if (f.k === k) { f.k = null; n++; } return n; },
     get n() { return L.size; },
   };
 }

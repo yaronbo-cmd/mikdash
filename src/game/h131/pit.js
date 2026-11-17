@@ -58,8 +58,8 @@ const K = Object.freeze({ TAP: 14, TIP: 48, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
   work: { back: 11.5, up: 17, turn: -0.85, mid: 0.45, aimY: 0.4, fov: 46, k3: 1.12 },
-  lever: { D: 17, H: 15, fov: 48, mid: 1.9, aimY: 1.1 },   // (b131 part 3: back and lower — at 13.5/16.5 the kohen stood large at the right edge at 960×600)
-  rejects: { back: 7, up: 3.4, on: 7, aimY: 1.4, fov: 58 },   // (b131 part 3: along the opening's look, toward the low hills to the north-east: the skyline in the frame)
+  lever: { D: 20, H: 18.5, fov: 46, mid: 2.1, aimY: 1.1 },   // (b131 part 3: farther back — at 13.5/16.5 the kohen stood large at the right; the mid a little toward him)
+  rejects: { back: 9, up: 3.5, on: 4, aimY: 1.2, fov: 60 },   // (aimed far along the opening's look, nearly level: the heap low in the frame, the hills' skyline and the sky above)   // (b131 part 3: along the opening's look, toward the low hills to the north-east: the skyline in the frame)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -182,6 +182,8 @@ function pitAct(m, X) {
   const carrHome = P.carriers.map((p) => W3(p[0], 0, p[1]));
   let fitTok = 0;
   const SPOT_OK = (lx, lz) => { const an = Math.atan2(lz, lx); if (an > -Math.PI * 0.95 && an < -Math.PI * 0.45) return false; for (const q of [P.cradle, P.rejects]) if (Math.hypot(lx - q[0], lz - q[1]) < 3.2) return false; for (const q of P.row) if (Math.hypot(lx - q[0], lz - q[1]) < 1.6) return false; return true; };
+  /** a straight walk that keeps off the pit's mouth (the ground under a walker does not know the hole) */
+  const clearWay = (x0, z0, x1, z1) => { const c = W3(P.hole.at[0], 0, P.hole.at[1]), dx = x1 - x0, dz = z1 - z0, L2 = dx * dx + dz * dz || 1, u = Math.max(0, Math.min(1, ((c.x - x0) * dx + (c.z - z0) * dz) / L2)); return Math.hypot(x0 + dx * u - c.x, z0 + dz * u - c.z) > PD.R0 + 0.6; };
   function carriersFit(delay) {
     const tok = ++fitTok, k0 = shotK;
     X.wait(delay).then(() => {
@@ -189,17 +191,24 @@ function pitAct(m, X) {
       const FGp = globalThis.__FIG; if (!FGp || !FGp.probe) return;
       const s = cur(), f = s ? W3(s.at[0], F + 0.6, s.at[1]) : null, taken = [];
       const free = (x, z) => taken.every((t) => Math.hypot(t[0] - x, t[1] - z) > 1.4);
-      const whole = (x, y, z) => { try { const q = FGp.probe(x, y, z, f); return q.on && !q.cut && !q.between; } catch (e) { return false; } };
+      const look = (x, y, z) => { try { return FGp.probe(x, y, z, f); } catch (e) { return null; } };
+      const whole = (x, y, z) => { const q = look(x, y, z); return !!q && q.on && !q.cut && !q.between; };
+      const away = (x, y, z) => { const q = look(x, y, z); return !!q && !q.on; };
       carr.forEach((w, k) => {
         if (!w || !w.a.alive) return;
-        if (free(w.a.x, w.a.z) && whole(w.a.x, w.a.y, w.a.z)) { taken.push([w.a.x, w.a.z]); return; }
+        if (free(w.a.x, w.a.z) && (whole(w.a.x, w.a.y, w.a.z) || away(w.a.x, w.a.y, w.a.z))) { taken.push([w.a.x, w.a.z]); return; }
+        // (a place on the rim where he stands whole in the frame; where the frame holds none (the work shot fills it with the pit), the
+        //  nearest place out of the frame altogether: whole there too, never cut at its edge)
         let best = null;
-        for (const r of [PD.R0 + 1.4, PD.R0 + 2.6, PD.R0 + 4]) for (let j = 0; j < 48; j++) {
-          const an = j * Math.PI / 24, lx = P.hole.at[0] + Math.cos(an) * r, lz = P.hole.at[1] + Math.sin(an) * r; if (!SPOT_OK(lx, lz)) continue;
-          const q = W3(lx, 0, lz), d = Math.hypot(q.x - carrHome[k].x, q.z - carrHome[k].z); if (best && d >= best.d) continue;
-          if (!free(q.x, q.z) || !whole(q.x, q.y, q.z)) continue; best = { x: q.x, z: q.z, d };
+        for (const ok of [whole, away]) {
+          for (const r of [PD.R0 + 1.4, PD.R0 + 2.6, PD.R0 + 4]) for (let j = 0; j < 48; j++) {
+            const an = j * Math.PI / 24, lx = P.hole.at[0] + Math.cos(an) * r, lz = P.hole.at[1] + Math.sin(an) * r; if (!SPOT_OK(lx, lz)) continue;
+            const q = W3(lx, 0, lz), d = Math.hypot(q.x - carrHome[k].x, q.z - carrHome[k].z); if (best && d >= best.d) continue;
+            if (!free(q.x, q.z) || !clearWay(w.a.x, w.a.z, q.x, q.z) || !ok(q.x, q.y, q.z)) continue; best = { x: q.x, z: q.z, d };
+          }
+          if (best) break;
         }
-        if (!best) return;   // (none whole: the gate keeps him out of the picture)
+        if (!best) return;   // (none: the gate keeps him out of the picture)
         taken.push([best.x, best.z]);
         gang.setRole(w, 'walk', { fx: null }); gang.walkTo(w, best.x, best.z, 2.8).then(() => { if (!A.ended && tok === fitTok) gang.setRole(w, 'hold', { fx: f ? f.x : cr0.x, fz: f ? f.z : cr0.z }); });
       });
@@ -208,6 +217,7 @@ function pitAct(m, X) {
   async function carriersHome() {
     fitTok++;
     const away = carr.map((w, k) => (w && w.a.alive && Math.hypot(w.a.x - carrHome[k].x, w.a.z - carrHome[k].z) > 0.3 ? [w, k] : null)).filter(Boolean);
+    for (const [w, k] of away) if (!clearWay(w.a.x, w.a.z, carrHome[k].x, carrHome[k].z)) { w.a.path = null; w.a.x = carrHome[k].x; w.a.z = carrHome[k].z; }   // (no walk over the pit's mouth)
     if (!away.length) return;
     await Promise.race([Promise.all(away.map(([w, k]) => { gang.setRole(w, 'walk', { fx: null }); return gang.walkTo(w, carrHome[k].x, carrHome[k].z, 3.4); })), X.wait(2.4)]);
     for (const [w, k] of away) { if (Math.hypot(w.a.x - carrHome[k].x, w.a.z - carrHome[k].z) > 0.3) { w.a.path = null; w.a.x = carrHome[k].x; w.a.z = carrHome[k].z; } }

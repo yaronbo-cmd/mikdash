@@ -26,7 +26,7 @@ import { BOOK } from '../world/grid.js';
 const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
 const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 // (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
-const SEE = Object.freeze({ AIM_D: 8, DOWN: 4, FOV: 26, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
@@ -280,10 +280,11 @@ export const GALLERY = {
         { const t = L.torch[order[0]]; bearerAt(t[0], t[1], L.watch[0][0], L.watch[0][1]); }
         for (let wi = 0; wi < L.watch.length; wi++) {
           const w = L.watch[wi], eye = clearEye([w[0], GEO.FLOOR + EYE, w[1]], cols);
-          lensF = SEE.FOV; lens(lensF);
+          const seeLens = (tp) => { const d = Math.hypot(tp[0] - eye[0], tp[2] - eye[2]); lensF = clamp((2 * Math.atan((SEE.MAN * SEE.PART) / 2 / Math.max(1, d)) * 180) / Math.PI, SEE.FMIN, SEE.FOV); lens(lensF); };
           A.spect.forEach((s, i) => { s.a.vis = s.a.visT = i === wi ? 0 : 1; });
           for (let j = 0; j < order.length; j++) {
             const ti = order[j], t = L.torch[ti];
+            seeLens(torchP(ti));
             if (j > 0) { const d = Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]); X.shot(eye, eyeAim(eye, torchP(ti)), d / 14); await Promise.race([SH130.crew.walkTo(bearer, t[0], t[1], 14), wait(d / 14 + 1)]); }
             else { X.shot(eye, eyeAim(eye, torchP(ti)), j === 0 && wi === 0 ? 0.01 : 0.6); await wait(0.7); }
             SH130.crew.face(bearer, w[0], w[1]);
@@ -320,7 +321,7 @@ export const GALLERY = {
       seatsShow(true);
       finish();
     }
-    /** ── build 130 part 3 ── the spectator's aim: toward the torch but a little down (SEE.DOWN degrees, SEE.AIM_D amot ahead). The torch's flame is over his eye;
+    /** ── build 130 part 3 ── the spectator's aim (build 130 closing: at the bearer, see below). The torch's flame is over his eye;
      *  a camera that looks up past the world controls' polar limit (main.js maxPolarAngle 1.46) was lifted by them before each frame —
      *  to the gallery's own height, its deck and railing then filling the view (the "brown frame" of the test from below) */
     /** ── build 130 closing ── his eye off the columns he built: one within SEE.CLEAR amot of it filled a third of the frame (1600×900);
@@ -340,8 +341,9 @@ export const GALLERY = {
       return e;
     }
     function eyeAim(eye, tp) {
-      const dx = tp[0] - eye[0], dz = tp[2] - eye[2], L = Math.hypot(dx, dz) || 1, k = Math.min(L, SEE.AIM_D);
-      return [eye[0] + (dx / L) * k, eye[1] - k * Math.tan((SEE.DOWN * Math.PI) / 180), eye[2] + (dz / L) * k];
+      // (build 130: at the bearer's middle, SEE.MID over the floor — under the eye, so never past the polar limit — and the lens set
+      //  for his stop's distance (seeLens): he stands a fifth or more of the frame's height, the torch and the columns on his line in it)
+      return [tp[0], GEO.FLOOR + SEE.MID, tp[2]];
     }
     function seatsShow(v) { try { const r = SH130.gal[side]; if (r && r.seats) r.seats.visible = !!v; } catch (e) { /* */ } }
 

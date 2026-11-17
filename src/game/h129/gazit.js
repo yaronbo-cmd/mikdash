@@ -190,7 +190,7 @@ export const GAZIT = {
       const L = pathK != null && SC ? layoutFor(pathK) : null, rc = L ? [...(L.mats || []), ...(L.stones || [])].map(corners) : [], ss = L ? L.stands || [] : [], end = path[path.length - 1];
       const inR = (p, c) => { let s0 = 0; for (let i = 0; i < 4; i++) { const u = c[i], v = c[(i + 1) % 4], w = (v[0] - u[0]) * (p[1] - u[1]) - (v[1] - u[1]) * (p[0] - u[0]); if (i === 0) s0 = Math.sign(w); else if (Math.sign(w) !== s0 && w !== 0) return false; } return true; };
       // (the same tests as walkCheck: near its end the way may reach his own place)
-      const bad = (p) => Math.hypot(p[0] - end[0], p[1] - end[1]) >= 0.9 && (rc.some((c) => inR(p, c)) || ss.some((q) => Math.hypot(p[0] - q.x, p[1] - q.z) < H129.WALK.INK + H129.STAND / 2));
+      const bad = (p) => Math.hypot(p[0] - end[0], p[1] - end[1]) >= 0.9 && (Math.hypot(p[0] - path[0][0], p[1] - path[0][1]) >= 0.6 && rc.some((c) => inR(p, c)) || ss.some((q) => Math.hypot(p[0] - q.x, p[1] - q.z) < H129.WALK.INK + H129.STAND / 2));
       const W = 0.13, y = F16 + 0.08;
       const seg = (a, b, red) => { const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz); if (l < 1e-3) return; const m = new T.Mesh(segGeo, red ? chalkRed : chalk); m.position.set((a[0] + b[0]) / 2, y, (a[1] + b[1]) / 2); m.rotation.y = Math.atan2(dx, dz); m.scale.set(W, 1, l + W * 0.6); m.renderOrder = 3; dots.add(m); };
       for (let i = 0; i + 1 < path.length; i++) {

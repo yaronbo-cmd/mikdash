@@ -209,10 +209,12 @@ export function walkCheck(path, layout, who) {
   if (path.length) pts.push(path[path.length - 1]);
   const last = pts[pts.length - 1] || [0, 0];
   let end = pts[0] || last, stopped = false, ink = null;
+  // (build 129 R3: a man who stopped at a mat's edge stands at it — his first step off it is not a step onto it, as wayFor's way allows)
+  const first = pts[0] || last;
   for (const p of pts) {
-    const nearEnd = Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.9;
-    if (mats.some((c) => inRect(p, c)) && !nearEnd) { stopped = true; break; }
-    if (stones.some((c) => inRect(p, c)) && !nearEnd) { stopped = true; break; }
+    const nearEnd = Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.9, nearStart = Math.hypot(p[0] - first[0], p[1] - first[1]) < 0.6;
+    if (mats.some((c) => inRect(p, c)) && !nearEnd && !nearStart) { stopped = true; break; }
+    if (stones.some((c) => inRect(p, c)) && !nearEnd && !nearStart) { stopped = true; break; }
     if (!ink) for (const s of stands) if (Math.hypot(p[0] - s.x, p[1] - s.z) < W.INK + H129.STAND / 2) { ink = [s.x + (p[0] - s.x) * 0.5, s.z + (p[1] - s.z) * 0.5]; break; }
     end = p;
   }

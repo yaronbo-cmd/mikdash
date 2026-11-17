@@ -131,4 +131,13 @@ export function unpackWork(sim, w) {
   sim.updateHollow();
   return true;
 }
+/* ───────── a re-poured place's patch (the world draws it, the finale whitens it a little grey): one ragged outline for both ─────────
+ * at [x, z] and n (the hollow's radius in tenths of an amah, pour.hollow's mark); never smaller than a man's stride across */
+export const PATCH_MIN = 1.5, PATCH_MAX = 2.2;
+export const patchR = (n) => Math.min(PATCH_MAX, Math.max(PATCH_MIN, (+n || 0) / 10));
+export const patchSeed = (x, z) => x * 7.1 + z;
+/** the outline's reach at angle a (radians), as a share of the radius */
+export const patchK = (a, seed) => 0.82 + 0.1 * Math.sin(a * 3 + seed) + 0.08 * Math.sin(a * 7 + seed * 1.7);
+/** is the point (px, pz) inside the patch of a mark? */
+export function inPatch(px, pz, x, z, n) { const dx = px - x, dz = pz - z, d = Math.hypot(dx, dz), R = patchR(n); return d <= R * patchK(Math.atan2(dz, dx), patchSeed(x, z)); }
 export { T as SIM_T, NX, NZ, N, DX, X0, Z0, cellX, cellZ };

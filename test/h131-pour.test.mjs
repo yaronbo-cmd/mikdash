@@ -2,6 +2,7 @@
 // different (each wins with a sensible plan, loses poured at one spot), level 3's timber and reeds, and a pour kept in the save.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import * as S0 from '../samples/yetzika/sim.js';
 import * as S1 from '../src/game/h131/sim.js';
 import { LEVELS, newSim, cellsOf, landing, toWorld, toLocal, packWork, unpackWork, SIM_T as T, NX, NZ, cellX } from '../src/game/h131/pourlv.js';
@@ -69,4 +70,13 @@ test('pour: a pour kept in the save comes back as it stood (set where it lay), w
   const b = newSim(2); assert.ok(unpackWork(b, blob));
   for (let c = 0; c < a.vol.length; c++) assert.ok(Math.abs(b.solid[c] - Math.min(2.55, a.solid[c] + a.vol[c])) <= 0.006, String(c));
   assert.equal(b.patch[100], 1); assert.equal(b.cauldron.used, 2); assert.equal(blob.stonesIn, 16); assert.ok(JSON.stringify(blob).length < 12000);
+});
+
+test('pour: a re-poured place\'s patch — one ragged outline for the world and the finale, a stride across at least, never the whole section', async () => {
+  const { inPatch, patchR, patchK, patchSeed, PATCH_MIN, PATCH_MAX } = await import('../src/game/h131/pourlv.js');
+  assert.equal(patchR(0), PATCH_MIN); assert.equal(patchR(80), PATCH_MAX); assert.equal(patchR(17), 1.7);
+  assert.ok(inPatch(-42.35, 9.33, -42.35, 9.33, 8)); assert.ok(!inPatch(-42.35 + PATCH_MAX + 0.1, 9.33, -42.35, 9.33, 8));
+  for (let a = 0; a < 6.3; a += 0.1) { const k = patchK(a, patchSeed(3, 4)); assert.ok(k > 0.6 && k <= 1.0); }
+  const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
+  assert.match(src, /inPatch\(FIN\.X0 \+ i \+ 0\.5, FIN\.Z0 \+ j \+ 0\.5, q\.at\[0\], q\.at\[1\], q\.n\)/, 'the finale whitens the same patch grey');
 });

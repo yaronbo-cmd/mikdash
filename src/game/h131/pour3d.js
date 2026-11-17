@@ -11,7 +11,7 @@
  */
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { NX, NZ, DX, W, D, H, X0, Z0, N, T, cellX, cellZ, mulberry32, stoneHeightAt, stoneRadiusScale } from './sim.js';
-import { LEVELS, frameOf, yawOf, toWorld, REED_R, REED_H } from './pourlv.js';
+import { LEVELS, frameOf, yawOf, toWorld, REED_R, REED_H, patchR, patchSeed, patchK } from './pourlv.js';
 import { BOOK } from '../world/grid.js';
 
 const S8 = BOOK.s08;
@@ -493,8 +493,9 @@ export function createPourView(X, lv, sim, o = {}) {
 const W8 = { g: null, key: '' };
 /** a patch's outline: a ragged disc (a re-poured place is not a compass circle) */
 function patchGeo(T, r, seed) {
+  // (the circle lies in x, y and is turned flat by −90° about x: its y is the world's −z, so the angle is taken as the world's)
   const g = new T.CircleGeometry(r, 36), p = g.attributes.position;
-  for (let i = 1; i < p.count; i++) { const a = Math.atan2(p.getY(i), p.getX(i)), k = 0.82 + 0.1 * Math.sin(a * 3 + seed) + 0.08 * Math.sin(a * 7 + seed * 1.7); p.setXY(i, p.getX(i) * k, p.getY(i) * k); }
+  for (let i = 1; i < p.count; i++) { const k = patchK(Math.atan2(-p.getY(i), p.getX(i)), seed); p.setXY(i, p.getX(i) * k, p.getY(i) * k); }
   return g;
 }
 /** a pour mark's place: [x, z] with the radius in n (tenths of an amah); a save from before build 131's part 3 kept {x, z, r} */
@@ -516,7 +517,7 @@ function marksDraw(X, M) {
   const patchM = new T.MeshStandardMaterial({ color: white ? 0xDCD3C2 : 0x9a8f80, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });   // (a fresher mix, a shade off the set one)
   const stainM = new T.MeshStandardMaterial({ color: 0x4a3a2c, roughness: 0.9, transparent: true, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2 });
   for (const k of marks) {
-    if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, Math.min(1.7, Math.max(0.8, k.r || 1.4)), k.x * 7.1 + k.z), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.x, S8.top + 0.012, k.z); g.add(m); }
+    if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, patchR(k.r * 10), patchSeed(k.x, k.z)), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.x, S8.top + 0.012, k.z); g.add(m); }
     else { const m = new T.Mesh(new T.CircleGeometry(1, 20), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
   }
 }

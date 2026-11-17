@@ -20,6 +20,7 @@ import { LINES, QUICK } from './model.js';
 import { FIN, finLoad, finSave, wipe, cover, whiteAll, pullable, waterPath, finResult, cellsOf, STAKE, SIDES } from './frame-model.js';
 import { fmats, beamMesh, setBeam, frameHold } from './frame3d.js';
 import { box } from './world.js';
+import { inPatch } from './pourlv.js';
 import { createVoices } from '../h129/sound129.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { createGang, createBeat, onPlane, clamp, ease, lerp } from '../h109/kit.js';
@@ -105,7 +106,8 @@ export const FINALE_ACT = {
     const whiteM = new T.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.95, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
     const white = new T.Mesh(new T.PlaneGeometry(FIN.NX, FIN.NZ), whiteM); white.rotation.x = -Math.PI / 2; white.position.set(FIN.X0 + FIN.NX / 2, Y1 + 0.025, FIN.Z0 + FIN.NZ / 2); white.renderOrder = 4; root.add(white);
     const CELLS = cellsOf(), patch = new Set();
-    for (const q of Mo.marksOf('pour.hollow')) if (Array.isArray(q.at)) { const i0 = Math.floor(q.at[0] - FIN.X0), j0 = Math.floor(q.at[1] - FIN.Z0); for (let j = j0 - 1; j <= j0 + 1; j++) for (let i = i0 - 1; i <= i0 + 1; i++) patch.add(j * FIN.NX + i); }
+    // (the pour's patch: the same ragged outline the world draws after the finale, pourlv.js inPatch; a cell whose middle is in it)
+    for (const q of Mo.marksOf('pour.hollow')) if (Array.isArray(q.at)) { const i0 = Math.floor(q.at[0] - FIN.X0), j0 = Math.floor(q.at[1] - FIN.Z0); for (let j = j0 - 3; j <= j0 + 3; j++) for (let i = i0 - 3; i <= i0 + 3; i++) if (i >= 0 && i < FIN.NX && j >= 0 && j < FIN.NZ && inPatch(FIN.X0 + i + 0.5, FIN.Z0 + j + 0.5, q.at[0], q.at[1], q.n)) patch.add(j * FIN.NX + i); }
     const shade = (c) => { const h = ((c * 2654435761) >>> 0) % 17; return patch.has(c) ? `rgb(${222 + h % 6},${214 + h % 5},${196 + h % 7})` : `rgb(${246 + h % 9},${244 + h % 8},${236 + h % 9})`; };
     function paint(all) {
       if (all) cx.clearRect(0, 0, cv.width, cv.height);

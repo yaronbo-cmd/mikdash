@@ -11,11 +11,12 @@ import { BOOK } from '../src/game/world/grid.js';
 
 const S5 = BOOK.s05, SPEC = readFileSync(new URL('../docs/specs/shlav-05-hadash-he.md', import.meta.url), 'utf8');
 
-test('h130 pack: the director\'s shape, the gallery the only act of part 1, the plan the model\'s', () => {
+test('h130 pack: the director\'s shape, the four kinds\' acts, the plan the model\'s, the world\'s clock', () => {
   const P = makePack130();
   assert.equal(P.id, 'nashim'); assert.equal(P.key, 'h130'); assert.equal(P.PLAN, PLAN);
   for (const k of ['create', 'count', 'sync', 'before', 'finale', 'rest', 'dispose']) assert.equal(typeof P[k], 'function', k);
-  assert.deepEqual(Object.keys(P.ACTS).filter((k) => !k.startsWith('__')), ['gallery']);
+  assert.deepEqual(Object.keys(P.ACTS).filter((k) => !k.startsWith('__')), ['gallery', 'wood', 'light', 'eve']);
+  const E = { setTime() {}, restoreTime() {} }; assert.equal(makePack130(E).time, E);
   for (const k of ['__init', '__sh', '__frame']) assert.equal(typeof P.ACTS[k], 'function', k);
   assert.ok(P.look && typeof P.look.pose === 'function' && typeof P.look.sightPose === 'function' && P.look.walk);
   const M = P.create(null); assert.deepEqual(M.count(), [0, PLAN.length]); assert.equal(M.open()[0].id, 'gal1');

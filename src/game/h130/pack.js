@@ -3,9 +3,10 @@
  * gallery, the evening after the light), its acts (acts.js), its world (world.js: the gallery as he built it, drawn from the save); the
  * right thumb's look over the walled court (world/look.js with the court's walls at their built tops and the galleries); how the crews'
  * share shows (the chambers' walls rise with his works, as build 120's stage did); the stage's short opening (a tap skips it).
- * Part 1 of build 130: the gallery's three works play; the wood chamber, the light and the evening come in parts 2 and 3.
+ * The game's stage 05 always (build 130 part 3): the gallery, the wood chamber, the light and the evening; the film after the evening.
  */
-import { PLAN, LINES, createH130 } from './model.js';
+import { PLAN, LINES, createH130, fromOld } from './model.js';
+import { playFilm } from './film130.js';
 import { ACTS } from './acts.js';
 import { SH130, initWorld, finalWorld, restWorld, Y, GEO } from './world.js';
 import { makeLook, LOOK_RING_K } from '../world/look.js';
@@ -38,7 +39,14 @@ function tapOr(X, ms) {
 }
 const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h130-film'); } catch (e) { /* */ } };
 
-export function makePack130() {
+/** an old save of build 120's stage 05 (G.h120) → the new stage's (G.h130), once: finished → built by the crews, in the middle → from the
+ *  beginning (model.js fromOld); the old key goes. Later stages' progress lives in other keys and is never touched. Returns true when it moved */
+export function migrate05(G, oldDone) {
+  if (!G || G.h130 || !G.h120) return false;
+  G.h130 = fromOld(G.h120, !!oldDone); delete G.h120;
+  return true;
+}
+export function makePack130(env = {}) {
   const P = {
     id: 'nashim', key: 'h130', name: 'עזרת הנשים', PLAN, ACTS, icon: '🏛',
     create: (save) => createH130(save),
@@ -49,6 +57,7 @@ export function makePack130() {
     endTitle: 'עזרת הנשים נבנתה!',
     endSub: LINES.middot25,
     film: [],
+    time: env,   // (the world's clock: setTime(k), restoreTime() — the evening's dark, eve.js)
     /** the chambers' walls as they stand while he works: their courses rise with his ten works; the gallery as the save has it */
     sync(M, S0, instant, X) {
       const info = S0.siteInfo('nashim'); if (!info) return;
@@ -80,10 +89,11 @@ export function makePack130() {
         X.line(''); near(X, false);
       })();
     },
-    /** the stage's close (part 3 brings the evening): the world as he built it */
-    async finale(X) { finalWorld(X); },
+    /** the stage's close: the world as he built it, then the film of Simchat Beit HaShoeva (v3, full screen, a tap skips it; a film that
+     *  cannot load or play is skipped in silence), then the director's end card */
+    async finale(X) { finalWorld(X); try { await playFilm(X); } catch (e) { console.warn('[h130] film', e && e.message); } },
     /** after a reload, the stage done: his galleries as he built them, the model's own hidden, no crews of the stage */
-    rest(X) { restWorld(X); },
+    rest(X, M) { restWorld(X, M); },
     dispose() {},
   };
   void initWorld;

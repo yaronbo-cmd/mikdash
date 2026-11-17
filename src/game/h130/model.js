@@ -539,7 +539,7 @@ export function createH130(save) {
     pick(id) { const m = id ? PLAN.find((x) => x.id === id) : null; st.cur = m && M.canDo(m) ? m.id : null; return M.mission(); },
     nDone() { return PLAN.filter((m) => d(m.id)).length; },
     count() { return [M.nDone(), PLAN.length]; },
-    finished() { return PLAN.every((m) => d(m.id)); },
+    finished() { return !!st.crews || PLAN.every((m) => d(m.id)); },   // (a save the crews built: the stage stands done, drawn as theirs)
     levelOf(m) { return m.lv | 0 || 1; },
     /** a damage, kept in the save where it happened; returns its points (the director's X.loss takes them) */
     mark(f, work, at, n = 0) { const p = lossPts(f); if (!p) return 0; st.marks.push({ f, work, at: at == null ? null : at, n }); return p; },

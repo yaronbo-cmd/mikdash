@@ -11,6 +11,8 @@ import { BOOK } from '../world/grid.js';
 import { RUNS, spans, colXZ, GAL } from './model.js';
 import { h120Ladder } from '../../temple.js';
 import { createBeat, createGang, clamp, lerp, ease } from '../h109/kit.js';
+import { woodWorld, woodFrame, woodRest } from './wood3d.js';
+import { lightWorld, lightSync, lightFrame, SL } from './light3d.js';
 
 const S5 = BOOK.s05, GB = S5.gal;
 /** the gallery's sizes (illustration, as build 120's layout): the plinth, the monolith, the beam, the joists, the floor, the railing */
@@ -238,10 +240,17 @@ export function initWorld(X) {
   for (const s of ['N', 'S', 'E']) SH130.galKey[s] = null;
   galSync(X);
   if (!SH130.site) siteBuild(X);
+  others(X, X.M);
+}
+/** the two other stations' things from the save: the wood chamber's trestles and piles (wood3d.js), the menorah, its ladders, the
+ *  measures and the wicks table with what burns (light3d.js) */
+function others(X, M) {
+  try { woodWorld(X); } catch (e) { console.warn('[h130] wood world', e && e.message); }
+  try { lightWorld(X, M && M.st); } catch (e) { console.warn('[h130] light world', e && e.message); }
 }
 /** after a reload, the stage done or later: his gallery as he built it, the model's own hidden; no crews of the stage */
-export function restWorld(X) { mats(X); SH130.X = X; modelHide(X, true); galSync(X); }
-export function finalWorld(X) { if (!SH130.X) return; galSync(X); }
+export function restWorld(X, M) { mats(X); SH130.X = X; modelHide(X, true); galSync(X); try { woodRest(X); } catch (e) { /* */ } try { lightWorld(X, (M || X.M || {}).st); } catch (e) { /* */ } }
+export function finalWorld(X) { if (!SH130.X) return; galSync(X); try { lightSync(X, X.M && X.M.st); } catch (e) { /* */ } }
 /** an act takes a side's gallery out of the world's hands while it draws its own */
 export function own(side, v) { if (v) SH130.own[side] = 1; else delete SH130.own[side]; SH130.galKey[side] = null; }
 let jT = 0;
@@ -249,7 +258,9 @@ export function frameWorld(dt, X) {
   if (!SH130.B) return;
   SH130.t += dt;
   SH130.B.step(dt); if (SH130.crew) SH130.crew.update(dt, SH130.B);
-  jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X, true); galSync(X); }
+  jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X, true); galSync(X); try { if (!SL.g || !SL.g.parent) lightWorld(X, X.M && X.M.st); else lightSync(X, X.M && X.M.st); } catch (e) { /* */ } }
+  try { woodFrame(dt, X); } catch (e) { /* */ }
+  try { lightFrame(dt); } catch (e) { /* */ }
   for (const L of SH130.labels) L.frame();
 }
 

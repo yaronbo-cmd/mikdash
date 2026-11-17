@@ -1061,7 +1061,10 @@
         if (has('over') && a.pours.length === 3 && a.total > 30) K.overDone = 1;
         if (a.cups.some((c) => c.busy)) return { wait: 300 };
         if (a.total > 30) return { wait: 400, note: 'light: over thirty — it is emptied back' };
-        const id = plan[a.pours.length]; if (!id) return { wait: 400 };
+        if (!K.oilSet) { K.oilSet = 1; return { wait: 1500, note: 'light: the oil shot settles' }; }
+        // (the plan while the pours so far are its own; after a slip, the largest measure that still fits the thirty)
+        const onPlan = a.pours.every((p, i) => p === plan[i]), left = 30 - a.total;
+        const id = onPlan ? plan[a.pours.length] : ((a.cups.filter((q) => q.log <= left + 1e-6).sort((x, y) => y.log - x.log)[0]) || {}).id; if (!id) return { wait: 400 };
         const c = a.cups.find((q) => q.id === id);
         return { drag: [c.at[0], c.at[1], a.jar[0], a.jar[1] - 20, 800], wait: 1900, note: `light: pour ${id} (${a.total} so far)` };
       }

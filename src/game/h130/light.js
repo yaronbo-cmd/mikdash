@@ -309,7 +309,7 @@ export const LIGHT = {
     /** the camera behind him on the ladder, a little to his right (he stands in the left of the frame; the rungs to come above) */
     function camOf(feetY) {
       // (higher and farther than his head, looking down a little: his feet in the frame, the rungs to come above him)
-      const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 4.6 : 5.4, D = lv === 1 ? 7.4 : 8.6;
+      const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 4.6 : lv === 2 ? 5.4 : 6.6, D = lv === 1 ? 7.4 : lv === 2 ? 8.6 : 11.5;   // (light3 farther: the boys on the side ladders whole at u 0 and the touch's lift)
       const side = lv === 3 ? 0.6 : 2.2;   // (light3: nearly square behind him, so the two boys on the side ladders stay whole in the frame)
       return { p: [c[0] + LD.out[0] * D + R[0] * side, feetY + up, c[2] + LD.out[1] * D + R[1] * side], t: [c[0] + R[0] * 0.7 + LD.out[0] * 0.3, feetY + 1.9, c[2] + R[1] * 0.7 + LD.out[1] * 0.3] };
     }
@@ -407,7 +407,7 @@ export const LIGHT = {
     function bowlShot(d) {
       const R = [-LD.left[0], -LD.left[1]], feetY = LD.y(S ? S.rung : topR), c0 = LD.at(feetY), bx = c0[0] + LD.out[0] * 0.5, bz = c0[2] + LD.out[1] * 0.5, jh = jarHold();
       const top = jh[1] + 1.1, bot = feetY - 0.3, c = [(bx + bowlTop[0]) / 2, (top + bot) / 2, (bz + bowlTop[2]) / 2];
-      const fov = (X.camera && X.camera.fov) || 46, D = ((top - bot) * 0.5 * 1.5) / Math.tan((fov * Math.PI) / 360), az = 0.5, el = lv === 1 ? 0.5 : 0.22;
+      const fov = (X.camera && X.camera.fov) || 46, D = ((top - bot) * 0.5 * 1.5) / Math.tan((fov * Math.PI) / 360), az = lv === 1 ? 1.1 : 0.5, el = lv === 1 ? 0.5 : 0.22;   // (light1: more from his right side — the gallery's bowl lies beyond him, and from behind he stood before it)
       const v = [LD.out[0] * Math.cos(az) + R[0] * Math.sin(az), LD.out[1] * Math.cos(az) + R[1] * Math.sin(az)];
       shot([c[0] + v[0] * D * Math.cos(el), c[1] + D * Math.sin(el), c[2] + v[1] * D * Math.cos(el)], c, d);
     }

@@ -343,3 +343,73 @@ test('the slab: lifted slowly it opens at 0.8 (the keys); let go half way it fal
     assert.ok(D.flags['night.slab'], how); assert.equal(D.dmg, 20); assert.equal(M.nightPts(D), 10);
   }
 });
+
+/* ───────── h129 R2: the joint's graded warning before it opens ───────── */
+test('h129 R2: a joint warns in order — steady, opening, danger — before a crack or a stone', () => {
+  const W = M.WEDGE;
+  assert.deepEqual([0, 0.15, 0.2, 0.25, 0.35, 0.4, 0.6, 0.7, 0.85, 0.9].map(M.jointState), ['steady', 'steady', 'steady', 'opening', 'opening', 'danger', 'danger', 'crack', 'crack', 'stone']);
+  assert.ok(M.WARN.HAIR < W.LIGHT && W.LIGHT < W.CRACK && W.CRACK < W.STONE);
+  // (a slow pull of one wedge, a hair at a time: the states come in their order, each before the next, and none is skipped)
+  for (const id of ['vaultN', 'vaultS', 'vaultM']) {
+    const S = M.wedgeFresh(id), i = 0, seen = [];
+    for (let k = 0; k < 80 && !S.pairs[i].crack; k++) { const st = M.jointState(M.joints(S)[i].imb); if (seen[seen.length - 1] !== st) seen.push(st); M.wedgeStep(S, i, 'L', 0.02); }
+    const order = seen.map((q) => M.JOINT_STATES.indexOf(q));
+    assert.ok(order.every((v, k) => !k || v === order[k - 1] + 1), id + ' ' + seen.join('>'));
+    assert.ok(seen.includes('opening') && seen.includes('danger') && seen.indexOf('opening') < seen.indexOf('danger'), id);
+  }
+  // (a careful drag — at most STEP, no yank — never goes from steady to a crack: a warning state always lies between)
+  for (const id of ['vaultN', 'vaultS', 'vaultM']) for (let i = 0; i < M.VAULT_LV[id].pairs; i++) for (const side of ['L', 'R']) {
+    const S = M.wedgeFresh(id);
+    for (let k = 0; k < 6; k++) {
+      const before = M.jointState(M.joints(S)[i].imb), next = M.jointState(M.wedgePreview(S, i, side, W.STEP));
+      if (before === 'steady') assert.ok(next === 'steady' || next === 'opening' || next === 'danger', `${id} ${i}${side}: ${before}>${next}`);
+      M.wedgeStep(S, i, side, W.STEP); if (S.pairs[i].crack) break;
+    }
+  }
+  // (the preview is wedgeStep's own answer, without changing anything)
+  const P = M.wedgeFresh('vaultM'), snap = JSON.stringify(P.pairs), pv = M.wedgePreview(P, 2, 'L', 0.2);
+  assert.equal(JSON.stringify(P.pairs), snap); M.wedgeStep(P, 2, 'L', 0.2); assert.ok(Math.abs(M.joints(P)[2].imb - pv) < 1e-9);
+  // (the losses' numbers unchanged)
+  const Q = M.wedgeFresh('vaultS'); M.wedgeStep(Q, 0, 'L', 0.2); M.wedgeStep(Q, 0, 'L', 0.2); assert.ok(Q.flags['vault.crack']); assert.equal(Q.dmg, 20);
+});
+
+/* ───────── h129 R4: the slab's lift is a balance ───────── */
+test('h129 R4: even thumbs lift it level and quiet; uneven ones lean it, knock, creak, then tip it back with the bang', () => {
+  const T = M.TILT;
+  // (level: no knock, no tip, it opens)
+  const A = M.slabFresh(); let ev = [];
+  for (let k = 0; k < 600 && A.phase !== 'open'; k++) { M.slabStep(A, 1, DT, M.slabTilt({ two: true, tL: 1, tR: 1 })); ev.push(...A.ev.map((e) => e.e)); }
+  assert.equal(A.phase, 'open'); assert.ok(!ev.includes('knock') && !ev.includes('tip')); assert.equal(A.bangs, 0);
+  // (one side a little ahead: it leans and knocks but holds; it opens)
+  const B = M.slabFresh(); ev = []; let maxT = 0;
+  for (let k = 0; k < 900 && B.phase !== 'open'; k++) { M.slabStep(B, 1, DT, M.slabTilt({ two: true, tL: 1, tR: 0.82 })); ev.push(...B.ev.map((e) => e.e)); maxT = Math.max(maxT, Math.abs(B.tilt)); }
+  assert.equal(B.phase, 'open'); assert.ok(maxT > T.KNOCK && maxT < T.MAX, String(maxT)); assert.ok(ev.includes('knock')); assert.ok(!ev.includes('tip')); assert.equal(B.bangs, 0);
+  // (far apart: knock, then the creak, then the tip, and the bang when it lands; the slab is back on its seat, still to be lifted)
+  const C = M.slabFresh(); ev = [];
+  for (let k = 0; k < 900 && !ev.includes('bang'); k++) { M.slabStep(C, 1, DT, C.drop ? 0 : 0.6); ev.push(...C.ev.map((e) => e.e)); }
+  const iK = ev.indexOf('knock'), iC = ev.indexOf('tiltCreak'), iT = ev.indexOf('tip'), iB = ev.indexOf('bang');
+  assert.ok(iK >= 0 && iK < iC && iC < iT && iT < iB, ev.filter((e) => e !== 'knock').join(','));
+  assert.equal(C.bangs, 1); assert.equal(C.tilts, 1); assert.equal(C.h, 0); assert.equal(C.phase, 'lift'); assert.equal(C.dmg, 0); assert.equal(C.tilt, 0);
+  // (then even again: it opens)
+  for (let k = 0; k < 900 && C.phase !== 'open'; k++) M.slabStep(C, 1, DT, 0);
+  assert.equal(C.phase, 'open'); assert.equal(M.nightPts(C), 20);
+  // (lowering too: a tip knocks it back level with the bang, no crack; then lowered evenly it sits soft)
+  const D = M.slabFresh(); while (D.phase !== 'open') M.slabStep(D, 1, DT, 0);
+  ev = []; for (let k = 0; k < 400 && !ev.includes('bang'); k++) { M.slabStep(D, 0.6, DT, 0.6); ev.push(...D.ev.map((e) => e.e)); }
+  assert.ok(ev.includes('tip') && ev.includes('bang')); assert.equal(D.dmg, 0); assert.ok(D.h > 0.3, String(D.h));
+  let f = D.h, t = 0; while (!D.done && t < 20) { f = Math.max(-0.1, f - 0.25 * DT); M.slabStep(D, f, DT, 0); t += DT; }
+  assert.ok(D.done); assert.equal(D.dmg, 0); assert.ok(t < 6, 'the lowering stays short: ' + t.toFixed(2));
+});
+
+test('h129 R4: by mouse — straight up opens it level; a sideways drift or a pull far ahead of the slab leans it', () => {
+  const T = M.TILT;
+  assert.equal(M.slabTilt({ two: false, dx: 0, target: 0.5, h: 0.4 }), 0);
+  assert.ok(M.slabTilt({ two: false, dx: 0.2, target: 0.5, h: 0.5 }) > T.KNOCK);
+  assert.ok(Math.abs(M.slabTilt({ two: false, dx: 0, target: 1, h: 0.2 })) > T.KNOCK);
+  // (the bot's pull: up 1.05 of the lift's height in 2.8 s, straight — it opens with no knock; and lowered the same way it sits)
+  const S = M.slabFresh(); let tg = 0, ev = [];
+  for (let k = 0; k < 900 && S.phase !== 'open'; k++) { tg = Math.min(1.05, tg + (1.05 / 2.8) * DT); M.slabStep(S, tg, DT, M.slabTilt({ two: false, dx: 0, target: tg, h: S.h })); ev.push(...S.ev.map((e) => e.e)); }
+  assert.equal(S.phase, 'open'); assert.ok(!ev.includes('knock'), 'no knock'); 
+  let f = 0.7; while (!S.done) { f = Math.max(-0.1, f - 0.24 * DT); M.slabStep(S, f, DT, M.slabTilt({ two: false, dx: 0, target: f, h: S.h })); }
+  assert.equal(S.dmg, 0); assert.equal(S.bangs, 0);
+});

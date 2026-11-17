@@ -21,7 +21,7 @@
  * hall and looks down on the ring.
  * The model: model.js (legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts). Places: BOOK.s07.
  */
-import { VAULT_LV, LEG, WEDGE, QUICK, LOSS, legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, joints, shoulder, vaultPts, qOf, starsOf, lossPts } from './model.js';
+import { VAULT_LV, LEG, WEDGE, QUICK, LOSS, legFresh, legStep, thrustOf, wedgeFresh, wedgeStep, wedgeLoads, wedgePreview, jointState, joints, shoulder, vaultPts, qOf, starsOf, lossPts } from './model.js';
 import { SH7, mats7, box, faceCrack, crackAng, fallen, ringGeos, ringCentering, centering, own, setBusy } from './world.js';
 import { createVoices } from './sound129.js';
 import { holdLens } from './ui7.js';
@@ -179,8 +179,9 @@ export const VAULT = {
     for (const s of ['L', 'R']) {
       const sg = sgOf(s), x = G.xF - (G.big ? 0.25 : 0.12), z = G.zc + sg * (G.r0 - (G.big ? 0.12 : 0.06)), top = G.big ? G.deck + 6 : G.room.y1, bot = G.big ? G.sp + 0.35 : G.floor + 1.1;
       if (G.big) {   // (a pole on a plank at the deck's edge, its arm out over the leg)
-        const zp = z - sg * 1.4; box(X, MT.h7timber, x - 0.3, G.deck, zp - 0.3, G.xF + 0.5, G.deck + 0.12, zp + 0.3, root);
-        box(X, MT.h7timberD, x - 0.12, G.deck, zp - 0.12, x + 0.12, top + 0.2, zp + 0.12, root); box(X, MT.h7timberD, x - 0.08, top, Math.min(z, zp) - 0.08, x + 0.08, top + 0.16, Math.max(z, zp) + 0.08, root);
+        const zp = z - sg * 1.4, pg = A.poles || (A.poles = new T.Group()); if (!pg.parent) root.add(pg);   // (closing round: in a group of their own — carried out with the centering)
+        box(X, MT.h7timber, x - 0.3, G.deck, zp - 0.3, G.xF + 0.5, G.deck + 0.12, zp + 0.3, pg);
+        box(X, MT.h7timberD, x - 0.12, G.deck, zp - 0.12, x + 0.12, top + 0.2, zp + 0.12, pg); box(X, MT.h7timberD, x - 0.08, top, Math.min(z, zp) - 0.08, x + 0.08, top + 0.16, Math.max(z, zp) + 0.08, pg);
       }
       else box(X, MT.h7timberD, x - 0.08, top - 0.18, z - 0.08, x + 0.08, top, z + 0.08, root);
       const c = cord(G.big ? 0.025 : 0.01, ropeM), bob = new T.Mesh(new T.ConeGeometry(G.big ? 0.16 : 0.07, G.big ? 0.4 : 0.18, 10), bronze); bob.rotation.x = Math.PI; root.add(bob);
@@ -198,7 +199,7 @@ export const VAULT = {
     const crewAdd = (x, z, o) => { if (!SH7.crew) return null; const w = SH7.crew.add(x, z, o); if (w) crew.push(w); return w; };
     if (G.big) { for (const sg of [-1, 1]) { const w = crewAdd(G.xF + 1.5, G.zc + sg * 5.2, { role: 'hammer', item: 'mallet', fx: G.xF + 1.5, fz: G.zc + sg * 7.5, crew: 3 }); if (w && w.a) w.a.fixedY = G.deck; } }
     else {
-      const cx = G.xB + 3.2; box(X, MT.h7stone, cx - 0.5, G.floor, G.zc - 0.45, cx + 0.5, G.floor + 0.8, G.zc + 0.45, root);
+      const cx = G.xB + 3.2; A.dress = box(X, MT.h7stone, cx - 0.5, G.floor, G.zc - 0.45, cx + 0.5, G.floor + 0.8, G.zc + 0.45, root);
       crewAdd(cx, G.zc - 1.25, { role: 'hammer', item: 'chisel', fx: cx, fz: G.zc, crew: 2 }); crewAdd(cx, G.zc + 1.25, { role: 'hammer', item: 'mallet', fx: cx, fz: G.zc, crew: 2 });
     }
     // ── the shoulders' weight: in a small chamber the spandrel itself, course by course (on the rock leg it stands from the start); in
@@ -247,7 +248,8 @@ export const VAULT = {
     function lightSet(list) {
       for (const l of lights.splice(0)) root.remove(l);
       mortar.forEach((q) => { q.visible = true; });
-      list.forEach((j, i) => { if (j.see !== 'light') return; const jj = jointOfPair(i, Math.sign(j.imb) || 1); lights.push(lightQuad(jointA(jj), G.big ? 0.3 : 0.1)); if (mortar[jj - 1]) mortar[jj - 1].visible = false; });
+      // (R2: a hair of light while the joint starts to open, the full strip when it is dangerous and after)
+      list.forEach((j, i) => { const stt = j.state || (j.see === 'light' ? 'danger' : 'steady'); if (stt === 'steady') return; const jj = jointOfPair(i, Math.sign(j.imb) || 1); lights.push(lightQuad(jointA(jj), (G.big ? 0.3 : 0.1) * (stt === 'opening' ? 0.3 : 1))); if (mortar[jj - 1]) mortar[jj - 1].visible = false; });
     }
     // (part A's light: the crown's top joints when the press lifts it)
     const topJ = G.n % 2 ? [(G.n - 1) / 2, (G.n + 1) / 2] : [G.n / 2], topL = topJ.map((j) => { const q = lightQuad(jointA(j), 1); q.visible = false; return q; });
@@ -335,7 +337,7 @@ export const VAULT = {
     const wedgeTo = (i, s) => { const w = W[i + s], sg = sgOf(s); return [w.p[0], w.p[1], w.p[2] + sg * w.o * (G.big ? 1.8 : 0.6)]; };
     function syncB() {
       for (let i = 0; i < L.pairs; i++) for (const s of ['L', 'R']) W[i + s].o = SB.pairs[i][s];
-      lightSet(joints(SB));
+      lightSet(joints(SB)); WS.key = '';
       const avg = SB.pairs.reduce((a, p) => a + p.L + p.R, 0) / (2 * L.pairs); cenTop.position.y = -avg * (G.big ? 0.5 : 0.25);
     }
     function wedgeUnder(p) {
@@ -372,7 +374,38 @@ export const VAULT = {
       }
       syncB();
     }
+    // ── R2 (the review, rule 67): the joint warns in the world before it opens, as the drag goes — each pair's state the drag in hand
+    //    would leave (wedgePreview): steady (dark, quiet), opening (a hair of light, a little dust, a short creak, the centering shifts a
+    //    finger's width toward it), danger (the light widens, more dust, a long creak); the crack and the fallen stone come only on the
+    //    release, by today's rules
+    const WS = { key: '', dust: [], cz: 0, worst: 'steady' };
+    function warnB(dt) {
+      const st = SB.pairs.map((p, i) => {
+        let imb = p.L - p.R + p.bias;
+        for (const sd of ['L', 'R']) { const w = W[i + sd]; if (w && w.drag) imb = wedgePreview(SB, i, sd, w.drag); }
+        return { imb, state: jointState(imb) };
+      });
+      const rank = (q) => ['steady', 'opening', 'danger', 'crack', 'stone'].indexOf(q);
+      const key = st.map((q) => q.state + (q.imb > 0 ? '+' : '-')).join(',');
+      if (key !== WS.key) {
+        const was = WS.key ? WS.key.split(',').map((q) => q.slice(0, -1)) : [];
+        st.forEach((q, i) => { const r0 = rank(was[i] || 'steady'), r1 = rank(q.state); if (r1 > r0 && q.state === 'opening') { V.groan(); ev('warn:open:' + i); } if (r1 > r0 && rank(q.state) >= 2) ev('warn:danger:' + i); });
+        WS.key = key; lightSet(st);
+      }
+      // (the dust from each joint that warns, the long creak while one is dangerous)
+      let worst = 0, sgW = 0;
+      st.forEach((q, i) => {
+        const r = rank(q.state); if (r > worst) { worst = r; sgW = Math.sign(q.imb); }
+        if (r < 1) { WS.dust[i] = 0; return; }
+        WS.dust[i] = (WS.dust[i] || 0) - dt;
+        if (WS.dust[i] <= 0) { WS.dust[i] = r >= 2 ? 0.35 : 0.9; const a = jointA(jointOfPair(i, Math.sign(q.imb) || 1)), rr = G.r0; X.dust(G.xF - 0.1, G.sp + rr * Math.sin(a), G.zc + rr * Math.cos(a), r >= 2 ? 3 : 1, G.big ? (r >= 2 ? 0.6 : 0.3) : (r >= 2 ? 0.25 : 0.12)); if (r >= 2) V.dust(); }
+      });
+      WS.worst = ['steady', 'opening', 'danger', 'crack', 'stone'][worst];
+      V.creak(worst >= 2 ? 0.75 : 0);
+      const cz = worst >= 1 ? -sgW * (G.big ? 0.12 : 0.04) : 0; WS.cz += (cz - WS.cz) * (1 - Math.exp(-dt * 8)); cenTop.position.z = WS.cz;
+    }
     function drawB(dt) {
+      warnB(dt);
       // (each wedge eases to its place: a free one slides, a loaded one jerks a little; under the finger it follows the drag)
       const ld = wedgeLoads(SB);
       for (let i = 0; i < L.pairs; i++) for (const s of ['L', 'R']) {
@@ -384,19 +417,49 @@ export const VAULT = {
       }
     }
     // ── the end: the arch stands; under the small arches a Levite plays the nevel (illustration)
-    let levi = null;
+    // (closing round, F1–F2: the moment is played in the work's composed picture — BOOK.s07.cam.stands — a cut to it first; the
+    //  centering comes down and the crew carries it out, the stones stay in the air; in a small chamber the Levite stands with his nevel
+    //  in the low door and the kohen beside the arch; on the great ring a crew man stands on its crown. The film after the work opens on
+    //  the same picture (res.film: a cut) and what stands in it goes when the film ends (res.film.after))
+    let levi = null, man = null, gone = false;
+    const SV = CAM.stands && CAM.stands[m.id], AF = VB.after && VB.after[k];
+    function teardown() {
+      if (gone) return; gone = true;
+      for (const w of crew) SH7.crew.remove(w); crew.length = 0;
+      if (man) { SH7.crew.remove(man); man = null; }
+      if (levi) { try { AC.remove(levi); } catch (e) { /* */ } levi = null; }
+      X.props.remove(root); own('v' + k, 0); setBusy(X, 0); lens(fov0);
+    }
     async function finish() {
-      if (A.phase === 'done') return; A.phase = 'done'; X.hand(null);
-      // (the centering is carried out, the stones stay in the air)
-      const cy = cen.position.y; tween(1.6, (u) => { cen.position.y = cy - 0.6 * sm(u / 0.4); cen.position.x = (G.big ? -6 : 3.5) * sm((u - 0.4) / 0.6); }, () => { cen.visible = false; });
+      if (A.phase === 'done' || A.phase === 'stands') return; A.phase = 'done'; X.hand(null);
       for (const w of Object.values(W)) w.g.visible = false; lightSet([]);
+      for (const P of Object.values(plumbs)) { try { P.c.visible = false; P.bob.visible = false; } catch (e) { /* */ } }
       st.vault = st.vault || {}; st.vault[m.id] = { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps }; X.save();
       const pts = vaultPts(SA, SB), q = qOf(pts);
       X.quick(crownAt(), QUICK.stands, arch); V.thud();
-      if (!G.big && AC) { const a = AC.add('levite', G.xB + 2.2, G.zc + 0.9, { fadeIn: false }); if (a) { a.vis = a.visT = 1; a.gang = 1; AC.setItem(a, 'nevel'); a.yaw = Math.atan2(G.xF - a.x, G.zc - a.z); levi = a; } await X.wait(0.6); V.harp(k === 'S' ? 330 : 294); setTimeout(() => V.harp(k === 'S' ? 440 : 392), 650); X.line('לוי מנגן בנבל תחת הקשת: היא עומדת (המחשה)', 3000); }
-      else X.line('הטבעת הראשונה עומדת · הצוותות יבנו את שאר הטבעות, אחת אחרי השנייה', 3200);
+      await X.wait(0.7);
+      if (SV) { SH7.lookFn = null; A.lensF = SV[2]; lens(SV[2]); X.shot(SV[0], SV[1], 0.01); }
+      // (the centering is let down and carried out — the crew with it — the stones stay in the air)
+      //  (stepped on the director's clock, X.wait — not the act's tweens: the act's update waits while the look is away, and the probe saw
+      //  the centering and the masons stay in vaultN's picture)
+      const cy = cen.position.y;
+      for (let i = 1; i <= 16; i++) { const u = i / 16; cen.position.y = cy - 0.6 * sm(u / 0.4); cen.position.x = (G.big ? -6 : 3.5) * sm((u - 0.4) / 0.6); await X.wait(0.1); }
+      cen.visible = false; for (const w of crew) SH7.crew.remove(w); crew.length = 0; if (A.dress) A.dress.visible = false; if (A.poles) A.poles.visible = false;
+      await X.wait(0.2);
+      if (!G.big && AC && AF) {
+        const a = AC.add('levite', AF.levi[0], AF.levi[1], { fadeIn: false });
+        if (a) { a.vis = a.visT = 1; a.gang = 1; AC.setItem(a, 'nevel'); a.yaw = SV ? Math.atan2(SV[0][0] - a.x, SV[0][2] - a.z) : Math.atan2(G.xF - a.x, G.zc - a.z); levi = a; }
+        try { X.hero.setPos(AF.kohen[0], AF.kohen[1], Math.atan2(G.xB - AF.kohen[0], G.zc - AF.kohen[1])); X.hero.show(true); } catch (e) { /* */ }
+        await X.wait(0.6); V.harp(k === 'S' ? 330 : 294); setTimeout(() => V.harp(k === 'S' ? 440 : 392), 650); X.line('לוי מנגן בנבל תחת הקשת: היא עומדת (המחשה)', 3000);
+      } else {
+        if (AF && AF.man && SH7.crew) { man = SH7.crew.add(AF.man[0], AF.man[1], { role: 'point', fx: AF.man[0] - 20, fz: AF.man[1] }); if (man && man.a) man.a.fixedY = AF.man[2]; }
+        X.line('הטבעת הראשונה עומדת · הצוותות יבנו את שאר הטבעות, אחת אחרי השנייה', 3200);
+      }
+      A.phase = 'stands';
       await X.wait(2.6);
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps, 'vault.crack': (SA.flags['vault.crack'] ? 1 : 0) + (SB.flags['vault.crack'] || []).length, 'vault.stone': (SB.flags['vault.stone'] || []).length }, at: crownAt() });
+      A.film = !!SV;
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { runs: SA.runs, lifts: SA.lifts, lights: SB.lights, jumps: SB.jumps, 'vault.crack': (SA.flags['vault.crack'] ? 1 : 0) + (SB.flags['vault.crack'] || []).length, 'vault.stone': (SB.flags['vault.stone'] || []).length }, at: crownAt(),
+        film: SV ? { shots: [[SV[0], SV[1], 3.2]], kohen: !G.big, after: teardown, own: () => [levi, man && man.a] } : null });
     }
     // ── the fingers
     const FG = fingers(X, {
@@ -432,7 +495,7 @@ export const VAULT = {
         setTimeout(() => { if (A.phase === 'intro') partA(); }, 1500);
       },
       update(dt) {
-        A.t += dt; holdLens(X, k === 'M' ? CAM.vaultMFov : CAM.vaultFov);
+        A.t += dt; holdLens(X, A.lensF || (k === 'M' ? CAM.vaultMFov : CAM.vaultFov));
         try {
           V.frame();
           for (const tw of A.tw.slice()) { tw.t += dt; const u = clamp(tw.t / tw.dur, 0, 1); tw.fn(u); if (u >= 1) { A.tw.splice(A.tw.indexOf(tw), 1); if (tw.done) tw.done(); } }
@@ -452,10 +515,8 @@ export const VAULT = {
       },
       holds() { return Object.keys(A.fing).length > 0; },
       end() {
-        lift(0); FG.detach(); V.stop(); X.hand(null); lens(fov0); if (SH7.lookFn) SH7.lookFn = null;
-        for (const w of crew) SH7.crew.remove(w);
-        if (levi) { try { AC.remove(levi); } catch (e) { /* */ } }
-        X.props.remove(root); own('v' + k, 0); setBusy(X, 0);
+        lift(0); FG.detach(); V.stop(); X.hand(null); if (SH7.lookFn) SH7.lookFn = null;
+        if (!A.film) teardown();   // (closing round: with a film, what stands in its picture goes when the film ends — res.film.after)
       },
       at() { const c = crownAt(); return new T.Vector3(c.x, c.y, c.z); },
       dbg() {
@@ -467,7 +528,7 @@ export const VAULT = {
         }
         if (SB) {
           const ld = wedgeLoads(SB);
-          o.B = { lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
+          o.B = { warn: WS.worst, states: WS.key, lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
             w: Object.fromEntries(Object.entries(W).map(([id, w]) => { const q = scr(w.g.position.toArray()), d = scr([w.g.position.x, w.g.position.y, w.g.position.z + (id[1] === 'L' ? -1 : 1)]); return [(+id[0] + 1) + id[1], { at: q, out: [d[0] - q[0], d[1] - q[1]] }]; })),
             sh: { L: scr(shoulderPt('L')), R: scr(shoulderPt('R')) }, stepPx: Math.round(0.1 * innerHeight) };
         }

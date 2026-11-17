@@ -513,8 +513,27 @@ export function wedgeLoads(S) {
   }
   return out;
 }
+/** ── h129 R2 (the review, rule 67) ── the joint's graded warning before it opens, read in the world (no gauge): by the pair's imbalance
+ *  |imb| — 'steady' (≤ HAIR: the joint dark and closed, quiet), 'opening' (≤ LIGHT: a hair of light in it, a little dust, a short creak,
+ *  the centering shifts a finger's width), 'danger' (≤ CRACK: the light widens — the old 'light' — more dust, a long creak), then
+ *  'crack' and past STONE 'stone' (today's losses, their numbers unchanged). A careful drag (at most STEP of the wedge's way, no yank)
+ *  moves a pair's imbalance by at most STEP (a free wedge STEP, a loaded one LOADED·STEP + CARRY = STEP): from steady it cannot reach
+ *  a crack in one drag, and while the finger draws the wedge the act shows the state the drag would leave (wedgePreview) — the warning
+ *  is seen for as long as the drag takes before anything breaks, on its release */
+export const WARN = Object.freeze({ HAIR: 0.2 });
+export const JOINT_STATES = Object.freeze(['steady', 'opening', 'danger', 'crack', 'stone']);
+export function jointState(imb) { const a = Math.abs(+imb || 0); return a > WEDGE.STONE ? 'stone' : a > WEDGE.CRACK ? 'crack' : a > WEDGE.LIGHT ? 'danger' : a > WARN.HAIR ? 'opening' : 'steady'; }
+/** the imbalance pair i would have if wedge (i, side) were drawn dx now (wedgeStep's rule, nothing changed, no events) */
+export function wedgePreview(S, i, side, dx) {
+  const p = S.pairs[i]; if (!p) return 0;
+  const load = wedgeLoads(S)[wid(i, side)], sg = side === 'L' ? 1 : -1;
+  let d = clamp(+dx || 0, -WEDGE.STEP, WEDGE.STEP), bias = p.bias;
+  if (load === 'loaded') { if (dx > WEDGE.STEP + 1e-9) bias += sg * WEDGE.JUMP; d *= WEDGE.LOADED; if (d > 0) bias += sg * WEDGE.CARRY * (d / (WEDGE.STEP * WEDGE.LOADED)); }
+  const q = { L: p.L, R: p.R }; q[side] = clamp(q[side] + d, 0, 1);
+  return q.L - q.R + bias;
+}
 /** the joints now: per pair its imbalance and what the eye sees ('closed' | 'light'), with the cracks and fallen stones so far */
-export function joints(S) { return S.pairs.map((p) => { const imb = p.L - p.R + p.bias; return { imb, see: Math.abs(imb) > WEDGE.LIGHT ? 'light' : 'closed', crack: p.crack, stones: p.stones }; }); }
+export function joints(S) { return S.pairs.map((p) => { const imb = p.L - p.R + p.bias; return { imb, see: Math.abs(imb) > WEDGE.LIGHT ? 'light' : 'closed', state: jointState(imb), crack: p.crack, stones: p.stones }; }); }
 /**
  * a drag on wedge (pair i, side) of dx (+ out, − back in), at most STEP of its way per drag; a loaded wedge moves LOADED as far, carries
  * some of the load to its side (CARRY per full step) and, pulled more than STEP at once, jumps its pair's imbalance (JUMP).
@@ -557,22 +576,45 @@ export const vaultPts = (A, B) => grade((A ? A.dmg : 0) + (B ? B.dmg : 0), !(A &
  *  gain; let go below OPEN while lifting: it falls back with a bang (no damage; an elder lifts his head); lowering, it touches down
  *  faster than SOFT: a corner cracks (night.slab). A slab let go above the floor falls at FALL per second², hard. */
 export const SLAB = Object.freeze({ VMAX: 0.5, FOLLOW: 6, OPEN: 0.8, SOFT: 0.35, FALL: 6, TOUCH: 0.03 });   // (TOUCH: the seat's last finger-width: within it the slab sits)
-export function slabFresh() { return { h: 0, v: 0, phase: 'lift', bangs: 0, keys: 0, dmg: 0, flags: {}, done: 0, ev: [] }; }
-/** dt s; lift: the thumbs' target (may go below 0 when pressed down; null: let go) */
-export function slabStep(S, lift, dt) {
+/** ── h129 R4 (the review, rule 67) ── the lift is a balance: the two thumbs' sides (a mouse: its drift sideways, or a pull ahead of the
+ *  slab) give a tilt; the slab leans after it (FOLLOW per s). Past KNOCK it knocks on its frame, more often as it leans; past CREAK it
+ *  creaks once (just before it would fall); past MAX it tips: lifting, it drops back to its seat with today's bang (an elder lifts his
+ *  head and lies down again); lowering, it knocks back level on its frame with the same bang. Even sides: it rises level, quietly */
+export const TILT = Object.freeze({ FOLLOW: 7, KNOCK: 0.12, CREAK: 0.24, MAX: 0.32, EVERY: 0.5, MOUSE_DX: 1.2, MOUSE_LEAD: 0.2, MOUSE_LEAD_K: 1.2 });
+/** the tilt a hand asks for: two thumbs (lift targets of the ring's two sides) — their difference; one pointer — its drift sideways
+ *  (in lift units: MOUSE_DX per the lift's whole height on the screen) and how far its target runs ahead of the slab past MOUSE_LEAD */
+export function slabTilt(o) {
+  if (o.two) return (o.tL || 0) - (o.tR || 0);
+  const lead = Math.abs((o.target || 0) - (o.h || 0)) - TILT.MOUSE_LEAD;
+  return (o.dx || 0) * TILT.MOUSE_DX + (lead > 0 ? lead * TILT.MOUSE_LEAD_K * (o.dx < 0 ? -1 : 1) : 0);
+}
+export function slabFresh() { return { h: 0, v: 0, phase: 'lift', bangs: 0, keys: 0, dmg: 0, flags: {}, done: 0, ev: [], tilt: 0, tilts: 0, knockT: 0, creaked: 0, drop: 0 }; }
+/** dt s; lift: the thumbs' target (may go below 0 when pressed down; null: let go); tilt: the tilt the hands ask for (slabTilt) */
+export function slabStep(S, lift, dt, tilt = 0) {
   // (build 129 round 2: in sub-steps of at most 1/60 s — a long frame (a busy phone, the probe's 0.6 s) once threw a slab let go a
   //  hair above its seat down at many times its real speed: a cracked corner for a careful player)
   S.ev = []; if (S.done) return S;
   const n = Math.max(1, Math.ceil((+dt || 0) / (1 / 60) - 1e-9)), h = (+dt || 0) / n;
   // (the thumbs moved through the frame, not in one jump at its end: the target is drawn along from where it was)
   const L0 = lift != null && S.lt != null ? S.lt : lift;
-  for (let i = 0; i < n && !S.done; i++) { slabSub(S, lift == null ? null : L0 + ((lift - L0) * (i + 1)) / n, h); if (S.ev.some((e) => e.e === 'keys')) break; }
+  for (let i = 0; i < n && !S.done; i++) { slabSub(S, lift == null ? null : L0 + ((lift - L0) * (i + 1)) / n, h, +tilt || 0); if (S.ev.some((e) => e.e === 'keys' || e.e === 'tip')) break; }
   S.lt = lift;
   return S;
 }
-function slabSub(S, lift, dt) {
+function slabSub(S, lift, dt, tiltIn = 0) {
   if (S.phase === 'open') { if (lift != null && lift < SLAB.OPEN) S.phase = 'lower'; else return; }
-  const held = lift != null;
+  const held = lift != null && !S.drop;
+  // (R4: the lean follows the hands while they hold it; let go, it stays as it is until it lands)
+  if (S.tilt == null) S.tilt = 0;
+  if (held && S.h > SLAB.TOUCH) S.tilt += (tiltIn - S.tilt) * Math.min(1, TILT.FOLLOW * dt); else if (held) S.tilt += (0 - S.tilt) * Math.min(1, TILT.FOLLOW * dt);
+  const ta = Math.abs(S.tilt);
+  if (held && ta > TILT.KNOCK) { S.knockT = (S.knockT || 0) - dt; if (S.knockT <= 0) { S.knockT = TILT.EVERY * (1 - 0.7 * clamp((ta - TILT.KNOCK) / (TILT.MAX - TILT.KNOCK), 0, 1)); S.ev.push({ e: 'knock', k: +ta.toFixed(3) }); } } else S.knockT = 0;
+  if (held && ta > TILT.CREAK && !S.creaked) { S.creaked = 1; S.ev.push({ e: 'tiltCreak' }); } else if (ta < TILT.CREAK * 0.8) S.creaked = 0;
+  if (held && ta > TILT.MAX) {
+    S.tilts = (S.tilts || 0) + 1; S.ev.push({ e: 'tip', side: S.tilt > 0 ? 'L' : 'R' }); S.creaked = 0;
+    if (S.phase === 'lift') { S.drop = 1; return; }   // (it drops back to its seat: the bang when it lands)
+    S.tilt = 0; S.bangs++; S.ev.push({ e: 'bang' }); return;   // (lowering: it knocks back level on its frame)
+  }
   if (held) { const want = clamp((lift - S.h) * SLAB.FOLLOW, -SLAB.VMAX, SLAB.VMAX); S.v = want; }
   else if (S.h > 0) S.v -= SLAB.FALL * dt; else S.v = 0;
   const h0 = S.h; S.h += S.v * dt;
@@ -580,7 +622,7 @@ function slabSub(S, lift, dt) {
   if (S.v <= 0 && S.h <= SLAB.TOUCH) {
     S.h = 0; const sp = -S.v; S.v = 0;
     if (h0 > SLAB.TOUCH) {
-      if (S.phase === 'lift') { if (!held) { S.bangs++; S.ev.push({ e: 'bang' }); } }
+      if (S.phase === 'lift') { if (!held) { S.bangs++; S.ev.push({ e: 'bang' }); } S.drop = 0; S.tilt = 0; }
       else { if (sp > SLAB.SOFT && !S.flags['night.slab']) { S.dmg += lossPts('night.slab', 'night'); S.flags['night.slab'] = [1]; S.ev.push({ e: 'loss', f: 'night.slab' }); } S.done = 1; S.ev.push({ e: 'down', soft: sp <= SLAB.SOFT }); }
     } else if (S.phase === 'lower' && !held) { S.done = 1; S.ev.push({ e: 'down', soft: true }); }   // (let go in its seat: it settles)
   }

@@ -63,14 +63,14 @@ import { createEndChain } from './hooks/endchain.js';
 import * as RD20 from './hooks/riddle.js';
 import { MISHMAROT } from '../calendar.js';
 // ── /hook20 ──
-import { createH109Director } from './h109/director.js';
+import { createH109Director, workFlag } from './h109/director.js';
 import { makePack03 } from './h112/pack.js';
 import { makePack130, migrate05 } from './h130/pack.js';   // ── h130 ── (build 130: the NEW stage 05 "עזרת הנשים", the same director; part 1 behind its page flags) ── /h130 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
 import { pageBuilt, frontier, frontLine, noPad, PACKED } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack07 } from './h129/pack.js';   // ── h129 ── (build 129: stage 07 "הלשכות", the same director) ── /h129 ──
 import { makePack08, migrate08 } from './h131/pack.js';
-import { stonesOf as stones08 } from './h131/model.js';   // ── h131 ── (build 131: stage 08 "יסוד המזבח", the same director) ── /h131 ──
+import { stonesOf as stones08, PLAN as PLAN08 } from './h131/model.js';   // ── h131 ── (build 131: stage 08 "יסוד המזבח", the same director) ── /h131 ──
 import { makePack04 } from './h113/pack.js';   // ── h113 ── (build 113: stage 04 "שערי העזרה" in the old world, the same director) ── /h113 ──   // ── h112 ── (build 112: stage 03 "הסורג והחיל" in the old world, the same director) ── /h112 ──
 import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
@@ -134,7 +134,12 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   // a stage picked from "שלבים ▾" starts a fresh demo save without it.
   const reelOn = () => !!(G && G.demo && G.story && G.story.reel);
   // ── h109 ── a one-minigame page (window.__H109_ONLY, or ?only= / #only=) always starts fresh and without the opening films
-  const H9_ONLY = (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
+  // ── b131 ── a link for every work (window.__H109_WORK, ?work= / #work=, or a plain #<id>): stage 08's works for now — the page is its
+  // kind's ONLY page, opened at that work (h109/director.js workFlag); an unknown id: the stage's own page, with a warning ── /b131 ──
+  const H9_WORK = workFlag(PLAN08.map((m) => m.id));
+  const H9_WORK_BAD = !!(H9_WORK.asked && !H9_WORK.id);
+  if (H9_WORK_BAD) console.warn('[h131] work page: no work', H9_WORK.asked, '— the stage page');
+  const H9_ONLY = H9_WORK.id ? PLAN08.find((m) => m.id === H9_WORK.id).k : (() => { try { return globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1] || null; } catch (e) { return null; } })();
   if (H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
   const H11_ONLY = ['stakes', 'bond', 'plumb', 'lever', 'gates', 'closing'].includes(H9_ONLY);   // ── h111 ── (a stage-02 minigame's own page)
   // ── h111 ── the whole of stage 02 on its own page (window.__H111_FULL, or ?stage=2 / #stage=2): a fresh game with the Mount done
@@ -178,7 +183,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   // 01–07 done) and its kinds' pages (__H109_ONLY 'pit' | 'frame' | 'pour' | 'finale'); a page with __H131_KEEP keeps its save (a reload
   // in the middle of a work resumes it, as the game does)
   const H131_ONLY = ['pit', 'frame', 'pour', 'finale'].includes(H9_ONLY);
-  const H131_FULL = (() => { try { return !!globalThis.__H131_FULL || /[?&#]stage=8\b/.test(String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')); } catch (e) { return false; } })();
+  const H131_FULL = H9_WORK_BAD || (() => { try { return !!globalThis.__H131_FULL || /[?&#]stage=8\b/.test(String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')); } catch (e) { return false; } })();
   const H131_KEEP = (() => { try { return !!globalThis.__H131_KEEP; } catch (e) { return false; } })();
   const H131_ON = H131_FULL || H131_ONLY || H131_KEEP;
   if (H131_FULL && !H9_ONLY && !H131_KEEP) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }

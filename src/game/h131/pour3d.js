@@ -23,7 +23,8 @@ export function createPourView(X, lv, sim, o = {}) {
   const THREE = X.THREE, L = LEVELS[lv], F = frameOf(lv), rnd = mulberry32(1234 + lv), R = mulberry32(77 + lv);
   const col = (hex) => new THREE.Color(hex);
   const G = new THREE.Group(); G.name = 'h131-pour'; G.position.set(F.cx, F.y, F.cz);
-  const B0 = o.base || 0;   // (level 2: the crew, the spout and the knocker stand on section 1, set an amah high) G.rotation.y = yawOf(lv);
+  const B0 = o.base || 0;   // (level 2: the crew, the spout and the knocker stand on section 1, set an amah high)
+  G.rotation.y = yawOf(lv);
   X.props.root.add(G);
   const disposables = [];
   const keep = (x) => { disposables.push(x); return x; };
@@ -110,7 +111,7 @@ export function createPourView(X, lv, sim, o = {}) {
   const aCol = new THREE.BufferAttribute(fCol, 3).setUsage(THREE.DynamicDrawUsage), aMat = new THREE.BufferAttribute(fMat, 4).setUsage(THREE.DynamicDrawUsage);
   fluidGeo.setAttribute('position', aPos); fluidGeo.setAttribute('normal', aNor); fluidGeo.setAttribute('color', aCol); fluidGeo.setAttribute('aMat', aMat);
   fluidGeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.5, 0), 8);
-  const fluidMat = keep(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+  const fluidMat = keep(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2, envMapIntensity: 0.15 }));   // (the sample has no sky in its glass: the world's would whiten the hot mix's steep edges)
   fluidMat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, fluidU);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec4 aMat;\nvarying vec4 vMat;\nvarying vec3 vLP;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvMat = aMat;\nvLP = position;');

@@ -1124,6 +1124,45 @@
     if (pts == null) { try { const r = H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r && r.q != null) pts = 'q' + r.q; } catch (er) { /* */ } }
     return `end ${id} stars ${stars} pts ${pts == null ? '-' : pts} flags ${JSON.stringify(fl)}`;
   };
+  // ── h131 ── (build 131, stage 08's pour: a careful player, as the sample's "good player" — the passages first, each until its pocket
+  // looks full or nothing more goes in, then whatever still looks low (the act's view: the low column it can still reach); level 3 tilts
+  // enough to keep the stream off the timber and off the reeds' corner. The finger is one held touch (or the mouse's left button) that
+  // the page moves every 100 ms: __BOT8.f() gives its point from the act's grab (the drag is relative to where it landed). __BOT8_BAD:
+  // the first pour of the run at one spot only (a hollow, then the re-pour played well). ── /h131 ──
+  const P8 = { 1: { order: [], tilt: 0.85 }, 2: { order: [-3.65, 3.85, 0], tilt: 0.9 }, 3: { order: [-4.6, -0.95, 2.9], tilt: 0.8 } };
+  const tOf8 = (x) => (x + 6 - 0.4) / 11.2;
+  const B8 = (window.__BOT8 = window.__BOT8 || { ph: 0, since: 0, still: 0, rest: null, until: 0, key: '', bad: !!window.__BOT8_BAD });
+  B8.f = () => {
+    const S = H().state(), a = S && S.act; if (!a || a.phase !== 'pour') return null;
+    const now8 = a.t, P = P8[a.lv] || P8[1], key = a.id + ':' + a.patches;
+    if (B8.key !== key) { B8.key = key; B8.ph = 0; B8.since = now8; B8.still = 0; B8.rest = null; B8.last = now8; B8.badRun = B8.bad && !B8.badDone; }
+    const dt = Math.max(0, now8 - (B8.last || now8)); B8.last = now8;
+    B8.still = a.spout.q > 0 || a.cauldron.swapping ? 0 : B8.still + dt;
+    // done when it looks full (or a bad run has had its one spot): the finger lifts and the section sets
+    if (a.missing === 0 && a.filled > 0.97) return null;
+    if (B8.badRun && now8 - B8.since > 35) { B8.badDone = true; return null; }
+    if (a.setting) return null;
+    let x;
+    if (B8.badRun) x = -1.5;
+    else {
+      if (B8.ph < P.order.length && (B8.still > 2 || now8 - B8.since > 16)) { B8.ph++; B8.since = now8; B8.still = 0; }
+      x = P.order[B8.ph];
+      if (B8.ph >= P.order.length) { if (B8.rest == null || now8 > B8.until || B8.still > 2) { B8.rest = a.view ? a.view.lowX : 0; B8.until = now8 + 4; B8.still = 0; } x = B8.rest; }
+    }
+    const tilt = B8.badRun ? 0.9 : P.tilt, tw = Math.max(0, Math.min(1, tOf8(x)));
+    if (!a.grab) return [Math.round(W * 0.25), Math.round(HH * 0.86)];
+    const g = a.grab; return [Math.round(Math.max(8, Math.min(W - 8, g.sx + (tw - g.t0) * 0.42 * W))), Math.round(Math.max(8, Math.min(HH - 8, g.sy - tilt * 0.3 * HH)))];
+  };
+  play.h8pour = (a) => {
+    if (a.phase === 'prep') { const q = a.prep === 'joint' ? a.joint : (a.reeds || []).find(Boolean); if (q && q.on !== false) return { tap: [Math.round(q.x), Math.round(q.y)], wait: 1400, note: 'pour: prep ' + a.prep }; return { wait: 400 }; }
+    if (a.phase === 'stones') return { tap: [Math.round(W * 0.3), Math.round(HH * 0.62)], wait: 650, note: `pour: stone ${a.stonesIn}/${a.nStones}` };
+    if (a.phase === 'pour') {
+      if (a.reedFix || a.cauldron.swapping && !a.grab) return { wait: 300 };
+      if (a.missing === 0 && a.filled > 0.97) return { wait: 500, note: 'pour: looks full, the finger off' };
+      return { seq: [["window.__BOT8.f()"], ["window.__BOT8.f()"]], ms: 100, seqUntil: "(()=>{const a=__T.game.h109.state().act;return !a||a.phase!=='pour'||!window.__BOT8.f()})()", seqMax: 30000, seqLoop: 1, wait: 200, note: `pour: L${a.lv} fill ${a.filled} cauldron ${a.cauldron.used} ${a.cauldron.amount}` };
+    }
+    return { wait: 400 };
+  };
   B.next = () => {
     if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };
     const S = H().state();

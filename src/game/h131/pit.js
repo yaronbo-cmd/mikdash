@@ -59,7 +59,7 @@ const K = Object.freeze({ TAP: 14, TIP: 48, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
 const SHOT = Object.freeze({
   work: { back: 11.5, up: 17, turn: -0.85, mid: 0.45, aimY: 0.4, fov: 46, k3: 1.12 },
   lever: { D: 20, H: 18.5, fov: 46, mid: 2.1, aimY: 1.1 },   // (b131 part 3: farther back — at 13.5/16.5 the kohen stood large at the right; the mid a little toward him)
-  rejects: { back: 9, up: 3.5, on: 4, aimY: 1.2, fov: 60 },   // (aimed far along the opening's look, nearly level: the heap low in the frame, the hills' skyline and the sky above)   // (b131 part 3: along the opening's look, toward the low hills to the north-east: the skyline in the frame)
+  rejects: { back: 9, up: 3.5, on: 4, aimY: 1.2, fov: 60 },   // (b131 part 3: from farther back along the opening's look, toward the low hills to the north-east: the heap in the lower frame, the skyline above)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */

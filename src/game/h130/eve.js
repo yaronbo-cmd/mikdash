@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35],
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, ARC: 0.7, GOLD: [0xC8861E, 0.95, 0.35], PULL: 0.05,
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',
@@ -195,7 +195,9 @@ function makeEve(m, X) {
   function finish() {
     if (A.ended) return;
     const pts = evePts(reach), q = qOf(pts);
-    X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, at: { x: LT.menorah[0], y: FLOOR + 2, z: LT.menorah[1] }, flags: { reach: A.reach, lit: A.lit, of: A.n, shadows: A.shadows } });
+    // (film.secs: the director's pull-back after the work is cut to a blink — the evening is the stage's last work and its film
+    //  follows at once: the pull-back held the dark court for 1.8 s of world time, 19 s in the probe's slow frames — build 130)
+    X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, at: { x: LT.menorah[0], y: FLOOR + 2, z: LT.menorah[1] }, film: { secs: EK.PULL }, flags: { reach: A.reach, lit: A.lit, of: A.n, shadows: A.shadows } });
   }
   return {
     close: true,

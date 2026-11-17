@@ -1055,6 +1055,7 @@ export function createCrews(ctx = {}) {
   // ── h112 ── (stage 03, the owner's rule 19: nothing between the eye and the work) rects a director's act keeps clear of the
   // crews: a worker whose way takes him in steps out to its nearest edge (x0 z0 x1 z1)
   let KEEP = [];
+  const KEEPB = { on: false };   // ── h131 ── (the blocks hidden by a keep-out: shown again once, when it is lifted) ── /h131 ──
   function keepOut(list, opt) { KEEP = (list || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)).slice(0, 6); OFF.on = !!(opt && opt.walkOff) && KEEP.length > 0; if (!OFF.on) offRelease(); }   // ── h120 ── (opt.walkOff) ── /h120 ──
   function keepClear(w) {
     const a = w.a; if (!a) return;
@@ -1149,6 +1150,9 @@ export function createCrews(ctx = {}) {
     if (ownBlobs) blobs.begin();
     actors.update(dt);
     if (KEEP.length) for (const w of people) if (!w.gone) keepClear(w);   // ── h112 ── (after their steps: a way through the frame ends at its edge) ── /h112 ──
+    // ── h131 ── (rule 19: the stone a mason dresses is not left lying in an act's ground while he is kept out of it — stage 08's
+    // ambient altar masons stand where the pour's segment is; it comes back when the act ends) ── /h131 ──
+    if (KEEP.length || KEEPB.on) { KEEPB.on = KEEP.length > 0; for (const w of people) if (w.block) w.block.visT = KEEPB.on && inKeepAny(w.block.x, w.block.z, 0.5) ? 0 : 1; }
     animals.update(dt);
     if (ownBlobs) blobs.end();
     writeCarts();

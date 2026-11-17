@@ -1140,6 +1140,7 @@
     B8.still = a.spout.q > 0 || a.cauldron.swapping ? 0 : B8.still + dt;
     // done when it looks full (or a bad run has had its one spot): the finger lifts and the section sets
     if (a.missing === 0 && a.filled > 0.97) return null;
+    if (window.__BOT8_STOP && a.filled > window.__BOT8_STOP) return null;   // (a probe's reload in the middle of a pour)
     if (a.setting) return null;
     let x;
     if (B8.badRun) x = -4;

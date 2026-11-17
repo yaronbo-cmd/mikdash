@@ -482,6 +482,12 @@ export function createPourView(X, lv, sim, o = {}) {
 
 /* ═════════ the world's hooks: what his pours left, from the save (the patches of a section poured again, the stain beside the timber) ═════════ */
 const W8 = { g: null, key: '' };
+/** a patch's outline: a ragged disc (a re-poured place is not a compass circle) */
+function patchGeo(T, r, seed) {
+  const g = new T.CircleGeometry(r, 36), p = g.attributes.position;
+  for (let i = 1; i < p.count; i++) { const a = Math.atan2(p.getY(i), p.getX(i)), k = 0.82 + 0.1 * Math.sin(a * 3 + seed) + 0.08 * Math.sin(a * 7 + seed * 1.7); p.setXY(i, p.getX(i) * k, p.getY(i) * k); }
+  return g;
+}
 function marksDraw(X, M) {
   if (!M || !X || !X.THREE) return;
   // (a patch in the section being poured is not drawn: the act's own segment shows it, and a flat disc over its stones would not)
@@ -492,11 +498,11 @@ function marksDraw(X, M) {
   if (!marks.length) return;
   const g = new T.Group(); g.name = 'h131-pour-marks'; X.props.root.add(g); W8.g = g;
   const white = M.isDone('finale');
-  const patchM = new T.MeshStandardMaterial({ color: white ? 0xE9E1D2 : 0x8f7458, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2 });
+  const patchM = new T.MeshStandardMaterial({ color: white ? 0xDCD3C2 : 0x9a8f80, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });   // (a fresher mix, a shade off the set one)
   const stainM = new T.MeshStandardMaterial({ color: 0x4a3a2c, roughness: 0.9, transparent: true, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2 });
   for (const k of marks) {
     if (!k.at) continue;
-    if (k.f === 'pour.hollow') { const m = new T.Mesh(new T.CircleGeometry(Math.max(0.8, k.at.r || 1.4), 18), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.at.x, S8.top + 0.012, k.at.z); g.add(m); }
+    if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, Math.min(1.7, Math.max(0.8, k.at.r || 1.4)), k.at.x * 7.1 + k.at.z), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.at.x, S8.top + 0.012, k.at.z); g.add(m); }
     else { const m = new T.Mesh(new T.CircleGeometry(1, 20), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.at.r || 1) * 1.4, Math.max(0.6, k.at.r || 1), 1); m.position.set(k.at.x, S8.floor + 0.015, k.at.z); g.add(m); }
   }
 }

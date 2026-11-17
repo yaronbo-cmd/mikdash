@@ -824,7 +824,7 @@ export function createActors(ctx) {
     if (a.poseName === 'bless') { hyT = 0; hpT = -0.12; }
     if (a.poseName === 'kneel') { hyT = 0; hpT = 0.3; }
     if (a.lie) { hyT = 0; hpT = a.lieHp || 0; }   // ── h129 ── (a figure laid down sleeps: his head still; lieHp lifts it, h129/night.js) ── /h129 ──
-    a.hy += (hyT - a.hy) * Math.min(1, dt * 3); a.hp += (hpT - a.hp) * Math.min(1, dt * 3);
+    a.hy += (hyT - a.hy) * Math.min(1, dt * (a.hk || 3)); a.hp += (hpT - a.hp) * Math.min(1, dt * (a.hk || 3));   // ── h129 ── (hk: a quicker head, the Gazit's one beat) ── /h129 ──
     // ── people6 ── weight shifts: a slow lean from one foot to the other, now and then
     a.sway = (Math.sin(T * 0.55 + a.shade * 20) * 0.022 + Math.sin(T * 1.3 + a.shade * 7) * 0.006) * (1 - a.wk);
   }

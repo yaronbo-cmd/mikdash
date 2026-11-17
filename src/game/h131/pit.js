@@ -535,6 +535,7 @@ function pitAct(m, X) {
     holds() { return A.fl != null; },
     end(res) {
       A.ended = true; X.line('');
+      try { for (const c of document.querySelectorAll('.h129-card')) c.remove(); } catch (e) { /* */ }   // (b131 fix round 1: the betula card goes with the work, never over the next)
       const film = res && res.film && A.phase === 'done';
       if (!film) { clearAll(); return; }
       // the film: the last stone raised onto the cradle, the four at the poles

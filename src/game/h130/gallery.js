@@ -26,7 +26,7 @@ import { BOOK } from '../world/grid.js';
 const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
 const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 // (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
-const SEE = Object.freeze({ AIM_D: 8, DOWN: 9 });   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ AIM_D: 8, DOWN: 9, FOV: 40, CLEAR: 3 });   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
@@ -118,8 +118,9 @@ export const GALLERY = {
     /* the camera: the act's own wider lens while the puzzle and the test play (held while his look is at rest), the world's back after */
     const cam0 = X.camera, fov0 = cam0.fov; let lensOn = false;
     const lens = (f) => { try { if (Math.abs(cam0.fov - f) > 0.01) { cam0.fov = f; cam0.updateProjectionMatrix(); } } catch (e) { /* */ } };
-    const holdLens = () => { if (!lensOn) return; const Lk = X.lookNow ? X.lookNow() : null; if (Lk && (Lk.u > 0.01 || Math.abs(Lk.yaw) > 0.03 || Lk.ov)) return; lens(FOV); };
-    const lensSet = (v) => { lensOn = !!v; if (v) lens(FOV); else lens(fov0); };
+    let lensF = FOV;   // (the act's lens now: FOV, or the view from below's longer one)
+    const holdLens = () => { if (!lensOn) return; const Lk = X.lookNow ? X.lookNow() : null; if (Lk && (Lk.u > 0.01 || Math.abs(Lk.yaw) > 0.03 || Lk.ov)) return; lens(lensF); };
+    const lensSet = (v) => { lensOn = !!v; if (v) lens(lensF); else lens(fov0); };
     const home = (d = 1.0) => X.shot(CG[0], CG[1], d);
     const srcTag = tag('h130-src'), illTag = tag('h130-ill'); srcTag.set(''); illTag.set('');
     let srcT = 0; const src = (t, s = 6) => { srcTag.set(t); srcT = t ? s : 0; };
@@ -265,7 +266,8 @@ export const GALLERY = {
         let order = L.torch.map((_, i) => i);
         { const t = L.torch[order[0]]; bearerAt(t[0], t[1], L.watch[0][0], L.watch[0][1]); }
         for (let wi = 0; wi < L.watch.length; wi++) {
-          const w = L.watch[wi], eye = [w[0], GEO.FLOOR + EYE, w[1]];
+          const w = L.watch[wi], eye = clearEye([w[0], GEO.FLOOR + EYE, w[1]], cols);
+          lensF = SEE.FOV; lens(lensF);
           A.spect.forEach((s, i) => { s.a.vis = s.a.visT = i === wi ? 0 : 1; });
           for (let j = 0; j < order.length; j++) {
             const ti = order[j], t = L.torch[ti];
@@ -278,7 +280,7 @@ export const GALLERY = {
           }
           order = order.slice().reverse();
         }
-        A.view = null;
+        A.view = null; lensF = FOV; lens(lensF);
         if (!below.ok) {
           A.lostAt = k; A.lost = 1;
           spectators(false); X.kohen(true); bearerAt(bw[0], bw[1], SP.face[0], SP.face[1]);
@@ -308,6 +310,22 @@ export const GALLERY = {
     /** ── build 130 part 3 ── the spectator's aim: toward the torch but a little down (SEE.DOWN degrees, SEE.AIM_D amot ahead). The torch's flame is over his eye;
      *  a camera that looks up past the world controls' polar limit (main.js maxPolarAngle 1.46) was lifted by them before each frame —
      *  to the gallery's own height, its deck and railing then filling the view (the "brown frame" of the test from below) */
+    /** ── build 130 closing ── his eye off the columns he built: one within SEE.CLEAR amot of it filled a third of the frame (1600×900);
+     *  he steps back from it (the test itself is the book's, from his seat: only the camera moves) */
+    function clearEye(eye, cols) {
+      const e = eye.slice();
+      for (let it = 0; it < 3; it++) {
+        for (const a of cols) {
+          const [cx, cz] = colXZ(R, a), dx = e[0] - cx, dz = e[2] - cz, d = Math.hypot(dx, dz);
+          if (d >= SEE.CLEAR) continue;
+          // (along the run, never toward the wall or into the court: the distance across stays, the distance along grows)
+          const ax = R.axis === 'x', along = ax ? dx : dz, across = ax ? dz : dx, need = Math.sqrt(Math.max(0, SEE.CLEAR * SEE.CLEAR - across * across)) + 0.01;
+          const sgn = along >= 0 ? 1 : -1, v = (ax ? cx : cz) + sgn * need;
+          if (ax) e[0] = v; else e[2] = v;
+        }
+      }
+      return e;
+    }
     function eyeAim(eye, tp) {
       const dx = tp[0] - eye[0], dz = tp[2] - eye[2], L = Math.hypot(dx, dz) || 1, k = Math.min(L, SEE.AIM_D);
       return [eye[0] + (dx / L) * k, eye[1] - k * Math.tan((SEE.DOWN * Math.PI) / 180), eye[2] + (dz / L) * k];

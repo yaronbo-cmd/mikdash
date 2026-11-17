@@ -288,7 +288,7 @@ test('book s05 (build 130): the new stage\'s rows — the runs, the passage, the
   // the spec's new places, exactly
   assert.deepEqual(G.stand, { N: [73.5, -52], S: [73.5, 52], E: [126, 0] });
   assert.deepEqual(G.torch, [[73.5, 0], [40, 0], [107, 0]]);
-  assert.deepEqual(S.wood, { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] });
+  assert.deepEqual(S.wood, { trestles: [121, -46], stand: [117.2, -46.4], second: [124, -50], clean: [128, -44], out: [112, -58] });
   assert.deepEqual(S.light.menorah, [73.5, 24]); assert.equal(S.light.h, 50);
   assert.deepEqual(S.light.measures, [26, 31.5]); assert.deepEqual(S.light.wicks, [30, 24]); assert.deepEqual(S.light.practice.ladder, [99.6, 60.2]);
   // the menorah's ladders 6 amot off to the four corners; the menorah off the court's axis (stage 06's sledge lane)
@@ -313,5 +313,11 @@ test('book s05 (build 130): the new stage\'s rows — the runs, the passage, the
   // the entries carry the new rows
   for (const id of ['n:stand:galN', 'n:torch1', 'n:sled:E4', 'n:watch2.2', 'n:seat:E', 'n:wood:clean', 'n:menorah', 'n:mladder3', 'n:measures', 'n:wicks', 'n:passage']) assert.ok(by[id], id);
   assert.ok(Object.isFrozen(G.lv) && Object.isFrozen(S.cam.gal) && Object.isFrozen(S.crewSite));
+  // (part 3) the world's court crews stand at least 12 amot from the menorah and from each of its ladders' feet, never inside a chamber
+  for (const [x, z] of S.crewSite.stand) {
+    assert.ok(Math.hypot(x - S.light.menorah[0], z - S.light.menorah[1]) >= 12, `crew ${x},${z} by the menorah`);
+    for (const [lx, lz] of S.light.ladders) assert.ok(Math.hypot(x - lx, z - lz) >= 12);
+    assert.ok(!S.chambers.some((c) => x > c.x0 && x < c.x1 && z > c.z0 && z < c.z1) && !inWall(x, z), `crew ${x},${z}`);
+  }
 });
 // ── /h130 ──

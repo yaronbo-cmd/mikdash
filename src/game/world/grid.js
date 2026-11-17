@@ -407,7 +407,9 @@ const S05 = {
     // the tops of the court's walls as the world builds them (heights for the look's boxes; the order of walls above)
     wallTops: [40.3, 44.3, 6, 22.3, 38.3, 38.3, 6, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4, 20.4],
   },
-  wood: { trestles: [121, -46], stand: [118, -43], second: [124, -50], clean: [128, -44], out: [112, -58] },
+  // (the wood chamber: the kohen's stand behind the log's left end, no nearer the camera than the log — build 130 part 3: the log a
+  //  third of the screen with the kohen whole beside it)
+  wood: { trestles: [121, -46], stand: [117.2, -46.4], second: [124, -50], clean: [128, -44], out: [112, -58] },
   light: {
     // the golden menorah (its place: המחשה), 50 amot high, four bowls at its head; its four ladders' feet 6 amot from it to the NE, NW,
     // SE and SW (6 / √2 = 4.243 on each axis), each leaning toward it
@@ -428,6 +430,10 @@ const S05 = {
     piles: [[64, -40, 7], [109, -14, 6], [99, 46, 6], [112, 40, 5]],
     lane: [[156, 5.5], [139, 5.5], [128, 12], [121, 21], [121, 29.2]],
     laneCrew: { pull: [150, 5.5], drover: [150, 8] },
+    // the world's crews in the court while the stage builds (crews.js SITES.nashim.stand: [x, z, face x, face z]): the north ones as they
+    // stood; the three that stood at and round the menorah (73.5, 24) moved to the lepers' chamber's south wall (outside it, facing it),
+    // every one at least 12 amot from the menorah and out of every station's own frame (build 130 part 3)
+    stand: [[68, -20, 69, -26], [75, -24, 77, -30], [10, -24.5, 10, -28.5], [16, -24.5, 16, -28.5], [57, -24, 55, -30], [41, -24.5, 41, -28.5]],
   },
   // ── /h130 ──
 };

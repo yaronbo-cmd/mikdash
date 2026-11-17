@@ -34,6 +34,7 @@
 import * as THREE from 'three';
 import { createActors as defActors, ACTOR_S } from './actors.js';
 import { createAnimals as defAnimals, Blobs } from './animals.js';
+import { BOOK as G_BOOK } from './game/world/grid.js';   // ── h130 ── (stage 05's court crews: the book's) ── /h130 ──
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -66,7 +67,7 @@ const SITES = {
     pile: [192, 40], drop: [169, 24], saw: [190, 6, Math.PI / 2], rope: [[88, -94], [104, -95], [84, -100]], boss: [185, 25], enter: [215, 40] },
   gates: { stand: [[158, 30, 153, 25], [161, 38, 156, 33], [157, -26, 152, -21], [160, -34, 155, -29]],
     pile: [171, 44], drop: [153, 17], saw: [169, -46, 0], rope: [[163, 1], [165, 12], [169, 7]], boss: [167, 26], enter: [190, 20] },
-  nashim: { stand: [[68, -20, 69, -26], [75, -24, 77, -30], [60, 22, 57, 28], [70, 26, 70, 32], [57, -24, 55, -30], [80, 21, 83, 27]],
+  nashim: { stand: G_BOOK.s05.crewSite.stand.map((r) => r.slice()),   // ── h130 ── (build 130: three stood at and round the menorah; the book's places now) ── /h130 ──
     pile: [56, -12], drop: [96, -25], saw: [84, 15, 0], rope: [[82, -7], [95, -5], [78, -14]], boss: [64, -6], enter: [122, 8] },
   nikanor: { stand: [[36, -14, 31, -12], [40, -20, 35, -19], [44, -12, 39, -9], [38, 27, 33, 25]],
     pile: [52, -22], drop: [29, -13], saw: [50, 22, Math.PI / 2], rope: [[30, -5], [34, -9], [27, -10]], boss: [46, 8], enter: [72, -10] },

@@ -236,10 +236,24 @@ export const LIGHT = {
       if (!again) {
         if (lv >= 2 && !A.said.src) { A.said.src = 1; X.line(LINES.sukkah52, 6000); setTimeout(() => { if (A.phase === 'climb') say('climb', 5000); }, 6200); }
         else say('climb', 5000);
-        setTimeout(() => { if (A.phase === 'climb' && !A.said.ill) { A.said.ill = 1; say('climbIll', 3500); } }, lv >= 2 ? 11500 : 5200);
+        setTimeout(() => sayIll(0), lv >= 2 ? 11500 : 5200);
         if (lv === 3) othersStart();
       } else say('climb', 3000);
       const h = hpt('L'); X.hand({ x: h[0], y: h[1], z: h[2] }, 0, -50);
+    }
+    // ── build 130 part 3 ── the illustration's line never over the hint hand: while the hand would sit in the line's box at the foot of
+    // the screen, the line waits (a second at a time, up to twelve)
+    function lineBox(text) {
+      let w = text.length * 9; try { const c = lineBox.c || (lineBox.c = document.createElement('canvas').getContext('2d')); c.font = '800 17px Heebo, system-ui'; w = c.measureText(text).width; } catch (e) { /* */ }
+      const W = innerWidth, H = innerHeight; return { x0: W / 2 - w / 2 - 18, x1: W / 2 + w / 2 + 18, y0: H - 14 - 44, y1: H - 14 };
+    }
+    function handClear(b, m = 10) {
+      try { const h = document.querySelector('.h109-hand'); if (!h || h.classList.contains('off') || getComputedStyle(h).opacity === '0') return true; const r = h.getBoundingClientRect(); return !(r.right > b.x0 - m && r.left < b.x1 + m && r.bottom > b.y0 - m && r.top < b.y1 + m); } catch (e) { return true; }
+    }
+    function sayIll(n) {
+      if (A.phase !== 'climb' || A.said.ill) return;
+      if (!handClear(lineBox(LIGHT_LINES.climbIll)) && n < 12) { later(1, () => sayIll(n + 1)); return; }
+      A.said.ill = 1; say('climbIll', 3500); ev('ill');
     }
     function goLadder() {
       A.phase = 'go'; X.hand(null); labelsOff(); try { SL.cups && SL.cups.forEach((c) => { c.visible = true; }); } catch (e) { /* */ }
@@ -293,7 +307,9 @@ export const LIGHT = {
     function topReached() {
       A.phase = 'top'; X.hand(null); X.lookLift(0);
       const p = hpt(S.L >= S.R ? 'L' : 'R');
-      later(1.4, () => { if (boy && AC) { AC.remove(boy); boy = null; } });   // (at the bowl the hands are the player's: the close shot would cut him)
+      // (build 130 part 3: he stays on the ladder's top, whole in the bowl's shot, the jar in his two hands — never a jar alone in the air;
+      //  light3's three boys reach their bowls with him: none is left half in the frame)
+      for (const B of others) if (B.S.rung < B.S.top) { B.S.rung = B.S.top; B.S.L = B.S.R = B.S.top; B.S.up = null; B.pend = null; }
       try { X.perfect(LIGHT_LINES.top, { x: p[0], y: p[1], z: p[2] }); } catch (e) { /* */ }
       rise(23); ev('top');
       later(1.6, pourStart);
@@ -317,7 +333,8 @@ export const LIGHT = {
     function othersFrame(dt) {
       for (const B of others) {
         // (they climb beside him, never more than a rung over his: the shot behind him keeps them whole)
-        if (B.S.rung < B.S.top) { if (!S || B.S.rung <= S.rung + 1 || A.phase !== 'climb') stepBoy(B, dt); poseBoy(B); continue; }
+        // (and never more than a rung under his: one who lags climbs faster till he is beside him — whole in the shot at u 0 and 0.3)
+        if (B.S.rung < B.S.top) { const lag = !!S && A.phase === 'climb' && B.S.rung < S.rung - 1; if (!S || B.S.rung <= S.rung + 1 || A.phase !== 'climb') stepBoy(B, lag ? dt * 4 : dt); poseBoy(B); continue; }
         if (!B.poured) { B.poured = 1; if (B.a && AC) { AC.remove(B.a); B.a = null; } const Bw = BOWLS[B.k]; B.bowl = B.S.oil; B.jar.visible = false; B.oilD = oilDisc(X, Bw, 0.4, 0.7, 0.5, root); B.oilD.userData.set(B.bowl / 30); ev('boy' + B.k + ':top'); }
       }
     }
@@ -331,17 +348,26 @@ export const LIGHT = {
     function pourStart() {
       A.phase = 'pour'; P = pourFresh(S.oil, 30); A.tilt = 0; A.tiltT = 0;
       bowlOil = oilDisc(X, { x: bowlTop[0], y: bowlTop[1], z: bowlTop[2] }, lv === 1 ? 0.25 : 0.4, lv === 1 ? 0.42 : 0.72, lv === 1 ? 0.3 : 0.5, root);
-      const R = [-LD.left[0], -LD.left[1]];
-      const oD = lv === 1 ? 4.2 : 3.4, oU = lv === 1 ? 2.4 : 4.2;   // (at the menorah's head: from higher, looking down into the bowl over its rim)
-      shot([bowlTop[0] + LD.out[0] * oD + R[0] * 1.6, bowlTop[1] + oU, bowlTop[2] + LD.out[1] * oD + R[1] * 1.6], [bowlTop[0] + LD.out[0] * 0.4, bowlTop[1] + 0.1, bowlTop[2] + LD.out[1] * 0.4], 1.2);
+      bowlShot(1.2);
       const p0 = jar.position.clone(), h = jarHold();
       jar.quaternion.identity();
       tween(0.7, (u) => jar.position.set(p0.x + (h[0] - p0.x) * sm(u), p0.y + (h[1] - p0.y) * sm(u), p0.z + (h[2] - p0.z) * sm(u)));
-      if (boy) boy.armT = [1.6, -0.25, 1.6, -0.25];
+      A.reach = h[1] - 0.1; topPose();
       if (P.oil < 0.05) { later(0.8, layStart); return; }
       say(lv === 1 ? 'pourClay' : 'pour', 0);
       later(0.75, () => X.hand({ x: h[0], y: h[1] + 0.4, z: h[2] }, -50, 40));
     }
+    /** ── build 130 part 3 ── the bowl's shot: the boy whole on the ladder's top, the jar over him and the bowl — from behind him and to his
+     *  right, as far as the lens needs for his feet to the jar's mouth with a margin; from higher at the gallery (its rail before the bowl) */
+    function bowlShot(d) {
+      const R = [-LD.left[0], -LD.left[1]], feetY = LD.y(S ? S.rung : topR), c0 = LD.at(feetY), bx = c0[0] + LD.out[0] * 0.5, bz = c0[2] + LD.out[1] * 0.5, jh = jarHold();
+      const top = jh[1] + 1.1, bot = feetY - 0.3, c = [(bx + bowlTop[0]) / 2, (top + bot) / 2, (bz + bowlTop[2]) / 2];
+      const fov = (X.camera && X.camera.fov) || 46, D = ((top - bot) * 0.5 * 1.5) / Math.tan((fov * Math.PI) / 360), az = 0.5, el = lv === 1 ? 0.5 : 0.22;
+      const v = [LD.out[0] * Math.cos(az) + R[0] * Math.sin(az), LD.out[1] * Math.cos(az) + R[1] * Math.sin(az)];
+      shot([c[0] + v[0] * D * Math.cos(el), c[1] + D * Math.sin(el), c[2] + v[1] * D * Math.cos(el)], c, d);
+    }
+    /** his pose at the top: feet on his rung, both hands up to the height he holds (the jar's, then the bowl's rim) */
+    function topPose() { if (boy && S) poseClimber(boy, LD, LD.y(S.rung), A.reach, A.reach, 0, null); }
     /** the jar's tilt (0 … 1) as it turns its mouth toward the bowl */
     function jarTilt(k) {
       const h = jarHold(), ax = new T.Vector3(LD.left[0], 0, LD.left[1]);
@@ -352,7 +378,7 @@ export const LIGHT = {
       const f = Object.values(A.fing).includes('jar');
       A.tilt += ((f ? A.tiltT : 0) - A.tilt) * clamp(dt * 10, 0, 1);
       const r = pourStep(P, A.tilt, dt);
-      jarTilt(A.tilt); jar.userData.fill(P.oil / 30);
+      jarTilt(A.tilt); jar.userData.fill(P.oil / 30); A.reach = jar.position.y - 0.1; topPose();
       bowlOil.userData.set(P.bowl / Math.max(1, oil0));
       const flowing = r.into + r.out > 1e-4;
       if (!stream) { stream = new T.Mesh(new T.CylinderGeometry(0.03, 0.02, 1, 6), MT.l30oil); root.add(stream); }
@@ -367,7 +393,7 @@ export const LIGHT = {
     }
     const wickHome = () => [bowlTop[0] + LD.out[0] * 0.8 - LD.left[0] * 0.7, bowlTop[1] + 0.3, bowlTop[2] + LD.out[1] * 0.8 - LD.left[1] * 0.7];
     function layStart() {
-      A.phase = 'lay'; if (jar) jar.visible = false;
+      A.phase = 'lay'; if (jar) jar.visible = false; A.reach = bowlTop[1] + 0.2; topPose();
       const w = A.wicks[0] || WICK.MID;
       wickM = new T.Mesh(new T.CylinderGeometry(w * 0.25, w * 0.25, 0.7, 6), MT.l30linen); wickM.castShadow = true; root.add(wickM); wickM.position.set(...wickHome()); wickM.rotation.z = 1.2;
       say('lay', 0); const h = wickHome(); X.hand({ x: h[0], y: h[1], z: h[2] }, 50, 30);

@@ -436,7 +436,7 @@ export const POUR_ACT = {
       },
       dbg() {
         const ca = sim.cauldron, sp = sim.spout, fr2 = A8.frames.slice().sort((a, b2) => a - b2);
-        const o = { id: m.id, lv, phase: A8.phase, mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
+        const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
           filled: +sim.filledFraction.toFixed(3), hollowCells: sim.hollowCells, missing: sim.missingCells, cauldron: { amount: +(ca.amount / ca.cap).toFixed(3), heat: +ca.heat.toFixed(3), used: ca.used, swapping: ca.swapping > 0 },
           spout: { t: +sp.t.toFixed(3), tilt: +sp.tilt.toFixed(3), q: +sp.q.toFixed(3) }, grab: A8.grab ? { sx: Math.round(A8.grab.sx), sy: Math.round(A8.grab.sy), t0: +A8.grab.t0.toFixed(3), t: +A8.grab.t.toFixed(3), tilt: +A8.grab.tilt.toFixed(3) } : null,
           reached: A8.reached.slice(), seals: A8.seals.filter((s) => s.on).length, result: A8.result, taps: A8.taps, dmg: A8.dmg, losses: A8.losses.slice(), patches: A8.patches, spilled: +A8.spilled.toFixed(3), reedClog: A8.reedClog.slice(), reedFix: !!A8.reedFix,

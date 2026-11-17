@@ -1297,6 +1297,7 @@
   };
   play.h8pour = (a) => {
     if (a.phase === 'prep') { const q = a.prep === 'joint' ? a.joint : (a.reeds || []).find(Boolean); if (q && q.on !== false) return { tap: [Math.round(q.x), Math.round(q.y)], wait: 1400, note: 'pour: prep ' + a.prep }; return { wait: 400 }; }
+    if (a.phase === 'stones' && a.busy) return { wait: 300 };   // (b131: the porters still carry: a tap now is not taken)
     if (a.phase === 'stones') return { tap: [Math.round(W * 0.3), Math.round(HH * 0.62)], wait: 650, note: `pour: stone ${a.stonesIn}/${a.nStones}` };
     if (a.phase === 'pour') {
       if (a.reedFix || a.cauldron.swapping && !a.grab) return { wait: 300 };
@@ -1353,7 +1354,14 @@
     // ── h131 ── (stage 08: a stand-in act of a part not yet coded finishes by itself; the lanes' players are play.h8pit, h8frame, h8pour,
     // h8finale — each lane adds its own) ── /h131 ──
     if (H().site === 'yesod' && S.act && S.act.stub) return { wait: 400 };
-    if (H().site === 'yesod' && play['h8' + kind]) { let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; } return r8; }
+    if (H().site === 'yesod' && play['h8' + kind]) {
+      let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; }
+      // ── b131 ── (every work of stage 08: the same touch five times over with no progress is STUCK, its state logged — the 90 s rule
+      //  never fires when each touch changes some state, as the pit's press read as a scrape did by mouse for 58 minutes; the pit's own
+      //  press count stays) ── /b131 ──
+      const st8 = stuck8(S, r8); if (st8) return st8;
+      return r8;
+    }
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
     // ── h128 ── (the camera turned away by a touch the act did not take — a drag decided a moment before the act's phase changed: a tap
     // brings it back as a player would, before the player decides anything) ── /h128 ──
@@ -1365,5 +1373,18 @@
     if (p0 && Number.isFinite(p0[0]) && Number.isFinite(p0[1]) && p0[0] > 0 && p0[0] < W && p0[1] > 0 && p0[1] < HH && !onWorld(p0[0], p0[1])) { const e = document.elementFromPoint(p0[0], p0[1]); r.note = 'HUD under the touch ' + Math.round(p0[0]) + ',' + Math.round(p0[1]) + ' ' + (e ? e.tagName + '.' + String(e.className || '').slice(0, 40) : '') + ' · ' + (r.note || ''); }
     return r;
   };
+  // ── b131 ── the shared stuck rule of stage 08: an action's key (its kind and its place, to 24 px) and the work's progress (what a
+  // work achieves — never its events, its clock or its camera); five of the same key in a row with the same progress end the work ── /b131 ──
+  const PROG8 = ['phase', 'step', 'out', 'left', 'stonesIn', 'filled', 'cover', 'taps', 'result', 'pegs', 'placed', 'corners', 'done', 'level', 'reached', 'seated'];
+  function stuck8(S, r) {
+    const a = S.act || {}, K8 = B.k8 || (B.k8 = {}), q = (v) => Math.round(v / 24);
+    const kindOf = r && ['tap', 'hold', 'holdUntil', 'drag', 'path', 'tapWhen', 'holdShot'].find((k) => r[k]);
+    if (!kindOf) return null;
+    const v = r[kindOf], p = kindOf === 'path' ? v[0] : v, key = kindOf + ':' + (Array.isArray(p) ? q(+p[0]) + ',' + q(+p[1]) : '') + (kindOf === 'drag' || kindOf === 'path' ? ':' + (Array.isArray(v) ? v.length : '') : '');
+    const prog = S.mission + '|' + PROG8.map((k) => (a[k] == null ? '' : typeof a[k] === 'number' ? (+a[k]).toFixed(2) : JSON.stringify(a[k]))).join('|');
+    if (K8.key === key && K8.prog === prog) K8.n++; else { K8.key = key; K8.prog = prog; K8.n = 1; }
+    if (K8.n >= 5) { K8.n = 0; return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' (the same ' + kindOf + ' five times, no progress) ' + JSON.stringify(a).slice(0, 1400) }; }
+    return null;
+  }
   return 'bot ready';
 })();

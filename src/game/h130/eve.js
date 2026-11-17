@@ -21,7 +21,7 @@ const S5 = BOOK.s05, EV = S5.eve, LT = S5.light, FLOOR = S5.court.floor;
 /** the ending's numbers: how far the light reaches over the city (amot from the menorah: the least and the most), the courtyards drawn,
  *  each beat's seconds, the shadow's length and width (amot), the figures below and above */
 export const EK = Object.freeze({
-  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4,
+  R0: 260, R1: 1900, MAXP: 1400, LAMP_I: 900, LAMP_D: 170, LAMP_K: 1.6, DUSK: 2.6, RISE: 4.0, CITY: 7.0, DOWN: 4.5, SHADOW: 34, SHADOW_W: 1.4, MEN: 14, WOMEN: 4, OPEN: 0.9,
 });
 export const ELINES = Object.freeze({
   title: 'הערב', walk: 'הערב: האור של בית השואבה',
@@ -31,9 +31,11 @@ export const ELINES = Object.freeze({
 export const reachRadius = (reach) => EK.R0 + (EK.R1 - EK.R0) * Math.max(0, Math.min(1, +reach || 0));
 /** how many of the courtyards (their distances from the menorah, sorted) are lit at a reach, and at a moment u (0 … 1) of the wave */
 export function cityLit(dists, reach, u = 1) {
-  const R = reachRadius(reach) * Math.max(0, Math.min(1, u));
+  // (the wave runs over the courtyards the light reaches, nearest first: the city's nearest houses stand far from the menorah, and a
+  //  wave over the radius from 0 left the city dark for half its beat — build 130 part 3)
+  const R = reachRadius(reach);
   let n = 0; while (n < dists.length && dists[n] <= R) n++;
-  return n;
+  return Math.floor(n * Math.max(0, Math.min(1, u)));
 }
 /** the badly placed columns: the columns at the ends of a sagging or cracked span, per side → [{ side, a, x, z, kind }] */
 export function badCols(gal) {
@@ -98,8 +100,10 @@ function makeEve(m, X) {
     const AC = X.actors && X.actors(); if (!AC) return;
     const [mx, mz] = LT.menorah;
     // the men below, round the menorah with torches (a ring, its open side toward the camera's descent)
+    // (the ring is open toward the descent's camera, EK.OPEN radians each way: men there stood at the frame's foot and were cut — build 130 part 3)
+    const e = EV.cam.down[0], a0 = Math.atan2(e[2] - mz, e[0] - mx);
     for (let i = 0; i < EK.MEN; i++) {
-      const a = (i / EK.MEN) * Math.PI * 2, r = 13 + (i % 3) * 2.5, x = mx + Math.cos(a) * r, z = mz + Math.sin(a) * r;
+      const a = a0 + EK.OPEN + ((i + 0.5) / EK.MEN) * (Math.PI * 2 - 2 * EK.OPEN), r = 13 + (i % 3) * 2.5, x = mx + Math.cos(a) * r, z = mz + Math.sin(a) * r;
       const f = AC.add('pilgrim', x, z, { yaw: Math.atan2(mx - x, mz - z), item: 'torch', fadeIn: false }); if (f) { f.gang = 1; own.push(f); }
     }
     // the women above, along the galleries he built (on the floor, behind the railing)
@@ -126,6 +130,20 @@ function makeEve(m, X) {
     }
     A.shadows = B.length;
   }
+  /** the city shot's aim: the middle of the courtyards the light will reach (the book's aim looked over the Mount away from the
+   *  houses: the city still showed the court's walls and no courtyard — build 130 part 3); the book's aim when the city is not drawn */
+  function cityAim(c) {
+    if (!city || !city.dists.length) return c[1];
+    // (the houses stand round the Mount: the side with the most of them, in twelve sectors round the menorah, and their middle)
+    const n = Math.max(1, cityLit(city.dists, reach, 1)), p = city.pts.geometry.attributes.position.array, [mx, mz] = LT.menorah;
+    const B = Array.from({ length: 12 }, () => [0, 0, 0, 0]);
+    for (let i = 0; i < n; i++) {
+      const k = Math.floor(((Math.atan2(p[i * 3 + 2] - mz, p[i * 3] - mx) + Math.PI) / (Math.PI * 2)) * 12) % 12, b = B[k];
+      b[0] += p[i * 3]; b[1] += p[i * 3 + 1]; b[2] += p[i * 3 + 2]; b[3]++;
+    }
+    const b = B.reduce((m, q) => (q[3] > m[3] ? q : m));
+    return [b[0] / b[3], b[1] / b[3], b[2] / b[3]];
+  }
   function score() {
     const r = st.res || {}, pts = Object.values(r).reduce((a, q) => a + (q.pts | 0), 0), stars = Object.values(r).reduce((a, q) => a + (q.stars | 0), 0);
     const loss = (st.marks || []).length;
@@ -146,7 +164,7 @@ function makeEve(m, X) {
     // the city's courtyards, one by one
     A.phase = 'city'; A.beat++;
     try { city = cityPoints(X); root.add(city.pts); A.n = city.dists.length; } catch (e) { city = null; }
-    X.shot(C.city[0], C.city[1], 2.4); X.line(LINES.eve, 0); await wait(2.0);
+    X.shot(C.city[0], cityAim(C.city), 2.4); X.line(LINES.eve, 0); await wait(2.0);
     A.cityT = A.t;
     await wait(EK.CITY);
     if (city) { A.lit = cityLit(city.dists, reach, 1); city.pts.geometry.setDrawRange(0, A.lit); }

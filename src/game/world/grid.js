@@ -1102,7 +1102,10 @@ const S08 = {
     frame2: { N: [[-37, -14.5], 4], E: [[-27, -3], 95], S: [[-38, 7.5], -3], W: [[-48.5, -2.5], 86] },
     frame3: { pegs: ['NW', 'NE', 'SW'], wrong: 'NE', turn: 4.5 },
     diag: [-54, -25.5, -22, -25.5], men: 2.2,
-    lime: [-44, 15.2], jar: [-47, 13.6], water: [-47, 9.5], logs: [-12, 18],
+    lime: [-49, 15.2], jar: [-42, 13.6], water: [-43, 9.5], logs: [-12, 18],
+    // the works' cameras ([eye], [aim]): the frame from the stand's side, high; the finale's pull from the south-east, its cloth from the
+    // south over the whole yesod, its water by the south-west corner
+    cam: { frame: [[-38, 50, -49], [-38, 16, -3]], pull: [[-17, 31, 37], [-29, 16, 4]], white: [[-38, 50, 40], [-38, 16, -4]], water: [[-33, 21, 27], [-49, 16, 9.5]] },
   },
   // ── /h131 frame ──
   stand: { frame: [-38, -27, 'S'], witness: [-38, -22, 'N'], pour: [-38, -24, 'S'], south: [-48, 17, 'N'], pit: [-48, -27, 'N'] },

@@ -25,11 +25,13 @@ import { card, cite } from '../h129/ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { createGang, createBeat, onPlane, clamp, ease, lerp } from '../h109/kit.js';
 
-const S8 = BOOK.s08, W8 = S8.work, F = S8.floor, Y1 = S8.frame.y1, MID = S8.mid;
+const S8 = BOOK.s08, W8 = S8.work, F = S8.floor, Y1 = S8.frame.y1, MID = S8.mid, AL = S8.altar;
+/** the device's buzz (ms) for a crack and for the square; the hint hand's longest gesture (px) */
+const BZ = Object.freeze({ crack: '30 30 50'.split(' ').map(Number), square: '40 30 60'.split(' ').map(Number) }), HP = 85;
 /** the act's numbers: the camera (eye and aim; המחשה), how near a finger must be to a corner / a board / the diagonal (px), a tap's
  *  most travel (px), the diagonal's lift while carried, the corner glow's time */
 export const FK = Object.freeze({
-  EYE: Object.freeze([-38, 50, -49]), AIM: Object.freeze([-38, F, -3]), FOV: 46,
+  EYE: W8.cam.frame[0], AIM: W8.cam.frame[1], FOV: 46,
   PICK: 48, PICKM: 30, BEAM: 26, TAP: 12, LIFT: 2.2, GLOW: 0.5,
 });
 /** the act's words (instructions: what to do, at most five words; the frame's way of setting is המחשה) */
@@ -172,8 +174,8 @@ export const FRAME_ACT = {
       },
       move(f) {
         const w = f.w; if (!w || A.fl !== f.id) return; const p = world(f); if (!p) return;
-        if (w.k === 'pt' || w.k === 'beam') { dragTo(S, clamp(p.x, -58, -12), clamp(p.z, -32, 22)); }
-        else if (w.k === 'diag' && f.moved > FK.TAP) { if (!DG.carry) { DG.carry = 1; DG.x = (DR[0] + DR[2]) / 2; DG.z = (DR[1] + DR[3]) / 2; V.scrape(0.5); ev('diag:carry'); } DG.tx = clamp(p.x, -50, -26); DG.tz = clamp(p.z, -24, 10); }
+        if (w.k === 'pt' || w.k === 'beam') { dragTo(S, clamp(p.x, AL[0] - 4, AL[2] + 10), clamp(p.z, AL[1] - 12.5, AL[3] + 9.5)); }
+        else if (w.k === 'diag' && f.moved > FK.TAP) { if (!DG.carry) { DG.carry = 1; DG.x = (DR[0] + DR[2]) / 2; DG.z = (DR[1] + DR[3]) / 2; V.scrape(0.5); ev('diag:carry'); } DG.tx = clamp(p.x, AL[0] + 4, AL[2] - 4); DG.tz = clamp(p.z, AL[1] - 4.5, AL[3] - 2.5); }
         else if (w.k === 'stuck' && f.moved > FK.TAP * 1.6 && !w.forced) { w.forced = 1; force(); }
       },
       up(f) {
@@ -238,7 +240,7 @@ export const FRAME_ACT = {
     function force() {
       const side = crackBeam(S); if (!side) return;
       const [ka, kb] = SIDES[side], a = cornerAt(S, ka), b = cornerAt(S, kb), at = { x: (a.x + b.x) / 2, y: F + 1, z: (a.z + b.z) / 2 };
-      V.crack(); X.shake(0.18, 0.35); try { if (X.haptic) X.haptic([30, 30, 50]); } catch (e) { /* */ }
+      V.crack(); X.shake(0.18, 0.35); try { if (X.haptic) X.haptic(BZ.crack); } catch (e) { /* */ }
       X.dust(at.x, F + 0.8, at.z, 18, 3);
       const p = Mo.mark('frame.crack', m.id, [+at.x.toFixed(2), +at.z.toFixed(2)], SIDE_K.indexOf(side));
       X.loss(p, at, LOSS['frame.crack'][0]); X.line(FLINES.crack, 4000); ev('crack:' + side);
@@ -246,7 +248,7 @@ export const FRAME_ACT = {
       keep(); hintNext(true);
     }
     async function fit() {
-      A.done = 1; A.glow = FK.GLOW; V.thud(); X.shake(0.3, 0.45); try { if (X.haptic) X.haptic([40, 30, 60]); } catch (e) { /* */ }
+      A.done = 1; A.glow = FK.GLOW; V.thud(); X.shake(0.3, 0.45); try { if (X.haptic) X.haptic(BZ.square); } catch (e) { /* */ }
       const at = { x: MID[0], y: F + 1.5, z: MID[1] };
       X.dust(STAKE.NW[0], F + 0.6, STAKE.NW[1], 10, 2); X.dust(STAKE.SE[0], F + 0.6, STAKE.SE[1], 10, 2);
       X.quick(at, QUICK.square, diag); ev('square'); keep();
@@ -266,9 +268,9 @@ export const FRAME_ACT = {
       else if (lv === 1) {
         const free = CORNERS.filter((q) => !S.P[CORNERS.indexOf(q)].seat), seatedN = 4 - free.length;
         const q = seatedN ? free.sort((a, b) => offBy(S, b) - offBy(S, a))[0] : 'NW', p = cornerAt(S, q), s = STAKE[q], a = X.scr(p.x, F + 0.6, p.z), b = X.scr(s[0], F + 0.6, s[1]);
-        k = 'l1' + q; at = { x: p.x, y: F + 0.6, z: p.z }; dx = clamp(b.x - a.x, -90, 90); dy = clamp(b.y - a.y, -90, 90);
+        k = 'l1' + q; at = { x: p.x, y: F + 0.6, z: p.z }; dx = clamp(b.x - a.x, -HP, HP); dy = clamp(b.y - a.y, -HP, HP);
       } else if (lv === 2 && !A.hint2) {
-        const i = S.P.findIndex((p) => !p.seat); if (i >= 0) { const p = S.P[i]; k = 'l2' + i; at = { x: p.x, y: F + 0.6, z: p.z }; const a = X.scr(p.x, F, p.z), b = X.scr(STAKE[p.k][0], F, STAKE[p.k][1]); dx = clamp(b.x - a.x, -80, 80); dy = clamp(b.y - a.y, -80, 80); }
+        const i = S.P.findIndex((p) => !p.seat); if (i >= 0) { const p = S.P[i]; k = 'l2' + i; at = { x: p.x, y: F + 0.6, z: p.z }; const a = X.scr(p.x, F, p.z), b = X.scr(STAKE[p.k][0], F, STAKE[p.k][1]); dx = clamp(b.x - a.x, -HP, HP); dy = clamp(b.y - a.y, -HP, HP); }
       }
       if (!force && k === A.hintK) return; A.hintK = k;
       X.hand(at, dx, dy);

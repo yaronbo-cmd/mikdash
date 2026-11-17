@@ -28,9 +28,9 @@ const S8 = BOOK.s08, W8 = S8.work, F = S8.floor, Y1 = S8.top, WD = S8.wood, MID 
 /** the act's shots ([eye], [aim]; המחשה) and numbers: the grip's reach round a timber's end (px), how far the crew carries a timber
  *  out (amot), the cloth's lag (1/s), the jar's tilt per px, the water's spread */
 export const NK = Object.freeze({
-  PULL: Object.freeze([[-17, 31, 37], [-29, F, 4]]),
-  WHITE: Object.freeze([[-38, 50, 40], [-38, F, -4]]),
-  WATER: Object.freeze([[-31, 25, 31], [-49, F, 9]]),
+  PULL: W8.cam.pull,
+  WHITE: W8.cam.white,
+  WATER: W8.cam.water,
   GRIP: 110, GRIPM: 60, OUT: 34, CLOTH: 6, TILT: 110, ON: 0.3,
 });
 /** the act's words (what to do: at most five words) */
@@ -51,6 +51,7 @@ const TIMBER = Object.freeze({
   E: Object.freeze({ box: WD.E, dir: [0, 1] }),     // (along its length, south: once the south timber is out of the corner)
 });
 const GRIP_AT = [WD.joint[0], WD.joint[1]];
+const BUZZ = Object.freeze('40 30 75'.split(' ').map(Number));   // (a timber giving way: the device's buzz, ms)
 
 export const FINALE_ACT = {
   icon: '💧',
@@ -205,7 +206,7 @@ export const FINALE_ACT = {
     }
     async function giveWay(k) {
       const Tm = tim[k]; Tm.free = 1; Fs.n++;
-      V.thud(); V.groan(); X.shake(0.28, 0.42); try { if (X.haptic) X.haptic([40, 30, 70]); } catch (e) { /* */ }
+      V.thud(); V.groan(); X.shake(0.28, 0.42); try { if (X.haptic) X.haptic(BUZZ); } catch (e) { /* */ }
       const at = { x: GRIP_AT[0], y: Y1 + 0.5, z: GRIP_AT[1] }; X.dust(at.x, F + 0.6, at.z, 14, 3);
       X.quick(at, 'יוצאת!', Tm.g.children[0]); ev('free:' + k);
       // the crew takes it the rest of the way, then to the pile
@@ -215,6 +216,7 @@ export const FINALE_ACT = {
       await new Promise((res) => A.tw.push({ t: 0, d: 2.4, f: (u) => { Tm.sT = Tm.s = lerp(s0, NK.OUT, ease(u)); const D = TIMBER[k]; Tm.g.position.set(D.dir[0] * Tm.s, 0, D.dir[1] * Tm.s); for (const w of crew) if (!w.far) gang.setRole(w, 'pull', { stride: 1, rate: 1.4 }); }, res }));
       V.knock(1.2); Tm.gone = 1;
       await new Promise((res) => { const p0 = Tm.g.position.clone(), b = TIMBER[k].box, c0 = [(b[0] + b[2]) / 2 + p0.x, (b[1] + b[3]) / 2 + p0.z], to = k === 'E' ? [W8.logs[0] + 8, W8.logs[1] - 17] : [W8.logs[0], W8.logs[1]]; A.tw.push({ t: 0, d: 1.3, f: (u) => { const e = ease(u); Tm.g.position.set(p0.x + (to[0] - c0[0]) * e, Math.sin(u * Math.PI) * 0.8, p0.z + (to[1] - c0[1]) * e); }, res }); });
+      Tm.g.visible = false;   // (the crew carries it off to the pile, out of the picture)
       Fs.out[k] = 1; keep(); A.busy = 0; A.pull = null;
       if (Fs.out.S && Fs.out.E) {
         X.line(NLINES.empty, 4200); X.quick({ x: -24, y: Y1, z: 10 }, 'ריקה!', null);

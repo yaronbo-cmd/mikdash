@@ -144,9 +144,13 @@ export const GAZIT = {
     const near = (p, at, k = 1) => { const s = X.scr(at[0], at[1], at[2]); return s.on !== false && Math.hypot(p.x - s.x, p.y - s.y) < gripR() * k; };
     const onHead = (p) => { const a = head(); return !!a && near(p, [a.x, F16 + 2, a.z]); };
     // ── gazit3: the semicha
-    let SC = null, path = null;
+    let SC = null, path = null, pathK = null;
+    // (build 129 R3: the way being drawn is a chalk line on the floor, seen while it is dragged and until he sets out; red where it
+    //  crosses a mat people sit on, a stone, or comes by a scribe's stand — where he would stop or the ink would spill)
     const dots = new T.Group(); root.add(dots);
-    const dotGeo = new T.CircleGeometry(0.2, 10);
+    const segGeo = new T.PlaneGeometry(1, 1); segGeo.rotateX(-Math.PI / 2);
+    const chalk = new T.MeshBasicMaterial({ color: 0xF6F1E2, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    const chalkRed = new T.MeshBasicMaterial({ color: 0xC0392B, transparent: true, opacity: 0.95, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
     const placeOf = (id) => {
       if (id.startsWith('bench:')) { const s = stones[+id.slice(6)]; return [s.x, s.z]; }
       const k = +id[3], sl = slotsOf(k); return sl[sl.length - 1];
@@ -182,9 +186,19 @@ export const GAZIT = {
     }
     function drawPath() {
       for (const c of dots.children.slice()) dots.remove(c);
-      if (!path) return;
-      let last = null;
-      for (const p of path) { if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.4) continue; const d = new T.Mesh(dotGeo, goldHot); d.rotation.x = -Math.PI / 2; d.position.set(p[0], F16 + 0.09, p[1]); dots.add(d); last = p; }
+      if (!path || path.length < 1) return;
+      const L = pathK != null && SC ? layoutFor(pathK) : null, rc = L ? [...(L.mats || []), ...(L.stones || [])].map(corners) : [], ss = L ? L.stands || [] : [], end = path[path.length - 1];
+      const inR = (p, c) => { let s0 = 0; for (let i = 0; i < 4; i++) { const u = c[i], v = c[(i + 1) % 4], w = (v[0] - u[0]) * (p[1] - u[1]) - (v[1] - u[1]) * (p[0] - u[0]); if (i === 0) s0 = Math.sign(w); else if (Math.sign(w) !== s0 && w !== 0) return false; } return true; };
+      // (the same tests as walkCheck: near its end the way may reach his own place)
+      const bad = (p) => Math.hypot(p[0] - end[0], p[1] - end[1]) >= 0.9 && (rc.some((c) => inR(p, c)) || ss.some((q) => Math.hypot(p[0] - q.x, p[1] - q.z) < H129.WALK.INK + H129.STAND / 2));
+      const W = 0.13, y = F16 + 0.08;
+      const seg = (a, b, red) => { const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz); if (l < 1e-3) return; const m = new T.Mesh(segGeo, red ? chalkRed : chalk); m.position.set((a[0] + b[0]) / 2, y, (a[1] + b[1]) / 2); m.rotation.y = Math.atan2(dx, dz); m.scale.set(W, 1, l + W * 0.6); m.renderOrder = 3; dots.add(m); };
+      for (let i = 0; i + 1 < path.length; i++) {
+        const a = path[i], b = path[i + 1], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.25));
+        for (let q = 0; q < n; q++) { const p0 = [a[0] + ((b[0] - a[0]) * q) / n, a[1] + ((b[1] - a[1]) * q) / n], p1 = [a[0] + ((b[0] - a[0]) * (q + 1)) / n, a[1] + ((b[1] - a[1]) * (q + 1)) / n]; seg(p0, p1, bad([(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2])); }
+      }
+      // (a chalk dot where the finger is now)
+      const d = new T.Mesh(segGeo, bad(end) ? chalkRed : chalk); d.position.set(end[0], y, end[1]); d.scale.set(0.3, 1, 0.3); d.rotation.y = 0.785; d.renderOrder = 3; dots.add(d);
     }
     // ── the fingers
     const FG = fingers(X, {
@@ -199,7 +213,7 @@ export const GAZIT = {
           return;
         }
         if (A.phase === 'walk' && !path) {
-          for (let k = 0; k < 4; k++) { if (SC.moved.includes(k)) continue; const a = walkerOf(k); if (a && near(f, [a.x, F16 + 1.4, a.z], 0.8)) { f.walk = k; path = [[a.x, a.z]]; drawPath(); X.hand(null); return; } }
+          for (let k = 0; k < 4; k++) { if (SC.moved.includes(k)) continue; const a = walkerOf(k); if (a && near(f, [a.x, F16 + 1.4, a.z], 0.8)) { f.walk = k; pathK = k; path = [[a.x, a.z]]; drawPath(); X.hand(null); return; } }
         }
       },
       move(f) {
@@ -240,12 +254,14 @@ export const GAZIT = {
       await X.wait(0.6);
       for (const R of P.rounds) {
         const r = J[R.r]; if (r) AC.pose(r, 'raise');
-        for (const j of R.turns) if (J[j]) J[j].look = [stones[R.r].x, stones[R.r].z];
+        // (build 129 R3a: when the arrangement is right the hand is up first, then every head turns to it at once and quickly — one beat)
+        if (P.pass) await X.wait(0.35);
+        for (const j of R.turns) if (J[j]) { J[j].hk = P.pass ? 11 : 0; J[j].look = [stones[R.r].x, stones[R.r].z]; }
         for (const j of R.leans) if (J[j]) { AC.pose(J[j], 'lean'); J[j].look = [stones[R.r].x + 3, stones[R.r].z]; }
         await X.wait(1.3);
         if (r) AC.pose(r, legalStone(stones[R.r]) ? 'sit' : 'stand');
         for (const j of R.leans) if (J[j]) AC.pose(J[j], 'sit');
-        for (const j of R.turns) if (J[j]) J[j].look = null;
+        for (const j of R.turns) if (J[j]) { J[j].look = null; J[j].hk = 0; }
       }
       if (P.pass) { const mid = stones.slice().sort((a, b) => a.x - b.x)[3]; X.quick(stoneAt(mid.i), QUICK.allSee, null); ev('pass'); V.knock(2); return finish(); }
       if (!auto) A.fails++;
@@ -304,7 +320,7 @@ export const GAZIT = {
       } else {
         A.standing++; A.misses = (A.misses | 0) + 1; ev('stand:' + res.why);
         X.line(res.why === 'mat' ? 'הוא נעצר: אין דורכים על מחצלת שיושבים עליה, ולא על הספסל · ציירו לו דרך במעבר' : res.why === 'notFree' ? 'המקום הזה עוד לא פנוי · כל שורה עולה בתורה' : 'הדרך לא הגיעה עד המקום הפנוי · ציירו ממנו עד המקום', 4200);
-        if (A.misses >= 2) { const w = wayFor(k); if (w) { path = w; drawPath(); setTimeout(() => { if (!A.drag.size && path === w) { path = null; drawPath(); } }, 2600); } }
+        if (A.misses >= 2) { const w = wayFor(k); if (w) { path = w; pathK = k; drawPath(); setTimeout(() => { if (!A.drag.size && path === w) { path = null; drawPath(); } }, 2600); } }
         A.busy = 0;
       }
       A.busy = 0;

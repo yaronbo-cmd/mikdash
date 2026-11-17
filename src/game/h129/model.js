@@ -209,10 +209,12 @@ export function walkCheck(path, layout, who) {
   if (path.length) pts.push(path[path.length - 1]);
   const last = pts[pts.length - 1] || [0, 0];
   let end = pts[0] || last, stopped = false, ink = null;
+  // (build 129 R3: a man who stopped at a mat's edge stands at it — his first step off it is not a step onto it, as wayFor's way allows)
+  const first = pts[0] || last;
   for (const p of pts) {
-    const nearEnd = Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.9;
-    if (mats.some((c) => inRect(p, c)) && !nearEnd) { stopped = true; break; }
-    if (stones.some((c) => inRect(p, c)) && !nearEnd) { stopped = true; break; }
+    const nearEnd = Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.9, nearStart = Math.hypot(p[0] - first[0], p[1] - first[1]) < 0.6;
+    if (mats.some((c) => inRect(p, c)) && !nearEnd && !nearStart) { stopped = true; break; }
+    if (stones.some((c) => inRect(p, c)) && !nearEnd && !nearStart) { stopped = true; break; }
     if (!ink) for (const s of stands) if (Math.hypot(p[0] - s.x, p[1] - s.z) < W.INK + H129.STAND / 2) { ink = [s.x + (p[0] - s.x) * 0.5, s.z + (p[1] - s.z) * 0.5]; break; }
     end = p;
   }
@@ -271,7 +273,9 @@ export const gazitPts = (r) => grade(r.dmg, !r.fails && !r.standing);
 export const GOLAH_LV = Object.freeze({
   golah1: Object.freeze({ depth: GL.depth[0], troughs: Object.freeze({ A: 2.0 }) }),
   golah2: Object.freeze({ depth: GL.depth[1], troughs: Object.freeze({ A: 1.5, C: 2.5 }) }),
-  golah3: Object.freeze({ depth: GL.depth[2], troughs: Object.freeze({ A: 1.0, B: 2.0, C: 1.5 }) }),
+  // (build 129 R1: golah3 in four ascents — B the big one takes two (a nearly full bucket, then a top-up judged by the water seen in it,
+  //  0.53 … 0.8), A one full bucket, C one bucket filled to 0.72 … 0.9; DONE × 3.5 = 3.15 > three buckets, so three can never do)
+  golah3: Object.freeze({ depth: GL.depth[2], troughs: Object.freeze({ A: 1.0, B: 1.7, C: 0.8 }) }),
 });
 /** the swing and the water (the brief's start values; CALM/PERFECT/FEED tuned so the two windows do not overlap: a pull is judged by
  *  the nearer of the swing's middle and its end) */

@@ -161,6 +161,47 @@ test('the Golah\'s numbers: fill 0.5/s, weight 0.3 + f, a pull lifts 1.5 − 0.5
   // left alone the swing dies in about six seconds
   const q = M.golahFresh('golah1'); q.f = 1; M.pullStep(q); const A0 = q.A; for (let k = 0; k < 360; k++) M.golahStep(q, DT); assert.ok(q.A < 0.14 * A0 && q.A < 0.2);
 });
+// a planned player (build 129 R1): each ascent [the trough whose stone is raised, the bucket's fill], pulled in the middle each time,
+// poured whole; the next ascent waits until that water has landed
+function golahPlan(id, plan) {
+  const s = M.golahFresh(id); let i = 0, lastPh = 0, k = 0;
+  for (; k < 60 * 900 && !s.done; k++) {
+    const q = plan[i], moving = s.head + M.channelWater(s) + (s.phase === 'fill' ? 0 : s.f);
+    if (s.phase === 'fill') {
+      if (moving > 1e-6) { /* the water on its way lands where the stone is up */ }
+      else if (!q) break;
+      else {
+        for (const t of ['A', 'B', 'C']) M.sluiceSet(s, t, t === q[0]);
+        if (s.f < q[1] - 1e-9) M.fillStep(s, true, Math.min(DT, (q[1] - s.f) / M.GOLAH.FILL));
+        else { M.pullStep(s); lastPh = s.ph; i++; }
+      }
+    } else if (s.phase === 'pull') { if (Math.floor(s.ph / Math.PI) !== Math.floor(lastPh / Math.PI)) M.pullStep(s); lastPh = s.ph; }
+    else if (s.phase === 'rim') M.pourStep(s, 1, DT);
+    M.golahStep(s, DT); s.ev = [];
+  }
+  for (let j = 0; j < 60 * 30 && !s.done; j++) { M.golahStep(s, DT); s.ev = []; }
+  return s;
+}
+test('golah3 in four ascents (R1): the big trough two (nearly full, then a top-up), the others one each; three can never do; over-filling floods', () => {
+  const L = M.GOLAH_LV.golah3.troughs, need = Object.values(L).reduce((a, v) => a + M.GOLAH.DONE * v, 0);
+  // three buckets hold at most 3 units: less than the troughs need, however the water is shared out between them
+  assert.ok(need > 3 + 0.1, 'three ascents are not enough: ' + need); assert.ok(need <= 4 - 0.5, 'four leave slack: ' + need);
+  const big = Object.keys(L).sort((a, b) => L[b] - L[a])[0];
+  assert.equal(big, 'B'); assert.ok(M.GOLAH.DONE * L.B > 1 + 0.2 && L.B + M.GOLAH.OVER >= 1 + 0.75, 'the big one takes two, the top-up has room');
+  for (const k of ['A', 'C']) assert.ok(M.GOLAH.DONE * L[k] <= 1 - 0.05, k + ': one bucket fills it');
+  // a solution, and its slack: the top-up anywhere from 0.55 to 0.78, the small one's bucket from 0.74 to 0.88
+  for (const [up, sm] of [[0.7, 0.8], [0.55, 0.74], [0.78, 0.88]]) {
+    const s = golahPlan('golah3', [['A', 1], ['B', 1], ['C', sm], ['B', up]]);
+    assert.ok(s.done, JSON.stringify([up, sm, s.troughs])); assert.equal(s.trip, 4); assert.equal(s.dmg, 0); assert.equal(M.golahPts(s), 40);
+  }
+  // the clean player's own way also takes four
+  assert.equal(golahBot('golah3').s.trip, 4);
+  // three ascents, however filled: never done
+  for (const p of [[['A', 1], ['B', 1], ['C', 1]], [['B', 1], ['B', 1], ['A', 1]]]) assert.ok(!golahPlan('golah3', p).done);
+  // a full bucket into the small one overflows: golah.flood
+  const f = golahPlan('golah3', [['A', 1], ['B', 1], ['C', 1], ['B', 0.7]]);
+  assert.ok(f.flags['golah.flood'] && f.flags['golah.flood'].includes('C')); assert.ok(f.dmg > 0);
+});
 test('the Golah played clean, each level: every trough full, nothing spilled, no knock or clash, 40; perfect pulls and dry stops', () => {
   for (const id of ['golah1', 'golah2', 'golah3']) {
     const { s, events } = golahBot(id);

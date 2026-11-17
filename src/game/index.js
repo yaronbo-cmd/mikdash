@@ -68,6 +68,7 @@ import { makePack130, migrate05 } from './h130/pack.js';   // ── h130 ──
 import { makePack06 } from './h128/pack.js';   // ── h128 ── (build 128: stage 06 "שער ניקנור וחמש עשרה המעלות", the same director) ── /h128 ──
 import { pageBuilt, frontier, frontLine, noPad, PACKED } from './h128/page.js';   // ── h128 ── (the whole-stage page's fresh game: its stages' bonus flags) ── /h128 ──
 import { makePack07 } from './h129/pack.js';   // ── h129 ── (build 129: stage 07 "הלשכות", the same director) ── /h129 ──
+import { makePack08, migrate08 } from './h131/pack.js';   // ── h131 ── (build 131: stage 08 "יסוד המזבח", the same director) ── /h131 ──
 import { makePack04 } from './h113/pack.js';   // ── h113 ── (build 113: stage 04 "שערי העזרה" in the old world, the same director) ── /h113 ──   // ── h112 ── (build 112: stage 03 "הסורג והחיל" in the old world, the same director) ── /h112 ──
 import { makePack02 } from './h111/pack.js';   // ── h111 ── (build 111: stage 02 "חומת העזרה" in the old world, played by the same director) ── /h111 ──   // ── h109 ── (build 109: stage 01 "שיטוח ההר" played in the old world, spec docs/specs/shlav-01-olam-yashan-he.md) ── /h109 ──
 import { createJuice18 } from './juice.js';   // ── juice18 ── every visual answer to a touch and to a result; the craft points (craftxp.js) ── /juice18 ──   // ── twin17 ── two thumbs at the Mount in landscape (PRINCIPLES §2–§4) ── /twin17 ──
@@ -171,6 +172,15 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   const H29_ONLY = ['gazit', 'golah', 'vault', 'night'].includes(H9_ONLY);
   if (H29_FULL && !H9_ONLY) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
   // ── /h129 ──
+  // ── h131 ── stage 08 "יסוד המזבח" (build 131): its own page (window.__H131_FULL, or ?stage=8 / #stage=8: a fresh game with stages
+  // 01–07 done) and its kinds' pages (__H109_ONLY 'pit' | 'frame' | 'pour' | 'finale'); a page with __H131_KEEP keeps its save (a reload
+  // in the middle of a work resumes it, as the game does)
+  const H131_ONLY = ['pit', 'frame', 'pour', 'finale'].includes(H9_ONLY);
+  const H131_FULL = (() => { try { return !!globalThis.__H131_FULL || /[?&#]stage=8\b/.test(String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')); } catch (e) { return false; } })();
+  const H131_KEEP = (() => { try { return !!globalThis.__H131_KEEP; } catch (e) { return false; } })();
+  const H131_ON = H131_FULL || H131_ONLY || H131_KEEP;
+  if (H131_FULL && !H9_ONLY && !H131_KEEP) { try { store.remove(keyOf()); } catch (e) { /* */ } globalThis.__NO_OPENING = true; }
+  // ── /h131 ──
   let { G, isNew } = S.load(store, keyOf(), now());
   let started = false, whole = false, dayOpen = '', tod = null;
   let opening = false;                     // ── build7 ── the opening vision is on screen (the world shows the finished House)
@@ -336,7 +346,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (type === 'course' && d && d.by !== 'crew' && !d.away) {
       const P = PROJ[d.id], sv = S.siteView(G, d.id);
       EC.request({ kind: 'course', id: d.id, stones: P ? P.P : 0, noStamp: !!(JU && TW && TW.on), name: sv ? sv.name : '' });
-    } else if (type === 'stageDone' && d && !d.skipped && d.id && !((d.id === 'har' || d.id === 'wall' || d.id === 'sorag' || d.id === 'gates' /* ── h120 ── (stage 05 opens in the world) ── /h120 ── */ || d.id === 'nashim' /* ── h128 ── (stage 06 opens in the world) ── /h128 ── */ || d.id === 'nikanor' /* ── h129 ── (stage 07 opens in the world) ── /h129 ── */) && h9Quiet)) {   // ── h109 ── (stage 01 ends on its own film, then the next mission opens in the world: no cards)
+    } else if (type === 'stageDone' && d && !d.skipped && d.id && !((d.id === 'har' || d.id === 'wall' || d.id === 'sorag' || d.id === 'gates' /* ── h120 ── (stage 05 opens in the world) ── /h120 ── */ || d.id === 'nashim' /* ── h128 ── (stage 06 opens in the world) ── /h128 ── */ || d.id === 'nikanor' /* ── h129 ── (stage 07 opens in the world) ── /h129 ── */ || d.id === 'lishka' /* ── h131 ── (stage 08 opens in the world) ── /h131 ── */) && h9Quiet)) {   // ── h109 ── (stage 01 ends on its own film, then the next mission opens in the world: no cards)
       const P = PROJ[d.id];
       EC.request({ kind: 'stage', id: d.id, stones: P ? P.C * P.P : 0, noStamp: !!(JU && TW && TW.on) });
     }
@@ -558,11 +568,13 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     else if (H109_ON && S.isDone(G, 'gates') && !S.isDone(G, 'nashim')) setTimeout(() => { if (!h20Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h120 ── (stage 05 is the director's) ── /h120 ──
     else if (H109_ON && S.isDone(G, 'nashim') && !S.isDone(G, 'nikanor')) setTimeout(() => { h20Rest(); if (!h28Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h128 ── (stage 06 is the director's; stage 05's court drawn as he built it first) ── /h128 ──
     else if (H109_ON && S.isDone(G, 'nikanor') && !S.isDone(G, 'lishka')) setTimeout(() => { h20Rest(); h28Rest(); if (!h29Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h129 ── (stage 07 is the director's; stages 05 and 06 drawn as he built them first) ── /h129 ──
+    else if (H109_ON && S.isDone(G, 'lishka') && !S.isDone(G, 'yesod')) setTimeout(() => { h20Rest(); h28Rest(); h29Rest(); if (!h31Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h131 ── (stage 08 is the director's; stages 05–07 drawn as he built them first) ── /h131 ──
     else if (H109_ON && S.isDone(G, 'sorag') && !S.isDone(G, 'gates')) setTimeout(() => { if (!h13Begin()) welcomeBack(before, rep, daily, { landed, synced: true }); }, 300);   // ── h113 ── (stage 04 is the director's) ── /h113 ──   // ── h112 ── (stage 03 is the director's) ── /h112 ──   // ── h111 ── (stage 02 is the director's) ── /h111 ──
     else welcomeBack(before, rep, daily, { landed, synced: true });
     if (H109_ON && S.isDone(G, 'nashim')) setTimeout(() => h20Rest(), 900);   // ── h120 ── (the gallery as he built it, after a reload) ── /h120 ──
     if (H109_ON && S.isDone(G, 'nikanor') && S.isDone(G, 'lishka')) setTimeout(() => h28Rest(), 1400);   // ── h128 ── (the gate, its doors and steps as he built them, after a reload) ── /h128 ──   // ── h129 ── (once stage 07 is done: before it, its own start drew them) ── /h129 ──
     if (H109_ON && S.isDone(G, 'lishka')) setTimeout(() => h29Rest(), 1700);   // ── h129 ── (the chambers as he built them, after a reload) ── /h129 ──
+    if (H109_ON && S.isDone(G, 'yesod')) setTimeout(() => h31Rest(), 2000);   // ── h131 ── (the yesod as he built it — or the crews, an old save's — after a reload) ── /h131 ──
     return api;
   }
   function destroy() {
@@ -2619,6 +2631,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       emit('ftue', 0);
       if (landed) await openTitle;          // (the title and the plan came at the opening's swap, over the bare Mount)
       else {
+        if (H109_ON && H131_ON) { h31Only(); return; }   // ── h131 ── (a stage-08 page: stages 01–07 done) ── /h131 ──
         if (H109_ON && (H29_ONLY || (H29_FULL && !H9_ONLY))) { h29Only(); return; }   // ── h129 ── (a stage-07 page: stages 01–06 done) ── /h129 ──
         if (H109_ON && (H28_ONLY || (H28_FULL && !H9_ONLY))) { h28Only(); return; }   // ── h128 ── (a stage-06 page: stages 01–05 done) ── /h128 ──
         if (H109_ON && H130_ON) { h20Only(); return; }   // ── h130 ── (a stage-05 page: the Mount, the wall, the soreg and the gates done) ── /h130 ──
@@ -2662,6 +2675,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (h20Begin()) return;   // ── h120 ── ── /h120 ──
     if (h28Begin()) return;   // ── h128 ── ── /h128 ──
     if (h29Begin()) return;   // ── h129 ── ── /h129 ──
+    if (h31Begin()) return;   // ── h131 ── ── /h131 ──
     if (!S.isDone(G, 'har') && S.statusOf(G, 'har') !== 'building') { S.startBuild(G, 'har'); syncSite('har', true); W.setBoulders(G.bh); }
     const i = S.pickBoulder(G.bh, {}, bOrder);   // ── flow9 ── the field's path
     if (i >= 0 && G.ftue <= 2) { W.heroPlace({ boulder: i }); lookAtBoulder(i, 2400); }
@@ -3386,6 +3400,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     // (the follow camera has the world until a card is on screen: the view is set once the frontier card holds the thumbs, so nothing moves it)
     // (and in the morning after the night — the place read by touch and by mouse alike, whatever the clock says — until the card is closed)
     if (frontier(G, S)) setTimeout(() => { noPad(); ui.refresh(); endHold = true; try { W.setTimeOfDay('dawn'); tod = 'dawn'; } catch (e) { /* */ } Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; syncTime(); }); setTimeout(() => endView(1600), 60); }, 1200);   // (the last stage a pack owns: the frontier's one card)
+    else { h9Quiet = true; setTimeout(() => h31Begin(), 1600); }   // ── h131 ── (the next stage's first work opens in the world, once the stage's last picture has been seen) ── /h131 ──
   }
   /** stage 07 done, the page reloaded: the chambers drawn from his save (the director's rest: no UI, no film) */
   function h29Rest() {
@@ -3404,6 +3419,58 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     h29Begin();
   }
   // ── /h129 ──
+  // ── h131 ── build 131: stage 08 "יסוד המזבח" — the same director with stage 08's pack (h131/pack.js). The old stage's minigame (the
+  // whole stones), its moment ('yesod') and story do not open: the site is the director's (S.beginDirected), as stage 07 took 'lishka' over
+  function h31Make() {
+    const S0 = world && (world.stages || world);
+    if (!JU && ui.root) juiceMake();
+    try { if (H9 && H9.site !== 'yesod' && H9.dispose) H9.dispose(); } catch (e) { /* */ }
+    if (H9 && H9.site === 'yesod') return H9;
+    const pack = makePack08({ setTime: (k) => W.setTimeOfDay(k), restoreTime: () => { tod = null; syncTime(); } });
+    H9 = createH109Director({ G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), stages: S0, view, ui, sfx, haptic, juice: () => JU, score: SCR,
+      bonus: (n, why, label) => scoreBonus(n, why, label), twin: () => TW, onDone: () => h31Done(), pack });
+    return H9;
+  }
+  function h31Begin() {
+    if (!H109_ON || !S.isDone(G, 'lishka') || S.isDone(G, 'yesod')) return false;
+    if (!S.beginDirected(G, 'yesod')) return false;
+    if (G.ftue < 99) G.ftue = 99;
+    persist(); W.heroShow(true); ui.refresh();
+    h31Make().start();
+    return true;
+  }
+  function h31Done() {
+    if (S.isDone(G, 'yesod')) return;
+    const c = S.completeStage(G, 'yesod');
+    // (the stage's last picture: the white step in the middle of the great court from high — BOOK.s08.cam.end, the pack's endView — held
+    //  under the end card, which names the next stage: h128/page.js frontLine)
+    const ev = H9 && H9.pack && H9.pack.endView, endView = (ms) => { try { if (ev) W.flyTo(ev[0], ev[1], ms); } catch (e) { /* */ } };
+    endView(1400);
+    completeFlow(c, false);
+    persist();
+    ui.refresh();
+    if (frontier(G, S)) setTimeout(() => { noPad(); ui.refresh(); endHold = true; Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; }); setTimeout(() => endView(1600), 60); }, 1200);   // (the last stage a pack owns: the frontier's one card)
+  }
+  /** stage 08 done, the page reloaded: the yesod drawn from his save (the director's rest: no UI, no film); an old save whose old stage
+   *  08 was done gets the crews' (migrate08, once) */
+  function h31Rest() {
+    if (H9 && H9.site !== 'yesod' && H9.site !== 'lishka' && H9.site !== 'nikanor' && H9.site !== 'nashim') return false;   // (a later stage's director owns the page)
+    try { if (!G.h131 && S.isDone(G, 'yesod')) { migrate08(G, true); persist(); } } catch (e) { /* */ }
+    try { const d = h31Make(); return !!(d && d.rest && d.rest()); } catch (e) { console.warn('[h131] rest', e && e.message); return false; }
+  }
+  /** a stage-08 page: stages 01–07 stand done (quietly), the altar's director opens on it */
+  function h31Only() {
+    h9Quiet = true;
+    if (!S.isDone(G, 'har')) { S.completeStage(G, 'har'); G.bh = (G.bh || []).map(() => 0); }
+    const before = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka'];
+    for (const id of before.slice(1)) if (!S.isDone(G, id)) S.completeStage(G, id);
+    G.ftue = 99;
+    pageBuilt(G, before);   // (their stage bonus counted as paid)
+    try { for (const id of before) W.setStage(id, 'done', 1, { instant: true }); W.setBoulders(G.bh); } catch (e) { /* */ }
+    ui.refresh();
+    h31Begin();
+  }
+  // ── /h131 ──
   function juiceMake() {
     JU = createJuice18({
       ui, sfx, haptic, view, stages: () => world && (world.stages || world), G: () => G, persist: () => persist(), emit: (t, d) => emit(t, d), twin: () => TW, score: () => SCR /* ── hook19 ── */,

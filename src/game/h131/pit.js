@@ -57,7 +57,7 @@ const K = Object.freeze({ TAP: 14, TIP: 64, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
 /** the shots (sheet amot round the stone in hand): work — from the south-east above and behind, the kohen whole in the left third, the
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
-  work: { eye: [2.4, 7.4, 7.6], aim: [-0.9, 0.4, -0.5], fov: 44 },
+  work: { back: 9.5, up: 8.2, turn: -0.62, mid: 0.38, aimY: 0.9, fov: 46, k3: 1.18 },
   lever: { D: 8.6, H: 6.6, fov: 44 },
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
@@ -108,8 +108,11 @@ function pitAct(m, X) {
   function kohenTo(p, face, snap) { const r = Math.hypot(p[0] - P.hole.at[0], p[1] - P.hole.at[1]), R = PD.R0 - 0.9; if (r > R) p = [P.hole.at[0] + (p[0] - P.hole.at[0]) * R / r, P.hole.at[1] + (p[1] - P.hole.at[1]) * R / r]; kz.to = p; kz.face = face; if (snap) kz.at = p.slice(); kz.tg = null; }
   function kohenStep(dt) {
     const k = 1 - Math.exp(-dt * 5); kz.at[0] += (kz.to[0] - kz.at[0]) * k; kz.at[1] += (kz.to[1] - kz.at[1]) * k;
-    const w = W3(kz.at[0], 0, kz.at[1]), f = W3(kz.face[0], 0, kz.face[1]);
-    try { X.hero.setPos(w.x, w.z, Math.atan2(f.x - w.x, f.z - w.z)); } catch (e) { /* */ }
+    // (set only when he really moves: a set every frame cancels his grip on the lever)
+    const w = W3(kz.at[0], 0, kz.at[1]), f = W3(kz.face[0], 0, kz.face[1]), yaw = Math.atan2(f.x - w.x, f.z - w.z);
+    if (kz.set && Math.hypot(kz.set[0] - w.x, kz.set[1] - w.z) < 0.02 && Math.abs(kz.set[2] - yaw) < 0.01) return;
+    kz.set = [w.x, w.z, yaw]; kz.tg = null;
+    try { X.hero.setPos(w.x, w.z, yaw); } catch (e) { /* */ }
   }
   const handFb = () => { const w = W3(kz.at[0], 0, kz.at[1]), f = W3(kz.face[0], 0, kz.face[1]), d = Math.hypot(f.x - w.x, f.z - w.z) || 1; return { x: w.x + (f.x - w.x) / d * 0.75, y: X.ground(w.x, w.z) + 1.75, z: w.z + (f.z - w.z) / d * 0.75 }; };
   let handP = null;
@@ -141,6 +144,17 @@ function pitAct(m, X) {
   // ── the crew: two diggers with wooden spades in the pit, four carriers on the rim round the cradle
   const B = createBeat(X), gang = createGang(X);
   const digs = P.diggers.map((p, k) => { const w = W3(p[0], 0, p[1]), r = Math.hypot(p[0], p[1]) || 1, f = W3(p[0] / r * (PD.R0 + 3), 0, p[1] / r * (PD.R0 + 3)); return gang.add(w.x, w.z, { role: 'pick', item: 'spade', fx: f.x, fz: f.z, k: 2, off: k * 0.5, crew: k }); });
+  /** the diggers by the stone in hand (beyond it from the camera, on its east), each throwing toward the rim nearest him */
+  const DIG = [[1.9, -1.7], [1.2, 2.3]];
+  function diggersTo(s, snap) {
+    if (!s) return; const [hx] = halfOf(s);
+    digs.forEach((w, k) => {
+      if (!w) return; let p = [s.at[0] + hx + DIG[k][0], s.at[1] + DIG[k][1]]; const r = Math.hypot(p[0], p[1]), R = PD.R0 - 1.0; if (r > R) p = [p[0] * R / r, p[1] * R / r];
+      const n = Math.hypot(p[0], p[1]) || 1, f = W3(p[0] / n * (PD.R0 + 3), 0, p[1] / n * (PD.R0 + 3)), q = W3(p[0], 0, p[1]);
+      if (snap) { w.a.x = q.x; w.a.z = q.z; gang.setRole(w, 'pick', { fx: f.x, fz: f.z }); return; }
+      gang.setRole(w, 'walk', { fx: null }); Promise.race([gang.walkTo(w, q.x, q.z, 2.6), X.wait(3)]).then(() => { if (!A.ended) gang.setRole(w, 'pick', { fx: f.x, fz: f.z }); });
+    });
+  }
   const cr0 = W3(P.cradle[0], 0, P.cradle[1]);
   const carr = P.carriers.map((p, k) => { const w = W3(p[0], 0, p[1]); return gang.add(w.x, w.z, { role: 'hold', item: 'rope', fx: cr0.x + 4, fz: cr0.z, crew: 2 + (k % 2) }); });
   const ropes = [0, 1, 2, 3].map(() => { const r = X.props.rope(10, 0.045); r.show(false); return r; });
@@ -153,8 +167,12 @@ function pitAct(m, X) {
   /** the work's shot round the stone in hand (level 3: round the three, a little back) */
   function workShot(d = 0.9) {
     const s = cur(); if (!s) return;
-    const c = lv === 3 ? clusterC() : s.at, k = lv === 3 ? 1.22 : 1, S = SHOT.work;
-    X.shot(A3(c[0] + S.eye[0] * k, F + S.eye[1] * k, c[1] + S.eye[2] * k), A3(c[0] + S.aim[0], F + S.aim[1], c[1] + S.aim[2]), d);
+    const c = lv === 3 ? clusterC() : s.at, kp = KOH(s), S = SHOT.work, k = lv === 3 ? S.k3 : 1;
+    // (from behind him: back along the line from the stone to him, turned toward the south so he stands left of the stone)
+    let bx = kp[0] - c[0], bz = kp[1] - c[1]; const n = Math.hypot(bx, bz) || 1; bx /= n; bz /= n;
+    const ca = Math.cos(S.turn), sa = Math.sin(S.turn), ex = bx * ca - bz * sa, ez = bx * sa + bz * ca;
+    const mid = [c[0] + (kp[0] - c[0]) * S.mid, c[1] + (kp[1] - c[1]) * S.mid];
+    X.shot(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
     fovT = S.fov; shotK = 'work';
   }
   function clusterC() { const L0 = W.stones.filter((s) => !s.gone); const n = L0.filter((s) => !s.out); const Q = n.length ? n : L0; return [Q.reduce((a, s) => a + s.at[0], 0) / Q.length, Q.reduce((a, s) => a + s.at[1], 0) / Q.length]; }
@@ -179,9 +197,9 @@ function pitAct(m, X) {
       if (A.phase === 'check') { A.fl = f.id; f.w = { mode: 'nail', ang: thumbAng(f) }; X.hand(null); return; }
       if (A.phase !== 'work') return;
       if (L.st === 'seat' && (onStone(f, L.i) || onLever(f)) && !nearTip(f)) { A.fl = f.id; f.w = { mode: 'press' }; A.press = true; X.hand(null); ev('press'); return; }
-      if (nearTip(f)) { A.fl = f.id; f.w = { mode: 'lever' }; if (L.st === 'seat') unseat(); L.st = 'held'; greensShow(true); X.hand(null); V.scrape(0.2); ev('lever'); return; }
+      if (nearTip(f)) { A.fl = f.id; f.w = { mode: 'lever' }; if (L.st === 'seat') unseat(true); L.st = 'held'; greensShow(true); X.hand(null); V.scrape(0.2); ev('lever'); return; }
       const q = floorAt(f); if (!q) return;
-      A.fl = f.id; f.w = { mode: 'scrape', last: q }; if (L.st === 'seat') unseat(); L.st = 'held'; L.tip = q.slice(); X.hand(null); ev('scrape');
+      A.fl = f.id; f.w = { mode: 'scrape', last: q }; if (L.st === 'seat') unseat(true); L.st = 'held'; L.tip = q.slice(); X.hand(null); ev('scrape');
     },
     move(f) {
       const w = f.w; if (!w || A.fl !== f.id) return;
@@ -195,8 +213,8 @@ function pitAct(m, X) {
       const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; V.scrape(0);
       if (w.mode === 'press') { A.press = false; relNow(); return; }
       if (w.mode === 'nail') return;
-      if (w.mode === 'lever') { greensShow(false); trySeat(); return; }
-      if (w.mode === 'scrape') { L.st = 'lie'; L.tip = restTip(cur()); hintNext(); }
+      if (w.mode === 'lever') { greensShow(false); trySeat(); if (L.st !== 'seat' && shotK !== 'work') workShot(0.9); return; }
+      if (w.mode === 'scrape') { L.st = 'lie'; L.tip = restTip(cur()); if (shotK !== 'work') workShot(0.9); hintNext(); }
     },
   });
   function clampFloor(f) { const r = X.rayAt(f.x, f.y).ray, d = r.direction, o = r.origin, y = W3(0, F + 0.1, 0).y; if (Math.abs(d.y) < 1e-4) return null; const t = (y - o.y) / d.y; if (t < 0) return null; const q = L2(o.x + d.x * t, o.z + d.z * t), n = Math.hypot(q[0], q[1]), R = PD.R0 - 0.3; return n > R ? [q[0] * R / n, q[1] * R / n] : q; }
@@ -227,8 +245,9 @@ function pitAct(m, X) {
     V.knock(1.4); ev('seat:' + best.i + SIDES[best.k] + (r.wrong ? ':wrong' : ''));
     leverShot(0.9); hintNext(true);
   }
-  function unseat() { if (L.st !== 'seat') return; const r = release(W, L); if (r) spared(); L.st = 'lie'; L.i = null; L.side = null; kohenTo(KOH(cur() || W.stones[0]), (cur() || W.stones[0]).at); workShot(0.9); }
-  function relNow() { const r = release(W, L); if (r) spared(); hintNext(true); }
+  /** the lever out from under its lip (noCam: under a finger — the camera waits for it to lift, rule 17) */
+  function unseat(noCam) { if (L.st !== 'seat') return; const r = release(W, L); if (r) spared(); L.st = 'lie'; L.i = null; L.side = null; kohenTo(KOH(cur() || W.stones[0]), (cur() || W.stones[0]).at); if (!noCam) workShot(0.9); }
+  function relNow() { const r = release(W, L); if (r) spared(); A.heldSaid = 0; hintNext(true); }
   function spared() { X.line(PLINES.spared, 2400); ev('spared'); keep(); }
   // ── the step of the lift (every frame)
   function liftStep(dt) {
@@ -236,14 +255,13 @@ function pitAct(m, X) {
     const s = L.st === 'seat' ? W.stones[L.i] : null;
     if (s && A.press) { V.creak(s.rise > 0 ? 0.3 + s.rise * 0.6 : 0.15); } else V.creak(0);
     for (const e of evs) {
-      if (e.e === 'move' && Math.random() < 0) void 0;
       if (e.e === 'held' && !A.heldSaid) { A.heldSaid = 1; X.line(PLINES.held, 2600); heldDust(s); ev('held:' + e.i); }
       if (e.e === 'grind') { X.line(PLINES.grind, 2600); V.groan(); X.shake(0.1, 0.12); const q = lipW(W.stones[e.i], (W.stones[e.i].deep ?? 1), 0); X.dust(q.x, q.y, q.z, 10, 1.6); ev('grind'); }
       if (e.e === 'slide') { X.line(PLINES.slide, 2600); V.groan(); V.dust(); const g = meshOf(e.j); if (g) X.dust(g.position.x, g.position.y + 0.5, g.position.z, 8, 1.5); ev('slide:' + e.j); }
       if (e.e === 'chip' || e.e === 'knock') knocked(e.e === 'chip' ? e.i : e.j);
       if (e.e === 'free') freed(e.i);
     }
-    if (s && A.press && s.rise > 0 && (A.t * 6 | 0) !== A.dT) { A.dT = A.t * 6 | 0; const q = lipW(s, L.side, s.rise); if (Math.random() < 2) X.dust(q.x, q.y - 0.1, q.z, 1, 0.6); }
+    if (s && A.press && s.rise > 0 && (A.t * 6 | 0) !== A.dT) { A.dT = A.t * 6 | 0; const q = lipW(s, L.side, s.rise); X.dust(q.x, q.y - 0.1, q.z, 1, 0.6); }
   }
   function heldDust(s) { if (!s) return; for (let k = 0; k < 4; k++) if (!s.block.includes(k) && s.cover[k] > PIT.FREE) { const q = lipW(s, k, 0); X.dust(q.x, q.y + 0.2, q.z, 7, 1.2); } }
   // ── a stone out whole: the word, the flash, a small shake as it leaves the earth; the carriers hoist it onto the cradle
@@ -346,14 +364,14 @@ function pitAct(m, X) {
     // (the crew bares another in its place)
     X.line(PLINES.bare, 2400); A.phase = 'work'; A.focus = null; stonesDraw();
     const ni = W.stones.length - 1, ng = meshOf(ni); if (ng) { const q = ng.position; X.dust(q.x, q.y + 0.4, q.z, 14, 2); }
-    kohenTo(KOH(cur()), cur().at); L.tip = restTip(cur()); workShot(1.0);
+    kohenTo(KOH(cur()), cur().at); L.tip = restTip(cur()); diggersTo(cur()); workShot(1.0);
     await X.wait(1.0);
     A.busy = 0; hintNext(true);
   }
   // ── after a stone: the next, or the end
   function afterStone() {
     if (doneOf(W)) { finish(); return; }
-    A.focus = null; const s = cur(); kohenTo(KOH(s), s.at); L.tip = restTip(s); workShot(1.0); hintNext(true);
+    A.focus = null; const s = cur(); kohenTo(KOH(s), s.at); L.tip = restTip(s); diggersTo(s); workShot(1.0); hintNext(true);
   }
   // ── the hint (rule 25: one short line, one hand)
   function hintNext(force) {
@@ -401,7 +419,7 @@ function pitAct(m, X) {
   // ── the opening: the valley, the pit and its crew, the hills to the horizon toward the Mount (BOOK.s08.pit.cam.open); "למטה מהבתולה"
   async function opening() {
     const C = P.cam.open;
-    X.shot(A3(...C[0]), A3(...C[1]), 0.01); fovT = 56; lens(56); shotK = 'open';
+    X.shot(A3(...C[0]), A3(...C[1]), 0.01); fovT = 60; lens(60); shotK = 'open';
     X.line(LINES.place, 0);
     await tapOr(X, 2600);
     if (A.ended) return;
@@ -418,8 +436,8 @@ function pitAct(m, X) {
   }
   async function start() {
     goPit(X);
-    try { X.kohen(true); } catch (e) { /* */ }
-    const s = cur() || W.stones[0]; kohenTo(KOH(s), s.at, true); L.tip = restTip(s); kohenStep(1);
+    try { X.kohen(true); if (X.hero.setTool) X.hero.setTool('wood'); } catch (e) { /* */ }
+    const s = cur() || W.stones[0]; kohenTo(KOH(s), s.at, true); L.tip = restTip(s); kohenStep(1); diggersTo(s, true);
     stonesDraw(); leverDraw();
     await opening(); if (A.ended) return;
     if (W.check != null && W.stones[W.check] && W.stones[W.check].knock) {
@@ -455,7 +473,8 @@ function pitAct(m, X) {
       if (A.phase === 'check') { const C = A.check; if (!C) return false; const c = scrPt(C.g.getWorldPosition(new T.Vector3())); return Math.hypot(c.x - p.x, c.y - p.y) < 160; }
       if (A.phase !== 'work') return false;
       if (nearTip(p) || (L.st === 'seat' && onLever(p))) return true;
-      return W.stones.some((s, i) => !s.out && !s.gone && onStone(p, i));
+      if (W.stones.some((s, i) => !s.out && !s.gone && onStone(p, i))) return true;
+      const q = floorAt(p); return !!q && W.stones.some((s) => !s.out && !s.gone && !s.knock && Math.hypot(q[0] - s.at[0], q[1] - s.at[1]) < halfOf(s)[0] + 2.4);
     },
     holds() { return A.fl != null; },
     end(res) {

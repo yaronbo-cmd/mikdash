@@ -26,8 +26,8 @@ export function pmats(X) {
   const PM = X.props.M, T = X.THREE; mats(X);
   if (PM.y8pStone) return PM;
   const std = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.92, flatShading: true, ...o });
-  PM.y8pStone = std('#D2C6A8');                                   // (each stone clones it: its wetness is its own)
-  PM.y8pMound = std('#C4AE84');                                   // the virgin soil still on a stone (damp, a little darker than the walls)
+  PM.y8pStone = std('#B9AB8D');                                   // (each stone clones it: its wetness is its own)
+  PM.y8pMound = std('#A88F66');                                   // the virgin soil still on a stone (damp, a little darker than the walls)
   PM.y8pLever = std('#8E6A40', { roughness: 0.8 });
   PM.y8pPole = std('#7A5634', { roughness: 0.85 });
   PM.y8pRope = std('#B89A62', { roughness: 0.95 });
@@ -64,7 +64,7 @@ export function stoneMesh(X, s, parent) {
   g.userData = { s, tip, lift, body, mat, hx, hy, hz, mounds: [], side: -1 };
   (parent || X.props.root).add(g);
   for (let k = 0; k < 4; k++) {
-    const m = new T.Mesh(new T.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), PM.y8pMound); m.receiveShadow = true; m.castShadow = false; g.add(m); g.userData.mounds.push(m);
+    const m = new T.Mesh(X.props.geo.rock, PM.y8pMound); m.receiveShadow = true; m.castShadow = false; m.rotation.y = k * 1.3 + s.id; g.add(m); g.userData.mounds.push(m);
   }
   stonePose(X, g, s, null);
   return g;
@@ -93,7 +93,7 @@ export function stonePose(X, g, s, side, extra = {}) {
   }
   if (extra.up) U.tip.position.y += extra.up;
   // the wet shine: a stone bared of its earth shines (spec: "האבן מבריקה מלחות")
-  U.mat.roughness = 0.95 - 0.55 * Math.max(0, 1 - cov * 1.6); U.mat.color.setHSL(0.11, 0.22, 0.73 - 0.12 * Math.max(0, 1 - cov * 1.6));
+  const wet = Math.max(0, 1 - cov * 1.6); U.mat.roughness = 0.95 - 0.6 * wet; U.mat.color.setHSL(0.1, 0.17 + 0.05 * wet, 0.6 - 0.1 * wet);
   // the mounds: one on each side still under earth (none against a neighbour), sized by its cover
   for (let k = 0; k < 4; k++) {
     const m = U.mounds[k], c = s.block.includes(k) || s.out || s.gone ? 0 : s.cover[k];
@@ -101,8 +101,8 @@ export function stonePose(X, g, s, side, extra = {}) {
     if (!m.visible) continue;
     const d = [[0, -1], [1, 0], [0, 1], [-1, 0]][k], along = k % 2 ? hz : hx, out = k % 2 ? hx : hz;
     m.position.set(d[0] * (out + 0.1), 0, d[1] * (out + 0.1));
-    const w = along * (0.85 + 0.25 * c), h = hy * (0.35 + 1.35 * c), dep = 0.45 + 0.75 * c;
-    m.scale.set(k % 2 ? dep : w, h, k % 2 ? w : dep);
+    const w = along * (0.7 + 0.2 * c), h = hy * (0.25 + 0.9 * c), dep = 0.35 + 0.55 * c;
+    m.scale.set((k % 2 ? dep : w) / 1.3, h / 1.3, (k % 2 ? w : dep) / 1.3); m.position.y = -h * 0.35;
   }
 }
 /** the world point of a stone's centre (top), and of a side's lip at the floor (lifted with the stone) */

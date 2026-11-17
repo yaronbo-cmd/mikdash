@@ -1122,8 +1122,10 @@ const S08 = {
     // the ground round the pit (המחשה): the valley's floor patch drawn round the sheet — its radius, the flat floor's radius round the
     // pit, how far out the hillsides rise and how high (the valley lies about 140 m under the Mount: the hills round it rise that much)
     ground: { R: 3000, flat: 60, rise: 1400, top: 260 },
-    // the opening view: above (0, 30), facing the Mount on the horizon (it lies east-north-east: 14,770 east and 2,310 north)
-    cam: { open: [[-12, 13, 34], [6, 2, -16]], play: [[0, 11, 21], [0, -1, 0]] },
+    // the opening view: facing the Mount on the horizon (it lies east-north-east: 14,770 east and 2,310 north) — (build 131, the pit
+    // lane: composed from the south-west of the pit, so the pit and its crew stand in the lower half, the valley opens beyond them toward
+    // the north-east where its hills are lowest, and their skyline and the sky are clear of the top bar) [eye, aim], [lx, y, lz]
+    cam: { open: [[-17, 6.5, 13.5], [30, 3.5, -27]], play: [[0, 11, 21], [0, -1, 0]] },
   },
 };
 const pitName = (k, r) => 'כרם־' + heb(k + 1) + '־' + (r + 1);

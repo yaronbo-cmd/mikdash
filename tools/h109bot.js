@@ -1040,7 +1040,7 @@
       const S = a.stones.filter((s) => !s.gone && !s.out && !s.knock && s.c);
       if (!S.length) return { wait: 400, note: 'pit: no stone in the ground' };
       let s = S.find((q) => !q.holds) || S[0];
-      const wantBad = (a.lv === 3 && has('order') && !K.badDone) || (a.lv === 2 && has('chip') && !K.badDone);
+      const wantBad = (a.lv === 3 && has('order') && !window.__BOT_PITBAD) || (a.lv === 2 && has('chip') && !window.__BOT_PITBAD);
       if (a.lv === 3 && wantBad) { const h = S.find((q) => q.holds && S.some((r) => r.lean === q.i)); if (h) s = h; }
       const free = (k) => !s.block.includes(SD[k]);
       // (the side for the lever: level 2 the deep one — or with 'chip' the shallow one, at once; else the open side nearest the eye)
@@ -1052,7 +1052,7 @@
       const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
       if (a.lever === 'seat' && a.li === s.i && a.side === SD[side]) {
         if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
-        const p = pressAt(); if (wantBad) K.badDone = 1;
+        const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1;
         return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
       }
       if (needs.length && !(a.lv === 2 && wantBad)) {

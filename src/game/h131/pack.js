@@ -38,6 +38,20 @@ export function makePack08(env = {}) {
     create: (save) => createH131(save),
     count: (M) => M.count(),
     freeFilms: true,
+    // ── b131 ── a link for every work (h109/director.js workFlag): the page opens at the work; what it needs from earlier works seeded —
+    // the pour after the pit and the frame (done as the kind's page does them: the world draws them from the save), the finale after a
+    // fixed clean pour (each section poured whole, no patch, no spill, no mark: its record as pour.js finish keeps it) ── /b131 ──
+    workLinks: true,
+    workSeed(M, id) {
+      const st = M.st; void id;
+      for (const lv of [1, 2, 3]) {
+        if (!M.isDone('pour' + lv)) continue;
+        st.pour.sections[lv] = { patches: 0, spilled: 0, reeds: 0, used: 1, clean: 1 };
+        st.res['pour' + lv] = { stars: 3, q: 1, pts: 40, flags: { patches: 0, spilled: 0, losses: [], used: 1, seals: 0 } };
+        st.pour.prep = 1;
+      }
+      st.marks = (st.marks || []).filter((k) => !/^pour\./.test(k.f));
+    },
     quiet: true,   // (b131 look round: no walk hint, pad or markers during a work, a film or the close: h109/director.js)
     byPlan: true,   // (the spec: the pit is part 1, the frame part 2, in free order — the compass names the pit first; h109/director.js nearestOpen)
     look: LOOK8,
@@ -67,7 +81,7 @@ export function makePack08(env = {}) {
       })();
     },
     /** the stage's close: the world as he built it (the finale's own film is the finale lane's; build 131 part 3) */
-    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); },   // (b131 look round: the big card that follows in large type, no walk hint)
+    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); try { X.kohen(false); } catch (e) { /* */ } },   // (look round 2: the kohen out of the cards' foreground; index.js shows him again when the end card closes)   // (b131 look round: the big card that follows in large type, no walk hint)
     /** after a reload, the stage done: the yesod as he built it */
     rest(X, M) { restWorld(X, M); },
     dispose() {},

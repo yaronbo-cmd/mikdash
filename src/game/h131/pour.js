@@ -18,7 +18,7 @@
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK, LOSS, grade, qOf, starsOf } from './model.js';
 import { LEVELS, newSim, frameOf, toWorld, toLocal, cellsOf, landing, clearAround, packWork, unpackWork, SIM_T as T, NX, N, cellX, cellZ, X0, DX } from './pourlv.js';
-import { createPourView, POUR3D } from './pour3d.js';
+import { createPourView, POUR3D, SPILL_SEEN } from './pour3d.js';
 import { createGang, createBeat } from '../h109/kit.js';
 
 const S8 = BOOK.s08;
@@ -35,7 +35,7 @@ export const POUR_LINES = Object.freeze({
 });
 const MOUSE = (() => { try { return !!(globalThis.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches) || !!globalThis.__BOT_MOUSE; } catch (e) { return false; } })();
 const GRIP_MIN = 48, HAND_UP = -60, BUZZ_FULL = [8, 4, 16].map((v) => v * 10);   // (the touch's least radius, px; the hint's gesture up, px; the full section's buzz, ms)
-const SPILL_MARK = 0.35;   // (amah³ over the timber before it is a stain that stays: a drop at the edge is not)
+const SPILL_MARK = SPILL_SEEN;   // (b131 look round 2: the spec's table — mix over the timber that leaves a stain on the floor is −20; the stain shows from here, so the loss does: no stain without a loss, no loss without a stain)   // (amah³ over the timber before it is a stain that stays: a drop at the edge is not)
 
 export const POUR_ACT = {
   icon: '🔥',
@@ -85,7 +85,7 @@ export const POUR_ACT = {
     const home = (d = 1.0) => { const c = camOf(); X.shot(c.p, c.t, d); };
 
     /* ── the crew of the work's hands (b131 look round: what the finger does, men do) — the prep's four and the stones' two pairs ── */
-    const B8 = createBeat(X), gang = createGang(X);
+    const B8 = createBeat(X), gang = createGang(X), filmMen = new Set();
     const W2 = (lx, lz) => { const [x, , z] = toWorld(lv, lx, 0, lz); return { x, z }; };
     const HEAP = (S8.pourAt && S8.pourAt.heap) || [9.2, 2.4];
 
@@ -134,14 +134,14 @@ export const POUR_ACT = {
         if (!near(jointAt())) return;
         A8.busy = 1; X.hand(null); const y0 = peg.position.y;
         if (maul) { gang.setRole(maul, 'hammer'); maul.k = 1; maul.lastU = 0; later(1.1, () => { if (maul) gang.setRole(maul, 'hold'); }); }
-        tween(0.35, (u) => { peg.position.y = y0 - 0.55 * u; }, () => { V.sfx.thud(); X.shake(0.14, 0.25); X.dust(peg.position.x, S8.top, peg.position.z, 8, 2); X.quick(jointAt(), QUICK.corner, peg); ev('joint'); P.step = 'reeds'; A8.busy = 0; later(0.6, prepShot); });
+        tween(0.35, (u) => { peg.position.y = y0 - 0.55 * u; }, () => { V.sfx.thud(); X.shake(0.14, 0.25); X.dust(peg.position.x, S8.top, peg.position.z, 8, 2); X.quick({ x: jointAt().x - 1.2, y: S8.top + 3.2, z: jointAt().z - 1.4 }, QUICK.corner, peg); ev('joint'); P.step = 'reeds'; A8.busy = 0; later(0.6, prepShot); });
         return;
       }
       const j = [0, 1].find((k) => !P.reeds[k] && near(reedAt(k))); if (j == null) return;
       A8.busy = 1; X.hand(null); const r = reedMs[j]; r.visible = true; ghosts[j].visible = false;
       if (reedMan) { const a = reedMan.a, x0 = a.x, z0 = a.z, tx = S8.reeds[j][0] + 0.2, tz = S8.reeds[j][1] + 1.25; gang.setRole(reedMan, 'kneel'); tween(0.3, (u) => { a.x = x0 + (tx - x0) * u; a.z = z0 + (tz - z0) * u; }, null); later(1.0, () => { if (reedMan) gang.setRole(reedMan, 'hold'); }); }
       tween(0.4, (u) => { r.position.y = S8.floor + 2.6 - 1.75 * u * u; }, () => {
-        V.sfx.thud(); X.shake(0.08, 0.15); X.quick(reedAt(j), QUICK.corner, r); P.reeds[j] = 1; ev('reed' + j); A8.busy = 0;
+        V.sfx.thud(); X.shake(0.08, 0.15); X.quick({ x: reedAt(j).x - 0.6, y: S8.floor + 3.6, z: reedAt(j).z - 1.6 }, QUICK.corner, r); P.reeds[j] = 1; ev('reed' + j); A8.busy = 0;
         if (P.reeds[0] && P.reeds[1]) { st.pour.prep = 1; X.save(); X.line(LINES.holes, 2600); later(1.8, () => { A8.prep = null; prepG.visible = false; prepCrewOff(); stonesStart(); }); }
         else { X.line(POUR_LINES.reed2, 0); later(0.4, () => X.hand(reedAt(P.reeds[0] ? 1 : 0), 0, 14)); }
       });
@@ -149,16 +149,19 @@ export const POUR_ACT = {
 
     /* ── the stones: two pairs of porters carry each one in from the heap and set it down (b131 look round: by their hands, not from the air) ── */
     const PORT = { pairs: [], jobs: [] };
-    const HOME = [[[HEAP[0] - 2.6, HEAP[1] - 1.5], [HEAP[0] - 2.6, HEAP[1] + 1.5]], [[HEAP[0] - 0.4, HEAP[1] - 2.9], [HEAP[0] + 1.4, HEAP[1] - 2.6]]];
+    const PILE = [[0, 0.4], [1.5, 1.3], [0.3, -1.6], [1.6, -0.9], [0.8, -3.4]];
+    const HOME = [[[HEAP[0] - 0.6, HEAP[1] - 5.6], [HEAP[0] + 1.2, HEAP[1] - 5.8]], [[HEAP[0] - 0.4, HEAP[1] + 2.9], [HEAP[0] + 1.4, HEAP[1] + 3.1]]];
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
       V.stones.forEach((S, i) => {
         if (i < A8.stonesIn) { S.carry = false; return; }
-        // (a heap in two rows beside the section's side, running away from the near board: each stone apart, clear of the knocker)
-        S.carry = true; S.m.visible = true; S.m.position.set(HEAP[0] + (k % 2) * 2.3 + (Math.floor(k / 2) % 2) * 0.5, 0, HEAP[1] - Math.floor(k / 2) * 2.1); k++;
+        // (b131 look round 2: a compact heap of the next five in the frame — the rest wait out of the picture and come up as these go)
+        S.carry = true; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++;
       });
     }
+    /** the pile once a stone left it: the waiting ones not in anyone's hands, laid on the heap's places again */
+    function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++; }); }
     function portersMake() {
       if (PORT.pairs.length) return;
       for (let k = 0; k < 2; k++) {
@@ -194,7 +197,7 @@ export const POUR_ACT = {
           if (m2) m2.position.set(S.s.x, 0, S.s.z); S.carry = false; S.fall = -1;
           const s = sim.shapes[J2.i], at = wpt(s.x, 0.6, s.z);
           V.sfx.thud(); X.shake(0.06 + 0.04 * s.h, 0.12 + 0.06 * s.h); X.dust(at.x, S8.floor + 0.2, at.z, 6, 1.5);
-          if (s.tint) X.quick(at, 'מהבור שלך!', m2); ev('set' + J2.i);
+          if (s.tint) X.quick(wpt(s.x, 3.4, s.z - 1.4), 'מהבור שלך!', m2); ev('set' + J2.i);
           A8.busy = 0; keepWork();
           P.job = { kind: 'back', t: 0, T: 1.0, p0: P.men.map((w) => w.pos.slice()) };
           P.men.forEach((w) => { gang.setRole(w, 'hold'); w.rate = 2.4; });
@@ -206,7 +209,7 @@ export const POUR_ACT = {
     }
     const nextStoneAt = () => { const S = V.stones[A8.stonesIn]; return S ? wpt(S.m.position.x, 0.8, S.m.position.z) : wpt(HEAP[0], 0.8, HEAP[1]); };
     function stonesStart() {
-      A8.phase = 'stones'; A8.phaseT = 0; home(1.2); X.line(POUR_LINES.stones, 0);
+      A8.phase = 'stones'; A8.phaseT = 0; home(0.01); X.line(POUR_LINES.stones, 0);   // (b131 look round 2: a cut to the whole section, its heap and its porters — a flight's first frame was bare floor)
       if (A8.stonesIn >= V.stones.length) { pourStart(); return; }
       heapLay(); portersMake();
       later(1.2, () => { if (A8.phase === 'stones') X.hand(nextStoneAt(), 0, 18); });
@@ -218,6 +221,7 @@ export const POUR_ACT = {
       const S = V.stones[i];
       if (!P || !P.men.length || !S || !S.carry) { A8.busy = 1; X.hand(null); A8.stonesIn++; if (S) S.carry = false; V.dropStone(i); ev('stone' + i); later(0.46, () => { A8.busy = 0; keepWork(); if (A8.stonesIn >= V.stones.length) later(0.5, pourStart); }); return; }
       A8.busy = 1; X.hand(null); A8.stonesIn++; ev('stone' + i);
+      later(0.5, () => { if (A8.phase === 'stones') heapLay2(); });
       const from = [S.m.position.x, S.m.position.z], to = [S.s.x, S.s.z], dx = to[0] - from[0], dz = to[1] - from[1], d = Math.hypot(dx, dz) || 1;
       const p0 = P.men.map((w) => { const L2 = toLocal(lv, w.a.x, w.a.z); return [L2[0], L2[1]]; });
       P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; w.rate = 2.6; });
@@ -320,8 +324,13 @@ export const POUR_ACT = {
       const three = lv === 3 && [1, 2, 3].every((k) => st.pour.sections[k] && st.pour.sections[k].clean);
       if (three) { try { await X.perfectScreen(POUR_LINES.three); } catch (e) { /* */ } }
       const at = wpt(0, 1.2, 0);
+      // (b131 look round 2: the after-film is not an empty section — the cauldron's two and the knocker stand at its near board, low and
+      //  oblique from the near side, the set section before them; they leave when the film ends)
+      const men = [[-1.7, 5.3, 0], [1.4, 5.5, 1], [3.9, 5.0, 2]].map(([lx, lz, c]) => { const W = W2(lx, lz), F = W2(lx * 0.5, 0); return gang.add(W.x, W.z, { role: 'hold', crew: c, item: c === 2 ? 'mallet' : null, fx: F.x, fz: F.z }); }).filter(Boolean);
+      for (const w of men) filmMen.add(w);
+      const FE = toWorld(lv, 7.5, 6.2, 16.5), FT = toWorld(lv, 0.5, 0.8, 1.2);
       X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40 && !three, at, flags: { patches: A8.patches, spilled: +A8.spilled.toFixed(2), losses: A8.losses.slice(), used: sim.cauldron.used, seals: A8.seals.length },
-        film: { eye: camOf().p, aim: camOf().t, secs: 1.2 } });
+        film: { eye: FE, aim: FT, secs: 2.0, kohen: false, own: () => men.map((w) => w.a), after: () => { for (const w of men) { filmMen.delete(w); gang.remove(w); } } } });
     }
     /** the pour in the save: what stands in the segment (set), the stones in, the losses so far (a reload resumes it) */
     function keepWork() {
@@ -366,7 +375,7 @@ export const POUR_ACT = {
       else if (A8.phase === 'hollow') { V.fluidU.uHL.value = A8.phaseT < 2.2 ? 1 : Math.max(0, 1 - (A8.phaseT - 2.2) * 3); if (A8.phaseT > 2.5) { V.fluidU.uHL.value = 0; A8.phase = 'teardown'; A8.phaseT = 0; V.startTeardown(); } }
       else if (A8.phase === 'teardown') { if (A8.phaseT > V.TD_END) finishTeardown(); }
       else if (A8.phase === 'full') { V.fluidU.uGleamPos.value = -9 + A8.phaseT * 9; V.fluidU.uGleam.value = A8.phaseT < 2.4 ? 1.2 : Math.max(0, 1.2 - (A8.phaseT - 2.4)); if (A8.phaseT > 3.2) { A8.phase = 'done'; finish(); } }
-      const S = { phase: A8.phase === 'done' ? 'full' : A8.phase, phaseT: A8.phaseT, seals: A8.seals, knockX: A8.knockX, swingT: A8.swingT, stonesIn: A8.phase === 'prep' || A8.phase === 'intro' ? 0 : null, spillQ: A8.spillQ, spilled: A8.spilled, stainX: A8.stainX, crewOn: A8.phase !== 'prep' && A8.phase !== 'intro' };
+      const S = { phase: A8.phase === 'done' ? 'full' : A8.phase, phaseT: A8.phaseT, seals: A8.seals, knockX: A8.knockX, swingT: A8.swingT, stonesIn: A8.phase === 'prep' || A8.phase === 'intro' ? 0 : null, spillQ: A8.spillQ, spilled: A8.spilled, stainX: A8.stainX, crewOn: A8.phase !== 'prep' };
       if (A8.phase === 'stones') S.stonesIn = A8.stonesIn;
       S.reached = A8.reached; if (L.timber && A8.phase === 'pour') S.aimBad = !!landing({ spout: { ...sim.spout, q: 1 } }, lv, C);
       V.frame(dt, S); A8.knockerThere = S.knockerThere;
@@ -389,7 +398,7 @@ export const POUR_ACT = {
         }
         home(0.01);
         if (A8.prep) { A8.phase = 'prep'; prepBuild(); prepWide(); X.line(POUR_LINES.prep, 2200); later(2.4, prepShot); return; }
-        prepG.visible = false;
+        prepG.visible = false; heapLay(); portersMake();   // (b131 look round 2: the opening shows the heap, its porters and the cauldron's crew at once)
         X.line(LINES.rambam216, 2600); later(2.2, stonesStart);
       },
       update(dt) { try { update(dt); } catch (e) { if (!A8.errT || A8.t - A8.errT > 5) { A8.errT = A8.t; console.error('[h131] pour', e && e.message, e && e.stack && e.stack.split('\n')[1]); } } },
@@ -415,7 +424,7 @@ export const POUR_ACT = {
       at() { return new THREE.Vector3(...toWorld(lv, 0, 1, 0)); },
       end() {
         POUR3D.act = 0; X.hand(null); X.kohen(true); lens(fov0);
-        try { gang.clear(); } catch (e) { /* */ }
+        try { for (const w of gang.list.slice()) if (!filmMen.has(w)) gang.remove(w); } catch (e) { /* */ }   // (the after-film's men stay for it)
         if (!A8.ended && A8.phase !== 'done') { try { keepWork(); } catch (e) { /* */ } }
         try { V.dispose(); } catch (e) { /* */ }
         try { X.props.root.remove(prepG); } catch (e) { /* */ }

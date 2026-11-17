@@ -38,7 +38,7 @@ export const FK = Object.freeze({
   NEAR: Object.freeze([10.5, 14.5]), NFOV: 46, HELP: 4.5, EASE: 0.9, SETTLE: 1.1,
   // (b131 look round) the carriers: a man's place off the board's line (amot) and in from its end; a shot farther than CUT amot from
   // where the camera is cuts there (an ease from the pit's valley ran under the ground: a blank first frame); the mallet's blows (s)
-  SIDE: 0.95, IN: 1.3, CUT: 60, MALLET: 1.3,
+  SIDE: 0.7, END: 0.8, IN: 1.3, CUT: 60, MALLET: 1.3,
 });
 /** the act's words (instructions: what to do, at most five words; the frame's way of setting is המחשה) */
 export const FLINES = Object.freeze({
@@ -111,7 +111,10 @@ export const FRAME_ACT = {
       const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
       let nx = -uz, nz = ux;
       if (side === 'N' || side === 'S') { if (nz < 0) { nx = -nx; nz = -nz; } } else if ((side === 'E') !== (nx > 0)) { nx = -nx; nz = -nz; }
-      const d = FK.IN + j * FK.HELP, bx = a.x + ux * d, bz = a.z + uz * d;
+      // (b131 look round 2: the first man holds the board's very end, a step past it on its line — the end in his hands; the second
+      //  along it on its far side, close enough that his hands are on it)
+      if (!j) return [a.x - ux * FK.END, a.z - uz * FK.END, a.x, a.z];
+      const d = FK.IN + FK.HELP, bx = a.x + ux * d, bz = a.z + uz * d;
       return [bx + nx * FK.SIDE, bz + nz * FK.SIDE, bx, bz];
     }
     /** the second man: along the board from the corner handled */
@@ -189,11 +192,16 @@ export const FRAME_ACT = {
       if (A.busy || A.done) return null;
       // the diagonal: stuck on the frame, or on its rest (once the frame is set, or any time: he may try it early)
       if (S.diag === 2) { const a = sp(DG.sa[0], F + 1.3, DG.sa[1]), b = sp(DG.sb[0], F + 1.3, DG.sb[1]); if (segD(f, a, b).d < FK.BEAM + 8) return { k: 'stuck' }; }
-      if (!S.diag && !DG.carry) { const a = sp(DR[0], F + 0.5, DR[1]), b = sp(DR[2], F + 0.5, DR[3]); if (segD(f, a, b).d < FK.BEAM) return { k: 'diag' }; }
+      // (b131: the nearer of the two wins — from the low whole-frame view the diagonal's rest lies just beyond the north corners on the
+      //  screen, and a press on the NE corner (its peg, level 3) took the diagonal: the corner could not be reached)
+      let dd = 1e9;
+      if (!S.diag && !DG.carry) { const a = sp(DR[0], F + 0.5, DR[1]), b = sp(DR[2], F + 0.5, DR[3]); dd = segD(f, a, b).d; }
       if (S.diag) return null;
       // a corner (a joint's ends are one: the first of them)
       let best = null, bd = R();
       S.P.forEach((p, i) => { const q = sp(p.x, F + 0.6, p.z); if (q.on === false) return; const d = Math.hypot(f.x - q.x, f.y - q.y); if (d < bd) { bd = d; best = { k: 'pt', i }; } });
+      if (best && (bd <= dd || square(S) === false)) return best;
+      if (dd < FK.BEAM) return { k: 'diag' };
       if (best) return best;
       // a board: level 2 the whole board; else the nearest corner (a stiff frame slides whole; a linked one follows its corner)
       for (const e of S.E.filter((q) => q.beam)) {
@@ -241,17 +249,23 @@ export const FRAME_ACT = {
         X.quick(at, QUICK.corner, boards[SIDE_K[CORNERS.indexOf(k)]]); V.knock(1.4); X.dust(st[0], F + 0.3, st[1], 6, 2);
         try { if (X.haptic) X.haptic(12); } catch (e) { /* */ }
         ev('seat:' + k);
+        // (b131 look round 2: the corner's man drives it home on its stake with his wooden mallet, on the knock)
+        mallet(men[k] || help, st[0], st[1]);
       }
       for (const k of r.joined) ev('join:' + k);
       if (lv === 1 && r.seated.length === 1 && S.P.filter((p) => p.seat).length === 1) X.line(FLINES.l1b, 3200);
       if (square(S) && !A.squareSaid) { A.squareSaid = 1; X.line(FLINES.diag, 4200); }
+    }
+    /** a man's blows with the wooden mallet at (x, z): he turns to it, swings on the beat a moment, then takes the board again */
+    function mallet(w, x, z) {
+      try { if (!w || !w.a) return; w.mallet = 1; gang.setRole(w, 'hammer', { item: 'mallet', fx: x, fz: z, stride: 0 }); X.wait(FK.MALLET).then(() => { w.mallet = 0; gang.setRole(w, 'brace', { item: null, fx: x, fz: z }); }); } catch (e) { /* */ }
     }
     function peg(k) {
       const r = pegTap(S, k); if (!r) return;
       const st = cornerAt(S, k), at = { x: st.x, y: F + 1.6, z: st.z };
       V.knock(0.7); V.groan(); X.dust(st.x, F + 0.4, st.z, 5, 2);
       // (rule 2: the peg is knocked loose by the corner's man with a wooden mallet — no iron at the altar)
-      try { const w = men[k]; if (w) { w.mallet = 1; gang.setRole(w, 'hammer', { item: 'mallet', fx: st.x, fz: st.z, stride: 0 }); X.wait(FK.MALLET).then(() => { w.mallet = 0; gang.setRole(w, 'brace', { item: null, fx: st.x, fz: st.z }); }); } } catch (e) { /* */ }
+      mallet(men[k] || help, st.x, st.z);
       ev('peg:' + k + ':' + (r.right ? 'right' : 'wrong'));
       if (!r.right) X.line(FLINES.wrongPeg, 3200); else X.quick(at, 'משוחררת!', null);
       keep(); hintNext(true);

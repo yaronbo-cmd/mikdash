@@ -53,6 +53,20 @@ export function endAt(resAt, actAt) {
   return { world, stars: screen || world };
 }
 // ── /h128 ──
+// ── b131 ── a link for every work (the owner: a team gives notes work by work): window.__H109_WORK = '<work id>', or ?work=<id> /
+// #work=<id>, or a plain #<id> that is one of the stage's work ids (a viewer's link passes only a plain #name). → { id, asked }: id a
+// known work (else null), asked what the page asked for by an explicit flag (an unknown one falls back to the stage page, with a warning).
+// A pack takes it with workLinks: true; its workSeed(M, id) puts what the work needs from earlier works in the save. ── /b131 ──
+export function workFlag(ids, src) {
+  let q = null, h = '';
+  try {
+    const S = src || { flag: globalThis.__H109_WORK, search: globalThis.__QS56 || (globalThis.location && location.search) || '', hash: globalThis.__QH56 || (globalThis.location && location.hash) || '' };
+    q = S.flag || (String(S.search || '') + String(S.hash || '')).match(/[?&#]work=(\w+)/)?.[1] || null; h = String(S.hash || '').replace(/^#/, '');
+  } catch (e) { /* */ }
+  if (q) return { id: ids.includes(q) ? q : null, asked: q };
+  if (h && /^\w+$/.test(h) && ids.includes(h)) return { id: h, asked: null };
+  return { id: null, asked: null };
+}
 export function createH109Director(o) {
   const PK = o.pack || PACK01, ACTS = PK.ACTS, PLAN = PK.PLAN;   // ── h111 ── ── /h111 ──
   const S0 = o.stages, view = o.view, ui = o.ui;
@@ -63,7 +77,10 @@ export function createH109Director(o) {
   let M = null, P = null, started = false, act = null, mission = null, phase = 'off', tPhase = 0, film = null, lastMs = 0, hidden = false;
   // one minigame only (ירון 8.11: "קישור יעודי לכל אחד מהמשחקונים"): a page baked with window.__H109_ONLY = 'read' (or ?only=read / #only=read)
   // opens straight on that minigame's first mission, and after each act goes to its next one; after the last, the page starts over
+  const WORK = (() => { if (!PK.workLinks) return null; const w = workFlag(PLAN.map((m) => m.id)); if (w.asked && !w.id) console.warn('[h109] work page: no work', w.asked, '— the stage page'); return w.id; })();
+  let workDue = !!WORK;
   const ONLY = (() => {
+    if (WORK) return PLAN.find((m) => m.id === WORK).k;   // ── b131 ── (a work's page goes on as its kind's page after it) ── /b131 ──
     try {
       const q = globalThis.__H109_ONLY || (String(globalThis.__QS56 || location.search || '') + String(globalThis.__QH56 || location.hash || '')).match(/[?&#]only=(\w+)/)?.[1];
       return q && PLAN.some((m) => m.k === q) ? q : null;
@@ -71,6 +88,12 @@ export function createH109Director(o) {
   })();
   function onlyNext() {
     if (!ONLY || !M) return;
+    if (workDue) {   // ── b131 ── (the work's own page: the works before it done as the kind's page does them, then what it needs seeded) ── /b131 ──
+      workDue = false;
+      if (M.autoTo) M.autoTo((m) => m.id === WORK); else while (M.mission() && M.mission().id !== WORK) M.done({ stars: 2 });
+      try { if (PK.workSeed) PK.workSeed(M, WORK); } catch (e) { console.warn('[h109] workSeed', e && e.message); }
+      save(); log('work page', WORK, M.mission() && M.mission().id); return;
+    }
     if (M.autoTo) { if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6); if (!M.mission() || M.mission().k !== ONLY) M.autoTo((m) => m.k === ONLY); return; }   // ── h114 ── ── /h114 ──
     while (M.mission() && M.mission().k !== ONLY) { if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6); M.done({ stars: 2 }); }
     if (ONLY === 'waste') M.st.waste = Math.max(M.st.waste | 0, 6);
@@ -988,7 +1011,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     for (const [p, t, s] of shots) { shot(p, t, 1.6); await sleep(s * 1000); }
     try { if (J) await J.big('stage', { title: PK.endTitle, sub: PK.endSub }); } catch (e) { /* */ }
     CAM.on = false; phase = 'off'; started = false;
-    if (quietOn) { quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } }   // ── b131 ── ── /b131 ──
+    if (quietOn) { quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } }   // (the gold ring stays off under the stage's cards: card.js)   // ── b131 ── ── /b131 ──
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
     try { if (S0.pinsOff) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ──
     resFor(false);   // ── h117 ── ── /h117 ──
@@ -1011,7 +1034,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     uiFrame();
     tPhase += dt;
     // ── b131 ── (a pack's quiet: no walk hint, no walk pad, no markers during a work, a film or the close — stage 08's look round) ── /b131 ──
-    if (PK.quiet) { const q = phase === 'act' || phase === 'film' || phase === 'end'; if (q !== quietOn) { quietOn = q; try { document.body.classList.toggle('h109-quiet', q); } catch (e) { /* */ } } try { document.body.classList.toggle('h109-film', q && phase !== 'act'); } catch (e) { /* */ } }
+    if (PK.quiet) { const q = phase === 'act' || phase === 'film' || phase === 'end'; if (q !== quietOn) { quietOn = q; globalThis.__HERO_RING_OFF = q; try { document.body.classList.toggle('h109-quiet', q); } catch (e) { /* */ } } try { document.body.classList.toggle('h109-film', q && phase !== 'act'); } catch (e) { /* */ } }
     if (ACTS.__frame) call(ACTS.__frame, dt, X);
     if (PK.sync && (phase === 'walk' || phase === 'act')) { syncT -= dt; if (syncT <= 0) { syncT = 1.5; try { PK.sync(M, S0, false, X); } catch (e) { /* */ } } }   // ── h111 ── (the world checked against the plan) ── /h111 ──
     resFor(phase === 'act' && !!act);   // ── h117 ── ("נראה לא איכותי": full sharpness while a minigame runs) ── /h117 ──
@@ -1065,7 +1088,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   }
   return {
     owns, acting: () => owns() && (phase === 'act' || phase === 'film' || phase === 'end' || !!FLY), start, frame, marks, goal, goTo,
-    get M() { return M; }, only: ONLY, site: PK.id, get pack() { return PK; },
+    get M() { return M; }, only: ONLY, work: WORK, site: PK.id, get pack() { return PK; },
     state: () => ({ at: act && act.at ? call(act.at) : null, look: { u: +LOOK.u.toFixed(3), yaw: +LOOK.yaw.toFixed(3), play: zone5(LOOK.u, LOOK.yaw) === 'play', away: lookAway() }, wl: { on: WL.on, u: +WL.u.toFixed(3), yaw: +WL.yaw.toFixed(3), lift: +WL.lift.toFixed(3), dy: +WL.dy.toFixed(2) }, fov: +camera.fov.toFixed(1), started, phase, mission: mission ? mission.id : FREE() && phase === 'walk' ? ((nearestOpen() || {}).m || {}).id || null : null, open: FREE() && !mission ? OPEN.map((q) => q.m.id) : null, i: M ? M.st.i : -1, n: PLAN.length, progress: M ? +M.progress().toFixed(3) : 0, act: act ? { t: +act.t.toFixed(2), ...(act.dbg ? act.dbg() : {}) } : null, cam: CAM.on, streak: streakShown, best: M ? M.st.best : 0 }),   // ── h120 ── (zone5) ── /h120 ──
     act: () => act,
     // ── h114 ── the top pill: the stage's works done of all (the old world's pill said "מדידה" all through stage 01) ── /h114 ──
@@ -1075,7 +1098,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     rest: () => { if (started || !PK.rest) return false; const g = G(); if (!g || !g[PK.key]) return false; const m = PK.create(g[PK.key]); if (!m.finished || !m.finished()) return false; M = m; try { PK.rest(X, M); } catch (e) { console.warn('[h109] rest', e && e.message); return false; } return true; },
     resync: () => { if (started && M) syncMount(true); },   // ── h111 ── (the game resynced the world: the director's site as it stands) ── /h111 ──
     // ── h111 ── the next stage's director takes over: this one's thumbs-side UI goes (its world props stay: what was built) ── /h111 ──
-    dispose() { started = false; phase = 'off'; quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
+    dispose() { started = false; phase = 'off'; quietOn = false; globalThis.__HERO_RING_OFF = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } for (const k of ['line', 'hand', 'qetz', 'meter', 'count', 'rot', 'chip', 'ovb', 'ovt']) { try { if (UI[k] && UI[k].remove) UI[k].remove(); } catch (e) { /* */ } UI[k] = null; } UI.root = false; },
     // tests: finish the open act with a result
     _end: (res) => endAct(res || { stars: 3 }),
     overview: (v) => { if (v === true) ovEnter('test'); else if (v === false) ovLeave('test'); return { on: OV.on, free: !OV.free && !CAM.on }; },   // ── h114 ── ── /h114 ──

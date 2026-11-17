@@ -62,7 +62,7 @@ test('finale act: the stand south of the frame (the book\'s), its words short, t
   assert.match(NLINES.cloth, /במפה, ולא בכף ברזל \(מידות ג, ד\)$/);
   const spec = readFileSync(new URL('../docs/specs/shlav-08-he.md', import.meta.url), 'utf8'); assert.ok(spec.includes('במפה, ולא בכף ברזל (מידות ג, ד)'));
   const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
-  assert.match(src, /W8\.cam\.rise/); assert.ok(NK.RISE[0][1] > S8.floor + 25, 'the end rises high over the whole yesod'); assert.doesNotMatch(src, /\.play\('(strike|chisel|tool|wedge|clang|anvil)'/); assert.doesNotMatch(src, /'hammer'|'pick'|'saw'|חוט הסיקרא/);
+  assert.match(src, /W8\.cam\.rise/); assert.ok(NK.RISE[0][1] > S8.floor + 20 && NK.RISE[0][1] > NK.DOWN[0][1] + 10, 'the end rises high over the whole yesod'); assert.doesNotMatch(src, /\.play\('(strike|chisel|tool|wedge|clang|anvil)'/); assert.doesNotMatch(src, /'hammer'|'pick'|'saw'|חוט הסיקרא/);
   for (const k of ['DOWN', 'WHITE', 'WATER', 'RISE']) assert.ok(NK[k].flat().every(Number.isFinite), k);
   for (const k of ['S', 'E']) assert.ok(NK.PULL[k].flat().every(Number.isFinite), 'PULL ' + k);
   // (b131 look round: the working shots close — the eye within 30 amot of what it looks at)

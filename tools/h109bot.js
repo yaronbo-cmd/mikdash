@@ -1178,7 +1178,9 @@
       }
       // level 3
       const bent = a.P.find((q) => q.peg && q.off > 0.05);
-      const free = a.P.filter((q) => !q.seat).sort((p, q) => q.off - p.off)[0];
+      // (the corner to move is an unpegged one: the bent peg's corner is unseated too, at the same distance, and a drag of it — off the
+      //  close shot's picture — grabbed nothing)
+      const free = a.P.filter((q) => !q.seat && !q.peg).sort((p, q) => q.off - p.off)[0];
       // (the close shot shows only the corner worked at: as a player, try the crooked corner first; it will not come, and the shot
       // goes to the bent peg. The right peg pulled by mistake is seen from the lifted look)
       if (bent && a.focus !== bent.k && a.focus !== 'wide' && free && (K.tries3 | 0) < 3) { K.tries3 = (K.tries3 | 0) + 1; return { path: [free.at, [free.at[0] + (free.to[0] - free.at[0]) * 1.8, free.at[1] + (free.to[1] - free.at[1]) * 1.8]], ms: 900, keep: 2200, wait: 900, note: 'frame: the crooked corner ' + free.k + ' tried (it will not come)' }; }

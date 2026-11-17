@@ -109,6 +109,9 @@ export function createFigGate(o) {
         if (off) rep.push({ who: 'kohen', cut: r.cut, between: r.blk, hidden: true });
         continue;
       }
+      // ── build 130 ── (gateKeep: an act's own man the work cannot read without — the gallery's torch bearer in the views from below, where
+      //  the spectator's long lens on the lifted pose cut him and the far wall alone filled the frame — is never taken out) ── /build 130 ──
+      if (a.gateKeep && a.gang) { hide(a, false); continue; }
       const own = !!a.gang;   // (the packs' own men: a pack gang's — an act may set its men out before its first beat; the world's crews and life are not)
       if (!own) { hide(a, true); if (r.on) n.hidden++; continue; }
       // (the owner 15.11: "whole or absent, never cut" — an own man the frame cuts at u 0 or u 0.3 is not drawn while he is cut; the

@@ -308,7 +308,7 @@ function pitAct(m, X) {
       const n = outIdx(i), r = P.row[Math.max(0, Math.min(P.row.length - 1, n))], q = W3(r[0], hy * 0.62, r[1]);
       await tween(g, g.position.clone(), q, 0.9, s, true);
       g.userData.moving = 0; rowPlace(g, i);
-    } else g.userData.moving = 0;
+    }   // (one on the cradle stays there, still 'moving': the earth's pose would put it back in the pit — the nail check takes it)
     void y0;
   }
   function tween(g, p, q, d, s, noRope) {
@@ -324,7 +324,7 @@ function pitAct(m, X) {
   }
   // ── the nail check on the cradle: the thumb along the rim, slowly; it stops at the chip, the light breaks, a click
   function nailCheck(i) {
-    const g = meshOf(i); A.phase = 'check'; A.busy = 1; W.check = i; keep();
+    const g = meshOf(i); g.userData.moving = 1; A.phase = 'check'; A.busy = 1; W.check = i; keep();
     const c = W3(P.cradle[0], 0.48 + g.userData.hy * 0.62, P.cradle[1]); g.position.set(c.x, c.y, c.z); g.rotation.set(0, 0, 0);
     checkShot(0.9);
     const ring = ringMesh(X, g); A.check = { i, g, ring, u: 0, a0: null, stop: false, chipU: nailChip(), last: null };

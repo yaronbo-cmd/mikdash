@@ -1338,7 +1338,7 @@ function greatRest(X) {
 }
 /** every frame: the walls' working edge kept on the ground as it is now (never during an act) */
 export function frame3(dt, X, sh) {
-  if (SH && SH.crane && !X.acting) { SH.reg3T = (SH.reg3T || 0) + dt; if (SH.reg3T > 1.0) { SH.reg3T = 0; try { reground3(X); } catch (e) { /* the world's */ } } }
+  if (SH && SH.crane && !(X.acting && X.acting())) { SH.reg3T = (SH.reg3T || 0) + dt; if (SH.reg3T > 1.0) { SH.reg3T = 0; try { reground3(X); } catch (e) { /* the world's */ } } }   // (build 130: X.acting is the h129 function; the old getter, a duplicate key, was shadowed and this never ran)
   void sh;
 }
 export { makeCrane, chalkTag, CORNER_AT, CRANE_AT, GR, LET, TRK as GREAT_TRACK };

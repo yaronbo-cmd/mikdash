@@ -45,9 +45,10 @@ const SHOTS = Object.freeze({
 /** the second kohen's own log: beside his place (offsets from it), lying across the room */
 const OWN = Object.freeze({ dx: 1.7, dz: 0 });
 /** where the next logs wait: well behind the trestles (away from the camera), in the log's own frame (amot); the crew man who rolls
- *  each onto the trestles waits beside it (ROLLER: his place from the stack's middle; behind the log he pushes, at the log's r + PUSH) */
+ *  each onto the trestles waits beside it (ROLLER: his place from the stack's middle; he walks the log in at its right end, END past it,
+ *  his staff on it; D: the roll's seconds) */
 const STACK = Object.freeze({ back: 7, side: -0.5 });
-const ROLLER = Object.freeze({ side: 2.8, back: 0.3, PUSH: 0.75, D: 2.4 });
+const ROLLER = Object.freeze({ side: 2.8, back: 0.3, END: 0.65, D: 2.4 });
 /** the words (instructions carry "(המחשה)": how wood was checked is not in the sources) */
 export const WLINES = Object.freeze({
   l1: 'גלגלו את הבול: יש נקבים? (המחשה)',
@@ -147,10 +148,10 @@ export const WOOD_ACT = {
       ev('log:' + log.id); X.save(); rollIn(from);
     }
     async function rollIn(from) {
-      const id = cur, r = log.r, bx = from[0] + DIR[0] * (r + ROLLER.PUSH), bz = from[2] + DIR[1] * (r + ROLLER.PUSH);
+      const id = cur, e = log.L / 2 + ROLLER.END, bx = from[0] + U[0] * e, bz = from[2] + U[1] * e;
       if (roller) { gang.setRole(roller, 'walk'); await Promise.race([gang.walkTo(roller, bx, bz, 3), X.wait(2.6)]); }
       if (cur !== id || A.phase !== 'arrive') return;
-      if (roller) { roller.a.path = null; gang.setRole(roller, 'push', { fx: tx, fz: tz, stride: 1, rate: 1.6 }); }
+      if (roller) { roller.a.path = null; gang.setRole(roller, 'push', { fx: from[0] + U[0] * log.L / 2, fz: from[2] + U[1] * log.L / 2, stride: 1, rate: 1.6 }); }
       A.tw = { t: 0, d: ROLLER.D, from, k: 'arrive' };
     }
     function rollerBack() {
@@ -342,13 +343,13 @@ export const WOOD_ACT = {
           const x = lerp(tw.from[0], to[0], kr), z = lerp(tw.from[2], to[2], kr), y = lerp(tw.from[1], to[1], lift) + Math.sin(lift * Math.PI) * 0.25;
           piece.position.set(x, y, z); const dist = Math.hypot(to[0] - tw.from[0], to[2] - tw.from[2]);
           orient(piece, alpha + S.rot * D2R - (1 - kr) * dist / log.r);
-          if (roller && roller.a) { roller.a.x = x + DIR[0] * (log.r + ROLLER.PUSH); roller.a.z = z + DIR[1] * (log.r + ROLLER.PUSH); roller.stride = u < 0.8 ? 1 : 0; if (u >= 0.7 && roller.role !== 'lever') gang.setRole(roller, 'lever', { fx: x, fz: z }); }
+          if (roller && roller.a) { const e = log.L / 2 + ROLLER.END; roller.a.x = x + U[0] * e; roller.a.z = z + U[1] * e; roller.fx = x + U[0] * log.L / 2; roller.fz = z + U[1] * log.L / 2; roller.stride = u < 0.8 ? 1 : 0; if (u >= 0.7 && roller.role !== 'lever') gang.setRole(roller, 'lever', { fx: roller.fx, fz: roller.fz }); }
         }
         else { const g = tw.g; g.position.set(lerp(tw.from[0], tw.to[0], k), lerp(tw.from[1], tw.to[1], k) + Math.sin(u * Math.PI) * 0.6, lerp(tw.from[2], tw.to[2], k)); g.rotation.x = tw.rx0 + k * tw.turns * Math.PI * 2; g.rotation.y = lerp(tw.ry0, tw.to[3] || 0, k); }
         if (u >= 1) { A.tw = null; if (tw.k === 'arrive') { A.phase = 'look'; A.busy = 0; place(); rollerBack(); A.hintK = null; A.hintN = -1; lineFor(); hintNext(true); } else if (tw.res) tw.res(); }
         return;
       }
-      if (!piece) return;
+      if (!piece || A.phase === 'arrive') return;   // (before the crew man starts the roll, the log lies at the stack's front)
       A.off += (A.offT - A.off) * (1 - Math.exp(-dt * 3.2));   // (heavy: it follows late)
       let dy = 0, dx = 0;
       if (A.trem) { A.trem.t += dt; const a = A.trem.k * Math.exp(-A.trem.t * 5); dy = Math.sin(A.trem.t * 70) * 0.035 * a; dx = Math.sin(A.trem.t * 53) * 0.02 * a; if (A.trem.t > 1) A.trem = null; }

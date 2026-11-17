@@ -364,7 +364,7 @@ export const NIGHT = {
       await X.wait(2.6);
       await card(X, `<b style="font:900 20px Heebo,system-ui">טבלת השיש</b>${cite(LINES.middot19)}`, 9000);
       const pts = nightPts(S), q = qOf(pts);
-      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { bangs: S.bangs, 'night.slab': S.dmg ? 1 : 0 }, at: { x: sx, y: F16 + 0.5, z: sz } });
+      X.end({ stars: starsOf(q), q, pts, perfect: pts >= 40, flags: { bangs: S.bangs, 'night.slab': S.dmg ? 1 : 0 }, at: { x: sx, y: F16 + 0.5, z: sz }, film: { kohen: false } });   // (closing round: he sleeps on the slab — the walking kohen is not in the hall's picture after it; the picture is the pack's pull view)
     }
     let bangT = 0;
     function stepSlab(dt) {

@@ -29,7 +29,7 @@ const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 /** the opening's own beats, seconds (build 130 review: about 12 in all, besides his line and his tap): the first look, the crowd in
  *  (at most), the mix, the same again, the look up to the wall */
 const OPEN = Object.freeze({ LOOK: 1.0, IN: 2.5, MIX: 1.8, SAME: 1.6, UP: 2.6 });
-const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6, VIEW_NEAR: 3, KEEP: 8, FLAT: 0.4 });   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 5.5, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6, VIEW_NEAR: 3, KEEP: 8, FLAT: 0.4, UNDER: 0.8, FOOT: 1.5, COL_R: 1.2 });   // (UNDER/FOOT/COL_R: the lifted eye under the column tops over the gallery's footprint, and off the columns)   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
 const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
@@ -489,6 +489,21 @@ export const GALLERY = {
       } catch (e) { /* */ }
       return out;
     }
+    /** ── build 130 ── the right thumb during a view from below (rule 66: it lifts at any moment, play goes on): the lifted eye stays out
+     *  of the gallery — under its column tops by SEE.UNDER wherever it stands over the gallery's footprint (wall to the column line,
+     *  SEE.FOOT beyond), and never within SEE.COL_R of a column's axis → the eye [x, y, z], or null when it is already clear */
+    function camClamp(p) {
+      if (!A.below) return null;
+      const q = [p[0], p[1], p[2]]; let moved = false;
+      const ax = R.axis === 'x', across = ax ? q[2] : q[0], along = ax ? q[0] : q[2], sgn = Math.sign(R.wall - R.line) || 1;
+      const inFoot = along > R.a0 - SEE.FOOT && along < R.a1 + SEE.FOOT && (across - (R.line - sgn * SEE.FOOT)) * sgn > 0 && (R.wall - across) * sgn > -0.5;
+      if (inFoot && q[1] > Y.COL_TOP - SEE.UNDER) { q[1] = Y.COL_TOP - SEE.UNDER; moved = true; }
+      if (q[1] < Y.COL_TOP + 0.5) for (const a of colsNow()) {
+        const [cx, cz] = colXZ(R, a), dx = q[0] - cx, dz = q[2] - cz, d = Math.hypot(dx, dz);
+        if (d < SEE.COL_R) { const k = d > 1e-3 ? SEE.COL_R / d : 0; q[0] = cx + (k ? dx * k : SEE.COL_R); q[2] = cz + (k ? dz * k : 0); moved = true; }
+      }
+      return moved ? q : null;
+    }
     function lookHome() { try { if (X.lookZero) X.lookZero(); else if (X.lookHome) X.lookHome(); } catch (e) { /* */ } }
     function sightEye(eye, tp, cols) {
       const aimP = [tp[0], GEO.FLOOR + SEE.MID, tp[2]], bad = (c) => { if (sightBlocked(c, tp)) return true; const ib = instBlock(c, tp); if (ib) { A.sightBy = 'inst ' + ib; return true; } const nb = nearBoxes(c, aimP); if (nb.length) { A.sightBy = 'box ' + nb.slice(0, 3).join(','); return true; } return false; };
@@ -670,6 +685,7 @@ export const GALLERY = {
         try { if (X.stages && X.stages.keepOut) X.stages.keepOut(keepRects(), { walkOff: true }); } catch (e) { /* */ }
         begin2();
       },
+      camClamp: (p) => camClamp(p),
       update(dt) {
         A.t += dt;
         if (srcT > 0) { srcT -= dt; if (srcT <= 0) srcTag.set(''); }

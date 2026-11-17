@@ -201,6 +201,9 @@ export function createH109Director(o) {
     if (LK5.tq <= 0 && key !== LK5.key) { LK5.tq = 0.1; LK5.key = key; try { const S5 = PK.look.sightPose(base, LOOK.u, LOOK.yaw, undefined, LK5.noExtra ? null : lk5Extra); LK5.gLift = S5.lift; LK5.gDy = S5.dyaw; } catch (e) { /* */ } }
     const k = 1 - Math.exp(-dt * 7); LK5.lift += (LK5.gLift - LK5.lift) * k; LK5.dy += (LK5.gDy - LK5.dy) * k;
     const q = PK.look.pose(base, LOOK.u, LOOK.yaw + LK5.dy, LK5.lift);
+    // ── build 130 ── (an act may keep the lifted eye out of its own structure — the gallery's views from below: never into its beams and
+    //  deck, never through a column; the thumb still lifts and turns) ── /build 130 ──
+    try { if (act && act.camClamp) { const c = act.camClamp(q.p, q.t); if (c) q.p = c; } } catch (e) { /* */ }
     view.camSet(q.p[0], q.p[1], q.p[2], q.t[0], q.t[1], q.t[2]);
     if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
     // (the work in the frame: the act may play; out of it, or hidden, it waits)

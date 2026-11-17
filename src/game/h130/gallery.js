@@ -279,7 +279,7 @@ export const GALLERY = {
       // from below, in every spectator's eyes (unless he tapped again with nothing changed: then on, the torch lost where it was)
       const below = testBelow(cols, lv);
       if (!(again && A.lostAt === k)) {
-        X.kohen(false); A.below = true; spectators(true); X.line(GLINES.below, 0);
+        X.kohen(false); A.below = true; if (bearer && bearer.a) bearer.a.gateKeep = 1; spectators(true); X.line(GLINES.below, 0);
         let order = L.torch.map((_, i) => i);
         { const t = L.torch[order[0]]; bearerAt(t[0], t[1], L.watch[0][0], L.watch[0][1]); }
         for (let wi = 0; wi < L.watch.length; wi++) {
@@ -306,7 +306,7 @@ export const GALLERY = {
           }
           order = order.slice().reverse();
         }
-        A.view = null; A.below = false; lensF = FOV; lens(lensF);
+        A.view = null; A.below = false; if (bearer && bearer.a) bearer.a.gateKeep = 0; lensF = FOV; lens(lensF);
         if (!below.ok) {
           A.lostAt = k; A.lost = 1;
           spectators(false); X.kohen(true); bearerAt(bw[0], bw[1], SP.face[0], SP.face[1]);
@@ -396,7 +396,7 @@ export const GALLERY = {
           const v = C.clone().sub(P), L = v.length(); if (L < 1e-3 || Math.acos(Math.max(-1, Math.min(1, v.dot(d) / L))) < half) out.push(name);
         };
         X.scene.traverseVisible((o) => {
-          if (!o.isMesh || colSet.has(o) || !o.geometry) return;
+          if (!o.isMesh || colSet.has(o) || !o.geometry || (o.isInstancedMesh && o.geometry.attributes.iA)) return;
           if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
           const gb = o.geometry.boundingBox, nm = o.name || o.type;
           if (o.isInstancedMesh) { for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, Mx); Mx.premultiply(o.matrixWorld); B.copy(gb).applyMatrix4(Mx); test(o, `${nm}#${i}`); } }
@@ -415,7 +415,7 @@ export const GALLERY = {
         const segs = [GEO.FLOOR + SEE.MID, GEO.FLOOR + TORCH_H].map((y) => { const d = new T.Vector3(tp[0] - e[0], y - e[1], tp[2] - e[2]), L = d.length(); return { d: d.normalize(), far: L - SEE.NEAR - 1.5 }; });
         let found = '';
         X.scene.traverseVisible((o) => {
-          if (found || !o.isInstancedMesh || !o.geometry) return;
+          if (found || !o.isInstancedMesh || !o.geometry || o.geometry.attributes.iA) return;   // (a rig's instances — figures, their items, animals — carry no place in their matrix)
           if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
           for (let i = 0; i < o.count && !found; i++) {
             o.getMatrixAt(i, Mx); Mx.premultiply(o.matrixWorld); B.copy(o.geometry.boundingBox).applyMatrix4(Mx);
@@ -433,7 +433,7 @@ export const GALLERY = {
       try {
         X.camera.updateMatrixWorld();
         const v = new T.Vector3(bearer.a.x, GEO.FLOOR + SEE.MID, bearer.a.z).project(X.camera);
-        out.inFrame = Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1 ? 1 : 0;
+        out.inFrame = Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1 && !bearer.a.gateOff && bearer.a.vis > 0.5 ? 1 : 0;   // (in the frame and drawn: not taken out by the figures gate)
         const rc = new T.Raycaster(); rc.setFromCamera({ x: 0, y: 0 }, X.camera); rc.camera = X.camera; rc.near = 0; rc.far = SEE.VIEW_NEAR;
         const rec = SH130.gal[side], colSet = new Set(); if (rec) for (const C of rec.cols) C.g.traverse((q) => colSet.add(q));
         const list = []; X.scene.traverseVisible((o) => { if (o.isMesh && !o.isSkinnedMesh && !colSet.has(o) && shownMesh(o, new Set())) list.push(o); });
@@ -660,7 +660,7 @@ export const GALLERY = {
         try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }
         if (A.sub) { try { A.sub.end(); } catch (e) { /* */ } A.sub = null; }
         crowdDrop(A.crowd); A.crowd = null;
-        blinkCols([], false); spectators(false); A.below = false;
+        blinkCols([], false); spectators(false); A.below = false; if (bearer && bearer.a) bearer.a.gateKeep = 0;
         if (bearer) SH130.crew.remove(bearer);
         for (const o of all) PR.remove(o);
         srcTag.remove(); illTag.remove(); lensSet(false);

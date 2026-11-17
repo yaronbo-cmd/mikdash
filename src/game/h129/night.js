@@ -363,7 +363,7 @@ export const NIGHT = {
       st.night = { bangs: S.bangs, dmg: S.dmg }; X.save();
       await X.wait(1.0);
       // (he spreads his garment over the slab and lies down on it to sleep: the same figure, laid on his back across it)
-      X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); lens(CAM.nightFov); A.fov = CAM.nightFov;
+      X.shot(CAM.nightSleep[0], CAM.nightSleep[1], 1.2); const fS = CAM.nightSleepFov || CAM.nightFov; lens(fS); A.fov = fS;
       await X.wait(1.3);
       A.sleepS = 'cloak'; cloak.visible = true; V.cloak(); lamp.intensity = 6; X.line('נתן כסותו עליה', 1800);
       await X.wait(1.4);

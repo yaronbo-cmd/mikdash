@@ -163,6 +163,7 @@ export function galDraw(X, side, layout, o = {}) {
     const [cx, cz] = colXZ(R, a); const p = new T.Mesh(new T.CylinderGeometry(0.2, 0.24, Y.COL_TOP - GEO.FLOOR - 0.65, 7), M.n5rough); p.position.set(cx + 0.15, (Y.COL_TOP + GEO.FLOOR - 0.35) / 2 + 0.15, cz + 0.1); p.rotation.z = 0.03; p.castShadow = true; X.props.root.add(p); all.push(p);
     all.push(box(X, M.n5limeD, cx - 0.45, GEO.FLOOR, cz - 0.45, cx + 0.45, GEO.FLOOR + 0.3, cz + 0.45));
   }
+  let seatM = null;
   if (o.deck !== false && !ghost) {
     // the deck: corbels in the wall, joists, the floor (sunk over a sagging beam), the railing on the court's edge, two rows of seats
     const out = R.line - s * (hw + 0.25), corb = [], joist = [], plank = [], rail = [], seat = [];
@@ -187,11 +188,11 @@ export function galDraw(X, side, layout, o = {}) {
       rail.push(along(0, re - 0.04, re + 0.04, Y.GFLOOR + 0.3, Y.GFLOOR + GEO.RAIL - 0.12, s0, s1));   // (the balustrade's boards: what sinks under the top rail is cut)
       for (const a of J) if (a >= s0 && a <= s1) rail.push(along(0, re - 0.08, re + 0.08, Y.GFLOOR, Y.GFLOOR + GEO.RAIL, a - 0.08, a + 0.08));
     }
-    inst(X, M.n5limeD, corb, all); inst(X, M.n5cedarD, joist, all); inst(X, M.n5cedarL, plank, all); inst(X, M.n5cedarD, rail, all); inst(X, M.n5cedar, seat, all);
+    inst(X, M.n5limeD, corb, all); inst(X, M.n5cedarD, joist, all); inst(X, M.n5cedarL, plank, all); inst(X, M.n5cedarD, rail, all); seatM = inst(X, M.n5cedar, seat, all);
     // the ladders up to it (the book's, at the run's ends)
     S5.ladders.forEach(([x, z, fx, fz]) => { if (!(R.axis === 'x' ? Math.sign(z) === Math.sign(R.line) && x >= R.a0 && x <= R.a1 : Math.abs(x - R.line) < 4)) return; for (const geo of h120Ladder(x, z, fx, fz, GEO.FLOOR, Y.GFLOOR)) { const m = new T.Mesh(geo, M.n5cedarD); m.castShadow = true; X.props.root.add(m); all.push(m); } });
   }
-  const rec = { all, cols, beams, gaps: G, side };
+  const rec = { all, cols, beams, gaps: G, side, seats: seatM };
   SH130.gal[side] = rec;
   return rec;
 }

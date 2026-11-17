@@ -294,12 +294,17 @@ export const GALLERY = {
       const aS = row ? (row.a0 + row.a1) / 2 : along(seat[0], seat[1]), cS = across(seat[0], seat[1]), sink = sinkAt(spans(R, cols), aS);
       const rl = railOf(side), tp = torchP(0), tc = across(tp[0], tp[2]), u = (rl.re - cS) / (tc - cS), eye0 = (rl.top - tp[1] * u) / (1 - u) + GAL.CLEAR;
       const ex = R.axis === 'x' ? aS : cS, ez = R.axis === 'x' ? cS : aS;
+      // (the seats in front of his eye are left out of this one view — they filled its lower half — so the railing, the torch and the men
+      // below are the picture; the railing is what judges)
+      seatsShow(false);
       X.shot([ex, eye0 - sink, ez], tp, 1.4); await wait(1.6);
       A.cut = ab.cut ? 1 : 0; ev('above ' + (ab.cut ? 'cut ' + row.sink : 'clear'));
       if (ab.cut) { X.play('creak'); X.line(GLINES.cut, 3200); await wait(3.0); }
       else { X.quick({ x: tp[0], y: tp[1] + 1, z: tp[2] }, QUICK.clear, null); await wait(1.8); }
+      seatsShow(true);
       finish();
     }
+    function seatsShow(v) { try { const r = SH130.gal[side]; if (r && r.seats) r.seats.visible = !!v; } catch (e) { /* */ } }
 
     /* level 3: the north segment's column on the ropes (raise.js) */
     function raiseRec() {

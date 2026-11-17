@@ -28,6 +28,25 @@ test('light: a careful player late by up to half a second climbs the whole fifty
   for (const lat of [0, 0.1, 0.2, 0.3, 0.5]) { const { S } = climb('mid', lat); assert.equal(S.dropped, 0, 'late ' + lat); assert.equal(S.rung, 50); assert.ok(S.oil > 29, 'late ' + lat + ' oil ' + S.oil); }
   const { ev } = climb('mid', 0); assert.ok((ev.perfect | 0) > 80, 'on time: the perfect steps');
 });
-test('light: feeding the swing drops the jar within a few rungs (light.jar)', () => {
-  const { S } = climb('pump', 0); assert.equal(S.dropped, 1); assert.ok(S.rung <= 5, 'rung ' + S.rung);
+test('light: feeding the swing drops the jar — not at once, after several lifts off the rhythm in a row (light.jar)', () => {
+  const { S } = climb('pump', 0); assert.equal(S.dropped, 1); assert.ok(S.rung >= 3 && S.rung <= 10, 'rung ' + S.rung);
+});
+test('light (review): one lift off the rhythm among good ones adds little — the swing barely grows and nothing spills', () => {
+  // a careful climber who, at one lift, lifts as the jar comes toward the hand (the worst moment), then goes on as before
+  const S = M.climbFresh(50, 30), dt = 1 / 120; let t = 0, next = 'L', pend = null, prev = 0, n = 0, maxAfter = 0, maxBefore = 0, bad = false;
+  while (t < 200 && !S.dropped && S.rung < 30) {
+    let hand = null;
+    if (pend && t >= pend.at) { hand = { h: pend.h, a: 'place' }; pend = null; }
+    else if (!S.up && !pend) {
+      const sg = next === 'R' ? 1 : -1, still = Math.abs(S.phi) < 0.02 && Math.abs(S.w) < 0.1, wantBad = n === 12;
+      const cross = prev * S.phi <= 0 && (wantBad ? sg * S.w > 0 : -sg * S.w > 0);
+      if (cross || (still && !wantBad)) { hand = { h: next, a: 'lift' }; pend = { h: next, at: t + 0.35 }; next = next === 'L' ? 'R' : 'L'; n++; if (wantBad) bad = true; }
+    }
+    prev = S.phi;
+    M.climbStep(S, hand, dt); t += dt;
+    if (bad) maxAfter = Math.max(maxAfter, Math.abs(S.phi)); else if (n > 4) maxBefore = Math.max(maxBefore, Math.abs(S.phi));
+  }
+  assert.equal(S.dropped, 0); assert.ok(bad, 'the bad lift was made');
+  assert.ok(maxAfter < maxBefore * 1.15 && maxAfter < M.CLIMB.DROP / 3, 'after one bad lift |phi| ' + maxAfter.toFixed(3) + ' (before ' + maxBefore.toFixed(3) + ')');
+  assert.ok(S.spilled === 0, 'no oil spilled: ' + S.spilled);
 });

@@ -39,6 +39,7 @@ export const LIGHT_LINES = Object.freeze({
   w1: 'האימון: פתילה, סולם הגזוזטרא וקערת חרס', w2: 'המנורה: פתילה, שמן, סולם וספל', w3: 'ארבעת הספלים',
   wick: 'שמאל מחזיקה, ימין מושכת רצועה',
   wickMouse: 'משכו רצועה מקצה הבגד',
+  prep: 'הנערים מכינים פתילות ושמן',
   hold: 'החזיקו את הבגד ביד שמאל', tear: 'נקרעה! משכו לאט יותר', more: 'עוד רצועה',
   oil: 'שלושים לוג בכד', over: 'יותר משלושים: השמן גלש. מתחילים שוב', thirty: 'שלושים לוג',
   climb: 'יד אחר יד, בקצב הכד', climbIll: 'העלייה בסולם ונשיאת הכד (המחשה)', spill: 'הכד נטה לצד היד: שמן נשפך', drop: 'הכד נפל ונשבר. יורדים לכד חדש',
@@ -68,7 +69,7 @@ export const LIGHT = {
   prepare() {},
   make(m, X) {
     const T = X.THREE, Mo = X.M, st = Mo.st, MT = matsL(X), AC = X.actors ? X.actors() : null, V = createVoices(X.sfx);
-    const lv = (m && m.lv) || 1, nStrips = lv === 3 ? 4 : 1;
+    const lv = (m && m.lv) || 1, nStrips = 1;   // (build 130 review: one strip a level; light3's are the other boys')
     const A = { phase: 'intro', t: 0, ev: [], fing: {}, wicks: [], tears: 0, pours: [], over: 0, mehudar: lv === 1, spilled: 0, out: 0, dmg: 0, drops: 0, perfect: 0, steps: 0, tw: [], said: {}, btn: 0, lit: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     const root = new T.Group(); root.name = 'h130-light-act'; X.props.root.add(root);
@@ -98,12 +99,12 @@ export const LIGHT = {
     const CL = 1.2, CW = 0.9, cx = W.cloth[0], cy = W.cloth[1], cz = W.cloth[2];
     let pullDir = [-1, 0];   // (the strip comes off the garment's edge toward the screen's right: set in begin())
     const garment = new T.Mesh(new T.PlaneGeometry(CL, CW), MT.l30linen); garment.rotation.x = -Math.PI / 2; garment.receiveShadow = true; cloth.add(garment);
-    // (the weave's three threads along the edge: the widths a strip can be torn at, seen on the cloth itself)
+    // (the nick at the garment's edge where a strip starts; no marks for its width)
     const threads = [];
     const edgeX = () => cx + pullDir[0] * CL / 2, edge0Z = cz - CW / 2;
     function clothDraw() {
       for (const q of threads.splice(0)) cloth.remove(q);
-      for (const w of [0.08, 0.14, 0.22]) { const q = new T.Mesh(X.props.geo.box, MT.l30linenW); q.scale.set(CL * 0.98, 0.004, 0.012); q.position.set(0, 0.004, -CW / 2 + w); cloth.add(q); threads.push(q); }
+      // (build 130 review: no threads drawn at the widths — they read as a gauge; the width is seen only in the strip itself, then the flame)
       const nick = new T.Mesh(X.props.geo.box, MT.l30clayD); nick.scale.set(0.05, 0.006, 0.05); nick.position.set(pullDir[0] * CL / 2, 0.005, -CW / 2 + 0.02); cloth.add(nick); threads.push(nick);
     }
     cloth.position.set(cx, cy, cz);
@@ -121,6 +122,8 @@ export const LIGHT = {
     const made = [];   // (the wicks made: rolled, in the basket)
     function wickStart() {
       A.phase = 'wick'; WS = null; A.pull = null;
+      // (build 130 review: what was learned gets shorter — light2's wick is one pull with no teaching: no line, no hand)
+      if (lv >= 2) return;
       say(MOUSE ? 'wickMouse' : 'wick', 6000);
       if (A.wicks.length === 0) setTimeout(() => { if (A.phase === 'wick') X.line(LINES.sukkah53, 6000); }, 6200);
       const e = edgePt(0.5); X.hand({ x: e[0], y: e[1], z: e[2] }, pullDir[0] < 0 === (pxA().ux > 0) ? 60 : -60, 0);
@@ -221,6 +224,24 @@ export const LIGHT = {
     }
     const brokenStain = () => { const s = new T.Mesh(new T.CircleGeometry(0.7, 14), MT.l30stain); s.rotation.x = -Math.PI / 2; s.position.set(ML.jar[0] + 0.3, FLOOR + 0.02, ML.jar[2] - 0.4); root.add(s); return s; };
 
+    /** ── build 130 review ── light3: the wicks and the oil are the other boys' — he watches them made (about 2.5 s: four wicks rolled into
+     *  the basket, the jar filled at the measures), of the quality he made in light2 (kept for the evening's reach), then the ladder */
+    function prepared() {
+      const L2 = (st.light && st.light.light2) || {}, w = (L2.wicks && L2.wicks[0]) || WICK.MID;
+      A.wicks = [w, w, w, w]; A.pours = (L2.pours || ['hin', 'hin', 'half']).slice(); A.mehudar = L2.mehudar !== false; A.phase = 'prep';
+      say('prep', 3000); ev('prep:' + w);
+      closeShot([W.cloth[0] + 0.3, W.cloth[1], W.cloth[2]], CAM.wicks[0], 6.6, 0.5, 0.6);
+      for (let k = 0; k < 4; k++) later(0.25 + 0.3 * k, () => {
+        const r = new T.Mesh(new T.TorusGeometry(0.07 + w * 0.3, Math.max(0.012, w * 0.12), 6, 14), MT.l30linen); r.rotation.x = -Math.PI / 2;
+        r.position.set(W.basket[0] + (k % 2) * 0.12 - 0.06, W.basket[1] + 0.06 + k * 0.025, W.basket[2] + ((k / 2) | 0) * 0.1 - 0.05); root.add(r); made.push(r);
+      });
+      later(1.5, () => {
+        closeShot([ML.jar[0], FLOOR + 0.9, ML.jar[2]], CAM.measures[0], 6.5, 1.0, 0.5);
+        jarB = jarMesh(X, { parent: root }); jarB.position.set(...ML.jar); jarB.userData.fill(0);
+        tween(1.0, (u) => jarB.userData.fill(sm(u)), () => later(0.3, goLadder));
+      });
+    }
+
     /* ═══ 3. the ladder ═══ */
     // which ladder is his: the practice's, or the menorah's nearest the book's camera of the level
     const myK = lv === 1 ? 'practice' : (() => { const e = CAM[lv][0]; let bi = 0, bd = 1e9; LT.ladders.forEach(([x, z], i) => { const d = Math.hypot(x - e[0], z - e[2]); if (d < bd) { bd = d; bi = i; } }); return bi; })();
@@ -288,7 +309,7 @@ export const LIGHT = {
     /** the camera behind him on the ladder, a little to his right (he stands in the left of the frame; the rungs to come above) */
     function camOf(feetY) {
       // (higher and farther than his head, looking down a little: his feet in the frame, the rungs to come above him)
-      const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 4.6 : 5.4, D = lv === 1 ? 7.4 : 8.6;
+      const c = LD.at(feetY), R = [-LD.left[0], -LD.left[1]], up = lv === 1 ? 4.6 : lv === 2 ? 5.4 : 6.6, D = lv === 1 ? 7.4 : lv === 2 ? 8.6 : 11.5;   // (light3 farther: the boys on the side ladders whole at u 0 and the touch's lift)
       const side = lv === 3 ? 0.6 : 2.2;   // (light3: nearly square behind him, so the two boys on the side ladders stay whole in the frame)
       return { p: [c[0] + LD.out[0] * D + R[0] * side, feetY + up, c[2] + LD.out[1] * D + R[1] * side], t: [c[0] + R[0] * 0.7 + LD.out[0] * 0.3, feetY + 1.9, c[2] + R[1] * 0.7 + LD.out[1] * 0.3] };
     }
@@ -386,7 +407,7 @@ export const LIGHT = {
     function bowlShot(d) {
       const R = [-LD.left[0], -LD.left[1]], feetY = LD.y(S ? S.rung : topR), c0 = LD.at(feetY), bx = c0[0] + LD.out[0] * 0.5, bz = c0[2] + LD.out[1] * 0.5, jh = jarHold();
       const top = jh[1] + 1.1, bot = feetY - 0.3, c = [(bx + bowlTop[0]) / 2, (top + bot) / 2, (bz + bowlTop[2]) / 2];
-      const fov = (X.camera && X.camera.fov) || 46, D = ((top - bot) * 0.5 * 1.5) / Math.tan((fov * Math.PI) / 360), az = 0.5, el = lv === 1 ? 0.5 : 0.22;
+      const fov = (X.camera && X.camera.fov) || 46, D = ((top - bot) * 0.5 * 1.5) / Math.tan((fov * Math.PI) / 360), az = lv === 1 ? 1.1 : 0.5, el = lv === 1 ? 0.5 : 0.22;   // (light1: more from his right side — the gallery's bowl lies beyond him, and from behind he stood before it)
       const v = [LD.out[0] * Math.cos(az) + R[0] * Math.sin(az), LD.out[1] * Math.cos(az) + R[1] * Math.sin(az)];
       shot([c[0] + v[0] * D * Math.cos(el), c[1] + D * Math.sin(el), c[2] + v[1] * D * Math.cos(el)], c, d);
     }
@@ -438,7 +459,7 @@ export const LIGHT = {
     const taperTip = () => [taper.position.x, taper.position.y + 0.25, taper.position.z];
     function lit() {
       A.phase = 'lit'; X.hand(null); A.lit = 1; ev('lit');
-      const t = wickTip(); flame = flameMesh(X, [t[0], t[1] + 0.02, t[2]], root, lv === 1 ? 0.7 : 1.3); flame.userData.k = 0.05;
+      const t = wickTip(), wk = clamp((A.wicks[0] || WICK.MID) / WICK.MID, 0.55, 1.6); flame = flameMesh(X, [t[0], t[1] + 0.02, t[2]], root, (lv === 1 ? 0.7 : 1.3) * wk);   // (the wick's width seen in the flame) flame.userData.k = 0.05;
       tween(1.2, (u) => { flame.userData.k = 0.05 + 0.95 * sm(u); }, () => { X.quick({ x: t[0], y: t[1] + 0.6, z: t[2] }, QUICK.lit, null); });
       later(0.4, () => { if (taper) { root.remove(taper); taper = null; } });
       // (light3: the other three bowls lit in turn from his)
@@ -464,6 +485,15 @@ export const LIGHT = {
 
     /* ═══ the fingers ═══ */
     const handNear = (f, h) => S && !(S.up && S.up !== h) && near(f, hpt(h), gripPx());
+    /** ── build 130 review ── the mouse's one button on the ladder: a press on (or beside) his left hand, or on the ladder's left side, is
+     *  his left hand, the right side his right; a hand already lifted is taken wherever he presses near the ladder. null: not on it */
+    function mouseHand(f) {
+      if (!S) return null;
+      const a = scr(hpt('L')), b = scr(hpt('R')), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, r = gripPx() * 2.5;
+      if (Math.abs(f.x - mx) > Math.abs(a[0] - b[0]) / 2 + r || Math.abs(f.y - my) > r * 1.6) return null;
+      if (S.up) return S.up;
+      return Math.hypot(f.x - a[0], f.y - a[1]) <= Math.hypot(f.x - b[0], f.y - b[1]) ? 'L' : 'R';
+    }
     const FG = fingers(X, {
       down(f) {
         const btn = f.type === 'mouse' ? A.btn : -1;
@@ -481,7 +511,7 @@ export const LIGHT = {
         if (A.phase === 'oil') { const c = cupUnder(f); if (c) { A.fing[f.id] = 'cup'; f.k = 'cup'; f.cup = c; c.drag = 1; X.hand(null); } return; }
         if (A.phase === 'climb' && S) {
           let h = null;
-          if (MOUSE) { const want = btn === 2 ? 'R' : 'L'; if (handNear(f, want)) h = want; }
+          if (MOUSE) { if (btn !== 0) return; h = mouseHand(f); }   // (one button: the side of the ladder he presses on is the hand)
           else { const dL = handNear(f, 'L') ? Math.hypot(f.x - scr(hpt('L'))[0], f.y - scr(hpt('L'))[1]) : 1e9, dR = handNear(f, 'R') ? Math.hypot(f.x - scr(hpt('R'))[0], f.y - scr(hpt('R'))[1]) : 1e9; if (dL < 1e9 || dR < 1e9) h = dL <= dR ? 'L' : 'R'; }
           if (!h || Object.values(A.fing).includes(h)) return;
           A.fing[f.id] = h; f.k = h; f.p0 = S.up === h ? hands[h].p : 0; X.hand(null);
@@ -535,6 +565,7 @@ export const LIGHT = {
           if (kept.at === 'oil') oilStart(); else goLadder();
           return;
         }
+        if (lv === 3) { prepared(); return; }
         closeShot([W.cloth[0] + 0.7, W.cloth[1] - 0.1, W.cloth[2] - 0.1], CAM.wicks[0], 6.6, 0.5, 1.3);   // (the boy in the frame's left third, whole)
         later(0.05, () => { const a = X.scr(cx, cy, cz), b = X.scr(cx - 1, cy, cz); pullDir = b.x > a.x ? [-1, 0] : [1, 0]; clothDraw(); });
         X.line(LIGHT_LINES['w' + lv], 2400);
@@ -563,14 +594,13 @@ export const LIGHT = {
         const f = { x: p.x, y: p.y };
         if (A.phase === 'wick') { const a = scr(edgePt(0)), b = scr(edgePt(1)); return Math.hypot(f.x - (a[0] + b[0]) / 2, f.y - (a[1] + b[1]) / 2) < gripPx() * 1.4 || near(f, holdPt(), gripPx() * 1.3); }
         if (A.phase === 'oil') return !!cupUnder(f);
-        if (A.phase === 'climb' && S) return handNear(f, 'L') || handNear(f, 'R') || !climbQuiet(S);
+        if (A.phase === 'climb' && S) return (MOUSE ? !!mouseHand(f) : handNear(f, 'L') || handNear(f, 'R')) || !climbQuiet(S);
         if (A.phase === 'pour') return near(f, jarHold(), gripPx() * 1.2);
         if (A.phase === 'lay') return !!wickM && near(f, wickM.position.toArray(), gripPx());
         if (A.phase === 'light') return !!taper && near(f, taper.position.toArray(), gripPx());
         return false;
       },
-      /** the mouse's right button is the boy's right hand, on it */
-      mouseRight(p) { return A.phase === 'climb' && !!S && handNear({ x: p.x, y: p.y }, 'R'); },
+      // (build 130 review: the right mouse button is no hand any more — it stays the look's; one button climbs, see mouseHand)
       holds() { return Object.keys(A.fing).length > 0; },
       end() {
         X.lookLift(0); FG.detach(); V.stop(); X.hand(null); labelsOff();

@@ -443,9 +443,11 @@ export function measure(pours, target = 30) {
  *  the swing — drops it within a few rungs, and a hurried climb spills a little: test/h130-light.test.mjs)
  * φ > 0 leans to the right hand's side.
  */
-export const CLIMB = Object.freeze({ PERIOD: 1.4, LATE: 0.18, PUSH: 0.22, DAMP: 0.25, HOLD_DAMP: 0.9, SPILL: 0.12, SPILL_K: 1.6, DROP: 0.62, MID: 0.08, QUIET: 0.05 });
+// (build 130 review: the jar forgives — a lift a little off the rhythm adds little; the sway builds only over several lifts off it in a
+//  row (OFF_N), and one lift on the rhythm takes a step of that back; SPILL and DROP stay)
+export const CLIMB = Object.freeze({ PERIOD: 1.4, LATE: 0.18, PUSH: 0.22, DAMP: 0.25, HOLD_DAMP: 1.3, SPILL: 0.12, SPILL_K: 1.6, DROP: 0.62, MID: 0.08, QUIET: 0.05, OFF_W: 0.25, OFF_N: 3 });
 const W0 = (2 * Math.PI) / CLIMB.PERIOD;
-export function climbFresh(top = 12, oil = 30) { return { top, rung: 0, L: 0, R: 0, up: null, phi: 0, w: 0, oil, oil0: oil, spilled: 0, dropped: 0, perfect: 0, steps: 0, push: [], t: 0 }; }
+export function climbFresh(top = 12, oil = 30) { return { top, rung: 0, L: 0, R: 0, up: null, phi: 0, w: 0, oil, oil0: oil, spilled: 0, dropped: 0, perfect: 0, steps: 0, push: [], t: 0, off: 0 }; }
 /** the jar quiet and both hands holding: the right hand may lift the camera */
 export const climbQuiet = (S) => !S.up && Math.abs(S.phi) < CLIMB.QUIET && Math.abs(S.w) < CLIMB.QUIET * W0;
 /**
@@ -460,7 +462,12 @@ export function climbStep(S, hand, dt) {
     S.up = hand.h; ev.push('lift');
     if (sg * S.phi > CLIMB.SPILL) { const k = Math.min(S.oil, CLIMB.SPILL_K * (sg * S.phi - CLIMB.SPILL) * S.oil0 / 10); S.oil -= k; S.spilled += k; ev.push('spill'); }
     if (Math.abs(S.phi) < CLIMB.MID && -sg * S.w > 0) { S.perfect++; ev.push('perfect'); }
-    S.push.push({ at: S.t + CLIMB.LATE, d: sg * CLIMB.PUSH });
+    // on the rhythm (the jar going away from the lifted hand): the push meets the swing and calms it. Off it (the jar coming toward that
+    // hand): the push feeds the swing — by how far off (err) and by how many lifts in a row were off (off / OFF_N)
+    const err = clamp((sg * S.w) / (CLIMB.OFF_W * W0), 0, 1);
+    S.off = err > 0.3 ? (S.off | 0) + 1 : Math.max(0, (S.off | 0) - 1);
+    const k = err > 0 ? err * Math.min(1, (S.off | 0) / CLIMB.OFF_N) : 1;
+    S.push.push({ at: S.t + CLIMB.LATE, d: sg * CLIMB.PUSH * k });
   } else if (hand && hand.a === 'place' && S.up === hand.h) {
     const o = hand.h === 'L' ? 'R' : 'L';
     S[hand.h] = Math.min(S[o] + 1, S.top, S[hand.h] + 1); S.up = null; S.steps++; ev.push('place');

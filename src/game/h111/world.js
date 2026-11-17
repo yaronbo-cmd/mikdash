@@ -62,9 +62,17 @@ export function holeRects() {
   const Bd = BOOK.s02.band;   // (build 126: the openings' band across the wall is the book's)
   return H111.GATES.filter((g) => g.k !== 'E').map((g) => (g.k === 'N' ? [g.x - 5, Bd.N[0], g.x + 5, Bd.N[1]] : [g.x - 5, Bd.S[0], g.x + 5, Bd.S[1]]));
 }
+/** ── h129 ── stage 02's timber frames whose opening stage 07 builds a house over (Beit HaMoked's hall: the north wall's opening at
+ *  x −160): the frame stood on in the hall through stage 07's night in a game played from stage 01 (the dark beam across the cloak and
+ *  sleep pictures). Stage 07's world calls this with the hall's rect; such a frame is not built again. ── /h129 ── */
+export function framesGoneIn(X, R) {
+  SH2.goneIn = R;
+  for (let gi = 0; gi < (SH2.frames || []).length; gi++) { const f = SH2.frames[gi]; if (!f) continue; const p = f.position; if (p.x > R[0] && p.x < R[2] && p.z > R[1] && p.z < R[3]) { try { (f.parent || X.props.root).remove(f); } catch (e) { /* */ } SH2.frames[gi] = null; } }
+}
 /** the timber frame (formwork) of an opening: two posts, the head, braces; 10 wide, 20 high, the wall's depth */
 export function gateFrame(X, gi) {
   const T = X.THREE, gr = new T.Group(), Wd = X.props.M.wood, Dk = X.props.M.woodD, g = H111.GATES[gi];
+  { const R = SH2.goneIn, px = g.k === 'N' || g.k === 'S' ? g.x : BOOK.s04.nikanor[0], pz = g.k === 'N' || g.k === 'S' ? BOOK.s02.side[g.k].c : BOOK.s04.nikanor[1]; if (R && px > R[0] && px < R[2] && pz > R[1] && pz < R[3]) return null; }   // ── h129 ── (a house of stage 07 stands there) ── /h129 ──
   const box = (w, h, d, x, y, z, mat = Wd, rz = 0) => { const m = new T.Mesh(X.props.geo.box, mat); m.scale.set(w, h, d); m.position.set(x, y, z); m.rotation.z = rz; m.castShadow = true; gr.add(m); return m; };
   const D = g.k === 'E' ? 6 : 6.2;
   for (const s of [-1, 1]) { box(0.7, 20, D, s * 4.65, 10, 0); box(0.45, 20, 0.3, s * 4.2, 10, D / 2 - 0.15, Dk); box(0.45, 20, 0.3, s * 4.2, 10, -D / 2 + 0.15, Dk); }

@@ -1127,9 +1127,17 @@
       }
       // level 3
       const bent = a.P.find((q) => q.peg && q.off > 0.05);
-      if (has('peg') && !K.wrongPeg) { K.wrongPeg = 1; return { tap: a.P[0].at, wait: 900, note: 'frame: a right peg pulled (the mistake)' }; }
-      if (bent) return { tap: bent.at, wait: 900, note: 'frame: pull the peg of ' + bent.k };
       const free = a.P.filter((q) => !q.seat).sort((p, q) => q.off - p.off)[0];
+      // (the close shot shows only the corner worked at: as a player, try the crooked corner first; it will not come, and the shot
+      // goes to the bent peg. The right peg pulled by mistake is seen from the lifted look)
+      if (bent && a.focus !== bent.k && a.focus !== 'wide' && free && (K.tries3 | 0) < 3) { K.tries3 = (K.tries3 | 0) + 1; return { path: [free.at, [free.at[0] + (free.to[0] - free.at[0]) * 1.8, free.at[1] + (free.to[1] - free.at[1]) * 1.8]], ms: 900, keep: 2200, wait: 900, note: 'frame: the crooked corner ' + free.k + ' tried (it will not come)' }; }
+      if (has('peg') && !K.wrongPeg) {
+        if (a.focus !== 'wide') { if (!K.pegLift) { K.pegLift = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (to see the pegs)' }; } return { wait: 300 }; }
+        K.wrongPeg = 1; return { tap: a.P[0].at, wait: 900, note: 'frame: a right peg pulled (the mistake)' };
+      }
+      if (bent && a.focus !== bent.k && a.focus !== 'wide') { if (!K.pegLift) { K.pegLift = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (the bent peg not shown)' }; } return { wait: 300 }; }
+      if (bent) return { tap: bent.at, wait: 900, note: 'frame: pull the peg of ' + bent.k };
+      if (K.pegLift === 1) { K.pegLift = 2; return { eval: '__T.game.h109._look(0,0)', wait: 1600, note: 'frame: the look home' }; }
       if (free) return hold(free.i, free.to, 'frame: the crooked corner ' + free.k + ' home (off ' + free.off + ')');
       return { wait: 300 };
     },

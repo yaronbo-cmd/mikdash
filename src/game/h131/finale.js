@@ -317,6 +317,8 @@ export const FINALE_ACT = {
     async function rise() {
       A.busy = 1; try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
       try { X.kohen(true); } catch (e) { /* */ }
+      // (the kohen steps back east, by the timbers' pile, facing the altar: never between the rising look and the altar's middle)
+      try { const kx = W8.logs[0] - 3, kz = W8.logs[1]; X.hero.setPos(kx, kz, Math.atan2(MID[0] - kx, MID[1] - kz)); } catch (e) { /* */ }
       water.visible = false; stream.visible = false;
       const E = S8.cam.end;
       X.shot(E[0].slice(), E[1].slice(), 3.6); X.line(LINES.iron, 6000);

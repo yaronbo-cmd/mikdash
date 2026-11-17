@@ -326,6 +326,9 @@ export const GALLERY = {
       ev('end ' + pts);
       const f = footAt((R.a0 + R.a1) / 2);
       X.kohen(true); X.line('');
+      // (the director's pull-back keeps the camera's bearing: from the seat it looked at the court with the wall behind, and 46 amot
+      // back from the gallery was the wall's stone filling the frame; from the stand it rises over the court toward the gallery)
+      home(0.5);
       setTimeout(() => X.end({ stars: starsOf(q), q, pts, perfect, lost: A.dmg > 0, at: { x: f.x, y: Y.GFLOOR, z: f.z }, flags: { 'gal.beam': A.cracks, 'gal.column': A.broke, sags: chk.sags, hidden: chk.hidden.length, n: chk.n, mehudar: chk.mehudar ? 1 : 0, tries: A.tries } }), 600);
     }
 

@@ -1090,6 +1090,48 @@
       return { wait: 400 };
     },
     // ── /h130 eve ──
+    // ── h131 frame ── (build 131, stage 08 part 2 "המלבן": h131/frame.js dbg()). A careful player: level 1 drags the NW corner onto its
+    // stake, then the farthest corner round it; level 2 each loose end to its own stake in order; level 3 taps the peg of the corner off
+    // its stake, then drags the crooked corner home; then the diagonal off its rest onto the frame. Each drag is held until the corner
+    // is within half an amah of its stake (the frame follows late) and let go there. __BOT.bad: 'crack' (the diagonal lowered before the
+    // frame is square, then pushed: frame.crack, −20), 'peg' (level 3: a right peg pulled first: a mistake), 'pop' (level 2: a joined
+    // end pulled past its board's length). __BOT_SHOTS131: a still at the first look, a stuck diagonal, the square.
+    h8frame(a) {
+      const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
+      if (!a || a.done) { if (shots && a && !K.shotSq) { K.shotSq = 1; return { wait: 250, shot: a.id + '-square' }; } return { wait: 300 }; }
+      if (a.busy) return { wait: 200 };
+      if (shots && !K.shot0) { K.shot0 = 1; return { wait: 300, shot: a.id + '-look', note: 'frame: ' + JSON.stringify(a.figs) }; }
+      const hold = (i, to, note) => ({ path: [a.P[i].at, to], ms: 900, keep: 7000, release: C(`return !a||!a.P||a.P[${i}].off<0.42`), wait: 700, note });
+      if (a.diag === 2) {
+        if (shots && !K.shotSt) { K.shotSt = 1; return { wait: 300, shot: a.id + '-stuck', note: 'frame: the diagonal stuck at ' + a.worst }; }
+        if (has('crack') && !K.cracked) { K.cracked = 1; const p = a.stuckAt; return { path: [p, [p[0], p[1] + 50]], ms: 500, wait: 1600, note: 'frame: the stuck diagonal pushed by force' }; }
+        return { tap: a.stuckAt, wait: 1200, note: 'frame: lift the stuck diagonal' };
+      }
+      const lower = () => ({ path: [a.diagAt, [a.diagAt[0], a.diagAt[1] - 20], a.mid], ms: 1100, keep: 1500, wait: 2200, note: 'frame: the diagonal lowered' });
+      if (a.square) return lower();
+      if (has('crack') && !K.early && a.dmg === 0) { K.early = 1; return lower(); }
+      if (a.lv === 1) {
+        const NW = a.P[0];
+        if (!NW.seat) return hold(0, NW.to, 'frame: the NW corner to its stake (off ' + NW.off + ')');
+        const far = a.P.filter((p) => !p.seat).sort((p, q) => q.off - p.off)[0];
+        if (far) return hold(far.i, far.to, 'frame: turn about NW: ' + far.k + ' (off ' + far.off + ')');
+        return { wait: 300 };
+      }
+      if (a.lv === 2) {
+        if (has('pop') && !K.popped && a.J >= 2) { const p = a.P.find((q) => q.seat && q.joined && q.side === 'S') || a.P.find((q) => q.seat && !q.joined); if (p) { K.popped = 1; const o = a.P.find((q) => q.side === p.side && q.i !== p.i); return { path: [o.at, [o.at[0] + (o.at[0] - p.at[0]) * 0.6, o.at[1] + (o.at[1] - p.at[1]) * 0.6]], ms: 1200, keep: 2500, wait: 900, note: 'frame: a board pulled past its length (the mistake)' }; } }
+        const p = a.P.find((q) => !q.seat);
+        if (p) return hold(p.i, p.to, 'frame: end ' + p.k + ' of ' + p.side + ' (off ' + p.off + ')');
+        return { wait: 300 };
+      }
+      // level 3
+      const bent = a.P.find((q) => q.peg && q.off > 0.05);
+      if (has('peg') && !K.wrongPeg) { K.wrongPeg = 1; return { tap: a.P[0].at, wait: 900, note: 'frame: a right peg pulled (the mistake)' }; }
+      if (bent) return { tap: bent.at, wait: 900, note: 'frame: pull the peg of ' + bent.k };
+      const free = a.P.filter((q) => !q.seat).sort((p, q) => q.off - p.off)[0];
+      if (free) return hold(free.i, free.to, 'frame: the crooked corner ' + free.k + ' home (off ' + free.off + ')');
+      return { wait: 300 };
+    },
+    // ── /h131 frame ──
   };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {

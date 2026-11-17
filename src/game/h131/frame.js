@@ -1,22 +1,329 @@
-/* ── build 131 ── h131/frame.js — part 2 of stage 08, "המלבן" (spec: three works). THE FRAME-AND-FINALE LANE'S FILE.
- * Build 131 part 1: a stand-in (stub.js) — the camera shows the altar's site with the witness's stakes, and the work finishes at once.
- * The frame lane replaces make() with the real act (its rules in frame-model.js, its things in frame3d.js).
+/* ── build 131 ── h131/frame.js — part 2 of stage 08, "המלבן" (spec docs/specs/shlav-08-he.md, part 2: three works). THE
+ * FRAME-AND-FINALE LANE'S FILE.
+ * The place of the altar is exact and may not change: the witness (one figure, here only) stands and points, four wooden stakes mark
+ * the corners (רמב"ם בית הבחירה ב, א–ד; the stakes המחשה). The player does not look for the place: he builds exactly on it.
+ *   frame1  the frame already joined (stiff): dragged whole onto the stakes, a corner seated, then turned about it until it lies square
+ *   frame2  four loose boards: each laid end by end on its two stakes; two ends on a stake join. A board pulled past its length drags
+ *           what was joined off its stake (a mistake, seen)
+ *   frame3  three corners pegged, one of them off its stake; the fourth crooked and stuck. A tap on a peg pulls it — the right one at
+ *           the right time, then the crooked corner dragged home; a seated corner's peg is driven again
+ * When it looks square, the diagonal beam is lowered (dragged off its rest onto the frame, let go): it is stiff and falls in only if
+ * the frame is truly square; else it sticks and the corner that lacks shows red. A tap lifts it off; pushed on by force (a drag on it)
+ * a board cracks: frame.crack (−20), the board replaced in another shade, for good. No measuring rope, no plumb, no level: the frame
+ * itself is set right (spec). All by the left hand (or the mouse's left button), on the frame itself; the right thumb lifts the camera.
+ * In the picture: the witness pointing; four frame men at the corners, who push as the hand drags (spec: "ארבעה אנשי צוות אוחזים
+ * בפינות ודוחפים לפי הגרירה שלך"). The kohen is out: his hands do not work here (rule 62). No iron anywhere: wood on wood.
+ * The rules: frame-model.js. Every place: BOOK.s08 (stakes, frame, work.frame1–3, work.diag, work.men, stand.frame, stand.witness).
  *   FRAME_ACT = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
 import { BOOK } from '../world/grid.js';
-import { stubAct } from './stub.js';
-import { LINES } from './model.js';
+import { LINES, QUICK, LOSS } from './model.js';
+import { fresh, load, save, grab, dragTo, step, release, pegTap, diagDrop, diagLift, crackBeam, square, worst, offBy, cornerAt, result, CORNERS, STAKE, SIDES, SIDE_K, FR } from './frame-model.js';
+import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold } from './frame3d.js';
+import { createVoices } from '../h129/sound129.js';
+import { card, cite } from '../h129/ui7.js';
+import { fingers, MOUSE } from '../h113/acts.js';
+import { createGang, createBeat, onPlane, clamp, ease, lerp } from '../h109/kit.js';
 
-const S8 = BOOK.s08;
+const S8 = BOOK.s08, W8 = S8.work, F = S8.floor, Y1 = S8.frame.y1, MID = S8.mid;
+/** the act's numbers: the camera (eye and aim; המחשה), how near a finger must be to a corner / a board / the diagonal (px), a tap's
+ *  most travel (px), the diagonal's lift while carried, the corner glow's time */
+export const FK = Object.freeze({
+  EYE: Object.freeze([-38, 50, -49]), AIM: Object.freeze([-38, F, -3]), FOV: 46,
+  PICK: 48, PICKM: 30, BEAM: 26, TAP: 12, LIFT: 2.2, GLOW: 0.5,
+});
+/** the act's words (instructions: what to do, at most five words; the frame's way of setting is המחשה) */
+export const FLINES = Object.freeze({
+  l1: 'גררו את המסגרת אל היתדות',
+  l1b: 'עכשיו סובבו סביב היתד',
+  l2: 'כל קורה על שתי יתדות',
+  l3: 'פינה עקומה. איזו יתד לשחרר?',
+  stuckF: 'תקוע: יתד מחזיקה',
+  diag: 'רבועה? הורידו את האלכסון',
+  diagStuck: 'האלכסון נתקע: חסר בפינה',
+  lift: 'הקישו עליו להרים',
+  popped: 'הפינה זזה מהיתד',
+  wrongPeg: 'היתד הזאת הייתה במקום',
+  crack: 'קרש נסדק · מחליפים בקרש אחר',
+  witness: 'העד מראה את המקום (המחשה)',
+});
+const CORNER_HE = { NW: 'הצפונית מערבית', NE: 'הצפונית מזרחית', SE: 'הדרומית מזרחית', SW: 'הדרומית מערבית' };
 
 export const FRAME_ACT = {
   icon: '📐',
   title: 'המלבן',
-  walkLine: () => 'המלבן: מסגרת העץ במקום שהעד מראה',
-  stand() { const s = S8.stand.frame; return { x: s[0], z: s[1], face: [S8.mid[0], S8.mid[1]] }; },
+  walkLine: (m) => (m && m.lv === 3 ? 'המלבן: פינה עקומה' : m && m.lv === 2 ? 'המלבן: ארבע קורות' : 'המלבן: מסגרת העץ במקום שהעד מראה'),
+  stand() { const s = S8.stand.frame; return { x: s[0], z: s[1], face: [MID[0], MID[1]] }; },
   prepare() {},
   make(m, X) {
-    const C = S8.cam.site;
-    return stubAct(m, X, { eye: C[0], aim: C[1], at: { x: S8.mid[0], y: S8.top, z: S8.mid[1] }, line: LINES.rashi });
+    const T = X.THREE, Mo = X.M, lv = m.lv | 0 || 1, V = createVoices(X.sfx), Mt = fmats(X);
+    const root = new T.Group(); root.name = 'h131-frame-act'; X.props.root.add(root);
+    const A = { phase: 'look', t: 0, ev: [], fl: null, busy: 0, n0: -1, hintK: '', glow: 0, diagT: null, shake: 0, stuckT: 0, lineT: 0, firstLine: 0, done: 0 };
+    const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
+    // ── the work in hand: a fresh one, or the one a reload broke off (the corners as they lay, the cracks kept)
+    const b0 = Mo.workOf('frame');
+    let S = b0 && b0.id === m.id ? load(b0) : null; const resumed = !!S;
+    if (!S) S = fresh(lv);
+    if (S.diag === 2) S.diag = 0;   // (a diagonal that stuck when the page went: back on its rest)
+    const keep = () => { if (S.n === A.n0) return; A.n0 = S.n; Mo.keep('frame', save(S, m.id)); X.save(); };
+    // the boards of a 'frame.crack' mark (this work's or an earlier one's): the same frame, its board replaced in another shade
+    const crackedSides = () => new Set([...Mo.marksOf('frame.crack').map((q) => SIDE_K[(q.n | 0) % 4]), ...S.cracks]);
+    // ── the camera: one shot over the frame from the north (the stand's side), the witness and the diagonal's rest in it
+    const cam0 = X.camera, fov0 = cam0.fov;
+    const lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
+    const camHome = (d = 1.1) => X.shot(FK.EYE.slice(), FK.AIM.slice(), d);
+    // ── the figures: the witness pointing at the place; the four frame men at the corners
+    const B = createBeat(X), gang = createGang(X);
+    const wit = gang.add(S8.stand.witness[0], S8.stand.witness[1], { tunic: '#EDE6D2', col2: '#4E4A78', role: 'point', fx: MID[0], fz: MID[1], crew: 3 });
+    const men = {};
+    for (const k of CORNERS) { const p = manAt(k); men[k] = gang.add(p[0], p[1], { role: 'hold', item: 'staff', fx: p[2], fz: p[3], crew: CORNERS.indexOf(k) }); }
+    function manAt(k) {
+      const c = cornerAt(S, k), dx = c.x - MID[0], dz = c.z - MID[1], L = Math.hypot(dx, dz) || 1, o = W8.men;
+      return [c.x + (dx / L) * o, c.z + (dz / L) * o, c.x, c.z];
+    }
+    // ── the frame's boards, the stakes' green rings, the corners' marks, the pegs (level 3), the diagonal
+    const boards = {}; for (const e of S.E.filter((q) => q.beam)) boards[e.beam] = beamMesh(X, Mt.y8frame, root);
+    const greens = {}, marks = {}, pegs = {};
+    for (const k of CORNERS) { greens[k] = ringMesh(X, Mt.y8green, 1.15, root); greens[k].position.set(STAKE[k][0], F + 0.05, STAKE[k][1]); }
+    S.P.forEach((p, i) => { marks[i] = ringMesh(X, Mt.y8amber, 0.6, root); });
+    if (lv === 3) for (const k of CORNERS) { pegs[k] = pegMesh(X, root); pegs[k].visible = false; }
+    const diag = beamMesh(X, Mt.y8frame, root);
+    const glowM = Mt.y8frame.clone(); glowM.emissive = new T.Color('#FFD070'); glowM.emissiveIntensity = 0;
+    const DR = W8.diag, diagRest = () => setBeam(diag, [DR[0], DR[1]], [DR[2], DR[3]], null, F, F + 0.9, 0.55);
+    diagRest();
+    const DG = { carry: null, x: (DR[0] + DR[2]) / 2, z: (DR[1] + DR[3]) / 2, y: 0, tx: 0, tz: 0, fall: null };
+    // ── drawing the frame as the model has it
+    function draw(dt) {
+      const C = new Set(crackedSides());
+      for (const e of S.E.filter((q) => q.beam)) {
+        const a = S.P[e.a], b = S.P[e.b], mb = boards[e.beam];
+        const c = lv === 2 ? [MID[0], MID[1]] : [(S.P[0].x + S.P[2].x) / 2, (S.P[0].z + S.P[2].z) / 2];
+        setBeam(mb, [a.x, a.z], [b.x, b.z], c);
+        mb.material = C.has(e.beam) ? Mt.y8woodR : Mt.y8frame;
+      }
+      for (const k of CORNERS) greens[k].visible = !S.P.some((p) => p.k === k && p.seat && Math.hypot(p.x - STAKE[k][0], p.z - STAKE[k][1]) < 0.05) && S.diag !== 1;
+      const bad = S.diag === 2 ? worst(S) : null;
+      S.P.forEach((p, i) => {
+        const r = marks[i]; r.position.set(p.x, F + 1.08, p.z);
+        r.material = bad === p.k ? Mt.y8red : p.seat ? Mt.y8green : Mt.y8amber;
+        r.visible = S.diag !== 1 && !(lv === 2 && S.J.some(([a, b2]) => b2 === i) );
+        const s = bad === p.k ? 1.4 + 0.25 * Math.sin(A.t * 9) : 1; r.scale.setScalar(s);
+      });
+      if (lv === 3) for (const k of CORNERS) { const p = S.P[CORNERS.indexOf(k)]; pegs[k].visible = !!p.peg; pegs[k].position.set(p.x, F, p.z); }
+      // the glow when it falls square (the whole frame lights a moment)
+      if (A.glow > 0) { A.glow = Math.max(0, A.glow - dt); glowM.emissiveIntensity = (A.glow / FK.GLOW) * 0.9; for (const mb of Object.values(boards)) mb.material = glowM; diag.material = glowM; } else if (diag.material === glowM) diag.material = Mt.y8frame;
+      // the diagonal: on its rest, carried (lifted, following late), falling, stuck (tilted, one end up at the corner that lacks)
+      if (DG.fall) {
+        const f = DG.fall; f.t += dt; const u = Math.min(1, f.t / f.d), k = ease(u);
+        const a = [lerp(f.a0[0], f.a1[0], k), lerp(f.a0[1], f.a1[1], k)], b = [lerp(f.b0[0], f.b1[0], k), lerp(f.b0[1], f.b1[1], k)];
+        setBeam(diag, a, b, null, lerp(f.y0, f.y1, u * u), lerp(f.y0, f.y1, u * u) + 0.6, 0.55);
+        diag.rotation.z = lerp(f.r0 || 0, f.r1 || 0, k);
+        if (u >= 1) { const r = f.res; DG.fall = null; if (r) r(); }
+      } else if (DG.carry) {
+        const k = 1 - Math.exp(-dt * 3.5); DG.x += (DG.tx - DG.x) * k; DG.z += (DG.tz - DG.z) * k;
+        const h = 32 * 0.5;
+        setBeam(diag, [DG.x - h, DG.z - h], [DG.x + h, DG.z + h], null, F + FK.LIFT, F + FK.LIFT + 0.6, 0.55); diag.rotation.z = 0;
+      }
+      // the frame men: at their corners, pushing while the frame moves under the hand
+      const moving = !!S.drag && !S.drag.held;
+      for (const k of CORNERS) {
+        const w = men[k]; if (!w || !w.a) continue; const p = manAt(k);
+        const dd = Math.hypot(w.a.x - p[0], w.a.z - p[1]);
+        if (dd > 0.02) { const kk = 1 - Math.exp(-dt * 5); w.a.x += (p[0] - w.a.x) * kk; w.a.z += (p[1] - w.a.z) * kk; }
+        w.fx = p[2]; w.fz = p[3];
+        const want = moving && (lv !== 1 || true) ? 'push' : 'hold';
+        if (w.role !== want) gang.setRole(w, want, { fx: p[2], fz: p[3], stride: want === 'push' ? 0.7 : 0, rate: 1.4 });
+      }
+    }
+    // ── the fingers: a corner (or a board) dragged; a tap on a peg; the diagonal carried, lowered, lifted or forced
+    const sp = (x, y, z) => X.scr(x, y, z);
+    const R = () => (MOUSE ? FK.PICKM : FK.PICK);
+    function segD(p, a, b) { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1, u = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0, 1); return { d: Math.hypot(p.x - a.x - vx * u, p.y - a.y - vy * u), u }; }
+    function pick(f) {
+      if (A.busy || A.done) return null;
+      // the diagonal: stuck on the frame, or on its rest (once the frame is set, or any time: he may try it early)
+      if (S.diag === 2) { const a = sp(DG.sa[0], F + 1.3, DG.sa[1]), b = sp(DG.sb[0], F + 1.3, DG.sb[1]); if (segD(f, a, b).d < FK.BEAM + 8) return { k: 'stuck' }; }
+      if (!S.diag && !DG.carry) { const a = sp(DR[0], F + 0.5, DR[1]), b = sp(DR[2], F + 0.5, DR[3]); if (segD(f, a, b).d < FK.BEAM) return { k: 'diag' }; }
+      if (S.diag) return null;
+      // a corner (a joint's ends are one: the first of them)
+      let best = null, bd = R();
+      S.P.forEach((p, i) => { const q = sp(p.x, F + 0.6, p.z); if (q.on === false) return; const d = Math.hypot(f.x - q.x, f.y - q.y); if (d < bd) { bd = d; best = { k: 'pt', i }; } });
+      if (best) return best;
+      // a board: level 2 the whole board; else the nearest corner (a stiff frame slides whole; a linked one follows its corner)
+      for (const e of S.E.filter((q) => q.beam)) {
+        const a = sp(S.P[e.a].x, F + 0.6, S.P[e.a].z), b = sp(S.P[e.b].x, F + 0.6, S.P[e.b].z), r = segD(f, a, b);
+        if (r.d < FK.BEAM) { if (lv === 2) return { k: 'beam', i: e.a, beam: e.beam }; return { k: 'pt', i: r.u < 0.5 ? e.a : e.b }; }
+      }
+      return null;
+    }
+    const world = (f) => onPlane(X, f.x, f.y, F + 0.6);
+    const FG = fingers(X, {
+      down(f) {
+        if (A.fl != null) return; const k = pick(f); if (!k) { try { if (X.lookHome) X.lookHome(); } catch (e) { /* */ } return; }
+        const w = world(f); if (!w) return;
+        A.fl = f.id; f.w = { ...k, wx: w.x, wz: w.z };
+        X.hand(null);
+        if (k.k === 'pt' || k.k === 'beam') {
+          const was = S.P.filter((p) => p.seat).length;
+          grab(S, k.i, w.x, w.z, k.beam);
+          if (S.P.filter((p) => p.seat).length < was) ev('unseat');
+          ev('grab:' + S.P[k.i].k + (k.beam ? ':' + k.beam : ''));
+        }
+      },
+      move(f) {
+        const w = f.w; if (!w || A.fl !== f.id) return; const p = world(f); if (!p) return;
+        if (w.k === 'pt' || w.k === 'beam') { dragTo(S, clamp(p.x, -58, -12), clamp(p.z, -32, 22)); }
+        else if (w.k === 'diag' && f.moved > FK.TAP) { if (!DG.carry) { DG.carry = 1; DG.x = (DR[0] + DR[2]) / 2; DG.z = (DR[1] + DR[3]) / 2; V.scrape(0.5); ev('diag:carry'); } DG.tx = clamp(p.x, -50, -26); DG.tz = clamp(p.z, -24, 10); }
+        else if (w.k === 'stuck' && f.moved > FK.TAP * 1.6 && !w.forced) { w.forced = 1; force(); }
+      },
+      up(f) {
+        const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; V.scrape(0); V.creak(0);
+        if (w.k === 'pt' || w.k === 'beam') {
+          // level 3: a tap on a pegged corner pulls its peg
+          if (lv === 3 && f.moved <= FK.TAP && S.drag && S.drag.held) { release(S); peg(S.P[w.i].k); return; }
+          const r = release(S); seated(r);
+          keep(); hintNext();
+          return;
+        }
+        if (w.k === 'diag') { if (DG.carry) lower(); else { X.line(FLINES.diag, 2600); } return; }
+        if (w.k === 'stuck' && !w.forced) { lift(); }
+      },
+    });
+    function seated(r) {
+      for (const k of r.seated) {
+        const st = STAKE[k], at = { x: st[0], y: F + 1.2, z: st[1] };
+        X.quick(at, QUICK.corner, boards[SIDE_K[CORNERS.indexOf(k)]]); V.knock(1.4); X.dust(st[0], F + 0.3, st[1], 6, 2);
+        try { if (X.haptic) X.haptic(12); } catch (e) { /* */ }
+        ev('seat:' + k);
+      }
+      for (const k of r.joined) ev('join:' + k);
+      if (lv === 1 && r.seated.length === 1 && S.P.filter((p) => p.seat).length === 1) X.line(FLINES.l1b, 3200);
+      if (square(S) && !A.squareSaid) { A.squareSaid = 1; X.line(FLINES.diag, 4200); }
+    }
+    function peg(k) {
+      const r = pegTap(S, k); if (!r) return;
+      const st = cornerAt(S, k), at = { x: st.x, y: F + 1.6, z: st.z };
+      V.knock(0.7); V.groan(); X.dust(st.x, F + 0.4, st.z, 5, 2);
+      try { const w = men[k]; if (w) { gang.setRole(w, 'pull', { fx: st.x, fz: st.z }); X.wait(0.9).then(() => gang.setRole(w, 'hold', { fx: st.x, fz: st.z })); } } catch (e) { /* */ }
+      ev('peg:' + k + ':' + (r.right ? 'right' : 'wrong'));
+      if (!r.right) X.line(FLINES.wrongPeg, 3200); else X.quick(at, 'משוחררת!', null);
+      keep(); hintNext(true);
+    }
+    // ── the diagonal: lowered (falls in square, or sticks), lifted, forced
+    function lower() {
+      DG.carry = null; V.scrape(0); A.busy = 1;
+      const r = diagDrop(S); ev('diag:' + (r.fit ? 'fit' : 'stuck:' + r.at));
+      const a0 = [DG.x - 16, DG.z - 16], b0 = [DG.x + 16, DG.z + 16];
+      if (r.fit) {
+        DG.fall = { t: 0, d: 0.45, a0, b0, a1: STAKE.NW.slice(), b1: STAKE.SE.slice(), y0: F + FK.LIFT, y1: F + 0.4, res: () => fit() };
+        return;
+      }
+      // stuck: it lies on the frame from the corner that sits to the one that lacks, that end up on the board
+      const k = r.at, kk = k === 'NW' || k === 'SE' ? k : 'SE', other = kk === 'NW' ? 'SE' : 'NW';
+      const c1 = cornerAt(S, kk), c0 = cornerAt(S, other);
+      DG.sa = [c0.x, c0.z]; DG.sb = [c1.x, c1.z];
+      DG.fall = { t: 0, d: 0.4, a0, b0, a1: DG.sa, b1: DG.sb, y0: F + FK.LIFT, y1: F + 1.05, r1: 0.035 * (kk === 'SE' ? -1 : 1), res: () => {
+        A.busy = 0; V.knock(0.9); V.groan(); X.shake(0.08, 0.15);
+        X.line(`${FLINES.diagStuck} ${CORNER_HE[k]}`, 4200); A.stuckSaid = 1;
+        X.wait(4.4).then(() => { if (S.diag === 2) X.line(FLINES.lift, 3000); });
+        keep();
+      } };
+      ev('stuck');
+    }
+    function lift() {
+      if (!diagLift(S)) return; ev('diag:lift'); V.knock(0.8);
+      DG.fall = { t: 0, d: 0.6, a0: DG.sa, b0: DG.sb, a1: [DR[0], DR[1]], b1: [DR[2], DR[3]], y0: F + 1.05, y1: F + 0.0, res: () => { diagRest(); diag.rotation.z = 0; } };
+      keep(); hintNext(true);
+    }
+    function force() {
+      const side = crackBeam(S); if (!side) return;
+      const [ka, kb] = SIDES[side], a = cornerAt(S, ka), b = cornerAt(S, kb), at = { x: (a.x + b.x) / 2, y: F + 1, z: (a.z + b.z) / 2 };
+      V.crack(); X.shake(0.18, 0.35); try { if (X.haptic) X.haptic([30, 30, 50]); } catch (e) { /* */ }
+      X.dust(at.x, F + 0.8, at.z, 18, 3);
+      const p = Mo.mark('frame.crack', m.id, [+at.x.toFixed(2), +at.z.toFixed(2)], SIDE_K.indexOf(side));
+      X.loss(p, at, LOSS['frame.crack'][0]); X.line(FLINES.crack, 4000); ev('crack:' + side);
+      DG.fall = { t: 0, d: 0.7, a0: DG.sa, b0: DG.sb, a1: [DR[0], DR[1]], b1: [DR[2], DR[3]], y0: F + 1.05, y1: F, res: () => { diagRest(); diag.rotation.z = 0; } };
+      keep(); hintNext(true);
+    }
+    async function fit() {
+      A.done = 1; A.glow = FK.GLOW; V.thud(); X.shake(0.3, 0.45); try { if (X.haptic) X.haptic([40, 30, 60]); } catch (e) { /* */ }
+      const at = { x: MID[0], y: F + 1.5, z: MID[1] };
+      X.dust(STAKE.NW[0], F + 0.6, STAKE.NW[1], 10, 2); X.dust(STAKE.SE[0], F + 0.6, STAKE.SE[1], 10, 2);
+      X.quick(at, QUICK.square, diag); ev('square'); keep();
+      for (const k of CORNERS) { const w = men[k]; if (w) gang.setRole(w, 'hold', { fx: MID[0], fz: MID[1] }); }
+      X.line('', 0);
+      await X.wait(1.4);
+      const res = result(S);
+      if (m.id === 'frame1' && !resumed) await card(X, `<b style="font:900 20px Heebo,system-ui">המלבן</b>${cite(LINES.rashi)}<small style="display:block;margin-top:8px">${FLINES.witness}</small>`, 8000);
+      X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: F + 1, z: MID[1] },
+        film: { eye: [MID[0], F + 44, MID[1] - 40], aim: [MID[0], F, MID[1]], secs: 1.6 } });
+    }
+    // ── the hint hand (rule 25: one; rule 34: level 1 shows the way, the help less on 2 and 3)
+    function hintNext(force) {
+      if (A.busy || A.done || S.diag) return;
+      let k = '', at = null, dx = 0, dy = 0;
+      if (square(S)) { k = 'diag'; at = { x: (DR[0] + DR[2]) / 2, y: F + 0.6, z: (DR[1] + DR[3]) / 2 }; dy = 60; }
+      else if (lv === 1) {
+        const free = CORNERS.filter((q) => !S.P[CORNERS.indexOf(q)].seat), seatedN = 4 - free.length;
+        const q = seatedN ? free.sort((a, b) => offBy(S, b) - offBy(S, a))[0] : 'NW', p = cornerAt(S, q), s = STAKE[q], a = X.scr(p.x, F + 0.6, p.z), b = X.scr(s[0], F + 0.6, s[1]);
+        k = 'l1' + q; at = { x: p.x, y: F + 0.6, z: p.z }; dx = clamp(b.x - a.x, -90, 90); dy = clamp(b.y - a.y, -90, 90);
+      } else if (lv === 2 && !A.hint2) {
+        const i = S.P.findIndex((p) => !p.seat); if (i >= 0) { const p = S.P[i]; k = 'l2' + i; at = { x: p.x, y: F + 0.6, z: p.z }; const a = X.scr(p.x, F, p.z), b = X.scr(STAKE[p.k][0], F, STAKE[p.k][1]); dx = clamp(b.x - a.x, -80, 80); dy = clamp(b.y - a.y, -80, 80); }
+      }
+      if (!force && k === A.hintK) return; A.hintK = k;
+      X.hand(at, dx, dy);
+    }
+    let last = 0;
+    return {
+      close: true,
+      begin() {
+        frameHold('act', true);
+        try { X.kohen(false); } catch (e) { /* */ }
+        FG.attach(); lens(FK.FOV); camHome(1.2);
+        draw(0);
+        const L0 = lv === 1 ? FLINES.l1 : lv === 2 ? FLINES.l2 : FLINES.l3;
+        if (!resumed && lv === 1) { X.line(LINES.rashi, 6000); X.wait(6.2).then(() => { if (!A.done && !A.fl) X.line(L0, 5000); }); }
+        else X.line(L0, 5000);
+        X.wait(0.9).then(() => hintNext(true));
+        ev(resumed ? 'resume' : 'begin');
+        keep();
+      },
+      update(dt) {
+        A.t += dt;
+        try {
+          V.frame(); B.step(dt); gang.update(dt, B);
+          const r = step(S, dt);
+          if (r.pop) { V.groan(); X.shake(0.06, 0.12); ev('pop:' + r.pop[0]); if (r.joined && lv === 2) X.line(FLINES.popped, 3000); keep(); }
+          if (r.stuck) { A.stuckT += dt; V.creak(0.6); if (A.stuckT > 0.5 && !A.stuckSaid3) { A.stuckSaid3 = 1; X.line(FLINES.stuckF, 3200); ev('stuckFrame'); } }
+          else { A.stuckT = 0; V.creak(S.strain ? 0.4 : 0); }
+          if (S.drag && !S.drag.held) { const p = S.P[S.drag.i], v = Math.hypot(p.x - (A.px || p.x), p.z - (A.pz || p.z)) / Math.max(1e-3, dt); A.px = p.x; A.pz = p.z; V.scrape(Math.min(1, v / 6)); if (v > 2 && A.t - last > 0.35) { last = A.t; X.dust(p.x, F + 0.2, p.z, 2, 1.2); } }
+          draw(dt);
+          if (S.drag && S.drag.held) { const p = S.P[S.drag.i]; const w = Math.sin(A.t * 40) * 0.03; boards[SIDE_K[S.drag.i]].position.x += w; void p; }
+        } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h131] frame', e && e.message); } }
+      },
+      down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
+      cancel() { if (S.drag) { release(S); keep(); } A.fl = null; DG.carry = null; diagRest(); V.scrape(0); V.creak(0); },
+      // (rule 66: on the right half a touch is the act's only where it lands on the frame, a peg or the diagonal; else the camera's)
+      wants(p) { if (!p) return true; return !!pick(p); },
+      holds() { return A.fl != null; },
+      end() {
+        FG.detach(); V.stop(); X.hand(null); lens(fov0);
+        gang.clear(); X.props.remove(root);
+        frameHold('act', false);
+      },
+      at() { return new T.Vector3(MID[0], F + 1, MID[1]); },
+      dbg() {
+        const s2 = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
+        const o = { id: m.id, lv, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), diag: S.diag, square: square(S), wrong: S.wrong, stuck: S.stuck, dmg: S.dmg, cracks: S.cracks.slice(), nf: FG.n, n: S.n,
+          pts: result(S).pts, drag: S.drag ? S.P[S.drag.i].k : null, strain: +S.strain.toFixed(2), J: S.J.length };
+        o.P = S.P.map((p, i) => ({ i, k: p.k, seat: p.seat, peg: p.peg, off: +Math.hypot(p.x - STAKE[p.k][0], p.z - STAKE[p.k][1]).toFixed(2), at: s2(p.x, F + 0.6, p.z), to: s2(STAKE[p.k][0], F + 0.6, STAKE[p.k][1]), side: p.side || null, joined: S.J.some(([a, b]) => a === i || b === i) }));
+        o.diagAt = s2((DR[0] + DR[2]) / 2, F + 0.5, (DR[1] + DR[3]) / 2); o.mid = s2(MID[0], F + 0.6, MID[1]);
+        if (S.diag === 2 && DG.sa) o.stuckAt = s2((DG.sa[0] + DG.sb[0]) / 2, F + 1.3, (DG.sa[1] + DG.sb[1]) / 2);
+        o.worst = worst(S); o.figs = { wit: wit && wit.a ? s2(wit.a.x, F + 1, wit.a.z) : null, men: CORNERS.map((k) => (men[k] && men[k].a ? s2(men[k].a.x, F + 1, men[k].a.z) : null)) };
+        const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)); o.fov = +cam0.fov.toFixed(1);
+        return o;
+      },
+    };
   },
 };
+void FR;

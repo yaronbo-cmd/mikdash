@@ -1097,6 +1097,10 @@ const S08 = {
   sections: { 1: [-44, -19.5, -32, -11.5], 2: [-44, -11.5, -32, -3.5], 3: [-54, 4.5, -42, 12.5] },
   near: { 1: 'N', 2: 'N', 3: 'S' },
   fire: [-32, -31.5], pile: [-44, -31.5],
+  // (b131 look round, המחשה) the pour's work places in each section's own frame (lx across, lz toward the near board; pourlv.js toWorld):
+  // the hearth with the next cauldron left of the near board (the approved sample's place), the stones' heap right of it, where two
+  // pairs of porters take each stone and carry it in
+  pourAt: { hearth: [-9.5, 5.5], heap: [9.2, 2.4] },
   // ── h131 frame ── the frame's three works and the finale (all המחשה): level 1 the joined frame as the crew set it down — its shift
   // [dx, dz] and turn (degrees) from the stakes; level 2 the four loose beams as the crew laid them inside the place — each its middle
   // and its turn (0 along x, 90 along z); level 3 the frame pegged at three corners, the one pegged off its stake turned about NW;
@@ -1118,9 +1122,11 @@ const S08 = {
   // the stage's cameras on the Mount ([eye], [aim]): the opening from high down to the altar's site (rule 3); the site from the frame's
   // stand; the end: high over the altar's middle, the whole Azarah round it
   cam: {
-    open: [[[150, 260, -260], [-38, 16, -3.5]], [[-6, 70, -70], [-38, 16, -3.5]]],
+    // (b131 look round: no bird's-eye — a short low oblique beat over the court onto the altar's place, then close and low behind the
+    //  men at the north stand, the place of the yesod before them in the day's light)
+    open: [[[-4, 37, -60], [-38, 16, -6]], [[-29, 21.5, -37], [-38, 16.4, -17]]],
     site: [[-38, 40, -46], [-38, 16, -6]],
-    end: [[-22, 41, 30], [-38, 16.5, -4]],   // (b131 fix round 1: the end card on the white yesod, near and lit — not the dim top view of the Mount)
+    end: [[-10, 44, 38], [-38, 16.5, -3.5]],   // (b131 look round: farther — the white yesod whole under the card)   // (b131 fix round 1: the end card on the white yesod, near and lit — not the dim top view of the Mount)
   },
   // ── the pit at Beit Kerem (מידות ג, ד: "ממקום שחופרין למטה מהבתולה"): the sheet on the one world grid ──
   pit: {

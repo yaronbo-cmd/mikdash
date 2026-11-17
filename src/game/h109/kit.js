@@ -117,6 +117,8 @@ export function createGang(X) {
         if (!a.path) { w.wait -= dt; if (w.wait <= 0 && w.from && w.to) { w.wait = 1e9; go(w); } }
         if (a.path) { a.arm[0] = a.armT[0] = 1.2; a.arm[2] = a.armT[2] = 1.2; a.arm[1] = a.armT[1] = -0.3; a.arm[3] = a.armT[3] = -0.3; }
       }
+      // (b131: an act that sets a man on his place itself, with no path, may make his legs walk in any role: w.stride, w.rate)
+      if (w.stride && w.role !== 'pull' && w.role !== 'push') { a.wk = Math.max(a.wk || 0, w.stride); a.ph = (a.ph || 0) + dt * Math.PI * (w.rate || 1.2); }
     }
     void V;
   }

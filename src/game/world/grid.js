@@ -374,7 +374,9 @@ const S05 = {
     intro: [[[40, 460, 430], [73, 0, 0]], [[150, 120, 110], [73, 6, 0]], [[118, 34, 30], [70, 8, 10]], [[95, 70, 40], [75, 8, 0]]],
     // ── h130 ── the new stage's cameras [eye, aim]: each stand's view (the lifted view is the look's shape over it; the test's views are
     // the spectators' and the seat's own eyes), the stage's opening; the wood and light stations' stand views
-    gal: { N: [[84, 27, -16], [75, 8, -56]], S: [[63, 27, 16], [72, 8, 56]], E: [[90, 27, 8], [130, 8, 3]] },
+    // (build 130, after its first still: seen through the act's own wider lens — gallery.js FOV — the whole run, the sledges and the
+    //  kohen in the left third)
+    gal: { N: [[80, 30, -8], [82, 6, -55]], S: [[67, 30, 8], [65, 6, 55]], E: [[84, 30, 6], [130, 6, 8]] },
     open130: [[[40, 420, 400], [73, 0, 0]], [[150, 110, 100], [73, 6, 0]], [[110, 40, 34], [73, 8, 0]]],
     wood: [[112, 14, -36], [122, 7.6, -46]],
     light: { 1: [[90, 22, 46], [99.6, 12, 62]], 2: [[56, 30, 2], [73.5, 30, 24]], 3: [[50, 34, -6], [73.5, 34, 24]], measures: [[30, 12, 22], [26, 7, 31.5]], wicks: [[34, 11, 17], [30, 7, 24]] },

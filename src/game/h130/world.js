@@ -261,7 +261,7 @@ function css() {
   st.textContent = `.h130-lab{transform:translate(-50%,-50%);font:900 16px/1 Heebo,system-ui;color:#3A2608;background:rgba(255,246,222,.94);border:2px solid #C8A04A;border-radius:12px;padding:3px 8px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25);direction:rtl}
 .h130-lab.hot{background:#FFE7A0;border-color:#E09A2A}
 .h130-ill{left:calc(12px + env(safe-area-inset-left,0px));top:calc(64px + env(safe-area-inset-top,0px));background:rgba(28,20,10,.72);color:#FFE9B0;font:800 14px/1 Heebo,system-ui;padding:6px 12px;border-radius:10px;direction:rtl}
-.h130-src{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:min(86vw,760px);background:rgba(28,20,10,.82);color:#FFF6DA;font:700 15px/1.35 Heebo,system-ui;padding:8px 14px;border-radius:12px;direction:rtl;text-align:center;transition:opacity .4s}
+.h130-src{left:50%;top:calc(96px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:min(86vw,760px);background:rgba(28,20,10,.82);color:#FFF6DA;font:700 15px/1.35 Heebo,system-ui;padding:8px 14px;border-radius:12px;direction:rtl;text-align:center;transition:opacity .4s}
 .h130-src.off{opacity:0}`;
   document.head.appendChild(st);
 }

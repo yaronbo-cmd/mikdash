@@ -26,7 +26,7 @@ import { BOOK } from '../world/grid.js';
 const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
 const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
 // (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
-const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4;   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
+const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
 const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
 export const GLINES = Object.freeze({
   puzzle: 'גררו עמוד מהמזחלת אל הקו המסומן · כשמרוצים: הקישו על נושא האבוקה',
@@ -114,7 +114,11 @@ export const GALLERY = {
     const bearerAt = (x, z, fx, fz) => { if (!bearer) return; bearer.a.x = x; bearer.a.z = z; SH130.crew.face(bearer, fx, fz); bearer.fx = fx; bearer.fz = fz; };
     const torchP = (ti) => { const t = L.torch[ti]; return [t[0], GEO.FLOOR + TORCH_H, t[1]]; };
 
-    /* the camera */
+    /* the camera: the act's own wider lens while the puzzle and the test play (held while his look is at rest), the world's back after */
+    const cam0 = X.camera, fov0 = cam0.fov; let lensOn = false;
+    const lens = (f) => { try { if (Math.abs(cam0.fov - f) > 0.01) { cam0.fov = f; cam0.updateProjectionMatrix(); } } catch (e) { /* */ } };
+    const holdLens = () => { if (!lensOn) return; const Lk = X.lookNow ? X.lookNow() : null; if (Lk && (Lk.u > 0.01 || Math.abs(Lk.yaw) > 0.03 || Lk.ov)) return; lens(FOV); };
+    const lensSet = (v) => { lensOn = !!v; if (v) lens(FOV); else lens(fov0); };
     const home = (d = 1.0) => X.shot(CG[0], CG[1], d);
     const srcTag = tag('h130-src'), illTag = tag('h130-ill'); srcTag.set(''); illTag.set('');
     let srcT = 0; const src = (t, s = 6) => { srcTag.set(t); srcT = t ? s : 0; };
@@ -302,9 +306,9 @@ export const GALLERY = {
     }
     function doRaise(rz) {
       return new Promise((res) => {
-        A.phase = 'raise'; X.line(GLINES.raise, 2600);
+        A.phase = 'raise'; X.line(GLINES.raise, 2600); lensSet(false);
         const f = footAt(rz.a), fr = { x: f.x, z: f.z, along: [runDir[0], runDir[1]], across: [court[0], court[1]] };
-        const sub = raiseAct(X, { fr, id: m.id, onEnd: (r) => { A.raiseRes = r; A.raised = r.c; A.raisedRec = rz; A.broke = r.c.broke | 0; A.dmg += A.broke; try { sub.end(); } catch (e) { /* */ } A.sub = null; X.kohen(true); heroAt(X, SP.x, SP.z, SP.face[0], SP.face[1]); A.phase = 'test'; home(0.8); res(); } });
+        const sub = raiseAct(X, { fr, id: m.id, onEnd: (r) => { A.raiseRes = r; A.raised = r.c; A.raisedRec = rz; A.broke = r.c.broke | 0; A.dmg += A.broke; try { sub.end(); } catch (e) { /* */ } A.sub = null; X.kohen(true); heroAt(X, SP.x, SP.z, SP.face[0], SP.face[1]); A.phase = 'test'; lensSet(true); home(0.8); res(); } });
         A.sub = sub; A.busy = false; sub.begin();
       });
     }
@@ -407,7 +411,7 @@ export const GALLERY = {
     async function begin2() {
       if (lv === 1 && !st.open1) { try { await opening(); } catch (e) { console.warn('[h130] opening', e && e.message); } if (A.ended) return; }
       A.phase = 'puzzle'; A.busy = false;
-      home(1.0); src(LINES.middot25, 7);
+      lensSet(true); home(1.0); src(LINES.middot25, 7);
       X.line(lv === 3 ? GLINES.puzzle3 : GLINES.puzzle, 0);
       ghost(true);
       await wait(1.2);
@@ -427,6 +431,7 @@ export const GALLERY = {
       update(dt) {
         A.t += dt;
         if (srcT > 0) { srcT -= dt; if (srcT <= 0) srcTag.set(''); }
+        holdLens();
         if (A.sub) A.sub.update(dt);
         if (A.crowd) crowdStep(A.crowd);
         const k = 1 - Math.exp(-dt / LAG);
@@ -458,7 +463,7 @@ export const GALLERY = {
         blinkCols([], false); spectators(false);
         if (bearer) SH130.crew.remove(bearer);
         for (const o of all) PR.remove(o);
-        srcTag.remove(); illTag.remove();
+        srcTag.remove(); illTag.remove(); lensSet(false);
         X.hand(null); X.kohen(true);
         own(side, false);
       },

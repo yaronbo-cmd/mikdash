@@ -8,7 +8,8 @@
  *            galCheck · galPts · allowedOf · solve · slackOf · evenOf · menorahGap
  *            the raising (h120's model, kept as it is): RAISE_LV · CRADLE · BAL · pullShare · colFresh · colStep · leanAfter · colPts ·
  *            wedge
- *   Wood     WOOD · LOGS · logFresh · wormy · rollStep · seenHoles · tapAt · peelAt · decide · cutAt · woodPts
+ *   Wood     WOOD · LOGS · logFresh · wormy · rollStep · seenHoles · tapAt · peelAt · decide · cutAt · woodPts · endBad · bestCut ·
+ *            piecesOf
  *   Light    WICK · wickFresh · wickStep · wickOf · MEASURES · measure · minPours · CLIMB · climbFresh · climbStep · POUR ·
  *            pourFresh · pourStep · lightOf · lightPts
  *   PLAN · KINDS · freshH130 · createH130(save) · fromOld(old, oldDone)   the free-choice face of the director (as h129's)
@@ -363,7 +364,22 @@ export function peelAt(S, s, angle) {
 export function decide(log, to, cut = null) {
   const bad = cut ? cut.res === 'near' : wormy(log);
   if (to === 'clean') return bad ? { ok: false, flag: 'wood.worm', waste: 0 } : { ok: true, flag: null, waste: 0 };
+  // (build 130 W: a log with one bad end thrown out whole, uncut: no worm in the pile, but the good wood is lost with it)
+  if (bad && !cut && endBad(log)) return { ok: true, flag: null, waste: 1 };
   return bad ? { ok: true, flag: null, waste: 0 } : { ok: false, flag: null, waste: 1 };
+}
+/** a log whose hollow runs from one of its ends (level 3: cut that end off, the rest is saved) */
+export const endBad = (log) => !!(log.hollow && (log.hollow.s0 <= EPS || log.hollow.s1 >= log.L - EPS));
+/** the cut that saves the most good wood with no worm left: the middle of the right band past the hollow's end (the bot's, the hint's) */
+export function bestCut(log) {
+  if (!endBad(log)) return null;
+  const m = (WOOD.RIGHT[0] + WOOD.RIGHT[1]) / 2;
+  return log.hollow.s0 <= EPS ? +(log.hollow.s1 + m).toFixed(3) : +(log.hollow.s0 - m).toFixed(3);
+}
+/** what a cut leaves: the piece kept [k0, k1] (the good side) and the piece that goes out [o0, o1] (the hollow's side) */
+export function piecesOf(log, s) {
+  const left = endBad(log) ? log.hollow.s0 <= EPS : s < log.L / 2;
+  return left ? { keep: [s, log.L], out: [0, s] } : { keep: [0, s], out: [s, log.L] };
 }
 /**
  * level 3: a cut at s across a log with one bad end. Right: RIGHT[0] … RIGHT[1] past the hollow's end, toward the good wood. Nearer

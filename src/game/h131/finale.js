@@ -83,6 +83,12 @@ export const FINALE_ACT = {
       const ax = clamp(bx, FIN.X0 + NK.WIN, FIN.X0 + FIN.NX - NK.WIN), az = clamp(bz, FIN.Z0 + NK.WIN, FIN.Z0 + FIN.NZ - NK.WIN), O = NK.WOFF;
       const eye = [ax + O[0], Y1 + O[1], az + O[2]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
     }
+    /** is there grey left near where the cloth's shot looks (else it moves on: also when a hand lifted off the yesod's edge) */
+    function greyNear() {
+      const q = A.cshot; if (!q) return false;
+      for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5; if (Math.abs(x - q[0]) < 8 && Math.abs(z - q[1]) < 5) return true; }
+      return false;
+    }
     /** the pull's shot follows the timber out (from the side, behind its pullers) */
     function pullCam(k) {
       const C = NK.PULL[k], D = TIMBER[k], s = Math.min(NK.FOLLOW, tim[k].s) * 0.6, o = [D.dir[0] * s, 0, D.dir[1] * s];
@@ -215,7 +221,10 @@ export const FINALE_ACT = {
     }
     function startWhite() {
       try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
-      show('white'); clothShot(1.3); X.line(NLINES.cloth, 5200); X.wait(5.4).then(() => { if (A.step === 'white' && cover(Fs) < 0.1) X.line(NLINES.white, 4000); }); hintNext(true);
+      show('white'); clothShot(1.3);
+      // (the man kneels on the yesod with the cloth in his hands, at the grey nearest the lime: whole in the picture, not cut at its foot)
+      if (A.cshot && !A.wiped) { CL.x = CL.tx = A.cshot[0]; CL.z = CL.tz = A.cshot[1]; A.wiped = 1; }
+      { const w = crew[0]; if (w && w.a) { w.a.x = CL.x + 0.5; w.a.z = CL.z - 1.3; w.a.fixedY = Y1; } } X.line(NLINES.cloth, 5200); X.wait(5.4).then(() => { if (A.step === 'white' && cover(Fs) < 0.1) X.line(NLINES.white, 4000); }); hintNext(true);
     }
     function startWater() { show('water'); for (const h of holes) h.visible = true; shot(NK.WATER, cutOr(NK.WATER[0], 1.3)); X.line(NLINES.water, 4000); hintNext(true); }
     // ── the pull: grip, pull, give way, the crew carries it out
@@ -412,7 +421,7 @@ export const FINALE_ACT = {
           for (const tw of A.tw.slice()) { tw.t += dt; const u = Math.min(1, tw.t / tw.d); tw.f(u); if (u >= 1) { A.tw.splice(A.tw.indexOf(tw), 1); if (tw.res) tw.res(); } }
           if (A.t % 0.5 < dt) hideWorld();
           if (A.step === 'pull') pullStep(dt);
-          if (A.step === 'white') whiteStep(dt);
+          if (A.step === 'white') { whiteStep(dt); if (A.fl == null && !A.busy && !A.whiteDone && A.t - (A.cshotT || 0) > 1.2) { A.cshotT = A.t; if (!greyNear()) clothShot(0.9); } }
           waterStep(dt);
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h131] finale', e && e.message); } }
       },

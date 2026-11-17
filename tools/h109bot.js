@@ -1224,7 +1224,7 @@
   // enough to keep the stream off the timber and off the reeds' corner. The finger is one held touch (or the mouse's left button) that
   // the page moves every 100 ms: __BOT8.f() gives its point from the act's grab (the drag is relative to where it landed). __BOT8_BAD:
   // the first pour of the run at one spot only, until the act sets it (as the test: a hollow; then the re-pour played well). ── /h131 ──
-  const P8 = { 1: { order: [], tilt: 0.85 }, 2: { order: [-3.65, 3.85, 0], tilt: 0.9 }, 3: { order: [-4.6, -0.95, 2.9], tilt: 0.9 } };
+  const P8 = { 1: { order: [], tilt: 0.85, bad: [-4, 0.7] }, 2: { order: [-3.65, 3.85, 0], tilt: 0.9, bad: [-4, 0.7] }, 3: { order: [-4.6, -0.95, 2.9], tilt: 0.9, bad: [0, 1.0] } };   // (bad: the test's one spot and tilt)
   const tOf8 = (x) => (x + 6 - 0.4) / 11.2;
   const B8 = (window.__BOT8 = window.__BOT8 || { ph: 0, since: 0, still: 0, rest: null, until: 0, key: '', bad: !!window.__BOT8_BAD });
   B8.f = () => {
@@ -1238,13 +1238,13 @@
     if (window.__BOT8_STOP && a.filled > window.__BOT8_STOP) return null;   // (a probe's reload in the middle of a pour)
     if (a.setting) return null;
     let x;
-    if (B8.badRun) x = -4;
+    if (B8.badRun) x = P.bad[0];
     else {
       if (B8.ph < P.order.length && (B8.still > 2 || now8 - B8.since > 16)) { B8.ph++; B8.since = now8; B8.still = 0; }
       x = P.order[B8.ph];
       if (B8.ph >= P.order.length) { if (B8.rest == null || now8 > B8.until || B8.still > 2) { B8.rest = a.view ? a.view.lowX : 0; B8.until = now8 + 4; B8.still = 0; } x = B8.rest; }
     }
-    const tilt = B8.badRun ? 0.7 : P.tilt, tw = Math.max(0, Math.min(1, tOf8(x)));
+    const tilt = B8.badRun ? P.bad[1] : P.tilt, tw = Math.max(0, Math.min(1, tOf8(x)));
     if (!a.grab) return [Math.round(W * 0.25), Math.round(HH * 0.86)];
     const g = a.grab; return [Math.round(Math.max(8, Math.min(W - 8, g.sx + (tw - g.t0) * 0.42 * W))), Math.round(Math.max(8, Math.min(HH - 8, g.sy - tilt * 0.3 * HH)))];
   };

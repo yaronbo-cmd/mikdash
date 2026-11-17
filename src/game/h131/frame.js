@@ -19,7 +19,7 @@
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK, LOSS } from './model.js';
 import { fresh, load, save, grab, dragTo, step, release, pegTap, diagDrop, diagLift, crackBeam, square, worst, offBy, cornerAt, result, CORNERS, STAKE, SIDES, SIDE_K, FR } from './frame-model.js';
-import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold } from './frame3d.js';
+import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold, siteTidy } from './frame3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { card, cite } from '../h129/ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -31,11 +31,14 @@ const BZ = Object.freeze({ crack: '30 30 50'.split(' ').map(Number), square: '40
 /** the act's numbers: the camera (eye and aim; המחשה), how near a finger must be to a corner / a board / the diagonal (px), a tap's
  *  most travel (px), the diagonal's lift while carried, the corner glow's time */
 export const FK = Object.freeze({
-  EYE: W8.cam.frame[0], AIM: W8.cam.frame[1], FOV: 46,
+  EYE: W8.cam.frame[0], AIM: W8.cam.frame[1], FOV: 52,
   PICK: 48, PICKM: 30, BEAM: 26, TAP: 12, LIFT: 2.2, GLOW: 0.5,
   // the close shot behind the corner handled: the eye over it from the stand's side (up, back), the lens; the second man's place along
   // the board; how long a new shot eases (s), and how long the act waits before it is read as settled
   NEAR: Object.freeze([10.5, 14.5]), NFOV: 46, HELP: 4.5, EASE: 0.9, SETTLE: 1.1,
+  // (b131 look round) the carriers: a man's place off the board's line (amot) and in from its end; a shot farther than CUT amot from
+  // where the camera is cuts there (an ease from the pit's valley ran under the ground: a blank first frame); the mallet's blows (s)
+  SIDE: 0.95, IN: 1.3, CUT: 60, MALLET: 1.3,
 });
 /** the act's words (instructions: what to do, at most five words; the frame's way of setting is המחשה) */
 export const FLINES = Object.freeze({
@@ -76,7 +79,7 @@ export const FRAME_ACT = {
     // ── the camera: one shot over the frame from the north (the stand's side), the witness and the diagonal's rest in it
     const cam0 = X.camera, fov0 = cam0.fov;
     const lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
-    const camHome = (d = 1.1) => X.shot(FK.EYE.slice(), FK.AIM.slice(), d);
+    const camHome = (d = 1.1) => X.shot(FK.EYE.slice(), FK.AIM.slice(), Math.hypot(cam0.position.x - FK.EYE[0], cam0.position.y - FK.EYE[1], cam0.position.z - FK.EYE[2]) > FK.CUT ? 0 : d);
     // ── the figures: the witness pointing at the place; the four frame men at the corners
     const B = createBeat(X), gang = createGang(X);
     // (two sets, by the shot: the whole frame — the witness and a man at each corner; the work close — the man at the corner handled
@@ -84,23 +87,42 @@ export const FRAME_ACT = {
     let wit = null, men = {}, help = null;
     function cast(k) {
       gang.clear(); wit = null; men = {}; help = null;
+      // (b131 look round: in at once, whole — a fading man was a shot with nobody in it — and with the step's job: both hands on the board)
+      const now = (w) => { if (w && w.a) w.a.vis = 1; return w; };
       if (!k) {
-        wit = gang.add(S8.stand.witness[0], S8.stand.witness[1], { tunic: '#EDE6D2', col2: '#4E4A78', role: 'point', fx: MID[0], fz: MID[1], crew: 3 });
-        for (const q of CORNERS) { const p = manAt(q); men[q] = gang.add(p[0], p[1], { role: 'hold', item: 'staff', fx: p[2], fz: p[3], crew: CORNERS.indexOf(q) }); }
+        wit = now(gang.add(S8.stand.witness[0], S8.stand.witness[1], { tunic: '#EDE6D2', col2: '#4E4A78', role: 'point', fx: MID[0], fz: MID[1], crew: 3 }));
+        for (const q of CORNERS) { const p = manAt(q); men[q] = now(gang.add(p[0], p[1], { role: 'brace', fx: p[2], fz: p[3], crew: CORNERS.indexOf(q) })); }
         return;
       }
-      const p = manAt(k); men[k] = gang.add(p[0], p[1], { role: 'hold', item: 'staff', fx: p[2], fz: p[3], crew: CORNERS.indexOf(k) });
-      const h = helpAt(k); help = gang.add(h[0], h[1], { role: 'hold', fx: h[2], fz: h[3], crew: (CORNERS.indexOf(k) + 1) % 4 });
+      const p = manAt(k); men[k] = now(gang.add(p[0], p[1], { role: 'brace', fx: p[2], fz: p[3], crew: CORNERS.indexOf(k) }));
+      const h = helpAt(k); help = now(gang.add(h[0], h[1], { role: 'brace', fx: h[2], fz: h[3], crew: (CORNERS.indexOf(k) + 1) % 4 }));
     }
-    /** the second man: along the board from the corner handled (the board across the view, N or S), a little outside it */
-    function helpAt(k) {
-      const c = cornerAt(S, k), sx = k === 'NW' || k === 'SW' ? 1 : -1, sz = k === 'NW' || k === 'NE' ? -1 : 1;
-      void sz; return [c.x + sx * FK.HELP, c.z + 1.3, c.x + sx * FK.HELP, c.z];
+    // (b131 look round, rule 2: the two men carry the board the finger moves — the one across the view at the corner handled (level 2:
+    //  the board of the end handled) — at its end and along it, both hands on it, on its far side from the camera: never in its path,
+    //  never between the camera and the corner; they walk with it as it moves)
+    function boardOf(k) {
+      if (lv === 2) { const p = S.P.find((q) => !q.seat && q.k === k) || S.P.find((q) => q.k === k); if (p && p.side) return p.side; }
+      return k === 'NW' || k === 'NE' ? 'N' : 'S';
     }
-    function manAt(k) {
-      // (beside his corner, outside the frame across the view and a little behind the board: never between the camera and the work)
-      const c = cornerAt(S, k), sx = k === 'NE' || k === 'SE' ? 1 : -1, o = W8.men;
-      return [c.x + sx * o, c.z + 0.6, c.x, c.z];
+    function carry(k, j) {
+      const side = boardOf(k); let a, b;
+      if (lv === 2) { const on = S.P.filter((q) => q.side === side); a = on.find((q) => q.k === k) || on[0]; b = on.find((q) => q !== a) || a; }
+      else { const [ka, kb] = SIDES[side]; a = cornerAt(S, k); b = cornerAt(S, ka === k ? kb : ka); }
+      const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
+      let nx = -uz, nz = ux;
+      if (side === 'N' || side === 'S') { if (nz < 0) { nx = -nx; nz = -nz; } } else if ((side === 'E') !== (nx > 0)) { nx = -nx; nz = -nz; }
+      const d = FK.IN + j * FK.HELP, bx = a.x + ux * d, bz = a.z + uz * d;
+      return [bx + nx * FK.SIDE, bz + nz * FK.SIDE, bx, bz];
+    }
+    /** the second man: along the board from the corner handled */
+    function helpAt(k) { return carry(k || 'NW', 1); }
+    function manAt(k) { return carry(k, 0); }
+    /** the diagonal's two carriers (the whole frame's shot): at its ends, beyond them, as it is carried, falls in, or lies stuck */
+    function diagEnds() {
+      if (DG.carry) return [[DG.x - 16, DG.z - 16], [DG.x + 16, DG.z + 16]];
+      if (S.diag === 2 && DG.sa) return [DG.sa, DG.sb];
+      if (DG.fall) return null;
+      return null;
     }
     // ── the frame's boards, the stakes' green rings, the corners' marks, the pegs (level 3), the diagonal
     const boards = {}; for (const e of S.E.filter((q) => q.beam)) boards[e.beam] = beamMesh(X, Mt.y8frame, root);
@@ -146,14 +168,17 @@ export const FRAME_ACT = {
         setBeam(diag, [DG.x - h, DG.z - h], [DG.x + h, DG.z + h], null, F + FK.LIFT, F + FK.LIFT + 0.6, 0.55); diag.rotation.z = 0;
       }
       // the frame men: at their corners, pushing while the frame moves under the hand
-      const moving = !!S.drag && !S.drag.held;
+      const moving = !!S.drag && !S.drag.held, DE = A.focus ? null : diagEnds();
       for (const k of CORNERS.concat(help ? ['help'] : [])) {
-        const w = k === 'help' ? help : men[k]; if (!w || !w.a) continue; const p = k === 'help' ? helpAt(A.focus) : manAt(k);
+        const w = k === 'help' ? help : men[k]; if (!w || !w.a || w.mallet) continue;
+        let p = k === 'help' ? helpAt(A.focus) : manAt(k), want = moving ? 'push' : 'brace';
+        // (the diagonal's beat: the NW and SE men carry it by its ends, a step beyond each)
+        if (DE && (k === 'NW' || k === 'SE')) { const e = DE[k === 'NW' ? 0 : 1], o = k === 'NW' ? -0.7 : 0.7; p = [e[0] + o, e[1] + o, e[0], e[1]]; want = DG.carry ? 'push' : 'brace'; }
         const dd = Math.hypot(w.a.x - p[0], w.a.z - p[1]);
         if (dd > 0.02) { const kk = 1 - Math.exp(-dt * 5); w.a.x += (p[0] - w.a.x) * kk; w.a.z += (p[1] - w.a.z) * kk; }
         w.fx = p[2]; w.fz = p[3];
-        const want = moving && (lv !== 1 || true) ? 'push' : 'hold';
-        if (w.role !== want) gang.setRole(w, want, { fx: p[2], fz: p[3], stride: want === 'push' ? 0.7 : 0, rate: 1.4 });
+        const walk = dd > 0.15 || (moving && want === 'push');
+        if (w.role !== want || !!w.stride !== walk) gang.setRole(w, want, { fx: p[2], fz: p[3], stride: walk ? 0.7 : 0, rate: 1.4 });
       }
     }
     // ── the fingers: a corner (or a board) dragged; a tap on a peg; the diagonal carried, lowered, lifted or forced
@@ -225,7 +250,8 @@ export const FRAME_ACT = {
       const r = pegTap(S, k); if (!r) return;
       const st = cornerAt(S, k), at = { x: st.x, y: F + 1.6, z: st.z };
       V.knock(0.7); V.groan(); X.dust(st.x, F + 0.4, st.z, 5, 2);
-      try { const w = men[k]; if (w) { gang.setRole(w, 'pull', { fx: st.x, fz: st.z }); X.wait(0.9).then(() => gang.setRole(w, 'hold', { fx: st.x, fz: st.z })); } } catch (e) { /* */ }
+      // (rule 2: the peg is knocked loose by the corner's man with a wooden mallet — no iron at the altar)
+      try { const w = men[k]; if (w) { w.mallet = 1; gang.setRole(w, 'hammer', { item: 'mallet', fx: st.x, fz: st.z, stride: 0 }); X.wait(FK.MALLET).then(() => { w.mallet = 0; gang.setRole(w, 'brace', { item: null, fx: st.x, fz: st.z }); }); } } catch (e) { /* */ }
       ev('peg:' + k + ':' + (r.right ? 'right' : 'wrong'));
       if (!r.right) X.line(FLINES.wrongPeg, 3200); else X.quick(at, 'משוחררת!', null);
       keep(); hintNext(true);
@@ -277,7 +303,9 @@ export const FRAME_ACT = {
       const res = result(S);
       if (m.id === 'frame1' && !resumed) await card(X, `<b style="font:900 20px Heebo,system-ui">המלבן</b>${cite(LINES.rashi)}<small style="display:block;margin-top:8px">${FLINES.witness}</small>`, 8000);
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: F + 1, z: MID[1] },
-        film: { eye: [MID[0], F + 44, MID[1] - 40], aim: [MID[0], F, MID[1]], secs: 1.6 } });
+        // (b131 look round: the film is the low whole-frame view, the frame men in it at their corners, nobody else's figures, the kohen
+        //  not cut in the foreground; the men go when it ends)
+        film: { eye: FK.EYE.slice(), aim: FK.AIM.slice(), secs: 1.6, kohen: false, own: () => gang.list.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }
     // ── the hint hand (rule 25: one; rule 34: level 1 shows the way, the help less on 2 and 3)
     function hintNext(force) {
@@ -308,11 +336,13 @@ export const FRAME_ACT = {
       let p = cornerAt(S, k); if (lv === 2) { const q = S.P.find((r) => !r.seat && r.k === k); if (q) p = q; }
       return [(p.x + st[0]) / 2, (p.z + st[1]) / 2];
     }
+    // (an ease from far — the pit's valley, the walk — cuts: eased, the camera passed under the ground and the first frame was blank)
+    function easeTo(p) { const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > FK.CUT ? 0 : FK.EASE; }
     function shotTo(k) {
       A.focus = k; A.shotT = A.t;
-      if (!k) { lens(FK.FOV); X.shot(FK.EYE.slice(), FK.AIM.slice(), FK.EASE); cast(null); ev('shot:wide'); return; }
+      if (!k) { lens(FK.FOV); X.shot(FK.EYE.slice(), FK.AIM.slice(), easeTo(FK.EYE)); cast(null); ev('shot:wide'); return; }
       const c = focusPt(k), aim = [c[0], F + 1, c[1]], eye = [c[0], F + 1 + FK.NEAR[0], c[1] - FK.NEAR[1]];
-      lens(FK.NFOV); X.shot(eye, aim, FK.EASE); cast(k); ev('shot:' + k);
+      lens(FK.NFOV); X.shot(eye, aim, easeTo(eye)); cast(k); ev('shot:' + k);
     }
     function shotStep() {
       if (A.fl != null || S.drag || DG.carry || DG.fall || A.busy) return;
@@ -323,7 +353,7 @@ export const FRAME_ACT = {
     return {
       close: true,
       begin() {
-        frameHold('act', true);
+        frameHold('act', true); siteTidy(X, true);
         try { X.kohen(false); } catch (e) { /* */ }
         // (b131 fix round 1: the first frame is the close shot behind the corner the work begins at — the men large, not dots in the wide one;
         //  the wide beat stays for the diagonal and the square)
@@ -356,7 +386,8 @@ export const FRAME_ACT = {
       holds() { return A.fl != null; },
       end() {
         FG.detach(); V.stop(); X.hand(null); lens(fov0);
-        gang.clear(); X.props.remove(root);
+        if (!A.done) gang.clear();   // (a finished work's men stay for its film, which clears them)
+        X.props.remove(root); siteTidy(X, false);
         frameHold('act', false);
       },
       at() { return new T.Vector3(MID[0], F + 1, MID[1]); },

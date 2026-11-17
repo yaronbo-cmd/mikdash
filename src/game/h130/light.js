@@ -171,8 +171,8 @@ export const LIGHT = {
       // he goes to the door of Beit Shemanya; the card says what the chamber was, and the seven measures
       // (build 130 closing: the book's side and height put the eye 1.5 over a flat stone before the door at y 10.2 (a raycast at the
       //  oil phase: d 2.7), which filled the frame; now 30° east of the door's axis, 8 amot off and 50° down, over the stone's edge and
-      //  into the door: no ray from the eye to the seven cups or the jar meets anything. (A low eye under it, 20° down, saw them too, but
-      //  the probe's touches there poured nothing — the cause not found; this view is near the book's old one, where they pour)
+      //  into the door: no ray from the eye to the seven cups or the jar meets anything (a low eye under it, 20° down, saw them too; this
+      //  one shows the row of cups whole from above, as the book's old view meant to)
       { const A0 = [ML.bench[0], FLOOR + 1, ML.bench[2] - 0.5], az = OILCAM.AZ * D2R, el = OILCAM.EL * D2R, h = OILCAM.D * Math.cos(el);
         const E = [A0[0] + Math.sin(az) * h, A0[1] + OILCAM.D * Math.sin(el), A0[2] - Math.cos(az) * h];
         // (SHIFT: the aim moved toward the screen's right, amot — 0: the cups in the middle)

@@ -57,8 +57,8 @@ const K = Object.freeze({ TAP: 14, TIP: 64, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 }
 /** the shots (sheet amot round the stone in hand): work — from the south-east above and behind, the kohen whole in the left third, the
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
-  work: { back: 6.8, up: 12.5, turn: -0.62, mid: 0.36, aimY: 0.6, fov: 50, k3: 1.15 },
-  lever: { D: 7.2, H: 11, fov: 50 },
+  work: { back: 11.5, up: 17, turn: -0.85, mid: 0.45, aimY: 0.4, fov: 46, k3: 1.12 },
+  lever: { D: 11, H: 15, fov: 46 },
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -128,7 +128,7 @@ function pitAct(m, X) {
     if (L.st === 'seat') { const s = W.stones[L.i]; return lipW(s, L.side, s.rise); }
     return W3(L.tip[0], F + 0.12, L.tip[1]);
   }
-  function restTip(s) { if (!s) return kz.at.slice(); const d = [s.at[0] - kz.at[0], s.at[1] - kz.at[1]], n = Math.hypot(d[0], d[1]) || 1, [hx] = halfOf(s); const k = Math.max(1.6, n - hx - 0.9); return [kz.at[0] + d[0] / n * k, kz.at[1] + d[1] / n * k]; }
+  function restTip(s) { if (!s) return kz.at.slice(); const d = [s.at[0] - kz.at[0], s.at[1] - kz.at[1]], n = Math.hypot(d[0], d[1]) || 1, [hx] = halfOf(s); const k = Math.max(1.3, n - hx - 2.0); return [kz.at[0] + d[0] / n * k, kz.at[1] + d[1] / n * k]; }
   function leverDraw() {
     const tp = tipW(); holdLever(L.st === 'seat' ? (A.press ? 0.95 : 0.45) : 0.2);
     let ful = null; if (L.st === 'seat') { const s = W.stones[L.i], d = sideDir(L.side, s.yaw), p = lipOf(s, L.side); ful = W3(p[0] + d[0] * 0.75, F + 0.18, p[1] + d[1] * 0.75); }
@@ -207,7 +207,9 @@ function pitAct(m, X) {
       if (w.mode === 'nail') { thumbMove(f, w); return; }
       const q = floorAt(f) || (w.mode === 'lever' ? clampFloor(f) : null); if (!q) return;
       L.tip = q.slice();
-      if (w.mode === 'scrape') { const d = Math.hypot(q[0] - w.last[0], q[1] - w.last[1]); if (d >= K.STEP) { stroke(w.last, q); w.last = q; } }
+      // (the tip sweeps the earth wherever it goes: carried to a lip, it scrapes on the way too)
+      if (!w.last) w.last = q;
+      { const d = Math.hypot(q[0] - w.last[0], q[1] - w.last[1]); if (d >= K.STEP) { stroke(w.last, q); w.last = q; } }
     },
     up(f) {
       const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; V.scrape(0);

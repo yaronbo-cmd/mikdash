@@ -649,9 +649,10 @@ body.h109-act .gm .tw-zone{opacity:0!important}
       // ── h120 ── a free stage's own films (stage 05's opening): PK.before(null, X, M) while no work is picked (packs that say freeFilms)
       if (PK.freeFilms && PK.before && !ONLY && !M.mission()) {
         let p = null; try { p = PK.before(null, X, M); } catch (e) { p = null; }
-        if (p && typeof p.then === 'function') { phase = 'film'; tPhase = 0; act = null; props().marker(null); line(''); p.catch(() => {}).then(() => { CAM.on = false; phase = 'walk'; save(); openMission(); }); return; }
+        if (p && typeof p.then === 'function') { phase = 'film'; tPhase = 0; act = null; props().marker(null); line(''); p.catch(() => {}).then(() => { if (phase === 'act' && act) return; /* ── h129 ── (closing round: as h128's below — an act begun while the free stage's opening film ran (the probes' skip to vaultN) is not dropped by the film's end: dropped, its centering, stone and masons stayed in the arch's picture under a second one) ── /h129 ── */ CAM.on = false; phase = 'walk'; save(); openMission(); }); return; }
       }
       // ── /h120 ──
+      if (act) { const a0 = act; act = null; log('act dropped', mission && mission.id); call(a0.end, {}); }   // ── h129 ── (an act still on is ended, never only forgotten) ── /h129 ──
       mission = M.mission(); phase = 'walk'; tPhase = 0; act = null; OPEN = []; fwLine = null; fwT = 0;
       if (mission) { byWalk = false; showOne(); return; }
       openList();
@@ -812,6 +813,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
     level: () => { const m = lvM || mission; return m ? M.levelOf(m) : 1; },   // ── h114 ── ── /h114 ──
     loss: (n, at, label, stones, res) => loss(n, at, label, stones, res),   // ── h113 ── (res: 'cedar' for a board or a leaf) ── /h113 ──   // ── h111 ── real damage costs points (the owner 8.11) ── /h111 ──
     save: () => save(),
+    acting: () => phase === 'act' && !!act,   // ── h129 ── (closing round: a film that runs on while an act has begun — a test's skip — gives the act its camera) ── /h129 ──
     get pack() { return PK; },
     quick: (at, text, mesh) => quick(at, text, mesh),   // ── h120 ── ── /h120 ──
     perfectScreen: (sub) => perfectScreen(sub),   // ── h120 ── (stage 05's load test: three perfect bays, the full-screen word) ── /h120 ──

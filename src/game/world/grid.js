@@ -911,7 +911,10 @@ const S07 = {
     nightSlab: [[-160, 17.7, -78.6], [-160, 16.2, -74.6]], nightSlabFov: 52,
     nightLevi: [[-155.5, 10.5, -92.5], [-160, 7.2, -84.5]],
     // (round 3) where he sleeps on the slab: from the south-east, the fire beside the camera lighting him
-    nightSleep: [[-153.8, 19.6, -71.8], [-160, 16.4, -76.2]],
+    // (closing round: from (−153.8, 19.6, −71.8) the frame's edge cut the young sleeper east of the fire, the one west of it and the
+    //  elder on the west ledge — the figures gate took them out and reported them; from here, nearer the fire and lower, every sleeper
+    //  is whole in the frame or wholly out of it at 960×600 and 1600×900, the kohen on the slab whole)
+    nightSleep: [[-157.2, 18.7, -71.2], [-160, 16.4, -76.2]],
     // the night's last three pictures (round 3): from the hall's floor at its west end looking east and up — the fire in the lower
     // third with the sleepers round it, the barrel over it; low over the first trough along the channel — the water, the other
     // troughs behind, the Azarah's wall and the House beyond; inside the Gazit at eye height from its north side — the round bench whole

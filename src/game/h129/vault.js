@@ -351,9 +351,9 @@ export const VAULT = {
     function upB(f) {
       if (f.wedge) {
         const { i, side: s } = f.wedge, px = wedgeOut(f); W[i + s].drag = 0;
-        if (Math.abs(px) < 8) return;
-        const dx = (px / (0.1 * innerHeight)) * WEDGE.STEP;   // (a STEP of its way per a tenth of the screen's height)
-        wedgeStep(SB, i, s, dx); eventsB(); return;
+        if (Math.abs(px) < 8 && !(f.sh && f.moved < 20)) return;
+        if (Math.abs(px) >= 8) { const dx = (px / (0.1 * innerHeight)) * WEDGE.STEP;   // (a STEP of its way per a tenth of the screen's height)
+        wedgeStep(SB, i, s, dx); eventsB(); return; }
       }
       if (f.sh && f.moved < 20) {
         const s = f.sh, sg = s === 'L' ? 1 : -1; let bi = -1, bv = 0;
@@ -378,13 +378,14 @@ export const VAULT = {
     //    would leave (wedgePreview): steady (dark, quiet), opening (a hair of light, a little dust, a short creak, the centering shifts a
     //    finger's width toward it), danger (the light widens, more dust, a long creak); the crack and the fallen stone come only on the
     //    release, by today's rules
-    const WS = { key: '', dust: [], cz: 0, worst: 'steady' };
+    const WS = { key: '', st: [], dust: [], cz: 0, worst: 'steady' };
     function warnB(dt) {
       const st = SB.pairs.map((p, i) => {
         let imb = p.L - p.R + p.bias;
         for (const sd of ['L', 'R']) { const w = W[i + sd]; if (w && w.drag) imb = wedgePreview(SB, i, sd, w.drag); }
         return { imb, state: jointState(imb) };
       });
+      WS.st = st.map((q) => q.state);
       const rank = (q) => ['steady', 'opening', 'danger', 'crack', 'stone'].indexOf(q);
       const key = st.map((q) => q.state + (q.imb > 0 ? '+' : '-')).join(',');
       if (key !== WS.key) {
@@ -471,7 +472,7 @@ export const VAULT = {
           A.fing[f.id] = best; f.leg = best; f.dir = inward(best); press[best] = { reach: 0 }; X.hand(null); return;
         }
         if (A.phase === 'wedges') {
-          const w = wedgeUnder(f);
+          const w = wedgeUnder(f), s0 = shoulderUnder(f); if (s0) f.sh = s0;   // (closing round: a wedge drawn out lies by its shoulder — a tap there that does not drag the wedge is the shoulder's)
           if (w) { f.wedge = w; X.hand(null); if (wedgeLoads(SB)[(w.i + 1) + w.side] === 'loaded') { V.groan(); const ww = W[w.i + w.side]; ww.jit = 0.25; X.dust(ww.g.position.x, ww.g.position.y + 0.2, ww.g.position.z, G.big ? 3 : 2, G.big ? 0.6 : 0.2); } return; }
           const s = shoulderUnder(f); if (s) f.sh = s;
         }
@@ -528,7 +529,7 @@ export const VAULT = {
         }
         if (SB) {
           const ld = wedgeLoads(SB);
-          o.B = { warn: WS.worst, states: WS.key, lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
+          o.B = { warn: WS.worst, states: WS.st.join(','), lights: SB.lights, jumps: SB.jumps, dmg: SB.dmg, stones: (SB.flags['vault.stone'] || []).length, done: SB.done, pairs: SB.pairs.map((p) => ({ L: +p.L.toFixed(3), R: +p.R.toFixed(3), bias: +p.bias.toFixed(3) })), loads: ld,
             w: Object.fromEntries(Object.entries(W).map(([id, w]) => { const q = scr(w.g.position.toArray()), d = scr([w.g.position.x, w.g.position.y, w.g.position.z + (id[1] === 'L' ? -1 : 1)]); return [(+id[0] + 1) + id[1], { at: q, out: [d[0] - q[0], d[1] - q[1]] }]; })),
             sh: { L: scr(shoulderPt('L')), R: scr(shoulderPt('R')) }, stepPx: Math.round(0.1 * innerHeight) };
         }

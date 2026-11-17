@@ -34,8 +34,8 @@ export const NK = Object.freeze({
   WATER: W8.cam.water, RISE: W8.cam.rise,
   GRIP: 110, GRIPM: 60, OUT: 34, CLOTH: 6, TILT: 110, ON: 0.3,
   // (b131 look round) the lens; the pullers on the ropes (how many, the first one's distance from the timber's end, the gap between
-  // them, amot); how far the pull's shot follows the timber out (amot); the cloth's shot: its aim kept this far in from the yesod's edge
-  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 12, WIN: 7,
+  // them, amot); how far the pull's shot follows the timber out (amot)
+  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 12,
 });
 /** the act's words (what to do: at most five words) */
 export const NLINES = Object.freeze({
@@ -80,13 +80,15 @@ export const FINALE_ACT = {
     function clothShot(d) {
       let bx = CL.x, bz = CL.z, bd = 1e9;
       for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5, dd = Math.hypot(x - CL.x, z - CL.z); if (dd < bd) { bd = dd; bx = x; bz = z; } }
-      const ax = clamp(bx, FIN.X0 + NK.WIN, FIN.X0 + FIN.NX - NK.WIN), az = clamp(bz, FIN.Z0 + NK.WIN, FIN.Z0 + FIN.NZ - NK.WIN), O = NK.WOFF;
+      // (the grey cell itself in the picture's middle: held in from the edge, the bottom rows fell under the instruction line for good)
+      const ax = clamp(bx, FIN.X0 + 2, FIN.X0 + FIN.NX - 2), az = clamp(bz, FIN.Z0 + 2, FIN.Z0 + FIN.NZ - 2), O = NK.WOFF;
       const eye = [ax + O[0], Y1 + O[1], az + O[2]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
     }
     /** is there grey left near where the cloth's shot looks (else it moves on: also when a hand lifted off the yesod's edge) */
     function greyNear() {
-      const q = A.cshot; if (!q) return false;
-      for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5; if (Math.abs(x - q[0]) < 8 && Math.abs(z - q[1]) < 5) return true; }
+      // (grey where a finger can wipe it: on the screen, clear of the top bar and of the instruction line)
+      const W = innerWidth, H = innerHeight;
+      for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const q = X.scr(FIN.X0 + (c % FIN.NX) + 0.5, Y1, FIN.Z0 + Math.floor(c / FIN.NX) + 0.5); if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100) return true; }
       return false;
     }
     /** the pull's shot follows the timber out (from the side, behind its pullers) */

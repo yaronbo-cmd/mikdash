@@ -782,6 +782,7 @@ body.h109-act .gm .tw-zone{opacity:0!important}
   const X = {
     // ── h128 ── (brief §0.6: before a two-thumb moment the act lifts the camera a little by itself, inside the play zone; 0 lets it down;
     // a tap that returns the camera, a drag or a pinch of his own ends it) ── /h128 ──
+    lookZero: () => { if (LOOK.drag || LOOK.pinch) return false; lookReset(); return true; },   // ── build 130 ── (an act's own fixed eye — the gallery's views from below: the look and its sight rule off at once) ── /build 130 ──
     lookHome: () => { if (LOOK.drag || LOOK.pinch) return false; if (LOOK.u > 0.02 || Math.abs(LOOK.yaw) > 0.03) { LOOK.auto = null; LOOK.back = 0.45; return true; } return false; },   // ── h129 ── (G16: an act's tap where nothing is brings a lifted look home, as a tap does out of the play zone) ── /h129 ──
     lookLift: (u) => { const v = Math.max(0, Math.min(0.45, +u || 0)); if (!v && LOOK.auto == null) return; LOOK.auto = v; },
     // ── h128 ── (part 3, the sea: an act that draws its own scene reads the right thumb's look — u, yaw, the overview — to move its own

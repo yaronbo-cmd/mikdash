@@ -846,7 +846,10 @@ function renderFrame(dt) {
   if (sh) camera.position.add(o);
   composer.render(dt);
   if (sh) camera.position.sub(o);
+  // ── build 130 ── (what the player sees, read right after it is drawn: a one-shot hook for the gallery's frame check) ── /build 130 ──
+  if (AFTER_FRAME.length) { const fs = AFTER_FRAME.splice(0); for (const f of fs) { try { f(renderer); } catch (e) { /* */ } } }
 }
+const AFTER_FRAME = [];
 
 /* ───────── the game (Phase A) ───────── */
 // ── build6 ── the parts handed to the game: a part that is absent, or lacks its entry point, is left out (the flow then shows
@@ -1090,6 +1093,9 @@ $('q').textContent = Q.level === 'high' ? 'איכות: גבוהה' : 'איכות
 window.__T = {
   flyTo, flyToPos, setTime, camera, controls, VIEWS, renderer, scene,
   Raycaster: THREE.Raycaster, Vector3: THREE.Vector3,   // (not the whole namespace: that would defeat tree-shaking)
+  // ── build 130 ── (the frame as the player sees it, drawn now without stepping the world, and the post chain, for the gallery's
+  //  view check and the probes) ── /build 130 ──
+  frameNow: () => { renderFrame(0); }, get composer() { return composer; }, afterFrame: (fn) => { if (typeof fn === 'function' && AFTER_FRAME.length < 8) AFTER_FRAME.push(fn); },
   get life() { return life; },
   jump: (k) => { const v = VIEWS[k]; fly = null; camera.position.set(...v.p); controls.target.set(...v.t); controls.update(); if (squareG) squareG.visible = k === 'top'; },
   // look from p at t (arrays), for test shots

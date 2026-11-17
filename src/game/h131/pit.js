@@ -53,7 +53,7 @@ export const PLINES = Object.freeze({
  *  let go (× the stone's size), the scraping stroke's least step (amot), the thumb's most speed round the rim (turns a second) */
 /** the hint hand's gesture on the screen (px) and the knock's buzz (ms) */
 const HND = Object.freeze({ earth: { dx: 70, dy: 0 }, tip: { dx: 60, dy: -30 }, nail: { dx: 60, dy: 30 } }), HAP = Object.freeze({ knock: [28, 20, 28] });
-const K = Object.freeze({ TAP: 14, TIP: 64, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 });
+const K = Object.freeze({ TAP: 14, TIP: 48, SEAT: 0.8, STEP: 0.35, THUMB: 0.32 });
 /** the shots (sheet amot round the stone in hand): work — from the south-east above and behind, the kohen whole in the left third, the
  *  stone a third of the screen; lever — square to the lever's line, from the camera's side; check — the cradle close; FOV each */
 const SHOT = Object.freeze({
@@ -197,7 +197,7 @@ function pitAct(m, X) {
       if (A.phase === 'check') { A.fl = f.id; f.w = { mode: 'nail', ang: thumbAng(f) }; X.hand(null); return; }
       if (A.phase !== 'work') return;
       if (L.st === 'seat' && (onStone(f, L.i) || onLever(f)) && !nearTip(f)) { A.fl = f.id; f.w = { mode: 'press' }; A.press = true; X.hand(null); ev('press'); return; }
-      if (nearTip(f)) { A.fl = f.id; f.w = { mode: 'lever' }; if (L.st === 'seat') unseat(true); L.st = 'held'; greensShow(true); X.hand(null); V.scrape(0.2); ev('lever'); return; }
+      if (nearTip(f)) { A.fl = f.id; f.w = { mode: 'lever', last: floorAt(f) }; if (L.st === 'seat') unseat(true); L.st = 'held'; greensShow(true); X.hand(null); V.scrape(0.2); ev('lever'); return; }
       const q = floorAt(f); if (!q) return;
       A.fl = f.id; f.w = { mode: 'scrape', last: q }; if (L.st === 'seat') unseat(true); L.st = 'held'; L.tip = q.slice(); X.hand(null); ev('scrape');
     },
@@ -213,6 +213,8 @@ function pitAct(m, X) {
     },
     up(f) {
       const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; V.scrape(0);
+      // (the stroke's last bit, shorter than a step, still sweeps: a short stroke on a small screen is a whole one)
+      if ((w.mode === 'lever' || w.mode === 'scrape') && w.last) { const q = floorAt(f); if (q && Math.hypot(q[0] - w.last[0], q[1] - w.last[1]) > 0.04) { stroke(w.last, q); w.last = q; } }
       if (w.mode === 'press') { A.press = false; relNow(); return; }
       if (w.mode === 'nail') return;
       if (w.mode === 'lever') { greensShow(false); trySeat(); if (L.st !== 'seat' && shotK !== 'work') workShot(0.9); return; }

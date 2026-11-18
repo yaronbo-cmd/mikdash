@@ -99,7 +99,10 @@ export const FINALE_ACT = {
       const asp = cam0.aspect || 1.6, f0 = cam0.fov || NK.FOV;
       for (const f of [f0, GU(f0)]) { GC.position.set(P[0][0], P[0][1], P[0][2]); GC.up.set(0, 1, 0); GC.lookAt(P[1][0], P[1][1], P[1][2]); GC.fov = f; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
       // (the camera itself, once it has come to the shot: a follow shot chases its aim)
-      const c = cam0.position; if (Math.hypot(c.x - P[0][0], c.y - P[0][1], c.z - P[0][2]) < 4) { cam0.updateMatrixWorld(true); GC.position.copy(c); GC.quaternion.copy(cam0.quaternion); GC.fov = f0; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
+      const c = cam0.position, dc = Math.hypot(c.x - P[0][0], c.y - P[0][1], c.z - P[0][2]);
+      if (dc < 4) { cam0.updateMatrixWorld(true); GC.position.copy(c); GC.quaternion.copy(cam0.quaternion); GC.fov = f0; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
+      // (and once the camera rests on the shot, the figures gate's own probe on the director's own pose — the one word that counts)
+      if (dc < 0.5) { try { const G = globalThis.__FIG; if (G && G.probe) { const r = G.probe(x, y, z, { x: MID[0], y: Y1, z: MID[1] }); if (!r.on || r.cut || r.between) return false; } } catch (e) { /* */ } }
       return true;
     }
     /** the nearest place to (x, z) within r amot where a man stands whole in the shot (null: none) */
@@ -551,7 +554,7 @@ export const FINALE_ACT = {
       at() { return new T.Vector3(MID[0], Y1, MID[1]); },
       dbg() {
         const s2 = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
-        const o = { figOut: A.outN || 0, rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
+        const cq = cam0.position, o = { rest: !!A.pose && Math.hypot(cq.x - A.pose[0][0], cq.y - A.pose[0][1], cq.z - A.pose[0][2]) < 0.3, figOut: A.outN || 0, rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
         o.grip = s2(GRIP_AT[0], Y1, GRIP_AT[1]);
         for (const k of ['S', 'E']) { const g = pxAmah(k); o['dir' + k] = [+g.ux.toFixed(2), +g.uy.toFixed(2), +g.ppa.toFixed(1)]; o['s' + k] = +tim[k].s.toFixed(2); }
         o.jar = s2(jar.position.x, jar.position.y + 0.8, jar.position.z);

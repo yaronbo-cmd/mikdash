@@ -365,7 +365,7 @@ export const FRAME_ACT = {
     function easeTo(p) { if (A.cut) { A.cut = 0; return 0; } const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > FK.CUT ? 0 : FK.EASE; }
     const fig = figTest(T);
     function shotTo(k) {
-      A.focus = k; A.shotT = A.t;
+      A.focus = k; A.shotT = A.t; A.fb = k ? boardOf(k) : '';
       if (!k) { lens(FK.FOV); X.shot(FK.EYE.slice(), FK.AIM.slice(), easeTo(FK.EYE)); cast(null); ev('shot:wide'); return; }
       // (b131 look round 3b, C2: the close shot steps back until the men who carry the board are whole in it — the man at the corner
       //  handled, and the one at the board's other end either whole or wholly out of the picture; never their heads at the frame's edge)
@@ -386,7 +386,10 @@ export const FRAME_ACT = {
     }
     function shotStep() {
       if (A.fl != null || S.drag || DG.carry || DG.fall || A.busy || A.t < (A.holdT || 0)) return;
-      const k = focusWant(); if (k !== A.focus || (k && A.t - A.shotT > 0.5 && Math.hypot(...focusPt(k).map((v, i) => v - A.fp[i])) > 2.5)) { shotTo(k); A.fp = k ? focusPt(k) : [0, 0]; hintNext(true); }
+      // (b131 look round 3b: also when the corner's board changes (level 2: the same corner, another board) — its men are cast at the
+      //  new board's ends and the shot is fitted to them, never walking across the court through the frame's edge)
+      const k = focusWant(), kb = k ? boardOf(k) : '';
+      if (k !== A.focus || (k && kb !== A.fb) || (k && A.t - A.shotT > 0.5 && Math.hypot(...focusPt(k).map((v, i) => v - A.fp[i])) > 2.5)) { shotTo(k); A.fp = k ? focusPt(k) : [0, 0]; A.fb = kb; hintNext(true); }
     }
     A.focus = undefined; A.shotT = -9; A.fp = [0, 0];
     let last = 0;

@@ -86,13 +86,14 @@ export function figTest(T) {
   const C = new T.PerspectiveCamera(), V = new T.Vector3(), R = 0.17; let E = 0.94;
   const wide = (f) => (2 * Math.atan((1 + LOOK_RING_K.NEAR * Math.min(1, 0.3 / LOOK_RING_K.KEEP_U0)) * Math.tan((f * Math.PI) / 360)) * 180) / Math.PI;
   function one(x, y, z, foc) {
-    let x0 = 9, x1 = -9, y0 = 9, y1 = -9, out = 0;
+    let x0 = 9, x1 = -9, y0 = 9, y1 = -9, out = 0, n = 0;
     for (const dy of [0, 3.9]) for (const dx of [-0.55, 0.55]) for (const dz of [-0.55, 0.55]) {
       V.set(x + dx, y + dy, z + dz).applyMatrix4(C.matrixWorldInverse); if (V.z > -0.05) { out++; continue; }
-      V.applyMatrix4(C.projectionMatrix); if (Math.abs(V.x) > E || Math.abs(V.y) > E) out++;
+      V.applyMatrix4(C.projectionMatrix); n++; if (Math.abs(V.x) > E || Math.abs(V.y) > E) out++;
       x0 = Math.min(x0, V.x); x1 = Math.max(x1, V.x); y0 = Math.min(y0, V.y); y1 = Math.max(y1, V.y);
     }
-    if (out === 8 || x1 < -1 || x0 > 1 || y1 < -1 || y0 > 1) return 'off';
+    // (wholly out of the picture: nothing of him on the screen at all — judged at the frame's own edge, not the held-in one)
+    if (!n || x1 < -1 || x0 > 1 || y1 < -1 || y0 > 1) return 'off';
     if (out) return 'cut';
     if (foc) { const d = Math.hypot(x - C.position.x, y + 1.95 - C.position.y, z - C.position.z); V.set(foc[0], foc[1], foc[2]); const fd = V.distanceTo(C.position); V.applyMatrix4(C.matrixWorldInverse);
       if (V.z < -0.05) { V.applyMatrix4(C.projectionMatrix); if (d < fd - 1 && x0 < V.x + R && x1 > V.x - R && y0 < V.y + R && y1 > V.y - R) return 'cut'; } }

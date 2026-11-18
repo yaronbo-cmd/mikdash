@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 13, H: 6.5, aimY: -0.6, fov: 50 },   // (look round 3b: from the side, outside the pit, square to the line from the pit's middle to the cradle — the stone coming up the wall at one side of the frame, the four at the cradle pulling at the other; the kohen down in the pit, never under the eye)
+  hoist: { D: 11, E: 7, H: 7, aimY: -0.4, fov: 50 },   // (look round 3b: from outside the pit, beside the cradle's line and toward the pit — the stone coming up the wall nearer the eye than the four pulling beyond it, never one of them between; the kohen down in the pit, never under the eye)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -374,8 +374,8 @@ function pitAct(m, X) {
     //  coming up the wall; look round 3b: the camera stayed on the lever while they walked in out of the frame)
     carrIn('pull', { fx: from.x, fz: from.z, k: 2 });
     const HS = SHOT.hoist, mid = [(c[0] + top[0]) / 2, (c[1] + top[1]) / 2]; let px = -c[1] / dc, pz = c[0] / dc;
-    if (Math.hypot(mid[0] + px * HS.D - s.at[0], mid[1] + pz * HS.D - s.at[1]) < Math.hypot(mid[0] - px * HS.D - s.at[0], mid[1] - pz * HS.D - s.at[1])) { px = -px; pz = -pz; }   // (the side away from the stone's place: the pit and its men behind the look, not under it)
-    const cs = A3(mid[0] + px * HS.D, HS.H, mid[1] + pz * HS.D), ca = A3(top[0] - c[0] / dc * 1.2, HS.aimY, top[1] - c[1] / dc * 1.2);
+    const st = P.stand; if (Math.hypot(mid[0] + px * HS.D - st[0], mid[1] + pz * HS.D - st[1]) < Math.hypot(mid[0] - px * HS.D - st[0], mid[1] - pz * HS.D - st[1])) { px = -px; pz = -pz; }   // (the side away from the book's stand on the south rim: nearer, it stood before the eye)
+    const cs = A3(mid[0] + px * HS.D - c[0] / dc * HS.E, HS.H, mid[1] + pz * HS.D - c[1] / dc * HS.E), ca = A3(top[0] - c[0] / dc * 1.2, HS.aimY, top[1] - c[1] / dc * 1.2);
     digsOut(); lookOff(); shotTo(cs, ca, 0.01); fovT = HS.fov; lens(HS.fov); shotK = 'hoist';
     await X.wait(0.5);
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];

@@ -97,7 +97,7 @@ export const blockBefore = (kind) => BEGIN[kind] || 'site';
 
 export function freshH132() {
   return { v: 1, cur: null, done: [], res: {}, plays: {}, best: 0, i: 0, intro: 0, film: 0, crews: 0, flaws: [], bestOf: {}, stash: null,
-    form: { work: null }, fill: { work: null }, strip: { work: null }, sikra: { work: null } };
+    form: { work: null }, fill: { work: null }, strip: { work: null }, sikra: { work: null, line: null } };   // (sikra.line: the red line as it stays — lane B, sikra3d.js lineRecord)
 }
 const byId = (id) => PLAN.find((m) => m.id === id) || null;
 const kindIdx = (k) => KINDS.indexOf(k);

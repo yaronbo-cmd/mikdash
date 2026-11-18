@@ -38,10 +38,26 @@ const optionalParts = {
 };
 // ── /build6 ──
 
+// ── line132 ── (build 132) `LINE=new node build.mjs`: the lighter page for the new line — Phase B ("העבודה בבית", src/avodah)
+// and its scenes (the tour, the Ark, Yom Kippur) left out of the built file: their two dynamic imports in src/main.js resolve to
+// an empty module, and main.js (__LINE_NEW__) offers neither (no enterAvodah, no window.__openScenes, no #avodah / #shift /
+// __FORCE_SHIFT). The source stays in the repo; the default build (no LINE) is byte for byte as before. ⚑ owner: not decided.
+const LINE_NEW = process.env.LINE === 'new';
+const lineStub = {
+  name: 'line-new',
+  setup(b) {
+    b.onResolve({ filter: /^\.\/avodah\/(index|scenes\/index)\.js$/ }, (args) => (LINE_NEW && /[\\/]src$/.test(args.resolveDir) ? { path: args.path, namespace: 'line-new' } : null));
+    b.onLoad({ filter: /.*/, namespace: 'line-new' }, () => ({ contents: 'export {};', loader: 'js' }));
+  },
+};
+if (LINE_NEW) console.log('build: LINE=new — Phase B and its scenes left out (src/avodah stays in the repo)');
+// ── /line132 ──
+
 await build({
   entryPoints: ['src/main.js'], bundle: true, minify: true, format: 'iife', target: 'es2020',
   outfile: 'dist/app.js', legalComments: 'none', logLevel: 'warning', charset: 'utf8', loader: { '.glb': 'dataurl' },   // ── fable32 (build 15) ── (the kohen's model inlined; a Pages folder will serve it as a file) ── /fable32 ──   // Hebrew stays readable (and ~⅓ smaller than \uXXXX escapes)
-  plugins: [contentStrip, optionalParts],   // ── build6 ── optionalParts
+  plugins: [contentStrip, optionalParts, lineStub],   // ── build6 ── optionalParts   // ── line132 ── lineStub
+  define: { __LINE_NEW__: LINE_NEW ? 'true' : 'false' },   // ── line132 ──
 });
 // ── manifest132 ── the web app manifest's head script (src/manifest-head.js: the icons inlined; added only on the page's own
 // window over http(s)), in the play page's <head> — so in every page made from it (tools/mkout.cjs) ── /manifest132 ──

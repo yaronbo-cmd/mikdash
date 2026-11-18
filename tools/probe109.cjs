@@ -136,8 +136,11 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     // two fingers (ids 20 and 21, apart from the other steps' 7…): a point presses or moves that finger, null lifts it; the others stay
     // as they are. The left finger can stay down for a whole line while the right one taps. By mouse (MOUSE=1) finger 0 is the left
     // button (moved and held) and finger 1 the right button: pressed at its point and released there, the cursor then back to finger 0
-    // (a short right click on the bowl or a drip while the left is held). { fingersOff: true } lifts both. ── /h132 ──
+    // (a short right click on the bowl or a drip while the left is held). { fingersOff: true } lifts both; { tap1: true } with a second
+    // finger lets it go again in the same step. ── /h132 ──
     if (s.fingers || s.fingersOff) await fingersSet(s.fingersOff ? [null, null] : s.fingers);
+    // (tap1: the second finger let go in the same step — a short tap whatever the page's speed: a slow page's next step came after 0.25 s)
+    if (s.fingers && s.tap1 && s.fingers[1]) { await pg.waitForTimeout(40); await fingersSet([s.fingers[0], null]); }
     if (s.when) { const t = Date.now(); while (Date.now() - t < (s.max || 4000)) { if (await pg.evaluate(s.when).catch(() => false)) break; await pg.waitForTimeout(8); } if (s.then) await run(s.then); }
     if (s.bot) {
       const t = Date.now(); let k = 0, last = '';

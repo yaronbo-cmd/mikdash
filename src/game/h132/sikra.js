@@ -203,22 +203,34 @@ function makeSikra(m, X) {
   const liftLook = (u) => { A.look = clamp(u, 0, SKA.LOOK_MAX); try { if (X.lookLift) X.lookLift(A.look); } catch (e) { /* */ } };
   /* ── the right thumb while the left is held: the director gives the act one finger; the second is read here ── */
   const hudEl = (e) => !!(e && e.closest && e.closest('.gm-top,.gm-tabs,.gm-menu,.gm-modal,button,.h109-ui'));
+  // (a tap's time is the events' own (timeStamp): on a slow page a frame between the press and the release is not the thumb's)
+  const tOf = (e) => (Number.isFinite(e.timeStamp) && e.timeStamp > 0 ? e.timeStamp : performance.now());
+  function rightUp(r, e) {
+    const dt = tOf(e) - r.t0, d = Math.hypot(e.clientX - r.x0, e.clientY - r.y0);
+    if (!r.drag && dt < SK.TAP_T * 1000 && d < SK.TAP_PX) tapAt({ x: e.clientX, y: e.clientY }); else ev('r2:' + (r.drag ? 'drag' : Math.round(dt) + 'ms/' + Math.round(d) + 'px'));
+  }
   function onP(e) {
+    if (e.pointerType === 'mouse') { onM(e); return; }
     if (A.phase !== 'line' || !A.leftDown || A.ended) return;
     if (e.pointerType === 'touch') {
-      if (e.type === 'pointerdown' && !A.r2 && e.pointerId !== A.leftId && !hudEl(e.target)) { A.r2 = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), drag: false, u0: A.look }; e.stopPropagation(); return; }
+      if (e.type === 'pointerdown' && !A.r2 && e.pointerId !== A.leftId && !hudEl(e.target)) { A.r2 = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: tOf(e), drag: false, u0: A.look }; e.stopPropagation(); return; }
       if (!A.r2 || e.pointerId !== A.r2.id) return;
       e.stopPropagation();
       if (e.type === 'pointermove') { const dy = e.clientY - A.r2.y0; if (A.r2.drag || Math.hypot(e.clientX - A.r2.x0, dy) > SK.TAP_PX) { A.r2.drag = true; liftLook(A.r2.u0 + (dy / innerHeight) * SKA.LOOK_GAIN); } }
-      else { const r = A.r2; A.r2 = null; if (e.type === 'pointerup' && !r.drag && performance.now() - r.t0 < SK.TAP_T * 1000 && Math.hypot(e.clientX - r.x0, e.clientY - r.y0) < SK.TAP_PX) tapAt({ x: e.clientX, y: e.clientY }); }
+      else { const r = A.r2; A.r2 = null; if (e.type === 'pointerup') rightUp(r, e); }
     }
   }
+  // (the mouse: a right press while the left is held is a chord — the browser says it as a pointermove with button 2 (the director
+  //  passes it to move() as p.chord: it keeps that move for itself), and the compat mousedown is not sent at all when the director took
+  //  the left's pointerdown; every way is read here, the first one counts)
   function onM(e) {
     if (A.phase !== 'line' || A.ended) return;
-    if (e.type === 'mousedown' && e.button === 2 && A.leftDown) { A.r2 = { mouse: true, x0: e.clientX, y0: e.clientY, t0: performance.now(), drag: false, u0: A.look }; A.hold = true; e.preventDefault(); return; }
+    const pm = e.type.startsWith('pointer'), b2 = e.button === 2, held = (e.buttons & 2) === 2;
+    const press = b2 && (e.type === 'mousedown' || (pm && e.type !== 'pointerup' && held)), release = b2 && (e.type === 'mouseup' || (pm && !held));
+    if (press && !A.r2 && A.leftDown) { A.r2 = { mouse: true, x0: e.clientX, y0: e.clientY, t0: tOf(e), drag: false, u0: A.look }; A.hold = true; e.preventDefault(); return; }
     if (!A.r2 || !A.r2.mouse) return;
-    if (e.type === 'mousemove') { const dy = e.clientY - A.r2.y0; if (A.r2.drag || Math.hypot(e.clientX - A.r2.x0, dy) > SK.TAP_PX) { A.r2.drag = true; liftLook(A.r2.u0 + (dy / innerHeight) * SKA.LOOK_GAIN); } }
-    else if (e.type === 'mouseup' && e.button === 2) { const r = A.r2; A.r2 = null; A.hold = false; if (!r.drag && performance.now() - r.t0 < SK.TAP_T * 1000 && Math.hypot(e.clientX - r.x0, e.clientY - r.y0) < SK.TAP_PX) tapAt({ x: e.clientX, y: e.clientY }); }
+    if (release) { const r = A.r2; A.r2 = null; A.hold = false; rightUp(r, e); return; }
+    if (e.type === 'mousemove' || e.type === 'pointermove') { const dy = e.clientY - A.r2.y0; if (A.r2.drag || Math.hypot(e.clientX - A.r2.x0, dy) > SK.TAP_PX) { A.r2.drag = true; liftLook(A.r2.u0 + (dy / innerHeight) * SKA.LOOK_GAIN); } }
   }
   const LST = [['pointerdown', onP], ['pointermove', onP], ['pointerup', onP], ['pointercancel', onP], ['mousedown', onM], ['mousemove', onM], ['mouseup', onM]];
 
@@ -358,6 +370,11 @@ function makeSikra(m, X) {
         const v = A.drag.v, L2 = v[0] * v[0] + v[1] * v[1] || 1; A.rod.u = clamp(A.drag.u0 + ((p.x - A.drag.x0) * v[0] + (p.y - A.drag.y0) * v[1]) / L2, 0, 1); rodPlace(); return;
       }
       if (A.mode === 'left') A.lp = { x: p.x, y: p.y };
+      // (the mouse's right button pressed or let go while the left is held: the director's chord, read as the right thumb)
+      if (A.mode === 'left' && (p.chord || (A.r2 && A.r2.mouse))) {
+        const c = p.chord && p.chord.button === 2 ? p.chord : null;
+        onM({ type: 'pointermove', pointerType: 'mouse', button: c ? 2 : -1, buttons: c ? c.buttons : 2, clientX: p.x, clientY: p.y, timeStamp: c ? c.t : performance.now(), preventDefault() {} });
+      }
     },
     up(p) {
       if (A.phase === 'measure') {

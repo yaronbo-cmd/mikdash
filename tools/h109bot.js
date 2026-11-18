@@ -1365,14 +1365,14 @@
     if (K.skSeam && K.skSeam > 0 && !a.down) { K.skSeam = -1; K.skO = O; return { fingers: [O, null], wait: 120, note: 'sikra: the left down again' }; }
     if (K.skR) { K.skR = 0; return { fingers: [Lp, null], wait: 60 }; }
     const d = (a.drips || []).find((q) => q.sc);
-    if (d && !(has('drip') && K.skDx && !K.skDl)) { K.skR = 1; return { fingers: [Lp, [Math.round(d.sc[0]), Math.round(d.sc[1])]], wait: 60, note: 'sikra: wipe the drip ' + d.id }; }
+    if (d && !(has('drip') && K.skDx && !K.skDl)) { K.skR = 1; return { fingers: [Lp, [Math.round(d.sc[0]), Math.round(d.sc[1])]], tap1: true, wait: 60, note: 'sikra: wipe the drip ' + d.id }; }
     if (d && has('drip') && K.skDx) K.skDl = 1;
     const earlyP = has('pink') && s > 7 && a.band === 'dark' && !K.skEx, earlyD = has('drip') && s > 20 && a.band === 'dark' && !K.skDx && (!has('pink') || K.skEx), early = earlyP || earlyD;
     const flawNear = (a.flaws || []).some((f) => f > s && f - s < 3.2), f0 = (a.flaws || [])[0], dryF = has('gapF') && f0 != null && s > f0 - 22 && s < f0 + 0.2;
     const late = a.end > 100 && s > a.end - 7;   // (no refill in the last 7 amot: the slow close would drip within 4 amot of it — the last one before)
     const need = has('pale') ? a.band === 'pink' : !late && (a.w < 0.48 || (flawNear && a.w < 0.6) || (a.end > 100 && s > a.end - 15 && a.w < 0.75));
     const refillOk = !inC && !dryF && a.band !== 'dark' && (!K.skBw || now() - K.skBw > 900);
-    if (a.bowl && (early || (need && refillOk))) { if (earlyP) K.skEx = 1; if (earlyD) K.skDx = 1; K.skBw = now(); K.skR = 1; return { fingers: [Lp, [Math.round(a.bowl[0]), Math.round(a.bowl[1])]], wait: 60, note: `sikra: the bowl at s ${s} w ${a.w}` + (early ? ' (early)' : '') }; }
+    if (a.bowl && (early || (need && refillOk))) { if (earlyP) K.skEx = 1; if (earlyD) K.skDx = 1; K.skBw = now(); K.skR = 1; return { fingers: [Lp, [Math.round(a.bowl[0]), Math.round(a.bowl[1])]], tap1: true, wait: 60, note: `sikra: the bowl at s ${s} w ${a.w}` + (early ? ' (early)' : '') + ' · ' + (a.ev || []).slice(-3).join(' ') }; }
     return { fingers: [Lp, null], wait: 70 };
   };
   B.next = () => {

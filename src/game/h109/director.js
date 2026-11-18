@@ -469,7 +469,7 @@ export function createH109Director(o) {
     if (LOOK.swallow != null && e.pointerId === LOOK.swallow) { e.stopImmediatePropagation(); if (e.type !== 'pointermove') LOOK.swallow = null; return; }   // ── h115 ── ── /h115 ──
     if (!ptr.down || e.pointerId !== ptr.id) return;
     e.stopImmediatePropagation();
-    if (e.type === 'pointermove') { ptr.x = e.clientX; ptr.y = e.clientY; call(act.move, ptr); return; }
+    if (e.type === 'pointermove') { ptr.x = e.clientX; ptr.y = e.clientY; ptr.chord = e.pointerType === 'mouse' && e.button > 0 ? { button: e.button, buttons: e.buttons, t: e.timeStamp } : null; call(act.move, ptr); return; }   // ── h132 ── (chord: another mouse button pressed or let go while the act's is held — the browser says it only so, in this move) ── /h132 ──
     ptr.down = false; ptr.x = e.clientX; ptr.y = e.clientY; call(act.up, ptr);
   }
   const call = (f, a, b) => { if (typeof f !== 'function') return undefined; try { return f(a, b); } catch (e) { console.warn('[h109]', e && e.message, e && e.stack && e.stack.split('\n')[1]); return undefined; } };

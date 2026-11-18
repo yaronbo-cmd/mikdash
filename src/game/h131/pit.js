@@ -21,7 +21,7 @@
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK, LOSS, qOf, starsOf } from './model.js';
 import { goPit, backFromPit, SH8, pitXYZ } from './world.js';
-import { PIT, SIDES, sideDir, lipOf, halfOf, pitFresh, pitRead, scrape, seenSide, capOf, seat, wrongSide, pitStep, release, nailChip, chipOut, leftOf, doneOf, pitPts, pitClean } from './pit-model.js';
+import { PIT, SIDES, sideDir, lipOf, halfOf, pitFresh, pitRead, scrape, seenSide, capOf, seat, wrongSide, pitStep, release, nailChip, nailFrom, freeOf, chipOut, leftOf, doneOf, pitPts, pitClean } from './pit-model.js';
 import { PD, W3, L2, pmats, stoneMesh, stonePose, stoneTop, lipW, leverMesh, leverSet, ringMesh, pitCradle, showFilm, filmStop, POLE_ENDS } from './pit3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { card, cite, tapOr } from '../h129/ui7.js';
@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 50, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
+  hoist: { D: 17.5, H: 9, aimY: -0.9, fov: 53, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -93,12 +93,20 @@ function pitAct(m, X) {
   // ── the stones: those still in the ground in the pit; those raised whole beside the cradle (the row)
   const SG = new Map();
   const meshOf = (i) => SG.get(i);
+  const jig = new Map();   // (stone → seconds left of its give)
+  /** the stone's pose with its give (a short shake along its length, 1.5% of its width, dying away) */
+  function poseOf(g, s, i, side) {
+    const t = jig.get(i); let ex;
+    if (t > 0) { const [hx] = halfOf(s), a = PIT.JIG * 2 * hx * Math.sin((PIT.JIG_T - t) * Math.PI * 2 * 6) * (t / PIT.JIG_T), d = W3(Math.cos(s.yaw) * a, 0, -Math.sin(s.yaw) * a), o = W3(0, 0, 0); ex = { dx: d.x - o.x, dz: d.z - o.z }; }
+    stonePose(X, g, s, side, ex);
+  }
+  function jigStep(dt) { for (const [i, t] of jig) { if (t - dt <= 0) jig.delete(i); else jig.set(i, t - dt); } }
   function stonesDraw() {
     W.stones.forEach((s, i) => {
       if (s.gone) { const g = SG.get(i); if (g) { X.props.remove(g); SG.delete(i); } return; }
       let g = SG.get(i); if (!g) { g = stoneMesh(X, s, root); SG.set(i, g); }
       if (s.out && !g.userData.moving) rowPlace(g, i);
-      else if (!s.out && !g.userData.moving) stonePose(X, g, s, L.i === i && L.st === 'seat' ? L.side : null);
+      else if (!s.out && !g.userData.moving) poseOf(g, s, i, L.i === i && L.st === 'seat' ? L.side : null);
     });
   }
   const outIdx = (i) => W.stones.slice(0, i + 1).filter((q) => q.out).length - 1;
@@ -304,6 +312,8 @@ function pitAct(m, X) {
       try { X.hero.act && X.hero.act('pull', p, { snap: true }); } catch (e) { /* */ }
       for (const [i, k] of r.bared) { const s = W.stones[i], q = lipW(s, k, 0); X.quick(qAt({ x: q.x, y: q.y + 0.6, z: q.z }), QUICK.clean, meshOf(i)); ev('bared:' + i + SIDES[k]); }
       for (const i of r.freed) { ev('loose:' + i); }
+      // (review 4, level 3: the stone nobody rests on gives a little as the earth round the cluster comes off — no mark, the stone itself)
+      for (const j of freeOf(W)) if (!jig.has(j)) { jig.set(j, PIT.JIG_T); ev('jig:' + j); }
       if (W.strokes % 3 === 0) digNow(b);
       keep(); stonesDraw();
     }
@@ -415,9 +425,9 @@ function pitAct(m, X) {
     const g = meshOf(i); g.userData.moving = 1; A.phase = 'check'; A.busy = 1; W.check = i; keep();
     const c = W3(P.cradle[0], 0.48 + g.userData.hy * 0.62, P.cradle[1]); g.position.set(c.x, c.y, c.z); g.rotation.set(0, 0, 0);
     checkShot(0.01);   // (a cut from the hoist: the carriers leave with it)
-    const ring = ringMesh(X, g); A.check = { i, g, ring, u: 0, a0: null, stop: false, chipU: nailChip(), last: null };
+    const ring = ringMesh(X, g); A.check = { i, g, ring, u: nailFrom(), u0: nailFrom(), a0: null, stop: false, chipU: nailChip(), last: null };   // (review 8: from the suspect stretch only)
     X.line(LINES.nail, 0);
-    X.wait(1.1).then(() => { if (A.phase !== 'check') return; A.busy = 0; X.line(PLINES.nail, 0); const p = ringPt(0.02); X.hand(p, HND.nail.dx, HND.nail.dy); });
+    X.wait(1.1).then(() => { if (A.phase !== 'check') return; A.busy = 0; X.line(PLINES.nail, 0); const p = ringPt(A.check.u0 + 0.02); X.hand(p, HND.nail.dx, HND.nail.dy); });
     ev('check:' + i);
   }
   function ringPt(u) { const C = A.check, U = C.g.userData, a = u * Math.PI * 2 + startA(), v = new T.Vector3(Math.cos(a) * U.hx, U.hy * 0.62, Math.sin(a) * U.hz); C.g.localToWorld(v); return { x: v.x, y: v.y, z: v.z }; }
@@ -431,8 +441,8 @@ function pitAct(m, X) {
     const now = performance.now() / 1000, dtw = C.last ? Math.min(0.2, now - C.last) : 0.05; C.last = now;
     const du = Math.min(Math.abs(d) / (Math.PI * 2), K.THUMB * Math.max(dtw, 0.016) * 1.5);
     C.u = Math.min(C.chipU, C.u + du);
-    const segs = C.ring.userData.segs, n = segs.length, lit = Math.floor(C.u * n);
-    for (let k = 0; k < n; k++) segs[k].visible = k < lit;
+    const segs = C.ring.userData.segs, n = segs.length, lit = Math.floor(C.u * n), k0 = Math.floor(C.u0 * n);
+    for (let k = 0; k < n; k++) segs[k].visible = k >= k0 && k < lit;
     V.scrape(0.15);
     if (C.u >= C.chipU - 1e-6) chipFound();
   }
@@ -567,7 +577,8 @@ function pitAct(m, X) {
         if (A.phase === 'work' && !A.busy) liftStep(dt);
         else if (A.phase === 'work') pitStep(W, dt, null, false);
         if (A.phase !== 'done') kohenStep(dt);
-        W.stones.forEach((s, i) => { const g = meshOf(i); if (g && !s.out && !g.userData.moving && !s.gone) stonePose(X, g, s, L.st === 'seat' && L.i === i ? L.side : null); });
+        jigStep(dt);
+        W.stones.forEach((s, i) => { const g = meshOf(i); if (g && !s.out && !g.userData.moving && !s.gone) poseOf(g, s, i, L.st === 'seat' && L.i === i ? L.side : null); });
         if (L.st === 'lie' && A.fl == null) { const t = restTip(cur()); L.tip[0] += (t[0] - L.tip[0]) * Math.min(1, dt * 4); L.tip[1] += (t[1] - L.tip[1]) * Math.min(1, dt * 4); }
         if (A.phase !== 'done') leverDraw();
       } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h131] pit', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }

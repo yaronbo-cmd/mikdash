@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PIT, pitFresh, pitRead, scrape, seenSide, capOf, seat, wrongSide, pitStep, release, chipOut, leftOf, doneOf, pitPts, pitClean, lipOf, sideDir } from '../src/game/h131/pit-model.js';
+import { PIT, pitFresh, pitRead, scrape, seenSide, capOf, seat, wrongSide, pitStep, release, chipOut, leftOf, doneOf, pitPts, pitClean, lipOf, sideDir, freeOf, nailFrom, nailChip } from '../src/game/h131/pit-model.js';
 import { LINES, LOSS, applyLoss, lossPts } from '../src/game/h131/model.js';
 import { BOOK } from '../src/game/world/grid.js';
 
@@ -92,4 +92,20 @@ test('pit: the loss is the table\'s, never below zero; the act\'s quotes are the
     assert.ok(SPEC.includes(PLINES.seen), 'the layers in the spec\'s words');
     for (const [k, t] of Object.entries(PLINES)) { assert.ok(t.length < 80, k); if (/^l[123]$|lever|press|nail/.test(k)) assert.ok(t.replace(/\s*\(המחשה\)$/, '').split(/\s+/).length <= 6, k + ' short (rule 25)'); }
   }
+});
+
+test('pit review 4: level 3, the free stone gives 1–2% of its width (no mark); the holder pinned by the one on it does not', () => {
+  assert.ok(PIT.JIG >= 0.01 && PIT.JIG <= 0.02, 'the give is 1–2% of the width');
+  assert.ok(PIT.JIG_T > 0.2 && PIT.JIG_T < 1, 'a short give');
+  const W = pitFresh(3, P.stones);
+  assert.deepEqual(freeOf(W), [0], 'at first only the left one, which nobody rests on');
+  bare(W, 0); press(W, 0, W.stones[0].cover.findIndex((v, k) => !W.stones[0].block.includes(k) && v <= PIT.SEEN), 6);
+  if (W.stones[0].out) assert.deepEqual(freeOf(W), [1], 'the left one out: the middle one is free now');
+  assert.deepEqual(freeOf(pitFresh(1, P.stones)), [], 'levels 1 and 2 have no such hint');
+});
+test('pit review 8: the nail check passes only the suspect stretch before the chip (about a second), not the whole rim', () => {
+  assert.ok(nailFrom() > 0 && nailFrom() < nailChip(), 'it starts before the chip');
+  const span = nailChip() - nailFrom(), pace = 0.32 * 1.5;   // (pit.js K.THUMB × 1.5: the thumb's fastest pace, rim per second)
+  assert.ok(span <= 0.35, 'a stretch, not the rim');
+  assert.ok(span / pace >= 0.5 && span / pace <= 1.2, 'about a second at the thumb\'s pace: ' + (span / pace).toFixed(2));
 });

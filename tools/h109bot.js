@@ -1328,6 +1328,68 @@
     }
     return { wait: 400 };
   };
+  // ── h132 lane A ── (build 132, stage 09 work 1 "הקמת התבנית": the stakes corner by corner — the rod slid home, the tap that drives
+  // the stake — then the walls in the right order (east and west, then north and south), each lifted by the thumb's travel the act
+  // reads (a.kpx degrees a pixel: the wall ends where the travel says), in pushes no longer than the screen allows; it waits for a wall
+  // to rest before the next. Level 3: the walls before the gust where it can; a swaying wall steadied by short drags against its sway.
+  // __BOT_SHOTS132: a still of the stake man's blows, of the crew pushing a wall, and of the close) ── /h132 lane A ──
+  play.h9form = (a) => {
+    const K = B.k, shots = !!window.__BOT_SHOTS132;
+    if (!a) return { wait: 300 };
+    if (a.done) { if (shots && !K.shotEnd) { K.shotEnd = 1; return { wait: 900, shot: a.id + '-closed' }; } return { wait: 300 }; }
+    if (shots && a.mallet && !K['shotM' + a.cur]) { K['shotM' + a.cur] = 1; return { wait: 250, shot: a.id + '-stake-' + a.cur }; }
+    if (a.busy || !a.settled) return { wait: 250 };
+    if (a.phase === 'stakes') {
+      if (a.rod && a.rodU < 1) return { path: [a.rod.at, a.rod.to], ms: 800, wait: 500, note: 'form: the rod at ' + a.cur + ' slid home' };
+      return { tap: a.stakeAt, wait: 900, note: 'form: the stake at ' + a.cur + ' driven' };
+    }
+    if (a.phase !== 'walls') return { wait: 300 };
+    const W = {}; for (const w of a.walls) W[w.k] = w;
+    // (a swaying wall: short drags against its sway — the sway's way read from the act, swayV the cosine of its phase)
+    const sw = a.walls.find((w) => w.st === 'up' && w.sway > 0.36);
+    if (sw) { const dy = sw.swayV > 0 ? 14 : -14; return { path: [sw.at, [sw.at[0], sw.at[1] + dy]], ms: 160, wait: 60, note: 'form: steady ' + sw.k + ' sway ' + sw.sway }; }
+    if (a.walls.some((w) => w.st === 'up' && (Math.abs(w.v) > 0.05 || (w.a >= 88 && w.a <= 97)))) return { wait: 250 };   // (moving, or about to be judged)
+    // (level 3: once the signs are on, no new wall is begun until the gust has passed — the one begun is finished)
+    const lv3wait = a.wind && a.wind.sign > 0 && !a.wind.on && a.wind.tw < a.wind.gust && !a.walls.some((w) => w.st === 'up' && w.a > 1);
+    const w = ['E', 'W', 'N', 'S'].map((k) => W[k]).find((q) => q.st !== 'lock' && (q.st === 'up' || !lv3wait));
+    if (!w) return { wait: 300, note: lv3wait ? 'form: waiting out the gust' : undefined };
+    const need = 90 - w.a, room = Math.max(40, w.at[1] - 40), px = Math.max(1, Math.min(room, Math.round(need / a.kpx)));
+    const fr = [], n = 18; for (let i = 0; i <= n; i++) fr.push([[w.at[0], Math.round(w.at[1] - (px * i) / n)]]);
+    for (let i = 0; i < 3; i++) fr.push(fr[fr.length - 1]);
+    const r = { seq: fr, ms: 50, wait: 700, note: `form: lift ${w.k} from ${w.a} by ${px}px (${(px * a.kpx).toFixed(2)}°)` };
+    if (shots && !K['shotW' + w.k] && need > 30) { K['shotW' + w.k] = 1; r.seqShot = [12, a.id + '-lift-' + w.k]; }
+    return r;
+  };
+  // ── /h132 lane A ──
+  // ── h132 lane A ── (build 132, stage 09 work 3 "שליפת התבנית": the right order — the braces, the belts of east and west, of north and
+  // south, (level 3: the wedge up, the stuck south wall slid one amah west), the walls north and south, then east and west — each part
+  // tested by a tap first, then pulled outward. A part on a face turned from the eye: the look turned to it (the right thumb's, by the
+  // director's test hook) and back. __BOT_SHOTS132: a still of the pullers at a brace, a belt and a wall) ── /h132 lane A ──
+  const ORDER9S = { 1: ['wall:N', 'wall:S', 'wall:E', 'wall:W'], 2: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wall:N', 'wall:S', 'wall:E', 'wall:W'],
+    3: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wedge', 'slide', 'wall:N', 'wall:S', 'wall:E', 'wall:W'] };
+  const YAW9S = { N: -1.6, E: 0, S: 0, W: 1.54, wedge: 0, slide: 0 };
+  play.h9strip = (a) => {
+    const K = B.k, shots = !!window.__BOT_SHOTS132;
+    if (!a) return { wait: 300 };
+    if (a.done) { if (shots && !K.shotEnd) { K.shotEnd = 1; return { wait: 1500, shot: a.id + '-bare' }; } return { wait: 300 }; }
+    if (!a.settled) return { wait: 250 };
+    if (shots && a.pulling && K.lastPull && !K['shotP' + K.lastPull]) { K['shotP' + K.lastPull] = 1; return { wait: 150, shot: a.id + '-pull-' + K.lastPull.replace(':', '-') }; }
+    const left = new Set(a.parts.map((q) => q.p));
+    const next = ORDER9S[a.lv].find((p) => (p === 'slide' ? !a.slid && left.has('wall:S') : left.has(p)));
+    if (!next) return { wait: 300 };
+    const side = next === 'slide' || next === 'wedge' ? next : next.split(':')[1], yaw = YAW9S[side];
+    const part = a.parts.find((q) => q.p === (next === 'slide' ? 'wall:S' : next));
+    if (!part) return { wait: 300 };
+    if (!part.on || (a.look && Math.abs(a.look.yaw - yaw) > 0.3)) {
+      if (K.yawT && performance.now() - K.yawT < 2500) return { wait: 300 };
+      K.yawT = performance.now(); return { eval: `__T.game.h109._look(${yaw ? 0.12 : 0},${yaw})`, wait: 1600, note: 'strip: the look turned to ' + side + ' (yaw ' + yaw + ')' };
+    }
+    if (next === 'slide') return { path: [part.at, part.west], ms: 600, wait: 1300, note: 'strip: the stuck south wall slid west' };
+    if (!K['tap' + next]) { K['tap' + next] = 1; return { tap: part.at, wait: 800, note: 'strip: tap ' + next }; }
+    K.lastPull = next.replace('wall:', 'wall:');
+    return { path: [part.at, part.out], ms: 500, wait: next.startsWith('wall:') ? 2600 : 1100, note: 'strip: pull ' + next };
+  };
+  // ── /h132 lane A ──
   B.next = () => {
     if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };
     const S = H().state();

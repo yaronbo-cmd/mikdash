@@ -30,8 +30,8 @@ import { starsOf } from './model.js';
 /** the work's numbers (spec "החוקים והמספרים"; "לכיוונון": opening values) */
 export const FK = Object.freeze({
   LAG: 0.6,                 // (s) the wall's speed follows the thumb's with this lag
-  PERF: [89.5, 90.5],       // 40
-  GOOD: [88, 92],           // 20 (92 exactly belongs here)
+  PERF: Object.freeze({ lo: 89.5, hi: 90.5 }),   // 40
+  GOOD: Object.freeze({ lo: 88, hi: 92 }),       // 20 (92 exactly belongs here)
   BACK: 97,                 // over 92 up to 97: pulled back, 10; over 97: falls outward
   REST_V: 0.25,             // (deg/s) slower than this with no thumb on it: at rest
   MAXA: 120,                // (the angle's cap while it moves; past BACK it has fallen anyway)
@@ -50,9 +50,9 @@ export const RODS = Object.freeze(['NW', 'NE', 'SW']);
 /** a resting angle's judgement: 'perf' | 'good' | 'back' (over 92 up to 97) | 'fall' (over 97) | 'low' (under 88) */
 export function judge(a) {
   if (a > FK.BACK) return 'fall';
-  if (a > FK.GOOD[1]) return 'back';
-  if (a >= FK.PERF[0] && a <= FK.PERF[1]) return 'perf';
-  if (a >= FK.GOOD[0]) return 'good';
+  if (a > FK.GOOD.hi) return 'back';
+  if (a >= FK.PERF.lo && a <= FK.PERF.hi) return 'perf';
+  if (a >= FK.GOOD.lo) return 'good';
   return 'low';
 }
 

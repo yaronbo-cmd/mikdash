@@ -11,6 +11,7 @@
  * With no facts.json (a lone branch, the tests) the pool falls back to the verified texts the game already carries: the stages'
  * Middot cards, the stories and the finds (content.js). Pure, no DOM except bootFact; no JSON import (node tests load this).
  */
+import { saveKey } from './savekey.js';   // ── b131 ── ── /b131 ──
 import { STAGES, STORY, FINDS, stageById } from './content.js';
 
 const arr = (v) => (Array.isArray(v) ? v : v == null || v === '' ? [] : [v]);
@@ -102,8 +103,8 @@ export function createFacts({ G, stage = () => '', store = null, rnd = Math.rand
  *  its id waits in BOOT_KEY for the game (createFacts). el: the #load element. → the fact or null */
 export function bootFact(el, store = null, saveKey = 'bh_beta2') {
   if (!el || !el.querySelector) return null;
-  const get = (k) => { try { return store ? store.get(k) : localStorage.getItem(k); } catch (e) { return null; } };
-  const set = (k, v) => { try { if (store) store.set(k, v); else localStorage.setItem(k, v); } catch (e) { /* storage */ } };
+  const get = (k) => { try { return store ? store.get(k) : localStorage.getItem(saveKey(k)); } catch (e) { return null; } };   // ── b131 ── (saveKey) ── /b131 ──
+  const set = (k, v) => { try { if (store) store.set(k, v); else localStorage.setItem(saveKey(k), v); } catch (e) { /* storage */ } };
   let seen = new Set(), last = '', stage = 'har';
   try {
     const g = JSON.parse(get(saveKey) || 'null');

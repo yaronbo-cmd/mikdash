@@ -12,6 +12,7 @@
  *     twin: () => TW, onDone(): the stage is built })
  *   D.owns() · D.acting() · D.start() · D.frame(ms) · D.marks() (twin's markers) · D.goal() (the compass) · D.goTo() · D.state()
  */
+import { saveKey } from '../savekey.js';   // ── b131 ── ── /b131 ──
 import * as THREE from 'three';
 import { createFigGate, filmFigs } from '../h128/figgate.js';   // ── h128 ── (the figures gate: one rule for every act) ── /h128 ──
 import { createH109, PLAN, PLACES, H109, starsOf, GRADE_N } from './model.js';
@@ -963,7 +964,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     phase = 'walk';
     if (ONLY) {
       onlyNext();
-      if (!M.mission()) { console.info('[h109] only page: all levels done, reload'); line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem('bh_beta2'); } catch (e) { /* */ } location.reload(); }, 2500); return; }
+      if (!M.mission()) { console.info('[h109] only page: all levels done, reload'); line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem(saveKey('bh_beta2'))  /* ── b131 ── ── /b131 ── */; } catch (e) { /* */ } location.reload(); }, 2500); return; }
       syncMount(true);
     }
     openMission();

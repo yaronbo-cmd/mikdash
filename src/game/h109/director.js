@@ -671,6 +671,8 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
       if (t !== fwLine) { fwLine = t; line(t, 0); }
     }
     // ── h116 ── (a free work is picked only at its very stake: walking past the hill's free rocks must not start one) ── /h116 ──
+    // ── h132 ── (the visits: he stands at the station he just finished — no work starts under his feet until he has walked a few amot) ── /h132 ──
+    if (VIS.on && VIS.from) { const h = heroAt(); if (h && Number.isFinite(h.x) && Math.hypot(h.x - VIS.from.x, h.z - VIS.from.z) > 4) VIS.from = null; else return; }
     if (q && q.d < (q.m.free ? 3.5 : 9) && tPhase > 0.4) pickNow(q.m, true);
   }
   function showOne() {
@@ -980,6 +982,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
       if (!M.mission()) { console.info('[h109] only page: all levels done, reload'); line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem(saveKey('bh_beta2'))  /* ── b131 ── ── /b131 ── */; } catch (e) { /* */ } location.reload(); }, 2500); return; }
       syncMount(true);
     }
+    if (VIS.on) { const h = heroAt(); VIS.from = h && Number.isFinite(h.x) ? { x: h.x, z: h.z } : null; }   // ── h132 ── ── /h132 ──
     openMission();
     if (ONLY) setTimeout(() => goTo(), 400);
   }
@@ -1145,6 +1148,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
       if (!M.finished || !M.finished()) return false;
       if (VIS.on && started) return true;
       VIS.on = true; closing = true; started = true; phase = 'walk'; tPhase = 0; act = null; mission = null;
+      { const h = heroAt(); VIS.from = h && Number.isFinite(h.x) ? { x: h.x, z: h.z } : null; }
       uiMount(); chipSync(false);
       try { if (S0.pinsOff) S0.pinsOff(true); } catch (e) { /* */ }
       { const gm = document.querySelector('.gm'); if (gm) gm.classList.add('h109-own'); }

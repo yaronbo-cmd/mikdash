@@ -39,6 +39,7 @@ test('the director: visits only for a pack that says so; the stage\'s close neve
   assert.match(D, /if \(M\.finished\(\) && !VIS\.on\) \{ mission = null; finishStage\(\); return; \}/);
   assert.match(D, /visits: \(\) => \{\n\s+if \(!PK\.visits\) return false;/);
   assert.match(D, /VIS\.on = true; closing = true;/);
+  assert.match(D, /if \(VIS\.on && VIS\.from\) \{/, 'no work starts under his feet');
   assert.match(D, /const lvTag = \(m\) => \(VIS\.on && PK\.visits && m && m\.lv \? ` · רמה \$\{m\.lv\}` : ''\);/);
   const P9 = readFileSync(new URL('../src/game/h132/pack.js', import.meta.url), 'utf8'); assert.match(P9, /\n\s+visits: true,/);
   for (const f of ['../src/game/h131/pack.js']) assert.doesNotMatch(readFileSync(new URL(f, import.meta.url), 'utf8'), /visits:/, f + ': unchanged');

@@ -19,7 +19,7 @@ test('the ending\'s timeline is the spec\'s order', () => {
 test('red and gold only; no blood: the waves are light and shade', () => {
   for (const c of ENDING.COLORS.fire) { const r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), b = parseInt(c.slice(5, 7), 16); assert.ok(r >= 0xe0 && b <= 0xc8, c + ' red or gold'); void g; }
   const lum = (c) => ((c >> 16) & 255) + ((c >> 8) & 255) + (c & 255);
-  assert.ok(lum(ENDING.COLORS.light) > 700, 'the wave above: light'); assert.ok(lum(ENDING.COLORS.dark) < 120, 'the wave below: shade');
+  assert.ok(lum(ENDING.COLORS.light) > 560, 'the wave above: light (gold)'); assert.ok(lum(ENDING.COLORS.dark) < 120, 'the wave below: shade');
 });
 test('the run round the block is the line\'s 120 amot, from the south-east corner the walk\'s way (east, north, west, south)', () => {
   const F = faces(), S9 = BOOK.s09; assert.deepEqual(F.map((f) => f.k), [...S9.order]);

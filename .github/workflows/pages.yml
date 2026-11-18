@@ -1,11 +1,18 @@
-# Deploys the repository root to GitHub Pages on every push to main.
-# The game is the single-file index.html at the root (see HANDOFF-he.md).
+# Deploys GitHub Pages:
+#   https://yaronbo-cmd.github.io/mikdash/        main's index.html — the approved game, as before
+#   https://yaronbo-cmd.github.io/mikdash/v/NN/   branch build-NN's index.html — every version, each on its own
+#   https://yaronbo-cmd.github.io/mikdash/v/      the list of all versions
+# Runs on every push to main, by hand ("Run workflow"), and every hour — the hourly run deploys only if a build-*
+# branch was added or moved since the last deploy (pushes to build-* branches cannot start it themselves: the Pages
+# environment deploys from main only). After pushing a new build-NN branch, run it by hand to see the link at once.
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '7 * * * *'
 
 permissions:
   contents: read
@@ -14,7 +21,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -24,11 +31,31 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch the build-* branches
+        run: git fetch --no-tags --depth=1 origin '+refs/heads/build-*:refs/remotes/origin/build-*'
+      - name: Anything new? (hourly run only)
+        id: check
+        run: |
+          python3 .github/versions/build_site.py _ --heads-only > heads.new
+          if [ "${{ github.event_name }}" = "schedule" ] && \
+             curl -fsSL "https://yaronbo-cmd.github.io/mikdash/v/heads.txt" -o heads.live && \
+             cmp -s heads.new heads.live; then
+            echo "Nothing new since the last deploy."
+            echo "go=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Assemble the site
+        if: steps.check.outputs.go == 'yes'
+        run: python3 .github/versions/build_site.py _site
       - uses: actions/configure-pages@v5
+        if: steps.check.outputs.go == 'yes'
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
+        if: steps.check.outputs.go == 'yes'
         with:
-          path: .
+          path: _site
       - id: deployment
+        if: steps.check.outputs.go == 'yes'
         uses: actions/deploy-pages@v4

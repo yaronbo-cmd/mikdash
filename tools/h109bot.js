@@ -1343,7 +1343,7 @@
       K9.look9 = (K9.look9 | 0) + 1; const p0 = [Math.round(Wd * 0.6), Math.round(Hd * 0.3)], p1 = [Math.round(Wd * 0.6), Math.round(Hd * 0.9)];
       if (K9.look9 === 1) return a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], 700, 'right'], wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' } : { path: [p0, p1], ms: 700, wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' };
       if (K9.look9 === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 500, shot: a.id + '-zoomed-out', note: 'fill: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
-      return { tap: p0, wait: 1400, note: 'fill: a tap brings the camera back to the work' };
+      return { tap: [Math.round(Wd * 0.3), Math.round(Hd * 0.55)], wait: 1400, note: 'fill: a tap on the left half brings the camera back to the work' };   // (on the right half a tap starts a look)
     }
     const h = a.hint; if (!h) return { wait: 300, note: 'fill: no hint (ramp ' + JSON.stringify(a.ramp) + ')' };
     const j = h.j;

@@ -79,20 +79,25 @@ export function homeWalls() { if (!SH9.walls) return; for (const k of ['N', 'S',
 export function hold(who, on) { if (on) WL.who.add(who); else WL.who.delete(who); }
 const ORDER = ['site', 'formLying', 'formUp', 'filled', 'bare', 'lined'];
 const after = (M) => { try { const b = M && M.block ? M.block() : 'site'; return ORDER.indexOf(b) >= ORDER.indexOf('bare'); } catch (e) { return false; } };
-/** the walls as the strip left them: three lying outward where they fell; the west one flat beside the timber pile */
+/** the walls after the strip: all four carried to the timber pile and laid flat in a stack beside it, face up (the site clean for the
+ *  line: no board left round the block) — each group turned so its run lies along +x and its height along +z, one board's thickness
+ *  over the one below */
+export const STACK = Object.freeze(['S', 'N', 'E', 'W']);
+export function stackAt(k) {
+  const [, pz] = S9.pile, i = STACK.indexOf(k), along = k === 'N' || k === 'S';
+  // (N/S: turned a quarter about x, their thickness then hangs below (N) or stands above (S) the group's origin; E/W: as the west one)
+  const y = F + T * (i + 1) + (k === 'S' ? -T : 0) + 0.02 * i;
+  return { p: [PILEW.x0, y, pz - PILEW.dz - H], r: along ? [Math.PI / 2, 0, 0] : [0, Math.PI / 2, Math.PI / 2] };
+}
 export function lieAfter() {
   if (!SH9.walls) return;
-  for (const k of ['N', 'S', 'E']) { const W = SH9.walls[k]; W.grp.visible = true; W.grp.position.set(HG[k].p[0], Y0, HG[k].p[1]); wallSet(k, 0); }
-  const W = SH9.walls.W; W.grp.visible = true;
-  // (flat on the court's floor north of the pile, its run east–west from x −42, its face up: the group turned so its run lies along +x,
-  //  its height along +z, its thickness up — clear of the north wall lying where it fell and of the pile's timber)
-  const [, pz] = S9.pile; W.grp.position.set(PILEW.x0, F + T, pz - PILEW.dz - H); W.grp.rotation.set(0, Math.PI / 2, Math.PI / 2);
+  for (const k of STACK) { const W = SH9.walls[k]; if (!W) continue; const q = stackAt(k); W.grp.visible = true; W.grp.position.set(q.p[0], q.p[1], q.p[2]); W.grp.rotation.set(q.r[0], q.r[1], q.r[2]); }
 }
 export const WALLS3D = {
   owns(what) { if (what !== 'walls') return false; return WL.who.size > 0 || (!!WL.X && after(WL.X.M)); },
   init(X) { WL.X = X; wmats(X); dress(X); },
   sync(X, M) { WL.X = X; if (!WL.dressed) dress(X); if (!WL.who.size && after(M)) lieAfter(); },
-  frame(dt, X, M) { if (!WL.who.size && SH9.walls && after(M) && SH9.walls.W.grp.position.x !== PILEW.x0) lieAfter(); },
+  frame(dt, X, M) { if (!WL.who.size && SH9.walls && after(M) && STACK.some((k) => SH9.walls[k] && SH9.walls[k].grp.position.x !== PILEW.x0)) lieAfter(); },
   rest(X, M) { WL.X = X; wmats(X); dress(X); if (after(M)) lieAfter(); },
 };
 void F;

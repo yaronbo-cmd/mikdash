@@ -15,7 +15,7 @@ import { BOOK } from '../world/grid.js';
 import { LOSS, WORDS } from './model.js';
 import { PARTS, fresh, load, save, tap, pull, slide, done, result } from './strip-model.js';
 import { SH9, wallSet } from './world.js';
-import { hold, homeWalls, dress, wallHead } from './walls3d.js';
+import { hold, homeWalls, dress, wallHead, wallHinge, lieAfter, stackAt } from './walls3d.js';
 import { smats, blockBody, scar, braceMesh, braceEnds, beltMesh, beltEnds, wedgeMesh, bulgeOn, NORM } from './strip3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -26,7 +26,8 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, H = S9.H, F = S9.f
 /** the act's numbers: pick reach (px), a tap's most travel (px), a pull's least travel (px) and how straight it must be (cos), the
  *  falls (s), the west wall's lean on the steps (rad), the pullers' pace */
 export const SA = Object.freeze({ PICK: 46, PICKM: 30, TAP: 12, PULL: 34, COS: 0.55, FALL: 1.0, LEAN: 1.28, DOWN: 1.52, PACE: 5, FOV: 50, OUT: 1.6,
-  SNAP: 0.55, NUDGE: 0.3, EDGE: 0.9 });   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
+  SNAP: 0.55, NUDGE: 0.3, EDGE: 0.9, HOP: 5,
+  CARRY: 3.2, SHOULDER: 3.3, CLEAR: 1.5, SIDE: 0.55, CARRY_EYE: [8, 26, 26] });   // (the carry: its seconds, the board's height on the shoulders, how far north of the block it starts, the bearers' step off its edge, the eye from the route's middle)   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
 /** the four corner views: the book's w3 (from the south-east) turned round the form's middle by quarter turns → { eye, aim } */
 export function cornerView(th) {
   const [e, t] = S9.cam.w3, R = Math.hypot(e[0] - t[0], e[2] - t[2]);
@@ -104,13 +105,17 @@ export const STRIP_ACT = {
     // (the figure rule: a puller stands whole in the corner view the camera settles on, at its lens and the look's u 0.3 lens, and never
     //  over the work's middle nearer the eye — h131's figTest, the figures gate's own test)
     const fig = figTest(T), focus = [MID[0], Y1, MID[1]];
-    const whole = (q) => { const v = cornerView(A.ease ? A.ease.b : A.th); return fig([v.eye, v.aim], SA.FOV, cam0.aspect || 1.6, q[0], q[4], q[1], focus, SA.EDGE) === 'whole'; };
+    const whole = (q) => {
+      // (the camera settled: the director's own figures gate asked, at u 0 and the look's u 0.3 as it will judge him; turning: figTest)
+      const G = globalThis.__FIG; if (!A.ease && A.t > A.camT && G && typeof G.probe === 'function') { try { const r = G.probe(q[0], q[4], q[1], { x: focus[0], y: focus[1], z: focus[2] }); return !!(r && r.on && !r.cut && !r.between); } catch (e) { /* */ } }
+      const v = cornerView(A.ease ? A.ease.b : A.th); return fig([v.eye, v.aim], SA.FOV, cam0.aspect || 1.6, q[0], q[4], q[1], focus, SA.EDGE) === 'whole';
+    };
     /** the pair P slid along its face (al) until both stand whole: the nearest such place, or P itself */
-    function fitPair(P, al) {
-      for (const sft of [0, 1.6, -1.6, 3.2, -3.2, 4.8, -4.8, 6.4, -6.4, 8, -8, 10, -10]) {
-        const Q = P.map((q) => [q[0] + al[0] * sft, q[1] + al[1] * sft, q[2], q[3], q[4]]); if (Q.every(whole)) return Q;
+    function fitPair(P, al, n) {
+      for (const o of n ? [0, -1.4, -2.4] : [0]) for (const sft of [0, 1.6, -1.6, 3.2, -3.2, 4.8, -4.8, 6.4, -6.4, 8, -8, 10, -10, 12, -12]) {
+        const Q = P.map((q) => [q[0] + al[0] * sft + (n ? n[0] * o : 0), q[1] + al[1] * sft + (n ? n[1] * o : 0), q[2], q[3], q[4]]); if (Q.every(whole)) return Q;
       }
-      return P;
+      ev('fit:none'); return P;
     }
     /** the ground under a walker: the block's top inside it, the yesod's rim (one amah) round it, the court's floor beyond */
     const groundAt = (x, z) => { const o = Math.max(B[0] - x, x - B[2], B[1] - z, z - B[3]); return o <= 0 ? Y1 - 0.02 : o <= S9.rod.NW.to[0] - S9.rod.NW.from[0] ? Y0 : F; };
@@ -137,13 +142,21 @@ export const STRIP_ACT = {
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = 'brace'; w.item = 'rope'; w.until = 0; if (jump && w.a) { w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; } }
     }
     function sendMen(p, role) {
-      workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? placeOf(p) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0]);
+      workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? placeOf(p) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + 1.6; }
     }
     function moveMen(dt) {
       for (const w of men) {
         if (!w || !w.a) continue; const q = w.goal; if (!q) continue;
-        const dx = q[0] - w.a.x, dz = q[1] - w.a.z, d = Math.hypot(dx, dz), st = Math.min(d, SA.PACE * dt * (d > 6 ? 2.2 : 1));
+        // (a far place — across the block, over a wall, round a corner near the eye — is not walked in the picture: he steps out of it
+        //  and is there; "whole or absent")
+        if (Math.hypot(q[0] - w.a.x, q[1] - w.a.z) > SA.HOP || w.hop) {
+          if (!w.hop) { w.hop = 1; w.hopT = A.t; w.a.visT = 0; }
+          if (w.hop === 1 && (!(w.a.vis > 0.02) || A.t - w.hopT > 0.8)) { w.a.x = q[0]; w.a.z = q[1]; w.a.fixedY = q[4]; w.a.visT = 1; w.hop = 2; }
+          if (w.hop === 2 && (w.a.vis >= 0.98 || A.t - w.hopT > 1.8)) w.hop = 0;
+          if (w.hop === 1) continue;
+        }
+        const dx = q[0] - w.a.x, dz = q[1] - w.a.z, d = Math.hypot(dx, dz), st = Math.min(d, SA.PACE * dt);
         if (d > 0.02) { w.a.x += (dx / d) * st; w.a.z += (dz / d) * st; }
         // (from the floor to the block's top and back: a step at each edge — the yesod's rim, the block — never inside it)
         w.a.fixedY = d < 0.6 ? q[4] : groundAt(w.a.x, w.a.z);
@@ -247,12 +260,45 @@ export const STRIP_ACT = {
       await X.wait(SA.FALL + 1.6);
       const res = result(S);
       if (res.perfect) { try { X.perfect(WORDS.strip, { x: MID[0], y: Y1, z: MID[1] }); } catch (e) { /* */ } await X.wait(1.0); }
+      await carry();
       const R = 40, sh = [0, 1, 2, 3].map((i) => { const a = Math.PI / 4 + (i * Math.PI) / 2; return [[MID[0] + Math.cos(a) * R, Y1 + 16, MID[1] + Math.sin(a) * R], [MID[0], Y0 + 2, MID[1]], 1.0]; });
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
         film: { shots: sh, secs: 4, kohen: false, own: () => men.map((w) => w && w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }
+    /** the site cleared for the line: four men carry the north wall on their shoulders to the timber pile (a short shot), and with a
+     *  cut every board of the form — the four walls, the braces, the belts, the wedge — lies stacked there; the white block alone */
+    async function carry() {
+      const W = SH9.walls && SH9.walls.N; if (!W) { stackAll(); return; }
+      const q1 = stackAt('N'), h = wallHinge('N'), sy = F + SA.SHOULDER, p0 = [h.p[0], sy, h.p[1] - H - SA.CLEAR], p1 = [q1.p[0], sy, q1.p[2]];
+      gang.clear(); men[0] = men[1] = null; const crew = [];
+      for (let i = 0; i < 4; i++) { const w = gang.add(p0[0], p0[2], { role: 'hold', crew: 2 + i, fx: MID[0], fz: MID[1] }); if (w && w.a) { w.a.vis = 1; w.a.fixedY = F; } crew.push(w); }
+      A.carry = { t: 0, W, p0, p1, r: q1.r, crew, L: h.L };
+      const mid0 = [(p0[0] + p1[0]) / 2 + h.L / 2, F, (p0[2] + p1[2]) / 2 + H / 2];
+      X.shot([mid0[0] + SA.CARRY_EYE[0], F + SA.CARRY_EYE[1], mid0[2] + SA.CARRY_EYE[2]], mid0, 0.6);
+      await X.wait(SA.CARRY + 0.6);
+      stackAll();
+    }
+    function stackAll() {
+      A.carry = null; A.stacked = 1; lieAfter();
+      for (const p of Object.keys(parts)) parts[p].visible = false;
+      try { gang.clear(); } catch (e) { /* */ } men[0] = men[1] = null;
+    }
+    function carryStep(dt) {
+      const C = A.carry; if (!C) return; C.t += dt; const u = Math.min(1, C.t / SA.CARRY);
+      const x = C.p0[0] + (C.p1[0] - C.p0[0]) * u, z = C.p0[2] + (C.p1[2] - C.p0[2]) * u;
+      C.W.grp.position.set(x, C.p0[1], z); C.W.grp.rotation.set(C.r[0], C.r[1], C.r[2]);
+      const dx = C.p1[0] - C.p0[0], dz = C.p1[2] - C.p0[2], L = Math.hypot(dx, dz) || 1;
+      C.crew.forEach((w, i) => {
+        if (!w || !w.a) return; const ax = x + C.L * (i % 2 ? 0.78 : 0.22), az = i < 2 ? z - SA.SIDE : z + H + SA.SIDE;
+        w.a.x = ax; w.a.z = az; w.a.fixedY = F;
+        if (!w.stride && u < 1) gang.setRole(w, 'hold', { fx: ax + (dx / L) * 4, fz: az + (dz / L) * 4, stride: 0.8, rate: 1.2 });
+        w.fx = ax + (dx / L) * 4; w.fz = az + (dz / L) * 4;
+      });
+    }
     // ── drawing
     function draw(dt) {
+      if (A.carry) carryStep(dt);
+      if (A.stacked || A.carry) return;
       for (const [p, f] of Object.entries(A.fallK)) {
         if (!f) continue; f.t += dt;
         if (f.k) {
@@ -319,7 +365,7 @@ export const STRIP_ACT = {
         FG.detach(); V.stop(); X.hand(null); lens(fov0);
         if (!A.done) gang.clear();
         for (const g of bulges) { try { g.parent.remove(g); } catch (e) { /* */ } }
-        if (SH9.walls) { SH9.walls.S.grp.position.x = B[0]; SH9.walls.W.grp.rotation.set(0, 0, 0); }
+        if (SH9.walls && !A.stacked) { SH9.walls.S.grp.position.x = B[0]; SH9.walls.W.grp.rotation.set(0, 0, 0); }
         X.props.remove(root); hold('strip', false);
       },
       at() { return new T.Vector3(MID[0], Y1, MID[1]); },
@@ -337,7 +383,7 @@ export const STRIP_ACT = {
         o.step = workP + ':v' + (((cornerOf(A.th) % 4) + 4) % 4) + (A.ease ? ':ease' : A.t < A.camT ? ':cam' : '');
         o.pulling = men.some((w) => w && w.role && (w.role === 'pull' || w.role === 'push') && !w.stride);
         o.settled = A.t > 1.2 && A.t > A.camT && !A.ease && !Object.values(A.fallK).some((f) => f && !f.landed);
-        o.view = ((cornerOf(A.th) % 4) + 4) % 4;
+        o.view = ((cornerOf(A.th) % 4) + 4) % 4; o.th = r2(A.th); o.ease = A.ease ? { a: r2(A.ease.a), b: r2(A.ease.b), t: r2(A.ease.t), own: A.ease.own } : null;
         try { const L = X.lookNow ? X.lookNow() : null; o.look = L ? { u: r2(L.u), yaw: r2(L.yaw), play: L.play } : null; } catch (e) { o.look = null; }
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));
         return o;

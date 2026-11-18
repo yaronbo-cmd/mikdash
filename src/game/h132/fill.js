@@ -162,6 +162,13 @@ export const FILL_ACT = {
       S.ramp.forEach((q, j) => { const s = sleds.get(q.i); if (!s || s.st !== 'ramp' || !canTake(S, j)) return; const p = sp(s.pos.x, s.pos.y + 0.8, s.pos.z); if (p.on === false) return; const d = Math.hypot(f.x - p.x, f.y - p.y); if (d < bd) { bd = d; best = { j, s }; } });
       return best;
     }
+    /** the finger's ray on the fill's top (not on a plane at the sled's height: from the slanted view that read the zone next to the one
+     *  under the finger): a few steps, each on the plane at the surface's height where the last one met */
+    function onSurf(f) {
+      let y = Y0 + Math.max(...ZONES.map((z) => shown[z])), p = null;
+      for (let i = 0; i < 4; i++) { const q = onPlane(X, f.x, f.y, y); if (!q) return p; p = q; const inB = q.x > B[0] && q.x < B[2] && q.z > B[1] && q.z < B[3]; const y2 = inB ? Y0 + surfH(shown, q.x, q.z) : y; if (Math.abs(y2 - y) < 0.02) break; y = y2; }
+      return p;
+    }
     const dragY = () => Y0 + Math.max(...ZONES.map((z) => shown[z])) + FK.LIFT;
     const FG = fingers(X, {
       down(f) {
@@ -169,7 +176,7 @@ export const FILL_ACT = {
         A.fl = f.id; f.k = k; k.s.st = 'drag'; k.s.want = { ...k.s.pos }; X.hand(null); V.scrape(0.5); ev('grab:' + k.s.kind + (k.j ? ':2nd' : ''));
       },
       move(f) {
-        const k = f.k; if (!k || A.fl !== f.id) return; const p = onPlane(X, f.x, f.y, dragY()); if (!p) return;
+        const k = f.k; if (!k || A.fl !== f.id) return; const p = onSurf(f); if (!p) return;
         const x = clamp(p.x, B[0] - 2, B[2] + 2), z = clamp(p.z, R.foot[1] + 2, B[3] + 2), on = zoneAt(x, z);
         k.s.want = { x, y: on ? dragY() : Math.max(dragY(), standY(X, x, z, shown) + 0.3), z };
         A.over = on; zm.lit(on); V.scrape(0.4);

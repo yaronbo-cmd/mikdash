@@ -127,20 +127,21 @@ export const FINALE_ACT = {
     const cutOr = (p, d) => { const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > 60 ? 0 : d; };
     /** the cloth's shot: close and low behind the man wiping, over the part of the yesod still grey nearest the cloth (taken when the
      *  hand is lifted, so the place under a still finger never runs) */
+    /** the cloth's close shot over (x, z): from the south first; where the man by it would stand between the eye and the work's
+     *  middle (the grey on the line from the south to it) the eye goes round it until he kneels there whole and clear */
+    function clothEye(x, z) {
+      const ax = clamp(x, FIN.X0 + 2, FIN.X0 + FIN.NX - 2), az = clamp(z, FIN.Z0 + 2, FIN.Z0 + FIN.NZ - 2), O = NK.WOFF, aim = [ax, Y1, az], p0 = A.pose;
+      for (let q = 0; q < 8; q++) {
+        const r = (q % 2 ? 1 : -1) * Math.ceil(q / 2) * (Math.PI / 4), c = Math.cos(r), s = Math.sin(r), e = [ax + O[0] * c + O[2] * s, Y1 + O[1], az - O[0] * s + O[2] * c];
+        A.pose = [e, aim]; const ok = !!manPlace(x, z); A.pose = p0; if (ok) return [e, aim];
+      }
+      ev('cloth:noshot'); return [[ax + O[0], Y1 + O[1], az + O[2]], aim];
+    }
     function clothShot(d) {
       let bx = CL.x, bz = CL.z, bd = 1e9;
       for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5, dd = Math.hypot(x - CL.x, z - CL.z); if (dd < bd) { bd = dd; bx = x; bz = z; } }
       // (the grey cell itself in the picture's middle: held in from the edge, the bottom rows fell under the instruction line for good)
-      const ax = clamp(bx, FIN.X0 + 2, FIN.X0 + FIN.NX - 2), az = clamp(bz, FIN.Z0 + 2, FIN.Z0 + FIN.NZ - 2), O = NK.WOFF;
-      // (b131: from the south first; where the man by that grey would stand between the eye and the work's middle — the grey on the
-      //  line from the south to it — the eye goes round the grey until he kneels there whole and clear)
-      const at0 = [bx, bz]; let eye = null;
-      for (let q = 0; q < 8; q++) {
-        const r = (q % 2 ? 1 : -1) * Math.ceil(q / 2) * (Math.PI / 4), c = Math.cos(r), s = Math.sin(r), e = [ax + O[0] * c + O[2] * s, Y1 + O[1], az - O[0] * s + O[2] * c];
-        const keep = A.pose; A.pose = [e, [ax, Y1, az]]; const ok = !!manPlace(at0[0], at0[1]); A.pose = keep; if (ok) { eye = e; break; }
-      }
-      if (!eye) { eye = [ax + O[0], Y1 + O[1], az + O[2]]; ev('cloth:noshot'); }
-      A.pose = [eye, [ax, Y1, az]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
+      const at0 = [bx, bz], [eye, aim] = clothEye(bx, bz); A.pose = [eye, aim]; X.shot(eye, aim.slice(), cutOr(eye, d)); A.cshot = [aim[0], aim[2]];
       // (the man takes his cloth to that grey: he kneels by it, whole in the new picture, set there while the camera moves)
       if (A.fl == null) { const at = at0; CL.x = CL.tx = at[0]; CL.z = CL.tz = at[1]; A.wiped = 1; }
       clothMan(true);
@@ -436,16 +437,19 @@ export const FINALE_ACT = {
     }
     async function whiteDone() {
       A.whiteDone = 1; A.busy = 1; A.fl = null; V.scrape(0);
-      X.line(NLINES.crew, 2600); shot(NK.WHITE, 1.1);
+      X.line(NLINES.crew, 2600);
       // the crew wipes the last of it, in rows from the north
       const left = []; for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) left.push(c);
       // (rule 5: the crew man is seen doing it — the cloth's place, which he follows, goes along each row as it whitens)
       for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) {
         let sx = 0, sz = 0, n = 0; for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) { Fs.mask[left[j]] = 1; sx += FIN.X0 + (left[j] % FIN.NX) + 0.5; sz += FIN.Z0 + Math.floor(left[j] / FIN.NX) + 0.5; n++; }
-        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; }
-        clothMan(true); paint(false); V.cloak(); await X.wait(0.35);
+        // (b131: the shot stays close on him as he goes — he kneels by the cloth, whole, the picture following him (whiteStep moves him))
+        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z); A.pose = [e, t]; X.track(e, t, 3); }
+        paint(false); V.cloak(); await X.wait(0.6);
       }
       whiteAll(Fs); paint(false);
+      // (his work done, the picture cuts to the whole white yesod, without him: the step no longer needs him)
+      gang.clear(); crew.length = 0; shot(NK.WHITE, 0);
       X.quick({ x: MID[0], y: Y1 + 1, z: MID[1] }, QUICK.white, white); X.shake(0.12, 0.2); try { if (X.haptic) X.haptic(20); } catch (e) { /* */ }
       cloth.position.set(W8.lime[0], F + 0.6, W8.lime[1]);
       A.step = 'water'; keep(); await X.wait(1.6); A.busy = 0; startWater();

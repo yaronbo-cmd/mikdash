@@ -27,6 +27,11 @@ const KIND = {
   // ── h131 ── (build 131) stage 08's kinds
   altar: 'מזבח', yesod: 'יסוד', timber: 'קורת עץ', joint: 'מפגש', reed: 'קנה', section: 'מקטע יציקה', stone2: 'אבן', cradle: 'עריסה',
   // ── /h131 ──
+  // ── h132 ── (build 132) stage 09's kinds
+  mass: 'גוש', wall: 'דופן', lie: 'דופן שוכבת', shoulder: 'מוט כתף', flag: 'דגל', zone: 'אזור מילוי', gauge: 'לשון מד', brace: 'תומכה', belt: 'קורת חגורה',
+  wedge: 'טריז', measure: 'מוט מדידה', linestake: 'יתד הקו', start: 'נקודת התחלה', dot: 'נקודת פחם', bowl: 'קערה', path: 'דרך', flawslot: 'מקום פגם',
+  roughpatch: 'משטח מחוספס',
+  // ── /h132 ──
 };
 const L = [
   '# ספר הכתובות — כל המקומות לפי שלב',
@@ -37,7 +42,7 @@ const L = [
   'הרשת לעולם אינה מצוירת במשחק. "המחשה" — מידה שאינה במקורות.',
   '',
 ];
-for (const k of ['s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08']) {   // ── h131 ── (+ s08) ── /h131 ──
+for (const k of ['s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08', 's09']) {   // ── h131 ── (+ s08) ── /h131 ──   // ── h132 ── (+ s09) ── /h132 ──
     // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──   // ── h127 ── (build 127: stage 01's section too) ── /h127 ──
   const S = BOOK[k], B = S.bounds;
   L.push(`## שלב ${String(S.stage).padStart(2, '0')} — ${S.name}`, '');

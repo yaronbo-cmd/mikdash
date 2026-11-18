@@ -109,6 +109,7 @@ function makeBook() {
   stages.s06 = s06();   // ── h128 ── (build 128: stage 06's section, and its sea sheet) ── /h128 ──
   stages.s07 = s07(stages.s04);   // ── h129 ── (build 129: stage 07's section; the gates that lock at night are read from s04's entries) ── /h129 ──
   stages.s08 = s08();   // ── h131 ── (build 131: stage 08's section, and the pit's sheet at Beit Kerem) ── /h131 ──
+  stages.s09 = s09();   // ── h132 ── (build 132: stage 09's section, derived from stage 08's) ── /h132 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1212,5 +1213,131 @@ function s08() {
 }
 export { pitName };
 // ── /h131 ──
+
+/* ───────── ── h132 ── stage 09 "הסובב וחוט הסיקרא" (build 132; spec docs/specs/shlav-09-he.md, "המקום בעולם: טבלת הכתובות").
+ * Every exact place is DERIVED from BOOK.s08 (the altar's point, the yesod's strips, the pour's edge), never typed again: the block is
+ * the poured body of stage 08 (S08.yesod.body: x −53 … −23, z −18.5 … 11.5) raised from the yesod's top (S08.top, 17) by five amot
+ * (Zevachim 54a; Rambam 2:7: thirty tefachim) to 22; the line six tefachim (one amah) under its top, at 21 (Middot 3:1; Rambam 2:8–9);
+ * the shoulder rods start at the yesod's outer corners (S08.altar) and slide in to the block's corners. What the spec marks "המחשה" is
+ * typed here as the spec has it (the book is the one place a place is typed).
+ * Read against the built world (lead's check, build 132 phase 0; see the report):
+ *  · the spurs: the spec's table types E as x −23 … −22, z −19.5 … −18.5 and S as x −54 … −53, z 11.5 … 12.5 (the strips' own corner
+ *    cells); the built world (BOOK.s08.yesod.E1 / S1, temple.js) has them one amah past those: E z −18.5 … −17.5, S x −53 … −52. The
+ *    spec says "נקראת מתוך BOOK.s08": read from there (the world decides);
+ *  · the Ulam's lowest tread is x −56 … −55 at y 16.5 (temple.js xr[0]): the west brace's foot is on it; between the yesod's west edge
+ *    (−54) and that tread lies one amah of floor (y 16), where the west walk runs (path:W, x −54.3);
+ *  · south and east of the block the pour's edge is the block's face, and past it the strip with no yesod (stage 08's two timbers,
+ *    pulled in its finale): floor at 16, one amah under the walls' foot (17) — the sills (S08.wood.E / S) are the proposed footing.
+ * Units: amot; T is two tefachim (1/3 amah). Nothing random (rule 56). */
+const TEF = 1 / 6;
+function s09() {
+  const C = S08, B = C.yesod.body, y0 = C.top, H = 5, y1 = y0 + H, T = 2 * TEF, lineY = y1 - 6 * TEF, side = B[2] - B[0];
+  const mid = [(B[0] + B[2]) / 2, (B[1] + B[3]) / 2];
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  // the block's corners [x, z] and its four faces (each face's own line, as the walk meets it)
+  const corner = { NE: [B[2], B[1]], SE: [B[2], B[3]], SW: [B[0], B[3]], NW: [B[0], B[1]] };
+  // the form's walls: their foot is the outer face (spec "רגל הדופן (הפאה החיצונית)"), T out from the block's face, along the block's side
+  const wall = {
+    E: { x: r3(B[2] + T), z0: B[1], z1: B[3], socket: true }, W: { x: r3(B[0] - T), z0: B[1], z1: B[3], socket: true },
+    N: { z: r3(B[1] - T), x0: B[0], x1: B[2], tongue: true }, S: { z: r3(B[3] + T), x0: B[0], x1: B[2], tongue: true },
+  };
+  // lying: the three outer ones flat outside, half their height (2.5) out from the foot; the west one flat on the yesod's top inward
+  // (its foot at its standing foot, its head east): the spec types (−50.5, −3.5) — the foot at the block's face; derived from the foot
+  // it is −50.83 (see the report)
+  const lie = { N: [mid[0], r3(wall.N.z - H / 2)], S: [mid[0], r3(wall.S.z + H / 2)], E: [r3(wall.E.x + H / 2), mid[1]], W: [r3(wall.W.x + H / 2), mid[1]] };
+  // the shoulder rods: from the yesod's outer corner (the frame's corner of stage 08: S08.altar) diagonally in to the block's corner
+  const A = C.altar;
+  const rod = { NW: { from: [A[0], A[1]], to: corner.NW }, NE: { from: [A[2], A[1]], to: corner.NE }, SW: { from: [A[0], A[3]], to: corner.SW } };
+  // work 2's zones: the four corners' middles a quarter of the side in, and the middle
+  const q = side / 4;
+  const zone = { NE: [B[2] - q, B[1] + q], NW: [B[0] + q, B[1] + q], SE: [B[2] - q, B[3] - q], SW: [B[0] + q, B[3] - q], C: mid };
+  const gauge = { N: [mid[0], wall.N.z], S: [mid[0], wall.S.z], E: [wall.E.x, mid[1]], W: [wall.W.x, mid[1]] };
+  // work 4: the walk from the south-east corner (Mishnah Zevachim 5:3): east (north along it), north (west), west (south), south (east)
+  const ORDER = ['E', 'N', 'W', 'S'];
+  const run = { E: { from: corner.SE, to: corner.NE }, N: { from: corner.NE, to: corner.NW }, W: { from: corner.NW, to: corner.SW }, S: { from: corner.SW, to: corner.SE } };
+  const along = (k, d) => { const R = run[k], L = Math.hypot(R.to[0] - R.from[0], R.to[1] - R.from[1]); return [r3(R.from[0] + ((R.to[0] - R.from[0]) * d) / L), r3(R.from[1] + ((R.to[1] - R.from[1]) * d) / L)]; };
+  const SEG = 6, segL = side / SEG;   // (six segments of 5 on every wall; the dots on their bounds: five a wall, the north's every second)
+  const dots = {}; for (const k of ORDER) dots[k] = [1, 2, 3, 4, 5].map((i) => along(k, i * segL));
+  const sparse = { N: [2, 4] };   // (the north wall: only after the second and the fourth segment)
+  // the west wall's flaw slots (spec, work 4, "הפגמים שעוברים לקיר המערבי"), amot from the NW corner where the walk begins that wall
+  const SLOT = { tornA: 2.5, bulge: [5, 7, 9, 11], nest: [14, 16, 18, 20], patch: 24, tornB: 27.8, rough: side / 2 };
+  const slot = (d) => along('W', d);
+  const S09 = {
+    T, tef: TEF, H, floor: C.floor, base: y0, top: y1, lineY, side, mid,
+    block: [...B], corner, spur: { E: [...C.yesod.E1], S: [...C.yesod.S1] },
+    perimeter: 4 * side, order: ORDER, run, seg: { n: SEG, L: segL, corner: 1 },
+    wall, lie, rod, stakeY: y0,
+    // (the sills: the proposed footing of the south and east walls over the strip with no yesod — stage 08's timbers, as the book has them)
+    sill: { E: [...C.wood.E], S: [...C.wood.S] },
+    flag: [-14, -24],
+    zone, gauge, gaugeY: y1,
+    ramp: { foot: [mid[0], -43], footY: C.floor, head: [mid[0], wall.N.z], headY: y1, w: 6 },
+    sleds: [[mid[0], -23], [mid[0], -29], [mid[0], -35]],
+    oxen: { from: [-8, -46], to: [mid[0], -46] },
+    brace: { N: [-47, -22], S: [mid[0], 15], E: [-19.5, mid[1]], W: [-55, mid[1]], wY: C.floor + 0.5 },
+    belt: { ...gauge }, beltY: y0 + 2.5,
+    wedge: [...corner.SE], wedgeY: y0 + 2.5,
+    pile: [-12, -26],
+    sikra: {
+      rod: [-21.0, 13.5], rodY: C.floor, stakes: corner, stakeY: lineY, start: corner.SE, dots, sparse, bowl: [-21.3, 6.5], bowlY: C.floor,
+      pathW: { x: -54.3, z0: B[1], z1: B[3] },
+      slots: { tornA: slot(SLOT.tornA), bulge: SLOT.bulge.map(slot), nest: SLOT.nest.map(slot), patch: slot(SLOT.patch), tornB: slot(SLOT.tornB) },
+      slotD: SLOT, rough: slot(SLOT.rough),
+    },
+    stand: { w1: [-16, -25], w2: [-34, -46], w3: [-16, 18], w4: [-21.8, 11.5] }, standY4: C.floor,
+    // the cameras ([eye x, y, z], [aim x, y, z]); the end: a round over the middle
+    cam: {
+      w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[mid[0], 50, -44], [mid[0], 19, mid[1]]], w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
+      w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
+      end: { c: mid, R: 40, y: 50 },
+    },
+    // the Ulam's lowest tread as the world builds it (temple.js xr[0]: x −56 … −55, top 16.5): the west brace leans on it
+    step1: { x0: -56, x1: -55, y: C.floor + 0.5 },
+  };
+  const E = [];
+  const e3 = (id, kind, p, y, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y, extra }));
+  const SIDE = { NE: 'הצפונית מזרחית', SE: 'הדרומית מזרחית', SW: 'הדרומית מערבית', NW: 'הצפונית מערבית' };
+  const RU = { N: 'הצפונית', S: 'הדרומית', E: 'המזרחית', W: 'המערבית' };
+  const mb = (b) => [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+  e3('yesod:spur:E', 'yesod', mb(C.yesod.E1), C.floor, 'שלוחת היסוד במזרח ("אוכל במזרח אמה אחת"), מתוך BOOK.s08', 'רמב"ם ב, י');
+  e3('yesod:spur:S', 'yesod', mb(C.yesod.S1), C.floor, 'שלוחת היסוד בדרום ("אוכל בדרום אמה אחת"), מתוך BOOK.s08', 'רמב"ם ב, י');
+  e3('block', 'mass', mid, y0, `הגוש, ${side} על ${side}, מ-${y0} עד ${y1}`, 'זבחים נד ע"א; רמב"ם ב, ז');
+  for (const k of ['NE', 'SE', 'SW', 'NW']) e3('block:' + k, 'corner', corner[k], y0, `פינת הגוש ${SIDE[k]}`, 'זבחים נד ע"א');
+  e3('sikra', 'line', mid, lineY, `חוט הסיקרא סביב ארבע הפאות, היקף ${4 * side}`, 'מידות ג, א; רמב"ם ב, ט');
+  for (const k of ['E', 'W', 'N', 'S']) {
+    const w = wall[k], p = w.x != null ? [w.x, mid[1]] : [mid[0], w.z];
+    e3('form:wall:' + k, 'wall', p, y0, `רגל הדופן ${RU[k]} (הפאה החיצונית), ${w.socket ? 'עם שקעים' : 'עם לשונות'}`, ILL);
+  }
+  for (const k of ['N', 'S', 'E']) e3('form:lie:' + k, 'lie', lie[k], C.floor, `מרכז הדופן ${RU[k]} כשהיא שוכבת בחוץ`, ILL);
+  e3('form:lie:W', 'lie', lie.W, y0, 'מרכז הדופן המערבית, שוכבת על ראש היסוד כלפי פנים', ILL);
+  for (const k of ['NW', 'NE', 'SW']) e3('form:rod:' + k, 'shoulder', rod[k].to, y0, `מוט הכתף בפינה ${SIDE[k]}: מתחיל בפינה החיצונית של היסוד ונגרר באלכסון פנימה עד כאן`, ILL, { from: rod[k].from });   // (the entry where it stops — the spec's cell is the block's corner's; `from` where it starts)
+  for (const k of ['NE', 'SE', 'SW', 'NW']) e3('form:stake:' + k, 'stake', corner[k], y0, `יתד התבנית בפינה ${SIDE[k]}` + (k === 'SE' ? ', על קו היציקה של שלב 08' : ''), ILL);
+  e3('form:flag', 'flag', S09.flag, C.floor, 'הדגל של משב הרוח (רמה ג)', ILL);
+  for (const k of ['NE', 'NW', 'SE', 'SW', 'C']) e3('fill:zone:' + k, 'zone', zone[k], y0, k === 'C' ? 'מרכז האזור האמצעי' : `מרכז אזור הפינה ${SIDE[k]}`, ILL);
+  for (const k of ['N', 'S', 'E', 'W']) e3('fill:gauge:' + k, 'gauge', gauge[k], y1, `לשון המד באמצע הדופן ${RU[k]}`, ILL);
+  e3('ramp', 'ramp', S09.ramp.foot, C.floor, `הרמפה מצפון: רגלה כאן, ראשה בדופן הצפונית ב-y ${y1}, רוחב ${S09.ramp.w}`, ILL, { head: S09.ramp.head });
+  S09.sleds.forEach((p, i) => e3('ramp:sled' + (i + 1), 'sledge', p, C.floor, `מזחלת ${i + 1} בתור`, ILL));
+  e3('oxen', 'lane', S09.oxen.from, C.floor, 'דרך השוורים אל רגל הרמפה, ממזרח', ILL, { to: S09.oxen.to });
+  for (const k of ['N', 'S', 'E']) e3('strip:brace:' + k, 'brace', S09.brace[k], C.floor, `רגל התומכה ${RU[k]} על הקרקע`, ILL);
+  e3('strip:brace:W', 'brace', S09.brace.W, S09.brace.wY, 'התומכה המערבית: קצרה ותלולה, רגלה על המעלה התחתונה של האולם', ILL);
+  for (const k of ['N', 'S', 'E', 'W']) e3('strip:belt:' + k, 'belt', S09.belt[k], S09.beltY, `קורת החגורה ${RU[k]}, על הפאה החיצונית`, ILL);
+  e3('strip:wedge', 'wedge', S09.wedge, S09.wedgeY, 'הטריז (רמה ג), בין דופן דרום לשקע של מזרח', ILL);
+  e3('strip:pile', 'heap', S09.pile, C.floor, 'ערימת העץ', ILL);
+  const K9 = S09.sikra;
+  e3('sikra:rod', 'measure', K9.rod, K9.rodY, 'המוט עם ששת החריצים, מקום ההתחלה', ILL);
+  for (const k of ['NE', 'SE', 'SW', 'NW']) e3('sikra:stake:' + k, 'linestake', corner[k], lineY, `יתד הקו בפינה ${SIDE[k]}`, 'רמב"ם ב, ט');
+  e3('sikra:start', 'start', K9.start, lineY, 'נקודת ההתחלה והסגירה, בקרן הדרומית מזרחית', 'משנה זבחים ה, ג');
+  for (const k of ORDER) dots[k].forEach((p, i) => e3(`sikra:dot:${k}${i + 1}`, 'dot', p, lineY, `נקודת פחם ${i + 1} בקיר ${RU[k]}` + (sparse[k] && !sparse[k].includes(i + 1) ? ' (לא מסומנת: הקיר הדליל)' : ''), ILL, { d: (i + 1) * segL, wall: k }));
+  e3('sikra:bowl', 'bowl', K9.bowl, K9.bowlY, 'העוזר והקערה, מקום ההתחלה', ILL);
+  e3('sikra:path:W', 'path', [K9.pathW.x, mid[1]], C.floor, 'דרך העובד במערב, ברווח שבין הגוש למעלות', ILL, { z0: K9.pathW.z0, z1: K9.pathW.z1 });
+  const SL9 = [['tornA', K9.slots.tornA, 'פינה קרועה ראשונה'], ...K9.slots.bulge.map((p, i) => ['bulge' + (i + 1), p, `סימן לוח מתנפח ${i + 1}`]),
+    ...K9.slots.nest.map((p, i) => ['nest' + (i + 1), p, `"קן" ${i + 1}`]), ['patch', K9.slots.patch, 'כתם קרוע'], ['tornB', K9.slots.tornB, 'פינה קרועה שנייה']];
+  for (const [k, p, lab] of SL9) e3('sikra:west:' + k, 'flawslot', p, lineY, `מקום הפגם בקיר המערבי: ${lab}`, ILL);
+  e3('sikra:rough', 'roughpatch', K9.rough, lineY, 'המשטח המחוספס הקבוע, במרכז הקיר המערבי', ILL);
+  const ST = { w1: 'התחנה של עבודה 1', w2: 'התחנה של עבודה 2, ליד רגל הרמפה', w3: 'התחנה של עבודה 3', w4: 'העובד בתחילת הקו' };
+  for (const k of ['w1', 'w2', 'w3', 'w4']) e3('stand:' + k, 'stand', S09.stand[k], C.floor, ST[k], ILL);
+  return { stage: 9, name: 'הסובב וחוט הסיקרא', bounds: { x0: -62, x1: -4, z0: -50, z1: 22 }, ...S09, entries: E };
+}
+// ── /h132 ──
 
 export const BOOK = makeBook();

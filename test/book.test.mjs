@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BOOK, cellOf, nameOf } from '../src/game/world/grid.js';
 
-const SEC = ['s02', 's03', 's04', 's05', 's06', 's07', 's08'];   // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──   // ── h131 ── (+ s08) ── /h131 ──
+const SEC = ['s02', 's03', 's04', 's05', 's06', 's07', 's08', 's09'];   // ── h132 ── (+ s09) ── /h132 ──   // ── h128 ── (+ s06) ── /h128 ──   // ── h129 ── (+ s07) ── /h129 ──   // ── h131 ── (+ s08) ── /h131 ──
 const near = (a, b, e = 1e-9) => Math.abs(a - b) <= e;
 
 test('book: every entry finite, its cell its own, inside its stage, frozen', () => {

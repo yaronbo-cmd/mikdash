@@ -27,3 +27,6 @@ export function lookEndOf(act, yaw) {
 /** the u of two fingers that began d0 apart at u0 and are now d apart: closing lifts it, opening brings it down (unclamped: > 1 asks
  *  for the overview) */
 export function pinchU(u0, d0, d) { return (+u0 || 0) + (1 - d / Math.max(1, d0)) * 2.2; }
+/** ── h132 ── the act set its own lens while the look's lens was on: the camera's fov is no more the one the look last set (fovSet) —
+ *  that lens is the look's base from then on, and when the look ends it stays (the director's lk5Step / lk5Off) ── /h132 ── */
+export function actLens(fovSet, now) { return fovSet != null && Number.isFinite(now) && Math.abs(now - fovSet) > 1e-3; }

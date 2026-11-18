@@ -20,7 +20,7 @@ import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the ad
 import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
-import { lookZone, WHEEL_STEP, pinchU, lookYawOf, lookClampOf, lookEndOf } from './look.js';   // ── h117 ── ── /h117 ──
+import { lookZone, WHEEL_STEP, pinchU, lookYawOf, lookClampOf, lookEndOf, actLens } from './look.js';   // ── h117 ── ── /h117 ──
 import { makeLook, LOOK_OPEN_K } from '../world/look.js';   // ── h125 ── (one look module for every stage) ── /h125 ──
 
 const TAU = Math.PI * 2;
@@ -213,11 +213,13 @@ export function createH109Director(o) {
   // and its lens widening a little — the work low in the frame, the court, the Mount, the city and the sky; a sight rule (the pack's
   // boxes and the world's frameBlocked) lifts it, or turns it toward the nearest clear side, so nothing ever stands between the camera
   // and the work. The act plays only while the work is in the frame (LK5.seen) and the look is small (lookZone).
-  const LK5 = { on: false, fov0: null, lift: 0, dy: 0, gLift: 0, gDy: 0, tq: 0, key: '', seen: true, noExtra: false, extraT: 0 };
+  const LK5 = { on: false, fov0: null, fovSet: null, lift: 0, dy: 0, gLift: 0, gDy: 0, tq: 0, key: '', seen: true, noExtra: false, extraT: 0 };
   const lk5Extra = (pp, a) => { try { return !!(S0.frameBlocked && S0.frameBlocked(pp[0], pp[1], pp[2], a[0], a[1], a[2], PK.id)); } catch (e) { return false; } };
   function lk5Step(dt) {
     const want = LOOK.u > 1e-3 || Math.abs(LOOK.yaw) > 1e-3;
     if (!want) { if (LK5.on) lk5Off(); return false; }
+    // ── h132 ── (the act set its own lens while the look was on — a shot after a lookEnd turn: that lens is the base now, not the old one) ── /h132 ──
+    if (LK5.on && actLens(LK5.fovSet, camera.fov)) { LK5.fov0 = camera.fov; LK5.fovSet = null; }
     const base = { p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: LK5.fov0 != null ? LK5.fov0 : camera.fov };
     if (!LK5.on) { LK5.on = true; LK5.fov0 = camera.fov; base.fov = LK5.fov0; LK5.lift = LK5.dy = LK5.gLift = LK5.gDy = 0; LK5.tq = 0; LK5.noExtra = lk5Extra(base.p, base.t); }
     // (the sight rule ten times a second, or at once when the thumb moved far: its answer eased in, never a jump)
@@ -230,11 +232,12 @@ export function createH109Director(o) {
     try { if (act && act.camClamp) { const c = act.camClamp(q.p, q.t); if (c) q.p = c; } } catch (e) { /* */ }
     view.camSet(q.p[0], q.p[1], q.p[2], q.t[0], q.t[1], q.t[2]);
     if (Math.abs(camera.fov - q.fov) > 1e-3) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
+    LK5.fovSet = camera.fov;   // ── h132 ── ── /h132 ──
     // (the work in the frame: the act may play; out of it, or hidden, it waits)
     try { const w = view.project(base.t[0], base.t[1], base.t[2]); LK5.seen = !!w.on && w.x > innerWidth * 0.04 && w.x < innerWidth * 0.96 && w.y > innerHeight * 0.08 && w.y < innerHeight * 0.94; } catch (e) { LK5.seen = true; }
     return true;
   }
-  function lk5Off() { LK5.on = false; LK5.seen = true; LK5.key = ''; if (LK5.fov0 != null) { camera.fov = LK5.fov0; camera.updateProjectionMatrix(); } LK5.fov0 = null; LK5.lift = LK5.dy = 0; }
+  function lk5Off() { LK5.on = false; LK5.seen = true; LK5.key = ''; if (LK5.fov0 != null && !actLens(LK5.fovSet, camera.fov) /* ── h132 ── (a lens the act set meanwhile stays) ── /h132 ── */) { camera.fov = LK5.fov0; camera.updateProjectionMatrix(); } LK5.fov0 = null; LK5.fovSet = null; LK5.lift = LK5.dy = 0; }
   /** the play zone: the look small (lookZone) and, with a pack's own look, the work in the frame */
   /** the thumb's gain (u per screen height): 1.8, or the pack's own (the owner on build 120: "להרים ביד ימין בקלות את המצלמה") */
   const UG = () => (PK.look && PK.look.ug) || 1.8;

@@ -212,6 +212,16 @@ export function result(S) {
 export const save = (S) => JSON.parse(JSON.stringify(S));
 export function load(o) { if (!o || !o.h || !Array.isArray(o.queue)) return null; return JSON.parse(JSON.stringify(o)); }
 
+/** what the screen does with a load, so the screen and the rules agree on the streak (as stage 08 and the one scoring system have it: a
+ *  20-point step is not gold and ends the gold run, silently): a load in the good band is the director's gold hit (the run goes on); a
+ *  20 or a 10 is a 'good' / 'ok' hit (the run ends, as the rules' streak 'break'); the free trial's load that is not gold is no hit at
+ *  all but its points as a bonus with its word — the run neither grows nor ends, as the rules' 'keep'. → { grade | null, bonus } */
+export function screenOf(ev) {
+  const grade = ev.pts >= FILL.PTS.good ? 'gold' : ev.pts >= FILL.PTS.warn ? 'good' : 'ok';
+  if (ev.free && grade !== 'gold') return { grade: null, bonus: ev.pts };
+  return { grade, bonus: 0 };
+}
+
 /* ───────── the hint: the best next sled and zone (the hint hand of the free trial and of level 1; the bot reads it too) ───────── */
 const slim = (S) => ({ lv: S.lv, h: { ...S.h }, last: { ...S.last }, pockets: S.pockets.map((p) => ({ ...p })), layer: S.layer, inLayer: S.inLayer, queue: S.queue,
   next: S.next, ramp: S.ramp.slice(), t: 0, arriveT: 0, waiting: 0, danger: { N: 0, S: 0, E: 0, W: 0 }, bulged: { ...S.bulged }, free: S.free, grace: 0, pts: S.pts,

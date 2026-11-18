@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import * as F from '../src/game/h132/fill-model.js';
 import { LOSS as FLAWS } from '../src/game/h132/model.js';
 import { BOOK } from '../src/game/world/grid.js';
+import { createScore } from '../src/game/score.js';
 
 const { FILL } = F;
 const H = (o = {}) => ({ NE: 0, NW: 0, SE: 0, SW: 0, C: 0, ...o });
@@ -224,4 +225,24 @@ test('the hint: the best first step of the layer\'s line; played by it alone, ev
     assert.equal(n, 20); const R = F.result(S); assert.equal(R.flags.flat, 5, 'level ' + lv); assert.equal(R.flags.dmg, 0); assert.equal(R.perfect, true);
   }
   const D = F.fresh(2); D.done = 1; assert.equal(F.advise(D), null);
+});
+
+test('the streak: the screen\'s hit and the rules agree on every load (a 20 or a 10 ends the gold run, the free trial neither grows nor ends it)', () => {
+  // (the one scoring system: score.js's grade() — any grade but gold ends the run; a bonus leaves it alone)
+  const run = (calls) => { const SC = createScore({ G: () => ({}) }); for (const c of calls) { if (c.grade) SC.grade(c.grade); else SC.add(c.bonus, 'bonus'); } return SC.streak(); };
+  const gold = { grade: 'gold' };
+  for (const pts of [40, 20, 10]) for (const free of [false, true]) for (const collapse of [false, true]) {
+    const ev = { pts: collapse ? Math.min(pts, 10) : pts, free, collapse: collapse ? 'NE' : null, streak: 'keep', band: pts === 40 ? 'good' : pts === 20 ? 'warn' : 'danger' };
+    if (ev.collapse || ev.band !== 'good') ev.streak = 'break';
+    if (free) { ev.pts = Math.max(ev.pts, 20); ev.streak = 'keep'; }
+    const c = F.screenOf(ev), before = run([gold, gold]), after = run([gold, gold, c]);
+    if (ev.streak === 'break') assert.equal(after, 0, JSON.stringify(ev));
+    else assert.ok(after >= before, JSON.stringify(ev));
+    if (c.grade === null) assert.equal(c.bonus, ev.pts);
+  }
+  // and the rules' own events through take(): every load of a played level
+  for (const lv of [1, 2, 3]) {
+    const S = F.fresh(lv); let k = 0;
+    while (!S.done && k++ < 40) { const a = F.advise(S) || { i: 0, zone: ['NE', 'NW', 'SE', 'SW', 'C'][k % 5] }; const ev = F.take(S, a.i, a.zone); if (!ev) break; const c = F.screenOf(ev); const after = run([gold, gold, c]); assert.equal(ev.streak === 'break', after === 0, JSON.stringify({ lv, pts: ev.pts, band: ev.band, free: ev.free, streak: ev.streak })); if (lv === 3) F.tick(S, 5); }
+  }
 });

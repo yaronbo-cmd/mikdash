@@ -132,11 +132,13 @@ export const FINALE_ACT = {
      *  hand is lifted, so the place under a still finger never runs) */
     /** the cloth's close shot over (x, z): from the south first; where the man by it would stand between the eye and the work's
      *  middle (the grey on the line from the south to it) the eye goes round it until he kneels there whole and clear */
-    function clothEye(x, z) {
+    function clothEye(x, z, pref) {
       const ax = clamp(x, FIN.X0 + 2, FIN.X0 + FIN.NX - 2), az = clamp(z, FIN.Z0 + 2, FIN.Z0 + FIN.NZ - 2), O = NK.WOFF, aim = [ax, Y1, az], p0 = A.pose;
-      for (let q = 0; q < 8; q++) {
-        const r = (q % 2 ? 1 : -1) * Math.ceil(q / 2) * (Math.PI / 4), c = Math.cos(r), s = Math.sin(r), e = [ax + O[0] * c + O[2] * s, Y1 + O[1], az - O[0] * s + O[2] * c];
-        A.pose = [e, aim]; const ok = !!manPlace(x, z); A.pose = p0; if (ok) return [e, aim];
+      // (pref: the side the eye stood on before is tried first — a following shot does not swing round for nothing)
+      const turns = []; if (pref != null) turns.push(pref); for (let q = 0; q < 8; q++) turns.push((q % 2 ? 1 : -1) * Math.ceil(q / 2) * (Math.PI / 4));
+      for (const r of turns) {
+        const c = Math.cos(r), s = Math.sin(r), e = [ax + O[0] * c + O[2] * s, Y1 + O[1], az - O[0] * s + O[2] * c];
+        A.pose = [e, aim]; const ok = !!manPlace(x, z); A.pose = p0; if (ok) { A.eyeTurn = r; return [e, aim]; }
       }
       ev('cloth:noshot'); return [[ax + O[0], Y1 + O[1], az + O[2]], aim];
     }
@@ -459,7 +461,7 @@ export const FINALE_ACT = {
       for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) {
         let sx = 0, sz = 0, n = 0; for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) { Fs.mask[left[j]] = 1; sx += FIN.X0 + (left[j] % FIN.NX) + 0.5; sz += FIN.Z0 + Math.floor(left[j] / FIN.NX) + 0.5; n++; }
         // (b131: the shot stays close on him as he goes — he kneels by the cloth, whole, the picture following him (whiteStep moves him))
-        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z); A.pose = [e, t]; X.shot(e, t.slice(), 0.45); }
+        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z, A.eyeTurn); A.pose = [e, t]; X.track(e, t.slice(), 4); }
         paint(false); V.cloak(); await X.wait(0.6);
       }
       whiteAll(Fs); paint(false);

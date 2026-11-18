@@ -102,7 +102,7 @@ const at = (s, s0) => ORDER.indexOf(s) >= ORDER.indexOf(s0);
 function sync(X, M) {
   if (!SH9.g || !M) return;
   const st = M.st, blk = M.block ? M.block() : 'site', cur = st.cur || '';
-  const key = [blk, cur, st.done.join(','), st.flaws.length, st.crews, owns('walls'), owns('block'), owns('ramp')].join('|'); if (key === SH9.key) return; SH9.key = key;
+  const key = [blk, cur, st.done.join(','), st.flaws.length, st.crews, owns('walls'), owns('block'), owns('ramp'), owns('line')].join('|'); if (key === SH9.key) return; SH9.key = key;
   const D = SH9.drawn, Mt = mats(X), Tt = X.THREE;
   while (D.children.length) D.remove(D.children[0]);
   for (const k of ['N', 'S', 'E', 'W']) { const G = SH9.walls[k].marks; while (G.children.length) G.remove(G.children[0]); }

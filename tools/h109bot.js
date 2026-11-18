@@ -1328,6 +1328,51 @@
     }
     return { wait: 400 };
   };
+  // ── h132 ── (build 132, stage 09 work 4 "חוט הסיקרא", lane B) the measuring: the rod dragged to its corner, a tap at its lower end;
+  // then the line with TWO fingers (probe109's { fingers }): the left held down the whole line at its point (right of it = pace, up and
+  // down = height), the right tapping the bowl when the string turns red (before a flaw of the west wall too) and a fresh drip at once.
+  // Its pace: 3 amot a second, 1 through each corner's zone, slow into the close and a stop on the start. __BOT_SIKRA: 'grand' (no
+  // seam, no drip: the default plays so), or a damage to show once: 'wavy' (segment 3 at 1.2 tefachim), 'gapC' (the NE corner too fast),
+  // 'smear' (a stop at the NE corner), 'blot' (a 1 s stand on segment 4), 'drip' (an early tap on the bowl, the drip left), 'pink' (an
+  // early tap, the drip wiped), 'seam' (the left lifted 0.6 s), 'gapF' (the west wall's first flaw met with a dry string), 'short'
+  // (the close half an amah short), 'long' (the close half an amah long), 'pale' (no refill until it is pink). ── /h132 ──
+  play.h9sikra = (a) => {
+    if (!a) return { wait: 300 };
+    const K = B.k, bad = String(window.__BOT_SIKRA || '');
+    if (a.phase === 'measure') {
+      if (a.busy) return { wait: 300 };
+      if (!a.hung) { if (!a.rodFrom || !a.rodTo) return { wait: 300, note: 'sikra: no rod on the screen' }; return { drag: [a.rodFrom[0], a.rodFrom[1], a.rodTo[0], a.rodTo[1], 700], wait: 700, note: 'sikra: the rod to ' + a.k }; }
+      if (!a.rodEnd) return { wait: 300 };
+      return { tap: [Math.round(a.rodEnd[0]), Math.round(a.rodEnd[1])], wait: 1600, note: 'sikra: the stake at ' + a.k };
+    }
+    if (a.phase !== 'line' || a.done) return K.skOn ? (K.skOn = 0, { fingersOff: true, wait: 400, note: 'sikra: the line done' }) : { wait: 400 };
+    const O = K.skO || (K.skO = [Math.round(W * 0.2), Math.round(HH * 0.6)]);
+    if (!a.down && !K.skSeam) { K.skOn = 1; return { fingers: [O, null], wait: 120, note: 'sikra: the left thumb down' }; }
+    const s = a.s, px = a.px; let p = 3, h = 0;
+    const inC = a.corn.some((c) => s > c - 1.8 && s < c + 1.05);
+    if (inC) p = 1;
+    if (bad === 'gapC' && s > 27 && s < 31.5) p = 3.5;
+    if (bad === 'smear' && s > 29.6 && !K.skSm) { K.skSm = now(); }
+    if (K.skSm && now() - K.skSm < 400) p = 0;
+    if (bad === 'wavy' && s >= 10.3 && s < 14.7) h = 1.2;
+    if (bad === 'blot' && s > 16 && !K.skBl) K.skBl = now();
+    if (K.skBl && now() - K.skBl < 1100) p = 0;
+    if (a.end > 100) { if (s > a.end - 2.6) p = 0.7; const stopAt = bad === 'short' ? a.end - 0.55 : bad === 'long' ? a.end + 0.55 : a.end - 0.1; if (s >= stopAt) p = 0; }
+    const x = O[0] + (p > 0 ? px.dead + 1 + (p / px.max) * px.pace : 0), y = O[1] - (h / px.hmax) * px.h, Lp = [Math.round(x), Math.round(y)];
+    // (the seam: the left lifted 0.6 s once, on segment 3)
+    if (bad === 'seam' && s > 12 && !K.skSeam) { K.skSeam = now(); return { fingers: [null, null], wait: 600, note: 'sikra: the left lifted (seam)' }; }
+    if (K.skSeam && K.skSeam > 0 && !a.down) { K.skSeam = -1; K.skO = O; return { fingers: [O, null], wait: 120, note: 'sikra: the left down again' }; }
+    if (K.skR) { K.skR = 0; return { fingers: [Lp, null], wait: 60 }; }
+    const d = (a.drips || []).find((q) => q.sc);
+    if (d && !(bad === 'drip' && !K.skDl)) { K.skR = 1; return { fingers: [Lp, [Math.round(d.sc[0]), Math.round(d.sc[1])]], wait: 60, note: 'sikra: wipe the drip ' + d.id }; }
+    if (d && bad === 'drip') K.skDl = 1;
+    const early = (bad === 'drip' || bad === 'pink') && s > 7 && !K.skEx;
+    const flawNear = (a.flaws || []).some((f) => f > s && f - s < 3.2), f0 = (a.flaws || [])[0], dryF = bad === 'gapF' && f0 != null && s > f0 - 22 && s < f0 + 0.2;
+    const need = bad === 'pale' ? (a.band === 'pink' && s > 30) : (a.w < 0.48 || (flawNear && a.w < 0.6) || (a.end > 100 && s > a.end - 15 && s < a.end - 6 && a.w < 0.6));
+    const refillOk = !inC && !dryF && a.band !== 'dark' && (!K.skBw || now() - K.skBw > 900);
+    if (a.bowl && (early || (need && refillOk))) { if (early) K.skEx = 1; K.skBw = now(); K.skR = 1; return { fingers: [Lp, [Math.round(a.bowl[0]), Math.round(a.bowl[1])]], wait: 60, note: `sikra: the bowl at s ${s} w ${a.w}` + (early ? ' (early)' : '') }; }
+    return { fingers: [Lp, null], wait: 70 };
+  };
   B.next = () => {
     if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };
     const S = H().state();

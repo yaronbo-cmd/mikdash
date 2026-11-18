@@ -79,3 +79,48 @@ test('the director\'s last stage done: its old crews fade where they stand (no c
   if (!/if \(!\(H109_ON && frontier\(G, S\)\)\) W\.crewsCheer\(c\.id\);/.test(idx)) throw new Error('completeFlow: no cheer');
   if (!/s\.vanish = !!\(opts && opts\.vanish\);/.test(cr) || !/if \(s\.vanish\) \{ w\.cheer = 0; dismiss\(w\); w\.a\.path = null; \}/.test(cr)) throw new Error('crews: vanish');
 });
+// ── b131 (PC run 6: the whitening stood still on a fast PC) the cloth's step is the same at any frame rate, and wipes at fixed places
+// over the yesod bring it to cover 1 at 144, 60 and 20 frames a second; the act never refuses a touch on the yesod in the whitening
+test('finale whitening: wipes at fixed places reach cover 1 at dt 1/144, 1/60 and 1/20', () => {
+  const F0 = FM.FIN, rows = []; for (let z = F0.Z0 + 1.5; z < F0.Z0 + F0.NZ; z += 4) rows.push(z);
+  const path = []; rows.forEach((z, i) => { const a = [F0.X0 + 0.5, z], b = [F0.X0 + F0.NX - 0.5, z]; path.push(...(i % 2 ? [b, a] : [a, b])); });
+  const out = {};
+  for (const fps of [144, 60, 20]) {
+    const F = FM.finFresh(), dt = 1 / fps, V = 12, CL = { x: path[0][0], z: path[0][1], tx: path[0][0], tz: path[0][1] };
+    for (let i = 1; i < path.length; i++) {
+      const [x0, z0] = path[i - 1], [x1, z1] = path[i], L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(L / (V * dt)));
+      for (let s = 1; s <= n; s++) { CL.tx = x0 + ((x1 - x0) * s) / n; CL.tz = z0 + ((z1 - z0) * s) / n; FM.clothStep(F, CL, dt, NK.CLOTH); }
+    }
+    for (let t = 0; t < 1; t += dt) FM.clothStep(F, CL, dt, NK.CLOTH);
+    out[fps] = FM.cover(F);
+    assert.equal(out[fps], 1, `cover at ${fps} frames a second: ${out[fps]}`);
+  }
+  // (one step of a long frame lands where many short ones do)
+  const a = { x: 0, z: 0, tx: 10, tz: 0 }, b = { ...a }, Fa = FM.finFresh(), Fb = FM.finFresh();
+  FM.clothStep(Fa, a, 0.2, NK.CLOTH); for (let i = 0; i < 29; i++) FM.clothStep(Fb, b, 0.2 / 29, NK.CLOTH);
+  assert.ok(Math.abs(a.x - b.x) < 1e-9);
+});
+test('finale whitening: any touch on the yesod takes the cloth (a refused touch turned the look out and the act waited)', () => {
+  const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
+  assert.match(src, /A\.step === 'white' && onYesod\(f\)\) return \{ k: 'cloth' \}/);
+  assert.ok(!/q\.y < H - 100 && manPlace/.test(src), 'the grey a finger can wipe is not narrowed by the man\'s place');
+});
+// ── b131 review item 6: the timber is heavy — held at the full pull GIVE s before it gives, the screen shaken SHAKE s, a heavy wood
+// sound; every touch in the finale answers at once (the grip, the cloth, the jar)
+test('finale: the pull is heavy and every touch answers at once', () => {
+  assert.ok(NK.GIVE >= 0.6 && NK.GIVE <= 0.9); assert.ok(NK.SHAKE >= 0.3 && NK.SHAKE <= 0.4);
+  const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
+  assert.match(src, /A\.giveT >= NK\.GIVE/); assert.match(src, /X\.shake\(NK\.SHAKE/); assert.match(src, /V\.thud\(\); V\.knock\(1\.8\)/);
+  for (const k of ['grip', 'cloth', 'jar']) assert.match(src, new RegExp(`A\\.ans = '${k}'`), k + ' answers at once');
+  assert.ok(!/iron|ברזל\(/.test(src.replace(/ולא בכף ברזל|no iron[^\n]*|No iron[^\n]*|LINES\.iron/g, '')), 'no iron sound');
+});
+// ── b131: a cut and the man it moves happen inside the act's frame (after the figures gate, before the camera's step); from a finger's
+// lift or a wait's end the man stood one frame at his new place under the old picture, and the gate had him cut
+test('finale whitening: the cloth\'s cuts are made inside the act\'s frame', () => {
+  const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
+  assert.match(src, /if \(A\.q && A\.q\.length\) for \(const fn of A\.q\.splice\(0\)\) fn\(\);/);
+  assert.match(src, /inFrame\(\(\) => \{ show\('white'\); clothShot/);
+  assert.match(src, /keep\(\); inFrame\(\(\) => \{ if \(!A\.whiteDone && A\.fl == null\) clothShot/);
+  assert.match(src, /A\.pose = \[e, t\];\s*inFrame\(\(\) => \{ X\.shot\(e, t\.slice\(\), 0\); clothMan\(true\); \}\)/);
+  assert.ok(!/X\.track\(e, t\.slice\(\), 4\)/.test(src), 'the crew\'s wipe never chases the man');
+});

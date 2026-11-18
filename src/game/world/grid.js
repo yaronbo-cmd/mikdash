@@ -1151,7 +1151,7 @@ const S08 = {
     // poles); the two diggers' places in the pit (they throw the scraped earth onto the spoil on the north rim); the road the carriers
     // take toward the Mount (round the pit's south and on east-north-east, where the valley opens)
     row: [[-10.6, 7.8], [-13.4, 6.4], [-13.4, 1.8]],
-    carriers: [[-8.7, 0.9], [-8.7, 7.1], [-11.3, 0.9], [-11.3, 7.1]],   // (3.1 either side of the cradle: from the hoist's eye due east the stone's way runs between them)
+    carriers: [[-8.7, 0.3], [-8.7, 7.7], [-11.3, 0.3], [-11.3, 7.7]],   // (3.7 either side of the cradle: from the hoist's eye due east the stone's way runs between them)
     diggers: [[-4.5, -5], [5.5, -4.2]],
     road: [[-10, 4], [-8, 12.5], [4, 14], [22, 10], [48, 0]],
     // the ground round the pit (המחשה): the valley's floor patch drawn round the sheet — its radius, the flat floor's radius round the

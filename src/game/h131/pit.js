@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 54, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
+  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 50, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -165,7 +165,7 @@ function pitAct(m, X) {
     });
   }
   /** the diggers out of the world for the hoist and the check (not needed there; the hoist's side look cut them at its edge), back for the next stone */
-  function digsOut() { for (let k = 0; k < digs.length; k++) if (digs[k]) { gang.remove(digs[k]); digs[k] = null; } }
+  function digsOut() { for (let k = 0; k < digs.length; k++) if (digs[k]) { offStage(digs[k]); gang.remove(digs[k]); digs[k] = null; } }
   function digsIn() {
     if (A.phase === 'done' || digs.every(Boolean)) return;
     for (let k = 0; k < digs.length; k++) if (!digs[k]) { const p = P.diggers[k], w = W3(p[0], 0, p[1]); digs[k] = gang.add(w.x, w.z, { role: 'pick', item: 'spade', fx: w.x, fz: w.z, k: 2, off: k * 0.5, crew: k }); }
@@ -199,8 +199,10 @@ function pitAct(m, X) {
   // (on the rim they were cut at the frame's edge or stood between the eye and the stone); they come in at their places round the
   // cradle with the cut to the hoist, ropes in hand, and stay for the done frame and the film
   const carrHome = P.carriers.map((p) => W3(p[0], 0, p[1]));
+  /** one who leaves goes at once, not fading out in the next picture (the gate saw him there for its fade) */
+  const offStage = (w) => { try { const q = W3(P.hole.at[0], 0, P.hole.at[1] + 400); w.a.path = null; w.a.x = q.x; w.a.z = q.z; } catch (e) { /* */ } };
   function carrOut() {
-    for (let k = 0; k < carr.length; k++) if (carr[k]) { gang.remove(carr[k]); carr[k] = null; }
+    for (let k = 0; k < carr.length; k++) if (carr[k]) { offStage(carr[k]); gang.remove(carr[k]); carr[k] = null; }
     for (const r of ropes) r.show(false);
   }
   function carrIn(role, o) {
@@ -486,7 +488,7 @@ function pitAct(m, X) {
     // (the work's last picture before its film: the opening's composition — the pit, the kohen in it, the crew at the cradle, the row)
     // (he climbs out to the north-west rim, where the film keeps him; the eye from the south: the cradle, the row, the carriers, him beyond)
     { try { if (X.hero.rope) X.hero.rope(null); const st = W3(KOH_FILM[0], 0, KOH_FILM[1]), c = W3(P.cradle[0], 0, P.cradle[1]); X.hero.setPos(st.x, st.z, Math.atan2(c.x - st.x, c.z - st.z)); } catch (e) { /* */ }
-      for (const w of digs) gang.remove(w);   // (their work is over: they leave, not hidden in the frame; the done shot below is a cut, so the gate reads it and not the hoist's frame on the way)
+      digsOut();   // (their work is over: they leave, not hidden in the frame; the done shot below is a cut, so the gate reads it and not the hoist's frame on the way)
       carrOut();   // (the done frame is the kohen's: the four come back with the film, at the cradle's poles)
       const D = SHOT.done; lookOff(); shotTo(A3(...D.eye), A3(...D.aim), 0.01); fovT = D.fov; shotK = 'done'; for (const r of ropes) r.show(false); root.remove(lever); }
     const pts = pitPts(W), q = qOf(pts), clean = pitClean(W), s0 = W.stones.filter((s) => s.out);

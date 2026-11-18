@@ -144,7 +144,10 @@ export const FINALE_ACT = {
       let bx = CL.x, bz = CL.z, bd = 1e9;
       for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5, dd = Math.hypot(x - CL.x, z - CL.z); if (dd < bd) { bd = dd; bx = x; bz = z; } }
       // (the grey cell itself in the picture's middle: held in from the edge, the bottom rows fell under the instruction line for good)
-      const at0 = [bx, bz], [eye, aim] = clothEye(bx, bz); A.pose = [eye, aim]; X.shot(eye, aim.slice(), cutOr(eye, d)); A.cshot = [aim[0], aim[2]];
+      const at0 = [bx, bz], [eye, aim] = clothEye(bx, bz); A.pose = [eye, aim];
+      // (b131: when the man takes his cloth to the next grey the picture cuts with him — an ease left him cut at the edge or under the
+      //  top bar while the camera travelled; with a hand still down the shot only eases)
+      X.shot(eye, aim.slice(), A.fl == null ? 0 : cutOr(eye, d)); A.cshot = [aim[0], aim[2]];
       // (the man takes his cloth to that grey: he kneels by it, whole in the new picture, set there while the camera moves)
       if (A.fl == null) { const at = at0; CL.x = CL.tx = at[0]; CL.z = CL.tz = at[1]; A.wiped = 1; }
       clothMan(true);

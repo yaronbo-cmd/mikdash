@@ -191,8 +191,25 @@ export function frameAway(root, away) {
   else if (g.userData.h132away) { g.visible = true; g.userData.h132away = false; }
   return true;
 }
+/** (build 132, integration item 8) stage 08's witness stakes at the foundation's corners ('h131-site' children drawn with the props'
+ *  stake): work 4 measures with its own stakes on the walls, so these have no role in stage 09 — out from 'bare' on like the frame,
+ *  back before it; only what stage 09 hid is shown again. → how many stakes it found */
+export function siteStakesAway(root, away, geo) {
+  const g = root && root.getObjectByName ? root.getObjectByName('h131-site') : null; if (!g || !geo) return 0;
+  let n = 0;
+  for (const c of g.children) {
+    if (!c.isMesh || c.geometry !== geo) continue; n++;
+    if (away) { if (c.visible) { c.visible = false; c.userData.h132away = true; } }
+    else if (c.userData.h132away) { c.visible = true; c.userData.h132away = false; }
+  }
+  return n;
+}
 function frameAwayNow(X) {
-  try { const M = X.M, blk = M && M.block ? M.block() : 'site'; frameAway(X.scene || X.props.root, at(blk, 'bare') || (!!SH9.clear && SH9.clear === ((M && M.st && M.st.cur) || ''))); } catch (e) { /* */ }
+  try {
+    const M = X.M, blk = M && M.block ? M.block() : 'site', away = at(blk, 'bare') || (!!SH9.clear && SH9.clear === ((M && M.st && M.st.cur) || ''));
+    frameAway(X.scene || X.props.root, away);
+    siteStakesAway(X.props.root, away, X.props.geo && X.props.geo.stake);
+  } catch (e) { /* */ }
 }
 function modelHide(X) { try { if (X.stages.stageOwn) X.stages.stageOwn('sovev', true); } catch (e) { /* */ } }
 

@@ -68,3 +68,14 @@ test('finale act: the stand south of the frame (the book\'s), its words short, t
   // (b131 look round: the working shots close — the eye within 30 amot of what it looks at)
   for (const C of [NK.DOWN, NK.PULL.S, NK.PULL.E, NK.WATER]) assert.ok(Math.hypot(C[0][0] - C[1][0], C[0][1] - C[1][1], C[0][2] - C[1][2]) < 30, String(C));
 });
+
+// ── b131 ── (the end card: the old game's yesod crew cheered on the white yesod with raised mallets, then walked across it) the last
+// stage the director built ends with its old crews fading where they stand: no cheer, no walk ── /b131 ──
+test('the director\'s last stage done: its old crews fade where they stand (no cheer on the white yesod, no walk across it)', async () => {
+  const fs = await import('node:fs');
+  const idx = fs.readFileSync(new URL('../src/game/index.js', import.meta.url), 'utf8'), cr = fs.readFileSync(new URL('../src/crews.js', import.meta.url), 'utf8');
+  if (!/const gone = !a\.length && H109_ON && frontier\(G, S\) && S\.isDone\(G, s\.id\);/.test(idx)) throw new Error('syncCrews: gone');
+  if (!/waiting \? \{ waiting: true \} : gone \? \{ vanish: true \} : null/.test(idx)) throw new Error('syncCrews: vanish');
+  if (!/if \(!\(H109_ON && frontier\(G, S\)\)\) W\.crewsCheer\(c\.id\);/.test(idx)) throw new Error('completeFlow: no cheer');
+  if (!/s\.vanish = !!\(opts && opts\.vanish\);/.test(cr) || !/if \(s\.vanish\) \{ w\.cheer = 0; dismiss\(w\); w\.a\.path = null; \}/.test(cr)) throw new Error('crews: vanish');
+});

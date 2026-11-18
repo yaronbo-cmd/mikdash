@@ -112,7 +112,7 @@ test('book s09: against the built world — temple.js builds the sovev and its r
   assert.deepEqual([...S.sill.E], [...S8.wood.E]); assert.deepEqual([...S.sill.S], [...S8.wood.S]);
   // the cameras as the spec types them
   assert.deepEqual(S.cam.w1.map((p) => [...p]), [[-8, 34, -36], [-38, 18, -3.5]]);
-  assert.deepEqual(S.cam.w2.map((p) => [...p]), [[-8, 52, -58], [-36, 14, -12]]);
+  assert.deepEqual(S.cam.w2.map((p) => [...p]), [[-18, 54, -8], [-42, 14, -8]]);
   assert.deepEqual(S.cam.w3.map((p) => [...p]), [[-10, 30, 26], [-38, 19.5, -3.5]]);
   assert.deepEqual(S.cam.w4measure.map((p) => [...p]), [[-6, 32, 28], [-38, 21, -3.5]]);
   assert.deepEqual(S.cam.w4.map((p) => [...p]), [[-12, 22.5, 17], [-23, 21, 9]]);

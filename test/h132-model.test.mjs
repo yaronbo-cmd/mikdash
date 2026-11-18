@@ -2,33 +2,56 @@
 // the west wall's slots exactly per the spec's table, the results per work, and stage(kind, lv, save) — the world each work begins from.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PLAN, KINDS, NEEDS, STAGE_FLOW, LOSS, lossPts, applyLoss, starsOf, qOf, grade, freshH132, createH132, fromOld, stage, westSlots, blockOf, blockAfter, WORDS, NEXT_STAGE } from '../src/game/h132/model.js';
+import { PLAN, KINDS, NEEDS, STAGE_FLOW, VISIT, LOSS, lossPts, applyLoss, starsOf, qOf, grade, freshH132, createH132, fromOld, stage, westSlots, blockOf, blockAfter, WORDS, NEXT_STAGE } from '../src/game/h132/model.js';
 import { BOOK } from '../src/game/world/grid.js';
 
 const S9 = BOOK.s09;
 
-test('plan: four kinds, three levels each, the ids form1..sikra3; the flow is one table, level 2 of each kind in order', () => {
+test('plan: four kinds, three levels each, the ids form1..sikra3; round 1 is one table, level 1 of each kind in the building order', () => {
   assert.deepEqual([...KINDS], ['form', 'fill', 'strip', 'sikra']);
   assert.deepEqual(PLAN.map((m) => m.id), ['form1', 'form2', 'form3', 'fill1', 'fill2', 'fill3', 'strip1', 'strip2', 'strip3', 'sikra1', 'sikra2', 'sikra3']);
   for (const m of PLAN) { assert.equal(m.id, m.k + m.lv); assert.ok(Object.isFrozen(m)); }
-  assert.deepEqual([...STAGE_FLOW], ['form2', 'fill2', 'strip2', 'sikra2']);
+  assert.deepEqual([...STAGE_FLOW], ['form1', 'fill1', 'strip1', 'sikra1']); assert.deepEqual({ ...VISIT }, { first: 1, max: 3 });
   assert.deepEqual({ ...NEEDS }, { form: [], fill: ['form'], strip: ['form', 'fill'], sikra: ['form', 'fill', 'strip'] });
   assert.deepEqual({ ...WORDS }, { form: 'נסגר!', fill: 'גוש שלם!', strip: 'נחשף!', sikra: 'הקפה אחת!', quick: 'מושלם!' });
   assert.equal(NEXT_STAGE, 'גוף המזבח');
 });
 
-test('the stage: only the flow\'s next is open; it ends after the flow; levels 1 and 3 never open in the walk', () => {
+test('round 1: only the flow\'s next is open, level 1 in the building order; then every station at its own next level', () => {
   const M = createH132(null);
   const seen = [];
-  while (!M.finished()) { const O = M.open(); assert.equal(O.length, 1); seen.push(O[0].id); assert.ok(M.pick(O[0].id)); M.done({ stars: 3, pts: 40, q: 1 }); }
+  while (!M.finished()) { assert.equal(M.round(), 1); const O = M.open(); assert.equal(O.length, 1); seen.push(O[0].id); assert.ok(M.pick(O[0].id)); M.done({ stars: 3, pts: 40, q: 1 }); }
   assert.deepEqual(seen, [...STAGE_FLOW]);
-  assert.deepEqual(M.count(), [4, 4]); assert.equal(M.progress(), 1);
-  assert.equal(M.open().length, 0);
-  assert.equal(M.resultOf('fill2').pts, 40); assert.equal(M.st.plays.fill2, 1);
-  // off the flow: a level 1 or 3 is not offered in the walk, but can be picked (a link, the station) once its kind's flow-before is done
+  assert.deepEqual(M.count(), [4, 4]); assert.equal(M.progress(), 1); assert.equal(M.round(), 2);
+  assert.equal(M.resultOf('fill1').pts, 40); assert.equal(M.st.plays.fill1, 1);
+  // round 2: every station open, each at its next level; any order; after the last level it stays there
+  assert.deepEqual(M.open().map((m) => m.id), ['form2', 'fill2', 'strip2', 'sikra2']);
+  assert.ok(M.pick('strip2')); M.done({ stars: 2 }); assert.equal(M.nextLevel('strip'), 3);
+  assert.deepEqual(M.open().map((m) => m.id), ['form2', 'fill2', 'strip3', 'sikra2']);
+  assert.ok(M.pick('strip3')); M.done({ stars: 1 }); assert.equal(M.nextLevel('strip'), 3); assert.equal(M.levelsDone('strip'), 3);
+  assert.ok(M.pick('strip3'), 'the last level plays again'); M.done({ stars: 3, pts: 40 }); assert.equal(M.resultOf('strip3').stars, 3); assert.equal(M.st.plays.strip3, 2);
+  assert.equal(M.block(), 'lined', 'the world built again after a return visit');
+  M.pick('fill2'); assert.equal(M.block(), 'formUp', 'a return visit begins from its work\'s own pre-state'); M.done({ stars: 2 });
+  // before round 1 is done: a level 2 or 3 is not offered in the walk, and is picked (a link) only once its kind's round-1 works before are done
   const N = createH132(null);
   assert.equal(N.pick('fill1'), null); assert.equal(N.pick('fill2'), null);
   assert.ok(N.pick('form3')); assert.equal(N.mission().id, 'form3');
+});
+
+test('a return visit keeps the best play: a better one replaces the kind\'s flaws and result, a worse one leaves the world as it was', () => {
+  const M = createH132(null);
+  for (const id of STAGE_FLOW) { M.pick(id); if (id === 'fill1') M.flaw('fill.bulge', { wall: 'N' }); M.done({ stars: id === 'fill1' ? 2 : 3, pts: 20 }); }
+  assert.deepEqual(M.flaws().map((x) => x.work), ['fill1']);
+  // worse: two nests and one star — the bulge of fill1 stays, the nests go
+  M.pick('fill2'); assert.equal(M.flaws().length, 0, 'set aside while it plays'); M.flaw('fill.nest', { zone: 'NE' }); M.flaw('fill.nest', { zone: 'SW' }); M.done({ stars: 1, pts: 10 });
+  assert.deepEqual(M.flaws().map((x) => x.f), ['fill.bulge']); assert.deepEqual(M.st.bestOf.fill, { id: 'fill1', stars: 2, pts: 20 });
+  assert.equal(M.resultOf('fill2').stars, 1);
+  // better: three stars, no flaw — the bulge goes
+  M.pick('fill3'); M.done({ stars: 3, pts: 40 }); assert.equal(M.flaws().length, 0); assert.deepEqual(M.st.bestOf.fill, { id: 'fill3', stars: 3, pts: 40 });
+  // a level played again worse: its own best result kept
+  M.pick('fill3'); M.flaw('fill.dent', { zone: 'C' }); M.done({ stars: 1, pts: 10 }); assert.equal(M.resultOf('fill3').stars, 3); assert.equal(M.flaws().length, 0);
+  // the other kinds' flaws are never touched
+  M.pick('strip2'); M.flaw('strip.torn'); M.done({ stars: 3, pts: 40 }); M.pick('fill3'); M.done({ stars: 1 }); assert.deepEqual(M.flaws().map((x) => x.f), ['strip.torn']);
 });
 
 test('autoTo: a work link stands the flow before it as the crews\' and opens that work; a kind\'s page plays levels 1, 2, 3', () => {
@@ -42,19 +65,20 @@ test('autoTo: a work link stands the flow before it as the crews\' and opens tha
   }
   for (const k of KINDS) {
     const M = createH132(null), seen = [];
-    for (let g = 0; g < 5; g++) { const m = M.autoTo((x) => x.k === k); if (!m) break; seen.push(m.id); M.done({ stars: 2 }); }
+    for (let g = 0; g < 3; g++) { const m = M.autoTo((x) => x.k === k); if (!m) break; seen.push(m.id); M.done({ stars: 2 }); }
     assert.deepEqual(seen, [k + 1, k + 2, k + 3], k);
   }
 });
 
 test('the save: fresh, filled on load, an unknown cur dropped; the old stage done → the crews\'', () => {
   const F = freshH132();
-  assert.deepEqual(Object.keys(F).sort(), ['best', 'crews', 'cur', 'done', 'fill', 'film', 'flaws', 'form', 'i', 'intro', 'plays', 'res', 'sikra', 'strip', 'v'].sort());
-  const M = createH132({ v: 1, done: ['form2'], cur: 'nope9' });
+  assert.deepEqual(Object.keys(F).sort(), ['best', 'bestOf', 'crews', 'cur', 'done', 'fill', 'film', 'flaws', 'form', 'i', 'intro', 'plays', 'res', 'sikra', 'stash', 'strip', 'v'].sort());
+  const M = createH132({ v: 1, done: ['form1'], cur: 'nope9' });
   assert.equal(M.st.cur, null); assert.ok(Array.isArray(M.st.flaws)); assert.deepEqual(M.st.fill, { work: null });
-  M.pick('fill2'); M.keep('fill', { layer: 2 }); assert.deepEqual(M.workOf('fill'), { layer: 2 }); M.done({ stars: 2 }); assert.equal(M.workOf('fill'), null);
+  M.pick('fill1'); M.keep('fill', { layer: 2 }); assert.deepEqual(M.workOf('fill'), { layer: 2 }); M.done({ stars: 2 }); assert.equal(M.workOf('fill'), null);
   assert.equal(fromOld(true).crews, 1); assert.equal(fromOld(false).crews, 0);
   assert.ok(createH132(fromOld(true)).finished());
+  assert.deepEqual(createH132(fromOld(true)).open().map((m) => m.id), ['form1', 'fill1', 'strip1', 'sikra1'], 'built by the crews: every station at level 1');
 });
 
 test('the loss table: −20 for every damage of the spec\'s table, 0 for the marks that only stay; never below zero; the grades', () => {

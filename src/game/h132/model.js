@@ -4,15 +4,17 @@
  * the lanes never edit the same file.
  *
  *   H132 · LINES · WORDS · LOSS · lossPts · applyLoss · starsOf · qOf · grade · NEXT_STAGE
- *   PLAN · KINDS · LEVELS · NEEDS · STAGE_FLOW · freshH132 · createH132(save) · fromOld(oldDone)
+ *   PLAN · KINDS · LEVELS · NEEDS · VISIT · STAGE_FLOW · freshH132 · createH132(save) · fromOld(oldDone)
  *   blockAfter(kind) · blockOf(save) · stage(kind, lv, save) · westSlots(flaws) · flawsOf(save, f)
  *
- * THE STAGE'S FLOW (an open question with the owner: how the three levels of a work are sequenced in the stage — there is one block,
- * it cannot be built three times). It is ONE table here, STAGE_FLOW: by default the stage plays each work once at level 2 (ב, the full
- * work), form2 → fill2 → strip2 → sikra2 → the ending. Levels 1 and 3 are reached from the work's link (and later from the station):
- * they are never open in the stage's own walk, but M.autoTo / M.pick take them once the flow before their kind is done. Nothing else
- * may assume the default: every model and view takes the level, and every work begins from stage(kind, lv, save) — the world as that
- * work begins it, whatever was played before.
+ * THE STAGE'S FLOW (ירון 18.11: a level per visit) — ONE table, VISIT, and the round it makes (STAGE_FLOW):
+ *   · round 1 is the building order at the first level: form1 → fill1 → strip1 → sikra1 → the ending; the stage counts as built after it
+ *     (the stage page, ?stage=9 / __H132_FULL, plays round 1) and the next stage opens;
+ *   · after round 1 every station is open, in any order: its work plays at its own next level (M.nextLevel(kind) = min(VISIT.max,
+ *     levels done + 1); after the last it stays there). One block: a return visit begins from its work's own pre-state (stage(kind, lv)),
+ *     and at its end the world is the built one again with the best play of that work kept (its stars and its flaws; M.done);
+ *   · the per-work links (#form1 … #sikra3) keep every level reachable (M.autoTo).
+ * Every model and view takes the level, and every work begins from stage(kind, lv, save) — whatever was played before.
  *
  * The save (G.h132): { v, cur, done, res, plays, best, i, intro, film, crews, flaws: [{ f, work, lv, n, at, wall, zone, slot }],
  *   form: { work }, fill: { work }, strip: { work }, sikra: { work } }
@@ -79,8 +81,11 @@ export const grade = (dmg, clean) => ((dmg | 0) > 0 ? 10 : clean ? 40 : 20);
 export const KINDS = Object.freeze(['form', 'fill', 'strip', 'sikra']);
 export const LEVELS = Object.freeze([1, 2, 3]);
 export const PLAN = Object.freeze(KINDS.flatMap((k) => LEVELS.map((lv) => ({ k, id: k + lv, lv }))).map((m, i) => Object.freeze({ ...m, n: i })));
-/** the stage's own sequence (THE OPEN QUESTION: one table). Default: each work once at level 2, in the kinds' order, then the end. */
-export const STAGE_FLOW = Object.freeze(['form2', 'fill2', 'strip2', 'sikra2']);
+/** the stage's sequence (ירון 18.11, a level per visit — ONE table): round 1 the kinds in the building order at the first level; each
+ *  later visit to a station: that work at its next level, up to the last */
+export const VISIT = Object.freeze({ first: 1, max: 3 });
+/** round 1 (the stage page; the goal pill counts it: "N מתוך 4 עבודות") */
+export const STAGE_FLOW = Object.freeze(KINDS.map((k) => k + VISIT.first));
 /** what each kind needs standing in the world before it (the block's state machine) — stage() stages it when the save lacks it */
 export const NEEDS = Object.freeze({ form: [], fill: ['form'], strip: ['form', 'fill'], sikra: ['form', 'fill', 'strip'] });
 /** the block's states, in order (h132/world.js draws each from the save) */
@@ -91,7 +96,7 @@ export const blockAfter = (kind) => AFTER[kind] || 'site';
 export const blockBefore = (kind) => BEGIN[kind] || 'site';
 
 export function freshH132() {
-  return { v: 1, cur: null, done: [], res: {}, plays: {}, best: 0, i: 0, intro: 0, film: 0, crews: 0, flaws: [],
+  return { v: 1, cur: null, done: [], res: {}, plays: {}, best: 0, i: 0, intro: 0, film: 0, crews: 0, flaws: [], bestOf: {}, stash: null,
     form: { work: null }, fill: { work: null }, strip: { work: null }, sikra: { work: null } };
 }
 const byId = (id) => PLAN.find((m) => m.id === id) || null;
@@ -159,12 +164,17 @@ export function stage(kind, lv, save) {
   return out;
 }
 
+/** the kind a flaw belongs to ('fill.bulge' → 'fill') */
+const kindOfFlaw = (x) => String((x && x.f) || '').split('.')[0];
+/** a play better than another: more stars, then more points */
+const better = (a, b) => (a.stars | 0) > (b.stars | 0) || ((a.stars | 0) === (b.stars | 0) && (a.pts | 0) > (b.pts | 0));
 export function createH132(save) {
   const st = save && save.v === 1 ? save : freshH132();
   const F = freshH132();
   for (const [k, v] of Object.entries(F)) if (st[k] === undefined) st[k] = v;
   for (const k of KINDS) { if (!st[k] || typeof st[k] !== 'object') st[k] = F[k]; for (const [q, v] of Object.entries(F[k])) if (st[k][q] === undefined) st[k][q] = v; }
   if (!Array.isArray(st.flaws)) st.flaws = [];
+  if (!st.bestOf || typeof st.bestOf !== 'object') st.bestOf = {};
   if (st.cur && !byId(st.cur)) st.cur = null;
   const d = (id) => st.done.includes(id);
   const inFlow = (id) => STAGE_FLOW.includes(id);
@@ -173,17 +183,33 @@ export function createH132(save) {
     get plan() { return PLAN; },
     isDone: d,
     mission() { return st.cur ? byId(st.cur) : null; },
-    /** the next work of the stage's own flow (null when the flow is done) */
-    next() { const id = STAGE_FLOW.find((x) => !d(x)); return id ? byId(id) : null; },
-    /** a work can be picked: the flow's next; or (a link, the station) a work off the flow whose kind's flow-works before it are done */
+    /** the next work of round 1 (null when round 1 is done) */
+    next() { if (st.crews) return null; const id = STAGE_FLOW.find((x) => !d(x)); return id ? byId(id) : null; },
+    /** the levels of a kind played (each counted once) and the level its station plays next (a level per visit, VISIT) */
+    levelsDone(kind) { return LEVELS.filter((lv) => d(kind + lv)).length; },
+    nextLevel(kind) { return Math.min(VISIT.max, M.levelsDone(kind) + VISIT.first); },
+    /** the work a visit to a kind's station plays now */
+    visitOf(kind) { return byId(kind + M.nextLevel(kind)); },
+    /** 1 while the stage is being built, then 2 (the return visits) */
+    round() { return M.finished() ? 2 : 1; },
+    /** a work can be picked: in round 1 the flow's next, or (a link) a work whose kind's round-1 works before it are done; after round 1
+     *  any work (a station's visit, a link — a level played already is played again) */
     canDo(m) {
-      if (!m || d(m.id)) return false;
+      if (!m) return false;
+      if (M.finished()) return true;
+      if (d(m.id)) return false;
       if (inFlow(m.id)) { const n = M.next(); return !!n && n.id === m.id; }
       return flowBefore(m.k).every(d);
     },
-    /** the stage's walk offers only the flow's next work */
-    open() { const n = M.next(); return n ? [n] : []; },
-    pick(id) { const m = id ? byId(id) : null; st.cur = m && M.canDo(m) ? m.id : null; return M.mission(); },
+    /** what the walk offers: in round 1 the flow's next work; after it every station, each at its own next level */
+    open() { if (!M.finished()) { const n = M.next(); return n ? [n] : []; } return KINDS.map((k) => M.visitOf(k)); },
+    pick(id) {
+      const m = id ? byId(id) : null; st.cur = m && M.canDo(m) ? m.id : null;
+      // a work of a kind with a play kept: its flaws set aside while it plays again (M.done keeps the better of the two)
+      st.stash = null;
+      if (st.cur && st.bestOf[m.k]) { st.stash = { k: m.k, flaws: st.flaws.filter((x) => kindOfFlaw(x) === m.k) }; st.flaws = st.flaws.filter((x) => kindOfFlaw(x) !== m.k); }
+      return M.mission();
+    },
     nDone() { return STAGE_FLOW.filter(d).length; },
     count() { return [M.nDone(), STAGE_FLOW.length]; },
     finished() { return !!st.crews || STAGE_FLOW.every(d); },
@@ -211,7 +237,13 @@ export function createH132(save) {
     resultOf(id) { return st.res[id] || null; },
     done(res = {}) {
       const m = M.mission(); if (!m) return null;
-      st.res[m.id] = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), pts: res.pts | 0, flags: res.flags || {}, loss: res.loss | 0 };
+      const r = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), pts: res.pts | 0, flags: res.flags || {}, loss: res.loss | 0 };
+      // each level keeps its best play; the kind keeps its best play's flaws in the world (a worse return visit leaves the world as it was)
+      if (!st.res[m.id] || better(r, st.res[m.id])) st.res[m.id] = r;
+      const was = st.bestOf[m.k];
+      if (!was || better(r, was)) { st.bestOf[m.k] = { id: m.id, stars: r.stars, pts: r.pts }; }
+      else if (st.stash && st.stash.k === m.k) st.flaws = [...st.flaws.filter((x) => kindOfFlaw(x) !== m.k), ...st.stash.flaws];
+      st.stash = null;
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       if (!d(m.id)) st.done.push(m.id);
       if (st[m.k]) st[m.k].work = null;
@@ -221,7 +253,7 @@ export function createH132(save) {
     /** the director's link and kind pages: the first work not done that `want` takes, in the plan's order (a kind's page: its levels
      *  1, 2, 3), with what it needs of the flow before it done as the crews' (2 stars, no flaw) */
     autoTo(want) {
-      const off = PLAN.find((m) => !d(m.id) && want(m));
+      const off = PLAN.find((m) => !d(m.id) && want(m)) || (M.finished() ? PLAN.find(want) : null);
       if (off) {
         for (const id of inFlow(off.id) ? STAGE_FLOW.slice(0, STAGE_FLOW.indexOf(off.id)) : flowBefore(off.k)) if (!d(id)) { st.cur = id; M.done({ stars: 2 }); }
         return M.pick(off.id);

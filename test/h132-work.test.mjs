@@ -46,5 +46,5 @@ test('index.js: the stage-09 page, kind pages and links; stage 08\'s end card na
   assert.match(idx, /function h32Begin\(\)/); assert.match(idx, /S\.beginDirected\(G, 'sovev'\)/);
   assert.match(idx, /השלב הבא: \$\{esc\(NEXT08\)\}/); assert.match(idx, /h32Begin\(\), 600/);
   assert.equal(NEXT08, 'הסובב וחוט הסיקרא');
-  assert.deepEqual([...STAGE_FLOW], ['form2', 'fill2', 'strip2', 'sikra2']);
+  assert.deepEqual([...STAGE_FLOW], ['form1', 'fill1', 'strip1', 'sikra1']);
 });

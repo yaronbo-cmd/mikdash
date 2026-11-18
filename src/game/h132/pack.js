@@ -1,5 +1,5 @@
 /* ── build 132 ── h132/pack.js — stage 09 "הסובב וחוט הסיקרא" (spec docs/specs/shlav-09-he.md) as a pack for the stage director
- * (h109/director.js `pack`): its plan and save (model.js createH132: the stage's flow STAGE_FLOW, one table; levels 1 and 3 from the
+ * (h109/director.js `pack`): its plan and save (model.js createH132: a level per visit — round 1 STAGE_FLOW at level 1, then each station at its next level (VISIT); every level from the
  * works' links), its acts (acts.js), its world (world.js: the block's states drawn from the save); the opening (rule 3: where am I —
  * the altar's place from the court, the white yesod waiting; a tap skips it); the end (spec "סיום השלב": the camera rises and circles
  * the block round BOOK.s09.cam.end; the game holds it under the end card, which names the next stage, NEXT_STAGE).

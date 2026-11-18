@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 17.5, H: 9, aimY: -1.2, fov: 48, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
+  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 54, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -380,7 +380,7 @@ function pitAct(m, X) {
     //  of the picture till his next stone)
     kohenTo([P.hole.at[0] + HS.koh[0], P.hole.at[1] + HS.koh[1]], foot, true); kohenStep(1); lever.visible = false;
     A.hoistG = g;
-    const fl = L2(from.x, from.z), cs = A3(ex, HS.H, ez), ca = A3((fl[0] + c[0]) / 2, HS.aimY, (fl[1] + c[1]) / 2);   // (the aim halfway from where the stone lies to the cradle: its whole way in the frame, from its first pull)
+    const cs = A3(ex, HS.H, ez), ca = A3(top[0] - 1.2, HS.aimY, top[1]);   // (the aim at the wall's lip; the lens wide enough for the four whole above it and the stone in the pit below from its first pull)
     digsOut(); lookOff(); shotTo(cs, ca, 0.01); fovT = HS.fov; lens(HS.fov); shotK = 'hoist';
     await X.wait(0.5);
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];

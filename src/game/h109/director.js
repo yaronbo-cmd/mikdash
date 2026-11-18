@@ -1040,6 +1040,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     const shots = PK.film;
     for (const [p, t, s] of shots) { shot(p, t, 1.6); await sleep(s * 1000); }
     try { if (J) await J.big('stage', { title: PK.endTitle, sub: PK.endSub }); } catch (e) { /* */ }
+    if (J) await sleep(450);   // ── h132 ── (the large title's fade-out — juice.js, 420 ms — is over before the end card opens; the two lines lay over each other) ── /h132 ──
     CAM.on = false; phase = 'off'; started = false;
     if (quietOn) { quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } }   // (the gold ring stays off under the stage's cards: card.js)   // ── b131 ── ── /b131 ──
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');

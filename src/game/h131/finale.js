@@ -96,11 +96,11 @@ export const FINALE_ACT = {
     }
     function whole(x, y, z, s = 1) {
       const P = A.pose; if (!P) return true;
-      const asp = cam0.aspect || 1.6, f0 = cam0.fov || NK.FOV;
+      const asp = cam0.aspect || 1.6, f0 = NK.FOV, fr = cam0.fov || NK.FOV;   // (the act's own lens: the look widens the camera's, the gate tests the act's)
       for (const f of [f0, GU(f0)]) { GC.position.set(P[0][0], P[0][1], P[0][2]); GC.up.set(0, 1, 0); GC.lookAt(P[1][0], P[1][1], P[1][2]); GC.fov = f; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
       // (the camera itself, once it has come to the shot: a follow shot chases its aim)
       const c = cam0.position, dc = Math.hypot(c.x - P[0][0], c.y - P[0][1], c.z - P[0][2]);
-      if (dc < 4) { cam0.updateMatrixWorld(true); GC.position.copy(c); GC.quaternion.copy(cam0.quaternion); GC.fov = f0; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
+      if (dc < 4) { cam0.updateMatrixWorld(true); GC.position.copy(c); GC.quaternion.copy(cam0.quaternion); GC.fov = Math.min(fr, f0); GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
       // (and once the camera rests on the shot, the figures gate's own probe on the director's own pose — the one word that counts)
       if (dc < 0.5) { try { const G = globalThis.__FIG; if (G && G.probe) { const r = G.probe(x, y, z, { x: MID[0], y: Y1, z: MID[1] }); if (!r.on || r.cut || r.between) return false; } } catch (e) { /* */ } }
       return true;

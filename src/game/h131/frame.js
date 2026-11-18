@@ -104,8 +104,8 @@ export const FRAME_ACT = {
       if (lv === 2) { const p = S.P.find((q) => !q.seat && q.k === k) || S.P.find((q) => q.k === k); if (p && p.side) return p.side; }
       return k === 'NW' || k === 'NE' ? 'N' : 'S';
     }
-    function carry(k, j) {
-      const side = boardOf(k); let a, b;
+    function carry(k, j, sd) {
+      const side = sd || boardOf(k); let a, b;
       if (lv === 2) { const on = S.P.filter((q) => q.side === side); a = on.find((q) => q.k === k) || on[0]; b = on.find((q) => q !== a) || a; }
       else { const [ka, kb] = SIDES[side]; a = cornerAt(S, k); b = cornerAt(S, ka === k ? kb : ka); }
       const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
@@ -117,7 +117,9 @@ export const FRAME_ACT = {
       return [bx + nx * FK.SIDE, bz + nz * FK.SIDE, bx, bz];
     }
     /** the second man: along the board from the corner handled */
-    function helpAt(k) { return carry(k || 'NW', 1); }
+    // (the far man stays at the board the shot was fitted to (A.fb) until the next shot casts him at his new board: he never walks
+    //  across the court between them)
+    function helpAt(k) { return carry(k || 'NW', 1, k && k === A.focus ? A.fb : undefined); }
     function manAt(k) { return carry(k, 0); }
     /** the diagonal's two carriers (the whole frame's shot): at its ends, beyond them, as it is carried, falls in, or lies stuck */
     function diagEnds() {

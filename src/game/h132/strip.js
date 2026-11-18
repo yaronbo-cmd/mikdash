@@ -274,8 +274,15 @@ export const STRIP_ACT = {
       gang.clear(); men[0] = men[1] = null; const crew = [];
       for (let i = 0; i < 4; i++) { const w = gang.add(p0[0], p0[2], { role: 'hold', crew: 2 + i, fx: MID[0], fz: MID[1] }); if (w && w.a) { w.a.vis = 1; w.a.fixedY = F; } crew.push(w); }
       A.carry = { t: 0, W, p0, p1, r: q1.r, crew, L: h.L };
-      const mid0 = [(p0[0] + p1[0]) / 2 + h.L / 2, F, (p0[2] + p1[2]) / 2 + H / 2];
-      X.shot([mid0[0] + SA.CARRY_EYE[0], F + SA.CARRY_EYE[1], mid0[2] + SA.CARRY_EYE[2]], mid0, 0.6);
+      const mid0 = [(p0[0] + p1[0]) / 2 + h.L / 2, F + 1.5, (p0[2] + p1[2]) / 2 + H / 2], E = SA.CARRY_EYE;
+      // (pulled back until the four bearers stand whole at the route's start and its end)
+      const bearers = (q) => [0, 1, 2, 3].map((i) => [q[0] + h.L * (i % 2 ? 0.78 : 0.22), i < 2 ? q[2] - SA.SIDE : q[2] + H + SA.SIDE]);
+      let eye = null;
+      for (let f = 1; f <= 2.6 && !eye; f += 0.1) {
+        const e = [mid0[0] + E[0] * f, F + E[1] * f, mid0[2] + E[2] * f];
+        if ([p0, p1].every((q) => bearers(q).every((b) => fig([e, mid0], SA.FOV, cam0.aspect || 1.6, b[0], F, b[1], null, SA.EDGE) === 'whole'))) eye = e;
+      }
+      X.shot(eye || [mid0[0] + E[0] * 2.6, F + E[1] * 2.6, mid0[2] + E[2] * 2.6], mid0, 0.6);
       await X.wait(SA.CARRY + 0.6);
       stackAll();
       // (a breath on the cleared site: the white block alone on a clean floor, from the morning's corner)

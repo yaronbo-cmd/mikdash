@@ -1,0 +1,13 @@
+[{"init": "window.__PT = { down: {}, max: 0, ev: [] }; for (const t of ['pointerdown','pointermove','pointerup','pointercancel']) addEventListener(t, (e) => { const P = window.__PT; if (t === 'pointerdown') P.down[e.pointerId] = [e.pointerType, e.button]; if (t === 'pointerup' || t === 'pointercancel') delete P.down[e.pointerId]; P.max = Math.max(P.max, Object.keys(P.down).length); if (t !== 'pointermove' || e.button >= 0) P.ev.push([t, e.pointerType, e.pointerId, e.button, e.buttons, Math.round(e.clientX), Math.round(e.clientY)].join(':')); if (P.ev.length > 60) P.ev.shift(); }, true); addEventListener('mousedown', (e) => window.__PT.ev.push('mousedown:' + e.button + ':' + e.buttons), true); addEventListener('mouseup', (e) => window.__PT.ev.push('mouseup:' + e.button + ':' + e.buttons), true); addEventListener('contextmenu', (e) => e.preventDefault(), true);"},
+ {"until": "window.__T && __T.booted", "max": 120000},
+ {"fingers": [[200, 300], null], "wait": 150},
+ {"eval": "JSON.stringify({step:'left down', n: Object.keys(__PT.down).length, down: __PT.down})"},
+ {"fingers": [[200, 300], [760, 320]], "wait": 150},
+ {"eval": "JSON.stringify({step:'both down', n: Object.keys(__PT.down).length, max: __PT.max, down: __PT.down})"},
+ {"fingers": [[240, 280], [760, 320]], "wait": 150},
+ {"fingers": [[260, 280], null], "wait": 150},
+ {"eval": "JSON.stringify({step:'right tapped, left held and moved', n: Object.keys(__PT.down).length, down: __PT.down})"},
+ {"fingers": [[280, 290], [700, 200]], "wait": 120},
+ {"fingers": [[300, 290], null], "wait": 120},
+ {"fingersOff": true, "wait": 150},
+ {"eval": "JSON.stringify({step:'all off', n: Object.keys(__PT.down).length, max: __PT.max, ev: __PT.ev.slice(-24)})"}]

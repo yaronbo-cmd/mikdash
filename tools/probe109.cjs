@@ -54,6 +54,28 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const T0 = Date.now(); let n = 0, shotMs = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);
   let RN = 0;   // (the reloads so far: each one's init script)
+  // ── h132 ── the two held fingers (see { fingers } below) ── /h132 ──
+  const FG = [null, null], FGM = { left: false, right: false };
+  async function fingersSet(want) {
+    const W2 = [0, 1].map((i) => (want && Array.isArray(want[i]) ? [Math.round(want[i][0]), Math.round(want[i][1])] : null));
+    if (process.env.MOUSE) {
+      const [a, b] = W2;
+      if (!b && FGM.right) { await pg.mouse.up({ button: 'right' }); FGM.right = false; }   // (released where it was pressed: on the bowl)
+      if (a) { if (!FGM.left) { await pg.mouse.move(a[0], a[1]); await pg.mouse.down({ button: 'left' }); FGM.left = true; } else if (!b) await pg.mouse.move(a[0], a[1]); }
+      else if (FGM.left) { await pg.mouse.up({ button: 'left' }); FGM.left = false; }
+      if (b && !FGM.right) { await pg.mouse.move(b[0], b[1]); await pg.mouse.down({ button: 'right' }); FGM.right = true; }
+      else if (b) await pg.mouse.move(b[0], b[1]);
+      FG[0] = a; FG[1] = b; return;
+    }
+    const pts = (L) => L.map((p, i) => (p ? { x: p[0], y: p[1], id: 20 + i, radiusX: 6, radiusY: 6, force: 1 } : null)).filter(Boolean);
+    const had = FG.filter(Boolean).length, now = W2.filter(Boolean).length;
+    const newOne = W2.some((p, i) => p && !FG[i]), gone = FG.some((p, i) => p && !W2[i]);
+    // (a lift first — the points still down are named in a move, the lifted one left out: the browser releases it — then a press)
+    if (gone) { const keep = W2.map((p, i) => (p && FG[i] ? FG[i] : null)), off = FG.map((p, i) => (p && !W2[i] ? p : null)); if (keep.some(Boolean)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: pts(off) }); else await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
+    if (now) await cdp.send('Input.dispatchTouchEvent', { type: newOne ? 'touchStart' : 'touchMove', touchPoints: pts(W2) });
+    void had;
+    FG[0] = W2[0]; FG[1] = W2[1];
+  }
   async function run(s) {
     if (s.init) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
@@ -110,6 +132,12 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
       }
       if (n0) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     }
+    // ── h132 ── (build 132, stage 09 work 4: two thumbs at once, held ACROSS steps) { fingers: [p0 | null, p1 | null] } sets the state of
+    // two fingers (ids 20 and 21, apart from the other steps' 7…): a point presses or moves that finger, null lifts it; the others stay
+    // as they are. The left finger can stay down for a whole line while the right one taps. By mouse (MOUSE=1) finger 0 is the left
+    // button (moved and held) and finger 1 the right button: pressed at its point and released there, the cursor then back to finger 0
+    // (a short right click on the bowl or a drip while the left is held). { fingersOff: true } lifts both. ── /h132 ──
+    if (s.fingers || s.fingersOff) await fingersSet(s.fingersOff ? [null, null] : s.fingers);
     if (s.when) { const t = Date.now(); while (Date.now() - t < (s.max || 4000)) { if (await pg.evaluate(s.when).catch(() => false)) break; await pg.waitForTimeout(8); } if (s.then) await run(s.then); }
     if (s.bot) {
       const t = Date.now(); let k = 0, last = '';
@@ -123,6 +151,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     }
   }
   for (const s of steps) await run(s);
+  if (FG[0] || FG[1] || FGM.left || FGM.right) await fingersSet([null, null]);   // ── h132 ── (no finger left held at the end) ── /h132 ──
   console.log(`probe time${process.env.FAST ? ' (FAST)' : ''}: boot ${bootS}s, ${n} shots ${(shotMs / 1000).toFixed(1)}s, steps ${((Date.now() - T0) / 1000).toFixed(1)}s`);
   const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
   console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));

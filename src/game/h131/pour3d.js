@@ -391,7 +391,7 @@ export function createPourView(X, lv, sim, o = {}) {
     const sx = spoutX(), mz = 3.75 - 0.3 * sp.tilt, topY = 1.42, topZ = 5.55, mouthY = 1.1, dz = topZ - mz, dy = topY - mouthY;
     spout.position.set(sx, B0, 0); trough.position.set(0, topY, topZ); trough.rotation.x = -Math.atan2(dy, dz); trough.scale.z = Math.hypot(dz, dy) / TROUGH_LEN; mouth.set(sx, B0 + mouthY + 0.05, mz);
     const crewOn = S.crewOn !== false;
-    rig.visible = crewOn; spout.visible = crewOn;
+    rig.visible = crewOn; spout.visible = crewOn; knocker.g.visible = S.knockerOn !== false;
     if (S.phase !== 'teardown') {
       let rx = sx, rz = RIG_Z, walking = Math.abs(sx - V.rigX) > 0.02 ? 1 : 0;
       if (ca.swapping > 0) { const p = 1 - ca.swapping / T.SWAP_TIME, f = p < 0.5 ? p * 2 : (1 - p) * 2, e = f * f * (3 - 2 * f); rx = sx + (SWAP_TO.x - sx) * e; rz = RIG_Z + (SWAP_TO.z - RIG_Z) * e; walking = 1; if (p >= 0.5 && V.swapAnim === 0) V.swapAnim = 1; }

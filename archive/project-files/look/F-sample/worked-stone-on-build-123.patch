@@ -1,0 +1,552 @@
+From 663f15e4952914f0e752ea08fb4d81582cd55f43 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 17:55:12 +0000
+Subject: [PATCH 1/6] Look sample: the worked face of every stone, drawn over
+ the paving and the ashlar (own cast, chisel strokes, pits, bevelled arris,
+ cracks, chipped corners)
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2Ft9m6CYFuueHM5nSc
+---
+ src/tex.js | 79 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
+
+diff --git a/src/tex.js b/src/tex.js
+index eb9f860..b98fd6c 100644
+--- a/src/tex.js
++++ b/src/tex.js
+@@ -56,9 +56,78 @@ function wrap2(S, x, y, w, h, fn) {
+ // ── world6 ── `joints` is not enumerable, so code that walks a texture set's values (main.js makeMats) sees only textures
+ const withJoints = (o, joints) => Object.defineProperty(o, 'joints', { value: joints, enumerable: false });
+ 
++// The worked face of one stone, drawn OVER what is there (nothing is taken away): its own cast (ochre / pale / grey), the mason's
++// chisel strokes in one direction, pits, a bevelled arris (lit above and to the left, shaded below and to the right), now and then
++// a crack, a chipped corner, a stain. `k` holds the stone's own numbers (workedSeed), so the wrapped copies are identical.
++function workedSeed(w) {
++  const n = 26 + Math.floor(w() * 30);
++  return {
++    cast: w(), castA: 0.10 + w() * 0.14, ang: (w() - 0.5) * 1.2 + (w() < 0.5 ? 0.6 : -0.6),
++    strokes: Array.from({ length: n }, () => [w(), w(), 5 + w() * 9, w()]),
++    pits: Array.from({ length: 6 + Math.floor(w() * 10) }, () => [w(), w(), 0.7 + w() * 1.3]),
++    crack: w() < 0.16 ? { side: Math.floor(w() * 4), at: 0.2 + w() * 0.6, pts: Array.from({ length: 5 }, () => [0.10 + w() * 0.12, (w() - 0.5) * 0.22]) } : null,
++    chip: w() < 0.22 ? { c: Math.floor(w() * 4), a: 5 + w() * 9, b: 4 + w() * 8 } : null,
++    stain: w() < 0.14 ? [w(), w(), 16 + w() * 26, 0.10 + w() * 0.10] : null,
++    polish: [0.3 + w() * 0.4, 0.3 + w() * 0.4],
++  };
++}
++function worked(x, h, X, Y, W, H, k, inset) {
++  const x0 = X + inset, y0 = Y + inset, ww = W - 2 * inset, hh = H - 2 * inset;
++  x.save(); x.beginPath(); x.rect(x0, y0, ww, hh); x.clip();
++  h.save(); h.beginPath(); h.rect(x0, y0, ww, hh); h.clip();
++  // its own cast
++  x.fillStyle = k.cast < 0.18 ? `rgba(176,128,64,${k.castA})` : k.cast < 0.32 ? `rgba(255,250,236,${k.castA})` : k.cast < 0.44 ? `rgba(112,108,104,${k.castA})` : k.cast < 0.52 ? `rgba(196,150,120,${k.castA * 0.8})` : 'rgba(0,0,0,0)';
++  x.fillRect(x0, y0, ww, hh);
++  // dirt gathered along the joints, the middle walked smooth
++  for (const [gx0, gy0, gx1, gy1, rx, ry, rw, rh] of [[0, y0, 0, y0 + 7, x0, y0, ww, 7], [0, y0 + hh, 0, y0 + hh - 7, x0, y0 + hh - 7, ww, 7], [x0, 0, x0 + 7, 0, x0, y0, 7, hh], [x0 + ww, 0, x0 + ww - 7, 0, x0 + ww - 7, y0, 7, hh]]) {
++    const g = x.createLinearGradient(gx0, gy0, gx1, gy1); g.addColorStop(0, 'rgba(70,54,34,.20)'); g.addColorStop(1, 'rgba(70,54,34,0)'); x.fillStyle = g; x.fillRect(rx, ry, rw, rh);
++  }
++  { const gx = x0 + k.polish[0] * ww, gy = y0 + k.polish[1] * hh, rad = Math.max(ww, hh) * 0.55, g = x.createRadialGradient(gx, gy, 0, gx, gy, rad);
++    g.addColorStop(0, 'rgba(255,248,232,.13)'); g.addColorStop(1, 'rgba(255,248,232,0)'); x.fillStyle = g; x.fillRect(x0, y0, ww, hh); }
++  if (k.stain) { const [a, b, rad, al] = k.stain, gx = x0 + a * ww, gy = y0 + b * hh, g = x.createRadialGradient(gx, gy, 0, gx, gy, rad);
++    g.addColorStop(0, `rgba(86,62,36,${al})`); g.addColorStop(0.7, `rgba(86,62,36,${al * 0.5})`); g.addColorStop(1, 'rgba(86,62,36,0)'); x.fillStyle = g; x.fillRect(gx - rad, gy - rad, rad * 2, rad * 2); }
++  // chisel strokes: a dark cut with a lit lip beside it
++  const ca = Math.cos(k.ang), sa = Math.sin(k.ang);
++  x.lineCap = 'round'; h.lineCap = 'round';
++  for (const [a, b, len, t] of k.strokes) {
++    const px = x0 + a * ww, py = y0 + b * hh, dx = ca * len, dy = sa * len;
++    x.lineWidth = 1.1; x.strokeStyle = `rgba(74,58,38,${0.10 + t * 0.12})`; x.beginPath(); x.moveTo(px, py); x.lineTo(px + dx, py + dy); x.stroke();
++    x.lineWidth = 0.9; x.strokeStyle = `rgba(255,250,236,${0.10 + t * 0.10})`; x.beginPath(); x.moveTo(px - sa * 1.3, py + ca * 1.3); x.lineTo(px + dx - sa * 1.3, py + dy + ca * 1.3); x.stroke();
++    h.lineWidth = 1.4; h.strokeStyle = 'rgba(0,0,0,.22)'; h.beginPath(); h.moveTo(px, py); h.lineTo(px + dx, py + dy); h.stroke();
++  }
++  for (const [a, b, rad] of k.pits) {
++    const px = x0 + a * ww, py = y0 + b * hh;
++    x.fillStyle = 'rgba(66,52,36,.34)'; x.beginPath(); x.arc(px, py, rad, 0, 6.2832); x.fill();
++    x.fillStyle = 'rgba(255,250,236,.22)'; x.beginPath(); x.arc(px + 0.7, py + 0.9, rad * 0.8, 0, 6.2832); x.fill();
++    x.fillStyle = 'rgba(66,52,36,.34)'; x.beginPath(); x.arc(px, py, rad * 0.8, 0, 6.2832); x.fill();
++    h.fillStyle = 'rgba(0,0,0,.5)'; h.beginPath(); h.arc(px, py, rad, 0, 6.2832); h.fill();
++  }
++  if (k.crack) {
++    const s = k.crack.side, hor = s < 2, L = hor ? ww : hh;
++    let px = hor ? x0 + k.crack.at * ww : (s === 2 ? x0 : x0 + ww), py = hor ? (s === 0 ? y0 : y0 + hh) : y0 + k.crack.at * hh;
++    const dir = (s === 0 || s === 2) ? 1 : -1, P = [[px, py]];
++    for (const [f, sd] of k.crack.pts) { if (hor) { py += dir * f * hh; px += sd * L; } else { px += dir * f * ww; py += sd * L; } P.push([px, py]); }
++    const path = (c2, ox, oy) => { c2.beginPath(); c2.moveTo(P[0][0] + ox, P[0][1] + oy); for (let i = 1; i < P.length; i++) c2.lineTo(P[i][0] + ox, P[i][1] + oy); c2.stroke(); };
++    x.lineJoin = 'round'; x.lineWidth = 1.2; x.strokeStyle = 'rgba(52,40,26,.62)'; path(x, 0, 0);
++    x.lineWidth = 0.8; x.strokeStyle = 'rgba(255,250,236,.30)'; path(x, 0.9, 1.0);
++    h.lineWidth = 1.6; h.strokeStyle = 'rgba(0,0,0,.75)'; path(h, 0, 0);
++  }
++  x.restore(); h.restore();
++  // the arris: lit above and on the left, shaded below and on the right
++  x.fillStyle = 'rgba(255,251,238,.34)'; x.fillRect(x0, y0, ww, 1.6); x.fillStyle = 'rgba(255,251,238,.20)'; x.fillRect(x0, y0, 1.5, hh);
++  x.fillStyle = 'rgba(58,44,26,.30)'; x.fillRect(x0, y0 + hh - 1.8, ww, 1.8); x.fillStyle = 'rgba(58,44,26,.20)'; x.fillRect(x0 + ww - 1.5, y0, 1.5, hh);
++  if (k.chip) {
++    const { c: cn, a, b } = k.chip, cx = cn % 2 ? x0 + ww : x0, cy = cn > 1 ? y0 + hh : y0, sx = cn % 2 ? -1 : 1, sy = cn > 1 ? -1 : 1;
++    const tri = (c2, e) => { c2.beginPath(); c2.moveTo(cx, cy); c2.lineTo(cx + sx * (a + e), cy); c2.lineTo(cx, cy + sy * (b + e)); c2.closePath(); c2.fill(); };
++    x.fillStyle = 'rgba(255,250,236,.30)'; tri(x, 1.6); x.fillStyle = 'rgba(64,50,34,.72)'; tri(x, 0);
++    h.fillStyle = 'rgba(0,0,0,.8)'; tri(h, 0);
++  }
++}
++
+ // Herodian ashlar: large blocks with drafted margins and a raised flat boss. Tile = 24 amot, 11 courses.
+ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11, len = [0.15, 0.36]) {
+   const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
++  const w2 = rng(seed * 4493 + 3);   // the worked face: its own generator again
+   const w = rng(seed * 7919 + 17);   // ── world6 ── weathering on its OWN generator: r()'s sequence (the layout, SITE's joints) is untouched
+   x.fillStyle = hsl(tone[0], tone[1] - 6, tone[2] - 24); x.fillRect(0, 0, size, size);
+   h.fillStyle = '#000'; h.fillRect(0, 0, size, size);
+@@ -73,6 +142,7 @@ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11,
+       // ── world6 ── weathering: rain streaks down from the boss, a dirtier foot, pitting (w(), never r())
+       const streaks = [0, 1, 2].slice(0, 1 + Math.floor(w() * 3)).map(() => [w(), 0.3 + w() * 0.65, 1.5 + w() * 4.5, 0.05 + w() * 0.08]);
+       const pits = [0, 1, 2, 3, 4].map(() => [w(), w(), 1 + w() * 2.2]), foot = 0.05 + w() * 0.08;
++      const wk = workedSeed(w2);
+       wrap2(size, bx0, y0, bw, ch, (bx, by) => {
+         const X = bx + J / 2, Y = by + J / 2, W = bw - J, H = ch - J;
+         x.fillStyle = hsl(hu, sa - 6, li + 3.5); x.fillRect(X, Y, W, H);
+@@ -100,6 +170,12 @@ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11,
+         h.fillStyle = '#9a9a9a'; h.fillRect(X + M - 3, Y + M - 3, W - 2 * M + 6, H - 2 * M + 6);
+         h.fillStyle = '#bdbdbd'; h.fillRect(X + M - 1, Y + M - 1, W - 2 * M + 2, H - 2 * M + 2);
+         h.fillStyle = '#cccccc'; h.fillRect(X + M + 1, Y + M + 1, W - 2 * M - 2, H - 2 * M - 2);
++        // the margin combed fine across its width (the Herodian drafted margin), the boss worked
++        x.strokeStyle = 'rgba(70,54,34,.13)'; x.lineWidth = 0.8; x.beginPath();
++        for (let q = X + 2; q < X + W - 1; q += 3) { x.moveTo(q, Y + 1); x.lineTo(q, Y + M - 1); x.moveTo(q, Y + H - M + 1); x.lineTo(q, Y + H - 1); }
++        for (let q = Y + M + 1; q < Y + H - M; q += 3) { x.moveTo(X + 1, q); x.lineTo(X + M - 1, q); x.moveTo(X + W - M + 1, q); x.lineTo(X + W - 1, q); }
++        x.stroke();
++        worked(x, h, X, Y, W, H, wk, M);
+       });
+     }
+   }
+@@ -110,6 +186,7 @@ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11,
+ // Large flagstone paving. Tile = 24 amot.
+ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
+   const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
++  const w = rng(seed * 6007 + 5);   // the worked face on its OWN generator: r()'s sequence (the layout) is untouched
+   x.fillStyle = hsl(tone[0], tone[1], tone[2] - 20); x.fillRect(0, 0, size, size);
+   h.fillStyle = '#000'; h.fillRect(0, 0, size, size);
+   const J = 2;
+@@ -117,6 +194,7 @@ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
+     for (const [bx0, bw] of cyclic(r, size, size * 0.11, size * 0.26)) {
+       const li = tone[2] + (r() - 0.5) * 7, hu = tone[0] + (r() - 0.5) * 6, sa = tone[1] + (r() - 0.5) * 8;
+       const bl = [0, 1, 2].map(() => [r(), r(), 14 + r() * 40, r()]);
++      const wk = workedSeed(w);
+       wrap2(size, bx0, ry, bw, rh, (bx, by) => {
+         const X = bx + J / 2, Y = by + J / 2, W = bw - J, H = rh - J;
+         x.fillStyle = hsl(hu, sa, li); x.fillRect(X, Y, W, H);
+@@ -130,6 +208,7 @@ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
+         x.fillStyle = 'rgba(255,252,240,.18)'; x.fillRect(X, Y, W, 1.2);
+         h.fillStyle = '#b4b4b4'; h.fillRect(X, Y, W, H);
+         h.fillStyle = '#c4c4c4'; h.fillRect(X + 2, Y + 2, W - 4, H - 4);
++        worked(x, h, X, Y, W, H, wk, 0);
+       });
+     }
+   }
+-- 
+2.43.0
+
+
+From c653fb85a1a8ebbc763b4bfb75d908e5265d5d69 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 18:22:54 +0000
+Subject: [PATCH 2/6] Look sample: finer stone canvases and anisotropy at
+ 'high', a trial hook on the light for the sample picture
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2Ft9m6CYFuueHM5nSc
+---
+ src/main.js | 18 ++++++++++++++++--
+ src/tex.js  | 18 ++++++++++--------
+ 2 files changed, 26 insertions(+), 10 deletions(-)
+
+diff --git a/src/main.js b/src/main.js
+index ad627fa..e297847 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -86,9 +86,9 @@ const prog = (p, txt) => { const b = $('lb'), t = $('lt'); if (b) b.style.width
+ 
+ /* ───────── materials ───────── */
+ function makeMats() {
+-  const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
++  const aniso = Math.min(Q.level === 'high' ? 16 : 8, renderer.capabilities.getMaxAnisotropy()), RES = Q.level === 'high' ? 2 : 1;
+   const T = {
+-    ash: TX.texAshlar(7), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17), marble: TX.texMarble(23),
++    ash: TX.texAshlar(7, 1024, [38, 32, 75], 11, [0.15, 0.36], RES), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17, 1024, [39, 21, 77], RES), marble: TX.texMarble(23),
+     plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), lattice: TX.texLattice(),
+     puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91, 512, false),
+   };
+@@ -169,6 +169,20 @@ function shadowFit(act) {
+   return true;
+ }
+ // ── /look C ──
++// the look sample's hand on the light (a trial picture only): a tight, sharp shadow box round `at`, and whichever of the light's numbers are given
++window.__LOOKMAX = (at, half, o = {}) => {
++  const c = shadowBox(at, [SUN_DIR.x, SUN_DIR.y, SUN_DIR.z], half, sun.shadow.mapSize.x, SBOX.c);
++  const sc = sun.shadow.camera; sc.left = -half; sc.right = half; sc.top = half; sc.bottom = -half; sc.updateProjectionMatrix();
++  sun.target.position.set(c[0], c[1], c[2]); sunPlace();
++  sun.shadow.normalBias = o.nb != null ? o.nb : 0.1; if (o.radius != null) sun.shadow.radius = o.radius;
++  if (o.sun) sun.color.set(o.sun); if (o.sunI != null) sun.intensity = o.sunI;
++  if (o.hs) hemi.color.set(o.hs); if (o.hg) hemi.groundColor.set(o.hg); if (o.hI != null) hemi.intensity = o.hI;
++  if (o.exp != null) renderer.toneMappingExposure = o.exp; if (o.envI != null) scene.environmentIntensity = o.envI;
++  if (grade) { if (o.sat != null) grade.uSat.value = o.sat; if (o.gain) grade.uGain.value.set(...o.gain); if (o.lift) grade.uLift.value.set(...o.lift); if (o.vig != null) grade.uVig.value = o.vig; }
++  if (bloom) { if (o.bloom != null) bloom.strength = o.bloom; if (o.bloomT != null) bloom.threshold = o.bloomT; }
++  renderer.shadowMap.needsUpdate = true;
++  return { time: curTime, sun: '#' + sun.color.getHexString(), sunI: sun.intensity, hs: '#' + hemi.color.getHexString(), hg: '#' + hemi.groundColor.getHexString(), hI: hemi.intensity, exp: renderer.toneMappingExposure, envI: scene.environmentIntensity, q: Q.level, pr: renderer.getPixelRatio() };
++};
+ // ── world6 ── the sky (src/sky.js): gradient, sun, haze, far hills and Moab, horizon cumulus, a lit cloud layer, the moon
+ const sky = createSky();
+ scene.add(sky.dome);
+diff --git a/src/tex.js b/src/tex.js
+index b98fd6c..08026ab 100644
+--- a/src/tex.js
++++ b/src/tex.js
+@@ -125,8 +125,9 @@ function worked(x, h, X, Y, W, H, k, inset) {
+ }
+ 
+ // Herodian ashlar: large blocks with drafted margins and a raised flat boss. Tile = 24 amot, 11 courses.
+-export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11, len = [0.15, 0.36]) {
+-  const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
++export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11, len = [0.15, 0.36], res = 1) {
++  const r = rng(seed), c = cv(size * res), x = c.getContext('2d'), hc = cv(size * res), h = hc.getContext('2d');
++  x.scale(res, res); h.scale(res, res);   // res: the same drawing on a finer canvas
+   const w2 = rng(seed * 4493 + 3);   // the worked face: its own generator again
+   const w = rng(seed * 7919 + 17);   // ── world6 ── weathering on its OWN generator: r()'s sequence (the layout, SITE's joints) is untouched
+   x.fillStyle = hsl(tone[0], tone[1] - 6, tone[2] - 24); x.fillRect(0, 0, size, size);
+@@ -179,13 +180,14 @@ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11,
+       });
+     }
+   }
+-  grain(x, size, size, 0.10, seed + 1); grain(h, size, size, 0.07, seed + 2);
+-  return withJoints({ map: toTex(c), normalMap: toTex(normalFromHeight(hc, 2.4, 1), false) }, joints);
++  grain(x, size * res, size * res, 0.10, seed + 1); grain(h, size * res, size * res, 0.07, seed + 2);
++  return withJoints({ map: toTex(c), normalMap: toTex(normalFromHeight(hc, 2.4 * res, 1), false) }, joints);
+ }
+ 
+ // Large flagstone paving. Tile = 24 amot.
+-export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
+-  const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
++export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77], res = 1) {
++  const r = rng(seed), c = cv(size * res), x = c.getContext('2d'), hc = cv(size * res), h = hc.getContext('2d');
++  x.scale(res, res); h.scale(res, res);
+   const w = rng(seed * 6007 + 5);   // the worked face on its OWN generator: r()'s sequence (the layout) is untouched
+   x.fillStyle = hsl(tone[0], tone[1], tone[2] - 20); x.fillRect(0, 0, size, size);
+   h.fillStyle = '#000'; h.fillRect(0, 0, size, size);
+@@ -212,8 +214,8 @@ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77]) {
+       });
+     }
+   }
+-  grain(x, size, size, 0.08, seed + 3); grain(h, size, size, 0.05, seed + 4);
+-  return { map: toTex(c), normalMap: toTex(normalFromHeight(hc, 1.6, 1), false) };
++  grain(x, size * res, size * res, 0.08, seed + 3); grain(h, size * res, size * res, 0.05, seed + 4);
++  return { map: toTex(c), normalMap: toTex(normalFromHeight(hc, 1.6 * res, 1), false) };
+ }
+ 
+ // "אפיק שפה ועייל שפה" — alternating courses: white marble proud, blue-grey (כוחלא) recessed.
+-- 
+2.43.0
+
+
+From 1297c19801ec99e64f54fe5d44bb04ce7478cfc9 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 22:29:04 +0000
+Subject: [PATCH 3/6] Look sample: the sunlit paving's warm light thrown back
+ onto the Azarah's walls (a shader term, off by default)
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2Ft9m6CYFuueHM5nSc
+---
+ src/batch.js | 15 ++++++++++++---
+ src/main.js  |  3 ++-
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/src/batch.js b/src/batch.js
+index cdd247c..b43633a 100644
+--- a/src/batch.js
++++ b/src/batch.js
+@@ -85,6 +85,8 @@ float bcThOf(float fi) { int i = int(fi + 0.5); vec4 t = uBcTh[i / 4]; int k = i
+ // ── site13 ── two more reveals: a finish-only material with a cut of its own (uBcJ.z; uBcJ.w 1 = a height, 2 = laid along +x:
+ // the House's finish step by step, the Ezrat Nashim's cedar gallery) and a cut per footprint rect (uBcC.w < 0 rects, the cut in
+ // uBcRK[i].x: the Ezrat Nashim's corner chambers rising one at a time); bcCutY is the height the glowing line follows.
++/** the bounce of the sunlit paving (look): rgb = its light (0 = off), w = the floor's height */
++export const LOOK_BOUNCE = { value: new THREE.Vector4(0, 0, 0, 16) };
+ function patchShader(sh, gao, bc) {
+   if (bc) {
+     const U = bc.U;
+@@ -100,17 +102,18 @@ function patchShader(sh, gao, bc) {
+   let vs = sh.vertexShader, fs = sh.fragmentShader;
+   if (gao) {
+     const { strength, range, macro } = gao;
++    sh.uniforms.uBounce = LOOK_BOUNCE;
+     if (macro > 0) sh.uniforms.uGaoC = { value: gao.course ? 1 : 0 };   // ── look D review K3 ── ── /look D review ──
+     vs = vs
+-      .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;')
+-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;')
++      .replace('#include <common>', '#include <common>\nattribute float aBase;\nvarying float vAoH;\nvarying vec2 vWXZ;\nvarying float vWY;')
++      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;\n{ vec4 gw = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n  gw = instanceMatrix * gw;\n#endif\n  vWY = (modelMatrix * gw).y; }')
+       .replace('#include <begin_vertex>', gao.instanced
+         ? '#include <begin_vertex>\nvAoH = position.y + aBase;'
+         : '#include <begin_vertex>\nvAoH = (modelMatrix * vec4(transformed, 1.0)).y - aBase;');
+     // (the reveal variant samples macro variation and occlusion at the cap point for back faces)
+     const xz = bc ? `\n#ifdef BCLIP\n    vec2 gxz = bcFront ? vWXZ : bcP.xz;\n#else\n    vec2 gxz = vWXZ;\n#endif\n` : '\n    vec2 gxz = vWXZ;\n';
+     fs = fs.replace('#include <common>', `#include <common>
+-        varying float vAoH; varying vec2 vWXZ;${macro > 0 ? '\n        uniform float uGaoC;' : ''}
++        varying float vAoH; varying vec2 vWXZ; varying float vWY; uniform vec4 uBounce;${macro > 0 ? '\n        uniform float uGaoC;' : ''}
+         float gh21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+         float gvn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+           return mix(mix(gh21(i), gh21(i + vec2(1.0, 0.0)), f.x), mix(gh21(i + vec2(0.0, 1.0)), gh21(i + vec2(1.0, 1.0)), f.x), f.y); }`)
+@@ -134,6 +137,12 @@ function patchShader(sh, gao, bc) {
+         reflectedLight.indirectDiffuse *= mix(${f3(1 - strength)}, 1.0, gao);
+         reflectedLight.indirectSpecular *= mix(${f3(1 - strength)}, 1.0, gao);
+         reflectedLight.directDiffuse *= mix(${f3(1 - strength * 0.4)}, 1.0, gao);
++        // the sunlit paving's light thrown back onto what stands on it: warm, strongest at the foot, on upright faces and undersides;
++        // inside the Azarah, above its floor (uBounce: rgb the light, w the floor's height; rgb 0 = off)
++        { float hb = vWY - uBounce.w, wny = inverseTransformDirection(normal, viewMatrix).y;
++          float inA = step(-190.0, vWXZ.x) * step(vWXZ.x, 2.0) * step(abs(vWXZ.y), 70.0);
++          float bk = inA * step(-0.3, hb) * (1.0 - smoothstep(0.5, 18.0, hb)) * (1.0 - max(wny, 0.0));
++          reflectedLight.indirectDiffuse += diffuseColor.rgb * uBounce.rgb * bk; }
+       }`);
+   }
+   if (bc) {
+diff --git a/src/main.js b/src/main.js
+index e297847..f5e3f9d 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -7,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+ import { Pass } from 'three/addons/postprocessing/Pass.js';
+ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+-import { Batch, groundAO } from './batch.js';
++import { Batch, groundAO, LOOK_BOUNCE } from './batch.js';
+ import * as TX from './tex.js';
+ import { buildTemple, buildMenorot, MENOROT } from './temple.js';
+ import { buildMount, buildStreet, SQUARE } from './mount.js';
+@@ -180,6 +180,7 @@ window.__LOOKMAX = (at, half, o = {}) => {
+   if (o.exp != null) renderer.toneMappingExposure = o.exp; if (o.envI != null) scene.environmentIntensity = o.envI;
+   if (grade) { if (o.sat != null) grade.uSat.value = o.sat; if (o.gain) grade.uGain.value.set(...o.gain); if (o.lift) grade.uLift.value.set(...o.lift); if (o.vig != null) grade.uVig.value = o.vig; }
+   if (bloom) { if (o.bloom != null) bloom.strength = o.bloom; if (o.bloomT != null) bloom.threshold = o.bloomT; }
++  if (o.bounce) LOOK_BOUNCE.value.set(o.bounce[0], o.bounce[1], o.bounce[2], o.bounce[3] != null ? o.bounce[3] : 16);
+   renderer.shadowMap.needsUpdate = true;
+   return { time: curTime, sun: '#' + sun.color.getHexString(), sunI: sun.intensity, hs: '#' + hemi.color.getHexString(), hg: '#' + hemi.groundColor.getHexString(), hI: hemi.intensity, exp: renderer.toneMappingExposure, envI: scene.environmentIntensity, q: Q.level, pr: renderer.getPixelRatio() };
+ };
+-- 
+2.43.0
+
+
+From 3bc06c54fb26253af08682d03f0a60bb2c03abb7 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 22:37:26 +0000
+Subject: [PATCH 4/6] Look sample: the walls' boss pecked (short marks), fewer
+ cracks, the stone's cast wandering by place
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2Ft9m6CYFuueHM5nSc
+---
+ src/batch.js |  2 ++
+ src/tex.js   | 14 +++++++-------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/src/batch.js b/src/batch.js
+index b43633a..ae19778 100644
+--- a/src/batch.js
++++ b/src/batch.js
+@@ -120,6 +120,8 @@ function patchShader(sh, gao, bc) {
+       .replace('#include <map_fragment>', macro > 0 ? `#include <map_fragment>
+         {${xz}    float mv = gvn(gxz / 55.0) * 0.65 + gvn(gxz / 13.0) * 0.35;
+           diffuseColor.rgb *= mix(${f3(1 - macro)}, ${f3(1 + macro * 0.35)}, mv);
++          // the stone's cast wandering by place: here a little more ochre, there a little greyer (a third, broader noise)
++          { float mt = gvn(gxz / 31.0 + 7.3); diffuseColor.rgb *= mix(vec3(1.035, 1.0, 0.94), vec3(0.965, 0.985, 1.03), mt); }
+           // ── look D review K3 ── (uGaoC: the city walls' stone) each course of the texture's eleven a tone of its own (±4 %, changing
+           // every half tile along), the foot dirtier up to about a quarter of the wall, and a soft shade under the cornice (the wall's top
+           // pieces carry their top as aBase + 1000: vAoH < −500) ── /look D review ──
+diff --git a/src/tex.js b/src/tex.js
+index 08026ab..bd26ecd 100644
+--- a/src/tex.js
++++ b/src/tex.js
+@@ -63,15 +63,15 @@ function workedSeed(w) {
+   const n = 26 + Math.floor(w() * 30);
+   return {
+     cast: w(), castA: 0.10 + w() * 0.14, ang: (w() - 0.5) * 1.2 + (w() < 0.5 ? 0.6 : -0.6),
+-    strokes: Array.from({ length: n }, () => [w(), w(), 5 + w() * 9, w()]),
++    strokes: Array.from({ length: n * 3 }, () => [w(), w(), 5 + w() * 9, w()]),
+     pits: Array.from({ length: 6 + Math.floor(w() * 10) }, () => [w(), w(), 0.7 + w() * 1.3]),
+-    crack: w() < 0.16 ? { side: Math.floor(w() * 4), at: 0.2 + w() * 0.6, pts: Array.from({ length: 5 }, () => [0.10 + w() * 0.12, (w() - 0.5) * 0.22]) } : null,
++    crack: w() < 0.10 ? { side: Math.floor(w() * 4), at: 0.2 + w() * 0.6, pts: Array.from({ length: 5 }, () => [0.10 + w() * 0.12, (w() - 0.5) * 0.22]) } : null,
+     chip: w() < 0.22 ? { c: Math.floor(w() * 4), a: 5 + w() * 9, b: 4 + w() * 8 } : null,
+     stain: w() < 0.14 ? [w(), w(), 16 + w() * 26, 0.10 + w() * 0.10] : null,
+     polish: [0.3 + w() * 0.4, 0.3 + w() * 0.4],
+   };
+ }
+-function worked(x, h, X, Y, W, H, k, inset) {
++function worked(x, h, X, Y, W, H, k, inset, peck = false) {   // peck: a wall's boss, pecked with the point (short marks), not the paving's long chisel strokes
+   const x0 = X + inset, y0 = Y + inset, ww = W - 2 * inset, hh = H - 2 * inset;
+   x.save(); x.beginPath(); x.rect(x0, y0, ww, hh); x.clip();
+   h.save(); h.beginPath(); h.rect(x0, y0, ww, hh); h.clip();
+@@ -89,9 +89,9 @@ function worked(x, h, X, Y, W, H, k, inset) {
+   // chisel strokes: a dark cut with a lit lip beside it
+   const ca = Math.cos(k.ang), sa = Math.sin(k.ang);
+   x.lineCap = 'round'; h.lineCap = 'round';
+-  for (const [a, b, len, t] of k.strokes) {
+-    const px = x0 + a * ww, py = y0 + b * hh, dx = ca * len, dy = sa * len;
+-    x.lineWidth = 1.1; x.strokeStyle = `rgba(74,58,38,${0.10 + t * 0.12})`; x.beginPath(); x.moveTo(px, py); x.lineTo(px + dx, py + dy); x.stroke();
++  for (const [a, b, len, t] of (peck ? k.strokes : k.strokes.slice(0, Math.ceil(k.strokes.length / 3)))) {
++    const L = peck ? 1.5 + len * 0.22 : len, px = x0 + a * ww, py = y0 + b * hh, dx = ca * L, dy = sa * L;
++    x.lineWidth = 1.1; x.strokeStyle = `rgba(74,58,38,${(0.10 + t * 0.12) * (peck ? 0.7 : 1)})`; x.beginPath(); x.moveTo(px, py); x.lineTo(px + dx, py + dy); x.stroke();
+     x.lineWidth = 0.9; x.strokeStyle = `rgba(255,250,236,${0.10 + t * 0.10})`; x.beginPath(); x.moveTo(px - sa * 1.3, py + ca * 1.3); x.lineTo(px + dx - sa * 1.3, py + dy + ca * 1.3); x.stroke();
+     h.lineWidth = 1.4; h.strokeStyle = 'rgba(0,0,0,.22)'; h.beginPath(); h.moveTo(px, py); h.lineTo(px + dx, py + dy); h.stroke();
+   }
+@@ -176,7 +176,7 @@ export function texAshlar(seed = 7, size = 1024, tone = [38, 32, 75], rows = 11,
+         for (let q = X + 2; q < X + W - 1; q += 3) { x.moveTo(q, Y + 1); x.lineTo(q, Y + M - 1); x.moveTo(q, Y + H - M + 1); x.lineTo(q, Y + H - 1); }
+         for (let q = Y + M + 1; q < Y + H - M; q += 3) { x.moveTo(X + 1, q); x.lineTo(X + M - 1, q); x.moveTo(X + W - M + 1, q); x.lineTo(X + W - 1, q); }
+         x.stroke();
+-        worked(x, h, X, Y, W, H, wk, M);
++        worked(x, h, X, Y, W, H, wk, M, true);
+       });
+     }
+   }
+-- 
+2.43.0
+
+
+From d036c38daf0903f1ac93dc06b0102098642c6d5d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 22:40:59 +0000
+Subject: [PATCH 5/6] Look sample: the marble's arris and great veins, hammered
+ gold, the paving in the mirror below the horizon
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2Ft9m6CYFuueHM5nSc
+---
+ src/main.js |  5 +++--
+ src/sky.js  |  5 ++++-
+ src/tex.js  | 26 ++++++++++++++++++++++----
+ 3 files changed, 29 insertions(+), 7 deletions(-)
+
+diff --git a/src/main.js b/src/main.js
+index f5e3f9d..dc7d0f9 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -88,7 +88,7 @@ const prog = (p, txt) => { const b = $('lb'), t = $('lt'); if (b) b.style.width
+ function makeMats() {
+   const aniso = Math.min(Q.level === 'high' ? 16 : 8, renderer.capabilities.getMaxAnisotropy()), RES = Q.level === 'high' ? 2 : 1;
+   const T = {
+-    ash: TX.texAshlar(7, 1024, [38, 32, 75], 11, [0.15, 0.36], RES), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17, 1024, [39, 21, 77], RES), marble: TX.texMarble(23),
++    ash: TX.texAshlar(7, 1024, [38, 32, 75], 11, [0.15, 0.36], RES), ashBig: TX.texAshlar(13, 1024, [36, 28, 73], 11, [0.16, 0.42]), ash2: TX.texAshlar(9, 1024, [34, 16, 68]), pave: TX.texPaving(17, 1024, [39, 21, 77], RES), marble: TX.texMarble(23, 1024, RES), goldP: TX.texGoldPlate(103, 256, false),
+     plaster: TX.texPlaster(41), roof: TX.texRoof(53), wood: TX.texWood(61), lattice: TX.texLattice(),
+     puff: TX.texPuff(), flame: TX.texFlame(), rock: TX.texRock(91, 512, false),
+   };
+@@ -103,7 +103,7 @@ function makeMats() {
+     marbleIn: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, color: '#A89F92', roughness: 0.5, envMapIntensity: 0.4 })), tile: 19.2 },
+     wmarble: { mat: groundAO(std({ color: '#EDE5D6', roughness: 0.42, envMapIntensity: 0.7 })), tile: 10 },
+     plaster: { mat: groundAO(std({ map: T.plaster.map, normalMap: T.plaster.normalMap, normalScale: n(0.8), roughness: 0.95 })), tile: 10 },
+-    gold: { mat: std({ color: '#E9B949', metalness: 1, roughness: 0.24, envMapIntensity: 1.3 }), tile: 5 },
++    gold: { mat: std({ color: '#E9B949', metalness: 1, roughness: 0.27, envMapIntensity: 1.5, normalMap: T.goldP.normalMap, normalScale: n(0.55) }), tile: 5 },   // (look) hammered: the plate's dents break the mirror into glints
+     bronze: { mat: std({ color: '#D9A060', metalness: 1, roughness: 0.3, envMapIntensity: 1.2 }), tile: 5 },
+     cedar: { mat: groundAO(std({ map: T.wood.map, color: '#E8BE93', roughness: 0.72 })), tile: 4 },
+     oak: { mat: std({ map: T.wood.map, color: '#B08A62', roughness: 0.7 }), tile: 4 },
+@@ -180,6 +180,7 @@ window.__LOOKMAX = (at, half, o = {}) => {
+   if (o.exp != null) renderer.toneMappingExposure = o.exp; if (o.envI != null) scene.environmentIntensity = o.envI;
+   if (grade) { if (o.sat != null) grade.uSat.value = o.sat; if (o.gain) grade.uGain.value.set(...o.gain); if (o.lift) grade.uLift.value.set(...o.lift); if (o.vig != null) grade.uVig.value = o.vig; }
+   if (bloom) { if (o.bloom != null) bloom.strength = o.bloom; if (o.bloomT != null) bloom.threshold = o.bloomT; }
++  if (o.envGround) { sky.envGround.visible = true; sky.envGround.material.color.set(o.envGround); if (envRT) envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; }
+   if (o.bounce) LOOK_BOUNCE.value.set(o.bounce[0], o.bounce[1], o.bounce[2], o.bounce[3] != null ? o.bounce[3] : 16);
+   renderer.shadowMap.needsUpdate = true;
+   return { time: curTime, sun: '#' + sun.color.getHexString(), sunI: sun.intensity, hs: '#' + hemi.color.getHexString(), hg: '#' + hemi.groundColor.getHexString(), hI: hemi.intensity, exp: renderer.toneMappingExposure, envI: scene.environmentIntensity, q: Q.level, pr: renderer.getPixelRatio() };
+diff --git a/src/sky.js b/src/sky.js
+index 1d821bd..a377332 100644
+--- a/src/sky.js
++++ b/src/sky.js
+@@ -211,6 +211,9 @@ export function createSky() {
+   dome.renderOrder = -10; dome.frustumCulled = false; dome.name = 'sky';
+   const envScene = new THREE.Scene();
+   envScene.add(new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), mat(envU, true)));
++  // (look) what the gold and the marble mirror below the horizon: the courts' sunlit paving, not the dome's underside
++  const envGround = new THREE.Mesh(new THREE.CircleGeometry(99, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#000000', depthTest: false, fog: false }));
++  envGround.position.y = -6; envGround.renderOrder = 5; envGround.visible = false; envScene.add(envGround);
+ 
+   // stars: brightness and tint vary, fainter near the horizon; night only; depth-tested (hills hide them)
+   const r = rng(12), n = 1600, sp = new Float32Array(n * 3), sc = new Float32Array(n * 3);
+@@ -262,7 +265,7 @@ export function createSky() {
+     stars.material.opacity = Math.min(1, 0.95 * cur.star);
+   }
+   return {
+-    dome, uniforms, envScene, envU, stars, noise, fogColor: fog,
++    dome, uniforms, envScene, envU, envGround, stars, noise, fogColor: fog,
+     /** cloud meshes drawn without depth test (sanctuary.js hides them inside the rooms): none now — the clouds are in the dome */
+     clouds: [],
+     /** the preset (dawn|noon|dusk|night|golden) and the sun's (at night: the moonlight's) direction */
+diff --git a/src/tex.js b/src/tex.js
+index bd26ecd..14c3278 100644
+--- a/src/tex.js
++++ b/src/tex.js
+@@ -220,8 +220,10 @@ export function texPaving(seed = 17, size = 1024, tone = [39, 21, 77], res = 1)
+ 
+ // "אפיק שפה ועייל שפה" — alternating courses: white marble proud, blue-grey (כוחלא) recessed.
+ // Tile = 19.2 amot, 12 courses of 1.6 amot.
+-export function texMarble(seed = 23, size = 1024) {
+-  const r = rng(seed), c = cv(size), x = c.getContext('2d'), hc = cv(size), h = hc.getContext('2d');
++export function texMarble(seed = 23, size = 1024, res = 1) {
++  const r = rng(seed), c = cv(size * res), x = c.getContext('2d'), hc = cv(size * res), h = hc.getContext('2d');
++  x.scale(res, res); h.scale(res, res);
++  const w = rng(seed * 5231 + 9);   // (look) the arris and the great veins on their own generator: the layout is untouched
+   const rows = 12, ch = size / rows, J = 1.6;
+   const joints = { rows, edges: [] };   // ── world6 ── the stones' layout for SITE's reveal (as texAshlar)
+   x.fillStyle = '#9aa3ac'; x.fillRect(0, 0, size, size);
+@@ -250,11 +252,27 @@ export function texMarble(seed = 23, size = 1024) {
+         x.restore();
+         h.fillStyle = blue ? '#6a6a6a' : '#c8c8c8'; h.fillRect(X, Y, W, H);
+         if (!blue) { h.fillStyle = '#d8d8d8'; h.fillRect(X + 2, Y + 2, W - 4, H - 4); }
++        // (look) each slab's arris: a line of light above and on the left, of shade below and on the right; its face a little proud
++        x.fillStyle = 'rgba(255,255,255,.55)'; x.fillRect(X, Y, W, 1.4); x.fillStyle = 'rgba(255,255,255,.30)'; x.fillRect(X, Y, 1.3, H);
++        x.fillStyle = 'rgba(40,52,70,.30)'; x.fillRect(X, Y + H - 1.6, W, 1.6); x.fillStyle = 'rgba(40,52,70,.20)'; x.fillRect(X + W - 1.3, Y, 1.3, H);
++        h.fillStyle = blue ? '#7c7c7c' : '#e2e2e2'; h.fillRect(X + 3.5, Y + 3.5, W - 7, H - 7);
+       });
+     }
+   }
+-  grain(x, size, size, 0.05, seed + 5);
+-  return withJoints({ map: toTex(c), normalMap: toTex(normalFromHeight(hc, 2.2, 1), false) }, joints);
++  // (look) the great veins: a few long wandering lines that cross many slabs and courses, so the face reads as one quarried marble
++  x.lineCap = 'round';
++  for (let i = 0; i < 9; i++) {
++    let px = w() * size, py = w() * size, ang = w() * 6.2832; const lw = 0.7 + w() * 1.8, grey = w() < 0.6;
++    for (const [ox, oy] of [[0, 0], [-size, 0], [size, 0], [0, -size], [0, size]]) {
++      const v = rng(seed * 77 + i * 13 + 1); let qx = px + ox, qy = py + oy, a2 = ang;
++      x.beginPath(); x.moveTo(qx, qy);
++      for (let k = 0; k < 26; k++) { a2 += (v() - 0.5) * 0.9; qx += Math.cos(a2) * 22; qy += Math.sin(a2) * 22 * 0.6 + 6; x.lineTo(qx, qy); }
++      x.lineWidth = lw * 2.6; x.strokeStyle = grey ? 'rgba(96,112,138,.07)' : 'rgba(170,140,96,.07)'; x.stroke();
++      x.lineWidth = lw; x.strokeStyle = grey ? 'rgba(70,88,118,.26)' : 'rgba(150,118,74,.24)'; x.stroke();
++    }
++  }
++  grain(x, size * res, size * res, 0.05, seed + 5);
++  return withJoints({ map: toTex(c), normalMap: toTex(normalFromHeight(hc, 2.2 * res, 1), false) }, joints);
+ }
+ 
+ // Whitened altar stones (אבנים שלמות, מלבנים אותן). Tile = 10 amot.
+-- 
+2.43.0
+
+
+From 693be36810259f82bad9394e9e4a98b791a2014e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 14 Nov 2026 22:53:51 +0000
+Subject: [PATCH 6/6] Look sample: the marble keeps its white and blue (less of
+ the mirror)
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LtMU2Ft9m6CYFuueHM5nSc
+---
+ src/main.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/main.js b/src/main.js
+index dc7d0f9..8e82fc0 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -99,7 +99,7 @@ function makeMats() {
+     ashBig: { mat: groundAO(std({ map: T.ashBig.map, normalMap: T.ashBig.normalMap, normalScale: n(1.2), roughness: 0.88 }), { macro: 0.12 }), tile: 30 },
+     ash2: { mat: groundAO(std({ map: T.ash2.map, normalMap: T.ash2.normalMap, normalScale: n(1.1), roughness: 0.92 }), { macro: 0.1, course: true }), tile: 22 },   // ── look D ── (macro: the city walls' weathering, ash's program) ── /look D ── ── look D review K3 ── (course: the courses' tones, the foot, the cornice's shade) ── /look D review ──
+     pave: { mat: groundAO(std({ map: T.pave.map, normalMap: T.pave.normalMap, normalScale: n(0.7), roughness: 0.9 }), { macro: 0.14 }), tile: 24 },
+-    marble: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, normalScale: n(1.35), roughness: 0.34, envMapIntensity: 0.9 })), tile: 19.2 },
++    marble: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, normalScale: n(1.35), roughness: 0.34, envMapIntensity: 0.45 })), tile: 19.2 },   // (look) 0.9 → 0.45: the paving in the mirror must not turn the white-and-blue marble cream
+     marbleIn: { mat: groundAO(std({ map: T.marble.map, normalMap: T.marble.normalMap, color: '#A89F92', roughness: 0.5, envMapIntensity: 0.4 })), tile: 19.2 },
+     wmarble: { mat: groundAO(std({ color: '#EDE5D6', roughness: 0.42, envMapIntensity: 0.7 })), tile: 10 },
+     plaster: { mat: groundAO(std({ map: T.plaster.map, normalMap: T.plaster.normalMap, normalScale: n(0.8), roughness: 0.95 })), tile: 10 },
+-- 
+2.43.0
+

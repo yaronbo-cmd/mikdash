@@ -1,0 +1,140 @@
+h109/acts.js:243  120, 360
+h109/acts.js:22  x0: -223
+h109/acts.js:22  x1: 277
+h109/acts.js:22  z0: -183.5
+h109/acts.js:22  z1: 316.5
+h109/acts2.js:140  0.3, 46
+h109/acts2.js:227  34, 10
+h109/acts2.js:227  34, 54
+h109/acts2.js:336  0, -70
+h109/acts2.js:777  0, -40
+h109/acts2.js:985  40, -10
+h109/acts2.js:998  0, -60
+h109/acts3.js:21  0.11, 6, 36
+h109/acts3.js:246  0.13, 32, 1
+h109/acts3.js:260  0.85, 1, 40
+h109/acts3.js:290  0, 40
+h109/acts3.js:297  0, 40
+h109/acts3.js:415  128, 70
+h109/acts3.js:452  0.85, 1, 40
+h109/acts3.js:726  0, 0, 512
+h109/acts3.js:727  256, 1
+h109/acts3.js:728  22, 22, 468
+h109/acts3.js:729  22, 22, 468
+h109/acts3.js:730  10, 10, 492
+h109/acts3.js:828  30, 8
+h109/acts3.js:852  0, -70
+h109/acts3.js:861  34, 8
+h109/acts3.js:980  22, 44
+h109/acts3.js:980  80, 44
+h109/acts3.js:980  82, 92
+h109/acts3.js:980  48, 136
+h109/acts3.js:981  10, 30
+h109/acts3.js:981  80, 30
+h109/acts3.js:981  88, 42
+h109/acts3.js:981  88, 126
+h109/acts3.js:981  6, 126
+h109/acts3.js:982  38, 30
+h109/acts3.js:982  64, 30
+h109/acts3.js:982  64, 72
+h109/acts3.js:983  8, 30
+h109/acts3.js:983  84, 30
+h109/acts3.js:983  90, 42
+h109/acts3.js:983  90, 132
+h109/acts3.js:983  26, 30
+h109/acts3.js:983  26, 132
+h109/acts3.js:983  12, 134
+h109/acts3.js:984  8, 30
+h109/acts3.js:984  88, 30
+h109/acts3.js:984  90, 132
+h109/acts3.js:984  22, 70
+h109/acts3.js:984  22, 132
+h109/acts3.js:985  8, 30
+h109/acts3.js:985  88, 30
+h109/acts3.js:985  90, 100
+h109/acts3.js:985  20, 70
+h109/acts3.js:985  20, 170
+h109/acts3.js:986  14, 30
+h109/acts3.js:986  62, 106
+h109/acts3.js:986  86, 30
+h109/acts3.js:986  82, 96
+h109/acts3.js:986  52, 126
+h109/acts3.js:986  6, 130
+h109/acts3.js:987  10, 30
+h109/acts3.js:987  72, 30
+h109/acts3.js:987  88, 48
+h109/acts3.js:987  88, 110
+h109/acts3.js:987  72, 126
+h109/acts3.js:987  10, 126
+h109/acts3.js:1000  -300.05, -289
+h109/acts3.js:1000  389, 400.05
+h109/acts3.js:1003  1.2, 399.45
+h109/acts3.js:1004  1.2, 399.45
+h109/acts3.js:1006  -300.05, -296.9
+h109/acts3.js:1006  0.9, 399.6, 400.05
+h109/acts3.js:1006  -300.05, -299.6
+h109/acts3.js:1006  0.9, 396.9, 400.05
+h109/acts3.js:1008  -294.6, 400.15, 11.4
+h109/acts3.js:1008  -300.15, 394.6, 11.4
+h109/acts3.js:1014  1.25, 398.83
+h109/acts3.js:1029  36, 36
+h109/acts3.js:1106  1.5, 396.3
+h109/acts3.js:1122  -352, 58, 456
+h109/acts3.js:1133  30, 24, 18
+h109/acts3.js:1142  50, 70
+h109/acts3.js:1146  2, 120
+h109/acts3.js:1170  0.92, 1, 40
+h109/acts3.js:1223  -372, 120, 470
+h109/acts3.js:1223  -150, 0, 250
+h109/acts3.js:1246  2.75, 396.3
+h109/acts3.js:1269  0.0032, -125
+h109/acts3.js:59  x: 275.5
+h109/acts3.js:59  z: 398.7
+h109/acts3.js:59  x: 264
+h109/acts3.js:59  z: 392.6
+h109/acts3.js:59  x: 253.5
+h109/acts3.js:59  z: 392
+h109/acts3.js:61  x: 268.6
+h109/acts3.js:61  z: 389.2
+h109/acts3.js:393  z0: 352
+h109/acts3.js:394  z0: 316
+h109/acts3.js:398  z0: 316
+h109/acts3.js:977  x: -300
+h109/acts3.js:977  z: 400
+h109/acts3.js:990  x: -298.4
+h109/acts3.js:990  z: 398.4
+h109/acts3.js:991  x: -281
+h109/acts3.js:991  z: 383
+h109/director.js:35  60, 260, 520
+h109/director.js:35  0, 0, -40
+h109/director.js:35  60, 55, 70
+h109/director.js:35  -30, -4, -21
+h109/director.js:35  306, -36, 372
+h109/director.js:35  277, -46, 399
+h109/director.js:35  322, 14, 352
+h109/director.js:35  277, -12, 398
+h109/director.js:35  -200, 60, -260
+h109/director.js:35  -280, 10, -150
+h109/director.js:35  -352, 62, 456
+h109/director.js:35  -296, 38, 396
+h109/director.js:35  180, 300, 620
+h109/director.js:35  27, 0, 66
+h109/director.js:291  27, 0, 66
+h109/director.js:293  520, 360
+h109/director.js:547  30, 50, 30
+h109/director.js:547  50, 80
+h109/director.js:683  0.45, 60, 180
+h109/director.js:719  32, 32, 0
+h109/director.js:719  32, 32, 32
+h109/director.js:719  0, 0, 64
+h109/director.js:759  20, 40, 30
+h109/director.js:760  34, 7, 9
+h109/director.js:777  0, 80
+h109/director.js:787  30, 40, 60
+h109/director.js:830  0, 50, 100
+h109/director.js:919  1000, 0, 0.25
+h109/grips.js:14  44, 0.15
+h109/model.js:38  -300, 400
+h109/model.js:38  x: -281
+h109/model.js:38  z: 383
+h109/props.js:135  2, 48

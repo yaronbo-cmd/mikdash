@@ -1,0 +1,78 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+const B = new URLSearchParams(location.search).get('m') === 'b';
+const W = 960, H = 540;
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+R.setSize(W, H); R.shadowMap.enabled = true; R.shadowMap.type = B ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(R.domElement);
+const S = new THREE.Scene(); S.background = new THREE.Color(B ? '#E9D9BE' : '#EAD6BA');
+if (B) S.fog = new THREE.Fog('#E9D9BE', 18, 60);
+const cam = new THREE.PerspectiveCamera(42, W / H, 0.1, 200); cam.position.set(-6.5, 6.2, 11); cam.lookAt(1.5, 0.6, 0);
+// light: today one sun + flat ambient; after: same golden sun, lower, plus sky/ground bounce
+const sun = new THREE.DirectionalLight('#FFE2B0', B ? 2.6 : 3.0); sun.position.set(-10, 14, 8); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14 }); sun.shadow.bias = -0.0005;
+if (B) sun.shadow.radius = 3;
+S.add(sun);
+if (B) S.add(new THREE.HemisphereLight('#DCE6F0', '#9A7A52', 0.8)); else S.add(new THREE.AmbientLight('#ffffff', 1.0));
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const cv = (w, h = w) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const tex = (c, srgb = true) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+function normalFrom(hc, k = 3) { const w = hc.width, h = hc.height, s = hc.getContext('2d').getImageData(0, 0, w, h).data, o = cv(w, h), g = o.getContext('2d'), im = g.createImageData(w, h), d = im.data;
+  const Hh = (x, y) => s[((((y % h) + h) % h) * w + (((x % w) + w) % w)) * 4] / 255;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const dx = (Hh(x + 1, y) - Hh(x - 1, y)) * k, dy = (Hh(x, y + 1) - Hh(x, y - 1)) * k, l = Math.hypot(dx, dy, 1), i = (y * w + x) * 4;
+    d[i] = (-dx / l * .5 + .5) * 255; d[i + 1] = (dy / l * .5 + .5) * 255; d[i + 2] = (1 / l * .5 + .5) * 255; d[i + 3] = 255; }
+  g.putImageData(im, 0, 0); return o; }
+// one stone face: drafted margin + pecked boss, own tone, weathering, chisel marks
+function stoneTex(tone, boss = true) {
+  const N = 256, c = cv(N), x = c.getContext('2d'), hc = cv(N), h = hc.getContext('2d');
+  const [hu, sa, li] = tone; x.fillStyle = `hsl(${hu},${sa}%,${li}%)`; x.fillRect(0, 0, N, N); h.fillStyle = '#808080'; h.fillRect(0, 0, N, N);
+  const M = 22;
+  if (boss) { x.fillStyle = `hsl(${hu},${sa + 3}%,${li - 5}%)`; x.fillRect(M, M, N - 2 * M, N - 2 * M); h.fillStyle = '#b0b0b0'; h.fillRect(M, M, N - 2 * M, N - 2 * M); }
+  for (let i = 0; i < 2600; i++) { const X = rnd() * N, Y = rnd() * N, inB = boss && X > M && X < N - M && Y > M && Y < N - M, r = inB ? .6 + rnd() * 1.3 : 0.5 + rnd() * .6;
+    const v = rnd(); x.fillStyle = v < .5 ? `hsla(${hu},${sa}%,${li - 14}%,.22)` : `hsla(${hu},${sa - 4}%,${li + 8}%,.22)`; x.beginPath(); x.arc(X, Y, r, 0, 6.3); x.fill();
+    h.fillStyle = v < .5 ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.3)'; h.beginPath(); h.arc(X, Y, r, 0, 6.3); h.fill(); }
+  // margin chisel strokes
+  x.strokeStyle = `hsla(${hu},${sa}%,${li - 10}%,.35)`; h.strokeStyle = 'rgba(0,0,0,.4)'; x.lineWidth = h.lineWidth = 1;
+  for (let i = 0; i < N; i += 4) for (const [a, b2, cc, dd] of [[i, 2, i + 3, M - 3], [i, N - M + 3, i + 3, N - 2], [2, i, M - 3, i + 3], [N - M + 3, i, N - 2, i + 3]]) { x.beginPath(); x.moveTo(a, b2); x.lineTo(cc, dd); x.stroke(); h.beginPath(); h.moveTo(a, b2); h.lineTo(cc, dd); h.stroke(); }
+  // weathering: dirtier foot and a rain streak
+  const gr = x.createLinearGradient(0, N * .7, 0, N); gr.addColorStop(0, 'rgba(90,70,40,0)'); gr.addColorStop(1, 'rgba(90,70,40,.35)'); x.fillStyle = gr; x.fillRect(0, 0, N, N);
+  for (let s = 0; s < (boss ? 2 : 0); s++) { const X = M + rnd() * (N - 2 * M); const g2 = x.createLinearGradient(0, N * .3, 0, N); g2.addColorStop(0, 'rgba(70,60,40,.18)'); g2.addColorStop(1, 'rgba(70,60,40,0)'); x.fillStyle = g2; x.fillRect(X, N * .3, 3 + rnd() * 5, N * .7); }
+  return { map: tex(c), normalMap: tex(normalFrom(hc), false) };
+}
+function groundTex() {
+  const N = 512, c = cv(N), x = c.getContext('2d'), hc = cv(N), h = hc.getContext('2d');
+  x.fillStyle = '#CDB48C'; x.fillRect(0, 0, N, N); h.fillStyle = '#808080'; h.fillRect(0, 0, N, N);
+  for (let i = 0; i < 60; i++) { const X = rnd() * N, Y = rnd() * N, r = 30 + rnd() * 90, g = x.createRadialGradient(X, Y, 0, X, Y, r); const d = rnd() < .5;
+    g.addColorStop(0, d ? 'rgba(120,90,55,.12)' : 'rgba(235,215,175,.15)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(X - r, Y - r, 2 * r, 2 * r); }
+  for (let i = 0; i < 2500; i++) { const X = rnd() * N, Y = rnd() * N, r = .5 + rnd() * (rnd() < .05 ? 4 : 1.5); const v = rnd();
+    x.fillStyle = v < .5 ? 'rgba(110,85,55,.25)' : 'rgba(240,225,195,.25)'; x.beginPath(); x.ellipse(X, Y, r, r * .7, rnd() * 3, 0, 6.3); x.fill();
+    h.fillStyle = v < .5 ? 'rgba(0,0,0,.3)' : 'rgba(255,255,255,.5)'; h.beginPath(); h.ellipse(X, Y, r, r * .7, 0, 0, 6.3); h.fill(); }
+  const m = tex(c), n = tex(normalFrom(hc, 2), false); m.repeat.set(3, 3); n.repeat.set(3, 3); return { map: m, normalMap: n };
+}
+// ground
+const gm = B ? new THREE.MeshStandardMaterial({ ...groundTex(), roughness: 1 }) : new THREE.MeshStandardMaterial({ color: '#D8BF96', roughness: 1 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), gm); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; S.add(ground);
+// stones: today = one flat grey material on a plain box; after = rounded edges, own tone and face per stone, slight turn
+const flat = new THREE.MeshStandardMaterial({ color: '#BFB39A', roughness: .95, flatShading: true });
+function stone(L, h, d, boss) {
+  if (!B) return new THREE.Mesh(new THREE.BoxGeometry(L, h, d), flat);
+  const tone = [38 + (rnd() - .5) * 8, 14 + (rnd() - .5) * 8, 72 + (rnd() - .5) * 10], t = stoneTex(tone, boss);
+  const m = new THREE.Mesh(new RoundedBoxGeometry(L, h, d, 3, 0.07), new THREE.MeshStandardMaterial({ ...t, roughness: .92, normalScale: new THREE.Vector2(1.2, 1.2) }));
+  return m;
+}
+const add = (m, x, y, z, ry = 0) => { m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = m.receiveShadow = true; S.add(m); return m; };
+// a wall: two courses laid (joints staggered), a third course being set
+let z = -3.5;
+const row = (y, lens, off, boss) => { let x = -4 + off; for (const L of lens) { add(stone(L - (B ? .04 : 0), 1, 1.2, boss), x + L / 2, y, z, B ? (rnd() - .5) * .006 : 0); x += L; } };
+row(.5, [2.2, 1.6, 2.6, 1.9, 2.1], 0, true); row(1.5, [1.5, 2.4, 2.0, 2.3, 2.0], 0, true); row(2.5, [2.6, 1.8], 0, true);
+// stock of stones waiting on the ground
+for (let i = 0; i < 4; i++) add(stone(1.4 + i * .25, .9, 1.1, true), 5.2 + i * 1.75, .45, 1.6, B ? (rnd() - .5) * .25 : 0);
+// paving slabs
+const slabs = [[-3, 2.6, 2.2, 1.6], [-0.6, 2.6, 2.4, 1.6], [-3.1, 4.4, 2.0, 1.8], [-0.9, 4.45, 2.2, 1.9]];
+for (const [x0, z0, w, d] of slabs) add(stone(w - (B ? .05 : 0), .22, d - (B ? .05 : 0), false), x0 + w / 2, .11, z0, B ? (rnd() - .5) * .02 : 0);
+R.render(S, cam); window.__done = true;
+</script></body></html>

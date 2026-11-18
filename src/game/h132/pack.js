@@ -42,7 +42,8 @@ export function makePack09(env = {}) {
   const R = endRound();
   const P = {
     time: env,
-    id: 'sovev', key: 'h132', name: 'הסובב וחוט הסיקרא', PLAN, ACTS, icon: '🧵',
+    id: 'sovev', key: 'h132', wordScreen: true,   // (the perfect screen says the work's own word: X.perfect(WORDS[kind]))
+    name: 'הסובב וחוט הסיקרא', PLAN, ACTS, icon: '🧵',
     create: (save) => createH132(save),
     count: (M) => M.count(),
     freeFilms: true,

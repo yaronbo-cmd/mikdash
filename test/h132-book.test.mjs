@@ -117,4 +117,15 @@ test('book s09: against the built world — temple.js builds the sovev and its r
   assert.deepEqual(S.cam.w4measure.map((p) => [...p]), [[-6, 32, 28], [-38, 21, -3.5]]);
   assert.deepEqual(S.cam.w4.map((p) => [...p]), [[-12, 22.5, 17], [-23, 21, 9]]);
   assert.deepEqual({ c: [...S.cam.end.c], R: S.cam.end.R, y: S.cam.end.y }, { c: [-38, -3.5], R: 40, y: 50 });
+  // (lane B's measuring shots, one a corner, and the helper's ladders: the act reads them from the book)
+  assert.deepEqual(Object.fromEntries(Object.entries(S.cam.w4corner).map(([k, v]) => [k, v.map((p) => [...p])])), { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-46, 27.5, -33.5], [-51.5, 19.4, -19.5]], SW: [[-46, 27.5, 26.5], [-51.5, 19.4, 12.5]] });
+  assert.deepEqual(S.cam.w4corner.SE[0], S.cam.w4measure[0]);
+  for (const k of ['NE', 'SE', 'SW', 'NW']) {
+    const L = S.sikra.ladder[k], c = S.corner[k], c0 = S.cam.w4corner[k][1];
+    assert.ok(Math.hypot(L.foot[0] - c[0], L.foot[1] - c[1]) < 4.5, k + ' ladder near its corner');
+    assert.ok(L.head[1] > S.lineY && L.head[1] <= S.top, k + ' ladder head between the line and the top');
+    assert.ok(Math.abs(c0[1] - (S.lineY - 1.5)) < 0.15, k + ' aim 1.5 under the line');
+    // (on a face, not on the diagonal: the head on the block's face line beside the corner)
+    assert.ok(Math.abs(L.head[0] - c[0]) < 0.15 || Math.abs(L.head[2] - c[1]) < 0.15, k + ' ladder head on a face');
+  }
 });

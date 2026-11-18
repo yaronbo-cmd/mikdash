@@ -1285,6 +1285,10 @@ function s09() {
       pathW: { x: -54.3, z0: B[1], z1: B[3] },
       slots: { tornA: slot(SLOT.tornA), bulge: SLOT.bulge.map(slot), nest: SLOT.nest.map(slot), patch: slot(SLOT.patch), tornB: slot(SLOT.tornB) },
       slotD: SLOT, rough: slot(SLOT.rough),
+      // (lane B, build 132) the helper's wooden ladder at each corner while the stake is driven: its foot on the ground, its head leaned on
+      // one face beside the corner (not on the diagonal, where the figure gate would hide the helper before the rod); he stands 2 amot up
+      ladder: { NE: { foot: [-25.4, -20.7], head: [-25.4, 21.65, -18.62] }, SE: { foot: [-20.8, 8.7], head: [-22.88, 21.65, 8.7] },
+        SW: { foot: [-49.6, 13.7], head: [-49.6, 21.65, 11.62] }, NW: { foot: [-49.6, -20.7], head: [-49.6, 21.65, -18.62] } },
     },
     stand: { w1: [-16, -25], w2: [-34, -46], w3: [-16, 18], w4: [-21.8, 11.5] }, standY4: C.floor,
     // the cameras ([eye x, y, z], [aim x, y, z]); the end: a round over the middle
@@ -1292,6 +1296,9 @@ function s09() {
       w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[-18, 54, -8], [mid[0] - 4, 14, -8]],   // (work 2: from the east, high and near — build 132 round 2: the block's top two thirds of the frame's width, the ramp's head and its sleds at the right edge, the oxen and their drivers wholly out)
       w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
+      // (lane B, build 132) the measuring shot at each corner: the aim 2 amot in from the corner, 1.5 under the line; the west corners
+      // seen from the north and the south (the Ulam's steps are west of the block); SE's eye is w4measure's
+      w4corner: { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-46, 27.5, -33.5], [-51.5, 19.4, -19.5]], SW: [[-46, 27.5, 26.5], [-51.5, 19.4, 12.5]] },
       end: { c: mid, R: 40, y: 50 },
     },
     // the Ulam's lowest tread as the world builds it (temple.js xr[0]: x −56 … −55, top 16.5): the west brace leans on it
@@ -1341,6 +1348,7 @@ function s09() {
     ...K9.slots.nest.map((p, i) => ['nest' + (i + 1), p, `"קן" ${i + 1}`]), ['patch', K9.slots.patch, 'כתם קרוע'], ['tornB', K9.slots.tornB, 'פינה קרועה שנייה']];
   for (const [k, p, lab] of SL9) e3('sikra:west:' + k, 'flawslot', p, lineY, `מקום הפגם בקיר המערבי: ${lab}`, ILL);
   e3('sikra:rough', 'roughpatch', K9.rough, lineY, 'המשטח המחוספס הקבוע, במרכז הקיר המערבי', ILL);
+  for (const k of ['NE', 'SE', 'SW', 'NW']) e3('sikra:ladder:' + k, 'ladder', K9.ladder[k].foot, C.floor, `הסולם של העוזר בפינה ${SIDE[k]}: רגלו כאן, ראשו נשען על הפאה ליד הפינה`, ILL, { head: K9.ladder[k].head });
   const ST = { w1: 'התחנה של עבודה 1', w2: 'התחנה של עבודה 2, ליד רגל הרמפה', w3: 'התחנה של עבודה 3', w4: 'העובד בתחילת הקו' };
   for (const k of ['w1', 'w2', 'w3', 'w4']) e3('stand:' + k, 'stand', S09.stand[k], C.floor, ST[k], ILL);
   return { stage: 9, name: 'הסובב וחוט הסיקרא', bounds: { x0: -62, x1: -4, z0: -50, z1: 22 }, ...S09, entries: E };

@@ -12,7 +12,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { SK, TEF, wallAt, cornersOf } from './sikra-model.js';
-import { addLane, SH9 } from './world.js';
+import { addLane } from './world.js';
 
 const S9 = BOOK.s09, K9 = S9.sikra, LY = S9.lineY, F = S9.floor, TOP = S9.top;
 
@@ -30,9 +30,8 @@ export const VK = Object.freeze({
   // at the act's lens — the figures gate's rule "whole or absent"). West: the gap is one amah — the camera above him and behind
   CAM: Object.freeze({ back: 6, out: 16, up: 6, aimF: 2.8, aimIn: 0.8, aimUp: 3.4 }),
   CAMW: Object.freeze({ back: 13, out: 2.5, up: 13, aimF: 4, aimIn: 0.2, aimUp: 1.5 }),
-  // the measuring: the ladder leaned on one face this far from the corner (the helper on it beside the rod, not before it), and which
-  // face (the one the corner's shot sees the helper clear of the corner on)
-  LAD: Object.freeze({ NE: 2.4, SE: 2.8, SW: 3.4, NW: 3.4 }), LAD_FACE: Object.freeze({ NE: 'z', SE: 'x', SW: 'z', NW: 'z' }),
+  // the measuring: the face each corner's ladder leans on (its place is the book's, sikra:ladder — beside the rod, not before it)
+  LAD_FACE: Object.freeze({ NE: 'z', SE: 'x', SW: 'z', NW: 'z' }),
   BOWL_PX: 52, DRIP_PX: 40,  // the right thumb's targets on the screen (the bowl about 2.5 cm: its hit radius in css px)
   BOWL_R: 0.62,          // the bowl's radius (a big clay bowl, seen)
   POLE_R: 0.05,
@@ -64,27 +63,20 @@ export function walkerAt(s, lv) {
   if (F0.t > 0) { const c = Math.round(s / SK.SIDE) * SK.SIDE, cc = faceAt(c), w = 1 - Math.abs(F0.t - 0.5) * 2; bx = F0.x + (cc.x - F0.x) * w * 0.6; bz = F0.z + (cc.z - F0.z) * w * 0.6; }
   return { x: bx + F0.n[0] * off, z: bz + F0.n[1] * off, u: F0.u, n: F0.n, k: F0.k, k1: F0.k1, k2: F0.k2, t: F0.t };
 }
-/** where the helper walks for the worker's s: ahead of him by HELP_AHEAD, a little further out (at level 1 never past the line's end;
- *  on the whole round he walks on past the south-east corner, out of the close's way) */
-export function helperAt(s, lv, end) {
-  const hs = (lv | 0) === 1 ? Math.min(s + VK.HELP_AHEAD, end) : s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
+/** where the helper walks for the worker's s: ahead of him by HELP_AHEAD, a little further out — past the line's end too (level 1:
+ *  on along the north wall; the whole round: on past the south-east corner), never standing still before the worker at the end */
+export function helperAt(s, lv) {
+  const hs = s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
   return { ...H, s: hs, x: H.x + H.n[0] * o, z: H.z + H.n[1] * o };
 }
-/** the height a man stands at on (x, z): the top of what lies there under the line (a fallen form wall, a sill), else the floor.
- *  One ray down, cached by a quarter amah, the cache dropped when the world's drawing changes (SH9.key) */
-const FY = { m: new Map(), key: null, rc: null };
+/** the height a man stands at on (x, z): what is really there — the world's ground (the court's floor; the yesod's ledge where it
+ *  sticks out: X.ground), never under the floor. The site is clean in this work (the form's walls and sills are on the pile), so no
+ *  thing of the stage is stood on: a ray onto the stage's things found stray tops a quarter amah apart and the men jumped an amah */
+const FY = { m: new Map() };
 export function footY(X, x, z) {
-  if (FY.key !== SH9.key) { FY.m.clear(); FY.key = SH9.key; }
   const key = Math.round(x * 4) + ',' + Math.round(z * 4); let y = FY.m.get(key); if (y != null) return y;
   y = F;
-  try {
-    const T = X.THREE; if (!FY.rc) FY.rc = { r: new T.Raycaster(), o: new T.Vector3(), d: new T.Vector3(0, -1, 0) };
-    const objs = []; if (SH9.walls) for (const k of Object.keys(SH9.walls)) { const g = SH9.walls[k].grp; if (g && g.visible) objs.push(g); } if (SH9.drawn) objs.push(SH9.drawn);
-    const seen = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
-    FY.rc.o.set(x, LY - 1, z); FY.rc.r.set(FY.rc.o, FY.rc.d); FY.rc.r.far = LY - F;
-    const h = FY.rc.r.intersectObjects(objs, true).find((q) => seen(q.object));
-    if (h && h.point.y > F) y = h.point.y;
-  } catch (e) { /* (the floor) */ }
+  try { const g = X.ground ? X.ground(x, z) : NaN; if (Number.isFinite(g) && g > y && g < LY - 1) y = g; } catch (e) { /* (the floor) */ }
   FY.m.set(key, y); return y;
 }
 /** the follow shot at s: [eye], [aim] */
@@ -97,11 +89,7 @@ export function camAt(s, lv, wHere) {
 }
 /** a corner's measuring shot: outside the corner, the rod, the ladder and the helper in it (derived from cam:w4:measure's height and
  *  distance; the west corners from the north and the south — west of the block are the Ulam's steps) */
-export function measureShot(k) {
-  if (k === 'SE') return [S9.cam.w4measure[0].slice(), [S9.corner.SE[0] - 2, LY - 1.5, S9.corner.SE[1] - 2]];
-  const [cx, cz] = S9.corner[k], ex = k === 'NE' ? 9 : 7, ez = k === 'NE' ? -13 : k === 'NW' ? -15 : 15;
-  return [[cx + ex, LY + 6.5, cz + ez], [cx + (k === 'NE' ? 0.5 : 1.5), LY - 1.6, cz + (k === 'NE' ? 0 : k === 'NW' ? -1 : 1)]];
-}
+export function measureShot(k) { const B0 = S9.cam.w4corner[k]; return [B0[0].slice(), B0[1].slice()]; }   // (the book's: cam:w4:corner)
 
 /* ───────── materials ───────── */
 export function smats(X) {

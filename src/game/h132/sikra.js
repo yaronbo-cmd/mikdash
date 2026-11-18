@@ -32,6 +32,7 @@ export const SKA = Object.freeze({
   ROD_PX: 90, END_PX: 64,                             // measuring: the rod's drag start (any left drag moves it) and its lower end's tap
   LOOK_GAIN: 1.8, LOOK_MAX: 0.45,                     // the right thumb's lift (the director's look: X.lookLift)
   KEEP_S: 2,                                          // s between two keeps of the open line in the save
+  POP_DY: -1.9,                                       // the line's popups this far under the line (the juice lifts them 1.6): at the bow, never on the HUD
 });
 const isPhone = () => Math.min(innerWidth, innerHeight) < 700;
 
@@ -52,13 +53,14 @@ function makeSikra(m, X) {
   const gang = createGang(X), BT = createBeat(X);
   const west = Mo.westSlots ? Mo.westSlots() : [];
   // (a reload resumes: the measuring's stakes, or the line where it was)
-  const blob = Mo.workOf('sikra');
+  // (a level per visit: only this level's own unfinished act resumes — another level's, or a finished one, starts clean from the pre-state)
+  const blob0 = Mo.workOf('sikra'), blob = blob0 && blob0.lv === lv && !blob0.done ? blob0 : null;
   const Ms = blob && blob.Ms ? blob.Ms : K.measureFresh(lv);
   let L = null, track = { hs: [], ws: [], cuts: [] };
   if (blob && blob.line) { const r = K.lineLoad(blob.line); if (r) { L = r.L; track = { ...r.track, cuts: (blob.cuts || []).slice() }; } }
   const A = { t: 0, ev: [], phase: L ? 'line' : 'measure', busy: 0, done: 0, keepT: 0, k: null, rod: { u: 0, hung: false }, mode: null, leftDown: false, org: null, lp: null, held: null, r2: null, look: 0, cutTo: -1, si: 0, ti: 0, last: '' };
   const ev = (e) => { A.ev.push(e); if (A.ev.length > 18) A.ev.shift(); };
-  const keep = () => { Mo.keep('sikra', { Ms, line: L ? K.lineSave(L, null) : null, cuts: track.cuts }); X.save(); };
+  const keep = () => { Mo.keep('sikra', { lv, done: !!A.done, Ms, line: L ? K.lineSave(L, null) : null, cuts: track.cuts }); X.save(); };
   if (!blob) { try { Mo.st.sikra.line = null; } catch (e) { /* */ } }   // (played again: the old line goes with its flaws — workSeed)
   V3.SK3.act = true; V3.SK3.key = '';
 
@@ -101,10 +103,11 @@ function makeSikra(m, X) {
     const [cx, cz] = S9.corner[k], d = diag(k), s = V3.makeStake(X); s.position.set(cx + d[0] * 0.15, LY, cz + d[1] * 0.15); s.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(d[0], 0, d[1]).normalize()); root.add(s); return s;   // (driven into the corner, its head out along the corner's diagonal)
   }
   function ladderAt(k) {
-    // (leaned on one face beside the corner — VK.LAD amot along it, the face the corner's shot sees him clear of the rod on: on the
+    // (leaned on one face beside the corner — the book's sikra:ladder, the face the corner's shot sees him clear of the rod on: on the
     //  diagonal he stood before the corner and the figures gate took him out)
-    const [cx, cz] = S9.corner[k], d = diag(k), xf = V3.VK.LAD_FACE[k] === 'x', n = xf ? [d[0], 0] : [0, d[1]], al = xf ? [0, -d[1]] : [-d[0], 0], o = V3.VK.LAD[k];
-    const bx = cx + al[0] * o, bz = cz + al[1] * o, foot = [bx + n[0] * 2.2, bz + n[1] * 2.2], fy = V3.footY(X, foot[0], foot[1]), head = [bx + n[0] * 0.12, TOP - 0.35, bz + n[1] * 0.12];
+    const [cx, cz] = S9.corner[k], d = diag(k), xf = V3.VK.LAD_FACE[k] === 'x', n = xf ? [d[0], 0] : [0, d[1]];   // (n: the face's outward side, the helper on the rungs' outer side)
+    const LB = K9.ladder[k];   // (the book's: sikra:ladder)
+    const foot = LB.foot.slice(), fy = V3.footY(X, foot[0], foot[1]), head = LB.head.slice();
     V3.leanLadder(ladder, foot[0], foot[1], head[0], head[1], head[2], fy); ladder.visible = true;
     // (the helper on a rung, his feet two amot over the ladder's foot, on its outer side; the wooden mallet in his hand, toward the stake)
     const hY = fy + 2, u = (hY - fy) / (head[1] - fy), hx = foot[0] + (head[0] - foot[0]) * u + n[0] * 0.35, hz = foot[1] + (head[2] - foot[1]) * u + n[1] * 0.35;
@@ -141,7 +144,7 @@ function makeSikra(m, X) {
     if (helper) { gang.remove(helper); helper = null; }
     const w0 = V3.walkerAt(L.s, lv);
     worker = gang.add(w0.x, w0.z, { variant: 'kohen', role: 'hold', crew: 0 }); if (worker) { worker.a.vis = 1; worker.a.fixedY = V3.footY(X, w0.x, w0.z); }
-    const h0 = V3.helperAt(L.s, lv, K.lineEnd(lv) + 0.5);
+    const h0 = V3.helperAt(L.s, lv);
     helperAdd(h0.x, h0.z, { y: V3.footY(X, h0.x, h0.z) });
     pole.g.visible = bowl.visible = swab.g.visible = true;
     // (the line printed so far, after a reload)
@@ -166,7 +169,7 @@ function makeSikra(m, X) {
   const label = (f) => (LOSS[f] ? LOSS[f][0] : '');
   function onEvent(e) {
     ev(e.e + (e.s != null ? '@' + e.s : ''));
-    const at = lineAt(e.s != null ? e.s : L.s, 0.3);
+    const at = lineAt(e.s != null ? e.s : L.s, SKA.POP_DY);
     switch (e.e) {
       case 'seg': if (e.pts >= 40) { X.hit(at, 'gold'); X.quick(at, WORDS.quick); } else if (e.pts >= 20) X.hit(at, 'good'); else if (e.pts > 0) X.hit(at, 'ok'); else if (e.pts < 0) X.loss(SK.PTS.loss, at, label('sikra.wavy')); break;
       case 'corner':
@@ -199,7 +202,7 @@ function makeSikra(m, X) {
     for (const d of K.freshDrips(L)) { const mm = drips.get(d.id); if (!mm) continue; const q = scr(mm.position.x, mm.position.y, mm.position.z); if (!q) continue; const dd = Math.hypot(q[0] - p.x, q[1] - p.y); if (dd <= bd) { bd = dd; best = d.id; } }
     return best;
   }
-  function tapAt(p) { if (A.phase !== 'line' || !L || L.done) return; if (hitBowl(p)) { bowlNow(); return; } const id = hitDrip(p); if (id) { dripNow(id); return; } ev('tap:none'); }
+  function tapAt(p) { if (A.phase !== 'line' || !L || L.done) return; if (hitBowl(p)) { bowlNow(); return; } const id = hitDrip(p); if (id) { dripNow(id); return; } const b = bowlScr(); ev('tap:none' + (b ? ':' + Math.round(b[0] - p.x) + ',' + Math.round(b[1] - p.y) : ':nobowl') + '|by' + bowl.position.y.toFixed(2) + '|cy' + (X.camera ? X.camera.position.y.toFixed(2) : '?') + '|look' + A.look.toFixed(2)); }
   const liftLook = (u) => { A.look = clamp(u, 0, SKA.LOOK_MAX); try { if (X.lookLift) X.lookLift(A.look); } catch (e) { /* */ } };
   /* ── the right thumb while the left is held: the director gives the act one finger; the second is read here ── */
   const hudEl = (e) => !!(e && e.closest && e.closest('.gm-top,.gm-tabs,.gm-menu,.gm-modal,button,.h109-ui'));
@@ -263,7 +266,7 @@ function makeSikra(m, X) {
     pole.set(base, top, f.u);
     const band = K.wetBand(L.w), sm = pole.str.material; sm.color.set(wetC[band]); sm.emissive.set(band === 'red' ? '#7A0E06' : '#000000'); sm.emissiveIntensity = band === 'red' ? 0.6 + 0.4 * Math.sin(A.t * 9) : 0;
     // the helper ahead, a little further out, the bowl in his arms (on the screen's right), the swab rod up toward the line
-    const H0 = V3.helperAt(L.s, lv, K.lineEnd(lv) + 0.5), hs = H0.s;
+    const H0 = V3.helperAt(L.s, lv), hs = H0.s;
     if (helper) {
       const ha = helper.a, hx = H0.x, hz = H0.z, was = Math.hypot(hx - ha.x, hz - ha.z), hy = V3.footY(X, hx, hz);
       ha.x = hx; ha.z = hz; ha.fixedY = hy; ha.yaw = Math.atan2(-H0.n[0] * 0.6 - H0.u[0] * 0.8, -H0.n[1] * 0.6 - H0.u[1] * 0.8) + Math.PI;   // (half turned back toward the worker)
@@ -273,7 +276,7 @@ function makeSikra(m, X) {
       bowl.position.set(hx + fx * 0.55, hy + 1.35, hz + fz * 0.55);
       // the swab rod from his raised hand up to the wall ahead (or to the bow / a drip when he wets or wipes)
       const hand = [hx + fx * 0.3 - H0.n[0] * 0.2, hy + 2.3, hz + fz * 0.3 - H0.n[1] * 0.2];
-      let tip = (() => { const q = V3.faceAt(lv === 1 ? Math.min(hs + 0.3, K.lineEnd(lv) - 0.1) : hs + 0.3); return [q.x + q.n[0] * 0.35, LY + 0.7, q.z + q.n[1] * 0.35]; })();
+      let tip = (() => { const q = V3.faceAt(hs + 0.3); return [q.x + q.n[0] * 0.35, LY + 0.7, q.z + q.n[1] * 0.35]; })();
       if (A.swab) { A.swab.t += dt; const u = A.swab.t / A.swab.d, k = u < 0.5 ? ease(u * 2) : ease((1 - u) * 2); tip = tip.map((v, i) => lerp(v, A.swab.p[i], k)); if (u >= 1) A.swab = null; }
       swab.set(hand, tip);
     }

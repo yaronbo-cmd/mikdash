@@ -122,6 +122,12 @@ export const POUR_ACT = {
     function prepWide() { const J = jointAt(); X.shot([J.x + 10, J.y + 9, J.z - 17], [J.x - 3, S8.floor + 1.2, J.z + 0.5], 0.01); }
     const jointAt = () => ({ x: S8.wood.joint[0], y: S8.top + 0.6, z: S8.wood.joint[1] });
     const reedAt = (j) => ({ x: S8.reeds[j][0], y: S8.floor + 0.8, z: S8.reeds[j][1] });
+    /** (the figure rule, the PC run 5: in the opening wide shot of the prep a timbers' man stood cut by the frame's edge — a man whose place
+     *  the gate's own test finds cut or in the eye's way is out for the step: his timber comes in with the other) */
+    function prepFit() {
+      if (A8.phase !== 'prep') return;
+      for (let i = prepMen.length - 1; i >= 0; i--) { const w = prepMen[i]; if (w === maul || w === reedMan || !Number.isFinite(w.x0)) continue; if (faultW(w.x0, w.z0, Number.isFinite(w.a.y) ? w.a.y : S8.floor) >= 4) { gang.remove(w); prepMen.splice(i, 1); } }
+    }
     function prepShot() {
       if (!A8.prep) return;
       // (the figure rule, the run of 18.11: in the close shots of the joint and the reeds the timbers' men were cut by the frame — their
@@ -161,16 +167,18 @@ export const POUR_ACT = {
     //  taken again on its walk back, so a tap is never kept waiting on a second pair)
     const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]]];   // (a step to the right put the right man out of the frame in pour2)
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
+    /** a heap place for a stone of half-width r: clear of the frame's east board (D2: pour2's big stone lay across it) */
+    const pileAt = (q, r) => [Math.max(HEAP[0] + q[0], 6 + 0.36 + 0.3 + (r || 0)), HEAP[1] + q[1]];
     function heapLay() {
       let k = 0;
       V.stones.forEach((S, i) => {
         if (i < A8.stonesIn) { S.carry = false; return; }
         // (b131 look round 2: a compact heap of the next five in the frame — the rest wait out of the picture and come up as these go)
-        S.carry = true; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++;
+        S.carry = true; const q = PILE[k]; S.m.visible = !!q; if (q) { const p = pileAt(q, S.s.rx); S.m.position.set(p[0], 0, p[1]); } k++;
       });
     }
     /** the pile once a stone left it: the waiting ones not in anyone's hands, laid on the heap's places again */
-    function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++; }); }
+    function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) { const p = pileAt(q, S.s.rx); S.m.position.set(p[0], 0, p[1]); } k++; }); }
     function portersMake() {
       if (PORT.pairs.length) return;
       for (let k = 0; k < HOME.length; k++) {
@@ -181,24 +189,153 @@ export const POUR_ACT = {
     function portersOff() { for (const p of PORT.pairs) for (const w of p.men) gang.remove(w); PORT.pairs.length = 0; PORT.jobs.length = 0; }
     const sm = (u) => { u = clamp(u, 0, 1); return u * u * (3 - 2 * u); };
     function placeMan(w, lx, lz, fx, fz) { const W = toW(lx, lz), F = toW(fx, fz); w.a.x = W.x; w.a.z = W.z; w.a.yaw = Math.atan2(F.x - W.x, F.z - W.z); w.fx = F.x; w.fz = F.z; }
+    // ── the stones' staging by the figure gate's own test (the owner's figure rule, the runs of 18.11: the porters crossed between the
+    //  eye and the frame's middle and the gate hid them mid-carry; at the heap a man stood in front of the big grey stone) ──
+    const figG = () => { const G = globalThis.__FIG; return G && G.probe ? G : null; };
+    const workAt = () => { const v = toWorld(lv, 0, 1, 0); return { x: v[0], y: v[1], z: v[2] }; };   // (the act's at(): what the gate tests against)
+    const manY = () => { const w = PORT.pairs[0] && PORT.pairs[0].men[0]; return w && Number.isFinite(w.a.y) ? w.a.y : S8.floor; };
+    /** 0 when a man at local (lx, lz) stands whole in the frame and out of the eye's way; 1 out of the picture; 4 cut or between */
+    function fault(lx, lz) { const W = toW(lx, lz); return faultW(W.x, W.z, manY()); }
+    function faultW(x, z, y) {
+      const G = figG(); if (!G) return 0; let q = null;
+      try { q = G.probe(x, y, z, workAt()); } catch (e) { q = null; }
+      if (!q) return 0; return q.cut || q.between ? 4 : q.on ? 0 : 1;
+    }
+    /** the screen's left-right as a local direction at (lx, lz): the pair flanks a stone along it, never one in front of it */
+    function sideDir(lx, lz) {
+      try { const q0 = scr(wpt(lx, 0.6, lz)), qx = scr(wpt(lx + 1, 0.6, lz)), qz = scr(wpt(lx, 0.6, lz + 1)), ax = qz.y - q0.y, az = -(qx.y - q0.y), al = Math.hypot(ax, az); if (al > 1e-3) return [ax / al, az / al]; } catch (e) { /* */ }
+      return [1, 0];
+    }
+    /** the pair's flank at a point u along the way: left-right as the shot sees it; 'turn' starts across the eye's line (beside the heap
+     *  near the frame's edge, the far man would stand out of it) and swings to left-right in the first third of the way */
+    /** the two men's places about the stone at c: about it left and right (side, turn), or both on one side of it ('outL', 'outR': one a
+     *  step nearer the eye, one a step farther — where the stone's place lies in the eye's line to the work, neither man may) */
+    function menAt(c, u, mode, g) {
+      // ('a>b': the pair's stand changes from a (at the heap) to b (at the place) in the middle of the way)
+      const late = mode.indexOf('>>') > 0, ab = mode.indexOf('>'); if (ab > 0) { const p = menAt(c, u, mode.slice(0, ab), g), q = menAt(c, u, mode.slice(ab + (late ? 2 : 1)), g), e = late ? sm((u - 0.62) / 0.3) : sm((u - 0.3) / 0.4); return [0, 1].map((j) => [p[j][0] + (q[j][0] - p[j][0]) * e, p[j][1] + (q[j][1] - p[j][1]) * e]); }
+      if (mode === 'outL' || mode === 'outR') { const n = sideDir(c[0], c[1]), sg = mode === 'outR' ? 1 : -1, d = [-n[1], n[0]], ox = c[0] + n[0] * g * sg, oz = c[1] + n[1] * g * sg; return [[ox - d[0] * 0.75, oz - d[1] * 0.75], [ox + d[0] * 0.75, oz + d[1] * 0.75]]; }
+      const n = flankAt(c, u, mode); return [[c[0] - n[0] * g, c[1] - n[1] * g], [c[0] + n[0] * g, c[1] + n[1] * g]];
+    }
+    function flankAt(c, u, mode) { const n = sideDir(c[0], c[1]); if (mode !== 'turn' || u >= 0.3) return n; const a = (1 - u / 0.3) * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a); return [n[0] * ca - n[1] * sa, n[0] * sa + n[1] * ca]; }
+    const g0of = (J) => J.g;
+    const pathLen = (pts) => { let L2 = 0; for (let k = 1; k < pts.length; k++) L2 += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); return L2; };
+    function pathAt(pts, u) {
+      const L2 = pathLen(pts) || 1; let r = clamp(u, 0, 1) * L2;
+      for (let k = 1; k < pts.length; k++) { const a = pts[k - 1], b = pts[k], l = Math.hypot(b[0] - a[0], b[1] - a[1]); if (r <= l || k === pts.length - 1) { const t = l ? Math.min(1, r / l) : 1; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; } r -= l; }
+      return pts[pts.length - 1].slice();
+    }
+    /** the stone's way from the heap to its place: straight, or round the frame's ends and far side, whichever keeps both men whole and
+     *  out of the eye's way all along (the gate's own test, sampled every 0.35); the flank's width as needed */
+    const MODES = ['side', 'turn', 'outL', 'outR', 'turn>outL', 'turn>outR', 'side>outL', 'side>outR', 'outL>side', 'outR>side', 'outL>outR', 'outR>outL', 'side>>outL', 'side>>outR', 'turn>>outL', 'turn>>outR'];
+    /** the search as steps: one way, one stand and one flank width tested per step (the tap never waits on it: it runs ahead, a slice a frame) */
+    function* wayGen(from, to, g0, p0, homes) {
+      // (the frame's ends and far side, and a row a little beyond its middle: behind the work, never between it and the eye)
+      const WP = [[3.5, -0.8], [0, -0.8], [-3.5, -0.8], [5.5, -0.8], [-5.5, -0.8], [7.6, -5.3], [3.5, -5.3], [0, -5.3], [-3.5, -5.3], [-7.6, -5.3], [7.6, 0], [-7.6, 0], [7.6, 5.3], [-7.6, 5.3]];
+      const cands = [[from, to]];
+      for (const a of WP) cands.push([from, a, to]);
+      for (const a of WP) for (const b of WP) if (a !== b && Math.hypot(a[0] - b[0], a[1] - b[1]) < 8.5) cands.push([from, a, b, to]);
+      let best = null;
+      for (let ci = 0; ci < cands.length; ci++) {
+        const pts = cands[ci]; if (best && best.f < 1.2 && (ci === 1 || ci === 1 + WP.length)) break;   // (a clean way found: the longer tiers are not tried)
+        const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.28));
+        for (const mode of MODES) for (const g of [g0, g0 + 0.8]) {
+          let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'side' ? 0 : mode === 'turn' ? 0.05 : 0.3); if (best && f >= best.f) continue;
+          // (the walk to the stone at the heap and the last steps home after the way back are the men's too)
+          const m0 = menAt(pts[0], 0, mode, g);
+          for (let j = 0; j < 2 && !(best && f >= best.f); j++) for (let k = 1; k <= 5; k++) { const e = k / 6; if (p0 && p0[j]) f += fault(p0[j][0] + (m0[j][0] - p0[j][0]) * e, p0[j][1] + (m0[j][1] - p0[j][1]) * e); if (homes && homes[j]) f += fault(m0[j][0] + (homes[j][0] - m0[j][0]) * e, m0[j][1] + (homes[j][1] - m0[j][1]) * e); }
+          for (let k = 0; k <= nS && !(best && f >= best.f); k++) {
+            const u = k / nS, c = pathAt(pts, u), mm = menAt(c, u, mode, g);
+            f += fault(mm[0][0], mm[0][1]) + fault(mm[1][0], mm[1][1]);
+          }
+          if (!best || f < best.f) best = { f, pts, g, mode };
+          yield 0;
+        }
+      }
+      return best;
+    }
+    function carryWay(from, to, g0, p0, homes) { const it = wayGen(from, to, g0, p0, homes); for (;;) { const r = it.next(); if (r.done) return r.value; } }
+    // ── the way for the next stone, worked out ahead of the tap: begun when the stones step opens and when a stone is taken, run in
+    //  slices of 2 ms a frame (on a slow phone it takes more frames, never a longer one); a tap reads it, or takes the straight way if it
+    //  is not ready or the heap has changed under it (the owner, 18.11: no tap may block) ──
+    // (every stone's way in turn, from the stones step's opening: the heap's next place and the pair's places at the heap are known
+    //  ahead, so the planner runs through the stones in order, a slice a frame; a tap whose way is not ready yet is taken — the thud,
+    //  the hand gone — and the pair sets off when it is)
+    const PL = { ways: new Map(), i: -1, it: null, from: null, homes: null, t0: 0 };
+    function planOf(i) {
+      const S = V.stones[i], P = PORT.pairs[0]; if (!S || !P || P.men.length < 2) return null;
+      return { from: pileAt(PILE[0], S.s.rx), to: [S.s.x, S.s.z], g0: Math.max(S.s.rx, S.s.rz) + 0.5, homes: P.men.map((w) => w.home.slice()) };
+    }
+    function planNext() {
+      if (A8.phase !== 'stones') { PL.it = null; return; }
+      PL.ways.clear(); PL.i = A8.stonesIn - 1; PL.it = null; planOn();
+    }
+    function planOn() {
+      for (;;) {
+        PL.i++; if (PL.i >= V.stones.length) { PL.it = null; return; }
+        const q = planOf(PL.i); if (!q) continue;
+        PL.q = q; PL.t0 = performance.now(); PL.it = wayGen(q.from, q.to, q.g0, q.homes, q.homes); return;
+      }
+    }
+    function planPump() {
+      if (!PL.it) return; const t = performance.now();
+      try {
+        while (performance.now() - t < 3) {
+          const r = PL.it.next();
+          if (r.done) {
+            PL.ways.set(PL.i, { from: PL.q.from, homes: PL.q.homes, best: r.value, ms: Math.round(performance.now() - PL.t0) });
+            if (A8.waitPlan === PL.i) { A8.waitPlan = null; A8.busy = 0; dropNext(); }
+            planOn(); if (!PL.it) break;
+          }
+        }
+      } catch (e) { PL.it = null; }
+    }
+    try { globalThis.__POURWAY = { fault, sideDir, carryWay, flankAt, pathAt, menAt, pileAt: (q, r) => pileAt(q, r), PILE, slots: () => V.stones.map((S) => [S.s.x, S.s.z, S.s.rx, S.s.rz]), heap: HEAP }; } catch (e) { /* (the probes' eyes) */ }
+    /** the pair's place at the heap: beside its stones as the shot sees them (never in front of one), whole in the frame, close by */
+    function homeFit() {
+      const P = PORT.pairs[0]; if (!P || P.men.length < 2) return;
+      let rmax = 0.8; for (let i = A8.stonesIn; i < V.stones.length; i++) { const S = V.stones[i]; if (S && S.s) rmax = Math.max(rmax, S.s.rx, S.s.rz); }
+      const boxOf = (pts) => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const q of pts) { if (!q) return null; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); } return { x0, x1, y0, y1 }; };
+      const over = (a, b) => a && b && a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+      const stoneBox = (q) => { const p = pileAt(q, rmax); return boxOf([[-1, -1], [1, -1], [-1, 1], [1, 1]].flatMap(([sx, sz]) => [0, 1.0].map((y) => scr(wpt(p[0] + sx * rmax, y, p[1] + sz * rmax))))); };
+      const manBox = (lx, lz) => { const a = scr(wpt(lx, 0, lz)), b = scr(wpt(lx, 3.6, lz)); if (!a || !b) return null; const h = Math.abs(a.y - b.y), w = h * 0.2; return { x0: Math.min(a.x, b.x) - w, x1: Math.max(a.x, b.x) + w, y0: Math.min(a.y, b.y), y1: Math.max(a.y, b.y) }; };
+      const SB = PILE.map(stoneBox);
+      const ok = (lx, lz) => { const mb = manBox(lx, lz); if (!mb || SB.some((b) => over(mb, b))) return false; if (PILE.some((q) => { const p = pileAt(q, rmax); return Math.hypot(lx - p[0], lz - p[1]) < rmax + 0.6; })) return false; return fault(lx, lz) === 0; };
+      const spots = [];
+      for (let r = rmax + 0.9; r <= rmax + 5; r += 0.4) for (let k = 0; k < 24; k++) { const an = k * Math.PI / 12, lx = HEAP[0] + 0.25 + Math.cos(an) * r, lz = HEAP[1] - 0.45 + Math.sin(an) * r; if (ok(lx, lz)) spots.push([lx, lz, r]); }
+      let pick = null;
+      for (const a of spots) for (const b of spots) {
+        const d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d < 1.3 || d > 2.4) continue;
+        const sc = a[2] + b[2] + Math.abs(d - 1.5); if (!pick || sc < pick.sc) pick = { sc, a, b };
+      }
+      if (!pick) return;
+      P.men.forEach((w, j) => { const q = j ? pick.b : pick.a; w.home = [q[0], q[1]]; if (!P.job) placeMan(w, q[0], q[1], HEAP[0], HEAP[1]); });
+    }
     /** every frame: each pair's carry (to the stone, lift, carry, set down) or its walk back to the heap */
     function portersFrame(dt) {
+      planPump();
       for (const P of PORT.pairs) {
         const J2 = P.job; if (!J2) continue; J2.t += dt;
         const S = V.stones[J2.i], m2 = S && S.m;
         if (J2.kind === 'back') {
-          const u = sm(J2.t / J2.T);
-          P.men.forEach((w, j) => { const [hx, hz] = w.home; placeMan(w, J2.p0[j][0] + (hx - J2.p0[j][0]) * u, J2.p0[j][1] + (hz - J2.p0[j][1]) * u, HEAP[0], HEAP[1]); w.stride = u < 1 ? 1 : 0; });
-          if (J2.t >= J2.T) { P.job = null; P.men.forEach((w) => { w.stride = 0; gang.setRole(w, 'hold'); }); }
+          // (back the way they came, as they flanked it, then to their places at the heap — never across the eye's line to the work)
+          const u = clamp(J2.t / J2.T, 0, 1);
+          P.men.forEach((w, j) => {
+            const sg = j ? 1 : -1, [hx, hz] = w.home;
+            if (J2.pts && u < 0.8) { const uu = 1 - sm(u / 0.8), c = pathAt(J2.pts, uu), q = menAt(c, uu, J2.mode, J2.g)[j]; placeMan(w, q[0], q[1], c[0], c[1]); }
+            else { const e = J2.pts ? sm((u - 0.8) / 0.2) : sm(u), q0 = J2.pts ? menAt(J2.pts[0], 0, J2.mode, J2.g)[j] : J2.p0[j]; placeMan(w, q0[0] + (hx - q0[0]) * e, q0[1] + (hz - q0[1]) * e, HEAP[0], HEAP[1]); }
+            w.stride = u < 1 ? 1 : 0;
+          });
+          if (J2.t >= J2.T) { P.job = null; P.men.forEach((w) => { w.stride = 0; gang.setRole(w, 'hold'); }); if (A8.queued) { A8.queued = 0; A8.busy = 0; dropNext(); } }
           continue;
         }
         const [ax, az] = J2.from, [bx, bz] = J2.to, T0 = J2.T0 || 0.35, T1 = T0 + 0.2, T2 = T1 + J2.T, T3 = T2 + 0.25;
-        const v = J2.t < T1 ? 0 : sm((J2.t - T1) / J2.T), cx = ax + (bx - ax) * v, cz = az + (bz - az) * v;
+        const v = J2.t < T1 ? 0 : sm((J2.t - T1) / J2.T), cw = J2.pts ? pathAt(J2.pts, v) : [ax + (bx - ax) * v, az + (bz - az) * v], cx = cw[0], cz = cw[1];
+        const mm = J2.pts ? menAt(cw, v, J2.mode, g0of(J2)) : null;
         const y = J2.t < T0 ? 0 : J2.t < T1 ? 0.55 * sm((J2.t - T0) / (T1 - T0)) : J2.t < T2 ? 0.55 + 0.05 * Math.sin(J2.t * 9) : 0.55 * (1 - sm((J2.t - T2) / (T3 - T2)));
         if (m2) m2.position.set(cx, y, cz);
         const g = J2.g, u0 = sm(J2.t / T0);
         P.men.forEach((w, j) => {
-          const sg = j ? 1 : -1, px = cx + J2.n[0] * g * sg, pz = cz + J2.n[1] * g * sg;
+          const sg = j ? 1 : -1, px = mm ? mm[j][0] : cx + J2.n[0] * g * sg, pz = mm ? mm[j][1] : cz + J2.n[1] * g * sg;
           placeMan(w, J2.p0[j][0] + (px - J2.p0[j][0]) * u0, J2.p0[j][1] + (pz - J2.p0[j][1]) * u0, cx, cz);
           w.stride = J2.t < T0 || (J2.t > T1 && J2.t < T2) ? 1 : 0;
         });
@@ -208,7 +345,7 @@ export const POUR_ACT = {
           V.sfx.thud(); X.shake(0.06 + 0.04 * s.h, 0.12 + 0.06 * s.h); X.dust(at.x, S8.floor + 0.2, at.z, 6, 1.5);
           if (s.tint) X.quick(wpt(s.x, 0.7, s.z + 0.3), 'מהבור שלך!', m2); /* (look round 3: on the stone set down, low — high over the far row it landed on the goal pill) */ ev('set' + J2.i);
           A8.busy = 0; keepWork();
-          P.job = { kind: 'back', t: 0, T: 1.0, p0: P.men.map((w) => w.pos.slice()) };
+          P.job = { kind: 'back', t: 0, T: J2.pts ? clamp(pathLen(J2.pts) / 3.2, 1.0, 3.2) : 1.0, p0: P.men.map((w) => w.pos.slice()), pts: J2.pts, g: J2.g, mode: J2.mode };
           P.men.forEach((w) => { gang.setRole(w, 'hold'); w.rate = 2.4; });
           if (A8.stonesIn >= V.stones.length) later(0.5, pourStart);
           else if (A8.stonesIn === 1) later(0.4, () => { if (A8.phase === 'stones' && !A8.busy) X.hand(nextStoneAt(), 0, 18); });
@@ -220,32 +357,42 @@ export const POUR_ACT = {
     function stonesStart() {
       A8.phase = 'stones'; A8.phaseT = 0; home(0.01); X.line(POUR_LINES.stones, 0);   // (b131 look round 2: a cut to the whole section, its heap and its porters — a flight's first frame was bare floor)
       if (A8.stonesIn >= V.stones.length) { pourStart(); return; }
-      heapLay(); portersMake();
+      heapLay(); portersMake(); later(0.06, () => { if (A8.phase === 'stones') { homeFit(); planNext(); } }); later(0.2, () => { try { V.sfx.warm(); } catch (e) { /* */ } });
       later(1.2, () => { if (A8.phase === 'stones') X.hand(nextStoneAt(), 0, 18); });
     }
-    function dropNext() {
+    function dropNext() { const t = performance.now(); dropNext0(); const ms = performance.now() - t; A8.tapMs = +ms.toFixed(2); A8.tapMax = Math.max(A8.tapMax || 0, A8.tapMs); }
+    function dropNext0() {
       if (A8.phase !== 'stones' || A8.busy) return;
       const i = A8.stonesIn; if (i >= V.stones.length) return;
-      const P = PORT.pairs.find((q) => !q.job || q.job.kind === 'back');
+      if (PORT.pairs.length && PORT.pairs.every((q) => q.job && q.job.kind === 'back')) { A8.queued = 1; A8.busy = 1; X.hand(null); return; }   // (taken when the pair is back at the heap)
+      const P = PORT.pairs.find((q) => !q.job);
       const S = V.stones[i];
+      if (P && S && S.carry && !globalThis.__POUR_SYNC && !PL.ways.has(i) && PL.it && PL.i <= i) { A8.waitPlan = i; A8.busy = 1; A8.waitThud = 1; X.hand(null); V.sfx.thud(); A8.planWait = (A8.planWait || 0) + 1; P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; }); return; }   // (taken: the pair sets off when its way is ready)
       if (!P || !P.men.length || !S || !S.carry) { A8.busy = 1; X.hand(null); A8.stonesIn++; if (S) S.carry = false; V.dropStone(i); ev('stone' + i); later(0.46, () => { A8.busy = 0; keepWork(); if (A8.stonesIn >= V.stones.length) later(0.5, pourStart); }); return; }
-      A8.busy = 1; X.hand(null); A8.stonesIn++; ev('stone' + i);
+      const tq = [performance.now()];
+      A8.busy = 1; X.hand(null); tq.push(performance.now()); A8.stonesIn++; ev('stone' + i); tq.push(performance.now());
       later(0.5, () => { if (A8.phase === 'stones') heapLay2(); });
       const from = [S.m.position.x, S.m.position.z], to = [S.s.x, S.s.z], dx = to[0] - from[0], dz = to[1] - from[1], d = Math.hypot(dx, dz) || 1;
       const p0 = P.men.map((w) => { const L2 = toLocal(lv, w.a.x, w.a.z); return [L2[0], L2[1]]; });
-      P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; w.rate = 2.6; });
+      P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; w.rate = 2.6; }); tq.push(performance.now());
       const reach = Math.max(...p0.map((q) => Math.hypot(q[0] - from[0], q[1] - from[1])));
       // (the figure rule, the run of 18.11: flanking the stone across its path, the near man of the pair walked between the eye and the
       //  work — the pair flanks it left and right as the shot sees it, never in front of it)
-      let nx = -dz / d, nz = dx / d;
-      try { const q0 = scr(wpt(from[0], 0.6, from[1])), qx = scr(wpt(from[0] + 1, 0.6, from[1])), qz = scr(wpt(from[0], 0.6, from[1] + 1)), ax = qz.y - q0.y, az = -(qx.y - q0.y), al = Math.hypot(ax, az); if (al > 1e-3) { nx = ax / al; nz = az / al; } } catch (e) { /* (the path's normal) */ }
-      P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(d / 8, 0.8, 1.5), from, to, n: [nx, nz], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
-      V.sfx.thud();
+      const t0w = performance.now(), g0 = Math.max(S.s.rx, S.s.rz) + 0.5, homes = P.men.map((w) => w.home);
+      let way = null; const pw = PL.ways.get(i);
+      if (globalThis.__POUR_SYNC) way = carryWay(from, to, g0, p0, homes);   // (the probes' before: the search on the tap)
+      else if (pw && pw.best && Math.hypot(pw.from[0] - from[0], pw.from[1] - from[1]) < 0.05 && p0.every((q, j) => Math.hypot(q[0] - homes[j][0], q[1] - homes[j][1]) < 0.3)) { way = pw.best; A8.planHit = (A8.planHit || 0) + 1; }
+      else { way = { pts: [from, to], g: g0, mode: 'side', f: -1 }; A8.planMiss = (A8.planMiss || 0) + 1; }
+      A8.planMs = pw ? pw.ms : null; A8.wayMs = Math.round(performance.now() - t0w); A8.wayF = way ? +way.f.toFixed(2) : -1; A8.wayN = way ? way.pts.length : 0; A8.wayInfo = way ? { i, from: from.map((v) => +v.toFixed(1)), to: to.map((v) => +v.toFixed(1)), mode: way.mode, g: +way.g.toFixed(2), cam: (() => { try { const q = scr(wpt(0, 1, 0)); return [Math.round(q.x), Math.round(q.y)]; } catch (e) { return null; } })() } : null; const pts = way ? way.pts : [from, to], L2 = pathLen(pts);
+      P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(L2 / 6, 0.8, 3.0), from, to, n: sideDir(from[0], from[1]), g: way ? way.g : g0, mode: way ? way.mode : 'side', p0, pts, f: way ? +way.f.toFixed(2) : -1 };
+      void d; tq.push(performance.now());
+      if (!A8.waitThud) V.sfx.thud(); A8.waitThud = 0; tq.push(performance.now());
+      A8.tapSeg = tq.slice(1).map((t, k) => +(t - tq[k]).toFixed(1));   // (hand, ev, roles, way, thud)
     }
 
     /* ── the pour ── */
     function pourStart() {
-      A8.phase = 'pour'; A8.phaseT = 0; home(1.0); portersOff(); for (const S of V.stones) if (S.carry) { S.carry = false; S.m.position.set(S.s.x, 0, S.s.z); }
+      A8.phase = 'pour'; A8.phaseT = 0; A8.queued = 0; home(1.0); portersOff(); for (const S of V.stones) if (S.carry) { S.carry = false; S.m.position.set(S.s.x, 0, S.s.z); }
       X.line(POUR_LINES['l' + lv], 3200); later(3.3, () => { if (A8.phase === 'pour') X.line(MOUSE ? POUR_LINES.mouse : POUR_LINES.pour, 0); });
       V.sfx.start();
       if (!A8.hint) { A8.hint = 1; later(0.8, () => { if (A8.phase === 'pour' && !A8.grab) { const q = wpt(0, 1.2, 4.4); X.hand(q, 0, HAND_UP); } }); }
@@ -389,7 +536,7 @@ export const POUR_ACT = {
       else if (A8.phase === 'hollow') { V.fluidU.uHL.value = A8.phaseT < 2.2 ? 1 : Math.max(0, 1 - (A8.phaseT - 2.2) * 3); if (A8.phaseT > 2.5) { V.fluidU.uHL.value = 0; A8.phase = 'teardown'; A8.phaseT = 0; V.startTeardown(); } }
       else if (A8.phase === 'teardown') { if (A8.phaseT > V.TD_END) finishTeardown(); }
       else if (A8.phase === 'full') { V.fluidU.uGleamPos.value = -9 + A8.phaseT * 9; V.fluidU.uGleam.value = A8.phaseT < 2.4 ? 1.2 : Math.max(0, 1.2 - (A8.phaseT - 2.4)); if (A8.phaseT > 3.2) { A8.phase = 'done'; finish(); } }
-      const S = { phase: A8.phase === 'done' ? 'full' : A8.phase, phaseT: A8.phaseT, seals: A8.seals, knockX: A8.knockX, swingT: A8.swingT, stonesIn: A8.phase === 'prep' || A8.phase === 'intro' ? 0 : null, spillQ: A8.spillQ, spilled: A8.spilled, stainX: A8.stainX, crewOn: A8.phase !== 'prep' };
+      const S = { phase: A8.phase === 'done' ? 'full' : A8.phase, phaseT: A8.phaseT, seals: A8.seals, knockX: A8.knockX, swingT: A8.swingT, stonesIn: A8.phase === 'prep' || A8.phase === 'intro' ? 0 : null, spillQ: A8.spillQ, spilled: A8.spilled, stainX: A8.stainX, crewOn: A8.phase !== 'prep' && !A8.ended, knockerOn: !A8.ended };   /* (D5: once the section is done, the after-film's three stand for the crew and the knocker — never five along the beam) */
       if (A8.phase === 'stones') S.stonesIn = A8.stonesIn;
       S.reached = A8.reached; if (L.timber && A8.phase === 'pour') S.aimBad = !!landing({ spout: { ...sim.spout, q: 1 } }, lv, C);
       V.frame(dt, S); A8.knockerThere = S.knockerThere;
@@ -411,7 +558,7 @@ export const POUR_ACT = {
           return;
         }
         home(0.01);
-        if (A8.prep) { A8.phase = 'prep'; prepBuild(); prepWide(); X.line(POUR_LINES.prep, 2200); later(2.4, prepShot); return; }
+        if (A8.prep) { A8.phase = 'prep'; prepBuild(); prepWide(); X.line(POUR_LINES.prep, 2200); later(0.05, prepFit); later(2.4, prepShot); return; }
         prepG.visible = false; heapLay(); portersMake();   // (b131 look round 2: the opening shows the heap, its porters and the cauldron's crew at once)
         X.line(LINES.rambam216, 2600); later(2.2, stonesStart);
       },
@@ -436,6 +583,7 @@ export const POUR_ACT = {
       },
       holds() { return !!A8.grab; },
       at() { return new THREE.Vector3(...toWorld(lv, 0, 1, 0)); },
+      figs() { try { return V.figs(); } catch (e) { return []; } },   // (b131 D1: the view's own men, for the words)
       end() {
         POUR3D.act = 0; X.hand(null); X.kohen(true); lens(fov0);
         try { for (const w of gang.list.slice()) if (!filmMen.has(w)) gang.remove(w); } catch (e) { /* */ }   // (the after-film's men stay for it)
@@ -445,7 +593,7 @@ export const POUR_ACT = {
       },
       dbg() {
         const ca = sim.cauldron, sp = sim.spout, fr2 = A8.frames.slice().sort((a, b2) => a - b2);
-        const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, port: PORT.pairs.map((p) => p.men.map((w) => [+w.a.x.toFixed(2), +w.a.z.toFixed(2)])), heap: V.stones.filter((s) => s.carry && s.m.visible).map((s) => [+s.m.position.x.toFixed(2), +s.m.position.z.toFixed(2), +(s.r || s.rx || 0).toFixed(2)]), mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
+        const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, queued: A8.queued ? 1 : 0, way: { ms: A8.wayMs, f: A8.wayF, n: A8.wayN, at: A8.wayInfo, tap: A8.tapMs, tapMax: A8.tapMax, hit: A8.planHit | 0, miss: A8.planMiss | 0, wait: A8.planWait | 0, planMs: A8.planMs, seg: A8.tapSeg }, port: PORT.pairs.map((p) => p.men.map((w) => [+w.a.x.toFixed(2), +w.a.z.toFixed(2)])), heap: V.stones.filter((s) => s.carry && s.m.visible).map((s) => [+s.m.position.x.toFixed(2), +s.m.position.z.toFixed(2), +(s.r || s.rx || 0).toFixed(2)]), mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
           filled: +sim.filledFraction.toFixed(3), hollowCells: sim.hollowCells, missing: sim.missingCells, cauldron: { amount: +(ca.amount / ca.cap).toFixed(3), heat: +ca.heat.toFixed(3), used: ca.used, swapping: ca.swapping > 0 },
           spout: { t: +sp.t.toFixed(3), tilt: +sp.tilt.toFixed(3), q: +sp.q.toFixed(3) }, grab: A8.grab ? { sx: Math.round(A8.grab.sx), sy: Math.round(A8.grab.sy), t0: +A8.grab.t0.toFixed(3), t: +A8.grab.t.toFixed(3), tilt: +A8.grab.tilt.toFixed(3) } : null,
           reached: A8.reached.slice(), seals: A8.seals.filter((s) => s.on).length, result: A8.result, taps: A8.taps, dmg: A8.dmg, losses: A8.losses.slice(), patches: A8.patches, spilled: +A8.spilled.toFixed(3), reedClog: A8.reedClog.slice(), reedFix: !!A8.reedFix,

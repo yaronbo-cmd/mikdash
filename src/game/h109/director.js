@@ -791,6 +791,18 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     const step = () => { const k = (performance.now() - t0) / D; if (k >= 1) { scene.remove(sp); sp.material.dispose(); return; } const s = 1.2 + k * 2.2; sp.scale.set(s, s, 1); sp.material.opacity = 1 - k; requestAnimationFrame(step); };
     requestAnimationFrame(step);
   }
+  // ── b131 ── (the look round 3b, D1: the combo words sat on the carriers and the crew — a word goes to the nearest place on the screen
+  //  where it covers no man, nor the goal pill at the top nor the line at the bottom; where there is none it stays) ── /b131 ──
+  function wordClear(q, text) {
+    const W = innerWidth, Hh = innerHeight, ww = Math.max(90, text.length * 19), hh = 46, B = []; let L = []; try { const fg = figGate(); L = fg && fg.figures ? fg.figures() : []; } catch (e) { L = []; }
+    for (const a of L) { if (!a || !a.alive || a.gateOff || !Number.isFinite(a.x)) continue; const p0 = scr(a.x, a.y || 0, a.z), p1 = scr(a.x, (a.y || 0) + 3.9 * (a.s || 1.1) / 1.1, a.z); if (!p0 || !p1 || (p0.on === false && p1.on === false)) continue; const hw = Math.max(12, Math.abs(p0.y - p1.y) * 0.17); B.push({ x0: Math.min(p0.x, p1.x) - hw, x1: Math.max(p0.x, p1.x) + hw, y0: Math.min(p0.y, p1.y), y1: Math.max(p0.y, p1.y) }); }
+    try { const ex = act && act.figs ? act.figs() : []; for (const f of ex || []) { const p0 = scr(f.x, f.y, f.z), p1 = scr(f.x, f.y + (f.h || 3), f.z); const hw = Math.max(12, Math.abs(p0.y - p1.y) * 0.2); B.push({ x0: Math.min(p0.x, p1.x) - hw, x1: Math.max(p0.x, p1.x) + hw, y0: Math.min(p0.y, p1.y), y1: Math.max(p0.y, p1.y) }); } } catch (e) { /* (an act's own figures, when it has them) */ }
+    const free = (x, y) => { const r = { x0: x - ww / 2, x1: x + ww / 2, y0: y - hh / 2 - 46, y1: y + hh / 2 }; if (r.x0 < 8 || r.x1 > W - 8 || r.y0 < 112 || r.y1 > Hh - 72) return false; return B.every((b) => r.x1 < b.x0 || r.x0 > b.x1 || r.y1 < b.y0 || r.y0 > b.y1); };
+    if (free(q.x, q.y)) return q;
+    let best = null;
+    for (let dy = -240; dy <= 240; dy += 40) for (let dx = -360; dx <= 360; dx += 60) { const d = Math.hypot(dx, dy * 1.3); if (best && d >= best.d) continue; if (free(q.x + dx, q.y + dy)) best = { d, x: q.x + dx, y: q.y + dy }; }
+    return best || q;
+  }
   function quick(at, text, mesh) {
     QK.run = Math.min(8, QK.run + 1);
     try { if (o.sfx && o.sfx.play) o.sfx.play('perfect', { combo: QK.run - 1 }); } catch (e) { /* */ }
@@ -799,6 +811,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     try { quickFlash(mesh || null, at); } catch (e) { /* */ }
     uiMount(); quickCss();
     const q = at ? (at.sx != null ? { x: at.sx, y: at.sy } : scr(at.x, at.y, at.z)) : { x: innerWidth / 2, y: innerHeight * 0.4 };   // ── h128 ── (at.sx: a screen point) ── /h128 ──
+    try { const q2 = wordClear(q, (text || 'מושלם!') + (QK.run >= 2 ? ` ×${QK.run}` : '')); q.x = q2.x; q.y = q2.y; } catch (e) { /* (where it was) */ }   // ── b131 ── (D1: a word never on a man) ── /b131 ──
     const el = document.createElement('div'); el.className = 'h109-ui h120-qk'; el.textContent = (text || 'מושלם!') + (QK.run >= 2 ? ` ×${QK.run}` : '');
     el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el); setTimeout(() => el.remove(), 640);
     try { UI.chip.classList.add('pop'); setTimeout(() => UI.chip && UI.chip.classList.remove('pop'), 160); } catch (e) { /* */ }

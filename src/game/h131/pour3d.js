@@ -68,6 +68,7 @@ export function createPourView(X, lv, sim, o = {}) {
 
   /* ── the field stones (one mesh each: they fall in one by one) ── */
   const stones = [];
+  const stoneShadowGeo = keep(new THREE.CircleGeometry(1, 20)), stoneShadowMat = keep(new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
   {
     const pal = [col(0xa89c8a), col(0x9d927f), col(0xb4a893), col(0x92897a)], tintPal = col(0xa98c74);
     const US = [0, 0.36, 0.6, 0.77, 0.88, 0.95, 0.985, 1.0], NT = 18;
@@ -83,6 +84,7 @@ export function createPourView(X, lv, sim, o = {}) {
       for (let r = 0; r < US.length - 1; r++) for (let t = 0; t < NT; t++) { const a = r * NT + t, b = r * NT + (t + 1) % NT, c2 = (r + 1) * NT + t, d = (r + 1) * NT + (t + 1) % NT; I.push(a, b, c2, b, d, c2); }
       const g = keep(new THREE.BufferGeometry()); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); g.setIndex(I); g.computeVertexNormals();
       const m = new THREE.Mesh(g, smat); m.castShadow = true; m.position.set(s.x, 0, s.z); G.add(m);
+      { const sm2 = keep(stoneShadowMat.clone()), sh = new THREE.Mesh(stoneShadowGeo, sm2); sh.onBeforeRender = () => { sm2.opacity = m.position.y > 0.05 ? 0 : 0.3; }; sh.rotation.x = -Math.PI / 2; sh.position.y = 0.025; sh.scale.set(s.rx * 1.12, s.rz * 1.12, 1); sh.renderOrder = 1; m.add(sh); }   // (D2: on the floor beyond the frame a stone had no shadow under it and seemed to hang in the air)
       stones.push({ m, s, fall: -1, y0: 4 + rnd() * 1.5 });
     }
   }
@@ -292,6 +294,7 @@ export function createPourView(X, lv, sim, o = {}) {
   const sfx = {
     knockFull() { if (!on()) return; const t = T0(); tone('sine', 105, 62, t, 0.003, 0.42, 0.95); tone('sine', 168, 120, t, 0.002, 0.16, 0.35); noiseHit(t, 'lowpass', 900, 0.7, 0.001, 0.06, 0.8); noiseHit(t, 'lowpass', 260, 1, 0.002, 0.25, 0.6); },
     knockHollow() { if (!on()) return; const t = T0(); tone('sine', 330, 300, t, 0.002, 0.16, 0.5); tone('triangle', 520, 500, t, 0.002, 0.07, 0.12); noiseHit(t, 'bandpass', 470, 7, 0.001, 0.16, 1.1); noiseHit(t, 'bandpass', 760, 6, 0.001, 0.1, 0.6); noiseHit(t, 'highpass', 1500, 0.7, 0.001, 0.02, 0.25); },
+    warm() { try { initAudio(); } catch (e) { /* */ } },   // (b131: the sounds' buffers made ahead — made on a tap they cost it 20–30 ms)
     thud() { if (!on()) return; const t = T0(); tone('sine', 80, 50, t, 0.003, 0.22, 0.6); noiseHit(t, 'lowpass', 500, 0.8, 0.002, 0.08, 0.5); },
     bubble() { if (!on()) return; const t = actx.currentTime + 0.005, f = 160 + R() * 140; tone('sine', f, f * (2.2 + R()), t, 0.004, 0.07 + R() * 0.05, 0.22 + R() * 0.15); },
     reach(n) { if (!on()) return; const t = T0(), base = 392 * Math.pow(1.122, n); marimba(base, t, 0.32); marimba(base * 1.26, t + 0.08, 0.32); marimba(base * 1.5, t + 0.16, 0.3); },
@@ -391,7 +394,7 @@ export function createPourView(X, lv, sim, o = {}) {
     const sx = spoutX(), mz = 3.75 - 0.3 * sp.tilt, topY = 1.42, topZ = 5.55, mouthY = 1.1, dz = topZ - mz, dy = topY - mouthY;
     spout.position.set(sx, B0, 0); trough.position.set(0, topY, topZ); trough.rotation.x = -Math.atan2(dy, dz); trough.scale.z = Math.hypot(dz, dy) / TROUGH_LEN; mouth.set(sx, B0 + mouthY + 0.05, mz);
     const crewOn = S.crewOn !== false;
-    rig.visible = crewOn; spout.visible = crewOn;
+    rig.visible = crewOn; spout.visible = crewOn; knocker.g.visible = S.knockerOn !== false;
     if (S.phase !== 'teardown') {
       let rx = sx, rz = RIG_Z, walking = Math.abs(sx - V.rigX) > 0.02 ? 1 : 0;
       if (ca.swapping > 0) { const p = 1 - ca.swapping / T.SWAP_TIME, f = p < 0.5 ? p * 2 : (1 - p) * 2, e = f * f * (3 - 2 * f); rx = sx + (SWAP_TO.x - sx) * e; rz = RIG_Z + (SWAP_TO.z - RIG_Z) * e; walking = 1; if (p >= 0.5 && V.swapAnim === 0) V.swapAnim = 1; }
@@ -496,7 +499,10 @@ export function createPourView(X, lv, sim, o = {}) {
     try { X.props.root.remove(G); } catch (e) { /* */ }
     for (const d of disposables) { try { d.dispose(); } catch (e) { /* */ } }
   }
-  return { G, frame, word, ring, burst, sfx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
+  /** (b131 D1) the view's own figures — the cauldron's two and the knocker — where they stand in the world, for a word kept off them */
+  const _fv = new THREE.Vector3();
+  function figs() { const out = []; for (const f of [crewL, crewR, knocker]) { if (!f || !f.g) continue; let on = true; for (let o = f.g; o; o = o.parent) if (o.visible === false) { on = false; break; } if (!on) continue; f.g.getWorldPosition(_fv); out.push({ x: _fv.x, y: _fv.y, z: _fv.z, h: 3.0 }); } return out; }
+  return { G, figs, frame, word, ring, burst, sfx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
 }
 
 /* ═════════ the world's hooks: what his pours left, from the save (the patches of a section poured again, the stain beside the timber) ═════════ */

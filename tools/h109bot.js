@@ -1308,7 +1308,7 @@
   play.h8pour = (a) => {
     if (a.phase === 'prep') { const q = a.prep === 'joint' ? a.joint : (a.reeds || []).find(Boolean); if (q && q.on !== false) return { tap: [Math.round(q.x), Math.round(q.y)], wait: 1400, note: 'pour: prep ' + a.prep }; return { wait: 400 }; }
     if (a.phase === 'stones' && a.busy) return { wait: 300 };   // (b131: the porters still carry: a tap now is not taken)
-    if (a.phase === 'stones') return { tap: [Math.round(W * 0.3), Math.round(HH * 0.62)], wait: 650, note: `pour: stone ${a.stonesIn}/${a.nStones}` };
+    if (a.phase === 'stones') return { tap: [Math.round(W * 0.3), Math.round(HH * 0.62)], wait: 650, note: `pour: stone ${a.stonesIn}/${a.nStones}` + (a.way && a.way.ms != null ? ` (last way ${a.way.n} points, fault ${a.way.f}, tap ${a.way.tap} ms, tap max ${a.way.tapMax} ms, planned ${a.way.hit} straight ${a.way.miss} waited ${a.way.wait}, plan took ${a.way.planMs} ms over frames, tap parts ${JSON.stringify(a.way.seg)} ${JSON.stringify(a.way.at)})` : '') };
     if (a.phase === 'pour') {
       if (a.reedFix || a.cauldron.swapping && !a.grab) return { wait: 300 };
       if (a.missing === 0 && a.filled > 0.97) return { wait: 500, note: 'pour: looks full, the finger off' };

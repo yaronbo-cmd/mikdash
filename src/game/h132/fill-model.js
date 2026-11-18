@@ -226,20 +226,26 @@ export function screenOf(ev) {
 const slim = (S) => ({ lv: S.lv, h: { ...S.h }, last: { ...S.last }, pockets: S.pockets.map((p) => ({ ...p })), layer: S.layer, inLayer: S.inLayer, queue: S.queue,
   next: S.next, ramp: S.ramp.slice(), t: 0, arriveT: 0, waiting: 0, danger: { N: 0, S: 0, E: 0, W: 0 }, bulged: { ...S.bulged }, free: S.free, grace: 0, pts: S.pts,
   dmg: S.dmg, flat: S.flat, loads: [], flaws: [], done: S.done, streakBreaks: 0, n: S.n });
-/** a search of the loads left in this layer (every sled that may be taken, every zone; level 3 as if the caravan keeps pace): the first
- *  step of the best line — points less a hundred for each damage — or null when nothing may be taken. → { i, zone, kind, pts } */
+/** a search of the loads left in this layer (every sled that may be taken, every zone): the first step of the best line — points less a
+ *  hundred for each damage — or null when nothing may be taken. → { i, zone, kind, pts } | { wait: true }
+ *  Level 3 searches the ramp as it is, with one more move: wait for the caravan's next sled (while the ramp has room and no gauge is in
+ *  danger). (Build 132, integration round: the search had refilled the ramp as if the caravan kept pace, so its line counted on a second
+ *  sled that a quick player did not have yet — live, the layers did not close level. Now, when the level line needs the next sled, the
+ *  hint says wait; a line that needs no wait is taken first.) */
 export function advise(S) {
   if (S.done || !S.ramp.length) return null;
   let best = null;
-  const refill = (T) => { while (T.ramp.length < FILL.CARAVAN.ramp && T.next < T.queue.length) T.ramp.push(T.queue[T.next++]); };
-  const rec = (T, d, first) => {
-    if (d === 0 || T.done || (first && T.inLayer === 0)) { const sc = T.pts - T.dmg * 100; if (!best || sc > best.sc + EPS) best = { sc, ...first }; return; }
+  const canWait = (T) => T.lv === 3 && T.ramp.length < FILL.CARAVAN.ramp && T.next < T.queue.length && !Object.values(gauges(T.h)).some((g) => band(g, T.lv) === 'danger');
+  const rec = (T, d, first, waits) => {
+    if (d === 0 || T.done || (first && T.inLayer === 0 && d < FILL.PER_LAYER - S.inLayer)) { const sc = T.pts - T.dmg * 100 - waits * 1e-3; if (!best || sc > best.sc + EPS) best = { sc, ...first }; return; }
     for (const i of [0, 1]) for (const z of ZONES) {
       if (!canTake(T, i)) continue;
-      const U = slim(T); if (U.lv === 3) refill(U); const kind = U.ramp[i].kind, ev = take(U, i, z);
-      rec(U, d - 1, first || { i, zone: z, kind, pts: ev.pts });
+      const U = slim(T); const kind = U.ramp[i].kind, ev = take(U, i, z);
+      rec(U, d - 1, first || { i, zone: z, kind, pts: ev.pts }, waits);
     }
+    if (canWait(T) && waits < FILL.CARAVAN.ramp) { const U = slim(T); U.ramp.push(U.queue[U.next++]); rec(U, d, first || { wait: true }, waits + 1); }
   };
-  rec(S, FILL.PER_LAYER - S.inLayer, null);
-  return best ? { i: best.i, zone: best.zone, kind: best.kind, pts: best.pts } : null;
+  rec(S, FILL.PER_LAYER - S.inLayer, null, 0);
+  if (!best) return null;
+  return best.wait ? { wait: true } : { i: best.i, zone: best.zone, kind: best.kind, pts: best.pts };
 }

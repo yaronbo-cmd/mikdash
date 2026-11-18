@@ -246,3 +246,20 @@ test('the streak: the screen\'s hit and the rules agree on every load (a 20 or a
     while (!S.done && k++ < 40) { const a = F.advise(S) || { i: 0, zone: ['NE', 'NW', 'SE', 'SW', 'C'][k % 5] }; const ev = F.take(S, a.i, a.zone); if (!ev) break; const c = F.screenOf(ev); const after = run([gold, gold, c]); assert.equal(ev.streak === 'break', after === 0, JSON.stringify({ lv, pts: ev.pts, band: ev.band, free: ev.free, streak: ev.streak })); if (lv === 3) F.tick(S, 5); }
   }
 });
+
+test('level 3 live: a careful player at any pace (1.5 … 9 s a load) lays five level layers — the hint waits for the next sled when the level line needs it', () => {
+  for (const T of [1.5, 2, 3, 4, 5, 6, 9]) {
+    const S = F.fresh(3); let g = 0, waits = 0;
+    while (!S.done && g++ < 5000) {
+      const a = F.advise(S);
+      if (!a || a.wait) { if (a && a.wait) { waits++; assert.ok(S.ramp.length < 3, 'a wait only with room on the ramp'); } F.tick(S, 0.25); continue; }
+      assert.ok(F.canTake(S, a.i), 'the hint names a sled on the ramp now');
+      F.take(S, a.i, a.zone); for (let t = 0; t < T; t += 0.1) F.tick(S, 0.1);
+    }
+    const R = F.result(S);
+    assert.equal(S.flat, 5, 'pace ' + T); assert.equal(R.flags.dmg, 0); assert.equal(R.stars, 3, 'pace ' + T);
+    if (T <= 3) assert.ok(waits > 0, 'a quick player is told to wait at ' + T);
+  }
+  // (with a full ramp the hint never waits)
+  const S = F.fresh(3); assert.equal(S.ramp.length, 3); assert.ok(!F.advise(S).wait);
+});

@@ -265,12 +265,12 @@ export const FILL_ACT = {
       ev('flaw:' + f.f + ':' + (f.zone || f.wall || ''));
     }
     // ── the hint hand: the free trial's one hand at every level (rule 25), and level 1's every load (rule 34: level 1 shows the way)
-    function adv() { if (A.advN !== S.n) { A.advN = S.n; A.adv = advise(S); } return A.adv; }
+    function adv() { const k = S.n + ':' + S.ramp.length; if (A.advN !== k) { A.advN = k; A.adv = advise(S); } return A.adv; }   // (level 3: a sled's arrival may change the best line)
     function hintNext(force) {
       if (A.done || A.fl != null || A.drop) { X.hand(null); return; }
       if (!(S.free || lv === 1)) { if (A.hintN !== -2) { A.hintN = -2; X.hand(null); } return; }
       if (!force && A.hintN === S.n) return; A.hintN = S.n;
-      const a = adv(); if (!a) { X.hand(null); return; }
+      const a = adv(); if (!a || a.wait) { X.hand(null); A.hintN = -1; return; }   // (wait for the next sled: no hand till it comes)
       const s = sleds.get(S.ramp[a.i] && S.ramp[a.i].i); if (!s || s.st !== 'ramp') { A.hintN = -1; return; }
       const p = sp(s.pos.x, s.pos.y + 0.8, s.pos.z), c = ZC[a.zone], q = sp(c[0], Y0 + surfH(shown, c[0], c[1]), c[1]);
       X.hand({ x: s.pos.x, y: s.pos.y + 0.8, z: s.pos.z }, clamp(q.x - p.x, -FK.HP, FK.HP), clamp(q.y - p.y, -FK.HP, FK.HP));
@@ -342,7 +342,7 @@ export const FILL_ACT = {
           h: Object.fromEntries(ZONES.map((z) => [z, +S.h[z].toFixed(3)])), drop: A.drop ? A.drop.zone : null, drag: A.fl != null, busy: A.drop ? 1 : 0, road: road.t >= 0 ? 1 : 0, waiting: S.waiting };
         o.sleds = S.ramp.map((q, j) => { const s = sleds.get(q.i); return s && s.st === 'ramp' ? { j, kind: q.kind, take: canTake(S, j) && atSlot(s), at: s2(s.pos.x, s.pos.y + 0.8, s.pos.z) } : { j, kind: q.kind, take: false, at: null }; });
         o.zones = Object.fromEntries(ZONES.map((z) => [z, s2(ZC[z][0], Y0 + surfH(shown, ZC[z][0], ZC[z][1]), ZC[z][1])]));
-        o.hint = a ? { j: a.i, zone: a.zone, kind: a.kind } : null; o.fl = result(S).flags;
+        o.hint = a ? (a.wait ? { wait: true } : { j: a.i, zone: a.zone, kind: a.kind }) : null; o.fl = result(S).flags;
         o.g = Object.fromEntries(Object.entries(gauges(S.h)).map(([k, v]) => [k, +v.toFixed(2)]));
         const P = (w) => (w && w.a ? s2(w.a.x, w.a.y + 1.9, w.a.z) : null);
         o.figs = { drv: drv.map(P), un: un.map(P), lvl: lvl.map(P) };

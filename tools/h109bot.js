@@ -1349,6 +1349,7 @@
     // (never a drag while the camera is still lifted or turned: a tap on the left half first, as a player would)
     { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } if (L && (L.u > 0.01 || Math.abs(L.yaw) > 0.01) && (K9.back9 | 0) < 6) { K9.back9 = (K9.back9 | 0) + 1; return { tap: [Math.round(Wd * 0.3), Math.round(Hd * 0.55)], wait: 900, note: 'fill: the camera still lifted (u ' + L.u.toFixed(2) + '): a tap on the left half' }; } }
     const h = a.hint; if (!h) return { wait: 300, note: 'fill: no hint (ramp ' + JSON.stringify(a.ramp) + ')' };
+    if (h.wait) return { wait: 300, note: 'fill: the level line needs the next sled: waiting for the caravan (ramp ' + JSON.stringify(a.ramp) + ')' };   // ── h132 ── (level 3) ── /h132 ──
     const j = h.j;
     const s = (a.sleds || [])[j]; if (!s || !s.at || !s.take) return { wait: 300 };
     // (__BOT9_FILL_BAD: after the free trial, loads on the middle until it collapses, then on the north-east corner until its gauge

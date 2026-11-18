@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 20, H: 8.5, a: 1.5, aimY: 0.6, fov: 50 },   // (look round 3b: from across the pit, on the line from the cradle through the pit's middle: the stone comes up the far wall toward the eye, the four beyond it pulling, the kohen low in the pit under the look, never under the eye)
+  hoist: { D: 13, H: 6.5, aimY: -0.6, fov: 50 },   // (look round 3b: from the side, outside the pit, square to the line from the pit's middle to the cradle — the stone coming up the wall at one side of the frame, the four at the cradle pulling at the other; the kohen down in the pit, never under the eye)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -164,6 +164,13 @@ function pitAct(m, X) {
       gang.setRole(w, 'walk', { fx: null }); Promise.race([gang.walkTo(w, q.x, q.z, 2.6), X.wait(3)]).then(() => { if (!A.ended) gang.setRole(w, 'pick', { fx: f.x, fz: f.z }); });
     });
   }
+  /** the diggers out of the world for the hoist and the check (not needed there; the hoist's side look cut them at its edge), back for the next stone */
+  function digsOut() { for (let k = 0; k < digs.length; k++) if (digs[k]) { gang.remove(digs[k]); digs[k] = null; } }
+  function digsIn() {
+    if (A.phase === 'done' || digs.every(Boolean)) return;
+    for (let k = 0; k < digs.length; k++) if (!digs[k]) { const p = P.diggers[k], w = W3(p[0], 0, p[1]); digs[k] = gang.add(w.x, w.z, { role: 'pick', item: 'spade', fx: w.x, fz: w.z, k: 2, off: k * 0.5, crew: k }); }
+    diggersTo(cur(), true);
+  }
   const cr0 = W3(P.cradle[0], 0, P.cradle[1]);
   const carr = P.carriers.map(() => null);   // (out until the first hoist: carrIn)
   const ropes = [0, 1, 2, 3].map(() => { const r = X.props.rope(10, 0.045); r.show(false); return r; });
@@ -185,7 +192,7 @@ function pitAct(m, X) {
     const far = (e) => Math.hypot(mid[0] + e[0] * S.back * k - P.cradle[0], mid[1] + e[1] * S.back * k - P.cradle[1]);
     let [ex, ez] = turnOf(S.turn); { const o = turnOf(-S.turn); if (far(o) > far([ex, ez]) + 2) [ex, ez] = o; }
     lookOff(); shotTo(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
-    fovT = S.fov; shotK = 'work'; carrOut();
+    fovT = S.fov; shotK = 'work'; carrOut(); digsIn();
   }
   // ── the carriers (the figure rule: a figure is in the picture only when the step needs him, whole, working with his tool in hand;
   // otherwise he is out for that step): through the opening, the work, the lever and the nail check they are not in the world at all
@@ -366,7 +373,10 @@ function pitAct(m, X) {
     // (the cut to the hoist: the four at their places round the cradle, ropes in hand, pulling — whole in the frame with the stone
     //  coming up the wall; look round 3b: the camera stayed on the lever while they walked in out of the frame)
     carrIn('pull', { fx: from.x, fz: from.z, k: 2 });
-    const HS = SHOT.hoist, ux = -c[0] / dc, uz = -c[1] / dc, cs = A3(c[0] + ux * HS.D, HS.H, c[1] + uz * HS.D), ca = A3(c[0] + ux * HS.a, HS.aimY, c[1] + uz * HS.a); lookOff(); shotTo(cs, ca, 0.01); fovT = HS.fov; lens(HS.fov); shotK = 'hoist';
+    const HS = SHOT.hoist, mid = [(c[0] + top[0]) / 2, (c[1] + top[1]) / 2]; let px = -c[1] / dc, pz = c[0] / dc;
+    if (Math.hypot(mid[0] + px * HS.D - s.at[0], mid[1] + pz * HS.D - s.at[1]) < Math.hypot(mid[0] - px * HS.D - s.at[0], mid[1] - pz * HS.D - s.at[1])) { px = -px; pz = -pz; }   // (the side away from the stone's place: the pit and its men behind the look, not under it)
+    const cs = A3(mid[0] + px * HS.D, HS.H, mid[1] + pz * HS.D), ca = A3(top[0] - c[0] / dc * 1.2, HS.aimY, top[1] - c[1] / dc * 1.2);
+    digsOut(); lookOff(); shotTo(cs, ca, 0.01); fovT = HS.fov; lens(HS.fov); shotK = 'hoist';
     await X.wait(0.5);
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];
     for (const [p, q, d] of legs) await tween(g, p, q, d, s);

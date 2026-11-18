@@ -2471,6 +2471,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     // ── h120 ── (stage 05: never over the closing card or the finished court's first moments — it waits for the player's own first
     // move after the card (a touch, a key, the wheel), then a few calm seconds, and opens only when nothing else is up) ── /h120 ──
     if (c.id === 'nashim') { const P = parts().games; if (P && typeof P.invite === 'function' && !reelOn() && G.ftue >= 99 && !whole) h120Invite(P); }
+    else if (c.id === 'sovev') { /* ── h132 ── (stage 09: no in-between game's card — after its end card the four stations stay open in the world, the visits are the next play; the card came up over a visit's work) ── /h132 ── */ }
     else   // ── h120 ── ── /h120 ──
     { const P = parts().games; if (P && typeof P.invite === 'function' && !reelOn() && G.ftue >= 99 && !whole) { try { await P.invite(G); } catch (e) { /* GAMES10's */ } } }
     const r = S.recommend(G);

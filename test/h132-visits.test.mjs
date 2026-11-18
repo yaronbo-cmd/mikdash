@@ -47,3 +47,7 @@ test('the director: visits only for a pack that says so; the stage\'s close neve
   assert.match(I, /function h32Visits\(\)/); assert.match(I, /h32Visits\(\); \}\);/);
   assert.match(P9, /if \(M\.finished\(\) && !M\.mission\(\)\) finalWorld\(X\);/);
 });
+test('no in-between game\'s card after stage 09: it came up over a visit\'s work', () => {
+  const I = readFileSync(new URL('../src/game/index.js', import.meta.url), 'utf8');
+  assert.match(I, /else if \(c\.id === 'sovev'\) \{ \/\* ── h132 ── \(stage 09: no in-between game's card/);
+});

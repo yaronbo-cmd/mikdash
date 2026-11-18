@@ -1285,6 +1285,8 @@
     for (const [k, v] of Object.entries(a)) if (FLAG.test(k) && ((typeof v === 'number' && v > 0 && !/^(stuck|slip|tiltOk|sway|chipV)$/.test(k)) || v === true)) fl[k] = v;
     if (e.loss) fl.loss = e.loss; if (e.losses.length) fl.losses = e.losses; if (lost) fl.LOST = 1;
     let pts = Number.isFinite(+a.pts) && a.pts !== null && a.pts !== undefined ? a.pts : null;
+    // ── h132 lane A ── (stage 09: the pts of the work's stored result, not the act's last state the bot saw — it can be a step behind) ── /h132 lane A ──
+    try { const r9 = H().site === 'sovev' && H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r9 && Number.isFinite(+r9.pts)) pts = +r9.pts; } catch (er) { /* */ }
     if (pts == null) { try { const r = H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r && r.q != null) pts = 'q' + r.q; } catch (er) { /* */ } }
     return `end ${id} stars ${stars} pts ${pts == null ? '-' : pts} flags ${JSON.stringify(fl)}`;
   };
@@ -1404,6 +1406,80 @@
     if (a.bowl && (early || (need && refillOk))) { if (earlyP) K.skEx = 1; if (earlyD) K.skDx = 1; K.skBw = now(); K.skR = 1; return { fingers: [Lp, [Math.round(a.bowl[0]), Math.round(a.bowl[1])]], tap1: true, wait: 60, note: `sikra: the bowl at s ${s} w ${a.w}` + (early ? ' (early)' : '') + ' · ' + (a.ev || []).slice(-3).join(' ') }; }
     return { fingers: [Lp, null], wait: 70 };
   };
+  // ── h132 lane A ── (build 132, stage 09 work 1 "הקמת התבנית": the stakes corner by corner — the rod slid home, the tap that drives
+  // the stake — then the walls in the right order (east and west, then north and south), each lifted by the thumb's travel the act
+  // reads (a.kpx degrees a pixel: the wall ends where the travel says), in pushes no longer than the screen allows; it waits for a wall
+  // to rest before the next. Level 3: the walls before the gust where it can; a swaying wall steadied by short drags against its sway.
+  // __BOT_SHOTS132: a still of the stake man's blows, of the crew pushing a wall, and of the close) ── /h132 lane A ──
+  play.h9form = (a) => {
+    const K = B.k, shots = !!window.__BOT_SHOTS132;
+    if (!a) return { wait: 300 };
+    if (a.done) { if (shots && !K.shotEnd) { K.shotEnd = 1; return { wait: 900, shot: a.id + '-closed' }; } return { wait: 300 }; }
+    if (shots && a.mallet && !K['shotM' + a.cur]) { K['shotM' + a.cur] = 1; return { wait: 250, shot: a.id + '-stake-' + a.cur }; }
+    if (a.busy || !a.settled) return { wait: 250 };
+    if (a.phase === 'stakes') {
+      if (a.rod && a.rodU < 1) return { path: [a.rod.at, a.rod.to], ms: 800, wait: 500, note: 'form: the rod at ' + a.cur + ' slid home' };
+      return { tap: a.stakeAt, wait: 900, note: 'form: the stake at ' + a.cur + ' driven' };
+    }
+    if (a.phase !== 'walls') return { wait: 300 };
+    const W = {}; for (const w of a.walls) W[w.k] = w;
+    // (a swaying wall: short drags against its sway — the sway's way read from the act, swayV the cosine of its phase)
+    const sw = a.walls.find((w) => w.st === 'up' && w.sway > 0.36);
+    if (sw) { const dy = sw.swayV > 0 ? 14 : -14; return { path: [sw.at, [sw.at[0], sw.at[1] + dy]], ms: 160, wait: 60, note: 'form: steady ' + sw.k + ' sway ' + sw.sway }; }
+    if (a.walls.some((w) => w.st === 'up' && (Math.abs(w.v) > 0.05 || (w.a >= 88 && w.a <= 97)))) return { wait: 250 };   // (moving, or about to be judged)
+    // (level 3: once the signs are on, no new wall is begun until the gust has passed — the one begun is finished)
+    const lv3wait = a.wind && a.wind.sign > 0 && !a.wind.on && a.wind.tw < a.wind.gust && !a.walls.some((w) => w.st === 'up' && w.a > 1);
+    const w = ['E', 'W', 'N', 'S'].map((k) => W[k]).find((q) => q.st !== 'lock' && (q.st === 'up' || !lv3wait));
+    if (!w) return { wait: 300, note: lv3wait ? 'form: waiting out the gust' : undefined };
+    if (a.shot && a.shot.startsWith('w:') && a.shot !== 'w:' + w.k) return { wait: 300 };   // (the close shot of another wall: the act goes wide by itself)
+    const need = 90 - w.a, room = Math.max(40, w.at[1] - 40), px = Math.max(1, Math.min(room, Math.round(need / a.kpx)));
+    const fr = [], n = 18; for (let i = 0; i <= n; i++) fr.push([[w.at[0], Math.round(w.at[1] - (px * i) / n)]]);
+    for (let i = 0; i < 3; i++) fr.push(fr[fr.length - 1]);
+    const r = { seq: fr, ms: 50, wait: 700, note: `form: lift ${w.k} from ${w.a} by ${px}px (${(px * a.kpx).toFixed(2)}°)` };
+    if (shots && !K['shotW' + w.k] && need > 30) { K['shotW' + w.k] = 1; r.seqShot = [12, a.id + '-lift-' + w.k]; }
+    return r;
+  };
+  // ── /h132 lane A ──
+  // ── h132 lane A ── (build 132, stage 09 work 3 "שליפת התבנית": the right order — the braces, the belts of east and west, of north and
+  // south, (level 3: the wedge up, the stuck south wall slid one amah west), the walls north and south, then east and west — each part
+  // tested by a tap first, then pulled outward. A part on a face turned from the eye: the camera turned to a corner that shows it, by the
+  // right thumb's drag across the top of the screen where no part is (the director's look, let go all the way round in this act; on
+  // release it settles on a corner) — by mouse, the right button. Once, after the first pull: the right thumb drags down and the camera
+  // lifts out over the court (a still), a tap brings it back, and the work goes on. __BOT_SHOTS132: a still of the pullers at a brace, a
+  // belt and a wall) ── /h132 lane A ──
+  const ORDER9S = { 1: ['wall:N', 'wall:S', 'wall:E', 'wall:W'], 2: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wall:N', 'wall:S', 'wall:E', 'wall:W'],
+    3: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wedge', 'slide', 'wall:N', 'wall:S', 'wall:E', 'wall:W'] };
+  const VIEW9S = { S: [0, 1], E: [0, 3], W: [1, 2], N: [2, 3], wedge: [0], slide: [0, 1] };   // (strip.js's corners: 0 SE, 1 SW, 2 NW, 3 NE)
+  play.h9strip = (a) => {
+    const K = B.k, shots = !!window.__BOT_SHOTS132;
+    if (!a) return { wait: 300 };
+    if (a.done) { if (shots && !K.shotEnd) { K.shotEnd = 1; return { wait: 1500, shot: a.id + '-bare' }; } return { wait: 300 }; }
+    if (!a.settled) return { wait: 250 };
+    if (shots && a.pulling && K.lastPull && !K['shotP' + K.lastPull]) { K['shotP' + K.lastPull] = 1; return { wait: 150, shot: a.id + '-pull-' + K.lastPull.replace(':', '-') }; }
+    const Wd = innerWidth, Hd = innerHeight, drag = (p0, p1, ms, note) => (a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], ms, 'right'], wait: 1300, note } : { path: [p0, p1], ms, wait: 1300, note });
+    if (K.lastPull && (K.zoom | 0) < 3) {
+      K.zoom = (K.zoom | 0) + 1;
+      if (K.zoom === 1) return drag([Math.round(Wd * 0.8), Math.round(Hd * 0.25)], [Math.round(Wd * 0.8), Math.round(Hd * 0.9)], 700, 'strip: the right thumb lifts the camera out over the court');
+      if (K.zoom === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 600, shot: a.id + '-zoomed-out', note: 'strip: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
+      return { tap: [Math.round(Wd * 0.8), Math.round(Hd * 0.25)], wait: 1400, note: 'strip: a tap brings the camera back to the work' };
+    }
+    const left = new Set(a.parts.map((q) => q.p));
+    const next = ORDER9S[a.lv].find((p) => (p === 'slide' ? !a.slid && left.has('wall:S') : left.has(p)));
+    if (!next) return { wait: 300 };
+    const side = next === 'slide' || next === 'wedge' ? next : next.split(':')[1], want = VIEW9S[side];
+    const part = a.parts.find((q) => q.p === (next === 'slide' ? 'wall:S' : next));
+    if (!part) return { wait: 300 };
+    if (!want.includes(a.view) || !part.on) {
+      const up = want.map((v) => (v - a.view + 4) % 4).sort((x, y) => Math.min(x, 4 - x) - Math.min(y, 4 - y))[0] || 1, dir = up <= 2 ? 1 : -1, y = Math.round(Hd * 0.28);
+      const p0 = [Math.round(Wd * (dir > 0 ? 0.99 : 0.52)), y], p1 = [Math.round(Wd * (dir > 0 ? 0.52 : 0.99)), y];
+      return drag(p0, p1, 700, 'strip: the right thumb turned the camera ' + (dir > 0 ? 'left' : 'right') + ' toward ' + side + ' (view ' + a.view + ')');
+    }
+    if (next === 'slide') return { path: [part.at, part.west], ms: 600, wait: 1300, note: 'strip: the stuck south wall slid west' };
+    if (!K['tap' + next]) { K['tap' + next] = 1; return { tap: part.at, wait: 800, note: 'strip: tap ' + next }; }
+    K.lastPull = next.replace('wall:', 'wall:');
+    return { path: [part.at, part.out], ms: 500, wait: next.startsWith('wall:') ? 2600 : 1100, note: 'strip: pull ' + next };
+  };
+  // ── /h132 lane A ──
   B.next = () => {
     if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };
     const S = H().state();

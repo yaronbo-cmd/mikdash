@@ -278,7 +278,9 @@ export const grandOf = (L) => L.done && L.seams === 0 && L.dripsAll === 0;
 export function lineResult(L, Ms) {
   const earned = (Ms ? Ms.pts : 0) + L.gain, net = Math.max(0, earned - L.lossPts), max = lineMax(L.lv);
   const q = Math.max(0, Math.min(1, net / max)), grand = grandOf(L), perfect = grand && L.dmg === 0;
-  const stars = q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1, pts = L.dmg > 0 ? 10 : perfect ? 40 : 20;
+  // (the stars, as the coordinator set them: 3 = q ≥ 0.9 with at most one small flaw (one −20), no wavy segment and no seam; 2 = q ≥ 0.7)
+  const wavyN = L.marks.filter((m) => m.f === 'sikra.wavy').length;
+  const stars = q >= 0.9 && L.dmg <= 1 && wavyN === 0 && L.seams === 0 ? 3 : q >= 0.7 ? 2 : 1, pts = L.dmg > 0 ? 10 : perfect ? 40 : 20;
   const count = (f) => L.marks.filter((m) => m.f === 'sikra.' + f).length;
   return { stars, q: +q.toFixed(3), pts, perfect, grand, net, max, dmg: L.dmg,
     flags: { seam: L.seams, drip: count('drip'), pink: count('pink'), gap: count('gap'), blot: count('blot'), blot2: count('blot2'), smear: count('smear'), wavy: count('wavy'), pale: count('pale'), close: L.closed || null, perfectCorners: L.corners.filter((c) => c.r === 'perfect').length } };

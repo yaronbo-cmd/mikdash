@@ -198,3 +198,23 @@ test('sikra: the save — the blob holds the line (a reload resumes on it)', () 
   assert.equal(R.L.s, L.s); assert.equal(R.L.w, L.w); assert.deepEqual(R.L.segs, L.segs); assert.deepEqual(R.track.hs, [0, 1]);
   assert.equal(K.lineLoad(null), null);
 });
+
+test('sikra: the stars (coordinator\'s rule) — 3 = q ≥ 0.9 with at most one small flaw (one −20), no wavy, no seam; 2 = q ≥ 0.7; else 1', () => {
+  const M = K.measureFresh(2); for (const k of M.want) K.measureTap(M, k);
+  const L = K.lineFresh(2, []);
+  cleanTo(L, 29, 2); walk(L, 31, 1); cleanTo(L, 59, 2); walk(L, 61, 1); cleanTo(L, 89, 2); walk(L, 91, 1); cleanTo(L, 119.9, 2); hold(L, 0.1, { down: true, pace: 0, h: 0 });
+  assert.equal(K.lineResult(L, M).stars, 3);
+  /** the clean line with n small flaws of kind f (each −20), and seams */
+  const with_ = (f, n, seams = 0) => ({ ...L, dmg: n, lossPts: 20 * n, seams, marks: [...L.marks, ...Array.from({ length: n }, (_, i) => ({ f: 'sikra.' + f, s: 3 + i }))] });
+  assert.equal(K.lineResult(with_('blot', 1), M).stars, 3, 'one small flaw keeps 3');
+  assert.equal(K.lineResult(with_('blot', 2), M).stars, 2, 'two small flaws: 2 though q ≥ 0.9');
+  assert.ok(K.lineResult(with_('blot', 2), M).q >= 0.9);
+  assert.equal(K.lineResult(with_('wavy', 1), M).stars, 2, 'a wavy segment: 2');
+  assert.equal(K.lineResult(with_('blot', 0, 1), M).stars, 2, 'a seam: 2');
+  // a real seam: a lift of 0.4 s in the play
+  const S = K.lineFresh(2, []); cleanTo(S, 8, 2); hold(S, 0.4, { down: false }); cleanTo(S, 29, 2); walk(S, 31, 1); cleanTo(S, 59, 2); walk(S, 61, 1); cleanTo(S, 89, 2); walk(S, 91, 1); cleanTo(S, 119.9, 2); hold(S, 0.1, { down: true, pace: 0, h: 0 });
+  assert.equal(S.seams, 1); assert.equal(K.lineResult(S, M).stars, 2);
+  // q under 0.7 is 1, under 0.9 with no flaw is 2
+  const low = (q) => ({ ...L, lossPts: Math.ceil((1 - q) * K.lineMax(2)) + 0, dmg: 0 });
+  assert.equal(K.lineResult(low(0.8), M).stars, 2); assert.equal(K.lineResult(low(0.6), M).stars, 1);
+});

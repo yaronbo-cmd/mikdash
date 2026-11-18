@@ -27,7 +27,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, H = S9.H, F = S9.f
  *  falls (s), the west wall's lean on the steps (rad), the pullers' pace */
 export const SA = Object.freeze({ PICK: 46, PICKM: 30, TAP: 12, PULL: 34, COS: 0.55, FALL: 1.0, LEAN: 1.28, DOWN: 1.52, PACE: 5, FOV: 50, OUT: 1.6,
   SNAP: 0.55, NUDGE: 0.3, EDGE: 0.9, HOP: 5,
-  CARRY: 3.2, CLEAN: 1.6, SHOULDER: 3.3, CLEAR: 1.5, SIDE: 0.55, CARRY_EYE: [8, 26, 26] });   // (the carry: its seconds, the board's height on the shoulders, how far north of the block it starts, the bearers' step off its edge, the eye from the route's middle)   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
+  CARRY: 3.2, CLEAN: 1.6, SHOULDER: 3.3, CLEAR: 1.5, SIDE: 0.55, CARRY_EYE: [6, 8, -21] });   // (the carry: its seconds, the board's height on the shoulders, how far north of the block it starts, the bearers' step off its edge, the eye from the route's middle: low, from the north, the bearers whole beside and under it)   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
 /** the four corner views: the book's w3 (from the south-east) turned round the form's middle by quarter turns → { eye, aim } */
 export function cornerView(th) {
   const [e, t] = S9.cam.w3, R = Math.hypot(e[0] - t[0], e[2] - t[2]);

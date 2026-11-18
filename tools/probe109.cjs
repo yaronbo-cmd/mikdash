@@ -32,7 +32,8 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !process.env.MOUSE, isMobile: !process.env.MOUSE && W < 1000, deviceScaleFactor: +(process.env.DSF || 1), locale: 'he-IL' });
   const pg = await ctx.newPage();
   const errs = [];
-  pg.on('console', (m) => { if (m.type() === 'error' || /\[h109\]/.test(m.text())) errs.push(m.type() + ' ' + m.text().slice(0, 300)); });
+  const notes = [];   // ── h132 ── (the director's own [h109] info lines are notes, not errors: printed apart) ── /h132 ──
+  pg.on('console', (m) => { if (m.type() === 'error') errs.push(m.type() + ' ' + m.text().slice(0, 300)); else if (/\[h109\]/.test(m.text())) notes.push(m.type() + ' ' + m.text().slice(0, 300)); });
   if (process.env.PROBE_ALL) { pg.on('console', (m) => { if (/\[h1(09|11|12|13|20m?)\]/.test(m.text())) console.log('CONSOLE', m.type(), m.text().slice(0, 300)); }); pg.on('framenavigated', (f) => { if (f === pg.mainFrame()) console.log('NAV', f.url().slice(-60)); }); }
   pg.on('pageerror', (e) => errs.push('PAGEERR ' + e.message.slice(0, 300)));
   pg.on('crash', () => console.log('PAGE CRASHED'));
@@ -53,6 +54,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x: Math.round(x), y: Math.round(y), id: 7 + i, radiusX: 6, radiusY: 6, force: 1 })) });
   const T0 = Date.now(); let n = 0, shotMs = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);
+  let lastScript = null, reloads = 0;   // ── h132 ── (the bot's script, run again after a page reload) ── /h132 ──
   let RN = 0;   // (the reloads so far: each one's init script)
   // ── h132 ── the two held fingers (see { fingers } below) ── /h132 ──
   const FG = [null, null], FGM = { left: false, right: false };
@@ -109,7 +111,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
       await pg.screenshot({ path: f, timeout: 240000 }); log('shot', path.basename(f));   // ── h130 ── (build 130: the screenshot had slipped into the comment above at 17d3e2c — no still was taken) ── /h130 ──
       await pg.evaluate(() => { window.__HUD_HOLD = false; __T.simulate(true); }); shotMs += Date.now() - ts;
     }
-    if (s.script) { const code = fs.readFileSync(path.resolve(s.script), 'utf8'); const v = await pg.evaluate(code).catch((e) => 'SCRIPTERR ' + e.message); log('script', s.script, typeof v === 'string' ? v.slice(0, 200) : ''); }
+    if (s.script) { lastScript = s.script; const code = fs.readFileSync(path.resolve(s.script), 'utf8'); const v = await pg.evaluate(code).catch((e) => 'SCRIPTERR ' + e.message); log('script', s.script, typeof v === 'string' ? v.slice(0, 200) : ''); }
     if (s.path) { const P = s.path, ms = s.ms || 600; await touch('touchStart', [P[0]]); const k = Math.max(P.length - 1, Math.round(ms / 40)); for (let i = 1; i <= k; i++) { await pg.waitForTimeout(ms / k); const f = (i / k) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[P[j][0] + (P[j + 1][0] - P[j][0]) * u, P[j][1] + (P[j + 1][1] - P[j][1]) * u]]); } if (s.pathUntil) { const t1 = Date.now(); while (Date.now() - t1 < (s.pathMax || 20000) && !(await pg.evaluate(s.pathUntil).catch(() => true))) { for (let i = 1; i <= k; i++) { if (s.pathEach && i % s.pathEach === 0 && await pg.evaluate(s.pathUntil).catch(() => true)) break; /* ── h128 ── (pathEach: the condition looked at every n moves, not once a lap) ── /h128 ── */ await pg.waitForTimeout(ms / k); const f = (i / k) * (P.length - 1), j = Math.min(P.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[P[j][0] + (P[j + 1][0] - P[j][0]) * u, P[j][1] + (P[j + 1][1] - P[j][1]) * u]]); } } }   /* (build 120: the path again until the expression holds) */ if (s.keep) { const t = Date.now(); while (Date.now() - t < s.keep) { if (s.release && await pg.evaluate(s.release).catch(() => false)) break; await pg.waitForTimeout(20); } } if (s.after) { const A = [P[P.length - 1], ...s.after], m2 = s.afterMs || 400, k2 = Math.max(4, Math.round(m2 / 40)); for (let i = 1; i <= k2; i++) { await pg.waitForTimeout(m2 / k2); const f = (i / k2) * (A.length - 1), j = Math.min(A.length - 2, Math.floor(f)), u = f - j; await touch('touchMove', [[A[j][0] + (A[j + 1][0] - A[j][0]) * u, A[j][1] + (A[j + 1][1] - A[j][1]) * u]]); } } await pg.waitForTimeout(60);   /* (build 120: after the keep, the finger eases back along `after` before it lifts) */ await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
     // (build 113: several fingers) frames of touch points; a frame with more points presses the new ones, fewer releases the last ones
     if (s.seq) {
@@ -145,7 +147,17 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     if (s.bot) {
       const t = Date.now(); let k = 0, last = '';
       while (Date.now() - t < (s.max || 600000)) {
-        const a = await pg.evaluate(s.bot).catch((e) => ({ wait: 500, note: 'BOTERR ' + e.message }));
+        let a = await pg.evaluate(s.bot).catch((e) => ({ wait: 500, note: 'BOTERR ' + e.message }));
+        // ── h132 ── (the page reloaded under the bot — a work page reloads when its levels are all done: the context goes, and with it
+        // the injected bot. Wait for the game to boot again and run the bot's script again, once per reload, instead of failing on.) ── /h132 ──
+        if (a && a.note && /^BOTERR .*(Execution context was destroyed|__BOT is not defined|reading 'h109'|__T is not defined)/.test(a.note)) {
+          log('bot', 'the page reloaded: waiting for it, the bot script again' + (lastScript ? ' (' + lastScript + ')' : ''));
+          await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game && window.__T.game.h109, null, { polling: 200, timeout: 300000 }).catch(() => null);
+          await pg.evaluate(() => { try { __T.simulate(true); } catch (e) { /* */ } }).catch(() => null);
+          if (lastScript) { const code = fs.readFileSync(path.resolve(lastScript), 'utf8'); await pg.evaluate(code).catch((e) => log('script', 'SCRIPTERR ' + e.message)); }
+          reloads++; if (reloads > 4) { log('bot', 'the page reloaded more than 4 times: stop'); break; }
+          continue;
+        }
         if (!a) { await pg.waitForTimeout(300); continue; }
         if (a.note && a.note !== last) { log('bot', a.note); last = a.note; }
         if (a.done) { log('bot done', ((Date.now() - t) / 1000).toFixed(0) + 's', k, 'actions'); break; }
@@ -158,6 +170,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   console.log(`probe time${process.env.FAST ? ' (FAST)' : ''}: boot ${bootS}s, ${n} shots ${(shotMs / 1000).toFixed(1)}s, steps ${((Date.now() - T0) / 1000).toFixed(1)}s`);
   const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
   console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));
+  if (notes.length) console.log('page notes:\n' + notes.slice(0, 30).join('\n'));   // ── h132 ── ── /h132 ──
   console.log(errs.length ? 'ERRORS:\n' + errs.slice(0, 30).join('\n') : 'no errors');
   await b.close();
 })().catch((e) => { console.error('probe failed', e); process.exit(1); });

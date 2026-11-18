@@ -5,9 +5,9 @@
  * strip-model.js. Two pullers pull the part dragged (ropes on the braces and belts, wooden poles from the block's top on the walls).
  * A wall falls outward in a cloud of dust and a white face of the block lights (the west one falls onto the Ulam's steps and leans
  * there; the pullers lower it). The right thumb is the camera (turned, it shows who lies on whom at the far corners); the work goes on
- * while it is turned. The turn is the act's own: a drag that does not start on a part (or the right mouse button) swings the camera round
- * the form, and on release it settles at the nearest of the four corner views (the book's morning view from the south-east and its three
- * turns), each showing two faces whole — the director's look stops at a quarter turn, and the north and west faces are behind it.
+ * while it is turned. The right thumb is the director's look as in every act (its lift, zoom-out, pinch and wheel), its turn let go
+ * all the way round here (act.lookYaw): on release the view settles at the nearest of the four corner views (the book's morning view
+ * from the south-east and its three quarter turns, act.lookEnd), each showing two faces whole; the pullers wait there, seen whole.
  * No text but the words of a result; no button; no gauge; no iron.
  *   STRIP_ACT = { icon, title, walkLine, stand, prepare, make(m, X) → act }
  */
@@ -15,17 +15,18 @@ import { BOOK } from '../world/grid.js';
 import { LOSS, WORDS } from './model.js';
 import { PARTS, fresh, load, save, tap, pull, slide, done, result } from './strip-model.js';
 import { SH9, wallSet } from './world.js';
-import { hold, dress, wallHead } from './walls3d.js';
+import { hold, homeWalls, dress, wallHead } from './walls3d.js';
 import { smats, blockBody, scar, braceMesh, braceEnds, beltMesh, beltEnds, wedgeMesh, bulgeOn, NORM } from './strip3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { createGang, createBeat, clamp } from '../h109/kit.js';
+import { figTest } from '../h131/frame3d.js';
 
 const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, H = S9.H, F = S9.floor, MID = S9.mid;
 /** the act's numbers: pick reach (px), a tap's most travel (px), a pull's least travel (px) and how straight it must be (cos), the
  *  falls (s), the west wall's lean on the steps (rad), the pullers' pace */
 export const SA = Object.freeze({ PICK: 46, PICKM: 30, TAP: 12, PULL: 34, COS: 0.55, FALL: 1.0, LEAN: 1.28, DOWN: 1.52, PACE: 5, FOV: 50, OUT: 1.6,
-  TURN: 3.2, SNAP: 0.55, NUDGE: 0.3, LIFT: 1.8 });   // (the swing: radians per screen width, as the director's look; the settle's seconds; a drag past NUDGE rad goes on to the next corner)
+  SNAP: 0.55, NUDGE: 0.3, EDGE: 0.9 });   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
 /** the four corner views: the book's w3 (from the south-east) turned round the form's middle by quarter turns → { eye, aim } */
 export function cornerView(th) {
   const [e, t] = S9.cam.w3, R = Math.hypot(e[0] - t[0], e[2] - t[2]);
@@ -44,10 +45,11 @@ export const STRIP_ACT = {
   make(m, X) {
     const T = X.THREE, Mo = X.M, lv = m.lv | 0 || 1, V = createVoices(X.sfx), Mt = smats(X);
     const root = new T.Group(); root.name = 'h132-strip-act'; X.props.root.add(root);
-    const A = { t: 0, ev: [], fl: null, busy: 0, done: 0, fallK: {}, shakeP: null, wob: null, lit: {}, at: null, hintOn: 0, th: TH0, orb: null, camT: 0, btn: 0 };
+    const A = { t: 0, ev: [], fl: null, busy: 0, done: 0, fallK: {}, shakeP: null, wob: null, lit: {}, at: null, hintOn: 0, th: TH0, ease: null, camT: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     const b0 = Mo.workOf('strip');
-    let S = b0 && b0.id === m.id ? load(b0) : null; const resumed = !!S;
+    // (a work's own pre-state whatever the save holds: only an unfinished blob of this very work, of its level, is taken up again)
+    let S = b0 && b0.id === m.id ? load(b0) : null; if (S && (done(S) || S.lv !== lv)) S = null; const resumed = !!S;
     if (!S) S = fresh(lv);
     let n0 = -1; const keep = () => { if (S.n === n0) return; n0 = S.n; Mo.keep('strip', save(S, m.id)); X.save(); };
     // ── the things: the block's white body with the fill's marks, the parts, the bulged boards on the walls
@@ -65,16 +67,23 @@ export const STRIP_ACT = {
     const cam0 = X.camera, fov0 = cam0.fov, lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
     const view = (th, secs) => { const v = cornerView(th); X.shot(v.eye, v.aim, secs); A.camT = A.t + secs + 0.1; };
     const cornerOf = (th) => Math.round((th - TH0) / (Math.PI / 2));
-    function swing(f) {
-      A.th = A.orb.th0 - ((f.x - A.orb.x0) / innerWidth) * SA.TURN; view(A.th, 0.01);
-      // (the same finger's vertical: the director's lift, as the right thumb's in every act — until the director's look takes the whole turn)
-      const dy = f.y - A.orb.y0; if (X.lookLift && Math.abs(dy) > SA.TAP) X.lookLift(clamp(A.orb.u0 + (dy / innerHeight) * SA.LIFT, 0, 1));
+    /** the right thumb let go turned by yaw: the act's base view taken to where the eye is now (the director's yaw then 0: no jump), and
+     *  eased to the nearest corner — one more on when he turned past NUDGE and it would fall back to the one he left */
+    function lookEnd(yaw) {
+      if (!Number.isFinite(yaw) || Math.abs(yaw) < 1e-3) return undefined;
+      const k0 = cornerOf(A.th), th = A.th + yaw; let k = cornerOf(th);
+      if (k === k0 && Math.abs(yaw) > SA.NUDGE) k += Math.sign(yaw);
+      const b = TH0 + k * (Math.PI / 2); let u = 0; try { u = X.lookNow ? +X.lookNow().u || 0 : 0; } catch (e) { /* */ }
+      // (the eye still at the look's own lift: the act eases its base itself, frame by frame; else one eased shot from where the eye is —
+      //  the director then reads the figures only once it has settled)
+      A.th = th; view(th, 0.01); A.ease = { a: th, b, t: 0, own: u > 0.02 }; if (!A.ease.own) view(b, SA.SNAP); A.camT = A.t + SA.SNAP + 0.2;
+      if (workP === 'idle' || A.t > A.idleT) sendIdle(true);   // (a cut for the waiting pullers: at the new corner as the camera turns to it)
+      return 0;
     }
-    function settle() {
-      const d = A.th - A.orb.th0; let k = cornerOf(A.orb.th0) + Math.round(d / (Math.PI / 2));
-      if (k === cornerOf(A.orb.th0) && Math.abs(d) > SA.NUDGE) k += Math.sign(d);
-      A.th = TH0 + k * (Math.PI / 2); A.orb = null; view(A.th, SA.SNAP); ev('view:' + (((k % 4) + 4) % 4));
-      if (workP === 'idle' || A.t > A.idleT) sendIdle(true);   // (a cut for the waiting pullers: they stand at the new corner as the camera settles)
+    function easeStep(dt) {
+      const E = A.ease; if (!E) return; E.t = Math.min(1, E.t + dt / SA.SNAP); const u = E.t * E.t * (3 - 2 * E.t);
+      A.th = E.a + (E.b - E.a) * u; if (E.own) view(A.th, 0.01);
+      if (E.t >= 1) { A.ease = null; A.th = E.b; ev('view:' + (((cornerOf(A.th) % 4) + 4) % 4)); }
     }
     // ── the pullers (two), at the part he works
     const Bt = createBeat(X), gang = createGang(X), men = [null, null];
@@ -92,11 +101,31 @@ export const STRIP_ACT = {
       return [-1, 1].map((s) => [g[0] + n[0] * d + al[0] * s * 1.6, g[2 - (p.startsWith('brace:') ? 0 : 1)] + n[1] * d + al[1] * s * 1.6, g[0], p.startsWith('brace:') ? g[2] : g[1], F]);
     }
     let workP = 'idle';
+    // (the figure rule: a puller stands whole in the corner view the camera settles on, at its lens and the look's u 0.3 lens, and never
+    //  over the work's middle nearer the eye — h131's figTest, the figures gate's own test)
+    const fig = figTest(T), focus = [MID[0], Y1, MID[1]];
+    const whole = (q) => { const v = cornerView(A.ease ? A.ease.b : A.th); return fig([v.eye, v.aim], SA.FOV, cam0.aspect || 1.6, q[0], q[4], q[1], focus, SA.EDGE) === 'whole'; };
+    /** the pair P slid along its face (al) until both stand whole: the nearest such place, or P itself */
+    function fitPair(P, al) {
+      for (const sft of [0, 1.6, -1.6, 3.2, -3.2, 4.8, -4.8, 6.4, -6.4, 8, -8, 10, -10]) {
+        const Q = P.map((q) => [q[0] + al[0] * sft, q[1] + al[1] * sft, q[2], q[3], q[4]]); if (Q.every(whole)) return Q;
+      }
+      return P;
+    }
     /** the ground under a walker: the block's top inside it, the yesod's rim (one amah) round it, the court's floor beyond */
     const groundAt = (x, z) => { const o = Math.max(B[0] - x, x - B[2], B[1] - z, z - B[3]); return o <= 0 ? Y1 - 0.02 : o <= S9.rod.NW.to[0] - S9.rod.NW.from[0] ? Y0 : F; };
-    /** where the pullers wait between parts: outside the corner nearest the eye, along its north or south face, seen whole */
+    /** where the pullers wait between parts: on the court outside a face toward the eye, toward its far end, both seen whole */
     function idleOf() {
-      const sx = Math.cos(A.th) > 0 ? 1 : -1, sz = Math.sin(A.th) > 0 ? 1 : -1, cx = sx > 0 ? B[2] : B[0], z = (sz > 0 ? B[3] : B[1]) + sz * 4.4;
+      const th = A.ease ? A.ease.b : A.th, c = [Math.cos(th), Math.sin(th)];
+      for (const k of ['N', 'S', 'E', 'W']) {
+        const n = NORM[k]; if (n[0] * c[0] + n[1] * c[1] <= 0.1) continue;
+        const al = n[0] ? [0, 1] : [1, 0], f = k === 'W' ? [S9.sikra.pathW.x, MID[1]] : n[0] ? [B[2] + 4.4, MID[1]] : [MID[0], (k === 'N' ? B[1] : B[3]) + n[1] * 4.4];
+        for (const a of [12, -12, 9, -9, 6, -6, 3, -3]) {
+          const P = [0, 1].map((i) => { const x = f[0] + al[0] * (a + i * 3 * Math.sign(a)), z = f[1] + al[1] * (a + i * 3 * Math.sign(a)); return [x, z, x + n[0] * 6, z + n[1] * 6, F]; });
+          if (P.every(whole)) return P;
+        }
+      }
+      const sx = c[0] > 0 ? 1 : -1, sz = c[1] > 0 ? 1 : -1, cx = sx > 0 ? B[2] : B[0], z = (sz > 0 ? B[3] : B[1]) + sz * 4.4;
       return [3, 7].map((d) => [cx - sx * d, z, cx - sx * d, z + sz * 6, F]);
     }
     function castMen() {
@@ -108,7 +137,7 @@ export const STRIP_ACT = {
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = 'brace'; w.item = 'rope'; w.until = 0; if (jump && w.a) { w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; } }
     }
     function sendMen(p, role) {
-      workP = p; A.idleT = A.t + 2.4; const P = placeOf(p), isWall = p.startsWith('wall:');
+      workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? placeOf(p) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0]);
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + 1.6; }
     }
     function moveMen(dt) {
@@ -157,19 +186,14 @@ export const STRIP_ACT = {
       return ux * o[0] + uy * o[1] > SA.COS ? 'pull' : null;
     }
     const FG = fingers(X, {
-      down(f) {
-        if (A.fl != null || A.orb) return; const p = A.btn === 2 ? null : pick(f);
-        if (!p) { if (!A.done) { let u0 = 0; try { u0 = X.lookNow ? +X.lookNow().u || 0 : 0; } catch (e) { /* */ } A.orb = { id: f.id, x0: f.x, y0: f.y, th0: A.th, u0 }; } return; }   // (not on a part: the camera's swing)
-        A.fl = f.id; f.w = { p, t0: A.t }; X.hand(null);
-      },
+      down(f) { if (A.fl != null) return; const p = pick(f); if (!p) return; A.fl = f.id; f.w = { p, t0: A.t }; X.hand(null); },
       move(f) {
-        if (A.orb && A.orb.id === f.id) { swing(f); return; }
         const w = f.w; if (!w || A.fl !== f.id || w.did) return;
         if (f.moved < SA.PULL) return;
         const k = dragOf(w.p, f.x - f.x0, f.y - f.y0); if (!k) return;
         w.did = 1; if (k === 'slide') doSlide(); else doPull(w.p);
       },
-      up(f) { if (A.orb && A.orb.id === f.id) { swing(f); settle(); return; } const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; if (!w.did && f.moved <= SA.TAP) doTap(w.p); },
+      up(f) { const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; if (!w.did && f.moved <= SA.TAP) doTap(w.p); },
     });
     // ── a tap: the test
     function doTap(p) {
@@ -267,7 +291,7 @@ export const STRIP_ACT = {
     return {
       close: true,
       begin() {
-        hold('strip', true); dress(X); smats(X);
+        hold('strip', true); homeWalls(); dress(X); smats(X);
         try { X.kohen(false); } catch (e) { /* */ }
         for (const k of ['N', 'S', 'E', 'W']) { const W = SH9.walls && SH9.walls[k]; if (!W) continue; W.grp.visible = true; W.grp.userData.rz0 = W.grp.rotation.z; wallSet(k, S.left['wall:' + k] ? 90 : 0); if (!S.left['wall:' + k]) A.fallK['wall:' + k] = { t: 9, k, landed: 1 }; }
         if (S.slid && SH9.walls) SH9.walls.S.grp.position.x = B[0] - 1;
@@ -280,15 +304,17 @@ export const STRIP_ACT = {
       update(dt) {
         A.t += dt;
         if (A.idleT && A.t > A.idleT && !A.fl) sendIdle();
+        easeStep(dt);
         try { V.frame(); Bt.step(dt); gang.update(dt, Bt); moveMen(dt); draw(dt); }
         catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h132] strip', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
       },
-      down(p) { A.btn = p && p.button | 0; FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
-      cancel() { A.fl = null; if (A.orb) settle(); V.creak(0); keep(); },
-      // (every touch is the act's: on a part it tests or pulls, elsewhere it swings the camera — the right button too)
-      wants() { return true; },
-      mouseRight() { return true; },
-      holds() { return A.fl != null; },   // (a swing's finger is no grip: a second finger makes it the director's pinch)
+      down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
+      cancel() { A.fl = null; V.creak(0); keep(); },
+      wants(p) { if (!p) return true; return !!pick(p); },
+      holds() { return A.fl != null; },
+      // (the director's look, turned all the way round in this act, and settled on a corner when let go)
+      lookYaw: Math.PI,
+      lookEnd,
       end() {
         FG.detach(); V.stop(); X.hand(null); lens(fov0);
         if (!A.done) gang.clear();
@@ -308,9 +334,9 @@ export const STRIP_ACT = {
           return r;
         });
         o.men = men.map((w) => (w && w.a ? [r2(w.a.x), r2(w.a.z), r2(w.a.fixedY)] : null)); o.work = workP;
-        o.step = workP + ':v' + (((cornerOf(A.th) % 4) + 4) % 4) + (A.orb ? ':swing' : A.t < A.camT ? ':cam' : '');
+        o.step = workP + ':v' + (((cornerOf(A.th) % 4) + 4) % 4) + (A.ease ? ':ease' : A.t < A.camT ? ':cam' : '');
         o.pulling = men.some((w) => w && w.role && (w.role === 'pull' || w.role === 'push') && !w.stride);
-        o.settled = A.t > 1.2 && A.t > A.camT && !A.orb && !Object.values(A.fallK).some((f) => f && !f.landed);
+        o.settled = A.t > 1.2 && A.t > A.camT && !A.ease && !Object.values(A.fallK).some((f) => f && !f.landed);
         o.view = ((cornerOf(A.th) % 4) + 4) % 4;
         try { const L = X.lookNow ? X.lookNow() : null; o.look = L ? { u: r2(L.u), yaw: r2(L.yaw), play: L.play } : null; } catch (e) { o.look = null; }
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));

@@ -73,6 +73,8 @@ export function dress(X) {
   }
   WL.dressed = true; return true;
 }
+/** each wall back on its own hinge (a work's own pre-state: the west wall may lie by the pile from an earlier strip) */
+export function homeWalls() { if (!SH9.walls) return; for (const k of ['N', 'S', 'E', 'W']) { const W = SH9.walls[k]; if (W) W.grp.position.set(HG[k].p[0], Y0, HG[k].p[1]); } }
 /** a work of this lane holds the walls (it turns them itself) while it plays */
 export function hold(who, on) { if (on) WL.who.add(who); else WL.who.delete(who); }
 const ORDER = ['site', 'formLying', 'formUp', 'filled', 'bare', 'lined'];

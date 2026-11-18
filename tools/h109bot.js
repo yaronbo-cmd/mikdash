@@ -1366,9 +1366,11 @@
   // ── /h132 lane A ──
   // ── h132 lane A ── (build 132, stage 09 work 3 "שליפת התבנית": the right order — the braces, the belts of east and west, of north and
   // south, (level 3: the wedge up, the stuck south wall slid one amah west), the walls north and south, then east and west — each part
-  // tested by a tap first, then pulled outward. A part on a face turned from the eye: the camera swung to a corner that shows it, by a
-  // drag high on the screen where no part is (the act's own swing, a quarter turn per half screen). __BOT_SHOTS132: a still of the pullers
-  // at a brace, a belt and a wall) ── /h132 lane A ──
+  // tested by a tap first, then pulled outward. A part on a face turned from the eye: the camera turned to a corner that shows it, by the
+  // right thumb's drag across the top of the screen where no part is (the director's look, let go all the way round in this act; on
+  // release it settles on a corner) — by mouse, the right button. Once, after the first pull: the right thumb drags down and the camera
+  // lifts out over the court (a still), a tap brings it back, and the work goes on. __BOT_SHOTS132: a still of the pullers at a brace, a
+  // belt and a wall) ── /h132 lane A ──
   const ORDER9S = { 1: ['wall:N', 'wall:S', 'wall:E', 'wall:W'], 2: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wall:N', 'wall:S', 'wall:E', 'wall:W'],
     3: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wedge', 'slide', 'wall:N', 'wall:S', 'wall:E', 'wall:W'] };
   const VIEW9S = { S: [0, 1], E: [0, 3], W: [1, 2], N: [2, 3], wedge: [0], slide: [0, 1] };   // (strip.js's corners: 0 SE, 1 SW, 2 NW, 3 NE)
@@ -1378,6 +1380,13 @@
     if (a.done) { if (shots && !K.shotEnd) { K.shotEnd = 1; return { wait: 1500, shot: a.id + '-bare' }; } return { wait: 300 }; }
     if (!a.settled) return { wait: 250 };
     if (shots && a.pulling && K.lastPull && !K['shotP' + K.lastPull]) { K['shotP' + K.lastPull] = 1; return { wait: 150, shot: a.id + '-pull-' + K.lastPull.replace(':', '-') }; }
+    const Wd = innerWidth, Hd = innerHeight, drag = (p0, p1, ms, note) => (a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], ms, 'right'], wait: 1300, note } : { path: [p0, p1], ms, wait: 1300, note });
+    if (K.lastPull && (K.zoom | 0) < 3) {
+      K.zoom = (K.zoom | 0) + 1;
+      if (K.zoom === 1) return drag([Math.round(Wd * 0.8), Math.round(Hd * 0.25)], [Math.round(Wd * 0.8), Math.round(Hd * 0.9)], 700, 'strip: the right thumb lifts the camera out over the court');
+      if (K.zoom === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 600, shot: a.id + '-zoomed-out', note: 'strip: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
+      return { tap: [Math.round(Wd * 0.8), Math.round(Hd * 0.25)], wait: 1400, note: 'strip: a tap brings the camera back to the work' };
+    }
     const left = new Set(a.parts.map((q) => q.p));
     const next = ORDER9S[a.lv].find((p) => (p === 'slide' ? !a.slid && left.has('wall:S') : left.has(p)));
     if (!next) return { wait: 300 };
@@ -1385,9 +1394,9 @@
     const part = a.parts.find((q) => q.p === (next === 'slide' ? 'wall:S' : next));
     if (!part) return { wait: 300 };
     if (!want.includes(a.view) || !part.on) {
-      const W = innerWidth, Hh = innerHeight, up = want.map((v) => (v - a.view + 4) % 4).sort((x, y) => Math.min(x, 4 - x) - Math.min(y, 4 - y))[0] || 1, dir = up <= 2 ? 1 : -1, y = Math.round(Hh * 0.16);
-      const p0 = [Math.round(W * (dir > 0 ? 0.75 : 0.25)), y], p1 = [Math.round(W * (dir > 0 ? 0.26 : 0.74)), y];
-      return { path: [p0, p1], ms: 700, wait: 1200, note: 'strip: the camera swung ' + (dir > 0 ? 'left' : 'right') + ' toward ' + side + ' (view ' + a.view + ')' };
+      const up = want.map((v) => (v - a.view + 4) % 4).sort((x, y) => Math.min(x, 4 - x) - Math.min(y, 4 - y))[0] || 1, dir = up <= 2 ? 1 : -1, y = Math.round(Hd * 0.28);
+      const p0 = [Math.round(Wd * (dir > 0 ? 0.99 : 0.52)), y], p1 = [Math.round(Wd * (dir > 0 ? 0.52 : 0.99)), y];
+      return drag(p0, p1, 700, 'strip: the right thumb turned the camera ' + (dir > 0 ? 'left' : 'right') + ' toward ' + side + ' (view ' + a.view + ')');
     }
     if (next === 'slide') return { path: [part.at, part.west], ms: 600, wait: 1300, note: 'strip: the stuck south wall slid west' };
     if (!K['tap' + next]) { K['tap' + next] = 1; return { tap: part.at, wait: 800, note: 'strip: tap ' + next }; }

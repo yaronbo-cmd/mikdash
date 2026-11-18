@@ -15,7 +15,7 @@ import { BOOK } from '../world/grid.js';
 import { LOSS, WORDS } from './model.js';
 import { FK, WALLS, STAKES, RODS, fresh, load, save, rodTo, stakeTap, stakesIn, canGrab, grab, push, release, step, shown, result, done, windOn, signOf } from './form-model.js';
 import { addLane, SH9, wallSet } from './world.js';
-import { WALLS3D, hold, dress, wallHead, wallHinge, outward } from './walls3d.js';
+import { WALLS3D, hold, homeWalls, dress, wallHead, wallHinge, outward } from './walls3d.js';
 import { fmats, rodMesh, rodAt, stakeMesh, seLine, flagMesh, flap, cloudMesh, cloudAt } from './form3d.js';
 import { figTest } from '../h131/frame3d.js';
 import { createVoices } from '../h129/sound129.js';
@@ -52,7 +52,8 @@ export const FORM_ACT = {
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     // ── the work in hand: a fresh one, or the one a reload broke off
     const b0 = Mo.workOf('form');
-    let S = b0 && b0.id === m.id ? load(b0) : null; const resumed = !!S;
+    // (a work's own pre-state whatever the save holds: only an unfinished blob of this very work, of its level, is taken up again)
+    let S = b0 && b0.id === m.id ? load(b0) : null; if (S && (done(S) || S.lv !== lv)) S = null; const resumed = !!S;
     if (!S) S = fresh(lv);
     let n0 = -1; const keep = () => { if (S.n === n0) return; n0 = S.n; Mo.keep('form', save(S, m.id)); X.save(); };
     // ── the things: the rods, the stakes (waiting, or driven), the SE line, the wind's flag and cloud
@@ -162,7 +163,7 @@ export const FORM_ACT = {
     /** a wall taken in hand: the close shot of it, the crew there (a cut when they were at another wall) */
     function closeOn(k) {
       if (A.shotK === 'w:' + k) return;
-      const cut = A.crewK !== k || (crew[0] && crew[0].path && crew[0].path.length);
+      const cut = A.crewK !== k || crewI.some((i) => crew[i] && crew[i].path && crew[i].path.length);
       crewTo(k, cut); shotTo('w:' + k, closeShot(k), cut ? 0.01 : 0.5);
     }
     // ── the hint hand (rule 25: one, in the free trial: the first rod, the first wall)
@@ -265,7 +266,7 @@ export const FORM_ACT = {
     // ── the close: a ring of dust round the form, the camera rises over it
     async function close() {
       A.done = 1; A.phase = 'done'; release(S); keep();
-      for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; X.dust(MID[0] + Math.cos(a) * 17, Y0 + 0.4, MID[1] + Math.sin(a) * 17, 8, 3); }
+      for (let i = 0; i < 8; i++) { const a = ((i + 0.5) / 8) * Math.PI * 2; X.dust(MID[0] + Math.cos(a) * 21, F + 0.3, MID[1] + Math.sin(a) * 21, 3, 2.5); }   // (a few soft puffs off the corners and faces, not a band along the walls)
       V.dust(); X.shake(0.25, 0.4);
       for (const i of crewI) if (crew[i]) { crew[i].path = null; gang.setRole(crew[i], 'hold', { item: 'staff', fx: MID[0], fz: MID[1], stride: 0 }); }
       shotTo('wide', wideShot(), 0.8);
@@ -312,7 +313,7 @@ export const FORM_ACT = {
     return {
       close: true,
       begin() {
-        hold('form', true); dress(X); fmats(X);
+        hold('form', true); homeWalls(); dress(X); fmats(X);
         try { X.kohen(false); } catch (e) { /* */ }
         for (const k of WALLS) { A.va[k] = shown(S, k); if (SH9.walls && SH9.walls[k]) { SH9.walls[k].grp.visible = true; wallSet(k, A.va[k]); } }
         FG.attach(); X.line('', 0);

@@ -1166,7 +1166,15 @@
         if (has('crack') && !K.cracked) { K.cracked = 1; const p = a.stuckAt; return { path: [p, [p[0], p[1] + 50]], ms: 500, wait: 1600, note: 'frame: the stuck diagonal pushed by force' }; }
         return { tap: a.stuckAt, wait: 1200, note: 'frame: lift the stuck diagonal' };
       }
-      const lower = () => ({ path: [a.diagAt, [a.diagAt[0], a.diagAt[1] - 20], a.mid], ms: 1100, keep: 1500, wait: 2200, note: 'frame: the diagonal lowered' });
+      const lower = () => {
+        // (b131 look round 3b, C3: by touch with stills, the same drag as frames — a still while the two men carry the diagonal)
+        if (shots && !MOUSE_P && !K.shotDC) { K.shotDC = 1; const p0 = a.diagAt, p1 = [p0[0], p0[1] - 20], q = a.mid, fr = [];
+          for (let i = 0; i <= 6; i++) fr.push([[p0[0] + (p1[0] - p0[0]) * i / 6, p0[1] + (p1[1] - p0[1]) * i / 6]]);
+          for (let i = 1; i <= 16; i++) fr.push([[p1[0] + (q[0] - p1[0]) * i / 16, p1[1] + (q[1] - p1[1]) * i / 16]]);
+          for (let i = 0; i < 30; i++) fr.push([q]);
+          return { seq: fr, ms: 50, seqShot: [30, a.id + '-diag-carried'], wait: 2200, note: 'frame: the diagonal lowered' }; }
+        return { path: [a.diagAt, [a.diagAt[0], a.diagAt[1] - 20], a.mid], ms: 1100, keep: 1500, wait: 2200, note: 'frame: the diagonal lowered' };
+      };
       if (a.square) return lower();
       if (has('crack') && !K.early && a.dmg === 0) { if (a.focus !== 'wide') { if (!K.lifted) { K.lifted = 1; return { eval: '__T.game.h109._look(0.2,0)', wait: 1800, note: 'frame: the look lifted (the whole frame)' }; } return { wait: 300 }; } K.early = 1; return lower(); }
       if (K.lifted === 1 && a.dmg) { K.lifted = 2; return { eval: '__T.game.h109._look(0,0)', wait: 1600, note: 'frame: the look home' }; }
@@ -1228,7 +1236,10 @@
         if (shots && a.cover > 0.03 && a.rest && !K.shotC0) { K.shotC0 = 1; return { wait: 200, shot: a.id + '-white-start' }; }
         if (shots && a.cover > 0.4 && a.rest && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
         // (the cloth's shot is close: wipe the grey in the picture, row by row; the shot moves on to the next grey when the hand lifts)
-        const P = a.wipe && a.wipe.length ? a.wipe.slice() : []; if (P.length === 1) P.push([P[0][0] + 40, P[0][1]]);
+        // (b131: never a press on the HUD — a point not on the game's canvas is dropped, and logged as the shot's fault)
+        const onCv = (q) => { try { const e = document.elementFromPoint(q[0], q[1]); if (!e || e.tagName === 'CANVAS') return true; const r = e.getBoundingClientRect(); return r.width * r.height > 0.6 * innerWidth * innerHeight; } catch (err) { return true; } };
+        const P0 = a.wipe && a.wipe.length ? a.wipe.slice() : [], P = P0.filter(onCv); if (P.length === 1) P.push([P[0][0] + 40, P[0][1]]);
+        if (P.length < P0.length && !K.hudSaid) { K.hudSaid = 1; return { wait: 100, note: 'finale: FAULT of the shot — ' + (P0.length - P.length) + ' of the grey\'s points lie under the HUD (not pressed)' }; }
         if (!P.length) return { wait: 500, note: 'finale: no grey in the picture yet (the shot moves on)' };
         if (window.__BOT_HALF && !K.half && a.cover > 0.12) { K.half = 1; return { wait: 400, note: 'finale: half the cloth done (a reload follows)' }; }
         if (window.__BOT_HALF && K.half) return { wait: 400, note: 'finale: waiting for the reload' };

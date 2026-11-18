@@ -152,12 +152,15 @@ export const FINALE_ACT = {
     /** is there grey left near where the cloth's shot looks (else it moves on: also when a hand lifted off the yesod's edge) */
     /** the grey a finger can wipe in this picture: on the screen, clear of the top bar and of the instruction line — row by row
      *  (j: [screen points]); one test for the shot (move on when it is empty) and for the hint and the probes' player */
+    // (b131, PC run 6: the grey a finger can wipe is where the finger touches the world: not under the top bar, the goal's pill, the line
+    //  or any other part of the page laid over the picture — the page itself says which element is there)
+    const onCanvas = (x, y) => { try { const e = document.elementFromPoint(x, y); if (!e || e.tagName === 'CANVAS') return true; const r = e.getBoundingClientRect(); return r.width * r.height > 0.6 * innerWidth * innerHeight; } catch (err) { return true; } };   // (a layer over the whole screen is the world's own)
     function wipeable() {
       const W = innerWidth, H = innerHeight, rows = new Map();
       for (let c = 0; c < CELLS.length; c++) {
         if (!CELLS[c] || Fs.mask[c]) continue; const i = c % FIN.NX, j = Math.floor(c / FIN.NX);
         const q = X.scr(FIN.X0 + i + 0.5, Y1, FIN.Z0 + j + 0.5);
-        if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100) { if (!rows.has(j)) rows.set(j, []); rows.get(j).push([Math.round(q.x), Math.round(q.y)]); }
+        if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100 && onCanvas(q.x, q.y)) { if (!rows.has(j)) rows.set(j, []); rows.get(j).push([Math.round(q.x), Math.round(q.y)]); }
       }
       return rows;
     }

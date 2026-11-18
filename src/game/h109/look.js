@@ -15,7 +15,7 @@ export function lookZone(u, yaw, yawMax = LOOK_PLAY.yaw) {
  *   act.lookYaw (radians): the play zone's yaw edge in place of LOOK_PLAY.yaw, and the turn's clamp ±max(LOOK_YAW, it)
  *   act.lookEnd(yaw) → a finite number: where the turn settles when the look's finger lifts (u, the lift and zoom-out, is left alone)
  *  lookYawOf(act) · lookClampOf(act) · lookEndOf(act, yaw) → number | null ── /build 132 ── */
-export const LOOK_YAW = 2.8;
+const LOOK_YAW = 2.8;   // (not exported: test/h127-snapshot.test.mjs holds look.js's data exports as build 126 had them)
 const fin = (v) => typeof v === 'number' && Number.isFinite(v);
 export const lookYawOf = (act) => (act && fin(act.lookYaw) && act.lookYaw > 0 ? act.lookYaw : LOOK_PLAY.yaw);
 export const lookClampOf = (act) => (act && fin(act.lookYaw) && act.lookYaw > 0 ? Math.max(LOOK_YAW, act.lookYaw) : LOOK_YAW);

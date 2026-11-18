@@ -212,7 +212,7 @@ export const POUR_ACT = {
      *  step nearer the eye, one a step farther — where the stone's place lies in the eye's line to the work, neither man may) */
     function menAt(c, u, mode, g) {
       // ('a>b': the pair's stand changes from a (at the heap) to b (at the place) in the middle of the way)
-      const ab = mode.indexOf('>'); if (ab > 0) { const p = menAt(c, u, mode.slice(0, ab), g), q = menAt(c, u, mode.slice(ab + 1), g), e = sm((u - 0.3) / 0.4); return [0, 1].map((j) => [p[j][0] + (q[j][0] - p[j][0]) * e, p[j][1] + (q[j][1] - p[j][1]) * e]); }
+      const late = mode.indexOf('>>') > 0, ab = mode.indexOf('>'); if (ab > 0) { const p = menAt(c, u, mode.slice(0, ab), g), q = menAt(c, u, mode.slice(ab + (late ? 2 : 1)), g), e = late ? sm((u - 0.62) / 0.3) : sm((u - 0.3) / 0.4); return [0, 1].map((j) => [p[j][0] + (q[j][0] - p[j][0]) * e, p[j][1] + (q[j][1] - p[j][1]) * e]); }
       if (mode === 'outL' || mode === 'outR') { const n = sideDir(c[0], c[1]), sg = mode === 'outR' ? 1 : -1, d = [-n[1], n[0]], ox = c[0] + n[0] * g * sg, oz = c[1] + n[1] * g * sg; return [[ox - d[0] * 0.75, oz - d[1] * 0.75], [ox + d[0] * 0.75, oz + d[1] * 0.75]]; }
       const n = flankAt(c, u, mode); return [[c[0] - n[0] * g, c[1] - n[1] * g], [c[0] + n[0] * g, c[1] + n[1] * g]];
     }
@@ -226,16 +226,18 @@ export const POUR_ACT = {
     }
     /** the stone's way from the heap to its place: straight, or round the frame's ends and far side, whichever keeps both men whole and
      *  out of the eye's way all along (the gate's own test, sampled every 0.35); the flank's width as needed */
-    const MODES = ['side', 'turn', 'outL', 'outR', 'turn>outL', 'turn>outR', 'side>outL', 'side>outR', 'outL>side', 'outR>side', 'outL>outR', 'outR>outL'];
+    const MODES = ['side', 'turn', 'outL', 'outR', 'turn>outL', 'turn>outR', 'side>outL', 'side>outR', 'outL>side', 'outR>side', 'outL>outR', 'outR>outL', 'side>>outL', 'side>>outR', 'turn>>outL', 'turn>>outR'];
     function carryWay(from, to, g0) {
-      const WP = [[7.6, 5.3], [7.6, -5.3], [3.5, -5.3], [0, -5.3], [-3.5, -5.3], [-7.6, -5.3], [-7.6, 5.3], [0, 5.3], [3.5, 5.3], [-3.5, 5.3], [7.6, 0], [-7.6, 0]];
+      // (the frame's ends and far side, and a row a little beyond its middle: behind the work, never between it and the eye)
+      const WP = [[3.5, -0.8], [0, -0.8], [-3.5, -0.8], [5.5, -0.8], [-5.5, -0.8], [7.6, -5.3], [3.5, -5.3], [0, -5.3], [-3.5, -5.3], [-7.6, -5.3], [7.6, 0], [-7.6, 0], [7.6, 5.3], [-7.6, 5.3]];
       const cands = [[from, to]];
       for (const a of WP) cands.push([from, a, to]);
       for (const a of WP) for (const b of WP) if (a !== b && Math.hypot(a[0] - b[0], a[1] - b[1]) < 8.5) cands.push([from, a, b, to]);
       let best = null;
-      for (const pts of cands) {
-        const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.35));
-        for (const mode of MODES) for (const g of [g0, g0 + 0.6, g0 + 1.4]) {
+      for (let ci = 0; ci < cands.length; ci++) {
+        const pts = cands[ci]; if (best && best.f < 1.2 && (ci === 1 || ci === 1 + WP.length)) break;   // (a clean way found: the longer tiers are not tried)
+        const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.45));
+        for (const mode of MODES) for (const g of [g0, g0 + 0.8]) {
           let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'side' ? 0 : mode === 'turn' ? 0.05 : 0.3); if (best && f >= best.f) continue;
           for (let k = 0; k <= nS && !(best && f >= best.f); k++) {
             const u = k / nS, c = pathAt(pts, u), mm = menAt(c, u, mode, g);
@@ -246,7 +248,7 @@ export const POUR_ACT = {
       }
       return best;
     }
-    try { globalThis.__POURWAY = { fault, sideDir, carryWay, flankAt, pathAt, slots: () => V.stones.map((S) => [S.s.x, S.s.z, S.s.rx, S.s.rz]), heap: HEAP }; } catch (e) { /* (the probes' eyes) */ }
+    try { globalThis.__POURWAY = { fault, sideDir, carryWay, flankAt, pathAt, menAt, pileAt: (q, r) => pileAt(q, r), PILE, slots: () => V.stones.map((S) => [S.s.x, S.s.z, S.s.rx, S.s.rz]), heap: HEAP }; } catch (e) { /* (the probes' eyes) */ }
     /** the pair's place at the heap: beside its stones as the shot sees them (never in front of one), whole in the frame, close by */
     function homeFit() {
       const P = PORT.pairs[0]; if (!P || P.men.length < 2) return;
@@ -331,7 +333,7 @@ export const POUR_ACT = {
       const reach = Math.max(...p0.map((q) => Math.hypot(q[0] - from[0], q[1] - from[1])));
       // (the figure rule, the run of 18.11: flanking the stone across its path, the near man of the pair walked between the eye and the
       //  work — the pair flanks it left and right as the shot sees it, never in front of it)
-      const t0w = performance.now(), g0 = Math.max(S.s.rx, S.s.rz) + 0.5, way = carryWay(from, to, g0); A8.wayMs = Math.round(performance.now() - t0w); A8.wayF = way ? +way.f.toFixed(2) : -1; A8.wayN = way ? way.pts.length : 0; const pts = way ? way.pts : [from, to], L2 = pathLen(pts);
+      const t0w = performance.now(), g0 = Math.max(S.s.rx, S.s.rz) + 0.5, way = carryWay(from, to, g0); A8.wayMs = Math.round(performance.now() - t0w); A8.wayF = way ? +way.f.toFixed(2) : -1; A8.wayN = way ? way.pts.length : 0; A8.wayInfo = way ? { i, from: from.map((v) => +v.toFixed(1)), to: to.map((v) => +v.toFixed(1)), mode: way.mode, g: +way.g.toFixed(2), cam: (() => { try { const q = scr(wpt(0, 1, 0)); return [Math.round(q.x), Math.round(q.y)]; } catch (e) { return null; } })() } : null; const pts = way ? way.pts : [from, to], L2 = pathLen(pts);
       P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(L2 / 6, 0.8, 3.0), from, to, n: sideDir(from[0], from[1]), g: way ? way.g : g0, mode: way ? way.mode : 'side', p0, pts, f: way ? +way.f.toFixed(2) : -1 };
       void d;
       V.sfx.thud();
@@ -539,7 +541,7 @@ export const POUR_ACT = {
       },
       dbg() {
         const ca = sim.cauldron, sp = sim.spout, fr2 = A8.frames.slice().sort((a, b2) => a - b2);
-        const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, queued: A8.queued ? 1 : 0, way: { ms: A8.wayMs, f: A8.wayF, n: A8.wayN }, port: PORT.pairs.map((p) => p.men.map((w) => [+w.a.x.toFixed(2), +w.a.z.toFixed(2)])), heap: V.stones.filter((s) => s.carry && s.m.visible).map((s) => [+s.m.position.x.toFixed(2), +s.m.position.z.toFixed(2), +(s.r || s.rx || 0).toFixed(2)]), mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
+        const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, queued: A8.queued ? 1 : 0, way: { ms: A8.wayMs, f: A8.wayF, n: A8.wayN, at: A8.wayInfo }, port: PORT.pairs.map((p) => p.men.map((w) => [+w.a.x.toFixed(2), +w.a.z.toFixed(2)])), heap: V.stones.filter((s) => s.carry && s.m.visible).map((s) => [+s.m.position.x.toFixed(2), +s.m.position.z.toFixed(2), +(s.r || s.rx || 0).toFixed(2)]), mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
           filled: +sim.filledFraction.toFixed(3), hollowCells: sim.hollowCells, missing: sim.missingCells, cauldron: { amount: +(ca.amount / ca.cap).toFixed(3), heat: +ca.heat.toFixed(3), used: ca.used, swapping: ca.swapping > 0 },
           spout: { t: +sp.t.toFixed(3), tilt: +sp.tilt.toFixed(3), q: +sp.q.toFixed(3) }, grab: A8.grab ? { sx: Math.round(A8.grab.sx), sy: Math.round(A8.grab.sy), t0: +A8.grab.t0.toFixed(3), t: +A8.grab.t.toFixed(3), tilt: +A8.grab.tilt.toFixed(3) } : null,
           reached: A8.reached.slice(), seals: A8.seals.filter((s) => s.on).length, result: A8.result, taps: A8.taps, dmg: A8.dmg, losses: A8.losses.slice(), patches: A8.patches, spilled: +A8.spilled.toFixed(3), reedClog: A8.reedClog.slice(), reedFix: !!A8.reedFix,

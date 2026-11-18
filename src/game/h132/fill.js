@@ -156,13 +156,15 @@ export const FILL_ACT = {
         if (s.st === 'drag') { const k = 1 - Math.exp(-dt * 10); s.pos.x += (s.want.x - s.pos.x) * k; s.pos.y += (s.want.y - s.pos.y) * k; s.pos.z += (s.want.z - s.pos.z) * k; s.g.position.set(s.pos.x, s.pos.y, s.pos.z); s.g.rotation.set(0, 0, 0); }
       }
     }
+    // (a sled climbing from the ramp's foot is not yet to be taken: only at its slot, where the view holds it)
+    const atSlot = (s) => !!s.want && Math.hypot(s.want.x - s.pos.x, s.want.z - s.pos.z) < 0.6;
     // ── the finger: a sled that may be taken, dragged over the form, let go on a zone
     const sp = (x, y, z) => X.scr(x, y, z);
     const pickR = () => (MOUSE ? FK.PICKM : FK.PICK);
     function pick(f) {
       if (A.done || A.drop) return null;
       let best = null, bd = pickR();
-      S.ramp.forEach((q, j) => { const s = sleds.get(q.i); if (!s || s.st !== 'ramp' || !canTake(S, j)) return; const p = sp(s.pos.x, s.pos.y + 0.8, s.pos.z); if (p.on === false) return; const d = Math.hypot(f.x - p.x, f.y - p.y); if (d < bd) { bd = d; best = { j, s }; } });
+      S.ramp.forEach((q, j) => { const s = sleds.get(q.i); if (!s || s.st !== 'ramp' || !atSlot(s) || !canTake(S, j)) return; const p = sp(s.pos.x, s.pos.y + 0.8, s.pos.z); if (p.on === false) return; const d = Math.hypot(f.x - p.x, f.y - p.y); if (d < bd) { bd = d; best = { j, s }; } });
       return best;
     }
     /** the finger's ray on the fill's top (not on a plane at the sled's height: from the slanted view that read the zone next to the one
@@ -319,7 +321,7 @@ export const FILL_ACT = {
           if (A.t % 0.5 < dt) hintNext(false);
           // (the right thumb's look let go and home: the work's shot taken again — after a lift out over the court the camera came back to
           //  its eye but kept the lifted aim, turned off the block)
-          { let L = null; try { L = X.lookNow ? X.lookNow() : null; } catch (e) { L = null; } if (L) { if (L.u > 0.02 || L.ov) A.lifted = 1; else if (A.lifted && L.u < 1e-3) { A.lifted = 0; shotHome(0.3); ev('look:home'); } } }
+          { let L = null; try { L = X.lookNow ? X.lookNow() : null; } catch (e) { L = null; } if (L) { if (L.u > 0.02 || Math.abs(L.yaw || 0) > 0.03 || L.ov) A.lifted = 1; else if (A.lifted && L.u < 1e-3 && Math.abs(L.yaw || 0) < 1e-3) { A.lifted = 0; shotHome(0.3); ev('look:home'); } } }
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h132] fill', e && e.message, e && e.stack); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
@@ -338,7 +340,7 @@ export const FILL_ACT = {
         const a = A.done ? null : adv();
         const o = { id: m.id, lv, done: A.done, n: S.n, placed: S.n, layer: S.layer, inLayer: S.inLayer, pts: result(S).pts, dmg: S.dmg, flat: S.flat, free: S.free, ramp: onRamp(S), mouse: MOUSE, nf: FG.n, ev: A.ev.slice(-10),
           h: Object.fromEntries(ZONES.map((z) => [z, +S.h[z].toFixed(3)])), drop: A.drop ? A.drop.zone : null, drag: A.fl != null, busy: A.drop ? 1 : 0, road: road.t >= 0 ? 1 : 0, waiting: S.waiting };
-        o.sleds = S.ramp.map((q, j) => { const s = sleds.get(q.i); return s && s.st === 'ramp' ? { j, kind: q.kind, take: canTake(S, j), at: s2(s.pos.x, s.pos.y + 0.8, s.pos.z) } : { j, kind: q.kind, take: false, at: null }; });
+        o.sleds = S.ramp.map((q, j) => { const s = sleds.get(q.i); return s && s.st === 'ramp' ? { j, kind: q.kind, take: canTake(S, j) && atSlot(s), at: s2(s.pos.x, s.pos.y + 0.8, s.pos.z) } : { j, kind: q.kind, take: false, at: null }; });
         o.zones = Object.fromEntries(ZONES.map((z) => [z, s2(ZC[z][0], Y0 + surfH(shown, ZC[z][0], ZC[z][1]), ZC[z][1])]));
         o.hint = a ? { j: a.i, zone: a.zone, kind: a.kind } : null; o.fl = result(S).flags;
         o.g = Object.fromEntries(Object.entries(gauges(S.h)).map(([k, v]) => [k, +v.toFixed(2)]));

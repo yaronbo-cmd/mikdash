@@ -182,6 +182,18 @@ function pileWood(X, Mt, D) {
   y += 0.45;
   { const b = box(X, Mt.y9wood, x - 0.5, y, z - 0.3, x + 0.6, y + 0.4, z + 0.3, D); b.name = 'h132-pile-wedge'; }
 }
+/** (build 132, item 13) stage 08's frame boards round the foundation ('h131-frame', drawn by h131/frame3d.js) are not standing there
+ *  from stage 09's 'bare' on, nor in the strip's closing film: the crew took them to the timber pile with the rest. Stage 09 only hides
+ *  that node while its block is so (and shows it again otherwise); stage 08's own pages and saved look are untouched */
+export function frameAway(root, away) {
+  const g = root && root.getObjectByName ? root.getObjectByName('h131-frame') : null; if (!g) return false;
+  if (away) { if (g.visible) { g.visible = false; g.userData.h132away = true; } }
+  else if (g.userData.h132away) { g.visible = true; g.userData.h132away = false; }
+  return true;
+}
+function frameAwayNow(X) {
+  try { const M = X.M, blk = M && M.block ? M.block() : 'site'; frameAway(X.props.root, at(blk, 'bare') || (!!SH9.clear && SH9.clear === ((M && M.st && M.st.cur) || ''))); } catch (e) { /* */ }
+}
 function modelHide(X) { try { if (X.stages.stageOwn) X.stages.stageOwn('sovev', true); } catch (e) { /* */ } }
 
 /* ───────── the life of the world ───────── */
@@ -191,13 +203,13 @@ export function initWorld(X) {
   modelHide(X);
   if (!SH9.g) build(X);
   SH9.key = ''; sync(X, X.M);
-  lane('init', X, X.M);
+  lane('init', X, X.M); frameAwayNow(X);
 }
 let jT = 0;
 export function frameWorld(dt, X) {
   if (!SH9.X) return;
   SH9.t += dt;
-  jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X); sync(X, X.M); lane('sync', X, X.M); }
+  jT -= dt; if (jT <= 0) { jT = 0.5; modelHide(X); sync(X, X.M); lane('sync', X, X.M); frameAwayNow(X); }
   lane('frame', dt, X, X.M);
 }
 /** after a reload, the stage done or later: the block as he built it, the model's own hidden */
@@ -205,6 +217,6 @@ export function restWorld(X, M) {
   mats(X); SH9.X = X; modelHide(X);
   if (!SH9.g) build(X);
   SH9.key = ''; sync(X, M);
-  lane('rest', X, M);
+  lane('rest', X, M); frameAwayNow(X);
 }
 export function finalWorld(X) { if (!SH9.X) return; SH9.key = ''; sync(X, X.M); }

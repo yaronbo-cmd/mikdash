@@ -1242,7 +1242,7 @@
     // ── /h131 finale ──
   };
   // ── h131 ── (build 131: the figures gate's report read at every step of stage 08's frame and finale; whatever it names is kept) ── /h131 ──
-  B.fig8 = (a) => { let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; if (r && r.length) B.figBad.push({ id: a && a.id, step: a && (a.step || a.focus), r: JSON.stringify(r).slice(0, 300) }); };
+  B.fig8 = (a) => { B.fig8on = 1; let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; const id = (a && a.id) || '?'; B.figW = B.figW || {}; B.figW[id] = (B.figW[id] || 0) + 1; if (r && r.length) B.figBad.push({ id, step: a && (a.step || a.focus || a.phase), r: JSON.stringify(r).slice(0, 300) }); };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
     if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };
@@ -1365,10 +1365,11 @@
     // h8finale — each lane adds its own) ── /h131 ──
     if (H().site === 'yesod' && S.act && S.act.stub) return { wait: 400 };
     if (H().site === 'yesod' && play['h8' + kind]) {
-      let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; }
+      B.fig8on = 0; let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; }
       // ── b131 ── (every work of stage 08: the same touch five times over with no progress is STUCK, its state logged — the 90 s rule
       //  never fires when each touch changes some state, as the pit's press read as a scrape did by mouse for 58 minutes; the pit's own
       //  press count stays) ── /b131 ──
+      if (!B.fig8on) B.fig8(S.act || { id: S.mission });   // (b131: the figure gate read at every step of every work of stage 08, once — the pit and the pour too)
       const st8 = stuck8(S, r8); if (st8) return st8;
       return r8;
     }

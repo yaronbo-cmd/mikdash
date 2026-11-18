@@ -105,6 +105,11 @@ export function figTest(T) {
     return all;
   };
 }
+/** (the probes' eyes) when the figures gate names a man, what the act had in hand then: globalThis.__H131_FIGDBG (at most 6) */
+export function figDbg(id, more) {
+  try { const G = globalThis.__FIG; const r = G && G.report ? G.report() : null; if (!r || !r.length) return; const L = (globalThis.__H131_FIGDBG = globalThis.__H131_FIGDBG || []); if (L.length >= 6) return;
+    const k = JSON.stringify(r); if (L.some((q) => q.k === k)) return; L.push({ id, k, ...more() }); } catch (e) { /* */ }
+}
 export function siteTidy(X, on) {
   let site = null; try { site = X.props.root.getObjectByName('h131-site'); } catch (e) { site = null; } if (!site) return 0;
   const fire = S8.fire; let n = 0;

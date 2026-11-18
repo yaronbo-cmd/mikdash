@@ -18,7 +18,7 @@
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK } from './model.js';
 import { FIN, finLoad, finSave, wipe, cover, whiteAll, pullable, waterPath, finResult, cellsOf, STAKE, SIDES } from './frame-model.js';
-import { fmats, beamMesh, setBeam, frameHold, siteTidy } from './frame3d.js';
+import { fmats, beamMesh, setBeam, frameHold, siteTidy, figDbg } from './frame3d.js';
 import { box } from './world.js';
 import { inPatch } from './pourlv.js';
 import { createVoices } from '../h129/sound129.js';
@@ -537,6 +537,7 @@ export const FINALE_ACT = {
           if (A.step === 'white') { whiteStep(dt); if (A.fl == null && !A.busy && !A.whiteDone && A.t - (A.cshotT || 0) > 1.2) { A.cshotT = A.t; if (!greyNear()) clothShot(0.9); } }
           waterStep(dt);
           A.gT = (A.gT || 0) - dt; if (A.gT <= 0) { A.gT = 0.1; guard(); }
+          if (A.t % 0.25 < dt) figDbg('finale', () => { const c = cam0.position, w = crew.find((q) => q.cloth); return { t: +A.t.toFixed(1), step: A.step, busy: A.busy, wd: A.whiteDone, fl: A.fl, pose: A.pose, cam: [c.x, c.y, c.z].map((v) => +v.toFixed(2)), fov: cam0.fov, asp: +cam0.aspect.toFixed(2), man: w ? [w.a.x, w.a.y, w.a.z].map((v) => +v.toFixed(2)) : null, CL: [+CL.x.toFixed(2), +CL.z.toFixed(2)], ok: w ? whole(w.a.x, Y1, w.a.z) : null, ev: A.ev.slice(-4) }; });
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h131] finale', e && e.message); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },

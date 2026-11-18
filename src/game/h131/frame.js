@@ -19,7 +19,7 @@
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK, LOSS } from './model.js';
 import { fresh, load, save, grab, dragTo, step, release, pegTap, diagDrop, diagLift, crackBeam, square, worst, offBy, cornerAt, result, CORNERS, STAKE, SIDES, SIDE_K, FR } from './frame-model.js';
-import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold, siteTidy, figTest } from './frame3d.js';
+import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold, siteTidy, figTest, figDbg } from './frame3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { card, cite } from '../h129/ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -413,6 +413,7 @@ export const FRAME_ACT = {
         A.t += dt;
         try {
           V.frame(); B.step(dt); gang.update(dt, B);
+          if (A.t % 0.25 < dt) figDbg(m.id, () => { const c = cam0.position, P = (q) => (q && q.a ? [q.a.x, q.a.z].map((v) => +v.toFixed(1)) : null); return { t: +A.t.toFixed(1), focus: A.focus, fb: A.fb, drag: !!S.drag, cam: [c.x, c.y, c.z].map((v) => +v.toFixed(1)), fov: cam0.fov, man: P(men[A.focus]), help: P(help), hAt: A.focus ? helpAt(A.focus).map((v) => +v.toFixed(1)) : null, ev: A.ev.slice(-4) }; });
           const r = step(S, dt);
           if (r.pop) { V.groan(); X.shake(0.06, 0.12); ev('pop:' + r.pop[0]); if (r.joined && lv === 2) X.line(FLINES.popped, 3000); keep(); }
           if (r.stuck) { A.stuckT += dt; V.creak(0.6); if (A.stuckT > 0.5 && !A.stuckSaid3) { A.stuckSaid3 = 1; X.line(FLINES.stuckF, 3200); ev('stuckFrame'); } }

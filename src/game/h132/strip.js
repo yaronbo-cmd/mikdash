@@ -27,7 +27,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, H = S9.H, F = S9.f
  *  falls (s), the west wall's lean on the steps (rad), the pullers' pace */
 export const SA = Object.freeze({ PICK: 46, PICKM: 30, TAP: 12, PULL: 34, COS: 0.55, FALL: 1.0, LEAN: 1.28, DOWN: 1.52, PACE: 5, FOV: 50, OUT: 1.6,
   SNAP: 0.55, NUDGE: 0.3, EDGE: 0.9, HOP: 5,
-  CARRY: 3.2, SHOULDER: 3.3, CLEAR: 1.5, SIDE: 0.55, CARRY_EYE: [8, 26, 26] });   // (the carry: its seconds, the board's height on the shoulders, how far north of the block it starts, the bearers' step off its edge, the eye from the route's middle)   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
+  CARRY: 3.2, CLEAN: 1.6, SHOULDER: 3.3, CLEAR: 1.5, SIDE: 0.55, CARRY_EYE: [8, 26, 26] });   // (the carry: its seconds, the board's height on the shoulders, how far north of the block it starts, the bearers' step off its edge, the eye from the route's middle)   // (the settle's seconds; a turn past NUDGE rad goes on to the next corner; how far in from the frame's edge a puller stands)
 /** the four corner views: the book's w3 (from the south-east) turned round the form's middle by quarter turns → { eye, aim } */
 export function cornerView(th) {
   const [e, t] = S9.cam.w3, R = Math.hypot(e[0] - t[0], e[2] - t[2]);
@@ -92,7 +92,7 @@ export const STRIP_ACT = {
      *  between the yesod and the steps), on the block's top behind a wall (they push it out with poles), at the corner for the wedge */
     function placeOf(p) {
       const k = sideOf(p), n = NORM[k];
-      if (p === 'wedge') { const [x, z] = S9.wedge; return [[x - 2.2, z - 1.6, x, z, Y1 - 0.02], [x - 1.6, z - 3.4, x, z, Y1 - 0.02]]; }
+      if (p === 'wedge') { const [x, z] = S9.wedge; return [[x - 2.4, z + 2.4, x, z, F], [x - 4.6, z + 2.4, x, z, F]]; }   // (on the floor south of the corner, the rope up to the wedge's head)
       if (p.startsWith('wall:')) {
         const c = k === 'N' || k === 'S' ? [MID[0], k === 'N' ? B[1] : B[3]] : [k === 'E' ? B[2] : B[0], MID[1]], al = n[0] ? [0, 1] : [1, 0];
         return [-1, 1].map((s) => [c[0] - n[0] * 2.2 + al[0] * s * 3, c[1] - n[1] * 2.2 + al[1] * s * 3, c[0] + n[0] * 3, c[1] + n[1] * 3, Y1 - 0.02]);
@@ -142,7 +142,7 @@ export const STRIP_ACT = {
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = 'brace'; w.item = 'rope'; w.until = 0; if (jump && w.a) { w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; } }
     }
     function sendMen(p, role) {
-      workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? placeOf(p) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
+      workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? fitPair(placeOf(p), [-1, 0]) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + 1.6; }
     }
     function moveMen(dt) {
@@ -194,9 +194,10 @@ export const STRIP_ACT = {
       const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, q = mid(p), s0 = sp(...q);
       const dir = (v) => { const s1 = sp(q[0] + v[0], q[1] + v[1], q[2] + v[2]), l = Math.hypot(s1.x - s0.x, s1.y - s0.y) || 1; return [(s1.x - s0.x) / l, (s1.y - s0.y) / l]; };
       if (p === 'wedge') return -uy > SA.COS ? 'pull' : null;
-      const n = NORM[sideOf(p)], o = dir([n[0] * 2, 0, n[1] * 2]);
-      if (lv === 3 && p === 'wall:S') { const w = dir([-2, 0, 0]); if (ux * w[0] + uy * w[1] > SA.COS) return 'slide'; }
-      return ux * o[0] + uy * o[1] > SA.COS ? 'pull' : null;
+      const n = NORM[sideOf(p)], o = dir([n[0] * 2, 0, n[1] * 2]), co = ux * o[0] + uy * o[1];
+      // (level 3's stuck south wall: along itself to the west is the slide — the nearer of the two ways wins; once slid, only out)
+      if (lv === 3 && p === 'wall:S' && !S.slid) { const w = dir([-2, 0, 0]), cw = ux * w[0] + uy * w[1]; if (cw > SA.COS && cw >= co) return 'slide'; }
+      return co > SA.COS ? 'pull' : null;
     }
     const FG = fingers(X, {
       down(f) { if (A.fl != null) return; const p = pick(f); if (!p) return; A.fl = f.id; f.w = { p, t0: A.t }; X.hand(null); },
@@ -277,6 +278,8 @@ export const STRIP_ACT = {
       X.shot([mid0[0] + SA.CARRY_EYE[0], F + SA.CARRY_EYE[1], mid0[2] + SA.CARRY_EYE[2]], mid0, 0.6);
       await X.wait(SA.CARRY + 0.6);
       stackAll();
+      // (a breath on the cleared site: the white block alone on a clean floor, from the morning's corner)
+      const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.01); await X.wait(SA.CLEAN);
     }
     function stackAll() {
       A.carry = null; A.stacked = 1; lieAfter(); try { siteClear(true); } catch (e) { /* */ }   // (the world: the sills off, the timber on the pile)
@@ -352,7 +355,7 @@ export const STRIP_ACT = {
         if (A.idleT && A.t > A.idleT && !A.fl) sendIdle();
         easeStep(dt);
         // (the look let go and home: the act's own lens — after a turn the director's look can leave its lifted lens on the camera)
-        if (!A.done) { try { const L = X.lookNow ? X.lookNow() : null; if (L && L.u < 1e-3 && Math.abs(L.yaw) < 1e-3 && Math.abs(cam0.fov - SA.FOV) > 0.05) { if (!A.fovN) ev('lens:' + cam0.fov.toFixed(1)); A.fovN = (A.fovN | 0) + 1; lens(SA.FOV); } } catch (e) { /* */ } }
+        if (!A.done) { try { const L = X.lookNow ? X.lookNow() : null; const home = L && L.u < 1e-3 && Math.abs(L.yaw) < 1e-3; if (L && !home && L.u > 0.05) A.wasOut = 1; if (home && A.wasOut && !A.ease) { A.wasOut = 0; view(A.th, 0.4); }   /* (back from a lift: the act's own shot retaken, its aim too) */ if (home && Math.abs(cam0.fov - SA.FOV) > 0.05) { if (!A.fovN) ev('lens:' + cam0.fov.toFixed(1)); A.fovN = (A.fovN | 0) + 1; lens(SA.FOV); } } catch (e) { /* */ } }
         try { V.frame(); Bt.step(dt); gang.update(dt, Bt); moveMen(dt); draw(dt); }
         catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h132] strip', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
       },
@@ -385,7 +388,7 @@ export const STRIP_ACT = {
         o.step = workP + ':v' + (((cornerOf(A.th) % 4) + 4) % 4) + (A.ease ? ':ease' : A.t < A.camT ? ':cam' : '');
         o.pulling = men.some((w) => w && w.role && (w.role === 'pull' || w.role === 'push') && !w.stride);
         o.settled = A.t > 1.2 && A.t > A.camT && !A.ease && !Object.values(A.fallK).some((f) => f && !f.landed);
-        o.view = ((cornerOf(A.th) % 4) + 4) % 4; o.th = r2(A.th); o.esN = A.esN | 0; o.ease = A.ease ? { a: r2(A.ease.a), b: r2(A.ease.b), t: r2(A.ease.t), own: A.ease.own } : null;
+        o.view = ((cornerOf(A.th) % 4) + 4) % 4; o.th = r2(A.th); o.carry = !!A.carry; o.stacked = !!A.stacked; o.esN = A.esN | 0; o.ease = A.ease ? { a: r2(A.ease.a), b: r2(A.ease.b), t: r2(A.ease.t), own: A.ease.own } : null;
         try { const L = X.lookNow ? X.lookNow() : null; o.look = L ? { u: r2(L.u), yaw: r2(L.yaw), play: L.play } : null; } catch (e) { o.look = null; }
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));
         return o;

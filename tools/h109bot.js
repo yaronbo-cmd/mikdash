@@ -1453,7 +1453,11 @@
   play.h9strip = (a) => {
     const K = B.k, shots = !!window.__BOT_SHOTS132;
     if (!a) return { wait: 300 };
-    if (a.done) { if (shots && !K.shotEnd) { K.shotEnd = 1; return { wait: 1500, shot: a.id + '-bare' }; } return { wait: 300 }; }
+    if (a.done) {
+      if (shots && a.carry && !K.shotC) { K.shotC = 1; return { wait: 900, shot: a.id + '-carry' }; }
+      if (shots && a.stacked && !K.shotEnd) { K.shotEnd = 1; return { wait: 300, shot: a.id + '-clean' }; }
+      return { wait: 200 };
+    }
     if (!a.settled) return { wait: 250 };
     if (shots && a.pulling && K.lastPull && !K['shotP' + K.lastPull]) { K['shotP' + K.lastPull] = 1; return { wait: 150, shot: a.id + '-pull-' + K.lastPull.replace(':', '-') }; }
     const Wd = innerWidth, Hd = innerHeight, drag = (p0, p1, ms, note) => (a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], ms, 'right'], wait: 1300, note } : { path: [p0, p1], ms, wait: 1300, note });

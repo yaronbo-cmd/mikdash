@@ -409,10 +409,12 @@ export const POUR_ACT = {
       });
     }
     /** ── b131 ── (review item 1) a pocket about to close: told on the mix at its gate, once a place in WARN_S (the sim's lead, 1.2–3 s) ── /b131 ── */
+    // (for the probes: the warnings and the seals as they happen, with the seal's lead after its warning; nothing reads it in the game)
+    function fxLog(k, e, lead) { try { const Lg = globalThis.__H131_POURFX || (globalThis.__H131_POURFX = []); Lg.push({ k, lv, t: +sim.time.toFixed(2), x: +e.x.toFixed(2), z: +e.z.toFixed(2), lead }); if (Lg.length > 60) Lg.shift(); } catch (er) { /* */ } }
     function onWarn(e) {
       if (A8.warns.some((w) => A8.t - w.t < 3 && Math.hypot(w.x - e.x, w.z - e.z) < 1.5)) return;
       A8.warns.push({ x: e.x, z: e.z, t: A8.t, st: sim.time }); if (A8.warns.length > 8) A8.warns.shift();
-      V.warnFx(e); ev('warn');
+      V.warnFx(e); ev('warn'); fxLog('warn', e);
     }
     function onSeal(e) {
       for (const s of A8.seals) if (s.on && Math.hypot(s.x - e.x, s.z - e.z) < 1.3) { s.t = Math.min(s.t, 3); return; }
@@ -420,7 +422,7 @@ export const POUR_ACT = {
       Object.assign(slot, { on: true, x: e.x, z: e.z, t: 0 });
       { const w = A8.warns.filter((q) => q.st <= e.time && Math.hypot(q.x - e.x, q.z - e.z) < 2.5).pop(); A8.leads.push(w ? +(e.time - w.st).toFixed(2) : -1); }   // (the warning's lead, for the probes)
       V.sealFx(e); X.shake(0.16, 0.2); try { if (X.haptic) X.haptic(25); } catch (er) { /* */ }
-      ev('seal'); keepWork();
+      ev('seal'); fxLog('seal', e, A8.leads[A8.leads.length - 1]); keepWork();
     }
     /** what spills or clogs this step (level 3) */
     function edges(dt) {

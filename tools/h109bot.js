@@ -1344,9 +1344,10 @@
       if (K9.look9 === 1) return a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], 700, 'right'], wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' } : { path: [p0, p1], ms: 700, wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' };
       if (K9.look9 === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 500, shot: a.id + '-zoomed-out', note: 'fill: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
       // (the way back: the director's "↩ מבט רגיל" button when it shows, else a tap on the left half (on the right a tap starts a look))
-      const bk = document.querySelector('.h109-lkb.on'); if (bk) { const r = bk.getBoundingClientRect(); return { tap: [Math.round(r.x + r.width / 2), Math.round(r.y + r.height / 2)], wait: 1400, note: 'fill: the look button brings the camera back to the work' }; }
       return { tap: [Math.round(Wd * 0.3), Math.round(Hd * 0.55)], wait: 1400, note: 'fill: a tap on the left half brings the camera back to the work' };
     }
+    // (never a drag while the camera is still lifted or turned: a tap on the left half first, as a player would)
+    { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } if (L && (L.u > 0.01 || Math.abs(L.yaw) > 0.01) && (K9.back9 | 0) < 6) { K9.back9 = (K9.back9 | 0) + 1; return { tap: [Math.round(Wd * 0.3), Math.round(Hd * 0.55)], wait: 900, note: 'fill: the camera still lifted (u ' + L.u.toFixed(2) + '): a tap on the left half' }; } }
     const h = a.hint; if (!h) return { wait: 300, note: 'fill: no hint (ramp ' + JSON.stringify(a.ramp) + ')' };
     const j = h.j;
     const s = (a.sleds || [])[j]; if (!s || !s.at || !s.take) return { wait: 300 };

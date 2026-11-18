@@ -192,7 +192,7 @@ export function frameAway(root, away) {
   return true;
 }
 function frameAwayNow(X) {
-  try { const M = X.M, blk = M && M.block ? M.block() : 'site'; frameAway(X.props.root, at(blk, 'bare') || (!!SH9.clear && SH9.clear === ((M && M.st && M.st.cur) || ''))); } catch (e) { /* */ }
+  try { const M = X.M, blk = M && M.block ? M.block() : 'site'; frameAway(X.scene || X.props.root, at(blk, 'bare') || (!!SH9.clear && SH9.clear === ((M && M.st && M.st.cur) || ''))); } catch (e) { /* */ }
 }
 function modelHide(X) { try { if (X.stages.stageOwn) X.stages.stageOwn('sovev', true); } catch (e) { /* */ } }
 

@@ -237,7 +237,7 @@ export const FILL_ACT = {
       if (sc.grade) X.hit(at, sc.grade, { kind: 'craft', text: '', craft: 'ממלאים' });
       else { try { if (X.bonus) X.bonus(sc.bonus, 'fill-free', FILLL.free); } catch (er) { /* */ } X.dust(at.x, at.y - 1, at.z, 6, 1.8); }
       if (e.free) X.line(FILLL.free, 2600);
-      if (sc.grade === 'gold') { const q = X.scr(at.x, at.y, at.z); X.quick(q && q.on !== false ? { sx: q.x, sy: q.y - 96 } : at, WORDS.quick, s0(D.s)); }
+      if (sc.grade === 'gold') { const q = X.scr(at.x, at.y, at.z); X.quick(q && q.on !== false ? { sx: q.x, sy: q.y - 120, avoid: { x0: q.x - 70, x1: q.x + 70, y0: q.y - 72, y1: q.y + 24 } } : at, WORDS.quick, s0(D.s)); /* (one above the other: the word clears the number and its rise) */ }
       if (e.band !== 'good' && !e.free) V.creak(e.band === 'danger' ? 1 : 0.5); else V.creak(0);
       if (e.collapse) { V.groan(); X.shake(0.12, 0.2); const p = Mo.flaw('fill.collapse', { zone: e.collapse }); later(() => X.loss(p, atOf(e.collapse), LOSS['fill.collapse'][0])); ev('collapse:' + e.collapse); }   // (its word after the load's points have gone)
       ev('land:' + e.kind + '@' + D.zone + ':' + e.pts + (e.pocket ? ':pocket' : '') + (e.mended ? ':mended' : ''));

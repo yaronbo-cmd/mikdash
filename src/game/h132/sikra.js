@@ -171,9 +171,9 @@ function makeSikra(m, X) {
     ev(e.e + (e.s != null ? '@' + e.s : ''));
     const at = lineAt(e.s != null ? e.s : L.s, SKA.POP_DY);
     switch (e.e) {
-      case 'seg': if (e.pts >= 40) { X.hit(at, 'gold'); X.quick(at, WORDS.quick); } else if (e.pts >= 20) X.hit(at, 'good'); else if (e.pts > 0) X.hit(at, 'ok'); else if (e.pts < 0) X.loss(SK.PTS.loss, at, label('sikra.wavy')); break;
+      case 'seg': if (e.pts >= 40) { X.hit(at, 'gold'); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); } else if (e.pts >= 20) X.hit(at, 'good'); else if (e.pts > 0) X.hit(at, 'ok'); else if (e.pts < 0) X.loss(SK.PTS.loss, at, label('sikra.wavy')); break;
       case 'corner':
-        if (e.r === 'perfect') { X.hit(at, 'ok', { text: '+10' }); X.quick(at, WORDS.quick); VO.pluck(1.5); X.shake(0.12, 0.2); flash.position.set(at.x, LY, at.z); flash.visible = true; A.flashT = 0.6; try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } }
+        if (e.r === 'perfect') { X.hit(at, 'ok', { text: '+10' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(1.5); X.shake(0.12, 0.2); flash.position.set(at.x, LY, at.z); flash.visible = true; A.flashT = 0.6; try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } }
         break;
       case 'gap': if (!e.free) X.loss(SK.PTS.loss, at, label('sikra.gap')); VO.snap(); { const s1 = e.s1 != null ? e.s1 : e.s; if (e.why !== 'close') { A.cutTo = Math.max(A.cutTo, s1); track.cuts.push([e.s, s1]); R.cut(e.s, Math.min(L.s, s1)); } } break;
       case 'smear': if (!e.free) { X.loss(SK.PTS.loss, at, label('sikra.smear')); MK.smear(e.s); } break;
@@ -183,8 +183,8 @@ function makeSikra(m, X) {
       case 'drip': { const mm = MK.drip(e.s); mm.userData.t = 0; drips.set(e.id, mm); VO.drop(); break; }
       case 'dripLost': X.loss(SK.PTS.loss, at, label('sikra.drip')); break;
       case 'wipe': { const mm = drips.get(e.id); if (mm) { mm.parent && mm.parent.remove(mm); drips.delete(e.id); } VO.wipe(); if (!e.free) MK.pink(e.s); swabTo(lineAt(e.s, -0.4), 0.6); break; }
-      case 'close': if (e.r === 'perfect') { X.hit(at, 'gold', { text: '+40' }); X.quick(at, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); } break;
-      case 'flawOk': X.quick(at, WORDS.quick); break;
+      case 'close': if (e.r === 'perfect') { X.hit(at, 'gold', { text: '+40' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); } break;
+      case 'flawOk': X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); break;
       case 'done': finish(); break;
       default: break;
     }

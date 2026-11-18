@@ -248,7 +248,7 @@ export const FORM_ACT = {
         V.thud(); V.lock(WALLS.indexOf(k)); X.shake(0.18, 0.3); try { if (X.haptic) X.haptic(BZ.lock); } catch (er) { /* */ }
         for (const c of cornersOf(k)) { const [x, z] = S9.corner[c]; X.sparks(x, Y0 + H * 0.6, z, 10); X.dust(x, Y0 + 0.3, z, 4, 1.2); }
         X.hit(at, e.pts >= 40 ? 'gold' : e.pts >= 20 ? 'good' : 'ok', { text: '' });
-        if (e.pts >= 40) X.quick(at, WORDS.quick, SH9.walls && SH9.walls[k] ? SH9.walls[k].grp.children[0] : null);
+        if (e.pts >= 40) X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick, SH9.walls && SH9.walls[k] ? SH9.walls[k].grp.children[0] : null);
         ev('lock:' + k + ':' + e.how + ':' + e.at);
         if (e.last) close();
       } else if (e.k === 'crack') {

@@ -103,7 +103,7 @@ export const POUR_ACT = {
       // (b131 look round: two men walk each timber in, bent over it, both hands on it; they stay by it, holding it)
       const JW = S8.wood.joint;
       for (const m of timbers.children) {
-        const dz = m.userData.k === 'S' ? 2.5 : 0, dx = m.userData.k === 'E' ? 2.5 : 0, x0 = m.position.x, z0 = m.position.z; m.position.x += dx; m.position.z += dz;
+        const dz = m.userData.k === 'S' ? 1.0 : 0, dx = m.userData.k === 'E' ? 1.0 : 0,   /* (the figure rule: from 2.5 out its men walked in cut by the frame's edge) */ x0 = m.position.x, z0 = m.position.z; m.position.x += dx; m.position.z += dz;
         const men = (m.userData.k === 'E' ? [[JW[0] + 1.3, JW[1] - 4.5], [JW[0] + 1.3, JW[1] - 10.5]] : [[JW[0] - 4.5, JW[1] + 1.4], [JW[0] - 10.5, JW[1] + 1.4]])
           .map(([x, z], c) => { const w = gang.add(x + dx, z + dz, { role: 'push', crew: c, fx: x - (dx ? 3 : 0), fz: z - (dz ? 3 : 0), lean: -0.1 }); if (w) { w.stride = 1; w.rate = 2.2; w.x0 = x; w.z0 = z; } return w; }).filter(Boolean);
         prepMen.push(...men);
@@ -154,7 +154,9 @@ export const POUR_ACT = {
     const PILE = [[0, 1.0], [0.5, -1.9]];
     // (look round 3, the run: on the heap's far side they stood out of the picture — the first pair waits at the heap's two ends along the
     //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
-    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]], [[HEAP[0] + 4.6, HEAP[1] - 1.2], [HEAP[0] + 4.6, HEAP[1] + 1.4]]];
+    // (the figure rule, the run of 18.11: the second pair waiting beyond the right edge was cut and hidden at every step — one pair carries,
+    //  taken again on its walk back, so a tap is never kept waiting on a second pair)
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]]];
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
@@ -168,7 +170,7 @@ export const POUR_ACT = {
     function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++; }); }
     function portersMake() {
       if (PORT.pairs.length) return;
-      for (let k = 0; k < 2; k++) {
+      for (let k = 0; k < HOME.length; k++) {
         const men = HOME[k].map(([lx, lz], j) => { const W = toW(lx, lz); const w = gang.add(W.x, W.z, { role: 'hold', crew: k, fx: HW.x, fz: HW.z }); if (w) w.home = [lx, lz]; return w; }).filter(Boolean);
         PORT.pairs.push({ men, job: null });
       }

@@ -1242,7 +1242,7 @@
     // ── /h131 finale ──
   };
   // ── h131 ── (build 131: the figures gate's report read at every step of stage 08's frame and finale; whatever it names is kept) ── /h131 ──
-  B.fig8 = (a) => { B.fig8on = 1; let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; const id = (a && a.id) || '?'; B.figW = B.figW || {}; B.figW[id] = (B.figW[id] || 0) + 1; if (r && r.length) B.figBad.push({ id, step: a && (a.step || a.focus || a.phase), r: JSON.stringify(r).slice(0, 300) }); };
+  B.fig8 = (a) => { B.fig8on = 1; let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; const id = (a && a.id) || '?'; B.figW = B.figW || {}; B.figW[id] = (B.figW[id] || 0) + 1; if (r && r.length) B.figBad.push({ id, step: a && (a.step || a.focus || a.phase), r: JSON.stringify(r).slice(0, 2000) }); };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
     if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };

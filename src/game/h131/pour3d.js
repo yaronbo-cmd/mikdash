@@ -22,6 +22,9 @@ const STAIN_HEX = 0xc9bba2, STAIN_RIM = 0x857660;   // (the set mix's light warm
 const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [-4.2, 4.9];   // (look round 3: left, between the hearth's swap path and the near board — on the right he stood in the stones' heap)
 //   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
 const RELIEF = 1.2, MOUND_VIS = 0.42, LUT_N = 64, STREAM_SEG = 18, MAXB = 48, MAXD = 48;
+// ── b131 ── (review items 1, 2) the liquid's gloss goes from its own to SET_GLOSS between heat SET_HI and SET_LO (the freeze): a thin front
+// cools that stretch in about 1–1.5 s, as its flow slows (sim.js FLUID_LO … FLUID_HI); the warning's flicker at a gate lasts WARN_FX s within WARN_R ── /b131 ──
+export const SET_LO = T.FREEZE, SET_HI = 0.36, SET_GLOSS = 0.12, WARN_FX = 2.4, WARN_R = 0.9;
 
 export function createPourView(X, lv, sim, o = {}) {
   const THREE = X.THREE, L = LEVELS[lv], F = frameOf(lv), rnd = mulberry32(1234 + lv), R = mulberry32(77 + lv);
@@ -141,7 +144,8 @@ export function createPourView(X, lv, sim, o = {}) {
   }
   const cPlug = col(0x5a3812), cHard = col(0x7b6d5f), cHardPatch = col(0x8f7458), cFresh = col(0x4b3025), cAir = col(0x8ec3f7), cSealFlash = col(0xc9bfae), cDryFloor = col(0xd8cbb0);
   const sealGlow = new Float32Array(N), pocketMask = new Uint8Array(N), pocketDone = new Uint8Array(N);
-  const FX = { pocketPulse: 0, pulseT: 9, glowOn: false, settle: 0 };
+  const warnGlow = new Float32Array(N);   // ── b131 ── (review item 1) the gate about to set: a faint flicker and its gloss going, WARN_FX seconds ── /b131 ──
+  const FX = { pocketPulse: 0, pulseT: 9, glowOn: false, settle: 0, warnOn: false };
   function updateFluidMesh(sink, hlOn) {
     const vol = sim.vol, solid = sim.solid, ground = sim.ground, heat = sim.heat, hol = sim.hollow, plug = sim.plug, fa = sim.freezeAge, patch = sim.patch;
     for (let c = 0; c < N; c++) { const m = (vol[c] + solid[c]) * sink; if (sink < 0.999 && (ground[c] > 0.2 || sink < 0.05)) { fSurf[c] = -9; continue; } fSurf[c] = (m > 0.0015 || (hlOn && hol[c]) || (FX.pocketPulse > 0.01 && pocketMask[c] && hol[c])) ? ground[c] + m + 0.006 : -9; }
@@ -163,8 +167,10 @@ export function createPourView(X, lv, sim, o = {}) {
       const c = k * NX + i, hl = fH[i > 0 ? c - 1 : c], hr = fH[i < NX - 1 ? c + 1 : c], hd = fH[k > 0 ? c - NX : c], hu = fH[k < NZ - 1 ? c + NX : c];
       const nx = (hl - hr) * inv, nz = (hd - hu) * inv, l = 1 / Math.sqrt(nx * nx + 1 + nz * nz); fNor[c * 3] = nx * l; fNor[c * 3 + 1] = l; fNor[c * 3 + 2] = nz * l;
       const v = vol[c]; let r, g, b, gloss, emi;
-      if (v > 0.0015) { const h = heat[c], j = Math.max(0, Math.min(LUT_N - 1, Math.round(h * (LUT_N - 1)))) * 3; r = liqLUT[j]; g = liqLUT[j + 1]; b = liqLUT[j + 2]; gloss = 0.62 + 0.38 * Math.min(1, h * 1.3); const e = Math.max(0, (h - 0.33) / 0.67); emi = e * e * 0.42 + (h > 0.25 ? 0.03 : 0); }
-      else if (solid[c] > 0.0015) { const f = Math.max(Math.min(1, fa[c] / 2.2), FX.settle), hc = patch[c] ? cHardPatch : cHard; r = cFresh.r + (hc.r - cFresh.r) * f; g = cFresh.g + (hc.g - cFresh.g) * f; b = cFresh.b + (hc.b - cFresh.b) * f; gloss = 0.5 * (1 - f) + 0.05; emi = 0; const sg = sealGlow[c]; if (sg > 0) { r += (cSealFlash.r - r) * sg; g += (cSealFlash.g - g) * sg; b += (cSealFlash.b - b) * sg; gloss = 0.05; } }
+      if (v > 0.0015) { const h = heat[c], j = Math.max(0, Math.min(LUT_N - 1, Math.round(h * (LUT_N - 1)))) * 3; r = liqLUT[j]; g = liqLUT[j + 1]; b = liqLUT[j + 2]; gloss = 0.62 + 0.38 * Math.min(1, h * 1.3); const e = Math.max(0, (h - 0.33) / 0.67); emi = e * e * 0.42 + (h > 0.25 ? 0.03 : 0);
+        { const u = Math.max(0, Math.min(1, (h - SET_LO) / (SET_HI - SET_LO))), sm = u * u * (3 - 2 * u); gloss = SET_GLOSS + (gloss - SET_GLOSS) * sm; }   /* ── b131 ── (review item 2: a front that sets goes matte over its last 1–1.5 s, as it slows; an empty pot leaves it glossy) ── /b131 ── */
+        { const w = warnGlow[c]; if (w > 0) { const fl = 0.5 + 0.5 * Math.sin(fluidU.uTime.value * 13 + c * 0.7); gloss *= 1 - 0.75 * w; const d = 1 - 0.2 * w * fl; r *= d; g *= d; b *= d; emi *= 1 - 0.6 * w; } }   /* ── b131 ── (item 1) ── /b131 ── */ }
+      else if (solid[c] > 0.0015) { const f = Math.max(Math.min(1, fa[c] / 2.2), FX.settle), hc = patch[c] ? cHardPatch : cHard; r = cFresh.r + (hc.r - cFresh.r) * f; g = cFresh.g + (hc.g - cFresh.g) * f; b = cFresh.b + (hc.b - cFresh.b) * f; gloss = SET_GLOSS * (1 - f) + 0.05; emi = 0; const sg = sealGlow[c]; if (sg > 0) { r += (cSealFlash.r - r) * sg; g += (cSealFlash.g - g) * sg; b += (cSealFlash.b - b) * sg; gloss = 0.05; } }
       else { r = cDryFloor.r; g = cDryFloor.g; b = cDryFloor.b; gloss = 0.1; emi = 0; }
       let hh = 0, hp = 0;
       if (!hlOn && FX.pocketPulse > 0.01 && pocketMask[c] && hol[c] && v <= 0.0015) { const pp = FX.pocketPulse; r += (cAir.r - r) * pp; g += (cAir.g - g) * pp; b += (cAir.b - b) * pp; hh = pp * 0.8; }
@@ -296,6 +302,7 @@ export function createPourView(X, lv, sim, o = {}) {
     knockHollow() { if (!on()) return; const t = T0(); tone('sine', 330, 300, t, 0.002, 0.16, 0.5); tone('triangle', 520, 500, t, 0.002, 0.07, 0.12); noiseHit(t, 'bandpass', 470, 7, 0.001, 0.16, 1.1); noiseHit(t, 'bandpass', 760, 6, 0.001, 0.1, 0.6); noiseHit(t, 'highpass', 1500, 0.7, 0.001, 0.02, 0.25); },
     warm() { try { initAudio(); } catch (e) { /* */ } },   // (b131: the sounds' buffers made ahead — made on a tap they cost it 20–30 ms)
     thud() { if (!on()) return; const t = T0(); tone('sine', 80, 50, t, 0.003, 0.22, 0.6); noiseHit(t, 'lowpass', 500, 0.8, 0.002, 0.08, 0.5); },
+    warn() { if (!on()) return; const t = T0(); tone('sine', 150, 112, t, 0.14, 0.85, 0.14); noiseHit(t, 'bandpass', 950, 1.4, 0.18, 0.75, 0.1); },   // ── b131 ── (review item 1: soft, low, the mix's own sound — nothing metal) ── /b131 ──
     bubble() { if (!on()) return; const t = actx.currentTime + 0.005, f = 160 + R() * 140; tone('sine', f, f * (2.2 + R()), t, 0.004, 0.07 + R() * 0.05, 0.22 + R() * 0.15); },
     reach(n) { if (!on()) return; const t = T0(), base = 392 * Math.pow(1.122, n); marimba(base, t, 0.32); marimba(base * 1.26, t + 0.08, 0.32); marimba(base * 1.5, t + 0.16, 0.3); },
     chime() { if (!on()) return; const t = actx.currentTime + 0.02; [523, 659, 784, 1047, 1319].forEach((f, j) => marimba(f, t + j * 0.09, 0.34)); marimba(523, t + 0.5, 0.25); marimba(784, t + 0.5, 0.2); marimba(1047, t + 0.5, 0.2); },
@@ -324,7 +331,7 @@ export function createPourView(X, lv, sim, o = {}) {
     for (const r of rings) {
       if (!r.on) continue; r.t += dt; if (r.t > r.dur) { r.on = false; continue; }
       const q = proj(r.x, r.y, r.z); if (!q) continue; const f = r.t / r.dur;
-      ctx.beginPath(); ctx.arc(q.x, q.y, 12 + f * 70, 0, Math.PI * 2); ctx.lineWidth = 6 * (1 - f) + 1; ctx.globalAlpha = 1 - f; ctx.strokeStyle = r.hue === 1 ? '#d8952a' : '#ffeba0'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(q.x, q.y, 12 + f * 70, 0, Math.PI * 2); ctx.lineWidth = 6 * (1 - f) + 1; ctx.globalAlpha = 1 - f; ctx.strokeStyle = r.hue === 1 ? '#e6ad35' : '#ffeba0'; ctx.stroke();
       if (r.hue === 0 && f < 0.35) { ctx.globalAlpha = 0.6 * (1 - f / 0.35); ctx.fillStyle = '#fffadc'; ctx.beginPath(); ctx.arc(q.x, q.y, 30 + f * 60, 0, Math.PI * 2); ctx.fill(); }
       ctx.globalAlpha = 1;
     }
@@ -380,6 +387,7 @@ export function createPourView(X, lv, sim, o = {}) {
       for (let j = 0; j < goals.length; j++) { const g = goals[j], vis = (S.phase === 'pour' || S.phase === 'stones') && !(S.reached && S.reached[j]); g.m.visible = vis; if (vis) g.m.position.set(g.tg.x, surfaceAt(g.tg.x, g.tg.z) + 0.04, g.tg.z); } }
     // the seals' visuals (fade)
     FX.pulseT += dt; FX.pocketPulse = FX.pulseT < 1.7 ? Math.sin(Math.PI * FX.pulseT / 1.7) : 0;
+    if (FX.warnOn) { let any = false; const d = dt / WARN_FX; for (let c = 0; c < N; c++) if (warnGlow[c] > 0) { warnGlow[c] = Math.max(0, warnGlow[c] - d); any = true; } FX.warnOn = any; }   // ── b131 ── ── /b131 ──
     if (FX.glowOn) { let any = false; const d = dt / 1.4; for (let c = 0; c < N; c++) if (sealGlow[c] > 0) { sealGlow[c] = Math.max(0, sealGlow[c] - d); any = true; } FX.glowOn = any; }
     FX.settle = S.phase === 'pour' || S.phase === 'stones' || S.phase === 'prep' ? 0 : Math.min(1, FX.settle + dt / 0.8);
     fluidU.uTime.value = time;
@@ -479,7 +487,13 @@ export function createPourView(X, lv, sim, o = {}) {
     crewL.g.position.set(-1.6, 0, 0); crewL.g.rotation.y = Math.PI / 2; crewR.g.position.set(1.6, 0, 0); crewR.g.rotation.y = -Math.PI / 2;
     tiltGroup.position.y = POLE_Y; pole.position.y = POLE_Y; V.sink = 1; resetFx();
   }
-  function resetFx() { sealGlow.fill(0); pocketMask.fill(0); pocketDone.fill(0); FX.pulseT = 9; FX.pocketPulse = 0; FX.glowOn = false; fluidU.uHL.value = 0; }
+  function resetFx() { warnGlow.fill(0); FX.warnOn = false; sealGlow.fill(0); pocketMask.fill(0); pocketDone.fill(0); FX.pulseT = 9; FX.pocketPulse = 0; FX.glowOn = false; fluidU.uHL.value = 0; }
+  /** ── b131 ── (review item 1) a pocket about to close (sim.warnEvents): its gate's mix flickers faintly and loses its gloss, a soft sound there ── /b131 ── */
+  function warnFx(e) {
+    const r2 = WARN_R * WARN_R;
+    for (let c = 0; c < N; c++) { const i = c % NX, dx = cellX(i) - e.x, dz = cellZ((c - i) / NX) - e.z, d2 = dx * dx + dz * dz; if (d2 < r2 && sim.vol[c] > 0.0015) warnGlow[c] = Math.max(warnGlow[c], 1 - 0.5 * d2 / r2); }
+    FX.warnOn = true; sfx.warn();
+  }
   /** a passage closed (the sample's seal): the plug turns to hard stone, the pocket it cut off pulses once */
   function sealFx(e) {
     ring(e.x, surfaceAt(e.x, e.z) + 0.15, e.z, 1.6, 1);
@@ -502,7 +516,7 @@ export function createPourView(X, lv, sim, o = {}) {
   /** (b131 D1) the view's own figures — the cauldron's two and the knocker — where they stand in the world, for a word kept off them */
   const _fv = new THREE.Vector3();
   function figs() { const out = []; for (const f of [crewL, crewR, knocker]) { if (!f || !f.g) continue; let on = true; for (let o = f.g; o; o = o.parent) if (o.visible === false) { on = false; break; } if (!on) continue; f.g.getWorldPosition(_fv); out.push({ x: _fv.x, y: _fv.y, z: _fv.z, h: 3.0 }); } return out; }
-  return { G, figs, frame, word, ring, burst, sfx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
+  return { G, figs, frame, word, ring, burst, sfx, warnFx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
 }
 
 /* ═════════ the world's hooks: what his pours left, from the save (the patches of a section poured again, the stain beside the timber) ═════════ */

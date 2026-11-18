@@ -80,3 +80,30 @@ test('pour: a re-poured place\'s patch — one ragged outline for the world and 
   const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
   assert.match(src, /inPatch\(FIN\.X0 \+ i \+ 0\.5, FIN\.Z0 \+ j \+ 0\.5, q\.at\[0\], q\.at\[1\], q\.n\)/, 'the finale whitens the same patch grey');
 });
+
+// ── b131 ── the gameplay review's pour items (1: a warning before a pocket closes; 2: the setting front goes matte; 3: bubbles and the
+// yellowish ring where and when the pocket forms) ── /b131 ──
+test('pour: a pocket about to close is told on the mix 1.2–3 s before it closes, at its gate', () => {
+  const sim = newSim(2), dt = 1 / 60, W = [], S = []; let setting = false;
+  for (let s = 0; s < 60 * 120; s++) {
+    sim.step(dt, tOf(-3.65), 0.9);
+    while (sim.warnEvents.length) W.push(sim.warnEvents.shift()); while (sim.sealEvents.length) S.push(sim.sealEvents.shift());
+    if (S.length) break;
+  }
+  assert.ok(S.length >= 1, 'a pocket closes'); const e = S[0];
+  const w = W.filter((q) => q.time <= e.time && Math.hypot(q.x - e.x, q.z - e.z) < 2.5).pop();
+  assert.ok(w, 'told before'); const lead = e.time - w.time; assert.ok(lead >= 1.2 && lead <= 3, 'lead ' + lead.toFixed(2));
+  assert.ok(Math.hypot(w.x - e.x, w.z - e.z) < 1.0, 'at its gate');
+  assert.equal(S1.WARN_S, 2.4); assert.deepEqual({ ...S1.T }, { ...S0.T });   // (the sample's T untouched)
+});
+test('pour: the view — the warning flickers and dulls the gate with a soft sound; the setting front goes matte; the seal\'s ring and bubbles at once', () => {
+  const v = readFileSync(new URL('../src/game/h131/pour3d.js', import.meta.url), 'utf8'), p = readFileSync(new URL('../src/game/h131/pour.js', import.meta.url), 'utf8');
+  assert.match(v, /export const SET_LO = T\.FREEZE, SET_HI = 0\.36, SET_GLOSS = 0\.12, WARN_FX = 2\.4, WARN_R = 0\.9;/);
+  assert.match(v, /function warnFx\(e\)[\s\S]{0,400}sfx\.warn\(\)/); assert.match(v, /warn\(\) \{ if \(!on\(\)\) return; const t = T0\(\); tone\('sine', 150, 112/);
+  assert.match(v, /gloss = SET_GLOSS \+ \(gloss - SET_GLOSS\) \* sm/);
+  assert.match(v, /function sealFx\(e\) \{\s*ring\(e\.x[^\n]*1\.6, 1\);\s*for \(let j = 0; j < 8; j\+\+\) spawnBubble/); assert.match(v, /r\.hue === 1 \? '#e6ad35'/);
+  assert.match(p, /while \(sim\.warnEvents\.length\) \{ const e = sim\.warnEvents\.shift\(\); if \(pourPhase\) onWarn\(e\); \}/);
+  assert.match(p, /while \(sim\.sealEvents\.length\) \{ const e = sim\.sealEvents\.shift\(\); if \(pourPhase\) onSeal\(e\); \}/);
+  // (a thin front cools SET_HI → the freeze in about 1–1.5 s: the sample's cooling of a 0.05-amah film)
+  const r = S1.T.COOL_BASE + S1.T.COOL_THIN / (0.05 + S1.T.COOL_EPS), secs = (0.36 - S1.T.FREEZE) / r; assert.ok(secs >= 0.8 && secs <= 1.5, String(secs));
+});

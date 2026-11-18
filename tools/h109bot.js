@@ -1461,7 +1461,7 @@
       K.zoom = (K.zoom | 0) + 1;
       if (K.zoom === 1) return drag([Math.round(Wd * 0.8), Math.round(Hd * 0.25)], [Math.round(Wd * 0.8), Math.round(Hd * 0.9)], 700, 'strip: the right thumb lifts the camera out over the court');
       if (K.zoom === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 600, shot: a.id + '-zoomed-out', note: 'strip: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
-      return { tap: [Math.round(Wd * 0.8), Math.round(Hd * 0.25)], wait: 1400, note: 'strip: a tap brings the camera back to the work' };
+      return { tap: [Math.round(Wd * 0.2), Math.round(Hd * 0.25)], wait: 1400, note: 'strip: a tap brings the camera back to the work' };
     }
     const left = new Set(a.parts.map((q) => q.p));
     const next = ORDER9S[a.lv].find((p) => (p === 'slide' ? !a.slid && left.has('wall:S') : left.has(p)));

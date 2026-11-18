@@ -14,7 +14,7 @@
 import { BOOK } from '../world/grid.js';
 import { LOSS, WORDS } from './model.js';
 import { PARTS, fresh, load, save, tap, pull, slide, done, result } from './strip-model.js';
-import { SH9, wallSet } from './world.js';
+import { SH9, wallSet, siteClear } from './world.js';
 import { hold, homeWalls, dress, wallHead, wallHinge, lieAfter, stackAt } from './walls3d.js';
 import { smats, blockBody, scar, braceMesh, braceEnds, beltMesh, beltEnds, wedgeMesh, bulgeOn, NORM } from './strip3d.js';
 import { createVoices } from '../h129/sound129.js';
@@ -78,11 +78,11 @@ export const STRIP_ACT = {
       // (the eye still at the look's own lift: the act eases its base itself, frame by frame; else one eased shot from where the eye is —
       //  the director then reads the figures only once it has settled)
       A.th = th; view(th, 0.01); A.ease = { a: th, b, t: 0, own: u > 0.02 }; if (!A.ease.own) view(b, SA.SNAP); A.camT = A.t + SA.SNAP + 0.2;
-      if (workP === 'idle' || A.t > A.idleT) sendIdle(true);   // (a cut for the waiting pullers: at the new corner as the camera turns to it)
+      try { if (workP === 'idle' || A.t > A.idleT) sendIdle(true); } catch (e) { ev('err:idle:' + (e && e.message)); }   // (a cut for the waiting pullers: at the new corner as the camera turns to it)
       return 0;
     }
     function easeStep(dt) {
-      const E = A.ease; if (!E) return; E.t = Math.min(1, E.t + dt / SA.SNAP); const u = E.t * E.t * (3 - 2 * E.t);
+      const E = A.ease; if (!E) return; A.esN = (A.esN | 0) + 1; E.t = Math.min(1, E.t + dt / SA.SNAP); const u = E.t * E.t * (3 - 2 * E.t);
       A.th = E.a + (E.b - E.a) * u; if (E.own) view(A.th, 0.01);
       if (E.t >= 1) { A.ease = null; A.th = E.b; ev('view:' + (((cornerOf(A.th) % 4) + 4) % 4)); }
     }
@@ -279,7 +279,7 @@ export const STRIP_ACT = {
       stackAll();
     }
     function stackAll() {
-      A.carry = null; A.stacked = 1; lieAfter();
+      A.carry = null; A.stacked = 1; lieAfter(); try { siteClear(true); } catch (e) { /* */ }   // (the world: the sills off, the timber on the pile)
       for (const p of Object.keys(parts)) parts[p].visible = false;
       try { gang.clear(); } catch (e) { /* */ } men[0] = men[1] = null;
     }
@@ -351,6 +351,8 @@ export const STRIP_ACT = {
         A.t += dt;
         if (A.idleT && A.t > A.idleT && !A.fl) sendIdle();
         easeStep(dt);
+        // (the look let go and home: the act's own lens — after a turn the director's look can leave its lifted lens on the camera)
+        if (!A.done) { try { const L = X.lookNow ? X.lookNow() : null; if (L && L.u < 1e-3 && Math.abs(L.yaw) < 1e-3 && Math.abs(cam0.fov - SA.FOV) > 0.05) { if (!A.fovN) ev('lens:' + cam0.fov.toFixed(1)); A.fovN = (A.fovN | 0) + 1; lens(SA.FOV); } } catch (e) { /* */ } }
         try { V.frame(); Bt.step(dt); gang.update(dt, Bt); moveMen(dt); draw(dt); }
         catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h132] strip', e && e.message, e && e.stack && e.stack.split('\n')[1]); } }
       },
@@ -383,7 +385,7 @@ export const STRIP_ACT = {
         o.step = workP + ':v' + (((cornerOf(A.th) % 4) + 4) % 4) + (A.ease ? ':ease' : A.t < A.camT ? ':cam' : '');
         o.pulling = men.some((w) => w && w.role && (w.role === 'pull' || w.role === 'push') && !w.stride);
         o.settled = A.t > 1.2 && A.t > A.camT && !A.ease && !Object.values(A.fallK).some((f) => f && !f.landed);
-        o.view = ((cornerOf(A.th) % 4) + 4) % 4; o.th = r2(A.th); o.ease = A.ease ? { a: r2(A.ease.a), b: r2(A.ease.b), t: r2(A.ease.t), own: A.ease.own } : null;
+        o.view = ((cornerOf(A.th) % 4) + 4) % 4; o.th = r2(A.th); o.esN = A.esN | 0; o.ease = A.ease ? { a: r2(A.ease.a), b: r2(A.ease.b), t: r2(A.ease.t), own: A.ease.own } : null;
         try { const L = X.lookNow ? X.lookNow() : null; o.look = L ? { u: r2(L.u), yaw: r2(L.yaw), play: L.play } : null; } catch (e) { o.look = null; }
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));
         return o;

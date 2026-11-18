@@ -1334,10 +1334,28 @@
   play.h9fill = (a) => {
     if (!a || a.done) return { wait: 400 };
     if (a.busy || a.drag) return { wait: 250 };
+    // (build 132 round 2: once in each run, after the second load, the right thumb drags down where no sled is and the camera lifts
+    //  out over the court — a still — and a tap brings it back; by mouse, the right button)
+    const Wd = innerWidth, Hd = innerHeight, K9 = B.k;
+    if (a.n >= 2 && (K9.look9 | 0) < 3) {
+      K9.look9 = (K9.look9 | 0) + 1; const p0 = [Math.round(Wd * 0.6), Math.round(Hd * 0.3)], p1 = [Math.round(Wd * 0.6), Math.round(Hd * 0.9)];
+      if (K9.look9 === 1) return a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], 700, 'right'], wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' } : { path: [p0, p1], ms: 700, wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' };
+      if (K9.look9 === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 500, shot: a.id + '-zoomed-out', note: 'fill: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
+      return { tap: p0, wait: 1400, note: 'fill: a tap brings the camera back to the work' };
+    }
     const h = a.hint; if (!h) return { wait: 300, note: 'fill: no hint (ramp ' + JSON.stringify(a.ramp) + ')' };
-    const s = (a.sleds || [])[h.j]; if (!s || !s.at || !s.take) return { wait: 300 };
-    const zn = window.__BOT9_FILL_BAD && !B.k.bad9 ? ((B.k.bad9 = 1), 'NE') : h.zone, z = a.zones[zn];
-    return { drag: [s.at[0], s.at[1], z[0], z[1], 650], wait: 500, note: `fill: ${h.kind}${h.j ? ' (2nd)' : ''} → ${zn} · layer ${a.layer}.${a.inLayer} · pts ${a.pts} · g ${JSON.stringify(a.g)}` };
+    const j = h.j;
+    const s = (a.sleds || [])[j]; if (!s || !s.at || !s.take) return { wait: 300 };
+    // (__BOT9_FILL_BAD: after the free trial, loads on the middle until it collapses, then on the north-east corner until its gauge
+    //  bulges (each time waiting out the two seconds), then the hint again — a collapse, a bulge and its −20, the wall's flaw kept for work 3)
+    let zn = h.zone, wait = 500, why = '';
+    if (window.__BOT9_FILL_BAD && !a.free && (K9.bad9 | 0) < 8) {
+      const fl = a.fl || {};
+      if (!fl.collapse) { zn = 'C'; why = ' (bad: on the middle until it slides)'; K9.bad9 = (K9.bad9 | 0) + 1; }
+      else if (!fl.bulge) { zn = 'NE'; wait = 4500; why = ' (bad: on one corner until its wall bulges)'; K9.bad9 = (K9.bad9 | 0) + 1; }
+    }
+    const z = a.zones[zn];
+    return { drag: [s.at[0], s.at[1], z[0], z[1], 650], wait, note: `fill: ${s.kind}${j ? ' (2nd)' : ''} → ${zn}${why} · layer ${a.layer}.${a.inLayer} · pts ${a.pts} · g ${JSON.stringify(a.g)}` };
   };
   B.next = () => {
     if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };

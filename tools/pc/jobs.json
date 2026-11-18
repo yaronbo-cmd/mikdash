@@ -16,6 +16,21 @@
       "w": 1600,
       "h": 900,
       "maxMin": 60
+    },
+    {
+      "name": "s09fill-touch",
+      "script": "tools/probes/s09-fill.json",
+      "w": 960,
+      "h": 600,
+      "maxMin": 40
+    },
+    {
+      "name": "s09fill-mouse",
+      "script": "tools/probes/s09-fill.json",
+      "w": 1600,
+      "h": 900,
+      "maxMin": 40,
+      "mouse": true
     }
   ]
 }

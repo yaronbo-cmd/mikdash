@@ -21,7 +21,11 @@ import { BOOK } from '../world/grid.js';
 import { box } from '../h131/world.js';
 
 const S9 = BOOK.s09, B = S9.block, T = S9.T, Y0 = S9.base, Y1 = S9.top, H = S9.H, F = S9.floor;
-export const SH9 = { X: null, g: null, key: '', walls: null, t: 0 };
+export const SH9 = { X: null, g: null, key: '', walls: null, t: 0, clear: null };
+/** (build 132, item 10: a clean site for work 4) the strip's act calls siteClear(true) when its last part is off, before its closing film:
+ *  while the world is still in the work's pre-state ('filled') the sills and the timber of the form are drawn as after it (none round the
+ *  block; the strip's timber on the pile). It holds for that work only: a new work (st.cur changes) or siteClear(false) ends it */
+export function siteClear(v) { const M = SH9.X && SH9.X.M; SH9.clear = v ? (M && M.st && M.st.cur) || '?' : null; SH9.key = ''; }
 const LANES = [];
 /** a lane's things in the world (called once by the lane's own file) */
 export function addLane(L) { if (L && !LANES.includes(L)) LANES.push(L); return L; }
@@ -102,7 +106,9 @@ const at = (s, s0) => ORDER.indexOf(s) >= ORDER.indexOf(s0);
 function sync(X, M) {
   if (!SH9.g || !M) return;
   const st = M.st, blk = M.block ? M.block() : 'site', cur = st.cur || '';
-  const key = [blk, cur, st.done.join(','), st.flaws.length, st.crews, owns('walls'), owns('block'), owns('ramp'), owns('line')].join('|'); if (key === SH9.key) return; SH9.key = key;
+  if (SH9.clear && SH9.clear !== cur) SH9.clear = null;
+  const clean = !!SH9.clear;   // (the strip done, its film still in the pre-state: the site drawn clean)
+  const key = [blk, cur, st.done.join(','), st.flaws.length, st.crews, owns('walls'), owns('block'), owns('ramp'), owns('line'), clean].join('|'); if (key === SH9.key) return; SH9.key = key;
   const D = SH9.drawn, Mt = mats(X), Tt = X.THREE;
   while (D.children.length) D.remove(D.children[0]);
   for (const k of ['N', 'S', 'E', 'W']) { const G = SH9.walls[k].marks; while (G.children.length) G.remove(G.children[0]); }
@@ -113,13 +119,12 @@ function sync(X, M) {
     SH9.walls[k].grp.visible = wallsOn;
     wallSet(k, blk === 'formUp' || blk === 'filled' ? 90 : 0);
   }
-  // (after the strip the west wall is not on the yesod: it fell west onto the Ulam's steps and the men took it down there — it lies on
-  //  the lowest treads, flat; the spec leaves its last place open: see the report)
-  if (!owns('walls') && at(blk, 'bare')) { const W = SH9.walls.W; W.grp.position.set(S9.step1.x1 - H, S9.step1.y + 1, HINGE.W.p[2]); W.grp.rotation.set(0, 0, -Math.PI / 2); }
+  // (phase 1 decision 3: lowered off the steps by the pullers and laid flat beside the timber pile, along x — its hinge at its west end)
+  if (!owns('walls') && at(blk, 'bare')) { const W = SH9.walls.W, [cx, cz] = S9.wallRest.W; W.grp.position.set(cx - HINGE.W.L / 2, F, cz + H / 2); W.grp.rotation.set(0, Math.PI / 2, -Math.PI / 2); }
   else if (SH9.walls.W) SH9.walls.W.grp.position.set(...HINGE.W.p);
   // the sills under the south and east walls (the proposed footing over the strip with no yesod: stage 08's timbers, as the book has
   // them), while the form stands or lies there
-  if (at(blk, 'formLying') && !at(blk, 'bare')) for (const k of ['E', 'S']) { const b = S9.sill[k]; box(X, Mt.y9woodD, b[0], F, b[1], b[2], Y0, b[3], D); }
+  if (at(blk, 'formLying') && !at(blk, 'bare') && !clean) for (const k of ['E', 'S']) { const b = S9.sill[k]; box(X, Mt.y9woodD, b[0], F, b[1], b[2], Y0, b[3], D); }
   // a patched board (work 1's crack): on its wall's outer face, until the strip and after it with the wall
   for (const c of has('form.crack')) {
     const k = c.wall || 'N', W = SH9.walls[k]; if (!W) continue;
@@ -155,9 +160,10 @@ function sync(X, M) {
     has('fill.dent').forEach(() => { box(X, Mt.y9nest, S9.mid[0] - 1, Y1 - 0.25, S9.mid[1] - 1, S9.mid[0] + 1, Y1 + 0.005, S9.mid[1] + 1, D).name = 'h132-dent'; });
     has('strip.torn').forEach((b, i) => { const k = ['SE', 'NE', 'NW', 'SW'][i % 4], [x, z] = b.at && Array.isArray(b.at) ? b.at : S9.corner[k], sx = x > S9.mid[0] ? -1 : 1, sz = z > S9.mid[1] ? -1 : 1; box(X, Mt.y9scar, Math.min(x, x + sx * 0.9), Y0 + 1.5, Math.min(z, z + sz * 0.9), Math.max(x, x + sx * 0.9), Y1 - 0.4, Math.max(z, z + sz * 0.9), D).name = 'h132-torn'; });
     has('strip.patch').forEach(() => face('S', S9.side / 2, Y0 + 1.6, Y0 + 3.2, 2.2, Mt.y9scar, 'tornpatch'));
-    // the timber of the strip on the pile
-    { const [x, z] = S9.pile; for (let i = 0; i < 6; i++) box(X, Mt.y9woodD, x - 3, F + 0.35 * Math.floor(i / 3), z - 1.2 + (i % 3) * 0.8, x + 3, F + 0.35 * Math.floor(i / 3) + 0.32, z - 0.9 + (i % 3) * 0.8, D); }
   }
+  // the strip's timber on the pile (bare and later, and the strip's closing film): the two sills at the bottom, the four braces on them,
+  // the four belts across, the wedge on top — nothing of the form left round the block (lane A lays the four walls in their stack beside it)
+  if (at(blk, 'bare') || clean) pileWood(X, Mt, D);
   // the red line, six tefachim under the top, round the four faces (with its flaws' marks where the act kept them)
   if (at(blk, 'lined') && !owns('line')) {
     const y = S9.lineY, h = 0.07, e = 0.04;
@@ -165,6 +171,16 @@ function sync(X, M) {
     box(X, Mt.y9red, B[0] - e, y - h, B[1], B[0], y + h, B[3], D); box(X, Mt.y9red, B[2], y - h, B[1], B[2] + e, y + h, B[3], D);
   }
   void Tt;
+}
+function pileWood(X, Mt, D) {
+  const [x, z] = S9.pile; let y = F;
+  for (const j of [0, 1]) { const b = box(X, Mt.y9woodD, x - 4, y, z - 1.4 + j * 1.6, x + 4, y + 0.55, z - 0.6 + j * 1.6, D); b.name = 'h132-pile-sill'; }
+  y += 0.55;
+  for (let j = 0; j < 4; j++) { const b = box(X, Mt.y9wood, x - 3.5, y, z - 1.5 + j * 0.8, x + 3.5, y + 0.36, z - 1.1 + j * 0.8, D); b.name = 'h132-pile-brace'; }
+  y += 0.36;
+  for (let j = 0; j < 4; j++) { const b = box(X, Mt.y9woodD, x - 2.4 + j * 1.3, y, z - 1.8, x - 1.7 + j * 1.3, y + 0.45, z + 1.6, D); b.name = 'h132-pile-belt'; }
+  y += 0.45;
+  { const b = box(X, Mt.y9wood, x - 0.5, y, z - 0.3, x + 0.6, y + 0.4, z + 0.3, D); b.name = 'h132-pile-wedge'; }
 }
 function modelHide(X) { try { if (X.stages.stageOwn) X.stages.stageOwn('sovev', true); } catch (e) { /* */ } }
 

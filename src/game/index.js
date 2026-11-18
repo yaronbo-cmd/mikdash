@@ -526,6 +526,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     /** Phase B, "העבודה בבית": main.js swaps the game (the save is kept; coming back resumes the building) */
     enterAvodah() { if (hooks.enterAvodah) { persist(); hooks.enterAvodah(); } },
     get canAvodah() { return !!hooks.enterAvodah; },
+    get presentUrl() { return hooks.enterAvodah ? null : hooks.presentUrl || null; },   // ── present132 ── (LINE=new: the menu's entries link to the presentation version) ── /present132 ──
     newGame,
     heroQuarry: () => onQuarryTap(),
     sheetChanged(kind, arg) {

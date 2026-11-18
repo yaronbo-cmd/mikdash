@@ -20,7 +20,7 @@ import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the ad
 import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
-import { lookZone, WHEEL_STEP, pinchU } from './look.js';   // ── h117 ── ── /h117 ──
+import { lookZone, WHEEL_STEP, pinchU, lookYawOf, lookClampOf, lookEndOf } from './look.js';   // ── h117 ── ── /h117 ──
 import { makeLook, LOOK_OPEN_K } from '../world/look.js';   // ── h125 ── (one look module for every stage) ── /h125 ──
 
 const TAU = Math.PI * 2;
@@ -78,7 +78,7 @@ export function createH109Director(o) {
   let M = null, P = null, started = false, act = null, mission = null, phase = 'off', tPhase = 0, film = null, lastMs = 0, hidden = false;
   // one minigame only (ירון 8.11: "קישור יעודי לכל אחד מהמשחקונים"): a page baked with window.__H109_ONLY = 'read' (or ?only=read / #only=read)
   // opens straight on that minigame's first mission, and after each act goes to its next one; after the last, the page starts over
-  const WORK = (() => { if (!PK.workLinks) return null; const w = workFlag(PLAN.map((m) => m.id)); if (w.asked && !w.id) console.warn('[h109] work page: no work', w.asked, '— the stage page'); return w.id; })();
+  const WORK = (() => { if (!PK.workLinks) return null; const w = workFlag(PLAN.map((m) => m.id)); if (w.asked && !w.id && PLAN.some((m) => m.k === String(w.asked).replace(/\d+$/, ''))) console.warn('[h109] work page: no work', w.asked, '— the stage page'); return w.id; })();   // ── build 132 ── (a work of another stage's pack — fill2 asked while stage 08's pack is made for its rest — is not this pack's to warn about: index.js warns for an id no stage has) ── /build 132 ──
   let workDue = !!WORK;
   const ONLY = (() => {
     if (WORK) return PLAN.find((m) => m.id === WORK).k;   // ── b131 ── (a work's page goes on as its kind's page after it) ── /b131 ──
@@ -238,7 +238,7 @@ export function createH109Director(o) {
   /** the play zone: the look small (lookZone) and, with a pack's own look, the work in the frame */
   /** the thumb's gain (u per screen height): 1.8, or the pack's own (the owner on build 120: "להרים ביד ימין בקלות את המצלמה") */
   const UG = () => (PK.look && PK.look.ug) || 1.8;
-  const zone5 = (u, yaw) => (lookZone(u, yaw) === 'play' && (!PK.look || !LK5.on || LK5.seen) ? 'play' : 'wait');
+  const zone5 = (u, yaw) => (lookZone(u, yaw, lookYawOf(act)) === 'play' && (!PK.look || !LK5.on || LK5.seen) ? 'play' : 'wait');
   // (build 124, rule 61 in the walk too) the right thumb on the free canvas while he walks (PK.look.walk): the same shape and sight
   // rule round the kohen. twin.js keeps the camera: the look is said through its own hook (T.camOver = { el, d, az, ox, oz, oy }, the
   // shift's), eased there; a tap, the walk zone (the left stick) or the next work bring the follow camera back (0.45 s, no cut).
@@ -441,8 +441,8 @@ export function createH109Director(o) {
         else if (e.type === 'pointercancel') { LOOK.pend = null; LOOK.id = null; }
         if (!LOOK.drag) return;
       }
-      if (e.type === 'pointermove') { LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -2.8, 2.8); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * UG(), 0, 1); }   // ── h120 ── (UG: a pack's own gain — stage 05: a quarter of the screen lifts to the view) ── /h120 ──
-      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); }
+      if (e.type === 'pointermove') { const YL = lookClampOf(act); LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -YL, YL); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * UG(), 0, 1); }   // ── h120 ── (UG: a pack's own gain — stage 05: a quarter of the screen lifts to the view) ── /h120 ──
+      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); const ye = lookEndOf(act, LOOK.yaw); if (ye != null) { LOOK.yaw = LOOK.yaw0 = ye; lookSet(); } }   // ── build 132 ── (act.lookEnd: where the turn settles) ── /build 132 ──
       return;
     }
     if (e.type === 'pointerdown') {
@@ -602,19 +602,21 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   /** ── h115 ── (ירון 10.11: "משחקון ששוחק מושלם שיקפוץ לו פידבק דופמין ממלא מסך כזה ... בכל משחקון") the whole screen golden: the
    *  word, three stars, what was perfect; fanfare and buzz; a tap or 2.8 s closes it. Its rule is the act's own perfect flag (else
    *  three stars with every grade gold, q of 1) ── /h115 ── */
-  function perfectScreen(sub) {
+  // ── build 132 ── (each work's own success word: res.word at its end, or — in a pack that sets wordScreen (stage 09) — the act's X.perfect(word); 'מושלם!' otherwise, so the older stages are unchanged) ── /build 132 ──
+  let actWord = null;
+  function perfectScreen(sub, word) {
     return new Promise((res) => {
       uiMount();
       const el = document.createElement('div'); el.className = 'h109-ui h109-pf';
       let dots = ''; for (let i = 0; i < 30; i++) { const a = (i / 30) * Math.PI * 2 + Math.random() * 0.2, r = 30 + Math.random() * 40; dots += `<u style="--dx:${(Math.cos(a) * r).toFixed(1)}vmax;--dy:${(Math.sin(a) * r).toFixed(1)}vmax;animation-delay:${(Math.random() * 0.4).toFixed(2)}s"></u>`; }
-      el.innerHTML = `<div class="r"></div>${dots}<b>מושלם!</b><i>★★★</i>${sub ? `<span>${sub}</span>` : ''}`;
+      el.innerHTML = `<div class="r"></div>${dots}<b>${word || 'מושלם!'}</b><i>★★★</i>${sub ? `<span>${sub}</span>` : ''}`;
       document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
       try { if (o.sfx && o.sfx.play) o.sfx.play(typeof o.sfx.has === 'function' && o.sfx.has('levelUp') ? 'levelUp' : 'fanfare', { level: 5 }); } catch (e) { /* */ }
       try { if (o.haptic) o.haptic([30, 50, 30, 50, 80]); } catch (e) { /* */ }
       let done = false; const close = () => { if (done) return; done = true; el.classList.remove('on'); setTimeout(() => el.remove(), 300); res(); };
       el.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (performance.now() - t0 > 700) close(); });
       const t0 = performance.now(); setTimeout(close, 2800);
-      emit('h109perfectScreen', { sub }); log('perfect screen', sub);
+      emit('h109perfectScreen', { sub, word: word || 'מושלם!' }); log('perfect screen', sub, word || 'מושלם!');
     });
   }
 
@@ -852,6 +854,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     // ── h114 ── (ירון 9.11: an exact stop "צריך להיות תגובה מרגשת כמו 'הסתת רמה 4' — זה דופמין מדויק") the perfect moment: the level-up's
     // own stamp, fanfare and buzz, a fountain of sparks where it happened and a short shake ── /h114 ──
     perfect(text, at) {
+      if (text) actWord = text;   // ── build 132 ── ── /build 132 ──
       try { if (ui && ui.stamp) ui.stamp(text, { ms: 1600 }); } catch (e) { /* */ }
       try { if (o.sfx && o.sfx.play) o.sfx.play(typeof o.sfx.has === 'function' && o.sfx.has('levelUp') ? 'levelUp' : 'fanfare', { level: 4 }); } catch (e) { /* */ }
       try { if (o.haptic) o.haptic([20, 40, 30]); } catch (e) { /* */ }
@@ -867,7 +870,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     acting: () => phase === 'act' && !!act,   // ── h129 ── (closing round: a film that runs on while an act has begun — a test's skip — gives the act its camera) ── /h129 ──
     get pack() { return PK; },
     quick: (at, text, mesh) => quick(at, text, mesh),   // ── h120 ── ── /h120 ──
-    perfectScreen: (sub) => perfectScreen(sub),   // ── h120 ── (stage 05's load test: three perfect bays, the full-screen word) ── /h120 ──
+    perfectScreen: (sub, word) => perfectScreen(sub, word),   // ── h120 ── (stage 05's load test: three perfect bays, the full-screen word) ── /h120 ──
   };
   /* ───────── ── h111 ── real damage (spec "הניקוד בהפסד", approved 8.11): a cracked or broken stone −20, a great stone fallen −40;
      stones off the stock; the gold run ends; never under 0 and at most 80 in one mission. A miss without damage costs nothing ── */
@@ -894,7 +897,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   function beginAct() {
     const A = ACTS[mission.k]; if (!A) { M.done({ stars: 0 }); openMission(); return; }
     props().marker(null);
-    phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0;
+    phase = 'act'; tPhase = 0; line(''); ptr.down = false; lossNow = 0; actWord = null;
     // ── b131 ── (fix round 1: every act begins with no finger of another's — a finger kept from the last act's pinch map or look (its
     //  lift came after that act ended) made a new touch the half of a pinch, or the look's, and the act never had it) ── /b131 ──
     try { OV.pins.clear(); OV.pin0 = new Map(); LOOK.swallow = null; lookReset(); } catch (e) { /* */ }
@@ -930,7 +933,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     const E = endAt(res.at, (() => { try { return a.at ? a.at() : null; } catch (e) { return null; } })()), at = E.world;   // ── h128 ── (B1: the stars at the act's own point; the pull-back at a world point) ── /h128 ──
     // ── h115 ── the perfect game fills the screen first ── /h115 ──
     const perfect = stars >= 3 && !res.lost && (res.perfect != null ? !!res.perfect : (res.q || 0) >= 0.999);
-    if (perfect) { const A0 = ACTS[m.k]; try { await perfectScreen(((A0 && A0.title) || 'המשחקון') + ' · בלי טעות אחת'); } catch (e) { /* */ } }
+    if (perfect) { const A0 = ACTS[m.k]; try { await perfectScreen(((A0 && A0.title) || 'המשחקון') + ' · בלי טעות אחת', res.word || (PK && PK.wordScreen ? actWord : null)); } catch (e) { /* */ } }
     if (J && stars > 0) { try { await J.result({ stars, at: E.stars }); } catch (e) { /* */ } }   // ── h128 ── (E.stars) ── /h128 ──
     if (stars > 0) bonus([0, 50, 100, 200][stars], 'job' + stars, `${'★'.repeat(stars)} ${res.lost ? 'הצוות סיים' : stars >= 3 ? 'מהודר' : 'כשר'}`);
     call(a.end, res); polarUp(false);
@@ -1120,8 +1123,8 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     // ── h129 ── (tests: the camera held on a picture in the walk — the stage's damage seen in the world, after the act and after a reload;
     // _hold(null) gives the walk back) ── /h129 ──
     _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } if (TESTHOLD.on) { try { if (view.closeCam) view.closeCam(false, 'h129-hold'); } catch (e) { /* */ } } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; if (LK5.on) lk5Off(); try { if (view.closeCam) view.closeCam(true, 'h129-hold'); } catch (e) { /* (the near plane close, as an act's: a room's arch six amot off) */ } phase = 'film'; shot(p, t, 0.01); return true; },
-    _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
-    _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
+    _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -lookClampOf(act), lookClampOf(act)); lookSet(); return lookZone(LOOK.u, LOOK.yaw, lookYawOf(act)); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
+    _perfect: (sub, word) => perfectScreen(sub, word),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──
     _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },
     _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },

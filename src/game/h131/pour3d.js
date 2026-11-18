@@ -68,6 +68,7 @@ export function createPourView(X, lv, sim, o = {}) {
 
   /* ── the field stones (one mesh each: they fall in one by one) ── */
   const stones = [];
+  const stoneShadowGeo = keep(new THREE.CircleGeometry(1, 20)), stoneShadowMat = keep(new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
   {
     const pal = [col(0xa89c8a), col(0x9d927f), col(0xb4a893), col(0x92897a)], tintPal = col(0xa98c74);
     const US = [0, 0.36, 0.6, 0.77, 0.88, 0.95, 0.985, 1.0], NT = 18;
@@ -83,6 +84,7 @@ export function createPourView(X, lv, sim, o = {}) {
       for (let r = 0; r < US.length - 1; r++) for (let t = 0; t < NT; t++) { const a = r * NT + t, b = r * NT + (t + 1) % NT, c2 = (r + 1) * NT + t, d = (r + 1) * NT + (t + 1) % NT; I.push(a, b, c2, b, d, c2); }
       const g = keep(new THREE.BufferGeometry()); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); g.setIndex(I); g.computeVertexNormals();
       const m = new THREE.Mesh(g, smat); m.castShadow = true; m.position.set(s.x, 0, s.z); G.add(m);
+      { const sm2 = keep(stoneShadowMat.clone()), sh = new THREE.Mesh(stoneShadowGeo, sm2); sh.onBeforeRender = () => { sm2.opacity = m.position.y > 0.05 ? 0 : 0.3; }; sh.rotation.x = -Math.PI / 2; sh.position.y = 0.025; sh.scale.set(s.rx * 1.12, s.rz * 1.12, 1); sh.renderOrder = 1; m.add(sh); }   // (D2: on the floor beyond the frame a stone had no shadow under it and seemed to hang in the air)
       stones.push({ m, s, fall: -1, y0: 4 + rnd() * 1.5 });
     }
   }

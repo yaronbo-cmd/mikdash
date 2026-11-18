@@ -794,7 +794,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   // ── b131 ── (the look round 3b, D1: the combo words sat on the carriers and the crew — a word goes to the nearest place on the screen
   //  where it covers no man, nor the goal pill at the top nor the line at the bottom; where there is none it stays) ── /b131 ──
   function wordClear(q, text) {
-    const W = innerWidth, Hh = innerHeight, ww = Math.max(90, text.length * 19), hh = 46, L = S0.crewActors || [], B = [];
+    const W = innerWidth, Hh = innerHeight, ww = Math.max(90, text.length * 19), hh = 46, B = []; let L = []; try { const fg = figGate(); L = fg && fg.figures ? fg.figures() : []; } catch (e) { L = []; }
     for (const a of L) { if (!a || !a.alive || a.gateOff || !Number.isFinite(a.x)) continue; const p0 = scr(a.x, a.y || 0, a.z), p1 = scr(a.x, (a.y || 0) + 3.9 * (a.s || 1.1) / 1.1, a.z); if (!p0 || !p1 || (p0.on === false && p1.on === false)) continue; const hw = Math.max(12, Math.abs(p0.y - p1.y) * 0.17); B.push({ x0: Math.min(p0.x, p1.x) - hw, x1: Math.max(p0.x, p1.x) + hw, y0: Math.min(p0.y, p1.y), y1: Math.max(p0.y, p1.y) }); }
     const free = (x, y) => { const r = { x0: x - ww / 2, x1: x + ww / 2, y0: y - hh / 2 - 46, y1: y + hh / 2 }; if (r.x0 < 8 || r.x1 > W - 8 || r.y0 < 112 || r.y1 > Hh - 72) return false; return B.every((b) => r.x1 < b.x0 || r.x0 > b.x1 || r.y1 < b.y0 || r.y0 > b.y1); };
     if (free(q.x, q.y)) return q;

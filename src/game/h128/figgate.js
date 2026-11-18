@@ -148,6 +148,8 @@ export function createFigGate(o) {
     report() { return G.rep.slice(); },
     /** (the probes' tool) a standing figure at (x, y, z) against the act's camera at u 0 and u 0.3: { on, cut, between } */
     probe,
+    /** (build 131) every figure the gate knows, for a word placed clear of men */
+    figures() { return list(); },
     stats() { return { on: G.on, ...G.n, report: G.rep.length }; },
   };
 }

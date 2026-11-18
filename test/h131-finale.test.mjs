@@ -95,3 +95,12 @@ test('finale whitening: any touch on the yesod takes the cloth (a refused touch 
   assert.match(src, /A\.step === 'white' && onYesod\(f\)\) return \{ k: 'cloth' \}/);
   assert.ok(!/q\.y < H - 100 && manPlace/.test(src), 'the grey a finger can wipe is not narrowed by the man\'s place');
 });
+// ── b131 review item 6: the timber is heavy — held at the full pull GIVE s before it gives, the screen shaken SHAKE s, a heavy wood
+// sound; every touch in the finale answers at once (the grip, the cloth, the jar)
+test('finale: the pull is heavy and every touch answers at once', () => {
+  assert.ok(NK.GIVE >= 0.6 && NK.GIVE <= 0.9); assert.ok(NK.SHAKE >= 0.3 && NK.SHAKE <= 0.4);
+  const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
+  assert.match(src, /A\.giveT >= NK\.GIVE/); assert.match(src, /X\.shake\(NK\.SHAKE/); assert.match(src, /V\.thud\(\); V\.knock\(1\.8\)/);
+  for (const k of ['grip', 'cloth', 'jar']) assert.match(src, new RegExp(`A\\.ans = '${k}'`), k + ' answers at once');
+  assert.ok(!/iron|ברזל\(/.test(src.replace(/ולא בכף ברזל|no iron[^\n]*|No iron[^\n]*|LINES\.iron/g, '')), 'no iron sound');
+});

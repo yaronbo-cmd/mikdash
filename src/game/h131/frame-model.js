@@ -30,7 +30,15 @@ export const SIDE_K = Object.freeze(['N', 'E', 'S', 'W']);
 const L = S8.frame.L, LD = L * Math.SQRT2;
 /** the act's numbers: a corner seats within SEAT of its stake (on a release; a magnet), TOL the diagonal's play (a seated corner
  *  is exact), the heavy follow's rate (1/s), POP how far past its reach a finger pulls before a seated end gives way, the passes */
-export const FR = Object.freeze({ SEAT: 1.1, TOL: 0.05, FOLLOW: 3.2, POP: 2.4, POPT: 0.35, PASSES: 14 });
+// (b131 review item 5: level 2 — a beam drags what is already joined only once stretched past STRETCH of its length; before that
+//  the joint holds and the beam resists the hand)
+export const FR = Object.freeze({ SEAT: 1.1, TOL: 0.05, FOLLOW: 3.2, POP: 2.4, POPT: 0.35, PASSES: 14, STRETCH: 0.135 });
+/** how far the hand may pull past the point before what holds the frame gives (amot) */
+export function popAt(S) {
+  if (S.lv !== 2 || !S.drag) return FR.POP;
+  const d = S.drag, e = S.E.find((q) => q.beam && !q.joint && (q.a === d.i || q.b === d.i));
+  return e && e.L > 0 ? FR.STRETCH * e.L : FR.POP;
+}
 
 const D2R = Math.PI / 180;
 const hyp = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
@@ -114,7 +122,7 @@ export function step(S, dt) {
     const p = S.P[d.i], lag = Math.hypot(d.tx - p.x, d.tz - p.z), v = Math.hypot(p.x - px, p.z - pz) / Math.max(1e-3, dt);
     // (pulled past its reach: the point stands while the finger is far — the hand drags what holds the frame. Level 1 and 2: a seated
     //  corner gives way; level 3: the pegs do not, the frame is stuck)
-    S.strain = lag > FR.POP && v < 0.8 ? lag : 0;
+    S.strain = lag > popAt(S) && v < 0.8 ? lag : 0;
     if (S.strain) {
       S.popT += dt;
       if (S.popT > FR.POPT) {

@@ -1226,15 +1226,15 @@
       if (a.step === 'pull') {
         let k = a.out.S ? 'E' : 'S'; if (has('east') && !K.east) { K.east = 1; k = 'E'; }
         const d = a['dir' + k], g = a.grip, n = [-d[1] * 22, d[0] * 22], f1 = [g[0] + n[0], g[1] + n[1]], f2 = [g[0] - n[0], g[1] - n[1]];
-        if (MOUSE_P) return { path: [g, [g[0] + d[0] * 170, g[1] + d[1] * 170]], ms: 1400, keep: 1200, wait: 1500, note: 'finale: pull ' + k + ' (mouse)' };
-        const fr = []; for (let i = 0; i < 4; i++) fr.push([f1, f2]); for (let i = 1; i <= 28; i++) fr.push([[f1[0] + d[0] * 6 * i, f1[1] + d[1] * 6 * i], [f2[0] + d[0] * 6 * i, f2[1] + d[1] * 6 * i]]); for (let i = 0; i < 16; i++) fr.push(fr[fr.length - 1]);
-        const r = { seq: fr, ms: 50, wait: 1500, note: 'finale: two thumbs pull ' + k };
+        if (MOUSE_P) return { path: [g, [g[0] + d[0] * 170, g[1] + d[1] * 170]], ms: 1400, keep: 1800, wait: 1500, note: 'finale: pull ' + k + ' (mouse) · ' + (a.ev || []).slice(-3).join(' ') };
+        const fr = []; for (let i = 0; i < 4; i++) fr.push([f1, f2]); for (let i = 1; i <= 28; i++) fr.push([[f1[0] + d[0] * 6 * i, f1[1] + d[1] * 6 * i], [f2[0] + d[0] * 6 * i, f2[1] + d[1] * 6 * i]]); for (let i = 0; i < 30; i++) fr.push(fr[fr.length - 1]);
+        const r = { seq: fr, ms: 50, wait: 1500, note: 'finale: two thumbs pull ' + k + ' · ' + (a.ev || []).slice(-3).join(' ') };
         if (shots && !K['shotP' + k]) { K['shotP' + k] = 1; r.seqShot = [24, a.id + '-pull-' + k]; }
         return r;
       }
       if (a.step === 'white') {
-        if (shots && a.cover > 0.03 && a.rest && !K.shotC0) { K.shotC0 = 1; return { wait: 200, shot: a.id + '-white-start' }; }
-        if (shots && a.cover > 0.4 && a.rest && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
+        if (shots && a.cover > 0.03 && !K.shotC0) { K.shotC0 = 1; return { wait: 200, shot: a.id + '-white-start' }; }
+        if (shots && a.cover > 0.4 && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
         // (the cloth's shot is close: wipe the grey in the picture, row by row; the shot moves on to the next grey when the hand lifts)
         // (b131: never a press on the HUD — a point not on the game's canvas is dropped, and logged as the shot's fault)
         const onCv = (q) => { try { const e = document.elementFromPoint(q[0], q[1]); if (!e || e.tagName === 'CANVAS') return true; const r = e.getBoundingClientRect(); return r.width * r.height > 0.6 * innerWidth * innerHeight; } catch (err) { return true; } };

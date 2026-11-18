@@ -36,7 +36,7 @@ export const NK = Object.freeze({
   GRIP: 110, GRIPM: 60, OUT: 12, CLOTH: 6, TILT: 110, ON: 0.3,
   // (b131 look round) the lens; the pullers on the ropes (how many, the first one's distance from the timber's end, the gap between
   // them, amot); how far the pull's shot follows the timber out (amot)
-  FOV: 52, CARRY: 5.5, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 4, SLIDE: 2.2,
+  FOV: 52, CARRY: 5.5, GIVE: 0.75, SHAKE: 0.35, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 4, SLIDE: 2.2,
 });
 /** the act's words (what to do: at most five words) */
 export const NLINES = Object.freeze({
@@ -340,7 +340,8 @@ export const FINALE_ACT = {
           const g = pxAmah(P.k), along = Math.max(0, (dx * g.ux + dy * g.uy) / g.ppa), Tm = tim[P.k];
           if (!pullable(Fs, P.k)) { if (!P.said) { P.said = 1; X.line(NLINES.held, 3000); V.groan(); ev('held:' + P.k); } Tm.sT = Math.min(0.08, along * 0.02); V.creak(0.5); }
           else if (!two) { Tm.sT = Math.min(0.06, along * 0.02); V.creak(0.4); A.one += dt; if (A.one > 0.5 && !A.saidTwo) { A.saidTwo = 1; X.line(NLINES.two, 3000); ev('one'); } }
-          else if (!Tm.free) { Tm.sT = Math.min(FIN.FREE, along * FIN.PULLK); V.creak(Math.min(1, Tm.sT / FIN.FREE)); if (along * FIN.PULLK >= FIN.FREE) giveWay(P.k); }
+          // (b131 review item 6: heavy — pulled to the full, it holds a moment longer (GIVE s), groaning and trembling, then gives)
+          else if (!Tm.free) { Tm.sT = Math.min(FIN.FREE, along * FIN.PULLK); V.creak(Math.min(1, Tm.sT / FIN.FREE)); if (along * FIN.PULLK >= FIN.FREE) { if (!A.giveT) V.groan(); A.giveT = (A.giveT || 0) + dt; if (A.giveT >= NK.GIVE) { ev('held:' + A.giveT.toFixed(2)); A.giveT = 0; giveWay(P.k); } } else A.giveT = 0; }
           else Tm.sT = Math.max(Tm.sT, FIN.FREE + (along - FIN.FREE / FIN.PULLK));
         }
       }
@@ -350,7 +351,7 @@ export const FINALE_ACT = {
         Tm.s += (Tm.sT - Tm.s) * (1 - Math.exp(-dt * (Tm.free ? 3 : 2.2)));
         // (b131 look round 2: before it gives way the timber is seen sliding — drawn at twice the model's give, its pullers with it)
         const D = TIMBER[k], vs = visS(Tm); Tm.g.position.set(D.dir[0] * vs, 0, D.dir[1] * vs);
-        if (!Tm.free && Tm.s > 0.01) Tm.g.position.x += Math.sin(A.t * 45) * 0.02 * Math.min(1, Tm.s * 10);
+        if (!Tm.free && Tm.s > 0.01) Tm.g.position.x += Math.sin(A.t * 45) * (A.giveT ? 0.06 : 0.02) * Math.min(1, Tm.s * 10);
       }
       // the pullers lean back while the hands pull
       for (const w of crew) if (!w.far) { const want = fs.length || A.busy ? 'pull' : 'hold'; if (w.role !== want) gang.setRole(w, want, { fx: w.fx, fz: w.fz }); }
@@ -359,7 +360,7 @@ export const FINALE_ACT = {
     }
     async function giveWay(k) {
       const Tm = tim[k]; Tm.s = Tm.sT = Tm.s * NK.SLIDE; Tm.free = 1; Fs.n++;
-      V.thud(); V.groan(); X.shake(0.28, 0.42); try { if (X.haptic) X.haptic(BUZZ); } catch (e) { /* */ }
+      V.thud(); V.knock(1.8); V.groan(); X.shake(NK.SHAKE, 0.42);   // (a heavy wood sound, the screen shaken NK.SHAKE s) try { if (X.haptic) X.haptic(BUZZ); } catch (e) { /* */ }
       const at = { x: GRIP_AT[0], y: Y1 + 0.5, z: GRIP_AT[1] }; X.dust(at.x, F + 0.6, at.z, 14, 3);
       X.quick(at, 'יוצאת!', Tm.g.children[0]); ev('free:' + k);
       // the crew takes it the rest of the way, then to the pile
@@ -394,9 +395,11 @@ export const FINALE_ACT = {
       down(f) {
         const k = pick(f); if (!k) { try { if (X.lookHome && FG.n <= 1) X.lookHome(); } catch (e) { /* */ } return; }
         f.w = k; X.hand(null);
-        if (k.k === 'grip') { if (!A.pull) A.pull = { k: null }; ev('grip:' + FG.n); }
-        if (k.k === 'cloth') { const p = onYesod(f); CL.tx = p.x; CL.tz = p.z; if (A.fl == null) { CL.x = p.x; CL.z = p.z; } A.fl = f.id; A.wiped = 1; clothMan(true); V.cloak(); }
-        if (k.k === 'jar') { A.fl = f.id; }
+        // (b131 review item 6: every touch answers at once, seen and heard — the grip: the ropes' creak and the pullers lean back;
+        //  the cloth: under the finger at once, its sound and the first white; the jar: a clay knock and it tips in his hands)
+        if (k.k === 'grip') { if (!A.pull) A.pull = { k: null }; ev('grip:' + FG.n); V.creak(0.35); V.rope(false); for (const w of crew) if (!w.far && w.role !== 'pull') gang.setRole(w, 'pull', { fx: w.fx, fz: w.fz }); A.ans = 'grip'; }
+        if (k.k === 'cloth') { const p = onYesod(f); CL.tx = p.x; CL.tz = p.z; if (A.fl == null) { CL.x = p.x; CL.z = p.z; } A.fl = f.id; A.wiped = 1; clothMan(true); V.cloak(); cloth.position.set(CL.x, Y1 + 0.08, CL.z); if (wipe(Fs, CL.x, CL.z)) paint(false); A.ans = 'cloth'; }
+        if (k.k === 'jar') { A.fl = f.id; V.knock(0.6); A.tiltT = Math.max(A.tiltT, 0.12); A.ans = 'jar'; }
       },
       move(f) {
         const w = f.w; if (!w) return;
@@ -407,7 +410,7 @@ export const FINALE_ACT = {
         const w = f.w; if (!w) return;
         if (w.k === 'cloth' && A.fl === f.id) { A.fl = null; V.scrape(0); keep(); if (!A.whiteDone) clothShot(0.9); }
         if (w.k === 'jar' && A.fl === f.id) { A.fl = null; A.tiltT = 0; keep(); }
-        if (w.k === 'grip' && ![...FG.L.values()].some((q) => q.w && q.w.k === 'grip')) { if (A.pull && !A.busy) A.pull = null; V.creak(0); A.one = 0; }
+        if (w.k === 'grip' && ![...FG.L.values()].some((q) => q.w && q.w.k === 'grip')) { if (A.pull && !A.busy) A.pull = null; V.creak(0); A.one = 0; A.giveT = 0; }
       },
     });
     A.tiltT = 0;
@@ -561,7 +564,7 @@ export const FINALE_ACT = {
       at() { return new T.Vector3(MID[0], Y1, MID[1]); },
       dbg() {
         const s2 = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
-        const cq = cam0.position, o = { rest: !!A.pose && Math.hypot(cq.x - A.pose[0][0], cq.y - A.pose[0][1], cq.z - A.pose[0][2]) < 0.3, figOut: A.outN || 0, rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
+        const cq = cam0.position, o = { ans: A.ans || '', giveT: +(A.giveT || 0).toFixed(2), rest: !!A.pose && Math.hypot(cq.x - A.pose[0][0], cq.y - A.pose[0][1], cq.z - A.pose[0][2]) < 0.3, figOut: A.outN || 0, rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
         o.grip = s2(GRIP_AT[0], Y1, GRIP_AT[1]);
         for (const k of ['S', 'E']) { const g = pxAmah(k); o['dir' + k] = [+g.ux.toFixed(2), +g.uy.toFixed(2), +g.ppa.toFixed(1)]; o['s' + k] = +tim[k].s.toFixed(2); }
         o.jar = s2(jar.position.x, jar.position.y + 0.8, jar.position.z);

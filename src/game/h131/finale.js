@@ -33,7 +33,7 @@ export const NK = Object.freeze({
   DOWN: W8.cam.down, PULL: { S: W8.cam.pullS, E: W8.cam.pullE },
   WHITE: W8.cam.white, WOFF: W8.cam.whiteOff,
   WATER: W8.cam.water, RISE: W8.cam.rise,
-  GRIP: 110, GRIPM: 60, OUT: 34, CLOTH: 6, TILT: 110, ON: 0.3,
+  GRIP: 110, GRIPM: 60, OUT: 12, CLOTH: 6, TILT: 110, ON: 0.3,
   // (b131 look round) the lens; the pullers on the ropes (how many, the first one's distance from the timber's end, the gap between
   // them, amot); how far the pull's shot follows the timber out (amot)
   FOV: 52, CARRY: 5.5, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 4, SLIDE: 2.2,
@@ -132,9 +132,17 @@ export const FINALE_ACT = {
       for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5, dd = Math.hypot(x - CL.x, z - CL.z); if (dd < bd) { bd = dd; bx = x; bz = z; } }
       // (the grey cell itself in the picture's middle: held in from the edge, the bottom rows fell under the instruction line for good)
       const ax = clamp(bx, FIN.X0 + 2, FIN.X0 + FIN.NX - 2), az = clamp(bz, FIN.Z0 + 2, FIN.Z0 + FIN.NZ - 2), O = NK.WOFF;
-      const eye = [ax + O[0], Y1 + O[1], az + O[2]]; A.pose = [eye, [ax, Y1, az]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
+      // (b131: from the south first; where the man by that grey would stand between the eye and the work's middle — the grey on the
+      //  line from the south to it — the eye goes round the grey until he kneels there whole and clear)
+      const at0 = [bx, bz]; let eye = null;
+      for (let q = 0; q < 8; q++) {
+        const r = (q % 2 ? 1 : -1) * Math.ceil(q / 2) * (Math.PI / 4), c = Math.cos(r), s = Math.sin(r), e = [ax + O[0] * c + O[2] * s, Y1 + O[1], az - O[0] * s + O[2] * c];
+        const keep = A.pose; A.pose = [e, [ax, Y1, az]]; const ok = !!manPlace(at0[0], at0[1]); A.pose = keep; if (ok) { eye = e; break; }
+      }
+      if (!eye) { eye = [ax + O[0], Y1 + O[1], az + O[2]]; ev('cloth:noshot'); }
+      A.pose = [eye, [ax, Y1, az]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
       // (the man takes his cloth to that grey: he kneels by it, whole in the new picture, set there while the camera moves)
-      if (A.fl == null) { const at = manPlace(bx, bz) ? [bx, bz] : [ax, az]; CL.x = CL.tx = at[0]; CL.z = CL.tz = at[1]; A.wiped = 1; }
+      if (A.fl == null) { const at = at0; CL.x = CL.tx = at[0]; CL.z = CL.tz = at[1]; A.wiped = 1; }
       clothMan(true);
     }
     /** is there grey left near where the cloth's shot looks (else it moves on: also when a hand lifted off the yesod's edge) */

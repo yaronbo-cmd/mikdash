@@ -498,7 +498,10 @@ export function createPourView(X, lv, sim, o = {}) {
     try { X.props.root.remove(G); } catch (e) { /* */ }
     for (const d of disposables) { try { d.dispose(); } catch (e) { /* */ } }
   }
-  return { G, frame, word, ring, burst, sfx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
+  /** (b131 D1) the view's own figures — the cauldron's two and the knocker — where they stand in the world, for a word kept off them */
+  const _fv = new THREE.Vector3();
+  function figs() { const out = []; for (const f of [crewL, crewR, knocker]) { if (!f || !f.g) continue; let on = true; for (let o = f.g; o; o = o.parent) if (o.visible === false) { on = false; break; } if (!on) continue; f.g.getWorldPosition(_fv); out.push({ x: _fv.x, y: _fv.y, z: _fv.z, h: 3.0 }); } return out; }
+  return { G, figs, frame, word, ring, burst, sfx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
 }
 
 /* ═════════ the world's hooks: what his pours left, from the save (the patches of a section poured again, the stain beside the timber) ═════════ */

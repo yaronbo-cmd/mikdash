@@ -532,6 +532,7 @@ export const POUR_ACT = {
       },
       holds() { return !!A8.grab; },
       at() { return new THREE.Vector3(...toWorld(lv, 0, 1, 0)); },
+      figs() { try { return V.figs(); } catch (e) { return []; } },   // (b131 D1: the view's own men, for the words)
       end() {
         POUR3D.act = 0; X.hand(null); X.kohen(true); lens(fov0);
         try { for (const w of gang.list.slice()) if (!filmMen.has(w)) gang.remove(w); } catch (e) { /* */ }   // (the after-film's men stay for it)

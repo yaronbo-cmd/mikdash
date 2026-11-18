@@ -294,6 +294,14 @@ export function wipe(F, x, z, r = FIN.BRUSH) {
   for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const c = j * FIN.NX + i; if (!CELLS[c] || F.mask[c]) continue; if (Math.hypot(FIN.X0 + i + 0.5 - x, FIN.Z0 + j + 0.5 - z) <= r) { F.mask[c] = 1; n++; } }
   return n;
 }
+/** ── b131 (PC run 6: the whitening stalled) the cloth's one step: it follows the hand late, by a share of the way that depends on
+ *  the frame's time only through exp (the same path at 20, 60 or 144 frames a second), never refused anywhere on the yesod, and it
+ *  whitens where it goes. CL { x, z, tx, tz }, rate per second → cells whitened */
+export function clothStep(F, CL, dt, rate) {
+  const k = 1 - Math.exp(-Math.max(0, dt) * rate);
+  CL.x += (CL.tx - CL.x) * k; CL.z += (CL.tz - CL.z) * k;
+  return wipe(F, CL.x, CL.z);
+}
 export function cover(F) { let n = 0; for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && F.mask[c]) n++; return n / NCELL; }
 /** the crew wipes the rest */
 export function whiteAll(F) { for (let c = 0; c < CELLS.length; c++) if (CELLS[c]) F.mask[c] = 1; }

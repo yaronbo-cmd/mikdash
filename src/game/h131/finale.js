@@ -17,7 +17,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK } from './model.js';
-import { FIN, finLoad, finSave, wipe, cover, whiteAll, pullable, waterPath, finResult, cellsOf, STAKE, SIDES } from './frame-model.js';
+import { FIN, finLoad, finSave, wipe, cover, clothStep, whiteAll, pullable, waterPath, finResult, cellsOf, STAKE, SIDES } from './frame-model.js';
 import { fmats, beamMesh, setBeam, frameHold, siteTidy, figDbg } from './frame3d.js';
 import { box } from './world.js';
 import { inPatch } from './pourlv.js';
@@ -157,7 +157,7 @@ export const FINALE_ACT = {
       for (let c = 0; c < CELLS.length; c++) {
         if (!CELLS[c] || Fs.mask[c]) continue; const i = c % FIN.NX, j = Math.floor(c / FIN.NX);
         const q = X.scr(FIN.X0 + i + 0.5, Y1, FIN.Z0 + j + 0.5);
-        if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100 && manPlace(FIN.X0 + i + 0.5, FIN.Z0 + j + 0.5)) { if (!rows.has(j)) rows.set(j, []); rows.get(j).push([Math.round(q.x), Math.round(q.y)]); }
+        if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100) { if (!rows.has(j)) rows.set(j, []); rows.get(j).push([Math.round(q.x), Math.round(q.y)]); }
       }
       return rows;
     }
@@ -381,7 +381,9 @@ export const FINALE_ACT = {
     function pick(f) {
       if (A.busy || A.done) return null;
       if (A.step === 'pull' && gripHit(f)) return { k: 'grip' };
-      if (A.step === 'white') { const p = onYesod(f); if (p && manPlace(p.x, p.z)) return { k: 'cloth' }; }
+      // (b131, PC run 6: any touch on the yesod takes the cloth — refused where its man could not kneel, the touch turned the look out
+      //  and the act waited for it to come back: the whitening stood still)
+      if (A.step === 'white' && onYesod(f)) return { k: 'cloth' };
       if (A.step === 'water' && jarHit(f)) return { k: 'jar' };
       return null;
     }
@@ -408,16 +410,17 @@ export const FINALE_ACT = {
     A.tiltT = 0;
     // ── the cloth: it follows the hand late; the kneeling man moves with it; the cells it reaches turn white
     function whiteStep(dt) {
-      const k = 1 - Math.exp(-dt * NK.CLOTH), px = CL.x, pz = CL.z;
-      // (the cloth goes only where its man kneels whole in the picture: at the picture's edge it stops — what the finger moves, he moves)
-      if (A.fl != null) { const nx = CL.x + (CL.tx - CL.x) * k, nz = CL.z + (CL.tz - CL.z) * k; if (manPlace(nx, nz)) { CL.x = nx; CL.z = nz; } }
+      const px = CL.x, pz = CL.z;
+      // (b131, PC run 6: the cloth goes wherever the hand takes it on the yesod — never held back; its man kneels by it where the picture
+      //  has him whole (clothMan): a cloth stopped at the picture's edge, under a finger still pressing, wiped nothing)
+      let n = 0; if (A.fl != null) n = clothStep(Fs, CL, dt, NK.CLOTH);
       // (the cloth stays where the man last wiped; before the first wipe it lies on the lime trough)
       if (A.fl != null) A.wiped = 1;
       if (A.wiped) cloth.position.set(CL.x, Y1 + 0.08, CL.z); else cloth.position.set(W8.lime[0], F + 0.6, W8.lime[1]);
       const v = Math.hypot(CL.x - px, CL.z - pz) / Math.max(1e-3, dt);
       if (A.fl != null) {
         V.scrape(Math.min(0.7, v / 10));
-        const n = wipe(Fs, CL.x, CL.z); if (n) { paint(false); }
+        if (n) paint(false);
         const c = cover(Fs);
         if (Math.floor(c * 4) > Math.floor(A.lastCov * 4) && c < FIN.WHITE) { X.quick({ x: CL.x, y: Y1 + 0.5, z: CL.z }, Math.round(c * 100) + '%', null); }
         A.lastCov = c;

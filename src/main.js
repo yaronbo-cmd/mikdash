@@ -956,9 +956,11 @@ globalThis.__BH_FINALE = finale;
 // ── /world12 ──
 function startGame() {
   // a link with '#avodah' opens Phase B directly: '#avodah' = its home · '#avodah=live' · '#avodah=<segment or game id>'
+  if (!__LINE_NEW__) {   // ── line132 ── (LINE=new: Phase B is not in the built file — build.mjs) ── /line132 ──
   if (/^#avodah/.test(location.hash)) { startAvodah((location.hash.split('=')[1] || '').trim()); return; }
   if (/^#shift\b/.test(location.hash)) { startAvodah('shift:' + (location.hash.split('=')[1] || 'card').trim()); return; }
   if (globalThis.__FORCE_SHIFT) { startAvodah('shift:' + (globalThis.__FORCE_SHIFT === true ? 'card' : String(globalThis.__FORCE_SHIFT))); return; }   // ── fable31 ── (the "mishmeret" build: a flag set in <head> — hosts that ignore a hash, such as an artifact frame on a phone, still open the shift) ── /fable31 ──   // ── shift29 ── (#shift: the entry card · #shift=N: a round of level N) ── /shift29 ──
+  }   // ── line132 ──
   // the world the game drives: the construction layer plus the real-clock time of day
   const world = Object.create(stages);
   world.setTimeOfDay = (k) => { if (!wholeView && TIMES[k] && k !== curTime) setTime(k); };
@@ -982,7 +984,7 @@ function startGame() {
         hideInfo(); if (squareG) squareG.visible = false;
       },
       setAutoRotate(v) { if (!v) controls.autoRotate = false; lastInput = performance.now(); },
-      enterAvodah() { startAvodah(''); },
+      ...(__LINE_NEW__ ? {} : { enterAvodah() { startAvodah(''); } }),   // ── line132 ── (LINE=new: no Phase B, so no menu entry nor tour) ── /line132 ──
       pauseWorld,   // ── build6 ──
       opening, openingSkip,   // ── build7 ── the opening's fallback (WORLD7's world.vision first)
       celebrate: () => finale.celebrate(),   // ── world12 ── Chanukat HaBayit's night of light (src/finale.js) ── /world12 ──
@@ -1038,7 +1040,7 @@ async function startAvodah(arg = '') {
 // ── scenes ── the Temple tour, the Ark mystery and the Yom Kippur service (src/avodah/scenes; watch-only where required)
 let scenes = null;
 let tourFromA = false;   // the tour was opened from Phase A: it shows the finished Temple, and closing it returns to building
-window.__openScenes = async (kind = 'tour', ms) => {
+if (!__LINE_NEW__) window.__openScenes = async (kind = 'tour', ms) => {   // ── line132 ── (LINE=new: no scenes in the built file) ── /line132 ──
   if (!avodah && !tourFromA) {
     tourFromA = true;
     if (game && game.destroy) { try { game.destroy(); } catch (e) { console.warn('[scenes] phase A destroy', e); } }

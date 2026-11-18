@@ -70,20 +70,22 @@ export function helperAt(s, lv, end) {
   const hs = (lv | 0) === 1 ? Math.min(s + VK.HELP_AHEAD, end) : s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
   return { ...H, s: hs, x: H.x + H.n[0] * o, z: H.z + H.n[1] * o };
 }
-/** the height a man stands at on (x, z): the top of what lies there under the line (a fallen form wall, a sill), else the floor.
+/** the height a man stands at on (x, z): what is really there — the world's ground (the court's floor, the yesod's ledge where it
+ *  sticks out: X.ground), or the top of a thing of this stage drawn there under the line (a form wall or a sill, while one lies there).
  *  One ray down, cached by a quarter amah, the cache dropped when the world's drawing changes (SH9.key) */
 const FY = { m: new Map(), key: null, rc: null };
 export function footY(X, x, z) {
   if (FY.key !== SH9.key) { FY.m.clear(); FY.key = SH9.key; }
   const key = Math.round(x * 4) + ',' + Math.round(z * 4); let y = FY.m.get(key); if (y != null) return y;
   y = F;
+  try { const g = X.ground ? X.ground(x, z) : NaN; if (Number.isFinite(g) && g > y && g < LY - 1) y = g; } catch (e) { /* (the floor) */ }
   try {
     const T = X.THREE; if (!FY.rc) FY.rc = { r: new T.Raycaster(), o: new T.Vector3(), d: new T.Vector3(0, -1, 0) };
     const objs = []; if (SH9.walls) for (const k of Object.keys(SH9.walls)) { const g = SH9.walls[k].grp; if (g && g.visible) objs.push(g); } if (SH9.drawn) objs.push(SH9.drawn);
     const seen = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
     FY.rc.o.set(x, LY - 1, z); FY.rc.r.set(FY.rc.o, FY.rc.d); FY.rc.r.far = LY - F;
     const h = FY.rc.r.intersectObjects(objs, true).find((q) => seen(q.object));
-    if (h && h.point.y > F) y = h.point.y;
+    if (h && h.point.y > y) y = h.point.y;
   } catch (e) { /* (the floor) */ }
   FY.m.set(key, y); return y;
 }
@@ -98,6 +100,7 @@ export function camAt(s, lv, wHere) {
 /** a corner's measuring shot: outside the corner, the rod, the ladder and the helper in it (derived from cam:w4:measure's height and
  *  distance; the west corners from the north and the south — west of the block are the Ulam's steps) */
 export function measureShot(k) {
+  const B0 = S9.cam && S9.cam.w4corner && S9.cam.w4corner[k]; if (B0) return [B0[0].slice(), B0[1].slice()];   // (the book's, once it has them)
   if (k === 'SE') return [S9.cam.w4measure[0].slice(), [S9.corner.SE[0] - 2, LY - 1.5, S9.corner.SE[1] - 2]];
   const [cx, cz] = S9.corner[k], ex = k === 'NE' ? 9 : 7, ez = k === 'NE' ? -13 : k === 'NW' ? -15 : 15;
   return [[cx + ex, LY + 6.5, cz + ez], [cx + (k === 'NE' ? 0.5 : 1.5), LY - 1.6, cz + (k === 'NE' ? 0 : k === 'NW' ? -1 : 1)]];

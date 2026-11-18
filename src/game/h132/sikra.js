@@ -32,6 +32,7 @@ export const SKA = Object.freeze({
   ROD_PX: 90, END_PX: 64,                             // measuring: the rod's drag start (any left drag moves it) and its lower end's tap
   LOOK_GAIN: 1.8, LOOK_MAX: 0.45,                     // the right thumb's lift (the director's look: X.lookLift)
   KEEP_S: 2,                                          // s between two keeps of the open line in the save
+  POP_DY: -1.9,                                       // the line's popups this far under the line (the juice lifts them 1.6): at the bow, never on the HUD
 });
 const isPhone = () => Math.min(innerWidth, innerHeight) < 700;
 
@@ -52,13 +53,14 @@ function makeSikra(m, X) {
   const gang = createGang(X), BT = createBeat(X);
   const west = Mo.westSlots ? Mo.westSlots() : [];
   // (a reload resumes: the measuring's stakes, or the line where it was)
-  const blob = Mo.workOf('sikra');
+  // (a level per visit: only this level's own unfinished act resumes — another level's, or a finished one, starts clean from the pre-state)
+  const blob0 = Mo.workOf('sikra'), blob = blob0 && blob0.lv === lv && !blob0.done ? blob0 : null;
   const Ms = blob && blob.Ms ? blob.Ms : K.measureFresh(lv);
   let L = null, track = { hs: [], ws: [], cuts: [] };
   if (blob && blob.line) { const r = K.lineLoad(blob.line); if (r) { L = r.L; track = { ...r.track, cuts: (blob.cuts || []).slice() }; } }
   const A = { t: 0, ev: [], phase: L ? 'line' : 'measure', busy: 0, done: 0, keepT: 0, k: null, rod: { u: 0, hung: false }, mode: null, leftDown: false, org: null, lp: null, held: null, r2: null, look: 0, cutTo: -1, si: 0, ti: 0, last: '' };
   const ev = (e) => { A.ev.push(e); if (A.ev.length > 18) A.ev.shift(); };
-  const keep = () => { Mo.keep('sikra', { Ms, line: L ? K.lineSave(L, null) : null, cuts: track.cuts }); X.save(); };
+  const keep = () => { Mo.keep('sikra', { lv, done: !!A.done, Ms, line: L ? K.lineSave(L, null) : null, cuts: track.cuts }); X.save(); };
   if (!blob) { try { Mo.st.sikra.line = null; } catch (e) { /* */ } }   // (played again: the old line goes with its flaws — workSeed)
   V3.SK3.act = true; V3.SK3.key = '';
 
@@ -104,7 +106,8 @@ function makeSikra(m, X) {
     // (leaned on one face beside the corner — VK.LAD amot along it, the face the corner's shot sees him clear of the rod on: on the
     //  diagonal he stood before the corner and the figures gate took him out)
     const [cx, cz] = S9.corner[k], d = diag(k), xf = V3.VK.LAD_FACE[k] === 'x', n = xf ? [d[0], 0] : [0, d[1]], al = xf ? [0, -d[1]] : [-d[0], 0], o = V3.VK.LAD[k];
-    const bx = cx + al[0] * o, bz = cz + al[1] * o, foot = [bx + n[0] * 2.2, bz + n[1] * 2.2], fy = V3.footY(X, foot[0], foot[1]), head = [bx + n[0] * 0.12, TOP - 0.35, bz + n[1] * 0.12];
+    const bx = cx + al[0] * o, bz = cz + al[1] * o, LB = K9.ladder && K9.ladder[k];   // (the book's, once it has them)
+    const foot = LB ? LB.foot.slice() : [bx + n[0] * 2.2, bz + n[1] * 2.2], fy = V3.footY(X, foot[0], foot[1]), head = LB ? LB.head.slice() : [bx + n[0] * 0.12, TOP - 0.35, bz + n[1] * 0.12];
     V3.leanLadder(ladder, foot[0], foot[1], head[0], head[1], head[2], fy); ladder.visible = true;
     // (the helper on a rung, his feet two amot over the ladder's foot, on its outer side; the wooden mallet in his hand, toward the stake)
     const hY = fy + 2, u = (hY - fy) / (head[1] - fy), hx = foot[0] + (head[0] - foot[0]) * u + n[0] * 0.35, hz = foot[1] + (head[2] - foot[1]) * u + n[1] * 0.35;
@@ -166,7 +169,7 @@ function makeSikra(m, X) {
   const label = (f) => (LOSS[f] ? LOSS[f][0] : '');
   function onEvent(e) {
     ev(e.e + (e.s != null ? '@' + e.s : ''));
-    const at = lineAt(e.s != null ? e.s : L.s, 0.3);
+    const at = lineAt(e.s != null ? e.s : L.s, SKA.POP_DY);
     switch (e.e) {
       case 'seg': if (e.pts >= 40) { X.hit(at, 'gold'); X.quick(at, WORDS.quick); } else if (e.pts >= 20) X.hit(at, 'good'); else if (e.pts > 0) X.hit(at, 'ok'); else if (e.pts < 0) X.loss(SK.PTS.loss, at, label('sikra.wavy')); break;
       case 'corner':

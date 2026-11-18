@@ -516,6 +516,9 @@ export function createPourView(X, lv, sim, o = {}) {
   /** (b131 D1) the view's own figures — the cauldron's two and the knocker — where they stand in the world, for a word kept off them */
   const _fv = new THREE.Vector3();
   function figs() { const out = []; for (const f of [crewL, crewR, knocker]) { if (!f || !f.g) continue; let on = true; for (let o = f.g; o; o = o.parent) if (o.visible === false) { on = false; break; } if (!on) continue; f.g.getWorldPosition(_fv); out.push({ x: _fv.x, y: _fv.y, z: _fv.z, h: 3.0 }); } return out; }
+  // ── b131 ── (PC run 7: the bed stood flat black under the stones while the act waited — the director runs it only while he looks at the
+  // play — the mix's mesh was unpainted until the act's first frame: colour 0 at height 0 over the floor) painted once as it is made ── /b131 ──
+  updateFluidMesh(V.sink, false);
   return { G, figs, frame, word, ring, burst, sfx, warnFx, sealFx, startTeardown, finishTeardown, TD_END, resetFx, setReed, dropStone, world, surfaceAt, fluidU, FX, stones, reeds, V, dispose };
 }
 

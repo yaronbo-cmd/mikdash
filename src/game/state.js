@@ -28,6 +28,7 @@ import {
   REWARD, CHAPTERS, CHAPTER_BONUS, ROUTES, RIDX, CAR_SLOTS, TRAIN, DAILY, TASKS, VINE, QUIZ,
   PROJ, SEG, STOCK_MAX, WORK, CREW_RATE, EVENT_CREW, QUALITY_BAD, keyOf, eventAt, EVENTS, FIELD_OF, SOURCES, UPGRADES, PH, CHECK_EVERY,
 } from './content.js';
+import { saveKey } from './savekey.js';   // ── b131 ── ── /b131 ──
 import * as TL from './tools.js';   // ── tools21 ──
 import { PAY } from './content.js';   // ── econ14 ── the coins ── /econ14 ──
 import { UNLOCKS } from './middot.js';
@@ -42,9 +43,10 @@ const EPS = 1e-6;
 
 /* ───────── storage (localStorage throws in sandboxed iframes / private mode) ───────── */
 export const storage = {
-  get(k) { try { return globalThis.localStorage ? globalThis.localStorage.getItem(k) : null; } catch (e) { return null; } },
-  set(k, v) { try { globalThis.localStorage.setItem(k, v); return true; } catch (e) { return false; } },
-  remove(k) { try { globalThis.localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
+  // ── b131 ── (the saves kept apart per version page: savekey.js) ── /b131 ──
+  get(k) { try { return globalThis.localStorage ? globalThis.localStorage.getItem(saveKey(k)) : null; } catch (e) { return null; } },
+  set(k, v) { try { globalThis.localStorage.setItem(saveKey(k), v); return true; } catch (e) { return false; } },
+  remove(k) { try { globalThis.localStorage.removeItem(saveKey(k)); } catch (e) { /* storage unavailable */ } },
 };
 
 /* ───────── time ───────── */

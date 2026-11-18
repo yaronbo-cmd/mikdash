@@ -20,7 +20,7 @@ import { BOOK } from '../world/grid.js';   // (build 127: the cameras are the ad
 import { createProps } from './props.js';
 import { ACTS } from './acts.js';
 import { finale01 } from './acts3.js';   // ── h115 ── ── /h115 ──
-import { lookZone, WHEEL_STEP, pinchU } from './look.js';   // ── h117 ── ── /h117 ──
+import { lookZone, WHEEL_STEP, pinchU, lookYawOf, lookClampOf, lookEndOf } from './look.js';   // ── h117 ── ── /h117 ──
 import { makeLook, LOOK_OPEN_K } from '../world/look.js';   // ── h125 ── (one look module for every stage) ── /h125 ──
 
 const TAU = Math.PI * 2;
@@ -238,7 +238,7 @@ export function createH109Director(o) {
   /** the play zone: the look small (lookZone) and, with a pack's own look, the work in the frame */
   /** the thumb's gain (u per screen height): 1.8, or the pack's own (the owner on build 120: "להרים ביד ימין בקלות את המצלמה") */
   const UG = () => (PK.look && PK.look.ug) || 1.8;
-  const zone5 = (u, yaw) => (lookZone(u, yaw) === 'play' && (!PK.look || !LK5.on || LK5.seen) ? 'play' : 'wait');
+  const zone5 = (u, yaw) => (lookZone(u, yaw, lookYawOf(act)) === 'play' && (!PK.look || !LK5.on || LK5.seen) ? 'play' : 'wait');
   // (build 124, rule 61 in the walk too) the right thumb on the free canvas while he walks (PK.look.walk): the same shape and sight
   // rule round the kohen. twin.js keeps the camera: the look is said through its own hook (T.camOver = { el, d, az, ox, oz, oy }, the
   // shift's), eased there; a tap, the walk zone (the left stick) or the next work bring the follow camera back (0.45 s, no cut).
@@ -441,8 +441,8 @@ export function createH109Director(o) {
         else if (e.type === 'pointercancel') { LOOK.pend = null; LOOK.id = null; }
         if (!LOOK.drag) return;
       }
-      if (e.type === 'pointermove') { LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -2.8, 2.8); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * UG(), 0, 1); }   // ── h120 ── (UG: a pack's own gain — stage 05: a quarter of the screen lifts to the view) ── /h120 ──
-      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); }
+      if (e.type === 'pointermove') { const YL = lookClampOf(act); LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -YL, YL); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * UG(), 0, 1); }   // ── h120 ── (UG: a pack's own gain — stage 05: a quarter of the screen lifts to the view) ── /h120 ──
+      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); const ye = lookEndOf(act, LOOK.yaw); if (ye != null) { LOOK.yaw = LOOK.yaw0 = ye; lookSet(); } }   // ── build 132 ── (act.lookEnd: where the turn settles) ── /build 132 ──
       return;
     }
     if (e.type === 'pointerdown') {
@@ -1120,7 +1120,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     // ── h129 ── (tests: the camera held on a picture in the walk — the stage's damage seen in the world, after the act and after a reload;
     // _hold(null) gives the walk back) ── /h129 ──
     _hold: (p, t) => { if (!p) { if (phase === 'film' && !film && TESTHOLD.on) { phase = 'walk'; CAM.on = false; } if (TESTHOLD.on) { try { if (view.closeCam) view.closeCam(false, 'h129-hold'); } catch (e) { /* */ } } TESTHOLD.on = false; return false; } if (phase !== 'walk' && !TESTHOLD.on) return false; TESTHOLD.on = true; if (LK5.on) lk5Off(); try { if (view.closeCam) view.closeCam(true, 'h129-hold'); } catch (e) { /* (the near plane close, as an act's: a room's arch six amot off) */ } phase = 'film'; shot(p, t, 0.01); return true; },
-    _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -2.8, 2.8); lookSet(); return lookZone(LOOK.u, LOOK.yaw); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
+    _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -lookClampOf(act), lookClampOf(act)); lookSet(); return lookZone(LOOK.u, LOOK.yaw, lookYawOf(act)); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub) => perfectScreen(sub),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──
     _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },

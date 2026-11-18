@@ -192,7 +192,7 @@ function pitAct(m, X) {
     const far = (e) => Math.hypot(mid[0] + e[0] * S.back * k - P.cradle[0], mid[1] + e[1] * S.back * k - P.cradle[1]);
     let [ex, ez] = turnOf(S.turn); { const o = turnOf(-S.turn); if (far(o) > far([ex, ez]) + 2) [ex, ez] = o; }
     lookOff(); shotTo(A3(mid[0] + ex * S.back * k, F + S.up * k, mid[1] + ez * S.back * k), A3(mid[0], F + S.aimY, mid[1]), d);
-    fovT = S.fov; shotK = 'work'; carrOut(); digsIn();
+    fovT = S.fov; shotK = 'work'; carrOut(); digsIn(); lever.visible = true;
   }
   // ── the carriers (the figure rule: a figure is in the picture only when the step needs him, whole, working with his tool in hand;
   // otherwise he is out for that step): through the opening, the work, the lever and the nail check they are not in the world at all
@@ -217,7 +217,7 @@ function pitAct(m, X) {
     // (look round 131: from the side away from the cradle — nearer, the cradle and its carriers stood cut in the foreground)
     { const c = P.cradle, e1 = Math.hypot(mid[0] + px * S.D - c[0], mid[1] + pz * S.D - c[1]), e2 = Math.hypot(mid[0] - px * S.D - c[0], mid[1] - pz * S.D - c[1]); if (e2 > e1 + 2) { px = -px; pz = -pz; } }
     lookOff(); shotTo(A3(mid[0] + px * S.D, F + S.H, mid[1] + pz * S.D), A3(mid[0], F + S.aimY, mid[1]), d);
-    fovT = S.fov; shotK = 'lever'; carrOut();
+    fovT = S.fov; shotK = 'lever'; carrOut(); lever.visible = true;
   }
   function checkShot(d = 1.0) { const c = P.cradle, S = SHOT.check; carrOut(); lookOff(); shotTo(A3(c[0] + S.eye[0], S.eye[1], c[1] + S.eye[2]), A3(c[0] + S.aim[0], S.aim[1], c[1] + S.aim[2]), d); fovT = S.fov; shotK = 'check'; }
   /** a feedback word's place on the screen: at the thing, but never on the kohen — over his head when it would fall on him; inside the
@@ -375,12 +375,18 @@ function pitAct(m, X) {
     carrIn('pull', { fx: from.x, fz: from.z, k: 2 });
     const HS = SHOT.hoist, mid = [(c[0] + top[0]) / 2, (c[1] + top[1]) / 2]; let px = -c[1] / dc, pz = c[0] / dc;
     const st = P.stand; if (Math.hypot(mid[0] + px * HS.D - st[0], mid[1] + pz * HS.D - st[1]) < Math.hypot(mid[0] - px * HS.D - st[0], mid[1] - pz * HS.D - st[1])) { px = -px; pz = -pz; }   // (the side away from the book's stand on the south rim: nearer, it stood before the eye)
-    const cs = A3(mid[0] + px * HS.D - c[0] / dc * HS.E, HS.H, mid[1] + pz * HS.D - c[1] / dc * HS.E), ca = A3(top[0] - c[0] / dc * 1.2, HS.aimY, top[1] - c[1] / dc * 1.2);
+    const ex = mid[0] + px * HS.D - c[0] / dc * HS.E, ez = mid[1] + pz * HS.D - c[1] / dc * HS.E;
+    // (the kohen is not the hoist's doer: he steps back to the pit's far side from the eye and watches the stone go up — whole, low in
+    //  the frame, never under the eye or before the stone; the lever lies out of the picture till his next stone)
+    { const h0 = P.hole.at, dx = h0[0] - ex, dz = h0[1] - ez, n = Math.hypot(dx, dz) || 1; kohenTo([h0[0] + dx / n * (PD.R0 - 1.6), h0[1] + dz / n * (PD.R0 - 1.6)], foot, true); kohenStep(1); lever.visible = false; }
+    A.hoistG = g;
+    const cs = A3(ex, HS.H, ez), ca = A3(top[0] - c[0] / dc * 1.2, HS.aimY, top[1] - c[1] / dc * 1.2);
     digsOut(); lookOff(); shotTo(cs, ca, 0.01); fovT = HS.fov; lens(HS.fov); shotK = 'hoist';
     await X.wait(0.5);
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];
     for (const [p, q, d] of legs) await tween(g, p, q, d, s);
     for (const r of ropes) r.show(false);
+    A.hoistG = null;
     for (const w of carr) gang.setRole(w, 'hold', { fx: cr0.x + 4, fz: cr0.z });
     V.knock(1.2); X.dust(cc.x, cc.y - 0.4, cc.z, 10, 1.6);
     if (to === 'row') {
@@ -596,7 +602,8 @@ function pitAct(m, X) {
       for (const [, i] of outs) { const g = meshOf(i); if (g && g !== last) g.visible = false; }
       if (cr) showFilm(X, { gang, men: carr.filter(Boolean), stone: last, cradle: cr });
     },
-    at() { if (A.phase === 'done') { const k = W3(KOH_FILM[0], 1.6, KOH_FILM[1]); return new T.Vector3(k.x, k.y, k.z); }
+    at() { if (A.hoistG && A.phase !== 'done') { const g = A.hoistG; return new T.Vector3(g.position.x, g.position.y + (g.userData.hy || 1) * 0.5, g.position.z); }
+      if (A.phase === 'done') { const k = W3(KOH_FILM[0], 1.6, KOH_FILM[1]); return new T.Vector3(k.x, k.y, k.z); }
       const s = A.phase === 'check' && A.check ? null : cur(); const g = s ? meshOf(W.stones.indexOf(s)) : null; if (g) return stoneTop(g, new T.Vector3()); const c = W3(P.cradle[0], 1, P.cradle[1]); return new T.Vector3(c.x, c.y, c.z); },
     dbg() {
       const sp = (w) => { const r = X.scr(w.x, w.y, w.z); return [Math.round(r.x), Math.round(r.y)]; };

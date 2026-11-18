@@ -7,12 +7,12 @@
  *   the sounds: string, wood, clay, a drop — nothing metal
  * Materials are made with the view (painted from the first frame).
  *
- *   VK · faceAt(s) · walkerAt(s, lv) · camAt(s, lv) · smats(X) · makeRibbon · makeMarks · makeRod · makeLadder · makePole · makeBowl
+ *   VK · faceAt(s) · walkerAt(s, lv) · helperAt(s, lv) · footY(X, x, z) · camAt(s, lv) · smats(X) · makeRibbon · makeMarks · makeRod · makeLadder · makePole · makeBowl
  *   makeSwab · makeDots · voices(sfx) · lineRecord(L, track) · drawRecord(X, rec, parent) · SIKRA_LANE
  */
 import { BOOK } from '../world/grid.js';
 import { SK, TEF, wallAt, cornersOf } from './sikra-model.js';
-import { addLane } from './world.js';
+import { addLane, SH9 } from './world.js';
 
 const S9 = BOOK.s09, K9 = S9.sikra, LY = S9.lineY, F = S9.floor, TOP = S9.top;
 
@@ -23,11 +23,16 @@ export const VK = Object.freeze({
   DOT_R: 0.07,           // a charcoal dot's radius
   // the worker's path off each face (E: stand:w4 is 1.2 out; W: path:W, x −54.3, 1.3 out of −53; N and S as W)
   PATH: Object.freeze({ E: +(S9.stand.w4[0] - S9.block[2]).toFixed(3), N: 1.3, W: +(S9.block[0] - K9.pathW.x).toFixed(3), S: 1.3 }),
-  HELP_AHEAD: 3.6, HELP_OUT: 0.9,   // the helper ahead of him along the wall, a little further out
-  // the follow camera (cam:w4: behind the worker and a little to the side, the wall left to right, the worker in the left third). West:
-  // the gap is one amah — the camera above him and behind (sikra:path:W)
-  CAM: Object.freeze({ back: 5.5, out: 9.8, up: 6.5, aimF: 2.5, aimIn: -1.2, aimUp: 5 }),
-  CAMW: Object.freeze({ back: 8.5, out: 1.6, up: 10.5, aimF: 4.5, aimIn: -0.2, aimUp: 4.2 }),
+  // the helper ahead of him along the wall, a little further out (in the west in the same one-amah gap: never on the Ulam's steps)
+  HELP_AHEAD: 4.4, HELP_OUT: Object.freeze({ E: 0.9, N: 0.9, W: 0, S: 0.9 }),
+  // the follow camera (cam:w4: behind the worker and a little to the side, the wall left to right, the worker in the left third, the
+  // helper and the bowl right of the middle; far enough that both stand whole from their feet on the fallen boards to the wall's top,
+  // at the act's lens — the figures gate's rule "whole or absent"). West: the gap is one amah — the camera above him and behind
+  CAM: Object.freeze({ back: 6, out: 16, up: 6, aimF: 2.8, aimIn: 0.8, aimUp: 3.4 }),
+  CAMW: Object.freeze({ back: 13, out: 2.5, up: 13, aimF: 4, aimIn: 0.2, aimUp: 1.5 }),
+  // the measuring: the ladder leaned on one face this far from the corner (the helper on it beside the rod, not before it), and which
+  // face (the one the corner's shot sees the helper clear of the corner on)
+  LAD: Object.freeze({ NE: 2.4, SE: 2.8, SW: 3.4, NW: 3.4 }), LAD_FACE: Object.freeze({ NE: 'z', SE: 'x', SW: 'z', NW: 'z' }),
   BOWL_PX: 52, DRIP_PX: 40,  // the right thumb's targets on the screen (the bowl about 2.5 cm: its hit radius in css px)
   BOWL_R: 0.62,          // the bowl's radius (a big clay bowl, seen)
   POLE_R: 0.05,
@@ -36,7 +41,9 @@ export const VK = Object.freeze({
 const N_OF = Object.freeze({ E: [1, 0], N: [0, -1], W: [-1, 0], S: [0, 1] });
 /** the face at s: its point on the line (x, z), the walk's unit u along it and the outward normal n */
 export function faceAt(s) {
-  const w = wallAt(Math.min(s, 4 * SK.SIDE - 1e-9)), R = S9.run[w.k], L = SK.SIDE, ux = (R.to[0] - R.from[0]) / L, uz = (R.to[1] - R.from[1]) / L;
+  // (past the round's end it goes on round the start: a close too long prints on the east face again, the helper walks on round it)
+  const P = 4 * SK.SIDE; if (s >= P) s -= P;
+  const w = wallAt(Math.min(s, P - 1e-9)), R = S9.run[w.k], L = SK.SIDE, ux = (R.to[0] - R.from[0]) / L, uz = (R.to[1] - R.from[1]) / L;
   const d = s - w.i * SK.SIDE;
   return { k: w.k, x: R.from[0] + ux * d, z: R.from[1] + uz * d, u: [ux, uz], n: N_OF[w.k] };
 }
@@ -44,7 +51,7 @@ const rot = (v, a) => [v[0] * Math.cos(a) - v[1] * Math.sin(a), v[0] * Math.sin(
 /** the frame round a corner: through the zone (an amah before and after the stake) u and n turn a quarter by themselves */
 function frameAt(s, lv) {
   const f = faceAt(s); let blend = null;
-  for (const c of cornersOf(lv)) if (s >= c - SK.CORNER && s < c + SK.CORNER) blend = { c, t: (s - (c - SK.CORNER)) / (2 * SK.CORNER) };
+  for (const c of (lv | 0) === 1 ? cornersOf(lv) : [...cornersOf(lv), 4 * SK.SIDE]) if (s >= c - SK.CORNER && s < c + SK.CORNER) blend = { c, t: (s - (c - SK.CORNER)) / (2 * SK.CORNER) };
   if (!blend) return { ...f, u: f.u, n: f.n, k1: f.k, k2: f.k, t: 0 };
   const a = faceAt(blend.c - 0.5), b = faceAt(blend.c + 0.5), sgn = Math.sign(a.u[0] * b.u[1] - a.u[1] * b.u[0]) || 1, ang = sgn * (Math.PI / 2) * blend.t;
   return { ...f, u: rot(a.u, ang), n: rot(a.n, ang), k1: a.k, k2: b.k, t: blend.t };
@@ -55,7 +62,30 @@ export function walkerAt(s, lv) {
   // (in a corner zone the base point is the corner itself at its middle: the arc keeps him outside the corner)
   let bx = F0.x, bz = F0.z;
   if (F0.t > 0) { const c = Math.round(s / SK.SIDE) * SK.SIDE, cc = faceAt(c), w = 1 - Math.abs(F0.t - 0.5) * 2; bx = F0.x + (cc.x - F0.x) * w * 0.6; bz = F0.z + (cc.z - F0.z) * w * 0.6; }
-  return { x: bx + F0.n[0] * off, z: bz + F0.n[1] * off, u: F0.u, n: F0.n, k: F0.k, t: F0.t };
+  return { x: bx + F0.n[0] * off, z: bz + F0.n[1] * off, u: F0.u, n: F0.n, k: F0.k, k1: F0.k1, k2: F0.k2, t: F0.t };
+}
+/** where the helper walks for the worker's s: ahead of him by HELP_AHEAD, a little further out (at level 1 never past the line's end;
+ *  on the whole round he walks on past the south-east corner, out of the close's way) */
+export function helperAt(s, lv, end) {
+  const hs = (lv | 0) === 1 ? Math.min(s + VK.HELP_AHEAD, end) : s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
+  return { ...H, s: hs, x: H.x + H.n[0] * o, z: H.z + H.n[1] * o };
+}
+/** the height a man stands at on (x, z): the top of what lies there under the line (a fallen form wall, a sill), else the floor.
+ *  One ray down, cached by a quarter amah, the cache dropped when the world's drawing changes (SH9.key) */
+const FY = { m: new Map(), key: null, rc: null };
+export function footY(X, x, z) {
+  if (FY.key !== SH9.key) { FY.m.clear(); FY.key = SH9.key; }
+  const key = Math.round(x * 4) + ',' + Math.round(z * 4); let y = FY.m.get(key); if (y != null) return y;
+  y = F;
+  try {
+    const T = X.THREE; if (!FY.rc) FY.rc = { r: new T.Raycaster(), o: new T.Vector3(), d: new T.Vector3(0, -1, 0) };
+    const objs = []; if (SH9.walls) for (const k of Object.keys(SH9.walls)) { const g = SH9.walls[k].grp; if (g && g.visible) objs.push(g); } if (SH9.drawn) objs.push(SH9.drawn);
+    const seen = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
+    FY.rc.o.set(x, LY - 1, z); FY.rc.r.set(FY.rc.o, FY.rc.d); FY.rc.r.far = LY - F;
+    const h = FY.rc.r.intersectObjects(objs, true).find((q) => seen(q.object));
+    if (h && h.point.y > F) y = h.point.y;
+  } catch (e) { /* (the floor) */ }
+  FY.m.set(key, y); return y;
 }
 /** the follow shot at s: [eye], [aim] */
 export function camAt(s, lv, wHere) {
@@ -118,11 +148,12 @@ export function makeRibbon(X, parent, maxS) {
   };
   /** a printed stretch taken back (a gap, a seam): its samples flat */
   R.cut = (s0, s1) => { for (let i = Math.max(0, Math.floor(s0 / SK.SAMPLE)); i <= Math.min(R.n - 1, Math.ceil(s1 / SK.SAMPLE)); i++) { const o = i * 6, m = (pos[o + 1] + pos[o + 4]) / 2; pos[o + 1] = pos[o + 4] = m; if (i < R.lo) R.lo = i; if (i > R.hi) R.hi = i; } };
-  /** once a frame: only the samples written since the last flush go to the card */
+  /** once a step: only the samples written since the last flush go to the card (the ranges add up until the renderer uploads them
+   *  and clears them itself: two steps in one frame must not drop the first one's samples — they stayed at the origin) */
   R.flush = () => {
     if (R.hi < R.lo) return;
     const a = R.lo * 6, cnt = (R.hi - R.lo + 1) * 6;
-    pa.clearUpdateRanges(); ca.clearUpdateRanges(); pa.addUpdateRange(a, cnt); ca.addUpdateRange(a, cnt); pa.needsUpdate = true; ca.needsUpdate = true;
+    pa.addUpdateRange(a, cnt); ca.addUpdateRange(a, cnt); pa.needsUpdate = true; ca.needsUpdate = true;
     g.setDrawRange(0, Math.max(0, R.n - 1) * 6); R.lo = N; R.hi = -1;
   };
   R.dispose = () => { parent.remove(mesh); g.dispose(); };
@@ -160,10 +191,10 @@ export function makeLadder(X, len = 6.2) {
   for (let i = 1; i < 12; i++) { const r = new T.Mesh(new T.BoxGeometry(0.64, 0.07, 0.07), M.poleD); r.position.set(0, (i * len) / 12, 0); g.add(r); }
   g.userData.len = len; return g;
 }
-/** lean the ladder from its foot (x, z on the floor) to its head at (hx, hy, hz) */
-export function leanLadder(g, x, z, hx, hy, hz) {
-  const dx = hx - x, dy = hy - F, dz = hz - z, L = Math.hypot(dx, dy, dz);
-  g.position.set(x, F, z); g.scale.set(1, L / g.userData.len, 1);
+/** lean the ladder from its foot (x, z on the floor, or on what lies there: fy) to its head at (hx, hy, hz) */
+export function leanLadder(g, x, z, hx, hy, hz, fy = F) {
+  const dx = hx - x, dy = hy - fy, dz = hz - z, L = Math.hypot(dx, dy, dz);
+  g.position.set(x, fy, z); g.scale.set(1, L / g.userData.len, 1);
   g.rotation.set(0, 0, 0); g.rotation.order = 'YXZ'; g.rotation.y = Math.atan2(dx, dz); g.rotation.x = Math.atan2(Math.hypot(dx, dz), dy);
 }
 export function makeStake(X) { const T = X.THREE, m = new T.Mesh(new T.CylinderGeometry(0.06, 0.035, 0.45, 6), smats(X).stake); m.castShadow = true; return m; }

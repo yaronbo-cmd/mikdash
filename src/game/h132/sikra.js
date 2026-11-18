@@ -101,10 +101,13 @@ function makeSikra(m, X) {
     const [cx, cz] = S9.corner[k], d = diag(k), s = V3.makeStake(X); s.position.set(cx + d[0] * 0.15, LY, cz + d[1] * 0.15); s.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(d[0], 0, d[1]).normalize()); root.add(s); return s;   // (driven into the corner, its head out along the corner's diagonal)
   }
   function ladderAt(k) {
-    const [cx, cz] = S9.corner[k], d = diag(k), foot = [cx + d[0] * 2.2, cz + d[1] * 2.2], head = [cx + d[0] * 0.25, TOP - 0.35, cz + d[1] * 0.25];
-    V3.leanLadder(ladder, foot[0], foot[1], head[0], head[1], head[2]); ladder.visible = true;
-    // (the helper on a rung, his feet 2.3 over the floor, facing the corner; the mallet in his hand)
-    const hY = F + 2.3, u = (hY - F) / (head[1] - F), hx = foot[0] + (head[0] - foot[0]) * u + d[0] * 0.35, hz = foot[1] + (head[2] - foot[1]) * u + d[1] * 0.35;
+    // (leaned on one face beside the corner — VK.LAD amot along it, the face the corner's shot sees him clear of the rod on: on the
+    //  diagonal he stood before the corner and the figures gate took him out)
+    const [cx, cz] = S9.corner[k], d = diag(k), xf = V3.VK.LAD_FACE[k] === 'x', n = xf ? [d[0], 0] : [0, d[1]], al = xf ? [0, -d[1]] : [-d[0], 0], o = V3.VK.LAD[k];
+    const bx = cx + al[0] * o, bz = cz + al[1] * o, foot = [bx + n[0] * 2.2, bz + n[1] * 2.2], fy = V3.footY(X, foot[0], foot[1]), head = [bx + n[0] * 0.12, TOP - 0.35, bz + n[1] * 0.12];
+    V3.leanLadder(ladder, foot[0], foot[1], head[0], head[1], head[2], fy); ladder.visible = true;
+    // (the helper on a rung, his feet two amot over the ladder's foot, on its outer side; the wooden mallet in his hand, toward the stake)
+    const hY = fy + 2, u = (hY - fy) / (head[1] - fy), hx = foot[0] + (head[0] - foot[0]) * u + n[0] * 0.35, hz = foot[1] + (head[2] - foot[1]) * u + n[1] * 0.35;
     const w = helperAdd(hx, hz, { item: 'mallet', fx: cx, fz: cz, y: hY }); if (w) { w.a.yaw = Math.atan2(cx - hx, cz - hz); }
   }
   function cornerOn(k, first) {
@@ -137,9 +140,9 @@ function makeSikra(m, X) {
     // the worker (the player's figure, a kohen) with the pole; the helper ahead with the bowl and the swab rod
     if (helper) { gang.remove(helper); helper = null; }
     const w0 = V3.walkerAt(L.s, lv);
-    worker = gang.add(w0.x, w0.z, { variant: 'kohen', role: 'hold', crew: 0 }); if (worker) { worker.a.vis = 1; worker.a.fixedY = F; }
-    const h0 = V3.walkerAt(Math.min(L.s + V3.VK.HELP_AHEAD, K.lineEnd(lv)), lv);
-    helperAdd(h0.x + h0.n[0] * V3.VK.HELP_OUT, h0.z + h0.n[1] * V3.VK.HELP_OUT, {});
+    worker = gang.add(w0.x, w0.z, { variant: 'kohen', role: 'hold', crew: 0 }); if (worker) { worker.a.vis = 1; worker.a.fixedY = V3.footY(X, w0.x, w0.z); }
+    const h0 = V3.helperAt(L.s, lv, K.lineEnd(lv) + 0.5);
+    helperAdd(h0.x, h0.z, { y: V3.footY(X, h0.x, h0.z) });
     pole.g.visible = bowl.visible = swab.g.visible = true;
     // (the line printed so far, after a reload)
     if (!fresh && track.hs.length) { for (let i = 0; i * SK.SAMPLE <= L.s; i++) { const s = i * SK.SAMPLE, j = Math.min(track.hs.length - 1, Math.floor(s / 0.5)); R.set(i, s, (track.hs[j] || 0) / 100, { d: 'dark', r: 'red', p: 'pink' }[track.ws[j]] || 'red'); } for (const [a, b] of track.cuts) R.cut(a, b); R.flush(); A.si = Math.floor(L.s / SK.SAMPLE) + 1; A.ti = track.hs.length; for (const mk of L.marks) markMesh(mk); }
@@ -234,7 +237,7 @@ function makeSikra(m, X) {
   function figures(dt) {
     if (!L || !worker) return;
     const W = V3.walkerAt(L.s, lv), a = worker.a, moving = !L.lifted && L.started && L.pace > SK.STOP;
-    a.x = W.x; a.z = W.z;
+    a.x = W.x; a.z = W.z; const wy = V3.footY(X, W.x, W.z); a.fixedY = wy;   // (on the fallen boards where they lie under his path)
     // (he faces along the wall, turned a little to it: the pole is held up before him, to the wall's side)
     const yw = Math.atan2(W.u[0], W.u[1]), toWall = Math.atan2(-W.n[0], -W.n[1]); let dyw = toWall - yw; while (dyw > Math.PI) dyw -= 2 * Math.PI; while (dyw < -Math.PI) dyw += 2 * Math.PI;
     a.yaw = yw + dyw * 0.45;
@@ -244,21 +247,21 @@ function makeSikra(m, X) {
     // wall after a lift of the thumb)
     const f = V3.faceAt(L.s), off = L.lifted ? 0.7 : 0.09;
     const top = [f.x + f.n[0] * off, LY + L.h * K.TEF + (L.lifted ? 0.35 : 0), f.z + f.n[1] * off];
-    const base = [W.x - W.n[0] * 0.25 + Math.sin(a.yaw) * 0.35, F + 0.25, W.z - W.n[1] * 0.25 + Math.cos(a.yaw) * 0.35];
+    const base = [W.x - W.n[0] * 0.2 + W.u[0] * 0.5, wy + 0.25, W.z - W.n[1] * 0.2 + W.u[1] * 0.5];   // (a step ahead of him: seen beside him, not behind his back)
     pole.set(base, top, f.u);
     const band = K.wetBand(L.w), sm = pole.str.material; sm.color.set(wetC[band]); sm.emissive.set(band === 'red' ? '#7A0E06' : '#000000'); sm.emissiveIntensity = band === 'red' ? 0.6 + 0.4 * Math.sin(A.t * 9) : 0;
     // the helper ahead, a little further out, the bowl in his arms (on the screen's right), the swab rod up toward the line
-    const hs = Math.min(L.s + V3.VK.HELP_AHEAD, K.lineEnd(lv) + 0.5), H0 = V3.walkerAt(hs, lv);
+    const H0 = V3.helperAt(L.s, lv, K.lineEnd(lv) + 0.5), hs = H0.s;
     if (helper) {
-      const ha = helper.a, hx = H0.x + H0.n[0] * V3.VK.HELP_OUT, hz = H0.z + H0.n[1] * V3.VK.HELP_OUT, was = Math.hypot(hx - ha.x, hz - ha.z);
-      ha.x = hx; ha.z = hz; ha.yaw = Math.atan2(-H0.n[0] * 0.6 - H0.u[0] * 0.8, -H0.n[1] * 0.6 - H0.u[1] * 0.8) + Math.PI;   // (half turned back toward the worker)
+      const ha = helper.a, hx = H0.x, hz = H0.z, was = Math.hypot(hx - ha.x, hz - ha.z), hy = V3.footY(X, hx, hz);
+      ha.x = hx; ha.z = hz; ha.fixedY = hy; ha.yaw = Math.atan2(-H0.n[0] * 0.6 - H0.u[0] * 0.8, -H0.n[1] * 0.6 - H0.u[1] * 0.8) + Math.PI;   // (half turned back toward the worker)
       ha.arm[0] = ha.armT[0] = 0.75; ha.arm[2] = ha.armT[2] = 1.25; ha.arm[1] = ha.armT[1] = -0.35; ha.arm[3] = ha.armT[3] = -0.1;
       helper.stride = was > 0.01 && moving ? 1 : 0; helper.rate = 0.8 + L.pace * 0.5;
       const fx = Math.sin(ha.yaw), fz = Math.cos(ha.yaw);
-      bowl.position.set(hx + fx * 0.55, F + 1.35, hz + fz * 0.55);
+      bowl.position.set(hx + fx * 0.55, hy + 1.35, hz + fz * 0.55);
       // the swab rod from his raised hand up to the wall ahead (or to the bow / a drip when he wets or wipes)
-      const hand = [hx + fx * 0.3 - H0.n[0] * 0.2, F + 2.3, hz + fz * 0.3 - H0.n[1] * 0.2];
-      let tip = (() => { const q = V3.faceAt(Math.min(hs + 0.3, K.lineEnd(lv) - 0.1)); return [q.x + q.n[0] * 0.35, LY + 0.7, q.z + q.n[1] * 0.35]; })();
+      const hand = [hx + fx * 0.3 - H0.n[0] * 0.2, hy + 2.3, hz + fz * 0.3 - H0.n[1] * 0.2];
+      let tip = (() => { const q = V3.faceAt(lv === 1 ? Math.min(hs + 0.3, K.lineEnd(lv) - 0.1) : hs + 0.3); return [q.x + q.n[0] * 0.35, LY + 0.7, q.z + q.n[1] * 0.35]; })();
       if (A.swab) { A.swab.t += dt; const u = A.swab.t / A.swab.d, k = u < 0.5 ? ease(u * 2) : ease((1 - u) * 2); tip = tip.map((v, i) => lerp(v, A.swab.p[i], k)); if (u >= 1) A.swab = null; }
       swab.set(hand, tip);
     }

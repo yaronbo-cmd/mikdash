@@ -227,7 +227,7 @@ export const POUR_ACT = {
     /** the stone's way from the heap to its place: straight, or round the frame's ends and far side, whichever keeps both men whole and
      *  out of the eye's way all along (the gate's own test, sampled every 0.35); the flank's width as needed */
     const MODES = ['side', 'turn', 'outL', 'outR', 'turn>outL', 'turn>outR', 'side>outL', 'side>outR', 'outL>side', 'outR>side', 'outL>outR', 'outR>outL', 'side>>outL', 'side>>outR', 'turn>>outL', 'turn>>outR'];
-    function carryWay(from, to, g0) {
+    function carryWay(from, to, g0, p0, homes) {
       // (the frame's ends and far side, and a row a little beyond its middle: behind the work, never between it and the eye)
       const WP = [[3.5, -0.8], [0, -0.8], [-3.5, -0.8], [5.5, -0.8], [-5.5, -0.8], [7.6, -5.3], [3.5, -5.3], [0, -5.3], [-3.5, -5.3], [-7.6, -5.3], [7.6, 0], [-7.6, 0], [7.6, 5.3], [-7.6, 5.3]];
       const cands = [[from, to]];
@@ -236,9 +236,12 @@ export const POUR_ACT = {
       let best = null;
       for (let ci = 0; ci < cands.length; ci++) {
         const pts = cands[ci]; if (best && best.f < 1.2 && (ci === 1 || ci === 1 + WP.length)) break;   // (a clean way found: the longer tiers are not tried)
-        const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.45));
+        const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.28));
         for (const mode of MODES) for (const g of [g0, g0 + 0.8]) {
           let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'side' ? 0 : mode === 'turn' ? 0.05 : 0.3); if (best && f >= best.f) continue;
+          // (the walk to the stone at the heap and the last steps home after the way back are the men's too)
+          const m0 = menAt(pts[0], 0, mode, g);
+          for (let j = 0; j < 2 && !(best && f >= best.f); j++) for (let k = 1; k <= 5; k++) { const e = k / 6; if (p0 && p0[j]) f += fault(p0[j][0] + (m0[j][0] - p0[j][0]) * e, p0[j][1] + (m0[j][1] - p0[j][1]) * e); if (homes && homes[j]) f += fault(m0[j][0] + (homes[j][0] - m0[j][0]) * e, m0[j][1] + (homes[j][1] - m0[j][1]) * e); }
           for (let k = 0; k <= nS && !(best && f >= best.f); k++) {
             const u = k / nS, c = pathAt(pts, u), mm = menAt(c, u, mode, g);
             f += fault(mm[0][0], mm[0][1]) + fault(mm[1][0], mm[1][1]);
@@ -333,7 +336,7 @@ export const POUR_ACT = {
       const reach = Math.max(...p0.map((q) => Math.hypot(q[0] - from[0], q[1] - from[1])));
       // (the figure rule, the run of 18.11: flanking the stone across its path, the near man of the pair walked between the eye and the
       //  work — the pair flanks it left and right as the shot sees it, never in front of it)
-      const t0w = performance.now(), g0 = Math.max(S.s.rx, S.s.rz) + 0.5, way = carryWay(from, to, g0); A8.wayMs = Math.round(performance.now() - t0w); A8.wayF = way ? +way.f.toFixed(2) : -1; A8.wayN = way ? way.pts.length : 0; A8.wayInfo = way ? { i, from: from.map((v) => +v.toFixed(1)), to: to.map((v) => +v.toFixed(1)), mode: way.mode, g: +way.g.toFixed(2), cam: (() => { try { const q = scr(wpt(0, 1, 0)); return [Math.round(q.x), Math.round(q.y)]; } catch (e) { return null; } })() } : null; const pts = way ? way.pts : [from, to], L2 = pathLen(pts);
+      const t0w = performance.now(), g0 = Math.max(S.s.rx, S.s.rz) + 0.5, way = carryWay(from, to, g0, p0, P.men.map((w) => w.home)); A8.wayMs = Math.round(performance.now() - t0w); A8.wayF = way ? +way.f.toFixed(2) : -1; A8.wayN = way ? way.pts.length : 0; A8.wayInfo = way ? { i, from: from.map((v) => +v.toFixed(1)), to: to.map((v) => +v.toFixed(1)), mode: way.mode, g: +way.g.toFixed(2), cam: (() => { try { const q = scr(wpt(0, 1, 0)); return [Math.round(q.x), Math.round(q.y)]; } catch (e) { return null; } })() } : null; const pts = way ? way.pts : [from, to], L2 = pathLen(pts);
       P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(L2 / 6, 0.8, 3.0), from, to, n: sideDir(from[0], from[1]), g: way ? way.g : g0, mode: way ? way.mode : 'side', p0, pts, f: way ? +way.f.toFixed(2) : -1 };
       void d;
       V.sfx.thud();

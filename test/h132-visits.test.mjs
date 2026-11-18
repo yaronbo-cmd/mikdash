@@ -51,3 +51,7 @@ test('no in-between game\'s card after stage 09: it came up over a visit\'s work
   const I = readFileSync(new URL('../src/game/index.js', import.meta.url), 'utf8');
   assert.match(I, /else if \(c\.id === 'sovev'\) \{ \/\* ── h132 ── \(stage 09: no in-between game's card/);
 });
+test('the in-between games\' card and chip keep away while stage 09\'s visits are open', () => {
+  const S = readFileSync(new URL('../src/games/index.js', import.meta.url), 'utf8');
+  assert.match(S, /typeof D\.visiting === 'function' && D\.visiting\(\) && D\.owns && D\.owns\(\)/);
+});

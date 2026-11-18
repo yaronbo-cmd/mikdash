@@ -139,7 +139,7 @@ const reelOf = (G) => !!(G && G.demo && G.story && G.story.reel);
 const invKey = (G, st) => (G && G.demo ? `${dayKey()}:${st || ''}` : dayKey());
 // ── /games13 ──
 // ── h114 ── a minigame of the Mount (the h109 director's act, film or end shot) is never interrupted: no invitation, no chip
-const h9Busy = (A) => { try { const D = A && A.h109; return !!(D && typeof D.acting === 'function' && D.acting()); } catch (e) { return false; } };
+const h9Busy = (A) => { try { const D = A && A.h109; return !!(D && ((typeof D.acting === 'function' && D.acting()) || (typeof D.visiting === 'function' && D.visiting() && D.owns && D.owns()))); } catch (e) { return false; } };   // ── h132 ── (D.visiting: stage 09's stations open in the world — its visits are the play; no in-between game's card or chip over them) ── /h132 ──
 // ── /h114 ──
 const api = () => { try { const g = HOST && typeof HOST.game === 'function' ? HOST.game() : null; return g && g.state ? g : null; } catch (e) { return null; } };
 const dayKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };

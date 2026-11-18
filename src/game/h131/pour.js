@@ -357,7 +357,7 @@ export const POUR_ACT = {
     function stonesStart() {
       A8.phase = 'stones'; A8.phaseT = 0; home(0.01); X.line(POUR_LINES.stones, 0);   // (b131 look round 2: a cut to the whole section, its heap and its porters — a flight's first frame was bare floor)
       if (A8.stonesIn >= V.stones.length) { pourStart(); return; }
-      heapLay(); portersMake(); later(0.06, () => { if (A8.phase === 'stones') { homeFit(); planNext(); } });
+      heapLay(); portersMake(); later(0.06, () => { if (A8.phase === 'stones') { homeFit(); planNext(); } }); later(0.2, () => { try { V.sfx.warm(); } catch (e) { /* */ } });
       later(1.2, () => { if (A8.phase === 'stones') X.hand(nextStoneAt(), 0, 18); });
     }
     function dropNext() { const t = performance.now(); dropNext0(); const ms = performance.now() - t; A8.tapMs = +ms.toFixed(2); A8.tapMax = Math.max(A8.tapMax || 0, A8.tapMs); }

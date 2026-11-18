@@ -294,6 +294,7 @@ export function createPourView(X, lv, sim, o = {}) {
   const sfx = {
     knockFull() { if (!on()) return; const t = T0(); tone('sine', 105, 62, t, 0.003, 0.42, 0.95); tone('sine', 168, 120, t, 0.002, 0.16, 0.35); noiseHit(t, 'lowpass', 900, 0.7, 0.001, 0.06, 0.8); noiseHit(t, 'lowpass', 260, 1, 0.002, 0.25, 0.6); },
     knockHollow() { if (!on()) return; const t = T0(); tone('sine', 330, 300, t, 0.002, 0.16, 0.5); tone('triangle', 520, 500, t, 0.002, 0.07, 0.12); noiseHit(t, 'bandpass', 470, 7, 0.001, 0.16, 1.1); noiseHit(t, 'bandpass', 760, 6, 0.001, 0.1, 0.6); noiseHit(t, 'highpass', 1500, 0.7, 0.001, 0.02, 0.25); },
+    warm() { try { initAudio(); } catch (e) { /* */ } },   // (b131: the sounds' buffers made ahead — made on a tap they cost it 20–30 ms)
     thud() { if (!on()) return; const t = T0(); tone('sine', 80, 50, t, 0.003, 0.22, 0.6); noiseHit(t, 'lowpass', 500, 0.8, 0.002, 0.08, 0.5); },
     bubble() { if (!on()) return; const t = actx.currentTime + 0.005, f = 160 + R() * 140; tone('sine', f, f * (2.2 + R()), t, 0.004, 0.07 + R() * 0.05, 0.22 + R() * 0.15); },
     reach(n) { if (!on()) return; const t = T0(), base = 392 * Math.pow(1.122, n); marimba(base, t, 0.32); marimba(base * 1.26, t + 0.08, 0.32); marimba(base * 1.5, t + 0.16, 0.3); },

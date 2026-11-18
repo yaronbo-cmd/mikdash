@@ -63,10 +63,10 @@ export function walkerAt(s, lv) {
   if (F0.t > 0) { const c = Math.round(s / SK.SIDE) * SK.SIDE, cc = faceAt(c), w = 1 - Math.abs(F0.t - 0.5) * 2; bx = F0.x + (cc.x - F0.x) * w * 0.6; bz = F0.z + (cc.z - F0.z) * w * 0.6; }
   return { x: bx + F0.n[0] * off, z: bz + F0.n[1] * off, u: F0.u, n: F0.n, k: F0.k, k1: F0.k1, k2: F0.k2, t: F0.t };
 }
-/** where the helper walks for the worker's s: ahead of him by HELP_AHEAD, a little further out (at level 1 never past the line's end;
- *  on the whole round he walks on past the south-east corner, out of the close's way) */
-export function helperAt(s, lv, end) {
-  const hs = (lv | 0) === 1 ? Math.min(s + VK.HELP_AHEAD, end) : s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
+/** where the helper walks for the worker's s: ahead of him by HELP_AHEAD, a little further out — past the line's end too (level 1:
+ *  on along the north wall; the whole round: on past the south-east corner), never standing still before the worker at the end */
+export function helperAt(s, lv) {
+  const hs = s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
   return { ...H, s: hs, x: H.x + H.n[0] * o, z: H.z + H.n[1] * o };
 }
 /** the height a man stands at on (x, z): what is really there — the world's ground (the court's floor, the yesod's ledge where it

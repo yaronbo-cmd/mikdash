@@ -144,7 +144,7 @@ function makeSikra(m, X) {
     if (helper) { gang.remove(helper); helper = null; }
     const w0 = V3.walkerAt(L.s, lv);
     worker = gang.add(w0.x, w0.z, { variant: 'kohen', role: 'hold', crew: 0 }); if (worker) { worker.a.vis = 1; worker.a.fixedY = V3.footY(X, w0.x, w0.z); }
-    const h0 = V3.helperAt(L.s, lv, K.lineEnd(lv) + 0.5);
+    const h0 = V3.helperAt(L.s, lv);
     helperAdd(h0.x, h0.z, { y: V3.footY(X, h0.x, h0.z) });
     pole.g.visible = bowl.visible = swab.g.visible = true;
     // (the line printed so far, after a reload)
@@ -202,7 +202,7 @@ function makeSikra(m, X) {
     for (const d of K.freshDrips(L)) { const mm = drips.get(d.id); if (!mm) continue; const q = scr(mm.position.x, mm.position.y, mm.position.z); if (!q) continue; const dd = Math.hypot(q[0] - p.x, q[1] - p.y); if (dd <= bd) { bd = dd; best = d.id; } }
     return best;
   }
-  function tapAt(p) { if (A.phase !== 'line' || !L || L.done) return; if (hitBowl(p)) { bowlNow(); return; } const id = hitDrip(p); if (id) { dripNow(id); return; } ev('tap:none'); }
+  function tapAt(p) { if (A.phase !== 'line' || !L || L.done) return; if (hitBowl(p)) { bowlNow(); return; } const id = hitDrip(p); if (id) { dripNow(id); return; } const b = bowlScr(); ev('tap:none' + (b ? ':' + Math.round(b[0] - p.x) + ',' + Math.round(b[1] - p.y) : ':nobowl') + '|by' + bowl.position.y.toFixed(2) + '|cy' + (X.camera ? X.camera.position.y.toFixed(2) : '?') + '|look' + A.look.toFixed(2)); }
   const liftLook = (u) => { A.look = clamp(u, 0, SKA.LOOK_MAX); try { if (X.lookLift) X.lookLift(A.look); } catch (e) { /* */ } };
   /* ── the right thumb while the left is held: the director gives the act one finger; the second is read here ── */
   const hudEl = (e) => !!(e && e.closest && e.closest('.gm-top,.gm-tabs,.gm-menu,.gm-modal,button,.h109-ui'));
@@ -266,7 +266,7 @@ function makeSikra(m, X) {
     pole.set(base, top, f.u);
     const band = K.wetBand(L.w), sm = pole.str.material; sm.color.set(wetC[band]); sm.emissive.set(band === 'red' ? '#7A0E06' : '#000000'); sm.emissiveIntensity = band === 'red' ? 0.6 + 0.4 * Math.sin(A.t * 9) : 0;
     // the helper ahead, a little further out, the bowl in his arms (on the screen's right), the swab rod up toward the line
-    const H0 = V3.helperAt(L.s, lv, K.lineEnd(lv) + 0.5), hs = H0.s;
+    const H0 = V3.helperAt(L.s, lv), hs = H0.s;
     if (helper) {
       const ha = helper.a, hx = H0.x, hz = H0.z, was = Math.hypot(hx - ha.x, hz - ha.z), hy = V3.footY(X, hx, hz);
       ha.x = hx; ha.z = hz; ha.fixedY = hy; ha.yaw = Math.atan2(-H0.n[0] * 0.6 - H0.u[0] * 0.8, -H0.n[1] * 0.6 - H0.u[1] * 0.8) + Math.PI;   // (half turned back toward the worker)
@@ -276,7 +276,7 @@ function makeSikra(m, X) {
       bowl.position.set(hx + fx * 0.55, hy + 1.35, hz + fz * 0.55);
       // the swab rod from his raised hand up to the wall ahead (or to the bow / a drip when he wets or wipes)
       const hand = [hx + fx * 0.3 - H0.n[0] * 0.2, hy + 2.3, hz + fz * 0.3 - H0.n[1] * 0.2];
-      let tip = (() => { const q = V3.faceAt(lv === 1 ? Math.min(hs + 0.3, K.lineEnd(lv) - 0.1) : hs + 0.3); return [q.x + q.n[0] * 0.35, LY + 0.7, q.z + q.n[1] * 0.35]; })();
+      let tip = (() => { const q = V3.faceAt(hs + 0.3); return [q.x + q.n[0] * 0.35, LY + 0.7, q.z + q.n[1] * 0.35]; })();
       if (A.swab) { A.swab.t += dt; const u = A.swab.t / A.swab.d, k = u < 0.5 ? ease(u * 2) : ease((1 - u) * 2); tip = tip.map((v, i) => lerp(v, A.swab.p[i], k)); if (u >= 1) A.swab = null; }
       swab.set(hand, tip);
     }

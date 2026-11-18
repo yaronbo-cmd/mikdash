@@ -1366,7 +1366,7 @@
   // seam, no drip: the default plays so), or damages to show once each, comma-separated, each at its own place: 'wavy' (segment 3 at 1.2
   // tefachim), 'gapC' (the NE corner too fast), 'smear' (a stop at the NW corner), 'blot' (a 1 s stand on segment 4), 'pink' (a tap on
   // the bowl while the string is still dark, past 7 amot: the drip wiped), 'drip' (the same past 20 amot, the drip left), 'seam' (the
-  // left lifted 0.6 s on the north wall), 'gapF' (the west wall's first flaw met with a dry string), 'short' (the close half an amah
+  // left lifted 1.5 s on the north wall), 'gapF' (the west wall's first flaw met with a dry string), 'short' (the close half an amah
   // short), 'long' (the close half an amah long), 'pale' (no refill until it is pink). ── /h132 ──
   play.h9sikra = (a) => {
     if (!a) return { wait: 300 };
@@ -1386,18 +1386,19 @@
     if (has('gapC') && s > 27 && s < 31.5) p = 3.5;
     if (has('smear') && s > 59.6 && !K.skSm) { K.skSm = now(); }
     if (K.skSm && now() - K.skSm < 400) p = 0;
-    if (has('wavy') && s >= 10.3 && s < 14.7) h = 1.2;
+    if (has('wavy') && s >= 10.3 && s < 13.9) h = 1.2;   // (back to the line well before the segment's end: the next one stays clean)
     if (has('blot') && s > 16 && !K.skBl) K.skBl = now();
     if (K.skBl && now() - K.skBl < 1100) p = 0;
     if (a.end > 100) { if (s > a.end - 2.6) p = 0.7; const stopAt = has('short') ? a.end - 0.55 : has('long') ? a.end + 0.55 : a.end - 0.1; if (s >= stopAt) p = 0; }
     const x = O[0] + (p > 0 ? px.dead + 1 + (p / px.max) * px.pace : 0), y = O[1] - (h / px.hmax) * px.h, Lp = [Math.round(x), Math.round(y)];
-    // (the seam: the left lifted 0.6 s once, on segment 3)
-    if (has('seam') && s > 40 && !K.skSeam) { K.skSeam = now(); return { fingers: [null, null], wait: 600, note: 'sikra: the left lifted (seam)' }; }
+    // (the seam: the left lifted 1.5 s once, on the north wall)
+    if (has('seam') && s > 40 && !K.skSeam) { K.skSeam = now(); return { fingers: [null, null], wait: 1500, note: 'sikra: the left lifted (seam)' }; }   // (1.5 s of the wall's: past 0.3 s of the act's on a slow page)
     if (K.skSeam && K.skSeam > 0 && !a.down) { K.skSeam = -1; K.skO = O; return { fingers: [O, null], wait: 120, note: 'sikra: the left down again' }; }
     if (K.skR) { K.skR = 0; return { fingers: [Lp, null], wait: 60 }; }
     const d = (a.drips || []).find((q) => q.sc);
-    if (d && !(has('drip') && K.skDx && !K.skDl)) { K.skR = 1; return { fingers: [Lp, [Math.round(d.sc[0]), Math.round(d.sc[1])]], tap1: true, wait: 60, note: 'sikra: wipe the drip ' + d.id }; }
-    if (d && has('drip') && K.skDx) K.skDl = 1;
+    const leave = has('drip') && K.skDx && !K.skDl;   // ('drip': the early tap's drip left until it is no longer fresh, then wiping goes on)
+    if (d && leave) K.skDs = 1; if (!d && leave && K.skDs) K.skDl = 1;
+    if (d && !leave) { K.skR = 1; return { fingers: [Lp, [Math.round(d.sc[0]), Math.round(d.sc[1])]], tap1: true, wait: 60, note: 'sikra: wipe the drip ' + d.id }; }
     const earlyP = has('pink') && s > 7 && a.band === 'dark' && !K.skEx, earlyD = has('drip') && s > 20 && a.band === 'dark' && !K.skDx && (!has('pink') || K.skEx), early = earlyP || earlyD;
     const flawNear = (a.flaws || []).some((f) => f > s && f - s < 3.2), f0 = (a.flaws || [])[0], dryF = has('gapF') && f0 != null && s > f0 - 22 && s < f0 + 0.2;
     const late = a.end > 100 && s > a.end - 7;   // (no refill in the last 7 amot: the slow close would drip within 4 amot of it — the last one before)

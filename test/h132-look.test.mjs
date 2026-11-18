@@ -28,3 +28,13 @@ test('the director reads them: the play zone, the drag\'s clamp, the end of a lo
   assert.match(D, /const YL = lookClampOf\(act\); LOOK\.yaw = clamp\(LOOK\.yaw0 - \(\(e\.clientX - LOOK\.x0\) \/ innerWidth\) \* 3\.2, -YL, YL\)/);
   assert.match(D, /LOOK\.drag = false; lookSet\(\); const ye = lookEndOf\(act, LOOK\.yaw\); if \(ye != null\) \{ LOOK\.yaw = LOOK\.yaw0 = ye; lookSet\(\); \}/);
 });
+
+test('the perfect screen takes the work\'s own word (X.perfect(word) in the act, or res.word), "מושלם!" when none', () => {
+  const D = readFileSync(new URL('../src/game/h109/director.js', import.meta.url), 'utf8');
+  assert.match(D, /function perfectScreen\(sub, word\)/);
+  assert.match(D, /<b>\$\{word \|\| 'מושלם!'\}<\/b>/);
+  assert.match(D, /perfect\(text, at\) \{\n\s*if \(text\) actWord = text;/);
+  assert.match(D, /perfectScreen\(\(\(A0 && A0\.title\) \|\| 'המשחקון'\) \+ ' · בלי טעות אחת', res\.word \|\| \(PK && PK\.wordScreen \? actWord : null\)\)/);
+  assert.match(readFileSync(new URL('../src/game/h132/pack.js', import.meta.url), 'utf8'), /wordScreen: true/);
+  assert.match(D, /lossNow = 0; actWord = null;/);
+});

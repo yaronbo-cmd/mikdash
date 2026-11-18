@@ -25,7 +25,7 @@ const CELLS = {
   ramp: 'יג־6', 'ramp:sled1': 'יג־7', 'ramp:sled2': 'יג־7', 'ramp:sled3': 'יג־6', oxen: 'יב־6',
   'strip:brace:N': 'יג־7', 'strip:brace:S': 'יג־8', 'strip:brace:E': 'יב־8', 'strip:brace:W': 'יד־8',
   'strip:belt:N': 'יג־7', 'strip:belt:S': 'יג־8', 'strip:belt:E': 'יב־8', 'strip:belt:W': 'יד־8',
-  'strip:wedge': 'יג־8', 'strip:pile': 'יב־7',
+  'strip:wedge': 'יג־8', 'strip:pile': 'יב־7', 'strip:wallW': 'יג־7', 'form:sill:E': 'יב־8', 'form:sill:S': 'יג־8',
   'sikra:rod': 'יב־8', 'sikra:stake:NE': 'יג־7', 'sikra:stake:SE': 'יג־8', 'sikra:stake:SW': 'יד־8', 'sikra:stake:NW': 'יד־7',
   'sikra:start': 'יג־8', 'sikra:bowl': 'יב־8', 'sikra:path:W': 'יד־8', 'sikra:rough': 'יד־8',
   'stand:w1': 'יב־7', 'stand:w2': 'יג־6', 'stand:w3': 'יב־9', 'stand:w4': 'יב־8',
@@ -102,14 +102,30 @@ test('book s09: against the built world — temple.js builds the sovev and its r
   assert.equal(S.step1.x1, -55); assert.equal(S.step1.y, 16.5);
   // the west brace's foot on that tread's line; the west walk in the one amah of floor between the yesod's edge (−54) and the tread
   assert.ok(S.brace.W[0] <= S.step1.x1 && S.brace.W[0] >= S.step1.x0); assert.equal(S.brace.wY, S.step1.y);
+  assert.equal(S.brace.W[0], (S.step1.x0 + S.step1.x1) / 2);   // (phase 1 decision 3: the step's middle)
+  assert.deepEqual([...S.oxen.from], [-13, -46]);              // (decision 4: west of the Duchan's steps, x −12 … −8)
+  // (decision 3) the west wall after work 3 beside the pile, clear of the steps, the west gap and the block
+  const wr = S.wallRest.W, hl = (S.side + 2 * S.T) / 2;
+  assert.ok(wr[0] + hl < S.pile[0] && wr[0] - hl > S.step1.x1 && wr[1] + 2.5 < S.block[1] - 5);
   assert.ok(S.sikra.pathW.x > S.step1.x1 && S.sikra.pathW.x < S8.altar[0]);
   // the sills proposed under the south and east walls are stage 08's timbers, exactly the strip with no yesod
   assert.deepEqual([...S.sill.E], [...S8.wood.E]); assert.deepEqual([...S.sill.S], [...S8.wood.S]);
   // the cameras as the spec types them
   assert.deepEqual(S.cam.w1.map((p) => [...p]), [[-8, 34, -36], [-38, 18, -3.5]]);
-  assert.deepEqual(S.cam.w2.map((p) => [...p]), [[-38, 50, -44], [-38, 19, -3.5]]);
+  assert.deepEqual(S.cam.w2.map((p) => [...p]), [[-18, 54, -8], [-42, 14, -8]]);
   assert.deepEqual(S.cam.w3.map((p) => [...p]), [[-10, 30, 26], [-38, 19.5, -3.5]]);
   assert.deepEqual(S.cam.w4measure.map((p) => [...p]), [[-6, 32, 28], [-38, 21, -3.5]]);
   assert.deepEqual(S.cam.w4.map((p) => [...p]), [[-12, 22.5, 17], [-23, 21, 9]]);
   assert.deepEqual({ c: [...S.cam.end.c], R: S.cam.end.R, y: S.cam.end.y }, { c: [-38, -3.5], R: 40, y: 50 });
+  // (lane B's measuring shots, one a corner, and the helper's ladders: the act reads them from the book)
+  assert.deepEqual(Object.fromEntries(Object.entries(S.cam.w4corner).map(([k, v]) => [k, v.map((p) => [...p])])), { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-46, 27.5, -33.5], [-51.5, 19.4, -19.5]], SW: [[-46, 27.5, 26.5], [-51.5, 19.4, 12.5]] });
+  assert.deepEqual(S.cam.w4corner.SE[0], S.cam.w4measure[0]);
+  for (const k of ['NE', 'SE', 'SW', 'NW']) {
+    const L = S.sikra.ladder[k], c = S.corner[k], c0 = S.cam.w4corner[k][1];
+    assert.ok(Math.hypot(L.foot[0] - c[0], L.foot[1] - c[1]) < 4.5, k + ' ladder near its corner');
+    assert.ok(L.head[1] > S.lineY && L.head[1] <= S.top, k + ' ladder head between the line and the top');
+    assert.ok(Math.abs(c0[1] - (S.lineY - 1.5)) < 0.15, k + ' aim 1.5 under the line');
+    // (on a face, not on the diagonal: the head on the block's face line beside the corner)
+    assert.ok(Math.abs(L.head[0] - c[0]) < 0.15 || Math.abs(L.head[2] - c[1]) < 0.15, k + ' ladder head on a face');
+  }
 });

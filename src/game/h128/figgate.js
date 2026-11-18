@@ -117,6 +117,10 @@ export function createFigGate(o) {
       // (the owner 15.11: "whole or absent, never cut" — an own man the frame cuts at u 0 or u 0.3 is not drawn while he is cut; the
       //  act's camera or his stand is fixed where he is needed for the work to read: the report names whom the gate took out)
       n.own++;
+      // ── h132 ── (gateOnWork: a man the act stands ON its work's own top — stage 09's unloaders and levellers on the fill — is not
+      //  "between": the work under him is the surface he works, his body over the focus is the work being done, not a wall before it;
+      //  the act says when (a function, true only while he stands inside the block), and the frame's cut still hides him) ── /h132 ──
+      if (r.blk && !r.cut && typeof a.gateOnWork === 'function' && a.gateOnWork()) r.blk = false;
       if (r.cut || r.blk) { hide(a, true); if (r.cut) n.ownCutHidden++; else n.ownBlockHidden++; } else hide(a, false);
       if (r.cut || r.blk) rep.push({ who: a.variant + (a.item ? ':' + a.item : ''), at: [+a.x.toFixed(1), +a.z.toFixed(1)], cut: r.cut, between: r.blk, hidden: true });
     }

@@ -1330,6 +1330,82 @@
     }
     return { wait: 400 };
   };
+  // ── h132 fill ── (build 132, stage 09's work 2: a careful player — the act's own hint (the best line of the layer, fill-model.js
+  // advise) read from its state: the sled it names dragged from its place on the ramp to the zone's middle on the screen, and let go.
+  // __BOT9_FILL_BAD: the first load of the run dropped on a corner instead (the free trial: never counted against)) ── /h132 fill ──
+  play.h9fill = (a) => {
+    if (!a || a.done) return { wait: 400 };
+    if (a.busy || a.drag) return { wait: 250 };
+    // (build 132 round 2: once in each run, after the second load, the right thumb drags down where no sled is and the camera lifts
+    //  out over the court — a still — and a tap brings it back; by mouse, the right button)
+    const Wd = innerWidth, Hd = innerHeight, K9 = B.k;
+    if (a.n >= 2 && (K9.look9 | 0) < 3) {
+      K9.look9 = (K9.look9 | 0) + 1; const p0 = [Math.round(Wd * 0.6), Math.round(Hd * 0.3)], p1 = [Math.round(Wd * 0.6), Math.round(Hd * 0.9)];
+      if (K9.look9 === 1) return a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], 700, 'right'], wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' } : { path: [p0, p1], ms: 700, wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' };
+      if (K9.look9 === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 500, shot: a.id + '-zoomed-out', note: 'fill: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }
+      return { tap: [Math.round(Wd * 0.3), Math.round(Hd * 0.55)], wait: 1400, note: 'fill: a tap on the left half brings the camera back to the work' };   // (on the right half a tap starts a look)
+    }
+    const h = a.hint; if (!h) return { wait: 300, note: 'fill: no hint (ramp ' + JSON.stringify(a.ramp) + ')' };
+    const j = h.j;
+    const s = (a.sleds || [])[j]; if (!s || !s.at || !s.take) return { wait: 300 };
+    // (__BOT9_FILL_BAD: after the free trial, loads on the middle until it collapses, then on the north-east corner until its gauge
+    //  bulges (each time waiting out the two seconds), then the hint again — a collapse, a bulge and its −20, the wall's flaw kept for work 3)
+    let zn = h.zone, wait = 500, why = '';
+    if (window.__BOT9_FILL_BAD && !a.free && (K9.bad9 | 0) < 8) {
+      const fl = a.fl || {};
+      if (!fl.collapse) { zn = 'C'; why = ' (bad: on the middle until it slides)'; K9.bad9 = (K9.bad9 | 0) + 1; }
+      else if (!fl.bulge) { zn = 'NE'; wait = 4500; why = ' (bad: on one corner until its wall bulges)'; K9.bad9 = (K9.bad9 | 0) + 1; }
+    }
+    const z = a.zones[zn];
+    return { drag: [s.at[0], s.at[1], z[0], z[1], 650], wait, note: `fill: ${s.kind}${j ? ' (2nd)' : ''} → ${zn}${why} · layer ${a.layer}.${a.inLayer} · pts ${a.pts} · g ${JSON.stringify(a.g)}` };
+  };
+  // ── h132 ── (build 132, stage 09 work 4 "חוט הסיקרא", lane B) the measuring: the rod dragged to its corner, a tap at its lower end;
+  // then the line with TWO fingers (probe109's { fingers }): the left held down the whole line at its point (right of it = pace, up and
+  // down = height), the right tapping the bowl when the string turns red (before a flaw of the west wall too) and a fresh drip at once.
+  // Its pace: 3 amot a second, 1 through each corner's zone, slow into the close and a stop on the start. __BOT_SIKRA: 'grand' (no
+  // seam, no drip: the default plays so), or damages to show once each, comma-separated, each at its own place: 'wavy' (segment 3 at 1.2
+  // tefachim), 'gapC' (the NE corner too fast), 'smear' (a stop at the NW corner), 'blot' (a 1 s stand on segment 4), 'pink' (a tap on
+  // the bowl while the string is still dark, past 7 amot: the drip wiped), 'drip' (the same past 20 amot, the drip left), 'seam' (the
+  // left lifted 0.6 s on the north wall), 'gapF' (the west wall's first flaw met with a dry string), 'short' (the close half an amah
+  // short), 'long' (the close half an amah long), 'pale' (no refill until it is pink). ── /h132 ──
+  play.h9sikra = (a) => {
+    if (!a) return { wait: 300 };
+    const K = B.k, BAD = String(window.__BOT_SIKRA || '').split(','), has = (k) => BAD.includes(k);
+    if (a.phase === 'measure') {
+      if (a.busy) return { wait: 300 };
+      if (!a.hung) { if (!a.rodFrom || !a.rodTo) return { wait: 300, note: 'sikra: no rod on the screen' }; return { drag: [a.rodFrom[0], a.rodFrom[1], a.rodTo[0], a.rodTo[1], 700], wait: 700, note: 'sikra: the rod to ' + a.k }; }
+      if (!a.rodEnd) return { wait: 300 };
+      return { tap: [Math.round(a.rodEnd[0]), Math.round(a.rodEnd[1])], wait: 1600, note: 'sikra: the stake at ' + a.k };
+    }
+    if (a.phase !== 'line' || a.done) return K.skOn ? (K.skOn = 0, { fingersOff: true, wait: 400, note: 'sikra: the line done' }) : { wait: 400 };
+    const O = K.skO || (K.skO = [Math.round(W * 0.2), Math.round(HH * 0.6)]);
+    if (!a.down && !K.skSeam) { K.skOn = 1; return { fingers: [O, null], wait: 120, note: 'sikra: the left thumb down' }; }
+    const s = a.s, px = a.px; let p = 3, h = 0;
+    const inC = a.corn.some((c) => s > c - 1.8 && s < c + 1.05);
+    if (inC) p = 1;
+    if (has('gapC') && s > 27 && s < 31.5) p = 3.5;
+    if (has('smear') && s > 59.6 && !K.skSm) { K.skSm = now(); }
+    if (K.skSm && now() - K.skSm < 400) p = 0;
+    if (has('wavy') && s >= 10.3 && s < 14.7) h = 1.2;
+    if (has('blot') && s > 16 && !K.skBl) K.skBl = now();
+    if (K.skBl && now() - K.skBl < 1100) p = 0;
+    if (a.end > 100) { if (s > a.end - 2.6) p = 0.7; const stopAt = has('short') ? a.end - 0.55 : has('long') ? a.end + 0.55 : a.end - 0.1; if (s >= stopAt) p = 0; }
+    const x = O[0] + (p > 0 ? px.dead + 1 + (p / px.max) * px.pace : 0), y = O[1] - (h / px.hmax) * px.h, Lp = [Math.round(x), Math.round(y)];
+    // (the seam: the left lifted 0.6 s once, on segment 3)
+    if (has('seam') && s > 40 && !K.skSeam) { K.skSeam = now(); return { fingers: [null, null], wait: 600, note: 'sikra: the left lifted (seam)' }; }
+    if (K.skSeam && K.skSeam > 0 && !a.down) { K.skSeam = -1; K.skO = O; return { fingers: [O, null], wait: 120, note: 'sikra: the left down again' }; }
+    if (K.skR) { K.skR = 0; return { fingers: [Lp, null], wait: 60 }; }
+    const d = (a.drips || []).find((q) => q.sc);
+    if (d && !(has('drip') && K.skDx && !K.skDl)) { K.skR = 1; return { fingers: [Lp, [Math.round(d.sc[0]), Math.round(d.sc[1])]], tap1: true, wait: 60, note: 'sikra: wipe the drip ' + d.id }; }
+    if (d && has('drip') && K.skDx) K.skDl = 1;
+    const earlyP = has('pink') && s > 7 && a.band === 'dark' && !K.skEx, earlyD = has('drip') && s > 20 && a.band === 'dark' && !K.skDx && (!has('pink') || K.skEx), early = earlyP || earlyD;
+    const flawNear = (a.flaws || []).some((f) => f > s && f - s < 3.2), f0 = (a.flaws || [])[0], dryF = has('gapF') && f0 != null && s > f0 - 22 && s < f0 + 0.2;
+    const late = a.end > 100 && s > a.end - 7;   // (no refill in the last 7 amot: the slow close would drip within 4 amot of it — the last one before)
+    const need = has('pale') ? a.band === 'pink' : !late && (a.w < 0.48 || (flawNear && a.w < 0.6) || (a.end > 100 && s > a.end - 15 && a.w < 0.75));
+    const refillOk = !inC && !dryF && a.band !== 'dark' && (!K.skBw || now() - K.skBw > 900);
+    if (a.bowl && (early || (need && refillOk))) { if (earlyP) K.skEx = 1; if (earlyD) K.skDx = 1; K.skBw = now(); K.skR = 1; return { fingers: [Lp, [Math.round(a.bowl[0]), Math.round(a.bowl[1])]], tap1: true, wait: 60, note: `sikra: the bowl at s ${s} w ${a.w}` + (early ? ' (early)' : '') + ' · ' + (a.ev || []).slice(-3).join(' ') }; }
+    return { fingers: [Lp, null], wait: 70 };
+  };
   // ── h132 lane A ── (build 132, stage 09 work 1 "הקמת התבנית": the stakes corner by corner — the rod slid home, the tap that drives
   // the stake — then the walls in the right order (east and west, then north and south), each lifted by the thumb's travel the act
   // reads (a.kpx degrees a pixel: the wall ends where the travel says), in pushes no longer than the screen allows; it waits for a wall

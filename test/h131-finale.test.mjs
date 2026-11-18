@@ -111,5 +111,6 @@ test('finale whitening: the cloth\'s cuts are made inside the act\'s frame', () 
   assert.match(src, /if \(A\.q && A\.q\.length\) for \(const fn of A\.q\.splice\(0\)\) fn\(\);/);
   assert.match(src, /inFrame\(\(\) => \{ show\('white'\); clothShot/);
   assert.match(src, /keep\(\); inFrame\(\(\) => \{ if \(!A\.whiteDone && A\.fl == null\) clothShot/);
-  assert.match(src, /> 2\.5\) inFrame\(\(\) => \{ X\.shot\(e, t\.slice\(\), 0\); clothMan\(true\); \}\)/);
+  assert.match(src, /A\.pose = \[e, t\];\s*inFrame\(\(\) => \{ X\.shot\(e, t\.slice\(\), 0\); clothMan\(true\); \}\)/);
+  assert.ok(!/X\.track\(e, t\.slice\(\), 4\)/.test(src), 'the crew\'s wipe never chases the man');
 });

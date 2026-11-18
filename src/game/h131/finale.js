@@ -464,10 +464,10 @@ export const FINALE_ACT = {
       for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) {
         let sx = 0, sz = 0, n = 0; for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) { Fs.mask[left[j]] = 1; sx += FIN.X0 + (left[j] % FIN.NX) + 0.5; sz += FIN.Z0 + Math.floor(left[j] / FIN.NX) + 0.5; n++; }
         // (b131: the shot stays close on him as he goes — he kneels by the cloth, whole, the picture following him (whiteStep moves him))
-        // (a near place: the shot follows him; a far one — the grey left lies scattered — he and the picture are there at once, a cut:
-        //  a follow shot chasing a far jump left him cut at the edge)
-        if (n) { const px = CL.x, pz = CL.z; CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z, A.eyeTurn); A.pose = [e, t];
-          if (Math.hypot(CL.x - px, CL.z - pz) > 2.5) inFrame(() => { X.shot(e, t.slice(), 0); clothMan(true); }); else X.track(e, t.slice(), 4); }
+        // (each place: he and the picture are there at once, a cut — a follow shot chasing him lagged behind him and the gate had him
+        //  cut at the edge, on a far jump and on a near one alike)
+        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z, A.eyeTurn); A.pose = [e, t];
+          inFrame(() => { X.shot(e, t.slice(), 0); clothMan(true); }); }
         paint(false); V.cloak(); await X.wait(0.6);
       }
       whiteAll(Fs); paint(false);

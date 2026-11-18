@@ -19,5 +19,26 @@ test('save key: every store of the game and the director\'s reload go through it
   const rd = (p) => readFileSync(new URL('../src/' + p, import.meta.url), 'utf8');
   for (const p of ['game/state.js', 'avodah/state.js']) { const s = rd(p); for (const f of ['getItem', 'setItem', 'removeItem']) assert.match(s, new RegExp(f + '\\(saveKey\\(k\\)'), p + ' ' + f); }
   assert.match(rd('game/h109/director.js'), /localStorage\.removeItem\(saveKey\('bh_beta2'\)\)/);
-  assert.match(rd('game/facts.js'), /localStorage\.getItem\(saveKey\(k\)\)/);
+  assert.match(rd('game/facts.js'), /localStorage\.getItem\(verKey\(k\)\)/);
+});
+test('save key: the loading screen\'s fact reads the save of its own version page (its parameter saveKey must not hide the key function)', async () => {
+  const { bootFact } = await import('../src/game/facts.js');
+  const got = [], put = [];
+  const mem = { 'bh_beta2:v131': JSON.stringify({ fx: { seen: [], last: '' }, st: {} }) };
+  const ls = { getItem(k) { got.push(k); return k in mem ? mem[k] : null; }, setItem(k, v) { put.push(k); mem[k] = String(v); }, removeItem(k) { delete mem[k]; } };
+  const had = { ls: Object.getOwnPropertyDescriptor(globalThis, 'localStorage'), loc: Object.getOwnPropertyDescriptor(globalThis, 'location'), doc: Object.getOwnPropertyDescriptor(globalThis, 'document') };
+  const box = { style: {}, className: '', innerHTML: '' };
+  const el = { querySelector: () => null, appendChild() {} };
+  Object.defineProperty(globalThis, 'localStorage', { value: ls, configurable: true, writable: true });
+  Object.defineProperty(globalThis, 'location', { value: { pathname: '/mikdash/v/131/' }, configurable: true, writable: true });
+  Object.defineProperty(globalThis, 'document', { value: { createElement: () => box }, configurable: true, writable: true });
+  try {
+    const f = bootFact(el);
+    assert.ok(f && f.id, 'a fact is shown');
+    assert.ok(got.includes('bh_beta2:v131'), 'the save is read under the version page\'s key: ' + got.join(','));
+    assert.ok(!got.includes('bh_beta2'), 'the main site\'s save is not read');
+    assert.ok(put.includes('bh_fx_boot'), 'the shown fact is remembered: ' + put.join(','));
+  } finally {
+    for (const [k, n] of [['ls', 'localStorage'], ['loc', 'location'], ['doc', 'document']]) { if (had[k]) Object.defineProperty(globalThis, n, had[k]); else delete globalThis[n]; }
+  }
 });

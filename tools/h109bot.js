@@ -1402,7 +1402,7 @@
     const earlyP = has('pink') && s > 7 && a.band === 'dark' && !K.skEx, earlyD = has('drip') && s > 20 && a.band === 'dark' && !K.skDx && (!has('pink') || K.skEx), early = earlyP || earlyD;
     const flawNear = (a.flaws || []).some((f) => f > s && f - s < 3.2), f0 = (a.flaws || [])[0], dryF = has('gapF') && f0 != null && s > f0 - 22 && s < f0 + 0.2;
     const late = a.end > 100 && s > a.end - 7;   // (no refill in the last 7 amot: the slow close would drip within 4 amot of it — the last one before)
-    const need = has('pale') ? a.band === 'pink' : !late && (a.w < 0.48 || (flawNear && a.w < 0.6) || (a.end > 100 && s > a.end - 15 && a.w < 0.75));
+    const need = has('pale') ? a.band === 'pink' : !late && (a.w < 0.48 || (flawNear && a.w < 0.6) || (a.corn.some((c) => c - s > 1.8 && c - s < 6) && a.w < 0.65) /* (wet before a corner's zone: no refill inside it) */ || (a.end > 100 && s > a.end - 15 && a.w < 0.75));
     const refillOk = !inC && !dryF && a.band !== 'dark' && (!K.skBw || now() - K.skBw > 900);
     // (the bowl where it was a moment ago too: a gold segment's kick shakes the camera, and a tap read in the kick lands beside it)
     const bp = a.bowl, still = !!bp && !!K.skBp && Math.hypot(bp[0] - K.skBp[0], bp[1] - K.skBp[1]) < 6; K.skBp = bp;

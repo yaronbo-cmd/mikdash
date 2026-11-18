@@ -70,6 +70,9 @@ export const FINALE_ACT = {
     const Fs = finLoad(Mo.workOf('finale')), resumed = !!Mo.workOf('finale');
     const A = { t: 0, ev: [], fl: null, busy: 0, step: Fs.step, pull: null, tw: [], one: 0, saidTwo: 0, hintK: '', lastCov: 0, done: 0, tilt: 0, front: 0, drain: 0, pourT: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
+    // (b131: a cut and the man set by it are done inside the act's frame — between the figures gate (before the act) and the camera's
+    //  step (after it); from a finger's lift or a wait's end the man stood at the new place one frame under the old picture, cut)
+    const inFrame = (fn) => { (A.q = A.q || []).push(fn); };
     const keep = () => { Fs.step = A.step; Mo.keep('finale', finSave(Fs)); X.save(); };
     const cam0 = X.camera, fov0 = cam0.fov;
     const lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
@@ -325,7 +328,7 @@ export const FINALE_ACT = {
     function startWhite() {
       try { if (X.lookLift) X.lookLift(0); } catch (e) { /* */ }
       // (the man kneels on the yesod with the cloth in his hands, at the grey nearest the lime: whole in the picture — clothShot)
-      show('white'); clothShot(1.3); X.line(NLINES.cloth, 5200); X.wait(5.4).then(() => { if (A.step === 'white' && cover(Fs) < 0.1) X.line(NLINES.white, 4000); }); hintNext(true);
+      inFrame(() => { show('white'); clothShot(1.3); }); X.line(NLINES.cloth, 5200); X.wait(5.4).then(() => { if (A.step === 'white' && cover(Fs) < 0.1) X.line(NLINES.white, 4000); }); hintNext(true);
     }
     function startWater() { show('water'); for (const h of holes) h.visible = true; shot(NK.WATER, cutOr(NK.WATER[0], 1.3)); X.line(NLINES.water, 4000); hintNext(true); }
     // ── the pull: grip, pull, give way, the crew carries it out
@@ -413,7 +416,7 @@ export const FINALE_ACT = {
       },
       up(f) {
         const w = f.w; if (!w) return;
-        if (w.k === 'cloth' && A.fl === f.id) { A.fl = null; V.scrape(0); keep(); if (!A.whiteDone) clothShot(0.9); }
+        if (w.k === 'cloth' && A.fl === f.id) { A.fl = null; V.scrape(0); keep(); inFrame(() => { if (!A.whiteDone && A.fl == null) clothShot(0.9); }); }
         if (w.k === 'jar' && A.fl === f.id) { A.fl = null; A.tiltT = 0; keep(); }
         if (w.k === 'grip' && ![...FG.L.values()].some((q) => q.w && q.w.k === 'grip')) { if (A.pull && !A.busy) A.pull = null; V.creak(0); A.one = 0; A.giveT = 0; }
       },
@@ -464,7 +467,7 @@ export const FINALE_ACT = {
         // (a near place: the shot follows him; a far one — the grey left lies scattered — he and the picture are there at once, a cut:
         //  a follow shot chasing a far jump left him cut at the edge)
         if (n) { const px = CL.x, pz = CL.z; CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z, A.eyeTurn); A.pose = [e, t];
-          if (Math.hypot(CL.x - px, CL.z - pz) > 2.5) { X.shot(e, t.slice(), 0); clothMan(true); } else X.track(e, t.slice(), 4); }
+          if (Math.hypot(CL.x - px, CL.z - pz) > 2.5) inFrame(() => { X.shot(e, t.slice(), 0); clothMan(true); }); else X.track(e, t.slice(), 4); }
         paint(false); V.cloak(); await X.wait(0.6);
       }
       whiteAll(Fs); paint(false);
@@ -547,6 +550,7 @@ export const FINALE_ACT = {
       update(dt) {
         A.t += dt;
         try {
+          if (A.q && A.q.length) for (const fn of A.q.splice(0)) fn();
           V.frame(); B.step(dt); gang.update(dt, B);
           for (const tw of A.tw.slice()) { tw.t += dt; const u = Math.min(1, tw.t / tw.d); tw.f(u); if (u >= 1) { A.tw.splice(A.tw.indexOf(tw), 1); if (tw.res) tw.res(); } }
           if (A.t % 0.5 < dt) hideWorld();

@@ -104,3 +104,12 @@ test('finale: the pull is heavy and every touch answers at once', () => {
   for (const k of ['grip', 'cloth', 'jar']) assert.match(src, new RegExp(`A\\.ans = '${k}'`), k + ' answers at once');
   assert.ok(!/iron|ברזל\(/.test(src.replace(/ולא בכף ברזל|no iron[^\n]*|No iron[^\n]*|LINES\.iron/g, '')), 'no iron sound');
 });
+// ── b131: a cut and the man it moves happen inside the act's frame (after the figures gate, before the camera's step); from a finger's
+// lift or a wait's end the man stood one frame at his new place under the old picture, and the gate had him cut
+test('finale whitening: the cloth\'s cuts are made inside the act\'s frame', () => {
+  const src = readFileSync(new URL('../src/game/h131/finale.js', import.meta.url), 'utf8');
+  assert.match(src, /if \(A\.q && A\.q\.length\) for \(const fn of A\.q\.splice\(0\)\) fn\(\);/);
+  assert.match(src, /inFrame\(\(\) => \{ show\('white'\); clothShot/);
+  assert.match(src, /keep\(\); inFrame\(\(\) => \{ if \(!A\.whiteDone && A\.fl == null\) clothShot/);
+  assert.match(src, /> 2\.5\) inFrame\(\(\) => \{ X\.shot\(e, t\.slice\(\), 0\); clothMan\(true\); \}\)/);
+});

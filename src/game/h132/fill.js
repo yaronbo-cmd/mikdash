@@ -80,7 +80,7 @@ export const FILL_ACT = {
     const groundOf = (w) => { w.a.ground = (x, z) => standY(X, x, z, shown); };
     const UN0 = [[R.head[0] - R.w / 2 - 1.2, S9.sleds[0][1] - 1], [R.head[0] + R.w / 2 + 1.2, S9.sleds[0][1] - 1]];   // (beside the ramp's first sled: never on the line from the camera to the block)
     const LV0 = [[MID[0] - 10, MID[1] - 7], [MID[0] - 11.5, MID[1] + 1.5], [MID[0] - 9, MID[1] + 9]];   // (on the block's far (west) half from the east camera: never between it and the work)
-    const drv = [0, 1].map((j) => now(gang.add(OX.to[0] + 2.5, OX.to[1] - (j ? 2.9 : 3.6), { role: 'hold', item: 'staff', fx: OX.to[0] - 4, fz: OX.to[1], crew: j })));
+    const drv = [0, 1].map((j) => now(gang.add(OX.to[0] + 2.5, OX.to[1] + 2.5, { role: 'hold', item: 'staff', fx: OX.to[0] - 4, fz: OX.to[1], crew: j })));
     const un = UN0.map((p, j) => now(gang.add(p[0], p[1], { role: 'hold', fx: MID[0], fz: MID[1], crew: 2 + j })));
     const lvl = LV0.map((p, j) => now(gang.add(p[0], p[1], { role: 'hold', item: 'rake', fx: MID[0], fz: MID[1], crew: j })));
     for (const w of [...un, ...lvl]) if (w && w.a) groundOf(w);
@@ -137,7 +137,7 @@ export const FILL_ACT = {
       } else oxIdle();
       ox.update(dt);
       // the drivers walk beside the pair, their goads in hand
-      drv.forEach((w, j) => place(w, ox.P.x + (j ? 2.4 : -0.6), ox.P.z - (j ? 2.9 : 3.6), ox.P.x - 6, ox.P.z, 'hold', { v: 14 }));   // (both on the pair's north side, away from the block: wholly out of the east camera's frame at 960x600 and 1600x900)
+      drv.forEach((w, j) => place(w, ox.P.x + (j ? 2.4 : -0.6), ox.P.z + 2.5, ox.P.x - 6, ox.P.z, 'hold', { v: 14 }));   // (2.5 south of the pair: the figure gate's grid (scratch gate.json) has that line whole at u 0 and u 0.3 at 960x600 and 1600x900 for the whole road; north of the pair the lifted view cut them)
     }
     // ── the sleds' places: on the ramp at their slot (the first nearest the head), carried by the finger, or tipping on a zone
     function sledsStep(dt) {

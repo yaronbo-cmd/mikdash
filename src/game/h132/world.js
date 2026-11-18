@@ -113,9 +113,8 @@ function sync(X, M) {
     SH9.walls[k].grp.visible = wallsOn;
     wallSet(k, blk === 'formUp' || blk === 'filled' ? 90 : 0);
   }
-  // (after the strip the west wall is not on the yesod: it fell west onto the Ulam's steps and the men took it down there — it lies on
-  //  the lowest treads, flat; the spec leaves its last place open: see the report)
-  if (!owns('walls') && at(blk, 'bare')) { const W = SH9.walls.W; W.grp.position.set(S9.step1.x1 - H, S9.step1.y + 1, HINGE.W.p[2]); W.grp.rotation.set(0, 0, -Math.PI / 2); }
+  // (phase 1 decision 3: lowered off the steps by the pullers and laid flat beside the timber pile, along x — its hinge at its west end)
+  if (!owns('walls') && at(blk, 'bare')) { const W = SH9.walls.W, [cx, cz] = S9.wallRest.W; W.grp.position.set(cx - HINGE.W.L / 2, F, cz + H / 2); W.grp.rotation.set(0, Math.PI / 2, -Math.PI / 2); }
   else if (SH9.walls.W) SH9.walls.W.grp.position.set(...HINGE.W.p);
   // the sills under the south and east walls (the proposed footing over the strip with no yesod: stage 08's timbers, as the book has
   // them), while the form stands or lies there

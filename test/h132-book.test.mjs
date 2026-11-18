@@ -25,7 +25,7 @@ const CELLS = {
   ramp: 'יג־6', 'ramp:sled1': 'יג־7', 'ramp:sled2': 'יג־7', 'ramp:sled3': 'יג־6', oxen: 'יב־6',
   'strip:brace:N': 'יג־7', 'strip:brace:S': 'יג־8', 'strip:brace:E': 'יב־8', 'strip:brace:W': 'יד־8',
   'strip:belt:N': 'יג־7', 'strip:belt:S': 'יג־8', 'strip:belt:E': 'יב־8', 'strip:belt:W': 'יד־8',
-  'strip:wedge': 'יג־8', 'strip:pile': 'יב־7',
+  'strip:wedge': 'יג־8', 'strip:pile': 'יב־7', 'strip:wallW': 'יג־7', 'form:sill:E': 'יב־8', 'form:sill:S': 'יג־8',
   'sikra:rod': 'יב־8', 'sikra:stake:NE': 'יג־7', 'sikra:stake:SE': 'יג־8', 'sikra:stake:SW': 'יד־8', 'sikra:stake:NW': 'יד־7',
   'sikra:start': 'יג־8', 'sikra:bowl': 'יב־8', 'sikra:path:W': 'יד־8', 'sikra:rough': 'יד־8',
   'stand:w1': 'יב־7', 'stand:w2': 'יג־6', 'stand:w3': 'יב־9', 'stand:w4': 'יב־8',
@@ -102,6 +102,11 @@ test('book s09: against the built world — temple.js builds the sovev and its r
   assert.equal(S.step1.x1, -55); assert.equal(S.step1.y, 16.5);
   // the west brace's foot on that tread's line; the west walk in the one amah of floor between the yesod's edge (−54) and the tread
   assert.ok(S.brace.W[0] <= S.step1.x1 && S.brace.W[0] >= S.step1.x0); assert.equal(S.brace.wY, S.step1.y);
+  assert.equal(S.brace.W[0], (S.step1.x0 + S.step1.x1) / 2);   // (phase 1 decision 3: the step's middle)
+  assert.deepEqual([...S.oxen.from], [-13, -46]);              // (decision 4: west of the Duchan's steps, x −12 … −8)
+  // (decision 3) the west wall after work 3 beside the pile, clear of the steps, the west gap and the block
+  const wr = S.wallRest.W, hl = (S.side + 2 * S.T) / 2;
+  assert.ok(wr[0] + hl < S.pile[0] && wr[0] - hl > S.step1.x1 && wr[1] + 2.5 < S.block[1] - 5);
   assert.ok(S.sikra.pathW.x > S.step1.x1 && S.sikra.pathW.x < S8.altar[0]);
   // the sills proposed under the south and east walls are stage 08's timbers, exactly the strip with no yesod
   assert.deepEqual([...S.sill.E], [...S8.wood.E]); assert.deepEqual([...S.sill.S], [...S8.wood.S]);

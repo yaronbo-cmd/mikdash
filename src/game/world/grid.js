@@ -1272,11 +1272,14 @@ function s09() {
     zone, gauge, gaugeY: y1,
     ramp: { foot: [mid[0], -43], footY: C.floor, head: [mid[0], wall.N.z], headY: y1, w: 6 },
     sleds: [[mid[0], -23], [mid[0], -29], [mid[0], -35]],
-    oxen: { from: [-8, -46], to: [mid[0], -46] },
-    brace: { N: [-47, -22], S: [mid[0], 15], E: [-19.5, mid[1]], W: [-55, mid[1]], wY: C.floor + 0.5 },
+    oxen: { from: [-13, -46], to: [mid[0], -46] },   // (phase 1 decision 4: from x −13, west of the Duchan's steps — the spec's −8 is on them)
+    brace: { N: [-47, -22], S: [mid[0], 15], E: [-19.5, mid[1]], W: [-55.5, mid[1]], wY: C.floor + 0.5 },   // (phase 1 decision 3: W on the middle of the Ulam's lowest step)
     belt: { ...gauge }, beltY: y0 + 2.5,
     wedge: [...corner.SE], wedgeY: y0 + 2.5,
     pile: [-12, -26],
+    // (phase 1 decision 3) after work 3 the west wall, lowered off the Ulam's steps, lies flat beside the timber pile: its middle, along x
+    // (its length the wall's own, 30 and its two socket housings), 2 amot west of the pile and 4 north of it
+    wallRest: { W: [r3(-12 - 2 - (side + 2 * T) / 2), -26 - 4], along: 'x' },
     sikra: {
       rod: [-21.0, 13.5], rodY: C.floor, stakes: corner, stakeY: lineY, start: corner.SE, dots, sparse, bowl: [-21.3, 6.5], bowlY: C.floor,
       pathW: { x: -54.3, z0: B[1], z1: B[3] },
@@ -1322,6 +1325,10 @@ function s09() {
   for (const k of ['N', 'S', 'E', 'W']) e3('strip:belt:' + k, 'belt', S09.belt[k], S09.beltY, `קורת החגורה ${RU[k]}, על הפאה החיצונית`, ILL);
   e3('strip:wedge', 'wedge', S09.wedge, S09.wedgeY, 'הטריז (רמה ג), בין דופן דרום לשקע של מזרח', ILL);
   e3('strip:pile', 'heap', S09.pile, C.floor, 'ערימת העץ', ILL);
+  e3('strip:wallW', 'lie', S09.wallRest.W, C.floor, 'הדופן המערבית אחרי השליפה: הורדה מהמעלות ושוכבת ליד ערימת העץ', ILL);
+  // (phase 1 decision 2) the sills under the south and east walls: stage 08's timbers, laid by the crew in work 1's prepare, carried to
+  // the pile at the end of work 3
+  for (const k of ['E', 'S']) e3('form:sill:' + k, 'sill', mb(S09.sill[k]), C.floor, `הסף ${RU[k]}: קורת העץ של שלב 08 תחת הדופן, מעל הרצועה שבלי יסוד`, ILL);
   const K9 = S09.sikra;
   e3('sikra:rod', 'measure', K9.rod, K9.rodY, 'המוט עם ששת החריצים, מקום ההתחלה', ILL);
   for (const k of ['NE', 'SE', 'SW', 'NW']) e3('sikra:stake:' + k, 'linestake', corner[k], lineY, `יתד הקו בפינה ${SIDE[k]}`, 'רמב"ם ב, ט');

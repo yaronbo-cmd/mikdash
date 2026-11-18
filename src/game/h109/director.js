@@ -635,6 +635,11 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   // and the act begins. Walking away from it (14 amot) gives it back. The compass and the markers point to the nearest ones. ── /h114 ──
   const FREE = () => !!(M && M.open);
   let OPEN = [], fwT = 0, fwLine = null, byWalk = false;
+  // ── h132 ── (ירון's rule, build 132: return visits IN THE WORLD — a pack that says visits (stage 09 only) keeps its stations open after
+  // the stage's end card: each offers its own next level (M.open() after round 1), the work plays from its own pre-state and the world
+  // is the built one again after it. VIS.on: the visits are open (the stage's close is not run again)) ── /h132 ──
+  const VIS = { on: false };
+  const lvTag = (m) => (VIS.on && PK.visits && m && m.lv ? ` · רמה ${m.lv}` : '');
   const mkAt = (sp) => ({ x: sp.mx != null ? sp.mx : sp.x, z: sp.mz != null ? sp.mz : sp.z });
   function openList() {
     OPEN = M.open().map((m) => { if (m.free && ACTS.__ensure) { try { ACTS.__ensure(m, X); } catch (e) { /* */ } } return { m, sp: standOf(m) }; }).filter((q) => q.sp);
@@ -662,7 +667,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     fwT -= dt;
     if (fwT <= 0) {
       fwT = 0.4; const A = q && ACTS[q.m.k];
-      const t = q && q.d < 40 && A && A.walkLine ? A.walkLine(q.m, X) : OPEN.length > 1 ? 'בחרו עבודה ולכו אל יתד' : '';
+      const t = q && q.d < 40 && A && A.walkLine ? (VIS.on ? (A.walkLine(q.m, X) || A.title || '') + lvTag(q.m) : A.walkLine(q.m, X)) : OPEN.length > 1 ? 'בחרו עבודה ולכו אל יתד' : '';   // ── h132 ── (VIS.on: the station's name and its level) ── /h132 ──
       if (t !== fwLine) { fwLine = t; line(t, 0); }
     }
     // ── h116 ── (a free work is picked only at its very stake: walking past the hill's free rocks must not start one) ── /h116 ──
@@ -672,7 +677,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     const sp = standOf(mission);
     props().marker(sp ? mkAt(sp) : null);
     const A = ACTS[mission.k];
-    line(A && A.walkLine ? A.walkLine(mission, X) : 'לכו אל היתד האדומה', 0); fwLine = null;
+    line(VIS.on ? ((A && ((A.walkLine && A.walkLine(mission, X)) || A.title)) || '') + lvTag(mission) : A && A.walkLine ? A.walkLine(mission, X) : 'לכו אל היתד האדומה', 0); fwLine = null;   // ── h132 ── (VIS.on: the station's name and its level) ── /h132 ──
     if (A && A.prepare) call(A.prepare, mission, X);
     emit('h109mission', { id: mission.id, k: mission.k });
     log('open', mission.id);
@@ -681,7 +686,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
   // ── /h114 ──
   function openMission() {
     if (FREE()) {   // ── h114 ── ── /h114 ──
-      if (M.finished()) { mission = null; finishStage(); return; }
+      if (M.finished() && !VIS.on) { mission = null; finishStage(); return; }   // ── h132 ── (!VIS.on: the visits go on in the world) ── /h132 ──
       // ── h120 ── a free stage's own films (stage 05's opening): PK.before(null, X, M) while no work is picked (packs that say freeFilms)
       if (PK.freeFilms && PK.before && !ONLY && !M.mission()) {
         let p = null; try { p = PK.before(null, X, M); } catch (e) { p = null; }
@@ -730,7 +735,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
       const all = OPEN.map((q) => ({ q, d: Math.hypot(h.x - q.sp.x, h.z - q.sp.z) })).sort((a, b) => (PK.byPlan && !a.q.m.free && !b.q.m.free ? (a.q.m.n | 0) - (b.q.m.n | 0) : a.d - b.d)), L = all.slice(0, 4);   // ── h131 ── (byPlan: the compass's first is the plan's first open work) ── /h131 ──
       // ── h116 ── a plan work is always among the four (the free ones never hide the way on) ── /h116 ──
       if (!L.some((e) => !e.q.m.free)) { const p0 = all.find((e) => !e.q.m.free); if (p0) L[L.length - 1] = p0; }
-      L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.free ? ' · רשות' : q.m.s != null ? ` · ${q.m.s + 1}` : ''); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });
+      L.forEach(({ q }, i) => { const A = ACTS[q.m.k], m = MKF[i], p = mkAt(q.sp); m.job = 'h109' + q.m.id; m.icon = (A && A.icon) || PK.icon || '⛏'; m.label = ((A && A.title) || '') + (q.m.free ? ' · רשות' : q.m.s != null ? ` · ${q.m.s + 1}` : '') + lvTag(q.m); m.x = p.x; m.z = p.z; m.y = ground(p.x, p.z) + 5; MKL.push(m); });
       return MKL;
     }
     if (!owns() || phase !== 'walk' || !mission) return NOMK;
@@ -1131,6 +1136,26 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     _look: (u, yaw) => { LOOK.back = 0; LOOK.u = clamp(+u || 0, 0, 1); LOOK.yaw = clamp(+yaw || 0, -lookClampOf(act), lookClampOf(act)); lookSet(); return lookZone(LOOK.u, LOOK.yaw, lookYawOf(act)); },   // ── h117 ── (tests: the camera a little out) ── /h117 ──
     _perfect: (sub, word) => perfectScreen(sub, word),   // ── h115 ── (tests: the full-screen perfect) ── /h115 ──
     _tp: () => { if (!mission) return false; const sp = standOf(mission); if (!sp) return false; try { hero.setPos(sp.x, sp.z, 0); } catch (e) { return String(e); } return true; },   // ── h118 ── (tests: the kohen at the work's stand) ── /h118 ──
+    // ── h132 ── (ירון's rule: after the end card's "להמשיך להסתובב" — or after a reload of a finished stage — a pack that says visits
+    // opens its stations again in the world, each at its next level; the stage's own close is not run again) ── /h132 ──
+    visits: () => {
+      if (!PK.visits) return false;
+      const g = G(); if (!g || !g[PK.key]) return false;
+      if (!M || M.st !== g[PK.key]) M = PK.create(g[PK.key]);
+      if (!M.finished || !M.finished()) return false;
+      if (VIS.on && started) return true;
+      VIS.on = true; closing = true; started = true; phase = 'walk'; tPhase = 0; act = null; mission = null;
+      uiMount(); chipSync(false);
+      try { if (S0.pinsOff) S0.pinsOff(true); } catch (e) { /* */ }
+      { const gm = document.querySelector('.gm'); if (gm) gm.classList.add('h109-own'); }
+      props();
+      try { if (ACTS.__init) call(ACTS.__init, X); } catch (e) { /* */ }
+      syncMount(true);
+      openMission();
+      log('visits', OPEN.map((q) => q.m.id).join(','));
+      return true;
+    },
+    visiting: () => VIS.on,
     _goId: (id) => { if (mission || phase !== 'walk') return false; const q = OPEN.find((x) => x.m.id === id); return !!q && !!pickNow(q.m, false) && goTo(); },
     _skipTo: (id) => { if (!M) return false; if (M.autoTo) { if (/^waste/.test(id)) M.st.waste = Math.max(M.st.waste | 0, 6); M.autoTo((m) => m.id === id); } else while (M.mission() && M.mission().id !== id) M.done({ stars: 2 }); if (act) { call(act.end, {}); act = null; } phase = 'walk'; syncMount(true); openMission(); return true; },
   };

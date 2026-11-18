@@ -3557,7 +3557,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
       noPad(); ui.refresh(); endHold = true;
       try { W.setTimeOfDay('noon'); tod = 'noon'; } catch (e) { /* */ }
       cardOn(true);
-      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; cardOn(false); syncTime(); try { W.heroShow(true); } catch (e) { /* */ } });
+      Promise.resolve(frontCard()).catch(() => {}).then(() => { endHold = false; tod = null; cardOn(false); syncTime(); try { W.heroShow(true); } catch (e) { /* */ } h32Visits(); });   // ── h132 ── ("להמשיך להסתובב": the stations open again) ── /h132 ──
       setTimeout(() => endView(1600), 60);
     }, 1200);   // (the last stage a pack owns: the frontier's one card)
   }
@@ -3566,7 +3566,12 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
   function h32Rest() {
     if (H9 && H9.site !== 'sovev' && H9.site !== 'yesod' && H9.site !== 'lishka' && H9.site !== 'nikanor' && H9.site !== 'nashim') return false;   // (a later stage's director owns the page)
     try { if (!G.h132 && S.isDone(G, 'sovev')) { migrate09(G, true); persist(); } } catch (e) { /* */ }
-    try { const d = h32Make(); return !!(d && d.rest && d.rest()); } catch (e) { console.warn('[h132] rest', e && e.message); return false; }
+    try { const d = h32Make(); const ok = !!(d && d.rest && d.rest()); if (ok) setTimeout(() => h32Visits(), 400); return ok; } catch (e) { console.warn('[h132] rest', e && e.message); return false; }
+  }
+  /** ירון's rule (build 132): stage 09 done — the end card's "להמשיך להסתובב", or a reload — its four stations stay open in the world,
+   *  each at its own next level (the director's visits(); a pack that does not say visits: nothing) */
+  function h32Visits() {
+    try { if (!H109_ON || !S.isDone(G, 'sovev')) return false; if (H9 && H9.site !== 'sovev') return false; const d = h32Make(); return !!(d && d.pack && d.pack.visits && d.visits && d.visits()); } catch (e) { console.warn('[h132] visits', e && e.message); return false; }
   }
   /** a stage-09 page: stages 01–08 stand done (quietly; the yesod as the crews', h131 migrate08), the block's director opens on it */
   function h32Only() {

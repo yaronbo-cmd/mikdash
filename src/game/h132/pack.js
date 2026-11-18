@@ -61,7 +61,9 @@ export function makePack09(env = {}) {
     nextStage: NEXT_STAGE,
     endView: [R[0][0], R[0][1]],
     film: R,
-    sync(M, S0, instant, X) { if (!X || !SH9.X) return; if (M.finished()) finalWorld(X); },
+    sync(M, S0, instant, X) { if (!X || !SH9.X) return; if (M.finished() && !M.mission()) finalWorld(X); },   // (a return visit's work stands at its own pre-state while it plays)
+    // ירון's rule (build 132): after the end card the four stations stay open in the world, each at its next level (director visits())
+    visits: true,
     unitEnd: () => null,
     /** the opening (rule 3): the court from the north-east, down to the white yesod; a tap skips it */
     before(m, X, M) {

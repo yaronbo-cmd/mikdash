@@ -204,10 +204,12 @@ export function createH132(save) {
     /** what the walk offers: in round 1 the flow's next work; after it every station, each at its own next level */
     open() { if (!M.finished()) { const n = M.next(); return n ? [n] : []; } return KINDS.map((k) => M.visitOf(k)); },
     pick(id) {
+      // (a visit given back before its end — he walked away: what it set aside comes back as it was)
+      if (st.stash && st.cur) { const k = st.stash.k; st.flaws = [...st.flaws.filter((x) => kindOfFlaw(x) !== k), ...st.stash.flaws]; if (st.stash.line !== undefined && st.sikra) st.sikra.line = st.stash.line; if (st[k]) st[k].work = null; st.stash = null; }
       const m = id ? byId(id) : null; st.cur = m && M.canDo(m) ? m.id : null;
       // a work of a kind with a play kept: its flaws set aside while it plays again (M.done keeps the better of the two)
       st.stash = null;
-      if (st.cur && st.bestOf[m.k]) { st.stash = { k: m.k, flaws: st.flaws.filter((x) => kindOfFlaw(x) === m.k) }; st.flaws = st.flaws.filter((x) => kindOfFlaw(x) !== m.k); }
+      if (st.cur && st.bestOf[m.k]) { st.stash = { k: m.k, flaws: st.flaws.filter((x) => kindOfFlaw(x) === m.k), line: m.k === 'sikra' && st.sikra ? st.sikra.line || null : undefined }; st.flaws = st.flaws.filter((x) => kindOfFlaw(x) !== m.k); }   // (the red line as it stood: back if this play is not better)
       return M.mission();
     },
     nDone() { return STAGE_FLOW.filter(d).length; },
@@ -242,7 +244,7 @@ export function createH132(save) {
       if (!st.res[m.id] || better(r, st.res[m.id])) st.res[m.id] = r;
       const was = st.bestOf[m.k];
       if (!was || better(r, was)) { st.bestOf[m.k] = { id: m.id, stars: r.stars, pts: r.pts }; }
-      else if (st.stash && st.stash.k === m.k) st.flaws = [...st.flaws.filter((x) => kindOfFlaw(x) !== m.k), ...st.stash.flaws];
+      else if (st.stash && st.stash.k === m.k) { st.flaws = [...st.flaws.filter((x) => kindOfFlaw(x) !== m.k), ...st.stash.flaws]; if (st.stash.line !== undefined && st.sikra) st.sikra.line = st.stash.line; }
       st.stash = null;
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       if (!d(m.id)) st.done.push(m.id);

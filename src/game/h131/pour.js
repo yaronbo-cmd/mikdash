@@ -159,7 +159,7 @@ export const POUR_ACT = {
     //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
     // (the figure rule, the run of 18.11: the second pair waiting beyond the right edge was cut and hidden at every step — one pair carries,
     //  taken again on its walk back, so a tap is never kept waiting on a second pair)
-    const HOME = [[[HEAP[0] + 0.2, HEAP[1] + 3.9], [HEAP[0] + 1.6, HEAP[1] + 3.7]]];   // (look round 3: a step clear of pour2's big grey stone)
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]]];   // (a step to the right put the right man out of the frame in pour2)
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
@@ -435,11 +435,7 @@ export const POUR_ACT = {
         return false;
       },
       holds() { return !!A8.grab; },
-      at() {
-        // (the stones: the work is the stone in the porters' hands, not the frame's middle they walk across)
-        const J = A8.phase === 'stones' && PORT.pairs[0] && PORT.pairs[0].job; if (J && J.kind === 'carry' && V.stones[J.i]) { const p = V.stones[J.i].m.position, w = wpt(p.x, p.y + 0.3, p.z); return new THREE.Vector3(w.x, w.y, w.z); }
-        return new THREE.Vector3(...toWorld(lv, 0, 1, 0));
-      },
+      at() { return new THREE.Vector3(...toWorld(lv, 0, 1, 0)); },
       end() {
         POUR3D.act = 0; X.hand(null); X.kohen(true); lens(fov0);
         try { for (const w of gang.list.slice()) if (!filmMen.has(w)) gang.remove(w); } catch (e) { /* */ }   // (the after-film's men stay for it)

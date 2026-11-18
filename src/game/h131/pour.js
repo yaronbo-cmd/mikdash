@@ -103,7 +103,7 @@ export const POUR_ACT = {
       // (b131 look round: two men walk each timber in, bent over it, both hands on it; they stay by it, holding it)
       const JW = S8.wood.joint;
       for (const m of timbers.children) {
-        const dz = m.userData.k === 'S' ? 2.5 : 0, dx = m.userData.k === 'E' ? 2.5 : 0, x0 = m.position.x, z0 = m.position.z; m.position.x += dx; m.position.z += dz;
+        const dz = m.userData.k === 'S' ? 1.0 : 0, dx = m.userData.k === 'E' ? 1.0 : 0,   /* (the figure rule: from 2.5 out its men walked in cut by the frame's edge) */ x0 = m.position.x, z0 = m.position.z; m.position.x += dx; m.position.z += dz;
         const men = (m.userData.k === 'E' ? [[JW[0] + 1.3, JW[1] - 4.5], [JW[0] + 1.3, JW[1] - 10.5]] : [[JW[0] - 4.5, JW[1] + 1.4], [JW[0] - 10.5, JW[1] + 1.4]])
           .map(([x, z], c) => { const w = gang.add(x + dx, z + dz, { role: 'push', crew: c, fx: x - (dx ? 3 : 0), fz: z - (dz ? 3 : 0), lean: -0.1 }); if (w) { w.stride = 1; w.rate = 2.2; w.x0 = x; w.z0 = z; } return w; }).filter(Boolean);
         prepMen.push(...men);
@@ -124,6 +124,9 @@ export const POUR_ACT = {
     const reedAt = (j) => ({ x: S8.reeds[j][0], y: S8.floor + 0.8, z: S8.reeds[j][1] });
     function prepShot() {
       if (!A8.prep) return;
+      // (the figure rule, the run of 18.11: in the close shots of the joint and the reeds the timbers' men were cut by the frame — their
+      //  work done, they are out for these steps; the mallet's man and the reeds' man stay)
+      for (let i = prepMen.length - 1; i >= 0; i--) { const w = prepMen[i]; if (w !== maul && w !== reedMan) { gang.remove(w); prepMen.splice(i, 1); } }
       if (A8.prep.step === 'joint') { const J = jointAt(); X.shot([J.x + 6.5, J.y + 8, J.z - 12], [J.x - 0.5, S8.floor + 1.3, J.z + 0.8], 1.2); X.line(POUR_LINES.joint, 0); later(1.3, () => X.hand(jointAt(), 0, 14)); }
       else { const R0 = reedAt(0), R1 = reedAt(1), mx = (R0.x + R1.x) / 2, mz = (R0.z + R1.z) / 2; X.shot([mx + 6, S8.floor + 8.5, mz - 11], [mx + 0.3, S8.floor + 1.3, mz + 0.9], 1.2); X.line(POUR_LINES.reeds, 0); const j = A8.prep.reeds[0] ? 1 : 0; later(1.3, () => X.hand(reedAt(j), 0, 14)); }
     }
@@ -154,7 +157,9 @@ export const POUR_ACT = {
     const PILE = [[0, 1.0], [0.5, -1.9]];
     // (look round 3, the run: on the heap's far side they stood out of the picture — the first pair waits at the heap's two ends along the
     //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
-    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]], [[HEAP[0] + 4.6, HEAP[1] - 1.2], [HEAP[0] + 4.6, HEAP[1] + 1.4]]];
+    // (the figure rule, the run of 18.11: the second pair waiting beyond the right edge was cut and hidden at every step — one pair carries,
+    //  taken again on its walk back, so a tap is never kept waiting on a second pair)
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]]];   // (a step to the right put the right man out of the frame in pour2)
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
@@ -168,7 +173,7 @@ export const POUR_ACT = {
     function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++; }); }
     function portersMake() {
       if (PORT.pairs.length) return;
-      for (let k = 0; k < 2; k++) {
+      for (let k = 0; k < HOME.length; k++) {
         const men = HOME[k].map(([lx, lz], j) => { const W = toW(lx, lz); const w = gang.add(W.x, W.z, { role: 'hold', crew: k, fx: HW.x, fz: HW.z }); if (w) w.home = [lx, lz]; return w; }).filter(Boolean);
         PORT.pairs.push({ men, job: null });
       }
@@ -230,7 +235,11 @@ export const POUR_ACT = {
       const p0 = P.men.map((w) => { const L2 = toLocal(lv, w.a.x, w.a.z); return [L2[0], L2[1]]; });
       P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; w.rate = 2.6; });
       const reach = Math.max(...p0.map((q) => Math.hypot(q[0] - from[0], q[1] - from[1])));
-      P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(d / 8, 0.8, 1.5), from, to, n: [-dz / d, dx / d], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
+      // (the figure rule, the run of 18.11: flanking the stone across its path, the near man of the pair walked between the eye and the
+      //  work — the pair flanks it left and right as the shot sees it, never in front of it)
+      let nx = -dz / d, nz = dx / d;
+      try { const q0 = scr(wpt(from[0], 0.6, from[1])), qx = scr(wpt(from[0] + 1, 0.6, from[1])), qz = scr(wpt(from[0], 0.6, from[1] + 1)), ax = qz.y - q0.y, az = -(qx.y - q0.y), al = Math.hypot(ax, az); if (al > 1e-3) { nx = ax / al; nz = az / al; } } catch (e) { /* (the path's normal) */ }
+      P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(d / 8, 0.8, 1.5), from, to, n: [nx, nz], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
       V.sfx.thud();
     }
 

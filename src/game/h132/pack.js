@@ -3,13 +3,14 @@
  * works' links), its acts (acts.js), its world (world.js: the block's states drawn from the save); the opening (rule 3: where am I —
  * the altar's place from the court, the white yesod waiting; a tap skips it); the end (spec "סיום השלב": the camera rises and circles
  * the block round BOOK.s09.cam.end; the game holds it under the end card, which names the next stage, NEXT_STAGE).
- * Phase 0: the ending's film is the circle only (the line lighting, running and pulsing, the waves of light, the red and gold fireworks
- * are the lead's in phase 1).
+ * The ending's light — the line lighting, running and pulsing, the waves of light and shade, the red and gold fireworks — is ending.js,
+ * run by finale() over the director's round.
  */
 import { h131Card } from '../h131/card.js';
 import { PLAN, LINES, NEXT_STAGE, createH132, fromOld } from './model.js';
 import { ACTS } from './acts.js';
 import { SH9, initWorld, finalWorld, restWorld } from './world.js';
+import { endingFx } from './ending.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';
 import { BOOK } from '../world/grid.js';
 
@@ -81,7 +82,11 @@ export function makePack09(env = {}) {
       })();
     },
     /** the stage's close (phase 0: the world as he built it, the end card's large type; the ending's film is phase 1's) */
-    async finale(X) { finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); try { X.kohen(false); } catch (e) { /* */ } },
+    async finale(X) {
+      finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); try { X.kohen(false); } catch (e) { /* */ }
+      // (the ending's light, waves and fireworks — ending.js — run over the director's round; not awaited: the camera circles meanwhile)
+      try { if (SH9.ending) SH9.ending.stop(); const fx = endingFx(X); SH9.ending = fx; try { globalThis.__H132_END = fx; } catch (e) { /* */ } fx.run().then(() => { if (SH9.ending === fx) SH9.ending = null; }); } catch (e) { console.warn('[h132] ending', e && e.message); }
+    },
     /** after a reload, the stage done: the block as he built it */
     rest(X, M) { restWorld(X, M); },
     dispose() {},

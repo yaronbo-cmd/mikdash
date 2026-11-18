@@ -103,11 +103,11 @@ function makeSikra(m, X) {
     const [cx, cz] = S9.corner[k], d = diag(k), s = V3.makeStake(X); s.position.set(cx + d[0] * 0.15, LY, cz + d[1] * 0.15); s.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(d[0], 0, d[1]).normalize()); root.add(s); return s;   // (driven into the corner, its head out along the corner's diagonal)
   }
   function ladderAt(k) {
-    // (leaned on one face beside the corner — VK.LAD amot along it, the face the corner's shot sees him clear of the rod on: on the
+    // (leaned on one face beside the corner — the book's sikra:ladder, the face the corner's shot sees him clear of the rod on: on the
     //  diagonal he stood before the corner and the figures gate took him out)
-    const [cx, cz] = S9.corner[k], d = diag(k), xf = V3.VK.LAD_FACE[k] === 'x', n = xf ? [d[0], 0] : [0, d[1]], al = xf ? [0, -d[1]] : [-d[0], 0], o = V3.VK.LAD[k];
-    const bx = cx + al[0] * o, bz = cz + al[1] * o, LB = K9.ladder && K9.ladder[k];   // (the book's, once it has them)
-    const foot = LB ? LB.foot.slice() : [bx + n[0] * 2.2, bz + n[1] * 2.2], fy = V3.footY(X, foot[0], foot[1]), head = LB ? LB.head.slice() : [bx + n[0] * 0.12, TOP - 0.35, bz + n[1] * 0.12];
+    const [cx, cz] = S9.corner[k], d = diag(k), xf = V3.VK.LAD_FACE[k] === 'x', n = xf ? [d[0], 0] : [0, d[1]];   // (n: the face's outward side, the helper on the rungs' outer side)
+    const LB = K9.ladder[k];   // (the book's: sikra:ladder)
+    const foot = LB.foot.slice(), fy = V3.footY(X, foot[0], foot[1]), head = LB.head.slice();
     V3.leanLadder(ladder, foot[0], foot[1], head[0], head[1], head[2], fy); ladder.visible = true;
     // (the helper on a rung, his feet two amot over the ladder's foot, on its outer side; the wooden mallet in his hand, toward the stake)
     const hY = fy + 2, u = (hY - fy) / (head[1] - fy), hx = foot[0] + (head[0] - foot[0]) * u + n[0] * 0.35, hz = foot[1] + (head[2] - foot[1]) * u + n[1] * 0.35;

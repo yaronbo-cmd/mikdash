@@ -30,9 +30,8 @@ export const VK = Object.freeze({
   // at the act's lens — the figures gate's rule "whole or absent"). West: the gap is one amah — the camera above him and behind
   CAM: Object.freeze({ back: 6, out: 16, up: 6, aimF: 2.8, aimIn: 0.8, aimUp: 3.4 }),
   CAMW: Object.freeze({ back: 13, out: 2.5, up: 13, aimF: 4, aimIn: 0.2, aimUp: 1.5 }),
-  // the measuring: the ladder leaned on one face this far from the corner (the helper on it beside the rod, not before it), and which
-  // face (the one the corner's shot sees the helper clear of the corner on)
-  LAD: Object.freeze({ NE: 2.4, SE: 2.8, SW: 3.4, NW: 3.4 }), LAD_FACE: Object.freeze({ NE: 'z', SE: 'x', SW: 'z', NW: 'z' }),
+  // the measuring: the face each corner's ladder leans on (its place is the book's, sikra:ladder — beside the rod, not before it)
+  LAD_FACE: Object.freeze({ NE: 'z', SE: 'x', SW: 'z', NW: 'z' }),
   BOWL_PX: 52, DRIP_PX: 40,  // the right thumb's targets on the screen (the bowl about 2.5 cm: its hit radius in css px)
   BOWL_R: 0.62,          // the bowl's radius (a big clay bowl, seen)
   POLE_R: 0.05,
@@ -99,12 +98,7 @@ export function camAt(s, lv, wHere) {
 }
 /** a corner's measuring shot: outside the corner, the rod, the ladder and the helper in it (derived from cam:w4:measure's height and
  *  distance; the west corners from the north and the south — west of the block are the Ulam's steps) */
-export function measureShot(k) {
-  const B0 = S9.cam && S9.cam.w4corner && S9.cam.w4corner[k]; if (B0) return [B0[0].slice(), B0[1].slice()];   // (the book's, once it has them)
-  if (k === 'SE') return [S9.cam.w4measure[0].slice(), [S9.corner.SE[0] - 2, LY - 1.5, S9.corner.SE[1] - 2]];
-  const [cx, cz] = S9.corner[k], ex = k === 'NE' ? 9 : 7, ez = k === 'NE' ? -13 : k === 'NW' ? -15 : 15;
-  return [[cx + ex, LY + 6.5, cz + ez], [cx + (k === 'NE' ? 0.5 : 1.5), LY - 1.6, cz + (k === 'NE' ? 0 : k === 'NW' ? -1 : 1)]];
-}
+export function measureShot(k) { const B0 = S9.cam.w4corner[k]; return [B0[0].slice(), B0[1].slice()]; }   // (the book's: cam:w4:corner)
 
 /* ───────── materials ───────── */
 export function smats(X) {

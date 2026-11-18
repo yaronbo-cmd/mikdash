@@ -21,7 +21,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, MID = S9.mid, ZC =
  *  pace (amot/s), the hint hand's longest gesture (px), the wait before the end (s) (המחשה, לכיוונון) */
 export const FK = Object.freeze({
   PICK: 70, PICKM: 46, FALL: Object.freeze({ big: 1.1, small: 0.45, tub: 0.7 }), FLOW: 0.6, SLIDE: 0.7, OX_WALK: 2.6, MEN: 7, HP: 85, END: 1.6,
-  LIFT: 1.6, RAKE: 1.3, BACK: 0.5, FOV: 44,
+  LIFT: 1.6, RAKE: 1.3, BACK: 0.5, FOV: 50, ROAD0: 0.5,
 });
 /** the act's words (what to do, at most five words) */
 export const FILLL = Object.freeze({
@@ -78,8 +78,7 @@ export const FILL_ACT = {
     const Bt = createBeat(X), gang = createGang(X), ox = oxPair(X, root);
     const now = (w) => { if (w && w.a) w.a.vis = 1; return w; };
     const groundOf = (w) => { w.a.ground = (x, z) => standY(X, x, z, shown); };
-    const HEAD = [R.head[0], R.head[1] - 2.2];
-    const UN0 = [[HEAD[0] - 1.9, HEAD[1] - 0.6], [HEAD[0] + 1.9, HEAD[1] - 0.6]];
+    const UN0 = [[R.head[0] - R.w / 2 - 1.2, S9.sleds[0][1] - 1], [R.head[0] + R.w / 2 + 1.2, S9.sleds[0][1] - 1]];   // (beside the ramp's first sled: never on the line from the camera to the block)
     const LV0 = [[MID[0] - 9, MID[1] + 2], [MID[0] + 3, MID[1] + 8.5], [MID[0] + 9, MID[1] - 2]];
     const drv = [0, 1].map((j) => now(gang.add(OX.to[0] + 2.5, OX.to[1] + (j ? 2.6 : -2.6), { role: 'hold', item: 'staff', fx: OX.to[0] - 4, fz: OX.to[1], crew: j })));
     const un = UN0.map((p, j) => now(gang.add(p[0], p[1], { role: 'hold', fx: MID[0], fz: MID[1], crew: 2 + j })));
@@ -127,7 +126,7 @@ export const FILL_ACT = {
         if (q) { road.t = 0; road.q = q; const s = sledFor(q); s.st = 'road'; ev('bring:' + q.kind); }
       }
       if (road.t >= 0) {
-        road.t += dt; const u = Math.min(1, road.t / FK.OX_WALK), x = OX.from[0] + (OX.to[0] + 4.5 - OX.from[0]) * ease(u);
+        road.t += dt; const u = Math.min(1, road.t / FK.OX_WALK), x0 = OX.from[0] + (OX.to[0] - OX.from[0]) * FK.ROAD0, x = x0 + (OX.to[0] + 4.5 - x0) * ease(u);   // (from the road's half that the work's view holds)
         ox.set(x, OXW[1], -Math.PI / 2, u < 1 ? 1 : 0);
         const s = sleds.get(road.q.i); if (s) { s.pos.x = x + 4.2; s.pos.z = OX.to[1]; s.pos.y = S9.floor; s.ang = 0; s.yaw = Math.PI / 2; }
         if (u >= 1) { if (s) s.st = 'ramp'; road.t = -1; road.q = null; V.knock(0.7); }
@@ -193,7 +192,7 @@ export const FILL_ACT = {
       const s = k.s, c = ZC[zone]; A.drop = { s, zone, t: 0, j: k.j, landed: 0 };
       s.st = 'drop'; s.want = { x: c[0], y: Y0 + surfH(shown, c[0], c[1]) + 0.05, z: c[1] };
       // the two unloaders at the sled's sides
-      un.forEach((w, j) => place(w, c[0] + (j ? 1.9 : -1.9), c[1] - 0.4, c[0], c[1], 'hold', { v: 16 }));
+      un.forEach((w, j) => place(w, c[0] + (j ? 1.9 : -1.9), c[1] + 1.3, c[0], c[1], 'hold', { v: 16 }));   // (on the sled's far side from the camera)
       ev('drop:' + s.kind + '@' + zone);
     }
     function dropStep(dt) {

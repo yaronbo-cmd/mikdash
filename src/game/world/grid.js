@@ -1289,7 +1289,7 @@ function s09() {
     stand: { w1: [-16, -25], w2: [-34, -46], w3: [-16, 18], w4: [-21.8, 11.5] }, standY4: C.floor,
     // the cameras ([eye x, y, z], [aim x, y, z]); the end: a round over the middle
     cam: {
-      w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[12, 38, -62], [-34, 16, -17]],   // (work 2: from the north-east, high — the block, the ramp, the oxen's road and the horizon in one view)
+      w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[-8, 52, -58], [mid[0] + 2, 14, -12]],   // (work 2: from the north-east, high — the block, the ramp, the oxen at its foot; east and the near north are walled)
       w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
       end: { c: mid, R: 40, y: 50 },

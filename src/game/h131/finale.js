@@ -444,7 +444,7 @@ export const FINALE_ACT = {
       for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) {
         let sx = 0, sz = 0, n = 0; for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) { Fs.mask[left[j]] = 1; sx += FIN.X0 + (left[j] % FIN.NX) + 0.5; sz += FIN.Z0 + Math.floor(left[j] / FIN.NX) + 0.5; n++; }
         // (b131: the shot stays close on him as he goes — he kneels by the cloth, whole, the picture following him (whiteStep moves him))
-        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z); A.pose = [e, t]; X.track(e, t, 3); }
+        if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; const [e, t] = clothEye(CL.x, CL.z); A.pose = [e, t]; X.shot(e, t.slice(), 0.45); }
         paint(false); V.cloak(); await X.wait(0.6);
       }
       whiteAll(Fs); paint(false);

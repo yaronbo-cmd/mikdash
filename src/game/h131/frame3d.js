@@ -83,7 +83,7 @@ export function frameHold(k, on) { SHF[k] = !!on; SHF.key = ''; if (SHF.X) build
  *  box (3.9 by 1.1 amot) whole in the shot [eye, aim] at its lens and at the look's u 0.3 lens, held a little in from the edge, and not
  *  over the work's focus nearer the eye. whole(pose, fov, aspect, x, y, z, focus) → 'whole' | 'off' (wholly out of the picture) | 'cut' */
 export function figTest(T) {
-  const C = new T.PerspectiveCamera(), V = new T.Vector3(), E = 0.94, R = 0.17;
+  const C = new T.PerspectiveCamera(), V = new T.Vector3(), R = 0.17; let E = 0.94;
   const wide = (f) => (2 * Math.atan((1 + LOOK_RING_K.NEAR * Math.min(1, 0.3 / LOOK_RING_K.KEEP_U0)) * Math.tan((f * Math.PI) / 360)) * 180) / Math.PI;
   function one(x, y, z, foc) {
     let x0 = 9, x1 = -9, y0 = 9, y1 = -9, out = 0;
@@ -98,8 +98,9 @@ export function figTest(T) {
       if (V.z < -0.05) { V.applyMatrix4(C.projectionMatrix); if (d < fd - 1 && x0 < V.x + R && x1 > V.x - R && y0 < V.y + R && y1 > V.y - R) return 'cut'; } }
     return 'whole';
   }
-  return (P, fov, asp, x, y, z, foc) => {
-    let r = 'off', all = 'off';
+  // (edge: how far in from the frame's edge a man must stand, as a share of the half frame — less leaves room for him to move)
+  return (P, fov, asp, x, y, z, foc, edge = 0.94) => {
+    E = edge; let r = 'off', all = 'off';
     for (const f of [fov, wide(fov)]) { C.position.set(P[0][0], P[0][1], P[0][2]); C.up.set(0, 1, 0); C.lookAt(P[1][0], P[1][1], P[1][2]); C.fov = f; C.aspect = asp; C.updateProjectionMatrix(); C.updateMatrixWorld(true); r = one(x, y, z, foc); if (r === 'cut') return 'cut'; if (r === 'whole') all = 'whole'; }
     return all;
   };

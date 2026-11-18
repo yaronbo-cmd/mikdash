@@ -370,13 +370,19 @@ export const FRAME_ACT = {
       // (b131 look round 3b, C2: the close shot steps back until the men who carry the board are whole in it — the man at the corner
       //  handled, and the one at the board's other end either whole or wholly out of the picture; never their heads at the frame's edge)
       const c = focusPt(k), aim = [c[0], F + 1, c[1]], foc = [MID[0], F + 1, MID[1]], asp = cam0.aspect || 1.6, m0 = manAt(k), h0 = helpAt(k);
-      let eye = null;
-      for (let f = 1; f <= 2.05 && !eye; f += 0.15) {
-        const e = [c[0], F + 1 + FK.NEAR[0] * f, c[1] - FK.NEAR[1] * f], P = [e, aim];
-        if (fig(P, FK.NFOV, asp, m0[0], F, m0[1], foc) === 'whole' && fig(P, FK.NFOV, asp, h0[0], F, h0[1], foc) !== 'cut') eye = e;
+      // (the corner's own shot first; where the board runs away from the eye and its far man cannot be whole in it, the shot of the
+      //  whole board, both men in it; each held well in from the edge, for they walk with the board as it is carried)
+      let eye = null, at = aim;
+      const mid = [(m0[0] + h0[0]) / 2, F + 1, (m0[1] + h0[1]) / 2];
+      for (const [A0, f0, f1, edge] of [[aim, 1, 2.05, 0.8], [mid, 1, 2.6, 0.8], [aim, 1, 2.05, 0.94], [mid, 1, 3, 0.94]]) {
+        for (let f = f0; f <= f1 && !eye; f += 0.15) {
+          const e = [A0[0], F + 1 + FK.NEAR[0] * f, A0[2] - FK.NEAR[1] * f], P = [e, A0];
+          if (fig(P, FK.NFOV, asp, m0[0], F, m0[1], foc, edge) === 'whole' && fig(P, FK.NFOV, asp, h0[0], F, h0[1], foc, edge) !== 'cut') { eye = e; at = A0; }
+        }
+        if (eye) break;
       }
       if (!eye) { eye = [c[0], F + 1 + FK.NEAR[0], c[1] - FK.NEAR[1]]; ev('shot:nofit'); }
-      lens(FK.NFOV); X.shot(eye, aim, easeTo(eye)); cast(k); ev('shot:' + k);
+      lens(FK.NFOV); X.shot(eye, at.slice(), easeTo(eye)); cast(k); ev('shot:' + k);
     }
     function shotStep() {
       if (A.fl != null || S.drag || DG.carry || DG.fall || A.busy || A.t < (A.holdT || 0)) return;

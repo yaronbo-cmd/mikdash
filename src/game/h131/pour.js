@@ -167,16 +167,18 @@ export const POUR_ACT = {
     //  taken again on its walk back, so a tap is never kept waiting on a second pair)
     const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]]];   // (a step to the right put the right man out of the frame in pour2)
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
+    /** a heap place for a stone of half-width r: clear of the frame's east board (D2: pour2's big stone lay across it) */
+    const pileAt = (q, r) => [Math.max(HEAP[0] + q[0], 6 + 0.36 + 0.3 + (r || 0)), HEAP[1] + q[1]];
     function heapLay() {
       let k = 0;
       V.stones.forEach((S, i) => {
         if (i < A8.stonesIn) { S.carry = false; return; }
         // (b131 look round 2: a compact heap of the next five in the frame — the rest wait out of the picture and come up as these go)
-        S.carry = true; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++;
+        S.carry = true; const q = PILE[k]; S.m.visible = !!q; if (q) { const p = pileAt(q, S.s.rx); S.m.position.set(p[0], 0, p[1]); } k++;
       });
     }
     /** the pile once a stone left it: the waiting ones not in anyone's hands, laid on the heap's places again */
-    function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) S.m.position.set(HEAP[0] + q[0], 0, HEAP[1] + q[1]); k++; }); }
+    function heapLay2() { let k = 0; V.stones.forEach((S, i) => { if (i < A8.stonesIn || !S.carry) return; const q = PILE[k]; S.m.visible = !!q; if (q) { const p = pileAt(q, S.s.rx); S.m.position.set(p[0], 0, p[1]); } k++; }); }
     function portersMake() {
       if (PORT.pairs.length) return;
       for (let k = 0; k < HOME.length; k++) {
@@ -206,7 +208,14 @@ export const POUR_ACT = {
     }
     /** the pair's flank at a point u along the way: left-right as the shot sees it; 'turn' starts across the eye's line (beside the heap
      *  near the frame's edge, the far man would stand out of it) and swings to left-right in the first third of the way */
+    /** the two men's places about the stone at c: about it left and right (side, turn), or both on one side of it ('outL', 'outR': one a
+     *  step nearer the eye, one a step farther — where the stone's place lies in the eye's line to the work, neither man may) */
+    function menAt(c, u, mode, g) {
+      if (mode === 'outL' || mode === 'outR') { const n = sideDir(c[0], c[1]), sg = mode === 'outR' ? 1 : -1, d = [-n[1], n[0]], ox = c[0] + n[0] * g * sg, oz = c[1] + n[1] * g * sg; return [[ox - d[0] * 0.75, oz - d[1] * 0.75], [ox + d[0] * 0.75, oz + d[1] * 0.75]]; }
+      const n = flankAt(c, u, mode); return [[c[0] - n[0] * g, c[1] - n[1] * g], [c[0] + n[0] * g, c[1] + n[1] * g]];
+    }
     function flankAt(c, u, mode) { const n = sideDir(c[0], c[1]); if (mode !== 'turn' || u >= 0.3) return n; const a = (1 - u / 0.3) * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a); return [n[0] * ca - n[1] * sa, n[0] * sa + n[1] * ca]; }
+    const g0of = (J) => J.g;
     const pathLen = (pts) => { let L2 = 0; for (let k = 1; k < pts.length; k++) L2 += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); return L2; };
     function pathAt(pts, u) {
       const L2 = pathLen(pts) || 1; let r = clamp(u, 0, 1) * L2;
@@ -223,11 +232,11 @@ export const POUR_ACT = {
       let best = null;
       for (const pts of cands) {
         const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.35));
-        for (const mode of ['side', 'turn']) for (const g of [g0, g0 + 0.5, g0 + 1.0, g0 + 1.6]) {
-          let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'turn' ? 0.05 : 0); if (best && f >= best.f) continue;
+        for (const mode of ['side', 'turn', 'outL', 'outR']) for (const g of [g0, g0 + 0.5, g0 + 1.0, g0 + 1.6]) {
+          let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'turn' ? 0.05 : mode === 'side' ? 0 : 0.3); if (best && f >= best.f) continue;
           for (let k = 0; k <= nS && !(best && f >= best.f); k++) {
-            const u = k / nS, c = pathAt(pts, u), n = flankAt(c, u, mode);
-            f += fault(c[0] - n[0] * g, c[1] - n[1] * g) + fault(c[0] + n[0] * g, c[1] + n[1] * g);
+            const u = k / nS, c = pathAt(pts, u), mm = menAt(c, u, mode, g);
+            f += fault(mm[0][0], mm[0][1]) + fault(mm[1][0], mm[1][1]);
           }
           if (!best || f < best.f) best = { f, pts, g, mode };
         }
@@ -241,10 +250,10 @@ export const POUR_ACT = {
       let rmax = 0.8; for (let i = A8.stonesIn; i < V.stones.length; i++) { const S = V.stones[i]; if (S && S.s) rmax = Math.max(rmax, S.s.rx, S.s.rz); }
       const boxOf = (pts) => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const q of pts) { if (!q) return null; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); } return { x0, x1, y0, y1 }; };
       const over = (a, b) => a && b && a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
-      const stoneBox = (q) => boxOf([[-1, -1], [1, -1], [-1, 1], [1, 1]].flatMap(([sx, sz]) => [0, 1.0].map((y) => scr(wpt(HEAP[0] + q[0] + sx * rmax, y, HEAP[1] + q[1] + sz * rmax)))));
+      const stoneBox = (q) => { const p = pileAt(q, rmax); return boxOf([[-1, -1], [1, -1], [-1, 1], [1, 1]].flatMap(([sx, sz]) => [0, 1.0].map((y) => scr(wpt(p[0] + sx * rmax, y, p[1] + sz * rmax))))); };
       const manBox = (lx, lz) => { const a = scr(wpt(lx, 0, lz)), b = scr(wpt(lx, 3.6, lz)); if (!a || !b) return null; const h = Math.abs(a.y - b.y), w = h * 0.2; return { x0: Math.min(a.x, b.x) - w, x1: Math.max(a.x, b.x) + w, y0: Math.min(a.y, b.y), y1: Math.max(a.y, b.y) }; };
       const SB = PILE.map(stoneBox);
-      const ok = (lx, lz) => { const mb = manBox(lx, lz); if (!mb || SB.some((b) => over(mb, b))) return false; if (PILE.some((q) => Math.hypot(lx - HEAP[0] - q[0], lz - HEAP[1] - q[1]) < rmax + 0.6)) return false; return fault(lx, lz) === 0; };
+      const ok = (lx, lz) => { const mb = manBox(lx, lz); if (!mb || SB.some((b) => over(mb, b))) return false; if (PILE.some((q) => { const p = pileAt(q, rmax); return Math.hypot(lx - p[0], lz - p[1]) < rmax + 0.6; })) return false; return fault(lx, lz) === 0; };
       const spots = [];
       for (let r = rmax + 0.9; r <= rmax + 5; r += 0.4) for (let k = 0; k < 24; k++) { const an = k * Math.PI / 12, lx = HEAP[0] + 0.25 + Math.cos(an) * r, lz = HEAP[1] - 0.45 + Math.sin(an) * r; if (ok(lx, lz)) spots.push([lx, lz, r]); }
       let pick = null;
@@ -265,8 +274,8 @@ export const POUR_ACT = {
           const u = clamp(J2.t / J2.T, 0, 1);
           P.men.forEach((w, j) => {
             const sg = j ? 1 : -1, [hx, hz] = w.home;
-            if (J2.pts && u < 0.8) { const uu = 1 - sm(u / 0.8), c = pathAt(J2.pts, uu), n = flankAt(c, uu, J2.mode); placeMan(w, c[0] + n[0] * J2.g * sg, c[1] + n[1] * J2.g * sg, c[0], c[1]); }
-            else { const e = J2.pts ? sm((u - 0.8) / 0.2) : sm(u), q0 = J2.pts ? (() => { const c = J2.pts[0], n = flankAt(c, 0, J2.mode); return [c[0] + n[0] * J2.g * sg, c[1] + n[1] * J2.g * sg]; })() : J2.p0[j]; placeMan(w, q0[0] + (hx - q0[0]) * e, q0[1] + (hz - q0[1]) * e, HEAP[0], HEAP[1]); }
+            if (J2.pts && u < 0.8) { const uu = 1 - sm(u / 0.8), c = pathAt(J2.pts, uu), q = menAt(c, uu, J2.mode, J2.g)[j]; placeMan(w, q[0], q[1], c[0], c[1]); }
+            else { const e = J2.pts ? sm((u - 0.8) / 0.2) : sm(u), q0 = J2.pts ? menAt(J2.pts[0], 0, J2.mode, J2.g)[j] : J2.p0[j]; placeMan(w, q0[0] + (hx - q0[0]) * e, q0[1] + (hz - q0[1]) * e, HEAP[0], HEAP[1]); }
             w.stride = u < 1 ? 1 : 0;
           });
           if (J2.t >= J2.T) { P.job = null; P.men.forEach((w) => { w.stride = 0; gang.setRole(w, 'hold'); }); if (A8.queued) { A8.queued = 0; A8.busy = 0; dropNext(); } }
@@ -274,12 +283,12 @@ export const POUR_ACT = {
         }
         const [ax, az] = J2.from, [bx, bz] = J2.to, T0 = J2.T0 || 0.35, T1 = T0 + 0.2, T2 = T1 + J2.T, T3 = T2 + 0.25;
         const v = J2.t < T1 ? 0 : sm((J2.t - T1) / J2.T), cw = J2.pts ? pathAt(J2.pts, v) : [ax + (bx - ax) * v, az + (bz - az) * v], cx = cw[0], cz = cw[1];
-        const nn = J2.pts ? flankAt(cw, v, J2.mode) : J2.n;
+        const mm = J2.pts ? menAt(cw, v, J2.mode, g0of(J2)) : null;
         const y = J2.t < T0 ? 0 : J2.t < T1 ? 0.55 * sm((J2.t - T0) / (T1 - T0)) : J2.t < T2 ? 0.55 + 0.05 * Math.sin(J2.t * 9) : 0.55 * (1 - sm((J2.t - T2) / (T3 - T2)));
         if (m2) m2.position.set(cx, y, cz);
         const g = J2.g, u0 = sm(J2.t / T0);
         P.men.forEach((w, j) => {
-          const sg = j ? 1 : -1, px = cx + nn[0] * g * sg, pz = cz + nn[1] * g * sg;
+          const sg = j ? 1 : -1, px = mm ? mm[j][0] : cx + J2.n[0] * g * sg, pz = mm ? mm[j][1] : cz + J2.n[1] * g * sg;
           placeMan(w, J2.p0[j][0] + (px - J2.p0[j][0]) * u0, J2.p0[j][1] + (pz - J2.p0[j][1]) * u0, cx, cz);
           w.stride = J2.t < T0 || (J2.t > T1 && J2.t < T2) ? 1 : 0;
         });

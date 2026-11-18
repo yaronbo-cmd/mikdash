@@ -1214,7 +1214,7 @@
       if (a.step === 'rise') { if (shots && !K.shotR) { K.shotR = 1; return { wait: 2600, shot: a.id + '-rise' }; } return { wait: 300 }; }
       // (a still of the timber coming out on its ropes, the shot at rest — it follows only the first amot)
       if (a.busy && shots && a.step === 'pull') { for (const k of ['S', 'E']) { const v = a['s' + k]; if (v > 7 && v < 16 && !K['shotO' + k]) { K['shotO' + k] = 1; return { wait: 50, shot: a.id + '-out-' + k }; } } }
-      if (a.busy) { if (shots && a.step === 'water' && !K.shotW) { K.shotW = 1; return { wait: 200, shot: a.id + '-water-down' }; } return { wait: 250 }; }
+      if (a.busy) { if (shots && a.step === 'water' && !K.shotW) { K.shotW = 1; return { wait: 200, shot: a.id + '-water-down' }; } if (shots && a.step === 'white' && a.cover > 0.9 && !K.shotWE) { K.shotWE = 1; return { wait: 100, shot: a.id + '-white-end' }; } return { wait: 250 }; }
       if (a.step === 'pull') {
         let k = a.out.S ? 'E' : 'S'; if (has('east') && !K.east) { K.east = 1; k = 'E'; }
         const d = a['dir' + k], g = a.grip, n = [-d[1] * 22, d[0] * 22], f1 = [g[0] + n[0], g[1] + n[1]], f2 = [g[0] - n[0], g[1] - n[1]];
@@ -1225,6 +1225,7 @@
         return r;
       }
       if (a.step === 'white') {
+        if (shots && a.cover > 0.03 && !K.shotC0) { K.shotC0 = 1; return { wait: 200, shot: a.id + '-white-start' }; }
         if (shots && a.cover > 0.4 && !K.shotC) { K.shotC = 1; return { wait: 200, shot: a.id + '-white' }; }
         // (the cloth's shot is close: wipe the grey in the picture, row by row; the shot moves on to the next grey when the hand lifts)
         const P = a.wipe && a.wipe.length ? a.wipe.slice() : []; if (P.length === 1) P.push([P[0][0] + 40, P[0][1]]);

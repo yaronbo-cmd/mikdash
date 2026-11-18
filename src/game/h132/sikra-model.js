@@ -38,7 +38,7 @@ export const SK = Object.freeze({
   CORNER_H: 0.25,                                // tefachim: the corner's height
   CLOSE: 0.25,                                   // amot: the close within a quarter amah of the start is perfect
   DEV: Object.freeze([0.25, 0.5, 1]),            // tefachim: 40 / 20 / 10; more = wavy
-  PTS: Object.freeze({ stake: 10, seg: [40, 20, 10], corner: 10, close: 40, loss: 20 }),
+  PTS: Object.freeze({ stake: 10, gold: 40, good: 20, ok: 10, corner: 10, close: 40, loss: 20 }),   // (a segment: gold / good / ok)
   // ── named, not numbers of the spec (spec: "המספרים הם נקודת פתיחה לכיוונון") ──
   STOP: 0.1,           // amot a second: under this the walk has stopped ("חזרה לנקודה: עצירה")
   DRIP_SLOW_T: 0.25,   // s: the slow pace after a refill held this long drips (the spec says no time; 0 would drip on the tap's own frame)
@@ -52,8 +52,8 @@ const SIDES = Object.freeze(['E', 'N', 'W', 'S']);   // the walk's order (BOOK.s
 /** the wall at s, its index and the distance along it */
 export function wallAt(s) { const i = Math.max(0, Math.min(3, Math.floor(s / SK.SIDE))); return { k: SIDES[i], i, d: s - i * SK.SIDE }; }
 /** the corners the walk passes (s): level 1 the north-east only; else NE, NW, SW (the south-east is the start and the close) */
-export const cornersOf = (lv) => ((lv | 0) === 1 ? [30] : [30, 60, 90]);
-export const CORNER_K = Object.freeze({ 30: 'NE', 60: 'NW', 90: 'SW' });
+export const cornersOf = (lv) => ((lv | 0) === 1 ? [1] : [1, 2, 3]).map((i) => i * SK.SIDE);
+export const CORNER_K = Object.freeze(Object.fromEntries(['NE', 'NW', 'SW'].map((k, i) => [(i + 1) * SK.SIDE, k])));
 /** where the line ends: level 1 one amah past the north-east corner (its corner zone), else the start again (the close) */
 export const lineEnd = (lv) => ((lv | 0) === 1 ? 30 + SK.CORNER : 4 * SK.SIDE);
 /** the stakes of the measuring opening (spec: level 1 the two corners of the east wall; else all four) */
@@ -64,7 +64,7 @@ export const segIndex = (s) => Math.max(0, Math.min(4 * SK.SEG - 1, Math.floor(s
 const EPS = 1e-6;
 export function inCorner(s, lv) { for (const c of cornersOf(lv)) if (s >= c - SK.CORNER - EPS && s < c + SK.CORNER - EPS) return c; return 0; }
 /** a segment's points by its worst deviation (tefachim): up to a quarter 40, a half 20, one 10, more: wavy −20 */
-export function segPts(dev) { const D = SK.DEV, P = SK.PTS.seg; return dev <= D[0] ? P[0] : dev <= D[1] ? P[1] : dev <= D[2] ? P[2] : -SK.PTS.loss; }
+export function segPts(dev) { const D = SK.DEV, P = SK.PTS; return dev <= D[0] ? P.gold : dev <= D[1] ? P.good : dev <= D[2] ? P.ok : -P.loss; }
 /** the string's colour: dark above 0.6, red and glinting 0.25–0.6 (the time to tap), pink below 0.25 */
 export const wetBand = (w) => (w > SK.DARK ? 'dark' : w >= SK.PINK ? 'red' : 'pink');
 /** the close by where the walk stopped (d = s − the start's s): within a quarter amah perfect; beyond it the double stain; short a gap */
@@ -269,7 +269,7 @@ export const freshDrips = (L) => L.drips.filter((d) => (d.st === 'fresh' || d.st
 /** the most a play can earn (the stakes, every segment at 40, every corner perfect, the close) */
 export function lineMax(lv) {
   const L = lv | 0 || 2, walls = L === 1 ? 1 : 4;
-  return stakesOf(L).length * SK.PTS.stake + walls * SK.SEG * SK.PTS.seg[0] + cornersOf(L).length * SK.PTS.corner + (L === 1 ? 0 : SK.PTS.close);
+  return stakesOf(L).length * SK.PTS.stake + walls * SK.SEG * SK.PTS.gold + cornersOf(L).length * SK.PTS.corner + (L === 1 ? 0 : SK.PTS.close);
 }
 /** the grand prize (spec "שיא ודופמין"): a whole round with not one lift and not one drip */
 export const grandOf = (L) => L.done && L.seams === 0 && L.dripsAll === 0;

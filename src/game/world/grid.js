@@ -1120,7 +1120,7 @@ const S08 = {
     // (eye = where it works + whiteOff); the white when the crew finishes; the jar and the south-west corner's two holes; the rise over
     // the whole white yesod from the south-east (its empty south and east strips nearest)
     cam: { frame: [[-26, 28, 40], [-38, 16, -2]], down: [[-36, 23, 31], [-40, 16.6, 11]], pullS: [[-16, 22.5, 30], [-24, 16.5, 11]], pullE: [[-40, 22.5, 17], [-24, 16.5, 14]],
-      whiteOff: [0, 10, 12], white: [[-38, 34, 34], [-38, 16.5, -2]], water: [[-58, 23, 26], [-47, 17, 10.5]], rise: [[-14, 38, 32], [-37, 16.5, -1]], riseMen: [[-32, 15], [-46, 15], [-19.5, 6]], riseKohen: [-19.5, -2],
+      whiteOff: [0, 7.5, 9], white: [[-38, 34, 34], [-38, 16.5, -2]], water: [[-58, 23, 26], [-47, 17, 10.5]], rise: [[-14, 38, 32], [-37, 16.5, -1]], riseMen: [[-32, 15], [-46, 15], [-19.5, 6]], riseKohen: [-19.5, -2],
       // (the box north of the altar where the court's slaughter rings lie on the floor: out of the finale's pictures while it runs)
       rings: [-52, -50, -24, -30] },
   },

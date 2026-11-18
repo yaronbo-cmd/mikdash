@@ -3,11 +3,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { lookZone, LOOK_PLAY, LOOK_YAW, lookYawOf, lookClampOf, lookEndOf } from '../src/game/h109/look.js';
+import { lookZone, LOOK_PLAY, lookYawOf, lookClampOf, lookEndOf } from '../src/game/h109/look.js';
 
 test('no hooks: as before', () => {
-  for (const a of [null, {}, { lookYaw: 'x' }, { lookYaw: -1 }, { lookYaw: NaN }]) { assert.equal(lookYawOf(a), LOOK_PLAY.yaw); assert.equal(lookClampOf(a), LOOK_YAW); assert.equal(lookEndOf(a, 0.4), null); }
-  assert.equal(LOOK_YAW, 2.8); assert.equal(lookZone(0.2, 1.2), 'wait'); assert.equal(lookZone(0.2, 1.2, lookYawOf({})), 'wait');
+  for (const a of [null, {}, { lookYaw: 'x' }, { lookYaw: -1 }, { lookYaw: NaN }]) { assert.equal(lookYawOf(a), LOOK_PLAY.yaw); assert.equal(lookClampOf(a), 2.8); assert.equal(lookEndOf(a, 0.4), null); }
+  assert.equal(lookClampOf(null), 2.8); assert.equal(lookZone(0.2, 1.2), 'wait'); assert.equal(lookZone(0.2, 1.2, lookYawOf({})), 'wait');
 });
 test('act.lookYaw: the play zone and the clamp', () => {
   const a = { lookYaw: Math.PI };

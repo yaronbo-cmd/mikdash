@@ -1363,10 +1363,10 @@
     // ── h129 ── (stage 07 the same: the night by mouse, its gates' stills, ran past the wall's 240 s at 35 s of its clock) ── /h129 ──
     // ── h129 ── (G12: the Golah's works too — a clean golah3 needs more than 240 s of its own clock) ── /h129 ──
     // ── h130 ── (the new stage 05 the same, every work of it: the gallery's tests, the wood and the light with stills ran past the wall's) ── /h130 ──
-    const LIM = /^(bond|capstan|golah|pour)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim' || H().site === 'yesod' /* ── h131 ── ── /h131 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
+    const LIM = /^(bond|capstan|golah|pour)/.test(S.mission) ? 600000 : 240000, actClock = (H().site === 'nikanor' || H().site === 'lishka' || H().site === 'nashim' || H().site === 'yesod' /* ── h131 ── ── /h131 ── */ || H().site === 'sovev' /* ── h132 ── ── /h132 ── */) && S.act && Number.isFinite(+S.act.t) ? +S.act.t * 1000 : null;
     // ── h131 ── (stage 08: stuck means no new event and no change of the work's state for 90 s — not the work's total time: on the PC a
     // clean pit3 runs past 150 s and was cut in its last hoist) ── /h131 ──
-    if (H().site === 'yesod' && S.act) {
+    if ((H().site === 'yesod' || H().site === 'sovev' /* ── h132 ── (stage 09: the same 90 s rule) ── /h132 ── */) && S.act) {
       const a8 = S.act, r2 = (v) => (v == null ? '' : (+v).toFixed(2));
       const sig = [S.mission, (a8.ev || []).join(','), a8.phase, a8.step, a8.shot, a8.busy, a8.out, a8.left, a8.lever, a8.stonesIn, r2(a8.filled), r2(a8.cover), a8.taps, a8.result].join('|');
       if (sig !== B.sig8) { B.sig8 = sig; B.sig8T = now(); }
@@ -1376,6 +1376,16 @@
     // ── h131 ── (stage 08: a stand-in act of a part not yet coded finishes by itself; the lanes' players are play.h8pit, h8frame, h8pour,
     // h8finale — each lane adds its own) ── /h131 ──
     if (H().site === 'yesod' && S.act && S.act.stub) return { wait: 400 };
+    // ── h132 ── (build 132, stage 09: a stand-in act finishes by itself — the figures gate still read at each of its steps, so the run's
+    // tally counts its reads; the lanes' players are play.h9form, h9fill, h9strip, h9sikra — each lane adds its own) ── /h132 ──
+    if (H().site === 'sovev' && S.act && S.act.stub) { B.fig8(S.act); return { wait: 400 }; }
+    if (H().site === 'sovev' && play['h9' + kind]) {
+      B.fig8on = 0; let r9; try { r9 = play['h9' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h9' + kind + ' ' + e.message }; }
+      if (!B.fig8on) B.fig8(S.act || { id: S.mission });
+      const st9 = stuck8(S, r9); if (st9) return st9;
+      return r9;
+    }
+    // ── /h132 ──
     if (H().site === 'yesod' && play['h8' + kind]) {
       B.fig8on = 0; let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; }
       // ── b131 ── (every work of stage 08: the same touch five times over with no progress is STUCK, its state logged — the 90 s rule

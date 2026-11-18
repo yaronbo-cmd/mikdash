@@ -27,8 +27,9 @@ export const H131 = Object.freeze({
   STUB_SECS: 2.2,
 });
 
-/** the next stage, as the spec names it ("לשלב הבא (גוף המזבח)"): the end card after this stage names it */
-export const NEXT_STAGE = 'גוף המזבח';
+/** the next stage: stage 09 "הסובב וחוט הסיקרא" (build 132: stage 09's spec folds the sovev and the red line into their own stage,
+ *  before the altar's body — stage 08's spec had named "גוף המזבח"): the end card after this stage names it and leads into it */
+export const NEXT_STAGE = 'הסובב וחוט הסיקרא';
 
 /* ───────── the lines (copied from the spec, docs/specs/shlav-08-he.md, and nowhere else) ───────── */
 export const LINES = Object.freeze({

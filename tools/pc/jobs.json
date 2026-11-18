@@ -1,17 +1,17 @@
 {
-  "id": "2026-11-17 e: the new stage 08 alone by touch and by mouse (build 131 part 3: the pit, the frame, the pour and the finale)",
+  "id": "2026-11-18 a: the new stage 09 alone by touch and by mouse (build 132 phase 0: the skeleton — stub works, the stage opens, walks, counts and ends)",
   "lanes": 2,
   "jobs": [
     {
-      "name": "s08only-touch",
-      "script": "tools/probes/s08-only.json",
+      "name": "s09only-touch",
+      "script": "tools/probes/s09-only.json",
       "w": 960,
       "h": 600,
       "maxMin": 60
     },
     {
-      "name": "s08only-mouse",
-      "script": "tools/probes/s08-only.json",
+      "name": "s09only-mouse",
+      "script": "tools/probes/s09-only.json",
       "mouse": true,
       "w": 1600,
       "h": 900,

@@ -61,7 +61,7 @@ test('book s09: the block is x −53..−23, z −18.5..11.5, y 17..22 — stage
   // the walls' foot T out of the block's faces; the gauges and belts in the middle of each; the lying walls 2.5 from the foot
   assert.ok(near(S.wall.E.x, -22.667) && near(S.wall.W.x, -53.333) && near(S.wall.N.z, -18.833) && near(S.wall.S.z, 11.833));
   assert.ok(S.wall.E.socket && S.wall.W.socket && S.wall.N.tongue && S.wall.S.tongue);
-  assert.ok(near(S.lie.N[1], -21.333) && near(S.lie.S[1], 14.333) && near(S.lie.E[0], -20.167));
+  assert.ok(near(S.lie.N[1], -21.333) && near(S.lie.S[1], 14.333) && near(S.lie.E[0], -20.167)); assert.deepEqual([...S.lie.W], [-50.5, -3.5]);
   assert.deepEqual([...S.zone.NE], [-30.5, -11]); assert.deepEqual([...S.zone.NW], [-45.5, -11]); assert.deepEqual([...S.zone.SE], [-30.5, 4]); assert.deepEqual([...S.zone.SW], [-45.5, 4]); assert.deepEqual([...S.zone.C], [-38, -3.5]);
   assert.equal(S.gaugeY, 22); assert.equal(S.beltY, 19.5); assert.equal(S.wedgeY, 19.5); assert.deepEqual([...S.wedge], [-23, 11.5]);
   assert.deepEqual([...S.ramp.foot], [-38, -43]); assert.ok(near(S.ramp.head[1], -18.833)); assert.equal(S.ramp.headY, 22); assert.equal(S.ramp.footY, 16); assert.equal(S.ramp.w, 6);

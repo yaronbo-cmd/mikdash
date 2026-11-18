@@ -1241,10 +1241,9 @@ function s09() {
     E: { x: r3(B[2] + T), z0: B[1], z1: B[3], socket: true }, W: { x: r3(B[0] - T), z0: B[1], z1: B[3], socket: true },
     N: { z: r3(B[1] - T), x0: B[0], x1: B[2], tongue: true }, S: { z: r3(B[3] + T), x0: B[0], x1: B[2], tongue: true },
   };
-  // lying: the three outer ones flat outside, half their height (2.5) out from the foot; the west one flat on the yesod's top inward
-  // (its foot at its standing foot, its head east): the spec types (−50.5, −3.5) — the foot at the block's face; derived from the foot
-  // it is −50.83 (see the report)
-  const lie = { N: [mid[0], r3(wall.N.z - H / 2)], S: [mid[0], r3(wall.S.z + H / 2)], E: [r3(wall.E.x + H / 2), mid[1]], W: [r3(wall.W.x + H / 2), mid[1]] };
+  // lying: each wall tipped about the foot edge it turns on — the three outer ones outward about their outer foot (half their height,
+  // 2.5, out from it), the west one inward about its inner foot (the block's face, −53) onto the yesod's top: (−50.5, −3.5)
+  const lie = { N: [mid[0], r3(wall.N.z - H / 2)], S: [mid[0], r3(wall.S.z + H / 2)], E: [r3(wall.E.x + H / 2), mid[1]], W: [r3(B[0] + H / 2), mid[1]] };
   // the shoulder rods: from the yesod's outer corner (the frame's corner of stage 08: S08.altar) diagonally in to the block's corner
   const A = C.altar;
   const rod = { NW: { from: [A[0], A[1]], to: corner.NW }, NE: { from: [A[2], A[1]], to: corner.NE }, SW: { from: [A[0], A[3]], to: corner.SW } };

@@ -28,13 +28,13 @@ test('index.js: h28Only calls pageBuilt, and scoreLegacy still reads the same fl
 // the owner 15.11: after the last stage a pack owns, the old game does not take the next stage over; one card names the next stage
 test('the frontier: only when every packed stage is done; the card names the next stage from the stage table', () => {
   const done = new Set(PACKED.slice(0, -1));
-  const S = { isDone: (G, id) => done.has(id), recommend: () => ({ id: 'sovev' }) };   // (build 129: 'lishka' is a pack's now; build 131: 'yesod' too, the table's next is the sovev)
+  const S = { isDone: (G, id) => done.has(id), recommend: () => ({ id: 'guf' }) };   // ── h132 ── (the table's next after the sovev) ── /h132 ──   // (build 129: 'lishka' is a pack's now; build 131: 'yesod' too, the table's next is the sovev)
   assert.equal(frontier({}, S), false);
   done.add(PACKED[PACKED.length - 1]);
   assert.equal(frontier({}, S), true);
   // ── h131 ── (build 131: stage 08 is a pack's; after it the card names the next stage as stage 08's spec does — "גוף המזבח" — not
   // the old table's next, the sovev) ── /h131 ──
-  assert.equal(PACKED[PACKED.length - 1], 'yesod');
+  assert.equal(PACKED[PACKED.length - 1], 'sovev');   // ── h132 ── (build 132: stage 09 is a pack's; its spec names stage 10 "גוף המזבח" next) ── /h132 ──
   assert.equal(frontLine({}, S, stageById), 'עד כאן בנוי המשחק · השלב הבא: גוף המזבח (בבנייה)');
   assert.equal(frontLine({}, { ...S, recommend: () => ({}) }, stageById), 'עד כאן בנוי המשחק · השלב הבא: גוף המזבח (בבנייה)');
 });

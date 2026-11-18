@@ -45,5 +45,5 @@ test('work page: wired in the director and on the stage-08 page; ONLY and FULL p
   const dir = readFileSync(new URL('../src/game/h109/director.js', import.meta.url), 'utf8');
   const idx = readFileSync(new URL('../src/game/index.js', import.meta.url), 'utf8');
   assert.match(dir, /PK\.workLinks/); assert.match(dir, /PK\.workSeed\(M, WORK\)/);
-  assert.match(idx, /H9_WORK\.id \? PLAN08\.find/); assert.match(idx, /H131_FULL = H9_WORK_BAD \|\|/);
+  assert.match(idx, /H9_WORK\.id \? \[\.\.\.PLAN08, \.\.\.PLAN09\]\.find/);   // ── h132 ── (build 132: stage 09's works beside stage 08's) ── /h132 ── assert.match(idx, /H131_FULL = H9_WORK_BAD \|\|/);
 });

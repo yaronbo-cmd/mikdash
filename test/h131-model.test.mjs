@@ -52,7 +52,7 @@ test('the loss table of the spec: −20, −20, −20, −20, −40; never below
 test('an old save whose old stage 08 was done: built by the crews; the lines; the next stage as the spec names it', () => {
   assert.equal(fromOld(true).crews, 1); assert.equal(fromOld(false).crews, 0);
   assert.ok(createH131(fromOld(true)).finished());
-  assert.equal(NEXT_STAGE, 'גוף המזבח');
+  assert.equal(NEXT_STAGE, 'הסובב וחוט הסיקרא');   // ── h132 ── (build 132: stage 09 follows stage 08; its brief: the end card of stage 08 names it) ── /h132 ──
   const spec = readFileSync(new URL('../docs/specs/shlav-08-he.md', import.meta.url), 'utf8');
   for (const k of ['betula']) assert.ok(spec.includes(LINES[k]), k);
   for (const q of ['חופרין למטה מהבתולה', 'אטום כמין עמוד ואין עושין בו חלל כלל', 'שהברזל נברא לקצר ימיו של אדם, והמזבח נברא להאריך', 'כדי שתחגור בה צפורן', 'דפוס מרובע עשוי מארבע קרשים, וכל אחת ארוכה ל"ב']) assert.ok(spec.includes(q) && Object.values(LINES).some((l) => l.includes(q)), q);

@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 11, E: 7, H: 7, aimY: -0.4, fov: 50 },   // (look round 3b: from outside the pit, beside the cradle's line and toward the pit — the stone coming up the wall nearer the eye than the four pulling beyond it, never one of them between; the kohen down in the pit, never under the eye)
+  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 50, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -373,14 +373,14 @@ function pitAct(m, X) {
     // (the cut to the hoist: the four at their places round the cradle, ropes in hand, pulling — whole in the frame with the stone
     //  coming up the wall; look round 3b: the camera stayed on the lever while they walked in out of the frame)
     carrIn('pull', { fx: from.x, fz: from.z, k: 2 });
-    const HS = SHOT.hoist, mid = [(c[0] + top[0]) / 2, (c[1] + top[1]) / 2]; let px = -c[1] / dc, pz = c[0] / dc;
-    const st = P.stand; if (Math.hypot(mid[0] + px * HS.D - st[0], mid[1] + pz * HS.D - st[1]) < Math.hypot(mid[0] - px * HS.D - st[0], mid[1] - pz * HS.D - st[1])) { px = -px; pz = -pz; }   // (the side away from the book's stand on the south rim: nearer, it stood before the eye)
-    const ex = mid[0] + px * HS.D - c[0] / dc * HS.E, ez = mid[1] + pz * HS.D - c[1] / dc * HS.E;
-    // (the kohen is not the hoist's doer: he steps back to the pit's far side from the eye and watches the stone go up — whole, low in
-    //  the frame, never under the eye or before the stone; the lever lies out of the picture till his next stone)
-    { const h0 = P.hole.at, dx = h0[0] - ex, dz = h0[1] - ez, n = Math.hypot(dx, dz) || 1; kohenTo([h0[0] + dx / n * (PD.R0 - 1.6), h0[1] + dz / n * (PD.R0 - 1.6)], foot, true); kohenStep(1); lever.visible = false; }
+    // (the eye across the pit, due east of the cradle: its four stand 2.6 north and south of it, so from there the stone's way up the
+    //  wall and onto the cradle runs between them — none of them before it, in the plain look or the lifted one)
+    const HS = SHOT.hoist, ex = c[0] + HS.D, ez = c[1];
+    // (the kohen is not the hoist's doer: he steps aside to the pit's north side, out of this picture, and watches; the lever lies out
+    //  of the picture till his next stone)
+    kohenTo([P.hole.at[0] + HS.koh[0], P.hole.at[1] + HS.koh[1]], foot, true); kohenStep(1); lever.visible = false;
     A.hoistG = g;
-    const cs = A3(ex, HS.H, ez), ca = A3(top[0] - c[0] / dc * 1.2, HS.aimY, top[1] - c[1] / dc * 1.2);
+    const cs = A3(ex, HS.H, ez), ca = A3(top[0] - 1.2, HS.aimY, top[1]);
     digsOut(); lookOff(); shotTo(cs, ca, 0.01); fovT = HS.fov; lens(HS.fov); shotK = 'hoist';
     await X.wait(0.5);
     const legs = [[from, a, 1.6], [a, b, 1.5], [b, cc, 1.1]];

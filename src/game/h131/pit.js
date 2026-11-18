@@ -510,6 +510,9 @@ function pitAct(m, X) {
     gang.clear(); X.props.remove(root);
     const cr = pitCradle(); if (cr) { const c = W3(P.cradle[0], 0, P.cradle[1]); cr.position.set(c.x, c.y, c.z); cr.rotation.set(0, 0, 0); }
     backFromPit(X);
+    // (look round 3b B2: the film's last eye stayed down the valley at the pit, and the walk's follow camera eased from there to the
+    //  kohen back in the court through the haze — the walk's first picture an empty grey; the eye is set over him at once)
+    try { const h = X.heroAt ? X.heroAt() : null; if (h && Number.isFinite(h.x) && X.view && X.view.camSet) X.view.camSet(h.x + 10, (h.y || 0) + 18, h.z + 10, h.x, (h.y || 0) + 1, h.z); } catch (e) { /* */ }
   }
   // ── the opening: the valley, the pit and its crew, the hills to the horizon toward the Mount (BOOK.s08.pit.cam.open); "למטה מהבתולה"
   async function opening() {

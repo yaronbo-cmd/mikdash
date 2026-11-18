@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { PRESENT_URL, PRESENT_HINT } from '../src/game/present.js';   // (present132)
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const build = (env = {}) => execFileSync(process.execPath, ['build.mjs'], { cwd: ROOT, env: { ...process.env, LINE: '', ...env }, stdio: 'pipe' }).toString();
@@ -37,4 +38,21 @@ test('the play page has the manifest\'s head script once, in <head>, before the 
   assert.ok(at < html.indexOf('</head>'), 'in the head');
   assert.equal(count(html, "name='mobile-web-app-capable'"), 1);
   assert.ok(!read('dist/temple3d.html').includes('data:application/manifest+json,'), 'the artifact page (a fragment) has none');
+});
+
+// ── present132 ── (the owner, 18.11: the menu's two entries stay on the lighter page, as links to the presentation version)
+test('present132 — LINE=new bundle: the links and the hint in; Phase B and the scenes out; the default build without links', () => {
+  try {
+    build({ LINE: 'new' });
+    const lite = fs.readFileSync(ROOT + 'dist/app.js', 'utf8');
+    assert.equal(count(lite, PRESENT_URL), 1);
+    assert.ok(lite.includes('#siyur') && lite.includes('#hatzaga') && lite.includes(PRESENT_HINT));
+    assert.ok(lite.includes('target="_blank" rel="noopener"'));
+    for (const x of ['data:application/octet-stream;base64,Z2xURg', '[avodah] phase A destroy', '[scenes] phase A destroy', '__FORCE_SHIFT'])
+      assert.equal(count(lite, x), 0, 'LINE=new still has ' + x);
+  } finally {
+    build();
+  }
+  const full = fs.readFileSync(ROOT + 'dist/app.js', 'utf8');
+  assert.ok(full.includes('[avodah] phase A destroy') && full.includes('[scenes] phase A destroy'));
 });

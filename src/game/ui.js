@@ -27,6 +27,7 @@ import * as AR from './hooks/around.js';
 import * as ARU from './hooks/around-ui.js';
 import * as RDU from './hooks/riddle-ui.js';
 import * as RDL from './hooks/riddle.js';
+import { presentHref, PRESENT_HINT } from './present.js';   // ── present132 ── ── /present132 ──
 // ── /hook20 ──
 
 /* ───────── helpers ───────── */
@@ -1101,9 +1102,15 @@ export function createUI({ root, ctx }) {
     h += sg('popups', 'חלונות מידע', [['show', 'מופיעים'], ['book', 'רק בספר']], s.popups === 'book' ? 'book' : 'show');   // ── land17 ── (§0.5)
     h += tg('demo', T.demoMode, T.demoNote, !!G.demo);
     // ── hooks ── the label follows the building (a preview → the altar complete → Chanukat HaBayit; hooks/avodah.js)
-    const avL = ctx.act && ctx.act.canAvodah ? ((ctx.hooks && ctx.hooks() && ctx.hooks().avodahMenu) ? ctx.hooks().avodahMenu() : { t: 'העבודה בבית · שלב ב׳', sub: 'התמיד, הקטורת והנרות — לפי השעון האמיתי' }) : null;
-    if (avL) h += `<button class="gm-btn gm-btn-gold gm-btn-block" data-a="avodah" style="width:100%;margin:6px 0 10px">${ICON.star} ${esc(avL.t)}<small style="display:block;font-weight:500;font-size:12px;opacity:.85">${esc(avL.sub)}</small></button>`;
-    if (ctx.act && ctx.act.canAvodah) h += `<button class="gm-btn gm-btn-block" data-a="scenes" data-k="tour" style="width:100%;margin:0 0 10px">${ICON.star} סיור בבית המקדש<small style="display:block;font-weight:500;font-size:12px;opacity:.85">ההיכל, הכיור, לשכת הטלאים · איפה הארון? · יום הכיפורים</small></button>`;   // ── scenes ──
+    // ── present132 ── (LINE=new) the same two entries, in their places and look, as links to the presentation version (game/present.js)
+    const PU = ctx.act && !ctx.act.canAvodah && ctx.act.presentUrl ? ctx.act.presentUrl : null;
+    const ent = (cls, data, kind, inner) => (PU ? `<a class="${cls}" href="${esc(presentHref(kind, PU))}" target="_blank" rel="noopener" data-present="${kind}" style="width:100%;box-sizing:border-box;text-decoration:none;color:inherit;margin:${kind === 'tour' ? '0 0 10px' : '6px 0 10px'}">${inner}</a>`
+      : `<button class="${cls}" ${data} style="width:100%;margin:${kind === 'tour' ? '0 0 10px' : '6px 0 10px'}">${inner}</button>`);
+    const hint = PU ? ' · ' + PRESENT_HINT : '';
+    // ── /present132 ──
+    const avL = ctx.act && (ctx.act.canAvodah || PU) ? ((ctx.hooks && ctx.hooks() && ctx.hooks().avodahMenu) ? ctx.hooks().avodahMenu() : { t: 'העבודה בבית · שלב ב׳', sub: 'התמיד, הקטורת והנרות — לפי השעון האמיתי' }) : null;
+    if (avL) h += ent('gm-btn gm-btn-gold gm-btn-block', 'data-a="avodah"', 'preview', `${ICON.star} ${esc(avL.t)}<small style="display:block;font-weight:500;font-size:12px;opacity:.85">${esc(avL.sub + hint)}</small>`);   // ── present132 ── ent()
+    if (ctx.act && (ctx.act.canAvodah || PU)) h += ent('gm-btn gm-btn-block', 'data-a="scenes" data-k="tour"', 'tour', `${ICON.star} סיור בבית המקדש<small style="display:block;font-weight:500;font-size:12px;opacity:.85">ההיכל, הכיור, לשכת הטלאים · איפה הארון? · יום הכיפורים${esc(hint)}</small>`);   // ── scenes ──   // ── present132 ── ent()
     h += `<div class="gm-btn-row"><button class="gm-btn" data-a="whole">${ICON.star} ${T.wholeView}</button><button class="gm-btn" data-a="sheet" data-k="book">${ICON.book} ${T.book}</button></div>`;
     // ── fable20 ── (the owner, 8.10 08:17: "תוציא אותם החוצה") the profile and the near circle as rows of their own, in portrait's menu too
     h += `<div class="gm-btn-row"><button class="gm-btn" data-a="sheet" data-k="profile">${ICON.priest} הכהן שלי</button><button class="gm-btn" data-a="sheet" data-k="circle">${ICON.crew} המשמר שלי</button><button class="gm-btn" data-a="sheet" data-k="daily">${ICON.vine} ${T.daily}</button></div>`;

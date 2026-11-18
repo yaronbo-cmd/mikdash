@@ -43,6 +43,8 @@ import { runSeaLook } from './game/h128/look.js';   // ── h128 ── (build
 import { runWaterLook } from './game/h129/look.js';   // ── h129 ── (build 129) the Golah's water look sample ── /h129 ──
 import FACTS from '../content/facts.json';
 import { setFacts, bootFact } from './game/facts.js';
+import { PRESENT_URL } from './game/present.js';   // ── present132 ── ── /present132 ──
+import { deepLinkOf } from './deeplink.js';   // ── deep132 ── (#hatzaga / #siyur: the presentation links) ── /deep132 ──
 setFacts(FACTS);
 try { bootFact(document.getElementById('load')); } catch (e) { /* no loader (a test page) */ }
 // ── /build8 ──
@@ -955,6 +957,15 @@ const finale = createFinale({
 globalThis.__BH_FINALE = finale;
 // ── /world12 ──
 function startGame() {
+  // ── deep132 ── '#hatzaga' → the Phase B preview, '#siyur' → the tour (src/deeplink.js), as the menu's entries open them; the
+  // hash is used once (closing the tour or "back to building" calls startGame again: Phase A then, from the save)
+  { const dl = deepLinkOf(location.hash);
+    if (dl && !__LINE_NEW__) {   // (── present132 ── LINE=new has neither: the hash is left alone)
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* the hash stays: harmless */ }
+      if (dl === 'tour' && typeof window.__openScenes === 'function') { window.__openScenes('tour'); return; }
+      if (dl === 'preview') { startAvodah(''); return; }
+    } }
+  // ── /deep132 ──
   // a link with '#avodah' opens Phase B directly: '#avodah' = its home · '#avodah=live' · '#avodah=<segment or game id>'
   if (!__LINE_NEW__) {   // ── line132 ── (LINE=new: Phase B is not in the built file — build.mjs) ── /line132 ──
   if (/^#avodah/.test(location.hash)) { startAvodah((location.hash.split('=')[1] || '').trim()); return; }
@@ -984,7 +995,7 @@ function startGame() {
         hideInfo(); if (squareG) squareG.visible = false;
       },
       setAutoRotate(v) { if (!v) controls.autoRotate = false; lastInput = performance.now(); },
-      ...(__LINE_NEW__ ? {} : { enterAvodah() { startAvodah(''); } }),   // ── line132 ── (LINE=new: no Phase B, so no menu entry nor tour) ── /line132 ──
+      ...(__LINE_NEW__ ? { presentUrl: PRESENT_URL } : { enterAvodah() { startAvodah(''); } }),   // ── line132 ── (LINE=new: no Phase B here; the menu's two entries link to the presentation version — present132) ── /line132 ──
       pauseWorld,   // ── build6 ──
       opening, openingSkip,   // ── build7 ── the opening's fallback (WORLD7's world.vision first)
       celebrate: () => finale.celebrate(),   // ── world12 ── Chanukat HaBayit's night of light (src/finale.js) ── /world12 ──

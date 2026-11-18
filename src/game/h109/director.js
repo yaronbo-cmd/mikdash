@@ -78,7 +78,7 @@ export function createH109Director(o) {
   let M = null, P = null, started = false, act = null, mission = null, phase = 'off', tPhase = 0, film = null, lastMs = 0, hidden = false;
   // one minigame only (ירון 8.11: "קישור יעודי לכל אחד מהמשחקונים"): a page baked with window.__H109_ONLY = 'read' (or ?only=read / #only=read)
   // opens straight on that minigame's first mission, and after each act goes to its next one; after the last, the page starts over
-  const WORK = (() => { if (!PK.workLinks) return null; const w = workFlag(PLAN.map((m) => m.id)); if (w.asked && !w.id) console.warn('[h109] work page: no work', w.asked, '— the stage page'); return w.id; })();
+  const WORK = (() => { if (!PK.workLinks) return null; const w = workFlag(PLAN.map((m) => m.id)); if (w.asked && !w.id && PLAN.some((m) => m.k === String(w.asked).replace(/\d+$/, ''))) console.warn('[h109] work page: no work', w.asked, '— the stage page'); return w.id; })();   // ── build 132 ── (a work of another stage's pack — fill2 asked while stage 08's pack is made for its rest — is not this pack's to warn about: index.js warns for an id no stage has) ── /build 132 ──
   let workDue = !!WORK;
   const ONLY = (() => {
     if (WORK) return PLAN.find((m) => m.id === WORK).k;   // ── b131 ── (a work's page goes on as its kind's page after it) ── /b131 ──

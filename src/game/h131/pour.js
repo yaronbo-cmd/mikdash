@@ -211,6 +211,8 @@ export const POUR_ACT = {
     /** the two men's places about the stone at c: about it left and right (side, turn), or both on one side of it ('outL', 'outR': one a
      *  step nearer the eye, one a step farther — where the stone's place lies in the eye's line to the work, neither man may) */
     function menAt(c, u, mode, g) {
+      // ('a>b': the pair's stand changes from a (at the heap) to b (at the place) in the middle of the way)
+      const ab = mode.indexOf('>'); if (ab > 0) { const p = menAt(c, u, mode.slice(0, ab), g), q = menAt(c, u, mode.slice(ab + 1), g), e = sm((u - 0.3) / 0.4); return [0, 1].map((j) => [p[j][0] + (q[j][0] - p[j][0]) * e, p[j][1] + (q[j][1] - p[j][1]) * e]); }
       if (mode === 'outL' || mode === 'outR') { const n = sideDir(c[0], c[1]), sg = mode === 'outR' ? 1 : -1, d = [-n[1], n[0]], ox = c[0] + n[0] * g * sg, oz = c[1] + n[1] * g * sg; return [[ox - d[0] * 0.75, oz - d[1] * 0.75], [ox + d[0] * 0.75, oz + d[1] * 0.75]]; }
       const n = flankAt(c, u, mode); return [[c[0] - n[0] * g, c[1] - n[1] * g], [c[0] + n[0] * g, c[1] + n[1] * g]];
     }
@@ -224,6 +226,7 @@ export const POUR_ACT = {
     }
     /** the stone's way from the heap to its place: straight, or round the frame's ends and far side, whichever keeps both men whole and
      *  out of the eye's way all along (the gate's own test, sampled every 0.35); the flank's width as needed */
+    const MODES = ['side', 'turn', 'outL', 'outR', 'turn>outL', 'turn>outR', 'side>outL', 'side>outR', 'outL>side', 'outR>side', 'outL>outR', 'outR>outL'];
     function carryWay(from, to, g0) {
       const WP = [[7.6, 5.3], [7.6, -5.3], [3.5, -5.3], [0, -5.3], [-3.5, -5.3], [-7.6, -5.3], [-7.6, 5.3], [0, 5.3], [3.5, 5.3], [-3.5, 5.3], [7.6, 0], [-7.6, 0]];
       const cands = [[from, to]];
@@ -232,8 +235,8 @@ export const POUR_ACT = {
       let best = null;
       for (const pts of cands) {
         const L2 = pathLen(pts), nS = Math.max(2, Math.ceil(L2 / 0.35));
-        for (const mode of ['side', 'turn', 'outL', 'outR']) for (const g of [g0, g0 + 0.5, g0 + 1.0, g0 + 1.6]) {
-          let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'turn' ? 0.05 : mode === 'side' ? 0 : 0.3); if (best && f >= best.f) continue;
+        for (const mode of MODES) for (const g of [g0, g0 + 0.6, g0 + 1.4]) {
+          let f = L2 * 0.04 + (g - g0) * 0.3 + (mode === 'side' ? 0 : mode === 'turn' ? 0.05 : 0.3); if (best && f >= best.f) continue;
           for (let k = 0; k <= nS && !(best && f >= best.f); k++) {
             const u = k / nS, c = pathAt(pts, u), mm = menAt(c, u, mode, g);
             f += fault(mm[0][0], mm[0][1]) + fault(mm[1][0], mm[1][1]);

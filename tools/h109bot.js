@@ -1357,7 +1357,7 @@
       else if (!fl.bulge) { zn = 'NE'; wait = 4500; why = ' (bad: on one corner until its wall bulges)'; K9.bad9 = (K9.bad9 | 0) + 1; }
     }
     const z = a.zones[zn];
-    return { drag: [s.at[0], s.at[1], z[0], z[1], 650], wait, note: `fill: ${s.kind}${j ? ' (2nd)' : ''} → ${zn}${why} · layer ${a.layer}.${a.inLayer} · pts ${a.pts} · g ${JSON.stringify(a.g)}` };
+    return { drag: [s.at[0], s.at[1], z[0], z[1], 650], wait, note: `fill: ${s.kind}${j ? ' (2nd)' : ''} → ${zn}${why} · layer ${a.layer}.${a.inLayer} · pts ${a.pts} · g ${JSON.stringify(a.g)} · cam ${JSON.stringify(a.cam)} dir ${JSON.stringify(a.dir)} fov ${(() => { try { const X = H().X; return X.camera.fov.toFixed(1) + ' u ' + X.lookNow().u.toFixed(2); } catch (e) { return '?'; } })()}` };
   };
   // ── h132 ── (build 132, stage 09 work 4 "חוט הסיקרא", lane B) the measuring: the rod dragged to its corner, a tap at its lower end;
   // then the line with TWO fingers (probe109's { fingers }): the left held down the whole line at its point (right of it = pace, up and

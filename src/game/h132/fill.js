@@ -317,6 +317,9 @@ export const FILL_ACT = {
           const g = gauges(S.h), worst = Math.max(g.N, g.S, g.E, g.W), b = S.free || S.grace ? 'good' : band(worst, lv);
           if (b !== A.lastBand) { A.lastBand = b; V.creak(b === 'danger' ? 1 : b === 'warn' ? 0.45 : 0); }
           if (A.t % 0.5 < dt) hintNext(false);
+          // (the right thumb's look let go and home: the work's shot taken again — after a lift out over the court the camera came back to
+          //  its eye but kept the lifted aim, turned off the block)
+          { let L = null; try { L = X.lookNow ? X.lookNow() : null; } catch (e) { L = null; } if (L) { if (L.u > 0.02 || L.ov) A.lifted = 1; else if (A.lifted && L.u < 1e-3) { A.lifted = 0; shotHome(0.3); ev('look:home'); } } }
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h132] fill', e && e.message, e && e.stack); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
@@ -342,7 +345,7 @@ export const FILL_ACT = {
         const P = (w) => (w && w.a ? s2(w.a.x, w.a.y + 1.9, w.a.z) : null);
         o.figs = { drv: drv.map(P), un: un.map(P), lvl: lvl.map(P) };
         o.unTip = un.some((w) => { const g = goal.get(w); return g && g.tip > 0.3; }); o.raking = rake.t > 0 ? rake.at : null; o.oxWalk = ox.P.walk;
-        const cp = X.camera.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));
+        const cp = X.camera.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)); try { const dv = new T.Vector3(); X.camera.getWorldDirection(dv); o.dir = [dv.x, dv.y, dv.z].map((v) => +v.toFixed(2)); } catch (e) { /* */ }
         return o;
       },
     };

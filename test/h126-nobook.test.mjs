@@ -102,7 +102,7 @@ test('stage 05 (build 130): no world place typed outside the book but the listed
 const ALLOW131 = [
   // the approved pour sample's own synthesized sounds (frequencies in Hz, gains, times: samples/yetzika/main.js sfx, kept as they are)
   // and its overlay's ring radii (px) — no place in them
-  ['h131/pour3d.js', 22],
+  ['h131/pour3d.js', 24],   // (+2: b131's soft warning sound before a pocket closes — 150→112 Hz, its 950 Hz breath)
   ['h131/sim.js', 1],   // (the sample's simulation as it is: its small PRNG's constants)
 ];
 test('stage 08 (build 131): no world place typed outside the book but the listed exceptions', () => {

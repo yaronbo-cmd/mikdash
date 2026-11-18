@@ -107,3 +107,7 @@ test('pour: the view — the warning flickers and dulls the gate with a soft sou
   // (a thin front cools SET_HI → the freeze in about 1–1.5 s: the sample's cooling of a 0.05-amah film)
   const r = S1.T.COOL_BASE + S1.T.COOL_THIN / (0.05 + S1.T.COOL_EPS), secs = (0.36 - S1.T.FREEZE) / r; assert.ok(secs >= 0.8 && secs <= 1.5, String(secs));
 });
+test('pour view: the bed\'s mesh is painted as it is made (an act waiting before its first frame showed it black at height 0)', () => {
+  const v = readFileSync(new URL('../src/game/h131/pour3d.js', import.meta.url), 'utf8');
+  assert.match(v, /updateFluidMesh\(V\.sink, false\);\n  return \{ G, figs, frame,/);
+});

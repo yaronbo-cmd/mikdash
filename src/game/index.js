@@ -2569,7 +2569,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     // (each crew by its number in G.crews, so it keeps its colour wherever it works)
     const ids = (at) => { const a = []; G.crews.forEach((c, i) => { if (c.at === at) a.push(i); }); return a; };
     for (const s of STAGES) {
-      const b = S.statusOf(G, s.id) === 'building', a = b ? ids(s.id) : [], j = b && a.length ? S.jobOf(G, s.id) : null;
+      const b = S.statusOf(G, s.id) === 'building' && !(H109_ON && !PACKED.includes(s.id)), a = b ? ids(s.id) : []   /* ── b131 ── (a stage no pack has built yet has no crew in the director's world: after the yesod the old crews went up the altar body's scaffold, on the white yesod under the end card) ── /b131 ── */, j = b && a.length ? S.jobOf(G, s.id) : null;
       const waiting = !!j && !j.crew && j.kind !== 'boulders', v = a.join(',') + (waiting ? 'w' : ''), k = 's:' + s.id;
       if (force || crewSent[k] !== v) { crewSent[k] = v; W.heroSit(s.id, a.length, a, waiting ? { waiting: true } : null); }   // ── build6 ── crews at a site that waits for you sit and wait (PEOPLE)
     }

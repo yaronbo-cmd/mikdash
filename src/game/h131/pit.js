@@ -62,7 +62,7 @@ const SHOT = Object.freeze({
   rejects: { back: 9, up: 2.6, on: 12, aimY: 2.4, fov: 60, dir: [0.75, -0.66] },   // (dir: toward the low hills to the north-east, where the Mount lies)
   open: { from: [6, 3.5, 2], secs: 2.6, fov: 58 },   // (the opening eases in from a little back and higher: its first frame and its line's are not one picture)
   done: { eye: [-14.5, 4.5, -11.5], aim: [-9.5, 1.5, -2], fov: 50 },   // (from the north-west, behind the kohen on the rim: he is the frame's subject, the carriers at the cradle beyond him, not between)
-  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 50, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
+  hoist: { D: 17.5, H: 9, aimY: -0.4, fov: 44, koh: [2, -6.5] },   // (look round 3b: from across the pit, due east of the cradle — the stone coming up the far wall toward the eye, the four at the cradle's ends pulling, none before it; the kohen aside, out of the picture)
   check: { eye: [2.2, 4.4, 3.6], aim: [0, 0.4, -0.2], fov: 40 },
 });
 /** where the kohen stands to scrape (from the stone: west and a little south, out past its west end) */
@@ -487,7 +487,7 @@ function pitAct(m, X) {
     // (he climbs out to the north-west rim, where the film keeps him; the eye from the south: the cradle, the row, the carriers, him beyond)
     { try { if (X.hero.rope) X.hero.rope(null); const st = W3(KOH_FILM[0], 0, KOH_FILM[1]), c = W3(P.cradle[0], 0, P.cradle[1]); X.hero.setPos(st.x, st.z, Math.atan2(c.x - st.x, c.z - st.z)); } catch (e) { /* */ }
       for (const w of digs) gang.remove(w);   // (their work is over: they leave, not hidden in the frame; the done shot below is a cut, so the gate reads it and not the hoist's frame on the way)
-      carrIn('hold', { fx: cr0.x + 4, fz: cr0.z, k: 1 });   // (the four at the cradle for the film)
+      carrOut();   // (the done frame is the kohen's: the four come back with the film, at the cradle's poles)
       const D = SHOT.done; lookOff(); shotTo(A3(...D.eye), A3(...D.aim), 0.01); fovT = D.fov; shotK = 'done'; for (const r of ropes) r.show(false); root.remove(lever); }
     const pts = pitPts(W), q = qOf(pts), clean = pitClean(W), s0 = W.stones.filter((s) => s.out);
     const res = { stars: starsOf(q), q, pts, perfect: clean, flags: { 'pit.chip': W.dmg, slip: W.mis, out: s0.length },
@@ -600,6 +600,7 @@ function pitAct(m, X) {
       try { const st = W3(KOH_FILM[0], 0, KOH_FILM[1]), c = W3(P.cradle[0], 0, P.cradle[1]); X.hero.setPos(st.x, st.z, Math.atan2(c.x - st.x, c.z - st.z)); } catch (e) { /* */ }
       // (look round 131 #2: the stones already in the row stood large and cut in the film's foreground; the film is the carriers and the one they carry)
       for (const [, i] of outs) { const g = meshOf(i); if (g && g !== last) g.visible = false; }
+      carrIn('hold', { fx: cr0.x + 4, fz: cr0.z, k: 1 });
       if (cr) showFilm(X, { gang, men: carr.filter(Boolean), stone: last, cradle: cr });
     },
     at() { if (A.hoistG && A.phase !== 'done') { const g = A.hoistG; return new T.Vector3(g.position.x, g.position.y + (g.userData.hy || 1) * 0.5, g.position.z); }

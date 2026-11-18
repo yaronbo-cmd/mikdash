@@ -19,7 +19,7 @@
 import { BOOK } from '../world/grid.js';
 import { LINES, QUICK, LOSS } from './model.js';
 import { fresh, load, save, grab, dragTo, step, release, pegTap, diagDrop, diagLift, crackBeam, square, worst, offBy, cornerAt, result, CORNERS, STAKE, SIDES, SIDE_K, FR } from './frame-model.js';
-import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold, siteTidy } from './frame3d.js';
+import { fmats, beamMesh, setBeam, ringMesh, pegMesh, frameHold, siteTidy, figTest } from './frame3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { card, cite } from '../h129/ui7.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -111,9 +111,9 @@ export const FRAME_ACT = {
       const L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
       let nx = -uz, nz = ux;
       if (side === 'N' || side === 'S') { if (nz < 0) { nx = -nx; nz = -nz; } } else if ((side === 'E') !== (nx > 0)) { nx = -nx; nz = -nz; }
-      // (b131 look round 2: both men at the board's end on its far side, their hands on it — off its line, and clear of the board that
-      //  meets or crosses it at the corner; the end man a hand's width in from the corner, the second beside him)
-      const d = j ? FK.END + FK.IN : FK.END, bx = a.x + ux * d, bz = a.z + uz * d;
+      // (b131 look round 3b, C1: one man at each end of the board, on its far side, his hands on it — off its line, a hand's width in
+      //  from the end, clear of the board that meets or crosses it there)
+      const d = j ? Math.max(FK.END, L - FK.END) : FK.END, bx = a.x + ux * d, bz = a.z + uz * d;
       return [bx + nx * FK.SIDE, bz + nz * FK.SIDE, bx, bz];
     }
     /** the second man: along the board from the corner handled */
@@ -121,9 +121,13 @@ export const FRAME_ACT = {
     function manAt(k) { return carry(k, 0); }
     /** the diagonal's two carriers (the whole frame's shot): at its ends, beyond them, as it is carried, falls in, or lies stuck */
     function diagEnds() {
+      // (b131 look round 3b, C3: the diagonal is never without its two men — they hold it on its rest by its ends while the frame
+      //  is being set square, carry it, hold it as it is lowered, and stand at its ends where it lies on the frame or sticks)
       if (DG.carry) return [[DG.x - 16, DG.z - 16], [DG.x + 16, DG.z + 16]];
+      if (DG.fall && DG.ends) return DG.ends;
       if (S.diag === 2 && DG.sa) return [DG.sa, DG.sb];
-      if (DG.fall) return null;
+      if (S.diag) return [STAKE.NW.slice(), STAKE.SE.slice()];
+      if (square(S)) return [[DR[0], DR[1]], [DR[2], DR[3]]];
       return null;
     }
     // ── the frame's boards, the stakes' green rings, the corners' marks, the pegs (level 3), the diagonal
@@ -161,7 +165,7 @@ export const FRAME_ACT = {
       if (DG.fall) {
         const f = DG.fall; f.t += dt; const u = Math.min(1, f.t / f.d), k = ease(u);
         const a = [lerp(f.a0[0], f.a1[0], k), lerp(f.a0[1], f.a1[1], k)], b = [lerp(f.b0[0], f.b1[0], k), lerp(f.b0[1], f.b1[1], k)];
-        setBeam(diag, a, b, null, lerp(f.y0, f.y1, u * u), lerp(f.y0, f.y1, u * u) + 0.6, 0.55);
+        setBeam(diag, a, b, null, lerp(f.y0, f.y1, u * u), lerp(f.y0, f.y1, u * u) + 0.6, 0.55); DG.ends = [a, b];
         diag.rotation.z = lerp(f.r0 || 0, f.r1 || 0, k);
         if (u >= 1) { const r = f.res; DG.fall = null; if (r) r(); }
       } else if (DG.carry) {
@@ -359,10 +363,19 @@ export const FRAME_ACT = {
     }
     // (an ease from far — the pit's valley, the walk — cuts: eased, the camera passed under the ground and the first frame was blank)
     function easeTo(p) { if (A.cut) { A.cut = 0; return 0; } const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > FK.CUT ? 0 : FK.EASE; }
+    const fig = figTest(T);
     function shotTo(k) {
       A.focus = k; A.shotT = A.t;
       if (!k) { lens(FK.FOV); X.shot(FK.EYE.slice(), FK.AIM.slice(), easeTo(FK.EYE)); cast(null); ev('shot:wide'); return; }
-      const c = focusPt(k), aim = [c[0], F + 1, c[1]], eye = [c[0], F + 1 + FK.NEAR[0], c[1] - FK.NEAR[1]];
+      // (b131 look round 3b, C2: the close shot steps back until the men who carry the board are whole in it — the man at the corner
+      //  handled, and the one at the board's other end either whole or wholly out of the picture; never their heads at the frame's edge)
+      const c = focusPt(k), aim = [c[0], F + 1, c[1]], foc = [MID[0], F + 1, MID[1]], asp = cam0.aspect || 1.6, m0 = manAt(k), h0 = helpAt(k);
+      let eye = null;
+      for (let f = 1; f <= 2.05 && !eye; f += 0.15) {
+        const e = [c[0], F + 1 + FK.NEAR[0] * f, c[1] - FK.NEAR[1] * f], P = [e, aim];
+        if (fig(P, FK.NFOV, asp, m0[0], F, m0[1], foc) === 'whole' && fig(P, FK.NFOV, asp, h0[0], F, h0[1], foc) !== 'cut') eye = e;
+      }
+      if (!eye) { eye = [c[0], F + 1 + FK.NEAR[0], c[1] - FK.NEAR[1]]; ev('shot:nofit'); }
       lens(FK.NFOV); X.shot(eye, aim, easeTo(eye)); cast(k); ev('shot:' + k);
     }
     function shotStep() {

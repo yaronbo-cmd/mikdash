@@ -24,6 +24,7 @@ import { inPatch } from './pourlv.js';
 import { createVoices } from '../h129/sound129.js';
 import { fingers, MOUSE } from '../h113/acts.js';
 import { createGang, createBeat, onPlane, clamp, ease, lerp } from '../h109/kit.js';
+import { LOOK_RING_K } from '../world/look.js';
 
 const S8 = BOOK.s08, W8 = S8.work, F = S8.floor, Y1 = S8.top, WD = S8.wood, MID = S8.mid;
 /** the act's shots ([eye], [aim]; המחשה) and numbers: the grip's reach round a timber's end (px), how far the crew carries a timber
@@ -72,7 +73,52 @@ export const FINALE_ACT = {
     const keep = () => { Fs.step = A.step; Mo.keep('finale', finSave(Fs)); X.save(); };
     const cam0 = X.camera, fov0 = cam0.fov;
     const lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
-    const shot = (S, d = 1.2) => X.shot(S[0].slice(), S[1].slice(), d);
+    const shot = (S, d = 1.2) => { A.pose = [S[0].slice(), S[1].slice()]; X.shot(S[0].slice(), S[1].slice(), d); };
+    // ── b131 (the owner's figure rule): a man is in the picture only when the step needs him, whole, working with his tool in hand;
+    // never cut by the frame's edge, never between the eye and the work — otherwise he is out for the step. The act places its men by
+    // the figures gate's own test (h128/figgate.js: his standing box, 3.9 amot by 1.1, at the act's shot and at the look's u 0.3
+    // lens; the work's focus at()), held a little in from the edge, against the shot the act has set (A.pose) and, once the camera is
+    // there, the camera itself (a follow shot's lag)
+    const GC = new T.PerspectiveCamera(), GV = new T.Vector3(), GE = 0.94, GF = 0.17;
+    const GU = (f) => (2 * Math.atan((1 + LOOK_RING_K.NEAR * Math.min(1, 0.3 / LOOK_RING_K.KEEP_U0)) * Math.tan((f * Math.PI) / 360)) * 180) / Math.PI;
+    function gTest(x, y, z, s) {
+      // (whole on the screen at this lens, and not over the work's focus nearer the eye than it)
+      let x0 = 9, x1 = -9, y0 = 9, y1 = -9;
+      for (const dy of [0, 3.9 * s]) for (const dx of [-0.55, 0.55]) for (const dz of [-0.55, 0.55]) {
+        GV.set(x + dx * s, y + dy, z + dz * s).applyMatrix4(GC.matrixWorldInverse); if (GV.z > -0.05) return false;
+        GV.applyMatrix4(GC.projectionMatrix); if (Math.abs(GV.x) > GE || Math.abs(GV.y) > GE) return false;
+        x0 = Math.min(x0, GV.x); x1 = Math.max(x1, GV.x); y0 = Math.min(y0, GV.y); y1 = Math.max(y1, GV.y);
+      }
+      const d = Math.hypot(x - GC.position.x, y + 1.95 * s - GC.position.y, z - GC.position.z);
+      GV.set(MID[0], Y1, MID[1]); const fd = GV.distanceTo(GC.position); GV.applyMatrix4(GC.matrixWorldInverse);
+      if (GV.z < -0.05) { GV.applyMatrix4(GC.projectionMatrix); if (d < fd - 1 && x0 < GV.x + GF && x1 > GV.x - GF && y0 < GV.y + GF && y1 > GV.y - GF) return false; }
+      return true;
+    }
+    function whole(x, y, z, s = 1) {
+      const P = A.pose; if (!P) return true;
+      const asp = cam0.aspect || 1.6, f0 = cam0.fov || NK.FOV;
+      for (const f of [f0, GU(f0)]) { GC.position.set(P[0][0], P[0][1], P[0][2]); GC.up.set(0, 1, 0); GC.lookAt(P[1][0], P[1][1], P[1][2]); GC.fov = f; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
+      // (the camera itself, once it has come to the shot: a follow shot chases its aim)
+      const c = cam0.position; if (Math.hypot(c.x - P[0][0], c.y - P[0][1], c.z - P[0][2]) < 4) { cam0.updateMatrixWorld(true); GC.position.copy(c); GC.quaternion.copy(cam0.quaternion); GC.fov = f0; GC.aspect = asp; GC.updateProjectionMatrix(); GC.updateMatrixWorld(true); if (!gTest(x, y, z, s)) return false; }
+      return true;
+    }
+    /** the nearest place to (x, z) within r amot where a man stands whole in the shot (null: none) */
+    function fitNear(x, z, y, r) {
+      if (whole(x, y, z)) return [x, z];
+      for (let rr = 0.5; rr <= r; rr += 0.5) { let best = null, bd = 1e9; for (let k = 0; k < 16; k++) { const an = (k * Math.PI) / 8, qx = x + Math.cos(an) * rr, qz = z + Math.sin(an) * rr; if (whole(qx, y, qz)) { const dd = Math.hypot(qx - x, qz - z); if (dd < bd) { bd = dd; best = [qx, qz]; } } } if (best) return best; }
+      return null;
+    }
+    /** a man the step no longer has whole in its picture is out for the step (his rope with him) */
+    function takeOut(w, why) { const i = crew.indexOf(w); if (i >= 0) crew.splice(i, 1); if (w.rope != null && ropes[w.rope]) ropes[w.rope].visible = false; gang.remove(w); A.outN = (A.outN || 0) + 1; ev('out:' + why); }
+    function guard() {
+      for (const w of crew.slice()) {
+        if (!w.a || !w.a.alive || (w.cloth && A.step === 'white')) continue;   // (the man with the cloth is placed by whiteStep)
+        const y = w.a.fixedY != null ? w.a.fixedY : F, s = (w.a.s || 1.1) / 1.1;
+        let ok = whole(w.a.x, y, w.a.z, s);
+        if (ok && w.rope != null && tim[w.tk]) { const p = puller(w.tk, w.rope, visS(tim[w.tk])); ok = whole(p[0], y, p[1], s); }
+        if (!ok) takeOut(w, A.step);
+      }
+    }
     // (an ease from far cuts: eased from the walk's or an earlier work's place, the camera crossed the court's walls)
     const cutOr = (p, d) => { const c = cam0.position; return Math.hypot(c.x - p[0], c.y - p[1], c.z - p[2]) > 60 ? 0 : d; };
     /** the cloth's shot: close and low behind the man wiping, over the part of the yesod still grey nearest the cloth (taken when the
@@ -82,7 +128,8 @@ export const FINALE_ACT = {
       for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const x = FIN.X0 + (c % FIN.NX) + 0.5, z = FIN.Z0 + Math.floor(c / FIN.NX) + 0.5, dd = Math.hypot(x - CL.x, z - CL.z); if (dd < bd) { bd = dd; bx = x; bz = z; } }
       // (the grey cell itself in the picture's middle: held in from the edge, the bottom rows fell under the instruction line for good)
       const ax = clamp(bx, FIN.X0 + 2, FIN.X0 + FIN.NX - 2), az = clamp(bz, FIN.Z0 + 2, FIN.Z0 + FIN.NZ - 2), O = NK.WOFF;
-      const eye = [ax + O[0], Y1 + O[1], az + O[2]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
+      const eye = [ax + O[0], Y1 + O[1], az + O[2]]; A.pose = [eye, [ax, Y1, az]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
+      clothMan(true);   // (the man with the cloth set at once where the new picture has him whole, while the camera moves)
     }
     /** is there grey left near where the cloth's shot looks (else it moves on: also when a hand lifted off the yesod's edge) */
     /** the grey a finger can wipe in this picture: on the screen, clear of the top bar and of the instruction line — row by row
@@ -116,7 +163,7 @@ export const FINALE_ACT = {
     /** the pull's shot follows the timber out (from the side, behind its pullers) */
     function pullCam(k) {
       const C = NK.PULL[k], D = TIMBER[k], s = Math.min(NK.FOLLOW, visS(tim[k])) * 0.6, o = [D.dir[0] * s, 0, D.dir[1] * s];
-      X.track(C[0].map((v, i) => v + o[i]), C[1].map((v, i) => v + o[i]));
+      const e = C[0].map((v, i) => v + o[i]), t = C[1].map((v, i) => v + o[i]); A.pose = [e, t]; X.track(e, t);
     }
     const B = createBeat(X), gang = createGang(X);
     // ── the world's own timbers (world.js, or the pour lane's) hidden while this act draws its own, which come out
@@ -196,17 +243,19 @@ export const FINALE_ACT = {
       gang.clear(); crew.length = 0;
       try { X.kohen(step === 'down' || step === 'water' || step === 'rise'); } catch (e) { /* */ }
       if (step === 'down') { try { const s = S8.stand.south; X.hero.setPos(s[0], s[1], Math.PI); } catch (e) { /* (the kohen at the opening's left, watching the frame come down) */ } }
-      if (step === 'down') for (const bd of boards) { const mx = (bd.a[0] + bd.b[0]) / 2, mz = (bd.a[1] + bd.b[1]) / 2, dx = mx - MID[0], dz = mz - MID[1], L = Math.hypot(dx, dz); for (const e of [-1, 1]) { const ux = (bd.b[0] - bd.a[0]) / 32, uz = (bd.b[1] - bd.a[1]) / 32, x = mx + ux * e * 9 + (dx / L) * 1.4, z = mz + uz * e * 9 + (dz / L) * 1.4; const w = gang.add(x, z, { role: 'lever', fx: mx + ux * e * 9, fz: mz + uz * e * 9, crew: crew.length }); if (w) crew.push(w); } }
+      // (two lever men a board, 9 amot either side of its middle — or nearer it, where the shot has him whole; none where it has not)
+      if (step === 'down') { A.pose = [NK.DOWN[0].slice(), NK.DOWN[1].slice()]; for (const bd of boards) { const mx = (bd.a[0] + bd.b[0]) / 2, mz = (bd.a[1] + bd.b[1]) / 2, dx = mx - MID[0], dz = mz - MID[1], L = Math.hypot(dx, dz); for (const e of [-1, 1]) { const ux = (bd.b[0] - bd.a[0]) / 32, uz = (bd.b[1] - bd.a[1]) / 32; for (let g = 9; g >= 3; g -= 1) { const x = mx + ux * e * g + (dx / L) * 1.4, z = mz + uz * e * g + (dz / L) * 1.4; if (!whole(x, F, z)) continue; const w = gang.add(x, z, { role: 'lever', fx: mx + ux * e * g, fz: mz + uz * e * g, crew: crew.length }); if (w) { w.a.vis = 1; crew.push(w); } break; } } } }
       if (step === 'pull') {
         // (rule 2: the crew pulls the timber on ropes from its end, in a line along its length, leaning back as the hands pull)
         const k = pullable(Fs, 'S') ? 'S' : 'E', D = TIMBER[k], b = D.box, end = k === 'S' ? [b[2], (b[1] + b[3]) / 2] : [(b[0] + b[2]) / 2, b[3]];
-        for (let e = 0; e < NK.PULLN; e++) { const p = puller(k, e, 0); const w = gang.add(p[0], p[1], { role: 'hold', fx: end[0], fz: end[1], crew: e }); if (w) { w.a.vis = 1; w.rope = e; w.tk = k; crew.push(w); } }
-        if (MOUSE) { const far = k === 'S' ? [b[0] - 1.6, (b[1] + b[3]) / 2 + 1.2] : [(b[0] + b[2]) / 2 + 1.4, b[1] + 1.6]; const w = gang.add(far[0], far[1], { role: 'brace', fx: k === 'S' ? b[0] : (b[0] + b[2]) / 2, fz: k === 'S' ? (b[1] + b[3]) / 2 : b[1], crew: 2 }); if (w) { w.far = 1; crew.push(w); } }
+        A.pose = [NK.PULL[k][0].slice(), NK.PULL[k][1].slice()];
+        for (let e = 0; e < NK.PULLN; e++) { const p = puller(k, e, 0); if (!whole(p[0], F, p[1])) continue; const w = gang.add(p[0], p[1], { role: 'hold', fx: end[0], fz: end[1], crew: e }); if (w) { w.a.vis = 1; w.rope = e; w.tk = k; crew.push(w); } }
+        if (MOUSE) { const f0 = k === 'S' ? [b[0] - 1.6, (b[1] + b[3]) / 2 + 1.2] : [(b[0] + b[2]) / 2 + 1.4, b[1] + 1.6], far = fitNear(f0[0], f0[1], F, 2.5); if (far) { const w = gang.add(far[0], far[1], { role: 'brace', fx: k === 'S' ? b[0] : (b[0] + b[2]) / 2, fz: k === 'S' ? (b[1] + b[3]) / 2 : b[1], crew: 2 }); if (w) { w.a.vis = 1; w.far = 1; crew.push(w); } } }
       }
-      if (step === 'white') { const w = gang.add(CL.x + 0.5, CL.z - 1.3, { role: 'kneel', fx: CL.x, fz: CL.z, crew: 1 }); if (w) { w.a.vis = 1; crew.push(w); } }
+      if (step === 'white') { const w = gang.add(CL.x + 0.5, CL.z - 1.3, { role: 'kneel', fx: CL.x, fz: CL.z, crew: 1 }); if (w) { w.a.vis = 1; w.cloth = 1; w.a.fixedY = Y1; crew.push(w); } }
       // (the kohen behind the jar he lifts, at the picture's right; the water's run to the corner's two holes is the subject)
       if (step === 'water') { try { const kx = W8.jar[0] + 0.2, kz = W8.jar[1] + 1.2; X.hero.setPos(kx, kz, Math.atan2(W8.jar[0] - kx, W8.jar[1] - 0.3 - kz)); } catch (e) { /* */ } }
-      ropes.forEach((r, i) => { r.visible = step === 'pull' && i < NK.PULLN; });
+      ropes.forEach((r, i) => { r.visible = step === 'pull' && crew.some((w) => w.rope === i); });
     }
     /** a puller's place: on the timber's line beyond its end (the end as it comes out by s), a little to either side by turns */
     function puller(k, e, s) {
@@ -250,7 +299,7 @@ export const FINALE_ACT = {
       show('white'); clothShot(1.3);
       // (the man kneels on the yesod with the cloth in his hands, at the grey nearest the lime: whole in the picture, not cut at its foot)
       if (A.cshot && !A.wiped) { CL.x = CL.tx = A.cshot[0]; CL.z = CL.tz = A.cshot[1]; A.wiped = 1; }
-      { const w = crew[0]; if (w && w.a) { w.a.x = CL.x + 0.5; w.a.z = CL.z - 1.3; w.a.fixedY = Y1; } } X.line(NLINES.cloth, 5200); X.wait(5.4).then(() => { if (A.step === 'white' && cover(Fs) < 0.1) X.line(NLINES.white, 4000); }); hintNext(true);
+      clothMan(true); X.line(NLINES.cloth, 5200); X.wait(5.4).then(() => { if (A.step === 'white' && cover(Fs) < 0.1) X.line(NLINES.white, 4000); }); hintNext(true);
     }
     function startWater() { show('water'); for (const h of holes) h.visible = true; shot(NK.WATER, cutOr(NK.WATER[0], 1.3)); X.line(NLINES.water, 4000); hintNext(true); }
     // ── the pull: grip, pull, give way, the crew carries it out
@@ -355,7 +404,18 @@ export const FINALE_ACT = {
         A.lastCov = c;
         if (c >= FIN.WHITE && !A.whiteDone) whiteDone();
       }
-      const w = crew[0]; if (w && w.a) { const tx = A.wiped ? CL.x + 0.5 : W8.lime[0] + 0.5, tz = A.wiped ? CL.z - 1.3 : W8.lime[1] - 1.3, d = Math.hypot(w.a.x - tx, w.a.z - tz); if (d > 0.05) { const kk = 1 - Math.exp(-dt * 3); w.a.x += (tx - w.a.x) * kk; w.a.z += (tz - w.a.z) * kk; } w.a.yaw = Math.atan2(CL.x - w.a.x, CL.z - w.a.z); }
+      clothMan(false, dt);
+    }
+    /** the man with the cloth kneels by it: at the cloth's place, or the nearest place the picture has him whole (within 4 amot); he
+     *  never walks through a place where it has not (he is set there at once), and is out for the step where there is none */
+    function clothMan(now, dt = 0) {
+      const w = crew.find((q) => q.cloth); if (!w || !w.a || !w.a.alive) return;
+      const tx0 = A.wiped ? CL.x + 0.5 : W8.lime[0] + 0.5, tz0 = A.wiped ? CL.z - 1.3 : W8.lime[1] - 1.3;
+      const to = fitNear(tx0, tz0, Y1, 4); if (!to) { takeOut(w, 'cloth'); return; }
+      const [tx, tz] = to, d = Math.hypot(w.a.x - tx, w.a.z - tz);
+      if (now) { w.a.x = tx; w.a.z = tz; }
+      else if (d > 0.05) { const kk = 1 - Math.exp(-dt * 3), nx = w.a.x + (tx - w.a.x) * kk, nz = w.a.z + (tz - w.a.z) * kk; if (whole(nx, Y1, nz)) { w.a.x = nx; w.a.z = nz; } else { w.a.x = tx; w.a.z = tz; } }
+      w.a.yaw = Math.atan2(CL.x - w.a.x, CL.z - w.a.z);
     }
     async function whiteDone() {
       A.whiteDone = 1; A.busy = 1; A.fl = null; V.scrape(0);
@@ -366,7 +426,7 @@ export const FINALE_ACT = {
       for (let i = 0; i < left.length; i += Math.max(1, Math.ceil(left.length / 12))) {
         let sx = 0, sz = 0, n = 0; for (let j = i; j < Math.min(left.length, i + Math.ceil(left.length / 12)); j++) { Fs.mask[left[j]] = 1; sx += FIN.X0 + (left[j] % FIN.NX) + 0.5; sz += FIN.Z0 + Math.floor(left[j] / FIN.NX) + 0.5; n++; }
         if (n) { CL.x = CL.tx = sx / n; CL.z = CL.tz = sz / n; }
-        paint(false); V.cloak(); await X.wait(0.35);
+        clothMan(true); paint(false); V.cloak(); await X.wait(0.35);
       }
       whiteAll(Fs); paint(false);
       X.quick({ x: MID[0], y: Y1 + 1, z: MID[1] }, QUICK.white, white); X.shake(0.12, 0.2); try { if (X.haptic) X.haptic(20); } catch (e) { /* */ }
@@ -414,7 +474,7 @@ export const FINALE_ACT = {
       // (b131 look round: the camera truly rises — over the whole white yesod from the south-east, its empty south and east strips
       //  nearest: the shape plain, the yesod on the north and the west only)
       const E = NK.RISE;
-      X.shot(E[0].slice(), E[1].slice(), 3.6); X.line(LINES.iron, 6000);
+      A.pose = [E[0].slice(), E[1].slice()]; X.shot(E[0].slice(), E[1].slice(), 3.6); X.line(LINES.iron, 6000);
       await X.wait(4.4);
       const R = finResult(); A.done = 1;
       X.end({ stars: R.stars, q: R.q, pts: R.pts, perfect: R.perfect, flags: { out: 2 }, at: { x: MID[0], y: Y1, z: MID[1] }, film: { eye: E[0].slice(), aim: E[1].slice(), secs: 2.2, own: () => crew.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
@@ -452,6 +512,7 @@ export const FINALE_ACT = {
           if (A.step === 'pull') pullStep(dt);
           if (A.step === 'white') { whiteStep(dt); if (A.fl == null && !A.busy && !A.whiteDone && A.t - (A.cshotT || 0) > 1.2) { A.cshotT = A.t; if (!greyNear()) clothShot(0.9); } }
           waterStep(dt);
+          A.gT = (A.gT || 0) - dt; if (A.gT <= 0) { A.gT = 0.1; guard(); }
         } catch (e) { if (!A.errT || A.t - A.errT > 5) { A.errT = A.t; console.error('[h131] finale', e && e.message); } }
       },
       down(p) { FG.down(p); }, move(p) { FG.move(p); }, up(p) { FG.up(p); },
@@ -469,7 +530,7 @@ export const FINALE_ACT = {
       at() { return new T.Vector3(MID[0], Y1, MID[1]); },
       dbg() {
         const s2 = (x, y, z) => { const r = X.scr(x, y, z); return [Math.round(r.x), Math.round(r.y)]; };
-        const o = { rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
+        const o = { figOut: A.outN || 0, rings: ringHid.length, id: m.id, step: A.step, busy: A.busy, done: A.done, mouse: MOUSE, ev: A.ev.slice(-10), out: { ...Fs.out }, cover: +cover(Fs).toFixed(3), water: +Fs.water.toFixed(3), front: +(A.front / WL).toFixed(2), tilt: +A.tilt.toFixed(2), nf: FG.n, hid: hid.length };
         o.grip = s2(GRIP_AT[0], Y1, GRIP_AT[1]);
         for (const k of ['S', 'E']) { const g = pxAmah(k); o['dir' + k] = [+g.ux.toFixed(2), +g.uy.toFixed(2), +g.ppa.toFixed(1)]; o['s' + k] = +tim[k].s.toFixed(2); }
         o.jar = s2(jar.position.x, jar.position.y + 0.8, jar.position.z);

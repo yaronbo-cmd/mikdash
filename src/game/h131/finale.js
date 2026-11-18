@@ -35,7 +35,7 @@ export const NK = Object.freeze({
   GRIP: 110, GRIPM: 60, OUT: 34, CLOTH: 6, TILT: 110, ON: 0.3,
   // (b131 look round) the lens; the pullers on the ropes (how many, the first one's distance from the timber's end, the gap between
   // them, amot); how far the pull's shot follows the timber out (amot)
-  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 12, SLIDE: 2.2,
+  FOV: 52, PULLN: 3, ROPE0: 2.4, ROPEG: 1.7, FOLLOW: 4, SLIDE: 2.2,
 });
 /** the act's words (what to do: at most five words) */
 export const NLINES = Object.freeze({
@@ -85,12 +85,18 @@ export const FINALE_ACT = {
       const eye = [ax + O[0], Y1 + O[1], az + O[2]]; X.shot(eye, [ax, Y1, az], cutOr(eye, d)); A.cshot = [ax, az];
     }
     /** is there grey left near where the cloth's shot looks (else it moves on: also when a hand lifted off the yesod's edge) */
-    function greyNear() {
-      // (grey where a finger can wipe it: on the screen, clear of the top bar and of the instruction line)
-      const W = innerWidth, H = innerHeight;
-      for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && !Fs.mask[c]) { const q = X.scr(FIN.X0 + (c % FIN.NX) + 0.5, Y1, FIN.Z0 + Math.floor(c / FIN.NX) + 0.5); if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100) return true; }
-      return false;
+    /** the grey a finger can wipe in this picture: on the screen, clear of the top bar and of the instruction line — row by row
+     *  (j: [screen points]); one test for the shot (move on when it is empty) and for the hint and the probes' player */
+    function wipeable() {
+      const W = innerWidth, H = innerHeight, rows = new Map();
+      for (let c = 0; c < CELLS.length; c++) {
+        if (!CELLS[c] || Fs.mask[c]) continue; const i = c % FIN.NX, j = Math.floor(c / FIN.NX);
+        const q = X.scr(FIN.X0 + i + 0.5, Y1, FIN.Z0 + j + 0.5);
+        if (q.on !== false && q.x > 40 && q.x < W - 40 && q.y > 120 && q.y < H - 100) { if (!rows.has(j)) rows.set(j, []); rows.get(j).push([Math.round(q.x), Math.round(q.y)]); }
+      }
+      return rows;
     }
+    const greyNear = () => wipeable().size > 0;
     // ── b131 look round 2 (F7): the rows of the court's rings north of the altar — black marks behind every finale picture — hidden
     // while the finale runs (small low meshes in the book's box, not the act's own or a figure's); back when it ends
     const ringHid = [];
@@ -470,9 +476,11 @@ export const FINALE_ACT = {
         // (the yesod's rows for a player's cloth: every 4 amot, from the west end to the east)
         o.rows = []; for (let z = FIN.Z0 + 1.5; z < FIN.Z0 + FIN.NZ; z += 4) o.rows.push([s2(FIN.X0 + 1.5, Y1, z), s2(FIN.X0 + FIN.NX - 2, Y1, z)]);
         // (the grey still in the picture, row by row, as a serpentine of screen points: a player's next wipe)
-        { const W = innerWidth, H = innerHeight; o.wipe = []; let flip = 0;
-          for (let j = 1; j < FIN.NZ; j += 2) { const row = []; for (let i = 0; i < FIN.NX; i++) { const c = j * FIN.NX + i; if (!CELLS[c] || Fs.mask[c]) continue; const q = s2(FIN.X0 + i + 0.5, Y1, FIN.Z0 + j + 0.5); if (q[0] > 40 && q[0] < W - 40 && q[1] > 120 && q[1] < H - 100) row.push(q); }
-            if (row.length) { const r = [row[0], row[row.length - 1]]; if (flip) r.reverse(); o.wipe.push(...r); flip ^= 1; } } }
+        // (b131: every row the shot's own test counts — the path had only every second row, and grey left on the others stalled the
+        //  work: the shot saw grey to wipe, the path had none)
+        { o.wipe = []; let flip = 0; const rows = wipeable();
+          for (const j of [...rows.keys()].sort((a, b) => a - b)) { const row = rows.get(j).sort((a, b) => a[0] - b[0]); const r = [row[0], row[row.length - 1]]; if (r[0] === r[1] || Math.abs(r[0][0] - r[1][0]) < 20) r[1] = [r[0][0] + 24, r[0][1]]; if (flip) r.reverse(); o.wipe.push(...r); flip ^= 1; }
+          o.greyIn = rows.size; o.greyAll = CELLS.reduce((n, v, c) => n + (v && !Fs.mask[c] ? 1 : 0), 0); }
         o.crewPx = crew.filter((w) => w.a && w.a.alive).map((w) => { const a = X.scr(w.a.x, F, w.a.z), b = X.scr(w.a.x, F + 3.9, w.a.z); return Math.round(Math.abs(a.y - b.y)); });
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));
         return o;

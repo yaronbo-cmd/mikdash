@@ -1055,7 +1055,12 @@
       const pressAt = () => { const d = [s.c[0] - a.tip[0], s.c[1] - a.tip[1]], n = Math.hypot(...d) || 1; return [Math.round(s.c[0] + d[0] / n * 24), Math.round(s.c[1] + d[1] / n * 24)]; };
       if (a.lever === 'seat' && a.li === s.i && (a.side === SD[side] || (a.lv !== 2 && free(SD.indexOf(a.side))))) {   // (b131: seated under a free side of the stone is a seat to press, whatever lip lies lowest on the screen after the lever shot)
         if (shots && !K['shotP' + a.id + s.i]) { K['shotP' + a.id + s.i] = 1; const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1; return { holdShot: [p[0], p[1], 1500, a.id + '-lift' + s.i], wait: 200, note: 'pit: a still of the lift' }; }
+        // (the press where the stone is once the camera has come to rest: a press read off a moving frame landed on the bare floor)
+        if (!K.lastC || Math.hypot(s.c[0] - K.lastC[0], s.c[1] - K.lastC[1]) > 3) { K.lastC = s.c.slice(); return { wait: 250, note: 'pit: the camera settles' }; }
         const p = pressAt(); if (wantBad) window.__BOT_PITBAD = 1;
+        // (a press that never takes must not loop unseen: the same stone pressed a fifth time with nothing out is stuck)
+        const pk = 'pressN' + a.id + s.i; K[pk] = (K[pk] || 0) + 1;
+        if (K[pk] > 4) return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + a.id + ' (stone ' + s.i + ' pressed ' + (K[pk] - 1) + ' times, nothing out) ' + JSON.stringify(a).slice(0, 1400) };
         return { holdUntil: [p[0], p[1], C(`const s=a&&a.stones&&a.stones[${s.i}];return !a||a.busy||a.phase!=='work'||!s||s.out||s.knock||${wantBad ? 'false' : 'a.warn'}`), 20000], wait: 600, note: `pit: press on stone ${s.i} (cap ${s.cap}, ${wantBad ? 'the mistake' : 'clean'})` };
       }
       if (needs.length && !(a.lv === 2 && wantBad)) {
@@ -1151,6 +1156,8 @@
       B.fig8(a);
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
       if (!a || a.done) { if (shots && a && !K.shotSq) { K.shotSq = 1; return { wait: 250, shot: a.id + '-square' }; } return { wait: 300 }; }
+      // (a still of the wooden mallet's blows, taken while the shot rests on them)
+      if (shots && a.mallet && !K.shotM) { K.shotM = 1; return { wait: 100, shot: a.id + '-mallet' }; }
       if (a.busy || a.settled === false) return { wait: 250 };
       if (shots && !K.shot0) { K.shot0 = 1; return { wait: 300, shot: a.id + '-look', note: 'frame: ' + JSON.stringify(a.figs) }; }
       const hold = (i, to, note) => ({ path: [a.P[i].at, to], ms: 900, keep: 7000, release: C(`return !a||!a.P||a.P[${i}].off<0.42`), wait: 700, note });
@@ -1166,7 +1173,8 @@
       if (a.lv === 1) {
         const NW = a.P[0];
         if (!NW.seat) return hold(0, NW.to, 'frame: the NW corner to its stake (off ' + NW.off + ')');
-        const far = a.P.filter((p) => !p.seat).sort((p, q) => q.off - p.off)[0];
+        // (the corner the game's close shot shows: on a tie of distances the bot's own pick could be one off the picture)
+        const far = a.P.find((p) => p.k === a.focus && !p.seat) || a.P.filter((p) => !p.seat).sort((p, q) => q.off - p.off)[0];
         if (far) return hold(far.i, far.to, 'frame: turn about NW: ' + far.k + ' (off ' + far.off + ')');
         return { wait: 300 };
       }
@@ -1180,7 +1188,7 @@
       const bent = a.P.find((q) => q.peg && q.off > 0.05);
       // (the corner to move is an unpegged one: the bent peg's corner is unseated too, at the same distance, and a drag of it — off the
       //  close shot's picture — grabbed nothing)
-      const free = a.P.filter((q) => !q.seat && !q.peg).sort((p, q) => q.off - p.off)[0];
+      const free = a.P.find((q) => q.k === a.focus && !q.seat && !q.peg) || a.P.filter((q) => !q.seat && !q.peg).sort((p, q) => q.off - p.off)[0];
       // (the close shot shows only the corner worked at: as a player, try the crooked corner first; it will not come, and the shot
       // goes to the bent peg. The right peg pulled by mistake is seen from the lifted look)
       if (bent && a.focus !== bent.k && a.focus !== 'wide' && free && (K.tries3 | 0) < 3) { K.tries3 = (K.tries3 | 0) + 1; return { path: [free.at, [free.at[0] + (free.to[0] - free.at[0]) * 1.8, free.at[1] + (free.to[1] - free.at[1]) * 1.8]], ms: 900, keep: 2200, wait: 900, note: 'frame: the crooked corner ' + free.k + ' tried (it will not come)' }; }
@@ -1204,6 +1212,8 @@
       const bad = B.bad || '', has = (k) => bad.split(',').includes(k), K = B.k, shots = !!window.__BOT_SHOTS131;
       if (!a || a.done) return { wait: 300 };
       if (a.step === 'rise') { if (shots && !K.shotR) { K.shotR = 1; return { wait: 2600, shot: a.id + '-rise' }; } return { wait: 300 }; }
+      // (a still of the timber coming out on its ropes, the shot at rest — it follows only the first amot)
+      if (a.busy && shots && a.step === 'pull') { for (const k of ['S', 'E']) { const v = a['s' + k]; if (v > 7 && v < 16 && !K['shotO' + k]) { K['shotO' + k] = 1; return { wait: 50, shot: a.id + '-out-' + k }; } } }
       if (a.busy) { if (shots && a.step === 'water' && !K.shotW) { K.shotW = 1; return { wait: 200, shot: a.id + '-water-down' }; } return { wait: 250 }; }
       if (a.step === 'pull') {
         let k = a.out.S ? 'E' : 'S'; if (has('east') && !K.east) { K.east = 1; k = 'E'; }
@@ -1232,7 +1242,7 @@
     // ── /h131 finale ──
   };
   // ── h131 ── (build 131: the figures gate's report read at every step of stage 08's frame and finale; whatever it names is kept) ── /h131 ──
-  B.fig8 = (a) => { let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; if (r && r.length) B.figBad.push({ id: a && a.id, step: a && (a.step || a.focus), r: JSON.stringify(r).slice(0, 300) }); };
+  B.fig8 = (a) => { B.fig8on = 1; let r = null; try { r = window.__FIG && __FIG.report ? __FIG.report() : null; } catch (e) { r = null; } B.figBad = B.figBad || []; B.figN = (B.figN || 0) + 1; const id = (a && a.id) || '?'; B.figW = B.figW || {}; B.figW[id] = (B.figW[id] || 0) + 1; if (r && r.length) B.figBad.push({ id, step: a && (a.step || a.focus || a.phase), r: JSON.stringify(r).slice(0, 300) }); };
   // (build 112: a slab on the crane's rope — turn it square, the right way up, then lower it fast and touch down gently)
   B.hang = (h, at, top, vSafe) => {
     if (!h || !at || h.busy || h.mode === 'seated') return { wait: 300 };
@@ -1297,6 +1307,7 @@
   };
   play.h8pour = (a) => {
     if (a.phase === 'prep') { const q = a.prep === 'joint' ? a.joint : (a.reeds || []).find(Boolean); if (q && q.on !== false) return { tap: [Math.round(q.x), Math.round(q.y)], wait: 1400, note: 'pour: prep ' + a.prep }; return { wait: 400 }; }
+    if (a.phase === 'stones' && a.busy) return { wait: 300 };   // (b131: the porters still carry: a tap now is not taken)
     if (a.phase === 'stones') return { tap: [Math.round(W * 0.3), Math.round(HH * 0.62)], wait: 650, note: `pour: stone ${a.stonesIn}/${a.nStones}` };
     if (a.phase === 'pour') {
       if (a.reedFix || a.cauldron.swapping && !a.grab) return { wait: 300 };
@@ -1353,7 +1364,15 @@
     // ── h131 ── (stage 08: a stand-in act of a part not yet coded finishes by itself; the lanes' players are play.h8pit, h8frame, h8pour,
     // h8finale — each lane adds its own) ── /h131 ──
     if (H().site === 'yesod' && S.act && S.act.stub) return { wait: 400 };
-    if (H().site === 'yesod' && play['h8' + kind]) { let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; } return r8; }
+    if (H().site === 'yesod' && play['h8' + kind]) {
+      B.fig8on = 0; let r8; try { r8 = play['h8' + kind](S.act); } catch (e) { return { wait: 500, note: 'bot error h8' + kind + ' ' + e.message }; }
+      // ── b131 ── (every work of stage 08: the same touch five times over with no progress is STUCK, its state logged — the 90 s rule
+      //  never fires when each touch changes some state, as the pit's press read as a scrape did by mouse for 58 minutes; the pit's own
+      //  press count stays) ── /b131 ──
+      if (!B.fig8on) B.fig8(S.act || { id: S.mission });   // (b131: the figure gate read at every step of every work of stage 08, once — the pit and the pour too)
+      const st8 = stuck8(S, r8); if (st8) return st8;
+      return r8;
+    }
     const f = (H().site === 'nikanor' && play['h6' + kind.replace(/^wicket[NSs]$/, 'wicket')]) || (H().site === 'lishka' && play['h7' + kind.replace(/^vault[NSM]$/, 'vault')]) || play[kind]; if (!f) return { wait: 500, note: 'no player for ' + kind };   // ── h128 ── (stage 06's own players) ── /h128 ──
     // ── h128 ── (the camera turned away by a touch the act did not take — a drag decided a moment before the act's phase changed: a tap
     // brings it back as a player would, before the player decides anything) ── /h128 ──
@@ -1365,5 +1384,18 @@
     if (p0 && Number.isFinite(p0[0]) && Number.isFinite(p0[1]) && p0[0] > 0 && p0[0] < W && p0[1] > 0 && p0[1] < HH && !onWorld(p0[0], p0[1])) { const e = document.elementFromPoint(p0[0], p0[1]); r.note = 'HUD under the touch ' + Math.round(p0[0]) + ',' + Math.round(p0[1]) + ' ' + (e ? e.tagName + '.' + String(e.className || '').slice(0, 40) : '') + ' · ' + (r.note || ''); }
     return r;
   };
+  // ── b131 ── the shared stuck rule of stage 08: an action's key (its kind and its place, to 24 px) and the work's progress (what a
+  // work achieves — never its events, its clock or its camera); five of the same key in a row with the same progress end the work ── /b131 ──
+  const PROG8 = ['phase', 'step', 'out', 'left', 'stonesIn', 'filled', 'cover', 'taps', 'result', 'pegs', 'placed', 'corners', 'done', 'level', 'reached', 'seated'];
+  function stuck8(S, r) {
+    const a = S.act || {}, K8 = B.k8 || (B.k8 = {}), q = (v) => Math.round(v / 24);
+    const kindOf = r && ['tap', 'hold', 'holdUntil', 'drag', 'path', 'tapWhen', 'holdShot'].find((k) => r[k]);
+    if (!kindOf) return null;
+    const v = r[kindOf], p = kindOf === 'path' ? v[0] : v, key = kindOf + ':' + (Array.isArray(p) ? q(+p[0]) + ',' + q(+p[1]) : '') + (kindOf === 'drag' || kindOf === 'path' ? ':' + (Array.isArray(v) ? v.length : '') : '');
+    const prog = S.mission + '|' + PROG8.map((k) => (a[k] == null ? '' : typeof a[k] === 'number' ? (+a[k]).toFixed(2) : JSON.stringify(a[k]))).join('|');
+    if (K8.key === key && K8.prog === prog) K8.n++; else { K8.key = key; K8.prog = prog; K8.n = 1; }
+    if (K8.n >= 5) { K8.n = 0; return { eval: '__T.game.h109._end({stars:1})', note: 'STUCK in ' + S.mission + ' (the same ' + kindOf + ' five times, no progress) ' + JSON.stringify(a).slice(0, 1400) }; }
+    return null;
+  }
   return 'bot ready';
 })();

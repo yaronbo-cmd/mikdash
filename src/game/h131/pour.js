@@ -149,8 +149,12 @@ export const POUR_ACT = {
 
     /* ── the stones: two pairs of porters carry each one in from the heap and set it down (b131 look round: by their hands, not from the air) ── */
     const PORT = { pairs: [], jobs: [] };
-    const PILE = [[0, 0.4], [1.5, 1.3], [0.3, -1.6], [1.6, -0.9], [0.8, -3.4]];
-    const HOME = [[[HEAP[0] - 0.6, HEAP[1] - 5.6], [HEAP[0] + 1.2, HEAP[1] - 5.8]], [[HEAP[0] - 0.4, HEAP[1] + 2.9], [HEAP[0] + 1.4, HEAP[1] + 3.1]]];
+    // (b131 look round 3: the heap the next two, the porters waiting behind it on the far side, two rows clear of the biggest stone —
+    //  standing beside it at the frame's edge they stood in it)
+    const PILE = [[0, 1.0], [0.5, -1.9]];
+    // (look round 3, the run: on the heap's far side they stood out of the picture — the first pair waits at the heap's two ends along the
+    //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
+    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]], [[HEAP[0] + 4.6, HEAP[1] - 1.2], [HEAP[0] + 4.6, HEAP[1] + 1.4]]];
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;
@@ -183,7 +187,7 @@ export const POUR_ACT = {
           if (J2.t >= J2.T) { P.job = null; P.men.forEach((w) => { w.stride = 0; gang.setRole(w, 'hold'); }); }
           continue;
         }
-        const [ax, az] = J2.from, [bx, bz] = J2.to, T0 = 0.35, T1 = 0.55, T2 = T1 + J2.T, T3 = T2 + 0.25;
+        const [ax, az] = J2.from, [bx, bz] = J2.to, T0 = J2.T0 || 0.35, T1 = T0 + 0.2, T2 = T1 + J2.T, T3 = T2 + 0.25;
         const v = J2.t < T1 ? 0 : sm((J2.t - T1) / J2.T), cx = ax + (bx - ax) * v, cz = az + (bz - az) * v;
         const y = J2.t < T0 ? 0 : J2.t < T1 ? 0.55 * sm((J2.t - T0) / (T1 - T0)) : J2.t < T2 ? 0.55 + 0.05 * Math.sin(J2.t * 9) : 0.55 * (1 - sm((J2.t - T2) / (T3 - T2)));
         if (m2) m2.position.set(cx, y, cz);
@@ -197,7 +201,7 @@ export const POUR_ACT = {
           if (m2) m2.position.set(S.s.x, 0, S.s.z); S.carry = false; S.fall = -1;
           const s = sim.shapes[J2.i], at = wpt(s.x, 0.6, s.z);
           V.sfx.thud(); X.shake(0.06 + 0.04 * s.h, 0.12 + 0.06 * s.h); X.dust(at.x, S8.floor + 0.2, at.z, 6, 1.5);
-          if (s.tint) X.quick(wpt(s.x, 3.4, s.z - 1.4), 'מהבור שלך!', m2); ev('set' + J2.i);
+          if (s.tint) X.quick(wpt(s.x, 0.7, s.z + 0.3), 'מהבור שלך!', m2); /* (look round 3: on the stone set down, low — high over the far row it landed on the goal pill) */ ev('set' + J2.i);
           A8.busy = 0; keepWork();
           P.job = { kind: 'back', t: 0, T: 1.0, p0: P.men.map((w) => w.pos.slice()) };
           P.men.forEach((w) => { gang.setRole(w, 'hold'); w.rate = 2.4; });
@@ -225,7 +229,8 @@ export const POUR_ACT = {
       const from = [S.m.position.x, S.m.position.z], to = [S.s.x, S.s.z], dx = to[0] - from[0], dz = to[1] - from[1], d = Math.hypot(dx, dz) || 1;
       const p0 = P.men.map((w) => { const L2 = toLocal(lv, w.a.x, w.a.z); return [L2[0], L2[1]]; });
       P.men.forEach((w) => { gang.setRole(w, 'push'); w.lean = -0.25; w.rate = 2.6; });
-      P.job = { kind: 'carry', i, t: 0, T: clamp(d / 8, 0.8, 1.5), from, to, n: [-dz / d, dx / d], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
+      const reach = Math.max(...p0.map((q) => Math.hypot(q[0] - from[0], q[1] - from[1])));
+      P.job = { kind: 'carry', i, t: 0, T0: clamp(reach / 6, 0.35, 1.1), T: clamp(d / 8, 0.8, 1.5), from, to, n: [-dz / d, dx / d], g: Math.max(S.s.rx, S.s.rz) + 0.5, p0 };
       V.sfx.thud();
     }
 
@@ -244,7 +249,7 @@ export const POUR_ACT = {
         let hit = false; for (let k = k0; k <= k1 && !hit; k++) for (let i = i0; i <= i1; i++) { const c = k * NX + i; if (sim.floor[c] && sim.vol[c] + sim.solid[c] > 0.1) { hit = true; break; } }
         if (!hit) return;
         A8.reached[j] = true; const y = V.surfaceAt(tg.x, tg.z) + 0.3;
-        V.ring(tg.x, y, tg.z, 0.9, 0); V.sfx.reach(j); X.quick(wpt(tg.x, y + 0.4, tg.z), tg.word || QUICK.reached); ev('reach:' + tg.name);
+        V.ring(tg.x, y, tg.z, 0.9, 0); V.sfx.reach(j); X.quick(wpt(tg.x, 0.6, tg.z + 1.2), tg.word || QUICK.reached);   /* (look round 3: low and a little nearer — a far corner's word stood on the goal pill) */ ev('reach:' + tg.name);
       });
     }
     function onSeal(e) {
@@ -431,7 +436,7 @@ export const POUR_ACT = {
       },
       dbg() {
         const ca = sim.cauldron, sp = sim.spout, fr2 = A8.frames.slice().sort((a, b2) => a - b2);
-        const o = { id: m.id, lv, phase: A8.phase, mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
+        const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, port: PORT.pairs.map((p) => p.men.map((w) => [+w.a.x.toFixed(2), +w.a.z.toFixed(2)])), heap: V.stones.filter((s) => s.carry && s.m.visible).map((s) => [+s.m.position.x.toFixed(2), +s.m.position.z.toFixed(2), +(s.r || s.rx || 0).toFixed(2)]), mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
           filled: +sim.filledFraction.toFixed(3), hollowCells: sim.hollowCells, missing: sim.missingCells, cauldron: { amount: +(ca.amount / ca.cap).toFixed(3), heat: +ca.heat.toFixed(3), used: ca.used, swapping: ca.swapping > 0 },
           spout: { t: +sp.t.toFixed(3), tilt: +sp.tilt.toFixed(3), q: +sp.q.toFixed(3) }, grab: A8.grab ? { sx: Math.round(A8.grab.sx), sy: Math.round(A8.grab.sy), t0: +A8.grab.t0.toFixed(3), t: +A8.grab.t.toFixed(3), tilt: +A8.grab.tilt.toFixed(3) } : null,
           reached: A8.reached.slice(), seals: A8.seals.filter((s) => s.on).length, result: A8.result, taps: A8.taps, dmg: A8.dmg, losses: A8.losses.slice(), patches: A8.patches, spilled: +A8.spilled.toFixed(3), reedClog: A8.reedClog.slice(), reedFix: !!A8.reedFix,

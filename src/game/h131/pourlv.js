@@ -27,10 +27,11 @@ export const yawOf = (lv) => (frameOf(lv).s < 0 ? Math.PI : 0);
  * 1. a section in the north: few stones, a generous flow — he learns the mix runs to the low place and hardens;
  * 2. the middle: big and small stones make narrow passages; the order decides whether a hollow is left (the approved sample's own layout);
  * 3. the south-west: fill tight against the south timber without spilling over it, and round the two reeds without clogging them. */
+// (b131 look round 3: the first three a size two men carry — they stood as big as a man in the far row: 0.95/0.80, 1.05/0.85, 0.85/0.70 before)
 const L1 = [
-  [-3.70, -1.50, 0.95, 0.80, 1.25, 0.30, 1],
-  [3.40, -1.10, 1.05, 0.85, 1.30, -0.20, 0],
-  [0.20, -2.70, 0.85, 0.70, 1.15, 0.50, 0],
+  [-3.70, -1.50, 0.72, 0.60, 1.25, 0.30, 1],
+  [3.40, -1.10, 0.78, 0.64, 1.30, -0.20, 0],
+  [0.20, -2.70, 0.64, 0.54, 1.15, 0.50, 0],
   [-1.30, 1.50, 0.62, 0.52, 0.95, 0.20, 1],
   [4.30, 2.30, 0.45, 0.40, 0.60, 0.00, 0],
   [-4.70, 2.50, 0.40, 0.38, 0.50, 0.60, 0],

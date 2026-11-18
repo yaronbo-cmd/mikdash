@@ -18,7 +18,9 @@ const S8 = BOOK.s08;
 const BT = 0.36;                       // (the sample's board thickness)
 /** b131 look round 2: what went over the timber is a stain on the floor and a loss from this much on (pour.js SPILL_MARK): the spec's table */
 export const SPILL_SEEN = 0.05;
-const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [6.9, 4.7];   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
+const STAIN_HEX = 0xc9bba2, STAIN_RIM = 0x857660;   // (the set mix's light warm grey, its crust darker)
+const RIG_Z = 6.45, POLE_Y = 1.82, TROUGH_LEN = 2.2, KNOCK_HOME = [-4.2, 4.9];   // (look round 3: left, between the hearth's swap path and the near board — on the right he stood in the stones' heap)
+//   // (b131 fix round 1: at [7.6, 5.6] the frame's bottom-right edge cut him in every first frame: at the near corner, whole)
 const RELIEF = 1.2, MOUND_VIS = 0.42, LUT_N = 64, STREAM_SEG = 18, MAXB = 48, MAXD = 48;
 
 export function createPourView(X, lv, sim, o = {}) {
@@ -196,7 +198,7 @@ export function createPourView(X, lv, sim, o = {}) {
   function makeCauldron() {
     const mat = keep(new THREE.MeshStandardMaterial({ color: clayHex, roughness: 0.85, flatShading: true, side: THREE.DoubleSide, emissive: 0xff4a10, emissiveIntensity: 0 }));
     const pot = new THREE.Mesh(cauldronGeo, mat); pot.castShadow = true;
-    const mixMat = keep(new THREE.MeshStandardMaterial({ color: 0xffa040, emissive: 0xff7a18, emissiveIntensity: 1, roughness: 0.25 }));
+    const mixMat = keep(new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false }));   // (b131 look round 3: the approved sample's mix in the pot — orange, never washed to white by the game's grading)
     const mix = new THREE.Mesh(keep(new THREE.CircleGeometry(1, 16)), mixMat); mix.rotation.x = -Math.PI / 2;
     const g = new THREE.Group(); g.add(pot, mix); return { g, pot, mat, mix, mixMat };
   }
@@ -204,8 +206,8 @@ export function createPourView(X, lv, sim, o = {}) {
     const y = -0.95 + 0.97 * Math.max(0, Math.min(1, amountFrac)); cd.mix.visible = amountFrac > 0.01; cd.mix.position.y = y;
     const r = cauldronRadiusAt(y) - 0.02; cd.mix.scale.set(r, r, 1);
     const j2 = Math.max(0, Math.min(LUT_N - 1, Math.round(heat * 0.82 * (LUT_N - 1)))) * 3;
-    cd.mixMat.color.setRGB(liqLUT[j2], liqLUT[j2 + 1], liqLUT[j2 + 2]); cd.mixMat.emissive.setRGB(liqLUT[j2], liqLUT[j2 + 1], liqLUT[j2 + 2]);
-    const e = Math.max(0, (heat - 0.3) / 0.7); cd.mixMat.emissiveIntensity = e * e * 0.3; cd.mat.emissiveIntensity = e * e * 0.35;
+    cd.mixMat.color.setRGB(liqLUT[j2], liqLUT[j2 + 1], liqLUT[j2 + 2]);
+    const e = Math.max(0, (heat - 0.3) / 0.7); cd.mat.emissiveIntensity = e * e * 0.35;
   }
   const flames = [];
   const fireG = new THREE.Group(); fireG.position.copy(FIRE); G.add(fireG);
@@ -236,7 +238,7 @@ export function createPourView(X, lv, sim, o = {}) {
   }
   const troughMixMat = keep(new THREE.MeshBasicMaterial({ color: 0xffa040 }));
   const troughMix = new THREE.Mesh(keep(new THREE.BoxGeometry(0.3, 0.02, TROUGH_LEN - 0.1)), troughMixMat); troughMix.position.set(0, 0.04, -TROUGH_LEN / 2); trough.add(troughMix);
-  const knocker = makeFigure(0xb9a27a, 0x6f8450, 0x5d7a4a); knocker.g.position.set(KNOCK_HOME[0], B0, KNOCK_HOME[1]); knocker.g.rotation.y = -2.3; G.add(knocker.g);
+  const knocker = makeFigure(0xb9a27a, 0x6f8450, 0x5d7a4a); knocker.g.position.set(KNOCK_HOME[0], B0, KNOCK_HOME[1]); knocker.g.rotation.y = 2.2; G.add(knocker.g);
   { const mallet = new THREE.Group(), mm = new THREE.Mesh(new Merger().add(new THREE.CylinderGeometry(0.045, 0.05, 1.5, 6), col(0x8c5f34), [0, -0.75, 0]).add(new THREE.CylinderGeometry(0.2, 0.2, 0.55, 8), col(0x6e4a2a), [0, -1.5, 0], [0, 0, Math.PI / 2]).build(), figMat); mm.castShadow = true; mallet.add(mm); mallet.position.set(0, -1.05, 0.05); knocker.armR.add(mallet); }
   knocker.armR.rotation.x = -0.25;
   // the stream ribbon, the short stream from the lip, the spill's stream over the timber
@@ -257,7 +259,10 @@ export function createPourView(X, lv, sim, o = {}) {
   { const cm = keep(new THREE.MeshStandardMaterial({ color: 0x7b6d5f, roughness: 0.95, flatShading: true })), cg = keep(new THREE.DodecahedronGeometry(1, 0)); for (let j = 0; j < 8; j++) { const m = new THREE.Mesh(cg, cm); m.visible = false; m.castShadow = true; G.add(m); chunks.push({ m }); } }
   // the spill's stain on the floor beyond the timber (level 3): a dark flat patch that grows with what went over
   let stain = null;
-  if (L.timber) { stain = new THREE.Mesh(keep(patchGeo(THREE, 1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: 0x8c8172, roughness: 0.95, transparent: true, opacity: 0.95, polygonOffset: true, polygonOffsetFactor: -2 }))); stain.rotation.x = -Math.PI / 2; stain.position.set(0, 0.02, D / 2 + BT + 0.9); stain.scale.set(0.01, 0.01, 1); stain.visible = false; G.add(stain); }
+  // (b131 look round 3: the stain is set mix on the floor — the section's own light warm grey with a darker crust at its edge; a dull
+  //  grey patch read as a shadow under the crew)
+  if (L.timber) { stain = new THREE.Mesh(keep(patchGeo(THREE, 1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: STAIN_HEX, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -3 }))); stain.rotation.x = -Math.PI / 2; stain.position.set(0, 0.03, D / 2 + BT + 0.9); stain.scale.set(0.01, 0.01, 1); stain.visible = false; G.add(stain);
+    const rim = new THREE.Mesh(keep(patchGeo(THREE, 1.1, 7.3)), keep(new THREE.MeshStandardMaterial({ color: STAIN_RIM, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 }))); rim.position.z = -0.01; stain.add(rim); }
 
   /* ── the sounds (the sample's, synthesized; through the game's audio context and its mute) ── */
   let actx = null, master = null, noiseBuf = null, pourGain = null, pourFilt = null, pourGain2 = null, fireGain = null;
@@ -395,7 +400,7 @@ export function createPourView(X, lv, sim, o = {}) {
       V.walkPhase += dt * (6 + 6 * walking) * (walking ? 1 : 0); poseWalk(crewL, V.walkPhase, walking); poseWalk(crewR, V.walkPhase + Math.PI, walking);
       const tiltAng = ca.swapping > 0 ? 0 : sp.tilt * 1.15; tiltGroup.rotation.x = -tiltAng;
       for (const f of [crewL, crewR]) { const lean = 0.85 + sp.tilt * 0.35; f.armL.rotation.x = -lean; f.armR.rotation.x = -lean; f.body.rotation.x = sp.tilt * 0.12; }
-      const amountFrac = ca.swapping > 0 ? (V.swapAnim ? 1 : ca.amount / ca.cap) : ca.amount / ca.cap, heatShown = Math.max(0.6, Math.min(0.78, ca.swapping > 0 && V.swapAnim ? 1 : ca.heat));   // (b131 look round 2: the mix in the pot reads orange — at full heat its glow washed out to a pale disc in a red pot, read as a button)
+      const amountFrac = ca.swapping > 0 ? (V.swapAnim ? 1 : ca.amount / ca.cap) : ca.amount / ca.cap, heatShown = Math.max(0.6, Math.min(0.92, ca.swapping > 0 && V.swapAnim ? 1 : ca.heat));   // (b131 look round 2: the mix in the pot reads orange — at full heat its glow washed out to a pale disc in a red pot, read as a button)
       setCauldronLook(potA, amountFrac, heatShown); potA.mix.rotation.x = -Math.PI / 2 + tiltAng;
       setCauldronLook(nextCauldron, ca.swapping > 0 && V.swapAnim ? 0.15 : 0.9, 1);
     } else teardownFrame(dt, S);
@@ -425,9 +430,9 @@ export function createPourView(X, lv, sim, o = {}) {
   }
   // the knocker: home, then to the place of the air (or the middle) and three taps of his wooden mallet
   function knockerFrame(dt, S) {
-    const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = -2.3; k.g.position.y = B0;
+    const k = knocker; let tx = KNOCK_HOME[0], tz = KNOCK_HOME[1], face = 2.2; k.g.position.y = B0;
     const at = S.phase === 'knock' || S.phase === 'hollow' || S.phase === 'full';
-    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 4.4) tx = rx + (tx >= rx ? 4.4 : -4.4); tx = Math.max(-6.2, Math.min(6.2, tx)); if (Math.abs(tx - rx) < 4.4) tx = rx + (rx > 0 ? -4.4 : 4.4); }   // (b131 look round: never inside the cauldron's crew)
+    if (at) { tx = S.knockX + 0.6; tz = D / 2 + BT + 1.05; face = Math.PI; const rx = rig.position.x; if (Math.abs(tx - rx) < 5) tx = rx + (tx >= rx ? 5 : -5); tx = Math.max(-6.2, Math.min(6.2, tx)); if (Math.abs(tx - rx) < 5) tx = rx + (rx > 0 ? -5 : 5); }   // (b131 look round: never inside the cauldron's crew)
     // (b131 look round 2: never across the cauldron's crew — a knocker on the other side of the rig is already at his place)
     if (at && Math.sign(tx - rig.position.x) !== Math.sign(k.g.position.x - rig.position.x)) { k.g.position.x = tx; k.g.position.z = tz; }
     const dx = tx - k.g.position.x, dz = tz - k.g.position.z, dist = Math.hypot(dx, dz); let walking = 0;
@@ -520,10 +525,10 @@ function marksDraw(X, M) {
   const g = new T.Group(); g.name = 'h131-pour-marks'; X.props.root.add(g); W8.g = g;
   const white = M.isDone('finale');
   const patchM = new T.MeshStandardMaterial({ color: white ? 0xDCD3C2 : 0x9a8f80, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });   // (a fresher mix, a shade off the set one)
-  const stainM = new T.MeshStandardMaterial({ color: 0x8c8172, roughness: 0.95, transparent: true, opacity: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
+  const stainM = new T.MeshStandardMaterial({ color: STAIN_HEX, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -3 }), rimM = new T.MeshStandardMaterial({ color: STAIN_RIM, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
   for (const k of marks) {
     if (k.f === 'pour.hollow') { const m = new T.Mesh(patchGeo(T, patchR(k.r * 10), patchSeed(k.x, k.z)), patchM); m.rotation.x = -Math.PI / 2; m.position.set(k.x, S8.top + 0.012, k.z); g.add(m); }
-    else { const m = new T.Mesh(patchGeo(T, 1, patchSeed(k.x, k.z)), stainM); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
+    else { const m = new T.Mesh(patchGeo(T, 1, patchSeed(k.x, k.z)), stainM); const rm = new T.Mesh(patchGeo(T, 1.1, patchSeed(k.x, k.z)), rimM); rm.position.z = -0.01; m.add(rm); m.rotation.x = -Math.PI / 2; m.scale.set(Math.max(0.6, k.r || 1) * 1.4, Math.max(0.6, k.r || 1), 1); m.position.set(k.x, S8.floor + 0.015, k.z); g.add(m); }
   }
 }
 export const POUR3D = {

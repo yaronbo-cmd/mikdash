@@ -1339,7 +1339,7 @@
     // (build 132 round 2: once in each run, after the second load, the right thumb drags down where no sled is and the camera lifts
     //  out over the court — a still — and a tap brings it back; by mouse, the right button)
     const Wd = innerWidth, Hd = innerHeight, K9 = B.k;
-    if (a.n >= 2 && (K9.look9 | 0) < 3) {
+    if (a.n >= 2 && (K9.look9 | 0) < 3 && (a.lv !== 3 || (a.ramp || []).length <= 1 || K9.look9)) {   // (level 3: while the ramp is short, so the caravan does not wait for the look)
       K9.look9 = (K9.look9 | 0) + 1; const p0 = [Math.round(Wd * 0.6), Math.round(Hd * 0.3)], p1 = [Math.round(Wd * 0.6), Math.round(Hd * 0.9)];
       if (K9.look9 === 1) return a.mouse ? { mouseDrag: [p0[0], p0[1], p1[0], p1[1], 700, 'right'], wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' } : { path: [p0, p1], ms: 700, wait: 1300, note: 'fill: the right thumb lifts the camera out over the court' };
       if (K9.look9 === 2) { let L = null; try { L = H().X.lookNow(); } catch (e) { L = null; } return { wait: 500, shot: a.id + '-zoomed-out', note: 'fill: zoomed out, look u ' + (L ? (+L.u).toFixed(2) + ' play ' + L.play : '?') }; }

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- The app icon (build 132): the Temple's front seen straight on, flat art. The page's dark brown, a tall pale-stone facade,
+       a gold gate and a gold top line. No text. Rendered to mikdash-192.png, mikdash-512.png and mikdash-512-maskable.png
+       by tools/icon132.cjs; the art sits inside the safe 80% circle so the maskable copy only scales it a little. -->
+  <rect width="512" height="512" fill="#2A2016"/>
+  <g id="art">
+    <!-- the steps -->
+    <rect x="112" y="404" width="288" height="14" fill="#B9AA8C"/>
+    <rect x="98" y="418" width="316" height="14" fill="#A39374"/>
+    <!-- the facade: a pale stone body and its two darker side bands -->
+    <rect x="136" y="118" width="240" height="286" fill="#EDE3CC"/>
+    <rect x="136" y="118" width="34" height="286" fill="#D9CCAE"/>
+    <rect x="342" y="118" width="34" height="286" fill="#D9CCAE"/>
+    <!-- the stone courses -->
+    <rect x="136" y="186" width="240" height="5" fill="#CDBF9F"/>
+    <rect x="136" y="256" width="240" height="5" fill="#CDBF9F"/>
+    <rect x="136" y="326" width="240" height="5" fill="#CDBF9F"/>
+    <!-- the gold top line -->
+    <rect x="124" y="96" width="264" height="22" fill="#E2B240"/>
+    <!-- the gate: a dark opening framed in gold, the gold doors -->
+    <rect x="206" y="196" width="100" height="208" fill="#E2B240"/>
+    <rect x="218" y="208" width="76" height="196" fill="#3A2A14"/>
+    <rect x="222" y="212" width="32" height="192" fill="#C9962E"/>
+    <rect x="258" y="212" width="32" height="192" fill="#C9962E"/>
+  </g>
+</svg>

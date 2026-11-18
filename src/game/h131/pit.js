@@ -151,11 +151,14 @@ function pitAct(m, X) {
   const B = createBeat(X), gang = createGang(X);
   const digs = P.diggers.map((p, k) => { const w = W3(p[0], 0, p[1]), r = Math.hypot(p[0], p[1]) || 1, f = W3(p[0] / r * (PD.R0 + 3), 0, p[1] / r * (PD.R0 + 3)); return gang.add(w.x, w.z, { role: 'pick', item: 'spade', fx: f.x, fz: f.z, k: 2, off: k * 0.5, crew: k }); });
   /** the diggers by the stone in hand (beyond it from the camera, on its east), each throwing toward the rim nearest him */
-  const DIG = [[1.9, -1.7], [1.2, 2.3]];
+  // (look round 131 #3, the figure gate: from the opening's eye on the east they stood between it and the stone — hidden. They stand
+  //  beyond the stone from the eye of the shot in hand, one at each shoulder of it)
+  let digEye = A3(...P.cam.open[0]);   // (the work opens on the book's view)
   function diggersTo(s, snap) {
     if (!s) return; const [hx] = halfOf(s);
+    let ax = 1, az = 0; if (digEye) { const e = L2(digEye[0], digEye[2]); ax = s.at[0] - e[0]; az = s.at[1] - e[1]; const n = Math.hypot(ax, az) || 1; ax /= n; az /= n; }
     digs.forEach((w, k) => {
-      if (!w) return; let p = [s.at[0] + hx + DIG[k][0], s.at[1] + DIG[k][1]]; const r = Math.hypot(p[0], p[1]), R = PD.R0 - 1.0; if (r > R) p = [p[0] * R / r, p[1] * R / r];
+      if (!w) return; const sd = k ? 1 : -1; let p = [s.at[0] + ax * (hx + 1.7) - az * sd * 1.9, s.at[1] + az * (hx + 1.7) + ax * sd * 1.9]; const r = Math.hypot(p[0], p[1]), R = PD.R0 - 1.0; if (r > R) p = [p[0] * R / r, p[1] * R / r];
       const n = Math.hypot(p[0], p[1]) || 1, f = W3(p[0] / n * (PD.R0 + 3), 0, p[1] / n * (PD.R0 + 3)), q = W3(p[0], 0, p[1]);
       if (snap) { w.a.x = q.x; w.a.z = q.z; gang.setRole(w, 'pick', { fx: f.x, fz: f.z }); return; }
       gang.setRole(w, 'walk', { fx: null }); Promise.race([gang.walkTo(w, q.x, q.z, 2.6), X.wait(3)]).then(() => { if (!A.ended) gang.setRole(w, 'pick', { fx: f.x, fz: f.z }); });
@@ -282,6 +285,7 @@ function pitAct(m, X) {
       if (n0 > 0.5 && n1 > 0.5 && (v0x * v1x + v0z * v1z) / (n0 * n1) < Math.cos(1.13)) cut = true;
     } catch (e) { /* */ }
     X.shot(p, t, cut ? 0.01 : d);
+    { const was = digEye; digEye = p.slice(); if (A.phase === 'open' || A.phase === 'work') { const s0 = cur(); if (s0 && !s0.out && (!was || Math.hypot(was[0] - p[0], was[2] - p[2]) > 4)) diggersTo(s0, false); } }
     try {
       const ang = Math.round(Math.atan2(Math.hypot(p[0] - t[0], p[2] - t[2]), p[1] - t[1]) * 180 / Math.PI);
       const L = globalThis.__PIT_CAM || (globalThis.__PIT_CAM = []); L.push({ id: m.id, k: shotK, eye: p.map((v) => +v.toFixed(1)), aim: t.map((v) => +v.toFixed(1)), ang, cut }); if (L.length > 60) L.shift();

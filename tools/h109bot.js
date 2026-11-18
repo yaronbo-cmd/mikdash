@@ -1404,6 +1404,9 @@
     const late = a.end > 100 && s > a.end - 7;   // (no refill in the last 7 amot: the slow close would drip within 4 amot of it — the last one before)
     const need = has('pale') ? a.band === 'pink' : !late && (a.w < 0.48 || (flawNear && a.w < 0.6) || (a.end > 100 && s > a.end - 15 && a.w < 0.75));
     const refillOk = !inC && !dryF && a.band !== 'dark' && (!K.skBw || now() - K.skBw > 900);
+    // (the bowl where it was a moment ago too: a gold segment's kick shakes the camera, and a tap read in the kick lands beside it)
+    const bp = a.bowl, still = !!bp && !!K.skBp && Math.hypot(bp[0] - K.skBp[0], bp[1] - K.skBp[1]) < 6; K.skBp = bp;
+    if (a.bowl && (early || (need && refillOk)) && !still) return { fingers: [Lp, null], wait: 50 };
     if (a.bowl && (early || (need && refillOk))) { if (earlyP) K.skEx = 1; if (earlyD) K.skDx = 1; K.skBw = now(); K.skR = 1; return { fingers: [Lp, [Math.round(a.bowl[0]), Math.round(a.bowl[1])]], tap1: true, wait: 60, note: `sikra: the bowl at s ${s} w ${a.w}` + (early ? ' (early)' : '') + ' · ' + (a.ev || []).slice(-3).join(' ') }; }
     return { fingers: [Lp, null], wait: 70 };
   };

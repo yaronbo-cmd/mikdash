@@ -12,7 +12,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { SK, TEF, wallAt, cornersOf } from './sikra-model.js';
-import { addLane, SH9 } from './world.js';
+import { addLane } from './world.js';
 
 const S9 = BOOK.s09, K9 = S9.sikra, LY = S9.lineY, F = S9.floor, TOP = S9.top;
 
@@ -69,23 +69,14 @@ export function helperAt(s, lv) {
   const hs = s + VK.HELP_AHEAD, H = walkerAt(hs, lv), o = VK.HELP_OUT[H.k1] + (VK.HELP_OUT[H.k2] - VK.HELP_OUT[H.k1]) * H.t;
   return { ...H, s: hs, x: H.x + H.n[0] * o, z: H.z + H.n[1] * o };
 }
-/** the height a man stands at on (x, z): what is really there — the world's ground (the court's floor, the yesod's ledge where it
- *  sticks out: X.ground), or the top of a thing of this stage drawn there under the line (a form wall or a sill, while one lies there).
- *  One ray down, cached by a quarter amah, the cache dropped when the world's drawing changes (SH9.key) */
-const FY = { m: new Map(), key: null, rc: null };
+/** the height a man stands at on (x, z): what is really there — the world's ground (the court's floor; the yesod's ledge where it
+ *  sticks out: X.ground), never under the floor. The site is clean in this work (the form's walls and sills are on the pile), so no
+ *  thing of the stage is stood on: a ray onto the stage's things found stray tops a quarter amah apart and the men jumped an amah */
+const FY = { m: new Map() };
 export function footY(X, x, z) {
-  if (FY.key !== SH9.key) { FY.m.clear(); FY.key = SH9.key; }
   const key = Math.round(x * 4) + ',' + Math.round(z * 4); let y = FY.m.get(key); if (y != null) return y;
   y = F;
   try { const g = X.ground ? X.ground(x, z) : NaN; if (Number.isFinite(g) && g > y && g < LY - 1) y = g; } catch (e) { /* (the floor) */ }
-  try {
-    const T = X.THREE; if (!FY.rc) FY.rc = { r: new T.Raycaster(), o: new T.Vector3(), d: new T.Vector3(0, -1, 0) };
-    const objs = []; if (SH9.walls) for (const k of Object.keys(SH9.walls)) { const g = SH9.walls[k].grp; if (g && g.visible) objs.push(g); } if (SH9.drawn) objs.push(SH9.drawn);
-    const seen = (o) => { for (let q = o; q; q = q.parent) if (q.visible === false) return false; return true; };
-    FY.rc.o.set(x, LY - 1, z); FY.rc.r.set(FY.rc.o, FY.rc.d); FY.rc.r.far = LY - F;
-    const h = FY.rc.r.intersectObjects(objs, true).find((q) => seen(q.object));
-    if (h && h.point.y > y) y = h.point.y;
-  } catch (e) { /* (the floor) */ }
   FY.m.set(key, y); return y;
 }
 /** the follow shot at s: [eye], [aim] */

@@ -106,8 +106,10 @@ export function figTest(T) {
     return all;
   };
 }
-/** (the probes' eyes) when the figures gate names a man, what the act had in hand then: globalThis.__H131_FIGDBG (at most 6) */
+/** (the probes' eyes) when the figures gate names a man, what the act had in hand then: globalThis.__H131_FIGDBG (at most 6) —
+ *  only when a probe has set it to an array first (in play it does nothing) */
 export function figDbg(id, more) {
+  if (!Array.isArray(globalThis.__H131_FIGDBG)) return;
   try { const G = globalThis.__FIG; const r = G && G.report ? G.report() : null; if (!r || !r.length) return; const L = (globalThis.__H131_FIGDBG = globalThis.__H131_FIGDBG || []); if (L.length >= 6) return;
     const k = JSON.stringify(r); if (L.some((q) => q.k === k)) return; L.push({ id, k, ...more() }); } catch (e) { /* */ }
 }

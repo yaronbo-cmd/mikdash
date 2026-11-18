@@ -1328,6 +1328,17 @@
     }
     return { wait: 400 };
   };
+  // ── h132 fill ── (build 132, stage 09's work 2: a careful player — the act's own hint (the best line of the layer, fill-model.js
+  // advise) read from its state: the sled it names dragged from its place on the ramp to the zone's middle on the screen, and let go.
+  // __BOT9_FILL_BAD: the first load of the run dropped on a corner instead (the free trial: never counted against)) ── /h132 fill ──
+  play.h9fill = (a) => {
+    if (!a || a.done) return { wait: 400 };
+    if (a.busy || a.drag) return { wait: 250 };
+    const h = a.hint; if (!h) return { wait: 300, note: 'fill: no hint (ramp ' + JSON.stringify(a.ramp) + ')' };
+    const s = (a.sleds || [])[h.j]; if (!s || !s.at || !s.take) return { wait: 300 };
+    const zn = window.__BOT9_FILL_BAD && !B.k.bad9 ? ((B.k.bad9 = 1), 'NE') : h.zone, z = a.zones[zn];
+    return { drag: [s.at[0], s.at[1], z[0], z[1], 650], wait: 500, note: `fill: ${h.kind}${h.j ? ' (2nd)' : ''} → ${zn} · layer ${a.layer}.${a.inLayer} · pts ${a.pts} · g ${JSON.stringify(a.g)}` };
+  };
   B.next = () => {
     if (B.endQ && B.endQ.length) return { wait: 20, note: endLine(B.endQ.shift()) };
     const S = H().state();

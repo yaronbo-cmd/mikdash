@@ -211,3 +211,17 @@ test('every level can be played to five level layers with no damage (a search of
   const Z = F.fresh(2); Z.pts = -50; assert.equal(F.result(Z).pts, 0);
   const W = F.fresh(2); F.take(W, 0, 'NE'); const R2 = F.load(F.save(W)); assert.deepEqual(R2, W); assert.equal(F.load({}), null);
 });
+
+test('the hint: the best first step of the layer\'s line; played by it alone, every level ends five level layers and no damage', () => {
+  for (const lv of [1, 2, 3]) {
+    const S = F.fresh(lv); let n = 0;
+    while (!S.done) {
+      if (lv === 3) while (S.ramp.length < 3 && S.next < S.queue.length) S.ramp.push(S.queue[S.next++]);
+      const a = F.advise(S); assert.ok(a && F.canTake(S, a.i) && F.ZONES.includes(a.zone)); assert.equal(a.kind, S.ramp[a.i].kind);
+      const h0 = JSON.stringify(S.h); F.advise(S); assert.equal(JSON.stringify(S.h), h0, 'the search leaves the work as it was');
+      F.take(S, a.i, a.zone); n++;
+    }
+    assert.equal(n, 20); const R = F.result(S); assert.equal(R.flags.flat, 5, 'level ' + lv); assert.equal(R.flags.dmg, 0); assert.equal(R.perfect, true);
+  }
+  const D = F.fresh(2); D.done = 1; assert.equal(F.advise(D), null);
+});

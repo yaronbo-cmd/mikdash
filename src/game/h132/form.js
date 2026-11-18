@@ -2,8 +2,10 @@
  * The four walls lie round the yesod. First the four stakes: at NW, NE and SW a short shoulder rod lies on the yesod's top — the left
  * thumb slides it in until it stops, a tap drives the stake beside it; at SE (no yesod) a tap on the pour's line drives it. The stake man
  * strikes each with his wooden mallet. Then the walls: the left thumb touches a wall and drags up; the wall follows the thumb's speed
- * late (0.6 s), heavy, and goes on after the thumb stops; at rest it is judged (form-model.js). The crew of four — one at each wall,
- * a wooden pole in his hands — push as the thumb drags and hold the locked walls. A locked wall: a flash at its corners, a heavy wooden
+ * late (0.6 s), heavy, and goes on after the thumb stops; at rest it is judged (form-model.js). The crew of four lift each wall
+ * together — all four at the wall in hand, wooden poles against it, pushing as it rises — then walk round the form to the next one;
+ * the shot comes close while a wall is lifted (the crew big and whole, the wall's angle read from its end) and goes wide between
+ * walls and for the close. A locked wall: a flash at its corners, a heavy wooden
  * sound, "מושלם!" for a 40. The fourth closes: a ring of dust, the camera rises. Level 3: the wind's signs (the flag, the dust cloud),
  * then the gust; a raised wall not locked sways, and is steadied by a drag against its sway.
  * No text on screen but the words of a result; no side button; no gauge. The right thumb is the camera. No iron: wood on wood.
@@ -29,6 +31,7 @@ export const FA = Object.freeze({
   PICK: 54, PICKM: 34, TAP: 12, TAPT: 0.35, HALF: 0.5,
   FOV: 50, CORNER_R: [11, 22], CORNER_UP: 0.62, CORNER_TURN: 0.75, WIDE: S9.cam.w1,
   MALLET: 1.5, FALL: 150, STAKE_OUT: 0.55, ROD_L: 0.5,
+  CREW_U: [0.2, 0.4, 0.6, 0.8], PACE: 7, RING: 3, CLOSE_R: { lo: 14, hi: 46 }, CLOSE_UP: 0.42, CLOSE_END: 0.8, CLOSE_OUT: 0.6, BACK: 0.9,
 });
 const CORNER_ORDER = ['NE', 'NW', 'SW', 'SE'];
 /** a wall lying and upright (deg); the hint hand's longest gesture (px); the buzz of a lock (ms) */
@@ -69,23 +72,49 @@ export const FORM_ACT = {
     // (outside the corner, north or south of it — never west of the west face, where the Ulam's steps are — on the court's floor)
     function manAt(k) { const [x, z] = S9.corner[k], d = DIAG[k]; return [x + d[0] * (k.includes('W') ? 0.7 : 1.5), z + d[1] * 2.6]; }
     function castMan(k) {
-      gang.clear(); man = null; for (const q of WALLS) crew[q] = null;
+      gang.clear(); man = null; for (const i of [0, 1, 2, 3]) crew[i] = null; A.crewK = null;
       const p = manAt(k), s = stakeAt(k);
       man = now1(gang.add(p[0], p[1], { role: 'hold', item: 'mallet', fx: s[0], fz: s[1], crew: 1 }));
     }
     /** a crewman's place by his wall: outside its head as it lies (the west one inside, on the yesod's top), at its face upright */
-    function crewAt(k, deg) {
-      const h = wallHinge(k), n = outward(k), s = h.inside ? -1 : 1, a = (Math.max(0, Math.min(95, deg)) * Math.PI) / 180, u = k === 'N' || k === 'E' ? 0.42 : 0.58;
+    function crewAt(k, deg, i = 1) {
+      const h = wallHinge(k), n = outward(k), s = h.inside ? -1 : 1, a = (Math.max(0, Math.min(95, deg)) * Math.PI) / 180, u = FA.CREW_U[i];
       const d = H * Math.cos(a) + 1.25, x0 = h.p[0] + h.along[0] * h.L * u, z0 = h.p[1] + h.along[1] * h.L * u;
       return [x0 + s * n[0] * d, z0 + s * n[1] * d, x0, z0, h.inside ? Y0 : F];
     }
-    function castCrew() {
-      gang.clear(); man = null;
-      for (const k of WALLS) {
-        const p = crewAt(k, A.va[k] || 0), w = now1(gang.add(p[0], p[1], { role: 'brace', item: 'staff', fx: p[2], fz: p[3], crew: WALLS.indexOf(k) }));
-        if (w && w.a) { w.a.fixedY = p[4]; w.a.y = p[4]; }
-        crew[k] = w;
+    const crewI = [0, 1, 2, 3];   // (the crew's four: crew[i])
+    /** the ground under a walker: the yesod's top within the form and its rim, the court's floor beyond */
+    const inForm = (x, z) => Math.max(S9.block[0] - x, x - S9.block[2], S9.block[1] - z, z - S9.block[3]) <= 1;
+    /** the way round the form from a to b (outside both: by the corners outside, the short way round; else straight over the lying wall) */
+    function route(a, b) {
+      if (inForm(a[0], a[1]) || inForm(b[0], b[1])) return [b];
+      const ring = ['NE', 'SE', 'SW', 'NW'].map((c) => { const [x, z] = S9.corner[c], d = DIAG[c]; return [x + d[0] * FA.RING, z + d[1] * FA.RING]; });
+      const ang = (q) => Math.atan2(q[1] - MID[1], q[0] - MID[0]), ia = ang(a), ib = ang(b); let d = ib - ia; d = Math.atan2(Math.sin(d), Math.cos(d));
+      const pts = ring.map((q) => ({ q, t: Math.atan2(Math.sin(ang(q) - ia), Math.cos(ang(q) - ia)) })).filter((r) => (d > 0 ? r.t > 0 && r.t < d : r.t < 0 && r.t > d)).sort((x, y) => Math.abs(x.t) - Math.abs(y.t));
+      return [...pts.map((r) => r.q), b];
+    }
+    function castCrew(k) {
+      gang.clear(); man = null; A.crewK = k;
+      for (const i of crewI) {
+        const p = crewAt(k, A.va[k] || 0, i), w = now1(gang.add(p[0], p[1], { role: 'brace', item: 'staff', fx: p[2], fz: p[3], crew: i }));
+        if (w && w.a) { w.a.fixedY = p[4]; w.a.y = p[4]; w.path = null; }
+        crew[i] = w;
       }
+    }
+    /** the crew to wall k: walking round (jump: at once, under a cut) */
+    function crewTo(k, jump) {
+      if (!crew[0]) { castCrew(k); return; }
+      A.crewK = k;
+      for (const i of crewI) {
+        const w = crew[i]; if (!w || !w.a) continue; const p = crewAt(k, A.va[k] || 0, i);
+        if (jump) { w.a.x = p[0]; w.a.z = p[1]; w.a.fixedY = p[4]; w.path = null; } else w.path = route([w.a.x, w.a.z], [p[0], p[1]]);
+      }
+    }
+    /** the wall the crew goes to next: the nearest still down to where they stand (no hint of the order) */
+    function nearestOpen(from) {
+      let best = null, bd = 1e9;
+      for (const k of WALLS) { if (S.W[k].st === 'lock') continue; const p = crewAt(k, A.va[k] || 0, 1), d = Math.hypot(p[0] - from[0], p[1] - from[1]); if (d < bd) { bd = d; best = k; } }
+      return best;
     }
     // ── the shots: a corner close (the stake man whole, the rod and the stake large) or the whole form (the walls, the four men)
     function cornerShot(k) {
@@ -98,11 +127,22 @@ export const FORM_ACT = {
       }
       ev('shot:nofit:' + k); const R = FA.CORNER_R[1]; return [[x + dx * R, Y0 + R * FA.CORNER_UP, z + dz * R], aim];
     }
+    /** the close shot of wall k while it is lifted: from outside its end, a little to its crew's side — the four whole, lying and upright */
+    function closeShot(k) {
+      const h = wallHinge(k), n = outward(k), s = h.inside ? -1 : 1, asp = cam0.aspect || 1.6, far = k === 'N' || k === 'E' ? 1 : -1;
+      const c = [h.p[0] + h.along[0] * h.L * 0.5, h.p[1] + h.along[1] * h.L * 0.5], aim = [c[0] + s * n[0] * H * 0.5, Y0 + H * 0.45, c[1] + s * n[1] * H * 0.5];
+      let dx = h.along[0] * far * FA.CLOSE_END + s * n[0] * FA.CLOSE_OUT, dz = h.along[1] * far * FA.CLOSE_END + s * n[1] * FA.CLOSE_OUT; const L = Math.hypot(dx, dz); dx /= L; dz /= L;
+      for (let R = FA.CLOSE_R.lo; R <= FA.CLOSE_R.hi; R += 1) {
+        const eye = [aim[0] + dx * R, aim[1] + R * FA.CLOSE_UP, aim[2] + dz * R];
+        if (crewI.every((i) => [LIE, UP].every((dg) => { const p = crewAt(k, dg, i); return fig([eye, aim], FA.FOV, asp, p[0], p[4], p[1], null, 0.9) === 'whole'; }))) return [eye, aim];
+      }
+      ev('shot:nofit:' + k); const R = FA.CLOSE_R.hi; return [[aim[0] + dx * R, aim[1] + R * FA.CLOSE_UP, aim[2] + dz * R], aim];
+    }
     function wideShot() {
       const asp = cam0.aspect || 1.6, [e0, aim] = FA.WIDE, dx = e0[0] - aim[0], dy = e0[1] - aim[1], dz = e0[2] - aim[2];
       for (let f = 1; f <= 1.6; f += 0.05) {
         const eye = [aim[0] + dx * f, aim[1] + dy * f, aim[2] + dz * f];
-        const ok = WALLS.every((k) => [LIE, UP].every((dg) => { const p = crewAt(k, dg); return fig([eye, aim], FA.FOV, asp, p[0], p[4], p[1], null, 0.9) === 'whole'; }));
+        const ok = WALLS.every((k) => [LIE, UP].every((dg) => [0, 3].every((i) => { const p = crewAt(k, dg, i); return fig([eye, aim], FA.FOV, asp, p[0], p[4], p[1], null, 0.9) === 'whole'; })));
         if (ok) return [eye, aim];
       }
       ev('shot:nofit:wide'); return [[aim[0] + dx * 1.6, aim[1] + dy * 1.6, aim[2] + dz * 1.6], aim];
@@ -112,7 +152,18 @@ export const FORM_ACT = {
     function plan(ease = 0.9) {
       if (A.fl != null || A.done) return;
       if (!stakesIn(S)) { const k = nextCorner(); if (k !== A.cur || A.shotK !== 'c:' + k) { A.cur = k; castMan(k); shotTo('c:' + k, cornerShot(k), ease); hint(true); } return; }
-      if (A.phase !== 'walls') { A.phase = 'walls'; A.cur = null; castCrew(); shotTo('wide', wideShot(), ease); hint(true); }
+      if (A.phase !== 'walls') { A.phase = 'walls'; A.cur = null; const W0 = wideShot(); castCrew(nearestOpen([W0[0][0], W0[0][2]]) || 'E'); shotTo('wide', W0, ease); hint(true); return; }
+      // (between walls: back to the whole form once the wall in hand is locked, down again, or let go a while — the crew walks on)
+      if (A.shotK.startsWith('w:') && S.hold == null) {
+        const k = A.shotK.slice(2), st = S.W[k].st, still = Math.abs(S.W[k].v) < 0.05;
+        if (st === 'lock' || (st === 'lie' && still) || A.t - (A.letT || 0) > 6) { if (A.t - (A.letT || 0) > FA.BACK) { shotTo('wide', wideShot(), ease); const nx = nearestOpen(crew[0] && crew[0].a ? [crew[0].a.x, crew[0].a.z] : MID); if (nx && nx !== A.crewK) crewTo(nx, false); } }
+      }
+    }
+    /** a wall taken in hand: the close shot of it, the crew there (a cut when they were at another wall) */
+    function closeOn(k) {
+      if (A.shotK === 'w:' + k) return;
+      const cut = A.crewK !== k || (crew[0] && crew[0].path && crew[0].path.length);
+      crewTo(k, cut); shotTo('w:' + k, closeShot(k), cut ? 0.01 : 0.5);
     }
     // ── the hint hand (rule 25: one, in the free trial: the first rod, the first wall)
     function hint(force) {
@@ -156,10 +207,11 @@ export const FORM_ACT = {
     const KPX = () => 90 / (FA.HALF * (innerHeight || 600));
     const FG = fingers(X, {
       down(f) {
-        if (A.fl != null) return; const k = pick(f); if (!k) { try { if (X.lookHome) X.lookHome(); } catch (e) { /* */ } return; }
+        if (A.fl != null) return; const k = pick(f);
+        if (!k) { if (A.shotK.startsWith('w:') && !A.done) { shotTo('wide', wideShot(), 0.6); A.letT = -99; } try { if (X.lookHome) X.lookHome(); } catch (e) { /* */ } return; }
         A.fl = f.id; f.w = { ...k, ly: f.y, t0: A.t };
         if (k.k === 'rod') { const p = onPlane(X, f.x, f.y, Y0 + 0.2); f.w.off = p ? S.rods[k.c] - rodU(k.c, p) : 0.3; }
-        if (k.k === 'wall') { if (grab(S, k.w)) { ev('grab:' + k.w); X.hand(null); A.hintK = 'x'; } else A.fl = null; }
+        if (k.k === 'wall') { if (grab(S, k.w)) { ev('grab:' + k.w); X.hand(null); A.hintK = 'x'; closeOn(k.w); } else A.fl = null; }
       },
       move(f) {
         const w = f.w; if (!w || A.fl !== f.id) return;
@@ -171,7 +223,7 @@ export const FORM_ACT = {
       },
       up(f) {
         const w = f.w; if (!w || A.fl !== f.id) return; A.fl = null; V.scrape(0);
-        if (w.k === 'wall') { release(S); ev('let:' + w.w); keep(); return; }
+        if (w.k === 'wall') { release(S); A.letT = A.t; ev('let:' + w.w); keep(); return; }
         if (w.k === 'rod') { keep(); return; }
         if (w.k === 'stake' && f.moved <= FA.TAP && A.t - w.t0 <= FA.TAPT * 2) drive(w.c);
       },
@@ -215,7 +267,8 @@ export const FORM_ACT = {
       A.done = 1; A.phase = 'done'; release(S); keep();
       for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; X.dust(MID[0] + Math.cos(a) * 17, Y0 + 0.4, MID[1] + Math.sin(a) * 17, 8, 3); }
       V.dust(); X.shake(0.25, 0.4);
-      for (const k of WALLS) if (crew[k]) gang.setRole(crew[k], 'hold', { fx: MID[0], fz: MID[1], stride: 0 });
+      for (const i of crewI) if (crew[i]) { crew[i].path = null; gang.setRole(crew[i], 'hold', { item: 'staff', fx: MID[0], fz: MID[1], stride: 0 }); }
+      shotTo('wide', wideShot(), 0.8);
       const res = result(S);
       await X.wait(1.2);
       if (res.perfect) { try { X.perfect(WORDS.form, { x: MID[0], y: Y0 + H, z: MID[1] }); } catch (e) { /* */ } await X.wait(1.0); }
@@ -237,13 +290,22 @@ export const FORM_ACT = {
       if (A.sink) { A.sink.t += A.t - (A.sink.l || A.t); A.sink.l = A.t; const u = Math.min(1, A.sink.t / (FA.MALLET * 0.8)); stakes[A.sink.c].position.y = Y0 + 0.95 * (1 - Math.floor(u * 3) / 3); if (u >= 1) { stakes[A.sink.c].position.y = Y0; A.sink = null; } }
       se.visible = !S.stakes.SE;
       if (flag) { const s = signOf(S); flap(flag, s, A.t); cloudAt(cloud, s); }
-      // the crew: each by his wall, pushing while it moves under the thumb, holding it when still
-      if (A.phase !== 'stakes') for (const k of WALLS) {
-        const w = crew[k]; if (!w || !w.a) continue; const dg = A.va[k] || 0, p = crewAt(k, Math.min(90, dg));
-        const dd = Math.hypot(w.a.x - p[0], w.a.z - p[1]); if (dd > 0.02) { const kk = 1 - Math.exp(-dt * 6); w.a.x += (p[0] - w.a.x) * kk; w.a.z += (p[1] - w.a.z) * kk; }
-        const moving = S.W[k].st === 'up' && (Math.abs(S.W[k].v) > 2 || S.hold === k || S.W[k].swayA > 0), want = moving ? 'push' : 'brace';
-        if (w.role !== want || (!!w.stride) !== (dd > 0.15)) gang.setRole(w, want, { item: 'staff', fx: p[2], fz: p[3], stride: dd > 0.15 ? 0.6 : 0, rate: 1.4 });
-        w.fx = p[2]; w.fz = p[3];
+      // the crew: all four at the wall in hand, pushing while it moves, holding it when still; walking round to the next between walls
+      if (A.phase !== 'stakes' && !A.done && A.crewK) for (const i of crewI) {
+        const w = crew[i]; if (!w || !w.a) continue; const k = A.crewK, dg = A.va[k] || 0, p = crewAt(k, Math.min(90, dg), i);
+        let walking = false;
+        if (w.path && w.path.length) {
+          const q = w.path[0], dx = q[0] - w.a.x, dz = q[1] - w.a.z, d = Math.hypot(dx, dz), st = Math.min(d, FA.PACE * dt);
+          if (d > 0.05) { w.a.x += (dx / d) * st; w.a.z += (dz / d) * st; walking = true; w.wf = [q[0], q[1]]; } else w.path.shift();
+          w.a.fixedY = inForm(w.a.x, w.a.z) ? Y0 : F;
+        } else {
+          const dd = Math.hypot(w.a.x - p[0], w.a.z - p[1]); if (dd > 0.02) { const kk = 1 - Math.exp(-dt * 6); w.a.x += (p[0] - w.a.x) * kk; w.a.z += (p[1] - w.a.z) * kk; }
+          w.a.fixedY = p[4];
+        }
+        const moving = !walking && S.W[k].st === 'up' && (Math.abs(S.W[k].v) > 2 || S.hold === k || S.W[k].swayA > 0);
+        const want = walking ? 'brace' : moving ? 'push' : S.W[k].st === 'lock' ? 'hold' : 'brace';
+        if (w.role !== want || (!!w.stride) !== walking) gang.setRole(w, want, { item: 'staff', fx: walking ? w.wf[0] : p[2], fz: walking ? w.wf[1] : p[3], stride: walking ? 0.8 : 0, rate: 1.4 });
+        if (walking) { w.fx = w.wf[0]; w.fz = w.wf[1]; } else { w.fx = p[2]; w.fz = p[3]; }
       }
     }
     let rumT = 0;
@@ -294,7 +356,7 @@ export const FORM_ACT = {
         o.stakes = { ...S.stakes }; o.placed = STAKES.filter((k) => S.stakes[k]).length + WALLS.filter((k) => S.W[k].st === 'lock').length;
         o.walls = WALLS.map((k) => { const w = S.W[k], dg = A.va[k] || 0; return { k, st: w.st, a: r2(w.a), v: r2(w.v), how: w.how, sway: r2(w.swayA), swayV: r2(Math.cos(w.swayP)), at: s2(...mid3(k, dg, 0.5)) }; });
         o.wind = S.lv === 3 ? { sign: r2(signOf(S)), on: windOn(S), tw: S.tw == null ? null : r2(S.tw), gust: FK.WIND.GUST, dur: FK.WIND.DUR } : null;
-        o.figs = { man: man && man.a ? [r2(man.a.x), r2(man.a.z)] : null, crew: WALLS.map((k) => (crew[k] && crew[k].a ? [r2(crew[k].a.x), r2(crew[k].a.z)] : null)) };
+        o.figs = { man: man && man.a ? [r2(man.a.x), r2(man.a.z)] : null, crew: crewI.map((i) => (crew[i] && crew[i].a ? [r2(crew[i].a.x), r2(crew[i].a.z)] : null)), at: A.crewK || null, walking: crewI.some((i) => crew[i] && crew[i].path && crew[i].path.length) };
         o.mallet = !!(man && man.role === 'hammer'); o.shot = A.shotK;
         const cp = cam0.position; o.cam = [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1));
         return o;

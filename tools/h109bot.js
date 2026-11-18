@@ -1285,6 +1285,8 @@
     for (const [k, v] of Object.entries(a)) if (FLAG.test(k) && ((typeof v === 'number' && v > 0 && !/^(stuck|slip|tiltOk|sway|chipV)$/.test(k)) || v === true)) fl[k] = v;
     if (e.loss) fl.loss = e.loss; if (e.losses.length) fl.losses = e.losses; if (lost) fl.LOST = 1;
     let pts = Number.isFinite(+a.pts) && a.pts !== null && a.pts !== undefined ? a.pts : null;
+    // ── h132 lane A ── (stage 09: the pts of the work's stored result, not the act's last state the bot saw — it can be a step behind) ── /h132 lane A ──
+    try { const r9 = H().site === 'sovev' && H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r9 && Number.isFinite(+r9.pts)) pts = +r9.pts; } catch (er) { /* */ }
     if (pts == null) { try { const r = H().M && H().M.st && H().M.st.res && H().M.st.res[id]; if (r && r.q != null) pts = 'q' + r.q; } catch (er) { /* */ } }
     return `end ${id} stars ${stars} pts ${pts == null ? '-' : pts} flags ${JSON.stringify(fl)}`;
   };
@@ -1353,6 +1355,7 @@
     const lv3wait = a.wind && a.wind.sign > 0 && !a.wind.on && a.wind.tw < a.wind.gust && !a.walls.some((w) => w.st === 'up' && w.a > 1);
     const w = ['E', 'W', 'N', 'S'].map((k) => W[k]).find((q) => q.st !== 'lock' && (q.st === 'up' || !lv3wait));
     if (!w) return { wait: 300, note: lv3wait ? 'form: waiting out the gust' : undefined };
+    if (a.shot && a.shot.startsWith('w:') && a.shot !== 'w:' + w.k) return { wait: 300 };   // (the close shot of another wall: the act goes wide by itself)
     const need = 90 - w.a, room = Math.max(40, w.at[1] - 40), px = Math.max(1, Math.min(room, Math.round(need / a.kpx)));
     const fr = [], n = 18; for (let i = 0; i <= n; i++) fr.push([[w.at[0], Math.round(w.at[1] - (px * i) / n)]]);
     for (let i = 0; i < 3; i++) fr.push(fr[fr.length - 1]);
@@ -1363,11 +1366,12 @@
   // ── /h132 lane A ──
   // ── h132 lane A ── (build 132, stage 09 work 3 "שליפת התבנית": the right order — the braces, the belts of east and west, of north and
   // south, (level 3: the wedge up, the stuck south wall slid one amah west), the walls north and south, then east and west — each part
-  // tested by a tap first, then pulled outward. A part on a face turned from the eye: the look turned to it (the right thumb's, by the
-  // director's test hook) and back. __BOT_SHOTS132: a still of the pullers at a brace, a belt and a wall) ── /h132 lane A ──
+  // tested by a tap first, then pulled outward. A part on a face turned from the eye: the camera swung to a corner that shows it, by a
+  // drag high on the screen where no part is (the act's own swing, a quarter turn per half screen). __BOT_SHOTS132: a still of the pullers
+  // at a brace, a belt and a wall) ── /h132 lane A ──
   const ORDER9S = { 1: ['wall:N', 'wall:S', 'wall:E', 'wall:W'], 2: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wall:N', 'wall:S', 'wall:E', 'wall:W'],
     3: ['brace:N', 'brace:S', 'brace:E', 'brace:W', 'belt:E', 'belt:W', 'belt:N', 'belt:S', 'wedge', 'slide', 'wall:N', 'wall:S', 'wall:E', 'wall:W'] };
-  const YAW9S = { N: -1.6, E: 0, S: 0, W: 1.54, wedge: 0, slide: 0 };
+  const VIEW9S = { S: [0, 1], E: [0, 3], W: [1, 2], N: [2, 3], wedge: [0], slide: [0, 1] };   // (strip.js's corners: 0 SE, 1 SW, 2 NW, 3 NE)
   play.h9strip = (a) => {
     const K = B.k, shots = !!window.__BOT_SHOTS132;
     if (!a) return { wait: 300 };
@@ -1377,12 +1381,13 @@
     const left = new Set(a.parts.map((q) => q.p));
     const next = ORDER9S[a.lv].find((p) => (p === 'slide' ? !a.slid && left.has('wall:S') : left.has(p)));
     if (!next) return { wait: 300 };
-    const side = next === 'slide' || next === 'wedge' ? next : next.split(':')[1], yaw = YAW9S[side];
+    const side = next === 'slide' || next === 'wedge' ? next : next.split(':')[1], want = VIEW9S[side];
     const part = a.parts.find((q) => q.p === (next === 'slide' ? 'wall:S' : next));
     if (!part) return { wait: 300 };
-    if (!part.on || (a.look && Math.abs(a.look.yaw - yaw) > 0.3)) {
-      if (K.yawT && performance.now() - K.yawT < 2500) return { wait: 300 };
-      K.yawT = performance.now(); return { eval: `__T.game.h109._look(${yaw ? 0.12 : 0},${yaw})`, wait: 1600, note: 'strip: the look turned to ' + side + ' (yaw ' + yaw + ')' };
+    if (!want.includes(a.view) || !part.on) {
+      const W = innerWidth, Hh = innerHeight, up = want.map((v) => (v - a.view + 4) % 4).sort((x, y) => Math.min(x, 4 - x) - Math.min(y, 4 - y))[0] || 1, dir = up <= 2 ? 1 : -1, y = Math.round(Hh * 0.16);
+      const p0 = [Math.round(W * (dir > 0 ? 0.75 : 0.25)), y], p1 = [Math.round(W * (dir > 0 ? 0.26 : 0.74)), y];
+      return { path: [p0, p1], ms: 700, wait: 1200, note: 'strip: the camera swung ' + (dir > 0 ? 'left' : 'right') + ' toward ' + side + ' (view ' + a.view + ')' };
     }
     if (next === 'slide') return { path: [part.at, part.west], ms: 600, wait: 1300, note: 'strip: the stuck south wall slid west' };
     if (!K['tap' + next]) { K['tap' + next] = 1; return { tap: part.at, wait: 800, note: 'strip: tap ' + next }; }

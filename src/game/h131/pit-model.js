@@ -14,7 +14,7 @@
  *  · a knocked stone goes to the nail check on the cradle (check: its index): the thumb stops at the chip (nailChip) — it stays in the
  *    rejects' heap ('pit.chip', −20) and the crew bares another in its place (repl).
  *   PIT · SIDES · sideDir · lipOf · pitFresh(lv, book) · scrape(W, a, b) · seenSide · capOf · seat(W, i, side) · wrongSide ·
- *   pitStep(W, dt, press) · nailChip · chipOut(W, i) · leftOf · doneOf · pitPts · pitClean
+ *   pitStep(W, dt, press) · nailChip · nailFrom · freeOf · chipOut(W, i) · leftOf · doneOf · pitPts · pitClean
  */
 import { grade } from './model.js';
 
@@ -31,6 +31,8 @@ export const PIT = Object.freeze({
   GRIND: 0.1, CHIP: 0.34,     // level 2, the wrong side: the grinding starts, the knock
   SLIDE: 0.14, KNOCK: 0.38,   // level 3, a holder lifted: its neighbour starts to slide, knocks
   NAIL: 0.62,      // where on the rim (0…1 round from the thumb's start) the chip of a knocked stone is
+  NAIL_SPAN: 0.32, // (review 8) the thumb passes only the suspect stretch before the chip, not the whole rim: about a second
+  JIG: 0.015, JIG_T: 0.45,   // (review 4) level 3: a stone nobody rests on shifts 1.5% of its width, for 0.45 s, when it or a neighbour is scraped
 });
 /** the four sides of a stone in its own frame: N, E, S, W (the sheet's north is −z) */
 export const SIDES = Object.freeze(['N', 'E', 'S', 'W']);
@@ -149,6 +151,15 @@ export function release(W, lever) {
   if (lever && lever.warn) { lever.warn = 0; W.mis++; return { e: 'spared', i: lever.i }; }
   return null;
 }
+/** level 3: the stones that rest on nothing that rests on them — no live stone leans on them (the free ones: they give a little when
+ *  the earth round the cluster is scraped; a holder, pinned by the one on it, does not) */
+export function freeOf(W) {
+  if (!W || W.lv !== 3) return [];
+  const L = W.stones.filter(live);
+  return W.stones.map((s, i) => i).filter((i) => live(W.stones[i]) && !L.some((q) => q.lean === i));
+}
+/** where the thumb starts on the rim: the suspect stretch just before the chip */
+export const nailFrom = () => Math.max(0, PIT.NAIL - PIT.NAIL_SPAN);
 /** where on the rim (0…1 round from the thumb's start) the nail stops: a knocked stone's chip */
 export const nailChip = () => PIT.NAIL;
 /** the nail found the chip: the stone stays in the rejects' heap, the crew bares another in its place (no lean, a little earth) */

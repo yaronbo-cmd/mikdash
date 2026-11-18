@@ -111,3 +111,18 @@ test('frame act: the stand is the book\'s, facing the altar; the words short, no
   // (the peg is knocked loose with the wooden mallet: the swing's role, and the mallet in his hand)
   for (const m of src.matchAll(/'hammer'[^)]*\)/g)) assert.match(m[0], /item: 'mallet'/, 'a swing is the wooden mallet\'s');
 });
+
+// ── b131 review item 5: level 2 — the joint holds while the beam is stretched less than FR.STRETCH (12–15 %) of its length; past it
+// the beam drags what is joined
+test('frame level 2: a joined corner gives only past a stretch of 12–15 % of the board', () => {
+  assert.ok(FM.FR.STRETCH >= 0.12 && FM.FR.STRETCH <= 0.15);
+  const order = [[0, 'NW'], [1, 'NE'], [2, 'NE'], [3, 'SE']];
+  const T = FM.fresh(2); for (const [i, k] of order.slice(0, 3)) play(T, i, at(k));
+  FM.grab(T, 3, T.P[3].x, T.P[3].z); assert.ok(Math.abs(FM.popAt(T) - FM.FR.STRETCH * 32) < 1e-9); FM.release(T);
+  const se = at('SE'), L = 32;
+  const under = play(T, 3, [se[0], se[1] + L * 0.10], 4);
+  assert.equal(under.out.filter((q) => q.pop).length, 0, '10 %: the joint holds'); assert.equal(T.wrong, 0);
+  assert.ok(FM.offBy(T, 'NE') < 0.3, 'NE still on its stake');
+  const over = play(T, 3, [se[0], se[1] + L * 0.2], 4);
+  assert.ok(over.out.some((q) => q.pop && q.joined), '20 %: the joined corner gives'); assert.equal(T.wrong, 1);
+});

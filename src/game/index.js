@@ -2421,7 +2421,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     persist();
     W.setStage(c.id, 'done', 1);
     if (!d.quiet) { W.celebrate(c.id); if (!(JU && TW && TW.on)) sfx.play('fanfare'); haptic([30, 40, 60]); } else sfx.play('solemn');   // (the supervisor, wave 18: under two thumbs juice.big's 'big' says it — the two together passed the +10 dB ceiling)
-    W.crewsCheer(c.id); syncCrews();                    // ── crews ── they cheer, then go to their next site
+    if (!(H109_ON && frontier(G, S))) W.crewsCheer(c.id); syncCrews();                    // ── crews ── they cheer, then go to their next site   ── b131 ── (not at the director's last stage: they fade, see syncCrews) ── /b131 ──
     W.hotspot(null);
     if (hero.at === c.id) hero.at = null;
     stopRing();
@@ -2569,9 +2569,10 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     // (each crew by its number in G.crews, so it keeps its colour wherever it works)
     const ids = (at) => { const a = []; G.crews.forEach((c, i) => { if (c.at === at) a.push(i); }); return a; };
     for (const s of STAGES) {
-      const b = S.statusOf(G, s.id) === 'building', a = b ? ids(s.id) : [], j = b && a.length ? S.jobOf(G, s.id) : null;
+      const b = S.statusOf(G, s.id) === 'building' && !(H109_ON && !PACKED.includes(s.id)), a = b ? ids(s.id) : []   /* ── b131 ── (a stage no pack has built yet has no crew in the director's world: after the yesod the old crews went up the altar body's scaffold, on the white yesod under the end card) ── /b131 ── */, j = b && a.length ? S.jobOf(G, s.id) : null;
       const waiting = !!j && !j.crew && j.kind !== 'boulders', v = a.join(',') + (waiting ? 'w' : ''), k = 's:' + s.id;
-      if (force || crewSent[k] !== v) { crewSent[k] = v; W.heroSit(s.id, a.length, a, waiting ? { waiting: true } : null); }   // ── build6 ── crews at a site that waits for you sit and wait (PEOPLE)
+      const gone = !a.length && H109_ON && frontier(G, S) && S.isDone(G, s.id);   /* ── b131 ── (the last stage the director built is done: its old crews fade where they stand — they cheered on the white yesod under the end card, then walked across it) ── /b131 ── */
+      if (force || crewSent[k] !== v) { crewSent[k] = v; W.heroSit(s.id, a.length, a, waiting ? { waiting: true } : gone ? { vanish: true } : null); }   // ── build6 ── crews at a site that waits for you sit and wait (PEOPLE)
     }
     const q = S.isDone(G, 'har') && !S.allDone(G) ? ids('quarry') : [], qv = q.join(',');
     if (force || crewSent.q !== qv) { crewSent.q = qv; W.setQuarry(q.length, q); }

@@ -272,6 +272,7 @@ export function createCrews(ctx = {}) {
     if (!SITES[id] && id !== 'har') return false;
     const s = siteState(id);
     s.waiting = !!(opts && opts.waiting);        // ── people6 ── (PEOPLE) the site waits (a key stone, materials, Shabbat): the crew rests
+    s.vanish = !!(opts && opts.vanish);          // ── b131 ── (a crew sent off a finished stage the director built: it fades where it stands, no cheer, no walk across what was built) ── /b131 ──
     const want = clamp(Math.floor(+n || 0), 0, 4), list = idList(want, ids), key = list.join(',');
     if (want === s.n && key === s.ids && !s.dirty) return true;
     s.n = want; s.ids = key; s.idList = list; s.dirty = true;
@@ -299,7 +300,7 @@ export function createCrews(ctx = {}) {
         crew.push(w);
       }
       return crew;
-    }, (crew) => { for (const w of crew) dismiss(w, L.enter[0] + (rnd() - 0.5) * 8, L.enter[1] + (rnd() - 0.5) * 8); });
+    }, (crew) => { for (const w of crew) { if (s.vanish) { w.cheer = 0; dismiss(w); w.a.path = null; } else dismiss(w, L.enter[0] + (rnd() - 0.5) * 8, L.enter[1] + (rnd() - 0.5) * 8); } });   // ── b131 ── (vanish) ── /b131 ──
     // deal the roles and slots
     const cnt = { stand: 0, carrier: 0, rope: 0, up: 0 };
     const S = phase >= 1 && !(id === 'har' && L.bay) ? scaffOf(id) : null;   // ── site9 ── (the Mount's walls: in the bay, not on its far faces)

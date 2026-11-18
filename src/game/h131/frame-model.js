@@ -30,7 +30,15 @@ export const SIDE_K = Object.freeze(['N', 'E', 'S', 'W']);
 const L = S8.frame.L, LD = L * Math.SQRT2;
 /** the act's numbers: a corner seats within SEAT of its stake (on a release; a magnet), TOL the diagonal's play (a seated corner
  *  is exact), the heavy follow's rate (1/s), POP how far past its reach a finger pulls before a seated end gives way, the passes */
-export const FR = Object.freeze({ SEAT: 1.1, TOL: 0.05, FOLLOW: 3.2, POP: 2.4, POPT: 0.35, PASSES: 14 });
+// (b131 review item 5: level 2 — a beam drags what is already joined only once stretched past STRETCH of its length; before that
+//  the joint holds and the beam resists the hand)
+export const FR = Object.freeze({ SEAT: 1.1, TOL: 0.05, FOLLOW: 3.2, POP: 2.4, POPT: 0.35, PASSES: 14, STRETCH: 0.135 });
+/** how far the hand may pull past the point before what holds the frame gives (amot) */
+export function popAt(S) {
+  if (S.lv !== 2 || !S.drag) return FR.POP;
+  const d = S.drag, e = S.E.find((q) => q.beam && !q.joint && (q.a === d.i || q.b === d.i));
+  return e && e.L > 0 ? FR.STRETCH * e.L : FR.POP;
+}
 
 const D2R = Math.PI / 180;
 const hyp = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
@@ -114,7 +122,7 @@ export function step(S, dt) {
     const p = S.P[d.i], lag = Math.hypot(d.tx - p.x, d.tz - p.z), v = Math.hypot(p.x - px, p.z - pz) / Math.max(1e-3, dt);
     // (pulled past its reach: the point stands while the finger is far — the hand drags what holds the frame. Level 1 and 2: a seated
     //  corner gives way; level 3: the pegs do not, the frame is stuck)
-    S.strain = lag > FR.POP && v < 0.8 ? lag : 0;
+    S.strain = lag > popAt(S) && v < 0.8 ? lag : 0;
     if (S.strain) {
       S.popT += dt;
       if (S.popT > FR.POPT) {
@@ -293,6 +301,14 @@ export function wipe(F, x, z, r = FIN.BRUSH) {
   let n = 0; const i0 = Math.max(0, Math.floor(x - r - FIN.X0)), i1 = Math.min(FIN.NX - 1, Math.floor(x + r - FIN.X0)), j0 = Math.max(0, Math.floor(z - r - FIN.Z0)), j1 = Math.min(FIN.NZ - 1, Math.floor(z + r - FIN.Z0));
   for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const c = j * FIN.NX + i; if (!CELLS[c] || F.mask[c]) continue; if (Math.hypot(FIN.X0 + i + 0.5 - x, FIN.Z0 + j + 0.5 - z) <= r) { F.mask[c] = 1; n++; } }
   return n;
+}
+/** ── b131 (PC run 6: the whitening stalled) the cloth's one step: it follows the hand late, by a share of the way that depends on
+ *  the frame's time only through exp (the same path at 20, 60 or 144 frames a second), never refused anywhere on the yesod, and it
+ *  whitens where it goes. CL { x, z, tx, tz }, rate per second → cells whitened */
+export function clothStep(F, CL, dt, rate) {
+  const k = 1 - Math.exp(-Math.max(0, dt) * rate);
+  CL.x += (CL.tx - CL.x) * k; CL.z += (CL.tz - CL.z) * k;
+  return wipe(F, CL.x, CL.z);
 }
 export function cover(F) { let n = 0; for (let c = 0; c < CELLS.length; c++) if (CELLS[c] && F.mask[c]) n++; return n / NCELL; }
 /** the crew wipes the rest */

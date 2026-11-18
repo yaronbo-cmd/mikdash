@@ -60,7 +60,7 @@ export const POUR_ACT = {
     const A8 = {
       phase: 'intro', t: 0, phaseT: 0, ev: [], seals: [], knockX: 0, taps: 0, swingT: 0, result: '', regions: null,
       stonesIn: 0, reached: L.targets.map(() => false), dmg: 0, losses: [], patches: 0, spilled: 0, spillQ: 0, spillMarked: 0, stainX: null,
-      reedClog: (L.reeds || []).map(() => 0), reedFix: null, setting: false, acc: 0, saveT: 0, frames: [], grab: null, cauldronSeen: 1,
+      warns: [], leads: [], reedClog: (L.reeds || []).map(() => 0), reedFix: null, setting: false, acc: 0, saveT: 0, frames: [], grab: null, cauldronSeen: 1,
       prep: lv === 1 && !st.pour.prep ? { step: 'joint', reeds: [0, 0] } : null, tw: [], ended: false, hint: 0, cleanFirst: true,
     };
     const ev = (e) => { A8.ev.push(e); if (A8.ev.length > 16) A8.ev.shift(); };
@@ -408,12 +408,21 @@ export const POUR_ACT = {
         V.ring(tg.x, y, tg.z, 0.9, 0); V.sfx.reach(j); X.quick(wpt(tg.x, 0.6, tg.z + 1.2), tg.word || QUICK.reached);   /* (look round 3: low and a little nearer — a far corner's word stood on the goal pill) */ ev('reach:' + tg.name);
       });
     }
+    /** ── b131 ── (review item 1) a pocket about to close: told on the mix at its gate, once a place in WARN_S (the sim's lead, 1.2–3 s) ── /b131 ── */
+    // (for the probes: the warnings and the seals as they happen, with the seal's lead after its warning; nothing reads it in the game)
+    function fxLog(k, e, lead) { try { const Lg = globalThis.__H131_POURFX || (globalThis.__H131_POURFX = []); Lg.push({ k, lv, t: +sim.time.toFixed(2), x: +e.x.toFixed(2), z: +e.z.toFixed(2), lead }); if (Lg.length > 60) Lg.shift(); } catch (er) { /* */ } }
+    function onWarn(e) {
+      if (A8.warns.some((w) => A8.t - w.t < 3 && Math.hypot(w.x - e.x, w.z - e.z) < 1.5)) return;
+      A8.warns.push({ x: e.x, z: e.z, t: A8.t, st: sim.time }); if (A8.warns.length > 8) A8.warns.shift();
+      V.warnFx(e); ev('warn'); fxLog('warn', e);
+    }
     function onSeal(e) {
       for (const s of A8.seals) if (s.on && Math.hypot(s.x - e.x, s.z - e.z) < 1.3) { s.t = Math.min(s.t, 3); return; }
       let slot = A8.seals.find((s) => !s.on); if (!slot) { if (A8.seals.length < 6) { slot = {}; A8.seals.push(slot); } else slot = A8.seals[0]; }
       Object.assign(slot, { on: true, x: e.x, z: e.z, t: 0 });
+      { const w = A8.warns.filter((q) => q.st <= e.time && Math.hypot(q.x - e.x, q.z - e.z) < 2.5).pop(); A8.leads.push(w ? +(e.time - w.st).toFixed(2) : -1); }   // (the warning's lead, for the probes)
       V.sealFx(e); X.shake(0.16, 0.2); try { if (X.haptic) X.haptic(25); } catch (er) { /* */ }
-      ev('seal'); keepWork();
+      ev('seal'); fxLog('seal', e, A8.leads[A8.leads.length - 1]); keepWork();
     }
     /** what spills or clogs this step (level 3) */
     function edges(dt) {
@@ -471,7 +480,7 @@ export const POUR_ACT = {
       }
     }
     function finishTeardown() {
-      V.finishTeardown(); sim.clearMix(); A8.patches++; A8.seals.forEach((s) => { s.on = false; }); sim.sealEvents.length = 0;
+      V.finishTeardown(); sim.clearMix(); A8.patches++; A8.seals.forEach((s) => { s.on = false; }); sim.sealEvents.length = 0; sim.warnEvents.length = 0; A8.warns.length = 0;
       A8.reached = L.targets.map(() => false);
       V.sfx.thud(); X.shake(0.1, 0.15); X.line(POUR_LINES.apart, 2400); ev('repour');
       pourStart();
@@ -514,6 +523,7 @@ export const POUR_ACT = {
       A8.simMs = performance.now() - t0;
       if (sim.newCauldron) { sim.newCauldron = false; V.sfx.thud(); X.shake(0.1, 0.14); A8.cauldronSeen++; X.line(POUR_LINES.cauldron, 1600); keepWork(); }
       if (sim.cauldron.swapping > 0 && !A8.wasSwapping) V.sfx.down(); A8.wasSwapping = sim.cauldron.swapping > 0;
+      while (sim.warnEvents.length) { const e = sim.warnEvents.shift(); if (pourPhase) onWarn(e); }   // ── b131 ── (review item 1) ── /b131 ──
       while (sim.sealEvents.length) { const e = sim.sealEvents.shift(); if (pourPhase) onSeal(e); }
       if (A8.frames.length % 30 === 0) for (const s of A8.seals) if (s.on && sim.hollowCells === 0) s.on = false;
       if (pourPhase) {
@@ -596,7 +606,7 @@ export const POUR_ACT = {
         const o = { id: m.id, lv, phase: A8.phase, busy: A8.busy ? 1 : 0, queued: A8.queued ? 1 : 0, way: { ms: A8.wayMs, f: A8.wayF, n: A8.wayN, at: A8.wayInfo, tap: A8.tapMs, tapMax: A8.tapMax, hit: A8.planHit | 0, miss: A8.planMiss | 0, wait: A8.planWait | 0, planMs: A8.planMs, seg: A8.tapSeg }, port: PORT.pairs.map((p) => p.men.map((w) => [+w.a.x.toFixed(2), +w.a.z.toFixed(2)])), heap: V.stones.filter((s) => s.carry && s.m.visible).map((s) => [+s.m.position.x.toFixed(2), +s.m.position.z.toFixed(2), +(s.r || s.rx || 0).toFixed(2)]), mouse: MOUSE, t: +A8.t.toFixed(2), ev: A8.ev.slice(-10), stonesIn: A8.stonesIn, nStones: V.stones.length,
           filled: +sim.filledFraction.toFixed(3), hollowCells: sim.hollowCells, missing: sim.missingCells, cauldron: { amount: +(ca.amount / ca.cap).toFixed(3), heat: +ca.heat.toFixed(3), used: ca.used, swapping: ca.swapping > 0 },
           spout: { t: +sp.t.toFixed(3), tilt: +sp.tilt.toFixed(3), q: +sp.q.toFixed(3) }, grab: A8.grab ? { sx: Math.round(A8.grab.sx), sy: Math.round(A8.grab.sy), t0: +A8.grab.t0.toFixed(3), t: +A8.grab.t.toFixed(3), tilt: +A8.grab.tilt.toFixed(3) } : null,
-          reached: A8.reached.slice(), seals: A8.seals.filter((s) => s.on).length, result: A8.result, taps: A8.taps, dmg: A8.dmg, losses: A8.losses.slice(), patches: A8.patches, spilled: +A8.spilled.toFixed(3), reedClog: A8.reedClog.slice(), reedFix: !!A8.reedFix,
+          reached: A8.reached.slice(), seals: A8.seals.filter((s) => s.on).length, warns: A8.warns.length, leads: A8.leads.slice(), result: A8.result, taps: A8.taps, dmg: A8.dmg, losses: A8.losses.slice(), patches: A8.patches, spilled: +A8.spilled.toFixed(3), reedClog: A8.reedClog.slice(), reedFix: !!A8.reedFix,
           noPour: +sim.noPourTime.toFixed(1), still: +sim.stillTime.toFixed(1), setting: sim.setting, exhausted: sim.exhausted,
           frameMs: fr2.length ? { n: fr2.length, p50: +fr2[Math.floor(fr2.length / 2)].toFixed(2), p95: +fr2[Math.floor(fr2.length * 0.95)].toFixed(2), max: +fr2[fr2.length - 1].toFixed(2) } : null, simMs: +(A8.simMs || 0).toFixed(2) };
         // what a watching player sees (the bot's eyes, as the sample's testView): the column with the most open floor still low, the passages

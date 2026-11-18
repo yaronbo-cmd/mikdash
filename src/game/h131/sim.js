@@ -46,6 +46,10 @@ export const T = {
   COOL_DRY: 0.1065, DRY_DEPTH: 0.0885,   // extra cooling of a thin film on the bare floor (a trickle)
 };
 
+// ── b131 ── (review item 1, outside the sample's T, which stays the sample's) a passage whose mix sets within WARN_S seconds and cuts a
+// pocket off is told before it closes ── /b131 ──
+export const WARN_S = 2.4;
+
 // ---- stones -------------------------------------------------------------------------------
 // x, z, rx, rz, height, rotation, tinted ("dug yourself")
 export const STONES = [
@@ -144,6 +148,8 @@ export function createSim(seed = 8, stones = STONES, block = null) {
   const queue = new Int32Array(N);
   const dist = new Int32Array(N);
   const freezeAge = new Float32Array(N); // seconds since this cell last froze (for visuals)
+  const ttf = new Float32Array(N).fill(1e9);   // ── b131 ── seconds until this cell's liquid sets at its present cooling (1e9: no liquid) ── /b131 ──
+  const soon = new Uint8Array(N), soonPrev = new Uint8Array(N), reachSoon = new Uint8Array(N);
 
   for (let k = 0; k < NZ; k++) for (let i = 0; i < NX; i++) {
     const x = cellX(i), z = cellZ(k);
@@ -160,7 +166,7 @@ export function createSim(seed = 8, stones = STONES, block = null) {
   const kSrc = Math.floor((1.9 - Z0) / DX);
 
   const sim = {
-    shapes, ground, vol, heat, solid, patch, floor, reach, hollow, plug, freezeAge,
+    shapes, ground, vol, heat, solid, patch, floor, reach, hollow, plug, freezeAge, ttf, soon,
     time: 0,
     cauldron: { amount: 0, cap: 0, heat: 1, swapping: 0, used: 1, poured: 0, total: 0 },
     spout: { t: 0.5, tilt: 0, lx: 0, lz: 3.6, q: 0 },
@@ -169,6 +175,7 @@ export function createSim(seed = 8, stones = STONES, block = null) {
     noPourTime: 0,
     hollowCells: 0, missingCells: 0, filledFraction: 0, floorCount: 0, freeVolume: 0,
     sealEvents: [],     // {x,z,cells} pushed when a pocket closes
+    warnEvents: [],     // ── b131 ── {x,z,cells,time} pushed WARN_S or less before a pocket closes (the passage's mix about to set) ── /b131 ──
     freezeCount: 0,
     lastFreezeX: 0, lastFreezeZ: 0,
     repour: false,
@@ -308,6 +315,43 @@ export function createSim(seed = 8, stones = STONES, block = null) {
       const p = findPlug(mask);
       if (p) sim.sealEvents.push({ x: p.x, z: p.z, ex: p.ex, ez: p.ez, cells: newly, time: sim.time });
     }
+    warnAhead();
+  }
+  // ── b131 ── (review item 1: a warning before an air pocket closes) the reach again with every passage cell whose mix sets within
+  // WARN_S as if already set: low cells reached now and cut off then are a pocket about to close; told once, at its gate ── /b131 ──
+  const closesSoon = (c) => vol[c] > 0.0015 && ttf[c] < WARN_S && ground[c] + solid[c] + vol[c] >= T.FULL_LEVEL;
+  function warnAhead() {
+    soonPrev.set(soon);
+    if (sim.setting || sim.hold) { soon.fill(0); return; }
+    reachSoon.fill(0);
+    let qh = 0, qt = 0;
+    const open2 = (c) => isOpen(c) && !closesSoon(c);
+    for (let k = kSrc; k < NZ; k++) for (let i = 0; i < NX; i++) { const c = k * NX + i; if (open2(c)) { reachSoon[c] = 1; queue[qt++] = c; } }
+    while (qh < qt) {
+      const c = queue[qh++], i = c % NX;
+      if (i > 0) { const n = c - 1; if (!reachSoon[n] && open2(n)) { reachSoon[n] = 1; queue[qt++] = n; } }
+      if (i < NX - 1) { const n = c + 1; if (!reachSoon[n] && open2(n)) { reachSoon[n] = 1; queue[qt++] = n; } }
+      if (c >= NX) { const n = c - NX; if (!reachSoon[n] && open2(n)) { reachSoon[n] = 1; queue[qt++] = n; } }
+      if (c < N - NX) { const n = c + NX; if (!reachSoon[n] && open2(n)) { reachSoon[n] = 1; queue[qt++] = n; } }
+    }
+    for (let c = 0; c < N; c++) soon[c] = floor[c] && reach[c] && !reachSoon[c] && !closesSoon(c) && ground[c] + solid[c] + vol[c] < T.MISS_LEVEL ? 1 : 0;
+    const cells = keepBig(soon);
+    let fresh = 0; for (let c = 0; c < N; c++) if (soon[c] && !soonPrev[c]) fresh++;
+    if (cells < T.MIN_HOLLOW || fresh < T.MIN_HOLLOW) return;
+    // the gate: the setting cells that touch the pocket to be
+    let gx = 0, gz = 0, gn = 0;
+    for (let c = 0; c < N; c++) {
+      if (!closesSoon(c) || !reach[c]) continue;
+      const i = c % NX;
+      if ((i > 0 && soon[c - 1]) || (i < NX - 1 && soon[c + 1]) || (c >= NX && soon[c - NX]) || (c < N - NX && soon[c + NX])) { gx += cellX(i); gz += cellZ((c - i) / NX); gn++; }
+    }
+    if (!gn) {   // (the gate a cell or two off the low cells: the setting cell nearest the pocket's middle)
+      let sx = 0, sz = 0, sn = 0; for (let c = 0; c < N; c++) if (soon[c]) { const i = c % NX; sx += cellX(i); sz += cellZ((c - i) / NX); sn++; }
+      sx /= sn; sz /= sn; let best = 1e9;
+      for (let c = 0; c < N; c++) { if (!closesSoon(c) || !reach[c]) continue; const i = c % NX, x = cellX(i), z = cellZ((c - i) / NX), d = (x - sx) * (x - sx) + (z - sz) * (z - sz); if (d < best) { best = d; gx = x; gz = z; gn = 1; } }
+      if (!gn) return;
+    }
+    sim.warnEvents.push({ x: gx / gn, z: gz / gn, cells, time: sim.time });
   }
 
   function pour(dt, tTarget, tiltTarget) {
@@ -505,9 +549,9 @@ export function createSim(seed = 8, stones = STONES, block = null) {
       if (ve < T.DRY_DEPTH && solid[c] < 0.02) r += T.COOL_DRY * (1 - ve / T.DRY_DEPTH);
       if (sim.setting) r *= T.SET_BOOST;
       const h = heat[c] - r * dt;
-      heat[c] = h;
+      heat[c] = h; ttf[c] = (h - T.FREEZE) / r;
       if (h < T.FREEZE) {
-        solid[c] += v; vol[c] = 0; freezeAge[c] = 0;
+        solid[c] += v; vol[c] = 0; freezeAge[c] = 0; ttf[c] = 1e9;
         if (sim.repour) patch[c] = 1;
         fc++;
         sim.lastFreezeX = cellX(i); sim.lastFreezeZ = cellZ((c - i) / NX);
@@ -542,7 +586,7 @@ export function createSim(seed = 8, stones = STONES, block = null) {
 
   // crew lift out the hardened mix of this segment
   sim.clearMix = function () {
-    vol.fill(0); solid.fill(0); heat.fill(0); hollow.fill(0); plug.fill(0);
+    vol.fill(0); solid.fill(0); heat.fill(0); hollow.fill(0); plug.fill(0); ttf.fill(1e9); soon.fill(0); soonPrev.fill(0);
     sim.repour = true;
     sim.exhausted = false;
     const ca = sim.cauldron;

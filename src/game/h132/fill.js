@@ -10,7 +10,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { WORDS, LOSS } from './model.js';
-import { FILL, ZONES, zoneAt, gauges, band, fresh, load, save, canTake, take, tick, result, advise, onRamp } from './fill-model.js';
+import { FILL, ZONES, zoneAt, gauges, band, fresh, load, save, canTake, take, tick, result, advise, onRamp, screenOf } from './fill-model.js';
 import { fmats, surfH, standY, fillTop, zoneMarks, gaugeSet, layerLines, rampMesh, rampY, rampAng, sledMesh, stoneHeap, oxPair, fillHold, FD } from './fill3d.js';
 import { createVoices } from '../h129/sound129.js';
 import { fingers, MOUSE } from '../h113/acts.js';
@@ -79,11 +79,15 @@ export const FILL_ACT = {
     const now = (w) => { if (w && w.a) w.a.vis = 1; return w; };
     const groundOf = (w) => { w.a.ground = (x, z) => standY(X, x, z, shown); };
     const UN0 = [[R.head[0] - R.w / 2 - 1.2, S9.sleds[0][1] - 1], [R.head[0] + R.w / 2 + 1.2, S9.sleds[0][1] - 1]];   // (beside the ramp's first sled: never on the line from the camera to the block)
-    const LV0 = [[MID[0] - 9, MID[1] + 5.5], [MID[0] + 2, MID[1] + 9], [MID[0] + 9, MID[1] + 7.5]];   // (on the block's far half: never between the camera and the work)
+    const LV0 = [[MID[0] - 10, MID[1] - 7], [MID[0] - 11.5, MID[1] + 1.5], [MID[0] - 9, MID[1] + 9]];   // (on the block's far (west) half from the east camera: never between it and the work)
     const drv = [0, 1].map((j) => now(gang.add(OX.to[0] + 2.5, OX.to[1] + (j ? 2.9 : 3.6), { role: 'hold', item: 'staff', fx: OX.to[0] - 4, fz: OX.to[1], crew: j })));
     const un = UN0.map((p, j) => now(gang.add(p[0], p[1], { role: 'hold', fx: MID[0], fz: MID[1], crew: 2 + j })));
     const lvl = LV0.map((p, j) => now(gang.add(p[0], p[1], { role: 'hold', item: 'rake', fx: MID[0], fz: MID[1], crew: j })));
     for (const w of [...un, ...lvl]) if (w && w.a) groundOf(w);
+    // (the figure gate: an unloader or a leveller standing inside the block is on the work's own top — his body over the focus is the
+    //  work being done, never "between" the camera and it; outside the block the gate's test is as for any man)
+    const onBlock = (a) => () => a.x > B[0] && a.x < B[2] && a.z > B[1] && a.z < B[3];
+    for (const w of [...un, ...lvl]) if (w && w.a) w.a.gateOnWork = onBlock(w.a);
     const men = { drv, un, lvl };
     // each man's place now (the act moves them itself: a short lerp with their legs walking, never a path across the work)
     const goal = new Map();
@@ -192,7 +196,7 @@ export const FILL_ACT = {
       const s = k.s, c = ZC[zone]; A.drop = { s, zone, t: 0, j: k.j, landed: 0 };
       s.st = 'drop'; s.want = { x: c[0], y: Y0 + surfH(shown, c[0], c[1]) + 0.05, z: c[1] };
       // the two unloaders at the sled's sides
-      un.forEach((w, j) => place(w, c[0] + (j ? 1.9 : -1.9), c[1] + 1.3, c[0], c[1], 'hold', { v: 16 }));   // (on the sled's far side from the camera)
+      un.forEach((w, j) => place(w, c[0] - 1.7, c[1] + (j ? 0.9 : -1.4), c[0], c[1], 'hold', { v: 16 }));   // (on the sled's far (west) side from the east camera)
       ev('drop:' + s.kind + '@' + zone);
     }
     function dropStep(dt) {
@@ -212,6 +216,9 @@ export const FILL_ACT = {
         A.drop = null; hintNext(true);
       }
     }
+    // (the words after a load wait their turn: each one POP after the one before, so no two stand on the block at once)
+    const POP = 0.75;
+    function later(fn) { const t = Math.max(A.t, A.popAt || 0) + POP; A.popAt = t; X.wait(t - A.t).then(() => { try { fn(); } catch (e) { /* */ } }); }
     const atOf = (zone) => ({ x: ZC[zone][0], y: Y0 + surfH(S.h, ZC[zone][0], ZC[zone][1]) + 1.5, z: ZC[zone][1] });
     function land(D) {
       const h0 = { ...shown }, e = take(S, D.j, D.zone); if (!e) { ev('refused'); return; }
@@ -222,11 +229,15 @@ export const FILL_ACT = {
       from = h0; to = { ...S.h }; flowT = 0; flowD = e.collapse ? FK.FLOW + FK.SLIDE : FK.FLOW;
       if (e.kind === 'tub') levellersTo(D.zone, FK.RAKE);
       // the score: the worst gauge's band (40 / 20 / 10), the collapse at most 10, the free trial never against
-      const grade = e.pts >= FILL.PTS.good ? 'gold' : e.pts >= FILL.PTS.warn ? 'good' : 'ok';
-      X.hit(at, grade, { kind: 'craft', text: e.free ? FILLL.free : '', craft: 'ממלאים' });
-      if (grade === 'gold') X.quick(at, WORDS.quick, s0(D.s));
+      // (one popup at a time, at one place: the load's points at the zone, its gold word above them, the free trial's word in the
+      //  goal's line; the screen's streak as the rules': screenOf — a 20 or a 10 ends the gold run, the free trial neither)
+      const sc = screenOf(e);
+      if (sc.grade) X.hit(at, sc.grade, { kind: 'craft', text: '', craft: 'ממלאים' });
+      else { try { if (X.bonus) X.bonus(sc.bonus, 'fill-free', FILLL.free); } catch (er) { /* */ } X.dust(at.x, at.y - 1, at.z, 6, 1.8); }
+      if (e.free) X.line(FILLL.free, 2600);
+      if (sc.grade === 'gold') { const q = X.scr(at.x, at.y, at.z); X.quick(q && q.on !== false ? { sx: q.x, sy: q.y - 96 } : at, WORDS.quick, s0(D.s)); }
       if (e.band !== 'good' && !e.free) V.creak(e.band === 'danger' ? 1 : 0.5); else V.creak(0);
-      if (e.collapse) { V.groan(); X.shake(0.12, 0.2); const p = Mo.flaw('fill.collapse', { zone: e.collapse }); X.loss(p, atOf(e.collapse), LOSS['fill.collapse'][0]); ev('collapse:' + e.collapse); }
+      if (e.collapse) { V.groan(); X.shake(0.12, 0.2); const p = Mo.flaw('fill.collapse', { zone: e.collapse }); later(() => X.loss(p, atOf(e.collapse), LOSS['fill.collapse'][0])); ev('collapse:' + e.collapse); }   // (its word after the load's points have gone)
       ev('land:' + e.kind + '@' + D.zone + ':' + e.pts + (e.pocket ? ':pocket' : '') + (e.mended ? ':mended' : ''));
       // the layer's close: level → the rakes, the flash up the walls, the rising sound, the bonus; else what stays (no points)
       if (e.layer) closed(e.layer);
@@ -238,15 +249,17 @@ export const FILL_ACT = {
     function closed(L) {
       if (L.flat) {
         levellersAll(FK.RAKE + 0.4); ll.flash(L.n); V.lock(L.n); X.shake(0.06, 0.12);
+        // (the layer's word and bonus after the last load's points have gone: never two words on the block at once)
         const at = { x: MID[0], y: Y0 + L.n + 1.2, z: MID[1] };
-        X.quick(at, FILLL.flat, null); try { if (X.bonus) X.bonus(FILL.PTS.layer, 'layer', FILLL.flat); } catch (e) { /* */ }
+        try { if (X.bonus) X.bonus(FILL.PTS.layer, 'layer', FILLL.flat); } catch (e) { /* */ }
+        later(() => X.quick(at, FILLL.flat, null));
         ev('layer:' + L.n + ':flat');
       } else ev('layer:' + L.n + ':off:' + L.off.map((o) => o.zone).join(','));
     }
     function flaw(f) {
       const p = Mo.flaw(f.f, { zone: f.zone, wall: f.wall, n: f.n }), lab = LOSS[f.f] ? LOSS[f.f][0] : '';
       const at = f.wall ? { x: S9.gauge[f.wall][0], y: Y1 + 0.5, z: S9.gauge[f.wall][1] } : atOf(f.zone || 'C');
-      if (p > 0) X.loss(p, at, lab); else if (X.word) X.word(at, lab);
+      later(() => { if (p > 0) X.loss(p, at, lab); else if (X.word) X.word(at, lab); });   // (after the load's own points)
       ev('flaw:' + f.f + ':' + (f.zone || f.wall || ''));
     }
     // ── the hint hand: the free trial's one hand at every level (rule 25), and level 1's every load (rule 34: level 1 shows the way)
@@ -265,7 +278,7 @@ export const FILL_ACT = {
       if (A.done) return; A.done = 1; X.hand(null); V.creak(0);
       const res = result(S); ev('done');
       Mo.keep('fill', null);
-      await X.wait(FK.END);
+      await X.wait(Math.max(FK.END, (A.popAt || 0) - A.t + 0.4));   // (the last words have had their turn)
       if (res.perfect) { try { X.perfect(WORDS.fill, { x: MID[0], y: Y1 + 1, z: MID[1] }); } catch (e) { /* */ } await X.wait(1.2); }
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1 + 0.5, z: MID[1] },
         film: { eye: S9.cam.w2[0].slice(), aim: S9.cam.w2[1].slice(), secs: 1.4, kohen: false, own: () => gang.list.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } try { ox.clear(); } catch (e) { /* */ } } } });
@@ -324,7 +337,7 @@ export const FILL_ACT = {
           h: Object.fromEntries(ZONES.map((z) => [z, +S.h[z].toFixed(3)])), drop: A.drop ? A.drop.zone : null, drag: A.fl != null, busy: A.drop ? 1 : 0, road: road.t >= 0 ? 1 : 0, waiting: S.waiting };
         o.sleds = S.ramp.map((q, j) => { const s = sleds.get(q.i); return s && s.st === 'ramp' ? { j, kind: q.kind, take: canTake(S, j), at: s2(s.pos.x, s.pos.y + 0.8, s.pos.z) } : { j, kind: q.kind, take: false, at: null }; });
         o.zones = Object.fromEntries(ZONES.map((z) => [z, s2(ZC[z][0], Y0 + surfH(shown, ZC[z][0], ZC[z][1]), ZC[z][1])]));
-        o.hint = a ? { j: a.i, zone: a.zone, kind: a.kind } : null;
+        o.hint = a ? { j: a.i, zone: a.zone, kind: a.kind } : null; o.fl = result(S).flags;
         o.g = Object.fromEntries(Object.entries(gauges(S.h)).map(([k, v]) => [k, +v.toFixed(2)]));
         const P = (w) => (w && w.a ? s2(w.a.x, w.a.y + 1.9, w.a.z) : null);
         o.figs = { drv: drv.map(P), un: un.map(P), lvl: lvl.map(P) };

@@ -17,7 +17,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, MID = S9.mid, ZC =
 /** the drawing's numbers: the surface's grid (cells a side), the battens' size, the gauge's housing and tongue (amot), a unit's tongue
  *  travel, the sled's size, the loads' sizes (המחשה) */
 export const FD = Object.freeze({
-  GRID: 24, BAT: [0.32, 0.14], GH: [2.6, 0.7, 0.9], TONGUE: [0.42, 0.34], PER_UNIT: 1.1, SLED: [2.4, 0.45, 3.4],
+  GRID: 24, BAT: [0.62, 0.4], GH: [2.6, 0.7, 0.9], TONGUE: [0.42, 0.34], PER_UNIT: 1.1, SLED: [2.4, 0.45, 3.4],
   LOAD: Object.freeze({ big: [1.25, 1.5], small: [0.8, 0.9], tub: [1.15, 0.75] }),
 });
 
@@ -85,9 +85,16 @@ export function zoneMarks(X, root) {
     [[mx - H0, mz - H0], [mx + H0, mz - H0]], [[mx + H0, mz - H0], [mx + H0, mz + H0]], [[mx + H0, mz + H0], [mx - H0, mz + H0]], [[mx - H0, mz + H0], [mx - H0, mz - H0]],
     [[mx, B[1]], [mx, mz - H0]], [[mx, mz + H0], [mx, B[3]]], [[B[0], mz], [mx - H0, mz]], [[mx + H0, mz], [B[2], mz]],
   ];
+  // (spec work 2: "חמישה אזורים מסומנים בקורות עץ" — real timbers laid on the fill's top, a palm and a half wide and as high, each run
+  //  three timbers with a hand's gap between them and a little out of line, so they read as beams lying there, not a line drawn on it;
+  //  they ride up with the top as it rises)
   for (const [a, b] of runs) for (let k = 0; k < 3; k++) {
-    const p = [a[0] + ((b[0] - a[0]) * (k + 0.5)) / 3, a[1] + ((b[1] - a[1]) * (k + 0.5)) / 3], L = Math.hypot(b[0] - a[0], b[1] - a[1]) / 3;
-    const m = new T.Mesh(X.props.geo.box, PM.y9woodD); m.scale.set(a[0] === b[0] ? FD.BAT[0] : L, FD.BAT[1], a[0] === b[0] ? L : FD.BAT[0]); m.castShadow = false; m.receiveShadow = true; root.add(m); segs.push({ m, p });
+    const p = [a[0] + ((b[0] - a[0]) * (k + 0.5)) / 3, a[1] + ((b[1] - a[1]) * (k + 0.5)) / 3], L = Math.hypot(b[0] - a[0], b[1] - a[1]) / 3 - 0.35;
+    const m = new T.Mesh(X.props.geo.box, PM.y9wood); m.scale.set(a[0] === b[0] ? FD.BAT[0] : L, FD.BAT[1], a[0] === b[0] ? L : FD.BAT[0]); m.rotation.y = (k - 1) * 0.025; m.castShadow = true; m.receiveShadow = true; root.add(m); segs.push({ m, p });
+    for (const e of [-1, 1]) {   // (the timber's two dark end grains)
+      const c = new T.Mesh(X.props.geo.box, PM.y9woodD), al = a[0] === b[0];
+      c.scale.set(al ? FD.BAT[0] * 1.02 : 0.06, FD.BAT[1] * 1.02, al ? 0.06 : FD.BAT[0] * 1.02); c.position.set(al ? 0 : (e * L) / 2, 0, al ? (e * L) / 2 : 0); c.scale.divide(m.scale); c.position.divide(m.scale); m.add(c);
+    }
   }
   // the green: the zone's own shape (the corners L-shaped round the middle's square), a little over the surface
   const greens = {};
@@ -102,8 +109,8 @@ export function zoneMarks(X, root) {
   for (const k of ZONES) { greens[k].visible = false; greens[k].renderOrder = 5; root.add(greens[k]); }
   let H = null;
   return {
-    set(h) { H = h; for (const s of segs) s.m.position.set(s.p[0], Y0 + 0.1 + Math.max(0, surfH(h, s.p[0], s.p[1])), s.p[1]); },
-    lit(zone) { for (const k of ZONES) { greens[k].visible = k === zone; if (k === zone && H) greens[k].position.y = Y0 + 0.25 + Math.max(...ZONES.map((z) => H[z])); } },
+    set(h) { H = h; for (const s of segs) s.m.position.set(s.p[0], Y0 + FD.BAT[1] / 2 - 0.06 + Math.max(0, surfH(h, s.p[0], s.p[1])), s.p[1]); },
+    lit(zone) { for (const k of ZONES) { greens[k].visible = k === zone; if (k === zone && H) greens[k].position.y = Y0 + 0.12 + Math.max(...ZONES.map((z) => H[z])); } },
   };
 }
 

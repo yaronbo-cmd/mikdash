@@ -31,7 +31,7 @@ export const FA = Object.freeze({
   PICK: 54, PICKM: 34, TAP: 12, TAPT: 0.35, HALF: 0.5,
   FOV: 50, CORNER_R: [11, 22], CORNER_UP: 0.62, CORNER_TURN: 0.75, WIDE: S9.cam.w1,
   MALLET: 1.5, FALL: 150, STAKE_OUT: 0.55, ROD_L: 0.5,
-  CREW_U: [0.2, 0.4, 0.6, 0.8], PACE: 7, RING: 3, CLOSE_R: { lo: 14, hi: 46 }, CLOSE_UP: 0.42, CLOSE_END: 0.8, CLOSE_OUT: 0.6, BACK: 0.9,
+  CREW_U: [0.2, 0.4, 0.6, 0.8], PACE: 7, RING: 2, CLOSE_R: { lo: 14, hi: 46 }, CLOSE_UP: 0.42, CLOSE_END: 0.8, CLOSE_OUT: 0.6, BACK: 0.9,
 });
 const CORNER_ORDER = ['NE', 'NW', 'SW', 'SE'];
 /** a wall lying and upright (deg); the hint hand's longest gesture (px); the buzz of a lock (ms) */
@@ -266,6 +266,7 @@ export const FORM_ACT = {
     // ── the close: a ring of dust round the form, the camera rises over it
     async function close() {
       A.done = 1; A.phase = 'done'; release(S); keep();
+      if (flag) flag.visible = false; if (cloud) cloud.visible = false;   // (the wind is past: its flag out of the closing shot)
       for (let i = 0; i < 8; i++) { const a = ((i + 0.5) / 8) * Math.PI * 2; X.dust(MID[0] + Math.cos(a) * 21, F + 0.3, MID[1] + Math.sin(a) * 21, 3, 2.5); }   // (a few soft puffs off the corners and faces, not a band along the walls)
       V.dust(); X.shake(0.25, 0.4);
       for (const i of crewI) if (crew[i]) { crew[i].path = null; gang.setRole(crew[i], 'hold', { item: 'staff', fx: MID[0], fz: MID[1], stride: 0 }); }
@@ -290,7 +291,7 @@ export const FORM_ACT = {
       for (const k of RODS) rodAt(rods[k], k, S.rods[k]);
       if (A.sink) { A.sink.t += A.t - (A.sink.l || A.t); A.sink.l = A.t; const u = Math.min(1, A.sink.t / (FA.MALLET * 0.8)); stakes[A.sink.c].position.y = Y0 + 0.95 * (1 - Math.floor(u * 3) / 3); if (u >= 1) { stakes[A.sink.c].position.y = Y0; A.sink = null; } }
       se.visible = !S.stakes.SE;
-      if (flag) { const s = signOf(S); flap(flag, s, A.t); cloudAt(cloud, s); }
+      if (flag && !A.done) { const s = signOf(S); flap(flag, s, A.t); cloudAt(cloud, s); }
       // the crew: all four at the wall in hand, pushing while it moves, holding it when still; walking round to the next between walls
       if (A.phase !== 'stakes' && !A.done && A.crewK) for (const i of crewI) {
         const w = crew[i]; if (!w || !w.a) continue; const k = A.crewK, dg = A.va[k] || 0, p = crewAt(k, Math.min(90, dg), i);

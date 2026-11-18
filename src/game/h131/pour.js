@@ -159,7 +159,7 @@ export const POUR_ACT = {
     //  board, in the frame; the second comes in from beyond the right edge when it is its turn)
     // (the figure rule, the run of 18.11: the second pair waiting beyond the right edge was cut and hidden at every step — one pair carries,
     //  taken again on its walk back, so a tap is never kept waiting on a second pair)
-    const HOME = [[[HEAP[0] - 0.9, HEAP[1] + 3.9], [HEAP[0] + 0.5, HEAP[1] + 3.7]]];
+    const HOME = [[[HEAP[0] + 0.2, HEAP[1] + 3.9], [HEAP[0] + 1.6, HEAP[1] + 3.7]]];   // (look round 3: a step clear of pour2's big grey stone)
     const toW = (lx, lz) => W2(lx, lz), HW = W2(HEAP[0], HEAP[1]);
     function heapLay() {
       let k = 0;

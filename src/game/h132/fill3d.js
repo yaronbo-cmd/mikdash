@@ -17,7 +17,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, MID = S9.mid, ZC =
 /** the drawing's numbers: the surface's grid (cells a side), the battens' size, the gauge's housing and tongue (amot), a unit's tongue
  *  travel, the sled's size, the loads' sizes (המחשה) */
 export const FD = Object.freeze({
-  GRID: 24, BAT: [0.62, 0.4], GH: [4.4, 1.2, 1.5], TONGUE: [0.72, 0.58], PER_UNIT: 1.1, STEP: 1.9, SLED: [2.4, 0.45, 3.4],
+  GRID: 24, BAT: [0.62, 0.4], GH: [4.4, 1.2, 1.5], TONGUE: [0.72, 0.58], PER_UNIT: 1.1, STEP: 1.9, SLED: [2.4, 0.45, 3.4], SLED_K: 1.3,
   LOAD: Object.freeze({ big: [1.25, 1.5], small: [0.8, 0.9], tub: [1.15, 0.75] }),
 });
 
@@ -196,6 +196,7 @@ export function sledMesh(X, kind, root) {
     const n = kind === 'big' ? 9 : 5;
     for (let i = 0; i < n; i++) { const a = i * 2.39, rr = i ? r * 0.55 * Math.sqrt(i / n) : 0, s = (kind === 'big' ? 0.42 : 0.3) * (0.8 + 0.4 * ((i * 37) % 7) / 7); const p = new T.Mesh(X.props.geo.y9fPeb, PM.y9fStone); p.scale.set(s, s * 0.8, s); p.position.set(Math.cos(a) * rr, h * 0.95 + s * 0.5 - rr * 0.25, Math.sin(a) * rr); p.rotation.set(i, i * 2, 0); p.castShadow = true; load.add(p); }
   }
+  g.scale.setScalar(FD.SLED_K);   // (review P8: a third larger — from the work's shot, 50 amot off, the sled and its load read as a sled)
   root.add(g);
   return { g, load, kind };
 }

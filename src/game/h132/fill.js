@@ -287,7 +287,7 @@ export const FILL_ACT = {
       const a = adv(); if (!a || a.wait) { X.hand(null); A.hintN = -1; return; }   // (wait for the next sled: no hand till it comes)
       const s = sleds.get(S.ramp[a.i] && S.ramp[a.i].i); if (!s || s.st !== 'ramp') { A.hintN = -1; return; }
       const p = sp(s.pos.x, s.pos.y + 0.8, s.pos.z), c = ZC[a.zone], q = sp(c[0], Y0 + surfH(shown, c[0], c[1]), c[1]);
-      X.hand({ x: s.pos.x, y: s.pos.y + 0.8, z: s.pos.z }, clamp(q.x - p.x, -FK.HP, FK.HP), clamp(q.y - p.y, -FK.HP, FK.HP));
+      X.hand({ x: s.pos.x, y: s.pos.y + 0.8, z: s.pos.z + FD.SLED[2] * FD.SLED_K * 0.6 },   /* (review P8: the finger at the sled's near end, the hand below it — the sled and its load read under the hint) */ clamp(q.x - p.x, -FK.HP, FK.HP), clamp(q.y - p.y, -FK.HP, FK.HP));
     }
     // ── the end: the result, the perfect word, the film (the whole block, the crews in it)
     async function finish() {

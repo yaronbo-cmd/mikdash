@@ -66,7 +66,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     cdp.send = async (m, o) => { if (m !== 'Input.dispatchTouchEvent') return send0(m, o); const p = o.touchPoints && o.touchPoints[0];
       if (o.type === 'touchStart' && p && !down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); await pg.mouse.down(); down = true; }
       else if (o.type === 'touchMove' && p && down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); }
-      else if (o.type === 'touchEnd' && down) { await pg.mouse.up(); down = false; } }; }
+      else if (o.type === 'touchEnd' && down) { await pg.mouse.up(); down = false; FGM.left = false; /* ── h132 ── (a tap's release lets go of a held left button too: the next held thumb presses it again) ── /h132 ── */ } }; }
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x: Math.round(x), y: Math.round(y), id: 7 + i, radiusX: 6, radiusY: 6, force: 1 })) });
   const T0 = Date.now(); let n = 0, shotMs = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);
@@ -89,8 +89,10 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     const had = FG.filter(Boolean).length, now = W2.filter(Boolean).length;
     const newOne = W2.some((p, i) => p && !FG[i]), gone = FG.some((p, i) => p && !W2[i]);
     // (a lift first — the points still down are named in a move, the lifted one left out: the browser releases it — then a press)
-    if (gone) { const keep = W2.map((p, i) => (p && FG[i] ? FG[i] : null)), off = FG.map((p, i) => (p && !W2[i] ? p : null)); if (keep.some(Boolean)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: pts(off) }); else await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
-    if (now) await cdp.send('Input.dispatchTouchEvent', { type: newOne ? 'touchStart' : 'touchMove', touchPoints: pts(W2) });
+    if (gone) { const keep = W2.map((p, i) => (p && FG[i] ? FG[i] : null)), off = FG.map((p, i) => (p && !W2[i] ? p : null)); const endQ = (o) => cdp.send('Input.dispatchTouchEvent', o).catch((e) => { if (!/TouchStart first/.test(e.message)) throw e; }); if (keep.some(Boolean)) await endQ({ type: 'touchEnd', touchPoints: pts(off) }); else await endQ({ type: 'touchEnd', touchPoints: [] }); }
+    // ── h132 ── (a finger the probe still held while another step's tap ended every touch — the end card's — is no longer down in the
+    //  browser: its move is refused, "Must send a TouchStart first"; it is pressed again instead, so the next work's thumb comes down) ── /h132 ──
+    if (now) await cdp.send('Input.dispatchTouchEvent', { type: newOne ? 'touchStart' : 'touchMove', touchPoints: pts(W2) }).catch(async (e) => { if (!/TouchStart first/.test(e.message)) throw e; await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pts(W2) }); });
     void had;
     FG[0] = W2[0]; FG[1] = W2[1];
   }

@@ -58,6 +58,7 @@ export function makePack09(env = {}) {
     byPlan: true,
     look: LOOK9,
     endTitle: 'הסובב וחוט הסיקרא נבנו!',
+    upStrip: true,   // (review P5) a craft's level-up after a work: one line in the top strip, not the full-screen stamp over the view
     endSub: 'וחוט של סקרא חוגרו באמצע (מידות ג, א)',
     nextStage: NEXT_STAGE,
     endView: [R[0][0], R[0][1]],

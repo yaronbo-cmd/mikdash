@@ -977,7 +977,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     try { if (S0.crowd) S0.crowd.setEnabled(true); } catch (e) { /* */ }   // ── h118 ── ── /h118 ── ── b131 ── (after the film) ── /b131 ──
     if (res.film && typeof res.film.after === 'function') { try { res.film.after(); } catch (e) { console.warn('[h109] film after', e && e.message); } }
     if (KOH.off) X.kohen(true);   // ── h129 ── ── /h129 ──   // ── h129 ── (closing round: what an act left standing for its film — the court seated, the Levite in the door — goes when the film ends) ── /h129 ──
-    try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון'); } catch (e) { /* */ }   // ── h114 ── ── /h114 ──
+    try { if (J && J.flushUps) J.flushUps('עלית רמה בזכות העבודה המדויקת במשחקון', PK.upStrip ? { strip: true } : undefined); }   /* ── h132 ── (P5: a pack may ask for the strip) ── /h132 ── */ catch (e) { /* */ }   // ── h114 ── ── /h114 ──
     document.body.classList.remove('h109-act');
     try { if (view.closeCam) view.closeCam(false, 'h109'); } catch (e) { /* */ }
     phase = 'walk';

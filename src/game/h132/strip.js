@@ -236,8 +236,8 @@ export const STRIP_ACT = {
         const g = S9.belt.S, pts = Mo.flaw('strip.patch', { at: [g[0], g[1]], wall: 'S' });
         scar(X, 'patch', null, body); V.crack(); X.shake(0.25, 0.4); X.dust(g[0], Y0 + 2.4, g[1], 14, 3);
         X.loss(pts, { x: g[0], y: Y0 + 3, z: g[1] }, LOSS['strip.patch'][0]);
-      } else if (r.kind === 'wall') { X.hit(at, 'gold', { text: '' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick, null); }
-      else X.hit(at, 'good', { text: '' });
+      } else if (r.kind === 'wall') { X.hit(at, 'gold', { text: '', craft: 'נגרים' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick, null); }
+      else X.hit(at, 'good', { text: '', craft: 'נגרים' });
       if (p.startsWith('wall:')) fall(sideOf(p)); else out(p);
       keep();
       if (done(S)) closeSoon();
@@ -257,7 +257,7 @@ export const STRIP_ACT = {
       const r = slide(S); ev('slide:' + (r.ok ? 'ok' : 'no'));
       const at = atOf('wall:S');
       if (!r.ok) { if (r.loaded) { V.creak(0.75); A.creakT = A.t + 0.5; A.shakeP = { p: 'wall:S', t: 0 }; X.loss(0, at, ''); } keep(); return; }
-      sendMen('wall:S', 'push'); V.scrape(0.7); setTimeout(() => V.scrape(0), 600); A.slideT = 0; X.hit(at, 'good', { text: '' }); keep();
+      sendMen('wall:S', 'push'); V.scrape(0.7); setTimeout(() => V.scrape(0), 600); A.slideT = 0; X.hit(at, 'good', { text: '', craft: 'נגרים' }); keep();
     }
     /** a brace, a belt or the wedge comes out: it slides out (the wedge up) and lies on the ground below */
     function out(p) {

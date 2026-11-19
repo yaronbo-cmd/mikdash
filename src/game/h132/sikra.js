@@ -135,7 +135,7 @@ function makeSikra(m, X) {
     setTimeout(() => {
       if (A.ended) return;
       VO.knock(); X.shake(0.08, 0.15); stakes[k] = putStake(k);
-      const at = W3(rodLow()); X.hit(at, 'ok', { text: '+10' }); X.dust(at.x, at.y, at.z, 4, 1.2);
+      const at = W3(rodLow()); X.hit(at, 'ok', { text: '+10', craft: 'מודדים' }); X.dust(at.x, at.y, at.z, 4, 1.2);
       if (helper) gang.setRole(helper, 'hold', { item: 'mallet' });
       keep();
       setTimeout(() => { if (A.ended) return; if (r.last) lineOn(true); else cornerOn(K.measureNext(Ms), false); }, 900);
@@ -219,9 +219,9 @@ function makeSikra(m, X) {
     ev(e.e + (e.s != null ? '@' + e.s : ''));
     const at = lineAt(e.s != null ? e.s : L.s, SKA.POP_DY);
     switch (e.e) {
-      case 'seg': if (e.pts >= 40) reward(() => { X.hit(at, 'gold'); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); }); else if (e.pts >= 20) reward(() => X.hit(at, 'good')); else if (e.pts > 0) reward(() => X.hit(at, 'ok')); else if (e.pts < 0) lossQ(SK.PTS.loss, e.s != null ? e.s : L.s, label('sikra.wavy')); break;
+      case 'seg': if (e.pts >= 40) reward(() => { X.hit(at, 'gold', { craft: 'מודדים' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); }); else if (e.pts >= 20) reward(() => X.hit(at, 'good', { craft: 'מודדים' })); else if (e.pts > 0) reward(() => X.hit(at, 'ok', { craft: 'מודדים' })); else if (e.pts < 0) lossQ(SK.PTS.loss, e.s != null ? e.s : L.s, label('sikra.wavy')); break;
       case 'corner':
-        if (e.r === 'perfect') reward(() => { X.hit(at, 'ok', { text: '+10' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(1.5); X.shake(0.12, 0.2); flash.position.set(at.x, LY, at.z); flash.visible = true; A.flashT = 0.6; try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } });
+        if (e.r === 'perfect') reward(() => { X.hit(at, 'ok', { text: '+10', craft: 'מודדים' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(1.5); X.shake(0.12, 0.2); flash.position.set(at.x, LY, at.z); flash.visible = true; A.flashT = 0.6; try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } });
         break;
       case 'gap': if (!e.free) lossQ(SK.PTS.loss, e.s, label('sikra.gap')); VO.snap(); { const s1 = e.s1 != null ? e.s1 : e.s; if (e.why !== 'close') { A.cutTo = Math.max(A.cutTo, s1); track.cuts.push([e.s, s1]); R.cut(e.s, Math.min(L.s, s1)); } } break;
       case 'smear': if (!e.free) { lossQ(SK.PTS.loss, e.s, label('sikra.smear')); MK.smear(e.s); } break;
@@ -231,7 +231,7 @@ function makeSikra(m, X) {
       case 'drip': { const mm = MK.drip(e.s); mm.userData.t = 0; drips.set(e.id, mm); VO.drop(); X.shake(0.06, 0.15); try { if (X.haptic) X.haptic(120); } catch (er) { /* */ } break; }   // (review 132 R3: a drip is loud)
       case 'dripLost': lossQ(SK.PTS.loss, e.s, label('sikra.drip')); A.camHold = { s: e.s + SKA.DRIP_LEAD, until: A.t + SKA.DRIP_HOLD }; break;
       case 'wipe': { const mm = drips.get(e.id); if (mm) { mm.parent && mm.parent.remove(mm); drips.delete(e.id); } VO.wipe(); if (!e.free) MK.pink(e.s); swabTo(lineAt(e.s, -0.4), 0.6); break; }
-      case 'close': if (e.r === 'perfect') reward(() => { X.hit(at, 'gold', { text: '+40' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); }); break;
+      case 'close': if (e.r === 'perfect') reward(() => { X.hit(at, 'gold', { text: '+40', craft: 'מודדים' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); }); break;
       case 'flawOk': reward(() => X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick)); break;
       case 'done': finish(); break;
       default: break;

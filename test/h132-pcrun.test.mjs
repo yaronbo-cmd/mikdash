@@ -41,3 +41,12 @@ test('the script waits for the visits after the end card and fails loudly when t
   assert.match(t, /fail:/);
   assert.match(fs.readFileSync('tools/probe109.cjs', 'utf8'), /a\.fail\) errs\.push\('FAILED: '/);
 });
+test('pc script: a visit walk is not awaited, a stuck visit fails, and the probe fails a hung page', async () => {
+  const fs = await import('node:fs');
+  const s = fs.readFileSync(new URL('../tools/probes/s09-pc.json', import.meta.url), 'utf8');
+  assert.ok(!/\{eval:'__T\.game\.h109\.X\.stages\.hero\.walkTo/.test(s), 'the walk asked for inside a function that returns true');
+  assert.match(s, /hero\.walkTo\(\{x:'\+tgt\[0\]\+',z:'\+tgt\[1\]\+'\}\);return true\}\)\(\)/);
+  assert.match(s, /VISIT STUCK/);
+  const p = fs.readFileSync(new URL('../tools/probe109.cjs', import.meta.url), 'utf8');
+  assert.match(p, /PAGE HUNG/); assert.match(p, /FAILED: the page hung/);
+});

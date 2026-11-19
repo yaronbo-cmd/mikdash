@@ -191,6 +191,9 @@ export function createH109Director(o) {
     FG = createFigGate({ THREE, camera, scene, actors: () => S0.crewActors || null, workers: (fn) => { if (S0.hero && S0.hero.h128Workers) S0.hero.h128Workers(fn); },
       hero: { xyz: () => (KOH.off ? null : heroAt()), show: (v) => { try { S0.hero.show(!!v); } catch (e) { /* */ } }, keep: () => { const h = S0.hero, m = h && h.mesh, r = h && h.ring; if (m) m.visible = false; if (r) r.visible = false; },
         works: () => !!(act && act.kohenWorks), move: (x, z) => { const h = S0.hero; h.setPos(x, z, h.yaw); } }, ground: (x, z) => ground(x, z),
+      // ── h132 ── (the look turning the view: 'drag' while his thumb is down, 'after' for a while after it lifts — the act may ease its
+      //  camera to a corner then; the gate holds its last decision through it and reads again once the camera has settled) ── /h132 ──
+      moving: () => (LOOK.id != null || LOOK.drag ? 'drag' : LOOK.endT && performance.now() - LOOK.endT < 3000 ? 'after' : ''),
       pose: (u) => { const b = base(); if (PK.look && PK.look.act !== false && PK.look.pose) { try { const q = PK.look.pose(b, u, 0, 0); return { p: q.p, t: q.t, fov: q.fov }; } catch (e) { return u ? null : b; } } return u ? null : b; } });
     try { globalThis.__FIG = FG; } catch (e) { /* (the probes' eyes) */ }
     return FG;
@@ -445,7 +448,7 @@ export function createH109Director(o) {
         if (!LOOK.drag) return;
       }
       if (e.type === 'pointermove') { const YL = lookClampOf(act); LOOK.yaw = clamp(LOOK.yaw0 - ((e.clientX - LOOK.x0) / innerWidth) * 3.2, -YL, YL); LOOK.u = clamp(LOOK.u0 + ((e.clientY - LOOK.y0) / innerHeight) * UG(), 0, 1); }   // ── h120 ── (UG: a pack's own gain — stage 05: a quarter of the screen lifts to the view) ── /h120 ──
-      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); const ye = lookEndOf(act, LOOK.yaw); if (ye != null) { LOOK.yaw = LOOK.yaw0 = ye; lookSet(); } }   // ── build 132 ── (act.lookEnd: where the turn settles) ── /build 132 ──
+      else if (e.type === 'pointerup' || e.type === 'pointercancel') { LOOK.id = null; LOOK.drag = false; lookSet(); const ye = lookEndOf(act, LOOK.yaw); if (ye != null) { LOOK.yaw = LOOK.yaw0 = ye; lookSet(); } LOOK.endT = performance.now(); }   // ── build 132 ── (act.lookEnd: where the turn settles) ── /build 132 ──
       return;
     }
     if (e.type === 'pointerdown') {
@@ -673,6 +676,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     // ── h116 ── (a free work is picked only at its very stake: walking past the hill's free rocks must not start one) ── /h116 ──
     // ── h132 ── (the visits: he stands at the station he just finished — no work starts under his feet until he has walked a few amot) ── /h132 ──
     if (VIS.on && VIS.from) { const h = heroAt(); if (h && Number.isFinite(h.x) && Math.hypot(h.x - VIS.from.x, h.z - VIS.from.z) > 4) VIS.from = null; else return; }
+    if (VIS.on && VIS.lastK) { if (q && q.m.k === VIS.lastK && q.d < 9.5) return; VIS.lastK = null; }   // ── h132 ── (walking away from the station he just finished: its next level is not started under him) ── /h132 ──
     if (q && q.d < (q.m.free ? 3.5 : 9) && tPhase > 0.4) pickNow(q.m, true);
   }
   function showOne() {
@@ -982,7 +986,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
       if (!M.mission()) { console.info('[h109] only page: all levels done, reload'); line('המשחקון נגמר · מתחילים שוב'); setTimeout(() => { try { localStorage.removeItem(saveKey('bh_beta2'))  /* ── b131 ── ── /b131 ── */; } catch (e) { /* */ } location.reload(); }, 2500); return; }
       syncMount(true);
     }
-    if (VIS.on) { const h = heroAt(); VIS.from = h && Number.isFinite(h.x) ? { x: h.x, z: h.z } : null; }   // ── h132 ── ── /h132 ──
+    if (VIS.on) { const h = heroAt(); VIS.from = h && Number.isFinite(h.x) ? { x: h.x, z: h.z } : null; VIS.lastK = m && m.k; }   // ── h132 ── (lastK: the station he just finished is not picked again until he has walked out of its circle) ── /h132 ──
     openMission();
     if (ONLY) setTimeout(() => goTo(), 400);
   }

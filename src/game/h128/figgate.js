@@ -17,7 +17,7 @@
 import { FIGS } from '../../actors.js';
 try { globalThis.__FIGS = FIGS; } catch (e) { /* (the probes' eyes) */ }
 
-const H = 3.9, R = 0.55, U2 = 0.3, EVERY = 0.25;
+const H = 3.9, R = 0.55, U2 = 0.3, EVERY = 0.25, STILL = 0.3;   // ── h132 ── (STILL: the act's camera at rest that long after a look's turn before the gate reads again) ── /h132 ──
 
 export function createFigGate(o) {
   const T = o.THREE;
@@ -138,6 +138,13 @@ export function createFigGate(o) {
       // (a hidden kohen stays hidden: an act that sets him on his place (hero.setPos, place, a walk) shows him again — each frame the gate
       //  takes him out of the picture again, without stopping what he does)
       if (G.heroOff && o.hero && o.hero.keep) { try { o.hero.keep(); } catch (e) { /* */ } }
+      // ── h132 ── (the look turning the view — his thumb down, or the act easing its camera after it — is no frame to judge: the gate holds
+      //  its last decision, hides no one new and reports nothing new, and reads again once the act's camera has stood still STILL s; a
+      //  man the swinging frame crossed is not taken out and named cut — the pullers are the work's doers and stay in the picture) ── /h132 ──
+      let mv = ''; try { mv = o.moving ? String(o.moving() || '') : ''; } catch (e) { mv = ''; }
+      const P0 = mv ? (o.pose ? o.pose(0) : null) : null, pk = P0 ? [...P0.p, ...P0.t].map((v) => (+v).toFixed(2)).join(',') : '';
+      if (pk !== G.pk) { G.pk = pk; G.still = 0; } else G.still += dt;
+      if (mv === 'drag' || (mv === 'after' && G.still < STILL)) { G.n.held = (G.n.held | 0) + 1; return; }
       G.t -= dt; const k = String(key || '');
       if (G.t > 0 && k === G.key) return;
       G.t = EVERY; G.key = k; run(focus);

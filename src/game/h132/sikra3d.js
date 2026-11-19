@@ -278,14 +278,17 @@ export function voices(sfx) {
   const SND = {
     knock: [{ f0: 210, f1: 90, d: 0.22, g: 0.16 }, { f: 1100, q: 1.6, d: 0.06, g: 0.06 }],                 // (the wooden mallet on the wooden stake)
     clay: [{ f0: 520, f1: 380, d: 0.16, g: 0.08, w: 'triangle' }, { f: 2400, q: 3, d: 0.05, g: 0.03 }],     // (the swab in the clay bowl)
-    drop: [{ f0: 900, f1: 260, d: 0.14, g: 0.09 }],                                                       // (a drop)
+    drop: [{ f0: 900, f1: 220, d: 0.2, g: 0.17 }, { f: 1800, q: 2, d: 0.08, g: 0.07 }],                    // (a drop: loud — review 132 R3)
+    wet: [{ f0: 300, f1: 520, d: 0.24, g: 0.1, w: 'triangle' }, { f: 900, q: 0.9, d: 0.26, g: 0.09 }],     // (the string drinks: a wet slosh, rising)
+    dry: [{ f0: 260, f1: 200, d: 0.08, g: 0.05, w: 'triangle' }, null],
+    glint: [{ f0: 1900, f1: 2300, d: 0.12, g: 0.04 }, null],                                              // (the string glints: time to dip)                                    // (the string turns pale: a dull dry tick)
     wipe: [null, { f: 1600, q: 0.8, d: 0.22, g: 0.05 }],                                                  // (cloth on stone)
     snap: [{ f0: 300, f1: 70, d: 0.18, g: 0.12, w: 'triangle' }, { f: 700, q: 1, d: 0.12, g: 0.06 }],      // (the string snaps off the stone)
   };
   const play = (k) => { if (!ok()) return; const [a, b] = SND[k]; if (a) tn(a); if (b) bn(b); };
   return {
     init,
-    knock: () => play('knock'), clay: () => play('clay'), drop: () => play('drop'), wipe: () => play('wipe'), snap: () => play('snap'),
+    knock: () => play('knock'), clay: () => play('clay'), drop: () => play('drop'), wet: () => play('wet'), dry: () => play('dry'), glint: () => play('glint'), wipe: () => play('wipe'), snap: () => play('snap'),
     pluck(k = 1) { if (!ok()) return; tn({ f0: 196 * k, f1: 190 * k, d: 0.6, g: 0.08, w: 'triangle' }); tn({ f0: 392 * k, f1: 388 * k, d: 0.4, g: 0.03 }); },   // (the string: the corner's chime)
     /** the string brushing the stone while he walks: its loudness the pace */
     hum(k) { if (!init() || !out) return; if (!hum) { const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = noise; s.loop = true; fl.type = 'bandpass'; fl.frequency.value = 650; fl.Q.value = 1.2; g.gain.value = 0.0001; s.connect(fl); fl.connect(g); g.connect(out); s.start(); hum = { s, g, fl }; } try { hum.g.gain.setTargetAtTime(muted() ? 0.0001 : 0.0001 + 0.035 * Math.max(0, Math.min(1, k)), ctx.currentTime, 0.08); } catch (e) { /* */ } },

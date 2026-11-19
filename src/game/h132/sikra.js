@@ -81,6 +81,10 @@ function makeSikra(m, X) {
   const bowl = V3.makeBowl(X); root.add(bowl); bowl.visible = false;
   const swab = V3.makeSwab(X); root.add(swab.g); swab.g.visible = false;
   const flash = new T.Mesh(new T.SphereGeometry(0.9, 10, 8), V3.smats(X).flash); flash.visible = false; root.add(flash);
+  // (review 132 R3: the glint on the bow — a small bright star of the wet string — at a right dip and as the string turns red)
+  const glintM = new T.Mesh(new T.OctahedronGeometry(0.32, 0), new T.MeshBasicMaterial({ color: '#FFF1E6', transparent: true, opacity: 0, depthWrite: false })); glintM.visible = false; root.add(glintM);
+  const GL = { t: 0, d: 0 };
+  function glint(at, d) { if (!at) return; glintM.position.set(at.x, at.y, at.z); glintM.visible = true; GL.t = d; GL.d = d; }
   // the west wall's flaws: rough patches on the face at the line's height (the world's marks are on the block; these are where the
   // string meets them)
   const flawsOn = lv === 1 ? [] : K.flawsOn(west); for (const f of flawsOn) MK.rough(f.s0, f.s1);
@@ -224,7 +228,7 @@ function makeSikra(m, X) {
       case 'blot': if (!e.free) { lossQ(SK.PTS.loss, e.s, label('sikra.blot')); MK.blot(e.s); } else VO.wipe(); break;
       case 'blot2': lossQ(SK.PTS.loss, e.s, label('sikra.blot2')); MK.blot(e.s, -0.3); MK.blot(e.s, 0.3); break;
       case 'seam': if (!e.free) { lossQ(0, e.s, label('sikra.seam')); MK.seam(e.s); track.cuts.push([e.s, e.s + 0.1]); } break;
-      case 'drip': { const mm = MK.drip(e.s); mm.userData.t = 0; drips.set(e.id, mm); VO.drop(); break; }
+      case 'drip': { const mm = MK.drip(e.s); mm.userData.t = 0; drips.set(e.id, mm); VO.drop(); X.shake(0.06, 0.15); try { if (X.haptic) X.haptic(120); } catch (er) { /* */ } break; }   // (review 132 R3: a drip is loud)
       case 'dripLost': lossQ(SK.PTS.loss, e.s, label('sikra.drip')); A.camHold = { s: e.s + SKA.DRIP_LEAD, until: A.t + SKA.DRIP_HOLD }; break;
       case 'wipe': { const mm = drips.get(e.id); if (mm) { mm.parent && mm.parent.remove(mm); drips.delete(e.id); } VO.wipe(); if (!e.free) MK.pink(e.s); swabTo(lineAt(e.s, -0.4), 0.6); break; }
       case 'close': if (e.r === 'perfect') reward(() => { X.hit(at, 'gold', { text: '+40' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); }); break;
@@ -235,7 +239,9 @@ function makeSikra(m, X) {
   }
   /** the helper's swab to a point and back (to the bow: wetting the string; to a drip: wiping it) */
   function swabTo(p, secs) { A.swab = { p: [p.x, p.y, p.z], t: 0, d: secs }; }
-  function bowlNow() { if (!L || L.done) return; const evs = K.bowlTap(L); VO.clay(); const bow = lineAt(L.s, 0.2); swabTo(bow, 0.7); for (const e of evs) if (e.e !== 'refill') onEvent(e); rewardFlush(); ev('bowl' + (evs[0] && evs[0].excess ? ':excess' : '')); }
+  // (review 132 R3: a dip in the red band — the right moment — is unmissable: a wet slosh, a glint on the bow, a 150 ms buzz; the string
+  //  shines wet after it and goes matte as it dries; the window itself is the spec's, 0.25 to 0.6 of wetness, line 265)
+  function bowlNow() { if (!L || L.done) return; const right = K.wetBand(L.w) === 'red'; const evs = K.bowlTap(L); VO.clay(); if (right) { VO.wet(); glint(lineAt(L.s, 0.2), 0.45); try { if (X.haptic) X.haptic(150); } catch (e) { /* */ } } const bow = lineAt(L.s, 0.2); swabTo(bow, 0.7); for (const e of evs) if (e.e !== 'refill') onEvent(e); rewardFlush(); ev('bowl' + (evs[0] && evs[0].excess ? ':excess' : '')); }
   function dripNow(id) { if (!L) return; const evs = K.dripTap(L, id); for (const e of evs) onEvent(e); rewardFlush(); }
   /* ── the right thumb's targets on the screen ── */
   const scr = (x, y, z) => { const q = X.scr(x, y, z); return q && q.on !== false ? [q.x, q.y] : null; };
@@ -308,7 +314,11 @@ function makeSikra(m, X) {
     const top = [f.x + f.n[0] * off, LY + L.h * K.TEF + (L.lifted ? 0.35 : 0), f.z + f.n[1] * off];
     const base = [W.x - W.n[0] * 0.2 + W.u[0] * 0.5, wy + 0.25, W.z - W.n[1] * 0.2 + W.u[1] * 0.5];   // (a step ahead of him: seen beside him, not behind his back)
     pole.set(base, top, f.u);
-    const band = K.wetBand(L.w), sm = pole.str.material; sm.color.set(wetC[band]); sm.emissive.set(band === 'red' ? '#7A0E06' : '#000000'); sm.emissiveIntensity = band === 'red' ? 0.6 + 0.4 * Math.sin(A.t * 9) : 0;
+    const band = K.wetBand(L.w), sm = pole.str.material; sm.color.set(wetC[band]); sm.emissive.set(band === 'red' ? '#9A1408' : '#000000'); sm.emissiveIntensity = band === 'red' ? 0.75 + 0.55 * Math.sin(A.t * 11) : 0;
+    sm.roughness = 0.12 + 0.83 * (1 - L.w); sm.metalness = 0.25 * L.w;   // (wet: it shines; drying: matte)
+    // (a band's change is a step, not a fade: a glint and the wet sound as it turns red — time to dip — a dull tick as it turns pale)
+    if (A.band0 && A.band0 !== band) { if (band === 'red') { glint(lineAt(L.s, 0.2), 0.35); VO.glint(); } else if (band === 'pink') VO.dry(); }
+    A.band0 = band;
     // the helper ahead, a little further out, the bowl in his arms (on the screen's right), the swab rod up toward the line
     const H0 = V3.helperAt(L.s, lv), hs = H0.s;
     if (helper) {
@@ -385,6 +395,7 @@ function makeSikra(m, X) {
     update(dt) {
       A.t += dt;
       try { BT.step(dt); gang.update(dt, BT); } catch (e) { /* */ }
+      if (GL.t > 0) { GL.t -= dt; const u = 1 - Math.max(0, GL.t) / GL.d; glintM.material.opacity = Math.sin(Math.PI * u) * 0.95; glintM.scale.setScalar(0.6 + 1.4 * Math.sin(Math.PI * u)); glintM.rotation.y += dt * 6; if (GL.t <= 0) glintM.visible = false; }
       if (A.flashT > 0) { A.flashT -= dt; flash.material.opacity = Math.max(0, A.flashT / 0.6) * 0.55; flash.scale.setScalar(1 + (0.6 - A.flashT) * 2); if (A.flashT <= 0) flash.visible = false; }
       if (A.phase === 'measure') { if (!A.rod.hung && !A.drag && A.rod.u > 0) { A.rod.u = Math.max(0, A.rod.u - dt * 2.5); rodPlace(); } return; }
       if (A.phase !== 'line' || !L || L.done) return;

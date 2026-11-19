@@ -33,8 +33,11 @@ export function fmats(X) {
   PM.y9fWet = std('#8E8574', { roughness: 0.28, metalness: 0.05 });           // the mix, glossy
   PM.y9fTop = new T.MeshStandardMaterial({ color: '#9E927E', roughness: 0.78, flatShading: false });   // the fill's surface (smooth)
   PM.y9fGreen = new T.MeshBasicMaterial({ color: '#56D364', transparent: true, opacity: 0.45, depthWrite: false });
-  PM.y9fNotch = [std('#4CAF50', { emissive: '#1B5E20' }), std('#F2B233', { emissive: '#6B4A00' }), std('#D9483B', { emissive: '#5A120C' })];
-  PM.y9fTip = [new T.MeshBasicMaterial({ color: '#7CE07F' }), new T.MeshBasicMaterial({ color: '#FFC43D' }), new T.MeshBasicMaterial({ color: '#FF4A3A' })];
+  // (spec lines 92, 479: a wooden tongue with three carved notches — "אין סימונים צהובים": plain wood, the notches read by their cut, the
+  //  tongue by how far it sticks out; the cut is the wood's own dark, the tongue's end its end grain, the same at every reading)
+  const cut = std('#2E1F10'), grain = std('#7A5530');
+  PM.y9fNotch = [cut, cut, cut];
+  PM.y9fTip = [grain, grain, grain];
   PM.y9fLine = std('#5A4630');
   PM.y9fFlash = new T.MeshBasicMaterial({ color: '#FFE7A0', transparent: true, opacity: 0, depthWrite: false });
   PM.y9fYoke = std('#7A5634', { roughness: 0.85 });
@@ -122,8 +125,8 @@ export function gaugeSet(X, root) {
     const g = new T.Group(); g.name = 'h132-gauge-' + k; const [gx, gz] = S9.gauge[k], n = OUT[k];
     g.position.set(gx, S9.gaugeY, gz); g.rotation.y = Math.atan2(n[0], n[1]); root.add(g);   // (its own +z points out from the block)
     const hs = new T.Mesh(X.props.geo.box, PM.y9woodD); hs.scale.set(L, Hh, Dd); hs.position.set(0, Hh / 2, 0); hs.castShadow = true; g.add(hs);
-    // three notches along the tongue's way out: good to 1, warn to 2, danger past it
-    PM.y9fNotch.forEach((mt, i) => { const m = new T.Mesh(X.props.geo.box, mt); m.scale.set(L * 0.92, 0.12, 0.22); m.position.set(0, Hh + 0.07, Dd / 2 + (i + 1) * FD.PER_UNIT - 0.11); g.add(m); });
+    // three notches carved along the tongue's way out (good to 1, warn to 2, danger past it — read by the cut, not by a colour)
+    PM.y9fNotch.forEach((mt, i) => { const m = new T.Mesh(X.props.geo.box, mt); m.scale.set(0.24, 0.05 + 0.03 * i, 0.1 + 0.04 * i); m.position.set(L / 2 + 0.2, Hh * 0.55 + 0.06 - (0.05 + 0.03 * i) / 2 + 0.01, Dd / 2 + (i + 1) * FD.PER_UNIT); g.add(m); });   // (cut into the rail's top, each one deeper than the last)
     const rail = new T.Mesh(X.props.geo.box, PM.y9woodD); rail.scale.set(0.22, 0.1, 3.2 * FD.PER_UNIT); rail.position.set(L / 2 + 0.2, Hh * 0.55, Dd / 2 + 1.6 * FD.PER_UNIT); g.add(rail);
     const tg = new T.Mesh(X.props.geo.box, PM.y9tongue); tg.scale.set(FD.TONGUE[0], FD.TONGUE[1], 1); tg.castShadow = true; g.add(tg);
     const tip = new T.Mesh(X.props.geo.box, PM.y9fTip[0]); tip.scale.set(FD.TONGUE[0] * 1.25, FD.TONGUE[1] * 1.25, 0.4); g.add(tip);

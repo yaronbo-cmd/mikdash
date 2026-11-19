@@ -21,6 +21,6 @@ test('crafts: the stage asks for the strip, the director passes it, the juice sa
   assert.ok(i > 0); assert.match(body, /if \(o2 && o2\.strip\) call\(ui\.banner/);
 });
 test('end: stage 09 says one gold title — the game\'s stage-done celebration is not shown over the director\'s own', () => {
-  const s = src('index.js'), i = s.indexOf("type === 'stageDone' && d && !d.skipped");
+  const s = src('index.js'), i = s.indexOf("type === 'stageDone' && d && !d.skipped && !stageById");
   assert.ok(i > 0); assert.match(s.slice(i, i + 300), /d\.id !== 'sovev'/);
 });

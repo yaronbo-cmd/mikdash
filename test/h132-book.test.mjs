@@ -117,6 +117,7 @@ test('book s09: against the built world — temple.js builds the sovev and its r
   assert.deepEqual(S.cam.w4measure.map((p) => [...p]), [[-6, 32, 28], [-38, 21, -3.5]]);
   assert.deepEqual(S.cam.w4.map((p) => [...p]), [[-12, 22.5, 17], [-23, 21, 9]]);
   assert.deepEqual({ c: [...S.cam.end.c], R: S.cam.end.R, y: S.cam.end.y }, { c: [-38, -3.5], R: 40, y: 50 });
+  assert.deepEqual(S.cam.peak.map((p) => [...p]), [[-13, 20, 21.5], [-38, 24, -3.5]]);   // (the ending's peak: low at the south-east)
   // (lane B's measuring shots, one a corner, and the helper's ladders: the act reads them from the book)
   assert.deepEqual(Object.fromEntries(Object.entries(S.cam.w4corner).map(([k, v]) => [k, v.map((p) => [...p])])), { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-46, 27.5, -33.5], [-51.5, 19.4, -19.5]], SW: [[-46, 27.5, 26.5], [-51.5, 19.4, 12.5]] });
   assert.deepEqual(S.cam.w4corner.SE[0], S.cam.w4measure[0]);

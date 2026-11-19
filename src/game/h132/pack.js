@@ -10,11 +10,11 @@ import { h131Card } from '../h131/card.js';
 import { PLAN, LINES, NEXT_STAGE, createH132, fromOld } from './model.js';
 import { ACTS } from './acts.js';
 import { SH9, initWorld, finalWorld, restWorld } from './world.js';
-import { endingFx } from './ending.js';
+import { endingFx, ENDING } from './ending.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';
 import { BOOK } from '../world/grid.js';
 
-const S9 = BOOK.s09, CAM = S9.cam, END = CAM.end;
+const S9 = BOOK.s09, CAM = S9.cam, END = CAM.end, PEAK = CAM.peak;
 // the right thumb's look inside the Azarah's walls (as stages 07 and 08), the House kept out
 const LOOK9 = makeLook({ boxes: [...ringBoxes(BOOK.s02.side, BOOK.s02.ring.T, BOOK.s02.ring.top), BOOK.s06.house], K: LOOK_RING_K });
 const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h132-film'); } catch (e) { /* */ } };
@@ -60,7 +60,9 @@ export function makePack09(env = {}) {
     endSub: 'וחוט של סקרא חוגרו באמצע (מידות ג, א)',
     nextStage: NEXT_STAGE,
     endView: [R[0][0], R[0][1]],
-    film: R,
+    // (the ending's film: held at the book's low peak shot while the line, the waves and the fireworks play — finale() has brought the
+    //  camera there before the ending starts — then the camera rises and circles the block, spec "המצלמה עולה ומקיפה")
+    film: [[PEAK[0], PEAK[1], ENDING.FIRE[1] + 0.2], ...endRound(3)],
     sync(M, S0, instant, X) { if (!X || !SH9.X) return; if (M.finished() && !M.mission()) finalWorld(X); },   // (a return visit's work stands at its own pre-state while it plays)
     // ירון's rule (build 132): after the end card the four stations stay open in the world, each at its next level (director visits())
     visits: true,
@@ -86,7 +88,9 @@ export function makePack09(env = {}) {
     /** the stage's close (phase 0: the world as he built it, the end card's large type; the ending's film is phase 1's) */
     async finale(X) {
       finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); try { X.kohen(false); } catch (e) { /* */ }
-      // (the ending's light, waves and fireworks — ending.js — run over the director's round; not awaited: the camera circles meanwhile)
+      // (the camera low at the south-east first, the book's peak shot; the ending — ending.js: the line, the waves, the fireworks — starts
+      //  once it stands there, and is not awaited: the director's film holds the shot over it and then rises into the round)
+      try { if (X.shot) { X.shot(PEAK[0], PEAK[1], 1.4); await beat(X, 1500); } } catch (e) { /* */ }
       try { if (SH9.ending) SH9.ending.stop(); const fx = endingFx(X); SH9.ending = fx; try { globalThis.__H132_END = fx; } catch (e) { /* */ } fx.run().then(() => { if (SH9.ending === fx) SH9.ending = null; }); } catch (e) { console.warn('[h132] ending', e && e.message); }
     },
     /** after a reload, the stage done: the block as he built it */

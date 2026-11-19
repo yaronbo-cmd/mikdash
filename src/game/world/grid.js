@@ -1300,6 +1300,10 @@ function s09() {
       // seen from the north and the south (the Ulam's steps are west of the block); SE's eye is w4measure's
       w4corner: { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-46, 27.5, -33.5], [-51.5, 19.4, -19.5]], SW: [[-46, 27.5, 26.5], [-51.5, 19.4, 12.5]] },
       end: { c: mid, R: 40, y: 50 },
+      // (build 132, the ending's peak) low at the south-east, 10 out from the corner on each axis, 4 over the court: the east and south
+      // faces fill the frame's width with the whole line on them, the block in the lower half and the court's air above it for the
+      // fireworks; the camera then rises into the round (end)
+      peak: [[corner.SE[0] + 10, 20, corner.SE[1] + 10], [mid[0], 24, mid[1]]],
     },
     // the Ulam's lowest tread as the world builds it (temple.js xr[0]: x −56 … −55, top 16.5): the west brace leans on it
     step1: { x0: -56, x1: -55, y: C.floor + 0.5 },

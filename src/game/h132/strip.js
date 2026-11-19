@@ -261,7 +261,9 @@ export const STRIP_ACT = {
       await X.wait(SA.FALL + 1.6);
       const res = result(S);
       if (res.perfect) { try { X.perfect(WORDS.strip, { x: MID[0], y: Y1, z: MID[1] }); } catch (e) { /* */ } await X.wait(1.0); }
-      await carry();
+      settle();
+      // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
+      { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
       const R = 40, sh = [0, 1, 2, 3].map((i) => { const a = Math.PI / 4 + (i * Math.PI) / 2; return [[MID[0] + Math.cos(a) * R, Y1 + 16, MID[1] + Math.sin(a) * R], [MID[0], Y0 + 2, MID[1]], 1.0]; });
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
         film: { shots: sh, secs: 4, kohen: false, own: () => men.map((w) => w && w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
@@ -288,6 +290,8 @@ export const STRIP_ACT = {
       // (a breath on the cleared site: the white block alone on a clean floor, from the morning's corner)
       const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.01); await X.wait(SA.CLEAN);
     }
+    /** the strip's end: the walls left where they fell (lieAfter), the braces, belts and wedge to the timber pile (the world's), the sills off */
+    function settle() { stackAll(); }
     function stackAll() {
       A.carry = null; A.stacked = 1; lieAfter(); try { siteClear(true); } catch (e) { /* */ }   // (the world: the sills off, the timber on the pile)
       for (const p of Object.keys(parts)) parts[p].visible = false;

@@ -119,9 +119,8 @@ function sync(X, M) {
     SH9.walls[k].grp.visible = wallsOn;
     wallSet(k, blk === 'formUp' || blk === 'filled' ? 90 : 0);
   }
-  // (phase 1 decision 3: lowered off the steps by the pullers and laid flat beside the timber pile, along x — its hinge at its west end)
-  if (!owns('walls') && at(blk, 'bare')) { const W = SH9.walls.W, [cx, cz] = S9.wallRest.W; W.grp.position.set(cx - HINGE.W.L / 2, F, cz + H / 2); W.grp.rotation.set(0, Math.PI / 2, -Math.PI / 2); }
-  else if (SH9.walls.W) SH9.walls.W.grp.position.set(...HINGE.W.p);
+  // (after the strip the walls lie where they fell: walls3d.js lieAfter, which owns them from 'bare' on)
+  if (!owns('walls') && !at(blk, 'bare') && SH9.walls.W) SH9.walls.W.grp.position.set(...HINGE.W.p);
   // the sills under the south and east walls (the proposed footing over the strip with no yesod: stage 08's timbers, as the book has
   // them), while the form stands or lies there
   if (at(blk, 'formLying') && !at(blk, 'bare') && !clean) for (const k of ['E', 'S']) { const b = S9.sill[k]; box(X, Mt.y9woodD, b[0], F, b[1], b[2], Y0, b[3], D); }

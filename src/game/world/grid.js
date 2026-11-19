@@ -1305,10 +1305,13 @@ function s09() {
       // the work's own high shot the full form read as a brown top alone)
       w2after: [[-16, 36, 41.5], [mid[0], 20.5, mid[1]]],
       w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
+      // (review P9, round 8) the opening's last picture: behind the kohen where he stands (stand:start), east of him and above, the block
+      //  ahead of him — the follow camera takes him from here whole (from cam:w1 its ease had him under the frame's foot)
+      start: [[8, 40, -2], [-16.3, 18, -3.5]], startFov: 50,   // (its lens wider than the walk's 32°: him whole at the foot and the block's near edge at the head)
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
       // (lane B, build 132) the measuring shot at each corner: the aim 2 amot in from the corner, 1.5 under the line; the west corners
       // seen from the north and the south (the Ulam's steps are west of the block); SE's eye is w4measure's
-      w4corner: { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-46, 27.5, -33.5], [-51.5, 19.4, -19.5]], SW: [[-46, 27.5, 26.5], [-51.5, 19.4, 12.5]] },
+      w4corner: { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-62, 32, -33], [-51, 19.5, -19.5]], SW: [[-62, 32, 26], [-51, 19.5, 12.5]] },   // (round 8: the west corners from over the Ulam's lowest steps, north-west and south-west — from due north and south the helper on his ladder stood between the eye and the corner, and the figure gate took him out)
       end: { c: mid, R: 40, y: 50 },
       // (build 132, the ending's peak) low at the south-east, 12 out from the corner on each axis, 4 over the court, its lens 45°: the
       // east and south faces fill the frame's width with the whole line on them, the block in the lower half and the court's air above

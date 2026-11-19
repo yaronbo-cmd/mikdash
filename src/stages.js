@@ -4491,6 +4491,7 @@ export function createStages(ctx) {
       if (st.status === 'avail') v = 1;
       else if (st.status === 'building' && st.disp < FOUND) v = 0.35;
       else if (st.status === 'locked' && isDone('har') && firstOpen >= 0 && st.idx > firstOpen && st.idx <= firstOpen + 2 && list[firstOpen].status !== 'locked') v = 0.12;
+      if ((cellMode || pinsOff) && st.status !== 'building') v = 0;   // ── h132 ── (round 8: the open and next sites' outlines are the old site pins' kin — under the director (pinsOff) the next stage's pulsing gold band round the built block drew a streak across the court; a building site's thin line stays) ── /h132 ──
       OL.I[st.idx] = OL.base[st.idx] = v; if (v > 0) any = true;
     }
     outline.visible = any;
@@ -8986,7 +8987,7 @@ export function createStages(ctx) {
     boulderMat: () => BC.mat,
     // ── h114 ── hide boulder i (the act's own rock, split along its real crack, stands there); state → 0 after the split, its rubble none ── /h114 ──
     boulderHide: (i, on, gone) => { const b = bSt[i]; if (!b || cellMode) return false; b.hid = !!on; if (gone) { b.state = 0; b.anim = null; b.rub = 0; if (b.pt < 0) b.pt = 0; workDirty = true; propsDirty = true; } boulderMatrices(i); for (const m of bMesh) m.instanceMatrix.needsUpdate = true; requestShadow(true); return true; },
-    pinsOff: (on) => { pinsOff = !!on; },   // ── h117 ── ── /h117 ──
+    pinsOff: (on) => { if (pinsOff !== !!on) dirtyGlobal = true; pinsOff = !!on; },   /* ── h132 ── (the outlines follow at the next frame) ── /h132 ── */   // ── h117 ── ── /h117 ──
     boulderInfo: (i) => { const b = bSt[i]; return b && !cellMode ? { x: b.x, z: b.z, r: b.r, sy: b.sy, yaw: b.yaw, state: b.state, hid: !!b.hid, gy: hill.heightAt(b.x, b.z) } : null; },
     shadowSoon: () => requestShadow(false),   // ── h114 ── (a minigame moves things: the sun's shadows follow, at most every 0.3 s) ── /h114 ──
     // ── flow10 ── the course check's stand and frame at the Mount: checkView(id) → { spot, target, p, t } | null · flyTo(p, t, ms)

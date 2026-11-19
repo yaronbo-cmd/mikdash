@@ -187,7 +187,7 @@ export function createH109Director(o) {
   let FG = null;
   function figGate() {
     if (FG) return FG;
-    const base = () => ({ p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: LK5.fov0 != null ? LK5.fov0 : camera.fov });
+    const base = () => ({ p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: act && Number.isFinite(act.lensFov) ? act.lensFov : LK5.fov0 != null ? LK5.fov0 : camera.fov });   // ── h132 ── (act.lensFov: an act that keeps its own lens is judged at it — stage 09's strip; a frame after a turn the look's narrower lens was still on the camera, and a puller at the edge was reported cut) ── /h132 ──
     FG = createFigGate({ THREE, camera, scene, actors: () => S0.crewActors || null, workers: (fn) => { if (S0.hero && S0.hero.h128Workers) S0.hero.h128Workers(fn); },
       hero: { xyz: () => (KOH.off ? null : heroAt()), show: (v) => { try { S0.hero.show(!!v); } catch (e) { /* */ } }, keep: () => { const h = S0.hero, m = h && h.mesh, r = h && h.ring; if (m) m.visible = false; if (r) r.visible = false; },
         works: () => !!(act && act.kohenWorks), move: (x, z) => { const h = S0.hero; h.setPos(x, z, h.yaw); } }, ground: (x, z) => ground(x, z),
@@ -1048,7 +1048,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     CAM.on = false; phase = 'off'; started = false;
     if (quietOn) { quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } }   // (the gold ring stays off under the stage's cards: card.js)   // ── b131 ── ── /b131 ──
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
-    try { if (S0.pinsOff) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ──
+    try { if (S0.pinsOff && !PK.visits) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ── ── h132 ── (round 8: a pack whose world goes on in visits keeps the site pins off — the next stage's pin over the block drew its light column, a gold streak, across the end card and the court) ── /h132 ──
     resFor(false);   // ── h117 ── ── /h117 ──
     UI.rot && UI.rot.classList.remove('want');
     if (o.onDone) { try { await o.onDone(M.st); } catch (e) { console.warn('[h109] onDone', e && e.message); } }

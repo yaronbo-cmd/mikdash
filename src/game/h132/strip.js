@@ -78,7 +78,7 @@ export const STRIP_ACT = {
       // (the eye still at the look's own lift: the act eases its base itself, frame by frame; else one eased shot from where the eye is —
       //  the director then reads the figures only once it has settled)
       A.th = th; view(th, 0.01); A.ease = { a: th, b, t: 0, own: u > 0.02 }; if (!A.ease.own) view(b, SA.SNAP); A.camT = A.t + SA.SNAP + 0.2;
-      try { if (workP === 'idle' || A.t > A.idleT) sendIdle(true); } catch (e) { ev('err:idle:' + (e && e.message)); }   // (a cut for the waiting pullers: at the new corner as the camera turns to it)
+      try { if (workP === 'idle' || A.t > A.idleT) sendIdle(true); else { const r = men[0] && men[0].want; sendMen(workP, r && r !== 'hold' ? r : null, true); ev('refit:' + workP); } } catch (e) { ev('err:idle:' + (e && e.message)); }   // (a cut for the waiting pullers: at the new corner as the camera turns to it; round 8: the working pair too — fitted for the corner he left they stood cut at the new one's edge)
       return 0;
     }
     function easeStep(dt) {
@@ -109,7 +109,7 @@ export const STRIP_ACT = {
     const fig = figTest(T), focus = [MID[0], Y1, MID[1]];
     const whole = (q) => {
       // (the camera settled: the director's own figures gate asked, at u 0 and the look's u 0.3 as it will judge him; turning: figTest)
-      const G = globalThis.__FIG; if (!A.ease && A.t > A.camT && G && typeof G.probe === 'function') { try { const r = G.probe(q[0], q[4], q[1], { x: focus[0], y: focus[1], z: focus[2] }); return !!(r && r.on && !r.cut && !r.between); } catch (e) { /* */ } }
+      const G = globalThis.__FIG; if (!A.ease && A.t > A.camT && G && typeof G.probe === 'function') { try { const r = G.probe(q[0], q[4], q[1], { x: focus[0], y: focus[1], z: focus[2] }, 1.1);   /* (round 8: at the tallest a man is drawn — actors.js's 0.92–1.08 × life — as the gate's own reading of him) */ return !!(r && r.on && !r.cut && !r.between); } catch (e) { /* */ } }
       const v = cornerView(A.ease ? A.ease.b : A.th); return fig([v.eye, v.aim], SA.FOV, cam0.aspect || 1.6, q[0], q[4], q[1], focus, SA.EDGE) === 'whole';
     };
     /** the pair P slid along its face (al) until both stand whole: the nearest such place, or P itself */
@@ -279,15 +279,17 @@ export const STRIP_ACT = {
       settle();
       // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
       { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
-      // (the two men in the film's picture: on the court beyond the east wall where it lies, by its middle — both of the film's shots,
-      //  from the south-east and the north-east, have them whole (review P8: off the south-east corner they were under the frame's edge) —
-      //  standing, rope and staff in hand, toward the block)
-      [[B[2] + H + 2.2, MID[1] - 1.6, 'rope'], [B[2] + H + 2.2, MID[1] + 1.6, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
-      // (far enough that the whole block, the four walls lying round it and the men stand in the frame: at 40 amot the top alone filled it)
+      // (review P8, round 8: no men in the film — settle() above has laid the timber on the pile and cleared the gang, the pullers
+      //  with it (the probes' log: both null in the film), and the spec's 'what stays in the world' at the strip's end (shlav-09 line 218)
+      //  asks for the white block and the four walls lying where they fell, no men: the film shows that alone)
+      // (the probes' log: where the film's two men are, whether they live and are drawn, and where on the screen — review P8)
+      globalThis.__H132_FILMMEN = () => men.map((w) => { if (!w || !w.a) return null; const a = w.a, s = X.scr(a.x, (a.y || 0) + 1.8, a.z); return { x: r2(a.x), y: r2(a.y), fy: r2(a.fixedY), z: r2(a.z), vis: r2(a.vis), visT: a.visT, alive: !!a.alive, gateOff: !!a.gateOff, scr: [Math.round(s.x), Math.round(s.y), s.on === false ? 0 : 1] }; });
+      ev('film:men ' + men.map((w) => (w && w.a ? 'up' : 'none')).join(','));
+      // (far enough that the whole block and the four walls lying round it stand in the frame: at 40 amot the top alone filled it)
       const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
         return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
-        film: { shots: sh, secs: 4, kohen: false, own: () => men.map((w) => w && w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
+        film: { shots: sh, secs: 4, kohen: false, own: () => [], after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }
     /** the site cleared for the line: four men carry the north wall on their shoulders to the timber pile (a short shot), and with a
      *  cut every board of the form — the four walls, the braces, the belts, the wedge — lies stacked there; the white block alone */
@@ -404,6 +406,8 @@ export const STRIP_ACT = {
       holds() { return A.fl != null; },
       // (the director's look, turned all the way round in this act, and settled on a corner when let go)
       lookYaw: Math.PI,
+      // (the lens the act keeps at home: the figures gate judges its pullers at it — round 8)
+      lensFov: SA.FOV,
       lookEnd,
       end() {
         FG.detach(); V.stop(); X.hand(null); lens(fov0);

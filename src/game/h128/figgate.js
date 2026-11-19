@@ -71,9 +71,9 @@ export function createFigGate(o) {
     }
     return null;
   }
-  function probe(x, y, z, focus) {
+  function probe(x, y, z, focus, s = 1) {   // ── h132 ── (s: the figure's scale, as run() reads a.s / 1.1 — a caller may ask at the tallest) ── /h132 ──
     const r = { on: false, cut: false, between: false };
-    for (const u of [0, U2]) { const P = o.pose ? o.pose(u) : null; if (!P) continue; setCam(P); const b = box(x, y, z, 1); if (b) { r.on = r.on || b.on; r.cut = r.cut || b.cut; r.between = r.between || blocks(b, focusOf(focus)); } }
+    for (const u of [0, U2]) { const P = o.pose ? o.pose(u) : null; if (!P) continue; setCam(P); const b = box(x, y, z, s); if (b) { r.on = r.on || b.on; r.cut = r.cut || b.cut; r.between = r.between || blocks(b, focusOf(focus)); } }
     return r;
   }
   function run(focus) {

@@ -190,9 +190,12 @@ function keeps(X, Mt, D, done) {
     const wedge = new Tt.CylinderGeometry(0.42, 0.42, 1.3, 3); wedge.rotateZ(Math.PI / 2);   // (a three-sided log: a wedge lying)
     const basket = new Tt.CylinderGeometry(0.62, 0.46, 0.75, 10); basket.translate(0, 0.375, 0);
     const stone = new Tt.DodecahedronGeometry(0.2, 0);
-    const bowl = new Tt.SphereGeometry(0.5, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2); bowl.translate(0, 0.5, 0);
-    const paint = new Tt.CircleGeometry(0.4, 14); paint.rotateX(-Math.PI / 2); paint.translate(0, 0.32, 0);
-    SH9.kgeo = { wedge, basket, stone, bowl, paint };
+    // (round 8: a shallow clay dish — a foot, a low wall and a flat rim, turned on a wheel (lathe) — and the red only in its well: from
+    //  above a ring of clay round a small red pool, not a red ball)
+    const bowl = new Tt.LatheGeometry([[0, 0], [0.2, 0], [0.22, 0.03], [0.34, 0.12], [0.42, 0.19], [0.45, 0.22], [0.37, 0.23], [0.31, 0.16], [0.19, 0.09], [0, 0.08]].map(([r, h]) => new Tt.Vector2(r, h)), 16);
+    const paint = new Tt.CircleGeometry(0.21, 14); paint.rotateX(-Math.PI / 2); paint.translate(0, 0.095, 0);
+    const mat = new Tt.BoxGeometry(1.25, 0.06, 3.3); mat.translate(0, 0.03, 0);
+    SH9.kgeo = { wedge, basket, stone, bowl, paint, mat };
     const std = (c, o = {}) => new Tt.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true, ...o });
     SH9.kmat = { wicker: std('#8C6A3C', { roughness: 0.95 }), clay: std('#A8673E', { roughness: 0.8, side: Tt.DoubleSide }) };
   }
@@ -209,8 +212,9 @@ function keeps(X, Mt, D, done) {
     for (const s of [-0.35, 0.35]) { const b = box(X, Mt.y9woodD, x - L, yy + 0.12, z + s - 0.3, x + L, yy + 0.57, z + s + 0.3, D); b.name = 'h132-keep-strip'; }
     for (const e of [-L + 0.4, L - 0.4]) { const b = box(X, Mt.y9wood, x + e - 0.12, yy, z - 0.75, x + e + 0.12, yy + 0.12, z + 0.75, D); b.name = 'h132-keep-strip'; }
   }
-  // sikra: a bowl with the red in it per level, in a row going south
-  for (let i = 0, n = keepCount(done, 'sikra'); i < n; i++) { const [x, z] = K.sikra; put(G.bowl, KM.clay, x, y, z + i * 1.25, 0, 'h132-keep-sikra'); put(G.paint, Mt.y9red, x, y, z + i * 1.25, 0, 'h132-keep-sikra'); }
+  // sikra: a reed mat by the station, and on it a clay dish with the red in it per level, in a row going south (no red on the pavement)
+  const ns = keepCount(done, 'sikra');
+  if (ns) { const [x, z] = K.sikra; put(G.mat, KM.wicker, x, y, z + 1.05, 0, 'h132-keep-sikra'); for (let i = 0; i < ns; i++) { put(G.bowl, KM.clay, x, y + 0.06, z + i * 1.05, 0, 'h132-keep-sikra'); put(G.paint, Mt.y9red, x, y + 0.06, z + i * 1.05, 0, 'h132-keep-sikra'); } }
 }
 function pileWood(X, Mt, D) {
   const [x, z] = S9.pile; let y = F;

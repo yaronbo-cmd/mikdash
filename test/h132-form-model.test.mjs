@@ -165,3 +165,13 @@ test('a locked wall cannot be taken; one thumb at a time; shown() is the wall\'s
   assert.ok(grab(S, 'N')); assert.equal(canGrab(S, 'S'), false); release(S); assert.ok(canGrab(S, 'S'));
   S.W.N.a = 40; S.W.N.swayA = 2; S.W.N.swayP = Math.PI / 2; assert.equal(shown(S, 'N'), 42);
 });
+
+test('review R6: over the last 15° the wall slows like a weight — its lag grows — and still rests where the thumb\'s travel says', () => {
+  const S = fresh(2); stakes(S); S.free = 0;
+  assert.ok(grab(S, 'E')); const n = Math.round(0.3 / DT); for (let i = 0; i < n; i++) { push(S, 90 / n); step(S, DT); } release(S);
+  let maxLag = 0, t = 0; const at = []; while (S.W.E.st === 'up' && t < 8) { step(S, DT); t += DT; maxLag = Math.max(maxLag, S.W.E.lag || 0); at.push(S.W.E.a); }
+  assert.ok(maxLag > FK.LAG * 1.5, 'the lag grows near upright: ' + maxLag);
+  assert.equal(S.W.E.st, 'lock'); assert.ok(Math.abs(S.W.E.a - 90) < 0.5, String(S.W.E.a));
+  // (it slows as it nears upright: each tenth of a second covers less than the one before, once past 75°)
+  const k = at.findIndex((a) => a > 75), d = (i) => at[i + 6] - at[i]; if (k >= 0 && k + 18 < at.length) assert.ok(d(k + 6) < d(k), 'slowing');
+});

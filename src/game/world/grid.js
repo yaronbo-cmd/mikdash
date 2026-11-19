@@ -1301,6 +1301,9 @@ function s09() {
     // the cameras ([eye x, y, z], [aim x, y, z]); the end: a round over the middle
     cam: {
       w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[mid[0] + 1, 47, 35], [mid[0] + 1, 17, -17]],   // (work 2, build 132 round 5 — spec line 92 "מבט מלמעלה באלכסון … על הרמפה יש תמיד שלוש מזחלות גלויות, ושוורים מושכים אותן": from the south, 30° down, the whole block near, the ramp and its three sleds over its far edge, the oxen and their two drivers whole beyond; a man on the fill about a seventh of the frame's height more than before. Before: the block's top two thirds of the frame's width, the ramp's head and its sleds at the right edge, the oxen and their drivers wholly out)
+      // (review P4) the fill's closing film: low from the south-east, the block's south and east faces and its filled top together (from
+      // the work's own high shot the full form read as a brown top alone)
+      w2after: [[-16, 36, 41.5], [mid[0], 20.5, mid[1]]],
       w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
       // (lane B, build 132) the measuring shot at each corner: the aim 2 amot in from the corner, 1.5 under the line; the west corners

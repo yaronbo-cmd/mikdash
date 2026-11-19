@@ -202,10 +202,12 @@ function keeps(X, Mt, D, done) {
   for (let i = 0, n = keepCount(done, 'form'); i < n; i++) { const [x, z] = K.form; for (let j = 0; j < 3; j++) put(G.wedge, Mt.y9wood, x + i * 1.2, y + 0.21 + j * 0.36, z + (j - 1) * 0.15 * (j % 2 ? -1 : 1), j % 2 ? Math.PI : 0, 'h132-keep-form'); }
   // fill: a basket of stones per level, in a row going east
   for (let i = 0, n = keepCount(done, 'fill'); i < n; i++) { const [x, z] = K.fill, bx = x + i * 1.5; put(G.basket, KM.wicker, bx, y, z, 0, 'h132-keep-fill'); for (let j = 0; j < 4; j++) put(G.stone, Mt.y9nest, bx + Math.cos(j * 1.7) * 0.28, y + 0.78 + (j === 3 ? 0.12 : 0), z + Math.sin(j * 1.7) * 0.28, j, 'h132-keep-fill'); }
-  // strip: a layer of two belts per level, each layer across the one under it
+  // strip: a layer of two belts per level, laid the same way on the one under it and a little shorter (crossed, from above they drew a
+  //  sign: "#"), a short batten under each end
   for (let i = 0, n = keepCount(done, 'strip'); i < n; i++) {
-    const [x, z] = K.strip, yy = y + i * 0.45;
-    for (const s of [-0.7, 0.7]) { const b = i % 2 ? box(X, Mt.y9woodD, x + s - 0.25, yy, z - 2, x + s + 0.25, yy + 0.45, z + 2, D) : box(X, Mt.y9woodD, x - 2, yy, z + s - 0.25, x + 2, yy + 0.45, z + s + 0.25, D); b.name = 'h132-keep-strip'; }
+    const [x, z] = K.strip, yy = y + i * 0.6, L = 2 - i * 0.25;
+    for (const s of [-0.35, 0.35]) { const b = box(X, Mt.y9woodD, x - L, yy + 0.12, z + s - 0.3, x + L, yy + 0.57, z + s + 0.3, D); b.name = 'h132-keep-strip'; }
+    for (const e of [-L + 0.4, L - 0.4]) { const b = box(X, Mt.y9wood, x + e - 0.12, yy, z - 0.75, x + e + 0.12, yy + 0.12, z + 0.75, D); b.name = 'h132-keep-strip'; }
   }
   // sikra: a bowl with the red in it per level, in a row going south
   for (let i = 0, n = keepCount(done, 'sikra'); i < n; i++) { const [x, z] = K.sikra; put(G.bowl, KM.clay, x, y, z + i * 1.25, 0, 'h132-keep-sikra'); put(G.paint, Mt.y9red, x, y, z + i * 1.25, 0, 'h132-keep-sikra'); }

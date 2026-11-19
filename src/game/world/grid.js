@@ -1295,6 +1295,9 @@ function s09() {
     // wedges, the fill's baskets, the strip's belts, the line's bowls; beside the station, off the block's side, the lying walls, the
     // ramp, the oxen's lane and the pile
     keep: { form: [-13, -21.5], fill: [-29, -40], strip: [-19, 21], sikra: [-16, 6] },
+    // (build 132, review P9) where the kohen stands when the opening ends: on the court east of the block, facing its middle, 15 amot
+    // and more from every station — the follow camera behind him sees the block and the court, not a board or a wall up close
+    start: [-7, -3.5],
     // the cameras ([eye x, y, z], [aim x, y, z]); the end: a round over the middle
     cam: {
       w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[mid[0] + 1, 47, 35], [mid[0] + 1, 17, -17]],   // (work 2, build 132 round 5 — spec line 92 "מבט מלמעלה באלכסון … על הרמפה יש תמיד שלוש מזחלות גלויות, ושוורים מושכים אותן": from the south, 30° down, the whole block near, the ramp and its three sleds over its far edge, the oxen and their two drivers whole beyond; a man on the fill about a seventh of the frame's height more than before. Before: the block's top two thirds of the frame's width, the ramp's head and its sleds at the right edge, the oxen and their drivers wholly out)
@@ -1363,6 +1366,7 @@ function s09() {
   const KP = { form: 'ערמת הטריזים בתחנה של עבודה 1: ערמה לכל רמה שנגמרה', fill: 'סלי האבנים בתחנה של עבודה 2: סל לכל רמה שנגמרה',
     strip: 'קורות החגורה המסודרות בתחנה של עבודה 3: שכבה לכל רמה שנגמרה', sikra: 'קערות הסיקרא בתחנה של עבודה 4: קערה לכל רמה שנגמרה' };
   for (const k of ['form', 'fill', 'strip', 'sikra']) e3('keep:' + k, 'keep', S09.keep[k], C.floor, KP[k], ILL);
+  e3('stand:start', 'stand', S09.start, C.floor, 'הכהן בסוף הפתיחה: ממזרח לגוש, פניו אל אמצעו', ILL);
   return { stage: 9, name: 'הסובב וחוט הסיקרא', bounds: { x0: -62, x1: -4, z0: -50, z1: 22 }, ...S09, entries: E };
 }
 // ── /h132 ──

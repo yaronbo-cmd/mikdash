@@ -1305,6 +1305,9 @@ function s09() {
       // the work's own high shot the full form read as a brown top alone)
       w2after: [[-16, 36, 41.5], [mid[0], 20.5, mid[1]]],
       w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
+      // (review P9, round 8) the opening's last picture: behind the kohen where he stands (stand:start), east of him and above, the block
+      //  ahead of him — the follow camera takes him from here whole (from cam:w1 its ease had him under the frame's foot)
+      start: [[9, 30, 0], [-14, 17.5, -3.5]],
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
       // (lane B, build 132) the measuring shot at each corner: the aim 2 amot in from the corner, 1.5 under the line; the west corners
       // seen from the north and the south (the Ulam's steps are west of the block); SE's eye is w4measure's

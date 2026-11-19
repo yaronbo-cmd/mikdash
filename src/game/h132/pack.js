@@ -87,6 +87,8 @@ export function makePack09(env = {}) {
         // (review P9: he stands where the book says, east of the block and facing it — the follow camera behind him; where stage 08 left
         //  him it looked into a board or a wall)
         if (!acting()) { try { X.stages.hero.place({ x: S9.start[0], z: S9.start[1], face: S9.mid.slice() }); } catch (e) { /* */ } }
+        // (round 8, P9: then the picture behind him, the block ahead — the follow camera goes on from there with him whole)
+        if (!acting() && S9.cam.start) { X.shot(S9.cam.start[0].slice(), S9.cam.start[1].slice(), 1.2); await tapOr(X, 1500); }
         near(X, false);
       })();
     },

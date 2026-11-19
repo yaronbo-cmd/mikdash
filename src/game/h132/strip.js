@@ -279,9 +279,10 @@ export const STRIP_ACT = {
       settle();
       // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
       { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
-      // (the two men in the film's picture: off the south-east corner, between the east and the south walls where they lie — no board
-      //  there — standing, rope and staff in hand, toward the block)
-      [[B[2] + 2.4, B[3] + 2.6, 'rope'], [B[2] + 4.2, B[3] + 1.2, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
+      // (the two men in the film's picture: on the court beyond the east wall where it lies, by its middle — both of the film's shots,
+      //  from the south-east and the north-east, have them whole (review P8: off the south-east corner they were under the frame's edge) —
+      //  standing, rope and staff in hand, toward the block)
+      [[B[2] + H + 2.2, MID[1] - 1.6, 'rope'], [B[2] + H + 2.2, MID[1] + 1.6, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
       // (far enough that the whole block, the four walls lying round it and the men stand in the frame: at 40 amot the top alone filled it)
       const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
         return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)

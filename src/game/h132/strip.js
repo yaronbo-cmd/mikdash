@@ -141,9 +141,9 @@ export const STRIP_ACT = {
       if (A.done) return; workP = 'idle'; A.idleT = 0; const P = idleOf();
       for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = 'brace'; w.item = 'rope'; w.until = 0; if (jump && w.a) { w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; } }
     }
-    function sendMen(p, role) {
+    function sendMen(p, role, jump) {
       workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? fitPair(placeOf(p), [-1, 0]) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
-      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + 1.6; }
+      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + (jump ? 2.6 : 1.6); if (jump && w.a) { w.hop = 0; w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; w.a.vis = w.a.visT = 1; } }
     }
     function moveMen(dt) {
       for (const w of men) {
@@ -200,7 +200,8 @@ export const STRIP_ACT = {
       return co > SA.COS ? 'pull' : null;
     }
     const FG = fingers(X, {
-      down(f) { if (A.fl != null) return; const p = pick(f); if (!p) return; A.fl = f.id; f.w = { p, t0: A.t }; X.hand(null); },
+      // (the pair at the part his finger took, rope or staff in hand, before it moves: the pull is theirs — not the pointer's alone)
+      down(f) { if (A.fl != null) return; const p = pick(f); if (!p) return; A.fl = f.id; f.w = { p, t0: A.t }; X.hand(null); try { if (workP !== p) sendMen(p, null, true); } catch (e) { ev('err:men:' + (e && e.message)); } },
       move(f) {
         const w = f.w; if (!w || A.fl !== f.id || w.did) return;
         if (f.moved < SA.PULL) return;

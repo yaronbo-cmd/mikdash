@@ -155,11 +155,21 @@ function sync(X, M) {
       const n = k === 'N' ? [0, -1] : k === 'S' ? [0, 1] : k === 'E' ? [1, 0] : [-1, 0], e = 0.06;
       const m = box(X, mat, Math.min(x - Math.abs(ux) * w / 2, x + n[0] * e), y0, Math.min(z - Math.abs(uz) * w / 2, z + n[1] * e), Math.max(x + Math.abs(ux) * w / 2, x + n[0] * e), y1, Math.max(z + Math.abs(uz) * w / 2, z + n[1] * e), D); m.name = 'h132-' + nm; return m;
     };
-    has('fill.bulge').forEach((b) => face(b.wall || 'N', S9.side / 2, Y0 + 1.2, Y1 - 1.2, 5, Mt.y9scar, 'bulgemark'));
-    has('fill.nest').forEach((b, i) => { const z = b.zone || 'NE', k = z === 'NE' ? 'E' : z === 'NW' ? 'N' : z === 'SW' ? 'W' : 'S'; face(k, 26 - i * 0.4, Y0 + 0.4, Y0 + 1.6, 1.6, Mt.y9nest, 'nest'); });
+    // (spec line 286: "משטח מחוספס באורך אמה בערך" — a rough, broken patch about one amah long in the block's own white: small lumps and
+    //  hollows out of the face, their shading the roughness; fixed, no chance)
+    const rough = (k, a, yc, nm) => {
+      const g = []; for (let i = 0; i < 9; i++) {
+        const du = ((i * 0.618) % 1 - 0.5) * 1.0, dy = ((i * 0.381 + 0.2) % 1 - 0.5) * 0.9, w = 0.18 + ((i * 0.27) % 1) * 0.26, out = i % 3 === 2 ? 0.02 : 0.05 + ((i * 0.41) % 1) * 0.12;
+        const m = face(k, a + du, yc + dy - w / 2, yc + dy + w / 2, w, i % 4 === 3 ? Mt.y9scar : Mt.y9white, nm);
+        const n = k === 'N' ? [0, -1] : k === 'S' ? [0, 1] : k === 'E' ? [1, 0] : [-1, 0], d = 0.1 + out;   /* (a lump d deep, its middle 0.07 out of the face: partly sunk into it, partly standing out) */ if (n[0]) { m.scale.x = d; m.position.x += n[0] * 0.04; } else { m.scale.z = d; m.position.z += n[1] * 0.04; } m.rotation.y = (i - 4) * 0.07; g.push(m);
+      }
+      return g;
+    };
+    has('fill.bulge').forEach((b) => rough(b.wall || 'N', S9.side / 2, (Y0 + Y1) / 2, 'bulgemark'));
+    has('fill.nest').forEach((b, i) => { const z = b.zone || 'NE', k = z === 'NE' ? 'E' : z === 'NW' ? 'N' : z === 'SW' ? 'W' : 'S'; rough(k, 26 - i * 0.4, Y0 + 1, 'nest'); });
     has('fill.dent').forEach(() => { box(X, Mt.y9nest, S9.mid[0] - 1, Y1 - 0.25, S9.mid[1] - 1, S9.mid[0] + 1, Y1 + 0.005, S9.mid[1] + 1, D).name = 'h132-dent'; });
     has('strip.torn').forEach((b, i) => { const k = ['SE', 'NE', 'NW', 'SW'][i % 4], [x, z] = b.at && Array.isArray(b.at) ? b.at : S9.corner[k], sx = x > S9.mid[0] ? -1 : 1, sz = z > S9.mid[1] ? -1 : 1; box(X, Mt.y9scar, Math.min(x, x + sx * 0.9), Y0 + 1.5, Math.min(z, z + sz * 0.9), Math.max(x, x + sx * 0.9), Y1 - 0.4, Math.max(z, z + sz * 0.9), D).name = 'h132-torn'; });
-    has('strip.patch').forEach(() => face('S', S9.side / 2, Y0 + 1.6, Y0 + 3.2, 2.2, Mt.y9scar, 'tornpatch'));
+    has('strip.patch').forEach(() => rough('S', S9.side / 2, Y0 + 2.4, 'tornpatch'));
   }
   // the strip's timber on the pile (bare and later, and the strip's closing film): the two sills at the bottom, the four braces on them,
   // the four belts across, the wedge on top — nothing of the form left round the block (lane A lays the four walls in their stack beside it)

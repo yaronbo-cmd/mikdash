@@ -107,7 +107,7 @@ export function smats(X) {
     blot: std('#8A1710', { roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -4 }),
     seam: std('#3A0806', { polygonOffset: true, polygonOffsetFactor: -5 }),
     flash: new T.MeshBasicMaterial({ color: '#FF3A22', transparent: true, opacity: 0, depthWrite: false }),
-    rough: std('#B5AD9C', { roughness: 1 }),
+    rough: std('#EEEAE1', { roughness: 1 }), roughD: std('#C9C2B4', { roughness: 1 }),   // (the block's own white, and its chipped shade)
     stake: std('#6B4728'), rod: std('#9C7046'), notch: std('#2E1E10'),
   };
   P0.M.y9sk = M; return M;
@@ -151,16 +151,33 @@ export function makeRibbon(X, parent, maxS) {
 /* ───────── the line's marks (shared geometry; one small mesh a mark, made when the mark happens) ───────── */
 export function makeMarks(X, parent) {
   const T = X.THREE, M = smats(X);
-  const G = { drip: new T.BoxGeometry(0.07, 1, 0.03), pink: new T.BoxGeometry(0.16, 0.42, 0.02), blot: new T.CircleGeometry(0.26, 12), smear: new T.BoxGeometry(1.7, 0.42, 0.02), seam: new T.BoxGeometry(0.08, 0.2, 0.03) };
+  const G = { drip: new T.BoxGeometry(0.07, 1, 0.03), pink: new T.BoxGeometry(0.16, 0.42, 0.02), blot: new T.CircleGeometry(0.26, 12), smear: new T.BoxGeometry(1.7, 0.42, 0.02), seam: new T.BoxGeometry(0.08, 0.2, 0.03), lump: new T.BoxGeometry(1, 1, 1) };
+  const PAINT = [0.9, 0.6, 0.35].map((o) => new T.MeshStandardMaterial({ color: '#A3221A', roughness: 0.5, transparent: true, opacity: o, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4 }));
+  // (the smear's strokes: [x along the face, x scale, y scale, paint 0..2])
+  const SMR = [[-0.55, 1.1, 0.75, 0], [-0.2, 1.5, 0.6, 0], [0.2, 1.6, 0.45, 1], [0.55, 1.4, 0.32, 1], [0.85, 1.1, 0.22, 2]];
   const place = (m, s, dy = 0, out = VK.OUT + 0.012) => { const f = faceAt(s); m.position.set(f.x + f.n[0] * out, LY + dy, f.z + f.n[1] * out); m.rotation.y = Math.atan2(f.n[0], f.n[1]); parent.add(m); return m; };
   return {
     drip(s) { const m = new T.Mesh(G.drip, M.drip); m.scale.y = 0.05; place(m, s, -0.08); m.userData.s = s; return m; },
     grow(m, u) { const L = 0.15 + 0.5 * u; m.scale.y = L; m.position.y = LY - 0.06 - L / 2; },
     pink(s) { return place(new T.Mesh(G.pink, M.pink), s, -0.32); },
     blot(s, off = 0) { return place(new T.Mesh(G.blot, M.blot), s + off, 0); },
-    smear(s) { return place(new T.Mesh(G.smear, M.blot), s, 0); },
+    // (a smear of the paint itself: a wiped streak of the line's red, thick where the cloth met the plaster, thinning as it was dragged)
+    smear(s) {
+      const g = new T.Group(); SMR.forEach(([x, sx, sy, k]) => { const m = new T.Mesh(G.blot, PAINT[k]); m.position.x = x; m.scale.set(sx, sy, 1); g.add(m); });
+      return place(g, s, 0);
+    },
     seam(s) { return place(new T.Mesh(G.seam, M.seam), s, 0, VK.OUT + 0.02); },
-    rough(s0, s1) { const m = new T.Mesh(new T.BoxGeometry(Math.max(0.6, s1 - s0), 0.7, 0.05), M.rough); return place(m, (s0 + s1) / 2, 0, 0.02); },
+    // (spec line 286: "משטח מחוספס באורך אמה בערך" — a rough, broken patch about one amah long in the block's own white: lumps and chips
+    //  standing out of the face, their shading the roughness)
+    rough(s0, s1) {
+      const g = new T.Group(), L = Math.max(0.9, Math.min(1.2, s1 - s0));
+      for (let i = 0; i < 11; i++) {
+        const w = 0.14 + ((i * 0.27) % 1) * 0.22, m = new T.Mesh(G.lump, i % 4 === 3 ? M.roughD : M.rough);
+        m.scale.set(w, w * (0.7 + ((i * 0.53) % 1) * 0.6), 0.06 + ((i * 0.41) % 1) * 0.1);
+        m.position.set(((i * 0.618) % 1 - 0.5) * L, ((i * 0.381 + 0.2) % 1 - 0.5) * 0.7, 0.02); m.rotation.z = (i - 5) * 0.3; g.add(m);
+      }
+      return place(g, (s0 + s1) / 2, 0, 0.02);
+    },
   };
 }
 

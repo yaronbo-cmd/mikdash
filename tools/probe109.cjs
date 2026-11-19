@@ -171,6 +171,6 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
   console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));
   if (notes.length) console.log('page notes:\n' + notes.slice(0, 30).join('\n'));   // ── h132 ── ── /h132 ──
-  console.log(errs.length ? 'ERRORS:\n' + errs.slice(0, 30).join('\n') : 'no errors');
+  console.log(errs.length ? 'ERRORS (' + errs.length + '):\n' + errs.slice(0, 30).join('\n') : 'no errors');   // ── h132 ── (the count: the PC summary's errors line) ── /h132 ──
   await b.close();
 })().catch((e) => { console.error('probe failed', e); process.exit(1); });

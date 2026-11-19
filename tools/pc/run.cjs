@@ -19,12 +19,15 @@ function exe() {
   for (const d of dirs) { const p = path.join(base, d, 'chrome-headless-shell-win64', 'chrome-headless-shell.exe'); if (fs.existsSync(p)) return p; }
   return null;
 }
-const KEEP = /STUCK|bot RES|bot done|\bend \S+ stars|^\[\d+s\] loss |no errors|PAGEERR|PAGE CRASHED|TimeoutError|renderer|wall |MODAL|EVALERR|console error/;
+const KEEP = /WORK |VISIT WRONG|VISIT END|VISITS DONE|ERRORS|STUCK|bot RES|bot done|\bend \S+ stars|^\[\d+s\] loss |no errors|PAGEERR|PAGE CRASHED|TimeoutError|renderer|wall |MODAL|EVALERR|console error/;
 function digest(name) {
   let txt = ''; try { txt = fs.readFileSync(path.join(OUT, name + '.log'), 'utf8'); } catch (e) { return ['  (no log)']; }
   const L = txt.split(/\r?\n/), keep = L.filter((l) => KEEP.test(l)).map((l) => '  ' + l.slice(0, 700));
   let shots = 0; try { shots = fs.readdirSync(path.join(OUT, name)).filter((f) => f.endsWith('.png')).length; } catch (e) { /* */ }
-  return [...keep.slice(0, 120), `  stills: ${shots} · log lines: ${L.length} · last line: ${(L.filter(Boolean).pop() || '').slice(0, 200)}`];
+  // (build 132) one line per work (the script's closing WORK lines: id, stars, points, flags, the figures' reads and reports) and the errors' count
+  const works = L.filter((l) => /(^|eval )WORK /.test(l)).map((l) => '  ' + l.replace(/^\[\d+s\] eval /, '').slice(0, 700));
+  const em = txt.match(/ERRORS \((\d+)\)/), errN = em ? +em[1] : /\bno errors\b/.test(txt) ? 0 : '? (the probe did not reach its end)';
+  return [...keep.filter((l) => !/(^|eval )WORK /.test(l.trim())).slice(0, 120), '  -- works --', ...(works.length ? works : ['  (no WORK lines)']), `  errors: ${errN}`, `  stills: ${shots} · log lines: ${L.length} · last line: ${(L.filter(Boolean).pop() || '').slice(0, 200)}`];
 }
 /** the job's stills on contact sheets: a local page of 16 of them (4 columns, the file name under each), its screenshot a jpeg →
  *  <dir>/sheet-NN.jpg; returns the sheets' paths (relative to out/pc's parent). Playwright is the probe's own: no new package */

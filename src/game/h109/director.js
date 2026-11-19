@@ -1048,7 +1048,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     CAM.on = false; phase = 'off'; started = false;
     if (quietOn) { quietOn = false; try { document.body.classList.remove('h109-quiet', 'h109-film'); } catch (e) { /* */ } }   // (the gold ring stays off under the stage's cards: card.js)   // ── b131 ── ── /b131 ──
     const g = document.querySelector('.gm'); if (g) g.classList.remove('h109-own');
-    try { if (S0.pinsOff) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ──
+    try { if (S0.pinsOff && !PK.visits) S0.pinsOff(false); } catch (e) { /* */ }   // ── h117 ── ── /h117 ── ── h132 ── (round 8: a pack whose world goes on in visits keeps the site pins off — the next stage's pin over the block drew its light column, a gold streak, across the end card and the court) ── /h132 ──
     resFor(false);   // ── h117 ── ── /h117 ──
     UI.rot && UI.rot.classList.remove('want');
     if (o.onDone) { try { await o.onDone(M.st); } catch (e) { console.warn('[h109] onDone', e && e.message); } }

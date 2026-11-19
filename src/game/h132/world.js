@@ -179,7 +179,36 @@ function sync(X, M) {
     box(X, Mt.y9red, B[0] - e, y - h, B[1] - e, B[2] + e, y + h, B[1], D); box(X, Mt.y9red, B[0] - e, y - h, B[3], B[2] + e, y + h, B[3] + e, D);
     box(X, Mt.y9red, B[0] - e, y - h, B[1], B[0], y + h, B[3], D); box(X, Mt.y9red, B[2], y - h, B[1], B[2] + e, y + h, B[3], D);
   }
-  void Tt;
+  keeps(X, Mt, D, st.done || []);
+}
+/** (review R8) what stays at each station: one more of the work's own things for each of its levels in the save's done list (form1..3 →
+ *  stacks of wedges, fill → baskets of stones, strip → layers of belts, sikra → bowls with the red in them); nothing written, no sign */
+export function keepCount(done, k) { return [1, 2, 3].filter((lv) => done.includes(k + lv)).length; }
+function keeps(X, Mt, D, done) {
+  const Tt = X.THREE, K = S9.keep, y = F;
+  if (!SH9.kgeo) {
+    const wedge = new Tt.CylinderGeometry(0.42, 0.42, 1.3, 3); wedge.rotateZ(Math.PI / 2);   // (a three-sided log: a wedge lying)
+    const basket = new Tt.CylinderGeometry(0.62, 0.46, 0.75, 10); basket.translate(0, 0.375, 0);
+    const stone = new Tt.DodecahedronGeometry(0.2, 0);
+    const bowl = new Tt.SphereGeometry(0.5, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2); bowl.translate(0, 0.5, 0);
+    const paint = new Tt.CircleGeometry(0.4, 14); paint.rotateX(-Math.PI / 2); paint.translate(0, 0.32, 0);
+    SH9.kgeo = { wedge, basket, stone, bowl, paint };
+    const std = (c, o = {}) => new Tt.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true, ...o });
+    SH9.kmat = { wicker: std('#8C6A3C', { roughness: 0.95 }), clay: std('#A8673E', { roughness: 0.8, side: Tt.DoubleSide }) };
+  }
+  const G = SH9.kgeo, KM = SH9.kmat;
+  const put = (geo, mat, x, yy, z, ry = 0, nm = 'h132-keep') => { const m = new Tt.Mesh(geo, mat); m.position.set(x, yy, z); m.rotation.y = ry; m.castShadow = m.receiveShadow = true; m.name = nm; D.add(m); return m; };
+  // form: a stack of three wedges per level, side by side going east
+  for (let i = 0, n = keepCount(done, 'form'); i < n; i++) { const [x, z] = K.form; for (let j = 0; j < 3; j++) put(G.wedge, Mt.y9wood, x + i * 1.2, y + 0.21 + j * 0.36, z + (j - 1) * 0.15 * (j % 2 ? -1 : 1), j % 2 ? Math.PI : 0, 'h132-keep-form'); }
+  // fill: a basket of stones per level, in a row going east
+  for (let i = 0, n = keepCount(done, 'fill'); i < n; i++) { const [x, z] = K.fill, bx = x + i * 1.5; put(G.basket, KM.wicker, bx, y, z, 0, 'h132-keep-fill'); for (let j = 0; j < 4; j++) put(G.stone, Mt.y9nest, bx + Math.cos(j * 1.7) * 0.28, y + 0.78 + (j === 3 ? 0.12 : 0), z + Math.sin(j * 1.7) * 0.28, j, 'h132-keep-fill'); }
+  // strip: a layer of two belts per level, each layer across the one under it
+  for (let i = 0, n = keepCount(done, 'strip'); i < n; i++) {
+    const [x, z] = K.strip, yy = y + i * 0.45;
+    for (const s of [-0.7, 0.7]) { const b = i % 2 ? box(X, Mt.y9woodD, x + s - 0.25, yy, z - 2, x + s + 0.25, yy + 0.45, z + 2, D) : box(X, Mt.y9woodD, x - 2, yy, z + s - 0.25, x + 2, yy + 0.45, z + s + 0.25, D); b.name = 'h132-keep-strip'; }
+  }
+  // sikra: a bowl with the red in it per level, in a row going south
+  for (let i = 0, n = keepCount(done, 'sikra'); i < n; i++) { const [x, z] = K.sikra; put(G.bowl, KM.clay, x, y, z + i * 1.25, 0, 'h132-keep-sikra'); put(G.paint, Mt.y9red, x, y, z + i * 1.25, 0, 'h132-keep-sikra'); }
 }
 function pileWood(X, Mt, D) {
   const [x, z] = S9.pile; let y = F;

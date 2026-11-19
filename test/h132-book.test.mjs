@@ -29,6 +29,7 @@ const CELLS = {
   'sikra:rod': 'יב־8', 'sikra:stake:NE': 'יג־7', 'sikra:stake:SE': 'יג־8', 'sikra:stake:SW': 'יד־8', 'sikra:stake:NW': 'יד־7',
   'sikra:start': 'יג־8', 'sikra:bowl': 'יב־8', 'sikra:path:W': 'יד־8', 'sikra:rough': 'יד־8',
   'stand:w1': 'יב־7', 'stand:w2': 'יג־6', 'stand:w3': 'יב־9', 'stand:w4': 'יב־8',
+  'keep:form': 'יב־7', 'keep:fill': 'יג־6', 'keep:strip': 'יב־9', 'keep:sikra': 'יב־8',
 };
 
 test('book s09: every key of the spec\'s table is there, frozen, in the spec\'s own cell', () => {

@@ -117,7 +117,7 @@ export function endingFx(X) {
       const a = (j / b.n) * Math.PI * 2 + rnd() * 0.05, ring = j % 3 === 0 ? 0.62 : 1, v = (0.85 + rnd() * 0.3) * ring * b.r * S * 1.9;
       sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 1.3 + rnd() * 0.5, col: ring < 1 ? b.col2 : b.col, tw: rnd() < 0.3 });
     }
-    flash = Math.max(flash, b.big ? 0.32 : 0.18);
+    flash = Math.max(flash, b.big ? 0.16 : 0.08);
   }
   function fireStep(dt, ft, on) {
     if (!cv) return;
@@ -128,30 +128,31 @@ export function endingFx(X) {
     cx.globalCompositeOperation = 'source-over';
     // (the sky dimmed behind them while they burst: a night's blue from the top, gone below the middle)
     const dim = on || sparks.length ? Math.min(1, ft / 0.3) * (on ? 1 : Math.max(0, 1 - (ft - (ENDING.FIRE[1] - ENDING.FIRE[0])) / 0.8)) : 0;
-    if (dim > 0) { const G = cx.createLinearGradient(0, 0, 0, H * 0.7); G.addColorStop(0, `rgba(10,14,40,${0.1 * dim})`); G.addColorStop(1, 'rgba(10,14,40,0)'); cx.fillStyle = G; cx.fillRect(0, 0, W, H * 0.7); }
+    if (dim > 0) { const G = cx.createLinearGradient(0, 0, 0, H * 0.7); G.addColorStop(0, `rgba(10,14,40,${0.3 * dim})`); G.addColorStop(1, 'rgba(10,14,40,0)'); cx.fillStyle = G; cx.fillRect(0, 0, W, H * 0.7); }
     cx.globalCompositeOperation = 'lighter';
     for (let i = rockets.length - 1; i >= 0; i--) {
       const r = rockets[i]; r.t += dt; const u = Math.min(1, r.t / r.dur), px = r.x + (r.tx - r.x) * u, py = r.y + (r.ty - r.y) * (1 - (1 - u) * (1 - u));
-      cx.globalAlpha = 0.9; cx.fillStyle = C.fire[4]; cx.beginPath(); cx.arc(px, py, 3.2 * S, 0, Math.PI * 2); cx.fill();
+      cx.globalAlpha = 0.9; cx.fillStyle = C.fire[2]; cx.beginPath(); cx.arc(px, py, 2 * S, 0, Math.PI * 2); cx.fill();
       if (u >= 1) { rockets.splice(i, 1); burst(r.b); }
     }
     for (let i = sparks.length - 1; i >= 0; i--) {
       const s = sparks[i]; s.t += dt; if (s.t > s.life) { sparks.splice(i, 1); continue; }
       s.vx *= Math.max(0, 1 - dt * 2.2); s.vy = s.vy * Math.max(0, 1 - dt * 2.2) + 120 * S * dt; s.x += s.vx * dt; s.y += s.vy * dt;
       const a = 1 - s.t / s.life, tw = s.tw ? 0.5 + 0.5 * Math.sin(s.t * 40) : 1;
-      cx.globalAlpha = 0.22 * a * tw; cx.fillStyle = s.col; cx.beginPath(); cx.arc(s.x, s.y, (7 + 6 * a) * S, 0, Math.PI * 2); cx.fill();
+      cx.globalAlpha = 0.14 * a * tw; cx.fillStyle = s.col; cx.beginPath(); cx.arc(s.x, s.y, (7 + 6 * a) * S, 0, Math.PI * 2); cx.fill();
       cx.globalAlpha = a * tw; cx.beginPath(); cx.arc(s.x, s.y, (2.4 + 2.2 * a) * S, 0, Math.PI * 2); cx.fill();
     }
     cx.globalCompositeOperation = 'source-over';
     if (flash > 0.01) { cx.globalAlpha = flash; cx.fillStyle = '#fff1c8'; cx.fillRect(0, 0, W, H); flash *= Math.max(0, 1 - dt * 7); }
     cx.globalAlpha = 1;
   }
-  let stopped = false, raf = 0, t = 0, last = 0, t0 = 0, resolve = null;
+  let stopped = false, raf = 0, t = 0, last = 0, t0 = 0, resolve = null; const waits = [];
   const up = top - Y, down = Y - base;
   function step(now) {
     if (stopped) return;
     // (the wall's clock, as the director's film keeps it: a slow page skips frames but the ending keeps its place)
-    if (!t0) t0 = now; const dt = last ? Math.min(0.25, (now - last) / 1000) : 0; last = now; t = (now - t0) / 1000;
+    // (the probes' stills: globalThis.__H132_END_PAUSE stops the ending's clock — and its sparks — while a still is taken; play never sets it)
+    if (!t0) t0 = now; let dt = last ? Math.min(0.25, (now - last) / 1000) : 0; if (globalThis.__H132_END_PAUSE && last) { t0 += now - last; dt = 0; } last = now; t = (now - t0) / 1000;
     const E = endingAt(t);
     glowM.opacity = 0.95 * E.glow; haloM.opacity = 0.7 * E.glow;
     for (let i = 0; i < trail.length; i++) {
@@ -160,13 +161,14 @@ export function endingFx(X) {
       else m.material.opacity = 0;
     }
     // (the light: over the face from the line to the top edge, then on into the air above it RISE amot; the dark: the line to the yesod)
-    faceLightM.opacity = 0.75 * E.waveAlpha; riseM.opacity = 0.8 * E.waveAlpha; darkM.opacity = 0.62 * E.waveAlpha;
+    faceLightM.opacity = 0.75 * E.waveAlpha; riseM.opacity = 0.6 * E.waveAlpha; darkM.opacity = 0.62 * E.waveAlpha;
     const hl = Math.min(1, E.light * 2.2), hr = Math.max(0, E.light * 2.2 - 1.2) / 1;
     for (const p of bands.face) { const h = Math.max(0.001, up * hl); p.scale.y = h; p.position.y = Y + h / 2; }
     for (const p of bands.rise) { const h = Math.max(0.001, ENDING.RISE * Math.min(1, hr)); p.scale.y = h; p.position.y = top + h / 2; }
     for (const p of bands.dark) { const h = Math.max(0.001, down * E.dark); p.scale.y = h; p.position.y = Y - h / 2; }
     if (E.fire) fireOn();
     fireStep(dt, t - ENDING.FIRE[0], E.fire);
+    for (let i = waits.length - 1; i >= 0; i--) if (t >= waits[i].at) { const w = waits.splice(i, 1)[0]; w.r(); }
     if (E.done && !sparks.length && !rockets.length) { stop(); return; }
     raf = requestAnimationFrame(step);
   }
@@ -176,10 +178,13 @@ export function endingFx(X) {
     for (const m of mats) m.dispose(); for (const g of geos) g.dispose(); for (const x of texs) x.dispose();
     try { if (cv) cv.remove(); } catch (e) { /* */ } cv = null;
     if (resolve) { const r = resolve; resolve = null; r(); }
+    for (const w of waits.splice(0)) w.r();
   }
   return {
     run() { return new Promise((r) => { resolve = r; raf = requestAnimationFrame(step); }); },
     stop,
+    /** → Promise, resolved when the ending's clock reaches sec (or it is stopped) */
+    until(sec) { return stopped ? Promise.resolve() : new Promise((r) => waits.push({ at: sec, r })); },
     get t() { return t; },
   };
 }

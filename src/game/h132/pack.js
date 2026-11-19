@@ -11,6 +11,7 @@ import { PLAN, LINES, NEXT_STAGE, createH132, fromOld } from './model.js';
 import { ACTS } from './acts.js';
 import { SH9, initWorld, finalWorld, restWorld } from './world.js';
 import { endingFx, ENDING } from './ending.js';
+import { filmFigs } from '../h128/figgate.js';
 import { makeLook, ringBoxes, LOOK_RING_K } from '../world/look.js';
 import { BOOK } from '../world/grid.js';
 
@@ -60,9 +61,9 @@ export function makePack09(env = {}) {
     endSub: 'וחוט של סקרא חוגרו באמצע (מידות ג, א)',
     nextStage: NEXT_STAGE,
     endView: [R[0][0], R[0][1]],
-    // (the ending's film: held at the book's low peak shot while the line, the waves and the fireworks play — finale() has brought the
-    //  camera there before the ending starts — then the camera rises and circles the block, spec "המצלמה עולה ומקיפה")
-    film: [[PEAK[0], PEAK[1], ENDING.FIRE[1] + 0.2], ...endRound(3)],
+    // (the ending's film: after finale() — the book's low peak shot held while the line, the waves and the fireworks play — the camera
+    //  rises and circles the block, spec "המצלמה עולה ומקיפה", while the ending fades)
+    film: endRound(3),
     sync(M, S0, instant, X) { if (!X || !SH9.X) return; if (M.finished() && !M.mission()) finalWorld(X); },   // (a return visit's work stands at its own pre-state while it plays)
     // ירון's rule (build 132): after the end card the four stations stay open in the world, each at its next level (director visits())
     visits: true,
@@ -89,9 +90,13 @@ export function makePack09(env = {}) {
     async finale(X) {
       finalWorld(X); X.M.st.film = 1; X.save(); h131Card(true); try { X.kohen(false); } catch (e) { /* */ }
       // (the camera low at the south-east first, the book's peak shot; the ending — ending.js: the line, the waves, the fireworks — starts
-      //  once it stands there, and is not awaited: the director's film holds the shot over it and then rises into the round)
-      try { if (X.shot) { X.shot(PEAK[0], PEAK[1], 1.4); await beat(X, 1500); } } catch (e) { /* */ }
-      try { if (SH9.ending) SH9.ending.stop(); const fx = endingFx(X); SH9.ending = fx; try { globalThis.__H132_END = fx; } catch (e) { /* */ } fx.run().then(() => { if (SH9.ending === fx) SH9.ending = null; }); } catch (e) { console.warn('[h132] ending', e && e.message); }
+      //  once it stands there; the shot is held until the fireworks end, then the director's film rises into the round while it fades)
+      // (nobody stands in the ending: the crews and the station's men are out of the picture until it has faded — h128's film rule)
+      let figsBack = null; try { figsBack = filmFigs({}); } catch (e) { figsBack = null; }
+      // (the camera close, as the opening's: the controls' least distance would push the low eye back out of the shot)
+      near(X, true);
+      try { if (X.camera && CAM.peakFov) { X.camera.fov = CAM.peakFov; X.camera.updateProjectionMatrix(); } if (X.shot) { X.shot(PEAK[0], PEAK[1], 1.4); await beat(X, 1500); } } catch (e) { /* */ }
+      try { if (SH9.ending) SH9.ending.stop(); const fx = endingFx(X); SH9.ending = fx; try { globalThis.__H132_END = fx; } catch (e) { /* */ } fx.run().then(() => { if (SH9.ending === fx) SH9.ending = null; if (figsBack) figsBack(); }); await fx.until(ENDING.FIRE[1] + 0.2); near(X, false); } catch (e) { console.warn('[h132] ending', e && e.message); }
     },
     /** after a reload, the stage done: the block as he built it */
     rest(X, M) { restWorld(X, M); },

@@ -27,8 +27,8 @@ test('the fireworks fill the screen: many large bursts, the closing three togeth
 });
 test('the ending\'s peak shot is the book\'s, low at the south-east; then the round', () => {
   const P = readFileSync(new URL('../src/game/h132/pack.js', import.meta.url), 'utf8');
-  assert.match(P, /PEAK = CAM\.peak/); assert.match(P, /film: \[\[PEAK\[0\], PEAK\[1\], ENDING\.FIRE\[1\] \+ 0\.2\], \.\.\.endRound\(3\)\]/);
-  const [eye, aim] = BOOK.s09.cam.peak, S9 = BOOK.s09; assert.ok(eye[1] < S9.top && eye[1] > S9.floor, 'below the top: the faces, not the top, fill it'); assert.ok(eye[0] > S9.corner.SE[0] && eye[2] > S9.corner.SE[1], 'south-east of the corner'); assert.deepEqual(aim, [S9.mid[0], 24, S9.mid[1]]);
+  assert.match(P, /PEAK = CAM\.peak/); assert.match(P, /X\.shot\(PEAK\[0\], PEAK\[1\]/); assert.match(P, /await fx\.until\(ENDING\.FIRE\[1\] \+ 0\.2\)/); assert.match(P, /film: endRound\(3\)/);
+  const [eye, aim] = BOOK.s09.cam.peak, S9 = BOOK.s09; assert.ok(eye[1] < S9.top && eye[1] > S9.floor, 'below the top: the faces, not the top, fill it'); assert.ok(eye[0] > S9.corner.SE[0] && eye[2] > S9.corner.SE[1], 'south-east of the corner'); const c = S9.corner.SE; assert.ok(aim[0] > c[0] + 1 && aim[2] > c[1] + 1 && Math.abs((eye[0] - c[0]) - (eye[2] - c[1])) < 1e-9 && Math.abs((aim[0] - c[0]) - (aim[2] - c[1])) < 1e-9, 'eye and aim on the corner\'s diagonal, the aim outside the block (the camera guard)');
   const E = readFileSync(new URL('../src/game/h132/ending.js', import.meta.url), 'utf8');
   assert.match(E, /X\.shake\(/); assert.match(E, /X\.haptic\(/);
 });
@@ -43,7 +43,7 @@ test('the run round the block is the line\'s 120 amot, from the south-east corne
   const p0 = roundAt(0, 0); assert.deepEqual([p0.x, p0.z], S9.corner.SE);
   assert.equal(roundAt(0.1).k, 'E'); assert.equal(roundAt(0.3).k, 'N'); assert.equal(roundAt(0.6).k, 'W'); assert.equal(roundAt(0.9).k, 'S');
 });
-test('the pack\'s finale starts it over the round, not awaited', () => {
+test('the pack\'s finale starts it, held at the peak until the fireworks end', () => {
   const P = readFileSync(new URL('../src/game/h132/pack.js', import.meta.url), 'utf8');
-  assert.match(P, /const fx = endingFx\(X\); SH9\.ending = fx;[^\n]*fx\.run\(\)\.then/);
+  assert.match(P, /const fx = endingFx\(X\); SH9\.ending = fx;[^\n]*fx\.run\(\)\.then[^\n]*await fx\.until/);
 });

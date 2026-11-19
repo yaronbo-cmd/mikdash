@@ -78,7 +78,7 @@ export const FILL_ACT = {
     const Bt = createBeat(X), gang = createGang(X), ox = oxPair(X, root);
     const now = (w) => { if (w && w.a) w.a.vis = 1; return w; };
     const groundOf = (w) => { w.a.ground = (x, z) => standY(X, x, z, shown); };
-    const UN0 = [[R.head[0] - R.w / 2 - 1.2, S9.sleds[0][1] - 1], [R.head[0] + R.w / 2 + 1.2, S9.sleds[0][1] - 1]];   // (beside the ramp's first sled: never on the line from the camera to the block)
+    const UN0 = [[R.head[0] - 2.3, S9.sleds[0][1] - 1], [R.head[0] + 2.3, S9.sleds[0][1] - 1]];   // (on the ramp's head either side of its first sled: seen over the block's far edge from the south camera)
     const LV0 = [[MID[0] - 10, MID[1] - 7], [MID[0] - 11.5, MID[1] + 1.5], [MID[0] - 9, MID[1] + 9]];   // (on the block's far (west) half from the east camera: never between it and the work)
     const drv = [0, 1].map((j) => now(gang.add(OX.to[0] + 2.5, OX.to[1] + 2.5, { role: 'hold', item: 'staff', fx: OX.to[0] - 4, fz: OX.to[1], crew: j })));
     const un = UN0.map((p, j) => now(gang.add(p[0], p[1], { role: 'hold', fx: MID[0], fz: MID[1], crew: 2 + j })));

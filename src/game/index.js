@@ -3600,7 +3600,7 @@ export function createGame({ world, root, view, hooks = {}, onEvent, options = {
     if (type === 'course' && d && d.id === twinStage()) {
       const P = PROJ[d.id], cur = JB.curOf(G, d.id), C = P && P.C, c = Math.min(C || 0, (cur && cur.c) || 0);
       JU.event('course', { sub: C ? `נדבך ${isoNum(c)} מתוך ${isoNum(C)} · +${isoNum(PAY.course)} מטבעות` : `+${isoNum(PAY.course)} מטבעות`, cheer: () => W.crewsCheer && W.crewsCheer(d.id) });
-    } else if (type === 'stageDone' && d && !d.skipped && !stageById(d.id).quiet) JU.event('stageDone', { title: `${stageById(d.id).n} נבנה!` });   // (a quiet stage keeps its solemn sound, no celebration)
+    } else if (type === 'stageDone' && d && !d.skipped && !stageById(d.id).quiet && d.id !== 'sovev' /* ── h132 ── (review P7: stage 09's director has just said its own title, "הסובב וחוט הסיקרא נבנו!"; a second gold title with its white glare came over it) ── /h132 ── */) JU.event('stageDone', { title: `${stageById(d.id).n} נבנה!` });   // (a quiet stage keeps its solemn sound, no celebration)
   }
   // ── /juice18 ──
   const TW_ICON = { strike: '⚒', key: '⭐', arch: '◠', tread: '⚙', column: '▮', F1: '▦', letters: '✎', line: '〰', saw: '⇋', gold: '✦', plaster: '▤', bronze: '◉', wheel: '◎', waves: '≈', rafts: '⛵', aqueduct: '⌇' };

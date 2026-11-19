@@ -1291,9 +1291,19 @@ function s09() {
         SW: { foot: [-49.6, 13.7], head: [-49.6, 21.65, 11.62] }, NW: { foot: [-49.6, -20.7], head: [-49.6, 21.65, -18.62] } },
     },
     stand: { w1: [-16, -25], w2: [-34, -46], w3: [-16, 18], w4: [-21.8, 11.5] }, standY4: C.floor,
+    // (build 132, review R8) what stays at each work's station, one more for each of its levels done (the save's done list): the form's
+    // wedges, the fill's baskets, the strip's belts, the line's bowls; beside the station, off the block's side, the lying walls, the
+    // ramp, the oxen's lane and the pile
+    keep: { form: [-13, -21.5], fill: [-29, -40], strip: [-19, 21], sikra: [-16, 6] },
+    // (build 132, review P9) where the kohen stands when the opening ends: on the court east of the block, facing its middle, 15 amot
+    // and more from every station — the follow camera behind him sees the block and the court, not a board or a wall up close
+    start: [-7, -3.5],
     // the cameras ([eye x, y, z], [aim x, y, z]); the end: a round over the middle
     cam: {
       w1: [[-8, 34, -36], [mid[0], 18, mid[1]]], w2: [[mid[0] + 1, 47, 35], [mid[0] + 1, 17, -17]],   // (work 2, build 132 round 5 — spec line 92 "מבט מלמעלה באלכסון … על הרמפה יש תמיד שלוש מזחלות גלויות, ושוורים מושכים אותן": from the south, 30° down, the whole block near, the ramp and its three sleds over its far edge, the oxen and their two drivers whole beyond; a man on the fill about a seventh of the frame's height more than before. Before: the block's top two thirds of the frame's width, the ramp's head and its sleds at the right edge, the oxen and their drivers wholly out)
+      // (review P4) the fill's closing film: low from the south-east, the block's south and east faces and its filled top together (from
+      // the work's own high shot the full form read as a brown top alone)
+      w2after: [[-16, 36, 41.5], [mid[0], 20.5, mid[1]]],
       w3: [[-10, 30, 26], [mid[0], 19.5, mid[1]]],
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
       // (lane B, build 132) the measuring shot at each corner: the aim 2 amot in from the corner, 1.5 under the line; the west corners
@@ -1356,6 +1366,10 @@ function s09() {
   for (const k of ['NE', 'SE', 'SW', 'NW']) e3('sikra:ladder:' + k, 'ladder', K9.ladder[k].foot, C.floor, `הסולם של העוזר בפינה ${SIDE[k]}: רגלו כאן, ראשו נשען על הפאה ליד הפינה`, ILL, { head: K9.ladder[k].head });
   const ST = { w1: 'התחנה של עבודה 1', w2: 'התחנה של עבודה 2, ליד רגל הרמפה', w3: 'התחנה של עבודה 3', w4: 'העובד בתחילת הקו' };
   for (const k of ['w1', 'w2', 'w3', 'w4']) e3('stand:' + k, 'stand', S09.stand[k], C.floor, ST[k], ILL);
+  const KP = { form: 'ערמת הטריזים בתחנה של עבודה 1: ערמה לכל רמה שנגמרה', fill: 'סלי האבנים בתחנה של עבודה 2: סל לכל רמה שנגמרה',
+    strip: 'קורות החגורה המסודרות בתחנה של עבודה 3: שכבה לכל רמה שנגמרה', sikra: 'קערות הסיקרא בתחנה של עבודה 4: קערה לכל רמה שנגמרה' };
+  for (const k of ['form', 'fill', 'strip', 'sikra']) e3('keep:' + k, 'keep', S09.keep[k], C.floor, KP[k], ILL);
+  e3('stand:start', 'stand', S09.start, C.floor, 'הכהן בסוף הפתיחה: ממזרח לגוש, פניו אל אמצעו', ILL);
   return { stage: 9, name: 'הסובב וחוט הסיקרא', bounds: { x0: -62, x1: -4, z0: -50, z1: 22 }, ...S09, entries: E };
 }
 // ── /h132 ──

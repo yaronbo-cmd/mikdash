@@ -58,6 +58,7 @@ export function makePack09(env = {}) {
     byPlan: true,
     look: LOOK9,
     endTitle: 'הסובב וחוט הסיקרא נבנו!',
+    upStrip: true,   // (review P5) a craft's level-up after a work: one line in the top strip, not the full-screen stamp over the view
     endSub: 'וחוט של סקרא חוגרו באמצע (מידות ג, א)',
     nextStage: NEXT_STAGE,
     endView: [R[0][0], R[0][1]],
@@ -83,6 +84,9 @@ export function makePack09(env = {}) {
           if (await tapOr(X, i ? 3000 : 2200)) break;
         }
         if (!acting()) X.line('');
+        // (review P9: he stands where the book says, east of the block and facing it — the follow camera behind him; where stage 08 left
+        //  him it looked into a board or a wall)
+        if (!acting()) { try { X.stages.hero.place({ x: S9.start[0], z: S9.start[1], face: S9.mid.slice() }); } catch (e) { /* */ } }
         near(X, false);
       })();
     },
@@ -96,7 +100,7 @@ export function makePack09(env = {}) {
       // (the camera close, as the opening's: the controls' least distance would push the low eye back out of the shot)
       near(X, true);
       try { if (X.camera && CAM.peakFov) { X.camera.fov = CAM.peakFov; X.camera.updateProjectionMatrix(); } if (X.shot) { X.shot(PEAK[0], PEAK[1], 1.4); await beat(X, 1500); } } catch (e) { /* */ }
-      try { if (SH9.ending) SH9.ending.stop(); const fx = endingFx(X); SH9.ending = fx; try { globalThis.__H132_END = fx; } catch (e) { /* */ } fx.run().then(() => { if (SH9.ending === fx) SH9.ending = null; if (figsBack) figsBack(); }); await fx.until(ENDING.FIRE[1] + 0.2); near(X, false); } catch (e) { console.warn('[h132] ending', e && e.message); }
+      try { if (SH9.ending) SH9.ending.stop(); const fx = endingFx(X); SH9.ending = fx; try { globalThis.__H132_END = fx; } catch (e) { /* */ } fx.run().then(() => { if (SH9.ending === fx) SH9.ending = null; if (figsBack) SH9.figsBack = figsBack; });   /* (review P2: the figures come back when the end card has closed and the visits open — world.js initWorld — not behind the card: a crew of the next stage stood on the block's top there) */ await fx.until(ENDING.FIRE[1] + 0.2); near(X, false); } catch (e) { console.warn('[h132] ending', e && e.message); }
     },
     /** after a reload, the stage done: the block as he built it */
     rest(X, M) { restWorld(X, M); },

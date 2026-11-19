@@ -317,11 +317,12 @@ export function createJuice18(o = {}) {
   return {
     hit, result, big, fly, xp: XP,
     // ── h114 ── the level-ups held during a minigame, said at its end with the reason (→ true when one was shown) ── /h114 ──
-    flushUps(why) {
+    flushUps(why, o2) {
       const L = Object.values(st.ups || {}); st.ups = {}; if (!L.length) return false;
       const u = L[L.length - 1];
-      call(ui.stamp, `${u.name} — רמה ${u.level}!`, { ms: 1500 });
-      call(ui.banner, why || 'עלית רמה בזכות העבודה המדויקת', { ms: 2600 });
+      // ── h132 ── (review P5: { strip } — the level said in the one top line, the view left clear; no stamp over the screen) ── /h132 ──
+      if (o2 && o2.strip) call(ui.banner, `${u.name} — רמה ${u.level}!`, { ms: 2600 });
+      else { call(ui.stamp, `${u.name} — רמה ${u.level}!`, { ms: 1500 }); call(ui.banner, why || 'עלית רמה בזכות העבודה המדויקת', { ms: 2600 }); }
       OPT.level = u.level; play('levelUp', 'fanfare', OPT); call(o.haptic, [20, 40, 30]);
       return true;
     },

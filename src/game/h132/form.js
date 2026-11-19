@@ -235,7 +235,7 @@ export const FORM_ACT = {
       const s = stakeAt(c), at = { x: s[0], y: Y0 + 1.2, z: s[1] };
       stakes[c].visible = true; stakes[c].position.y = Y0 + 0.95; A.sink = { c, t: 0 };
       V.knock(1.2); X.dust(s[0], Y0 + 0.2, s[1], 4, 1.4);
-      X.hit(at, 'ok', { text: '' }); ev('stake:' + c);
+      X.hit(at, 'ok', { text: '', craft: 'נגרים' }); ev('stake:' + c);
       if (man) gang.setRole(man, 'hammer', { item: 'mallet', fx: s[0], fz: s[1], stride: 0 });
       A.holdT = A.t + FA.MALLET; A.busy = 1;
       X.wait(FA.MALLET).then(() => { A.busy = 0; if (man) gang.setRole(man, 'brace', { item: 'mallet', fx: s[0], fz: s[1] }); keep(); });
@@ -247,7 +247,7 @@ export const FORM_ACT = {
       if (e.k === 'lock') {
         V.thud(); V.lock(WALLS.indexOf(k)); X.shake(0.18, 0.3); try { if (X.haptic) X.haptic(BZ.lock); } catch (er) { /* */ }
         for (const c of cornersOf(k)) { const [x, z] = S9.corner[c]; X.sparks(x, Y0 + H * 0.6, z, 10); X.dust(x, Y0 + 0.3, z, 4, 1.2); }
-        X.hit(at, e.pts >= 40 ? 'gold' : e.pts >= 20 ? 'good' : 'ok', { text: '' });
+        X.hit(at, e.pts >= 40 ? 'gold' : e.pts >= 20 ? 'good' : 'ok', { text: '', craft: 'נגרים' });
         if (e.pts >= 40) X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick, SH9.walls && SH9.walls[k] ? SH9.walls[k].grp.children[0] : null);
         ev('lock:' + k + ':' + e.how + ':' + e.at);
         if (e.last) close();

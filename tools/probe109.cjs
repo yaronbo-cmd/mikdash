@@ -31,6 +31,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const b = await chromium.launch({ executablePath: EXE, ...(GPU && !EXE ? { channel: 'chromium' } : {}), headless: !process.env.PROBE_HEADED, args });
   const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !process.env.MOUSE, isMobile: !process.env.MOUSE && W < 1000, deviceScaleFactor: +(process.env.DSF || 1), locale: 'he-IL' });
   const pg = await ctx.newPage();
+  let HUNG = false; const HANGED = {};   // ── h132 ── (the page hung: the steps left are not run) ── /h132 ──
   const errs = [];
   const notes = [];   // ── h132 ── (the director's own [h109] info lines are notes, not errors: printed apart) ── /h132 ──
   pg.on('console', (m) => { if (m.type() === 'error') errs.push(m.type() + ' ' + m.text().slice(0, 300)); else if (/\[h109\]/.test(m.text())) notes.push(m.type() + ' ' + m.text().slice(0, 300)); });
@@ -43,6 +44,21 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   await pg.goto(pathToFileURL(path.join(ROOT, 'dist', 'test.html')).href);
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 });
   const cdp = await ctx.newCDPSession(pg);
+  // ── h132 ── (a page whose main thread never comes back — a loop in the game — hung the run silently to its time limit: any evaluate
+  //  that does not return in PROBE_HANG ms, 180 s by default, pauses the page in the debugger, prints where it is (PROBE_HANG_SRC=1: the
+  //  source around it too), and fails the run: the steps left are skipped, the exit is 2) ── /h132 ──
+  const HANG = +(process.env.PROBE_HANG || 180000), ev0 = pg.evaluate.bind(pg);
+  pg.evaluate = (...args) => { if (HUNG) return Promise.reject(new Error('the page hung')); let tm = null; const hung = new Promise((r) => { tm = setTimeout(() => r(HANGED), HANG); });
+    return Promise.race([ev0(...args).finally(() => clearTimeout(tm)), hung]).then(async (v) => { if (v !== HANGED) return v; await hangDump(); throw new Error('the page hung'); }); };
+  async function hangDump() {
+    if (HUNG) return; HUNG = true; log('PAGE HUNG', 'an evaluate did not return in ' + HANG / 1000 + ' s: pausing the page');
+    try { const dbg = await ctx.newCDPSession(pg); const paused = new Promise((r) => dbg.once('Debugger.paused', r)); await dbg.send('Debugger.enable'); await dbg.send('Debugger.pause'); const ev = await Promise.race([paused, new Promise((r) => setTimeout(() => r(null), 20000))]);
+      if (!ev) log('  (the debugger did not pause in 20 s)');
+      else for (const [i, f] of ev.callFrames.slice(0, 25).entries()) { const sc = f.location; log('  at', (f.functionName || '(anon)') + ' ' + String(f.url || '').split('/').pop() + ':' + (sc.lineNumber + 1) + ':' + (sc.columnNumber + 1));
+        if (process.env.PROBE_HANG_SRC && i < 6) { try { const src = await dbg.send('Debugger.getScriptSource', { scriptId: sc.scriptId }); const L = src.scriptSource.split('\n')[sc.lineNumber] || ''; log('    src', L.slice(Math.max(0, sc.columnNumber - 300), sc.columnNumber + 300)); } catch (e) { /* */ } } }
+    } catch (e) { log('  (no stack: ' + e.message + ')'); }
+    errs.push('FAILED: the page hung (an evaluate did not return in ' + HANG / 1000 + ' s)');
+  }
   console.log('webgl:', await pg.evaluate(() => { try { const r = window.__T && window.__T.renderer; const gl = r && r.getContext ? r.getContext() : document.createElement('canvas').getContext('webgl2'); const x = gl.getExtension('WEBGL_debug_renderer_info'); return x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); } catch (e) { return 'unknown (' + e.message + ')'; } }), GPU ? '(PROBE_GPU)' : '');
   const bootS = ((Date.now() - TB) / 1000).toFixed(1);
   // (MOUSE=1: the same script played with a mouse; the first finger is the mouse, a second finger is ignored)
@@ -50,7 +66,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     cdp.send = async (m, o) => { if (m !== 'Input.dispatchTouchEvent') return send0(m, o); const p = o.touchPoints && o.touchPoints[0];
       if (o.type === 'touchStart' && p && !down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); await pg.mouse.down(); down = true; }
       else if (o.type === 'touchMove' && p && down) { last = [p.x, p.y]; await pg.mouse.move(p.x, p.y); }
-      else if (o.type === 'touchEnd' && down) { await pg.mouse.up(); down = false; } }; }
+      else if (o.type === 'touchEnd' && down) { await pg.mouse.up(); down = false; FGM.left = false; /* ── h132 ── (a tap's release lets go of a held left button too: the next held thumb presses it again) ── /h132 ── */ } }; }
   const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x: Math.round(x), y: Math.round(y), id: 7 + i, radiusX: 6, radiusY: 6, force: 1 })) });
   const T0 = Date.now(); let n = 0, shotMs = 0;
   const log = (...a) => console.log(`[${((Date.now() - T0) / 1000).toFixed(0)}s]`, ...a);
@@ -73,13 +89,15 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     const had = FG.filter(Boolean).length, now = W2.filter(Boolean).length;
     const newOne = W2.some((p, i) => p && !FG[i]), gone = FG.some((p, i) => p && !W2[i]);
     // (a lift first — the points still down are named in a move, the lifted one left out: the browser releases it — then a press)
-    if (gone) { const keep = W2.map((p, i) => (p && FG[i] ? FG[i] : null)), off = FG.map((p, i) => (p && !W2[i] ? p : null)); if (keep.some(Boolean)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: pts(off) }); else await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
-    if (now) await cdp.send('Input.dispatchTouchEvent', { type: newOne ? 'touchStart' : 'touchMove', touchPoints: pts(W2) });
+    if (gone) { const keep = W2.map((p, i) => (p && FG[i] ? FG[i] : null)), off = FG.map((p, i) => (p && !W2[i] ? p : null)); const endQ = (o) => cdp.send('Input.dispatchTouchEvent', o).catch((e) => { if (!/TouchStart first/.test(e.message)) throw e; }); if (keep.some(Boolean)) await endQ({ type: 'touchEnd', touchPoints: pts(off) }); else await endQ({ type: 'touchEnd', touchPoints: [] }); }
+    // ── h132 ── (a finger the probe still held while another step's tap ended every touch — the end card's — is no longer down in the
+    //  browser: its move is refused, "Must send a TouchStart first"; it is pressed again instead, so the next work's thumb comes down) ── /h132 ──
+    if (now) await cdp.send('Input.dispatchTouchEvent', { type: newOne ? 'touchStart' : 'touchMove', touchPoints: pts(W2) }).catch(async (e) => { if (!/TouchStart first/.test(e.message)) throw e; await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pts(W2) }); });
     void had;
     FG[0] = W2[0]; FG[1] = W2[1];
   }
   async function run(s) {
-    if (s.init) return;
+    if (s.init || HUNG) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
     // (build 129: {reload: code} — the page reloaded with its save kept (localStorage), the init code replaced by this one)
     // ── h131 ── (the snapshot of the save and the new init code are carried by the probe itself, not by sessionStorage: the game's page came
@@ -158,8 +176,10 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
           reloads++; if (reloads > 4) { log('bot', 'the page reloaded more than 4 times: stop'); break; }
           continue;
         }
+        if (HUNG) break;
         if (!a) { await pg.waitForTimeout(300); continue; }
         if (a.note && a.note !== last) { log('bot', a.note); last = a.note; }
+        if (a.fail) errs.push('FAILED: ' + String(a.fail).slice(0, 300));   // ── h132 ── (a script's own failure: counted with the errors, the exit not 0) ── /h132 ──
         if (a.done) { log('bot done', ((Date.now() - t) / 1000).toFixed(0) + 's', k, 'actions'); break; }
         k++; try { await run(a); } catch (e) { log("bot step failed", e.message); await pg.waitForTimeout(500); }
       }
@@ -168,9 +188,10 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   for (const s of steps) await run(s);
   if (FG[0] || FG[1] || FGM.left || FGM.right) await fingersSet([null, null]);   // ── h132 ── (no finger left held at the end) ── /h132 ──
   console.log(`probe time${process.env.FAST ? ' (FAST)' : ''}: boot ${bootS}s, ${n} shots ${(shotMs / 1000).toFixed(1)}s, steps ${((Date.now() - T0) / 1000).toFixed(1)}s`);
-  const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
+  const fr = HUNG ? null : await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
   console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));
   if (notes.length) console.log('page notes:\n' + notes.slice(0, 30).join('\n'));   // ── h132 ── ── /h132 ──
   console.log(errs.length ? 'ERRORS (' + errs.length + '):\n' + errs.slice(0, 30).join('\n') : 'no errors');   // ── h132 ── (the count: the PC summary's errors line) ── /h132 ──
   await b.close();
+  if (errs.some((e) => /^FAILED: /.test(e))) process.exitCode = 2;   // ── h132 ── ── /h132 ──
 })().catch((e) => { console.error('probe failed', e); process.exit(1); });

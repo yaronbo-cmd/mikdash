@@ -7,7 +7,7 @@
 const SHEET_N = 16, SHEET_COLS = 4, SHEET_W = 1600;
 const { spawn, execSync } = require('child_process');
 const fs = require('fs'), path = require('path'), { pathToFileURL } = require('url');
-const ROOT = path.join(__dirname, '..', '..'), OUT = path.join(ROOT, 'out', 'pc');
+const ROOT = path.join(__dirname, '..', '..'), OUT = process.env.PC_OUT ? path.resolve(process.env.PC_OUT) : path.join(ROOT, 'out', 'pc');   // (PC_OUT: a test's own folder)
 const plan = JSON.parse(fs.readFileSync(path.join(__dirname, 'jobs.json'), 'utf8'));
 const git = (a) => { try { return execSync('git ' + a, { cwd: ROOT }).toString().trim(); } catch (e) { return '?'; } };
 /** Windows: Playwright's headless shell (its full chrome.exe is blocked there); elsewhere the probe's own default */
@@ -20,14 +20,29 @@ function exe() {
   return null;
 }
 const KEEP = /WORK |VISIT WRONG|VISIT END|VISITS DONE|ERRORS|STUCK|bot RES|bot done|\bend \S+ stars|^\[\d+s\] loss |no errors|PAGEERR|PAGE CRASHED|TimeoutError|renderer|wall |MODAL|EVALERR|console error/;
-function digest(name) {
+/** (build 132) the return visits a job's script plans: its bot's plan list (const PL=[…]) when the script says VISIT END; 0 when none */
+function visitsPlanned(script) {
+  let t = ''; try { t = fs.readFileSync(path.resolve(ROOT, script), 'utf8'); } catch (e) { return 0; }
+  if (!/VISIT END/.test(t)) return 0;
+  const m = t.match(/const PL=\[([^\]]*)\]/); return m ? m[1].split(',').filter((x) => x.trim()).length : 0;
+}
+/** (build 132) the visits played (its VISIT END lines) against the plan: a lane that skipped them has FAILED, whatever its errors */
+function visitCheck(job) {
+  const want = visitsPlanned(job.script); if (!want) return { want: 0, got: 0, failed: false };
+  let txt = ''; try { txt = fs.readFileSync(path.join(OUT, job.name + '.log'), 'utf8'); } catch (e) { /* */ }
+  const got = (txt.match(/bot VISIT END /g) || []).length; return { want, got, failed: got < want };
+}
+function digest(name, vc) {
   let txt = ''; try { txt = fs.readFileSync(path.join(OUT, name + '.log'), 'utf8'); } catch (e) { return ['  (no log)']; }
   const L = txt.split(/\r?\n/), keep = L.filter((l) => KEEP.test(l)).map((l) => '  ' + l.slice(0, 700));
   let shots = 0; try { shots = fs.readdirSync(path.join(OUT, name)).filter((f) => f.endsWith('.png')).length; } catch (e) { /* */ }
   // (build 132) one line per work (the script's closing WORK lines: id, stars, points, flags, the figures' reads and reports) and the errors' count
   const works = L.filter((l) => /(^|eval )WORK /.test(l)).map((l) => '  ' + l.replace(/^\[\d+s\] eval /, '').slice(0, 700));
   const em = txt.match(/ERRORS \((\d+)\)/), errN = em ? +em[1] : /\bno errors\b/.test(txt) ? 0 : '? (the probe did not reach its end)';
-  return [...keep.filter((l) => !/(^|eval )WORK /.test(l.trim())).slice(0, 120), '  -- works --', ...(works.length ? works : ['  (no WORK lines)']), `  errors: ${errN}`, `  stills: ${shots} · log lines: ${L.length} · last line: ${(L.filter(Boolean).pop() || '').slice(0, 200)}`];
+  // (a lane that skipped its plan's return visits does not say "no errors": its last lines say it FAILED)
+  const vis = vc && vc.want ? [`  visits: ${vc.got} of ${vc.want} played`, ...(vc.failed ? ['  FAILED: return visits not played'] : [])] : [];
+  const keepL = keep.filter((l) => !/(^|eval )WORK /.test(l.trim())).slice(0, 120).map((l) => (vc && vc.failed && /^\s*no errors\s*$/.test(l) ? '  (the probe saw no page errors, but the run FAILED: see below)' : l));
+  return [...keepL, '  -- works --', ...(works.length ? works : ['  (no WORK lines)']), ...vis, `  errors: ${errN}`, `  stills: ${shots} · log lines: ${L.length} · last line: ${(L.filter(Boolean).pop() || '').slice(0, 200)}`];
 }
 /** the job's stills on contact sheets: a local page of 16 of them (4 columns, the file name under each), its screenshot a jpeg →
  *  <dir>/sheet-NN.jpg; returns the sheets' paths (relative to out/pc's parent). Playwright is the probe's own: no new package */
@@ -69,13 +84,16 @@ function run(job) {
     const p = spawn(process.execPath, [path.join('tools', 'probe109.cjs'), job.script, dir, String(job.w || 960), String(job.h || 600)], { cwd: ROOT, env, stdio: ['ignore', fd, fd] });
     const kill = setTimeout(() => { try { p.kill(); } catch (e) { /* */ } }, (job.maxMin || 240) * 60000);
     p.on('exit', async (code) => {
-      clearTimeout(kill); fs.closeSync(fd); const min = ((Date.now() - t0) / 60000).toFixed(1); console.log(`end    ${job.name}  ${min} min  exit ${code}`);
+      clearTimeout(kill); fs.closeSync(fd); const min = ((Date.now() - t0) / 60000).toFixed(1);
+      const vc = visitCheck(job); if (vc.failed && !code) code = 3;   // (build 132: the plan's visits not played — the lane failed)
+      console.log(`end    ${job.name}  ${min} min  exit ${code}` + (vc.want ? `  visits ${vc.got}/${vc.want}` : '') + (code ? '  FAILED' : ''));
       let sh = []; try { sh = await sheets(dir); console.log(`sheets ${job.name}  ${sh.length}`); } catch (e) { sh = ['(sheets failed: ' + (e && e.message || e).slice(0, 160) + ')']; }
-      done({ job, code, min, sheets: sh });
+      done({ job, code, min, sheets: sh, vc });
     });
   });
 }
-(async () => {
+module.exports = { visitsPlanned, visitCheck, digest };   // (build 132: the summary's checks, for the tests)
+if (require.main === module) (async () => {
   if (process.env.SHEETS) { const d = path.resolve(process.env.SHEETS); const sh = await sheets(d); console.log(sh.length ? sh.join('\n') : 'no stills in ' + d); return; }
   const head = git('log --oneline -1'), jobs = plan.jobs || [], lanes = Math.max(1, plan.lanes | 0 || 2);
   console.log(`commit ${head}\n${jobs.length} runs, ${lanes} at a time\n`);
@@ -86,7 +104,9 @@ function run(job) {
   const res = []; let i = 0;
   await Promise.all(Array.from({ length: Math.min(lanes, jobs.length) }, async () => { while (i < jobs.length) res.push(await run(jobs[i++])); }));
   const out = [`DONE ${new Date().toISOString()} (started ${T0.toISOString()}) · commit ${head} · plan ${plan.id || ''} · exe ${exe() || 'default'}`];
-  for (const r of res.sort((a, b) => jobs.indexOf(a.job) - jobs.indexOf(b.job))) out.push('', `== ${r.job.name} · ${r.job.script} · ${r.job.mouse ? 'mouse' : 'touch'} ${r.job.w || 960}x${r.job.h || 600} · ${r.min} min · exit ${r.code}`, ...digest(r.job.name), `  sheets: ${(r.sheets || []).length ? r.sheets.join(', ') : 'none'}`);
+  for (const r of res.sort((a, b) => jobs.indexOf(a.job) - jobs.indexOf(b.job))) out.push('', `== ${r.job.name} · ${r.job.script} · ${r.job.mouse ? 'mouse' : 'touch'} ${r.job.w || 960}x${r.job.h || 600} · ${r.min} min · exit ${r.code}${r.code ? ' · FAILED' : ''}`, ...digest(r.job.name, r.vc), `  sheets: ${(r.sheets || []).length ? r.sheets.join(', ') : 'none'}`);
+  const bad = res.filter((r) => r.code); if (bad.length) out.push('', `FAILED lanes: ${bad.map((r) => r.job.name).join(', ')}`);
   fs.writeFileSync(sum, out.join('\n') + '\n');
   console.log('\nsummary: out/pc/summary.txt');
+  if (bad.length) process.exitCode = 1;
 })();

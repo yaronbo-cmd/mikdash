@@ -35,6 +35,9 @@ export const FK = Object.freeze({
   BACK: 97,                 // over 92 up to 97: pulled back, 10; over 97: falls outward
   REST_V: 0.25,             // (deg/s) slower than this with no thumb on it: at rest
   MAXA: 120,                // (the angle's cap while it moves; past BACK it has fallen anyway)
+  // (review 132 R6: over the last 15° to upright the wall is a weight that slows — its lag grows gradually up to (1 + K) times, the
+  //  drift still to come kept: it ends where the thumb's travel says, only later and more slowly, never an unseen stop)
+  BRAKE: Object.freeze({ FROM: 75, TO: 90, K: 1.2 }),
   PTS: Object.freeze({ stake: 10, perf: 40, good: 20, back: 10, steady: 20, crack: -20 }),
   // level 3's wind (לכיוונון): seconds after the walls began (the fourth stake in); how long the gust blows; how high a wall must be
   // to sway; the sway's size (deg), its period (s); how fast a drag against it calms it (deg of sway per deg of the thumb's travel)
@@ -136,10 +139,13 @@ export function step(S, dt) {
   for (const k of WALLS) {
     const w = S.W[k]; if (w.st !== 'up') continue;
     // (the thumb's speed this step, followed with the lag: exact for a speed held over the step, so the angle ends at the thumb's travel)
-    const held = S.hold === k, u = held ? S.pend : 0, tgt = u / dt, e = Math.exp(-dt / FK.LAG);
-    const v0 = w.v;
+    const held = S.hold === k, u = held ? S.pend : 0, tgt = u / dt;
+    const B9 = FK.BRAKE, f = Math.max(0, Math.min(1, (w.a - B9.FROM) / (B9.TO - B9.FROM))), Lg = FK.LAG * (1 + B9.K * (w.v > 0 ? f : 0)), L0 = w.lag || FK.LAG;
+    if (Lg !== L0) w.v = tgt + ((w.v - tgt) * L0) / Lg;   // (the drift still to come, (v − thumb) × lag, kept as the lag grows)
+    w.lag = Lg;
+    const e = Math.exp(-dt / Lg), v0 = w.v;
     w.v = tgt + (v0 - tgt) * e;
-    w.a += tgt * dt + (v0 - tgt) * FK.LAG * (1 - e);
+    w.a += tgt * dt + (v0 - tgt) * Lg * (1 - e);
     if (held) S.pend = 0;
     if (w.a < 0) { w.a = 0; w.v = Math.max(0, w.v); }
     if (w.a > FK.MAXA) w.a = FK.MAXA;
@@ -160,7 +166,7 @@ export function step(S, dt) {
   return out;
 }
 function endLift(S, k) { if (S.lift && S.lift.k === k) { if (S.lift.free) S.free = 0; S.lift = null; } }
-function lower(S, k) { const w = S.W[k]; w.a = 0; w.v = 0; w.st = 'lie'; w.swayA = 0; if (S.hold === k) S.hold = null; }
+function lower(S, k) { const w = S.W[k]; w.a = 0; w.v = 0; w.lag = FK.LAG; w.st = 'lie'; w.swayA = 0; if (S.hold === k) S.hold = null; }
 function fall(S, k) {
   const w = S.W[k], from = shown(S, k), free = !!(S.lift && S.lift.k === k && S.lift.free);
   lower(S, k); endLift(S, k);
@@ -170,7 +176,7 @@ function fall(S, k) {
 }
 function rest(S, k) {
   const w = S.W[k];
-  w.a += w.v * FK.LAG; w.v = 0;   // (the last of its drift: it rests exactly where the thumb's travel says)
+  w.a += w.v * (w.lag || FK.LAG); w.v = 0; w.lag = FK.LAG;   // (the last of its drift: it rests exactly where the thumb's travel says)
   const a = w.a, j = judge(a), free = !!(S.lift && S.lift.k === k && S.lift.free);
   if (j === 'low') { endLift(S, k); return null; }   // (it rests where it is: lifted again)
   if (j === 'fall') return fall(S, k);

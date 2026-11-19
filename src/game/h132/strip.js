@@ -13,7 +13,7 @@
  */
 import { BOOK } from '../world/grid.js';
 import { LOSS, WORDS } from './model.js';
-import { PARTS, fresh, load, save, tap, pull, slide, done, result } from './strip-model.js';
+import { PARTS, fresh, load, save, tap, pull, slide, done, result, deps } from './strip-model.js';
 import { SH9, wallSet, siteClear } from './world.js';
 import { hold, homeWalls, dress, wallHead, wallHinge, lieAfter, stackAt } from './walls3d.js';
 import { smats, blockBody, scar, braceMesh, braceEnds, beltMesh, beltEnds, wedgeMesh, bulgeOn, NORM } from './strip3d.js';
@@ -46,7 +46,7 @@ export const STRIP_ACT = {
   make(m, X) {
     const T = X.THREE, Mo = X.M, lv = m.lv | 0 || 1, V = createVoices(X.sfx), Mt = smats(X);
     const root = new T.Group(); root.name = 'h132-strip-act'; X.props.root.add(root);
-    const A = { t: 0, ev: [], fl: null, busy: 0, done: 0, fallK: {}, shakeP: null, wob: null, lit: {}, at: null, hintOn: 0, th: TH0, ease: null, camT: 0 };
+    const A = { t: 0, ev: [], fl: null, busy: 0, done: 0, fallK: {}, tug: {}, shakeP: null, wob: null, lit: {}, at: null, hintOn: 0, th: TH0, ease: null, camT: 0 };
     const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
     const b0 = Mo.workOf('strip');
     // (a work's own pre-state whatever the save holds: only an unfinished blob of this very work, of its level, is taken up again)
@@ -93,9 +93,11 @@ export const STRIP_ACT = {
     function placeOf(p) {
       const k = sideOf(p), n = NORM[k];
       if (p === 'wedge') { const [x, z] = S9.wedge; return [[x - 2.4, z + 2.4, x, z, F], [x - 4.6, z + 2.4, x, z, F]]; }   // (on the floor south of the corner, the rope up to the wedge's head)
-      if (p.startsWith('wall:')) {
-        const c = k === 'N' || k === 'S' ? [MID[0], k === 'N' ? B[1] : B[3]] : [k === 'E' ? B[2] : B[0], MID[1]], al = n[0] ? [0, 1] : [1, 0];
-        return [-1, 1].map((s) => [c[0] - n[0] * 2.2 + al[0] * s * 3, c[1] - n[1] * 2.2 + al[1] * s * 3, c[0] + n[0] * 3, c[1] + n[1] * 3, Y1 - 0.02]);
+      // (review P2: a wall's two pullers — the spec's השולפים — stand on the court beyond where it lies, their ropes to its head, not on the
+      //  fill's top; the west one from the line's path between the yesod and the Ulam's steps)
+      if (p.startsWith('wall:') && k !== 'W') {
+        const c = k === 'N' || k === 'S' ? [MID[0], k === 'N' ? B[1] : B[3]] : [k === 'E' ? B[2] : B[0], MID[1]], al = n[0] ? [0, 1] : [1, 0], d = H + 3.5;
+        return [-1, 1].map((s) => [c[0] + n[0] * d + al[0] * s * 3, c[1] + n[1] * d + al[1] * s * 3, c[0], c[1], F]);
       }
       if (k === 'W') { const z = MID[1], x = S9.sikra.pathW.x; return [-1, 1].map((s) => [x, z + s * 3.2, x, z, F]); }   // (the one-amah gap between the yesod and the steps: the line's west path)
       const g = p.startsWith('brace:') ? braceEnds(k)[0] : S9.belt[k], al = n[0] ? [0, 1] : [1, 0], d = p.startsWith('brace:') ? 1.4 : 4.2;
@@ -144,7 +146,7 @@ export const STRIP_ACT = {
     }
     function sendMen(p, role, jump) {
       workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? fitPair(placeOf(p), [-1, 0]) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
-      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + (jump ? 2.6 : 1.6); if (jump && w.a) { w.hop = 0; w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; w.a.vis = w.a.visT = 1; } }
+      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || 'pull'; w.item = role === 'push' ? 'staff' : 'rope'; w.until = A.t + (jump ? 2.6 : 1.6); if (jump && w.a) { w.hop = 0; w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; w.a.vis = w.a.visT = 1; } }
     }
     function moveMen(dt) {
       for (const w of men) {
@@ -225,7 +227,7 @@ export const STRIP_ACT = {
       sendMen(p);
       if (!r.out) {
         // loaded (or the stuck wall's first pull): it does not move, it shudders and creaks; 0, the streak broken
-        V.creak(0.75); V.groan(); A.creakT = A.t + 0.6; A.shakeP = { p, t: 0 }; X.loss(0, at, ''); keep(); return;
+        V.creak(0.75); V.groan(); A.creakT = A.t + 0.6; A.shakeP = { p, t: 0 }; tugHolders(p); X.loss(0, at, ''); keep(); return;
       }
       if (r.kind === 'torn') {
         const c = r.corner, [x, z] = S9.corner[c];
@@ -236,17 +238,28 @@ export const STRIP_ACT = {
         const g = S9.belt.S, pts = Mo.flaw('strip.patch', { at: [g[0], g[1]], wall: 'S' });
         scar(X, 'patch', null, body); V.crack(); X.shake(0.25, 0.4); X.dust(g[0], Y0 + 2.4, g[1], 14, 3);
         X.loss(pts, { x: g[0], y: Y0 + 3, z: g[1] }, LOSS['strip.patch'][0]);
-      } else if (r.kind === 'wall') { X.hit(at, 'gold', { text: '' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick, null); }
-      else X.hit(at, 'good', { text: '' });
+      } else if (r.kind === 'wall') { X.hit(at, 'gold', { text: '', craft: 'נגרים' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick, null); }
+      else X.hit(at, 'good', { text: '', craft: 'נגרים' });
       if (p.startsWith('wall:')) fall(sideOf(p)); else out(p);
       keep();
       if (done(S)) closeSoon();
+    }
+    /** (review 132 R2) what holds a loaded part answers its pull: each holder still in place tugs — a short jolt toward the pulled
+     *  part, a puff of dust where it bears — so the player sees what to free first. The pulled part itself does not move (spec line 185:
+     *  "תומכה או חגורה טעונה לא זזה וחורקת"); nothing else lights */
+    function tugHolders(p) {
+      let hs = []; try { hs = deps(S, p).hard.filter((q) => S.left[q]); } catch (e) { hs = []; }
+      for (const q of hs) {
+        A.tug[q] = { t: -0.12 };   // (a beat after the pull: the cause after the effect's creak)
+        const m = mid(q); setTimeout(() => { try { X.dust(m[0], m[1], m[2], 6, 1.2); } catch (e) { /* */ } }, 140);
+      }
+      if (hs.length) ev('tug:' + hs.join('+'));
     }
     function doSlide() {
       const r = slide(S); ev('slide:' + (r.ok ? 'ok' : 'no'));
       const at = atOf('wall:S');
       if (!r.ok) { if (r.loaded) { V.creak(0.75); A.creakT = A.t + 0.5; A.shakeP = { p: 'wall:S', t: 0 }; X.loss(0, at, ''); } keep(); return; }
-      sendMen('wall:S', 'push'); V.scrape(0.7); setTimeout(() => V.scrape(0), 600); A.slideT = 0; X.hit(at, 'good', { text: '' }); keep();
+      sendMen('wall:S', 'push'); V.scrape(0.7); setTimeout(() => V.scrape(0), 600); A.slideT = 0; X.hit(at, 'good', { text: '', craft: 'נגרים' }); keep();
     }
     /** a brace, a belt or the wedge comes out: it slides out (the wedge up) and lies on the ground below */
     function out(p) {
@@ -266,9 +279,10 @@ export const STRIP_ACT = {
       settle();
       // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
       { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
-      // (the two men in the film's picture: off the south-east corner, between the east and the south walls where they lie — no board
-      //  there — standing, rope and staff in hand, toward the block)
-      [[B[2] + 2.4, B[3] + 2.6, 'rope'], [B[2] + 4.2, B[3] + 1.2, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
+      // (the two men in the film's picture: on the court beyond the east wall where it lies, by its middle — both of the film's shots,
+      //  from the south-east and the north-east, have them whole (review P8: off the south-east corner they were under the frame's edge) —
+      //  standing, rope and staff in hand, toward the block)
+      [[B[2] + H + 2.2, MID[1] - 1.6, 'rope'], [B[2] + H + 2.2, MID[1] + 1.6, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
       // (far enough that the whole block, the four walls lying round it and the men stand in the frame: at 40 amot the top alone filled it)
       const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
         return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)
@@ -346,6 +360,13 @@ export const STRIP_ACT = {
       for (const k of Object.keys(A.lit)) { const fc = body.userData.faces[k]; A.lit[k] = Math.max(0, A.lit[k] - dt); if (fc) fc.material.emissiveIntensity = 1 + 1.6 * A.lit[k]; }
       // a shudder (a loaded pull) and a wobble (a free tap)
       if (A.shakeP) { A.shakeP.t += dt; const g = A.shakeP.p.startsWith('wall:') ? SH9.walls && SH9.walls[sideOf(A.shakeP.p)] && SH9.walls[sideOf(A.shakeP.p)].grp : parts[A.shakeP.p]; const s = A.shakeP.t < 0.5 ? Math.sin(A.shakeP.t * 70) * 0.06 : 0; if (g) g.rotation.z = (g.userData.rz0 || 0) + s * (A.shakeP.p.startsWith('wall:') ? 0.15 : 1); if (A.shakeP.t >= 0.5) { if (g) g.rotation.z = g.userData.rz0 || 0; A.shakeP = null; } }
+      for (const q of Object.keys(A.tug)) {
+        const T0 = A.tug[q]; T0.t += dt; const g = q.startsWith('wall:') ? SH9.walls && SH9.walls[sideOf(q)] && SH9.walls[sideOf(q)].grp : parts[q]; if (!g) { delete A.tug[q]; continue; }
+        if (g.userData.ty0 == null) g.userData.ty0 = g.position.y;
+        const u = T0.t, s = u > 0 && u < 0.45 ? Math.sin(u * 46) * 0.09 * (1 - u / 0.45) : 0;
+        if (q.startsWith('wall:')) g.rotation.z = (g.userData.rz0 || 0) + s * 0.08; else g.position.y = g.userData.ty0 + s;
+        if (u >= 0.45) { if (q.startsWith('wall:')) g.rotation.z = g.userData.rz0 || 0; else g.position.y = g.userData.ty0; delete A.tug[q]; }
+      }
       if (A.wob) { A.wob.t += dt; const g = parts[A.wob.p]; const s = A.wob.t < 0.55 ? Math.sin(A.wob.t * 38) * (A.wob.tiny ? 0.006 : 0.05) * (1 - A.wob.t / 0.55) : 0; if (g) g.rotation.y = s; if (A.wob.t >= 0.55) A.wob = null; }
       if (A.creakT && A.t > A.creakT) { A.creakT = 0; V.creak(0); }
       if (A.slideT != null) { A.slideT += dt; const u = Math.min(1, A.slideT / 0.8), W = SH9.walls && SH9.walls.S; if (W) W.grp.position.x = B[0] - u; if (u >= 1) A.slideT = null; }

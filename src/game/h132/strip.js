@@ -93,9 +93,11 @@ export const STRIP_ACT = {
     function placeOf(p) {
       const k = sideOf(p), n = NORM[k];
       if (p === 'wedge') { const [x, z] = S9.wedge; return [[x - 2.4, z + 2.4, x, z, F], [x - 4.6, z + 2.4, x, z, F]]; }   // (on the floor south of the corner, the rope up to the wedge's head)
-      if (p.startsWith('wall:')) {
-        const c = k === 'N' || k === 'S' ? [MID[0], k === 'N' ? B[1] : B[3]] : [k === 'E' ? B[2] : B[0], MID[1]], al = n[0] ? [0, 1] : [1, 0];
-        return [-1, 1].map((s) => [c[0] - n[0] * 2.2 + al[0] * s * 3, c[1] - n[1] * 2.2 + al[1] * s * 3, c[0] + n[0] * 3, c[1] + n[1] * 3, Y1 - 0.02]);
+      // (review P2: a wall's two pullers — the spec's השולפים — stand on the court beyond where it lies, their ropes to its head, not on the
+      //  fill's top; the west one from the line's path between the yesod and the Ulam's steps)
+      if (p.startsWith('wall:') && k !== 'W') {
+        const c = k === 'N' || k === 'S' ? [MID[0], k === 'N' ? B[1] : B[3]] : [k === 'E' ? B[2] : B[0], MID[1]], al = n[0] ? [0, 1] : [1, 0], d = H + 3.5;
+        return [-1, 1].map((s) => [c[0] + n[0] * d + al[0] * s * 3, c[1] + n[1] * d + al[1] * s * 3, c[0], c[1], F]);
       }
       if (k === 'W') { const z = MID[1], x = S9.sikra.pathW.x; return [-1, 1].map((s) => [x, z + s * 3.2, x, z, F]); }   // (the one-amah gap between the yesod and the steps: the line's west path)
       const g = p.startsWith('brace:') ? braceEnds(k)[0] : S9.belt[k], al = n[0] ? [0, 1] : [1, 0], d = p.startsWith('brace:') ? 1.4 : 4.2;
@@ -144,7 +146,7 @@ export const STRIP_ACT = {
     }
     function sendMen(p, role, jump) {
       workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? fitPair(placeOf(p), [-1, 0]) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
-      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || (isWall ? 'push' : 'pull'); w.item = isWall ? 'staff' : 'rope'; w.until = A.t + (jump ? 2.6 : 1.6); if (jump && w.a) { w.hop = 0; w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; w.a.vis = w.a.visT = 1; } }
+      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = role || 'pull'; w.item = role === 'push' ? 'staff' : 'rope'; w.until = A.t + (jump ? 2.6 : 1.6); if (jump && w.a) { w.hop = 0; w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; w.a.vis = w.a.visT = 1; } }
     }
     function moveMen(dt) {
       for (const w of men) {

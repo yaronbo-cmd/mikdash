@@ -158,7 +158,10 @@ function makeSikra(m, X) {
     pole.g.visible = bowl.visible = swab.g.visible = true;
     // (the line printed so far, after a reload)
     if (!fresh && track.hs.length) { for (let i = 0; i * SK.SAMPLE <= L.s; i++) { const s = i * SK.SAMPLE, j = Math.min(track.hs.length - 1, Math.floor(s / 0.5)); R.set(i, s, (track.hs[j] || 0) / 100, { d: 'dark', r: 'red', p: 'pink' }[track.ws[j]] || 'red'); } for (const [a, b] of track.cuts) R.cut(a, b); R.flush(); A.si = Math.floor(L.s / SK.SAMPLE) + 1; A.ti = track.hs.length; for (const mk of L.marks) markMesh(mk); }
-    const [e, a] = V3.camAt(L.s, lv); A.pose = [e, a]; X.shot(e, a, fresh ? 1.3 : 0.6);
+    // (the line step opens on its doers: a cut, not a 1.3 s pan from the last corner — a still taken during that pan showed the bare
+    // face and the walkway with the kohen and the helper not yet in frame, while the figures gate judged the pan's end, where both
+    // stand whole)
+    const [e, a] = V3.camAt(L.s, lv); A.pose = [e, a]; X.shot(e, a, fresh ? 0.01 : 0.6);
     try { if (X.polarUp) X.polarUp(true); } catch (e2) { /* */ }
     figures(0);
     if (!L.started) setTimeout(() => { if (A.phase === 'line' && !L.started && !A.ended) X.hand({ x: w0.x, y: F + 2.2, z: w0.z }, 0, 14); }, 1400);

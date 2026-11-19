@@ -283,6 +283,9 @@ export const STRIP_ACT = {
       //  from the south-east and the north-east, have them whole (review P8: off the south-east corner they were under the frame's edge) —
       //  standing, rope and staff in hand, toward the block)
       [[B[2] + H + 2.2, MID[1] - 1.6, 'rope'], [B[2] + H + 2.2, MID[1] + 1.6, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
+      // (the probes' log: where the film's two men are, whether they live and are drawn, and where on the screen — review P8)
+      globalThis.__H132_FILMMEN = () => men.map((w) => { if (!w || !w.a) return null; const a = w.a, s = X.scr(a.x, (a.y || 0) + 1.8, a.z); return { x: r2(a.x), y: r2(a.y), fy: r2(a.fixedY), z: r2(a.z), vis: r2(a.vis), visT: a.visT, alive: !!a.alive, gateOff: !!a.gateOff, scr: [Math.round(s.x), Math.round(s.y), s.on === false ? 0 : 1] }; });
+      ev('film:men ' + men.map((w) => (w && w.a ? 'up' : 'none')).join(','));
       // (far enough that the whole block, the four walls lying round it and the men stand in the frame: at 40 amot the top alone filled it)
       const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
         return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)

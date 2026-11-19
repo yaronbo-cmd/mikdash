@@ -255,6 +255,7 @@ function modelHide(X) { try { if (X.stages.stageOwn) X.stages.stageOwn('sovev', 
 /* ───────── the life of the world ───────── */
 export function initWorld(X) {
   mats(X); SH9.X = X;
+  if (SH9.figsBack) { const f = SH9.figsBack; SH9.figsBack = null; try { f(); } catch (e) { /* */ } }   // (the ending's figures, held off until the visits open: pack.js finale)
   try { window.__H132_SH = SH9; } catch (e) { /* (the probes' eyes) */ }
   modelHide(X);
   if (!SH9.g) build(X);

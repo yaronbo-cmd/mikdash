@@ -31,6 +31,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   const b = await chromium.launch({ executablePath: EXE, ...(GPU && !EXE ? { channel: 'chromium' } : {}), headless: !process.env.PROBE_HEADED, args });
   const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !process.env.MOUSE, isMobile: !process.env.MOUSE && W < 1000, deviceScaleFactor: +(process.env.DSF || 1), locale: 'he-IL' });
   const pg = await ctx.newPage();
+  let HUNG = false; const HANGED = {};   // ── h132 ── (the page hung: the steps left are not run) ── /h132 ──
   const errs = [];
   const notes = [];   // ── h132 ── (the director's own [h109] info lines are notes, not errors: printed apart) ── /h132 ──
   pg.on('console', (m) => { if (m.type() === 'error') errs.push(m.type() + ' ' + m.text().slice(0, 300)); else if (/\[h109\]/.test(m.text())) notes.push(m.type() + ' ' + m.text().slice(0, 300)); });
@@ -43,6 +44,21 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   await pg.goto(pathToFileURL(path.join(ROOT, 'dist', 'test.html')).href);
   await pg.waitForFunction(() => window.__T && window.__T.booted && window.__T.game, null, { polling: 100, timeout: 300000 });
   const cdp = await ctx.newCDPSession(pg);
+  // ── h132 ── (a page whose main thread never comes back — a loop in the game — hung the run silently to its time limit: any evaluate
+  //  that does not return in PROBE_HANG ms, 180 s by default, pauses the page in the debugger, prints where it is (PROBE_HANG_SRC=1: the
+  //  source around it too), and fails the run: the steps left are skipped, the exit is 2) ── /h132 ──
+  const HANG = +(process.env.PROBE_HANG || 180000), ev0 = pg.evaluate.bind(pg);
+  pg.evaluate = (...args) => { if (HUNG) return Promise.reject(new Error('the page hung')); let tm = null; const hung = new Promise((r) => { tm = setTimeout(() => r(HANGED), HANG); });
+    return Promise.race([ev0(...args).finally(() => clearTimeout(tm)), hung]).then(async (v) => { if (v !== HANGED) return v; await hangDump(); throw new Error('the page hung'); }); };
+  async function hangDump() {
+    if (HUNG) return; HUNG = true; log('PAGE HUNG', 'an evaluate did not return in ' + HANG / 1000 + ' s: pausing the page');
+    try { const dbg = await ctx.newCDPSession(pg); const paused = new Promise((r) => dbg.once('Debugger.paused', r)); await dbg.send('Debugger.enable'); await dbg.send('Debugger.pause'); const ev = await Promise.race([paused, new Promise((r) => setTimeout(() => r(null), 20000))]);
+      if (!ev) log('  (the debugger did not pause in 20 s)');
+      else for (const [i, f] of ev.callFrames.slice(0, 25).entries()) { const sc = f.location; log('  at', (f.functionName || '(anon)') + ' ' + String(f.url || '').split('/').pop() + ':' + (sc.lineNumber + 1) + ':' + (sc.columnNumber + 1));
+        if (process.env.PROBE_HANG_SRC && i < 6) { try { const src = await dbg.send('Debugger.getScriptSource', { scriptId: sc.scriptId }); const L = src.scriptSource.split('\n')[sc.lineNumber] || ''; log('    src', L.slice(Math.max(0, sc.columnNumber - 300), sc.columnNumber + 300)); } catch (e) { /* */ } } }
+    } catch (e) { log('  (no stack: ' + e.message + ')'); }
+    errs.push('FAILED: the page hung (an evaluate did not return in ' + HANG / 1000 + ' s)');
+  }
   console.log('webgl:', await pg.evaluate(() => { try { const r = window.__T && window.__T.renderer; const gl = r && r.getContext ? r.getContext() : document.createElement('canvas').getContext('webgl2'); const x = gl.getExtension('WEBGL_debug_renderer_info'); return x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); } catch (e) { return 'unknown (' + e.message + ')'; } }), GPU ? '(PROBE_GPU)' : '');
   const bootS = ((Date.now() - TB) / 1000).toFixed(1);
   // (MOUSE=1: the same script played with a mouse; the first finger is the mouse, a second finger is ignored)
@@ -78,7 +94,6 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     void had;
     FG[0] = W2[0]; FG[1] = W2[1];
   }
-  let HUNG = false;   // ── h132 ── (the page hung: the steps left are not run) ── /h132 ──
   async function run(s) {
     if (s.init || HUNG) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
@@ -148,20 +163,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     if (s.bot) {
       const t = Date.now(); let k = 0, last = '';
       while (Date.now() - t < (s.max || 600000)) {
-        // ── h132 ── (a page whose main thread never comes back — a loop in the game — hung the run silently: after PROBE_HANG ms, 180 s by
-        //  default, the script stops it in the debugger, prints where it is and fails) ── /h132 ──
-        const HANG = +(process.env.PROBE_HANG || 180000); let hungT = null;
-        let a = await Promise.race([pg.evaluate(s.bot).catch((e) => ({ wait: 500, note: 'BOTERR ' + e.message })), new Promise((r) => { hungT = setTimeout(() => r({ __hung: 1 }), HANG); })]);
-        clearTimeout(hungT);
-        if (a && a.__hung) {
-          log('PAGE HUNG', 'the bot step did not return in ' + HANG / 1000 + ' s: pausing the page');
-          try { const dbg = await ctx.newCDPSession(pg); const paused = new Promise((r) => dbg.once('Debugger.paused', r)); await dbg.send('Debugger.enable'); await dbg.send('Debugger.pause'); const ev = await Promise.race([paused, new Promise((r) => setTimeout(() => r(null), 20000))]);
-            if (ev) for (const f of ev.callFrames.slice(0, 25)) { const sc = f.location; log('  at', (f.functionName || '(anon)') + ' ' + String(f.url || '').split('/').pop() + ':' + (sc.lineNumber + 1) + ':' + (sc.columnNumber + 1)); }
-            else log('  (the debugger did not pause in 20 s)');
-            if (ev && process.env.PROBE_HANG_SRC) { for (const f of ev.callFrames.slice(0, 6)) { try { const src = await dbg.send('Debugger.getScriptSource', { scriptId: f.location.scriptId }); const L = src.scriptSource.split('\n')[f.location.lineNumber] || ''; const c = f.location.columnNumber; log('  src', (f.functionName || '(anon)'), L.slice(Math.max(0, c - 300), c + 300)); } catch (e) { /* */ } } }
-          } catch (e) { log('  (no stack: ' + e.message + ')'); }
-          errs.push('FAILED: the page hung (a bot step did not return in ' + HANG / 1000 + ' s)'); HUNG = true; break;
-        }
+        let a = await pg.evaluate(s.bot).catch((e) => ({ wait: 500, note: 'BOTERR ' + e.message }));
         // ── h132 ── (the page reloaded under the bot — a work page reloads when its levels are all done: the context goes, and with it
         // the injected bot. Wait for the game to boot again and run the bot's script again, once per reload, instead of failing on.) ── /h132 ──
         if (a && a.note && /^BOTERR .*(Execution context was destroyed|__BOT is not defined|reading 'h109'|__T is not defined)/.test(a.note)) {
@@ -172,6 +174,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
           reloads++; if (reloads > 4) { log('bot', 'the page reloaded more than 4 times: stop'); break; }
           continue;
         }
+        if (HUNG) break;
         if (!a) { await pg.waitForTimeout(300); continue; }
         if (a.note && a.note !== last) { log('bot', a.note); last = a.note; }
         if (a.fail) errs.push('FAILED: ' + String(a.fail).slice(0, 300));   // ── h132 ── (a script's own failure: counted with the errors, the exit not 0) ── /h132 ──

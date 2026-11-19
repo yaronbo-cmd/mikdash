@@ -208,7 +208,8 @@ export function siteStakesAway(root, away, geo) {
   const g = root && root.getObjectByName ? root.getObjectByName('h131-site') : null; if (!g || !geo) return 0;
   let n = 0;
   for (const c of g.children) {
-    if (!c.isMesh || c.geometry !== geo) continue; n++;
+    // (and stage 08's pile of the pit's stones, h131-pile: no role in stage 09, it lay east of the block on the men's way)
+    if (!(c.isMesh && c.geometry === geo) && c.name !== 'h131-pile') continue; n++;
     if (away) { if (c.visible) { c.visible = false; c.userData.h132away = true; } }
     else if (c.userData.h132away) { c.visible = true; c.userData.h132away = false; }
   }

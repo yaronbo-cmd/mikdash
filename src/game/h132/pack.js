@@ -88,7 +88,16 @@ export function makePack09(env = {}) {
         //  him it looked into a board or a wall)
         if (!acting()) { try { X.stages.hero.place({ x: S9.start[0], z: S9.start[1], face: S9.mid.slice() }); } catch (e) { /* */ } }
         // (round 8, P9: then the picture behind him, the block ahead — the follow camera goes on from there with him whole)
-        if (!acting() && S9.cam.start) { X.shot(S9.cam.start[0].slice(), S9.cam.start[1].slice(), 1.2); await tapOr(X, 1500); }
+        if (!acting() && S9.cam.start) {
+          const C0 = X.camera, f0 = C0 ? C0.fov : null; try { if (C0 && CAM.startFov) { C0.fov = CAM.startFov; C0.updateProjectionMatrix(); } } catch (e) { /* */ }
+          X.shot(CAM.start[0].slice(), CAM.start[1].slice(), 1.2); await tapOr(X, 1800);
+          // (then the walk's own lens back, eased, while the eye turns down onto him: the follow camera takes him whole from there — at the
+          //  walk's lens on the wide picture's aim his feet were under the frame's foot)
+          let h = null; try { h = X.stages.heroXYZ({ x: 0, y: 0, z: 0 }); } catch (e) { h = null; }
+          if (h && Number.isFinite(h.x)) X.shot(CAM.start[0].slice(), [h.x, h.y + 1.5, h.z], 0.9);
+          if (C0 && f0 != null && typeof requestAnimationFrame === 'function') await new Promise((res) => { const fa = C0.fov, t0 = performance.now(); const st = () => { const u = Math.min(1, (performance.now() - t0) / 900), e = u * u * (3 - 2 * u); try { C0.fov = fa + (f0 - fa) * e; C0.updateProjectionMatrix(); } catch (er) { /* */ } if (u < 1) requestAnimationFrame(st); else res(); }; requestAnimationFrame(st); });
+          else try { if (C0 && f0 != null) { C0.fov = f0; C0.updateProjectionMatrix(); } } catch (e) { /* */ }
+        }
         near(X, false);
       })();
     },

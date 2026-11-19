@@ -175,3 +175,13 @@ test('review R6: over the last 15° the wall slows like a weight — its lag gro
   // (it slows as it nears upright: each tenth of a second covers less than the one before, once past 75°)
   const k = at.findIndex((a) => a > 75), d = (i) => at[i + 6] - at[i]; if (k >= 0 && k + 18 < at.length) assert.ok(d(k + 6) < d(k), 'slowing');
 });
+
+test('form R6 brake (round 8): the wall rests at the thumb\'s travel whatever the step — a slow page\'s long steps no longer carry it past', () => {
+  for (const [frames, fdt, sdt] of [[18, 0.05, 0.05], [18, 0.3, 0.1], [18, 0.6, 0.2], [6, 0.5, 0.25], [40, 0.05, 0.016]]) {
+    const S = fresh(2); for (const k of STAKES) { if (S.rods[k] != null) S.rods[k] = 1; stakeTap(S, k); }
+    grab(S, 'E');
+    for (let i = 0; i < frames; i++) { push(S, 90 / frames); for (let t = 0; t < fdt - 1e-9; t += sdt) step(S, sdt); }
+    release(S); for (let i = 0; i < 600 && S.W.E.st === 'up'; i++) step(S, sdt);
+    assert.equal(S.W.E.how, 'perf', `${frames}×${fdt}/${sdt}`); assert.ok(Math.abs(S.W.E.a - 90) < 1e-6, `${frames}×${fdt}/${sdt}: ${S.W.E.a}`);
+  }
+});

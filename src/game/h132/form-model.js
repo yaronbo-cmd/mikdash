@@ -141,7 +141,10 @@ export function step(S, dt) {
     // (the thumb's speed this step, followed with the lag: exact for a speed held over the step, so the angle ends at the thumb's travel)
     const held = S.hold === k, u = held ? S.pend : 0, tgt = u / dt;
     const B9 = FK.BRAKE, f = Math.max(0, Math.min(1, (w.a - B9.FROM) / (B9.TO - B9.FROM))), Lg = FK.LAG * (1 + B9.K * (w.v > 0 ? f : 0)), L0 = w.lag || FK.LAG;
-    if (Lg !== L0) w.v = tgt + ((w.v - tgt) * L0) / Lg;   // (the drift still to come, (v − thumb) × lag, kept as the lag grows)
+    // (the invariant a + v × lag = the thumb's travel: as the lag grows the speed shrinks with it, so the wall still rests where the
+    //  travel says. Build 132 round 8: the speed was rescaled about the thumb's speed of the new step, (v − thumb) × lag, which broke
+    //  the invariant whenever the thumb's speed changed in that step — on a slow page's long steps a wall ran up to 3.6° past it, 'back')
+    if (Lg !== L0) w.v = (w.v * L0) / Lg;
     w.lag = Lg;
     const e = Math.exp(-dt / Lg), v0 = w.v;
     w.v = tgt + (v0 - tgt) * e;

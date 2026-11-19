@@ -190,11 +190,21 @@ function makeSikra(m, X) {
     }
     return { sx: q.x, sy: Math.max(110, y) };
   }
+  // (a reward that showed just before a loss is wiped off the screen as the loss comes: its number and its glare)
+  let hushT = 0;
+  function hushRewards() {
+    try {
+      if (!document.getElementById('h132-hush')) { const st = document.createElement('style'); st.id = 'h132-hush'; st.textContent = 'body.h132-hush .jx-n,body.h132-hush .jx-f{visibility:hidden!important}'; document.head.appendChild(st); }
+      A.flashT = 0; flash.visible = false;
+      document.body.classList.add('h132-hush'); clearTimeout(hushT); hushT = setTimeout(() => document.body.classList.remove('h132-hush'), 1600);
+    } catch (e) { /* */ }
+  }
   function lossPump(all) {
     if (!LQ.length) return;
-    if (all) { const n = LQ.reduce((m, q) => m + q.n, 0), q0 = LQ[0]; LQ.length = 0; X.loss(n, lossAtScr(q0.s), q0.lab); return; }
+    if (all) { const n = LQ.reduce((m, q) => m + q.n, 0), q0 = LQ[0]; LQ.length = 0; hushRewards(); X.loss(n, lossAtScr(q0.s), q0.lab); return; }
     if (A.t < A.lossNext) return;
     const q = LQ.shift(); A.lossNext = A.t + SKA.LOSS_GAP; A.lossT = A.t;
+    hushRewards();
     X.loss(q.n, lossAtScr(q.s), q.lab);
   }
   function rewardFlush(now) {

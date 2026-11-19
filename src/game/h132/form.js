@@ -276,7 +276,7 @@ export const FORM_ACT = {
       if (res.perfect) { try { X.perfect(WORDS.form, { x: MID[0], y: Y0 + H, z: MID[1] }); } catch (e) { /* */ } await X.wait(1.0); }
       const [e0, aim] = FA.WIDE;
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y0 + H, z: MID[1] },
-        film: { eye: [e0[0] + 6, e0[1] + 16, e0[2] - 8], aim: aim.slice(), secs: 2.2, ease: 2.0, kohen: false, own: () => gang.list.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
+        film: { eye: [e0[0] + 6, e0[1] + 16, e0[2] - 8], aim: aim.slice(), secs: 2.2, ease: 2.0, kohen: false, own: () => gang.list.map((w) => w.a), after: () => { try { Mo.filmOver(); } catch (e) { /* (the world built again: the film is over) */ } try { gang.clear(); } catch (e) { /* */ } } } });
     }
     // ── drawing
     function draw(dt) {

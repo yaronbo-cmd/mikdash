@@ -289,7 +289,7 @@ export const STRIP_ACT = {
       const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
         return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
-        film: { shots: sh, secs: 4, kohen: false, own: () => [], after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
+        film: { shots: sh, secs: 4, kohen: false, own: () => [], after: () => { try { Mo.filmOver(); } catch (e) { /* (the world built again: the film is over) */ } try { gang.clear(); } catch (e) { /* */ } } } });
     }
     /** the site cleared for the line: four men carry the north wall on their shoulders to the timber pile (a short shot), and with a
      *  cut every board of the form — the four walls, the braces, the belts, the wedge — lies stacked there; the white block alone */

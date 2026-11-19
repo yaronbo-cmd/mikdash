@@ -371,7 +371,7 @@ function makeSikra(m, X) {
       const eye = S9.cam.w4measure[0].slice(), aim = S9.cam.w4measure[1].slice();
       // (one kohen in the film: the worker with the pole is the player's kohen; the stage's own kohen figure stays out of it)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, at, flags: res.flags,
-        film: { eye, aim, secs: 2.4, kohen: false, own: () => [worker && worker.a, helper && helper.a].filter(Boolean), after: () => { cleanup(); } } });
+        film: { eye, aim, secs: 2.4, kohen: false, own: () => [worker && worker.a, helper && helper.a].filter(Boolean), after: () => { try { Mo.filmOver(); } catch (e) { /* (the world built again: the film is over) */ } cleanup(); } } });
     }, res.perfect ? 1600 : 700);
   }
   function cleanup() {

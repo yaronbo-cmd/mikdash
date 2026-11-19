@@ -21,7 +21,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, MID = S9.mid, ZC =
  *  pace (amot/s), the hint hand's longest gesture (px), the wait before the end (s) (המחשה, לכיוונון) */
 export const FK = Object.freeze({
   PICK: 70, PICKM: 46, FALL: Object.freeze({ big: 1.1, small: 0.45, tub: 0.7 }), FLOW: 0.6, SLIDE: 0.7, OX_WALK: 2.6, MEN: 7, HP: 85, END: 1.6,
-  LIFT: 1.6, RAKE: 1.3, BACK: 0.5, FOV: 50, ROAD0: 0.5,
+  LIFT: 1.6, RAKE: 1.3, BACK: 0.5, FOV: 50, ROAD0: 0.5, BOB: 8, BOB_HOLD: 0.15, BOB_BACK: 0.6,
 });
 /** the act's words (what to do, at most five words) */
 export const FILLL = Object.freeze({
@@ -225,8 +225,19 @@ export const FILL_ACT = {
     const POP = 0.75;
     function later(fn) { const t = Math.max(A.t, A.popAt || 0) + POP; A.popAt = t; X.wait(t - A.t).then(() => { try { fn(); } catch (e) { /* */ } }); }
     const atOf = (zone) => ({ x: ZC[zone][0], y: Y0 + surfH(S.h, ZC[zone][0], ZC[zone][1]) + 1.5, z: ZC[zone][1] });
+    // (review 132 R5: as a load lands the camera rises 8° about its aim — the whole top and the four tongues — and comes home 0.6 s later;
+    //  never while the right thumb holds a look or a sled is dragged: the player's camera wins)
+    function bob() {
+      let L = null; try { L = X.lookNow ? X.lookNow() : null; } catch (e) { L = null; }
+      if (A.lifted || (L && (L.u > 0.02 || Math.abs(L.yaw || 0) > 0.03 || L.ov)) || A.fl != null || [...sleds.values()].some((q) => q.st === 'drag')) return;
+      const [e0, a0] = S9.cam.w2, v = [e0[0] - a0[0], e0[1] - a0[1], e0[2] - a0[2]], hl = Math.hypot(v[0], v[2]), d = Math.hypot(hl, v[1]);
+      const el = Math.min(1.35, Math.atan2(v[1], hl) + FK.BOB * Math.PI / 180), k = (d * Math.cos(el)) / (hl || 1);
+      X.shot([a0[0] + v[0] * k, a0[1] + d * Math.sin(el), a0[2] + v[2] * k], a0.slice(), 0.22);
+      A.bobT = A.t + 0.22 + FK.BOB_HOLD;
+    }
     function land(D) {
       const h0 = { ...shown }, e = take(S, D.j, D.zone); if (!e) { ev('refused'); return; }
+      bob();
       const at = atOf(D.zone);
       // the sound and the dust of its matter: stones heavy (a big basket a thud and a shake), the mix a wet spill
       if (e.kind === 'big') { V.thud(); X.shake(0.18, 0.3); X.dust(at.x, at.y - 1, at.z, 12, 2.5); } else if (e.kind === 'small') { V.bump(); X.dust(at.x, at.y - 1, at.z, 6, 1.8); } else { V.dust(); V.bump(); }
@@ -323,6 +334,7 @@ export const FILL_ACT = {
           const g = gauges(S.h), worst = Math.max(g.N, g.S, g.E, g.W), b = S.free || S.grace ? 'good' : band(worst, lv);
           if (b !== A.lastBand) { A.lastBand = b; V.creak(b === 'danger' ? 1 : b === 'warn' ? 0.45 : 0); }
           if (A.t % 0.5 < dt) hintNext(false);
+          if (A.bobT && A.t >= A.bobT) { A.bobT = 0; if (!A.lifted) shotHome(FK.BOB_BACK); }
           // (the right thumb's look let go and home: the work's shot taken again — after a lift out over the court the camera came back to
           //  its eye but kept the lifted aim, turned off the block)
           { let L = null; try { L = X.lookNow ? X.lookNow() : null; } catch (e) { L = null; } if (L) { if (L.u > 0.02 || Math.abs(L.yaw || 0) > 0.03 || L.ov) A.lifted = 1; else if (A.lifted && L.u < 1e-3 && Math.abs(L.yaw || 0) < 1e-3) { A.lifted = 0; shotHome(0.3); ev('look:home'); } } }

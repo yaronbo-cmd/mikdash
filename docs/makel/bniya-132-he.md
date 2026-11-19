@@ -17,7 +17,7 @@
 
 - ענף השרשור `claude/project-thread-wv5ljp` בראש `21c749e`. ענף המסירה `build-132` = `bce44ec` (ענף השרשור ב־`250921b` ועוד דף המשחק הבנוי בשורש).
 - דף הטלפון: https://yaronbo-cmd.github.io/mikdash/v/132/ (עובד; ההפעלה הראשונה של `pages.yml` נכשלה בגלל תזמון בגיטהאב, הפעלה חדשה הצליחה. לא להריץ "הרצה חוזרת" על ריצה שנכשלה, אלא הפעלה חדשה).
-- 18 הדפים פורסמו; כל הקישורים ב־`docs/build-132/mesira-132-he.md`. המשחק המלא: https://claude.ai/artifact/Ks1tAgiwBS7FY9pjERZwcG . שלב 09: https://claude.ai/artifact/Eofy8y7avpgFSTHiPzt39e .
+- מסמך המסירה: https://claude.ai/artifact/1x7c8RPqutf4FN21noJsbW . 18 הדפים פורסמו; כל הקישורים ב־`docs/build-132/mesira-132-he.md`. המשחק המלא: https://claude.ai/artifact/Ks1tAgiwBS7FY9pjERZwcG . שלב 09: https://claude.ai/artifact/Eofy8y7avpgFSTHiPzt39e .
 - בדיקות: 940 סך הכול, 930 עברו, 0 נכשלו, 10 דולגו.
 - במחשב של ירון על `250921b`, במגע ובעכבר: 12 עבודות בשלושה כוכבים, 8 מתוך 8 ביקורים חוזרים, אפס שגיאות, כ־20 דקות לכל מסלול.
 - ביקורת כלל 67: Gemini / ChatGPT / Grok: תבנית 7.5 / 8.5 / 8, מילוי 6 / 7.5 / 7.5, שליפה 7 / 9 / 8.5, חוט 8 / 8.5 / 8.5, סיום 8.5 / 9.5 / 9. נכנסו R1, R2, R3, R5, R6, R7, R8. לא נכנסו R4 ו־R9 והמבט הקרוב במילוי (האפיון לא מאפשר).

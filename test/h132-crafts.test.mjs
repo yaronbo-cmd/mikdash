@@ -24,3 +24,7 @@ test('end: stage 09 says one gold title — the game\'s stage-done celebration i
   const s = src('index.js'), i = s.indexOf("type === 'stageDone' && d && !d.skipped && !stageById");
   assert.ok(i > 0); assert.match(s.slice(i, i + 300), /d\.id !== 'sovev'/);
 });
+test('words (P6): a quick word kept clear of its number where the juice puts it, and the glare lowered in stage 09 acts', () => {
+  const d = src('h109/director.js'); assert.match(d, /const qn = scr\(at\.x, at\.y \+ 1\.6, at\.z\)/); assert.match(d, /q\.y = ny - 124/);
+  const a = src('h132/acts.js'); assert.match(a, /h132-act \.jx-f\{width:80px/); assert.match(a, /\.jx-v\{display:none\}/); assert.match(a, /actClass\(\)/);
+});

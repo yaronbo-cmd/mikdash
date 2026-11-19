@@ -829,7 +829,7 @@ body.h109-quiet .gm .tw-zone,body.h109-quiet .gm .tw-mk,body.h109-quiet .gm .tw-
     uiMount(); quickCss();
     const q = at ? (at.sx != null ? { x: at.sx, y: at.sy } : scr(at.x, at.y, at.z)) : { x: innerWidth / 2, y: innerHeight * 0.4 };   // ── h128 ── (at.sx: a screen point) ── /h128 ──
     // ── h132 ── (at.sep: the word sits above the points' number of the same spot, never on it — the number and its rise kept clear) ── /h132 ──
-    if (at && at.sep && at.sx == null && q && Number.isFinite(q.x)) { at = { avoid: { x0: q.x - 70, x1: q.x + 70, y0: q.y - 72, y1: q.y + 24 } }; q.y -= 120; }
+    if (at && at.sep && at.sx == null && q && Number.isFinite(q.x)) { const qn = scr(at.x, at.y + 1.6, at.z); if (qn && Number.isFinite(qn.y)) { const ny = qn.y - 24; at = { avoid: { x0: qn.x - 80, x1: qn.x + 80, y0: ny - 84, y1: ny + 28 } }; q.x = qn.x; q.y = ny - 124; } else { at = { avoid: { x0: q.x - 70, x1: q.x + 70, y0: q.y - 72, y1: q.y + 24 } }; q.y -= 120; } }   /* ── h132 ── (review P6: the number stands where the juice puts it — 1.6 over the spot, 24 px up — and rises 40 px: the box kept clear is that, and the word a gap above it) ── /h132 ── */
     try { const q2 = wordClear(q, (text || 'מושלם!') + (QK.run >= 2 ? ` ×${QK.run}` : ''), at && at.avoid); q.x = q2.x; q.y = q2.y; } catch (e) { /* (where it was) */ }   // ── b131 ── (D1: a word never on a man) ── /b131 ──
     const el = document.createElement('div'); el.className = 'h109-ui h120-qk'; el.textContent = (text || 'מושלם!') + (QK.run >= 2 ? ` ×${QK.run}` : '');
     el.style.left = q.x + 'px'; el.style.top = q.y + 'px'; document.body.appendChild(el); setTimeout(() => el.remove(), 640);

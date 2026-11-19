@@ -160,6 +160,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
         }
         if (!a) { await pg.waitForTimeout(300); continue; }
         if (a.note && a.note !== last) { log('bot', a.note); last = a.note; }
+        if (a.fail) errs.push('FAILED: ' + String(a.fail).slice(0, 300));   // ── h132 ── (a script's own failure: counted with the errors, the exit not 0) ── /h132 ──
         if (a.done) { log('bot done', ((Date.now() - t) / 1000).toFixed(0) + 's', k, 'actions'); break; }
         k++; try { await run(a); } catch (e) { log("bot step failed", e.message); await pg.waitForTimeout(500); }
       }
@@ -173,4 +174,5 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   if (notes.length) console.log('page notes:\n' + notes.slice(0, 30).join('\n'));   // ── h132 ── ── /h132 ──
   console.log(errs.length ? 'ERRORS (' + errs.length + '):\n' + errs.slice(0, 30).join('\n') : 'no errors');   // ── h132 ── (the count: the PC summary's errors line) ── /h132 ──
   await b.close();
+  if (errs.some((e) => /^FAILED: /.test(e))) process.exitCode = 2;   // ── h132 ── ── /h132 ──
 })().catch((e) => { console.error('probe failed', e); process.exit(1); });

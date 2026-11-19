@@ -219,7 +219,12 @@ export function createH132(save) {
     /** the world as the work `m` (or the open one) begins it */
     stageOf(m) { const w = m || M.mission(); return w ? stage(w.k, w.lv, st) : null; },
     /** the block's state now: the open work's start, else after the last done */
-    block() { const m = M.mission(); return m ? blockBefore(m.k) : blockOf(st); },
+    block() { const m = M.mission(); return m ? blockBefore(m.k) : M.shown ? blockAfter(M.shown) : blockOf(st); },
+    // ── h132 ── (the work's after-film shows what he made — a return visit's fill its filled frame, its strip the bare block with no
+    // line — and the world goes back to its built state only when the film is over: M.shown, not saved, set by done, cleared by
+    // the act's film.after through filmOver) ── /h132 ──
+    shown: null,
+    filmOver() { if (M.shown) { M.shown = null; } },
     /* ── the flaw registry ── */
     /** a flaw kept in the save where it happened; returns its points (the director's X.loss takes them). o: { at, wall, zone, n } */
     flaw(f, o = {}) {
@@ -249,7 +254,7 @@ export function createH132(save) {
       st.plays[m.id] = (st.plays[m.id] | 0) + 1;
       if (!d(m.id)) st.done.push(m.id);
       if (st[m.k]) st[m.k].work = null;
-      st.cur = null; st.i = st.done.length;
+      st.cur = null; st.i = st.done.length; M.shown = m.k;   // ── h132 ── (the after-film's state) ── /h132 ──
       return null;
     },
     /** the director's link and kind pages: the first work not done that `want` takes, in the plan's order (a kind's page: its levels

@@ -30,6 +30,7 @@ test('round 1: only the flow\'s next is open, level 1 in the building order; the
   assert.deepEqual(M.open().map((m) => m.id), ['form2', 'fill2', 'strip3', 'sikra2']);
   assert.ok(M.pick('strip3')); M.done({ stars: 1 }); assert.equal(M.nextLevel('strip'), 3); assert.equal(M.levelsDone('strip'), 3);
   assert.ok(M.pick('strip3'), 'the last level plays again'); M.done({ stars: 3, pts: 40 }); assert.equal(M.resultOf('strip3').stars, 3); assert.equal(M.st.plays.strip3, 2);
+  assert.equal(M.block(), 'bare', 'h132: the after-film shows what he made (the strip: the bare block, no line)'); M.filmOver();
   assert.equal(M.block(), 'lined', 'the world built again after a return visit');
   M.pick('fill2'); assert.equal(M.block(), 'formUp', 'a return visit begins from its work\'s own pre-state'); M.done({ stars: 2 });
   // before round 1 is done: a level 2 or 3 is not offered in the walk, and is picked (a link) only once its kind's round-1 works before are done

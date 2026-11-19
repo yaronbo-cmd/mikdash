@@ -12,6 +12,7 @@ test('after round 1 every station offers its own next level; each visit raises i
   const M = createH132(); round1(M);
   assert.equal(M.finished(), true); assert.deepEqual(M.open().map((m) => m.id), ['form2', 'fill2', 'strip2', 'sikra2']);
   M.pick('fill2'); assert.equal(M.block(), blockBefore('fill'), 'the visit plays from the fill\'s own pre-state'); M.done({ stars: 3, pts: 980 });
+  assert.equal(M.block(), 'filled', 'h132: its after-film shows the filled frame'); M.filmOver();
   assert.equal(M.block(), 'lined', 'after it: the built world');
   assert.deepEqual(M.open().map((m) => m.id), ['form2', 'fill3', 'strip2', 'sikra2']);
   M.pick('fill3'); M.done({ stars: 2, pts: 800 }); assert.equal(M.visitOf('fill').id, 'fill3', 'after the last level it stays there');

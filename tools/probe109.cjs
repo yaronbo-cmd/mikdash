@@ -78,8 +78,9 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     void had;
     FG[0] = W2[0]; FG[1] = W2[1];
   }
+  let HUNG = false;   // ── h132 ── (the page hung: the steps left are not run) ── /h132 ──
   async function run(s) {
-    if (s.init) return;
+    if (s.init || HUNG) return;
     if (s.wait) await pg.waitForTimeout(s.wait);
     // (build 129: {reload: code} — the page reloaded with its save kept (localStorage), the init code replaced by this one)
     // ── h131 ── (the snapshot of the save and the new init code are carried by the probe itself, not by sessionStorage: the game's page came
@@ -147,7 +148,20 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
     if (s.bot) {
       const t = Date.now(); let k = 0, last = '';
       while (Date.now() - t < (s.max || 600000)) {
-        let a = await pg.evaluate(s.bot).catch((e) => ({ wait: 500, note: 'BOTERR ' + e.message }));
+        // ── h132 ── (a page whose main thread never comes back — a loop in the game — hung the run silently: after PROBE_HANG ms, 180 s by
+        //  default, the script stops it in the debugger, prints where it is and fails) ── /h132 ──
+        const HANG = +(process.env.PROBE_HANG || 180000); let hungT = null;
+        let a = await Promise.race([pg.evaluate(s.bot).catch((e) => ({ wait: 500, note: 'BOTERR ' + e.message })), new Promise((r) => { hungT = setTimeout(() => r({ __hung: 1 }), HANG); })]);
+        clearTimeout(hungT);
+        if (a && a.__hung) {
+          log('PAGE HUNG', 'the bot step did not return in ' + HANG / 1000 + ' s: pausing the page');
+          try { const dbg = await ctx.newCDPSession(pg); const paused = new Promise((r) => dbg.once('Debugger.paused', r)); await dbg.send('Debugger.enable'); await dbg.send('Debugger.pause'); const ev = await Promise.race([paused, new Promise((r) => setTimeout(() => r(null), 20000))]);
+            if (ev) for (const f of ev.callFrames.slice(0, 25)) { const sc = f.location; log('  at', (f.functionName || '(anon)') + ' ' + String(f.url || '').split('/').pop() + ':' + (sc.lineNumber + 1) + ':' + (sc.columnNumber + 1)); }
+            else log('  (the debugger did not pause in 20 s)');
+            if (ev && process.env.PROBE_HANG_SRC) { for (const f of ev.callFrames.slice(0, 6)) { try { const src = await dbg.send('Debugger.getScriptSource', { scriptId: f.location.scriptId }); const L = src.scriptSource.split('\n')[f.location.lineNumber] || ''; const c = f.location.columnNumber; log('  src', (f.functionName || '(anon)'), L.slice(Math.max(0, c - 300), c + 300)); } catch (e) { /* */ } } }
+          } catch (e) { log('  (no stack: ' + e.message + ')'); }
+          errs.push('FAILED: the page hung (a bot step did not return in ' + HANG / 1000 + ' s)'); HUNG = true; break;
+        }
         // ── h132 ── (the page reloaded under the bot — a work page reloads when its levels are all done: the context goes, and with it
         // the injected bot. Wait for the game to boot again and run the bot's script again, once per reload, instead of failing on.) ── /h132 ──
         if (a && a.note && /^BOTERR .*(Execution context was destroyed|__BOT is not defined|reading 'h109'|__T is not defined)/.test(a.note)) {
@@ -169,7 +183,7 @@ const steps = JSON.parse(fs.readFileSync(SCRIPT, 'utf8'));
   for (const s of steps) await run(s);
   if (FG[0] || FG[1] || FGM.left || FGM.right) await fingersSet([null, null]);   // ── h132 ── (no finger left held at the end) ── /h132 ──
   console.log(`probe time${process.env.FAST ? ' (FAST)' : ''}: boot ${bootS}s, ${n} shots ${(shotMs / 1000).toFixed(1)}s, steps ${((Date.now() - T0) / 1000).toFixed(1)}s`);
-  const fr = await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
+  const fr = HUNG ? null : await pg.evaluate(() => { try { const P = globalThis.__S30PROF; const r = P && P.report ? P.report() : null; return r && r.n ? `${r.n} frames, p50 ${r.p50} ms, p95 ${r.p95} ms` + (r.renders ? `, renders p50 ${r.renders.p50} ms` : '') : null; } catch (e) { return null; } }).catch(() => null);
   console.log(`wall ${((Date.now() - TW) / 1000).toFixed(1)}s` + (fr ? ` · page frames: ${fr}` : ' · page frames: not exposed'));
   if (notes.length) console.log('page notes:\n' + notes.slice(0, 30).join('\n'));   // ── h132 ── ── /h132 ──
   console.log(errs.length ? 'ERRORS (' + errs.length + '):\n' + errs.slice(0, 30).join('\n') : 'no errors');   // ── h132 ── (the count: the PC summary's errors line) ── /h132 ──

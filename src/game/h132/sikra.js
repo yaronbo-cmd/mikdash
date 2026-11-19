@@ -33,6 +33,10 @@ export const SKA = Object.freeze({
   LOOK_GAIN: 1.8, LOOK_MAX: 0.45,                     // the right thumb's lift (the director's look: X.lookLift)
   KEEP_S: 2,                                          // s between two keeps of the open line in the save
   POP_DY: -1.9,                                       // the line's popups this far under the line (the juice lifts them 1.6): at the bow, never on the HUD
+  LOSS_DY: 1.2,                                       // a loss's words this far over the line (over the block's top edge: above the line, never on the men below it)
+  LOSS_GAP: 1.3,                                      // s between two loss words: one at a time, the next waits its turn
+  CALM: 2,                                            // s after a loss with no reward word, gold or glare (a loss is never paid)
+  DRIP_HOLD: 1.4, DRIP_LEAD: 2,                       // s the camera holds on a lost drip; amot ahead of a fresh drip the camera's point stays
 });
 const isPhone = () => Math.min(innerWidth, innerHeight) < 700;
 
@@ -58,7 +62,7 @@ function makeSikra(m, X) {
   const Ms = blob && blob.Ms ? blob.Ms : K.measureFresh(lv);
   let L = null, track = { hs: [], ws: [], cuts: [] };
   if (blob && blob.line) { const r = K.lineLoad(blob.line); if (r) { L = r.L; track = { ...r.track, cuts: (blob.cuts || []).slice() }; } }
-  const A = { t: 0, ev: [], phase: L ? 'line' : 'measure', busy: 0, done: 0, keepT: 0, k: null, rod: { u: 0, hung: false }, mode: null, leftDown: false, org: null, lp: null, held: null, r2: null, look: 0, cutTo: -1, si: 0, ti: 0, last: '' };
+  const A = { t: 0, ev: [], phase: L ? 'line' : 'measure', busy: 0, done: 0, keepT: 0, k: null, rod: { u: 0, hung: false }, mode: null, leftDown: false, org: null, lp: null, held: null, r2: null, look: 0, cutTo: -1, si: 0, ti: 0, last: '', lossT: -9, lossNext: 0, camHold: null };
   const ev = (e) => { A.ev.push(e); if (A.ev.length > 18) A.ev.shift(); };
   const keep = () => { Mo.keep('sikra', { lv, done: !!A.done, Ms, line: L ? K.lineSave(L, null) : null, cuts: track.cuts }); X.save(); };
   if (!blob) { try { Mo.st.sikra.line = null; } catch (e) { /* */ } }   // (played again: the old line goes with its flaws — workSeed)
@@ -167,32 +171,48 @@ function makeSikra(m, X) {
     while (mkN < L.marks.length) { const mk = L.marks[mkN++]; try { Mo.flaw(mk.f, { at: mk.s, wall: K.wallAt(Math.min(mk.s, 4 * SK.SIDE - 0.01)).k, n: mk.n | 0 }); } catch (e) { /* */ } }
   }
   const label = (f) => (LOSS[f] ? LOSS[f][0] : '');
+  // ── a loss's words one at a time, over the line; a reward waits for its frame's end and is dropped when a loss came in it or
+  //    shortly before (spec: no reward word or glare on a loss) ──
+  const LQ = [], RW = [];
+  const lossQ = (n, s, lab) => { A.lossT = A.t; LQ.push({ n, s, lab }); };
+  const reward = (fn) => { RW.push(fn); };
+  function lossPump(all) {
+    if (!LQ.length) return;
+    if (all) { const n = LQ.reduce((m, q) => m + q.n, 0), q0 = LQ[0]; LQ.length = 0; X.loss(n, lineAt(q0.s, SKA.LOSS_DY), q0.lab); return; }
+    if (A.t < A.lossNext) return;
+    const q = LQ.shift(); A.lossNext = A.t + SKA.LOSS_GAP; A.lossT = A.t;
+    X.loss(q.n, lineAt(q.s, SKA.LOSS_DY), q.lab);
+  }
+  function rewardFlush() {
+    if (A.t - A.lossT < SKA.CALM || LQ.length) { RW.length = 0; return; }
+    for (const f of RW.splice(0)) { try { f(); } catch (e) { /* */ } }
+  }
   function onEvent(e) {
     ev(e.e + (e.s != null ? '@' + e.s : ''));
     const at = lineAt(e.s != null ? e.s : L.s, SKA.POP_DY);
     switch (e.e) {
-      case 'seg': if (e.pts >= 40) { X.hit(at, 'gold'); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); } else if (e.pts >= 20) X.hit(at, 'good'); else if (e.pts > 0) X.hit(at, 'ok'); else if (e.pts < 0) X.loss(SK.PTS.loss, at, label('sikra.wavy')); break;
+      case 'seg': if (e.pts >= 40) reward(() => { X.hit(at, 'gold'); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); }); else if (e.pts >= 20) reward(() => X.hit(at, 'good')); else if (e.pts > 0) reward(() => X.hit(at, 'ok')); else if (e.pts < 0) lossQ(SK.PTS.loss, e.s != null ? e.s : L.s, label('sikra.wavy')); break;
       case 'corner':
-        if (e.r === 'perfect') { X.hit(at, 'ok', { text: '+10' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(1.5); X.shake(0.12, 0.2); flash.position.set(at.x, LY, at.z); flash.visible = true; A.flashT = 0.6; try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } }
+        if (e.r === 'perfect') reward(() => { X.hit(at, 'ok', { text: '+10' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(1.5); X.shake(0.12, 0.2); flash.position.set(at.x, LY, at.z); flash.visible = true; A.flashT = 0.6; try { if (X.haptic) X.haptic(25); } catch (er) { /* */ } });
         break;
-      case 'gap': if (!e.free) X.loss(SK.PTS.loss, at, label('sikra.gap')); VO.snap(); { const s1 = e.s1 != null ? e.s1 : e.s; if (e.why !== 'close') { A.cutTo = Math.max(A.cutTo, s1); track.cuts.push([e.s, s1]); R.cut(e.s, Math.min(L.s, s1)); } } break;
-      case 'smear': if (!e.free) { X.loss(SK.PTS.loss, at, label('sikra.smear')); MK.smear(e.s); } break;
-      case 'blot': if (!e.free) { X.loss(SK.PTS.loss, at, label('sikra.blot')); MK.blot(e.s); } else VO.wipe(); break;
-      case 'blot2': X.loss(SK.PTS.loss, at, label('sikra.blot2')); MK.blot(e.s, -0.3); MK.blot(e.s, 0.3); break;
-      case 'seam': if (!e.free) { X.loss(0, at, label('sikra.seam')); MK.seam(e.s); track.cuts.push([e.s, e.s + 0.1]); } break;
+      case 'gap': if (!e.free) lossQ(SK.PTS.loss, e.s, label('sikra.gap')); VO.snap(); { const s1 = e.s1 != null ? e.s1 : e.s; if (e.why !== 'close') { A.cutTo = Math.max(A.cutTo, s1); track.cuts.push([e.s, s1]); R.cut(e.s, Math.min(L.s, s1)); } } break;
+      case 'smear': if (!e.free) { lossQ(SK.PTS.loss, e.s, label('sikra.smear')); MK.smear(e.s); } break;
+      case 'blot': if (!e.free) { lossQ(SK.PTS.loss, e.s, label('sikra.blot')); MK.blot(e.s); } else VO.wipe(); break;
+      case 'blot2': lossQ(SK.PTS.loss, e.s, label('sikra.blot2')); MK.blot(e.s, -0.3); MK.blot(e.s, 0.3); break;
+      case 'seam': if (!e.free) { lossQ(0, e.s, label('sikra.seam')); MK.seam(e.s); track.cuts.push([e.s, e.s + 0.1]); } break;
       case 'drip': { const mm = MK.drip(e.s); mm.userData.t = 0; drips.set(e.id, mm); VO.drop(); break; }
-      case 'dripLost': X.loss(SK.PTS.loss, at, label('sikra.drip')); break;
+      case 'dripLost': lossQ(SK.PTS.loss, e.s, label('sikra.drip')); A.camHold = { s: e.s + SKA.DRIP_LEAD, until: A.t + SKA.DRIP_HOLD }; break;
       case 'wipe': { const mm = drips.get(e.id); if (mm) { mm.parent && mm.parent.remove(mm); drips.delete(e.id); } VO.wipe(); if (!e.free) MK.pink(e.s); swabTo(lineAt(e.s, -0.4), 0.6); break; }
-      case 'close': if (e.r === 'perfect') { X.hit(at, 'gold', { text: '+40' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); } break;
-      case 'flawOk': X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); break;
+      case 'close': if (e.r === 'perfect') reward(() => { X.hit(at, 'gold', { text: '+40' }); X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick); VO.pluck(2); X.shake(0.18, 0.3); }); break;
+      case 'flawOk': reward(() => X.quick(at && { x: at.x, y: at.y, z: at.z, sep: true }, WORDS.quick)); break;
       case 'done': finish(); break;
       default: break;
     }
   }
   /** the helper's swab to a point and back (to the bow: wetting the string; to a drip: wiping it) */
   function swabTo(p, secs) { A.swab = { p: [p.x, p.y, p.z], t: 0, d: secs }; }
-  function bowlNow() { if (!L || L.done) return; const evs = K.bowlTap(L); VO.clay(); const bow = lineAt(L.s, 0.2); swabTo(bow, 0.7); for (const e of evs) if (e.e !== 'refill') onEvent(e); ev('bowl' + (evs[0] && evs[0].excess ? ':excess' : '')); }
-  function dripNow(id) { if (!L) return; const evs = K.dripTap(L, id); for (const e of evs) onEvent(e); }
+  function bowlNow() { if (!L || L.done) return; const evs = K.bowlTap(L); VO.clay(); const bow = lineAt(L.s, 0.2); swabTo(bow, 0.7); for (const e of evs) if (e.e !== 'refill') onEvent(e); rewardFlush(); ev('bowl' + (evs[0] && evs[0].excess ? ':excess' : '')); }
+  function dripNow(id) { if (!L) return; const evs = K.dripTap(L, id); for (const e of evs) onEvent(e); rewardFlush(); }
   /* ── the right thumb's targets on the screen ── */
   const scr = (x, y, z) => { const q = X.scr(x, y, z); return q && q.on !== false ? [q.x, q.y] : null; };
   const bowlScr = () => { if (!bowl.visible) return null; bowl.updateMatrixWorld(); return scr(bowl.position.x, bowl.position.y + 0.25, bowl.position.z); };
@@ -285,7 +305,11 @@ function makeSikra(m, X) {
   }
   function camStep() {
     if (!L) return;
-    const W = V3.walkerAt(L.s, lv), [e, a] = V3.camAt(L.s, lv, W);
+    // (the camera's point stays on the line a little ahead of a fresh drip, and holds on a lost one, until it has been seen)
+    let cs = L.s;
+    for (const d of K.freshDrips(L)) cs = Math.min(cs, d.s + SKA.DRIP_LEAD);
+    if (A.camHold) { if (A.t < A.camHold.until) cs = Math.min(cs, A.camHold.s); else A.camHold = null; }
+    const W = V3.walkerAt(cs, lv), [e, a] = V3.camAt(cs, lv, W);
     A.pose = [e, a]; X.track(e, a, 3.2);
   }
   /** the ribbon grows to s: every sample since the last, at the height and band of now (a gap's stretch flat) */
@@ -300,6 +324,7 @@ function makeSikra(m, X) {
   /* ───────── the end ───────── */
   function finish() {
     if (A.done) return; A.done = 1; A.phase = 'out'; VO.hum(0);
+    lossPump(true); rewardFlush();
     marksOut();
     const res = K.lineResult(L, Ms), rec = V3.lineRecord(L, track);
     try { Mo.st.sikra.line = rec; } catch (e) { /* */ }
@@ -310,8 +335,9 @@ function makeSikra(m, X) {
     setTimeout(() => {
       if (A.ended) return;
       const eye = S9.cam.w4measure[0].slice(), aim = S9.cam.w4measure[1].slice();
+      // (one kohen in the film: the worker with the pole is the player's kohen; the stage's own kohen figure stays out of it)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, at, flags: res.flags,
-        film: { eye, aim, secs: 2.4, own: () => [worker && worker.a, helper && helper.a].filter(Boolean), after: () => { cleanup(); } } });
+        film: { eye, aim, secs: 2.4, kohen: false, own: () => [worker && worker.a, helper && helper.a].filter(Boolean), after: () => { cleanup(); } } });
     }, res.perfect ? 1600 : 700);
   }
   function cleanup() {
@@ -342,6 +368,7 @@ function makeSikra(m, X) {
       const evs = K.lineStep(L, dt, inp);
       grow();
       for (const e of evs) onEvent(e);
+      rewardFlush(); lossPump(false);
       marksOut();
       for (const [id, mm] of drips) { mm.userData.t = (mm.userData.t || 0) + dt; MK.grow(mm, Math.min(1, mm.userData.t / 0.6)); void id; }
       VO.hum(!L.lifted && L.started ? L.pace / SK.PACE_MAX : 0);

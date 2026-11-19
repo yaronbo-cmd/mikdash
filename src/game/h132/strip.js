@@ -279,18 +279,17 @@ export const STRIP_ACT = {
       settle();
       // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
       { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
-      // (the two men in the film's picture: on the court beyond the east wall where it lies, by its middle — both of the film's shots,
-      //  from the south-east and the north-east, have them whole (review P8: off the south-east corner they were under the frame's edge) —
-      //  standing, rope and staff in hand, toward the block)
-      [[B[2] + H + 2.2, MID[1] - 1.6, 'rope'], [B[2] + H + 2.2, MID[1] + 1.6, 'staff']].forEach(([x, z, it], i) => { const w = men[i]; if (!w || !w.a) return; w.goal = [x, z, MID[0], MID[1], groundAt(x, z)]; w.want = 'hold'; w.item = it; w.until = 0; w.hop = 0; w.a.x = x; w.a.z = z; w.a.fixedY = groundAt(x, z); w.a.vis = w.a.visT = 1; });
+      // (review P8, round 8: no men in the film — settle() above has laid the timber on the pile and cleared the gang, the pullers
+      //  with it (the probes' log: both null in the film), and the spec's 'what stays in the world' at the strip's end (shlav-09 line 218)
+      //  asks for the white block and the four walls lying where they fell, no men: the film shows that alone)
       // (the probes' log: where the film's two men are, whether they live and are drawn, and where on the screen — review P8)
       globalThis.__H132_FILMMEN = () => men.map((w) => { if (!w || !w.a) return null; const a = w.a, s = X.scr(a.x, (a.y || 0) + 1.8, a.z); return { x: r2(a.x), y: r2(a.y), fy: r2(a.fixedY), z: r2(a.z), vis: r2(a.vis), visT: a.visT, alive: !!a.alive, gateOff: !!a.gateOff, scr: [Math.round(s.x), Math.round(s.y), s.on === false ? 0 : 1] }; });
       ev('film:men ' + men.map((w) => (w && w.a ? 'up' : 'none')).join(','));
-      // (far enough that the whole block, the four walls lying round it and the men stand in the frame: at 40 amot the top alone filled it)
+      // (far enough that the whole block and the four walls lying round it stand in the frame: at 40 amot the top alone filled it)
       const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
         return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
-        film: { shots: sh, secs: 4, kohen: false, own: () => men.map((w) => w && w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
+        film: { shots: sh, secs: 4, kohen: false, own: () => [], after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }
     /** the site cleared for the line: four men carry the north wall on their shoulders to the timber pile (a short shot), and with a
      *  cut every board of the form — the four walls, the braces, the belts, the wedge — lies stacked there; the white block alone */

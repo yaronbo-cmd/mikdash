@@ -283,7 +283,8 @@ export const FILL_ACT = {
       await X.wait(Math.max(FK.END, (A.popAt || 0) - A.t + 0.4));   // (the last words have had their turn)
       if (res.perfect) { try { X.perfect(WORDS.fill, { x: MID[0], y: Y1 + 1, z: MID[1] }); } catch (e) { /* */ } await X.wait(1.2); }
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1 + 0.5, z: MID[1] },
-        film: { eye: S9.cam.w2[0].slice(), aim: S9.cam.w2[1].slice(), secs: 1.4, kohen: false, own: () => gang.list.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } try { ox.clear(); } catch (e) { /* */ } } } });
+        film: { eye: S9.cam.w2[0].slice(), aim: [S9.cam.w2[1][0], Y1 + 0.5, S9.cam.w2[1][2]], secs: 1.4,   // (the work's shot, its aim raised onto the filled top: aimed inside the full block the camera's guard drew the eye onto its face — a flat frame)
+        kohen: false, own: () => gang.list.map((w) => w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } try { ox.clear(); } catch (e) { /* */ } } } });
     }
     // ── the camera: the book's one shot of the work (the whole block, the ramp and the road, the horizon); the right thumb looks round
     const cam0 = X.camera, fov0 = cam0.fov;

@@ -265,7 +265,7 @@ export const STRIP_ACT = {
       settle();
       // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
       { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
-      const R = 40, sh = [0, 1, 2, 3].map((i) => { const a = Math.PI / 4 + (i * Math.PI) / 2; return [[MID[0] + Math.cos(a) * R, Y1 + 16, MID[1] + Math.sin(a) * R], [MID[0], Y0 + 2, MID[1]], 1.0]; });
+      const R = 40, sh = [0, 1, 2, 3].map((i) => { const a = Math.PI / 4 + (i * Math.PI) / 2; return [[MID[0] + Math.cos(a) * R, Y1 + 16, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 1.0]; });   // (aimed on the top, not inside the block: the camera's guard drew an eye aimed inside the mass onto its face — a flat white frame)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
         film: { shots: sh, secs: 4, kohen: false, own: () => men.map((w) => w && w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }

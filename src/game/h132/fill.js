@@ -55,9 +55,12 @@ export const FILL_ACT = {
     const top = fillTop(X, root), zm = zoneMarks(X, root), gs = gaugeSet(X, root), ll = layerLines(X, root), heap = stoneHeap(X, root);
     const shown = { ...S.h }; let from = null, to = null, flowT = 1, flowD = FK.FLOW;
     const bulges = {};
+    let gaugeKnock = false;   // (no knock for the first drawing of the gauges)
     function drawFill() {
       top.set(shown); zm.set(shown); ll.set(S.layer - 1);
-      gs.set(gauges(shown), lv, S.bulged);
+      // (review 132 R1: a wood knock as a tongue steps out or in — step 1 low, 2 middle, 3 high; one knock a frame)
+      const mv = gs.set(gauges(shown), lv, S.bulged), up = mv.reduce((m, q) => Math.max(m, q[1]), 0);
+      if (mv.length && gaugeKnock) { try { V.knock(up >= 3 ? 0.62 : up === 2 ? 0.9 : 1.35); } catch (e) { /* */ } }
       for (const z of ZONES) { const p = S.pockets.some((q) => q.zone === z && !q.mended && q.layer === S.layer); heap.set(z, S.last[z] === 'stone', p, Y0 + surfH(shown, ZC[z][0], ZC[z][1])); }
       for (const k of ['N', 'S', 'E', 'W']) if (S.bulged[k] && !bulges[k]) {
         const g0 = S9.gauge[k], n = k === 'N' ? [0, -1] : k === 'S' ? [0, 1] : k === 'E' ? [1, 0] : [-1, 0], w = 4, d = 0.35, x = g0[0] + n[0] * d, z = g0[1] + n[1] * d;
@@ -290,7 +293,7 @@ export const FILL_ACT = {
     const cam0 = X.camera, fov0 = cam0.fov;
     const lens = (f) => { try { cam0.fov = f; cam0.updateProjectionMatrix(); } catch (e) { /* */ } };
     const shotHome = (d = 0) => { lens(FK.FOV); X.shot(S9.cam.w2[0].slice(), S9.cam.w2[1].slice(), d); };
-    drawFill();
+    drawFill(); gaugeKnock = true;
     return {
       close: true,
       begin() {

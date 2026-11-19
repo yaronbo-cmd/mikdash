@@ -17,7 +17,7 @@ const S9 = BOOK.s09, B = S9.block, Y0 = S9.base, Y1 = S9.top, MID = S9.mid, ZC =
 /** the drawing's numbers: the surface's grid (cells a side), the battens' size, the gauge's housing and tongue (amot), a unit's tongue
  *  travel, the sled's size, the loads' sizes (המחשה) */
 export const FD = Object.freeze({
-  GRID: 24, BAT: [0.62, 0.4], GH: [2.6, 0.7, 0.9], TONGUE: [0.42, 0.34], PER_UNIT: 1.1, SLED: [2.4, 0.45, 3.4],
+  GRID: 24, BAT: [0.62, 0.4], GH: [4.4, 1.2, 1.5], TONGUE: [0.72, 0.58], PER_UNIT: 1.1, STEP: 1.9, SLED: [2.4, 0.45, 3.4],
   LOAD: Object.freeze({ big: [1.25, 1.5], small: [0.8, 0.9], tub: [1.15, 0.75] }),
 });
 
@@ -126,20 +126,27 @@ export function gaugeSet(X, root) {
     g.position.set(gx, S9.gaugeY, gz); g.rotation.y = Math.atan2(n[0], n[1]); root.add(g);   // (its own +z points out from the block)
     const hs = new T.Mesh(X.props.geo.box, PM.y9woodD); hs.scale.set(L, Hh, Dd); hs.position.set(0, Hh / 2, 0); hs.castShadow = true; g.add(hs);
     // three notches carved along the tongue's way out (good to 1, warn to 2, danger past it — read by the cut, not by a colour)
-    PM.y9fNotch.forEach((mt, i) => { const m = new T.Mesh(X.props.geo.box, mt); m.scale.set(0.24, 0.05 + 0.03 * i, 0.1 + 0.04 * i); m.position.set(L / 2 + 0.2, Hh * 0.55 + 0.06 - (0.05 + 0.03 * i) / 2 + 0.01, Dd / 2 + (i + 1) * FD.PER_UNIT); g.add(m); });   // (cut into the rail's top, each one deeper than the last)
-    const rail = new T.Mesh(X.props.geo.box, PM.y9woodD); rail.scale.set(0.22, 0.1, 3.2 * FD.PER_UNIT); rail.position.set(L / 2 + 0.2, Hh * 0.55, Dd / 2 + 1.6 * FD.PER_UNIT); g.add(rail);
+    // (review 132 R1: the tongue and its housing 1.7 times the first drawing; it stands out in three clear steps of STEP amot — the
+    //  notches at each step's end, cut into the rail beside it, deeper and wider one after another)
+    PM.y9fNotch.forEach((mt, i) => { const m = new T.Mesh(X.props.geo.box, mt); m.scale.set(0.42, 0.09 + 0.05 * i, 0.18 + 0.07 * i); m.position.set(L / 2 + 0.34, Hh * 0.55 + 0.1 - (0.09 + 0.05 * i) / 2 + 0.01, Dd / 2 + 0.3 + (i + 1) * FD.STEP); g.add(m); });
+    const rail = new T.Mesh(X.props.geo.box, PM.y9woodD); rail.scale.set(0.38, 0.17, 3.4 * FD.STEP); rail.position.set(L / 2 + 0.34, Hh * 0.55, Dd / 2 + 1.7 * FD.STEP); g.add(rail);
     const tg = new T.Mesh(X.props.geo.box, PM.y9tongue); tg.scale.set(FD.TONGUE[0], FD.TONGUE[1], 1); tg.castShadow = true; g.add(tg);
     const tip = new T.Mesh(X.props.geo.box, PM.y9fTip[0]); tip.scale.set(FD.TONGUE[0] * 1.25, FD.TONGUE[1] * 1.25, 0.4); g.add(tip);
-    G[k] = { g, tg, tip, v: null };
+    G[k] = { g, tg, tip, v: null, step: 0 };
   }
   return {
+    /** → the walls whose step changed now, [k, step, before] (the act knocks each: low, middle, high) */
     set(gv, lv, bulged = {}) {
+      const moved = [];
       for (const k of ['N', 'S', 'E', 'W']) {
         const q = G[k], v = Math.max(0, Math.min(3.2, gv[k])), key = v.toFixed(3) + '|' + lv + '|' + (bulged[k] ? 1 : 0); if (q.v === key) continue; q.v = key;
-        const len = 0.3 + v * FD.PER_UNIT, b = band(gv[k], lv), i = b === 'good' ? 0 : b === 'warn' ? 1 : 2;
+        const b = band(gv[k], lv), i = b === 'good' ? 0 : b === 'warn' ? 1 : 2, st = gv[k] <= 0.05 ? 0 : i + 1;
+        if (st !== q.step) { moved.push([k, st, q.step]); q.step = st; }
+        const len = 0.3 + st * FD.STEP;
         q.tg.scale.z = len + Dd; q.tg.position.set(0, Hh + 0.3, (len + Dd) / 2 - Dd / 2);
         q.tip.material = PM.y9fTip[i]; q.tip.position.set(0, Hh + 0.3, len + 0.2);
       }
+      return moved;
     },
     G,
   };

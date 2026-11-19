@@ -22,6 +22,8 @@ export const ENDING = Object.freeze({
   BURSTS: Object.freeze([0, 0.16, 0.34, 0.5, 0.68, 0.84, 1.0, 1.18, 1.34, 1.5, 1.68, 1.86, 2.04, 2.22, 2.5, 2.54, 2.58]), RISE: 5,
   COLORS: Object.freeze({ line: 0xff2a1c, head: 0xfff1c8, light: 0xffd98a, dark: 0x141a24, fire: Object.freeze(['#ff3b2e', '#e0201a', '#ffd166', '#f4b400', '#fff1c8']) }),
 });
+/** the vibration's patterns (ms on, off, on), as words: the first burst and the closing triple */
+const BUZZ = { small: '40 30 60', big: '60 40 90' }; for (const k of Object.keys(BUZZ)) BUZZ[k] = BUZZ[k].split(' ').map(Number);
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const ramp = (t, [a, b]) => clamp01((t - a) / (b - a));
 /** the ending's levels at time t (seconds): glow 0…1, the running head's place round the block (0…1 of the perimeter, or null), the
@@ -74,9 +76,9 @@ export function endingFx(X) {
   // (a vertical gradient as a texture: alpha a0 at the plane's foot to a1 at its head; the glow's halo peaks in the middle)
   const grad = (stops) => {
     if (!hasDoc) return null;
-    const c = document.createElement('canvas'); c.width = 4; c.height = 128; const g = c.getContext('2d'), G = g.createLinearGradient(0, 128, 0, 0);
+    const GW = 4, GH = 128, c = document.createElement('canvas'); c.width = GW; c.height = GH; const g = c.getContext('2d'), G = g.createLinearGradient(0, GH, 0, 0);
     for (const [at, a] of stops) G.addColorStop(at, `rgba(255,255,255,${a})`);
-    g.fillStyle = G; g.fillRect(0, 0, 4, 128); const t = new T.CanvasTexture(c); texs.push(t); return t;
+    g.fillStyle = G; g.fillRect(0, 0, GW, GH); const t = new T.CanvasTexture(c); texs.push(t); return t;
   };
   const mat = (o) => { const m = new T.MeshBasicMaterial({ transparent: true, depthWrite: false, side: T.DoubleSide, ...o }); mats.push(m); return m; };
   // (normal blending: on the white plaster an additive light is lost — the glow is a red band with its halo, the light gold, the shade dark)
@@ -86,12 +88,12 @@ export function endingFx(X) {
   const bands = { glow: [], halo: [], face: [], rise: [], dark: [] };
   for (const f of faces()) {
     const len = Math.hypot(f.b[0] - f.a[0], f.b[1] - f.a[1]), mx = (f.a[0] + f.b[0]) / 2, mz = (f.a[1] + f.b[1]) / 2, rotY = Math.atan2(f.n[0], f.n[1]);
-    const plane = (m, off, h, ro) => { const g = new T.PlaneGeometry(len + 0.3, 1); geos.push(g); const p = new T.Mesh(g, m); p.position.set(mx + f.n[0] * off, Y, mz + f.n[1] * off); p.rotation.y = rotY; p.scale.y = h; p.renderOrder = ro; root.add(p); return p; };
-    bands.dark.push(plane(darkM, 0.05, 0.001, 996));
-    bands.face.push(plane(faceLightM, 0.06, 0.001, 996));
-    bands.rise.push(plane(riseM, 0.07, 0.001, 996));
-    bands.halo.push(plane(haloM, 0.09, 2.2, 997));
-    bands.glow.push(plane(glowM, 0.1, 0.6, 998));
+    const plane = (m, { off, h, ro }) => { const g = new T.PlaneGeometry(len + 0.3, 1); geos.push(g); const p = new T.Mesh(g, m); p.position.set(mx + f.n[0] * off, Y, mz + f.n[1] * off); p.rotation.y = rotY; p.scale.y = h; p.renderOrder = ro; root.add(p); return p; };
+    bands.dark.push(plane(darkM, { off: 0.05, h: 0.001, ro: 996 }));
+    bands.face.push(plane(faceLightM, { off: 0.06, h: 0.001, ro: 996 }));
+    bands.rise.push(plane(riseM, { off: 0.07, h: 0.001, ro: 996 }));
+    bands.halo.push(plane(haloM, { off: 0.09, h: 2.2, ro: 997 }));
+    bands.glow.push(plane(glowM, { off: 0.1, h: 0.6, ro: 998 }));
   }
   // the running head and its trail
   const hg = new T.SphereGeometry(0.85, 14, 10); geos.push(hg);
@@ -105,7 +107,7 @@ export function endingFx(X) {
     Object.assign(cv.style, { position: 'fixed', inset: '0', width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 57 });
     cv.width = innerWidth; cv.height = innerHeight; document.body.appendChild(cv); cx = cv.getContext('2d');
   }
-  const kick = (big) => { try { if (X.shake) X.shake(big ? 0.45 : 0.3, big ? 0.7 : 0.5); } catch (e) { /* */ } try { if (X.haptic) X.haptic(big ? [60, 40, 90] : [40, 30, 60]); } catch (e) { /* */ } };
+  const kick = (big) => { try { if (X.shake) X.shake(big ? 0.45 : 0.3, big ? 0.7 : 0.5); } catch (e) { /* */ } try { if (X.haptic) X.haptic(BUZZ[big ? 'big' : 'small']); } catch (e) { /* */ } };
   function launch(b, i) {
     const W = cv.width, H = cv.height;
     rockets.push({ b, x: b.x * W + (rnd() - 0.5) * 40, y: H * 0.78, tx: b.x * W, ty: b.y * H, t: 0, dur: 0.3 });

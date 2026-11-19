@@ -266,7 +266,9 @@ export const STRIP_ACT = {
       settle();
       // (a breath on the site as the strip left it: the white block, the four walls lying where they fell round it)
       { const v = cornerView(TH0); X.shot(v.eye, v.aim, 0.6); await X.wait(SA.CLEAN); }
-      const R = 40, sh = [0, 1, 2, 3].map((i) => { const a = Math.PI / 4 + (i * Math.PI) / 2; return [[MID[0] + Math.cos(a) * R, Y1 + 16, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 1.0]; });   // (aimed on the top, not inside the block: the camera's guard drew an eye aimed inside the mass onto its face — a flat white frame)
+      // (far enough that the whole block, the four walls lying round it and the men stand in the frame: at 40 amot the top alone filled it)
+      const R = 58, sh = [1, -1].map((i) => { const a = (i * Math.PI) / 4;   // (from the south-east and the north-east: west of the block stand the Ulam's steps)
+        return [[MID[0] + Math.cos(a) * R, Y1 + 22, MID[1] + Math.sin(a) * R], [MID[0], Y1 + 0.5, MID[1]], 2.0]; });   // (aimed on the block's top)
       X.end({ stars: res.stars, q: res.q, pts: res.pts, perfect: res.perfect, flags: res.flags, at: { x: MID[0], y: Y1, z: MID[1] },
         film: { shots: sh, secs: 4, kohen: false, own: () => men.map((w) => w && w.a), after: () => { try { gang.clear(); } catch (e) { /* */ } } } });
     }

@@ -27,7 +27,7 @@ import { PLAT } from './mount.js';
 const FIRST_N = [[-480, -92], [-620, -80], [-800, -58], [-1000, -28], [-1080, -18], [-1230, 4], [-1330, 30]];
 const FIRST_S = [[-1330, 30], [-1330, 128], [-1346, 170], [-1346, 420], [-1332, 700], [-1290, 950], [-1180, 1040], [-1000, 1090],
   [-800, 1152], [-600, 1240], [-470, 1318], [-400, 1392], [-250, 1406], [-100, 1372], [60, 1292], [190, 1130], [262, 900],
-  [292, 650], [294, 430], [277, 400]];
+  [292, 650], [294, 430], [279, 403.5]];   // ── h116 ── (it ends against the Mount's south-eastern corner, outside it: at [277, 400] its last piece, 9 thick and 22 high, stood inside the corner where the corner stone is laid) ── /h116 ──
 const SECOND = [[-1080, -18], [-1062, -200], [-995, -420], [-870, -560], [-640, -628], [-420, -618], [-308, -560]];
 // the Third Wall (War 5.147–160, Agrippa's): from Hippicus north to the octagonal tower Psephinus, east past the kings' tombs,
 // round the corner tower and down to the old wall by the Kidron (here: the Mount's north-eastern corner); its line ⚑

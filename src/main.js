@@ -1,6 +1,3 @@
-import './fix56.js';   // ── build 56ב ── FIRST: the tester's chosen stage into the page's address, before any module reads it ── /build 56ב ──
-import { installTester56 } from './tester56.js';   // ── build 56ב ── the tester's stage menu ── /build 56ב ──
-import { installReport56 } from './report56.js';   // ── build 56ג ── "🐞 דווח": its error hooks from here on ── /build 56ג ──
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -42,8 +39,12 @@ import { createCrews } from './crews.js';   // ── crews ──
 import { createCrowd } from './crowd.js';   // ── crowd ──
 // ── build8 ── (FLOW8B, wave 8B) true facts in rotation: FACTS8B's content/facts.json (on a lone branch build.mjs stubs it as
 // []: the game's own verified texts stand in). The loading screen shows one the save has not seen: a new one on every open.
+import { runSeaLook } from './game/h128/look.js';   // ── h128 ── (build 128) the sea's look sample ── /h128 ──
+import { runWaterLook } from './game/h129/look.js';   // ── h129 ── (build 129) the Golah's water look sample ── /h129 ──
 import FACTS from '../content/facts.json';
 import { setFacts, bootFact } from './game/facts.js';
+import { PRESENT_URL } from './game/present.js';   // ── present132 ── ── /present132 ──
+import { deepLinkOf } from './deeplink.js';   // ── deep132 ── (#hatzaga / #siyur: the presentation links) ── /deep132 ──
 setFacts(FACTS);
 try { bootFact(document.getElementById('load')); } catch (e) { /* no loader (a test page) */ }
 // ── /build8 ──
@@ -53,16 +54,20 @@ const canvas = $('c');
 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || Math.min(screen.width, screen.height) < 700;
 const Q = { level: window.__FORCE_Q || (isMobile ? 'normal' : 'high') };
 let paused = false;
+// (tools/probe109.cjs FAST=1 only: window.__PROBE_FAST, set by the probe before load, for logic runs: the canvas drawn at pixel ratio 0.5
+//  and kept there, no shadows, no bloom, no multisampling. The viewport, layout, touch geometry, clock and acts are untouched. A player
+//  never has it.)
+const FAST = !!window.__PROBE_FAST;
 const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 // game mode (default): the Phase A game drives the construction layer; the whole-Temple view is visual only
 let game = null, wholeView = false;
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, Q.level === 'high' ? 2 : 1.5));
+renderer.setPixelRatio(FAST ? 0.5 : Math.min(devicePixelRatio || 1, Q.level === 'high' ? 2 : 1.5));
 renderer.setSize(innerWidth, innerHeight, false);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1;
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !FAST;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.shadowMap.autoUpdate = false;
 
@@ -137,12 +142,12 @@ function columnGeo() {
 const hemi = new THREE.HemisphereLight('#BFD6EE', '#CDB894', 1.0);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight('#ffffff', 3);
-sun.castShadow = true;
+sun.castShadow = !FAST;
 sun.target.position.set(-12, 0, -40);
 scene.add(sun, sun.target);
 {
   const sc = sun.shadow.camera; sc.left = -600; sc.right = 600; sc.top = 600; sc.bottom = -600; sc.near = 100; sc.far = 3400;
-  const S = Q.level === 'high' ? 4096 : 2048; sun.shadow.mapSize.set(S, S);
+  const S = FAST ? 256 : Q.level === 'high' ? 4096 : 2048; sun.shadow.mapSize.set(S, S);
   sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.5;
 }
 // ── world6 ── the sky (src/sky.js): gradient, sun, haze, far hills and Moab, horizon cumulus, a lit cloud layer, the moon
@@ -159,8 +164,6 @@ const TIMES = {
   // ── polish23 ── the Temple day's night (Phase B under two thumbs): dark — the moon only a pale edge, the altar fire, the menorot and the אמרכל's torch the only lights (skyFor → 'nightd'; the Phase A / portrait night above is unchanged)
   nightd: { el: 38, az: 40, sun: '#8FA6D8', sunI: 0.1, hs: '#22345C', hg: '#1B1A24', hI: 0.1, envI: 0.08, top: '#050B1E', hor: '#16213F', bot: '#0E1118', fog: '#121B33', exp: 1.05, smoke: '#4A4846', fire: 230, menK: 0.12, bloom: 0.7, bloomT: 0.9, night: true },
   // ── /polish23 ──
-  // ── recovered (16–26c) ── before dawn (reached by mixTime from the dark night): the sun's grey-blue first light low in the east, the fire small
-  predawn: { el: 9, az: 8, sun: '#93A6D6', sunI: 0.75, hs: '#40527E', hg: '#2C2832', hI: 0.42, envI: 0.2, exp: 1.1, smoke: '#5A5652', fire: 70, menK: 0.12, bloom: 0.6, bloomT: 0.95, night: true },
 };
 // ── world6 ── per preset: the aerial perspective (fog near/far, amot; its colour is the sky's haze) and the colour grade folded
 // into the OutputPass (after ACES, linear): sat = saturation, gain = highlights' tint, lift = shadows' tint, vig = vignette
@@ -171,7 +174,6 @@ const GRADE = {
   golden: { fogN: 700, fogF: 9500, sat: 1.15, gain: [1.07, 1.0, 0.91], lift: [0.004, 0.006, 0.02], vig: 0.25 },   // ── world7 ──
   night: { fogN: 420, fogF: 6800, sat: 0.95, gain: [0.95, 0.99, 1.07], lift: [0.006, 0.01, 0.022], vig: 0.26 },   // ── world7 ── (was fogN 300, fogF 5200, lift 0/.003/.01, vig .3: the far city and hills melted into black)
   nightd: { fogN: 380, fogF: 6200, sat: 0.92, gain: [0.95, 0.99, 1.07], lift: [0.003, 0.006, 0.016], vig: 0.34 },   // ── polish23 ──
-  predawn: { fogN: 420, fogF: 6600, sat: 0.95, gain: [1.0, 0.98, 1.05], lift: [0.008, 0.008, 0.02], vig: 0.3 },   // ── recovered (16–26c) ──
 };
 const RAIN_FOG = { fogN: 120, fogF: 2600 };
 // ── end world6 ──
@@ -203,11 +205,11 @@ class HideDuring extends Pass {
 
 function makeComposer(fxObjs) {
   const w = innerWidth, h = innerHeight, pr = renderer.getPixelRatio();
-  const rt = new THREE.WebGLRenderTarget(w * pr, h * pr, { type: THREE.HalfFloatType, samples: Q.level === 'high' ? 4 : 2 });
+  const rt = new THREE.WebGLRenderTarget(w * pr, h * pr, { type: THREE.HalfFloatType, samples: FAST ? 0 : Q.level === 'high' ? 4 : 2 });
   composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(pr); composer.setSize(w, h);
   composer.addPass(new RenderPass(scene, camera));
-  if (Q.level === 'high') {
+  if (Q.level === 'high' && !FAST) {
     const gtao = new GTAOPass(scene, camera, w, h);
     gtao.updateGtaoMaterial({ radius: 7, distanceExponent: 1.4, thickness: 3, scale: 1.1, samples: 12, distanceFallOff: 1 });
     gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
@@ -217,6 +219,7 @@ function makeComposer(fxObjs) {
   }
   bloom = new UnrealBloomPass(new THREE.Vector2(w, h), TIMES[curTime].bloom, 0.45, TIMES[curTime].bloomT);
   composer.addPass(bloom);
+  if (FAST) bloom.enabled = false;   // (the probe's fast mode: the OutputPass stays — it tone-maps and grades — the bloom goes)
   // ── world6 ── the colour grade, folded into the OutputPass (no extra pass): saturation, split toning, a soft vignette
   const out = new OutputPass();
   grade = { uSat: { value: 1 }, uGain: { value: new THREE.Vector3(1, 1, 1) }, uLift: { value: new THREE.Vector3() }, uVig: { value: 0 } };
@@ -265,31 +268,6 @@ function setTime(k) {
   document.querySelectorAll('[data-time]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.time === k ? 'true' : 'false'));
 }
 
-// ── recovered (16–26c) ── a time between two presets, a → b by k (0…1; k ≥ 1 is setTime(b)): the sun, the hemisphere, the
-// exposure, the sky (sky.mix), the fog and the grade, the bloom; the environment map is re-rendered at each fifth of the way
-const mixCol = new THREE.Color();
-let mixEnvK = -1;
-function mixTime(a, b, k) {
-  const A = TIMES[a], B = TIMES[b], GA = GRADE[a], GB = GRADE[b];
-  if (!A || !B || !GA || !GB) return false;
-  if (!(k < 1)) { mixEnvK = -1; setTime(b); return true; }
-  if (curTime !== a) setTime(a);
-  const at = (x, y) => x + (y - x) * k, col = (c, x, y) => c.set(x).lerp(mixCol.set(y), k), arr = (f) => GA[f].map((v, i) => at(v, GB[f][i]));
-  const el = THREE.MathUtils.degToRad(at(A.el, B.el)), az = THREE.MathUtils.degToRad(at(A.az, B.az));
-  const dir = new THREE.Vector3(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az));
-  sun.position.copy(sun.target.position).addScaledVector(dir, 1600);
-  col(sun.color, A.sun, B.sun); sun.intensity = at(A.sunI, B.sunI);
-  col(hemi.color, A.hs, B.hs); col(hemi.groundColor, A.hg, B.hg); hemi.intensity = at(A.hI, B.hI);
-  renderer.toneMappingExposure = at(A.exp, B.exp);
-  scene.environmentIntensity = at(A.envI, B.envI);
-  sky.mix(b, k, dir);
-  scene.fog.near = at(GA.fogN, GB.fogN); scene.fog.far = at(GA.fogF, GB.fogF); scene.fog.color.copy(sky.fogColor);
-  if (grade) { grade.uSat.value = at(GA.sat, GB.sat); grade.uGain.value.set(...arr('gain')); grade.uLift.value.set(...arr('lift')); grade.uVig.value = at(GA.vig, GB.vig); }
-  if (bloom) { bloom.strength = at(A.bloom, B.bloom); bloom.threshold = at(A.bloomT, B.bloomT); }
-  if (((k * 5) | 0) !== mixEnvK) { mixEnvK = (k * 5) | 0; envRT.dispose(); envRT = pmrem.fromScene(sky.envScene, 0, 1, 1000); scene.environment = envRT.texture; renderer.shadowMap.needsUpdate = true; }
-  return true;
-}
-
 /* ───────── camera flights ───────── */
 let fly = null, lastInput = performance.now();
 let twinCam = false;   // ── twin17 ── the follow camera is on (src/game/twin.js writes the camera; the director's flights wait) ── /twin17 ──
@@ -318,12 +296,7 @@ function stepFly(now) {
 function clampCam() {
   const p = camera.position, onMount = p.x > -310 && p.x < 290 && p.z > -490 && p.z < 410;
   const minY = onMount ? (stages && typeof stages.camFloor === 'function' ? stages.camFloor(p.x, p.z) : 7) : terrainH(p.x, p.z) + 14;   // ── site9 ── (the Mount's walls: 8 over the ground there)
-  // ── camfix ── (the owner's playtest 29.10: on the live screen the camera stood 50 amot over his work, the capture showed it right) the
-  // Mount's works (har42: stages 01–11) are in the working bay, 45–64 amot under the platform; the floor of 7 over the platform lifted
-  // every frame of their cameras there before it was drawn (the tests' simulated world never runs this clamp). While har42 is on, the
-  // floor is the ground under the camera ── /camfix ──
-  if (globalThis.__H42 && globalThis.__H42.on && stages && typeof stages.groundAt === 'function') { const g = stages.groundAt(p.x, p.z); if (Number.isFinite(g) && p.y < g + 1.5) p.y = g + 1.5; }
-  else if (p.y < minY) p.y = minY;
+  if (p.y < minY) p.y = minY;
   const t = controls.target;
   t.x = THREE.MathUtils.clamp(t.x, -1800, 1800); t.z = THREE.MathUtils.clamp(t.z, -1800, 1800); t.y = THREE.MathUtils.clamp(t.y, -60, 160);
 }
@@ -344,6 +317,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), hit = new THREE.Ve
 function pickAt(cx, cy) {
   // Phase B: while a mini-game or a key moment is on screen, a tap belongs to it — never open an info card under it
   if (avodah && avodah.busy) return;
+  if (document.body.classList.contains('h109-act')) return;   // ── h109 ── (an act of stage 01 owns the touch: no card under it) ── /h109 ──
   if (document.body.classList.contains('sh-on')) return;   // ── shift29 ── (in a shift a tap on the court is a miss, never a card over the round) ── /shift29 ──
   ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
@@ -454,6 +428,8 @@ view.twinCam = (on) => {
 };
 view.camSet = (px, py, pz, tx, ty, tz) => { fly = null; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); };
 view.pickAt = (x, y) => { try { pickAt(x, y); } catch (e) { /* */ } };   // ── cam28 ── (twin.js: a single tap on the right half picks after the double-tap's window) ── /cam28 ──
+view.polar = (v) => { const o = controls.maxPolarAngle; if (v != null) controls.maxPolarAngle = v; return o; };   // ── build 130 ── (the gallery's views from below: a level eye; the director saves and restores it) ── /build 130 ──
+view.minDist = () => controls.minDistance;   // ── h112 ── (the director's camera keeps it too: h109/director.js camStep) ── /h112 ──
 view.camNow = (out) => { const o = out || {}; o.px = camera.position.x; o.py = camera.position.y; o.pz = camera.position.z; o.tx = controls.target.x; o.ty = controls.target.y; o.tz = controls.target.z; return o; };
 // ── figures24 ── the works' render scale (WAVE24 "רזולוציה כללית מדי"): while a work of Phase B is on, the pixel ratio rises to
 // min(devicePixelRatio, 2) unless the quality level is 'low' (or the frame-time guard, perf(), already brought it down: never above its
@@ -462,7 +438,7 @@ let f24PR = 0;
 view.workRes = (on) => {
   view.workResLog = (view.workResLog || []).slice(-9).concat([on ? 1 : 0]);   // (tests)
   if (on) {
-    if (f24PR || Q.level === 'low') return renderer.getPixelRatio();
+    if (f24PR || Q.level === 'low' || FAST) return renderer.getPixelRatio();
     const want = Math.min(devicePixelRatio || 1, 2); f24PR = renderer.getPixelRatio();
     if (want > f24PR + 0.01) { renderer.setPixelRatio(want); resize(); }
   } else if (f24PR) {
@@ -472,6 +448,14 @@ view.workRes = (on) => {
   return renderer.getPixelRatio();
 };
 view.pixelRatio = () => renderer.getPixelRatio();
+// ── h131 ── (stage 08: the pit at Beit Kerem lies 7 km west of the Mount, outside the sun's shadow box round the Mount — the shadow box
+// follows the work there and comes back after; null brings it home) ── /h131 ──
+const SUN_HOME = [-12, 0, -40];
+view.shadowAt = (x, z) => {
+  const p = Number.isFinite(x) && Number.isFinite(z) ? [x, 0, z] : SUN_HOME;
+  sun.target.position.set(p[0], p[1], p[2]); sun.target.updateMatrixWorld(); setTime(curTime);
+  return p;
+};
 // (the close-up, closeup.js: OrbitControls keeps the camera 35 amot from its target and the near plane is at 4 — both give way while a
 // close-up holds the camera; closeCam(true) → the distance the follow camera keeps, to blend from it)
 let f24Cam = null;
@@ -537,12 +521,6 @@ function measureSafeArea() {
       if (r.left > W * 0.45 && r.height > H * 0.5) gx = Math.max(0, W - r.left + 8);
       else if (r.left < W * 0.5 && r.right > W * 0.5 && r.top > H * 0.22 && r.bottom > H - 4) goal = Math.max(0, H - r.top);
     }
-  }
-  // ── build 51 ── (the inspector's review §4 item 17; the build-51 brief, item 11) Phase B's practice end card on a wide screen
-  // stands on its right two-thirds (practice31): the subject — him — to the middle of the third left of it, as for a side panel
-  if (!goal && !gx && innerWidth > innerHeight) {
-    const c = document.querySelector('.p31-end .c');
-    if (c) { const r = c.getBoundingClientRect(), W = innerWidth; if (r.left > W * 0.2 && r.height > H * 0.4) gx = Math.max(0, W - r.left + 8); }
   }
   viewOffXGoal = gx;
   // ── end world ──
@@ -629,6 +607,9 @@ function perf(dt) {
   const avg = ft.reduce((a, b) => a + b, 0) / ft.length; ft = [];
   if (avg > 1 / 24) {
     if (aoWrap && aoWrap.enabled) aoWrap.enabled = false;
+    // ── h117 ── (a minigame holds the sharpness: f24PR set) only a really slow frame lowers it, a quarter at a time, never under 1.5
+    // (or the device's own ratio when that is lower) ── /h117 ──
+    else if (f24PR) { const floor = Math.min(1.5, devicePixelRatio || 1); if (avg > 1 / 15 && renderer.getPixelRatio() > floor + 0.01) { renderer.setPixelRatio(Math.max(floor, renderer.getPixelRatio() - 0.25)); resize(); } }
     else if (renderer.getPixelRatio() > 1) { renderer.setPixelRatio(Math.max(1, renderer.getPixelRatio() - 0.5)); resize(); }
   }
 }
@@ -716,7 +697,10 @@ async function boot() {
   {
     const crews = createCrews({ scene, camera, life, stages, terrainH });
     life.addUpdater(crews.update);
-    Object.assign(stages, { setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
+    Object.assign(stages, { keepOut: crews.keepOut, setCrews: crews.setCrews, setQuarry: crews.setQuarry, caravan: crews.caravan, trainees: crews.trainees, crewsCheer: crews.cheer });
+    // ── h109 ── (build 109, stage 01 in the old world) the acts' own crews and oxen are old actors.js / animals.js figures: the crews' instances
+    Object.assign(stages, { crewActors: crews._actors, crewAnimals: crews._animals, scene, camera });
+    // ── /h109 ──
     window.__T.crews = crews;
     // ── site9 ── (SITE9, wave 9) the key stone's cart for stages.deliverKeyStone (DESIGN8B M11: hewn → the cart → the crane)
     if (typeof crews.keyCart === 'function') stages.keyCart = crews.keyCart;
@@ -824,9 +808,10 @@ async function boot() {
     if (view.guard) view.guard(dt);   // ── cam28 ── (Phase B: the camera never inside a solid — src/avodah/day/cam28.js) ── /cam28 ──
     if (PROF.on) { const t = PROF.t(); PROF.add('guard', t - p0); PROF.camAt(camera.position.x, camera.position.y, camera.position.z); p0 = t; }   // ── shift30 ── ── /shift30 ──
     sky.dome.position.copy(camera.position);
-    worldTick(dt);   // ── world6 ──
+    const seaOn = !!globalThis.__H128_DRAW;   // ── h128 ── (the sea on screen: the Mount's sky, city and light are not drawn, not ticked) ── /h128 ──
+    if (!seaOn) worldTick(dt);   // ── world6 ──
     if (PROF.on) { const t = PROF.t(); PROF.add('world', t - p0); p0 = t; }   // ── shift30 ── ── /shift30 ──
-    life.update(dt);
+    if (!seaOn) life.update(dt);
     if (PROF.on) { const t = PROF.t(); PROF.add('light', t - p0); p0 = t; }   // ── shift30 ── ── /shift30 ──
     stages.update(dt);
     if (sanct) sanct.update(dt);   // ── sanctuary ──
@@ -866,11 +851,16 @@ function nightSky() { try { const n = nightOf(); sky.setMoon(n.moon, !n.rain); }
 // ── /world12 ──
 // the construction layer may shake the camera a little on impacts; the offset is applied only for the render
 function renderFrame(dt) {
+  // ── h128 ── (build 128, the sea: an act that draws a scene of its own — the ship at sea — draws it in place of the Mount's) ── /h128 ──
+  if (globalThis.__H128_DRAW) { try { globalThis.__H128_DRAW(dt); return; } catch (e) { console.warn('[h128] draw', e && e.message); } }
   const o = stages && !reducedMotion ? stages.shakeOffset : null, sh = o && (o.x || o.y || o.z);
   if (sh) camera.position.add(o);
   composer.render(dt);
   if (sh) camera.position.sub(o);
+  // ── build 130 ── (what the player sees, read right after it is drawn: a one-shot hook for the gallery's frame check) ── /build 130 ──
+  if (AFTER_FRAME.length) { const fs = AFTER_FRAME.splice(0); for (const f of fs) { try { f(renderer); } catch (e) { /* */ } } }
 }
+const AFTER_FRAME = [];
 
 /* ───────── the game (Phase A) ───────── */
 // ── build6 ── the parts handed to the game: a part that is absent, or lacks its entry point, is left out (the flow then shows
@@ -936,7 +926,7 @@ function openingSkip() { if (opening7) opening7.skip(); }
 import { createMusic } from './game/music.js';
 const musicEls = { modal: document.getElementsByClassName('gm-modal'), avModal: document.getElementsByClassName('av-modal'), coach: document.getElementsByClassName('coach-on'), mg: document.getElementsByClassName('fx-mg'), tw: document.getElementsByClassName('tw-on') /* ── land17 ── */ };
 const music = createMusic({
-  context: () => { try { return (game && game.sfx && game.sfx.context) || (avodah && avodah.sfx && avodah.sfx.context) || null; } catch (e) { return null; } },   // ── recovered (build 26c) ── (|| Phase B's: the music shares its one context)   // share the sound kit's context when it offers it
+  context: () => { try { return (game && game.sfx && game.sfx.context) || null; } catch (e) { return null; } },   // share the sound kit's context when it offers it
   watch: () => {
     const kit = avodah && avodah.sfx ? avodah.sfx : game && game.sfx ? game.sfx : null;
     return { muted: !!(kit && kit.muted), hidden: document.hidden, duck: musicEls.modal.length || musicEls.avModal.length ? 0.15 : musicEls.coach.length ? 0.6 : 1, precision: musicEls.mg.length > 0, scenes: document.body.classList.contains('sc-on'), whole: wholeView, twin: musicEls.tw.length > 0 /* ── land17 ── the walking-and-working mode: the work state's tempo (120–126) */ };
@@ -966,17 +956,22 @@ const finale = createFinale({
 { const ev = music.event; music.event = function (t, d, ph) { try { finale.event(t, d, ph); } catch (e) { /* the finale's */ } return ev.apply(this, arguments); }; }
 globalThis.__BH_FINALE = finale;
 // ── /world12 ──
-try { installTester56(); } catch (e) { /* */ }
-try { installReport56(); } catch (e) { /* */ }   // ── build 56ג ── (the report button; never breaks the game) ── /build 56ג ──   // ── build 56ב ── (five taps in the top-right corner) ── /build 56ב ──
 function startGame() {
-  // ── fable32 (build 28) ── the shipped page (__FORCE_SHIFT, tools/mkout.cjs) is the day alone: whatever the link says ('#shift=N' — the
-  // 90 s "משמרת"; '#avodah…' — the old Phase B home, the engine22 day where the player is the אמרכל) it opens the lobby, or the day itself
-  // for '#shift=day'. The plain dist keeps every link (the tests' and the tools') ── /fable32 ──
-  if (globalThis.__FORCE_SHIFT) { const f = String(globalThis.__FORCE_SHIFT); startAvodah(f === 'day' || /^#shift=day\b/.test(location.hash) ? 'shift:day' : 'shift:card'); return; }
+  // ── deep132 ── '#hatzaga' → the Phase B preview, '#siyur' → the tour (src/deeplink.js), as the menu's entries open them; the
+  // hash is used once (closing the tour or "back to building" calls startGame again: Phase A then, from the save)
+  { const dl = deepLinkOf(location.hash);
+    if (dl && !__LINE_NEW__) {   // (── present132 ── LINE=new has neither: the hash is left alone)
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* the hash stays: harmless */ }
+      if (dl === 'tour' && typeof window.__openScenes === 'function') { window.__openScenes('tour'); return; }
+      if (dl === 'preview') { startAvodah(''); return; }
+    } }
+  // ── /deep132 ──
   // a link with '#avodah' opens Phase B directly: '#avodah' = its home · '#avodah=live' · '#avodah=<segment or game id>'
+  if (!__LINE_NEW__) {   // ── line132 ── (LINE=new: Phase B is not in the built file — build.mjs) ── /line132 ──
   if (/^#avodah/.test(location.hash)) { startAvodah((location.hash.split('=')[1] || '').trim()); return; }
   if (/^#shift\b/.test(location.hash)) { startAvodah('shift:' + (location.hash.split('=')[1] || 'card').trim()); return; }
   if (globalThis.__FORCE_SHIFT) { startAvodah('shift:' + (globalThis.__FORCE_SHIFT === true ? 'card' : String(globalThis.__FORCE_SHIFT))); return; }   // ── fable31 ── (the "mishmeret" build: a flag set in <head> — hosts that ignore a hash, such as an artifact frame on a phone, still open the shift) ── /fable31 ──   // ── shift29 ── (#shift: the entry card · #shift=N: a round of level N) ── /shift29 ──
+  }   // ── line132 ──
   // the world the game drives: the construction layer plus the real-clock time of day
   const world = Object.create(stages);
   world.setTimeOfDay = (k) => { if (!wholeView && TIMES[k] && k !== curTime) setTime(k); };
@@ -1000,8 +995,7 @@ function startGame() {
         hideInfo(); if (squareG) squareG.visible = false;
       },
       setAutoRotate(v) { if (!v) controls.autoRotate = false; lastInput = performance.now(); },
-      enterAvodah() { startAvodah(''); },
-      enterVision() { startAvodah('shift:vision'); },   // ── fable32 (build 44) ── the one-time vision after stage 01 (the shift's runVision) ── /fable32 ──
+      ...(__LINE_NEW__ ? { presentUrl: PRESENT_URL } : { enterAvodah() { startAvodah(''); } }),   // ── line132 ── (LINE=new: no Phase B here; the menu's two entries link to the presentation version — present132) ── /line132 ──
       pauseWorld,   // ── build6 ──
       opening, openingSkip,   // ── build7 ── the opening's fallback (WORLD7's world.vision first)
       celebrate: () => finale.celebrate(),   // ── world12 ── Chanukat HaBayit's night of light (src/finale.js) ── /world12 ──
@@ -1057,7 +1051,7 @@ async function startAvodah(arg = '') {
 // ── scenes ── the Temple tour, the Ark mystery and the Yom Kippur service (src/avodah/scenes; watch-only where required)
 let scenes = null;
 let tourFromA = false;   // the tour was opened from Phase A: it shows the finished Temple, and closing it returns to building
-window.__openScenes = async (kind = 'tour', ms) => {
+if (!__LINE_NEW__) window.__openScenes = async (kind = 'tour', ms) => {   // ── line132 ── (LINE=new: no scenes in the built file) ── /line132 ──
   if (!avodah && !tourFromA) {
     tourFromA = true;
     if (game && game.destroy) { try { game.destroy(); } catch (e) { console.warn('[scenes] phase A destroy', e); } }
@@ -1102,7 +1096,7 @@ $('about').addEventListener('click', () => showInfo('about'));
 $('cx').addEventListener('click', hideInfo);
 $('q').addEventListener('click', () => {
   if (aoWrap) { aoWrap.enabled = !aoWrap.enabled; $('q').textContent = aoWrap.enabled ? 'איכות: גבוהה' : 'איכות: רגילה'; }
-  else { renderer.setPixelRatio(renderer.getPixelRatio() > 1 ? 1 : Math.min(devicePixelRatio || 1, 2)); resize(); $('q').textContent = renderer.getPixelRatio() > 1 ? 'איכות: גבוהה' : 'איכות: רגילה'; }
+  else if (!FAST) { renderer.setPixelRatio(renderer.getPixelRatio() > 1 ? 1 : Math.min(devicePixelRatio || 1, 2)); resize(); $('q').textContent = renderer.getPixelRatio() > 1 ? 'איכות: גבוהה' : 'איכות: רגילה'; }
 });
 $('q').textContent = Q.level === 'high' ? 'איכות: גבוהה' : 'איכות: רגילה';
 
@@ -1119,8 +1113,11 @@ $('q').textContent = Q.level === 'high' ? 'איכות: גבוהה' : 'איכות
 }
 // ── /places24 ──
 window.__T = {
-  flyTo, flyToPos, setTime, mixTime /* ── recovered (16–26c) ── */, camera, controls, VIEWS, renderer, scene,
+  flyTo, flyToPos, setTime, camera, controls, VIEWS, renderer, scene,
   Raycaster: THREE.Raycaster, Vector3: THREE.Vector3,   // (not the whole namespace: that would defeat tree-shaking)
+  // ── build 130 ── (the frame as the player sees it, drawn now without stepping the world, and the post chain, for the gallery's
+  //  view check and the probes) ── /build 130 ──
+  frameNow: () => { renderFrame(0); }, get composer() { return composer; }, afterFrame: (fn) => { if (typeof fn === 'function' && AFTER_FRAME.length < 8) AFTER_FRAME.push(fn); },
   get life() { return life; },
   jump: (k) => { const v = VIEWS[k]; fly = null; camera.position.set(...v.p); controls.target.set(...v.t); controls.update(); if (squareG) squareG.visible = k === 'top'; },
   // look from p at t (arrays), for test shots
@@ -1133,7 +1130,7 @@ window.__T = {
   // ── end world ──
   // advance the simulation (construction, crowd, flights) without rendering
   step: (sec = 1, dt = 1 / 30) => { for (let t = 0; t < sec; t += dt) { life.update(dt); stages.update(dt); if (sanct) sanct.update(dt); } },
-  pause: (v) => { paused = v; }, get paused() { return paused; }, showInfo, get ready() { return !!life; },
+  pause: (v) => { paused = v; }, showInfo, get ready() { return !!life; },
   get stages() { return stages; },
   get game() { return game; },
   // tests: advance the world in real time without rendering (the loop is paused; renders come from render())
@@ -1227,4 +1224,10 @@ Object.assign(window.__T, { vision: (o) => runVision(o), visionSkip: skipVision 
 Object.defineProperty(window.__T, 'visionOn', { get: () => !!vis, configurable: true });
 // ── end world7 ──
 
+// ── h128 ── (build 128) the sea's look sample (window.__H128_SEA_LOOK): the sea, the ship and the doors alone, in this renderer; no world boot
+if (globalThis.__H128_SEA_LOOK) { try { runSeaLook({ renderer, canvas }); } catch (e) { console.error(e); } } else
+// ── /h128 ──
+// ── h129 ── (build 129) the Golah's water look sample (window.__H129_WATER_LOOK): the chamber, the well and the channel alone; no world boot
+if (globalThis.__H129_WATER_LOOK) { try { runWaterLook({ renderer, canvas }); } catch (e) { console.error(e); } } else
+// ── /h129 ──
 boot().catch((e) => { console.error(e); const t = $('lt'); if (t) t.textContent = 'שגיאה בטעינה: ' + e.message; });

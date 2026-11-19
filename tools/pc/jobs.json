@@ -1,0 +1,21 @@
+{
+  "id": "2026-11-18 b: stage 09 alone by touch and by mouse (build 132 integration): the stage page's round 1 to the end card, then the return visits in the world — all four works at level 2, then at level 3",
+  "lanes": 2,
+  "jobs": [
+    {
+      "name": "s09only-touch",
+      "script": "tools/probes/s09-pc.json",
+      "w": 960,
+      "h": 600,
+      "maxMin": 60
+    },
+    {
+      "name": "s09only-mouse",
+      "script": "tools/probes/s09-pc.json",
+      "mouse": true,
+      "w": 1600,
+      "h": 900,
+      "maxMin": 100
+    }
+  ]
+}

@@ -28,6 +28,7 @@ import {
   REWARD, CHAPTERS, CHAPTER_BONUS, ROUTES, RIDX, CAR_SLOTS, TRAIN, DAILY, TASKS, VINE, QUIZ,
   PROJ, SEG, STOCK_MAX, WORK, CREW_RATE, EVENT_CREW, QUALITY_BAD, keyOf, eventAt, EVENTS, FIELD_OF, SOURCES, UPGRADES, PH, CHECK_EVERY,
 } from './content.js';
+import { saveKey } from './savekey.js';   // ── b131 ── ── /b131 ──
 import * as TL from './tools.js';   // ── tools21 ──
 import { PAY } from './content.js';   // ── econ14 ── the coins ── /econ14 ──
 import { UNLOCKS } from './middot.js';
@@ -42,9 +43,10 @@ const EPS = 1e-6;
 
 /* ───────── storage (localStorage throws in sandboxed iframes / private mode) ───────── */
 export const storage = {
-  get(k) { try { return globalThis.localStorage ? globalThis.localStorage.getItem(k) : null; } catch (e) { return null; } },
-  set(k, v) { try { globalThis.localStorage.setItem(k, v); return true; } catch (e) { return false; } },
-  remove(k) { try { globalThis.localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
+  // ── b131 ── (the saves kept apart per version page: savekey.js) ── /b131 ──
+  get(k) { try { return globalThis.localStorage ? globalThis.localStorage.getItem(saveKey(k)) : null; } catch (e) { return null; } },
+  set(k, v) { try { globalThis.localStorage.setItem(saveKey(k), v); return true; } catch (e) { return false; } },
+  remove(k) { try { globalThis.localStorage.removeItem(saveKey(k)); } catch (e) { /* storage unavailable */ } },
 };
 
 /* ───────── time ───────── */
@@ -607,6 +609,18 @@ export function startBuild(G, id) {
  * A stage is finished: rewards, unlocks, crews reassigned. The caller shows it.
  * → {id, rewards, crewsNow, find, mishnayot:[], chapter: n|null, all: bool}
  */
+/** ── h111 ── a stage the director builds (stage 02 in the old world): open its site without the old survey's price, mark it the
+ *  director's (no crews' economy on it: state.step skips it) and focus it. → true when the site is the director's ── /h111 ── */
+export function beginDirected(G, id) {
+  if (isDone(G, id)) return false;
+  if (!G.st[id]) {
+    if (statusOf(G, id) === 'locked') return false;
+    G.st[id] = newSite(id);
+    const c = G.crews.find((x) => !x.at) || G.crews.find((x) => x.at === 'quarry'); if (c) c.at = id;
+  }
+  G.st[id].dir = 1; G.focus = id;
+  return true;
+}
 export function completeStage(G, id) {
   if (isDone(G, id)) return null;
   G.st[id] = { done: true };
@@ -735,6 +749,7 @@ function step(G, dtMin, t, rep) {
   const nq = Math.min(RATE.quarryMax || 2, crewsAt(G, 'quarry'));
   if (nq) { const s = RATE.quarry * (1 + UPGRADES.carts.by * (G.up.carts || 0)) * nq * dtMin; G.res.stone += s; rep.stone += s; }
   for (const id of buildingSites(G)) {
+    if (G.st[id] && G.st[id].dir) continue;   // ── h111 ── a site a stage director builds (stage 02's wall): its crews work in its acts, not here ── /h111 ──
     const n = crewsAt(G, id); if (!n) continue;
     const j = jobOf(G, id); if (!j) continue;
     const boost = G.vol && G.vol.id === id && t <= G.vol.until ? 2 : 1;

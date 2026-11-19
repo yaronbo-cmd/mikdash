@@ -60,7 +60,7 @@ export const comboMult = (c) => (c >= 10 ? 3 : c >= 6 ? 2 : c >= 3 ? 1.5 : 1);
 /* ───────── chapters (GDD §2.3, §4.4) ───────── */
 export const CHAPTERS = [
   { id: 1, n: 'ההר', stages: ['har'] },
-  { id: 2, n: 'העזרות', stages: ['wall', 'gates', 'nashim', 'sorag', 'nikanor', 'lishka'] },
+  { id: 2, n: 'העזרות', stages: ['wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka'] },
   { id: 3, n: 'המזבח', stages: ['yesod', 'sovev', 'guf', 'karnot', 'kiyor'] },
   { id: 4, n: 'הבית', stages: ['ulam', 'heichal', 'kodesh'] },
 ];
@@ -88,7 +88,7 @@ export const STAGES = [
     moment: 'nashim',
     card: { q: 'עֶזְרַת הַנָּשִׁים הָיְתָה אֹרֶךְ מֵאָה וּשְׁלשִׁים וְחָמֵשׁ עַל רֹחַב מֵאָה וּשְׁלֹשִׁים וְחָמֵשׁ', ref: 'משנה מדות ב, ה', d: 'בפינותיה היו ארבע לשכות בלי תקרה, ואחת מהן לשכת העצים.' },
   }),
-  S('sorag', 'הסורג והחיל', 2, ['gates'], 36, [{ stone: 30 }, { stone: 40 }, { stone: 30 }], {
+  S('sorag', 'הסורג והחיל', 2, ['wall'], 36, [{ stone: 30 }, { stone: 40 }, { stone: 30 }], {
     moment: 'breaches',
     card: { q: 'וּשְׁלשׁ עֶשְׂרֵה פְרָצוֹת הָיוּ שָׁם, שֶׁפְּרָצוּם מַלְכֵי יָוָן. חָזְרוּ וּגְדָרוּם, וְגָזְרוּ כְנֶגְדָּם שְׁלשׁ עֶשְׂרֵה הִשְׁתַּחֲוָיוֹת', ref: 'משנה מדות ב, ג', d: 'הסורג היה גדר נמוכה, עשרה טפחים, סביב העזרות.' },
   }),

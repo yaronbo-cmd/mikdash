@@ -3,6 +3,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createCamGuard } from '../src/avodah/day/cam28.js';
 
+// (build 132: the guard's search stops past 9 ms of the wall clock in one frame (its budget, cam28.js tryP). In a full test run the
+//  machine is loaded and a frame's search could pass 9 ms, stop early and give another answer: the results depended on the load, not on
+//  the guard. The guard's own clock here is a steady one — each read a microsecond on — so every run searches the same way.)
+{ let t = 0; Object.defineProperty(globalThis.performance, 'now', { value: () => (t += 0.001), configurable: true, writable: true }); }
+
 // a wall east of him: x 8…10, up to y 30 (the line from his head to a camera beyond it, under its top, is blocked)
 const segWall = (px, py, pz, tx, ty, tz) => {
   for (let i = 1; i < 40; i++) { const t = i / 40, x = tx + (px - tx) * t, y = ty + (py - ty) * t; if (x > 8 && x < 10 && y < 30) return true; }
@@ -83,9 +88,7 @@ test('pull-only (__CAM28_PULL): a wall between — the bearing is kept, the came
   try {
     const { G, st } = rig({ px: 25, py: 24, pz: 0, tx: 0, ty: 17.6, tz: 0 });
     G.step(0.016);
-    // (build 41: before the old pull the guard takes a readable pose about his head — WALL41, 'rise41': here 9.5 amot at 0.65 rad, still
-    //  before the wall, on his bearing, not top-down)
-    const s = G.state(); assert.ok(s.mode === 'rise41' || s.mode === 'pull', s.mode); assert.equal(s.turn || 0, 0);
+    const s = G.state(); assert.equal(s.mode, 'pull'); assert.equal(s.turn || 0, 0);
     assert.ok(st.set); assert.equal(segWall(st.set.px, st.set.py, st.set.pz, 0, 17.6, 0), false, 'seen');
     assert.ok(st.set.px < 8 && st.set.px > 3, `before the wall, on his side: x ${st.set.px.toFixed(1)}`);
     assert.ok(Math.abs(st.set.pz) < 0.5, 'the bearing kept (no turn)');

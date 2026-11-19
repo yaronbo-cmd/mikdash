@@ -38,21 +38,51 @@ const optionalParts = {
 };
 // ── /build6 ──
 
+// ── line132 ── (build 132) `LINE=new node build.mjs`: the lighter page for the new line — Phase B ("העבודה בבית", src/avodah)
+// and its scenes (the tour, the Ark, Yom Kippur) left out of the built file: their two dynamic imports in src/main.js resolve to
+// an empty module, and main.js (__LINE_NEW__) offers neither (no enterAvodah, no window.__openScenes, no #avodah / #shift /
+// __FORCE_SHIFT). The source stays in the repo; the default build (no LINE) is byte for byte as before. ⚑ owner: not decided.
+const LINE_NEW = process.env.LINE === 'new';
+const lineStub = {
+  name: 'line-new',
+  setup(b) {
+    b.onResolve({ filter: /^\.\/avodah\/(index|scenes\/index)\.js$/ }, (args) => (LINE_NEW && /[\\/]src$/.test(args.resolveDir) ? { path: args.path, namespace: 'line-new' } : null));
+    b.onLoad({ filter: /.*/, namespace: 'line-new' }, () => ({ contents: 'export {};', loader: 'js' }));
+  },
+};
+if (LINE_NEW) console.log('build: LINE=new — Phase B and its scenes left out (src/avodah stays in the repo)');
+// ── /line132 ──
+
 await build({
   entryPoints: ['src/main.js'], bundle: true, minify: true, format: 'iife', target: 'es2020',
   outfile: 'dist/app.js', legalComments: 'none', logLevel: 'warning', charset: 'utf8', loader: { '.glb': 'dataurl' },   // ── fable32 (build 15) ── (the kohen's model inlined; a Pages folder will serve it as a file) ── /fable32 ──   // Hebrew stays readable (and ~⅓ smaller than \uXXXX escapes)
-  plugins: [contentStrip, optionalParts],   // ── build6 ── optionalParts
-  define: { 'location.search': '__QS56', 'location.hash': '__QH56' },   // ── build 56ב ── the tester's chosen stage (src/fix56.js), even where the artifact's frame refuses history.replaceState ── /build 56ב ──
+  plugins: [contentStrip, optionalParts, lineStub],   // ── build6 ── optionalParts   // ── line132 ── lineStub
+  define: { __LINE_NEW__: LINE_NEW ? 'true' : 'false' },   // ── line132 ──
 });
+// ── manifest132 ── the web app manifest's head script (src/manifest-head.js: the icons inlined; added only on the page's own
+// window over http(s)), in the play page's <head> — so in every page made from it (tools/mkout.cjs) ── /manifest132 ──
+const manJs = (await build({
+  entryPoints: ['src/manifest-head.js'], bundle: true, minify: true, format: 'iife', target: 'es2020', write: false,
+  legalComments: 'none', logLevel: 'warning', charset: 'utf8', loader: { '.png': 'dataurl' },
+})).outputFiles[0].text.trim().replace(/<\/script/gi, '<\\/script');
+const MANIFEST_HEAD = '<script>' + manJs + '</script>';
 const js = fs.readFileSync('dist/app.js', 'utf8').replace(/<\/script/gi, '<\\/script');
-const html = fs.readFileSync('src/page.html', 'utf8').replace('/*__APP__*/', () => js);
+// ── h130 ── the film of Simchat Beit HaShoeva (v3, after stage 05's evening): copied beside the pages (the game plays it by relative URL);
+// `FILM=1 node build.mjs` inlines it into the page as a data URI (window.__SBH_FILM) for a single-file page ── /h130 ──
+const FILM_SRC = 'assets/film/sbh-film-v3-small.mp4';
+let filmJs = '';
+if (fs.existsSync(FILM_SRC)) {
+  fs.copyFileSync(FILM_SRC, 'dist/sbh-film-v3-small.mp4');
+  if (process.env.FILM === '1') filmJs = 'window.__SBH_FILM="data:video/mp4;base64,' + fs.readFileSync(FILM_SRC).toString('base64') + '";\n';
+} else console.warn('build: the film is missing (' + FILM_SRC + '): stage 05 skips it');
+const html = fs.readFileSync('src/page.html', 'utf8').replace('/*__APP__*/', () => filmJs + js);
 fs.writeFileSync('dist/temple3d.html', html);
 // ── play ── a page of its own for a phone (the owner, 6.10): the game alone, full screen from the home screen
-fs.writeFileSync('dist/play.html', "<!doctype html><html lang='he' dir='rtl'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'><meta name='mobile-web-app-capable' content='yes'><meta name='apple-mobile-web-app-capable' content='yes'><meta name='apple-mobile-web-app-status-bar-style' content='black-translucent'><meta name='apple-mobile-web-app-title' content='בית המקדש'><meta name='theme-color' content='#2A2016'><style>html,body{margin:0;height:100%;overflow:hidden;background:#2A2016}</style></head><body>" + html + '</body></html>');
+fs.writeFileSync('dist/play.html', "<!doctype html><html lang='he' dir='rtl'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'><meta name='mobile-web-app-capable' content='yes'><meta name='apple-mobile-web-app-capable' content='yes'><meta name='apple-mobile-web-app-status-bar-style' content='black-translucent'><meta name='apple-mobile-web-app-title' content='בית המקדש'><meta name='theme-color' content='#2A2016'>" + MANIFEST_HEAD + "<style>html,body{margin:0;height:100%;overflow:hidden;background:#2A2016}</style></head><body>" + html + '</body></html>');
 fs.writeFileSync('dist/test.html', "<!doctype html><html lang='he'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'></head><body>" + html + '</body></html>');
 // ── ui ── (QA P2-9) the size in bytes as written (UTF-8), and gzipped (what a server or the store package sends);
 // `html.length` counted UTF-16 characters, which undercounts every Hebrew letter by half
 const bytes = Buffer.byteLength(html, 'utf8'), gz = zlib.gzipSync(html, { level: 9 }).length;
 const mib = (n) => (n / 1048576).toFixed(2) + ' MiB';
 console.log(`built dist/temple3d.html: ${bytes.toLocaleString('en-US')} bytes (${mib(bytes)}), gzip ${gz.toLocaleString('en-US')} bytes (${mib(gz)})`);
-if (bytes > 6 * 1048576) console.warn('WARNING: over the 6 MiB budget (PROJECT.md §3)');   // (the owner, 20.10: "בוא נעלה את התקרה כרגע" — 5 → 6 MiB)
+if (bytes > 5 * 1048576) console.warn('WARNING: over the 5 MiB budget (PROJECT.md §3)');

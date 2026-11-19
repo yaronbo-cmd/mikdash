@@ -13,6 +13,7 @@
  *     points, live:{[day]:[segId]}, collect:{[id]:t}, stats:{services,pilgrims,correct,wrong} }
  * The Phase A save ('bh_beta2') is only READ (name, mishmar, trained priests).
  * ──────────────────────────────────────────────────────────────────────────── */
+import { saveKey } from '../game/savekey.js';   // ── b131 ── ── /b131 ──
 export const SAVE_KEY = 'bh_avodah';
 export const PHASE_A_KEY = 'bh_beta2';
 export const VERSION = 1;
@@ -28,9 +29,10 @@ export const POINTS = { game: 10, newStep: 5, live: 5, forReal: 10, pilgrim: 4, 
 
 /* ───────── storage (localStorage throws in sandboxed iframes / private mode) ───────── */
 export const storage = {
-  get(k) { try { return globalThis.localStorage ? globalThis.localStorage.getItem(k) : null; } catch (e) { return null; } },
-  set(k, v) { try { globalThis.localStorage.setItem(k, v); return true; } catch (e) { return false; } },
-  remove(k) { try { globalThis.localStorage.removeItem(k); } catch (e) { /* unavailable */ } },
+  // ── b131 ── (the saves kept apart per version page: game/savekey.js) ── /b131 ──
+  get(k) { try { return globalThis.localStorage ? globalThis.localStorage.getItem(saveKey(k)) : null; } catch (e) { return null; } },
+  set(k, v) { try { globalThis.localStorage.setItem(saveKey(k), v); return true; } catch (e) { return false; } },
+  remove(k) { try { globalThis.localStorage.removeItem(saveKey(k)); } catch (e) { /* unavailable */ } },
 };
 
 /* ───────── seeded randomness (fair lotteries) ───────── */

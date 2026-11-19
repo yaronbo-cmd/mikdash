@@ -10,6 +10,8 @@ import { rng } from './util.js';
 import { mkParts, groundAO } from './batch.js';
 import * as PL from './places.js';
 import { BLOOD } from './avodah/works/blood.js';   // ── blooda25 ── (the ember's orange; the palette's one source)
+import { H120, Y as H120Y, COLS as H120COLS, BEAMS as H120BEAMS, RUNS as H120RUNS, LADDERS as H120LAD, MIK as H120MIK, joistsOf as h120Joists } from './game/world/layout05.js';   // ── h120 ── ── /h120 ──
+const H120HOLE = [H120MIK.x0, H120MIK.bottom - 0.1, H120MIK.z0, H120MIK.stair, 7, H120MIK.z1];   // ── h120 ── (the basin's cut) ── /h120 ──
 
 export const COMPLEX = { x0: -193, x1: 147, z0: -73.5, z1: 73.5 };
 // the Heichal's rear block is split here: heichal x ∈ [−139, −92], kodesh (Holy of Holies + its share) x ∈ [−176, −139]
@@ -36,8 +38,9 @@ export function buildTemple(B, P) {
   /* ───────── Chel podium + its 12 steps ───────── */
   S('sorag');
   const cx0 = -203, cx1 = 157, cz0 = -83.5, cz1 = 83.5;
-  box('ash', cx0, 0, cz0, cx1, 5.75, cz1);
-  box('pave', cx0, 5.75, cz0, cx1, 6, cz1, -999);
+  // ── h120 ── (the mikveh's basin is cut in the rock under the lepers' chamber: the podium and its paving leave its hole) ── /h120 ──
+  carve((q) => box('ash', ...q), [cx0, 0, cz0, cx1, 5.75, cz1], [H120HOLE]);
+  carve((q) => box('pave', ...q, -999), [cx0, 5.75, cz0, cx1, 6, cz1], [H120HOLE]);
   for (let i = 0; i < 11; i++) { const e = 5.5 - 0.5 * i; box('pave', cx0 - e, 0.5 * i, cz0 - e, cx1 + e, 0.5 * (i + 1), cz1 + e, -999); }
   P('chel', cx0 - 9, 0, cz0 - 9, cx1 + 9, 6, cz1 + 9);
 
@@ -64,8 +67,12 @@ export function buildTemple(B, P) {
   // wall is its own mesh, which sanctuary.js hides once the lishka stage (and so Beit HaMoked) is built
   extraMats(B);
   wall(-178, -73.5, -142, -67.5, 6, WT, 'wallMoked');
-  wall(-187, 67.5, 0, 73.5, 6, WT);                // south
-  wall(0, -73.5, 6, -14, 6, WT); wall(0, 14, 6, 73.5, 6, WT);   // Nikanor wall
+  // ── h129 ── (build 129, stage 07) the south wall runs through the two south chambers' rooms and the Nikanor wall through the
+  // instruments chambers by the gate: those pieces are sets of the wall's own stage (stages.js h129: a group of their own in it, the same
+  // materials and reveal), which stage 07's world hides once it plays there (the Gazit's and the Golah's rooms are open to the sky
+  // while it plays: the wall's piece over each room comes back with its roof). Before stage 07 every piece shows: the wall as it was.
+  h129Walls(B, box, WT, wall);
+  // ── /h129 ──
   wall(6, -73.5, 141, -67.5, 6, 40); wall(6, 67.5, 141, 73.5, 6, 40);   // Ezrat Nashim N/S
   wall(141, -73.5, 147, -13, 6, 22); wall(141, 13, 147, 73.5, 6, 22);   // low eastern wall (Middot 2:4)
   // footings down to the Mount: the walls rise before the Chel podium is laid around them (hidden inside it afterwards)
@@ -97,14 +104,25 @@ export function buildTemple(B, P) {
   box('ash', -178, 0, -83, -142, 6, -58, 0); box('ash', -100, 0, 58, -62, 6, 82, 0);   // ── site14 ── (their footings: as the gates')
 
   /* ───────── Lishkat HaGazit — half in the holy (Middot 5:4) ───────── */
-  box('ash', -100, 6, 58, -62, 28, 82);
-  cornice(-100, 58, -62, 82, 28, 0.4);
+  // ── h129 ── (build 129, stage 07) a shell with its floor at the Azarah's 16 (the room inside 1-amah walls), a door from the Azarah in
+  // its north wall (the holy half) and, in the east wall's inner face, the door of an inner stair (המחשה: outside that wall is the Chel's
+  // terrace, 10 below); its roof a set of its own (stage 07 raises it in its finish). From outside it looks as it did ── /h129 ──
+  h129Gazit(B, box);
+  h129Cornice(box, -100, 58, -62, 82, 28, 0.4);   // ── h129 ── (a ring round the walls' tops: the room under it open) ── /h129 ──
+  B.stage('lishka:gzroof');   // ── h129 ── ── /h129 ──
   B.slab('cedar', [[-101.5, 27.7, 56.5], [-101.5, 36.5, 70], [-60.5, 36.5, 70], [-60.5, 27.7, 56.5]], 0.6, { down: [0, -1] });
   B.slab('roof', [[-101.5, 28.1, 56.5], [-101.5, 36.9, 70], [-60.5, 36.9, 70], [-60.5, 28.1, 56.5]], 0.4, { down: [0, -1] });
   B.slab('cedar', [[-101.5, 36.5, 70], [-101.5, 27.7, 83.5], [-60.5, 27.7, 83.5], [-60.5, 36.5, 70]], 0.6, { down: [0, 1] });
   B.slab('roof', [[-101.5, 36.9, 70], [-101.5, 28.1, 83.5], [-60.5, 28.1, 83.5], [-60.5, 36.9, 70]], 0.4, { down: [0, 1] });
   B.tri('ash', [-100, 28, 58], [-100, 28, 82], [-100, 36, 70]);
   B.tri('ash', [-62, 28, 82], [-62, 28, 58], [-62, 36, 70]);
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
+  // ── h129 ── the Golah chamber (Middot 5:4; its place המחשה), and the instruments chambers' lower storeys open to the women's court
+  // with their arches (Middot 2:6), their solid fill a set of stage 06's own (hidden once stage 07 plays) ── /h129 ──
+  h129Golah(B, box, cornice);
+  h129Instruments(B, box);
+  P('golah', -147, 6, 58, -131, 29, 74);
+  // ── /h129 ──
   for (let x = -94; x <= -68; x += 6.5) box('dark', x - 1, 17, 82, x + 1, 23, 82.1, -999);
   P('gazit', -101, 6, 56, -60, 37, 84);
 
@@ -131,8 +149,9 @@ export function buildTemple(B, P) {
   A(-54, 16, -18.5, -53, 17, 12.5);    // yesod — the whole west
   A(-53, 16, 11.5, -52, 17, 12.5);     // one amah into the south
   A(-23, 16, -18.5, -22, 17, -17.5);   // one amah into the east
+  A(-53, 16, -18.5, -23, 17, 11.5);    // the first course under the body
   S('sovev');
-  A(-53, 16, -18.5, -23, 22, 11.5);    // the body from the court's floor up to the sovev (build 56: its first course no longer the yesod's — the yesod is the ר alone, מדות ג, א)
+  A(-53, 17, -18.5, -23, 22, 11.5);    // up to the sovev
   box('red', -53.06, 20.85, -18.56, -22.94, 21.15, 11.56, -999);   // חוט הסיקרא
   S('guf');
   A(-52, 22, -17.5, -24, 25, 10.5);    // above the sovev
@@ -151,10 +170,13 @@ export function buildTemple(B, P) {
   P('kevesh', -46, 16, 12.5, -30, 24, 42.5);
 
   /* ───────── North of the altar: rings, pillars with cedar, marble tables (Middot 3:5) ───────── */
-  S('lishka');
+  // (b131 look round 2: the slaughter rings serve the altar — they come with it (its horns' stage), not with the chambers: on the
+  //  altar's empty place in stage 08 they read as stray black rings on the floor)
+  S('karnot');
   for (let k = 0; k < 6; k++) for (const x of [-47, -41, -35, -29]) {
     const g = new THREE.TorusGeometry(0.45, 0.09, 6, 12); g.rotateX(Math.PI / 2); g.translate(x, 16.1, -29.5 - 4 * k); B.geo('iron', g, -999);
   }
+  S('lishka');
   for (let k = 0; k < 8; k++) { const x = -52 + 4 * k; box('wmarble', x - 0.4, 16, -60.4, x + 0.4, 19.6, -59.6, 16); }
   box('cedar', -52.6, 19.6, -60.45, -23.4, 20.5, -59.55, -999);
   for (let k = 0; k < 8; k++) for (let q = 0; q < 3; q++) { const x = -52.9 + 4 * k + q * 0.9; box('iron', x - 0.06, 18.8, -60.02, x + 0.06, 19.6, -59.98, -999); }
@@ -273,7 +295,13 @@ export function buildTemple(B, P) {
   /* ───────── Nikanor: the eastern gate, bronze that shone like gold ───────── */
   S('nikanor');
   gate('E', -4, -14, 10, 14, 6, 50, 0, 10, 13.5, 33.5, 'bronze');
-  wall(0, -26, 8, -14, 6, 32); wall(0, 14, 8, 26, 6, 32);   // its two chambers
+  // ── h129 ── (its two chambers: the lower storey of each a set of this stage's own, which stage 07's world hides when it opens the
+  // instruments chamber there; together the same box and cornice as before) ── /h129 ──
+  // (round 2: whole, as build 128 drew them, in 'nikanor:whole' until stage 07 plays; then 'nikanor:cut', the upper storey alone)
+  B.stage('nikanor:whole'); wall(0, -26, 8, -14, 6, 32); wall(0, 14, 8, 26, 6, 32);
+  B.stage('nikanor:cut'); for (const [z0, z1] of [[-26, -14], [14, 26]]) { box('ash', 0, 13.5, z0, 8, 32, z1, 6); cornice(0, z0, 8, z1, 32, 0.5, 'ash'); }
+  B.stage('nikanor');
+  // ── /h129 ──
   box('ash', -4, 0, -26, 10, 6, 26, 0);   // ── site14 ── (its footing, as the gates'; the steps' below)
   P('nikanor', -4, 6, -26, 11, 51, 26);
   // fifteen steps, "not straight but rounded like half a threshing floor" (Middot 2:5)
@@ -299,7 +327,7 @@ export function buildTemple(B, P) {
   const YS = 13.09;
   // ── site14 ── the court's own floor on its fill (top 5.9, under the Chel's terrace at 6 once it is laid): before the sorag, the
   // chambers, the jars, the pool and the hearth stand on it, not in the air 6 amot over the Mount (stages.js groundAt knows it)
-  box('ash', 6, 0, -67.5, 141, 5.9, 67.5, 0);
+  carve((q) => box('ash', ...q, 0), [6, 0, -67.5, 141, 5.9, 67.5], [H120HOLE]);   // ── h120 ── (the basin's hole) ── /h120 ──
   const cw = (x0, z0, x1, z1) => { box('ash', x0, 6, z0, x1, YS, z1); B.stage('nashim-lc'); box('ash', x0, YS, z0, x1, 20, z1, 6); B.stage('nashim'); };
   const LC = (fn) => { B.stage('nashim-lc'); fn(); B.stage('nashim'); };
   // SE — Nazirites
@@ -331,19 +359,13 @@ export function buildTemple(B, P) {
   // wine and oil jars (SW)
   const jar = new THREE.LatheGeometry([[0, 0], [0.5, 0.05], [0.9, 0.6], [1.05, 1.5], [0.9, 2.3], [0.45, 2.7], [0.4, 3.1], [0.55, 3.2], [0.01, 3.2]].map(([a, b]) => new THREE.Vector2(a, b)), 10);
   for (let i = 0; i < 4; i++) for (let j = 0; j < 6; j++) { const g = jar.clone(); g.translate(13 + j * 4.2, 6, 42 + i * 5); B.geo('clay', g, 6); }
-  // immersion pool (NW)
-  box('ash', 14, 6, -60, 38, 7.3, -59); box('ash', 14, 6, -45, 38, 7.3, -44); box('ash', 14, 6, -59, 15, 7.3, -45); box('ash', 37, 6, -59, 38, 7.3, -45);
-  box('water', 15, 6, -59, 37, 7.0, -45, -999);
+  // ── h120 ── (the old built pool gave way to the rock-cut basin of stage 05: h120Model below) ── /h120 ──
   B.stage('nashim');   // ── site13 ──
-  // gallery "כצוצרה" around the court
-  // (── site13 ── cedar: the finish's first step "הגזוזטרא" is paid in cedar (content.js PROJ.nashim); laid from west to east
-  //  in the finish, and not counted among the courses' stones)
-  for (const s of [-1, 1]) {
-    const zw = s * 67.5, zi = s * 62.8;
-    box('cedar', 46, 19.2, Math.min(zw, zi), 101, 20, Math.max(zw, zi), -999);
-    box('cedar', 46, 20, Math.min(zi, zi + s * 0.3), 101, 21.3, Math.max(zi, zi + s * 0.3), -999);
-    for (let x = 48.5; x <= 99; x += 5.5) box('cedar', x - 0.6, 17.4, Math.min(zw, zw - s * 3.2), x + 0.6, 19.2, Math.max(zw, zw - s * 3.2), -999);
-  }
+  // ── h120 ── the gallery (הגזוזטרא) on its ten stone columns, and the rock-cut mikveh in the lepers' chamber: stage 05's design, its
+  // numbers from one source (src/game/h120/layout.js), in their own set 'nashim-gz' so stage 05's world can hide them while it draws
+  // the player's own (his columns with their flaws, his shims, his channels and water). The old bracket gallery and pool are gone.
+  B.stage('nashim-gz'); h120Model(B, box); B.stage('nashim');
+  // ── /h120 ──
   P('ezrat-nashim', 6, 6, -67.5, 141, 14, 67.5);
   P('l-nezirim', 101, 6, 27.5, 141, 21, 67.5);
   P('l-etzim', 101, 6, -67.5, 141, 21, -27.5);
@@ -364,7 +386,6 @@ function extraMats(B) {
   // (few new materials: every material is a draw call in each build stage that uses it)
   M.silver = { mat: std({ color: '#DCE0E4', metalness: 1, roughness: 0.22 }), tile: 5 };
   M.ember = { mat: std({ color: BLOOD.ember, emissive: new THREE.Color(1.75, 0.72, 0.14), roughness: 0.9 }), tile: 4, cast: false };   // ── blooda25 ── orange coals (DAM25 §4.6: red is the blood's and the line's only)
-  M.pyre22 = { ...M.cedar };   // ── recovered (build 22) ── the great pyre's logs: cedar's look under a material of their own
   // the roofs of Beit HaMoked and Beit Avtinas, which open when the camera comes close (sanctuary.js finds this mesh by
   // its name in the lishka stage)
   M.roofCut = { mat: groundAO(M.ash.mat.clone(), { macro: 0.1 }), tile: 24 };
@@ -387,7 +408,11 @@ function buildMoked(B, box, cornice, door) {
   carve((q) => box('ash', ...q), [-177, 6, -82, -143, 15.75, -59], [well]);
   carve((q) => box('wmarble', ...q, -999), [-177, 15.75, -82, -143, 16, -59], [well]);
   // the dome ("בית המוקד כפה") — its own mesh, taken off when the camera comes close
+  // ── h129 ── (the dome a set of its own: stage 07's world draws the vault ring by ring as the player and the crews build it, and keeps
+  // its own after; sanctuary.js cuts this set away with the roofs) ── /h129 ──
+  B.stage('lishka:dome');
   { const g = new THREE.CylinderGeometry(12.5, 12.5, 36, 28, 1, false, 0, Math.PI); g.rotateZ(Math.PI / 2); g.translate(-160, 30.2, -70.5); B.geo('roofCut', g, -999); }
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   door('N', -83, -160, 10, 6, 24, 'gold');
   // "שנים שערים היו לבית המוקד, אחד פתוח לחיל ואחד פתוח לעזרה" — the one to the azara a small wicket (R. Yehuda, Middot 1:7)
   box('ash', PL.GATES.moked.x - 2.4, 23.6, -59.3, PL.GATES.moked.x + 2.4, 24.4, -57.7, -999);   // a lintel over the way to the azara
@@ -412,12 +437,16 @@ function buildMoked(B, box, cornice, door) {
   // "וראשי פספסין מבדילין בין קדש לחל" — a line of tiles across the hall where the azara begins (z −67.5)
   box('wmarble', -166, 16, -67.7, -154, 16.03, -67.3, -999);
   // the place of the keys: "אמה על אמה, וטבלא של שיש, וטבעת היתה קבועה בה" (Middot 1:9)
+  B.stage('lishka:slab');   // ── h129 ── (its own set: the night's act lifts its own slab and ring, and these step aside) ── /h129 ──
   box('wmarble', -160.5, 16, -76.5, -159.5, 16.04, -75.5, -999);
   { const g = new THREE.TorusGeometry(0.22, 0.05, 6, 14); g.rotateX(Math.PI / 2); g.translate(-160, 16.07, -76); B.geo('iron', g, -999); }
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   // a hearth in the hall (the name "בית המוקד"; illustration)
+  B.stage('lishka:hearth');   // ── h129 ── (its own set: stage 07's night lays its own fire of long logs here, and this steps aside) ── /h129 ──
   for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; box('ash', -160 + Math.cos(a) * 1.3 - 0.3, 16, -70.5 + Math.sin(a) * 1.3 - 0.3, -160 + Math.cos(a) * 1.3 + 0.3, 16.5, -70.5 + Math.sin(a) * 1.3 + 0.3, -999); }
   for (let k = 0; k < 5; k++) { const g = new THREE.CylinderGeometry(0.14, 0.14, 1.8, 6); g.rotateZ(Math.PI / 2); g.rotateY(k * 1.2); g.translate(-160, 16.25 + (k % 2) * 0.12, -70.5); B.geo('dark', g, -999); }
   for (let k = 0; k < 9; k++) { const g = new THREE.IcosahedronGeometry(0.16 + r() * 0.1, 0); g.translate(-160 + (r() - 0.5) * 1.4, 16.2, -70.5 + (r() - 0.5) * 1.4); B.geo('ember', g, -999); }   // ── blooda25 ── (was 'red': the coals of בית המוקד are the ember's orange)
+  B.stage('lishka');   // ── h129 ── ── /h129 ──
   // SW — the lambs' chamber: a manger along the west wall, two stall rails, hay in the corners; the middle of the floor
   // (y = 16) stays clear for the lambs (the Life agent places six there)
   { const L = C.lambs;
@@ -504,7 +533,7 @@ function buildAltarService(B, box, S) {
   { const { x, z } = MA.great;
     for (let lay = 0; lay < 4; lay++) for (let i = 0; i < 5; i++) {
       const o = (i - 2) * 1.05 + (r() - 0.5) * 0.2, y = 25.3 + lay * 0.5;
-      log('pyre22', lay % 2 ? x + o : x, y, lay % 2 ? z : z + o, 5.2 + r() * 0.6, 0.26 + r() * 0.05, lay % 2 ? Math.PI / 2 + (r() - 0.5) * 0.1 : (r() - 0.5) * 0.1);   // ── recovered (build 22) ── 'pyre22'
+      log('cedar', lay % 2 ? x + o : x, y, lay % 2 ? z : z + o, 5.2 + r() * 0.6, 0.26 + r() * 0.05, lay % 2 ? Math.PI / 2 + (r() - 0.5) * 0.1 : (r() - 0.5) * 0.1);
     }
     for (let k = 0; k < 22; k++) { const g = new THREE.IcosahedronGeometry(0.2 + r() * 0.16, 0); g.translate(x + (r() - 0.5) * 4.4, 25.15 + r() * 0.5, z + (r() - 0.5) * 4.4); B.geo('ember', g, -999); } }
   // the second maaracha, for the coals of the ketoret: small, of fine fig wood (Tamid 2:5)
@@ -627,3 +656,158 @@ export function buildMenorot(B) {
     }
   }
 }
+
+// ── h120 ── stage 05's finished gallery and basin (the model's own; the stage's world draws the player's version from the same numbers)
+function h120Model(B, box) {
+  const C = H120, Y = H120Y;
+  for (const c of Object.values(H120COLS)) {
+    box('ash', c.x - C.PLINTH_W / 2, C.FLOOR, c.z - C.PLINTH_W / 2, c.x + C.PLINTH_W / 2, Y.PLINTH_TOP, c.z + C.PLINTH_W / 2, C.FLOOR);
+    B.cyl('wmarble', c.x, Y.PLINTH_TOP, c.z, C.R1, C.R0, C.COL_H - 0.3, 18, -999);
+    box('wmarble', c.x - 0.62, Y.COL_TOP - 0.3, c.z - 0.62, c.x + 0.62, Y.COL_TOP, c.z + 0.62, -999);
+  }
+  const hw = C.BEAM_W / 2;
+  for (const b of H120BEAMS) {
+    const [ax, az] = b.pa, [bx, bz] = b.pb;
+    if (b.axis === 'x') box('cedar', Math.min(ax, bx), Y.COL_TOP, az - hw, Math.max(ax, bx), Y.BEAM_TOP, az + hw, -999);
+    else box('cedar', ax - hw, Y.COL_TOP, Math.min(az, bz), ax + hw, Y.BEAM_TOP, Math.max(az, bz), -999);
+  }
+  for (const R of H120RUNS) {
+    const s = -R.dir, out = R.line - s * (hw + 0.25), J = h120Joists(R), jw = C.JOIST_W / 2;
+    const xz = (a, w0, w1) => (R.axis === 'x' ? [a, w0, w1] : [w0, a, w1]);
+    const span = (a0, a1, w0, w1, y0, y1, k) => { if (R.axis === 'x') box(k, Math.min(a0, a1), y0, Math.min(w0, w1), Math.max(a0, a1), y1, Math.max(w0, w1), -999); else box(k, Math.min(w0, w1), y0, Math.min(a0, a1), Math.max(w0, w1), y1, Math.max(a0, a1), -999); };
+    void xz;
+    for (const a of J) {
+      span(a - jw, a + jw, R.wall, out, Y.BEAM_TOP, Y.JOIST_TOP, 'cedar');                      // the joist, from the wall to past the main beam
+      span(a - 0.22, a + 0.22, R.wall, R.wall - s * 0.9, Y.BEAM_TOP - 0.7, Y.BEAM_TOP, 'ash');   // its corbel (זיז) in the wall
+    }
+    span(R.a0, R.a1, R.wall, out, Y.JOIST_TOP, Y.GFLOOR, 'cedar');                               // the planks
+    // the railing on the court edge: posts every joist, a top rail and a middle rail
+    const re = out + s * 0.12;
+    for (const a of J) span(a - 0.08, a + 0.08, re - 0.08, re + 0.08, Y.GFLOOR, Y.GFLOOR + C.RAIL, 'cedar');
+    span(R.a0, R.a1, re - 0.1, re + 0.1, Y.GFLOOR + C.RAIL - 0.12, Y.GFLOOR + C.RAIL, 'cedar');
+    span(R.a0, R.a1, re - 0.05, re + 0.05, Y.GFLOOR + C.RAIL * 0.5 - 0.05, Y.GFLOOR + C.RAIL * 0.5 + 0.05, 'cedar');
+  }
+  // the ladders at the chambers' ends (two rails and rungs, leaning on the gallery's edge)
+  for (const [x, z, fx, fz] of H120LAD) {
+    const g = h120Ladder(x, z, fx, fz, C.FLOOR, Y.GFLOOR); for (const q of g) B.geo('cedar', q, -999);
+  }
+  // the rock-cut basin: its plaster lining, seven steps on its east, the rim of two tefachim, the rod, full to its three amot — a built
+  // thing of the stage's own set (build 130: the new stage hides only the gallery, set 'nashim-gz'; the basin stays with its water)
+  B.stage('nashim');
+  const K = H120MIK, y0 = K.bottom, x1 = K.stair, n = K.steps - 1, tr = (x1 - K.x1) / n, rh = K.deep / K.steps;
+  box('plaster', K.x0, y0 - 0.1, K.z0, K.x1, y0, K.z1, -999);
+  box('plaster', K.x0 - 0.06, y0, K.z0, K.x0, C.FLOOR, K.z1, -999);
+  box('plaster', K.x0, y0, K.z0 - 0.06, x1, C.FLOOR, K.z0, -999); box('plaster', K.x0, y0, K.z1, x1, C.FLOOR, K.z1 + 0.06, -999);
+  box('plaster', x1, y0, K.z0, x1 + 0.06, C.FLOOR, K.z1, -999);
+  for (let i = 1; i <= n; i++) box('plaster', K.x1 + (i - 1) * tr, y0, K.z0, K.x1 + i * tr, y0 + i * rh, K.z1, -999);
+  const rw = 0.3, rt = K.rimTop;
+  box('ash', K.x0 - rw, C.FLOOR, K.z0 - rw, K.inlet[0] - 0.2, rt, K.z0, C.FLOOR); box('ash', K.inlet[0] + 0.2, C.FLOOR, K.z0 - rw, x1 + rw, rt, K.z0, C.FLOOR);
+  box('ash', K.x0 - rw, C.FLOOR, K.z1, K.outlet[0] - 0.2, rt, K.z1 + rw, C.FLOOR); box('ash', K.outlet[0] + 0.2, C.FLOOR, K.z1, x1 + rw, rt, K.z1 + rw, C.FLOOR);
+  box('ash', K.x0 - rw, C.FLOOR, K.z0, K.x0, rt, K.z1, C.FLOOR); box('ash', x1, C.FLOOR, K.z0, x1 + rw, rt, K.z1, C.FLOOR);
+  box('cedar', K.rod[0] - 0.05, y0, K.rod[1] - 0.05, K.rod[0] + 0.05, rt + 0.4, K.rod[1] + 0.05, -999);
+  box('water', K.x0, y0, K.z0, x1, y0 + K.deep - 0.04, K.z1, -999);
+  B.stage('nashim-gz');
+}
+/** a ladder's rails and rungs (BoxGeometry, world): from its foot (x, z) on y0 leaning toward (fx, fz) up to y1 */
+export function h120Ladder(x, z, fx, fz, y0, y1) {
+  const dx = fx - x, dz = fz - z, d = Math.hypot(dx, dz) || 1, ux = dx / d, uz = dz / d, H = y1 - y0 + 0.9, lean = 0.28;
+  const L = Math.hypot(H, H * lean), out = [], px = -uz, pz = ux;
+  const put = (g, cx, cy, cz) => { const m = new THREE.Matrix4().makeRotationY(Math.atan2(ux, uz)).multiply(new THREE.Matrix4().makeRotationX(Math.atan(lean))); g.applyMatrix4(m); g.translate(cx, cy, cz); out.push(g); };
+  for (const s of [-1, 1]) put(new THREE.BoxGeometry(0.12, L, 0.12), x + px * s * 0.38 + ux * H * lean / 2, y0 + H / 2, z + pz * s * 0.38 + uz * H * lean / 2);
+  for (let k = 1; k * 0.75 < H; k++) { const h = k * 0.75; put(new THREE.BoxGeometry(0.8, 0.07, 0.07), x + ux * h * lean, y0 + h, z + uz * h * lean); }
+  return out;
+}
+// ── /h120 ──
+
+// ── h129 ── build 129, stage 07 "הלשכות": the built world's own pieces (BOOK.s07 reads its places from here, rule 65) ──────────────
+// the Azarah's south wall (x −187 … 0, z 67.5 … 73.5, to 44, its cornice) cut round the two south chambers' rooms ('wall:gzt' and
+// 'wall:glt' its pieces above each room's roof line, shown with the roofs), and the Nikanor wall cut round the instruments chambers
+const H129_SW = [-187, 6, 67.5, 0, 44, 73.5], H129_SWC = [-187.5, 42.7, 67, 0.5, 44.25, 74];
+const H129_CUTS = { 'wall:gz': [-99, 6, 67, -63, 34.8, 74.1], 'wall:gzt': [-99, 34.8, 67, -63, 44.3, 74.1], 'wall:gl': [-146, 6, 67, -132, 28.6, 74.1], 'wall:glt': [-146, 28.6, 67, -132, 44.3, 74.1] };
+const H129_NW = { N: [[0, 6, -73.5, 6, 44, -14], [0, 6, -26, 6, 13.5, -14]], S: [[0, 6, 14, 6, 44, 73.5], [0, 6, 14, 6, 13.5, 26]] };
+const inter = (a, b) => [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2]), Math.min(a[3], b[3]), Math.min(a[4], b[4]), Math.min(a[5], b[5])];
+// (build 129, round 2: the pieces cut apart left faint seams in stage 06's pictures — so the wall stands whole, as build 128 drew it, in
+//  the set 'wall:whole' until stage 07 plays; the cut version is the set 'wall:cut' (and 'wall:gzt|glt' over the rooms' roof lines),
+//  hidden until then: stages.js H129SUB's default-off list; stage 07's world swaps them)
+function h129Walls(B, box, WT, wall) {
+  B.stage('wall:whole');
+  wall(-187, 67.5, 0, 73.5, 6, WT);                                  // south
+  wall(0, -73.5, 6, -14, 6, WT); wall(0, 14, 6, 73.5, 6, WT);        // Nikanor wall
+  B.stage('wall:cut');
+  const H = Object.values(H129_CUTS);
+  carve((q) => box('ash', ...q, 6), [H129_SW[0], H129_SW[1], H129_SW[2], H129_SW[3], WT, H129_SW[5]], H);
+  carve((q) => box('ash', ...q, -999), H129_SWC, H);
+  for (const k of ['wall:gzt', 'wall:glt']) { const c = H129_CUTS[k]; B.stage(k); box('ash', ...inter(H129_SW, c), 6); const cc = inter(H129_SWC, c); if (cc[4] > cc[1]) box('ash', ...cc, -999); }
+  // the Nikanor wall (x 0 … 6, its cornice) north and south of the gate, cut round each instruments chamber's lower storey
+  B.stage('wall:cut');
+  for (const k of ['N', 'S']) { const [W, cut] = H129_NW[k]; carve((q) => box('ash', ...q, 6), W, [cut]); box('ash', W[0] - 0.5, W[4] - 1.3, W[2] - 0.5, W[3] + 0.5, W[4] + 0.25, W[5] + 0.5, -999); }
+  B.stage('wall');
+}
+/** the Gazit as a shell: outer x −100 … −62, z 58 … 82, to 28; the room inside 1-amah walls, its floor at 16; the north door (x −83 …
+ *  −79, 16 … 24) from the Azarah; the inner stair's door (z 75 … 77, 16 … 21) a dark niche in the east wall's inner face */
+function h129Gazit(B, box) {
+  carve((q) => box('ash', ...q, 6), [-100, 6, 58, -62, 28, 59], [[-83, 16, 57.9, -79, 24, 59.1]]);   // north
+  box('ash', -100, 6, 81, -62, 28, 82, 6);                                                         // south
+  box('ash', -100, 6, 59, -99, 28, 81, 6);                                                         // west
+  carve((q) => box('ash', ...q, 6), [-63, 6, 59, -62, 28, 81], [[-63.1, 16, 75, -62.6, 21, 77]]);  // east, the niche in it
+  box('dark', -62.62, 16, 75, -62.58, 21, 77, -999);
+  box('ash', -99, 6, 59, -63, 15.75, 81, 6); box('pave', -99, 15.75, 59, -63, 16, 81, -999);      // the floor
+}
+/** a cornice as a ring round a room's 1-amah walls (batch.js cornice() is a solid cap over the whole footprint: a lid on an open room) */
+function h129Cornice(box, x0, z0, x1, z1, y, o) {
+  const y0 = y - 1.3, y1 = y + 0.25, w = 1 + o;
+  box('ash', x0 - o, y0, z0 - o, x1 + o, y1, z0 - o + w, -999); box('ash', x0 - o, y0, z1 + o - w, x1 + o, y1, z1 + o, -999);
+  box('ash', x0 - o, y0, z0 - o + w, x0 - o + w, y1, z1 + o - w, -999); box('ash', x1 + o - w, y0, z0 - o + w, x1 + o, y1, z1 + o - w, -999);
+}
+/** the Golah chamber: x −147 … −131, z 58 … 74, its walls to 28 (as the Gazit's), its floor 16 with the well's mouth open (x −141.5 …
+ *  −136.5, z 62.5 … 67.5), its door to the Azarah in the north wall (x −141 … −137, 16 … 24); its roof the set 'lishka:glroof' */
+function h129Golah(B, box, cornice) {
+  const well = [-141.5, 6, 62.5, -136.5, 16.1, 67.5];
+  carve((q) => box('ash', ...q, 6), [-147, 6, 58, -131, 28, 59], [[-141, 16, 57.9, -137, 24, 59.1]]);
+  box('ash', -147, 6, 73, -131, 28, 74, 6); box('ash', -147, 6, 59, -146, 28, 73, 6); box('ash', -132, 6, 59, -131, 28, 73, 6);
+  carve((q) => box('ash', ...q, 6), [-146, 6, 59, -132, 15.75, 73], [well]);
+  carve((q) => box('pave', ...q, -999), [-146, 15.75, 59, -132, 16, 73], [well]);
+  h129Cornice(box, -147, 58, -131, 74, 28, 0.4); void cornice;
+  B.stage('lishka:glroof'); box('cedar', -147.4, 27.7, 57.6, -130.6, 28.3, 74.4, -999); box('roof', -147.6, 28.3, 57.4, -130.4, 28.7, 74.6, -999); B.stage('lishka');
+}
+/** the instruments chambers under the Israel court (the lower storeys of the blocks by Nicanor, x 0 … 8): the room x 1 … 7 between
+ *  1-amah walls, floor 6, ceiling 13.5; the east face (x 7 … 8) open from the floor to the springing (9.5) between z ∓23 and ∓17, and
+ *  above it to the arch's extrados (radius 4 round (z ∓20, y 9.5)); the arch's stones the sets 'lishka:archN|S' (7 and 9 stones) */
+function h129Instruments(B, box) {
+  for (const [k, zc, n] of [['N', -20, 7], ['S', 20, 9]]) {
+    const z0 = zc - 6, z1 = zc + 6, sp = 9.5, r0 = 3, r1 = 4;
+    box('ash', 0, 6, z0, 1, 13.5, z1, 6); box('ash', 1, 6, z0, 7, 13.5, z0 + 1, 6); box('ash', 1, 6, z1 - 1, 7, 13.5, z1, 6);
+    // (round 2: the legs and the spandrels sets of their own, 'lishka:legN|S' and 'lishka:spandN|S': the vault act draws its own while it
+    //  plays — the legs that give, the spandrels built up stone by stone as the shoulders' weight)
+    B.stage('lishka:leg' + k);
+    box('ash', 7, 6, z0, 8, sp, zc - r0, 6); box('ash', 7, 6, zc + r0, 8, sp, z1, 6);
+    B.stage('lishka:spand' + k);
+    for (const s of [-1, 1]) {   // the two spandrels over the springing, their curved side the extrados
+      const sh = new THREE.Shape(), N = 10, zEnd = s < 0 ? z0 : z1;
+      sh.moveTo(-zEnd, sp); sh.lineTo(-(zc + s * r1), sp);
+      for (let i = 1; i <= N; i++) { const a = s < 0 ? Math.PI - (i / N) * Math.PI / 2 : (i / N) * Math.PI / 2; sh.lineTo(-(zc + r1 * Math.cos(a)), sp + r1 * Math.sin(a)); }
+      sh.lineTo(-zEnd, 13.5); sh.lineTo(-zEnd, sp);
+      const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false, curveSegments: 1 }); g.rotateY(Math.PI / 2); g.translate(7, 0, 0);
+      B.geo('ash', g, 6);
+    }
+    B.stage('lishka');
+    box('ash', 1, 13.2, z0 + 1, 7, 13.5, z1 - 1, -999);   // the ceiling's underside (the upper storey's floor)
+    box('pave', 1, 5.99, z0 + 1, 7, 6.02, z1 - 1, -999);
+    B.stage('lishka:arch' + k);
+    for (const g of h129ArchStones(zc, sp, r0, r1, n)) B.geo('ash', g, -999);
+    B.stage('lishka');
+  }
+}
+/** the stones of a small arch in the face x 7 … 8: n voussoirs between radius r0 and r1 round (z zc, y sp), a joint of 0.03 between */
+export function h129ArchStones(zc, sp, r0, r1, n, x0 = 7, x1 = 8, gap = 0.03) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const a0 = Math.PI - (i / n) * Math.PI - gap / r0, a1 = Math.PI - ((i + 1) / n) * Math.PI + gap / r0, sh = new THREE.Shape(), N = 4;
+    for (let j = 0; j <= N; j++) { const a = a0 + (a1 - a0) * j / N; const p = [-(zc + r1 * Math.cos(a)), sp + r1 * Math.sin(a)]; if (j) sh.lineTo(...p); else sh.moveTo(...p); }
+    for (let j = N; j >= 0; j--) { const a = a0 + (a1 - a0) * j / N; sh.lineTo(-(zc + r0 * Math.cos(a)), sp + r0 * Math.sin(a)); }
+    const g = new THREE.ExtrudeGeometry(sh, { depth: x1 - x0, bevelEnabled: false, curveSegments: 1 }); g.rotateY(Math.PI / 2); g.translate(x0, 0, 0);
+    out.push(g);
+  }
+  return out;
+}
+// ── /h129 ──

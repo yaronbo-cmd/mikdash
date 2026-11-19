@@ -1,0 +1,766 @@
+/* ── build 130 ── h130/gallery.js — station 1, "הגזוזטרא: חידת העמודים" (spec station 1, brief §3). Three works, gal1 (north), gal2
+ * (south), gal3 (east, the last column raised on the ropes):
+ *   the opening (gal1, once, no loss): the court smooth and empty, "איפה יעמוד כל קהל?"; the left hand draws the line that parts the
+ *     court into inside and outside; a simply drawn crowd comes in through the gate and mixes there; a tap turns it over: the same; the
+ *     kohen lifts his head to the wall: "ואם נעלה קומה?". On screen "(המחשה)". The crowd leaves when the showing ends.
+ *   the puzzle: the columns wait on sledges by the kohen; the left hand drags one to a place on the marked line (it comes late, like a
+ *     heavy thing; a drop near the line slides to the nearest place a column may stand: not at the end walls, not in the gate's passage,
+ *     not by a ladder's foot, not on another column). Over every gap the beam that will lie there shows at once, coloured by its kind:
+ *     straight, sagging, cracking (with a sound). The right hand lifts the camera to see the whole run; play goes on lifted.
+ *   the live test: a tap on the torch bearer. The crew stands the columns and lays the beams where he chose (a beam over 14 amot cracks:
+ *     gal.beam −20, a rough prop stays under it); then the camera stands in each spectator's place by the wall in turn while the bearer
+ *     walks his stops: a column that hides the torch blinks, and he may drag it and test again, with no loss (a tap with nothing changed
+ *     goes on). Then the camera sits in the last seat above: a sagging beam sinks its seat row and the railing cuts the torch.
+ *   level 3's peak: the crew stands the south column, the north one is raised on the ropes (raise.js: build 120's act as it was).
+ * What stays: the gallery as he built it (st.gal[side]), drawn by world.js from the save for the rest of the game.
+ * The model: model.js (spans, placeOk, blockedAt, testBelow, testAbove, galCheck, galPts). Every place: BOOK.s05.gal.
+ */
+import { LEVELS, LINES, QUICK, LOSS, spans, colXZ, blockedAt, placeOk, testBelow, testAbove, galCheck, galPts, colPts, qOf, starsOf, solve, GAL, COL_H } from './model.js';
+import { SH130, GEO, Y, mats, box, galDraw, galClear, own, label, tag, frameOf, railOf, sinkAt } from './world.js';
+import { raiseAct } from './raise.js';
+import { MOUSE, onY, heroAt } from '../h113/acts.js';
+import { gripR, pickGrip } from '../h109/grips.js';
+import { clamp, lerp, ease } from '../h109/kit.js';
+import { BOOK } from '../world/grid.js';
+
+const S5 = BOOK.s05, GB = S5.gal, CAM = S5.cam;
+const SIDE_HE = { N: 'בצפון', S: 'בדרום', E: 'במזרח' };
+// (sizes, not places: a spectator's eye and the torch's flame over the floor, how near the line a drop counts, the drag's lag)
+/** the opening's own beats, seconds (build 130 review: about 12 in all, besides his line and his tap): the first look, the crowd in
+ *  (at most), the mix, the same again, the look up to the wall */
+const OPEN = Object.freeze({ LOOK: 1.0, IN: 2.5, MIX: 1.8, SAME: 1.6, UP: 2.6 });
+const SEE = Object.freeze({ FOV: 40, FMIN: 12, MAN: 3.9, PART: 4.8, MID: 2.1, CLEAR: 3, SIDE: 1.3, GLIDE: 1.4, NEAR: 1.0, STEP: 2, STEPS: 6, VIEW_NEAR: 3, KEEP: 8, FLAT: 0.4, UNDER: 0.8, FOOT: 1.5, COL_R: 1.2 });   // (UNDER/FOOT/COL_R: the lifted eye under the column tops over the gallery's footprint, and off the columns)   // (NEAR: amot round the eye a ray ignores (his own figure); STEP×STEPS: how far along the wall the eye may go for a clear sight)   // (SIDE: amot past the hiding column where its view starts, on the stop's own lens; GLIDE secs into his eye)   // (FOV: the view from below's lens; CLEAR: amot from his eye to the nearest column — build 130 closing)   // (the spectator's aim: amot ahead, degrees down — build 130 part 3)
+const EYE = 3.0, TORCH_H = 4.0, SNAP = 5, LAG = 0.35, HPX = 150, STEP = 4, FOV = 55;   // (FOV: the act's lens, degrees: the world camera's is long)   // (STEP: places in quarters of an amah)   // (HPX: the hint hand's gesture at most, px)
+const WHY = { end: 'צמוד מדי לקיר', gate: 'מעבר השער נשאר פנוי', ladder: 'לא מול רגל הסולם', near: 'צמוד מדי לעמוד אחר' };
+export const GLINES = Object.freeze({
+  puzzle: 'גררו עמוד מהמזחלת אל הקו המסומן · כשמרוצים: הקישו על נושא האבוקה',
+  puzzle3: 'עמוד לכל קטע · מעבר השער נשאר פנוי · כשמרוצים: הקישו על נושא האבוקה',
+  draw: 'גררו ביד שמאל על הרצפה: קו שמחלק את החצר לפנים ולחוץ',
+  mix: 'בשער ובמעברים שני הקהלים מתערבבים, ומי שמאחור לא רואה',
+  flip: 'הקישו כדי להפוך',
+  same: 'מי שהיה בפנים עובר החוצה. אותה תוצאה',
+  none: 'קודם גררו עמוד אל הקו המסומן',
+  crackWarn: 'קורה ארוכה מ־14 אמה תיסדק · הקישו שוב על נושא האבוקה כדי לבדוק בכל זאת',
+  crew: 'הצוות מעמיד את העמודים ומניח את הקורות',
+  prop: 'הקורה נסדקה: הצוות שם תמיכה גסה מתחת לה',
+  below: 'המבחן מלמטה: בעיני הצופה ליד הקיר',
+  gone: 'האבוקה נעלמה מאחורי עמוד',
+  again: 'עמוד הסתיר את האבוקה · גררו אותו והקישו שוב על נושא האבוקה (בלי עונש) · הקשה בלי שינוי: ממשיכים',
+  above: 'המבחן מלמטה עבר · עכשיו מהמושב האחרון למעלה',
+  above2: 'המבחן מלמעלה: מהמושב האחרון בגזוזטרא',
+  cut: 'הקורה שקעה, שורת המושבים ירדה, והמעקה חותך את האבוקה',
+  raise: 'הצוות העמיד את העמוד הדרומי · את העמוד הצפוני מרימים בחבלים',
+});
+
+/** the act's stand: the kohen by the sledges, facing the run */
+function standOf(m) {
+  const L = LEVELS[m.lv], side = L.side, s = GB.stand[side], R = L.run, [fx, fz] = colXZ(R, R.axis === 'x' ? s[0] : s[1]);
+  return { x: s[0], z: s[1], face: [fx, fz] };
+}
+
+export const GALLERY = {
+  icon: '🏛', title: 'הגזוזטרא',
+  walkLine: (m) => `הגזוזטרא ${SIDE_HE[LEVELS[m.lv].side]}: חידת העמודים`,
+  stand: (m) => standOf(m),
+  prepare() {},
+  make(m, X) {
+    const T = X.THREE, PR = X.props, MT = mats(X), Mo = X.M, st = Mo.st, lv = m.lv, L = LEVELS[lv], side = L.side, R = L.run;
+    const f0 = frameOf(side, R.a0), court = f0.court, runDir = f0.runDir, yaw = Math.atan2(court[0], court[1]);
+    const N = L.stock + L.spare, CG = CAM.gal[side], SP = standOf(m);
+    const A = { phase: 'intro', t: 0, busy: true, ev: [], ptr: null, dmg: 0, broke: 0, cracks: 0, charged: new Set(), tested: '', warned: '', hiddenOk: 0, tries: 0,
+      sub: null, raised: null, raisedRec: null, raiseRes: null, preview: null, ghostKey: '', firstOk: 0, lost: 0, cut: 0, blink: [], spect: [], crowd: null, draw: 0 };
+    const ev = (e) => { A.ev.push(e); if (A.ev.length > 16) A.ev.shift(); };
+    own(side, true); galClear(X, side);
+    const all = [];
+    const keyOf = (cols) => cols.slice().sort((a, b) => a - b).map((v) => v.toFixed(2)).join(',');
+    const along = (x, z) => (R.axis === 'x' ? x : z), across = (x, z) => (R.axis === 'x' ? z : x);
+    const footAt = (a) => { const [x, z] = colXZ(R, a); return { x, z }; };
+
+    /* the marked line on the court's floor (chalk), each segment of the run */
+    for (const [s0, s1] of R.cut ? [[R.a0, R.cut[0]], [R.cut[1], R.a1]] : [[R.a0, R.a1]]) {
+      const w = 0.09, [x0, z0] = colXZ(R, s0), [x1, z1] = colXZ(R, s1);
+      all.push(box(X, MT.n5chalk, Math.min(x0, x1) - (R.axis === 'x' ? 0 : w), GEO.FLOOR + 0.005, Math.min(z0, z1) - (R.axis === 'x' ? w : 0), Math.max(x0, x1) + (R.axis === 'x' ? 0 : w), GEO.FLOOR + 0.02, Math.max(z0, z1) + (R.axis === 'x' ? w : 0)));
+    }
+    // (the ladders' crossings and the gate's passage: a dark tick across the line, so the places no column may take are seen)
+    for (const a of R.ladders) { const [x, z] = colXZ(R, a), h = GAL.LADDER; all.push(box(X, MT.n5dark, R.axis === 'x' ? x - h : x - 0.6, GEO.FLOOR + 0.006, R.axis === 'x' ? z - 0.6 : z - h, R.axis === 'x' ? x + h : x + 0.6, GEO.FLOOR + 0.022, R.axis === 'x' ? z + 0.6 : z + h)); }
+
+    /* the columns on their sledges: a group at the foot, the sledge under it, the shaft on a pivot (lying toward the court) */
+    function lying(rec) {
+      const g = new T.Group(), piv = new T.Group(), ax = new T.Group(); g.add(piv); piv.add(ax);
+      box(X, MT.n5cedarD, -0.9, 0, -0.6, 0.9, 0.3, COL_H + 0.4, g);
+      piv.position.y = 0.3 + GEO.R0; ax.rotation.x = Math.PI / 2;
+      const sg = new T.CylinderGeometry(GEO.R1, GEO.R0, COL_H - 0.3, 18); sg.translate(0, (COL_H - 0.3) / 2, 0);
+      const shaft = new T.Mesh(sg, MT.n5marble); shaft.castShadow = true; ax.add(shaft);
+      box(X, MT.n5marble, -0.62, COL_H - 0.3, -0.62, 0.62, COL_H, 0.62, ax);
+      g.rotation.y = yaw; g.position.set(rec.pos.x, GEO.FLOOR, rec.pos.z); PR.root.add(g); all.push(g);
+      rec.g = g; rec.piv = piv; rec.shaft = shaft;
+    }
+    const C = GB.sleds[side].slice(0, N).map((p, i) => { const r = { i, a: null, sled: { x: p[0], z: p[1] }, pos: { x: p[0], z: p[1] }, tgt: { x: p[0], z: p[1] }, drag: false }; lying(r); return r; });
+    const placed = () => C.filter((r) => r.a != null);
+    const colsNow = () => placed().map((r) => r.a);
+    // the green ring where a dragged column will stand
+    const ring = new T.Mesh(new T.RingGeometry(GEO.R0 + 0.05, GEO.R0 + 0.35, 28), MT.n5green); ring.rotation.x = -Math.PI / 2; ring.renderOrder = 3; ring.visible = false; PR.root.add(ring); all.push(ring);
+
+    /* the torch bearer: waits by the kohen until he is tapped; his flame (a glow over his hand) */
+    const bw = GB.bearer[side];
+    const bearer = SH130.crew ? SH130.crew.add(bw[0], bw[1], { role: 'hold', item: 'torch', crew: 3, tunic: '#E8E0CC', fx: SP.face[0], fz: SP.face[1] }) : null;
+    const flame = (() => {
+      const cv = document.createElement('canvas'), Z = 64, h = Z / 2; cv.width = cv.height = Z; const g = cv.getContext('2d'), gr = g.createRadialGradient(h, h, 0, h, h, h);
+      gr.addColorStop(0, 'rgba(255,250,210,1)'); gr.addColorStop(0.3, 'rgba(255,190,70,.95)'); gr.addColorStop(1, 'rgba(255,120,20,0)'); g.fillStyle = gr; g.fillRect(0, 0, Z, Z);
+      const sp = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(cv), transparent: true, depthWrite: false, blending: T.AdditiveBlending })); sp.scale.set(1.6, 2.0, 1); PR.root.add(sp); all.push(sp); return sp;
+    })();
+    const handV = new T.Vector3();
+    function flameAt() {
+      if (!bearer) return null; const H = X.actors && X.actors();
+      try { if (H && H.handWorld) { H.handWorld(bearer.a, 1, handV); if (Number.isFinite(handV.x)) return { x: handV.x, y: Math.max(handV.y + 0.9, GEO.FLOOR + TORCH_H - 0.2), z: handV.z }; } } catch (e) { /* */ }
+      return { x: bearer.a.x, y: GEO.FLOOR + TORCH_H, z: bearer.a.z };
+    }
+    const bearerAt = (x, z, fx, fz) => { if (!bearer) return; bearer.a.x = x; bearer.a.z = z; SH130.crew.face(bearer, fx, fz); bearer.fx = fx; bearer.fz = fz; };
+    const torchP = (ti) => { const t = L.torch[ti]; return [t[0], GEO.FLOOR + TORCH_H, t[1]]; };
+
+    /* the camera: the act's own wider lens while the puzzle and the test play (held while his look is at rest), the world's back after */
+    const cam0 = X.camera, fov0 = cam0.fov; let lensOn = false;
+    const lens = (f) => { try { if (Math.abs(cam0.fov - f) > 0.01) { cam0.fov = f; cam0.updateProjectionMatrix(); } } catch (e) { /* */ } };
+    let lensF = FOV;   // (the act's lens now: FOV, or the view from below's longer one)
+    const holdLens = () => { if (!lensOn) return; const Lk = X.lookNow ? X.lookNow() : null; if (Lk && (Lk.u > 0.01 || Math.abs(Lk.yaw) > 0.03 || Lk.ov)) return; lens(lensF); };
+    const lensSet = (v) => { lensOn = !!v; if (v) lens(lensF); else lens(fov0); };
+    const home = (d = 1.0) => X.shot(CG[0], CG[1], d);
+    const srcTag = tag('h130-src'), illTag = tag('h130-ill'); srcTag.set(''); illTag.set('');
+    let srcT = 0; const src = (t, s = 6) => { srcTag.set(t); srcT = t ? s : 0; };
+
+    /* the plan drawn over the line: faint columns at his places and the beams that will lie over every gap, coloured by kind */
+    function ghost(force) {
+      const cols = colsNow().concat(A.preview != null ? [A.preview] : []), k = keyOf(cols);
+      if (!force && k === A.ghostKey) return; A.ghostKey = k;
+      if (A.phase === 'puzzle') galDraw(X, side, { cols }, { ghost: true, deck: false });
+    }
+
+    /* the grips: each column (its lying shaft, or the standing ghost at its place), the torch bearer */
+    function grips() {
+      const R0 = gripR(), out = [];
+      for (const r of C) {
+        if (r.a != null && !r.drag && r.g && !r.g.visible) { const f = footAt(r.a), a = X.scr(f.x, Y.PLINTH_TOP + 0.5, f.z), b = X.scr(f.x, Y.COL_TOP - 0.5, f.z); out.push({ k: 'c' + r.i, seg: [a, b], R: R0 * 0.7, on: a.on !== false || b.on !== false }); continue; }
+        const p = r.g.position, a = X.scr(p.x + court[0] * 0.5, GEO.FLOOR + 0.9, p.z + court[1] * 0.5), b = X.scr(p.x + court[0] * (COL_H - 0.5), GEO.FLOOR + 0.9, p.z + court[1] * (COL_H - 0.5));
+        out.push({ k: 'c' + r.i, seg: [a, b], R: R0 * 0.7, on: a.on !== false || b.on !== false });
+      }
+      if (bearer) { const q = X.scr(bearer.a.x, GEO.FLOOR + 2.2, bearer.a.z); out.push({ k: 'bearer', at: q, R: R0, on: q.on !== false }); }
+      return out;
+    }
+    const gripAt = (p) => pickGrip(p, grips());
+
+    /* the drag */
+    function down(p) {
+      if (A.sub) { A.sub.down(p); return; }
+      const P = { id: p.id, x0: p.x, y0: p.y, x: p.x, y: p.y, t0: performance.now(), moved: 0, what: null };
+      A.ptr = P;
+      if (A.phase === 'open-crowd' || A.phase === 'open-up') { A.skipOpen = 1; return; }   // (a touch in the opening's own beats: on to the puzzle)
+      if (A.phase === 'open-draw') { P.what = 'draw'; return; }
+      if (A.phase === 'open-flip') { P.what = 'flip'; return; }
+      if (A.phase !== 'puzzle' || A.busy) return;
+      const k = gripAt(p); P.what = k;
+      if (k && k[0] === 'c') {
+        const r = C[+k.slice(1)], q = onY(X, p, GEO.FLOOR);
+        if (r.a != null) { const f = footAt(r.a); r.pos = { x: f.x, z: f.z }; r.g.position.set(f.x, GEO.FLOOR, f.z); r.g.visible = true; }
+        P.rec = r; P.prevA = r.a; r.a = null; r.drag = true; P.off = q ? { x: q.x - r.pos.x, z: q.z - r.pos.z } : { x: 0, z: 0 };
+        X.hand(null); X.play('scrape'); ev('grab ' + r.i); ghost(true);
+      }
+    }
+    function move(p) {
+      if (A.sub) { A.sub.move(p); return; }
+      const P = A.ptr; if (!P || P.id !== p.id) return;
+      const dx = p.x - P.x, dy = p.y - P.y; P.moved = Math.max(P.moved, Math.hypot(p.x - P.x0, p.y - P.y0)); P.x = p.x; P.y = p.y;
+      if (P.what === 'draw') { A.draw = Math.min(1, A.draw + Math.hypot(dx, dy) / (Math.min(innerWidth, innerHeight) * 1.6)); return; }
+      if (!P.rec) return;
+      const q = onY(X, p, GEO.FLOOR); if (!q) return;
+      const r = P.rec, ac = across(q.x, q.z), al = clamp(Math.round(along(q.x, q.z) * STEP) / STEP, R.a0, R.a1);   // (a place on the quarter amah: the masons' marks)
+      if (Math.abs(ac - R.line) < SNAP) {
+        const a = placeOk(R, al, colsNow());
+        A.preview = a; if (a != null) { const f = footAt(a); r.tgt = { x: f.x, z: f.z }; ring.position.set(f.x, GEO.FLOOR + 0.03, f.z); ring.visible = true; }
+        A.why = a != null && Math.abs(a - al) > 0.05 ? blockedAt(R, al, colsNow()) : null;
+      } else { A.preview = null; A.why = null; ring.visible = false; r.tgt = { x: q.x - P.off.x, z: q.z - P.off.z }; }
+      ghost();
+    }
+    function up(p) {
+      if (A.sub) { A.sub.up(p); return; }
+      const P = A.ptr; if (!P || P.id !== p.id) return; A.ptr = null;
+      if (P.what === 'flip' && P.moved < 14) { A.flipTap = 1; return; }
+      if (P.what === 'bearer' && P.moved < 18 && A.phase === 'puzzle' && !A.busy) { test(); return; }
+      if (!P.rec) return;
+      const r = P.rec; r.drag = false; ring.visible = false;
+      if (A.preview != null) {
+        r.a = A.preview; const f = footAt(r.a); r.tgt = { x: f.x, z: f.z };
+        if (A.why) X.line(WHY[A.why] || '', 1600);
+        feel(r);
+      } else { r.a = null; r.tgt = { ...r.sled }; X.play('thud'); }
+      A.preview = null; A.why = null; ghost(true); ev('drop ' + r.i + ' ' + (r.a == null ? '-' : r.a.toFixed(2)));
+      keepWip();
+    }
+    /** ── build 130 ── progress stays: the columns he placed and the losses so far are kept in the save (st.galWip), and a reload
+     *  mid-work stands them where he put them */
+    function keepWip() {
+      try { st.galWip = { id: m.id, cols: C.map((r) => r.a), dmg: A.dmg, cracks: A.cracks, broke: A.broke, charged: [...A.charged], tries: A.tries }; X.save(); } catch (e) { /* */ }
+    }
+    function restoreWip() {
+      const W = st.galWip; if (!W || W.id !== m.id || !Array.isArray(W.cols)) return false;
+      W.cols.forEach((a, i) => { const r = C[i]; if (!r || a == null) return; r.a = a; const f = footAt(a); r.pos = { ...f }; r.tgt = { ...f }; r.g.position.set(f.x, GEO.FLOOR, f.z); });
+      A.dmg = W.dmg | 0; A.cracks = W.cracks | 0; A.broke = W.broke | 0; A.tries = W.tries | 0; A.charged = new Set(W.charged || []);
+      ev('kept ' + placed().length); return true;
+    }
+    /** the beams beside a column just placed: straight is "במקום!", a sag creaks, a crack (one he could close) sounds */
+    function feel(r) {
+      const G = spans(R, colsNow()), near = G.filter((g) => Math.abs(g.a0 - r.a) < 1e-6 || Math.abs(g.a1 - r.a) < 1e-6);
+      const bad = near.find((g) => g.kind === 'crack' && g.len <= 2 * GAL.SAG), sag = near.find((g) => g.kind === 'sag');
+      // (build 130 review: while placing only a faint hint — the same stamp for every place, the beams barely tinted; the truth,
+      //  straight, sagging or cracking, is the live test's, when the crew lays them)
+      X.play('stamp');
+      ev(bad ? 'crack-ghost' : sag ? 'sag-ghost' : 'place');
+    }
+
+    /* the live test */
+    // (an act ended from outside — the director's test hook, a reload — stops its test where it is: nothing runs on into the next work)
+    const wait = async (s) => { await X.wait(s); if (A.ended) throw new Error('h130 ended'); };
+    function spectators(on) {
+      for (const w of A.spect) SH130.crew.remove(w); A.spect = [];
+      if (!on || !SH130.crew) return;
+      L.watch.forEach((w, i) => { const t = L.torch[0], s = SH130.crew.add(w[0], w[1], { variant: 'pilgrim', role: 'hold', fx: t[0], fz: t[1], crew: i }); if (s) A.spect.push(s); });
+    }
+    function blinkCols(idx, on) {
+      const rec = SH130.gal[side]; if (!rec) return;
+      for (const Cm of rec.cols) {
+        const hit = on && idx.includes(Cm.i);
+        if (hit && !Cm.shaft.userData.m0) { Cm.shaft.userData.m0 = Cm.shaft.material; Cm.shaft.material = new T.MeshStandardMaterial({ color: '#E8B0A0', emissive: '#C02010', emissiveIntensity: 0.9, roughness: 0.5 }); A.blink.push(Cm); }
+        if (!hit && Cm.shaft.userData.m0) { const m0 = Cm.shaft.userData.m0; Cm.shaft.material.dispose(); Cm.shaft.material = m0; delete Cm.shaft.userData.m0; }
+      }
+      if (!on) A.blink = [];
+    }
+    async function blinkFor(idx, secs) { for (let k = 0; k < Math.round(secs / 0.15); k++) { blinkCols(idx, k % 2 === 0); await wait(0.15); } blinkCols([], false); }
+    /** the crew stands his columns (the lying shaft rises on its foot, a man at it) and lays the beams; cracks cost and leave a prop */
+    async function standAll(skip = null) {
+      const L2 = placed().filter((r) => r !== skip), men = [];
+      for (const r of L2) { const f = footAt(r.a); r.pos = { ...f }; r.tgt = { ...f }; r.g.position.set(f.x, GEO.FLOOR, f.z); r.g.visible = true; const w = SH130.crew ? SH130.crew.add(f.x + court[0] * 3 + runDir[0] * 1.3, f.z + court[1] * 3 + runDir[1] * 1.3, { role: 'push', fx: f.x, fz: f.z, crew: 1 }) : null; if (w) men.push(w); }
+      galClear(X, side);
+      for (let k = 1; k <= 24; k++) { const u = ease(k / 24); for (const r of L2) { r.piv.rotation.x = -u * Math.PI / 2; r.piv.position.y = lerp(0.3 + GEO.R0, Y.PLINTH_TOP - GEO.FLOOR, u); } await wait(1 / 30); }
+      X.play('thud'); for (const r of L2) { r.g.visible = false; r.piv.rotation.x = 0; r.piv.position.y = 0.3 + GEO.R0; }
+      for (const w of men) SH130.crew.remove(w);
+    }
+    function layoutNow(withProps = true) {
+      const cols = colsNow(), G = spans(R, cols);
+      return { cols, props: withProps ? G.filter((g) => g.kind === 'crack').map((g) => +((g.a0 + g.a1) / 2).toFixed(2)) : [], raised: A.raised, raisedAt: A.raised && A.raisedRec && A.raisedRec.a != null ? A.raisedRec.a : null };
+    }
+    async function cracksNow() {
+      const G = spans(R, colsNow());
+      for (const g of G.filter((q) => q.kind === 'crack')) {
+        const key = g.a0.toFixed(2) + '|' + g.a1.toFixed(2); if (A.charged.has(key)) continue; A.charged.add(key);
+        const mid = (g.a0 + g.a1) / 2, f = footAt(mid);
+        X.play('crack'); X.shake(0.25, 0.35); X.dust(f.x, Y.COL_TOP, f.z, 18, 3);
+        X.loss(20, { x: f.x, y: Y.COL_TOP, z: f.z }, LOSS['gal.beam'][0], 0); A.dmg++; A.cracks++;
+        try { Mo.mark('gal.beam', m.id, [+f.x.toFixed(2), +f.z.toFixed(2)]); X.save(); } catch (e) { /* */ }
+        keepWip();
+        X.line(GLINES.prop, 2600); await wait(1.2);
+      }
+    }
+    function test() { return runTest().catch((e) => { if (!A.ended) console.warn('[h130] test', e && e.message); }); }
+    async function runTest() {
+      const cols = colsNow();
+      if (!cols.length) { X.line(GLINES.none, 2400); return; }
+      const k = keyOf(cols), G = spans(R, cols);
+      void G;
+      A.busy = true; A.phase = 'test'; A.tries++; X.hand(null); ring.visible = false; ev('test ' + k);
+      const again = A.tested === k; A.tested = k;
+      // the crew stands them and lays the beams (level 3: the south column; the north one is raised on the ropes, once)
+      X.line(GLINES.crew, 0); home(0.6);
+      const rz = L.raise && !A.raised ? raiseRec() : null;
+      await standAll(rz);
+      if (rz) { galDraw(X, side, layoutNow(false), { deck: false, beams: false, standing: colsNow().map((a) => a !== rz.a) }); await doRaise(rz); }
+      galDraw(X, side, layoutNow(false), { deck: true });
+      await cracksNow();
+      galDraw(X, side, layoutNow(true), { deck: true });
+      await wait(0.6);
+      // from below, in every spectator's eyes (unless he tapped again with nothing changed: then on, the torch lost where it was)
+      const below = testBelow(cols, lv);
+      if (!(again && A.lostAt === k)) {
+        // (build 130, the PC run, measured: a look the right thumb had raised during the plan (u 0.3) stayed up, and the director's look
+        //  pose lifted each spectator's eye — at w1-t2 to y 16.7, inside the gallery's beams and deck: a flat brown frame. The views
+        //  from below are the spectators' own eyes: the look goes home first, and again before each view)
+        lookHome();
+        // (build 130, the root of w1-t2's brown: the world controls force every camera to look down by 6.3° at least (main.js
+        //  maxPolarAngle 1.46), so a level eye 64 amot from the bearer was lifted ~7 amot each frame, into the deck. The views from
+        //  below raise that limit while they are up (director X.polarUp), and give it back when they end)
+        polar(true);
+        X.kohen(false); A.below = true; if (bearer && bearer.a) bearer.a.gateKeep = 1; spectators(true); X.line(GLINES.below, 0);
+        let order = L.torch.map((_, i) => i);
+        { const t = L.torch[order[0]]; bearerAt(t[0], t[1], L.watch[0][0], L.watch[0][1]); }
+        for (let wi = 0; wi < L.watch.length; wi++) {
+          const w = L.watch[wi], eye0 = [w[0], GEO.FLOOR + EYE, w[1]], eye = clearEye(eye0, cols);
+          const seeLens = (tp) => { const d = Math.hypot(tp[0] - eye[0], tp[2] - eye[2]); lensF = clamp((2 * Math.atan((SEE.MAN * SEE.PART) / 2 / Math.max(1, d)) * 180) / Math.PI, SEE.FMIN, SEE.FOV); lens(lensF); };
+          A.spect.forEach((s, i) => { s.a.vis = s.a.visT = i === wi ? 0 : 1; });
+          for (let j = 0; j < order.length; j++) {
+            const ti = order[j], t = L.torch[ti];
+            seeLens(torchP(ti)); lookHome();
+            // (a view where a column hides the torch is seen from his very eye, so the torch truly goes behind that column)
+            //  (build 130, n130-gh: his eye stands a few amot before that column, which then filled the frame — so the view starts
+            //  beside it, the torch in sight, and glides on the same lens into his eye as the torch slides behind the column)
+            const hidHere = below.lost.some((q) => q.w === wi && q.t === ti), eyeV = hidHere ? sideEye(eye0, torchP(ti), below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => cols[q.col])) : sightEye(eye, torchP(ti), cols);
+            if (j > 0) { const d = Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]); X.shot(eyeV, eyeAim(eyeV, torchP(ti)), d / 14); await Promise.race([SH130.crew.walkTo(bearer, t[0], t[1], 14), wait(d / 14 + 1)]); }
+            else { X.shot(eyeV, eyeAim(eyeV, torchP(ti)), j === 0 && wi === 0 ? 0.01 : 0.6); await wait(0.7); }
+            // (build 130, the PC run: his walk to a far stop is cut by its wait, and the next spectator's first view then looked at an empty
+            //  stop — on the long lens the far wall's shaded back filled the frame. Wherever the walk did not bring him, he stands there now)
+            if (Math.hypot(bearer.a.x - t[0], bearer.a.z - t[1]) > 0.6) { const a = bearer.a; a.path = null; if (a.res) { const r = a.res; a.res = null; r(true); } bearerAt(t[0], t[1], w[0], w[1]); }
+            SH130.crew.face(bearer, w[0], w[1]);
+            const hid = below.lost.filter((q) => q.w === wi && q.t === ti).map((q) => q.col);
+            const fs = hidHere ? 0 : await frameGuard(wi, ti, eyeV, torchP(ti), cols);   // (the frame as drawn, before the view counts as shown)
+            A.view = { wi, ti, hid, ...viewCheck(eyeV), flat: +fs.toFixed(2) }; ev(`see w${wi} t${ti} ${hid.length ? 'lost ' + hid.join(',') : 'ok'}`);
+            if (hidHere) { X.shot(eye0, eyeAim(eye0, torchP(ti)), SEE.GLIDE); await wait(SEE.GLIDE + 0.2); }
+            if (hid.length) { X.play('creak'); X.line(GLINES.gone, 1800); await blinkFor(hid, 1.8); } else await wait(0.9);
+          }
+          order = order.slice().reverse();
+        }
+        A.view = null; A.below = false; polar(false); if (bearer && bearer.a) bearer.a.gateKeep = 0; lensF = FOV; lens(lensF);
+        if (!below.ok) {
+          A.lostAt = k; A.lost = 1;
+          spectators(false); X.kohen(true); bearerAt(bw[0], bw[1], SP.face[0], SP.face[1]);
+          A.phase = 'puzzle'; galClear(X, side); for (const r of placed()) { const f = footAt(r.a); r.g.position.set(f.x, GEO.FLOOR, f.z); r.pos = { ...f }; r.tgt = { ...f }; r.g.visible = false; }
+          ghost(true); home(0.9); X.line(GLINES.again, 0); A.busy = false; return;
+        }
+        X.quick({ x: L.torch[0][0], y: GEO.FLOOR + TORCH_H + 1, z: L.torch[0][1] }, QUICK.perfectTest, null);
+        X.line(GLINES.above, 2400); await wait(1.2);
+      } else { X.line(GLINES.above2, 2400); A.hiddenOk = 1; }
+      // from above: the last seat (or the seat over a sunk beam), the torch at its first stop
+      spectators(false);
+      { const t = L.torch[0]; bearerAt(t[0], t[1], R.axis === 'x' ? t[0] : R.line, R.axis === 'x' ? R.line : t[1]); }
+      const ab = testAbove(cols, lv), row = ab.rows.find((q) => q.cut), seat = GB.seat[side];
+      const aS = row ? (row.a0 + row.a1) / 2 : along(seat[0], seat[1]), cS = across(seat[0], seat[1]), sink = sinkAt(spans(R, cols), aS);
+      const rl = railOf(side), tp = torchP(0), tc = across(tp[0], tp[2]), u = (rl.re - cS) / (tc - cS), eye0 = (rl.top - tp[1] * u) / (1 - u) + GAL.CLEAR;
+      const ex = R.axis === 'x' ? aS : cS, ez = R.axis === 'x' ? cS : aS;
+      // (the seats in front of his eye are left out of this one view — they filled its lower half — so the railing, the torch and the men
+      // below are the picture; the railing is what judges)
+      seatsShow(false);
+      X.shot([ex, eye0 - sink, ez], tp, 1.4); await wait(1.6);
+      A.cut = ab.cut ? 1 : 0; ev('above ' + (ab.cut ? 'cut ' + row.sink : 'clear'));
+      if (ab.cut) { X.play('creak'); X.line(GLINES.cut, 3200); await wait(3.0); }
+      else { X.quick({ x: tp[0], y: tp[1] + 1, z: tp[2] }, QUICK.clear, null); await wait(1.8); }
+      seatsShow(true);
+      finish();
+    }
+    /** ── build 130 part 3 ── the spectator's aim (build 130 closing: at the bearer, see below). The torch's flame is over his eye;
+     *  a camera that looks up past the world controls' polar limit (main.js maxPolarAngle 1.46) was lifted by them before each frame —
+     *  to the gallery's own height, its deck and railing then filling the view (the "brown frame" of the test from below) */
+    /** ── build 130 closing ── his eye off the columns he built: one within SEE.CLEAR amot of it filled a third of the frame (1600×900);
+     *  he steps back from it (the test itself is the book's, from his seat: only the camera moves) */
+    function clearEye(eye, cols) {
+      const e = eye.slice();
+      for (let it = 0; it < 3; it++) {
+        for (const a of cols) {
+          const [cx, cz] = colXZ(R, a), dx = e[0] - cx, dz = e[2] - cz, d = Math.hypot(dx, dz);
+          if (d >= SEE.CLEAR) continue;
+          // (along the run, never toward the wall or into the court: the distance across stays, the distance along grows)
+          const ax = R.axis === 'x', along = ax ? dx : dz, across = ax ? dz : dx, need = Math.sqrt(Math.max(0, SEE.CLEAR * SEE.CLEAR - across * across)) + 0.01;
+          const sgn = along >= 0 ? 1 : -1, v = (ax ? cx : cz) + sgn * need;
+          if (ax) e[0] = v; else e[2] = v;
+        }
+      }
+      return e;
+    }
+    /** ── build 130, the PC run ── a thing of the world (a plank on its trestle, a ladder) right before a spectator's eye filled his view
+     *  with a flat wall: the eye goes along the wall, a step at a time each way, to the nearest place from which nothing but the
+     *  gallery's own columns stands between it and the bearer (rays to his middle and to the torch) */
+    const sightRay = new T.Raycaster();
+    function shownMesh(o, skip) { if (!o.isMesh) return false; const mt = o.material; if (mt && !Array.isArray(mt) && (mt.visible === false || (mt.transparent && mt.opacity < 0.1))) return false; for (let p = o; p; p = p.parent) { if (!p.visible || skip.has(p)) return false; } return true; }
+    function sightBlocked(e, tp) {
+      // (each visible mesh on its own, so that one that cannot be cast against — a hidden skinned figure — never hides the others)
+      const rec = SH130.gal[side], skip = new Set(rec ? rec.all : []), list = [];
+      try {
+        sightRay.camera = X.camera; X.scene.updateMatrixWorld(true);
+        X.scene.traverseVisible((o) => { if (o.isMesh && !o.isSkinnedMesh && shownMesh(o, skip)) list.push(o); });
+      } catch (err) { return false; }
+      const out = [];
+      for (const y of [GEO.FLOOR + SEE.MID, GEO.FLOOR + TORCH_H]) {
+        const a = new T.Vector3(e[0], e[1], e[2]), d = new T.Vector3(tp[0] - e[0], y - e[1], tp[2] - e[2]), L = d.length(); d.normalize();
+        sightRay.set(a, d); sightRay.near = SEE.NEAR; sightRay.far = Math.max(SEE.NEAR, L - SEE.NEAR - 1.5);
+        for (const o of list) { out.length = 0; try { o.raycast(sightRay, out); } catch (err) { continue; } if (out.some((h) => h.distance >= SEE.NEAR && h.distance <= sightRay.far)) { A.sightBy = `${o.name || o.type}<${(o.parent && (o.parent.name || o.parent.type)) || ''} d${out[0].distance.toFixed(1)}`; return true; } }
+      }
+      return false;
+    }
+    /** ── build 130, the PC run (960×600) ── a thing right before the eye that no ray meets (an instanced prop, a held item) filled a view:
+     *  every visible mesh, an InstancedMesh per instance, by its world box — whatever box lies within `r` amot of the eye and inside the
+     *  view's cone toward `aim` (the floor, the world's huge pieces, the gallery's columns, and the spectator's own figure standing at the
+     *  eye left out) → [names] */
+    const _bx = { B: null, M: null, P: null, C: null };
+    function nearBoxes(e, aim, r = SEE.VIEW_NEAR) {
+      const out = [];
+      try {
+        if (!_bx.B) { _bx.B = new T.Box3(); _bx.M = new T.Matrix4(); _bx.P = new T.Vector3(); _bx.C = new T.Vector3(); }
+        const B = _bx.B, Mx = _bx.M, P = _bx.P.set(e[0], e[1], e[2]), C = _bx.C;
+        const d = new T.Vector3(aim[0] - e[0], aim[1] - e[1], aim[2] - e[2]).normalize();
+        const half = Math.atan(Math.tan(((X.camera.fov || 40) * Math.PI) / 360) * Math.max(1, X.camera.aspect || 1.6)) + 0.12;
+        const rec = SH130.gal[side], colSet = new Set(); if (rec) for (const Cm of rec.cols) Cm.g.traverse((q) => colSet.add(q));
+        const test = (o, name) => {
+          if (B.isEmpty()) return;
+          const sx = B.max.x - B.min.x, sy = B.max.y - B.min.y, sz = B.max.z - B.min.z;
+          if (sx > 40 || sz > 40 || sy > 40) return;                                         // (the world's ground, walls, the city)
+          if (B.max.y < GEO.FLOOR + 0.25) return;                                            // (the floor and what lies flat on it)
+          B.getCenter(C); if (Math.hypot(C.x - e[0], C.z - e[2]) < 0.8 && sx < 1.6 && sz < 1.6) return;   // (his own figure at the eye)
+          if (B.distanceToPoint(P) > r) return;
+          B.clampPoint(P.clone().addScaledVector(d, r * 0.5), C);
+          const v = C.clone().sub(P), L = v.length(); if (L < 1e-3 || Math.acos(Math.max(-1, Math.min(1, v.dot(d) / L))) < half) out.push(name);
+        };
+        X.scene.traverseVisible((o) => {
+          if (!o.isMesh || colSet.has(o) || !o.geometry || (o.isInstancedMesh && o.geometry.attributes.iA)) return;
+          if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+          const gb = o.geometry.boundingBox, nm = o.name || o.type;
+          if (o.isInstancedMesh) { for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, Mx); Mx.premultiply(o.matrixWorld); B.copy(gb).applyMatrix4(Mx); test(o, `${nm}#${i}`); } }
+          else { B.copy(gb).applyMatrix4(o.matrixWorld); test(o, nm); }
+        });
+      } catch (err) { /* */ }
+      return out;
+    }
+    /** ── build 130, the PC run ── what no ray meets (an InstancedMesh's instances moved since its bounds were taken: the crews' carts and
+     *  wheels, the oxen, the figures): each instance's world box against the segments from the eye to the bearer's middle and to the
+     *  torch, between NEAR and the bearer → the first thing found ('' if none) */
+    function instBlock(e, tp) {
+      try {
+        if (!_bx.B) nearBoxes(e, tp, 0);
+        const B = _bx.B, Mx = _bx.M, ray = new T.Ray(), hit = new T.Vector3(), a = new T.Vector3(e[0], e[1], e[2]);
+        const segs = [GEO.FLOOR + SEE.MID, GEO.FLOOR + TORCH_H].map((y) => { const d = new T.Vector3(tp[0] - e[0], y - e[1], tp[2] - e[2]), L = d.length(); return { d: d.normalize(), far: L - SEE.NEAR - 1.5 }; });
+        let found = '';
+        X.scene.traverseVisible((o) => {
+          if (found || !o.isInstancedMesh || !o.geometry || o.geometry.attributes.iA) return;   // (a rig's instances — figures, their items, animals — carry no place in their matrix)
+          if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+          for (let i = 0; i < o.count && !found; i++) {
+            o.getMatrixAt(i, Mx); Mx.premultiply(o.matrixWorld); B.copy(o.geometry.boundingBox).applyMatrix4(Mx);
+            if (B.max.y < GEO.FLOOR + 0.25 || B.max.x - B.min.x > 40 || B.max.z - B.min.z > 40) continue;
+            for (const sg of segs) { ray.set(a, sg.d); if (ray.intersectBox(B, hit)) { const t = hit.distanceTo(a); if (t >= SEE.NEAR && t <= sg.far) { found = `${o.name || 'inst'}#${i} d${t.toFixed(1)}`; break; } } }
+          }
+        });
+        return found;
+      } catch (err) { return ''; }
+    }
+    /** ── build 130, the PC run ── the frame as the player sees it (main.js afterFrame: read right after the game drew it): an 8×5 grid,
+     *  its upper three rows → the share of them that is one near-identical colour (the sky's blue left out as a seed). A flat board
+     *  over more than FLAT of them is no view: the lens widens (26°, then 40°), then the eye steps along the wall, until it passes */
+    function frameSample() {
+      return new Promise((res) => {
+        const T0 = globalThis.__T; if (!T0 || !T0.afterFrame) { res(null); return; }
+        let done = false;
+        T0.afterFrame((Rn) => {
+          done = true;
+          try {
+            const gl = Rn.getContext(), W = gl.drawingBufferWidth, H = gl.drawingBufferHeight, px = new Uint8Array(4), out = [];
+            for (let j = 0; j < 3; j++) for (let i = 0; i < 8; i++) { gl.readPixels(Math.floor((W * (i + 0.5)) / 8), Math.floor(H * (1 - (j + 0.5) / 5)), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); out.push([px[0], px[1], px[2]]); }
+            res(out);
+          } catch (e) { res(null); }
+        });
+        setTimeout(() => { if (!done) res(null); }, 3000);
+      });
+    }
+    function flatShare(sm) {
+      if (!sm || !sm.length) return 0;
+      let best = 0;
+      for (const a of sm) { if (a[2] > a[0] + 8) continue; let n = 0; for (const b of sm) if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) <= 15) n++; best = Math.max(best, n); }
+      return best / sm.length;
+    }
+    async function frameGuard(wi, ti, eye, tp, cols) {
+      const aimV = (e) => eyeAim(e, tp);
+      const steps = [() => { lensF = Math.max(lensF, 26); lens(lensF); }, () => { lensF = Math.max(lensF, 40); lens(lensF); }];
+      for (let k = 1; k <= SEE.STEPS; k++) for (const sg of [1, -1]) steps.push(() => { const e = eye.slice(); e[R.axis === 'x' ? 0 : 2] += sg * k * SEE.STEP; const c = clearEye(e, cols); X.shot(c, aimV(c), 0.01); });
+      let share = 0;
+      for (let s = 0; s <= steps.length; s++) {
+        await wait(s ? 0.25 : 0.6);   // (the look's ease home and the lens settle first)
+        share = flatShare(await frameSample());
+        if (share <= SEE.FLAT) { if (s) ev(`frame w${wi} t${ti} ok after ${s}`); return share; }
+        if (s === steps.length) break;
+        ev(`frame w${wi} t${ti} flat ${share.toFixed(2)} → step ${s + 1}`);
+        steps[s]();
+      }
+      return share;
+    }
+    /** the view's own check (the bot fails a view that breaks it): the bearer's middle inside the frame, and nothing but a column he
+     *  placed within 3 amot of the eye on the frame's centre ray → { inFrame: 0|1, near: '' or what stands there } */
+    function viewCheck(eyeV) {
+      const out = { inFrame: 0, near: '', camY: 0, dy: 0 };
+      try {
+        X.camera.updateMatrixWorld();
+        // (build 130: the camera stands at the chosen eye's height — off by more than 0.3 with no thumb lift held is a bad view)
+        out.camY = +X.camera.position.y.toFixed(2);
+        const lk = X.lookNow ? X.lookNow() : { u: 0 }; if (eyeV && !(lk.u > 1e-3)) out.dy = +(X.camera.position.y - eyeV[1]).toFixed(2);
+        const v = new T.Vector3(bearer.a.x, GEO.FLOOR + SEE.MID, bearer.a.z).project(X.camera);
+        out.inFrame = Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1 && !bearer.a.gateOff && bearer.a.vis > 0.5 ? 1 : 0;   // (in the frame and drawn: not taken out by the figures gate)
+        const rc = new T.Raycaster(); rc.setFromCamera({ x: 0, y: 0 }, X.camera); rc.camera = X.camera; rc.near = 0; rc.far = SEE.VIEW_NEAR;
+        const rec = SH130.gal[side], colSet = new Set(); if (rec) for (const C of rec.cols) C.g.traverse((q) => colSet.add(q));
+        const list = []; X.scene.traverseVisible((o) => { if (o.isMesh && !o.isSkinnedMesh && !colSet.has(o) && shownMesh(o, new Set())) list.push(o); });
+        const hits = []; for (const o of list) { try { o.raycast(rc, hits); } catch (e) { /* */ } }
+        const h = hits.filter((q) => q.distance <= SEE.VIEW_NEAR).sort((p, q) => p.distance - q.distance)[0];
+        if (h) out.near = `${h.object.name || h.object.type} d${h.distance.toFixed(1)}`;
+        if (!h) { const ib = instBlock([X.camera.position.x, X.camera.position.y, X.camera.position.z], [bearer.a.x, GEO.FLOOR + TORCH_H, bearer.a.z]); if (ib) out.near = 'inst ' + ib; }
+        if (!h && !out.near) { const nb = nearBoxes([X.camera.position.x, X.camera.position.y, X.camera.position.z], [bearer.a.x, GEO.FLOOR + SEE.MID, bearer.a.z]); if (nb.length) out.near = 'box ' + nb.slice(0, 3).join(','); }
+      } catch (e) { /* */ }
+      return out;
+    }
+    /** ── build 130 ── the right thumb during a view from below (rule 66: it lifts at any moment, play goes on): the lifted eye stays out
+     *  of the gallery — under its column tops by SEE.UNDER wherever it stands over the gallery's footprint (wall to the column line,
+     *  SEE.FOOT beyond), and never within SEE.COL_R of a column's axis → the eye [x, y, z], or null when it is already clear */
+    function camClamp(p) {
+      if (!A.below) return null;
+      const q = [p[0], p[1], p[2]]; let moved = false;
+      const ax = R.axis === 'x', across = ax ? q[2] : q[0], along = ax ? q[0] : q[2], sgn = Math.sign(R.wall - R.line) || 1;
+      const inFoot = along > R.a0 - SEE.FOOT && along < R.a1 + SEE.FOOT && (across - (R.line - sgn * SEE.FOOT)) * sgn > 0 && (R.wall - across) * sgn > -0.5;
+      if (inFoot && q[1] > Y.COL_TOP - SEE.UNDER) { q[1] = Y.COL_TOP - SEE.UNDER; moved = true; }
+      if (q[1] < Y.COL_TOP + 0.5) for (const a of colsNow()) {
+        const [cx, cz] = colXZ(R, a), dx = q[0] - cx, dz = q[2] - cz, d = Math.hypot(dx, dz);
+        if (d < SEE.COL_R) { const k = d > 1e-3 ? SEE.COL_R / d : 0; q[0] = cx + (k ? dx * k : SEE.COL_R); q[2] = cz + (k ? dz * k : 0); moved = true; }
+      }
+      return moved ? q : null;
+    }
+    function polar(on) { try { if (X.polarUp) X.polarUp(on); } catch (e) { /* */ } }
+    function lookHome() { try { if (X.lookZero) X.lookZero(); else if (X.lookHome) X.lookHome(); } catch (e) { /* */ } }
+    function sightEye(eye, tp, cols) {
+      const aimP = [tp[0], GEO.FLOOR + SEE.MID, tp[2]], bad = (c) => { if (sightBlocked(c, tp)) return true; const ib = instBlock(c, tp); if (ib) { A.sightBy = 'inst ' + ib; return true; } const nb = nearBoxes(c, aimP); if (nb.length) { A.sightBy = 'box ' + nb.slice(0, 3).join(','); return true; } return false; };
+      if (!bad(eye)) return eye;
+      const by = A.sightBy || '';
+      const ax = R.axis === 'x' ? 0 : 2;
+      for (let k = 1; k <= SEE.STEPS; k++) for (const sg of [1, -1]) {
+        const e = eye.slice(); e[ax] += sg * k * SEE.STEP; const c = clearEye(e, cols);
+        if (!bad(c)) { ev(`sight ${sg * k * SEE.STEP} (${by})`); return c; }
+      }
+      return eye;
+    }
+    /** the ground the carts keep out of: the stand's (as the director's, 16 amot round) and the box of all spectators and torch stops */
+    function keepRects() {
+      const sp = standOf(m), r = [[sp.x - 16, sp.z - 16, sp.x + 16, sp.z + 16]];
+      const pts = L.watch.concat(L.torch), xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
+      r.push([Math.min(...xs) - SEE.KEEP, Math.min(...zs) - SEE.KEEP, Math.max(...xs) + SEE.KEEP, Math.max(...zs) + SEE.KEEP]);
+      return r;
+    }
+    /** the eye moved across his line to the torch (along the wall), away from the hiding columns, until the line clears them by SIDE */
+    function sideEye(eye, tp, as) {
+      const dx = tp[0] - eye[0], dz = tp[2] - eye[2], L0 = Math.hypot(dx, dz) || 1, px = -dz / L0, pz = dx / L0;
+      const offs = as.map((a) => { const [cx, cz] = colXZ(R, a); return (cx - eye[0]) * px + (cz - eye[2]) * pz; });
+      const mean = offs.reduce((s, o) => s + o, 0) / Math.max(1, offs.length), sgn = mean > 0 ? -1 : 1;
+      const need = Math.max(0, ...offs.map((o) => GAL.HIDE + SEE.SIDE + sgn * o));
+      return [eye[0] + sgn * px * need, eye[1], eye[2] + sgn * pz * need];
+    }
+    function eyeAim(eye, tp) {
+      // (build 130: at the bearer's middle, SEE.MID over the floor — under the eye, so never past the polar limit — and the lens set
+      //  for his stop's distance (seeLens): he stands a fifth or more of the frame's height, the torch and the columns on his line in it)
+      return [tp[0], GEO.FLOOR + SEE.MID, tp[2]];
+    }
+    function seatsShow(v) { try { const r = SH130.gal[side]; if (r && r.seats) r.seats.visible = !!v; } catch (e) { /* */ } }
+
+    /* level 3: the north segment's column on the ropes (raise.js) */
+    function raiseRec() {
+      const P = placed().filter((r) => R.cut && r.a < R.cut[0]).sort((a, b) => a.a - b.a);
+      return P.length ? P[P.length - 1] : null;
+    }
+    function doRaise(rz) {
+      return new Promise((res) => {
+        A.phase = 'raise'; X.line(GLINES.raise, 2600); lensSet(false);
+        const f = footAt(rz.a), fr = { x: f.x, z: f.z, along: [runDir[0], runDir[1]], across: [court[0], court[1]] };
+        const sub = raiseAct(X, { fr, id: m.id, onEnd: (r) => { A.raiseRes = r; A.raised = r.c; A.raisedRec = rz; A.broke = r.c.broke | 0; A.dmg += A.broke; keepWip(); try { sub.end(); } catch (e) { /* */ } A.sub = null; X.kohen(true); heroAt(X, SP.x, SP.z, SP.face[0], SP.face[1]); A.phase = 'test'; lensSet(true); home(0.8); res(); } });
+        A.sub = sub; A.busy = false; sub.begin();
+      });
+    }
+
+    /* the end: the gallery as he built it into the save; the points; X.end */
+    function finish() {
+      const lay = layoutNow(true), chk = galCheck(lay.cols, lv);
+      st.gal[side] = { cols: lay.cols.slice().sort((a, b) => a - b), props: lay.props, raised: lay.raised, raisedAt: lay.raisedAt };
+      X.save();
+      // (a beam that cracked in a test is a loss that stays, even if a later layout spans it whole — build 130: the reload rule)
+      let pts = galPts(chk, A.broke + Math.max(0, A.cracks - (chk.cracks | 0)));
+      if (st.galWip && st.galWip.id === m.id) delete st.galWip;
+      if (A.raiseRes) pts = Math.min(pts, A.raiseRes.pts);
+      const q = qOf(pts), perfect = pts >= 40 && !A.dmg && !A.cut;
+      ev('end ' + pts);
+      const f = footAt((R.a0 + R.a1) / 2);
+      X.kohen(true); X.line('');
+      // (the director's pull-back keeps the camera's bearing: from the seat it looked at the court with the wall behind, and 46 amot
+      // back from the gallery was the wall's stone filling the frame; from the stand it rises over the court toward the gallery)
+      home(0.5);
+      setTimeout(() => X.end({ stars: starsOf(q), q, pts, perfect, lost: A.dmg > 0, at: { x: f.x, y: Y.GFLOOR, z: f.z }, flags: { 'gal.beam': A.cracks, 'gal.column': A.broke, sags: chk.sags, hidden: chk.hidden.length, n: chk.n, mehudar: chk.mehudar ? 1 : 0, tries: A.tries } }), 600);
+    }
+
+    /* the opening (gal1, once): the drawn line, the crowd in and turned over, "ואם נעלה קומה?" */
+    function crowdMake() {
+      const [[rx0, rz0], , [rx1, rz1]] = GB.ring, ct = S5.court, gate = GB.gate, inner = [], outer = [];
+      for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++) inner.push([rx0 + ((rx1 - rx0) * (i + 0.5)) / 6, rz0 + ((rz1 - rz0) * (j + 0.5)) / 4]);
+      for (const sg of [-1, 1]) for (let i = 0; i < 12; i++) { const zr = sg < 0 ? rz0 : rz1, zc = sg < 0 ? ct.z0 : ct.z1; outer.push([rx0 + 8 + ((rx1 - rx0 - 16) * (i + 0.5)) / 12, zr + (zc - zr) * (i % 2 ? 0.42 : 0.62)]); }
+      const geoB = new T.CylinderGeometry(0.55, 0.75, 2.8, 8), geoH = new T.SphereGeometry(0.5, 10, 8);
+      const mA = [new T.MeshStandardMaterial({ color: '#7A3E5E', roughness: 0.9 }), new T.MeshStandardMaterial({ color: '#4E5E8A', roughness: 0.9 })];
+      const mB = [new T.MeshStandardMaterial({ color: '#D8C8A0', roughness: 0.9 }), new T.MeshStandardMaterial({ color: '#8A6A44', roughness: 0.9 })];
+      const skin = new T.MeshStandardMaterial({ color: '#C89A72', roughness: 0.9 });
+      const F = [];
+      for (let k = 0; k < 48; k++) {
+        const grp = k % 2, i = k >> 1, g = new T.Group(), b = new T.Mesh(geoB, (grp ? mB : mA)[i % 2]); b.position.y = 1.4; g.add(b);
+        const h = new T.Mesh(geoH, grp ? skin : mA[(i + 1) % 2]); h.position.y = 3.2; g.add(h);
+        g.position.set(gate[0] + 10, GEO.FLOOR, gate[1] + ((i % 5) - 2) * 1.4); g.visible = false; PR.root.add(g);
+        F.push({ g, grp, i, from: null, to: null, t0: 0, dur: 1, via: null });
+      }
+      return { F, inner, outer, gate, mats: [...mA, ...mB, skin], geos: [geoB, geoH], all: F.map((f) => f.g) };
+    }
+    function crowdGo(CR, toInnerFor, delay = 0.16, viaGate = true) {
+      const t = A.t;
+      for (const f of CR.F) {
+        const inn = toInnerFor(f.grp), P = inn ? CR.inner : CR.outer, p = P[f.i % P.length];
+        const from = [f.g.position.x, f.g.position.z], via = viaGate ? [CR.gate[0] - 4, CR.gate[1] + ((f.i % 5) - 2) * 1.6] : null;
+        const len = (via ? Math.hypot(via[0] - from[0], via[1] - from[1]) + Math.hypot(p[0] - via[0], p[1] - via[1]) : Math.hypot(p[0] - from[0], p[1] - from[1]));
+        Object.assign(f, { from, via, to: p, t0: t + f.i * delay, dur: len / 16 }); f.g.visible = true;
+      }
+      return Math.max(...CR.F.map((f) => f.t0 + f.dur)) - t;
+    }
+    function crowdStep(CR) {
+      for (const f of CR.F) {
+        if (!f.to) continue; const u = clamp((A.t - f.t0) / f.dur, 0, 1); if (u <= 0) continue;
+        let x, z;
+        if (f.via) { const l1 = Math.hypot(f.via[0] - f.from[0], f.via[1] - f.from[1]), l2 = Math.hypot(f.to[0] - f.via[0], f.to[1] - f.via[1]), s = u * (l1 + l2); if (s < l1) { const k = s / (l1 || 1); x = lerp(f.from[0], f.via[0], k); z = lerp(f.from[1], f.via[1], k); } else { const k = (s - l1) / (l2 || 1); x = lerp(f.via[0], f.to[0], k); z = lerp(f.via[1], f.to[1], k); } }
+        else { x = lerp(f.from[0], f.to[0], u); z = lerp(f.from[1], f.to[1], u); }
+        f.g.position.x = x; f.g.position.z = z; f.g.position.y = GEO.FLOOR + (u < 1 ? Math.abs(Math.sin(A.t * 9 + f.i)) * 0.15 : 0);
+      }
+    }
+    function crowdDrop(CR) { if (!CR) return; for (const g of CR.all) PR.remove(g); for (const q of CR.mats) q.dispose(); for (const q of CR.geos) q.dispose(); }
+    // the drawn line on the floor: dashes round the ring, shown as the left hand draws
+    function ringDashes() {
+      const P = GB.ring, segs = [], D = [];
+      for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; segs.push([a, b, Math.hypot(b[0] - a[0], b[1] - a[1])]); }
+      const tot = segs.reduce((s, q) => s + q[2], 0), n = 96;
+      for (let k = 0; k < n; k++) {
+        let d = (tot * k) / n, s = 0; while (d > segs[s][2]) { d -= segs[s][2]; s++; }
+        const [a, b, l] = segs[s], x = lerp(a[0], b[0], d / l), z = lerp(a[1], b[1], d / l), hx = Math.abs(b[0] - a[0]) > 0.1 ? 1.2 : 0.25, hz = Math.abs(b[0] - a[0]) > 0.1 ? 0.25 : 1.2;
+        const q = box(X, MT.n5chalk, x - hx, GEO.FLOOR + 0.01, z - hz, x + hx, GEO.FLOOR + 0.04, z + hz); q.visible = false; D.push(q); all.push(q);
+      }
+      return D;
+    }
+    /** the opening's own beats wait in OPEN seconds (about 12 in all) and end at a touch (A.skipOpen) */
+    const owait = async (sec) => { const t0 = A.t; while (A.t - t0 < sec && !A.skipOpen) { await wait(0.05); } };
+    async function opening() {
+      A.skipOpen = 0;
+      try { await openingBeats(); } finally {
+        if (A.crowd) { crowdDrop(A.crowd); A.crowd = null; }
+        try { (A.dash || []).forEach((d) => { d.visible = false; }); } catch (e) { /* */ }
+        X.hand(null); illTag.set(''); st.open1 = 1; X.save(); if (A.skipOpen) ev('open skipped');
+      }
+    }
+    async function openingBeats() {
+      A.phase = 'open-draw'; A.busy = false;
+      const OC = CAM.open1, dash = ringDashes(); A.dash = dash;
+      X.kohen(true); X.shot(OC[0], OC[1], 1.2);
+      illTag.set(LINES.ill); X.line(LINES.where, 0);
+      await wait(OPEN.LOOK);
+      X.line(LINES.where + ' · ' + GLINES.draw, 0);
+      { const p = GB.ring[0], q = GB.ring[1]; const a = X.scr(p[0], GEO.FLOOR, p[1]), b = X.scr(q[0], GEO.FLOOR, q[1]); X.hand({ x: p[0], y: GEO.FLOOR, z: p[1] }, Math.round(clamp(b.x - a.x, -HPX, HPX)), Math.round(clamp(b.y - a.y, -HPX, HPX))); }
+      while (A.draw < 1) { const n = Math.round(A.draw * dash.length); dash.forEach((d, i) => { d.visible = i < n; }); await wait(0.05); if (A.ended) return; }
+      dash.forEach((d) => { d.visible = true; }); X.hand(null); X.play('good');
+      // the crowd comes in through the gate: the women inside the line, the men outside it; at the gate they mix
+      A.phase = 'open-crowd'; A.busy = true;
+      const CR = crowdMake(); A.crowd = CR;
+      src(LINES.sukkah51a, 8);
+      const d1 = crowdGo(CR, (grp) => grp === 0);
+      await owait(Math.min(d1 * 0.5, OPEN.IN)); if (A.skipOpen) return; X.line(GLINES.mix, 0); await owait(OPEN.MIX); if (A.skipOpen) return;
+      A.phase = 'open-flip'; A.busy = false; A.flipTap = 0; X.line(GLINES.flip, 0);
+      X.hand({ x: (GB.ring[0][0] + GB.ring[1][0]) / 2, y: GEO.FLOOR, z: 0 }, 0, 0);
+      while (!A.flipTap) { await wait(0.1); if (A.ended) return; }
+      X.hand(null); A.phase = 'open-crowd'; A.busy = true;
+      const d2 = crowdGo(CR, (grp) => grp === 1, 0.08, false);
+      await owait(Math.min(d2, OPEN.IN)); if (A.skipOpen) return; X.line(GLINES.same, 2600); await owait(OPEN.SAME); if (A.skipOpen) return;
+      // the kohen lifts his head to the wall
+      const UP = CAM.galUp; A.phase = 'open-up';
+      X.shot(UP[0], UP[1], 1.6); X.line(LINES.up, 0); src(LINES.sukkah51b, 6);
+      for (const f of CR.F) { f.from = [f.g.position.x, f.g.position.z]; f.via = null; f.to = [GB.gate[0] + 10, GB.gate[1] + ((f.i % 5) - 2) * 1.4]; f.t0 = A.t + f.i * 0.03; f.dur = Math.hypot(f.to[0] - f.from[0], f.to[1] - f.from[1]) / 22; }
+      await owait(OPEN.UP);
+    }
+
+    async function begin2() {
+      if (lv === 1 && !st.open1) { try { await opening(); } catch (e) { console.warn('[h130] opening', e && e.message); } if (A.ended) return; }
+      A.phase = 'puzzle'; A.busy = false;
+      if (restoreWip()) ghost(true);
+      lensSet(true); home(1.0); src(LINES.middot25, 7);
+      X.line(lv === 3 ? GLINES.puzzle3 : GLINES.puzzle, 0);
+      ghost(true);
+      await wait(1.2);
+      const r = C[0], p = r.g.position, a = X.scr(p.x + court[0] * 5, GEO.FLOOR + 0.9, p.z + court[1] * 5), [lx, lz] = colXZ(R, r.sled.x * Math.abs(runDir[0]) + r.sled.z * Math.abs(runDir[1])), b = X.scr(lx, GEO.FLOOR, lz);
+      if (A.phase === 'puzzle' && !placed().length) X.hand({ x: p.x + court[0] * 5, y: GEO.FLOOR + 0.9, z: p.z + court[1] * 5 }, Math.round(clamp(b.x - a.x, -HPX, HPX)), Math.round(clamp(b.y - a.y, -HPX, HPX)));
+    }
+
+    let sol = null, hideSpot;
+    return {
+      close: true,
+      begin() {
+        X.kohen(true);
+        try { A.ta = [document.documentElement.style.touchAction, document.body.style.touchAction]; document.documentElement.style.touchAction = 'none'; document.body.style.touchAction = 'none'; } catch (e) { /* */ }
+        home(0.01);
+        // (build 130, the PC run: an ox cart with its stone drove along the wall past a spectator's eye and filled his view from below —
+        //  the carts and the passing crews keep out of the stand's ground and of every spectator's lines to the torch, as the director
+        //  keeps them off an act's ground; a cart already inside fades)
+        try { if (X.stages && X.stages.keepOut) X.stages.keepOut(keepRects(), { walkOff: true }); } catch (e) { /* */ }
+        begin2();
+      },
+      camClamp: (p) => camClamp(p),
+      update(dt) {
+        A.t += dt;
+        if (srcT > 0) { srcT -= dt; if (srcT <= 0) srcTag.set(''); }
+        holdLens();
+        // (build 130, the PC run: in the view from below the player's kohen came back into the world — something re-shows him — and
+        //  stood between a spectator and the bearer; on the long lens his figure filled the frame. While those views run he stays out)
+        if (A.below) { try { const hm = X.hero && X.hero.mesh; if (hm && hm.visible) X.kohen(false); } catch (e) { /* */ } }
+        if (A.sub) A.sub.update(dt);
+        if (A.crowd) crowdStep(A.crowd);
+        const k = 1 - Math.exp(-dt / LAG);
+        for (const r of C) {
+          if (!r.g || A.phase === 'test' || A.phase === 'raise') continue;
+          r.pos.x += (r.tgt.x - r.pos.x) * k; r.pos.z += (r.tgt.z - r.pos.z) * k; r.g.position.set(r.pos.x, GEO.FLOOR, r.pos.z);
+          if (r.a != null && !r.drag) { const there = Math.hypot(r.tgt.x - r.pos.x, r.tgt.z - r.pos.z) < 0.25; r.g.visible = !there; }
+          else r.g.visible = true;
+        }
+        const fp = flameAt(); if (fp) { flame.position.set(fp.x, fp.y, fp.z); flame.scale.set(1.4 + Math.sin(A.t * 13) * 0.12, 1.9 + Math.sin(A.t * 11) * 0.15, 1); }
+      },
+      down, move, up,
+      cancel() {
+        if (A.sub) { A.sub.cancel(); return; }
+        const P = A.ptr; A.ptr = null; if (!P || !P.rec) return;
+        const r = P.rec; r.drag = false; r.a = P.prevA; const f = r.a != null ? footAt(r.a) : r.sled; r.tgt = { x: f.x, z: f.z }; A.preview = null; ring.visible = false; ghost(true);
+      },
+      wants(p) {
+        if (A.sub) return A.sub.wants(p);
+        if (A.phase !== 'puzzle' || A.busy) return false;
+        return !!gripAt(p);
+      },
+      holds() { return A.sub ? A.sub.holds() : false; },
+      end() {
+        A.ended = true;
+        try { if (A.ta) { document.documentElement.style.touchAction = A.ta[0]; document.body.style.touchAction = A.ta[1]; } } catch (e) { /* */ }
+        if (A.sub) { try { A.sub.end(); } catch (e) { /* */ } A.sub = null; }
+        crowdDrop(A.crowd); A.crowd = null;
+        blinkCols([], false); spectators(false); A.below = false; polar(false); if (bearer && bearer.a) bearer.a.gateKeep = 0;
+        if (bearer) SH130.crew.remove(bearer);
+        for (const o of all) PR.remove(o);
+        srcTag.remove(); illTag.remove(); lensSet(false);
+        X.hand(null); X.kohen(true);
+        own(side, false);
+      },
+      at() { const f = footAt((R.a0 + R.a1) / 2); return { x: f.x, y: Y.COL_TOP, z: f.z }; },
+      dbg() {
+        if (A.sub) return { ...A.sub.dbg(), id: m.id, lv: 3, sub: 'raise', t: +A.t.toFixed(2), ev: A.ev.slice(-8) };
+        const s2 = (x, y, z) => { const q = X.scr(x, y, z); return [Math.round(q.x), Math.round(q.y)]; };
+        const cp = X.camera.position, o = { cam: [cp.x, cp.y, cp.z].map((v) => +v.toFixed(1)), fov: +X.camera.fov.toFixed(1), id: m.id, lv, side, phase: A.phase, busy: A.busy, t: +A.t.toFixed(2), ev: A.ev.slice(-10), mouse: MOUSE, dmg: A.dmg, cracks: A.cracks, broke: A.broke, tries: A.tries, lost: A.lost, cut: A.cut, draw: +A.draw.toFixed(2), view: A.view || null,
+          cols: C.map((r) => { const p = r.g.position, vis = r.g.visible; const g = vis ? s2(p.x + court[0] * 5, GEO.FLOOR + 0.9, p.z + court[1] * 5) : (() => { const f = footAt(r.a); return s2(f.x, (Y.PLINTH_TOP + Y.COL_TOP) / 2, f.z); })(); return { i: r.i, a: r.a == null ? null : +r.a.toFixed(2), grip: g, drag: r.drag }; }),
+          bearer: bearer ? s2(bearer.a.x, GEO.FLOOR + 2.2, bearer.a.z) : null, layout: colsNow().map((v) => +v.toFixed(2)) };
+        if (A.phase === 'open-draw') { const p = GB.ring[0], q = GB.ring[2]; o.drawFrom = s2(p[0], GEO.FLOOR, p[1]); o.drawTo = s2(q[0], GEO.FLOOR, q[1]); }
+        if (A.phase === 'puzzle' && (globalThis.__BOT || globalThis.__H130_SOL)) {
+          // (the bot's: a layout that keeps every rule, from the model's solver — the act never solves for the player)
+          if (!sol) { try { const b = solve(lv, L.n, 0.25).best; sol = b ? b.cols : []; } catch (e) { sol = []; } }
+          o.sol = sol.map((a) => { const f = footAt(a); return { a, scr: s2(f.x, GEO.FLOOR, f.z) }; });
+          // (the bot's 'hide': a place on a spectator's line nearest one of the solver's places, no beam cracking)
+          if (hideSpot === undefined) {
+            hideSpot = null;
+            sol.forEach((a0, j) => L.watch.forEach((w) => L.torch.forEach((t) => {
+              const u = R.axis === 'x' ? (R.line - w[1]) / (t[1] - w[1]) : (R.line - w[0]) / (t[0] - w[0]); if (!(u > 0 && u < 1)) return;
+              const c = R.axis === 'x' ? w[0] + (t[0] - w[0]) * u : w[1] + (t[1] - w[1]) * u, cs = sol.map((v, i) => (i === j ? c : v)), ch = galCheck(cs, lv);
+              if (!ch.legal || ch.cracks) return; const d = Math.abs(c - a0); if (!hideSpot || d < hideSpot.d) hideSpot = { j, a: +c.toFixed(3), d };
+            })));
+          }
+          if (hideSpot) { const f = footAt(hideSpot.a); o.hide = { j: hideSpot.j, a: hideSpot.a, scr: s2(f.x, GEO.FLOOR, f.z) }; }
+        }
+        return o;
+      },
+    };
+  },
+};

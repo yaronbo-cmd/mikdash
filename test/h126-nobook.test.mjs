@@ -1,0 +1,126 @@
+// build 126 (rule 65, ירון 13.11: "הכול יושב על העולם. לא ההפך בשום מקרה"): no stage file of h109, h111, h112, h113 (h120 went in build 130; h130 below) may type a
+// world place of its own — the book (world/grid.js BOOK) holds them. tools/nobook126.mjs finds two or three numeric literals in a row
+// with one 30 or more from the origin, or an x/z key with such a literal. Its honest exceptions are listed here per file with their
+// exact count, so a new place typed anywhere fails this test (and a moved one must lower the count). Every line is reported.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { scanDirs, scanSource } from '../tools/nobook126.mjs';
+
+const ROOT = new URL('../src/game/', import.meta.url);
+// [file, count, why]
+const ALLOW = [
+  // stages 02–04: nothing left that is a place — screen offsets and sizes the scan cannot tell from one
+  ['h111/acts2.js', 4, 'the hand\'s screen offset (0, −46 px), dust (count, spread) twice, a camera offset along the stretch\'s own frame (F.at)'],
+  ['h111/bond.js', 3, 'the crane wheel\'s torus segments (0.12, 6, 36), the grip ring\'s geometry (0.85, 1, 40), the hand\'s screen offset (50, 0)'],
+  ['h111/stakes.js', 2, 'the rope\'s length and thickness (36, 0.16), the hand\'s screen offset (40, −24)'],
+  ['h112/acts.js', 4, 'the hand\'s screen offsets (46|50|60 px, 0)'],
+  ['h112/acts2.js', 4, 'the hand\'s screen offsets (−52|50|60 px, 0), dust (count, spread)'],
+  ['h112/world.js', 1, 'the warning slab\'s canvas text sizes (96, 70, 64 px)'],
+  ['h113/acts.js', 2, 'the hand\'s screen offsets (40|70 px, 0)'],
+  ['h113/acts2.js', 3, 'dust (count, spread), the hand\'s screen offsets (0, −40), (0, 30)'],
+  ['h113/acts3.js', 13, 'the hand\'s screen offsets (±40..70 px), dust, the key\'s canvas (0.4, 420), a ring geometry (70, 0, 1)'],
+  ['h113/pack.js', 4, 'the lintel\'s growth scale (0.01, 40); gateShot\'s seconds, height and distance from the gate (2.4, 40, 22) ×3'],
+  ['h113/world.js', 1, 'the derrick wheel\'s torus segments (0.12, 6, 36)'],
+  // stage 01 (build 127: every place read from the book): what the scan still finds is no place
+  ['h109/acts.js', 1, 'the rope act\'s closing shot: offsets from the book\'s square (+120 east, height 360; +260 south of it)'],
+  ['h109/acts2.js', 7, 'a crack\'s point count (46), the tally\'s canvas (34 px apart, 10..54 px), the hand\'s screen offsets (0, −70 | −40 | −60; 40, −10)'],
+  ['h109/acts3.js', 62, 'the inscription\'s letter strokes in the canvas\'s own units (GLYPH, 40); geometry segments (torus 0.11, 6, 36; rings 32 | 40); canvas sizes and boxes (512 × 256, 22, 468, 10, 492, the chalk tag 128, 70, the face\'s margin 36); dust (count, spread) ×2; the hand\'s screen offsets (0, 40 ×2 | 0, −70); the carving\'s tolerance px (30, 24, 18) and canvas points (50, 70; the half width cw / 2, 120); the aim\'s drag gain and limit (0.0032, −125°)'],
+  ['h109/director.js', 13, 'the overview\'s lift (520 back, 360 high, from the work: offsets); haptic patterns (ms) ×4; the lift\'s height clamp (60..180); the glow\'s canvas (32, 32, 64 px); spark counts; the loss cap (0..80 points); the stars\' bonus points (0, 50, 100, 200); the frame step clamp (s)'],
+  ['h109/grips.js', 1, 'the grip radius\'s floor and share of the screen (44 px, 0.15) — no place'],
+  ['h109/props.js', 1, 'a ring geometry\'s segments (2, 48) — no place'],
+];
+
+test('the scan finds a typed place and leaves sizes alone', () => {
+  assert.equal(scanSource('X.shot([-95, 330, 72], [-95, 0, -14]);').length, 2);
+  assert.equal(scanSource('const p = { x: -126, z: 4 };').length, 1);
+  assert.equal(scanSource('box(0.7, 20, D, 4.65, 10, 0); // [-95, 0]').length, 0);
+  assert.equal(scanSource("X.line('at -95, 0 there');").length, 0);
+});
+
+test('stages 01–05: no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h109', 'h111', 'h112', 'h113']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+
+// ── h128 ── (build 128) stage 06: its files read every place from the book (BOOK.s06); what the scan finds is no place
+const ALLOW128 = [
+  ['h128/model.js', 3, 'angles in degrees: the bolts\' turns (720, 1080), the leaves\' open angle (90, 90) and its clamp (0, 90)'],
+  ['h128/look.js', 3, 'the look sample\'s timeline in seconds (the storm eases 28..31, the break opens 28..32, its patch of light runs to the ship 28.5..33.5)'],
+  ['h128/sea3d.js', 18, 'sizes, not places: the camera\'s field of view (50) and the sample point count; fog distances (120..1500, 160/60, 1600/520); the storm ceiling\'s front, from far to port to past the ship (−30000..14000 amot on the cloud plane); geometry segments (sky 48 × 24, tubes 30 × 4..5, the env sphere 100 × 32 × 16 and its near/far 0.5/400); canvas sizes and gradients in px (256, 512, 128 × 64, the shadow blob 32, 32, 2..31 and its 64 px square); the crew\'s swell reach (30 amot, squared)'],
+  // (part 2)
+  ['h128/figgate.js', 1, 'sizes, not places: the test camera\'s own field of view, aspect and near plane (40, 1.6, 0.1)'],
+  ['h128/capstan.js', 2, 'the sparks\' count at the hung leaf (30) and the hand hint\'s gesture in px (40, 30)'],
+  ['h128/close.js', 1, 'the hand hint\'s gesture in px (0, −40: a push up the screen)'],
+  ['h128/steps.js', 1, 'the hand hint\'s gesture in px (−40, 30)'],
+  ['h128/wicket.js', 1, 'the hand hint\'s gesture in px (30, 30)'],
+  // (part 3)
+  ['h128/sea.js', 3, 'sizes, not places: the quay stone\'s canvas in px (256 × 128) and the torn rope\'s haptic pattern in ms (30, 50, 30, 50, 80)'],
+  ['h128/sound128.js', 39, 'sounds, not places: filter frequencies in Hz (62 … 4200), their Q and the voices\' lengths in seconds (part 3 adds the rope\'s string, the sea, the splash and the bell; the tuning round the runner, slap, crackle, scrape, rattle, groan, thud, hollow, swing, hinge and strain)'],
+];
+test('stage 06: no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h128']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW128.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h128 ──
+
+// ── h129 ── (build 129) stage 07: its files read every place from the book (BOOK.s07); the allow list holds no place
+const ALLOW129 = [
+  // (part 2)
+  ['h129/sound129.js', 24, 'sounds, not places: filter frequencies in Hz (96 … 5200), their Q and the voices\' lengths in seconds (build 129 R3b adds the Golah rope\'s round and rough tones)'],
+];
+test('stage 07: no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h129']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW129.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h129 ──
+
+// ── h130 ── (build 130) the new stage 05: its files read every place from the book (BOOK.s05 gal, wood, light, eve, cam); the allow
+// list holds no place
+const ALLOW130 = [
+  ['h130/light.js', 6, 'the hand hint\'s gesture in px (±40..60, 0..±50), six times — no place'],   // (build 130 L)
+  ['h130/model.js', 29, 'no places: the logs\' tables in their own frame — a worm hole\'s angle round the log (degrees) and its place along it (amot from the log\'s end), a bark patch\'s stretch and angles, a knot\'s angle and place (build 130 review: the varied logs)'],
+];
+test('stage 05 (build 130): no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h130']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW130.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h130 ──
+
+// ── h131 ── (build 131) stage 08: its files read every place from the book (BOOK.s08, its pit sheet); the allow list holds no place
+const ALLOW131 = [
+  // the approved pour sample's own synthesized sounds (frequencies in Hz, gains, times: samples/yetzika/main.js sfx, kept as they are)
+  // and its overlay's ring radii (px) — no place in them
+  ['h131/pour3d.js', 24],   // (+2: b131's soft warning sound before a pocket closes — 150→112 Hz, its 950 Hz breath)
+  ['h131/sim.js', 1],   // (the sample's simulation as it is: its small PRNG's constants)
+];
+test('stage 08 (build 131): no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h131']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW131.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h131 ──
+
+// ── h132 ── (build 132) stage 09: its files read every place from the book (BOOK.s09); the allow list holds no place
+const ALLOW132 = [];
+test('stage 09 (build 132): no world place typed outside the book but the listed exceptions', () => {
+  const hits = scanDirs(ROOT, ['h132']), by = new Map();
+  for (const h of hits) by.set(h.file, [...(by.get(h.file) || []), h]);
+  const allow = new Map(ALLOW132.map(([f, n]) => [f, n]));
+  for (const [f, L] of by) assert.equal(L.length, allow.get(f) ?? 0, `${f}: ${L.map((h) => h.line + ' ' + h.text).join(' | ')}`);
+  for (const [f, n] of allow) assert.equal((by.get(f) || []).length, n, `${f}: the allow list counts ${n}`);
+});
+// ── /h132 ──

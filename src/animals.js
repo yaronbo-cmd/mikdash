@@ -131,8 +131,10 @@ export function rigMesh(geo, mat, max) {
 }
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _Y = new THREE.Vector3(0, 1, 0);
 /** instance i: position, yaw, uniform scale, colour (Color or null), iA/iB/iC arrays (4 each), second colour */
-export function rigWrite(m, i, x, y, z, yaw, s, col, a, b, c, col2) {
-  _q.setFromAxisAngle(_Y, yaw); _p.set(x, y, z); _s.set(s, s, s); _m4.compose(_p, _q, _s);
+const _qL = new THREE.Quaternion(), _eL = new THREE.Euler();   // ── h129 ── (lie: a figure laid down) ── /h129 ──
+export function rigWrite(m, i, x, y, z, yaw, s, col, a, b, c, col2, lie) {
+  _q.setFromAxisAngle(_Y, yaw); if (lie) { _eL.set(lie[0] || 0, 0, lie[1] || 0); _q.multiply(_qL.setFromEuler(_eL)); }   // ── h129 ── (lie [rx, rz]: about the figure's own axes after its yaw: on its back rx −π/2, on its side rz ±π/2) ── /h129 ──
+  _p.set(x, y, z); _s.set(s, s, s); _m4.compose(_p, _q, _s);
   _m4.toArray(m.instanceMatrix.array, i * 16);
   const g = m.geometry.attributes;
   if (col) { const C = m.instanceColor.array; C[i * 3] = col.r; C[i * 3 + 1] = col.g; C[i * 3 + 2] = col.b; }
@@ -336,9 +338,6 @@ function bird({ turtle = false } = {}) {
 
 /** a lamb as one static piece (all bones 0): the lamb a kohen carries in his arms (actors.js items) */
 export function lambStatic() { const g = sheep().geo; g.attributes.aBone.array.fill(0); return g; }
-// ── recovered (build 25) ── the sheep's rig (geo, pivots, pose) for a skinned mesh of its own: pen25's lamb at the pen door
-// (the export's name did not survive the bundle; `sheepRig` is the recovery's)
-export const sheepRig = () => ({ ...sheep(), pose: QUAD_POSE });
 
 const BUILD = { lamb: () => sheep(), ram: () => sheep({ ram: true }), goat, bull: () => bovine(), calf: () => bovine({ calf: true }), dove: () => bird(), turtledove: () => bird({ turtle: true }) };
 export const ANIMAL_KINDS = Object.keys(BUILD);

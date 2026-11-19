@@ -75,3 +75,14 @@ test('the first coin comes in 8–14 minutes of play: a good player ≈ 8, an av
   for (const [k, v] of Object.entries({ good, avg })) assert.ok(v >= 7.5 && v <= 14, `${k} ${v}`);
   assert.ok(slow <= 15 && good < avg && avg < slow, `slow ${slow}`);   // (a child who rarely finds the gold window: the coin is still inside a quarter hour)
 });
+
+// ── build 111 ── real damage costs points (the owner 8.11): never under 0, the gold run ends
+test('sub: a loss takes points, never below zero, and ends the run', () => {
+  const { S, G } = mk();
+  S.add(40, 'act'); S.add(40, 'act');
+  const r = S.sub(20, 'damage');
+  assert.equal(r.n, 20); assert.equal(G.score, 60);
+  const r2 = S.sub(200, 'damage');
+  assert.equal(r2.n, 60); assert.equal(G.score, 0);
+  assert.equal(S.sub(20).n, 0); assert.equal(G.score, 0);
+});

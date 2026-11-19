@@ -370,6 +370,15 @@ const ITEM_DEF = {
       P(rod([0, 0.15, 0], [0, -1.05, 0.03], 0.045, 0.04, 5), WOOD, 0, { rough: 0.85 }),
       P(new THREE.ConeGeometry(0.07, 0.5, 4).rotateX(Math.PI / 2).translate(0, -1.1, 0.3), IRON, 0, { metal: 0.6, rough: 0.5 }),
       P(new THREE.ConeGeometry(0.06, 0.34, 4).rotateX(-Math.PI / 2).translate(0, -1.1, -0.2), IRON, 0, { metal: 0.6, rough: 0.5 })] },
+    // ── h115 ── a rake: the rakers spread the waste in the pit and cover it (ירון 10.11: "בור שיתכסה על ידי המגרפים") ── /h115 ──
+    rake: { hold: 'two', build: () => [
+      P(rod([0, 0.2, 0], [0, -1.45, 0.06], 0.035, 0.03, 5), WOOD, 0, { rough: 0.85 }),
+      P(box(0.72, 0.08, 0.1, [0, -1.5, 0.08]), WOOD2, 0, { rough: 0.85 }),
+      ...[-0.3, -0.1, 0.1, 0.3].map((x) => P(box(0.04, 0.2, 0.04, [x, -1.62, 0.12]), WOOD2, 0, { rough: 0.85 }))] },
+    // ── h131 ── a wooden spade, all wood (the pit at Beit Kerem: the diggers throw the scraped earth away; no iron near the altar's stones) ── /h131 ──
+    spade: { hold: 'two', build: () => [
+      P(rod([0, 0.2, 0], [0, -1.3, 0.05], 0.035, 0.032, 5), WOOD, 0, { rough: 0.85 }),
+      P(box(0.34, 0.05, 0.46, [0, -1.48, 0.16], [0.35, 0, 0]), WOOD2, 0, { rough: 0.85 })] },
     saw: { hold: 'two', build: () => [
       P(box(0.02, 0.13, 2.3, [0, -0.26, 1.15]), '#B9B6AE', 0, { metal: 0.35, rough: 0.4 }),
       P(box(0.03, 0.025, 2.3, [0, -0.19, 1.15]), '#8C6A43', 0, { rough: 0.8 }),
@@ -660,6 +669,7 @@ export function createActors(ctx) {
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S3 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1), D = new THREE.Vector3();
   let T = 0;
   let enabled = true;
+  let NOGO = [];   // ── h117 ── [[x0, z0, x1, z1], …] ── /h117 ──
   function update(dt) {
     T += dt;
     if (!enabled) { for (const k in meshes) rigEnd(meshes[k].m, 0); rigEnd(items, 0); return; }
@@ -669,15 +679,16 @@ export function createActors(ctx) {
     let ni = 0;
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
+      if (a.vis !== a.visT && instantVis) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }   // ── h120 ── (no figure drawn shrunk: shown or hidden at once) ── /h120 ──
       if (a.vis !== a.visT) {
         const dir = a.visT > a.vis ? 1 : -1; a.vis += dir * dt / 0.45;
         if ((dir > 0 && a.vis >= a.visT) || (dir < 0 && a.vis <= a.visT)) { a.vis = a.visT; if (a.vis === 0 && a.onHide) { const f = a.onHide; a.onHide = null; f(); } }
       }
-      let inView = a.vis > 0.001;
+      let inView = a.vis > 0.001 && !a.gateOff;   // ── h128 ── (gateOff: the figures gate keeps a world figure out of an act's picture; it goes on living) ── /h128 ──
       if (inView && camera) {
         const dx = a.x - cx, dy = a.y - cy, dz = a.z - cz;
         if (dx * dx + dy * dy + dz * dz > 700 * 700) inView = false;
-        else { sp.center.set(a.x, a.y + 2, a.z); sp.radius = 3.5; inView = fr.intersectsSphere(sp); }
+        else { sp.center.set(a.x, a.y + (a.lie ? 0.5 : 2), a.z); sp.radius = a.lie ? 4.2 : 3.5; inView = fr.intersectsSphere(sp); }
       }
       if (!inView && !a.path && !a.face && !a.gesture && !a.poseRes && !a.rope) continue;
       step(a, dt);
@@ -688,7 +699,7 @@ export function createActors(ctx) {
       B[0] = a.arm[0]; B[1] = a.arm[1]; B[2] = a.arm[2]; B[3] = a.arm[3];
       C[0] = a.hy; C[1] = a.hp; C[2] = a.shade; C[3] = a.sway;
       const sc = a.s * (a.vis < 1 ? Math.max(0.001, a.vis) : 1);
-      rigWrite(K.m, K.n++, a.x, a.y + Math.abs(Math.cos(a.ph)) * 0.06 * a.wk, a.z, a.yaw, sc, a.col, A, B, C, a.col2);
+      rigWrite(K.m, K.n++, a.x, a.y + Math.abs(Math.cos(a.ph)) * 0.06 * a.wk, a.z, a.yaw, sc, a.col, A, B, C, a.col2, a.lie || null);   // ── h129 ── (a.lie: laid down, h129/night.js) ── /h129 ──
       if (blobs) blobs.push(a.x, a.y, a.z, 1.5 * a.s * a.vis, 1.3 * a.s * a.vis, a.yaw);
       // the held item
       if (a.item && ni < MAXI - 1) {
@@ -713,6 +724,7 @@ export function createActors(ctx) {
     }
     for (let i = 0; i < props.length && ni < MAXI - 1; i++) {
       const p = props[i];
+      if (p.vis !== p.visT && instantVis) p.vis = p.visT;   // ── h120 ── ── /h120 ──
       if (p.vis !== p.visT) { const dir = p.visT > p.vis ? 1 : -1; p.vis += dir * dt / 0.35; if ((dir > 0 && p.vis >= p.visT) || (dir < 0 && p.vis <= p.visT)) p.vis = p.visT; }
       if (p.vis <= 0.001) continue;
       if (camera) { sp.center.set(p.x, p.y, p.z); sp.radius = 1.5; if (!fr.intersectsSphere(sp)) continue; }
@@ -758,6 +770,14 @@ export function createActors(ctx) {
     a.moving = moving;
     a.wk += ((moving ? 1 : 0) - a.wk) * Math.min(1, dt * 8);
     if (moving) a.ph += a.speed * dt / 1.15 * Math.PI;
+    // ── h117 ── (ירון 10.11: "בריצוף יש אנשים מתחת כאילו אני קובר אותם מתחת לריצוף") no figure stands where slabs are being laid or
+    // lie: inside a no-go rectangle it steps out to its nearest edge ── /h117 ──
+    if (NOGO.length && a.fixedY === undefined) for (const r of NOGO) {
+      if (a.x <= r[0] || a.x >= r[2] || a.z <= r[1] || a.z >= r[3]) continue;
+      const m = 0.6, dl = a.x - r[0], dr = r[2] - a.x, db = a.z - r[1], dt2 = r[3] - a.z, k = Math.min(dl, dr, db, dt2);
+      if (k === dl) a.x = r[0] - m; else if (k === dr) a.x = r[2] + m; else if (k === db) a.z = r[1] - m; else a.z = r[3] + m;
+      if (a.path) { const e = a.path[a.path.length - 1]; if (e[0] > r[0] && e[0] < r[2] && e[1] > r[1] && e[1] < r[3]) { a.path = null; if (a.res) { const f = a.res; a.res = null; f(false); } } }
+    }
     const gy = a.fixedY !== undefined && !a.path ? a.fixedY : (a.ground || ground)(a.x, a.z);
     a.y += (gy - a.y) * Math.min(1, dt * 14); if (Math.abs(gy - a.y) > 6) a.y = gy;
     // pose (bow / kneel) and arms
@@ -807,16 +827,27 @@ export function createActors(ctx) {
     if (a.look) { const w = Math.atan2(a.look[0] - a.x, a.look[1] - a.z) - a.yaw; hyT = Math.max(-1, Math.min(1, Math.atan2(Math.sin(w), Math.cos(w)))); hpT = 0.15; }
     if (a.poseName === 'bless') { hyT = 0; hpT = -0.12; }
     if (a.poseName === 'kneel') { hyT = 0; hpT = 0.3; }
-    a.hy += (hyT - a.hy) * Math.min(1, dt * 3); a.hp += (hpT - a.hp) * Math.min(1, dt * 3);
+    if (a.lie) { hyT = 0; hpT = a.lieHp || 0; }   // ── h129 ── (a figure laid down sleeps: his head still; lieHp lifts it, h129/night.js) ── /h129 ──
+    a.hy += (hyT - a.hy) * Math.min(1, dt * (a.hk || 3)); a.hp += (hpT - a.hp) * Math.min(1, dt * (a.hk || 3));   // ── h129 ── (hk: a quicker head, the Gazit's one beat) ── /h129 ──
     // ── people6 ── weight shifts: a slow lean from one foot to the other, now and then
     a.sway = (Math.sin(T * 0.55 + a.shade * 20) * 0.022 + Math.sin(T * 1.3 + a.shade * 7) * 0.006) * (1 - a.wk);
   }
 
-  return {
+  let instantVis = false;   // ── h120 ── ── /h120 ──
+  const API = {   // ── h128 ── (API: registered below in FIGS, the one list of every figure layer) ── /h128 ──
     add, remove, walk, face, pose, setItem, update, list, items, prop, unprop, props, ITEM_ID,
+    setNoGo(L) { NOGO = (L || []).filter((r) => Array.isArray(r) && r.length >= 4 && r.every(Number.isFinite)); },   // ── h117 ── ── /h117 ──
+    get noGo() { return NOGO.slice(); },
     setEnabled(v) { enabled = !!v; },
+    setInstantVis(v) { instantVis = !!v; },   // ── h120 ── (stage 05: a fade never shrinks a figure) ── /h120 ──
     setCamera(c) { camera = c; },
     get drawn() { let n = items.visible ? 1 : 0; for (const k in meshes) n += meshes[k].m.visible ? 1 : 0; return n; },
     handWorld(a, side, out) { armLocal(a, side, side > 0 ? HANDL : HANDR, side > 0 ? SHL : SHR, _e); toWorld(a, _e, out); return out; },
   };
+  // ── h128 ── every figure layer (the crews', the crowd's, the service's, a partner's, a pack's own) in one registry, so the figures
+  // gate (h128/figgate.js) finds a figure whoever asked for it; scene: where its meshes hang (a gate tests the main scene's only) ── /h128 ──
+  API.scene = scene; API.tag = (ctx && ctx.tag) || ''; FIGS.add(API);
+  return API;
 }
+/** ── h128 ── the registry of figure layers (createActors adds each one) ── /h128 ── */
+export const FIGS = new Set();

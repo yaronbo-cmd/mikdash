@@ -6,6 +6,8 @@
  *   S.add(n, why, { once: 'key' })  → { n, total, coins: [new dinars] }     // n ≥ 0; once: pays only the first time under that key
  *   S.grade('gold' | 'good' | 'ok') → the points of one scoring act (10 / 20 / 40, a gold from the 3rd in a row 50) — registers the streak
  *   S.idle()  → ms since the last act (grade) · S.streak() → the gold run's length
+ *   S.sub(n, why) → { n, total } (build 111, the owner 8.11: real damage — a cracked or broken stone, a great stone fallen — costs
+ *     points; the total never goes under 0, the dinars already earned are kept) · S.breakRun() → the gold run ends (a damage)
  *   S.get()   → { total, coins, base, next, frac, glow, title, nextTitle, left, unseen }
  *   S.list()  → G.dinars = [{ n, stage, t, seen? }] · S.seen(i) · S.unseen() → the coins whose celebration has not played
  * The save: G.score (a number) · G.dinars (the coins) · G.scf (the once-only flags: welcome, a craft's first time at a stage, a read entry).
@@ -55,6 +57,16 @@ export function createScore(o = {}) {
     if (typeof o.persist === 'function') { try { o.persist(); } catch (e) { /* the game's */ } }
     return { n: k, total: G.score, coins };
   }
+  /** ── h111 ── damage: n points off, never under 0 (the coins earned stay: a coin is never lost) */
+  function sub(n, why = '') {
+    const G = box(), k = num(n);
+    if (!G || !k) return { n: 0, total: G ? G.score : 0 };
+    const was = G.score; G.score = Math.max(0, G.score - k); const d = was - G.score;
+    st.by[why || '?'] = (st.by[why || '?'] || 0) - d; st.streak = 0;
+    if (typeof o.emit === 'function') { try { o.emit('score', { n: -d, why, total: G.score, coin: 0 }); } catch (e) { /* the game's */ } }
+    if (typeof o.persist === 'function') { try { o.persist(); } catch (e) { /* the game's */ } }
+    return { n: d, total: G.score };
+  }
   /** one scoring act by its grade → its points; a gold run counts from the 3rd gold in a row (any other grade ends it, silently) */
   function grade(g) {
     const t = now();
@@ -70,7 +82,7 @@ export function createScore(o = {}) {
     return { total, coins, base, next: base + MILESTONE, frac, glow: frac >= 0.9, title: titleOf(coins), nextTitle: nt, left: base + MILESTONE - total, unseen: G ? G.dinars.filter((d) => !d.seen).length : 0 };
   }
   return {
-    add, grade, get,
+    add, grade, get, sub, breakRun: () => { st.streak = 0; },
     /** a total's worth of coins made at once from a fixture or an old save, quietly (no celebration) */
     sync(quiet = true) { const G = box(); return G ? reconcile(G, quiet) : []; },
     list: () => { const G = box(); return G ? G.dinars.map((d) => ({ ...d })) : []; },

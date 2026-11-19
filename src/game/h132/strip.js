@@ -133,13 +133,14 @@ export const STRIP_ACT = {
       const sx = c[0] > 0 ? 1 : -1, sz = c[1] > 0 ? 1 : -1, cx = sx > 0 ? B[2] : B[0], z = (sz > 0 ? B[3] : B[1]) + sz * 4.4;
       return [3, 7].map((d) => [cx - sx * d, z, cx - sx * d, z + sz * 6, F]);
     }
+    // (waiting, the pullers stand with the rope in hand — not crouched over nothing)
     function castMen() {
       gang.clear(); const P = idleOf();
-      for (let i = 0; i < 2; i++) { const q = P[i], w = gang.add(q[0], q[1], { role: 'brace', item: 'rope', fx: q[2], fz: q[3], crew: 2 + i }); if (w && w.a) { w.a.vis = 1; w.a.fixedY = q[4]; w.a.y = q[4]; } men[i] = w; }
+      for (let i = 0; i < 2; i++) { const q = P[i], w = gang.add(q[0], q[1], { role: 'hold', item: 'rope', fx: q[2], fz: q[3], crew: 2 + i }); if (w && w.a) { w.a.vis = 1; w.a.fixedY = q[4]; w.a.y = q[4]; } men[i] = w; }
     }
     function sendIdle(jump) {
       if (A.done) return; workP = 'idle'; A.idleT = 0; const P = idleOf();
-      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = 'brace'; w.item = 'rope'; w.until = 0; if (jump && w.a) { w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; } }
+      for (let i = 0; i < 2; i++) { const w = men[i]; if (!w) continue; w.goal = P[i]; w.want = 'hold'; w.item = 'rope'; w.until = 0; if (jump && w.a) { w.a.x = P[i][0]; w.a.z = P[i][1]; w.a.fixedY = P[i][4]; } }
     }
     function sendMen(p, role, jump) {
       workP = p; A.idleT = A.t + 2.4; const k = sideOf(p), isWall = p.startsWith('wall:'), P = p === 'wedge' ? fitPair(placeOf(p), [-1, 0]) : fitPair(placeOf(p), NORM[k][0] ? [0, 1] : [1, 0], p.startsWith('belt:') && k !== 'W' ? NORM[k] : null);
@@ -160,7 +161,7 @@ export const STRIP_ACT = {
         if (d > 0.02) { w.a.x += (dx / d) * st; w.a.z += (dz / d) * st; }
         // (from the floor to the block's top and back: a step at each edge — the yesod's rim, the block — never inside it)
         w.a.fixedY = d < 0.6 ? q[4] : groundAt(w.a.x, w.a.z);
-        const walking = d > 0.15, role = walking ? 'brace' : A.t < (w.until || 0) ? w.want || 'pull' : 'brace';
+        const walking = d > 0.15, role = walking ? 'brace' : A.t < (w.until || 0) ? w.want || 'pull' : 'hold';   // (between pulls he stands, the rope or staff in hand)
         if (w.role !== role || !!w.stride !== walking) gang.setRole(w, role, { item: w.item || 'rope', fx: walking ? q[0] + dx : q[2], fz: walking ? q[1] + dz : q[3], stride: walking ? 0.8 : 0, rate: 1.6 });
         if (!walking) { w.fx = q[2]; w.fz = q[3]; }
       }

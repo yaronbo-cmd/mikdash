@@ -152,7 +152,7 @@ export const FORM_ACT = {
     const nextCorner = () => CORNER_ORDER.find((k) => !S.stakes[k]) || null;
     function plan(ease = 0.9) {
       if (A.fl != null || A.done) return;
-      if (!stakesIn(S)) { const k = nextCorner(); if (k !== A.cur || A.shotK !== 'c:' + k) { A.cur = k; castMan(k); shotTo('c:' + k, cornerShot(k), ease); hint(true); } return; }
+      if (!stakesIn(S)) { const k = nextCorner(); if (k !== A.cur || A.shotK !== 'c:' + k) { const cut = A.shotK.startsWith('c:'); A.cur = k; castMan(k); shotTo('c:' + k, cornerShot(k), cut ? 0.01 : ease); hint(true); } return; }   // (corner to corner: a cut — an eased flight between two low corner shots crossed the block and its boards close, a board filling the frame and no man in it)
       if (A.phase !== 'walls') { A.phase = 'walls'; A.cur = null; const W0 = wideShot(); castCrew(nearestOpen([W0[0][0], W0[0][2]]) || 'E'); shotTo('wide', W0, ease); hint(true); return; }
       // (between walls: back to the whole form once the wall in hand is locked, down again, or let go a while — the crew walks on)
       if (A.shotK.startsWith('w:') && S.hold == null) {

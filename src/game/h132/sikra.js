@@ -124,7 +124,7 @@ function makeSikra(m, X) {
   }
   function cornerOn(k, first) {
     A.k = k; A.rod.u = 0; A.rod.hung = false; A.busy = 0;
-    const [e, a] = V3.measureShot(k); A.pose = [e, a]; X.shot(e, a, first ? 1.4 : 1.1);
+    const [e, a] = V3.measureShot(k); A.pose = [e, a]; X.shot(e, a, first ? 1.4 : 0.5);   // (review P3: from corner to corner in half a second — the long pan spent a second on the bare face between, the helper on his ladder out of it)
     ladderAt(k); rodPlace(); ev('corner:' + k);
     if (first && !Ms.done.length) setTimeout(() => { if (A.phase === 'measure' && !A.rod.hung && !A.ended) X.hand(W3(rod.position.toArray()), 0, 14); }, 1500);
   }

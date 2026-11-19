@@ -78,7 +78,7 @@ export const STRIP_ACT = {
       // (the eye still at the look's own lift: the act eases its base itself, frame by frame; else one eased shot from where the eye is —
       //  the director then reads the figures only once it has settled)
       A.th = th; view(th, 0.01); A.ease = { a: th, b, t: 0, own: u > 0.02 }; if (!A.ease.own) view(b, SA.SNAP); A.camT = A.t + SA.SNAP + 0.2;
-      try { if (workP === 'idle' || A.t > A.idleT) sendIdle(true); } catch (e) { ev('err:idle:' + (e && e.message)); }   // (a cut for the waiting pullers: at the new corner as the camera turns to it)
+      try { if (workP === 'idle' || A.t > A.idleT) sendIdle(true); else { const r = men[0] && men[0].want; sendMen(workP, r && r !== 'hold' ? r : null, true); ev('refit:' + workP); } } catch (e) { ev('err:idle:' + (e && e.message)); }   // (a cut for the waiting pullers: at the new corner as the camera turns to it; round 8: the working pair too — fitted for the corner he left they stood cut at the new one's edge)
       return 0;
     }
     function easeStep(dt) {
@@ -109,7 +109,7 @@ export const STRIP_ACT = {
     const fig = figTest(T), focus = [MID[0], Y1, MID[1]];
     const whole = (q) => {
       // (the camera settled: the director's own figures gate asked, at u 0 and the look's u 0.3 as it will judge him; turning: figTest)
-      const G = globalThis.__FIG; if (!A.ease && A.t > A.camT && G && typeof G.probe === 'function') { try { const r = G.probe(q[0], q[4], q[1], { x: focus[0], y: focus[1], z: focus[2] }); return !!(r && r.on && !r.cut && !r.between); } catch (e) { /* */ } }
+      const G = globalThis.__FIG; if (!A.ease && A.t > A.camT && G && typeof G.probe === 'function') { try { const r = G.probe(q[0], q[4], q[1], { x: focus[0], y: focus[1], z: focus[2] }, 1.1);   /* (round 8: at the tallest a man is drawn — actors.js's 0.92–1.08 × life — as the gate's own reading of him) */ return !!(r && r.on && !r.cut && !r.between); } catch (e) { /* */ } }
       const v = cornerView(A.ease ? A.ease.b : A.th); return fig([v.eye, v.aim], SA.FOV, cam0.aspect || 1.6, q[0], q[4], q[1], focus, SA.EDGE) === 'whole';
     };
     /** the pair P slid along its face (al) until both stand whole: the nearest such place, or P itself */

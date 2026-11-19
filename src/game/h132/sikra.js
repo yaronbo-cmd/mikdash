@@ -188,7 +188,7 @@ function makeSikra(m, X) {
       const hw = Math.max(26, Math.abs(f.y - h.y) * 0.32) + 70;   // (half the man's width on the screen and half a label's)
       if (Math.abs(q.x - h.x) < hw && y > h.y - 26 && y < f.y + 14) y = h.y - 30;
     }
-    return { sx: q.x, sy: Math.max(110, y) };
+    return { sx: Math.max(130, Math.min(innerWidth - 130, q.x)), sy: Math.max(160, y) };   // (clear of the score and the goal at the top)
   }
   // (a reward that showed just before a loss is wiped off the screen as the loss comes: its number and its glare)
   let hushT = 0;

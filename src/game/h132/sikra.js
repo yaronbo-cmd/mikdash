@@ -36,6 +36,7 @@ export const SKA = Object.freeze({
   LOSS_DY: 1.2,                                       // a loss's words this far over the line (over the block's top edge: above the line, never on the men below it)
   LOSS_GAP: 1.3,                                      // s between two loss words: one at a time, the next waits its turn
   CALM: 2,                                            // s after a loss with no reward word, gold or glare (a loss is never paid)
+  RW_WAIT: 0.9,                                       // s a reward waits before it shows: a loss in that time drops it (a lift's seam just after a gold stretch)
   DRIP_HOLD: 1.4, DRIP_LEAD: 2,                       // s the camera holds on a lost drip; amot ahead of a fresh drip the camera's point stays
 });
 const isPhone = () => Math.min(innerWidth, innerHeight) < 700;
@@ -175,17 +176,30 @@ function makeSikra(m, X) {
   //    shortly before (spec: no reward word or glare on a loss) ──
   const LQ = [], RW = [];
   const lossQ = (n, s, lab) => { A.lossT = A.t; LQ.push({ n, s, lab }); };
-  const reward = (fn) => { RW.push(fn); };
+  const reward = (fn) => { RW.push({ fn, t: A.t }); };
+  /** a loss's words on the screen: over the line, and clear of the men (a man's head that stands over the line on the screen — a high eye —
+   *  puts them over his head instead) */
+  function lossAtScr(s0) {
+    const p = lineAt(s0, SKA.LOSS_DY), q = X.scr(p.x, p.y, p.z); if (!q || q.on === false) return p;
+    let y = q.y;
+    for (const w of [worker, helper]) {
+      if (!w || !w.a || !(w.a.vis > 0.05)) continue;
+      const f = X.scr(w.a.x, w.a.fixedY != null ? w.a.fixedY : w.a.y, w.a.z), h = X.scr(w.a.x, (w.a.fixedY != null ? w.a.fixedY : w.a.y) + 2.2, w.a.z); if (!f || !h) continue;
+      const hw = Math.max(26, Math.abs(f.y - h.y) * 0.32) + 70;   // (half the man's width on the screen and half a label's)
+      if (Math.abs(q.x - h.x) < hw && y > h.y - 26 && y < f.y + 14) y = h.y - 30;
+    }
+    return { sx: q.x, sy: Math.max(110, y) };
+  }
   function lossPump(all) {
     if (!LQ.length) return;
-    if (all) { const n = LQ.reduce((m, q) => m + q.n, 0), q0 = LQ[0]; LQ.length = 0; X.loss(n, lineAt(q0.s, SKA.LOSS_DY), q0.lab); return; }
+    if (all) { const n = LQ.reduce((m, q) => m + q.n, 0), q0 = LQ[0]; LQ.length = 0; X.loss(n, lossAtScr(q0.s), q0.lab); return; }
     if (A.t < A.lossNext) return;
     const q = LQ.shift(); A.lossNext = A.t + SKA.LOSS_GAP; A.lossT = A.t;
-    X.loss(q.n, lineAt(q.s, SKA.LOSS_DY), q.lab);
+    X.loss(q.n, lossAtScr(q.s), q.lab);
   }
-  function rewardFlush() {
+  function rewardFlush(now) {
     if (A.t - A.lossT < SKA.CALM || LQ.length) { RW.length = 0; return; }
-    for (const f of RW.splice(0)) { try { f(); } catch (e) { /* */ } }
+    while (RW.length && (now || A.t - RW[0].t >= SKA.RW_WAIT)) { const r = RW.shift(); try { r.fn(); } catch (e) { /* */ } }
   }
   function onEvent(e) {
     ev(e.e + (e.s != null ? '@' + e.s : ''));
@@ -324,7 +338,7 @@ function makeSikra(m, X) {
   /* ───────── the end ───────── */
   function finish() {
     if (A.done) return; A.done = 1; A.phase = 'out'; VO.hum(0);
-    lossPump(true); rewardFlush();
+    lossPump(true); rewardFlush(true);
     marksOut();
     const res = K.lineResult(L, Ms), rec = V3.lineRecord(L, track);
     try { Mo.st.sikra.line = rec; } catch (e) { /* */ }

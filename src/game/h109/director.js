@@ -187,7 +187,7 @@ export function createH109Director(o) {
   let FG = null;
   function figGate() {
     if (FG) return FG;
-    const base = () => ({ p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: LK5.fov0 != null ? LK5.fov0 : camera.fov });
+    const base = () => ({ p: [CAM.p.x, CAM.p.y, CAM.p.z], t: [CAM.t.x, CAM.t.y, CAM.t.z], fov: act && Number.isFinite(act.lensFov) ? act.lensFov : LK5.fov0 != null ? LK5.fov0 : camera.fov });   // ── h132 ── (act.lensFov: an act that keeps its own lens is judged at it — stage 09's strip; a frame after a turn the look's narrower lens was still on the camera, and a puller at the edge was reported cut) ── /h132 ──
     FG = createFigGate({ THREE, camera, scene, actors: () => S0.crewActors || null, workers: (fn) => { if (S0.hero && S0.hero.h128Workers) S0.hero.h128Workers(fn); },
       hero: { xyz: () => (KOH.off ? null : heroAt()), show: (v) => { try { S0.hero.show(!!v); } catch (e) { /* */ } }, keep: () => { const h = S0.hero, m = h && h.mesh, r = h && h.ring; if (m) m.visible = false; if (r) r.visible = false; },
         works: () => !!(act && act.kohenWorks), move: (x, z) => { const h = S0.hero; h.setPos(x, z, h.yaw); } }, ground: (x, z) => ground(x, z),

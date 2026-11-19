@@ -406,6 +406,8 @@ export const STRIP_ACT = {
       holds() { return A.fl != null; },
       // (the director's look, turned all the way round in this act, and settled on a corner when let go)
       lookYaw: Math.PI,
+      // (the lens the act keeps at home: the figures gate judges its pullers at it — round 8)
+      lensFov: SA.FOV,
       lookEnd,
       end() {
         FG.detach(); V.stop(); X.hand(null); lens(fov0);

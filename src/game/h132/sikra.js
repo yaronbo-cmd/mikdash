@@ -35,7 +35,7 @@ export const SKA = Object.freeze({
   POP_DY: -1.9,                                       // the line's popups this far under the line (the juice lifts them 1.6): at the bow, never on the HUD
   LOSS_DY: 1.2,                                       // a loss's words this far over the line (over the block's top edge: above the line, never on the men below it)
   LOSS_GAP: 1.3,                                      // s between two loss words: one at a time, the next waits its turn
-  CALM: 2,                                            // s after a loss with no reward word, gold or glare (a loss is never paid)
+  CALM: 3,                                            // s after a loss with no reward word, gold or glare (a loss is never paid): longer than a loss's words stay (2.6 s)
   RW_WAIT: 0.9,                                       // s a reward waits before it shows: a loss in that time drops it (a lift's seam just after a gold stretch)
   DRIP_HOLD: 1.4, DRIP_LEAD: 2,                       // s the camera holds on a lost drip; amot ahead of a fresh drip the camera's point stays
 });

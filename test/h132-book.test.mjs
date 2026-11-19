@@ -120,7 +120,7 @@ test('book s09: against the built world — temple.js builds the sovev and its r
   assert.deepEqual({ c: [...S.cam.end.c], R: S.cam.end.R, y: S.cam.end.y }, { c: [-38, -3.5], R: 40, y: 50 });
   assert.deepEqual(S.cam.peak.map((p) => [...p]), [[-11, 20, 23.5], [-21.5, 22.5, 13]]); assert.equal(S.cam.peakFov, 45);   // (the ending's peak: low at the south-east)
   // (lane B's measuring shots, one a corner, and the helper's ladders: the act reads them from the book)
-  assert.deepEqual(Object.fromEntries(Object.entries(S.cam.w4corner).map(([k, v]) => [k, v.map((p) => [...p])])), { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-60, 28, -30], [-51.5, 19.4, -19.5]], SW: [[-60, 28, 23], [-51.5, 19.4, 12.5]] });
+  assert.deepEqual(Object.fromEntries(Object.entries(S.cam.w4corner).map(([k, v]) => [k, v.map((p) => [...p])])), { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-62, 32, -33], [-51, 19.5, -19.5]], SW: [[-62, 32, 26], [-51, 19.5, 12.5]] });
   assert.deepEqual(S.cam.w4corner.SE[0], S.cam.w4measure[0]);
   for (const k of ['NE', 'SE', 'SW', 'NW']) {
     const L = S.sikra.ladder[k], c = S.corner[k], c0 = S.cam.w4corner[k][1];

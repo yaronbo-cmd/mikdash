@@ -1308,7 +1308,7 @@ function s09() {
       w4measure: [[-6, 32, 28], [mid[0], lineY, mid[1]]], w4: [[-12, 22.5, 17], [B[2], lineY, 9]],
       // (lane B, build 132) the measuring shot at each corner: the aim 2 amot in from the corner, 1.5 under the line; the west corners
       // seen from the north and the south (the Ulam's steps are west of the block); SE's eye is w4measure's
-      w4corner: { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-60, 28, -30], [-51.5, 19.4, -19.5]], SW: [[-60, 28, 23], [-51.5, 19.4, 12.5]] },   // (round 8: the west corners from over the Ulam's lowest steps, north-west and south-west — from due north and south the helper on his ladder stood between the eye and the corner, and the figure gate took him out)
+      w4corner: { SE: [[-6, 32, 28], [-25, 19.5, 9.5]], NE: [[-14, 27.5, -31.5], [-22.5, 19.4, -18.5]], NW: [[-62, 32, -33], [-51, 19.5, -19.5]], SW: [[-62, 32, 26], [-51, 19.5, 12.5]] },   // (round 8: the west corners from over the Ulam's lowest steps, north-west and south-west — from due north and south the helper on his ladder stood between the eye and the corner, and the figure gate took him out)
       end: { c: mid, R: 40, y: 50 },
       // (build 132, the ending's peak) low at the south-east, 12 out from the corner on each axis, 4 over the court, its lens 45°: the
       // east and south faces fill the frame's width with the whole line on them, the block in the lower half and the court's air above

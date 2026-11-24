@@ -110,6 +110,7 @@ function makeBook() {
   stages.s07 = s07(stages.s04);   // ── h129 ── (build 129: stage 07's section; the gates that lock at night are read from s04's entries) ── /h129 ──
   stages.s08 = s08();   // ── h131 ── (build 131: stage 08's section, and the pit's sheet at Beit Kerem) ── /h131 ──
   stages.s09 = s09();   // ── h132 ── (build 132: stage 09's section, derived from stage 08's) ── /h132 ──
+  stages.s10 = s10(stages.s09);   // ── h133 ── (build 133: stage 10's section, derived from stage 09's block) ── /h133 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1376,5 +1377,100 @@ function s09() {
   return { stage: 9, name: 'הסובב וחוט הסיקרא', bounds: { x0: -62, x1: -4, z0: -50, z1: 22 }, ...S09, entries: E };
 }
 // ── /h132 ──
+
+/* ───────── ── h133 ── stage 10 "גוף המזבח והכבש" (build 133; spec docs/specs/shlav-10-he.md, "המקום בעולם: טבלת הכתובות").
+ * Every exact place is DERIVED from BOOK.s09's block (x −53 … −23, z −18.5 … 11.5, y 17 … 22), never typed again: the upper block one
+ * amah in from every face of it (Zevachim 54a: the frame of 28 after the frame of 30; Middot 3:1), 3 amot high (Bartenura on Middot
+ * 3:1); the kevesh in the middle of the south side (Rashi Zevachim 64a by Wikimikdash: NOT checked), 16 wide, its foot 30 amot south of
+ * the yesod's south edge on the ground and its head two amot "פורח" over the empty strip and the sovev's step, one slope 9 on 32
+ * (Zevachim 63a and Rashi). What the spec marks "המחשה" is typed here as the spec has it (the book is the one place a place is typed).
+ * Read against the built world (build 133 phase 0): the yesod has only its SW spur in the south (BOOK.s08.yesod.S1: x −53 … −52,
+ * z 11.5 … 12.5, top 17) — the spec's table puts the spur at x −54 … −53; the built world decides: the small kevesh to the yesod ends
+ * on S1 (its tip x −53 … −52, the lane's middle x −52.5). Units: amot (x east, z south, y up). Nothing random (rule 56). */
+function s10(S9) {
+  const B = S9.block, y0 = S9.top, H = 3, y1 = y0 + H, F = S9.floor, mid = S9.mid.slice();
+  const r4 = (v) => Math.round(v * 10000) / 10000;
+  const upper = [B[0] + 1, B[1] + 1, B[2] - 1, B[3] - 1];   // (−52, −17.5, −24, 10.5)
+  const fire = [upper[0] + 2, upper[1] + 2, upper[2] - 2, upper[3] - 2];   // (the horns' amah and the priests' walk: 24 × 24)
+  const GAP = 0.01;   // (the gap in the world, every one of the three: "אויר מעט" / "מלא נימא"; under a tenth of a tefach, 1/60 amah — המחשה)
+  const TEF = 1 / 6;
+  // the kevesh: x −46 … −30, foot z 42.5 at the floor, head at the upper block's south face (z 10.5) plus the gap
+  const R = { x0: mid[0] - 8, x1: mid[0] + 8, foot: upper[3] + 32, footY: F, head: upper[3], headY: y1, ground: B[3] + 1, len: 32, rise: H + (y0 - F) };
+  const rampY = (z) => r4(F + (R.rise / R.len) * (R.foot - z));   // (9 over 32, one slope, the head "פורח" too)
+  const slabs = [1, 2, 3, 4, 5, 6].map((i) => { const z1 = R.foot - (i - 1) * 5, z0 = z1 - 5; return { i, z0, z1, y0: rampY(z1), y1: rampY(z0) }; });   // (z0 the north = upper edge: the stop line)
+  const head = { x0: R.x0, x1: R.x1, z0: R.head + GAP, z1: R.ground, wait: [17, 15] };
+  const rabuva = { x: R.x0, z0: 29.5, z1: 30.5, y0: 17.5, y1: 18.5 };
+  // the small kevesh to the sovev: east of the kevesh, 2 wide, from the floor at the kevesh's foot up to the sovev's step (y 22) at the
+  // block's south face (z 11.5) plus the gap, in the strip with no yesod (Rashi Zevachim 62b: "לסובב, במזרח הכבש")
+  const KS = { x0: R.x1, x1: R.x1 + 2, z0: B[3] + GAP, z1: R.foot, y: (z) => r4(F + ((y0 - F) * (R.foot - z)) / (R.foot - B[3])) };
+  // the small kevesh to the yesod: west of the kevesh (Rashi: "ליסוד, במערבו, ומתחיל רחוק מן המזבח"), three lanes, 2 wide (its tip 1):
+  // north along the kevesh's west side, west along z 13.5 … 15.5, north onto the SW spur's south face (BOOK.s08 S1) plus the gap;
+  // its height by the distance s along the middle line, y = 16 + s / L (L the whole middle line: the tip at the spur's top, 17)
+  const S1 = S9.spur.S, spurTop = S9.base;   // (x −53 … −52, z 11.5 … 12.5; its top is the yesod's, 17)
+  const tipX = (S1[0] + S1[2]) / 2;   // (−52.5)
+  const ML = [[R.x0 - 1, R.foot], [R.x0 - 1, 14.5], [tipX, 14.5], [tipX, S1[3] + GAP]];
+  const mlLen = ML.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - ML[i][0], p[1] - ML[i][1]), 0);
+  const KY = {
+    lanes: [{ x0: R.x0 - 2, x1: R.x0, z0: 13.5, z1: R.foot }, { x0: tipX - 0.5, x1: R.x0 - 2, z0: 13.5, z1: 15.5 }, { x0: S1[0], x1: S1[2], z0: S1[3] + GAP, z1: 13.5 }],
+    mid: ML.map((p) => p.slice()), L: r4(mlLen), top: spurTop,
+  };
+  const S10 = {
+    stage: 10, name: 'גוף המזבח והכבש', tef: TEF, gap: GAP, H, floor: F, base: y0, top: y1, mid, block9: [...B],
+    upper, fire, ledge: { y: y0, outer: [...B], inner: [...upper] },
+    frame: { c: mid.slice(), side: upper[2] - upper[0], y: y0 },
+    crew: { N: [mid[0], B[1] - 2], S: [mid[0], B[3] + 2], E: [B[2] + 2, mid[1]], W: [B[0] - 2, mid[1]] },   // (two amot out from each face: the N crew north of the yesod's north strip; W on the Ulam's lowest tread)
+    mat: [[-32, -24], [-38, -24], [-44, -24]],
+    ramp: R, slabs, head, rabuva,
+    ks: { x0: KS.x0, x1: KS.x1, z0: r4(KS.z0), z1: KS.z1 }, ky: KY,
+    stock: [-22, 47], shards: [-20, 51], roll: [mid[0], 12.6], salt: [-34, 45], champion: [-25, 46], start: [-18, 30],
+    // the stations: work 1 at the pit's sheet (lx, lz: BOOK.s08.pit's frame), the walk's exit on the Mount BOOK.s08.stand.pit; works 2–4 on the Mount
+    w1: { a: [-16, 9], b: [14, 9], c: [30, 12], exit: null },
+    w2: { a: [-14, -14], b: [-30, -30], c: [-12, 0] },
+    w3: { a: [mid[0], 45.5], b: [-26, 28], c: [-50, 30] },
+    w4: { a: [mid[0], 20], b: [-26, 40], c: [-51, 18] },
+    keep: { w1: [-18, 11], w2: [-12, -16], w3: [-36, 47], w4: [-27, 41] },
+    // the small kevesh's last stones (work 4 levels 2 and 3): where the crew pulls them back on their rollers, and the lane they run
+    nima: { a: { from: [mid[0], 16], to: [mid[0], R.ground - 1] }, b: { from: [R.x1 + 1, 20], to: [R.x1 + 1, B[3] + 0.5] },
+      c: { from: [R.x0 - 0.5, 14.5], turn: [tipX, 14.5], to: [tipX, S1[3] + 0.5] } },
+    cam: {
+      open: [[-5, 40, 60], [mid[0], 20, 10]],
+      w2: [[mid[0], 60, 0], [mid[0], 22, mid[1]]],
+      w3: [[-5, 26, 34], [mid[0], 20, 26]],
+      end: { c: mid.slice(), R: 50, y: 55 },
+    },
+    bounds: { x0: -62, x1: -4, z0: -40, z1: 55 },
+  };
+  S10.rampY = rampY; S10.ksY = KS.y;
+  S10.kyY = (s) => r4(F + s / mlLen);
+  const E = [];
+  const e3 = (id, kind, p, y, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y, extra }));
+  const mb = (b) => [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+  e3('upper', 'mass', mb(upper), y0, `הגוש העליון, ${upper[2] - upper[0]} על ${upper[3] - upper[1]}, מ-${y0} עד ${y1}`, 'זבחים נד ע"א; מידות ג, א', { box: [...upper] });
+  e3('upper:top', 'top', mb(upper), y1, `ראש המזבח; מקום המערכה ${fire[2] - fire[0]} על ${fire[3] - fire[1]} במרכזו (לאור בלבד)`, 'מידות ג, א', { fire: [...fire] });
+  e3('sovev:ledge', 'ledge', [mid[0], B[3] - 0.5], y0, 'מדרגת הסובב: הרצועה של אמה בין הגוש של שלב 09 לגוש העליון', 'מידות ג, א');
+  e3('frame', 'frame', mid, y0, `המלבן התלוי, ${upper[2] - upper[0]} על ${upper[2] - upper[0]}, ונקודת הנחיתה`, 'זבחים נד ע"א (החבלים המחשה)');
+  const RU = { N: 'הצפוני', S: 'הדרומי', E: 'המזרחי', W: 'המערבי' };
+  for (const k of ['N', 'S', 'E', 'W']) e3('frame:crew:' + k, 'crew', S10.crew[k], k === 'W' ? F + 0.5 : F, `הצוות ${RU[k]} על פיגום קצר`, ILL);
+  S10.mat.forEach((p, i) => e3('w2:mat:' + (i + 1), 'heap', p, F, `ערימת מילוי ${i + 1}: חלוקי אבנים, סיד, זפת וקוניא`, ILL));
+  e3('ramp', 'ramp', [mid[0], (R.foot + R.head) / 2], F, `הכבש: x ${R.x0} עד ${R.x1}, רגלו z ${R.foot}, ראשו z ${R.head} ועוד הרווח, y = ${F} + 9/32 × (${R.foot} − z)`, 'מידות ג, ג; רמב"ם ב, יג (המקום באמצע הצד: לא נבדק)', { foot: R.foot, head: R.head });
+  for (const s of slabs) e3('ramp:slab' + s.i, 'slab', [mid[0], (s.z0 + s.z1) / 2], s.y0, `לוח ${s.i}: z ${s.z1} עד ${s.z0}, y ${s.y0} עד ${s.y1}; קו העצירה בקצה הצפוני`, ILL, { z0: s.z0, z1: s.z1 });
+  e3('ramp:head', 'head', [mid[0], (head.z0 + head.z1) / 2], y1, '"פורח": האבן הפורחת, מעל מדרגת הסובב והרצועה שבלי יסוד; מחכה על גלילים ב-z 17 עד 15', 'רמב"ם ב, יג', { wait: head.wait.slice() });
+  e3('gap', 'gap', [mid[0], R.head], y1, `הרווח בכל שלושת המקומות: ${GAP} אמה בעולם (פחות מעשירית טפח), מוגדל בתקריב`, 'רמב"ם ב, יג; זבחים סב ע"ב (הגודל המחשה)');
+  e3('rabuva', 'window', [rabuva.x, (rabuva.z0 + rabuva.z1) / 2], rabuva.y0, 'הרבובה: חלון אמה על אמה בדופן המערבית', 'מידות ג, ג; רמב"ם ב, יד (המקום המדויק המחשה)');
+  e3('kevesh:sovev', 'kevesh', [(KS.x0 + KS.x1) / 2, (KS.z0 + KS.z1) / 2], F, 'הכבש הקטן לסובב, ממזרח לכבש, עד מדרגת הסובב', 'רש"י זבחים סב ע"ב (רוחב ומסלול המחשה)', { y1: y0 });
+  e3('kevesh:yesod', 'kevesh', [R.x0 - 1, (13.5 + R.foot) / 2], F, 'הכבש הקטן ליסוד, ממערב לכבש: צפונה, מערבה ושוב צפונה אל שלוחת היסוד', 'רש"י זבחים סב ע"ב (רוחב ומסלול המחשה)', { y1: spurTop });
+  e3('stock', 'heap', S10.stock, F, 'ערימת הלוחות ואבני התחזוקה', ILL);
+  e3('stock:shards', 'heap', S10.shards, F, 'ערימת השברים', ILL);
+  e3('roll', 'roll', S10.roll, rampY(S10.roll[1]), 'נקודת שחרור האבן המתגלגלת', ILL);
+  e3('finale:salt', 'basket', S10.salt, F, 'סל המלח וצרור העצים', 'עירובין י, יד (המקום המחשה)');
+  e3('champion', 'seal', S10.champion, F, 'חותם האלוף, בכניסה לשלב', ILL);
+  e3('start', 'stand', S10.start, F, 'הכהן כשהשלב נפתח', ILL);
+  for (const L of ['a', 'b']) { /* (the Mount's stations; work 1's are on the pit's sheet, below) */ }
+  const LV = { a: 'א', b: 'ב', c: 'ג' };
+  for (const w of ['w2', 'w3', 'w4']) for (const L of ['a', 'b', 'c']) e3(`${w}:${L}`, 'stand', S10[w][L], w === 'w4' && L === 'a' ? rampY(S10.w4.a[1]) : F, `עמדה, עבודה ${w[1]}, רמה ${LV[L]}`, ILL);
+  for (const k of ['w2', 'w3', 'w4']) e3('keep:' + k, 'keep', S10.keep[k], F, `חפצי הרמות שהושלמו, עבודה ${k[1]}`, ILL);
+  return { ...S10, entries: E };
+}
+// ── /h133 ──
 
 export const BOOK = makeBook();

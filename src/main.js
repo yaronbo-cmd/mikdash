@@ -857,6 +857,8 @@ function renderFrame(dt) {
   if (sh) camera.position.add(o);
   composer.render(dt);
   if (sh) camera.position.sub(o);
+  // ── h135 ── (build 135, stage 12's mukhni: the wheel stands right over the kiyor — the pit in a second window, drawn after the frame) ── /h135 ──
+  if (globalThis.__H135_PIP) { try { globalThis.__H135_PIP(renderer, scene); } catch (e) { /* */ } }
   // ── build 130 ── (what the player sees, read right after it is drawn: a one-shot hook for the gallery's frame check) ── /build 130 ──
   if (AFTER_FRAME.length) { const fs = AFTER_FRAME.splice(0); for (const f of fs) { try { f(renderer); } catch (e) { /* */ } } }
 }

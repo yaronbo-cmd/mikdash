@@ -7,6 +7,7 @@ import { NEXT_STAGE } from '../h131/model.js';   // ── h131 ── ── /h
 import { NEXT_STAGE as NEXT09 } from '../h132/model.js';   // ── h132 ── ── /h132 ──
 import { NEXT_STAGE as NEXT10 } from '../h133/model.js';   // ── h133 ── ── /h133 ──
 import { NEXT_STAGE as NEXT11 } from '../h134/model.js';   // ── h134 ── ── /h134 ──
+import { NEXT_STAGE as NEXT12 } from '../h135/model.js';   // ── h135 ── ── /h135 ──
 export function pageBuilt(G, ids) {
   if (!G) return [];
   if (!G.scf || typeof G.scf !== 'object' || Array.isArray(G.scf)) G.scf = {};
@@ -22,11 +23,11 @@ export function pageBuilt(G, ids) {
  * built to here: one card names the next stage from the stage table (state.recommend → content.stageById), the world stays to walk,
  * and the old game does not start. The next build adds its stage's id to PACKED.
  *   PACKED · NEXT_NAMED · frontier(G, S) → bool · frontLine(G, S, stageById) → the card's words · noPad(doc) → the class on .gm */
-export const PACKED = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot'];   // ── h134 ── (build 134: stage 11 too) ── /h134 ──   // ── h133 ── (build 133: stage 10 too) ── /h133 ──   // ── h132 ── (build 132: stage 09 too) ── /h132 ──   // ── h129 ── (build 129: stage 07 is a pack's) ── /h129 ──   // ── h131 ── (build 131: stage 08 too) ── /h131 ──
+export const PACKED = ['har', 'wall', 'sorag', 'gates', 'nashim', 'nikanor', 'lishka', 'yesod', 'sovev', 'guf', 'karnot', 'kiyor'];   // ── h135 ── (build 135: stage 12 too) ── /h135 ──   // ── h134 ── (build 134: stage 11 too) ── /h134 ──   // ── h133 ── (build 133: stage 10 too) ── /h133 ──   // ── h132 ── (build 132: stage 09 too) ── /h132 ──   // ── h129 ── (build 129: stage 07 is a pack's) ── /h129 ──   // ── h131 ── (build 131: stage 08 too) ── /h131 ──
 // ── h131 ── (the spec of stage 08: "לשלב הבא (גוף המזבח)" — the card after the last packed stage names the next stage as its spec does,
 // where the old stage table would say otherwise: after the yesod the table's next is the sovev, which the spec folds into the body) ── /h131 ──
 // ── h132 ── (build 132: after the sovev, stage 09's spec names stage 10 "גוף המזבח", not built yet) ── /h132 ──
-export const NEXT_NAMED = Object.freeze({ yesod: NEXT_STAGE, sovev: NEXT09, guf: NEXT10, karnot: NEXT11 });   // ── h134 ── (after stage 11: הכיור) ── /h134 ──   // ── h133 ── (after stage 10: הקרנות) ── /h133 ──
+export const NEXT_NAMED = Object.freeze({ yesod: NEXT_STAGE, sovev: NEXT09, guf: NEXT10, karnot: NEXT11, kiyor: NEXT12 });   // ── h135 ── (after stage 12: האולם) ── /h135 ──   // ── h134 ── (after stage 11: הכיור) ── /h134 ──   // ── h133 ── (after stage 10: הקרנות) ── /h133 ──
 export function frontier(G, S) {
   if (!G || !S) return false;
   try { return PACKED.every((id) => S.isDone(G, id)); } catch (e) { return false; }

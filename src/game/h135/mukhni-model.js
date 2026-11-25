@@ -1,19 +1,18 @@
 /* ── build 135 ── h135/mukhni-model.js — work 2 "המוכני" (spec docs/specs/shlav-12-he.md, עבודה 2; the kinematic drawing and the load
  * test: docs/specs/shlav-12-kinematika-he.md). Pure: no three.js, no DOM. Units: amot, seconds, turns (rev).
  *
- * THE MACHINE (המחשה): the nut is the horizontal wheel, caged in the beam (it turns, it does not rise); the screw does not turn (its
- * hangers run in the posts' grooves); one turn of the wheel = one amah of the screw down (illustration: a real oak screw's pitch is ~6 cm).
- * The kiyor's bottom = 19 − d (d the descent in amot, 0 … 9). The screw's ends: the yoke at 24 − d, the top at 40 − d; the nut at
- * 28.6 … 29.6 always on the thread (15 threaded from the yoke: the thread's top at 39 − d ≥ 30 > 29.6 for d ≤ 9).
- *
+ * THE MACHINE (spec v8): a horizontal axle on two posts over the pit, a drum on it over the kiyor, two copper chains wound on the
+ * drum down to the kiyor's rim, a big vertical wheel at the axle's end. One turn of the wheel = one amah of chain paid out (the game's
+ * illustration; the drawn drum is thicker than the true ratio would need). The kiyor's bottom = 19 − d (d the descent in amot, 0 … 9).
+ * What holds it at rest is the axle's friction in its bearings and the shoe on the wheel (F_S static, F_K kinetic below). *
  * THE LOAD (rev/s² on the wheel, inertia 1): gravity A_G × Leff wants it down; Leff = L − B × s (s the kiyor's submerged fraction of its
  * 4 amot under the water line, 0 … 1; L 1 empty, 1.6 full at level 3; B 1.4 empty, 1.25 full). The thread's friction holds it at rest
  * (static F_S) while nothing touches the wheel; once touched, or moving, the kinetic F_K. The work finger couples to the rim (K × the
  * difference of speeds, at most T); the brake's shoe (0 … 1, the helping hand from level 2; automatic at level 1) takes up to BR.
- * The wheel never turns back (the thread does not let the screw rise under the load — the rise after a descent is the game's own
- * helper, not this model's).
+ * The wheel never turns back (the pawl, the tongue, lets it only pay out — the rise after a descent is the game's own helper, not this
+ * model's).
  *
- * A TURN (a step): 40 clean; 20 if faster than W_SAFE at any moment of it (the screw creaks); 10 if it stuck (the brake too hard while
+ * A TURN (a step): 40 clean; 20 if faster than W_SAFE at any moment of it (the axle creaks); 10 if it stuck (the brake too hard while
  * the finger pushes: it stops, he lets go and tries again) or hit (faster than W_HIT when the bottom crosses the pit's rim (y 16), the
  * water (the sink line, from level 2) or reaches the stop: a dent, −20). Level 3: a sharp change of speed (more than JERK in a quarter
  * second) spills water out of the full kiyor (−20, no three stars).

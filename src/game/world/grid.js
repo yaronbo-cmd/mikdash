@@ -1535,10 +1535,14 @@ function s11(S10, S7) {
  * floor and kevesh), never typed twice. The kiyor at (−63.5, 20), its bottom at y 19 and rim 4 amot above it (the old model's 22.95);
  * the posts at z 16.2 and 23.8 on x −63.5, the beam at y 28.6, the wheel's radius 2.3 (KIYOR_MECHANISM; the old vertical wheel at z 25
  * is Phase B's — the known mismatch, left for the notes round after stage 16).
- * TWO CHANGES FROM THE SPEC'S TABLE, found in step 0's kinematic drawing (docs/specs/shlav-12-kinematika-he.md):
- *   1. the pit is 6 × 8.6 (z 15.7 … 24.3), not 6 × 6: the two posts (z 16.2, 23.8) and the hangers that run in their grooves go down
- *      with the cradle to y 9.5, so the posts stand inside the pit, on its floor, and the yoke (7.6 long, at y 15 at the stop) is in it;
- *   2. the Golah's water: stage 07 plays its well 10 / 20 / 30 amot down (its levels' depths); for the flow by gravity the cistern is
+ * SPEC v8 (20:30 UTC, the owner's picture from Wikimikdash, "מוכני"): the machine is Phase B's (KIYOR_MECHANISM) — two wooden posts at
+ * z 16.2 and 23.8 on the pit's stone rim, a horizontal wooden axle between them at y 28.6 along z, beyond the south post a great
+ * VERTICAL wheel (radius 2.3, at z 25, in the x-y plane) with handles on its rim; over the kiyor a wooden drum on the axle (radius 0.16:
+ * one amah round, one turn = one amah; drawn 0.25 with the chain wound on it), two COPPER chains from it to the kiyor's rim at x −65.4
+ * and −61.6; a double arm (two diagonal beams from each post to the axle, y 26 … 28.6). The screw, the nut, the yoke, the hangers and
+ * the cradle of v7 are out; the pit is back to 6 × 6 (z 17 … 23).
+ * ONE CHANGE FROM THE SPEC'S v7 NUMBERS, found in step 0 (docs/specs/shlav-12-kinematika-he.md), kept in v8:
+ *   · the Golah's water: stage 07 plays its well 10 / 20 / 30 amot down (its levels' depths); for the flow by gravity the cistern is
  *      full on this night — its level 15.9, over the mouths (15.7), over the channel's bed at the basin (15.2) and the sink line (15)
  *      (המחשה; the anchor Yoma 31a: Ein Eitam 23 amot above the court's floor).
  * Units: amot (x east, z south, y up). Nothing random (rule 56). */
@@ -1547,7 +1551,7 @@ function s12(S10, S7) {
   const H = 4, R1 = 2.3, R0 = 2.0;   // (the kiyor: 4 amot high, its rim's radius 2.3, its foot's 2.0 — המחשה)
   const y0 = K.y, travel = 9, stop = y0 - travel;   // (the bottom from 19 down to 10: nine amot, one a turn)
   const kiyor = { x: K.x, z: K.z, y0, h: H, rim: r4(y0 + H), r0: R0, r1: R1, stop, travel, dry: 3 };
-  const pit = { box: [K.x - 3, KM.posts[0] - 0.5, K.x + 3, KM.posts[1] + 0.5], floor: 8, sink: 15, rimH: 0.35, rimT: 0.45 };
+  const pit = { box: [K.x - 3, K.z - 3, K.x + 3, K.z + 3], floor: 8, sink: 15, rimH: 0.35, rimT: 0.45 };
   // the twelve seats on the kiyor's east half: six upper (morning), six lower (evening), each pair on one bearing (deg from east, toward south)
   const BEAR = [-62.5, -37.5, -12.5, 12.5, 37.5, 62.5];
   const seats = [];
@@ -1560,14 +1564,25 @@ function s12(S10, S7) {
   const slab = { w: 1.5, d: 1.3, hands: { r: 0.24, rL1: 0.32, side: 0.27, fwd: 0.3 }, feet: { w: 0.26, l: 0.7, side: 0.27, fwd: -0.05 } };
   const rack = { at: [K.x - 4, K.z], r: 0.95, y: F + 1.1 };   // (west of the kiyor, out of the pit's rim: twelve knobs on a half circle — המחשה)
   const basket = [-55.5, 26];
-  // the mukhni (spec "המכונה", v2): the posts, the beam, the screw (16 long, 15 threaded), the nut-wheel caged in the beam, the yoke, the
-  // two hangers (5.5) to the cradle under the kiyor; the brake's lever east of the wheel, out of its rim; the stops
+  const dadimStand = [-62.5, 28.6];   // (the kohen in work 1: west of the camera's line, so that the stations stay clear — b135 probe)
+  // the mukhni (spec v8): the posts on the rim, the axle along z at y 28.6, the drum over the kiyor, the vertical wheel beyond the south post,
+  // the double arm, the two copper chains to the rim; the brake's lever east of the wheel, its shoe on the rim from outside, its handle
+  // out of the rim; the tongue that clicks at every spoke
+  const AX = KM.axleY, WZ = KM.wheel.z, WR = KM.wheel.r;
   const M = {
-    x: KM.x, z: KM.z, posts: KM.posts.slice(), postW: 0.6, beam: { y0: r4(KM.axleY - 0.7), y1: KM.axleY },
-    nut: { y0: KM.axleY, y1: r4(KM.axleY + 1) }, wheel: { r: KM.wheel.r, y: r4(KM.axleY + 0.5), spokes: 8 },
-    screw: { L: 16, thread: 15, r: 0.32, low0: 24, top0: 40, low1: 15, top1: 31 }, hangers: { L: 5.5 }, cradle: { y0: 18.5, y1: 9.5 },
-    brake: { pivot: [r4(KM.x + KM.wheel.r + 0.35), r4(KM.z + 1.6)], handle: [r4(KM.x + KM.wheel.r + 1.6), r4(KM.z + 2.2)], y: r4(KM.axleY + 0.5) },
-    stand: [r4(KM.x + 4.2), r4(KM.z + 4.5)],
+    x: KM.x, z: KM.z, posts: KM.posts.slice(), postW: 0.6, axle: { y: AX, z0: r4(KM.posts[0] - 0.4), z1: r4(WZ + 0.5), r: 0.22 },
+    drum: { z: KM.z, r: 0.16, rDraw: 0.25, L: 4.4 }, wheel: { z: WZ, r: WR, y: AX, spokes: 8, handles: 8 },
+    // (spec v8 §13a: two grooves on the drum, north at z 18.1 and south at z 21.9; each chain hangs PLUMB from its groove to a lug on the
+    // kiyor's rim right under it, at x −63.5: no slant, no tilting moment)
+    arm: { y0: 26, y1: AX }, chains: { z: [18.1, 21.9], len: r4(AX - (y0 + H) + travel + 1) },
+    // (spec v8 §13b: the wooden platform by the wheel (no iron), its top at y 25 — the handles on the rim at his hands — and the wooden
+    // stairs up to it from the west; המחשה)
+    platform: { box: [-67, 25.3, -62, 27.8], y: 25 }, stairs: { box: [-72, 25.3, -67, 27.8] },
+    // (spec v8 §12d: the handle at the upper right of the wheel's rim as seen from the south, out of the rim, far from the pit's lip and the
+    // screen's bottom; the shoe on the rim from outside, a little over the axle)
+    brake: { pivot: [r4(KM.x + WR + 0.7), r4(AX - 1.4)], shoe: [r4(KM.x + 2.34), r4(AX + 0.6)], handle: [r4(KM.x + 1.7), r4(AX + 2.6)], z: r4(WZ + 0.35) },
+    tongue: [r4(KM.x - 0.6), r4(AX + 0.55), r4(WZ - 0.3)],
+    stand: [-66.2, 26.1],   // (on the platform's west end: the camera from the south-east sees him by the wheel's left rim, not over it)
   };
   // work 3 (spec v7): the covered stone conduit from the Golah's east wall along z 57.5, the two mouths with their wooden sluices, the strip
   // of earth before the paving, the basin of forty se'ah (1 × 1 × 3, hewn in the rock), the spill to the pit, the drain's chute
@@ -1586,15 +1601,15 @@ function s12(S10, S7) {
   const TROUGH = { 1: [-66.5, 30.5, -64.5, 31.5], 2: [-63.5, 30, -61.5, 31], 3: [-61.5, 38, -59.5, 39] };
   const paversAt = [-74.5, 34];   // (the lifted slabs stacked west of the strip, out of the dig and out of the view)
   const S12 = {
-    stage: 12, name: 'הכיור', floor: F, kiyor, pit, seats, rings, stations, slab, rack, basket, mukhni: M, golah, field, basin, spill, drain,
+    stage: 12, name: 'הכיור', floor: F, kiyor, pit, seats, rings, stations, slab, rack, basket, dadimStand, mukhni: M, golah, field, basin, spill, drain,
     stones: STONES, trough: TROUGH, paversAt,
     champion: [-59, 11], start: [-52, 40],
     finale: { start: M.stand.slice(), jericho: [-20, 60, 20] },
     cam: {
       open: [[-38, 40, 52], [K.x + 1, F + 3, K.z + 6]],
       dadim: [[-55.6, 25.8, 33.2], [-61.2, 19.4, 20]],
-      mukhni: [[-63.5, 39.6, 30.4], [-61.2, 26.4, 20.4]],
-      pip: [[-52.5, 19.5, 33], [K.x, 14, K.z]],
+      mukhni: [[-57, 30.5, 33], [-63.5, 26, 21]],   // (spec v8: from the south-east, ~20° up: the wheel at the left, the chains, the kiyor and the pit at the right)
+      pip: [[-57.2, 24.5, 21.5], [K.x - 0.5, 13, K.z]],   // (from over the pit's east lip, down into it: the water, the kiyor's rim; the kohen out of it)
       geshem: [[-42, 46, 42.5], [-64.5, F, 42.5]],
       end: { c: [K.x, F, K.z + 8], R: 44, y: 46 },
     },
@@ -1607,13 +1622,16 @@ function s12(S10, S7) {
   e3('kiyor:rack', 'rack', rack.at, rack.y, 'מתלה הפקקים, שנים עשר כפתורים', ILL);
   for (const s of stations) e3(s.id, 'station', [s.x, s.z], F, `עמדת קידוש באבן ${s.i + 1}`, 'רמב"ם ביאת מקדש ה, טז (העמדות המחשה)');
   e3('kiyor:basket', 'basket', basket, F, 'סל הדדים', ILL);
-  e3('mukhni:postN', 'post', [M.x, M.posts[0]], pit.floor, 'עמוד צפוני, עומד על רצפת הבור', ILL);
-  e3('mukhni:postS', 'post', [M.x, M.posts[1]], pit.floor, 'עמוד דרומי, עומד על רצפת הבור', ILL);
-  e3('mukhni:beam', 'beam', [M.x, M.z], M.beam.y1, 'הקורה', ILL);
-  e3('mukhni:wheel', 'wheel', [M.x, M.z], M.wheel.y, `הגלגל האופקי (האום), רדיוס ${M.wheel.r}`, 'יומא לז ע"א (צורתו המחשה)');
-  e3('mukhni:screw', 'screw', [M.x, M.z], M.screw.low0, 'הבורג: אורך 16, תבריג 15; העול מ-y 24 עד y 15', ILL);
-  e3('mukhni:brake', 'brake', M.brake.handle, M.brake.y, 'ידית הבלם, מחוץ להיקף הגלגל', ILL);
-  e3('mukhni:stand', 'stand', M.stand, F, 'עמדת הכהן ליד הגלגל', ILL);
+  e3('mukhni:postN', 'post', [M.x, M.posts[0]], F, 'עמוד צפוני, על שפת האבן של הבור', 'KIYOR_MECHANISM (המחשה)');
+  e3('mukhni:postS', 'post', [M.x, M.posts[1]], F, 'עמוד דרומי, על שפת האבן של הבור', 'KIYOR_MECHANISM (המחשה)');
+  e3('mukhni:axle', 'axle', [M.x, M.z], M.axle.y, `הציר האופקי לאורך z, y ${M.axle.y}`, 'KIYOR_MECHANISM (המחשה)');
+  e3('mukhni:drum', 'drum', [M.x, M.drum.z], M.axle.y, `התוף מעל הכיור, רדיוס ${M.drum.r} (היקף אמה)`, ILL);
+  e3('mukhni:wheel', 'wheel', [M.x, M.wheel.z], M.wheel.y, `הגלגל האנכי, רדיוס ${M.wheel.r}`, 'יומא לז ע"א "גילגלא"; ויקימקדש, האיור (צורתו המחשה)');
+  e3('mukhni:chainN', 'chain', [M.x, M.chains.z[0]], K.y + H, 'שרשרת נחושת צפונית, אנכית מהחריץ בתוף לזיז בשפת הכיור', 'ויקימקדש, האיור (המחשה)');
+  e3('mukhni:chainS', 'chain', [M.x, M.chains.z[1]], K.y + H, 'שרשרת נחושת דרומית, אנכית מהחריץ בתוף לזיז בשפת הכיור', 'ויקימקדש, האיור (המחשה)');
+  e3('mukhni:platform', 'platform', [(M.platform.box[0] + M.platform.box[2]) / 2, (M.platform.box[1] + M.platform.box[3]) / 2], M.platform.y, `במת עץ ליד הגלגל, משטחה y ${M.platform.y}; מדרגות עץ ממערב`, ILL, { box: [...M.platform.box] });
+  e3('mukhni:brake', 'brake', [M.brake.handle[0], M.brake.z], M.brake.handle[1], 'ידית הבלם, מחוץ להיקף הגלגל', ILL);
+  e3('mukhni:stand', 'stand', M.stand, M.platform.y, 'עמדת הכהן על הבמה ליד הגלגל', ILL);
   e3('golah:bor', 'well', golah.well, golah.level, `בור הגולה: מפלס המים בלילה הזה y ${golah.level}`, 'מדות ה, ד; רש"י זבחים כ ע"א (המפלס המחשה)');
   e3('golah:conduit', 'conduit', [(golah.conduit.x0 + golah.conduit.x1) / 2, golah.conduit.z], F, `תעלת האבן המכוסה, z ${golah.conduit.z}, x ${golah.conduit.x0} עד ${golah.conduit.x1}`, ILL);
   e3('golah:mouth1', 'mouth', golah.mouth1, golah.mouthY, 'המוצא הראשון, עם סכר עץ', ILL);

@@ -1,5 +1,5 @@
 // build 135 — stage 12 "הכיור" (spec docs/specs/shlav-12-he.md v7; kinematics docs/specs/shlav-12-kinematika-he.md): the book's places,
-// the screw's kinematics and load test, the channel's gravity and flow, the spigots' arcs, the stage's flow.
+// the machine's kinematics (v8: axle, drum, chains, vertical wheel) and load test, the channel's gravity and flow, the spigots' arcs, the stage's flow.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BOOK } from '../src/game/world/grid.js';
@@ -11,24 +11,32 @@ import { createH135, PLAN, STAGE_FLOW, KINDS, fromOld, lossPts } from '../src/ga
 const S12 = BOOK.s12;
 const inBox = ([x, z], b) => x >= b[0] && x <= b[2] && z >= b[1] && z <= b[3];
 
-test('book: the kiyor, its pit, 12 seats in two rows, 6 stations, the machine inside the pit', () => {
+test('book: the kiyor, its pit, 12 seats in two rows, 6 stations, the machine on the pit\'s rim', () => {
   assert.equal(S12.seats.length, 12);
   assert.equal(S12.seats.filter((s) => s.row === 'up').length, 6);
   assert.equal(S12.stations.length, 6);
   const P = S12.pit.box, M = S12.mukhni;
-  for (const z of M.posts) assert.ok(z > P[1] && z < P[3], 'post inside the pit ' + z);
+  for (const z of M.posts) assert.ok(z < P[1] || z > P[3], 'post on the rim, outside the pit ' + z);
+  assert.ok(M.wheel.z > P[3] && M.wheel.z < M.axle.z1, 'the wheel south of the pit, on the axle');
+  assert.ok(M.axle.y - M.wheel.r > 16, 'the wheel clears the floor');
+  // (spec v8 §13b: the platform and its stairs cut nothing: the pit with its rim, the basin, the spill, the strip of earth)
+  const ov = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3], t = S12.pit.rimT, rim = [P[0] - t, P[1] - t, P[2] + t, P[3] + t];
+  const sp = S12.spill, spB = [sp.from[0] - 0.3, Math.min(sp.from[1], sp.to[1]), sp.from[0] + 0.3, Math.max(sp.from[1], sp.to[1])];
+  for (const b of [M.platform.box, M.stairs.box]) { assert.ok(!ov(b, rim) && !ov(b, S12.basin.box) && !ov(b, spB), 'platform clear ' + b); assert.ok(b[3] <= S12.field.z0, 'before the strip'); }
+  assert.ok(M.wheel.y - M.wheel.r - M.platform.y > 0.8 && M.wheel.y - M.wheel.r - M.platform.y < 2, 'the rim\'s lower handles at his hands');
+  assert.ok(M.stand[0] > M.platform.box[0] && M.stand[0] < M.platform.box[2] && M.stand[1] > M.platform.box[1] && M.stand[1] < M.platform.box[3], 'he stands on the platform');
   assert.ok(inBox([M.x, M.z], P));
   assert.ok(S12.pit.floor <= S12.kiyor.stop - 2, 'the pit is deep enough for the stop');
   // the stations stand outside the pit
   for (const st of S12.stations) assert.ok(!inBox([st.x, st.z], P), 'station outside the pit');
 });
 
-test('kinematics: the nut stays on the thread over the whole descent; one turn = one amah', () => {
-  const M = S12.mukhni;
+test('kinematics: the chains are long enough over the whole descent; one turn = one amah', () => {
+  const M = S12.mukhni, KI = S12.kiyor;
   for (let d = 0; d <= 9; d += 0.25) {
-    const low = M.screw.low0 - d, threadTop = low + M.screw.thread;
-    assert.ok(threadTop >= M.nut.y1, `thread top ${threadTop} under the nut at d=${d}`);
-    assert.ok(low <= M.nut.y0, 'the yoke under the nut');
+    const lugY = K.MK.Y0 - d + KI.h + 0.18;
+    for (const cz of M.chains.z) { const need = M.axle.y - M.drum.rDraw - lugY; assert.ok(need <= M.chains.len + 1e-6, `chain short ${need} at d=${d}`); assert.ok(Math.abs(cz - M.drum.z) < M.drum.L / 2 && Math.abs(cz - S12.kiyor.z) < S12.kiyor.r1, 'the groove on the drum, the lug on the rim, plumb'); }
+    assert.ok(lugY < M.axle.y - M.drum.r, 'the kiyor under the drum');
   }
   const S = K.fresh(2); let t = 0;
   while (!S.done && t < 60) { K.step(S, 1 / 60, { hold: true, fw: 0.4, brake: Math.max(0, Math.min(1, (S.load - K.MK.F_K) / K.MK.BR + (S.w - 0.4) * 3)) }); t += 1 / 60; }

@@ -234,7 +234,7 @@ function floorSet(X) {
   S0.floorHook(floorAt);
 }
 /** the kevesh's sides and its open head are walls: off it only at its foot, or (work 4 done) onto the altar's top; the top's edge too */
-function wallsAt(x, z, x0, z0) {
+export function wallsAt(x, z, x0, z0) {
   const M = SH10.M; if (!M || !builtOf(M, 'kevesh')) return false;
   const was = onRamp(x0, z0, M), now = onRamp(x, z, M), top = builtOf(M, 'nima') && builtOf(M, 'malben');
   const onTop = (a, b) => top && inR(U, a, b);

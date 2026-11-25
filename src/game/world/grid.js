@@ -111,6 +111,7 @@ function makeBook() {
   stages.s08 = s08();   // ── h131 ── (build 131: stage 08's section, and the pit's sheet at Beit Kerem) ── /h131 ──
   stages.s09 = s09();   // ── h132 ── (build 132: stage 09's section, derived from stage 08's) ── /h132 ──
   stages.s10 = s10(stages.s09);   // ── h133 ── (build 133: stage 10's section, derived from stage 09's block) ── /h133 ──
+  stages.s11 = s11(stages.s10, stages.s07);   // ── h134 ── (build 134: stage 11's section, derived from stage 10's upper block) ── /h134 ──
   const pit = (k, r) => { const R = rectOf(k, r); return { name: nameOf(k, r), x: R.cx, z: R.cz, w: 12, d: 10, depth: 4.5 }; };
   return deepFreeze({
     ...stages,
@@ -1472,5 +1473,60 @@ function s10(S9) {
   return { ...S10, entries: E };
 }
 // ── /h133 ──
+
+/* ───────── ── h134 ── stage 11 "הקרנות" (build 134; spec docs/specs/shlav-11-he.md, "המקום בעולם: טבלת הכתובות (BOOK.s11)").
+ * Every place on the altar is DERIVED from BOOK.s10's upper block (x −52 … −24, z −17.5 … 10.5, its top y 25), never typed again:
+ * each horn the outer amah's corner square (Middot 3:1 "מקום הקרנות אמה"), 5 tefachim high (Rambam Beit HaBechira 2:8); its body
+ * (the core, Rambam 2:16) half an amah square in the middle, one tefach over the horn; the kohen's stand the diagonal square on the
+ * priests' walk; the basket beside it. The two silver cups east of the SW horn on the outer amah (Sukkah 4:9; the exact spot המחשה).
+ * The goldsmith's bench in the south of the women's court: NO source for where the Temple's smith worked (Tamid 3:4 לשכת הכלים is a
+ * store), so the whole workshop is המחשה. Units: amot (x east, z south, y up). Nothing random (rule 56). */
+function s11(S10, S7) {
+  const U = S10.upper, Y = S10.top, F = S10.floor, T = 1 / 6, HH = 5 * T, r4 = (v) => Math.round(v * 10000) / 10000;
+  const CORNERS = ['SE', 'NE', 'NW', 'SW'];   // (the order of Zevachim 5:3: the circuit's)
+  const xs = { E: [U[2] - 1, U[2]], W: [U[0], U[0] + 1] }, zs = { S: [U[3] - 1, U[3]], N: [U[1], U[1] + 1] };
+  const horns = {};
+  for (const c of CORNERS) {
+    const ew = c.includes('E') ? 'E' : 'W', ns = c.includes('S') ? 'S' : 'N', [x0, x1] = xs[ew], [z0, z1] = zs[ns];
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, sx = ew === 'E' ? -1 : 1, sz = ns === 'S' ? -1 : 1;   // (inward: toward the altar's middle)
+    horns[c] = { id: 'horn:' + c, c, box: [x0, z0, x1, z1], y0: Y, y1: r4(Y + HH), core: [cx, cz], coreY1: r4(Y + 1 * T + HH),
+      coreHalf: 0.25, stand: [cx + sx, cz + sz], basket: [cx + sx, cz + 2 * sz], in: [sx, sz], noYesod: c === 'SE' };
+  }
+  const SW = horns.SW;
+  const cups = { water: [r4(SW.box[2] + 0.25), SW.core[1]], wine: [r4(SW.box[2] + 0.75), SW.core[1]], y: Y, r: 0.125 };
+  const NY = (S7 && S7.floors && S7.floors.nashim) || 6;
+  const tz = { bench: [95, 20], stand: [95, 22], kohen: [93.5, 22.5], basin: [95, 22], shelf: [98, 20], spare: [98, 18], y: NY,
+    benchBox: [93.5, 19.25, 96.5, 20.75], basinBox: [94.5, 21.75, 95.5, 22.25], basinDrop: 0.5 };
+  const S11 = {
+    stage: 11, name: 'הקרנות', tef: T, hornH: r4(HH), floor: F, top: Y, upper: [...U], mid: S10.mid.slice(), corners: CORNERS, horns, cups, tz,
+    drain: { at: [cups.water[0], cups.water[1]], hidden: true },
+    finale: { start: [S10.ramp.x0 + 8, S10.ramp.foot] }, champion: [-28, 49], start: S10.start.slice(),
+    cam: { open: [[-12, 46, 40], [S10.mid[0], 25, S10.mid[1]]], end: { c: S10.mid.slice(), R: 46, y: 50 }, tz: [[95, NY + 2.2, 24.6], [95, NY + 1.05, 22]] },
+  };
+  const E = [];
+  const e3 = (id, kind, p, y, label, src, extra) => E.push(ent(id, kind, p[0], p[1], label, src, { y, extra }));
+  const RU = { SE: 'הדרומית מזרחית', NE: 'המזרחית צפונית', NW: 'הצפונית מערבית', SW: 'המערבית דרומית' };
+  for (const c of CORNERS) {
+    const h = horns[c];
+    e3(h.id, 'horn', [(h.box[0] + h.box[2]) / 2, (h.box[1] + h.box[3]) / 2], Y, `הקרן ${RU[c]}: x ${h.box[0]} עד ${h.box[2]}, z ${h.box[1]} עד ${h.box[3]}, y ${Y} עד ${h.y1}`, 'מידות ג, א; רמב"ם בית הבחירה ב, ח', { box: [...h.box] });
+    e3(h.id + ':core', 'core', h.core, Y, `הגוף בתוך הקרן ${RU[c]}, חצי אמה על חצי אמה, עד y ${h.coreY1}`, 'רמב"ם בית הבחירה ב, טז (המידה המחשה)');
+    e3(h.id + ':stand', 'stand', h.stand, Y, `עמדת הכהן ליד הקרן ${RU[c]}, על הילוך הרגליים`, ILL);
+    e3(h.id + ':basket', 'basket', h.basket, Y, `סל החלוקים ליד הקרן ${RU[c]}`, ILL);
+  }
+  e3('cups:water', 'cup', cups.water, Y, 'הספל המערבי, של מים, ממזרח לקרן המערבית דרומית', 'משנה סוכה ד, ט (המקום המדויק המחשה)');
+  e3('cups:wine', 'cup', cups.wine, Y, 'הספל המזרחי, של יין, צמוד לספל המים ממזרח', 'משנה סוכה ד, ט (המקום המדויק המחשה)');
+  e3('cups:drain', 'drain', cups.water, Y, 'ערוץ נסתר אל השיתין, מתחת לספלים (לא נקבי היסוד של שלב 08)', ILL);
+  e3('tzoref', 'bench', tz.bench, NY, 'שולחן הצורף בדרום עזרת הנשים (אין מקור למקום)', ILL, { box: [...tz.benchBox] });
+  e3('tzoref:stand', 'stand', tz.stand, NY, 'מעמד הבדיקה; הכהן עומד ליד הצורף', ILL);
+  e3('tzoref:kohen', 'stand', tz.kohen, NY, 'הכהן בבית המלאכה של הצורף', ILL);
+  e3('tzoref:basin', 'basin', tz.basin, NY, 'אגן הבדיקה תחת המעמד, אמה על חצי אמה', ILL, { box: [...tz.basinBox] });
+  e3('tzoref:shelf', 'shelf', tz.shelf, NY, 'מדף הספלים הפסולים', ILL);
+  e3('tzoref:spare', 'shelf', tz.spare, NY, 'מדף הספלים הרזרביים', ILL);
+  e3('salt', 'worker', horns.SE.stand, Y, 'העובד עם בול המלח: בעמדת הקרן הפגומה', 'סוכה מח ע"ב (המקום המחשה)');
+  e3('finale:start', 'stand', S11.finale.start, F, 'הכהן בתחילת ההקפה: רגל הכבש', 'משנה זבחים ה, ג');
+  e3('champion', 'seal', S11.champion, F, 'חותם האלוף של שלב 11, ממזרח לרגל הכבש', ILL);
+  return { ...S11, entries: E };
+}
+// ── /h134 ──
 
 export const BOOK = makeBook();

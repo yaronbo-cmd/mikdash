@@ -118,7 +118,7 @@ function make(m, X) {
         const g = S.segs[e.n], k = g && g.cells.length ? g.cells[g.cells.length - 1] : null, c = k != null ? H.centre(S, k % NX, (k / NX) | 0) : [(Fd.x0 + Fd.x1) / 2, (Fd.z0 + Fd.z1) / 2];
         if (A.firstSeg) { A.firstSeg = false; if (e.grade !== 'gold') { g.grade = 'gold'; try { X.line('ניסוי חינם: המקטע הראשון לא נספר', 1600); } catch (er) { /* */ } continue; } }
         award(X, V3(X, c[0], F + 0.3, c[1]), e.grade, lv, 'עפר'); ev('seg:' + e.grade);
-      } else if (e.k === 'meet') { V.meet(); ev('meet'); try { X.sparks(e.x, F + 0.4, e.z, 30); X.dust(e.x, F + 0.3, e.z, 4, 2); X.line('הזרמים נפגשו', 1800); } catch (er) { /* */ } }   // (review: the meeting of the streams is the work's big moment)
+      } else if (e.k === 'meet') { V.meet(); ev('meet'); try { X.sparks(e.x, F + 0.4, e.z, 30); X.dust(e.x, F + 0.3, e.z, 4, 2); X.line('הזרמים נפגשו!', 1800); } catch (er) { /* */ } }   // (review: the meeting of the streams is the work's big moment)
       else if (e.k === 'reach') { V.splash(1.2); ev('reach:' + e.n); }
       else if (e.k === 'line') { ev('line'); if (e.mud >= H.HK.CLEAR) { try { X.line('המים עכורים בקו: נשפכים דרך המגלש עד שיהיו צלולים', 2400); } catch (er) { /* */ } } }
       else if (e.k === 'clear') { ev('clear'); }

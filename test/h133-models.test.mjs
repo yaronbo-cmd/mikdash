@@ -33,7 +33,7 @@ test('the world from the save: each row by its own work; flaws kept where they h
   assert.equal(M.flaws('kevesh.lip')[0].slab, 2);
   w = stage('nima', 1, M.st); assert.equal(w.ramp, true); assert.equal(w.upper, false);
   const L = createH133(null); const got = L.autoTo((m) => m.id === 'nima3');
-  assert.equal(got && got.id, 'nima3'); assert.ok(['nail1', 'malben1', 'kevesh1', 'nima1'].every((id) => L.isDone(id)));
+  assert.equal(got && got.id, 'nima3'); assert.ok(['nail1', 'malben1', 'kevesh1'].every((id) => L.isDone(id))); assert.equal(L.finished(), false, 'the page does not end the stage before nima3 opens (review round, build 133)');
 });
 
 /* ── work 1: a bot that runs every edge at a good speed and stops at the flaw ── */

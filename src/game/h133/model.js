@@ -168,10 +168,13 @@ export function createH133(save) {
       const off = PLAN.find((m) => !d(m.id) && want(m)) || PLAN.find(want) || null;
       if (!off) return null;
       const need = [...needsDeep(off.k).map((k) => k + 1), ...(off.lv > 1 ? [off.k + 1] : [])];
+      // (a later level's link of the round's last work — nima2, nima3: its own level 1 is not seeded when that would close round 1, or
+      //  the stage would end on the page before the work opened; stage 09's links do the same)
+      if (off.lv > 1 && !d(off.k + 1) && STAGE_FLOW.every((id) => d(id) || id === off.k + 1 || need.includes(id))) need.splice(need.indexOf(off.k + 1), 1);
       for (const id of need) if (!d(id)) { st.cur = id; M.done({ stars: 2, pts: 20 }); }
       M.shown = null;
       if (d(off.id) && !M.finished()) { /* (a level played again from its link before round 1 is done) */ st.cur = off.id; st.stash = null; return M.mission(); }
-      return M.pick(off.id);
+      return M.pick(off.id) || ((st.cur = off.id), M.mission());   // (a link opens its own work even where the round's order would not offer it yet)
     },
     progress() { return Math.min(1, M.nDone() / STAGE_FLOW.length); },
     streak(n) { if (n > st.best) st.best = n; return st.best; },

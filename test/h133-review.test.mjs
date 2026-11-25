@@ -45,3 +45,10 @@ test('flaws: a replay clears none; only a smooth kevesh seat mends that slab\'s 
   makePack10({}).workSeed(M, 'kevesh1'); assert.equal(M.flaws().length, n);
   assert.equal(M.mendLip(2), 1); assert.equal(M.flaws('kevesh.lip').length, 0); assert.equal(M.flaws().length, n - 1);
 });
+test('links: every level of every work opens its work and leaves the stage open (nima2, nima3 too)', () => {
+  for (const k of ['nail', 'malben', 'kevesh', 'nima']) for (const lv of [1, 2, 3]) {
+    const M = createH133(null), id = k + lv, got = M.autoTo((m) => m.id === id);
+    assert.equal(got && got.id, id); assert.equal(M.mission().id, id);
+    if (lv > 1) assert.equal(M.finished(), false, id);
+  }
+});

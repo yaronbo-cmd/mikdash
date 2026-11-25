@@ -1,0 +1,148 @@
+===== FILE: src/game/h133/kevesh-model.js =====
+/* ── build 133 ── h133/kevesh-model.js — work 3 "הכבש" and the motion of work 4 "מלא נימא" (spec docs/specs/shlav-10-he.md, עבודות 3
+ * ו-4). Pure: no three.js, no DOM.
+ *
+ * THE MOTION (one rule for both works, spec: "אותם שלושה מצבים של עבודה 3"): a heavy stone on wooden rollers along its way.
+ *   · pull — while the left thumb drags along the way the crew pulls and it speeds up; a drag again while it still moves adds to it;
+ *   · let go — it goes on by its way's own pull, slows (the slope), stops, and 0.6 s later starts to slide back;
+ *   · brake — a hold (no drag): a wooden brake bar under it, from nothing to full in half a second, either way it moves.
+ *   · THE SEATING (Gemini's one rule): the moment the thumb leaves the brake the crew pulls the rollers and it comes down where it is,
+ *     at the speed it has then: still (0.3 s or more) — no lip; up to 0.15 amah/s — a tiny lip the crew rubs off; more — a lip stays.
+ * Units: amot along the way (s), amot/s. The act gives the thumb's state each frame (pull / brake / none) and its side drag.
+ *
+ * WORK 3: six slabs of 16 × 5, each from the foot up the kevesh's body to its stop line (its upper edge on the line); three kinds of
+ * challenge (ChatGPT): momentum (1: heavy, goes far), stability (2: sways, a small side drag straightens), the rabuva (3: its window on
+ * the west must stand before the opening), a side weight (4: it turns as it slows), precision (5: light and fast, a short still), all
+ * three (6). Level 1: slabs 1–3 (the crew then seats 4–6), a long, gentle brake, the rabuva three tefachim; level 2: all six, the rabuva
+ * one tefach, side drags on 2, 4, 6; level 3: other weights, short stills, the rabuva slab comes turned, the lime bed hardening (12 s).
+ *
+ *   KM · SLAB · motion(o) · mstep(Mo, input, dt) · seatOf(Mo) · fresh(lv) · slabNow(S) · step(S, input, dt) · result(S) · save · load
+ */
+export const KM = Object.freeze({
+  START: 1,              // (each slab's upper edge starts one amah south of the foot: it is on the ground at the foot, on its rollers)
+  PULL: 6.5, VMAX: 7.5, BACK: 0.6, STILL: 0.3, LIP: 0.15, TEF: 1 / 6,
+  BRAKE: Object.freeze({ 1: 4.2, 2: 7, 3: 7 }), RAMP: 0.5,
+  RABUVA: Object.freeze({ 1: 3 / 6, 2: 1 / 6, 3: 1 / 6 }),
+  LIME: 12,              // (s: level 3's lime bed hardens from the slab's start)
+  PTS: Object.freeze({ exact: 40, near: 20, far: 10, rabuva: 20, lime: 20, loss: 20 }),
+});
+/** each slab: how heavy (the pull's share), its slope's braking, its still before it slides back, its sway and its turn as it slows */
+const sl = (i, o) => Object.freeze({ i, mass: 1, g: 2.2, still: 0.6, sway: 0, yaw: 0, yaw0: 0, ...o });
+export const SLAB = Object.freeze({
+  1: Object.freeze([sl(1, { mass: 1.6, g: 1.3 }), sl(2, { sway: 0.55 }), sl(3, { mass: 1.25, g: 1.7, rabuva: true })]),
+  2: Object.freeze([sl(1, { mass: 1.6, g: 1.3 }), sl(2, { sway: 0.7 }), sl(3, { mass: 1.25, g: 1.7, rabuva: true }), sl(4, { yaw: 2.2, sway: 0.3 }), sl(5, { mass: 0.7, g: 3.2, still: 0.35 }), sl(6, { mass: 1.4, g: 1.9, yaw: 1.6, sway: 0.5, still: 0.35 })]),
+  3: Object.freeze([sl(1, { mass: 1.8, g: 1.15 }), sl(2, { sway: 0.9, yaw: 1 }), sl(3, { mass: 1.3, g: 1.6, rabuva: true, yaw0: 4 }), sl(4, { yaw: 3, sway: 0.4, mass: 1.2 }), sl(5, { mass: 0.6, g: 3.6, still: 0.25 }), sl(6, { mass: 1.5, g: 2, yaw: 2.4, sway: 0.7, still: 0.25 })]),
+});
+
+/* ───────── the motion (work 3's slabs, work 4's stones) ───────── */
+/** a stone on its rollers: o { len (the way's length, s from 0), mass, g, still, brake, sway, yaw, yaw0, vmax, pull } */
+export function motion(o = {}) {
+  return { s: 0, v: 0, len: o.len || 10, mass: o.mass || 1, g: o.g != null ? o.g : 2.2, stillT: o.still != null ? o.still : 0.6, brakeMax: o.brake || 7, pullA: o.pull || KM.PULL, vmax: o.vmax || KM.VMAX,
+    swayK: o.sway || 0, yawK: o.yaw || 0, x: o.yaw0 ? o.yaw0 * 0.15 : 0, vx: 0, brake: 0, held: false, still: 0, rest: 0, t: 0, pulled: false, back: false, seated: null, slow: o.slow || null };
+}
+/** one step: input { pull: bool (the thumb drags along the way), brake: bool (a hold), side: amah/s of side correction } → events */
+export function mstep(Mo, input = {}, dt = 1 / 60) {
+  const ev = []; if (Mo.seated) return ev;
+  Mo.t += dt;
+  const was = Mo.held;
+  Mo.held = !!input.brake;
+  if (input.pull) { Mo.v = Math.min(Mo.vmax, Mo.v + (Mo.pullA / Mo.mass) * dt); Mo.pulled = true; Mo.rest = 0; Mo.back = false; }
+  // the brake's bar: from nothing to full in half a second while held
+  Mo.brake = Mo.held ? Math.min(1, Mo.brake + dt / KM.RAMP) : 0;
+  // the slope (and the rollers' drag): against the motion while it moves up; once still a while it slides back
+  const g = Mo.g;
+  if (!input.pull) {
+    if (Mo.v > 1e-4) Mo.v = Math.max(0, Mo.v - (g + Mo.brake * Mo.brakeMax) * dt);
+    else if (Mo.v < -1e-4) Mo.v = Math.min(0, Mo.v + (Mo.brake * Mo.brakeMax - g * 0.55) * dt);   // (sliding back: the slope pulls it down, the brake holds)
+    else {
+      Mo.v = 0;
+      if (Mo.brake <= 0.05 && Mo.pulled) { Mo.rest += dt; if (Mo.rest >= Mo.stillT) { Mo.v = -0.02; Mo.back = true; ev.push({ k: 'slip' }); } }
+    }
+    if (Mo.held && Mo.v < 0 && Mo.brake >= 0.99) Mo.v = Math.min(0, Mo.v + Mo.brakeMax * dt);
+  }
+  // the near end (work 4's slow motion): the crew's last pull is slow
+  if (Mo.slow && Mo.v > Mo.slow.v && Mo.s > Mo.len - Mo.slow.d) Mo.v = Math.max(Mo.slow.v, Mo.v - Mo.slow.b * dt);
+  Mo.s += Mo.v * dt;
+  if (Math.abs(Mo.v) < 1e-3) Mo.still += dt; else Mo.still = 0;
+  // the slab out of line (its tail swung aside, amot): the sway while it moves (slabs 2, 6), the side weight as it slows (4, 6); a
+  // small side drag straightens it (input.side, + toward the line)
+  const moving = Math.abs(Mo.v) > 0.05;
+  Mo.vx += ((Mo.swayK * Math.sin(Mo.t * 2.1) * (moving ? 1 : 0.15)) + (Mo.yawK && !input.pull && moving ? Mo.yawK * 0.35 : 0) - (input.side || 0) * 2.6) * dt;
+  Mo.vx *= Math.exp(-dt * 1.2); Mo.x += Mo.vx * dt; Mo.x = Math.max(-1.2, Math.min(1.2, Mo.x));
+  if (was && !Mo.held) ev.push({ k: 'seat' });
+  return ev;
+}
+/** the seating's lip, by the speed at the moment the thumb left the brake: 'none' | 'tiny' | 'lip' */
+export function seatOf(Mo) { const v = Math.abs(Mo.v); return v < 1e-3 && Mo.still >= KM.STILL ? 'none' : v <= KM.LIP ? 'tiny' : 'lip'; }
+
+/* ───────── work 3 ───────── */
+export function fresh(lv) {
+  const L = Math.max(1, Math.min(3, lv | 0 || 1)), list = SLAB[L];
+  const S = { lv: L, k: 0, list: list.map((p) => ({ i: p.i, rabuva: !!p.rabuva, res: null })), mo: null, t: 0, tSlab: 0, pts: 0, max: 0, dmg: 0, n: 0, free: true, lips: 0, cracked: 0, streak: 0 };
+  for (const p of list) S.max += KM.PTS.exact + (p.rabuva ? KM.PTS.rabuva : 0) + (L === 3 ? KM.PTS.lime : 0);
+  start(S); return S;
+}
+/** the slab's way: from its start (upper edge one amah south of the foot) to its stop line, in amot along z */
+export function wayOf(i) { return 42.5 + KM.START - (42.5 - i * 5); }   // (slab 1: 6 … slab 6: 31)
+function start(S) {
+  const P = SLAB[S.lv][S.k]; if (!P) { S.mo = null; return; }
+  S.mo = motion({ len: wayOf(P.i), mass: P.mass, g: P.g, still: P.still, brake: KM.BRAKE[S.lv], sway: S.lv >= 2 || P.i === 2 ? P.sway : 0, yaw: S.lv >= 2 ? P.yaw : 0, yaw0: S.lv >= 3 ? P.yaw0 : 0 });
+  S.tSlab = 0;
+}
+export const slabNow = (S) => (S.k < S.list.length ? S.list[S.k] : null);
+/** the stop line's error (amot; + past it, − short of it) */
+export const errOf = (S) => (S.mo ? S.mo.s - S.mo.len : 0);
+/** one step → events (the seat's judgement among them: { k: 'seated', grade, pts, lip, rabuva, lime, err }) */
+export function step(S, input, dt) {
+  const ev = []; const P = slabNow(S); if (!P || !S.mo) return ev;
+  S.t += dt; S.tSlab += dt;
+  const e0 = mstep(S.mo, input, dt);
+  for (const e of e0) {
+    if (e.k === 'slip') ev.push({ k: 'slip' });
+    if (e.k === 'seat') ev.push(...seat(S));
+  }
+  // slid back to the foot: cracked (the free trial's first slab: not cracked); the crew brings another
+  if (S.mo && !S.mo.seated && S.mo.s < -0.3) {
+    if (S.free && S.k === 0) { start(S); ev.push({ k: 'again', free: true }); }   // (the free trial: the first slab is not cracked)
+    else { S.cracked++; S.dmg++; ev.push({ k: 'cracked', loss: KM.PTS.loss, slab: P.i }); start(S); ev.push({ k: 'again' }); }
+  }
+  return ev;
+}
+function seat(S) {
+  const P = slabNow(S), Mo = S.mo, ev = [];
+  if (!P || !Mo || Mo.seated) return ev;
+  // (a release with the slab still near the foot, never pulled: no seating, the crew holds it)
+  if (!Mo.pulled || Mo.s < 0.5) return ev;
+  const lip = seatOf(Mo), err = Mo.s - Mo.len, side = Math.abs(Mo.x) * 0.5, e = Math.abs(err) + side, T = KM.TEF;
+  let grade, pts;
+  if (lip !== 'lip' && lip !== 'tiny' && e <= T) { grade = 'gold'; pts = KM.PTS.exact; }
+  else if (lip !== 'lip' && e <= 2 * T) { grade = 'good'; pts = KM.PTS.near; }
+  else { grade = 'ok'; pts = KM.PTS.far; }
+  const out = { k: 'seated', slab: P.i, grade, pts, lip, err: +err.toFixed(3), side: +side.toFixed(3), far: e > 2 * T };
+  if (lip === 'lip') { out.loss = KM.PTS.loss; S.lips++; S.dmg++; pts = 0; out.pts = 0; out.grade = null; }
+  if (P.rabuva) { const ok = Math.abs(err) <= KM.RABUVA[S.lv]; out.rabuva = ok ? 'open' : 'covered'; if (ok) pts += KM.PTS.rabuva; else { S.dmg++; out.rloss = KM.PTS.loss; } }
+  if (S.lv === 3 && S.tSlab <= KM.LIME) { out.lime = true; pts += KM.PTS.lime; }
+  S.pts += pts; S.n++; S.free = false;
+  Mo.seated = out; P.res = out;
+  S.streak = grade === 'gold' && lip === 'none' ? S.streak + 1 : 0;
+  ev.push(out);
+  S.k++; start(S);
+  if (S.k >= S.list.length) ev.push({ k: 'done' });
+  return ev;
+}
+export const done = (S) => S.k >= S.list.length;
+export function result(S) {
+  const q = S.max > 0 ? Math.max(0, Math.min(1, S.pts / S.max)) : 0;
+  const stars = S.dmg > 0 ? (q >= 0.7 ? 2 : 1) : q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1;
+  const perfect = S.dmg === 0 && S.list.every((p) => p.res && p.res.grade === 'gold' && p.res.lip === 'none');
+  return { pts: S.pts, max: S.max, q, stars, perfect, flags: { dmg: S.dmg, lips: S.lips, cracked: S.cracked, slabs: S.list.map((p) => (p.res ? [p.i, p.res.grade || 'lip', p.res.lip, p.res.rabuva || ''] : [p.i, '-'])) } };
+}
+export function save(S, id) { return { id, lv: S.lv, k: S.k, pts: S.pts, dmg: S.dmg, n: S.n, free: S.free, lips: S.lips, cracked: S.cracked, res: S.list.map((p) => p.res) }; }
+export function load(b) {
+  if (!b || !b.lv) return null;
+  const S = fresh(b.lv);
+  for (const k of ['pts', 'dmg', 'n', 'free', 'lips', 'cracked']) if (b[k] !== undefined) S[k] = b[k];
+  (b.res || []).forEach((r, j) => { if (S.list[j]) S.list[j].res = r; });
+  S.k = Math.min(S.list.length, b.k | 0); start(S);
+  return S;
+}

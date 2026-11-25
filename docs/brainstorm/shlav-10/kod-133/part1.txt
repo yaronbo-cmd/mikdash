@@ -1,0 +1,408 @@
+
+===== FILE: src/game/h133/model.js =====
+/* ── build 133 ── h133/model.js — stage 10 "גוף המזבח והכבש" (spec docs/specs/shlav-10-he.md, approved by Claude, ChatGPT and Gemini
+ * 24.11, by ירון's word "האיפיון המפורט יאושר על ידי שלושתכם"). Pure: no three.js, no DOM.
+ * The core of the stage's model: the plan and the save, the stage's flow, the flaw registry, the loss table, the one grading, the
+ * level's multiplier, the words. Each work's own rules live in its own pure file beside this one (nail-model.js, malben-model.js,
+ * kevesh-model.js, nima-model.js).
+ *
+ *   KINDS · PLAN · LEVELS · VISIT · STAGE_FLOW · NEEDS · MUL · LOSS · WORDS · TITLES · NEXT_STAGE
+ *   starsOf · qOf · lossPts · freshH133 · createH133(save) · stage(kind, lv, save) · slabOfBad(n) · SLABS_OF
+ *
+ * THE STAGE'S FLOW (spec "הסדר והחריגים"; ירון 18.11: a level per visit):
+ *   · round 1, every work at level 1: 1 (הציפורן) and 2 (המלבן) open from the stage's start; 3 (הכבש) waits for 1 (the kevesh's stones
+ *     are checked before they are built in: Rambam 1:14); 4 (מלא נימא) waits for 2 and 3 (the gap is between the kevesh and the altar).
+ *     After the four, the stage counts as built and the next opens; the climb (the finale) plays once, alone;
+ *   · after round 1 every station is open, each at its own next level (min(3, levels done + 1)); after the last it stays there;
+ *   · the per-work links (#nail1 … #nima3) keep every level reachable (M.autoTo): what a work needs before it stands as the crews'.
+ *
+ * The save (G.h133): { v, cur, done, res, plays, best, i, intro, film, crews, flaws: [{ f, work, lv, n, at, slab, corner, where }],
+ *   bestOf, stash, finale, champion, nail: { work }, malben: { work }, kevesh: { work }, nima: { work } }
+ *   · flaws stay in the world (rule 55): the loss table's damages, each where it happened. A dark line on a kevesh slab (a flawed stone
+ *     sent to the basket in work 1) stays until a play of work 3 re-seats that slab; a lip, a cracked slab, a covered rabuva are work 3's
+ *     own and are re-judged on the slabs a later play re-seats ("הושבה טובה מתקנת שפה שנשארה"); a crack on the sovev's step and a
+ *     scratch on the altar stay for good (spec "ביצוע חוזר": "עצירה טובה לא מוחקת שריטה ישנה").
+ * Units: amot, seconds. Nothing random at play time (rule 56). Every place is the book's (BOOK.s10).
+ */
+export const KINDS = Object.freeze(['nail', 'malben', 'kevesh', 'nima']);
+export const LEVELS = Object.freeze([1, 2, 3]);
+export const PLAN = Object.freeze(KINDS.flatMap((k) => LEVELS.map((lv) => ({ k, id: k + lv, lv }))).map((m, i) => Object.freeze({ ...m, n: i })));
+export const VISIT = Object.freeze({ first: 1, max: 3 });
+export const STAGE_FLOW = Object.freeze(KINDS.map((k) => k + VISIT.first));
+/** what each work needs done before it (spec "הסדר והחריגים") */
+export const NEEDS = Object.freeze({ nail: Object.freeze([]), malben: Object.freeze([]), kevesh: Object.freeze(['nail']), nima: Object.freeze(['malben', 'kevesh']) });
+/** the level's multiplier on everything (spec "המכפיל לפי רמה, על הכול": step, run, damage and the stage's bonuses) */
+export const MUL = Object.freeze([1, 1, 2, 4]);
+export const mulOf = (lv) => MUL[Math.max(1, Math.min(3, lv | 0 || 1))];
+/** the next stage (the end card after this one names it) */
+export const NEXT_STAGE = 'הקרנות';
+export const TITLES = Object.freeze({ nail: 'הציפורן', malben: 'המלבן במרכז', kevesh: 'הכבש', nima: 'מלא נימא' });
+export const ICONS = Object.freeze({ nail: '💅', malben: '🔲', kevesh: '⛰', nima: '🪶' });
+/** the full-screen word of a perfect work (spec, each work's "מילת ההצלחה") and the quick word (rule 64) */
+export const WORDS = Object.freeze({ nail: 'כשרה!', malben: 'עשרים ושמונה!', kevesh: 'חלק!', nima: 'סביב!', quick: 'מושלם!' });
+export const LINES = Object.freeze({ stage: 'שלב 10: גוף המזבח והכבש · הציפורן, המלבן, הכבש, מלא נימא' });
+
+/** the loss table (spec "טבלת ההפסד"): label and points at level 1 (×2 at level 2, ×4 at level 3) */
+export const LOSS = Object.freeze({
+  'nail.bad': ['אבן פגומה בכבש: קו כהה על לוח', 20],
+  'malben.crack': ['סדק בשפת הסובב', 20],
+  'kevesh.lip': ['מדרגה: קו צל על הכבש', 20],
+  'kevesh.cracked': ['לוח נסדק', 20],
+  'kevesh.rabuva': ['הרבובה מכוסה בחלקה', 20],
+  'nima.scratch': ['שריטה על פאת המזבח', 20],
+});
+export const FLAWS = Object.freeze(Object.keys(LOSS));
+export const lossPts = (f, lv = 1) => (LOSS[f] ? LOSS[f][1] * mulOf(lv) : 0);
+
+/* ───────── grades (the one system: 40 / 20 / 10 a step; the work's stars from its share of the most it could score) ───────── */
+export const starsOf = (q) => (q >= 0.9 ? 3 : q >= 0.7 ? 2 : 1);
+export const qOf = (pts, max) => (max > 0 ? Math.max(0, Math.min(1, pts / max)) : 0);
+
+/** which kevesh slab (1 … 6) a flawed stone sent to the basket ends in: the n-th (from 0), in the slabs' order, round and round */
+export const slabOfBad = (n) => ((Math.max(0, n | 0) % 6) + 1);
+/** the slabs each level of work 3 seats (level 1: the player seats 1–3, the crew 4–6 quickly on the first completion) */
+export const SLABS_OF = Object.freeze({ 1: Object.freeze([1, 2, 3]), 2: Object.freeze([1, 2, 3, 4, 5, 6]), 3: Object.freeze([1, 2, 3, 4, 5, 6]) });
+
+export function freshH133() {
+  return { v: 1, cur: null, done: [], res: {}, plays: {}, best: 0, i: 0, intro: 0, film: 0, crews: 0, flaws: [], bestOf: {}, stash: null, finale: 0, champion: 0,
+    nail: { work: null }, malben: { work: null }, kevesh: { work: null }, nima: { work: null } };
+}
+const byId = (id) => PLAN.find((m) => m.id === id) || null;
+const kindOfFlaw = (x) => String((x && x.f) || '').split('.')[0];
+const better = (a, b) => (a.stars | 0) > (b.stars | 0) || ((a.stars | 0) === (b.stars | 0) && (a.pts | 0) > (b.pts | 0));
+/** a kind's round-1 needs, deep (kevesh → nail; nima → malben, kevesh, nail) */
+export function needsDeep(k) { const out = []; const go = (q) => { for (const n of NEEDS[q] || []) { if (!out.includes(n)) { go(n); out.push(n); } } }; go(k); return out; }
+
+/** the world as a work of `kind` at level `lv` begins it, from the save: what stands (each by its own work, spec "מה עומד בעולם אחרי
+ *  כל השלמה ראשונה": every row depends on its own work only) and the flaws so far */
+export function stage(kind, lv, save) {
+  const st = save || {}, d = st.done || [], L = Math.max(1, Math.min(3, lv | 0 || 1));
+  const built = (k) => !!st.crews || d.some((id) => byId(id) && byId(id).k === k);
+  const out = { kind, lv: L, stock: built('nail'), upper: built('malben'), ramp: built('kevesh'), head: built('nima'), flaws: ((st.flaws) || []).map((x) => ({ ...x })) };
+  if (kind === 'kevesh') out.slabs = SLABS_OF[L].slice();
+  return out;
+}
+
+export function createH133(save) {
+  const st = save && save.v === 1 ? save : freshH133();
+  const F = freshH133();
+  for (const [k, v] of Object.entries(F)) if (st[k] === undefined) st[k] = v;
+  for (const k of KINDS) { if (!st[k] || typeof st[k] !== 'object') st[k] = { work: null }; if (st[k].work === undefined) st[k].work = null; }
+  if (!Array.isArray(st.flaws)) st.flaws = [];
+  if (!st.bestOf || typeof st.bestOf !== 'object') st.bestOf = {};
+  if (st.cur && !byId(st.cur)) st.cur = null;
+  const d = (id) => st.done.includes(id);
+  const kindDone = (k) => !!st.crews || KINDS.includes(k) && LEVELS.some((lv) => d(k + lv));
+  const roundOne = (k) => !!st.crews || d(k + VISIT.first);
+  /** flaws a play of `m` sets aside while it plays (they come back if he walks away; replaced by the play's own at its end) */
+  const replaced = (m, x) => {
+    if (m.k === 'kevesh') { const S = SLABS_OF[m.lv]; return (kindOfFlaw(x) === 'kevesh' && S.includes(x.slab | 0)) || (x.f === 'nail.bad' && S.includes(x.slab | 0)) || (kindOfFlaw(x) === 'kevesh' && x.f === 'kevesh.rabuva'); }
+    return false;
+  };
+  const M = {
+    st,
+    get plan() { return PLAN; },
+    isDone: d,
+    built: kindDone,
+    mission() { return st.cur ? byId(st.cur) : null; },
+    /** round 1's next work in the plan's order whose needs stand (null when round 1 is done) */
+    next() { if (st.crews) return null; const id = STAGE_FLOW.find((x) => !d(x) && NEEDS[byId(x).k].every(roundOne)); return id ? byId(id) : null; },
+    levelsDone(kind) { return LEVELS.filter((lv) => d(kind + lv)).length; },
+    nextLevel(kind) { return Math.min(VISIT.max, M.levelsDone(kind) + VISIT.first); },
+    visitOf(kind) { return byId(kind + M.nextLevel(kind)); },
+    round() { return M.finished() ? 2 : 1; },
+    /** a work can be picked: in round 1 a level-1 work whose needs stand; after round 1 any work whose level 1 is done before it */
+    canDo(m) {
+      if (!m) return false;
+      if (M.finished()) return m.lv === 1 || roundOne(m.k);
+      if (m.lv === 1) return !d(m.id) && NEEDS[m.k].every(roundOne);
+      return !d(m.id) && roundOne(m.k) && needsDeep(m.k).every(roundOne);
+    },
+    /** what the walk offers: in round 1 every level-1 work whose needs stand; after it every station at its next level */
+    open() { if (!M.finished()) return STAGE_FLOW.map(byId).filter((m) => !d(m.id) && M.canDo(m)); return KINDS.map((k) => M.visitOf(k)); },
+    pick(id) {
+      if (st.stash && st.cur) { st.flaws = [...st.flaws, ...st.stash.flaws]; st.stash = null; }
+      const m = id ? byId(id) : null; st.cur = m && M.canDo(m) ? m.id : null;
+      st.stash = null;
+      if (st.cur) { const out = st.flaws.filter((x) => replaced(m, x)); if (out.length) { st.stash = { k: m.k, flaws: out }; st.flaws = st.flaws.filter((x) => !replaced(m, x)); } }
+      return M.mission();
+    },
+    nDone() { return STAGE_FLOW.filter(d).length; },
+    count() { return [M.nDone(), STAGE_FLOW.length]; },
+    finished() { return !!st.crews || STAGE_FLOW.every(d); },
+    levelOf(m) { return m.lv | 0 || 1; },
+    stageOf(m) { const w = m || M.mission(); return w ? stage(w.k, w.lv, st) : null; },
+    shown: null,
+    filmOver() { M.shown = null; },
+    /* ── the flaw registry ── */
+    /** a flaw kept where it happened → its points at the open work's level (the director's X.loss takes them) */
+    flaw(f, o = {}) {
+      if (!LOSS[f]) return 0;
+      const m = M.mission(), lv = o.lv || (m && m.lv) || 1;
+      const x = { f, work: o.work || (m && m.id) || null, lv, n: o.n | 0, at: o.at == null ? null : o.at, slab: o.slab | 0, corner: o.corner || null, where: o.where || null };
+      if (f === 'nail.bad') x.slab = slabOfBad(st.flaws.filter((q) => q.f === 'nail.bad').length + (st.stash ? st.stash.flaws.filter((q) => q.f === 'nail.bad').length : 0));
+      st.flaws.push(x);
+      return lossPts(f, lv);
+    },
+    flaws(f) { return st.flaws.filter((x) => !f || x.f === f); },
+    clearFlaws(id) { st.flaws = st.flaws.filter((x) => x.work !== id); },
+    workOf(kind) { return (st[kind] && st[kind].work) || null; },
+    keep(kind, blob) { if (st[kind]) st[kind].work = blob == null ? null : blob; },
+    resultOf(id) { return st.res[id] || null; },
+    done(res = {}) {
+      const m = M.mission(); if (!m) return null;
+      const r = { stars: Math.max(0, Math.min(3, res.stars | 0)), q: +(res.q || 0), pts: res.pts | 0, flags: res.flags || {}, loss: res.loss | 0 };
+      if (!st.res[m.id] || better(r, st.res[m.id])) st.res[m.id] = r;
+      const was = st.bestOf[m.k]; if (!was || better(r, was)) st.bestOf[m.k] = { id: m.id, stars: r.stars, pts: r.pts };
+      st.stash = null;   // (the play's own flaws stand: a good seating mends a lip, a new one is the new one)
+      st.plays[m.id] = (st.plays[m.id] | 0) + 1;
+      if (!d(m.id)) st.done.push(m.id);
+      if (st[m.k]) st[m.k].work = null;
+      st.cur = null; st.i = st.done.length; M.shown = m.k;
+      return null;
+    },
+    /** the champion's seal (spec "חותם האלוף"): the last work of the stage done at level 3 — once */
+    championDue() { return !st.champion && KINDS.every((k) => d(k + 3)); },
+    /** the links: the first work `want` takes; what it needs before it (round 1's works it depends on, and its own level 1) as the crews' */
+    autoTo(want) {
+      const off = PLAN.find((m) => !d(m.id) && want(m)) || PLAN.find(want) || null;
+      if (!off) return null;
+      const need = [...needsDeep(off.k).map((k) => k + 1), ...(off.lv > 1 ? [off.k + 1] : [])];
+      for (const id of need) if (!d(id)) { st.cur = id; M.done({ stars: 2, pts: 20 }); }
+      M.shown = null;
+      if (d(off.id) && !M.finished()) { /* (a level played again from its link before round 1 is done) */ st.cur = off.id; st.stash = null; return M.mission(); }
+      return M.pick(off.id);
+    },
+    progress() { return Math.min(1, M.nDone() / STAGE_FLOW.length); },
+    streak(n) { if (n > st.best) st.best = n; return st.best; },
+  };
+  return M;
+}
+/** a save whose old stage 10 (the old game's 'guf') was done: the new stage stands built by the crews */
+export function fromOld(oldDone) { const st = freshH133(); if (oldDone) { st.crews = 1; st.finale = 1; } return st; }
+
+===== FILE: src/game/h133/pack.js =====
+/* ── build 133 ── h133/pack.js — stage 10 "גוף המזבח והכבש" (spec docs/specs/shlav-10-he.md) as a pack for the stage director
+ * (h109/director.js `pack`): its plan and save (model.js createH133: a level per visit), its acts (acts.js), its world (world.js);
+ * the opening (rule 3: where am I — the altar from the south-east, the kevesh's site in its scaffold; a tap skips it); the climb (spec
+ * "סיום השלב: העלייה הראשונה", once, alone, no points): one swipe of salt over the kevesh on the path he will walk, then the kohen goes up
+ * with a bundle of wood led by the left thumb (off the salt he slips a little and slows — no penalty), lays the wood on the fire's
+ * place, the camera opens to the whole Mount, fireworks fill the screen; then the result card (what stands in the world, every flaw
+ * in its place) with one button "שוב, לשיפור" that names the work with the fewest stars.
+ */
+import { h131Card } from '../h131/card.js';
+import { PLAN, LINES, NEXT_STAGE, TITLES, KINDS, LOSS, createH133, fromOld } from './model.js';
+import { ACTS } from './acts.js';
+import { SH10, initWorld, finalWorld, restWorld, mats10 } from './world.js';
+import { filmFigs } from '../h128/figgate.js';
+import { createGang, createBeat, onPlane } from '../h109/kit.js';
+import { box } from '../h131/world.js';
+import { BOOK } from '../world/grid.js';
+
+const S10 = BOOK.s10, CAM = S10.cam, END = CAM.end, R = S10.ramp, F = S10.floor, Y1 = S10.top, MID = S10.mid;
+const near = (X, on) => { try { if (X.view && X.view.closeCam) X.view.closeCam(!!on, 'h133-film'); } catch (e) { /* */ } };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const beat = (X, ms) => (X && X.wait ? X.wait(ms / 1000) : sleep(ms));
+function tapOr(X, ms) {
+  return new Promise((res) => {
+    let done = false; const f = () => { if (done) return; done = true; removeEventListener('pointerdown', f, true); res(true); };
+    setTimeout(() => addEventListener('pointerdown', f, true), 250);
+    beat(X, ms).then(() => { if (!done) { done = true; removeEventListener('pointerdown', f, true); res(false); } });
+  });
+}
+/** the end's round over the altar and the kevesh (cam:end: a circle round the middle) */
+export function endRound(n = 4) {
+  const [cx, cz] = END.c, out = [];
+  for (let i = 0; i < n; i++) { const a = Math.PI / 4 + (i / n) * Math.PI * 2; out.push([[cx + Math.cos(a) * END.R, END.y, cz + Math.sin(a) * END.R], [cx, Y1, cz + 8], 2.2]); }
+  return out;
+}
+/** an old save whose old stage 10 ('guf') was done: the new stage stands built by the crews */
+export function migrate10(G, oldDone) {
+  if (!G || G.h133) return false;
+  if (!oldDone) return false;
+  G.h133 = fromOld(true); return true;
+}
+const frames = (fn) => new Promise((res) => { let last = performance.now(); const cap = globalThis.__H133_AUTO_CLIMB ? 1 : 0.1; /* (a probe on a slow machine: the frame as long as it was) */ const go = (ms) => { const dt = Math.min(cap, (ms - last) / 1000); last = ms; if (fn(dt)) res(); else requestAnimationFrame(go); }; requestAnimationFrame(go); });
+
+/** the climb: salt, the kohen up with the wood, the wood on the fire's place → resolves when the wood lies there */
+export async function climb(X, opts = {}) {
+  const T = X.THREE, Mt = mats10(X), root = new T.Group(); root.name = 'h133-climb'; X.props.root.add(root);
+  const C = { salt: null, k: null, t: 0, idle: 0, held: null, x: (R.x0 + R.x1) / 2, z: R.foot + 1.5, done: false, slip: 0 };
+  try { globalThis.__H133_CLIMB = C; } catch (e) { /* (the probes' eyes) */ }
+  // 1. one swipe of salt on the kevesh, on the path he will walk
+  X.shot([-38, F + 7, R.foot + 13], [-38, 21, 22], 0.9);
+  X.line('העלייה הראשונה: גרירה אחת על הכבש, לזרוק מלח על המסלול', 0);
+  const sw = await new Promise((res) => {
+    let p0 = null; const dn = (e) => { if (e.target && e.target.closest && e.target.closest('button,.gm-top,.gm-menu,.gm-modal')) return; p0 = { x: e.clientX, y: e.clientY }; };
+    const up = (e) => { if (!p0) return; const d = Math.hypot(e.clientX - p0.x, e.clientY - p0.y); if (d < 50) { p0 = null; return; } off(); res([p0, { x: e.clientX, y: e.clientY }]); };
+    const off = () => { removeEventListener('pointerdown', dn, true); removeEventListener('pointerup', up, true); };
+    addEventListener('pointerdown', dn, true); addEventListener('pointerup', up, true);
+    beat(X, opts.auto ? 600 : 9000).then(() => { off(); res(null); });
+  });
+  let xs = [-39.5, -36.5];
+  if (sw) { const a = onPlane(X, sw[0].x, sw[0].y, 20), b = onPlane(X, sw[1].x, sw[1].y, 20); if (a && b) { const lo = Math.max(R.x0 + 0.5, Math.min(a.x, b.x)), hi = Math.min(R.x1 - 0.5, Math.max(a.x, b.x)); if (hi - lo >= 0.6) xs = [lo, hi]; else xs = [Math.max(R.x0 + 0.5, lo - 1.2), Math.min(R.x1 - 0.5, lo + 1.2)]; } }
+  C.salt = xs;
+  for (let z = R.foot; z > R.head + 0.2; z -= 1) { const y = S10.rampY(z - 0.5); const s = box(X, Mt.y10salt, xs[0], y + 0.01, z - 1, xs[1], y + 0.04, z, root); s.rotation.x = -Math.atan(9 / 32); }
+  try { X.dust((xs[0] + xs[1]) / 2, S10.rampY(30) + 0.5, 30, 18, 8); } catch (e) { /* */ }
+  // 2. the kohen with the wood: the left thumb held leads him up; its side steers; off the salt he slips and slows
+  const Bt = createBeat(X), gang = createGang(X);
+  const k = gang.add(C.x, C.z, { role: 'carry', variant: 'kohen', item: 'log', fx: C.x, fz: C.z - 5 }); if (k && k.a) { k.a.fixedY = F; try { gang.setRole(k, 'hold', { item: 'log' }); } catch (e) { /* */ } }
+  // the crews along the kevesh, cheering
+  const crew = []; for (let i = 0; i < 6; i++) { const z = 40 - i * 5, side = i % 2 ? R.x0 - 1.4 : R.x1 + 1.4; const w = gang.add(side, z, { role: 'point', crew: i, fx: -38, fz: z }); if (w && w.a) w.a.fixedY = F; crew.push(w); }
+  X.line('החזק את האגודל: הכהן עולה עם צרור העצים. במלח הוא לא מחליק', 2600);
+  const dn = (e) => { if (e.target && e.target.closest && e.target.closest('button,.gm-top,.gm-menu,.gm-modal')) return; C.held = { id: e.pointerId, x: e.clientX }; };
+  const mv = (e) => { if (C.held && e.pointerId === C.held.id) C.held.x = e.clientX; };
+  const up = (e) => { if (C.held && e.pointerId === C.held.id) C.held = null; };
+  addEventListener('pointerdown', dn, true); addEventListener('pointermove', mv, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+  near(X, true);
+  await frames((dt) => {
+    C.t += dt; Bt.step(dt); gang.update(dt, Bt);
+    const auto = opts.auto || C.idle > 8;
+    if (!C.held) C.idle += dt; else C.idle = 0;
+    if (C.held || auto) {
+      if (C.held) { const w = innerWidth || 1, want = R.x0 + 1 + ((C.held.x / w) * 1.6 - 0.3) * (R.x1 - R.x0 - 2); C.x += Math.max(-1, Math.min(1, (Math.max(R.x0 + 1, Math.min(R.x1 - 1, want)) - C.x))) * dt * 2.5; }
+      else C.x += ((C.salt[0] + C.salt[1]) / 2 - C.x) * dt;
+      const onSalt = C.z > R.foot || (C.x >= C.salt[0] - 0.3 && C.x <= C.salt[1] + 0.3);
+      if (!onSalt) C.slip = Math.min(1, C.slip + dt * 3); else C.slip = Math.max(0, C.slip - dt * 2);
+      const sp = 2.4 * (1 - 0.55 * C.slip);
+      if (C.z > R.head) C.z -= sp * dt; else { const dx = MID[0] - C.x, dz = MID[1] - C.z, L = Math.hypot(dx, dz); if (L > 0.6) { C.x += (dx / L) * 2.4 * dt; C.z += (dz / L) * 2.4 * dt; } else C.done = true; }
+    }
+    const y = C.z <= R.head ? Y1 : C.z >= R.foot ? F : S10.rampY(C.z);
+    if (k && k.a) { k.a.x = C.x + Math.sin(C.t * 9) * 0.12 * C.slip; k.a.z = C.z; k.a.fixedY = y; k.a.yaw = Math.PI; k.stride = (C.held || auto) && !C.done ? 0.8 : 0; k.rate = 1.2; }
+    X.shot([C.x + 1.5, y + 4.2, C.z + 9], [C.x, y + 1.4, C.z - 5], 0.01);
+    return C.done;
+  });
+  removeEventListener('pointerdown', dn, true); removeEventListener('pointermove', mv, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true);
+  // 3. the wood on the fire's place; the camera opens to the whole Mount; fireworks fill the screen
+  X.line('', 0);
+  return { root, gang, crew };
+}
+/** fireworks over the altar (fixed places, three volleys) */
+async function fireworks(X) {
+  const P = [[0, 30, 0], [-12, 36, -8], [12, 34, 6], [-6, 42, 10], [8, 40, -12], [0, 48, 0], [-16, 44, 4], [16, 46, -4], [0, 38, 14]];
+  for (let i = 0; i < P.length; i++) { const p = P[i]; try { X.sparks(MID[0] + p[0], p[1], MID[1] + p[2], 46); X.dust(MID[0] + p[0], p[1], MID[1] + p[2], 4, 8); if (X.play) X.play('fanfare', { level: 3 }); } catch (e) { /* */ } await beat(X, 330); }
+}
+/** the result card: what stands in the world, every flaw in its place; one button "שוב, לשיפור" (the work with the fewest stars) */
+function resultCard(M) {
+  return new Promise((res) => {
+    if (typeof document === 'undefined') { res(null); return; }
+    const st = M.st, best = st.bestOf || {}, row = (k) => { const b = best[k]; const s = b ? b.stars | 0 : 0; return `<li><b>${TITLES[k]}</b> <i>${'★'.repeat(s)}${'☆'.repeat(3 - s)}</i></li>`; };
+    const fl = {}; for (const x of st.flaws || []) fl[x.f] = (fl[x.f] | 0) + 1;
+    const fls = Object.keys(fl).map((f) => `<li>${LOSS[f][0]}${fl[f] > 1 ? ` ×${fl[f]}` : ''}</li>`).join('') || '<li>אין פגמים בעולם</li>';
+    const low = KINDS.slice().sort((a, b) => ((best[a] ? best[a].stars : 0) - (best[b] ? best[b].stars : 0)))[0];
+    const el = document.createElement('div'); el.className = 'h109-ui h133-card';
+    el.innerHTML = `<style>.h133-card{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(14,10,4,.42);font-family:Heebo,system-ui;direction:rtl}.h133-card>div{background:#FBF6EA;color:#3A2A14;border-radius:16px;padding:16px 22px;width:min(92vw,520px);box-shadow:0 8px 30px rgba(0,0,0,.35)}.h133-card h3{margin:0 0 6px;font-size:22px}.h133-card ul{margin:4px 0 10px;padding:0 18px;font-size:16px;line-height:1.45}.h133-card i{color:#C08A1A;font-style:normal;letter-spacing:1px}.h133-card button{font:800 18px Heebo,system-ui;border:0;border-radius:12px;padding:10px 18px;margin-inline-end:8px;background:#C08A1A;color:#fff}.h133-card button.b{background:#E8DCC2;color:#3A2A14}</style>`
+      + `<div><h3>גוף המזבח והכבש</h3><ul>${KINDS.map(row).join('')}</ul><b>מה נשאר בעולם</b><ul>${fls}</ul><button class="a">שוב, לשיפור: ${TITLES[low]}</button><button class="b">להמשיך</button></div>`;
+    document.body.appendChild(el);
+    const close = (v) => { try { el.remove(); } catch (e) { /* */ } res(v); };
+    el.querySelector('.a').addEventListener('click', (e) => { e.stopPropagation(); close(low); });
+    el.querySelector('.b').addEventListener('click', (e) => { e.stopPropagation(); close(null); });
+    setTimeout(() => close(null), 20000);
+  });
+}
+
+export function makePack10(env = {}) {
+  const RD = endRound();
+  const P = {
+    time: env,
+    id: 'guf', key: 'h133', wordScreen: true,
+    name: 'גוף המזבח והכבש', PLAN, ACTS, icon: '⛰',
+    create: (save) => createH133(save),
+    count: (M) => M.count(),
+    freeFilms: true,
+    workLinks: true,
+    workSeed(M, id) { M.clearFlaws(id); },
+    quiet: true,
+    byPlan: true,
+    endTitle: 'גוף המזבח והכבש נבנו!',
+    upStrip: true,
+    endSub: 'וכבש היה לדרום המזבח, שלושים ושתיים על רוחב שש עשרה (מידות ג, ג)',
+    nextStage: NEXT_STAGE,
+    endView: [RD[0][0], RD[0][1]],
+    film: endRound(3),
+    sync(M, S0, instant, X) { if (!X || !SH10.X) return; if (M.finished() && !M.mission()) finalWorld(X); },
+    visits: true,
+    unitEnd: () => null,
+    /** the opening (rule 3): from the south-east over the court, down to the altar and the kevesh's site in its scaffold; a tap skips it */
+    before(m, X, M) {
+      try { globalThis.__H133_X = X; } catch (e) { /* (the probes: the hero to a station) */ }
+      const st = M.st;
+      if (m || st.intro) return null;
+      return (async () => {
+        st.intro = 1; X.save(); near(X, true);
+        const acting = () => { try { return !!(X.acting && X.acting()); } catch (e) { return false; } };
+        X.line(LINES.stage, 0);
+        const shots = [[RD[0][0], RD[0][1]], CAM.open];
+        for (let i = 0; i < shots.length; i++) {
+          if (acting()) break;
+          X.shot(shots[i][0].slice(), shots[i][1].slice(), i ? 2.6 : 0.01);
+          if (await tapOr(X, i ? 3000 : 2200)) break;
+        }
+        if (!acting()) X.line('');
+        if (!acting()) { try { X.stages.hero.place({ x: S10.start[0], z: S10.start[1], face: [-38, 20] }); } catch (e) { /* */ } }
+        near(X, false);
+      })();
+    },
+    /** the climb (once, alone, no points), the fireworks, the result card */
+    async finale(X) {
+      const M = X.M, st = M.st; finalWorld(X);
+      let figsBack = null; try { figsBack = filmFigs({}); } catch (e) { figsBack = null; }
+      try { X.kohen(false); } catch (e) { /* */ }
+      let C = null;
+      if (!st.finale) {
+        try { C = await climb(X, { auto: !!globalThis.__H133_AUTO_CLIMB }); } catch (e) { console.warn('[h133] climb', e && e.message); }
+        st.finale = 1; X.save(); SH10.key = ''; finalWorld(X);
+      }
+      try { X.shot([MID[0] + 48, 62, MID[1] + 58], [MID[0], 20, MID[1] + 10], 2.0); await beat(X, 1600); await fireworks(X); } catch (e) { /* */ }
+      if (C) { try { C.gang.clear(); } catch (e) { /* */ } try { X.props.remove(C.root); } catch (e) { /* */ } }
+      near(X, false);
+      const low = await resultCard(M);
+      if (low) { try { X.line(`שוב, לשיפור: ${TITLES[low]}. התחנה מחכה ברמה הבאה`, 4000); } catch (e) { /* */ } }
+      h131Card(true);
+      if (figsBack) SH10.figsBack = figsBack;
+    },
+    rest(X, M) { restWorld(X, M); },
+    dispose() {},
+  };
+  void initWorld;
+  return P;
+}
+
+===== FILE: src/game/h133/acts.js =====
+/* ── build 133 ── h133/acts.js — the acts of stage 10 "גוף המזבח והכבש" (spec docs/specs/shlav-10-he.md), the registry the pack shares:
+ *   ACTS[k] = { icon, title, walkLine(m, X), stand(m, X) → { x, z, face }, prepare(m, X), make(m, X) → act }
+ * The works, each in its own file: הציפורן (nail.js), המלבן במרכז (malben.js), הכבש (kevesh.js), מלא נימא (nima.js). The world of all of
+ * them: world.js, drawn from the save. The champion's seal (spec "חותם האלוף"): the last work of the stage done at level 3 — giant
+ * fireworks at the seal by the kevesh's foot, every crew cheering, a bonus of 2,000 once.
+ */
+import { NAIL_ACT } from './nail.js';
+import { MALBEN_ACT } from './malben.js';
+import { KEVESH_ACT } from './kevesh.js';
+import { NIMA_ACT } from './nima.js';
+import { initWorld, frameWorld, SH10 } from './world.js';
+import { BOOK } from '../world/grid.js';
+
+const S10 = BOOK.s10;
+function champion(dt, X) {
+  const M = X.M; if (!M || !M.championDue) return;
+  const C = SH10.champ;
+  if (!C) {
+    if (!M.championDue() || M.mission()) return;
+    M.st.champion = 1; X.save(); SH10.key = '';
+    try { if (X.bonus) X.bonus(2000, 'champion', 'חותם האלוף'); } catch (e) { /* */ }
+    try { X.perfect('חותם האלוף!', { x: S10.champion[0], y: S10.floor + 2, z: S10.champion[1] }); } catch (e) { /* */ }
+    SH10.champ = { t: 0, n: 0 };
+    return;
+  }
+  C.t += dt;
+  // (the giant fireworks: bursts over the seal and the kevesh, three seconds; fixed places, no draw)
+  const P = [[0, 18, 0], [-8, 24, -6], [7, 22, -10], [-14, 28, -18], [12, 26, -22], [0, 32, -14]];
+  while (C.n < P.length && C.t > C.n * 0.45) { const p = P[C.n++]; try { X.sparks(S10.champion[0] + p[0], S10.floor + p[1], S10.champion[1] + p[2], 40); X.dust(S10.champion[0] + p[0], S10.floor + p[1], S10.champion[1] + p[2], 6, 6); } catch (e) { /* */ } }
+  if (C.t > 4) SH10.champ = null;
+}
+export const ACTS = {
+  nail: NAIL_ACT, malben: MALBEN_ACT, kevesh: KEVESH_ACT, nima: NIMA_ACT,
+  __init: initWorld,
+  __sh: () => SH10,
+  __frame(dt, X) { frameWorld(dt, X); try { champion(dt, X); } catch (e) { /* */ } },
+};
